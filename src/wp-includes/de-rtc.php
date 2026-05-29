@@ -35,6 +35,10 @@ function wp_de_rtc_get_reason_codes() {
 		'de_rtc_malformed_sync_payload'                => 400,
 		'de_rtc_unknown_sync_meta_format'              => 400,
 		'de_rtc_presence_storage_unavailable'          => 503,
+		'de_rtc_review_item_storage_unavailable'       => 503,
+		'de_rtc_review_item_limit_exceeded'            => 429,
+		'de_rtc_review_item_payload_too_large'         => 413,
+		'de_rtc_review_item_not_found'                 => 404,
 		'de_rtc_storage_failure'                       => 500,
 	);
 }
@@ -558,6 +562,73 @@ function wp_de_rtc_register_rest_routes() {
 							),
 						),
 					),
+				),
+			)
+		);
+
+		register_rest_route(
+			'wp/v2',
+			'/' . $rest_base . '/(?P<id>[\d]+)/distributed-editing/review-items',
+			array(
+				'args' => array(
+					'id' => array(
+						'description' => __( 'Unique identifier for the post.' ),
+						'type'        => 'integer',
+					),
+				),
+				array(
+					'methods'             => WP_REST_Server::READABLE,
+					'callback'            => 'wp_de_rtc_rest_review_items_list_endpoint',
+					'permission_callback' => 'wp_de_rtc_rest_review_items_permissions_check',
+				),
+			)
+		);
+
+		register_rest_route(
+			'wp/v2',
+			'/' . $rest_base . '/(?P<id>[\d]+)/distributed-editing/review-items/(?P<review_item_id>[A-Za-z0-9_-]+)',
+			array(
+				'args' => array(
+					'id' => array(
+						'description' => __( 'Unique identifier for the post.' ),
+						'type'        => 'integer',
+					),
+					'review_item_id' => array(
+						'description' => __( 'Opaque Distributed Editing review item identifier.' ),
+						'type'        => 'string',
+					),
+				),
+				array(
+					'methods'             => WP_REST_Server::READABLE,
+					'callback'            => 'wp_de_rtc_rest_review_item_detail_endpoint',
+					'permission_callback' => 'wp_de_rtc_rest_review_items_permissions_check',
+				),
+			)
+		);
+
+		register_rest_route(
+			'wp/v2',
+			'/' . $rest_base . '/(?P<id>[\d]+)/distributed-editing/review-items/(?P<review_item_id>[A-Za-z0-9_-]+)/(?P<review_item_action>reject|discard)',
+			array(
+				'args' => array(
+					'id' => array(
+						'description' => __( 'Unique identifier for the post.' ),
+						'type'        => 'integer',
+					),
+					'review_item_id' => array(
+						'description' => __( 'Opaque Distributed Editing review item identifier.' ),
+						'type'        => 'string',
+					),
+					'review_item_action' => array(
+						'description' => __( 'Review item resolution action.' ),
+						'type'        => 'string',
+						'enum'        => array( 'reject', 'discard' ),
+					),
+				),
+				array(
+					'methods'             => WP_REST_Server::CREATABLE,
+					'callback'            => 'wp_de_rtc_rest_review_item_resolution_endpoint',
+					'permission_callback' => 'wp_de_rtc_rest_review_items_permissions_check',
 				),
 			)
 		);
@@ -2595,6 +2666,1087 @@ function wp_de_rtc_cleanup_presence_records( $args = array() ) {
 }
 
 /**
+ * Returns the Distributed Editing review-items table name for the current site.
+ *
+ * @since 7.1.0
+ *
+ * @return string Review items table name.
+ */
+function wp_de_rtc_get_review_items_table_name() {
+	global $wpdb;
+
+	return $wpdb->prefix . 'de_rtc_review_items';
+}
+
+/**
+ * Returns the current Distributed Editing review-items schema version.
+ *
+ * @since 7.1.0
+ *
+ * @return string Review item schema version.
+ */
+function wp_de_rtc_get_review_items_schema_version() {
+	return '1';
+}
+
+/**
+ * Returns the maximum stored source bytes for one review-required block.
+ *
+ * @since 7.1.0
+ *
+ * @return int Maximum source bytes.
+ */
+function wp_de_rtc_get_review_item_max_source_bytes() {
+	return 262144;
+}
+
+/**
+ * Returns the maximum pending review items retained for one post.
+ *
+ * @since 7.1.0
+ *
+ * @return int Pending review item limit.
+ */
+function wp_de_rtc_get_review_items_per_post_limit() {
+	return 20;
+}
+
+/**
+ * Returns the maximum pending review items retained for one proposer.
+ *
+ * @since 7.1.0
+ *
+ * @return int Pending review item limit.
+ */
+function wp_de_rtc_get_review_items_per_proposer_limit() {
+	return 5;
+}
+
+/**
+ * Returns the review item pending TTL in seconds.
+ *
+ * @since 7.1.0
+ *
+ * @return int Pending item TTL.
+ */
+function wp_de_rtc_get_review_items_pending_ttl_seconds() {
+	return 7 * DAY_IN_SECONDS;
+}
+
+/**
+ * Returns the bounded review item cleanup batch limit.
+ *
+ * @since 7.1.0
+ *
+ * @return int Cleanup batch limit.
+ */
+function wp_de_rtc_get_review_items_cleanup_batch_limit() {
+	return 100;
+}
+
+/**
+ * Returns the WordPress review-item storage schema contract.
+ *
+ * Review-required source is intentionally outside post_content because the post
+ * body must remain the durable safe authority. The table stores source encoded
+ * for transport safety, bounds pending rows, and expires proposals so review
+ * cannot become unbounded durable user content.
+ *
+ * @since 7.1.0
+ *
+ * @return array Review item storage schema contract.
+ */
+function wp_de_rtc_get_review_items_storage_schema() {
+	global $wpdb;
+
+	$table_name      = wp_de_rtc_get_review_items_table_name();
+	$schema_version  = wp_de_rtc_get_review_items_schema_version();
+	$charset_collate = $wpdb->get_charset_collate();
+	$create_sql      = "CREATE TABLE $table_name (
+review_item_id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+public_id varchar(64) NOT NULL DEFAULT '',
+logical_key_hash char(64) NOT NULL DEFAULT '',
+post_id bigint(20) unsigned NOT NULL DEFAULT 0,
+post_type varchar(20) NOT NULL DEFAULT '',
+proposer_user_id bigint(20) unsigned NOT NULL DEFAULT 0,
+proposer_actor_hash char(64) NOT NULL DEFAULT '',
+proposer_display_name varchar(191) NOT NULL DEFAULT '',
+status varchar(20) NOT NULL DEFAULT 'pending',
+required_capability varchar(64) NOT NULL DEFAULT 'unfiltered_html',
+base_sync_version varchar(191) NOT NULL DEFAULT '',
+server_sync_version varchar(191) NOT NULL DEFAULT '',
+base_content_hash char(64) NOT NULL DEFAULT '',
+proposed_content_hash char(64) NOT NULL DEFAULT '',
+kses_filtered_content_hash char(64) NOT NULL DEFAULT '',
+block_anchor_hash char(64) NOT NULL DEFAULT '',
+block_path varchar(191) NOT NULL DEFAULT '',
+block_name varchar(191) NOT NULL DEFAULT '',
+block_label varchar(191) NOT NULL DEFAULT '',
+change_kind varchar(32) NOT NULL DEFAULT '',
+risk_reason varchar(64) NOT NULL DEFAULT '',
+encoded_proposed_source longtext NOT NULL,
+encoded_kses_filtered_source longtext NOT NULL,
+proposed_source_length bigint(20) unsigned NOT NULL DEFAULT 0,
+kses_filtered_source_length bigint(20) unsigned NOT NULL DEFAULT 0,
+render_as varchar(20) NOT NULL DEFAULT 'text',
+executable tinyint(1) unsigned NOT NULL DEFAULT 0,
+created_at_gmt datetime NOT NULL,
+updated_at_gmt datetime NOT NULL,
+expires_at_gmt datetime NOT NULL,
+resolved_at_gmt datetime DEFAULT NULL,
+resolved_by bigint(20) unsigned NOT NULL DEFAULT 0,
+resolution_action varchar(20) NOT NULL DEFAULT '',
+PRIMARY KEY  (review_item_id),
+UNIQUE KEY public_id (public_id),
+UNIQUE KEY logical_key_hash (logical_key_hash),
+KEY post_status_expires (post_id,status,expires_at_gmt),
+KEY proposer_status (proposer_user_id,status),
+KEY expires_at_gmt (expires_at_gmt)
+) $charset_collate;";
+
+	return array(
+		'schema'                            => 'de-rtc-review-items-v1',
+		'schema_version'                    => $schema_version,
+		'storage_kind'                      => 'dedicated_review_item_table',
+		'table_name'                        => $table_name,
+		'base_table_name'                   => 'de_rtc_review_items',
+		'primary_key'                       => 'review_item_id',
+		'create_sql'                        => $create_sql,
+		'pending_ttl_seconds'               => wp_de_rtc_get_review_items_pending_ttl_seconds(),
+		'per_post_pending_limit'            => wp_de_rtc_get_review_items_per_post_limit(),
+		'per_proposer_pending_limit'        => wp_de_rtc_get_review_items_per_proposer_limit(),
+		'max_source_bytes'                  => wp_de_rtc_get_review_item_max_source_bytes(),
+		'cleanup_batch_limit'               => wp_de_rtc_get_review_items_cleanup_batch_limit(),
+		'stores_raw_content_in_post_content' => false,
+		'stored_source_encoding'            => 'base64url',
+		'detail_transport'                  => 'html_escaped_text',
+		'ephemeral'                         => true,
+		'bounded'                           => true,
+	);
+}
+
+/**
+ * Installs or updates the Distributed Editing review-items table.
+ *
+ * @since 7.1.0
+ *
+ * @return array Install result.
+ */
+function wp_de_rtc_install_review_items_table() {
+	$schema              = wp_de_rtc_get_review_items_storage_schema();
+	$table_exists_before = wp_de_rtc_review_items_table_exists();
+
+	if ( ! function_exists( 'dbDelta' ) ) {
+		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
+	}
+
+	$db_delta           = dbDelta( $schema['create_sql'] );
+	$table_exists_after = wp_de_rtc_review_items_table_exists();
+
+	if ( $table_exists_after ) {
+		update_option( 'wp_de_rtc_review_items_schema_version', $schema['schema_version'] );
+	}
+
+	return array(
+		'result'                            => $table_exists_after ? ( $table_exists_before ? 'review_items_table_upgrade_checked' : 'review_items_table_installed' ) : 'review_items_table_install_failed',
+		'table_name'                        => $schema['table_name'],
+		'schema_version'                    => $schema['schema_version'],
+		'table_exists_before'               => $table_exists_before,
+		'table_exists_after'                => $table_exists_after,
+		'uses_db_delta'                     => true,
+		'db_delta'                          => $db_delta,
+		'option_updated'                    => $table_exists_after,
+		'stores_raw_content_in_post_content' => false,
+		'stored_source_encoding'            => 'base64url',
+		'ephemeral'                         => true,
+		'bounded'                           => true,
+		'saves_post'                        => false,
+		'mutates_post_content'              => false,
+		'creates_revision'                  => false,
+		'changes_post_lock'                 => false,
+		'claims_saved'                      => false,
+	);
+}
+
+/**
+ * Returns whether the Distributed Editing review-items table exists.
+ *
+ * @since 7.1.0
+ *
+ * @return bool Whether the table exists.
+ */
+function wp_de_rtc_review_items_table_exists() {
+	global $wpdb;
+
+	$table_name = wp_de_rtc_get_review_items_table_name();
+
+	return $table_name === $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $wpdb->esc_like( $table_name ) ) );
+}
+
+/**
+ * Returns whether the review-items table matches the current schema contract.
+ *
+ * @since 7.1.0
+ *
+ * @return bool Whether the table schema is current.
+ */
+function wp_de_rtc_review_items_table_schema_current() {
+	return wp_de_rtc_review_items_table_exists() && (string) get_option( 'wp_de_rtc_review_items_schema_version', '' ) === (string) wp_de_rtc_get_review_items_schema_version();
+}
+
+/**
+ * Encodes review-required source for storage.
+ *
+ * Base64url is obfuscation and transport hardening, not authorization. The
+ * authorization boundary is still the review-items REST permission checks.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param string $source Source text.
+ * @return string Encoded source.
+ */
+function wp_de_rtc_base64url_encode( $source ) {
+	return rtrim( strtr( base64_encode( (string) $source ), '+/', '-_' ), '=' );
+}
+
+/**
+ * Decodes review-required source from storage.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param string $encoded Encoded source.
+ * @return string Decoded source, or an empty string on malformed input.
+ */
+function wp_de_rtc_base64url_decode( $encoded ) {
+	$encoded = (string) $encoded;
+	$padded  = strtr( $encoded, '-_', '+/' );
+	$padding = strlen( $padded ) % 4;
+
+	if ( $padding ) {
+		$padded .= str_repeat( '=', 4 - $padding );
+	}
+
+	$decoded = base64_decode( $padded, true );
+
+	return false === $decoded ? '' : $decoded;
+}
+
+/**
+ * Generates an opaque public review item identifier.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @return string Public review item ID.
+ */
+function wp_de_rtc_generate_review_item_public_id() {
+	try {
+		$random = bin2hex( random_bytes( 16 ) );
+	} catch ( Exception $exception ) {
+		$random = substr( hash( 'sha256', wp_generate_password( 64, true, true ) . microtime( true ) ), 0, 32 );
+	}
+
+	return 'de-rtc-review-' . substr( $random, 0, 32 );
+}
+
+/**
+ * Sanitizes an opaque public review item identifier.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param mixed $public_id Public review item ID.
+ * @return string Sanitized review item ID, or empty string.
+ */
+function wp_de_rtc_sanitize_review_item_public_id( $public_id ) {
+	$public_id = sanitize_text_field( (string) $public_id );
+
+	if ( 1 !== preg_match( '/^de-rtc-review-[a-f0-9]{32}$/', $public_id ) ) {
+		return '';
+	}
+
+	return $public_id;
+}
+
+/**
+ * Deletes expired or resolved review items in a bounded batch.
+ *
+ * @since 7.1.0
+ *
+ * @param array $args Cleanup args.
+ * @return array|WP_Error Cleanup result.
+ */
+function wp_de_rtc_cleanup_review_items( $args = array() ) {
+	global $wpdb;
+
+	$args             = wp_parse_args(
+		$args,
+		array(
+			'batch_limit'      => wp_de_rtc_get_review_items_cleanup_batch_limit(),
+			'current_time_gmt' => current_time( 'mysql', true ),
+		)
+	);
+	$table_name       = wp_de_rtc_get_review_items_table_name();
+	$batch_limit      = max( 1, absint( $args['batch_limit'] ) );
+	$current_time_gmt = (string) $args['current_time_gmt'];
+	$base_result      = array(
+		'table_name'             => $table_name,
+		'batch_limit'            => $batch_limit,
+		'current_time_gmt'       => $current_time_gmt,
+		'bounded'                => true,
+		'cleanup_policy'         => 'delete_expired_or_resolved_rows_in_bounded_batches',
+		'saves_post'             => false,
+		'mutates_post_content'   => false,
+		'creates_revision'       => false,
+		'changes_post_lock'      => false,
+		'claims_saved'           => false,
+		'exposes_raw_content'    => false,
+	);
+
+	if ( ! wp_de_rtc_review_items_table_exists() ) {
+		return array_merge(
+			$base_result,
+			array(
+				'result'        => 'review_items_table_missing',
+				'deleted_count' => 0,
+			)
+		);
+	}
+
+	$table_sql = '`' . str_replace( '`', '``', $table_name ) . '`';
+	$deleted   = $wpdb->query(
+		$wpdb->prepare(
+			"DELETE FROM $table_sql WHERE expires_at_gmt <= %s OR ( status <> 'pending' AND resolved_at_gmt IS NOT NULL AND resolved_at_gmt <= %s ) ORDER BY expires_at_gmt ASC LIMIT %d",
+			$current_time_gmt,
+			gmdate( 'Y-m-d H:i:s', strtotime( $current_time_gmt . ' UTC' ) - wp_de_rtc_get_review_items_pending_ttl_seconds() ),
+			$batch_limit
+		)
+	);
+
+	if ( false === $deleted ) {
+		return wp_de_rtc_get_reason_error(
+			'de_rtc_storage_failure',
+			__( 'Distributed Editing review item cleanup failed.' ),
+			array_merge(
+				$base_result,
+				array(
+					'result'        => 'review_item_cleanup_storage_failure',
+					'deleted_count' => 0,
+				)
+			)
+		);
+	}
+
+	return array_merge(
+		$base_result,
+		array(
+			'result'        => 'review_item_cleanup_completed',
+			'deleted_count' => (int) $deleted,
+		)
+	);
+}
+
+/**
+ * Returns a SQL-safe review-items table reference.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @return string Escaped table reference.
+ */
+function wp_de_rtc_get_review_items_table_sql() {
+	return '`' . str_replace( '`', '``', wp_de_rtc_get_review_items_table_name() ) . '`';
+}
+
+/**
+ * Returns active pending review item counts for a post.
+ *
+ * @since 7.1.0
+ *
+ * @param int|WP_Post $post Post ID or object.
+ * @return int Pending review item count.
+ */
+function wp_de_rtc_get_pending_review_item_count_for_post( $post ) {
+	global $wpdb;
+
+	$post = get_post( $post );
+
+	if ( ! $post || ! wp_de_rtc_review_items_table_exists() ) {
+		return 0;
+	}
+
+	$table_sql = wp_de_rtc_get_review_items_table_sql();
+
+	return (int) $wpdb->get_var(
+		$wpdb->prepare(
+			"SELECT COUNT(*) FROM $table_sql WHERE post_id = %d AND status = 'pending' AND expires_at_gmt > %s",
+			(int) $post->ID,
+			current_time( 'mysql', true )
+		)
+	);
+}
+
+/**
+ * Returns the public descriptor for a stored review item row.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param array $row  Review item database row.
+ * @param array $args Descriptor arguments.
+ * @return array Public review item descriptor.
+ */
+function wp_de_rtc_get_review_item_public_descriptor( $row, $args = array() ) {
+	$args = wp_parse_args(
+		$args,
+		array(
+			'include_proposer_display_name' => false,
+			'include_escaped_source'        => false,
+			'current_time_gmt'              => current_time( 'mysql', true ),
+		)
+	);
+
+	$status            = isset( $row['status'] ) ? sanitize_key( (string) $row['status'] ) : '';
+	$current_timestamp = strtotime( (string) $args['current_time_gmt'] . ' UTC' );
+	$expires_timestamp = isset( $row['expires_at_gmt'] ) ? strtotime( (string) $row['expires_at_gmt'] . ' UTC' ) : false;
+	$effective_status  = ( 'pending' === $status && $expires_timestamp && $current_timestamp && $expires_timestamp <= $current_timestamp ) ? 'expired' : $status;
+	$descriptor        = array(
+		'id'                         => isset( $row['public_id'] ) ? sanitize_text_field( (string) $row['public_id'] ) : '',
+		'reviewItemId'               => isset( $row['public_id'] ) ? sanitize_text_field( (string) $row['public_id'] ) : '',
+		'status'                     => $status,
+		'effectiveStatus'            => $effective_status,
+		'blockName'                  => isset( $row['block_name'] ) ? sanitize_text_field( (string) $row['block_name'] ) : '',
+		'blockLabel'                 => isset( $row['block_label'] ) ? sanitize_text_field( (string) $row['block_label'] ) : '',
+		'blockPath'                  => isset( $row['block_path'] ) && '' !== (string) $row['block_path'] ? array_map( 'absint', explode( '.', (string) $row['block_path'] ) ) : array(),
+		'changeKind'                 => isset( $row['change_kind'] ) ? sanitize_key( (string) $row['change_kind'] ) : '',
+		'riskReason'                 => isset( $row['risk_reason'] ) ? sanitize_key( (string) $row['risk_reason'] ) : '',
+		'requiredCapability'         => isset( $row['required_capability'] ) ? sanitize_key( (string) $row['required_capability'] ) : 'unfiltered_html',
+		'contentReviewPolicy'        => 'kses',
+		'reviewEvidenceType'         => 'kses_block_encoded_source',
+		'baseSyncVersion'            => isset( $row['base_sync_version'] ) ? sanitize_text_field( (string) $row['base_sync_version'] ) : '',
+		'serverSyncVersion'          => isset( $row['server_sync_version'] ) ? sanitize_text_field( (string) $row['server_sync_version'] ) : '',
+		'baseContentHash'            => isset( $row['base_content_hash'] ) ? sanitize_text_field( (string) $row['base_content_hash'] ) : '',
+		'proposedContentHash'        => isset( $row['proposed_content_hash'] ) ? sanitize_text_field( (string) $row['proposed_content_hash'] ) : '',
+		'ksesFilteredContentHash'    => isset( $row['kses_filtered_content_hash'] ) ? sanitize_text_field( (string) $row['kses_filtered_content_hash'] ) : '',
+		'createdAtGmt'               => isset( $row['created_at_gmt'] ) ? mysql_to_rfc3339( (string) $row['created_at_gmt'] ) : '',
+		'updatedAtGmt'               => isset( $row['updated_at_gmt'] ) ? mysql_to_rfc3339( (string) $row['updated_at_gmt'] ) : '',
+		'expiresAtGmt'               => isset( $row['expires_at_gmt'] ) ? mysql_to_rfc3339( (string) $row['expires_at_gmt'] ) : '',
+		'resolvedAtGmt'              => empty( $row['resolved_at_gmt'] ) ? null : mysql_to_rfc3339( (string) $row['resolved_at_gmt'] ),
+		'resolutionAction'           => isset( $row['resolution_action'] ) ? sanitize_key( (string) $row['resolution_action'] ) : '',
+		'sourceAvailable'            => ! empty( $row['encoded_proposed_source'] ),
+		'contentTransport'           => 'descriptor_only',
+		'encodedStorage'             => true,
+		'rawContentIncluded'         => false,
+		'exposesRawContent'          => false,
+		'executable'                 => false,
+		'savesPost'                  => false,
+		'mutatesPostContent'         => false,
+		'createsRevision'            => false,
+		'claimsSaved'                => false,
+	);
+
+	if ( ! empty( $args['include_proposer_display_name'] ) ) {
+		$descriptor['proposerDisplayName'] = isset( $row['proposer_display_name'] ) ? sanitize_text_field( (string) $row['proposer_display_name'] ) : __( 'Unknown editor' );
+	}
+
+	if ( ! empty( $args['include_escaped_source'] ) ) {
+		$proposed_source = wp_de_rtc_base64url_decode( isset( $row['encoded_proposed_source'] ) ? (string) $row['encoded_proposed_source'] : '' );
+		$filtered_source = wp_de_rtc_base64url_decode( isset( $row['encoded_kses_filtered_source'] ) ? (string) $row['encoded_kses_filtered_source'] : '' );
+
+		$descriptor['contentTransport']         = 'html_escaped_text';
+		$descriptor['proposedSourceDisplay']    = esc_html( $proposed_source );
+		$descriptor['ksesFilteredSourceDisplay'] = esc_html( $filtered_source );
+		$descriptor['proposedSourceLength']     = isset( $row['proposed_source_length'] ) ? (int) $row['proposed_source_length'] : strlen( $proposed_source );
+		$descriptor['ksesFilteredSourceLength'] = isset( $row['kses_filtered_source_length'] ) ? (int) $row['kses_filtered_source_length'] : strlen( $filtered_source );
+	}
+
+	return $descriptor;
+}
+
+/**
+ * Returns a stored review item row by public ID.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param int|WP_Post $post      Post ID or object.
+ * @param string      $public_id Public review item ID.
+ * @return array|null Review item row.
+ */
+function wp_de_rtc_get_review_item_row( $post, $public_id ) {
+	global $wpdb;
+
+	$post      = get_post( $post );
+	$public_id = wp_de_rtc_sanitize_review_item_public_id( $public_id );
+
+	if ( ! $post || '' === $public_id || ! wp_de_rtc_review_items_table_exists() ) {
+		return null;
+	}
+
+	$table_sql = wp_de_rtc_get_review_items_table_sql();
+
+	return $wpdb->get_row(
+		$wpdb->prepare(
+			"SELECT * FROM $table_sql WHERE post_id = %d AND public_id = %s LIMIT 1",
+			(int) $post->ID,
+			$public_id
+		),
+		ARRAY_A
+	);
+}
+
+/**
+ * Returns stored review item descriptors for a post.
+ *
+ * @since 7.1.0
+ *
+ * @param int|WP_Post $post Post ID or object.
+ * @param array       $args Read args.
+ * @return array|WP_Error Review item list response.
+ */
+function wp_de_rtc_get_review_items_for_post( $post, $args = array() ) {
+	global $wpdb;
+
+	$post = get_post( $post );
+
+	if ( ! $post ) {
+		return new WP_Error(
+			'rest_post_invalid_id',
+			__( 'Invalid post ID.' ),
+			array( 'status' => 404 )
+		);
+	}
+
+	if ( ! wp_de_rtc_review_items_table_exists() ) {
+		return array(
+			'result'                   => 'review_items_storage_unavailable',
+			'post_id'                  => (int) $post->ID,
+			'items'                    => array(),
+			'count'                    => 0,
+			'pendingReviewItemCount'   => 0,
+			'storageReady'             => false,
+			'rawContentIncluded'       => false,
+			'exposesRawContent'        => false,
+			'savesPost'                => false,
+			'mutatesPostContent'       => false,
+			'createsRevision'          => false,
+			'claimsSaved'              => false,
+		);
+	}
+
+	wp_de_rtc_cleanup_review_items();
+
+	$args                = wp_parse_args(
+		$args,
+		array(
+			'current_user_id' => get_current_user_id(),
+			'can_review'      => current_user_can( 'unfiltered_html' ),
+			'limit'           => 50,
+		)
+	);
+	$current_time_gmt    = current_time( 'mysql', true );
+	$table_sql           = wp_de_rtc_get_review_items_table_sql();
+	$limit               = max( 1, min( 100, absint( $args['limit'] ) ) );
+	$where_clauses       = array( 'post_id = %d', 'status = %s', 'expires_at_gmt > %s' );
+	$where_values        = array( (int) $post->ID, 'pending', $current_time_gmt );
+	$include_proposer    = (bool) $args['can_review'];
+
+	if ( ! $args['can_review'] ) {
+		$where_clauses[] = 'proposer_user_id = %d';
+		$where_values[]  = (int) $args['current_user_id'];
+	}
+
+	$where_sql = implode( ' AND ', $where_clauses );
+	$rows      = $wpdb->get_results(
+		$wpdb->prepare(
+			"SELECT * FROM $table_sql WHERE $where_sql ORDER BY created_at_gmt ASC LIMIT %d",
+			array_merge( $where_values, array( $limit ) )
+		),
+		ARRAY_A
+	);
+
+	if ( ! is_array( $rows ) ) {
+		return wp_de_rtc_get_reason_error(
+			'de_rtc_storage_failure',
+			__( 'Distributed Editing could not read review items.' ),
+			array(
+				'detail'               => 'review_item_list_storage_failure',
+				'post_id'              => (int) $post->ID,
+				'rest_route'           => 'post_review_items',
+				'raw_content_included' => false,
+				'saves_post'           => false,
+				'mutates_post_content' => false,
+				'creates_revision'     => false,
+				'claims_saved'         => false,
+			)
+		);
+	}
+
+	$items = array_map(
+		static function ( $row ) use ( $include_proposer, $current_time_gmt ) {
+			return wp_de_rtc_get_review_item_public_descriptor(
+				$row,
+				array(
+					'include_proposer_display_name' => $include_proposer,
+					'current_time_gmt'              => $current_time_gmt,
+				)
+			);
+		},
+		$rows
+	);
+
+	return array(
+		'result'                   => 'review_items_loaded',
+		'post_id'                  => (int) $post->ID,
+		'items'                    => $items,
+		'count'                    => count( $items ),
+		'pendingReviewItemCount'   => wp_de_rtc_get_pending_review_item_count_for_post( $post ),
+		'storageReady'             => true,
+		'canReviewUnfilteredHtml'  => (bool) $args['can_review'],
+		'descriptorOnly'           => true,
+		'rawContentIncluded'       => false,
+		'exposesRawContent'        => false,
+		'savesPost'                => false,
+		'mutatesPostContent'       => false,
+		'createsRevision'          => false,
+		'claimsSaved'              => false,
+	);
+}
+
+/**
+ * Returns source records keyed by block path for review item storage.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param string $post_content Stripped post content.
+ * @return array Source records.
+ */
+function wp_de_rtc_get_review_item_source_records( $post_content ) {
+	return wp_de_rtc_get_kses_block_review_records( (string) $post_content );
+}
+
+/**
+ * Returns a storage source pair for a hash-only review item.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param array  $review_item      Hash-only review item.
+ * @param string $base_content     Base stripped post content.
+ * @param string $proposed_content Proposed stripped post content.
+ * @return array|WP_Error Source pair.
+ */
+function wp_de_rtc_get_review_item_storage_source_pair( $review_item, $base_content, $proposed_content ) {
+	$block_path  = isset( $review_item['block_path'] ) && is_array( $review_item['block_path'] ) ? array_values( array_map( 'absint', $review_item['block_path'] ) ) : array();
+	$path_key    = implode( '.', $block_path );
+	$change_kind = isset( $review_item['change_kind'] ) ? sanitize_key( (string) $review_item['change_kind'] ) : '';
+	$base_records = wp_de_rtc_get_review_item_source_records( $base_content );
+	$proposed_records = wp_de_rtc_get_review_item_source_records( $proposed_content );
+	$base_record = isset( $base_records[ $path_key ] ) ? $base_records[ $path_key ] : null;
+	$proposed_record = isset( $proposed_records[ $path_key ] ) ? $proposed_records[ $path_key ] : null;
+
+	if ( in_array( $change_kind, array( 'added_block', 'modified_block' ), true ) && ! is_array( $proposed_record ) ) {
+		return wp_de_rtc_get_reason_error(
+			'de_rtc_malformed_sync_payload',
+			__( 'Distributed Editing could not store the review item because the proposed block was unavailable.' ),
+			array(
+				'detail'               => 'review_item_proposed_block_source_missing',
+				'block_path'           => $block_path,
+				'raw_content_included' => false,
+				'saves_post'           => false,
+				'mutates_post_content' => false,
+				'creates_revision'     => false,
+				'claims_saved'         => false,
+			)
+		);
+	}
+
+	if ( 'deleted_block' === $change_kind && ! is_array( $base_record ) ) {
+		return wp_de_rtc_get_reason_error(
+			'de_rtc_malformed_sync_payload',
+			__( 'Distributed Editing could not store the review item because the base block was unavailable.' ),
+			array(
+				'detail'               => 'review_item_base_block_source_missing',
+				'block_path'           => $block_path,
+				'raw_content_included' => false,
+				'saves_post'           => false,
+				'mutates_post_content' => false,
+				'creates_revision'     => false,
+				'claims_saved'         => false,
+			)
+		);
+	}
+
+	$proposed_source = is_array( $proposed_record ) ? (string) $proposed_record['serialized_block'] : '';
+	$filtered_source = wp_filter_post_kses( $proposed_source );
+
+	if ( 'deleted_block' === $change_kind ) {
+		$proposed_source = '';
+		$filtered_source = '';
+	}
+
+	$proposed_hash = isset( $review_item['proposed_content_hash'] ) ? sanitize_text_field( (string) $review_item['proposed_content_hash'] ) : '';
+	$filtered_hash = isset( $review_item['kses_filtered_content_hash'] ) ? sanitize_text_field( (string) $review_item['kses_filtered_content_hash'] ) : '';
+
+	if ( '' !== $proposed_hash && ! hash_equals( $proposed_hash, wp_de_rtc_hash_content( $proposed_source ) ) ) {
+		return wp_de_rtc_get_reason_error(
+			'de_rtc_sync_meta_tampered',
+			__( 'Distributed Editing rejected the review item because its proposed block hash changed.' ),
+			array(
+				'detail'               => 'review_item_proposed_hash_mismatch',
+				'block_path'           => $block_path,
+				'raw_content_included' => false,
+				'saves_post'           => false,
+				'mutates_post_content' => false,
+				'creates_revision'     => false,
+				'claims_saved'         => false,
+			)
+		);
+	}
+
+	if ( '' !== $filtered_hash && ! hash_equals( $filtered_hash, wp_de_rtc_hash_content( $filtered_source ) ) ) {
+		return wp_de_rtc_get_reason_error(
+			'de_rtc_sync_meta_tampered',
+			__( 'Distributed Editing rejected the review item because its filtered block hash changed.' ),
+			array(
+				'detail'               => 'review_item_filtered_hash_mismatch',
+				'block_path'           => $block_path,
+				'raw_content_included' => false,
+				'saves_post'           => false,
+				'mutates_post_content' => false,
+				'creates_revision'     => false,
+				'claims_saved'         => false,
+			)
+		);
+	}
+
+	return array(
+		'base_source'     => is_array( $base_record ) ? (string) $base_record['serialized_block'] : '',
+		'proposed_source' => $proposed_source,
+		'filtered_source' => $filtered_source,
+	);
+}
+
+/**
+ * Creates a stable dedupe key for a review-required item.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param WP_Post $post        Post object.
+ * @param array   $review_item Hash-only review item.
+ * @return string Dedupe hash.
+ */
+function wp_de_rtc_get_review_item_logical_key_hash( $post, $review_item ) {
+	$block_path = isset( $review_item['block_path'] ) && is_array( $review_item['block_path'] ) ? implode( '.', array_map( 'absint', $review_item['block_path'] ) ) : '';
+	$fields     = array(
+		(int) $post->ID,
+		get_current_user_id(),
+		$block_path,
+		isset( $review_item['change_kind'] ) ? sanitize_key( (string) $review_item['change_kind'] ) : '',
+		isset( $review_item['base_version'] ) ? sanitize_text_field( (string) $review_item['base_version'] ) : '',
+		isset( $review_item['server_version'] ) ? sanitize_text_field( (string) $review_item['server_version'] ) : '',
+		isset( $review_item['base_content_hash'] ) ? sanitize_text_field( (string) $review_item['base_content_hash'] ) : '',
+		isset( $review_item['proposed_content_hash'] ) ? sanitize_text_field( (string) $review_item['proposed_content_hash'] ) : '',
+		isset( $review_item['kses_filtered_content_hash'] ) ? sanitize_text_field( (string) $review_item['kses_filtered_content_hash'] ) : '',
+	);
+
+	return hash_hmac( 'sha256', implode( '|', $fields ), wp_salt( 'auth' ) );
+}
+
+/**
+ * Records review-required block proposals for the current save attempt.
+ *
+ * Safe edits may already have been persisted when this helper runs. Storage
+ * failure therefore degrades the review queue instead of rolling back the safe
+ * server copy; the response evidence makes that degradation explicit.
+ *
+ * @since 7.1.0
+ *
+ * @param int|WP_Post $post         Post ID or object.
+ * @param array       $review_items Hash-only review items.
+ * @param array       $args         Record arguments.
+ * @return array Review item queue result.
+ */
+function wp_de_rtc_record_review_required_items( $post, $review_items, $args = array() ) {
+	global $wpdb;
+
+	$post = get_post( $post );
+
+	if ( ! $post || empty( $review_items ) || ! is_array( $review_items ) ) {
+		return array(
+			'review_item_queue_status'       => 'not_needed',
+			'review_item_queue_results'      => array(),
+			'review_item_descriptors'        => array(),
+			'review_item_queued_count'       => 0,
+			'review_item_deduplicated_count' => 0,
+			'review_item_not_queued_count'   => 0,
+			'raw_content_included'           => false,
+		);
+	}
+
+	if ( ! wp_de_rtc_review_items_table_schema_current() ) {
+		wp_de_rtc_install_review_items_table();
+	}
+
+	if ( ! wp_de_rtc_review_items_table_schema_current() ) {
+		return array(
+			'review_item_queue_status'      => 'not_queued',
+			'review_item_queue_results'     => array(),
+			'review_item_descriptors'       => array(),
+			'review_item_queued_count'      => 0,
+			'review_item_deduplicated_count' => 0,
+			'review_item_not_queued_count'  => count( $review_items ),
+			'review_item_not_queued_reason' => 'review_item_storage_unavailable',
+			'storage_ready'                 => false,
+			'raw_content_included'          => false,
+		);
+	}
+
+	wp_de_rtc_cleanup_review_items();
+
+	$args              = wp_parse_args(
+		$args,
+		array(
+			'base_post_content'      => '',
+			'proposed_post_content'  => '',
+			'server_version'         => '',
+			'client_base_version'    => '',
+			'current_time_gmt'       => current_time( 'mysql', true ),
+		)
+	);
+	$table_sql         = wp_de_rtc_get_review_items_table_sql();
+	$current_time_gmt  = (string) $args['current_time_gmt'];
+	$expires_at_gmt    = gmdate( 'Y-m-d H:i:s', strtotime( $current_time_gmt . ' UTC' ) + wp_de_rtc_get_review_items_pending_ttl_seconds() );
+	$current_user_id   = get_current_user_id();
+	$current_user      = get_userdata( $current_user_id );
+	$display_name      = $current_user && is_string( $current_user->display_name ) && '' !== trim( $current_user->display_name ) ? $current_user->display_name : __( 'Unknown editor' );
+	$queued_count      = 0;
+	$deduped_count     = 0;
+	$not_queued_count  = 0;
+	$results           = array();
+	$descriptors       = array();
+
+	foreach ( array_values( $review_items ) as $review_item ) {
+		if ( ! is_array( $review_item ) ) {
+			++$not_queued_count;
+			$results[] = array(
+				'status' => 'not_queued',
+				'reason' => 'malformed_review_item',
+			);
+			continue;
+		}
+
+		$logical_key_hash = wp_de_rtc_get_review_item_logical_key_hash( $post, $review_item );
+		$existing_row     = $wpdb->get_row(
+			$wpdb->prepare(
+				"SELECT * FROM $table_sql WHERE logical_key_hash = %s LIMIT 1",
+				$logical_key_hash
+			),
+			ARRAY_A
+		);
+
+		if ( is_array( $existing_row ) ) {
+			$wpdb->update(
+				wp_de_rtc_get_review_items_table_name(),
+				array(
+					'updated_at_gmt' => $current_time_gmt,
+					'expires_at_gmt' => $expires_at_gmt,
+				),
+				array(
+					'review_item_id' => (int) $existing_row['review_item_id'],
+				),
+				array( '%s', '%s' ),
+				array( '%d' )
+			);
+			$existing_row['updated_at_gmt'] = $current_time_gmt;
+			$existing_row['expires_at_gmt'] = $expires_at_gmt;
+			++$deduped_count;
+			$descriptor  = wp_de_rtc_get_review_item_public_descriptor( $existing_row );
+			$descriptors[] = $descriptor;
+			$results[]   = array(
+				'status'       => 'deduplicated',
+				'reviewItemId' => $descriptor['reviewItemId'],
+			);
+			continue;
+		}
+
+		$post_pending_count = (int) $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT COUNT(*) FROM $table_sql WHERE post_id = %d AND status = 'pending' AND expires_at_gmt > %s",
+				(int) $post->ID,
+				$current_time_gmt
+			)
+		);
+		$user_pending_count = (int) $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT COUNT(*) FROM $table_sql WHERE proposer_user_id = %d AND status = 'pending' AND expires_at_gmt > %s",
+				$current_user_id,
+				$current_time_gmt
+			)
+		);
+
+		if (
+			$post_pending_count >= wp_de_rtc_get_review_items_per_post_limit() ||
+			$user_pending_count >= wp_de_rtc_get_review_items_per_proposer_limit()
+		) {
+			++$not_queued_count;
+			$results[] = array(
+				'status' => 'not_queued',
+				'reason' => 'review_item_limit_exceeded',
+			);
+			continue;
+		}
+
+		$source_pair = wp_de_rtc_get_review_item_storage_source_pair(
+			$review_item,
+			(string) $args['base_post_content'],
+			(string) $args['proposed_post_content']
+		);
+
+		if ( is_wp_error( $source_pair ) ) {
+			++$not_queued_count;
+			$results[] = array(
+				'status' => 'not_queued',
+				'reason' => $source_pair->get_error_code(),
+			);
+			continue;
+		}
+
+		$proposed_source = (string) $source_pair['proposed_source'];
+		$filtered_source = (string) $source_pair['filtered_source'];
+
+		if (
+			strlen( $proposed_source ) > wp_de_rtc_get_review_item_max_source_bytes() ||
+			strlen( $filtered_source ) > wp_de_rtc_get_review_item_max_source_bytes()
+		) {
+			++$not_queued_count;
+			$results[] = array(
+				'status' => 'not_queued',
+				'reason' => 'review_item_payload_too_large',
+			);
+			continue;
+		}
+
+		$block_path       = isset( $review_item['block_path'] ) && is_array( $review_item['block_path'] ) ? implode( '.', array_map( 'absint', $review_item['block_path'] ) ) : '';
+		$base_hash        = isset( $review_item['base_content_hash'] ) ? sanitize_text_field( (string) $review_item['base_content_hash'] ) : '';
+		$proposed_hash    = isset( $review_item['proposed_content_hash'] ) ? sanitize_text_field( (string) $review_item['proposed_content_hash'] ) : '';
+		$filtered_hash    = isset( $review_item['kses_filtered_content_hash'] ) ? sanitize_text_field( (string) $review_item['kses_filtered_content_hash'] ) : '';
+		$public_id        = wp_de_rtc_generate_review_item_public_id();
+		$inserted         = $wpdb->insert(
+			wp_de_rtc_get_review_items_table_name(),
+			array(
+				'public_id'                    => $public_id,
+				'logical_key_hash'             => $logical_key_hash,
+				'post_id'                      => (int) $post->ID,
+				'post_type'                    => sanitize_key( $post->post_type ),
+				'proposer_user_id'             => $current_user_id,
+				'proposer_actor_hash'          => wp_de_rtc_get_presence_actor_hash( $current_user_id ),
+				'proposer_display_name'        => sanitize_text_field( $display_name ),
+				'status'                       => 'pending',
+				'required_capability'          => 'unfiltered_html',
+				'base_sync_version'            => isset( $review_item['base_version'] ) ? sanitize_text_field( (string) $review_item['base_version'] ) : sanitize_text_field( (string) $args['client_base_version'] ),
+				'server_sync_version'          => isset( $review_item['server_version'] ) ? sanitize_text_field( (string) $review_item['server_version'] ) : sanitize_text_field( (string) $args['server_version'] ),
+				'base_content_hash'            => $base_hash,
+				'proposed_content_hash'        => $proposed_hash,
+				'kses_filtered_content_hash'   => $filtered_hash,
+				'block_anchor_hash'            => hash( 'sha256', $block_path . '|' . $base_hash . '|' . $proposed_hash ),
+				'block_path'                   => $block_path,
+				'block_name'                   => isset( $review_item['block_name'] ) ? sanitize_text_field( (string) $review_item['block_name'] ) : '',
+				'block_label'                  => isset( $review_item['block_label'] ) ? sanitize_text_field( (string) $review_item['block_label'] ) : '',
+				'change_kind'                  => isset( $review_item['change_kind'] ) ? sanitize_key( (string) $review_item['change_kind'] ) : '',
+				'risk_reason'                  => isset( $review_item['risk_reason'] ) ? sanitize_key( (string) $review_item['risk_reason'] ) : '',
+				'encoded_proposed_source'      => wp_de_rtc_base64url_encode( $proposed_source ),
+				'encoded_kses_filtered_source' => wp_de_rtc_base64url_encode( $filtered_source ),
+				'proposed_source_length'       => strlen( $proposed_source ),
+				'kses_filtered_source_length'  => strlen( $filtered_source ),
+				'render_as'                    => 'text',
+				'executable'                   => 0,
+				'created_at_gmt'               => $current_time_gmt,
+				'updated_at_gmt'               => $current_time_gmt,
+				'expires_at_gmt'               => $expires_at_gmt,
+			),
+			array(
+				'%s',
+				'%s',
+				'%d',
+				'%s',
+				'%d',
+				'%s',
+				'%s',
+				'%s',
+				'%s',
+				'%s',
+				'%s',
+				'%s',
+				'%s',
+				'%s',
+				'%s',
+				'%s',
+				'%s',
+				'%s',
+				'%s',
+				'%s',
+				'%s',
+				'%s',
+				'%s',
+				'%d',
+				'%d',
+				'%s',
+				'%d',
+				'%s',
+				'%s',
+				'%s',
+			)
+		);
+
+		if ( false === $inserted ) {
+			++$not_queued_count;
+			$results[] = array(
+				'status' => 'not_queued',
+				'reason' => 'review_item_storage_failure',
+			);
+			continue;
+		}
+
+		++$queued_count;
+		$row = wp_de_rtc_get_review_item_row( $post, $public_id );
+		$descriptor = wp_de_rtc_get_review_item_public_descriptor( is_array( $row ) ? $row : array( 'public_id' => $public_id ) );
+		$descriptors[] = $descriptor;
+		$results[]     = array(
+			'status'       => 'queued',
+			'reviewItemId' => $descriptor['reviewItemId'],
+		);
+	}
+
+	$status = 'queued';
+	if ( 0 === $queued_count && $deduped_count > 0 && 0 === $not_queued_count ) {
+		$status = 'deduplicated';
+	} elseif ( 0 === $queued_count && 0 === $deduped_count && $not_queued_count > 0 ) {
+		$status = 'not_queued';
+	} elseif ( $not_queued_count > 0 ) {
+		$status = 'partial';
+	}
+
+	return array(
+		'review_item_queue_status'       => $status,
+		'review_item_queue_results'      => $results,
+		'review_item_descriptors'        => $descriptors,
+		'review_item_queued_count'       => $queued_count,
+		'review_item_deduplicated_count' => $deduped_count,
+		'review_item_not_queued_count'   => $not_queued_count,
+		'review_item_pending_count'      => wp_de_rtc_get_pending_review_item_count_for_post( $post ),
+		'storage_ready'                  => true,
+		'stored_source_encoding'         => 'base64url',
+		'raw_content_included'           => false,
+		'exposes_raw_content'            => false,
+	);
+}
+
+/**
  * Returns the suggested Distributed Editing presence heartbeat interval.
  *
  * @since 7.1.0
@@ -3563,6 +4715,59 @@ function wp_de_rtc_rest_review_approval_permissions_check( $request ) {
 }
 
 /**
+ * Checks permissions for the Distributed Editing review-items REST endpoints.
+ *
+ * List requests are edit-post gated and descriptor-only. Detail and resolution
+ * callbacks apply their narrower reviewer/proposer checks before exposing
+ * escaped source or mutating review-item state.
+ *
+ * @since 7.1.0
+ *
+ * @param WP_REST_Request $request Full details about the request.
+ * @return true|WP_Error True when the request may proceed, otherwise a WP_Error.
+ */
+function wp_de_rtc_rest_review_items_permissions_check( $request ) {
+	$post = get_post( (int) $request['id'] );
+
+	if ( ! $post || ! wp_de_rtc_rest_review_items_request_matches_post_type( $request, $post ) ) {
+		return new WP_Error(
+			'rest_post_invalid_id',
+			__( 'Invalid post ID.' ),
+			array( 'status' => 404 )
+		);
+	}
+
+	if ( ! current_user_can( 'edit_post', $post->ID ) ) {
+		return new WP_Error(
+			'rest_cannot_edit',
+			__( 'Sorry, you are not allowed to edit this post.' ),
+			array( 'status' => rest_authorization_required_code() )
+		);
+	}
+
+	if ( ! wp_de_rtc_is_enabled_for_post( $post ) ) {
+		return wp_de_rtc_get_reason_error(
+			'de_rtc_feature_disabled',
+			__( 'Distributed Editing is not enabled for this post.' ),
+			array(
+				'detail'               => 'feature_disabled_for_post',
+				'post_id'              => (int) $post->ID,
+				'rest_route'           => 'post_review_items',
+				'read_only'            => true,
+				'saves_post'           => false,
+				'mutates_post_content' => false,
+				'creates_revision'     => false,
+				'changes_post_lock'    => false,
+				'claims_saved'         => false,
+				'exposes_raw_content'  => false,
+			)
+		);
+	}
+
+	return true;
+}
+
+/**
  * Checks permissions for the fresh-review request REST endpoint.
  *
  * @since 7.1.0
@@ -4244,6 +5449,50 @@ function wp_de_rtc_get_rest_review_approval_request_rest_base( $request ) {
 	}
 
 	if ( ! preg_match( '#^/wp/v2/([^/]+)/\d+/distributed-editing/review-approval$#', $route, $matches ) ) {
+		return '';
+	}
+
+	return sanitize_key( $matches[1] );
+}
+
+/**
+ * Returns whether the REST review-items request matches the post type route.
+ *
+ * @since 7.1.0
+ *
+ * @param WP_REST_Request $request Full details about the request.
+ * @param WP_Post         $post    Post object.
+ * @return bool Whether the requested route matches the post type REST base.
+ */
+function wp_de_rtc_rest_review_items_request_matches_post_type( $request, $post ) {
+	$requested_rest_base = wp_de_rtc_get_rest_review_items_request_rest_base( $request );
+	$post_rest_base      = wp_de_rtc_get_post_type_rest_base( $post->post_type );
+	$supported_bases     = wp_de_rtc_get_rest_recovery_post_type_rest_bases();
+
+	return (
+		'' !== $requested_rest_base &&
+		'' !== $post_rest_base &&
+		$requested_rest_base === $post_rest_base &&
+		in_array( $post_rest_base, $supported_bases, true )
+	);
+}
+
+/**
+ * Returns the post type REST base from a review-items route.
+ *
+ * @since 7.1.0
+ *
+ * @param WP_REST_Request $request Full details about the request.
+ * @return string Requested post type REST base, or empty string.
+ */
+function wp_de_rtc_get_rest_review_items_request_rest_base( $request ) {
+	$route = $request->get_route();
+
+	if ( ! is_string( $route ) ) {
+		return '';
+	}
+
+	if ( ! preg_match( '#^/wp/v2/([^/]+)/\d+/distributed-editing/review-items(?:/[A-Za-z0-9_-]+(?:/(?:reject|discard))?)?$#', $route, $matches ) ) {
 		return '';
 	}
 
@@ -4943,6 +6192,7 @@ function wp_de_rtc_get_post_snapshot_for_distributed_editing( $post ) {
 	$sync_meta_hash = wp_de_rtc_hash_content( (string) $parsed['raw_sync_meta'] );
 	$raw_hash       = wp_de_rtc_hash_content( $snapshot_raw_content );
 	$server_version = isset( $parsed['sync_meta']['version'] ) ? sanitize_text_field( (string) $parsed['sync_meta']['version'] ) : '';
+	$pending_review_item_count = wp_de_rtc_get_pending_review_item_count_for_post( $post );
 	$state_hash     = wp_de_rtc_get_post_snapshot_state_hash(
 		array(
 			'post_id'          => (int) $post->ID,
@@ -4983,7 +6233,10 @@ function wp_de_rtc_get_post_snapshot_for_distributed_editing( $post ) {
 			'exposes_raw_content'     => true,
 			'external_repair'         => $external_repair,
 			'repair_candidate'        => is_array( $external_repair ),
+			'pending_review_item_count' => $pending_review_item_count,
+			'review_items_descriptor_only' => true,
 		),
+		'pending_review_item_count'    => $pending_review_item_count,
 		'read_only'                       => true,
 		'saves_post'                      => false,
 		'mutates_post_content'            => false,
@@ -5348,6 +6601,226 @@ function wp_de_rtc_rest_review_approval_endpoint( $request ) {
 	}
 
 	return rest_ensure_response( $result );
+}
+
+/**
+ * Handles the review-items list REST endpoint.
+ *
+ * @since 7.1.0
+ *
+ * @param WP_REST_Request $request Full details about the request.
+ * @return WP_REST_Response|WP_Error REST response.
+ */
+function wp_de_rtc_rest_review_items_list_endpoint( $request ) {
+	$result = wp_de_rtc_get_review_items_for_post(
+		(int) $request['id'],
+		array(
+			'current_user_id' => get_current_user_id(),
+			'can_review'      => current_user_can( 'unfiltered_html' ),
+		)
+	);
+
+	if ( is_wp_error( $result ) ) {
+		return $result;
+	}
+
+	return rest_ensure_response( $result );
+}
+
+/**
+ * Handles the review-item detail REST endpoint.
+ *
+ * Detail responses expose escaped text only to users who can save unfiltered
+ * HTML. They never return executable markup or mutate the canonical post.
+ *
+ * @since 7.1.0
+ *
+ * @param WP_REST_Request $request Full details about the request.
+ * @return WP_REST_Response|WP_Error REST response.
+ */
+function wp_de_rtc_rest_review_item_detail_endpoint( $request ) {
+	$post = get_post( (int) $request['id'] );
+
+	if ( ! current_user_can( 'unfiltered_html' ) ) {
+		return wp_de_rtc_get_reason_error(
+			'de_rtc_review_approval_requires_unfiltered_html',
+			__( 'Distributed Editing review item detail requires an unfiltered HTML-capable reviewer.' ),
+			array(
+				'detail'               => 'review_item_detail_requires_unfiltered_html_reviewer',
+				'post_id'              => $post ? (int) $post->ID : 0,
+				'rest_route'           => 'post_review_item_detail',
+				'raw_content_included' => false,
+				'saves_post'           => false,
+				'mutates_post_content' => false,
+				'creates_revision'     => false,
+				'claims_saved'         => false,
+			)
+		);
+	}
+
+	$row = wp_de_rtc_get_review_item_row( $post, $request->get_param( 'review_item_id' ) );
+
+	if ( ! is_array( $row ) ) {
+		return wp_de_rtc_get_reason_error(
+			'de_rtc_review_item_not_found',
+			__( 'Distributed Editing could not find that review item.' ),
+			array(
+				'detail'               => 'review_item_not_found',
+				'post_id'              => $post ? (int) $post->ID : 0,
+				'rest_route'           => 'post_review_item_detail',
+				'raw_content_included' => false,
+				'saves_post'           => false,
+				'mutates_post_content' => false,
+				'creates_revision'     => false,
+				'claims_saved'         => false,
+			)
+		);
+	}
+
+	return rest_ensure_response(
+		array(
+			'result' => 'review_item_loaded',
+			'item'   => wp_de_rtc_get_review_item_public_descriptor(
+				$row,
+				array(
+					'include_proposer_display_name' => true,
+					'include_escaped_source'        => true,
+				)
+			),
+			'rawContentIncluded' => false,
+			'exposesRawContent'  => false,
+			'savesPost'          => false,
+			'mutatesPostContent' => false,
+			'createsRevision'    => false,
+			'claimsSaved'        => false,
+		)
+	);
+}
+
+/**
+ * Handles review-item reject/discard actions.
+ *
+ * @since 7.1.0
+ *
+ * @param WP_REST_Request $request Full details about the request.
+ * @return WP_REST_Response|WP_Error REST response.
+ */
+function wp_de_rtc_rest_review_item_resolution_endpoint( $request ) {
+	global $wpdb;
+
+	$post   = get_post( (int) $request['id'] );
+	$action = sanitize_key( (string) $request->get_param( 'review_item_action' ) );
+	$row    = wp_de_rtc_get_review_item_row( $post, $request->get_param( 'review_item_id' ) );
+
+	if ( ! is_array( $row ) ) {
+		return wp_de_rtc_get_reason_error(
+			'de_rtc_review_item_not_found',
+			__( 'Distributed Editing could not find that review item.' ),
+			array(
+				'detail'               => 'review_item_not_found',
+				'post_id'              => $post ? (int) $post->ID : 0,
+				'rest_route'           => 'post_review_item_resolution',
+				'raw_content_included' => false,
+				'saves_post'           => false,
+				'mutates_post_content' => false,
+				'creates_revision'     => false,
+				'claims_saved'         => false,
+			)
+		);
+	}
+
+	if ( 'reject' === $action && ! current_user_can( 'unfiltered_html' ) ) {
+		return wp_de_rtc_get_reason_error(
+			'de_rtc_review_approval_requires_unfiltered_html',
+			__( 'Distributed Editing review item rejection requires an unfiltered HTML-capable reviewer.' ),
+			array(
+				'detail'               => 'review_item_reject_requires_unfiltered_html_reviewer',
+				'post_id'              => $post ? (int) $post->ID : 0,
+				'rest_route'           => 'post_review_item_resolution',
+				'raw_content_included' => false,
+				'saves_post'           => false,
+				'mutates_post_content' => false,
+				'creates_revision'     => false,
+				'claims_saved'         => false,
+			)
+		);
+	}
+
+	if (
+		'discard' === $action &&
+		(int) $row['proposer_user_id'] !== get_current_user_id() &&
+		! current_user_can( 'unfiltered_html' )
+	) {
+		return new WP_Error(
+			'rest_forbidden',
+			__( 'Sorry, you are not allowed to discard this review item.' ),
+			array( 'status' => rest_authorization_required_code() )
+		);
+	}
+
+	$resolved_status = 'reject' === $action ? 'rejected' : 'discarded';
+	$current_status  = isset( $row['status'] ) ? sanitize_key( (string) $row['status'] ) : '';
+	$now_gmt         = current_time( 'mysql', true );
+
+	if ( $resolved_status !== $current_status ) {
+		$updated = $wpdb->update(
+			wp_de_rtc_get_review_items_table_name(),
+			array(
+				'status'            => $resolved_status,
+				'updated_at_gmt'    => $now_gmt,
+				'resolved_at_gmt'   => $now_gmt,
+				'resolved_by'       => get_current_user_id(),
+				'resolution_action' => $action,
+			),
+			array(
+				'review_item_id' => (int) $row['review_item_id'],
+			),
+			array( '%s', '%s', '%s', '%d', '%s' ),
+			array( '%d' )
+		);
+
+		if ( false === $updated ) {
+			return wp_de_rtc_get_reason_error(
+				'de_rtc_storage_failure',
+				__( 'Distributed Editing could not update the review item.' ),
+				array(
+					'detail'               => 'review_item_resolution_storage_failure',
+					'post_id'              => $post ? (int) $post->ID : 0,
+					'rest_route'           => 'post_review_item_resolution',
+					'raw_content_included' => false,
+					'saves_post'           => false,
+					'mutates_post_content' => false,
+					'creates_revision'     => false,
+					'claims_saved'         => false,
+				)
+			);
+		}
+
+		$row['status']            = $resolved_status;
+		$row['updated_at_gmt']    = $now_gmt;
+		$row['resolved_at_gmt']   = $now_gmt;
+		$row['resolved_by']       = get_current_user_id();
+		$row['resolution_action'] = $action;
+	}
+
+	return rest_ensure_response(
+		array(
+			'result'             => 'review_item_' . $resolved_status,
+			'item'               => wp_de_rtc_get_review_item_public_descriptor(
+				$row,
+				array(
+					'include_proposer_display_name' => current_user_can( 'unfiltered_html' ),
+				)
+			),
+			'idempotent'         => $resolved_status === $current_status,
+			'rawContentIncluded' => false,
+			'exposesRawContent'  => false,
+			'savesPost'          => false,
+			'mutatesPostContent' => false,
+			'createsRevision'    => false,
+			'claimsSaved'        => false,
+		)
+	);
 }
 
 /**
@@ -11092,8 +12565,20 @@ function wp_de_rtc_apply_partial_safe_retry_save_plan( $post, $current, $partial
 	$review_items                   = isset( $review_classification['review_items'] ) && is_array( $review_classification['review_items'] ) ? array_values( $review_classification['review_items'] ) : array();
 	$remaining_pending_change_count = count( $review_items ) > 0 ? count( $review_items ) : $pending_change_count;
 	$revision_ids_before_save       = wp_de_rtc_get_post_revision_ids( $post->ID );
+	$proposed_post_content          = isset( $args['proposed_post_content'] ) && is_string( $args['proposed_post_content'] ) ? $args['proposed_post_content'] : '';
 
 	if ( hash_equals( $current_post_content_hash, $safe_post_content_hash ) ) {
+		$review_item_queue = wp_de_rtc_record_review_required_items(
+			$post,
+			$review_items,
+			array(
+				'base_post_content'     => $current['content'],
+				'proposed_post_content' => $proposed_post_content,
+				'server_version'        => $server_version,
+				'client_base_version'   => $client_base_version,
+			)
+		);
+
 		return array(
 			'partial_safe_merge_applied'              => true,
 			'partial_safe_merge_persisted'            => false,
@@ -11130,6 +12615,7 @@ function wp_de_rtc_apply_partial_safe_retry_save_plan( $post, $current, $partial
 			'revision_created'                        => false,
 			'safe_server_content_included'            => true,
 			'unsafe_raw_content_included'             => false,
+			'review_item_queue'                       => $review_item_queue,
 		);
 	}
 
@@ -11252,6 +12738,16 @@ function wp_de_rtc_apply_partial_safe_retry_save_plan( $post, $current, $partial
 
 	$revision_ids_after_save = wp_de_rtc_get_post_revision_ids( $post->ID );
 	$created_revision_ids    = array_values( array_diff( $revision_ids_after_save, $revision_ids_before_save ) );
+	$review_item_queue       = wp_de_rtc_record_review_required_items(
+		$post,
+		$review_items,
+		array(
+			'base_post_content'     => $current['content'],
+			'proposed_post_content' => $proposed_post_content,
+			'server_version'        => $next_version,
+			'client_base_version'   => $client_base_version,
+		)
+	);
 
 	return array(
 		'partial_safe_merge_applied'              => true,
@@ -11293,6 +12789,7 @@ function wp_de_rtc_apply_partial_safe_retry_save_plan( $post, $current, $partial
 		'revision_created'                        => ! empty( $created_revision_ids ),
 		'safe_server_content_included'            => true,
 		'unsafe_raw_content_included'             => false,
+		'review_item_queue'                       => $review_item_queue,
 	);
 }
 
@@ -11892,6 +13389,7 @@ function wp_de_rtc_save_retry_submitted_post( $post, $args = array() ) {
 									'accepted_proof_server_version'   => $accepted_proof_server_version,
 									'rebased_from_version'            => $rebased_from_version,
 									'pending_change_count'            => $pending_change_count,
+									'proposed_post_content'           => $proposed_post_content,
 									'proposed_post_content_hash'      => $proposed_post_content_hash,
 								)
 							);
@@ -11980,6 +13478,7 @@ function wp_de_rtc_save_retry_submitted_post( $post, $args = array() ) {
 									'accepted_proof_server_version'   => $accepted_proof_server_version,
 									'rebased_from_version'            => $rebased_from_version,
 									'pending_change_count'            => $pending_change_count,
+									'proposed_post_content'           => $proposed_post_content,
 									'proposed_post_content_hash'      => $proposed_post_content_hash,
 								)
 							);
@@ -13478,6 +14977,12 @@ function wp_de_rtc_get_unfiltered_html_review_rejection_error( $post, $args = ar
 	if ( ! empty( $partial_safe_merge ) ) {
 		$review_contract['partial_safe_merge_applied'] = ! empty( $partial_safe_merge['partial_safe_merge_applied'] );
 		$review_contract['partial_safe_merge_status']  = isset( $partial_safe_merge['partial_safe_merge_status'] ) ? sanitize_key( (string) $partial_safe_merge['partial_safe_merge_status'] ) : null;
+
+		if ( isset( $partial_safe_merge['review_item_queue'] ) && is_array( $partial_safe_merge['review_item_queue'] ) ) {
+			$review_contract['review_item_queue_status'] = isset( $partial_safe_merge['review_item_queue']['review_item_queue_status'] ) ? sanitize_key( (string) $partial_safe_merge['review_item_queue']['review_item_queue_status'] ) : '';
+			$review_contract['review_item_descriptors']  = isset( $partial_safe_merge['review_item_queue']['review_item_descriptors'] ) && is_array( $partial_safe_merge['review_item_queue']['review_item_descriptors'] ) ? array_values( $partial_safe_merge['review_item_queue']['review_item_descriptors'] ) : array();
+			$review_contract['review_item_queue_recorded_count'] = isset( $partial_safe_merge['review_item_queue']['review_item_queued_count'] ) ? max( 0, (int) $partial_safe_merge['review_item_queue']['review_item_queued_count'] ) : 0;
+		}
 	}
 
 	$error_data = array(
@@ -13558,6 +15063,12 @@ function wp_de_rtc_get_unfiltered_html_review_rejection_error( $post, $args = ar
 				'request_unfiltered_html_reviewer',
 			);
 			$error_data['can_export_local_updates']      = false;
+
+			if ( isset( $partial_safe_merge['review_item_queue'] ) && is_array( $partial_safe_merge['review_item_queue'] ) ) {
+				$error_data['review_item_queue_status'] = isset( $partial_safe_merge['review_item_queue']['review_item_queue_status'] ) ? sanitize_key( (string) $partial_safe_merge['review_item_queue']['review_item_queue_status'] ) : '';
+				$error_data['review_item_descriptors']  = isset( $partial_safe_merge['review_item_queue']['review_item_descriptors'] ) && is_array( $partial_safe_merge['review_item_queue']['review_item_descriptors'] ) ? array_values( $partial_safe_merge['review_item_queue']['review_item_descriptors'] ) : array();
+				$error_data['review_item_pending_count'] = isset( $partial_safe_merge['review_item_queue']['review_item_pending_count'] ) ? max( 0, (int) $partial_safe_merge['review_item_queue']['review_item_pending_count'] ) : 0;
+			}
 
 			return $error_data;
 		}

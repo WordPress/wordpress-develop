@@ -4309,6 +4309,57 @@ class Tests_DE_RTC_REST_Retry_Save extends WP_Test_REST_TestCase {
 		$this->assertSame( 'HTML', $data['review_items'][0]['block_label'] );
 		$this->assertSame( hash( 'sha256', '' ), $data['review_items'][0]['base_content_hash'] );
 		$this->assertSame( hash( 'sha256', $unsafe_block ), $data['review_items'][0]['proposed_content_hash'] );
+		$this->assertSame( 'queued', $data['review_item_queue_status'] );
+		$this->assertSame( 1, $data['review_item_pending_count'] );
+		$this->assertCount( 1, $data['review_item_descriptors'] );
+		$this->assertStringStartsWith( 'de-rtc-review-', $data['review_item_descriptors'][0]['reviewItemId'] );
+		$this->assertFalse( $data['review_item_descriptors'][0]['rawContentIncluded'] );
+		$this->assertArrayNotHasKey( 'proposedSourceDisplay', $data['review_item_descriptors'][0] );
+
+		$review_item_id = $data['review_item_descriptors'][0]['reviewItemId'];
+		$author_list_request = new WP_REST_Request( 'GET', '/wp/v2/posts/' . $post_id . '/distributed-editing/review-items' );
+		$author_list_response = rest_get_server()->dispatch( $author_list_request );
+		$author_list_data     = $author_list_response->get_data();
+
+		$this->assertSame( 200, $author_list_response->get_status() );
+		$this->assertSame( 'review_items_loaded', $author_list_data['result'] );
+		$this->assertCount( 1, $author_list_data['items'] );
+		$this->assertSame( $review_item_id, $author_list_data['items'][0]['reviewItemId'] );
+		$this->assertFalse( $author_list_data['items'][0]['rawContentIncluded'] );
+		$this->assertArrayNotHasKey( 'proposedSourceDisplay', $author_list_data['items'][0] );
+
+		$author_detail_request  = new WP_REST_Request( 'GET', '/wp/v2/posts/' . $post_id . '/distributed-editing/review-items/' . $review_item_id );
+		$author_detail_response = rest_get_server()->dispatch( $author_detail_request );
+
+		$this->assertSame( 403, $author_detail_response->get_status() );
+
+		wp_set_current_user( self::$admin_user_id );
+
+		$admin_detail_request  = new WP_REST_Request( 'GET', '/wp/v2/posts/' . $post_id . '/distributed-editing/review-items/' . $review_item_id );
+		$admin_detail_response = rest_get_server()->dispatch( $admin_detail_request );
+		$admin_detail_data     = $admin_detail_response->get_data();
+
+		$this->assertSame( 200, $admin_detail_response->get_status() );
+		$this->assertSame( 'review_item_loaded', $admin_detail_data['result'] );
+		$this->assertSame( 'html_escaped_text', $admin_detail_data['item']['contentTransport'] );
+		$this->assertStringContainsString( '&lt;script&gt;alert(1);&lt;/script&gt;Script', $admin_detail_data['item']['proposedSourceDisplay'] );
+		$this->assertStringNotContainsString( '<script>alert(1);</script>', $admin_detail_data['item']['proposedSourceDisplay'] );
+		$this->assertFalse( $admin_detail_data['rawContentIncluded'] );
+
+		$reject_request  = new WP_REST_Request( 'POST', '/wp/v2/posts/' . $post_id . '/distributed-editing/review-items/' . $review_item_id . '/reject' );
+		$reject_response = rest_get_server()->dispatch( $reject_request );
+		$reject_data     = $reject_response->get_data();
+		$repeat_reject_response = rest_get_server()->dispatch( $reject_request );
+		$repeat_reject_data     = $repeat_reject_response->get_data();
+
+		$this->assertSame( 200, $reject_response->get_status() );
+		$this->assertSame( 'review_item_rejected', $reject_data['result'] );
+		$this->assertSame( 'rejected', $reject_data['item']['status'] );
+		$this->assertFalse( $reject_data['mutatesPostContent'] );
+		$this->assertSame( 200, $repeat_reject_response->get_status() );
+		$this->assertTrue( $repeat_reject_data['idempotent'] );
+
+		wp_set_current_user( self::$author_user_id );
 
 		$repeat_before_post      = get_post( $post_id );
 		$repeat_before_revisions = wp_get_post_revisions(
