@@ -2062,13 +2062,17 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$attachment_id = self::factory()->attachment->create_upload_object( DIR_TESTDATA . '/images/canola.jpg' );
 
 		$captured = array();
-		$filter   = static function ( $formats, $filename, $mime_type ) use ( &$captured ) {
-			$captured['filename']  = $filename;
-			$captured['mime_type'] = $mime_type;
-			$formats['image/jpeg'] = 'image/webp';
-			return $formats;
-		};
-		add_filter( 'image_editor_output_format', $filter, 10, 3 );
+		add_filter(
+			'image_editor_output_format',
+			static function ( $formats, $filename, $mime_type ) use ( &$captured ) {
+				$captured['filename']  = $filename;
+				$captured['mime_type'] = $mime_type;
+				$formats['image/jpeg'] = 'image/webp';
+				return $formats;
+			},
+			10,
+			3
+		);
 
 		$request = new WP_REST_Request( 'GET', '/wp/v2/media/' . $attachment_id );
 		$request->set_param( 'context', 'edit' );
@@ -2098,10 +2102,14 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 
 		$attachment_id = self::factory()->attachment->create_upload_object( DIR_TESTDATA . '/images/canola.jpg' );
 
-		$filter = static function ( $progressive, $mime_type ) {
-			return 'image/jpeg' === $mime_type;
-		};
-		add_filter( 'image_save_progressive', $filter, 10, 2 );
+		add_filter(
+			'image_save_progressive',
+			static function ( $progressive, $mime_type ) {
+				return 'image/jpeg' === $mime_type;
+			},
+			10,
+			2
+		);
 
 		$request = new WP_REST_Request( 'GET', '/wp/v2/media/' . $attachment_id );
 		$request->set_param( 'context', 'edit' );
