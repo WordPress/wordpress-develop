@@ -246,6 +246,7 @@ if ( ! function_exists( 'twentyfifteen_get_link_url' ) ) :
 	function twentyfifteen_get_link_url() {
 		$has_url = get_url_in_content( get_the_content() );
 
+		/** This filter is documented in wp-includes/link-template.php */
 		return $has_url ? $has_url : apply_filters( 'the_permalink', get_permalink() );
 	}
 endif;
