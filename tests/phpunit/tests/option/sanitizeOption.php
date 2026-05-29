@@ -210,8 +210,10 @@ class Tests_Option_SanitizeOption extends WP_UnitTestCase {
 		return array(
 			array( 'date_format', 'F j, Y', 'F j, Y', true ),
 			array( 'date_format', '', 'Y-m-d', false ),
+			array( 'date_format', '   ', 'Y-m-d', false ),
 			array( 'time_format', 'g:i a', 'g:i a', true ),
 			array( 'time_format', '', 'g:i a', false ),
+			array( 'time_format', '   ', 'g:i a', false ),
 		);
 	}
 }

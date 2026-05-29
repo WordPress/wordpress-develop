@@ -4958,7 +4958,7 @@ function sanitize_option( $option, $value ) {
 				$value = strip_tags( $value );
 				$value = wp_kses_data( $value );
 
-				if ( ( 'date_format' === $option || 'time_format' === $option ) && '' === $value ) {
+				if ( ( 'date_format' === $option || 'time_format' === $option ) && '' === trim( $value ) ) {
 					$error = __( 'Please configure a valid date and time format.' );
 				}
 			}

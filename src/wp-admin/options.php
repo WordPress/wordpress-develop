@@ -275,10 +275,10 @@ if ( 'update' === $action ) { // We are saving settings sent from a settings pag
 			$date_format_custom = trim( wp_unslash( $_POST['date_format_custom'] ) );
 
 			if ( '' === $date_format_custom ) {
-				$_POST['date_format']     = get_option( 'date_format' );
+				$_POST['date_format']     = wp_slash( get_option( 'date_format' ) );
 				$invalid_date_time_format = true;
 			} else {
-				$_POST['date_format'] = $date_format_custom;
+				$_POST['date_format'] = $_POST['date_format_custom'];
 			}
 		}
 
@@ -288,10 +288,10 @@ if ( 'update' === $action ) { // We are saving settings sent from a settings pag
 			$time_format_custom = trim( wp_unslash( $_POST['time_format_custom'] ) );
 
 			if ( '' === $time_format_custom ) {
-				$_POST['time_format']     = get_option( 'time_format' );
+				$_POST['time_format']     = wp_slash( get_option( 'time_format' ) );
 				$invalid_date_time_format = true;
 			} else {
-				$_POST['time_format'] = $time_format_custom;
+				$_POST['time_format'] = $_POST['time_format_custom'];
 			}
 		}
 
