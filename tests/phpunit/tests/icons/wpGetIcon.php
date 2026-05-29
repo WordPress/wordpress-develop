@@ -1,6 +1,6 @@
 <?php
 /**
- * Unit tests covering the wp_get_icon() and the_wp_icon() functions.
+ * Unit tests covering the wp_get_icon() function.
  *
  * @package WordPress
  * @subpackage Icons
