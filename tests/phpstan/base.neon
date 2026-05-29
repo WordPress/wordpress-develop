@@ -12,6 +12,20 @@ services:
 		tags:
 			- phpstan.parser.richParserNodeVisitor
 
+	# Types the return value of apply_filters() (and variants) from the `@param`
+	# type in the docblock preceding the call, including the "This filter is
+	# documented in <file>" convention. Adapted from szepeviktor/phpstan-wordpress.
+	-
+		class: WordPress\PHPStan\HookDocsVisitor
+		tags:
+			- phpstan.parser.richParserNodeVisitor
+	-
+		class: WordPress\PHPStan\HookDocBlock
+	-
+		class: WordPress\PHPStan\ApplyFiltersDynamicFunctionReturnTypeExtension
+		tags:
+			- phpstan.broker.dynamicFunctionReturnTypeExtension
+
 parameters:
 	# Cache is stored locally, so it's available for CI.
 	tmpDir: ../../.cache
@@ -99,6 +113,9 @@ parameters:
 		- ../../src/wp-trackback.php
 		- ../../src/xmlrpc.php
 		- GlobalDocBlockVisitor.php
+		- HookDocsVisitor.php
+		- HookDocBlock.php
+		- ApplyFiltersDynamicFunctionReturnTypeExtension.php
 	bootstrapFiles:
 		- bootstrap.php
 	scanFiles:
