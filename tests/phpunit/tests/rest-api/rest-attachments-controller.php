@@ -2109,8 +2109,6 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 
-		remove_filter( 'image_save_progressive', $filter, 10 );
-
 		$this->assertSame( 200, $response->get_status() );
 		$this->assertArrayHasKey( 'image_save_progressive', $data );
 		$this->assertTrue( $data['image_save_progressive'] );
