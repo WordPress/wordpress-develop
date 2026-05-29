@@ -25,7 +25,6 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 			'output_schema'       => array(
 				'type'        => 'number',
 				'description' => 'The result of performing a math operation.',
-				'required'    => true,
 			),
 			'execute_callback'    => static function (): int {
 				return 0;
@@ -274,7 +273,6 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 				array(
 					'type'        => array( 'null', 'integer' ),
 					'description' => 'The null or integer to convert to integer.',
-					'required'    => true,
 				),
 				static function ( $input ): int {
 					return null === $input ? 0 : (int) $input;
@@ -286,7 +284,6 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 				array(
 					'type'        => 'boolean',
 					'description' => 'The boolean to convert to integer.',
-					'required'    => true,
 				),
 				static function ( bool $input ): int {
 					return $input ? 1 : 0;
@@ -298,7 +295,6 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 				array(
 					'type'        => 'integer',
 					'description' => 'The integer to add 5 to.',
-					'required'    => true,
 				),
 				static function ( int $input ): int {
 					return 5 + $input;
@@ -310,7 +306,6 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 				array(
 					'type'        => 'number',
 					'description' => 'The floating number to round.',
-					'required'    => true,
 				),
 				static function ( float $input ): int {
 					return (int) round( $input );
@@ -322,7 +317,6 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 				array(
 					'type'        => 'string',
 					'description' => 'The string to measure the length of.',
-					'required'    => true,
 				),
 				static function ( string $input ): int {
 					return strlen( $input );
@@ -361,7 +355,6 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 				array(
 					'type'        => 'array',
 					'description' => 'An array containing two numbers to add.',
-					'required'    => true,
 					'minItems'    => 2,
 					'maxItems'    => 2,
 					'items'       => array(
@@ -401,6 +394,100 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 		$ability = new WP_Ability( self::$test_ability_name, $args );
 
 		$this->assertSame( $result, $ability->execute( $input ) );
+	}
+
+	/**
+	 * Data provider for top-level `required` validation behavior.
+	 *
+	 * Each schema variant is paired with both a valid and an invalid input so the
+	 * inert behavior of a top-level `required` boolean — and the meaningful
+	 * behavior of a draft-04 `required` array on an object — are sealed.
+	 *
+	 * @return array<string, array{0: array, 1: mixed, 2: bool}> Data sets.
+	 */
+	public function data_validate_input_top_level_required() {
+		$required_true   = array(
+			'type'     => 'string',
+			'required' => true,
+		);
+		$required_false  = array(
+			'type'     => 'string',
+			'required' => false,
+		);
+		$required_unset  = array(
+			'type' => 'string',
+		);
+		$object_required = array(
+			'type'       => 'object',
+			'properties' => array(
+				'a' => array( 'type' => 'integer' ),
+				'b' => array( 'type' => 'integer' ),
+			),
+			'required'   => array( 'a', 'b' ),
+		);
+
+		return array(
+			// A top-level `required: true` is inert: only `type` is enforced.
+			'required true: valid input'           => array( $required_true, 'hello', true ),
+			'required true: invalid input'         => array( $required_true, 123, false ),
+
+			// A top-level `required: false` is equally inert and does not permit null.
+			'required false: valid input'          => array( $required_false, 'hello', true ),
+			'required false: invalid input'        => array( $required_false, 123, false ),
+			'required false: null still invalid'   => array( $required_false, null, false ),
+
+			// Omitting `required` behaves identically to setting it.
+			'required unset: valid input'          => array( $required_unset, 'hello', true ),
+			'required unset: invalid input'        => array( $required_unset, 123, false ),
+
+			// A draft-04 `required` array on an object type IS honored.
+			'object required array: valid input'   => array(
+				$object_required,
+				array(
+					'a' => 1,
+					'b' => 2,
+				),
+				true,
+			),
+			'object required array: invalid input' => array( $object_required, array( 'a' => 1 ), false ),
+		);
+	}
+
+	/**
+	 * Tests how a top-level `required` keyword is handled during input validation.
+	 *
+	 * For a non-object root type, a top-level `required` flag is inert: validation
+	 * gates solely on `type`, so the outcome is identical whether `required` is
+	 * `true`, `false`, or omitted — and `required: false` notably does not make a
+	 * `null` value acceptable. For an object root type, a draft-04 `required` array
+	 * of property names is honored and enforces the presence of those properties.
+	 *
+	 * @ticket 64955
+	 *
+	 * @covers WP_Ability::validate_input
+	 *
+	 * @dataProvider data_validate_input_top_level_required
+	 *
+	 * @param array $input_schema The input schema under test.
+	 * @param mixed $input        The input value to validate.
+	 * @param bool  $is_valid     Whether the input is expected to pass validation.
+	 */
+	public function test_validate_input_top_level_required( $input_schema, $input, $is_valid ) {
+		$ability = new WP_Ability(
+			self::$test_ability_name,
+			array_merge(
+				self::$test_ability_properties,
+				array( 'input_schema' => $input_schema )
+			)
+		);
+
+		$result = $ability->validate_input( $input );
+
+		if ( $is_valid ) {
+			$this->assertTrue( $result, 'Expected the input to pass validation.' );
+		} else {
+			$this->assertWPError( $result, 'Expected the input to fail validation.' );
+		}
 	}
 
 	/**
@@ -466,7 +553,6 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 				'input_schema'     => array(
 					'type'        => 'string',
 					'description' => 'Test input string.',
-					'required'    => true,
 				),
 				'execute_callback' => $execute_callback,
 			)
@@ -561,7 +647,6 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 				'input_schema'     => array(
 					'type'        => 'integer',
 					'description' => 'Test input parameter.',
-					'required'    => true,
 				),
 				'execute_callback' => static function ( int $input ): int {
 					return $input * 2;
@@ -645,7 +730,6 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 				'input_schema'     => array(
 					'type'        => 'integer',
 					'description' => 'Test input parameter.',
-					'required'    => true,
 				),
 				'execute_callback' => static function ( int $input ): int {
 					return $input * 3;
@@ -813,7 +897,6 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 				'output_schema'    => array(
 					'type'        => 'string',
 					'description' => 'Expected string output.',
-					'required'    => true,
 				),
 				'execute_callback' => static function (): int {
 					return 42;
@@ -856,12 +939,10 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 				'input_schema'     => array(
 					'type'        => 'string',
 					'description' => 'Test input string.',
-					'required'    => true,
 				),
 				'output_schema'    => array(
 					'type'        => 'integer',
 					'description' => 'Result integer.',
-					'required'    => true,
 				),
 				'execute_callback' => static function ( string $input ): int {
 					return strlen( $input );
@@ -898,7 +979,6 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 				'input_schema'     => array(
 					'type'        => 'string',
 					'description' => 'Test input string.',
-					'required'    => true,
 				),
 				'execute_callback' => static function ( string $input ) {
 					return strlen( $input );
@@ -934,12 +1014,10 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 				'input_schema'        => array(
 					'type'        => 'integer',
 					'description' => 'Test input integer.',
-					'required'    => true,
 				),
 				'output_schema'       => array(
 					'type'        => 'integer',
 					'description' => 'Result integer.',
-					'required'    => true,
 				),
 				'execute_callback'    => static function ( int $input ): int {
 					return $input;
@@ -1105,7 +1183,6 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 				'input_schema'        => array(
 					'type'        => 'integer',
 					'description' => 'Test input integer.',
-					'required'    => true,
 				),
 				'execute_callback'    => static function (): int {
 					return 1;
@@ -1272,7 +1349,6 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 				'input_schema'     => array(
 					'type'        => 'integer',
 					'description' => 'Test input integer.',
-					'required'    => true,
 				),
 				'execute_callback' => static function ( int $input ): int {
 					return $input * 2;
@@ -1416,7 +1492,6 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 				'input_schema'     => array(
 					'type'        => 'string',
 					'description' => 'Test input string.',
-					'required'    => true,
 				),
 				'execute_callback' => static function ( string $input ): int {
 					return strlen( $input );
@@ -1454,12 +1529,10 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 				'input_schema'     => array(
 					'type'        => 'integer',
 					'description' => 'Test input integer.',
-					'required'    => true,
 				),
 				'output_schema'    => array(
 					'type'        => 'integer',
 					'description' => 'Result integer.',
-					'required'    => true,
 				),
 				'execute_callback' => static function () {
 					return 99;
@@ -1496,7 +1569,6 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 				'input_schema'     => array(
 					'type'        => 'integer',
 					'description' => 'Test input integer.',
-					'required'    => true,
 				),
 				'execute_callback' => static function ( int $input ): int {
 					return $input * 2;
@@ -1534,7 +1606,6 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 				'input_schema'     => array(
 					'type'        => 'integer',
 					'description' => 'Test input integer.',
-					'required'    => true,
 				),
 				'execute_callback' => static function ( int $input ): int {
 					return $input * 2;
@@ -1572,7 +1643,6 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 				'output_schema'    => array(
 					'type'        => 'integer',
 					'description' => 'The result integer.',
-					'required'    => true,
 				),
 				'execute_callback' => static function (): int {
 					return 42;
@@ -1610,7 +1680,6 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 				'output_schema'    => array(
 					'type'        => 'string',
 					'description' => 'The result string.',
-					'required'    => true,
 				),
 				'execute_callback' => static function (): int {
 					return 42;
@@ -1647,7 +1716,6 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 				'output_schema'    => array(
 					'type'        => 'string',
 					'description' => 'The result string.',
-					'required'    => true,
 				),
 				'execute_callback' => static function (): int {
 					return 42;
@@ -1685,7 +1753,6 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 				'output_schema'    => array(
 					'type'        => 'string',
 					'description' => 'The result string.',
-					'required'    => true,
 				),
 				'execute_callback' => static function (): int {
 					return 42;
@@ -1805,7 +1872,6 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 					'input_schema'     => array(
 						'type'        => 'integer',
 						'description' => 'Int input.',
-						'required'    => true,
 					),
 					'execute_callback' => static function ( int $input ): int {
 						return $input;
