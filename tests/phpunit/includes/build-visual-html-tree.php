@@ -1,7 +1,5 @@
 <?php
 
-/* phpcs:disable WordPress.Security.EscapeOutput.ExceptionNotEscaped */
-
 /**
  * Generates representation of the semantic HTML tree structure.
  *
@@ -278,7 +276,6 @@ function build_visual_html_tree( string $html, ?string $fragment_context ): stri
 				}
 				break;
 			default:
-				// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_var_export
 				$serialized_token_type = var_export( $processor->get_token_type(), true );
 				throw new Exception( "Unhandled token type for tree construction: {$serialized_token_type}" );
 		}

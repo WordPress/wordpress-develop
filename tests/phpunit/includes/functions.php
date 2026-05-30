@@ -376,6 +376,18 @@ function _unhook_font_registration() {
 tests_add_filter( 'init', '_unhook_font_registration', 1000 );
 
 /**
+ * After the init action has been run once, trying to re-register connector settings can cause
+ * duplicate registrations. To avoid this, unhook the connector registration functions.
+ *
+ * @since 7.0.0
+ */
+function _unhook_connector_registration() {
+	remove_action( 'init', '_wp_register_default_connector_settings', 20 );
+	remove_action( 'init', '_wp_connectors_pass_default_keys_to_ai_client', 20 );
+}
+tests_add_filter( 'init', '_unhook_connector_registration', 1000 );
+
+/**
  * Before the abilities API categories init action runs, unhook the core ability
  * categories registration function to prevent core categories from being registered
  * during tests.
