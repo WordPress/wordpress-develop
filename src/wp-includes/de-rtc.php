@@ -147,6 +147,12 @@ function wp_de_rtc_register_rest_routes() {
 							'required'             => false,
 							'additionalProperties' => true,
 						),
+						'pending_preview_state' => array(
+							'description'          => __( 'Sanitized pending-edit preview state reported by this editor session.' ),
+							'type'                 => 'object',
+							'required'             => false,
+							'additionalProperties' => true,
+						),
 					),
 				),
 			)
@@ -614,7 +620,7 @@ function wp_de_rtc_register_rest_routes() {
 
 		register_rest_route(
 			'wp/v2',
-			'/' . $rest_base . '/(?P<id>[\d]+)/distributed-editing/review-items/(?P<review_item_id>[A-Za-z0-9_-]+)/(?P<review_item_action>reject|discard)',
+			'/' . $rest_base . '/(?P<id>[\d]+)/distributed-editing/review-items/(?P<review_item_id>[A-Za-z0-9_-]+)/(?P<review_item_action>approve|modify-adopt|reject|discard)',
 			array(
 				'args' => array(
 					'id' => array(
@@ -628,7 +634,11 @@ function wp_de_rtc_register_rest_routes() {
 					'review_item_action' => array(
 						'description' => __( 'Review item resolution action.' ),
 						'type'        => 'string',
-						'enum'        => array( 'reject', 'discard' ),
+						'enum'        => array( 'approve', 'modify-adopt', 'reject', 'discard' ),
+					),
+					'reviewed_block_source' => array(
+						'description' => __( 'Reviewer-edited block source for modify-and-adopt.' ),
+						'type'        => 'string',
 					),
 				),
 				array(
@@ -1677,6 +1687,7 @@ function wp_de_rtc_get_post_presence_storage_snapshot( $post, $args = array() ) 
 				'has_pending_changes',
 				'confirmed_at_gmt',
 				'selection_state_json',
+				'pending_preview_json',
 				'last_seen_gmt',
 				'expires_at_gmt',
 				'created_at_gmt',
@@ -1739,6 +1750,8 @@ function wp_de_rtc_get_post_presence_storage_snapshot( $post, $args = array() ) 
 		$confirmed_at_gmt        = $schema_current && isset( $row->confirmed_at_gmt ) ? sanitize_text_field( (string) $row->confirmed_at_gmt ) : '';
 		$selection_state_json    = $schema_current && isset( $row->selection_state_json ) ? (string) $row->selection_state_json : '';
 		$selection_state         = wp_de_rtc_get_unavailable_presence_selection_state( $presence_updated_at_gmt );
+		$pending_preview_json    = $schema_current && isset( $row->pending_preview_json ) ? (string) $row->pending_preview_json : '';
+		$pending_preview         = wp_de_rtc_get_unavailable_presence_pending_preview_state( $presence_updated_at_gmt );
 
 		if ( '' !== $selection_state_json ) {
 			$decoded_selection_state = json_decode( $selection_state_json, true );
@@ -1748,6 +1761,23 @@ function wp_de_rtc_get_post_presence_storage_snapshot( $post, $args = array() ) 
 				$selection_state['presenceUpdatedAtGmt'] = $presence_updated_at_gmt;
 			}
 		}
+
+		if ( '' !== $pending_preview_json ) {
+			$decoded_pending_preview = json_decode( $pending_preview_json, true );
+
+			if ( is_array( $decoded_pending_preview ) ) {
+				$pending_preview = wp_de_rtc_get_sanitized_presence_pending_preview_state( $decoded_pending_preview, $current_time_gmt );
+				$pending_preview['presenceUpdatedAtGmt'] = $presence_updated_at_gmt;
+
+				if ( ! empty( $pending_preview['items'] ) && is_array( $pending_preview['items'] ) ) {
+					foreach ( $pending_preview['items'] as $pending_preview_item_index => $pending_preview_item ) {
+						if ( is_array( $pending_preview_item ) ) {
+							$pending_preview['items'][ $pending_preview_item_index ]['updatedAtGmt'] = $presence_updated_at_gmt;
+						}
+					}
+				}
+			}
+			}
 
 		$document_state_available = $schema_current && '' !== $confirmed_base_version;
 		$document_state          = $document_state_available
@@ -1784,6 +1814,7 @@ function wp_de_rtc_get_post_presence_storage_snapshot( $post, $args = array() ) 
 			),
 			'documentState'          => $document_state,
 			'selectionState'         => $selection_state,
+			'pendingPreview'         => $pending_preview,
 			'source'                 => 'de_rtc_presence_storage',
 			'exposesUserId'          => false,
 			'exposesLogin'           => false,
@@ -1793,6 +1824,7 @@ function wp_de_rtc_get_post_presence_storage_snapshot( $post, $args = array() ) 
 			'exposesSelectionPresence' => ! empty( $selection_state['available'] ),
 			'exposesRawSelectedText' => false,
 			'exposesRawContent'      => false,
+			'exposesPendingPreview'  => ! empty( $pending_preview['available'] ),
 			'rawSessionKeyIncluded'  => false,
 		);
 	}
@@ -2173,7 +2205,7 @@ function wp_de_rtc_get_presence_cleanup_batch_limit( $host_profile = '' ) {
  * @return string Presence schema version.
  */
 function wp_de_rtc_get_presence_schema_version() {
-	return '4';
+	return '5';
 }
 
 /**
@@ -2736,6 +2768,242 @@ function wp_de_rtc_get_unavailable_presence_document_state( $presence_updated_at
 }
 
 /**
+ * Returns an unavailable pending-preview contract for presence fallbacks.
+ *
+ * Pending previews are ephemeral and inert. They may reveal a sanitized preview
+ * of another editor's local work, but never raw HTML, sync metadata, identity
+ * internals, or save authority.
+ *
+ * @since 7.1.0
+ *
+ * @param string $presence_updated_at_gmt Optional presence update timestamp.
+ * @return array Unavailable pending-preview data.
+ */
+function wp_de_rtc_get_unavailable_presence_pending_preview_state( $presence_updated_at_gmt = '' ) {
+	return array(
+		'available'            => false,
+		'schema'               => 'de-rtc-pending-preview-v1',
+		'hasPendingPreview'    => false,
+		'baseVersion'          => '',
+		'baseStateHash'        => '',
+		'items'                => array(),
+		'itemCount'            => 0,
+		'reportedAtGmt'        => '',
+		'presenceUpdatedAtGmt' => $presence_updated_at_gmt,
+		'source'               => 'unavailable',
+		'ephemeral'            => true,
+		'inert'                => true,
+		'authoritativeForSave' => false,
+		'claimsSaved'          => false,
+		'rawContentIncluded'   => false,
+		'exposesRawContent'    => false,
+	);
+}
+
+/**
+ * Sanitizes serialized block preview data while preserving block delimiters.
+ *
+ * Presence ghosts are rendered through Gutenberg's disabled block preview, so
+ * the server keeps wp:block comments as data while sanitizing the HTML between
+ * those delimiters. The returned string must never be inserted directly as raw
+ * HTML by the editor.
+ *
+ * @since 7.1.0
+ *
+ * @param string $preview_source Serialized block source provided by the editor.
+ * @return string Sanitized serialized block source.
+ */
+function wp_de_rtc_get_sanitized_presence_pending_preview_serialized_blocks( $preview_source ) {
+	$preview_source = substr( (string) $preview_source, 0, 2000 );
+	$preview_source = preg_replace( '#<(script|style|iframe|object|embed|svg|math)\b[^>]*>[\s\S]*?</\1\s*>#i', '', $preview_source );
+	$preview_source = preg_replace( '#<(script|style|iframe|object|embed|svg|math)\b[^>]*/?>#i', '', $preview_source );
+	$preview_source = preg_replace( '#\s+on[a-z]+\s*=\s*"[^"]*"#i', '', $preview_source );
+	$preview_source = preg_replace( "#\s+on[a-z]+\s*=\s*'[^']*'#i", '', $preview_source );
+	$preview_source = preg_replace( '#\s+on[a-z]+\s*=\s*[^\s>]+#i', '', $preview_source );
+	$preview_source = preg_replace( '#\s+(href|src|xlink:href)\s*=\s*"javascript:[^"]*"#i', ' $1="#"', $preview_source );
+	$preview_source = preg_replace( "#\s+(href|src|xlink:href)\s*=\s*'javascript:[^']*'#i", " $1='#'", $preview_source );
+	$preview_source = preg_replace( '#\s+(href|src|xlink:href)\s*=\s*javascript:[^\s>]+#i', ' $1="#"', $preview_source );
+	$preview_source = preg_replace( '#<!--(?!\s*/?wp:)[\s\S]*?-->#i', ' ', $preview_source );
+
+	$parts = preg_split( '#(<!--\s*/?wp:[\s\S]*?-->)#i', $preview_source, -1, PREG_SPLIT_DELIM_CAPTURE );
+
+	if ( ! is_array( $parts ) ) {
+		return '';
+	}
+
+	$sanitized = '';
+
+	foreach ( $parts as $part ) {
+		if ( preg_match( '#^<!--\s*/?wp:[\s\S]*?-->$#i', $part ) ) {
+			$sanitized .= $part;
+			continue;
+		}
+
+		$sanitized .= wp_kses_post( $part );
+	}
+
+	return substr( trim( $sanitized ), 0, 2000 );
+}
+
+/**
+ * Sanitizes pending-edit preview data reported by a presence heartbeat.
+ *
+ * The heartbeat may carry a short proposed source string so the server can
+ * produce a benign preview. The stored and returned payload contains only
+ * KSES-filtered HTML and stripped text; the raw source is discarded before
+ * persistence.
+ *
+ * @since 7.1.0
+ *
+ * @param mixed  $pending_preview_state Raw pending-preview payload.
+ * @param string $current_time_gmt      Current GMT time in mysql format.
+ * @return array Sanitized pending-preview data.
+ */
+function wp_de_rtc_get_sanitized_presence_pending_preview_state( $pending_preview_state, $current_time_gmt ) {
+	if ( ! is_array( $pending_preview_state ) || empty( $pending_preview_state ) ) {
+		return wp_de_rtc_get_unavailable_presence_pending_preview_state();
+	}
+
+	$items = isset( $pending_preview_state['items'] ) && is_array( $pending_preview_state['items'] )
+		? array_values( $pending_preview_state['items'] )
+		: array();
+
+	if ( empty( $items ) ) {
+		return wp_de_rtc_get_unavailable_presence_pending_preview_state();
+	}
+
+	$sanitized_items = array();
+
+	foreach ( array_slice( $items, 0, 8 ) as $index => $item ) {
+		if ( ! is_array( $item ) ) {
+			continue;
+		}
+
+		$preview_source            = '';
+		$serialized_preview_source = '';
+
+		foreach ( array( 'previewSource', 'preview_source', 'safePreviewHtml', 'safe_preview_html' ) as $source_key ) {
+			if ( isset( $item[ $source_key ] ) && is_scalar( $item[ $source_key ] ) ) {
+				$preview_source = (string) $item[ $source_key ];
+				break;
+			}
+		}
+
+		foreach ( array( 'safePreviewSerializedBlocks', 'safe_preview_serialized_blocks' ) as $source_key ) {
+			if ( isset( $item[ $source_key ] ) && is_scalar( $item[ $source_key ] ) ) {
+				$serialized_preview_source = (string) $item[ $source_key ];
+				break;
+			}
+		}
+
+		if ( '' === $serialized_preview_source ) {
+			$serialized_preview_source = $preview_source;
+		}
+
+		$safe_serialized_blocks = wp_de_rtc_get_sanitized_presence_pending_preview_serialized_blocks( $serialized_preview_source );
+		$preview_source         = substr( $preview_source, 0, 2000 );
+		$preview_source         = preg_replace( '#<(script|style|iframe|object|embed|svg|math)\b[^>]*>[\s\S]*?</\1\s*>#i', '', $preview_source );
+		$preview_source         = preg_replace( '#<(script|style|iframe|object|embed|svg|math)\b[^>]*/?>#i', '', $preview_source );
+		$safe_html              = wp_kses_post( $preview_source );
+		$safe_html              = substr( $safe_html, 0, 1000 );
+		$safe_text              = trim( preg_replace( '/\s+/', ' ', wp_strip_all_tags( $safe_html ) ) );
+		$safe_text              = substr( $safe_text, 0, 240 );
+		$block_path             = wp_de_rtc_sanitize_presence_selection_block_path(
+			isset( $item['blockPath'] ) ? $item['blockPath'] : ( isset( $item['block_path'] ) ? $item['block_path'] : array( $index ) )
+		);
+		$change_kind            = isset( $item['changeKind'] ) ? sanitize_key( (string) $item['changeKind'] ) : ( isset( $item['change_kind'] ) ? sanitize_key( (string) $item['change_kind'] ) : 'modified_block' );
+
+		if ( ! in_array( $change_kind, array( 'added_block', 'modified_block', 'deleted_block', 'unknown_change' ), true ) ) {
+			$change_kind = 'unknown_change';
+		}
+
+		$anchor_status = isset( $item['anchorStatus'] ) ? sanitize_key( (string) $item['anchorStatus'] ) : ( isset( $item['anchor_status'] ) ? sanitize_key( (string) $item['anchor_status'] ) : 'exact' );
+
+		if ( ! in_array( $anchor_status, array( 'exact', 'ambiguous', 'unavailable' ), true ) ) {
+			$anchor_status = 'exact';
+		}
+
+		$preview_scope = isset( $item['previewScope'] ) ? sanitize_key( (string) $item['previewScope'] ) : ( isset( $item['preview_scope'] ) ? sanitize_key( (string) $item['preview_scope'] ) : 'leaf_block' );
+
+		if ( ! in_array( $preview_scope, array( 'leaf_block', 'sibling_collection', 'container_block' ), true ) ) {
+			$preview_scope = 'leaf_block';
+		}
+
+		$block_range = null;
+		$raw_range   = isset( $item['blockRange'] ) && is_array( $item['blockRange'] ) ? $item['blockRange'] : ( isset( $item['block_range'] ) && is_array( $item['block_range'] ) ? $item['block_range'] : null );
+
+		if ( is_array( $raw_range ) ) {
+			$range_start = isset( $raw_range['start'] ) ? absint( $raw_range['start'] ) : ( isset( $raw_range['start_index'] ) ? absint( $raw_range['start_index'] ) : null );
+			$range_count = isset( $raw_range['count'] ) ? absint( $raw_range['count'] ) : 0;
+
+			if ( null !== $range_start && $range_count > 0 && $range_count <= 8 ) {
+				$block_range = array(
+					'start' => $range_start,
+					'count' => $range_count,
+				);
+			}
+		}
+
+		if ( '' === $safe_html && '' === $safe_text && '' === $safe_serialized_blocks && 'deleted_block' !== $change_kind ) {
+			continue;
+		}
+
+		$block_name = isset( $item['blockName'] ) ? sanitize_text_field( (string) $item['blockName'] ) : ( isset( $item['block_name'] ) ? sanitize_text_field( (string) $item['block_name'] ) : '' );
+
+		if ( '' === $block_name || strlen( $block_name ) > 128 || ! preg_match( '#^[a-z0-9_/-]+$#i', $block_name ) ) {
+			$block_name = 'core/block';
+		}
+
+		$sanitized_items[] = array(
+			'previewId'                   => 'pending-preview-' . substr( hash( 'sha256', wp_json_encode( array( $index, $block_path, $block_name, $safe_text, $safe_html, $safe_serialized_blocks ) ) ), 0, 12 ),
+			'blockPath'                   => $block_path ? $block_path : array( $index ),
+			'blockName'                   => $block_name,
+			'changeKind'                  => $change_kind,
+			'safePreviewSerializedBlocks' => $safe_serialized_blocks,
+			'safePreviewHtml'             => $safe_html,
+			'safePreviewText'             => $safe_text,
+			'isPlaceholder'               => '' === $safe_text && '' === $safe_html && '' === $safe_serialized_blocks,
+			'reviewRequired'              => ! empty( $item['reviewRequired'] ) || ! empty( $item['review_required'] ),
+			'anchorStatus'                => $anchor_status,
+			'previewScope'                => $preview_scope,
+			'blockRange'                  => $block_range,
+			'updatedAtGmt'                => $current_time_gmt,
+			'rawContentIncluded'          => false,
+			'exposesRawContent'           => false,
+			'inert'                       => true,
+		);
+	}
+
+	if ( empty( $sanitized_items ) ) {
+		return wp_de_rtc_get_unavailable_presence_pending_preview_state();
+	}
+
+	$base_version = isset( $pending_preview_state['baseVersion'] ) ? sanitize_text_field( (string) $pending_preview_state['baseVersion'] ) : ( isset( $pending_preview_state['base_version'] ) ? sanitize_text_field( (string) $pending_preview_state['base_version'] ) : '' );
+	$base_hash    = isset( $pending_preview_state['baseStateHash'] ) && wp_de_rtc_is_sha256_hash( (string) $pending_preview_state['baseStateHash'] )
+		? (string) $pending_preview_state['baseStateHash']
+		: ( isset( $pending_preview_state['base_state_hash'] ) && wp_de_rtc_is_sha256_hash( (string) $pending_preview_state['base_state_hash'] ) ? (string) $pending_preview_state['base_state_hash'] : '' );
+
+	return array(
+		'available'            => true,
+		'schema'               => 'de-rtc-pending-preview-v1',
+		'hasPendingPreview'    => true,
+		'baseVersion'          => $base_version,
+		'baseStateHash'        => $base_hash,
+		'items'                => $sanitized_items,
+		'itemCount'            => count( $sanitized_items ),
+		'reportedAtGmt'        => $current_time_gmt,
+		'presenceUpdatedAtGmt' => '',
+		'source'               => 'client_reported_presence',
+		'ephemeral'            => true,
+		'inert'                => true,
+		'authoritativeForSave' => false,
+		'claimsSaved'          => false,
+		'rawContentIncluded'   => false,
+		'exposesRawContent'    => false,
+	);
+}
+
+/**
  * Returns the WordPress presence storage schema contract.
  *
  * This defines the dedicated table and cleanup policy needed by future
@@ -2780,6 +3048,7 @@ confirmed_state_hash char(64) NOT NULL DEFAULT '',
 has_pending_changes tinyint(1) unsigned NOT NULL DEFAULT 0,
 confirmed_at_gmt datetime DEFAULT NULL,
 selection_state_json text,
+pending_preview_json text,
 last_seen_gmt datetime NOT NULL,
 expires_at_gmt datetime NOT NULL,
 created_at_gmt datetime NOT NULL,
@@ -2791,7 +3060,7 @@ KEY expires_at_gmt (expires_at_gmt)
 ) $charset_collate;";
 
 	return array(
-		'schema'                           => 'de-rtc-presence-storage-v4',
+		'schema'                           => 'de-rtc-presence-storage-v5',
 		'schema_version'                   => $schema_version,
 		'storage_kind'                     => 'dedicated_presence_table',
 		'table_name'                       => $table_name,
@@ -2812,6 +3081,7 @@ KEY expires_at_gmt (expires_at_gmt)
 			'has_pending_changes',
 			'confirmed_at_gmt',
 			'selection_state_json',
+			'pending_preview_json',
 			'last_seen_gmt',
 			'expires_at_gmt',
 			'created_at_gmt',
@@ -2841,6 +3111,7 @@ KEY expires_at_gmt (expires_at_gmt)
 			'exposes_selection'     => false,
 			'exposes_selection_presence' => true,
 			'exposes_raw_selected_text' => false,
+			'exposes_pending_preview' => true,
 			'exposes_raw_content'   => false,
 		),
 		'heartbeat_writes_enabled_now'     => false,
@@ -3574,6 +3845,8 @@ function wp_de_rtc_get_review_item_public_descriptor( $row, $args = array() ) {
 			'include_proposer_display_name' => false,
 			'include_escaped_source'        => false,
 			'current_time_gmt'              => current_time( 'mysql', true ),
+			'current_user_id'               => get_current_user_id(),
+			'can_review'                    => current_user_can( 'unfiltered_html' ),
 		)
 	);
 
@@ -3581,6 +3854,11 @@ function wp_de_rtc_get_review_item_public_descriptor( $row, $args = array() ) {
 	$current_timestamp = strtotime( (string) $args['current_time_gmt'] . ' UTC' );
 	$expires_timestamp = isset( $row['expires_at_gmt'] ) ? strtotime( (string) $row['expires_at_gmt'] . ' UTC' ) : false;
 	$effective_status  = ( 'pending' === $status && $expires_timestamp && $current_timestamp && $expires_timestamp <= $current_timestamp ) ? 'expired' : $status;
+	$proposer_user_id  = isset( $row['proposer_user_id'] ) ? (int) $row['proposer_user_id'] : 0;
+	$current_user_id   = isset( $args['current_user_id'] ) ? (int) $args['current_user_id'] : 0;
+	$can_review        = ! empty( $args['can_review'] );
+	$can_discard       = $proposer_user_id > 0 && $current_user_id === $proposer_user_id;
+	$is_active_pending = wp_de_rtc_review_item_row_is_active_pending( $row, (string) $args['current_time_gmt'] );
 	$descriptor        = array(
 		'id'                         => isset( $row['public_id'] ) ? sanitize_text_field( (string) $row['public_id'] ) : '',
 		'reviewItemId'               => isset( $row['public_id'] ) ? sanitize_text_field( (string) $row['public_id'] ) : '',
@@ -3607,6 +3885,10 @@ function wp_de_rtc_get_review_item_public_descriptor( $row, $args = array() ) {
 		'sourceAvailable'            => ! empty( $row['encoded_proposed_source'] ),
 		'contentTransport'           => 'descriptor_only',
 		'encodedStorage'             => true,
+		'canApprove'                 => $is_active_pending && $can_review,
+		'canModifyAdopt'             => $is_active_pending && $can_review,
+		'canReject'                  => $is_active_pending && $can_review,
+		'canDiscard'                 => $is_active_pending && $can_discard,
 		'rawContentIncluded'         => false,
 		'exposesRawContent'          => false,
 		'executable'                 => false,
@@ -3632,6 +3914,686 @@ function wp_de_rtc_get_review_item_public_descriptor( $row, $args = array() ) {
 	}
 
 	return $descriptor;
+}
+
+/**
+ * Returns whether a review item row is still active pending work.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param array       $row              Review item row.
+ * @param string|null $current_time_gmt Optional current time in GMT.
+ * @return bool Whether the row is active and pending.
+ */
+function wp_de_rtc_review_item_row_is_active_pending( $row, $current_time_gmt = null ) {
+	if ( ! is_array( $row ) ) {
+		return false;
+	}
+
+	$current_time_gmt    = null === $current_time_gmt ? current_time( 'mysql', true ) : (string) $current_time_gmt;
+	$current_timestamp   = strtotime( $current_time_gmt . ' UTC' );
+	$expires_at_gmt      = isset( $row['expires_at_gmt'] ) ? (string) $row['expires_at_gmt'] : '';
+	$expires_timestamp   = '' === $expires_at_gmt ? false : strtotime( $expires_at_gmt . ' UTC' );
+	$review_item_status  = isset( $row['status'] ) ? sanitize_key( (string) $row['status'] ) : '';
+
+	return 'pending' === $review_item_status && false !== $expires_timestamp && false !== $current_timestamp && $expires_timestamp > $current_timestamp;
+}
+
+/**
+ * Creates an archival logical key for a terminal review item row.
+ *
+ * Terminal review rows keep their public ID for audit/detail routing, but they
+ * must release the active logical key so a later identical proposal can create
+ * a fresh pending item instead of reviving old terminal state.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param array  $row              Review item row.
+ * @param string $current_time_gmt Current time in GMT.
+ * @param string $reason           Archive reason.
+ * @return string Archived logical key hash.
+ */
+function wp_de_rtc_get_archived_review_item_logical_key_hash( $row, $current_time_gmt, $reason = 'terminal' ) {
+	$fields = array(
+		isset( $row['review_item_id'] ) ? (int) $row['review_item_id'] : 0,
+		isset( $row['public_id'] ) ? (string) $row['public_id'] : '',
+		isset( $row['logical_key_hash'] ) ? (string) $row['logical_key_hash'] : '',
+		sanitize_key( $reason ),
+		(string) $current_time_gmt,
+	);
+
+	return hash_hmac( 'sha256', implode( '|', $fields ), wp_salt( 'auth' ) );
+}
+
+/**
+ * Releases a review item's active logical key while preserving its audit row.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param array  $row              Review item row.
+ * @param string $current_time_gmt Current time in GMT.
+ * @param string $reason           Archive reason.
+ * @return bool Whether the archival update succeeded.
+ */
+function wp_de_rtc_archive_review_item_logical_key( $row, $current_time_gmt, $reason = 'terminal' ) {
+	global $wpdb;
+
+	if ( ! is_array( $row ) || empty( $row['review_item_id'] ) ) {
+		return false;
+	}
+
+	$archived_key = wp_de_rtc_get_archived_review_item_logical_key_hash( $row, $current_time_gmt, $reason );
+
+	return false !== $wpdb->update(
+		wp_de_rtc_get_review_items_table_name(),
+		array(
+			'logical_key_hash' => $archived_key,
+			'updated_at_gmt'   => $current_time_gmt,
+		),
+		array(
+			'review_item_id' => (int) $row['review_item_id'],
+		),
+		array( '%s', '%s' ),
+		array( '%d' )
+	);
+}
+
+/**
+ * Claims a pending review item before applying a reviewer write.
+ *
+ * The review item table is the authority for one-time review decisions. A
+ * compare-and-set claim keeps two concurrent approval requests from both
+ * saving the same stored proposal.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param array  $row              Review item row.
+ * @param string $action           Review action.
+ * @param string $current_time_gmt Current time in GMT.
+ * @return true|WP_Error True on success, otherwise a no-write error.
+ */
+function wp_de_rtc_claim_review_item_for_resolution( $row, $action, $current_time_gmt ) {
+	global $wpdb;
+
+	if ( ! is_array( $row ) || empty( $row['review_item_id'] ) ) {
+		return wp_de_rtc_get_reason_error(
+			'de_rtc_review_item_not_found',
+			__( 'Distributed Editing could not find an active review item.' ),
+			array(
+				'detail'               => 'review_item_resolution_claim_missing_row',
+				'raw_content_included' => false,
+				'saves_post'           => false,
+				'mutates_post_content' => false,
+				'creates_revision'     => false,
+				'claims_saved'         => false,
+			)
+		);
+	}
+
+	$table_sql = wp_de_rtc_get_review_items_table_sql();
+	$updated   = $wpdb->query(
+		$wpdb->prepare(
+			"UPDATE $table_sql SET status = 'applying', updated_at_gmt = %s, resolved_by = %d, resolution_action = %s WHERE review_item_id = %d AND status = 'pending' AND expires_at_gmt > %s",
+			(string) $current_time_gmt,
+			get_current_user_id(),
+			sanitize_key( $action ),
+			(int) $row['review_item_id'],
+			(string) $current_time_gmt
+		)
+	);
+
+	if ( false === $updated ) {
+		return wp_de_rtc_get_reason_error(
+			'de_rtc_storage_failure',
+			__( 'Distributed Editing could not claim the review item.' ),
+			array(
+				'detail'               => 'review_item_resolution_claim_storage_failure',
+				'raw_content_included' => false,
+				'saves_post'           => false,
+				'mutates_post_content' => false,
+				'creates_revision'     => false,
+				'claims_saved'         => false,
+			)
+		);
+	}
+
+	if ( 1 !== (int) $updated ) {
+		return wp_de_rtc_get_reason_error(
+			'de_rtc_review_item_not_found',
+			__( 'Distributed Editing could not find an active review item.' ),
+			array(
+				'detail'               => 'review_item_resolution_claim_not_active_pending',
+				'raw_content_included' => false,
+				'saves_post'           => false,
+				'mutates_post_content' => false,
+				'creates_revision'     => false,
+				'claims_saved'         => false,
+			)
+		);
+	}
+
+	return true;
+}
+
+/**
+ * Releases a review item claim after a failed reviewer write.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param array  $row              Review item row.
+ * @param string $current_time_gmt Current time in GMT.
+ * @return void
+ */
+function wp_de_rtc_release_review_item_resolution_claim( $row, $current_time_gmt ) {
+	global $wpdb;
+
+	if ( ! is_array( $row ) || empty( $row['review_item_id'] ) ) {
+		return;
+	}
+
+	$wpdb->update(
+		wp_de_rtc_get_review_items_table_name(),
+		array(
+			'status'            => 'pending',
+			'updated_at_gmt'    => (string) $current_time_gmt,
+			'resolved_by'       => 0,
+			'resolution_action' => '',
+		),
+		array(
+			'review_item_id' => (int) $row['review_item_id'],
+			'status'         => 'applying',
+		),
+		array( '%s', '%s', '%d', '%s' ),
+		array( '%d', '%s' )
+	);
+}
+
+/**
+ * Supersedes older active pending review items for the same proposer/block.
+ *
+ * A modified unsafe retry should replace the prior proposal for that block. It
+ * must not leave parallel active rows that make the sidebar look like multiple
+ * unresolved decisions for one current local proposal.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param WP_Post $post             Post object.
+ * @param int     $proposer_user_id Proposer user ID.
+ * @param string  $block_path       Serialized block path.
+ * @param string  $change_kind      Change kind.
+ * @param int     $current_item_id  Review item ID that remains active.
+ * @param string  $current_time_gmt Current time in GMT.
+ * @return int Number of superseded rows.
+ */
+function wp_de_rtc_supersede_active_review_items_for_same_anchor( $post, $proposer_user_id, $block_path, $change_kind, $current_item_id, $current_time_gmt ) {
+	global $wpdb;
+
+	if ( ! $post || '' === (string) $block_path || '' === (string) $change_kind || ! wp_de_rtc_review_items_table_exists() ) {
+		return 0;
+	}
+
+	$table_sql = wp_de_rtc_get_review_items_table_sql();
+	$rows      = $wpdb->get_results(
+		$wpdb->prepare(
+			"SELECT * FROM $table_sql WHERE post_id = %d AND proposer_user_id = %d AND block_path = %s AND change_kind = %s AND status = 'pending' AND expires_at_gmt > %s AND review_item_id <> %d",
+			(int) $post->ID,
+			(int) $proposer_user_id,
+			(string) $block_path,
+			sanitize_key( $change_kind ),
+			(string) $current_time_gmt,
+			(int) $current_item_id
+		),
+		ARRAY_A
+	);
+
+	if ( ! is_array( $rows ) || empty( $rows ) ) {
+		return 0;
+	}
+
+	$superseded = 0;
+	foreach ( $rows as $row ) {
+		$updated = $wpdb->update(
+			wp_de_rtc_get_review_items_table_name(),
+			array(
+				'logical_key_hash' => wp_de_rtc_get_archived_review_item_logical_key_hash( $row, $current_time_gmt, 'superseded' ),
+				'status'           => 'superseded',
+				'updated_at_gmt'   => $current_time_gmt,
+				'resolved_at_gmt'  => $current_time_gmt,
+				'resolved_by'      => (int) $proposer_user_id,
+				'resolution_action' => 'superseded',
+			),
+			array(
+				'review_item_id' => (int) $row['review_item_id'],
+			),
+			array( '%s', '%s', '%s', '%s', '%d', '%s' ),
+			array( '%d' )
+		);
+
+		if ( false !== $updated ) {
+			++$superseded;
+		}
+	}
+
+	return $superseded;
+}
+
+/**
+ * Returns non-empty parsed blocks for a review-item replacement source.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param string $source Serialized block source.
+ * @return array[] Parsed replacement blocks.
+ */
+function wp_de_rtc_get_review_item_replacement_blocks( $source ) {
+	$blocks = parse_blocks( (string) $source );
+
+	return array_values(
+		array_filter(
+			$blocks,
+			static function ( $block ) {
+				if ( ! is_array( $block ) ) {
+					return false;
+				}
+
+				return ! empty( $block['blockName'] ) || '' !== trim( serialize_block( $block ) );
+			}
+		)
+	);
+}
+
+/**
+ * Applies a review item replacement to parsed blocks by retained block path.
+ *
+ * The stored review path uses the same retained-block indexing as KSES review
+ * classification, skipping empty freeform separators. This keeps approval from
+ * depending on Gutenberg client IDs or whitespace-only parser artifacts.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param array $blocks             Parsed blocks.
+ * @param int[] $path               Retained block path.
+ * @param string $change_kind       Review change kind.
+ * @param array $replacement_blocks Replacement parsed blocks.
+ * @param bool  $applied            Whether a change was applied.
+ * @return array Updated parsed blocks.
+ */
+function wp_de_rtc_apply_review_item_blocks_at_path( $blocks, $path, $change_kind, $replacement_blocks, &$applied ) {
+	$target_index   = isset( $path[0] ) ? absint( $path[0] ) : 0;
+	$retained_index = 0;
+
+	foreach ( $blocks as $real_index => $block ) {
+		if ( ! is_array( $block ) ) {
+			continue;
+		}
+
+		if ( empty( $block['blockName'] ) && '' === trim( serialize_block( $block ) ) ) {
+			continue;
+		}
+
+		if ( $retained_index === $target_index ) {
+			if ( count( $path ) > 1 ) {
+				$block['innerBlocks'] = wp_de_rtc_apply_review_item_blocks_at_path(
+					isset( $block['innerBlocks'] ) && is_array( $block['innerBlocks'] ) ? $block['innerBlocks'] : array(),
+					array_slice( $path, 1 ),
+					$change_kind,
+					$replacement_blocks,
+					$applied
+				);
+				$blocks[ $real_index ] = $block;
+
+				return $blocks;
+			}
+
+			if ( 'added_block' === $change_kind ) {
+				array_splice( $blocks, $real_index, 0, $replacement_blocks );
+			} elseif ( 'deleted_block' === $change_kind ) {
+				array_splice( $blocks, $real_index, 1 );
+			} else {
+				array_splice( $blocks, $real_index, 1, $replacement_blocks );
+			}
+
+			$applied = true;
+
+			return $blocks;
+		}
+
+		++$retained_index;
+	}
+
+	if ( ! $applied && 1 === count( $path ) && 'added_block' === $change_kind && $target_index === $retained_index ) {
+		array_splice( $blocks, count( $blocks ), 0, $replacement_blocks );
+		$applied = true;
+	}
+
+	return $blocks;
+}
+
+/**
+ * Applies one approved review item to stripped post content.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param string $post_content       Current stripped post content.
+ * @param array  $row                Review item row.
+ * @param string $replacement_source Serialized replacement source.
+ * @return string|WP_Error Updated stripped post content.
+ */
+function wp_de_rtc_apply_review_item_to_stripped_content( $post_content, $row, $replacement_source ) {
+	$change_kind = isset( $row['change_kind'] ) ? sanitize_key( (string) $row['change_kind'] ) : '';
+	$block_path  = isset( $row['block_path'] ) && '' !== (string) $row['block_path'] ? array_map( 'absint', explode( '.', (string) $row['block_path'] ) ) : array();
+
+	if ( empty( $block_path ) || ! in_array( $change_kind, array( 'added_block', 'modified_block', 'deleted_block' ), true ) ) {
+		return wp_de_rtc_get_reason_error(
+			'de_rtc_malformed_sync_payload',
+			__( 'Distributed Editing could not apply the review item because its block location is invalid.' ),
+			array(
+				'detail'               => 'review_item_apply_invalid_block_path',
+				'raw_content_included' => false,
+				'saves_post'           => false,
+				'mutates_post_content' => false,
+				'creates_revision'     => false,
+				'claims_saved'         => false,
+			)
+		);
+	}
+
+	$replacement_blocks = 'deleted_block' === $change_kind ? array() : wp_de_rtc_get_review_item_replacement_blocks( $replacement_source );
+
+	if ( 'deleted_block' !== $change_kind && 1 !== count( $replacement_blocks ) ) {
+		return wp_de_rtc_get_reason_error(
+			'de_rtc_malformed_sync_payload',
+			__( 'Distributed Editing could not apply the review item because its replacement block is invalid.' ),
+			array(
+				'detail'               => 'review_item_apply_invalid_replacement_block',
+				'raw_content_included' => false,
+				'saves_post'           => false,
+				'mutates_post_content' => false,
+				'creates_revision'     => false,
+				'claims_saved'         => false,
+			)
+		);
+	}
+
+	$applied = false;
+	$blocks  = wp_de_rtc_apply_review_item_blocks_at_path(
+		parse_blocks( (string) $post_content ),
+		$block_path,
+		$change_kind,
+		$replacement_blocks,
+		$applied
+	);
+
+	if ( ! $applied ) {
+		return wp_de_rtc_get_reason_error(
+			'de_rtc_rebase_failed',
+			__( 'Distributed Editing could not apply the review item because the block location changed.' ),
+			array(
+				'detail'               => 'review_item_apply_block_location_changed',
+				'raw_content_included' => false,
+				'saves_post'           => false,
+				'mutates_post_content' => false,
+				'creates_revision'     => false,
+				'claims_saved'         => false,
+			)
+		);
+	}
+
+	return serialize_blocks( $blocks );
+}
+
+/**
+ * Applies an approved or reviewer-modified review item to the canonical post.
+ *
+ * @since 7.1.0
+ *
+ * @param WP_Post $post              Post object.
+ * @param array   $row               Review item row.
+ * @param array   $args              Apply args.
+ * @return array|WP_Error Apply result.
+ */
+function wp_de_rtc_apply_review_item_resolution_to_post( $post, $row, $args = array() ) {
+	global $wpdb;
+
+	$args   = wp_parse_args(
+		$args,
+		array(
+			'action'                => 'approve',
+			'reviewed_block_source' => null,
+		)
+	);
+	$action = sanitize_key( (string) $args['action'] );
+
+	if ( ! $post || ! is_array( $row ) || ! in_array( $action, array( 'approve', 'modify-adopt' ), true ) ) {
+		return wp_de_rtc_get_reason_error(
+			'de_rtc_malformed_sync_payload',
+			__( 'Distributed Editing could not apply the review item.' ),
+			array(
+				'detail'               => 'review_item_apply_invalid_request',
+				'post_id'              => $post ? (int) $post->ID : 0,
+				'raw_content_included' => false,
+				'saves_post'           => false,
+				'mutates_post_content' => false,
+				'creates_revision'     => false,
+				'claims_saved'         => false,
+			)
+		);
+	}
+
+	if ( ! wp_de_rtc_review_item_row_is_active_pending( $row ) ) {
+		return wp_de_rtc_get_reason_error(
+			'de_rtc_review_item_not_found',
+			__( 'Distributed Editing could not find an active review item.' ),
+			array(
+				'detail'               => 'review_item_apply_not_active_pending',
+				'post_id'              => (int) $post->ID,
+				'raw_content_included' => false,
+				'saves_post'           => false,
+				'mutates_post_content' => false,
+				'creates_revision'     => false,
+				'claims_saved'         => false,
+			)
+		);
+	}
+
+	$current = wp_de_rtc_parse_post_content_sync_meta( $post->post_content );
+
+	if ( is_wp_error( $current ) || ! is_array( $current ) || ! is_array( $current['sync_meta'] ) ) {
+		return wp_de_rtc_get_reason_error(
+			'de_rtc_sync_meta_tampered',
+			__( 'Distributed Editing could not apply the review item because sync metadata is unavailable.' ),
+			array(
+				'detail'               => 'review_item_apply_current_sync_meta_unavailable',
+				'post_id'              => (int) $post->ID,
+				'raw_content_included' => false,
+				'saves_post'           => false,
+				'mutates_post_content' => false,
+				'creates_revision'     => false,
+				'claims_saved'         => false,
+			)
+		);
+	}
+
+	$stored_source      = wp_de_rtc_base64url_decode( isset( $row['encoded_proposed_source'] ) ? (string) $row['encoded_proposed_source'] : '' );
+	$replacement_source = 'modify-adopt' === $action && is_string( $args['reviewed_block_source'] )
+		? (string) $args['reviewed_block_source']
+		: $stored_source;
+
+	if ( 'approve' === $action && ! hash_equals( (string) $row['proposed_content_hash'], wp_de_rtc_hash_content( $stored_source ) ) ) {
+		return wp_de_rtc_get_reason_error(
+			'de_rtc_sync_meta_tampered',
+			__( 'Distributed Editing rejected the review item because its stored proposal changed.' ),
+			array(
+				'detail'               => 'review_item_apply_stored_proposal_hash_mismatch',
+				'post_id'              => (int) $post->ID,
+				'raw_content_included' => false,
+				'saves_post'           => false,
+				'mutates_post_content' => false,
+				'creates_revision'     => false,
+				'claims_saved'         => false,
+			)
+		);
+	}
+
+	$next_stripped_content = wp_de_rtc_apply_review_item_to_stripped_content(
+		(string) $current['content'],
+		$row,
+		$replacement_source
+	);
+
+	if ( is_wp_error( $next_stripped_content ) ) {
+		return $next_stripped_content;
+	}
+
+	$previous_version = isset( $current['sync_meta']['version'] ) ? sanitize_text_field( (string) $current['sync_meta']['version'] ) : '';
+	$content_hash     = wp_de_rtc_hash_content( $next_stripped_content );
+	$next_version     = wp_de_rtc_get_next_sync_meta_version( $previous_version, $content_hash );
+	$next_sync_meta   = $current['sync_meta'];
+
+	$next_sync_meta['version']            = $next_version;
+	$next_sync_meta['previous_version']   = $previous_version;
+	$next_sync_meta['post_content_hash']  = $content_hash;
+	$next_sync_meta['content_hash']       = $content_hash;
+	$next_sync_meta['last_server_update'] = array(
+		'type'                => 'review_item_' . str_replace( '-', '_', $action ),
+		'user_id'             => get_current_user_id(),
+		'session_label'       => wp_de_rtc_get_history_author_display_name( get_current_user_id() ),
+		'review_item_id'      => isset( $row['public_id'] ) ? (string) $row['public_id'] : '',
+		'proposer_actor_hash' => isset( $row['proposer_actor_hash'] ) ? (string) $row['proposer_actor_hash'] : '',
+		'block_path'          => isset( $row['block_path'] ) ? (string) $row['block_path'] : '',
+		'content_hash'        => $content_hash,
+	);
+
+	$next_post_content = wp_de_rtc_add_sync_meta_to_post_content(
+		$next_stripped_content,
+		$current['sync_meta_format'],
+		$next_sync_meta,
+		$current['sync_meta_position']
+	);
+
+	if ( is_wp_error( $next_post_content ) ) {
+		return $next_post_content;
+	}
+
+	$now_gmt = current_time( 'mysql', true );
+	$claim   = wp_de_rtc_claim_review_item_for_resolution( $row, $action, $now_gmt );
+
+	if ( is_wp_error( $claim ) ) {
+		return $claim;
+	}
+
+	$revision_ids_before_save = wp_de_rtc_get_post_revision_ids( $post->ID );
+
+	wp_de_rtc_enable_sync_meta_script_kses_allowance();
+
+	global $wp_de_rtc_retry_save_candidate_post_content;
+
+	if ( ! is_array( $wp_de_rtc_retry_save_candidate_post_content ) ) {
+		$wp_de_rtc_retry_save_candidate_post_content = array();
+	}
+
+	$wp_de_rtc_retry_save_candidate_post_content[ (int) $post->ID ] = $next_post_content;
+
+	try {
+		$update_result = wp_update_post(
+			wp_slash(
+				array(
+					'ID'           => (int) $post->ID,
+					'post_content' => $next_post_content,
+				)
+			),
+			true
+		);
+	} finally {
+		unset( $wp_de_rtc_retry_save_candidate_post_content[ (int) $post->ID ] );
+		wp_de_rtc_disable_sync_meta_script_kses_allowance();
+	}
+
+	if ( is_wp_error( $update_result ) ) {
+		wp_de_rtc_release_review_item_resolution_claim( $row, current_time( 'mysql', true ) );
+		return $update_result;
+	}
+
+	$now_gmt         = current_time( 'mysql', true );
+	$resolved_status = 'modify-adopt' === $action ? 'modified_adopted' : 'approved';
+	$archived_key    = wp_de_rtc_get_archived_review_item_logical_key_hash( $row, $now_gmt, $resolved_status );
+	$updated         = $wpdb->update(
+		wp_de_rtc_get_review_items_table_name(),
+		array(
+			'logical_key_hash' => $archived_key,
+			'status'            => $resolved_status,
+			'updated_at_gmt'    => $now_gmt,
+			'resolved_at_gmt'   => $now_gmt,
+			'resolved_by'       => get_current_user_id(),
+			'resolution_action' => $action,
+		),
+		array(
+			'review_item_id' => (int) $row['review_item_id'],
+			'status'         => 'applying',
+		),
+		array( '%s', '%s', '%s', '%s', '%d', '%s' ),
+		array( '%d', '%s' )
+	);
+
+	if ( false === $updated || 1 !== (int) $updated ) {
+		return wp_de_rtc_get_reason_error(
+			'de_rtc_storage_failure',
+			__( 'Distributed Editing saved the reviewed block but could not update review state.' ),
+			array(
+				'detail'               => 'review_item_apply_resolution_storage_failure',
+				'post_id'              => (int) $post->ID,
+				'raw_content_included' => false,
+				'saves_post'           => true,
+				'mutates_post_content' => true,
+				'creates_revision'     => true,
+				'claims_saved'         => true,
+			)
+		);
+	}
+
+	$row['logical_key_hash']  = $archived_key;
+	$row['status']            = $resolved_status;
+	$row['updated_at_gmt']    = $now_gmt;
+	$row['resolved_at_gmt']   = $now_gmt;
+	$row['resolved_by']       = get_current_user_id();
+	$row['resolution_action'] = $action;
+
+	$revision_ids_after_save = wp_de_rtc_get_post_revision_ids( $post->ID );
+
+	return array(
+		'result'                   => 'review_item_' . $resolved_status,
+		'item'                     => wp_de_rtc_get_review_item_public_descriptor(
+			$row,
+			array(
+				'include_proposer_display_name' => true,
+			)
+		),
+		'content'                  => array(
+			'raw' => get_post( $post->ID )->post_content,
+		),
+		'previousServerVersion'    => $previous_version,
+		'serverVersion'            => $next_version,
+		'savedStrippedContentHash' => $content_hash,
+		'revisionIdsBeforeSave'    => $revision_ids_before_save,
+		'revisionIdsAfterSave'     => $revision_ids_after_save,
+		'createdRevisionIds'       => array_values( array_diff( $revision_ids_after_save, $revision_ids_before_save ) ),
+		'revisionCreated'          => $revision_ids_after_save !== $revision_ids_before_save,
+		'rawContentIncluded'       => false,
+		'exposesRawContent'        => false,
+		'savesPost'                => true,
+		'mutatesPostContent'       => true,
+		'createsRevision'          => true,
+		'claimsSaved'              => true,
+	);
 }
 
 /**
@@ -3753,13 +4715,17 @@ function wp_de_rtc_get_review_items_for_post( $post, $args = array() ) {
 		);
 	}
 
+	$current_user_id = (int) $args['current_user_id'];
+	$can_review      = (bool) $args['can_review'];
 	$items = array_map(
-		static function ( $row ) use ( $include_proposer, $current_time_gmt ) {
+		static function ( $row ) use ( $include_proposer, $current_time_gmt, $current_user_id, $can_review ) {
 			return wp_de_rtc_get_review_item_public_descriptor(
 				$row,
 				array(
 					'include_proposer_display_name' => $include_proposer,
 					'current_time_gmt'              => $current_time_gmt,
+					'current_user_id'               => $current_user_id,
+					'can_review'                    => $can_review,
 				)
 			);
 		},
@@ -4019,42 +4985,59 @@ function wp_de_rtc_record_review_required_items( $post, $review_items, $args = a
 		);
 
 		if ( is_array( $existing_row ) ) {
-			$wpdb->update(
-				wp_de_rtc_get_review_items_table_name(),
-				array(
-					'updated_at_gmt' => $current_time_gmt,
-					'expires_at_gmt' => $expires_at_gmt,
-				),
-				array(
-					'review_item_id' => (int) $existing_row['review_item_id'],
-				),
-				array( '%s', '%s' ),
-				array( '%d' )
-			);
-			$existing_row['updated_at_gmt'] = $current_time_gmt;
-			$existing_row['expires_at_gmt'] = $expires_at_gmt;
-			++$deduped_count;
-			$descriptor  = wp_de_rtc_get_review_item_public_descriptor( $existing_row );
-			$descriptors[] = $descriptor;
-			$results[]   = array(
-				'status'       => 'deduplicated',
-				'reviewItemId' => $descriptor['reviewItemId'],
-			);
-			continue;
+			if ( wp_de_rtc_review_item_row_is_active_pending( $existing_row, $current_time_gmt ) ) {
+				$wpdb->update(
+					wp_de_rtc_get_review_items_table_name(),
+					array(
+						'updated_at_gmt' => $current_time_gmt,
+						'expires_at_gmt' => $expires_at_gmt,
+					),
+					array(
+						'review_item_id' => (int) $existing_row['review_item_id'],
+					),
+					array( '%s', '%s' ),
+					array( '%d' )
+				);
+				$existing_row['updated_at_gmt'] = $current_time_gmt;
+				$existing_row['expires_at_gmt'] = $expires_at_gmt;
+				++$deduped_count;
+				$descriptor    = wp_de_rtc_get_review_item_public_descriptor( $existing_row );
+				$descriptors[] = $descriptor;
+				$results[]     = array(
+					'status'       => 'deduplicated',
+					'reviewItemId' => $descriptor['reviewItemId'],
+				);
+				continue;
+			}
+
+			/*
+			 * Terminal rows are audit evidence, not active proposals. Release
+			 * their logical key before inserting so a deliberate retry creates a
+			 * new pending item instead of making the old decision look alive.
+			 */
+			wp_de_rtc_archive_review_item_logical_key( $existing_row, $current_time_gmt, 'terminal_requeue' );
 		}
 
+		$block_path  = isset( $review_item['block_path'] ) && is_array( $review_item['block_path'] ) ? implode( '.', array_map( 'absint', $review_item['block_path'] ) ) : '';
+		$change_kind = isset( $review_item['change_kind'] ) ? sanitize_key( (string) $review_item['change_kind'] ) : '';
 		$post_pending_count = (int) $wpdb->get_var(
 			$wpdb->prepare(
-				"SELECT COUNT(*) FROM $table_sql WHERE post_id = %d AND status = 'pending' AND expires_at_gmt > %s",
+				"SELECT COUNT(*) FROM $table_sql WHERE post_id = %d AND status = 'pending' AND expires_at_gmt > %s AND NOT ( proposer_user_id = %d AND block_path = %s AND change_kind = %s )",
 				(int) $post->ID,
-				$current_time_gmt
+				$current_time_gmt,
+				$current_user_id,
+				$block_path,
+				$change_kind
 			)
 		);
 		$user_pending_count = (int) $wpdb->get_var(
 			$wpdb->prepare(
-				"SELECT COUNT(*) FROM $table_sql WHERE proposer_user_id = %d AND status = 'pending' AND expires_at_gmt > %s",
+				"SELECT COUNT(*) FROM $table_sql WHERE proposer_user_id = %d AND status = 'pending' AND expires_at_gmt > %s AND NOT ( post_id = %d AND block_path = %s AND change_kind = %s )",
 				$current_user_id,
-				$current_time_gmt
+				$current_time_gmt,
+				(int) $post->ID,
+				$block_path,
+				$change_kind
 			)
 		);
 
@@ -4100,7 +5083,6 @@ function wp_de_rtc_record_review_required_items( $post, $review_items, $args = a
 			continue;
 		}
 
-		$block_path       = isset( $review_item['block_path'] ) && is_array( $review_item['block_path'] ) ? implode( '.', array_map( 'absint', $review_item['block_path'] ) ) : '';
 		$base_hash        = isset( $review_item['base_content_hash'] ) ? sanitize_text_field( (string) $review_item['base_content_hash'] ) : '';
 		$proposed_hash    = isset( $review_item['proposed_content_hash'] ) ? sanitize_text_field( (string) $review_item['proposed_content_hash'] ) : '';
 		$filtered_hash    = isset( $review_item['kses_filtered_content_hash'] ) ? sanitize_text_field( (string) $review_item['kses_filtered_content_hash'] ) : '';
@@ -4183,11 +5165,20 @@ function wp_de_rtc_record_review_required_items( $post, $review_items, $args = a
 
 		++$queued_count;
 		$row = wp_de_rtc_get_review_item_row( $post, $public_id );
+		$superseded_count = wp_de_rtc_supersede_active_review_items_for_same_anchor(
+			$post,
+			$current_user_id,
+			$block_path,
+			$change_kind,
+			is_array( $row ) && isset( $row['review_item_id'] ) ? (int) $row['review_item_id'] : 0,
+			$current_time_gmt
+		);
 		$descriptor = wp_de_rtc_get_review_item_public_descriptor( is_array( $row ) ? $row : array( 'public_id' => $public_id ) );
 		$descriptors[] = $descriptor;
 		$results[]     = array(
-			'status'       => 'queued',
-			'reviewItemId' => $descriptor['reviewItemId'],
+			'status'          => 'queued',
+			'reviewItemId'    => $descriptor['reviewItemId'],
+			'supersededCount' => $superseded_count,
 		);
 	}
 
@@ -4267,6 +5258,7 @@ function wp_de_rtc_get_presence_heartbeat_expires_after_seconds( $host_profile =
  *     @type string $confirmed_state_hash   Content-free state hash reported by the session.
  *     @type bool   $has_pending_changes    Whether the session reports unsaved changes.
  *     @type string $confirmed_at_gmt        GMT time when the reported copy was observed.
+ *     @type array  $pending_preview_state   Ephemeral pending-edit preview state.
  * }
  * @return array|WP_Error Heartbeat result, or an error when storage/payload fails.
  */
@@ -4294,6 +5286,7 @@ function wp_de_rtc_record_presence_heartbeat( $post, $args = array() ) {
 			'has_pending_changes'    => false,
 			'confirmed_at_gmt'       => '',
 			'selection_state'        => array(),
+			'pending_preview_state'  => array(),
 		)
 	);
 	$session_key = is_string( $args['session_key'] ) ? trim( $args['session_key'] ) : '';
@@ -4431,23 +5424,30 @@ function wp_de_rtc_record_presence_heartbeat( $post, $args = array() ) {
 	$document_state              = wp_de_rtc_get_sanitized_presence_document_state( $args, $current_time_gmt );
 	$selection_state             = wp_de_rtc_get_sanitized_presence_selection_state( $args['selection_state'], $current_time_gmt );
 	$selection_state_json        = ! empty( $selection_state['available'] ) ? wp_json_encode( $selection_state ) : '';
+	$pending_preview_state       = wp_de_rtc_get_sanitized_presence_pending_preview_state( $args['pending_preview_state'], $current_time_gmt );
+	$pending_preview_json        = ! empty( $pending_preview_state['available'] ) ? wp_json_encode( $pending_preview_state ) : '';
 
 	if ( strlen( (string) $selection_state_json ) > 4096 ) {
 		$selection_state      = wp_de_rtc_get_unavailable_presence_selection_state();
 		$selection_state_json = '';
 	}
 
+	if ( strlen( (string) $pending_preview_json ) > 8192 ) {
+		$pending_preview_state = wp_de_rtc_get_unavailable_presence_pending_preview_state();
+		$pending_preview_json  = '';
+	}
+
 	$table_sql                   = '`' . str_replace( '`', '``', $table_name ) . '`';
 	$heartbeat_write_sql         = "INSERT INTO $table_sql ( post_id, session_key_hash, actor_hash, display_name, freshness, " .
 		'can_edit_post, can_publish_post, can_save_dangerous_html, confirmed_base_version, confirmed_state_hash, ' .
-		'has_pending_changes, confirmed_at_gmt, selection_state_json, last_seen_gmt, expires_at_gmt, created_at_gmt, updated_at_gmt ) ' .
-		'VALUES ( %d, %s, %s, %s, %s, %d, %d, %d, %s, %s, %d, NULLIF( %s, \'\' ), NULLIF( %s, \'\' ), %s, %s, %s, %s ) ' .
+		'has_pending_changes, confirmed_at_gmt, selection_state_json, pending_preview_json, last_seen_gmt, expires_at_gmt, created_at_gmt, updated_at_gmt ) ' .
+		'VALUES ( %d, %s, %s, %s, %s, %d, %d, %d, %s, %s, %d, NULLIF( %s, \'\' ), NULLIF( %s, \'\' ), NULLIF( %s, \'\' ), %s, %s, %s, %s ) ' .
 		'ON DUPLICATE KEY UPDATE post_id = VALUES( post_id ), actor_hash = VALUES( actor_hash ), ' .
 		'display_name = VALUES( display_name ), freshness = VALUES( freshness ), can_edit_post = VALUES( can_edit_post ), ' .
 		'can_publish_post = VALUES( can_publish_post ), can_save_dangerous_html = VALUES( can_save_dangerous_html ), ' .
 		'confirmed_base_version = VALUES( confirmed_base_version ), confirmed_state_hash = VALUES( confirmed_state_hash ), ' .
 		'has_pending_changes = VALUES( has_pending_changes ), confirmed_at_gmt = VALUES( confirmed_at_gmt ), ' .
-		'selection_state_json = VALUES( selection_state_json ), ' .
+		'selection_state_json = VALUES( selection_state_json ), pending_preview_json = VALUES( pending_preview_json ), ' .
 		'last_seen_gmt = VALUES( last_seen_gmt ), expires_at_gmt = VALUES( expires_at_gmt ), ' .
 		'updated_at_gmt = VALUES( updated_at_gmt )';
 	$written                     = $wpdb->query(
@@ -4466,6 +5466,7 @@ function wp_de_rtc_record_presence_heartbeat( $post, $args = array() ) {
 			! empty( $document_state['hasPendingChanges'] ) ? 1 : 0,
 			$document_state['confirmedAtGmt'],
 			$selection_state_json,
+			$pending_preview_json,
 			$current_time_gmt,
 			$expires_at_gmt,
 			$current_time_gmt,
@@ -4514,6 +5515,7 @@ function wp_de_rtc_record_presence_heartbeat( $post, $args = array() ) {
 		'permission_summary_recorded'    => true,
 		'document_state_recorded'        => (bool) $document_state['available'],
 		'selection_state_recorded'       => (bool) $selection_state['available'],
+		'pending_preview_recorded'       => (bool) $pending_preview_state['available'],
 		'document_state'                 => array_merge(
 			$document_state,
 			array(
@@ -4523,6 +5525,12 @@ function wp_de_rtc_record_presence_heartbeat( $post, $args = array() ) {
 		),
 		'selection_state'                => array_merge(
 			$selection_state,
+			array(
+				'presenceUpdatedAtGmt' => $current_time_gmt,
+			)
+		),
+		'pending_preview'                => array_merge(
+			$pending_preview_state,
 			array(
 				'presenceUpdatedAtGmt' => $current_time_gmt,
 			)
@@ -5983,7 +6991,7 @@ function wp_de_rtc_get_rest_review_items_request_rest_base( $request ) {
 		return '';
 	}
 
-	if ( ! preg_match( '#^/wp/v2/([^/]+)/\d+/distributed-editing/review-items(?:/[A-Za-z0-9_-]+(?:/(?:reject|discard))?)?$#', $route, $matches ) ) {
+	if ( ! preg_match( '#^/wp/v2/([^/]+)/\d+/distributed-editing/review-items(?:/[A-Za-z0-9_-]+(?:/(?:approve|modify-adopt|reject|discard))?)?$#', $route, $matches ) ) {
 		return '';
 	}
 
@@ -6487,7 +7495,7 @@ function wp_de_rtc_rest_presence_endpoint( $request ) {
 		)
 	);
 
-	return rest_ensure_response( $result );
+	return wp_de_rtc_rest_ensure_no_store_response( $result );
 }
 
 /**
@@ -6845,6 +7853,7 @@ function wp_de_rtc_rest_presence_heartbeat_endpoint( $request ) {
 			'has_pending_changes'    => $request->get_param( 'has_pending_changes' ),
 			'confirmed_at_gmt'       => (string) $request->get_param( 'confirmed_at_gmt' ),
 			'selection_state'        => $request->get_param( 'selection_state' ),
+			'pending_preview_state'  => $request->get_param( 'pending_preview_state' ),
 		)
 	);
 
@@ -7061,6 +8070,29 @@ function wp_de_rtc_rest_retry_save_endpoint( $request ) {
 }
 
 /**
+ * Ensures review workflow REST responses cannot be cached.
+ *
+ * Review item responses describe ephemeral security workflow state. Even when
+ * they contain only descriptors, intermediaries must not reuse them across
+ * users, sessions, or review decisions.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param mixed $result REST response data.
+ * @return WP_REST_Response REST response with no-store headers.
+ */
+function wp_de_rtc_rest_ensure_no_store_response( $result ) {
+	$response = is_wp_error( $result ) ? rest_convert_error_to_response( $result ) : rest_ensure_response( $result );
+
+	$response->header( 'Cache-Control', 'private, no-store, no-cache, must-revalidate, max-age=0' );
+	$response->header( 'Pragma', 'no-cache' );
+	$response->header( 'Expires', 'Wed, 11 Jan 1984 05:00:00 GMT' );
+
+	return $response;
+}
+
+/**
  * Handles the unfiltered-HTML review approval proof REST endpoint.
  *
  * This endpoint accepts only hash and version evidence from the existing
@@ -7090,11 +8122,7 @@ function wp_de_rtc_rest_review_approval_endpoint( $request ) {
 		)
 	);
 
-	if ( is_wp_error( $result ) ) {
-		return $result;
-	}
-
-	return rest_ensure_response( $result );
+	return wp_de_rtc_rest_ensure_no_store_response( $result );
 }
 
 /**
@@ -7114,11 +8142,7 @@ function wp_de_rtc_rest_review_items_list_endpoint( $request ) {
 		)
 	);
 
-	if ( is_wp_error( $result ) ) {
-		return $result;
-	}
-
-	return rest_ensure_response( $result );
+	return wp_de_rtc_rest_ensure_no_store_response( $result );
 }
 
 /**
@@ -7136,18 +8160,20 @@ function wp_de_rtc_rest_review_item_detail_endpoint( $request ) {
 	$post = get_post( (int) $request['id'] );
 
 	if ( ! current_user_can( 'unfiltered_html' ) ) {
-		return wp_de_rtc_get_reason_error(
-			'de_rtc_review_approval_requires_unfiltered_html',
-			__( 'Distributed Editing review item detail requires an unfiltered HTML-capable reviewer.' ),
-			array(
-				'detail'               => 'review_item_detail_requires_unfiltered_html_reviewer',
-				'post_id'              => $post ? (int) $post->ID : 0,
-				'rest_route'           => 'post_review_item_detail',
-				'raw_content_included' => false,
-				'saves_post'           => false,
-				'mutates_post_content' => false,
-				'creates_revision'     => false,
-				'claims_saved'         => false,
+		return wp_de_rtc_rest_ensure_no_store_response(
+			wp_de_rtc_get_reason_error(
+				'de_rtc_review_approval_requires_unfiltered_html',
+				__( 'Distributed Editing review item detail requires an unfiltered HTML-capable reviewer.' ),
+				array(
+					'detail'               => 'review_item_detail_requires_unfiltered_html_reviewer',
+					'post_id'              => $post ? (int) $post->ID : 0,
+					'rest_route'           => 'post_review_item_detail',
+					'raw_content_included' => false,
+					'saves_post'           => false,
+					'mutates_post_content' => false,
+					'creates_revision'     => false,
+					'claims_saved'         => false,
+				)
 			)
 		);
 	}
@@ -7155,23 +8181,44 @@ function wp_de_rtc_rest_review_item_detail_endpoint( $request ) {
 	$row = wp_de_rtc_get_review_item_row( $post, $request->get_param( 'review_item_id' ) );
 
 	if ( ! is_array( $row ) ) {
-		return wp_de_rtc_get_reason_error(
-			'de_rtc_review_item_not_found',
-			__( 'Distributed Editing could not find that review item.' ),
-			array(
-				'detail'               => 'review_item_not_found',
-				'post_id'              => $post ? (int) $post->ID : 0,
-				'rest_route'           => 'post_review_item_detail',
-				'raw_content_included' => false,
-				'saves_post'           => false,
-				'mutates_post_content' => false,
-				'creates_revision'     => false,
-				'claims_saved'         => false,
+		return wp_de_rtc_rest_ensure_no_store_response(
+			wp_de_rtc_get_reason_error(
+				'de_rtc_review_item_not_found',
+				__( 'Distributed Editing could not find that review item.' ),
+				array(
+					'detail'               => 'review_item_not_found',
+					'post_id'              => $post ? (int) $post->ID : 0,
+					'rest_route'           => 'post_review_item_detail',
+					'raw_content_included' => false,
+					'saves_post'           => false,
+					'mutates_post_content' => false,
+					'creates_revision'     => false,
+					'claims_saved'         => false,
+				)
 			)
 		);
 	}
 
-	return rest_ensure_response(
+	if ( ! wp_de_rtc_review_item_row_is_active_pending( $row ) ) {
+		return wp_de_rtc_rest_ensure_no_store_response(
+			wp_de_rtc_get_reason_error(
+				'de_rtc_review_item_not_found',
+				__( 'Distributed Editing could not find an active review item.' ),
+				array(
+					'detail'               => 'review_item_not_active_pending',
+					'post_id'              => $post ? (int) $post->ID : 0,
+					'rest_route'           => 'post_review_item_detail',
+					'raw_content_included' => false,
+					'saves_post'           => false,
+					'mutates_post_content' => false,
+					'creates_revision'     => false,
+					'claims_saved'         => false,
+				)
+			)
+		);
+	}
+
+	return wp_de_rtc_rest_ensure_no_store_response(
 		array(
 			'result' => 'review_item_loaded',
 			'item'   => wp_de_rtc_get_review_item_public_descriptor(
@@ -7207,78 +8254,12 @@ function wp_de_rtc_rest_review_item_resolution_endpoint( $request ) {
 	$row    = wp_de_rtc_get_review_item_row( $post, $request->get_param( 'review_item_id' ) );
 
 	if ( ! is_array( $row ) ) {
-		return wp_de_rtc_get_reason_error(
-			'de_rtc_review_item_not_found',
-			__( 'Distributed Editing could not find that review item.' ),
-			array(
-				'detail'               => 'review_item_not_found',
-				'post_id'              => $post ? (int) $post->ID : 0,
-				'rest_route'           => 'post_review_item_resolution',
-				'raw_content_included' => false,
-				'saves_post'           => false,
-				'mutates_post_content' => false,
-				'creates_revision'     => false,
-				'claims_saved'         => false,
-			)
-		);
-	}
-
-	if ( 'reject' === $action && ! current_user_can( 'unfiltered_html' ) ) {
-		return wp_de_rtc_get_reason_error(
-			'de_rtc_review_approval_requires_unfiltered_html',
-			__( 'Distributed Editing review item rejection requires an unfiltered HTML-capable reviewer.' ),
-			array(
-				'detail'               => 'review_item_reject_requires_unfiltered_html_reviewer',
-				'post_id'              => $post ? (int) $post->ID : 0,
-				'rest_route'           => 'post_review_item_resolution',
-				'raw_content_included' => false,
-				'saves_post'           => false,
-				'mutates_post_content' => false,
-				'creates_revision'     => false,
-				'claims_saved'         => false,
-			)
-		);
-	}
-
-	if (
-		'discard' === $action &&
-		(int) $row['proposer_user_id'] !== get_current_user_id() &&
-		! current_user_can( 'unfiltered_html' )
-	) {
-		return new WP_Error(
-			'rest_forbidden',
-			__( 'Sorry, you are not allowed to discard this review item.' ),
-			array( 'status' => rest_authorization_required_code() )
-		);
-	}
-
-	$resolved_status = 'reject' === $action ? 'rejected' : 'discarded';
-	$current_status  = isset( $row['status'] ) ? sanitize_key( (string) $row['status'] ) : '';
-	$now_gmt         = current_time( 'mysql', true );
-
-	if ( $resolved_status !== $current_status ) {
-		$updated = $wpdb->update(
-			wp_de_rtc_get_review_items_table_name(),
-			array(
-				'status'            => $resolved_status,
-				'updated_at_gmt'    => $now_gmt,
-				'resolved_at_gmt'   => $now_gmt,
-				'resolved_by'       => get_current_user_id(),
-				'resolution_action' => $action,
-			),
-			array(
-				'review_item_id' => (int) $row['review_item_id'],
-			),
-			array( '%s', '%s', '%s', '%d', '%s' ),
-			array( '%d' )
-		);
-
-		if ( false === $updated ) {
-			return wp_de_rtc_get_reason_error(
-				'de_rtc_storage_failure',
-				__( 'Distributed Editing could not update the review item.' ),
+		return wp_de_rtc_rest_ensure_no_store_response(
+			wp_de_rtc_get_reason_error(
+				'de_rtc_review_item_not_found',
+				__( 'Distributed Editing could not find that review item.' ),
 				array(
-					'detail'               => 'review_item_resolution_storage_failure',
+					'detail'               => 'review_item_not_found',
 					'post_id'              => $post ? (int) $post->ID : 0,
 					'rest_route'           => 'post_review_item_resolution',
 					'raw_content_included' => false,
@@ -7287,9 +8268,117 @@ function wp_de_rtc_rest_review_item_resolution_endpoint( $request ) {
 					'creates_revision'     => false,
 					'claims_saved'         => false,
 				)
+			)
+		);
+	}
+
+	if ( in_array( $action, array( 'approve', 'modify-adopt', 'reject' ), true ) && ! current_user_can( 'unfiltered_html' ) ) {
+		return wp_de_rtc_rest_ensure_no_store_response(
+			wp_de_rtc_get_reason_error(
+				'de_rtc_review_approval_requires_unfiltered_html',
+				__( 'Distributed Editing review item resolution requires an unfiltered HTML-capable reviewer.' ),
+				array(
+					'detail'               => 'review_item_resolution_requires_unfiltered_html_reviewer',
+					'post_id'              => $post ? (int) $post->ID : 0,
+					'rest_route'           => 'post_review_item_resolution',
+					'raw_content_included' => false,
+					'saves_post'           => false,
+					'mutates_post_content' => false,
+					'creates_revision'     => false,
+					'claims_saved'         => false,
+				)
+			)
+		);
+	}
+
+	if ( in_array( $action, array( 'approve', 'modify-adopt' ), true ) ) {
+		$result = wp_de_rtc_apply_review_item_resolution_to_post(
+			$post,
+			$row,
+			array(
+				'action'                => $action,
+				'reviewed_block_source' => $request->get_param( 'reviewed_block_source' ),
+			)
+		);
+
+		return wp_de_rtc_rest_ensure_no_store_response( $result );
+	}
+
+	if (
+		'discard' === $action &&
+		(int) $row['proposer_user_id'] !== get_current_user_id() &&
+		! current_user_can( 'unfiltered_html' )
+	) {
+		return wp_de_rtc_rest_ensure_no_store_response(
+			new WP_Error(
+				'rest_forbidden',
+				__( 'Sorry, you are not allowed to discard this review item.' ),
+				array( 'status' => rest_authorization_required_code() )
+			)
+		);
+	}
+
+	$resolved_status = 'reject' === $action ? 'rejected' : 'discarded';
+	$current_status  = isset( $row['status'] ) ? sanitize_key( (string) $row['status'] ) : '';
+	$now_gmt         = current_time( 'mysql', true );
+	$is_idempotent   = $resolved_status === $current_status;
+
+	if ( ! $is_idempotent && ! wp_de_rtc_review_item_row_is_active_pending( $row, $now_gmt ) ) {
+		return wp_de_rtc_rest_ensure_no_store_response(
+			wp_de_rtc_get_reason_error(
+				'de_rtc_review_item_not_found',
+				__( 'Distributed Editing could not find an active review item.' ),
+				array(
+					'detail'               => 'review_item_resolution_not_active_pending',
+					'post_id'              => $post ? (int) $post->ID : 0,
+					'rest_route'           => 'post_review_item_resolution',
+					'raw_content_included' => false,
+					'saves_post'           => false,
+					'mutates_post_content' => false,
+					'creates_revision'     => false,
+					'claims_saved'         => false,
+				)
+			)
+		);
+	}
+
+	if ( ! $is_idempotent ) {
+		$table_sql = wp_de_rtc_get_review_items_table_sql();
+		$archived_key = wp_de_rtc_get_archived_review_item_logical_key_hash( $row, $now_gmt, $resolved_status );
+		$updated   = $wpdb->query(
+			$wpdb->prepare(
+				"UPDATE $table_sql SET logical_key_hash = %s, status = %s, updated_at_gmt = %s, resolved_at_gmt = %s, resolved_by = %d, resolution_action = %s WHERE review_item_id = %d AND status = 'pending' AND expires_at_gmt > %s",
+				$archived_key,
+				$resolved_status,
+				$now_gmt,
+				$now_gmt,
+				get_current_user_id(),
+				$action,
+				(int) $row['review_item_id'],
+				$now_gmt
+			)
+		);
+
+		if ( false === $updated || 1 !== (int) $updated ) {
+			return wp_de_rtc_rest_ensure_no_store_response(
+				wp_de_rtc_get_reason_error(
+					'de_rtc_storage_failure',
+					__( 'Distributed Editing could not update the review item.' ),
+					array(
+						'detail'               => 'review_item_resolution_storage_failure',
+						'post_id'              => $post ? (int) $post->ID : 0,
+						'rest_route'           => 'post_review_item_resolution',
+						'raw_content_included' => false,
+						'saves_post'           => false,
+						'mutates_post_content' => false,
+						'creates_revision'     => false,
+						'claims_saved'         => false,
+					)
+				)
 			);
 		}
 
+		$row['logical_key_hash']  = $archived_key;
 		$row['status']            = $resolved_status;
 		$row['updated_at_gmt']    = $now_gmt;
 		$row['resolved_at_gmt']   = $now_gmt;
@@ -7297,7 +8386,7 @@ function wp_de_rtc_rest_review_item_resolution_endpoint( $request ) {
 		$row['resolution_action'] = $action;
 	}
 
-	return rest_ensure_response(
+	return wp_de_rtc_rest_ensure_no_store_response(
 		array(
 			'result'             => 'review_item_' . $resolved_status,
 			'item'               => wp_de_rtc_get_review_item_public_descriptor(
@@ -7306,7 +8395,7 @@ function wp_de_rtc_rest_review_item_resolution_endpoint( $request ) {
 					'include_proposer_display_name' => current_user_can( 'unfiltered_html' ),
 				)
 			),
-			'idempotent'         => $resolved_status === $current_status,
+			'idempotent'         => $is_idempotent,
 			'rawContentIncluded' => false,
 			'exposesRawContent'  => false,
 			'savesPost'          => false,
@@ -14654,14 +15743,21 @@ function wp_de_rtc_classify_kses_risky_block_review_items( $post, $proposed_post
 				continue;
 			}
 
-			$base_record = isset( $base_records[ $path_key ] ) && ! isset( $matched_base_record_keys[ $path_key ] ) ? $base_records[ $path_key ] : null;
+			$proposed_record_is_top_level_insert = wp_de_rtc_is_kses_top_level_inserted_review_record(
+				$base_post_content,
+				$proposed_post_content,
+				$proposed_record
+			);
+			$base_record                         = isset( $base_records[ $path_key ] ) && ! isset( $matched_base_record_keys[ $path_key ] ) && ! $proposed_record_is_top_level_insert ? $base_records[ $path_key ] : null;
 
-			$proposed_review = wp_de_rtc_get_kses_post_content_review_evidence( $proposed_record['serialized_block'] );
-			$base_review     = is_array( $base_record ) ? wp_de_rtc_get_kses_post_content_review_evidence( $base_record['serialized_block'] ) : null;
+			$proposed_review      = wp_de_rtc_get_kses_post_content_review_evidence( $proposed_record['serialized_block'] );
+			$proposed_own_review  = wp_de_rtc_get_kses_post_content_review_evidence( $proposed_record['serialized_own_block'] );
+			$base_review          = is_array( $base_record ) ? wp_de_rtc_get_kses_post_content_review_evidence( $base_record['serialized_block'] ) : null;
+			$base_own_review      = is_array( $base_record ) ? wp_de_rtc_get_kses_post_content_review_evidence( $base_record['serialized_own_block'] ) : null;
 
 			if (
-				empty( $proposed_review['would_change_content'] ) &&
-				( ! is_array( $base_review ) || empty( $base_review['would_change_content'] ) )
+				empty( $proposed_own_review['would_change_content'] ) &&
+				( ! is_array( $base_own_review ) || empty( $base_own_review['would_change_content'] ) )
 			) {
 				continue;
 			}
@@ -14691,9 +15787,10 @@ function wp_de_rtc_classify_kses_risky_block_review_items( $post, $proposed_post
 				continue;
 			}
 
-			$base_review = wp_de_rtc_get_kses_post_content_review_evidence( $base_record['serialized_block'] );
+			$base_review     = wp_de_rtc_get_kses_post_content_review_evidence( $base_record['serialized_block'] );
+			$base_own_review = wp_de_rtc_get_kses_post_content_review_evidence( $base_record['serialized_own_block'] );
 
-			if ( empty( $base_review['would_change_content'] ) ) {
+			if ( empty( $base_own_review['would_change_content'] ) ) {
 				continue;
 			}
 
@@ -14835,25 +15932,16 @@ function wp_de_rtc_get_kses_partial_safe_retry_save_plan( $post, $current_conten
  * @return string|WP_Error Safe stripped candidate or an error when the shape is not safe.
  */
 function wp_de_rtc_get_kses_partial_safe_top_level_candidate( $current_content, $proposed_content, $review_items ) {
-	$current_records  = wp_de_rtc_get_top_level_serialized_block_records( $current_content );
-	$proposed_records = wp_de_rtc_get_top_level_serialized_block_records( $proposed_content );
-
-	if ( is_wp_error( $current_records ) ) {
-		return $current_records;
-	}
-
-	if ( is_wp_error( $proposed_records ) ) {
-		return $proposed_records;
-	}
-
-	$safe_records                       = $proposed_records;
-	$added_review_block_indexes_to_drop = array();
+	$current_blocks  = parse_blocks( (string) $current_content );
+	$proposed_blocks = parse_blocks( (string) $proposed_content );
+	$safe_blocks     = $proposed_blocks;
+	$drop_paths      = array();
 
 	foreach ( $review_items as $review_item ) {
-		$block_path = isset( $review_item['block_path'] ) && is_array( $review_item['block_path'] ) ? array_values( $review_item['block_path'] ) : array();
+		$block_path  = isset( $review_item['block_path'] ) && is_array( $review_item['block_path'] ) ? array_values( array_map( 'absint', $review_item['block_path'] ) ) : array();
 		$change_kind = isset( $review_item['change_kind'] ) ? sanitize_key( (string) $review_item['change_kind'] ) : '';
 
-		if ( 1 !== count( $block_path ) || ! in_array( $change_kind, array( 'added_block', 'modified_block' ), true ) ) {
+		if ( empty( $block_path ) || ! in_array( $change_kind, array( 'added_block', 'modified_block' ), true ) ) {
 			return wp_de_rtc_get_reason_error(
 				'de_rtc_rebase_failed',
 				__( 'Distributed Editing could not isolate safe retry-save changes for review.' ),
@@ -14867,23 +15955,41 @@ function wp_de_rtc_get_kses_partial_safe_top_level_candidate( $current_content, 
 			);
 		}
 
-		$block_index = (int) $block_path[0];
+		$proposed_block = wp_de_rtc_get_block_at_path( $safe_blocks, $block_path );
+		$current_block  = wp_de_rtc_get_block_at_path( $current_blocks, $block_path );
+
+		if ( ! is_array( $proposed_block ) ) {
+			return wp_de_rtc_get_reason_error(
+				'de_rtc_rebase_failed',
+				__( 'Distributed Editing could not isolate safe retry-save changes for review.' ),
+				array(
+					'detail'               => 'partial_safe_merge_review_block_index_missing',
+					'saves_post'           => false,
+					'mutates_post_content' => false,
+					'creates_revision'     => false,
+					'claims_saved'         => false,
+				)
+			);
+		}
+
+		if (
+			isset( $review_item['proposed_content_hash'] ) &&
+			! hash_equals( sanitize_text_field( (string) $review_item['proposed_content_hash'] ), wp_de_rtc_hash_content( serialize_block( $proposed_block ) ) )
+		) {
+			return wp_de_rtc_get_reason_error(
+				'de_rtc_rebase_failed',
+				__( 'Distributed Editing could not isolate safe retry-save changes for review.' ),
+				array(
+					'detail'               => 'partial_safe_merge_review_proposed_hash_mismatch',
+					'saves_post'           => false,
+					'mutates_post_content' => false,
+					'creates_revision'     => false,
+					'claims_saved'         => false,
+				)
+			);
+		}
 
 		if ( 'added_block' === $change_kind ) {
-			if ( $block_index < 0 || ! array_key_exists( $block_index, $proposed_records ) ) {
-				return wp_de_rtc_get_reason_error(
-					'de_rtc_rebase_failed',
-					__( 'Distributed Editing could not isolate safe retry-save changes for review.' ),
-					array(
-						'detail'               => 'partial_safe_merge_review_block_index_missing',
-						'saves_post'           => false,
-						'mutates_post_content' => false,
-						'creates_revision'     => false,
-						'claims_saved'         => false,
-					)
-				);
-			}
-
 			if (
 				isset( $review_item['base_content_hash'] ) &&
 				! hash_equals( sanitize_text_field( (string) $review_item['base_content_hash'] ), wp_de_rtc_hash_content( '' ) )
@@ -14901,54 +16007,11 @@ function wp_de_rtc_get_kses_partial_safe_top_level_candidate( $current_content, 
 				);
 			}
 
-			if (
-				isset( $review_item['proposed_content_hash'] ) &&
-				! hash_equals( sanitize_text_field( (string) $review_item['proposed_content_hash'] ), wp_de_rtc_hash_content( $proposed_records[ $block_index ] ) )
-			) {
-				return wp_de_rtc_get_reason_error(
-					'de_rtc_rebase_failed',
-					__( 'Distributed Editing could not isolate safe retry-save changes for review.' ),
-					array(
-						'detail'               => 'partial_safe_merge_review_proposed_hash_mismatch',
-						'saves_post'           => false,
-						'mutates_post_content' => false,
-						'creates_revision'     => false,
-						'claims_saved'         => false,
-					)
-				);
-			}
-
-			$added_review_block_indexes_to_drop[ $block_index ] = true;
+			$drop_paths[] = $block_path;
 			continue;
 		}
 
-		if (
-			count( $current_records ) < count( $proposed_records ) &&
-			$block_index >= 0 &&
-			array_key_exists( $block_index, $current_records ) &&
-			array_key_exists( $block_index, $proposed_records ) &&
-			isset( $review_item['base_content_hash'], $review_item['proposed_content_hash'] ) &&
-			hash_equals( sanitize_text_field( (string) $review_item['base_content_hash'] ), wp_de_rtc_hash_content( $current_records[ $block_index ] ) ) &&
-			hash_equals( sanitize_text_field( (string) $review_item['proposed_content_hash'] ), wp_de_rtc_hash_content( $proposed_records[ $block_index ] ) )
-		) {
-			$drop_candidate_records = $safe_records;
-			unset( $drop_candidate_records[ $block_index ] );
-			$drop_candidate_records = array_values( $drop_candidate_records );
-
-			if (
-				count( $current_records ) === count( $drop_candidate_records ) &&
-				wp_de_rtc_top_level_serialized_block_names_match( $current_records, $drop_candidate_records )
-			) {
-				$added_review_block_indexes_to_drop[ $block_index ] = true;
-				continue;
-			}
-		}
-
-		if (
-			$block_index < 0 ||
-			! array_key_exists( $block_index, $current_records ) ||
-			! array_key_exists( $block_index, $proposed_records )
-		) {
+		if ( ! is_array( $current_block ) ) {
 			return wp_de_rtc_get_reason_error(
 				'de_rtc_rebase_failed',
 				__( 'Distributed Editing could not isolate safe retry-save changes for review.' ),
@@ -14964,7 +16027,7 @@ function wp_de_rtc_get_kses_partial_safe_top_level_candidate( $current_content, 
 
 		if (
 			isset( $review_item['base_content_hash'] ) &&
-			! hash_equals( sanitize_text_field( (string) $review_item['base_content_hash'] ), wp_de_rtc_hash_content( $current_records[ $block_index ] ) )
+			! hash_equals( sanitize_text_field( (string) $review_item['base_content_hash'] ), wp_de_rtc_hash_content( serialize_block( $current_block ) ) )
 		) {
 			return wp_de_rtc_get_reason_error(
 				'de_rtc_rebase_failed',
@@ -14979,43 +16042,105 @@ function wp_de_rtc_get_kses_partial_safe_top_level_candidate( $current_content, 
 			);
 		}
 
-		if (
-			isset( $review_item['proposed_content_hash'] ) &&
-			! hash_equals( sanitize_text_field( (string) $review_item['proposed_content_hash'] ), wp_de_rtc_hash_content( $proposed_records[ $block_index ] ) )
-		) {
-			return wp_de_rtc_get_reason_error(
-				'de_rtc_rebase_failed',
-				__( 'Distributed Editing could not isolate safe retry-save changes for review.' ),
-				array(
-					'detail'               => 'partial_safe_merge_review_proposed_hash_mismatch',
-					'saves_post'           => false,
-					'mutates_post_content' => false,
-					'creates_revision'     => false,
-					'claims_saved'         => false,
-				)
-			);
+		$set_result = wp_de_rtc_set_block_at_path( $safe_blocks, $block_path, $current_block );
+
+		if ( is_wp_error( $set_result ) ) {
+			return $set_result;
 		}
 
-		$safe_records[ $block_index ] = $current_records[ $block_index ];
+		$safe_blocks = $set_result;
 	}
 
-	if ( ! empty( $added_review_block_indexes_to_drop ) ) {
-		$drop_indexes = array_keys( $added_review_block_indexes_to_drop );
-		rsort( $drop_indexes, SORT_NUMERIC );
+	if ( ! empty( $drop_paths ) ) {
+		usort(
+			$drop_paths,
+			static function ( $a, $b ) {
+				return count( $b ) <=> count( $a ) ?: strcmp( implode( '.', $b ), implode( '.', $a ) );
+			}
+		);
 
-		foreach ( $drop_indexes as $drop_index ) {
-			unset( $safe_records[ $drop_index ] );
+		foreach ( $drop_paths as $drop_path ) {
+			$remove_result = wp_de_rtc_remove_block_at_path( $safe_blocks, $drop_path );
+
+			if ( is_wp_error( $remove_result ) ) {
+				return $remove_result;
+			}
+
+			$safe_blocks = $remove_result;
 		}
-
-		$safe_records = array_values( $safe_records );
 	}
 
-	if ( count( $current_records ) !== count( $safe_records ) ) {
+	$safe_candidate = serialize_blocks( wp_de_rtc_remove_empty_freeform_blocks( $safe_blocks ) );
+	$current_canonical_content = serialize_blocks( wp_de_rtc_remove_empty_freeform_blocks( parse_blocks( (string) $current_content ) ) );
+
+	if ( hash_equals( wp_de_rtc_hash_content( $current_canonical_content ), wp_de_rtc_hash_content( $safe_candidate ) ) ) {
+		return $current_content;
+	}
+
+	return $safe_candidate;
+}
+
+/**
+ * Returns the parsed block at a retained ordinal path.
+ *
+ * KSES review paths intentionally describe parsed block positions, not
+ * Gutenberg client IDs. This keeps the server-side partial-safe rewrite tied to
+ * the same parsed post tree that WordPress will eventually serialize.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param array $blocks Parsed block list.
+ * @param int[] $path   Retained block path.
+ * @return array|null Parsed block, or null when the path is unavailable.
+ */
+function wp_de_rtc_get_block_at_path( $blocks, $path ) {
+	$blocks = array_values( (array) $blocks );
+	$path   = array_values( (array) $path );
+
+	if ( empty( $path ) ) {
+		return null;
+	}
+
+	$retained_index = array_shift( $path );
+	$index          = wp_de_rtc_get_retained_block_raw_index( $blocks, $retained_index );
+
+	if ( null === $index || ! array_key_exists( $index, $blocks ) || ! is_array( $blocks[ $index ] ) ) {
+		return null;
+	}
+
+	if ( empty( $path ) ) {
+		return $blocks[ $index ];
+	}
+
+	if ( empty( $blocks[ $index ]['innerBlocks'] ) || ! is_array( $blocks[ $index ]['innerBlocks'] ) ) {
+		return null;
+	}
+
+	return wp_de_rtc_get_block_at_path( $blocks[ $index ]['innerBlocks'], $path );
+}
+
+/**
+ * Replaces the parsed block at a retained ordinal path.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param array $blocks      Parsed block list.
+ * @param int[] $path        Retained block path.
+ * @param array $replacement Replacement block.
+ * @return array|WP_Error Updated parsed block list or an error.
+ */
+function wp_de_rtc_set_block_at_path( $blocks, $path, $replacement ) {
+	$blocks = array_values( (array) $blocks );
+	$path   = array_values( (array) $path );
+
+	if ( empty( $path ) || ! is_array( $replacement ) ) {
 		return wp_de_rtc_get_reason_error(
 			'de_rtc_rebase_failed',
 			__( 'Distributed Editing could not isolate safe retry-save changes for review.' ),
 			array(
-				'detail'               => 'partial_safe_merge_requires_same_top_level_block_count',
+				'detail'               => 'partial_safe_merge_review_block_index_missing',
 				'saves_post'           => false,
 				'mutates_post_content' => false,
 				'creates_revision'     => false,
@@ -15024,13 +16149,270 @@ function wp_de_rtc_get_kses_partial_safe_top_level_candidate( $current_content, 
 		);
 	}
 
-	$safe_candidate = implode( '', $safe_records );
+	$retained_index = array_shift( $path );
+	$index          = wp_de_rtc_get_retained_block_raw_index( $blocks, $retained_index );
 
-	if ( hash_equals( wp_de_rtc_hash_content( implode( '', $current_records ) ), wp_de_rtc_hash_content( $safe_candidate ) ) ) {
-		return $current_content;
+	if ( null === $index || ! array_key_exists( $index, $blocks ) || ! is_array( $blocks[ $index ] ) ) {
+		return wp_de_rtc_get_reason_error(
+			'de_rtc_rebase_failed',
+			__( 'Distributed Editing could not isolate safe retry-save changes for review.' ),
+			array(
+				'detail'               => 'partial_safe_merge_review_block_index_missing',
+				'saves_post'           => false,
+				'mutates_post_content' => false,
+				'creates_revision'     => false,
+				'claims_saved'         => false,
+			)
+		);
 	}
 
-	return $safe_candidate;
+	if ( empty( $path ) ) {
+		$blocks[ $index ] = $replacement;
+
+		return $blocks;
+	}
+
+	$inner_blocks = isset( $blocks[ $index ]['innerBlocks'] ) && is_array( $blocks[ $index ]['innerBlocks'] )
+		? $blocks[ $index ]['innerBlocks']
+		: array();
+	$inner_result = wp_de_rtc_set_block_at_path( $inner_blocks, $path, $replacement );
+
+	if ( is_wp_error( $inner_result ) ) {
+		return $inner_result;
+	}
+
+	$blocks[ $index ]['innerBlocks'] = $inner_result;
+
+	return $blocks;
+}
+
+/**
+ * Removes the parsed block at a retained ordinal path.
+ *
+ * The parent `innerContent` null marker must be removed with the child, or
+ * WordPress serialization would pull the wrong remaining inner block into that
+ * slot.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param array $blocks Parsed block list.
+ * @param int[] $path   Retained block path.
+ * @return array|WP_Error Updated parsed block list or an error.
+ */
+function wp_de_rtc_remove_block_at_path( $blocks, $path ) {
+	$blocks = array_values( (array) $blocks );
+	$path   = array_values( (array) $path );
+
+	if ( empty( $path ) ) {
+		return wp_de_rtc_get_reason_error(
+			'de_rtc_rebase_failed',
+			__( 'Distributed Editing could not isolate safe retry-save changes for review.' ),
+			array(
+				'detail'               => 'partial_safe_merge_review_block_index_missing',
+				'saves_post'           => false,
+				'mutates_post_content' => false,
+				'creates_revision'     => false,
+				'claims_saved'         => false,
+			)
+		);
+	}
+
+	$retained_index = array_shift( $path );
+	$index          = wp_de_rtc_get_retained_block_raw_index( $blocks, $retained_index );
+
+	if ( null === $index || ! array_key_exists( $index, $blocks ) || ! is_array( $blocks[ $index ] ) ) {
+		return wp_de_rtc_get_reason_error(
+			'de_rtc_rebase_failed',
+			__( 'Distributed Editing could not isolate safe retry-save changes for review.' ),
+			array(
+				'detail'               => 'partial_safe_merge_review_block_index_missing',
+				'saves_post'           => false,
+				'mutates_post_content' => false,
+				'creates_revision'     => false,
+				'claims_saved'         => false,
+			)
+		);
+	}
+
+	if ( empty( $path ) ) {
+		unset( $blocks[ $index ] );
+
+		return array_values( $blocks );
+	}
+
+	$inner_blocks = isset( $blocks[ $index ]['innerBlocks'] ) && is_array( $blocks[ $index ]['innerBlocks'] )
+		? $blocks[ $index ]['innerBlocks']
+		: array();
+	$inner_result = wp_de_rtc_remove_block_at_path( $inner_blocks, $path );
+
+	if ( is_wp_error( $inner_result ) ) {
+		return $inner_result;
+	}
+
+	$blocks[ $index ]['innerBlocks'] = $inner_result;
+
+	if ( 1 === count( $path ) ) {
+		$blocks[ $index ]['innerContent'] = wp_de_rtc_remove_inner_content_block_slot(
+			isset( $blocks[ $index ]['innerContent'] ) && is_array( $blocks[ $index ]['innerContent'] ) ? $blocks[ $index ]['innerContent'] : array(),
+			(int) $path[0]
+		);
+	}
+
+	return $blocks;
+}
+
+/**
+ * Returns the raw parsed-block array index for a retained ordinal.
+ *
+ * `parse_blocks()` preserves whitespace-only freeform records. KSES review
+ * paths skip those empty records, so partial-safe rewrites have to translate
+ * from retained ordinals back to the raw parsed array before reading or
+ * replacing blocks.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param array $blocks         Parsed block list.
+ * @param int   $retained_index Retained block ordinal.
+ * @return int|null Raw array index, or null when not found.
+ */
+function wp_de_rtc_get_retained_block_raw_index( $blocks, $retained_index ) {
+	$current_retained_index = 0;
+
+	foreach ( (array) $blocks as $raw_index => $block ) {
+		if ( ! is_array( $block ) ) {
+			continue;
+		}
+
+		$serialized_block = serialize_block( $block );
+
+		if ( empty( $block['blockName'] ) && '' === trim( $serialized_block ) ) {
+			continue;
+		}
+
+		if ( $current_retained_index === (int) $retained_index ) {
+			return (int) $raw_index;
+		}
+
+		++$current_retained_index;
+	}
+
+	return null;
+}
+
+/**
+ * Removes whitespace-only freeform records from a parsed block tree.
+ *
+ * The older partial-safe writer rebuilt documents from serialized block tokens,
+ * so empty separators were not durable save evidence. Keeping that canonical
+ * shape prevents a review-only rejection from rewriting a post solely because
+ * `parse_blocks()` preserved formatting whitespace around the unsafe block.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param array $blocks Parsed block list.
+ * @return array Parsed block list without empty freeform records.
+ */
+function wp_de_rtc_remove_empty_freeform_blocks( $blocks ) {
+	$next_blocks = array();
+
+	foreach ( (array) $blocks as $block ) {
+		if ( ! is_array( $block ) ) {
+			continue;
+		}
+
+		$serialized_block = serialize_block( $block );
+
+		if ( empty( $block['blockName'] ) && '' === trim( $serialized_block ) ) {
+			continue;
+		}
+
+		if ( ! empty( $block['innerBlocks'] ) && is_array( $block['innerBlocks'] ) ) {
+			$block['innerBlocks'] = wp_de_rtc_remove_empty_freeform_blocks( $block['innerBlocks'] );
+		}
+
+		$next_blocks[] = $block;
+	}
+
+	return $next_blocks;
+}
+
+/**
+ * Removes the nth inner-block null slot from `innerContent`.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param array $inner_content Parsed block innerContent.
+ * @param int   $child_index   Retained child block index to remove.
+ * @return array Updated innerContent.
+ */
+function wp_de_rtc_remove_inner_content_block_slot( $inner_content, $child_index ) {
+	$next_inner_content = array();
+	$null_index         = 0;
+
+	foreach ( (array) $inner_content as $chunk ) {
+		if ( null === $chunk ) {
+			if ( $null_index === (int) $child_index ) {
+				++$null_index;
+				continue;
+			}
+
+			++$null_index;
+		}
+
+		$next_inner_content[] = $chunk;
+	}
+
+	return $next_inner_content;
+}
+
+/**
+ * Checks whether a proposed risky block is a top-level insertion.
+ *
+ * The KSES review classifier compares flattened block records by path before a
+ * durable block identity contract exists for this path. When an unsafe block is
+ * inserted before a safe modified sibling, ordinal comparison can make the
+ * unsafe block look like a modification of the sibling. This helper keeps that
+ * case narrow: removing the proposed top-level block must leave the same
+ * top-level block-name sequence as the base document.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param string $base_content     Base stripped post content.
+ * @param string $proposed_content Proposed stripped post content.
+ * @param array  $proposed_record  Proposed flattened block review record.
+ * @return bool Whether the record is a top-level insertion.
+ */
+function wp_de_rtc_is_kses_top_level_inserted_review_record( $base_content, $proposed_content, $proposed_record ) {
+	$block_path = isset( $proposed_record['block_path'] ) && is_array( $proposed_record['block_path'] )
+		? array_values( array_map( 'absint', $proposed_record['block_path'] ) )
+		: array();
+
+	if ( 1 !== count( $block_path ) ) {
+		return false;
+	}
+
+	$block_index      = (int) $block_path[0];
+	$base_records     = wp_de_rtc_get_top_level_serialized_block_records( $base_content );
+	$proposed_records = wp_de_rtc_get_top_level_serialized_block_records( $proposed_content );
+
+	if ( is_wp_error( $base_records ) || is_wp_error( $proposed_records ) ) {
+		return false;
+	}
+
+	if ( count( $proposed_records ) !== count( $base_records ) + 1 || ! array_key_exists( $block_index, $proposed_records ) ) {
+		return false;
+	}
+
+	$candidate_records = $proposed_records;
+	unset( $candidate_records[ $block_index ] );
+	$candidate_records = array_values( $candidate_records );
+
+	return wp_de_rtc_top_level_serialized_block_names_match( $base_records, $candidate_records );
 }
 
 /**
@@ -15170,19 +16552,53 @@ function wp_de_rtc_collect_kses_block_review_records( $blocks, $path, &$records 
 		++$retained_index;
 		$block_name       = ! empty( $block['blockName'] ) && is_string( $block['blockName'] ) ? $block['blockName'] : 'core/freeform';
 		$path_key         = implode( '.', $block_path );
+		$own_block        = wp_de_rtc_get_block_without_inner_blocks( $block );
 
 		$records[ $path_key ] = array(
-			'path_key'         => $path_key,
-			'block_path'       => $block_path,
-			'block_name'       => $block_name,
-			'block_label'      => wp_de_rtc_get_kses_block_review_label( $block_name ),
-			'serialized_block' => $serialized_block,
+			'path_key'             => $path_key,
+			'block_path'           => $block_path,
+			'block_name'           => $block_name,
+			'block_label'          => wp_de_rtc_get_kses_block_review_label( $block_name ),
+			'serialized_block'     => $serialized_block,
+			'serialized_own_block' => serialize_block( $own_block ),
 		);
 
 		if ( ! empty( $block['innerBlocks'] ) && is_array( $block['innerBlocks'] ) ) {
 			wp_de_rtc_collect_kses_block_review_records( $block['innerBlocks'], $block_path, $records );
 		}
 	}
+}
+
+/**
+ * Returns a parsed block clone containing only the block's own wrapper/content.
+ *
+ * Parent blocks often serialize their descendants. KSES review must flag the
+ * immediate offending block, not every ancestor that happens to contain it, so
+ * classification evaluates this childless clone while retaining full serialized
+ * hashes for review matching and later source-pair validation.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param array $block Parsed block.
+ * @return array Parsed block without inner blocks.
+ */
+function wp_de_rtc_get_block_without_inner_blocks( $block ) {
+	$own_block                = $block;
+	$own_block['innerBlocks'] = array();
+
+	if ( isset( $own_block['innerContent'] ) && is_array( $own_block['innerContent'] ) ) {
+		$own_block['innerContent'] = array_values(
+			array_filter(
+				$own_block['innerContent'],
+				static function ( $chunk ) {
+					return null !== $chunk;
+				}
+			)
+		);
+	}
+
+	return $own_block;
 }
 
 /**

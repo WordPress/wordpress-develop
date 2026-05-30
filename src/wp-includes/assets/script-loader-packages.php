@@ -148,7 +148,7 @@
 				'import' => 'dynamic'
 			)
 		),
-		'version' => '9c1171e882b2ba2f7411'
+		'version' => '74c4b4c69416ac4e1a8a'
 	),
 	'block-serialization-default-parser.js' => array(
 		'dependencies' => array(
@@ -531,7 +531,7 @@
 				'import' => 'static'
 			)
 		),
-		'version' => 'c6663827fcd3ab1327ec'
+		'version' => 'f98e20123c180e542d3d'
 	),
 	'element.js' => array(
 		'dependencies' => array(

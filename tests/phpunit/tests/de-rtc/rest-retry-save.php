@@ -4314,6 +4314,10 @@ class Tests_DE_RTC_REST_Retry_Save extends WP_Test_REST_TestCase {
 		$this->assertCount( 1, $data['review_item_descriptors'] );
 		$this->assertStringStartsWith( 'de-rtc-review-', $data['review_item_descriptors'][0]['reviewItemId'] );
 		$this->assertFalse( $data['review_item_descriptors'][0]['rawContentIncluded'] );
+		$this->assertFalse( $data['review_item_descriptors'][0]['canApprove'] );
+		$this->assertFalse( $data['review_item_descriptors'][0]['canModifyAdopt'] );
+		$this->assertFalse( $data['review_item_descriptors'][0]['canReject'] );
+		$this->assertTrue( $data['review_item_descriptors'][0]['canDiscard'] );
 		$this->assertArrayNotHasKey( 'proposedSourceDisplay', $data['review_item_descriptors'][0] );
 
 		$review_item_id = $data['review_item_descriptors'][0]['reviewItemId'];
@@ -4322,16 +4326,22 @@ class Tests_DE_RTC_REST_Retry_Save extends WP_Test_REST_TestCase {
 		$author_list_data     = $author_list_response->get_data();
 
 		$this->assertSame( 200, $author_list_response->get_status() );
+		$this->assertStringContainsString( 'no-store', $author_list_response->get_headers()['Cache-Control'] );
 		$this->assertSame( 'review_items_loaded', $author_list_data['result'] );
 		$this->assertCount( 1, $author_list_data['items'] );
 		$this->assertSame( $review_item_id, $author_list_data['items'][0]['reviewItemId'] );
 		$this->assertFalse( $author_list_data['items'][0]['rawContentIncluded'] );
+		$this->assertFalse( $author_list_data['items'][0]['canApprove'] );
+		$this->assertFalse( $author_list_data['items'][0]['canModifyAdopt'] );
+		$this->assertFalse( $author_list_data['items'][0]['canReject'] );
+		$this->assertTrue( $author_list_data['items'][0]['canDiscard'] );
 		$this->assertArrayNotHasKey( 'proposedSourceDisplay', $author_list_data['items'][0] );
 
 		$author_detail_request  = new WP_REST_Request( 'GET', '/wp/v2/posts/' . $post_id . '/distributed-editing/review-items/' . $review_item_id );
 		$author_detail_response = rest_get_server()->dispatch( $author_detail_request );
 
 		$this->assertSame( 403, $author_detail_response->get_status() );
+		$this->assertStringContainsString( 'no-store', $author_detail_response->get_headers()['Cache-Control'] );
 
 		wp_set_current_user( self::$admin_user_id );
 
@@ -4340,8 +4350,13 @@ class Tests_DE_RTC_REST_Retry_Save extends WP_Test_REST_TestCase {
 		$admin_detail_data     = $admin_detail_response->get_data();
 
 		$this->assertSame( 200, $admin_detail_response->get_status() );
+		$this->assertStringContainsString( 'no-store', $admin_detail_response->get_headers()['Cache-Control'] );
 		$this->assertSame( 'review_item_loaded', $admin_detail_data['result'] );
 		$this->assertSame( 'html_escaped_text', $admin_detail_data['item']['contentTransport'] );
+		$this->assertTrue( $admin_detail_data['item']['canApprove'] );
+		$this->assertTrue( $admin_detail_data['item']['canModifyAdopt'] );
+		$this->assertTrue( $admin_detail_data['item']['canReject'] );
+		$this->assertFalse( $admin_detail_data['item']['canDiscard'] );
 		$this->assertStringContainsString( '&lt;script&gt;alert(1);&lt;/script&gt;Script', $admin_detail_data['item']['proposedSourceDisplay'] );
 		$this->assertStringNotContainsString( '<script>alert(1);</script>', $admin_detail_data['item']['proposedSourceDisplay'] );
 		$this->assertFalse( $admin_detail_data['rawContentIncluded'] );
@@ -4353,11 +4368,16 @@ class Tests_DE_RTC_REST_Retry_Save extends WP_Test_REST_TestCase {
 		$repeat_reject_data     = $repeat_reject_response->get_data();
 
 		$this->assertSame( 200, $reject_response->get_status() );
+		$this->assertStringContainsString( 'no-store', $reject_response->get_headers()['Cache-Control'] );
 		$this->assertSame( 'review_item_rejected', $reject_data['result'] );
 		$this->assertSame( 'rejected', $reject_data['item']['status'] );
 		$this->assertFalse( $reject_data['mutatesPostContent'] );
 		$this->assertSame( 200, $repeat_reject_response->get_status() );
 		$this->assertTrue( $repeat_reject_data['idempotent'] );
+		$rejected_detail_response = rest_get_server()->dispatch( $admin_detail_request );
+
+		$this->assertSame( 404, $rejected_detail_response->get_status() );
+		$this->assertStringContainsString( 'no-store', $rejected_detail_response->get_headers()['Cache-Control'] );
 
 		wp_set_current_user( self::$author_user_id );
 
@@ -4382,6 +4402,445 @@ class Tests_DE_RTC_REST_Retry_Save extends WP_Test_REST_TestCase {
 		$this->assertFalse( $repeat_data['mutates_post_content'] );
 		$this->assertFalse( $repeat_data['claims_saved'] );
 		$this->assert_post_unchanged( $post_id, $repeat_before_post->post_content, $repeat_before_revisions );
+
+		wp_set_current_user( self::$admin_user_id );
+
+		$old_detail_response = rest_get_server()->dispatch( $admin_detail_request );
+
+		$this->assertSame( 404, $old_detail_response->get_status() );
+
+		wp_set_current_user( self::$author_user_id );
+
+			$requeue_result = wp_de_rtc_record_review_required_items(
+				$post_id,
+				$data['review_items'],
+			array(
+				'base_post_content'     => $base_content,
+				'proposed_post_content' => $proposed_content,
+				'server_version'        => '502',
+				'client_base_version'   => '501',
+				)
+			);
+
+				$this->assertSame( 'queued', $requeue_result['review_item_queue_status'] );
+				$this->assertSame( 1, $requeue_result['review_item_queued_count'] );
+				$this->assertSame( 1, $requeue_result['review_item_pending_count'] );
+				$this->assertCount( 1, $requeue_result['review_item_descriptors'] );
+				$this->assertNotSame( $review_item_id, $requeue_result['review_item_descriptors'][0]['reviewItemId'] );
+				$this->assertSame( 'pending', $requeue_result['review_item_descriptors'][0]['status'] );
+				$this->assertFalse( $requeue_result['review_item_descriptors'][0]['canApprove'] );
+				$this->assertFalse( $requeue_result['review_item_descriptors'][0]['canModifyAdopt'] );
+				$this->assertFalse( $requeue_result['review_item_descriptors'][0]['canReject'] );
+				$this->assertTrue( $requeue_result['review_item_descriptors'][0]['canDiscard'] );
+
+			$approve_unsafe_block     = '<!-- wp:html --><script>alert(2);</script>Script<!-- /wp:html -->';
+			$approve_proposed_content = implode( "\n\n", array( $first_block, $approve_unsafe_block, $second_block, $safe_list_block ) );
+			$approve_classification   = wp_de_rtc_classify_kses_risky_block_review_items(
+				$post_id,
+				$approve_proposed_content,
+				array(
+					'base_post_content'          => $safe_content,
+					'server_version'             => '502',
+					'client_base_version'        => '502',
+					'user_can_unfiltered_html'   => false,
+					'author_id'                  => self::$author_user_id,
+				)
+			);
+
+			$this->assertSame( 'block_review_required', $approve_classification['result'] );
+
+			$approve_queue = wp_de_rtc_record_review_required_items(
+				$post_id,
+				$approve_classification['review_items'],
+				array(
+					'base_post_content'     => $safe_content,
+					'proposed_post_content' => $approve_proposed_content,
+					'server_version'        => '502',
+					'client_base_version'   => '502',
+				)
+			);
+
+			$this->assertSame( 'queued', $approve_queue['review_item_queue_status'] );
+			$this->assertSame( 1, $approve_queue['review_item_queued_count'] );
+			$this->assertSame( 1, $approve_queue['review_item_pending_count'] );
+
+			wp_set_current_user( self::$admin_user_id );
+
+			$approve_review_item_id = $approve_queue['review_item_descriptors'][0]['reviewItemId'];
+			$approve_request        = new WP_REST_Request( 'POST', '/wp/v2/posts/' . $post_id . '/distributed-editing/review-items/' . $approve_review_item_id . '/approve' );
+			$approve_response       = rest_get_server()->dispatch( $approve_request );
+		$approve_data           = $approve_response->get_data();
+		clean_post_cache( $post_id );
+		$approved_post          = get_post( $post_id );
+		$approved_parsed        = wp_de_rtc_parse_post_content_sync_meta( $approved_post->post_content );
+
+		$this->assertSame( 200, $approve_response->get_status() );
+		$this->assertStringContainsString( 'no-store', $approve_response->get_headers()['Cache-Control'] );
+		$this->assertSame( 'review_item_approved', $approve_data['result'] );
+		$this->assertTrue( $approve_data['savesPost'] );
+			$this->assertTrue( $approve_data['mutatesPostContent'] );
+			$this->assertSame( 'approved', $approve_data['item']['status'] );
+			$this->assertFalse( $approve_data['item']['canApprove'] );
+			$this->assertFalse( $approve_data['item']['canModifyAdopt'] );
+			$this->assertFalse( $approve_data['item']['canReject'] );
+			$this->assertFalse( $approve_data['item']['canDiscard'] );
+			$this->assertStringContainsString( '<script>alert(2);</script>Script', $approved_parsed['content'] );
+			$this->assertStringContainsString( '<em>Cheese</em>', $approved_parsed['content'] );
+			$this->assertSame( 'review_item_approve', $approved_parsed['sync_meta']['last_server_update']['type'] );
+		}
+
+	/**
+	 * @covers ::wp_de_rtc_rest_retry_save_endpoint
+	 * @covers ::wp_de_rtc_classify_kses_risky_block_review_items
+	 * @covers ::wp_de_rtc_apply_review_item_resolution_to_post
+	 */
+	public function test_review_approval_inserts_added_unsafe_block_before_safely_modified_neighbor() {
+		$this->require_yjs_runtime();
+
+		$paragraph_block = '<!-- wp:paragraph --><p>This is a paragraph, safe.</p><!-- /wp:paragraph -->';
+		$list_block      = '<!-- wp:list --><ul class="wp-block-list"><!-- wp:list-item --><li>Bread</li><!-- /wp:list-item --><!-- wp:list-item --><li>Cheese</li><!-- /wp:list-item --><!-- wp:list-item --><li>Tomato</li><!-- /wp:list-item --></ul><!-- /wp:list -->';
+		$safe_list_block = '<!-- wp:list --><ul class="wp-block-list"><!-- wp:list-item --><li>Bread</li><!-- /wp:list-item --><!-- wp:list-item --><li><em>Cheese</em></li><!-- /wp:list-item --><!-- wp:list-item --><li>Tomato</li><!-- /wp:list-item --></ul><!-- /wp:list -->';
+		$unsafe_block    = '<!-- wp:html --><script>alert(1);</script>Script<!-- /wp:html -->';
+		$reviewed_block  = '<!-- wp:html --><div class="reviewed">Reviewed HTML</div><!-- /wp:html -->';
+		$base_content    = $paragraph_block . $list_block;
+		$proposed_content = $paragraph_block . $unsafe_block . $safe_list_block;
+		$safe_content    = $paragraph_block . $safe_list_block;
+		$expected_reviewed_content = $paragraph_block . $reviewed_block . $safe_list_block;
+		$post_id         = self::factory()->post->create(
+			array(
+				'post_author'  => self::$author_user_id,
+				'post_title'   => 'DE-RTC partial safe inserted unsafe HTML before modified list',
+				'post_content' => $this->add_yjs_sync_meta_to_content(
+					$base_content,
+					701,
+					array(
+						'post_content_hash' => hash( 'sha256', $base_content ),
+					)
+				),
+			)
+		);
+		$client_update   = wp_de_rtc_create_yjs_update_for_content_change( $base_content, $proposed_content, 'test-author' );
+		$request         = $this->create_retry_save_request(
+			'posts',
+			$post_id,
+			array(
+				'client_base_version'           => '701',
+				'accepted_proof_server_version' => '701',
+				'rebased_from_version'          => '701',
+				'pending_change_count'          => 2,
+				'proposed_post_content'         => $proposed_content,
+				'proposed_post_content_hash'    => hash( 'sha256', $proposed_content ),
+				'yjs_client_update'             => $client_update,
+			)
+		);
+
+		wp_set_current_user( self::$author_user_id );
+
+		$response   = rest_get_server()->dispatch( $request );
+		$data       = $response->get_data();
+		$after_post = get_post( $post_id );
+		$parsed     = wp_de_rtc_parse_post_content_sync_meta( $after_post->post_content );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( 'retry_save_partial_safe_merge', $data['result'] );
+		$this->assertSame( $safe_content, $parsed['content'] );
+		$this->assertSame( 'added_block', $data['review_items'][0]['change_kind'] );
+		$this->assertSame( array( 1 ), $data['review_items'][0]['block_path'] );
+		$this->assertSame( hash( 'sha256', '' ), $data['review_items'][0]['base_content_hash'] );
+		$this->assertSame( hash( 'sha256', $unsafe_block ), $data['review_items'][0]['proposed_content_hash'] );
+
+		wp_set_current_user( self::$admin_user_id );
+
+		$modify_request = new WP_REST_Request( 'POST', '/wp/v2/posts/' . $post_id . '/distributed-editing/review-items/' . $data['review_item_descriptors'][0]['reviewItemId'] . '/modify-adopt' );
+		$modify_request->set_param( 'reviewed_block_source', $reviewed_block );
+		$modify_response = rest_get_server()->dispatch( $modify_request );
+		$modify_data     = $modify_response->get_data();
+		clean_post_cache( $post_id );
+		$modified_post   = get_post( $post_id );
+		$modified_parsed = wp_de_rtc_parse_post_content_sync_meta( $modified_post->post_content );
+
+		$this->assertSame( 200, $modify_response->get_status() );
+		$this->assertSame( 'review_item_modified_adopted', $modify_data['result'] );
+		$this->assertSame( $expected_reviewed_content, $modified_parsed['content'] );
+		$this->assertStringContainsString( '<em>Cheese</em>', $modified_parsed['content'] );
+		$this->assertStringContainsString( '<div class="reviewed">Reviewed HTML</div>', $modified_parsed['content'] );
+		$this->assertStringNotContainsString( '<script>alert(1);</script>', $modified_parsed['content'] );
+		$this->assertSame( 'review_item_modify_adopt', $modified_parsed['sync_meta']['last_server_update']['type'] );
+	}
+
+	/**
+	 * @covers ::wp_de_rtc_rest_retry_save_endpoint
+	 * @covers ::wp_de_rtc_classify_kses_risky_block_review_items
+	 * @covers ::wp_de_rtc_get_kses_partial_safe_retry_save_plan
+	 * @covers ::wp_de_rtc_get_kses_partial_safe_top_level_candidate
+	 * @covers ::wp_de_rtc_remove_block_at_path
+	 * @covers ::wp_de_rtc_apply_partial_safe_retry_save_plan
+	 */
+	public function test_retry_save_persists_safe_edits_while_rejecting_nested_unsafe_html_only() {
+		$this->require_yjs_runtime();
+
+		$paragraph_block      = '<!-- wp:paragraph --><p>Safe paragraph.</p><!-- /wp:paragraph -->';
+		$nested_group_block   = '<!-- wp:group --><div class="wp-block-group"><!-- wp:quote --><blockquote class="wp-block-quote"><p>Nested base.</p></blockquote><!-- /wp:quote --></div><!-- /wp:group -->';
+		$list_block           = '<!-- wp:list --><ul class="wp-block-list"><!-- wp:list-item --><li>One</li><!-- /wp:list-item --><!-- wp:list-item --><li>Two</li><!-- /wp:list-item --><!-- wp:list-item --><li>Three</li><!-- /wp:list-item --></ul><!-- /wp:list -->';
+		$safe_list_block      = '<!-- wp:list --><ul class="wp-block-list"><!-- wp:list-item --><li>One</li><!-- /wp:list-item --><!-- wp:list-item --><li><em>Two</em></li><!-- /wp:list-item --><!-- wp:list-item --><li>Three</li><!-- /wp:list-item --></ul><!-- /wp:list -->';
+		$unsafe_html_block    = '<!-- wp:html --><script>alert(1);</script>Script<!-- /wp:html -->';
+		$unsafe_nested_group  = '<!-- wp:group --><div class="wp-block-group"><!-- wp:quote --><blockquote class="wp-block-quote"><p>Nested base.</p>' . $unsafe_html_block . '</blockquote><!-- /wp:quote --></div><!-- /wp:group -->';
+		$base_content         = $paragraph_block . $nested_group_block . $list_block;
+		$proposed_content     = $paragraph_block . $unsafe_nested_group . $safe_list_block;
+		$safe_content         = $paragraph_block . $nested_group_block . $safe_list_block;
+		$post_id              = self::factory()->post->create(
+			array(
+				'post_author'  => self::$author_user_id,
+				'post_title'   => 'DE-RTC nested partial safe retry save post',
+				'post_content' => $this->add_yjs_sync_meta_to_content(
+					$base_content,
+					801,
+					array(
+						'post_content_hash' => hash( 'sha256', $base_content ),
+					)
+				),
+			)
+		);
+		$client_update        = wp_de_rtc_create_yjs_update_for_content_change( $base_content, $proposed_content, 'test-author-nested' );
+		$request              = $this->create_retry_save_request(
+			'posts',
+			$post_id,
+			array(
+				'client_base_version'           => '801',
+				'accepted_proof_server_version' => '801',
+				'rebased_from_version'          => '801',
+				'pending_change_count'          => 2,
+				'proposed_post_content'         => $proposed_content,
+				'proposed_post_content_hash'    => hash( 'sha256', $proposed_content ),
+				'yjs_client_update'             => $client_update,
+			)
+		);
+
+		wp_set_current_user( self::$author_user_id );
+
+		$response   = rest_get_server()->dispatch( $request );
+		$data       = $response->get_data();
+		$after_post = get_post( $post_id );
+		$parsed     = wp_de_rtc_parse_post_content_sync_meta( $after_post->post_content );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( 'retry_save_partial_safe_merge', $data['result'] );
+		$this->assertTrue( $data['partial_safe_merge_applied'] );
+		$this->assertTrue( $data['partial_safe_merge_persisted'] );
+		$this->assertSame( 'safe_subset_persisted', $data['partial_safe_merge_status'] );
+		$this->assertSame( 1, $data['review_item_count'] );
+		$this->assertSame( 1, $data['pending_review_item_count'] );
+		$this->assertSame( 'core/html', $data['review_items'][0]['block_name'] );
+		$this->assertSame( array( 1, 0, 0 ), $data['review_items'][0]['block_path'] );
+		$this->assertSame( 'added_block', $data['review_items'][0]['change_kind'] );
+		$this->assertSame( hash( 'sha256', $unsafe_html_block ), $data['review_items'][0]['proposed_content_hash'] );
+		$this->assertSame( $safe_content, $parsed['content'] );
+		$this->assertSame( $safe_content, wp_de_rtc_parse_post_content_sync_meta( $data['content']['raw'] )['content'] );
+		$this->assertStringContainsString( '<em>Two</em>', $parsed['content'] );
+		$this->assertStringNotContainsString( '<script', $parsed['content'] );
+		$this->assertSame( '802', $parsed['sync_meta']['version'] );
+		$this->assertSame( 'retry_save_partial_safe_merge', $parsed['sync_meta']['last_server_update']['type'] );
+
+		wp_set_current_user( self::$admin_user_id );
+
+		$admin_list_request  = new WP_REST_Request( 'GET', '/wp/v2/posts/' . $post_id . '/distributed-editing/review-items' );
+		$admin_list_response = rest_get_server()->dispatch( $admin_list_request );
+		$admin_list_data     = $admin_list_response->get_data();
+
+		$this->assertSame( 200, $admin_list_response->get_status() );
+		$this->assertCount( 1, $admin_list_data['items'] );
+		$this->assertSame( 'HTML', $admin_list_data['items'][0]['blockLabel'] );
+		$this->assertTrue( $admin_list_data['items'][0]['canApprove'] );
+		$this->assertTrue( $admin_list_data['items'][0]['canModifyAdopt'] );
+		$this->assertTrue( $admin_list_data['items'][0]['canReject'] );
+	}
+
+	/**
+	 * @covers ::wp_de_rtc_rest_retry_save_endpoint
+	 * @covers ::wp_de_rtc_classify_kses_risky_block_review_items
+	 * @covers ::wp_de_rtc_get_kses_partial_safe_retry_save_plan
+	 * @covers ::wp_de_rtc_get_kses_partial_safe_top_level_candidate
+	 * @covers ::wp_de_rtc_remove_block_at_path
+	 * @covers ::wp_de_rtc_apply_partial_safe_retry_save_plan
+	 */
+	public function test_retry_save_persists_safe_edits_when_nested_unsafe_html_is_inserted_before_retained_sibling() {
+		$this->require_yjs_runtime();
+
+		$paragraph_block     = '<!-- wp:paragraph --><p>Safe paragraph.</p><!-- /wp:paragraph -->';
+		$nested_group_block  = '<!-- wp:group --><div class="wp-block-group"><!-- wp:quote --><blockquote class="wp-block-quote"><!-- wp:paragraph --><p>Nested first.</p><!-- /wp:paragraph --><!-- wp:paragraph --><p>Nested second.</p><!-- /wp:paragraph --></blockquote><!-- /wp:quote --></div><!-- /wp:group -->';
+		$list_block          = '<!-- wp:list --><ul class="wp-block-list"><!-- wp:list-item --><li>One</li><!-- /wp:list-item --><!-- wp:list-item --><li>Two</li><!-- /wp:list-item --></ul><!-- /wp:list -->';
+		$safe_list_block     = '<!-- wp:list --><ul class="wp-block-list"><!-- wp:list-item --><li>One</li><!-- /wp:list-item --><!-- wp:list-item --><li><em>Two</em></li><!-- /wp:list-item --></ul><!-- /wp:list -->';
+		$unsafe_html_block   = '<!-- wp:html --><script>alert(1);</script>Script<!-- /wp:html -->';
+		$unsafe_nested_group = '<!-- wp:group --><div class="wp-block-group"><!-- wp:quote --><blockquote class="wp-block-quote"><!-- wp:paragraph --><p>Nested first.</p><!-- /wp:paragraph -->' . $unsafe_html_block . '<!-- wp:paragraph --><p>Nested second.</p><!-- /wp:paragraph --></blockquote><!-- /wp:quote --></div><!-- /wp:group -->';
+		$base_content        = $paragraph_block . $nested_group_block . $list_block;
+		$proposed_content    = $paragraph_block . $unsafe_nested_group . $safe_list_block;
+		$safe_content        = $paragraph_block . $nested_group_block . $safe_list_block;
+		$post_id             = self::factory()->post->create(
+			array(
+				'post_author'  => self::$author_user_id,
+				'post_title'   => 'DE-RTC nested partial safe before sibling retry save post',
+				'post_content' => $this->add_yjs_sync_meta_to_content(
+					$base_content,
+					811,
+					array(
+						'post_content_hash' => hash( 'sha256', $base_content ),
+					)
+				),
+			)
+		);
+		$client_update       = wp_de_rtc_create_yjs_update_for_content_change( $base_content, $proposed_content, 'test-author-nested-before-sibling' );
+		$request             = $this->create_retry_save_request(
+			'posts',
+			$post_id,
+			array(
+				'client_base_version'           => '811',
+				'accepted_proof_server_version' => '811',
+				'rebased_from_version'          => '811',
+				'pending_change_count'          => 2,
+				'proposed_post_content'         => $proposed_content,
+				'proposed_post_content_hash'    => hash( 'sha256', $proposed_content ),
+				'yjs_client_update'             => $client_update,
+			)
+		);
+
+		wp_set_current_user( self::$author_user_id );
+
+		$response   = rest_get_server()->dispatch( $request );
+		$data       = $response->get_data();
+		$after_post = get_post( $post_id );
+		$parsed     = wp_de_rtc_parse_post_content_sync_meta( $after_post->post_content );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( 'retry_save_partial_safe_merge', $data['result'] );
+		$this->assertTrue( $data['partial_safe_merge_applied'] );
+		$this->assertTrue( $data['partial_safe_merge_persisted'] );
+		$this->assertSame( 1, $data['review_item_count'] );
+		$this->assertSame( 'core/html', $data['review_items'][0]['block_name'] );
+		$this->assertSame( array( 1, 0, 1 ), $data['review_items'][0]['block_path'] );
+		$this->assertSame( 'added_block', $data['review_items'][0]['change_kind'] );
+		$this->assertSame( hash( 'sha256', $unsafe_html_block ), $data['review_items'][0]['proposed_content_hash'] );
+		$this->assertSame( $safe_content, $parsed['content'] );
+		$this->assertStringContainsString( '<em>Two</em>', $parsed['content'] );
+		$this->assertStringContainsString( '<p>Nested second.</p>', $parsed['content'] );
+		$this->assertStringNotContainsString( '<script', $parsed['content'] );
+		$this->assertSame( '812', $parsed['sync_meta']['version'] );
+	}
+
+	/**
+	 * @covers ::wp_de_rtc_record_review_required_items
+	 * @covers ::wp_de_rtc_supersede_active_review_items_for_same_anchor
+	 */
+	public function test_review_item_modified_retry_supersedes_older_pending_item_for_same_block() {
+		$base_content = '<!-- wp:paragraph --><p>Base paragraph.</p><!-- /wp:paragraph -->';
+		$post_id      = self::factory()->post->create(
+			array(
+				'post_author'  => self::$author_user_id,
+				'post_title'   => 'DE-RTC modified review retry post',
+				'post_content' => $this->add_sync_meta_to_content(
+					$base_content,
+					601,
+					array(
+						'post_content_hash' => hash( 'sha256', $base_content ),
+					)
+				),
+			)
+		);
+		$unsafe_first  = '<!-- wp:html --><script>alert(1);</script>First<!-- /wp:html -->';
+		$unsafe_second = '<!-- wp:html --><script>alert(2);</script>Second<!-- /wp:html -->';
+
+		wp_set_current_user( self::$author_user_id );
+
+		$first_review = wp_de_rtc_classify_kses_risky_block_review_items(
+			$post_id,
+			$unsafe_first,
+			array(
+				'client_base_version' => '601',
+				'author_id'           => self::$author_user_id,
+			)
+		);
+		$first_queue  = wp_de_rtc_record_review_required_items(
+			$post_id,
+			$first_review['review_items'],
+			array(
+				'base_post_content'     => $base_content,
+				'proposed_post_content' => $unsafe_first,
+				'server_version'        => '601',
+				'client_base_version'   => '601',
+			)
+		);
+
+		$this->assertSame( 'queued', $first_queue['review_item_queue_status'] );
+		$this->assertSame( 1, $first_queue['review_item_pending_count'] );
+
+		$second_review = wp_de_rtc_classify_kses_risky_block_review_items(
+			$post_id,
+			$unsafe_second,
+			array(
+				'client_base_version' => '601',
+				'author_id'           => self::$author_user_id,
+			)
+		);
+		$second_queue  = wp_de_rtc_record_review_required_items(
+			$post_id,
+			$second_review['review_items'],
+			array(
+				'base_post_content'     => $base_content,
+				'proposed_post_content' => $unsafe_second,
+				'server_version'        => '601',
+				'client_base_version'   => '601',
+			)
+		);
+
+		$this->assertSame( 'queued', $second_queue['review_item_queue_status'] );
+		$this->assertSame( 1, $second_queue['review_item_pending_count'] );
+		$this->assertSame( 1, $second_queue['review_item_queue_results'][0]['supersededCount'] );
+
+		$list_request  = new WP_REST_Request( 'GET', '/wp/v2/posts/' . $post_id . '/distributed-editing/review-items' );
+		$list_response = rest_get_server()->dispatch( $list_request );
+		$list_data     = $list_response->get_data();
+
+		$this->assertSame( 200, $list_response->get_status() );
+		$this->assertCount( 1, $list_data['items'] );
+		$this->assertSame( $second_queue['review_item_descriptors'][0]['reviewItemId'], $list_data['items'][0]['reviewItemId'] );
+
+		global $wpdb;
+
+		$table_sql = wp_de_rtc_get_review_items_table_sql();
+		$statuses  = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT status, COUNT(*) AS item_count FROM $table_sql WHERE post_id = %d GROUP BY status",
+				$post_id
+			),
+			ARRAY_A
+		);
+		$counts    = array();
+		foreach ( $statuses as $status_row ) {
+			$counts[ $status_row['status'] ] = (int) $status_row['item_count'];
+		}
+
+		$this->assertSame( 1, $counts['pending'] );
+		$this->assertSame( 1, $counts['superseded'] );
+
+		wp_set_current_user( self::$admin_user_id );
+
+		$modify_request = new WP_REST_Request( 'POST', '/wp/v2/posts/' . $post_id . '/distributed-editing/review-items/' . $second_queue['review_item_descriptors'][0]['reviewItemId'] . '/modify-adopt' );
+		$modify_request->set_param(
+			'reviewed_block_source',
+			'<!-- wp:html --><div class="reviewed">Reviewed HTML</div><!-- /wp:html -->'
+		);
+		$modify_response = rest_get_server()->dispatch( $modify_request );
+		$modify_data     = $modify_response->get_data();
+		clean_post_cache( $post_id );
+		$modified_post   = get_post( $post_id );
+		$modified_parsed = wp_de_rtc_parse_post_content_sync_meta( $modified_post->post_content );
+
+		$this->assertSame( 200, $modify_response->get_status() );
+		$this->assertStringContainsString( 'no-store', $modify_response->get_headers()['Cache-Control'] );
+		$this->assertSame( 'review_item_modified_adopted', $modify_data['result'] );
+		$this->assertSame( 'modified_adopted', $modify_data['item']['status'] );
+		$this->assertStringContainsString( '<div class="reviewed">Reviewed HTML</div>', $modified_parsed['content'] );
+		$this->assertStringNotContainsString( '<script>alert(2);</script>', $modified_parsed['content'] );
+		$this->assertSame( 'review_item_modify_adopt', $modified_parsed['sync_meta']['last_server_update']['type'] );
 	}
 
 	/**

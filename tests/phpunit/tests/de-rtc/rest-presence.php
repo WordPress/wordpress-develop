@@ -84,6 +84,7 @@ class Tests_DE_RTC_REST_Presence extends WP_Test_REST_TestCase {
 		$this->assertArrayHasKey( 'has_pending_changes', $heartbeat_route_args );
 		$this->assertArrayHasKey( 'confirmed_at_gmt', $heartbeat_route_args );
 		$this->assertArrayHasKey( 'selection_state', $heartbeat_route_args );
+		$this->assertArrayHasKey( 'pending_preview_state', $heartbeat_route_args );
 	}
 
 	/**
@@ -350,6 +351,10 @@ class Tests_DE_RTC_REST_Presence extends WP_Test_REST_TestCase {
 		$this->assertFalse( $data['selection_state']['available'] );
 		$this->assertFalse( $data['selection_state']['exposesRawSelectedText'] );
 		$this->assertFalse( $data['selection_state']['exposesClientId'] );
+		$this->assertFalse( $data['pending_preview_recorded'] );
+		$this->assertFalse( $data['pending_preview']['available'] );
+		$this->assertFalse( $data['pending_preview']['rawContentIncluded'] );
+		$this->assertFalse( $data['pending_preview']['exposesRawContent'] );
 		$this->assertTrue( $data['last_seen_recorded'] );
 		$this->assertTrue( $data['expires_at_recorded'] );
 		$this->assertSame( 0, $data['session_duration_seconds'] );
@@ -414,6 +419,7 @@ class Tests_DE_RTC_REST_Presence extends WP_Test_REST_TestCase {
 		$this->assertSame( '1', $row['has_pending_changes'] );
 		$this->assertSame( $confirmed_at_gmt, $row['confirmed_at_gmt'] );
 		$this->assertEmpty( $row['selection_state_json'] );
+		$this->assertEmpty( $row['pending_preview_json'] );
 		$this->assertSame( 'active', $row['freshness'] );
 		$this->assertSame( 1, $this->get_presence_row_count_for_post( $post_id ) );
 
@@ -495,6 +501,82 @@ class Tests_DE_RTC_REST_Presence extends WP_Test_REST_TestCase {
 		$this->assertStringNotContainsString( 'clientId', $row['selection_state_json'] );
 		$this->assertStringNotContainsString( 'rawContent', $row['selection_state_json'] );
 		$this->assert_post_unchanged( $post_id, $before_post->post_content, $before_revisions );
+	}
+
+	/**
+	 * @covers ::wp_de_rtc_rest_presence_heartbeat_endpoint
+	 * @covers ::wp_de_rtc_record_presence_heartbeat
+	 * @covers ::wp_de_rtc_get_sanitized_presence_pending_preview_state
+	 */
+	public function test_presence_heartbeat_records_sanitized_pending_preview_for_ghosts() {
+		$post_id = self::factory()->post->create(
+			array(
+				'post_author'  => self::$author_user_id,
+				'post_title'   => 'DE-RTC pending preview heartbeat post',
+				'post_content' => '<!-- wp:paragraph --><p>Pending preview endpoint.</p><!-- /wp:paragraph -->',
+			)
+		);
+		$request = new WP_REST_Request( 'POST', '/wp/v2/posts/' . $post_id . '/distributed-editing/presence/heartbeat' );
+
+		wp_set_current_user( self::$author_user_id );
+		wp_de_rtc_install_presence_table();
+
+		$request->set_param( 'session_key', 'pending-preview-session' );
+		$request->set_param( 'confirmed_base_version', '18' );
+		$request->set_param( 'has_pending_changes', true );
+		$request->set_param(
+			'pending_preview_state',
+			array(
+				'available'     => true,
+				'schema'        => 'de-rtc-pending-preview-v1',
+				'baseVersion'   => '18',
+				'baseStateHash' => str_repeat( 'c', 64 ),
+				'items'         => array(
+					array(
+						'blockPath'      => array( 1 ),
+						'blockName'      => 'core/html',
+						'changeKind'     => 'added_block',
+						'previewSource'  => '<script>alert(1);</script><p>Ghost text</p>',
+						'reviewRequired' => true,
+					),
+				),
+			)
+		);
+
+		$heartbeat_response = rest_get_server()->dispatch( $request );
+		$heartbeat_data     = $heartbeat_response->get_data();
+		$row                = $this->get_presence_row_for_post( $post_id );
+
+		$this->assertSame( 200, $heartbeat_response->get_status() );
+		$this->assertTrue( $heartbeat_data['pending_preview_recorded'] );
+		$this->assertTrue( $heartbeat_data['pending_preview']['available'] );
+		$this->assertSame( 1, $heartbeat_data['pending_preview']['itemCount'] );
+		$this->assertSame( array( 1 ), $heartbeat_data['pending_preview']['items'][0]['blockPath'] );
+		$this->assertSame( 'core/html', $heartbeat_data['pending_preview']['items'][0]['blockName'] );
+		$this->assertSame( 'added_block', $heartbeat_data['pending_preview']['items'][0]['changeKind'] );
+		$this->assertSame( 'exact', $heartbeat_data['pending_preview']['items'][0]['anchorStatus'] );
+		$this->assertSame( 'Ghost text', $heartbeat_data['pending_preview']['items'][0]['safePreviewText'] );
+		$this->assertStringContainsString( '<p>Ghost text</p>', $heartbeat_data['pending_preview']['items'][0]['safePreviewHtml'] );
+		$this->assertStringNotContainsString( '<script', $heartbeat_data['pending_preview']['items'][0]['safePreviewHtml'] );
+		$this->assertFalse( $heartbeat_data['pending_preview']['rawContentIncluded'] );
+		$this->assertFalse( $heartbeat_data['pending_preview']['exposesRawContent'] );
+		$this->assertNotEmpty( $row['pending_preview_json'] );
+		$this->assertStringContainsString( 'Ghost text', $row['pending_preview_json'] );
+		$this->assertStringNotContainsString( '<script', $row['pending_preview_json'] );
+		$this->assertStringNotContainsString( 'previewSource', $row['pending_preview_json'] );
+
+		wp_set_current_user( self::$admin_user_id );
+
+		$snapshot_response = rest_get_server()->dispatch( new WP_REST_Request( 'GET', '/wp/v2/posts/' . $post_id . '/distributed-editing/presence' ) );
+		$snapshot_data     = $snapshot_response->get_data();
+		$entry             = $snapshot_data['presence_roster']['entries'][0];
+
+		$this->assertSame( 200, $snapshot_response->get_status() );
+		$this->assertTrue( $entry['pendingPreview']['available'] );
+		$this->assertSame( 'Ghost text', $entry['pendingPreview']['items'][0]['safePreviewText'] );
+		$this->assertTrue( $entry['exposesPendingPreview'] );
+		$this->assertFalse( $entry['pendingPreview']['exposesRawContent'] );
+		$this->assertFalse( $entry['exposesRawContent'] );
 	}
 
 	/**

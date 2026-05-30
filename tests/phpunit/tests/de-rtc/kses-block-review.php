@@ -223,6 +223,92 @@ class Tests_DE_RTC_KSES_Block_Review extends WP_UnitTestCase {
 
 	/**
 	 * @covers ::wp_de_rtc_classify_kses_risky_block_review_items
+	 * @covers ::wp_de_rtc_collect_kses_block_review_records
+	 * @covers ::wp_de_rtc_get_block_without_inner_blocks
+	 */
+	public function test_nested_risky_html_flags_only_immediate_offending_block() {
+		$safe_quote       = '<!-- wp:group --><div class="wp-block-group"><!-- wp:quote --><blockquote class="wp-block-quote"><p>Safe quote.</p></blockquote><!-- /wp:quote --></div><!-- /wp:group -->';
+		$risky_quote      = '<!-- wp:group --><div class="wp-block-group"><!-- wp:quote --><blockquote class="wp-block-quote"><p>Safe quote.</p><!-- wp:html --><script>alert("nested")</script>Script<!-- /wp:html --></blockquote><!-- /wp:quote --></div><!-- /wp:group -->';
+		$post_id          = $this->create_sync_meta_post( $safe_quote, 27, self::$author_user_id );
+		$before_post      = get_post( $post_id );
+		$before_revisions = $this->get_post_revisions( $post_id );
+
+		wp_set_current_user( self::$author_user_id );
+
+		$result = wp_de_rtc_classify_kses_risky_block_review_items(
+			$post_id,
+			$risky_quote,
+			array(
+				'client_base_version' => '27',
+				'author_id'           => self::$author_user_id,
+			)
+		);
+
+		$this->assertIsArray( $result );
+		$this->assertSame( 'block_review_required', $result['result'] );
+		$this->assertSame( 1, $result['review_item_count'] );
+		$this->assertCount( 1, $result['review_items'] );
+
+		$item = $result['review_items'][0];
+
+		$this->assertSame( 'core/html', $item['block_name'] );
+		$this->assertSame( 'HTML', $item['block_label'] );
+		$this->assertSame( array( 0, 0, 0 ), $item['block_path'] );
+		$this->assertSame( 'added_block', $item['change_kind'] );
+		$this->assertSame( hash( 'sha256', '' ), $item['base_content_hash'] );
+		$this->assertSame( hash( 'sha256', '<!-- wp:html --><script>alert("nested")</script>Script<!-- /wp:html -->' ), $item['proposed_content_hash'] );
+		$this->assert_review_classification_omits_raw_content(
+			$result,
+			array( 'nested', 'Script', 'wp:group', 'wp:quote', 'wp:html' )
+		);
+		$this->assert_post_unchanged( $post_id, $before_post->post_content, $before_revisions );
+	}
+
+	/**
+	 * @covers ::wp_de_rtc_classify_kses_risky_block_review_items
+	 * @covers ::wp_de_rtc_collect_kses_block_review_records
+	 * @covers ::wp_de_rtc_get_block_without_inner_blocks
+	 */
+	public function test_nested_risky_html_before_retained_sibling_flags_only_immediate_block() {
+		$safe_quote       = '<!-- wp:group --><div class="wp-block-group"><!-- wp:quote --><blockquote class="wp-block-quote"><!-- wp:paragraph --><p>First nested paragraph.</p><!-- /wp:paragraph --><!-- wp:paragraph --><p>Second nested paragraph.</p><!-- /wp:paragraph --></blockquote><!-- /wp:quote --></div><!-- /wp:group -->';
+		$unsafe_block     = '<!-- wp:html --><script>alert("nested-before")</script>Script<!-- /wp:html -->';
+		$risky_quote      = '<!-- wp:group --><div class="wp-block-group"><!-- wp:quote --><blockquote class="wp-block-quote"><!-- wp:paragraph --><p>First nested paragraph.</p><!-- /wp:paragraph -->' . $unsafe_block . '<!-- wp:paragraph --><p>Second nested paragraph.</p><!-- /wp:paragraph --></blockquote><!-- /wp:quote --></div><!-- /wp:group -->';
+		$post_id          = $this->create_sync_meta_post( $safe_quote, 28, self::$author_user_id );
+		$before_post      = get_post( $post_id );
+		$before_revisions = $this->get_post_revisions( $post_id );
+
+		wp_set_current_user( self::$author_user_id );
+
+		$result = wp_de_rtc_classify_kses_risky_block_review_items(
+			$post_id,
+			$risky_quote,
+			array(
+				'client_base_version' => '28',
+				'author_id'           => self::$author_user_id,
+			)
+		);
+
+		$this->assertIsArray( $result );
+		$this->assertSame( 'block_review_required', $result['result'] );
+		$this->assertSame( 1, $result['review_item_count'] );
+		$this->assertCount( 1, $result['review_items'] );
+
+		$item = $result['review_items'][0];
+
+		$this->assertSame( 'core/html', $item['block_name'] );
+		$this->assertSame( array( 0, 0, 1 ), $item['block_path'] );
+		$this->assertSame( 'added_block', $item['change_kind'] );
+		$this->assertSame( hash( 'sha256', '' ), $item['base_content_hash'] );
+		$this->assertSame( hash( 'sha256', $unsafe_block ), $item['proposed_content_hash'] );
+		$this->assert_review_classification_omits_raw_content(
+			$result,
+			array( 'nested-before', 'Script', 'wp:group', 'wp:quote', 'wp:html' )
+		);
+		$this->assert_post_unchanged( $post_id, $before_post->post_content, $before_revisions );
+	}
+
+	/**
+	 * @covers ::wp_de_rtc_classify_kses_risky_block_review_items
 	 */
 	public function test_missing_proposed_content_returns_malformed_no_write_error() {
 		$post_id          = $this->create_sync_meta_post(
