@@ -3069,11 +3069,11 @@ function build_terms_query_vars_from_block( WP_Block $block ): array {
 		'hide_empty' => $query['hideEmpty'],
 	);
 
-	$inherit_query = isset( $query['inherit'] ) && $query['inherit'] && ( is_tax() || is_category() || is_tag() );
+	$inherit_query = ( $query['inherit'] ?? false ) && ( is_tax() || is_category() || is_tag() );
 
-	if ( $inherit_query ) {
-		// Get the current term and taxonomy from the queried object.
-		$queried_object = get_queried_object();
+	// Get the current term and taxonomy from the queried object.
+	$queried_object = get_queried_object();
+	if ( $queried_object instanceof WP_Term && $inherit_query ) {
 
 		// For hierarchical taxonomies, show children of the current term.
 		// For non-hierarchical taxonomies, show all terms (don't set parent).
