@@ -67,6 +67,7 @@ class WP_Sitemaps {
 		$this->register_rewrites();
 
 		add_action( 'template_redirect', array( $this, 'render_sitemaps' ) );
+		add_filter( 'pre_handle_404', array( $this, 'pre_handle_404' ), 10, 2 );
 
 		if ( ! $this->sitemaps_enabled() ) {
 			return;
@@ -76,6 +77,41 @@ class WP_Sitemaps {
 
 		// Add additional action callbacks.
 		add_filter( 'robots_txt', array( $this, 'add_robots' ), 0, 2 );
+	}
+
+	/**
+	 * Prevents the main query's 404 handling from running for sitemap requests.
+	 *
+	 * Sitemap URLs are routed by rewrite rules that set the `sitemap` (or
+	 * `sitemap-stylesheet`) query variable but no `post_type`. The resulting
+	 * main query therefore defaults to the `post` post type, and on a paginated
+	 * request whose page number exceeds the number of pages of regular posts it
+	 * returns no posts. WP::handle_404() then flags the request as a 404 before
+	 * WP_Sitemaps::render_sitemaps() runs on 'template_redirect', stamping a 404
+	 * status on a sitemap that render_sitemaps() goes on to output with valid
+	 * URLs.
+	 *
+	 * Short-circuiting handle_404() for sitemap routes leaves render_sitemaps()
+	 * fully responsible for the response, including issuing its own 404 when a
+	 * sitemap is disabled or a requested page genuinely has no URLs.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @param bool     $preempt  Whether to short-circuit default header status handling. Default false.
+	 * @param WP_Query $wp_query WordPress Query object.
+	 * @return bool Whether to short-circuit default header status handling.
+	 */
+	public function pre_handle_404( $preempt, $wp_query ) {
+		// Respect an earlier short-circuit by another callback.
+		if ( false !== $preempt ) {
+			return $preempt;
+		}
+
+		if ( $wp_query->get( 'sitemap' ) || $wp_query->get( 'sitemap-stylesheet' ) ) {
+			return true;
+		}
+
+		return $preempt;
 	}
 
 	/**
