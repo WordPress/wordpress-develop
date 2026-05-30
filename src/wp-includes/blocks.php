@@ -3054,7 +3054,7 @@ function get_comments_pagination_arrow( $block, $pagination_type = 'next' ) {
  *
  * It's used with the Terms Query inner blocks (Term Template, Terms Query Pagination).
  *
- * @since 7.0.0
+ * @since 7.1.0
  *
  * @param WP_Block $block Block instance.
  * @return array<string, mixed> Query vars suitable for get_terms() or wp_count_terms().
