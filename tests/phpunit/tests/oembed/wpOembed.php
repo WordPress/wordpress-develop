@@ -2,8 +2,10 @@
 
 /**
  * @group oembed
+ *
+ * @coversDefaultClass WP_oEmbed
  */
-class Tests_WP_oEmbed extends WP_UnitTestCase {
+class Tests_oEmbed_wpOembed extends WP_UnitTestCase {
 	/**
 	 * @var WP_oEmbed
 	 */
@@ -47,6 +49,9 @@ class Tests_WP_oEmbed extends WP_UnitTestCase {
 		return $result ? $result : false;
 	}
 
+	/**
+	 * @covers ::get_html
+	 */
 	public function test_wp_filter_pre_oembed_result_prevents_http_request_for_internal_permalinks() {
 		$post_id   = self::factory()->post->create();
 		$permalink = get_permalink( $post_id );
@@ -59,6 +64,9 @@ class Tests_WP_oEmbed extends WP_UnitTestCase {
 		$this->assertSame( $this->pre_oembed_result_filtered, $actual );
 	}
 
+	/**
+	 * @covers ::get_html
+	 */
 	public function test_wp_filter_pre_oembed_result_prevents_http_request_when_viewing_the_post() {
 		$post_id   = self::factory()->post->create();
 		$permalink = get_permalink( $post_id );
@@ -74,6 +82,9 @@ class Tests_WP_oEmbed extends WP_UnitTestCase {
 		$this->assertSame( $this->pre_oembed_result_filtered, $actual );
 	}
 
+	/**
+	 * @covers ::get_html
+	 */
 	public function test_wp_filter_pre_oembed_result_non_existent_post() {
 		$post_id   = self::factory()->post->create();
 		$permalink = get_permalink( $post_id );
@@ -93,6 +104,8 @@ class Tests_WP_oEmbed extends WP_UnitTestCase {
 	 * @ticket 40673
 	 * @group multisite
 	 * @group ms-required
+	 *
+	 * @covers ::get_html
 	 */
 	public function test_wp_filter_pre_oembed_result_multisite_root_root() {
 		$post_id   = self::factory()->post->create();
@@ -110,6 +123,8 @@ class Tests_WP_oEmbed extends WP_UnitTestCase {
 	 * @ticket 40673
 	 * @group multisite
 	 * @group ms-required
+	 *
+	 * @covers ::get_html
 	 */
 	public function test_wp_filter_pre_oembed_result_multisite_sub_samesub() {
 		$user_id = self::$user_id;
@@ -139,6 +154,8 @@ class Tests_WP_oEmbed extends WP_UnitTestCase {
 	 * @ticket 40673
 	 * @group multisite
 	 * @group ms-required
+	 *
+	 * @covers ::get_html
 	 */
 	public function test_wp_filter_pre_oembed_result_multisite_sub_othersub() {
 		$user_id = self::$user_id;
@@ -176,6 +193,8 @@ class Tests_WP_oEmbed extends WP_UnitTestCase {
 	 * @ticket 40673
 	 * @group multisite
 	 * @group ms-required
+	 *
+	 * @covers ::get_html
 	 */
 	public function test_wp_filter_pre_oembed_result_multisite_sub_main() {
 		$post_id   = self::factory()->post->create();
@@ -203,6 +222,8 @@ class Tests_WP_oEmbed extends WP_UnitTestCase {
 	 * @ticket 40673
 	 * @group multisite
 	 * @group ms-required
+	 *
+	 * @covers ::get_html
 	 */
 	public function test_wp_filter_pre_oembed_result_multisite_preserves_switched_state() {
 		$user_id = self::$user_id;
@@ -232,6 +253,8 @@ class Tests_WP_oEmbed extends WP_UnitTestCase {
 	 * @ticket 40673
 	 * @group multisite
 	 * @group ms-required
+	 *
+	 * @covers ::get_html
 	 */
 	public function test_wp_filter_pre_oembed_result_multisite_restores_state_if_no_post_is_found() {
 		$current_blog_id = get_current_blog_id();

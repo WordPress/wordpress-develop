@@ -6,7 +6,7 @@
  * @covers WP_REST_Abilities_V1_Run_Controller
  *
  * @group abilities-api
- * @group rest-api
+ * @group restapi
  */
 class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 
@@ -379,43 +379,6 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 			)
 		);
 
-		// Ability with nested namespace (3 segments).
-		$this->register_test_ability(
-			'test/math/add',
-			array(
-				'label'               => 'Nested Add',
-				'description'         => 'Adds numbers with nested namespace',
-				'category'            => 'math',
-				'input_schema'        => array(
-					'type'                 => 'object',
-					'properties'           => array(
-						'a' => array(
-							'type'        => 'number',
-							'description' => 'First number',
-						),
-						'b' => array(
-							'type'        => 'number',
-							'description' => 'Second number',
-						),
-					),
-					'required'             => array( 'a', 'b' ),
-					'additionalProperties' => false,
-				),
-				'output_schema'       => array(
-					'type' => 'number',
-				),
-				'execute_callback'    => static function ( array $input ) {
-					return $input['a'] + $input['b'];
-				},
-				'permission_callback' => static function () {
-					return current_user_can( 'edit_posts' );
-				},
-				'meta'                => array(
-					'show_in_rest' => true,
-				),
-			)
-		);
-
 		// Read-only ability for query params testing.
 		$this->register_test_ability(
 			'test/query-params',
@@ -467,31 +430,6 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 
 		$this->assertEquals( 200, $response->get_status() );
 		$this->assertEquals( 8, $response->get_data() );
-	}
-
-	/**
-	 * Test executing an ability with a nested namespace (3 segments) via REST.
-	 *
-	 * @ticket 64098
-	 */
-	public function test_execute_nested_namespace_ability(): void {
-		$request = new WP_REST_Request( 'POST', '/wp-abilities/v1/abilities/test/math/add/run' );
-		$request->set_header( 'Content-Type', 'application/json' );
-		$request->set_body(
-			wp_json_encode(
-				array(
-					'input' => array(
-						'a' => 10,
-						'b' => 7,
-					),
-				)
-			)
-		);
-
-		$response = $this->server->dispatch( $request );
-
-		$this->assertEquals( 200, $response->get_status() );
-		$this->assertEquals( 17, $response->get_data() );
 	}
 
 	/**
@@ -962,6 +900,154 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 			'Ability "test/strict-input" has invalid input. Reason: required_field is a required property of input.',
 			$data['message']
 		);
+	}
+
+	/**
+	 * Tests that a normalization filter error defaults to a 400 REST response.
+	 *
+	 * @ticket 64989
+	 */
+	public function test_normalize_input_filter_error_defaults_to_bad_request_status(): void {
+		$filter = static function ( $input ) {
+			return new WP_Error( 'normalize_rejected', 'Rejected input.' );
+		};
+
+		add_filter( 'wp_ability_normalize_input', $filter );
+
+		$request = new WP_REST_Request( 'POST', '/wp-abilities/v1/abilities/test/calculator/run' );
+		$request->set_header( 'Content-Type', 'application/json' );
+		$request->set_body(
+			wp_json_encode(
+				array(
+					'input' => array(
+						'a' => 5,
+						'b' => 3,
+					),
+				)
+			)
+		);
+
+		$response = $this->server->dispatch( $request );
+
+		remove_filter( 'wp_ability_normalize_input', $filter );
+
+		$this->assertSame( 400, $response->get_status() );
+		$data = $response->get_data();
+		$this->assertSame( 'normalize_rejected', $data['code'] );
+		$this->assertSame( 'Rejected input.', $data['message'] );
+	}
+
+	/**
+	 * Tests that a normalization filter error with custom status keeps that status.
+	 *
+	 * @ticket 64989
+	 */
+	public function test_normalize_input_filter_error_preserves_custom_status(): void {
+		$filter = static function ( $input ) {
+			return new WP_Error(
+				'normalize_unprocessable',
+				'Input cannot be normalized.',
+				array( 'status' => 422 )
+			);
+		};
+
+		add_filter( 'wp_ability_normalize_input', $filter );
+
+		$request = new WP_REST_Request( 'POST', '/wp-abilities/v1/abilities/test/calculator/run' );
+		$request->set_header( 'Content-Type', 'application/json' );
+		$request->set_body(
+			wp_json_encode(
+				array(
+					'input' => array(
+						'a' => 5,
+						'b' => 3,
+					),
+				)
+			)
+		);
+
+		$response = $this->server->dispatch( $request );
+
+		remove_filter( 'wp_ability_normalize_input', $filter );
+
+		$this->assertSame( 422, $response->get_status() );
+		$data = $response->get_data();
+		$this->assertSame( 'normalize_unprocessable', $data['code'] );
+		$this->assertSame( 'Input cannot be normalized.', $data['message'] );
+	}
+
+	/**
+	 * Tests that a validation filter error defaults to a 400 REST response.
+	 *
+	 * @ticket 64311
+	 */
+	public function test_validate_input_filter_error_defaults_to_bad_request_status(): void {
+		$filter = static function () {
+			return new WP_Error( 'validate_rejected', 'Rejected input.' );
+		};
+
+		add_filter( 'wp_ability_validate_input', $filter );
+
+		$request = new WP_REST_Request( 'POST', '/wp-abilities/v1/abilities/test/calculator/run' );
+		$request->set_header( 'Content-Type', 'application/json' );
+		$request->set_body(
+			wp_json_encode(
+				array(
+					'input' => array(
+						'a' => 5,
+						'b' => 3,
+					),
+				)
+			)
+		);
+
+		$response = $this->server->dispatch( $request );
+
+		remove_filter( 'wp_ability_validate_input', $filter );
+
+		$this->assertSame( 400, $response->get_status() );
+		$data = $response->get_data();
+		$this->assertSame( 'validate_rejected', $data['code'] );
+		$this->assertSame( 'Rejected input.', $data['message'] );
+	}
+
+	/**
+	 * Tests that a validation filter error with custom status keeps that status.
+	 *
+	 * @ticket 64311
+	 */
+	public function test_validate_input_filter_error_preserves_custom_status(): void {
+		$filter = static function () {
+			return new WP_Error(
+				'validate_unprocessable',
+				'Input cannot be validated.',
+				array( 'status' => 422 )
+			);
+		};
+
+		add_filter( 'wp_ability_validate_input', $filter );
+
+		$request = new WP_REST_Request( 'POST', '/wp-abilities/v1/abilities/test/calculator/run' );
+		$request->set_header( 'Content-Type', 'application/json' );
+		$request->set_body(
+			wp_json_encode(
+				array(
+					'input' => array(
+						'a' => 5,
+						'b' => 3,
+					),
+				)
+			)
+		);
+
+		$response = $this->server->dispatch( $request );
+
+		remove_filter( 'wp_ability_validate_input', $filter );
+
+		$this->assertSame( 422, $response->get_status() );
+		$data = $response->get_data();
+		$this->assertSame( 'validate_unprocessable', $data['code'] );
+		$this->assertSame( 'Input cannot be validated.', $data['message'] );
 	}
 
 	/**

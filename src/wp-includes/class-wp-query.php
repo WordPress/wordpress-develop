@@ -1189,7 +1189,7 @@ class WP_Query {
 					'field'    => 'slug',
 				);
 
-				if ( ! empty( $t->rewrite['hierarchical'] ) ) {
+				if ( is_string( $query_vars[ $t->query_var ] ) && ! empty( $t->rewrite['hierarchical'] ) ) {
 					$query_vars[ $t->query_var ] = wp_basename( $query_vars[ $t->query_var ] );
 				}
 
@@ -3803,7 +3803,7 @@ class WP_Query {
 				$post = get_post( $post );
 			} elseif ( isset( $post->ID ) ) {
 				/*
-				 * Partial objecct queried.
+				 * Partial object queried.
 				 *
 				 * The post object was queried with a partial set of
 				 * fields, populate the entire object for the loop.

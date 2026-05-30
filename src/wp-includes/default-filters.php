@@ -421,6 +421,12 @@ add_action( 'do_all_pings', 'do_all_pingbacks', 10, 0 );
 add_action( 'do_all_pings', 'do_all_enclosures', 10, 0 );
 add_action( 'do_all_pings', 'do_all_trackbacks', 10, 0 );
 add_action( 'do_all_pings', 'generic_ping', 10, 0 );
+
+// Disable pings (pingbacks, trackbacks, and ping service notifications) in non-production environments.
+add_action( 'do_all_pings', 'wp_maybe_disable_outgoing_pings_for_environment', 1, 0 );
+add_action( 'pre_trackback_post', 'wp_maybe_disable_trackback_for_environment', 10, 0 );
+add_filter( 'xmlrpc_methods', 'wp_maybe_disable_xmlrpc_pingback_for_environment' );
+
 add_action( 'do_robots', 'do_robots' );
 add_action( 'do_favicon', 'do_favicon' );
 add_action( 'wp_before_include_template', 'wp_start_template_enhancement_output_buffer', 1000 ); // Late priority to let `wp_template_enhancement_output_buffer` filters and `wp_finalized_template_enhancement_output_buffer` actions be registered.
@@ -485,9 +491,8 @@ add_action( 'wp_head', 'wp_post_preview_js', 1 );
 // Timezone.
 add_filter( 'pre_option_gmt_offset', 'wp_timezone_override_offset' );
 
-// If the upgrade hasn't run yet, set some default options.
-add_filter( 'default_option_link_manager_enabled', '__return_true' ); // Assume link manager is used.
-add_filter( 'default_option_wp_enable_real_time_collaboration', '__return_true' ); // Enable real-time collaboration.
+// If the upgrade hasn't run yet, assume link manager is used.
+add_filter( 'default_option_link_manager_enabled', '__return_true' );
 
 // This option no longer exists; tell plugins we always support auto-embedding.
 add_filter( 'pre_option_embed_autourls', '__return_true' );
@@ -538,6 +543,9 @@ add_action( 'parse_request', 'rest_api_loaded' );
 // Abilities API.
 add_action( 'wp_abilities_api_categories_init', 'wp_register_core_ability_categories' );
 add_action( 'wp_abilities_api_init', 'wp_register_core_abilities' );
+
+// Connectors API.
+add_action( 'init', '_wp_connectors_init', 15 );
 
 // Sitemaps actions.
 add_action( 'init', 'wp_sitemaps_get_server' );
@@ -604,7 +612,7 @@ add_action( 'admin_enqueue_scripts', 'wp_enqueue_view_transitions_admin_css' );
 add_action( 'enqueue_block_assets', 'wp_enqueue_classic_theme_styles' );
 add_action( 'enqueue_block_assets', 'wp_enqueue_registered_block_scripts_and_styles' );
 add_action( 'enqueue_block_assets', 'enqueue_block_styles_assets', 30 );
-add_action( 'init', 'wp_load_classic_theme_block_styles_on_demand', 8 ); // Must happen before register_core_block_style_handles() at priority 9.
+add_action( 'wp_default_styles', 'wp_load_classic_theme_block_styles_on_demand', 0 ); // Must happen before wp_default_styles() and register_core_block_style_handles().
 /*
  * `wp_enqueue_registered_block_scripts_and_styles` is bound to both
  * `enqueue_block_editor_assets` and `enqueue_block_assets` hooks
@@ -793,9 +801,6 @@ add_action( 'wp_head', 'wp_print_font_faces', 50 );
 add_action( 'deleted_post', '_wp_after_delete_font_family', 10, 2 );
 add_action( 'before_delete_post', '_wp_before_delete_font_face', 10, 2 );
 add_action( 'init', '_wp_register_default_font_collections' );
-
-// Collaboration.
-add_action( 'admin_init', 'wp_collaboration_inject_setting' );
 
 // Add ignoredHookedBlocks metadata attribute to the template and template part post types.
 add_filter( 'rest_pre_insert_wp_template', 'inject_ignored_hooked_blocks_metadata_attributes' );
