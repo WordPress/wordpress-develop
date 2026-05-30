@@ -21,7 +21,7 @@ final class WP_User_Request {
 	 *
 	 * @since 4.9.6
 	 * @var string
-	 * @var string
+	 * @phpstan-var numeric-string
 	 */
 	public $user_id = '0';
 
