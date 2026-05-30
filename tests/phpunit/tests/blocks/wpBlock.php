@@ -838,6 +838,35 @@ HTML
 	}
 
 	/**
+	 * @ticket 65373
+	 */
+	public function test_build_query_vars_from_query_block_exclude_current() {
+		$this->registry->register(
+			'core/example',
+			array( 'uses_context' => array( 'query' ) )
+		);
+
+		$post_id         = self::factory()->post->create();
+		$GLOBALS['post'] = get_post( $post_id );
+
+		$parsed_blocks = parse_blocks( '<!-- wp:example {"ok":true} -->a<!-- wp:example /-->b<!-- /wp:example -->' );
+		$parsed_block  = $parsed_blocks[0];
+		$context       = array(
+			'query' => array(
+				'excludeCurrent' => true,
+			),
+		);
+		$block         = new WP_Block( $parsed_block, $context, $this->registry );
+		$query         = build_query_vars_from_query_block( $block, 1 );
+
+		$this->assertSame(
+			array( $post_id ),
+			$query['post__not_in'],
+			'The current post ID should be excluded via post__not_in.'
+		);
+	}
+
+	/**
 	 * @ticket 64416
 	 */
 	public function test_build_query_vars_from_query_block_tax_query_old_format() {
