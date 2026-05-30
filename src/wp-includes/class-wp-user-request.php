@@ -20,7 +20,7 @@ final class WP_User_Request {
 	 * User ID.
 	 *
 	 * @since 4.9.6
-	 * @var int
+	 * @var string
 	 */
 	public $user_id = 0;
 
