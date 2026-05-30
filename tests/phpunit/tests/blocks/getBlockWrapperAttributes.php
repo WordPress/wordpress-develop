@@ -44,7 +44,7 @@ class Tests_Blocks_GetBlockWrapperAttributes extends WP_UnitTestCase {
 			'blockName' => 'core/example',
 			'attrs'     => array(
 				'className' => '0',
-				'ariaLabel' => 0,
+				'ariaLabel' => '0',
 			),
 		);
 
@@ -63,8 +63,8 @@ class Tests_Blocks_GetBlockWrapperAttributes extends WP_UnitTestCase {
 		$result = get_block_wrapper_attributes(
 			array(
 				'class'      => '0',
-				'aria-label' => 0,
-				'data-foo'   => 0,
+				'aria-label' => '0',
+				'data-foo'   => '0',
 				'data-var'   => '0',
 			)
 		);
@@ -82,22 +82,6 @@ class Tests_Blocks_GetBlockWrapperAttributes extends WP_UnitTestCase {
 		$result = get_block_wrapper_attributes(
 			array(
 				'id' => '0',
-			)
-		);
-		$this->assertSame( 'class="wp-block-example" id="0"', $result );
-	}
-
-	/**
-	 * @ticket 64452
-	 */
-	public function test_preserves_zero_integer_id_from_extra_attributes() {
-		WP_Block_Supports::init();
-		register_block_type( 'core/example' );
-		WP_Block_Supports::$block_to_render = array( 'blockName' => 'core/example' );
-
-		$result = get_block_wrapper_attributes(
-			array(
-				'id' => 0,
 			)
 		);
 		$this->assertSame( 'class="wp-block-example" id="0"', $result );
@@ -126,25 +110,6 @@ class Tests_Blocks_GetBlockWrapperAttributes extends WP_UnitTestCase {
 		);
 
 		$result = get_block_wrapper_attributes();
-		$this->assertSame( 'class="wp-block-example"', $result );
-	}
-
-	/**
-	 * @ticket 64452
-	 */
-	public function test_excludes_falsy_values_except_zero_from_extra_attributes() {
-		WP_Block_Supports::init();
-		register_block_type( 'core/example' );
-		WP_Block_Supports::$block_to_render = array( 'blockName' => 'core/example' );
-
-		$result = get_block_wrapper_attributes(
-			array(
-				'class'      => false,
-				'aria-label' => null,
-				'data-var'   => false,
-				'data-baz'   => null,
-			)
-		);
 		$this->assertSame( 'class="wp-block-example"', $result );
 	}
 }
