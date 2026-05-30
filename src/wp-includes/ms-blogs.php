@@ -614,10 +614,28 @@ function wp_cache_switch_to_blog_fallback() {
 	$global_groups         = false;
 	$non_persistent_groups = false;
 
-	if ( is_object( $wp_object_cache ) && isset( $wp_object_cache->global_groups ) ) {
-		$global_groups         = array_keys( $wp_object_cache->global_groups );
-		$all_groups            = array_fill_keys( array_keys( $wp_object_cache->cache ), true );
-		$non_persistent_groups = array_keys( array_diff_key( $all_groups, $wp_object_cache->global_groups ) );
+	if ( is_object( $wp_object_cache ) && isset( $wp_object_cache->global_groups ) && is_array( $wp_object_cache->global_groups ) ) {
+
+		// Get the global groups as they are.
+		$group_names = $wp_object_cache->global_groups;
+
+		// Get global group keys if non-numeric array.
+		if ( ! wp_is_numeric_array( $group_names ) ) {
+			$group_names = array_keys( $group_names );
+		}
+
+		$global_groups = $group_names;
+
+		/*
+		 * Non-persistent groups: Check for no_mc_groups first (memcached drop-in).
+		 * Fall back to cache structure (default cache).
+		 */
+		if ( isset( $wp_object_cache->no_mc_groups ) && is_array( $wp_object_cache->no_mc_groups ) && ! empty( $wp_object_cache->no_mc_groups ) ) {
+			$non_persistent_groups = $wp_object_cache->no_mc_groups;
+		} elseif ( isset( $wp_object_cache->cache ) && is_array( $wp_object_cache->cache ) ) {
+			$all_groups            = array_keys( $wp_object_cache->cache );
+			$non_persistent_groups = array_values( array_diff( $all_groups, $global_groups ) );
+		}
 	}
 
 	wp_cache_init();
@@ -737,7 +755,7 @@ function update_archived( $id, $archived ) {
  * @param int    $blog_id    Blog ID.
  * @param string $pref       Field name.
  * @param string $value      Field value.
- * @param null   $deprecated Not used.
+ * @param mixed  $deprecated Not used.
  * @return string|false $value
  */
 function update_blog_status( $blog_id, $pref, $value, $deprecated = null ) {

@@ -109,13 +109,6 @@ unset( $post_formats['standard'] );
 	</select>
 </td>
 </tr>
-<tr>
-<th scope="row"><label for="wp_enable_real_time_collaboration"><?php _e( 'Collaboration' ); ?></label></th>
-<td>
-	<input name="wp_enable_real_time_collaboration" type="checkbox" id="wp_enable_real_time_collaboration" value="1" <?php checked( '1', get_option( 'wp_enable_real_time_collaboration' ) ); ?> />
-	<label for="wp_enable_real_time_collaboration"><?php _e( 'Enable real-time collaboration' ); ?></label>
-</td>
-</tr>
 <?php
 if ( get_option( 'link_manager_enabled' ) ) :
 	?>

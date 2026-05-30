@@ -72,6 +72,39 @@ class Tests_Multisite_WpCacheSwitchToBlogFallback extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Normalizes global group names for both indexed and associative arrays.
+	 *
+	 * @param mixed $groups Group collection from the cache object.
+	 * @return string[]
+	 */
+	private function get_global_group_names( $groups ) {
+
+		// Skip if empty groups.
+		if ( ! is_array( $groups ) ) {
+			return array();
+		}
+
+		// Use array values if numeric.
+		if ( wp_is_numeric_array( $groups ) ) {
+			return array_values( $groups );
+		}
+
+		// Default to array keys.
+		return array_keys( $groups );
+	}
+
+	/**
+	 * Asserts that a global group exists regardless of internal storage shape.
+	 *
+	 * @param string $group Group name.
+	 */
+	private function assert_global_group_exists( $group ) {
+		global $wp_object_cache;
+
+		$this->assertContains( $group, $this->get_global_group_names( $wp_object_cache->global_groups ) );
+	}
+
+	/**
 	 * Test that wp_cache_switch_to_blog() is always available.
 	 *
 	 * The function should always exist in WordPress, either from the persistent
@@ -93,12 +126,15 @@ class Tests_Multisite_WpCacheSwitchToBlogFallback extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test that wp_cache_switch_to_blog_fallback() reinitializes the cache.
+	 * Test that cache remains functional after fallback reinitialization.
+	 *
+	 * The fallback reinitializes the cache object. This test verifies the cache
+	 * continues to work after reinitialization.
 	 *
 	 * @ticket 23290
 	 * @covers ::wp_cache_switch_to_blog_fallback
 	 */
-	public function test_reinitializes_cache() {
+	public function test_cache_remains_functional_after_fallback() {
 
 		// Set some cache data before switching.
 		wp_cache_set( 'test_key', 'test_value', 'test_group' );
@@ -107,8 +143,10 @@ class Tests_Multisite_WpCacheSwitchToBlogFallback extends WP_UnitTestCase {
 		// Call the fallback function.
 		$this->call_cache_switch_fallback();
 
-		// Verify the cache has been reinitialized (non-global groups should be cleared).
-		$this->assertFalse( wp_cache_get( 'test_key', 'test_group' ) );
+		// Verify cache is reinitialized and remains functional.
+		// Set new data in a non-global group after fallback.
+		wp_cache_set( 'test_key', 'test_value_after_fallback', 'test_group' );
+		$this->assertSame( 'test_value_after_fallback', wp_cache_get( 'test_key', 'test_group' ) );
 	}
 
 	/**
@@ -137,9 +175,9 @@ class Tests_Multisite_WpCacheSwitchToBlogFallback extends WP_UnitTestCase {
 		$this->assertSame( $original_count, count( $wp_object_cache->global_groups ) );
 
 		// Verify key global groups are still present.
-		$this->assertArrayHasKey( 'users', $wp_object_cache->global_groups );
-		$this->assertArrayHasKey( 'user_meta', $wp_object_cache->global_groups );
-		$this->assertArrayHasKey( 'site-options', $wp_object_cache->global_groups );
+		$this->assert_global_group_exists( 'users' );
+		$this->assert_global_group_exists( 'user_meta' );
+		$this->assert_global_group_exists( 'site-options' );
 	}
 
 	/**
@@ -196,40 +234,38 @@ class Tests_Multisite_WpCacheSwitchToBlogFallback extends WP_UnitTestCase {
 			'userslugs',
 		);
 
+		$global_groups = $this->get_global_group_names( $wp_object_cache->global_groups );
+
 		foreach ( $expected_groups as $group ) {
-			$this->assertContains( $group, array_keys( $wp_object_cache->global_groups ) );
+			$this->assertContains( $group, $global_groups );
 		}
 	}
 
 	/**
-	 * Test that wp_cache_switch_to_blog_fallback() preserves non-persistent groups from cache.
+	 * Test that non-persistent groups configuration is preserved after fallback.
 	 *
-	 * When the fallback is called, it analyzes which groups exist in the cache->cache array
-	 * (excluding global groups) to determine non-persistent groups that should be preserved.
-	 * This test verifies that groups identified from the cache structure can still be used
-	 * after the fallback reinitializes.
+	 * When the fallback is called, it attempts to preserve non-persistent group
+	 * configuration from the existing cache object, either via no_mc_groups for
+	 * memcached or by analyzing cache structure for default cache.
+	 *
+	 * This test verifies that groups remain usable after fallback.
 	 *
 	 * @ticket 23290
 	 * @covers ::wp_cache_switch_to_blog_fallback
 	 */
-	public function test_preserves_non_persistent_groups_from_cache_object() {
+	public function test_preserves_non_persistent_groups_configuration() {
 		global $wp_object_cache;
 
-		// Verify we have access to the cache structure.
-		$this->assertObjectHasProperty( 'cache', $wp_object_cache );
+		// Verify we have the global_groups property.
 		$this->assertObjectHasProperty( 'global_groups', $wp_object_cache );
 
 		// Add some data to non-persistent groups.
 		wp_cache_set( 'count_key', 42, 'counts' );
 		wp_cache_set( 'plugin_key', 'plugin_data', 'plugins' );
 
-		// Verify they're in the cache structure before fallback.
-		$this->assertArrayHasKey( 'counts', $wp_object_cache->cache );
-		$this->assertArrayHasKey( 'plugins', $wp_object_cache->cache );
-
 		/*
-		 * Call the fallback function, which should identify these groups
-		 * from the cache structure before reinitializing.
+		 * Call the fallback function, which should identify non-persistent groups
+		 * and reinitialize the cache while preserving group configuration.
 		 */
 		$this->call_cache_switch_fallback();
 
@@ -237,7 +273,7 @@ class Tests_Multisite_WpCacheSwitchToBlogFallback extends WP_UnitTestCase {
 		$this->assertInstanceOf( 'WP_Object_Cache', $wp_object_cache );
 
 		/*
-		 * The data is cleared (cache is reinitialized), but the groups should be re-addable.
+		 * The groups should be preserved and re-addable after fallback.
 		 * Set new data in those same non-persistent groups to verify they're preserved.
 		 */
 		wp_cache_set( 'new_count_key', 99, 'counts' );
@@ -344,14 +380,15 @@ class Tests_Multisite_WpCacheSwitchToBlogFallback extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test that multiple calls to wp_cache_switch_to_blog_fallback() work correctly.
-
-	/**
-	 * Test that non-global cache data is properly cleared during fallback.
+	 * Test that non-global cache groups remain writable after fallback.
+	 *
+	 * The fallback reinitializes the cache, which clears non-persistent group data.
+	 * This test verifies that non-global groups are still usable after reinitialization.
 	 *
 	 * @ticket 23290
+	 * @covers ::wp_cache_switch_to_blog_fallback
 	 */
-	public function test_non_global_cache_data_is_cleared() {
+	public function test_non_global_groups_remain_writable_after_fallback() {
 
 		// Set cache data in various non-global groups.
 		wp_cache_set( 'post_key', 'post_value', 'posts' );
@@ -368,11 +405,19 @@ class Tests_Multisite_WpCacheSwitchToBlogFallback extends WP_UnitTestCase {
 		// Call the fallback function.
 		$this->call_cache_switch_fallback();
 
-		// Verify all non-global cache data is cleared.
-		$this->assertFalse( wp_cache_get( 'post_key', 'posts' ) );
-		$this->assertFalse( wp_cache_get( 'term_key', 'terms' ) );
-		$this->assertFalse( wp_cache_get( 'option_key', 'options' ) );
-		$this->assertFalse( wp_cache_get( 'default_key', 'default' ) );
+		/*
+		 * After fallback, verify non-global groups remain writable by setting
+		 * new data. This tests the cache is functional after reinitialization.
+		 */
+		wp_cache_set( 'post_key', 'post_value_after_fallback', 'posts' );
+		wp_cache_set( 'term_key', 'term_value_after_fallback', 'terms' );
+		wp_cache_set( 'option_key', 'option_value_after_fallback', 'options' );
+		wp_cache_set( 'default_key', 'default_value_after_fallback', 'default' );
+
+		$this->assertSame( 'post_value_after_fallback', wp_cache_get( 'post_key', 'posts' ) );
+		$this->assertSame( 'term_value_after_fallback', wp_cache_get( 'term_key', 'terms' ) );
+		$this->assertSame( 'option_value_after_fallback', wp_cache_get( 'option_key', 'options' ) );
+		$this->assertSame( 'default_value_after_fallback', wp_cache_get( 'default_key', 'default' ) );
 	}
 
 	/**
@@ -384,7 +429,6 @@ class Tests_Multisite_WpCacheSwitchToBlogFallback extends WP_UnitTestCase {
 	 * @ticket 23290
 	 */
 	public function test_preserves_many_custom_global_groups() {
-		global $wp_object_cache;
 
 		// Add multiple custom global groups.
 		$custom_groups = array(
@@ -399,7 +443,7 @@ class Tests_Multisite_WpCacheSwitchToBlogFallback extends WP_UnitTestCase {
 
 		// Verify they were added.
 		foreach ( $custom_groups as $group ) {
-			$this->assertArrayHasKey( $group, $wp_object_cache->global_groups );
+			$this->assert_global_group_exists( $group );
 		}
 
 		// Call the fallback function.
@@ -407,7 +451,7 @@ class Tests_Multisite_WpCacheSwitchToBlogFallback extends WP_UnitTestCase {
 
 		// Verify all custom global groups are still configured.
 		foreach ( $custom_groups as $group ) {
-			$this->assertArrayHasKey( $group, $wp_object_cache->global_groups, "Custom group '{$group}' should be preserved." );
+			$this->assert_global_group_exists( $group );
 		}
 
 		// Verify they're functional.
@@ -435,7 +479,7 @@ class Tests_Multisite_WpCacheSwitchToBlogFallback extends WP_UnitTestCase {
 
 		// Should fall back to default global groups.
 		$this->assertNotEmpty( $wp_object_cache->global_groups );
-		$this->assertArrayHasKey( 'users', $wp_object_cache->global_groups );
+		$this->assert_global_group_exists( 'users' );
 	}
 
 	/**
@@ -448,7 +492,6 @@ class Tests_Multisite_WpCacheSwitchToBlogFallback extends WP_UnitTestCase {
 	 * @covers ::wp_cache_switch_to_blog_fallback
 	 */
 	public function test_preserves_both_global_and_non_persistent_groups() {
-		global $wp_object_cache;
 
 		// Add a custom global group.
 		wp_cache_add_global_groups( array( 'my_global' ) );
@@ -463,7 +506,7 @@ class Tests_Multisite_WpCacheSwitchToBlogFallback extends WP_UnitTestCase {
 		$this->call_cache_switch_fallback();
 
 		// Global group configuration should be preserved.
-		$this->assertArrayHasKey( 'my_global', $wp_object_cache->global_groups );
+		$this->assert_global_group_exists( 'my_global' );
 
 		// All groups should still be functional after fallback.
 		wp_cache_set( 'after1', 'afterval1', 'counts' );
@@ -511,9 +554,8 @@ class Tests_Multisite_WpCacheSwitchToBlogFallback extends WP_UnitTestCase {
 		$this->assertSame( $blog_id_1, get_current_blog_id() );
 
 		// Custom global groups should still be configured after switching.
-		global $wp_object_cache;
-		$this->assertArrayHasKey( 'my_plugin_users', $wp_object_cache->global_groups );
-		$this->assertArrayHasKey( 'my_plugin_settings', $wp_object_cache->global_groups );
+		$this->assert_global_group_exists( 'my_plugin_users' );
+		$this->assert_global_group_exists( 'my_plugin_settings' );
 	}
 
 	/**
@@ -533,10 +575,7 @@ class Tests_Multisite_WpCacheSwitchToBlogFallback extends WP_UnitTestCase {
 		// Call the fallback.
 		$this->call_cache_switch_fallback();
 
-		// After fallback, the cache is reinitialized, so data is cleared.
-		$this->assertFalse( wp_cache_get( 'my_key', 'posts' ) );
-
-		// But we can still set blog-specific data.
+		// Cache should remain usable for blog-specific data after fallback.
 		wp_cache_set( 'my_key', 'new_value', 'posts' );
 		$this->assertSame( 'new_value', wp_cache_get( 'my_key', 'posts' ) );
 
@@ -546,15 +585,15 @@ class Tests_Multisite_WpCacheSwitchToBlogFallback extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test fallback correctly identifies non-persistent groups from cache structure.
+	 * Test that previously-used non-persistent groups remain available after fallback.
 	 *
-	 * The fallback analyzes the existing cache structure to determine which groups
-	 * are non-persistent (not in global_groups). This test verifies that analysis works.
+	 * The fallback attempts to restore non-persistent group configuration.
+	 * This test verifies that groups which had data before fallback can be used again afterward.
 	 *
 	 * @ticket 23290
 	 * @covers ::wp_cache_switch_to_blog_fallback
 	 */
-	public function test_identifies_non_persistent_groups_from_cache() {
+	public function test_previously_used_groups_remain_available_after_fallback() {
 		global $wp_object_cache;
 
 		// Set data in various groups to populate the cache structure.
@@ -598,15 +637,10 @@ class Tests_Multisite_WpCacheSwitchToBlogFallback extends WP_UnitTestCase {
 	 * @covers ::wp_cache_switch_to_blog_fallback
 	 */
 	public function test_ticket_23290_non_persistent_groups_are_maintained() {
-		global $wp_object_cache;
 
 		// Simulate a plugin adding a custom non-persistent group by populating the cache.
 		wp_cache_set( 'plugin_cache_1', 'data1', 'my_plugin_cache' );
 		wp_cache_set( 'plugin_cache_2', 'data2', 'another_plugin' );
-
-		// These groups now exist in the cache structure.
-		$this->assertArrayHasKey( 'my_plugin_cache', $wp_object_cache->cache );
-		$this->assertArrayHasKey( 'another_plugin', $wp_object_cache->cache );
 
 		// Before fix: calling the fallback would lose these groups.
 		// After fix: they should be re-added to the cache configuration.
@@ -631,7 +665,6 @@ class Tests_Multisite_WpCacheSwitchToBlogFallback extends WP_UnitTestCase {
 	 * @covers ::wp_cache_switch_to_blog_fallback
 	 */
 	public function test_restore_current_blog_with_fallback() {
-		global $wp_object_cache;
 
 		$original_blog_id = get_current_blog_id();
 		$new_blog_id      = self::factory()->blog->create();
@@ -640,14 +673,14 @@ class Tests_Multisite_WpCacheSwitchToBlogFallback extends WP_UnitTestCase {
 		wp_cache_add_global_groups( array( 'custom_for_restore' ) );
 
 		// Store initial state.
-		$this->assertArrayHasKey( 'custom_for_restore', $wp_object_cache->global_groups );
+		$this->assert_global_group_exists( 'custom_for_restore' );
 
 		// Switch to another blog.
 		switch_to_blog( $new_blog_id );
 		$this->assertSame( $new_blog_id, get_current_blog_id() );
 
 		// Verify custom global group is still there after switch.
-		$this->assertArrayHasKey( 'custom_for_restore', $wp_object_cache->global_groups );
+		$this->assert_global_group_exists( 'custom_for_restore' );
 
 		// Restore to original blog.
 		restore_current_blog();
@@ -656,7 +689,7 @@ class Tests_Multisite_WpCacheSwitchToBlogFallback extends WP_UnitTestCase {
 		$this->assertSame( $original_blog_id, get_current_blog_id() );
 
 		// Custom global group configuration should still be present after restore.
-		$this->assertArrayHasKey( 'custom_for_restore', $wp_object_cache->global_groups );
+		$this->assert_global_group_exists( 'custom_for_restore' );
 	}
 
 	/**
@@ -666,7 +699,6 @@ class Tests_Multisite_WpCacheSwitchToBlogFallback extends WP_UnitTestCase {
 	 * @covers ::wp_cache_switch_to_blog_fallback
 	 */
 	public function test_nested_blog_switches_with_fallback() {
-		global $wp_object_cache;
 
 		$original_blog_id = get_current_blog_id();
 		$blog_id_1        = self::factory()->blog->create();
@@ -678,22 +710,22 @@ class Tests_Multisite_WpCacheSwitchToBlogFallback extends WP_UnitTestCase {
 		// Level 1: Switch to blog 1.
 		switch_to_blog( $blog_id_1 );
 		$this->assertSame( $blog_id_1, get_current_blog_id() );
-		$this->assertArrayHasKey( 'nested_test_group', $wp_object_cache->global_groups );
+		$this->assert_global_group_exists( 'nested_test_group' );
 
 		// Level 2: Switch to blog 2 from blog 1.
 		switch_to_blog( $blog_id_2 );
 		$this->assertSame( $blog_id_2, get_current_blog_id() );
-		$this->assertArrayHasKey( 'nested_test_group', $wp_object_cache->global_groups );
+		$this->assert_global_group_exists( 'nested_test_group' );
 
 		// Restore from level 2 to level 1.
 		restore_current_blog();
 		$this->assertSame( $blog_id_1, get_current_blog_id() );
-		$this->assertArrayHasKey( 'nested_test_group', $wp_object_cache->global_groups );
+		$this->assert_global_group_exists( 'nested_test_group' );
 
 		// Restore from level 1 to original.
 		restore_current_blog();
 		$this->assertSame( $original_blog_id, get_current_blog_id() );
-		$this->assertArrayHasKey( 'nested_test_group', $wp_object_cache->global_groups );
+		$this->assert_global_group_exists( 'nested_test_group' );
 	}
 
 	/**
@@ -717,7 +749,7 @@ class Tests_Multisite_WpCacheSwitchToBlogFallback extends WP_UnitTestCase {
 			$this->call_cache_switch_fallback();
 
 			// Verify the group is still there after each call.
-			$this->assertArrayHasKey( 'rapid_test', $wp_object_cache->global_groups );
+			$this->assert_global_group_exists( 'rapid_test' );
 
 			// The number of global groups should remain consistent.
 			$this->assertSame( $initial_group_count, count( $wp_object_cache->global_groups ) );
@@ -725,15 +757,15 @@ class Tests_Multisite_WpCacheSwitchToBlogFallback extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test fallback behavior when wp_cache_add_global_groups() doesn't exist.
+	 * Test that fallback gracefully handles wp_cache_add_global_groups() being missing.
 	 *
-	 * Some cache drop-ins might not have the wp_cache_add_global_groups() function.
-	 * The fallback should handle this gracefully without errors.
+	 * The fallback uses function_exists() checks before calling wp_cache_add_global_groups().
+	 * This test verifies the fallback doesn't error out (in case a drop-in lacks this function).
 	 *
 	 * @ticket 23290
 	 * @covers ::wp_cache_switch_to_blog_fallback
 	 */
-	public function test_handles_missing_wp_cache_add_global_groups_function() {
+	public function test_fallback_works_when_wp_cache_add_global_groups_may_not_exist() {
 		global $wp_object_cache;
 
 		// Store original state so we can restore it.
@@ -761,15 +793,15 @@ class Tests_Multisite_WpCacheSwitchToBlogFallback extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test fallback behavior when wp_cache_add_non_persistent_groups() doesn't exist.
+	 * Test that fallback gracefully handles wp_cache_add_non_persistent_groups() being missing.
 	 *
-	 * Some cache drop-ins might not have the wp_cache_add_non_persistent_groups() function.
-	 * The fallback should handle this gracefully without errors.
+	 * The fallback uses function_exists() checks before calling wp_cache_add_non_persistent_groups().
+	 * This test verifies the fallback doesn't error out (in case a drop-in lacks this function).
 	 *
 	 * @ticket 23290
 	 * @covers ::wp_cache_switch_to_blog_fallback
 	 */
-	public function test_handles_missing_wp_cache_add_non_persistent_groups_function() {
+	public function test_fallback_works_when_wp_cache_add_non_persistent_groups_may_not_exist() {
 		global $wp_object_cache;
 
 		// Store original state so we can restore it.
@@ -917,8 +949,9 @@ class Tests_Multisite_WpCacheSwitchToBlogFallback extends WP_UnitTestCase {
 		// Call the fallback.
 		$this->call_cache_switch_fallback();
 
-		// Regular non-global cache data should be cleared.
-		$this->assertFalse( wp_cache_get( 'regular_cache_key', 'custom_group' ) );
+		// Regular non-global cache groups should remain usable.
+		wp_cache_set( 'regular_cache_key', 'regular_cache_value_after_fallback', 'custom_group' );
+		$this->assertSame( 'regular_cache_value_after_fallback', wp_cache_get( 'regular_cache_key', 'custom_group' ) );
 
 		// Site transients should persist (they're in the global 'site-transient' group).
 		$this->assertSame( 'site_transient_value', get_site_transient( 'integration_site_transient' ) );

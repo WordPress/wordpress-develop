@@ -1982,6 +1982,7 @@ class WP_Theme_JSON {
 	 * creates the corresponding ruleset.
 	 *
 	 * @since 5.8.0
+	 * @since 7.1.0 Skip declarations whose value is not a plain string (booleans, arrays, objects, etc.).
 	 *
 	 * @param string $selector     CSS selector.
 	 * @param array  $declarations List of declarations.
@@ -1995,7 +1996,18 @@ class WP_Theme_JSON {
 		$declaration_block = array_reduce(
 			$declarations,
 			static function ( $carry, $element ) {
-				return $carry .= $element['name'] . ': ' . $element['value'] . ';'; },
+				$value = $element['value'];
+
+				if ( is_numeric( $value ) ) {
+					$value = (string) $value;
+				}
+
+				if ( ! is_string( $value ) ) {
+					return $carry;
+				}
+
+				return $carry .= $element['name'] . ': ' . $value . ';';
+			},
 			''
 		);
 
@@ -4267,7 +4279,7 @@ class WP_Theme_JSON {
 	 *                   generated in the constructor and merge methods instead
 	 *                   of manually after instantiation.
 	 *
-	 * @return null|void
+	 * @return void
 	 */
 	public function set_spacing_sizes() {
 		_deprecated_function( __METHOD__, '6.6.0' );
@@ -4296,12 +4308,12 @@ class WP_Theme_JSON {
 					E_USER_NOTICE
 				);
 			}
-			return null;
+			return;
 		}
 
 		// If theme authors want to prevent the generation of the core spacing scale they can set their theme.json spacingScale.steps to 0.
 		if ( 0 === $spacing_scale['steps'] ) {
-			return null;
+			return;
 		}
 
 		$spacing_sizes = static::compute_spacing_sizes( $spacing_scale );

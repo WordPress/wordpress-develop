@@ -242,7 +242,7 @@ class WP_Media_List_Table extends WP_List_Table {
 			/** This action is documented in wp-admin/includes/class-wp-posts-list-table.php */
 			do_action( 'restrict_manage_posts', $this->screen->post_type, $which );
 
-			submit_button( __( 'Filter' ), '', 'filter_action', false, array( 'id' => 'post-query-submit' ) );
+			submit_button( __( 'Filter' ), 'button-compact', 'filter_action', false, array( 'id' => 'post-query-submit' ) );
 
 			if ( $this->is_trash && $this->has_items()
 				&& current_user_can( 'edit_others_posts' )
@@ -493,7 +493,7 @@ class WP_Media_List_Table extends WP_List_Table {
 				'<a href="%s">',
 				get_edit_post_link( $post->ID ),
 			);
-			$link_end = '</a>';
+			$link_end   = '</a>';
 		}
 
 		$class = $thumb ? ' class="has-media-icon"' : '';
