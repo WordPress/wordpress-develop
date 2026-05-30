@@ -732,7 +732,7 @@ function twentythirteen_get_link_url() {
 	$has_url = get_url_in_content( $content );
 
 	/** This filter is documented in wp-includes/link-template.php */
-	return ( $has_url ) ? $has_url : apply_filters( 'the_permalink', get_permalink() );
+	return ( $has_url ) ? $has_url : apply_filters( 'the_permalink', get_permalink(), get_post() );
 }
 
 if ( ! function_exists( 'twentythirteen_excerpt_more' ) && ! is_admin() ) :
