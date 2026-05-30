@@ -15,9 +15,11 @@ use PhpParser\Node;
 use PhpParser\NodeVisitorAbstract;
 
 /**
- * Reads `@global Type $varname` tags from function and method docblocks and
- * injects equivalent inline `@var` docblocks onto matching `global $foo;`
- * statements inside the function body.
+ * Reads `@global Type $varname` tags and injects equivalent inline `@var`
+ * docblocks onto matching `global $foo;` statements. The tags may be documented
+ * on the enclosing function/method docblock (applying to `global` statements in
+ * its body) or, for a file-scope `global` statement with no enclosing function,
+ * directly on the statement itself.
  *
  * PHPStan does not consult bootstrap- or stub-declared variable types when
  * resolving `global $foo;` inside functions. It only honors `@var`
@@ -73,11 +75,24 @@ final class GlobalDocBlockVisitor extends NodeVisitorAbstract {
 			return null;
 		}
 
-		if ( ! ( $node instanceof Node\Stmt\Global_ ) || $this->stack === array() ) {
+		if ( ! ( $node instanceof Node\Stmt\Global_ ) ) {
 			return null;
 		}
 
-		$map = $this->stack[ count( $this->stack ) - 1 ];
+		/*
+		 * The `@global` tags may be documented on the enclosing function (the top
+		 * stack frame) or, for a file-scope `global` statement that has no enclosing
+		 * function, directly on the statement itself. Merge both, with tags on the
+		 * statement taking precedence.
+		 */
+		$existing       = $node->getDocComment();
+		$existing_text  = $existing !== null ? $existing->getText() : '';
+
+		$map = $this->stack !== array() ? $this->stack[ count( $this->stack ) - 1 ] : array();
+		if ( $existing_text !== '' ) {
+			$map = array_merge( $map, $this->parse_global_tags( $existing_text ) );
+		}
+
 		if ( $map === array() ) {
 			return null;
 		}
@@ -87,9 +102,7 @@ final class GlobalDocBlockVisitor extends NodeVisitorAbstract {
 		 * statement so we can leave them alone but still inject `@var` lines for
 		 * the remaining variables in a multi-variable `global $a, $b;` statement.
 		 */
-		$existing       = $node->getDocComment();
-		$existing_text  = $existing !== null ? $existing->getText() : '';
-		$already_typed  = array();
+		$already_typed = array();
 		if ( $existing_text !== '' && preg_match_all( '/@(?:phpstan-)?var\s+[^\n]*?\$(\w+)/', $existing_text, $existing_matches ) > 0 ) {
 			$already_typed = array_flip( $existing_matches[1] );
 		}
