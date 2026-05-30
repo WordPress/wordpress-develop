@@ -5,7 +5,7 @@
  * @package WordPress
  * @subpackage Blocks
  *
- * @since 7.0.0
+ * @since 7.1.0
  *
  * @group blocks
  * @covers ::get_block_wrapper_attributes
@@ -15,7 +15,7 @@ class Tests_Blocks_GetBlockWrapperAttributes extends WP_UnitTestCase {
 	/**
 	 * Tear down after each test.
 	 *
-	 * @since 7.0.0
+	 * @since 7.1.0
 	 */
 	public function tear_down() {
 		$registry = WP_Block_Type_Registry::get_instance();
