@@ -339,6 +339,7 @@ function wp_add_global_styles_for_blocks() {
 	}
 
 	if ( $update_cache ) {
+		WP_Theme_JSON::reset_sanitize_input_cache();
 		set_transient( $cache_key, $cached );
 	}
 }
