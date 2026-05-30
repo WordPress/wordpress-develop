@@ -33,6 +33,13 @@ services:
 		tags:
 			- phpstan.rules.rule
 
+	# Enforces that a hook invocation passes as many arguments as its documentation
+	# (inline or referenced) describes.
+	-
+		class: WordPress\PHPStan\HookParamCountRule
+		tags:
+			- phpstan.rules.rule
+
 parameters:
 	# Cache is stored locally, so it's available for CI.
 	tmpDir: ../../.cache
@@ -124,6 +131,7 @@ parameters:
 		- HookDocBlock.php
 		- ApplyFiltersDynamicFunctionReturnTypeExtension.php
 		- HookDocumentationRule.php
+		- HookParamCountRule.php
 	bootstrapFiles:
 		- bootstrap.php
 	scanFiles:

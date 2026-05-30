@@ -28,6 +28,7 @@ use PhpParser\Comment\Doc;
 use PhpParser\Node\Expr;
 use PhpParser\Node\Expr\BinaryOp\Concat;
 use PhpParser\Node\Expr\FuncCall;
+use PhpParser\Node\Expr\Variable;
 use PhpParser\Node\InterpolatedStringPart;
 use PhpParser\Node\Name;
 use PhpParser\Node\Scalar\InterpolatedString;
@@ -160,6 +161,51 @@ class HookDocBlock {
 	}
 
 	/**
+	 * Returns the number of parameters documented for a hook call, resolving the
+	 * docblock the same way as the return-type extension (inline or via a
+	 * "documented in" reference).
+	 *
+	 * Unlike getNullableHookDocBlock(), this does NOT fall back to the reference
+	 * comment when a reference cannot be resolved to a canonical docblock; it
+	 * returns null instead, so callers do not mistake an unresolved reference
+	 * (which has no `@param` tags) for a genuine zero-parameter hook.
+	 *
+	 * @param FuncCall $function_call Hook function call node.
+	 * @param Scope    $scope         Analysis scope.
+	 * @return int|null Documented parameter count, or null when there is no
+	 *                  docblock or a reference cannot be resolved.
+	 */
+	public function getDocumentedParamCount( FuncCall $function_call, Scope $scope ): ?int {
+		$comment = self::getNullableNodeComment( $function_call );
+		if ( null === $comment ) {
+			return null;
+		}
+
+		$code = $comment->getText();
+
+		if ( preg_match( self::REFERENCE_PATTERN, $code ) ) {
+			$referenced = $this->resolveDocumentedInReference( $code, $function_call, $scope );
+			if ( null === $referenced ) {
+				return null;
+			}
+			return count( $referenced->getParamTags() );
+		}
+
+		$class_reflection = $scope->getClassReflection();
+		$trait_reflection = $scope->getTraitReflection();
+
+		$resolved = $this->fileTypeMapper->getResolvedPhpDoc(
+			$scope->getFile(),
+			( $scope->isInClass() && null !== $class_reflection ) ? $class_reflection->getName() : null,
+			( $scope->isInTrait() && null !== $trait_reflection ) ? $trait_reflection->getName() : null,
+			$scope->getFunctionName(),
+			$code
+		);
+
+		return count( $resolved->getParamTags() );
+	}
+
+	/**
 	 * Determines whether a hook call's name can be identified well enough to
 	 * require or locate documentation.
 	 *
@@ -205,32 +251,27 @@ class HookDocBlock {
 			return null;
 		}
 
-		$hook_name = self::getHookName( $function_call );
-		if ( null === $hook_name ) {
+		$matcher = self::getHookNameMatcher( $function_call );
+		if ( null === $matcher ) {
 			return null;
 		}
 
 		$reference_path = $matches[1];
 		$target_file    = self::resolveReferencePath( $scope->getFile(), $reference_path );
 
-		// The WordPress root could not be determined from the current file path;
-		// skip rather than report a false positive.
+		// The referenced file could not be located up the directory tree.
 		if ( null === $target_file ) {
-			return null;
-		}
-
-		if ( ! is_file( $target_file ) ) {
 			return array(
 				'path'    => $reference_path,
-				'hook'    => $hook_name,
+				'hook'    => self::getHookNameDisplay( $function_call ),
 				'problem' => self::PROBLEM_FILE_MISSING,
 			);
 		}
 
-		if ( null === $this->getHookDocTextFromFile( $target_file, $hook_name ) ) {
+		if ( null === $this->findHookDoc( $target_file, $matcher ) ) {
 			return array(
 				'path'    => $reference_path,
-				'hook'    => $hook_name,
+				'hook'    => self::getHookNameDisplay( $function_call ),
 				'problem' => self::PROBLEM_HOOK_MISSING,
 			);
 		}
@@ -252,8 +293,8 @@ class HookDocBlock {
 			return null;
 		}
 
-		$hook_name = self::getHookName( $function_call );
-		if ( null === $hook_name ) {
+		$matcher = self::getHookNameMatcher( $function_call );
+		if ( null === $matcher ) {
 			return null;
 		}
 
@@ -262,7 +303,7 @@ class HookDocBlock {
 			return null;
 		}
 
-		$doc_text = $this->getHookDocTextFromFile( $target_file, $hook_name );
+		$doc_text = $this->findHookDoc( $target_file, $matcher );
 		if ( null === $doc_text ) {
 			return null;
 		}
@@ -279,25 +320,48 @@ class HookDocBlock {
 	/**
 	 * Returns the canonical docblock text for a hook documented in the given file.
 	 *
-	 * @param string $file      Absolute path to the file declaring the hook.
-	 * @param string $hook_name Hook name to match.
+	 * @param string                                       $file    Absolute path to the file declaring the hook.
+	 * @param array{kind: 'literal'|'pattern', value: string} $matcher Hook name matcher from getHookNameMatcher().
 	 * @return string|null Docblock text, or null when no documented invocation is found.
 	 */
-	private function getHookDocTextFromFile( string $file, string $hook_name ): ?string {
+	private function findHookDoc( string $file, array $matcher ): ?string {
 		if ( ! isset( $this->fileHookDocs[ $file ] ) ) {
 			$this->fileHookDocs[ $file ] = self::parseHookDocs( $file );
 		}
 
 		$docs = $this->fileHookDocs[ $file ];
 
-		if ( isset( $docs['exact'][ $hook_name ] ) ) {
-			return $docs['exact'][ $hook_name ];
+		if ( 'literal' === $matcher['kind'] ) {
+			$name = $matcher['value'];
+
+			if ( isset( $docs['exact'][ $name ] ) ) {
+				return $docs['exact'][ $name ];
+			}
+
+			// A literal name may be an instance of a dynamic canonical hook
+			// (e.g. "index_template_hierarchy" matching "{$type}_template_hierarchy").
+			foreach ( $docs['patterns'] as $pattern ) {
+				if ( preg_match( $pattern['regex'], $name ) ) {
+					return $pattern['text'];
+				}
+			}
+
+			return null;
 		}
 
-		// Fall back to dynamic canonical hook names (e.g. "{$type}_foo").
+		// A dynamic referencing name matches the same dynamic canonical (identical
+		// regex), or a literal canonical the pattern covers.
+		$regex = $matcher['value'];
+
 		foreach ( $docs['patterns'] as $pattern ) {
-			if ( preg_match( $pattern['regex'], $hook_name ) ) {
+			if ( $pattern['regex'] === $regex ) {
 				return $pattern['text'];
+			}
+		}
+
+		foreach ( $docs['exact'] as $name => $text ) {
+			if ( preg_match( $regex, $name ) ) {
+				return $text;
 			}
 		}
 
@@ -445,45 +509,118 @@ class HookDocBlock {
 	 * Resolves a WordPress-root-relative reference path against the file
 	 * containing the reference comment.
 	 *
+	 * The reference comment names the exact file (e.g. "wp-includes/media.php"), so
+	 * resolution simply walks up from the current file's directory until that
+	 * relative path resolves to a real file. This works regardless of where the
+	 * referencing file lives (core, a bundled theme, the install root, ...) and
+	 * only ever touches the single named file — no directory is enumerated.
+	 *
 	 * @param string $current_file   Absolute path to the file with the reference comment.
 	 * @param string $reference_path Root-relative path (e.g. "wp-includes/media.php").
-	 * @return string|null Absolute path to the referenced file, or null when the root cannot be determined.
+	 * @return string|null Absolute path to the referenced file, or null when it cannot be located.
 	 */
 	private static function resolveReferencePath( string $current_file, string $reference_path ): ?string {
 		$reference_path = ltrim( $reference_path, '/' );
+		$dir            = dirname( $current_file );
 
-		// Locate the earliest top-level WordPress directory in the current path;
-		// everything before it is the WordPress root.
-		$root_end = null;
-		foreach ( array( '/wp-includes/', '/wp-admin/' ) as $needle ) {
-			$pos = strpos( $current_file, $needle );
-			if ( false !== $pos && ( null === $root_end || $pos < $root_end ) ) {
-				$root_end = $pos;
+		while ( true ) {
+			$candidate = $dir . '/' . $reference_path;
+			if ( is_file( $candidate ) ) {
+				return $candidate;
 			}
-		}
 
-		if ( null === $root_end ) {
-			return null;
+			$parent = dirname( $dir );
+			if ( $parent === $dir ) {
+				return null;
+			}
+			$dir = $parent;
 		}
-
-		return substr( $current_file, 0, $root_end ) . '/' . $reference_path;
 	}
 
 	/**
-	 * Returns the hook name (first string argument) of a hook function call.
+	 * Returns a matcher describing a hook call's name: a literal string to look up
+	 * exactly, or a regex for a dynamic name (e.g. "{$type}_template_hierarchy").
 	 *
 	 * @param FuncCall $call Hook function call node.
-	 * @return string|null Hook name, or null when it is not a string literal.
+	 * @return array{kind: 'literal'|'pattern', value: string}|null
+	 *   Null when the name carries no identifiable text (e.g. a bare variable).
 	 */
-	private static function getHookName( FuncCall $call ): ?string {
+	private static function getHookNameMatcher( FuncCall $call ): ?array {
 		$args = $call->getArgs();
 		if ( ! isset( $args[0] ) ) {
 			return null;
 		}
 
-		$value = $args[0]->value;
+		$expr = $args[0]->value;
 
-		return $value instanceof String_ ? $value->value : null;
+		if ( $expr instanceof String_ ) {
+			return array(
+				'kind'  => 'literal',
+				'value' => $expr->value,
+			);
+		}
+
+		$regex = self::buildHookNameRegex( $expr );
+		if ( null !== $regex ) {
+			return array(
+				'kind'  => 'pattern',
+				'value' => $regex,
+			);
+		}
+
+		return null;
+	}
+
+	/**
+	 * Renders a hook name expression to a readable string for diagnostics, e.g.
+	 * "default_option_{$option}".
+	 *
+	 * @param FuncCall $call Hook function call node.
+	 * @return string
+	 */
+	private static function getHookNameDisplay( FuncCall $call ): string {
+		$args = $call->getArgs();
+		if ( ! isset( $args[0] ) ) {
+			return '';
+		}
+
+		return self::renderHookName( $args[0]->value );
+	}
+
+	/**
+	 * Recursively renders a hook name expression to a readable string.
+	 *
+	 * @param Expr $expr Hook name expression.
+	 * @return string
+	 */
+	private static function renderHookName( Expr $expr ): string {
+		if ( $expr instanceof String_ ) {
+			return $expr->value;
+		}
+
+		if ( $expr instanceof Concat ) {
+			return self::renderHookName( $expr->left ) . self::renderHookName( $expr->right );
+		}
+
+		if ( $expr instanceof InterpolatedString ) {
+			$out = '';
+			foreach ( $expr->parts as $part ) {
+				if ( $part instanceof InterpolatedStringPart ) {
+					$out .= $part->value;
+				} elseif ( $part instanceof Variable && is_string( $part->name ) ) {
+					$out .= '{$' . $part->name . '}';
+				} else {
+					$out .= '{...}';
+				}
+			}
+			return $out;
+		}
+
+		if ( $expr instanceof Variable && is_string( $expr->name ) ) {
+			return '$' . $expr->name;
+		}
+
+		return '...';
 	}
 
 	/**
