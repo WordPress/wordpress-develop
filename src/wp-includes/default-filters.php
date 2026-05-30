@@ -806,4 +806,22 @@ add_action( 'init', '_wp_register_default_font_collections' );
 add_filter( 'rest_pre_insert_wp_template', 'inject_ignored_hooked_blocks_metadata_attributes' );
 add_filter( 'rest_pre_insert_wp_template_part', 'inject_ignored_hooked_blocks_metadata_attributes' );
 
+// Update ignoredHookedBlocks postmeta for some post types.
+add_filter( 'rest_pre_insert_page', 'update_ignored_hooked_blocks_postmeta' );
+add_filter( 'rest_pre_insert_post', 'update_ignored_hooked_blocks_postmeta' );
+add_filter( 'rest_pre_insert_wp_block', 'update_ignored_hooked_blocks_postmeta' );
+add_filter( 'rest_pre_insert_wp_navigation', 'update_ignored_hooked_blocks_postmeta' );
+
+// Inject hooked blocks into the Posts endpoint REST response for some given post types.
+add_filter( 'rest_prepare_page', 'insert_hooked_blocks_into_rest_response', 10, 2 );
+add_filter( 'rest_prepare_post', 'insert_hooked_blocks_into_rest_response', 10, 2 );
+add_filter( 'rest_prepare_wp_block', 'insert_hooked_blocks_into_rest_response', 10, 2 );
+add_filter( 'rest_prepare_wp_navigation', 'insert_hooked_blocks_into_rest_response', 10, 2 );
+
+// Add filters to metadata API when calling site ( network ) metadata.
+add_filter( 'get_site_metadata', 'filter_get_site_metadata', 10, 4 );
+add_filter( 'update_site_metadata', 'filter_update_site_metadata', 10, 4 );
+add_filter( 'add_site_metadata', 'filter_add_site_metadata', 10, 5 );
+add_filter( 'delete_site_metadata', 'filter_delete_site_metadata', 10, 5 );
+
 unset( $filter, $action );

@@ -3271,3 +3271,126 @@ function wp_autoload_values_to_autoload() {
 
 	return array_intersect( $filtered_values, $autoload_values );
 }
+
+
+/**
+ * Filters site metadata for multisite installations.
+ *
+ * This function is specific to multisite setups and provides a way to retrieve
+ * network options. It enforces parameters' constraints and suggests using an alternative function.
+ *
+ * @param mixed $current The value to return if no changes are made.
+ * @param int $object_id Site ID.
+ * @param string $meta_key Metadata key.
+ * @param bool $single Whether to retrieve a single value. Must be true.
+ *
+ * @return mixed The network option value for the specified meta key, or false if the function is used incorrectly.
+ */
+function filter_get_site_metadata( $current, $object_id, $meta_key, $single ) {
+	if ( ! is_multisite() ) {
+		_doing_it_wrong( 'get_metadata', __( 'This function is only available in multisite installations.' ), '6.8.0' );
+		return false;
+	}
+
+	if ( ! $single ) {
+		_doing_it_wrong( 'get_metadata', __( 'The $single parameter is not supported in this function.' ), '6.8.0' );
+		return $current;
+	}
+
+	_doing_it_wrong( 'get_metadata', __( 'This function is deprecated. Use get_network_option() instead.' ), '6.8.0' );
+
+	return get_network_option( $object_id, $meta_key );
+}
+
+/**
+ * Filters and updates site metadata in a multisite environment.
+ *
+ * This function is only applicable in multisite installations. It has been
+ * deprecated in favor of using `update_network_option()`.
+ *
+ * @param mixed $current The current metadata value. Unused.
+ * @param int $object_id Site ID for which the metadata is being updated.
+ * @param string $meta_key Metadata key to update.
+ * @param mixed $meta_value Metadata value to update.
+ *
+ * @return bool|void False if the operation is not applicable or invalid,
+ *                   or the result of `update_network_option()` on success.
+ */
+function filter_update_site_metadata( $current, $object_id, $meta_key, $meta_value ) {
+	if ( ! is_multisite() ) {
+		_doing_it_wrong( 'update_metadata', __( 'This function is only available in multisite installations.' ), '6.8.0' );
+		return false;
+	}
+
+	_doing_it_wrong( 'update_metadata', __( 'This function is deprecated. Use update_network_option() instead.' ), '6.8.0' );
+
+	return update_network_option( $object_id, $meta_key, $meta_value );
+}
+
+/**
+ * Filters the addition of site metadata.
+ *
+ * This function is a custom implementation for adding metadata in a multisite environment.
+ * It ensures that the metadata API handles this case correctly.
+ * This function is deprecated and advises using `add_network_option()` instead.
+ * If WordPress is not running in a multisite environment or if the `$unique` parameter is false,
+ * it will return `$current` or false as appropriate.
+ *
+ * @param mixed $current The return value of the original filter function.
+ * @param int $object_id ID of the object (site ID).
+ * @param string $meta_key Metadata key.
+ * @param mixed $meta_value Metadata value. Must be serializable if non-scalar.
+ * @param bool $unique Whether the metadata key should be unique. If false, `$current` is returned.
+ *
+ * @return bool|mixed False on failure, `$current` if the `$unique` parameter is false, or the result of `add_network_option()`.
+ */
+function filter_add_site_metadata( $current, $object_id, $meta_key, $meta_value, $unique ) {
+	if ( ! is_multisite() ) {
+		_doing_it_wrong( 'add_metadata', __( 'This function is only available in multisite installations.' ), '6.8.0' );
+		return false;
+	}
+
+	if ( ! $unique ) {
+		_doing_it_wrong( 'get_metadata', __( 'The $unique parameter is not supported in this function.' ), '6.8.0' );
+		return $current;
+	}
+
+	_doing_it_wrong( 'add_metadata', __( 'This function is deprecated. Use add_network_option() instead.' ), '6.8.0' );
+
+	return add_network_option( $object_id, $meta_key, $meta_value );
+}
+
+/**
+ * Filters site metadata deletion in multisite installations.
+ *
+ * This function ensures that metadata deletion adheres to multisite-specific rules.
+ * It also deprecates specific parameters and suggests using `delete_network_option()` instead.
+ *
+ * @param mixed $current The value to return if the function short-circuits.
+ * @param int $object_id The object ID, typically the site ID.
+ * @param string $meta_key The meta key to delete.
+ * @param mixed $meta_value The meta value to delete. Not supported in this function.
+ * @param bool $delete_all Whether to delete the matching metadata entries for all objects, ignoring the object ID. Not supported in this function.
+ *
+ * @return mixed The filtered result of the metadata deletion operation.
+ */
+function filter_delete_site_metadata( $current, $object_id, $meta_key, $meta_value, $delete_all ) {
+	if ( ! is_multisite() ) {
+		_doing_it_wrong( 'delete_metadata', __( 'This function is only available in multisite installations.' ), '6.8.0' );
+		return false;
+	}
+
+	if ( $delete_all ) {
+		_doing_it_wrong( 'delete_metadata', __( 'The $delete_all parameter is not supported in this function.' ), '6.8.0' );
+		return $current;
+	}
+
+	if ( $meta_value ) {
+		_doing_it_wrong( 'delete_metadata', __( 'The $meta_value parameter is not supported in this function.' ), '6.8.0' );
+		return $current;
+	}
+
+	_doing_it_wrong( 'delete_metadata', __( 'This function is deprecated. Use delete_network_option() instead.' ), '6.8.0' );
+
+	return delete_network_option( $object_id, $meta_key );
+}
