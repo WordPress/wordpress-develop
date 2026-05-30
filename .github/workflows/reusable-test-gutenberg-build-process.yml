@@ -72,6 +72,7 @@ jobs:
             ${{ env.GUTENBERG_DIRECTORY }}/package-lock.json
 
       - name: Log debug information
+        if: ${{ runner.debug == '1' }}
         run: |
           npm --version
           node --version

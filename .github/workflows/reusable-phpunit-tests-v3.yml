@@ -168,6 +168,7 @@ jobs:
         run: npm run build:dev
 
       - name: General debug information
+        if: ${{ runner.debug == '1' }}
         run: |
           npm --version
           node --version
@@ -177,6 +178,7 @@ jobs:
           locale -a
 
       - name: Docker debug information
+        if: ${{ runner.debug == '1' }}
         run: |
           docker -v
 
@@ -188,6 +190,7 @@ jobs:
         run: docker ps -a
 
       - name: WordPress Docker container debug information
+        if: ${{ runner.debug == '1' }}
         run: |
           docker compose run --rm mysql "${LOCAL_DB_CMD}" --version
           docker compose run --rm php php --version

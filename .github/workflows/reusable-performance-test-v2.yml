@@ -137,6 +137,7 @@ jobs:
           coverage: none
 
       - name: Log debug information
+        if: ${{ runner.debug == '1' }}
         run: |
           npm --version
           node --version
@@ -202,6 +203,7 @@ jobs:
         run: docker ps -a
 
       - name: Docker debug information
+        if: ${{ runner.debug == '1' }}
         run: |
           docker -v
           docker compose run --rm mysql mysql --version

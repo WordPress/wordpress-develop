@@ -135,6 +135,7 @@ jobs:
           docker compose run --rm php composer install
 
       - name: Docker debug information
+        if: ${{ runner.debug == '1' }}
         run: |
           docker -v
           docker compose -v
@@ -152,6 +153,7 @@ jobs:
           docker run --name memcached --net "${BASE}_wpdevnet" -d memcached
 
       - name: General debug information
+        if: ${{ runner.debug == '1' }}
         run: |
           npm --version
           node --version
@@ -162,6 +164,7 @@ jobs:
         run: docker ps -a
 
       - name: WordPress Docker container debug information
+        if: ${{ runner.debug == '1' }}
         run: |
           docker compose run --rm mysql mysql --version
           docker compose run --rm php php --version

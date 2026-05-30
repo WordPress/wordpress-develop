@@ -62,6 +62,7 @@ jobs:
           custom-cache-suffix: ${{ steps.get-date.outputs.date }}
 
       - name: Log debug information
+        if: ${{ runner.debug == '1' }}
         run: |
           npm --version
           node --version
