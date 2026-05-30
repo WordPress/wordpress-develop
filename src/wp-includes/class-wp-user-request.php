@@ -21,9 +21,9 @@ final class WP_User_Request {
 	 *
 	 * @since 4.9.6
 	 * @var string
-	 * @phpstan-var numeric-string
+	 * @var string
 	 */
-	public $user_id = 0;
+	public $user_id = '0';
 
 	/**
 	 * User email.
