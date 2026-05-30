@@ -112,4 +112,28 @@ class Tests_Blocks_GetBlockWrapperAttributes extends WP_UnitTestCase {
 		$result = get_block_wrapper_attributes();
 		$this->assertSame( 'class="wp-block-example"', $result );
 	}
+
+	/**
+	 * @ticket 64452
+	 */
+	public function test_ignores_non_string_values() {
+		WP_Block_Supports::init();
+		register_block_type(
+			'core/example',
+			array(
+				'supports' => array(
+					'customClassName' => true,
+				),
+			)
+		);
+		WP_Block_Supports::$block_to_render = array(
+			'blockName' => 'core/example',
+			'attrs'     => array(
+				'className' => true,
+			),
+		);
+
+		$result = get_block_wrapper_attributes();
+		$this->assertSame( 'class="wp-block-example"', $result );
+	}
 }
