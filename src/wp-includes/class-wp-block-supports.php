@@ -211,7 +211,6 @@ function get_block_wrapper_attributes( $extra_attributes = array() ) {
 	foreach ( $attribute_merge_callbacks as $attribute_name => $merge_callback ) {
 		$new_attribute   = $new_attributes[ $attribute_name ] ?? '';
 		$extra_attribute = $extra_attributes[ $attribute_name ] ?? '';
-		// Cast scalar values to string so a zero value (such as `0` or `'0'`) is preserved.
 		$new_attribute   = is_scalar( $new_attribute ) ? (string) $new_attribute : '';
 		$extra_attribute = is_scalar( $extra_attribute ) ? (string) $extra_attribute : '';
 
@@ -224,7 +223,6 @@ function get_block_wrapper_attributes( $extra_attributes = array() ) {
 
 	foreach ( $extra_attributes as $attribute_name => $value ) {
 		if ( ! isset( $attribute_merge_callbacks[ $attribute_name ] ) ) {
-			// Cast scalar values to string so a zero value (such as `0` or `'0'`) is preserved.
 			$string_value = is_scalar( $value ) ? (string) $value : '';
 			if ( '' !== $string_value ) {
 				$attributes[ $attribute_name ] = $string_value;
