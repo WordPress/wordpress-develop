@@ -4217,6 +4217,29 @@ function wp_sensitive_page_meta() {
 }
 
 /**
+ * Callback for `wp_kses_split()`.
+ *
+ * @since 3.1.0
+ * @access private
+ * @ignore
+ * @deprecated 6.9.0 Use wp_kses_split2() instead.
+ *
+ * @global array[]|string $pass_allowed_html      An array of allowed HTML elements and attributes,
+ *                                                or a context name such as 'post'.
+ * @global string[]       $pass_allowed_protocols Array of allowed URL protocols.
+ *
+ * @param array $matches preg_replace regexp matches
+ * @return string
+ */
+function _wp_kses_split_callback( $matches ) {
+	global $pass_allowed_html, $pass_allowed_protocols;
+
+	_deprecated_function( __FUNCTION__, '6.9.0', 'wp_kses_split2()' );
+
+	return wp_kses_split2( $matches[0], $pass_allowed_html, $pass_allowed_protocols );
+}
+
+/**
  * Render inner blocks from the `core/columns` block for generating an excerpt.
  *
  * @since 5.2.0

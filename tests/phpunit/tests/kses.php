@@ -1584,6 +1584,25 @@ EOF;
 	}
 
 	/**
+	 * Test whether wp_kses_split works properly when called multiple times.
+	 *
+	 * @ticket 37698
+	 */
+	public function test_wp_kses_split_global_pollution() {
+		$result_inner = '';
+		$func         = function ( $attributes ) use ( &$result_inner ) {
+			$result_inner = wp_kses_split( '<img src=x style="color: red;" >', array( 'img' => array( 'src' => array() ) ), array() ); // this triggers the bug
+			return $attributes;
+		};
+		add_filter( 'safe_style_css', $func );
+
+		$expected = "<a style='color: red'>I link this</a>";
+		$result   = wp_kses_split( "<a style='color: red;'>I link this</a>", array( 'a' => array( 'style' => array() ) ), array( 'http' ) );
+		$this->assertEquals( $expected, $result );
+		$this->assertEquals( '<img src="x">', $result_inner );
+	}
+
+	/**
 	 * Test URL sanitization in the style tag.
 	 *
 	 * @dataProvider data_kses_style_attr_with_url

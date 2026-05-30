@@ -1190,10 +1190,6 @@ function wp_kses_version() {
  * @return string Content with fixed HTML tags
  */
 function wp_kses_split( $content, $allowed_html, $allowed_protocols ) {
-	global $pass_allowed_html, $pass_allowed_protocols;
-
-	$pass_allowed_html      = $allowed_html;
-	$pass_allowed_protocols = $allowed_protocols;
 
 	$token_pattern = <<<REGEX
 ~
@@ -1209,7 +1205,14 @@ function wp_kses_split( $content, $allowed_html, $allowed_protocols ) {
 	(<[^>]*(>|$)|>)        # Tag-like spans of text.
 ~x
 REGEX;
-	return preg_replace_callback( $token_pattern, '_wp_kses_split_callback', $content );
+
+	return preg_replace_callback(
+		$token_pattern,
+		function ( $matches ) use ( $allowed_html, $allowed_protocols ) {
+				return wp_kses_split2( $matches[0], $allowed_html, $allowed_protocols );
+		},
+		$content
+	);
 }
 
 /**
@@ -1260,26 +1263,6 @@ function wp_kses_uri_attributes() {
 	$uri_attributes = apply_filters( 'wp_kses_uri_attributes', $uri_attributes );
 
 	return $uri_attributes;
-}
-
-/**
- * Callback for `wp_kses_split()`.
- *
- * @since 3.1.0
- * @access private
- * @ignore
- *
- * @global array[]|string $pass_allowed_html      An array of allowed HTML elements and attributes,
- *                                                or a context name such as 'post'.
- * @global string[]       $pass_allowed_protocols Array of allowed URL protocols.
- *
- * @param array $matches preg_replace regexp matches
- * @return string
- */
-function _wp_kses_split_callback( $matches ) {
-	global $pass_allowed_html, $pass_allowed_protocols;
-
-	return wp_kses_split2( $matches[0], $pass_allowed_html, $pass_allowed_protocols );
 }
 
 /**
