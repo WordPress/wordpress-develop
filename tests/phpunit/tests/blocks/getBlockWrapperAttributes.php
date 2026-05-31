@@ -120,8 +120,6 @@ class Tests_Blocks_GetBlockWrapperAttributes extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Non-scalar and boolean values are excluded for block support attributes.
-	 *
 	 * @ticket 64452
 	 */
 	public function test_excludes_non_scalar_values() {
@@ -148,9 +146,6 @@ class Tests_Blocks_GetBlockWrapperAttributes extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Non-scalar and boolean values are excluded for extra attributes, both for
-	 * merged attributes (class, id, aria-label) and passthrough attributes (data-*).
-	 *
 	 * @ticket 64452
 	 */
 	public function test_excludes_non_scalar_values_from_extra_attributes() {
