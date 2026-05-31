@@ -7,12 +7,12 @@
  * For example, given:
  *
  *     /**
- *      * @param WP_REST_Response $response The response object.
+ *      * @param array $data Response data.
  *      * ...
  *      *\/
- *     return apply_filters( 'rest_prepare_attachment', $response, $post, $request );
+ *     return apply_filters( 'response_data', $data );
  *
- * PHPStan will infer the call returns `WP_REST_Response` rather than `mixed`.
+ * PHPStan will infer the call returns `array` rather than `mixed`.
  *
  * This assumes filters honor the documented type. A misbehaving filter could
  * return something else, but that is treated as the unusual case.
@@ -30,6 +30,7 @@ namespace WordPress\PHPStan;
 use PhpParser\Node\Expr\FuncCall;
 use PHPStan\Analyser\Scope;
 use PHPStan\Reflection\FunctionReflection;
+use PHPStan\ShouldNotHappenException;
 use PHPStan\Type\DynamicFunctionReturnTypeExtension;
 use PHPStan\Type\MixedType;
 use PHPStan\Type\Type;
@@ -42,9 +43,9 @@ class ApplyFiltersDynamicFunctionReturnTypeExtension implements DynamicFunctionR
 	/**
 	 * Hook docblock resolver.
 	 *
-	 * @var \WordPress\PHPStan\HookDocBlock
+	 * @var HookDocBlock
 	 */
-	protected $hookDocBlock;
+	protected HookDocBlock $hookDocBlock;
 
 	/**
 	 * Constructor.
@@ -58,12 +59,12 @@ class ApplyFiltersDynamicFunctionReturnTypeExtension implements DynamicFunctionR
 	/**
 	 * Determines whether this extension applies to the given function.
 	 *
-	 * @param FunctionReflection $function_reflection Function being analyzed.
+	 * @param FunctionReflection $functionReflection Function being analyzed.
 	 * @return bool
 	 */
-	public function isFunctionSupported( FunctionReflection $function_reflection ): bool {
+	public function isFunctionSupported( FunctionReflection $functionReflection ): bool {
 		return in_array(
-			$function_reflection->getName(),
+			$functionReflection->getName(),
 			array(
 				'apply_filters',
 				'apply_filters_deprecated',
@@ -80,16 +81,17 @@ class ApplyFiltersDynamicFunctionReturnTypeExtension implements DynamicFunctionR
 	 * @see https://developer.wordpress.org/reference/functions/apply_filters_deprecated/
 	 * @see https://developer.wordpress.org/reference/functions/apply_filters_ref_array/
 	 *
-	 * @param FunctionReflection $function_reflection Function being analyzed.
-	 * @param FuncCall           $function_call       The function call node.
-	 * @param Scope              $scope               Analysis scope.
+	 * @param FunctionReflection $functionReflection Function being analyzed.
+	 * @param FuncCall           $functionCall       The function call node.
+	 * @param Scope              $scope              Analysis scope.
 	 * @return Type
+	 * @throws ShouldNotHappenException
 	 */
-	public function getTypeFromFunctionCall( FunctionReflection $function_reflection, FuncCall $function_call, Scope $scope ): Type {
-		unset( $function_reflection );
+	public function getTypeFromFunctionCall( FunctionReflection $functionReflection, FuncCall $functionCall, Scope $scope ): Type {
+		unset( $functionReflection );
 
 		$default          = new MixedType();
-		$resolved_php_doc = $this->hookDocBlock->getNullableHookDocBlock( $function_call, $scope );
+		$resolved_php_doc = $this->hookDocBlock->getNullableHookDocBlock( $functionCall, $scope );
 
 		if ( null === $resolved_php_doc ) {
 			return $default;

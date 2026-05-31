@@ -4,6 +4,7 @@
  * convention to PHPStan's variable type resolution.
  *
  * @package WordPress
+ * @noinspection PhpUnused
  */
 
 declare(strict_types=1);
@@ -15,7 +16,7 @@ use PhpParser\Node;
 use PhpParser\NodeVisitorAbstract;
 
 /**
- * Reads `@global Type $varname` tags and injects equivalent inline `@var`
+ * Reads `@global array $varname` tags and injects equivalent inline `@var`
  * docblocks onto matching `global $foo;` statements. The tags may be documented
  * on the enclosing function/method docblock (applying to `global` statements in
  * its body) or, for a file-scope `global` statement with no enclosing function,
@@ -33,7 +34,7 @@ use PhpParser\NodeVisitorAbstract;
  * resolve as `mixed` — preserving PHPStan's safety guarantees.
  *
  * Hand-written `@var` annotations on a `global` statement are honored
- * per-variable: in `global $a, $b;`, an existing `@var Foo $a` is left
+ * per-variable: in `global $a, $b;`, an existing `@var array $a` is left
  * alone, but `$b` will still receive a synthetic `@var` if the function
  * documents it via `@global`.
  *
@@ -63,7 +64,7 @@ final class GlobalDocBlockVisitor extends NodeVisitorAbstract {
 
 	/**
 	 * Pushes a frame when entering a function/method, and injects synthetic
-	 * `@var` doc comments on `global` statements that match a documented tag.
+	 * `var` doc comments on `global` statements that match a documented tag.
 	 *
 	 * @param Node $node The node being entered.
 	 * @return null
@@ -147,7 +148,7 @@ final class GlobalDocBlockVisitor extends NodeVisitorAbstract {
 	}
 
 	/**
-	 * Extracts `@global Type $varname` tags from a docblock.
+	 * Extracts `global` tags from a docblock.
 	 *
 	 * Handles union types (`A|B`) and namespaced/array forms (`A\B`, `A[]`).
 	 * Whitespace inside the type is collapsed.

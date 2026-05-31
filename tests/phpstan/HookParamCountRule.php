@@ -26,8 +26,10 @@ use PhpParser\Node\Expr\FuncCall;
 use PhpParser\Node\Name;
 use PhpParser\Node\Scalar\String_;
 use PHPStan\Analyser\Scope;
+use PHPStan\Rules\IdentifierRuleError;
 use PHPStan\Rules\Rule;
 use PHPStan\Rules\RuleErrorBuilder;
+use PHPStan\ShouldNotHappenException;
 use PHPStan\Type\Constant\ConstantIntegerType;
 
 /**
@@ -60,9 +62,9 @@ class HookParamCountRule implements Rule {
 	/**
 	 * Hook docblock resolver.
 	 *
-	 * @var \WordPress\PHPStan\HookDocBlock
+	 * @var HookDocBlock
 	 */
-	private $hookDocBlock;
+	private HookDocBlock $hookDocBlock;
 
 	/**
 	 * Constructor.
@@ -85,9 +87,10 @@ class HookParamCountRule implements Rule {
 	/**
 	 * Processes a function call node.
 	 *
-	 * @param Node  $node  Function call node.
+	 * @param Node $node Function call node.
 	 * @param Scope $scope Analysis scope.
-	 * @return list<\PHPStan\Rules\IdentifierRuleError>
+	 * @return list<IdentifierRuleError>
+	 * @throws ShouldNotHappenException
 	 */
 	public function processNode( Node $node, Scope $scope ): array {
 		if ( ! $node instanceof FuncCall || ! $node->name instanceof Name ) {
@@ -200,8 +203,11 @@ class HookParamCountRule implements Rule {
 	 */
 	private static function hookLabel( FuncCall $node ): string {
 		$args = $node->getArgs();
-		if ( isset( $args[0] ) && $args[0]->value instanceof String_ ) {
-			return sprintf( 'for hook "%s" ', $args[0]->value->value );
+		if ( isset( $args[0] ) ) {
+			$name = $args[0]->value;
+			if ( $name instanceof String_ ) {
+				return sprintf( 'for hook "%s" ', $name->value );
+			}
 		}
 
 		return '';

@@ -42,18 +42,18 @@ final class HookDocsVisitor extends NodeVisitorAbstract {
 	/**
 	 * Docblock that currently applies.
 	 *
-	 * @var \PhpParser\Comment\Doc|null
+	 * @var Doc|null
 	 */
-	protected $latestDocComment = null;
+	protected ?Doc $latestDocComment = null;
 
 	/**
 	 * Stack of [node, previous docblock] frames for nodes that changed the
 	 * applicable docblock, used to restore the previous value when the node is
 	 * left so a docblock only applies to that node's descendants.
 	 *
-	 * @var list<array{0: Node, 1: \PhpParser\Comment\Doc|null}>
+	 * @var list<array{0: Node, 1: Doc|null}>
 	 */
-	private $stack = array();
+	private array $stack = array();
 
 	/**
 	 * Resets state before traversing a new set of nodes.

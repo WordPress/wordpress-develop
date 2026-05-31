@@ -22,8 +22,10 @@ use PhpParser\Node;
 use PhpParser\Node\Expr\FuncCall;
 use PhpParser\Node\Name;
 use PHPStan\Analyser\Scope;
+use PHPStan\Rules\IdentifierRuleError;
 use PHPStan\Rules\Rule;
 use PHPStan\Rules\RuleErrorBuilder;
+use PHPStan\ShouldNotHappenException;
 
 /**
  * Reports undocumented hooks and broken "documented elsewhere" references.
@@ -35,9 +37,9 @@ class HookDocumentationRule implements Rule {
 	/**
 	 * Hook docblock resolver.
 	 *
-	 * @var \WordPress\PHPStan\HookDocBlock
+	 * @var HookDocBlock
 	 */
-	private $hookDocBlock;
+	private HookDocBlock $hookDocBlock;
 
 	/**
 	 * Constructor.
@@ -60,9 +62,10 @@ class HookDocumentationRule implements Rule {
 	/**
 	 * Processes a function call node.
 	 *
-	 * @param Node  $node  Function call node.
+	 * @param Node $node Function call node.
 	 * @param Scope $scope Analysis scope.
-	 * @return list<\PHPStan\Rules\IdentifierRuleError>
+	 * @return list<IdentifierRuleError>
+	 * @throws ShouldNotHappenException
 	 */
 	public function processNode( Node $node, Scope $scope ): array {
 		if ( ! $node instanceof FuncCall || ! $node->name instanceof Name ) {

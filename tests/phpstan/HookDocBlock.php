@@ -38,6 +38,7 @@ use PhpParser\NodeTraverser;
 use PhpParser\ParserFactory;
 use PHPStan\Analyser\Scope;
 use PHPStan\PhpDoc\ResolvedPhpDocBlock;
+use PHPStan\ShouldNotHappenException;
 use PHPStan\Type\FileTypeMapper;
 
 /**
@@ -81,16 +82,16 @@ class HookDocBlock {
 	/**
 	 * File type mapper used to resolve docblocks in scope.
 	 *
-	 * @var \PHPStan\Type\FileTypeMapper
+	 * @var FileTypeMapper
 	 */
-	protected $fileTypeMapper;
+	protected FileTypeMapper $fileTypeMapper;
 
 	/**
 	 * Cache of parsed hook documentation, keyed by absolute file path.
 	 *
 	 * @var array<string, HookDocs>
 	 */
-	private $fileHookDocs = array();
+	private array $fileHookDocs = array();
 
 	/**
 	 * Constructor.
@@ -107,6 +108,7 @@ class HookDocBlock {
 	 * @param FuncCall $function_call Hook function call node.
 	 * @param Scope    $scope         Analysis scope.
 	 * @return ResolvedPhpDocBlock|null Resolved docblock, or null when none precedes the call.
+	 * @throws ShouldNotHappenException
 	 */
 	public function getNullableHookDocBlock( FuncCall $function_call, Scope $scope ): ?ResolvedPhpDocBlock {
 		$comment = self::getNullableNodeComment( $function_call );
@@ -168,12 +170,13 @@ class HookDocBlock {
 	 * Unlike getNullableHookDocBlock(), this does NOT fall back to the reference
 	 * comment when a reference cannot be resolved to a canonical docblock; it
 	 * returns null instead, so callers do not mistake an unresolved reference
-	 * (which has no `@param` tags) for a genuine zero-parameter hook.
+	 * (which has no `param` tags) for a genuine zero-parameter hook.
 	 *
 	 * @param FuncCall $function_call Hook function call node.
 	 * @param Scope    $scope         Analysis scope.
 	 * @return int|null Documented parameter count, or null when there is no
 	 *                  docblock or a reference cannot be resolved.
+	 * @throws ShouldNotHappenException
 	 */
 	public function getDocumentedParamCount( FuncCall $function_call, Scope $scope ): ?int {
 		$comment = self::getNullableNodeComment( $function_call );
@@ -235,7 +238,7 @@ class HookDocBlock {
 	 *
 	 * Returns null when the comment is not such a reference, when the hook name is
 	 * not a literal, when the WordPress root cannot be determined, or when the
-	 * reference is valid. Otherwise returns the problem details.
+	 * reference is valid. Otherwise, it returns the problem details.
 	 *
 	 * @param FuncCall $function_call Hook function call node.
 	 * @param Scope    $scope         Analysis scope.
@@ -283,10 +286,12 @@ class HookDocBlock {
 	 * Resolves the canonical docblock referenced by a "This filter/action is
 	 * documented in <file>" comment.
 	 *
-	 * @param string   $comment_text  Raw comment text preceding the hook call.
+	 * @param string $comment_text Raw comment text preceding the hook call.
 	 * @param FuncCall $function_call Hook function call node.
-	 * @param Scope    $scope         Analysis scope.
+	 * @param Scope $scope Analysis scope.
+	 *
 	 * @return ResolvedPhpDocBlock|null Resolved canonical docblock, or null when it cannot be located.
+	 * @throws ShouldNotHappenException
 	 */
 	private function resolveDocumentedInReference( string $comment_text, FuncCall $function_call, Scope $scope ): ?ResolvedPhpDocBlock {
 		if ( ! preg_match( self::REFERENCE_PATTERN, $comment_text, $matches ) ) {
@@ -312,7 +317,7 @@ class HookDocBlock {
 		// context. Hook docblocks describe global/plain types (e.g. string[],
 		// WP_REST_Response), so the referenced file's `use` imports are not needed.
 		// Passing the referenced file here would also re-enter PHPStan's name-scope
-		// builder while that file is itself being analysed, which makes
+		// builder while that file is itself being analyzed, which makes
 		// getResolvedPhpDoc return an empty docblock (NameScopeAlreadyBeingCreated).
 		return $this->fileTypeMapper->getResolvedPhpDoc( null, null, null, null, $doc_text );
 	}
@@ -320,7 +325,7 @@ class HookDocBlock {
 	/**
 	 * Returns the canonical docblock text for a hook documented in the given file.
 	 *
-	 * @param string                                       $file    Absolute path to the file declaring the hook.
+	 * @param string                                          $file    Absolute path to the file declaring the hook.
 	 * @param array{kind: 'literal'|'pattern', value: string} $matcher Hook name matcher from getHookNameMatcher().
 	 * @return string|null Docblock text, or null when no documented invocation is found.
 	 */
@@ -630,7 +635,7 @@ class HookDocBlock {
 	 * @return Doc|null
 	 */
 	private static function getNullableNodeComment( FuncCall $node ): ?Doc {
-		/** @var \PhpParser\Comment\Doc|null $doc */
+		/** @var Doc|null $doc */
 		$doc = $node->getAttribute( 'latestDocComment' );
 		return $doc;
 	}
