@@ -210,12 +210,13 @@ function get_block_wrapper_attributes( $extra_attributes = array() ) {
 		},
 	);
 
+	// Accept strings and numbers (cast to string); reject other types (bool, null, array, object).
 	$attributes = array();
 	foreach ( $attribute_merge_callbacks as $attribute_name => $merge_callback ) {
 		$new_attribute   = $new_attributes[ $attribute_name ] ?? '';
 		$extra_attribute = $extra_attributes[ $attribute_name ] ?? '';
-		$new_attribute   = is_string( $new_attribute ) ? $new_attribute : '';
-		$extra_attribute = is_string( $extra_attribute ) ? $extra_attribute : '';
+		$new_attribute   = is_scalar( $new_attribute ) && ! is_bool( $new_attribute ) ? (string) $new_attribute : '';
+		$extra_attribute = is_scalar( $extra_attribute ) && ! is_bool( $extra_attribute ) ? (string) $extra_attribute : '';
 
 		if ( '' === $new_attribute && '' === $extra_attribute ) {
 			continue;
@@ -225,8 +226,8 @@ function get_block_wrapper_attributes( $extra_attributes = array() ) {
 	}
 
 	foreach ( $extra_attributes as $attribute_name => $value ) {
-		if ( ! isset( $attribute_merge_callbacks[ $attribute_name ] ) ) {
-			$attributes[ $attribute_name ] = $value;
+		if ( ! isset( $attribute_merge_callbacks[ $attribute_name ] ) && is_scalar( $value ) && ! is_bool( $value ) ) {
+			$attributes[ $attribute_name ] = (string) $value;
 		}
 	}
 
