@@ -63,28 +63,13 @@ class Tests_Blocks_GetBlockWrapperAttributes extends WP_UnitTestCase {
 		$result = get_block_wrapper_attributes(
 			array(
 				'class'      => '0',
+				'id'         => '0',
 				'aria-label' => '0',
 				'data-foo'   => '0',
 				'data-var'   => '0',
 			)
 		);
-		$this->assertSame( 'class="0 wp-block-example" aria-label="0" data-foo="0" data-var="0"', $result );
-	}
-
-	/**
-	 * @ticket 64452
-	 */
-	public function test_preserves_zero_id_from_extra_attributes() {
-		WP_Block_Supports::init();
-		register_block_type( 'core/example' );
-		WP_Block_Supports::$block_to_render = array( 'blockName' => 'core/example' );
-
-		$result = get_block_wrapper_attributes(
-			array(
-				'id' => '0',
-			)
-		);
-		$this->assertSame( 'class="wp-block-example" id="0"', $result );
+		$this->assertSame( 'class="0 wp-block-example" id="0" aria-label="0" data-foo="0" data-var="0"', $result );
 	}
 
 	/**
