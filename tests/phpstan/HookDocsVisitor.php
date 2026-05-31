@@ -9,10 +9,14 @@
  * statement, conditional, or array item that contains it. To honor all of these,
  * the visitor records a docblock from any node that carries one (a statement, an
  * array item, a function argument, ...) and propagates it to that node's
- * descendants, including a hook embedded in a multi-line condition or used as an
- * array element value. The docblock is cleared when entering a new statement that
- * has none of its own, which bounds how far it reaches while still letting a
- * statement-level docblock document a hook nested inside an `array(...)`.
+ * descendants — including a hook embedded in a multi-line condition or used as an
+ * array element value.
+ *
+ * The docblock's reach is bounded to the node that introduced it: it is restored
+ * to the previous value when that node is left, so a docblock on one array item
+ * does not leak to the next sibling item, while a statement-level docblock still
+ * flows into the statement's nested expressions. A statement without its own
+ * docblock likewise clears the docblock for its subtree.
  *
  * Adapted from szepeviktor/phpstan-wordpress (HookDocsVisitor):
  * https://github.com/szepeviktor/phpstan-wordpress/blob/master/src/HookDocsVisitor.php
@@ -24,6 +28,7 @@ declare(strict_types=1);
 
 namespace WordPress\PHPStan;
 
+use PhpParser\Comment\Doc;
 use PhpParser\Node;
 use PhpParser\Node\Stmt;
 use PhpParser\NodeVisitorAbstract;
@@ -42,6 +47,15 @@ final class HookDocsVisitor extends NodeVisitorAbstract {
 	protected $latestDocComment = null;
 
 	/**
+	 * Stack of [node, previous docblock] frames for nodes that changed the
+	 * applicable docblock, used to restore the previous value when the node is
+	 * left so a docblock only applies to that node's descendants.
+	 *
+	 * @var list<array{0: Node, 1: \PhpParser\Comment\Doc|null}>
+	 */
+	private $stack = array();
+
+	/**
 	 * Resets state before traversing a new set of nodes.
 	 *
 	 * @param Node[] $nodes Nodes about to be traversed.
@@ -51,6 +65,7 @@ final class HookDocsVisitor extends NodeVisitorAbstract {
 		unset( $nodes );
 
 		$this->latestDocComment = null;
+		$this->stack            = array();
 
 		return null;
 	}
@@ -66,15 +81,34 @@ final class HookDocsVisitor extends NodeVisitorAbstract {
 
 		if ( null !== $doc ) {
 			// A docblock here documents this node and everything nested within it.
+			$this->stack[]          = array( $node, $this->latestDocComment );
 			$this->latestDocComment = $doc;
 		} elseif ( $node instanceof Stmt ) {
-			// A new statement without its own docblock ends the reach of the
-			// previous one. Array items are intentionally not reset here so that a
-			// statement-level docblock can still document a hook nested in an array.
+			// A new statement without its own docblock starts an undocumented scope
+			// for its subtree, so a preceding docblock does not carry into it.
+			$this->stack[]          = array( $node, $this->latestDocComment );
 			$this->latestDocComment = null;
 		}
 
 		$node->setAttribute( 'latestDocComment', $this->latestDocComment );
+
+		return null;
+	}
+
+	/**
+	 * Restores the docblock that applied before this node was entered, bounding a
+	 * docblock's reach to the node that introduced it.
+	 *
+	 * @param Node $node Node being left.
+	 * @return Node|null
+	 */
+	public function leaveNode( Node $node ): ?Node {
+		$top = end( $this->stack );
+
+		if ( false !== $top && $top[0] === $node ) {
+			$this->latestDocComment = $top[1];
+			array_pop( $this->stack );
+		}
 
 		return null;
 	}
