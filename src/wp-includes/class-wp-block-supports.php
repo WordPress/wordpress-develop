@@ -121,9 +121,10 @@ class WP_Block_Supports {
 
 			if ( ! empty( $new_attributes ) ) {
 				foreach ( $new_attributes as $attribute_name => $attribute_value ) {
-					if ( ! is_string( $attribute_value ) ) {
+					if ( ! is_scalar( $attribute_value ) || is_bool( $attribute_value ) ) {
 						continue;
 					}
+					$attribute_value = (string) $attribute_value;
 					if ( ! array_key_exists( $attribute_name, $output ) || '' === $output[ $attribute_name ] ) {
 						$output[ $attribute_name ] = $attribute_value;
 					} else {
