@@ -41,7 +41,7 @@ function render_block_core_legacy_widget( $attributes ) {
 		if ( ! hash_equals( wp_hash( $serialized_instance ), (string) $attributes['instance']['hash'] ) ) {
 			return '';
 		}
-		$instance = unserialize( $serialized_instance );
+		$instance = unserialize( $serialized_instance, array( 'allowed_classes' => false ) );
 	} else {
 		$instance = array();
 	}
