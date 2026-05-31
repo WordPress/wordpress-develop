@@ -1817,4 +1817,121 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 
 		$this->assertSame( 1, $action->get_call_count(), 'wp_ability_invoked should fire before input validation failure.' );
 	}
+
+	/**
+	 * Tests that a `validate_callback` in an input schema is ignored.
+	 *
+	 * The REST API invokes a `validate_callback` per request argument, so it is a
+	 * reasonable thing to expect here too — but abilities do not reuse that
+	 * request-layer machinery, and a server-only PHP callback could not be honored
+	 * by the clients that consume the schema anyway. Custom validation belongs in
+	 * the `wp_ability_validate_input` filter.
+	 *
+	 * @ticket 64098
+	 */
+	public function test_validate_input_ignores_schema_validate_callback() {
+		$callback_invoked = false;
+
+		$args = array_merge(
+			self::$test_ability_properties,
+			array(
+				'input_schema' => array(
+					'type'              => 'string',
+					'validate_callback' => static function () use ( &$callback_invoked ) {
+						$callback_invoked = true;
+						return new WP_Error( 'should_not_run', 'Schema validate_callback must not be invoked.' );
+					},
+				),
+			)
+		);
+
+		$ability = new WP_Ability( self::$test_ability_name, $args );
+
+		// 'hello' satisfies the JSON Schema (type string); the validate_callback would
+		// reject every value if it were ever invoked.
+		$result = $ability->validate_input( 'hello' );
+
+		$this->assertTrue( $result, 'Input should pass on JSON Schema alone.' );
+		$this->assertFalse( $callback_invoked, 'Schema validate_callback must not run during input validation.' );
+	}
+
+	/**
+	 * Tests that a `validate_callback` in an output schema is ignored.
+	 *
+	 * Output is validated the same way as input, so the same reasoning applies: the
+	 * schema callback never runs. Custom output validation belongs in the
+	 * `wp_ability_validate_output` filter.
+	 *
+	 * @ticket 64098
+	 */
+	public function test_validate_output_ignores_schema_validate_callback() {
+		$callback_invoked = false;
+
+		$args = array_merge(
+			self::$test_ability_properties,
+			array(
+				'output_schema'    => array(
+					'type'              => 'string',
+					'validate_callback' => static function () use ( &$callback_invoked ) {
+						$callback_invoked = true;
+						return new WP_Error( 'should_not_run', 'Schema validate_callback must not be invoked.' );
+					},
+				),
+				'execute_callback' => static function (): string {
+					return 'result';
+				},
+			)
+		);
+
+		$ability = new WP_Ability( self::$test_ability_name, $args );
+
+		// The execute callback returns a valid string; the output validate_callback would
+		// reject it if it ran, so a returned result proves the callback was ignored.
+		$result = $ability->execute();
+
+		$this->assertSame( 'result', $result, 'Output should pass on JSON Schema alone, so execute() returns the result.' );
+		$this->assertFalse( $callback_invoked, 'Schema validate_callback must not run during output validation.' );
+	}
+
+	/**
+	 * Tests that a `sanitize_callback` is ignored and input is never sanitized.
+	 *
+	 * REST cleans and type-coerces arguments in a sanitization step; abilities have
+	 * no such step, so a `sanitize_callback` never runs and a mistyped value is
+	 * rejected rather than coerced. This is the easiest REST assumption to carry
+	 * over by mistake, so it is pinned explicitly.
+	 *
+	 * @ticket 64098
+	 */
+	public function test_execute_ignores_schema_sanitize_callback() {
+		$callback_invoked = false;
+
+		$args = array_merge(
+			self::$test_ability_properties,
+			array(
+				'input_schema'     => array(
+					'type'              => 'string',
+					'sanitize_callback' => static function ( $value ) use ( &$callback_invoked ) {
+						$callback_invoked = true;
+						return 'sanitized';
+					},
+				),
+				'output_schema'    => array(
+					'type' => 'string',
+				),
+				'execute_callback' => static function ( $input ): string {
+					return $input;
+				},
+			)
+		);
+
+		$ability = new WP_Ability( self::$test_ability_name, $args );
+
+		// The execute callback echoes its input, so an unmodified return value proves
+		// the sanitize_callback never ran and no sanitization pass took place.
+		$result = $ability->execute( 'raw value' );
+
+		$this->assertSame( 'raw value', $result, 'Input should reach the execute callback unmodified (no sanitization).' );
+		$this->assertFalse( $callback_invoked, 'Schema sanitize_callback must not run.' );
+	}
 }
