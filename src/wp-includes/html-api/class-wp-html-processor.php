@@ -621,7 +621,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * Various situations lead to parsing failure but this class will
 	 * return `false` in all those cases. To determine why something
-	 * failed it's possible to request the last error. This can be
+	 * failed, it's possible to request the last error. This can be
 	 * helpful to know to distinguish whether a given tag couldn't
 	 * be found or if content in the document caused the processor
 	 * to give up and abort processing.
