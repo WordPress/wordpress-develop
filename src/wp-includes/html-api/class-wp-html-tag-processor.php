@@ -329,7 +329,7 @@
  *      and disallows "xml" as a name, since it's special. The Tag Processor only recognizes
  *      target names with an ASCII-representable subset of characters. It also exhibits the
  *      same constraint as with CDATA sections, in that `>` cannot exist within the token
- *      since Processing Instructions do no exist within HTML and their syntax transforms
+ *      since Processing Instructions do not exist within HTML and their syntax transforms
  *      into a bogus comment in the DOM.
  *
  * ## Design and limitations
