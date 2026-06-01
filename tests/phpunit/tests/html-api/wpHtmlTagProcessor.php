@@ -886,7 +886,7 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	 *     $processor = new WP_HTML_Tag_Processor( '<div class="header"></div>' );
 	 *     $processor->next_tag();
 	 *     $processor->set_attribute('class', '" onclick="alert');
-	 *     echo $processor;
+	 *     echo $processor->get_updated_html();
 	 *     // <div class="" onclick="alert"></div>
 	 * ```
 	 *
