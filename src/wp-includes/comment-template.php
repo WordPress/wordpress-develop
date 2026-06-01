@@ -2577,7 +2577,7 @@ function comment_form( $args = array(), $post = null ) {
 		$consent = empty( $commenter['comment_author_email'] ) ? '' : $checked_attribute;
 
 		$fields['cookies'] = sprintf(
-			'<p class="comment-form-cookies-consent">%s %s</p>',
+			'<p class="comment-form-cookies-consent">%s%s</p>',
 			sprintf(
 				'<input id="wp-comment-cookies-consent" name="wp-comment-cookies-consent" type="checkbox" value="yes"%s />',
 				$consent
