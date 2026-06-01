@@ -3554,8 +3554,8 @@ class WP_HTML_Tag_Processor {
 	 *     false === $processor->subdivide_text_appropriately();
 	 *
 	 *     $processor = new WP_HTML_Tag_Processor( "&#xD; \r\n\tMore" );
-	 *     true  === $processor->next_token();                   // Text is "␤ ␤␉More".
-	 *     true  === $processor->subdivide_text_appropriately(); // Text is "␤ ␤␉".
+	 *     true  === $processor->next_token();                   // Text is "␍ ␊␉More".
+	 *     true  === $processor->subdivide_text_appropriately(); // Text is "␍ ␊␉".
 	 *     true  === $processor->next_token();                   // Text is "More".
 	 *     false === $processor->subdivide_text_appropriately();
 	 *
