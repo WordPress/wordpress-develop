@@ -286,7 +286,7 @@
  *
  * For these elements the Tag Processor treats the entire sequence as one,
  * from the opening tag, including its contents, through its closing tag.
- * This means that the it's not possible to match the closing tag for a
+ * This means that it's not possible to match the closing tag for a
  * SCRIPT element unless it's unexpected; the Tag Processor already matched
  * it when it found the opening tag.
  *
