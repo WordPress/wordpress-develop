@@ -521,7 +521,7 @@ class WP_HTML_Tag_Processor {
 	 *       - A TABLE start tag `<table>` implicitly closes any open `P` element.
 	 *
 	 *   - In `QUIRKS_MODE`:
-	 *       - CSS class and ID selectors match match in an ASCII case-insensitive manner.
+	 *       - CSS class and ID selectors match in an ASCII case-insensitive manner.
 	 *       - A TABLE start tag `<table>` opens a `TABLE` element as a child of a `P`
 	 *         element if one is open.
 	 *
