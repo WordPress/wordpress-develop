@@ -277,11 +277,23 @@ function wp_admin_bar_my_account_item( $wp_admin_bar ) {
 	$howdy = sprintf( __( 'Howdy, %s' ), '<span class="display-name">' . wp_get_current_user()->display_name . '</span>' );
 
 	$avatar = get_avatar( $user_id, 28 );
+
+	/*
+	 * When an avatar is present, show only the avatar in the toolbar and keep the
+	 * greeting available to assistive technologies as the link's accessible name.
+	 * Without an avatar, fall back to the visible greeting.
+	 */
+	if ( $avatar ) {
+		$title = $avatar . '<span class="screen-reader-text">' . $howdy . '</span>';
+	} else {
+		$title = $howdy;
+	}
+
 	$wp_admin_bar->add_node(
 		array(
 			'id'     => 'my-account',
 			'parent' => 'top-secondary',
-			'title'  => $howdy . $avatar,
+			'title'  => $title,
 			'href'   => $profile_url,
 			'meta'   => array(
 				'class'      => empty( $avatar ) ? '' : 'with-avatar',
