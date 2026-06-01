@@ -213,7 +213,7 @@
  *
  * ### Bookmarks
  *
- * While scanning through the input HTMl document it's possible to set
+ * While scanning through the input HTML document it's possible to set
  * a named bookmark when a particular tag is found. Later on, after
  * continuing to scan other tags, it's possible to `seek` to one of
  * the set bookmarks and then proceed again from that point forward.
