@@ -4233,6 +4233,121 @@ class Tests_DE_RTC_REST_Retry_Save extends WP_Test_REST_TestCase {
 	/**
 	 * @covers ::wp_de_rtc_rest_retry_save_endpoint
 	 * @covers ::wp_de_rtc_save_retry_submitted_post
+	 * @covers ::wp_de_rtc_classify_kses_risky_block_review_items
+	 */
+	public function test_retry_save_persists_safe_author_edit_when_current_content_has_unchanged_unsafe_html() {
+		$existing_unsafe_block = '<!-- wp:html --><script>alert("existing")</script>Existing<!-- /wp:html -->';
+		$safe_block            = '<!-- wp:paragraph --><p>Original safe paragraph.</p><!-- /wp:paragraph -->';
+		$edited_safe_block     = '<!-- wp:paragraph --><p>Original safe paragraph, safely edited.</p><!-- /wp:paragraph -->';
+		$base_content          = $existing_unsafe_block . $safe_block;
+		$proposed_content      = $existing_unsafe_block . $edited_safe_block;
+		$post_id               = self::factory()->post->create(
+			array(
+				'post_author'  => self::$author_user_id,
+				'post_title'   => 'DE-RTC safe author retry save with existing HTML post',
+				'post_content' => $this->add_sync_meta_to_content(
+					$base_content,
+					451,
+					array(
+						'post_content_hash' => hash( 'sha256', $base_content ),
+					)
+				),
+			)
+		);
+		$request               = $this->create_retry_save_request(
+			'posts',
+			$post_id,
+			array(
+				'client_base_version'           => '451',
+				'accepted_proof_server_version' => '451',
+				'rebased_from_version'          => '451',
+				'pending_change_count'          => 1,
+				'proposed_post_content'         => $proposed_content,
+				'proposed_post_content_hash'    => hash( 'sha256', $proposed_content ),
+			)
+		);
+
+		wp_set_current_user( self::$author_user_id );
+
+		$response   = rest_get_server()->dispatch( $request );
+		$data       = $response->get_data();
+		$after_post = get_post( $post_id );
+		$parsed     = wp_de_rtc_parse_post_content_sync_meta( $after_post->post_content );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( 'retry_save_applied', $data['result'] );
+		$this->assertTrue( $data['retry_save_accepted'] );
+		$this->assertSame( $proposed_content, $parsed['content'] );
+		$this->assertSame( '452', $parsed['sync_meta']['version'] );
+		$this->assertStringContainsString( '<script>alert("existing")</script>Existing', $parsed['content'] );
+		$this->assertStringContainsString( 'safely edited', $parsed['content'] );
+	}
+
+	/**
+	 * @covers ::wp_de_rtc_rest_retry_save_endpoint
+	 * @covers ::wp_de_rtc_save_retry_submitted_post
+	 * @covers ::wp_de_rtc_get_kses_partial_safe_retry_save_plan
+	 * @covers ::wp_de_rtc_apply_partial_safe_retry_save_plan
+	 */
+	public function test_retry_save_partial_safe_merge_preserves_existing_unsafe_html_while_saving_safe_author_edit() {
+		$existing_unsafe_block = '<!-- wp:html --><script>alert("existing")</script>Existing<!-- /wp:html -->';
+		$paragraph_block       = '<!-- wp:paragraph --><p>Lead paragraph.</p><!-- /wp:paragraph -->';
+		$list_block            = '<!-- wp:list --><ul class="wp-block-list"><!-- wp:list-item --><li>Eggs</li><!-- /wp:list-item --><!-- wp:list-item --><li>Cheese</li><!-- /wp:list-item --></ul><!-- /wp:list -->';
+		$safe_list_block       = '<!-- wp:list --><ul class="wp-block-list"><!-- wp:list-item --><li>Eggs</li><!-- /wp:list-item --><!-- wp:list-item --><li><em>Cheese</em></li><!-- /wp:list-item --></ul><!-- /wp:list -->';
+		$new_unsafe_block      = '<!-- wp:html --><script>alert("new")</script>Script<!-- /wp:html -->';
+		$base_content          = $existing_unsafe_block . $paragraph_block . $list_block;
+		$proposed_content      = $existing_unsafe_block . $paragraph_block . $new_unsafe_block . $safe_list_block;
+		$safe_content          = $existing_unsafe_block . $paragraph_block . $safe_list_block;
+		$post_id               = self::factory()->post->create(
+			array(
+				'post_author'  => self::$author_user_id,
+				'post_title'   => 'DE-RTC partial safe retry save with existing HTML post',
+				'post_content' => $this->add_sync_meta_to_content(
+					$base_content,
+					461,
+					array(
+						'post_content_hash' => hash( 'sha256', $base_content ),
+					)
+				),
+			)
+		);
+		$request               = $this->create_retry_save_request(
+			'posts',
+			$post_id,
+			array(
+				'client_base_version'           => '461',
+				'accepted_proof_server_version' => '461',
+				'rebased_from_version'          => '461',
+				'pending_change_count'          => 2,
+				'proposed_post_content'         => $proposed_content,
+				'proposed_post_content_hash'    => hash( 'sha256', $proposed_content ),
+			)
+		);
+
+		wp_set_current_user( self::$author_user_id );
+
+		$response   = rest_get_server()->dispatch( $request );
+		$data       = $response->get_data();
+		$after_post = get_post( $post_id );
+		$parsed     = wp_de_rtc_parse_post_content_sync_meta( $after_post->post_content );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( 'retry_save_partial_safe_merge', $data['result'] );
+		$this->assertTrue( $data['partial_safe_merge_applied'] );
+		$this->assertTrue( $data['partial_safe_merge_persisted'] );
+		$this->assertSame( 'safe_subset_persisted', $data['partial_safe_merge_status'] );
+		$this->assertSame( 1, $data['review_item_count'] );
+		$this->assertSame( 'added_block', $data['review_items'][0]['change_kind'] );
+		$this->assertSame( $safe_content, $parsed['content'] );
+		$this->assertSame( '462', $parsed['sync_meta']['version'] );
+		$this->assertStringContainsString( '<script>alert("existing")</script>Existing', $parsed['content'] );
+		$this->assertStringContainsString( '<em>Cheese</em>', $parsed['content'] );
+		$this->assertStringNotContainsString( 'alert("new")', $parsed['content'] );
+	}
+
+	/**
+	 * @covers ::wp_de_rtc_rest_retry_save_endpoint
+	 * @covers ::wp_de_rtc_save_retry_submitted_post
 	 * @covers ::wp_de_rtc_get_kses_partial_safe_retry_save_plan
 	 * @covers ::wp_de_rtc_apply_partial_safe_retry_save_plan
 	 */
@@ -6996,7 +7111,8 @@ class Tests_DE_RTC_REST_Retry_Save extends WP_Test_REST_TestCase {
 		$status = wp_de_rtc_get_yjs_runtime_status();
 
 		if ( empty( $status['available'] ) ) {
-			$this->markTestSkipped( 'Native PHP Yjs runtime is not available: ' . $status['reason'] );
+			$reason = isset( $status['reason'] ) ? (string) $status['reason'] : 'unknown';
+			$this->markTestSkipped( 'Native PHP Yjs runtime is not available: ' . $reason );
 		}
 	}
 

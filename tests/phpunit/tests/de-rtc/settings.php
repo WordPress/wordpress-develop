@@ -269,7 +269,7 @@ class Tests_DE_RTC_Settings extends WP_UnitTestCase {
 			array(
 					'enabled'                  => true,
 					'retrySaveHandoff'         => true,
-					'riskyBlockReview'         => false,
+					'riskyBlockReview'         => true,
 					'yjsRawPostContentSave'    => true,
 					'initialPresenceRoster'    => wp_de_rtc_get_empty_post_presence_roster(),
 					'presenceStartupPolicy'    => $this->get_expected_presence_startup_policy( true ),
@@ -403,7 +403,8 @@ class Tests_DE_RTC_Settings extends WP_UnitTestCase {
 			'hostProfile'                      => 'cheap_shared_host',
 			'standardPollingIntervalSeconds'   => 30,
 			'cheapHostPollingIntervalSeconds'  => 120,
-			'minimumPollingIntervalSeconds'    => 30,
+			'minimumPollingIntervalSeconds'    => 120,
+			'selectedPollingIntervalSeconds'   => 120,
 			'heartbeatIntervalSeconds'         => 120,
 			'selectedHeartbeatIntervalSeconds' => 120,
 		);

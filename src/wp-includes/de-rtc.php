@@ -1395,7 +1395,7 @@ function wp_de_rtc_add_block_editor_settings( $editor_settings, $block_editor_co
 	$editor_settings['distributedEditing'] = array(
 		'enabled'                  => $enabled,
 		'retrySaveHandoff'         => $enabled,
-		'riskyBlockReview'         => false,
+		'riskyBlockReview'         => $enabled,
 		'yjsRawPostContentSave'    => $enabled,
 		'initialPresenceRoster'    => $enabled && $post ? wp_de_rtc_get_post_presence_roster( $post ) : wp_de_rtc_get_empty_post_presence_roster(),
 		'presenceStartupPolicy'    => array(
@@ -14919,99 +14919,36 @@ function wp_de_rtc_save_retry_submitted_post( $post, $args = array() ) {
 	}
 
 	if ( ! current_user_can( 'unfiltered_html' ) ) {
-		$proposed_post_content_kses_review = wp_de_rtc_get_kses_post_content_review_evidence( $proposed_post_content );
+		/*
+		 * Review only KSES-sensitive changes relative to the current server
+		 * body. Existing unsafe HTML may have been saved by an authorized
+		 * editor; a lower-privileged safe edit must not be rejected merely
+		 * because that unchanged block would be sanitized if authored now.
+		 */
+		$retry_save_kses_classification = wp_de_rtc_classify_kses_risky_block_review_items(
+			$post,
+			$save_post_content,
+			array(
+				'base_post_content'        => $current['content'],
+				'client_base_version'      => $client_base_version,
+				'server_version'           => $server_version,
+				'user_can_unfiltered_html' => false,
+				'author_id'                => get_current_user_id(),
+			)
+		);
 
-		if ( ! empty( $proposed_post_content_kses_review['would_change_content'] ) ) {
-			$review_approval_consumption = wp_de_rtc_get_retry_save_review_approval_proof_consumption_result(
-				$post,
-				array(
-					'review_approval_proof'         => $review_approval_proof,
-					'client_base_version'           => $client_base_version,
-					'accepted_proof_server_version' => $accepted_proof_server_version,
-					'server_version'                => $server_version,
-					'pending_change_count'          => $pending_change_count,
-					'rebased_from_version'          => $rebased_from_version,
-					'proposed_post_content'         => $proposed_post_content,
-					'proposed_post_content_hash'    => $proposed_post_content_hash,
-					'candidate_post_content_hash'   => $candidate_hash,
-					'proof_required'                => true,
-				)
-			);
-
-			if ( is_wp_error( $review_approval_consumption ) ) {
-				if ( 'de_rtc_unfiltered_html_would_change_content' === $review_approval_consumption->get_error_code() ) {
-					$partial_safe_retry_save_plan = wp_de_rtc_get_kses_partial_safe_retry_save_plan(
-						$post,
-						$current['content'],
-						$save_post_content,
-						array(
-							'client_base_version' => $client_base_version,
-							'server_version'      => $server_version,
-						)
-					);
-
-					if ( is_wp_error( $partial_safe_retry_save_plan ) ) {
-						return $partial_safe_retry_save_plan;
-					}
-
-					$review_items       = array();
-					$partial_safe_merge = array();
-
-					if ( is_array( $partial_safe_retry_save_plan ) ) {
-						$review_classification = isset( $partial_safe_retry_save_plan['review_classification'] ) && is_array( $partial_safe_retry_save_plan['review_classification'] ) ? $partial_safe_retry_save_plan['review_classification'] : array();
-						$review_items          = isset( $review_classification['review_items'] ) && is_array( $review_classification['review_items'] ) ? array_values( $review_classification['review_items'] ) : array();
-
-						if ( ! empty( $partial_safe_retry_save_plan['safe_candidate_available'] ) ) {
-							$partial_safe_merge = wp_de_rtc_apply_partial_safe_retry_save_plan(
-								$post,
-								$current,
-								$partial_safe_retry_save_plan,
-								array(
-									'server_version'                  => $server_version,
-									'client_base_version'             => $client_base_version,
-									'accepted_proof_server_version'   => $accepted_proof_server_version,
-									'rebased_from_version'            => $rebased_from_version,
-									'pending_change_count'            => $pending_change_count,
-									'proposed_post_content'           => $proposed_post_content,
-									'proposed_post_content_hash'      => $proposed_post_content_hash,
-								)
-							);
-
-							if ( is_wp_error( $partial_safe_merge ) ) {
-								return $partial_safe_merge;
-							}
-						}
-					}
-
-					return wp_de_rtc_get_unfiltered_html_review_rejection_error(
-						$post,
-						array(
-							'pending_change_count'              => $pending_change_count,
-							'rest_route'                        => 'post_retry_save',
-							'proposed_post_content_hash'        => $proposed_post_content_hash,
-							'candidate_post_content_hash'       => $candidate_hash,
-							'proposed_post_content_kses_review' => $proposed_post_content_kses_review,
-							'review_items'                      => $review_items,
-							'partial_safe_merge'                => $partial_safe_merge,
-						)
-					);
-				}
-
-				return $review_approval_consumption;
-			}
+		if ( is_wp_error( $retry_save_kses_classification ) ) {
+			return $retry_save_kses_classification;
 		}
 
-		/*
-		 * Review the human-authored body, not the server-owned sync-meta
-		 * wrapper. KSES normalizes unknown block-comment names, so comparing the
-		 * complete candidate would falsely require review for safe author edits
-			 * only because the generated sync-meta wrapper changed shape.
-		 * The actual save path still owns and preserves that wrapper separately.
-		 */
-		$candidate_post_content_kses_review = wp_de_rtc_get_kses_post_content_review_evidence( $save_post_content );
+		$retry_save_review_items = isset( $retry_save_kses_classification['review_items'] ) && is_array( $retry_save_kses_classification['review_items'] )
+			? array_values( $retry_save_kses_classification['review_items'] )
+			: array();
 
-		if ( ! empty( $candidate_post_content_kses_review['would_change_content'] ) ) {
-			$review_approval_consumption = wp_de_rtc_get_retry_save_review_approval_proof_consumption_result(
+		if ( ! empty( $retry_save_review_items ) ) {
+			$proposed_post_content_kses_review  = wp_de_rtc_get_kses_post_content_review_evidence( $proposed_post_content );
+			$candidate_post_content_kses_review = wp_de_rtc_get_kses_post_content_review_evidence( $save_post_content );
+			$review_approval_consumption        = wp_de_rtc_get_retry_save_review_approval_proof_consumption_result(
 				$post,
 				array(
 					'review_approval_proof'         => $review_approval_proof,
@@ -15043,12 +14980,12 @@ function wp_de_rtc_save_retry_submitted_post( $post, $args = array() ) {
 						return $partial_safe_retry_save_plan;
 					}
 
-					$review_items       = array();
+					$review_items       = $retry_save_review_items;
 					$partial_safe_merge = array();
 
 					if ( is_array( $partial_safe_retry_save_plan ) ) {
 						$review_classification = isset( $partial_safe_retry_save_plan['review_classification'] ) && is_array( $partial_safe_retry_save_plan['review_classification'] ) ? $partial_safe_retry_save_plan['review_classification'] : array();
-						$review_items          = isset( $review_classification['review_items'] ) && is_array( $review_classification['review_items'] ) ? array_values( $review_classification['review_items'] ) : array();
+						$review_items          = isset( $review_classification['review_items'] ) && is_array( $review_classification['review_items'] ) ? array_values( $review_classification['review_items'] ) : $review_items;
 
 						if ( ! empty( $partial_safe_retry_save_plan['safe_candidate_available'] ) ) {
 							$partial_safe_merge = wp_de_rtc_apply_partial_safe_retry_save_plan(
@@ -15056,13 +14993,13 @@ function wp_de_rtc_save_retry_submitted_post( $post, $args = array() ) {
 								$current,
 								$partial_safe_retry_save_plan,
 								array(
-									'server_version'                  => $server_version,
-									'client_base_version'             => $client_base_version,
-									'accepted_proof_server_version'   => $accepted_proof_server_version,
-									'rebased_from_version'            => $rebased_from_version,
-									'pending_change_count'            => $pending_change_count,
-									'proposed_post_content'           => $proposed_post_content,
-									'proposed_post_content_hash'      => $proposed_post_content_hash,
+									'server_version'                => $server_version,
+									'client_base_version'           => $client_base_version,
+									'accepted_proof_server_version' => $accepted_proof_server_version,
+									'rebased_from_version'          => $rebased_from_version,
+									'pending_change_count'          => $pending_change_count,
+									'proposed_post_content'         => $proposed_post_content,
+									'proposed_post_content_hash'    => $proposed_post_content_hash,
 								)
 							);
 
@@ -15891,9 +15828,27 @@ function wp_de_rtc_get_kses_partial_safe_retry_save_plan( $post, $current_conten
 		);
 	}
 
-	$safe_candidate_kses_review = wp_de_rtc_get_kses_post_content_review_evidence( $safe_candidate );
+	$safe_candidate_classification = wp_de_rtc_classify_kses_risky_block_review_items(
+		$post,
+		$safe_candidate,
+		array(
+			'base_post_content'        => $current_content,
+			'client_base_version'      => isset( $args['client_base_version'] ) ? $args['client_base_version'] : null,
+			'server_version'           => isset( $args['server_version'] ) ? $args['server_version'] : null,
+			'user_can_unfiltered_html' => false,
+			'author_id'                => get_current_user_id(),
+		)
+	);
 
-	if ( ! empty( $safe_candidate_kses_review['would_change_content'] ) ) {
+	if ( is_wp_error( $safe_candidate_classification ) ) {
+		return $safe_candidate_classification;
+	}
+
+	$safe_candidate_review_items = isset( $safe_candidate_classification['review_items'] ) && is_array( $safe_candidate_classification['review_items'] )
+		? array_values( $safe_candidate_classification['review_items'] )
+		: array();
+
+	if ( ! empty( $safe_candidate_review_items ) ) {
 		return array(
 			'review_classification'       => $classification,
 			'safe_candidate_available'   => false,
@@ -15901,8 +15856,7 @@ function wp_de_rtc_get_kses_partial_safe_retry_save_plan( $post, $current_conten
 			'safe_candidate_blocked_code' => 'de_rtc_rebase_failed',
 			'safe_candidate_blocked_data' => array(
 				'detail'                       => 'partial_safe_merge_candidate_still_requires_kses',
-				'content_hash'                 => isset( $safe_candidate_kses_review['content_hash'] ) ? $safe_candidate_kses_review['content_hash'] : null,
-				'filtered_content_hash'        => isset( $safe_candidate_kses_review['filtered_content_hash'] ) ? $safe_candidate_kses_review['filtered_content_hash'] : null,
+				'review_item_count'            => count( $safe_candidate_review_items ),
 				'saves_post'                   => false,
 				'mutates_post_content'         => false,
 				'creates_revision'             => false,
