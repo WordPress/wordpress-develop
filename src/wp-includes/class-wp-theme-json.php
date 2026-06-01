@@ -3169,7 +3169,7 @@ class WP_Theme_JSON {
 				if ( isset( $block_metadata['name'] ) ) {
 					$block_name = $block_metadata['name'];
 				} elseif ( in_array( 'blocks', $block_metadata['path'], true ) && count( $block_metadata['path'] ) >= 3 ) {
-					$block_name = $block_metadata['path'][2];
+					$block_name = static::get_block_name_from_metadata_path( $block_metadata );
 				} else {
 					$block_name = null;
 				}
@@ -3346,7 +3346,7 @@ class WP_Theme_JSON {
 		$is_processing_block_pseudo = false;
 		$block_pseudo_selector      = null;
 		if ( in_array( 'blocks', $block_metadata['path'], true ) && count( $block_metadata['path'] ) >= 4 ) {
-			$block_name        = $block_metadata['path'][2]; // 'core/button'
+			$block_name        = static::get_block_name_from_metadata_path( $block_metadata ); // 'core/button'
 			$last_path_element = $block_metadata['path'][ count( $block_metadata['path'] ) - 1 ]; // ':hover'
 
 			if ( isset( static::VALID_BLOCK_PSEUDO_SELECTORS[ $block_name ] ) &&
@@ -3388,7 +3388,7 @@ class WP_Theme_JSON {
 		} elseif ( $is_processing_block_pseudo ) {
 			// Process block pseudo-selector styles
 			// For block pseudo-selectors, we need to get the block data first, then access the pseudo-selector
-			$block_name  = $block_metadata['path'][2]; // 'core/button'
+			$block_name  = static::get_block_name_from_metadata_path( $block_metadata ); // 'core/button'
 			$block_data  = _wp_array_get( $this->theme_json, array( 'styles', 'blocks', $block_name ), array() );
 			$pseudo_data = $block_data[ $block_pseudo_selector ] ?? array();
 
@@ -5220,5 +5220,19 @@ class WP_Theme_JSON {
 		}
 
 		return $valid_variations;
+	}
+
+	/**
+	 * Extracts the block name from the block metadata path.
+	 *
+	 * @since 7.0
+	 *
+	 * @param array $block_metadata Block metadata.
+	 * @return string|null The block name or null if not found.
+	 */
+	private static function get_block_name_from_metadata_path( $block_metadata ) {
+		if ( isset( $block_metadata['path'] ) ) {
+			return $block_metadata['path'][2];
+		}
 	}
 }
