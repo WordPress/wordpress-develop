@@ -2922,6 +2922,7 @@ class WP_Theme_JSON {
 				}
 
 				$variation_selectors = array();
+
 				if ( $include_variations && isset( $node['variations'] ) ) {
 					foreach ( $node['variations'] as $variation => $node ) {
 						$variation_selectors[] = array(
@@ -2938,7 +2939,6 @@ class WP_Theme_JSON {
 					'selectors'  => $feature_selectors,
 					'elements'   => $selectors[ $name ]['elements'] ?? array(),
 					'duotone'    => $duotone_selector,
-					'features'   => $feature_selectors,
 					'variations' => $variation_selectors,
 					'css'        => $selector,
 				);
@@ -2964,26 +2964,38 @@ class WP_Theme_JSON {
 				// Handle any pseudo selectors for the block.
 				if ( isset( static::VALID_BLOCK_PSEUDO_SELECTORS[ $name ] ) ) {
 					foreach ( static::VALID_BLOCK_PSEUDO_SELECTORS[ $name ] as $pseudo_selector ) {
-						$has_pseudo = isset( $theme_json['styles']['blocks'][ $name ][ $pseudo_selector ] );
-						if ( $has_pseudo ) {
-							/*
-							 * Append the pseudo-selector to each feature selector so that
-							 * get_feature_declarations_for_node generates CSS scoped to the
-							 * pseudo-state (e.g. '.wp-block-button:hover') rather than the
-							 * default state (e.g. '.wp-block-button').
-							 */
-							$pseudo_feature_selectors = array();
-							foreach ( $feature_selectors ?? array() as $feature => $feature_selector ) {
-								if ( is_array( $feature_selector ) ) {
-									$pseudo_feature_selectors[ $feature ] = array();
-									foreach ( $feature_selector as $subfeature => $subfeature_selector ) {
-										$pseudo_feature_selectors[ $feature ][ $subfeature ] = static::append_to_selector( $subfeature_selector, $pseudo_selector );
-									}
-								} else {
-									$pseudo_feature_selectors[ $feature ] = static::append_to_selector( $feature_selector, $pseudo_selector );
-								}
+						$has_pseudo            = isset( $theme_json['styles']['blocks'][ $name ][ $pseudo_selector ] );
+						$has_responsive_pseudo = false;
+						foreach ( array_keys( static::RESPONSIVE_BREAKPOINTS ) as $breakpoint ) {
+							if ( isset( $theme_json['styles']['blocks'][ $name ][ $breakpoint ][ $pseudo_selector ] ) ) {
+								$has_responsive_pseudo = true;
+								break;
 							}
+						}
 
+						if ( ! $has_pseudo && ! $has_responsive_pseudo ) {
+							continue;
+						}
+
+						/*
+						 * Append the pseudo-selector to each feature selector so that
+						 * get_feature_declarations_for_node generates CSS scoped to the
+						 * pseudo-state (e.g. '.wp-block-button:hover') rather than the
+						 * default state (e.g. '.wp-block-button').
+						 */
+						$pseudo_feature_selectors = array();
+						foreach ( $feature_selectors ?? array() as $feature => $feature_selector ) {
+							if ( is_array( $feature_selector ) ) {
+								$pseudo_feature_selectors[ $feature ] = array();
+								foreach ( $feature_selector as $subfeature => $subfeature_selector ) {
+									$pseudo_feature_selectors[ $feature ][ $subfeature ] = static::append_to_selector( $subfeature_selector, $pseudo_selector );
+								}
+							} else {
+								$pseudo_feature_selectors[ $feature ] = static::append_to_selector( $feature_selector, $pseudo_selector );
+							}
+						}
+
+						if ( $has_pseudo ) {
 							$nodes[] = array(
 								'name'       => $name,
 								'path'       => array( 'styles', 'blocks', $name, $pseudo_selector ),
@@ -2994,22 +3006,63 @@ class WP_Theme_JSON {
 								'variations' => $variation_selectors,
 								'css'        => static::append_to_selector( $selector, $pseudo_selector ),
 							);
+						}
 
-							// Responsive pseudo nodes: emit one node per breakpoint that has
-							// this pseudo state, immediately after the default pseudo node.
-							// Cascade order: .block:hover{} → @media{.block:hover{}}
-							foreach ( array_keys( static::RESPONSIVE_BREAKPOINTS ) as $breakpoint ) {
-								if ( isset( $theme_json['styles']['blocks'][ $name ][ $breakpoint ][ $pseudo_selector ] ) ) {
-									$nodes[] = array(
-										'name'        => $name,
-										'path'        => array( 'styles', 'blocks', $name, $breakpoint, $pseudo_selector ),
-										'media_query' => static::RESPONSIVE_BREAKPOINTS[ $breakpoint ],
-										'selector'    => static::append_to_selector( $selector, $pseudo_selector ),
-										'selectors'   => $pseudo_feature_selectors,
-										'elements'    => $selectors[ $name ]['elements'] ?? array(),
-										'variations'  => $variation_selectors,
-										'css'         => static::append_to_selector( $selector, $pseudo_selector ),
-									);
+						// Responsive pseudo nodes: emit one node per breakpoint that has
+						// this pseudo state, immediately after the default pseudo node.
+						// Cascade order: .block:hover{} → @media{.block:hover{}}
+						foreach ( array_keys( static::RESPONSIVE_BREAKPOINTS ) as $breakpoint ) {
+							if ( isset( $theme_json['styles']['blocks'][ $name ][ $breakpoint ][ $pseudo_selector ] ) ) {
+								$nodes[] = array(
+									'name'        => $name,
+									'path'        => array( 'styles', 'blocks', $name, $breakpoint, $pseudo_selector ),
+									'media_query' => static::RESPONSIVE_BREAKPOINTS[ $breakpoint ],
+									'selector'    => static::append_to_selector( $selector, $pseudo_selector ),
+									'selectors'   => $pseudo_feature_selectors,
+									'elements'    => $selectors[ $name ]['elements'] ?? array(),
+									'variations'  => $variation_selectors,
+									'css'         => static::append_to_selector( $selector, $pseudo_selector ),
+								);
+							}
+						}
+					}
+				}
+
+				// Handle custom states (e.g. '@current' for navigation).
+				if ( isset( static::VALID_BLOCK_CUSTOM_STATES[ $name ] ) ) {
+					foreach ( static::VALID_BLOCK_CUSTOM_STATES[ $name ] as $custom_state ) {
+						if (
+							isset( $theme_json['styles']['blocks'][ $name ][ $custom_state ] ) &&
+							isset( $selectors[ $name ]['states'][ $custom_state ] )
+						) {
+							$custom_css_selector = $selectors[ $name ]['states'][ $custom_state ];
+							$nodes[]             = array(
+								'name'       => $name,
+								'path'       => array( 'styles', 'blocks', $name, $custom_state ),
+								'selector'   => $custom_css_selector,
+								'selectors'  => $feature_selectors,
+								'elements'   => $selectors[ $name ]['elements'] ?? array(),
+								'duotone'    => $duotone_selector,
+								'variations' => $variation_selectors,
+								'css'        => $custom_css_selector,
+							);
+
+							// Sub-pseudo-selectors within the custom state.
+							if ( isset( static::VALID_BLOCK_PSEUDO_SELECTORS[ $name ] ) ) {
+								foreach ( static::VALID_BLOCK_PSEUDO_SELECTORS[ $name ] as $pseudo ) {
+									if ( isset( $theme_json['styles']['blocks'][ $name ][ $custom_state ][ $pseudo ] ) ) {
+										$compound_css_selector = static::append_to_selector( $custom_css_selector, $pseudo );
+										$nodes[]               = array(
+											'name'       => $name,
+											'path'       => array( 'styles', 'blocks', $name, $custom_state, $pseudo ),
+											'selector'   => $compound_css_selector,
+											'selectors'  => $feature_selectors,
+											'elements'   => $selectors[ $name ]['elements'] ?? array(),
+											'duotone'    => $duotone_selector,
+											'variations' => $variation_selectors,
+											'css'        => $compound_css_selector,
+										);
+									}
 								}
 							}
 						}
@@ -3019,7 +3072,6 @@ class WP_Theme_JSON {
 			if ( isset( $theme_json['styles']['blocks'][ $name ]['elements'] ) ) {
 				foreach ( $theme_json['styles']['blocks'][ $name ]['elements'] as $element => $node ) {
 					$element_path = array( 'styles', 'blocks', $name, 'elements', $element );
-
 					if ( $include_node_paths_only ) {
 						$nodes[] = array(
 							'path' => $element_path,
