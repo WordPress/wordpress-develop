@@ -86,7 +86,7 @@ async function fetchWithRetry( url, options, resourceLabel ) {
 			continue;
 		}
 
-		if ( response.ok || ! shouldRetryFetch( response ) || attempt === MAX_FETCH_RETRIES ) {
+		if ( response.ok || ! shouldRetryFetch( response, undefined ) || attempt === MAX_FETCH_RETRIES ) {
 			return response;
 		}
 
