@@ -23,7 +23,7 @@ class Tests_wp_ajax_widgets_order extends WP_Ajax_UnitTestCase {
 	 *
 	 * @var int
 	 */
-	protected static $admin_id;
+	protected static int $admin_id;
 
 	/**
 	 * Setup test fixtures.
