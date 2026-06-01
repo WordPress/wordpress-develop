@@ -4935,7 +4935,7 @@ class WP_HTML_Tag_Processor {
 	 *     </2>
 	 *
 	 * Funky comments are tag closers with invalid tag names. Note
-	 * that in HTML these are turn into bogus comments. Nonetheless,
+	 * that in HTML these are turned into bogus comments. Nonetheless,
 	 * the Tag Processor recognizes them in a stream of HTML and
 	 * exposes them for inspection and modification.
 	 *
