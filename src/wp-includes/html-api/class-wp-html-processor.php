@@ -66,7 +66,7 @@
  * tags may be found with the shortest-matching breadcrumb query. That is,
  * `array( 'IMG' )` matches all IMG elements and `array( 'P', 'IMG' )`
  * matches all IMG elements directly inside a P element. To ensure that no
- * partial matches erroneously match it's possible to specify in a query
+ * partial matches erroneously match, it's possible to specify in a query
  * the full breadcrumb match all the way down from the root HTML element.
  *
  * Example:
