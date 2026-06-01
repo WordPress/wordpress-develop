@@ -1520,12 +1520,13 @@ class WP_Theme_JSON {
 	 *
 	 * @since 6.2.0
 	 * @since 6.6.0 Enforced 0-1-0 specificity for block custom CSS selectors.
+	 * @since 7.0.0 Made public for use in custom-css block support.
 	 *
 	 * @param string $css      The CSS to process.
 	 * @param string $selector The selector to nest.
 	 * @return string The processed CSS.
 	 */
-	protected function process_blocks_custom_css( $css, $selector ) {
+	public static function process_blocks_custom_css( $css, $selector ) {
 		$processed_css = '';
 
 		if ( empty( $css ) ) {
@@ -1981,6 +1982,7 @@ class WP_Theme_JSON {
 	 * creates the corresponding ruleset.
 	 *
 	 * @since 5.8.0
+	 * @since 7.1.0 Skip declarations whose value is not a plain string (booleans, arrays, objects, etc.).
 	 *
 	 * @param string $selector     CSS selector.
 	 * @param array  $declarations List of declarations.
@@ -1994,7 +1996,18 @@ class WP_Theme_JSON {
 		$declaration_block = array_reduce(
 			$declarations,
 			static function ( $carry, $element ) {
-				return $carry .= $element['name'] . ': ' . $element['value'] . ';'; },
+				$value = $element['value'];
+
+				if ( is_numeric( $value ) ) {
+					$value = (string) $value;
+				}
+
+				if ( ! is_string( $value ) ) {
+					return $carry;
+				}
+
+				return $carry .= $element['name'] . ': ' . $value . ';';
+			},
 			''
 		);
 
@@ -2557,10 +2570,6 @@ class WP_Theme_JSON {
 					'6.1.0'
 				);
 			}
-		}
-
-		if ( is_array( $value ) ) {
-			return $value;
 		}
 
 		return $value;
@@ -3545,7 +3554,7 @@ class WP_Theme_JSON {
 	 * @param array      $theme_json The theme.json like structure to inspect.
 	 * @param array      $path       Path to inspect.
 	 * @param bool|array $override   Data to compute whether to override the preset.
-	 * @return bool
+	 * @return bool|null True if the preset should override the defaults, false if not. Null if the override parameter is invalid.
 	 */
 	protected static function should_override_preset( $theme_json, $path, $override ) {
 		_deprecated_function( __METHOD__, '6.0.0', 'get_metadata_boolean' );
@@ -3580,6 +3589,8 @@ class WP_Theme_JSON {
 
 			return true;
 		}
+
+		return null;
 	}
 
 	/**
@@ -4268,7 +4279,7 @@ class WP_Theme_JSON {
 	 *                   generated in the constructor and merge methods instead
 	 *                   of manually after instantiation.
 	 *
-	 * @return null|void
+	 * @return void
 	 */
 	public function set_spacing_sizes() {
 		_deprecated_function( __METHOD__, '6.6.0' );
@@ -4297,12 +4308,12 @@ class WP_Theme_JSON {
 					E_USER_NOTICE
 				);
 			}
-			return null;
+			return;
 		}
 
 		// If theme authors want to prevent the generation of the core spacing scale they can set their theme.json spacingScale.steps to 0.
 		if ( 0 === $spacing_scale['steps'] ) {
-			return null;
+			return;
 		}
 
 		$spacing_sizes = static::compute_spacing_sizes( $spacing_scale );

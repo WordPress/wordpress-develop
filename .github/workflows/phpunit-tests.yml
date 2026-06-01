@@ -66,7 +66,9 @@ jobs:
     uses: ./.github/workflows/reusable-phpunit-tests-v3.yml
     permissions:
       contents: read
-    secrets: inherit
+    secrets:
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+      WPT_REPORT_API_KEY: ${{ secrets.WPT_REPORT_API_KEY }}
     if: ${{ startsWith( github.repository, 'WordPress/' ) && ( github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' ) }}
     strategy:
       fail-fast: false
@@ -74,7 +76,7 @@ jobs:
         os: [ ubuntu-24.04 ]
         php: [ '7.4', '8.0', '8.1', '8.2', '8.3', '8.4', '8.5' ]
         db-type: [ 'mysql' ]
-        db-version: [ '5.7', '8.0', '8.4' ]
+        db-version: [ '5.7', '8.0', '8.4', '9.7' ]
         tests-domain: [ 'example.org' ]
         multisite: [ false, true ]
         memcached: [ false ]
@@ -143,7 +145,9 @@ jobs:
     uses: ./.github/workflows/reusable-phpunit-tests-v3.yml
     permissions:
       contents: read
-    secrets: inherit
+    secrets:
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+      WPT_REPORT_API_KEY: ${{ secrets.WPT_REPORT_API_KEY }}
     if: ${{ startsWith( github.repository, 'WordPress/' ) && ( github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' ) }}
     strategy:
       fail-fast: false
@@ -177,7 +181,7 @@ jobs:
       multisite: ${{ matrix.multisite }}
       memcached: ${{ matrix.memcached }}
       phpunit-config: ${{ matrix.multisite && 'tests/phpunit/multisite.xml' || 'phpunit.xml.dist' }}
-      report: ${{ false }}
+      report: false
 
   #
   # Creates PHPUnit test jobs to test MariaDB and MySQL innovation releases.
@@ -195,7 +199,9 @@ jobs:
     uses: ./.github/workflows/reusable-phpunit-tests-v3.yml
     permissions:
       contents: read
-    secrets: inherit
+    secrets:
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+      WPT_REPORT_API_KEY: ${{ secrets.WPT_REPORT_API_KEY }}
     if: ${{ startsWith( github.repository, 'WordPress/' ) && ( github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' ) }}
     strategy:
       fail-fast: false
@@ -203,17 +209,15 @@ jobs:
         os: [ ubuntu-24.04 ]
         php: [ '7.4', '8.0', '8.1', '8.2', '8.3', '8.4', '8.5' ]
         db-type: [ 'mysql', 'mariadb' ]
-        db-version: [ '9.5', '12.0' ]
+        db-version: [ '12.1' ]
         multisite: [ false, true ]
         memcached: [ false ]
         db-innovation: [ true ]
 
         exclude:
           # Exclude version combinations that don't exist.
-          - db-type: 'mariadb'
-            db-version: '9.5'
           - db-type: 'mysql'
-            db-version: '12.0'
+            db-version: '12.1'
     with:
       os: ${{ matrix.os }}
       php: ${{ matrix.php }}
@@ -223,7 +227,7 @@ jobs:
       multisite: ${{ matrix.multisite }}
       memcached: ${{ matrix.memcached }}
       phpunit-config: ${{ matrix.multisite && 'tests/phpunit/multisite.xml' || 'phpunit.xml.dist' }}
-      report: ${{ false }}
+      report: false
 
   #
   # Runs the HTML API test group.
@@ -238,7 +242,9 @@ jobs:
     uses: ./.github/workflows/reusable-phpunit-tests-v3.yml
     permissions:
       contents: read
-    secrets: inherit
+    secrets:
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+      WPT_REPORT_API_KEY: ${{ secrets.WPT_REPORT_API_KEY }}
     if: ${{ startsWith( github.repository, 'WordPress/' ) && ( github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' ) }}
     strategy:
       fail-fast: false
@@ -267,20 +273,22 @@ jobs:
     uses: ./.github/workflows/reusable-phpunit-tests-v3.yml
     permissions:
       contents: read
-    secrets: inherit
+    secrets:
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+      WPT_REPORT_API_KEY: ${{ secrets.WPT_REPORT_API_KEY }}
     if: ${{ ! startsWith( github.repository, 'WordPress/' ) && github.event_name == 'pull_request' }}
     strategy:
       fail-fast: false
       matrix:
         php: [ '7.4', '8.4' ]
-        db-version: [ '8.4', '11.8' ]
+        db-version: [ '9.7', '11.8' ]
         db-type: [ 'mysql', 'mariadb' ]
         multisite: [ false ]
 
         include:
           # Include one multisite job for each database type.
           - php: '8.4'
-            db-version: '8.4'
+            db-version: '9.7'
             db-type: 'mysql'
             multisite: true
           - php: '8.4'
@@ -289,13 +297,13 @@ jobs:
             multisite: true
           # Test with memcached.
           - php: '8.4'
-            db-version: '8.4'
+            db-version: '9.7'
             db-type: 'mysql'
             multisite: true
             memcached: true
           # Run specific test groups once.
           - php: '8.4'
-            db-version: '8.4'
+            db-version: '9.7'
             db-type: 'mysql'
             phpunit-test-groups: 'html-api-html5lib-tests'
 
@@ -304,7 +312,7 @@ jobs:
           - db-type: 'mysql'
             db-version: '11.8'
           - db-type: 'mariadb'
-            db-version: '8.4'
+            db-version: '9.7'
 
     with:
       php: ${{ matrix.php }}
