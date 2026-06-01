@@ -240,7 +240,10 @@ jobs:
         run: |
           npm run env:cli -- language core install de_DE --path="/var/www/${LOCAL_DIR}"
           npm run env:cli -- language plugin install de_DE --all --path="/var/www/${LOCAL_DIR}"
-          npm run env:cli -- language theme install de_DE --all --path="/var/www/${LOCAL_DIR}"
+          npm run env:cli -- language theme install twentytwentyone de_DE --path="/var/www/${LOCAL_DIR}"
+          npm run env:cli -- language theme install twentytwentythree de_DE --path="/var/www/${LOCAL_DIR}"
+          npm run env:cli -- language theme install twentytwentyfour de_DE --path="/var/www/${LOCAL_DIR}"
+          npm run env:cli -- language theme install twentytwentyfive de_DE --path="/var/www/${LOCAL_DIR}"
 
       # Prevent background update checks from impacting test stability.
       - name: Disable external HTTP requests
