@@ -179,6 +179,8 @@ class WP_Sitemaps {
 			return;
 		}
 
+		do_action( 'wp_doing_sitemaps' );
+
 		// Render stylesheet if this is stylesheet route.
 		if ( $stylesheet_type ) {
 			$stylesheet = new WP_Sitemaps_Stylesheet();
