@@ -3144,11 +3144,16 @@ function wp_check_filetype_and_ext( $file, $filename, $mimes = null ) {
 					'image/tiff'          => 'tif',
 					'image/webp'          => 'webp',
 					'image/avif'          => 'avif',
-
+					/*
+					 * In theory there are/should be file extensions that correspond to the
+					 * mime types: .heif, .heics and .heifs. However it seems that HEIC images
+					 * with any of the mime types commonly have a .heic file extension.
+					 * Seems keeping the status quo here is best for compatibility.
+					 */
 					'image/heic'          => 'heic',
-					'image/heif'          => 'heif',
-					'image/heic-sequence' => 'heics',
-					'image/heif-sequence' => 'heifs',
+					'image/heif'          => 'heic',
+					'image/heic-sequence' => 'heic',
+					'image/heif-sequence' => 'heic',
 				)
 			);
 
