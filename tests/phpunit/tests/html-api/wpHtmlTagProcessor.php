@@ -1523,11 +1523,11 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 		$this->assertSame(
 			'<div  id="first"><span class="not-main bold with-border" id="second">Text</span></div>',
 			$processor->get_updated_html(),
-			'Updated HTML does not reflect class attribute removed via subesequent remove_class() calls'
+			'Updated HTML does not reflect class attribute removed via subsequent remove_class() calls'
 		);
 		$this->assertNull(
 			$processor->get_attribute( 'class' ),
-			"get_attribute( 'class' ) did not return null for class attribute removed via subesequent remove_class() calls"
+			"get_attribute( 'class' ) did not return null for class attribute removed via subsequent remove_class() calls"
 		);
 	}
 
