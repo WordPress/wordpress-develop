@@ -2525,7 +2525,7 @@ class WP_HTML_Tag_Processor {
 		 * replacement must be made before all others which follow it
 		 * at later string indices in the input document.
 		 *
-		 * Sorting avoid making out-of-order replacements which
+		 * Sorting avoids making out-of-order replacements which
 		 * can lead to mangled output, partially-duplicated
 		 * attributes, and overwritten attributes.
 		 */
