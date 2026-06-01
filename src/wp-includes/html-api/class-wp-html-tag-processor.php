@@ -298,7 +298,7 @@
  *    closing the SCRIPT from inside a JavaScript string. E.g. `console.log( '</script>' )`.
  *  - `TITLE` and `TEXTAREA` whose contents are treated as plaintext and then any
  *    character references are decoded. E.g. `1 &lt; 2 < 3` becomes `1 < 2 < 3`.
- *  - `IFRAME`, `NOSCRIPT`, `NOEMBED`, `NOFRAME`, `STYLE` whose contents are treated as
+ *  - `IFRAME`, `NOEMBED`, `NOFRAMES`, `STYLE` whose contents are treated as
  *    raw plaintext and left as-is. E.g. `1 &lt; 2 < 3` remains `1 &lt; 2 < 3`.
  *
  * #### Other tokens with modifiable text.
@@ -614,12 +614,12 @@ class WP_HTML_Tag_Processor {
 	 * Example:
 	 *
 	 *     <div id="test">...
-	 *     012345678901234
-	 *     - token length is 14 - 0 = 14
+	 *     0123456789012345
+	 *     - token length is 15 - 0 = 15
 	 *
 	 *     a <!-- comment --> is a token.
 	 *     0123456789 123456789 123456789
-	 *     - token length is 17 - 2 = 15
+	 *     - token length is 18 - 2 = 16
 	 *
 	 * @since 6.5.0
 	 *
@@ -926,8 +926,6 @@ class WP_HTML_Tag_Processor {
 	 *  - a DOCTYPE declaration.
 	 *  - a processing instruction, e.g. `<?xml version="1.0" ?>`.
 	 *
-	 * The Tag Processor currently only supports the tag token.
-	 *
 	 * @since 6.5.0
 	 * @since 6.7.0 Recognizes CDATA sections within foreign content.
 	 *
@@ -1149,7 +1147,7 @@ class WP_HTML_Tag_Processor {
 	 * Example:
 	 *
 	 *     $processor = new WP_HTML_Tag_Processor( '<input type="text" value="Th' );
-	 *     false      === $processor->get_next_tag();
+	 *     false      === $processor->next_tag();
 	 *     true       === $processor->paused_at_incomplete_token();
 	 *
 	 * @since 6.5.0
@@ -3555,7 +3553,7 @@ class WP_HTML_Tag_Processor {
 	 *     true  === $processor->next_token();                   // Text is "Apples & Oranges".
 	 *     false === $processor->subdivide_text_appropriately();
 	 *
-	 *     $processor = new WP_HTML_Tag_Processor( "&#x13; \r\n\tMore" );
+	 *     $processor = new WP_HTML_Tag_Processor( "&#xD; \r\n\tMore" );
 	 *     true  === $processor->next_token();                   // Text is "␤ ␤␉More".
 	 *     true  === $processor->subdivide_text_appropriately(); // Text is "␤ ␤␉".
 	 *     true  === $processor->next_token();                   // Text is "More".
