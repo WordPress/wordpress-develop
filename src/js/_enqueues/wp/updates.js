@@ -2515,6 +2515,10 @@
 			} else if ( 'themes' === pagenow || 'themes-network' === pagenow ) {
 				if ( 'update-theme' === job.action ) {
 					$message = $( '[data-slug="' + job.data.slug + '"]' ).find( '.update-message' );
+
+					if ( 'themes' === pagenow ) {
+						$message = $message.add( $( '#update-theme' ).closest( '.notice' ) );
+					}
 				} else if ( 'delete-theme' === job.action && 'themes-network' === pagenow ) {
 					$message = $( '[data-slug="' + job.data.slug + '"]' ).find( '.row-actions a.delete' );
 				} else if ( 'delete-theme' === job.action && 'themes' === pagenow ) {
