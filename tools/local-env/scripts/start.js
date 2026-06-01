@@ -5,6 +5,12 @@ const dotenvExpand = require( 'dotenv-expand' );
 const { execSync, spawnSync } = require( 'child_process' );
 const local_env_utils = require( './utils' );
 const { constants, copyFile } = require( 'node:fs' );
+const RETRYABLE_DOCKER_PULL_ERRORS = [
+	'context deadline exceeded',
+	'Client.Timeout exceeded while awaiting headers',
+	'request canceled while waiting for connection',
+];
+const MAX_DOCKER_START_ATTEMPTS = 3;
 
 // Copy the default .env file when one is not present.
 copyFile( '.env.example', '.env', constants.COPYFILE_EXCL, () => {
@@ -32,18 +38,46 @@ if ( process.env.LOCAL_PHP_MEMCACHED === 'true' ) {
 	containers.push( 'memcached' );
 }
 
-spawnSync(
-	'docker',
-	[
-		'compose',
-		...composeFiles.map( ( composeFile ) => [ '-f', composeFile ] ).flat(),
-		'up',
-		'--quiet-pull',
-		'-d',
-		...containers,
-	],
-	{ stdio: 'inherit' }
-);
+let dockerUpResult;
+for ( let attempt = 1; attempt <= MAX_DOCKER_START_ATTEMPTS; attempt++ ) {
+	dockerUpResult = spawnSync(
+		'docker',
+		[
+			'compose',
+			...composeFiles.map( ( composeFile ) => [ '-f', composeFile ] ).flat(),
+			'up',
+			'--quiet-pull',
+			'-d',
+			...containers,
+		],
+		{ encoding: 'utf8' }
+	);
+
+	if ( dockerUpResult.stdout ) {
+		process.stdout.write( dockerUpResult.stdout );
+	}
+
+	if ( dockerUpResult.stderr ) {
+		process.stderr.write( dockerUpResult.stderr );
+	}
+
+	if ( dockerUpResult.status === 0 ) {
+		break;
+	}
+
+	const output = `${ dockerUpResult.stdout || '' }\n${ dockerUpResult.stderr || '' }`;
+	const isRetryable = RETRYABLE_DOCKER_PULL_ERRORS.some( ( errorText ) =>
+		output.includes( errorText )
+	);
+
+	if ( ! isRetryable || attempt === MAX_DOCKER_START_ATTEMPTS ) {
+		process.exit( dockerUpResult.status || 1 );
+	}
+
+	console.warn(
+		`Retrying Docker environment startup after transient registry failure (${ attempt }/${ MAX_DOCKER_START_ATTEMPTS })...`
+	);
+}
 
 // If Docker Toolbox is being used, we need to manually forward LOCAL_PORT to the Docker VM.
 if ( process.env.DOCKER_TOOLBOX_INSTALL_PATH ) {
