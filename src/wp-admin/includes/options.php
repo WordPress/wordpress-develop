@@ -51,6 +51,19 @@ function options_general_add_js() {
 			$siteIconPreview.text( title );
 		});
 
+		if ( typeof ClipboardJS !== 'undefined' ) {
+			var copySiteURLClipboard = new ClipboardJS( '.copy-site-url', {
+				text: function( trigger ) {
+					return $( $( trigger ).data( 'clipboard-target' ) ).val();
+				}
+			} );
+
+			copySiteURLClipboard.on( 'success', function( event ) {
+				event.clearSelection();
+				wp.a11y.speak( <?php echo wp_json_encode( __( 'The URL has been copied to your clipboard.' ) ); ?> );
+			} );
+		}
+
 		$( 'input[name="date_format"]' ).on( 'click', function() {
 			if ( 'date_format_custom_radio' !== $(this).attr( 'id' ) )
 				$( 'input[name="date_format_custom"]' ).val( $( this ).val() ).closest( 'fieldset' ).find( '.example' ).text( $( this ).parent( 'label' ).children( '.format-i18n' ).text() );
