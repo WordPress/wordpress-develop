@@ -2737,7 +2737,7 @@ function build_query_vars_from_query_block( $block, $page ) {
 		if ( ! empty( $block->context['query']['excludeCurrent'] ) ) {
 			$current_post_id = get_the_ID();
 			if ( $current_post_id ) {
-				$query['post__not_in'] = array_merge( $query['post__not_in'], array( $current_post_id ) );
+				$query['post__not_in'][] = $current_post_id;
 			}
 		}
 		if (
