@@ -1153,7 +1153,8 @@ function wp_admin_bar_comments_menu( $wp_admin_bar ) {
 		number_format_i18n( $awaiting_mod )
 	);
 
-	$icon   = '<span class="ab-icon" aria-hidden="true"></span>';
+	// Show a text label in the toolbar instead of an icon.
+	$icon   = '<span class="ab-label" aria-hidden="true">' . __( 'Comments' ) . '</span> ';
 	$title  = '<span class="ab-label awaiting-mod pending-count count-' . $awaiting_mod . '" aria-hidden="true">' . number_format_i18n( $awaiting_mod ) . '</span>';
 	$title .= '<span class="screen-reader-text comments-in-moderation-text">' . $awaiting_text . '</span>';
 
@@ -1277,7 +1278,8 @@ function wp_admin_bar_updates_menu( $wp_admin_bar ) {
 		number_format_i18n( $update_data['counts']['total'] )
 	);
 
-	$icon   = '<span class="ab-icon" aria-hidden="true"></span>';
+	// Show a text label in the toolbar instead of an icon.
+	$icon   = '<span class="ab-label" aria-hidden="true">' . __( 'Updates' ) . '</span> ';
 	$title  = '<span class="ab-label" aria-hidden="true">' . number_format_i18n( $update_data['counts']['total'] ) . '</span>';
 	$title .= '<span class="screen-reader-text updates-available-text">' . $updates_text . '</span>';
 

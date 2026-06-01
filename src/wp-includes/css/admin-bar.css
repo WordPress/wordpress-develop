@@ -716,6 +716,45 @@ body .commands-command-menu {
 	top: 4px;
 }
 
+/*
+ * Site-action items: show text labels instead of icons.
+ *
+ * The mobile clones added by wp_admin_bar_duplicate_shortcut_menus() are
+ * prefixed with `mobile-site-shortcut-`, so each per-id rule has a matching
+ * clone selector. `search` is not cloned, so it has no clone counterpart.
+ */
+#wpadminbar #wp-admin-bar-edit > .ab-item::before,
+#wpadminbar #wp-admin-bar-mobile-site-shortcut-edit > .ab-item::before,
+#wpadminbar #wp-admin-bar-site-editor > .ab-item::before,
+#wpadminbar #wp-admin-bar-mobile-site-shortcut-site-editor > .ab-item::before,
+#wpadminbar #wp-admin-bar-customize > .ab-item::before,
+#wpadminbar #wp-admin-bar-mobile-site-shortcut-customize > .ab-item::before,
+#wpadminbar #wp-admin-bar-view > .ab-item::before,
+#wpadminbar #wp-admin-bar-view-site > .ab-item::before,
+#wpadminbar #wp-admin-bar-new-content .ab-icon::before,
+#wpadminbar #wp-admin-bar-mobile-site-shortcut-new-content .ab-icon::before,
+#wpadminbar #wp-admin-bar-search .ab-icon::before {
+	content: none !important;
+}
+
+#wpadminbar #wp-admin-bar-new-content .ab-icon,
+#wpadminbar #wp-admin-bar-mobile-site-shortcut-new-content .ab-icon,
+#wpadminbar #wp-admin-bar-search .ab-icon {
+	display: none !important;
+	width: 0 !important;
+}
+
+#wpadminbar #wp-admin-bar-edit > .ab-item,
+#wpadminbar #wp-admin-bar-mobile-site-shortcut-edit > .ab-item,
+#wpadminbar #wp-admin-bar-site-editor > .ab-item,
+#wpadminbar #wp-admin-bar-mobile-site-shortcut-site-editor > .ab-item,
+#wpadminbar #wp-admin-bar-customize > .ab-item,
+#wpadminbar #wp-admin-bar-mobile-site-shortcut-customize > .ab-item,
+#wpadminbar #wp-admin-bar-view > .ab-item,
+#wpadminbar #wp-admin-bar-view-site > .ab-item {
+	padding-left: 10px !important;
+}
+
 /**
  * Search
  */
