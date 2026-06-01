@@ -39,7 +39,13 @@
 }
 
 #dashboard-widgets-wrap {
-	overflow: hidden;
+	/*
+	 * Use flow-root to contain the floated postbox columns without clipping.
+	 * `overflow: hidden` would clip the jQuery UI Sortable drag helper when it
+	 * leaves the wrap bounds (e.g. while scroll-dragging near the edges),
+	 * making the drop zone glitch or disappear.
+	 */
+	display: flow-root;
 	margin: 0 -8px;
 }
 
@@ -87,13 +93,13 @@
 
 #dashboard-widgets .postbox-container .empty-container:after {
 	content: attr(data-emptystring);
-	margin: auto;
 	position: absolute;
-	top: 50%;
+	top: 0;
 	left: 0;
 	right: 0;
-	transform: translateY( -50% );
-	padding: 0 2em;
+	/* Keep the hint near the top of the drop zone instead of floating it to the
+	   vertical center of a tall empty column. */
+	padding: 32px 2em;
 	text-align: center;
 	color: #646970;
 	font-size: 16px;
