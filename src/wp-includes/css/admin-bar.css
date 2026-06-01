@@ -687,6 +687,8 @@ html:lang(he-il) .rtl #wpadminbar * {
 }
 
 #wpadminbar #wp-admin-bar-command-palette .ab-icon {
+	/* Override the Gutenberg command-palette inline style that hides the icon on desktop. */
+	display: block !important;
 	transform: scaleX(-1);
 }
 
