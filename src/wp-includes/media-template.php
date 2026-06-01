@@ -622,7 +622,12 @@ function wp_print_media_templates() {
 						<# } #>
 					</div>
 					<div class="filename">
-						<div>{{ data.filename }}</div>
+						<div>
+							{{ data.filename }}
+							<# if ( data.filesizeHumanReadable ) { #>
+								<span class="attachment-file-size">{{ data.filesizeHumanReadable }}</span>
+							<# } #>
+						</div>
 					</div>
 				<# } #>
 			</div>
