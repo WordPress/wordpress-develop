@@ -342,9 +342,9 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 	 *
 	 * @param string $filename Path to `.dat` file with test cases.
 	 *
-	 * @return array|Generator Test cases as 4-element arrays of line number,
-	 *                         HTML fragment context element, HTML, and the
-	 *                         DOM structure it represents.
+	 * @return Generator Test cases as 4-element arrays of line number,
+	 *                   HTML fragment context element, HTML, and the
+	 *                   DOM structure it represents.
 	 */
 	public static function parse_html5_dat_testfile( $filename ) {
 		$handle = fopen( $filename, 'r', false );
