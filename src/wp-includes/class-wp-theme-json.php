@@ -3027,47 +3027,6 @@ class WP_Theme_JSON {
 						}
 					}
 				}
-
-				// Handle custom states (e.g. '@current' for navigation).
-				if ( isset( static::VALID_BLOCK_CUSTOM_STATES[ $name ] ) ) {
-					foreach ( static::VALID_BLOCK_CUSTOM_STATES[ $name ] as $custom_state ) {
-						if (
-							isset( $theme_json['styles']['blocks'][ $name ][ $custom_state ] ) &&
-							isset( $selectors[ $name ]['states'][ $custom_state ] )
-						) {
-							$custom_css_selector = $selectors[ $name ]['states'][ $custom_state ];
-							$nodes[]             = array(
-								'name'       => $name,
-								'path'       => array( 'styles', 'blocks', $name, $custom_state ),
-								'selector'   => $custom_css_selector,
-								'selectors'  => $feature_selectors,
-								'elements'   => $selectors[ $name ]['elements'] ?? array(),
-								'duotone'    => $duotone_selector,
-								'variations' => $variation_selectors,
-								'css'        => $custom_css_selector,
-							);
-
-							// Sub-pseudo-selectors within the custom state.
-							if ( isset( static::VALID_BLOCK_PSEUDO_SELECTORS[ $name ] ) ) {
-								foreach ( static::VALID_BLOCK_PSEUDO_SELECTORS[ $name ] as $pseudo ) {
-									if ( isset( $theme_json['styles']['blocks'][ $name ][ $custom_state ][ $pseudo ] ) ) {
-										$compound_css_selector = static::append_to_selector( $custom_css_selector, $pseudo );
-										$nodes[]               = array(
-											'name'       => $name,
-											'path'       => array( 'styles', 'blocks', $name, $custom_state, $pseudo ),
-											'selector'   => $compound_css_selector,
-											'selectors'  => $feature_selectors,
-											'elements'   => $selectors[ $name ]['elements'] ?? array(),
-											'duotone'    => $duotone_selector,
-											'variations' => $variation_selectors,
-											'css'        => $compound_css_selector,
-										);
-									}
-								}
-							}
-						}
-					}
-				}
 			}
 			if ( isset( $theme_json['styles']['blocks'][ $name ]['elements'] ) ) {
 				foreach ( $theme_json['styles']['blocks'][ $name ]['elements'] as $element => $node ) {
@@ -3259,7 +3218,6 @@ class WP_Theme_JSON {
 					// Process feature-level declarations for this breakpoint.
 					$breakpoint_feature_declarations = static::get_feature_declarations_for_node( $block_metadata, $breakpoint_node );
 					$breakpoint_feature_declarations = static::update_paragraph_text_indent_selector( $breakpoint_feature_declarations, $settings, $block_name );
-					$breakpoint_feature_declarations = static::update_button_width_declarations( $breakpoint_feature_declarations, $settings );
 					foreach ( $breakpoint_feature_declarations as $feature_selector => $feature_decl ) {
 						$clean_feature_selector = preg_replace( '/,\s+/', ',', $feature_selector );
 						$shortened_selector     = str_replace( $block_metadata['selector'], '', $clean_feature_selector );
@@ -3556,6 +3514,9 @@ class WP_Theme_JSON {
 			}
 			if ( isset( $style_variation_custom_css[ $style_variation_selector ] ) ) {
 				$block_rules .= $style_variation_custom_css[ $style_variation_selector ];
+			}
+			if ( isset( $style_variation_responsive_css[ $style_variation_selector ] ) ) {
+				$block_rules .= $style_variation_responsive_css[ $style_variation_selector ];
 			}
 		}
 
