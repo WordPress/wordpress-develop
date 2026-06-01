@@ -1073,7 +1073,7 @@ class WP_HTML_Tag_Processor {
 		 *
 		 * Preserve the opening tag pointers, as these will be overwritten
 		 * when finding the closing tag. They will be reset after finding
-		 * the closing to tag to point to the opening of the special atomic
+		 * the closing tag to point to the opening of the special atomic
 		 * tag sequence.
 		 */
 		$tag_name_starts_at   = $this->tag_name_starts_at;
