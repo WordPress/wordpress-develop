@@ -168,7 +168,7 @@ class WP_HTML_Open_Elements {
 	 *
 	 * @since 6.4.0
 	 *
-	 * @return int How many node are in the stack of open elements.
+	 * @return int How many nodes are in the stack of open elements.
 	 */
 	public function count(): int {
 		return count( $this->stack );
