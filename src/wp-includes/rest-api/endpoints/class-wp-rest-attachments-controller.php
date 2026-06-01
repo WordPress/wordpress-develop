@@ -2348,7 +2348,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 				continue;
 			}
 
-			if ( 'original' === $image_size ) {
+			if ( 'original' === $image_size && isset( $sub_size['file'] ) ) {
 				$metadata['original_image'] = $sub_size['file'];
 			} elseif ( 'scaled' === $image_size ) {
 				if ( ! empty( $sub_size['original_image'] ) ) {
