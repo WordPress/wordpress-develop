@@ -53,56 +53,6 @@ class WP_HTML_Open_Elements {
 	private $has_p_in_button_scope = false;
 
 	/**
-	 * A function that will be called when an item is popped off the stack of open elements.
-	 *
-	 * The function will be called with the popped item as its argument.
-	 *
-	 * @since 6.6.0
-	 *
-	 * @var Closure|null
-	 */
-	private $pop_handler = null;
-
-	/**
-	 * A function that will be called when an item is pushed onto the stack of open elements.
-	 *
-	 * The function will be called with the pushed item as its argument.
-	 *
-	 * @since 6.6.0
-	 *
-	 * @var Closure|null
-	 */
-	private $push_handler = null;
-
-	/**
-	 * Sets a pop handler that will be called when an item is popped off the stack of
-	 * open elements.
-	 *
-	 * The function will be called with the pushed item as its argument.
-	 *
-	 * @since 6.6.0
-	 *
-	 * @param Closure $handler The handler function.
-	 */
-	public function set_pop_handler( Closure $handler ): void {
-		$this->pop_handler = $handler;
-	}
-
-	/**
-	 * Sets a push handler that will be called when an item is pushed onto the stack of
-	 * open elements.
-	 *
-	 * The function will be called with the pushed item as its argument.
-	 *
-	 * @since 6.6.0
-	 *
-	 * @param Closure $handler The handler function.
-	 */
-	public function set_push_handler( Closure $handler ): void {
-		$this->push_handler = $handler;
-	}
-
-	/**
 	 * Returns the name of the node at the nth position on the stack
 	 * of open elements, or `null` if no such position exists.
 	 *
@@ -513,16 +463,16 @@ class WP_HTML_Open_Elements {
 	 *
 	 * @see https://html.spec.whatwg.org/#stack-of-open-elements
 	 *
-	 * @return bool Whether a node was popped off of the stack.
+	 * @return WP_HTML_Token|null The node that was popped off of the stack, or null if the stack was empty.
 	 */
-	public function pop(): bool {
+	public function pop(): ?WP_HTML_Token {
 		$item = array_pop( $this->stack );
 		if ( null === $item ) {
-			return false;
+			return null;
 		}
 
 		$this->after_element_pop( $item );
-		return true;
+		return $item;
 	}
 
 	/**
@@ -533,11 +483,16 @@ class WP_HTML_Open_Elements {
 	 * @see WP_HTML_Open_Elements::pop
 	 *
 	 * @param string $html_tag_name Name of tag that needs to be popped off of the stack of open elements.
-	 * @return bool Whether a tag of the given name was found and popped off of the stack of open elements.
+	 * @return WP_HTML_Token[] The nodes that were popped off of the stack of open elements.
 	 */
-	public function pop_until( string $html_tag_name ): bool {
+	public function pop_until( string $html_tag_name ): array {
+		$popped = array();
+
 		foreach ( $this->walk_up() as $item ) {
-			$this->pop();
+			$popped_item = $this->pop();
+			if ( null !== $popped_item ) {
+				$popped[] = $popped_item;
+			}
 
 			if ( 'html' !== $item->namespace ) {
 				continue;
@@ -547,15 +502,15 @@ class WP_HTML_Open_Elements {
 				'(internal: H1 through H6 - do not use)' === $html_tag_name &&
 				in_array( $item->node_name, array( 'H1', 'H2', 'H3', 'H4', 'H5', 'H6' ), true )
 			) {
-				return true;
+				return $popped;
 			}
 
 			if ( $html_tag_name === $item->node_name ) {
-				return true;
+				return $popped;
 			}
 		}
 
-		return false;
+		return $popped;
 	}
 
 	/**
@@ -566,10 +521,12 @@ class WP_HTML_Open_Elements {
 	 * @see https://html.spec.whatwg.org/#stack-of-open-elements
 	 *
 	 * @param WP_HTML_Token $stack_item Item to add onto stack.
+	 * @return WP_HTML_Token The node that was pushed onto the stack of open elements.
 	 */
-	public function push( WP_HTML_Token $stack_item ): void {
+	public function push( WP_HTML_Token $stack_item ): WP_HTML_Token {
 		$this->stack[] = $stack_item;
 		$this->after_element_push( $stack_item );
+		return $stack_item;
 	}
 
 	/**
@@ -578,9 +535,9 @@ class WP_HTML_Open_Elements {
 	 * @since 6.4.0
 	 *
 	 * @param WP_HTML_Token $token The node to remove from the stack of open elements.
-	 * @return bool Whether the node was found and removed from the stack of open elements.
+	 * @return WP_HTML_Token|null The node that was removed from the stack of open elements, or null if it was not found.
 	 */
-	public function remove_node( WP_HTML_Token $token ): bool {
+	public function remove_node( WP_HTML_Token $token ): ?WP_HTML_Token {
 		foreach ( $this->walk_up() as $position_from_end => $item ) {
 			if ( $token->bookmark_name !== $item->bookmark_name ) {
 				continue;
@@ -589,10 +546,10 @@ class WP_HTML_Open_Elements {
 			$position_from_start = $this->count() - $position_from_end - 1;
 			array_splice( $this->stack, $position_from_start, 1 );
 			$this->after_element_pop( $item );
-			return true;
+			return $item;
 		}
 
-		return false;
+		return null;
 	}
 
 
@@ -714,10 +671,6 @@ class WP_HTML_Open_Elements {
 				$this->has_p_in_button_scope = true;
 				break;
 		}
-
-		if ( null !== $this->push_handler ) {
-			call_user_func( $this->push_handler, $item );
-		}
 	}
 
 	/**
@@ -766,10 +719,6 @@ class WP_HTML_Open_Elements {
 				$this->has_p_in_button_scope = $this->has_element_in_button_scope( 'P' );
 				break;
 		}
-
-		if ( null !== $this->pop_handler ) {
-			call_user_func( $this->pop_handler, $item );
-		}
 	}
 
 	/**
@@ -782,8 +731,12 @@ class WP_HTML_Open_Elements {
 	 * @see https://html.spec.whatwg.org/multipage/parsing.html#clear-the-stack-back-to-a-table-context
 	 *
 	 * @since 6.7.0
+	 *
+	 * @return WP_HTML_Token[] The nodes that were popped off of the stack of open elements.
 	 */
-	public function clear_to_table_context(): void {
+	public function clear_to_table_context(): array {
+		$popped = array();
+
 		foreach ( $this->walk_up() as $item ) {
 			if (
 				'TABLE' === $item->node_name ||
@@ -792,8 +745,13 @@ class WP_HTML_Open_Elements {
 			) {
 				break;
 			}
-			$this->pop();
+			$popped_item = $this->pop();
+			if ( null !== $popped_item ) {
+				$popped[] = $popped_item;
+			}
 		}
+
+		return $popped;
 	}
 
 	/**
@@ -806,8 +764,12 @@ class WP_HTML_Open_Elements {
 	 * @see https://html.spec.whatwg.org/multipage/parsing.html#clear-the-stack-back-to-a-table-body-context
 	 *
 	 * @since 6.7.0
+	 *
+	 * @return WP_HTML_Token[] The nodes that were popped off of the stack of open elements.
 	 */
-	public function clear_to_table_body_context(): void {
+	public function clear_to_table_body_context(): array {
+		$popped = array();
+
 		foreach ( $this->walk_up() as $item ) {
 			if (
 				'TBODY' === $item->node_name ||
@@ -818,8 +780,13 @@ class WP_HTML_Open_Elements {
 			) {
 				break;
 			}
-			$this->pop();
+			$popped_item = $this->pop();
+			if ( null !== $popped_item ) {
+				$popped[] = $popped_item;
+			}
 		}
+
+		return $popped;
 	}
 
 	/**
@@ -832,8 +799,12 @@ class WP_HTML_Open_Elements {
 	 * @see https://html.spec.whatwg.org/multipage/parsing.html#clear-the-stack-back-to-a-table-row-context
 	 *
 	 * @since 6.7.0
+	 *
+	 * @return WP_HTML_Token[] The nodes that were popped off of the stack of open elements.
 	 */
-	public function clear_to_table_row_context(): void {
+	public function clear_to_table_row_context(): array {
+		$popped = array();
+
 		foreach ( $this->walk_up() as $item ) {
 			if (
 				'TR' === $item->node_name ||
@@ -842,8 +813,13 @@ class WP_HTML_Open_Elements {
 			) {
 				break;
 			}
-			$this->pop();
+			$popped_item = $this->pop();
+			if ( null !== $popped_item ) {
+				$popped[] = $popped_item;
+			}
 		}
+
+		return $popped;
 	}
 
 	/**
