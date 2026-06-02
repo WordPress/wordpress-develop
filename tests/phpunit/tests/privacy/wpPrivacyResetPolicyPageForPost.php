@@ -19,14 +19,14 @@ class Tests_Privacy_WpPrivacyResetPolicyPageForPost extends WP_UnitTestCase {
 	 */
 	private $policy_page_id;
 
-	public function set_up() {
+	public function set_up(): void {
 		parent::set_up();
 
 		$this->policy_page_id = self::factory()->post->create( array( 'post_type' => 'page' ) );
 		update_option( 'wp_page_for_privacy_policy', $this->policy_page_id );
 	}
 
-	public function tear_down() {
+	public function tear_down(): void {
 		delete_option( 'wp_page_for_privacy_policy' );
 		parent::tear_down();
 	}
@@ -36,7 +36,7 @@ class Tests_Privacy_WpPrivacyResetPolicyPageForPost extends WP_UnitTestCase {
 	 *
 	 * @ticket 56694
 	 */
-	public function test_trashing_privacy_policy_page_resets_option() {
+	public function test_trashing_privacy_policy_page_resets_option(): void {
 		wp_trash_post( $this->policy_page_id );
 
 		$this->assertSame( 0, (int) get_option( 'wp_page_for_privacy_policy' ) );
@@ -47,7 +47,7 @@ class Tests_Privacy_WpPrivacyResetPolicyPageForPost extends WP_UnitTestCase {
 	 *
 	 * @ticket 56694
 	 */
-	public function test_deleting_privacy_policy_page_resets_option() {
+	public function test_deleting_privacy_policy_page_resets_option(): void {
 		wp_delete_post( $this->policy_page_id, true );
 
 		$this->assertSame( 0, (int) get_option( 'wp_page_for_privacy_policy' ) );
@@ -58,7 +58,7 @@ class Tests_Privacy_WpPrivacyResetPolicyPageForPost extends WP_UnitTestCase {
 	 *
 	 * @ticket 56694
 	 */
-	public function test_trashing_a_different_page_does_not_reset_option() {
+	public function test_trashing_a_different_page_does_not_reset_option(): void {
 		$other_page_id = self::factory()->post->create( array( 'post_type' => 'page' ) );
 		wp_trash_post( $other_page_id );
 
@@ -74,7 +74,7 @@ class Tests_Privacy_WpPrivacyResetPolicyPageForPost extends WP_UnitTestCase {
 	 *
 	 * @ticket 56694
 	 */
-	public function test_deleting_non_page_post_type_does_not_reset_option() {
+	public function test_deleting_non_page_post_type_does_not_reset_option(): void {
 		$post_id = self::factory()->post->create( array( 'post_type' => 'post' ) );
 		wp_delete_post( $post_id, true );
 
@@ -93,7 +93,7 @@ class Tests_Privacy_WpPrivacyResetPolicyPageForPost extends WP_UnitTestCase {
 	 *
 	 * @covers WP_Privacy_Policy_Content::notice
 	 */
-	public function test_notice_self_heals_when_policy_page_does_not_exist() {
+	public function test_notice_self_heals_when_policy_page_does_not_exist(): void {
 		require_once ABSPATH . 'wp-admin/includes/class-wp-privacy-policy-content.php';
 
 		update_option( 'wp_page_for_privacy_policy', 99999 );
@@ -121,7 +121,7 @@ class Tests_Privacy_WpPrivacyResetPolicyPageForPost extends WP_UnitTestCase {
 	 *
 	 * @ticket 56694
 	 */
-	public function test_no_update_option_when_policy_page_already_zero() {
+	public function test_no_update_option_when_policy_page_already_zero(): void {
 		update_option( 'wp_page_for_privacy_policy', 0 );
 
 		$call_count = 0;
