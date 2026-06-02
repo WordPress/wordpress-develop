@@ -82,7 +82,6 @@ on:
 
 env:
   LOCAL_PHP: ${{ inputs.php }}-fpm
-  LOCAL_PHP_XDEBUG: false
   LOCAL_DB_TYPE: ${{ inputs.db-type }}
   LOCAL_DB_VERSION: ${{ inputs.db-version }}
   LOCAL_PHP_MEMCACHED: ${{ inputs.memcached }}
