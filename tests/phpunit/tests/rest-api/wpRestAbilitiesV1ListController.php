@@ -1311,16 +1311,20 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test that a draft-04 `required` array and per-property booleans merge without duplicates.
+	 * Test that an existing draft-04 `required` array takes precedence over per-property booleans.
+	 *
+	 * This mirrors rest_validate_object_value_from_schema(), which ignores
+	 * per-property `required` booleans when a draft-04 `required` array is
+	 * present, so the published schema matches what is actually enforced.
 	 *
 	 * @ticket 64955
 	 */
-	public function test_required_draft_04_array_merged_with_booleans(): void {
+	public function test_required_draft_04_array_takes_precedence_over_booleans(): void {
 		$this->register_test_ability(
 			'test/required-mixed',
 			array(
 				'label'               => 'Required Mixed',
-				'description'         => 'Tests merging of a draft-04 array with draft-03 booleans.',
+				'description'         => 'Tests precedence of a draft-04 array over draft-03 booleans.',
 				'category'            => 'general',
 				'input_schema'        => array(
 					'type'       => 'object',
@@ -1351,9 +1355,12 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 
 		$data = $response->get_data();
 
-		// 'title' is listed in the array and flagged via boolean, but not duplicated.
-		$this->assertSameSets( array( 'title', 'content' ), $data['input_schema']['required'] );
-		$this->assertCount( 2, $data['input_schema']['required'] );
+		// The draft-04 array wins: the `content` boolean is ignored, not merged in.
+		$this->assertSame( array( 'title' ), $data['input_schema']['required'] );
+
+		// The per-property booleans are still stripped from the output.
+		$this->assertArrayNotHasKey( 'required', $data['input_schema']['properties']['title'] );
+		$this->assertArrayNotHasKey( 'required', $data['input_schema']['properties']['content'] );
 	}
 
 	/**

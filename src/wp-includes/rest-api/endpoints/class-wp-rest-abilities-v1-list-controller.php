@@ -267,16 +267,24 @@ class WP_REST_Abilities_V1_List_Controller extends WP_REST_Controller {
 
 		// Collect draft-03 per-property `required: true` flags into a draft-04
 		// `required` array of property names on the parent object schema.
+		//
+		// This mirrors rest_validate_object_value_from_schema(), where a draft-04
+		// `required` array takes precedence: when one is present, per-property
+		// booleans are ignored during validation. They are therefore left out of
+		// the array here as well (but still stripped from the output) so the
+		// published schema describes exactly what gets enforced.
 		if ( isset( $schema['properties'] ) && is_array( $schema['properties'] ) ) {
-			$required = ( isset( $schema['required'] ) && is_array( $schema['required'] ) ) ? array_map( 'strval', $schema['required'] ) : array();
+			$has_required_array = isset( $schema['required'] ) && is_array( $schema['required'] );
+			$required           = $has_required_array ? array_map( 'strval', $schema['required'] ) : array();
 			foreach ( $schema['properties'] as $property => &$property_schema ) {
 				if ( $this->is_associative_array( $property_schema ) && isset( $property_schema['required'] ) && is_bool( $property_schema['required'] ) ) {
-					if ( true === $property_schema['required'] ) {
+					if ( ! $has_required_array && true === $property_schema['required'] ) {
 						$required[] = (string) $property;
 					}
 					unset( $property_schema['required'] );
 				}
 			}
+			unset( $property_schema );
 			if ( count( $required ) > 0 ) {
 				$schema['required'] = array_values( array_unique( $required ) );
 			}
