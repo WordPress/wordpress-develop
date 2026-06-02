@@ -177,7 +177,7 @@ class Tests_DE_RTC_REST_Retry_Submit extends WP_Test_REST_TestCase {
 	/**
 	 * @covers ::wp_de_rtc_rest_retry_submit_endpoint
 	 * @covers ::wp_de_rtc_get_retry_submit_acceptance_result
-	 * @covers ::wp_de_rtc_get_repaired_yjs_current_post_snapshot
+	 * @covers ::wp_de_rtc_get_repaired_automerge_current_post_snapshot
 	 */
 	public function test_retry_submit_accepts_read_only_repaired_missing_sync_meta_without_mutating() {
 		$current_content  = '<!-- wp:paragraph --><p>Retry submit missing sync meta.</p><!-- /wp:paragraph -->';

@@ -79,7 +79,7 @@ class Tests_DE_RTC_Recovery_Apply extends WP_UnitTestCase {
 			array(
 				'version' => 22,
 			),
-			'yjs'
+			'automerge'
 		);
 		$plan            = wp_de_rtc_plan_sync_meta_recovery_update( $post_id );
 

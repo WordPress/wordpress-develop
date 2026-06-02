@@ -1,3 +1,3 @@
-[submodule "src/wp-includes/de-rtc/yjs-php"]
-	path = src/wp-includes/de-rtc/yjs-php
-	url = ../../wp-de-php-yjs
+[submodule "src/wp-includes/de-rtc/automerge-php"]
+	path = src/wp-includes/de-rtc/automerge-php
+	url = /home/exouser/code/wp-de-php-automerge-perfopt

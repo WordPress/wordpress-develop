@@ -21,7 +21,7 @@ function wp_de_rtc_get_reason_codes() {
 		'de_rtc_missing_sync_meta'                     => 409,
 		'de_rtc_sync_meta_restored_from_revision'      => 409,
 		'de_rtc_sync_meta_repaired_from_body'          => 409,
-		'de_rtc_sync_meta_empty_yjs_import'            => 409,
+		'de_rtc_sync_meta_empty_automerge_import'            => 409,
 		'de_rtc_sync_meta_unrecoverable'               => 409,
 		'de_rtc_external_content_mismatch'             => 409,
 		'de_rtc_base_version_stale'                    => 409,
@@ -56,7 +56,6 @@ function wp_de_rtc_get_reason_codes() {
 function wp_de_rtc_get_supported_sync_meta_formats() {
 	return array(
 		'diff-match-patch',
-		'yjs',
 		'automerge',
 	);
 }
@@ -446,8 +445,8 @@ function wp_de_rtc_register_rest_routes() {
 							'description' => __( 'Content-free Distributed Editing block identity proof for guarded retry-save.' ),
 							'type'        => 'object',
 						),
-						'yjs_client_update'              => array(
-							'description' => __( 'Native PHP Yjs update evidence for the proposed post content.' ),
+						'automerge_client_update'              => array(
+							'description' => __( 'Native PHP Automerge update evidence for the proposed post content.' ),
 							'type'        => 'object',
 						),
 					),
@@ -880,9 +879,11 @@ function wp_de_rtc_register_rest_routes() {
 }
 add_action( 'rest_api_init', 'wp_de_rtc_register_rest_routes' );
 
-add_filter( 'rest_pre_insert_post', 'wp_de_rtc_rest_pre_insert_yjs_raw_post_content_update', 10, 2 );
-add_filter( 'rest_pre_insert_page', 'wp_de_rtc_rest_pre_insert_yjs_raw_post_content_update', 10, 2 );
-add_filter( 'wp_insert_post_data', 'wp_de_rtc_preserve_yjs_sync_meta_on_post_update', 10, 4 );
+add_filter( 'rest_pre_insert_post', 'wp_de_rtc_rest_pre_insert_stale_base_probe', 5, 2 );
+add_filter( 'rest_pre_insert_page', 'wp_de_rtc_rest_pre_insert_stale_base_probe', 5, 2 );
+add_filter( 'rest_pre_insert_post', 'wp_de_rtc_rest_pre_insert_automerge_raw_post_content_update', 10, 2 );
+add_filter( 'rest_pre_insert_page', 'wp_de_rtc_rest_pre_insert_automerge_raw_post_content_update', 10, 2 );
+add_filter( 'wp_insert_post_data', 'wp_de_rtc_preserve_automerge_sync_meta_on_post_update', 10, 4 );
 add_action( 'wp_loaded', 'wp_de_rtc_schedule_opaque_review_approval_proof_token_audit_cleanup' );
 add_action( 'wp_de_rtc_opaque_review_approval_proof_token_audit_cleanup', 'wp_de_rtc_run_opaque_review_approval_proof_token_audit_cleanup' );
 
@@ -1396,7 +1397,7 @@ function wp_de_rtc_add_block_editor_settings( $editor_settings, $block_editor_co
 		'enabled'                  => $enabled,
 		'retrySaveHandoff'         => $enabled,
 		'riskyBlockReview'         => $enabled,
-		'yjsRawPostContentSave'    => $enabled,
+		'automergeRawPostContentSave'    => $enabled,
 		'initialPresenceRoster'    => $enabled && $post ? wp_de_rtc_get_post_presence_roster( $post ) : wp_de_rtc_get_empty_post_presence_roster(),
 		'presenceStartupPolicy'    => array(
 			'allowAutomaticInitialHeartbeat'        => $enabled,
@@ -2182,6 +2183,36 @@ function wp_de_rtc_get_presence_table_name() {
 }
 
 /**
+ * Returns whether a database table is visible to the current connection.
+ *
+ * WordPress' PHPUnit harness can create custom tables as temporary tables,
+ * which are usable by the connection but not visible through SHOW TABLES.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param string $table_name Database table name.
+ * @return bool Whether the table exists for this connection.
+ */
+function wp_de_rtc_database_table_exists( $table_name ) {
+	global $wpdb;
+
+	$table_name = (string) $table_name;
+	$exists     = $table_name === $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $wpdb->esc_like( $table_name ) ) );
+
+	if ( $exists ) {
+		return true;
+	}
+
+	$table_sql       = '`' . str_replace( '`', '``', $table_name ) . '`';
+	$suppress_errors = $wpdb->suppress_errors( true );
+	$columns         = $wpdb->get_results( "DESCRIBE $table_sql", ARRAY_A );
+	$wpdb->suppress_errors( $suppress_errors );
+
+	return is_array( $columns ) && ! empty( $columns );
+}
+
+/**
  * Returns the bounded cleanup batch limit for presence storage.
  *
  * @since 7.1.0
@@ -2416,8 +2447,8 @@ function wp_de_rtc_presence_selection_contains_forbidden_keys( $value ) {
 		'userlogin',
 		'user_login',
 		'xpath',
-		'yjsupdate',
-		'yjs_update',
+		'automergeupdate',
+		'automerge_update',
 	);
 
 	foreach ( $value as $key => $child ) {
@@ -3143,6 +3174,8 @@ KEY expires_at_gmt (expires_at_gmt)
  * @return array Install result.
  */
 function wp_de_rtc_install_presence_table( $args = array() ) {
+	global $wpdb;
+
 	$schema              = wp_de_rtc_get_presence_storage_schema( $args );
 	$table_exists_before = wp_de_rtc_presence_table_exists();
 
@@ -3150,9 +3183,14 @@ function wp_de_rtc_install_presence_table( $args = array() ) {
 		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 	}
 
-	$db_delta = dbDelta( $schema['create_sql'] );
-
+	$db_delta           = dbDelta( $schema['create_sql'] );
 	$table_exists_after = wp_de_rtc_presence_table_exists();
+	$direct_create      = null;
+
+	if ( ! $table_exists_after ) {
+		$direct_create      = $wpdb->query( $schema['create_sql'] );
+		$table_exists_after = wp_de_rtc_presence_table_exists();
+	}
 
 	if ( $table_exists_after ) {
 		update_option( 'wp_de_rtc_presence_schema_version', $schema['schema_version'] );
@@ -3166,6 +3204,8 @@ function wp_de_rtc_install_presence_table( $args = array() ) {
 		'table_exists_after'                => $table_exists_after,
 		'uses_db_delta'                     => true,
 		'db_delta'                          => $db_delta,
+		'direct_create_attempted'           => null !== $direct_create,
+		'direct_create_result'              => $direct_create,
 		'option_updated'                    => $table_exists_after,
 		'install_triggered_by_explicit_call' => true,
 		'automatic_per_request_install'     => false,
@@ -3295,11 +3335,7 @@ function wp_de_rtc_get_presence_storage_readiness( $args = array() ) {
  * @return bool Whether the table exists.
  */
 function wp_de_rtc_presence_table_exists() {
-	global $wpdb;
-
-	$table_name = wp_de_rtc_get_presence_table_name();
-
-	return $table_name === $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $wpdb->esc_like( $table_name ) ) );
+	return wp_de_rtc_database_table_exists( wp_de_rtc_get_presence_table_name() );
 }
 
 /**
@@ -3573,6 +3609,8 @@ KEY expires_at_gmt (expires_at_gmt)
  * @return array Install result.
  */
 function wp_de_rtc_install_review_items_table() {
+	global $wpdb;
+
 	$schema              = wp_de_rtc_get_review_items_storage_schema();
 	$table_exists_before = wp_de_rtc_review_items_table_exists();
 
@@ -3582,6 +3620,18 @@ function wp_de_rtc_install_review_items_table() {
 
 	$db_delta           = dbDelta( $schema['create_sql'] );
 	$table_exists_after = wp_de_rtc_review_items_table_exists();
+	$direct_create      = null;
+
+	if ( ! $table_exists_after ) {
+		/*
+		 * dbDelta() can no-op on custom proof tables in isolated test
+		 * environments. Review-required proposals must not silently lose their
+		 * bounded queue because of that parser boundary, so fall back to the
+		 * exact schema contract before reporting storage unavailable.
+		 */
+		$direct_create      = $wpdb->query( $schema['create_sql'] );
+		$table_exists_after = wp_de_rtc_review_items_table_exists();
+	}
 
 	if ( $table_exists_after ) {
 		update_option( 'wp_de_rtc_review_items_schema_version', $schema['schema_version'] );
@@ -3595,6 +3645,8 @@ function wp_de_rtc_install_review_items_table() {
 		'table_exists_after'                => $table_exists_after,
 		'uses_db_delta'                     => true,
 		'db_delta'                          => $db_delta,
+		'direct_create_attempted'           => null !== $direct_create,
+		'direct_create_result'              => $direct_create,
 		'option_updated'                    => $table_exists_after,
 		'stores_raw_content_in_post_content' => false,
 		'stored_source_encoding'            => 'base64url',
@@ -3616,11 +3668,7 @@ function wp_de_rtc_install_review_items_table() {
  * @return bool Whether the table exists.
  */
 function wp_de_rtc_review_items_table_exists() {
-	global $wpdb;
-
-	$table_name = wp_de_rtc_get_review_items_table_name();
-
-	return $table_name === $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $wpdb->esc_like( $table_name ) ) );
+	return wp_de_rtc_database_table_exists( wp_de_rtc_get_review_items_table_name() );
 }
 
 /**
@@ -7579,7 +7627,7 @@ function wp_de_rtc_get_post_snapshot_for_distributed_editing( $post ) {
 		return $parsed;
 	}
 
-	$repaired = wp_de_rtc_get_repaired_yjs_current_post_snapshot(
+	$repaired = wp_de_rtc_get_repaired_automerge_current_post_snapshot(
 		$post,
 		$parsed,
 		array(
@@ -8057,7 +8105,7 @@ function wp_de_rtc_rest_retry_save_endpoint( $request ) {
 			'review_approval_proof'              => $request->has_param( 'accepted_review_approval_proof' ) ? $request->get_param( 'accepted_review_approval_proof' ) : $request->get_param( 'review_approval_proof' ),
 			'accepted_fresh_review_decision'     => $request->get_param( 'accepted_fresh_review_decision' ),
 			'block_identity_request_proof'       => $request->get_param( 'block_identity_request_proof' ),
-			'yjs_client_update'                  => $request->get_param( 'yjs_client_update' ),
+			'automerge_client_update'                  => $request->get_param( 'automerge_client_update' ),
 			'post_type_rest_base'                => wp_de_rtc_get_rest_retry_save_request_rest_base( $request ),
 		)
 	);
@@ -13827,7 +13875,7 @@ function wp_de_rtc_get_retry_submit_acceptance_result( $post, $args = array() ) 
 		return $current;
 	}
 
-	$current_external_repair = wp_de_rtc_get_repaired_yjs_current_post_snapshot(
+	$current_external_repair = wp_de_rtc_get_repaired_automerge_current_post_snapshot(
 		$post,
 		$current,
 		array(
@@ -13844,7 +13892,7 @@ function wp_de_rtc_get_retry_submit_acceptance_result( $post, $args = array() ) 
 		 * Retry-submit is still proof-only. This read-only repair keeps its
 		 * version check aligned with the snapshot response and the guarded
 		 * retry-save write boundary, so a user can save after WordPress rebuilds
-		 * missing Yjs metadata from the current body.
+		 * missing Automerge metadata from the current body.
 		 */
 		$current = $current_external_repair;
 	}
@@ -14203,21 +14251,21 @@ function wp_de_rtc_apply_partial_safe_retry_save_plan( $post, $current, $partial
 	}
 
 	$next_sync_meta          = $current['sync_meta'];
-	$partial_yjs_save_result = null;
+	$partial_automerge_save_result = null;
 
-	if ( 'yjs' === $current['sync_meta_format'] ) {
-		$partial_yjs_save_result = wp_de_rtc_get_yjs_retry_save_result(
+	if ( 'automerge' === $current['sync_meta_format'] ) {
+		$partial_automerge_save_result = wp_de_rtc_get_automerge_retry_save_result(
 			$current['content'],
 			$current['content'],
 			$safe_post_content,
 			null
 		);
 
-		if ( is_wp_error( $partial_yjs_save_result ) ) {
-			return $partial_yjs_save_result;
+		if ( is_wp_error( $partial_automerge_save_result ) ) {
+			return $partial_automerge_save_result;
 		}
 
-		$next_sync_meta = wp_de_rtc_apply_yjs_metadata_to_sync_meta( $next_sync_meta, $partial_yjs_save_result, $safe_post_content_hash );
+		$next_sync_meta = wp_de_rtc_apply_automerge_metadata_to_sync_meta( $next_sync_meta, $partial_automerge_save_result, $safe_post_content_hash );
 
 		if ( is_wp_error( $next_sync_meta ) ) {
 			return $next_sync_meta;
@@ -14355,8 +14403,8 @@ function wp_de_rtc_apply_partial_safe_retry_save_plan( $post, $current, $partial
 		'proposed_post_content_hash'              => $proposed_post_content_hash,
 		'saved_stripped_post_content_hash'        => $safe_post_content_hash,
 		'saved_post_content_hash'                 => $candidate_hash,
-		'yjs_update_applied'                      => is_array( $partial_yjs_save_result ),
-		'yjs_encoding'                            => wp_de_rtc_get_yjs_result_encoding( $partial_yjs_save_result ),
+		'automerge_update_applied'                      => is_array( $partial_automerge_save_result ),
+		'automerge_encoding'                            => wp_de_rtc_get_automerge_result_encoding( $partial_automerge_save_result ),
 			'requires_server_state_refetch'           => false,
 			'requires_manual_conflict_resolution'     => false,
 			'can_export_local_updates'                => false,
@@ -14470,8 +14518,8 @@ function wp_de_rtc_save_retry_submitted_post( $post, $args = array() ) {
 	$fresh_review_consumption_claim = null;
 	$block_identity_request_proof   = isset( $args['block_identity_request_proof'] ) ? $args['block_identity_request_proof'] : null;
 	$block_identity_request_proof_validation = null;
-	$yjs_client_update              = isset( $args['yjs_client_update'] ) ? $args['yjs_client_update'] : null;
-	$yjs_retry_save_result          = null;
+	$automerge_client_update              = isset( $args['automerge_client_update'] ) ? $args['automerge_client_update'] : null;
+	$automerge_retry_save_result          = null;
 	$current                        = wp_de_rtc_parse_post_content_sync_meta( $post->post_content );
 	$current_external_repair        = null;
 
@@ -14479,7 +14527,7 @@ function wp_de_rtc_save_retry_submitted_post( $post, $args = array() ) {
 		return $current;
 	}
 
-	$current_external_repair = wp_de_rtc_get_repaired_yjs_current_post_snapshot(
+	$current_external_repair = wp_de_rtc_get_repaired_automerge_current_post_snapshot(
 		$post,
 		$current,
 		array(
@@ -14716,29 +14764,29 @@ function wp_de_rtc_save_retry_submitted_post( $post, $args = array() ) {
 		}
 	}
 
-	if ( 'yjs' === $current['sync_meta_format'] && ! $retry_save_server_merge_required ) {
-		$yjs_retry_save_result = wp_de_rtc_get_yjs_retry_save_result(
+	if ( 'automerge' === $current['sync_meta_format'] && ! $retry_save_server_merge_required ) {
+		$automerge_retry_save_result = wp_de_rtc_get_automerge_retry_save_result(
 			$current['content'],
 			$current['content'],
 			$proposed_post_content,
-			$yjs_client_update
+			$automerge_client_update
 		);
 
-		if ( is_wp_error( $yjs_retry_save_result ) ) {
-			return $yjs_retry_save_result;
+		if ( is_wp_error( $automerge_retry_save_result ) ) {
+			return $automerge_retry_save_result;
 		}
 
-		$save_post_content      = $yjs_retry_save_result['merged_content'];
+		$save_post_content      = $automerge_retry_save_result['merged_content'];
 		$save_post_content_hash = wp_de_rtc_hash_content( $save_post_content );
 	}
 
 	if ( $retry_save_server_merge_required ) {
-		if ( 'yjs' === $current['sync_meta_format'] ) {
-			$server_merge_result = wp_de_rtc_get_yjs_retry_save_result(
+		if ( 'automerge' === $current['sync_meta_format'] ) {
+			$server_merge_result = wp_de_rtc_get_automerge_retry_save_result(
 				$base_revision['content'],
 				$current['content'],
 				$proposed_post_content,
-				$yjs_client_update
+				$automerge_client_update
 			);
 		} elseif ( null !== $block_identity_request_proof ) {
 			$server_merge_result = wp_de_rtc_get_block_identity_server_merge_result(
@@ -14799,8 +14847,8 @@ function wp_de_rtc_save_retry_submitted_post( $post, $args = array() ) {
 
 		$save_post_content      = $server_merge_result['merged_content'];
 		$save_post_content_hash = wp_de_rtc_hash_content( $save_post_content );
-		if ( 'yjs' === $current['sync_meta_format'] ) {
-			$yjs_retry_save_result = $server_merge_result;
+		if ( 'automerge' === $current['sync_meta_format'] ) {
+			$automerge_retry_save_result = $server_merge_result;
 		}
 	}
 
@@ -14823,21 +14871,21 @@ function wp_de_rtc_save_retry_submitted_post( $post, $args = array() ) {
 		);
 	}
 
-	if ( 'yjs' === $current['sync_meta_format'] ) {
-		if ( null === $yjs_retry_save_result ) {
-			$yjs_retry_save_result = wp_de_rtc_get_yjs_retry_save_result(
+	if ( 'automerge' === $current['sync_meta_format'] ) {
+		if ( null === $automerge_retry_save_result ) {
+			$automerge_retry_save_result = wp_de_rtc_get_automerge_retry_save_result(
 				$current['content'],
 				$current['content'],
 				$save_post_content,
-				$yjs_client_update
+				$automerge_client_update
 			);
 		}
 
-		if ( is_wp_error( $yjs_retry_save_result ) ) {
-			return $yjs_retry_save_result;
+		if ( is_wp_error( $automerge_retry_save_result ) ) {
+			return $automerge_retry_save_result;
 		}
 
-		$next_sync_meta = wp_de_rtc_apply_yjs_metadata_to_sync_meta( $next_sync_meta, $yjs_retry_save_result, $save_post_content_hash );
+		$next_sync_meta = wp_de_rtc_apply_automerge_metadata_to_sync_meta( $next_sync_meta, $automerge_retry_save_result, $save_post_content_hash );
 
 		if ( is_wp_error( $next_sync_meta ) ) {
 			return $next_sync_meta;
@@ -15096,7 +15144,7 @@ function wp_de_rtc_save_retry_submitted_post( $post, $args = array() ) {
 
 	$revision_ids_before_save = wp_de_rtc_get_post_revision_ids( $post->ID );
 
-	$base_revision_before_retry_save = 'yjs' === $current['sync_meta_format']
+	$base_revision_before_retry_save = 'automerge' === $current['sync_meta_format']
 		? wp_de_rtc_ensure_current_sync_meta_revision_before_retry_save( $post, $server_version )
 		: null;
 
@@ -15278,8 +15326,8 @@ function wp_de_rtc_save_retry_submitted_post( $post, $args = array() ) {
 		'saved_post_content_hash'             => $candidate_hash,
 		'server_merge_applied'                => is_array( $server_merge_result ),
 		'server_merge'                        => is_array( $server_merge_result ) ? wp_de_rtc_get_public_server_merge_evidence( $server_merge_result ) : null,
-		'yjs_update_applied'                  => is_array( $yjs_retry_save_result ),
-		'yjs_encoding'                        => wp_de_rtc_get_yjs_result_encoding( $yjs_retry_save_result ),
+		'automerge_update_applied'                  => is_array( $automerge_retry_save_result ),
+		'automerge_encoding'                        => wp_de_rtc_get_automerge_result_encoding( $automerge_retry_save_result ),
 		'block_identity_request_proof_validated' => is_array( $block_identity_request_proof_validation ),
 		'block_identity_request_proof'           => is_array( $block_identity_request_proof_validation ) ? array(
 			'status'               => $block_identity_request_proof_validation['status'],
@@ -17088,10 +17136,7 @@ function wp_de_rtc_get_unfiltered_html_review_rejection_error( $post, $args = ar
 
 		if (
 			! empty( $partial_safe_merge['partial_safe_merge_applied'] ) &&
-			(
-				! empty( $partial_safe_merge['partial_safe_merge_persisted'] ) ||
-				! empty( $partial_safe_merge['partial_safe_merge_no_write'] )
-			) &&
+			! empty( $partial_safe_merge['partial_safe_merge_persisted'] ) &&
 			! empty( $partial_safe_merge['safe_server_content_included'] )
 		) {
 			/*
@@ -17120,7 +17165,7 @@ function wp_de_rtc_get_unfiltered_html_review_rejection_error( $post, $args = ar
 			return $error_data;
 		}
 
-		$error_data['status'] = 409;
+		$error_data['status'] = 403;
 	}
 
 	return wp_de_rtc_get_reason_error(
@@ -17245,7 +17290,7 @@ function wp_de_rtc_get_rest_recovery_permission_contract( $post ) {
 }
 
 /**
- * Returns runtime availability for the native PHP Yjs integration.
+ * Returns runtime availability for the native PHP Automerge integration.
  *
  * The pinned port intentionally uses PHP 8.2 syntax. WordPress still supports
  * older PHP versions, so the server must check the version before registering
@@ -17255,8 +17300,8 @@ function wp_de_rtc_get_rest_recovery_permission_contract( $post ) {
  *
  * @return array Availability details.
  */
-function wp_de_rtc_get_yjs_runtime_status() {
-	$library_path = ABSPATH . WPINC . '/de-rtc/yjs-php/src';
+function wp_de_rtc_get_automerge_runtime_status() {
+	$library_path = ABSPATH . WPINC . '/de-rtc/automerge-php/src';
 
 	return array(
 		'available'        => PHP_VERSION_ID >= 80200 && function_exists( 'mb_convert_encoding' ) && file_exists( $library_path . '/NativePort.php' ),
@@ -17264,26 +17309,26 @@ function wp_de_rtc_get_yjs_runtime_status() {
 		'required_version' => 80200,
 		'mbstring_loaded'  => function_exists( 'mb_convert_encoding' ),
 		'library_path'     => $library_path,
-		'format'           => 'native-yjs-blocks-v1',
+		'format'           => 'native-automerge-blocks-v1',
 	);
 }
 
 /**
- * Registers the native PHP Yjs autoloader when the runtime can parse it.
+ * Registers the native PHP Automerge autoloader when the runtime can parse it.
  *
  * @since 7.1.0
  *
  * @return true|WP_Error True on success, otherwise an error.
  */
-function wp_de_rtc_load_yjs_runtime() {
-	$status = wp_de_rtc_get_yjs_runtime_status();
+function wp_de_rtc_load_automerge_runtime() {
+	$status = wp_de_rtc_get_automerge_runtime_status();
 
 	if ( empty( $status['available'] ) ) {
 		return wp_de_rtc_get_reason_error(
 			'de_rtc_feature_disabled',
-			__( 'Distributed Editing Yjs support is not available on this server.' ),
+			__( 'Distributed Editing Automerge support is not available on this server.' ),
 			array(
-				'detail'           => 'yjs_runtime_unavailable',
+				'detail'           => 'automerge_runtime_unavailable',
 				'php_version_id'   => $status['php_version_id'],
 				'required_version' => $status['required_version'],
 				'mbstring_loaded'  => $status['mbstring_loaded'],
@@ -17292,17 +17337,17 @@ function wp_de_rtc_load_yjs_runtime() {
 		);
 	}
 
-	if ( empty( $GLOBALS['wp_de_rtc_yjs_autoload_registered'] ) ) {
-		spl_autoload_register( 'wp_de_rtc_yjs_autoload' );
-		$GLOBALS['wp_de_rtc_yjs_autoload_registered'] = true;
+	if ( empty( $GLOBALS['wp_de_rtc_automerge_autoload_registered'] ) ) {
+		spl_autoload_register( 'wp_de_rtc_automerge_autoload' );
+		$GLOBALS['wp_de_rtc_automerge_autoload_registered'] = true;
 	}
 
-	if ( ! class_exists( 'WordPress\\DistributedEditing\\Yjs\\NativePort' ) ) {
+	if ( ! class_exists( 'WordPress\\DistributedEditing\\Automerge\\NativePort' ) ) {
 		return wp_de_rtc_get_reason_error(
 			'de_rtc_feature_disabled',
-			__( 'Distributed Editing could not load the Yjs runtime.' ),
+			__( 'Distributed Editing could not load the Automerge runtime.' ),
 			array(
-				'detail' => 'yjs_runtime_class_missing',
+				'detail' => 'automerge_runtime_class_missing',
 			)
 		);
 	}
@@ -17311,21 +17356,21 @@ function wp_de_rtc_load_yjs_runtime() {
 }
 
 /**
- * Autoloads classes from the pinned native PHP Yjs submodule.
+ * Autoloads classes from the pinned native PHP Automerge submodule.
  *
  * @since 7.1.0
  *
  * @param string $class Fully-qualified class name.
  */
-function wp_de_rtc_yjs_autoload( $class ) {
-	$prefix = 'WordPress\\DistributedEditing\\Yjs\\';
+function wp_de_rtc_automerge_autoload( $class ) {
+	$prefix = 'WordPress\\DistributedEditing\\Automerge\\';
 
 	if ( 0 !== strpos( $class, $prefix ) ) {
 		return;
 	}
 
 	$relative = substr( $class, strlen( $prefix ) );
-	$path     = ABSPATH . WPINC . '/de-rtc/yjs-php/src/' . str_replace( '\\', '/', $relative ) . '.php';
+	$path     = ABSPATH . WPINC . '/de-rtc/automerge-php/src/' . str_replace( '\\', '/', $relative ) . '.php';
 
 	if ( file_exists( $path ) ) {
 		require_once $path;
@@ -17333,24 +17378,24 @@ function wp_de_rtc_yjs_autoload( $class ) {
 }
 
 /**
- * Returns the native PHP Yjs adapter.
+ * Returns the native PHP Automerge adapter.
  *
  * @since 7.1.0
  *
  * @return object|WP_Error Adapter instance, or an error.
  */
-function wp_de_rtc_get_yjs_native_port() {
-	$loaded = wp_de_rtc_load_yjs_runtime();
+function wp_de_rtc_get_automerge_native_port() {
+	$loaded = wp_de_rtc_load_automerge_runtime();
 
 	if ( is_wp_error( $loaded ) ) {
 		return $loaded;
 	}
 
-	return new WordPress\DistributedEditing\Yjs\NativePort();
+	return new WordPress\DistributedEditing\Automerge\NativePort();
 }
 
 /**
- * Creates a native Yjs update for the single contiguous change between strings.
+ * Creates a native Automerge update for the single contiguous change between strings.
  *
  * This intentionally starts with the smallest trustworthy representation:
  * ordinary editor Saves currently submit a complete proposed post string, so
@@ -17365,28 +17410,28 @@ function wp_de_rtc_get_yjs_native_port() {
  * @param string $actor Actor label for operation IDs.
  * @return array Native update plus server-derived range evidence.
  */
-	function wp_de_rtc_create_yjs_update_for_content_change( $base, $next, $actor ) {
-		$base         = wp_de_rtc_canonicalize_post_content_core_block_names( $base );
-		$next         = wp_de_rtc_canonicalize_post_content_core_block_names( $next );
-		$base_records = wp_de_rtc_get_top_level_serialized_block_records( $base );
-		$next_records = wp_de_rtc_get_top_level_serialized_block_records( $next );
+function wp_de_rtc_create_automerge_update_for_content_change( $base, $next, $actor ) {
+	$base         = wp_de_rtc_canonicalize_post_content_core_block_names( $base );
+	$next         = wp_de_rtc_canonicalize_post_content_core_block_names( $next );
+	$base_records = wp_de_rtc_get_top_level_serialized_block_records( $base );
+	$next_records = wp_de_rtc_get_top_level_serialized_block_records( $next );
 
 	if ( is_wp_error( $base_records ) || is_wp_error( $next_records ) ) {
-		$descriptor = wp_de_rtc_get_yjs_content_change_descriptor( $base, $next );
+		$descriptor = wp_de_rtc_get_automerge_content_change_descriptor( $base, $next );
 
 		return array(
-			'format'              => 'native-yjs-blocks-v1',
-			'schema'              => 'de-rtc-yjs-blocks-v1',
+			'format'              => 'native-automerge-blocks-v1',
+			'schema'              => 'de-rtc-automerge-v1',
 			'operations'          => array(
 				array(
 					'type'                => 'document.replace_unsupported',
-					'yjsPrimitive'        => 'Y.Map.set',
+					'automergePrimitive'        => 'Automerge.Map.set',
 					'actor'               => $actor,
 					'sequence'            => 0,
 					'id'                  => $actor . ':0',
 					'baseContentHash'     => wp_de_rtc_hash_content( $base ),
 					'proposedContentHash' => wp_de_rtc_hash_content( $next ),
-					'changeRange'         => wp_de_rtc_format_yjs_change_range_for_client( $descriptor['change_range'] ),
+					'changeRange'         => wp_de_rtc_format_automerge_change_range_for_client( $descriptor['change_range'] ),
 				),
 			),
 			'stateVector'         => array( $actor => 1 ),
@@ -17397,18 +17442,18 @@ function wp_de_rtc_get_yjs_native_port() {
 		);
 	}
 
-	$operations = wp_de_rtc_get_yjs_block_native_operations( $base_records, $next_records, $actor );
+	$operations = wp_de_rtc_get_automerge_block_native_operations( $base_records, $next_records, $actor );
 
 	return array(
-		'format'              => 'native-yjs-blocks-v1',
-		'schema'              => 'de-rtc-yjs-blocks-v1',
+		'format'              => 'native-automerge-blocks-v1',
+		'schema'              => 'de-rtc-automerge-v1',
 		'operations'          => $operations,
 		'stateVector'         => count( $operations ) > 0 ? array( $actor => count( $operations ) ) : array(),
 		'baseContentHash'     => wp_de_rtc_hash_content( $base ),
 		'proposedContentHash' => wp_de_rtc_hash_content( $next ),
 		'baseBlockCount'      => count( $base_records ),
 		'proposedBlockCount'  => count( $next_records ),
-		'change_range'        => wp_de_rtc_get_yjs_content_change_descriptor( $base, $next )['change_range'],
+		'change_range'        => wp_de_rtc_get_automerge_content_change_descriptor( $base, $next )['change_range'],
 	);
 }
 
@@ -17421,7 +17466,7 @@ function wp_de_rtc_get_yjs_native_port() {
  * @param array $range Server change-range descriptor.
  * @return array Client-shaped descriptor.
  */
-function wp_de_rtc_format_yjs_change_range_for_client( $range ) {
+function wp_de_rtc_format_automerge_change_range_for_client( $range ) {
 	return array(
 		'start'        => isset( $range['start'] ) ? (int) $range['start'] : 0,
 		'end'          => isset( $range['end'] ) ? (int) $range['end'] : 0,
@@ -17432,11 +17477,11 @@ function wp_de_rtc_format_yjs_change_range_for_client( $range ) {
 }
 
 /**
- * Builds block-native Yjs operation evidence for a serialized block change.
+ * Builds block-native Automerge operation evidence for a serialized block change.
  *
  * The operations are intentionally block-scoped. They may carry the serialized
- * block needed to materialize a changed or inserted block, but they no longer
- * model the whole post as one Y.Text range.
+ * block needed to materialize a changed or inserted block, instead of treating
+ * the whole post as one text range.
  *
  * @since 7.1.0
  * @access private
@@ -17446,7 +17491,7 @@ function wp_de_rtc_format_yjs_change_range_for_client( $range ) {
  * @param string   $actor        Actor label for operation IDs.
  * @return array[] Block-native operations.
  */
-function wp_de_rtc_get_yjs_block_native_operations( $base_records, $next_records, $actor ) {
+function wp_de_rtc_get_automerge_block_native_operations( $base_records, $next_records, $actor ) {
 	$operations  = array();
 	$base_hashes = array_map( 'wp_de_rtc_hash_content', $base_records );
 	$next_hashes = array_map( 'wp_de_rtc_hash_content', $next_records );
@@ -17465,12 +17510,12 @@ function wp_de_rtc_get_yjs_block_native_operations( $base_records, $next_records
 			$from_index = array_search( $next_hashes[ $index ], $base_hashes, true );
 
 			if ( false !== $from_index && $from_index !== $index ) {
-				wp_de_rtc_append_yjs_block_native_operation(
+				wp_de_rtc_append_automerge_block_native_operation(
 					$operations,
 					$actor,
 					array(
 						'type'         => 'block.move',
-						'yjsPrimitive' => 'Y.Array.delete+insert',
+						'automergePrimitive' => 'Automerge.List.move',
 						'fromPath'     => array( (int) $from_index ),
 						'toPath'       => array( (int) $index ),
 						'blockUid'     => 'top:' . $next_hashes[ $index ],
@@ -17489,10 +17534,10 @@ function wp_de_rtc_get_yjs_block_native_operations( $base_records, $next_records
 				continue;
 			}
 
-			wp_de_rtc_append_yjs_block_native_operation(
+			wp_de_rtc_append_automerge_block_native_operation(
 				$operations,
 				$actor,
-				wp_de_rtc_get_yjs_block_native_update_operation(
+				wp_de_rtc_get_automerge_block_native_update_operation(
 					$base_record,
 					$next_records[ $index ],
 					$base_hashes[ $index ],
@@ -17524,12 +17569,12 @@ function wp_de_rtc_get_yjs_block_native_operations( $base_records, $next_records
 	}
 
 	for ( $index = count( $base_records ) - $suffix - 1; $index >= $prefix; --$index ) {
-		wp_de_rtc_append_yjs_block_native_operation(
+		wp_de_rtc_append_automerge_block_native_operation(
 			$operations,
 			$actor,
 			array(
 				'type'         => 'block.delete',
-				'yjsPrimitive' => 'Y.Array.delete',
+				'automergePrimitive' => 'Automerge.List.delete',
 				'path'         => array( (int) $index ),
 				'index'        => (int) $index,
 				'blockUid'     => 'top:' . $base_hashes[ $index ],
@@ -17539,12 +17584,12 @@ function wp_de_rtc_get_yjs_block_native_operations( $base_records, $next_records
 	}
 
 	for ( $index = $prefix; $index < count( $next_records ) - $suffix; ++$index ) {
-		wp_de_rtc_append_yjs_block_native_operation(
+		wp_de_rtc_append_automerge_block_native_operation(
 			$operations,
 			$actor,
 			array(
 				'type'            => 'block.insert',
-				'yjsPrimitive'    => 'Y.Array.insert',
+				'automergePrimitive'    => 'Automerge.List.insert',
 				'path'            => array( (int) $index ),
 				'index'           => (int) $index,
 				'blockUid'        => 'top:' . $next_hashes[ $index ],
@@ -17568,7 +17613,7 @@ function wp_de_rtc_get_yjs_block_native_operations( $base_records, $next_records
  * @param string  $actor      Actor label.
  * @param array   $operation  Operation body.
  */
-function wp_de_rtc_append_yjs_block_native_operation( &$operations, $actor, $operation ) {
+function wp_de_rtc_append_automerge_block_native_operation( &$operations, $actor, $operation ) {
 	$sequence     = count( $operations );
 	$operations[] = array_merge(
 		array(
@@ -17634,12 +17679,12 @@ function wp_de_rtc_have_same_serialized_block_multiset( $first, $second ) {
  * @param int[]  $path                Top-level ordinal path.
  * @return array Block-native operation body.
  */
-function wp_de_rtc_get_yjs_block_native_update_operation( $base_block, $next_block, $base_block_hash, $next_block_hash, $path ) {
+function wp_de_rtc_get_automerge_block_native_update_operation( $base_block, $next_block, $base_block_hash, $next_block_hash, $path ) {
 	$base_block_name = wp_de_rtc_get_serialized_block_record_name( $base_block );
 	$next_block_name = wp_de_rtc_get_serialized_block_record_name( $next_block );
 
 	if ( null !== $base_block_name && $base_block_name === $next_block_name ) {
-		$rich_text_operation = wp_de_rtc_get_yjs_block_native_rich_text_operation(
+		$rich_text_operation = wp_de_rtc_get_automerge_block_native_rich_text_operation(
 			$base_block,
 			$next_block,
 			$base_block_hash,
@@ -17654,20 +17699,20 @@ function wp_de_rtc_get_yjs_block_native_update_operation( $base_block, $next_blo
 
 		return array(
 			'type'              => 'block.update_serialized',
-			'yjsPrimitive'      => 'Y.Map.set',
+			'automergePrimitive'      => 'Automerge.Map.set',
 			'path'              => $path,
 			'blockUid'          => 'top:' . $base_block_hash,
 			'blockName'         => $base_block_name,
 			'baseBlockHash'     => $base_block_hash,
 			'proposedBlockHash' => $next_block_hash,
-			'changeRange'       => wp_de_rtc_format_yjs_change_range_for_client( wp_de_rtc_get_yjs_content_change_descriptor( $base_block, $next_block )['change_range'] ),
+			'changeRange'       => wp_de_rtc_format_automerge_change_range_for_client( wp_de_rtc_get_automerge_content_change_descriptor( $base_block, $next_block )['change_range'] ),
 			'serializedBlock'   => $next_block,
 		);
 	}
 
 	return array(
 		'type'              => 'block.replace',
-		'yjsPrimitive'      => 'Y.Map.set+Y.Array.insert',
+		'automergePrimitive'      => 'Automerge.Map.set+Automerge.List.insert',
 		'path'              => $path,
 		'blockUid'          => 'top:' . $next_block_hash,
 		'baseBlockHash'     => $base_block_hash,
@@ -17692,7 +17737,7 @@ function wp_de_rtc_get_yjs_block_native_update_operation( $base_block, $next_blo
  * @param int[]  $path            Top-level ordinal path.
  * @return array|null Operation body, or null when not a rich-text mark edit.
  */
-function wp_de_rtc_get_yjs_block_native_rich_text_operation( $base_block, $next_block, $base_hash, $next_hash, $block_name, $path ) {
+function wp_de_rtc_get_automerge_block_native_rich_text_operation( $base_block, $next_block, $base_hash, $next_hash, $block_name, $path ) {
 	$base = wp_de_rtc_get_paragraph_rich_text_block_parts( $base_block );
 	$next = wp_de_rtc_get_paragraph_rich_text_block_parts( $next_block );
 
@@ -17709,7 +17754,7 @@ function wp_de_rtc_get_yjs_block_native_rich_text_operation( $base_block, $next_
 
 	return array(
 		'type'               => 'block.rich_text_format',
-		'yjsPrimitive'       => 'Y.Text.format',
+		'automergePrimitive'       => 'Automerge.Text.mark',
 		'path'               => $path,
 		'blockUid'           => 'top:' . $base_hash,
 		'blockName'          => $block_name,
@@ -17722,11 +17767,11 @@ function wp_de_rtc_get_yjs_block_native_rich_text_operation( $base_block, $next_
 }
 
 /**
- * Creates the legacy whole-text Yjs update for old explicit clients only.
+ * Creates a whole-text Automerge update for the guarded fallback path.
  *
- * New DE-RTC save paths should use `native-yjs-blocks-v1`; this helper keeps
- * the old native port path coherent while existing compatibility tests and
- * older clients are being migrated.
+ * New DE-RTC save paths should use `native-automerge-blocks-v1`; this helper is
+ * retained only for the current same-range fallback while block-native coverage
+ * is expanded.
  *
  * @since 7.1.0
  * @access private
@@ -17736,10 +17781,10 @@ function wp_de_rtc_get_yjs_block_native_rich_text_operation( $base_block, $next_
  * @param string $actor Actor label for operation IDs.
  * @return array Native text update plus server-derived range evidence.
  */
-function wp_de_rtc_create_legacy_yjs_update_for_content_change( $base, $next, $actor ) {
+function wp_de_rtc_create_legacy_automerge_update_for_content_change( $base, $next, $actor ) {
 	$base       = wp_de_rtc_canonicalize_post_content_core_block_names( $base );
 	$next       = wp_de_rtc_canonicalize_post_content_core_block_names( $next );
-	$descriptor = wp_de_rtc_get_yjs_content_change_descriptor( $base, $next );
+	$descriptor = wp_de_rtc_get_automerge_content_change_descriptor( $base, $next );
 	$operations = array();
 	$sequence   = 0;
 
@@ -17768,7 +17813,7 @@ function wp_de_rtc_create_legacy_yjs_update_for_content_change( $base, $next, $a
 	}
 
 	return array(
-		'format'       => 'native-yjs-php-update-v0',
+		'format'       => 'native-automerge-php-v1',
 		'operations'   => $operations,
 		'stateVector'  => $sequence > 0 ? array( $actor => $sequence ) : array(),
 		'change_range' => $descriptor['change_range'],
@@ -17785,7 +17830,7 @@ function wp_de_rtc_create_legacy_yjs_update_for_content_change( $base, $next, $a
  * @param string $next Next string.
  * @return array Change descriptor.
  */
-function wp_de_rtc_get_yjs_content_change_descriptor( $base, $next ) {
+function wp_de_rtc_get_automerge_content_change_descriptor( $base, $next ) {
 	$base_chars = wp_de_rtc_split_utf8_string( (string) $base );
 	$next_chars = wp_de_rtc_split_utf8_string( (string) $next );
 	$base_count = count( $base_chars );
@@ -17812,9 +17857,9 @@ function wp_de_rtc_get_yjs_content_change_descriptor( $base, $next ) {
 	$deleted_text = implode( '', array_slice( $base_chars, $prefix, $base_count - $prefix - $suffix ) );
 	$insert_text  = implode( '', array_slice( $next_chars, $prefix, $next_count - $prefix - $suffix ) );
 	$before_text  = implode( '', array_slice( $base_chars, 0, $prefix ) );
-	$index        = wp_de_rtc_get_yjs_utf16_length( $before_text );
-	$delete_units = wp_de_rtc_get_yjs_utf16_length( $deleted_text );
-	$insert_units = wp_de_rtc_get_yjs_utf16_length( $insert_text );
+	$index        = wp_de_rtc_get_automerge_utf16_length( $before_text );
+	$delete_units = wp_de_rtc_get_automerge_utf16_length( $deleted_text );
+	$insert_units = wp_de_rtc_get_automerge_utf16_length( $insert_text );
 
 	return array(
 		'index'         => $index,
@@ -17855,7 +17900,7 @@ function wp_de_rtc_split_utf8_string( $text ) {
 }
 
 /**
- * Returns the UTF-16 code-unit length used by Y.Text indexes.
+ * Returns the UTF-16 code-unit length used by text-indexed update evidence.
  *
  * @since 7.1.0
  * @access private
@@ -17863,7 +17908,7 @@ function wp_de_rtc_split_utf8_string( $text ) {
  * @param string $text Text to measure.
  * @return int UTF-16 code-unit length.
  */
-function wp_de_rtc_get_yjs_utf16_length( $text ) {
+function wp_de_rtc_get_automerge_utf16_length( $text ) {
 	if ( '' === $text ) {
 		return 0;
 	}
@@ -17876,7 +17921,7 @@ function wp_de_rtc_get_yjs_utf16_length( $text ) {
 }
 
 /**
- * Normalizes client-submitted native Yjs update evidence.
+ * Normalizes client-submitted native Automerge update evidence.
  *
  * @since 7.1.0
  * @access private
@@ -17884,7 +17929,7 @@ function wp_de_rtc_get_yjs_utf16_length( $text ) {
  * @param mixed $update Client update.
  * @return array|WP_Error Normalized update or an error.
  */
-function wp_de_rtc_normalize_yjs_client_update( $update ) {
+function wp_de_rtc_normalize_automerge_client_update( $update ) {
 	if ( null === $update ) {
 		return null;
 	}
@@ -17892,9 +17937,9 @@ function wp_de_rtc_normalize_yjs_client_update( $update ) {
 	if ( ! is_array( $update ) ) {
 		return wp_de_rtc_get_reason_error(
 			'de_rtc_malformed_sync_payload',
-			__( 'Distributed Editing rejected the Yjs update because it is malformed.' ),
+			__( 'Distributed Editing rejected the Automerge update because it is malformed.' ),
 			array(
-				'detail' => 'yjs_client_update_not_object',
+				'detail' => 'automerge_client_update_not_object',
 			)
 		);
 	}
@@ -17902,21 +17947,21 @@ function wp_de_rtc_normalize_yjs_client_update( $update ) {
 	if ( isset( $update['postContent'] ) || isset( $update['post_content'] ) ) {
 		return wp_de_rtc_get_reason_error(
 			'de_rtc_sync_meta_tampered',
-			__( 'Distributed Editing rejected the Yjs update because clients may not submit raw document state as Yjs metadata.' ),
+			__( 'Distributed Editing rejected the Automerge update because clients may not submit raw document state as Automerge metadata.' ),
 			array(
-				'detail' => 'yjs_client_update_raw_document_rejected',
+				'detail' => 'automerge_client_update_raw_document_rejected',
 			)
 		);
 	}
 
-	$format = isset( $update['format'] ) ? (string) $update['format'] : 'native-yjs-php-update-v0';
+	$format = isset( $update['format'] ) ? (string) $update['format'] : 'native-automerge-php-v1';
 
-	if ( ! in_array( $format, array( 'native-yjs-php-update-v0', 'native-yjs-blocks-v1' ), true ) ) {
+	if ( ! in_array( $format, array( 'native-automerge-php-v1', 'native-automerge-blocks-v1' ), true ) ) {
 		return wp_de_rtc_get_reason_error(
 			'de_rtc_malformed_sync_payload',
-			__( 'Distributed Editing rejected the Yjs update because the encoding is unsupported.' ),
+			__( 'Distributed Editing rejected the Automerge update because the encoding is unsupported.' ),
 			array(
-				'detail' => 'yjs_client_update_unsupported_format',
+				'detail' => 'automerge_client_update_unsupported_format',
 				'format' => sanitize_text_field( $format ),
 			)
 		);
@@ -17925,9 +17970,9 @@ function wp_de_rtc_normalize_yjs_client_update( $update ) {
 	if ( ! isset( $update['operations'] ) || ! is_array( $update['operations'] ) ) {
 		return wp_de_rtc_get_reason_error(
 			'de_rtc_malformed_sync_payload',
-			__( 'Distributed Editing rejected the Yjs update because operations are missing.' ),
+			__( 'Distributed Editing rejected the Automerge update because operations are missing.' ),
 			array(
-				'detail' => 'yjs_client_update_missing_operations',
+				'detail' => 'automerge_client_update_missing_operations',
 			)
 		);
 	}
@@ -17936,9 +17981,9 @@ function wp_de_rtc_normalize_yjs_client_update( $update ) {
 		if ( ! is_array( $operation ) || ! isset( $operation['type'] ) || ! is_string( $operation['type'] ) ) {
 			return wp_de_rtc_get_reason_error(
 				'de_rtc_malformed_sync_payload',
-				__( 'Distributed Editing rejected the Yjs update because an operation is malformed.' ),
+				__( 'Distributed Editing rejected the Automerge update because an operation is malformed.' ),
 				array(
-					'detail' => 'yjs_client_update_malformed_operation',
+					'detail' => 'automerge_client_update_malformed_operation',
 				)
 			);
 		}
@@ -17957,7 +18002,7 @@ function wp_de_rtc_normalize_yjs_client_update( $update ) {
 }
 
 /**
- * Returns whether two server-derived Yjs change ranges overlap.
+ * Returns whether two server-derived Automerge change ranges overlap.
  *
  * @since 7.1.0
  * @access private
@@ -17966,7 +18011,7 @@ function wp_de_rtc_normalize_yjs_client_update( $update ) {
  * @param array $right Second range.
  * @return bool Whether the ranges overlap.
  */
-function wp_de_rtc_yjs_change_ranges_overlap( $left, $right ) {
+function wp_de_rtc_automerge_change_ranges_overlap( $left, $right ) {
 	if ( empty( $left['changed'] ) || empty( $right['changed'] ) ) {
 		return false;
 	}
@@ -17994,7 +18039,7 @@ function wp_de_rtc_yjs_change_ranges_overlap( $left, $right ) {
 /**
  * Returns whether a serialized block record can be unambiguously matched by content.
  *
- * This is a deliberately narrow guard for the Yjs idempotent-insert merge. In
+ * This is a deliberately narrow guard for the Automerge idempotent-insert merge. In
  * the absence of durable block IDs, repeated serialized base blocks make
  * ordinal inference unsafe, so the server falls back to the normal conflict
  * path instead of guessing.
@@ -18077,7 +18122,7 @@ function wp_de_rtc_serialized_block_record_names_match( $left, $right ) {
  * @param string[] $candidate_records Candidate serialized block records.
  * @return array|null Insertion plan by accepted-base gap, or null when unsafe.
  */
-function wp_de_rtc_get_yjs_insertion_only_block_plan( $base_records, $candidate_records ) {
+function wp_de_rtc_get_automerge_insertion_only_block_plan( $base_records, $candidate_records ) {
 	if ( ! wp_de_rtc_serialized_block_records_are_unique( $base_records ) ) {
 		return null;
 	}
@@ -18153,7 +18198,7 @@ function wp_de_rtc_get_yjs_insertion_only_block_plan( $base_records, $candidate_
  * @param array    $server_plan      Insertion-only plan from the current server body.
  * @return array|null Merge data or null when unsafe.
  */
-function wp_de_rtc_apply_yjs_idempotent_insert_plan_to_proposed_blocks( $base_records, $proposed_records, $server_plan ) {
+function wp_de_rtc_apply_automerge_idempotent_insert_plan_to_proposed_blocks( $base_records, $proposed_records, $server_plan ) {
 	if ( ! isset( $server_plan['gaps'] ) || ! is_array( $server_plan['gaps'] ) ) {
 		return null;
 	}
@@ -18223,7 +18268,7 @@ function wp_de_rtc_apply_yjs_idempotent_insert_plan_to_proposed_blocks( $base_re
 }
 
 /**
- * Merges the idempotent Yjs case where a stale client repeats an inserted block.
+ * Merges the idempotent Automerge case where a stale client repeats an inserted block.
  *
  * A common offline/realtime shape is: editor A inserts a block, editor B made
  * the same insertion from the same base and also edited a different retained
@@ -18239,7 +18284,7 @@ function wp_de_rtc_apply_yjs_idempotent_insert_plan_to_proposed_blocks( $base_re
  * @param array  $args             Optional merge evidence.
  * @return array|null Merge result, or null when the shape is unsafe.
  */
-function wp_de_rtc_get_yjs_idempotent_block_insert_merge_result( $base_content, $current_content, $proposed_content, $args = array() ) {
+function wp_de_rtc_get_automerge_idempotent_block_insert_merge_result( $base_content, $current_content, $proposed_content, $args = array() ) {
 	$base_records     = wp_de_rtc_get_top_level_serialized_block_records( $base_content );
 	$current_records  = wp_de_rtc_get_top_level_serialized_block_records( $current_content );
 	$proposed_records = wp_de_rtc_get_top_level_serialized_block_records( $proposed_content );
@@ -18254,13 +18299,13 @@ function wp_de_rtc_get_yjs_idempotent_block_insert_merge_result( $base_content, 
 		return null;
 	}
 
-	$server_plan = wp_de_rtc_get_yjs_insertion_only_block_plan( $base_records, $current_records );
+	$server_plan = wp_de_rtc_get_automerge_insertion_only_block_plan( $base_records, $current_records );
 
 	if ( null === $server_plan || empty( $server_plan['inserted_count'] ) ) {
 		return null;
 	}
 
-	$proposed_plan = wp_de_rtc_apply_yjs_idempotent_insert_plan_to_proposed_blocks( $base_records, $proposed_records, $server_plan );
+	$proposed_plan = wp_de_rtc_apply_automerge_idempotent_insert_plan_to_proposed_blocks( $base_records, $proposed_records, $server_plan );
 
 	if ( null === $proposed_plan ) {
 		return null;
@@ -18271,8 +18316,8 @@ function wp_de_rtc_get_yjs_idempotent_block_insert_merge_result( $base_content, 
 	return array(
 		'merged_content'                        => $merged_content,
 		'merge_status'                          => 'merged',
-		'merge_strategy'                        => 'native_yjs_php_v0',
-		'yjs_idempotent_duplicate_insert_absorbed' => true,
+		'merge_strategy'                        => 'native_automerge_php_v1',
+		'automerge_idempotent_duplicate_insert_absorbed' => true,
 		'base_version'                          => isset( $args['base_version'] ) ? sanitize_text_field( (string) $args['base_version'] ) : null,
 		'server_version'                        => isset( $args['server_version'] ) ? sanitize_text_field( (string) $args['server_version'] ) : null,
 		'base_revision_id'                      => isset( $args['base_revision_id'] ) ? (int) $args['base_revision_id'] : 0,
@@ -18295,7 +18340,7 @@ function wp_de_rtc_get_yjs_idempotent_block_insert_merge_result( $base_content, 
 }
 
 /**
- * Computes a Yjs-backed retry-save materialization.
+ * Computes a Automerge-backed retry-save materialization.
  *
  * @since 7.1.0
  * @access private
@@ -18306,23 +18351,23 @@ function wp_de_rtc_get_yjs_idempotent_block_insert_merge_result( $base_content, 
  * @param mixed  $client_update    Optional client update evidence.
  * @return array|WP_Error Merge/materialization result.
  */
-	function wp_de_rtc_get_yjs_retry_save_result( $base_content, $current_content, $proposed_content, $client_update = null ) {
-		$base_content     = wp_de_rtc_canonicalize_post_content_core_block_names( $base_content );
-		$current_content  = wp_de_rtc_canonicalize_post_content_core_block_names( $current_content );
-		$proposed_content = wp_de_rtc_canonicalize_post_content_core_block_names( $proposed_content );
+function wp_de_rtc_get_automerge_retry_save_result( $base_content, $current_content, $proposed_content, $client_update = null ) {
+	$base_content     = wp_de_rtc_canonicalize_post_content_core_block_names( $base_content );
+	$current_content  = wp_de_rtc_canonicalize_post_content_core_block_names( $current_content );
+	$proposed_content = wp_de_rtc_canonicalize_post_content_core_block_names( $proposed_content );
 
-	$normalized_client_update = wp_de_rtc_normalize_yjs_client_update( $client_update );
+	$normalized_client_update = wp_de_rtc_normalize_automerge_client_update( $client_update );
 
 	if ( is_wp_error( $normalized_client_update ) ) {
 		return $normalized_client_update;
 	}
 
 	if ( null === $normalized_client_update ) {
-		$normalized_client_update = wp_de_rtc_create_yjs_update_for_content_change( $base_content, $proposed_content, 'client' );
+		$normalized_client_update = wp_de_rtc_create_automerge_update_for_content_change( $base_content, $proposed_content, 'client' );
 	}
 
-	if ( isset( $normalized_client_update['format'] ) && 'native-yjs-blocks-v1' === $normalized_client_update['format'] ) {
-		return wp_de_rtc_get_yjs_block_native_retry_save_result(
+	if ( isset( $normalized_client_update['format'] ) && 'native-automerge-blocks-v1' === $normalized_client_update['format'] ) {
+		return wp_de_rtc_get_automerge_block_native_retry_save_result(
 			$base_content,
 			$current_content,
 			$proposed_content,
@@ -18330,23 +18375,23 @@ function wp_de_rtc_get_yjs_idempotent_block_insert_merge_result( $base_content, 
 		);
 	}
 
-	$port = wp_de_rtc_get_yjs_native_port();
+	$port = wp_de_rtc_get_automerge_native_port();
 
 	if ( is_wp_error( $port ) ) {
 		return $port;
 	}
 
-	$server_update      = wp_de_rtc_create_legacy_yjs_update_for_content_change( $base_content, $current_content, 'server' );
-	$client_descriptor = wp_de_rtc_get_yjs_content_change_descriptor( $base_content, $proposed_content );
-	$server_descriptor = wp_de_rtc_get_yjs_content_change_descriptor( $base_content, $current_content );
+	$server_update      = wp_de_rtc_create_legacy_automerge_update_for_content_change( $base_content, $current_content, 'server' );
+	$client_descriptor = wp_de_rtc_get_automerge_content_change_descriptor( $base_content, $proposed_content );
+	$server_descriptor = wp_de_rtc_get_automerge_content_change_descriptor( $base_content, $current_content );
 	$client_check      = $port->merge( $base_content, array( 'operations' => array() ), $normalized_client_update );
 
 	if ( empty( $client_check['ok'] ) || ! isset( $client_check['postContent'] ) || $client_check['postContent'] !== $proposed_content ) {
 		return wp_de_rtc_get_reason_error(
 			'de_rtc_sync_meta_tampered',
-			__( 'Distributed Editing rejected the retry save because the Yjs update did not match the proposed content.' ),
+			__( 'Distributed Editing rejected the retry save because the Automerge update did not match the proposed content.' ),
 			array(
-				'detail'               => 'yjs_client_update_materialization_mismatch',
+				'detail'               => 'automerge_client_update_materialization_mismatch',
 				'saves_post'           => false,
 				'mutates_post_content' => false,
 				'creates_revision'     => false,
@@ -18355,15 +18400,15 @@ function wp_de_rtc_get_yjs_idempotent_block_insert_merge_result( $base_content, 
 		);
 	}
 
-	if ( wp_de_rtc_yjs_change_ranges_overlap( $server_descriptor['change_range'], $client_descriptor['change_range'] ) ) {
-		$idempotent_insert_merge = wp_de_rtc_get_yjs_idempotent_block_insert_merge_result(
+	if ( wp_de_rtc_automerge_change_ranges_overlap( $server_descriptor['change_range'], $client_descriptor['change_range'] ) ) {
+		$idempotent_insert_merge = wp_de_rtc_get_automerge_idempotent_block_insert_merge_result(
 			$base_content,
 			$current_content,
 			$proposed_content
 		);
 
 		if ( is_array( $idempotent_insert_merge ) ) {
-			$effective_client_update = wp_de_rtc_create_legacy_yjs_update_for_content_change(
+			$effective_client_update = wp_de_rtc_create_legacy_automerge_update_for_content_change(
 				$current_content,
 				$idempotent_insert_merge['merged_content'],
 				'client'
@@ -18375,22 +18420,22 @@ function wp_de_rtc_get_yjs_idempotent_block_insert_merge_result( $base_content, 
 				isset( $effective_merge['postContent'] ) &&
 				$effective_merge['postContent'] === $idempotent_insert_merge['merged_content']
 			) {
-				$idempotent_insert_merge['yjs_metadata']          = isset( $effective_merge['metadata'] ) && is_array( $effective_merge['metadata'] ) ? $effective_merge['metadata'] : array();
-				$idempotent_insert_merge['yjs_client_update']     = $normalized_client_update;
-				$idempotent_insert_merge['yjs_effective_update']  = $effective_client_update;
-				$idempotent_insert_merge['yjs_server_update']     = $server_update;
+				$idempotent_insert_merge['automerge_metadata']          = isset( $effective_merge['metadata'] ) && is_array( $effective_merge['metadata'] ) ? $effective_merge['metadata'] : array();
+				$idempotent_insert_merge['automerge_client_update']     = $normalized_client_update;
+				$idempotent_insert_merge['automerge_effective_update']  = $effective_client_update;
+				$idempotent_insert_merge['automerge_server_update']     = $server_update;
 				$idempotent_insert_merge['server_change_range']   = $server_descriptor['change_range'];
 				$idempotent_insert_merge['client_change_range']   = $client_descriptor['change_range'];
-				$idempotent_insert_merge['server_merge_strategy'] = 'native_yjs_php_v0';
+				$idempotent_insert_merge['server_merge_strategy'] = 'native_automerge_php_v1';
 
 				return $idempotent_insert_merge;
 			}
 		}
 
 		return wp_de_rtc_get_server_merge_conflict_error(
-			'yjs_overlapping_change_ranges',
+			'automerge_overlapping_change_ranges',
 			array(
-				'server_merge_strategy' => 'native_yjs_php_v0',
+				'server_merge_strategy' => 'native_automerge_php_v1',
 				'server_change_range'   => $server_descriptor['change_range'],
 				'client_change_range'   => $client_descriptor['change_range'],
 			)
@@ -18401,9 +18446,9 @@ function wp_de_rtc_get_yjs_idempotent_block_insert_merge_result( $base_content, 
 
 	if ( empty( $merged['ok'] ) || ! isset( $merged['postContent'] ) || ! is_string( $merged['postContent'] ) ) {
 		return wp_de_rtc_get_server_merge_conflict_error(
-			'yjs_merge_failed',
+			'automerge_merge_failed',
 			array(
-				'server_merge_strategy' => 'native_yjs_php_v0',
+				'server_merge_strategy' => 'native_automerge_php_v1',
 			)
 		);
 	}
@@ -18422,7 +18467,7 @@ function wp_de_rtc_get_yjs_idempotent_block_insert_merge_result( $base_content, 
 	return array(
 		'merged_content'        => $merged['postContent'],
 		'merge_status'          => 'merged',
-		'merge_strategy'        => 'native_yjs_php_v0',
+		'merge_strategy'        => 'native_automerge_php_v1',
 		'block_count'           => count( $records ),
 		'base_block_count'      => count( $base_records ),
 		'server_block_count'    => count( $current_records ),
@@ -18432,17 +18477,17 @@ function wp_de_rtc_get_yjs_idempotent_block_insert_merge_result( $base_content, 
 		'base_content_hash'     => wp_de_rtc_hash_content( $base_content ),
 		'server_content_hash'   => wp_de_rtc_hash_content( $current_content ),
 		'proposed_content_hash' => wp_de_rtc_hash_content( $proposed_content ),
-		'yjs_metadata'          => isset( $merged['metadata'] ) && is_array( $merged['metadata'] ) ? $merged['metadata'] : array(),
-		'yjs_client_update'     => $normalized_client_update,
-		'yjs_server_update'     => $server_update,
+		'automerge_metadata'          => isset( $merged['metadata'] ) && is_array( $merged['metadata'] ) ? $merged['metadata'] : array(),
+		'automerge_client_update'     => $normalized_client_update,
+		'automerge_server_update'     => $server_update,
 		'server_change_range'   => $server_descriptor['change_range'],
 		'client_change_range'   => $client_descriptor['change_range'],
-		'server_merge_strategy' => 'native_yjs_php_v0',
+		'server_merge_strategy' => 'native_automerge_php_v1',
 	);
 }
 
 /**
- * Computes a block-native Yjs retry-save materialization.
+ * Computes a block-native Automerge retry-save materialization.
  *
  * This is the replacement path for new DE-RTC saves. The client update proves
  * block-scoped operations against the accepted base; WordPress still validates
@@ -18458,17 +18503,17 @@ function wp_de_rtc_get_yjs_idempotent_block_insert_merge_result( $base_content, 
  * @param array  $client_update    Normalized block-native client update.
  * @return array|WP_Error Merge/materialization result.
  */
-function wp_de_rtc_get_yjs_block_native_retry_save_result( $base_content, $current_content, $proposed_content, $client_update ) {
-	$validation = wp_de_rtc_validate_yjs_block_native_update_matches_content( $base_content, $proposed_content, $client_update );
+function wp_de_rtc_get_automerge_block_native_retry_save_result( $base_content, $current_content, $proposed_content, $client_update ) {
+	$validation = wp_de_rtc_validate_automerge_block_native_update_matches_content( $base_content, $proposed_content, $client_update );
 
 	if ( is_wp_error( $validation ) ) {
 		return $validation;
 	}
 
 	if ( hash_equals( $base_content, $current_content ) ) {
-		$merge_result = wp_de_rtc_get_yjs_block_native_current_base_merge_result( $base_content, $proposed_content );
+		$merge_result = wp_de_rtc_get_automerge_block_native_current_base_merge_result( $base_content, $proposed_content );
 	} else {
-		$merge_result = wp_de_rtc_get_yjs_idempotent_block_insert_merge_result( $base_content, $current_content, $proposed_content );
+		$merge_result = wp_de_rtc_get_automerge_idempotent_block_insert_merge_result( $base_content, $current_content, $proposed_content );
 
 		if ( null === $merge_result ) {
 			$merge_result = wp_de_rtc_get_serialized_block_server_merge_result( $base_content, $current_content, $proposed_content );
@@ -18479,25 +18524,25 @@ function wp_de_rtc_get_yjs_block_native_retry_save_result( $base_content, $curre
 		return $merge_result;
 	}
 
-	$server_update = wp_de_rtc_create_yjs_update_for_content_change( $base_content, $current_content, 'server' );
+	$server_update = wp_de_rtc_create_automerge_update_for_content_change( $base_content, $current_content, 'server' );
 	$operations    = array_merge(
 		isset( $server_update['operations'] ) && is_array( $server_update['operations'] ) ? $server_update['operations'] : array(),
 		isset( $client_update['operations'] ) && is_array( $client_update['operations'] ) ? $client_update['operations'] : array()
 	);
 
-	$merge_result['merge_strategy']        = 'native_yjs_blocks_v1';
-	$merge_result['yjs_metadata']          = array(
-		'format'      => 'native-yjs-blocks-v1',
-		'schema'      => 'de-rtc-yjs-blocks-v1',
+	$merge_result['merge_strategy']        = 'native_automerge_blocks_v1';
+	$merge_result['automerge_metadata']          = array(
+		'format'      => 'native-automerge-blocks-v1',
+		'schema'      => 'de-rtc-automerge-v1',
 		'operations'  => $operations,
-		'stateVector' => wp_de_rtc_merge_yjs_state_vectors(
+		'stateVector' => wp_de_rtc_merge_automerge_state_vectors(
 			isset( $server_update['stateVector'] ) && is_array( $server_update['stateVector'] ) ? $server_update['stateVector'] : array(),
 			isset( $client_update['stateVector'] ) && is_array( $client_update['stateVector'] ) ? $client_update['stateVector'] : array()
 		),
 	);
-	$merge_result['yjs_client_update']     = $client_update;
-	$merge_result['yjs_server_update']     = $server_update;
-	$merge_result['server_merge_strategy'] = 'native_yjs_blocks_v1';
+	$merge_result['automerge_client_update']     = $client_update;
+	$merge_result['automerge_server_update']     = $server_update;
+	$merge_result['server_merge_strategy'] = 'native_automerge_blocks_v1';
 
 	return $merge_result;
 }
@@ -18513,13 +18558,13 @@ function wp_de_rtc_get_yjs_block_native_retry_save_result( $base_content, $curre
  * @param array  $client_update    Normalized block-native update.
  * @return true|WP_Error True when valid, otherwise an error.
  */
-function wp_de_rtc_validate_yjs_block_native_update_matches_content( $base_content, $proposed_content, $client_update ) {
-	if ( ! is_array( $client_update ) || ! isset( $client_update['format'] ) || 'native-yjs-blocks-v1' !== $client_update['format'] ) {
+function wp_de_rtc_validate_automerge_block_native_update_matches_content( $base_content, $proposed_content, $client_update ) {
+	if ( ! is_array( $client_update ) || ! isset( $client_update['format'] ) || 'native-automerge-blocks-v1' !== $client_update['format'] ) {
 		return wp_de_rtc_get_reason_error(
 			'de_rtc_malformed_sync_payload',
-			__( 'Distributed Editing rejected the retry save because the block-native Yjs update is malformed.' ),
+			__( 'Distributed Editing rejected the retry save because the block-native Automerge update is malformed.' ),
 			array(
-				'detail' => 'yjs_block_native_update_format_missing',
+				'detail' => 'automerge_block_native_update_format_missing',
 			)
 		);
 	}
@@ -18532,7 +18577,7 @@ function wp_de_rtc_validate_yjs_block_native_update_matches_content( $base_conte
 			'de_rtc_sync_meta_tampered',
 			__( 'Distributed Editing rejected the retry save because the block-native base hash does not match.' ),
 			array(
-				'detail'               => 'yjs_block_native_base_hash_mismatch',
+				'detail'               => 'automerge_block_native_base_hash_mismatch',
 				'saves_post'           => false,
 				'mutates_post_content' => false,
 				'creates_revision'     => false,
@@ -18546,7 +18591,7 @@ function wp_de_rtc_validate_yjs_block_native_update_matches_content( $base_conte
 			'de_rtc_sync_meta_tampered',
 			__( 'Distributed Editing rejected the retry save because the block-native proposed hash does not match.' ),
 			array(
-				'detail'               => 'yjs_block_native_proposed_hash_mismatch',
+				'detail'               => 'automerge_block_native_proposed_hash_mismatch',
 				'saves_post'           => false,
 				'mutates_post_content' => false,
 				'creates_revision'     => false,
@@ -18555,16 +18600,16 @@ function wp_de_rtc_validate_yjs_block_native_update_matches_content( $base_conte
 		);
 	}
 
-	$expected_update = wp_de_rtc_create_yjs_update_for_content_change( $base_content, $proposed_content, 'client' );
-	$expected        = wp_de_rtc_get_yjs_block_native_operation_fingerprints( $expected_update['operations'] );
-	$actual          = wp_de_rtc_get_yjs_block_native_operation_fingerprints( $client_update['operations'] );
+	$expected_update = wp_de_rtc_create_automerge_update_for_content_change( $base_content, $proposed_content, 'client' );
+	$expected        = wp_de_rtc_get_automerge_block_native_operation_fingerprints( $expected_update['operations'] );
+	$actual          = wp_de_rtc_get_automerge_block_native_operation_fingerprints( $client_update['operations'] );
 
 	if ( $expected !== $actual ) {
 		return wp_de_rtc_get_reason_error(
 			'de_rtc_sync_meta_tampered',
-			__( 'Distributed Editing rejected the retry save because the block-native Yjs update did not match the proposed content.' ),
+			__( 'Distributed Editing rejected the retry save because the block-native Automerge update did not match the proposed content.' ),
 			array(
-				'detail'               => 'yjs_client_update_materialization_mismatch',
+				'detail'               => 'automerge_client_update_materialization_mismatch',
 				'saves_post'           => false,
 				'mutates_post_content' => false,
 				'creates_revision'     => false,
@@ -18585,7 +18630,7 @@ function wp_de_rtc_validate_yjs_block_native_update_matches_content( $base_conte
  * @param array[] $operations Block-native operations.
  * @return array[] Comparable fingerprints.
  */
-function wp_de_rtc_get_yjs_block_native_operation_fingerprints( $operations ) {
+function wp_de_rtc_get_automerge_block_native_operation_fingerprints( $operations ) {
 	$fingerprints = array();
 
 	foreach ( is_array( $operations ) ? $operations : array() as $operation ) {
@@ -18623,7 +18668,7 @@ function wp_de_rtc_get_yjs_block_native_operation_fingerprints( $operations ) {
  * @param string $proposed_content Client-proposed stripped content.
  * @return array|WP_Error Merge result.
  */
-function wp_de_rtc_get_yjs_block_native_current_base_merge_result( $base_content, $proposed_content ) {
+function wp_de_rtc_get_automerge_block_native_current_base_merge_result( $base_content, $proposed_content ) {
 	$base_records     = wp_de_rtc_get_top_level_serialized_block_records( $base_content );
 	$proposed_records = wp_de_rtc_get_top_level_serialized_block_records( $proposed_content );
 
@@ -18636,7 +18681,7 @@ function wp_de_rtc_get_yjs_block_native_current_base_merge_result( $base_content
 	return array(
 		'merged_content'        => $proposed_content,
 		'merge_status'          => 'merged',
-		'merge_strategy'        => 'native_yjs_blocks_v1',
+		'merge_strategy'        => 'native_automerge_blocks_v1',
 		'block_count'           => count( $proposed_records ),
 		'base_block_count'      => count( $base_records ),
 		'server_block_count'    => count( $base_records ),
@@ -18650,7 +18695,7 @@ function wp_de_rtc_get_yjs_block_native_current_base_merge_result( $base_content
 }
 
 /**
- * Merges Yjs-style state vectors.
+ * Merges Automerge-style state vectors.
  *
  * @since 7.1.0
  * @access private
@@ -18659,7 +18704,7 @@ function wp_de_rtc_get_yjs_block_native_current_base_merge_result( $base_content
  * @param array $right Second state vector.
  * @return array Merged state vector.
  */
-function wp_de_rtc_merge_yjs_state_vectors( $left, $right ) {
+function wp_de_rtc_merge_automerge_state_vectors( $left, $right ) {
 	$merged = array();
 
 	foreach ( array( $left, $right ) as $vector ) {
@@ -18678,48 +18723,48 @@ function wp_de_rtc_merge_yjs_state_vectors( $left, $right ) {
 }
 
 /**
- * Returns public Yjs encoding evidence for a retry-save result.
+ * Returns public Automerge encoding evidence for a retry-save result.
  *
  * @since 7.1.0
  * @access private
  *
- * @param mixed $yjs_result Retry-save Yjs result.
- * @return string|null Encoding label, or null when no Yjs result exists.
+ * @param mixed $automerge_result Retry-save Automerge result.
+ * @return string|null Encoding label, or null when no Automerge result exists.
  */
-function wp_de_rtc_get_yjs_result_encoding( $yjs_result ) {
-	if ( ! is_array( $yjs_result ) ) {
+function wp_de_rtc_get_automerge_result_encoding( $automerge_result ) {
+	if ( ! is_array( $automerge_result ) ) {
 		return null;
 	}
 
 	if (
-		isset( $yjs_result['yjs_metadata'] ) &&
-		is_array( $yjs_result['yjs_metadata'] ) &&
-		isset( $yjs_result['yjs_metadata']['format'] ) &&
-		is_string( $yjs_result['yjs_metadata']['format'] )
+		isset( $automerge_result['automerge_metadata'] ) &&
+		is_array( $automerge_result['automerge_metadata'] ) &&
+		isset( $automerge_result['automerge_metadata']['format'] ) &&
+		is_string( $automerge_result['automerge_metadata']['format'] )
 	) {
-		return sanitize_text_field( $yjs_result['yjs_metadata']['format'] );
+		return sanitize_text_field( $automerge_result['automerge_metadata']['format'] );
 	}
 
-	return 'native-yjs-php-update-v0';
+	return 'native-automerge-php-v1';
 }
 
 /**
- * Adds server-owned native Yjs metadata to sync metadata.
+ * Adds server-owned native Automerge metadata to sync metadata.
  *
  * @since 7.1.0
  * @access private
  *
  * @param array  $sync_meta        Existing sync metadata.
- * @param array  $yjs_result       Yjs retry-save result.
+ * @param array  $automerge_result       Automerge retry-save result.
  * @param string $save_content_hash Hash of stripped saved content.
  * @return array|WP_Error Updated sync metadata or an error.
  */
-	function wp_de_rtc_apply_yjs_metadata_to_sync_meta( $sync_meta, $yjs_result, $save_content_hash ) {
-		$metadata     = isset( $yjs_result['yjs_metadata'] ) && is_array( $yjs_result['yjs_metadata'] ) ? $yjs_result['yjs_metadata'] : array();
+	function wp_de_rtc_apply_automerge_metadata_to_sync_meta( $sync_meta, $automerge_result, $save_content_hash ) {
+		$metadata     = isset( $automerge_result['automerge_metadata'] ) && is_array( $automerge_result['automerge_metadata'] ) ? $automerge_result['automerge_metadata'] : array();
 		$operations   = isset( $metadata['operations'] ) && is_array( $metadata['operations'] ) ? array_values( $metadata['operations'] ) : array();
 		$state_vector = isset( $metadata['stateVector'] ) && is_array( $metadata['stateVector'] ) ? $metadata['stateVector'] : array();
-		$format       = isset( $metadata['format'] ) && 'native-yjs-blocks-v1' === $metadata['format'] ? 'native-yjs-blocks-v1' : 'native-yjs-php-update-v0';
-		$schema       = 'native-yjs-blocks-v1' === $format ? 'de-rtc-yjs-blocks-v1' : 'de-rtc-yjs-v1';
+		$format       = isset( $metadata['format'] ) && 'native-automerge-blocks-v1' === $metadata['format'] ? 'native-automerge-blocks-v1' : 'native-automerge-php-v1';
+		$schema       = 'native-automerge-blocks-v1' === $format ? 'de-rtc-automerge-v1' : 'de-rtc-automerge-v1';
 	$update       = array(
 		'format'      => $format,
 		'schema'      => $schema,
@@ -18731,44 +18776,44 @@ function wp_de_rtc_get_yjs_result_encoding( $yjs_result ) {
 	if ( false === $encoded ) {
 		return wp_de_rtc_get_reason_error(
 			'de_rtc_malformed_sync_payload',
-			__( 'Distributed Editing could not encode the Yjs metadata.' ),
+			__( 'Distributed Editing could not encode the Automerge metadata.' ),
 			array(
-				'detail' => 'yjs_metadata_encode_failed',
+				'detail' => 'automerge_metadata_encode_failed',
 			)
 		);
 	}
 
 	$sync_meta['schema']            = $schema;
-	$sync_meta['yjs_encoding']      = $format;
-	$sync_meta['yjs_state_vector']  = $state_vector;
-	$sync_meta['yjs_update']        = base64_encode( $encoded );
-	$sync_meta['yjs_operation_count'] = count( $operations );
+	$sync_meta['automerge_encoding']      = $format;
+	$sync_meta['automerge_state_vector']  = $state_vector;
+	$sync_meta['automerge_update']        = base64_encode( $encoded );
+	$sync_meta['automerge_operation_count'] = count( $operations );
 	$sync_meta['post_content_hash'] = $save_content_hash;
 
 		return $sync_meta;
 	}
 
 	/**
-	 * Returns whether parsed sync metadata is the current server-owned Yjs schema.
+	 * Returns whether parsed sync metadata is the current server-owned Automerge schema.
 	 *
 	 * @since 7.1.0
 	 * @access private
 	 *
 	 * @param mixed  $sync_meta Sync metadata.
 	 * @param string $format    Parsed sync-meta format.
-	 * @return bool Whether the metadata is the current Yjs schema.
+	 * @return bool Whether the metadata is the current Automerge schema.
 	 */
-	function wp_de_rtc_is_current_yjs_sync_meta( $sync_meta, $format ) {
-		return (
-			'yjs' === $format &&
-			is_array( $sync_meta ) &&
-			isset( $sync_meta['schema'] ) &&
-			in_array( $sync_meta['schema'], array( 'de-rtc-yjs-v1', 'de-rtc-yjs-blocks-v1' ), true )
-		);
-	}
+function wp_de_rtc_is_current_automerge_sync_meta( $sync_meta, $format ) {
+	return (
+		'automerge' === $format &&
+		is_array( $sync_meta ) &&
+		isset( $sync_meta['schema'] ) &&
+		'de-rtc-automerge-v1' === $sync_meta['schema']
+	);
+}
 
 	/**
-	 * Returns the stripped-content hash recorded in Yjs sync metadata.
+	 * Returns the stripped-content hash recorded in Automerge sync metadata.
 	 *
 	 * External writers can change the body while leaving the pseudo-block intact.
 	 * The server treats the stored hash as a cheap coherence check; it is not a
@@ -18780,7 +18825,7 @@ function wp_de_rtc_get_yjs_result_encoding( $yjs_result ) {
 	 * @param array $sync_meta Sync metadata.
 	 * @return string|null Stored stripped-content hash, or null when unavailable.
 	 */
-	function wp_de_rtc_get_yjs_sync_meta_content_hash( $sync_meta ) {
+	function wp_de_rtc_get_automerge_sync_meta_content_hash( $sync_meta ) {
 		if ( ! is_array( $sync_meta ) ) {
 			return null;
 		}
@@ -18804,39 +18849,39 @@ function wp_de_rtc_get_yjs_result_encoding( $yjs_result ) {
 	}
 
 	/**
-	 * Creates empty Yjs sync metadata for a server-side import repair.
+	 * Creates empty Automerge sync metadata for a server-side import repair.
 	 *
 	 * This is the last-resort path for content whose pseudo-block was deleted and
 	 * no usable revision can restore it. It deliberately preserves no old history;
-	 * the next repair update imports the current body as the first Yjs change.
+	 * the next repair update imports the current body as the first Automerge change.
 	 *
 	 * @since 7.1.0
 	 * @access private
 	 *
 	 * @param WP_Post $post Post being repaired.
-	 * @return array Empty server-owned Yjs sync metadata.
+	 * @return array Empty server-owned Automerge sync metadata.
 	 */
-	function wp_de_rtc_get_empty_yjs_sync_meta_for_external_import( $post ) {
+	function wp_de_rtc_get_empty_automerge_sync_meta_for_external_import( $post ) {
 		$post = get_post( $post );
 
 		return array(
-			'schema'              => 'de-rtc-yjs-blocks-v1',
+			'schema'              => 'de-rtc-automerge-v1',
 			'version'             => '0',
 			'previous_version'    => null,
-			'yjs_encoding'        => 'native-yjs-blocks-v1',
-			'yjs_state_vector'    => array(),
-			'yjs_update'          => base64_encode( '{"format":"native-yjs-blocks-v1","schema":"de-rtc-yjs-blocks-v1","operations":[],"stateVector":[]}' ),
-			'yjs_operation_count' => 0,
+			'automerge_encoding'        => 'native-automerge-blocks-v1',
+			'automerge_state_vector'    => array(),
+			'automerge_update'          => base64_encode( '{"format":"native-automerge-blocks-v1","schema":"de-rtc-automerge-v1","operations":[],"stateVector":[]}' ),
+			'automerge_operation_count' => 0,
 			'post_content_hash'   => wp_de_rtc_hash_content( '' ),
 			'document_uuid'       => $post ? 'de-rtc-post-' . (int) $post->ID : 'de-rtc-post-0',
 		);
 	}
 
 	/**
-	 * Builds a server-owned Yjs repair for current post content.
+	 * Builds a server-owned Automerge repair for current post content.
 	 *
 	 * The body remains authoritative when an outside writer changes it. This
-	 * helper models that outside change as one Yjs update from the last trusted
+	 * helper models that outside change as one Automerge update from the last trusted
 	 * body to the current stripped body, then returns repaired metadata for the
 	 * caller's eventual save candidate. It does not persist the repair by itself.
 	 *
@@ -18848,7 +18893,7 @@ function wp_de_rtc_get_yjs_result_encoding( $yjs_result ) {
 	 *     Repair arguments.
 	 *
 	 *     @type string $base_content      Trusted stripped base content.
-	 *     @type array  $base_sync_meta    Trusted base Yjs sync metadata.
+	 *     @type array  $base_sync_meta    Trusted base Automerge sync metadata.
 	 *     @type string $base_version      Trusted base sync version.
 	 *     @type string $current_content   Current stripped post content.
 	 *     @type string $mode              Repair mode label.
@@ -18857,7 +18902,7 @@ function wp_de_rtc_get_yjs_result_encoding( $yjs_result ) {
 	 * }
 	 * @return array|WP_Error Repair data, or an error.
 	 */
-	function wp_de_rtc_get_yjs_external_repair_update( $post, $args ) {
+	function wp_de_rtc_get_automerge_external_repair_update( $post, $args ) {
 		$post            = get_post( $post );
 		$base_content    = isset( $args['base_content'] ) && is_string( $args['base_content'] ) ? $args['base_content'] : '';
 		$current_content = isset( $args['current_content'] ) && is_string( $args['current_content'] ) ? $args['current_content'] : '';
@@ -18867,26 +18912,26 @@ function wp_de_rtc_get_yjs_result_encoding( $yjs_result ) {
 		$base_revision_id = isset( $args['base_revision_id'] ) ? (int) $args['base_revision_id'] : 0;
 		$sync_meta_position = isset( $args['sync_meta_position'] ) && is_string( $args['sync_meta_position'] ) ? $args['sync_meta_position'] : 'prefix-block';
 		$actor           = 'wp-external-repair-' . ( $post ? (int) $post->ID : 0 ) . '-' . substr( hash( 'sha256', $base_version . '|' . $mode ), 0, 12 );
-		$client_update   = wp_de_rtc_create_yjs_update_for_content_change( $base_content, $current_content, $actor );
-		$yjs_result      = wp_de_rtc_get_yjs_retry_save_result( $base_content, $base_content, $current_content, $client_update );
+		$client_update   = wp_de_rtc_create_automerge_update_for_content_change( $base_content, $current_content, $actor );
+		$automerge_result      = wp_de_rtc_get_automerge_retry_save_result( $base_content, $base_content, $current_content, $client_update );
 
-		if ( is_wp_error( $yjs_result ) ) {
-			return $yjs_result;
+		if ( is_wp_error( $automerge_result ) ) {
+			return $automerge_result;
 		}
 
 		$current_hash  = wp_de_rtc_hash_content( $current_content );
 		$next_version  = wp_de_rtc_get_next_sync_meta_version( $base_version, $current_hash );
-		$next_sync_meta = wp_de_rtc_apply_yjs_metadata_to_sync_meta( $base_sync_meta, $yjs_result, $current_hash );
+		$next_sync_meta = wp_de_rtc_apply_automerge_metadata_to_sync_meta( $base_sync_meta, $automerge_result, $current_hash );
 
 		if ( is_wp_error( $next_sync_meta ) ) {
 			return $next_sync_meta;
 		}
 
 		unset(
-			$next_sync_meta['pending_yjs_update'],
-			$next_sync_meta['pending_yjs_encoding'],
-			$next_sync_meta['yjs_client_update'],
-			$next_sync_meta['yjs_update_role'],
+			$next_sync_meta['pending_automerge_update'],
+			$next_sync_meta['pending_automerge_encoding'],
+			$next_sync_meta['automerge_client_update'],
+			$next_sync_meta['automerge_update_role'],
 			$next_sync_meta['client_base_version']
 		);
 
@@ -18899,7 +18944,7 @@ function wp_de_rtc_get_yjs_result_encoding( $yjs_result ) {
 			'external_repair_mode'        => $mode,
 			'previous_server_version'     => $base_version,
 			'saved_stripped_content_hash' => $current_hash,
-			'merge_strategy'              => 'native_yjs_php_v0',
+			'merge_strategy'              => 'native_automerge_php_v1',
 			'base_content_hash'           => wp_de_rtc_hash_content( $base_content ),
 			'current_content_hash'        => $current_hash,
 			'content_hash_algorithm'      => 'sha256',
@@ -18912,7 +18957,7 @@ function wp_de_rtc_get_yjs_result_encoding( $yjs_result ) {
 		return array(
 			'content'                 => $current_content,
 			'sync_meta'               => $next_sync_meta,
-			'sync_meta_format'        => 'yjs',
+			'sync_meta_format'        => 'automerge',
 			'sync_meta_position'      => $sync_meta_position,
 			'raw_sync_meta'           => null,
 			'repair_required'         => true,
@@ -18922,12 +18967,12 @@ function wp_de_rtc_get_yjs_result_encoding( $yjs_result ) {
 			'base_revision_id'        => $base_revision_id,
 			'base_content_hash'       => wp_de_rtc_hash_content( $base_content ),
 			'current_content_hash'    => $current_hash,
-			'yjs_external_repair_result' => $yjs_result,
+			'automerge_external_repair_result' => $automerge_result,
 		);
 	}
 
 	/**
-	 * Repairs a parsed current post snapshot when Yjs metadata and body diverge.
+	 * Repairs a parsed current post snapshot when Automerge metadata and body diverge.
 	 *
 	 * @since 7.1.0
 	 * @access private
@@ -18937,7 +18982,7 @@ function wp_de_rtc_get_yjs_result_encoding( $yjs_result ) {
 	 * @param array   $options Optional repair options.
 	 * @return array|null|WP_Error Repaired parsed snapshot, null when no repair applies, or an error.
 	 */
-	function wp_de_rtc_get_repaired_yjs_current_post_snapshot( $post, $current, $options = array() ) {
+	function wp_de_rtc_get_repaired_automerge_current_post_snapshot( $post, $current, $options = array() ) {
 		$post               = get_post( $post );
 		$options            = is_array( $options ) ? $options : array();
 		$allow_empty_import = ! empty( $options['allow_empty_import'] );
@@ -18948,8 +18993,8 @@ function wp_de_rtc_get_yjs_result_encoding( $yjs_result ) {
 
 		$current_hash = wp_de_rtc_hash_content( $current['content'] );
 
-		if ( wp_de_rtc_is_current_yjs_sync_meta( $current['sync_meta'], $current['sync_meta_format'] ) ) {
-			$stored_hash = wp_de_rtc_get_yjs_sync_meta_content_hash( $current['sync_meta'] );
+		if ( wp_de_rtc_is_current_automerge_sync_meta( $current['sync_meta'], $current['sync_meta_format'] ) ) {
+			$stored_hash = wp_de_rtc_get_automerge_sync_meta_content_hash( $current['sync_meta'] );
 
 			if ( null === $stored_hash || hash_equals( $stored_hash, $current_hash ) ) {
 				return null;
@@ -18960,9 +19005,9 @@ function wp_de_rtc_get_yjs_result_encoding( $yjs_result ) {
 			if ( '' === $base_version ) {
 				return wp_de_rtc_get_reason_error(
 					'de_rtc_sync_meta_unrecoverable',
-					__( 'Distributed Editing could not repair Yjs metadata because the base version is missing.' ),
+					__( 'Distributed Editing could not repair Automerge metadata because the base version is missing.' ),
 					array(
-						'detail' => 'yjs_external_repair_missing_base_version',
+						'detail' => 'automerge_external_repair_missing_base_version',
 					)
 				);
 			}
@@ -18977,13 +19022,13 @@ function wp_de_rtc_get_yjs_result_encoding( $yjs_result ) {
 				empty( $base_revision['found'] ) ||
 				! is_string( $base_revision['content'] ) ||
 				! hash_equals( $stored_hash, wp_de_rtc_hash_content( $base_revision['content'] ) ) ||
-				! wp_de_rtc_is_current_yjs_sync_meta( $base_revision['sync_meta'], $base_revision['sync_meta_format'] )
+				! wp_de_rtc_is_current_automerge_sync_meta( $base_revision['sync_meta'], $base_revision['sync_meta_format'] )
 			) {
 				return wp_de_rtc_get_reason_error(
 					'de_rtc_sync_meta_unrecoverable',
-					__( 'Distributed Editing could not repair Yjs metadata because no trusted base body was found.' ),
+					__( 'Distributed Editing could not repair Automerge metadata because no trusted base body was found.' ),
 					array(
-						'detail'                       => 'yjs_external_repair_base_revision_not_found',
+						'detail'                       => 'automerge_external_repair_base_revision_not_found',
 						'base_version'                 => $base_version,
 						'expected_base_content_hash'    => $stored_hash,
 						'current_stripped_content_hash' => $current_hash,
@@ -18991,7 +19036,7 @@ function wp_de_rtc_get_yjs_result_encoding( $yjs_result ) {
 				);
 			}
 
-			return wp_de_rtc_get_yjs_external_repair_update(
+			return wp_de_rtc_get_automerge_external_repair_update(
 				$post,
 				array(
 					'base_content'       => $base_revision['content'],
@@ -19017,11 +19062,11 @@ function wp_de_rtc_get_yjs_result_encoding( $yjs_result ) {
 
 		if (
 			! empty( $revision_scan['found'] ) &&
-			wp_de_rtc_is_current_yjs_sync_meta( $revision_scan['sync_meta'], $revision_scan['sync_meta_format'] )
+			wp_de_rtc_is_current_automerge_sync_meta( $revision_scan['sync_meta'], $revision_scan['sync_meta_format'] )
 		) {
 			$base_version = isset( $revision_scan['sync_meta']['version'] ) ? sanitize_text_field( (string) $revision_scan['sync_meta']['version'] ) : '0';
 
-			return wp_de_rtc_get_yjs_external_repair_update(
+			return wp_de_rtc_get_automerge_external_repair_update(
 				$post,
 				array(
 					'base_content'       => $revision_scan['content'],
@@ -19039,11 +19084,11 @@ function wp_de_rtc_get_yjs_result_encoding( $yjs_result ) {
 			return null;
 		}
 
-		return wp_de_rtc_get_yjs_external_repair_update(
+		return wp_de_rtc_get_automerge_external_repair_update(
 			$post,
 			array(
 				'base_content'       => '',
-				'base_sync_meta'     => wp_de_rtc_get_empty_yjs_sync_meta_for_external_import( $post ),
+				'base_sync_meta'     => wp_de_rtc_get_empty_automerge_sync_meta_for_external_import( $post ),
 				'base_version'       => '0',
 				'current_content'    => $current['content'],
 				'mode'               => 'empty_import',
@@ -19054,7 +19099,7 @@ function wp_de_rtc_get_yjs_result_encoding( $yjs_result ) {
 	}
 
 /**
- * Decodes a native Yjs update stored inside post sync metadata.
+ * Decodes a native Automerge update stored inside post sync metadata.
  *
  * The normal Save path now carries DE-RTC evidence inside `post_content`
  * instead of in a side-channel REST payload. This helper accepts the current
@@ -19067,21 +19112,21 @@ function wp_de_rtc_get_yjs_result_encoding( $yjs_result ) {
  * @param mixed $encoded_update Base64 JSON update, decoded update array, or null.
  * @return array|null|WP_Error Native update, null when absent, or an error.
  */
-function wp_de_rtc_decode_yjs_sync_meta_update( $encoded_update ) {
+function wp_de_rtc_decode_automerge_sync_meta_update( $encoded_update ) {
 	if ( null === $encoded_update ) {
 		return null;
 	}
 
 	if ( is_array( $encoded_update ) ) {
-		return wp_de_rtc_normalize_yjs_client_update( $encoded_update );
+		return wp_de_rtc_normalize_automerge_client_update( $encoded_update );
 	}
 
 	if ( ! is_string( $encoded_update ) || '' === trim( $encoded_update ) ) {
 		return wp_de_rtc_get_reason_error(
 			'de_rtc_malformed_sync_payload',
-			__( 'Distributed Editing rejected the Yjs update because it is malformed.' ),
+			__( 'Distributed Editing rejected the Automerge update because it is malformed.' ),
 			array(
-				'detail' => 'yjs_sync_meta_update_not_base64_json',
+				'detail' => 'automerge_sync_meta_update_not_base64_json',
 			)
 		);
 	}
@@ -19091,9 +19136,9 @@ function wp_de_rtc_decode_yjs_sync_meta_update( $encoded_update ) {
 	if ( false === $json ) {
 		return wp_de_rtc_get_reason_error(
 			'de_rtc_malformed_sync_payload',
-			__( 'Distributed Editing rejected the Yjs update because it is malformed.' ),
+			__( 'Distributed Editing rejected the Automerge update because it is malformed.' ),
 			array(
-				'detail' => 'yjs_sync_meta_update_base64_decode_failed',
+				'detail' => 'automerge_sync_meta_update_base64_decode_failed',
 			)
 		);
 	}
@@ -19103,21 +19148,21 @@ function wp_de_rtc_decode_yjs_sync_meta_update( $encoded_update ) {
 	if ( JSON_ERROR_NONE !== json_last_error() || ! is_array( $update ) ) {
 		return wp_de_rtc_get_reason_error(
 			'de_rtc_malformed_sync_payload',
-			__( 'Distributed Editing rejected the Yjs update because it is malformed.' ),
+			__( 'Distributed Editing rejected the Automerge update because it is malformed.' ),
 			array(
-				'detail'          => 'yjs_sync_meta_update_json_decode_failed',
+				'detail'          => 'automerge_sync_meta_update_json_decode_failed',
 				'json_error_code' => json_last_error(),
 			)
 		);
 	}
 
-	return wp_de_rtc_normalize_yjs_client_update( $update );
+	return wp_de_rtc_normalize_automerge_client_update( $update );
 }
 
 /**
- * Extracts the client Yjs update from submitted post sync metadata.
+ * Extracts the client Automerge update from submitted post sync metadata.
  *
- * Server-owned historical `yjs_update` is intentionally ignored unless the
+ * Server-owned historical `automerge_update` is intentionally ignored unless the
  * client labels it as a pending update. Replaying old server metadata as a
  * client edit was one of the ways ordinary Save drifted into confusing stale
  * and paused states.
@@ -19128,36 +19173,36 @@ function wp_de_rtc_decode_yjs_sync_meta_update( $encoded_update ) {
  * @param array|null $sync_meta Submitted sync metadata.
  * @return array|null|WP_Error Native update, null when absent, or an error.
  */
-function wp_de_rtc_get_pending_yjs_update_from_sync_meta( $sync_meta ) {
+function wp_de_rtc_get_pending_automerge_update_from_sync_meta( $sync_meta ) {
 	if ( ! is_array( $sync_meta ) ) {
 		return null;
 	}
 
-	if ( array_key_exists( 'pending_yjs_update', $sync_meta ) ) {
-		return wp_de_rtc_decode_yjs_sync_meta_update( $sync_meta['pending_yjs_update'] );
+	if ( array_key_exists( 'pending_automerge_update', $sync_meta ) ) {
+		return wp_de_rtc_decode_automerge_sync_meta_update( $sync_meta['pending_automerge_update'] );
 	}
 
-	if ( array_key_exists( 'yjs_client_update', $sync_meta ) ) {
-		return wp_de_rtc_decode_yjs_sync_meta_update( $sync_meta['yjs_client_update'] );
+	if ( array_key_exists( 'automerge_client_update', $sync_meta ) ) {
+		return wp_de_rtc_decode_automerge_sync_meta_update( $sync_meta['automerge_client_update'] );
 	}
 
 	if (
-		isset( $sync_meta['yjs_update_role'] ) &&
-		'client_update' === $sync_meta['yjs_update_role'] &&
-		array_key_exists( 'yjs_update', $sync_meta )
+		isset( $sync_meta['automerge_update_role'] ) &&
+		'client_update' === $sync_meta['automerge_update_role'] &&
+		array_key_exists( 'automerge_update', $sync_meta )
 	) {
-		return wp_de_rtc_decode_yjs_sync_meta_update( $sync_meta['yjs_update'] );
+		return wp_de_rtc_decode_automerge_sync_meta_update( $sync_meta['automerge_update'] );
 	}
 
 	return null;
 }
 
 /**
- * Prepares server-owned post content for a raw post_content Yjs save.
+ * Prepares server-owned post content for a raw post_content Automerge save.
  *
  * The only Save contract this path needs from the client is the complete
  * submitted post content. When that content includes the sync-meta pseudo-block,
- * WordPress splits it off, applies the pending Yjs update if present, and then
+ * WordPress splits it off, applies the pending Automerge update if present, and then
  * writes a fresh server-owned pseudo-block above the merged body. Direct
  * `wp_update_post()` calls that submit only body content still get a derived
  * single-change update so older entry points do not strip the metadata.
@@ -19170,7 +19215,7 @@ function wp_de_rtc_get_pending_yjs_update_from_sync_meta( $sync_meta ) {
  * @param string  $source               Save entry-point label.
  * @return string|null|WP_Error Candidate post_content, null when DE-RTC should not handle it, or an error.
  */
-function wp_de_rtc_prepare_yjs_raw_post_content_update( $post, $incoming_post_content, $source ) {
+function wp_de_rtc_prepare_automerge_raw_post_content_update( $post, $incoming_post_content, $source ) {
 	if ( ! $post || ! wp_de_rtc_is_enabled_for_post( $post ) || ! is_string( $incoming_post_content ) ) {
 		return null;
 	}
@@ -19187,14 +19232,14 @@ function wp_de_rtc_prepare_yjs_raw_post_content_update( $post, $incoming_post_co
 		return $incoming;
 	}
 
-	$current_is_yjs = 'yjs' === $current['sync_meta_format'] && is_array( $current['sync_meta'] );
-	$incoming_is_yjs = 'yjs' === $incoming['sync_meta_format'] && is_array( $incoming['sync_meta'] );
+	$current_is_automerge = 'automerge' === $current['sync_meta_format'] && is_array( $current['sync_meta'] );
+	$incoming_is_automerge = 'automerge' === $incoming['sync_meta_format'] && is_array( $incoming['sync_meta'] );
 
-		if ( null !== $incoming['sync_meta'] && ! $incoming_is_yjs && ! $current_is_yjs ) {
+		if ( null !== $incoming['sync_meta'] && ! $incoming_is_automerge && ! $current_is_automerge ) {
 			return null;
 		}
 
-		if ( null !== $incoming['sync_meta'] && ! $incoming_is_yjs ) {
+		if ( null !== $incoming['sync_meta'] && ! $incoming_is_automerge ) {
 			return wp_de_rtc_get_reason_error(
 				'de_rtc_unknown_sync_meta_format',
 				__( 'Distributed Editing rejected the save because the sync metadata format is not supported.' ),
@@ -19204,11 +19249,11 @@ function wp_de_rtc_prepare_yjs_raw_post_content_update( $post, $incoming_post_co
 			);
 		}
 
-		$current_external_repair = wp_de_rtc_get_repaired_yjs_current_post_snapshot(
+		$current_external_repair = wp_de_rtc_get_repaired_automerge_current_post_snapshot(
 			$post,
 			$current,
 			array(
-				'allow_empty_import' => $current_is_yjs || $incoming_is_yjs,
+				'allow_empty_import' => $current_is_automerge || $incoming_is_automerge,
 			)
 		);
 
@@ -19218,14 +19263,14 @@ function wp_de_rtc_prepare_yjs_raw_post_content_update( $post, $incoming_post_co
 
 		if ( is_array( $current_external_repair ) ) {
 			$current        = $current_external_repair;
-			$current_is_yjs = true;
+			$current_is_automerge = true;
 		}
 
-		if ( ! $current_is_yjs && ! $incoming_is_yjs ) {
+		if ( ! $current_is_automerge && ! $incoming_is_automerge ) {
 			return null;
 		}
 
-	$client_update = $incoming_is_yjs ? wp_de_rtc_get_pending_yjs_update_from_sync_meta( $incoming['sync_meta'] ) : null;
+	$client_update = $incoming_is_automerge ? wp_de_rtc_get_pending_automerge_update_from_sync_meta( $incoming['sync_meta'] ) : null;
 
 	if ( is_wp_error( $client_update ) ) {
 		return $client_update;
@@ -19233,17 +19278,17 @@ function wp_de_rtc_prepare_yjs_raw_post_content_update( $post, $incoming_post_co
 
 	$current_content     = $current['content'];
 	$proposed_content    = $incoming['content'];
-	$server_version      = $current_is_yjs && isset( $current['sync_meta']['version'] ) ? sanitize_text_field( (string) $current['sync_meta']['version'] ) : '0';
-	$client_base_version = $incoming_is_yjs && isset( $incoming['sync_meta']['client_base_version'] ) ? sanitize_text_field( (string) $incoming['sync_meta']['client_base_version'] ) : '';
+	$server_version      = $current_is_automerge && isset( $current['sync_meta']['version'] ) ? sanitize_text_field( (string) $current['sync_meta']['version'] ) : '0';
+	$client_base_version = $incoming_is_automerge && isset( $incoming['sync_meta']['client_base_version'] ) ? sanitize_text_field( (string) $incoming['sync_meta']['client_base_version'] ) : '';
 
-	if ( '' === $client_base_version && $incoming_is_yjs && isset( $incoming['sync_meta']['version'] ) ) {
+	if ( '' === $client_base_version && $incoming_is_automerge && isset( $incoming['sync_meta']['version'] ) ) {
 		$client_base_version = sanitize_text_field( (string) $incoming['sync_meta']['version'] );
 	}
 
 	$base_content     = $current_content;
 	$base_revision_id = 0;
 	$effective_client_base_version = '' !== $client_base_version ? $client_base_version : $server_version;
-	$yjs_result       = null;
+	$automerge_result       = null;
 
 	if ( '' !== $client_base_version && $client_base_version !== $server_version ) {
 		$base_revision = wp_de_rtc_find_revision_with_sync_meta_version( $post, $client_base_version );
@@ -19254,32 +19299,32 @@ function wp_de_rtc_prepare_yjs_raw_post_content_update( $post, $incoming_post_co
 
 		if ( empty( $base_revision['found'] ) || ! is_string( $base_revision['content'] ) ) {
 			if ( null !== $client_update ) {
-				$current_base_result = wp_de_rtc_get_yjs_retry_save_result( $current_content, $current_content, $proposed_content, $client_update );
+				$current_base_result = wp_de_rtc_get_automerge_retry_save_result( $current_content, $current_content, $proposed_content, $client_update );
 
 				if ( ! is_wp_error( $current_base_result ) ) {
 					/*
 					 * Some raw editor saves can only prove their base by
-					 * materializing the pending Yjs update against the current
+					 * materializing the pending Automerge update against the current
 					 * server body. Accept that narrow case so a clean Save does
 					 * not become a false stale-base rejection.
 					 */
-					$yjs_result                    = $current_base_result;
+					$automerge_result                    = $current_base_result;
 					$effective_client_base_version = $server_version;
 				} else {
 					$current_base_error_data   = $current_base_result->get_error_data( $current_base_result->get_error_code() );
 					$current_base_error_detail = is_array( $current_base_error_data ) && isset( $current_base_error_data['detail'] ) ? (string) $current_base_error_data['detail'] : '';
 
-					if ( 'de_rtc_sync_meta_tampered' !== $current_base_result->get_error_code() || 'yjs_client_update_materialization_mismatch' !== $current_base_error_detail ) {
+					if ( 'de_rtc_sync_meta_tampered' !== $current_base_result->get_error_code() || 'automerge_client_update_materialization_mismatch' !== $current_base_error_detail ) {
 						return $current_base_result;
 					}
 				}
 			}
 
-			if ( null === $yjs_result ) {
+			if ( null === $automerge_result ) {
 				return wp_de_rtc_get_server_merge_conflict_error(
-					'yjs_raw_save_base_revision_not_found',
+					'automerge_raw_save_base_revision_not_found',
 					array(
-						'server_merge_strategy'         => 'native_yjs_php_v0',
+						'server_merge_strategy'         => 'native_automerge_php_v1',
 						'source'                        => $source,
 						'client_base_version'           => $client_base_version,
 						'server_version'                => $server_version,
@@ -19295,33 +19340,33 @@ function wp_de_rtc_prepare_yjs_raw_post_content_update( $post, $incoming_post_co
 		}
 	}
 
-	if ( null === $yjs_result ) {
+	if ( null === $automerge_result ) {
 		if ( null === $client_update ) {
-			$client_update = wp_de_rtc_create_yjs_update_for_content_change( $base_content, $proposed_content, 'client' );
+			$client_update = wp_de_rtc_create_automerge_update_for_content_change( $base_content, $proposed_content, 'client' );
 		}
 
-		$yjs_result = wp_de_rtc_get_yjs_retry_save_result( $base_content, $current_content, $proposed_content, $client_update );
+		$automerge_result = wp_de_rtc_get_automerge_retry_save_result( $base_content, $current_content, $proposed_content, $client_update );
 
-		if ( is_wp_error( $yjs_result ) ) {
-			return $yjs_result;
+		if ( is_wp_error( $automerge_result ) ) {
+			return $automerge_result;
 		}
 	}
 
-	$merged_content = $yjs_result['merged_content'];
+	$merged_content = $automerge_result['merged_content'];
 	$save_hash      = wp_de_rtc_hash_content( $merged_content );
 	$next_version   = wp_de_rtc_get_next_sync_meta_version( $server_version, $save_hash );
-	$next_sync_meta = $current_is_yjs ? $current['sync_meta'] : array();
-	$next_sync_meta = wp_de_rtc_apply_yjs_metadata_to_sync_meta( $next_sync_meta, $yjs_result, $save_hash );
+	$next_sync_meta = $current_is_automerge ? $current['sync_meta'] : array();
+	$next_sync_meta = wp_de_rtc_apply_automerge_metadata_to_sync_meta( $next_sync_meta, $automerge_result, $save_hash );
 
 	if ( is_wp_error( $next_sync_meta ) ) {
 		return $next_sync_meta;
 	}
 
 	unset(
-		$next_sync_meta['pending_yjs_update'],
-		$next_sync_meta['pending_yjs_encoding'],
-		$next_sync_meta['yjs_client_update'],
-		$next_sync_meta['yjs_update_role'],
+		$next_sync_meta['pending_automerge_update'],
+		$next_sync_meta['pending_automerge_encoding'],
+		$next_sync_meta['automerge_client_update'],
+		$next_sync_meta['automerge_update_role'],
 		$next_sync_meta['client_base_version']
 	);
 
@@ -19334,7 +19379,7 @@ function wp_de_rtc_prepare_yjs_raw_post_content_update( $post, $incoming_post_co
 			'client_base_version'        => $effective_client_base_version,
 		'previous_server_version'    => $server_version,
 		'saved_stripped_content_hash' => $save_hash,
-			'merge_strategy'             => $yjs_result['merge_strategy'],
+			'merge_strategy'             => $automerge_result['merge_strategy'],
 		);
 
 		if ( is_array( $current_external_repair ) ) {
@@ -19353,11 +19398,11 @@ function wp_de_rtc_prepare_yjs_raw_post_content_update( $post, $incoming_post_co
 			$next_sync_meta['last_server_update']['base_revision_id'] = $base_revision_id;
 		}
 
-	return wp_de_rtc_add_sync_meta_to_post_content( $merged_content, 'yjs', $next_sync_meta, 'prefix-block' );
+	return wp_de_rtc_add_sync_meta_to_post_content( $merged_content, 'automerge', $next_sync_meta, 'prefix-block' );
 }
 
 /**
- * Validates and prepares raw post_content Yjs saves before REST persistence.
+ * Validates and prepares raw post_content Automerge saves before REST persistence.
  *
  * @since 7.1.0
  *
@@ -19365,7 +19410,7 @@ function wp_de_rtc_prepare_yjs_raw_post_content_update( $post, $incoming_post_co
  * @param WP_REST_Request   $request       Request object.
  * @return stdClass|WP_Error Prepared post or a merge/apply error.
  */
-function wp_de_rtc_rest_pre_insert_yjs_raw_post_content_update( $prepared_post, $request ) {
+function wp_de_rtc_rest_pre_insert_automerge_raw_post_content_update( $prepared_post, $request ) {
 	if ( is_wp_error( $prepared_post ) || ! is_object( $prepared_post ) || ! isset( $prepared_post->post_content ) ) {
 		return $prepared_post;
 	}
@@ -19386,7 +19431,7 @@ function wp_de_rtc_rest_pre_insert_yjs_raw_post_content_update( $prepared_post, 
 		return $prepared_post;
 	}
 
-	$candidate = wp_de_rtc_prepare_yjs_raw_post_content_update( $post, $prepared_post->post_content, 'rest_post_update' );
+	$candidate = wp_de_rtc_prepare_automerge_raw_post_content_update( $post, $prepared_post->post_content, 'rest_post_update' );
 
 	if ( is_wp_error( $candidate ) ) {
 		return $candidate;
@@ -19396,20 +19441,20 @@ function wp_de_rtc_rest_pre_insert_yjs_raw_post_content_update( $prepared_post, 
 		return $prepared_post;
 	}
 
-	global $wp_de_rtc_prepared_yjs_raw_save_content;
+	global $wp_de_rtc_prepared_automerge_raw_save_content;
 
-	if ( ! is_array( $wp_de_rtc_prepared_yjs_raw_save_content ) ) {
-		$wp_de_rtc_prepared_yjs_raw_save_content = array();
+	if ( ! is_array( $wp_de_rtc_prepared_automerge_raw_save_content ) ) {
+		$wp_de_rtc_prepared_automerge_raw_save_content = array();
 	}
 
-	$wp_de_rtc_prepared_yjs_raw_save_content[ (int) $post->ID ] = $candidate;
+	$wp_de_rtc_prepared_automerge_raw_save_content[ (int) $post->ID ] = $candidate;
 	$prepared_post->post_content                               = $candidate;
 
 	return $prepared_post;
 }
 
 /**
- * Preserves server-owned Yjs sync metadata for normal post update entry points.
+ * Preserves server-owned Automerge sync metadata for normal post update entry points.
  *
  * @since 7.1.0
  *
@@ -19419,12 +19464,12 @@ function wp_de_rtc_rest_pre_insert_yjs_raw_post_content_update( $prepared_post, 
  * @param bool  $update              Whether this is an update.
  * @return array Filtered post data.
  */
-function wp_de_rtc_preserve_yjs_sync_meta_on_post_update( $data, $postarr, $unsanitized_postarr, $update ) {
+function wp_de_rtc_preserve_automerge_sync_meta_on_post_update( $data, $postarr, $unsanitized_postarr, $update ) {
 	if ( ! $update || empty( $postarr['ID'] ) || ! isset( $data['post_content'] ) ) {
 		return $data;
 	}
 
-	global $wp_de_rtc_prepared_yjs_raw_save_content;
+	global $wp_de_rtc_prepared_automerge_raw_save_content;
 	global $wp_de_rtc_retry_save_candidate_post_content;
 
 	if (
@@ -19436,9 +19481,9 @@ function wp_de_rtc_preserve_yjs_sync_meta_on_post_update( $data, $postarr, $unsa
 		return $data;
 	}
 
-	if ( is_array( $wp_de_rtc_prepared_yjs_raw_save_content ) && array_key_exists( (int) $postarr['ID'], $wp_de_rtc_prepared_yjs_raw_save_content ) ) {
-		$data['post_content'] = wp_slash( $wp_de_rtc_prepared_yjs_raw_save_content[ (int) $postarr['ID'] ] );
-		unset( $wp_de_rtc_prepared_yjs_raw_save_content[ (int) $postarr['ID'] ] );
+	if ( is_array( $wp_de_rtc_prepared_automerge_raw_save_content ) && array_key_exists( (int) $postarr['ID'], $wp_de_rtc_prepared_automerge_raw_save_content ) ) {
+		$data['post_content'] = wp_slash( $wp_de_rtc_prepared_automerge_raw_save_content[ (int) $postarr['ID'] ] );
+		unset( $wp_de_rtc_prepared_automerge_raw_save_content[ (int) $postarr['ID'] ] );
 
 		return $data;
 	}
@@ -19449,7 +19494,7 @@ function wp_de_rtc_preserve_yjs_sync_meta_on_post_update( $data, $postarr, $unsa
 		return $data;
 	}
 
-	$candidate = wp_de_rtc_prepare_yjs_raw_post_content_update( $post, wp_unslash( $data['post_content'] ), 'wp_update_post' );
+	$candidate = wp_de_rtc_prepare_automerge_raw_post_content_update( $post, wp_unslash( $data['post_content'] ), 'wp_update_post' );
 
 	if ( is_wp_error( $candidate ) ) {
 		$data['post_content'] = wp_slash( $post->post_content );
@@ -19905,8 +19950,8 @@ function wp_de_rtc_get_post_sync_meta_recovery_decision( $post ) {
 		$current_content_hash = wp_de_rtc_hash_content( $current['content'] );
 
 		if ( null !== $current['sync_meta'] ) {
-			if ( wp_de_rtc_is_current_yjs_sync_meta( $current['sync_meta'], $current['sync_meta_format'] ) ) {
-				$stored_content_hash = wp_de_rtc_get_yjs_sync_meta_content_hash( $current['sync_meta'] );
+			if ( wp_de_rtc_is_current_automerge_sync_meta( $current['sync_meta'], $current['sync_meta_format'] ) ) {
+				$stored_content_hash = wp_de_rtc_get_automerge_sync_meta_content_hash( $current['sync_meta'] );
 
 				if ( null !== $stored_content_hash && ! hash_equals( $stored_content_hash, $current_content_hash ) ) {
 					$base_version  = isset( $current['sync_meta']['version'] ) ? sanitize_text_field( (string) $current['sync_meta']['version'] ) : '';
@@ -19917,7 +19962,7 @@ function wp_de_rtc_get_post_sync_meta_recovery_decision( $post ) {
 						! empty( $base_revision['found'] ) &&
 						is_string( $base_revision['content'] ) &&
 						hash_equals( $stored_content_hash, wp_de_rtc_hash_content( $base_revision['content'] ) ) &&
-						wp_de_rtc_is_current_yjs_sync_meta( $base_revision['sync_meta'], $base_revision['sync_meta_format'] )
+						wp_de_rtc_is_current_automerge_sync_meta( $base_revision['sync_meta'], $base_revision['sync_meta_format'] )
 					) {
 						$base_revision_content_hash = wp_de_rtc_hash_content( $base_revision['content'] );
 
@@ -19930,7 +19975,7 @@ function wp_de_rtc_get_post_sync_meta_recovery_decision( $post ) {
 							'reason'                     => wp_de_rtc_get_reason_data(
 								'de_rtc_sync_meta_repaired_from_body',
 								array(
-									'detail'               => 'yjs_body_hash_drift',
+									'detail'               => 'automerge_body_hash_drift',
 									'recovery_reason_code' => 'de_rtc_sync_meta_repaired_from_body',
 								)
 							),
@@ -19978,7 +20023,7 @@ function wp_de_rtc_get_post_sync_meta_recovery_decision( $post ) {
 						'reason'                     => wp_de_rtc_get_reason_data(
 							'de_rtc_sync_meta_unrecoverable',
 							array(
-								'detail'                       => 'yjs_body_hash_drift_without_trusted_base',
+								'detail'                       => 'automerge_body_hash_drift_without_trusted_base',
 								'base_version'                 => $base_version,
 								'expected_base_content_hash'    => $stored_content_hash,
 								'current_stripped_content_hash' => $current_content_hash,
@@ -20081,7 +20126,7 @@ function wp_de_rtc_get_post_sync_meta_recovery_decision( $post ) {
 		);
 	}
 
-		$empty_sync_meta = wp_de_rtc_get_empty_yjs_sync_meta_for_external_import( $post );
+		$empty_sync_meta = wp_de_rtc_get_empty_automerge_sync_meta_for_external_import( $post );
 
 		return array(
 			'decision'                   => 'recovery_required_restorable',
@@ -20092,8 +20137,8 @@ function wp_de_rtc_get_post_sync_meta_recovery_decision( $post ) {
 			'reason'                     => wp_de_rtc_get_reason_data(
 				'de_rtc_missing_sync_meta',
 				array(
-					'detail'                 => 'empty_yjs_import_required',
-					'recovery_reason_code'   => 'de_rtc_sync_meta_empty_yjs_import',
+					'detail'                 => 'empty_automerge_import_required',
+					'recovery_reason_code'   => 'de_rtc_sync_meta_empty_automerge_import',
 					'scanned_revisions'      => $revision_scan['scanned_revisions'],
 					'malformed_revision_ids' => $revision_scan['malformed_revision_ids'],
 				)
@@ -20111,7 +20156,7 @@ function wp_de_rtc_get_post_sync_meta_recovery_decision( $post ) {
 				'content'                => '',
 				'content_hash'           => wp_de_rtc_hash_content( '' ),
 				'sync_meta'              => $empty_sync_meta,
-				'sync_meta_format'       => 'yjs',
+				'sync_meta_format'       => 'automerge',
 				'sync_meta_position'     => 'prefix-block',
 				'raw_sync_meta'          => null,
 				'scanned_revisions'      => $revision_scan['scanned_revisions'],
@@ -20128,7 +20173,7 @@ function wp_de_rtc_get_post_sync_meta_recovery_decision( $post ) {
 				'current_content'            => $current['content'],
 				'current_content_hash'       => $current_content_hash,
 				'content_hash_algorithm'     => 'sha256',
-				'recovery_reason_code'       => 'de_rtc_sync_meta_empty_yjs_import',
+				'recovery_reason_code'       => 'de_rtc_sync_meta_empty_automerge_import',
 				'missing_sync_meta_reason_code' => 'de_rtc_missing_sync_meta',
 			),
 		);
@@ -20318,7 +20363,7 @@ function wp_de_rtc_plan_sync_meta_recovery_update( $decision_or_post ) {
 
 	$base_revision          = $decision['base_revision'];
 
-	if ( wp_de_rtc_is_current_yjs_sync_meta( $base_revision['sync_meta'], $base_revision['sync_meta_format'] ) ) {
+	if ( wp_de_rtc_is_current_automerge_sync_meta( $base_revision['sync_meta'], $base_revision['sync_meta_format'] ) ) {
 		$external_change = isset( $decision['external_change'] ) && is_array( $decision['external_change'] )
 			? $decision['external_change']
 			: array();
@@ -20326,7 +20371,7 @@ function wp_de_rtc_plan_sync_meta_recovery_update( $decision_or_post ) {
 			? sanitize_key( $external_change['mode'] )
 			: ( empty( $base_revision['revision_id'] ) ? 'empty_import' : 'missing_sync_meta_revision' );
 		$base_version    = isset( $base_revision['sync_meta']['version'] ) ? sanitize_text_field( (string) $base_revision['sync_meta']['version'] ) : '0';
-		$repair          = wp_de_rtc_get_yjs_external_repair_update(
+		$repair          = wp_de_rtc_get_automerge_external_repair_update(
 			get_post( (int) $decision['post_id'] ),
 			array(
 				'base_content'       => isset( $base_revision['content'] ) && is_string( $base_revision['content'] ) ? $base_revision['content'] : '',
@@ -20345,7 +20390,7 @@ function wp_de_rtc_plan_sync_meta_recovery_update( $decision_or_post ) {
 
 		$candidate_post_content = wp_de_rtc_add_sync_meta_to_post_content(
 			$current_content,
-			'yjs',
+			'automerge',
 			$repair['sync_meta'],
 			$repair['sync_meta_position']
 		);
@@ -20354,14 +20399,14 @@ function wp_de_rtc_plan_sync_meta_recovery_update( $decision_or_post ) {
 			return $candidate_post_content;
 		}
 
-		$restored_raw_sync_meta           = wp_de_rtc_format_sync_meta( 'yjs', $repair['sync_meta'] );
+		$restored_raw_sync_meta           = wp_de_rtc_format_sync_meta( 'automerge', $repair['sync_meta'] );
 		$candidate_stripped_content_hash = wp_de_rtc_hash_content( $current_content );
 		$candidate_post_content_hash     = wp_de_rtc_hash_content( $candidate_post_content );
 		$base_revision_content_hash      = isset( $decision['base_revision_content_hash'] ) && is_string( $decision['base_revision_content_hash'] )
 			? $decision['base_revision_content_hash']
 			: wp_de_rtc_hash_content( isset( $base_revision['content'] ) && is_string( $base_revision['content'] ) ? $base_revision['content'] : '' );
-		$reason_code                     = 'empty_import' === $repair_mode ? 'de_rtc_sync_meta_empty_yjs_import' : 'de_rtc_sync_meta_repaired_from_body';
-		$reason_detail                   = 'empty_import' === $repair_mode ? 'planned_empty_yjs_import' : 'planned_yjs_external_body_repair';
+		$reason_code                     = 'empty_import' === $repair_mode ? 'de_rtc_sync_meta_empty_automerge_import' : 'de_rtc_sync_meta_repaired_from_body';
+		$reason_detail                   = 'empty_import' === $repair_mode ? 'planned_empty_automerge_import' : 'planned_automerge_external_body_repair';
 
 		if ( is_wp_error( $restored_raw_sync_meta ) ) {
 			return $restored_raw_sync_meta;
@@ -20372,7 +20417,7 @@ function wp_de_rtc_plan_sync_meta_recovery_update( $decision_or_post ) {
 			array(
 				'candidate_stripped_content_hash' => $candidate_stripped_content_hash,
 				'candidate_post_content_hash'     => $candidate_post_content_hash,
-				'candidate_sync_meta_format'      => 'yjs',
+				'candidate_sync_meta_format'      => 'automerge',
 				'candidate_sync_meta_position'    => $repair['sync_meta_position'],
 				'candidate_reason_code'           => $reason_code,
 				'repaired_sync_meta_version'      => $repair['server_version'],
@@ -20405,7 +20450,7 @@ function wp_de_rtc_plan_sync_meta_recovery_update( $decision_or_post ) {
 			'candidate_post_content'          => $candidate_post_content,
 			'candidate_post_content_hash'     => $candidate_post_content_hash,
 			'restored_sync_meta'              => $repair['sync_meta'],
-			'restored_sync_meta_format'       => 'yjs',
+			'restored_sync_meta_format'       => 'automerge',
 			'restored_sync_meta_position'     => $repair['sync_meta_position'],
 			'restored_raw_sync_meta'          => rtrim( $restored_raw_sync_meta ),
 			'external_change'                 => $external_change,
@@ -24786,8 +24831,8 @@ function wp_de_rtc_parse_sync_meta_script( $script, $json ) {
 		);
 	}
 
-	if ( '' === $format && isset( $sync_meta['schema'] ) && in_array( $sync_meta['schema'], array( 'de-rtc-yjs-v1', 'de-rtc-yjs-blocks-v1' ), true ) ) {
-		$format = 'yjs';
+	if ( '' === $format && isset( $sync_meta['schema'] ) && 'de-rtc-automerge-v1' === $sync_meta['schema'] ) {
+		$format = 'automerge';
 	}
 
 	if ( '' === $format ) {

@@ -140,12 +140,12 @@ class Tests_DE_RTC_REST_Post_Snapshot extends WP_Test_REST_TestCase {
 		$parsed   = wp_de_rtc_parse_post_content_sync_meta( $data['content']['raw'] );
 
 		$this->assertSame( 200, $response->get_status() );
-		$this->assertStringContainsString( '<!-- wp:core/sync-meta', $data['content']['raw'] );
+		$this->assertStringContainsString( '<!-- wp:sync-meta', $data['content']['raw'] );
 		$this->assertStringContainsString( 'data-wp-sync-meta="distributed-editing"', $data['content']['raw'] );
 		$this->assertNotWPError( $parsed );
 		$this->assertSame( $content, $parsed['content'] );
-		$this->assertSame( 'yjs', $parsed['sync_meta_format'] );
-		$this->assertSame( 'de-rtc-yjs-v1', $parsed['sync_meta']['schema'] );
+		$this->assertSame( 'automerge', $parsed['sync_meta_format'] );
+		$this->assertSame( 'de-rtc-automerge-v1', $parsed['sync_meta']['schema'] );
 		$this->assertSame( '1', $parsed['sync_meta']['version'] );
 		$this->assertSame( 'empty_import', $parsed['sync_meta']['last_server_update']['external_repair_mode'] );
 		$this->assertTrue( $data['distributed_editing']['repair_candidate'] );
@@ -190,9 +190,9 @@ class Tests_DE_RTC_REST_Post_Snapshot extends WP_Test_REST_TestCase {
 	private function create_snapshot_post( $content, $version ) {
 		$content_with_sync_meta = wp_de_rtc_add_sync_meta_to_post_content(
 			$content,
-			'yjs',
+			'automerge',
 			array(
-				'schema'             => 'de-rtc-yjs-v1',
+				'schema'             => 'de-rtc-automerge-v1',
 				'version'            => (string) $version,
 				'previous_version'   => (string) max( 0, (int) $version - 1 ),
 				'last_server_update' => array(

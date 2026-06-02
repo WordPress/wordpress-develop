@@ -131,7 +131,7 @@ class Tests_DE_RTC_Recovery_Plan extends WP_UnitTestCase {
 				'post_content' => $current_content,
 			)
 		);
-		$revision_content = wp_de_rtc_add_sync_meta_to_post_content( $base_content, 'yjs', $base_metadata );
+		$revision_content = wp_de_rtc_add_sync_meta_to_post_content( $base_content, 'automerge', $base_metadata );
 
 		$this->assertIsString( $revision_content );
 
@@ -145,7 +145,7 @@ class Tests_DE_RTC_Recovery_Plan extends WP_UnitTestCase {
 		$this->assertTrue( $plan['can_apply'] );
 		$this->assertSame( 'recovery_required_restorable', $plan['decision'] );
 		$this->assertSame( $current_content, $plan['candidate_stripped_content'] );
-		$this->assertSame( 'yjs', $plan['restored_sync_meta_format'] );
+		$this->assertSame( 'automerge', $plan['restored_sync_meta_format'] );
 		$this->assertSame( $base_metadata, $plan['restored_sync_meta'] );
 	}
 
@@ -212,8 +212,8 @@ class Tests_DE_RTC_Recovery_Plan extends WP_UnitTestCase {
 	/**
 	 * @covers ::wp_de_rtc_plan_sync_meta_recovery_update
 	 */
-	public function test_missing_sync_meta_without_revision_plans_empty_yjs_import() {
-		$this->require_yjs_runtime();
+	public function test_missing_sync_meta_without_revision_plans_empty_automerge_import() {
+		$this->require_automerge_runtime();
 
 		$current_content = '<!-- wp:paragraph --><p>No restorable sync metadata.</p><!-- /wp:paragraph -->';
 		$post_id         = self::factory()->post->create(
@@ -252,17 +252,17 @@ class Tests_DE_RTC_Recovery_Plan extends WP_UnitTestCase {
 		$this->assertTrue( $plan['can_apply'] );
 		$this->assertTrue( $plan['recovery_required'] );
 		$this->assertFalse( $plan['manual_resolution_required'] );
-		$this->assertSame( 'de_rtc_sync_meta_empty_yjs_import', $plan['reason_code'] );
-		$this->assertSame( 'planned_empty_yjs_import', $plan['reason']['detail'] );
+		$this->assertSame( 'de_rtc_sync_meta_empty_automerge_import', $plan['reason_code'] );
+		$this->assertSame( 'planned_empty_automerge_import', $plan['reason']['detail'] );
 		$this->assertSame( $current_content, $plan['current_content'] );
 		$this->assertSame( hash( 'sha256', $current_content ), $plan['current_content_hash'] );
 		$this->assertSame( $current_content, $plan['candidate_stripped_content'] );
 		$this->assertSame( hash( 'sha256', $current_content ), $plan['candidate_stripped_content_hash'] );
 		$this->assertIsString( $plan['candidate_post_content'] );
 		$this->assertSame( hash( 'sha256', $plan['candidate_post_content'] ), $plan['candidate_post_content_hash'] );
-		$this->assertSame( 'yjs', $plan['restored_sync_meta_format'] );
+		$this->assertSame( 'automerge', $plan['restored_sync_meta_format'] );
 		$this->assertSame( 'prefix-block', $plan['restored_sync_meta_position'] );
-		$this->assertSame( 'de-rtc-yjs-v1', $plan['restored_sync_meta']['schema'] );
+		$this->assertSame( 'de-rtc-automerge-v1', $plan['restored_sync_meta']['schema'] );
 		$this->assertSame( '1', $plan['restored_sync_meta']['version'] );
 		$this->assertSame( 'empty_import', $plan['restored_sync_meta']['last_server_update']['external_repair_mode'] );
 		$this->assertSame( 'empty_import', $plan['external_change']['mode'] );
@@ -327,13 +327,13 @@ class Tests_DE_RTC_Recovery_Plan extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Skips tests when the native PHP Yjs port cannot load.
+	 * Skips tests when the native PHP Automerge port cannot load.
 	 */
-	private function require_yjs_runtime() {
-		$status = wp_de_rtc_get_yjs_runtime_status();
+	private function require_automerge_runtime() {
+		$status = wp_de_rtc_get_automerge_runtime_status();
 
 		if ( empty( $status['available'] ) ) {
-			$this->markTestSkipped( 'Native PHP Yjs runtime is not available.' );
+			$this->markTestSkipped( 'Native PHP Automerge runtime is not available.' );
 		}
 	}
 }

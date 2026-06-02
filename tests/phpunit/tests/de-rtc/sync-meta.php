@@ -164,16 +164,16 @@ class Tests_DE_RTC_Sync_Meta extends WP_UnitTestCase {
 		$content  = '<!-- wp:paragraph --><p>Hello.</p><!-- /wp:paragraph -->';
 		$metadata = array(
 			'version' => '20',
-			'schema'  => 'de-rtc-yjs-v1',
+			'schema'  => 'de-rtc-automerge-v1',
 		);
-		$combined = wp_de_rtc_add_sync_meta_to_post_content( $content, 'yjs', $metadata, 'prefix-block' );
+		$combined = wp_de_rtc_add_sync_meta_to_post_content( $content, 'automerge', $metadata, 'prefix-block' );
 
 		$extracted = wp_de_rtc_parse_post_content_sync_meta( $combined );
 
 		$this->assertIsArray( $extracted );
 		$this->assertSame( $content, $extracted['content'] );
 		$this->assertSame( $metadata, $extracted['sync_meta'] );
-		$this->assertSame( 'yjs', $extracted['sync_meta_format'] );
+		$this->assertSame( 'automerge', $extracted['sync_meta_format'] );
 		$this->assertSame( 'prefix-block', $extracted['sync_meta_position'] );
 		$this->assertStringStartsWith( '<!-- wp:sync-meta', $combined );
 		$this->assertStringContainsString( 'type="application/json"', $extracted['raw_sync_meta'] );
@@ -312,13 +312,13 @@ class Tests_DE_RTC_Sync_Meta extends WP_UnitTestCase {
 			'baseVersion' => 8,
 			'clientId'    => 'editor-a',
 		);
-		$combined  = wp_de_rtc_add_sync_meta_to_post_content( $content, 'yjs', $metadata, 'prefix' );
+		$combined  = wp_de_rtc_add_sync_meta_to_post_content( $content, 'automerge', $metadata, 'prefix' );
 		$extracted = wp_de_rtc_parse_post_content_sync_meta( $combined );
 
 		$this->assertIsArray( $extracted );
 		$this->assertSame( $content, $extracted['content'] );
 		$this->assertSame( $metadata, $extracted['sync_meta'] );
-		$this->assertSame( 'yjs', $extracted['sync_meta_format'] );
+		$this->assertSame( 'automerge', $extracted['sync_meta_format'] );
 		$this->assertSame( 'prefix', $extracted['sync_meta_position'] );
 	}
 

@@ -217,9 +217,9 @@ class Tests_DE_RTC_REST_History extends WP_Test_REST_TestCase {
 	private function add_sync_meta_to_content( $content, $version ) {
 		$content_with_sync_meta = wp_de_rtc_add_sync_meta_to_post_content(
 			$content,
-			'yjs',
+			'automerge',
 			array(
-				'schema'             => 'de-rtc-yjs-v1',
+				'schema'             => 'de-rtc-automerge-v1',
 				'version'            => (string) $version,
 				'previous_version'   => (string) max( 0, (int) $version - 1 ),
 				'last_server_update' => array(

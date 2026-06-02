@@ -76,7 +76,7 @@ class Tests_DE_RTC_Recovery_Decision extends WP_UnitTestCase {
 				'post_modified' => '2026-05-13 12:00:00',
 			)
 		);
-		$revision_content = wp_de_rtc_add_sync_meta_to_post_content( $base_content, 'yjs', $base_metadata );
+		$revision_content = wp_de_rtc_add_sync_meta_to_post_content( $base_content, 'automerge', $base_metadata );
 
 		$this->assertIsString( $revision_content );
 
@@ -122,7 +122,7 @@ class Tests_DE_RTC_Recovery_Decision extends WP_UnitTestCase {
 		$this->assertSame( hash( 'sha256', $base_content ), $decision['base_revision']['content_hash'] );
 		$this->assertSame( hash( 'sha256', $base_content ), $decision['base_revision_content_hash'] );
 		$this->assertSame( $base_metadata, $decision['base_revision']['sync_meta'] );
-		$this->assertSame( 'yjs', $decision['base_revision']['sync_meta_format'] );
+		$this->assertSame( 'automerge', $decision['base_revision']['sync_meta_format'] );
 		$this->assertSame( $revision_id, $decision['external_change']['base_revision_id'] );
 		$this->assertSame( $base_content, $decision['external_change']['base_content'] );
 		$this->assertSame( $current_content, $decision['external_change']['current_content'] );
@@ -139,7 +139,7 @@ class Tests_DE_RTC_Recovery_Decision extends WP_UnitTestCase {
 	/**
 	 * @covers ::wp_de_rtc_get_post_sync_meta_recovery_decision
 	 */
-	public function test_missing_current_sync_meta_without_revision_is_empty_yjs_import() {
+	public function test_missing_current_sync_meta_without_revision_is_empty_automerge_import() {
 		$current_content = '<!-- wp:paragraph --><p>No sync metadata anywhere.</p><!-- /wp:paragraph -->';
 		$post_id         = self::factory()->post->create(
 			array(
@@ -165,8 +165,8 @@ class Tests_DE_RTC_Recovery_Decision extends WP_UnitTestCase {
 			array(
 				'status'                 => 409,
 				'reason_code'            => 'de_rtc_missing_sync_meta',
-				'detail'                 => 'empty_yjs_import_required',
-				'recovery_reason_code'   => 'de_rtc_sync_meta_empty_yjs_import',
+				'detail'                 => 'empty_automerge_import_required',
+				'recovery_reason_code'   => 'de_rtc_sync_meta_empty_automerge_import',
 				'scanned_revisions'      => 1,
 				'malformed_revision_ids' => array(),
 			),
@@ -176,8 +176,8 @@ class Tests_DE_RTC_Recovery_Decision extends WP_UnitTestCase {
 		$this->assertSame( hash( 'sha256', $current_content ), $decision['current_content_hash'] );
 		$this->assertSame( 0, $decision['base_revision']['revision_id'] );
 		$this->assertSame( '', $decision['base_revision']['content'] );
-		$this->assertSame( 'yjs', $decision['base_revision']['sync_meta_format'] );
-		$this->assertSame( 'de-rtc-yjs-v1', $decision['base_revision']['sync_meta']['schema'] );
+		$this->assertSame( 'automerge', $decision['base_revision']['sync_meta_format'] );
+		$this->assertSame( 'de-rtc-automerge-v1', $decision['base_revision']['sync_meta']['schema'] );
 		$this->assertSame( hash( 'sha256', '' ), $decision['base_revision_content_hash'] );
 		$this->assertFalse( $decision['revision_scan']['found'] );
 		$this->assertSame( 'empty_import', $decision['external_change']['mode'] );
