@@ -914,7 +914,7 @@ function _wp_handle_upload( &$file, $overrides, $time, $action ) {
 	$test_form = $overrides['test_form'] ?? true;
 	$test_size = $overrides['test_size'] ?? true;
 
-	// If you override this, you must provide $ext and $type!!
+	// If you override this, you must provide $extension and $type!!
 	$test_type = $overrides['test_type'] ?? true;
 	$mimes     = $overrides['mimes'] ?? null;
 
@@ -955,7 +955,7 @@ function _wp_handle_upload( &$file, $overrides, $time, $action ) {
 	// A correct MIME type will pass this test. Override $mimes or use the upload_mimes filter.
 	if ( $test_type ) {
 		$wp_filetype     = wp_check_filetype_and_ext( $file['tmp_name'], $file['name'], $mimes );
-		$ext             = empty( $wp_filetype['ext'] ) ? '' : $wp_filetype['ext'];
+		$extension       = empty( $wp_filetype['ext'] ) ? '' : $wp_filetype['ext'];
 		$type            = empty( $wp_filetype['type'] ) ? '' : $wp_filetype['type'];
 		$proper_filename = empty( $wp_filetype['proper_filename'] ) ? '' : $wp_filetype['proper_filename'];
 
@@ -964,7 +964,7 @@ function _wp_handle_upload( &$file, $overrides, $time, $action ) {
 			$file['name'] = $proper_filename;
 		}
 
-		if ( ( ! $type || ! $ext ) && ! current_user_can( 'unfiltered_upload' ) ) {
+		if ( ( ! $type || ! $extension ) && ! current_user_can( 'unfiltered_upload' ) ) {
 			return call_user_func_array( $upload_error_handler, array( &$file, __( 'Sorry, you are not allowed to upload this file type.' ) ) );
 		}
 
