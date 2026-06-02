@@ -244,16 +244,17 @@ class WP_REST_Abilities_V1_List_Controller extends WP_REST_Controller {
 			}
 		}
 
-		$schema = array_intersect_key(
-			$schema,
-			array_fill_keys(
-				array_merge(
-					rest_get_allowed_schema_keywords(),
-					self::ADDITIONAL_ALLOWED_SCHEMA_KEYWORDS
-				),
-				true
-			)
+		// Computed once and reused across the recursive calls for every schema node.
+		static $allowed_keywords = null;
+		$allowed_keywords      ??= array_fill_keys(
+			array_merge(
+				rest_get_allowed_schema_keywords(),
+				self::ADDITIONAL_ALLOWED_SCHEMA_KEYWORDS
+			),
+			true
 		);
+
+		$schema = array_intersect_key( $schema, $allowed_keywords );
 
 		// Sub-schema maps: keys are user-defined, values are sub-schemas.
 		// Note: 'dependencies' values can also be property-dependency arrays
