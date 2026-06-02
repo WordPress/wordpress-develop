@@ -1067,7 +1067,7 @@ class WP_Theme_JSON {
 		$schema_styles_elements = array();
 
 		/*
-		 * Set allowed element pseudo selectors and responsive breakpoint states..
+		 * Set allowed element pseudo selectors and responsive breakpoint states.
 		 * Target data structure in schema:
 		 * e.g.
 		 * - top level elements: `$schema['styles']['elements']['link'][':hover']`.
@@ -5238,7 +5238,7 @@ class WP_Theme_JSON {
 	/**
 	 * Extracts the block name from the block metadata path.
 	 *
-	 * @since 7.0
+	 * @since 7.1
 	 *
 	 * @param array $block_metadata Block metadata.
 	 * @return string|null The block name or null if not found.
