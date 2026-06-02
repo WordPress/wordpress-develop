@@ -13,6 +13,9 @@
  * @since 5.6.0
  *
  * @access private
+ *
+ * @phpstan-type ApplyCallback callable( WP_Block_Type, array<string, mixed> ): array<string, mixed>
+ * @phpstan-type RegisterCallback callable( WP_Block_Type ): void
  */
 #[AllowDynamicProperties]
 class WP_Block_Supports {
@@ -24,8 +27,8 @@ class WP_Block_Supports {
 	 * @var array
 	 * @phpstan-var array<string, array{
 	 *     name: string,
-	 *     apply?: callable( WP_Block_Type, array<string, mixed> ): array<string, mixed>,
-	 *     register_attribute?: callable( WP_Block_Type ): void,
+	 *     apply?: ApplyCallback,
+	 *     register_attribute?: RegisterCallback,
 	 * }>
 	 */
 	private $block_supports = array();
@@ -82,6 +85,11 @@ class WP_Block_Supports {
 	 *
 	 * @param string $block_support_name   Block support name.
 	 * @param array  $block_support_config Array containing the properties of the block support.
+	 *
+	 * @phpstan-param array<string, array{
+	 *     apply?: ApplyCallback,
+	 *     register_attribute?: RegisterCallback,
+	 * }> $block_support_config
 	 */
 	public function register( $block_support_name, $block_support_config ) {
 		$this->block_supports[ $block_support_name ] = array_merge(
