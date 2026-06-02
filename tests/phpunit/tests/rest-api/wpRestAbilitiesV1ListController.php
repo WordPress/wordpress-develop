@@ -835,10 +835,10 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 	 */
 	public function test_unsupported_schema_keywords_stripped_from_response(): void {
 		$this->register_test_ability(
-			'test/with-internal-keywords',
+			'test/with-unsupported-keywords',
 			array(
-				'label'               => 'Test Internal Keywords',
-				'description'         => 'Tests stripping of internal schema keywords',
+				'label'               => 'Test Unsupported Keywords',
+				'description'         => 'Tests stripping of unsupported schema keywords',
 				'category'            => 'general',
 				'input_schema'        => array(
 					'type'       => 'object',
@@ -875,7 +875,7 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 			)
 		);
 
-		$request  = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities/test/with-internal-keywords' );
+		$request  = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities/test/with-unsupported-keywords' );
 		$response = $this->server->dispatch( $request );
 
 		$this->assertSame( 200, $response->get_status() );
@@ -975,9 +975,9 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 	 */
 	public function test_unsupported_schema_keywords_stripped_from_nested_sub_schemas(): void {
 		$this->register_test_ability(
-			'test/nested-internal-keywords',
+			'test/nested-unsupported-keywords',
 			array(
-				'label'               => 'Test Nested Keywords',
+				'label'               => 'Test Nested Unsupported Keywords',
 				'description'         => 'Tests stripping from all sub-schema locations',
 				'category'            => 'general',
 				'input_schema'        => array(
@@ -1076,7 +1076,7 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 			)
 		);
 
-		$request  = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities/test/nested-internal-keywords' );
+		$request  = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities/test/nested-unsupported-keywords' );
 		$response = $this->server->dispatch( $request );
 
 		$this->assertSame( 200, $response->get_status() );
