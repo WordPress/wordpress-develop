@@ -3,6 +3,10 @@
  * Tests for _reset_privacy_policy_page_for_post() and the self-healing
  * check in WP_Privacy_Policy_Content::notice().
  *
+ * @package WordPress
+ * @subpackage UnitTests
+ * @since 7.1.0
+ *
  * @group privacy
  *
  * @covers ::_reset_privacy_policy_page_for_post
