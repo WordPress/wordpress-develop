@@ -159,6 +159,74 @@ class Tests_DE_RTC_KSES_Block_Review extends WP_UnitTestCase {
 
 	/**
 	 * @covers ::wp_de_rtc_classify_kses_risky_block_review_items
+	 * @covers ::wp_de_rtc_modified_kses_block_change_requires_review
+	 * @covers ::wp_de_rtc_get_kses_removed_fragment_signature
+	 */
+	public function test_safe_text_edit_in_paragraph_with_unchanged_kses_normalized_markup_does_not_require_review() {
+		$base_content     = '<!-- wp:paragraph --><p>Original text with <mark style="background-color:rgba(0, 0, 0, 0)" class="has-inline-color has-accent-3-color">expression</mark>.</p><!-- /wp:paragraph -->';
+		$proposed_content = '<!-- wp:paragraph --><p>Updated text with <mark style="background-color:rgba(0, 0, 0, 0)" class="has-inline-color has-accent-3-color">expression</mark>.</p><!-- /wp:paragraph -->';
+		$post_id          = $this->create_sync_meta_post( $base_content, 29, self::$author_user_id );
+		$before_post      = get_post( $post_id );
+		$before_revisions = $this->get_post_revisions( $post_id );
+		$base_review      = wp_de_rtc_get_kses_post_content_review_evidence( $base_content );
+		$proposed_review  = wp_de_rtc_get_kses_post_content_review_evidence( $proposed_content );
+
+		wp_set_current_user( self::$author_user_id );
+
+		$result = wp_de_rtc_classify_kses_risky_block_review_items(
+			$post_id,
+			$proposed_content,
+			array(
+				'base_post_content'   => $base_content,
+				'client_base_version' => '29',
+				'author_id'           => self::$author_user_id,
+			)
+		);
+
+		$this->assertTrue( $base_review['would_change_content'] );
+		$this->assertTrue( $proposed_review['would_change_content'] );
+		$this->assertIsArray( $result );
+		$this->assertSame( 'no_review_required', $result['result'] );
+		$this->assertSame( 0, $result['review_item_count'] );
+		$this->assertSame( 'continue_save', $result['save_action'] );
+		$this->assertFalse( $result['pre_publish_review_required'] );
+		$this->assert_post_unchanged( $post_id, $before_post->post_content, $before_revisions );
+	}
+
+	/**
+	 * @covers ::wp_de_rtc_classify_kses_risky_block_review_items
+	 * @covers ::wp_de_rtc_modified_kses_block_change_requires_review
+	 * @covers ::wp_de_rtc_get_kses_sensitive_element_hashes
+	 */
+	public function test_changed_script_content_in_existing_html_block_still_requires_review() {
+		$base_content     = '<!-- wp:html --><script>alert(1);</script>Script<!-- /wp:html -->';
+		$proposed_content = '<!-- wp:html --><script>alert(2);</script>Script<!-- /wp:html -->';
+		$post_id          = $this->create_sync_meta_post( $base_content, 30, self::$author_user_id );
+		$before_post      = get_post( $post_id );
+		$before_revisions = $this->get_post_revisions( $post_id );
+
+		wp_set_current_user( self::$author_user_id );
+
+		$result = wp_de_rtc_classify_kses_risky_block_review_items(
+			$post_id,
+			$proposed_content,
+			array(
+				'base_post_content'   => $base_content,
+				'client_base_version' => '30',
+				'author_id'           => self::$author_user_id,
+			)
+		);
+
+		$this->assertIsArray( $result );
+		$this->assertSame( 'block_review_required', $result['result'] );
+		$this->assertSame( 1, $result['review_item_count'] );
+		$this->assertSame( 'core/html', $result['review_items'][0]['block_name'] );
+		$this->assertSame( 'modified_block', $result['review_items'][0]['change_kind'] );
+		$this->assert_post_unchanged( $post_id, $before_post->post_content, $before_revisions );
+	}
+
+	/**
+	 * @covers ::wp_de_rtc_classify_kses_risky_block_review_items
 	 * @covers ::wp_de_rtc_find_matching_kses_block_review_record_key
 	 */
 	public function test_inserted_safe_block_before_unchanged_risky_block_does_not_require_review() {

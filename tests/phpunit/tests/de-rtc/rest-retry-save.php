@@ -505,7 +505,7 @@ class Tests_DE_RTC_REST_Retry_Save extends WP_Test_REST_TestCase {
 		$this->assertSame( 200, $save_response->get_status() );
 		$this->assertSame( 'retry_save_server_merged', $save_data['result'] );
 		$this->assertTrue( $save_data['yjs_update_applied'] );
-		$this->assertSame( 'native_yjs_php_v0', $save_data['server_merge']['merge_strategy'] );
+		$this->assertSame( 'native_yjs_blocks_v1', $save_data['server_merge']['merge_strategy'] );
 		$this->assertIsArray( $parsed_saved );
 		$this->assertSame( $merged_content, $parsed_saved['content'] );
 		$this->assertSame( $merged_content, wp_de_rtc_parse_post_content_sync_meta( $save_data['content']['raw'] )['content'] );
@@ -3162,15 +3162,15 @@ class Tests_DE_RTC_REST_Retry_Save extends WP_Test_REST_TestCase {
 		$this->assertSame( 'retry_save_applied', $data['result'] );
 		$this->assertTrue( $data['retry_save_accepted'] );
 		$this->assertTrue( $data['yjs_update_applied'] );
-		$this->assertSame( 'native-yjs-php-update-v0', $data['yjs_encoding'] );
+		$this->assertSame( 'native-yjs-blocks-v1', $data['yjs_encoding'] );
 		$this->assertIsArray( $parsed );
 		$this->assertSame( $proposed_content, $parsed['content'] );
 		$this->assertSame( 'yjs', $parsed['sync_meta_format'] );
 		$this->assertSame( 'prefix-block', $parsed['sync_meta_position'] );
 		$this->assertSame( '22', $parsed['sync_meta']['version'] );
 		$this->assertSame( '21', $parsed['sync_meta']['previous_version'] );
-		$this->assertSame( 'de-rtc-yjs-v1', $parsed['sync_meta']['schema'] );
-		$this->assertSame( 'native-yjs-php-update-v0', $parsed['sync_meta']['yjs_encoding'] );
+		$this->assertSame( 'de-rtc-yjs-blocks-v1', $parsed['sync_meta']['schema'] );
+		$this->assertSame( 'native-yjs-blocks-v1', $parsed['sync_meta']['yjs_encoding'] );
 		$this->assertNotEmpty( $parsed['sync_meta']['yjs_update'] );
 		$this->assertGreaterThan( 0, $parsed['sync_meta']['yjs_operation_count'] );
 		$this->assertStringStartsWith( '<!-- wp:sync-meta', $after_post->post_content );
@@ -3241,6 +3241,67 @@ class Tests_DE_RTC_REST_Retry_Save extends WP_Test_REST_TestCase {
 		$this->assertSame( 'retry_save', $parsed['sync_meta']['last_server_update']['type'] );
 		$this->assertSame( self::$author_user_id, $parsed['sync_meta']['last_server_update']['user_id'] );
 		$this->assertStringStartsWith( '<!-- wp:sync-meta', $after_post->post_content );
+	}
+
+	/**
+	 * @covers ::wp_de_rtc_rest_retry_save_endpoint
+	 * @covers ::wp_de_rtc_save_retry_submitted_post
+	 * @covers ::wp_de_rtc_modified_kses_block_change_requires_review
+	 */
+	public function test_retry_save_allows_author_text_edit_when_existing_paragraph_markup_is_kses_normalized() {
+		$this->require_yjs_runtime();
+
+		$base_content    = '<!-- wp:paragraph --><p>Original text with <mark style="background-color:rgba(0, 0, 0, 0)" class="has-inline-color has-accent-3-color">expression</mark>.</p><!-- /wp:paragraph -->';
+		$current_content = $this->add_yjs_sync_meta_to_content(
+			$base_content,
+			27,
+			array(
+				'post_content_hash' => hash( 'sha256', $base_content ),
+			)
+		);
+		$post_id         = self::factory()->post->create(
+			array(
+				'post_author'  => self::$author_user_id,
+				'post_title'   => 'DE-RTC Yjs author safe KSES-normalized markup retry save post',
+				'post_content' => $current_content,
+			)
+		);
+		$proposed_content = '<!-- wp:paragraph --><p>Updated text with <mark style="background-color:rgba(0, 0, 0, 0)" class="has-inline-color has-accent-3-color">expression</mark>.</p><!-- /wp:paragraph -->';
+		$client_update    = wp_de_rtc_create_yjs_update_for_content_change( $base_content, $proposed_content, 'test-author' );
+		$request          = $this->create_retry_save_request(
+			'posts',
+			$post_id,
+			array(
+				'client_base_version'           => '27',
+				'accepted_proof_server_version' => '27',
+				'rebased_from_version'          => '27',
+				'pending_change_count'          => 1,
+				'proposed_post_content'         => $proposed_content,
+				'proposed_post_content_hash'    => hash( 'sha256', $proposed_content ),
+				'yjs_client_update'             => $client_update,
+			)
+		);
+
+		wp_set_current_user( self::$author_user_id );
+
+		$response   = rest_get_server()->dispatch( $request );
+		$data       = $response->get_data();
+		$after_post = get_post( $post_id );
+		$parsed     = wp_de_rtc_parse_post_content_sync_meta( $after_post->post_content );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( 'retry_save_applied', $data['result'] );
+		$this->assertTrue( $data['retry_save_accepted'] );
+		$this->assertSame( '28', $data['server_version'] );
+		$this->assertFalse( $data['can_export_local_updates'] );
+		$this->assertTrue( $data['saves_post'] );
+		$this->assertTrue( $data['mutates_post_content'] );
+		$this->assertTrue( $data['claims_saved'] );
+		$this->assertIsArray( $parsed );
+		$this->assertSame( $proposed_content, $parsed['content'] );
+		$this->assertSame( '28', $parsed['sync_meta']['version'] );
+		$this->assertStringContainsString( 'Updated text', $parsed['content'] );
+		$this->assertStringContainsString( 'background-color:rgba(0, 0, 0, 0)', $parsed['content'] );
 	}
 
 	/**
@@ -3388,7 +3449,7 @@ class Tests_DE_RTC_REST_Retry_Save extends WP_Test_REST_TestCase {
 		$this->assertSame( 'prefix-block', $parsed['sync_meta_position'] );
 		$this->assertSame( '42', $parsed['sync_meta']['version'] );
 		$this->assertSame( '41', $parsed['sync_meta']['previous_version'] );
-		$this->assertSame( 'de-rtc-yjs-v1', $parsed['sync_meta']['schema'] );
+		$this->assertSame( 'de-rtc-yjs-blocks-v1', $parsed['sync_meta']['schema'] );
 		$this->assertSame( 'wp_update_post', $parsed['sync_meta']['last_server_update']['type'] );
 	}
 
@@ -3489,7 +3550,7 @@ class Tests_DE_RTC_REST_Retry_Save extends WP_Test_REST_TestCase {
 			101,
 			array(
 				'client_base_version'  => '101',
-				'pending_yjs_encoding' => 'native-yjs-php-update-v0',
+				'pending_yjs_encoding' => 'native-yjs-blocks-v1',
 				'pending_yjs_update'   => base64_encode( wp_json_encode( $client_update, JSON_UNESCAPED_SLASHES ) ),
 			)
 		);
@@ -3569,7 +3630,7 @@ class Tests_DE_RTC_REST_Retry_Save extends WP_Test_REST_TestCase {
 			111,
 			array(
 				'client_base_version'  => '111',
-				'pending_yjs_encoding' => 'native-yjs-php-update-v0',
+				'pending_yjs_encoding' => 'native-yjs-blocks-v1',
 				'pending_yjs_update'   => base64_encode( wp_json_encode( $client_update, JSON_UNESCAPED_SLASHES ) ),
 			)
 		);
@@ -3619,7 +3680,7 @@ class Tests_DE_RTC_REST_Retry_Save extends WP_Test_REST_TestCase {
 			51,
 			array(
 				'client_base_version' => '51',
-				'pending_yjs_encoding' => 'native-yjs-php-update-v0',
+				'pending_yjs_encoding' => 'native-yjs-blocks-v1',
 				'pending_yjs_update' => base64_encode( wp_json_encode( $client_update, JSON_UNESCAPED_SLASHES ) ),
 			)
 		);
@@ -3677,7 +3738,7 @@ class Tests_DE_RTC_REST_Retry_Save extends WP_Test_REST_TestCase {
 			55,
 			array(
 				'client_base_version'  => '55',
-				'pending_yjs_encoding' => 'native-yjs-php-update-v0',
+				'pending_yjs_encoding' => 'native-yjs-blocks-v1',
 				'pending_yjs_update'   => base64_encode( wp_json_encode( $client_update, JSON_UNESCAPED_SLASHES ) ),
 			)
 		);
@@ -3727,7 +3788,7 @@ class Tests_DE_RTC_REST_Retry_Save extends WP_Test_REST_TestCase {
 			0,
 			array(
 				'client_base_version'  => '0',
-				'pending_yjs_encoding' => 'native-yjs-php-update-v0',
+				'pending_yjs_encoding' => 'native-yjs-blocks-v1',
 				'pending_yjs_update'   => base64_encode( wp_json_encode( $client_update, JSON_UNESCAPED_SLASHES ) ),
 			)
 		);
@@ -3792,7 +3853,7 @@ class Tests_DE_RTC_REST_Retry_Save extends WP_Test_REST_TestCase {
 			61,
 			array(
 				'client_base_version'  => '61',
-				'pending_yjs_encoding' => 'native-yjs-php-update-v0',
+				'pending_yjs_encoding' => 'native-yjs-blocks-v1',
 				'pending_yjs_update'   => base64_encode( wp_json_encode( $client_update, JSON_UNESCAPED_SLASHES ) ),
 			)
 		);
@@ -3859,7 +3920,7 @@ class Tests_DE_RTC_REST_Retry_Save extends WP_Test_REST_TestCase {
 			71,
 			array(
 				'client_base_version'  => '71',
-				'pending_yjs_encoding' => 'native-yjs-php-update-v0',
+				'pending_yjs_encoding' => 'native-yjs-blocks-v1',
 				'pending_yjs_update'   => base64_encode( wp_json_encode( $client_update, JSON_UNESCAPED_SLASHES ) ),
 			)
 		);
@@ -3928,7 +3989,7 @@ class Tests_DE_RTC_REST_Retry_Save extends WP_Test_REST_TestCase {
 			81,
 			array(
 				'client_base_version'  => '81',
-				'pending_yjs_encoding' => 'native-yjs-php-update-v0',
+				'pending_yjs_encoding' => 'native-yjs-blocks-v1',
 				'pending_yjs_update'   => base64_encode( wp_json_encode( $client_update, JSON_UNESCAPED_SLASHES ) ),
 			)
 		);
@@ -3945,8 +4006,8 @@ class Tests_DE_RTC_REST_Retry_Save extends WP_Test_REST_TestCase {
 		$data     = $error->get_error_data( 'de_rtc_rebase_failed' );
 
 		$this->assertErrorResponse( 'de_rtc_rebase_failed', $response, 409 );
-		$this->assertSame( 'retry_save_server_merge_yjs_overlapping_change_ranges', $data['detail'] );
-		$this->assertSame( 'native_yjs_php_v0', $data['server_merge_strategy'] );
+		$this->assertSame( 'retry_save_server_merge_same_serialized_block_changed', $data['detail'] );
+		$this->assertSame( 'top_level_serialized_block_three_way', $data['server_merge_strategy'] );
 		$this->assert_post_unchanged( $post_id, $before_post->post_content, $before_revisions );
 	}
 
@@ -4024,7 +4085,7 @@ class Tests_DE_RTC_REST_Retry_Save extends WP_Test_REST_TestCase {
 		$this->assertTrue( $data['retry_save_accepted'] );
 		$this->assertTrue( $data['server_merge_applied'] );
 		$this->assertTrue( $data['yjs_update_applied'] );
-		$this->assertSame( 'native_yjs_php_v0', $data['server_merge']['merge_strategy'] );
+		$this->assertSame( 'native_yjs_blocks_v1', $data['server_merge']['merge_strategy'] );
 		$this->assertSame( 1, $data['server_merge']['server_changed_block_count'] );
 		$this->assertSame( 1, $data['server_merge']['local_changed_block_count'] );
 		$this->assertSame( $proposed_content, $parsed['content'] );
@@ -5700,6 +5761,239 @@ class Tests_DE_RTC_REST_Retry_Save extends WP_Test_REST_TestCase {
 	 * @covers ::wp_de_rtc_find_revision_with_sync_meta_version
 	 * @covers ::wp_de_rtc_get_block_identity_server_merge_result
 	 * @covers ::wp_de_rtc_get_block_identity_retained_edits_server_merge_result
+	 * @covers ::wp_de_rtc_get_table_cell_serialized_block_merge_candidate
+	 * @covers ::wp_de_rtc_get_table_cell_serialized_block_model
+	 * @covers ::wp_de_rtc_get_public_server_merge_evidence
+	 */
+	public function test_retry_save_server_merges_block_identity_table_cell_edits_in_distinct_cells() {
+		$base_table      = '<!-- wp:table --><figure class="wp-block-table"><table><tbody><tr><td>A1</td><td>A2</td></tr><tr><td>B1</td><td>B2</td></tr></tbody></table></figure><!-- /wp:table -->';
+		$server_table    = '<!-- wp:table --><figure class="wp-block-table"><table><tbody><tr><td>A1 from server</td><td>A2</td></tr><tr><td>B1</td><td>B2</td></tr></tbody></table></figure><!-- /wp:table -->';
+		$local_table     = '<!-- wp:table --><figure class="wp-block-table"><table><tbody><tr><td>A1</td><td>A2</td></tr><tr><td>B1</td><td>B2 from local</td></tr></tbody></table></figure><!-- /wp:table -->';
+		$merged_table    = '<!-- wp:table --><figure class="wp-block-table"><table><tbody><tr><td>A1 from server</td><td>A2</td></tr><tr><td>B1</td><td>B2 from local</td></tr></tbody></table></figure><!-- /wp:table -->';
+		$base_content    = $base_table;
+		$server_content  = $server_table;
+		$proposed_content = $local_table;
+		$base_sync_meta  = $this->get_block_identity_sync_meta_for_blocks(
+			$base_content,
+			array(
+				'block-table' => $base_table,
+			)
+		);
+		$current_content = $this->add_sync_meta_to_content( $base_content, 101, $base_sync_meta );
+		$post_id         = self::factory()->post->create(
+			array(
+				'post_title'   => 'DE-RTC block identity table cell retry save post',
+				'post_content' => $current_content,
+			)
+		);
+		$base_revision_id = wp_save_post_revision( $post_id );
+		$this->assertIsInt( $base_revision_id );
+		$this->assertGreaterThan( 0, $base_revision_id );
+
+		$advanced_content = $this->add_sync_meta_to_content(
+			$server_content,
+			102,
+			array_merge(
+				$this->get_block_identity_sync_meta_for_blocks(
+					$server_content,
+					array(
+						'block-table' => $server_table,
+					)
+				),
+				array(
+					'previous_version' => '101',
+				)
+			)
+		);
+		$this->assertSame(
+			$post_id,
+			wp_update_post(
+				wp_slash(
+					array(
+						'ID'           => $post_id,
+						'post_content' => $advanced_content,
+					)
+				)
+			)
+		);
+
+		$proposed_hash = hash( 'sha256', $proposed_content );
+		$merged_hash   = hash( 'sha256', $merged_table );
+		$request       = $this->create_retry_save_request(
+			'posts',
+			$post_id,
+			array(
+				'client_base_version'           => '101',
+				'accepted_proof_server_version' => '101',
+				'pending_change_count'          => 1,
+				'proposed_post_content'         => $proposed_content,
+				'proposed_post_content_hash'    => $proposed_hash,
+				'block_identity_request_proof'  => array(
+					'client_base_version'        => '101',
+					'proposed_post_content_hash' => $proposed_hash,
+					'proposed_block_map'         => array(
+						array(
+							'block_uid'       => 'block-table',
+							'block_name'      => 'core/table',
+							'ordinal_path'    => array( 0 ),
+							'serialized_hash' => hash( 'sha256', $local_table ),
+						),
+					),
+					'retained_block_uids'        => array( 'block-table' ),
+					'inserted_block_nonces'      => array(),
+					'deleted_block_uids'         => array(),
+					'moved_block_uids'           => array(),
+				),
+			)
+		);
+
+		$response   = rest_get_server()->dispatch( $request );
+		$data       = $response->get_data();
+		$after_post = get_post( $post_id );
+		$parsed     = wp_de_rtc_parse_post_content_sync_meta( $after_post->post_content );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( 'retry_save_server_merged', $data['result'] );
+		$this->assertTrue( $data['server_merge_applied'] );
+		$this->assertSame( $merged_hash, $data['saved_stripped_post_content_hash'] );
+		$this->assertSame( array( 0 ), $data['server_merge']['server_changed_indexes'] );
+		$this->assertSame( array( 0 ), $data['server_merge']['local_changed_indexes'] );
+		$this->assertSame( array( 0 ), $data['server_merge']['table_cell_merged_indexes'] );
+		$this->assertSame( 1, $data['server_merge']['table_cell_merged_block_count'] );
+		$this->assertSame(
+			array(
+				array(
+					'block_index'  => 0,
+					'cell_index'   => 0,
+					'row_index'    => 0,
+					'column_index' => 0,
+				),
+			),
+			$data['server_merge']['table_cell_server_changed_cells']
+		);
+		$this->assertSame(
+			array(
+				array(
+					'block_index'  => 0,
+					'cell_index'   => 3,
+					'row_index'    => 1,
+					'column_index' => 1,
+				),
+			),
+			$data['server_merge']['table_cell_local_changed_cells']
+		);
+		$this->assertIsArray( $parsed );
+		$this->assertSame( $merged_table, $parsed['content'] );
+		$this->assertSame( '103', $parsed['sync_meta']['version'] );
+		$this->assertSame( hash( 'sha256', $merged_table ), $parsed['sync_meta']['blocks'][0]['serialized_hash'] );
+	}
+
+	/**
+	 * @covers ::wp_de_rtc_get_block_identity_retained_edits_server_merge_result
+	 * @covers ::wp_de_rtc_get_table_cell_serialized_block_merge_candidate
+	 */
+	public function test_retry_save_rejects_block_identity_table_cell_edits_in_same_cell_without_mutating() {
+		$base_table       = '<!-- wp:table --><figure class="wp-block-table"><table><tbody><tr><td>A1</td><td>A2</td></tr></tbody></table></figure><!-- /wp:table -->';
+		$server_table     = '<!-- wp:table --><figure class="wp-block-table"><table><tbody><tr><td>A1 from server</td><td>A2</td></tr></tbody></table></figure><!-- /wp:table -->';
+		$local_table      = '<!-- wp:table --><figure class="wp-block-table"><table><tbody><tr><td>A1 from local</td><td>A2</td></tr></tbody></table></figure><!-- /wp:table -->';
+		$base_sync_meta   = $this->get_block_identity_sync_meta_for_blocks(
+			$base_table,
+			array(
+				'block-table' => $base_table,
+			)
+		);
+		$current_content  = $this->add_sync_meta_to_content( $base_table, 104, $base_sync_meta );
+		$post_id          = self::factory()->post->create(
+			array(
+				'post_title'   => 'DE-RTC block identity same table cell retry save post',
+				'post_content' => $current_content,
+			)
+		);
+		$base_revision_id = wp_save_post_revision( $post_id );
+		$this->assertIsInt( $base_revision_id );
+		$this->assertGreaterThan( 0, $base_revision_id );
+
+		$advanced_content = $this->add_sync_meta_to_content(
+			$server_table,
+			105,
+			array_merge(
+				$this->get_block_identity_sync_meta_for_blocks(
+					$server_table,
+					array(
+						'block-table' => $server_table,
+					)
+				),
+				array(
+					'previous_version' => '104',
+				)
+			)
+		);
+		$this->assertSame(
+			$post_id,
+			wp_update_post(
+				wp_slash(
+					array(
+						'ID'           => $post_id,
+						'post_content' => $advanced_content,
+					)
+				)
+			)
+		);
+
+		$proposed_hash          = hash( 'sha256', $local_table );
+		$before_retry_post      = get_post( $post_id );
+		$before_retry_revisions = wp_get_post_revisions(
+			$post_id,
+			array(
+				'check_enabled' => false,
+			)
+		);
+		$request                = $this->create_retry_save_request(
+			'posts',
+			$post_id,
+			array(
+				'client_base_version'           => '104',
+				'accepted_proof_server_version' => '104',
+				'pending_change_count'          => 1,
+				'proposed_post_content'         => $local_table,
+				'proposed_post_content_hash'    => $proposed_hash,
+				'block_identity_request_proof'  => array(
+					'client_base_version'        => '104',
+					'proposed_post_content_hash' => $proposed_hash,
+					'proposed_block_map'         => array(
+						array(
+							'block_uid'       => 'block-table',
+							'block_name'      => 'core/table',
+							'ordinal_path'    => array( 0 ),
+							'serialized_hash' => hash( 'sha256', $local_table ),
+						),
+					),
+					'retained_block_uids'        => array( 'block-table' ),
+					'inserted_block_nonces'      => array(),
+					'deleted_block_uids'         => array(),
+					'moved_block_uids'           => array(),
+				),
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $request );
+		$error    = $response->as_error();
+		$data     = $error->get_error_data( 'de_rtc_rebase_failed' );
+
+		$this->assertSame( 409, $response->get_status() );
+		$this->assertWPError( $error );
+		$this->assertSame( 'retry_save_server_merge_block_identity_retained_block_conflict', $data['detail'] );
+		$this->assertTrue( $data['requires_manual_conflict_resolution'] );
+		$this->assertFalse( $data['mutates_post_content'] );
+		$this->assert_post_unchanged( $post_id, $before_retry_post->post_content, $before_retry_revisions );
+	}
+
+	/**
+	 * @covers ::wp_de_rtc_rest_retry_save_endpoint
+	 * @covers ::wp_de_rtc_save_retry_submitted_post
+	 * @covers ::wp_de_rtc_find_revision_with_sync_meta_version
+	 * @covers ::wp_de_rtc_get_block_identity_server_merge_result
+	 * @covers ::wp_de_rtc_get_block_identity_retained_edits_server_merge_result
 	 * @covers ::wp_de_rtc_get_block_identity_insertions_only_conflict
 	 */
 	public function test_retry_save_rejects_block_identity_retained_edit_same_block_conflict_without_mutating() {
@@ -7077,8 +7371,8 @@ class Tests_DE_RTC_REST_Retry_Save extends WP_Test_REST_TestCase {
 			array_merge(
 				array(
 					'version'      => $version,
-					'schema'       => 'de-rtc-yjs-v1',
-					'yjs_encoding' => 'native-yjs-php-update-v0',
+					'schema'       => 'de-rtc-yjs-blocks-v1',
+					'yjs_encoding' => 'native-yjs-blocks-v1',
 				),
 				$extra
 			),
@@ -7128,10 +7422,13 @@ class Tests_DE_RTC_REST_Retry_Save extends WP_Test_REST_TestCase {
 		$index         = 0;
 
 		foreach ( $blocks as $block_uid => $serialized_block ) {
+			$parsed_blocks = wp_de_rtc_remove_empty_freeform_blocks( parse_blocks( $serialized_block ) );
+			$block_name    = isset( $parsed_blocks[0]['blockName'] ) && is_string( $parsed_blocks[0]['blockName'] ) ? $parsed_blocks[0]['blockName'] : 'core/paragraph';
+
 			$block_records[] = array(
 				'block_uid'       => $block_uid,
 				'parent_uid'      => null,
-				'block_name'      => 'core/paragraph',
+				'block_name'      => $block_name,
 				'ordinal_path'    => array( $index ),
 				'serialized_hash' => hash( 'sha256', $serialized_block ),
 			);
