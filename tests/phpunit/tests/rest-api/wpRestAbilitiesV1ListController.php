@@ -328,7 +328,6 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 		$response = $this->server->dispatch( $request );
 		add_filter( 'rest_post_dispatch', 'rest_filter_response_fields', 10, 3 );
 		$response = apply_filters( 'rest_post_dispatch', $response, $this->server, $request );
-		remove_filter( 'rest_post_dispatch', 'rest_filter_response_fields', 10 );
 
 		$this->assertEquals( 200, $response->get_status() );
 
@@ -349,7 +348,6 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 		$response = $this->server->dispatch( $request );
 		add_filter( 'rest_post_dispatch', 'rest_filter_response_fields', 10, 3 );
 		$response = apply_filters( 'rest_post_dispatch', $response, $this->server, $request );
-		remove_filter( 'rest_post_dispatch', 'rest_filter_response_fields', 10 );
 
 		$this->assertEquals( 200, $response->get_status() );
 
@@ -778,23 +776,81 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test that WordPress-internal schema keywords are stripped from ability schemas in REST response.
+	 * Test filtering abilities by namespace.
+	 *
+	 * @ticket 64990
+	 */
+	public function test_filter_by_namespace(): void {
+		$request = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities' );
+		$request->set_param( 'namespace', 'test' );
+		$request->set_param( 'per_page', 100 );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+
+		$names = wp_list_pluck( $response->get_data(), 'name' );
+
+		$this->assertNotEmpty( $names, 'Expected at least one ability in the test namespace.' );
+		foreach ( $names as $name ) {
+			$this->assertStringStartsWith( 'test/', $name );
+		}
+	}
+
+	/**
+	 * Test filtering by non-existent namespace returns empty results.
+	 *
+	 * @ticket 64990
+	 */
+	public function test_filter_by_nonexistent_namespace(): void {
+		$request = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities' );
+		$request->set_param( 'namespace', 'nonexistent' );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertEmpty( $response->get_data() );
+	}
+
+	/**
+	 * Test that filtering by namespace still excludes abilities without show_in_rest.
+	 *
+	 * The 'test/not-show-in-rest' fixture matches the 'test' namespace but is
+	 * registered without `show_in_rest => true`, so it must remain excluded.
+	 *
+	 * @ticket 64990
+	 */
+	public function test_filter_by_namespace_still_respects_show_in_rest(): void {
+		$request = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities' );
+		$request->set_param( 'namespace', 'test' );
+		$request->set_param( 'per_page', 100 );
+		$response = $this->server->dispatch( $request );
+
+		$names = wp_list_pluck( $response->get_data(), 'name' );
+		$this->assertNotContains( 'test/not-show-in-rest', $names );
+	}
+
+	/**
+	 * Test that schema keywords outside the allow-list are stripped from ability schemas in REST response.
 	 *
 	 * @ticket 65035
 	 */
-	public function test_internal_schema_keywords_stripped_from_response(): void {
+	public function test_unsupported_schema_keywords_stripped_from_response(): void {
 		$this->register_test_ability(
-			'test/with-internal-keywords',
+			'test/with-unsupported-keywords',
 			array(
-				'label'               => 'Test Internal Keywords',
-				'description'         => 'Tests stripping of internal schema keywords',
+				'label'               => 'Test Unsupported Keywords',
+				'description'         => 'Tests stripping of unsupported schema keywords',
 				'category'            => 'general',
 				'input_schema'        => array(
 					'type'       => 'object',
+					'required'   => array( 'content' ),
 					'properties' => array(
 						'content' => array(
 							'type'              => 'string',
 							'description'       => 'The content value.',
+							'example'           => 'example content',
+							'examples'          => array( 'example content' ),
+							'context'           => array( 'view', 'edit', 'embed' ),
+							'readonly'          => true,
 							'sanitize_callback' => 'sanitize_text_field',
 							'validate_callback' => 'is_string',
 							'arg_options'       => array( 'sanitize_callback' => 'wp_kses_post' ),
@@ -803,7 +859,13 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 				),
 				'output_schema'       => array(
 					'type'              => 'string',
+					'example'           => 'example output',
+					'examples'          => array( 'example output' ),
+					'context'           => array( 'view', 'edit', 'embed' ),
+					'readonly'          => true,
 					'sanitize_callback' => 'sanitize_text_field',
+					'validate_callback' => 'is_string',
+					'arg_options'       => array( 'sanitize_callback' => 'wp_kses_post' ),
 				),
 				'execute_callback'    => static function ( $input ) {
 					return $input['content'];
@@ -813,7 +875,7 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 			)
 		);
 
-		$request  = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities/test/with-internal-keywords' );
+		$request  = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities/test/with-unsupported-keywords' );
 		$response = $this->server->dispatch( $request );
 
 		$this->assertSame( 200, $response->get_status() );
@@ -824,35 +886,103 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 		$this->assertArrayHasKey( 'content', $data['input_schema']['properties'] );
 		$this->assertArrayHasKey( 'output_schema', $data );
 
-		// Verify internal keywords are stripped from input_schema properties.
+		// Verify unsupported schema keywords are stripped from input_schema properties.
 		$content_schema = $data['input_schema']['properties']['content'];
 		$this->assertArrayNotHasKey( 'sanitize_callback', $content_schema );
 		$this->assertArrayNotHasKey( 'validate_callback', $content_schema );
 		$this->assertArrayNotHasKey( 'arg_options', $content_schema );
+		$this->assertArrayNotHasKey( 'example', $content_schema );
+		$this->assertArrayNotHasKey( 'examples', $content_schema );
+		$this->assertArrayNotHasKey( 'context', $content_schema );
+		$this->assertArrayNotHasKey( 'readonly', $content_schema );
 
 		// Verify valid JSON Schema keywords are preserved.
 		$this->assertSame( 'string', $content_schema['type'] );
 		$this->assertSame( 'The content value.', $content_schema['description'] );
+		$this->assertSame( array( 'content' ), $data['input_schema']['required'] );
 
 		// Verify internal keywords are stripped from output_schema.
 		$this->assertArrayNotHasKey( 'sanitize_callback', $data['output_schema'] );
+		$this->assertArrayNotHasKey( 'validate_callback', $data['output_schema'] );
+		$this->assertArrayNotHasKey( 'arg_options', $data['output_schema'] );
+		$this->assertArrayNotHasKey( 'example', $data['output_schema'] );
+		$this->assertArrayNotHasKey( 'examples', $data['output_schema'] );
+		$this->assertArrayNotHasKey( 'context', $data['output_schema'] );
+		$this->assertArrayNotHasKey( 'readonly', $data['output_schema'] );
 		$this->assertSame( 'string', $data['output_schema']['type'] );
 	}
 
 	/**
-	 * Test that internal schema keywords are stripped from nested sub-schema locations.
+	 * Test that nested empty object defaults are prepared as objects in REST response schemas.
+	 *
+	 * @ticket 64955
+	 */
+	public function test_nested_empty_object_schema_defaults_prepared_for_response(): void {
+		$this->register_test_ability(
+			'test/nested-object-defaults',
+			array(
+				'label'               => 'Test Nested Object Defaults',
+				'description'         => 'Tests preparing nested empty object defaults.',
+				'category'            => 'general',
+				'input_schema'        => array(
+					'type'       => 'object',
+					'properties' => array(
+						'settings' => array(
+							'type'       => 'object',
+							'default'    => array(),
+							'properties' => array(
+								'options' => array(
+									'type'    => 'object',
+									'default' => array(),
+								),
+							),
+						),
+					),
+				),
+				'output_schema'       => array(
+					'type'       => 'object',
+					'properties' => array(
+						'result' => array(
+							'type'    => 'object',
+							'default' => array(),
+						),
+					),
+				),
+				'execute_callback'    => static function (): array {
+					return array();
+				},
+				'permission_callback' => '__return_true',
+				'meta'                => array( 'show_in_rest' => true ),
+			)
+		);
+
+		$request  = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities/test/nested-object-defaults' );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+
+		$data = $response->get_data();
+
+		$this->assertEquals( new stdClass(), $data['input_schema']['properties']['settings']['default'] );
+		$this->assertEquals( new stdClass(), $data['input_schema']['properties']['settings']['properties']['options']['default'] );
+		$this->assertEquals( new stdClass(), $data['output_schema']['properties']['result']['default'] );
+	}
+
+	/**
+	 * Test that schema keywords outside the allow-list are stripped from nested sub-schema locations.
 	 *
 	 * @ticket 64098
 	 */
-	public function test_internal_schema_keywords_stripped_from_nested_sub_schemas(): void {
+	public function test_unsupported_schema_keywords_stripped_from_nested_sub_schemas(): void {
 		$this->register_test_ability(
-			'test/nested-internal-keywords',
+			'test/nested-unsupported-keywords',
 			array(
-				'label'               => 'Test Nested Keywords',
+				'label'               => 'Test Nested Unsupported Keywords',
 				'description'         => 'Tests stripping from all sub-schema locations',
 				'category'            => 'general',
 				'input_schema'        => array(
 					'type'                 => 'object',
+					'$ref'                 => '#/definitions/address',
 					'anyOf'                => array(
 						array(
 							'type'              => 'object',
@@ -946,7 +1076,7 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 			)
 		);
 
-		$request  = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities/test/nested-internal-keywords' );
+		$request  = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities/test/nested-unsupported-keywords' );
 		$response = $this->server->dispatch( $request );
 
 		$this->assertSame( 200, $response->get_status() );
@@ -954,6 +1084,7 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 		$data = $response->get_data();
 
 		// Verify internal keywords are stripped from anyOf sub-schemas.
+		$this->assertSame( '#/definitions/address', $data['input_schema']['$ref'] );
 		$this->assertArrayHasKey( 'anyOf', $data['input_schema'] );
 		$this->assertArrayNotHasKey( 'sanitize_callback', $data['input_schema']['anyOf'][0] );
 		$this->assertSame( 'object', $data['input_schema']['anyOf'][0]['type'] );
