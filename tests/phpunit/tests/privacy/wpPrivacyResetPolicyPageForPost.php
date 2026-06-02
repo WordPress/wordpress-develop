@@ -22,7 +22,9 @@ class Tests_Privacy_WpPrivacyResetPolicyPageForPost extends WP_UnitTestCase {
 	public function set_up(): void {
 		parent::set_up();
 
-		$this->policy_page_id = self::factory()->post->create( array( 'post_type' => 'page' ) );
+		$page_id = self::factory()->post->create( array( 'post_type' => 'page' ) );
+		assert( is_int( $page_id ) );
+		$this->policy_page_id = $page_id;
 		update_option( 'wp_page_for_privacy_policy', $this->policy_page_id );
 	}
 
@@ -60,6 +62,7 @@ class Tests_Privacy_WpPrivacyResetPolicyPageForPost extends WP_UnitTestCase {
 	 */
 	public function test_trashing_a_different_page_does_not_reset_option(): void {
 		$other_page_id = self::factory()->post->create( array( 'post_type' => 'page' ) );
+		$this->assertIsInt( $other_page_id );
 		wp_trash_post( $other_page_id );
 
 		$this->assertSame(
@@ -76,6 +79,7 @@ class Tests_Privacy_WpPrivacyResetPolicyPageForPost extends WP_UnitTestCase {
 	 */
 	public function test_deleting_non_page_post_type_does_not_reset_option(): void {
 		$post_id = self::factory()->post->create( array( 'post_type' => 'post' ) );
+		$this->assertIsInt( $post_id );
 		wp_delete_post( $post_id, true );
 
 		$this->assertSame(
@@ -99,6 +103,7 @@ class Tests_Privacy_WpPrivacyResetPolicyPageForPost extends WP_UnitTestCase {
 		update_option( 'wp_page_for_privacy_policy', 99999 );
 
 		$user_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		$this->assertIsInt( $user_id );
 		wp_set_current_user( $user_id );
 		if ( is_multisite() ) {
 			grant_super_admin( $user_id );
@@ -106,6 +111,7 @@ class Tests_Privacy_WpPrivacyResetPolicyPageForPost extends WP_UnitTestCase {
 		set_current_screen( 'post' );
 
 		$post = self::factory()->post->create_and_get( array( 'post_type' => 'page' ) );
+		$this->assertInstanceOf( WP_Post::class, $post );
 		WP_Privacy_Policy_Content::notice( $post );
 
 		$this->assertSame(
@@ -134,6 +140,7 @@ class Tests_Privacy_WpPrivacyResetPolicyPageForPost extends WP_UnitTestCase {
 		);
 
 		$other_page_id = self::factory()->post->create( array( 'post_type' => 'page' ) );
+		$this->assertIsInt( $other_page_id );
 		wp_trash_post( $other_page_id );
 
 		$this->assertSame(
