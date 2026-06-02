@@ -14,10 +14,8 @@
 class Tests_Privacy_WpPrivacyResetPolicyPageForPost extends WP_UnitTestCase {
 	/**
 	 * ID of the page set as the Privacy Policy page.
-	 *
-	 * @var int
 	 */
-	private $policy_page_id;
+	private int $policy_page_id;
 
 	public function set_up(): void {
 		parent::set_up();
