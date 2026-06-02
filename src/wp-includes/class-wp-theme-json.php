@@ -5244,8 +5244,6 @@ class WP_Theme_JSON {
 	 * @return string|null The block name or null if not found.
 	 */
 	private static function get_block_name_from_metadata_path( $block_metadata ) {
-		if ( isset( $block_metadata['path'] ) ) {
-			return $block_metadata['path'][2];
-		}
+		return $block_metadata['path'][2] ?? null;
 	}
 }
