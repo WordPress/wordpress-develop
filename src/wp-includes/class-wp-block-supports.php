@@ -38,7 +38,7 @@ class WP_Block_Supports {
 	 *
 	 * @since 5.6.0
 	 * @var array
-	 * @phpstan-var array<string, mixed>
+	 * @phpstan-var array<string, mixed>|null
 	 */
 	public static $block_to_render = null;
 
@@ -112,6 +112,10 @@ class WP_Block_Supports {
 	 * @return string[] Array of HTML attribute values keyed by their name.
 	 */
 	public function apply_block_supports() {
+		if ( ! is_array( self::$block_to_render ) ) {
+			return array();
+		}
+
 		$block_type = WP_Block_Type_Registry::get_instance()->get_registered(
 			self::$block_to_render['blockName']
 		);
