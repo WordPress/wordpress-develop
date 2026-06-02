@@ -936,6 +936,9 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		$this->assertSame( $focus_style, $theme_json->get_styles_for_block( $focus_node ) );
 	}
 
+	/**
+	 * @ticket 65164
+	 */
 	public function test_get_styles_for_block_responsive_feature_selector_not_duplicated_on_base_selector() {
 		register_block_type(
 			'test/responsive-feature',
@@ -999,6 +1002,9 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * @ticket 65164
+	 */
 	public function test_get_styles_for_block_outputs_responsive_block_gap_after_default_gap() {
 		$theme_json = new WP_Theme_JSON(
 			array(
@@ -1052,6 +1058,9 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		$this->assertLessThan( strpos( $actual_styles, $mobile_gap ), strpos( $actual_styles, $default_gap ) );
 	}
 
+	/**
+	 * @ticket 65164
+	 */
 	public function test_get_styles_for_block_responsive_element_pseudo_styles_preserve_order_and_do_not_duplicate_pseudo() {
 		$theme_json = new WP_Theme_JSON(
 			array(
@@ -1137,6 +1146,9 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		$this->assertStringNotContainsString( ':hover:hover', $actual_styles );
 	}
 
+	/**
+	 * @ticket 65164
+	 */
 	public function test_get_styles_for_block_with_style_variations_and_responsive_block_gap() {
 		register_block_style(
 			'core/group',
@@ -1201,6 +1213,9 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		$this->assertLessThan( strpos( $actual_styles, $mobile_gap ), strpos( $actual_styles, $default_gap ) );
 	}
 
+	/**
+	 * @ticket 65164
+	 */
 	public function test_get_styles_for_block_outputs_tablet_responsive_styles_only() {
 		register_block_type(
 			'test/tablet-only',
@@ -3169,6 +3184,8 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 
 	/**
 	 * @covers WP_Theme_JSON::remove_insecure_properties
+	 *
+	 * @ticket 65164
 	 */
 	public function test_remove_insecure_properties_preserves_responsive_block_element_styles() {
 		$actual = WP_Theme_JSON::remove_insecure_properties(
@@ -3232,6 +3249,8 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 
 	/**
 	 * @covers WP_Theme_JSON::remove_insecure_properties
+	 *
+	 * @ticket 65164
 	 */
 	public function test_remove_insecure_properties_preserves_responsive_elements_within_block_state() {
 		$actual = WP_Theme_JSON::remove_insecure_properties(
