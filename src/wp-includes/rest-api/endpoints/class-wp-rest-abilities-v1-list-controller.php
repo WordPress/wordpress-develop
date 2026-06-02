@@ -268,16 +268,16 @@ class WP_REST_Abilities_V1_List_Controller extends WP_REST_Controller {
 		// Collect draft-03 per-property `required: true` flags into a draft-04
 		// `required` array of property names on the parent object schema.
 		if ( isset( $schema['properties'] ) && is_array( $schema['properties'] ) ) {
-			$required = ( isset( $schema['required'] ) && is_array( $schema['required'] ) ) ? $schema['required'] : array();
-			foreach ( $schema['properties'] as $property => $property_schema ) {
+			$required = ( isset( $schema['required'] ) && is_array( $schema['required'] ) ) ? array_map( 'strval', $schema['required'] ) : array();
+			foreach ( $schema['properties'] as $property => &$property_schema ) {
 				if ( $this->is_associative_array( $property_schema ) && isset( $property_schema['required'] ) && is_bool( $property_schema['required'] ) ) {
 					if ( true === $property_schema['required'] ) {
-						$required[] = $property;
+						$required[] = (string) $property;
 					}
-					unset( $schema['properties'][ $property ]['required'] );
+					unset( $property_schema['required'] );
 				}
 			}
-			if ( ! empty( $required ) ) {
+			if ( count( $required ) > 0 ) {
 				$schema['required'] = array_values( array_unique( $required ) );
 			}
 		}
