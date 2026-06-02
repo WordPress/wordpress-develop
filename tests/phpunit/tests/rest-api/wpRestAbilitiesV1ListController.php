@@ -1147,4 +1147,310 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 		$this->assertArrayNotHasKey( 'sanitize_callback', $data['output_schema']['additionalItems'] );
 		$this->assertSame( 'boolean', $data['output_schema']['additionalItems']['type'] );
 	}
+
+	/**
+	 * Test that per-property `required` booleans become a draft-04 `required` array.
+	 *
+	 * @ticket 64955
+	 */
+	public function test_required_property_booleans_converted_to_draft_04_array(): void {
+		$this->register_test_ability(
+			'test/required-booleans',
+			array(
+				'label'               => 'Required Booleans',
+				'description'         => 'Tests conversion of per-property required booleans.',
+				'category'            => 'general',
+				'input_schema'        => array(
+					'type'       => 'object',
+					'properties' => array(
+						'title'    => array(
+							'type'     => 'string',
+							'required' => true,
+						),
+						'content'  => array(
+							'type'     => 'string',
+							'required' => true,
+						),
+						'optional' => array(
+							'type' => 'string',
+						),
+					),
+				),
+				'output_schema'       => array(
+					'type'       => 'object',
+					'properties' => array(
+						'id' => array(
+							'type'     => 'integer',
+							'required' => true,
+						),
+					),
+				),
+				'execute_callback'    => static function (): array {
+					return array( 'id' => 1 );
+				},
+				'permission_callback' => '__return_true',
+				'meta'                => array( 'show_in_rest' => true ),
+			)
+		);
+
+		$request  = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities/test/required-booleans' );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+
+		$data = $response->get_data();
+
+		// The `required` array lists the names of the properties flagged as required.
+		$this->assertArrayHasKey( 'required', $data['input_schema'] );
+		$this->assertSameSets( array( 'title', 'content' ), $data['input_schema']['required'] );
+
+		// The boolean flag is removed from each property sub-schema.
+		$this->assertArrayNotHasKey( 'required', $data['input_schema']['properties']['title'] );
+		$this->assertArrayNotHasKey( 'required', $data['input_schema']['properties']['content'] );
+		$this->assertArrayNotHasKey( 'required', $data['input_schema']['properties']['optional'] );
+
+		// Output schemas are normalized the same way.
+		$this->assertSame( array( 'id' ), $data['output_schema']['required'] );
+		$this->assertArrayNotHasKey( 'required', $data['output_schema']['properties']['id'] );
+	}
+
+	/**
+	 * Test that per-property `required` booleans are converted in nested object schemas.
+	 *
+	 * @ticket 64955
+	 */
+	public function test_required_booleans_converted_in_nested_object_schemas(): void {
+		$this->register_test_ability(
+			'test/required-nested',
+			array(
+				'label'               => 'Required Nested',
+				'description'         => 'Tests conversion within nested object schemas.',
+				'category'            => 'general',
+				'input_schema'        => array(
+					'type'       => 'object',
+					'properties' => array(
+						'address' => array(
+							'type'       => 'object',
+							'required'   => true,
+							'properties' => array(
+								'street' => array(
+									'type'     => 'string',
+									'required' => true,
+								),
+								'city'   => array(
+									'type' => 'string',
+								),
+							),
+						),
+					),
+				),
+				'execute_callback'    => static function () {
+					return null;
+				},
+				'permission_callback' => '__return_true',
+				'meta'                => array( 'show_in_rest' => true ),
+			)
+		);
+
+		$request  = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities/test/required-nested' );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+
+		$data    = $response->get_data();
+		$address = $data['input_schema']['properties']['address'];
+
+		// The outer object lists the nested object as a required property.
+		$this->assertSame( array( 'address' ), $data['input_schema']['required'] );
+
+		// The nested object's own boolean flag is replaced by a draft-04 array
+		// collecting its own required properties (proving the boolean was converted).
+		$this->assertSame( array( 'street' ), $address['required'] );
+		$this->assertArrayNotHasKey( 'required', $address['properties']['street'] );
+		$this->assertArrayNotHasKey( 'required', $address['properties']['city'] );
+	}
+
+	/**
+	 * Test that `required: false` is removed without emitting an empty `required` array.
+	 *
+	 * @ticket 64955
+	 */
+	public function test_required_false_booleans_removed_without_required_array(): void {
+		$this->register_test_ability(
+			'test/required-false',
+			array(
+				'label'               => 'Required False',
+				'description'         => 'Tests that required:false is stripped.',
+				'category'            => 'general',
+				'input_schema'        => array(
+					'type'       => 'object',
+					'properties' => array(
+						'maybe' => array(
+							'type'     => 'string',
+							'required' => false,
+						),
+					),
+				),
+				'execute_callback'    => static function () {
+					return null;
+				},
+				'permission_callback' => '__return_true',
+				'meta'                => array( 'show_in_rest' => true ),
+			)
+		);
+
+		$request  = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities/test/required-false' );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+
+		$data = $response->get_data();
+
+		$this->assertArrayNotHasKey( 'required', $data['input_schema'] );
+		$this->assertArrayNotHasKey( 'required', $data['input_schema']['properties']['maybe'] );
+	}
+
+	/**
+	 * Test that an existing draft-04 `required` array takes precedence over per-property booleans.
+	 *
+	 * This mirrors rest_validate_object_value_from_schema(), which ignores
+	 * per-property `required` booleans when a draft-04 `required` array is
+	 * present, so the published schema matches what is actually enforced.
+	 *
+	 * @ticket 64955
+	 */
+	public function test_required_draft_04_array_takes_precedence_over_booleans(): void {
+		$this->register_test_ability(
+			'test/required-mixed',
+			array(
+				'label'               => 'Required Mixed',
+				'description'         => 'Tests precedence of a draft-04 array over draft-03 booleans.',
+				'category'            => 'general',
+				'input_schema'        => array(
+					'type'       => 'object',
+					'required'   => array( 'title' ),
+					'properties' => array(
+						'title'   => array(
+							'type'     => 'string',
+							'required' => true,
+						),
+						'content' => array(
+							'type'     => 'string',
+							'required' => true,
+						),
+					),
+				),
+				'execute_callback'    => static function () {
+					return null;
+				},
+				'permission_callback' => '__return_true',
+				'meta'                => array( 'show_in_rest' => true ),
+			)
+		);
+
+		$request  = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities/test/required-mixed' );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+
+		$data = $response->get_data();
+
+		// The draft-04 array wins: the `content` boolean is ignored, not merged in.
+		$this->assertSame( array( 'title' ), $data['input_schema']['required'] );
+
+		// The per-property booleans are still stripped from the output.
+		$this->assertArrayNotHasKey( 'required', $data['input_schema']['properties']['title'] );
+		$this->assertArrayNotHasKey( 'required', $data['input_schema']['properties']['content'] );
+	}
+
+	/**
+	 * Test that a boolean `required` with no draft-04 equivalent (e.g. on a scalar) is dropped.
+	 *
+	 * @ticket 64955
+	 */
+	public function test_required_boolean_on_scalar_schema_removed(): void {
+		$this->register_test_ability(
+			'test/required-scalar',
+			array(
+				'label'               => 'Required Scalar',
+				'description'         => 'Tests stripping of a boolean required on a scalar schema.',
+				'category'            => 'general',
+				'input_schema'        => array(
+					'type'        => 'string',
+					'description' => 'The text to analyze.',
+					'required'    => true,
+				),
+				'output_schema'       => array(
+					'type'     => 'string',
+					'required' => true,
+				),
+				'execute_callback'    => static function ( $input ) {
+					return $input;
+				},
+				'permission_callback' => '__return_true',
+				'meta'                => array( 'show_in_rest' => true ),
+			)
+		);
+
+		$request  = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities/test/required-scalar' );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+
+		$data = $response->get_data();
+
+		$this->assertArrayNotHasKey( 'required', $data['input_schema'] );
+		$this->assertSame( 'string', $data['input_schema']['type'] );
+		$this->assertArrayNotHasKey( 'required', $data['output_schema'] );
+	}
+
+	/**
+	 * Test that per-property `required` booleans are converted in an array's `items` object.
+	 *
+	 * @ticket 64955
+	 */
+	public function test_required_booleans_converted_in_array_items_object_schemas(): void {
+		$this->register_test_ability(
+			'test/required-array-items',
+			array(
+				'label'               => 'Required Array Items',
+				'description'         => 'Tests conversion within array item object schemas.',
+				'category'            => 'general',
+				'input_schema'        => array(
+					'type'  => 'array',
+					'items' => array(
+						'type'       => 'object',
+						'properties' => array(
+							'id'    => array(
+								'type'     => 'integer',
+								'required' => true,
+							),
+							'label' => array(
+								'type' => 'string',
+							),
+						),
+					),
+				),
+				'execute_callback'    => static function () {
+					return null;
+				},
+				'permission_callback' => '__return_true',
+				'meta'                => array( 'show_in_rest' => true ),
+			)
+		);
+
+		$request  = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities/test/required-array-items' );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+
+		$data  = $response->get_data();
+		$items = $data['input_schema']['items'];
+
+		// The object schema inside `items` collects its own required properties
+		// into a draft-04 array, and the per-property boolean is removed.
+		$this->assertSame( array( 'id' ), $items['required'] );
+		$this->assertArrayNotHasKey( 'required', $items['properties']['id'] );
+		$this->assertArrayNotHasKey( 'required', $items['properties']['label'] );
+	}
 }
