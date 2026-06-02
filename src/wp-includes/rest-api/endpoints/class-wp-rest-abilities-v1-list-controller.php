@@ -86,25 +86,19 @@ class WP_REST_Abilities_V1_List_Controller extends WP_REST_Controller {
 	 * @return WP_REST_Response Response object on success.
 	 */
 	public function get_items( $request ) {
-		$abilities = array_filter(
-			wp_get_abilities(),
-			static function ( $ability ) {
-				return $ability->get_meta_item( 'show_in_rest' );
-			}
+		$query_args = array(
+			'meta' => array( 'show_in_rest' => true ),
 		);
 
-		// Filter by ability category if specified.
-		$category = $request['category'];
-		if ( ! empty( $category ) ) {
-			$abilities = array_filter(
-				$abilities,
-				static function ( $ability ) use ( $category ) {
-					return $ability->get_category() === $category;
-				}
-			);
-			// Reset array keys after filtering.
-			$abilities = array_values( $abilities );
+		if ( ! empty( $request['category'] ) ) {
+			$query_args['category'] = $request['category'];
 		}
+
+		if ( ! empty( $request['namespace'] ) ) {
+			$query_args['namespace'] = $request['namespace'];
+		}
+
+		$abilities = wp_get_abilities( $query_args );
 
 		$page     = $request['page'];
 		$per_page = $request['per_page'];
@@ -195,27 +189,6 @@ class WP_REST_Abilities_V1_List_Controller extends WP_REST_Controller {
 	}
 
 	/**
-	 * Normalizes schema empty object defaults.
-	 *
-	 * Converts empty array defaults to objects when the schema type is 'object'
-	 * to ensure proper JSON serialization as {} instead of [].
-	 *
-	 * @since 6.9.0
-	 *
-	 * @param array<string, mixed> $schema The schema array.
-	 * @return array<string, mixed> The normalized schema.
-	 */
-	private function normalize_schema_empty_object_defaults( array $schema ): array {
-		if ( isset( $schema['type'] ) && 'object' === $schema['type'] && isset( $schema['default'] ) ) {
-			$default = $schema['default'];
-			if ( is_array( $default ) && empty( $default ) ) {
-				$schema['default'] = (object) $default;
-			}
-		}
-		return $schema;
-	}
-
-	/**
 	 * WordPress-internal schema keywords to strip from REST responses.
 	 *
 	 * @since 7.0.0
@@ -228,19 +201,42 @@ class WP_REST_Abilities_V1_List_Controller extends WP_REST_Controller {
 	);
 
 	/**
-	 * Recursively removes WordPress-internal keywords from a schema.
+	 * Determines whether the value is an associative array.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @param mixed $value Value.
+	 * @return bool Whether it is associative array.
+	 *
+	 * @phpstan-assert-if-true array<string, mixed> $value
+	 */
+	private function is_associative_array( $value ): bool {
+		return is_array( $value ) && ! wp_is_numeric_array( $value );
+	}
+
+	/**
+	 * Transforms an ability schema for REST response output.
 	 *
 	 * Ability schemas may include WordPress-internal properties like
 	 * `sanitize_callback`, `validate_callback`, and `arg_options` that are
 	 * used server-side but are not valid JSON Schema keywords. This method
 	 * removes those specific keys so they are not exposed in REST responses.
+	 * It also converts empty array defaults to objects when the schema type is
+	 * 'object' to ensure proper JSON serialization as {} instead of [].
 	 *
-	 * @since 7.0.0
+	 * @since 7.1.0
 	 *
 	 * @param array<string, mixed> $schema The schema array.
-	 * @return array<string, mixed> The schema without WordPress-internal keywords.
+	 * @return array<string, mixed> The transformed schema.
 	 */
-	private function strip_internal_schema_keywords( array $schema ): array {
+	private function prepare_schema_for_response( array $schema ): array {
+		if ( isset( $schema['type'] ) && 'object' === $schema['type'] && isset( $schema['default'] ) ) {
+			$default = $schema['default'];
+			if ( is_array( $default ) && empty( $default ) ) {
+				$schema['default'] = (object) $default;
+			}
+		}
+
 		$schema = array_diff_key( $schema, self::INTERNAL_SCHEMA_KEYWORDS );
 
 		// Sub-schema maps: keys are user-defined, values are sub-schemas.
@@ -249,8 +245,8 @@ class WP_REST_Abilities_V1_List_Controller extends WP_REST_Controller {
 		foreach ( array( 'properties', 'patternProperties', 'definitions', 'dependencies' ) as $keyword ) {
 			if ( isset( $schema[ $keyword ] ) && is_array( $schema[ $keyword ] ) ) {
 				foreach ( $schema[ $keyword ] as $key => $child_schema ) {
-					if ( is_array( $child_schema ) && ! wp_is_numeric_array( $child_schema ) ) {
-						$schema[ $keyword ][ $key ] = $this->strip_internal_schema_keywords( $child_schema );
+					if ( $this->is_associative_array( $child_schema ) ) {
+						$schema[ $keyword ][ $key ] = $this->prepare_schema_for_response( $child_schema );
 					}
 				}
 			}
@@ -258,21 +254,21 @@ class WP_REST_Abilities_V1_List_Controller extends WP_REST_Controller {
 
 		// Single sub-schema keywords.
 		foreach ( array( 'not', 'additionalProperties', 'additionalItems' ) as $keyword ) {
-			if ( isset( $schema[ $keyword ] ) && is_array( $schema[ $keyword ] ) ) {
-				$schema[ $keyword ] = $this->strip_internal_schema_keywords( $schema[ $keyword ] );
+			if ( isset( $schema[ $keyword ] ) && $this->is_associative_array( $schema[ $keyword ] ) ) {
+				$schema[ $keyword ] = $this->prepare_schema_for_response( $schema[ $keyword ] );
 			}
 		}
 
 		// Items: single schema or tuple array of schemas.
-		if ( isset( $schema['items'] ) ) {
-			if ( wp_is_numeric_array( $schema['items'] ) ) {
+		if ( isset( $schema['items'] ) && is_array( $schema['items'] ) ) {
+			if ( $this->is_associative_array( $schema['items'] ) ) {
+				$schema['items'] = $this->prepare_schema_for_response( $schema['items'] );
+			} else {
 				foreach ( $schema['items'] as $index => $item_schema ) {
-					if ( is_array( $item_schema ) ) {
-						$schema['items'][ $index ] = $this->strip_internal_schema_keywords( $item_schema );
+					if ( $this->is_associative_array( $item_schema ) ) {
+						$schema['items'][ $index ] = $this->prepare_schema_for_response( $item_schema );
 					}
 				}
-			} elseif ( is_array( $schema['items'] ) ) {
-				$schema['items'] = $this->strip_internal_schema_keywords( $schema['items'] );
 			}
 		}
 
@@ -280,8 +276,8 @@ class WP_REST_Abilities_V1_List_Controller extends WP_REST_Controller {
 		foreach ( array( 'anyOf', 'oneOf', 'allOf' ) as $keyword ) {
 			if ( isset( $schema[ $keyword ] ) && is_array( $schema[ $keyword ] ) ) {
 				foreach ( $schema[ $keyword ] as $index => $sub_schema ) {
-					if ( is_array( $sub_schema ) ) {
-						$schema[ $keyword ][ $index ] = $this->strip_internal_schema_keywords( $sub_schema );
+					if ( $this->is_associative_array( $sub_schema ) ) {
+						$schema[ $keyword ][ $index ] = $this->prepare_schema_for_response( $sub_schema );
 					}
 				}
 			}
@@ -305,12 +301,8 @@ class WP_REST_Abilities_V1_List_Controller extends WP_REST_Controller {
 			'label'         => $ability->get_label(),
 			'description'   => $ability->get_description(),
 			'category'      => $ability->get_category(),
-			'input_schema'  => $this->strip_internal_schema_keywords(
-				$this->normalize_schema_empty_object_defaults( $ability->get_input_schema() )
-			),
-			'output_schema' => $this->strip_internal_schema_keywords(
-				$this->normalize_schema_empty_object_defaults( $ability->get_output_schema() )
-			),
+			'input_schema'  => $this->prepare_schema_for_response( $ability->get_input_schema() ),
+			'output_schema' => $this->prepare_schema_for_response( $ability->get_output_schema() ),
 			'meta'          => $ability->get_meta(),
 		);
 
@@ -418,22 +410,28 @@ class WP_REST_Abilities_V1_List_Controller extends WP_REST_Controller {
 	 */
 	public function get_collection_params(): array {
 		return array(
-			'context'  => $this->get_context_param( array( 'default' => 'view' ) ),
-			'page'     => array(
+			'context'   => $this->get_context_param( array( 'default' => 'view' ) ),
+			'page'      => array(
 				'description' => __( 'Current page of the collection.' ),
 				'type'        => 'integer',
 				'default'     => 1,
 				'minimum'     => 1,
 			),
-			'per_page' => array(
+			'per_page'  => array(
 				'description' => __( 'Maximum number of items to be returned in result set.' ),
 				'type'        => 'integer',
 				'default'     => 50,
 				'minimum'     => 1,
 				'maximum'     => 100,
 			),
-			'category' => array(
+			'category'  => array(
 				'description'       => __( 'Limit results to abilities in specific ability category.' ),
+				'type'              => 'string',
+				'sanitize_callback' => 'sanitize_key',
+				'validate_callback' => 'rest_validate_request_arg',
+			),
+			'namespace' => array(
+				'description'       => __( 'Limit results to abilities in a specific namespace.' ),
 				'type'              => 'string',
 				'sanitize_callback' => 'sanitize_key',
 				'validate_callback' => 'rest_validate_request_arg',
