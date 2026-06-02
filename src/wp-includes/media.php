@@ -2924,9 +2924,10 @@ function gallery_shortcode( $attr ) {
 	 *
 	 * @since 2.5.0
 	 * @since 3.1.0 Added classes for number of columns and size to opening div.
-	 * @since 5.3.0 Changed the quotes around the `style` tag's type attribute from
-	 *              single to double.
-	 * @since 7.0.0 Removed the unnecessary type attribute.
+	 * @since 5.3.0 Removed the `type` attribute for `style` tags when the theme
+	 *              supports HTML5 style, and changed the quotes from single to
+	 *              double for other themes.
+	 * @since 7.0.0 Removed the `type` attribute for any theme.
 	 *
 	 * @param string $gallery_style Default CSS styles and opening HTML div container
 	 *                              for the gallery shortcode output.
