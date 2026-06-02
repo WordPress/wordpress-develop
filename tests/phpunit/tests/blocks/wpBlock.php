@@ -12,10 +12,8 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 
 	/**
 	 * Fake block type registry.
-	 *
-	 * @var WP_Block_Type_Registry|null
 	 */
-	private $registry = null;
+	private ?WP_Block_Type_Registry $registry = null;
 
 	/**
 	 * Set up each test method.
@@ -840,7 +838,7 @@ HTML
 	/**
 	 * @ticket 65373
 	 */
-	public function test_build_query_vars_from_query_block_exclude_current() {
+	public function test_build_query_vars_from_query_block_exclude_current(): void {
 		$this->registry->register(
 			'core/example',
 			array( 'uses_context' => array( 'query' ) )
