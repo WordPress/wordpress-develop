@@ -585,7 +585,7 @@ add_action( 'admin_menu', '_add_post_type_submenus' );
 add_action( 'before_delete_post', '_reset_front_page_settings_for_post' );
 add_action( 'before_delete_post', '_reset_privacy_policy_page_for_post' );
 add_action( 'wp_trash_post', '_reset_front_page_settings_for_post' );
-add_action( 'wp_trash_post', '_reset_privacy_policy_page_for_post' );
+add_action( 'trashed_post', '_reset_privacy_policy_page_for_post' );
 add_action( 'change_locale', 'create_initial_post_types' );
 
 // Post Formats.
