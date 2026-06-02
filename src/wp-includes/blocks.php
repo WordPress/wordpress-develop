@@ -3060,6 +3060,18 @@ function get_comments_pagination_arrow( $block, $pagination_type = 'next' ) {
  * @return array<string, mixed> Query vars suitable for get_terms() or wp_count_terms().
  */
 function build_terms_query_vars_from_block( WP_Block $block ): array {
+	/**
+	 * @var array{
+	 *     perPage: positive-int,
+	 *     order: string,
+	 *     orderBy: string,
+	 *     hideEmpty: bool,
+	 *     inherit?: bool,
+	 *     showNested?: bool,
+	 *     taxonomy: string,
+	 *     include: int[],
+	 * } $query
+	 */
 	$query = $block->context['termQuery'];
 
 	$query_vars = array(
