@@ -38,6 +38,7 @@ class WP_Block_Supports {
 	 *
 	 * @since 5.6.0
 	 * @var array
+	 * @phpstan-var array<string, mixed>
 	 */
 	public static $block_to_render = null;
 
@@ -70,6 +71,8 @@ class WP_Block_Supports {
 	 * Initializes the block supports. It registers the block supports block attributes.
 	 *
 	 * @since 5.6.0
+	 *
+	 * @return void
 	 */
 	public static function init() {
 		$instance = self::get_instance();
@@ -86,10 +89,12 @@ class WP_Block_Supports {
 	 * @param string $block_support_name   Block support name.
 	 * @param array  $block_support_config Array containing the properties of the block support.
 	 *
-	 * @phpstan-param array<string, array{
+	 * @phpstan-param array{
 	 *     apply?: ApplyCallback,
 	 *     register_attribute?: RegisterCallback,
-	 * }> $block_support_config
+	 * } $block_support_config
+	 *
+	 * @return void
 	 */
 	public function register( $block_support_name, $block_support_config ) {
 		$this->block_supports[ $block_support_name ] = array_merge(
@@ -112,7 +117,7 @@ class WP_Block_Supports {
 		);
 
 		// If no render_callback, assume styles have been previously handled.
-		if ( ! $block_type || empty( $block_type ) ) {
+		if ( ! $block_type ) {
 			return array();
 		}
 
@@ -154,6 +159,8 @@ class WP_Block_Supports {
 	 * Registers the block attributes required by the different block supports.
 	 *
 	 * @since 5.6.0
+	 *
+	 * @return void
 	 */
 	private function register_attributes() {
 		$block_registry         = WP_Block_Type_Registry::get_instance();
