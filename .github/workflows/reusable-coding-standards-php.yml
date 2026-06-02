@@ -29,6 +29,7 @@ jobs:
   # Performs the following steps:
   # - Checks out the repository.
   # - Sets up PHP.
+  # - Gets last Monday's date for use in cache keys.
   # - Configures caching for PHPCS scans.
   # - Installs Composer dependencies.
   # - Make Composer packages available globally.
