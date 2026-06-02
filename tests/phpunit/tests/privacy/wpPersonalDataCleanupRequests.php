@@ -216,7 +216,7 @@ class Tests_Privacy_WpPersonalDataCleanupRequests extends WP_UnitTestCase {
 	public function test_multiple_expired_requests_are_all_marked_failed() {
 		$ids = array();
 		for ( $i = 0; $i < 3; $i++ ) {
-			$id    = wp_create_user_request( $this->unique_email(), 'export_personal_data' );
+			$id = wp_create_user_request( $this->unique_email(), 'export_personal_data' );
 			$this->backdate_request( $id, 2 * DAY_IN_SECONDS );
 			$ids[] = $id;
 		}
