@@ -844,8 +844,9 @@ HTML
 			array( 'uses_context' => array( 'query' ) )
 		);
 
-		$post_id         = self::factory()->post->create();
-		$GLOBALS['post'] = get_post( $post_id );
+		global $post;
+		$post = self::factory()->post->create_and_get();
+		$this->assertInstanceOf( WP_Post::class, $post );
 
 		$parsed_blocks = parse_blocks( '<!-- wp:example {"ok":true} -->a<!-- wp:example /-->b<!-- /wp:example -->' );
 		$parsed_block  = $parsed_blocks[0];
@@ -858,7 +859,7 @@ HTML
 		$query         = build_query_vars_from_query_block( $block, 1 );
 
 		$this->assertSame(
-			array( $post_id ),
+			array( $post->ID ),
 			$query['post__not_in'],
 			'The current post ID should be excluded via post__not_in.'
 		);
