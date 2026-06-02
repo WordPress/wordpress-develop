@@ -204,7 +204,7 @@ function _wp_personal_data_cleanup_requests() {
 			'fields'         => 'ids',
 			'date_query'     => array(
 				array(
-					'column' => 'post_modified_gmt',
+					'column' => 'post_modified',
 					'before' => $expires . ' seconds ago',
 				),
 			),
