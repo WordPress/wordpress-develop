@@ -275,7 +275,7 @@ class WP_REST_Abilities_V1_List_Controller extends WP_REST_Controller {
 		// published schema describes exactly what gets enforced.
 		if ( isset( $schema['properties'] ) && is_array( $schema['properties'] ) ) {
 			$has_required_array = isset( $schema['required'] ) && is_array( $schema['required'] );
-			$required           = $has_required_array ? array_map( 'strval', $schema['required'] ) : array();
+			$required           = array();
 			foreach ( $schema['properties'] as $property => &$property_schema ) {
 				if ( $this->is_associative_array( $property_schema ) && isset( $property_schema['required'] ) && is_bool( $property_schema['required'] ) ) {
 					if ( ! $has_required_array && true === $property_schema['required'] ) {
@@ -285,8 +285,11 @@ class WP_REST_Abilities_V1_List_Controller extends WP_REST_Controller {
 				}
 			}
 			unset( $property_schema );
-			if ( count( $required ) > 0 ) {
-				$schema['required'] = array_values( array_unique( $required ) );
+
+			// Property keys are unique, so the collected list needs no deduplication.
+			// When a draft-04 array is already present, leave it untouched.
+			if ( ! $has_required_array && count( $required ) > 0 ) {
+				$schema['required'] = $required;
 			}
 		}
 
