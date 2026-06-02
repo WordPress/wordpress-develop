@@ -37,7 +37,7 @@ class WP_Block_Supports {
 	 * Tracks the current block to be rendered.
 	 *
 	 * @since 5.6.0
-	 * @var array
+	 * @var array|null
 	 * @phpstan-var array<string, mixed>|null
 	 */
 	public static $block_to_render = null;
