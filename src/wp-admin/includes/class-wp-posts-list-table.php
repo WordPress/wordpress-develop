@@ -437,7 +437,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 			if ( $this->is_trash ) {
 				$actions['untrash'] = __( 'Restore' );
 			} else {
-				$actions['edit'] = __( 'Bulk edit' );
+				$actions['edit'] = _x( 'Bulk edit', 'verb' );
 			}
 		}
 
@@ -596,7 +596,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 
 			if ( ! empty( $output ) ) {
 				echo $output;
-				submit_button( __( 'Filter' ), '', 'filter_action', false, array( 'id' => 'post-query-submit' ) );
+				submit_button( __( 'Filter' ), 'button-compact', 'filter_action', false, array( 'id' => 'post-query-submit' ) );
 			}
 		}
 
@@ -1138,10 +1138,8 @@ class WP_Posts_List_Table extends WP_List_Table {
 
 		if ( $can_edit_post && 'trash' !== $post->post_status ) {
 			printf(
-				'<a class="row-title" href="%s" aria-label="%s">%s%s</a>',
+				'<a class="row-title" href="%s">%s%s</a>',
 				get_edit_post_link( $post->ID ),
-				/* translators: %s: Post title. */
-				esc_attr( sprintf( __( '&#8220;%s&#8221; (Edit)' ), $title ) ),
 				$pad,
 				$title
 			);
@@ -1550,7 +1548,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 						esc_url( $preview_link ),
 						/* translators: %s: Post title. */
 						esc_attr( sprintf( __( 'Preview &#8220;%s&#8221;' ), $title ) ),
-						__( 'Preview' )
+						_x( 'Preview', 'verb' )
 					);
 				}
 			} elseif ( 'trash' !== $post->post_status ) {
