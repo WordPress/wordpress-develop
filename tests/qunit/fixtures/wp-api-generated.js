@@ -3703,7 +3703,8 @@ mockedApiResponse.Schema = {
                                 "1536x1536",
                                 "2048x2048",
                                 "original",
-                                "full"
+                                "full",
+                                "scaled"
                             ],
                             "required": true
                         },
@@ -3711,6 +3712,26 @@ mockedApiResponse.Schema = {
                             "type": "boolean",
                             "default": true,
                             "description": "Whether to convert image formats.",
+                            "required": false
+                        }
+                    }
+                }
+            ]
+        },
+        "/wp/v2/media/(?P<id>[\\d]+)/finalize": {
+            "namespace": "wp/v2",
+            "methods": [
+                "POST"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "POST"
+                    ],
+                    "args": {
+                        "id": {
+                            "description": "Unique identifier for the attachment.",
+                            "type": "integer",
                             "required": false
                         }
                     }
@@ -11138,12 +11159,6 @@ mockedApiResponse.Schema = {
                             "type": "string",
                             "required": false
                         },
-                        "enable_real_time_collaboration": {
-                            "title": "",
-                            "description": "Enable Real-Time Collaboration",
-                            "type": "boolean",
-                            "required": false
-                        },
                         "posts_per_page": {
                             "title": "Maximum posts per page",
                             "description": "Blog pages show at most.",
@@ -12633,6 +12648,11 @@ mockedApiResponse.Schema = {
                         },
                         "category": {
                             "description": "Limit results to abilities in specific ability category.",
+                            "type": "string",
+                            "required": false
+                        },
+                        "namespace": {
+                            "description": "Limit results to abilities in a specific namespace.",
                             "type": "string",
                             "required": false
                         }
@@ -14646,7 +14666,6 @@ mockedApiResponse.settings = {
     "use_smilies": true,
     "default_category": 1,
     "default_post_format": "0",
-    "enable_real_time_collaboration": false,
     "posts_per_page": 10,
     "show_on_front": "posts",
     "page_on_front": 0,

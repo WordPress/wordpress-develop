@@ -441,7 +441,10 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		 * @param array           $args    Array of arguments for WP_Query.
 		 * @param WP_REST_Request $request The REST API request.
 		 */
-		$args       = apply_filters( "rest_{$this->post_type}_query", $args, $request );
+		$args = apply_filters( "rest_{$this->post_type}_query", $args, $request );
+		if ( ! is_array( $args ) ) {
+			$args = array();
+		}
 		$query_args = $this->prepare_items_query( $args, $request );
 
 		$posts_query  = new WP_Query();
@@ -1211,6 +1214,9 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 */
 	protected function prepare_items_query( $prepared_args = array(), $request = null ) {
 		$query_args = array();
+		if ( ! is_array( $prepared_args ) ) {
+			$prepared_args = array();
+		}
 
 		foreach ( $prepared_args as $key => $value ) {
 			/**
@@ -1495,9 +1501,9 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		 *
 		 * @since 7.0.0
 		 *
-		 * @param array  $content_like_post_types Array of post type names that support Block Hooks.
-		 * @param string $post_type               The current post type being processed.
-		 * @param object $prepared_post           The prepared post object.
+		 * @param string[]         $content_like_post_types Array of post type names that support Block Hooks.
+		 * @param string           $post_type               The current post type being processed.
+		 * @param stdClass|WP_Post $prepared_post           The prepared post object.
 		 */
 		$content_like_post_types = apply_filters( 'rest_block_hooks_post_types', $content_like_post_types, $this->post_type, $prepared_post );
 
@@ -2166,18 +2172,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		 */
 		$content_like_post_types = array( 'post', 'page', 'wp_block', 'wp_navigation' );
 
-		/**
-		 * Filters which post types should have Block Hooks applied.
-		 *
-		 * Allows themes and plugins to add or remove post types that should
-		 * have Block Hooks functionality enabled in the REST API.
-		 *
-		 * @since 7.0.0
-		 *
-		 * @param array   $content_like_post_types Array of post type names that support Block Hooks.
-		 * @param string  $post_type               The current post type being processed.
-		 * @param WP_Post $post                    The post object.
-		 */
+		/** This filter is documented in wp-includes/rest-api/endpoints/class-wp-rest-posts-controller.php */
 		$content_like_post_types = apply_filters( 'rest_block_hooks_post_types', $content_like_post_types, $this->post_type, $post );
 
 		if ( in_array( $this->post_type, $content_like_post_types, true ) ) {
@@ -2288,7 +2283,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 		// If we have a featured media, add that.
 		$featured_media = get_post_thumbnail_id( $post->ID );
-		if ( $featured_media ) {
+		if ( $featured_media && ( 'publish' === get_post_status( $featured_media ) || current_user_can( 'read_post', $featured_media ) ) ) {
 			$image_url = rest_url( rest_get_route_for_post( $featured_media ) );
 
 			$links['https://api.w.org/featuredmedia'] = array(

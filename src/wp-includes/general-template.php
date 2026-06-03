@@ -1338,7 +1338,7 @@ function _wp_render_title_tag() {
  *                            Default '&raquo;'.
  * @param bool   $display     Optional. Whether to display or retrieve title. Default true.
  * @param string $seplocation Optional. Location of the separator (either 'left' or 'right').
- * @return string|void String when `$display` is false, nothing otherwise.
+ * @return string|null String when `$display` is false, null otherwise.
  */
 function wp_title( $sep = '&raquo;', $display = true, $seplocation = '' ) {
 	global $wp_locale;
@@ -1489,13 +1489,13 @@ function wp_title( $sep = '&raquo;', $display = true, $seplocation = '' ) {
  *
  * @param string $prefix  Optional. What to display before the title.
  * @param bool   $display Optional. Whether to display or retrieve title. Default true.
- * @return string|void Title when retrieving.
+ * @return string|null Title when retrieving.
  */
 function single_post_title( $prefix = '', $display = true ) {
 	$_post = get_queried_object();
 
 	if ( ! isset( $_post->post_title ) ) {
-		return;
+		return null;
 	}
 
 	/**
@@ -1524,11 +1524,11 @@ function single_post_title( $prefix = '', $display = true ) {
  *
  * @param string $prefix  Optional. What to display before the title.
  * @param bool   $display Optional. Whether to display or retrieve title. Default true.
- * @return string|void Title when retrieving, null when displaying or failure.
+ * @return string|null Title when retrieving, null when displaying or on failure.
  */
 function post_type_archive_title( $prefix = '', $display = true ) {
 	if ( ! is_post_type_archive() ) {
-		return;
+		return null;
 	}
 
 	$post_type = get_query_var( 'post_type' );
@@ -1566,7 +1566,7 @@ function post_type_archive_title( $prefix = '', $display = true ) {
  *
  * @param string $prefix  Optional. What to display before the title.
  * @param bool   $display Optional. Whether to display or retrieve title. Default true.
- * @return string|void Title when retrieving.
+ * @return string|null Title when retrieving.
  */
 function single_cat_title( $prefix = '', $display = true ) {
 	return single_term_title( $prefix, $display );
@@ -1583,7 +1583,7 @@ function single_cat_title( $prefix = '', $display = true ) {
  *
  * @param string $prefix  Optional. What to display before the title.
  * @param bool   $display Optional. Whether to display or retrieve title. Default true.
- * @return string|void Title when retrieving.
+ * @return string|null Title when retrieving.
  */
 function single_tag_title( $prefix = '', $display = true ) {
 	return single_term_title( $prefix, $display );
@@ -1600,13 +1600,13 @@ function single_tag_title( $prefix = '', $display = true ) {
  *
  * @param string $prefix  Optional. What to display before the title.
  * @param bool   $display Optional. Whether to display or retrieve title. Default true.
- * @return string|void Title when retrieving.
+ * @return string|null Title when retrieving.
  */
 function single_term_title( $prefix = '', $display = true ) {
 	$term = get_queried_object();
 
 	if ( ! $term ) {
-		return;
+		return null;
 	}
 
 	if ( is_category() ) {
@@ -1637,11 +1637,11 @@ function single_term_title( $prefix = '', $display = true ) {
 		 */
 		$term_name = apply_filters( 'single_term_title', $term->name );
 	} else {
-		return;
+		return null;
 	}
 
 	if ( empty( $term_name ) ) {
-		return;
+		return null;
 	}
 
 	if ( $display ) {
@@ -1665,7 +1665,7 @@ function single_term_title( $prefix = '', $display = true ) {
  *
  * @param string $prefix  Optional. What to display before the title.
  * @param bool   $display Optional. Whether to display or retrieve title. Default true.
- * @return string|false|void False if there's no valid title for the month. Title when retrieving.
+ * @return string|false|null False if there's no valid title for the month. Title when retrieving.
  */
 function single_month_title( $prefix = '', $display = true ) {
 	global $wp_locale;
@@ -2681,7 +2681,7 @@ function the_date_xml() {
  * @param string $before  Optional. Output before the date. Default empty.
  * @param string $after   Optional. Output after the date. Default empty.
  * @param bool   $display Optional. Whether to echo the date or return it. Default true.
- * @return string|void String if retrieving.
+ * @return string|null String if retrieving.
  */
 function the_date( $format = '', $before = '', $after = '', $display = true ) {
 	global $currentday, $previousday;
@@ -2756,7 +2756,7 @@ function get_the_date( $format = '', $post = null ) {
  * @param string $before  Optional. Output before the date. Default empty.
  * @param string $after   Optional. Output after the date. Default empty.
  * @param bool   $display Optional. Whether to echo the date or return it. Default true.
- * @return string|void String if retrieving.
+ * @return string|null String if retrieving.
  */
 function the_modified_date( $format = '', $before = '', $after = '', $display = true ) {
 	$the_modified_date = $before . get_the_modified_date( $format ) . $after;
@@ -4155,27 +4155,31 @@ function wp_get_code_editor_settings( $args ) {
 			'outline-none'              => true,
 		),
 		'jshint'     => array(
-			'esversion' => 11,
-			'module'    => str_ends_with( $args['file'] ?? '', '.mjs' ),
+			'esversion'       => 11,
+			'module'          => str_ends_with( $args['file'] ?? '', '.mjs' ),
+
+			// This script module URL is intentionally referenced here instead of registering an espree script module
+			// in wp_default_script_modules(). This is a first stab at a core-only private module.
+			'espreeModuleUrl' => add_query_arg( 'ver', '9.6.1', includes_url( 'js/codemirror/espree.min.js' ) ),
 
 			// The following JSHint *linting rule* options are copied from
 			// <https://github.com/WordPress/wordpress-develop/blob/6.9.0/.jshintrc>.
 			// Parsing-related options such as `esversion` (and, in other contexts, `es5`, `es3`, `module`, `strict`)
 			// are honored by the Espree-based integration, but these linting-rule options are not interpreted by Espree
 			// and are kept only for compatibility/documentation with the original JSHint configuration.
-			'boss'      => true,
-			'curly'     => true,
-			'eqeqeq'    => true,
-			'eqnull'    => true,
-			'expr'      => true,
-			'immed'     => true,
-			'noarg'     => true,
-			'nonbsp'    => true,
-			'quotmark'  => 'single',
-			'undef'     => true,
-			'unused'    => true,
-			'browser'   => true,
-			'globals'   => array(
+			'boss'            => true,
+			'curly'           => true,
+			'eqeqeq'          => true,
+			'eqnull'          => true,
+			'expr'            => true,
+			'immed'           => true,
+			'noarg'           => true,
+			'nonbsp'          => true,
+			'quotmark'        => 'single',
+			'undef'           => true,
+			'unused'          => true,
+			'browser'         => true,
+			'globals'         => array(
 				'_'                 => false,
 				'Backbone'          => false,
 				'jQuery'            => false,
@@ -4669,12 +4673,26 @@ function paginate_links( $args = '' ) {
 	$total   = $wp_query->max_num_pages ?? 1;
 	$current = get_query_var( 'paged' ) ? (int) get_query_var( 'paged' ) : 1;
 
-	// Append the format placeholder to the base URL.
-	$pagenum_link = trailingslashit( $url_parts[0] ) . '%_%';
+	/*
+	 * Ensures sites not using trailing slashes get links in the form
+	 * `/page/2` rather than `/page/2/`. On these sites, linking to the
+	 * URL with a trailing slash will result in a 301 redirect from the
+	 * incorrect URL to the correctly formatted one. This presents an
+	 * unnecessary performance hit.
+	 */
+	if ( $wp_rewrite->using_permalinks() && ! $wp_rewrite->use_trailing_slashes ) {
+		$pagenum_link = untrailingslashit( $url_parts[0] );
+	} else {
+		$pagenum_link = trailingslashit( $url_parts[0] );
+	}
+	$pagenum_link .= '%_%';
 
 	// URL base depends on permalink settings.
 	$format  = $wp_rewrite->using_index_permalinks() && ! strpos( $pagenum_link, 'index.php' ) ? 'index.php/' : '';
 	$format .= $wp_rewrite->using_permalinks() ? user_trailingslashit( $wp_rewrite->pagination_base . '/%#%', 'paged' ) : '?paged=%#%';
+	if ( $wp_rewrite->using_permalinks() && ! $wp_rewrite->use_trailing_slashes ) {
+		$format = '/' . ltrim( $format, '/' );
+	}
 
 	$defaults = array(
 		'base'               => $pagenum_link, // http://example.com/all_posts.php%_% : %_% is replaced by format (below).
@@ -4923,7 +4941,7 @@ function register_admin_color_schemes() {
 		'light',
 		_x( 'Light', 'admin color scheme' ),
 		admin_url( "css/colors/light/colors$suffix.css" ),
-		array( '#e5e5e5', '#999', '#d64e07', '#04a4cc' ),
+		array( '#e5e5e5', '#6a6a6a', '#c64606', '#007cba' ),
 		array(
 			'base'    => '#999',
 			'focus'   => '#ccc',
@@ -4935,7 +4953,7 @@ function register_admin_color_schemes() {
 		'blue',
 		_x( 'Blue', 'admin color scheme' ),
 		admin_url( "css/colors/blue/colors$suffix.css" ),
-		array( '#096484', '#4796b3', '#52accc', '#74B6CE' ),
+		array( '#183751', '#245278', '#437aa8', '#e1a948' ),
 		array(
 			'base'    => '#e5f8ff',
 			'focus'   => '#fff',
@@ -4947,7 +4965,7 @@ function register_admin_color_schemes() {
 		'midnight',
 		_x( 'Midnight', 'admin color scheme' ),
 		admin_url( "css/colors/midnight/colors$suffix.css" ),
-		array( '#25282b', '#363b3f', '#69a8bb', '#e14d43' ),
+		array( '#232a2e', '#333c42', '#69a8bb', '#cf4339' ),
 		array(
 			'base'    => '#f1f2f3',
 			'focus'   => '#fff',
@@ -4959,7 +4977,7 @@ function register_admin_color_schemes() {
 		'sunrise',
 		_x( 'Sunrise', 'admin color scheme' ),
 		admin_url( "css/colors/sunrise/colors$suffix.css" ),
-		array( '#b43c38', '#cf4944', '#dd823b', '#ccaf0b' ),
+		array( '#6f2724', '#8a312d', '#ad631e', '#ccaf0b' ),
 		array(
 			'base'    => '#f3f1f1',
 			'focus'   => '#fff',
@@ -4971,7 +4989,7 @@ function register_admin_color_schemes() {
 		'ectoplasm',
 		_x( 'Ectoplasm', 'admin color scheme' ),
 		admin_url( "css/colors/ectoplasm/colors$suffix.css" ),
-		array( '#413256', '#523f6d', '#a3b745', '#d46f15' ),
+		array( '#392751', '#4a3369', '#646c3e', '#d46f15' ),
 		array(
 			'base'    => '#ece6f6',
 			'focus'   => '#fff',
@@ -4983,7 +5001,7 @@ function register_admin_color_schemes() {
 		'ocean',
 		_x( 'Ocean', 'admin color scheme' ),
 		admin_url( "css/colors/ocean/colors$suffix.css" ),
-		array( '#627c83', '#738e96', '#9ebaa0', '#aa9d88' ),
+		array( '#2b3f44', '#39535a', '#567958', '#aa9d88' ),
 		array(
 			'base'    => '#f2fcff',
 			'focus'   => '#fff',
@@ -4995,7 +5013,7 @@ function register_admin_color_schemes() {
 		'coffee',
 		_x( 'Coffee', 'admin color scheme' ),
 		admin_url( "css/colors/coffee/colors$suffix.css" ),
-		array( '#46403c', '#59524c', '#c7a589', '#9ea476' ),
+		array( '#382e27', '#5c4c40', '#916745', '#9ea476' ),
 		array(
 			'base'    => '#f3f2f1',
 			'focus'   => '#fff',
@@ -5166,14 +5184,14 @@ function the_generator( $type ) {
  * @since 2.5.0
  *
  * @param string $type The type of generator to return - (html|xhtml|atom|rss2|rdf|comment|export).
- * @return string|void The HTML content for the generator.
+ * @return string|null The HTML content for the generator.
  */
 function get_the_generator( $type = '' ) {
 	if ( empty( $type ) ) {
 
 		$current_filter = current_filter();
 		if ( empty( $current_filter ) ) {
-			return;
+			return null;
 		}
 
 		switch ( $current_filter ) {

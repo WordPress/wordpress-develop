@@ -42,6 +42,9 @@
 	<!-- Exclude the build folder in the current directory. -->
 	<exclude-pattern type="relative">^build/*</exclude-pattern>
 
+	<!-- Exclude the local copy of the Gutenberg repository. -->
+	<exclude-pattern>/gutenberg/*</exclude-pattern>
+
 	<!-- Directories and third party library exclusions. -->
 	<exclude-pattern>/node_modules/*</exclude-pattern>
 	<exclude-pattern>/vendor/*</exclude-pattern>
@@ -68,6 +71,7 @@
 	<exclude-pattern>/src/wp-includes/assets/*</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/blocks/*/*.asset.php</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/blocks/blocks-json.php</exclude-pattern>
+	<exclude-pattern>/src/wp-includes/build/*</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/ID3/*</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/IXR/*</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/js/*</exclude-pattern>
