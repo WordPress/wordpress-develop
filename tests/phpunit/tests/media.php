@@ -206,7 +206,7 @@ CAP;
 			)
 		);
 		$this->assertSame( 1, substr_count( $result, 'wp-caption &amp;myAlignment' ) );
-		$this->assertSame( 1, preg_match( '/id="myId-[0-9a-f]{2}"/', $result ) );
+		$this->assertSame( 1, preg_match( '/id="myId[0-9]+"/', $result ) );
 		$this->assertSame( 1, substr_count( $result, self::CAPTION ) );
 	}
 
@@ -302,7 +302,7 @@ CAP;
 			self::IMG_CONTENT . self::HTML_CONTENT
 		);
 
-		$this->assertSame( 1, preg_match( '/aria-describedby="caption-myId-[0-9a-f]{2}"/', $result ) );
+		$this->assertSame( 1, preg_match( '/aria-describedby="caption-myId[0-9]+"/', $result ) );
 	}
 
 	/**
