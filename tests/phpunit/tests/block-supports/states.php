@@ -84,6 +84,8 @@ class Tests_Block_Supports_States extends WP_UnitTestCase {
 	 * Tests that fallback border-style declarations are added after CSS generation.
 	 *
 	 * @covers ::wp_get_state_declarations_with_fallback_border_styles
+	 *
+	 * @ticket 65239
 	 */
 	public function test_adds_fallback_border_style_declarations() {
 		$actual = wp_get_state_declarations_with_fallback_border_styles(
@@ -108,6 +110,8 @@ class Tests_Block_Supports_States extends WP_UnitTestCase {
 	 * Tests that authored border-style declarations are preserved.
 	 *
 	 * @covers ::wp_get_state_declarations_with_fallback_border_styles
+	 *
+	 * @ticket 65239
 	 */
 	public function test_preserves_authored_border_style_declarations() {
 		$actual = wp_get_state_declarations_with_fallback_border_styles(
@@ -133,6 +137,8 @@ class Tests_Block_Supports_States extends WP_UnitTestCase {
 	 * when state selectors are scoped to the block wrapper.
 	 *
 	 * @covers ::wp_build_state_selector
+	 *
+	 * @ticket 65239
 	 */
 	public function test_build_state_selector_preserves_first_compound_modifier_classes() {
 		$actual = wp_build_state_selector(
@@ -152,6 +158,8 @@ class Tests_Block_Supports_States extends WP_UnitTestCase {
 	 * state selectors are scoped to the block wrapper.
 	 *
 	 * @covers ::wp_build_state_selector
+	 *
+	 * @ticket 65239
 	 */
 	public function test_build_state_selector_preserves_child_combinator_without_spaces() {
 		$actual = wp_build_state_selector(
@@ -170,6 +178,8 @@ class Tests_Block_Supports_States extends WP_UnitTestCase {
 	 * Tests that selector lists are split without splitting selector-function arguments.
 	 *
 	 * @covers ::wp_build_state_selector
+	 *
+	 * @ticket 65239
 	 */
 	public function test_build_state_selector_splits_selector_lists_without_splitting_selector_function_arguments() {
 		$actual = wp_build_state_selector(
@@ -188,6 +198,8 @@ class Tests_Block_Supports_States extends WP_UnitTestCase {
 	 * Tests that preset values are converted to CSS custom property references.
 	 *
 	 * @covers ::wp_normalize_state_preset_vars
+	 *
+	 * @ticket 65239
 	 */
 	public function test_converts_state_preset_vars_to_css_vars() {
 		$actual = wp_normalize_state_preset_vars(
@@ -212,6 +224,8 @@ class Tests_Block_Supports_States extends WP_UnitTestCase {
 	 * Tests that block content is returned unchanged when the block name is missing.
 	 *
 	 * @covers ::wp_render_block_states_support
+	 *
+	 * @ticket 65239
 	 */
 	public function test_returns_unchanged_when_block_name_missing() {
 		$block_content = '<div class="wp-block-test">Hello</div>';
@@ -229,6 +243,8 @@ class Tests_Block_Supports_States extends WP_UnitTestCase {
 	 * Tests that block content is returned unchanged when content is empty.
 	 *
 	 * @covers ::wp_render_block_states_support
+	 *
+	 * @ticket 65239
 	 */
 	public function test_returns_unchanged_when_block_content_empty() {
 		$this->ensure_block_registered( 'core/button' );
@@ -251,6 +267,8 @@ class Tests_Block_Supports_States extends WP_UnitTestCase {
 	 * Tests that block content is returned unchanged when the block has no configured pseudo-states.
 	 *
 	 * @covers ::wp_render_block_states_support
+	 *
+	 * @ticket 65239
 	 */
 	public function test_returns_unchanged_when_block_has_no_configured_pseudo_states() {
 		$this->test_block_name = 'test/no-pseudo-state-config';
@@ -284,6 +302,8 @@ class Tests_Block_Supports_States extends WP_UnitTestCase {
 	 * Tests that block content is returned unchanged when no pseudo-state styles are set.
 	 *
 	 * @covers ::wp_render_block_states_support
+	 *
+	 * @ticket 65239
 	 */
 	public function test_returns_unchanged_when_no_state_styles_set() {
 		$this->ensure_block_registered( 'core/button' );
@@ -307,6 +327,8 @@ class Tests_Block_Supports_States extends WP_UnitTestCase {
 	 * Tests that block content is returned unchanged when the pseudo-state key is an empty array.
 	 *
 	 * @covers ::wp_render_block_states_support
+	 *
+	 * @ticket 65239
 	 */
 	public function test_returns_unchanged_when_state_style_is_empty_array() {
 		$this->ensure_block_registered( 'core/button' );
@@ -330,6 +352,8 @@ class Tests_Block_Supports_States extends WP_UnitTestCase {
 	 * Tests that hover text color generates scoped CSS with !important.
 	 *
 	 * @covers ::wp_render_block_states_support
+	 *
+	 * @ticket 65239
 	 */
 	public function test_hover_text_color_generates_scoped_css() {
 		$this->ensure_block_registered( 'core/button' );
@@ -352,6 +376,8 @@ class Tests_Block_Supports_States extends WP_UnitTestCase {
 	 * Tests that hover background color generates scoped CSS.
 	 *
 	 * @covers ::wp_render_block_states_support
+	 *
+	 * @ticket 65239
 	 */
 	public function test_hover_background_color_generates_scoped_css() {
 		$this->ensure_block_registered( 'core/button' );
@@ -374,6 +400,8 @@ class Tests_Block_Supports_States extends WP_UnitTestCase {
 	 * Tests that hover text and background color both appear in a single rule.
 	 *
 	 * @covers ::wp_render_block_states_support
+	 *
+	 * @ticket 65239
 	 */
 	public function test_hover_text_and_background_color_in_same_rule() {
 		$this->ensure_block_registered( 'core/button' );
@@ -404,6 +432,8 @@ class Tests_Block_Supports_States extends WP_UnitTestCase {
 	 * custom property in the generated style tag.
 	 *
 	 * @covers ::wp_render_block_states_support
+	 *
+	 * @ticket 65239
 	 */
 	public function test_hover_font_family_preset_reference_generates_css_custom_property() {
 		$this->ensure_block_registered( 'core/button' );
@@ -430,6 +460,8 @@ class Tests_Block_Supports_States extends WP_UnitTestCase {
 	 * Tests that hover font size generates scoped CSS.
 	 *
 	 * @covers ::wp_render_block_states_support
+	 *
+	 * @ticket 65239
 	 */
 	public function test_hover_font_size_generates_scoped_css() {
 		$this->ensure_block_registered( 'core/button' );
@@ -456,6 +488,8 @@ class Tests_Block_Supports_States extends WP_UnitTestCase {
 	 * Tests that hover border width and color generate a scoped style tag.
 	 *
 	 * @covers ::wp_render_block_states_support
+	 *
+	 * @ticket 65239
 	 */
 	public function test_hover_border_width_and_color_generate_scoped_css() {
 		$this->ensure_block_registered( 'core/button' );
@@ -499,6 +533,8 @@ class Tests_Block_Supports_States extends WP_UnitTestCase {
 	 * Tests that explicitly-authored hover border style declarations use !important.
 	 *
 	 * @covers ::wp_render_block_states_support
+	 *
+	 * @ticket 65239
 	 */
 	public function test_hover_authored_border_style_generates_important_css_declaration() {
 		$this->ensure_block_registered( 'core/button' );
@@ -529,6 +565,8 @@ class Tests_Block_Supports_States extends WP_UnitTestCase {
 	 * Tests that explicitly-authored side border style declarations use !important.
 	 *
 	 * @covers ::wp_render_block_states_support
+	 *
+	 * @ticket 65239
 	 */
 	public function test_hover_authored_side_border_style_generates_important_css_declaration() {
 		$this->ensure_block_registered( 'core/button' );
@@ -561,6 +599,8 @@ class Tests_Block_Supports_States extends WP_UnitTestCase {
 	 * Tests that hover side border color declarations use !important.
 	 *
 	 * @covers ::wp_render_block_states_support
+	 *
+	 * @ticket 65239
 	 */
 	public function test_hover_side_border_color_generates_important_css_declaration() {
 		$this->ensure_block_registered( 'core/button' );
@@ -597,6 +637,8 @@ class Tests_Block_Supports_States extends WP_UnitTestCase {
 	 * Tests that a preset hover border color is emitted as a CSS declaration.
 	 *
 	 * @covers ::wp_render_block_states_support
+	 *
+	 * @ticket 65239
 	 */
 	public function test_hover_preset_border_color_generates_css_declaration() {
 		$this->ensure_block_registered( 'core/button' );
@@ -636,6 +678,8 @@ class Tests_Block_Supports_States extends WP_UnitTestCase {
 	 * Tests that hover border radius generates scoped CSS.
 	 *
 	 * @covers ::wp_render_block_states_support
+	 *
+	 * @ticket 65239
 	 */
 	public function test_hover_border_radius_generates_scoped_css() {
 		$this->ensure_block_registered( 'core/button' );
@@ -662,6 +706,8 @@ class Tests_Block_Supports_States extends WP_UnitTestCase {
 	 * Tests that multiple states each generate a separate scoped CSS rule.
 	 *
 	 * @covers ::wp_render_block_states_support
+	 *
+	 * @ticket 65239
 	 */
 	public function test_multiple_states_generate_separate_css_rules() {
 		$this->ensure_block_registered( 'core/button' );
@@ -688,6 +734,8 @@ class Tests_Block_Supports_States extends WP_UnitTestCase {
 	 * Tests that unconfigured pseudo-state keys are ignored.
 	 *
 	 * @covers ::wp_render_block_states_support
+	 *
+	 * @ticket 65239
 	 */
 	public function test_unconfigured_pseudo_state_is_ignored() {
 		$this->ensure_block_registered( 'core/button' );
@@ -710,7 +758,7 @@ class Tests_Block_Supports_States extends WP_UnitTestCase {
 	/**
 	 * Tests that a responsive root state generates media-query scoped CSS.
 	 *
-	 * @ticket 64099
+	 * @ticket 65239
 	 */
 	public function test_responsive_root_state_generates_media_query_scoped_css() {
 		$this->ensure_block_registered( 'test/responsive-root-state' );
@@ -747,7 +795,7 @@ class Tests_Block_Supports_States extends WP_UnitTestCase {
 	/**
 	 * Tests that a responsive pseudo-state generates media-query scoped CSS.
 	 *
-	 * @ticket 64099
+	 * @ticket 65239
 	 */
 	public function test_responsive_pseudo_state_generates_media_query_scoped_css() {
 		$this->ensure_block_registered(
@@ -791,7 +839,7 @@ class Tests_Block_Supports_States extends WP_UnitTestCase {
 	/**
 	 * Tests that state declarations are marked important.
 	 *
-	 * @ticket 64099
+	 * @ticket 65239
 	 */
 	public function test_state_declarations_generate_important_css() {
 		$this->ensure_block_registered( 'core/button' );
