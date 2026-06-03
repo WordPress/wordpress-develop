@@ -107,16 +107,16 @@ class Tests_Icons_WpIconsRegistry extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_invalid_icon_names
 	 * @expectedIncorrectUsage WP_Icons_Registry::register
+	 *
+	 * @param mixed $icon_name Icon name to register.
 	 */
-	public function test_register_invalid_name() {
-		foreach ( $this->data_invalid_icon_names() as $name ) {
-			$settings = array(
-				'label'   => 'Icon',
-				'content' => '<svg></svg>',
-			);
+	public function test_register_invalid_name( $icon_name ) {
+		$settings = array(
+			'label'   => 'Icon',
+			'content' => '<svg></svg>',
+		);
 
-			$result = $this->register( $name, $settings );
-			$this->assertFalse( $result );
-		}
+		$result = $this->register( $icon_name, $settings );
+		$this->assertFalse( $result );
 	}
 }
