@@ -45,7 +45,7 @@ class Tests_wp_ajax_save_widget extends WP_Ajax_UnitTestCase {
 		wp_set_current_user( self::$admin_id );
 
 		// Register a dummy widget.
-		$widget_id = 'dummy-widget-1';
+		$widget_id                           = 'dummy-widget-1';
 		$wp_registered_widgets[ $widget_id ] = array(
 			'name'     => 'Dummy Widget',
 			'id'       => $widget_id,
@@ -159,7 +159,7 @@ class Tests_wp_ajax_save_widget extends WP_Ajax_UnitTestCase {
 		wp_set_sidebars_widgets( array( $sidebar_id => array() ) );
 
 		// Mock the update callback.
-		$updated = false;
+		$updated                                  = false;
 		$wp_registered_widget_updates[ $id_base ] = array(
 			'callback' => function () use ( &$updated, $id_base, $multi_number ) {
 				$updated = true;
@@ -171,7 +171,7 @@ class Tests_wp_ajax_save_widget extends WP_Ajax_UnitTestCase {
 		);
 
 		// Mock the control callback.
-		$control_called = false;
+		$control_called                              = false;
 		$wp_registered_widget_controls[ $widget_id ] = array(
 			'callback' => function () use ( &$control_called ) {
 				$control_called = true;
