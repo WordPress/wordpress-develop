@@ -727,7 +727,15 @@ class Tests_Query extends WP_UnitTestCase {
 	 * @ticket 65400
 	 */
 	public function test_get_queried_object_should_return_null_when_author_id_is_non_existent() {
-		$this->go_to( home_url( '?author=999999' ) );
+		add_action(
+			'parse_query',
+			static function ( $query ) {
+				$query->is_author = true;
+				$query->set( 'author', 999999 );
+			}
+		);
+
+		$this->go_to( home_url( '/' ) );
 
 		$this->assertNull( get_queried_object() );
 	}
