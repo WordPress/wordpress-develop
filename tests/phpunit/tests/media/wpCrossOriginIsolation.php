@@ -179,7 +179,7 @@ class Tests_Media_wpCrossOriginIsolation extends WP_UnitTestCase {
 	 * `contentDocument` to neutralize interactive elements. DIP would block
 	 * that access.
 	 *
-	 * @ticket 64766
+	 * @ticket 65399
 	 *
 	 * @dataProvider data_classic_theme_site_editor_home_routes
 	 *
@@ -221,7 +221,7 @@ class Tests_Media_wpCrossOriginIsolation extends WP_UnitTestCase {
 	 * The site editor on a classic theme still sets up cross-origin isolation
 	 * for routes other than the home route.
 	 *
-	 * @ticket 64766
+	 * @ticket 65399
 	 *
 	 * @runInSeparateProcess
 	 * @preserveGlobalState disabled
@@ -250,7 +250,7 @@ class Tests_Media_wpCrossOriginIsolation extends WP_UnitTestCase {
 	 * including on the home route, because block themes do not render the
 	 * classic site preview iframe.
 	 *
-	 * @ticket 64766
+	 * @ticket 65399
 	 *
 	 * @runInSeparateProcess
 	 * @preserveGlobalState disabled
