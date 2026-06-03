@@ -2599,7 +2599,7 @@ function img_caption_shortcode( $attr, $content = '' ) {
 	$describedby = '';
 
 	if ( $atts['id'] ) {
-		$unique_id_value = wp_unique_id( sanitize_html_class( $atts['id'] ) );
+		$unique_id_value = preg_replace( '/-1$/', '', wp_unique_prefixed_id( sanitize_html_class( $atts['id'] . '-' ) ) );
 		$id              = 'id="' . esc_attr( $unique_id_value ) . '" ';
 	}
 
