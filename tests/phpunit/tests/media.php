@@ -345,22 +345,13 @@ CAP;
 			self::IMG_CONTENT . 'Different caption'
 		);
 
-		// Extract figure IDs from results (format: id="attachment_123-XX")
-		preg_match( '/id="(attachment_123[^"]*)"/', $result_1, $fig_matches_1 );
-		preg_match( '/id="(attachment_123[^"]*)"/', $result_2, $fig_matches_2 );
-		preg_match( '/id="(attachment_123[^"]*)"/', $result_3, $fig_matches_3 );
-
-		// Extract figcaption IDs from results (format: id="caption-attachment-123-XX")
-		preg_match( '/id="([^"]*caption-attachment-123[^"]*)"/', $result_1, $cap_matches_1 );
-		preg_match( '/id="([^"]*caption-attachment-123[^"]*)"/', $result_2, $cap_matches_2 );
-		preg_match( '/id="([^"]*caption-attachment-123[^"]*)"/', $result_3, $cap_matches_3 );
-
-		$figure_id_1  = isset( $fig_matches_1[1] ) ? $fig_matches_1[1] : '';
-		$figure_id_2  = isset( $fig_matches_2[1] ) ? $fig_matches_2[1] : '';
-		$figure_id_3  = isset( $fig_matches_3[1] ) ? $fig_matches_3[1] : '';
-		$caption_id_1 = isset( $cap_matches_1[1] ) ? $cap_matches_1[1] : '';
-		$caption_id_2 = isset( $cap_matches_2[1] ) ? $cap_matches_2[1] : '';
-		$caption_id_3 = isset( $cap_matches_3[1] ) ? $cap_matches_3[1] : '';
+		// Extract the figure (caption wrapper) and caption text IDs from each instance.
+		$figure_id_1  = $this->get_id_of_first_tag_with_class( $result_1, 'wp-caption' );
+		$figure_id_2  = $this->get_id_of_first_tag_with_class( $result_2, 'wp-caption' );
+		$figure_id_3  = $this->get_id_of_first_tag_with_class( $result_3, 'wp-caption' );
+		$caption_id_1 = $this->get_id_of_first_tag_with_class( $result_1, 'wp-caption-text' );
+		$caption_id_2 = $this->get_id_of_first_tag_with_class( $result_2, 'wp-caption-text' );
+		$caption_id_3 = $this->get_id_of_first_tag_with_class( $result_3, 'wp-caption-text' );
 
 		// Figure IDs should all exist
 		$this->assertNotEmpty( $figure_id_1, 'First figure should have an ID' );
@@ -381,6 +372,25 @@ CAP;
 		$this->assertNotSame( $caption_id_1, $caption_id_2, 'First and second captions should have different IDs even with identical content' );
 		$this->assertNotSame( $caption_id_2, $caption_id_3, 'Second and third captions should have different IDs' );
 		$this->assertNotSame( $caption_id_1, $caption_id_3, 'First and third captions should have different IDs' );
+	}
+
+	/**
+	 * Returns the `id` attribute of the first tag bearing the given class name.
+	 *
+	 * @param string $html       Markup to search.
+	 * @param string $class_name Class name to locate the tag by.
+	 * @return string|null The tag's `id` value, or null if no matching tag or `id` is found.
+	 */
+	private function get_id_of_first_tag_with_class( $html, $class_name ) {
+		$processor = new WP_HTML_Tag_Processor( $html );
+
+		if ( ! $processor->next_tag( array( 'class_name' => $class_name ) ) ) {
+			return null;
+		}
+
+		$id = $processor->get_attribute( 'id' );
+
+		return is_string( $id ) ? $id : null;
 	}
 
 	public function test_add_remove_oembed_provider() {
