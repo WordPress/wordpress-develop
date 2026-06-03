@@ -796,7 +796,13 @@ class WP_Plugins_List_Table extends WP_List_Table {
 					require_once ABSPATH . 'wp-admin/includes/plugin-install.php';
 				}
 
-				$info          = plugins_api( 'plugin_information', array( 'slug' => $plugin_slug, 'fields' => array( 'tested' => true ) ) );
+				$info          = plugins_api(
+					'plugin_information',
+					array(
+						'slug'   => $plugin_slug,
+						'fields' => array( 'tested' => true ),
+					)
+				);
 				$cached_tested = ( ! is_wp_error( $info ) && ! empty( $info->tested ) ) ? $info->tested : '';
 				set_site_transient( 'plugin_tested_wp_' . $plugin_slug, $cached_tested, WEEK_IN_SECONDS );
 			}
