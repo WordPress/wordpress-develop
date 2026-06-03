@@ -2610,7 +2610,7 @@ function img_caption_shortcode( $attr, $content = '' ) {
 	}
 
 	if ( $atts['caption_id'] ) {
-		$caption_id_value = wp_unique_id( $atts['caption_id'] );
+		$caption_id_value = preg_replace( '/-1$/', '', wp_unique_id( $atts['caption_id'] . '-' ) );
 		$caption_id       = 'id="' . esc_attr( $caption_id_value ) . '" ';
 		$describedby      = 'aria-describedby="' . esc_attr( $caption_id_value ) . '" ';
 	}
