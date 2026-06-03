@@ -1320,14 +1320,14 @@ function get_post_status( $post = null ) {
  * @return string[] Array of post status labels keyed by their status.
  */
 function get_post_statuses() {
-	$status = array(
-		'draft'   => __( 'Draft' ),
-		'pending' => __( 'Pending Review' ),
-		'private' => __( 'Private' ),
-		'publish' => __( 'Published' ),
-	);
+	$statuses = get_post_stati( array( 'internal' => true ), 'objects', 'NOT' );
 
-	return $status;
+	$stati = array();
+	foreach ( $statuses as $name => $status ) {
+		$stati[ $name ] = $status->label;
+	}
+
+	return $stati;
 }
 
 /**
@@ -1341,13 +1341,14 @@ function get_post_statuses() {
  * @return string[] Array of page status labels keyed by their status.
  */
 function get_page_statuses() {
-	$status = array(
-		'draft'   => __( 'Draft' ),
-		'private' => __( 'Private' ),
-		'publish' => __( 'Published' ),
-	);
+	$statuses = get_post_stati( array( 'internal' => true ), 'objects', 'NOT' );
 
-	return $status;
+	$stati = array();
+	foreach ( $statuses as $name => $status ) {
+		$stati[ $name ] = $status->label;
+	}
+
+	return $stati;
 }
 
 /**
