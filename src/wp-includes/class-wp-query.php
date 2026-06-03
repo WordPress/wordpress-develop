@@ -4047,7 +4047,13 @@ class WP_Query {
 				}
 			}
 
-			$this->queried_object = get_userdata( $this->queried_object_id );
+			if ( $this->queried_object_id ) {
+				$user = get_userdata( $this->queried_object_id );
+
+				if ( $user ) {
+					$this->queried_object = $user;
+				}
+			}
 		}
 
 		return $this->queried_object;
