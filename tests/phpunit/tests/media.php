@@ -381,7 +381,7 @@ CAP;
 	 * @param string $class_name Class name to locate the tag by.
 	 * @return string|null The tag's `id` value, or null if no matching tag or `id` is found.
 	 */
-	private function get_id_of_first_tag_with_class( $html, $class_name ) {
+	private function get_id_of_first_tag_with_class( string $html, string $class_name ): ?string {
 		$processor = new WP_HTML_Tag_Processor( $html );
 
 		if ( ! $processor->next_tag( array( 'class_name' => $class_name ) ) ) {
