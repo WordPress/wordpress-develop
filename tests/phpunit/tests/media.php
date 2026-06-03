@@ -312,7 +312,7 @@ CAP;
 	 * times on a page, each figure and figcaption should receive a unique ID to
 	 * maintain HTML validity and accessibility.
 	 *
-	 * @since 7.1.0
+	 * @ticket 65315
 	 */
 	public function test_img_caption_shortcode_unique_ids_per_instance(): void {
 		// First instance with caption "My caption"
