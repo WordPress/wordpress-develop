@@ -58,10 +58,14 @@ jobs:
 
       - name: Determine the tags to compare
         id: tags
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          INPUT_COMPARE_TAG: ${{ inputs.compare_tag }}
+          INPUT_BASE_TAG: ${{ inputs.base_tag }}
         run: |
-          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
-            CURRENT_TAG="${{ inputs.compare_tag }}"
-            PREVIOUS_TAG="${{ inputs.base_tag }}"
+          if [[ "${EVENT_NAME}" == "workflow_dispatch" ]]; then
+            CURRENT_TAG="${INPUT_COMPARE_TAG}"
+            PREVIOUS_TAG="${INPUT_BASE_TAG}"
           else
             CURRENT_TAG="${GITHUB_REF_NAME}"
             # Find the most recent version tag preceding the current one.
@@ -79,10 +83,10 @@ jobs:
 
       - name: Generate list of changed files
         id: diff
+        env:
+          CURRENT_TAG: ${{ steps.tags.outputs.current_tag }}
+          PREVIOUS_TAG: ${{ steps.tags.outputs.previous_tag }}
         run: |
-          CURRENT_TAG="${{ steps.tags.outputs.current_tag }}"
-          PREVIOUS_TAG="${{ steps.tags.outputs.previous_tag }}"
-
           git diff --name-status "${PREVIOUS_TAG}" "${CURRENT_TAG}" | sort > changed-files.txt
 
           FILE_COUNT=$( wc -l < changed-files.txt | tr -d ' ' )
