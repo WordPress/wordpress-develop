@@ -2919,8 +2919,9 @@ function gallery_shortcode( $attr ) {
 	/**
 	 * Filters the gallery shortcode's default CSS styles and opening HTML div container.
 	 *
-	 * To remove the CSS entirely, use the `use_default_gallery_style` filter instead.
-	 * `add_filter( 'use_default_gallery_style', '__return_false' );`
+	 * To remove the CSS entirely, use the `use_default_gallery_style` filter instead:
+	 *
+	 *     add_filter( 'use_default_gallery_style', '__return_false' );
 	 *
 	 * @since 2.5.0
 	 * @since 3.1.0 Added classes for number of columns and size to opening div.
