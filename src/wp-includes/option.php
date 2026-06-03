@@ -1137,8 +1137,17 @@ function add_option( $option, $value = '', $deprecated = '', $autoload = null ) 
 	 */
 	do_action( 'add_option', $option, $value );
 
-	$result = $wpdb->query( $wpdb->prepare( "INSERT INTO `$wpdb->options` (`option_name`, `option_value`, `autoload`) VALUES (%s, %s, %s) ON DUPLICATE KEY UPDATE `option_name` = VALUES(`option_name`), `option_value` = VALUES(`option_value`), `autoload` = VALUES(`autoload`)", $option, $serialized_value, $autoload ) );
+	$result = $wpdb->query( $wpdb->prepare( "INSERT INTO `$wpdb->options` (`option_name`, `option_value`, `autoload`) VALUES (%s, %s, %s) ON DUPLICATE KEY UPDATE `option_name` = `option_name`", $option, $serialized_value, $autoload ) );
 	if ( ! $result ) {
+		if ( 0 === $result && ! wp_installing() ) {
+			$notoptions = wp_cache_get( 'notoptions', 'options' );
+
+			if ( is_array( $notoptions ) && isset( $notoptions[ $option ] ) ) {
+				unset( $notoptions[ $option ] );
+				wp_cache_set( 'notoptions', $notoptions, 'options' );
+			}
+		}
+
 		return false;
 	}
 
