@@ -924,7 +924,13 @@ function update_option( $option, $value, $autoload = null ) {
 
 	/** This filter is documented in wp-includes/option.php */
 	if ( apply_filters( "default_option_{$option}", false, $option, false ) === $old_value ) {
-		return add_option( $option, $value, '', $autoload );
+		if ( add_option( $option, $value, '', $autoload ) ) {
+			return true;
+		}
+
+		if ( ! $wpdb->get_var( $wpdb->prepare( "SELECT option_id FROM $wpdb->options WHERE option_name = %s LIMIT 1", $option ) ) ) {
+			return false;
+		}
 	}
 
 	$serialized_value = maybe_serialize( $value );
