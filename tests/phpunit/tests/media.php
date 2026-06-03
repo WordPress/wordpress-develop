@@ -314,7 +314,7 @@ CAP;
 	 *
 	 * @since 7.1.0
 	 */
-	public function test_img_caption_shortcode_unique_ids_per_instance() {
+	public function test_img_caption_shortcode_unique_ids_per_instance(): void {
 		// First instance with caption "My caption"
 		$result_1 = img_caption_shortcode(
 			array(
