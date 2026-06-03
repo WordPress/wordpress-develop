@@ -82,6 +82,8 @@ class Tests_Icons_WpIconsRegistry extends WP_UnitTestCase {
 	/**
 	 * Should fail to re-register the same icon.
 	 *
+	 * @ticket 64847
+	 *
 	 * @expectedIncorrectUsage WP_Icons_Registry::register
 	 */
 	public function test_register_icon_twice() {
@@ -100,6 +102,8 @@ class Tests_Icons_WpIconsRegistry extends WP_UnitTestCase {
 
 	/**
 	 * Should fail to register icon with invalid names.
+	 *
+	 * @ticket 64847
 	 *
 	 * @dataProvider data_invalid_icon_names
 	 * @expectedIncorrectUsage WP_Icons_Registry::register
