@@ -416,6 +416,18 @@ function create_initial_rest_routes() {
 	// Font Collections.
 	$font_collections_controller = new WP_REST_Font_Collections_Controller();
 	$font_collections_controller->register_routes();
+
+	// Abilities.
+	$abilities_categories_controller = new WP_REST_Abilities_V1_Categories_Controller();
+	$abilities_categories_controller->register_routes();
+	$abilities_run_controller = new WP_REST_Abilities_V1_Run_Controller();
+	$abilities_run_controller->register_routes();
+	$abilities_list_controller = new WP_REST_Abilities_V1_List_Controller();
+	$abilities_list_controller->register_routes();
+
+	// Icons.
+	$icons_controller = new WP_REST_Icons_Controller();
+	$icons_controller->register_routes();
 }
 
 /**
@@ -428,6 +440,16 @@ function create_initial_rest_routes() {
 function rest_api_loaded() {
 	if ( empty( $GLOBALS['wp']->query_vars['rest_route'] ) ) {
 		return;
+	}
+
+	// Return an error message if query_var is not a string.
+	if ( ! is_string( $GLOBALS['wp']->query_vars['rest_route'] ) ) {
+		$rest_type_error = new WP_Error(
+			'rest_path_invalid_type',
+			__( 'The REST route parameter must be a string.' ),
+			array( 'status' => 400 )
+		);
+		wp_die( $rest_type_error );
 	}
 
 	/**
@@ -818,9 +840,6 @@ function rest_handle_options_request( $response, $handler, $request ) {
 		}
 
 		foreach ( $endpoints as $endpoint ) {
-			// Remove the redundant preg_match() argument.
-			unset( $args[0] );
-
 			$request->set_url_params( $args );
 			$request->set_attributes( $endpoint );
 		}
@@ -937,7 +956,7 @@ function rest_filter_response_fields( $response, $server, $request ) {
 				// Skip any sub-properties if their parent prop is already marked for inclusion.
 				break 2;
 			}
-			$ref[ $next ] = isset( $ref[ $next ] ) ? $ref[ $next ] : array();
+			$ref[ $next ] = $ref[ $next ] ?? array();
 			$ref          = &$ref[ $next ];
 		}
 		$last         = array_shift( $parts );
@@ -2938,6 +2957,7 @@ function rest_preload_api_request( $memo, $path ) {
 		}
 	}
 
+	// Remove trailing slashes at the end of the REST API path (query part).
 	$path = untrailingslashit( $path );
 	if ( empty( $path ) ) {
 		$path = '/';
@@ -2946,6 +2966,14 @@ function rest_preload_api_request( $memo, $path ) {
 	$path_parts = parse_url( $path );
 	if ( false === $path_parts ) {
 		return $memo;
+	}
+
+	if ( isset( $path_parts['path'] ) && '/' !== $path_parts['path'] ) {
+		// Remove trailing slashes from the "path" part of the REST API path.
+		$path_parts['path'] = untrailingslashit( $path_parts['path'] );
+		$path               = str_contains( $path, '?' ) ?
+			$path_parts['path'] . '?' . ( $path_parts['query'] ?? '' ) :
+			$path_parts['path'];
 	}
 
 	$request = new WP_REST_Request( $method, $path_parts['path'] );
@@ -3064,7 +3092,7 @@ function rest_filter_response_by_context( $response_data, $schema, $context ) {
 		$check = array();
 
 		if ( $is_array_type ) {
-			$check = isset( $schema['items'] ) ? $schema['items'] : array();
+			$check = $schema['items'] ?? array();
 		} elseif ( $is_object_type ) {
 			if ( isset( $schema['properties'][ $key ] ) ) {
 				$check = $schema['properties'][ $key ];
@@ -3392,8 +3420,15 @@ function rest_get_endpoint_args_for_schema( $schema, $method = WP_REST_Server::C
 function rest_convert_error_to_response( $error ) {
 	$status = array_reduce(
 		$error->get_all_error_data(),
-		static function ( $status, $error_data ) {
-			return is_array( $error_data ) && isset( $error_data['status'] ) ? $error_data['status'] : $status;
+		/**
+		 * @param int   $status     Status.
+		 * @param mixed $error_data Error data.
+		 */
+		static function ( int $status, $error_data ): int {
+			if ( is_array( $error_data ) && isset( $error_data['status'] ) && is_numeric( $error_data['status'] ) ) {
+				$status = (int) $error_data['status'];
+			}
+			return $status;
 		},
 		500
 	);

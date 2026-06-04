@@ -28,10 +28,12 @@ final class WP_Customize_Header_Image_Setting extends WP_Customize_Setting {
 
 	/**
 	 * @since 3.4.0
+	 * @since 7.0.0 Return type updated from void to true for compatibility with base class.
 	 *
 	 * @global Custom_Image_Header $custom_image_header
 	 *
 	 * @param mixed $value The value to update.
+	 * @return true Always returns true.
 	 */
 	public function update( $value ) {
 		global $custom_image_header;
@@ -39,8 +41,8 @@ final class WP_Customize_Header_Image_Setting extends WP_Customize_Setting {
 		// If _custom_header_background_just_in_time() fails to initialize $custom_image_header when not is_admin().
 		if ( empty( $custom_image_header ) ) {
 			$args                   = get_theme_support( 'custom-header' );
-			$admin_head_callback    = isset( $args[0]['admin-head-callback'] ) ? $args[0]['admin-head-callback'] : null;
-			$admin_preview_callback = isset( $args[0]['admin-preview-callback'] ) ? $args[0]['admin-preview-callback'] : null;
+			$admin_head_callback    = $args[0]['admin-head-callback'] ?? null;
+			$admin_preview_callback = $args[0]['admin-preview-callback'] ?? null;
 			$custom_image_header    = new Custom_Image_Header( $admin_head_callback, $admin_preview_callback );
 		}
 
@@ -57,5 +59,6 @@ final class WP_Customize_Header_Image_Setting extends WP_Customize_Setting {
 		} else {
 			$custom_image_header->set_header_image( $value );
 		}
+		return true;
 	}
 }

@@ -284,4 +284,278 @@ class Tests_HtmlApi_WpHtmlProcessor_Serialize extends WP_UnitTestCase {
 			'Comment text'         => array( "<!-- \x00 -->", "<!-- \u{FFFD} -->" ),
 		);
 	}
+
+	/**
+	 * @ticket 62396
+	 *
+	 * @dataProvider data_provider_serialize_doctype
+	 */
+	public function test_full_document_serialize_includes_doctype( string $doctype_input, string $doctype_output ) {
+		$processor = WP_HTML_Processor::create_full_parser(
+			"{$doctype_input}👌"
+		);
+		$this->assertSame(
+			"{$doctype_output}<html><head></head><body>👌</body></html>",
+			$processor->serialize()
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_provider_serialize_doctype() {
+		return array(
+			'None'                       => array( '', '' ),
+			'Empty'                      => array( '<!DOCTYPE>', '<!DOCTYPE>' ),
+			'HTML5'                      => array( '<!DOCTYPE html>', '<!DOCTYPE html>' ),
+			'Strange name'               => array( '<!DOCTYPE WordPress>', '<!DOCTYPE wordpress>' ),
+			'With public'                => array( '<!DOCTYPE html PUBLIC "x">', '<!DOCTYPE html PUBLIC "x">' ),
+			'With system'                => array( '<!DOCTYPE html SYSTEM "y">', '<!DOCTYPE html SYSTEM "y">' ),
+			'With public and system'     => array( '<!DOCTYPE html PUBLIC "x" "y">', '<!DOCTYPE html PUBLIC "x" "y">' ),
+			'Weird casing'               => array( '<!docType HtmL pubLIc\'xxx\'"yyy" all this is ignored>', '<!DOCTYPE html PUBLIC "xxx" "yyy">' ),
+			'Single quotes in public ID' => array( '<!DOCTYPE html PUBLIC "\'quoted\'">', '<!DOCTYPE html PUBLIC "\'quoted\'">' ),
+			'Double quotes in public ID' => array( '<!DOCTYPE html PUBLIC \'"quoted"\'\>', '<!DOCTYPE html PUBLIC \'"quoted"\'>' ),
+			'Single quotes in system ID' => array( '<!DOCTYPE html SYSTEM "\'quoted\'">', '<!DOCTYPE html SYSTEM "\'quoted\'">' ),
+			'Double quotes in system ID' => array( '<!DOCTYPE html SYSTEM \'"quoted"\'\>', '<!DOCTYPE html SYSTEM \'"quoted"\'>' ),
+		);
+	}
+
+	/**
+	 * Ensures that leading newlines in PRE, LISTING, and TEXTAREA elements are preserved upon normalization,
+	 * and that normalization is idempotent in these cases.
+	 *
+	 * @ticket 64607
+	 *
+	 * @dataProvider data_provider_normalize_special_leading_newline_cases
+	 *
+	 * @param string $input    HTML input containing leading newlines in PRE, LISTING, or TEXTAREA elements.
+	 * @param string $expected Expected output after normalization, which should preserve leading newlines.
+	 */
+	public function test_normalize_special_leading_newline_handling( string $input, string $expected ) {
+		$normalized = WP_HTML_Processor::normalize( $input );
+		$this->assertEqualHTML( $expected, $normalized );
+		$normalized_twice = WP_HTML_Processor::normalize( $normalized );
+		$this->assertEqualHTML( $expected, $normalized_twice );
+	}
+
+	/**
+	 * Ensures that fuzzer-discovered inputs do not emit native PHP errors.
+	 *
+	 * @ticket 65372
+	 *
+	 * @dataProvider data_provider_fuzzer_native_error_cases
+	 *
+	 * @param string      $input    HTML input.
+	 * @param string|null $expected Expected normalized output, or null when unsupported.
+	 */
+	public function test_normalize_fuzzer_cases_do_not_emit_native_errors( string $input, ?string $expected ) {
+		$errors = array();
+
+		/*
+		 * This test is checking for native PHP warnings/notices. Unsupported HTML may
+		 * intentionally cause wp_trigger_error() under WP_DEBUG, which is separate
+		 * from the native errors this regression test is trying to catch.
+		 */
+		add_filter( 'wp_trigger_error_trigger_error', '__return_false' );
+		set_error_handler(
+			static function ( int $errno, string $errstr ) use ( &$errors ) {
+				$errors[] = "{$errno}: {$errstr}";
+				return true;
+			}
+		);
+
+		try {
+			$normalized = WP_HTML_Processor::normalize( $input );
+		} finally {
+			restore_error_handler();
+			remove_filter( 'wp_trigger_error_trigger_error', '__return_false' );
+		}
+
+		// Use assertSame() instead of assertEmpty() so PHPUnit shows captured error messages on failure.
+		$this->assertSame( array(), $errors );
+		$this->assertSame( $expected, $normalized, 'Should have normalized the input.' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_provider_fuzzer_native_error_cases() {
+		return array(
+			'Unsupported active formatting' => array( '<A><I><A>', null ),
+		);
+	}
+
+	/**
+	 * Ensures that normalized fuzzer-discovered inputs remain supported.
+	 *
+	 * @ticket 65372
+	 *
+	 * @dataProvider data_provider_normalized_fuzzer_cases_that_should_remain_supported
+	 *
+	 * @param string $input HTML input.
+	 */
+	public function test_normalized_fuzzer_cases_should_remain_supported( string $input ) {
+		$errors = array();
+		set_error_handler(
+			static function ( int $errno, string $errstr ) use ( &$errors ) {
+				$errors[] = "{$errno}: {$errstr}";
+				return true;
+			}
+		);
+
+		try {
+			$normalized       = WP_HTML_Processor::normalize( $input );
+			$normalized_twice = is_string( $normalized ) ? WP_HTML_Processor::normalize( $normalized ) : null;
+		} finally {
+			restore_error_handler();
+		}
+
+		// Use assertSame() instead of assertEmpty() so PHPUnit shows captured error messages on failure.
+		$this->assertSame( array(), $errors );
+		$this->assertIsString( $normalized, 'Input HTML should normalize successfully.' );
+		$this->assertIsString(
+			$normalized_twice,
+			'Normalized HTML should remain supported by the HTML Processor.'
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_provider_normalized_fuzzer_cases_that_should_remain_supported() {
+		return array(
+			'Unclosed SVG TITLE after P in EM'     => array( '<em><p><svg><title>' ),
+			'Unclosed SVG TITLE after P in STRONG' => array( '<strong><p><svg ><title>' ),
+		);
+	}
+
+	/**
+	 * Ensures that normalized fuzzer-discovered inputs are idempotent.
+	 *
+	 * @ticket 65372
+	 *
+	 * @dataProvider data_provider_normalized_fuzzer_cases_that_should_be_idempotent
+	 *
+	 * @param string $input HTML input.
+	 */
+	public function test_normalized_fuzzer_cases_should_be_idempotent( string $input ) {
+		$errors = array();
+		set_error_handler(
+			static function ( int $errno, string $errstr ) use ( &$errors ) {
+				$errors[] = "{$errno}: {$errstr}";
+				return true;
+			}
+		);
+
+		try {
+			$normalized       = WP_HTML_Processor::normalize( $input );
+			$normalized_twice = is_string( $normalized ) ? WP_HTML_Processor::normalize( $normalized ) : null;
+		} finally {
+			restore_error_handler();
+		}
+
+		// Use assertSame() instead of assertEmpty() so PHPUnit shows captured error messages on failure.
+		$this->assertSame( array(), $errors );
+		$this->assertIsString( $normalized, 'Input HTML should normalize successfully.' );
+		$this->assertSame(
+			$normalized,
+			$normalized_twice,
+			'Normalizing already-normalized HTML should not change it.'
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_provider_normalized_fuzzer_cases_that_should_be_idempotent() {
+		return array(
+			'Malformed quoted attribute boundary'       => array( '<A "/=>' ),
+			'Duplicate attribute after bare attribute'  => array( '<A V=5 R V=""=>' ),
+			'Duplicate DATA-ID after numeric attribute' => array( '<E DATA-ID=1 1 DATA-ID=""=>' ),
+			'Duplicate attribute before tag end'        => array( '<R V=5 R V=5 =>' ),
+			'NULL byte in foreign tag name'             => array( "<SVG><L\x00 D>" ),
+			'Malformed closing-looking attribute'       => array( '<a </=>' ),
+			'Malformed self-closing attribute'          => array( '<a h/=>' ),
+			'Duplicate ID with quote boundary'          => array( '<d ID=""" ID=""=>' ),
+			'Mixed-case duplicate TITLE'                => array( "<d TITLE=\"\"' title=\"\"=>" ),
+			'Colon before self-closing slash'           => array( '<e :/=>' ),
+			'Duplicate class after bare attribute'      => array( "<e class=y d class=''=>" ),
+			'Duplicate DATA-ID after hyphen'            => array( '<e data-id=1 - data-id="">' ),
+			'Duplicate title after quotes'              => array( "<e title=''' title=\"\"=>" ),
+			'FORM with SVG TITLE text edge'             => array( "<form ><svg ><title \"'></form><form>" ),
+			'FORM with TABLE and SCRIPT'                => array( '<form id><table te"><script></script><td srce" ID/></form><form claslicate">' ),
+			'FORM with TABLE CAPTION'                   => array( '<form><table><caption></form><form >' ),
+			'Short malformed G attribute C'             => array( '<g c/=>' ),
+			'Short malformed G attribute S'             => array( '<g s/=>' ),
+			'Duplicate SRC boundary'                    => array( '<g src=""g src="">' ),
+			'Short malformed H attribute'               => array( '<h f/=>' ),
+			'Malformed SRC equals boundary'             => array( '<i src=""= src=""=">' ),
+			'Malformed slash in tag opener'             => array( '<i/t/=>' ),
+			'Malformed L colon attribute'               => array( '<l :/=>' ),
+			'Malformed L less-than attribute'           => array( '<l/</=>' ),
+			'Malformed N less-than attribute'           => array( '<n </=>' ),
+			'Unclosed SVG TITLE after P'                => array( '<p><svg><title>' ),
+			'Duplicate ALT boundary'                    => array( '<r alt=\'\'d alt=""=>' ),
+			'NULL byte in SVG child tag'                => array( "<svg><l\x00 '>" ),
+			'NULL byte before slash in SVG child tag'   => array( "<svg><l\x00/r>" ),
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_provider_normalize_special_leading_newline_cases() {
+		return array(
+			'Leading newline in PRE'             => array(
+				"<pre>\nline 1\nline 2</pre>",
+				"<pre>line 1\nline 2</pre>",
+			),
+			'Double leading newline in PRE'      => array(
+				"<pre>\n\nline 2\nline 3</pre>",
+				"<pre>\n\nline 2\nline 3</pre>",
+			),
+			'Multiple text nodes inside PRE'     => array(
+				"<pre>\nline 1<!--comment--> still line 1</pre>",
+				'<pre>line 1<!--comment--> still line 1</pre>',
+			),
+			'Multiple text nodes inside PRE with leading newlines' => array(
+				"<pre>\n\nline 2<!--comment--> still line 2</pre>",
+				"<pre>\n\nline 2<!--comment--> still line 2</pre>",
+			),
+			'Leading newline in LISTING'         => array(
+				"<listing>\nline 1\nline 2</listing>",
+				"<listing>line 1\nline 2</listing>",
+			),
+			'Double leading newline in LISTING'  => array(
+				"<listing>\n\nline 2\nline 3</listing>",
+				"<listing>\n\nline 2\nline 3</listing>",
+			),
+			'Multiple text nodes inside LISTING' => array(
+				"<listing>\nline 1<!--comment--> still line 1</listing>",
+				'<listing>line 1<!--comment--> still line 1</listing>',
+			),
+			'Multiple text nodes inside LISTING with leading newlines' => array(
+				"<listing>\n\nline 2<!--comment--> still line 2</listing>",
+				"<listing>\n\nline 2<!--comment--> still line 2</listing>",
+			),
+			'Leading newline in TEXTAREA'        => array(
+				"<textarea>\nline 1\nline 2</textarea>",
+				"<textarea>line 1\nline 2</textarea>",
+			),
+			'Double leading newline in TEXTAREA' => array(
+				"<textarea>\n\nline 2\nline 3</textarea>",
+				"<textarea>\n\nline 2\nline 3</textarea>",
+			),
+		);
+	}
 }

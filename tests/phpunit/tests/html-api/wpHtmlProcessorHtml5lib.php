@@ -164,11 +164,6 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 			throw new WP_HTML_Unsupported_Exception( "Could not create a parser with the given fragment context: {$fragment_context}.", '', 0, '', array(), array() );
 		}
 
-		/*
-		 * The fragment parser will start in 2 levels deep at: html > body > [position]
-		 * and requires adjustment to initial parameters.
-		 * The full parser will not.
-		 */
 		$output       = '';
 		$indent_level = 0;
 		$was_text     = null;

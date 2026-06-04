@@ -19,7 +19,7 @@ $pagenum       = $wp_list_table->get_pagenum();
 
 $action = $wp_list_table->current_action();
 
-$s = isset( $_REQUEST['s'] ) ? $_REQUEST['s'] : '';
+$s = $_REQUEST['s'] ?? '';
 
 // Clean up request URI from temporary args for screen options/paging uri's to work as expected.
 $temp_args = array(
@@ -363,7 +363,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 <h1 class="wp-heading-inline"><?php echo esc_html( $title ); ?></h1>
 
 <?php if ( current_user_can( 'install_themes' ) ) : ?>
-	<a href="theme-install.php" class="page-title-action"><?php echo esc_html__( 'Add New Theme' ); ?></a>
+	<a href="theme-install.php" class="page-title-action"><?php echo esc_html__( 'Add Theme' ); ?></a>
 <?php endif; ?>
 
 <?php

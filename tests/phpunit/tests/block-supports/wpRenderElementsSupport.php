@@ -12,7 +12,6 @@ class Tests_Block_Supports_WpRenderElementsSupport extends WP_UnitTestCase {
 	private $test_block_name;
 
 	public function tear_down() {
-		WP_Style_Engine_CSS_Rules_Store::remove_all_stores();
 		unregister_block_type( $this->test_block_name );
 		$this->test_block_name = null;
 		parent::tear_down();
