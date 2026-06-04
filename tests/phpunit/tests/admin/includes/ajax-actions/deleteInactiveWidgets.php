@@ -81,7 +81,7 @@ class Tests_wp_ajax_delete_inactive_widgets extends WP_Ajax_UnitTestCase {
 	public function test_delete_inactive_widgets_success(): void {
 		wp_set_current_user( self::$admin_id );
 
-		$id_base = 'test_widget';
+		$id_base  = 'test_widget';
 		$settings = array(
 			1               => array( 'title' => 'Widget 1' ),
 			2               => array( 'title' => 'Widget 2' ),
