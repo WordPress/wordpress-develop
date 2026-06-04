@@ -6319,28 +6319,27 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	/**
 	 * Pushes an element onto the stack of open elements and tracks the event.
 	 *
-	 * @since 6.9.0
+	 * @since 7.1.0
+	 * @private
 	 *
-	 * @param WP_HTML_Token $token Element to push onto the stack.
-	 * @return WP_HTML_Token Element that was pushed onto the stack.
+	 * @param WP_HTML_Token $token Push this element onto the stack of open elements.
 	 */
-	private function push_open_element( WP_HTML_Token $token ): WP_HTML_Token {
-		$pushed = $this->state->stack_of_open_elements->push( $token );
+	private function push_open_element( WP_HTML_Token $token ): void {
+		$this->state->stack_of_open_elements->push( $token );
 
 		$is_virtual            = ! isset( $this->state->current_token ) || $this->is_tag_closer();
-		$same_node             = isset( $this->state->current_token ) && $pushed->node_name === $this->state->current_token->node_name;
+		$same_node             = isset( $this->state->current_token ) && $token->node_name === $this->state->current_token->node_name;
 		$provenance            = ( ! $same_node || $is_virtual ) ? 'virtual' : 'real';
-		$this->element_queue[] = new WP_HTML_Stack_Event( $pushed, WP_HTML_Stack_Event::PUSH, $provenance );
+		$this->element_queue[] = new WP_HTML_Stack_Event( $token, WP_HTML_Stack_Event::PUSH, $provenance );
 
-		$this->change_parsing_namespace( $pushed->integration_node_type ? 'html' : $pushed->namespace );
-
-		return $pushed;
+		$this->change_parsing_namespace( $token->integration_node_type ? 'html' : $token->namespace );
 	}
 
 	/**
 	 * Pops an element off of the stack of open elements and tracks the event.
 	 *
-	 * @since 6.9.0
+	 * @since 7.1.0
+	 * @private
 	 *
 	 * @return WP_HTML_Token|null Element that was popped off of the stack, or null if the stack was empty.
 	 */
@@ -6357,7 +6356,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	/**
 	 * Removes an element from the stack of open elements and tracks the event.
 	 *
-	 * @since 6.9.0
+	 * @since 7.1.0
+	 * @private
 	 *
 	 * @param WP_HTML_Token $token Element to remove from the stack.
 	 * @return bool Whether the element was found and removed.
@@ -6375,7 +6375,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	/**
 	 * Pops elements off the stack until an element with the given name has been popped.
 	 *
-	 * @since 6.9.0
+	 * @since 7.1.0
+	 * @private
 	 *
 	 * @param string $tag_name Name of the element to pop through.
 	 */
@@ -6388,7 +6389,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	/**
 	 * Clears the stack of open elements back to a table context.
 	 *
-	 * @since 6.9.0
+	 * @since 7.1.0
+	 * @private
 	 */
 	private function clear_stack_to_table_context(): void {
 		foreach ( $this->state->stack_of_open_elements->clear_to_table_context() as $popped ) {
@@ -6399,7 +6401,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	/**
 	 * Clears the stack of open elements back to a table body context.
 	 *
-	 * @since 6.9.0
+	 * @since 7.1.0
+	 * @private
 	 */
 	private function clear_stack_to_table_body_context(): void {
 		foreach ( $this->state->stack_of_open_elements->clear_to_table_body_context() as $popped ) {
@@ -6410,7 +6413,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	/**
 	 * Clears the stack of open elements back to a table row context.
 	 *
-	 * @since 6.9.0
+	 * @since 7.1.0
+	 * @private
 	 */
 	private function clear_stack_to_table_row_context(): void {
 		foreach ( $this->state->stack_of_open_elements->clear_to_table_row_context() as $popped ) {
@@ -6421,7 +6425,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	/**
 	 * Tracks accounting for an element popped off of the stack of open elements.
 	 *
-	 * @since 6.9.0
+	 * @since 7.1.0
+	 * @private
 	 *
 	 * @param WP_HTML_Token $token Element that was popped off of the stack.
 	 */

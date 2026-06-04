@@ -521,12 +521,10 @@ class WP_HTML_Open_Elements {
 	 * @see https://html.spec.whatwg.org/#stack-of-open-elements
 	 *
 	 * @param WP_HTML_Token $stack_item Item to add onto stack.
-	 * @return WP_HTML_Token The node that was pushed onto the stack of open elements.
 	 */
-	public function push( WP_HTML_Token $stack_item ): WP_HTML_Token {
+	public function push( WP_HTML_Token $stack_item ): void {
 		$this->stack[] = $stack_item;
 		$this->after_element_push( $stack_item );
-		return $stack_item;
 	}
 
 	/**
