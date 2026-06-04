@@ -1009,7 +1009,7 @@ class Tests_Block_Supports_States extends WP_UnitTestCase {
 		$actual_stylesheet = wp_style_engine_get_stylesheet_from_context( 'block-supports', array( 'prettify' => false ) );
 
 		$this->assertStringContainsString(
-			'@media (width <= 480px){.' . $container_class . '{grid-template-columns:repeat(auto-fill, minmax(min(8rem, 100%), 1fr));container-type:inline-size;}}',
+			'@media (width <= 480px){.' . $container_class . '{grid-template-columns:repeat(auto-fill, minmax(min(8rem, 100%), 1fr));}}',
 			$actual_stylesheet
 		);
 	}
