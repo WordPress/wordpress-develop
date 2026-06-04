@@ -1653,9 +1653,9 @@ function wp_dashboard_primary_output( $widget_id, $feeds ) {
  *
  * @since 3.0.0
  *
- * @return true|void True if not multisite, user can't upload files; else it outputs the storage space information directly in the dashboard.
- *
  * @see get_space_usage() for retrieving the current space usage information in formatted string.
+ *
+ * @return true|void True if not multisite, user can't upload files; else it outputs the storage space information directly in the dashboard.
  */
 function wp_dashboard_quota() {
 	if ( ! is_multisite() || ! current_user_can( 'upload_files' ) ) {
