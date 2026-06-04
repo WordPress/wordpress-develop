@@ -8,7 +8,7 @@
 
 /** WordPress Administration Bootstrap */
 require_once __DIR__ . '/admin.php';
-if ( ! current_user_can( 'edit_posts' ) ) {
+if ( ! current_user_can( 'edit_posts' ) && ! current_user_can( 'moderate_comments' ) ) {
 	wp_die(
 		'<h1>' . __( 'You need a higher level of permission.' ) . '</h1>' .
 		'<p>' . __( 'Sorry, you are not allowed to edit comments.' ) . '</p>',
