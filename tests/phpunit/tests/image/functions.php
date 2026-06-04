@@ -360,7 +360,10 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		$img  = imagecreatefromjpeg( DIR_TESTDATA . '/images/canola.jpg' );
 		$ret  = wp_save_image_file( $file, $img, 'image/jpeg', 1 );
 
-		imagedestroy( $img );
+		if ( PHP_VERSION_ID < 80000 ) { // imagedestroy() has no effect as of PHP 8.0.
+			imagedestroy( $img );
+		}
+
 		unlink( $file );
 
 		$this->assertTrue( $ret, 'Image failed to save.' );

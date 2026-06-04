@@ -494,7 +494,9 @@ class Tests_Widgets_wpWidgetMedia extends WP_UnitTestCase {
 
 		$wp_widget_media = new ReflectionClass( 'WP_Widget_Media' );
 		$has_content     = $wp_widget_media->getMethod( 'has_content' );
-		$has_content->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$has_content->setAccessible( true );
+		}
 
 		$result = $has_content->invokeArgs(
 			$this->get_mocked_class_instance(),

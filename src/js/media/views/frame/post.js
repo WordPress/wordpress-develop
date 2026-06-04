@@ -580,7 +580,7 @@ Post = Select.extend(/** @lends wp.media.view.MediaFrame.Post.prototype */{
 					style:    'primary',
 					text:     editing ? l10n.updateGallery : l10n.insertGallery,
 					priority: 80,
-					requires: { library: true },
+					requires: { library: true, uploadingComplete: true },
 
 					/**
 					 * @fires wp.media.controller.State#update

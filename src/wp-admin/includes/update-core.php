@@ -18,8 +18,8 @@
  *
  * @since 2.7.0
  *
- * @global array $_old_files
- * @var array
+ * @global string[] $_old_files
+ * @var string[]
  * @name $_old_files
  */
 global $_old_files;
@@ -828,6 +828,75 @@ $_old_files = array(
 	'wp-includes/SimplePie/Net/',
 	'wp-includes/SimplePie/Parse/',
 	'wp-includes/SimplePie/XML/',
+	// 6.8
+	'wp-includes/blocks/post-content/editor.css',
+	'wp-includes/blocks/post-content/editor.min.css',
+	'wp-includes/blocks/post-content/editor-rtl.css',
+	'wp-includes/blocks/post-content/editor-rtl.min.css',
+	'wp-includes/blocks/post-template/editor.css',
+	'wp-includes/blocks/post-template/editor.min.css',
+	'wp-includes/blocks/post-template/editor-rtl.css',
+	'wp-includes/blocks/post-template/editor-rtl.min.css',
+	'wp-includes/js/dist/fields.min.js',
+	'wp-includes/js/dist/fields.js',
+	// 6.9
+	'wp-includes/SimplePie/src/Decode',
+	'wp-includes/SimplePie/src/Core.php',
+	// 7.0
+	'wp-includes/assets/script-loader-packages.min.php',
+	'wp-includes/assets/script-loader-react-refresh-entry.php',
+	'wp-includes/assets/script-loader-react-refresh-entry.min.php',
+	'wp-includes/assets/script-loader-react-refresh-runtime.php',
+	'wp-includes/assets/script-loader-react-refresh-runtime.min.php',
+	'wp-includes/assets/script-modules-packages.min.php',
+	'wp-includes/blocks/archives/editor.css',
+	'wp-includes/blocks/archives/editor.min.css',
+	'wp-includes/blocks/archives/editor-rtl.css',
+	'wp-includes/blocks/archives/editor-rtl.min.css',
+	'wp-includes/blocks/file/view.asset.php',
+	'wp-includes/blocks/file/view.min.asset.php',
+	'wp-includes/blocks/file/view.js',
+	'wp-includes/blocks/file/view.min.js',
+	'wp-includes/blocks/image/view.asset.php',
+	'wp-includes/blocks/image/view.min.asset.php',
+	'wp-includes/blocks/image/view.js',
+	'wp-includes/blocks/image/view.min.js',
+	'wp-includes/blocks/navigation/view.asset.php',
+	'wp-includes/blocks/navigation/view.min.asset.php',
+	'wp-includes/blocks/navigation/view.js',
+	'wp-includes/blocks/navigation/view.min.js',
+	'wp-includes/blocks/navigation/view-modal.asset.php',
+	'wp-includes/blocks/navigation/view-modal.min.asset.php',
+	'wp-includes/blocks/query/view.asset.php',
+	'wp-includes/blocks/query/view.min.asset.php',
+	'wp-includes/blocks/query/view.js',
+	'wp-includes/blocks/query/view.min.js',
+	'wp-includes/blocks/search/view.asset.php',
+	'wp-includes/blocks/search/view.min.asset.php',
+	'wp-includes/blocks/search/view.js',
+	'wp-includes/blocks/search/view.min.js',
+	'wp-includes/blocks/tag-cloud/editor.css',
+	'wp-includes/blocks/tag-cloud/editor.min.css',
+	'wp-includes/blocks/tag-cloud/editor-rtl.css',
+	'wp-includes/blocks/tag-cloud/editor-rtl.min.css',
+	'wp-includes/css/dist/admin-ui/style.css',
+	'wp-includes/css/dist/admin-ui/style.min.css',
+	'wp-includes/css/dist/admin-ui/style-rtl.css',
+	'wp-includes/css/dist/admin-ui/style-rtl.min.css',
+	'wp-includes/css/dist/admin-ui/',
+	'wp-includes/css/dist/edit-site/posts.css',
+	'wp-includes/css/dist/edit-site/posts.min.css',
+	'wp-includes/css/dist/edit-site/posts-rtl.css',
+	'wp-includes/css/dist/edit-site/posts-rtl.min.css',
+	'wp-includes/js/dist/admin-ui.js',
+	'wp-includes/js/dist/admin-ui.min.js',
+	'wp-includes/js/dist/latex-to-mathml.js',
+	'wp-includes/js/dist/latex-to-mathml.min.js',
+	'wp-includes/js/dist/views.js',
+	'wp-includes/js/dist/views.min.js',
+	'wp-includes/js/dist/script-modules/interactivity/debug.js',
+	'wp-includes/js/dist/script-modules/interactivity/debug.min.js',
+	'wp-includes/js/dist/vendor/react-jsx-runtime.min.js.LICENSE.txt',
 );
 
 /**
@@ -840,8 +909,8 @@ $_old_files = array(
  *
  * @since 6.2.0
  *
- * @global array $_old_requests_files
- * @var array
+ * @global string[] $_old_requests_files
+ * @var string[]
  * @name $_old_requests_files
  */
 global $_old_requests_files;
@@ -937,8 +1006,8 @@ $_old_requests_files = array(
  *              upgrade. New themes are now installed again. To disable new
  *              themes from being installed on upgrade, explicitly define
  *              CORE_UPGRADE_SKIP_NEW_BUNDLED as true.
- * @global array $_new_bundled_files
- * @var array
+ * @global string[] $_new_bundled_files
+ * @var string[]
  * @name $_new_bundled_files
  */
 global $_new_bundled_files;
@@ -977,13 +1046,14 @@ $_new_bundled_files = array(
  *
  * The steps for the upgrader for after the new release is downloaded and
  * unzipped is:
+ *
  *   1. Test unzipped location for select files to ensure that unzipped worked.
  *   2. Create the .maintenance file in current WordPress base.
  *   3. Copy new WordPress directory over old WordPress files.
  *   4. Upgrade WordPress to new version.
- *     4.1. Copy all files/folders other than wp-content
- *     4.2. Copy any language files to WP_LANG_DIR (which may differ from WP_CONTENT_DIR
- *     4.3. Copy any new bundled themes/plugins to their respective locations
+ *      1. Copy all files/folders other than wp-content
+ *      2. Copy any language files to `WP_LANG_DIR` (which may differ from `WP_CONTENT_DIR`
+ *      3. Copy any new bundled themes/plugins to their respective locations
  *   5. Delete new WordPress directory path.
  *   6. Delete .maintenance file.
  *   7. Remove old files.
@@ -1005,10 +1075,11 @@ $_new_bundled_files = array(
  * @since 2.7.0
  *
  * @global WP_Filesystem_Base $wp_filesystem          WordPress filesystem subclass.
- * @global array              $_old_files
- * @global array              $_old_requests_files
- * @global array              $_new_bundled_files
+ * @global string[]           $_old_files
+ * @global string[]           $_old_requests_files
+ * @global string[]           $_new_bundled_files
  * @global wpdb               $wpdb                   WordPress database abstraction object.
+ * @global string             $wp_version             The WordPress version string.
  *
  * @param string $from New release unzipped path.
  * @param string $to   Path to old WordPress installation.
@@ -1198,7 +1269,7 @@ function update_core( $from, $to ) {
 		}
 
 		// Add a warning when required PHP extensions are missing.
-		if ( $missing_extensions->has_errors() ) {
+		if ( ! empty( $missing_extensions->errors ) ) {
 			return $missing_extensions;
 		}
 	}
@@ -1218,7 +1289,7 @@ function update_core( $from, $to ) {
 		// Find the local version of the working directory.
 		$working_dir_local = WP_CONTENT_DIR . '/upgrade/' . basename( $from ) . $distro;
 
-		$checksums = get_core_checksums( $wp_version, isset( $wp_local_package ) ? $wp_local_package : 'en_US' );
+		$checksums = get_core_checksums( $wp_version, $wp_local_package ?? 'en_US' );
 
 		if ( is_array( $checksums ) && isset( $checksums[ $wp_version ] ) ) {
 			$checksums = $checksums[ $wp_version ]; // Compat code for 3.7-beta2.
@@ -1603,7 +1674,7 @@ function update_core( $from, $to ) {
  *
  * @since 6.2.0
  *
- * @global array              $_old_requests_files Requests files to be preloaded.
+ * @global string[]           $_old_requests_files Requests files to be preloaded.
  * @global WP_Filesystem_Base $wp_filesystem       WordPress filesystem subclass.
  * @global string             $wp_version          The WordPress version string.
  *
@@ -1700,7 +1771,7 @@ function _redirect_to_about_wordpress( $new_version ) {
 	);
 	echo '</div>';
 	?>
-<script type="text/javascript">
+<script>
 window.location = 'about.php?updated';
 </script>
 	<?php
@@ -1715,7 +1786,7 @@ window.location = 'about.php?updated';
  *
  * @since 4.2.2
  *
- * @global array              $wp_theme_directories
+ * @global string[]           $wp_theme_directories
  * @global WP_Filesystem_Base $wp_filesystem
  */
 function _upgrade_422_remove_genericons() {
@@ -1761,7 +1832,7 @@ function _upgrade_422_remove_genericons() {
  * @since 4.2.2
  *
  * @param string $directory Directory path. Expects trailingslashed.
- * @return array
+ * @return string[]
  */
 function _upgrade_422_find_genericons_files_in_folder( $directory ) {
 	$directory = trailingslashit( $directory );
