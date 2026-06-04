@@ -333,66 +333,37 @@ class Tests_Admin_IncludesSchema extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test that upgrade_700() adds the composite index to postmeta table.
+	 * Tests that upgrade_710() adds the composite index to the postmeta table.
+	 *
+	 * @ticket 45354
 	 */
-	public function test_upgrade_700_adds_postmeta_composite_index() {
+	public function test_upgrade_710_adds_postmeta_composite_index() {
 		global $wpdb, $wp_current_db_version;
 
 		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 
-		// Check if index exists first.
-		$index_exists = $wpdb->get_var(
-			$wpdb->prepare(
-				"SELECT COUNT(1) FROM INFORMATION_SCHEMA.STATISTICS
-				WHERE table_schema = %s
-				AND table_name = %s
-				AND index_name = 'meta_key_id'",
-				DB_NAME,
-				$wpdb->postmeta
-			)
-		);
-
-		// Drop the index if it exists to simulate an upgrade scenario.
-		if ( $index_exists > 0 ) {
+		// Drop the index if it already exists to simulate an upgrade scenario.
+		$existing_indexes = $wpdb->get_results( "SHOW INDEX FROM $wpdb->postmeta WHERE Key_name = 'meta_key_id'" );
+		if ( $existing_indexes ) {
 			$wpdb->query( "ALTER TABLE $wpdb->postmeta DROP INDEX meta_key_id" );
 		}
 
-		// Verify the index doesn't exist.
-		$index_exists_before = $wpdb->get_var(
-			$wpdb->prepare(
-				"SELECT COUNT(1) FROM INFORMATION_SCHEMA.STATISTICS
-				WHERE table_schema = %s
-				AND table_name = %s
-				AND index_name = 'meta_key_id'",
-				DB_NAME,
-				$wpdb->postmeta
-			)
+		$this->assertEmpty(
+			$wpdb->get_results( "SHOW INDEX FROM $wpdb->postmeta WHERE Key_name = 'meta_key_id'" ),
+			'The meta_key_id index should not exist before the upgrade.'
 		);
 
-		$this->assertSame( 0, (int) $index_exists_before, 'The meta_key_id index should not exist before upgrade.' );
-
-		// Simulate an old database version.
+		// Simulate an old database version and run the upgrade.
 		$original_db_version   = $wp_current_db_version;
-		$wp_current_db_version = 61696;
+		$wp_current_db_version = 61833;
 
-		// Run the upgrade function.
-		upgrade_700();
+		upgrade_710();
 
-		// Restore original version.
 		$wp_current_db_version = $original_db_version;
 
-		// Verify the index now exists.
-		$index_exists_after = $wpdb->get_var(
-			$wpdb->prepare(
-				"SELECT COUNT(1) FROM INFORMATION_SCHEMA.STATISTICS
-				WHERE table_schema = %s
-				AND table_name = %s
-				AND index_name = 'meta_key_id'",
-				DB_NAME,
-				$wpdb->postmeta
-			)
+		$this->assertNotEmpty(
+			$wpdb->get_results( "SHOW INDEX FROM $wpdb->postmeta WHERE Key_name = 'meta_key_id'" ),
+			'The meta_key_id composite index should exist after upgrade_710().'
 		);
-
-		$this->assertGreaterThan( 0, $index_exists_after, 'The meta_key_id composite index should exist after upgrade_700().' );
 	}
 }

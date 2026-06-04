@@ -759,29 +759,21 @@ class Tests_DB_dbDelta extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test that the postmeta table includes the composite index meta_key_id.
+	 * Tests that the postmeta table schema includes the composite index meta_key_id.
+	 *
+	 * @ticket 45354
 	 */
 	public function test_postmeta_composite_index_in_schema() {
 		global $wpdb;
 
 		$schema = wp_get_db_schema();
 
-		// Verify that the schema contains the composite index definition.
 		$this->assertStringContainsString( 'KEY meta_key_id', $schema, 'Schema should contain the meta_key_id composite index.' );
 
-		// Verify that the index exists in the actual database.
-		$index_exists = $wpdb->get_var(
-			$wpdb->prepare(
-				"SELECT COUNT(1) FROM INFORMATION_SCHEMA.STATISTICS
-				WHERE table_schema = %s
-				AND table_name = %s
-				AND index_name = 'meta_key_id'",
-				DB_NAME,
-				$wpdb->postmeta
-			)
+		$this->assertNotEmpty(
+			$wpdb->get_results( "SHOW INDEX FROM $wpdb->postmeta WHERE Key_name = 'meta_key_id'" ),
+			'The meta_key_id composite index should exist in the postmeta table.'
 		);
-
-		$this->assertGreaterThan( 0, $index_exists, 'The meta_key_id composite index should exist in the postmeta table.' );
 	}
 
 	/**
