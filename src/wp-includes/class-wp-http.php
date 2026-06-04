@@ -104,7 +104,8 @@ class WP_Http {
 	 * Send an HTTP request to a URI.
 	 *
 	 * Please note: The only URI that are supported in the HTTP Transport implementation
-	 * are the HTTP and HTTPS protocols.
+	 * are the HTTP and HTTPS protocols. The `webcal` and `webcals` schemes are normalized
+	 * to HTTPS via wp_http_normalize_url() before the request is sent.
 	 *
 	 * @since 2.7.0
 	 *
@@ -280,12 +281,30 @@ class WP_Http {
 			return $pre;
 		}
 
+		$url = wp_http_normalize_url( $url );
+
 		if ( function_exists( 'wp_kses_bad_protocol' ) ) {
 			if ( $parsed_args['reject_unsafe_urls'] ) {
 				$url = wp_http_validate_url( $url );
 			}
 			if ( $url ) {
-				$url = wp_kses_bad_protocol( $url, array( 'http', 'https', 'ssl' ) );
+				/**
+				 * Controls the list of URL protocols allowed in HTTP API requests.
+				 *
+				 * Warning: Only `http` and `https` are supported by HTTP transports. Allowing
+				 * other protocols increases SSRF risk unless handled via the {@see 'pre_http_request'}
+				 * filter or custom transport logic.
+				 *
+				 * @since 6.9.0
+				 *
+				 * @param string[] $protocols Array of allowed URL protocols.
+				 * @param string   $url       Requested URL.
+				 */
+				$allowed_protocols = apply_filters( 'http_allowed_protocols', array( 'http', 'https', 'ssl' ), $url );
+				if ( ! is_array( $allowed_protocols ) ) {
+					$allowed_protocols = array( 'http', 'https', 'ssl' );
+				}
+				$url = wp_kses_bad_protocol( $url, $allowed_protocols );
 			}
 		}
 
