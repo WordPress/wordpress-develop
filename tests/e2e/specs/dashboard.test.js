@@ -85,16 +85,17 @@ test.describe( 'Quick Draft', () => {
 		await admin.visitAdminPage( '/' );
 
 		// Wait for Quick Draft title field to appear.
-		const draftContentField = page.locator(
+		const draftTitleField = page.locator(
 			'#quick-press'
 		).getByRole( 'textbox', { name: 'Title' } );
 
-		await expect( draftContentField ).toBeVisible();
+		await expect( draftTitleField ).toBeVisible();
 
 		// Focus and fill in a title.
-		await draftContentField.fill( 'Test Draft Title' );
+		await draftTitleField.fill( 'Test Draft Title' );
 
 		// Navigate to Save Draft button and press it.
+		await page.keyboard.press( 'Tab' );
 		await page.keyboard.press( 'Tab' );
 		await page.keyboard.press( 'Enter' );
 
