@@ -952,6 +952,48 @@ HTML
 	}
 
 	/**
+	 * Ensures that incomplete tokens fail closed without reading beyond the input.
+	 *
+	 * @ticket 65372
+	 *
+	 * @dataProvider data_incomplete_tokens_from_fuzzer
+	 *
+	 * @param string $html Incomplete HTML input.
+	 */
+	public function test_incomplete_tokens_do_not_emit_native_errors( string $html ) {
+		$errors = array();
+		set_error_handler(
+			static function ( int $errno, string $errstr ) use ( &$errors ) {
+				$errors[] = "{$errno}: {$errstr}";
+				return true;
+			}
+		);
+
+		try {
+			$processor = new WP_HTML_Tag_Processor( $html );
+			$found     = $processor->next_token();
+		} finally {
+			restore_error_handler();
+		}
+
+		// Use assertSame() instead of assertEmpty() so PHPUnit shows captured error messages on failure.
+		$this->assertSame( array(), $errors );
+		$this->assertFalse( $found, 'Should not have found a complete token.' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_incomplete_tokens_from_fuzzer() {
+		return array(
+			'Incomplete short comment'  => array( '<!---' ),
+			'Incomplete RCDATA end tag' => array( '<title></titl' ),
+		);
+	}
+
+	/**
 	 * Test helper that wraps a string in double quotes.
 	 *
 	 * @param string $s The string to wrap in double-quotes.
