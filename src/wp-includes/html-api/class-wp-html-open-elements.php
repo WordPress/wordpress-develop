@@ -47,10 +47,77 @@ class WP_HTML_Open_Elements {
 	 * This avoids frequent iteration over the stack.
 	 *
 	 * @since 6.4.0
+	 * @deprecated 7.1.0 Manage push/pop handlers externally.
 	 *
 	 * @var bool
 	 */
 	private $has_p_in_button_scope = false;
+
+	/**
+	 * A function that will be called when an item is popped off the stack of open elements.
+	 *
+	 * The function will be called with the popped item as its argument.
+	 *
+	 * @since 6.6.0
+	 * @deprecated 7.1.0 Manage push/pop handlers externally.
+	 *
+	 * @var Closure|null
+	 */
+	private $pop_handler = null;
+
+	/**
+	 * A function that will be called when an item is pushed onto the stack of open elements.
+	 *
+	 * The function will be called with the pushed item as its argument.
+	 *
+	 * @since 6.6.0
+	 * @deprecated 7.1.0 Manage push/pop handlers externally.
+	 *
+	 * @var Closure|null
+	 */
+	private $push_handler = null;
+
+	/**
+	 * Sets a pop handler that will be called when an item is popped off the stack of
+	 * open elements.
+	 *
+	 * The function will be called with the pushed item as its argument.
+	 *
+	 * @since 6.6.0
+	 * @deprecated 7.1.0 Manage push/pop handlers externally.
+	 *
+	 * @param Closure $handler The handler function.
+	 */
+	public function set_pop_handler( Closure $handler ): void {
+		_deprecated_function(
+			__METHOD__,
+			'7.1.0',
+			'Manage push/pop events from the HTML open-elements stack externally.'
+		);
+
+		$this->pop_handler = $handler;
+	}
+
+	/**
+	 * Sets a push handler that will be called when an item is pushed onto the stack of
+	 * open elements.
+	 *
+	 * The function will be called with the pushed item as its argument.
+	 *
+	 * @since 6.6.0
+	 * @deprecated 7.1.0 Manage push/pop handlers externally.
+	 *
+	 * @param Closure $handler The handler function.
+	 */
+	public function set_push_handler( Closure $handler ): void {
+		_deprecated_function(
+			__METHOD__,
+			'7.1.0',
+			'Manage push/pop events from the HTML open-elements stack externally.'
+		);
+
+		$this->push_handler = $handler;
+	}
 
 	/**
 	 * Returns the name of the node at the nth position on the stack
