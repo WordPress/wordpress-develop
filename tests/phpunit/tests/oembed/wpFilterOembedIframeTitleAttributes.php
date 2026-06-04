@@ -2,9 +2,21 @@
 
 /**
  * @group oembed
+ *
+ * @covers ::wp_filter_oembed_iframe_title_attribute
  */
-class Tests_Filter_oEmbed_Iframe_Title_Attribute extends WP_UnitTestCase {
-	public function data_filter_oembed_iframe_title_attribute() {
+class Tests_oEmbed_wpFilterOembedIframeTitleAttribute extends WP_UnitTestCase {
+
+	/**
+	 * @dataProvider data_oembed_iframe_title_attribute
+	 */
+	public function test_oembed_iframe_title_attribute( $html, $oembed_data, $url, $expected ) {
+		$actual = wp_filter_oembed_iframe_title_attribute( $html, (object) $oembed_data, $url );
+
+		$this->assertEqualHTML( $expected, $actual );
+	}
+
+	public function data_oembed_iframe_title_attribute() {
 		return array(
 			array(
 				'<p>Foo</p><iframe src=""></iframe><b>Bar</b>',
@@ -59,15 +71,6 @@ class Tests_Filter_oEmbed_Iframe_Title_Attribute extends WP_UnitTestCase {
 				'<iframe title="Foo" src=""></iframe>',
 			),
 		);
-	}
-
-	/**
-	 * @dataProvider data_filter_oembed_iframe_title_attribute
-	 */
-	public function test_oembed_iframe_title_attribute( $html, $oembed_data, $url, $expected ) {
-		$actual = wp_filter_oembed_iframe_title_attribute( $html, (object) $oembed_data, $url );
-
-		$this->assertEqualHTML( $expected, $actual );
 	}
 
 	public function test_filter_oembed_iframe_title_attribute() {
