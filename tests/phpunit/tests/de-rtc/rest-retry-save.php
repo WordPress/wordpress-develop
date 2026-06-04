@@ -3241,6 +3241,16 @@ class Tests_DE_RTC_REST_Retry_Save extends WP_Test_REST_TestCase {
 		$this->assertSame( 'retry_save', $parsed['sync_meta']['last_server_update']['type'] );
 		$this->assertSame( self::$author_user_id, $parsed['sync_meta']['last_server_update']['user_id'] );
 		$this->assertStringStartsWith( '<!-- wp:sync-meta', $after_post->post_content );
+		$this->assertNotEmpty( $data['created_revision_ids'] );
+
+		$created_revision = get_post( $data['created_revision_ids'][0] );
+		$this->assertNotNull( $created_revision );
+		$this->assertStringContainsString( '<script ', $created_revision->post_content );
+
+		$parsed_revision = wp_de_rtc_parse_post_content_sync_meta( $created_revision->post_content );
+		$this->assertIsArray( $parsed_revision );
+		$this->assertSame( $proposed_content, $parsed_revision['content'] );
+		$this->assertSame( '26', $parsed_revision['sync_meta']['version'] );
 	}
 
 	/**
@@ -3880,6 +3890,73 @@ class Tests_DE_RTC_REST_Retry_Save extends WP_Test_REST_TestCase {
 		$this->assertSame( 'rest_post_update', $parsed['sync_meta']['last_server_update']['type'] );
 		$this->assertArrayHasKey( 'base_revision_id', $parsed['sync_meta']['last_server_update'] );
 		$this->assertArrayNotHasKey( 'pending_automerge_update', $parsed['sync_meta'] );
+	}
+
+	/**
+	 * @covers ::wp_de_rtc_rest_pre_insert_automerge_raw_post_content_update
+	 * @covers ::wp_de_rtc_prepare_automerge_raw_post_content_update
+	 * @covers ::wp_de_rtc_get_automerge_retry_save_result
+	 * @covers ::wp_de_rtc_get_rich_text_serialized_block_merge_candidate
+	 */
+	public function test_rest_post_update_merges_stale_automerge_paragraph_text_over_remote_formatting() {
+		$this->require_automerge_runtime();
+
+		$base_content   = '<!-- wp:paragraph --><p>Some pretext to a post.</p><!-- /wp:paragraph --><!-- wp:list --><ul class="wp-block-list"><!-- wp:list-item --><li>Eggs</li><!-- /wp:list-item --><!-- wp:list-item --><li>Cheese</li><!-- /wp:list-item --><!-- wp:list-item --><li>Mayo</li><!-- /wp:list-item --></ul><!-- /wp:list -->';
+		$server_content = '<!-- wp:paragraph --><p>Some <em>pretext</em> to a post.</p><!-- /wp:paragraph --><!-- wp:list --><ul class="wp-block-list"><!-- wp:list-item --><li>Eggs</li><!-- /wp:list-item --><!-- wp:list-item --><li>Cheese</li><!-- /wp:list-item --><!-- wp:list-item --><li>Mayo</li><!-- /wp:list-item --></ul><!-- /wp:list -->';
+		$local_content  = '<!-- wp:paragraph --><p>Some pretext to a WordPress post.</p><!-- /wp:paragraph --><!-- wp:list --><ul class="wp-block-list"><!-- wp:list-item --><li>Eggs</li><!-- /wp:list-item --><!-- wp:list-item --><li>Cheese</li><!-- /wp:list-item --><!-- wp:list-item --><li>Mayo</li><!-- /wp:list-item --></ul><!-- /wp:list -->';
+		$merged_content = '<!-- wp:paragraph --><p>Some <em>pretext</em> to a WordPress post.</p><!-- /wp:paragraph --><!-- wp:list --><ul class="wp-block-list"><!-- wp:list-item --><li>Eggs</li><!-- /wp:list-item --><!-- wp:list-item --><li>Cheese</li><!-- /wp:list-item --><!-- wp:list-item --><li>Mayo</li><!-- /wp:list-item --></ul><!-- /wp:list -->';
+		$post_id        = self::factory()->post->create(
+			array(
+				'post_title'   => 'DE-RTC Automerge stale paragraph text and formatting REST update post',
+				'post_content' => $this->add_automerge_sync_meta_to_content( $base_content, 83 ),
+			)
+		);
+
+		$this->assertIsInt( wp_save_post_revision( $post_id ) );
+
+		wp_update_post(
+			wp_slash(
+				array(
+					'ID'           => $post_id,
+					'post_content' => $server_content,
+				)
+			),
+			true
+		);
+
+		$advanced_post    = get_post( $post_id );
+		$advanced_parsed  = wp_de_rtc_parse_post_content_sync_meta( $advanced_post->post_content );
+		$client_update    = wp_de_rtc_create_automerge_update_for_content_change( $base_content, $local_content, 'test-client' );
+		$incoming_content = $this->add_automerge_sync_meta_to_content(
+			$local_content,
+			83,
+			array(
+				'client_base_version'        => '83',
+				'pending_automerge_encoding' => 'native-automerge-blocks-v1',
+				'pending_automerge_update'   => base64_encode( wp_json_encode( $client_update, JSON_UNESCAPED_SLASHES ) ),
+			)
+		);
+		$request          = new WP_REST_Request( 'POST', '/wp/v2/posts/' . $post_id );
+
+		$this->assertSame( '84', $advanced_parsed['sync_meta']['version'] );
+		$request->set_body_params(
+			array(
+				'content' => $incoming_content,
+			)
+		);
+
+		$response   = rest_get_server()->dispatch( $request );
+		$after_post = get_post( $post_id );
+		$parsed     = wp_de_rtc_parse_post_content_sync_meta( $after_post->post_content );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertIsArray( $parsed );
+		$this->assertSame( $merged_content, $parsed['content'] );
+		$this->assertSame( 'automerge', $parsed['sync_meta_format'] );
+		$this->assertSame( '85', $parsed['sync_meta']['version'] );
+		$this->assertSame( '84', $parsed['sync_meta']['previous_version'] );
+		$this->assertSame( '83', $parsed['sync_meta']['last_server_update']['client_base_version'] );
+		$this->assertSame( 'rest_post_update', $parsed['sync_meta']['last_server_update']['type'] );
 	}
 
 	/**
@@ -5887,6 +5964,108 @@ class Tests_DE_RTC_REST_Retry_Save extends WP_Test_REST_TestCase {
 		$this->assertSame( $merged_table, $parsed['content'] );
 		$this->assertSame( '103', $parsed['sync_meta']['version'] );
 		$this->assertSame( hash( 'sha256', $merged_table ), $parsed['sync_meta']['blocks'][0]['serialized_hash'] );
+	}
+
+	/**
+	 * @covers ::wp_de_rtc_get_block_identity_retained_edits_server_merge_result
+	 * @covers ::wp_de_rtc_get_rich_text_serialized_block_merge_candidate
+	 */
+	public function test_retry_save_server_merges_block_identity_paragraph_text_over_remote_formatting() {
+		$base_block       = '<!-- wp:paragraph --><p>Some pretext to a post.</p><!-- /wp:paragraph -->';
+		$server_block     = '<!-- wp:paragraph --><p>Some <em>pretext</em> to a post.</p><!-- /wp:paragraph -->';
+		$local_block      = '<!-- wp:paragraph --><p>Some pretext to a WordPress post.</p><!-- /wp:paragraph -->';
+		$merged_block     = '<!-- wp:paragraph --><p>Some <em>pretext</em> to a WordPress post.</p><!-- /wp:paragraph -->';
+		$base_sync_meta   = $this->get_block_identity_sync_meta_for_blocks(
+			$base_block,
+			array(
+				'block-paragraph' => $base_block,
+			)
+		);
+		$current_content  = $this->add_sync_meta_to_content( $base_block, 106, $base_sync_meta );
+		$post_id          = self::factory()->post->create(
+			array(
+				'post_title'   => 'DE-RTC block identity rich text retry save post',
+				'post_content' => $current_content,
+			)
+		);
+		$base_revision_id = wp_save_post_revision( $post_id );
+		$this->assertIsInt( $base_revision_id );
+		$this->assertGreaterThan( 0, $base_revision_id );
+
+		$advanced_content = $this->add_sync_meta_to_content(
+			$server_block,
+			107,
+			array_merge(
+				$this->get_block_identity_sync_meta_for_blocks(
+					$server_block,
+					array(
+						'block-paragraph' => $server_block,
+					)
+				),
+				array(
+					'previous_version' => '106',
+				)
+			)
+		);
+		$this->assertSame(
+			$post_id,
+			wp_update_post(
+				wp_slash(
+					array(
+						'ID'           => $post_id,
+						'post_content' => $advanced_content,
+					)
+				)
+			)
+		);
+
+		$proposed_hash = hash( 'sha256', $local_block );
+		$merged_hash   = hash( 'sha256', $merged_block );
+		$request       = $this->create_retry_save_request(
+			'posts',
+			$post_id,
+			array(
+				'client_base_version'           => '106',
+				'accepted_proof_server_version' => '106',
+				'pending_change_count'          => 1,
+				'proposed_post_content'         => $local_block,
+				'proposed_post_content_hash'    => $proposed_hash,
+				'block_identity_request_proof'  => array(
+					'client_base_version'        => '106',
+					'proposed_post_content_hash' => $proposed_hash,
+					'proposed_block_map'         => array(
+						array(
+							'block_uid'       => 'block-paragraph',
+							'block_name'      => 'core/paragraph',
+							'ordinal_path'    => array( 0 ),
+							'serialized_hash' => hash( 'sha256', $local_block ),
+						),
+					),
+					'retained_block_uids'        => array( 'block-paragraph' ),
+					'inserted_block_nonces'      => array(),
+					'deleted_block_uids'         => array(),
+					'moved_block_uids'           => array(),
+				),
+			)
+		);
+
+		$response   = rest_get_server()->dispatch( $request );
+		$data       = $response->get_data();
+		$after_post = get_post( $post_id );
+		$parsed     = wp_de_rtc_parse_post_content_sync_meta( $after_post->post_content );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( 'retry_save_server_merged', $data['result'] );
+		$this->assertTrue( $data['server_merge_applied'] );
+		$this->assertSame( $merged_hash, $data['saved_stripped_post_content_hash'] );
+		$this->assertSame( array( 0 ), $data['server_merge']['server_changed_indexes'] );
+		$this->assertSame( array( 0 ), $data['server_merge']['local_changed_indexes'] );
+		$this->assertSame( array( 0 ), $data['server_merge']['rich_text_merged_indexes'] );
+		$this->assertSame( 1, $data['server_merge']['rich_text_merged_block_count'] );
+		$this->assertIsArray( $parsed );
+		$this->assertSame( $merged_block, $parsed['content'] );
+		$this->assertSame( '108', $parsed['sync_meta']['version'] );
+		$this->assertSame( hash( 'sha256', $merged_block ), $parsed['sync_meta']['blocks'][0]['serialized_hash'] );
 	}
 
 	/**

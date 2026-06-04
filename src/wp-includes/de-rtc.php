@@ -14140,7 +14140,117 @@ function wp_de_rtc_ensure_current_sync_meta_revision_before_retry_save( $post, $
 		return null;
 	}
 
-	$revision_id = wp_save_post_revision( $post->ID );
+	$revision_id = wp_de_rtc_put_retry_save_revision( $post );
+
+	if ( is_wp_error( $revision_id ) ) {
+		return $revision_id;
+	}
+
+	return $revision_id ? (int) $revision_id : null;
+}
+
+/**
+ * Suspends WordPress' default post-update revision hook for one DE-RTC save.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @return array Hook priorities for default revision hooks that were present.
+ */
+function wp_de_rtc_suspend_retry_save_core_revision_hook() {
+	$hooks = array(
+		'wp_after_insert_post' => has_action( 'wp_after_insert_post', 'wp_save_post_revision_on_insert' ),
+		'post_updated'         => has_action( 'post_updated', 'wp_save_post_revision' ),
+	);
+
+	if ( false !== $hooks['wp_after_insert_post'] ) {
+		remove_action( 'wp_after_insert_post', 'wp_save_post_revision_on_insert', $hooks['wp_after_insert_post'] );
+	}
+
+	if ( false !== $hooks['post_updated'] ) {
+		remove_action( 'post_updated', 'wp_save_post_revision', $hooks['post_updated'] );
+	}
+
+	return $hooks;
+}
+
+/**
+ * Restores the default post-update revision hook after a DE-RTC save.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param array|int|false $hooks Hook priorities returned by the suspend helper.
+ */
+function wp_de_rtc_restore_retry_save_core_revision_hook( $hooks ) {
+	if ( ! is_array( $hooks ) ) {
+		$hooks = array(
+			'wp_after_insert_post' => $hooks,
+			'post_updated'         => false,
+		);
+	}
+
+	if ( false !== $hooks['wp_after_insert_post'] && false === has_action( 'wp_after_insert_post', 'wp_save_post_revision_on_insert' ) ) {
+		add_action( 'wp_after_insert_post', 'wp_save_post_revision_on_insert', $hooks['wp_after_insert_post'], 3 );
+	}
+
+	if ( false !== $hooks['post_updated'] && false === has_action( 'post_updated', 'wp_save_post_revision' ) ) {
+		add_action( 'post_updated', 'wp_save_post_revision', $hooks['post_updated'], 1 );
+	}
+}
+
+/**
+ * Creates a matching current-post revision without loading every old revision.
+ *
+ * Core's default `wp_save_post_revision()` compares against the revision
+ * history by materializing previous revision bodies. Long collaborative posts
+ * can have hundreds of large revisions, so DE-RTC writes the same current
+ * revision through the lower-level primitive after the guarded save confirms
+ * storage.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param int|WP_Post $post Post ID or object.
+ * @return int|null|WP_Error Created revision ID, null when revisions are disabled, or an error.
+ */
+function wp_de_rtc_put_retry_save_revision( $post ) {
+	$post = get_post( $post );
+
+	if ( ! $post ) {
+		return null;
+	}
+
+	if ( ! post_type_supports( $post->post_type, 'revisions' ) || 'auto-draft' === $post->post_status || ! wp_revisions_enabled( $post ) ) {
+		return null;
+	}
+
+	if ( ! function_exists( '_wp_put_post_revision' ) ) {
+		return wp_de_rtc_get_reason_error(
+			'de_rtc_storage_failure',
+			__( 'Distributed Editing could not create a retry-save revision.' ),
+			array(
+				'detail'           => 'retry_save_revision_primitive_missing',
+				'post_id'          => (int) $post->ID,
+				'creates_revision' => false,
+				'claims_saved'     => false,
+			)
+		);
+	}
+
+	$added_sync_meta_kses_allowance = false === has_filter( 'wp_kses_allowed_html', 'wp_de_rtc_filter_sync_meta_script_kses_allowance' );
+
+	if ( $added_sync_meta_kses_allowance ) {
+		wp_de_rtc_enable_sync_meta_script_kses_allowance();
+	}
+
+	try {
+		$revision_id = _wp_put_post_revision( $post );
+	} finally {
+		if ( $added_sync_meta_kses_allowance ) {
+			wp_de_rtc_disable_sync_meta_script_kses_allowance();
+		}
+	}
 
 	if ( is_wp_error( $revision_id ) ) {
 		return $revision_id;
@@ -14318,6 +14428,8 @@ function wp_de_rtc_apply_partial_safe_retry_save_plan( $post, $current, $partial
 
 	$wp_de_rtc_retry_save_candidate_post_content[ (int) $post->ID ] = $candidate_post_content;
 
+	$core_revision_hook_priority = wp_de_rtc_suspend_retry_save_core_revision_hook();
+
 	try {
 		$updated_post_id = wp_update_post(
 			wp_slash(
@@ -14329,6 +14441,7 @@ function wp_de_rtc_apply_partial_safe_retry_save_plan( $post, $current, $partial
 			true
 		);
 	} finally {
+		wp_de_rtc_restore_retry_save_core_revision_hook( $core_revision_hook_priority );
 		unset( $wp_de_rtc_retry_save_candidate_post_content[ (int) $post->ID ] );
 		wp_de_rtc_disable_sync_meta_script_kses_allowance();
 	}
@@ -14367,9 +14480,20 @@ function wp_de_rtc_apply_partial_safe_retry_save_plan( $post, $current, $partial
 		);
 	}
 
+	$retry_save_revision_id = wp_de_rtc_put_retry_save_revision( $persisted_post );
+
+	if ( is_wp_error( $retry_save_revision_id ) ) {
+		return $retry_save_revision_id;
+	}
+
 	$revision_ids_after_save = wp_de_rtc_get_post_revision_ids( $post->ID );
 	$created_revision_ids    = array_values( array_diff( $revision_ids_after_save, $revision_ids_before_save ) );
-	$review_item_queue       = wp_de_rtc_record_review_required_items(
+
+	if ( $retry_save_revision_id && ! in_array( (int) $retry_save_revision_id, $created_revision_ids, true ) ) {
+		$created_revision_ids[] = (int) $retry_save_revision_id;
+	}
+
+	$review_item_queue = wp_de_rtc_record_review_required_items(
 		$post,
 		$review_items,
 		array(
@@ -14736,7 +14860,11 @@ function wp_de_rtc_save_retry_submitted_post( $post, $args = array() ) {
 			$block_identity_request_proof,
 			$retry_save_server_merge_required ? $base_revision['sync_meta'] : $current['sync_meta'],
 			$proposed_post_content_hash,
-			$post
+			$post,
+			array(
+				$raw_proposed_post_content_hash,
+				$expected_content_hash,
+			)
 		);
 
 		if ( is_wp_error( $block_identity_request_proof_validation ) ) {
@@ -15144,7 +15272,7 @@ function wp_de_rtc_save_retry_submitted_post( $post, $args = array() ) {
 
 	$revision_ids_before_save = wp_de_rtc_get_post_revision_ids( $post->ID );
 
-	$base_revision_before_retry_save = 'automerge' === $current['sync_meta_format']
+	$base_revision_before_retry_save = 'automerge' === $current['sync_meta_format'] && $retry_save_server_merge_required
 		? wp_de_rtc_ensure_current_sync_meta_revision_before_retry_save( $post, $server_version )
 		: null;
 
@@ -15187,6 +15315,8 @@ function wp_de_rtc_save_retry_submitted_post( $post, $args = array() ) {
 
 	$wp_de_rtc_retry_save_candidate_post_content[ (int) $post->ID ] = $candidate_post_content;
 
+	$core_revision_hook_priority = wp_de_rtc_suspend_retry_save_core_revision_hook();
+
 	try {
 		$updated_post_id = wp_update_post(
 			wp_slash(
@@ -15198,6 +15328,7 @@ function wp_de_rtc_save_retry_submitted_post( $post, $args = array() ) {
 			true
 		);
 	} finally {
+		wp_de_rtc_restore_retry_save_core_revision_hook( $core_revision_hook_priority );
 		unset( $wp_de_rtc_retry_save_candidate_post_content[ (int) $post->ID ] );
 
 		if ( $allow_sync_meta_script_during_save ) {
@@ -15252,8 +15383,23 @@ function wp_de_rtc_save_retry_submitted_post( $post, $args = array() ) {
 		);
 	}
 
+	$retry_save_revision_id = wp_de_rtc_put_retry_save_revision( $persisted_post );
+
+	if ( is_wp_error( $retry_save_revision_id ) ) {
+		if ( is_array( $fresh_review_consumption_claim ) ) {
+			wp_de_rtc_release_opaque_fresh_review_decision_retry_save_consumption_claim( $fresh_review_consumption_claim['_fresh_review_request_record'], $post );
+		}
+
+		return $retry_save_revision_id;
+	}
+
 	$revision_ids_after_save = wp_de_rtc_get_post_revision_ids( $post->ID );
 	$created_revision_ids    = array_values( array_diff( $revision_ids_after_save, $revision_ids_before_save ) );
+
+	if ( $retry_save_revision_id && ! in_array( (int) $retry_save_revision_id, $created_revision_ids, true ) ) {
+		$created_revision_ids[] = (int) $retry_save_revision_id;
+	}
+
 	$review_approval_proof_token_invalidated = false;
 	$review_approval_proof_token_audit       = array();
 
@@ -18076,7 +18222,7 @@ function wp_de_rtc_serialized_block_records_are_unique( $records ) {
  * @return string|null Block name, or null when parsing is ambiguous.
  */
 	function wp_de_rtc_get_serialized_block_record_name( $record ) {
-		$record = wp_de_rtc_canonicalize_post_content_core_block_names( $record );
+		$record = wp_de_rtc_canonicalize_post_content_for_hash( $record );
 		$blocks = parse_blocks( (string) $record );
 
 	if (
@@ -18510,7 +18656,7 @@ function wp_de_rtc_get_automerge_block_native_retry_save_result( $base_content, 
 		return $validation;
 	}
 
-	if ( hash_equals( $base_content, $current_content ) ) {
+	if ( hash_equals( wp_de_rtc_hash_content( $base_content ), wp_de_rtc_hash_content( $current_content ) ) ) {
 		$merge_result = wp_de_rtc_get_automerge_block_native_current_base_merge_result( $base_content, $proposed_content );
 	} else {
 		$merge_result = wp_de_rtc_get_automerge_idempotent_block_insert_merge_result( $base_content, $current_content, $proposed_content );
@@ -18991,12 +19137,17 @@ function wp_de_rtc_is_current_automerge_sync_meta( $sync_meta, $format ) {
 			return null;
 		}
 
-		$current_hash = wp_de_rtc_hash_content( $current['content'] );
+		$current_hash     = wp_de_rtc_hash_content( $current['content'] );
+		$current_raw_hash = hash( 'sha256', $current['content'] );
 
 		if ( wp_de_rtc_is_current_automerge_sync_meta( $current['sync_meta'], $current['sync_meta_format'] ) ) {
 			$stored_hash = wp_de_rtc_get_automerge_sync_meta_content_hash( $current['sync_meta'] );
 
-			if ( null === $stored_hash || hash_equals( $stored_hash, $current_hash ) ) {
+			if (
+				null === $stored_hash ||
+				hash_equals( $stored_hash, $current_hash ) ||
+				hash_equals( $stored_hash, $current_raw_hash )
+			) {
 				return null;
 			}
 
@@ -19021,7 +19172,10 @@ function wp_de_rtc_is_current_automerge_sync_meta( $sync_meta, $format ) {
 			if (
 				empty( $base_revision['found'] ) ||
 				! is_string( $base_revision['content'] ) ||
-				! hash_equals( $stored_hash, wp_de_rtc_hash_content( $base_revision['content'] ) ) ||
+				(
+					! hash_equals( $stored_hash, wp_de_rtc_hash_content( $base_revision['content'] ) ) &&
+					! hash_equals( $stored_hash, hash( 'sha256', $base_revision['content'] ) )
+				) ||
 				! wp_de_rtc_is_current_automerge_sync_meta( $base_revision['sync_meta'], $base_revision['sync_meta_format'] )
 			) {
 				return wp_de_rtc_get_reason_error(
@@ -19625,9 +19779,16 @@ function wp_de_rtc_format_sync_meta( $format, $sync_meta ) {
  * @since 7.1.0
  *
  * @param string $content Post content.
+ * @param array  $args {
+ *     Optional parser controls.
+ *
+ *     @type bool $allow_script_stripped_sync_meta Whether revision scans may accept a sync-meta pseudo-block whose
+ *                                                SCRIPT wrapper was stripped by KSES. Default false.
+ * }
  * @return array|WP_Error Parsed content data on success, otherwise a WP_Error.
  */
-function wp_de_rtc_parse_post_content_sync_meta( $content ) {
+function wp_de_rtc_parse_post_content_sync_meta( $content, $args = array() ) {
+	$allow_script_stripped_sync_meta = is_array( $args ) && ! empty( $args['allow_script_stripped_sync_meta'] );
 	$sync_meta_script_count = wp_de_rtc_count_post_content_sync_meta_scripts( $content );
 
 	if ( $sync_meta_script_count > 1 ) {
@@ -19677,6 +19838,44 @@ function wp_de_rtc_parse_post_content_sync_meta( $content ) {
 					'sync_meta_format'   => $parsed['sync_meta_format'],
 					'sync_meta_position' => 'trailer',
 				'raw_sync_meta'      => $trailer['script'],
+			);
+		}
+	}
+
+	if ( $allow_script_stripped_sync_meta ) {
+		$prefix_block = wp_de_rtc_match_edge_script_stripped_sync_meta_block( $content, 'prefix' );
+
+		if ( false !== $prefix_block ) {
+			$parsed = wp_de_rtc_parse_script_stripped_sync_meta_block( $prefix_block );
+
+			if ( is_wp_error( $parsed ) ) {
+				return $parsed;
+			}
+
+			return array(
+					'content'            => wp_de_rtc_canonicalize_post_content_core_block_names( substr( $content, strlen( $prefix_block['match'] ) ) ),
+					'sync_meta'          => $parsed['sync_meta'],
+					'sync_meta_format'   => $parsed['sync_meta_format'],
+					'sync_meta_position' => 'prefix-block',
+				'raw_sync_meta'      => $prefix_block['match'],
+			);
+		}
+
+		$trailer_block = wp_de_rtc_match_edge_script_stripped_sync_meta_block( $content, 'trailer' );
+
+		if ( false !== $trailer_block ) {
+			$parsed = wp_de_rtc_parse_script_stripped_sync_meta_block( $trailer_block );
+
+			if ( is_wp_error( $parsed ) ) {
+				return $parsed;
+			}
+
+			return array(
+					'content'            => wp_de_rtc_canonicalize_post_content_core_block_names( substr( $content, 0, strlen( $content ) - strlen( $trailer_block['match'] ) ) ),
+					'sync_meta'          => $parsed['sync_meta'],
+					'sync_meta_format'   => $parsed['sync_meta_format'],
+					'sync_meta_position' => 'prefix-block',
+				'raw_sync_meta'      => $trailer_block['match'],
 			);
 		}
 	}
@@ -19760,7 +19959,12 @@ function wp_de_rtc_find_latest_revision_with_sync_meta( $post ) {
 			continue;
 		}
 
-		$parsed = wp_de_rtc_parse_post_content_sync_meta( $revision->post_content );
+		$parsed = wp_de_rtc_parse_post_content_sync_meta(
+			$revision->post_content,
+			array(
+				'allow_script_stripped_sync_meta' => true,
+			)
+		);
 
 		if ( is_wp_error( $parsed ) ) {
 			$malformed_revision_ids[] = (int) $revision->ID;
@@ -19849,7 +20053,12 @@ function wp_de_rtc_find_revision_with_sync_meta_version( $post, $version ) {
 			continue;
 		}
 
-		$parsed = wp_de_rtc_parse_post_content_sync_meta( $revision->post_content );
+		$parsed = wp_de_rtc_parse_post_content_sync_meta(
+			$revision->post_content,
+			array(
+				'allow_script_stripped_sync_meta' => true,
+			)
+		);
 
 		if ( is_wp_error( $parsed ) ) {
 			$malformed_revision_ids[] = (int) $revision->ID;
@@ -20905,25 +21114,39 @@ function wp_de_rtc_create_recovery_apply_result( $dry_run, $result, $applied, $e
  * @return int[] Revision IDs in WordPress revision query order.
  */
 function wp_de_rtc_get_post_revision_ids( $post_id ) {
+	global $wpdb;
+
+	$post_id = (int) $post_id;
+
+	if ( $post_id <= 0 ) {
+		return array();
+	}
+
+	/*
+	 * Retry-save responses only need revision IDs for before/after evidence.
+	 * `wp_get_post_revisions()` materializes every revision post object, which
+	 * scales poorly once long collaborative tests have hundreds of large
+	 * revisions. Keep this helper ID-only so normal saves do not spend their
+	 * memory budget loading historical post bodies.
+	 */
 	return array_map(
 		'intval',
-		array_keys(
-			wp_get_post_revisions(
-				$post_id,
-				array(
-					'check_enabled' => false,
-				)
+		$wpdb->get_col(
+			$wpdb->prepare(
+				"SELECT ID FROM {$wpdb->posts} WHERE post_parent = %d AND post_type = 'revision' ORDER BY post_date DESC, ID DESC",
+				$post_id
 			)
 		)
 	);
 }
 
 /**
- * Attempts a paragraph rich-text mark merge for one serialized block.
+ * Attempts a paragraph rich-text merge for one serialized block.
  *
  * This is deliberately narrower than a general HTML merge. It only accepts a
- * top-level paragraph whose visible text is unchanged on both sides and whose
- * concurrent edits touch disjoint inline strong/em ranges.
+ * top-level paragraph with the same block shell. It can merge disjoint inline
+ * strong/em mark changes, and the common editing shape where one side changes
+ * paragraph text while the other side only changes marks on retained text.
  *
  * @since 7.1.0
  * @access private
@@ -20958,27 +21181,64 @@ function wp_de_rtc_get_post_revision_ids( $post_id ) {
 	if (
 		! $base_model ||
 		! $server_model ||
-		! $proposed_model ||
-		$base_model['text'] !== $server_model['text'] ||
-		$base_model['text'] !== $proposed_model['text']
+		! $proposed_model
 	) {
 		return null;
 	}
 
-	$server_changed   = wp_de_rtc_get_rich_text_changed_indexes( $base_model, $server_model );
-	$proposed_changed = wp_de_rtc_get_rich_text_changed_indexes( $base_model, $proposed_model );
+	$server_splice   = wp_de_rtc_get_rich_text_text_splice( $base_model['text'], $server_model['text'] );
+	$proposed_splice = wp_de_rtc_get_rich_text_text_splice( $base_model['text'], $proposed_model['text'] );
+	$server_text_changed   = ! empty( $server_splice['changed'] );
+	$proposed_text_changed = ! empty( $proposed_splice['changed'] );
 
-	if ( wp_de_rtc_rich_text_changed_indexes_overlap( $server_changed, $proposed_changed ) ) {
+	if ( ! $server_text_changed && ! $proposed_text_changed ) {
+		$server_changed   = wp_de_rtc_get_rich_text_changed_indexes( $base_model, $server_model );
+		$proposed_changed = wp_de_rtc_get_rich_text_changed_indexes( $base_model, $proposed_model );
+
+		if ( wp_de_rtc_rich_text_changed_indexes_overlap( $server_changed, $proposed_changed ) ) {
+			return null;
+		}
+
+		$merged_model = wp_de_rtc_merge_rich_text_format_models(
+			$base_model,
+			$server_model,
+			$server_changed,
+			$proposed_model,
+			$proposed_changed
+		);
+
+		return array(
+			'merged_block' => $base['open'] . wp_de_rtc_format_rich_text_model_html( $merged_model ) . $base['close'],
+		);
+	}
+
+	if ( $server_text_changed && $proposed_text_changed ) {
 		return null;
 	}
 
-	$merged_model = wp_de_rtc_merge_rich_text_format_models(
-		$base_model,
-		$server_model,
-		$server_changed,
-		$proposed_model,
-		$proposed_changed
-	);
+	if ( $server_text_changed ) {
+		$format_changed = wp_de_rtc_get_rich_text_changed_indexes( $base_model, $proposed_model );
+		$text_changed   = wp_de_rtc_get_retained_rich_text_mark_changed_indexes( $base_model, $server_model, $server_splice );
+
+		if ( is_wp_error( $text_changed ) || wp_de_rtc_rich_text_changed_indexes_overlap( $text_changed, $format_changed ) ) {
+			return null;
+		}
+
+		$merged_model = wp_de_rtc_merge_rich_text_text_and_format_models( $server_model, $proposed_model, $server_splice, $format_changed );
+	} else {
+		$format_changed = wp_de_rtc_get_rich_text_changed_indexes( $base_model, $server_model );
+		$text_changed   = wp_de_rtc_get_retained_rich_text_mark_changed_indexes( $base_model, $proposed_model, $proposed_splice );
+
+		if ( is_wp_error( $text_changed ) || wp_de_rtc_rich_text_changed_indexes_overlap( $text_changed, $format_changed ) ) {
+			return null;
+		}
+
+		$merged_model = wp_de_rtc_merge_rich_text_text_and_format_models( $proposed_model, $server_model, $proposed_splice, $format_changed );
+	}
+
+	if ( null === $merged_model ) {
+		return null;
+	}
 
 	return array(
 		'merged_block' => $base['open'] . wp_de_rtc_format_rich_text_model_html( $merged_model ) . $base['close'],
@@ -21456,6 +21716,200 @@ function wp_de_rtc_rich_text_changed_indexes_overlap( $left, $right ) {
 	}
 
 	return false;
+}
+
+/**
+ * Returns the single text splice between two rich-text plain text values.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param string $base_text Base visible text.
+ * @param string $next_text Next visible text.
+ * @return array Text splice evidence.
+ */
+function wp_de_rtc_get_rich_text_text_splice( $base_text, $next_text ) {
+	if ( $base_text === $next_text ) {
+		return array(
+			'changed'      => false,
+			'start'        => 0,
+			'delete_count' => 0,
+			'insert_text'  => '',
+			'insert_count' => 0,
+			'end'          => 0,
+			'delta'        => 0,
+		);
+	}
+
+	$base_chars = wp_de_rtc_split_utf8_string( $base_text );
+	$next_chars = wp_de_rtc_split_utf8_string( $next_text );
+	$base_count = count( $base_chars );
+	$next_count = count( $next_chars );
+	$prefix     = 0;
+
+	while ( $prefix < $base_count && $prefix < $next_count && $base_chars[ $prefix ] === $next_chars[ $prefix ] ) {
+		++$prefix;
+	}
+
+	$suffix = 0;
+	while (
+		$suffix < $base_count - $prefix &&
+		$suffix < $next_count - $prefix &&
+		$base_chars[ $base_count - 1 - $suffix ] === $next_chars[ $next_count - 1 - $suffix ]
+	) {
+		++$suffix;
+	}
+
+	$delete_count = $base_count - $prefix - $suffix;
+	$insert_chars = array_slice( $next_chars, $prefix, $next_count - $prefix - $suffix );
+	$insert_count = count( $insert_chars );
+
+	return array(
+		'changed'      => true,
+		'start'        => $prefix,
+		'delete_count' => $delete_count,
+		'insert_text'  => implode( '', $insert_chars ),
+		'insert_count' => $insert_count,
+		'end'          => $prefix + $delete_count,
+		'delta'        => $insert_count - $delete_count,
+	);
+}
+
+/**
+ * Maps a retained base-text index through a text splice.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param int   $index  Base text index.
+ * @param array $splice Text splice evidence.
+ * @return int|null Target index, or null when the base character was deleted.
+ */
+function wp_de_rtc_transform_rich_text_base_index( $index, $splice ) {
+	$index = (int) $index;
+
+	if ( empty( $splice['changed'] ) ) {
+		return $index;
+	}
+
+	$start        = (int) $splice['start'];
+	$delete_count = (int) $splice['delete_count'];
+	$end          = $start + $delete_count;
+
+	if ( $index < $start ) {
+		return $index;
+	}
+
+	if ( $index >= $end ) {
+		return $index + (int) $splice['delta'];
+	}
+
+	return null;
+}
+
+/**
+ * Returns mark changes on retained text after accounting for a text splice.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param array $base   Base rich-text model.
+ * @param array $next   Text-changing rich-text model.
+ * @param array $splice Text splice evidence.
+ * @return int[]|WP_Error Base indexes whose marks changed on retained text.
+ */
+function wp_de_rtc_get_retained_rich_text_mark_changed_indexes( $base, $next, $splice ) {
+	$changed    = array();
+	$base_chars = wp_de_rtc_split_utf8_string( $base['text'] );
+	$next_chars = wp_de_rtc_split_utf8_string( $next['text'] );
+	$next_count = count( $next_chars );
+
+	foreach ( $base_chars as $index => $char ) {
+		$target_index = wp_de_rtc_transform_rich_text_base_index( $index, $splice );
+
+		if ( null === $target_index ) {
+			continue;
+		}
+
+		if ( $target_index < 0 || $target_index >= $next_count ) {
+			return wp_de_rtc_get_reason_error(
+				'de_rtc_rebase_failed',
+				__( 'Distributed Editing could not map rich text marks through a text edit.' ),
+				array(
+					'detail' => 'rich_text_mark_index_transform_failed',
+				)
+			);
+		}
+
+		foreach ( array( 'strong', 'em' ) as $mark ) {
+			if ( wp_de_rtc_rich_text_has_mark_at( $base, $mark, $index ) !== wp_de_rtc_rich_text_has_mark_at( $next, $mark, $target_index ) ) {
+				$changed[ $index ] = $index;
+			}
+		}
+	}
+
+	return array_values( $changed );
+}
+
+/**
+ * Applies format-only changes onto the model produced by a text edit.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param array $text_changed_model    Model from the text-changing side.
+ * @param array $format_changed_model  Model from the format-only side.
+ * @param array $text_splice           Text splice evidence for the text-changing side.
+ * @param int[] $format_changed_indexes Base indexes changed by the format-only side.
+ * @return array|null Merged model, or null when indexes cannot be transformed.
+ */
+function wp_de_rtc_merge_rich_text_text_and_format_models( $text_changed_model, $format_changed_model, $text_splice, $format_changed_indexes ) {
+	$target_chars = wp_de_rtc_split_utf8_string( $text_changed_model['text'] );
+	$target_count = count( $target_chars );
+	$marks        = array();
+
+	for ( $index = 0; $index < $target_count; ++$index ) {
+		foreach ( array( 'strong', 'em' ) as $mark ) {
+			if ( wp_de_rtc_rich_text_has_mark_at( $text_changed_model, $mark, $index ) ) {
+				$marks[ $index ][ $mark ] = true;
+			}
+		}
+	}
+
+	foreach ( $format_changed_indexes as $base_index ) {
+		$target_index = wp_de_rtc_transform_rich_text_base_index( $base_index, $text_splice );
+
+		if ( null === $target_index || $target_index < 0 || $target_index >= $target_count ) {
+			return null;
+		}
+
+		foreach ( array( 'strong', 'em' ) as $mark ) {
+			if ( wp_de_rtc_rich_text_has_mark_at( $format_changed_model, $mark, (int) $base_index ) ) {
+				$marks[ $target_index ][ $mark ] = true;
+			} elseif ( isset( $marks[ $target_index ][ $mark ] ) ) {
+				unset( $marks[ $target_index ][ $mark ] );
+			}
+		}
+	}
+
+	$merged_marks = array();
+
+	for ( $index = 0; $index < $target_count; ++$index ) {
+		foreach ( array( 'strong', 'em' ) as $mark ) {
+			if ( ! empty( $marks[ $index ][ $mark ] ) ) {
+				$merged_marks[] = array(
+					'type'  => $mark,
+					'start' => $index,
+					'end'   => $index + 1,
+				);
+			}
+		}
+	}
+
+	return array(
+		'text'  => $text_changed_model['text'],
+		'marks' => wp_de_rtc_coalesce_rich_text_marks( $merged_marks ),
+	);
 }
 
 /**
@@ -22135,6 +22589,7 @@ function wp_de_rtc_get_block_identity_retained_edits_server_merge_result( $base_
 		$table_cell_merged_indexes = array();
 		$table_cell_server_changed_cells = array();
 		$table_cell_local_changed_cells  = array();
+		$rich_text_merged_indexes        = array();
 		$base_count                = count( $base_records );
 
 	for ( $index = 0; $index < $base_count; $index++ ) {
@@ -22160,6 +22615,22 @@ function wp_de_rtc_get_block_identity_retained_edits_server_merge_result( $base_
 		$merged_index   = count( $merged_blocks );
 
 			if ( $server_changed && $local_changed && ! hash_equals( $server_item['serialized_hash'], $proposed_item['serialized_hash'] ) ) {
+				$rich_text_merge = wp_de_rtc_get_rich_text_serialized_block_merge_candidate( $base_item['record'], $server_item['record'], $proposed_item['record'] );
+
+				if ( is_array( $rich_text_merge ) && ! empty( $rich_text_merge['merged_block'] ) ) {
+					$merged_record                   = $rich_text_merge['merged_block'];
+					$merged_item                     = $base_item;
+					$merged_item['record']           = $merged_record;
+					$merged_item['serialized_hash']  = wp_de_rtc_hash_content( $merged_record );
+					$server_changed_indexes[]        = $merged_index;
+					$local_changed_indexes[]         = $merged_index;
+					$retained_edit_indexes[]         = $merged_index;
+					$rich_text_merged_indexes[]      = $merged_index;
+					$merged_blocks[]                 = $merged_item['record'];
+					$merged_block_map[]              = wp_de_rtc_get_block_identity_merged_map_record( $merged_item, $merged_index );
+					continue;
+				}
+
 				$table_cell_merge = wp_de_rtc_get_table_cell_serialized_block_merge_candidate( $base_item['record'], $server_item['record'], $proposed_item['record'] );
 
 				if ( is_array( $table_cell_merge ) && ! empty( $table_cell_merge['merged_block'] ) ) {
@@ -22262,6 +22733,8 @@ function wp_de_rtc_get_block_identity_retained_edits_server_merge_result( $base_
 			'table_cell_merged_block_count'      => count( $table_cell_merged_indexes ),
 			'table_cell_server_changed_cells'    => $table_cell_server_changed_cells,
 			'table_cell_local_changed_cells'     => $table_cell_local_changed_cells,
+			'rich_text_merged_indexes'           => array_map( 'intval', $rich_text_merged_indexes ),
+			'rich_text_merged_block_count'       => count( $rich_text_merged_indexes ),
 			'block_identity_inserted_indexes'     => array(),
 		'block_identity_inserted_block_count' => $block_identity_request_proof_validation['inserted_block_count'],
 		'block_identity_server_inserted_indexes' => array(),
@@ -23165,7 +23638,7 @@ function wp_de_rtc_get_serialized_block_deletion( $base_records, $candidate_reco
  * @return string[]|WP_Error Serialized top-level records, or an unsafe-boundary error.
  */
 	function wp_de_rtc_get_top_level_serialized_block_records( $content ) {
-		$content   = wp_de_rtc_canonicalize_post_content_core_block_names( $content );
+		$content   = wp_de_rtc_canonicalize_post_content_for_hash( $content );
 		$blocks    = parse_blocks( $content );
 	$records   = array();
 	$roundtrip = '';
@@ -23717,9 +24190,10 @@ function wp_de_rtc_get_block_identity_contract_required_fields() {
  * @param mixed       $accepted_sync_meta          Accepted-base sync metadata.
  * @param string      $proposed_post_content_hash SHA-256 hash of proposed stripped content.
  * @param int|WP_Post $post                       Post ID or object.
+ * @param string[]    $alternate_proposed_post_content_hashes Optional accepted equivalent proposed-content hashes.
  * @return array|WP_Error Validation evidence, or a no-write error.
  */
-function wp_de_rtc_validate_retry_save_block_identity_request_proof( $request_proof, $accepted_sync_meta, $proposed_post_content_hash, $post ) {
+function wp_de_rtc_validate_retry_save_block_identity_request_proof( $request_proof, $accepted_sync_meta, $proposed_post_content_hash, $post, $alternate_proposed_post_content_hashes = array() ) {
 	$post       = get_post( $post );
 	$validation = wp_de_rtc_validate_block_identity_request_proof( $request_proof, $accepted_sync_meta );
 
@@ -23738,7 +24212,16 @@ function wp_de_rtc_validate_retry_save_block_identity_request_proof( $request_pr
 		return $validation;
 	}
 
-	if ( ! hash_equals( $validation['proposed_post_content_hash'], $proposed_post_content_hash ) ) {
+	$proposed_hash_matches = hash_equals( $validation['proposed_post_content_hash'], $proposed_post_content_hash );
+
+	foreach ( is_array( $alternate_proposed_post_content_hashes ) ? $alternate_proposed_post_content_hashes : array() as $alternate_hash ) {
+		if ( is_string( $alternate_hash ) && wp_de_rtc_is_sha256_hash( $alternate_hash ) && hash_equals( $validation['proposed_post_content_hash'], $alternate_hash ) ) {
+			$proposed_hash_matches = true;
+			break;
+		}
+	}
+
+	if ( ! $proposed_hash_matches ) {
 		return wp_de_rtc_get_reason_error(
 			'de_rtc_sync_meta_tampered',
 			__( 'Distributed Editing rejected the retry save because block identity proof targeted different proposed content.' ),
@@ -24558,7 +25041,50 @@ function wp_de_rtc_validate_recovery_update_candidate( $plan ) {
  * @return string SHA-256 content hash.
  */
 	function wp_de_rtc_hash_content( $content ) {
-		return hash( 'sha256', wp_de_rtc_canonicalize_post_content_core_block_names( $content ) );
+		return hash( 'sha256', wp_de_rtc_canonicalize_post_content_for_hash( $content ) );
+	}
+
+	/**
+	 * Canonicalizes serialized post content for DE-RTC evidence hashes.
+	 *
+	 * Hash evidence must not depend on whether Gutenberg or WordPress emitted
+	 * harmless whitespace around serialized block comment boundaries. Persistence
+	 * still uses the caller's original content; this helper only normalizes the
+	 * material fed into SHA-256 comparisons.
+	 *
+	 * @since 7.1.0
+	 * @access private
+	 *
+	 * @param string $content Serialized post content.
+	 * @return string Canonicalized content for hash evidence.
+	 */
+	function wp_de_rtc_canonicalize_post_content_for_hash( $content ) {
+		return wp_de_rtc_canonicalize_serialized_block_boundary_whitespace(
+			wp_de_rtc_canonicalize_post_content_core_block_names( $content )
+		);
+	}
+
+	/**
+	 * Removes insignificant whitespace around serialized block boundaries.
+	 *
+	 * WordPress may persist pretty serialized blocks while Gutenberg exposes the
+	 * same blocks compactly in the editor store. DE-RTC evidence compares the
+	 * block document, not typography between block delimiters and their saved
+	 * HTML.
+	 *
+	 * @since 7.1.0
+	 * @access private
+	 *
+	 * @param string $content Serialized post content.
+	 * @return string Content with block-boundary whitespace normalized.
+	 */
+	function wp_de_rtc_canonicalize_serialized_block_boundary_whitespace( $content ) {
+		$content = (string) $content;
+		$content = preg_replace( '~(<!--\s*wp:[\s\S]*?-->)\s+(?=<)~', '$1', $content );
+		$content = preg_replace( '~(?<=>)\s+(<!--\s*/wp:[\s\S]*?-->)~', '$1', $content );
+		$content = preg_replace( '~(<!--\s*/wp:[\s\S]*?-->)\s+(?=<!--\s*wp:)~', '$1', $content );
+
+		return $content;
 	}
 
 	/**
@@ -24788,6 +25314,114 @@ function wp_de_rtc_match_edge_sync_meta_script( $content, $position ) {
 		'json'   => $matches[2],
 		'position' => 'trailer',
 	);
+}
+
+/**
+ * Matches a sync-meta pseudo-block whose SCRIPT wrapper was stripped.
+ *
+ * This is intentionally not part of the normal parser path. It lets revision
+ * scans recover accepted bases created before DE-RTC preserved SCRIPT through
+ * author KSES, while live saves still require the server-owned SCRIPT wrapper.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param string $content  Post content.
+ * @param string $position Edge position, either 'prefix' or 'trailer'.
+ * @return array|false Matched pseudo-block data, or false when absent.
+ */
+function wp_de_rtc_match_edge_script_stripped_sync_meta_block( $content, $position ) {
+	if ( ! is_string( $content ) || false === stripos( $content, 'sync-meta' ) ) {
+		return false;
+	}
+
+	$block_pattern = '(<!--\s*wp:(?:core/)?sync-meta\b(?P<attrs>[^>]*)-->\s*(?P<json>[\s\S]*?)\s*<!--\s*/wp:(?:core/)?sync-meta\s*-->)';
+
+	if ( 'prefix' === $position ) {
+		$pattern = '~\A[ \t\r\n]*' . $block_pattern . '[ \t\r\n]*~i';
+
+		if ( ! preg_match( $pattern, $content, $matches ) ) {
+			return false;
+		}
+
+		return array(
+			'match' => $matches[0],
+			'json'  => isset( $matches['json'] ) ? trim( $matches['json'] ) : '',
+			'attrs' => isset( $matches['attrs'] ) ? trim( $matches['attrs'] ) : '',
+		);
+	}
+
+	$trimmed_content = rtrim( $content );
+	$pattern         = '~[ \t\r\n]*' . $block_pattern . '[ \t\r\n]*\z~i';
+
+	if ( ! preg_match( $pattern, $trimmed_content, $matches, PREG_OFFSET_CAPTURE ) ) {
+		return false;
+	}
+
+	return array(
+		'match' => substr( $content, $matches[1][1] ),
+		'json'  => isset( $matches['json'][0] ) ? trim( $matches['json'][0] ) : '',
+		'attrs' => isset( $matches['attrs'][0] ) ? trim( $matches['attrs'][0] ) : '',
+	);
+}
+
+/**
+ * Parses a KSES-stripped sync-meta pseudo-block match.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param array $block Matched block data.
+ * @return array|WP_Error Parsed sync metadata.
+ */
+function wp_de_rtc_parse_script_stripped_sync_meta_block( $block ) {
+	$json = isset( $block['json'] ) && is_string( $block['json'] ) ? trim( $block['json'] ) : '';
+
+	if ( '' === $json || '{' !== $json[0] || '}' !== substr( $json, -1 ) ) {
+		return wp_de_rtc_get_reason_error(
+			'de_rtc_malformed_sync_payload',
+			__( 'The Distributed Editing sync metadata JSON is malformed.' ),
+			array(
+				'detail' => 'malformed_script_stripped_json',
+			)
+		);
+	}
+
+	$format = wp_de_rtc_get_script_stripped_sync_meta_block_format( isset( $block['attrs'] ) ? $block['attrs'] : '' );
+	$script = '<script type="application/json" data-wp-sync-meta="distributed-editing"';
+
+	if ( '' !== $format ) {
+		$script .= ' data-sync-meta-format="' . esc_attr( $format ) . '"';
+	}
+
+	$script .= '></script>';
+
+	return wp_de_rtc_parse_sync_meta_script( $script, $json );
+}
+
+/**
+ * Extracts the sync-meta format from pseudo-block attributes.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param string $attrs Serialized block attributes.
+ * @return string Normalized sync-meta format, or empty when absent.
+ */
+function wp_de_rtc_get_script_stripped_sync_meta_block_format( $attrs ) {
+	$attrs = trim( (string) $attrs );
+
+	if ( '' === $attrs || '{' !== $attrs[0] ) {
+		return '';
+	}
+
+	$decoded = json_decode( $attrs, true );
+
+	if ( JSON_ERROR_NONE !== json_last_error() || ! is_array( $decoded ) || empty( $decoded['format'] ) ) {
+		return '';
+	}
+
+	return wp_de_rtc_normalize_sync_meta_format( $decoded['format'] );
 }
 
 /**

@@ -87,7 +87,7 @@ class Tests_DE_RTC_Recovery_Plan extends WP_UnitTestCase {
 		$this->assertSame( $current_content, $plan['candidate_stripped_content'] );
 		$this->assertSame( hash( 'sha256', $current_content ), $plan['candidate_stripped_content_hash'] );
 		$this->assertSame( hash( 'sha256', $base_content ), $plan['base_revision_content_hash'] );
-		$this->assertSame( hash( 'sha256', $plan['candidate_post_content'] ), $plan['candidate_post_content_hash'] );
+		$this->assertSame( wp_de_rtc_hash_content( $plan['candidate_post_content'] ), $plan['candidate_post_content_hash'] );
 		$this->assertSame( $base_metadata, $plan['restored_sync_meta'] );
 		$this->assertSame( 'automerge', $plan['restored_sync_meta_format'] );
 		$this->assertSame( 'prefix', $plan['restored_sync_meta_position'] );
@@ -259,7 +259,7 @@ class Tests_DE_RTC_Recovery_Plan extends WP_UnitTestCase {
 		$this->assertSame( $current_content, $plan['candidate_stripped_content'] );
 		$this->assertSame( hash( 'sha256', $current_content ), $plan['candidate_stripped_content_hash'] );
 		$this->assertIsString( $plan['candidate_post_content'] );
-		$this->assertSame( hash( 'sha256', $plan['candidate_post_content'] ), $plan['candidate_post_content_hash'] );
+		$this->assertSame( wp_de_rtc_hash_content( $plan['candidate_post_content'] ), $plan['candidate_post_content_hash'] );
 		$this->assertSame( 'automerge', $plan['restored_sync_meta_format'] );
 		$this->assertSame( 'prefix-block', $plan['restored_sync_meta_position'] );
 		$this->assertSame( 'de-rtc-automerge-v1', $plan['restored_sync_meta']['schema'] );

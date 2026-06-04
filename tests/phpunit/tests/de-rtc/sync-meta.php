@@ -182,6 +182,41 @@ class Tests_DE_RTC_Sync_Meta extends WP_UnitTestCase {
 
 	/**
 	 * @covers ::wp_de_rtc_parse_post_content_sync_meta
+	 * @covers ::wp_de_rtc_match_edge_script_stripped_sync_meta_block
+	 * @covers ::wp_de_rtc_parse_script_stripped_sync_meta_block
+	 */
+	public function test_revision_scan_parser_can_read_script_stripped_sync_meta_prefix_block() {
+		$content  = '<!-- wp:paragraph --><p>Hello.</p><!-- /wp:paragraph -->';
+		$metadata = array(
+			'version' => '21',
+			'schema'  => 'de-rtc-automerge-v1',
+		);
+		$combined = '<!-- wp:sync-meta {"format":"automerge"} -->' . "\n\n"
+			. wp_json_encode( $metadata, JSON_UNESCAPED_SLASHES )
+			. "\n\n" . '<!-- /wp:sync-meta -->'
+			. $content;
+
+		$default_result = wp_de_rtc_parse_post_content_sync_meta( $combined );
+		$this->assertWPError( $default_result );
+		$this->assertSame( 'sync_meta_not_at_content_edge', $default_result->get_error_data()['detail'] );
+
+		$extracted = wp_de_rtc_parse_post_content_sync_meta(
+			$combined,
+			array(
+				'allow_script_stripped_sync_meta' => true,
+			)
+		);
+
+		$this->assertIsArray( $extracted );
+		$this->assertSame( $content, $extracted['content'] );
+		$this->assertSame( $metadata, $extracted['sync_meta'] );
+		$this->assertSame( 'automerge', $extracted['sync_meta_format'] );
+		$this->assertSame( 'prefix-block', $extracted['sync_meta_position'] );
+		$this->assertStringNotContainsString( '<script', $extracted['raw_sync_meta'] );
+	}
+
+	/**
+	 * @covers ::wp_de_rtc_parse_post_content_sync_meta
 	 * @covers ::wp_de_rtc_match_edge_sync_meta_script
 	 */
 	public function test_parses_freeform_wrapped_trailing_sync_meta_and_returns_content_without_meta() {
