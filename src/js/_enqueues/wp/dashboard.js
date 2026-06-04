@@ -147,7 +147,7 @@ jQuery( function($) {
 
 		function validateAtLeastOne() {
 			var isFilled = titleInput.val().trim() || contentInput.val().trim(),
-				message = isFilled ? '' : wp.i18n.__( 'You must provide at least the title or the content.' );
+				message = isFilled ? '' : wp.i18n.__( 'Please provide at least the title or the content.' );
 			titleInput[0].setCustomValidity( message );
 			contentInput[0].setCustomValidity( message );
 		}
