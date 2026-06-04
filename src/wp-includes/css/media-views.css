@@ -1828,12 +1828,6 @@ select#media-attachment-date-filters {
 	vertical-align: middle;
 }
 
-.media-modal .media-toolbar .spinner {
-	float: none;
-	vertical-align: bottom;
-	margin: 0 0 5px 5px;
-}
-
 .media-frame .instructions + .spinner.is-active {
 	vertical-align: middle;
 }
@@ -2858,10 +2852,6 @@ select#media-attachment-date-filters {
 
 	.media-frame .media-toolbar input[type="search"] {
 		line-height: 2.3755; /* 38px */
-	}
-
-	.media-modal .media-toolbar .spinner {
-		margin-bottom: 10px;
 	}
 }
 
