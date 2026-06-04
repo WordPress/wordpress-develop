@@ -868,7 +868,10 @@
 			'wp-url'
 		),
 		'module_dependencies' => array(
-			
+			array(
+				'id' => '@wordpress/vips/worker',
+				'import' => 'dynamic'
+			)
 		),
 		'version' => '1399274c1ad48fc29498'
 	),
