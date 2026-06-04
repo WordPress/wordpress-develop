@@ -3206,10 +3206,11 @@ class WP_Theme_JSON {
 		$block_elements       = $block_metadata['elements'] ?? array();
 
 		// If there are style variations, generate the declarations for them, including any feature selectors the block may have.
-		$style_variation_declarations    = array();
-		$style_variation_custom_css      = array();
-		$style_variation_responsive_css  = array();
-		$style_variation_layout_metadata = array();
+		$style_variation_declarations          = array();
+		$style_variation_custom_css            = array();
+		$style_variation_responsive_css        = array();
+		$style_variation_responsive_pseudo_css = array();
+		$style_variation_layout_metadata       = array();
 		if ( ! $media_query && ! empty( $block_metadata['variations'] ) ) {
 			foreach ( $block_metadata['variations'] as $style_variation ) {
 				$style_variation_node = _wp_array_get( $this->theme_json, $style_variation['path'], array() );
@@ -3261,7 +3262,8 @@ class WP_Theme_JSON {
 
 				// Store responsive breakpoint CSS for the style variation.
 				// This includes both base properties and feature-level selectors.
-				$variation_responsive_css = '';
+				$variation_responsive_css        = '';
+				$variation_responsive_pseudo_css = '';
 
 				foreach ( array_keys( static::RESPONSIVE_BREAKPOINTS ) as $breakpoint ) {
 					if ( ! isset( $style_variation_node[ $breakpoint ] ) ) {
@@ -3274,27 +3276,7 @@ class WP_Theme_JSON {
 					$breakpoint_feature_declarations = static::get_feature_declarations_for_node( $block_metadata, $breakpoint_node );
 					$breakpoint_feature_declarations = static::update_paragraph_text_indent_selector( $breakpoint_feature_declarations, $settings, $block_name );
 					foreach ( $breakpoint_feature_declarations as $feature_selector => $feature_decl ) {
-						$clean_feature_selector = preg_replace( '/,\s+/', ',', $feature_selector );
-						$shortened_selector     = str_replace( $block_metadata['selector'], '', $clean_feature_selector );
-
-						if ( $block_metadata['selector'] && ! str_contains( $clean_feature_selector, $block_metadata['selector'] ) ) {
-							/*
-							 * Feature selector is block-level (e.g. `.wp-block-button` for
-							 * dimensions/width) — apply the variation class directly to it.
-							 */
-							$feature_element_selector = str_replace( $shortened_selector, '', $clean_style_variation_selector );
-							$combined_selectors       = str_replace( $feature_element_selector, '', $clean_style_variation_selector );
-						} else {
-							// Prepend the variation selector to the current selector.
-							$split_selectors    = explode( ',', $shortened_selector );
-							$updated_selectors  = array_map(
-								static function ( $split_selector ) use ( $clean_style_variation_selector ) {
-									return $clean_style_variation_selector . $split_selector;
-								},
-								$split_selectors
-							);
-							$combined_selectors = implode( ',', $updated_selectors );
-						}
+						$combined_selectors = static::get_block_style_variation_feature_selector( $style_variation, $feature_selector );
 
 						$feature_ruleset           = static::to_ruleset( ':root :where(' . $combined_selectors . ')', $feature_decl );
 						$variation_responsive_css .= $breakpoint_media . '{' . $feature_ruleset . '}';
@@ -3307,13 +3289,13 @@ class WP_Theme_JSON {
 						$variation_responsive_css .= $breakpoint_media . '{' . $base_ruleset . '}';
 					}
 
-					$breakpoint_pseudo_declarations = static::process_pseudo_selectors( $breakpoint_node, $style_variation['selector'], $settings, $block_name );
+					$breakpoint_pseudo_declarations = $this->process_pseudo_selectors( $breakpoint_node, $style_variation['selector'], $settings, $block_name, $block_metadata, $style_variation );
 					foreach ( $breakpoint_pseudo_declarations as $pseudo_selector => $pseudo_declarations ) {
 						if ( empty( $pseudo_declarations ) ) {
 							continue;
 						}
-						$pseudo_ruleset            = static::to_ruleset( ':root :where(' . $pseudo_selector . ')', $pseudo_declarations );
-						$variation_responsive_css .= $breakpoint_media . '{' . $pseudo_ruleset . '}';
+						$pseudo_ruleset                   = static::to_ruleset( ':root :where(' . $pseudo_selector . ')', $pseudo_declarations );
+						$variation_responsive_pseudo_css .= $breakpoint_media . '{' . $pseudo_ruleset . '}';
 					}
 
 					// Process custom CSS for this breakpoint.
@@ -3342,16 +3324,7 @@ class WP_Theme_JSON {
 								continue;
 							}
 
-							$clean_element_selector     = preg_replace( '/,\s+/', ',', $block_elements[ $element_name ] );
-							$shortened_selector         = str_replace( $block_metadata['selector'], '', $clean_element_selector );
-							$split_selectors            = explode( ',', $shortened_selector );
-							$updated_selectors          = array_map(
-								static function ( $split_selector ) use ( $clean_style_variation_selector ) {
-									return $clean_style_variation_selector . $split_selector;
-								},
-								$split_selectors
-							);
-							$variation_element_selector = implode( ',', $updated_selectors );
+							$variation_element_selector = static::get_block_style_variation_feature_selector( $style_variation, $block_elements[ $element_name ] );
 
 							$element_declarations = static::compute_style_properties( $element_node, $settings, null, $this->theme_json );
 							if ( ! empty( $element_declarations ) ) {
@@ -3375,8 +3348,8 @@ class WP_Theme_JSON {
 										continue;
 									}
 
-									$pseudo_selector_ruleset   = static::to_ruleset( ':root :where(' . static::append_to_selector( $variation_element_selector, $pseudo_selector ) . ')', $pseudo_declarations );
-									$variation_responsive_css .= $breakpoint_media . '{' . $pseudo_selector_ruleset . '}';
+									$pseudo_selector_ruleset          = static::to_ruleset( ':root :where(' . static::append_to_selector( $variation_element_selector, $pseudo_selector ) . ')', $pseudo_declarations );
+									$variation_responsive_pseudo_css .= $breakpoint_media . '{' . $pseudo_selector_ruleset . '}';
 								}
 							}
 						}
@@ -3385,6 +3358,9 @@ class WP_Theme_JSON {
 
 				if ( ! empty( $variation_responsive_css ) ) {
 					$style_variation_responsive_css[ $style_variation['selector'] ] = $variation_responsive_css;
+				}
+				if ( ! empty( $variation_responsive_pseudo_css ) ) {
+					$style_variation_responsive_pseudo_css[ $style_variation['selector'] ] = $variation_responsive_pseudo_css;
 				}
 			}
 		}
@@ -3573,6 +3549,13 @@ class WP_Theme_JSON {
 			if ( isset( $style_variation_responsive_css[ $style_variation_selector ] ) ) {
 				$block_rules .= $style_variation_responsive_css[ $style_variation_selector ];
 			}
+		}
+		/*
+		 * Responsive pseudo styles must be output after default pseudo styles
+		 * so viewport state styles win in the cascade.
+		 */
+		foreach ( $style_variation_responsive_pseudo_css as $responsive_pseudo_css ) {
+			$block_rules .= $responsive_pseudo_css;
 		}
 
 		// 7. Generate and append any custom CSS rules.
