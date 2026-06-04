@@ -65,8 +65,8 @@ class Tests_User_MapMetaCap extends WP_UnitTestCase {
 		);
 
 		$user_id    = self::factory()->user->create( array( 'role' => $role ) );
-		$comment_id = self::factory()->comment->create( array( 'comment_post_ID' => self::$post_id ) );
 		$post_id    = self::factory()->post->create();
+		$comment_id = self::factory()->comment->create( array( 'comment_post_ID' => $post_id ) );
 		$note_id    = self::factory()->comment->create(
 			array(
 				'comment_post_ID' => $post_id,
