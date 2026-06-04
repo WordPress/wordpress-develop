@@ -684,19 +684,17 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 	 * Covers: opcache enabled, disabled, not available, and opcache_get_status() returns false.
 	 *
 	 * @ticket 63697
+	 * @ticket 65395
 	 *
 	 * @covers ::get_test_opcode_cache()
+	 * @covers ::wp_opcache_is_enabled
 	 */
 	public function test_get_test_opcode_cache_result_by_environment() {
 		$result = $this->instance->get_test_opcode_cache();
 
-		$opcache_enabled = false;
-		if ( function_exists( 'opcache_get_status' ) ) {
-			$status = @opcache_get_status( false ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- Warning emitted in failure case.
-			if ( $status && true === $status['opcache_enabled'] ) {
-				$opcache_enabled = true;
-			}
-		}
+		require_once ABSPATH . 'wp-admin/includes/file.php';
+
+		$opcache_enabled = wp_opcache_is_enabled();
 
 		if ( $opcache_enabled ) {
 			$this->assertSame( 'good', $result['status'], 'When opcache is enabled, status should be "good".' );
