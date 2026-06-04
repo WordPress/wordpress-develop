@@ -1175,6 +1175,8 @@ class WP_HTML_Tag_Processor {
 	 *     // Outputs: "free <egg> lang-en "
 	 *
 	 * @since 6.4.0
+	 *
+	 * @return Generator<int, non-empty-string>
 	 */
 	public function class_list() {
 		if ( self::STATE_MATCHED_TAG !== $this->parser_state ) {
@@ -1422,7 +1424,7 @@ class WP_HTML_Tag_Processor {
 			$this->tag_name_starts_at = $at;
 
 			// Fail if there is no possible tag closer.
-			if ( false === $at || ( $at + $tag_length ) >= $doc_length ) {
+			if ( false === $at || ( $at + 2 + $tag_length ) >= $doc_length ) {
 				return false;
 			}
 
@@ -1813,6 +1815,12 @@ class WP_HTML_Tag_Processor {
 
 					// Abruptly-closed empty comments are a sequence of dashes followed by `>`.
 					$span_of_dashes = strspn( $html, '-', $closer_at );
+					if ( $doc_length <= $span_of_dashes + $closer_at ) {
+						$this->parser_state = self::STATE_INCOMPLETE_INPUT;
+
+						return false;
+					}
+
 					if ( '>' === $html[ $closer_at + $span_of_dashes ] ) {
 						/*
 						 * @todo When implementing `set_modifiable_text()` ensure that updates to this token
