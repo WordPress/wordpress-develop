@@ -471,7 +471,7 @@ function map_meta_cap( $cap, $user_id, ...$args ) {
 
 			$caps = map_meta_cap( "edit_{$object_type}", $user_id, $object_id );
 
-			$meta_key = isset( $args[1] ) ? $args[1] : false;
+			$meta_key = $args[1] ?? false;
 
 			if ( $meta_key ) {
 				$allowed = ! is_protected_meta( $meta_key, $object_type );
@@ -1130,11 +1130,11 @@ function get_role( $role ) {
  * @param string                               $display_name Display name for role.
  * @param array<string,bool>|array<int,string> $capabilities Capabilities to be added to the role.
  *                                                           Default empty array.
- * @return WP_Role|void WP_Role object, if the role is added.
+ * @return WP_Role|null WP_Role object, if the role is added.
  */
 function add_role( $role, $display_name, $capabilities = array() ) {
 	if ( empty( $role ) ) {
-		return;
+		return null;
 	}
 
 	return wp_roles()->add_role( $role, $display_name, $capabilities );

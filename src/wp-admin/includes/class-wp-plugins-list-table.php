@@ -42,15 +42,13 @@ class WP_Plugins_List_Table extends WP_List_Table {
 		parent::__construct(
 			array(
 				'plural' => 'plugins',
-				'screen' => isset( $args['screen'] ) ? $args['screen'] : null,
+				'screen' => $args['screen'] ?? null,
 			)
 		);
 
-		$allowed_statuses = array( 'active', 'inactive', 'recently_activated', 'upgrade', 'mustuse', 'dropins', 'search', 'paused', 'auto-update-enabled', 'auto-update-disabled' );
-
 		$status = 'all';
-		if ( isset( $_REQUEST['plugin_status'] ) && in_array( $_REQUEST['plugin_status'], $allowed_statuses, true ) ) {
-			$status = $_REQUEST['plugin_status'];
+		if ( isset( $_REQUEST['plugin_status'] ) ) {
+			$status = sanitize_key( $_REQUEST['plugin_status'] );
 		}
 
 		if ( isset( $_REQUEST['s'] ) ) {
@@ -186,7 +184,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 		}
 
 		foreach ( $recently_activated as $key => $time ) {
-			if ( $time + WEEK_IN_SECONDS < time() ) {
+			if ( ! is_int( $time ) || $time + WEEK_IN_SECONDS < time() ) {
 				unset( $recently_activated[ $key ] );
 			}
 		}
@@ -584,6 +582,25 @@ class WP_Plugins_List_Table extends WP_List_Table {
 						$count
 					);
 					break;
+				default:
+					/**
+					 * Filters the status text of default switch case in the plugins list table.
+					 *
+					 * @since 7.0.0
+					 *
+					 * @param string $text  Plugins list status text. Default empty string.
+					 * @param int    $count Count of the number of plugins.
+					 * @param string $type  The status slug being filtered.
+					 */
+					$text = apply_filters( 'plugins_list_status_text', '', $count, $type );
+					if ( empty( $text ) || ! is_string( $text ) ) {
+						$text = $type;
+					}
+					$text = esc_html( $text ) . ' ' . sprintf(
+						'<span class="count">(%s)</span>',
+						number_format_i18n( $count )
+					);
+					break;
 			}
 
 			if ( 'search' !== $type ) {
@@ -726,7 +743,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 
 		list( $plugin_file, $plugin_data ) = $item;
 
-		$plugin_slug    = isset( $plugin_data['slug'] ) ? $plugin_data['slug'] : sanitize_title( $plugin_data['Name'] );
+		$plugin_slug    = $plugin_data['slug'] ?? sanitize_title( $plugin_data['Name'] );
 		$plugin_id_attr = $plugin_slug;
 
 		// Ensure the ID attribute is unique.
@@ -753,8 +770,8 @@ class WP_Plugins_List_Table extends WP_List_Table {
 		$restrict_network_active = false;
 		$restrict_network_only   = false;
 
-		$requires_php = isset( $plugin_data['RequiresPHP'] ) ? $plugin_data['RequiresPHP'] : null;
-		$requires_wp  = isset( $plugin_data['RequiresWP'] ) ? $plugin_data['RequiresWP'] : null;
+		$requires_php = $plugin_data['RequiresPHP'] ?? null;
+		$requires_wp  = $plugin_data['RequiresWP'] ?? null;
 
 		$compatible_php = is_php_version_compatible( $requires_php );
 		$compatible_wp  = is_wp_version_compatible( $requires_wp );

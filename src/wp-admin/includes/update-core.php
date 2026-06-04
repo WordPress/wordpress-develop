@@ -837,17 +837,66 @@ $_old_files = array(
 	'wp-includes/blocks/post-template/editor.min.css',
 	'wp-includes/blocks/post-template/editor-rtl.css',
 	'wp-includes/blocks/post-template/editor-rtl.min.css',
-	'wp-includes/js/dist/undo-manager.js',
-	'wp-includes/js/dist/undo-manager.min.js',
 	'wp-includes/js/dist/fields.min.js',
 	'wp-includes/js/dist/fields.js',
 	// 6.9
-	'wp-includes/blocks/post-author/editor.css',
-	'wp-includes/blocks/post-author/editor.min.css',
-	'wp-includes/blocks/post-author/editor-rtl.css',
-	'wp-includes/blocks/post-author/editor-rtl.min.css',
 	'wp-includes/SimplePie/src/Decode',
 	'wp-includes/SimplePie/src/Core.php',
+	// 7.0
+	'wp-includes/assets/script-loader-packages.min.php',
+	'wp-includes/assets/script-loader-react-refresh-entry.php',
+	'wp-includes/assets/script-loader-react-refresh-entry.min.php',
+	'wp-includes/assets/script-loader-react-refresh-runtime.php',
+	'wp-includes/assets/script-loader-react-refresh-runtime.min.php',
+	'wp-includes/assets/script-modules-packages.min.php',
+	'wp-includes/blocks/archives/editor.css',
+	'wp-includes/blocks/archives/editor.min.css',
+	'wp-includes/blocks/archives/editor-rtl.css',
+	'wp-includes/blocks/archives/editor-rtl.min.css',
+	'wp-includes/blocks/file/view.asset.php',
+	'wp-includes/blocks/file/view.min.asset.php',
+	'wp-includes/blocks/file/view.js',
+	'wp-includes/blocks/file/view.min.js',
+	'wp-includes/blocks/image/view.asset.php',
+	'wp-includes/blocks/image/view.min.asset.php',
+	'wp-includes/blocks/image/view.js',
+	'wp-includes/blocks/image/view.min.js',
+	'wp-includes/blocks/navigation/view.asset.php',
+	'wp-includes/blocks/navigation/view.min.asset.php',
+	'wp-includes/blocks/navigation/view.js',
+	'wp-includes/blocks/navigation/view.min.js',
+	'wp-includes/blocks/navigation/view-modal.asset.php',
+	'wp-includes/blocks/navigation/view-modal.min.asset.php',
+	'wp-includes/blocks/query/view.asset.php',
+	'wp-includes/blocks/query/view.min.asset.php',
+	'wp-includes/blocks/query/view.js',
+	'wp-includes/blocks/query/view.min.js',
+	'wp-includes/blocks/search/view.asset.php',
+	'wp-includes/blocks/search/view.min.asset.php',
+	'wp-includes/blocks/search/view.js',
+	'wp-includes/blocks/search/view.min.js',
+	'wp-includes/blocks/tag-cloud/editor.css',
+	'wp-includes/blocks/tag-cloud/editor.min.css',
+	'wp-includes/blocks/tag-cloud/editor-rtl.css',
+	'wp-includes/blocks/tag-cloud/editor-rtl.min.css',
+	'wp-includes/css/dist/admin-ui/style.css',
+	'wp-includes/css/dist/admin-ui/style.min.css',
+	'wp-includes/css/dist/admin-ui/style-rtl.css',
+	'wp-includes/css/dist/admin-ui/style-rtl.min.css',
+	'wp-includes/css/dist/admin-ui/',
+	'wp-includes/css/dist/edit-site/posts.css',
+	'wp-includes/css/dist/edit-site/posts.min.css',
+	'wp-includes/css/dist/edit-site/posts-rtl.css',
+	'wp-includes/css/dist/edit-site/posts-rtl.min.css',
+	'wp-includes/js/dist/admin-ui.js',
+	'wp-includes/js/dist/admin-ui.min.js',
+	'wp-includes/js/dist/latex-to-mathml.js',
+	'wp-includes/js/dist/latex-to-mathml.min.js',
+	'wp-includes/js/dist/views.js',
+	'wp-includes/js/dist/views.min.js',
+	'wp-includes/js/dist/script-modules/interactivity/debug.js',
+	'wp-includes/js/dist/script-modules/interactivity/debug.min.js',
+	'wp-includes/js/dist/vendor/react-jsx-runtime.min.js.LICENSE.txt',
 );
 
 /**
@@ -1240,7 +1289,7 @@ function update_core( $from, $to ) {
 		// Find the local version of the working directory.
 		$working_dir_local = WP_CONTENT_DIR . '/upgrade/' . basename( $from ) . $distro;
 
-		$checksums = get_core_checksums( $wp_version, isset( $wp_local_package ) ? $wp_local_package : 'en_US' );
+		$checksums = get_core_checksums( $wp_version, $wp_local_package ?? 'en_US' );
 
 		if ( is_array( $checksums ) && isset( $checksums[ $wp_version ] ) ) {
 			$checksums = $checksums[ $wp_version ]; // Compat code for 3.7-beta2.
@@ -1722,7 +1771,7 @@ function _redirect_to_about_wordpress( $new_version ) {
 	);
 	echo '</div>';
 	?>
-<script type="text/javascript">
+<script>
 window.location = 'about.php?updated';
 </script>
 	<?php

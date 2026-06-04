@@ -1,7 +1,12 @@
 <?php
 /**
  * WP_Importer base class
+ *
+ * @package WordPress
+ * @subpackage Importer
+ * @since 3.0.0
  */
+
 #[AllowDynamicProperties]
 class WP_Importer {
 	/**
@@ -130,8 +135,14 @@ class WP_Importer {
 	}
 
 	/**
-	 * @param int $blog_id
-	 * @return int|void
+	 * Sets the blog to import to.
+	 *
+	 * Accepts a numeric blog ID or a URL string. When given a URL,
+	 * the blog is looked up by domain and path. On multisite, switches
+	 * to the resolved blog. Exits with an error if the blog cannot be found.
+	 *
+	 * @param int|string $blog_id Blog ID or URL.
+	 * @return int Blog ID on success. Exits on failure.
 	 */
 	public function set_blog( $blog_id ) {
 		if ( is_numeric( $blog_id ) ) {
@@ -172,7 +183,7 @@ class WP_Importer {
 
 	/**
 	 * @param int $user_id
-	 * @return int|void
+	 * @return int
 	 */
 	public function set_user( $user_id ) {
 		if ( is_numeric( $user_id ) ) {
@@ -274,7 +285,7 @@ class WP_Importer {
 	 * @since 3.0.0
 	 *
 	 * @global wpdb  $wpdb       WordPress database abstraction object.
-	 * @global int[] $wp_actions
+	 * @global int[] $wp_actions Stores the number of times each action was triggered.
 	 */
 	public function stop_the_insanity() {
 		global $wpdb, $wp_actions;
@@ -289,9 +300,10 @@ class WP_Importer {
  * Returns value of command line params.
  * Exits when a required param is not set.
  *
- * @param string $param
- * @param bool   $required
- * @return mixed
+ * @param string $param    The parameter name to retrieve.
+ * @param bool   $required Optional. Whether the parameter is required. Default false.
+ * @return string|true|null|never The parameter value or true if found, null otherwise.
+ *                                The function exits when a required parameter is missing.
  */
 function get_cli_args( $param, $required = false ) {
 	$args = $_SERVER['argv'];
@@ -311,11 +323,7 @@ function get_cli_args( $param, $required = false ) {
 			$parts = explode( '=', $match[1] );
 			$key   = preg_replace( '/[^a-z0-9]+/', '', $parts[0] );
 
-			if ( isset( $parts[1] ) ) {
-				$out[ $key ] = $parts[1];
-			} else {
-				$out[ $key ] = true;
-			}
+			$out[ $key ] = $parts[1] ?? true;
 
 			$last_arg = $key;
 		} elseif ( (bool) preg_match( '/^-([a-zA-Z0-9]+)/', $args[ $i ], $match ) ) {
