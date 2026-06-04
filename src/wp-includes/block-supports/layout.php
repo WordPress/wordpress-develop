@@ -90,87 +90,76 @@ function wp_sanitize_block_gap_value( $gap_value ) {
 }
 
 /**
- * Returns child layout style rules for a block affected by its parent's layout.
+ * Returns child layout styles for a block affected by its parent's layout.
  *
- * @param string     $selector          CSS selector.
- * @param array      $child_layout      Child layout values.
- * @param array      $parent_layout     Parent layout values.
- * @param array|null $viewport_overrides Optional viewport child layout overrides to emit.
+ * @param string     $selector           CSS selector.
+ * @param array      $child_layout       Child layout values.
+ * @param array      $parent_layout      Parent layout values.
+ * @param array|null $viewport_overrides Optional. Child viewport layout overrides to emit.
  * @return array Child layout style rules.
  */
 function wp_get_child_layout_style_rules( $selector, $child_layout, $parent_layout = array(), $viewport_overrides = null ) {
-	$base_child_layout      = is_array( $child_layout ) ? $child_layout : array();
-	$viewport_overrides     = is_array( $viewport_overrides ) ? $viewport_overrides : null;
-	$child_layout           = null === $viewport_overrides ? $base_child_layout : array_replace( $base_child_layout, $viewport_overrides );
-	$child_layout_styles    = array();
-	$has_override_property  = static function ( $property ) use ( $viewport_overrides ) {
-		return is_array( $viewport_overrides ) && array_key_exists( $property, $viewport_overrides );
+	$base_child_layout              = is_array( $child_layout ) ? $child_layout : array();
+	$viewport_overrides             = is_array( $viewport_overrides ) ? $viewport_overrides : null;
+	$child_layout                   = null === $viewport_overrides ? $base_child_layout : array_replace( $base_child_layout, $viewport_overrides );
+	$child_layout_declarations      = array();
+	$child_layout_styles            = array();
+	$has_viewport_property_override = static function ( $property ) use ( $viewport_overrides ) {
+		return array_key_exists( $property, $viewport_overrides );
 	};
 
 	$self_stretch = $child_layout['selfStretch'] ?? null;
 
-	if ( null === $viewport_overrides || $has_override_property( 'selfStretch' ) || $has_override_property( 'flexSize' ) ) {
+	if ( null === $viewport_overrides || $has_viewport_property_override( 'selfStretch' ) || $has_viewport_property_override( 'flexSize' ) ) {
 		if ( 'fixed' === $self_stretch && isset( $child_layout['flexSize'] ) ) {
-			$child_layout_styles[] = array(
-				'selector'     => $selector,
-				'declarations' => array(
-					'flex-basis' => $child_layout['flexSize'],
-					'box-sizing' => 'border-box',
-				),
-			);
+			$child_layout_declarations['flex-basis'] = $child_layout['flexSize'];
+			$child_layout_declarations['box-sizing'] = 'border-box';
 		} elseif ( 'fill' === $self_stretch ) {
-			$child_layout_styles[] = array(
-				'selector'     => $selector,
-				'declarations' => array( 'flex-grow' => '1' ),
-			);
+			$child_layout_declarations['flex-grow'] = '1';
 		}
 	}
 
 	$column_start = $child_layout['columnStart'] ?? null;
 	$column_span  = $child_layout['columnSpan'] ?? null;
-	if ( null === $viewport_overrides || $has_override_property( 'columnStart' ) || $has_override_property( 'columnSpan' ) ) {
+	if ( null === $viewport_overrides || $has_viewport_property_override( 'columnStart' ) || $has_viewport_property_override( 'columnSpan' ) ) {
 		if ( $column_start && $column_span ) {
-			$child_layout_styles[] = array(
-				'selector'     => $selector,
-				'declarations' => array( 'grid-column' => "$column_start / span $column_span" ),
-			);
+			$child_layout_declarations['grid-column'] = "$column_start / span $column_span";
 		} elseif ( $column_start ) {
-			$child_layout_styles[] = array(
-				'selector'     => $selector,
-				'declarations' => array( 'grid-column' => "$column_start" ),
-			);
+			$child_layout_declarations['grid-column'] = "$column_start";
 		} elseif ( $column_span ) {
-			$child_layout_styles[] = array(
-				'selector'     => $selector,
-				'declarations' => array( 'grid-column' => "span $column_span" ),
-			);
+			$child_layout_declarations['grid-column'] = "span $column_span";
 		}
 	}
 
 	$row_start = $child_layout['rowStart'] ?? null;
 	$row_span  = $child_layout['rowSpan'] ?? null;
-	if ( null === $viewport_overrides || $has_override_property( 'rowStart' ) || $has_override_property( 'rowSpan' ) ) {
+	if ( null === $viewport_overrides || $has_viewport_property_override( 'rowStart' ) || $has_viewport_property_override( 'rowSpan' ) ) {
 		if ( $row_start && $row_span ) {
-			$child_layout_styles[] = array(
-				'selector'     => $selector,
-				'declarations' => array( 'grid-row' => "$row_start / span $row_span" ),
-			);
+			$child_layout_declarations['grid-row'] = "$row_start / span $row_span";
 		} elseif ( $row_start ) {
-			$child_layout_styles[] = array(
-				'selector'     => $selector,
-				'declarations' => array( 'grid-row' => "$row_start" ),
-			);
+			$child_layout_declarations['grid-row'] = "$row_start";
 		} elseif ( $row_span ) {
-			$child_layout_styles[] = array(
-				'selector'     => $selector,
-				'declarations' => array( 'grid-row' => "span $row_span" ),
-			);
+			$child_layout_declarations['grid-row'] = "span $row_span";
 		}
+	}
+
+	if ( ! empty( $child_layout_declarations ) ) {
+		$child_layout_styles[] = array(
+			'selector'     => $selector,
+			'declarations' => $child_layout_declarations,
+		);
 	}
 
 	$minimum_column_width = $parent_layout['minimumColumnWidth'] ?? null;
 	$column_count         = $parent_layout['columnCount'] ?? null;
 
+	/*
+	 * If columnSpan or columnStart is set, and the parent grid is responsive, i.e. if it has a minimumColumnWidth set,
+	 * the columnSpan should be removed once the grid is smaller than the span, and columnStart should be removed
+	 * once the grid has less columns than the start.
+	 * If there's a minimumColumnWidth, the grid is responsive. But if the minimumColumnWidth value wasn't changed, it won't be set.
+	 * In that case, if columnCount doesn't exist, we can assume that the grid is responsive.
+	 */
 	if ( null === $viewport_overrides && ( $column_span || $column_start ) && ( $minimum_column_width || ! $column_count ) ) {
 		$column_span_number  = floatval( $column_span );
 		$column_start_number = floatval( $column_start );
@@ -178,6 +167,20 @@ function wp_get_child_layout_style_rules( $selector, $child_layout, $parent_layo
 		$parent_column_value = floatval( $parent_column_width );
 		$parent_column_unit  = explode( $parent_column_value, $parent_column_width );
 
+		$num_cols_to_break_at = 2;
+		if ( $column_span_number && $column_start_number ) {
+			$num_cols_to_break_at = $column_start_number + $column_span_number - 1;
+		} elseif ( $column_span_number ) {
+			$num_cols_to_break_at = $column_span_number;
+		} else {
+			$num_cols_to_break_at = $column_start_number;
+		}
+
+		/*
+		 * If there is no unit, the width has somehow been mangled so we reset both unit and value
+		 * to defaults.
+		 * Additionally, the unit should be one of px, rem or em, so that also needs to be checked.
+		 */
 		if ( count( $parent_column_unit ) <= 1 ) {
 			$parent_column_unit  = 'rem';
 			$parent_column_value = 12;
@@ -189,14 +192,24 @@ function wp_get_child_layout_style_rules( $selector, $child_layout, $parent_layo
 			}
 		}
 
-		$default_gap_value     = 'px' === $parent_column_unit ? 24 : 1.5;
-		$container_query_value = $column_span_number * $parent_column_value + ( $column_span_number - 1 ) * $default_gap_value;
-		$container_query_value = $container_query_value . $parent_column_unit;
+		/*
+		 * A default gap value is used for this computation because custom gap values may not be
+		 * viable to use in the computation of the container query value.
+		 */
+		$default_gap_value             = 'px' === $parent_column_unit ? 24 : 1.5;
+		$container_query_value         = $num_cols_to_break_at * $parent_column_value + ( $num_cols_to_break_at - 1 ) * $default_gap_value;
+		$minimum_container_query_value = $parent_column_value * 2 + $default_gap_value - 1;
+		$container_query_value         = max( $container_query_value, $minimum_container_query_value ) . $parent_column_unit;
+		// If a span is set we want to preserve it as long as possible, otherwise we just reset the value.
+		$grid_column_value = $column_span && $column_span > 1 ? '1/-1' : 'auto';
 
 		$child_layout_styles[] = array(
 			'rules_group'  => "@container (max-width: $container_query_value )",
 			'selector'     => $selector,
-			'declarations' => array( 'grid-column' => '1/-1' ),
+			'declarations' => array(
+				'grid-column' => $grid_column_value,
+				'grid-row'    => 'auto',
+			),
 		);
 	}
 
