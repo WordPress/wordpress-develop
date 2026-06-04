@@ -367,8 +367,8 @@ select#media-attachment-date-filters {
 
 .media-toolbar-secondary > .spinner {
 	position: absolute;
-	left: 100%;
-	bottom: 0;
+	left: calc( 100% + 5px );
+	top: calc( 50% - 8px );
 	margin: 0;
 }
 
@@ -2898,7 +2898,7 @@ select#media-attachment-date-filters {
 		top: 0;
 		bottom: 0;
 		margin: auto;
-		left: 0;
+		left: calc( 100% + 5px );
 		right: 0;
 		z-index: 9;
 	}
