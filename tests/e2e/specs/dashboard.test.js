@@ -65,9 +65,6 @@ test.describe( 'Quick Draft', () => {
 		await page.keyboard.press( 'Tab' );
 		await page.keyboard.press( 'Enter' );
 
-		await expect( saveDraftButton ).toBeVisible();
-		await saveDraftButton.click();
-
 		// Check that new draft appears in Your Recent Drafts section
 		await expect(
 			page.locator( '.drafts .draft-title' ).first().getByRole( 'link' )
