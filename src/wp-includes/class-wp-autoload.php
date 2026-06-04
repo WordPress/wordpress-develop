@@ -4,6 +4,29 @@
  *
  * Include this file if you'd like to avoid having to create your own autoloader.
  *
+ * ## Files intentionally excluded from the classmap
+ *
+ * Some `class-*.php` files are NOT autoloaded because they contain code beyond
+ * class/interface/trait definitions that must run at include time:
+ *
+ * - `wp-includes/class-wpdb.php`       — defines global constants (OBJECT, ARRAY_A, …)
+ *                                        and is loaded explicitly inside require_wp_db().
+ * - `wp-admin/includes/class-wp-importer.php` — defines the global function get_cli_args()
+ *                                               and is loaded by each importer plugin directly.
+ *
+ * ## Files with more than one class/interface/trait per file
+ *
+ * The following files each define multiple classes. Because `require_once` is used
+ * in autoload_core() (to guard against double-inclusion when external code already
+ * loaded the same file), this is safe. Splitting these files into one-class-per-file
+ * is tracked as a follow-up task.
+ *
+ * - `wp-includes/class-json.php`              — Services_JSON, Services_JSON_Error
+ * - `wp-includes/class-wp-http-streams.php`   — WP_HTTP_Streams, WP_HTTP_Fsockopen
+ * - `wp-admin/includes/class-ftp.php`         — ftp, ftp_base
+ * - `wp-admin/includes/deprecated.php`        — WP_User_Search, WP_Privacy_Data_Export_Requests_Table,
+ *                                               WP_Privacy_Data_Removal_Requests_Table
+ *
  * @package WordPress
  * @since   x.x.x
  */
@@ -161,7 +184,6 @@ final class WP_Autoload {
 		'wp_widget'                                   => 'wp-includes/class-wp-widget.php',
 		'wp_xmlrpc_server'                            => 'wp-includes/class-wp-xmlrpc-server.php',
 		'wp'                                          => 'wp-includes/class-wp.php',
-		'wpdb'                                        => 'wp-includes/class-wpdb.php', // Defines some constants.
 
 		// Classes in the wp-includes/fonts folder.
 		'wp_font_collection'                          => 'wp-includes/fonts/class-wp-font-collection.php',
@@ -404,7 +426,6 @@ final class WP_Autoload {
 		'wp_filesystem_ftpext'                        => 'wp-admin/includes/class-wp-filesystem-ftpext.php',
 		'wp_filesystem_ftpsockets'                    => 'wp-admin/includes/class-wp-filesystem-ftpsockets.php',
 		'wp_filesystem_ssh2'                          => 'wp-admin/includes/class-wp-filesystem-ssh2.php',
-		'wp_importer'                                 => 'wp-admin/includes/class-wp-importer.php', // Contains some additional functions.
 		'wp_internal_pointers'                        => 'wp-admin/includes/class-wp-internal-pointers.php',
 		'wp_links_list_table'                         => 'wp-admin/includes/class-wp-links-list-table.php',
 		'_wp_list_table_compat'                       => 'wp-admin/includes/class-wp-list-table-compat.php',
@@ -523,7 +544,13 @@ final class WP_Autoload {
 			return;
 		}
 
-		require ABSPATH . self::CLASSES_PATHS[ $class_name ];
+		/*
+		 * Use require_once rather than require because some files in the classmap define
+		 * more than one class (e.g. class-json.php defines Services_JSON and Services_JSON_Error).
+		 * When PHP autoloads the second class from such a file it would otherwise try to
+		 * include the file a second time, causing a fatal "Cannot redeclare class" error.
+		 */
+		require_once ABSPATH . self::CLASSES_PATHS[ $class_name ];
 	}
 }
 

@@ -159,8 +159,8 @@ class Tests_Autoloader_Classmap extends WP_UnitTestCase {
 			}
 
 			$file_contents = file_get_contents( $class_file );
-			// Extract the class name from the file.
-			preg_match( '/^class\s+([a-zA-Z0-9_]+)/m', $file_contents, $matches );
+			// Extract the first class/interface/trait/enum name from the file.
+			preg_match( '/^(?:(?:final|abstract|readonly)\s+)*(?:class|interface|trait|enum)\s+([a-zA-Z0-9_]+)/m', $file_contents, $matches );
 			if ( empty( $matches ) ) {
 				continue;
 			}

@@ -17,7 +17,12 @@ if ( ! defined( 'WPINC' ) ) {
 	define( 'WPINC', 'wp-includes' );
 }
 
-// Require the autoloader.
+/*
+ * Load the autoloader. wp-load.php and setup-config.php also include this file
+ * directly before loading wp-settings.php. This require_once here acts as a
+ * safety net for any bootstrap path (e.g. WP-CLI, test frameworks) that loads
+ * wp-config.php → wp-settings.php without going through wp-load.php first.
+ */
 require_once ABSPATH . WPINC . '/class-wp-autoload.php';
 
 /**
