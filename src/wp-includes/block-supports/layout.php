@@ -879,8 +879,12 @@ function wp_render_layout_support_flag( $block_content, $block ) {
 	$block_supports_layout = block_has_support( $block_type, 'layout', false ) || block_has_support( $block_type, '__experimentalLayout', false );
 	$style_attr            = $block['attrs']['style'] ?? array();
 	$child_layout          = $style_attr['layout'] ?? null;
-	$viewport_child_layouts = array();
 
+	/*
+	 * Collect responsive viewport child layout overrides so that a block with
+	 * only responsive child layout (no base child layout) is still processed.
+	 */
+	$viewport_child_layouts = array();
 	foreach ( WP_Theme_JSON::RESPONSIVE_BREAKPOINTS as $breakpoint => $media_query ) {
 		$viewport_child = wp_get_layout_child_values( $style_attr[ $breakpoint ]['layout'] ?? null );
 
@@ -931,6 +935,10 @@ function wp_render_layout_support_flag( $block_content, $block ) {
 
 		$child_layout_styles = wp_get_child_layout_style_rules( ".$container_content_class", $base_child_layout, $parent_layout );
 
+		/*
+		 * Emit responsive child layout CSS using the same container-content class
+		 * so that base and responsive child layout share the exact same selector.
+		 */
 		foreach ( $viewport_child_layouts as $viewport_data ) {
 			$viewport_child_styles = wp_get_child_layout_style_rules(
 				".$container_content_class",
@@ -1139,6 +1147,10 @@ function wp_render_layout_support_flag( $block_content, $block ) {
 			$block_spacing
 		);
 
+		/*
+		 * Emit responsive container layout styles using the same $container_class
+		 * selector as the base layout so they target the inner block wrapper.
+		 */
 		foreach ( WP_Theme_JSON::RESPONSIVE_BREAKPOINTS as $breakpoint => $media_query ) {
 			$viewport_style = $style_attr[ $breakpoint ] ?? null;
 			if ( ! is_array( $viewport_style ) ) {
