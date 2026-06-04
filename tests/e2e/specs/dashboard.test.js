@@ -45,7 +45,7 @@ test.describe( 'Quick Draft', () => {
 		).toContainText( 'Test Draft Title' );
 	} );
 
-	test( 'Allows draft to be created with content but without Title', async ( {
+	test( 'Allows draft to be created with Content but without Title', async ( {
 		 admin,
 		 page
 	} ) => {
