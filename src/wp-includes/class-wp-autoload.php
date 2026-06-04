@@ -553,6 +553,3 @@ final class WP_Autoload {
 		require_once ABSPATH . self::CLASSES_PATHS[ $class_name ];
 	}
 }
-
-// Registers the autoloader.
-WP_Autoload::register();

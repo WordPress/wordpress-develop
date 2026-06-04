@@ -16,6 +16,7 @@ if ( ! defined( 'WPINC' ) ) {
 }
 
 require_once ABSPATH . WPINC . '/class-wp-autoload.php';
+WP_Autoload::register();
 
 // Load the actual index.php file if the assets were already built.
 if ( file_exists( ABSPATH . WPINC . '/js/jquery/jquery.js' ) && is_dir( ABSPATH . WPINC . '/build' ) ) {

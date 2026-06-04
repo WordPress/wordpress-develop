@@ -24,6 +24,7 @@ if ( ! defined( 'WPINC' ) ) {
  * wp-config.php → wp-settings.php without going through wp-load.php first.
  */
 require_once ABSPATH . WPINC . '/class-wp-autoload.php';
+WP_Autoload::register();
 
 /**
  * Version information for the current WordPress release.
