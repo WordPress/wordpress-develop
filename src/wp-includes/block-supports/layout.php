@@ -90,18 +90,6 @@ function wp_sanitize_block_gap_value( $gap_value ) {
 }
 
 /**
- * Returns responsive layout breakpoints used for state styles.
- *
- * @return array<string, string> Media queries keyed by viewport.
- */
-function wp_get_responsive_layout_breakpoints() {
-	return array(
-		'mobile' => '@media (width <= 480px)',
-		'tablet'  => '@media (480px < width <= 782px)',
-	);
-}
-
-/**
  * Returns child layout style rules for a block affected by its parent's layout.
  *
  * @param string     $selector          CSS selector.
@@ -846,7 +834,7 @@ function wp_render_layout_support_flag( $block_content, $block ) {
 	$child_layout          = $style_attr['layout'] ?? null;
 	$viewport_child_layouts = array();
 
-	foreach ( wp_get_responsive_layout_breakpoints() as $breakpoint => $media_query ) {
+	foreach ( WP_Theme_JSON::RESPONSIVE_BREAKPOINTS as $breakpoint => $media_query ) {
 		$viewport_child = wp_get_layout_child_values( $style_attr[ $breakpoint ]['layout'] ?? null );
 
 		if ( ! empty( $viewport_child ) ) {
@@ -1060,7 +1048,7 @@ function wp_render_layout_support_flag( $block_content, $block ) {
 			$block_spacing,
 		);
 
-		foreach ( wp_get_responsive_layout_breakpoints() as $breakpoint => $media_query ) {
+		foreach ( array_keys( WP_Theme_JSON::RESPONSIVE_BREAKPOINTS ) as $breakpoint ) {
 			$viewport_style = $style_attr[ $breakpoint ] ?? null;
 			if ( ! is_array( $viewport_style ) ) {
 				continue;
@@ -1104,7 +1092,7 @@ function wp_render_layout_support_flag( $block_content, $block ) {
 			$block_spacing
 		);
 
-		foreach ( wp_get_responsive_layout_breakpoints() as $breakpoint => $media_query ) {
+		foreach ( WP_Theme_JSON::RESPONSIVE_BREAKPOINTS as $breakpoint => $media_query ) {
 			$viewport_style = $style_attr[ $breakpoint ] ?? null;
 			if ( ! is_array( $viewport_style ) ) {
 				continue;
