@@ -1294,7 +1294,7 @@ select#media-attachment-date-filters {
 }
 
 .attachments-browser .media-toolbar-primary {
-	max-width: 33%;
+	max-width: calc( 33% - 20px );
 }
 
 .mode-grid .attachments-browser .media-toolbar-primary {
