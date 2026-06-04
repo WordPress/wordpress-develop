@@ -144,8 +144,8 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 	 *
 	 * @since 3.5.0
 	 *
-	 * @param int $width
-	 * @param int $height
+	 * @param int|false $width
+	 * @param int|false $height
 	 * @return true
 	 */
 	protected function update_size( $width = false, $height = false ) {
