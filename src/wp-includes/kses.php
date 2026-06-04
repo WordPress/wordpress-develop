@@ -1556,7 +1556,8 @@ function wp_kses_attr_check( &$name, &$value, &$whole, $vless, $element, $allowe
 	}
 
 	if ( 'style' === $name_low ) {
-		$new_value = safecss_filter_attr( $value );
+		$decoded_value = WP_HTML_Decoder::decode_attribute( $value );
+		$new_value     = safecss_filter_attr( $decoded_value );
 
 		if ( empty( $new_value ) ) {
 			$name  = '';
@@ -1565,8 +1566,11 @@ function wp_kses_attr_check( &$name, &$value, &$whole, $vless, $element, $allowe
 			return false;
 		}
 
-		$whole = str_replace( $value, $new_value, $whole );
-		$value = $new_value;
+		if ( $new_value !== $decoded_value ) {
+			$encoded_value = esc_attr( $new_value );
+			$whole         = str_replace( $value, $encoded_value, $whole );
+			$value         = $encoded_value;
+		}
 	}
 
 	if ( is_array( $allowed_attr[ $name_low ] ) ) {
@@ -2118,8 +2122,8 @@ function wp_kses_normalize_entities( $content, $context = 'html' ) {
 	 *
 	 * Here, each input is normalized to an appropriate output.
 	 */
-	$content = preg_replace_callback( '/&amp;#(0*[0-9]{1,7});/', 'wp_kses_normalize_entities2', $content );
-	$content = preg_replace_callback( '/&amp;#[Xx](0*[0-9A-Fa-f]{1,6});/', 'wp_kses_normalize_entities3', $content );
+	$content = preg_replace_callback( '/&amp;#(0*[1-9][0-9]{0,6});/', 'wp_kses_normalize_entities2', $content );
+	$content = preg_replace_callback( '/&amp;#[Xx](0*[1-9A-Fa-f][0-9A-Fa-f]{0,5});/', 'wp_kses_normalize_entities3', $content );
 	if ( 'xml' === $context ) {
 		$content = preg_replace_callback( '/&amp;([A-Za-z]{2,8}[0-9]{0,2});/', 'wp_kses_xml_named_entities', $content );
 	} else {
@@ -2554,9 +2558,9 @@ function kses_init() {
  * @since 6.6.0 Added support for `grid-column`, `grid-row`, and `container-type`.
  * @since 6.9.0 Added support for `white-space`.
  *
- * @param string $css        A string of CSS rules.
+ * @param string $css        A string of CSS rules, decoded from an HTML `style` attribute.
  * @param string $deprecated Not used.
- * @return string Filtered string of CSS rules.
+ * @return string Filtered string of CSS rules, needing HTML escaping before sending back to a `style` attribute.
  */
 function safecss_filter_attr( $css, $deprecated = '' ) {
 	if ( ! empty( $deprecated ) ) {
@@ -2568,6 +2572,7 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 
 	$allowed_protocols = wp_allowed_protocols();
 
+	/** @todo Parse enough CSS to split rules without breaking on things like quoted strings. */
 	$css_array = explode( ';', trim( $css ) );
 
 	/**
