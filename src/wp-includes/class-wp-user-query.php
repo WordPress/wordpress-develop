@@ -830,7 +830,7 @@ class WP_User_Query {
 			$cache_value   = false;
 			$cache_key     = $this->generate_cache_key( $qv, $this->request );
 			$cache_group   = 'user-queries';
-			$last_changed  = $this->get_cache_last_changed( $qv );
+			$last_changed  = $this->get_cache_last_changed( $qv, $this->request );
 
 			if ( $qv['cache_results'] ) {
 				$cache_value = wp_cache_get_salted( $cache_key, $cache_group, $last_changed );
@@ -1064,12 +1064,19 @@ class WP_User_Query {
 	 * Retrieves the last changed cache timestamp for users and optionally posts.
 	 *
 	 * @since 6.9.0
+	 * @since x.x.x Add SQL parameter to get last changed.
 	 *
 	 * @param array $args Query arguments.
+	 * @param string $sql SQL statement.
 	 * @return string[] The last changed timestamp string for the relevant cache groups.
 	 */
-	protected function get_cache_last_changed( array $args ) {
-		$last_changed = (array) wp_cache_get_last_changed( 'users' );
+	protected function get_cache_last_changed( array $args, string $sql ) {
+		global $wpdb;
+		$last_changed = (array) wp_cache_get_last_changed( 'user-queries' );
+
+		if ( str_contains( $sql, $wpdb->usermeta ) ) {
+			$last_changed[] = wp_cache_get_last_changed( 'user-meta' );
+		}
 
 		if ( empty( $args['orderby'] ) ) {
 			// Default order is by 'user_login'.
@@ -1086,14 +1093,24 @@ class WP_User_Query {
 			$blog_id = absint( $args['blog_id'] );
 		}
 
+		$switch = $blog_id && get_current_blog_id() !== $blog_id;
 		if ( $args['has_published_posts'] || in_array( 'post_count', $ordersby, true ) ) {
-			$switch = $blog_id && get_current_blog_id() !== $blog_id;
 			if ( $switch ) {
 				switch_to_blog( $blog_id );
 			}
 
-			$last_changed[] = wp_cache_get_last_changed( 'posts' );
+			$last_changed[] = wp_cache_get_last_changed( 'post-queries' );
 
+			if ( $switch ) {
+				restore_current_blog();
+			}
+		}
+
+		if ( str_contains( $sql, $wpdb->postmeta ) ) {
+			if ( $switch ) {
+				switch_to_blog( $blog_id );
+			}
+			$last_changed[] = wp_cache_get_last_changed( 'post-meta' );
 			if ( $switch ) {
 				restore_current_blog();
 			}

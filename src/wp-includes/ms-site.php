@@ -1318,6 +1318,12 @@ function wp_update_blog_public_option_on_site_update( $site_id, $is_public ) {
  */
 function wp_cache_set_sites_last_changed() {
 	wp_cache_set_last_changed( 'sites' );
+	$current_action = current_action();
+	if ( in_array( $current_action, array( 'added_blog_meta', 'updated_blog_meta', 'deleted_blog_meta' ), true ) ) {
+		wp_cache_set_last_changed( 'blog-meta' );
+	} else {
+		wp_cache_set_last_changed( 'site-queries' );
+	}
 }
 
 /**
