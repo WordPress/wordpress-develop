@@ -4041,7 +4041,7 @@ img {
 	.subtitle {
 		display: block;
 		padding-left: 0;
-		line-height: inherit;
+		line-height: 1.4em;
 	}
 
 	/* Feedback Messages */
