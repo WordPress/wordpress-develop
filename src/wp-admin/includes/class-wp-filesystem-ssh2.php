@@ -58,7 +58,17 @@ class WP_Filesystem_SSH2 extends WP_Filesystem_Base {
 	 *
 	 * @since 2.7.0
 	 *
-	 * @param array $opt
+	 * @param array $opt {
+	 *     Optional. Array of connection options.
+	 *
+	 *     @type string $hostname    Required. SSH server hostname.
+	 *     @type int    $port        Optional. SSH server port. Default 22.
+	 *     @type string $username    Optional. SSH username. Required when not using keys.
+	 *     @type string $password    Optional. SSH password. May be empty when using keys.
+	 *     @type string $public_key  Optional. Path to public key file for publickey authentication.
+	 *     @type string $private_key Optional. Path to private key file for publickey authentication.
+	 *     @type array  $hostkey     Optional. Hostkey options passed to ssh2_connect.
+	 * }
 	 */
 	public function __construct( $opt = array() ) {
 		$this->method = 'ssh2';
