@@ -24,8 +24,8 @@
 // Initialize the filter globals.
 if ( ! class_exists( 'WP_Autoload' ) ) {
 	require __DIR__ . '/class-wp-hook.php';
+	require __DIR__ . '/class-wp-filter-sentinel.php';
 }
-require __DIR__ . '/class-wp-filter-sentinel.php';
 
 /** @var WP_Hook[] $wp_filter */
 global $wp_filter;
