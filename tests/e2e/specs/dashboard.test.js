@@ -45,16 +45,25 @@ test.describe( 'Quick Draft', () => {
 		).toContainText( 'Test Draft Title' );
 	} );
 
-	test( 'Allows draft to be created without Title or Content', async ( {
+	test( 'Allows draft to be created with content but without Title', async ( {
 		 admin,
 		 page
 	} ) => {
 		await admin.visitAdminPage( '/' );
 
-		// Wait for Save Draft button to appear and click it
-		const saveDraftButton = page.locator(
+		// Wait for Quick Draft content field to appear.
+		const draftContentField = page.locator(
 			'#quick-press'
-		).getByRole( 'button', { name: 'Save Draft' } );
+		).getByRole( 'textbox', { name: 'Content' } );
+
+		await expect( draftContentField ).toBeVisible();
+
+		// Focus and fill in a title.
+		await draftContentField.fill( 'Test Draft Content' );
+
+		// Navigate to Save Draft button and press it.
+		await page.keyboard.press( 'Tab' );
+		await page.keyboard.press( 'Enter' );
 
 		await expect( saveDraftButton ).toBeVisible();
 		await saveDraftButton.click();
