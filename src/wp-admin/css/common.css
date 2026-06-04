@@ -4038,6 +4038,12 @@ img {
 		vertical-align: middle;
 	}
 
+	.subtitle {
+		display: block;
+		padding-left: 0;
+		line-height: inherit;
+	}
+
 	/* Feedback Messages */
 	.notice,
 	.wrap div.updated,
