@@ -135,7 +135,7 @@ class Tests_wp_ajax_get_attachment extends WP_Ajax_UnitTestCase {
 	public function test_get_attachment_wrong_post_type(): void {
 		wp_set_current_user( self::$admin_id );
 
-		$post_id = self::factory()->post->create();
+		$post_id     = self::factory()->post->create();
 		$_POST['id'] = $post_id;
 
 		try {
