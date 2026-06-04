@@ -55,7 +55,7 @@ function wp_interactivity_process_directives( string $html ): string {
  *
  * @param string|null $store_namespace The unique store namespace identifier.
  * @param array       $state           Optional. The array that will be merged with the existing state for the specified
- *                                store namespace.
+ *                                     store namespace.
  * @return array The state for the specified store namespace. This will be the updated state if a $state argument was
  *               provided.
  */
