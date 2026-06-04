@@ -109,7 +109,6 @@ class Tests_wp_ajax_get_revision_diffs extends WP_Ajax_UnitTestCase {
 	 * @param string|WP_Error $message
 	 */
 	public function dieHandler( $message ) {
-		error_log( 'Die message: ' . print_r( $message, true ) );
 		$this->_last_response .= ob_get_clean();
 
 		if ( '' === $this->_last_response ) {
@@ -137,8 +136,9 @@ class Tests_wp_ajax_get_revision_diffs extends WP_Ajax_UnitTestCase {
 
 		$compare_key = self::$revision_ids[1] . ':' . self::$revision_ids[0];
 
-		$_REQUEST['post_id'] = self::$post_id;
-		$_REQUEST['compare'] = array( $compare_key );
+		$_POST['post_id'] = self::$post_id;
+		$_POST['compare'] = array( $compare_key );
+		$_REQUEST         = array_merge( $_REQUEST, $_POST );
 
 		try {
 			$this->_handleAjax( 'get-revision-diffs' );
@@ -146,9 +146,6 @@ class Tests_wp_ajax_get_revision_diffs extends WP_Ajax_UnitTestCase {
 		}
 
 		$response = json_decode( $this->_last_response, true );
-		if ( ! $response['success'] ) {
-			error_log( 'Response: ' . $this->_last_response );
-		}
 
 		$this->assertTrue( $response['success'], 'AJAX response should be successful' );
 		$this->assertCount( 1, $response['data'] );
@@ -164,8 +161,9 @@ class Tests_wp_ajax_get_revision_diffs extends WP_Ajax_UnitTestCase {
 	public function test_get_revision_diffs_invalid_post(): void {
 		wp_set_current_user( self::$admin_id );
 
-		$_REQUEST['post_id'] = 999999;
-		$_REQUEST['compare'] = array( '1:2' );
+		$_POST['post_id'] = 999999;
+		$_POST['compare'] = array( '1:2' );
+		$_REQUEST = array_merge( $_REQUEST, $_POST );
 
 		try {
 			$this->_handleAjax( 'get-revision-diffs' );
@@ -186,8 +184,9 @@ class Tests_wp_ajax_get_revision_diffs extends WP_Ajax_UnitTestCase {
 		$subscriber_id = self::factory()->user->create( array( 'role' => 'subscriber' ) );
 		wp_set_current_user( $subscriber_id );
 
-		$_REQUEST['post_id'] = self::$post_id;
-		$_REQUEST['compare'] = array( self::$revision_ids[1] . ':' . self::$revision_ids[0] );
+		$_POST['post_id'] = self::$post_id;
+		$_POST['compare'] = array( self::$revision_ids[1] . ':' . self::$revision_ids[0] );
+		$_REQUEST = array_merge( $_REQUEST, $_POST );
 
 		try {
 			$this->_handleAjax( 'get-revision-diffs' );

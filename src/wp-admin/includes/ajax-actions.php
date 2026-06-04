@@ -3547,7 +3547,7 @@ function wp_ajax_heartbeat() {
  * @since 3.6.0
  */
 function wp_ajax_get_revision_diffs() {
-	require ABSPATH . 'wp-admin/includes/revision.php';
+	require_once ABSPATH . 'wp-admin/includes/revision.php';
 
 	$post = get_post( (int) $_REQUEST['post_id'] );
 	if ( ! $post ) {
