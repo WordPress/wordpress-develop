@@ -38,8 +38,8 @@ class Tests_wp_ajax_upload_attachment extends WP_Ajax_UnitTestCase {
 		parent::set_up();
 		add_action( 'wp_ajax_upload-attachment', 'wp_ajax_upload_attachment', 1 );
 
-		// Force the action to be something other than wp_handle_upload to bypass is_uploaded_file check.
-		add_filter( 'wp_handle_upload_overrides', function( $overrides ) {
+		// Force the action to be something other than wp_handle_upload to bypass the is_uploaded_file check.
+		add_filter( 'wp_handle_upload_overrides', function ( $overrides ) {
 			$overrides['action'] = 'wp_handle_sideload';
 			return $overrides;
 		} );
