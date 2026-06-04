@@ -530,22 +530,23 @@ class WP_HTML_Open_Elements {
 	 *
 	 * @see https://html.spec.whatwg.org/#stack-of-open-elements
 	 *
-	 * @return WP_HTML_Token|null The node that was popped off of the stack, or null if the stack was empty.
+	 * @return bool Whether a node was popped off of the stack.
 	 */
-	public function pop(): ?WP_HTML_Token {
+	public function pop(): bool {
 		$item = array_pop( $this->stack );
 		if ( null === $item ) {
-			return null;
+			return false;
 		}
 
 		$this->after_element_pop( $item );
-		return $item;
+		return true;
 	}
 
 	/**
 	 * Pops nodes off of the stack of open elements until an HTML tag with the given name has been popped.
 	 *
 	 * @since 6.4.0
+	 * @since 7.1.0 Returns all of the nodes popped from the stack.
 	 *
 	 * @see WP_HTML_Open_Elements::pop
 	 *
