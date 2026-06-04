@@ -17894,8 +17894,25 @@ function wp_de_rtc_get_automerge_block_native_rich_text_operation( $base_block, 
 	$base_model = wp_de_rtc_get_rich_text_format_model( $base['html'] );
 	$next_model = wp_de_rtc_get_rich_text_format_model( $next['html'] );
 
-	if ( ! $base_model || ! $next_model || $base_model['text'] !== $next_model['text'] ) {
+	if ( ! $base_model || ! $next_model ) {
 		return null;
+	}
+
+	if ( $base_model['text'] !== $next_model['text'] ) {
+		return array(
+			'type'              => 'block.rich_text_content',
+			'automergePrimitive'      => 'Automerge.Text.splice',
+			'path'              => $path,
+			'blockUid'          => 'top:' . $base_hash,
+			'blockName'         => $block_name,
+			'field'             => 'innerHTML',
+			'baseBlockHash'     => $base_hash,
+			'proposedBlockHash' => $next_hash,
+			'textSplice'        => wp_de_rtc_format_rich_text_text_splice_for_client(
+				wp_de_rtc_get_rich_text_text_splice( $base_model['text'], $next_model['text'] )
+			),
+			'serializedBlock'   => $next_block,
+		);
 	}
 
 	return array(
@@ -18798,10 +18815,38 @@ function wp_de_rtc_get_automerge_block_native_operation_fingerprints( $operation
 			'proposedBlockName' => isset( $operation['proposedBlockName'] ) ? (string) $operation['proposedBlockName'] : null,
 			'serializedBlockHash' => isset( $operation['serializedBlock'] ) && is_string( $operation['serializedBlock'] ) ? wp_de_rtc_hash_content( $operation['serializedBlock'] ) : null,
 			'changedTextIndexes' => isset( $operation['changedTextIndexes'] ) && is_array( $operation['changedTextIndexes'] ) ? array_map( 'intval', $operation['changedTextIndexes'] ) : null,
+			'textSplice'        => wp_de_rtc_get_automerge_block_native_text_splice_fingerprint( isset( $operation['textSplice'] ) ? $operation['textSplice'] : null ),
 		);
 	}
 
 	return $fingerprints;
+}
+
+/**
+ * Returns comparable text-splice evidence without exposing inserted text.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param array|null $splice Client or server text-splice evidence.
+ * @return array|null Comparable text-splice fingerprint.
+ */
+function wp_de_rtc_get_automerge_block_native_text_splice_fingerprint( $splice ) {
+	if ( ! is_array( $splice ) ) {
+		return null;
+	}
+
+	$insert_text = isset( $splice['insertText'] ) ? (string) $splice['insertText'] : ( isset( $splice['insert_text'] ) ? (string) $splice['insert_text'] : '' );
+
+	return array(
+		'changed'        => ! empty( $splice['changed'] ),
+		'start'          => isset( $splice['start'] ) ? (int) $splice['start'] : 0,
+		'deleteCount'    => isset( $splice['deleteCount'] ) ? (int) $splice['deleteCount'] : ( isset( $splice['delete_count'] ) ? (int) $splice['delete_count'] : 0 ),
+		'insertTextHash' => hash( 'sha256', $insert_text ),
+		'insertCount'    => isset( $splice['insertCount'] ) ? (int) $splice['insertCount'] : ( isset( $splice['insert_count'] ) ? (int) $splice['insert_count'] : strlen( $insert_text ) ),
+		'end'            => isset( $splice['end'] ) ? (int) $splice['end'] : 0,
+		'delta'          => isset( $splice['delta'] ) ? (int) $splice['delta'] : 0,
+	);
 }
 
 /**
@@ -21213,7 +21258,21 @@ function wp_de_rtc_get_post_revision_ids( $post_id ) {
 	}
 
 	if ( $server_text_changed && $proposed_text_changed ) {
-		return null;
+		$merged_model = wp_de_rtc_merge_rich_text_text_splice_models(
+			$base_model,
+			$server_model,
+			$server_splice,
+			$proposed_model,
+			$proposed_splice
+		);
+
+		if ( null === $merged_model ) {
+			return null;
+		}
+
+		return array(
+			'merged_block' => $base['open'] . wp_de_rtc_format_rich_text_model_html( $merged_model ) . $base['close'],
+		);
 	}
 
 	if ( $server_text_changed ) {
@@ -21776,6 +21835,27 @@ function wp_de_rtc_get_rich_text_text_splice( $base_text, $next_text ) {
 }
 
 /**
+ * Formats PHP text-splice evidence into the client operation vocabulary.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param array $splice PHP text-splice evidence.
+ * @return array Client-shaped text-splice evidence.
+ */
+function wp_de_rtc_format_rich_text_text_splice_for_client( $splice ) {
+	return array(
+		'changed'     => ! empty( $splice['changed'] ),
+		'start'       => isset( $splice['start'] ) ? (int) $splice['start'] : 0,
+		'deleteCount' => isset( $splice['delete_count'] ) ? (int) $splice['delete_count'] : 0,
+		'insertText'  => isset( $splice['insert_text'] ) ? (string) $splice['insert_text'] : '',
+		'insertCount' => isset( $splice['insert_count'] ) ? (int) $splice['insert_count'] : 0,
+		'end'         => isset( $splice['end'] ) ? (int) $splice['end'] : 0,
+		'delta'       => isset( $splice['delta'] ) ? (int) $splice['delta'] : 0,
+	);
+}
+
+/**
  * Maps a retained base-text index through a text splice.
  *
  * @since 7.1.0
@@ -21910,6 +21990,241 @@ function wp_de_rtc_merge_rich_text_text_and_format_models( $text_changed_model, 
 		'text'  => $text_changed_model['text'],
 		'marks' => wp_de_rtc_coalesce_rich_text_marks( $merged_marks ),
 	);
+}
+
+/**
+ * Merges two disjoint paragraph text splices against the same base model.
+ *
+ * This intentionally stays conservative. It only accepts two independently
+ * mapped text edits when their base text ranges do not overlap; same-position
+ * competing insertions remain a manual conflict until the product has an
+ * explicit ordering policy.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param array $base             Accepted-base rich-text model.
+ * @param array $server           Current-server rich-text model.
+ * @param array $server_splice    Server text-splice evidence.
+ * @param array $proposed         Client-proposed rich-text model.
+ * @param array $proposed_splice  Client-proposed text-splice evidence.
+ * @return array|null Merged rich-text model, or null when unsafe to merge.
+ */
+function wp_de_rtc_merge_rich_text_text_splice_models( $base, $server, $server_splice, $proposed, $proposed_splice ) {
+	if ( wp_de_rtc_rich_text_text_splices_conflict( $server_splice, $proposed_splice ) ) {
+		return null;
+	}
+
+	$server_mark_changed = wp_de_rtc_get_retained_rich_text_mark_changed_indexes( $base, $server, $server_splice );
+	$proposed_mark_changed = wp_de_rtc_get_retained_rich_text_mark_changed_indexes( $base, $proposed, $proposed_splice );
+
+	if (
+		is_wp_error( $server_mark_changed ) ||
+		is_wp_error( $proposed_mark_changed ) ||
+		wp_de_rtc_rich_text_changed_indexes_overlap( $server_mark_changed, $proposed_mark_changed ) ||
+		wp_de_rtc_rich_text_changed_indexes_touch_splice( $server_mark_changed, $proposed_splice ) ||
+		wp_de_rtc_rich_text_changed_indexes_touch_splice( $proposed_mark_changed, $server_splice )
+	) {
+		return null;
+	}
+
+	$server_mark_lookup   = array_fill_keys( array_map( 'intval', $server_mark_changed ), true );
+	$proposed_mark_lookup = array_fill_keys( array_map( 'intval', $proposed_mark_changed ), true );
+	$base_chars           = wp_de_rtc_split_utf8_string( $base['text'] );
+	$splices              = array(
+		array(
+			'kind'   => 'server',
+			'model'  => $server,
+			'splice' => $server_splice,
+		),
+		array(
+			'kind'   => 'proposed',
+			'model'  => $proposed,
+			'splice' => $proposed_splice,
+		),
+	);
+
+	usort(
+		$splices,
+		static function ( $left, $right ) {
+			$left_start  = (int) $left['splice']['start'];
+			$right_start = (int) $right['splice']['start'];
+
+			if ( $left_start === $right_start ) {
+				return (int) $left['splice']['end'] <=> (int) $right['splice']['end'];
+			}
+
+			return $left_start <=> $right_start;
+		}
+	);
+
+	$sources = array();
+	$cursor  = 0;
+
+	foreach ( $splices as $entry ) {
+		$splice = $entry['splice'];
+		$start  = (int) $splice['start'];
+		$end    = (int) $splice['end'];
+
+		for ( ; $cursor < $start; ++$cursor ) {
+			$sources[] = array(
+				'kind'       => 'base',
+				'base_index' => $cursor,
+			);
+		}
+
+		$insert_count = (int) $splice['insert_count'];
+		for ( $offset = 0; $offset < $insert_count; ++$offset ) {
+			$sources[] = array(
+				'kind'        => $entry['kind'],
+				'model'       => $entry['model'],
+				'model_index' => $start + $offset,
+			);
+		}
+
+		$cursor = $end;
+	}
+
+	for ( $count = count( $base_chars ); $cursor < $count; ++$cursor ) {
+		$sources[] = array(
+			'kind'       => 'base',
+			'base_index' => $cursor,
+		);
+	}
+
+	$chars = array();
+	$marks = array();
+
+	foreach ( $sources as $target_index => $source ) {
+		if ( 'base' === $source['kind'] ) {
+			$base_index = (int) $source['base_index'];
+			$chars[]    = $base_chars[ $base_index ];
+
+			foreach ( array( 'strong', 'em' ) as $mark ) {
+				if ( isset( $proposed_mark_lookup[ $base_index ] ) ) {
+					$marked = wp_de_rtc_rich_text_has_mark_at_transformed_index( $proposed, $mark, $base_index, $proposed_splice );
+				} elseif ( isset( $server_mark_lookup[ $base_index ] ) ) {
+					$marked = wp_de_rtc_rich_text_has_mark_at_transformed_index( $server, $mark, $base_index, $server_splice );
+				} else {
+					$marked = wp_de_rtc_rich_text_has_mark_at( $base, $mark, $base_index );
+				}
+
+				if ( null === $marked ) {
+					return null;
+				}
+
+				if ( $marked ) {
+					$marks[] = array(
+						'type'  => $mark,
+						'start' => $target_index,
+						'end'   => $target_index + 1,
+					);
+				}
+			}
+
+			continue;
+		}
+
+		$model       = $source['model'];
+		$model_index = (int) $source['model_index'];
+		$model_chars = wp_de_rtc_split_utf8_string( $model['text'] );
+
+		if ( ! isset( $model_chars[ $model_index ] ) ) {
+			return null;
+		}
+
+		$chars[] = $model_chars[ $model_index ];
+
+		foreach ( array( 'strong', 'em' ) as $mark ) {
+			if ( wp_de_rtc_rich_text_has_mark_at( $model, $mark, $model_index ) ) {
+				$marks[] = array(
+					'type'  => $mark,
+					'start' => $target_index,
+					'end'   => $target_index + 1,
+				);
+			}
+		}
+	}
+
+	return array(
+		'text'  => implode( '', $chars ),
+		'marks' => wp_de_rtc_coalesce_rich_text_marks( $marks ),
+	);
+}
+
+/**
+ * Returns whether two base-relative rich-text splices must remain a conflict.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param array $left  First text-splice evidence.
+ * @param array $right Second text-splice evidence.
+ * @return bool Whether the splices conflict.
+ */
+function wp_de_rtc_rich_text_text_splices_conflict( $left, $right ) {
+	$left_start  = (int) $left['start'];
+	$left_end    = (int) $left['end'];
+	$right_start = (int) $right['start'];
+	$right_end   = (int) $right['end'];
+
+	if ( $left_start < $right_end && $right_start < $left_end ) {
+		return true;
+	}
+
+	return (
+		0 === (int) $left['delete_count'] &&
+		0 === (int) $right['delete_count'] &&
+		$left_start === $right_start &&
+		! empty( $left['insert_text'] ) &&
+		! empty( $right['insert_text'] )
+	);
+}
+
+/**
+ * Returns whether changed retained indexes touch a deleted/replaced splice range.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param int[] $indexes Changed base indexes.
+ * @param array $splice  Text-splice evidence.
+ * @return bool Whether any index touches the splice replacement range.
+ */
+function wp_de_rtc_rich_text_changed_indexes_touch_splice( $indexes, $splice ) {
+	$start = (int) $splice['start'];
+	$end   = (int) $splice['end'];
+
+	foreach ( $indexes as $index ) {
+		$index = (int) $index;
+		if ( $start <= $index && $index < $end ) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+/**
+ * Reads mark state for a retained base index after a text splice.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param array  $model      Text-spliced rich-text model.
+ * @param string $mark       Mark type.
+ * @param int    $base_index Base text index.
+ * @param array  $splice     Text-splice evidence.
+ * @return bool|null Mark state, or null when the index cannot be mapped.
+ */
+function wp_de_rtc_rich_text_has_mark_at_transformed_index( $model, $mark, $base_index, $splice ) {
+	$target_index = wp_de_rtc_transform_rich_text_base_index( $base_index, $splice );
+
+	if ( null === $target_index ) {
+		return null;
+	}
+
+	return wp_de_rtc_rich_text_has_mark_at( $model, $mark, $target_index );
 }
 
 /**

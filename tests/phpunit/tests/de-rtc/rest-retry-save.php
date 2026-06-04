@@ -3139,6 +3139,9 @@ class Tests_DE_RTC_REST_Retry_Save extends WP_Test_REST_TestCase {
 		$proposed_content = '<!-- wp:paragraph --><p>Automerge proposed content.</p><!-- /wp:paragraph -->';
 		$proposed_hash    = hash( 'sha256', $proposed_content );
 		$client_update    = wp_de_rtc_create_automerge_update_for_content_change( $base_content, $proposed_content, 'test-client' );
+		$this->assertSame( 'block.rich_text_content', $client_update['operations'][0]['type'] );
+		$this->assertSame( 'Automerge.Text.splice', $client_update['operations'][0]['automergePrimitive'] );
+		$this->assertSame( 'proposed', $client_update['operations'][0]['textSplice']['insertText'] );
 		$request          = $this->create_retry_save_request(
 			'posts',
 			$post_id,
@@ -3957,6 +3960,75 @@ class Tests_DE_RTC_REST_Retry_Save extends WP_Test_REST_TestCase {
 		$this->assertSame( '84', $parsed['sync_meta']['previous_version'] );
 		$this->assertSame( '83', $parsed['sync_meta']['last_server_update']['client_base_version'] );
 		$this->assertSame( 'rest_post_update', $parsed['sync_meta']['last_server_update']['type'] );
+	}
+
+	/**
+	 * @covers ::wp_de_rtc_rest_pre_insert_automerge_raw_post_content_update
+	 * @covers ::wp_de_rtc_prepare_automerge_raw_post_content_update
+	 * @covers ::wp_de_rtc_get_automerge_retry_save_result
+	 * @covers ::wp_de_rtc_get_rich_text_serialized_block_merge_candidate
+	 */
+	public function test_rest_post_update_merges_stale_automerge_non_overlapping_paragraph_word_edits() {
+		$this->require_automerge_runtime();
+
+		$base_content   = '<!-- wp:paragraph --><p>The blue river meets the quiet forest.</p><!-- /wp:paragraph -->';
+		$server_content = '<!-- wp:paragraph --><p>The silver river meets the quiet forest.</p><!-- /wp:paragraph -->';
+		$local_content  = '<!-- wp:paragraph --><p>The blue river meets the green forest.</p><!-- /wp:paragraph -->';
+		$merged_content = '<!-- wp:paragraph --><p>The silver river meets the green forest.</p><!-- /wp:paragraph -->';
+		$post_id        = self::factory()->post->create(
+			array(
+				'post_title'   => 'DE-RTC Automerge stale paragraph word merge REST update post',
+				'post_content' => $this->add_automerge_sync_meta_to_content( $base_content, 91 ),
+			)
+		);
+
+		$this->assertIsInt( wp_save_post_revision( $post_id ) );
+
+		wp_update_post(
+			wp_slash(
+				array(
+					'ID'           => $post_id,
+					'post_content' => $server_content,
+				)
+			),
+			true
+		);
+
+		$advanced_post   = get_post( $post_id );
+		$advanced_parsed = wp_de_rtc_parse_post_content_sync_meta( $advanced_post->post_content );
+		$client_update   = wp_de_rtc_create_automerge_update_for_content_change( $base_content, $local_content, 'test-client' );
+		$incoming_content = $this->add_automerge_sync_meta_to_content(
+			$local_content,
+			91,
+			array(
+				'client_base_version'        => '91',
+				'pending_automerge_encoding' => 'native-automerge-blocks-v1',
+				'pending_automerge_update'   => base64_encode( wp_json_encode( $client_update, JSON_UNESCAPED_SLASHES ) ),
+			)
+		);
+		$request         = new WP_REST_Request( 'POST', '/wp/v2/posts/' . $post_id );
+
+		$this->assertSame( '92', $advanced_parsed['sync_meta']['version'] );
+		$this->assertSame( 'block.rich_text_content', $client_update['operations'][0]['type'] );
+		$request->set_body_params(
+			array(
+				'content' => $incoming_content,
+			)
+		);
+
+		$response   = rest_get_server()->dispatch( $request );
+		$after_post = get_post( $post_id );
+		$parsed     = wp_de_rtc_parse_post_content_sync_meta( $after_post->post_content );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertIsArray( $parsed );
+		$this->assertSame( $merged_content, $parsed['content'] );
+		$this->assertSame( 'automerge', $parsed['sync_meta_format'] );
+		$this->assertSame( '93', $parsed['sync_meta']['version'] );
+		$this->assertSame( '92', $parsed['sync_meta']['previous_version'] );
+		$this->assertSame( '91', $parsed['sync_meta']['last_server_update']['client_base_version'] );
+		$this->assertSame( 'rest_post_update', $parsed['sync_meta']['last_server_update']['type'] );
+		$this->assertArrayNotHasKey( 'pending_automerge_update', $parsed['sync_meta'] );
 	}
 
 	/**
