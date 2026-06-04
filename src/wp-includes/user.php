@@ -3069,12 +3069,14 @@ function _wp_get_user_contactmethods( $user = null ) {
 /**
  * Gets the text suggesting how to create strong passwords.
  *
+ * The hint describes recommendations; it is not a statement of enforced policy.
+ *
  * @since 4.1.0
  *
  * @return string The password hint text.
  */
 function wp_get_password_hint() {
-	$hint = __( 'Hint: The password should be at least twelve characters long. To make it stronger, use upper and lower case letters, numbers, and symbols like ! " ? $ % ^ &amp; ).' );
+	$hint = __( 'Hint: For a stronger password, use at least twelve characters, including upper and lower case letters, numbers, and symbols like ! " ? $ % ^ &amp; ).' );
 
 	/**
 	 * Filters the text describing the site's password complexity policy.
