@@ -114,7 +114,7 @@ class Tests_wp_ajax_save_attachment_compat extends WP_Ajax_UnitTestCase {
 		// wp_ajax_save_attachment_compat() relies on filters for legacy compatibility.
 		add_filter(
 			'attachment_fields_to_save',
-			function( $post, $attachment_data ) {
+			function ( $post, $attachment_data ) {
 				if ( isset( $attachment_data['post_title'] ) ) {
 					$post['post_title'] = $attachment_data['post_title'];
 				}
