@@ -2159,6 +2159,7 @@ module.exports = function(grunt) {
 	} );
 
 	grunt.registerTask( 'build:gutenberg', [
+		'clean:gutenberg',
 		'copy:gutenberg-php',
 		'routes:setup',
 		'copy:routes',
