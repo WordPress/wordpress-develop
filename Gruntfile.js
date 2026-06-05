@@ -2158,6 +2158,7 @@ module.exports = function(grunt) {
 	} );
 
 	grunt.registerTask( 'build:gutenberg', [
+		'gutenberg:verify',
 		'clean:gutenberg',
 		'copy:gutenberg-php',
 		'routes:setup',
@@ -2174,24 +2175,22 @@ module.exports = function(grunt) {
 	grunt.registerTask( 'build', function() {
 		if ( grunt.option( 'dev' ) ) {
 			grunt.task.run( [
-				'gutenberg:verify',
+				'build:gutenberg',
 				'build:js',
 				'build:css',
 				'build:codemirror',
-				'build:gutenberg',
-				'build:certificates'
+				'build:certificates',
 			] );
 		} else {
 			grunt.task.run( [
-				'gutenberg:verify',
-				'build:certificates',
+				'build:gutenberg',
 				'build:files',
 				'build:js',
 				'build:css',
 				'build:codemirror',
-				'build:gutenberg',
+				'build:certificates',
 				'replace:source-maps',
-				'verify:build'
+				'verify:build',
 			] );
 		}
 	} );
