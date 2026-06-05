@@ -95,7 +95,7 @@
 		correctURL: function () {
 			var url = inputs.url.val().trim();
 
-			if ( url && correctedURL !== url && ! /^(?:[a-z]+:|#|\?|\.|\/)/.test( url ) ) {
+			if ( url && correctedURL !== url && ! /^(?:[a-zA-Z]+:|#|\?|\.|\/)/.test( url ) ) {
 				inputs.url.val( 'http://' + url );
 				correctedURL = url;
 			}

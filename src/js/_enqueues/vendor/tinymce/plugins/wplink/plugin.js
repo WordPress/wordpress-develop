@@ -264,7 +264,7 @@
 					return;
 				}
 
-				if ( ! /^(?:[a-z]+:|#|\?|\.|\/)/.test( href ) && ! emailRegex.test( href ) ) {
+				if ( ! /^(?:[a-zA-Z]+:|#|\?|\.|\/)/.test( href ) && ! emailRegex.test( href ) ) {
 					href = 'http://' + href;
 				}
 
