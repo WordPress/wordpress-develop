@@ -74,6 +74,6 @@
 		</whitelist>
 	</filter>
 	<logging>
-		<log type="junit" target="tests/phpunit/build/logs/junit.xml" />
+		<log type="junit" target="build/logs/junit.xml" />
 	</logging>
 </phpunit>
