@@ -70,15 +70,18 @@ class Tests_Abilities_API_WpRegisterCoreAbilities extends WP_UnitTestCase {
 		$this->assertArrayHasKey( 'default', $input_schema );
 		$this->assertSame( array(), $input_schema['default'] );
 
-		// Input schema should have optional fields array.
 		$this->assertArrayHasKey( 'fields', $input_schema['properties'] );
 		$this->assertSame( 'array', $input_schema['properties']['fields']['type'] );
-		$this->assertContains( 'name', $input_schema['properties']['fields']['items']['enum'] );
 
-		// Output schema should have all fields documented.
-		$this->assertArrayHasKey( 'name', $output_schema['properties'] );
-		$this->assertArrayHasKey( 'url', $output_schema['properties'] );
-		$this->assertArrayHasKey( 'version', $output_schema['properties'] );
+		$expected_fields = array( 'name', 'description', 'url', 'wpurl', 'admin_email', 'charset', 'language', 'version' );
+
+		$this->assertSame( $expected_fields, $input_schema['properties']['fields']['items']['enum'] );
+		$this->assertSame( $expected_fields, array_keys( $output_schema['properties'] ) );
+
+		foreach ( $expected_fields as $field ) {
+			$this->assertArrayHasKey( 'title', $output_schema['properties'][ $field ] );
+			$this->assertArrayHasKey( 'description', $output_schema['properties'][ $field ] );
+		}
 	}
 
 	/**
@@ -200,25 +203,23 @@ class Tests_Abilities_API_WpRegisterCoreAbilities extends WP_UnitTestCase {
 		$ability = wp_get_ability( 'core/get-user-info' );
 
 		$this->assertInstanceOf( WP_Ability::class, $ability );
+		$this->assertTrue( $ability->get_meta_item( 'show_in_rest', false ) );
 
 		$input_schema  = $ability->get_input_schema();
 		$output_schema = $ability->get_output_schema();
 
-		// Input schema should expose an optional `fields` array with an enum of valid field names.
 		$this->assertSame( 'object', $input_schema['type'] );
 		$this->assertArrayHasKey( 'default', $input_schema );
 		$this->assertSame( array(), $input_schema['default'] );
 		$this->assertArrayHasKey( 'fields', $input_schema['properties'] );
 		$this->assertSame( 'array', $input_schema['properties']['fields']['type'] );
 
-		$enum = $input_schema['properties']['fields']['items']['enum'];
-		foreach ( array( 'id', 'display_name', 'first_name', 'last_name', 'nickname', 'description', 'user_url' ) as $field ) {
-			$this->assertContains( $field, $enum );
-		}
+		$expected_fields = array( 'id', 'display_name', 'user_nicename', 'user_login', 'roles', 'locale', 'first_name', 'last_name', 'nickname', 'description', 'user_url' );
 
-		// Output schema should document the original and new profile fields with title + description.
-		foreach ( array( 'id', 'display_name', 'first_name', 'last_name', 'nickname', 'description', 'user_url' ) as $field ) {
-			$this->assertArrayHasKey( $field, $output_schema['properties'] );
+		$this->assertSame( $expected_fields, $input_schema['properties']['fields']['items']['enum'] );
+		$this->assertSame( $expected_fields, array_keys( $output_schema['properties'] ) );
+
+		foreach ( $expected_fields as $field ) {
 			$this->assertArrayHasKey( 'title', $output_schema['properties'][ $field ] );
 			$this->assertArrayHasKey( 'description', $output_schema['properties'][ $field ] );
 		}
@@ -296,6 +297,83 @@ class Tests_Abilities_API_WpRegisterCoreAbilities extends WP_UnitTestCase {
 		$this->assertArrayHasKey( 'db_server_info', $ability_data );
 		$this->assertArrayHasKey( 'wp_version', $ability_data );
 		$this->assertSame( $environment, $ability_data['environment'] );
+	}
+
+	/**
+	 * Tests that the `core/get-environment-info` ability is registered with the expected schema.
+	 *
+	 * @ticket 65355
+	 */
+	public function test_core_get_environment_info_ability_is_registered(): void {
+		$ability = wp_get_ability( 'core/get-environment-info' );
+
+		$this->assertInstanceOf( WP_Ability::class, $ability );
+		$this->assertTrue( $ability->get_meta_item( 'show_in_rest', false ) );
+
+		$input_schema  = $ability->get_input_schema();
+		$output_schema = $ability->get_output_schema();
+
+		$this->assertSame( 'object', $input_schema['type'] );
+		$this->assertArrayHasKey( 'default', $input_schema );
+		$this->assertSame( array(), $input_schema['default'] );
+		$this->assertArrayHasKey( 'fields', $input_schema['properties'] );
+		$this->assertSame( 'array', $input_schema['properties']['fields']['type'] );
+
+		$expected_fields = array( 'environment', 'php_version', 'db_server_info', 'wp_version' );
+
+		$this->assertSame( $expected_fields, $input_schema['properties']['fields']['items']['enum'] );
+		$this->assertSame( $expected_fields, array_keys( $output_schema['properties'] ) );
+
+		foreach ( $expected_fields as $field ) {
+			$this->assertArrayHasKey( 'title', $output_schema['properties'][ $field ] );
+			$this->assertArrayHasKey( 'description', $output_schema['properties'][ $field ] );
+		}
+	}
+
+	/**
+	 * Tests that the `core/get-environment-info` ability filters its output by the `fields` input parameter.
+	 *
+	 * @ticket 65355
+	 */
+	public function test_core_get_environment_info_filters_fields(): void {
+		$admin_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		wp_set_current_user( $admin_id );
+
+		$ability = wp_get_ability( 'core/get-environment-info' );
+
+		$result = $ability->execute(
+			array(
+				'fields' => array( 'environment', 'wp_version' ),
+			)
+		);
+
+		$this->assertIsArray( $result );
+		$this->assertCount( 2, $result );
+		$this->assertArrayHasKey( 'environment', $result );
+		$this->assertArrayHasKey( 'wp_version', $result );
+		$this->assertArrayNotHasKey( 'php_version', $result );
+		$this->assertArrayNotHasKey( 'db_server_info', $result );
+	}
+
+	/**
+	 * Tests that the `core/get-environment-info` ability rejects unknown field names via schema validation.
+	 *
+	 * @ticket 65355
+	 */
+	public function test_core_get_environment_info_rejects_invalid_fields(): void {
+		$admin_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		wp_set_current_user( $admin_id );
+
+		$ability = wp_get_ability( 'core/get-environment-info' );
+
+		$result = $ability->execute(
+			array(
+				'fields' => array( 'environment', 'not_a_real_field' ),
+			)
+		);
+
+		$this->assertWPError( $result );
+		$this->assertSame( 'ability_invalid_input', $result->get_error_code() );
 	}
 
 	/**
