@@ -13,3 +13,4 @@ media.view.MediaFrame.EditAttachments = require( '../../../media/views/frame/edi
 media.view.SelectModeToggleButton = require( '../../../media/views/button/select-mode-toggle.js' );
 media.view.DeleteSelectedButton = require( '../../../media/views/button/delete-selected.js' );
 media.view.DeleteSelectedPermanentlyButton = require( '../../../media/views/button/delete-selected-permanently.js' );
+media.view.SelectionCount = require( '../../../media/views/selection-count.js' );

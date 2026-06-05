@@ -261,6 +261,11 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 				priority: -70
 			}).render() );
 
+			this.toolbar.set( 'selectionCount', new wp.media.view.SelectionCount({
+				controller: this.controller,
+				priority: -60
+			}).render() );
+
 			this.toolbar.set( 'deleteSelectedButton', new wp.media.view.DeleteSelectedButton({
 				filters: Filters,
 				style: 'primary',
