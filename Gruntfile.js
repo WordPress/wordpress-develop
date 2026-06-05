@@ -52,7 +52,6 @@ module.exports = function(grunt) {
 			'wp-includes/js/dist',
 			'wp-includes/css/dist',
 			'wp-includes/images/icon-library',
-			'wp-includes/assets/icon-library-manifest.php',
 			// Old location kept temporarily to ensure they are cleaned up.
 			'wp-includes/icons',
 		],
