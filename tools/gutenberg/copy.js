@@ -19,8 +19,29 @@ const rootDir = path.resolve( __dirname, '../..' );
 const gutenbergDir = path.join( rootDir, 'gutenberg' );
 const gutenbergBuildDir = path.join( gutenbergDir, 'build' );
 
-// All files handled in this script are subject to version control, so they should always be placed into src/.
+/*
+ * Scope selects which subset of files to copy.
+ *  - `versioned`  : blocks/, generated PHP under assets/ (script-loader, script-modules), blocks-json,
+ *                   require-{dynamic,static}-blocks. Always written under src/.
+ *  - `unversioned`: top-level @wordpress JS packages under wp-includes/js/dist/. Written to the
+ *                   directory chosen by --build-dir / --dev (src/ in dev builds, build/ in prod builds).
+ *  - `all` (default): both, with the same target-dir rules as above.
+ */
+const args = process.argv.slice( 2 );
+const scopeArg = args.find( ( arg ) => arg.startsWith( '--scope=' ) );
+const scope = scopeArg ? scopeArg.split( '=' )[ 1 ] : 'all';
+
+const buildDirArg = args.find( ( arg ) => arg.startsWith( '--build-dir=' ) );
+const buildDir = buildDirArg
+	? buildDirArg.split( '=' )[ 1 ]
+	: args.includes( '--dev' )
+	? 'src'
+	: 'build';
+
+// Versioned outputs always go to src/.
 const wpIncludesDir = path.join( rootDir, 'src', 'wp-includes' );
+// Unversioned JS packages follow WORKING_DIR (--build-dir / --dev).
+const unversionedWpIncludesDir = path.join( rootDir, buildDir, 'wp-includes' );
 
 /*
  * Copy configuration.
@@ -497,7 +518,7 @@ function generateBlocksJson() {
  * Main execution function.
  */
 async function main() {
-	console.log( '📦 Copying versioned Gutenberg files to src/...' );
+	console.log( `📦 Copying Gutenberg build (scope: ${ scope })...` );
 
 	if ( ! fs.existsSync( gutenbergBuildDir ) ) {
 		console.error( '❌ Gutenberg build directory not found' );
@@ -505,11 +526,12 @@ async function main() {
 		process.exit( 1 );
 	}
 
-	// 1. Copy JavaScript packages.
+	// 1. Copy JavaScript packages (unversioned → WORKING_DIR).
+	if ( scope === 'unversioned' || scope === 'all' ) {
 	console.log( '\n📦 Copying JavaScript packages...' );
 	const scriptsConfig = COPY_CONFIG.scripts;
 	const scriptsSrc = path.join( gutenbergBuildDir, scriptsConfig.source );
-	const scriptsDest = path.join( wpIncludesDir, scriptsConfig.destination );
+	const scriptsDest = path.join( unversionedWpIncludesDir, scriptsConfig.destination );
 
 	if ( fs.existsSync( scriptsSrc ) ) {
 		const entries = fs.readdirSync( scriptsSrc, { withFileTypes: true } );
@@ -590,26 +612,29 @@ async function main() {
 
 		console.log( '   ✅ JavaScript packages copied' );
 	}
+	}
 
-	// 2. Copy blocks (unified: scripts, styles, PHP, JSON).
-	console.log( '\n📦 Copying blocks...' );
-	copyBlockAssets( COPY_CONFIG.blocks );
+	if ( scope === 'versioned' || scope === 'all' ) {
+		// 2. Copy blocks (unified: scripts, styles, PHP, JSON).
+		console.log( '\n📦 Copying blocks...' );
+		copyBlockAssets( COPY_CONFIG.blocks );
 
-	// 3. Generate script-modules-packages.php from individual asset files.
-	console.log( '\n📦 Generating script-modules-packages.php...' );
-	generateScriptModulesPackages();
+		// 3. Generate script-modules-packages.php from individual asset files.
+		console.log( '\n📦 Generating script-modules-packages.php...' );
+		generateScriptModulesPackages();
 
-	// 4. Generate script-loader-packages.php.
-	console.log( '\n📦 Generating script-loader-packages.php...' );
-	generateScriptLoaderPackages();
+		// 4. Generate script-loader-packages.php.
+		console.log( '\n📦 Generating script-loader-packages.php...' );
+		generateScriptLoaderPackages();
 
-	// 5. Generate require-dynamic-blocks.php and require-static-blocks.php.
-	console.log( '\n📦 Generating block registration files...' );
-	generateBlockRegistrationFiles();
+		// 5. Generate require-dynamic-blocks.php and require-static-blocks.php.
+		console.log( '\n📦 Generating block registration files...' );
+		generateBlockRegistrationFiles();
 
-	// 6. Generate blocks-json.php from block.json files.
-	console.log( '\n📦 Generating blocks-json.php...' );
-	generateBlocksJson();
+		// 6. Generate blocks-json.php from block.json files.
+		console.log( '\n📦 Generating blocks-json.php...' );
+		generateBlocksJson();
+	}
 
 	console.log( '\n✅ Copy complete!' );
 }

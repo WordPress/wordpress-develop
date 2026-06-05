@@ -265,8 +265,8 @@ module.exports = function(grunt) {
 				filter: function() {
 					var allowedTasks = [
 						'build',
-						'build:dev',
 						'build:gutenberg',
+						'build:gutenberg:versioned',
 						'clean:gutenberg-versioned',
 						/*
 						 * These tasks chain `build` internally, but grunt.cli.tasks only reflects the current task,
@@ -329,6 +329,8 @@ module.exports = function(grunt) {
 						cwd: SOURCE_DIR,
 						src: buildFiles.concat( [
 							'!wp-includes/assets/**', // Assets is extracted into separate copy tasks.
+							// Gutenberg-sourced manifest lives in src/wp-includes/assets/ and needs to propagate.
+							'wp-includes/assets/icon-library-manifest.php',
 							'!js/**', // JavaScript is extracted into separate copy tasks.
 							'!.{svn,git}', // Exclude version control folders.
 							'!wp-includes/version.php', // Exclude version.php.
@@ -745,7 +747,7 @@ module.exports = function(grunt) {
 						// with no debugging value over the minified versions.
 						'!vips/!(*.min).js',
 					],
-					dest: SOURCE_DIR + 'wp-includes/js/dist/script-modules/',
+					dest: WORKING_DIR + 'wp-includes/js/dist/script-modules/',
 				} ],
 			},
 			'gutenberg-styles': {
@@ -758,7 +760,7 @@ module.exports = function(grunt) {
 						// Per-block CSS is copied to wp-includes/blocks/ by tools/gutenberg/copy.js.
 						'!block-library/*/**',
 					],
-					dest: SOURCE_DIR + 'wp-includes/css/dist/',
+					dest: WORKING_DIR + 'wp-includes/css/dist/',
 				} ],
 			},
 			'gutenberg-theme-json': {
@@ -1714,11 +1716,20 @@ module.exports = function(grunt) {
 		} );
 	} );
 
+	// Underlying runner. Accepts colon-suffixed scope (`:versioned`, `:unversioned`)
+	// to drive the corresponding subset of tools/gutenberg/copy.js. With no scope
+	// (`gutenberg:copy`), the script runs in `all` mode.
 	grunt.registerTask( 'gutenberg:copy', 'Copies Gutenberg JS packages and block assets to WordPress Core.', function() {
 		const done = this.async();
+		const scope = this.args[ 0 ] || 'all';
+		const args = [ 'tools/gutenberg/copy.js', `--scope=${ scope }` ];
+		// Unversioned JS packages need to know WORKING_DIR semantics; versioned files always land in src/.
+		if ( scope !== 'versioned' ) {
+			args.push( `--build-dir=${ grunt.option( 'dev' ) ? 'src' : 'build' }` );
+		}
 		grunt.util.spawn( {
 			cmd: 'node',
-			args: [ 'tools/gutenberg/copy.js' ],
+			args: args,
 			opts: { stdio: 'inherit' }
 		}, function( error ) {
 			done( ! error );
@@ -2194,20 +2205,43 @@ module.exports = function(grunt) {
 		) );
 	} );
 
-	grunt.registerTask( 'build:gutenberg', [
+	/*
+	 * Versioned half: paths under version control. Always written to src/.
+	 *
+	 * Called early in prod builds so the fresh content propagates from src/ to
+	 * build/ via the subsequent build:files → copy:files step.
+	 */
+	grunt.registerTask( 'build:gutenberg:versioned', [
 		'gutenberg:verify',
 		'clean:gutenberg-versioned',
-		'clean:gutenberg',
 		'copy:gutenberg-php',
 		'routes:setup',
 		'copy:routes',
 		'copy:gutenberg-js',
-		'gutenberg:copy',
-		'copy:gutenberg-modules',
-		'copy:gutenberg-styles',
 		'copy:gutenberg-theme-json',
 		'copy:icon-library-images',
 		'copy:icon-library-manifest',
+		'gutenberg:copy:versioned',
+	] );
+
+	/*
+	 * Unversioned half: gitignored dist artifacts. Written to WORKING_DIR
+	 * (src/ in dev, build/ in prod).
+	 *
+	 * Called late in prod builds so the freshly-built dist content is not wiped
+	 * by clean:files / clean:js.
+	 */
+	grunt.registerTask( 'build:gutenberg:unversioned', [
+		'clean:gutenberg',
+		'copy:gutenberg-modules',
+		'copy:gutenberg-styles',
+		'gutenberg:copy:unversioned',
+	] );
+
+	// Combined target for callers that don't need to interleave with the rest of the build.
+	grunt.registerTask( 'build:gutenberg', [
+		'build:gutenberg:versioned',
+		'build:gutenberg:unversioned',
 	] );
 
 	grunt.registerTask( 'build', function() {
@@ -2221,11 +2255,16 @@ module.exports = function(grunt) {
 			] );
 		} else {
 			grunt.task.run( [
-				'build:gutenberg',
+				// Refresh versioned src/ paths first so copy:files (inside build:files)
+				// propagates the new Gutenberg state into build/.
+				'build:gutenberg:versioned',
 				'build:files',
 				'build:js',
 				'build:css',
 				'build:codemirror',
+				// Populate dist artifacts in build/ last so clean:files/clean:js
+				// can't wipe them.
+				'build:gutenberg:unversioned',
 				'build:certificates',
 				'replace:source-maps',
 				'verify:build',
