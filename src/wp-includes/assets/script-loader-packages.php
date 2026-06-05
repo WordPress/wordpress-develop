@@ -66,7 +66,7 @@
 			'wp-theme',
 			'wp-url'
 		),
-		'version' => '9a05dcf7adb71a472989'
+		'version' => '3b3398ffa090699fedbb'
 	),
 	'block-editor.js' => array(
 		'dependencies' => array(
@@ -104,7 +104,7 @@
 			'wp-url',
 			'wp-warning'
 		),
-		'version' => '914422971dc7fd6a8ca7'
+		'version' => '56585d984f6029771e26'
 	),
 	'block-library.js' => array(
 		'dependencies' => array(
@@ -149,7 +149,7 @@
 				'import' => 'dynamic'
 			)
 		),
-		'version' => 'b449c385f68d1a30885b'
+		'version' => 'fa108b6e95dc4310ea7d'
 	),
 	'block-serialization-default-parser.js' => array(
 		'dependencies' => array(
@@ -223,7 +223,7 @@
 			'wp-theme',
 			'wp-warning'
 		),
-		'version' => '086638a36f34ea68ff91'
+		'version' => 'dbc790144b9e533fdddf'
 	),
 	'compose.js' => array(
 		'dependencies' => array(
@@ -276,7 +276,7 @@
 			'wp-url',
 			'wp-warning'
 		),
-		'version' => '853feaa4b95feec3595f'
+		'version' => 'dbf836346908ba740d6e'
 	),
 	'customize-widgets.js' => array(
 		'dependencies' => array(
@@ -395,7 +395,7 @@
 				'import' => 'static'
 			)
 		),
-		'version' => 'f8be112640231f962022'
+		'version' => '6bdb8d56f8ae67760961'
 	),
 	'edit-site.js' => array(
 		'dependencies' => array(
@@ -444,7 +444,7 @@
 				'import' => 'static'
 			)
 		),
-		'version' => '45fb7cc8e84472d82ad3'
+		'version' => '8de0041ada62db2d2465'
 	),
 	'edit-widgets.js' => array(
 		'dependencies' => array(
@@ -535,7 +535,7 @@
 				'import' => 'static'
 			)
 		),
-		'version' => '048000f0b955802a6c37'
+		'version' => '507db09171f080578190'
 	),
 	'element.js' => array(
 		'dependencies' => array(
@@ -654,7 +654,7 @@
 			'wp-url',
 			'wp-warning'
 		),
-		'version' => '26ed91fd3dc2e7851d8d'
+		'version' => '7df82718173521fe31b0'
 	),
 	'notices.js' => array(
 		'dependencies' => array(
@@ -742,7 +742,7 @@
 		'dependencies' => array(
 			
 		),
-		'version' => '66edb99c6699f7777c4f'
+		'version' => 'db306a8644da6d3146ac'
 	),
 	'react-i18n.js' => array(
 		'dependencies' => array(
@@ -831,7 +831,7 @@
 			'wp-hooks',
 			'wp-private-apis'
 		),
-		'version' => 'a35c75f515f3913a8186'
+		'version' => 'eec01499761de7c20440'
 	),
 	'theme.js' => array(
 		'dependencies' => array(
