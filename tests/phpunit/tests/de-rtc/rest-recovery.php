@@ -338,16 +338,7 @@ class Tests_DE_RTC_REST_Recovery extends WP_Test_REST_TestCase {
 		$this->assertIsArray( $parsed );
 		$this->assertSame( $current_content, $parsed['content'] );
 		$this->assertSame( 'automerge', $parsed['sync_meta_format'] );
-		$this->assertSame( 'de-rtc-automerge-v1', $parsed['sync_meta']['schema'] );
-		$this->assertSame( 'native-automerge-blocks-v1', $parsed['sync_meta']['automerge_encoding'] );
-		$this->assertSame( '1', $parsed['sync_meta']['version'] );
-		$this->assertSame( '0', $parsed['sync_meta']['previous_version'] );
-		$this->assertSame( wp_de_rtc_hash_content( $current_content ), $parsed['sync_meta']['post_content_hash'] );
-		$this->assertSame( 'wp_update_post', $parsed['sync_meta']['last_server_update']['type'] );
-		$this->assertSame( '32', $parsed['sync_meta']['last_server_update']['client_base_version'] );
-		$this->assertSame( 'native_automerge_blocks_v1', $parsed['sync_meta']['last_server_update']['merge_strategy'] );
-		$this->assertSame( wp_de_rtc_hash_content( $current_content ), $parsed['sync_meta']['last_server_update']['saved_stripped_content_hash'] );
-		$this->assertArrayHasKey( 'base_revision_id', $parsed['sync_meta']['last_server_update'] );
+		$this->assertSame( $base_metadata, $parsed['sync_meta'] );
 	}
 
 	/**

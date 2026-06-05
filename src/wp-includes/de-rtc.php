@@ -7605,6 +7605,8 @@ function wp_de_rtc_get_post_snapshot_for_distributed_editing( $post ) {
 	$parsed = wp_de_rtc_parse_post_content_sync_meta( $post->post_content );
 	$snapshot_raw_content = $post->post_content;
 	$external_repair      = null;
+	$external_repair_applied = false;
+	$external_repair_revision_created = false;
 
 	if ( is_wp_error( $parsed ) ) {
 		$parsed->add_data(
@@ -7658,39 +7660,95 @@ function wp_de_rtc_get_post_snapshot_for_distributed_editing( $post ) {
 	}
 
 	if ( is_array( $repaired ) ) {
-		$repaired_raw_content = wp_de_rtc_add_sync_meta_to_post_content(
-			$repaired['content'],
-			$repaired['sync_meta_format'],
-			$repaired['sync_meta'],
-			$repaired['sync_meta_position']
+		$recovery_plan  = wp_de_rtc_plan_sync_meta_recovery_update( $post );
+		$recovery_apply = wp_de_rtc_apply_sync_meta_recovery_update(
+			$recovery_plan,
+			array(
+				'mode' => 'apply',
+			)
 		);
 
-		if ( is_wp_error( $repaired_raw_content ) ) {
-			return $repaired_raw_content;
+		if ( is_wp_error( $recovery_apply ) ) {
+			$recovery_apply->add_data(
+				array_merge(
+					(array) $recovery_apply->get_error_data(),
+					array(
+						'status'               => 409,
+						'post_id'              => (int) $post->ID,
+						'rest_route'           => 'post_distributed_editing_snapshot',
+						'read_only'            => true,
+						'saves_post'           => false,
+						'mutates_post_content' => false,
+						'creates_revision'     => false,
+						'changes_post_lock'    => false,
+						'claims_saved'         => false,
+						'exposes_raw_content'  => false,
+					)
+				)
+			);
+
+			return $recovery_apply;
 		}
 
-		$reparsed = wp_de_rtc_parse_post_content_sync_meta( $repaired_raw_content );
+		if ( empty( $recovery_apply['applied'] ) ) {
+			return wp_de_rtc_get_reason_error(
+				'de_rtc_storage_failure',
+				__( 'Distributed Editing could not repair the persisted post snapshot.' ),
+				array(
+					'detail'               => 'snapshot_recovery_apply_not_applied',
+					'post_id'              => (int) $post->ID,
+					'rest_route'           => 'post_distributed_editing_snapshot',
+					'saves_post'           => false,
+					'mutates_post_content' => false,
+					'creates_revision'     => false,
+					'changes_post_lock'    => false,
+					'claims_saved'         => false,
+				)
+			);
+		}
+
+		$post = get_post( (int) $post->ID );
+
+		if ( ! $post ) {
+			return new WP_Error(
+				'rest_post_invalid_id',
+				__( 'Invalid post ID.' ),
+				array( 'status' => 404 )
+			);
+		}
+
+		$reparsed = wp_de_rtc_parse_post_content_sync_meta( $post->post_content );
 
 		if ( is_wp_error( $reparsed ) ) {
 			return $reparsed;
 		}
 
-		$parsed               = $reparsed;
-		$snapshot_raw_content = $repaired_raw_content;
-		$external_repair      = array(
-			'mode'                   => $repaired['external_repair_mode'],
-			'base_version'           => $repaired['base_version'],
-			'repaired_version'       => $repaired['server_version'],
-			'base_revision_id'       => $repaired['base_revision_id'],
-			'base_content_hash'      => $repaired['base_content_hash'],
-			'current_content_hash'   => $repaired['current_content_hash'],
-			'content_hash_algorithm' => 'sha256',
-			'read_only'              => true,
-			'saves_post'             => false,
-			'mutates_post_content'   => false,
-			'creates_revision'       => false,
-			'changes_post_lock'      => false,
-			'claims_saved'           => false,
+		$parsed                           = $reparsed;
+		$snapshot_raw_content             = $post->post_content;
+		$external_repair_applied          = true;
+		$external_repair_revision_created = ! empty( $recovery_apply['revision_created'] );
+		$external_repair                  = array(
+			'mode'                           => $repaired['external_repair_mode'],
+			'base_version'                   => $repaired['base_version'],
+			'repaired_version'               => isset( $parsed['sync_meta']['version'] ) ? (string) $parsed['sync_meta']['version'] : $repaired['server_version'],
+			'planned_repaired_version'       => $repaired['server_version'],
+			'base_revision_id'               => $repaired['base_revision_id'],
+			'base_content_hash'              => $repaired['base_content_hash'],
+			'current_content_hash'           => $repaired['current_content_hash'],
+			'content_hash_algorithm'         => 'sha256',
+			'applied'                        => true,
+			'apply_result'                   => isset( $recovery_apply['result'] ) ? $recovery_apply['result'] : null,
+			'revision_created'               => $external_repair_revision_created,
+			'created_revision_ids'           => isset( $recovery_apply['created_revision_ids'] ) && is_array( $recovery_apply['created_revision_ids'] )
+				? array_values( array_map( 'intval', $recovery_apply['created_revision_ids'] ) )
+				: array(),
+			'read_only'                      => false,
+			'saves_post'                     => true,
+			'mutates_post_content'           => true,
+			'mutates_persisted_post_content' => true,
+			'creates_revision'               => $external_repair_revision_created,
+			'changes_post_lock'              => false,
+			'claims_saved'                   => false,
 		);
 	}
 
@@ -7771,24 +7829,26 @@ function wp_de_rtc_get_post_snapshot_for_distributed_editing( $post ) {
 			'sync_meta_format'        => $parsed['sync_meta_format'],
 			'sync_meta_position'      => $parsed['sync_meta_position'],
 			'server_version'          => $server_version,
-			'read_only'               => true,
-			'saves_post'              => false,
-			'mutates_post_content'    => false,
-			'creates_revision'        => false,
+			'read_only'               => ! $external_repair_applied,
+			'saves_post'              => $external_repair_applied,
+			'mutates_post_content'    => $external_repair_applied,
+			'mutates_persisted_post_content' => $external_repair_applied,
+			'creates_revision'        => $external_repair_revision_created,
 			'changes_post_lock'       => false,
 			'claims_saved'            => false,
 			'exposes_raw_content'     => true,
 			'external_repair'         => $external_repair,
 			'repair_candidate'        => is_array( $external_repair ),
+			'repair_applied'          => $external_repair_applied,
 			'pending_review_item_count' => $pending_review_item_count,
 			'review_items_descriptor_only' => true,
 		),
 		'pending_review_item_count'    => $pending_review_item_count,
-		'read_only'                       => true,
-		'saves_post'                      => false,
-		'mutates_post_content'            => false,
-		'mutates_persisted_post_content'  => false,
-		'creates_revision'                => false,
+		'read_only'                       => ! $external_repair_applied,
+		'saves_post'                      => $external_repair_applied,
+		'mutates_post_content'            => $external_repair_applied,
+		'mutates_persisted_post_content'  => $external_repair_applied,
+		'creates_revision'                => $external_repair_revision_created,
 		'changes_post_lock'               => false,
 		'claims_saved'                    => false,
 		'exposes_raw_content'             => true,
@@ -15272,7 +15332,7 @@ function wp_de_rtc_save_retry_submitted_post( $post, $args = array() ) {
 
 	$revision_ids_before_save = wp_de_rtc_get_post_revision_ids( $post->ID );
 
-	$base_revision_before_retry_save = 'automerge' === $current['sync_meta_format'] && $retry_save_server_merge_required
+	$base_revision_before_retry_save = 'automerge' === $current['sync_meta_format']
 		? wp_de_rtc_ensure_current_sync_meta_revision_before_retry_save( $post, $server_version )
 		: null;
 
@@ -19103,15 +19163,88 @@ function wp_de_rtc_is_current_automerge_sync_meta( $sync_meta, $format ) {
 		$base_revision_id = isset( $args['base_revision_id'] ) ? (int) $args['base_revision_id'] : 0;
 		$sync_meta_position = isset( $args['sync_meta_position'] ) && is_string( $args['sync_meta_position'] ) ? $args['sync_meta_position'] : 'prefix-block';
 		$actor           = 'wp-external-repair-' . ( $post ? (int) $post->ID : 0 ) . '-' . substr( hash( 'sha256', $base_version . '|' . $mode ), 0, 12 );
-		$client_update   = wp_de_rtc_create_automerge_update_for_content_change( $base_content, $current_content, $actor );
-		$automerge_result      = wp_de_rtc_get_automerge_retry_save_result( $base_content, $base_content, $current_content, $client_update );
+		$external_update = wp_de_rtc_create_legacy_automerge_update_for_content_change( $base_content, $current_content, $actor );
+		$port            = wp_de_rtc_get_automerge_native_port();
 
-		if ( is_wp_error( $automerge_result ) ) {
-			return $automerge_result;
+		if ( is_wp_error( $port ) ) {
+			return $port;
+		}
+
+		try {
+			$base_document = $port->createDocument(
+				$base_content,
+				array(
+					'schema'       => 'de-rtc-automerge-v1',
+					'actorId'      => $actor,
+					'repair_mode'  => $mode,
+					'base_version' => $base_version,
+				)
+			);
+			$repair_document = $port->applyServerPostUpdate( $base_document, $current_content, $actor );
+			$materialized    = $port->materialize( $repair_document );
+		} catch ( Throwable $exception ) {
+			return wp_de_rtc_get_reason_error(
+				'de_rtc_sync_meta_unrecoverable',
+				__( 'Distributed Editing could not materialize the external post update.' ),
+				array(
+					'detail'          => 'automerge_external_repair_materialization_failed',
+					'exception_class' => get_class( $exception ),
+				)
+			);
+		}
+
+		if ( ! is_string( $materialized ) || $materialized !== $current_content ) {
+			return wp_de_rtc_get_reason_error(
+				'de_rtc_sync_meta_tampered',
+				__( 'Distributed Editing could not verify the external post update.' ),
+				array(
+					'detail'                    => 'automerge_external_repair_materialization_mismatch',
+					'base_content_hash'         => wp_de_rtc_hash_content( $base_content ),
+					'current_content_hash'      => wp_de_rtc_hash_content( $current_content ),
+					'materialized_content_hash' => is_string( $materialized ) ? wp_de_rtc_hash_content( $materialized ) : null,
+					'saves_post'                => false,
+					'mutates_post_content'      => false,
+					'creates_revision'          => false,
+					'claims_saved'              => false,
+				)
+			);
 		}
 
 		$current_hash  = wp_de_rtc_hash_content( $current_content );
 		$next_version  = wp_de_rtc_get_next_sync_meta_version( $base_version, $current_hash );
+		$base_records  = wp_de_rtc_get_top_level_serialized_block_records( $base_content );
+		$current_records = wp_de_rtc_get_top_level_serialized_block_records( $current_content );
+		$automerge_result = array(
+			'merged_content'        => $current_content,
+			'merge_status'          => 'merged',
+			'merge_strategy'        => 'native_automerge_external_repair_v1',
+			'block_count'           => is_wp_error( $current_records ) ? null : count( $current_records ),
+			'base_block_count'      => is_wp_error( $base_records ) ? null : count( $base_records ),
+			'server_block_count'    => is_wp_error( $base_records ) ? null : count( $base_records ),
+			'proposed_block_count'  => is_wp_error( $current_records ) ? null : count( $current_records ),
+			'merged_block_count'    => is_wp_error( $current_records ) ? null : count( $current_records ),
+			'merged_stripped_content_hash' => $current_hash,
+			'base_content_hash'     => wp_de_rtc_hash_content( $base_content ),
+			'server_content_hash'   => wp_de_rtc_hash_content( $base_content ),
+			'proposed_content_hash' => $current_hash,
+			'automerge_metadata'    => array(
+				'format'      => 'native-automerge-php-v1',
+				'schema'      => 'de-rtc-automerge-v1',
+				'operations'  => isset( $external_update['operations'] ) && is_array( $external_update['operations'] ) ? $external_update['operations'] : array(),
+				'stateVector' => isset( $external_update['stateVector'] ) && is_array( $external_update['stateVector'] ) ? $external_update['stateVector'] : array(),
+			),
+			'automerge_client_update' => $external_update,
+			'automerge_external_repair_update' => $external_update,
+			'server_change_range'   => array(
+				'start'         => 0,
+				'end'           => 0,
+				'delete_length' => 0,
+				'insert_length' => 0,
+				'changed'       => false,
+			),
+			'client_change_range'   => isset( $external_update['change_range'] ) && is_array( $external_update['change_range'] ) ? $external_update['change_range'] : array(),
+			'server_merge_strategy' => 'native_automerge_external_repair_v1',
+		);
 		$next_sync_meta = wp_de_rtc_apply_automerge_metadata_to_sync_meta( $base_sync_meta, $automerge_result, $current_hash );
 
 		if ( is_wp_error( $next_sync_meta ) ) {
@@ -19135,7 +19268,7 @@ function wp_de_rtc_is_current_automerge_sync_meta( $sync_meta, $format ) {
 			'external_repair_mode'        => $mode,
 			'previous_server_version'     => $base_version,
 			'saved_stripped_content_hash' => $current_hash,
-			'merge_strategy'              => 'native_automerge_php_v1',
+			'merge_strategy'              => 'native_automerge_external_repair_v1',
 			'base_content_hash'           => wp_de_rtc_hash_content( $base_content ),
 			'current_content_hash'        => $current_hash,
 			'content_hash_algorithm'      => 'sha256',
@@ -20669,6 +20802,7 @@ function wp_de_rtc_plan_sync_meta_recovery_update( $decision_or_post ) {
 		$external_change = array_merge(
 			$external_change,
 			array(
+				'mode'                              => $repair_mode,
 				'candidate_stripped_content_hash' => $candidate_stripped_content_hash,
 				'candidate_post_content_hash'     => $candidate_post_content_hash,
 				'candidate_sync_meta_format'      => 'automerge',
@@ -20986,16 +21120,38 @@ function wp_de_rtc_apply_sync_meta_recovery_update( $plan_decision_or_post, $opt
 	$post_id                     = (int) $dry_run['post_id'];
 	$revision_ids_before_apply   = wp_de_rtc_get_post_revision_ids( $post_id );
 	$candidate_post_content_hash = $dry_run['plan']['candidate_post_content_hash'];
+	$candidate_post_content      = $dry_run['plan']['candidate_post_content'];
+	$added_sync_meta_kses_allowance = false === has_filter( 'wp_kses_allowed_html', 'wp_de_rtc_filter_sync_meta_script_kses_allowance' );
 
-	$updated_post_id = wp_update_post(
-		wp_slash(
-			array(
-				'ID'           => $post_id,
-				'post_content' => $dry_run['plan']['candidate_post_content'],
-			)
-		),
-		true
-	);
+	if ( $added_sync_meta_kses_allowance ) {
+		wp_de_rtc_enable_sync_meta_script_kses_allowance();
+	}
+
+	global $wp_de_rtc_prepared_automerge_raw_save_content;
+
+	if ( ! is_array( $wp_de_rtc_prepared_automerge_raw_save_content ) ) {
+		$wp_de_rtc_prepared_automerge_raw_save_content = array();
+	}
+
+	$wp_de_rtc_prepared_automerge_raw_save_content[ $post_id ] = $candidate_post_content;
+
+	try {
+		$updated_post_id = wp_update_post(
+			wp_slash(
+				array(
+					'ID'           => $post_id,
+					'post_content' => $candidate_post_content,
+				)
+			),
+			true
+		);
+	} finally {
+		unset( $wp_de_rtc_prepared_automerge_raw_save_content[ $post_id ] );
+
+		if ( $added_sync_meta_kses_allowance ) {
+			wp_de_rtc_disable_sync_meta_script_kses_allowance();
+		}
+	}
 
 	if ( is_wp_error( $updated_post_id ) ) {
 		return $updated_post_id;
