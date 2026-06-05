@@ -809,7 +809,37 @@ class Tests_Post_Query extends WP_UnitTestCase {
 			)
 		);
 
+		remove_filter( 'split_the_query', array( $filter, 'filter' ) );
+
 		$this->assertSame( (bool) wp_using_ext_object_cache(), $filter->get_args()[0][0] );
+	}
+
+	/**
+	 * @ticket 57416
+	 *
+	 * @dataProvider data_split_the_query_should_be_disabled_when_posts_per_page_is_one
+	 */
+	public function test_split_the_query_should_be_disabled_when_posts_per_page_is_one( $posts_per_page, $expected ) {
+		$filter = new MockAction();
+		add_filter( 'split_the_query', array( $filter, 'filter' ) );
+
+		$q = new WP_Query(
+			array(
+				'posts_per_page' => $posts_per_page,
+				'cache_results'  => false,
+			)
+		);
+
+		remove_filter( 'split_the_query', array( $filter, 'filter' ) );
+
+		$this->assertSame( $expected, $filter->get_args()[0][0] );
+	}
+
+	public function data_split_the_query_should_be_disabled_when_posts_per_page_is_one() {
+		return array(
+			'one post'  => array( 1, false ),
+			'two posts' => array( 2, true ),
+		);
 	}
 
 	/**
