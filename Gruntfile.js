@@ -263,7 +263,19 @@ module.exports = function(grunt) {
 			 */
 			'gutenberg-versioned': {
 				filter: function() {
-					var allowedTasks = [ 'build', 'build:dev', 'build:gutenberg', 'clean:gutenberg-versioned' ];
+					var allowedTasks = [
+						'build',
+						'build:dev',
+						'build:gutenberg',
+						'clean:gutenberg-versioned',
+						/*
+						 * These tasks chain `build` internally, but grunt.cli.tasks only reflects the current task,
+						 * which does not include expanded tasks.
+						 */
+						'default',
+						'qunit:compiled',
+						'test',
+					];
 					return allowedTasks.some( function( task ) {
 						return grunt.cli.tasks.indexOf( task ) !== -1;
 					} );
