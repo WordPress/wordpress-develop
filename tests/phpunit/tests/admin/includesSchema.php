@@ -333,12 +333,14 @@ class Tests_Admin_IncludesSchema extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that dbDelta() adds the composite index to an existing postmeta table.
+	 * Tests that upgrade_710() adds the composite index to the postmeta table.
 	 *
 	 * @ticket 45354
 	 */
-	public function test_dbdelta_adds_postmeta_composite_index() {
-		global $wpdb;
+	public function test_upgrade_710_adds_postmeta_composite_index() {
+		global $wpdb, $wp_current_db_version;
+
+		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 
 		// Drop the index if it already exists to simulate an upgrade scenario.
 		$existing_indexes = $wpdb->get_results( "SHOW INDEX FROM $wpdb->postmeta WHERE Key_name = 'meta_key_id'" );
@@ -348,14 +350,23 @@ class Tests_Admin_IncludesSchema extends WP_UnitTestCase {
 
 		$this->assertEmpty(
 			$wpdb->get_results( "SHOW INDEX FROM $wpdb->postmeta WHERE Key_name = 'meta_key_id'" ),
-			'The meta_key_id index should not exist before dbDelta().'
+			'The meta_key_id index should not exist before the upgrade.'
 		);
 
-		dbDelta( wp_get_db_schema() );
+		$original_db_version   = $wp_current_db_version;
+		$wp_current_db_version = 61833;
+
+		upgrade_710();
 
 		$this->assertNotEmpty(
 			$wpdb->get_results( "SHOW INDEX FROM $wpdb->postmeta WHERE Key_name = 'meta_key_id'" ),
-			'The meta_key_id composite index should exist after dbDelta().'
+			'The meta_key_id composite index should exist after upgrade_710().'
 		);
+
+		// Verify idempotency: running again must not cause a duplicate key error.
+		upgrade_710();
+		$this->assertEmpty( $wpdb->last_error, 'upgrade_710() should not produce a DB error when the index already exists.' );
+
+		$wp_current_db_version = $original_db_version;
 	}
 }
