@@ -5300,10 +5300,13 @@ function wp_is_numeric_array( $data ) {
 		return false;
 	}
 
-	$keys        = array_keys( $data );
-	$string_keys = array_filter( $keys, 'is_string' );
+	foreach ( $data as $key => $value ) {
+		if ( is_string( $key ) ) {
+			return false;
+		}
+	}
 
-	return count( $string_keys ) === 0;
+	return true;
 }
 
 /**
