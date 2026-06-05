@@ -890,10 +890,6 @@ function upgrade_all() {
 		upgrade_700();
 	}
 
-	if ( $wp_current_db_version < 61834 ) {
-		upgrade_710();
-	}
-
 	maybe_disable_link_manager();
 
 	maybe_disable_automattic_widgets();
@@ -2511,23 +2507,6 @@ function upgrade_700() {
 				'meta_value' => 'fresh',
 			)
 		);
-	}
-}
-
-/**
- * Executes changes made in WordPress 7.1.0.
- *
- * @ignore
- * @since 7.1.0
- *
- * @global int  $wp_current_db_version The old (current) database version.
- * @global wpdb $wpdb                  WordPress database abstraction object.
- */
-function upgrade_710() {
-	global $wp_current_db_version, $wpdb;
-
-	if ( $wp_current_db_version < 61834 ) {
-		$wpdb->query( "ALTER TABLE $wpdb->postmeta ADD INDEX meta_key_id (meta_key(191),post_id)" );
 	}
 }
 
