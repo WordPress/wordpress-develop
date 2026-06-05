@@ -19,21 +19,10 @@ const rootDir = path.resolve( __dirname, '../..' );
 const gutenbergDir = path.join( rootDir, 'gutenberg' );
 const gutenbergBuildDir = path.join( gutenbergDir, 'build' );
 
+// All files handled in this script are subject to version control, so they should always be placed into src/.
+const wpIncludesDir = path.join( rootDir, 'src', 'wp-includes' );
+
 /*
- * Determine build target from command line argument (--dev or --build-dir).
- * Default to 'src' for development.
- */
-const args = process.argv.slice( 2 );
-const buildDirArg = args.find( ( arg ) => arg.startsWith( '--build-dir=' ) );
-const buildTarget = buildDirArg
-	? buildDirArg.split( '=' )[ 1 ]
-	: args.includes( '--dev' )
-	? 'src'
-	: 'build';
-
-const wpIncludesDir = path.join( rootDir, buildTarget, 'wp-includes' );
-
-/**
  * Copy configuration.
  * Defines what to copy from Gutenberg build and where it goes in Core.
  */
@@ -508,7 +497,7 @@ function generateBlocksJson() {
  * Main execution function.
  */
 async function main() {
-	console.log( `📦 Copying Gutenberg build to ${ buildTarget }/...` );
+	console.log( '📦 Copying versioned Gutenberg files to src/...' );
 
 	if ( ! fs.existsSync( gutenbergBuildDir ) ) {
 		console.error( '❌ Gutenberg build directory not found' );

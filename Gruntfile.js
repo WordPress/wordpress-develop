@@ -47,13 +47,20 @@ module.exports = function(grunt) {
 			'wp-includes/js/',
 		],
 
-		// All files copied from the Gutenberg repository excluded from version control.
+		// Unversioned files copied from the Gutenberg repository.
 		gutenbergFiles = [
 			'wp-includes/js/dist',
 			'wp-includes/css/dist',
-			'wp-includes/images/icon-library',
 			// Old location kept temporarily to ensure they are cleaned up.
 			'wp-includes/icons',
+		],
+
+		// Files copied from Gutenberg subject to version control.
+		gutenbergVersionedFiles = [
+			'wp-includes/images/icon-library',
+			'wp-includes/build',
+			'wp-includes/blocks/*',
+			'!wp-includes/blocks/index.php',
 		],
 
 		// All files built by Webpack, in /src or /build.
@@ -246,6 +253,25 @@ module.exports = function(grunt) {
 			gutenberg: gutenbergFiles.map( function( file ) {
 				return setFilePath( WORKING_DIR, file );
 			}),
+
+			/*
+			 * Delete directories and files subjet to version control where the contents come from Gutenberg.
+			 *
+			 * This handles instances where a file remains present even after being deleted upstream.
+			 *
+			 * This task is intentionally skipped unless the current task will re-copy the corresponding files.
+			 */
+			'gutenberg-versioned': {
+				filter: function() {
+					var allowedTasks = [ 'build', 'build:dev', 'build:gutenberg', 'clean:gutenberg-versioned' ];
+					return allowedTasks.some( function( task ) {
+						return grunt.cli.tasks.indexOf( task ) !== -1;
+					} );
+				},
+				src: gutenbergVersionedFiles.map( function( file ) {
+					return setFilePath( SOURCE_DIR, file );
+				} ),
+			},
 			dynamic: {
 				dot: true,
 				expand: true,
@@ -667,7 +693,7 @@ module.exports = function(grunt) {
 						'constants.php',
 						'pages/**/*.php',
 					],
-					dest: WORKING_DIR + 'wp-includes/build/',
+					dest: SOURCE_DIR + 'wp-includes/build/',
 				} ],
 			},
 			/*
@@ -684,7 +710,7 @@ module.exports = function(grunt) {
 				expand: true,
 				cwd: 'gutenberg/build',
 				src: [],
-				dest: WORKING_DIR + 'wp-includes/build/',
+				dest: SOURCE_DIR + 'wp-includes/build/',
 			},
 			'gutenberg-js': {
 				files: [ {
@@ -693,7 +719,7 @@ module.exports = function(grunt) {
 					src: [
 						'pages/**/*.js',
 					],
-					dest: WORKING_DIR + 'wp-includes/build/',
+					dest: SOURCE_DIR + 'wp-includes/build/',
 				} ],
 			},
 			'gutenberg-modules': {
@@ -707,7 +733,7 @@ module.exports = function(grunt) {
 						// with no debugging value over the minified versions.
 						'!vips/!(*.min).js',
 					],
-					dest: WORKING_DIR + 'wp-includes/js/dist/script-modules/',
+					dest: SOURCE_DIR + 'wp-includes/js/dist/script-modules/',
 				} ],
 			},
 			'gutenberg-styles': {
@@ -720,7 +746,7 @@ module.exports = function(grunt) {
 						// Per-block CSS is copied to wp-includes/blocks/ by tools/gutenberg/copy.js.
 						'!block-library/*/**',
 					],
-					dest: WORKING_DIR + 'wp-includes/css/dist/',
+					dest: SOURCE_DIR + 'wp-includes/css/dist/',
 				} ],
 			},
 			'gutenberg-theme-json': {
@@ -739,11 +765,11 @@ module.exports = function(grunt) {
 				files: [
 					{
 						src: 'gutenberg/lib/theme.json',
-						dest: WORKING_DIR + 'wp-includes/theme.json',
+						dest: SOURCE_DIR + 'wp-includes/theme.json',
 					},
 					{
 						src: 'gutenberg/lib/theme-i18n.json',
-						dest: WORKING_DIR + 'wp-includes/theme-i18n.json',
+						dest: SOURCE_DIR + 'wp-includes/theme-i18n.json',
 					},
 				],
 			},
@@ -752,7 +778,7 @@ module.exports = function(grunt) {
 					expand: true,
 					cwd: 'gutenberg/packages/icons/src/library',
 					src: '*.svg',
-					dest: WORKING_DIR + 'wp-includes/images/icon-library',
+					dest: SOURCE_DIR + 'wp-includes/images/icon-library',
 				} ],
 			},
 			'icon-library-manifest': {
@@ -774,7 +800,7 @@ module.exports = function(grunt) {
 				},
 				files: [ {
 					src: 'gutenberg/packages/icons/src/manifest.php',
-					dest: WORKING_DIR + 'wp-includes/assets/icon-library-manifest.php',
+					dest: SOURCE_DIR + 'wp-includes/assets/icon-library-manifest.php',
 				} ],
 			},
 		},
@@ -1678,10 +1704,9 @@ module.exports = function(grunt) {
 
 	grunt.registerTask( 'gutenberg:copy', 'Copies Gutenberg JS packages and block assets to WordPress Core.', function() {
 		const done = this.async();
-		const buildDir = grunt.option( 'dev' ) ? 'src' : 'build';
 		grunt.util.spawn( {
 			cmd: 'node',
-			args: [ 'tools/gutenberg/copy.js', `--build-dir=${ buildDir }` ],
+			args: [ 'tools/gutenberg/copy.js' ],
 			opts: { stdio: 'inherit' }
 		}, function( error ) {
 			done( ! error );
@@ -2159,6 +2184,7 @@ module.exports = function(grunt) {
 
 	grunt.registerTask( 'build:gutenberg', [
 		'gutenberg:verify',
+		'clean:gutenberg-versioned',
 		'clean:gutenberg',
 		'copy:gutenberg-php',
 		'routes:setup',
