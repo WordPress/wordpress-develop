@@ -329,8 +329,10 @@ module.exports = function(grunt) {
 						cwd: SOURCE_DIR,
 						src: buildFiles.concat( [
 							'!wp-includes/assets/**', // Assets is extracted into separate copy tasks.
-							// Gutenberg-sourced manifest lives in src/wp-includes/assets/ and needs to propagate.
+							// Gutenberg-sourced files in src/wp-includes/assets/ that must propagate to build/.
 							'wp-includes/assets/icon-library-manifest.php',
+							'wp-includes/assets/script-loader-packages.php',
+							'wp-includes/assets/script-modules-packages.php',
 							'!js/**', // JavaScript is extracted into separate copy tasks.
 							'!.{svn,git}', // Exclude version control folders.
 							'!wp-includes/version.php', // Exclude version.php.
@@ -2228,11 +2230,11 @@ module.exports = function(grunt) {
 	 * Unversioned half: gitignored dist artifacts. Written to WORKING_DIR
 	 * (src/ in dev, build/ in prod).
 	 *
-	 * Called late in prod builds so the freshly-built dist content is not wiped
-	 * by clean:files / clean:js.
+	 * Called late in the build chain so the freshly-built dist content is not
+	 * wiped by clean:files / clean:js. Intentionally does NOT call clean:gutenberg
+	 * because that would wipe vendor files placed earlier by copy:vendor-js.
 	 */
 	grunt.registerTask( 'build:gutenberg:unversioned', [
-		'clean:gutenberg',
 		'copy:gutenberg-modules',
 		'copy:gutenberg-styles',
 		'gutenberg:copy:unversioned',
@@ -2247,10 +2249,13 @@ module.exports = function(grunt) {
 	grunt.registerTask( 'build', function() {
 		if ( grunt.option( 'dev' ) ) {
 			grunt.task.run( [
-				'build:gutenberg',
+				// Refresh versioned src/ paths first.
+				'build:gutenberg:versioned',
 				'build:js',
 				'build:css',
 				'build:codemirror',
+				// Populate dist artifacts LAST so clean:js doesn't wipe them.
+				'build:gutenberg:unversioned',
 				'build:certificates',
 			] );
 		} else {
