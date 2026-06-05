@@ -330,7 +330,7 @@ function wp_widgets_access_body_class( $classes ) {
 /**
  * Removes all widgets from the inactive widgets sidebar and their corresponding settings.
  *
- * @since 6.7.0
+ * @since 7.1.0
  *
  * @return void
  */
