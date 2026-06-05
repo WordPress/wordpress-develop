@@ -1082,6 +1082,16 @@ th.action-links {
 	color: #1d2327;
 }
 
+@media (forced-colors: active) {
+	.filter-links li > a {
+		border-bottom-color: transparent;
+	}
+
+	.filter-links .current {
+		border-bottom-color: Highlight;
+	}
+}
+
 .filter-links li > a:hover,
 .filter-links li > a:focus,
 .show-filters .filter-links a.current:hover,
