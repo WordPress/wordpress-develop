@@ -180,7 +180,12 @@ class Walker_Comment extends Walker {
 
 		if ( ! empty( $args['callback'] ) ) {
 			ob_start();
-			call_user_func( $args['callback'], $comment, $args, $depth );
+			if ( isset( $args['callback_order'] ) && 'comment_depth_args' === $args['callback_order'] ) {
+				$callback_args = array( $comment, $depth, $args );
+			} else {
+				$callback_args = array( $comment, $args, $depth );
+			}
+			call_user_func_array( $args['callback'], $callback_args );
 			$output .= ob_get_clean();
 			return;
 		}
