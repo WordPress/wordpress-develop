@@ -791,7 +791,7 @@ function rest_handle_doing_it_wrong( $function_name, $message, $version ) {
 				break;
 			}
 		}
-		error_log( 'PHP Notice: ' . wp_strip_all_tags( $string ) . $caller );
+		error_log( 'PHP Notice: ' . $string . $caller );
 	}
 }
 
