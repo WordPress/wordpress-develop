@@ -1270,6 +1270,11 @@ span.imgedit-scale-warn {
 
 .image-editor .imgedit-scale-controls .button {
 	margin-bottom: 0;
+	/* Match the height of the adjacent dimension inputs so the controls align. */
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-height: 40px;
 }
 
 audio, video {
