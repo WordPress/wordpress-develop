@@ -1592,6 +1592,13 @@ function rest_is_integer( $maybe_integer ): bool {
 		return false;
 	}
 	$float_value = (float) $maybe_integer;
+
+	/*
+	 * The strict equality here is not the unreliable "are two computed floats equal" comparison
+	 * (e.g. 0.1 + 0.2 === 0.3, which is false). It compares a float to its own floor() to ask
+	 * "does this float have a fractional part?". A float is whole exactly when it equals its floor,
+	 * so the comparison is exact and safe regardless of floating-point representation error.
+	 */
 	return floor( $float_value ) === $float_value;
 }
 
