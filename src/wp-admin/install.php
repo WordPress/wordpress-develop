@@ -288,13 +288,13 @@ if ( ! $mysql_compat && ! $php_compat ) {
 }
 
 
-// Validate the defined DB_CHARSET to the databaseserver list of CHARACTER SET list
+// Validate the defined DB_CHARSET to the database server list of CHARACTER SET list.
 if ( ! DB_CHARSET || ! $wpdb->get_row( $wpdb->prepare( 'SHOW CHARACTER SET WHERE Charset = %s', DB_CHARSET ) ) ) {
 	$mysql_db_charset_compat = false;
 
 	$compat = sprintf(
-		/* translators: 1:  the value of the wp-config DB_CHARSET string */
-		__( 'You cannot install because your config is set to use \'%s\' as charset, which is not available in your database' ),
+		/* translators: 1:  the value of the wp-config DB_CHARSET string. */
+		__( 'You cannot install because your config is set to use "%s" as charset, which is not available in your database' ),
 		DB_CHARSET
 	);
 }
