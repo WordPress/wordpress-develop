@@ -779,11 +779,12 @@ function rest_handle_doing_it_wrong( $function_name, $message, $version ) {
 	}
 
 	if ( WP_DEBUG_LOG && ( error_reporting() & E_USER_NOTICE ) ) {
-		$backtrace = debug_backtrace( DEBUG_BACKTRACE_IGNORE_ARGS );
-		$caller    = '';
+		$backtrace              = debug_backtrace( DEBUG_BACKTRACE_IGNORE_ARGS, 20 );
+		$caller                 = '';
+		$normalized_content_dir = trailingslashit( wp_normalize_path( WP_CONTENT_DIR ) );
 		// Find the first caller outside of WordPress core (plugin or theme).
 		foreach ( $backtrace as $frame ) {
-			if ( isset( $frame['file'] ) && str_starts_with( $frame['file'], WP_CONTENT_DIR ) ) {
+			if ( isset( $frame['file'] ) && str_starts_with( wp_normalize_path( $frame['file'] ), $normalized_content_dir ) ) {
 				$caller = ' in ' . $frame['file'];
 				if ( isset( $frame['line'] ) ) {
 					$caller .= ' on line ' . $frame['line'];
@@ -791,7 +792,7 @@ function rest_handle_doing_it_wrong( $function_name, $message, $version ) {
 				break;
 			}
 		}
-		error_log( 'PHP Notice: ' . $string . $caller );
+		error_log( 'PHP Notice: ' . wp_strip_all_tags( $string ) . $caller );
 	}
 }
 
