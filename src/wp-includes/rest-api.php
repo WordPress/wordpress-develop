@@ -778,7 +778,7 @@ function rest_handle_doing_it_wrong( $function_name, $message, $version ) {
 		header( sprintf( 'X-WP-DoingItWrong: %s', $string ) );
 	}
 
-	if ( WP_DEBUG_LOG ) {
+	if ( WP_DEBUG_LOG && ( error_reporting() & E_USER_NOTICE ) ) {
 		$backtrace = debug_backtrace( DEBUG_BACKTRACE_IGNORE_ARGS );
 		$caller    = '';
 		// Find the first caller outside of WordPress core (plugin or theme).
