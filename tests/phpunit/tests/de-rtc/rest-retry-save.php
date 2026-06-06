@@ -492,7 +492,8 @@ class Tests_DE_RTC_REST_Retry_Save extends WP_Test_REST_TestCase {
 				'accepted_proof_mutates_post_content' => $proof_data['mutates_post_content'],
 				'accepted_proof_creates_revision'     => $proof_data['creates_revision'],
 				'accepted_proof_claims_saved'         => $proof_data['claims_saved'],
-				'automerge_client_update'                   => $client_update,
+				'automerge_client_update'             => $client_update,
+				'session_key'                         => 'authorship-format-session',
 			)
 		);
 
@@ -512,6 +513,22 @@ class Tests_DE_RTC_REST_Retry_Save extends WP_Test_REST_TestCase {
 		$this->assertSame( '152', $parsed_saved['sync_meta']['version'] );
 		$this->assertSame( '151', $parsed_saved['sync_meta']['previous_version'] );
 		$this->assertSame( 'retry_save_server_merge', $parsed_saved['sync_meta']['last_server_update']['type'] );
+		$attribution_key = wp_de_rtc_get_presence_attribution_key_for_session_key( $post_id, 'authorship-format-session' );
+
+		$this->assertSame( $attribution_key, $parsed_saved['sync_meta']['last_server_update']['attribution_key'] );
+		$this->assertSame( 'de-rtc-authorship-v1', $parsed_saved['sync_meta']['authorship']['schema'] );
+		$this->assertTrue( $parsed_saved['sync_meta']['authorship']['contentFree'] );
+		$this->assertFalse( $parsed_saved['sync_meta']['authorship']['rawContentIncluded'] );
+		$this->assertFalse( $parsed_saved['sync_meta']['authorship']['rawSessionKeyIncluded'] );
+		$this->assertArrayHasKey( $attribution_key, $parsed_saved['sync_meta']['authorship']['sessions'] );
+		$this->assertFalse( $parsed_saved['sync_meta']['authorship']['sessions'][ $attribution_key ]['rawSessionKeyIncluded'] );
+		$this->assertFalse( $parsed_saved['sync_meta']['authorship']['sessions'][ $attribution_key ]['exposesUserId'] );
+		$this->assertCount( 1, $parsed_saved['sync_meta']['authorship']['blocks'] );
+		$this->assertSame( array( 0 ), $parsed_saved['sync_meta']['authorship']['blocks'][0]['path'] );
+		$this->assertSame( 'core/paragraph', $parsed_saved['sync_meta']['authorship']['blocks'][0]['blockName'] );
+		$this->assertNull( $parsed_saved['sync_meta']['authorship']['blocks'][0]['attributionKey'] );
+		$this->assertNotEmpty( $parsed_saved['sync_meta']['authorship']['blocks'][0]['richText']['ranges'] );
+		$this->assertSame( $attribution_key, $parsed_saved['sync_meta']['authorship']['blocks'][0]['richText']['ranges'][0]['attributionKey'] );
 	}
 
 	/**
@@ -3183,6 +3200,72 @@ class Tests_DE_RTC_REST_Retry_Save extends WP_Test_REST_TestCase {
 	/**
 	 * @covers ::wp_de_rtc_rest_retry_save_endpoint
 	 * @covers ::wp_de_rtc_save_retry_submitted_post
+	 * @covers ::wp_de_rtc_get_automerge_retry_save_result
+	 * @covers ::wp_de_rtc_get_automerge_block_native_current_base_merge_result
+	 * @covers ::wp_de_rtc_apply_automerge_metadata_to_sync_meta
+	 * @covers ::wp_de_rtc_parse_post_content_sync_meta
+	 */
+	public function test_retry_save_applies_current_base_freeform_body_converted_to_blocks() {
+		$this->require_automerge_runtime();
+
+		$base_content    = '<h2>Legacy collaboration note</h2>' . "\n" . '<p>Google Docs and AbiWord both support collaboration.</p>';
+		$current_content = $this->add_automerge_sync_meta_to_content(
+			$base_content,
+			41,
+			array(
+				'hash' => 'automerge-current-base-freeform-conversion',
+			)
+		);
+		$post_id         = self::factory()->post->create(
+			array(
+				'post_title'   => 'DE-RTC Automerge freeform conversion retry save post',
+				'post_content' => $current_content,
+			)
+		);
+		$proposed_content = '<!-- wp:heading --><h2>Legacy collaboration note</h2><!-- /wp:heading -->'
+			. "\n\n"
+			. '<!-- wp:paragraph --><p>Google Docs and AbiWord both support collaboration.</p><!-- /wp:paragraph -->';
+		$proposed_hash    = hash( 'sha256', $proposed_content );
+		$client_update    = wp_de_rtc_create_automerge_update_for_content_change( $base_content, $proposed_content, 'test-client' );
+
+		$this->assertSame( 'document.replace_unsupported', $client_update['operations'][0]['type'] );
+
+		$request = $this->create_retry_save_request(
+			'posts',
+			$post_id,
+			array(
+				'client_base_version'           => '41',
+				'accepted_proof_server_version' => '41',
+				'rebased_from_version'          => '41',
+				'pending_change_count'          => 1,
+				'proposed_post_content'         => $proposed_content,
+				'proposed_post_content_hash'    => $proposed_hash,
+				'automerge_client_update'       => $client_update,
+			)
+		);
+
+		$response   = rest_get_server()->dispatch( $request );
+		$data       = $response->get_data();
+		$after_post = get_post( $post_id );
+		$parsed     = wp_de_rtc_parse_post_content_sync_meta( $after_post->post_content );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( 'retry_save_applied', $data['result'] );
+		$this->assertTrue( $data['retry_save_accepted'] );
+		$this->assertTrue( $data['automerge_update_applied'] );
+		$this->assertSame( 'native-automerge-blocks-v1', $data['automerge_encoding'] );
+		$this->assertIsArray( $parsed );
+		$this->assertSame( $proposed_content, $parsed['content'] );
+		$this->assertSame( '42', $parsed['sync_meta']['version'] );
+		$this->assertSame( '41', $parsed['sync_meta']['previous_version'] );
+		$this->assertSame( 'native-automerge-blocks-v1', $parsed['sync_meta']['automerge_encoding'] );
+		$this->assertStringStartsWith( '<!-- wp:sync-meta', $after_post->post_content );
+		$this->assertStringNotContainsString( '<h2>Legacy collaboration note</h2>' . "\n" . '<p>Google Docs', $parsed['content'] );
+	}
+
+	/**
+	 * @covers ::wp_de_rtc_rest_retry_save_endpoint
+	 * @covers ::wp_de_rtc_save_retry_submitted_post
 	 * @covers ::wp_de_rtc_get_kses_post_content_review_evidence
 	 */
 	public function test_retry_save_allows_author_safe_automerge_current_base_edit() {
@@ -4492,6 +4575,58 @@ class Tests_DE_RTC_REST_Retry_Save extends WP_Test_REST_TestCase {
 		$this->assertSame( '452', $parsed['sync_meta']['version'] );
 		$this->assertStringContainsString( '<script>alert("existing")</script>Existing', $parsed['content'] );
 		$this->assertStringContainsString( 'safely edited', $parsed['content'] );
+	}
+
+	/**
+	 * @covers ::wp_de_rtc_rest_retry_save_endpoint
+	 * @covers ::wp_de_rtc_save_retry_submitted_post
+	 * @covers ::wp_de_rtc_classify_kses_risky_block_review_items
+	 * @covers ::wp_de_rtc_added_kses_block_change_requires_review
+	 */
+	public function test_retry_save_persists_safe_author_separator_insert_when_kses_normalizes_void_tag_spacing() {
+		$base_content      = '<!-- wp:paragraph --><p>Original safe paragraph.</p><!-- /wp:paragraph -->';
+		$separator_block   = '<!-- wp:separator --><hr class="wp-block-separator has-alpha-channel-opacity"/><!-- /wp:separator -->';
+		$proposed_content  = $base_content . "\n" . $separator_block;
+		$post_id           = self::factory()->post->create(
+			array(
+				'post_author'  => self::$author_user_id,
+				'post_title'   => 'DE-RTC author safe separator retry save post',
+				'post_content' => $this->add_sync_meta_to_content(
+					$base_content,
+					455,
+					array(
+						'post_content_hash' => hash( 'sha256', $base_content ),
+					)
+				),
+			)
+		);
+		$request           = $this->create_retry_save_request(
+			'posts',
+			$post_id,
+			array(
+				'client_base_version'           => '455',
+				'accepted_proof_server_version' => '455',
+				'rebased_from_version'          => '455',
+				'pending_change_count'          => 1,
+				'proposed_post_content'         => $proposed_content,
+				'proposed_post_content_hash'    => hash( 'sha256', $proposed_content ),
+			)
+		);
+
+		wp_set_current_user( self::$author_user_id );
+
+		$response   = rest_get_server()->dispatch( $request );
+		$data       = $response->get_data();
+		$after_post = get_post( $post_id );
+		$parsed     = wp_de_rtc_parse_post_content_sync_meta( $after_post->post_content );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( 'retry_save_applied', $data['result'] );
+		$this->assertTrue( $data['retry_save_accepted'] );
+		$this->assertArrayNotHasKey( 'reason_code', $data );
+		$this->assertSame( $proposed_content, $parsed['content'] );
+		$this->assertSame( '456', $parsed['sync_meta']['version'] );
+		$this->assertStringContainsString( '<!-- wp:separator -->', $parsed['content'] );
 	}
 
 	/**

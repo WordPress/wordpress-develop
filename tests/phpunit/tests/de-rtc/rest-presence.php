@@ -323,6 +323,9 @@ class Tests_DE_RTC_REST_Presence extends WP_Test_REST_TestCase {
 		$this->assertTrue( $data['records_presence_heartbeat'] );
 		$this->assertTrue( $data['heartbeat_writes_enabled_now'] );
 		$this->assertTrue( $data['session_key_hash_recorded'] );
+		$this->assertSame( wp_de_rtc_get_presence_attribution_key_for_session_key( $post_id, $session_key ), $data['attribution_key'] );
+		$this->assertSame( $data['attribution_key'], $data['attributionKey'] );
+		$this->assertTrue( $data['authorship_focus_available'] );
 		$this->assertTrue( $data['actor_hash_recorded'] );
 		$this->assertTrue( $data['display_name_recorded'] );
 		$this->assertTrue( $data['permission_summary_recorded'] );
@@ -392,6 +395,8 @@ class Tests_DE_RTC_REST_Presence extends WP_Test_REST_TestCase {
 			array(
 				'session_key',
 				'sessionKey',
+				'session_key_hash',
+				'sessionKeyHash',
 				'userId',
 				'user_id',
 				'userLogin',

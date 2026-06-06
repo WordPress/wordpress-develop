@@ -445,9 +445,14 @@ function wp_de_rtc_register_rest_routes() {
 							'description' => __( 'Content-free Distributed Editing block identity proof for guarded retry-save.' ),
 							'type'        => 'object',
 						),
-						'automerge_client_update'              => array(
+						'automerge_client_update'         => array(
 							'description' => __( 'Native PHP Automerge update evidence for the proposed post content.' ),
 							'type'        => 'object',
+						),
+						'session_key'                     => array(
+							'description' => __( 'Opaque editor session key used only for server-owned authorship attribution.' ),
+							'type'        => 'string',
+							'required'    => false,
 						),
 					),
 				),
@@ -1642,7 +1647,7 @@ function wp_de_rtc_get_post_presence_storage_snapshot( $post, $args = array() ) 
 	$limit                = null === $args['limit'] ? 25 : max( 1, min( 100, absint( $args['limit'] ) ) );
 	$current_actor        = wp_de_rtc_get_presence_actor_hash( get_current_user_id() );
 	$current_session_key  = is_string( $args['current_session_key'] ) ? trim( $args['current_session_key'] ) : '';
-	$current_session_hash = '' !== $current_session_key ? hash_hmac( 'sha256', (int) $post->ID . ':' . $current_session_key, wp_salt( 'nonce' ) ) : '';
+	$current_session_hash = wp_de_rtc_get_presence_session_key_hash( $post->ID, $current_session_key );
 	$schema_current       = wp_de_rtc_presence_table_schema_current();
 	$where_clauses        = array( 'post_id = %d' );
 	$where_values         = array( (int) $post->ID );
@@ -1717,6 +1722,7 @@ function wp_de_rtc_get_post_presence_storage_snapshot( $post, $args = array() ) 
 	foreach ( $rows as $row ) {
 		$session_key_hash = isset( $row->session_key_hash ) ? (string) $row->session_key_hash : '';
 		$actor_hash       = isset( $row->actor_hash ) ? (string) $row->actor_hash : '';
+		$attribution_key  = wp_de_rtc_get_presence_attribution_key_from_session_hash( $post->ID, $session_key_hash );
 
 		if ( '' === $session_key_hash ) {
 			continue;
@@ -1807,6 +1813,8 @@ function wp_de_rtc_get_post_presence_storage_snapshot( $post, $args = array() ) 
 			'sessionStartedAtGmt'    => $session_started_at_gmt,
 			'sessionDurationSeconds' => $session_duration,
 			'presenceUpdatedAtGmt'   => $presence_updated_at_gmt,
+			'attributionKey'         => $attribution_key,
+			'authorshipFocusAvailable' => '' !== $attribution_key,
 			'permissionsAvailable'   => $schema_current,
 			'permissions'            => array(
 				'canEdit'              => $schema_current && ! empty( $row->can_edit_post ),
@@ -5287,6 +5295,70 @@ function wp_de_rtc_get_presence_heartbeat_expires_after_seconds( $host_profile =
 }
 
 /**
+ * Returns the stored hash for an opaque editor presence session key.
+ *
+ * Presence storage already uses this hash to avoid persisting raw tab/session
+ * keys. Authorship focus derives from the same hidden value so saved changes
+ * can be associated with an editor session without exposing the session key.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param int    $post_id     Post ID.
+ * @param string $session_key Opaque editor session key.
+ * @return string Session-key hash, or empty string when unavailable.
+ */
+function wp_de_rtc_get_presence_session_key_hash( $post_id, $session_key ) {
+	$session_key = is_string( $session_key ) ? trim( $session_key ) : '';
+
+	if ( '' === $session_key ) {
+		return '';
+	}
+
+	return hash_hmac( 'sha256', (int) $post_id . ':' . $session_key, wp_salt( 'nonce' ) );
+}
+
+/**
+ * Returns a public authorship key derived from a stored presence session hash.
+ *
+ * The value is stable for a post/session pair and safe to share with editors
+ * who can already collaborate on the post. It intentionally does not reveal
+ * raw session keys, user IDs, logins, or email addresses.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param int    $post_id          Post ID.
+ * @param string $session_key_hash Stored presence session-key hash.
+ * @return string Public attribution key, or empty string when unavailable.
+ */
+function wp_de_rtc_get_presence_attribution_key_from_session_hash( $post_id, $session_key_hash ) {
+	$session_key_hash = is_string( $session_key_hash ) ? strtolower( trim( $session_key_hash ) ) : '';
+
+	if ( ! wp_de_rtc_is_sha256_hash( $session_key_hash ) ) {
+		return '';
+	}
+
+	return 'presence:' . substr( hash_hmac( 'sha256', (int) $post_id . ':' . $session_key_hash, wp_salt( 'auth' ) ), 0, 24 );
+}
+
+/**
+ * Returns a public authorship key for an opaque editor presence session key.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param int    $post_id     Post ID.
+ * @param string $session_key Opaque editor session key.
+ * @return string Public attribution key, or empty string when unavailable.
+ */
+function wp_de_rtc_get_presence_attribution_key_for_session_key( $post_id, $session_key ) {
+	$session_key_hash = wp_de_rtc_get_presence_session_key_hash( $post_id, $session_key );
+
+	return wp_de_rtc_get_presence_attribution_key_from_session_hash( $post_id, $session_key_hash );
+}
+
+/**
  * Records a content-free Distributed Editing presence heartbeat.
  *
  * This helper writes only presence liveness evidence to the dedicated presence
@@ -5467,7 +5539,8 @@ function wp_de_rtc_record_presence_heartbeat( $post, $args = array() ) {
 	$user_id                     = get_current_user_id();
 	$display_name                = $current_user && $current_user->exists() && $current_user->display_name ? $current_user->display_name : __( 'Another editor' );
 	$permission_summary          = wp_de_rtc_get_presence_permission_summary( $post, $user_id );
-	$session_key_hash            = hash_hmac( 'sha256', (int) $post->ID . ':' . $session_key, wp_salt( 'nonce' ) );
+	$session_key_hash            = wp_de_rtc_get_presence_session_key_hash( $post->ID, $session_key );
+	$attribution_key             = wp_de_rtc_get_presence_attribution_key_from_session_hash( $post->ID, $session_key_hash );
 	$actor_hash                  = wp_de_rtc_get_presence_actor_hash( $user_id );
 	$document_state              = wp_de_rtc_get_sanitized_presence_document_state( $args, $current_time_gmt );
 	$selection_state             = wp_de_rtc_get_sanitized_presence_selection_state( $args['selection_state'], $current_time_gmt );
@@ -5558,6 +5631,9 @@ function wp_de_rtc_record_presence_heartbeat( $post, $args = array() ) {
 		'records_presence_heartbeat'     => true,
 		'heartbeat_writes_enabled_now'   => true,
 		'session_key_hash_recorded'      => true,
+		'attribution_key'                => $attribution_key,
+		'attributionKey'                 => $attribution_key,
+		'authorship_focus_available'     => '' !== $attribution_key,
 		'actor_hash_recorded'            => true,
 		'display_name_recorded'          => true,
 		'permission_summary_recorded'    => true,
@@ -8165,7 +8241,8 @@ function wp_de_rtc_rest_retry_save_endpoint( $request ) {
 			'review_approval_proof'              => $request->has_param( 'accepted_review_approval_proof' ) ? $request->get_param( 'accepted_review_approval_proof' ) : $request->get_param( 'review_approval_proof' ),
 			'accepted_fresh_review_decision'     => $request->get_param( 'accepted_fresh_review_decision' ),
 			'block_identity_request_proof'       => $request->get_param( 'block_identity_request_proof' ),
-			'automerge_client_update'                  => $request->get_param( 'automerge_client_update' ),
+			'automerge_client_update'            => $request->get_param( 'automerge_client_update' ),
+			'session_key'                        => $request->get_param( 'session_key' ),
 			'post_type_rest_base'                => wp_de_rtc_get_rest_retry_save_request_rest_base( $request ),
 		)
 	);
@@ -14360,6 +14437,7 @@ function wp_de_rtc_apply_partial_safe_retry_save_plan( $post, $current, $partial
 	$rebased_from_version           = isset( $args['rebased_from_version'] ) ? sanitize_text_field( (string) $args['rebased_from_version'] ) : '';
 	$pending_change_count           = isset( $args['pending_change_count'] ) ? max( 0, (int) $args['pending_change_count'] ) : 1;
 	$proposed_post_content_hash     = isset( $args['proposed_post_content_hash'] ) ? sanitize_text_field( (string) $args['proposed_post_content_hash'] ) : '';
+	$authorship_context             = isset( $args['authorship_context'] ) && is_array( $args['authorship_context'] ) ? $args['authorship_context'] : wp_de_rtc_get_retry_save_authorship_context( $post );
 	$safe_post_content_hash         = wp_de_rtc_hash_content( $safe_post_content );
 	$current_post_content_hash      = wp_de_rtc_hash_content( $current['content'] );
 	$review_classification          = isset( $partial_plan['review_classification'] ) && is_array( $partial_plan['review_classification'] ) ? $partial_plan['review_classification'] : array();
@@ -14401,16 +14479,16 @@ function wp_de_rtc_apply_partial_safe_retry_save_plan( $post, $current, $partial
 			'partial_safe_merge_original_pending_change_count' => $pending_change_count,
 			'proposed_post_content_hash'              => $proposed_post_content_hash,
 			'saved_stripped_post_content_hash'        => $current_post_content_hash,
-				'saved_post_content_hash'                 => wp_de_rtc_hash_content( $post->post_content ),
-				'requires_server_state_refetch'           => false,
-				'requires_manual_conflict_resolution'     => false,
-				'can_export_local_updates'                => false,
-				'saves_post'                              => false,
-				'mutates_post_content'                    => false,
-				'creates_revision'                        => false,
-				'claims_saved'                            => false,
-				'remaining_review_required'               => true,
-				'revision_ids_before_save'                => $revision_ids_before_save,
+			'saved_post_content_hash'                 => wp_de_rtc_hash_content( $post->post_content ),
+			'requires_server_state_refetch'           => false,
+			'requires_manual_conflict_resolution'     => false,
+			'can_export_local_updates'                => false,
+			'saves_post'                              => false,
+			'mutates_post_content'                    => false,
+			'creates_revision'                        => false,
+			'claims_saved'                            => false,
+			'remaining_review_required'               => true,
+			'revision_ids_before_save'                => $revision_ids_before_save,
 			'revision_ids_after_save'                 => $revision_ids_before_save,
 			'created_revision_ids'                    => array(),
 			'revision_created'                        => false,
@@ -14420,7 +14498,7 @@ function wp_de_rtc_apply_partial_safe_retry_save_plan( $post, $current, $partial
 		);
 	}
 
-	$next_sync_meta          = $current['sync_meta'];
+	$next_sync_meta                 = $current['sync_meta'];
 	$partial_automerge_save_result = null;
 
 	if ( 'automerge' === $current['sync_meta_format'] ) {
@@ -14435,11 +14513,14 @@ function wp_de_rtc_apply_partial_safe_retry_save_plan( $post, $current, $partial
 			return $partial_automerge_save_result;
 		}
 
-		$next_sync_meta = wp_de_rtc_apply_automerge_metadata_to_sync_meta( $next_sync_meta, $partial_automerge_save_result, $safe_post_content_hash );
+		$partial_automerge_save_result = wp_de_rtc_apply_authorship_context_to_automerge_result( $partial_automerge_save_result, $authorship_context );
+		$next_sync_meta                = wp_de_rtc_apply_automerge_metadata_to_sync_meta( $next_sync_meta, $partial_automerge_save_result, $safe_post_content_hash );
 
 		if ( is_wp_error( $next_sync_meta ) ) {
 			return $next_sync_meta;
 		}
+
+		$next_sync_meta = wp_de_rtc_apply_automerge_authorship_to_sync_meta( $next_sync_meta, $safe_post_content, $partial_automerge_save_result, $authorship_context );
 	}
 
 	$next_version = wp_de_rtc_get_next_sync_meta_version( $server_version, $safe_post_content_hash );
@@ -14450,17 +14531,18 @@ function wp_de_rtc_apply_partial_safe_retry_save_plan( $post, $current, $partial
 		'type'                          => 'retry_save_partial_safe_merge',
 		'user_id'                       => get_current_user_id(),
 		'session_label'                 => wp_de_rtc_get_history_author_display_name( get_current_user_id() ),
+		'attribution_key'               => isset( $authorship_context['attributionKey'] ) ? $authorship_context['attributionKey'] : null,
 		'client_base_version'           => $client_base_version,
 		'accepted_proof_server_version' => $accepted_proof_server_version,
 		'rebased_from_version'          => $rebased_from_version,
-			'pending_change_count'          => $remaining_pending_change_count,
-			'original_pending_change_count' => $pending_change_count,
-			'proposed_post_content_hash'    => $proposed_post_content_hash,
-			'saved_stripped_post_content_hash' => $safe_post_content_hash,
-			'partial_safe_merge'            => array(
-				'status'             => 'safe_subset_persisted',
-				'review_item_count'  => count( $review_items ),
-				'unsafe_block_count' => count( $review_items ),
+		'pending_change_count'          => $remaining_pending_change_count,
+		'original_pending_change_count' => $pending_change_count,
+		'proposed_post_content_hash'    => $proposed_post_content_hash,
+		'saved_stripped_post_content_hash' => $safe_post_content_hash,
+		'partial_safe_merge'            => array(
+			'status'             => 'safe_subset_persisted',
+			'review_item_count'  => count( $review_items ),
+			'unsafe_block_count' => count( $review_items ),
 			'content_filter'     => 'wp_filter_post_kses',
 		),
 	);
@@ -14702,8 +14784,10 @@ function wp_de_rtc_save_retry_submitted_post( $post, $args = array() ) {
 	$fresh_review_consumption_claim = null;
 	$block_identity_request_proof   = isset( $args['block_identity_request_proof'] ) ? $args['block_identity_request_proof'] : null;
 	$block_identity_request_proof_validation = null;
-	$automerge_client_update              = isset( $args['automerge_client_update'] ) ? $args['automerge_client_update'] : null;
-	$automerge_retry_save_result          = null;
+	$automerge_client_update        = isset( $args['automerge_client_update'] ) ? $args['automerge_client_update'] : null;
+	$automerge_retry_save_result    = null;
+	$session_key                    = isset( $args['session_key'] ) ? (string) $args['session_key'] : '';
+	$authorship_context             = wp_de_rtc_get_retry_save_authorship_context( $post, $session_key );
 	$current                        = wp_de_rtc_parse_post_content_sync_meta( $post->post_content );
 	$current_external_repair        = null;
 
@@ -14775,9 +14859,9 @@ function wp_de_rtc_save_retry_submitted_post( $post, $args = array() ) {
 		);
 	}
 
-		$raw_proposed_post_content  = (string) $args['proposed_post_content'];
-		$proposed_post_content      = wp_de_rtc_canonicalize_post_content_core_block_names( $raw_proposed_post_content );
-		$proposed                   = wp_de_rtc_parse_post_content_sync_meta( $raw_proposed_post_content );
+	$raw_proposed_post_content = (string) $args['proposed_post_content'];
+	$proposed_post_content     = wp_de_rtc_canonicalize_post_content_core_block_names( $raw_proposed_post_content );
+	$proposed                  = wp_de_rtc_parse_post_content_sync_meta( $raw_proposed_post_content );
 
 	if ( is_wp_error( $proposed ) ) {
 		return $proposed;
@@ -14799,18 +14883,18 @@ function wp_de_rtc_save_retry_submitted_post( $post, $args = array() ) {
 		);
 	}
 
-		$raw_proposed_post_content_hash = hash( 'sha256', $raw_proposed_post_content );
-		$proposed_post_content_hash     = wp_de_rtc_hash_content( $proposed_post_content );
-		$expected_content_hash      = isset( $args['proposed_post_content_hash'] ) ? sanitize_text_field( (string) $args['proposed_post_content_hash'] ) : null;
+	$raw_proposed_post_content_hash = hash( 'sha256', $raw_proposed_post_content );
+	$proposed_post_content_hash     = wp_de_rtc_hash_content( $proposed_post_content );
+	$expected_content_hash          = isset( $args['proposed_post_content_hash'] ) ? sanitize_text_field( (string) $args['proposed_post_content_hash'] ) : null;
 
-		if (
-			null !== $expected_content_hash &&
-			! hash_equals( $expected_content_hash, $proposed_post_content_hash ) &&
-			! hash_equals( $expected_content_hash, $raw_proposed_post_content_hash )
-		) {
-			return wp_de_rtc_get_reason_error(
-				'de_rtc_sync_meta_tampered',
-				__( 'Distributed Editing rejected the retry save because the proposed content hash does not match.' ),
+	if (
+		null !== $expected_content_hash &&
+		! hash_equals( $expected_content_hash, $proposed_post_content_hash ) &&
+		! hash_equals( $expected_content_hash, $raw_proposed_post_content_hash )
+	) {
+		return wp_de_rtc_get_reason_error(
+			'de_rtc_sync_meta_tampered',
+			__( 'Distributed Editing rejected the retry save because the proposed content hash does not match.' ),
 			array(
 				'detail'                       => 'retry_save_proposed_content_hash_mismatch',
 				'post_id'                      => (int) $post->ID,
@@ -15073,11 +15157,14 @@ function wp_de_rtc_save_retry_submitted_post( $post, $args = array() ) {
 			return $automerge_retry_save_result;
 		}
 
-		$next_sync_meta = wp_de_rtc_apply_automerge_metadata_to_sync_meta( $next_sync_meta, $automerge_retry_save_result, $save_post_content_hash );
+		$automerge_retry_save_result = wp_de_rtc_apply_authorship_context_to_automerge_result( $automerge_retry_save_result, $authorship_context );
+		$next_sync_meta              = wp_de_rtc_apply_automerge_metadata_to_sync_meta( $next_sync_meta, $automerge_retry_save_result, $save_post_content_hash );
 
 		if ( is_wp_error( $next_sync_meta ) ) {
 			return $next_sync_meta;
 		}
+
+		$next_sync_meta = wp_de_rtc_apply_automerge_authorship_to_sync_meta( $next_sync_meta, $save_post_content, $automerge_retry_save_result, $authorship_context );
 	}
 
 	$next_sync_meta['version']           = $next_version;
@@ -15086,6 +15173,7 @@ function wp_de_rtc_save_retry_submitted_post( $post, $args = array() ) {
 		'type'                         => $retry_save_server_merge_required ? 'retry_save_server_merge' : 'retry_save',
 		'user_id'                      => get_current_user_id(),
 		'session_label'                => wp_de_rtc_get_history_author_display_name( get_current_user_id() ),
+		'attribution_key'              => isset( $authorship_context['attributionKey'] ) ? $authorship_context['attributionKey'] : null,
 		'client_base_version'          => $client_base_version,
 		'accepted_proof_server_version' => $accepted_proof_server_version,
 		'rebased_from_version'         => $rebased_from_version,
@@ -15233,11 +15321,12 @@ function wp_de_rtc_save_retry_submitted_post( $post, $args = array() ) {
 									'client_base_version'           => $client_base_version,
 									'accepted_proof_server_version' => $accepted_proof_server_version,
 									'rebased_from_version'          => $rebased_from_version,
-									'pending_change_count'          => $pending_change_count,
-									'proposed_post_content'         => $proposed_post_content,
-									'proposed_post_content_hash'    => $proposed_post_content_hash,
-								)
-							);
+										'pending_change_count'          => $pending_change_count,
+										'proposed_post_content'         => $proposed_post_content,
+										'proposed_post_content_hash'    => $proposed_post_content_hash,
+										'authorship_context'            => $authorship_context,
+									)
+								);
 
 							if ( is_wp_error( $partial_safe_merge ) ) {
 								return $partial_safe_merge;
@@ -15982,7 +16071,10 @@ function wp_de_rtc_classify_kses_risky_block_review_items( $post, $proposed_post
 					$proposed_own_review
 				);
 			} else {
-				$requires_review = ! empty( $proposed_own_review['would_change_content'] );
+				$requires_review = wp_de_rtc_added_kses_block_change_requires_review(
+					$proposed_record['serialized_own_block'],
+					$proposed_own_review
+				);
 			}
 
 			if ( ! $requires_review ) {
@@ -16248,10 +16340,10 @@ function wp_de_rtc_get_kses_partial_safe_top_level_candidate( $current_content, 
 					array(
 						'detail'               => 'partial_safe_merge_review_base_hash_mismatch',
 						'saves_post'           => false,
-						'mutates_post_content' => false,
-						'creates_revision'     => false,
-						'claims_saved'         => false,
-					)
+							'mutates_post_content' => false,
+							'creates_revision'     => false,
+							'claims_saved'         => false,
+						)
 				);
 			}
 
@@ -16850,6 +16942,39 @@ function wp_de_rtc_get_block_without_inner_blocks( $block ) {
 }
 
 /**
+ * Returns whether an added block introduced KSES-sensitive content.
+ *
+ * Gutenberg may serialize safe void elements in a compact form that KSES
+ * rewrites to WordPress' spaced self-closing form, for example `<hr/>` to
+ * `<hr />`. That normalization must not block ordinary author saves, while
+ * substantive removals such as SCRIPT elements or event-handler attributes
+ * still require review from a user with `unfiltered_html`.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param string $proposed_block  Proposed serialized block without descendants.
+ * @param array  $proposed_review Proposed block KSES evidence.
+ * @return bool Whether review is required for this added block.
+ */
+function wp_de_rtc_added_kses_block_change_requires_review( $proposed_block, $proposed_review ) {
+	$proposed_would_change = is_array( $proposed_review ) && ! empty( $proposed_review['would_change_content'] );
+
+	if ( ! $proposed_would_change ) {
+		return false;
+	}
+
+	if ( ! empty( wp_de_rtc_get_kses_sensitive_element_hashes( $proposed_block ) ) ) {
+		return true;
+	}
+
+	return ! wp_de_rtc_is_kses_normalization_only_change(
+		$proposed_block,
+		wp_de_rtc_get_kses_filtered_post_content( $proposed_block )
+	);
+}
+
+/**
  * Returns whether a modified block introduced or changed KSES-sensitive content.
  *
  * Existing markup may have been saved by an authorized editor. A later author
@@ -16893,6 +17018,53 @@ function wp_de_rtc_modified_kses_block_change_requires_review( $base_block, $pro
 	}
 
 	return $base_signature !== $proposed_signature;
+}
+
+/**
+ * Returns whether KSES only normalized serialized HTML spelling.
+ *
+ * This deliberately accepts only narrow formatter-level changes. It is not a
+ * replacement for KSES and it does not bless filtered content for persistence;
+ * it only prevents the review gate from confusing WordPress' harmless void-tag
+ * spacing rewrite with dangerous content.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param string $post_content          Original serialized content.
+ * @param string $filtered_post_content KSES-filtered serialized content.
+ * @return bool Whether the two strings differ only by safe KSES normalization.
+ */
+function wp_de_rtc_is_kses_normalization_only_change( $post_content, $filtered_post_content ) {
+	$post_content          = (string) $post_content;
+	$filtered_post_content = (string) $filtered_post_content;
+
+	if ( $post_content === $filtered_post_content ) {
+		return true;
+	}
+
+	return wp_de_rtc_canonicalize_kses_normalized_serialized_html( $post_content ) === wp_de_rtc_canonicalize_kses_normalized_serialized_html( $filtered_post_content );
+}
+
+/**
+ * Canonicalizes the narrow HTML spellings KSES may normalize for safe blocks.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param string $post_content Serialized content.
+ * @return string Canonicalized serialized content.
+ */
+function wp_de_rtc_canonicalize_kses_normalized_serialized_html( $post_content ) {
+	$post_content = (string) $post_content;
+	$post_content = wp_de_rtc_canonicalize_serialized_block_boundary_whitespace( $post_content );
+	$post_content = preg_replace(
+		'~<((?:area|base|br|col|embed|hr|img|input|link|meta|param|source|track|wbr)\b[^<>]*?)\s*/>~i',
+		'<$1 />',
+		$post_content
+	);
+
+	return is_string( $post_content ) ? $post_content : '';
 }
 
 /**
@@ -18923,10 +19095,20 @@ function wp_de_rtc_get_automerge_block_native_current_base_merge_result( $base_c
 	$base_records     = wp_de_rtc_get_top_level_serialized_block_records( $base_content );
 	$proposed_records = wp_de_rtc_get_top_level_serialized_block_records( $proposed_content );
 
-	foreach ( array( $base_records, $proposed_records ) as $record_result ) {
-		if ( is_wp_error( $record_result ) ) {
-			return $record_result;
-		}
+	if ( is_wp_error( $proposed_records ) ) {
+		return $proposed_records;
+	}
+
+	/*
+	 * A current-base retry-save has no remote change to merge against. In that
+	 * case, allow the editor to materialize a legacy/freeform server body as
+	 * normal serialized blocks while still rejecting freeform boundaries in the
+	 * proposed content and in stale three-way merge paths.
+	 */
+	$base_block_count = is_wp_error( $base_records ) ? null : count( $base_records );
+
+	if ( is_wp_error( $base_records ) ) {
+		$base_records = array();
 	}
 
 	return array(
@@ -18934,8 +19116,8 @@ function wp_de_rtc_get_automerge_block_native_current_base_merge_result( $base_c
 		'merge_status'          => 'merged',
 		'merge_strategy'        => 'native_automerge_blocks_v1',
 		'block_count'           => count( $proposed_records ),
-		'base_block_count'      => count( $base_records ),
-		'server_block_count'    => count( $base_records ),
+		'base_block_count'      => $base_block_count,
+		'server_block_count'    => $base_block_count,
 		'proposed_block_count'  => count( $proposed_records ),
 		'merged_block_count'    => count( $proposed_records ),
 		'merged_stripped_content_hash' => wp_de_rtc_hash_content( $proposed_content ),
@@ -18955,8 +19137,8 @@ function wp_de_rtc_get_automerge_block_native_current_base_merge_result( $base_c
  * @param array $right Second state vector.
  * @return array Merged state vector.
  */
-function wp_de_rtc_merge_automerge_state_vectors( $left, $right ) {
-	$merged = array();
+	function wp_de_rtc_merge_automerge_state_vectors( $left, $right ) {
+		$merged = array();
 
 	foreach ( array( $left, $right ) as $vector ) {
 		foreach ( is_array( $vector ) ? $vector : array() as $actor => $sequence ) {
@@ -18969,13 +19151,410 @@ function wp_de_rtc_merge_automerge_state_vectors( $left, $right ) {
 		}
 	}
 
-	ksort( $merged );
-	return $merged;
-}
+		ksort( $merged );
+		return $merged;
+	}
 
-/**
- * Returns public Automerge encoding evidence for a retry-save result.
- *
+	/**
+	 * Returns the current retry-save request's server-owned authorship context.
+	 *
+	 * Clients may submit an opaque session key so WordPress can link saved changes
+	 * to the same presence avatar. The persisted attribution key is derived from
+	 * the server-side presence hash; client-supplied Automerge actor strings remain
+	 * validation evidence only and are not trusted for authorship.
+	 *
+	 * @since 7.1.0
+	 * @access private
+	 *
+	 * @param WP_Post $post        Post being saved.
+	 * @param string  $session_key Opaque editor session key.
+	 * @return array Authorship context.
+	 */
+	function wp_de_rtc_get_retry_save_authorship_context( $post, $session_key = '' ) {
+	$post            = get_post( $post );
+	$post_id         = $post ? (int) $post->ID : 0;
+	$attribution_key = wp_de_rtc_get_presence_attribution_key_for_session_key( $post_id, $session_key );
+	$has_presence_attribution = '' !== $attribution_key;
+	$user_id         = get_current_user_id();
+
+	if ( '' === $attribution_key ) {
+			$actor_hash       = wp_de_rtc_get_presence_actor_hash( $user_id );
+			$attribution_key = '' !== $actor_hash ? 'user:' . substr( $actor_hash, 0, 24 ) : 'server:unknown';
+		}
+
+	return array(
+		'attributionKey'       => $attribution_key,
+		'displayName'          => wp_de_rtc_get_history_author_display_name( $user_id ),
+		'source'               => $has_presence_attribution ? 'presence_session' : 'current_user',
+		'rawSessionKeyIncluded' => false,
+		'exposesUserId'        => false,
+		'exposesLogin'         => false,
+			'exposesEmail'         => false,
+		);
+	}
+
+	/**
+	 * Rewrites client-authored Automerge operations to the server-owned key.
+	 *
+	 * Stale saves may include server-synthesized operations for already-persisted
+	 * peer changes. Those stay as "server" and are ignored by the authorship
+	 * update so existing attribution metadata remains the authority.
+	 *
+	 * @since 7.1.0
+	 * @access private
+	 *
+	 * @param array $automerge_result   Automerge retry-save result.
+	 * @param array $authorship_context Server-owned authorship context.
+	 * @return array Updated Automerge retry-save result.
+	 */
+	function wp_de_rtc_apply_authorship_context_to_automerge_result( $automerge_result, $authorship_context ) {
+		if ( ! is_array( $automerge_result ) || empty( $authorship_context['attributionKey'] ) ) {
+			return $automerge_result;
+		}
+
+		$attribution_key = (string) $authorship_context['attributionKey'];
+		$rewrite_operations = static function ( $operations ) use ( $attribution_key ) {
+			$rewritten = array();
+			$sequence  = 0;
+
+			foreach ( is_array( $operations ) ? $operations : array() as $operation ) {
+				if ( ! is_array( $operation ) ) {
+					continue;
+				}
+
+				if ( 'server' !== ( isset( $operation['actor'] ) ? (string) $operation['actor'] : '' ) ) {
+					$operation['actor']    = $attribution_key;
+					$operation['sequence'] = $sequence;
+					$operation['id']       = $attribution_key . ':' . $sequence;
+					++$sequence;
+				}
+
+				$rewritten[] = $operation;
+			}
+
+			return $rewritten;
+		};
+
+		if ( isset( $automerge_result['automerge_client_update']['operations'] ) && is_array( $automerge_result['automerge_client_update']['operations'] ) ) {
+			$client_operations = $rewrite_operations( $automerge_result['automerge_client_update']['operations'] );
+			$automerge_result['automerge_client_update']['operations']  = $client_operations;
+			$automerge_result['automerge_client_update']['stateVector'] = count( $client_operations ) > 0 ? array( $attribution_key => count( $client_operations ) ) : array();
+		}
+
+		if ( isset( $automerge_result['automerge_metadata']['operations'] ) && is_array( $automerge_result['automerge_metadata']['operations'] ) ) {
+			$metadata_operations = array();
+			$client_count        = 0;
+
+			foreach ( $automerge_result['automerge_metadata']['operations'] as $operation ) {
+				if ( ! is_array( $operation ) ) {
+					continue;
+				}
+
+				if ( 'server' !== ( isset( $operation['actor'] ) ? (string) $operation['actor'] : '' ) ) {
+					$operation['actor']    = $attribution_key;
+					$operation['sequence'] = $client_count;
+					$operation['id']       = $attribution_key . ':' . $client_count;
+					++$client_count;
+				}
+
+				$metadata_operations[] = $operation;
+			}
+
+			$state_vector = isset( $automerge_result['automerge_metadata']['stateVector'] ) && is_array( $automerge_result['automerge_metadata']['stateVector'] )
+				? $automerge_result['automerge_metadata']['stateVector']
+				: array();
+
+			foreach ( array_keys( $state_vector ) as $actor ) {
+				if ( 'server' !== (string) $actor ) {
+					unset( $state_vector[ $actor ] );
+				}
+			}
+
+			if ( $client_count > 0 ) {
+				$state_vector[ $attribution_key ] = $client_count;
+			}
+
+			ksort( $state_vector );
+			$automerge_result['automerge_metadata']['operations']  = $metadata_operations;
+			$automerge_result['automerge_metadata']['stateVector'] = $state_vector;
+		}
+
+		return $automerge_result;
+	}
+
+	/**
+	 * Adds or updates block authorship metadata in sync meta.
+	 *
+	 * The map intentionally stores attribution keys and text ranges, not raw
+	 * content. Serialized hashes bind each entry to the current body while the
+	 * actual post content remains the durable authority.
+	 *
+	 * @since 7.1.0
+	 * @access private
+	 *
+	 * @param array  $sync_meta           Existing sync metadata.
+	 * @param string $save_post_content   Stripped content being saved.
+	 * @param array  $automerge_result    Automerge retry-save result.
+	 * @param array  $authorship_context  Server-owned authorship context.
+	 * @return array Updated sync metadata.
+	 */
+	function wp_de_rtc_apply_automerge_authorship_to_sync_meta( $sync_meta, $save_post_content, $automerge_result, $authorship_context ) {
+		if ( ! is_array( $sync_meta ) || empty( $authorship_context['attributionKey'] ) ) {
+			return $sync_meta;
+		}
+
+		$records = wp_de_rtc_get_top_level_serialized_block_records( $save_post_content );
+
+		if ( is_wp_error( $records ) ) {
+			return $sync_meta;
+		}
+
+		$previous_blocks = array();
+		if ( isset( $sync_meta['authorship']['blocks'] ) && is_array( $sync_meta['authorship']['blocks'] ) ) {
+			foreach ( $sync_meta['authorship']['blocks'] as $block ) {
+				if ( ! is_array( $block ) || ! isset( $block['path'] ) || ! is_array( $block['path'] ) ) {
+					continue;
+				}
+
+				$previous_blocks[ implode( '.', array_map( 'intval', $block['path'] ) ) ] = $block;
+			}
+		}
+
+		$blocks_by_path = array();
+		foreach ( $records as $index => $record ) {
+			$path_key = (string) (int) $index;
+			$hash     = wp_de_rtc_hash_content( $record );
+			$block_name = wp_de_rtc_get_serialized_block_record_name( $record );
+			$previous   = array();
+
+			if ( isset( $previous_blocks[ $path_key ] ) && is_array( $previous_blocks[ $path_key ] ) ) {
+				$candidate_previous = $previous_blocks[ $path_key ];
+				$previous_hash      = isset( $candidate_previous['serializedBlockHash'] ) ? (string) $candidate_previous['serializedBlockHash'] : '';
+				$previous_name      = isset( $candidate_previous['blockName'] ) ? (string) $candidate_previous['blockName'] : '';
+				$previous_rich_text = isset( $candidate_previous['richText'] ) && is_array( $candidate_previous['richText'] ) ? $candidate_previous['richText'] : array();
+
+				if (
+					( '' !== $previous_hash && hash_equals( $previous_hash, $hash ) ) ||
+					( $block_name && $previous_name === $block_name && ! empty( $previous_rich_text['ranges'] ) )
+				) {
+					$previous = $candidate_previous;
+				}
+			}
+
+			$blocks_by_path[ $path_key ] = array(
+				'path'                => array( (int) $index ),
+				'blockName'           => $block_name,
+				'serializedBlockHash' => $hash,
+				'attributionKey'      => isset( $previous['attributionKey'] ) && is_string( $previous['attributionKey'] ) ? $previous['attributionKey'] : null,
+				'richText'            => isset( $previous['richText'] ) && is_array( $previous['richText'] ) ? $previous['richText'] : array(),
+			);
+		}
+
+		$attribution_key = (string) $authorship_context['attributionKey'];
+		$operations      = isset( $automerge_result['automerge_client_update']['operations'] ) && is_array( $automerge_result['automerge_client_update']['operations'] )
+			? $automerge_result['automerge_client_update']['operations']
+			: array();
+
+		foreach ( $operations as $operation ) {
+			if ( ! is_array( $operation ) || ( isset( $operation['actor'] ) && (string) $operation['actor'] !== $attribution_key ) ) {
+				continue;
+			}
+
+			$path = isset( $operation['path'] ) && is_array( $operation['path'] ) ? array_map( 'intval', $operation['path'] ) : array();
+			if ( 1 !== count( $path ) ) {
+				continue;
+			}
+
+			$path_key = (string) $path[0];
+			if ( ! isset( $blocks_by_path[ $path_key ] ) ) {
+				continue;
+			}
+
+			$type = isset( $operation['type'] ) ? (string) $operation['type'] : '';
+			if ( in_array( $type, array( 'block.insert', 'block.replace', 'block.update_serialized' ), true ) ) {
+				$blocks_by_path[ $path_key ]['attributionKey'] = $attribution_key;
+				$blocks_by_path[ $path_key ]['richText']       = array();
+				continue;
+			}
+
+			if ( in_array( $type, array( 'block.rich_text_content', 'block.rich_text_format' ), true ) ) {
+				$blocks_by_path[ $path_key ]['attributionKey'] = null;
+				$blocks_by_path[ $path_key ]['richText']       = wp_de_rtc_add_automerge_authorship_rich_text_ranges(
+					$blocks_by_path[ $path_key ]['richText'],
+					$operation,
+					$attribution_key
+				);
+			}
+		}
+
+		$sessions = isset( $sync_meta['authorship']['sessions'] ) && is_array( $sync_meta['authorship']['sessions'] )
+			? $sync_meta['authorship']['sessions']
+			: array();
+		$sessions[ $attribution_key ] = array(
+			'attributionKey'       => $attribution_key,
+			'displayName'          => isset( $authorship_context['displayName'] ) ? (string) $authorship_context['displayName'] : __( 'Editor' ),
+			'source'               => isset( $authorship_context['source'] ) ? (string) $authorship_context['source'] : 'presence_session',
+			'rawSessionKeyIncluded' => false,
+			'exposesUserId'        => false,
+			'exposesLogin'         => false,
+			'exposesEmail'         => false,
+		);
+
+		$sync_meta['authorship'] = array(
+			'schema'              => 'de-rtc-authorship-v1',
+			'updatedAtGmt'        => current_time( 'mysql', true ),
+			'contentFree'         => true,
+			'sessions'            => $sessions,
+			'blocks'              => array_values( $blocks_by_path ),
+			'rawContentIncluded'  => false,
+			'rawSessionKeyIncluded' => false,
+		);
+
+		return $sync_meta;
+	}
+
+	/**
+	 * Adds rich-text attribution ranges from a block-native operation.
+	 *
+	 * @since 7.1.0
+	 * @access private
+	 *
+	 * @param array  $rich_text       Existing rich-text attribution metadata.
+	 * @param array  $operation       Block-native Automerge operation.
+	 * @param string $attribution_key Server-owned attribution key.
+	 * @return array Updated rich-text attribution metadata.
+	 */
+	function wp_de_rtc_add_automerge_authorship_rich_text_ranges( $rich_text, $operation, $attribution_key ) {
+		$rich_text = is_array( $rich_text ) ? $rich_text : array();
+		$ranges    = isset( $rich_text['ranges'] ) && is_array( $rich_text['ranges'] ) ? $rich_text['ranges'] : array();
+		$type      = isset( $operation['type'] ) ? (string) $operation['type'] : '';
+
+		if ( 'block.rich_text_content' === $type && isset( $operation['textSplice'] ) && is_array( $operation['textSplice'] ) ) {
+			$start        = isset( $operation['textSplice']['start'] ) ? (int) $operation['textSplice']['start'] : 0;
+			$insert_count = isset( $operation['textSplice']['insertCount'] ) ? (int) $operation['textSplice']['insertCount'] : 0;
+			if ( $insert_count > 0 ) {
+				$ranges[] = array(
+					'start'          => max( 0, $start ),
+					'end'            => max( 0, $start + $insert_count ),
+					'attributionKey' => $attribution_key,
+					'changeKind'     => 'text_insert',
+				);
+			}
+		}
+
+		if ( 'block.rich_text_format' === $type && isset( $operation['changedTextIndexes'] ) && is_array( $operation['changedTextIndexes'] ) ) {
+			foreach ( wp_de_rtc_get_contiguous_integer_ranges( $operation['changedTextIndexes'] ) as $range ) {
+				$ranges[] = array(
+					'start'          => $range['start'],
+					'end'            => $range['end'],
+					'attributionKey' => $attribution_key,
+					'changeKind'     => 'format_change',
+				);
+			}
+		}
+
+		return array(
+			'field'             => isset( $operation['field'] ) ? sanitize_key( (string) $operation['field'] ) : 'innerHTML',
+			'ranges'            => wp_de_rtc_normalize_automerge_authorship_ranges( $ranges ),
+			'rawContentIncluded' => false,
+		);
+	}
+
+	/**
+	 * Returns sorted contiguous integer ranges as half-open [start, end) spans.
+	 *
+	 * @since 7.1.0
+	 * @access private
+	 *
+	 * @param int[] $indexes Integer indexes.
+	 * @return array[] Half-open ranges.
+	 */
+	function wp_de_rtc_get_contiguous_integer_ranges( $indexes ) {
+		$indexes = array_values( array_unique( array_map( 'intval', is_array( $indexes ) ? $indexes : array() ) ) );
+		sort( $indexes, SORT_NUMERIC );
+		$ranges = array();
+		$start  = null;
+		$end    = null;
+
+		foreach ( $indexes as $index ) {
+			if ( null === $start ) {
+				$start = $index;
+				$end   = $index + 1;
+				continue;
+			}
+
+			if ( $index === $end ) {
+				$end = $index + 1;
+				continue;
+			}
+
+			$ranges[] = array(
+				'start' => max( 0, $start ),
+				'end'   => max( 0, $end ),
+			);
+			$start = $index;
+			$end   = $index + 1;
+		}
+
+		if ( null !== $start ) {
+			$ranges[] = array(
+				'start' => max( 0, $start ),
+				'end'   => max( 0, $end ),
+			);
+		}
+
+		return $ranges;
+	}
+
+	/**
+	 * Normalizes rich-text attribution ranges.
+	 *
+	 * @since 7.1.0
+	 * @access private
+	 *
+	 * @param array[] $ranges Candidate ranges.
+	 * @return array[] Normalized ranges.
+	 */
+	function wp_de_rtc_normalize_automerge_authorship_ranges( $ranges ) {
+		$normalized = array();
+
+		foreach ( is_array( $ranges ) ? $ranges : array() as $range ) {
+			if ( ! is_array( $range ) || empty( $range['attributionKey'] ) ) {
+				continue;
+			}
+
+			$start = isset( $range['start'] ) ? max( 0, (int) $range['start'] ) : 0;
+			$end   = isset( $range['end'] ) ? max( 0, (int) $range['end'] ) : 0;
+
+			if ( $end <= $start ) {
+				continue;
+			}
+
+			$normalized[] = array(
+				'start'          => $start,
+				'end'            => $end,
+				'attributionKey' => sanitize_text_field( (string) $range['attributionKey'] ),
+				'changeKind'     => isset( $range['changeKind'] ) ? sanitize_key( (string) $range['changeKind'] ) : 'unknown',
+			);
+		}
+
+		usort(
+			$normalized,
+			static function ( $left, $right ) {
+				if ( $left['start'] === $right['start'] ) {
+					return $left['end'] <=> $right['end'];
+				}
+
+				return $left['start'] <=> $right['start'];
+			}
+		);
+
+		return array_slice( $normalized, -100 );
+	}
+
+	/**
+	 * Returns public Automerge encoding evidence for a retry-save result.
+	 *
  * @since 7.1.0
  * @access private
  *

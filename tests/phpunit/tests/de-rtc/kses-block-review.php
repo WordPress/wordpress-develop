@@ -253,6 +253,119 @@ class Tests_DE_RTC_KSES_Block_Review extends WP_UnitTestCase {
 
 	/**
 	 * @covers ::wp_de_rtc_classify_kses_risky_block_review_items
+	 * @covers ::wp_de_rtc_added_kses_block_change_requires_review
+	 * @covers ::wp_de_rtc_is_kses_normalization_only_change
+	 * @covers ::wp_de_rtc_canonicalize_kses_normalized_serialized_html
+	 */
+	public function test_inserted_safe_separator_normalized_by_kses_does_not_require_review() {
+		$base_content     = '<!-- wp:paragraph --><p>Existing safe paragraph.</p><!-- /wp:paragraph -->';
+		$separator_block  = '<!-- wp:separator --><hr class="wp-block-separator has-alpha-channel-opacity"/><!-- /wp:separator -->';
+		$proposed_content = $base_content . "\n" . $separator_block;
+		$post_id          = $this->create_sync_meta_post( $base_content, 31, self::$author_user_id );
+		$before_post      = get_post( $post_id );
+		$before_revisions = $this->get_post_revisions( $post_id );
+		$separator_review = wp_de_rtc_get_kses_post_content_review_evidence( $separator_block );
+
+		wp_set_current_user( self::$author_user_id );
+
+		$result = wp_de_rtc_classify_kses_risky_block_review_items(
+			$post_id,
+			$proposed_content,
+			array(
+				'base_post_content'   => $base_content,
+				'client_base_version' => '31',
+				'author_id'           => self::$author_user_id,
+			)
+		);
+
+		$this->assertTrue( $separator_review['would_change_content'] );
+		$this->assertIsArray( $result );
+		$this->assertSame( 'no_review_required', $result['result'] );
+		$this->assertSame( 0, $result['review_item_count'] );
+		$this->assertSame( 'continue_save', $result['save_action'] );
+		$this->assertFalse( $result['pre_publish_review_required'] );
+		$this->assert_post_unchanged( $post_id, $before_post->post_content, $before_revisions );
+	}
+
+	/**
+	 * @covers ::wp_de_rtc_classify_kses_risky_block_review_items
+	 * @covers ::wp_de_rtc_added_kses_block_change_requires_review
+	 */
+	public function test_inserted_common_safe_blocks_do_not_require_review() {
+		$base_content = '<!-- wp:paragraph --><p>Existing safe paragraph.</p><!-- /wp:paragraph -->';
+		$safe_blocks  = array(
+			'heading' => '<!-- wp:heading --><h2>Safe heading</h2><!-- /wp:heading -->',
+			'list'    => '<!-- wp:list --><ul class="wp-block-list"><!-- wp:list-item --><li>One</li><!-- /wp:list-item --><!-- wp:list-item --><li>Two</li><!-- /wp:list-item --></ul><!-- /wp:list -->',
+			'spacer'  => '<!-- wp:spacer --><div style="height:100px" aria-hidden="true" class="wp-block-spacer"></div><!-- /wp:spacer -->',
+			'quote'   => '<!-- wp:quote --><blockquote class="wp-block-quote"><!-- wp:paragraph --><p>Quoted</p><!-- /wp:paragraph --></blockquote><!-- /wp:quote -->',
+			'button'  => '<!-- wp:buttons --><div class="wp-block-buttons"><!-- wp:button --><div class="wp-block-button"><a class="wp-block-button__link wp-element-button">Button</a></div><!-- /wp:button --></div><!-- /wp:buttons -->',
+		);
+
+		wp_set_current_user( self::$author_user_id );
+
+		foreach ( $safe_blocks as $label => $safe_block ) {
+			$post_id          = $this->create_sync_meta_post( $base_content, 32, self::$author_user_id );
+			$before_post      = get_post( $post_id );
+			$before_revisions = $this->get_post_revisions( $post_id );
+			$proposed_content = $base_content . "\n" . $safe_block;
+			$result           = wp_de_rtc_classify_kses_risky_block_review_items(
+				$post_id,
+				$proposed_content,
+				array(
+					'base_post_content'   => $base_content,
+					'client_base_version' => '32',
+					'author_id'           => self::$author_user_id,
+				)
+			);
+
+			$this->assertIsArray( $result, $label );
+			$this->assertSame( 'no_review_required', $result['result'], $label );
+			$this->assertSame( 0, $result['review_item_count'], $label );
+			$this->assertSame( 'continue_save', $result['save_action'], $label );
+			$this->assertFalse( $result['pre_publish_review_required'], $label );
+			$this->assert_post_unchanged( $post_id, $before_post->post_content, $before_revisions );
+		}
+	}
+
+	/**
+	 * @covers ::wp_de_rtc_classify_kses_risky_block_review_items
+	 * @covers ::wp_de_rtc_added_kses_block_change_requires_review
+	 */
+	public function test_inserted_block_with_event_handler_still_requires_review() {
+		$base_content     = '<!-- wp:paragraph --><p>Existing safe paragraph.</p><!-- /wp:paragraph -->';
+		$unsafe_block     = '<!-- wp:paragraph --><p onclick="alert(1)">Unsafe event handler.</p><!-- /wp:paragraph -->';
+		$proposed_content = $base_content . "\n" . $unsafe_block;
+		$post_id          = $this->create_sync_meta_post( $base_content, 33, self::$author_user_id );
+		$before_post      = get_post( $post_id );
+		$before_revisions = $this->get_post_revisions( $post_id );
+
+		wp_set_current_user( self::$author_user_id );
+
+		$result = wp_de_rtc_classify_kses_risky_block_review_items(
+			$post_id,
+			$proposed_content,
+			array(
+				'base_post_content'   => $base_content,
+				'client_base_version' => '33',
+				'author_id'           => self::$author_user_id,
+			)
+		);
+
+		$this->assertIsArray( $result );
+		$this->assertSame( 'block_review_required', $result['result'] );
+		$this->assertSame( 1, $result['review_item_count'] );
+		$this->assertSame( 'core/paragraph', $result['review_items'][0]['block_name'] );
+		$this->assertSame( 'added_block', $result['review_items'][0]['change_kind'] );
+		$this->assertSame( 'kses_would_alter_attributes', $result['review_items'][0]['risk_reason'] );
+		$this->assert_review_classification_omits_raw_content(
+			$result,
+			array( 'Unsafe event handler', 'onclick', 'alert' )
+		);
+		$this->assert_post_unchanged( $post_id, $before_post->post_content, $before_revisions );
+	}
+
+	/**
+	 * @covers ::wp_de_rtc_classify_kses_risky_block_review_items
 	 * @covers ::wp_de_rtc_get_kses_block_review_risk_reason
 	 */
 	public function test_deleted_risky_block_requires_hash_only_review_item() {
