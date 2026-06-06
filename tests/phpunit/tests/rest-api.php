@@ -2290,20 +2290,25 @@ class Tests_REST_API extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests rest_is_integer().
+	 *
 	 * @ticket 51146
 	 * @ticket 65271
 	 *
 	 * @dataProvider data_rest_is_integer
 	 *
-	 * @param bool     $expected            Expected result of the check.
+	 * @param bool     $expected_is_integer Expected result of the check.
 	 * @param mixed    $value               The value to check.
 	 * @param int|null $expected_sanitized  For integer-like values, the integer that
-	 *                                      rest_sanitize_value_from_schema() should return.
+	 *                                      {@see rest_sanitize_value_from_schema()} should return.
+	 *
+	 * @covers ::rest_is_integer
+	 * @covers ::rest_sanitize_value_from_schema
 	 */
-	public function test_rest_is_integer( $expected, $value, $expected_sanitized = null ): void {
+	public function test_rest_is_integer( bool $expected_is_integer, $value, ?int $expected_sanitized = null ): void {
 		$is_integer = rest_is_integer( $value );
 
-		if ( $expected ) {
+		if ( $expected_is_integer ) {
 			$this->assertTrue( $is_integer );
 
 			/*
@@ -2330,7 +2335,11 @@ class Tests_REST_API extends WP_UnitTestCase {
 	 *
 	 * @return list<array<int, mixed>>
 	 *
-	 * @phpstan-return list<array{ 0: bool, 1: mixed, 2?: int }>
+	 * @phpstan-return list<array{
+	 *     0: bool,  // $expected_is_integer
+	 *     1: mixed, // $value
+	 *     2?: int,  // $expected_sanitized
+	 * }>
 	 */
 	public function data_rest_is_integer(): array {
 		return array(
