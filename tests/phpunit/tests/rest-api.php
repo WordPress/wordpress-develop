@@ -2380,6 +2380,60 @@ class Tests_REST_API extends WP_UnitTestCase {
 				'15e-1',
 			),
 
+			/*
+			 * Integer-valued floats and decimal strings are accepted for back-compatibility.
+			 * Each of these also round-trips cleanly through the (int) cast performed by
+			 * rest_sanitize_value_from_schema() for the 'integer' type.
+			 */
+			array(
+				true,
+				1.0,
+			),
+			array(
+				true,
+				5.0,
+			),
+			array(
+				true,
+				'1.0',
+			),
+			array(
+				true,
+				'5.0',
+			),
+			array(
+				true,
+				1.5e3, // 1500.
+			),
+			array(
+				true,
+				'1.5e3', // 1500.
+			),
+			array(
+				true,
+				'15e2', // 1500.
+			),
+
+			// Signed canonical integer strings.
+			array(
+				true,
+				'+5',
+			),
+			array(
+				true,
+				'-5',
+			),
+
+			// Non-numeric and non-string scalars are not integers.
+			array(
+				false,
+				false,
+			),
+			array(
+				false,
+				null,
+			),
+
 			// The following values failed with PHP 8.4 when rest_is_integer() used round() in its implementation.
 			array(
 				true,
@@ -2396,6 +2450,14 @@ class Tests_REST_API extends WP_UnitTestCase {
 			array(
 				true,
 				'4503599627370498',  // 2 ** 52 + 2
+			),
+			array(
+				true,
+				'-4503599627370498', // -( 2 ** 52 + 2 ), a large negative integer string.
+			),
+			array(
+				true,
+				'4611686018427387904', // 2 ** 62, a large positive integer string below PHP_INT_MAX.
 			),
 		);
 	}
