@@ -2295,14 +2295,28 @@ class Tests_REST_API extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_rest_is_integer
 	 *
-	 * @param bool  $expected Expected result of the check.
-	 * @param mixed $value    The value to check.
+	 * @param bool     $expected            Expected result of the check.
+	 * @param mixed    $value               The value to check.
+	 * @param int|null $expected_sanitized  For integer-like values, the integer that
+	 *                                      rest_sanitize_value_from_schema() should return.
 	 */
-	public function test_rest_is_integer( $expected, $value ) {
+	public function test_rest_is_integer( $expected, $value, $expected_sanitized = null ): void {
 		$is_integer = rest_is_integer( $value );
 
 		if ( $expected ) {
 			$this->assertTrue( $is_integer );
+
+			/*
+			 * Validation and sanitization must agree: any value treated as integer-like
+			 * must also be sanitized to the expected integer by the 'integer' type,
+			 * without the value being munged by the (int) cast.
+			 */
+			$sanitized = rest_sanitize_value_from_schema( $value, array( 'type' => 'integer' ) );
+			$this->assertSame(
+				$expected_sanitized,
+				$sanitized,
+				'Sanitization should return the expected integer without munging the value.'
+			);
 		} else {
 			$this->assertFalse( $is_integer );
 		}
@@ -2311,29 +2325,39 @@ class Tests_REST_API extends WP_UnitTestCase {
 	/**
 	 * Data provider for {@see self::test_rest_is_integer()}.
 	 *
-	 * @return list<array{ bool, mixed }>
+	 * Integer-like rows include a third element: the integer that
+	 * rest_sanitize_value_from_schema() should produce for the value.
+	 *
+	 * @return list<array<int, mixed>>
+	 *
+	 * @phpstan-return list<array{ 0: bool, 1: mixed, 2?: int }>
 	 */
 	public function data_rest_is_integer(): array {
 		return array(
 			array(
 				true,
 				1,
+				1,
 			),
 			array(
 				true,
 				'1',
+				1,
 			),
 			array(
 				true,
+				0,
 				0,
 			),
 			array(
 				true,
 				-1,
+				-1,
 			),
 			array(
 				true,
 				'05',
+				5,
 			),
 			array(
 				false,
@@ -2366,14 +2390,17 @@ class Tests_REST_API extends WP_UnitTestCase {
 			array(
 				true,
 				'15e0',
+				15,
 			),
 			array(
 				true,
 				'15e+0',
+				15,
 			),
 			array(
 				true,
 				'15e-0',
+				15,
 			),
 			array(
 				false,
@@ -2388,40 +2415,49 @@ class Tests_REST_API extends WP_UnitTestCase {
 			array(
 				true,
 				1.0,
+				1,
 			),
 			array(
 				true,
 				5.0,
+				5,
 			),
 			array(
 				true,
 				'1.0',
+				1,
 			),
 			array(
 				true,
 				'5.0',
+				5,
 			),
 			array(
 				true,
-				1.5e3, // 1500.
+				1.5e3,
+				1500,
 			),
 			array(
 				true,
-				'1.5e3', // 1500.
+				'1.5e3',
+				1500,
 			),
 			array(
 				true,
-				'15e2', // 1500.
+				'15e2',
+				1500,
 			),
 
 			// Signed canonical integer strings.
 			array(
 				true,
 				'+5',
+				5,
 			),
 			array(
 				true,
 				'-5',
+				-5,
 			),
 
 			// Non-numeric and non-string scalars are not integers.
@@ -2438,26 +2474,32 @@ class Tests_REST_API extends WP_UnitTestCase {
 			array(
 				true,
 				2 ** 52,
+				2 ** 52,
 			),
 			array(
 				true,
 				2 ** 52 + 2,
+				2 ** 52 + 2,
 			),
 			array(
 				true,
-				'4503599627370496',  // 2 ** 52
+				'4503599627370496', // 2 ** 52
+				4503599627370496,
 			),
 			array(
 				true,
-				'4503599627370498',  // 2 ** 52 + 2
+				'4503599627370498', // 2 ** 52 + 2
+				4503599627370498,
 			),
 			array(
 				true,
 				'-4503599627370498', // -( 2 ** 52 + 2 ), a large negative integer string.
+				-4503599627370498,
 			),
 			array(
 				true,
 				'4611686018427387904', // 2 ** 62, a large positive integer string below PHP_INT_MAX.
+				4611686018427387904,
 			),
 		);
 	}
