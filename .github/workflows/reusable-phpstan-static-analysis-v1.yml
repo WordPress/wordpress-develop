@@ -24,8 +24,8 @@ jobs:
   # Performs the following steps:
   # - Checks out the repository.
   # - Sets up PHP.
-  # - Logs debug information.
   # - Installs Composer dependencies.
+  # - Logs debug information.
   # - Configures caching for PHP static analysis scans.
   # - Make Composer packages available globally.
   # - Runs PHPStan static analysis (with Pull Request annotations).
@@ -58,12 +58,6 @@ jobs:
           coverage: none
           tools: cs2pr
 
-      # This date is used to ensure that the Composer cache is cleared at least once every week.
-      # http://man7.org/linux/man-pages/man1/date.1.html
-      - name: "Get last Monday's date"
-        id: get-date
-        run: echo "date=$(/bin/date -u --date='last Mon' "+%F")" >> "$GITHUB_OUTPUT"
-
       - name: General debug information
         run: |
           npm --version
@@ -75,7 +69,7 @@ jobs:
       - name: Install Composer dependencies
         uses: ramsey/composer-install@65e4f84970763564f46a70b8a54b90d033b3bdda # 4.0.0
         with:
-          custom-cache-suffix: ${{ steps.get-date.outputs.date }}
+          custom-cache-suffix: $(/bin/date -u --date='last Mon' "+%F")
 
       - name: Make Composer packages available globally
         run: echo "${PWD}/vendor/bin" >> "$GITHUB_PATH"

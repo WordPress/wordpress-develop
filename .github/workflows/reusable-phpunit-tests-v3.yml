@@ -82,8 +82,8 @@ on:
 
 env:
   LOCAL_PHP: ${{ inputs.php }}-fpm
-  LOCAL_PHP_XDEBUG: ${{ inputs.coverage-report || false }}
-  LOCAL_PHP_XDEBUG_MODE: ${{ inputs.coverage-report && 'coverage' || 'develop,debug' }}
+  LOCAL_PHP_XDEBUG: false
+  LOCAL_PHP_XDEBUG_MODE: 'develop,debug'
   LOCAL_DB_TYPE: ${{ inputs.db-type }}
   LOCAL_DB_VERSION: ${{ inputs.db-version }}
   LOCAL_PHP_MEMCACHED: ${{ inputs.memcached }}
@@ -113,7 +113,6 @@ jobs:
   # - Install WordPress within the Docker container.
   # - Run the PHPUnit tests.
   # - Upload the code coverage report to Codecov.io.
-  # - Upload the HTML code coverage report as an artifact.
   # - Ensures version-controlled files are not modified or deleted.
   # - Checks out the WordPress Test reporter repository.
   # - Submit the test results to the WordPress.org host test results.
@@ -201,15 +200,40 @@ jobs:
       - name: Install WordPress
         run: npm run env:install
 
+      # Installs PCOV as the code coverage driver for the PHPUnit run below.
+      #
+      # The INI directives tune PCOV for WordPress's codebase:
+      # - `pcov.enabled` keeps the Zend hooks active (this is the default, but
+      #   stated explicitly for clarity).
+      # - `pcov.directory` restricts instrumentation to `src/`, so PCOV does not
+      #   record hits for `vendor/`, `tests/`, or WordPress test fixtures that
+      #   PHPUnit would discard at report time anyway.
+      # - `pcov.initial.files` pre-sizes the internal file tracking array for
+      #   the thousands of files under `src/`, avoiding reallocation churn
+      #   during test warmup. The default of 64 is far too low here.
+      - name: Install PCOV coverage driver
+        if: ${{ inputs.coverage-report }}
+        run: |
+          docker compose exec -T -u 0 php sh -c '
+            pecl install --force pcov-1.0.12 &&
+            docker-php-ext-enable pcov &&
+            {
+              echo "pcov.enabled=1"
+              echo "pcov.directory=/var/www/src"
+              echo "pcov.initial.files=10000"
+            } >> /usr/local/etc/php/conf.d/docker-php-ext-pcov.ini &&
+            php -m | grep -i pcov
+          '
+
       - name: Run PHPUnit tests${{ inputs.phpunit-test-groups && format( ' ({0} groups)', inputs.phpunit-test-groups ) || '' }}${{ inputs.coverage-report && ' with coverage report' || '' }}
         continue-on-error: ${{ inputs.allow-errors }}
         run: |
-          node ./tools/local-env/scripts/docker.js run \
+          node ./tools/local-env/scripts/docker.js ${{ inputs.coverage-report && 'exec' || 'run' }} \
             php ./vendor/bin/phpunit \
             --verbose \
             -c "${PHPUNIT_CONFIG}" \
             ${{ inputs.phpunit-test-groups && '--group "${TEST_GROUPS}"' || '' }} \
-            ${{ inputs.coverage-report && '--coverage-clover "wp-code-coverage-${MULTISITE_FLAG}-${GITHUB_SHA}.xml" --coverage-html "wp-code-coverage-${MULTISITE_FLAG}-${GITHUB_SHA}"' || '' }}
+            ${{ inputs.coverage-report && '--coverage-clover "wp-code-coverage-${MULTISITE_FLAG}-${GITHUB_SHA}.xml"' || '' }}
         env:
           TEST_GROUPS: ${{ inputs.phpunit-test-groups }}
           MULTISITE_FLAG: ${{ inputs.multisite && 'multisite' || 'single' }}
@@ -243,14 +267,6 @@ jobs:
           files: wp-code-coverage${{ inputs.multisite && '-multisite' || '-single' }}-${{ github.sha }}.xml
           flags: ${{ inputs.multisite && 'multisite' || 'single' }},php
           fail_ci_if_error: true
-
-      - name: Upload HTML coverage report as artifact
-        if: ${{ inputs.coverage-report }}
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        with:
-          name: wp-code-coverage${{ inputs.multisite && '-multisite' || '-single' }}-${{ github.sha }}
-          path: wp-code-coverage${{ inputs.multisite && '-multisite' || '-single' }}-${{ github.sha }}
-          overwrite: true
 
       - name: Ensure version-controlled files are not modified or deleted
         run: git diff --exit-code

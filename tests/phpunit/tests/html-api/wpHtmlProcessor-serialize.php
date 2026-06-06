@@ -341,6 +341,175 @@ class Tests_HtmlApi_WpHtmlProcessor_Serialize extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensures that fuzzer-discovered inputs do not emit native PHP errors.
+	 *
+	 * @ticket 65372
+	 *
+	 * @dataProvider data_provider_fuzzer_native_error_cases
+	 *
+	 * @param string      $input    HTML input.
+	 * @param string|null $expected Expected normalized output, or null when unsupported.
+	 */
+	public function test_normalize_fuzzer_cases_do_not_emit_native_errors( string $input, ?string $expected ) {
+		$errors = array();
+
+		/*
+		 * This test is checking for native PHP warnings/notices. Unsupported HTML may
+		 * intentionally cause wp_trigger_error() under WP_DEBUG, which is separate
+		 * from the native errors this regression test is trying to catch.
+		 */
+		add_filter( 'wp_trigger_error_trigger_error', '__return_false' );
+		set_error_handler(
+			static function ( int $errno, string $errstr ) use ( &$errors ) {
+				$errors[] = "{$errno}: {$errstr}";
+				return true;
+			}
+		);
+
+		try {
+			$normalized = WP_HTML_Processor::normalize( $input );
+		} finally {
+			restore_error_handler();
+			remove_filter( 'wp_trigger_error_trigger_error', '__return_false' );
+		}
+
+		// Use assertSame() instead of assertEmpty() so PHPUnit shows captured error messages on failure.
+		$this->assertSame( array(), $errors );
+		$this->assertSame( $expected, $normalized, 'Should have normalized the input.' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_provider_fuzzer_native_error_cases() {
+		return array(
+			'Unsupported active formatting' => array( '<A><I><A>', null ),
+		);
+	}
+
+	/**
+	 * Ensures that normalized fuzzer-discovered inputs remain supported.
+	 *
+	 * @ticket 65372
+	 *
+	 * @dataProvider data_provider_normalized_fuzzer_cases_that_should_remain_supported
+	 *
+	 * @param string $input HTML input.
+	 */
+	public function test_normalized_fuzzer_cases_should_remain_supported( string $input ) {
+		$errors = array();
+		set_error_handler(
+			static function ( int $errno, string $errstr ) use ( &$errors ) {
+				$errors[] = "{$errno}: {$errstr}";
+				return true;
+			}
+		);
+
+		try {
+			$normalized       = WP_HTML_Processor::normalize( $input );
+			$normalized_twice = is_string( $normalized ) ? WP_HTML_Processor::normalize( $normalized ) : null;
+		} finally {
+			restore_error_handler();
+		}
+
+		// Use assertSame() instead of assertEmpty() so PHPUnit shows captured error messages on failure.
+		$this->assertSame( array(), $errors );
+		$this->assertIsString( $normalized, 'Input HTML should normalize successfully.' );
+		$this->assertIsString(
+			$normalized_twice,
+			'Normalized HTML should remain supported by the HTML Processor.'
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_provider_normalized_fuzzer_cases_that_should_remain_supported() {
+		return array(
+			'Unclosed SVG TITLE after P in EM'     => array( '<em><p><svg><title>' ),
+			'Unclosed SVG TITLE after P in STRONG' => array( '<strong><p><svg ><title>' ),
+		);
+	}
+
+	/**
+	 * Ensures that normalized fuzzer-discovered inputs are idempotent.
+	 *
+	 * @ticket 65372
+	 *
+	 * @dataProvider data_provider_normalized_fuzzer_cases_that_should_be_idempotent
+	 *
+	 * @param string $input HTML input.
+	 */
+	public function test_normalized_fuzzer_cases_should_be_idempotent( string $input ) {
+		$errors = array();
+		set_error_handler(
+			static function ( int $errno, string $errstr ) use ( &$errors ) {
+				$errors[] = "{$errno}: {$errstr}";
+				return true;
+			}
+		);
+
+		try {
+			$normalized       = WP_HTML_Processor::normalize( $input );
+			$normalized_twice = is_string( $normalized ) ? WP_HTML_Processor::normalize( $normalized ) : null;
+		} finally {
+			restore_error_handler();
+		}
+
+		// Use assertSame() instead of assertEmpty() so PHPUnit shows captured error messages on failure.
+		$this->assertSame( array(), $errors );
+		$this->assertIsString( $normalized, 'Input HTML should normalize successfully.' );
+		$this->assertSame(
+			$normalized,
+			$normalized_twice,
+			'Normalizing already-normalized HTML should not change it.'
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_provider_normalized_fuzzer_cases_that_should_be_idempotent() {
+		return array(
+			'Malformed quoted attribute boundary'       => array( '<A "/=>' ),
+			'Duplicate attribute after bare attribute'  => array( '<A V=5 R V=""=>' ),
+			'Duplicate DATA-ID after numeric attribute' => array( '<E DATA-ID=1 1 DATA-ID=""=>' ),
+			'Duplicate attribute before tag end'        => array( '<R V=5 R V=5 =>' ),
+			'NULL byte in foreign tag name'             => array( "<SVG><L\x00 D>" ),
+			'Malformed closing-looking attribute'       => array( '<a </=>' ),
+			'Malformed self-closing attribute'          => array( '<a h/=>' ),
+			'Duplicate ID with quote boundary'          => array( '<d ID=""" ID=""=>' ),
+			'Mixed-case duplicate TITLE'                => array( "<d TITLE=\"\"' title=\"\"=>" ),
+			'Colon before self-closing slash'           => array( '<e :/=>' ),
+			'Duplicate class after bare attribute'      => array( "<e class=y d class=''=>" ),
+			'Duplicate DATA-ID after hyphen'            => array( '<e data-id=1 - data-id="">' ),
+			'Duplicate title after quotes'              => array( "<e title=''' title=\"\"=>" ),
+			'FORM with SVG TITLE text edge'             => array( "<form ><svg ><title \"'></form><form>" ),
+			'FORM with TABLE and SCRIPT'                => array( '<form id><table te"><script></script><td srce" ID/></form><form claslicate">' ),
+			'FORM with TABLE CAPTION'                   => array( '<form><table><caption></form><form >' ),
+			'Short malformed G attribute C'             => array( '<g c/=>' ),
+			'Short malformed G attribute S'             => array( '<g s/=>' ),
+			'Duplicate SRC boundary'                    => array( '<g src=""g src="">' ),
+			'Short malformed H attribute'               => array( '<h f/=>' ),
+			'Malformed SRC equals boundary'             => array( '<i src=""= src=""=">' ),
+			'Malformed slash in tag opener'             => array( '<i/t/=>' ),
+			'Malformed L colon attribute'               => array( '<l :/=>' ),
+			'Malformed L less-than attribute'           => array( '<l/</=>' ),
+			'Malformed N less-than attribute'           => array( '<n </=>' ),
+			'Unclosed SVG TITLE after P'                => array( '<p><svg><title>' ),
+			'Duplicate ALT boundary'                    => array( '<r alt=\'\'d alt=""=>' ),
+			'NULL byte in SVG child tag'                => array( "<svg><l\x00 '>" ),
+			'NULL byte before slash in SVG child tag'   => array( "<svg><l\x00/r>" ),
+		);
+	}
+
+	/**
 	 * Data provider.
 	 *
 	 * @return array[]
