@@ -2479,7 +2479,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 				null,
 			),
 
-			// The following values failed with PHP 8.4 when rest_is_integer() used round() in its implementation.
+			// The following values test very large integers.
 			array(
 				true,
 				2 ** 52,
