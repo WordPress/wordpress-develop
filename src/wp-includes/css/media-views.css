@@ -367,8 +367,8 @@ select#media-attachment-date-filters {
 
 .media-toolbar-secondary > .spinner {
 	position: absolute;
-	left: calc( 100% + 5px );
-	top: calc( 50% - 8px );
+	left: calc( 100% + 2px );
+	top: 50%;
 	margin: 0;
 }
 
@@ -2833,6 +2833,10 @@ select#media-attachment-date-filters {
 		float: right;
 	}
 
+	.media-frame .media-toolbar-secondary .spinner {
+		top: calc( 50% - 8px );
+	}
+
 	.media-modal .attachments-browser .media-toolbar .attachment-filters {
 		height: auto;
 	}
@@ -2864,6 +2868,10 @@ select#media-attachment-date-filters {
 		bottom: -60px;
 	}
 
+	.media-frame .media-toolbar-secondary .spinner {
+		top: 0;
+	}
+
 	.mode-grid .attachments-browser .media-toolbar-primary {
 		display: grid;
 		grid-template-columns: auto 1fr;
@@ -2888,7 +2896,7 @@ select#media-attachment-date-filters {
 		top: 0;
 		bottom: 0;
 		margin: auto;
-		left: calc( 100% + 5px );
+		left: calc( 100% + 2px );
 		right: 0;
 		z-index: 9;
 	}
