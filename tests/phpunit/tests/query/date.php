@@ -452,4 +452,116 @@ class Tests_Query_Date extends WP_UnitTestCase {
 
 		$this->assertCount( 0, $posts );
 	}
+
+	/**
+	 * Ensures the 'm' parameter values are cast to integers
+	 * to prevent SQL injection via non-numeric fragments.
+	 *
+	 * @ticket 62161
+	 */
+	public function test_m_parameter_with_sql_injection_attempt_year_only() {
+		global $wpdb;
+
+		$posts = $this->_get_query_result(
+			array(
+				'm' => '2000 UNION SELECT * FROM wp_users',
+			)
+		);
+
+		$this->assertCount( 0, $posts );
+		$this->assertStringContainsString(
+			"YEAR({$wpdb->posts}.post_date)=2000",
+			$this->q->request
+		);
+		$this->assertStringNotContainsString( 'UNION', $this->q->request );
+	}
+
+	/**
+	 * Verifies SQL fragments from the 'm' parameter are safely cast to integers
+	 * preventing injection through any date part.
+	 *
+	 * @ticket 62161
+	 */
+	public function test_m_parameter_with_sql_injection_attempt_full_datetime() {
+		global $wpdb;
+
+		$posts = $this->_get_query_result(
+			array(
+				'm' => '2025-04-20 10:13:01',
+			)
+		);
+
+		$expected_dates = array(
+			'2025-04-20 10:13:01',
+		);
+
+		$this->assertSame( $expected_dates, wp_list_pluck( $posts, 'post_date' ) );
+	}
+
+	/**
+	 * Ensures non-numeric prefix in 'm' is safely handled
+	 * and does not result in SQL injection.
+	 *
+	 * @ticket 62161
+	 */
+	public function test_m_parameter_with_non_numeric_prefix_and_sql_keywords() {
+		global $wpdb;
+
+		$posts = $this->_get_query_result(
+			array(
+				'm' => "alpha2025-04-20' AND 1=1--",
+			)
+		);
+
+		$this->assertCount( 0, $posts );
+	}
+
+	/**
+	 * Verifies that SQL keywords embedded in the 'm' parameter
+	 * are neutralized by integer casting and do not alter the query.
+	 *
+	 * @ticket 62161
+	 */
+	public function test_m_parameter_sql_injection_yearmonth_via_or_clause() {
+		global $wpdb;
+
+		$posts = $this->_get_query_result(
+			array(
+				'm' => '202504 OR 1=1',
+			)
+		);
+
+		$this->assertStringContainsString(
+			"YEAR({$wpdb->posts}.post_date)=2025",
+			$this->q->request
+		);
+		$this->assertStringContainsString(
+			"MONTH({$wpdb->posts}.post_date)=4",
+			$this->q->request
+		);
+		$this->assertStringNotContainsString( 'OR 1=1', $this->q->request );
+	}
+
+	/**
+	 * Verifies that a crafted 'm' value with SQL injection in the month fragment
+	 * is neutralized to 0 by integer casting, returning no results.
+	 *
+	 * @ticket 62161
+	 */
+	public function test_m_parameter_with_injection_in_month_fragment() {
+		global $wpdb;
+
+		$posts = $this->_get_query_result(
+			array(
+				'm' => '2025OR 1=1--20 10:13:01',
+			)
+		);
+
+		$this->assertCount( 0, $posts );
+		$this->assertStringContainsString(
+			"YEAR({$wpdb->posts}.post_date)=2025",
+			$this->q->request
+		);
+		$this->assertStringNotContainsString( 'OR 1=1', $this->q->request );
+	}
 }

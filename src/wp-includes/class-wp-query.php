@@ -2081,21 +2081,21 @@ class WP_Query {
 		}
 		// The "m" parameter is meant for months but accepts datetimes of varying specificity.
 		if ( $query_vars['m'] ) {
-			$where .= " AND YEAR({$wpdb->posts}.post_date)=" . substr( $query_vars['m'], 0, 4 );
+			$where .= " AND YEAR({$wpdb->posts}.post_date)=" . (int) substr( $query_vars['m'], 0, 4 );
 			if ( strlen( $query_vars['m'] ) > 5 ) {
-				$where .= " AND MONTH({$wpdb->posts}.post_date)=" . substr( $query_vars['m'], 4, 2 );
+				$where .= " AND MONTH({$wpdb->posts}.post_date)=" . (int) substr( $query_vars['m'], 4, 2 );
 			}
 			if ( strlen( $query_vars['m'] ) > 7 ) {
-				$where .= " AND DAYOFMONTH({$wpdb->posts}.post_date)=" . substr( $query_vars['m'], 6, 2 );
+				$where .= " AND DAYOFMONTH({$wpdb->posts}.post_date)=" . (int) substr( $query_vars['m'], 6, 2 );
 			}
 			if ( strlen( $query_vars['m'] ) > 9 ) {
-				$where .= " AND HOUR({$wpdb->posts}.post_date)=" . substr( $query_vars['m'], 8, 2 );
+				$where .= " AND HOUR({$wpdb->posts}.post_date)=" . (int) substr( $query_vars['m'], 8, 2 );
 			}
 			if ( strlen( $query_vars['m'] ) > 11 ) {
-				$where .= " AND MINUTE({$wpdb->posts}.post_date)=" . substr( $query_vars['m'], 10, 2 );
+				$where .= " AND MINUTE({$wpdb->posts}.post_date)=" . (int) substr( $query_vars['m'], 10, 2 );
 			}
 			if ( strlen( $query_vars['m'] ) > 13 ) {
-				$where .= " AND SECOND({$wpdb->posts}.post_date)=" . substr( $query_vars['m'], 12, 2 );
+				$where .= " AND SECOND({$wpdb->posts}.post_date)=" . (int) substr( $query_vars['m'], 12, 2 );
 			}
 		}
 
