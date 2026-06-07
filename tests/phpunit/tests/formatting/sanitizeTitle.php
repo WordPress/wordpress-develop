@@ -44,7 +44,7 @@ class Tests_Formatting_SanitizeTitle extends WP_UnitTestCase {
 	 * @ticket 65431
 	 */
 	public function test_sanitize_title_removes_emoji_with_text() {
-		$title = 'Hello 🚀 World 🎉 Test ✨';
+		$title  = 'Hello 🚀 World 🎉 Test ✨';
 		$result = sanitize_title( $title );
 
 		$this->assertStringContainsString( 'hello', $result );
@@ -58,7 +58,7 @@ class Tests_Formatting_SanitizeTitle extends WP_UnitTestCase {
 	 * @ticket 65431
 	 */
 	public function test_sanitize_title_preserves_non_emoji_unicode() {
-		$title = 'Café résumé ñandú';
+		$title  = 'Café résumé ñandú';
 		$result = sanitize_title( $title );
 
 		$this->assertStringContainsString( 'cafe', $result );

@@ -6373,13 +6373,14 @@ function maybe_hash_hex_color( $color ) {
  * @return string The title with emoji characters removed.
  */
 function _remove_emoji_from_slug_filter( $title ) {
-    if ( apply_filters( 'remove_emoji_from_slug', true ) ) {
-        // Remove emoji (4-byte Unicode characters in range U+10000 to U+10FFFF)
-        $title = preg_replace( '/[\x{10000}-\x{10FFFF}]/u', '', $title );
-        // Clean up resulting whitespace
-        $title = preg_replace( '/\s+/', ' ', $title );
-        $title = trim( $title );
-    }
-    
-    return $title;
+	if ( apply_filters( 'remove_emoji_from_slug', true ) ) {
+		// Remove emoji (4-byte Unicode characters in range U+10000 to U+10FFFF)
+		$title = preg_replace( '/[\x{10000}-\x{10FFFF}]/u', '', $title );
+		// Clean up resulting whitespace
+		$title = preg_replace( '/\s+/', ' ', $title );
+		$title = trim( $title );
+	}
+
+	return $title;
+	
 }
