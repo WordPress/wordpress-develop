@@ -283,7 +283,7 @@ class WP_Theme_Install_List_Table extends WP_Themes_List_Table {
 		$author = wp_kses( $theme->author, $themes_allowedtags );
 
 		/* translators: %s: Theme name. */
-		$preview_title = sprintf( __( 'Preview &#8220;%s&#8221;' ), $name );
+		$preview_title = sprintf( _x( 'Preview &#8220;%s&#8221;', 'noun' ), $name );
 		$preview_url   = add_query_arg(
 			array(
 				'tab'   => 'theme-information',
