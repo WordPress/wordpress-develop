@@ -1547,7 +1547,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 						'<a href="%s" rel="bookmark" aria-label="%s">%s</a>',
 						esc_url( $preview_link ),
 						/* translators: %s: Post title. */
-						esc_attr( sprintf( __( 'Preview &#8220;%s&#8221;' ), $title ) ),
+						esc_attr( sprintf( _x( 'Preview &#8220;%s&#8221;', 'verb' ), $title ) ),
 						_x( 'Preview', 'verb' )
 					);
 				}
