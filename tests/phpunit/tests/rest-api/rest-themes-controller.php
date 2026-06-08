@@ -582,8 +582,8 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 		$response = self::perform_active_theme_request();
 		$result   = $response->get_data();
 		$this->assertArrayHasKey( 'tags', $result[0] );
-		$this->assertSame( array( 'holiday', 'custom-menu' ), $result[0]['tags']['raw'] );
-		$this->assertSame( 'holiday, custom-menu', $result[0]['tags']['rendered'] );
+		$this->assertSame( array( 'Holiday', 'custom-menu' ), $result[0]['tags']['raw'] );
+		$this->assertSame( 'Holiday, custom-menu', $result[0]['tags']['rendered'] );
 	}
 
 	/**
