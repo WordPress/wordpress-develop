@@ -114,7 +114,7 @@ class Tests_wp_ajax_query_themes extends WP_Ajax_UnitTestCase {
 		$api->info    = array(
 			'page'    => 1,
 			'pages'   => 1,
-			'results' => 1
+			'results' => 1,
 		);
 		$api->themes  = array( $theme );
 
