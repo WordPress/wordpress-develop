@@ -214,7 +214,6 @@ tests_reset__SERVER();
 define( 'WP_TESTS_TABLE_PREFIX', $table_prefix );
 define( 'DIR_TESTDATA', __DIR__ . '/../data' );
 define( 'DIR_TESTROOT', realpath( dirname( __DIR__ ) ) );
-define( 'IMPORTER_PLUGIN_FOR_TESTS', DIR_TESTDATA . '/plugins/wordpress-importer/wordpress-importer.php' );
 
 define( 'WP_LANG_DIR', realpath( DIR_TESTDATA . '/languages' ) );
 

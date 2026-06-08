@@ -715,6 +715,39 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 62901
+	 */
+	public function test_build_query_vars_from_query_block_with_top_level_parent() {
+		$this->registry->register(
+			'core/example',
+			array( 'uses_context' => array( 'query' ) )
+		);
+
+		$parsed_blocks = parse_blocks( '<!-- wp:example {"ok":true} -->a<!-- wp:example /-->b<!-- /wp:example -->' );
+		$parsed_block  = $parsed_blocks[0];
+		$context       = array(
+			'query' => array(
+				'postType' => 'page',
+				'parents'  => array( 0 ),
+			),
+		);
+		$block         = new WP_Block( $parsed_block, $context, $this->registry );
+		$query         = build_query_vars_from_query_block( $block, 1 );
+
+		$this->assertSame(
+			array(
+				'post_type'       => 'page',
+				'order'           => 'DESC',
+				'orderby'         => 'date',
+				'post__not_in'    => array(),
+				'tax_query'       => array(),
+				'post_parent__in' => array( 0 ),
+			),
+			$query
+		);
+	}
+
+	/**
 	 * @ticket 56467
 	 */
 	public function test_query_loop_block_query_vars_filter() {

@@ -1574,7 +1574,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertNotContains( $id2, $ids );
 		$this->assertNotContains( $id3, $ids );
 
-		$this->assertPostsWhere( " AND {posts}.ID NOT IN ($id3,$id2) AND {posts}.post_type = 'post' AND (({posts}.post_status = 'publish'))" );
+		$this->assertPostsWhere( " AND {posts}.ID NOT IN ($id2,$id3) AND {posts}.post_type = 'post' AND (({posts}.post_status = 'publish'))" );
 	}
 
 	public function test_get_items_not_sticky_with_exclude_no_sticky_posts() {
