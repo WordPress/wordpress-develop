@@ -87,4 +87,23 @@ class Tests_User_RetrievePassword extends WP_UnitTestCase {
 	public function test_retrieve_password_does_not_throw_deprecation_notice_with_default_parameters() {
 		$this->assertWPError( retrieve_password() );
 	}
+
+	/**
+	 * Tests that a fatal error is not thrown when the login passed via `$_POST`
+	 * is an array instead of a string.
+	 *
+	 * The message that we should not see:
+	 * `TypeError: trim(): Argument #1 ($string) must be of type string, array given`.
+	 *
+	 * @ticket 62794
+	 */
+	public function test_retrieve_password_does_not_throw_fatal_error_with_array_parameters() {
+		$_POST['user_login'] = array( 'example' );
+
+		$error = retrieve_password();
+		$this->assertWPError( $error, 'The result should be an instance of WP_Error.' );
+
+		$error_codes = $error->get_error_codes();
+		$this->assertContains( 'empty_username', $error_codes, 'The "empty_username" error code should be present.' );
+	}
 }

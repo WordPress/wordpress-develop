@@ -11,6 +11,22 @@ class Tests_WP_oEmbed extends WP_UnitTestCase {
 
 	public $pre_oembed_result_filtered = false;
 
+	/**
+	 * ID of the user.
+	 *
+	 * @var int
+	 */
+	public static $user_id;
+
+	/**
+	 * Set up the shared fixture.
+	 *
+	 * @param WP_UnitTest_Factory $factory Factory instance.
+	 */
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
+		self::$user_id = $factory->user->create();
+	}
+
 	public function set_up() {
 		parent::set_up();
 
@@ -95,7 +111,7 @@ class Tests_WP_oEmbed extends WP_UnitTestCase {
 	 * @group ms-required
 	 */
 	public function test_wp_filter_pre_oembed_result_multisite_sub_samesub() {
-		$user_id = self::factory()->user->create();
+		$user_id = self::$user_id;
 
 		$blog_id = self::factory()->blog->create(
 			array(
@@ -124,7 +140,7 @@ class Tests_WP_oEmbed extends WP_UnitTestCase {
 	 * @group ms-required
 	 */
 	public function test_wp_filter_pre_oembed_result_multisite_sub_othersub() {
-		$user_id = self::factory()->user->create();
+		$user_id = self::$user_id;
 
 		$blog_id = self::factory()->blog->create(
 			array(
@@ -163,7 +179,7 @@ class Tests_WP_oEmbed extends WP_UnitTestCase {
 	public function test_wp_filter_pre_oembed_result_multisite_sub_main() {
 		$post_id   = self::factory()->post->create();
 		$permalink = get_permalink( $post_id );
-		$user_id   = self::factory()->user->create();
+		$user_id   = self::$user_id;
 		$blog_id   = self::factory()->blog->create(
 			array(
 				'user_id' => $user_id,
@@ -188,7 +204,7 @@ class Tests_WP_oEmbed extends WP_UnitTestCase {
 	 * @group ms-required
 	 */
 	public function test_wp_filter_pre_oembed_result_multisite_preserves_switched_state() {
-		$user_id = self::factory()->user->create();
+		$user_id = self::$user_id;
 
 		$blog_id = self::factory()->blog->create( array( 'user_id' => $user_id ) );
 		switch_to_blog( $blog_id );
@@ -219,7 +235,7 @@ class Tests_WP_oEmbed extends WP_UnitTestCase {
 	public function test_wp_filter_pre_oembed_result_multisite_restores_state_if_no_post_is_found() {
 		$current_blog_id = get_current_blog_id();
 
-		$user_id = self::factory()->user->create();
+		$user_id = self::$user_id;
 		$blog_id = self::factory()->blog->create(
 			array(
 				'user_id' => $user_id,

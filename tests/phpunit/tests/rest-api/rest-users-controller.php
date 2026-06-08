@@ -308,6 +308,8 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 
 		$rest_post_types = array_values( get_post_types( array( 'show_in_rest' => true ), 'names' ) );
 
+		$this->assertNotEmpty( $users );
+
 		foreach ( $users as $user ) {
 			$this->assertNotEmpty( count_user_posts( $user['id'], $rest_post_types ) );
 
@@ -3300,7 +3302,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 
 		global $wpdb;
 		$users_table = preg_quote( $wpdb->users, '/' );
-		$pattern     = '/SELECT SQL_CALC_FOUND_ROWS wptests_users.ID\n\s+FROM\s+' . $users_table . '/is';
+		$pattern     = '/^SELECT\s+SQL_CALC_FOUND_ROWS\s+' . $users_table . '\.ID\n\s+FROM\s+' . $users_table . '/is';
 
 		// Assert that the SQL query only fetches the id column.
 		$this->assertMatchesRegularExpression( $pattern, $query->request, 'The SQL query does not match the expected string.' );
@@ -3359,9 +3361,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 			$this->assertSame( $user->user_login, $data['username'] );
 			$this->assertSame( $user->roles, $data['roles'] );
 			$this->assertSame( get_user_locale( $user ), $data['locale'] );
-		}
-
-		if ( 'edit' !== $context ) {
+		} else {
 			$this->assertArrayNotHasKey( 'roles', $data );
 			$this->assertArrayNotHasKey( 'capabilities', $data );
 			$this->assertArrayNotHasKey( 'registered_date', $data );

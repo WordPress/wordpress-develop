@@ -8,6 +8,22 @@
 class Tests_WP_Customize_Panel extends WP_UnitTestCase {
 
 	/**
+	 * ID of the administrator user.
+	 *
+	 * @var int
+	 */
+	public static $administrator_id;
+
+	/**
+	 * Set up the shared fixture.
+	 *
+	 * @param WP_UnitTest_Factory $factory Factory instance.
+	 */
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
+		self::$administrator_id = $factory->user->create( array( 'role' => 'administrator' ) );
+	}
+
+	/**
 	 * @var WP_Customize_Manager
 	 */
 	protected $manager;
@@ -130,8 +146,7 @@ class Tests_WP_Customize_Panel extends WP_UnitTestCase {
 	 * @see WP_Customize_Panel::check_capabilities()
 	 */
 	public function test_check_capabilities() {
-		$user_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
-		wp_set_current_user( $user_id );
+		wp_set_current_user( self::$administrator_id );
 
 		$panel = new WP_Customize_Panel( $this->manager, 'foo' );
 		$this->assertTrue( $panel->check_capabilities() );
@@ -156,7 +171,7 @@ class Tests_WP_Customize_Panel extends WP_UnitTestCase {
 	 * @see WP_Customize_Panel::maybe_render()
 	 */
 	public function test_maybe_render() {
-		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+		wp_set_current_user( self::$administrator_id );
 		$panel                        = new WP_Customize_Panel( $this->manager, 'bar' );
 		$customize_render_panel_count = did_action( 'customize_render_panel' );
 		add_action( 'customize_render_panel', array( $this, 'action_customize_render_panel_test' ) );
@@ -181,7 +196,7 @@ class Tests_WP_Customize_Panel extends WP_UnitTestCase {
 	 * @see WP_Customize_Panel::print_template()
 	 */
 	public function test_print_templates_standard() {
-		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+		wp_set_current_user( self::$administrator_id );
 
 		$panel = new WP_Customize_Panel( $this->manager, 'baz' );
 		ob_start();
@@ -199,7 +214,7 @@ class Tests_WP_Customize_Panel extends WP_UnitTestCase {
 	 * @see WP_Customize_Panel::print_template()
 	 */
 	public function test_print_templates_custom() {
-		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+		wp_set_current_user( self::$administrator_id );
 
 		$panel = new Custom_Panel_Test( $this->manager, 'baz' );
 		ob_start();

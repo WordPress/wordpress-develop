@@ -1126,4 +1126,37 @@ class Tests_REST_Request extends WP_UnitTestCase {
 			'HEAD wrong method'      => array( 'HEAD', 'GET', false ),
 		);
 	}
+
+	/**
+	 * @ticket 62163
+	 */
+	public function test_get_params_without_pretty_permalink() {
+		update_option( 'permalink_structure', '' );
+
+		$request = new WP_REST_Request();
+		$request->set_param( 'rest_route', '/wp/v2/posts' );
+		$request->set_param( 'some_param', 'foobar' );
+
+		$params = $request->get_params();
+
+		$this->assertArrayNotHasKey( 'rest_route', $params );
+		$this->assertArrayHasKey( 'some_param', $params );
+	}
+
+	/**
+	 * @ticket 62163
+	 */
+	public function test_get_params_with_pretty_permalinks() {
+		update_option( 'permalink_structure', '/%postname%/' );
+
+		$request = new WP_REST_Request();
+
+		$request->set_param( 'rest_route', '/wp/v2/posts' );
+		$request->set_param( 'some_param', 'foobar' );
+
+		$params = $request->get_params();
+
+		$this->assertArrayHasKey( 'rest_route', $params );
+		$this->assertArrayHasKey( 'some_param', $params );
+	}
 }

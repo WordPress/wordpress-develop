@@ -3,6 +3,16 @@
  * @group admin
  */
 class Tests_Admin_IncludesTemplate extends WP_UnitTestCase {
+	/**
+	 * Editor user ID.
+	 *
+	 * @var int $editor_id
+	 */
+	public static $editor_id;
+
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
+		self::$editor_id = $factory->user->create( array( 'role' => 'editor' ) );
+	}
 
 	/**
 	 * @ticket 51137
@@ -64,7 +74,7 @@ class Tests_Admin_IncludesTemplate extends WP_UnitTestCase {
 		wp_set_object_terms( $post->ID, $term['term_id'], 'wptests_tax_1' );
 
 		// Test that get_inline_data() has `post_category` div containing the assigned term.
-		wp_set_current_user( self::factory()->user->create( array( 'role' => 'editor' ) ) );
+		wp_set_current_user( self::$editor_id );
 		get_inline_data( $post );
 		$this->expectOutputRegex( '/<div class="post_category" id="wptests_tax_1_' . $post->ID . '">' . $term['term_id'] . '<\/div>/' );
 	}
@@ -90,7 +100,7 @@ class Tests_Admin_IncludesTemplate extends WP_UnitTestCase {
 		wp_set_object_terms( $post->ID, $term['term_id'], 'wptests_tax_1' );
 
 		// Test that get_inline_data() has `tags_input` div containing the assigned term.
-		wp_set_current_user( self::factory()->user->create( array( 'role' => 'editor' ) ) );
+		wp_set_current_user( self::$editor_id );
 		get_inline_data( $post );
 		$this->expectOutputRegex( '/<div class="tags_input" id="wptests_tax_1_' . $post->ID . '">Test<\/div>/' );
 	}
