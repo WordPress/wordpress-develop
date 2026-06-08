@@ -2301,6 +2301,10 @@ class Tests_REST_API extends WP_UnitTestCase {
 	 * @param mixed    $value               The value to check.
 	 * @param int|null $expected_sanitized  For integer-like values, the integer that
 	 *                                      {@see rest_sanitize_value_from_schema()} should return.
+	 *                                      A value of null means the value is integer-like but its
+	 *                                      sanitized result is not checked, because the value is too
+	 *                                      large to reason about: the `(int)` cast of an out-of-range
+	 *                                      float is undefined in PHP, so the result is unspecified.
 	 *
 	 * @covers ::rest_is_integer
 	 * @covers ::rest_sanitize_value_from_schema
@@ -2314,14 +2318,18 @@ class Tests_REST_API extends WP_UnitTestCase {
 			/*
 			 * Validation and sanitization must agree: any value treated as integer-like
 			 * must also be sanitized to the expected integer by the 'integer' type,
-			 * without the value being munged by the (int) cast.
+			 * without the value being munged by the (int) cast. This is skipped when
+			 * $expected_sanitized is null, since the sanitized result of an out-of-range
+			 * float is undefined and therefore not worth asserting.
 			 */
-			$sanitized = rest_sanitize_value_from_schema( $value, array( 'type' => 'integer' ) );
-			$this->assertSame(
-				$expected_sanitized,
-				$sanitized,
-				'Sanitization should return the expected integer without munging the value.'
-			);
+			if ( null !== $expected_sanitized ) {
+				$sanitized = rest_sanitize_value_from_schema( $value, array( 'type' => 'integer' ) );
+				$this->assertSame(
+					$expected_sanitized,
+					$sanitized,
+					'Sanitization should return the expected integer without munging the value.'
+				);
+			}
 		} else {
 			$this->assertFalse( $is_integer );
 		}
@@ -2509,6 +2517,39 @@ class Tests_REST_API extends WP_UnitTestCase {
 				true,
 				'4611686018427387904', // 2 ** 62, a large positive integer string below PHP_INT_MAX.
 				4611686018427387904,
+			),
+
+			/*
+			 * Out-of-range floats are reported as integer-like, but their sanitized value is
+			 * not asserted: integer arithmetic overflow promotes the result to a float, and the
+			 * subsequent (int) cast of an out-of-range float is undefined in PHP. The null
+			 * $expected_sanitized signals that the sanitized result should not be checked.
+			 */
+			array(
+				true,
+				PHP_INT_MAX + 1, // Integer overflow promotes to a float greater than PHP_INT_MAX.
+				null,
+			),
+			array(
+				true,
+				PHP_INT_MIN - 1, // Integer overflow promotes to a float less than PHP_INT_MIN.
+				null,
+			),
+
+			/*
+			 * Canonical integer strings beyond the native integer range are reported as
+			 * integer-like, and unlike floats their (int) cast is well-defined: it saturates
+			 * to PHP_INT_MAX or PHP_INT_MIN, so the sanitized value can be asserted.
+			 */
+			array(
+				true,
+				PHP_INT_MAX . '000', // A string three orders of magnitude above PHP_INT_MAX, whatever the word size.
+				PHP_INT_MAX,         // (int) cast of an out-of-range numeric string saturates.
+			),
+			array(
+				true,
+				PHP_INT_MIN . '000', // A string three orders of magnitude below PHP_INT_MIN, whatever the word size.
+				PHP_INT_MIN,         // (int) cast of an out-of-range numeric string saturates.
 			),
 		);
 	}

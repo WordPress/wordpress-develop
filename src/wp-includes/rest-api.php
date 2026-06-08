@@ -1566,11 +1566,12 @@ function rest_is_boolean( $maybe_bool ) {
  *
  * This reports whether the value represents an integer; it does not guarantee that the
  * value can be represented as a native PHP integer. Values whose magnitude exceeds
- * `PHP_INT_MAX` are still reported as integer-like, even though casting them to an int
- * (as {@see rest_sanitize_value_from_schema()} does for the 'integer' type) clamps them to
- * `PHP_INT_MAX` or `PHP_INT_MIN`. Likewise, a numeric value with a fractional part that is
- * too large for the fraction to be represented as a float (greater than 2 ** 53) is
- * reported as integer-like.
+ * `PHP_INT_MAX` are still reported as integer-like, even though the `(int)` cast that
+ * {@see rest_sanitize_value_from_schema()} applies for the 'integer' type cannot round-trip
+ * them: an out-of-range numeric *string* saturates to `PHP_INT_MAX` or `PHP_INT_MIN`, while
+ * an out-of-range *float* is an undefined conversion in PHP that yields an arbitrary wrapped
+ * value. Likewise, a numeric value with a fractional part that is too large for the fraction
+ * to be represented as a float (greater than 2 ** 53) is reported as integer-like.
  *
  * @since 5.5.0
  *
