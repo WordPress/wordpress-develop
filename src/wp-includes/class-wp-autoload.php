@@ -486,31 +486,18 @@ final class WP_Autoload {
 			return;
 		}
 
-		self::register_external_bundled();
-		self::register_core();
+		/*
+		 * Register the core WP autoloader at the front of the SPL stack so it is
+		 * always tried first.  External bundled libraries (WpOrg\Requests, sodium_compat,
+		 * SimplePie) manage their own autoloaders through their existing registration
+		 * points in class-wp-http.php, compat.php, and class-simplepie.php respectively;
+		 * pre-registering them here would unconditionally load several thousand lines of
+		 * library code on every request, including on servers where the native extension
+		 * makes the compat shim unnecessary.
+		 */
+		spl_autoload_register( array( __CLASS__, 'autoload_core' ), true, true );
 
 		self::$registered = true;
-	}
-
-	/**
-	 * Registers the autoloader for external, bundled libraries.
-	 *
-	 * @since x.x.x
-	 */
-	public static function register_external_bundled() {
-		require_once ABSPATH . 'wp-includes/Requests/src/Autoload.php';
-		require_once ABSPATH . 'wp-includes/sodium_compat/autoload.php';
-
-		spl_autoload_register( array( '\WpOrg\Requests\Autoload', 'load' ) );
-	}
-
-	/**
-	 * Registers the autoloader for WordPress Core classes.
-	 *
-	 * @since x.x.x
-	 */
-	public static function register_core() {
-		spl_autoload_register( array( __CLASS__, 'autoload_core' ), true, true );
 	}
 
 	/**
