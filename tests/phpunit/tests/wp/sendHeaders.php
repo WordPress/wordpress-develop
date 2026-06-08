@@ -61,8 +61,6 @@ class Tests_WP_SendHeaders extends WP_UnitTestCase {
 		$headers_without_password         = $this->headers_sent;
 		$password_status_without_password = post_password_required( $post_id );
 
-		require_once ABSPATH . WPINC . '/class-phpass.php';
-
 		$hash = ( new PasswordHash( 8, true ) )->HashPassword( $password );
 
 		$_COOKIE[ 'wp-postpass_' . COOKIEHASH ] = $hash;
