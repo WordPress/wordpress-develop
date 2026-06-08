@@ -148,11 +148,11 @@ class Tests_Block_Supports_WpRenderElementsSupport extends WP_UnitTestCase {
 			),
 		);
 
-		$block_markup  = '<p>Hello <a href="http://www.wordpress.org/">WordPress</a>!</p>';
-		$block_one     = wp_render_elements_support_styles( $block );
-		$block_two     = wp_render_elements_support_styles( $block );
-		$markup_one    = wp_render_elements_class_name( $block_markup, $block_one );
-		$markup_two    = wp_render_elements_class_name( $block_markup, $block_two );
+		$block_markup = '<p>Hello <a href="http://www.wordpress.org/">WordPress</a>!</p>';
+		$block_one    = wp_render_elements_support_styles( $block );
+		$block_two    = wp_render_elements_support_styles( $block );
+		$markup_one   = wp_render_elements_class_name( $block_markup, $block_one );
+		$markup_two   = wp_render_elements_class_name( $block_markup, $block_two );
 
 		$this->assertMatchesRegularExpression(
 			'/^<p class="wp-elements-[a-f0-9]{32}">Hello <a href="http:\/\/www.wordpress.org\/">WordPress<\/a>!<\/p>$/',
