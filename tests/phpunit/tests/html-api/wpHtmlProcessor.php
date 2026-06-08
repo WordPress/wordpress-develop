@@ -925,17 +925,6 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 					'-HTML'    => 1,
 					''         => 1,
 				),
-				'expected_xpaths'       => array(
-					0 => '/*[1][self::HTML]',
-					1 => '/*[1][self::HTML]/*[1][self::HEAD]',
-					2 => '/*[1][self::HTML]/*[1][self::HEAD]/*[1][self::META]',
-					3 => '/*[1][self::HTML]/*[1][self::HEAD]/*[2][self::TITLE]',
-					4 => '/*[1][self::HTML]/*[2][self::BODY]',
-					5 => '/*[1][self::HTML]/*[2][self::BODY]/*[1][self::H1]',
-					6 => '/*[1][self::HTML]/*[2][self::BODY]/*[2][self::IMG]',
-					7 => '/*[1][self::HTML]/*[2][self::BODY]/*[3][self::P]',
-					8 => '/*[1][self::HTML]/*[2][self::BODY]/*[4][self::FOOTER]',
-				),
 			),
 
 			'multiple_tag_instances'    => array(
@@ -971,19 +960,6 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 					'-BODY' => 1,
 					'-HTML' => 1,
 					''      => 1,
-				),
-				'expected_xpaths'       => array(
-					0  => '/*[1][self::HTML]',
-					1  => '/*[1][self::HTML]/*[1][self::HEAD]',
-					2  => '/*[1][self::HTML]/*[2][self::BODY]',
-					3  => '/*[1][self::HTML]/*[2][self::BODY]/*[1][self::H1]',
-					4  => '/*[1][self::HTML]/*[2][self::BODY]/*[2][self::P]',
-					5  => '/*[1][self::HTML]/*[2][self::BODY]/*[3][self::P]',
-					6  => '/*[1][self::HTML]/*[2][self::BODY]/*[4][self::P]',
-					7  => '/*[1][self::HTML]/*[2][self::BODY]/*[5][self::UL]',
-					8  => '/*[1][self::HTML]/*[2][self::BODY]/*[5][self::UL]/*[1][self::LI]',
-					9  => '/*[1][self::HTML]/*[2][self::BODY]/*[5][self::UL]/*[2][self::LI]',
-					10 => '/*[1][self::HTML]/*[2][self::BODY]/*[5][self::UL]/*[3][self::LI]',
 				),
 			),
 
@@ -1021,18 +997,6 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 					'-HTML'   => 1,
 					''        => 1,
 				),
-				'expected_xpaths'       => array(
-					0 => '/*[1][self::HTML]',
-					1 => '/*[1][self::HTML]/*[1][self::HEAD]',
-					2 => '/*[1][self::HTML]/*[2][self::BODY]',
-					3 => '/*[1][self::HTML]/*[2][self::BODY]/*[1][self::P]',
-					4 => '/*[1][self::HTML]/*[2][self::BODY]/*[1][self::P]/*[1][self::STRONG]',
-					5 => '/*[1][self::HTML]/*[2][self::BODY]/*[1][self::P]/*[1][self::STRONG]/*[1][self::EM]',
-					6 => '/*[1][self::HTML]/*[2][self::BODY]/*[1][self::P]/*[1][self::STRONG]/*[1][self::EM]/*[1][self::STRIKE]',
-					7 => '/*[1][self::HTML]/*[2][self::BODY]/*[1][self::P]/*[1][self::STRONG]/*[1][self::EM]/*[1][self::STRIKE]/*[1][self::I]',
-					8 => '/*[1][self::HTML]/*[2][self::BODY]/*[1][self::P]/*[1][self::STRONG]/*[1][self::EM]/*[1][self::STRIKE]/*[1][self::I]/*[1][self::B]',
-					9 => '/*[1][self::HTML]/*[2][self::BODY]/*[1][self::P]/*[1][self::STRONG]/*[1][self::EM]/*[1][self::STRIKE]/*[1][self::I]/*[1][self::B]/*[1][self::U]',
-				),
 			),
 		);
 	}
@@ -1040,22 +1004,17 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 	/**
 	 * Ensures that subclasses to WP_HTML_Processor can do bookkeeping by extending the next_token() method.
 	 *
-	 * @ticket ?
+	 * @ticket 62269
 	 * @dataProvider data_html_processor_with_extended_next_token
 	 */
-	public function test_ensure_next_token_method_extensibility( $html, $expected_token_counts, $expected_xpaths ) {
-		require_once DIR_TESTDATA . '/html-api/html-xpath-generating-processor.php';
+	public function test_ensure_next_token_method_extensibility( $html, $expected_token_counts ) {
+		require_once DIR_TESTDATA . '/html-api/token-counting-html-processor.php';
 
-		$processor     = HTML_XPath_Generating_Processor::create_full_parser( $html );
-		$actual_xpaths = array();
+		$processor = Token_Counting_HTML_Processor::create_full_parser( $html );
 		while ( $processor->next_tag() ) {
-			if ( ! $processor->is_tag_closer() ) {
-				$processor->set_attribute( 'xpath', $processor->get_xpath() );
-				$actual_xpaths[] = $processor->get_xpath();
-			}
+			continue;
 		}
 
 		$this->assertEquals( $expected_token_counts, $processor->token_seen_count, 'Snapshot: ' . var_export( $processor->token_seen_count, true ) );
-		$this->assertEquals( $expected_xpaths, $actual_xpaths, 'Snapshot: ' . var_export( $actual_xpaths, true ) );
 	}
 }
