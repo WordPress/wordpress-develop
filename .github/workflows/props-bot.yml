@@ -85,6 +85,8 @@ jobs:
             github.rest.issues.removeLabel({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              issue_number: '${{ github.event.number }}',
+              issue_number: process.env.ISSUE_NUMBER,
               name: 'props-bot'
             });
+        env:
+          ISSUE_NUMBER: ${{ github.event.number }}

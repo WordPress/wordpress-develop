@@ -633,6 +633,28 @@ class Tests_Auth extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that a warning or a fatal error is not thrown when the login or password
+	 * passed via `$_POST` is an array instead of a string.
+	 *
+	 * The messages that we should not see:
+	 * `Warning: wp_strip_all_tags() expects parameter #1 ($text) to be a string, array given`.
+	 * `TypeError: trim(): Argument #1 ($string) must be of type string, array given`.
+	 *
+	 * @ticket 62794
+	 */
+	public function test_wp_signon_does_not_throw_fatal_errors_with_array_parameters() {
+		$_POST['log'] = array( 'example' );
+		$_POST['pwd'] = array( 'example' );
+
+		$error = wp_signon();
+		$this->assertWPError( $error, 'The result should be an instance of WP_Error.' );
+
+		$error_codes = $error->get_error_codes();
+		$this->assertContains( 'empty_username', $error_codes, 'The "empty_username" error code should be present.' );
+		$this->assertContains( 'empty_password', $error_codes, 'The "empty_password" error code should be present.' );
+	}
+
+	/**
 	 * HTTP Auth headers are used to determine the current user.
 	 *
 	 * @ticket 42790

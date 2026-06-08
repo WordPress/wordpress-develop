@@ -54,7 +54,7 @@ jobs:
     timeout-minutes: 5
     if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event.workflow_run.event != 'pull_request' }}
     outputs:
-      previous_conclusion: ${{ steps.previous-conclusion.outputs.previous_conclusion }}
+      previous_conclusion: ${{ steps.previous-attempt-result.outputs.result }}
       payload: ${{ steps.create-payload.outputs.payload }}
 
     steps:
@@ -64,14 +64,15 @@ jobs:
         with:
           retries: 2
           retry-exempt-status-codes: 418
+          result-encoding: string
           script: |
             const workflow_run = await github.rest.actions.getWorkflowRun({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              run_id: ${{ github.run_id }},
+              run_id: `${context.runId}`,
             });
 
-            if ( '${{ inputs.calling_status }}' == 'failure' && workflow_run.data.run_attempt == 1 ) {
+            if ( process.env.CALLING_STATUS == 'failure' && workflow_run.data.run_attempt == 1 ) {
               return 'first-failure';
             }
 
@@ -82,7 +83,7 @@ jobs:
               const previous_run = await github.rest.actions.getWorkflowRunAttempt({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
-                run_id: ${{ github.run_id }},
+                run_id: `${context.runId}`,
                 attempt_number: workflow_run.data.run_attempt - 1
               });
 
@@ -94,7 +95,7 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               workflow_id: workflow_run.data.workflow_id,
-              branch: '${{ env.CURRENT_BRANCH }}',
+              branch: process.env.CURRENT_BRANCH,
               exclude_pull_requests: true,
             });
 
@@ -124,10 +125,8 @@ jobs:
 
             // Can't determine previous workflow conclusion.
             return 'unknown';
-
-      - name: Store previous conclusion as an output
-        id: previous-conclusion
-        run: echo "previous_conclusion=${{ steps.previous-attempt-result.outputs.result }}" >> $GITHUB_OUTPUT
+        env:
+          CALLING_STATUS: ${{ inputs.calling_status }}
 
       - name: Get the commit message
         id: current-commit-message
@@ -140,26 +139,38 @@ jobs:
             const commit_details = await github.rest.repos.getCommit({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              ref: '${{ github.sha }}'
+              ref: context.sha,
             });
             return commit_details.data.commit.message;
 
       - name: Prepare commit message.
         id: commit-message
         run: |
-          COMMIT_MESSAGE=$(cat <<'EOF' | awk 'NR==1' | sed 's/`/\\`/g' | sed 's/\"/\\\\\\"/g' | sed 's/\$/\\$/g'
-          ${{ ( github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' ) && fromJson( steps.current-commit-message.outputs.result ) || github.event.head_commit.message }}
-          EOF
-          )
-          echo "commit_message_escaped=${COMMIT_MESSAGE}" >> $GITHUB_OUTPUT
+          # shellcheck disable=SC2016
+          COMMIT_MESSAGE="$(echo "${COMMIT_MSG_RAW}" | awk 'NR==1' | sed 's/`/\\`/g' | sed 's/\"/\\\\\\"/g' | sed 's/\$/\\$/g')"
+          echo "commit_message_escaped=${COMMIT_MESSAGE}" >> "$GITHUB_OUTPUT"
+        env:
+          COMMIT_MSG_RAW: ${{ ( github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' ) && fromJson( steps.current-commit-message.outputs.result ) || github.event.head_commit.message }}
 
       - name: Construct payload and store as an output
         id: create-payload
-        run: echo "payload={\"workflow_name\":\"${{ github.workflow }}\",\"ref_name\":\"${{ env.CURRENT_BRANCH }}\",\"run_url\":\"https://github.com/WordPress/wordpress-develop/actions/runs/${{ github.run_id }}/attempts/${{ github.run_attempt }}\",\"commit_message\":\"${{ steps.commit-message.outputs.commit_message_escaped }}\"}" >> $GITHUB_OUTPUT
+        run: |
+          PAYLOAD="$( jq \
+            -n \
+            --arg workflow_name "${GITHUB_WORKFLOW}" \
+            --arg ref_name "${CURRENT_BRANCH}" \
+            --arg run_url "https://github.com/WordPress/wordpress-develop/actions/runs/${GITHUB_RUN_ID}/attempts/${GITHUB_RUN_ATTEMPT}" \
+            --arg commit_message "${COMMIT_MSG}" \
+            '{workflow_name: $workflow_name, ref_name: $ref_name, run_url: $run_url, commit_message: $commit_message}' | jq -c .
+          )"
+          echo "payload=$PAYLOAD" >> "$GITHUB_OUTPUT"
+        env:
+          COMMIT_MSG: ${{ steps.commit-message.outputs.commit_message_escaped }}
 
   # Posts notifications when a workflow fails.
   failure:
     name: Failure notifications
+    permissions: {}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     needs: [ prepare ]
@@ -176,6 +187,7 @@ jobs:
   # Posts notifications the first time a workflow run succeeds after previously failing.
   fixed:
     name: Fixed notifications
+    permissions: {}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     needs: [ prepare ]
@@ -192,6 +204,7 @@ jobs:
   # Posts notifications when a workflow is successful.
   success:
     name: Success notifications
+    permissions: {}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     needs: [ prepare ]
@@ -208,6 +221,7 @@ jobs:
   # Posts notifications when a workflow is cancelled.
   cancelled:
     name: Cancelled notifications
+    permissions: {}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     needs: [ prepare ]

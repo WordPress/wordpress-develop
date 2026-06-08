@@ -676,6 +676,8 @@ function get_body_class( $css_class = '' ) {
 		$post_id   = $post->ID;
 		$post_type = $post->post_type;
 
+		$classes[] = 'wp-singular';
+
 		if ( is_page_template() ) {
 			$classes[] = "{$post_type}-template";
 
@@ -834,6 +836,11 @@ function get_body_class( $css_class = '' ) {
 		} elseif ( is_post_type_archive() ) {
 			$classes[] = 'post-type-paged-' . $page;
 		}
+	}
+
+	$classes[] = 'wp-theme-' . sanitize_html_class( get_template() );
+	if ( is_child_theme() ) {
+		$classes[] = 'wp-child-theme-' . sanitize_html_class( get_stylesheet() );
 	}
 
 	if ( ! empty( $css_class ) ) {

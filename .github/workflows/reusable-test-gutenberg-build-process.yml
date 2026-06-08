@@ -22,6 +22,10 @@ env:
   PUPPETEER_SKIP_DOWNLOAD: ${{ true }}
   NODE_OPTIONS: '--max-old-space-size=8192'
 
+# Disable permissions for all available scopes by default.
+# Any needed permissions should be configured at the job level.
+permissions: {}
+
 jobs:
   # Verifies that installing npm dependencies and building the Gutenberg plugin works as expected.
   #
@@ -38,6 +42,8 @@ jobs:
   # - Ensures version-controlled files are not modified or deleted.
   build-process-tests:
     name: Gutenberg running from ${{ inputs.directory }} / ${{ contains( inputs.os, 'macos-' ) && 'MacOS' || contains( inputs.os, 'windows-' ) && 'Windows' || 'Linux' }}
+    permissions:
+      contents: read
     runs-on: ${{ inputs.os }}
     timeout-minutes: 30
 
@@ -46,6 +52,7 @@ jobs:
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
         with:
           show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
+          persist-credentials: false
 
       - name: Checkout Gutenberg plugin
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
@@ -53,6 +60,7 @@ jobs:
           repository: 'WordPress/gutenberg'
           path: ${{ env.GUTENBERG_DIRECTORY }}
           show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
+          persist-credentials: false
 
       - name: Set up Node.js
         uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af # v4.1.0
@@ -82,7 +90,7 @@ jobs:
         working-directory: ${{ env.GUTENBERG_DIRECTORY }}
 
       - name: Build WordPress to run from ${{ inputs.directory }}
-        run: npm run build${{ inputs.directory == 'src' && ':dev' || '' }}
+        run: npm run ${{ inputs.directory == 'src' && 'build:dev' || 'build' }}
 
       - name: Run Gutenberg build script after building Core to run from ${{ inputs.directory }}
         run: npm run build

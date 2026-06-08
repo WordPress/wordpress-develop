@@ -33,6 +33,10 @@ env:
   LOCAL_DIR: build
   LOCAL_PHP: ${{ inputs.php-version }}${{ 'latest' != inputs.php-version && '-fpm' || '' }}
 
+# Disable permissions for all available scopes by default.
+# Any needed permissions should be configured at the job level.
+permissions: {}
+
 jobs:
   # Runs the end-to-end test suite.
   #
@@ -63,13 +67,14 @@ jobs:
     steps:
       - name: Configure environment variables
         run: |
-          echo "PHP_FPM_UID=$(id -u)" >> $GITHUB_ENV
-          echo "PHP_FPM_GID=$(id -g)" >> $GITHUB_ENV
+          echo "PHP_FPM_UID=$(id -u)" >> "$GITHUB_ENV"
+          echo "PHP_FPM_GID=$(id -g)" >> "$GITHUB_ENV"
 
       - name: Checkout repository
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
         with:
           show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
+          persist-credentials: false
 
       - name: Set up Node.js
         uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af # v4.1.0
@@ -117,13 +122,18 @@ jobs:
 
       - name: Install Gutenberg
         if: ${{ inputs.install-gutenberg }}
-        run: npm run env:cli -- plugin install gutenberg${{ inputs.gutenberg-version && format( ' --version={0}', inputs.gutenberg-version ) || '' }} --path=/var/www/${{ env.LOCAL_DIR }}
+        run: |
+          npm run env:cli -- plugin install gutenberg \
+          ${{ inputs.gutenberg-version && '--version="${GUTENBERG_VERSION}"' || '' }} \
+          --path="/var/www/${LOCAL_DIR}"
+        env:
+          GUTENBERG_VERSION: ${{ inputs.gutenberg-version }}
 
       - name: Install additional languages
         run: |
-          npm run env:cli -- language core install de_DE --path=/var/www/${{ env.LOCAL_DIR }}
-          npm run env:cli -- language plugin install de_DE --all --path=/var/www/${{ env.LOCAL_DIR }}
-          npm run env:cli -- language theme install de_DE --all --path=/var/www/${{ env.LOCAL_DIR }}
+          npm run env:cli -- language core install de_DE --path="/var/www/${LOCAL_DIR}"
+          npm run env:cli -- language plugin install de_DE --all --path="/var/www/${LOCAL_DIR}"
+          npm run env:cli -- language theme install de_DE --all --path="/var/www/${LOCAL_DIR}"
 
       - name: Run E2E tests
         run: npm run test:e2e

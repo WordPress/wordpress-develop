@@ -39,6 +39,10 @@ on:
 env:
   PUPPETEER_SKIP_DOWNLOAD: ${{ true }}
 
+  # Prevent wp-scripts from downloading extra Playwright browsers,
+  # since Chromium will be installed in its dedicated step already.
+  PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: true
+
   # Performance testing should be performed in an environment reflecting a standard production environment.
   LOCAL_WP_DEBUG: false
   LOCAL_SCRIPT_DEBUG: false
@@ -59,6 +63,10 @@ env:
   LOCAL_PHP_MEMCACHED: ${{ inputs.memcached }}
   LOCAL_PHP: ${{ inputs.php-version }}${{ 'latest' != inputs.php-version && '-fpm' || '' }}
   LOCAL_MULTISITE: ${{ inputs.multisite }}
+
+# Disable permissions for all available scopes by default.
+# Any needed permissions should be configured at the job level.
+permissions: {}
 
 jobs:
   # Performs the following steps:
@@ -115,19 +123,20 @@ jobs:
     steps:
       - name: Configure environment variables
         run: |
-          echo "PHP_FPM_UID=$(id -u)" >> $GITHUB_ENV
-          echo "PHP_FPM_GID=$(id -g)" >> $GITHUB_ENV
+          echo "PHP_FPM_UID=$(id -u)" >> "$GITHUB_ENV"
+          echo "PHP_FPM_GID=$(id -g)" >> "$GITHUB_ENV"
 
       - name: Checkout repository
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
         with:
           show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
           fetch-depth: ${{ github.event_name == 'workflow_dispatch' && '2' || '1' }}
+          persist-credentials: false
 
       # The `workflow_dispatch` event is the only one missing the needed SHA to target.
       - name: Retrieve previous commit SHA (if necessary)
         if: ${{ github.event_name == 'workflow_dispatch' }}
-        run: echo "TARGET_SHA=$(git rev-parse HEAD^1)" >> $GITHUB_ENV
+        run: echo "TARGET_SHA=$(git rev-parse HEAD^1)" >> "$GITHUB_ENV"
 
       - name: Set up Node.js
         uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af # v4.1.0
@@ -177,47 +186,47 @@ jobs:
       - name: Enable themes on Multisite
         if: ${{ inputs.multisite }}
         run: |
-          npm run env:cli -- theme enable twentytwentyone --network --path=/var/www/${{ env.LOCAL_DIR }}
-          npm run env:cli -- theme enable twentytwentythree --network --path=/var/www/${{ env.LOCAL_DIR }}
-          npm run env:cli -- theme enable twentytwentyfour --network --path=/var/www/${{ env.LOCAL_DIR }}
-          npm run env:cli -- theme enable twentytwentyfive --network --path=/var/www/${{ env.LOCAL_DIR }}
+          npm run env:cli -- theme enable twentytwentyone --network --path="/var/www/${LOCAL_DIR}"
+          npm run env:cli -- theme enable twentytwentythree --network --path="/var/www/${LOCAL_DIR}"
+          npm run env:cli -- theme enable twentytwentyfour --network --path="/var/www/${LOCAL_DIR}"
+          npm run env:cli -- theme enable twentytwentyfive --network --path="/var/www/${LOCAL_DIR}"
 
       - name: Install WordPress Importer plugin
-        run: npm run env:cli -- plugin install wordpress-importer --activate --path=/var/www/${{ env.LOCAL_DIR }}
+        run: npm run env:cli -- plugin install wordpress-importer --activate --path="/var/www/${LOCAL_DIR}"
 
       - name: Import mock data
         run: |
           curl -O https://raw.githubusercontent.com/WordPress/theme-test-data/b9752e0533a5acbb876951a8cbb5bcc69a56474c/themeunittestdata.wordpress.xml
-          npm run env:cli -- import themeunittestdata.wordpress.xml --authors=create --path=/var/www/${{ env.LOCAL_DIR }}
+          npm run env:cli -- import themeunittestdata.wordpress.xml --authors=create --path="/var/www/${LOCAL_DIR}"
           rm themeunittestdata.wordpress.xml
 
       - name: Deactivate WordPress Importer plugin
-        run: npm run env:cli -- plugin deactivate wordpress-importer --path=/var/www/${{ env.LOCAL_DIR }}
+        run: npm run env:cli -- plugin deactivate wordpress-importer --path="/var/www/${LOCAL_DIR}"
 
       - name: Update permalink structure
-        run: npm run env:cli -- rewrite structure '/%year%/%monthnum%/%postname%/' --path=/var/www/${{ env.LOCAL_DIR }}
+        run: npm run env:cli -- rewrite structure '/%year%/%monthnum%/%postname%/' --path="/var/www/${LOCAL_DIR}"
 
       - name: Install additional languages
         run: |
-          npm run env:cli -- language core install de_DE --path=/var/www/${{ env.LOCAL_DIR }}
-          npm run env:cli -- language plugin install de_DE --all --path=/var/www/${{ env.LOCAL_DIR }}
-          npm run env:cli -- language theme install de_DE --all --path=/var/www/${{ env.LOCAL_DIR }}
+          npm run env:cli -- language core install de_DE --path="/var/www/${LOCAL_DIR}"
+          npm run env:cli -- language plugin install de_DE --all --path="/var/www/${LOCAL_DIR}"
+          npm run env:cli -- language theme install de_DE --all --path="/var/www/${LOCAL_DIR}"
 
       # Prevent background update checks from impacting test stability.
       - name: Disable external HTTP requests
-        run: npm run env:cli -- config set WP_HTTP_BLOCK_EXTERNAL true --raw --type=constant --path=/var/www/${{ env.LOCAL_DIR }}
+        run: npm run env:cli -- config set WP_HTTP_BLOCK_EXTERNAL true --raw --type=constant --path="/var/www/${LOCAL_DIR}"
 
       # Prevent background tasks from impacting test stability.
       - name: Disable cron
-        run: npm run env:cli -- config set DISABLE_WP_CRON true --raw --type=constant --path=/var/www/${{ env.LOCAL_DIR }}
+        run: npm run env:cli -- config set DISABLE_WP_CRON true --raw --type=constant --path="/var/www/${LOCAL_DIR}"
 
       - name: List defined constants
-        run: npm run env:cli -- config list --path=/var/www/${{ env.LOCAL_DIR }}
+        run: npm run env:cli -- config list --path="/var/www/${LOCAL_DIR}"
 
       - name: Install MU plugin
         run: |
-          mkdir ./${{ env.LOCAL_DIR }}/wp-content/mu-plugins
-          cp ./tests/performance/wp-content/mu-plugins/server-timing.php ./${{ env.LOCAL_DIR }}/wp-content/mu-plugins/server-timing.php
+          mkdir "./${LOCAL_DIR}/wp-content/mu-plugins"
+          cp ./tests/performance/wp-content/mu-plugins/server-timing.php "./${LOCAL_DIR}/wp-content/mu-plugins/server-timing.php"
 
       - name: Run performance tests (current commit)
         run: npm run test:performance
@@ -248,27 +257,27 @@ jobs:
             } );
 
             const fs = require( 'fs' );
-            fs.writeFileSync( '${{ github.workspace }}/before.zip', Buffer.from( download.data ) )
+            fs.writeFileSync( process.env.GITHUB_WORKSPACE + '/before.zip', Buffer.from( download.data ) )
 
             return true;
 
       - name: Unzip the build
         if: ${{ steps.get-previous-build.outputs.result }}
         run: |
-          unzip ${{ github.workspace }}/before.zip
-          unzip -o ${{ github.workspace }}/wordpress.zip
+          unzip "${GITHUB_WORKSPACE}/before.zip"
+          unzip -o "${GITHUB_WORKSPACE}/wordpress.zip"
 
       - name: Run any database upgrades
         if: ${{ steps.get-previous-build.outputs.result }}
-        run: npm run env:cli -- core update-db --path=/var/www/${{ env.LOCAL_DIR }}
+        run: npm run env:cli -- core update-db --path="/var/www/${LOCAL_DIR}"
 
       - name: Flush cache
         if: ${{ steps.get-previous-build.outputs.result }}
-        run: npm run env:cli -- cache flush --path=/var/www/${{ env.LOCAL_DIR }}
+        run: npm run env:cli -- cache flush --path="/var/www/${LOCAL_DIR}"
 
       - name: Delete expired transients
         if: ${{ steps.get-previous-build.outputs.result }}
-        run: npm run env:cli -- transient delete --expired --path=/var/www/${{ env.LOCAL_DIR }}
+        run: npm run env:cli -- transient delete --expired --path="/var/www/${LOCAL_DIR}"
 
       - name: Run target performance tests (previous/target commit)
         if: ${{ steps.get-previous-build.outputs.result }}
@@ -279,22 +288,22 @@ jobs:
       - name: Set the environment to the baseline version
         if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/trunk' }}
         run: |
-          VERSION="${{ env.BASE_TAG }}"
+          VERSION="${BASE_TAG}"
           VERSION="${VERSION%.0}"
-          npm run env:cli -- core update --version=$VERSION --force --path=/var/www/${{ env.LOCAL_DIR }}
-          npm run env:cli -- core version --path=/var/www/${{ env.LOCAL_DIR }}
+          npm run env:cli -- core update --version="$VERSION" --force --path="/var/www/${LOCAL_DIR}"
+          npm run env:cli -- core version --path="/var/www/${LOCAL_DIR}"
 
       - name: Run any database upgrades
         if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/trunk' }}
-        run: npm run env:cli -- core update-db --path=/var/www/${{ env.LOCAL_DIR }}
+        run: npm run env:cli -- core update-db --path="/var/www/${LOCAL_DIR}"
 
       - name: Flush cache
         if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/trunk' }}
-        run: npm run env:cli -- cache flush --path=/var/www/${{ env.LOCAL_DIR }}
+        run: npm run env:cli -- cache flush --path="/var/www/${LOCAL_DIR}"
 
       - name: Delete expired transients
         if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/trunk' }}
-        run: npm run env:cli -- transient delete --expired --path=/var/www/${{ env.LOCAL_DIR }}
+        run: npm run env:cli -- transient delete --expired --path="/var/www/${LOCAL_DIR}"
 
       - name: Run baseline performance tests
         if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/trunk' }}
@@ -312,10 +321,10 @@ jobs:
           include-hidden-files: true
 
       - name: Compare results
-        run: node ./tests/performance/compare-results.js ${{ runner.temp }}/summary.md
+        run: node ./tests/performance/compare-results.js "${RUNNER_TEMP}/summary.md"
 
       - name: Add workflow summary
-        run: cat ${{ runner.temp }}/summary.md >> $GITHUB_STEP_SUMMARY
+        run: cat "${RUNNER_TEMP}/summary.md" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Set the base sha
         # Only needed when publishing results.
@@ -325,14 +334,12 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            const baseRef = await github.rest.git.getRef({ owner: context.repo.owner, repo: context.repo.repo, ref: 'tags/${{ env.BASE_TAG }}' });
+            const baseRef = await github.rest.git.getRef({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: 'tags/' + process.env.BASE_TAG,
+            });
             return baseRef.data.object.sha;
-
-      - name: Set commit details
-        # Only needed when publishing results.
-        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/trunk' && ! inputs.memcached && ! inputs.multisite }}
-        # Write to an environment variable to have the output available in later steps of the job.
-        run: echo "COMMITTED_AT=$(git show -s $GITHUB_SHA --format='%cI')" >> $GITHUB_ENV
 
       - name: Publish performance results
         # Only publish results on pushes to trunk.
@@ -343,10 +350,11 @@ jobs:
           HOST_NAME: "www.codevitals.run"
         run: |
           if [ -z "$CODEVITALS_PROJECT_TOKEN" ]; then
-            echo "Performance results could not be published. 'CODEVITALS_PROJECT_TOKEN' is not set" >> $GITHUB_OUTPUT
+            echo "Performance results could not be published. 'CODEVITALS_PROJECT_TOKEN' is not set"
             exit 1
           fi
-          node ./tests/performance/log-results.js $CODEVITALS_PROJECT_TOKEN trunk $GITHUB_SHA $BASE_SHA $COMMITTED_AT $HOST_NAME
+          COMMITTED_AT="$(git show -s "$GITHUB_SHA" --format='%cI')"
+          node ./tests/performance/log-results.js "$CODEVITALS_PROJECT_TOKEN" trunk "$GITHUB_SHA" "$BASE_SHA" "$COMMITTED_AT" "$HOST_NAME"
 
       - name: Ensure version-controlled files are not modified or deleted
         run: git diff --exit-code

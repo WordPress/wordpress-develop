@@ -55,7 +55,7 @@ wait_on( { resources: [ `tcp:localhost:${process.env.LOCAL_PORT}`] } )
 function wp_cli( cmd ) {
 	const composeFiles = local_env_utils.get_compose_files();
 
-	execSync( `docker compose ${composeFiles} run --rm cli ${cmd}`, { stdio: 'inherit' } );
+	execSync( `docker compose ${composeFiles} run --quiet-pull --rm cli ${cmd}`, { stdio: 'inherit' } );
 }
 
 /**

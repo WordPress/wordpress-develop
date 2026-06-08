@@ -63,7 +63,35 @@ class Tests_User extends WP_UnitTestCase {
 	public function set_up() {
 		parent::set_up();
 
+		add_action( 'set_auth_cookie', array( $this, 'action_set_auth_cookie' ), 10, 6 );
+		add_action( 'set_logged_in_cookie', array( $this, 'action_set_logged_in_cookie' ), 10 );
+		add_action( 'clear_auth_cookie', array( $this, 'action_clear_auth_cookie' ) );
+
+		$_COOKIE = array();
+
 		$this->author = clone self::$_author;
+	}
+
+	final public function action_set_auth_cookie(
+		string $cookie,
+		int $expire,
+		int $expiration,
+		int $user_id,
+		string $scheme,
+		string $token
+	): void {
+		$_COOKIE[ SECURE_AUTH_COOKIE ] = $cookie;
+		$_COOKIE[ AUTH_COOKIE ]        = $cookie;
+	}
+
+	final public function action_set_logged_in_cookie( string $cookie ): void {
+		$_COOKIE[ LOGGED_IN_COOKIE ] = $cookie;
+	}
+
+	final public function action_clear_auth_cookie(): void {
+		unset( $_COOKIE[ LOGGED_IN_COOKIE ] );
+		unset( $_COOKIE[ SECURE_AUTH_COOKIE ] );
+		unset( $_COOKIE[ AUTH_COOKIE ] );
 	}
 
 	public function test_get_users_of_blog() {
@@ -1120,6 +1148,50 @@ class Tests_User extends WP_UnitTestCase {
 
 		$user = get_userdata( $user->ID );
 		$this->assertEmpty( $user->user_activation_key );
+	}
+
+	/**
+	 * @ticket 61366
+	 * @dataProvider data_remember_user
+	 */
+	public function test_changing_own_password_retains_current_session( bool $remember ) {
+		$user    = $this->author;
+		$manager = WP_Session_Tokens::get_instance( $user->ID );
+		$expiry  = $remember ? ( 2 * WEEK_IN_SECONDS ) : ( 2 * DAY_IN_SECONDS );
+		$token   = $manager->create( time() + $expiry );
+		$pass    = $user->user_pass;
+
+		wp_set_current_user( $user->ID );
+		wp_set_auth_cookie( $user->ID, $remember, '', $token );
+
+		$cookie   = $_COOKIE[ AUTH_COOKIE ];
+		$userdata = array(
+			'ID'        => $user->ID,
+			'user_pass' => 'my_new_password',
+		);
+		$updated  = wp_update_user( $userdata, $manager );
+		$parsed   = wp_parse_auth_cookie();
+
+		// Check the prerequisites:
+		$this->assertNotWPError( $updated );
+		$this->assertNotSame( $pass, get_userdata( $user->ID )->user_pass );
+
+		// Check the session token:
+		$this->assertSame( $token, $parsed['token'] );
+		$this->assertCount( 1, $manager->get_all() );
+
+		// Check that the newly set auth cookie is valid:
+		$this->assertSame( $user->ID, wp_validate_auth_cookie() );
+
+		// Check that, despite the session token reuse, the old auth cookie should now be invalid because the password changed:
+		$this->assertFalse( wp_validate_auth_cookie( $cookie ) );
+	}
+
+	public function data_remember_user() {
+		return array(
+			array( true ),
+			array( false ),
+		);
 	}
 
 	public function test_search_users_login() {

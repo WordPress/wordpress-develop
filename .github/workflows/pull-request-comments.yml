@@ -96,7 +96,7 @@ jobs:
             const artifacts = await github.rest.actions.listWorkflowRunArtifacts( {
                owner: context.repo.owner,
                repo: context.repo.repo,
-               run_id: ${{ github.event.workflow_run.id }},
+               run_id: process.env.RUN_ID,
             } );
 
             const matchArtifact = artifacts.data.artifacts.filter( ( artifact ) => {
@@ -117,6 +117,8 @@ jobs:
 
             const fs = require( 'fs' );
             fs.writeFileSync( '${{github.workspace}}/pr-number.zip', Buffer.from( download.data ) )
+        env:
+          RUN_ID: ${{ github.event.workflow_run.id }}
 
       - name: Unzip the artifact containing the PR number
         run: unzip pr-number.zip
