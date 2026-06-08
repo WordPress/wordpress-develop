@@ -513,11 +513,18 @@ final class WP_Autoload {
 	 */
 	public static function autoload_core( string $class_name ) {
 		/*
-		 * Namespaced classes (WpOrg\Requests\*, SimplePie\*, WordPress\AiClient\*, etc.) are
-		 * handled by their own autoloaders. Skip them immediately to avoid the strtolower()
-		 * allocation and CLASSES_PATHS lookup on every namespaced class reference.
+		 * Handle all namespaced classes in one branch to avoid the strtolower() allocation
+		 * and CLASSES_PATHS lookup on every namespaced class reference.
+		 *
+		 * Most namespaced classes (WpOrg\Requests\*, SimplePie\*, WordPress\AiClient\*)
+		 * have their own autoloaders, so we return immediately. The one exception is
+		 * Avifinfo\*: class-avif-info.php bundles all Avifinfo classes without registering
+		 * a separate autoloader, so we must handle them here.
 		 */
 		if ( str_contains( $class_name, '\\' ) ) {
+			if ( str_starts_with( $class_name, 'Avifinfo\\' ) ) {
+				require_once ABSPATH . 'wp-includes/class-avif-info.php';
+			}
 			return;
 		}
 
@@ -525,8 +532,7 @@ final class WP_Autoload {
 		$class_name = strtolower( $class_name );
 
 		/*
-		 * Hot path: the vast majority of calls are for WP core classes that are in the
-		 * classmap. Check the classmap first before any prefix comparisons.
+		 * Hot path: the vast majority of calls are for WP core classes in the classmap.
 		 *
 		 * Use require_once rather than require because some files define more than one class
 		 * (e.g. class-json.php defines Services_JSON and Services_JSON_Error). When PHP
@@ -539,19 +545,8 @@ final class WP_Autoload {
 		}
 
 		/*
-		 * Cold path: multi-class files whose individual class names are not enumerated in
-		 * the classmap because they share a common prefix.
-		 */
-
-		// Load Avifinfo classes (class-avif-info.php defines multiple Avifinfo\* classes).
-		if ( str_starts_with( $class_name, 'avifinfo' ) ) {
-			require_once ABSPATH . 'wp-includes/class-avif-info.php';
-			return;
-		}
-
-		/*
-		 * Load old-style (pre-1.7) unnamespaced SimplePie classes (e.g. SimplePie_Enclosure).
-		 * Namespaced SimplePie\* classes are excluded by the str_contains check at the top.
+		 * Cold path: legacy unnamespaced SimplePie classes (e.g. SimplePie_Enclosure).
+		 * Namespaced SimplePie\* classes are excluded by the str_contains branch above.
 		 */
 		if ( str_starts_with( $class_name, 'simplepie' ) ) {
 			require_once ABSPATH . 'wp-includes/class-simplepie.php';
