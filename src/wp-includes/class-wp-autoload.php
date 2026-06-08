@@ -103,6 +103,7 @@ final class WP_Autoload {
 		'wp_oembed_controller'                        => 'wp-includes/class-wp-oembed-controller.php',
 		'wp_oembed'                                   => 'wp-includes/class-wp-oembed.php',
 		'wp_paused_extensions_storage'                => 'wp-includes/class-wp-paused-extensions-storage.php',
+		'wp_phpmailer'                                => 'wp-includes/class-wp-phpmailer.php',
 		'wp_plugin_dependencies'                      => 'wp-includes/class-wp-plugin-dependencies.php',
 		'wp_post_type'                                => 'wp-includes/class-wp-post-type.php',
 		'wp_post'                                     => 'wp-includes/class-wp-post.php',

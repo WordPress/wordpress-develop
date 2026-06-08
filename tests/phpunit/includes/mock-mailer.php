@@ -9,7 +9,6 @@
 
 require_once ABSPATH . 'wp-includes/PHPMailer/PHPMailer.php';
 require_once ABSPATH . 'wp-includes/PHPMailer/Exception.php';
-require_once ABSPATH . 'wp-includes/class-wp-phpmailer.php';
 
 /**
  * Test class extending WP_PHPMailer.

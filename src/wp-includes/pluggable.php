@@ -251,7 +251,6 @@ if ( ! function_exists( 'wp_mail' ) ) :
 			require_once ABSPATH . WPINC . '/PHPMailer/PHPMailer.php';
 			require_once ABSPATH . WPINC . '/PHPMailer/SMTP.php';
 			require_once ABSPATH . WPINC . '/PHPMailer/Exception.php';
-			require_once ABSPATH . WPINC . '/class-wp-phpmailer.php';
 			$phpmailer = new WP_PHPMailer( true );
 
 			$phpmailer::$validator = static function ( $email ) {
