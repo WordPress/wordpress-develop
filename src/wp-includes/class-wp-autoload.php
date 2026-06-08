@@ -248,6 +248,7 @@ final class WP_Autoload {
 		'text_diff_engine_shell'                      => 'wp-includes/Text/Diff/Engine/shell.php',
 		'text_diff_engine_string'                     => 'wp-includes/Text/Diff/Engine/string.php',
 		'text_diff_engine_xdiff'                      => 'wp-includes/Text/Diff/Engine/xdiff.php',
+		'text_exception'                              => 'wp-includes/Text/Exception.php',
 		'text_diff_renderer_inline'                   => 'wp-includes/Text/Diff/Renderer/inline.php',
 		'text_diff_renderer'                          => 'wp-includes/Text/Diff/Renderer.php',
 
