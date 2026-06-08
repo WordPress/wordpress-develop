@@ -22,7 +22,7 @@ jobs:
   # - Leaves a comment on each PR before closing.
   close-prs:
     name: Find and close PRs
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       pull-requests: write
 

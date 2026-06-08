@@ -16,6 +16,23 @@ on:
       - trunk
       - '6.[2-9]'
       - '[7-9].[0-9]'
+    paths:
+      # Any change to a PHP, CSS, or JavaScript file should run checks.
+      - '**.css'
+      - '**.js'
+      - '**.php'
+      # These files configure npm and the task runner. Changes could affect the outcome.
+      - 'package*.json'
+      - 'Gruntfile.js'
+      - 'webpack.config.js'
+      - 'tools/webpack/**'
+      # These files configure Composer. Changes could affect the outcome.
+      - 'composer.*'
+      # This files affect the performance tests. Changes could affect the outcome.
+      - 'tests/performance/**'
+      # Confirm any changes to relevant workflow files.
+      - '.github/workflows/performance.yml'
+      - '.github/workflows/reusable-performance.yml'
   workflow_dispatch:
 
 # Cancels all previous workflow runs for pull requests that have not completed.
@@ -66,7 +83,7 @@ jobs:
 
   failed-workflow:
     name: Failed workflow tasks
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       actions: write
     needs: [ slack-notifications ]

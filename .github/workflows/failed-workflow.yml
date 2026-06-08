@@ -23,7 +23,7 @@ jobs:
   # - Restarts all failed jobs when the workflow fails or is cancelled for the first time.
   failed-workflow:
     name: Rerun a workflow
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       actions: write
     timeout-minutes: 30

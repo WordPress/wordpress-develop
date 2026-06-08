@@ -19,8 +19,11 @@ on:
     paths:
       # Any change to a JavaScript file should run tests.
       - '**.js'
-      # These files configure npm. Changes could affect the outcome.
+      # These files configure npm and the task runner. Changes could affect the outcome.
       - 'package*.json'
+      - 'Gruntfile.js'
+      - 'webpack.config.js'
+      - 'tools/webpack/**'
       # This file configures ESLint. Changes could affect the outcome.
       - '.eslintignore'
       # This file configures JSHint. Changes could affect the outcome.
@@ -70,7 +73,7 @@ jobs:
 
   failed-workflow:
     name: Failed workflow tasks
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       actions: write
     needs: [ slack-notifications ]

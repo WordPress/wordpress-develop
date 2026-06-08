@@ -47,7 +47,7 @@ jobs:
   # - Constructs and stores a message payload as an output.
   prepare:
     name: Prepare notifications
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       actions: read
       contents: read
@@ -171,7 +171,7 @@ jobs:
   failure:
     name: Failure notifications
     permissions: {}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
     needs: [ prepare ]
     if: ${{ needs.prepare.outputs.previous_conclusion != 'first-failure' && inputs.calling_status == 'failure' || failure() }}
@@ -188,7 +188,7 @@ jobs:
   fixed:
     name: Fixed notifications
     permissions: {}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
     needs: [ prepare ]
     if: ${{ contains( fromJson( '["failure", "cancelled", "none"]' ), needs.prepare.outputs.previous_conclusion ) && inputs.calling_status == 'success' && success() }}
@@ -205,7 +205,7 @@ jobs:
   success:
     name: Success notifications
     permissions: {}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
     needs: [ prepare ]
     if: ${{ inputs.calling_status == 'success' && success() }}
@@ -222,7 +222,7 @@ jobs:
   cancelled:
     name: Cancelled notifications
     permissions: {}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
     needs: [ prepare ]
     if: ${{ inputs.calling_status == 'cancelled' || cancelled() }}

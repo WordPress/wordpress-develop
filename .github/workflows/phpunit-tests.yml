@@ -14,6 +14,25 @@ on:
       - trunk
       - '3.[7-9]'
       - '[4-9].[0-9]'
+    paths:
+      # Any change to a PHP, CSS, JavaScript, JSON, HTML, or otherwise tested file should run checks.
+      - '**.css'
+      - '**.html'
+      - '**.js'
+      - '**.json'
+      - '**.php'
+      - 'src/license.txt'
+      - 'src/SECURITY.md'
+      # These files configure npm and the task runner. Changes could affect the outcome.
+      - 'package*.json'
+      - 'Gruntfile.js'
+      # These files configure Composer. Changes could affect the outcome.
+      - 'composer.*'
+      # This files affect the phpunit tests. Changes could affect the outcome.
+      - 'tests/phpunit/**'
+      # Confirm any changes to relevant workflow files.
+      - '.github/workflows/phpunit-tests.yml'
+      - '.github/workflows/reusable-phpunit-tests-*.yml'
   workflow_dispatch:
   # Once weekly On Sundays at 00:00 UTC.
   schedule:
@@ -44,7 +63,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ ubuntu-latest ]
+        os: [ ubuntu-24.04 ]
         php: [ '7.2', '7.3', '7.4', '8.0', '8.1', '8.2', '8.3', '8.4' ]
         db-type: [ 'mysql' ]
         db-version: [ '5.7', '8.0', '8.4' ]
@@ -54,14 +73,14 @@ jobs:
 
         include:
           # Include jobs that test with memcached.
-          - os: ubuntu-latest
+          - os: ubuntu-24.04
             php: '8.3'
             db-type: 'mysql'
             db-version: '8.4'
             tests-domain: 'example.org'
             multisite: false
             memcached: true
-          - os: ubuntu-latest
+          - os: ubuntu-24.04
             php: '8.3'
             db-type: 'mysql'
             db-version: '8.4'
@@ -69,14 +88,14 @@ jobs:
             multisite: true
             memcached: true
           # Include jobs with a port on the test domain for both single and multisite.
-          - os: ubuntu-latest
+          - os: ubuntu-24.04
             php: '8.4'
             db-type: 'mysql'
             db-version: '8.4'
             tests-domain: 'example.org:8889'
             multisite: false
             memcached: false
-          - os: ubuntu-latest
+          - os: ubuntu-24.04
             php: '8.4'
             db-type: 'mysql'
             db-version: '8.4'
@@ -84,7 +103,7 @@ jobs:
             multisite: true
             memcached: false
           # Report test results to the Host Test Results.
-          - os: ubuntu-latest
+          - os: ubuntu-24.04
             db-type: 'mysql'
             db-version: '8.4'
             tests-domain: 'example.org'
@@ -115,7 +134,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ ubuntu-latest ]
+        os: [ ubuntu-24.04 ]
         php: [ '7.2', '7.3', '7.4', '8.0', '8.1', '8.2', '8.3', '8.4' ]
         db-type: [ 'mariadb' ]
         db-version: [ '5.5', '10.3', '10.4', '10.5', '10.6', '10.11', '11.4' ]
@@ -124,13 +143,13 @@ jobs:
 
         include:
         # Include jobs that test with memcached.
-        - os: ubuntu-latest
+        - os: ubuntu-24.04
           php: '8.3'
           db-type: 'mariadb'
           db-version: '11.4'
           multisite: false
           memcached: true
-        - os: ubuntu-latest
+        - os: ubuntu-24.04
           php: '8.3'
           db-type: 'mariadb'
           db-version: '11.4'
@@ -165,7 +184,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ ubuntu-latest ]
+        os: [ ubuntu-24.04 ]
         php: [ '7.2', '7.3', '7.4', '8.0', '8.1', '8.2', '8.3', '8.4' ]
         db-type: [ 'mysql', 'mariadb' ]
         db-version: [ '9.1', '11.6' ]
@@ -236,7 +255,7 @@ jobs:
 
   failed-workflow:
     name: Failed workflow tasks
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       actions: write
     needs: [ slack-notifications ]
