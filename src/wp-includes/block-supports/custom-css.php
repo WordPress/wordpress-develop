@@ -49,16 +49,19 @@ function wp_render_custom_css_support_styles( $parsed_block ) {
 		 * The style depends on global-styles to ensure custom CSS loads after
 		 * and can override global styles.
 		 */
-		static $enqueued_class_names = array();
+		wp_register_style( 'wp-block-custom-css', false, array( 'global-styles' ) );
 
 		// Skip if already enqueued — prevents duplication inside Query Loop.
-		if ( isset( $enqueued_class_names[ $class_name ] ) ) {
-			return $parsed_block;
+		global $wp_styles;
+		$existing_inline_styles = $wp_styles->get_data( 'wp-block-custom-css', 'after' );
+		if ( is_array( $existing_inline_styles ) ) {
+			foreach ( $existing_inline_styles as $style ) {
+				if ( str_contains( $style, $selector ) ) {
+					return $parsed_block;
+				}
+			}
 		}
 
-		$enqueued_class_names[ $class_name ] = true;
-
-		wp_register_style( 'wp-block-custom-css', false, array( 'global-styles' ) );
 		wp_add_inline_style( 'wp-block-custom-css', $processed_css );
 	}
 
