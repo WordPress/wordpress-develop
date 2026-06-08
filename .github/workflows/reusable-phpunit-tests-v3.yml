@@ -27,6 +27,11 @@ on:
         required: false
         type: 'string'
         default: '8.4'
+      db-innovation:
+        description: 'Whether a database software innovation release is being tested.'
+        required: false
+        type: 'boolean'
+        default: false
       multisite:
         description: 'Whether to run tests as multisite'
         required: false
@@ -105,7 +110,7 @@ jobs:
   # - Checks out the WordPress Test reporter repository.
   # - Submit the test results to the WordPress.org host test results.
   phpunit-tests:
-    name: ${{ inputs.phpunit-test-groups && format( '{0} / ', inputs.phpunit-test-groups ) || '' }}PHP ${{ inputs.php }} ${{ ! inputs.phpunit-test-groups && ! inputs.coverage-report && '/ ' || 'with ' }}${{ 'mariadb' == inputs.db-type && 'MariaDB' || 'MySQL' }} ${{ inputs.db-version }}${{ inputs.multisite && ' multisite' || '' }}${{ inputs.memcached && ' with memcached' || '' }}${{ inputs.report && ' (test reporting enabled)' || '' }} ${{ 'example.org' != inputs.tests-domain && inputs.tests-domain || '' }}
+    name: ${{ inputs.phpunit-test-groups && format( '{0} / ', inputs.phpunit-test-groups ) || '' }}PHP ${{ inputs.php }} ${{ ! inputs.phpunit-test-groups && ! inputs.coverage-report && '/ ' || 'with ' }}${{ 'mariadb' == inputs.db-type && 'MariaDB' || 'MySQL' }} ${{ inputs.db-version }}${{ inputs.multisite && ' multisite' || '' }}${{ inputs.db-innovation && ' (innovation release)' || '' }}${{ inputs.memcached && ' with memcached' || '' }}${{ inputs.report && ' (test reporting enabled)' || '' }} ${{ 'example.org' != inputs.tests-domain && inputs.tests-domain || '' }}
     runs-on: ${{ inputs.os }}
     timeout-minutes: ${{ inputs.coverage-report && 120 || 20 }}
 

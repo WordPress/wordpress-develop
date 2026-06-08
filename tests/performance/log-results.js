@@ -11,7 +11,7 @@
  * External dependencies.
  */
 const https = require( 'https' );
-const [ token, branch, hash, baseHash, timestamp, host ] =
+const [ token, branch, hash, baseHash, date, host ] =
 	process.argv.slice( 2 );
 const { median, parseFile, accumulateValues } = require( './utils' );
 
@@ -87,7 +87,7 @@ const data = new TextEncoder().encode(
 		branch,
 		hash,
 		baseHash,
-		timestamp: parseInt( timestamp, 10 ),
+		timestamp: date,
 		metrics: metrics,
 		baseMetrics: baseMetrics,
 	} )

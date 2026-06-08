@@ -331,20 +331,14 @@ jobs:
       - name: Set commit details
         # Only needed when publishing results.
         if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/trunk' && ! inputs.memcached && ! inputs.multisite }}
-        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
-        id: commit-timestamp
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            const commit_details = await github.rest.git.getCommit({ owner: context.repo.owner, repo: context.repo.repo, commit_sha: context.sha });
-            return parseInt((new Date( commit_details.data.author.date ).getTime() / 1000).toFixed(0))
+        # Write to an environment variable to have the output available in later steps of the job.
+        run: echo "COMMITTED_AT=$(git show -s $GITHUB_SHA --format='%cI')" >> $GITHUB_ENV
 
       - name: Publish performance results
         # Only publish results on pushes to trunk.
         if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/trunk' && ! inputs.memcached && ! inputs.multisite }}
         env:
           BASE_SHA: ${{ steps.base-sha.outputs.result }}
-          COMMITTED_AT: ${{ steps.commit-timestamp.outputs.result }}
           CODEVITALS_PROJECT_TOKEN: ${{ secrets.CODEVITALS_PROJECT_TOKEN }}
           HOST_NAME: "www.codevitals.run"
         run: |

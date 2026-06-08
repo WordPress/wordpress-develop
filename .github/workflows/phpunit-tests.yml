@@ -47,7 +47,7 @@ jobs:
         os: [ ubuntu-latest ]
         php: [ '7.2', '7.3', '7.4', '8.0', '8.1', '8.2', '8.3', '8.4' ]
         db-type: [ 'mysql' ]
-        db-version: [ '5.7', '8.0', '8.4', '9.0' ]
+        db-version: [ '5.7', '8.0', '8.4' ]
         tests-domain: [ 'example.org' ]
         multisite: [ false, true ]
         memcached: [ false ]
@@ -91,14 +91,6 @@ jobs:
             multisite: false
             memcached: false
             report: true
-
-        exclude:
-          # MySQL 9.0+ will not work on PHP 7.2 & 7.3. See https://core.trac.wordpress.org/ticket/61218.
-          - php: '7.2'
-            db-version: '9.0'
-          - php: '7.3'
-            db-version: '9.0'
-
     with:
       os: ${{ matrix.os }}
       php: ${{ matrix.php }}
@@ -126,7 +118,7 @@ jobs:
         os: [ ubuntu-latest ]
         php: [ '7.2', '7.3', '7.4', '8.0', '8.1', '8.2', '8.3', '8.4' ]
         db-type: [ 'mariadb' ]
-        db-version: [ '10.4', '10.6', '10.11', '11.2' ]
+        db-version: [ '5.5', '10.3', '10.4', '10.5', '10.6', '10.11', '11.4' ]
         multisite: [ false, true ]
         memcached: [ false ]
 
@@ -135,13 +127,13 @@ jobs:
         - os: ubuntu-latest
           php: '8.3'
           db-type: 'mariadb'
-          db-version: '11.2'
+          db-version: '11.4'
           multisite: false
           memcached: true
         - os: ubuntu-latest
           php: '8.3'
           db-type: 'mariadb'
-          db-version: '11.2'
+          db-version: '11.4'
           multisite: true
           memcached: true
     with:
@@ -149,6 +141,55 @@ jobs:
       php: ${{ matrix.php }}
       db-type: ${{ matrix.db-type }}
       db-version: ${{ matrix.db-version }}
+      multisite: ${{ matrix.multisite }}
+      memcached: ${{ matrix.memcached }}
+      phpunit-config: ${{ matrix.multisite && 'tests/phpunit/multisite.xml' || 'phpunit.xml.dist' }}
+      report: ${{ matrix.report || false }}
+
+  #
+  # Creates PHPUnit test jobs to test MariaDB and MySQL innovation releases.
+  #
+  # Though innovation releases are deemed "production grade" and never receive LTS status, they include new features
+  # and updates that will be included in the next LTS version.
+  #
+  # Because upstream support for innovation releases gets dropped when a new one is released, only the most recent
+  # innovation version is tested.
+  #
+  test-innovation-releases:
+    name: PHP ${{ matrix.php }}
+    uses: WordPress/wordpress-develop/.github/workflows/reusable-phpunit-tests-v3.yml@trunk
+    permissions:
+      contents: read
+    secrets: inherit
+    if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-latest ]
+        php: [ '7.2', '7.3', '7.4', '8.0', '8.1', '8.2', '8.3', '8.4' ]
+        db-type: [ 'mysql', 'mariadb' ]
+        db-version: [ '9.1', '11.6' ]
+        multisite: [ false, true ]
+        memcached: [ false ]
+        db-innovation: [ true ]
+
+        exclude:
+          # MySQL 9.0+ will not work on PHP <= 7.3 because mysql_native_password was removed. See https://core.trac.wordpress.org/ticket/61218.
+          - php: '7.2'
+            db-version: '9.1'
+          - php: '7.3'
+            db-version: '9.1'
+          # Exclude version combinations that don't exist.
+          - db-type: 'mariadb'
+            db-version: '9.1'
+          - db-type: 'mysql'
+            db-version: '11.6'
+    with:
+      os: ${{ matrix.os }}
+      php: ${{ matrix.php }}
+      db-type: ${{ matrix.db-type }}
+      db-version: ${{ matrix.db-version }}
+      db-innovation: ${{ matrix.db-innovation }}
       multisite: ${{ matrix.multisite }}
       memcached: ${{ matrix.memcached }}
       phpunit-config: ${{ matrix.multisite && 'tests/phpunit/multisite.xml' || 'phpunit.xml.dist' }}
@@ -183,7 +224,7 @@ jobs:
     permissions:
       actions: read
       contents: read
-    needs: [ test-with-mysql, test-with-mariadb, specific-test-groups ]
+    needs: [ test-with-mysql, test-with-mariadb, test-innovation-releases, specific-test-groups ]
     if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name != 'pull_request' && always() }}
     with:
       calling_status: ${{ contains( needs.*.result, 'cancelled' ) && 'cancelled' || contains( needs.*.result, 'failure' ) && 'failure' || 'success' }}
