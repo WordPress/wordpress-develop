@@ -24,8 +24,9 @@ on:
       - 'composer.*'
       # This file configures PHP compatibility scanning. Changes could affect the outcome.
       - 'phpcompat.xml.dist'
-      # Changes to workflow files should always verify all workflows are successful.
-      - '.github/workflows/*.yml'
+      # Confirm any changes to relevant workflow files.
+      - '.github/workflows/php-compatibility.yml'
+      - '.github/workflows/reusable-php-compatibility.yml'
   workflow_dispatch:
 
 # Cancels all previous workflow runs for pull requests that have not completed.

@@ -863,4 +863,23 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 			'Found the wrong namespace for the transformed "IMAGE"/"IMG" element.'
 		);
 	}
+
+	/**
+	 * Ensures that the processor stops correctly on a FORM tag closer token.
+	 *
+	 * Form tag closers have complicated conditions. There was a bug where the processor
+	 * would not stop correctly on a FORM tag closer token. Ensure this token is reachable.
+	 *
+	 * @ticket 61576
+	 */
+	public function test_ensure_form_tag_closer_token_is_reachable() {
+		$processor = WP_HTML_Processor::create_fragment( '<form></form>' );
+
+		// Advance to </form>.
+		$processor->next_token();
+		$processor->next_token();
+
+		$this->assertSame( 'FORM', $processor->get_tag() );
+		$this->assertTrue( $processor->is_tag_closer() );
+	}
 }
