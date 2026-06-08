@@ -70,6 +70,7 @@ final class WP_Autoload {
 		'_wp_editors'                                 => 'wp-includes/class-wp-editor.php',
 		'wp_embed'                                    => 'wp-includes/class-wp-embed.php',
 		'wp_error'                                    => 'wp-includes/class-wp-error.php',
+		'wp_exception'                                => 'wp-includes/class-wp-exception.php',
 		'wp_fatal_error_handler'                      => 'wp-includes/class-wp-fatal-error-handler.php',
 		'wp_feed_cache_transient'                     => 'wp-includes/class-wp-feed-cache-transient.php',
 		'wp_feed_cache'                               => 'wp-includes/class-wp-feed-cache.php',
