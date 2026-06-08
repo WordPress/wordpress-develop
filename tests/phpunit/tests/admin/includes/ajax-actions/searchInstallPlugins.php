@@ -111,7 +111,11 @@ class Tests_wp_ajax_search_install_plugins extends WP_Ajax_UnitTestCase {
 		$plugin->download_link = 'https://downloads.wordpress.org/plugin/test-plugin.1.0.zip';
 
 		$api = new stdClass();
-		$api->info = array( 'page' => 1, 'pages' => 1, 'results' => 1 );
+		$api->info = array(
+			'page' => 1,
+			'pages' => 1,
+			'results' => 1,
+		);
 		$api->plugins = array( $plugin );
 
 		return $api;
