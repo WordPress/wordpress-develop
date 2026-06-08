@@ -512,42 +512,49 @@ final class WP_Autoload {
 	 * @param string $class_name Class name.
 	 */
 	public static function autoload_core( string $class_name ) {
+		/*
+		 * Namespaced classes (WpOrg\Requests\*, SimplePie\*, WordPress\AiClient\*, etc.) are
+		 * handled by their own autoloaders. Skip them immediately to avoid the strtolower()
+		 * allocation and CLASSES_PATHS lookup on every namespaced class reference.
+		 */
+		if ( str_contains( $class_name, '\\' ) ) {
+			return;
+		}
+
 		// Lowercase the class name as PHP isn't case sensitive.
 		$class_name = strtolower( $class_name );
 
-		// Load Avifinfo classes.
+		/*
+		 * Hot path: the vast majority of calls are for WP core classes that are in the
+		 * classmap. Check the classmap first before any prefix comparisons.
+		 *
+		 * Use require_once rather than require because some files define more than one class
+		 * (e.g. class-json.php defines Services_JSON and Services_JSON_Error). When PHP
+		 * autoloads the second class from such a file it would otherwise try to include the
+		 * file a second time, causing a fatal "Cannot redeclare class" error.
+		 */
+		if ( isset( self::CLASSES_PATHS[ $class_name ] ) ) {
+			require_once ABSPATH . self::CLASSES_PATHS[ $class_name ];
+			return;
+		}
+
+		/*
+		 * Cold path: multi-class files whose individual class names are not enumerated in
+		 * the classmap because they share a common prefix.
+		 */
+
+		// Load Avifinfo classes (class-avif-info.php defines multiple Avifinfo\* classes).
 		if ( str_starts_with( $class_name, 'avifinfo' ) ) {
-			// This file contains multiple classes, so we need to use require_once.
 			require_once ABSPATH . 'wp-includes/class-avif-info.php';
 			return;
 		}
 
 		/*
 		 * Load old-style (pre-1.7) unnamespaced SimplePie classes (e.g. SimplePie_Enclosure).
-		 * Namespaced SimplePie\* classes are handled by SimplePie's own PSR-4 autoloader,
-		 * which is registered when class-simplepie.php is first loaded.  Do NOT intercept
-		 * them here: the WP autoloader's require_once would be a no-op on re-entry and the
-		 * nested autoload for SimplePie\SimplePie inside library/SimplePie.php would fail.
+		 * Namespaced SimplePie\* classes are excluded by the str_contains check at the top.
 		 */
-		if ( str_starts_with( $class_name, 'simplepie' ) && ! str_contains( $class_name, '\\' ) ) {
+		if ( str_starts_with( $class_name, 'simplepie' ) ) {
 			require_once ABSPATH . 'wp-includes/class-simplepie.php';
-			return;
 		}
-
-		/*
-		 * Bail early if the class is not a WP class.
-		 * Use empty() instead of !isset() for performance reasons (saves a BOOL_NOT opcode).
-		 */
-		if ( empty( self::CLASSES_PATHS[ $class_name ] ) ) {
-			return;
-		}
-
-		/*
-		 * Use require_once rather than require because some files in the classmap define
-		 * more than one class (e.g. class-json.php defines Services_JSON and Services_JSON_Error).
-		 * When PHP autoloads the second class from such a file it would otherwise try to
-		 * include the file a second time, causing a fatal "Cannot redeclare class" error.
-		 */
-		require_once ABSPATH . self::CLASSES_PATHS[ $class_name ];
 	}
 }

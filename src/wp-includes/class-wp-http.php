@@ -17,6 +17,18 @@ if ( ! class_exists( 'WpOrg\Requests\Autoload' ) ) {
 
 	WpOrg\Requests\Autoload::register();
 	WpOrg\Requests\Requests::set_certificate_path( ABSPATH . WPINC . '/certificates/ca-bundle.crt' );
+
+	/*
+	 * WpOrg\Requests\Autoload::register() prepends its callback to the SPL autoload stack,
+	 * which would place it in front of WP_Autoload::autoload_core — meaning every WP core
+	 * class lookup would first call the Requests autoloader (which returns false) before
+	 * reaching WP_Autoload. Re-prepend WP_Autoload to restore it as the first handler and
+	 * keep WP core class lookups to a single autoloader call.
+	 */
+	if ( class_exists( 'WP_Autoload', false ) ) {
+		spl_autoload_unregister( array( 'WP_Autoload', 'autoload_core' ) );
+		spl_autoload_register( array( 'WP_Autoload', 'autoload_core' ), true, true );
+	}
 }
 
 /**
