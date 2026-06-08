@@ -14,7 +14,7 @@ on:
         required: true
         type: 'string'
       new-version:
-        description: 'The version of WordPress to update to.'
+        description: 'The version of WordPress to update to. Use "latest" to update to the latest version, "develop" to update to the current branch, or provide a specific version number to update to.'
         type: 'string'
         default: 'latest'
       php:
@@ -49,8 +49,13 @@ jobs:
   # - Downloads the specified version of WordPress.
   # - Creates a `wp-config.php` file.
   # - Installs WordPress.
+  # - Checks the version of WordPress before the upgrade.
   # - Updates to the latest minor version.
+  # - Updates the database after the minor update.
+  # - Checks the version of WordPress after the minor update.
   # - Updates to the version of WordPress being tested.
+  # - Updates the database.
+  # - Checks the version of WordPress after the upgrade.
   upgrade-tests:
     name: ${{ inputs.wp }} to ${{ inputs.new-version }} / PHP ${{ inputs.php }} with ${{ 'mariadb' == inputs.db-type && 'MariaDB' || 'MySQL' }} ${{ inputs.db-version }}${{ inputs.multisite && ' multisite' || '' }}
     permissions: {}
@@ -96,11 +101,38 @@ jobs:
           --url=http://localhost/ --title="Upgrade Test" --admin_user=admin \
           --admin_password=password --admin_email=me@example.org --skip-email
 
+      - name: Pre-upgrade version check
+        run: wp core version
+
       - name: Update to the latest minor version
         run: wp core update --minor
 
+      - name: Update the database after the minor update
+        run: wp core update-db ${{ inputs.multisite && '--network' || '' }}
+
+      - name: Post-upgrade version check after the minor update
+        run: wp core version
+
+      - name: Download build artifact for the current branch
+        if: ${{ inputs.new-version == 'develop' }}
+        uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4.1.8
+        with:
+          name: wordpress-develop
+
+      - name: Upgrade to WordPress at current branch
+        if: ${{ inputs.new-version == 'develop' }}
+        run: |
+          wp core update develop.zip
+
       - name: Upgrade to WordPress ${{ inputs.new-version }}
+        if: ${{ inputs.new-version != 'develop' }}
         run: |
           wp core update ${{ 'latest' != inputs.new-version && '--version="${WP_VERSION}"' || '' }}
         env:
           WP_VERSION: ${{ inputs.new-version }}
+
+      - name: Update the database
+        run: wp core update-db ${{ inputs.multisite && '--network' || '' }}
+
+      - name: Post-upgrade version check
+        run: wp core version
