@@ -240,6 +240,8 @@ function wp_render_elements_support_styles( $parsed_block ) {
  * @param  string $block_content Rendered block content.
  * @param  array  $block         Block object.
  * @return string                Filtered block content.
+ *
+ * @phpstan-param array{ attrs: array{ className: string, ... }, ... } $block
  */
 function wp_render_elements_class_name( $block_content, $block ) {
 	$class_string = $block['attrs']['className'] ?? '';
