@@ -381,14 +381,18 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 	 * @covers ::get_network_option
 	 */
 	public function test_get_network_option_does_not_use_single_site_notoptions_cache_for_networks() {
+		$network_notoptions_cache_before     = wp_cache_get( '1:notoptions', 'site-options' );
+		$single_site_notoptions_cache_before = wp_cache_get( 'notoptions', 'options' );
+
 		get_network_option( 1, 'ticket_61730_notoption' );
 
-		$network_notoptions_cache     = wp_cache_get( '1:notoptions', 'site-options' );
-		$single_site_notoptions_cache = wp_cache_get( 'notoptions', 'options' );
+		$network_notoptions_cache_after     = wp_cache_get( '1:notoptions', 'site-options' );
+		$single_site_notoptions_cache_after = wp_cache_get( 'notoptions', 'options' );
 
-		$this->assertEmpty( $single_site_notoptions_cache, 'Single site notoptions cache should not be set for multisite installs.' );
-		$this->assertIsArray( $network_notoptions_cache, 'Multisite notoptions cache should be set.' );
-		$this->assertArrayHasKey( 'ticket_61730_notoption', $network_notoptions_cache, 'The option should be in the notoptions cache.' );
+		$this->assertSame( $single_site_notoptions_cache_before, $single_site_notoptions_cache_after, 'Single site notoptions cache should not change for multisite installs.' );
+		$this->assertNotSame( $network_notoptions_cache_before, $network_notoptions_cache_after, 'Multisite notoptions cache should change.' );
+		$this->assertIsArray( $network_notoptions_cache_after, 'Multisite notoptions cache should be set.' );
+		$this->assertArrayHasKey( 'ticket_61730_notoption', $network_notoptions_cache_after, 'The option should be in the notoptions cache.' );
 	}
 
 	/**
@@ -402,14 +406,18 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 	 * @covers ::delete_network_option
 	 */
 	public function test_delete_network_option_does_not_use_single_site_notoptions_cache_for_networks() {
+		$network_notoptions_cache_before     = wp_cache_get( '1:notoptions', 'site-options' );
+		$single_site_notoptions_cache_before = wp_cache_get( 'notoptions', 'options' );
+
 		add_network_option( 1, 'ticket_61730_notoption', 'value' );
 		delete_network_option( 1, 'ticket_61730_notoption' );
 
-		$network_notoptions_cache     = wp_cache_get( '1:notoptions', 'site-options' );
-		$single_site_notoptions_cache = wp_cache_get( 'notoptions', 'options' );
+		$network_notoptions_cache_after     = wp_cache_get( '1:notoptions', 'site-options' );
+		$single_site_notoptions_cache_after = wp_cache_get( 'notoptions', 'options' );
 
-		$this->assertEmpty( $single_site_notoptions_cache, 'Single site notoptions cache should not be set for multisite installs.' );
-		$this->assertIsArray( $network_notoptions_cache, 'Multisite notoptions cache should be set.' );
-		$this->assertArrayHasKey( 'ticket_61730_notoption', $network_notoptions_cache, 'The option should be in the notoptions cache.' );
+		$this->assertSame( $single_site_notoptions_cache_before, $single_site_notoptions_cache_after, 'Single site notoptions cache should not change for multisite installs.' );
+		$this->assertNotSame( $network_notoptions_cache_before, $network_notoptions_cache_after, 'Multisite notoptions cache should change.' );
+		$this->assertIsArray( $network_notoptions_cache_after, 'Multisite notoptions cache should be set.' );
+		$this->assertArrayHasKey( 'ticket_61730_notoption', $network_notoptions_cache_after, 'The option should be in the notoptions cache.' );
 	}
 }

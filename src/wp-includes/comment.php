@@ -1066,7 +1066,7 @@ function get_page_of_comment( $comment_id, $args = array() ) {
 		}
 
 		// Find this comment's top-level parent if threading is enabled.
-		if ( $args['max_depth'] > 1 && 0 != $comment->comment_parent ) {
+		if ( $args['max_depth'] > 1 && '0' !== $comment->comment_parent ) {
 			return get_page_of_comment( $comment->comment_parent, $args );
 		}
 
@@ -1126,7 +1126,7 @@ function get_page_of_comment( $comment_id, $args = array() ) {
 		$older_comment_count = $comment_query->query( $comment_args );
 
 		// No older comments? Then it's page #1.
-		if ( 0 == $older_comment_count ) {
+		if ( 0 === $older_comment_count ) {
 			$page = 1;
 
 			// Divide comments older than this one by comments per page to get this comment's page number.
@@ -1260,7 +1260,7 @@ function wp_check_comment_data_max_lengths( $comment_data ) {
  *
  * @param array $comment_data Array of arguments for inserting a comment.
  * @return int|string|WP_Error The approval status on success (0|1|'spam'|'trash'),
-  *                            WP_Error otherwise.
+ *                             WP_Error otherwise.
  */
 function wp_check_comment_data( $comment_data ) {
 	global $wpdb;
@@ -1325,13 +1325,13 @@ function wp_check_comment_data( $comment_data ) {
  *
  * @since 5.5.0
  *
- * @param string $author The author of the comment
- * @param string $email The email of the comment
- * @param string $url The url used in the comment
- * @param string $comment The comment content
- * @param string $user_ip The comment author's IP address
- * @param string $user_agent The author's browser user agent
- * @return bool True if comment contains disallowed content, false if comment does not
+ * @param string $author     The author of the comment.
+ * @param string $email      The email of the comment.
+ * @param string $url        The url used in the comment.
+ * @param string $comment    The comment content.
+ * @param string $user_ip    The comment author's IP address.
+ * @param string $user_agent The author's browser user agent.
+ * @return bool True if the comment contains disallowed content, false otherwise.
  */
 function wp_check_comment_disallowed_list( $author, $email, $url, $comment, $user_ip, $user_agent ) {
 	/**
@@ -1528,7 +1528,7 @@ function wp_delete_comment( $comment_id, $force_delete = false ) {
 	do_action( 'deleted_comment', $comment->comment_ID, $comment );
 
 	$post_id = $comment->comment_post_ID;
-	if ( $post_id && 1 == $comment->comment_approved ) {
+	if ( $post_id && '1' === $comment->comment_approved ) {
 		wp_update_comment_count( $post_id );
 	}
 
@@ -1815,17 +1815,18 @@ function wp_transition_comment_status( $new_status, $old_status, $comment ) {
 	}
 
 	// Call the hooks.
-	if ( $new_status != $old_status ) {
+	if ( $new_status !== $old_status ) {
 		/**
 		 * Fires when the comment status is in transition.
 		 *
 		 * @since 2.7.0
 		 *
-		 * @param int|string $new_status The new comment status.
-		 * @param int|string $old_status The old comment status.
+		 * @param string     $new_status The new comment status.
+		 * @param string     $old_status The old comment status.
 		 * @param WP_Comment $comment    Comment object.
 		 */
 		do_action( 'transition_comment_status', $new_status, $old_status, $comment );
+
 		/**
 		 * Fires when the comment status is in transition from one specific status to another.
 		 *
@@ -2373,7 +2374,7 @@ function wp_new_comment_notify_moderator( $comment_id ) {
 	$comment = get_comment( $comment_id );
 
 	// Only send notifications for pending comments.
-	$maybe_notify = ( '0' == $comment->comment_approved );
+	$maybe_notify = ( '0' === $comment->comment_approved );
 
 	/** This filter is documented in wp-includes/pluggable.php */
 	$maybe_notify = apply_filters( 'notify_moderator', $maybe_notify, $comment_id );
@@ -2421,7 +2422,7 @@ function wp_new_comment_notify_postauthor( $comment_id ) {
 	}
 
 	// Only send notifications for approved comments.
-	if ( ! isset( $comment->comment_approved ) || '1' != $comment->comment_approved ) {
+	if ( ! isset( $comment->comment_approved ) || '1' !== $comment->comment_approved ) {
 		return false;
 	}
 
@@ -3204,7 +3205,7 @@ function pingback( $content, $post ) {
  * @return mixed Empty string if blog is not public, returns $sites, if site is public.
  */
 function privacy_ping_filter( $sites ) {
-	if ( '0' != get_option( 'blog_public' ) ) {
+	if ( '0' !== get_option( 'blog_public' ) ) {
 		return $sites;
 	} else {
 		return '';

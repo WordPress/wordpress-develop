@@ -2558,4 +2558,29 @@ class Tests_REST_API extends WP_UnitTestCase {
 
 		$this->assertTrue( $registered );
 	}
+
+	/**
+	 * @ticket 62932
+	 */
+	public function test_should_return_error_if_rest_route_not_string() {
+		global $wp;
+
+		$wp = new stdClass();
+
+		$wp->query_vars = array(
+			'rest_route' => array( 'invalid' ),
+		);
+
+		$this->expectException( WPDieException::class );
+
+		try {
+			rest_api_loaded();
+		} catch ( WPDieException $e ) {
+			$this->assertStringContainsString(
+				'The rest route parameter must be a string.',
+				$e->getMessage()
+			);
+			throw $e; // Re-throw to satisfy expectException
+		}
+	}
 }
