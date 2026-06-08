@@ -14,7 +14,7 @@ const results = {
 	lcpMinusTtfb: [],
 };
 
-test.describe( 'Homepage', () => {
+test.describe( 'Single Post', () => {
 	test.use( {
 		storageState: {}, // User will be logged out.
 	} );
@@ -54,7 +54,7 @@ test.describe( 'Homepage', () => {
 						await page.goto( '/?clear_cache' );
 
 						// This is the actual page to test.
-						await page.goto( '/' );
+						await page.goto( '/2018/11/03/block-image/' );
 
 						const serverTiming = await metrics.getServerTiming();
 

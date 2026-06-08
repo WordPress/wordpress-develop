@@ -241,6 +241,30 @@ class Tests_Admin_IncludesTemplate extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 62746
+	 *
+	 * @param array  $extra_args                   Extra arguments to pass to function `add_settings_section()`.
+	 * @param array  $expected_section_data        Expected set of section data.
+	 * @param string $expected_before_section_html Expected HTML markup to be rendered before the settings section.
+	 * @param string $expected_after_section_html  Expected HTML markup to be rendered after the settings section.
+	 *
+	 * @covers ::add_settings_section
+	 * @covers ::do_settings_sections
+	 *
+	 * @dataProvider data_extra_args_for_add_settings_section
+	 */
+	public function test_add_settings_section_without_any_fields( $extra_args, $expected_section_data, $expected_before_section_html, $expected_after_section_html ) {
+		add_settings_section( 'test-section', 'Section title', '__return_false', 'test-page', $extra_args );
+
+		ob_start();
+		do_settings_sections( 'test-page' );
+		$output = ob_get_clean();
+
+		$this->assertStringContainsString( $expected_before_section_html, $output, 'Test page output does not contain the custom markup to be placed before the section.' );
+		$this->assertStringContainsString( $expected_after_section_html, $output, 'Test page output does not contain the custom markup to be placed after the section.' );
+	}
+
+	/**
 	 * Data provider for `test_add_settings_section_with_extra_args()`.
 	 *
 	 * @return array

@@ -53,47 +53,47 @@ jobs:
         memcached: [ false ]
 
         include:
-          # Include jobs for PHP 7.4 with memcached.
+          # Include jobs that test with memcached.
           - os: ubuntu-latest
-            php: '7.4'
+            php: '8.3'
             db-type: 'mysql'
-            db-version: '5.7'
+            db-version: '8.4'
             tests-domain: 'example.org'
             multisite: false
             memcached: true
           - os: ubuntu-latest
-            php: '7.4'
+            php: '8.3'
             db-type: 'mysql'
-            db-version: '5.7'
+            db-version: '8.4'
             tests-domain: 'example.org'
             multisite: true
             memcached: true
           # Include jobs with a port on the test domain for both single and multisite.
           - os: ubuntu-latest
-            php: '7.4'
+            php: '8.4'
             db-type: 'mysql'
-            db-version: '5.7'
+            db-version: '8.4'
             tests-domain: 'example.org:8889'
             multisite: false
             memcached: false
           - os: ubuntu-latest
-            php: '7.4'
+            php: '8.4'
             db-type: 'mysql'
-            db-version: '5.7'
+            db-version: '8.4'
             tests-domain: 'example.org:8889'
             multisite: true
             memcached: false
           # Report test results to the Host Test Results.
           - os: ubuntu-latest
             db-type: 'mysql'
-            db-version: '8.0'
+            db-version: '8.4'
             tests-domain: 'example.org'
             multisite: false
             memcached: false
             report: true
 
         exclude:
-          # MySQL 9.0+ will not work on PHP 7.2 & 7.3
+          # MySQL 9.0+ will not work on PHP 7.2 & 7.3. See https://core.trac.wordpress.org/ticket/61218.
           - php: '7.2'
             db-version: '9.0'
           - php: '7.3'
@@ -131,15 +131,15 @@ jobs:
         memcached: [ false ]
 
         include:
-        # Include jobs for PHP 7.4 with memcached.
+        # Include jobs that test with memcached.
         - os: ubuntu-latest
-          php: '7.4'
+          php: '8.3'
           db-type: 'mariadb'
           db-version: '11.2'
           multisite: false
           memcached: true
         - os: ubuntu-latest
-          php: '7.4'
+          php: '8.3'
           db-type: 'mariadb'
           db-version: '11.2'
           multisite: true
@@ -154,13 +154,36 @@ jobs:
       phpunit-config: ${{ matrix.multisite && 'tests/phpunit/multisite.xml' || 'phpunit.xml.dist' }}
       report: ${{ matrix.report || false }}
 
+  #
+  # Runs specific individual test groups.
+  #
+  specific-test-groups:
+    name: ${{ matrix.phpunit-test-groups }}
+    uses: WordPress/wordpress-develop/.github/workflows/reusable-phpunit-tests-v3.yml@trunk
+    permissions:
+      contents: read
+    secrets: inherit
+    if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        php: [ '7.2', '7.4', '8.0', '8.4' ]
+        db-type: [ 'mysql' ]
+        db-version: [ '8.4' ]
+        phpunit-test-groups: [ 'html-api-html5lib-tests' ]
+    with:
+      php: ${{ matrix.php }}
+      db-type: ${{ matrix.db-type }}
+      db-version: ${{ matrix.db-version }}
+      phpunit-test-groups: ${{ matrix.phpunit-test-groups }}
+
   slack-notifications:
     name: Slack Notifications
     uses: WordPress/wordpress-develop/.github/workflows/slack-notifications.yml@trunk
     permissions:
       actions: read
       contents: read
-    needs: [ test-with-mysql, test-with-mariadb ]
+    needs: [ test-with-mysql, test-with-mariadb, specific-test-groups ]
     if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name != 'pull_request' && always() }}
     with:
       calling_status: ${{ contains( needs.*.result, 'cancelled' ) && 'cancelled' || contains( needs.*.result, 'failure' ) && 'failure' || 'success' }}

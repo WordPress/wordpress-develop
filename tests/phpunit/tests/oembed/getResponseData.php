@@ -251,6 +251,26 @@ class Tests_oEmbed_Response_Data extends WP_UnitTestCase {
 		$this->assertLessThanOrEqual( 400, $data['thumbnail_width'] );
 	}
 
+	/**
+	 * @ticket 62094
+	 */
+	public function test_get_oembed_response_data_has_correct_thumbnail_size() {
+		$post = self::factory()->post->create_and_get();
+
+		/* Use a large image as post thumbnail */
+		$attachment_id = self::factory()->attachment->create_upload_object( DIR_TESTDATA . '/images/33772.jpg' );
+		set_post_thumbnail( $post, $attachment_id );
+
+		/* Get the image, sized for 400x??? pixels display */
+		$image = wp_get_attachment_image_src( $attachment_id, array( 400, 0 ) );
+
+		/* Get the oembed data array for a 400 pixels wide embed */
+		$data = get_oembed_response_data( $post, 400 );
+
+		/* Make sure the embed references the small image, not the full-size one. */
+		$this->assertSame( $image[0], $data['thumbnail_url'] );
+	}
+
 	public function test_get_oembed_response_data_for_attachment() {
 		$parent = self::factory()->post->create();
 		$file   = DIR_TESTDATA . '/images/canola.jpg';

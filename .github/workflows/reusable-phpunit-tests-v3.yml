@@ -26,7 +26,7 @@ on:
         description: 'Database version'
         required: false
         type: 'string'
-        default: '8.0'
+        default: '8.4'
       multisite:
         description: 'Whether to run tests as multisite'
         required: false
@@ -105,7 +105,7 @@ jobs:
   # - Checks out the WordPress Test reporter repository.
   # - Submit the test results to the WordPress.org host test results.
   phpunit-tests:
-    name: PHP ${{ inputs.php }} ${{ ! inputs.coverage-report && '/ ' || 'with ' }}${{ 'mariadb' == inputs.db-type && 'MariaDB' || 'MySQL' }} ${{ inputs.db-version }}${{ inputs.multisite && ' multisite' || '' }}${{ inputs.phpunit-test-groups && format( ' ({0})', inputs.phpunit-test-groups ) || '' }}${{ inputs.memcached && ' with memcached' || '' }}${{ inputs.report && ' (test reporting enabled)' || '' }} ${{ 'example.org' != inputs.tests-domain && inputs.tests-domain || '' }}
+    name: ${{ inputs.phpunit-test-groups && format( '{0} / ', inputs.phpunit-test-groups ) || '' }}PHP ${{ inputs.php }} ${{ ! inputs.phpunit-test-groups && ! inputs.coverage-report && '/ ' || 'with ' }}${{ 'mariadb' == inputs.db-type && 'MariaDB' || 'MySQL' }} ${{ inputs.db-version }}${{ inputs.multisite && ' multisite' || '' }}${{ inputs.memcached && ' with memcached' || '' }}${{ inputs.report && ' (test reporting enabled)' || '' }} ${{ 'example.org' != inputs.tests-domain && inputs.tests-domain || '' }}
     runs-on: ${{ inputs.os }}
     timeout-minutes: ${{ inputs.coverage-report && 120 || 20 }}
 
@@ -171,7 +171,7 @@ jobs:
 
       - name: WordPress Docker container debug information
         run: |
-          docker compose run --rm mysql ${{ env.LOCAL_DB_TYPE }} --version
+          docker compose run --rm mysql ${{ env.LOCAL_DB_TYPE == 'mariadb' && contains( fromJSON('["5.5", "10.0", "10.1", "10.2", "10.3"]'), env.LOCAL_DB_VERSION ) && 'mysql' || env.LOCAL_DB_TYPE }} --version
           docker compose run --rm php php --version
           docker compose run --rm php php -m
           docker compose run --rm php php -i
@@ -207,7 +207,7 @@ jobs:
 
       - name: Upload test coverage report to Codecov
         if: ${{ inputs.coverage-report }}
-        uses: codecov/codecov-action@b9fd7d16f6d7d1b5d2bec1a2887e65ceed900238 # v4.6.0
+        uses: codecov/codecov-action@7f8b4b4bde536c465e797be725718b88c5d95e0e # v5.1.1
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           file: wp-code-coverage${{ inputs.multisite && '-multisite' || '-single' }}-${{ github.sha }}.xml
@@ -226,7 +226,7 @@ jobs:
         run: git diff --exit-code
 
       - name: Checkout the WordPress Test Reporter
-        if: ${{ github.repository == 'WordPress/wordpress-develop' && github.ref == 'refs/heads/trunk' && inputs.report }}
+        if: ${{ github.ref == 'refs/heads/trunk' && inputs.report }}
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
         with:
           repository: 'WordPress/phpunit-test-runner'
@@ -234,7 +234,7 @@ jobs:
           show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
 
       - name: Submit test results to the WordPress.org host test results
-        if: ${{ github.repository == 'WordPress/wordpress-develop' && github.ref == 'refs/heads/trunk' && inputs.report }}
+        if: ${{ github.ref == 'refs/heads/trunk' && inputs.report }}
         env:
           WPT_REPORT_API_KEY: "${{ secrets.WPT_REPORT_API_KEY }}"
         run: docker compose run --rm -e WPT_REPORT_API_KEY -e WPT_PREPARE_DIR=/var/www -e WPT_TEST_DIR=/var/www php php test-runner/report.php

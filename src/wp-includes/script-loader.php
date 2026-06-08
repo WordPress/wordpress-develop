@@ -94,8 +94,8 @@ function wp_default_packages_vendor( $scripts ) {
 	);
 
 	$vendor_scripts_versions = array(
-		'react'                       => '18.3.1',
-		'react-dom'                   => '18.3.1',
+		'react'                       => '18.3.1.1', // Final .1 due to switch to UMD build, can be removed in the next update.
+		'react-dom'                   => '18.3.1.1', // Final .1 due to switch to UMD build, can be removed in the next update.
 		'react-jsx-runtime'           => '18.3.1',
 		'regenerator-runtime'         => '0.14.1',
 		'moment'                      => '2.30.1',
@@ -2503,9 +2503,9 @@ function wp_enqueue_global_styles() {
 
 	if ( $is_block_theme ) {
 		/*
-		* Dequeue the Customizer's custom CSS
-		* and add it before the global styles custom CSS.
-		*/
+		 * Dequeue the Customizer's custom CSS
+		 * and add it before the global styles custom CSS.
+		 */
 		remove_action( 'wp_head', 'wp_custom_css_cb', 101 );
 		// Get the custom CSS from the Customizer and add it to the global stylesheet.
 		$custom_css  = wp_get_custom_css();

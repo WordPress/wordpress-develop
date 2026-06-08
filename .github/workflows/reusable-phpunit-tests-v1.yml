@@ -143,7 +143,6 @@ jobs:
           node --version
           curl --version
           git --version
-          svn --version
 
       - name: Log running Docker containers
         run: docker ps -a

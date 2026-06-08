@@ -5508,6 +5508,45 @@ Shankle pork chop prosciutto ribeye ham hock pastrami. T-bone shank brisket baco
 	}
 
 	/**
+	 * Test the REST API ignores the post format parameter for post types that do not support them.
+	 *
+	 * @ticket 62646
+	 * @ticket 62014
+	 *
+	 * @covers WP_REST_Posts_Controller::get_items
+	 */
+	public function test_standard_post_format_ignored_for_post_types_that_do_not_support_them() {
+		$initial_theme_support = get_theme_support( 'post-formats' );
+		add_theme_support( 'post-formats', array( 'aside', 'gallery', 'link', 'image', 'quote', 'status', 'video', 'audio', 'chat' ) );
+
+		self::factory()->post->create(
+			array(
+				'post_type'   => 'page',
+				'post_status' => 'publish',
+			)
+		);
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/pages' );
+		$request->set_param( 'format', 'invalid_type' );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		/*
+		 * Restore the initial post formats support.
+		 *
+		 * This needs to be done prior to the assertions to avoid unexpected
+		 * results for other tests should an assertion fail.
+		 */
+		if ( $initial_theme_support ) {
+			add_theme_support( 'post-formats', $initial_theme_support[0] );
+		} else {
+			remove_theme_support( 'post-formats' );
+		}
+
+		$this->assertCount( 1, $response->get_data(), 'The response should ignore the post format parameter' );
+	}
+
+	/**
 	 * Test the REST API support for the standard post format.
 	 *
 	 * @ticket 62014

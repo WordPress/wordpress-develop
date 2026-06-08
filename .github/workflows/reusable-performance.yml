@@ -1,7 +1,7 @@
 ##
 # A reusable workflow that runs the performance test suite.
 ##
-name: Performance Tests
+name: Run performance Tests
 
 on:
   workflow_call:
@@ -15,7 +15,7 @@ on:
         description: 'The version being used for baseline measurements.'
         required: false
         type: 'string'
-        default: '6.1.1'
+        default: '6.7.0'
       php-version:
         description: 'The PHP version to use.'
         required: false
@@ -23,6 +23,11 @@ on:
         default: 'latest'
       memcached:
         description: 'Whether to enable memcached.'
+        required: false
+        type: 'boolean'
+        default: false
+      multisite:
+        description: 'Whether to use Multisite.'
         required: false
         type: 'boolean'
         default: false
@@ -53,6 +58,7 @@ env:
 
   LOCAL_PHP_MEMCACHED: ${{ inputs.memcached }}
   LOCAL_PHP: ${{ inputs.php-version }}${{ 'latest' != inputs.php-version && '-fpm' || '' }}
+  LOCAL_MULTISITE: ${{ inputs.multisite }}
 
 jobs:
   # Performs the following steps:
@@ -65,9 +71,11 @@ jobs:
   # - Install Playwright browsers.
   # - Build WordPress.
   # - Start Docker environment.
+  # - Install object cache drop-in.
   # - Log running Docker containers.
   # - Docker debug information.
   # - Install WordPress.
+  # - Enable themes on Multisite.
   # - Install WordPress Importer plugin.
   # - Import mock data.
   # - Deactivate WordPress Importer plugin.
@@ -98,11 +106,11 @@ jobs:
   # - Publish performance results.
   # - Ensure version-controlled files are not modified or deleted.
   performance:
-    name: Run tests
+    name: ${{ inputs.multisite && 'Multisite' || 'Single site' }} / ${{ inputs.memcached && 'Memcached' || 'Default' }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
-    if: ${{ ( github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' ) && ! contains( github.event.before, '00000000' ) }}
+    if: ${{ ! contains( github.event.before, '00000000' ) }}
 
     steps:
       - name: Configure environment variables
@@ -165,6 +173,14 @@ jobs:
 
       - name: Install WordPress
         run: npm run env:install
+
+      - name: Enable themes on Multisite
+        if: ${{ inputs.multisite }}
+        run: |
+          npm run env:cli -- theme enable twentytwentyone --network --path=/var/www/${{ env.LOCAL_DIR }}
+          npm run env:cli -- theme enable twentytwentythree --network --path=/var/www/${{ env.LOCAL_DIR }}
+          npm run env:cli -- theme enable twentytwentyfour --network --path=/var/www/${{ env.LOCAL_DIR }}
+          npm run env:cli -- theme enable twentytwentyfive --network --path=/var/www/${{ env.LOCAL_DIR }}
 
       - name: Install WordPress Importer plugin
         run: npm run env:cli -- plugin install wordpress-importer --activate --path=/var/www/${{ env.LOCAL_DIR }}
@@ -263,7 +279,9 @@ jobs:
       - name: Set the environment to the baseline version
         if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/trunk' }}
         run: |
-          npm run env:cli -- core update --version=${{ env.BASE_TAG }} --force --path=/var/www/${{ env.LOCAL_DIR }}
+          VERSION="${{ env.BASE_TAG }}"
+          VERSION="${VERSION%.0}"
+          npm run env:cli -- core update --version=$VERSION --force --path=/var/www/${{ env.LOCAL_DIR }}
           npm run env:cli -- core version --path=/var/www/${{ env.LOCAL_DIR }}
 
       - name: Run any database upgrades
@@ -288,7 +306,7 @@ jobs:
         uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4.4.3
         if: always()
         with:
-          name: performance-artifacts${{ inputs.memcached && '-memcached' || '' }}-${{ github.run_id }}
+          name: performance-artifacts${{ inputs.multisite && '-multisite' || '' }}${{ inputs.memcached && '-memcached' || '' }}-${{ github.run_id }}
           path: artifacts
           if-no-files-found: ignore
           include-hidden-files: true
@@ -301,7 +319,7 @@ jobs:
 
       - name: Set the base sha
         # Only needed when publishing results.
-        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/trunk' && ! inputs.memcached }}
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/trunk' && ! inputs.memcached && ! inputs.multisite }}
         uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
         id: base-sha
         with:
@@ -312,7 +330,7 @@ jobs:
 
       - name: Set commit details
         # Only needed when publishing results.
-        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/trunk' && ! inputs.memcached }}
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/trunk' && ! inputs.memcached && ! inputs.multisite }}
         uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
         id: commit-timestamp
         with:
@@ -323,7 +341,7 @@ jobs:
 
       - name: Publish performance results
         # Only publish results on pushes to trunk.
-        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/trunk' && ! inputs.memcached }}
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/trunk' && ! inputs.memcached && ! inputs.multisite }}
         env:
           BASE_SHA: ${{ steps.base-sha.outputs.result }}
           COMMITTED_AT: ${{ steps.commit-timestamp.outputs.result }}

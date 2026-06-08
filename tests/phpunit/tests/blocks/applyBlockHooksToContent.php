@@ -92,6 +92,26 @@ class Tests_Blocks_ApplyBlockHooksToContent extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 61074
+	 */
+	public function test_apply_block_hooks_to_content_with_context_set_to_null() {
+		$content = '<!-- wp:tests/anchor-block /-->';
+
+		/*
+		 * apply_block_hooks_to_content() will fall back to the global $post object (via get_post())
+		 * if the $context parameter is null. However, we'd also like to ensure that the function
+		 * works as expected even when get_post() returns null.
+		 */
+		$this->assertNull( get_post() );
+
+		$actual = apply_block_hooks_to_content( $content, null, 'insert_hooked_blocks' );
+		$this->assertSame(
+			'<!-- wp:tests/anchor-block /--><!-- wp:tests/hooked-block /-->',
+			$actual
+		);
+	}
+
+	/**
 	 * @ticket 61902
 	 */
 	public function test_apply_block_hooks_to_content_respect_multiple_false() {

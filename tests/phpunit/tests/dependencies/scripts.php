@@ -3413,6 +3413,21 @@ HTML
 			$handle = $script;
 		}
 
+		/*
+		 * Append '.1' to the version number for React and ReactDOM.
+		 *
+		 * This is due to a change in the build to use the UMD version of the
+		 * scripts, requiring a different version number in order to break the
+		 * caches of some CDNs.
+		 *
+		 * This can be removed in the next update to the packages.
+		 *
+		 * See https://core.trac.wordpress.org/ticket/62422
+		 */
+		if ( in_array( $handle, array( 'react', 'react-dom' ), true ) ) {
+			$package_json[ $script ] .= '.1';
+		}
+
 		$script_query = $wp_scripts->query( $handle, 'registered' );
 
 		$this->assertNotFalse( $script_query, "The script '{$handle}' should be registered." );
