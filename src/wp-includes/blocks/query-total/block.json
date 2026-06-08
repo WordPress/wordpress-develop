@@ -1,45 +1,31 @@
 {
 	"$schema": "https://schemas.wp.org/trunk/block.json",
 	"apiVersion": 3,
-	"name": "core/post-content",
-	"title": "Content",
+	"name": "core/query-total",
+	"title": "Query Total",
 	"category": "theme",
-	"description": "Displays the contents of a post or page.",
+	"ancestor": [ "core/query" ],
+	"description": "Display the total number of results in a query.",
 	"textdomain": "default",
-	"usesContext": [ "postId", "postType", "queryId" ],
-	"example": {
-		"viewportWidth": 350
+	"attributes": {
+		"displayType": {
+			"type": "string",
+			"default": "total-results"
+		}
 	},
+	"usesContext": [ "queryId", "query" ],
 	"supports": {
 		"align": [ "wide", "full" ],
 		"html": false,
-		"layout": true,
-		"background": {
-			"backgroundImage": true,
-			"backgroundSize": true,
-			"__experimentalDefaultControls": {
-				"backgroundImage": true
-			}
-		},
-		"dimensions": {
-			"minHeight": true
-		},
 		"spacing": {
-			"blockGap": true,
-			"padding": true,
 			"margin": true,
-			"__experimentalDefaultControls": {
-				"margin": false,
-				"padding": false
-			}
+			"padding": true
 		},
 		"color": {
 			"gradients": true,
-			"heading": true,
-			"link": true,
+			"text": true,
 			"__experimentalDefaultControls": {
-				"background": false,
-				"text": false
+				"background": true
 			}
 		},
 		"typography": {
@@ -68,6 +54,5 @@
 			}
 		}
 	},
-	"style": "wp-block-post-content",
-	"editorStyle": "wp-block-post-content-editor"
+	"style": "wp-block-query-total"
 }
