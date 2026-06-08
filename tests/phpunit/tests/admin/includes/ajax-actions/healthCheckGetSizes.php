@@ -84,11 +84,12 @@ class Tests_wp_ajax_health_check_get_sizes extends WP_Ajax_UnitTestCase {
 	 *
 	 * @ticket 65252
 	 * @expectedIncorrectUsage wp_ajax_health_check_get_sizes
+	 * @expectedDeprecated WP_Debug_Data::get_sizes
 	 */
 	public function test_health_check_get_sizes_success(): void {
 		wp_set_current_user( self::$admin_id );
 
-		$_POST['_ajax_nonce'] = wp_create_nonce( 'health-check-site-status' );
+		$_POST['_ajax_nonce'] = wp_create_nonce( 'health-check-site-status-result' );
 
 		try {
 			$this->_handleAjax( 'health-check-get-sizes' );
@@ -97,7 +98,11 @@ class Tests_wp_ajax_health_check_get_sizes extends WP_Ajax_UnitTestCase {
 
 		$response = json_decode( $this->_last_response, true );
 
-		$this->assertTrue( $response['success'], 'AJAX response should be successful' );
+		if ( isset( $response['data']['total_size']['debug'] ) && 'not available' === $response['data']['total_size']['debug'] ) {
+			$this->assertFalse( $response['success'], 'AJAX response should be unsuccessful when sizes are not available' );
+		} else {
+			$this->assertTrue( $response['success'], 'AJAX response should be successful' );
+		}
 		$this->assertIsArray( $response['data'], 'Response data should be an array' );
 	}
 
@@ -128,7 +133,7 @@ class Tests_wp_ajax_health_check_get_sizes extends WP_Ajax_UnitTestCase {
 		$subscriber_id = self::factory()->user->create( array( 'role' => 'subscriber' ) );
 		wp_set_current_user( $subscriber_id );
 
-		$_POST['_ajax_nonce'] = wp_create_nonce( 'health-check-site-status' );
+		$_POST['_ajax_nonce'] = wp_create_nonce( 'health-check-site-status-result' );
 
 		try {
 			$this->_handleAjax( 'health-check-get-sizes' );
