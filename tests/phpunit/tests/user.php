@@ -2245,4 +2245,48 @@ class Tests_User extends WP_UnitTestCase {
 
 		return $additional_profile_data;
 	}
+
+	/**
+	 * Tests that wp_insert_user() does not unnecessarily update the 'use_ssl' meta.
+	 *
+	 * @ticket 60299
+	 *
+	 * @covers ::wp_insert_user
+	 */
+	public function test_wp_insert_user_should_not_unnecessary_update_use_ssl_meta() {
+		$user_id = self::$contrib_id;
+		// Keep track of database writing calls.
+		$db_update_count = 0;
+
+		// Track database updates via update_user_meta() with 'use_ssl' meta key.
+		add_action(
+			'update_user_meta',
+			function ( $meta_id, $object_id, $meta_key ) use ( &$db_update_count ) {
+				if ( 'use_ssl' !== $meta_key ) {
+					return;
+				}
+				$db_update_count++;
+			},
+			10,
+			3
+		);
+
+		$_POST = array(
+			'nickname' => 'nickname_test',
+			'email'    => 'email_test_1@example.com',
+			'use_ssl'  => 1,
+		);
+
+		$user_id = edit_user( $user_id );
+
+		$this->assertIsInt( $user_id );
+		$this->assertSame( 1, $db_update_count );
+
+		// Update the user without changing the 'use_ssl' meta.
+		$_POST['email'] = 'email_test_2@example.com';
+		$user_id        = edit_user( $user_id );
+
+		// Verify there are no updates to 'use_ssl' user meta.
+		$this->assertSame( 1, $db_update_count );
+	}
 }

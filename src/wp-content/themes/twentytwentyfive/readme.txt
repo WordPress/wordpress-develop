@@ -2,7 +2,7 @@
 Contributors: wordpressdotorg
 Requires at least: 6.7
 Tested up to: 6.7
-Requires PHP: 7.2.24
+Requires PHP: 7.2
 Stable tag: 1.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -125,41 +125,31 @@ Free public domain CC0 image.
 image-from-rawpixel-id-2211732.webp
 https://www.rawpixel.com/image/2211732
 
-Woman walking into the woods.
-Free public domain CC0 image.
-avatar.webp
-https://www.rawpixel.com/image/5918459
-
 Botany flowers.
 Free public domain CC0 image.
 botany-flowers.webp
 image-from-rawpixel-id-8812207.webp
 https://www.rawpixel.com/image/8812207
 
-Ms. Gail Falk Seltzer, a Staff Lawyer for Field Services.
-No known copyright restrictions
-team-photo-1.webp
-https://www.flickr.com/photos/usnationalarchives/3906419575/
-
-Young sugarcane field worker.
-No known copyright restrictions
-team-photo-2.webp
-https://www.flickr.com/photos/usnationalarchives/7157920320
-
-Portraits of Miners.
-No known copyright restrictions
-team-photo-3.webp
-https://www.flickr.com/photos/usnationalarchives/3906400735/
-
-Young Woman Soliciting Funds.
-No known copyright restrictions
-team-photo-4.webp
-https://www.flickr.com/photos/usnationalarchives/8676029464
-
-Corner view showing mostly left wall, Church, Acoma Pueblo.
+Person typing on a typewriter.
 Free public domain CC0 image.
-image-from-rawpixel-id-8803077-original.webp
-https://www.rawpixel.com/image/8803077
+typewriter.webp
+https://www.rawpixel.com/image/12240004/photo-image-face-person-technology
+
+Woman wearing a traditional nurse's cap, photographed from behind.
+nurse.webp
+Free public domain CC0 image.
+https://www.rawpixel.com/image/8782633/photo-image-person-white
+
+Woman splashing water, at Lake George.
+woman-splashing-water.webp
+Free public domain CC0 image.
+https://www.rawpixel.com/image/9758986/photo-image-people-art-vintage
+
+Man in hat, standing in front of a building.
+man-in-hat.webp
+Free public domain CC0 image.
+https://www.slam.org/collection/objects/62642/
 
 African Woman by Pascal Sébah and Jean Pascal Sébah
 Free public domain CC0 image.
@@ -218,11 +208,6 @@ One of the 40 Or More Species of Coral at John Pennekamp Coral Reef State Park, 
 Free public domain CC0 image.
 coral-square.webp
 https://www.rawpixel.com/image/8799931
-
-[The fair "Sauimatani"] (23 July 1884) by Burton Brothers and Alfred Burton.
-Free public domain CC0 image.
-fair-sauimatani-square.webp
-https://www.rawpixel.com/image/13028387
 
 Parthenon op de Akropolis in Athene (westzijde) (c. 1880 - c. 1890) by Rhomaides Frères.
 Free public domain CC0 image.

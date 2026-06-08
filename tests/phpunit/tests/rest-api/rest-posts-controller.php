@@ -1712,10 +1712,20 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$request = new WP_REST_Request( 'GET', '/wp/v2/media' );
 		rest_get_server()->dispatch( $request );
 
-		$args = $filter->get_args();
-		$last = end( $args );
-		$this->assertIsArray( $last, 'The last value is not an array' );
-		$this->assertSameSets( $parent_ids, $last[1] );
+		$events = $filter->get_events();
+		$args   = wp_list_pluck( $events, 'args' );
+		$primed = false;
+		sort( $parent_ids );
+		foreach ( $args as $arg ) {
+			sort( $arg[1] );
+			if ( $parent_ids === $arg[1] ) {
+				$primed = $arg;
+				break;
+			}
+		}
+
+		$this->assertIsArray( $primed, 'The last value is not an array' );
+		$this->assertSameSets( $parent_ids, $primed[1] );
 	}
 
 	public function test_get_items_pagination_headers() {
