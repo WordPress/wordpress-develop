@@ -27,7 +27,7 @@ on:
 concurrency:
   # The concurrency group contains the workflow name and the branch name for pull requests
   # or the commit hash for any other events.
-  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.head_ref || github.sha }}
+  group: ${{ github.workflow }}-${{ inputs.new-version || github.event_name == 'pull_request' && github.head_ref || github.sha }}
   cancel-in-progress: true
 
 # Disable permissions for all available scopes by default.

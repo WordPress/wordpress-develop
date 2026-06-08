@@ -33,7 +33,7 @@ on:
       - 'tests/e2e/**'
       # Confirm any changes to relevant workflow files.
       - '.github/workflows/end-to-end-tests.yml'
-      - '.github/workflows/reusable-end-to-end-tests-*.yml'
+      - '.github/workflows/reusable-end-to-end-tests*.yml'
   workflow_dispatch:
 
 # Cancels all previous workflow runs for pull requests that have not completed.

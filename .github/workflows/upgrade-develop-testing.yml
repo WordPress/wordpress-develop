@@ -63,13 +63,17 @@ jobs:
         php: [ '7.2', '8.4' ]
         db-type: [ 'mysql' ]
         db-version: [ '5.7', '8.4' ]
-        wp: [ '6.5', '6.6', '6.7' ]
+        # WordPress 4.9 is the oldest version that supports PHP 7.2.
+        wp: [ '4.9', '6.5', '6.6', '6.7' ]
         multisite: [ false, true ]
 
         exclude:
           # The PHP <= 7.3/MySQL 8.4 jobs currently fail due to mysql_native_password being disabled by default. See https://core.trac.wordpress.org/ticket/61218.
           - php: '7.2'
             db-version: '8.4'
+          # WordPress 4.9 does not support PHP 8.4.
+          - php: '8.4'
+            wp: '4.9'
     with:
       os: ${{ matrix.os }}
       php: ${{ matrix.php }}

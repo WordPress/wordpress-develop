@@ -163,6 +163,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 	 *
 	 * @ticket 45016
 	 * @ticket 61021
+	 * @ticket 62574.
 	 */
 	public function test_get_items() {
 		$response = self::perform_active_theme_request();
@@ -175,6 +176,8 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 			'_links',
 			'author',
 			'author_uri',
+			'default_template_part_areas',
+			'default_template_types',
 			'description',
 			'is_block_theme',
 			'name',
@@ -354,12 +357,13 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 	 *
 	 * @ticket 45016
 	 * @ticket 61021
+	 * @ticket 62574
 	 */
 	public function test_get_item_schema() {
 		$response   = self::perform_active_theme_request( 'OPTIONS' );
 		$data       = $response->get_data();
 		$properties = $data['schema']['properties'];
-		$this->assertCount( 18, $properties );
+		$this->assertCount( 20, $properties );
 
 		$this->assertArrayHasKey( 'author', $properties );
 		$this->assertArrayHasKey( 'raw', $properties['author']['properties'] );
@@ -372,6 +376,9 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertArrayHasKey( 'description', $properties );
 		$this->assertArrayHasKey( 'raw', $properties['description']['properties'] );
 		$this->assertArrayHasKey( 'rendered', $properties['description']['properties'] );
+
+		$this->assertArrayHasKey( 'default_template_part_areas', $properties );
+		$this->assertArrayHasKey( 'default_template_types', $properties );
 
 		$this->assertArrayHasKey( 'is_block_theme', $properties );
 
@@ -470,6 +477,32 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 			'The 9&#8242; foot tall theme.',
 			$result[0]['description']['rendered']
 		);
+	}
+
+	/**
+	 * @ticket 62574
+	 */
+	public function test_theme_default_template_part_areas() {
+		$response = self::perform_active_theme_request();
+		$result   = $response->get_data();
+		$this->assertArrayHasKey( 'default_template_part_areas', $result[0] );
+		$this->assertSame( get_allowed_block_template_part_areas(), $result[0]['default_template_part_areas'] );
+	}
+
+	/**
+	 * @ticket 62574
+	 */
+	public function test_theme_default_template_types() {
+		$response = self::perform_active_theme_request();
+		$result   = $response->get_data();
+		$expected = array();
+		foreach ( get_default_block_template_types() as $slug => $template_type ) {
+			$template_type['slug'] = (string) $slug;
+			$expected[]            = $template_type;
+		}
+
+		$this->assertArrayHasKey( 'default_template_types', $result[0] );
+		$this->assertSame( $expected, $result[0]['default_template_types'] );
 	}
 
 	/**

@@ -1501,4 +1501,15 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 			$block_type->block_hooks
 		);
 	}
+
+	/**
+	 * @ticket 63027
+	 *
+	 * @covers ::register_block_type_from_metadata
+	 */
+	public function test_register_block_type_from_metadata_with_windows_path() {
+		$windows_like_path = str_replace( '/', '\\', DIR_TESTDATA ) . '\\blocks\\notice';
+
+		$this->assertNotFalse( register_block_type_from_metadata( $windows_like_path ) );
+	}
 }

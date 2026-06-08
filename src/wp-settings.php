@@ -227,6 +227,7 @@ require ABSPATH . WPINC . '/block-supports/duotone.php';
 require ABSPATH . WPINC . '/block-supports/shadow.php';
 require ABSPATH . WPINC . '/block-supports/background.php';
 require ABSPATH . WPINC . '/block-supports/block-style-variations.php';
+require ABSPATH . WPINC . '/block-supports/aria-label.php';
 require ABSPATH . WPINC . '/style-engine.php';
 require ABSPATH . WPINC . '/fonts.php';
 require ABSPATH . WPINC . '/script-modules.php';

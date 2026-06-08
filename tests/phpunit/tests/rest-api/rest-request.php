@@ -1081,4 +1081,49 @@ class Tests_REST_Request extends WP_UnitTestCase {
 		$this->assertWPError( $valid );
 		$this->assertSame( 'rest_invalid_param', $valid->get_error_code() );
 	}
+
+	/**
+	 * Tests that WP_REST_Request::is_method() correctly detects the request method,
+	 * regardless of case sensitivity.
+	 *
+	 * @dataProvider data_is_method_should_detect_method_ignoring_case
+	 * @ticket 56481
+	 *
+	 * @param string $method       The expected HTTP method of the request.
+	 * @param string $input_method The HTTP method to check against.
+	 * @param bool   $expected     The expected result of the is_method() check.
+	 */
+	public function test_is_method_should_detect_method_ignoring_case( $method, $input_method, $expected ) {
+		$request = new WP_REST_Request();
+		$request->set_method( $method );
+		$result = $request->is_method( $input_method );
+
+		$this->assertSame( $expected, $result, 'Failed asserting that the WP_REST_Request::is_method() method correctly detects the request method.' );
+	}
+
+	/**
+	 * Provides test cases for verifying HTTP method comparison is case-insensitive.
+	 *
+	 * @return array
+	 */
+	public function data_is_method_should_detect_method_ignoring_case() {
+		return array(
+			// GET.
+			'GET same case'          => array( 'GET', 'GET', true ),
+			'GET different case'     => array( 'GET', 'get', true ),
+			'GET different case #2'  => array( 'GET', 'get', true ),
+			'GET different case #3'  => array( 'GET', 'gEt', true ),
+			'GET wrong method'       => array( 'GET', 'POST', false ),
+			// POST.
+			'POST same case'         => array( 'POST', 'POST', true ),
+			'POST different case'    => array( 'POST', 'post', true ),
+			'POST different case #2' => array( 'POST', 'pOsT', true ),
+			'POST wrong method'      => array( 'POST', 'GET', false ),
+			// HEAD.
+			'HEAD same case'         => array( 'HEAD', 'HEAD', true ),
+			'HEAD different case'    => array( 'HEAD', 'head', true ),
+			'HEAD different case #2' => array( 'HEAD', 'HeAd', true ),
+			'HEAD wrong method'      => array( 'HEAD', 'GET', false ),
+		);
+	}
 }

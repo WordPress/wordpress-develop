@@ -28,6 +28,11 @@ on:
         description: 'A specific version of Gutenberg to install.'
         required: false
         type: 'string'
+      install-playwright:
+        description: 'Whether to install Playwright browsers.'
+        required: false
+        type: 'boolean'
+        default: true
 
 env:
   LOCAL_DIR: build
@@ -94,6 +99,7 @@ jobs:
         run: npm ci
 
       - name: Install Playwright browsers
+        if: ${{ inputs.install-playwright }}
         run: npx playwright install --with-deps
 
       - name: Build WordPress

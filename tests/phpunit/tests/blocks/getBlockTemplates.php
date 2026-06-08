@@ -228,4 +228,64 @@ class Tests_Blocks_GetBlockTemplates extends WP_UnitTestCase {
 			),
 		);
 	}
+
+	/**
+	 * @dataProvider data_get_block_templates_should_not_leak_plugin_registered_templates_with_default_post_type_slugs
+	 * @ticket 62319
+	 *
+	 * @covers ::get_block_templates
+	 *
+	 * @param string $template_slug Default slug for the post type.
+	 * @param string $post_type     Post type for query.
+	 * @param array  $expected      Expected template IDs.
+	 */
+	public function test_get_block_templates_should_not_leak_plugin_registered_templates_with_default_post_type_slugs( $template_slug, $post_type, $expected ) {
+		$template_name = 'test-plugin//' . $template_slug;
+		$template_args = array(
+			'content'     => 'Template content',
+			'title'       => 'Test Template for ' . $post_type,
+			'description' => 'Description of test template',
+			'post_types'  => array( $post_type ),
+		);
+		register_block_template( $template_name, $template_args );
+
+		$templates = get_block_templates( array( 'post_type' => $post_type ) );
+
+		$this->assertSameSets(
+			$expected,
+			$this->get_template_ids( $templates )
+		);
+
+		unregister_block_template( $template_name );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * Make sure that plugin-registered templates with default post type slugs (ie: `single` or `page`)
+	 * don't leak into `get_block_templates()`.
+	 * See: https://core.trac.wordpress.org/ticket/62319.
+	 *
+	 * @return array
+	 */
+	public function data_get_block_templates_should_not_leak_plugin_registered_templates_with_default_post_type_slugs() {
+		return array(
+			'post' => array(
+				'template_slug' => 'single',
+				'post_type'     => 'post',
+				'expected'      => array(
+					'block-theme//custom-hero-template',
+					'block-theme//custom-single-post-template',
+				),
+			),
+			'page' => array(
+				'template_slug' => 'page',
+				'post_type'     => 'page',
+				'expected'      => array(
+					'block-theme//custom-hero-template',
+					'block-theme//page-home',
+				),
+			),
+		);
+	}
 }

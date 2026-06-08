@@ -34,15 +34,16 @@
 <body <?php body_class(); ?>>
 <?php wp_body_open(); ?>
 <div id="page" class="hfeed site">
+	<a class="screen-reader-text skip-link" href="#content"><?php _e( 'Skip to content', 'twentytwelve' ); ?></a>
 	<header id="masthead" class="site-header">
 		<hgroup>
-			<h1 class="site-title"><a href="<?php echo esc_url( home_url( '/' ) ); ?>" rel="home"><?php bloginfo( 'name' ); ?></a></h1>
+		<?php $is_front = ! is_paged() && ( is_front_page() || ( is_home() && ( (int) get_option( 'page_for_posts' ) !== get_queried_object_id() ) ) ); ?>
+			<h1 class="site-title"><a href="<?php echo esc_url( home_url( '/' ) ); ?>" rel="home" <?php echo $is_front ? 'aria-current="page"' : ''; ?>><?php bloginfo( 'name' ); ?></a></h1>
 			<h2 class="site-description"><?php bloginfo( 'description' ); ?></h2>
 		</hgroup>
 
 		<nav id="site-navigation" class="main-navigation">
 			<button class="menu-toggle"><?php _e( 'Menu', 'twentytwelve' ); ?></button>
-			<a class="assistive-text" href="#content"><?php _e( 'Skip to content', 'twentytwelve' ); ?></a>
 			<?php
 			wp_nav_menu(
 				array(
@@ -54,7 +55,7 @@
 		</nav><!-- #site-navigation -->
 
 		<?php if ( get_header_image() ) : ?>
-		<a href="<?php echo esc_url( home_url( '/' ) ); ?>"><?php twentytwelve_header_image(); ?></a>
+		<a href="<?php echo esc_url( home_url( '/' ) ); ?>" <?php echo $is_front ? 'aria-current="page"' : ''; ?> rel="home"><?php twentytwelve_header_image(); ?></a>
 		<?php endif; ?>
 	</header><!-- #masthead -->
 

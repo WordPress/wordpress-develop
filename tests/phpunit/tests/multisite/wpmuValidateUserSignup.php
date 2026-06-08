@@ -220,6 +220,54 @@ if ( is_multisite() ) :
 
 			$this->assertContains( 'invalid_nonce', $valid['errors']->get_error_codes() );
 		}
+
+		/**
+		 * Ensure that wp_ensure_editable_role does not throw an exception when the role is editable.
+		 *
+		 * @ticket 43251
+		 *
+		 * @covers ::wp_ensure_editable_role
+		 */
+		public function test_wp_ensure_editable_role_allows_editable_roles() {
+			$role = get_role( 'editor' );
+			$this->assertInstanceOf( 'WP_Role', $role, 'The editor role should exist.' );
+			$this->assertNull( wp_ensure_editable_role( 'editor' ), 'The editor role should be editable.' );
+		}
+
+		/**
+		 * Ensure that wp_ensure_editable_role throws an exception for non-existent roles.
+		 *
+		 * @ticket 43251
+		 *
+		 * @covers ::wp_ensure_editable_role
+		 */
+		public function test_wp_ensure_editable_role_does_not_allow_non_existent_role() {
+			$this->expectException( 'WPDieException' );
+			$role = get_role( 'non-existent-role' );
+			$this->assertNotInstanceOf( 'WP_Role', $role, 'The non-existent-role role should not exist.' );
+			wp_ensure_editable_role( 'non-existent-role' );
+		}
+
+		/**
+		 * Ensure that wp_ensure_editable_role throws an exception for roles that are not editable.
+		 *
+		 * @ticket 43251
+		 *
+		 * @covers ::wp_ensure_editable_role
+		 */
+		public function test_wp_ensure_editable_role_does_not_allow_uneditable_roles() {
+			add_filter(
+				'editable_roles',
+				function ( $roles ) {
+					unset( $roles['editor'] );
+					return $roles;
+				}
+			);
+			$this->expectException( 'WPDieException' );
+			$role = get_role( 'editor' );
+			$this->assertInstanceOf( 'WP_Role', $role, 'The editor role should exist.' );
+			wp_ensure_editable_role( 'editor' );
+		}
 	}
 
 endif;

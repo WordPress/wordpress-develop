@@ -154,6 +154,7 @@ function wp_version_check( $extra_stats = array(), $force_check = false ) {
 	 * Please exercise extreme caution.
 	 *
 	 * @since 4.9.0
+	 * @since 6.1.0 Added `$extensions`, `$platform_flags`, and `$image_support` to the `$query` parameter.
 	 *
 	 * @param array $query {
 	 *     Version check query arguments.
@@ -167,6 +168,9 @@ function wp_version_check( $extra_stats = array(), $force_check = false ) {
 	 *     @type int    $users              Number of users on this WordPress installation.
 	 *     @type int    $multisite_enabled  Whether this WordPress installation uses Multisite.
 	 *     @type int    $initial_db_version Database version of WordPress at time of installation.
+	 *     @type array  $extensions         List of PHP extensions and their versions.
+	 *     @type array  $platform_flags     List containing the operating system name and bit support.
+	 *     @type array  $image_support      List of image formats supported by GD and Imagick.
 	 * }
 	 */
 	$query = apply_filters( 'core_version_check_query_args', $query );
@@ -337,12 +341,6 @@ function wp_update_plugins( $extra_stats = array() ) {
 		$current = new stdClass();
 	}
 
-	$updates               = new stdClass();
-	$updates->last_checked = time();
-	$updates->response     = array();
-	$updates->translations = array();
-	$updates->no_update    = array();
-
 	$doing_cron = wp_doing_cron();
 
 	// Check for update on a different schedule, depending on the page.
@@ -371,8 +369,6 @@ function wp_update_plugins( $extra_stats = array() ) {
 		$plugin_changed = false;
 
 		foreach ( $plugins as $file => $p ) {
-			$updates->checked[ $file ] = $p['Version'];
-
 			if ( ! isset( $current->checked[ $file ] ) || (string) $current->checked[ $file ] !== (string) $p['Version'] ) {
 				$plugin_changed = true;
 			}
@@ -459,6 +455,15 @@ function wp_update_plugins( $extra_stats = array() ) {
 
 	if ( is_wp_error( $raw_response ) || 200 !== wp_remote_retrieve_response_code( $raw_response ) ) {
 		return;
+	}
+
+	$updates               = new stdClass();
+	$updates->last_checked = time();
+	$updates->response     = array();
+	$updates->translations = array();
+	$updates->no_update    = array();
+	foreach ( $plugins as $file => $p ) {
+		$updates->checked[ $file ] = $p['Version'];
 	}
 
 	$response = json_decode( wp_remote_retrieve_body( $raw_response ), true );
@@ -890,7 +895,12 @@ function wp_get_translation_updates() {
  *
  * @since 3.3.0
  *
- * @return array
+ * @return array {
+ *     Fetched update data.
+ *
+ *     @type int[]   $counts       An array of counts for available plugin, theme, and WordPress updates.
+ *     @type string  $update_title Titles of available updates.
+ * }
  */
 function wp_get_update_data() {
 	$counts = array(
@@ -1110,7 +1120,7 @@ function _wp_delete_all_temp_backups() {
 	global $wp_filesystem;
 
 	if ( ! function_exists( 'WP_Filesystem' ) ) {
-		require_once ABSPATH . '/wp-admin/includes/file.php';
+		require_once ABSPATH . 'wp-admin/includes/file.php';
 	}
 
 	ob_start();

@@ -1931,7 +1931,7 @@ class WP_Query {
 
 		// Set a flag if a 'pre_get_posts' hook changed the query vars.
 		$hash = md5( serialize( $this->query_vars ) );
-		if ( $hash != $this->query_vars_hash ) {
+		if ( $hash !== $this->query_vars_hash ) {
 			$this->query_vars_changed = true;
 			$this->query_vars_hash    = $hash;
 		}
@@ -2031,10 +2031,11 @@ class WP_Query {
 			}
 			$q['nopaging'] = false;
 		}
+
 		$q['posts_per_page'] = (int) $q['posts_per_page'];
 		if ( $q['posts_per_page'] < -1 ) {
 			$q['posts_per_page'] = abs( $q['posts_per_page'] );
-		} elseif ( 0 == $q['posts_per_page'] ) {
+		} elseif ( 0 === $q['posts_per_page'] ) {
 			$q['posts_per_page'] = 1;
 		}
 
@@ -2066,6 +2067,15 @@ class WP_Query {
 			case 'id=>parent':
 				$fields = "{$wpdb->posts}.ID, {$wpdb->posts}.post_parent";
 				break;
+			case '':
+				/*
+				 * Set the default to 'all'.
+				 *
+				 * This is used in `WP_Query::the_post` to determine if the
+				 * entire post object has been queried.
+				 */
+				$q['fields'] = 'all';
+				// Falls through.
 			default:
 				$fields = "{$wpdb->posts}.*";
 		}
@@ -3346,7 +3356,7 @@ class WP_Query {
 			return $post_parents;
 		}
 
-		$is_unfiltered_query = $old_request == $this->request && "{$wpdb->posts}.*" === $fields;
+		$is_unfiltered_query = $old_request === $this->request && "{$wpdb->posts}.*" === $fields;
 
 		if ( null === $this->posts ) {
 			$split_the_query = (
@@ -3738,14 +3748,30 @@ class WP_Query {
 		global $post;
 
 		if ( ! $this->in_the_loop ) {
-			// Only prime the post cache for queries limited to the ID field.
-			$post_ids = array_filter( $this->posts, 'is_numeric' );
-			// Exclude any falsey values, such as 0.
-			$post_ids = array_filter( $post_ids );
-			if ( $post_ids ) {
+			if ( 'all' === $this->query_vars['fields'] ) {
+				// Full post objects queried.
+				$post_objects = $this->posts;
+			} else {
+				if ( 'ids' === $this->query_vars['fields'] ) {
+					// Post IDs queried.
+					$post_ids = $this->posts;
+				} else {
+					// Only partial objects queried, need to prime the cache for the loop.
+					$post_ids = array_reduce(
+						$this->posts,
+						function ( $carry, $post ) {
+							if ( isset( $post->ID ) ) {
+								$carry[] = $post->ID;
+							}
+
+							return $carry;
+						},
+						array()
+					);
+				}
 				_prime_post_caches( $post_ids, $this->query_vars['update_post_term_cache'], $this->query_vars['update_post_meta_cache'] );
+				$post_objects = array_map( 'get_post', $post_ids );
 			}
-			$post_objects = array_map( 'get_post', $this->posts );
 			update_post_author_caches( $post_objects );
 		}
 
@@ -3764,6 +3790,24 @@ class WP_Query {
 		}
 
 		$post = $this->next_post();
+
+		// Ensure a full post object is available.
+		if ( 'all' !== $this->query_vars['fields'] ) {
+			if ( 'ids' === $this->query_vars['fields'] ) {
+				// Post IDs queried.
+				$post = get_post( $post );
+			} elseif ( isset( $post->ID ) ) {
+				/*
+				 * Partial objecct queried.
+				 *
+				 * The post object was queried with a partial set of
+				 * fields, populate the entire object for the loop.
+				 */
+				$post = get_post( $post->ID );
+			}
+		}
+
+		// Set up the global post object for the loop.
 		$this->setup_postdata( $post );
 	}
 
