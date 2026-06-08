@@ -1735,6 +1735,13 @@ function _preload_old_requests_classes_and_interfaces( $to ) {
  */
 function _preload_core_classes_and_interfaces() {
 	/*
+	 * Ensure the autoloader class is available, even when upgrading from an older
+	 * version of WordPress that did not have it. The new class-wp-autoload.php will
+	 * already have been copied to ABSPATH by the time this function is called.
+	 */
+	require_once ABSPATH . WPINC . '/class-wp-autoload.php';
+
+	/*
 	 * The classes to be preloaded.
 	 * These are lowercased to match the format used in the autoloader.
 	 */
@@ -1761,6 +1768,10 @@ function _preload_core_classes_and_interfaces() {
 		 * This should trigger the autoloader to load the file.
 		 */
 		if ( class_exists( $class_name, true ) ) {
+			continue;
+		}
+		// Skip classes intentionally excluded from the classmap (e.g. wpdb).
+		if ( ! isset( WP_Autoload::CLASSES_PATHS[ $class_name ] ) ) {
 			continue;
 		}
 		// Load the file.
