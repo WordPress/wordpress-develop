@@ -244,6 +244,12 @@ final class WP_Autoload {
 
 		// Classes in the wp-includes/Text folder.
 		'text_diff'                                   => 'wp-includes/Text/Diff.php',
+		'text_mappeddiff'                             => 'wp-includes/Text/Diff.php',
+		'text_diff_op'                                => 'wp-includes/Text/Diff.php',
+		'text_diff_op_copy'                           => 'wp-includes/Text/Diff.php',
+		'text_diff_op_delete'                         => 'wp-includes/Text/Diff.php',
+		'text_diff_op_add'                            => 'wp-includes/Text/Diff.php',
+		'text_diff_op_change'                         => 'wp-includes/Text/Diff.php',
 		'text_diff_engine_native'                     => 'wp-includes/Text/Diff/Engine/native.php',
 		'text_diff_engine_shell'                      => 'wp-includes/Text/Diff/Engine/shell.php',
 		'text_diff_engine_string'                     => 'wp-includes/Text/Diff/Engine/string.php',
