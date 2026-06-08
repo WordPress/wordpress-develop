@@ -133,7 +133,7 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 
 			// Create a bookmark inside of that stack.
 			if ( null !== $processor->get_attribute( 'two' ) ) {
-				$processor->set_bookmark( 'two' );
+				$this->assertTrue( $processor->set_bookmark( 'two' ) );
 				break;
 			}
 		}
