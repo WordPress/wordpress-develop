@@ -4707,6 +4707,190 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test ensures that inner block type styles and their element styles are
+	 * preserved for block style variations when removing insecure properties.
+	 *
+	 * @ticket 62372
+	 */
+	public function test_block_style_variations_with_inner_blocks_and_elements() {
+		wp_set_current_user( static::$administrator_id );
+		register_block_style(
+			array( 'core/group' ),
+			array(
+				'name'  => 'custom-group',
+				'label' => 'Custom Group',
+			)
+		);
+
+		$expected = array(
+			'version' => WP_Theme_JSON::LATEST_SCHEMA,
+			'styles'  => array(
+				'blocks' => array(
+					'core/group' => array(
+						'color'      => array(
+							'background' => 'blue',
+						),
+						'variations' => array(
+							'custom-group' => array(
+								'color'    => array(
+									'background' => 'purple',
+								),
+								'blocks'   => array(
+									'core/paragraph' => array(
+										'color'    => array(
+											'text' => 'red',
+										),
+										'elements' => array(
+											'link' => array(
+												'color'  => array(
+													'text' => 'blue',
+												),
+												':hover' => array(
+													'color' => array(
+														'text' => 'green',
+													),
+												),
+											),
+										),
+									),
+									'core/heading'   => array(
+										'typography' => array(
+											'fontSize' => '24px',
+										),
+									),
+								),
+								'elements' => array(
+									'link' => array(
+										'color'  => array(
+											'text' => 'yellow',
+										),
+										':hover' => array(
+											'color' => array(
+												'text' => 'orange',
+											),
+										),
+									),
+								),
+							),
+						),
+					),
+				),
+			),
+		);
+
+		$actual = WP_Theme_JSON::remove_insecure_properties( $expected );
+
+		// The sanitization processes blocks in a specific order which might differ to the theme.json input.
+		$this->assertEqualsCanonicalizing(
+			$expected,
+			$actual,
+			'Block style variations data does not match when inner blocks or element styles present'
+		);
+	}
+
+	/**
+	 * Test ensures that inner block type styles and their element styles for block
+	 * style variations have all unsafe values removed.
+	 *
+	 * @ticket 62372
+	 */
+	public function test_block_style_variations_with_invalid_inner_block_or_element_styles() {
+		wp_set_current_user( static::$administrator_id );
+		register_block_style(
+			array( 'core/group' ),
+			array(
+				'name'  => 'custom-group',
+				'label' => 'Custom Group',
+			)
+		);
+
+		$input = array(
+			'version' => WP_Theme_JSON::LATEST_SCHEMA,
+			'styles'  => array(
+				'blocks' => array(
+					'core/group' => array(
+						'variations' => array(
+							'custom-group' => array(
+								'blocks'   => array(
+									'core/paragraph' => array(
+										'color'      => array(
+											'text' => 'red',
+										),
+										'typography' => array(
+											'fontSize' => 'alert(1)', // Should be removed.
+										),
+										'elements'   => array(
+											'link' => array(
+												'color' => array(
+													'text' => 'blue',
+												),
+												'css'   => 'unsafe-value', // Should be removed.
+											),
+										),
+										'custom'     => 'unsafe-value', // Should be removed.
+									),
+								),
+								'elements' => array(
+									'link' => array(
+										'color'      => array(
+											'text' => 'yellow',
+										),
+										'javascript' => 'alert(1)', // Should be removed.
+									),
+								),
+							),
+						),
+					),
+				),
+			),
+		);
+
+		$expected = array(
+			'version' => WP_Theme_JSON::LATEST_SCHEMA,
+			'styles'  => array(
+				'blocks' => array(
+					'core/group' => array(
+						'variations' => array(
+							'custom-group' => array(
+								'blocks'   => array(
+									'core/paragraph' => array(
+										'color'    => array(
+											'text' => 'red',
+										),
+										'elements' => array(
+											'link' => array(
+												'color' => array(
+													'text' => 'blue',
+												),
+											),
+										),
+									),
+								),
+								'elements' => array(
+									'link' => array(
+										'color' => array(
+											'text' => 'yellow',
+										),
+									),
+								),
+							),
+						),
+					),
+				),
+			),
+		);
+
+		$actual = WP_Theme_JSON::remove_insecure_properties( $input );
+
+		// The sanitization processes blocks in a specific order which might differ to the theme.json input.
+		$this->assertEqualsCanonicalizing(
+			$expected,
+			$actual,
+			'Insecure properties were not removed from block style variation inner block types or elements'
+		);
+	}
+
+	/**
 	 * Tests generating the spacing presets array based on the spacing scale provided.
 	 *
 	 * @ticket 56467
