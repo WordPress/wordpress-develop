@@ -69,6 +69,71 @@ class Tests_Block_Supports_WpRenderElementsSupportStyles extends WP_UnitTestCase
 	}
 
 	/**
+	 * Tests that identical blocks with different elements styles
+	 * generate distinct class names to avoid CSS cascade conflicts.
+	 *
+	 * @ticket 65435
+	 *
+	 * @covers ::wp_get_elements_class_name
+	 */
+	public function test_elements_block_support_styles_with_duplicate_blocks() {
+		$this->test_block_name = 'test/element-block-supports';
+
+		register_block_type(
+			$this->test_block_name,
+			array(
+				'api_version' => 3,
+				'attributes'  => array(
+					'style' => array(
+						'type' => 'object',
+					),
+				),
+				'supports'    => array(
+					'color' => array(
+						'link' => true,
+					),
+				),
+			)
+		);
+
+		$block = array(
+			'blockName' => $this->test_block_name,
+			'attrs'     => array(
+				'style' => array(
+					'elements' => array(
+						'link' => array(
+							'color' => array(
+								'text' => 'blue',
+							),
+						),
+					),
+				),
+			),
+		);
+
+		// Process two identical blocks with the same elements styles.
+		wp_render_elements_support_styles( $block );
+		wp_render_elements_support_styles( $block );
+		$actual_stylesheet = wp_style_engine_get_stylesheet_from_context( 'block-supports', array( 'prettify' => false ) );
+
+		// Both rules should be present with distinct class names.
+		$this->assertMatchesRegularExpression(
+			'/\.wp-elements-[a-f0-9]{32} a:where\(:not\(\.wp-element-button\)\)\{color:blue;\}/',
+			$actual_stylesheet,
+			'First block element style should be present'
+		);
+		$this->assertMatchesRegularExpression(
+			'/\.wp-elements-[a-f0-9]{32} a:where\(:not\(\.wp-element-button\)\)\{color:blue;\}/',
+			$actual_stylesheet,
+			'Second block element style should also be present'
+		);
+		// Count the number of distinct class names to confirm uniqueness.
+		preg_match_all( '/\.wp-elements-([a-f0-9]{32})/', $actual_stylesheet, $matches );
+		$unique_classes = array_unique( $matches[1] );
+		$this->assertCount( 2, $unique_classes, 'Both blocks should produce distinct class names' );
+	}
+
+	/**
 	 * Data provider.
 	 *
 	 * @return array

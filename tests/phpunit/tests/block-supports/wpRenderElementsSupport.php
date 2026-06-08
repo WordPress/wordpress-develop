@@ -106,6 +106,74 @@ class Tests_Block_Supports_WpRenderElementsSupport extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that duplicate blocks get distinct elements class names
+	 * on their rendered markup to avoid CSS cascade conflicts.
+	 *
+	 * @ticket 65435
+	 *
+	 * @covers ::wp_get_elements_class_name
+	 */
+	public function test_elements_block_support_class_with_duplicate_blocks() {
+		$this->test_block_name = 'test/element-block-supports';
+
+		register_block_type(
+			$this->test_block_name,
+			array(
+				'api_version' => 3,
+				'attributes'  => array(
+					'style' => array(
+						'type' => 'object',
+					),
+				),
+				'supports'    => array(
+					'color' => array(
+						'link' => true,
+					),
+				),
+			)
+		);
+
+		$block = array(
+			'blockName' => $this->test_block_name,
+			'attrs'     => array(
+				'style' => array(
+					'elements' => array(
+						'link' => array(
+							'color' => array(
+								'text' => 'var:preset|color|vivid-red',
+							),
+						),
+					),
+				),
+			),
+		);
+
+		$block_markup  = '<p>Hello <a href="http://www.wordpress.org/">WordPress</a>!</p>';
+		$block_one     = wp_render_elements_support_styles( $block );
+		$block_two     = wp_render_elements_support_styles( $block );
+		$markup_one    = wp_render_elements_class_name( $block_markup, $block_one );
+		$markup_two    = wp_render_elements_class_name( $block_markup, $block_two );
+
+		$this->assertMatchesRegularExpression(
+			'/^<p class="wp-elements-[a-f0-9]{32}">Hello <a href="http:\/\/www.wordpress.org\/">WordPress<\/a>!<\/p>$/',
+			$markup_one,
+			'First block should have wp-elements class applied'
+		);
+		$this->assertMatchesRegularExpression(
+			'/^<p class="wp-elements-[a-f0-9]{32}">Hello <a href="http:\/\/www.wordpress.org\/">WordPress<\/a>!<\/p>$/',
+			$markup_two,
+			'Second block should also have wp-elements class applied'
+		);
+
+		// Extract class names and verify they are different.
+		preg_match( '/wp-elements-([a-f0-9]{32})/', $markup_one, $match_one );
+		preg_match( '/wp-elements-([a-f0-9]{32})/', $markup_two, $match_two );
+		$this->assertNotEmpty( $match_one, 'First block class name should be extractable' );
+		$this->assertNotEmpty( $match_two, 'Second block class name should be extractable' );
+		$this->assertNotSame( $match_one[1], $match_two[1], 'Class names for identical blocks should be unique' );
+	}
+
+	/**
 	 * Data provider.
 	 *
 	 * @return array
