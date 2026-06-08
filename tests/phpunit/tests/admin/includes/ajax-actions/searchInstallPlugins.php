@@ -91,29 +91,29 @@ class Tests_wp_ajax_search_install_plugins extends WP_Ajax_UnitTestCase {
 			return $res;
 		}
 
-		$plugin                = new stdClass();
-		$plugin->slug          = 'test-plugin';
-		$plugin->name          = 'Test Plugin';
-		$plugin->version       = '1.0';
-		$plugin->author        = 'Author';
-		$plugin->last_updated  = '2023-01-01';
-		$plugin->num_ratings   = 5;
-		$plugin->rating        = 100;
-		$plugin->active_installs = 1000;
-		$plugin->description   = 'Description';
+		$plugin                    = new stdClass();
+		$plugin->slug              = 'test-plugin';
+		$plugin->name              = 'Test Plugin';
+		$plugin->version           = '1.0';
+		$plugin->author            = 'Author';
+		$plugin->last_updated      = '2023-01-01';
+		$plugin->num_ratings       = 5;
+		$plugin->rating            = 100;
+		$plugin->active_installs   = 1000;
+		$plugin->description       = 'Description';
 		$plugin->short_description = 'Short description';
-		$plugin->icons         = array( 'default' => 'https://example.com/icon.png' );
-		$plugin->banners       = array();
-		$plugin->tested        = '6.0';
-		$plugin->requires      = '5.0';
-		$plugin->requires_php  = '7.0';
-		$plugin->compatibility = array();
-		$plugin->download_link = 'https://downloads.wordpress.org/plugin/test-plugin.1.0.zip';
+		$plugin->icons             = array( 'default' => 'https://example.com/icon.png' );
+		$plugin->banners           = array();
+		$plugin->tested            = '6.0';
+		$plugin->requires          = '5.0';
+		$plugin->requires_php      = '7.0';
+		$plugin->compatibility     = array();
+		$plugin->download_link     = 'https://downloads.wordpress.org/plugin/test-plugin.1.0.zip';
 
 		$api = new stdClass();
 		$api->info = array(
-			'page' => 1,
-			'pages' => 1,
+			'page'    => 1,
+			'pages'   => 1,
 			'results' => 1,
 		);
 		$api->plugins = array( $plugin );
