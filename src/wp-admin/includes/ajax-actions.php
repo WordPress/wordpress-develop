@@ -3571,7 +3571,7 @@ function wp_ajax_get_revision_diffs() {
 		set_time_limit( 5 * MINUTE_IN_SECONDS );
 	}
 
-	foreach ( $_REQUEST['compare'] as $compare_key ) {
+	foreach ( (array) $_REQUEST['compare'] as $compare_key ) {
 		list( $compare_from, $compare_to ) = explode( ':', $compare_key ); // from:to
 
 		$return[] = array(
