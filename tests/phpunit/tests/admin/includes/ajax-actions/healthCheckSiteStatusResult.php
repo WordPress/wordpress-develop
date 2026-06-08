@@ -89,9 +89,9 @@ class Tests_wp_ajax_health_check_site_status_result extends WP_Ajax_UnitTestCase
 
 		$_POST['_ajax_nonce'] = wp_create_nonce( 'health-check-site-status-result' );
 		$_POST['counts']      = array(
-			'good' => 1,
+			'good'        => 1,
 			'recommended' => 2,
-			'critical' => 3,
+			'critical'    => 3,
 		);
 
 		try {
