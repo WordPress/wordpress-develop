@@ -21,7 +21,7 @@ class Tests_Import_Import extends WP_Import_UnitTestCase {
 
 		add_filter( 'import_allow_create_users', '__return_true' );
 
-		require_once IMPORTER_PLUGIN_FOR_TESTS;
+		$this->require_importer();
 
 		// Crude but effective: make sure there's no residual data in the main tables.
 		foreach ( array( 'posts', 'postmeta', 'comments', 'terms', 'term_taxonomy', 'term_relationships', 'users', 'usermeta' ) as $table ) {

@@ -19,7 +19,7 @@ class Tests_Import_Postmeta extends WP_Import_UnitTestCase {
 			define( 'WP_LOAD_IMPORTERS', true );
 		}
 
-		require_once IMPORTER_PLUGIN_FOR_TESTS;
+		$this->require_importer();
 	}
 
 	public function test_serialized_postmeta_no_cdata() {

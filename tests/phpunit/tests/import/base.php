@@ -1,6 +1,19 @@
 <?php
 
 abstract class WP_Import_UnitTestCase extends WP_UnitTestCase {
+
+	/**
+	 * Require the WordPress Importer plugin.
+	 *
+	 * Fails the test if the plugin is not installed.
+	 */
+	protected function require_importer() {
+		if ( ! file_exists( IMPORTER_PLUGIN_FOR_TESTS ) ) {
+			$this->fail( 'This test requires the WordPress Importer plugin to be installed in the test suite. See: https://make.wordpress.org/core/handbook/contribute/git/#unit-tests' );
+		}
+		require_once IMPORTER_PLUGIN_FOR_TESTS;
+	}
+
 	/**
 	 * Import a WXR file.
 	 *
@@ -21,6 +34,8 @@ abstract class WP_Import_UnitTestCase extends WP_UnitTestCase {
 	 * @param bool $fetch_files Whether or not do download remote attachments
 	 */
 	protected function _import_wp( $filename, $users = array(), $fetch_files = true ) {
+		$this->require_importer();
+
 		$importer = new WP_Import();
 		$file     = realpath( $filename );
 

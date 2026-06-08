@@ -17,7 +17,7 @@ class Tests_Import_Parser extends WP_Import_UnitTestCase {
 			define( 'WP_LOAD_IMPORTERS', true );
 		}
 
-		require_once IMPORTER_PLUGIN_FOR_TESTS;
+		$this->require_importer();
 	}
 
 	/**
