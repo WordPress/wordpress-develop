@@ -165,7 +165,7 @@ jobs:
     name: Failure notifications
     permissions: {}
     runs-on: ubuntu-24.04
-    timeout-minutes: 10
+    timeout-minutes: 20
     needs: [ prepare ]
     if: ${{ needs.prepare.outputs.previous_conclusion != 'first-failure' && inputs.calling_status == 'failure' || failure() }}
 
@@ -182,7 +182,7 @@ jobs:
     name: Fixed notifications
     permissions: {}
     runs-on: ubuntu-24.04
-    timeout-minutes: 10
+    timeout-minutes: 20
     needs: [ prepare ]
     if: ${{ contains( fromJson( '["failure", "cancelled", "none"]' ), needs.prepare.outputs.previous_conclusion ) && inputs.calling_status == 'success' && success() }}
 
@@ -199,7 +199,7 @@ jobs:
     name: Success notifications
     permissions: {}
     runs-on: ubuntu-24.04
-    timeout-minutes: 10
+    timeout-minutes: 20
     needs: [ prepare ]
     if: ${{ inputs.calling_status == 'success' && success() }}
 
@@ -216,7 +216,7 @@ jobs:
     name: Cancelled notifications
     permissions: {}
     runs-on: ubuntu-24.04
-    timeout-minutes: 10
+    timeout-minutes: 20
     needs: [ prepare ]
     if: ${{ inputs.calling_status == 'cancelled' || cancelled() }}
 

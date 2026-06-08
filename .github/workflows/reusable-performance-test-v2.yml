@@ -122,7 +122,7 @@ jobs:
           persist-credentials: false
 
       - name: Set up Node.js
-        uses: actions/setup-node@1d0ff469b7ec7b3cb9d8673fde0c81c44821de2a # v4.2.0
+        uses: actions/setup-node@cdca7365b2dadb8aad0a33bc7601856ffabcc48e # v4.3.0
         with:
           node-version-file: '.nvmrc'
           cache: npm
@@ -258,7 +258,7 @@ jobs:
           TEST_RESULTS_PREFIX: ${{ inputs.subject != 'current' && inputs.subject || '' }}
 
       - name: Archive artifacts
-        uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08 # v4.6.0
+        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4.6.1
         if: always()
         with:
           name: performance-${{ inputs.multisite && 'multisite' || 'single' }}-${{ inputs.memcached && 'memcached' || 'default' }}-${{ inputs.subject }}
