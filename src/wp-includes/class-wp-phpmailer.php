@@ -48,7 +48,7 @@ class WP_PHPMailer extends PHPMailer\PHPMailer\PHPMailer {
 				'php.ini'
 			),
 			'connect_host'         => __( 'SMTP Error: Could not connect to SMTP host.' ),
-			'data_not_accepted'    => __( 'SMTP Error: data not accepted.' ),
+			'data_not_accepted'    => __( 'SMTP Error: Data not accepted.' ),
 			'empty_message'        => __( 'Message body empty' ),
 			/* translators: There is a space after the colon. */
 			'encoding'             => __( 'Unknown encoding: ' ),
@@ -67,7 +67,7 @@ class WP_PHPMailer extends PHPMailer\PHPMailer\PHPMailer {
 			'invalid_address'      => __( 'Invalid address: ' ),
 			'invalid_header'       => __( 'Invalid header name or value' ),
 			/* translators: There is a space after the colon. */
-			'invalid_hostentry'    => __( 'Invalid hostentry: ' ),
+			'invalid_hostentry'    => __( 'Invalid host entry: ' ),
 			/* translators: There is a space after the colon. */
 			'invalid_host'         => __( 'Invalid host: ' ),
 			/* translators: There is a space at the beginning. */
@@ -88,6 +88,7 @@ class WP_PHPMailer extends PHPMailer\PHPMailer\PHPMailer {
 			'smtp_error'           => __( 'SMTP server error: ' ),
 			/* translators: There is a space after the colon. */
 			'variable_set'         => __( 'Cannot set or reset variable: ' ),
+			'no_smtputf8'          => __( 'Server does not support SMTPUTF8 needed to send to Unicode addresses' ),
 		);
 
 		return true;

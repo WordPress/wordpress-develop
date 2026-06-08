@@ -45,7 +45,7 @@ concurrency:
 permissions: {}
 
 jobs:
-  # Tests the WordPress Core build process on multiple operating systems.
+  # Tests the WordPress Core build process.
   test-core-build-process:
     name: Core running from ${{ matrix.directory }}
     uses: ./.github/workflows/reusable-test-core-build-process.yml
@@ -55,30 +55,31 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ ubuntu-24.04, windows-2022 ]
+        os: [ 'ubuntu-24.04' ]
         directory: [ 'src', 'build' ]
         include:
           # Only prepare artifacts for Playground once.
-          - os: ubuntu-24.04
+          - os: 'ubuntu-24.04'
             directory: 'build'
             save-build: true
             prepare-playground: ${{ github.event_name == 'pull_request' && true || '' }}
-
     with:
       os: ${{ matrix.os }}
       directory: ${{ matrix.directory }}
       save-build: ${{ matrix.save-build && matrix.save-build || false }}
       prepare-playground: ${{ matrix.prepare-playground && matrix.prepare-playground || false }}
 
-  # Tests the WordPress Core build process on MacOS.
+  # Tests the WordPress Core build process on additional operating systems.
   #
-  # This is separate from the job above in order to use stricter conditions when determining when to run.
-  # This avoids unintentionally consuming excessive minutes, as MacOS jobs consume minutes at a 10x rate.
+  # This is separate from the job above in order to use stricter conditions when determining when to test additional
+  # operating systems. This avoids unintentionally consuming excessive minutes. Windows-based jobs consume minutes at a
+  # 2x rate, and MacOS-based jobs at a 10x rate.
+  # See https://docs.github.com/en/billing/concepts/product-billing/github-actions#per-minute-rates.
   #
   # The `matrix` and `runner` contexts are not available for use within `if` expressions. So there is
   # currently no way to determine the OS being used on a given job.
   # See https://docs.github.com/en/actions/learn-github-actions/contexts#context-availability.
-  test-core-build-process-macos:
+  test-core-build-process-additional-os:
     name: Core running from ${{ matrix.directory }}
     uses: ./.github/workflows/reusable-test-core-build-process.yml
     permissions:
@@ -87,37 +88,14 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ macos-14 ]
+        os: [ 'macos-14', 'windows-2022' ]
         directory: [ 'src', 'build' ]
     with:
       os: ${{ matrix.os }}
       directory: ${{ matrix.directory }}
 
-  # Tests the Gutenberg plugin build process on multiple operating systems when run within a wordpress-develop checkout.
+  # Tests the Gutenberg plugin build process within a wordpress-develop checkout.
   test-gutenberg-build-process:
-    name: Gutenberg running from ${{ matrix.directory }}
-    uses: ./.github/workflows/reusable-test-gutenberg-build-process.yml
-    permissions:
-      contents: read
-    if: ${{ github.repository == 'WordPress/wordpress-develop' || ( github.event_name == 'pull_request' && github.actor != 'dependabot[bot]' ) }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ ubuntu-24.04, windows-2022 ]
-        directory: [ 'src', 'build' ]
-    with:
-      os: ${{ matrix.os }}
-      directory: ${{ matrix.directory }}
-
-  # Tests the Gutenberg plugin build process on MacOS when run within a wordpress-develop checkout.
-  #
-  # This is separate from the job above in order to use stricter conditions when determining when to run.
-  # This avoids unintentionally consuming excessive minutes, as MacOS jobs consume minutes at a 10x rate.
-  #
-  # The `matrix` and `runner` contexts are not available for use within `if` expressions. So there is
-  # currently no way to determine the OS being used on a given job.
-  # See https://docs.github.com/en/actions/learn-github-actions/contexts#context-availability.
-  test-gutenberg-build-process-macos:
     name: Gutenberg running from ${{ matrix.directory }}
     uses: ./.github/workflows/reusable-test-gutenberg-build-process.yml
     permissions:
@@ -126,7 +104,32 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ macos-14 ]
+        os: [ 'ubuntu-24.04' ]
+        directory: [ 'src', 'build' ]
+    with:
+      os: ${{ matrix.os }}
+      directory: ${{ matrix.directory }}
+
+  # Tests the Gutenberg plugin build process on additional operating systems.
+  #
+  # This is separate from the job above in order to use stricter conditions when determining when to test additional
+  # operating systems. This avoids unintentionally consuming excessive minutes. Windows-based jobs consume minutes at a
+  # 2x rate, and MacOS-based jobs at a 10x rate.
+  # See https://docs.github.com/en/billing/concepts/product-billing/github-actions#per-minute-rates.
+  #
+  # The `matrix` and `runner` contexts are not available for use within `if` expressions. So there is
+  # currently no way to determine the OS being used on a given job.
+  # See https://docs.github.com/en/actions/learn-github-actions/contexts#context-availability.
+  test-gutenberg-build-process-additional-os:
+    name: Gutenberg running from ${{ matrix.directory }}
+    uses: ./.github/workflows/reusable-test-gutenberg-build-process.yml
+    permissions:
+      contents: read
+    if: ${{ github.repository == 'WordPress/wordpress-develop' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ 'macos-14', 'windows-2022' ]
         directory: [ 'src', 'build' ]
     with:
       os: ${{ matrix.os }}
@@ -138,7 +141,7 @@ jobs:
     permissions:
       actions: read
       contents: read
-    needs: [ test-core-build-process, test-core-build-process-macos, test-gutenberg-build-process, test-gutenberg-build-process-macos ]
+    needs: [ test-core-build-process, test-core-build-process-additional-os, test-gutenberg-build-process, test-gutenberg-build-process-additional-os ]
     if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name != 'pull_request' && always() }}
     with:
       calling_status: ${{ contains( needs.*.result, 'cancelled' ) && 'cancelled' || contains( needs.*.result, 'failure' ) && 'failure' || 'success' }}

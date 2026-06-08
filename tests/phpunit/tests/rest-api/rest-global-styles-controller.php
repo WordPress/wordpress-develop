@@ -133,13 +133,13 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 	public function test_register_routes() {
 		$routes = rest_get_server()->get_routes();
 		$this->assertArrayHasKey(
-			'/wp/v2/global-styles/(?P<id>[\/\w-]+)',
+			'/wp/v2/global-styles/(?P<id>[\/\d+]+)',
 			$routes,
 			'Single global style based on the given ID route does not exist'
 		);
 		$this->assertCount(
 			2,
-			$routes['/wp/v2/global-styles/(?P<id>[\/\w-]+)'],
+			$routes['/wp/v2/global-styles/(?P<id>[\/\d+]+)'],
 			'Single global style based on the given ID route does not have exactly two elements'
 		);
 		$this->assertArrayHasKey(
@@ -408,7 +408,7 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 			// Themes deep in subdirectories.
 			'2 subdirectories deep'  => array(
 				'theme_dirname' => 'subdir/subsubdir/mytheme',
-				'expected'      => 'rest_global_styles_not_found',
+				'expected'      => 'rest_no_route',
 			),
 		);
 	}
@@ -775,5 +775,55 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 		} else {
 			$this->assertArrayHasKey( 'https://api.w.org/action-edit-css', $links );
 		}
+	}
+
+	/**
+	 * Test that the route accepts integer IDs.
+	 *
+	 * @ticket 61911
+	 */
+	public function test_global_styles_route_accepts_integer_id() {
+		wp_set_current_user( self::$admin_id );
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/global-styles/' . self::$global_styles_id );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertEquals( 200, $response->get_status() );
+
+		$data = $response->get_data();
+		$this->assertIsInt( $data['id'] );
+		$this->assertSame( self::$global_styles_id, $data['id'] );
+	}
+
+	/**
+	 * Test that the schema defines ID as an integer.
+	 *
+	 * @ticket 61911
+	 */
+	public function test_global_styles_schema_id_type() {
+		$request  = new WP_REST_Request( 'OPTIONS', '/wp/v2/global-styles/' . self::$global_styles_id );
+		$response = rest_get_server()->dispatch( $request );
+
+		$data   = $response->get_data();
+		$schema = $data['schema'];
+
+		$this->assertArrayHasKey( 'properties', $schema );
+		$this->assertArrayHasKey( 'id', $schema['properties'] );
+		$this->assertArrayHasKey( 'type', $schema['properties']['id'] );
+		$this->assertSame( 'integer', $schema['properties']['id']['type'] );
+	}
+
+	/**
+	 * Test that the route argument schema defines ID as an integer.
+	 *
+	 * @ticket 61911
+	 */
+	public function test_global_styles_route_args_schema() {
+		$routes     = rest_get_server()->get_routes();
+		$route_data = $routes['/wp/v2/global-styles/(?P<id>[\/\d+]+)'];
+
+		$this->assertArrayHasKey( 'args', $route_data[0] );
+		$this->assertArrayHasKey( 'id', $route_data[0]['args'] );
+		$this->assertArrayHasKey( 'type', $route_data[0]['args']['id'] );
+		$this->assertSame( 'integer', $route_data[0]['args']['id']['type'] );
 	}
 }

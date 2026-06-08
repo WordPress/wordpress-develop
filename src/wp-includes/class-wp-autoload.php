@@ -471,6 +471,7 @@ final class WP_Autoload {
 		require_once ABSPATH . 'wp-includes/sodium_compat/autoload.php';
 
 		spl_autoload_register( array( '\WpOrg\Requests\Autoload', 'load' ) );
+		spl_autoload_register( array( __CLASS__, 'autoload_phpmailer' ) );
 	}
 
 	/**
@@ -480,6 +481,33 @@ final class WP_Autoload {
 	 */
 	public static function register_core() {
 		spl_autoload_register( array( __CLASS__, 'autoload_core' ), true, true );
+	}
+
+	/**
+	 * Autoload bundled PHPMailer classes.
+	 *
+	 * @since x.x.x
+	 *
+	 * @param string $class_name Class name.
+	 */
+	public static function autoload_phpmailer( string $class_name ) {
+		$prefix = 'PHPMailer\\PHPMailer\\';
+
+		if ( ! str_starts_with( $class_name, $prefix ) ) {
+			return;
+		}
+
+		$class_file = substr( $class_name, strlen( $prefix ) );
+
+		if ( ! preg_match( '/^[A-Za-z][A-Za-z0-9_]*$/', $class_file ) ) {
+			return;
+		}
+
+		$file_path = ABSPATH . 'wp-includes/PHPMailer/' . $class_file . '.php';
+
+		if ( file_exists( $file_path ) ) {
+			require $file_path;
+		}
 	}
 
 	/**

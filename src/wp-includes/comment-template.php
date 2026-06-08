@@ -834,12 +834,8 @@ function get_comment_link( $comment = null, $args = array() ) {
 
 	if ( $cpage && get_option( 'page_comments' ) ) {
 		if ( $wp_rewrite->using_permalinks() ) {
-			if ( $cpage ) {
-				$comment_link = trailingslashit( $comment_link ) . $wp_rewrite->comments_pagination_base . '-' . $cpage;
-			}
-
-			$comment_link = user_trailingslashit( $comment_link, 'comment' );
-		} elseif ( $cpage ) {
+			$comment_link = trailingslashit( $comment_link ) . $wp_rewrite->comments_pagination_base . '-' . $cpage;
+		} else {
 			$comment_link = add_query_arg( 'cpage', $cpage, $comment_link );
 		}
 	}
@@ -1754,7 +1750,7 @@ function comments_popup_link( $zero = false, $one = false, $more = false, $css_c
  * @param int|WP_Comment $comment Optional. Comment being replied to. Default current comment.
  * @param int|WP_Post    $post    Optional. Post ID or WP_Post object the comment is going to be displayed on.
  *                                Default current post.
- * @return string|false|null Link to show comment form, if successful. False, if comments are closed.
+ * @return string|false|null Link to show comment form on success. False if comments are closed. Null on failure.
  */
 function get_comment_reply_link( $args = array(), $comment = null, $post = null ) {
 	$defaults = array(
@@ -1777,13 +1773,13 @@ function get_comment_reply_link( $args = array(), $comment = null, $post = null 
 	$args['depth']     = (int) $args['depth'];
 
 	if ( 0 === $args['depth'] || $args['max_depth'] <= $args['depth'] ) {
-		return;
+		return null;
 	}
 
 	$comment = get_comment( $comment );
 
 	if ( empty( $comment ) ) {
-		return;
+		return null;
 	}
 
 	if ( empty( $post ) ) {
@@ -1911,9 +1907,9 @@ function comment_reply_link( $args = array(), $comment = null, $post = null ) {
  *     @type string $before     Text or HTML to add before the reply link. Default empty.
  *     @type string $after      Text or HTML to add after the reply link. Default empty.
  * }
- * @param int|WP_Post $post    Optional. Post ID or WP_Post object the comment is going to be displayed on.
- *                             Default current post.
- * @return string|false|null Link to show comment form, if successful. False, if comments are closed.
+ * @param int|WP_Post $post Optional. Post ID or WP_Post object the comment is going to be displayed on.
+ *                          Default current post.
+ * @return string|false Link to show comment form on success. False if comments are closed.
  */
 function get_post_reply_link( $args = array(), $post = null ) {
 	$defaults = array(
@@ -2446,6 +2442,7 @@ function wp_list_comments( $args = array(), $comments = null ) {
  * @since 4.6.0 Introduced the 'action' argument.
  * @since 4.9.6 Introduced the 'cookies' default comment field.
  * @since 5.5.0 Introduced the 'class_container' argument.
+ * @since 6.8.2 Introduced the 'novalidate' argument.
  *
  * @param array       $args {
  *     Optional. Default arguments and form fields to override.
@@ -2467,6 +2464,7 @@ function wp_list_comments( $args = array(), $comments = null ) {
  *                                        Default 'Your email address will not be published.'.
  *     @type string $comment_notes_after  HTML element for a message displayed after the textarea field.
  *     @type string $action               The comment form element action attribute. Default '/wp-comments-post.php'.
+ *     @type bool   $novalidate           Whether the novalidate attribute is added to the comment form. Default false.
  *     @type string $id_form              The comment form element id attribute. Default 'commentform'.
  *     @type string $id_submit            The comment submit element id attribute. Default 'submit'.
  *     @type string $class_container      The comment form container class attribute. Default 'comment-respond'.
@@ -2646,6 +2644,7 @@ function comment_form( $args = array(), $post = null ) {
 		),
 		'comment_notes_after'  => '',
 		'action'               => site_url( '/wp-comments-post.php' ),
+		'novalidate'           => false,
 		'id_form'              => 'commentform',
 		'id_submit'            => 'submit',
 		'class_container'      => 'comment-respond',
@@ -2729,7 +2728,7 @@ function comment_form( $args = array(), $post = null ) {
 				esc_url( $args['action'] ),
 				esc_attr( $args['id_form'] ),
 				esc_attr( $args['class_form'] ),
-				( $html5 ? ' novalidate' : '' )
+				( $args['novalidate'] ? ' novalidate' : '' )
 			);
 
 			/**

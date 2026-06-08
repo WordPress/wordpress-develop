@@ -155,7 +155,7 @@ jobs:
         run: npm run env:restart
 
       - name: Test a CLI command
-        run: npm run env:cli wp option get siteurl
+        run: npm run env:cli option get siteurl
 
       - name: Test logs command
         run: npm run env:logs

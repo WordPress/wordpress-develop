@@ -63,6 +63,10 @@ function twentytwenty_site_logo( $args = array(), $display = true ) {
 		$contents  = sprintf( $args['logo'], $logo, esc_html( $site_title ) );
 		$classname = $args['logo_class'];
 	} else {
+		if ( ! $site_title ) {
+			return '';
+		}
+
 		$contents = sprintf( $args['title'], esc_url( get_home_url( null, '/' ) ), esc_html( $site_title ) );
 		if (
 			( is_front_page() || is_home() && ( (int) get_option( 'page_for_posts' ) !== get_queried_object_id() ) )
@@ -165,7 +169,7 @@ function twentytwenty_is_comment_by_post_author( $comment = null ) {
 /**
  * Filters comment reply link to not JS scroll.
  *
- * Filter the comment reply link to add a class indicating it should not use JS slow-scroll, as it
+ * Filters the comment reply link to add a class indicating it should not use JS slow-scroll, as it
  * makes it scroll to the wrong position on the page.
  *
  * @since Twenty Twenty 1.0
@@ -534,7 +538,7 @@ function twentytwenty_get_post_meta( $post_id = null, $location = 'single-top' )
 /**
  * Filters classes of wp_list_pages items to match menu items.
  *
- * Filter the class applied to wp_list_pages() items with children to match the menu class, to simplify.
+ * Filters the class applied to wp_list_pages() items with children to match the menu class, to simplify
  * styling of sub levels in the fallback. Only applied if the match_menu_classes argument is set.
  *
  * @since Twenty Twenty 1.0

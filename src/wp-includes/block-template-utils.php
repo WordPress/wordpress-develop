@@ -344,11 +344,8 @@ function _get_block_template_file( $template_type, $slug ) {
 				return _add_block_template_part_area_info( $new_template_item );
 			}
 
-			if ( 'wp_template' === $template_type ) {
-				return _add_block_template_info( $new_template_item );
-			}
-
-			return $new_template_item;
+			// If it's not a `wp_template_part`, it must be a `wp_template`.
+			return _add_block_template_info( $new_template_item );
 		}
 	}
 
@@ -440,7 +437,7 @@ function _get_block_templates_files( $template_type, $query = array() ) {
 
 			if ( 'wp_template_part' === $template_type ) {
 				$candidate = _add_block_template_part_area_info( $new_template_item );
-				if ( ! isset( $area ) || ( isset( $area ) && $area === $candidate['area'] ) ) {
+				if ( ! isset( $area ) || $area === $candidate['area'] ) {
 					$template_files[ $template_slug ] = $candidate;
 				}
 			}

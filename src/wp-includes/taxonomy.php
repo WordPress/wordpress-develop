@@ -1337,7 +1337,7 @@ function get_terms( $args = array(), $deprecated = '' ) {
 		$args['taxonomy'] = $taxonomies;
 	} else {
 		$args = wp_parse_args( $args, $defaults );
-		if ( isset( $args['taxonomy'] ) && null !== $args['taxonomy'] ) {
+		if ( isset( $args['taxonomy'] ) ) {
 			$args['taxonomy'] = (array) $args['taxonomy'];
 		}
 	}
@@ -1382,6 +1382,8 @@ function get_terms( $args = array(), $deprecated = '' ) {
 /**
  * Adds metadata to a term.
  *
+ * For historical reasons both the meta key and the meta value are expected to be "slashed" (slashes escaped) on input.
+ *
  * @since 4.4.0
  *
  * @param int    $term_id    Term ID.
@@ -1408,6 +1410,8 @@ function add_term_meta( $term_id, $meta_key, $meta_value, $unique = false ) {
 
 /**
  * Removes metadata matching criteria from a term.
+ *
+ * For historical reasons both the meta key and the meta value are expected to be "slashed" (slashes escaped) on input.
  *
  * @since 4.4.0
  *
@@ -1454,6 +1458,8 @@ function get_term_meta( $term_id, $key = '', $single = false ) {
  * Use the `$prev_value` parameter to differentiate between meta fields with the same key and term ID.
  *
  * If the meta field for the term does not exist, it will be added.
+ *
+ * For historical reasons both the meta key and the meta value are expected to be "slashed" (slashes escaped) on input.
  *
  * @since 4.4.0
  *
@@ -2137,11 +2143,11 @@ function wp_delete_term( $term, $taxonomy, $args = array() ) {
 			)
 		);
 
-		if ( 1 === count( $terms ) && isset( $default ) ) {
+		if ( 1 === count( $terms ) ) {
 			$terms = array( $default );
 		} else {
 			$terms = array_diff( $terms, array( $term ) );
-			if ( isset( $default ) && isset( $force_default ) && $force_default ) {
+			if ( isset( $force_default ) && $force_default ) {
 				$terms = array_merge( $terms, array( $default ) );
 			}
 		}
@@ -4892,11 +4898,13 @@ function is_object_in_term( $object_id, $taxonomy, $terms = null ) {
 	if ( is_wp_error( $object_terms ) ) {
 		return $object_terms;
 	}
+
 	if ( empty( $object_terms ) ) {
 		return false;
 	}
+
 	if ( empty( $terms ) ) {
-		return ( ! empty( $object_terms ) );
+		return true;
 	}
 
 	$terms = (array) $terms;

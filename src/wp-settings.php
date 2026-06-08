@@ -30,9 +30,9 @@ require_once ABSPATH . WPINC . '/class-wp-autoload.php';
  * @global string   $wp_version              The WordPress version string.
  * @global int      $wp_db_version           WordPress database version.
  * @global string   $tinymce_version         TinyMCE version.
- * @global string   $required_php_version    The required PHP version string.
+ * @global string   $required_php_version    The minimum required PHP version string.
  * @global string[] $required_php_extensions The names of required PHP extensions.
- * @global string   $required_mysql_version  The required MySQL version string.
+ * @global string   $required_mysql_version  The minimum required MySQL version string.
  * @global string   $wp_local_package        Locale code of the package.
  */
 global $wp_version, $wp_db_version, $tinymce_version, $required_php_version, $required_php_extensions, $required_mysql_version, $wp_local_package;
@@ -40,7 +40,7 @@ require ABSPATH . WPINC . '/version.php';
 require ABSPATH . WPINC . '/compat.php';
 require ABSPATH . WPINC . '/load.php';
 
-// Check for the required PHP version and for the MySQL extension or a database drop-in.
+// Check the server requirements.
 wp_check_php_mysql_versions();
 
 // Include files required for initialization.
@@ -205,6 +205,7 @@ require ABSPATH . WPINC . '/rest-api.php';
 require ABSPATH . WPINC . '/sitemaps.php';
 require ABSPATH . WPINC . '/block-bindings.php';
 require ABSPATH . WPINC . '/block-bindings/pattern-overrides.php';
+require ABSPATH . WPINC . '/block-bindings/post-data.php';
 require ABSPATH . WPINC . '/block-bindings/post-meta.php';
 require ABSPATH . WPINC . '/blocks.php';
 require ABSPATH . WPINC . '/blocks/index.php';

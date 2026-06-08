@@ -877,6 +877,11 @@ function upgrade_all() {
 	if ( $wp_current_db_version < 58975 ) {
 		upgrade_670();
 	}
+
+	if ( $wp_current_db_version < 60421 ) {
+		upgrade_682();
+	}
+
 	maybe_disable_link_manager();
 
 	maybe_disable_automattic_widgets();
@@ -2435,6 +2440,42 @@ function upgrade_670() {
 		wp_set_options_autoload( $options, false );
 	}
 }
+
+/**
+ * Executes changes made in WordPress 6.8.2.
+ *
+ * @ignore
+ * @since 6.8.2
+ *
+ * @global int $wp_current_db_version The old (current) database version.
+ */
+function upgrade_682() {
+	global $wp_current_db_version;
+
+	if ( $wp_current_db_version < 60421 ) {
+		// Upgrade Ping-O-Matic and Twingly to use HTTPS.
+		$ping_sites_value = get_option( 'ping_sites' );
+		$ping_sites_value = explode( "\n", $ping_sites_value );
+		$ping_sites_value = array_map(
+			function ( $url ) {
+				$url = trim( $url );
+				$url = sanitize_url( $url );
+				if (
+					str_ends_with( trailingslashit( $url ), '://rpc.pingomatic.com/' )
+					|| str_ends_with( trailingslashit( $url ), '://rpc.twingly.com/' )
+				) {
+					$url = set_url_scheme( $url, 'https' );
+				}
+				return $url;
+			},
+			$ping_sites_value
+		);
+		$ping_sites_value = array_filter( $ping_sites_value );
+		$ping_sites_value = implode( "\n", $ping_sites_value );
+		update_option( 'ping_sites', $ping_sites_value );
+	}
+}
+
 /**
  * Executes network-level upgrade routines.
  *
@@ -3666,7 +3707,7 @@ function pre_schema_upgrade() {
 	}
 
 	// Multisite schema upgrades.
-	if ( $wp_current_db_version < 25448 && is_multisite() && wp_should_upgrade_global_tables() ) {
+	if ( $wp_current_db_version < 60497 && is_multisite() && wp_should_upgrade_global_tables() ) {
 
 		// Upgrade versions prior to 3.7.
 		if ( $wp_current_db_version < 25179 ) {
@@ -3679,6 +3720,20 @@ function pre_schema_upgrade() {
 			// Convert archived from enum to tinyint.
 			$wpdb->query( "ALTER TABLE $wpdb->blogs CHANGE COLUMN archived archived varchar(1) NOT NULL default '0'" );
 			$wpdb->query( "ALTER TABLE $wpdb->blogs CHANGE COLUMN archived archived tinyint(2) NOT NULL default 0" );
+		}
+
+		// Upgrade versions prior to 6.9
+		if ( $wp_current_db_version < 60497 ) {
+			// Convert ID columns from signed to unsigned
+			$wpdb->query( "ALTER TABLE $wpdb->blogs MODIFY blog_id bigint(20) unsigned NOT NULL auto_increment" );
+			$wpdb->query( "ALTER TABLE $wpdb->blogs MODIFY site_id bigint(20) unsigned NOT NULL default 0" );
+			$wpdb->query( "ALTER TABLE $wpdb->blogmeta MODIFY blog_id bigint(20) unsigned NOT NULL default 0" );
+			$wpdb->query( "ALTER TABLE $wpdb->registration_log MODIFY ID bigint(20) unsigned NOT NULL auto_increment" );
+			$wpdb->query( "ALTER TABLE $wpdb->registration_log MODIFY blog_id bigint(20) unsigned NOT NULL default 0" );
+			$wpdb->query( "ALTER TABLE $wpdb->site MODIFY id bigint(20) unsigned NOT NULL auto_increment" );
+			$wpdb->query( "ALTER TABLE $wpdb->sitemeta MODIFY meta_id bigint(20) unsigned NOT NULL auto_increment" );
+			$wpdb->query( "ALTER TABLE $wpdb->sitemeta MODIFY site_id bigint(20) unsigned NOT NULL default 0" );
+			$wpdb->query( "ALTER TABLE $wpdb->signups MODIFY signup_id bigint(20) unsigned NOT NULL auto_increment" );
 		}
 	}
 

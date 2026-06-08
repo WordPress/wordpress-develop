@@ -361,7 +361,7 @@ function remove_all_filters( $hook_name, $priority = false ) {
  *
  * @global string[] $wp_current_filter Stores the list of current filters with the current one last
  *
- * @return string Hook name of the current filter.
+ * @return string|false Hook name of the current filter, false if no filter is running.
  */
 function current_filter() {
 	global $wp_current_filter;
@@ -634,7 +634,7 @@ function remove_all_actions( $hook_name, $priority = false ) {
  *
  * @since 3.9.0
  *
- * @return string Hook name of the current action.
+ * @return string|false Hook name of the current action, false if no action is running.
  */
 function current_action() {
 	return current_filter();

@@ -850,6 +850,9 @@ class Tests_DB extends WP_UnitTestCase {
 
 			// @ticket 32763
 			'SELECT ' . str_repeat( 'a', 10000 ) . " FROM (SELECT * FROM $table) as subquery",
+
+			// @ticket 63777
+			"SET STATEMENT max_statement_time=1 FOR SELECT * FROM $table",
 		);
 
 		$querycount = count( $queries );

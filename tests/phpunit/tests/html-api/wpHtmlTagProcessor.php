@@ -1982,6 +1982,49 @@ HTML;
 	}
 
 	/**
+	 * Test that script tags are parsed correctly.
+	 *
+	 * Script tag parsing is very complicated, see the following resources for more details:
+	 *
+	 * - https://html.spec.whatwg.org/multipage/parsing.html#script-data-state
+	 * - https://html.spec.whatwg.org/multipage/scripting.html#restrictions-for-contents-of-script-elements
+	 *
+	 * @ticket 63738
+	 *
+	 * @dataProvider data_script_tag
+	 */
+	public function test_script_tag_parsing( string $input, bool $closes ) {
+		$processor = new WP_HTML_Tag_Processor( $input );
+
+		if ( $closes ) {
+			$this->assertTrue( $processor->next_token(), 'Expected to find complete script tag.' );
+			$this->assertSame( 'SCRIPT', $processor->get_tag() );
+			return;
+		}
+
+		$this->assertFalse( $processor->next_token(), 'Expected to fail next_token().' );
+		$this->assertTrue( $processor->paused_at_incomplete_token(), 'Expected an incomplete SCRIPT tag token.' );
+	}
+
+	/**
+	 * Data provider.
+	 */
+	public static function data_script_tag(): array {
+		return array(
+			'Basic script tag'                          => array( '<script></script>', true ),
+			'Script with type attribute'                => array( '<script type="text/javascript"></script>', true ),
+			'Script data escaped'                       => array( '<script><!--</script>', true ),
+			'Script data double-escaped exit (comment)' => array( '<script><!--<script>--></script>', true ),
+			'Script data double-escaped exit (closed)'  => array( '<script><!--<script></script></script>', true ),
+			'Script data double-escaped exit (closed/truncated)' => array( '<script><!--<script></script </script>', true ),
+			'Script data no double-escape'              => array( '<script><!-- --><script></script>', true ),
+
+			'Script tag with self-close flag (ignored)' => array( '<script />', false ),
+			'Script data double-escaped'                => array( '<script><!--<script></script>', false ),
+		);
+	}
+
+	/**
 	 * Invalid tag names are comments on tag closers.
 	 *
 	 * @ticket 58007

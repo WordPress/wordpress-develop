@@ -193,4 +193,38 @@ class Tests_Comment_CommentForm extends WP_UnitTestCase {
 		$post_hidden_field = "<input type='hidden' name='comment_post_ID' value='{$post_id}' id='comment_post_ID' />";
 		$this->assertStringContainsString( $post_hidden_field, $form );
 	}
+
+	/**
+	 * Tests novalidate attribute on the comment form.
+	 *
+	 * @ticket 47595
+	 */
+	public function test_comment_form_and_novalidate_attribute() {
+		$post_id = self::$post_id;
+
+		// By default, the novalidate is not emitted.
+		$form = get_echo( 'comment_form', array( array(), $post_id ) );
+		$p    = new WP_HTML_Tag_Processor( $form );
+		$this->assertTrue( $p->next_tag( array( 'tag_name' => 'FORM' ) ), 'Expected FORM tag.' );
+		$this->assertNull( $p->get_attribute( 'novalidate' ), 'Expected FORM to not have novalidate attribute by default.' );
+
+		// Opt in to the novalidate attribute by passing an arg to comment_form().
+		$form = get_echo( 'comment_form', array( array( 'novalidate' => true ), $post_id ) );
+		$p    = new WP_HTML_Tag_Processor( $form );
+		$this->assertTrue( $p->next_tag( array( 'tag_name' => 'FORM' ) ), 'Expected FORM tag.' );
+		$this->assertTrue( $p->get_attribute( 'novalidate' ), 'Expected FORM to have the novalidate attribute.' );
+
+		// Opt in to the novalidate attribute via the comment_form_defaults filter.
+		add_filter(
+			'comment_form_defaults',
+			static function ( array $defaults ): array {
+				$defaults['novalidate'] = true;
+				return $defaults;
+			}
+		);
+		$form = get_echo( 'comment_form', array( array(), $post_id ) );
+		$p    = new WP_HTML_Tag_Processor( $form );
+		$this->assertTrue( $p->next_tag( array( 'tag_name' => 'FORM' ) ), 'Expected FORM tag.' );
+		$this->assertTrue( $p->get_attribute( 'novalidate' ), 'Expected FORM to have novalidate attribute.' );
+	}
 }

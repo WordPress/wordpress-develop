@@ -348,6 +348,7 @@ function _unhook_block_registration() {
 
 	// Block binding sources.
 	remove_action( 'init', '_register_block_bindings_pattern_overrides_source' );
+	remove_action( 'init', '_register_block_bindings_post_data_source' );
 	remove_action( 'init', '_register_block_bindings_post_meta_source' );
 }
 tests_add_filter( 'init', '_unhook_block_registration', 1000 );

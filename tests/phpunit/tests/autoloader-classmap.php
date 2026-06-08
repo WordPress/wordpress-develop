@@ -125,6 +125,41 @@ class Tests_Autoloader_Classmap extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that bundled PHPMailer classes are autoloaded.
+	 *
+	 * @dataProvider data_autoloader_phpmailer_classes
+	 *
+	 * @covers WP_Autoload::autoload_phpmailer
+	 *
+	 * @param string $class_name Class name.
+	 */
+	public function test_autoloader_phpmailer_classes( $class_name ) {
+		$this->assertTrue(
+			class_exists( $class_name ) || interface_exists( $class_name ),
+			"PHPMailer class '$class_name' could not be autoloaded."
+		);
+	}
+
+	/**
+	 * Data provider for test_autoloader_phpmailer_classes.
+	 *
+	 * @return array Data provider.
+	 */
+	public function data_autoloader_phpmailer_classes() {
+		return $this->text_array_to_dataprovider(
+			array(
+				'PHPMailer\\PHPMailer\\DSNConfigurator',
+				'PHPMailer\\PHPMailer\\Exception',
+				'PHPMailer\\PHPMailer\\OAuth',
+				'PHPMailer\\PHPMailer\\OAuthTokenProvider',
+				'PHPMailer\\PHPMailer\\PHPMailer',
+				'PHPMailer\\PHPMailer\\POP3',
+				'PHPMailer\\PHPMailer\\SMTP',
+			)
+		);
+	}
+
+	/**
 	 * Gets all `class-*.php` files in the WP core directory.
 	 *
 	 * @return array

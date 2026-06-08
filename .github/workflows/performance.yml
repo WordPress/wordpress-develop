@@ -52,7 +52,8 @@ jobs:
     name: Determine Matrix
     runs-on: ubuntu-24.04
     if: ${{ ( github.repository == 'WordPress/wordpress-develop' || ( github.event_name == 'pull_request' && github.actor != 'dependabot[bot]' ) ) && ! contains( github.event.before, '00000000' ) }}
-    permissions: {}
+    permissions:
+      actions: read
     env:
       TARGET_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before }}
     outputs:
