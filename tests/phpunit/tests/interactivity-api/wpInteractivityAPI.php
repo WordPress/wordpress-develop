@@ -1080,6 +1080,38 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that the `evaluate` method operates correctly when used with the
+	 * negation operator (!) with non-existent paths.
+	 *
+	 * @ticket 62374
+	 *
+	 * @covers ::evaluate
+	 */
+	public function test_evaluate_value_negation_non_existent_path() {
+		$this->interactivity->state( 'myPlugin', array() );
+		$this->interactivity->state( 'otherPlugin', array() );
+		$this->set_internal_context_stack(
+			array(
+				'myPlugin'    => array(),
+				'otherPlugin' => array(),
+			)
+		);
+		$this->set_internal_namespace_stack( 'myPlugin' );
+
+		$result = $this->evaluate( '!state.missing' );
+		$this->assertTrue( $result );
+
+		$result = $this->evaluate( '!context.missing' );
+		$this->assertTrue( $result );
+
+		$result = $this->evaluate( 'otherPlugin::!state.deeply.nested.missing' );
+		$this->assertTrue( $result );
+
+		$result = $this->evaluate( 'otherPlugin::!context.deeply.nested.missing' );
+		$this->assertTrue( $result );
+	}
+
+	/**
 	 * Tests the `evaluate` method with non-existent paths.
 	 *
 	 * @ticket 60356

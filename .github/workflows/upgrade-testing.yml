@@ -7,12 +7,12 @@ on:
     # Always test the workflow after it's updated.
     paths:
       - '.github/workflows/upgrade-testing.yml'
-      - '.github/workflows/upgrade-testing-run.yml'
+      - '.github/workflows/reusable-upgrade-testing.yml'
   pull_request:
     # Always test the workflow when changes are suggested.
     paths:
       - '.github/workflows/upgrade-testing.yml'
-      - '.github/workflows/upgrade-testing-run.yml'
+      - '.github/workflows/reusable-upgrade-testing.yml'
   workflow_dispatch:
     inputs:
       new-version:
@@ -46,7 +46,7 @@ jobs:
         php: [ '8.0', '8.1', '8.2', '8.3', '8.4' ]
         db-type: [ 'mysql' ]
         db-version: [ '5.7', '8.0', '8.4' ]
-        wp: [ '6.0', '6.1', '6.2', '6.3', '6.4', '6.5', '6.6', '6.7-RC1' ]
+        wp: [ '6.0', '6.1', '6.2', '6.3', '6.4', '6.5', '6.6', '6.7' ]
         multisite: [ false, true ]
 
     with:
@@ -72,7 +72,7 @@ jobs:
         php: [ '7.2', '7.3', '7.4' ]
         db-type: [ 'mysql' ]
         db-version: [ '5.7', '8.0', '8.4' ]
-        wp: [ '6.0', '6.1', '6.2', '6.3', '6.4', '6.5', '6.6', '6.7-RC1' ]
+        wp: [ '6.0', '6.1', '6.2', '6.3', '6.4', '6.5', '6.6', '6.7' ]
         multisite: [ false, true ]
 
         exclude:
