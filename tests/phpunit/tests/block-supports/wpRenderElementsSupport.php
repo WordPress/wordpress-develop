@@ -118,7 +118,7 @@ class Tests_Block_Supports_WpRenderElementsSupport extends WP_UnitTestCase {
 	 *
 	 * @covers ::wp_render_elements_class_name
 	 */
-	public function test_elements_block_support_class_with_non_string_class_name() {
+	public function test_elements_block_support_class_with_non_string_class_name(): void {
 		$block = array(
 			'blockName' => 'core/paragraph',
 			'attrs'     => array(
