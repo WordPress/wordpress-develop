@@ -1688,7 +1688,7 @@ function strip_core_block_namespace( $block_name = null ) {
  * @return string Comment-delimited block content.
  */
 function get_comment_delimited_block_content( $block_name, $block_attributes, $block_content ) {
-	if ( is_null( $block_name ) ) {
+	if ( null === $block_name ) {
 		return $block_content;
 	}
 
@@ -2358,7 +2358,7 @@ function render_block( $parsed_block ) {
 	 * @param WP_Block|null $parent_block If this is a nested block, a reference to the parent block.
 	 */
 	$pre_render = apply_filters( 'pre_render_block', null, $parsed_block, $parent_block );
-	if ( ! is_null( $pre_render ) ) {
+	if ( null !== $pre_render ) {
 		return $pre_render;
 	}
 

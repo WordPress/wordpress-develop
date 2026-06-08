@@ -2428,7 +2428,7 @@ Thanks!
 function force_ssl_content( $force = null ) {
 	static $forced_content = false;
 
-	if ( ! is_null( $force ) ) {
+	if ( null !== $force ) {
 		$old_forced     = $forced_content;
 		$forced_content = (bool) $force;
 		return $old_forced;

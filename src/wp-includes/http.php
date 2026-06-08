@@ -20,7 +20,7 @@
 function _wp_http_get_object() {
 	static $http = null;
 
-	if ( is_null( $http ) ) {
+	if ( null === $http ) {
 		$http = new WP_Http();
 	}
 	return $http;

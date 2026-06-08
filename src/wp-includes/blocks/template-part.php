@@ -115,7 +115,7 @@ function render_block_core_template_part( $attributes ) {
 	// is set in `wp_debug_mode()`.
 	$is_debug = WP_DEBUG && WP_DEBUG_DISPLAY;
 
-	if ( is_null( $content ) ) {
+	if ( null === $content ) {
 		if ( $is_debug && isset( $attributes['slug'] ) ) {
 			return sprintf(
 				/* translators: %s: Template part slug. */

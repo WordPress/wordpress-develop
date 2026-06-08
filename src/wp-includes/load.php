@@ -1634,11 +1634,11 @@ function wp_installing( $is_installing = null ) {
 	static $installing = null;
 
 	// Support for the `WP_INSTALLING` constant, defined before WP is loaded.
-	if ( is_null( $installing ) ) {
+	if ( null === $installing ) {
 		$installing = defined( 'WP_INSTALLING' ) && WP_INSTALLING;
 	}
 
-	if ( ! is_null( $is_installing ) ) {
+	if ( null !== $is_installing ) {
 		$old_installing = $installing;
 		$installing     = $is_installing;
 

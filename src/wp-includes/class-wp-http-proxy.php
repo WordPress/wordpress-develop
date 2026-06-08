@@ -192,7 +192,7 @@ class WP_HTTP_Proxy {
 		 * @param array     $home     Associative array result of parsing the site URL with `parse_url()`.
 		 */
 		$result = apply_filters( 'pre_http_send_through_proxy', null, $uri, $check, $home );
-		if ( ! is_null( $result ) ) {
+		if ( null !== $result ) {
 			return $result;
 		}
 

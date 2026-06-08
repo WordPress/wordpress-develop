@@ -5581,7 +5581,7 @@ function normalize_whitespace( $str ) {
  * @return string The processed string.
  */
 function wp_strip_all_tags( $text, $remove_breaks = false ) {
-	if ( is_null( $text ) ) {
+	if ( null === $text ) {
 		return '';
 	}
 

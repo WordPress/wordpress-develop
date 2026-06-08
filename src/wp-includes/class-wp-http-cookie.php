@@ -179,7 +179,7 @@ class WP_Http_Cookie {
 	 * @return bool true if allowed, false otherwise.
 	 */
 	public function test( $url ) {
-		if ( is_null( $this->name ) ) {
+		if ( null === $this->name ) {
 			return false;
 		}
 

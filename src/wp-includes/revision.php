@@ -26,7 +26,7 @@ function _wp_post_revision_fields( $post = array(), $deprecated = false ) {
 		$post = get_post( $post, ARRAY_A );
 	}
 
-	if ( is_null( $fields ) ) {
+	if ( null === $fields ) {
 		// Allow these to be versioned.
 		$fields = array(
 			'post_title'   => __( 'Title' ),

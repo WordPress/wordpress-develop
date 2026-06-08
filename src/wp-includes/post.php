@@ -4553,7 +4553,7 @@ function wp_insert_post( $postarr, $wp_error = false, $fire_after_hooks = true )
 		$post_id     = $postarr['ID'];
 		$post_before = get_post( $post_id );
 
-		if ( is_null( $post_before ) ) {
+		if ( null === $post_before ) {
 			if ( $wp_error ) {
 				return new WP_Error( 'invalid_post', __( 'Invalid post ID.' ) );
 			}
@@ -5240,7 +5240,7 @@ function wp_update_post( $postarr = array(), $wp_error = false, $fire_after_hook
 	// First, get all of the original fields.
 	$post = get_post( $postarr['ID'], ARRAY_A );
 
-	if ( is_null( $post ) ) {
+	if ( null === $post ) {
 		if ( $wp_error ) {
 			return new WP_Error( 'invalid_post', __( 'Invalid post ID.' ) );
 		}
