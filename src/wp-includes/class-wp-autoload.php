@@ -11,6 +11,10 @@
  *
  * - `wp-includes/class-wpdb.php`       — defines global constants (OBJECT, ARRAY_A, …)
  *                                        and is loaded explicitly inside require_wp_db().
+ * - `wp-includes/class-wp-http.php`   — top-level code registers the WpOrg\Requests autoloader
+ *                                        and sets the TLS certificate path; must run at bootstrap
+ *                                        time before any HTTP request or WpOrg\Requests\* class
+ *                                        reference. Loaded explicitly in wp-settings.php.
  * - `wp-admin/includes/class-wp-importer.php` — defines the global function get_cli_args()
  *                                               and is loaded by each importer plugin directly.
  *

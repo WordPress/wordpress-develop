@@ -150,6 +150,7 @@ class Tests_Autoloader_Classmap extends WP_UnitTestCase {
 			// Intentionally excluded from the classmap — see the WP_Autoload docblock for details.
 			'wp-includes/class-wp-autoload.php', // The autoloader itself cannot bootstrap itself.
 			'wp-includes/class-wpdb.php',        // Defines global constants at file scope.
+			'wp-includes/class-wp-http.php',     // Top-level code registers the Requests autoloader; must run at bootstrap time.
 		);
 
 		foreach ( $regex as $file ) {

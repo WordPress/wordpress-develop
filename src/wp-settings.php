@@ -211,6 +211,13 @@ require ABSPATH . WPINC . '/canonical.php';
 require ABSPATH . WPINC . '/shortcodes.php';
 require ABSPATH . WPINC . '/embed.php';
 require ABSPATH . WPINC . '/media.php';
+/*
+ * class-wp-http.php is loaded explicitly here rather than via WP_Autoload because
+ * its top-level code registers the WpOrg\Requests autoloader and sets the TLS
+ * certificate path — side effects that must run at bootstrap time, before any
+ * HTTP request is made or any WpOrg\Requests\* class is referenced.
+ */
+require ABSPATH . WPINC . '/class-wp-http.php';
 require ABSPATH . WPINC . '/http.php';
 require ABSPATH . WPINC . '/html-api/html5-named-character-references.php';
 require ABSPATH . WPINC . '/php-ai-client/autoload.php';
