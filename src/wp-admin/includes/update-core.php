@@ -1735,11 +1735,17 @@ function _preload_old_requests_classes_and_interfaces( $to ) {
  */
 function _preload_core_classes_and_interfaces() {
 	/*
-	 * Ensure the autoloader class is available, even when upgrading from an older
-	 * version of WordPress that did not have it. The new class-wp-autoload.php will
-	 * already have been copied to ABSPATH by the time this function is called.
+	 * This function is called before the new core files are copied to ABSPATH,
+	 * so class-wp-autoload.php may not exist yet when upgrading from an older
+	 * version of WordPress that predates the autoloader. In that case the classes
+	 * needed for the upgrade are already loaded into memory via the old bootstrap's
+	 * explicit require calls, so no further preloading is needed.
 	 */
-	require_once ABSPATH . WPINC . '/class-wp-autoload.php';
+	$autoload_file = ABSPATH . WPINC . '/class-wp-autoload.php';
+	if ( ! file_exists( $autoload_file ) ) {
+		return;
+	}
+	require_once $autoload_file;
 
 	/*
 	 * The classes to be preloaded.
