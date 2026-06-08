@@ -109,12 +109,12 @@ class Tests_Block_Supports_WpRenderElementsSupport extends WP_UnitTestCase {
 	 * Tests that a non-string `className` attribute does not cause a fatal
 	 * error and the block content is returned unmodified.
 	 *
-	 * @ticket 65379
-	 *
 	 * Block attributes such as `className` are always expected to be strings,
 	 * however invalid stored data can result in other types being present. The
 	 * render filter should fail gracefully rather than passing an array to
 	 * `preg_match()`.
+	 *
+	 * @ticket 65379
 	 *
 	 * @covers ::wp_render_elements_class_name
 	 */
