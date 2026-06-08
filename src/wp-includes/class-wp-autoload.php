@@ -530,8 +530,14 @@ final class WP_Autoload {
 			return;
 		}
 
-		// Load SimplePie classes.
-		if ( str_starts_with( $class_name, 'simplepie' ) ) {
+		/*
+		 * Load old-style (pre-1.7) unnamespaced SimplePie classes (e.g. SimplePie_Enclosure).
+		 * Namespaced SimplePie\* classes are handled by SimplePie's own PSR-4 autoloader,
+		 * which is registered when class-simplepie.php is first loaded.  Do NOT intercept
+		 * them here: the WP autoloader's require_once would be a no-op on re-entry and the
+		 * nested autoload for SimplePie\SimplePie inside library/SimplePie.php would fail.
+		 */
+		if ( str_starts_with( $class_name, 'simplepie' ) && ! str_contains( $class_name, '\\' ) ) {
 			require_once ABSPATH . 'wp-includes/class-simplepie.php';
 			return;
 		}

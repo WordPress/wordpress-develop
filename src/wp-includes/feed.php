@@ -802,6 +802,18 @@ function feed_content_type( $type = '' ) {
  * @return SimplePie\SimplePie|WP_Error SimplePie object on success or WP_Error object on failure.
  */
 function fetch_feed( $url ) {
+	/*
+	 * Explicitly bootstrap SimplePie's PSR-4 autoloader before using the namespaced API.
+	 * class-simplepie.php registers SimplePie's own autoloader (for SimplePie\* → src/)
+	 * and the legacy shim (for old-style SimplePie_* → library/), which also defines the
+	 * SIMPLEPIE_* backward-compatibility constants.  Without this, the WP_Autoload
+	 * handler fires for "simplepie\simplepie", hits require_once as a no-op on re-entry,
+	 * and SimplePie\SimplePie cannot be resolved.
+	 */
+	if ( ! class_exists( 'SimplePie\SimplePie', false ) ) {
+		require_once ABSPATH . WPINC . '/class-simplepie.php';
+	}
+
 	$feed = new SimplePie\SimplePie();
 
 	$feed->get_registry()->register( SimplePie\Sanitize::class, 'WP_SimplePie_Sanitize_KSES', true );
