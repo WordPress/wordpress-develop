@@ -1,0 +1,120 @@
+##
+# A reusable workflow that reads the .version-support-*.json files and returns values for use in a
+# test matrix based on a given WordPress version.
+##
+name: Determine test matrix values
+
+on:
+  workflow_call:
+    inputs:
+      wp-version:
+        description: 'The WordPress version to test . Accepts major and minor versions, "latest", or "nightly". Major releases must not end with ".0".'
+        type: string
+        default: 'nightly'
+    outputs:
+      major-wp-version:
+        description: "The major WordPress version based on the version provided in wp-version"
+        value: ${{ jobs.major-wp-version.outputs.version }}
+      php-versions:
+        description: "The PHP versions to test for the given wp-version"
+        value: ${{ jobs.php-versions.outputs.versions }}
+      mysql-versions:
+        description: "The MySQL versions to test for the given wp-version"
+        value: ${{ jobs.mysql-versions.outputs.versions }}
+
+jobs:
+  # Determines the major version of WordPress being tested.
+  #
+  # The data in the JSON files are indexed by major version, so this is used to look up the appropriate support policy.
+  #
+  # Performs the following steps:
+  # - Checks out the repository
+  # - Returns the major WordPress version as an output based on the value passed to the wp-version input.
+  major-wp-version:
+    name: Determine major WordPress version
+    runs-on: ubuntu-latest
+    if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
+    timeout-minutes: 5
+    outputs:
+      version: ${{ steps.major-wp-version.outputs.version }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
+
+      - name: Determine the major WordPress version
+        id: major-wp-version
+        run: |
+          if [ "${{ inputs.wp-version }}" ] && [ "${{ inputs.wp-version }}" != "nightly" ] && [ "${{ inputs.wp-version }}" != "latest" ]; then
+            echo "version=$(echo "${{ inputs.wp-version }}" | tr '.' '-' | cut -d '-' -f1-2)" >> $GITHUB_OUTPUT
+          elif [ "${{ inputs.wp-version }}" ]; then
+            echo "version=$(echo "${{ inputs.wp-version }}")" >> $GITHUB_OUTPUT
+          else
+            echo "version=nightly" >> $GITHUB_OUTPUT
+          fi
+
+  # Determines the versions of PHP supported for a version of WordPress.
+  #
+  # Performs the following steps:
+  # - Checks out the repository
+  # - Returns the versions of PHP supported for the major version of WordPress by parsing the
+  #   .version-support-php.json file and returning the values in that version's index.
+  php-versions:
+    name: Determine PHP versions
+    runs-on: ubuntu-latest
+    if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
+    needs: [ major-wp-version ]
+    timeout-minutes: 5
+    outputs:
+      versions: ${{ steps.php-versions.outputs.versions }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
+
+      # Look up the major version's specific PHP support policy when a version is provided.
+      # Otherwise, use the current PHP support policy.
+      - name: Get supported PHP versions
+        id: php-versions
+        run: |
+          if [ "${{ needs.major-wp-version.outputs.version }}" != "latest" ] && [ "${{ needs.major-wp-version.outputs.version }}" != "nightly" ]; then
+            echo "versions=$(jq -r '.["${{ needs.major-wp-version.outputs.version }}"] | @json' .version-support-php.json)" >> $GITHUB_OUTPUT
+          else
+            echo "versions=$(jq -r '.[ (keys[-1]) ] | @json' .version-support-php.json)" >> $GITHUB_OUTPUT
+          fi
+
+  # Determines the versions of MySQL supported for a version of WordPress.
+  #
+  # Performs the following steps:
+  # - Checks out the repository
+  # - Returns the versions of MySQL supported for the major version of WordPress by parsing the
+  #   .version-support-mysql.json file and returning the values in that version's index.
+  mysql-versions:
+    name: Determine MySQL versions
+    runs-on: ubuntu-latest
+    if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
+    needs: [ major-wp-version ]
+    timeout-minutes: 5
+    outputs:
+      versions: ${{ steps.mysql-versions.outputs.versions }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
+
+      # Look up the major version's specific MySQL support policy when a version is provided.
+      # Otherwise, use the current MySQL support policy.
+      - name: Get supported MySQL versions
+        id: mysql-versions
+        run: |
+          if [ "${{ needs.major-wp-version.outputs.version }}" != "latest" ] && [ "${{ needs.major-wp-version.outputs.version }}" != "nightly" ]; then
+            echo "versions=$(jq -r '.["${{ needs.major-wp-version.outputs.version }}"] | @json' .version-support-mysql.json)" >> $GITHUB_OUTPUT
+          else
+            echo "versions=$(jq -r '.[ (keys[-1]) ] | @json' .version-support-mysql.json)" >> $GITHUB_OUTPUT
+          fi

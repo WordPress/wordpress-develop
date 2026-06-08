@@ -123,7 +123,7 @@ jobs:
 
       - name: Leave a comment about testing with Playground
         uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
-        if: ${{ github.actor != 'dependabot' }}
+        if: ${{ github.actor != 'dependabot[bot]' }}
         with:
           script: |
             const fs = require( 'fs' );
@@ -172,7 +172,7 @@ jobs:
     permissions:
       issues: write
       pull-requests: write
-    if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name == 'pull_request_target' && ! github.event.pull_request.draft && github.event.pull_request.state == 'open' && github.actor != 'dependabot' }}
+    if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name == 'pull_request_target' && ! github.event.pull_request.draft && github.event.pull_request.state == 'open' && github.actor != 'dependabot[bot]' }}
     steps:
       - name: Check for Trac ticket and manage comment
         uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1

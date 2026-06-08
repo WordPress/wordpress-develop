@@ -2984,4 +2984,66 @@ HTML
 		$this->assertNull( $doctype->public_identifier );
 		$this->assertNull( $doctype->system_identifier );
 	}
+
+	/**
+	 * @ticket 62522
+	 *
+	 * @dataProvider data_alphabet_by_characters_lowercase
+	 */
+	public function test_recognizes_lowercase_tag_name( string $char ) {
+		/*
+		 * The spacing in the HTML string is important to the problematic
+		 * codepath in ticket #62522.
+		 */
+		$html      = " <{$char}> </{$char}>";
+		$processor = new WP_HTML_Tag_Processor( $html );
+		$this->assertTrue( $processor->next_tag(), "Failed to find open tag in '{$html}'." );
+		$this->assertTrue(
+			$processor->next_tag( array( 'tag_closers' => 'visit' ) ),
+			"Failed to find close tag in '{$html}'."
+		);
+	}
+
+	/**
+	 * @ticket 62522
+	 *
+	 * @dataProvider data_alphabet_by_characters_uppercase
+	 */
+	public function test_recognizes_uppercase_tag_name( string $char ) {
+		/*
+		 * The spacing in the HTML string is important to the problematic
+		 * codepath in ticket #62522.
+		 */
+		$html      = " <{$char}> </{$char}>";
+		$processor = new WP_HTML_Tag_Processor( $html );
+		$this->assertTrue( $processor->next_tag(), "Failed to find open tag in '{$html}'." );
+		$this->assertTrue(
+			$processor->next_tag( array( 'tag_closers' => 'visit' ) ),
+			"Failed to find close tag in '{$html}'."
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return Generator<array>
+	 */
+	public static function data_alphabet_by_characters_lowercase() {
+		$char = 'a';
+		while ( $char <= 'z' ) {
+			yield $char => array( $char );
+			$char = chr( ord( $char ) + 1 );
+		}
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return Generator<array>
+	 */
+	public static function data_alphabet_by_characters_uppercase() {
+		foreach ( self::data_alphabet_by_characters_lowercase() as $data ) {
+			yield strtoupper( $data[0] ) => array( strtoupper( $data[0] ) );
+		}
+	}
 }

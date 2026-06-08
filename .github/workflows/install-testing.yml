@@ -14,8 +14,10 @@ on:
   pull_request:
     # Always test the workflow when changes are suggested.
     paths:
-      - '.github/workflows/install-testing.yml'
       - '.version-support-*.json'
+      - '.github/workflows/install-testing.yml'
+      - '.github/workflows/reusable-support-json-reader-v1.yml'
+
   schedule:
     - cron: '0 0 * * 1'
   workflow_dispatch:
@@ -37,60 +39,16 @@ concurrency:
 permissions: {}
 
 jobs:
-  # Determines the appropriate values for PHP and database versions based on the WordPress version being tested.
-  #
-  # Performs the following steps:
-  # - Checks out the repository.
-  # - Fetches the versions of PHP to test.
-  # - Fetches the versions of MySQL to test.
-  build-matrix:
-    name: Determine PHP Versions to test
-    runs-on: ubuntu-latest
+  # Determines the supported values for PHP and database versions based on the WordPress version being tested.
+  build-test-matrix:
+    name: Build Test Matrix
+    uses: WordPress/wordpress-develop/.github/workflows/reusable-support-json-reader-v1.yml@trunk
+    permissions:
+      contents: read
+    secrets: inherit
     if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
-    timeout-minutes: 5
-    outputs:
-      major-wp-version: ${{ steps.major-wp-version.outputs.version }}
-      php-versions: ${{ steps.php-versions.outputs.versions }}
-      mysql-versions: ${{ steps.mysql-versions.outputs.versions }}
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
-        with:
-          show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
-
-      - name: Determine the major WordPress version
-        id: major-wp-version
-        run: |
-          if [ "${{ inputs.wp-version }}" ] && [ "${{ inputs.wp-version }}" != "nightly" ] && [ "${{ inputs.wp-version }}" != "latest" ]; then
-            echo "version=$(echo "${{ inputs.wp-version }}" | tr '.' '-' | cut -d '-' -f1-2)" >> $GITHUB_OUTPUT
-          elif [ "${{ inputs.wp-version }}" ]; then
-            echo "version=$(echo "${{ inputs.wp-version }}")" >> $GITHUB_OUTPUT
-          else
-            echo "version=nightly" >> $GITHUB_OUTPUT
-          fi
-
-      # Look up the major version's specific PHP support policy when a version is provided.
-      # Otherwise, use the current PHP support policy.
-      - name: Get supported PHP versions
-        id: php-versions
-        run: |
-          if [ "${{ steps.major-wp-version.outputs.version }}" != "latest" ] && [ "${{ steps.major-wp-version.outputs.version }}" != "nightly" ]; then
-            echo "versions=$(jq -r '.["${{ steps.major-wp-version.outputs.version }}"] | @json' .version-support-php.json)" >> $GITHUB_OUTPUT
-          else
-            echo "versions=$(jq -r '.[ (keys[-1]) ] | @json' .version-support-php.json)" >> $GITHUB_OUTPUT
-          fi
-
-      # Look up the major version's specific MySQL support policy when a version is provided.
-      # Otherwise, use the current MySQL support policy.
-      - name: Get supported MySQL versions
-        id: mysql-versions
-        run: |
-          if [ "${{ steps.major-wp-version.outputs.version }}" != "latest" ] && [ "${{ steps.major-wp-version.outputs.version }}" != "nightly" ]; then
-            echo "versions=$(jq -r '.["${{ steps.major-wp-version.outputs.version }}"] | @json' .version-support-mysql.json)" >> $GITHUB_OUTPUT
-          else
-            echo "versions=$(jq -r '.[ (keys[-1]) ] | @json' .version-support-mysql.json)" >> $GITHUB_OUTPUT
-          fi
+    with:
+      wp-version: ${{ inputs.wp-version }}
 
   # Test the WordPress installation process through WP-CLI.
   #
@@ -106,14 +64,14 @@ jobs:
     runs-on: ${{ matrix.os }}
     if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
     timeout-minutes: 10
-    needs: [ build-matrix ]
+    needs: [ build-test-matrix ]
     strategy:
       fail-fast: false
       matrix:
         os: [ ubuntu-latest ]
-        php: ${{ fromJSON( needs.build-matrix.outputs.php-versions ) }}
+        php: ${{ fromJSON( needs.build-test-matrix.outputs.php-versions ) }}
         db-type: [ 'mysql' ]
-        db-version: ${{ fromJSON( needs.build-matrix.outputs.mysql-versions ) }}
+        db-version: ${{ fromJSON( needs.build-test-matrix.outputs.mysql-versions ) }}
         multisite: [ false, true ]
         memcached: [ false ]
 

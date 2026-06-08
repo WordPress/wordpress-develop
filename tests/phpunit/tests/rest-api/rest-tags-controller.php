@@ -482,6 +482,55 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertSame( 'Cape', $data[0]['name'] );
 	}
 
+	/**
+	 * @ticket 62500
+	 */
+	public function test_get_items_custom_tax_without_post_arg_respects_tax_query_args() {
+		register_taxonomy(
+			'batman',
+			'post',
+			array(
+				'show_in_rest' => true,
+				'sort'         => true,
+				'args'         => array(
+					'order'   => 'DESC',
+					'orderby' => 'name',
+				),
+			)
+		);
+		$controller = new WP_REST_Terms_Controller( 'batman' );
+		$controller->register_routes();
+		$term1 = self::factory()->term->create(
+			array(
+				'name'     => 'Cycle',
+				'taxonomy' => 'batman',
+			)
+		);
+		$term2 = self::factory()->term->create(
+			array(
+				'name'     => 'Pod',
+				'taxonomy' => 'batman',
+			)
+		);
+		$term3 = self::factory()->term->create(
+			array(
+				'name'     => 'Cave',
+				'taxonomy' => 'batman',
+			)
+		);
+
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/batman' );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status() );
+
+		$data = $response->get_data();
+		$this->assertCount( 3, $data );
+		$this->assertSame(
+			array( 'Pod', 'Cycle', 'Cave' ),
+			array_column( $data, 'name' )
+		);
+	}
+
 	public function test_get_items_search_args() {
 		$tag1 = self::factory()->tag->create( array( 'name' => 'Apple' ) );
 		$tag2 = self::factory()->tag->create( array( 'name' => 'Banana' ) );

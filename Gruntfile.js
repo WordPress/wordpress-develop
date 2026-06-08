@@ -1066,7 +1066,7 @@ module.exports = function(grunt) {
 								files = spawn( 'gh', [ 'api', 'graphql', '-f', query] );
 
 								if ( 0 !== files.status ) {
-									grunt.fatal( 'Unable to fetch Twemoji file list' );
+									grunt.fatal( files.stderr.toString() );
 								}
 
 								try {
