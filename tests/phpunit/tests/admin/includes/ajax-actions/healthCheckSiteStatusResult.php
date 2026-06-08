@@ -88,7 +88,11 @@ class Tests_wp_ajax_health_check_site_status_result extends WP_Ajax_UnitTestCase
 		wp_set_current_user( self::$admin_id );
 
 		$_POST['_ajax_nonce'] = wp_create_nonce( 'health-check-site-status-result' );
-		$_POST['counts']      = array( 'good' => 1, 'recommended' => 2, 'critical' => 3 );
+		$_POST['counts']      = array(
+			'good' => 1,
+			'recommended' => 2,
+			'critical' => 3,
+		);
 
 		try {
 			$this->_handleAjax( 'health-check-site-status-result' );
