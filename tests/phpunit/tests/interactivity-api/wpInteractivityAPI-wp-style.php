@@ -47,7 +47,9 @@ class Tests_WP_Interactivity_API_WP_Style extends WP_UnitTestCase {
 	 */
 	private function merge_style_property( $style_attribute_value, $style_property_name, $style_property_value ) {
 		$evaluate = new ReflectionMethod( $this->interactivity, 'merge_style_property' );
-		$evaluate->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$evaluate->setAccessible( true );
+		}
 		return $evaluate->invokeArgs( $this->interactivity, array( $style_attribute_value, $style_property_name, $style_property_value ) );
 	}
 

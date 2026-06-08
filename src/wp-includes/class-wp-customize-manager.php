@@ -434,7 +434,7 @@ final class WP_Customize_Manager {
 			( function( api, settings ) {
 				var preview = new api.Messenger( settings.messengerArgs );
 				preview.send( 'iframe-loading-error', settings.error );
-			} )( wp.customize, <?php echo wp_json_encode( $settings ); ?> );
+			} )( wp.customize, <?php echo wp_json_encode( $settings, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ); ?> );
 			</script>
 			<?php
 			$message .= wp_get_inline_script_tag( wp_remove_surrounding_empty_script_tags( ob_get_clean() ) );
@@ -2163,7 +2163,7 @@ final class WP_Customize_Manager {
 		ob_start();
 		?>
 		<script>
-			var _wpCustomizeSettings = <?php echo wp_json_encode( $settings ); ?>;
+			var _wpCustomizeSettings = <?php echo wp_json_encode( $settings, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ); ?>;
 			_wpCustomizeSettings.values = {};
 			(function( v ) {
 				<?php
@@ -2176,8 +2176,8 @@ final class WP_Customize_Manager {
 					if ( $setting->check_capabilities() ) {
 						printf(
 							"v[%s] = %s;\n",
-							wp_json_encode( $id ),
-							wp_json_encode( $setting->js_value() )
+							wp_json_encode( $id, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ),
+							wp_json_encode( $setting->js_value(), JSON_HEX_TAG | JSON_UNESCAPED_SLASHES )
 						);
 					}
 				}
@@ -4946,7 +4946,7 @@ final class WP_Customize_Manager {
 		ob_start();
 		?>
 		<script>
-			var _wpCustomizeSettings = <?php echo wp_json_encode( $settings ); ?>;
+			var _wpCustomizeSettings = <?php echo wp_json_encode( $settings, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ); ?>;
 			_wpCustomizeSettings.initialClientTimestamp = _.now();
 			_wpCustomizeSettings.controls = {};
 			_wpCustomizeSettings.settings = {};
@@ -4958,8 +4958,8 @@ final class WP_Customize_Manager {
 				if ( $setting->check_capabilities() ) {
 					printf(
 						"s[%s] = %s;\n",
-						wp_json_encode( $setting->id ),
-						wp_json_encode( $setting->json() )
+						wp_json_encode( $setting->id, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ),
+						wp_json_encode( $setting->json(), JSON_HEX_TAG | JSON_UNESCAPED_SLASHES )
 					);
 				}
 			}
@@ -4971,8 +4971,8 @@ final class WP_Customize_Manager {
 				if ( $control->check_capabilities() ) {
 					printf(
 						"c[%s] = %s;\n",
-						wp_json_encode( $control->id ),
-						wp_json_encode( $control->json() )
+						wp_json_encode( $control->id, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ),
+						wp_json_encode( $control->json(), JSON_HEX_TAG | JSON_UNESCAPED_SLASHES )
 					);
 				}
 			}

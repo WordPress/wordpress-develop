@@ -22,6 +22,8 @@ on:
       - '**.php'
       # These files configure npm and the task runner. Changes could affect the outcome.
       - 'package*.json'
+      - '.npmrc'
+      - '.nvmrc'
       - 'Gruntfile.js'
       - 'webpack.config.js'
       - 'tools/webpack/**'
@@ -57,6 +59,7 @@ jobs:
       matrix:
         os: [ 'ubuntu-24.04' ]
         directory: [ 'src', 'build' ]
+        test-certificates: [ true ]
         include:
           # Only prepare artifacts for Playground once.
           - os: 'ubuntu-24.04'
@@ -66,6 +69,7 @@ jobs:
     with:
       os: ${{ matrix.os }}
       directory: ${{ matrix.directory }}
+      test-certificates: ${{ matrix.test-certificates && true || false }}
       save-build: ${{ matrix.save-build && matrix.save-build || false }}
       prepare-playground: ${{ matrix.prepare-playground && matrix.prepare-playground || false }}
 
@@ -88,7 +92,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ 'macos-14', 'windows-2022' ]
+        os: [ 'macos-15', 'windows-2025' ]
         directory: [ 'src', 'build' ]
     with:
       os: ${{ matrix.os }}
@@ -129,7 +133,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ 'macos-14', 'windows-2022' ]
+        os: [ 'macos-15', 'windows-2025' ]
         directory: [ 'src', 'build' ]
     with:
       os: ${{ matrix.os }}

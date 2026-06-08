@@ -12,6 +12,9 @@ on:
       - '.github/workflows/upgrade-testing.yml'
       - '.github/workflows/reusable-upgrade-testing.yml'
   pull_request:
+    # This workflow is only meant to run from trunk. Pull requests changing this file with different BASE branches should be ignored.
+    branches:
+      - trunk
     # Always test the workflow when changes are suggested.
     paths:
       - '.github/workflows/upgrade-testing.yml'
@@ -59,6 +62,8 @@ jobs:
     name: ${{ matrix.wp }} to ${{ inputs.new-version && inputs.new-version || 'latest' }}
     uses: ./.github/workflows/reusable-upgrade-testing.yml
     if: ${{ github.repository == 'WordPress/wordpress-develop' }}
+    permissions:
+      contents: read
     strategy:
       fail-fast: false
       matrix:
@@ -94,6 +99,8 @@ jobs:
     name: ${{ matrix.wp }} to ${{ inputs.new-version && inputs.new-version || 'latest' }}
     uses: ./.github/workflows/reusable-upgrade-testing.yml
     if: ${{ github.repository == 'WordPress/wordpress-develop' }}
+    permissions:
+      contents: read
     strategy:
       fail-fast: false
       matrix:
@@ -122,6 +129,8 @@ jobs:
     name: ${{ matrix.wp }} to ${{ inputs.new-version && inputs.new-version || 'latest' }}
     uses: ./.github/workflows/reusable-upgrade-testing.yml
     if: ${{ github.repository == 'WordPress/wordpress-develop' }}
+    permissions:
+      contents: read
     strategy:
       fail-fast: false
       matrix:
@@ -154,6 +163,8 @@ jobs:
     name: ${{ matrix.wp }} to ${{ inputs.new-version && inputs.new-version || 'latest' }}
     uses: ./.github/workflows/reusable-upgrade-testing.yml
     if: ${{ github.repository == 'WordPress/wordpress-develop' }}
+    permissions:
+      contents: read
     strategy:
       fail-fast: false
       matrix:
@@ -182,6 +193,8 @@ jobs:
     name: ${{ matrix.wp }} to ${{ inputs.new-version && inputs.new-version || 'latest' }}
     uses: ./.github/workflows/reusable-upgrade-testing.yml
     if: ${{ github.repository == 'WordPress/wordpress-develop' }}
+    permissions:
+      contents: read
     strategy:
       fail-fast: false
       matrix:

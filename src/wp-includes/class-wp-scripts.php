@@ -222,6 +222,20 @@ class WP_Scripts extends WP_Dependencies {
 			return;
 		}
 
+		/*
+		 * Do not print a sourceURL comment if concatenation is enabled.
+		 *
+		 * Extra scripts may be concatenated into a single script.
+		 * The line-based sourceURL comments may break concatenated scripts
+		 * and do not make sense when multiple scripts are joined together.
+		 */
+		if ( ! $this->do_concat ) {
+			$output .= sprintf(
+				"\n//# sourceURL=%s",
+				rawurlencode( "{$handle}-js-extra" )
+			);
+		}
+
 		if ( ! $display ) {
 			return $output;
 		}
@@ -425,6 +439,9 @@ class WP_Scripts extends WP_Dependencies {
 		if ( $intended_strategy ) {
 			$attr['data-wp-strategy'] = $intended_strategy;
 		}
+		if ( isset( $obj->extra['fetchpriority'] ) && 'auto' !== $obj->extra['fetchpriority'] && $this->is_valid_fetchpriority( $obj->extra['fetchpriority'] ) ) {
+			$attr['fetchpriority'] = $obj->extra['fetchpriority'];
+		}
 		$tag  = $translations . $ie_conditional_prefix . $before_script;
 		$tag .= wp_get_script_tag( $attr );
 		$tag .= $after_script . $ie_conditional_suffix;
@@ -521,6 +538,17 @@ class WP_Scripts extends WP_Dependencies {
 			return '';
 		}
 
+		/*
+		 * Print sourceURL comment regardless of concatenation.
+		 *
+		 * Inline scripts prevent scripts from being concatenated, so
+		 * sourceURL comments are safe to print for inline scripts.
+		 */
+		$data[] = sprintf(
+			'//# sourceURL=%s',
+			rawurlencode( "{$handle}-js-{$position}" )
+		);
+
 		return trim( implode( "\n", $data ), "\n" );
 	}
 
@@ -596,7 +624,7 @@ class WP_Scripts extends WP_Dependencies {
 			}
 		}
 
-		$script = "var $object_name = " . wp_json_encode( $l10n ) . ';';
+		$script = "var $object_name = " . wp_json_encode( $l10n, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ) . ';';
 
 		if ( ! empty( $after ) ) {
 			$script .= "\n$after;";
@@ -693,12 +721,15 @@ class WP_Scripts extends WP_Dependencies {
 			return false;
 		}
 
+		$source_url = rawurlencode( "{$handle}-js-translations" );
+
 		$output = <<<JS
 ( function( domain, translations ) {
 	var localeData = translations.locale_data[ domain ] || translations.locale_data.messages;
 	localeData[""].domain = domain;
 	wp.i18n.setLocaleData( localeData, domain );
 } )( "{$domain}", {$json_translations} );
+//# sourceURL={$source_url}
 JS;
 
 		if ( $display ) {
@@ -831,6 +862,35 @@ JS;
 				);
 				return false;
 			}
+		} elseif ( 'fetchpriority' === $key ) {
+			if ( empty( $value ) ) {
+				$value = 'auto';
+			}
+			if ( ! $this->is_valid_fetchpriority( $value ) ) {
+				_doing_it_wrong(
+					__METHOD__,
+					sprintf(
+						/* translators: 1: $fetchpriority, 2: $handle */
+						__( 'Invalid fetchpriority `%1$s` defined for `%2$s` during script registration.' ),
+						is_string( $value ) ? $value : gettype( $value ),
+						$handle
+					),
+					'6.9.0'
+				);
+				return false;
+			} elseif ( ! $this->registered[ $handle ]->src ) {
+				_doing_it_wrong(
+					__METHOD__,
+					sprintf(
+						/* translators: 1: $fetchpriority, 2: $handle */
+						__( 'Cannot supply a fetchpriority `%1$s` for script `%2$s` because it is an alias (it lacks a `src` value).' ),
+						is_string( $value ) ? $value : gettype( $value ),
+						$handle
+					),
+					'6.9.0'
+				);
+				return false;
+			}
 		}
 		return parent::add_data( $handle, $key, $value );
 	}
@@ -869,15 +929,27 @@ JS;
 	 *
 	 * @since 6.3.0
 	 *
-	 * @param string $strategy The strategy to check.
+	 * @param string|mixed $strategy The strategy to check.
 	 * @return bool True if $strategy is one of the delayed strategies, otherwise false.
 	 */
-	private function is_delayed_strategy( $strategy ) {
+	private function is_delayed_strategy( $strategy ): bool {
 		return in_array(
 			$strategy,
 			$this->delayed_strategies,
 			true
 		);
+	}
+
+	/**
+	 * Checks if the provided fetchpriority is valid.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @param string|mixed $priority Fetch priority.
+	 * @return bool Whether valid fetchpriority.
+	 */
+	private function is_valid_fetchpriority( $priority ): bool {
+		return in_array( $priority, array( 'auto', 'low', 'high' ), true );
 	}
 
 	/**

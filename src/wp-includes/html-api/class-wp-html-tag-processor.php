@@ -1556,24 +1556,33 @@ class WP_HTML_Tag_Processor {
 			}
 
 			/*
-			 * Unlike with "-->", the "<!--" only transitions
-			 * into the escaped mode if not already there.
-			 *
-			 * Inside the escaped modes it will be ignored; and
-			 * should never break out of the double-escaped
-			 * mode and back into the escaped mode.
-			 *
-			 * While this requires a mode change, it does not
-			 * impact the parsing otherwise, so continue
-			 * parsing after updating the state.
+			 * "<!--" only transitions from _unescaped_ to _escaped_. This byte sequence is only
+			 * significant in the _unescaped_ state and is ignored in any other state.
 			 */
 			if (
+				'unescaped' === $state &&
 				'!' === $html[ $at ] &&
 				'-' === $html[ $at + 1 ] &&
 				'-' === $html[ $at + 2 ]
 			) {
-				$at   += 3;
-				$state = 'unescaped' === $state ? 'escaped' : $state;
+				$at += 3;
+
+				/*
+				 * The parser is ready to enter the _escaped_ state, but may remain in the
+				 * _unescaped_ state. This occurs when "<!--" is immediately followed by a
+				 * sequence of 0 or more "-" followed by ">". This is similar to abruptly closed
+				 * HTML comments like "<!-->" or "<!--->".
+				 *
+				 * Note that this check may advance the position significantly and requires a
+				 * length check to prevent bad offsets on inputs like `<script><!---------`.
+				 */
+				$at += strspn( $html, '-', $at );
+				if ( $at < $doc_length && '>' === $html[ $at ] ) {
+					++$at;
+					continue;
+				}
+
+				$state = 'escaped';
 				continue;
 			}
 
@@ -1610,8 +1619,30 @@ class WP_HTML_Tag_Processor {
 			 */
 			$at += 6;
 			$c   = $html[ $at ];
-			if ( ' ' !== $c && "\t" !== $c && "\r" !== $c && "\n" !== $c && '/' !== $c && '>' !== $c ) {
-				++$at;
+			if (
+				/**
+				 * These characters trigger state transitions of interest:
+				 *
+				 * - @see {https://html.spec.whatwg.org/multipage/parsing.html#script-data-end-tag-name-state}
+				 * - @see {https://html.spec.whatwg.org/multipage/parsing.html#script-data-escaped-end-tag-name-state}
+				 * - @see {https://html.spec.whatwg.org/multipage/parsing.html#script-data-double-escape-start-state}
+				 * - @see {https://html.spec.whatwg.org/multipage/parsing.html#script-data-double-escape-end-state}
+				 *
+				 * The "\r" character is not present in the above references. However, "\r" must be
+				 * treated the same as "\n". This is because the HTML Standard requires newline
+				 * normalization during preprocessing which applies this replacement.
+				 *
+				 * - @see https://html.spec.whatwg.org/multipage/parsing.html#preprocessing-the-input-stream
+				 * - @see https://infra.spec.whatwg.org/#normalize-newlines
+				 */
+				'>' !== $c &&
+				' ' !== $c &&
+				"\n" !== $c &&
+				'/' !== $c &&
+				"\t" !== $c &&
+				"\f" !== $c &&
+				"\r" !== $c
+			) {
 				continue;
 			}
 
@@ -3749,17 +3780,28 @@ class WP_HTML_Tag_Processor {
 
 		switch ( $this->get_tag() ) {
 			case 'SCRIPT':
-				/*
+				/**
 				 * This is over-protective, but ensures the update doesn't break
-				 * out of the SCRIPT element. A more thorough check would need to
-				 * ensure that the script closing tag doesn't exist, and isn't
-				 * also "hidden" inside the script double-escaped state.
+				 * the HTML structure of the SCRIPT element.
 				 *
-				 * It may seem like replacing `</script` with `<\/script` would
-				 * properly escape these things, but this could mask regex patterns
-				 * that previously worked. Resolve this by not sending `</script`
+				 * More thorough analysis could track the HTML tokenizer states
+				 * and to ensure that the SCRIPT element closes at the expected
+				 * SCRIPT close tag as is done in {@see ::skip_script_data()}.
+				 *
+				 * A SCRIPT element could be closed prematurely by contents
+				 * like `</script>`. A SCRIPT element could be prevented from
+				 * closing by contents like `<!--<script>`.
+				 *
+				 * The following strings are essential for dangerous content,
+				 * although they are insufficient on their own. This trade-off
+				 * prevents dangerous scripts from being sent to the browser.
+				 * It is also unlikely to produce HTML that may confuse more
+				 * basic HTML tooling.
 				 */
-				if ( false !== stripos( $plaintext_content, '</script' ) ) {
+				if (
+					false !== stripos( $plaintext_content, '</script' ) ||
+					false !== stripos( $plaintext_content, '<script' )
+				) {
 					return false;
 				}
 

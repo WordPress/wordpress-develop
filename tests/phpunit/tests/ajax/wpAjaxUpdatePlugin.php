@@ -138,7 +138,7 @@ class Tests_Ajax_wpAjaxUpdatePlugin extends WP_Ajax_UnitTestCase {
 		$this->_setRole( 'administrator' );
 
 		$_POST['_ajax_nonce'] = wp_create_nonce( 'updates' );
-		$_POST['plugin']      = 'hello.php';
+		$_POST['plugin']      = 'hello-dolly/hello.php';
 		$_POST['slug']        = 'hello-dolly';
 
 		// Prevent wp_update_plugins() from running.
@@ -163,7 +163,7 @@ class Tests_Ajax_wpAjaxUpdatePlugin extends WP_Ajax_UnitTestCase {
 				'slug'         => 'hello-dolly',
 				'oldVersion'   => 'Version 1.7.2',
 				'newVersion'   => '',
-				'plugin'       => 'hello.php',
+				'plugin'       => 'hello-dolly/hello.php',
 				'pluginName'   => 'Hello Dolly',
 				'debug'        => array( 'The plugin is at the latest version.' ),
 				'errorMessage' => 'The plugin is at the latest version.',

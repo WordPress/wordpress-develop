@@ -232,7 +232,9 @@ class Tests_Theme extends WP_UnitTestCase {
 		// Use a reflection to make WP_THEME::$default_themes accessible.
 		$reflection = new ReflectionClass( 'WP_Theme' );
 		$property   = $reflection->getProperty( 'default_themes' );
-		$property->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$property->setAccessible( true );
+		}
 
 		/*
 		 * `default` and `classic` are included in `WP_Theme::$default_themes` but not included

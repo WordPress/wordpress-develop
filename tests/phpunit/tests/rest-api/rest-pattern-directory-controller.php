@@ -707,7 +707,9 @@ class WP_REST_Pattern_Directory_Controller_Test extends WP_Test_REST_Controller_
 	 */
 	public function test_transient_keys_get_generated_correctly( $parameters_1, $parameters_2, $message, $assert_same = true ) {
 		$reflection_method = new ReflectionMethod( static::$controller, 'get_transient_key' );
-		$reflection_method->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$reflection_method->setAccessible( true );
+		}
 
 		$result_1 = $reflection_method->invoke( self::$controller, $parameters_1 );
 		$result_2 = $reflection_method->invoke( self::$controller, $parameters_2 );

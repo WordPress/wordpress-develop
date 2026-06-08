@@ -374,7 +374,7 @@ function wp_admin_bar_site_menu( $wp_admin_bar ) {
 	$blogname = get_bloginfo( 'name' );
 
 	if ( ! $blogname ) {
-		$blogname = preg_replace( '#^(https?://)?(www.)?#', '', get_home_url() );
+		$blogname = preg_replace( '#^(https?://)?(www\.)?#', '', get_home_url() );
 	}
 
 	if ( is_network_admin() ) {
@@ -695,7 +695,7 @@ function wp_admin_bar_my_sites_menu( $wp_admin_bar ) {
 		$blogname = $blog->blogname;
 
 		if ( ! $blogname ) {
-			$blogname = preg_replace( '#^(https?://)?(www.)?#', '', get_home_url() );
+			$blogname = preg_replace( '#^(https?://)?(www\.)?#', '', get_home_url() );
 		}
 
 		$menu_id = 'blog-' . $blog->userblog_id;

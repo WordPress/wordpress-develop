@@ -2009,19 +2009,51 @@ HTML;
 	/**
 	 * Data provider.
 	 */
-	public static function data_script_tag(): array {
-		return array(
-			'Basic script tag'                          => array( '<script></script>', true ),
-			'Script with type attribute'                => array( '<script type="text/javascript"></script>', true ),
-			'Script data escaped'                       => array( '<script><!--</script>', true ),
-			'Script data double-escaped exit (comment)' => array( '<script><!--<script>--></script>', true ),
-			'Script data double-escaped exit (closed)'  => array( '<script><!--<script></script></script>', true ),
-			'Script data double-escaped exit (closed/truncated)' => array( '<script><!--<script></script </script>', true ),
-			'Script data no double-escape'              => array( '<script><!-- --><script></script>', true ),
+	public static function data_script_tag(): Generator {
+			yield 'Basic script tag'                              => array( '<script></script>', true );
+			yield 'Script tag with </script> close'               => array( '<script></script>', true );
+			yield 'Script tag with </script/> close'              => array( '<script></script/>', true );
+			yield 'Script tag with </script > close'              => array( '<script></script >', true );
+			yield 'Script tag with </script\n> close'             => array( "<script></script\n>", true );
+			yield 'Script tag with </script\t> close'             => array( "<script></script\t>", true );
+			yield 'Script tag with </script\f> close'             => array( "<script></script\f>", true );
+			yield 'Script tag with </script\r> close'             => array( "<script></script\r>", true );
+			yield 'Script with type attribute'                    => array( '<script type="text/javascript"></script>', true );
+			yield 'Script data escaped'                           => array( '<script><!--</script>', true );
+			yield 'Script data double-escaped exit (comment)'     => array( '<script><!--<script>--></script>', true );
+			yield 'Script data double-escaped exit (closed ">")'  => array( '<script><!--<script></script></script>', true );
+			yield 'Script data double-escaped exit (closed "/")'  => array( '<script><!--<script></script/</script>', true );
+			yield 'Script data double-escaped exit (closed " ")'  => array( '<script><!--<script></script </script>', true );
+			yield 'Script data double-escaped exit (closed "\n")' => array( "<script><!--<script></script\n</script>", true );
+			yield 'Script data double-escaped exit (closed "\t")' => array( "<script><!--<script></script\t</script>", true );
+			yield 'Script data double-escaped exit (closed "\f")' => array( "<script><!--<script></script\f</script>", true );
+			yield 'Script data double-escaped exit (closed "\r")' => array( "<script><!--<script></script\r</script>", true );
+			yield 'Script data no double-escape'                  => array( '<script><!-- --><script></script>', true );
+			yield 'Script data no double-escape (short comment)'  => array( '<script><!--><script></script>', true );
+			yield 'Script data almost double-escaped'             => array( '<script><!--<script</script>', true );
+			yield 'Script data with complex JavaScript'           => array(
+				'<script>
+					var x = 10;
+					x--;
+					x < 0 ? x += 100 : x = (x + 1) - 1;
+				</script>',
+				true,
+			);
 
-			'Script tag with self-close flag (ignored)' => array( '<script />', false ),
-			'Script data double-escaped'                => array( '<script><!--<script></script>', false ),
-		);
+			yield 'Script tag with self-close flag (ignored)'     => array( '<script />', false );
+			yield 'Script data double-escaped'                    => array( '<script><!--<script></script>', false );
+			yield 'Unclosed script in escaped state'              => array( '<script><!--------------', false );
+			yield 'Unclosed script in double escaped state'       => array( '<script><!--<script ', false );
+			yield 'Document end in closer start'                  => array( '<script></', false );
+			yield 'Document end in script closer'                 => array( '<script></script', false );
+			yield 'Document end in script closer with attributes' => array( '<script></script attr="val"', false );
+			yield 'Script tag double-escaped with <script>'       => array( '<script><!--<script></script>', false );
+			yield 'Script tag double-escaped with <script/'       => array( '<script><!--<script/</script>', false );
+			yield 'Script tag double-escaped with <script '       => array( '<script><!--<script </script>', false );
+			yield 'Script tag double-escaped with <script\n'      => array( "<script><!--<script\n</script>", false );
+			yield 'Script tag double-escaped with <script\t'      => array( "<script><!--<script\t</script>", false );
+			yield 'Script tag double-escaped with <script\f'      => array( "<script><!--<script\f</script>", false );
+			yield 'Script tag double-escaped with <script\r'      => array( "<script><!--<script\r</script>", false );
 	}
 
 	/**
@@ -3023,7 +3055,7 @@ HTML
 		$doctype = $processor->get_doctype_info();
 		$this->assertNotNull( $doctype );
 		$this->assertSame( 'html', $doctype->name );
-		$this->assertSame( 'no-quirks', $doctype->indicated_compatability_mode );
+		$this->assertSame( 'no-quirks', $doctype->indicated_compatibility_mode );
 		$this->assertNull( $doctype->public_identifier );
 		$this->assertNull( $doctype->system_identifier );
 	}

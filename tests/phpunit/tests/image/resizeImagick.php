@@ -5,6 +5,7 @@
  * @group media
  * @group upload
  * @group resize
+ * @group wp-image-editor-imagick
  */
 require_once __DIR__ . '/resize.php';
 

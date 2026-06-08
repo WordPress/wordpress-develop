@@ -184,7 +184,7 @@ class Tests_Block_Supports_Layout extends WP_UnitTestCase {
 	public function test_layout_support_flag_renders_classnames_on_wrapper( $args, $expected_output ) {
 		switch_theme( 'default' );
 		$actual_output = wp_render_layout_support_flag( $args['block_content'], $args['block'] );
-		$this->assertSame( $expected_output, $actual_output );
+		$this->assertEqualHTML( $expected_output, $actual_output );
 	}
 
 	/**

@@ -267,7 +267,7 @@ function wp_image_editor( $post_id, $msg = false ) {
 					</div>
 				</fieldset>
 				<div class="imgedit-crop-apply imgedit-menu container">
-					<button class="button-primary" type="button" onclick="imageEdit.handleCropToolClick( <?php echo "$post_id, '$nonce'"; ?>, this );" class="imgedit-crop-apply button"><?php esc_html_e( 'Apply Crop' ); ?></button> <button type="button" onclick="imageEdit.handleCropToolClick( <?php echo "$post_id, '$nonce'"; ?>, this );" class="imgedit-crop-clear button" disabled="disabled"><?php esc_html_e( 'Clear Crop' ); ?></button>
+					<button class="button button-primary" type="button" onclick="imageEdit.handleCropToolClick( <?php echo "$post_id, '$nonce'"; ?>, this );" class="imgedit-crop-apply button"><?php esc_html_e( 'Apply Crop' ); ?></button> <button type="button" onclick="imageEdit.handleCropToolClick( <?php echo "$post_id, '$nonce'"; ?>, this );" class="imgedit-crop-clear button" disabled="disabled"><?php esc_html_e( 'Clear Crop' ); ?></button>
 				</div>
 			</div>
 		</div>
@@ -545,7 +545,10 @@ function _rotate_image_resource( $img, $angle ) {
 		$rotated = imagerotate( $img, $angle, 0 );
 
 		if ( is_gd_image( $rotated ) ) {
-			imagedestroy( $img );
+			if ( PHP_VERSION_ID < 80000 ) { // imagedestroy() has no effect as of PHP 8.0.
+				imagedestroy( $img );
+			}
+
 			$img = $rotated;
 		}
 	}
@@ -580,7 +583,10 @@ function _flip_image_resource( $img, $horz, $vert ) {
 		$sh = $horz ? -$h : $h;
 
 		if ( imagecopyresampled( $dst, $img, 0, 0, $sx, $sy, $w, $h, $sw, $sh ) ) {
-			imagedestroy( $img );
+			if ( PHP_VERSION_ID < 80000 ) { // imagedestroy() has no effect as of PHP 8.0.
+				imagedestroy( $img );
+			}
+
 			$img = $dst;
 		}
 	}
@@ -606,7 +612,10 @@ function _crop_image_resource( $img, $x, $y, $w, $h ) {
 
 	if ( is_gd_image( $dst ) ) {
 		if ( imagecopy( $dst, $img, 0, 0, $x, $y, $w, $h ) ) {
-			imagedestroy( $img );
+			if ( PHP_VERSION_ID < 80000 ) { // imagedestroy() has no effect as of PHP 8.0.
+				imagedestroy( $img );
+			}
+
 			$img = $dst;
 		}
 	}

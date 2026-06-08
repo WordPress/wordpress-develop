@@ -63,7 +63,7 @@ jobs:
   # - Uploads screenshots and HTML snapshots as an artifact.
   # - Ensures version-controlled files are not modified or deleted.
   e2e-tests:
-    name: Run E2E tests
+    name: SCRIPT_DEBUG ${{ inputs.LOCAL_SCRIPT_DEBUG && 'enabled' || 'disabled' }}
     runs-on: ubuntu-24.04
     permissions:
       contents: read

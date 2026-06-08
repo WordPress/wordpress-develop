@@ -124,7 +124,7 @@ class WP_Customize_Control {
 	/**
 	 * List of custom input attributes for control output, where attribute names are the keys and values are the values.
 	 *
-	 * Not used for 'checkbox', 'radio', 'select', 'textarea', or 'dropdown-pages' control types.
+	 * Not used for 'checkbox', 'radio', 'select', or 'dropdown-pages' control types.
 	 *
 	 * @since 4.0.0
 	 * @var array
@@ -201,8 +201,8 @@ class WP_Customize_Control {
 	 *                                                 Default empty array.
 	 *     @type array                $input_attrs     List of custom input attributes for control output, where
 	 *                                                 attribute names are the keys and values are the values. Not
-	 *                                                 used for 'checkbox', 'radio', 'select', 'textarea', or
-	 *                                                 'dropdown-pages' control types. Default empty array.
+	 *                                                 used for 'checkbox', 'radio', 'select', or 'dropdown-pages'
+	 *                                                 control types. Default empty array.
 	 *     @type bool                 $allow_addition  Show UI for adding new content, currently only used for the
 	 *                                                 dropdown-pages control. Default false.
 	 *     @type array                $json            Deprecated. Use WP_Customize_Control::json() instead.
@@ -566,6 +566,9 @@ class WP_Customize_Control {
 				<?php
 				break;
 			case 'textarea':
+				if ( ! array_key_exists( 'rows', $this->input_attrs ) ) {
+					$this->input_attrs['rows'] = 5;
+				}
 				?>
 				<?php if ( ! empty( $this->label ) ) : ?>
 					<label for="<?php echo esc_attr( $input_id ); ?>" class="customize-control-title"><?php echo esc_html( $this->label ); ?></label>
@@ -575,7 +578,6 @@ class WP_Customize_Control {
 				<?php endif; ?>
 				<textarea
 					id="<?php echo esc_attr( $input_id ); ?>"
-					rows="5"
 					<?php echo $describedby_attr; ?>
 					<?php $this->input_attrs(); ?>
 					<?php $this->link(); ?>
@@ -644,9 +646,11 @@ class WP_Customize_Control {
 					<div class="new-content-item-wrapper">
 						<label for="create-input-<?php echo esc_attr( $this->id ); ?>"><?php _e( 'New page title' ); ?></label>
 						<div class="new-content-item">
-							<input type="text" id="create-input-<?php echo esc_attr( $this->id ); ?>" class="create-item-input" >
+							<input type="text" id="create-input-<?php echo esc_attr( $this->id ); ?>" class="create-item-input form-required">
 							<button type="button" class="button add-content"><?php _e( 'Add' ); ?></button>
 						</div>
+						<span id="create-input-<?php echo esc_attr( $this->id ); ?>-error" class="create-item-error error-message" style="display: none;"><?php _e( 'Please enter a page title' ); ?></span>
+
 					</div>
 				<?php endif; ?>
 				<?php
