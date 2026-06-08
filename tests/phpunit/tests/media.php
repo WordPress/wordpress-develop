@@ -1273,6 +1273,75 @@ VIDEO;
 		remove_filter( 'upload_dir', array( $this, 'upload_dir' ) );
 	}
 
+	/**
+	 * Test short-circuiting the attachment_url_to_postid filter.
+	 *
+	 * @ticket 61383
+	 */
+	public function test_attachment_url_to_postid_short_circuit_filter_prevents_db_queries() {
+		$image_path    = '2014/11/' . self::IMG_NAME;
+		$attachment_id = self::factory()->attachment->create_object(
+			$image_path,
+			0,
+			array(
+				'post_mime_type' => 'image/jpeg',
+				'post_type'      => 'attachment',
+			)
+		);
+		$image_url     = wp_get_attachment_url( $attachment_id );
+
+		add_filter(
+			'pre_attachment_url_to_postid',
+			function () use ( $attachment_id ) {
+				return $attachment_id;
+			}
+		);
+
+		$queries_before = get_num_queries();
+		$this->assertSame( $attachment_id, attachment_url_to_postid( $image_url ), 'The filter should short-circuit the function' );
+		$queries_after = get_num_queries();
+		$this->assertSame( 0, $queries_after - $queries_before, 'No database queries should be made by a short-circuited function' );
+	}
+
+	/**
+	 * Test short-circuiting the attachment_url_to_postid filter with a not found result.
+	 *
+	 * @ticket 61383
+	 */
+	public function test_attachment_url_to_postid_short_circuit_filter_when_attachment_does_not_exist() {
+		add_filter( 'pre_attachment_url_to_postid', '__return_zero' );
+
+		$queries_before = get_num_queries();
+		$this->assertSame( 0, attachment_url_to_postid( 'http://example.org/wp-content/uploads/2014/11/image.jpg' ), 'The filter should short-circuit the function' );
+		$queries_after = get_num_queries();
+		$this->assertSame( 0, $queries_after - $queries_before, 'No database queries should be made by a short-circuited function' );
+	}
+
+	/**
+	 * Test short-circuiting the attachment_url_to_postid filter with a proceed result.
+	 *
+	 * @ticket 61383
+	 */
+	public function test_attachment_url_to_postid_short_circuit_filter_should_proceed_if_filter_returns_null() {
+		$image_path    = '2014/11/' . self::IMG_NAME;
+		$attachment_id = self::factory()->attachment->create_object(
+			$image_path,
+			0,
+			array(
+				'post_mime_type' => 'image/jpeg',
+				'post_type'      => 'attachment',
+			)
+		);
+		$image_url     = wp_get_attachment_url( $attachment_id );
+
+		add_filter( 'pre_attachment_url_to_postid', '__return_null' );
+
+		$queries_before = get_num_queries();
+		$this->assertSame( $attachment_id, attachment_url_to_postid( $image_url ), 'The filter should return the attachment ID' );
+		$queries_after = get_num_queries();
+		$this->assertGreaterThan( 0, $queries_after - $queries_before, 'Database queries are expected when the filter returns null' );
+	}
+
 	public function upload_dir( $dir ) {
 		$dir['baseurl'] = 'http://192.168.1.20.com/wp-content/uploads';
 		return $dir;
