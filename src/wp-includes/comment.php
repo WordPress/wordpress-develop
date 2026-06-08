@@ -3253,7 +3253,6 @@ function wp_maybe_disable_xmlrpc_pingback_for_environment( $methods ) {
  * @return array<string, bool> An array of pingback statuses indexed by link.
  */
 function pingback( $content, $post ) {
-
 	// Original code by Mort (http://mort.mine.nu:8080).
 	$post_links = array();
 
