@@ -2599,20 +2599,24 @@ function img_caption_shortcode( $attr, $content = '' ) {
 	$describedby = '';
 
 	if ( $atts['id'] ) {
-		$unique_id_value = preg_replace( '/-1$/', '', wp_unique_prefixed_id( sanitize_html_class( $atts['id'] . '-' ) ) );
+		$unique_id_value = wp_unique_id( sanitize_html_class( $atts['id'] ) );
 		$id              = 'id="' . esc_attr( $unique_id_value ) . '" ';
 	}
 
 	if ( $atts['caption_id'] ) {
+		// User explicitly provided a caption_id - make it unique.
 		$atts['caption_id'] = sanitize_html_class( $atts['caption_id'] );
+		$caption_id_value   = wp_unique_id( $atts['caption_id'] );
 	} elseif ( $atts['id'] ) {
-		$atts['caption_id'] = 'caption-' . str_replace( '_', '-', $atts['id'] );
+		// Derive from the already-unique figure ID - guaranteed unique, no need for second call.
+		$caption_id_value = 'caption-' . str_replace( '_', '-', $unique_id_value );
+	} else {
+		$caption_id_value = '';
 	}
 
-	if ( $atts['caption_id'] ) {
-		$caption_id_value = preg_replace( '/-1$/', '', wp_unique_id( $atts['caption_id'] . '-' ) );
-		$caption_id       = 'id="' . esc_attr( $caption_id_value ) . '" ';
-		$describedby      = 'aria-describedby="' . esc_attr( $caption_id_value ) . '" ';
+	if ( $caption_id_value ) {
+		$caption_id  = 'id="' . esc_attr( $caption_id_value ) . '" ';
+		$describedby = 'aria-describedby="' . esc_attr( $caption_id_value ) . '" ';
 	}
 
 	$class = trim( 'wp-caption ' . $atts['align'] . ' ' . $atts['class'] );
