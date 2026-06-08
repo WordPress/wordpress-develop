@@ -41,6 +41,7 @@ final class WP_Autoload {
 		'wp_block_bindings_source'                    => 'wp-includes/class-wp-block-bindings-source.php',
 		'wp_block_editor_context'                     => 'wp-includes/class-wp-block-editor-context.php',
 		'wp_block_list'                               => 'wp-includes/class-wp-block-list.php',
+		'wp_block_metadata_registry'                  => 'wp-includes/class-wp-block-metadata-registry.php',
 		'wp_block_parser_block'                       => 'wp-includes/class-wp-block-parser-block.php',
 		'wp_block_parser_frame'                       => 'wp-includes/class-wp-block-parser-frame.php',
 		'wp_block_parser'                             => 'wp-includes/class-wp-block-parser.php',

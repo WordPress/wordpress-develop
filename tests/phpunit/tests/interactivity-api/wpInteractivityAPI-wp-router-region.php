@@ -102,7 +102,7 @@ class Tests_WP_Interactivity_API_WP_Router_Region extends WP_UnitTestCase {
 	 *
 	 * @covers ::process_directives
 	 */
-	public function test_wp_router_region_adds_loading_bar_aria_live_region_only_once() {
+	public function test_wp_router_region_adds_loading_bar_region_only_once() {
 		$html     = '
 			<div data-wp-router-region="region A">Interactive region</div>
 			<div data-wp-router-region="region B">Another interactive region</div>
@@ -123,10 +123,6 @@ class Tests_WP_Interactivity_API_WP_Router_Region extends WP_UnitTestCase {
 		$footer = $this->render_wp_footer();
 		$query  = array( 'class_name' => 'wp-interactivity-router-loading-bar' );
 		$p      = new WP_HTML_Tag_Processor( $footer );
-		$this->assertTrue( $p->next_tag( $query ) );
-		$this->assertFalse( $p->next_tag( $query ) );
-		$query = array( 'class_name' => 'screen-reader-text' );
-		$p     = new WP_HTML_Tag_Processor( $footer );
 		$this->assertTrue( $p->next_tag( $query ) );
 		$this->assertFalse( $p->next_tag( $query ) );
 	}

@@ -33,6 +33,7 @@
  * @since 5.7.0 Added the `create_app_password`, `list_app_passwords`, `read_app_password`,
  *              `edit_app_password`, `delete_app_passwords`, `delete_app_password`,
  *              and `update_https` capabilities.
+ * @since 6.7.0 Added the `edit_block_binding` capability.
  *
  * @global array $post_type_meta_caps Used to get post type meta capabilities.
  *
@@ -801,6 +802,32 @@ function map_meta_cap( $cap, $user_id, ...$args ) {
 		case 'delete_app_password':
 			$caps = map_meta_cap( 'edit_user', $user_id, $args[0] );
 			break;
+		case 'edit_block_binding':
+			$block_editor_context = $args[0];
+			if ( isset( $block_editor_context->post ) ) {
+				$object_id = $block_editor_context->post->ID;
+			}
+			/*
+			 * If the post ID is null, check if the context is the site editor.
+			 * Fall back to the edit_theme_options in that case.
+			 */
+			if ( ! isset( $object_id ) ) {
+				if ( ! isset( $block_editor_context->name ) || 'core/edit-site' !== $block_editor_context->name ) {
+					$caps[] = 'do_not_allow';
+					break;
+				}
+				$caps = map_meta_cap( 'edit_theme_options', $user_id );
+				break;
+			}
+
+			$object_subtype = get_object_subtype( 'post', (int) $object_id );
+			if ( empty( $object_subtype ) ) {
+				$caps[] = 'do_not_allow';
+				break;
+			}
+
+			$caps = map_meta_cap( "edit_{$object_subtype}", $user_id, $object_id );
+			break;
 		default:
 			// Handle meta capabilities for custom post types.
 			global $post_type_meta_caps;
@@ -985,6 +1012,54 @@ function user_can( $user, $capability, ...$args ) {
 	}
 
 	return $user->has_cap( $capability, ...$args );
+}
+
+/**
+ * Returns whether a particular user has the specified capability for a given site.
+ *
+ * This function also accepts an ID of an object to check against if the capability is a meta capability. Meta
+ * capabilities such as `edit_post` and `edit_user` are capabilities used by the `map_meta_cap()` function to
+ * map to primitive capabilities that a user or role has, such as `edit_posts` and `edit_others_posts`.
+ *
+ * Example usage:
+ *
+ *     user_can_for_blog( $user->ID, $blog_id, 'edit_posts' );
+ *     user_can_for_blog( $user->ID, $blog_id, 'edit_post', $post->ID );
+ *     user_can_for_blog( $user->ID, $blog_id, 'edit_post_meta', $post->ID, $meta_key );
+ *
+ * @since 6.7.0
+ *
+ * @param int|WP_User $user       User ID or object.
+ * @param int         $blog_id    Site ID.
+ * @param string      $capability Capability name.
+ * @param mixed       ...$args    Optional further parameters, typically starting with an object ID.
+ * @return bool Whether the user has the given capability.
+ */
+function user_can_for_blog( $user, $blog_id, $capability, ...$args ) {
+	if ( ! is_object( $user ) ) {
+		$user = get_userdata( $user );
+	}
+
+	if ( empty( $user ) ) {
+		// User is logged out, create anonymous user object.
+		$user = new WP_User( 0 );
+		$user->init( new stdClass() );
+	}
+
+	// Check if the blog ID is valid.
+	if ( ! is_numeric( $blog_id ) || $blog_id <= 0 ) {
+		return false;
+	}
+
+	$switched = is_multisite() ? switch_to_blog( $blog_id ) : false;
+
+	$can = user_can( $user->ID, $capability, ...$args );
+
+	if ( $switched ) {
+		restore_current_blog();
+	}
+
+	return $can;
 }
 
 /**
