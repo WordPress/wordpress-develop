@@ -882,4 +882,180 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 		$this->assertSame( 'FORM', $processor->get_tag() );
 		$this->assertTrue( $processor->is_tag_closer() );
 	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public function data_html_processor_with_extended_next_token() {
+		return array(
+			'single_instance_per_tag'   => array(
+				'html'                  => '
+					<html>
+						<head>
+							<meta charset="utf-8">
+							<title>Hello World</title>
+						</head>
+						<body>
+							<h1>Hello World!</h1>
+							<img src="example.png">
+							<p>Each tag should occur only once in this document.<!--Closing P tag omitted intentionally.-->
+							<footer>The end.</footer>
+						</body>
+					</html>
+				',
+				'expected_token_counts' => array(
+					'+HTML'    => 1,
+					'+HEAD'    => 1,
+					'#text'    => 14,
+					'+META'    => 1,
+					'+TITLE'   => 1,
+					'-HEAD'    => 1,
+					'+BODY'    => 1,
+					'+H1'      => 1,
+					'-H1'      => 1,
+					'+IMG'     => 1,
+					'+P'       => 1,
+					'#comment' => 1,
+					'-P'       => 1,
+					'+FOOTER'  => 1,
+					'-FOOTER'  => 1,
+					'-BODY'    => 1,
+					'-HTML'    => 1,
+					''         => 1,
+				),
+				'expected_xpaths'       => array(
+					0 => '/*[1][self::HTML]',
+					1 => '/*[1][self::HTML]/*[1][self::HEAD]',
+					2 => '/*[1][self::HTML]/*[1][self::HEAD]/*[1][self::META]',
+					3 => '/*[1][self::HTML]/*[1][self::HEAD]/*[2][self::TITLE]',
+					4 => '/*[1][self::HTML]/*[2][self::BODY]',
+					5 => '/*[1][self::HTML]/*[2][self::BODY]/*[1][self::H1]',
+					6 => '/*[1][self::HTML]/*[2][self::BODY]/*[2][self::IMG]',
+					7 => '/*[1][self::HTML]/*[2][self::BODY]/*[3][self::P]',
+					8 => '/*[1][self::HTML]/*[2][self::BODY]/*[4][self::FOOTER]',
+				),
+			),
+
+			'multiple_tag_instances'    => array(
+				'html'                  => '
+					<html>
+						<body>
+							<h1>Hello World!</h1>
+							<p>First
+							<p>Second
+							<p>Third
+							<ul>
+								<li>1
+								<li>2
+								<li>3
+							</ul>
+						</body>
+					</html>
+				',
+				'expected_token_counts' => array(
+					'+HTML' => 1,
+					'+HEAD' => 1,
+					'-HEAD' => 1,
+					'+BODY' => 1,
+					'#text' => 13,
+					'+H1'   => 1,
+					'-H1'   => 1,
+					'+P'    => 3,
+					'-P'    => 3,
+					'+UL'   => 1,
+					'+LI'   => 3,
+					'-LI'   => 3,
+					'-UL'   => 1,
+					'-BODY' => 1,
+					'-HTML' => 1,
+					''      => 1,
+				),
+				'expected_xpaths'       => array(
+					0  => '/*[1][self::HTML]',
+					1  => '/*[1][self::HTML]/*[1][self::HEAD]',
+					2  => '/*[1][self::HTML]/*[2][self::BODY]',
+					3  => '/*[1][self::HTML]/*[2][self::BODY]/*[1][self::H1]',
+					4  => '/*[1][self::HTML]/*[2][self::BODY]/*[2][self::P]',
+					5  => '/*[1][self::HTML]/*[2][self::BODY]/*[3][self::P]',
+					6  => '/*[1][self::HTML]/*[2][self::BODY]/*[4][self::P]',
+					7  => '/*[1][self::HTML]/*[2][self::BODY]/*[5][self::UL]',
+					8  => '/*[1][self::HTML]/*[2][self::BODY]/*[5][self::UL]/*[1][self::LI]',
+					9  => '/*[1][self::HTML]/*[2][self::BODY]/*[5][self::UL]/*[2][self::LI]',
+					10 => '/*[1][self::HTML]/*[2][self::BODY]/*[5][self::UL]/*[3][self::LI]',
+				),
+			),
+
+			'extreme_nested_formatting' => array(
+				'html'                  => '
+					<html>
+						<body>
+							<p>
+								<strong><em><strike><i><b><u>FORMAT</u></b></i></strike></em></strong>
+							</p>
+						</body>
+					</html>
+				',
+				'expected_token_counts' => array(
+					'+HTML'   => 1,
+					'+HEAD'   => 1,
+					'-HEAD'   => 1,
+					'+BODY'   => 1,
+					'#text'   => 7,
+					'+P'      => 1,
+					'+STRONG' => 1,
+					'+EM'     => 1,
+					'+STRIKE' => 1,
+					'+I'      => 1,
+					'+B'      => 1,
+					'+U'      => 1,
+					'-U'      => 1,
+					'-B'      => 1,
+					'-I'      => 1,
+					'-STRIKE' => 1,
+					'-EM'     => 1,
+					'-STRONG' => 1,
+					'-P'      => 1,
+					'-BODY'   => 1,
+					'-HTML'   => 1,
+					''        => 1,
+				),
+				'expected_xpaths'       => array(
+					0 => '/*[1][self::HTML]',
+					1 => '/*[1][self::HTML]/*[1][self::HEAD]',
+					2 => '/*[1][self::HTML]/*[2][self::BODY]',
+					3 => '/*[1][self::HTML]/*[2][self::BODY]/*[1][self::P]',
+					4 => '/*[1][self::HTML]/*[2][self::BODY]/*[1][self::P]/*[1][self::STRONG]',
+					5 => '/*[1][self::HTML]/*[2][self::BODY]/*[1][self::P]/*[1][self::STRONG]/*[1][self::EM]',
+					6 => '/*[1][self::HTML]/*[2][self::BODY]/*[1][self::P]/*[1][self::STRONG]/*[1][self::EM]/*[1][self::STRIKE]',
+					7 => '/*[1][self::HTML]/*[2][self::BODY]/*[1][self::P]/*[1][self::STRONG]/*[1][self::EM]/*[1][self::STRIKE]/*[1][self::I]',
+					8 => '/*[1][self::HTML]/*[2][self::BODY]/*[1][self::P]/*[1][self::STRONG]/*[1][self::EM]/*[1][self::STRIKE]/*[1][self::I]/*[1][self::B]',
+					9 => '/*[1][self::HTML]/*[2][self::BODY]/*[1][self::P]/*[1][self::STRONG]/*[1][self::EM]/*[1][self::STRIKE]/*[1][self::I]/*[1][self::B]/*[1][self::U]',
+				),
+			),
+		);
+	}
+
+	/**
+	 * Ensures that subclasses to WP_HTML_Processor can do bookkeeping by extending the next_token() method.
+	 *
+	 * @ticket ?
+	 * @dataProvider data_html_processor_with_extended_next_token
+	 */
+	public function test_ensure_next_token_method_extensibility( $html, $expected_token_counts, $expected_xpaths ) {
+		require_once DIR_TESTDATA . '/html-api/html-xpath-generating-processor.php';
+
+		$processor     = HTML_XPath_Generating_Processor::create_full_parser( $html );
+		$actual_xpaths = array();
+		while ( $processor->next_tag() ) {
+			if ( ! $processor->is_tag_closer() ) {
+				$processor->set_attribute( 'xpath', $processor->get_xpath() );
+				$actual_xpaths[] = $processor->get_xpath();
+			}
+		}
+
+		$this->assertEquals( $expected_token_counts, $processor->token_seen_count, 'Snapshot: ' . var_export( $processor->token_seen_count, true ) );
+		$this->assertEquals( $expected_xpaths, $actual_xpaths, 'Snapshot: ' . var_export( $actual_xpaths, true ) );
+	}
 }
