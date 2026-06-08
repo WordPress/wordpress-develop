@@ -264,4 +264,51 @@ class Tests_Block_Supports_WpRenderCustomCssSupportStyles extends WP_UnitTestCas
 			),
 		);
 	}
+
+	/**
+	 * Tests that CSS is not duplicated when the same block renders multiple times (e.g. inside a Query Loop).
+	 *
+	 * @ticket 65268
+	 *
+	 * @covers ::wp_render_custom_css_support_styles
+	 */
+	public function test_css_not_duplicated_inside_query_loop() {
+		$this->test_block_name = 'test/custom-css-query-loop';
+		register_block_type(
+			$this->test_block_name,
+			array(
+				'api_version' => 3,
+				'attributes'  => array(
+					'style' => array(
+						'type' => 'object',
+					),
+				),
+				'supports'    => array( 'customCSS' => true ),
+			)
+		);
+
+		$parsed_block = array(
+			'blockName' => 'test/custom-css-query-loop',
+			'attrs'     => array(
+				'style' => array(
+					'css' => 'color: fuchsia;',
+				),
+			),
+		);
+
+		// Simulate the same block rendering 3 times inside a Query Loop.
+		wp_render_custom_css_support_styles( $parsed_block );
+		wp_render_custom_css_support_styles( $parsed_block );
+		wp_render_custom_css_support_styles( $parsed_block );
+
+		// Get the inline styles registered for wp-block-custom-css.
+		global $wp_styles;
+		$inline_css = $wp_styles->get_data( 'wp-block-custom-css', 'after' );
+
+		// CSS should appear only once, not 3 times.
+		$this->assertIsArray( $inline_css, 'Inline styles should be registered.' );
+		$combined = implode( '', $inline_css );
+		$count    = substr_count( $combined, 'color: fuchsia' );
+		$this->assertSame( 1, $count, 'CSS should only be enqueued once even when block renders multiple times.' );
+	}
 }
