@@ -121,6 +121,17 @@
  *  - SCRIPT and STYLE tags containing text that looks like HTML but isn't, e.g. `<script>document.write('<p>Hi</p>');</script>`.
  *  - SCRIPT content which has been escaped, e.g. `<script><!-- document.write('<script>console.log("hi")</script>') --></script>`.
  *
+ * ### Customizable select elements
+ *
+ * This parser implements the updated `SELECT` parsing rules introduced by the HTML
+ * standard's customizable select elements changes.
+ *
+ * It does not implement the "maybe clone an option into selectedcontent" step that
+ * copies the selected `OPTION` content into a `SELECTEDCONTENT` element. A
+ * `SELECTEDCONTENT` is otherwise parsed like any other element. In the single case
+ * where producing a correct tree would depend on that cloning, a
+ * `SELECT > BUTTON > SELECTEDCONTENT`, the parser stops processing instead.
+ *
  * ### Unsupported Features
  *
  * This parser does not report parse errors.
@@ -139,6 +150,7 @@
  *
  * @see WP_HTML_Tag_Processor
  * @see https://html.spec.whatwg.org/
+ * @see https://github.com/whatwg/html/pull/10548 Customizable select elements parsing changes.
  * @phpstan-consistent-constructor
  */
 class WP_HTML_Processor extends WP_HTML_Tag_Processor {
