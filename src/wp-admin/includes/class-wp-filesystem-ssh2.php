@@ -344,7 +344,7 @@ class WP_Filesystem_SSH2 extends WP_Filesystem_Base {
 	 *
 	 * @since 2.7.0
 	 *
-	 * @return string|false The current working directory on success, false on failure.
+	 * @return string The current working directory.
 	 */
 	public function cwd() {
 		$cwd = ssh2_sftp_realpath( $this->sftp_link, '.' );
