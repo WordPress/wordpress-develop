@@ -233,6 +233,13 @@ if ( $error_get_last && WP_DEBUG && WP_DEBUG_DISPLAY && ini_get( 'display_errors
 unset( $error_get_last );
 
 ?>
+<?php
+// Prevent flash of light theme when OS prefers dark mode.
+$admin_color = get_user_option( 'admin_color' );
+if ( 'dark' === $admin_color ) :
+?>
+<script>document.documentElement.classList.add('admin-color-dark');</script>
+<?php endif; ?>
 </head>
 <?php
 /**
