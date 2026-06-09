@@ -1,3 +1,51 @@
+/*------------------------------------------------------------------------------
+  WordPress Admin Color Tokens
+  All admin interface colors are defined here as CSS custom properties.
+  Color schemes (including Dark mode) override these values.
+  See: src/wp-admin/css/colors/
+------------------------------------------------------------------------------*/
+
+:root {
+	/* Backgrounds */
+	--wp-admin-bg-page: #f0f0f1;
+	--wp-admin-bg-card: #fff;
+	--wp-admin-bg-alt: #f6f7f7;
+	--wp-admin-bg-hover: #f0f0f1;
+	--wp-admin-bg-disabled: #f0f0f1;
+
+	/* Text */
+	--wp-admin-text-primary: #1d2327;
+	--wp-admin-text-body: #3c434a;
+	--wp-admin-text-secondary: #646970;
+	--wp-admin-text-tertiary: #50575e;
+	--wp-admin-text-placeholder: #a7aaad;
+	--wp-admin-text-inverse: #fff;
+
+	/* Borders */
+	--wp-admin-border-default: #c3c4c7;
+	--wp-admin-border-light: #dcdcde;
+	--wp-admin-border-emphasis: #2c3338;
+	--wp-admin-border-subtle: #8c8f94;
+
+	/* Status */
+	--wp-admin-status-error: #d63638;
+	--wp-admin-status-error-dark: #b32d2e;
+	--wp-admin-status-error-bg: #fcf0f0;
+	--wp-admin-status-error-border: #cc1818;
+	--wp-admin-status-warning: #dba617;
+	--wp-admin-status-warning-bg: #fef8ee;
+	--wp-admin-status-warning-border: #f0b849;
+	--wp-admin-status-success: #00a32a;
+	--wp-admin-status-success-bg: #eff9f1;
+	--wp-admin-status-success-border: #4ab866;
+	--wp-admin-status-info: #72aee6;
+	--wp-admin-status-info-dark: #2271b1;
+
+	/* Shadows & Overlays */
+	--wp-admin-shadow-color: rgba(0, 0, 0, 0.04);
+	--wp-admin-overlay-dark: rgba(0, 0, 0, 0.07);
+}
+
 /* 2 column liquid layout */
 #wpwrap {
 	height: auto;
