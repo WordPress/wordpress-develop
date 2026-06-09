@@ -111,10 +111,35 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 			'No self-closing flag on a foreign element'  => array( '<circle>', false ),
 			// These involve syntax peculiarities.
 			'Self-closing flag after extra spaces'       => array( '<div      />', true ),
-			'Self-closing flag after attribute'          => array( '<div id=test/>', true ),
+			'Self-closing flag after attribute'          => array( '<div id=test />', true ),
+			'Slash inside unquoted attribute value'      => array( '<div id=test/>', false ),
 			'Self-closing flag after quoted attribute'   => array( '<div id="test"/>', true ),
 			'Self-closing flag after boolean attribute'  => array( '<div enabled/>', true ),
 			'Boolean attribute that looks like a self-closer' => array( '<div / >', false ),
+		);
+	}
+
+	/**
+	 * Ensures a trailing slash in an unquoted attribute value is part of the value.
+	 *
+	 * @ticket 61576
+	 *
+	 * @covers WP_HTML_Tag_Processor::get_attribute
+	 * @covers WP_HTML_Tag_Processor::has_self_closing_flag
+	 */
+	public function test_trailing_slash_in_unquoted_attribute_value_is_not_self_closing_flag() {
+		$processor = new WP_HTML_Tag_Processor( '<mi disabled=abc/>text' );
+		$this->assertTrue( $processor->next_tag(), 'Could not find MI tag: check test setup.' );
+
+		$this->assertSame(
+			'abc/',
+			$processor->get_attribute( 'disabled' ),
+			'Trailing slash in unquoted attribute value should belong to the attribute value.'
+		);
+
+		$this->assertFalse(
+			$processor->has_self_closing_flag(),
+			'Trailing slash in unquoted attribute value should not be interpreted as a self-closing flag.'
 		);
 	}
 

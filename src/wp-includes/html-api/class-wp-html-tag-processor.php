@@ -3337,7 +3337,34 @@ class WP_HTML_Tag_Processor {
 		 *     <figure />
 		 *             ^ this appears one character before the end of the closing ">".
 		 */
-		return '/' === $this->html[ $this->token_starts_at + $this->token_length - 2 ];
+		$self_closing_flag_at = $this->token_starts_at + $this->token_length - 2;
+		if ( '/' !== $this->html[ $self_closing_flag_at ] ) {
+			return false;
+		}
+
+		foreach ( $this->attributes as $attribute ) {
+			$attribute_ends_at = $attribute->start + $attribute->length;
+			if (
+				$self_closing_flag_at >= $attribute->start &&
+				$self_closing_flag_at < $attribute_ends_at
+			) {
+				return false;
+			}
+		}
+
+		foreach ( $this->duplicate_attributes ?? array() as $duplicate_attributes ) {
+			foreach ( $duplicate_attributes as $attribute ) {
+				$attribute_ends_at = $attribute->start + $attribute->length;
+				if (
+					$self_closing_flag_at >= $attribute->start &&
+					$self_closing_flag_at < $attribute_ends_at
+				) {
+					return false;
+				}
+			}
+		}
+
+		return true;
 	}
 
 	/**

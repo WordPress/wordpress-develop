@@ -584,6 +584,38 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensures a trailing slash in an unquoted attribute value does not close foreign content.
+	 *
+	 * @ticket 61576
+	 */
+	public function test_trailing_slash_in_unquoted_attribute_value_does_not_self_close_foreign_content() {
+		$processor = WP_HTML_Processor::create_fragment( '<math><mi disabled=abc/>text</math>' );
+
+		$this->assertTrue( $processor->next_tag( 'MI' ), 'Could not find MI tag: check test setup.' );
+		$this->assertSame(
+			'abc/',
+			$processor->get_attribute( 'disabled' ),
+			'Trailing slash in unquoted attribute value should belong to the attribute value.'
+		);
+		$this->assertFalse(
+			$processor->has_self_closing_flag(),
+			'Trailing slash in unquoted attribute value should not be interpreted as a self-closing flag.'
+		);
+		$this->assertTrue(
+			$processor->expects_closer(),
+			'MI with a trailing slash in an unquoted attribute value should still expect a closer.'
+		);
+
+		$this->assertTrue( $processor->next_token(), 'Could not find text following MI tag: check test setup.' );
+		$this->assertSame( '#text', $processor->get_token_name(), 'Should have found the text node following the MI tag.' );
+		$this->assertSame(
+			array( 'HTML', 'BODY', 'MATH', 'MI', '#text' ),
+			$processor->get_breadcrumbs(),
+			'Text following the MI tag should remain inside the MI element.'
+		);
+	}
+
+	/**
 	 * Ensures that expects_closer works for void-like elements in foreign content.
 	 *
 	 * For example, `<svg><input>text` creates an `svg:input` that contains a text node.
