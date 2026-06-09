@@ -473,13 +473,13 @@ class WP_HTML_Open_Elements {
 	 * @since 6.4.0 Stub implementation (throws).
 	 * @since 6.7.0 Full implementation.
 	 *
-	 * @deprecated {WP_VERSION} This method is no longer part of the HTML standard.
+	 * @deprecated 7.1.0 This method is no longer part of the HTML standard.
 	 *
 	 * @param string $tag_name Name of tag to check.
 	 * @return bool Whether the given element is in SELECT scope.
 	 */
 	public function has_element_in_select_scope( string $tag_name ): bool {
-		_deprecated_function( __METHOD__, '{WP_VERSION}' );
+		_deprecated_function( __METHOD__, '7.1.0' );
 
 		foreach ( $this->walk_up() as $node ) {
 			if ( $node->node_name === $tag_name ) {
