@@ -731,10 +731,12 @@ class Tests_Query extends WP_UnitTestCase {
 	 */
 	public function test_get_queried_object_should_return_null_when_author_id_is_non_existent(): void {
 		add_action(
-			'parse_query',
-			static function ( WP_Query $query ) {
-				$query->is_author = true;
-				$query->set( 'author', 999999 );
+			'wp',
+			static function () {
+				/** @var WP_Query $wp_query */
+				global $wp_query;
+				$wp_query->is_author = true;
+				$wp_query->set( 'author', 999999 );
 			}
 		);
 
@@ -752,9 +754,11 @@ class Tests_Query extends WP_UnitTestCase {
 	public function test_get_queried_object_should_return_null_when_author_is_unset(): void {
 		// Trigger is_author without a valid author query var.
 		add_action(
-			'parse_query',
-			static function ( WP_Query $query ) {
-				$query->is_author = true;
+			'wp',
+			static function () {
+				/** @var WP_Query $wp_query */
+				global $wp_query;
+				$wp_query->is_author = true;
 			}
 		);
 
