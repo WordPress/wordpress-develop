@@ -1,0 +1,386 @@
+@use "sass:color";
+
+$base-color: #1e1e1e;
+$highlight-color: #6d8df8;
+
+@use "../_admin.scss" with (
+	$scheme-name: "dark",
+	$base-color: $base-color,
+	$text-color: #f0f0f0,
+	$icon-color: #a0a5aa,
+	$highlight-color: $highlight-color,
+	$notification-color: $highlight-color,
+	$body-background: #1e1e1e,
+
+	$link: $highlight-color,
+	$link-focus: color.adjust($highlight-color, $lightness: 10%),
+
+	$button-color: $highlight-color,
+
+	$menu-highlight-text: #fff,
+	$menu-highlight-icon: #fff,
+	$menu-highlight-background: #3858e9,
+
+	$menu-submenu-focus-text: #a4bdff,
+	$menu-submenu-background: color.adjust($base-color, $lightness: -3%),
+	$menu-submenu-text: #c0c0c0,
+
+	$menu-bubble-text: #fff,
+
+	$menu-collapse-text: #a0a5aa,
+	$menu-collapse-focus-icon: #fff,
+
+	$form-checked: #a0a5aa,
+
+	$custom-welcome-panel: "false",
+	$dashboard-accent-1: #2a2a2e,
+	$dashboard-accent-2: #1e1e1e,
+	$dashboard-icon-background: #1e1e1e
+);
+
+/*
+ * Dark Mode: Gutenberg CSS Custom Properties
+ * -------------------------------------------
+ * These override the theme color variables used by the block editor
+ * and other components that rely on CSS custom properties.
+ */
+
+.admin-color-dark {
+	--wp-admin-theme-color: #6d8df8;
+	--wp-admin-theme-color--rgb: 109, 141, 248;
+	--wp-admin-theme-color-darker-10: #5a7de6;
+	--wp-admin-theme-color-darker-10--rgb: 90, 125, 230;
+	--wp-admin-theme-color-darker-20: #4a6dd4;
+	--wp-admin-theme-color-darker-20--rgb: 74, 109, 212;
+}
+
+/*
+ * Dark Mode: Content Area Overrides
+ * ----------------------------------
+ * The color scheme system (_admin.scss) handles the admin menu, admin bar,
+ * buttons, links, and accent colors. However, the content area (page background,
+ * cards, text, borders, inputs, tables) uses hardcoded values in common.css,
+ * forms.css, dashboard.css, and other base CSS files.
+ *
+ * These overrides, scoped to .admin-color-dark, provide dark mode styling for
+ * the content area without modifying any existing CSS files.
+ *
+ * Color palette:
+ *   Page background:    #1e1e1e
+ *   Card/surface:       #2f2f2f
+ *   Elevated surface:   #393939
+ *   Alt row:            #353535
+ *   Primary text:       #f0f0f0
+ *   Secondary text:     #a0a5aa
+ *   Disabled text:      #757575
+ *   Primary border:     #444
+ *   Input border:       #616161
+ *   Link/accent:        #6d8df8
+ */
+
+.admin-color-dark {
+	/* ---------- Page-level ---------- */
+
+	#wpcontent,
+	#wpbody-content {
+		color: #f0f0f0;
+	}
+
+	#wpcontent {
+		background-color: #1e1e1e;
+	}
+
+	/* ---------- Cards & Panels ---------- */
+
+	.postbox,
+	.stuffbox,
+	.card,
+	.welcome-panel,
+	#post-body-content,
+	.wp-editor-container,
+	.meta-box-sortables .postbox,
+	.metabox-holder .postbox,
+	#dashboard-widgets .postbox,
+	.activity-block,
+	.accordion-section-content,
+	#screen-meta,
+	.feature-filter,
+	#available-widgets .widget,
+	.widgets-holder-wrap,
+	.wp-editor-expand #wp-content-editor-tools {
+		background-color: #2f2f2f;
+		color: #f0f0f0;
+	}
+
+	/* ---------- Headings ---------- */
+
+	.wrap h1,
+	.wrap h2,
+	.wrap h3,
+	h1,
+	h2,
+	h3,
+	h4 {
+		color: #f0f0f0;
+	}
+
+	/* ---------- Text ---------- */
+
+	.form-table th,
+	.form-table td,
+	.form-wrap label,
+	#wpbody-content p,
+	.widefat td,
+	.widefat th,
+	.row-actions a {
+		color: #f0f0f0;
+	}
+
+	/* Secondary text */
+	.description,
+	.form-table td p.description,
+	span.description,
+	p.description,
+	p.help,
+	p.install-help,
+	.form-wrap p,
+	.row-actions span {
+		color: #a0a5aa;
+	}
+
+	/* ---------- Links ---------- */
+
+	#wpbody-content a {
+		color: #6d8df8;
+	}
+
+	#wpbody-content a:hover,
+	#wpbody-content a:focus {
+		color: #a4bdff;
+	}
+
+	/* ---------- Borders ---------- */
+
+	.postbox,
+	.stuffbox,
+	.widefat,
+	.widefat th,
+	.widefat td,
+	.widefat thead th,
+	.widefat tfoot th,
+	.form-table td,
+	.form-table th,
+	#post-body-content,
+	hr,
+	.nav-tab-wrapper,
+	.card,
+	#screen-meta,
+	.tablenav,
+	.postbox .hndle,
+	.stuffbox .hndle,
+	.comment-php .comment-ays {
+		border-color: #444;
+	}
+
+	/* ---------- Alternate Row Backgrounds ---------- */
+
+	.widefat .alternate td,
+	.widefat .alternate th,
+	.striped > tbody > :nth-child(odd),
+	.alternate {
+		background-color: #353535;
+	}
+
+	/* ---------- Table Hover ---------- */
+
+	.wp-list-table tbody tr:hover,
+	.wp-list-table tbody tr:focus-within {
+		background-color: #393939;
+	}
+
+	/* ---------- Input Fields ---------- */
+
+	input[type="text"],
+	input[type="password"],
+	input[type="email"],
+	input[type="number"],
+	input[type="search"],
+	input[type="tel"],
+	input[type="url"],
+	input[type="date"],
+	input[type="datetime-local"],
+	input[type="month"],
+	input[type="week"],
+	input[type="time"],
+	input[type="color"],
+	select,
+	textarea {
+		background-color: #2f2f2f;
+		border-color: #616161;
+		color: #f0f0f0;
+	}
+
+	input[type="text"]:focus,
+	input[type="password"]:focus,
+	input[type="email"]:focus,
+	input[type="number"]:focus,
+	input[type="search"]:focus,
+	input[type="tel"]:focus,
+	input[type="url"]:focus,
+	textarea:focus,
+	select:focus {
+		border-color: #6d8df8;
+		box-shadow: 0 0 0 1px #6d8df8;
+	}
+
+	/* ---------- Notices ---------- */
+
+	.notice,
+	div.updated,
+	div.error {
+		background-color: #2f2f2f;
+		color: #f0f0f0;
+		border-color: #444;
+	}
+
+	.notice-success,
+	div.updated {
+		background-color: #1e3323;
+		border-left-color: #4ab866;
+	}
+
+	.notice-warning {
+		background-color: #332b1e;
+		border-left-color: #f0b849;
+	}
+
+	.notice-error,
+	div.error {
+		background-color: #331e1e;
+		border-left-color: #cc1818;
+	}
+
+	.notice-info {
+		background-color: #1e2233;
+		border-left-color: #6d8df8;
+	}
+
+	/* ---------- Nav Tabs ---------- */
+
+	.nav-tab {
+		background: #353535;
+		border-color: #444;
+		color: #a0a5aa;
+	}
+
+	.nav-tab:hover,
+	.nav-tab:focus {
+		background-color: #393939;
+		color: #f0f0f0;
+	}
+
+	.nav-tab-active,
+	.nav-tab-active:hover,
+	.nav-tab-active:focus {
+		background-color: #1e1e1e;
+		border-bottom-color: #1e1e1e;
+		color: #f0f0f0;
+	}
+
+	/* ---------- Screen Meta ---------- */
+
+	#screen-meta {
+		background-color: #2f2f2f;
+		border-color: #444;
+	}
+
+	#screen-meta-links .screen-meta-toggle {
+		border-color: #444;
+	}
+
+	#screen-meta-links .show-settings {
+		color: #a0a5aa;
+	}
+
+	/* ---------- Pagination ---------- */
+
+	.tablenav-pages .current-page,
+	.tablenav .tablenav-pages a {
+		background-color: #2f2f2f;
+		border-color: #616161;
+		color: #f0f0f0;
+	}
+
+	/* ---------- Dashboard Specific ---------- */
+
+	#dashboard-widgets h2,
+	#dashboard-widgets h3,
+	#dashboard_right_now .main h3,
+	.welcome-panel h2,
+	.welcome-panel h3 {
+		color: #f0f0f0;
+	}
+
+	#dashboard_right_now .main {
+		border-color: #444;
+	}
+
+	/* Activity widget */
+	#dashboard_activity .subsubsub a,
+	#dashboard_activity .subsubsub a .count {
+		color: #a0a5aa;
+	}
+
+	/* ---------- Media ---------- */
+
+	.media-frame,
+	.media-modal-content,
+	.media-frame-content {
+		background-color: #2f2f2f;
+		color: #f0f0f0;
+	}
+
+	.media-frame .media-toolbar,
+	.media-frame .attachments-browser .media-toolbar {
+		background-color: #1e1e1e;
+		border-color: #444;
+	}
+
+	/* ---------- Postbox Handles ---------- */
+
+	.postbox .hndle,
+	.stuffbox .hndle {
+		background-color: #353535;
+		color: #f0f0f0;
+	}
+
+	/* ---------- Footer ---------- */
+
+	#wpfooter {
+		color: #a0a5aa;
+	}
+
+	#wpfooter a {
+		color: #6d8df8;
+	}
+
+	/* ---------- Shadows ---------- */
+
+	.postbox {
+		box-shadow: 0 1px 1px rgba(0, 0, 0, 0.3);
+	}
+
+	/* ---------- Code Blocks ---------- */
+
+	code,
+	kbd {
+		background-color: #353535;
+		color: #e0e0e0;
+	}
+
+	/* ---------- Spinners ---------- */
+
+	img.wp-spinner {
+		filter: invert(1);
+	}
+}
