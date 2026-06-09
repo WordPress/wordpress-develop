@@ -716,7 +716,7 @@ class WP_Filesystem_ftpsockets extends WP_Filesystem_Base {
 		/** @var array<string, FileListing>|false $list */
 		$list = $this->ftp->dirlist( $path );
 
-		if ( ! $list || ! $this->exists( $path ) ) {
+		if ( false === $list || ! $this->exists( $path ) ) {
 
 			reset_mbstring_encoding();
 
