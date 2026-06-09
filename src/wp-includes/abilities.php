@@ -257,6 +257,4 @@ function wp_register_core_abilities(): void {
 			),
 		)
 	);
-
-	WP_Settings_Abilities::register();
 }
