@@ -113,7 +113,7 @@ class Tests_HtmlApi_WpHtmlProcessor_Serialize extends WP_UnitTestCase {
 	 *
 	 * @ticket 65372
 	 */
-	public function test_serializes_adjusted_foreign_attributes_with_namespace_prefix() {
+	public function test_serializes_adjusted_foreign_attributes_with_namespace_prefix(): void {
 		$svg = '<svg><a xlink:actuate="onLoad" xlink:arcrole="arc" xlink:href="#target" xlink:role="role" xlink:show="new" xlink:title="title" xlink:type="simple" xml:lang="en" xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"></a></svg>';
 
 		$this->assertSame(
@@ -143,7 +143,7 @@ class Tests_HtmlApi_WpHtmlProcessor_Serialize extends WP_UnitTestCase {
 	 * @param string $svg            SVG markup to normalize.
 	 * @param string $serialized_tag Expected serialized token.
 	 */
-	public function test_serializes_non_adjusted_foreign_attributes_with_colon( $svg, $serialized_tag ) {
+	public function test_serializes_non_adjusted_foreign_attributes_with_colon( string $svg, string $serialized_tag ): void {
 		$this->assertSame(
 			$svg,
 			WP_HTML_Processor::normalize( $svg ),
@@ -164,9 +164,9 @@ class Tests_HtmlApi_WpHtmlProcessor_Serialize extends WP_UnitTestCase {
 	/**
 	 * Data provider.
 	 *
-	 * @return array[].
+	 * @return array<string, array{0: string, 1: string}>
 	 */
-	public static function data_non_adjusted_foreign_attributes_with_colon() {
+	public static function data_non_adjusted_foreign_attributes_with_colon(): array {
 		return array(
 			'xlink control' => array(
 				'<svg><a xlink:author="author" xlink:href="#target"></a></svg>',
@@ -197,7 +197,7 @@ class Tests_HtmlApi_WpHtmlProcessor_Serialize extends WP_UnitTestCase {
 	 * @param string $input    HTML containing duplicate foreign attributes.
 	 * @param string $expected Expected normalized HTML.
 	 */
-	public function test_duplicate_foreign_attributes_are_removed( $input, $expected ) {
+	public function test_duplicate_foreign_attributes_are_removed( string $input, string $expected ): void {
 		$this->assertSame(
 			$expected,
 			WP_HTML_Processor::normalize( $input ),
@@ -208,9 +208,9 @@ class Tests_HtmlApi_WpHtmlProcessor_Serialize extends WP_UnitTestCase {
 	/**
 	 * Data provider.
 	 *
-	 * @return array[].
+	 * @return array<string, array{0: string, 1: string}>
 	 */
-	public static function data_duplicate_foreign_attributes() {
+	public static function data_duplicate_foreign_attributes(): array {
 		return array(
 			'adjusted xlink duplicate'       => array(
 				'<svg><a xlink:href="#first" XLINK:HREF="#second"></a></svg>',
