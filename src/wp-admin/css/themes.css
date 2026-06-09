@@ -201,7 +201,7 @@ body.js .theme-browser.search-loading {
 	font-weight: 600;
 	padding: 15px 12px;
 	text-align: center;
-	border-radius: 3px;
+	border-radius: 2px;
 	border: none;
 	transition: opacity 0.1s ease-in-out;
 	cursor: pointer;
@@ -1373,7 +1373,7 @@ div#custom-background-image img {
 }
 
 .background-position-control .button-group:first-child > label:first-child .button {
-	border-radius: 3px 0 0;
+	border-radius: 2px 0 0;
 }
 
 .background-position-control .button-group:first-child > label:first-child .dashicons {
@@ -1381,7 +1381,7 @@ div#custom-background-image img {
 }
 
 .background-position-control .button-group:first-child > label:last-child .button {
-	border-radius: 0 3px 0 0;
+	border-radius: 0 2px 0 0;
 }
 
 .background-position-control .button-group:first-child > label:last-child .dashicons {
@@ -1389,7 +1389,7 @@ div#custom-background-image img {
 }
 
 .background-position-control .button-group:last-child > label:first-child .button {
-	border-radius: 0 0 0 3px;
+	border-radius: 0 0 0 2px;
 }
 
 .background-position-control .button-group:last-child > label:first-child .dashicons {
@@ -1397,7 +1397,7 @@ div#custom-background-image img {
 }
 
 .background-position-control .button-group:last-child > label:last-child .button {
-	border-radius: 0 0 3px;
+	border-radius: 0 0 2px;
 }
 
 .background-position-control .button-group:last-child > label:last-child .dashicons {
