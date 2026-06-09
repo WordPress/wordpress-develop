@@ -933,7 +933,9 @@ function wp_get_registered_image_subsizes(): array {
 
 	foreach ( get_intermediate_image_sizes() as $size_name ) {
 		$size_data = array(
-			'crop' => false,
+			'width'  => 0,
+			'height' => 0,
+			'crop'   => false,
 		);
 
 		if ( isset( $additional_sizes[ $size_name ]['width'] ) ) {
