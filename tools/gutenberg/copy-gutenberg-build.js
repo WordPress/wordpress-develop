@@ -91,22 +91,6 @@ const COPY_CONFIG = {
 		],
 	},
 
-	// PHP source files (non-block files, copied from packages)
-	phpSource: {
-		files: [
-			{
-				// Block parser classes
-				package: 'block-serialization-default-parser',
-				files: [
-					'class-wp-block-parser.php',
-					'class-wp-block-parser-block.php',
-					'class-wp-block-parser-frame.php',
-				],
-				destination: '', // Root of wp-includes
-			},
-		],
-	},
-
 	// Theme JSON files (from Gutenberg lib directory)
 	themeJson: {
 		files: [
@@ -1028,38 +1012,7 @@ async function main() {
 	);
 	copyBlockAssets( COPY_CONFIG.blocks );
 
-	// 6. Copy non-block PHP source files (from packages)
-	console.log( '\n📦 Copying non-block PHP files...' );
-	const phpSourceConfig = COPY_CONFIG.phpSource;
-
-	for ( const fileGroup of phpSourceConfig.files ) {
-		const packageSrc = path.join( gutenbergPackagesDir, fileGroup.package );
-
-		if ( ! fs.existsSync( packageSrc ) ) {
-			console.log( `   ⚠️  Package not found: ${ fileGroup.package }` );
-			continue;
-		}
-
-		for ( const file of fileGroup.files ) {
-			const src = path.join( packageSrc, file );
-			const dest = path.join(
-				wpIncludesDir,
-				fileGroup.destination,
-				file
-			);
-
-			if ( fs.existsSync( src ) ) {
-				fs.mkdirSync( path.dirname( dest ), { recursive: true } );
-				let content = fs.readFileSync( src, 'utf8' );
-				fs.writeFileSync( dest, content );
-			}
-		}
-		console.log(
-			`   ✅ ${ fileGroup.package } (${ fileGroup.files.length } files)`
-		);
-	}
-
-	// 7. Copy theme JSON files (from Gutenberg lib directory)
+	// 6. Copy theme JSON files (from Gutenberg lib directory)
 	console.log( '\n📦 Copying theme JSON files...' );
 	const themeJsonConfig = COPY_CONFIG.themeJson;
 	const gutenbergLibDir = path.join( gutenbergDir, 'lib' );
@@ -1086,19 +1039,19 @@ async function main() {
 		}
 	}
 
-	// 9. Generate script-modules-packages.min.php from individual asset files
+	// 7. Generate script-modules-packages.min.php from individual asset files
 	console.log( '\n📦 Generating script-modules-packages.min.php...' );
 	generateScriptModulesPackages();
 
-	// 10. Generate script-loader-packages.min.php
+	// 8. Generate script-loader-packages.min.php
 	console.log( '\n📦 Generating script-loader-packages.min.php...' );
 	generateScriptLoaderPackages();
 
-	// 11. Generate require-dynamic-blocks.php and require-static-blocks.php
+	// 9. Generate require-dynamic-blocks.php and require-static-blocks.php
 	console.log( '\n📦 Generating block registration files...' );
 	generateBlockRegistrationFiles();
 
-	// 12. Generate blocks-json.php from block.json files
+	// 10. Generate blocks-json.php from block.json files
 	console.log( '\n📦 Generating blocks-json.php...' );
 	generateBlocksJson();
 
