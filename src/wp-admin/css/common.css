@@ -46,47 +46,6 @@
 	--wp-admin-overlay-dark: rgba(0, 0, 0, 0.07);
 }
 
-/*
- * Automatic dark mode for users whose OS is set to dark.
- * Only applies when no explicit admin color scheme override is active.
- * The .admin-color-dark class (set by the Dark color scheme) takes
- * precedence over this media query due to higher specificity.
- */
-@media (prefers-color-scheme: dark) {
-	body:not([class*="admin-color-"]),
-	body.admin-color-dark {
-		--wp-admin-bg-page: #1e1e1e;
-		--wp-admin-bg-card: #2f2f2f;
-		--wp-admin-bg-alt: #353535;
-		--wp-admin-bg-hover: #393939;
-		--wp-admin-bg-disabled: #353535;
-		--wp-admin-text-primary: #f0f0f0;
-		--wp-admin-text-body: #f0f0f0;
-		--wp-admin-text-secondary: #a0a5aa;
-		--wp-admin-text-tertiary: #a0a5aa;
-		--wp-admin-text-placeholder: #757575;
-		--wp-admin-text-inverse: #1e1e1e;
-		--wp-admin-border-default: #444;
-		--wp-admin-border-light: #444;
-		--wp-admin-border-emphasis: #616161;
-		--wp-admin-border-subtle: #616161;
-		--wp-admin-status-error: #f86368;
-		--wp-admin-status-error-dark: #d63638;
-		--wp-admin-status-error-bg: #331e1e;
-		--wp-admin-status-error-border: #cc1818;
-		--wp-admin-status-warning: #f0c33c;
-		--wp-admin-status-warning-bg: #332b1e;
-		--wp-admin-status-warning-border: #f0b849;
-		--wp-admin-status-success: #68de7c;
-		--wp-admin-status-success-bg: #1e3323;
-		--wp-admin-status-success-border: #4ab866;
-		--wp-admin-status-info: #6d8df8;
-		--wp-admin-status-info-dark: #a4bdff;
-		--wp-admin-shadow-color: rgba(0, 0, 0, 0.3);
-		--wp-admin-overlay-dark: rgba(255, 255, 255, 0.05);
-	}
-}
-
 /* 2 column liquid layout */
 #wpwrap {
 	height: auto;
