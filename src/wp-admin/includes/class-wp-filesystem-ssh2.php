@@ -36,7 +36,7 @@
  * @phpstan-type Options array{
  *     hostname: non-empty-string,
  *     username?: non-empty-string,
- *     password?: string,
+ *     password: string|null,
  *     port: non-negative-int,
  *     public_key?: non-empty-string,
  *     private_key?: non-empty-string,
