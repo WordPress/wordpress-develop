@@ -293,7 +293,7 @@ class Tests_Block_Supports_Layout extends WP_UnitTestCase {
 						),
 					),
 				),
-				'expected_output' => '<div class="wp-block-group is-horizontal is-nowrap is-layout-flex wp-container-core-group-is-layout-67f0b8e2 wp-block-group-is-layout-flex"></div>',
+				'expected_output' => '<div class="wp-block-group is-horizontal is-nowrap is-layout-flex wp-container-core-group-is-layout-ee7b5020 wp-block-group-is-layout-flex"></div>',
 			),
 			'single wrapper block layout with grid type'   => array(
 				'args'            => array(
@@ -312,7 +312,7 @@ class Tests_Block_Supports_Layout extends WP_UnitTestCase {
 						),
 					),
 				),
-				'expected_output' => '<div class="wp-block-group is-layout-grid wp-container-core-group-is-layout-9649a0d9 wp-block-group-is-layout-grid"></div>',
+				'expected_output' => '<div class="wp-block-group is-layout-grid wp-container-core-group-is-layout-9d260ee2 wp-block-group-is-layout-grid"></div>',
 			),
 			'skip classname output if block does not support layout and there are no child layout classes to be output' => array(
 				'args'            => array(
@@ -542,9 +542,19 @@ class Tests_Block_Supports_Layout extends WP_UnitTestCase {
 		$processor = new WP_HTML_Tag_Processor( $output );
 		$processor->next_tag();
 
-		$this->assertTrue(
-			$processor->has_class( $expected_class ),
-			"Expected class '$expected_class' not found in the rendered output, probably because of a different hash."
+		// Extract the actual container class from the output for better error messages.
+		$actual_class = '';
+		foreach ( $processor->class_list() as $class_name ) {
+			if ( str_starts_with( $class_name, 'wp-container-core-group-is-layout-' ) ) {
+				$actual_class = $class_name;
+				break;
+			}
+		}
+
+		$this->assertEquals(
+			$expected_class,
+			$actual_class,
+			'Expected class not found in the rendered output, probably because of a different hash.'
 		);
 	}
 
@@ -566,7 +576,7 @@ class Tests_Block_Supports_Layout extends WP_UnitTestCase {
 						),
 					),
 				),
-				'expected_class'   => 'wp-container-core-group-is-layout-c5c7d83f',
+				'expected_class'   => 'wp-container-core-group-is-layout-a6248535',
 			),
 			'default type block gap 24px'      => array(
 				'block_attributes' => array(
@@ -579,7 +589,7 @@ class Tests_Block_Supports_Layout extends WP_UnitTestCase {
 						),
 					),
 				),
-				'expected_class'   => 'wp-container-core-group-is-layout-634f0b9d',
+				'expected_class'   => 'wp-container-core-group-is-layout-61b496ee',
 			),
 			'constrained type justified left'  => array(
 				'block_attributes' => array(
@@ -588,7 +598,7 @@ class Tests_Block_Supports_Layout extends WP_UnitTestCase {
 						'justifyContent' => 'left',
 					),
 				),
-				'expected_class'   => 'wp-container-core-group-is-layout-12dd3699',
+				'expected_class'   => 'wp-container-core-group-is-layout-54d22900',
 			),
 			'constrained type justified right' => array(
 				'block_attributes' => array(
@@ -597,7 +607,7 @@ class Tests_Block_Supports_Layout extends WP_UnitTestCase {
 						'justifyContent' => 'right',
 					),
 				),
-				'expected_class'   => 'wp-container-core-group-is-layout-f1f2ed93',
+				'expected_class'   => 'wp-container-core-group-is-layout-2910ada7',
 			),
 			'flex type horizontal'             => array(
 				'block_attributes' => array(
@@ -607,7 +617,7 @@ class Tests_Block_Supports_Layout extends WP_UnitTestCase {
 						'flexWrap'    => 'nowrap',
 					),
 				),
-				'expected_class'   => 'wp-container-core-group-is-layout-2487dcaa',
+				'expected_class'   => 'wp-container-core-group-is-layout-f5d79bea',
 			),
 			'flex type vertical'               => array(
 				'block_attributes' => array(
@@ -616,7 +626,7 @@ class Tests_Block_Supports_Layout extends WP_UnitTestCase {
 						'orientation' => 'vertical',
 					),
 				),
-				'expected_class'   => 'wp-container-core-group-is-layout-fe9cc265',
+				'expected_class'   => 'wp-container-core-group-is-layout-2c90304e',
 			),
 			'grid type'                        => array(
 				'block_attributes' => array(
@@ -624,7 +634,7 @@ class Tests_Block_Supports_Layout extends WP_UnitTestCase {
 						'type' => 'grid',
 					),
 				),
-				'expected_class'   => 'wp-container-core-group-is-layout-478b6e6b',
+				'expected_class'   => 'wp-container-core-group-is-layout-5a23bf8e',
 			),
 			'grid type 3 columns'              => array(
 				'block_attributes' => array(
@@ -633,7 +643,7 @@ class Tests_Block_Supports_Layout extends WP_UnitTestCase {
 						'columnCount' => 3,
 					),
 				),
-				'expected_class'   => 'wp-container-core-group-is-layout-d3b710ac',
+				'expected_class'   => 'wp-container-core-group-is-layout-cda6dc4f',
 			),
 		);
 	}

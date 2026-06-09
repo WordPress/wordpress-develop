@@ -120,6 +120,7 @@ final class WP_Autoload {
 		'wp_script_modules'                           => 'wp-includes/class-wp-script-modules.php',
 		'wp_scripts'                                  => 'wp-includes/class-wp-scripts.php',
 		'wp_session_tokens'                           => 'wp-includes/class-wp-session-tokens.php',
+		'wp_settings_abilities'                       => 'wp-includes/abilities/class-wp-settings-abilities.php',
 		'wp_simplepie_file'                           => 'wp-includes/class-wp-simplepie-file.php',
 		'wp_simplepie_sanitize_kses'                  => 'wp-includes/class-wp-simplepie-sanitize-kses.php',
 		'wp_site_query'                               => 'wp-includes/class-wp-site-query.php',

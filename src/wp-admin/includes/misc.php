@@ -492,6 +492,9 @@ function wp_make_plugin_file_tree( $plugin_editable_files ) {
  * @since 4.9.0
  * @access private
  *
+ * @global string $file   Path to the file being edited.
+ * @global string $plugin Path to the plugin file relative to the plugins directory.
+ *
  * @param array|string $tree  List of file/folder paths, or filename.
  * @param string       $label Name of file or folder to print.
  * @param int          $level The aria-level for the current iteration.
@@ -816,7 +819,7 @@ function set_screen_options() {
  * @since 2.8.0
  *
  * @param string $filename The file path to the configuration file.
- * @return bool
+ * @return bool Whether the rule exists.
  */
 function iis7_rewrite_rule_exists( $filename ) {
 	if ( ! file_exists( $filename ) ) {
@@ -849,7 +852,7 @@ function iis7_rewrite_rule_exists( $filename ) {
  * @since 2.8.0
  *
  * @param string $filename Name of the configuration file.
- * @return bool
+ * @return bool Whether the rule was deleted.
  */
 function iis7_delete_rewrite_rule( $filename ) {
 	// If configuration file does not exist then rules also do not exist, so there is nothing to delete.
@@ -889,7 +892,7 @@ function iis7_delete_rewrite_rule( $filename ) {
  *
  * @param string $filename     The file path to the configuration file.
  * @param string $rewrite_rule The XML fragment with URL Rewrite rule.
- * @return bool
+ * @return bool Whether the rule was added.
  */
 function iis7_add_rewrite_rule( $filename, $rewrite_rule ) {
 	if ( ! class_exists( 'DOMDocument', false ) ) {
