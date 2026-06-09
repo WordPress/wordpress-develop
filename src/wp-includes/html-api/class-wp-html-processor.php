@@ -2996,7 +2996,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				 * >   2. Ignore the token.
 				 * >   3. Return.
 				 */
-				if ( null !== $this->context_node && 'SELECT' === $this->context_node->node_name ) {
+				if ( isset( $this->context_node ) && 'SELECT' === $this->context_node->node_name ) {
 					return $this->step();
 				}
 
@@ -3145,7 +3145,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				 * >   1. Parse error.
 				 * >   2. Ignore the token.
 				 */
-				if ( null !== $this->context_node && 'SELECT' === $this->context_node->node_name ) {
+				if ( isset( $this->context_node ) && 'SELECT' === $this->context_node->node_name ) {
 					// @todo Indicate a parse error once it's possible.
 					return $this->step();
 				}
