@@ -42,7 +42,7 @@ class WP_Filesystem_FTPext extends WP_Filesystem_Base {
 	 * @since 2.5.0
 	 *
 	 * @param array $opt {
-	 *     Optional. Array of connection options.
+	 *     Array of connection options.
 	 *
 	 *     @type string $hostname        Required. FTP server hostname.
 	 *     @type string $username        Required. FTP username.
