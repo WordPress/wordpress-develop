@@ -1048,9 +1048,7 @@ class Tests_REST_WpRestFontFamiliesController extends WP_Test_REST_Controller_Te
 			$expected = rest_url( 'wp/v2/font-families/' . $post->ID . '/font-faces/' . $font_face_ids[ $index ] );
 			$this->assertSame( $expected, $link['href'], 'The links for a font faces URL from the response data should match the REST endpoint.' );
 
-			$embeddable = isset( $link['attributes']['embeddable'] )
-				? $link['attributes']['embeddable']
-				: $link['embeddable'];
+			$embeddable = $link['attributes']['embeddable'] ?? $link['embeddable'];
 			$this->assertTrue( $embeddable, 'The embeddable should be true.' );
 		}
 	}

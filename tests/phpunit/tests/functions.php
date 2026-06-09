@@ -1573,11 +1573,27 @@ class Tests_Functions extends WP_UnitTestCase {
 		$expected = array(
 			1180,
 			1180,
-			IMAGETYPE_HEIC,
+			IMAGETYPE_HEIF,
 			'width="1180" height="1180"',
-			'mime' => 'image/heic',
 		);
-		$result   = wp_getimagesize( $file );
+
+		// As of PHP 8.5.0, getimagesize() supports HEIF/HEIC files.
+		if ( PHP_VERSION_ID >= 80500 ) {
+			$expected = array_merge(
+				$expected,
+				array(
+					'bits'        => 8,
+					'channels'    => 3,
+					'mime'        => 'image/heif',
+					'width_unit'  => 'px',
+					'height_unit' => 'px',
+				)
+			);
+		} else {
+			$expected['mime'] = 'image/heic';
+		}
+
+		$result = wp_getimagesize( $file );
 		$this->assertSame( $expected, $result );
 	}
 

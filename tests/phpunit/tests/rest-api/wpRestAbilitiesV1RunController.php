@@ -472,7 +472,7 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 		$response = $this->server->dispatch( $request );
 
 		$this->assertEquals( 200, $response->get_status() );
-		$this->assertEquals( 'User successfully deleted!', $response->get_data() );
+		$this->assertSame( 'User successfully deleted!', $response->get_data() );
 	}
 
 	/**
@@ -630,7 +630,7 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 
 		$response = $this->server->dispatch( $request );
 		$this->assertEquals( 200, $response->get_status() );
-		$this->assertEquals( 'Success: test data', $response->get_data() );
+		$this->assertSame( 'Success: test data', $response->get_data() );
 	}
 
 	/**
@@ -646,8 +646,8 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 
 		$this->assertEquals( 404, $response->get_status() );
 		$data = $response->get_data();
-		$this->assertEquals( 'rest_ability_not_found', $data['code'] );
-		$this->assertEquals( 'Ability not found.', $data['message'] );
+		$this->assertSame( 'rest_ability_not_found', $data['code'] );
+		$this->assertSame( 'Ability not found.', $data['message'] );
 	}
 
 	/**
@@ -679,8 +679,8 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 
 		$this->assertEquals( 500, $response->get_status() );
 		$data = $response->get_data();
-		$this->assertEquals( 'test_error', $data['code'] );
-		$this->assertEquals( 'This is a test error', $data['message'] );
+		$this->assertSame( 'test_error', $data['code'] );
+		$this->assertSame( 'This is a test error', $data['message'] );
 	}
 
 	/**
@@ -698,7 +698,7 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 
 		$this->assertEquals( 404, $response->get_status() );
 		$data = $response->get_data();
-		$this->assertEquals( 'rest_ability_not_found', $data['code'] );
+		$this->assertSame( 'rest_ability_not_found', $data['code'] );
 	}
 
 	/**
@@ -714,8 +714,8 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 		$this->assertArrayHasKey( 'schema', $data );
 		$schema = $data['schema'];
 
-		$this->assertEquals( 'ability-execution', $schema['title'] );
-		$this->assertEquals( 'object', $schema['type'] );
+		$this->assertSame( 'ability-execution', $schema['title'] );
+		$this->assertSame( 'object', $schema['type'] );
 		$this->assertArrayHasKey( 'properties', $schema );
 		$this->assertArrayHasKey( 'result', $schema['properties'] );
 	}
@@ -761,7 +761,7 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 		$this->assertEquals( 200, $response->get_status() );
 
 		$data = $response->get_data();
-		$this->assertEquals( 'nested', $data['level1']['level2']['value'] );
+		$this->assertSame( 'nested', $data['level1']['level2']['value'] );
 		$this->assertEquals( array( 1, 2, 3 ), $data['array'] );
 	}
 

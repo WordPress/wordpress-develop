@@ -1013,7 +1013,7 @@ function get_term( $term, $taxonomy = '', $output = OBJECT, $filter = 'raw' ) {
 	 * taxonomy.
 	 *
 	 * @since 2.3.0
-	 * @since 4.4.0 `$_term` is now a `WP_Term` object.
+	 * @since 4.4.0 `$_term` is now a WP_Term object.
 	 *
 	 * @param WP_Term $_term    Term object.
 	 * @param string  $taxonomy The taxonomy slug.
@@ -1032,7 +1032,7 @@ function get_term( $term, $taxonomy = '', $output = OBJECT, $filter = 'raw' ) {
 	 *  - `get_post_tag`
 	 *
 	 * @since 2.3.0
-	 * @since 4.4.0 `$_term` is now a `WP_Term` object.
+	 * @since 4.4.0 `$_term` is now a WP_Term object.
 	 *
 	 * @param WP_Term $_term    Term object.
 	 * @param string  $taxonomy The taxonomy slug.
@@ -1999,6 +1999,10 @@ function wp_delete_object_term_relationships( $object_id, $taxonomies ) {
 
 	foreach ( (array) $taxonomies as $taxonomy ) {
 		$term_ids = wp_get_object_terms( $object_id, $taxonomy, array( 'fields' => 'ids' ) );
+		if ( ! is_array( $term_ids ) ) {
+			// Skip return value in the case of an error or the 'wp_get_object_terms' filter returning an invalid value.
+			continue;
+		}
 		$term_ids = array_map( 'intval', $term_ids );
 		wp_remove_object_terms( $object_id, $term_ids, $taxonomy );
 	}

@@ -399,6 +399,7 @@ function display_plugins_table() {
 			);
 			break;
 		case 'install_plugins_featured':
+			echo '<br>';
 			break;
 		case 'install_plugins_recommended':
 			echo '<p>' . __( 'These suggestions are based on the plugins you and other users have installed.' ) . '</p>';
@@ -408,9 +409,6 @@ function display_plugins_table() {
 				return;
 			}
 			break;
-	}
-	if ( isset( $_GET['tab'] ) && 'featured' === $_GET['tab'] ) {
-		echo '<br />';
 	}
 	?>
 	<form id="plugin-filter" method="post">
@@ -608,7 +606,7 @@ function install_plugin_information() {
 		$low          = empty( $api->banners['low'] ) ? $api->banners['high'] : $api->banners['low'];
 		$high         = empty( $api->banners['high'] ) ? $api->banners['low'] : $api->banners['high'];
 		?>
-		<style type="text/css">
+		<style>
 			#plugin-information-title.with-banner {
 				background-image: url( <?php echo esc_url( $low ); ?> );
 			}

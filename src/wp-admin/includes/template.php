@@ -1610,7 +1610,7 @@ function do_accordion_sections( $screen, $context, $data_object ) {
  *
  * @param string   $id       Slug-name to identify the section. Used in the 'id' attribute of tags.
  * @param string   $title    Formatted title of the section. Shown as the heading for the section.
- * @param callable $callback Function that echos out any content at the top of the section (between heading and fields).
+ * @param callable $callback Function that displays any content at the top of the section (between heading and fields).
  * @param string   $page     The slug-name of the settings page on which to show the section. Built-in pages include
  *                           'general', 'reading', 'writing', 'discussion', 'media', etc. Create your own using
  *                           add_options_page();
@@ -2245,6 +2245,7 @@ function _post_states( $post, $display = true ) {
 
 	if ( ! empty( $post_states ) ) {
 		$state_count = count( $post_states );
+		$separator   = wp_get_list_item_separator();
 
 		$i = 0;
 
@@ -2253,9 +2254,9 @@ function _post_states( $post, $display = true ) {
 		foreach ( $post_states as $state ) {
 			++$i;
 
-			$separator = ( $i < $state_count ) ? ', ' : '';
+			$suffix = ( $i < $state_count ) ? $separator : '';
 
-			$post_states_html .= "<span class='post-state'>{$state}{$separator}</span>";
+			$post_states_html .= "<span class='post-state'>{$state}{$suffix}</span>";
 		}
 	}
 
@@ -2266,7 +2267,7 @@ function _post_states( $post, $display = true ) {
 	 *
 	 * @param string                 $post_states_html All relevant post states combined into an HTML string for display.
 	 *                                                 E.g. `&mdash; <span class='post-state'>Draft, </span><span class='post-state'>Sticky</span>`.
-	 * @param string<string, string> $post_states      A mapping of post state slugs to translated post state labels.
+	 * @param array<string, string>  $post_states      A mapping of post state slugs to translated post state labels.
 	 *                                                 E.g. `array( 'draft' => __( 'Draft' ), 'sticky' => __( 'Sticky' ), ... )`.
 	 * @param WP_Post                $post             The current post object.
 	 */
@@ -2349,7 +2350,7 @@ function get_post_states( $post ) {
 	 *              are used within the filter, their existence should be checked
 	 *              with `function_exists()` before being used.
 	 *
-	 * @param string<string, string> $post_states A mapping of post state slugs to translated post state labels.
+	 * @param array<string, string>  $post_states A mapping of post state slugs to translated post state labels.
 	 *                                            E.g. `array( 'draft' => __( 'Draft' ), 'sticky' => __( 'Sticky' ), ... )`.
 	 * @param WP_Post                $post        The current post object.
 	 */
@@ -2373,6 +2374,7 @@ function _media_states( $post, $display = true ) {
 
 	if ( ! empty( $media_states ) ) {
 		$state_count = count( $media_states );
+		$separator   = wp_get_list_item_separator();
 
 		$i = 0;
 
@@ -2381,9 +2383,9 @@ function _media_states( $post, $display = true ) {
 		foreach ( $media_states as $state ) {
 			++$i;
 
-			$separator = ( $i < $state_count ) ? ', ' : '';
+			$suffix = ( $i < $state_count ) ? $separator : '';
 
-			$media_states_string .= "<span class='post-state'>{$state}{$separator}</span>";
+			$media_states_string .= "<span class='post-state'>{$state}{$suffix}</span>";
 		}
 	}
 

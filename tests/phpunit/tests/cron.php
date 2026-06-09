@@ -460,7 +460,7 @@ class Tests_Cron extends WP_UnitTestCase {
 
 		$this->preflight_cron_array[ $event->timestamp ][ $event->hook ][ $key ] = array(
 			'schedule' => $event->schedule,
-			'interval' => isset( $event->interval ) ? $event->interval : 0,
+			'interval' => $event->interval ?? 0,
 			'args'     => $event->args,
 		);
 		uksort( $this->preflight_cron_array, 'strnatcasecmp' );

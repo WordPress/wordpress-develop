@@ -764,7 +764,7 @@ function get_default_post_to_edit( $post_type = 'post', $create_in_db = false ) 
 	if ( $create_in_db ) {
 		$post_id = wp_insert_post(
 			array(
-				'post_title'  => __( 'Auto Draft' ),
+				'post_title'  => post_type_supports( $post_type, 'title' ) ? __( 'Auto Draft' ) : '',
 				'post_type'   => $post_type,
 				'post_status' => 'auto-draft',
 			),
@@ -1894,7 +1894,7 @@ function _admin_notice_post_locked() {
 		 * Fires inside the post locked dialog before the buttons are displayed.
 		 *
 		 * @since 3.6.0
-		 * @since 5.4.0 The $user parameter was added.
+		 * @since 5.4.0 The `$user` parameter was added.
 		 *
 		 * @param WP_Post $post Post object.
 		 * @param WP_User $user The user with the lock for the post.
