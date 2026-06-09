@@ -1904,6 +1904,27 @@ HTML;
 	}
 
 	/**
+	 * Tests that VIPS script modules always use minified file paths.
+	 *
+	 * Non-minified VIPS files are not shipped because they are ~10MB of
+	 * inlined WASM with no debugging value, so the registration should
+	 * always point to the .min.js variants.
+	 *
+	 * @ticket 64734
+	 *
+	 * @covers ::wp_default_script_modules
+	 */
+	public function test_vips_script_modules_always_use_minified_paths() {
+		wp_default_script_modules();
+		wp_enqueue_script_module( '@wordpress/vips/loader' );
+
+		$actual = get_echo( array( wp_script_modules(), 'print_enqueued_script_modules' ) );
+
+		$this->assertStringContainsString( 'vips/loader.min.js', $actual );
+		$this->assertStringNotContainsString( 'vips/loader.js"', $actual );
+	}
+
+	/**
 	 * Normalizes markup for snapshot.
 	 *
 	 * @param string $markup Markup.

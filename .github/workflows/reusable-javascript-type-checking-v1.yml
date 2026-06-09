@@ -1,0 +1,76 @@
+##
+# A reusable workflow that runs JavaScript Type Checking.
+##
+name: JavaScript Type Checking
+
+on:
+  workflow_call:
+
+# Disable permissions for all available scopes by default.
+# Any needed permissions should be configured at the job level.
+permissions: {}
+
+jobs:
+  # Runs JavaScript type checking.
+  #
+  # Violations are reported inline with annotations.
+  #
+  # Performs the following steps:
+  # - Checks out the repository.
+  # - Sets up Node.js.
+  # - Logs debug information.
+  # - Installs npm dependencies.
+  # - Configures caching for TypeScript build info.
+  # - Runs JavaScript type checking.
+  # - Saves the TypeScript build info.
+  # - Ensures version-controlled files are not modified or deleted.
+  typecheck:
+    name: Run JavaScript type checking
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@2028fbc5c25fe9cf00d9f06a71cc4710d4507903 # v6.0.0
+        with:
+          node-version-file: '.nvmrc'
+          cache: npm
+
+      - name: Log debug information
+        run: |
+          npm --version
+          node --version
+
+      - name: Install npm dependencies
+        run: npm ci --ignore-scripts
+
+      - name: Cache TypeScript build info
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+        with:
+          path: |
+            *.tsbuildinfo
+          key: "ts-build-info-${{ github.run_id }}"
+          restore-keys: |
+            ts-build-info-
+
+      - name: Run JavaScript type checking
+        run: npm run typecheck:js
+
+      - name: "Save result cache"
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+        if: ${{ !cancelled() }}
+        with:
+          path: |
+            *.tsbuildinfo
+          key: "ts-build-info-${{ github.run_id }}"
+
+      - name: Ensure version-controlled files are not modified or deleted
+        run: git diff --exit-code

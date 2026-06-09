@@ -70,7 +70,7 @@ jobs:
         os: [ 'ubuntu-24.04' ]
         php: [ '7.4', '8.0', '8.1', '8.2', '8.3', '8.4', '8.5' ]
         db-type: [ 'mysql' ]
-        db-version: [ '5.7', '8.0', '8.4', '9.5' ]
+        db-version: [ '5.7', '8.0', '8.4', '9.6' ]
         wp: [ '6.7', '6.8' ]
         multisite: [ false, true ]
     with:
@@ -179,7 +179,7 @@ jobs:
         os: [ 'ubuntu-24.04' ]
         php: [ '7.4' ]
         db-type: [ 'mysql' ]
-        db-version: [ '5.7', '8.0', '8.4', '9.5' ]
+        db-version: [ '5.7', '8.0', '8.4', '9.6' ]
         wp: [ '4.7' ]
         multisite: [ false, true ]
     with:

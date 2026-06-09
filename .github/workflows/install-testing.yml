@@ -101,9 +101,9 @@ jobs:
           - db-version: '9.4'
           # MySQL 9.0+ will not work on PHP 7.2 & 7.3. See https://core.trac.wordpress.org/ticket/61218.
           - php: '7.2'
-            db-version: '9.5'
+            db-version: '9.6'
           - php: '7.3'
-            db-version: '9.5'
+            db-version: '9.6'
 
     services:
       database:

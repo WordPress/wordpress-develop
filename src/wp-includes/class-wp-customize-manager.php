@@ -3821,7 +3821,7 @@ final class WP_Customize_Manager {
 	 * @since 3.4.0
 	 *
 	 * @param string $id Customize Setting ID.
-	 * @return WP_Customize_Setting|void The setting, if set.
+	 * @return WP_Customize_Setting|null The setting, if set.
 	 */
 	public function get_setting( $id ) {
 		if ( isset( $this->settings[ $id ] ) ) {
@@ -3873,7 +3873,7 @@ final class WP_Customize_Manager {
 	 * @since 4.0.0
 	 *
 	 * @param string $id Panel ID to get.
-	 * @return WP_Customize_Panel|void Requested panel instance, if set.
+	 * @return WP_Customize_Panel|null Requested panel instance, if set.
 	 */
 	public function get_panel( $id ) {
 		if ( isset( $this->panels[ $id ] ) ) {
@@ -3969,7 +3969,7 @@ final class WP_Customize_Manager {
 	 * @since 3.4.0
 	 *
 	 * @param string $id Section ID.
-	 * @return WP_Customize_Section|void The section, if set.
+	 * @return WP_Customize_Section|null The section, if set.
 	 */
 	public function get_section( $id ) {
 		if ( isset( $this->sections[ $id ] ) ) {
@@ -4048,7 +4048,7 @@ final class WP_Customize_Manager {
 	 * @since 3.4.0
 	 *
 	 * @param string $id ID of the control.
-	 * @return WP_Customize_Control|void The control object, if set.
+	 * @return WP_Customize_Control|null The control object, if set.
 	 */
 	public function get_control( $id ) {
 		if ( isset( $this->controls[ $id ] ) ) {

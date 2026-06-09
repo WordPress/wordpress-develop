@@ -64,6 +64,7 @@ final class WP_Autoload {
 		'wp_classic_to_block_menu_converter'          => 'wp-includes/class-wp-classic-to-block-menu-converter.php',
 		'wp_comment_query'                            => 'wp-includes/class-wp-comment-query.php',
 		'wp_comment'                                  => 'wp-includes/class-wp-comment.php',
+		'wp_connector_registry'                       => 'wp-includes/class-wp-connector-registry.php',
 		'wp_customize_control'                        => 'wp-includes/class-wp-customize-control.php',
 		'wp_customize_manager'                        => 'wp-includes/class-wp-customize-manager.php',
 		'wp_customize_nav_menus'                      => 'wp-includes/class-wp-customize-nav-menus.php',
