@@ -16,7 +16,7 @@
 .widget-top {
 	font-size: 13px;
 	font-weight: 600;
-	background: #f6f7f7;
+	background: var(--wp-admin-bg-alt);
 }
 
 .widget-top .widget-action {
@@ -53,12 +53,12 @@
 .in-widget-title,
 #widgets-right a.widget-control-edit,
 #available-widgets .widget-description {
-	color: #646970;
+	color: var(--wp-admin-text-secondary);
 }
 
 .deleting .widget-title,
 .deleting .widget-top .widget-action .toggle-indicator:before {
-	color: #a7aaad;
+	color: var(--wp-admin-text-placeholder);
 }
 
 /* Media Widgets */
@@ -90,7 +90,7 @@
 
 .media-widget-control .attachment-media-view .button-add-media,
 .media-widget-control .placeholder {
-	border: 1px dashed #c3c4c7;
+	border: 1px dashed var(--wp-admin-border-default);
 	box-sizing: border-box;
 	cursor: pointer;
 	line-height: 1.6;
@@ -102,16 +102,16 @@
 
 .media-widget-control .attachment-media-view .button-add-media {
 	cursor: pointer;
-	background-color: #f0f0f1;
-	color: #2c3338;
+	background-color: var(--wp-admin-bg-page);
+	color: var(--wp-admin-border-emphasis);
 }
 
 .media-widget-control .attachment-media-view .button-add-media:hover {
-	background-color: #fff;
+	background-color: var(--wp-admin-bg-card);
 }
 
 .media-widget-control .attachment-media-view .button-add-media:focus {
-	background-color: #fff;
+	background-color: var(--wp-admin-bg-card);
 	border-style: solid;
 	border-color: #4f94d4;
 	box-shadow: 0 0 3px rgba(34, 113, 177, 0.8);
@@ -137,7 +137,7 @@
 .media-widget-control .media-widget-preview img {
 	max-width: 100%;
 	vertical-align: middle;
-	background-image: linear-gradient(45deg, #c3c4c7 25%, transparent 25%, transparent 75%, #c3c4c7 75%, #c3c4c7), linear-gradient(45deg, #c3c4c7 25%, transparent 25%, transparent 75%, #c3c4c7 75%, #c3c4c7);
+	background-image: linear-gradient(45deg, var(--wp-admin-border-default) 25%, transparent 25%, transparent 75%, var(--wp-admin-border-default) 75%, var(--wp-admin-border-default)), linear-gradient(45deg, var(--wp-admin-border-default) 25%, transparent 25%, transparent 75%, var(--wp-admin-border-default) 75%, var(--wp-admin-border-default));
 	background-position: 0 0, 10px 10px;
 	background-size: 20px 20px;
 }
@@ -175,7 +175,7 @@
 	position: relative;
 	width: 100%;
 	top: -90px;
-	color: #fff;
+	color: var(--wp-admin-text-inverse);
 	text-decoration: none;
 }
 
@@ -185,7 +185,7 @@
 
 .media-frame #embed-url-field.invalid,
 .media-widget-image-link > .link:invalid {
-	border: 1px solid #d63638;
+	border: 1px solid var(--wp-admin-status-error);
 }
 
 .media-widget-image-link {
@@ -205,7 +205,7 @@
 }
 
 .media-widget-preview .placeholder {
-	background: #f0f0f1;
+	background: var(--wp-admin-bg-page);
 }
 
 .media-widget-gallery-preview .gallery-item {
@@ -257,7 +257,7 @@
 .media-widget-gallery-preview .gallery-icon-placeholder-text {
 	font-weight: 600;
 	font-size: 2em;
-	color: #fff;
+	color: var(--wp-admin-text-inverse);
 }
 
 
@@ -271,7 +271,7 @@
 }
 
 .widget-placeholder {
-	border: 1px dashed #c3c4c7;
+	border: 1px dashed var(--wp-admin-border-default);
 	margin: 0 auto 10px;
 	height: 45px;
 	width: 100%;
@@ -354,12 +354,12 @@
 	padding: 0 0 15px;
 	margin: 0;
 	font-style: normal;
-	color: #646970;
+	color: var(--wp-admin-text-secondary);
 }
 
 .widget-holder .description,
 .inactive-sidebar .description {
-	color: #50575e;
+	color: var(--wp-admin-text-tertiary);
 }
 
 #widgets-right .widgets-holder-wrap .description {
@@ -538,7 +538,7 @@ div#widgets-right .closed .widgets-sortables {
 
 .widgets_access #widgets-left .widget .widget-top:hover,
 .widgets_access #widgets-right .widget .widget-top:hover {
-	border-color: #dcdcde;
+	border-color: var(--wp-admin-border-light);
 }
 
 #available-widgets .widget-control-edit .edit,
@@ -552,19 +552,19 @@ div#widgets-right .closed .widgets-sortables {
 
 .widget-control-edit {
 	display: block;
-	color: #646970;
-	background: #f0f0f1;
+	color: var(--wp-admin-text-secondary);
+	background: var(--wp-admin-bg-page);
 	padding: 0 15px;
 	line-height: 3.30769230;
-	border-left: 1px solid #dcdcde;
+	border-left: 1px solid var(--wp-admin-border-light);
 }
 
 #widgets-left .widget-control-edit:hover,
 #widgets-right .widget-control-edit:hover {
-	color: #fff;
-	background: #3c434a;
+	color: var(--wp-admin-text-inverse);
+	background: var(--wp-admin-text-body);
 	border-left: 0;
-	outline: 1px solid #3c434a;
+	outline: 1px solid var(--wp-admin-text-body);
 }
 
 .widgets-holder-wrap .sidebar-name,
@@ -611,7 +611,7 @@ div#widgets-right .closed .widgets-sortables {
 }
 
 .widget-inside {
-	background: #fff;
+	background: var(--wp-admin-bg-card);
 }
 
 .widget-inside select {
@@ -629,7 +629,7 @@ div#widgets-right .closed .widgets-sortables {
 }
 
 .js #removing-widget {
-	color: #72aee6;
+	color: var(--wp-admin-status-info);
 }
 
 .widget-control-noform,
@@ -681,7 +681,7 @@ div#widgets-right .closed .widgets-sortables {
 #available-widgets .widget-top:hover,
 div#widgets-right .widget-top:hover,
 #widgets-left .widget-top:hover {
-	border-color: #8c8f94;
+	border-color: var(--wp-admin-border-subtle);
 	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
@@ -697,12 +697,12 @@ div#widgets-right .widget-top:hover,
 }
 
 .widgets-chooser ul {
-	border: 1px solid #c3c4c7;
+	border: 1px solid var(--wp-admin-border-default);
 }
 
 .widgets-chooser li {
-	border-bottom: 1px solid #c3c4c7;
-	background: #fff;
+	border-bottom: 1px solid var(--wp-admin-border-default);
+	background: var(--wp-admin-bg-card);
 	margin: 0;
 	position: relative;
 }
@@ -731,7 +731,7 @@ div#widgets-right .widget-top:hover,
 
 .widgets-chooser .widgets-chooser-selected .widgets-chooser-button {
 	background: var(--wp-admin-theme-color, #3858e9);
-	color: #fff;
+	color: var(--wp-admin-text-inverse);
 }
 
 .widgets-chooser .widgets-chooser-selected:before {
@@ -740,7 +740,7 @@ div#widgets-right .widget-top:hover,
 	display: block;
 	-webkit-font-smoothing: antialiased;
 	font: normal 26px/1 dashicons;
-	color: #fff;
+	color: var(--wp-admin-text-inverse);
 	position: absolute;
 	top: 7px;
 	left: 5px;
@@ -783,7 +783,7 @@ div#widgets-right .widget-top:hover,
 }
 
 .custom-html-widget-fields > p > .CodeMirror {
-	border: 1px solid #dcdcde;
+	border: 1px solid var(--wp-admin-border-light);
 }
 .custom-html-widget-fields code {
 	padding-top: 1px;
