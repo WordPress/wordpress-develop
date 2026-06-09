@@ -33,7 +33,7 @@ class WP_Ability {
 	 * They are not guaranteed to provide a faithful description of ability behavior.
 	 *
 	 * @since 6.9.0
-	 * @var array<string, (null|bool)>
+	 * @var array<string, bool|null>
 	 */
 	protected static $default_annotations = array(
 		// If true, the ability does not modify its environment.
@@ -150,7 +150,16 @@ class WP_Ability {
 	 *     @type array<string, mixed> $meta                  {
 	 *         Optional. Additional metadata for the ability.
 	 *
-	 *         @type array<string, null|bool> $annotations  Optional. Annotation metadata for the ability.
+	 *         @type array<string, bool|null> $annotations  {
+	 *             Optional. Semantic annotations describing the ability's behavioral characteristics.
+	 *             These annotations are hints for tooling and documentation.
+	 *
+	 *             @type bool|null $readonly    Optional. If true, the ability does not modify its environment.
+	 *             @type bool|null $destructive Optional. If true, the ability may perform destructive updates to its environment.
+	 *                                          If false, the ability performs only additive updates.
+	 *             @type bool|null $idempotent  Optional. If true, calling the ability repeatedly with the same arguments
+	 *                                          will have no additional effect on its environment.
+	 *         }
 	 *         @type bool                     $show_in_rest Optional. Whether to expose this ability in the REST API. Default false.
 	 *     }
 	 * }
@@ -169,7 +178,7 @@ class WP_Ability {
 						__( 'Property "%1$s" is not a valid property for ability "%2$s". Please check the %3$s class for allowed properties.' ),
 						'<code>' . esc_html( $property_name ) . '</code>',
 						'<code>' . esc_html( $this->name ) . '</code>',
-						'<code>' . self::class . '</code>'
+						'<code>' . __CLASS__ . '</code>'
 					),
 					'6.9.0'
 				);
@@ -205,7 +214,16 @@ class WP_Ability {
 	 *     @type array<string, mixed> $meta                  {
 	 *         Optional. Additional metadata for the ability.
 	 *
-	 *         @type array<string, null|bool> $annotations  Optional. Annotation metadata for the ability.
+	 *         @type array<string, bool|null> $annotations  {
+	 *             Optional. Semantic annotations describing the ability's behavioral characteristics.
+	 *             These annotations are hints for tooling and documentation.
+	 *
+	 *             @type bool|null $readonly    Optional. If true, the ability does not modify its environment.
+	 *             @type bool|null $destructive Optional. If true, the ability may perform destructive updates to its environment.
+	 *                                          If false, the ability performs only additive updates.
+	 *             @type bool|null $idempotent  Optional. If true, calling the ability repeatedly with the same arguments
+	 *                                          will have no additional effect on its environment.
+	 *         }
 	 *         @type bool                     $show_in_rest Optional. Whether to expose this ability in the REST API. Default false.
 	 *     }
 	 * }
@@ -224,7 +242,16 @@ class WP_Ability {
 	 *     @type array<string, mixed> $meta                  {
 	 *         Additional metadata for the ability.
 	 *
-	 *         @type array<string, null|bool> $annotations  Optional. Annotation metadata for the ability.
+	 *         @type array<string, bool|null> $annotations  {
+	 *             Semantic annotations describing the ability's behavioral characteristics.
+	 *             These annotations are hints for tooling and documentation.
+	 *
+	 *             @type bool|null $readonly    If true, the ability does not modify its environment.
+	 *             @type bool|null $destructive If true, the ability may perform destructive updates to its environment.
+	 *                                          If false, the ability performs only additive updates.
+	 *             @type bool|null $idempotent  If true, calling the ability repeatedly with the same arguments
+	 *                                          will have no additional effect on its environment.
+	 *         }
 	 *         @type bool                     $show_in_rest Whether to expose this ability in the REST API. Default false.
 	 *     }
 	 * }
@@ -401,6 +428,31 @@ class WP_Ability {
 	}
 
 	/**
+	 * Normalizes the input for the ability, applying the default value from the input schema when needed.
+	 *
+	 * When no input is provided and the input schema is defined with a top-level `default` key, this method returns
+	 * the value of that key. If the input schema does not define a `default`, or if the input schema is empty,
+	 * this method returns null. If input is provided, it is returned as-is.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @param mixed $input Optional. The raw input provided for the ability. Default `null`.
+	 * @return mixed The same input, or the default from schema, or `null` if default not set.
+	 */
+	public function normalize_input( $input = null ) {
+		if ( null !== $input ) {
+			return $input;
+		}
+
+		$input_schema = $this->get_input_schema();
+		if ( ! empty( $input_schema ) && array_key_exists( 'default', $input_schema ) ) {
+			return $input_schema['default'];
+		}
+
+		return null;
+	}
+
+	/**
 	 * Validates input data against the input schema.
 	 *
 	 * @since 6.9.0
@@ -420,7 +472,7 @@ class WP_Ability {
 				sprintf(
 					/* translators: %s ability name. */
 					__( 'Ability "%s" does not define an input schema required to validate the provided input.' ),
-					$this->name
+					esc_html( $this->name )
 				)
 			);
 		}
@@ -432,7 +484,7 @@ class WP_Ability {
 				sprintf(
 					/* translators: %1$s ability name, %2$s error message. */
 					__( 'Ability "%1$s" has invalid input. Reason: %2$s' ),
-					$this->name,
+					esc_html( $this->name ),
 					$valid_input->get_error_message()
 				)
 			);
@@ -473,6 +525,14 @@ class WP_Ability {
 	 * @return bool|WP_Error Whether the ability has the necessary permission.
 	 */
 	public function check_permissions( $input = null ) {
+		if ( ! is_callable( $this->permission_callback ) ) {
+			return new WP_Error(
+				'ability_invalid_permission_callback',
+				/* translators: %s ability name. */
+				sprintf( __( 'Ability "%s" does not have a valid permission callback.' ), esc_html( $this->name ) )
+			);
+		}
+
 		return $this->invoke_callback( $this->permission_callback, $input );
 	}
 
@@ -489,7 +549,7 @@ class WP_Ability {
 			return new WP_Error(
 				'ability_invalid_execute_callback',
 				/* translators: %s ability name. */
-				sprintf( __( 'Ability "%s" does not have a valid execute callback.' ), $this->name )
+				sprintf( __( 'Ability "%s" does not have a valid execute callback.' ), esc_html( $this->name ) )
 			);
 		}
 
@@ -517,7 +577,7 @@ class WP_Ability {
 				sprintf(
 					/* translators: %1$s ability name, %2$s error message. */
 					__( 'Ability "%1$s" has invalid output. Reason: %2$s' ),
-					$this->name,
+					esc_html( $this->name ),
 					$valid_output->get_error_message()
 				)
 			);
@@ -536,6 +596,7 @@ class WP_Ability {
 	 * @return mixed|WP_Error The result of the ability execution, or WP_Error on failure.
 	 */
 	public function execute( $input = null ) {
+		$input    = $this->normalize_input( $input );
 		$is_valid = $this->validate_input( $input );
 		if ( is_wp_error( $is_valid ) ) {
 			return $is_valid;
@@ -555,7 +616,7 @@ class WP_Ability {
 			return new WP_Error(
 				'ability_invalid_permissions',
 				/* translators: %s ability name. */
-				sprintf( __( 'Ability "%s" does not have necessary permission.' ), $this->name )
+				sprintf( __( 'Ability "%s" does not have necessary permission.' ), esc_html( $this->name ) )
 			);
 		}
 
@@ -612,6 +673,6 @@ class WP_Ability {
 	 *                        This is a security hardening measure to prevent serialization of the ability.
 	 */
 	public function __sleep(): array {
-		throw new LogicException( __CLASS__ . ' should never be serialized' );
+		throw new LogicException( __CLASS__ . ' should never be serialized.' );
 	}
 }

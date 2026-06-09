@@ -1436,6 +1436,41 @@ HTML
 	}
 
 	/**
+	 * Tests that `WP_Scripts::get_highest_fetchpriority_with_dependents()` correctly reuses cached results.
+	 *
+	 * @ticket 64194
+	 *
+	 * @covers WP_Scripts::get_highest_fetchpriority_with_dependents
+	 */
+	public function test_highest_fetchpriority_with_dependents_uses_cached_result() {
+		$wp_scripts = new WP_Scripts();
+		$wp_scripts->add( 'd', 'https://example.com/d.js' );
+		$wp_scripts->add_data( 'd', 'fetchpriority', 'low' );
+
+		/*
+		 * Simulate a pre-existing `$stored_results` cache entry for `d`.
+		 * If the caching logic works, the function should use this "high" value
+		 * instead of recalculating based on the actual (lower) value.
+		 */
+		$stored_results = array( 'd' => 'high' );
+
+		// Access the private method using reflection.
+		$method = new ReflectionMethod( WP_Scripts::class, 'get_highest_fetchpriority_with_dependents' );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$method->setAccessible( true );
+		}
+
+		// Pass `$stored_results` BY REFERENCE.
+		$result = $method->invokeArgs( $wp_scripts, array( 'd', array(), &$stored_results ) );
+
+		$this->assertSame(
+			'high',
+			$result,
+			'Expected "high" indicates that the cached `$stored_results` entry for D was used instead of recalculating.'
+		);
+	}
+
+	/**
 	 * Tests that printing a script without enqueueing has the same output as when it is enqueued.
 	 *
 	 * @ticket 61734
@@ -1532,6 +1567,41 @@ HTML
 		$expected = "<script type='text/javascript' src='/main-script-b2.js' id='main-script-b2-js'></script>\n";
 		$expected = str_replace( "'", '"', $expected );
 		$this->assertSame( $expected, $output, 'Scripts registered with no strategy assigned, and who have no dependencies, should have no loading strategy attributes printed.' );
+	}
+
+	/**
+	 * Tests that `WP_Scripts::filter_eligible_strategies()` correctly reuses cached results.
+	 *
+	 * @ticket 64194
+	 *
+	 * @covers WP_Scripts::filter_eligible_strategies
+	 */
+	public function test_filter_eligible_strategies_uses_cached_result() {
+		$wp_scripts = new WP_Scripts();
+		$wp_scripts->add( 'd', 'https://example.com/d.js' );
+		$wp_scripts->add_data( 'd', 'strategy', 'defer' );
+
+		/*
+		 * Simulate a cached result in `$stored_results` for D.
+		 * If caching logic is functioning properly, this cached value
+		 * should be returned immediately without recomputing.
+		 */
+		$stored_results = array( 'd' => array( 'async' ) );
+
+		// Access the private method via reflection.
+		$method = new ReflectionMethod( WP_Scripts::class, 'filter_eligible_strategies' );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$method->setAccessible( true );
+		}
+
+		// Invoke the method with `$stored_results` passed by reference.
+		$result = $method->invokeArgs( $wp_scripts, array( 'd', null, array(), &$stored_results ) );
+
+		$this->assertSame(
+			array( 'async' ),
+			$result,
+			'Expected cached `$stored_results` value for D to be reused instead of recomputed.'
+		);
 	}
 
 	/**

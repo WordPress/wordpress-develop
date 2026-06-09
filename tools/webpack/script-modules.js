@@ -48,6 +48,13 @@ for ( const packageName of MODULES.concat( SCRIPT_AND_MODULE_DUAL_PACKAGES ) ) {
 	for ( const [ exportName, exportPath ] of Object.entries(
 		wpScriptModuleExports
 	) ) {
+		// Exclude the experimental './full-page' export from @wordpress/interactivity-router.
+		// This export is defined in Gutenberg's package.json but should not be bundled in Core
+		// as the feature is still experimental and not ready for inclusion.
+		if ( moduleName === 'interactivity-router' && exportName === './full-page' ) {
+			continue;
+		}
+
 		if ( typeof exportPath !== 'string' ) {
 			throw new Error( 'wpScriptModuleExports paths must be strings' );
 		}

@@ -54,7 +54,7 @@ jobs:
 
             for (const ticket of fixedList) {
               const tracTicketUrl = `https://core.trac.wordpress.org/ticket/${ticket}`;
-              const corePrefix = `Core-${ticket}`;
+              const corePrefix = `core-${ticket}`;
 
               const query = `
                 query($searchQuery: String!) {
@@ -62,20 +62,28 @@ jobs:
                     nodes {
                       ... on PullRequest {
                         number
-                        state
+                        bodyText
                       }
                     }
                   }
                 }
               `;
 
-              const searchQuery = `repo:${context.repo.owner}/${context.repo.repo} is:pr is:open in:body ( "${tracTicketUrl}" OR "${corePrefix}" )`;
+              const searchQuery = `repo:${context.repo.owner}/${context.repo.repo} is:pr is:open ( "${tracTicketUrl}" OR "${corePrefix}" )`;
 
               const result = await github.graphql(query, {
                 searchQuery,
               });
 
-              prNumbers.push(...result.search.nodes.map(pr => pr.number));
+              // Since search queries will match anywhere for any activity on a pull request, the body specifically needs to be manually checked.
+              const matchingPRs = result.search.nodes
+                .filter(pr => {
+                  const bodyLower = pr.bodyText.toLowerCase();
+
+                  return bodyLower.includes(tracTicketUrl.toLowerCase()) || bodyLower.includes(corePrefix.toLowerCase());
+              }).map(pr => pr.number);
+
+              prNumbers.push(...matchingPRs);
             }
 
             return prNumbers;

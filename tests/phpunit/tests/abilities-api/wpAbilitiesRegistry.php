@@ -29,8 +29,9 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 
 		remove_all_filters( 'wp_register_ability_args' );
 
-		// Fire the init hook to allow test ability category registration.
-		do_action( 'wp_abilities_api_categories_init' );
+		// Simulates the Abilities API init hook to allow test ability category registration.
+		global $wp_current_filter;
+		$wp_current_filter[] = 'wp_abilities_api_categories_init';
 		wp_register_ability_category(
 			'math',
 			array(
@@ -38,6 +39,7 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 				'description' => 'Mathematical operations and calculations.',
 			)
 		);
+		array_pop( $wp_current_filter );
 
 		self::$test_ability_args = array(
 			'label'               => 'Add numbers',

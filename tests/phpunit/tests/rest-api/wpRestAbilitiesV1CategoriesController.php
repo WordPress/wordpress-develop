@@ -62,8 +62,6 @@ class Tests_REST_API_WpRestAbilitiesV1CategoriesController extends WP_UnitTestCa
 
 		do_action( 'rest_api_init' );
 
-		// Initialize the API and register test ability categories.
-		do_action( 'wp_abilities_api_categories_init' );
 		$this->register_test_ability_categories();
 
 		wp_set_current_user( self::$admin_user_id );
@@ -93,6 +91,10 @@ class Tests_REST_API_WpRestAbilitiesV1CategoriesController extends WP_UnitTestCa
 	 * Register test ability categories for testing.
 	 */
 	public function register_test_ability_categories(): void {
+		// Simulates the init hook to allow test ability categories registration.
+		global $wp_current_filter;
+		$wp_current_filter[] = 'wp_abilities_api_categories_init';
+
 		wp_register_ability_category(
 			'test-data-retrieval',
 			array(
@@ -130,6 +132,8 @@ class Tests_REST_API_WpRestAbilitiesV1CategoriesController extends WP_UnitTestCa
 				)
 			);
 		}
+
+		array_pop( $wp_current_filter );
 	}
 
 	/**

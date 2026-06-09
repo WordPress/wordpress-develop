@@ -5,7 +5,7 @@
     'name' => 'core/accordion',
     'title' => 'Accordion',
     'category' => 'design',
-    'description' => 'Displays a group of accordion headings and associated expandable content.',
+    'description' => 'Displays a foldable layout that groups content in collapsible sections.',
     'example' => array(
       
     ),
@@ -104,7 +104,7 @@
     'name' => 'core/accordion-heading',
     'title' => 'Accordion Heading',
     'category' => 'design',
-    'description' => 'Displays an accordion heading.',
+    'description' => 'Displays a heading that toggles the accordion panel.',
     'parent' => array(
       'core/accordion-item'
     ),
@@ -203,7 +203,7 @@
     'name' => 'core/accordion-item',
     'title' => 'Accordion Item',
     'category' => 'design',
-    'description' => 'Displays a section of content in an accordion, including a heading and expandable content.',
+    'description' => 'Wraps the heading and panel in one unit.',
     'parent' => array(
       'core/accordion'
     ),
@@ -271,7 +271,7 @@
     'name' => 'core/accordion-panel',
     'title' => 'Accordion Panel',
     'category' => 'design',
-    'description' => 'Displays an accordion panel.',
+    'description' => 'Contains the hidden or revealed content beneath the heading.',
     'parent' => array(
       'core/accordion-item'
     ),
@@ -2516,9 +2516,13 @@
       )
     ),
     'supports' => array(
+      'html' => false,
       'className' => false,
       'customClassName' => false,
-      'reusable' => false
+      'lock' => false,
+      'reusable' => false,
+      'renaming' => false,
+      'blockVisibility' => false
     ),
     'editorStyle' => 'wp-block-freeform-editor'
   ),
@@ -2921,7 +2925,8 @@
     'textdomain' => 'default',
     'attributes' => array(
       'label' => array(
-        'type' => 'string'
+        'type' => 'string',
+        'role' => 'content'
       )
     ),
     'usesContext' => array(
@@ -3630,6 +3635,9 @@
       'mathematics'
     ),
     'textdomain' => 'default',
+    'supports' => array(
+      'html' => false
+    ),
     'attributes' => array(
       'latex' => array(
         'type' => 'string',
@@ -3824,7 +3832,10 @@
       'customClassName' => false,
       'inserter' => false,
       'html' => false,
+      'lock' => false,
       'reusable' => false,
+      'renaming' => false,
+      'blockVisibility' => false,
       'interactivity' => array(
         'clientNavigation' => true
       )
@@ -5011,7 +5022,7 @@
     'name' => 'core/post-date',
     'title' => 'Date',
     'category' => 'theme',
-    'description' => 'Display the publish date for an entry such as a post or page.',
+    'description' => 'Display a custom date.',
     'textdomain' => 'default',
     'attributes' => array(
       'datetime' => array(

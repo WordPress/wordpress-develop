@@ -47,7 +47,7 @@ jobs:
   build:
     name: Build
     uses: ./.github/workflows/reusable-build-package.yml
-    if: ${{ startsWith( github.repository, 'WordPress/' ) && ( github.repository == 'WordPress/wordpress-develop' || ( github.event_name == 'pull_request' && github.actor != 'dependabot[bot]' ) ) }}
+    if: ${{ startsWith( github.repository, 'WordPress/' ) && ( github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' ) }}
     permissions:
       contents: read
 

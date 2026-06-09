@@ -61,7 +61,16 @@ final class WP_Abilities_Registry {
 	 *     @type array<string, mixed> $meta                  {
 	 *         Optional. Additional metadata for the ability.
 	 *
-	 *         @type array<string, null|bool> $annotations  Optional. Annotation metadata for the ability.
+	 *         @type array<string, bool|null> $annotations  {
+	 *             Optional. Semantic annotations describing the ability's behavioral characteristics.
+	 *             These annotations are hints for tooling and documentation.
+	 *
+	 *             @type bool|null $readonly    Optional. If true, the ability does not modify its environment.
+	 *             @type bool|null $destructive Optional. If true, the ability may perform destructive updates to its environment.
+	 *                                          If false, the ability performs only additive updates.
+	 *             @type bool|null $idempotent  Optional. If true, calling the ability repeatedly with the same arguments
+	 *                                          will have no additional effect on its environment.
+	 *         }
 	 *         @type bool                     $show_in_rest Optional. Whether to expose this ability in the REST API. Default false.
 	 *     }
 	 *     @type string               $ability_class         Optional. Custom class to instantiate instead of WP_Ability.
@@ -121,8 +130,7 @@ final class WP_Abilities_Registry {
 
 		// Validate ability category exists if provided (will be validated as required in WP_Ability).
 		if ( isset( $args['category'] ) ) {
-			$category_registry = WP_Ability_Categories_Registry::get_instance();
-			if ( ! $category_registry->is_registered( $args['category'] ) ) {
+			if ( ! wp_has_ability_category( $args['category'] ) ) {
 				_doing_it_wrong(
 					__METHOD__,
 					sprintf(
@@ -237,14 +245,14 @@ final class WP_Abilities_Registry {
 	 * @see wp_get_ability()
 	 *
 	 * @param string $name The name of the registered ability, with its namespace.
-	 * @return ?WP_Ability The registered ability instance, or null if it is not registered.
+	 * @return WP_Ability|null The registered ability instance, or null if it is not registered.
 	 */
 	public function get_registered( string $name ): ?WP_Ability {
 		if ( ! $this->is_registered( $name ) ) {
 			_doing_it_wrong(
 				__METHOD__,
 				/* translators: %s: Ability name. */
-				sprintf( esc_html__( 'Ability "%s" not found.' ), esc_attr( $name ) ),
+				sprintf( __( 'Ability "%s" not found.' ), esc_html( $name ) ),
 				'6.9.0'
 			);
 			return null;
@@ -266,7 +274,9 @@ final class WP_Abilities_Registry {
 			_doing_it_wrong(
 				__METHOD__,
 				sprintf(
-					__( 'Ability API should not be initialized before the <code>init</code> action has fired' )
+					// translators: %s: init action.
+					__( 'Ability API should not be initialized before the %s action has fired.' ),
+					'<code>init</code>'
 				),
 				'6.9.0'
 			);
@@ -315,6 +325,6 @@ final class WP_Abilities_Registry {
 	 *                        This is a security hardening measure to prevent serialization of the registry.
 	 */
 	public function __sleep(): array {
-		throw new LogicException( __CLASS__ . ' should never be serialized' );
+		throw new LogicException( __CLASS__ . ' should never be serialized.' );
 	}
 }

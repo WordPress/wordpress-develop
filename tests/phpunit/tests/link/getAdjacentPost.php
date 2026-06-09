@@ -587,4 +587,196 @@ class Tests_Link_GetAdjacentPost extends WP_UnitTestCase {
 		$this->assertEquals( $post_four, get_adjacent_post( true, '', false ), 'Result of function call is wrong after after adding new term' );
 		$this->assertSame( get_num_queries() - $num_queries, 2, 'Number of queries run was not two after adding new term' );
 	}
+
+	/**
+	 * Test get_adjacent_post with posts having identical post_date.
+	 *
+	 * @ticket 8107
+	 */
+	public function test_get_adjacent_post_with_identical_dates() {
+		$identical_date = '2024-01-01 12:00:00';
+
+		// Create posts with identical dates but different IDs.
+		$post_ids = array();
+		for ( $i = 1; $i <= 5; $i++ ) {
+			$post_ids[] = self::factory()->post->create(
+				array(
+					'post_title' => "Post $i",
+					'post_date'  => $identical_date,
+				)
+			);
+		}
+
+		// Test navigation from the middle post (ID: 3rd post).
+		$current_post_id = $post_ids[2]; // 3rd post
+		$this->go_to( get_permalink( $current_post_id ) );
+
+		// Previous post should be the 2nd post (lower ID, same date).
+		$previous = get_adjacent_post( false, '', true );
+		$this->assertInstanceOf( 'WP_Post', $previous );
+		$this->assertEquals( $post_ids[1], $previous->ID );
+
+		// Next post should be the 4th post (higher ID, same date).
+		$next = get_adjacent_post( false, '', false );
+		$this->assertInstanceOf( 'WP_Post', $next );
+		$this->assertEquals( $post_ids[3], $next->ID );
+	}
+
+	/**
+	 * Test get_adjacent_post with mixed dates and identical dates.
+	 *
+	 * @ticket 8107
+	 */
+	public function test_get_adjacent_post_mixed_dates_with_identical_groups() {
+		// Create posts with different dates.
+		$post_early = self::factory()->post->create(
+			array(
+				'post_title' => 'Early Post',
+				'post_date'  => '2024-01-01 10:00:00',
+			)
+		);
+
+		// Create multiple posts with identical date.
+		$identical_date = '2024-01-01 12:00:00';
+		$post_ids       = array();
+		for ( $i = 1; $i <= 3; $i++ ) {
+			$post_ids[] = self::factory()->post->create(
+				array(
+					'post_title' => "Identical Post $i",
+					'post_date'  => $identical_date,
+				)
+			);
+		}
+
+		$post_late = self::factory()->post->create(
+			array(
+				'post_title' => 'Late Post',
+				'post_date'  => '2024-01-01 14:00:00',
+			)
+		);
+
+		// Test from first identical post.
+		$this->go_to( get_permalink( $post_ids[0] ) );
+
+		// Previous should be the early post (different date).
+		$previous = get_adjacent_post( false, '', true );
+		$this->assertInstanceOf( 'WP_Post', $previous );
+		$this->assertEquals( $post_early, $previous->ID );
+
+		// Next should be the second identical post (same date, higher ID).
+		$next = get_adjacent_post( false, '', false );
+		$this->assertInstanceOf( 'WP_Post', $next );
+		$this->assertEquals( $post_ids[1], $next->ID );
+
+		// Test from middle identical post.
+		$this->go_to( get_permalink( $post_ids[1] ) );
+
+		// Previous should be the first identical post (same date, lower ID).
+		$previous = get_adjacent_post( false, '', true );
+		$this->assertInstanceOf( 'WP_Post', $previous );
+		$this->assertEquals( $post_ids[0], $previous->ID );
+
+		// Next should be the third identical post (same date, higher ID).
+		$next = get_adjacent_post( false, '', false );
+		$this->assertInstanceOf( 'WP_Post', $next );
+		$this->assertEquals( $post_ids[2], $next->ID );
+
+		// Test from last identical post.
+		$this->go_to( get_permalink( $post_ids[2] ) );
+
+		// Previous should be the second identical post (same date, lower ID).
+		$previous = get_adjacent_post( false, '', true );
+		$this->assertInstanceOf( 'WP_Post', $previous );
+		$this->assertEquals( $post_ids[1], $previous->ID );
+
+		// Next should be the late post (different date).
+		$next = get_adjacent_post( false, '', false );
+		$this->assertInstanceOf( 'WP_Post', $next );
+		$this->assertEquals( $post_late, $next->ID );
+	}
+
+	/**
+	 * Test get_adjacent_post navigation through all posts with identical dates.
+	 *
+	 * @ticket 8107
+	 */
+	public function test_get_adjacent_post_navigation_through_identical_dates() {
+		$identical_date = '2024-01-01 12:00:00';
+
+		// Create 4 posts with identical dates.
+		$post_ids = array();
+		for ( $i = 1; $i <= 4; $i++ ) {
+			$post_ids[] = self::factory()->post->create(
+				array(
+					'post_title' => "Post $i",
+					'post_date'  => $identical_date,
+				)
+			);
+		}
+
+		// Test navigation sequence: 1 -> 2 -> 3 -> 4.
+		$this->go_to( get_permalink( $post_ids[0] ) );
+
+		// From post 1, next should be post 2.
+		$next = get_adjacent_post( false, '', false );
+		$this->assertEquals( $post_ids[1], $next->ID );
+
+		// From post 2, previous should be post 1, next should be post 3.
+		$this->go_to( get_permalink( $post_ids[1] ) );
+		$previous = get_adjacent_post( false, '', true );
+		$this->assertEquals( $post_ids[0], $previous->ID );
+		$next = get_adjacent_post( false, '', false );
+		$this->assertEquals( $post_ids[2], $next->ID );
+
+		// From post 3, previous should be post 2, next should be post 4.
+		$this->go_to( get_permalink( $post_ids[2] ) );
+		$previous = get_adjacent_post( false, '', true );
+		$this->assertEquals( $post_ids[1], $previous->ID );
+		$next = get_adjacent_post( false, '', false );
+		$this->assertEquals( $post_ids[3], $next->ID );
+
+		// From post 4, previous should be post 3.
+		$this->go_to( get_permalink( $post_ids[3] ) );
+		$previous = get_adjacent_post( false, '', true );
+		$this->assertEquals( $post_ids[2], $previous->ID );
+	}
+
+	/**
+	 * Test get_adjacent_post with identical dates and category filtering.
+	 *
+	 * @ticket 8107
+	 */
+	public function test_get_adjacent_post_identical_dates_with_category() {
+		$identical_date = '2024-01-01 12:00:00';
+		$category_id    = self::factory()->category->create( array( 'name' => 'Test Category' ) );
+
+		// Create posts with identical dates, some in category.
+		$post_ids = array();
+		for ( $i = 1; $i <= 4; $i++ ) {
+			$post_id = self::factory()->post->create(
+				array(
+					'post_title' => "Post $i",
+					'post_date'  => $identical_date,
+				)
+			);
+
+			// Add every other post to the category.
+			if ( 0 === $i % 2 ) {
+				wp_set_post_categories( $post_id, array( $category_id ) );
+			}
+
+			$post_ids[] = $post_id;
+		}
+
+		// Test from post 2 (in category).
+		$this->go_to( get_permalink( $post_ids[1] ) );
+
+		// With category filtering, should only see posts in same category.
+		$previous = get_adjacent_post( true, '', true, 'category' );
+		$this->assertSame( '', $previous ); // No previous post in category
+
+		$next = get_adjacent_post( true, '', false, 'category' );
+		$this->assertInstanceOf( 'WP_Post', $next );
+		$this->assertEquals( $post_ids[3], $next->ID ); // Post 4 (in category)
+	}
 }

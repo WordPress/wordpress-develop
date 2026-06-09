@@ -160,7 +160,7 @@ jobs:
         if: ${{ steps.artifact-check.outputs.exists == 'true' }}
         working-directory: 'pr-repo'
         run: |
-          git commit -m "Automation: Updating built files with changes. [dependabot skip]"
+          git commit -m "Automation: Updating built files with changes."
 
       - name: Push changes
         if: ${{ steps.artifact-check.outputs.exists == 'true' }}

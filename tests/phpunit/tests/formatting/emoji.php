@@ -6,8 +6,8 @@
  */
 class Tests_Formatting_Emoji extends WP_UnitTestCase {
 
-	private $png_cdn = 'https://s.w.org/images/core/emoji/16.0.1/72x72/';
-	private $svg_cdn = 'https://s.w.org/images/core/emoji/16.0.1/svg/';
+	private $png_cdn = 'https://s.w.org/images/core/emoji/17.0.1-1/72x72/';
+	private $svg_cdn = 'https://s.w.org/images/core/emoji/17.0.1-1/svg/';
 
 	/**
 	 * @ticket 63842
@@ -157,6 +157,11 @@ class Tests_Formatting_Emoji extends WP_UnitTestCase {
 				'🧚',
 				'&#x1f9da;',
 			),
+			array(
+				// Hairy creature (Unicode 17).
+				'🫈',
+				'&#x1fac8;',
+			),
 		);
 	}
 
@@ -191,6 +196,11 @@ class Tests_Formatting_Emoji extends WP_UnitTestCase {
 				// Unicode 10.
 				'🧚',
 				'<img src="' . $this->png_cdn . '1f9da.png" alt="🧚" class="wp-smiley" style="height: 1em; max-height: 1em;" />',
+			),
+			array(
+				// Hairy creature (Unicode 17).
+				'🫈',
+				'<img src="' . $this->png_cdn . '1fac8.png" alt="🫈" class="wp-smiley" style="height: 1em; max-height: 1em;" />',
 			),
 		);
 

@@ -1317,7 +1317,7 @@ switch ( $action ) {
 			$redirect_to = admin_url();
 		}
 
-		$reauth = empty( $_REQUEST['reauth'] ) ? false : true;
+		$reauth = ! empty( $_REQUEST['reauth'] );
 
 		$user = wp_signon( array(), $secure_cookie );
 
