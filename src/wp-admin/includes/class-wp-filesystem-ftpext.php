@@ -201,6 +201,10 @@ class WP_Filesystem_FTPext extends WP_Filesystem_Base {
 		$tempfile   = wp_tempnam( $file );
 		$temphandle = fopen( $tempfile, 'w+' );
 
+		if ( ! $this->link ) {
+			return false;
+		}
+
 		if ( ! $temphandle ) {
 			unlink( $tempfile );
 			return false;
@@ -532,8 +536,16 @@ class WP_Filesystem_FTPext extends WP_Filesystem_Base {
 	 * @return bool Whether $path is a directory.
 	 */
 	public function is_dir( $path ) {
-		$cwd    = $this->cwd();
+		$cwd = $this->cwd();
+		if ( false === $cwd ) {
+			return false;
+		}
+
 		$result = @ftp_chdir( $this->link, trailingslashit( $path ) );
+
+		if ( ! $this->link ) {
+			return false;
+		}
 
 		if ( $result && $path === $this->cwd() || $this->cwd() !== $cwd ) {
 			@ftp_chdir( $this->link, $cwd );
@@ -824,6 +836,10 @@ class WP_Filesystem_FTPext extends WP_Filesystem_Base {
 	 * @phpstan-return FileListing[]|false
 	 */
 	public function dirlist( $path = '.', $include_hidden = true, $recursive = false ) {
+		if ( ! $this->link ) {
+			return false;
+		}
+
 		if ( $this->is_file( $path ) ) {
 			$limit_file = basename( $path );
 			$path       = dirname( $path ) . '/';
