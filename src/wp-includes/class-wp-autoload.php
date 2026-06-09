@@ -274,6 +274,7 @@ final class WP_Autoload {
 		'wp_rest_application_passwords_controller'    => 'wp-includes/rest-api/endpoints/class-wp-rest-application-passwords-controller.php',
 		'wp_rest_attachments_controller'              => 'wp-includes/rest-api/endpoints/class-wp-rest-attachments-controller.php',
 		'wp_rest_autosaves_controller'                => 'wp-includes/rest-api/endpoints/class-wp-rest-autosaves-controller.php',
+		'wp_rest_abilities_v1_categories_controller'  => 'wp-includes/rest-api/endpoints/class-wp-rest-abilities-v1-categories-controller.php',
 		'wp_rest_abilities_v1_list_controller'        => 'wp-includes/rest-api/endpoints/class-wp-rest-abilities-v1-list-controller.php',
 		'wp_rest_abilities_v1_run_controller'         => 'wp-includes/rest-api/endpoints/class-wp-rest-abilities-v1-run-controller.php',
 		'wp_rest_block_directory_controller'          => 'wp-includes/rest-api/endpoints/class-wp-rest-block-directory-controller.php',

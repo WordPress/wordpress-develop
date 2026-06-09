@@ -1982,10 +1982,11 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 		$query_1->the_post();
 		$num_loop_queries = get_num_queries() - $start_loop_queries;
 		/*
-		 * One expected query:
-		 * 1: User data.
+		 * Two expected queries:
+		 * 1: User meta data,
+		 * 2: User data.
 		 */
-		$this->assertSame( 1, $num_loop_queries, 'Unexpected number of queries while initializing the loop.' );
+		$this->assertSame( 2, $num_loop_queries, 'Unexpected number of queries while initializing the loop.' );
 
 		$start_author_queries = get_num_queries();
 		get_user_by( 'ID', self::$author_id );

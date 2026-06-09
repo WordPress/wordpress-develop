@@ -265,10 +265,10 @@ class Tests_Query_ThePost extends WP_UnitTestCase {
 	 */
 	public function data_the_loop_fields() {
 		return array(
-			'all fields'                => array( 'all', 1 ),
-			'all fields (empty fields)' => array( '', 1 ),
-			'post IDs'                  => array( 'ids', 3 ),
-			'post ids and parent'       => array( 'id=>parent', 3 ),
+			'all fields'                => array( 'all', 2 ),
+			'all fields (empty fields)' => array( '', 2 ),
+			'post IDs'                  => array( 'ids', 4 ),
+			'post ids and parent'       => array( 'id=>parent', 4 ),
 		);
 	}
 
