@@ -32,7 +32,7 @@ a:active {
 
 a:focus {
 	color: #043959;
-	box-shadow: 0 0 0 2px #2271b1;
+	box-shadow: 0 0 0 var(--wp-admin-border-width-focus, 1.5px) var(--wp-admin-theme-color, #3858e9);
 	/* Only visible in Windows High Contrast mode */
 	outline: 2px solid transparent;
 }
@@ -89,6 +89,7 @@ p {
 	margin-bottom: 15px;
 }
 
+/* rtl:ignore */
 .login .button.wp-hide-pw {
 	background: transparent;
 	border: 1px solid transparent;
@@ -127,7 +128,6 @@ p {
 .login .button.wp-hide-pw .dashicons {
 	width: 1.25rem;
 	height: 1.25rem;
-	top: 0.25rem;
 }
 
 .login .wp-pwd {
@@ -355,6 +355,7 @@ p {
 	font-family: Consolas, Monaco, monospace;
 }
 
+/* rtl:ignore */
 .js.login input.password-input {
 	padding-right: 2.5rem;
 }
@@ -413,7 +414,9 @@ body.interim-login {
 	padding: 0;
 	position: absolute;
 	width: 1px;
-	word-wrap: normal !important; /* many screen reader and browser combinations announce broken words as they would appear visually */
+	/* Many screen reader and browser combinations announce broken words as they would appear visually. */
+	word-wrap: normal !important;
+	word-break: normal !important;
 }
 
 /* Hide the Edge "reveal password" native button */

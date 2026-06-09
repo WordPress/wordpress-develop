@@ -884,6 +884,66 @@ class Tests_User extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Helper to create a user and add them to multiple blogs.
+	 *
+	 * @param int  $num_blogs          Number of additional blogs to create and add the user to.
+	 * @param bool $include_main_site  Whether to add the user to the main site as well.
+	 * @return array Array with 'user_id' and 'blogs' (array of blog IDs).
+	 */
+	private function create_user_with_blogs( $num_blogs = 1, $include_main_site = false ) {
+		$user_id = self::factory()->user->create();
+
+		$blogs = array();
+		if ( $include_main_site ) {
+			add_user_to_blog( get_main_site_id(), $user_id, 'administrator' );
+			$blogs[] = get_main_site_id();
+		}
+
+		for ( $i = 0; $i < $num_blogs; $i++ ) {
+			$blog_id = self::factory()->blog->create(
+				array(
+					'site_id' => get_current_network_id(),
+				)
+			);
+			add_user_to_blog( $blog_id, $user_id, 'administrator' );
+			$blogs[] = $blog_id;
+		}
+
+		return array(
+			'user_id' => $user_id,
+			'blogs'   => $blogs,
+		);
+	}
+
+	/**
+	 * @ticket 61146
+	 */
+	public function test_default_do_not_propagate_network_user_spam_to_blogs_on_multisite() {
+		if ( ! is_multisite() ) {
+			$this->markTestSkipped( 'This test is for multisite only.' );
+		}
+
+		$data    = $this->create_user_with_blogs( 2 );
+		$user_id = $data['user_id'];
+		$blogs   = $data['blogs'];
+
+		// Mark user spam in user record (this alone should not change blog spam states).
+		$u = wp_update_user(
+			array(
+				'ID'   => $user_id,
+				'spam' => '1',
+			)
+		);
+		$this->assertNotWPError( $u );
+		$user = get_userdata( $user_id );
+		$this->assertSame( '1', $user->spam );
+
+		foreach ( $blogs as $blog_id ) {
+			$this->assertNotSame( '1', get_blog_status( $blog_id, 'spam' ), "Blog {$blog_id} should not be marked spam by default." );
+		}
+	}
+
+	/**
 	 * @ticket 28315
 	 */
 	public function test_user_meta_error() {
@@ -980,6 +1040,145 @@ class Tests_User extends WP_UnitTestCase {
 		$user_id = wp_insert_user( $user_data );
 		$user    = get_user_by( 'id', $user_id );
 		$this->assertInstanceOf( 'WP_User', $user );
+	}
+
+	/**
+	 * @ticket 61175
+	 * @covers ::wp_insert_user
+	 */
+	public function test_wp_insert_user_with_null() {
+		// Note: $this->expectWarning() is deprecated and will be removed in PHPUnit 10.
+		$warnings = array();
+		set_error_handler(
+			static function ( int $errno, string $errstr ) use ( &$warnings ) {
+				$warnings[] = compact( 'errno', 'errstr' );
+				return true;
+			},
+			E_USER_WARNING
+		);
+		$user = wp_insert_user( null );
+		restore_error_handler();
+
+		$this->assertCount( 1, $warnings, 'Expected one warning.' );
+		$this->assertWPError( $user );
+		$this->assertSame( 'empty_user_login', $user->get_error_code() );
+	}
+
+	/**
+	 * @ticket 61175
+	 * @covers ::wp_insert_user
+	 */
+	public function test_wp_insert_user_with_stdclass() {
+		$data    = array(
+			'user_login' => 'new-admin',
+			'user_pass'  => 'better-password',
+		);
+		$user_id = wp_insert_user( (object) $data );
+		$this->assertIsInt( $user_id, 'Expected user to be created.' );
+		$user = new WP_User( $user_id );
+		$this->assertSame( $data['user_login'], $user->user_login );
+	}
+
+	/**
+	 * @ticket 61175
+	 * @covers ::wp_insert_user
+	 */
+	public function test_wp_insert_user_with_wp_user() {
+		$username         = 'new-admin';
+		$user             = new WP_User();
+		$user->user_login = $username;
+		$user->user_pass  = 'better-password';
+
+		$user_id = wp_insert_user( $user );
+		$this->assertIsInt( $user_id, 'Expected user to be created.' );
+		$user = new WP_User( $user_id );
+		$this->assertSame( $username, $user->user_login );
+	}
+
+	/**
+	 * @ticket 61175
+	 * @covers ::wp_insert_user
+	 */
+	public function test_wp_insert_user_with_traversable() {
+		$internal_data = array(
+			'user_login' => 'new-admin',
+			'user_pass'  => 'better-password',
+		);
+
+		$array_access_user = new class( $internal_data ) implements ArrayAccess, IteratorAggregate {
+			private array $data;
+
+			public function __construct( array $data ) {
+				$this->data = $data;
+			}
+
+			public function offsetExists( $offset ): bool {
+				return isset( $this->data[ $offset ] );
+			}
+
+			#[\ReturnTypeWillChange]
+			public function offsetGet( $offset ) {
+				return $this->data[ $offset ];
+			}
+
+			public function offsetSet( $offset, $value ): void {
+				$this->data[ $offset ] = $value;
+			}
+
+			public function offsetUnset( $offset ): void {
+				unset( $this->data[ $offset ] );
+			}
+
+			public function getIterator(): ArrayIterator {
+				return new ArrayIterator( $this->data );
+			}
+		};
+
+		$user_id = wp_insert_user( $array_access_user );
+		$this->assertIsInt( $user_id, 'Expected user to be created.' );
+		$user = new WP_User( $user_id );
+		$this->assertSame( $internal_data['user_login'], $user->user_login );
+	}
+
+	/**
+	 * @ticket 61175
+	 * @covers ::wp_insert_user
+	 */
+	public function test_wp_insert_user_with_only_array_access() {
+		$internal_data = array(
+			'user_login' => 'new-admin',
+			'user_pass'  => 'better-password',
+		);
+
+		$array_access_user = new class( $internal_data ) implements ArrayAccess  {
+			private array $data;
+
+			public function __construct( array $data ) {
+				$this->data = $data;
+			}
+
+			public function offsetExists( $offset ): bool {
+				return isset( $this->data[ $offset ] );
+			}
+
+			#[\ReturnTypeWillChange]
+			public function offsetGet( $offset ) {
+				return $this->data[ $offset ];
+			}
+
+			public function offsetSet( $offset, $value ): void {
+				$this->data[ $offset ] = $value;
+			}
+
+			public function offsetUnset( $offset ): void {
+				unset( $this->data[ $offset ] );
+			}
+		};
+
+		$user_id = wp_insert_user( $array_access_user );
+		$this->assertIsInt( $user_id, 'Expected user to be created.' );
+		$user = new WP_User( $user_id );
+		$this->assertSame( $internal_data['user_login'], $user->user_login );
 	}
 
 	/**

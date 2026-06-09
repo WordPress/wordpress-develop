@@ -728,7 +728,7 @@ function get_current_user_id() {
 		return 0;
 	}
 	$user = wp_get_current_user();
-	return ( isset( $user->ID ) ? (int) $user->ID : 0 );
+	return (int) ( $user->ID ?? 0 );
 }
 
 /**
@@ -2184,7 +2184,7 @@ function validate_username( $username ) {
  *     @type string $comment_shortcuts    Whether to enable comment moderation keyboard
  *                                        shortcuts for the user. Accepts 'true' or 'false'
  *                                        as a string literal, not boolean. Default 'false'.
- *     @type string $admin_color          Admin color scheme for the user. Default 'fresh'.
+ *     @type string $admin_color          Admin color scheme for the user. Default 'modern'.
  *     @type bool   $use_ssl              Whether the user should always access the admin over
  *                                        https. Default false.
  *     @type string $user_registered      Date the user registered in UTC. Format is 'Y-m-d H:i:s'.
@@ -2209,6 +2209,44 @@ function wp_insert_user( $userdata ) {
 		$userdata = get_object_vars( $userdata );
 	} elseif ( $userdata instanceof WP_User ) {
 		$userdata = $userdata->to_array();
+	} elseif ( $userdata instanceof Traversable ) {
+		$userdata = iterator_to_array( $userdata );
+	} elseif ( $userdata instanceof ArrayAccess ) {
+		$userdata_obj = $userdata;
+		$userdata     = array();
+		foreach (
+			array(
+				'ID',
+				'user_pass',
+				'user_login',
+				'user_nicename',
+				'user_url',
+				'user_email',
+				'display_name',
+				'nickname',
+				'first_name',
+				'last_name',
+				'description',
+				'rich_editing',
+				'syntax_highlighting',
+				'comment_shortcuts',
+				'admin_color',
+				'use_ssl',
+				'user_registered',
+				'user_activation_key',
+				'spam',
+				'show_admin_bar_front',
+				'role',
+				'locale',
+				'meta_input',
+			) as $key
+		) {
+			if ( isset( $userdata_obj[ $key ] ) ) {
+				$userdata[ $key ] = $userdata_obj[ $key ];
+			}
+		}
+	} else {
+		$userdata = (array) $userdata;
 	}
 
 	// Are we updating or creating?
@@ -2244,7 +2282,7 @@ function wp_insert_user( $userdata ) {
 		$user_pass = wp_hash_password( $userdata['user_pass'] );
 	}
 
-	$sanitized_user_login = sanitize_user( $userdata['user_login'], true );
+	$sanitized_user_login = sanitize_user( $userdata['user_login'] ?? '', true );
 
 	/**
 	 * Filters a username after it has been sanitized.
@@ -2457,7 +2495,7 @@ function wp_insert_user( $userdata ) {
 
 	$meta['comment_shortcuts'] = empty( $userdata['comment_shortcuts'] ) || 'false' === $userdata['comment_shortcuts'] ? 'false' : 'true';
 
-	$admin_color         = empty( $userdata['admin_color'] ) ? 'fresh' : $userdata['admin_color'];
+	$admin_color         = empty( $userdata['admin_color'] ) ? 'modern' : $userdata['admin_color'];
 	$meta['admin_color'] = preg_replace( '|[^a-z0-9 _.\-@]|i', '', $admin_color );
 
 	$meta['use_ssl'] = empty( $userdata['use_ssl'] ) ? '0' : '1';
@@ -2546,7 +2584,7 @@ function wp_insert_user( $userdata ) {
 	 *     @type string   $rich_editing         Whether to enable the rich-editor for the user. Default 'true'.
 	 *     @type string   $syntax_highlighting  Whether to enable the rich code editor for the user. Default 'true'.
 	 *     @type string   $comment_shortcuts    Whether to enable keyboard shortcuts for the user. Default 'false'.
-	 *     @type string   $admin_color          The color scheme for a user's admin screen. Default 'fresh'.
+	 *     @type string   $admin_color          The color scheme for a user's admin screen. Default 'modern'.
 	 *     @type int|bool $use_ssl              Whether to force SSL on the user's admin area. 0|false if SSL
 	 *                                          is not forced.
 	 *     @type string   $show_admin_bar_front Whether to show the admin bar on the front end for the user.
@@ -2682,7 +2720,7 @@ function wp_update_user( $userdata ) {
 
 	$userdata_raw = $userdata;
 
-	$user_id = isset( $userdata['ID'] ) ? (int) $userdata['ID'] : 0;
+	$user_id = (int) ( $userdata['ID'] ?? 0 );
 	if ( ! $user_id ) {
 		return new WP_Error( 'invalid_user_id', __( 'Invalid user ID.' ) );
 	}

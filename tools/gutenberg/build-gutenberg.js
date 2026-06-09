@@ -145,10 +145,10 @@ async function main() {
 		// On Unix, arguments are passed directly without shell parsing
 		const baseUrlArg =
 			process.platform === 'win32'
-				? '--base-url="includes_url( \'build\' )"'
-				: "--base-url=includes_url( 'build' )";
+				? '--base-url="includes_url( \'build/\' )"'
+				: "--base-url=includes_url( 'build/' )";
 
-		await exec( 'npm', [ 'run', 'build', '--', '--fast', baseUrlArg ], {
+		await exec( 'npm', [ 'run', 'build', '--', '--skip-types', baseUrlArg ], {
 			cwd: gutenbergDir,
 		} );
 

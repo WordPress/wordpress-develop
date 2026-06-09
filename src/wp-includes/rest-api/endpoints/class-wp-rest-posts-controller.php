@@ -483,7 +483,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			remove_filter( 'post_password_required', array( $this, 'check_password_required' ) );
 		}
 
-		$page        = isset( $query_args['paged'] ) ? (int) $query_args['paged'] : 0;
+		$page        = (int) ( $query_args['paged'] ?? 0 );
 		$total_posts = $posts_query->found_posts;
 
 		if ( $total_posts < 1 && $page > 1 ) {
@@ -1988,7 +1988,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 				add_filter(
 					'excerpt_length',
 					$override_excerpt_length,
-					20
+					PHP_INT_MAX
 				);
 			}
 
@@ -2008,7 +2008,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 				remove_filter(
 					'excerpt_length',
 					$override_excerpt_length,
-					20
+					PHP_INT_MAX
 				);
 			}
 		}

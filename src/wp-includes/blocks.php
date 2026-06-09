@@ -1839,6 +1839,7 @@ function traverse_and_serialize_block( $block, $pre_callback = null, $post_callb
  * Replaces patterns in a block tree with their content.
  *
  * @since 6.6.0
+ * @since 7.0.0 Adds metadata to attributes of single-pattern container blocks.
  *
  * @param array $blocks An array blocks.
  *
@@ -1875,7 +1876,39 @@ function resolve_pattern_blocks( $blocks ) {
 				continue;
 			}
 
-			$blocks_to_insert   = parse_blocks( $pattern['content'] );
+			$blocks_to_insert = parse_blocks( trim( $pattern['content'] ) );
+
+			/*
+			 * For single-root patterns, add the pattern name to make this a pattern instance in the editor.
+			 * If the pattern has metadata, merge it with the existing metadata.
+			 */
+			if ( count( $blocks_to_insert ) === 1 ) {
+				$block_metadata                = $blocks_to_insert[0]['attrs']['metadata'] ?? array();
+				$block_metadata['patternName'] = $slug;
+
+				/*
+				 * Merge pattern metadata with existing block metadata.
+				 * Pattern metadata takes precedence, but existing block metadata
+				 * is preserved as a fallback when the pattern doesn't define that field.
+				 * Only the defined fields (name, description, categories) are updated;
+				 * other metadata keys are preserved.
+				 */
+				foreach ( array(
+					'name'        => 'title', // 'title' is the field in the pattern object 'name' is the field in the block metadata.
+					'description' => 'description',
+					'categories'  => 'categories',
+				) as $key => $pattern_key ) {
+					$value = $pattern[ $pattern_key ] ?? $block_metadata[ $key ] ?? null;
+					if ( $value ) {
+						$block_metadata[ $key ] = is_array( $value )
+							? array_map( 'sanitize_text_field', $value )
+							: sanitize_text_field( $value );
+					}
+				}
+
+				$blocks_to_insert[0]['attrs']['metadata'] = $block_metadata;
+			}
+
 			$seen_refs[ $slug ] = true;
 			$prev_inner_content = $inner_content;
 			$inner_content      = null;
@@ -2627,6 +2660,7 @@ function wp_migrate_old_typography_shape( $metadata ) {
  * @since 5.8.0
  * @since 6.1.0 Added `query_loop_block_query_vars` filter and `parents` support in query.
  * @since 6.7.0 Added support for the `format` property in query.
+ * @since 7.0.0 Updated `taxQuery` structure.
  *
  * @param WP_Block $block Block instance.
  * @param int      $page  Current query's page.
@@ -2708,18 +2742,60 @@ function build_query_vars_from_query_block( $block, $page ) {
 			}
 			$query['tax_query'] = array_merge( $query['tax_query'], $tax_query_back_compat );
 		}
-		if ( ! empty( $block->context['query']['taxQuery'] ) ) {
-			$tax_query = array();
-			foreach ( $block->context['query']['taxQuery'] as $taxonomy => $terms ) {
-				if ( is_taxonomy_viewable( $taxonomy ) && ! empty( $terms ) ) {
-					$tax_query[] = array(
-						'taxonomy'         => $taxonomy,
-						'terms'            => array_filter( array_map( 'intval', $terms ) ),
-						'include_children' => false,
-					);
+
+		if ( ! empty( $block->context['query']['taxQuery'] ) && is_array( $block->context['query']['taxQuery'] ) ) {
+			$tax_query_input = $block->context['query']['taxQuery'];
+			$tax_query       = array();
+			// If there are keys other than include/exclude, it's the old
+			// format e.g. "taxQuery":{"category":[4]}
+			if ( ! empty( array_diff( array_keys( $tax_query_input ), array( 'include', 'exclude' ) ) ) ) {
+				foreach ( $block->context['query']['taxQuery'] as $taxonomy => $terms ) {
+					if ( is_taxonomy_viewable( $taxonomy ) && ! empty( $terms ) ) {
+						$tax_query[] = array(
+							'taxonomy'         => $taxonomy,
+							'terms'            => array_filter( array_map( 'intval', $terms ) ),
+							'include_children' => false,
+						);
+					}
 				}
+			} else {
+				// This is the new format e.g. "taxQuery":{"include":{"category":[4]},"exclude":{"post_tag":[5]}}
+
+				// Helper function to build tax_query conditions from taxonomy terms.
+				$build_conditions = static function ( $terms, string $operator = 'IN' ): array {
+					$terms      = (array) $terms;
+					$conditions = array();
+					foreach ( $terms as $taxonomy => $tax_terms ) {
+						if ( ! empty( $tax_terms ) && is_taxonomy_viewable( $taxonomy ) ) {
+							$conditions[] = array(
+								'taxonomy'         => $taxonomy,
+								'terms'            => array_filter( array_map( 'intval', $tax_terms ) ),
+								'operator'         => $operator,
+								'include_children' => false,
+							);
+						}
+					}
+					return $conditions;
+				};
+
+				// Separate exclude from include terms.
+				$exclude_terms = isset( $tax_query_input['exclude'] ) && is_array( $tax_query_input['exclude'] )
+					? $tax_query_input['exclude']
+					: array();
+				$include_terms = isset( $tax_query_input['include'] ) && is_array( $tax_query_input['include'] )
+					? $tax_query_input['include']
+					: array();
+
+				$tax_query = array_merge(
+					$build_conditions( $include_terms ),
+					$build_conditions( $exclude_terms, 'NOT IN' )
+				);
 			}
-			$query['tax_query'] = array_merge( $query['tax_query'], $tax_query );
+
+			if ( ! empty( $tax_query ) ) {
+				// Merge with any existing `tax_query` conditions.
+				$query['tax_query'] = array_merge( $query['tax_query'], $tax_query );
+			}
 		}
 		if ( ! empty( $block->context['query']['format'] ) && is_array( $block->context['query']['format'] ) ) {
 			$formats = $block->context['query']['format'];
@@ -3054,4 +3130,32 @@ function _wp_footnotes_force_filtered_html_on_import_filter( $arg ) {
 		_wp_footnotes_kses_init_filters();
 	}
 	return $arg;
+}
+
+/**
+ * Exposes blocks with autoRegister flag for ServerSideRender in the editor.
+ *
+ * Detects blocks that have the autoRegister flag set in their supports
+ * and passes them to JavaScript for auto-registration with ServerSideRender.
+ *
+ * @access private
+ * @since 7.0.0
+ */
+function _wp_enqueue_auto_register_blocks() {
+	$auto_register_blocks = array();
+	$registered_blocks    = WP_Block_Type_Registry::get_instance()->get_all_registered();
+
+	foreach ( $registered_blocks as $block_name => $block_type ) {
+		if ( ! empty( $block_type->supports['autoRegister'] ) && ! empty( $block_type->render_callback ) ) {
+			$auto_register_blocks[] = $block_name;
+		}
+	}
+
+	if ( ! empty( $auto_register_blocks ) ) {
+		wp_add_inline_script(
+			'wp-block-library',
+			sprintf( 'window.__unstableAutoRegisterBlocks = %s;', wp_json_encode( $auto_register_blocks ) ),
+			'before'
+		);
+	}
 }

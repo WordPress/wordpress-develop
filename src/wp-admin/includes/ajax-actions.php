@@ -1239,7 +1239,7 @@ function wp_ajax_get_tagcloud() {
  *
  * @since 3.1.0
  *
- * @global int $post_id
+ * @global int $post_id Post ID.
  *
  * @param string $action Action to perform.
  */
@@ -2347,9 +2347,9 @@ function wp_ajax_widgets_order() {
  *
  * @since 3.1.0
  *
- * @global array $wp_registered_widgets
- * @global array $wp_registered_widget_controls
- * @global array $wp_registered_widget_updates
+ * @global array $wp_registered_widgets         Registered widgets.
+ * @global array $wp_registered_widget_controls Registered widget controls.
+ * @global array $wp_registered_widget_updates  Registered widget updates.
  */
 function wp_ajax_save_widget() {
 	global $wp_registered_widgets, $wp_registered_widget_controls, $wp_registered_widget_updates;
@@ -2456,7 +2456,7 @@ function wp_ajax_save_widget() {
  *
  * @since 3.9.0
  *
- * @global WP_Customize_Manager $wp_customize
+ * @global WP_Customize_Manager $wp_customize Customizer manager object.
  */
 function wp_ajax_update_widget() {
 	global $wp_customize;
@@ -3582,7 +3582,7 @@ function wp_ajax_get_revision_diffs() {
  *
  * @since 3.8.0
  *
- * @global array $_wp_admin_css_colors
+ * @global array $_wp_admin_css_colors Registered admin CSS color schemes.
  */
 function wp_ajax_save_user_color_scheme() {
 	global $_wp_admin_css_colors;
@@ -3611,8 +3611,8 @@ function wp_ajax_save_user_color_scheme() {
  *
  * @since 3.9.0
  *
- * @global array $themes_allowedtags
- * @global array $theme_field_defaults
+ * @global array $themes_allowedtags   Allowed HTML tags for theme descriptions.
+ * @global array $theme_field_defaults Default theme fields.
  */
 function wp_ajax_query_themes() {
 	global $themes_allowedtags, $theme_field_defaults;
@@ -3744,8 +3744,8 @@ function wp_ajax_query_themes() {
  *
  * @global WP_Post    $post          Global post object.
  * @global WP_Embed   $wp_embed      WordPress Embed object.
- * @global WP_Scripts $wp_scripts
- * @global int        $content_width
+ * @global WP_Scripts $wp_scripts    Script dependencies object.
+ * @global int        $content_width Shared post content width.
  */
 function wp_ajax_parse_embed() {
 	global $post, $wp_embed, $content_width;
@@ -3885,7 +3885,7 @@ function wp_ajax_parse_embed() {
  * @since 4.0.0
  *
  * @global WP_Post    $post       Global post object.
- * @global WP_Scripts $wp_scripts
+ * @global WP_Scripts $wp_scripts Script dependencies object.
  */
 function wp_ajax_parse_media_shortcode() {
 	global $post, $wp_scripts;

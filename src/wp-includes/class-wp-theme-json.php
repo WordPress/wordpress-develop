@@ -215,6 +215,15 @@ class WP_Theme_JSON {
 			'classes'           => array(),
 			'properties'        => array( 'border-radius' ),
 		),
+		array(
+			'path'              => array( 'dimensions', 'dimensionSizes' ),
+			'prevent_override'  => false,
+			'use_default_names' => false,
+			'value_key'         => 'size',
+			'css_vars'          => '--wp--preset--dimension--$slug',
+			'classes'           => array(),
+			'properties'        => array( 'width', 'height', 'min-height' ),
+		),
 	);
 
 	/**
@@ -237,6 +246,8 @@ class WP_Theme_JSON {
 	 * @since 6.5.0 Added `aspect-ratio` property.
 	 * @since 6.6.0 Added `background-[image|position|repeat|size]` properties.
 	 * @since 6.7.0 Added `background-attachment` property.
+	 * @since 7.0.0 Added `dimensions.width` and `dimensions.height`.
+	 *              Added `text-indent` property.
 	 * @var array
 	 */
 	const PROPERTIES_METADATA = array(
@@ -299,8 +310,11 @@ class WP_Theme_JSON {
 		'--wp--style--root--padding-left'   => array( 'spacing', 'padding', 'left' ),
 		'text-decoration'                   => array( 'typography', 'textDecoration' ),
 		'text-transform'                    => array( 'typography', 'textTransform' ),
+		'text-indent'                       => array( 'typography', 'textIndent' ),
 		'filter'                            => array( 'filter', 'duotone' ),
 		'box-shadow'                        => array( 'shadow' ),
+		'height'                            => array( 'dimensions', 'height' ),
+		'width'                             => array( 'dimensions', 'width' ),
 		'writing-mode'                      => array( 'typography', 'writingMode' ),
 	);
 
@@ -395,6 +409,9 @@ class WP_Theme_JSON {
 	 * @since 6.6.0 Added support for 'dimensions.aspectRatios', 'dimensions.defaultAspectRatios',
 	 *              'typography.defaultFontSizes', and 'spacing.defaultSpacingSizes'.
 	 * @since 6.9.0 Added support for `border.radiusSizes`.
+	 * @since 7.0.0 Added type markers to the schema for boolean values.
+	 *              Added support for `dimensions.width` and `dimensions.height`.
+	 *              Added support for `typography.textIndent`.
 	 * @var array
 	 */
 	const VALID_SETTINGS = array(
@@ -433,7 +450,10 @@ class WP_Theme_JSON {
 			'aspectRatio'         => null,
 			'aspectRatios'        => null,
 			'defaultAspectRatios' => null,
+			'dimensionSizes'      => null,
+			'height'              => null,
 			'minHeight'           => null,
+			'width'               => null,
 		),
 		'layout'                        => array(
 			'contentSize'                   => null,
@@ -442,8 +462,8 @@ class WP_Theme_JSON {
 			'allowCustomContentAndWideSize' => null,
 		),
 		'lightbox'                      => array(
-			'enabled'      => null,
-			'allowEditing' => null,
+			'enabled'      => true,
+			'allowEditing' => true,
 		),
 		'position'                      => array(
 			'fixed'  => null,
@@ -477,6 +497,7 @@ class WP_Theme_JSON {
 			'textAlign'        => null,
 			'textColumns'      => null,
 			'textDecoration'   => null,
+			'textIndent'       => null,
 			'textTransform'    => null,
 			'writingMode'      => null,
 		),
@@ -527,6 +548,7 @@ class WP_Theme_JSON {
 	 * @since 6.3.0 Added support for `typography.textColumns`.
 	 * @since 6.5.0 Added support for `dimensions.aspectRatio`.
 	 * @since 6.6.0 Added `background` sub properties to top-level only.
+	 * @since 7.0.0 Added support for `dimensions.width` and `dimensions.height`.
 	 * @var array
 	 */
 	const VALID_STYLES = array(
@@ -554,7 +576,9 @@ class WP_Theme_JSON {
 		),
 		'dimensions' => array(
 			'aspectRatio' => null,
+			'height'      => null,
 			'minHeight'   => null,
+			'width'       => null,
 		),
 		'filter'     => array(
 			'duotone' => null,
@@ -581,6 +605,7 @@ class WP_Theme_JSON {
 			'textAlign'      => null,
 			'textColumns'    => null,
 			'textDecoration' => null,
+			'textIndent'     => null,
 			'textTransform'  => null,
 			'writingMode'    => null,
 		),
@@ -607,6 +632,16 @@ class WP_Theme_JSON {
 	const VALID_ELEMENT_PSEUDO_SELECTORS = array(
 		'link'   => array( ':link', ':any-link', ':visited', ':hover', ':focus', ':focus-visible', ':active' ),
 		'button' => array( ':link', ':any-link', ':visited', ':hover', ':focus', ':focus-visible', ':active' ),
+	);
+
+	/**
+	 * The valid pseudo-selectors that can be used for blocks.
+	 *
+	 * @since 7.0
+	 * @var array
+	 */
+	const VALID_BLOCK_PSEUDO_SELECTORS = array(
+		'core/button' => array( ':hover', ':focus', ':focus-visible', ':active' ),
 	);
 
 	/**
@@ -644,11 +679,13 @@ class WP_Theme_JSON {
 	 * generated under their own feature level selector rather than the block's.
 	 *
 	 * @since 6.1.0
+	 * @since 7.0.0 Added support for `dimensions`.
 	 * @var string[]
 	 */
 	const BLOCK_SUPPORT_FEATURE_LEVEL_SELECTORS = array(
 		'__experimentalBorder' => 'border',
 		'color'                => 'color',
+		'dimensions'           => 'dimensions',
 		'spacing'              => 'spacing',
 		'typography'           => 'typography',
 	);
@@ -699,6 +736,35 @@ class WP_Theme_JSON {
 		return $schema_in_root_and_per_origin;
 	}
 
+
+	/**
+	 * Processes pseudo-selectors for any node (block or variation).
+	 *
+	 * @param array  $node The node data (block or variation).
+	 * @param string $base_selector The base selector.
+	 * @param array  $settings The theme settings.
+	 * @param string $block_name The block name.
+	 * @return array Array of pseudo-selector declarations.
+	 */
+	private static function process_pseudo_selectors( $node, $base_selector, $settings, $block_name ) {
+		$pseudo_declarations = array();
+
+		if ( ! isset( static::VALID_BLOCK_PSEUDO_SELECTORS[ $block_name ] ) ) {
+			return $pseudo_declarations;
+		}
+
+		foreach ( static::VALID_BLOCK_PSEUDO_SELECTORS[ $block_name ] as $pseudo_selector ) {
+			if ( isset( $node[ $pseudo_selector ] ) ) {
+				$combined_selector                         = static::append_to_selector( $base_selector, $pseudo_selector );
+				$declarations                              = static::compute_style_properties( $node[ $pseudo_selector ], $settings, null, null );
+				$pseudo_declarations[ $combined_selector ] = $declarations;
+			}
+		}
+
+		return $pseudo_declarations;
+	}
+
+
 	/**
 	 * Returns a class name by an element name.
 	 *
@@ -724,6 +790,7 @@ class WP_Theme_JSON {
 	 * @since 6.2.0 Added `dimensions.minHeight` and `position.sticky`.
 	 * @since 6.4.0 Added `background.backgroundImage`.
 	 * @since 6.5.0 Added `background.backgroundSize` and `dimensions.aspectRatio`.
+	 * @since 7.0.0 Added `dimensions.width` and `dimensions.height`.
 	 * @var array
 	 */
 	const APPEARANCE_TOOLS_OPT_INS = array(
@@ -738,7 +805,9 @@ class WP_Theme_JSON {
 		array( 'color', 'button' ),
 		array( 'color', 'caption' ),
 		array( 'dimensions', 'aspectRatio' ),
+		array( 'dimensions', 'height' ),
 		array( 'dimensions', 'minHeight' ),
+		array( 'dimensions', 'width' ),
 		array( 'position', 'sticky' ),
 		array( 'spacing', 'blockGap' ),
 		array( 'spacing', 'margin' ),
@@ -1018,6 +1087,13 @@ class WP_Theme_JSON {
 			$schema_settings_blocks[ $block ]           = static::VALID_SETTINGS;
 			$schema_styles_blocks[ $block ]             = $styles_non_top_level;
 			$schema_styles_blocks[ $block ]['elements'] = $schema_styles_elements;
+
+			// Add pseudo-selectors for blocks that support them
+			if ( isset( static::VALID_BLOCK_PSEUDO_SELECTORS[ $block ] ) ) {
+				foreach ( static::VALID_BLOCK_PSEUDO_SELECTORS[ $block ] as $pseudo_selector ) {
+					$schema_styles_blocks[ $block ][ $pseudo_selector ] = $styles_non_top_level;
+				}
+			}
 		}
 
 		$block_style_variation_styles             = static::VALID_STYLES;
@@ -1040,7 +1116,18 @@ class WP_Theme_JSON {
 
 			$schema_styles_variations = array();
 			if ( ! empty( $style_variation_names ) ) {
-				$schema_styles_variations = array_fill_keys( $style_variation_names, $block_style_variation_styles );
+				foreach ( $style_variation_names as $variation_name ) {
+					$variation_schema = $block_style_variation_styles;
+
+					// Add pseudo-selectors to variations for blocks that support them
+					if ( isset( static::VALID_BLOCK_PSEUDO_SELECTORS[ $block ] ) ) {
+						foreach ( static::VALID_BLOCK_PSEUDO_SELECTORS[ $block ] as $pseudo_selector ) {
+							$variation_schema[ $pseudo_selector ] = $styles_non_top_level;
+						}
+					}
+
+					$schema_styles_variations[ $variation_name ] = $variation_schema;
+				}
 			}
 
 			$schema_styles_blocks[ $block ]['variations'] = $schema_styles_variations;
@@ -1245,6 +1332,7 @@ class WP_Theme_JSON {
 	 * It is recursive and modifies the input in-place.
 	 *
 	 * @since 5.8.0
+	 * @since 7.0.0 Added type validation for boolean values.
 	 *
 	 * @param array $tree   Input to process.
 	 * @param array $schema Schema to adhere to.
@@ -1259,6 +1347,17 @@ class WP_Theme_JSON {
 			// Remove keys not in the schema or with null/empty values.
 			if ( ! array_key_exists( $key, $schema ) ) {
 				unset( $tree[ $key ] );
+				continue;
+			}
+
+			// Validate type if schema specifies a boolean marker.
+			if ( is_bool( $schema[ $key ] ) ) {
+				// Schema expects a boolean value - validate the input matches.
+				if ( ! is_bool( $value ) ) {
+					unset( $tree[ $key ] );
+					continue;
+				}
+				// Type matches, keep the value and continue to next key.
 				continue;
 			}
 
@@ -2460,10 +2559,6 @@ class WP_Theme_JSON {
 			}
 		}
 
-		if ( is_array( $value ) ) {
-			return $value;
-		}
-
 		return $value;
 	}
 
@@ -2656,6 +2751,48 @@ class WP_Theme_JSON {
 	}
 
 	/**
+	 * Updates the text indent selector for paragraph blocks based on the textIndent setting.
+	 *
+	 * The textIndent setting can be 'subsequent' (default), 'all', or false.
+	 * When set to 'all', the selector should be '.wp-block-paragraph' instead of
+	 * '.wp-block-paragraph + .wp-block-paragraph' to apply indent to all paragraphs.
+	 *
+	 * @since 7.0.0
+	 *
+	 * @param array  $feature_declarations The feature declarations keyed by selector.
+	 * @param array  $settings             The theme.json settings.
+	 * @param string $block_name           The block name being processed.
+	 * @return array The updated feature declarations.
+	 */
+	private static function update_paragraph_text_indent_selector( $feature_declarations, $settings, $block_name ) {
+		if ( 'core/paragraph' !== $block_name ) {
+			return $feature_declarations;
+		}
+
+		// Check block-level settings first, then fall back to global settings.
+		$block_settings      = $settings['blocks']['core/paragraph'] ?? null;
+		$text_indent_setting = $block_settings['typography']['textIndent']
+			?? $settings['typography']['textIndent']
+			?? 'subsequent';
+
+		if ( 'all' !== $text_indent_setting ) {
+			return $feature_declarations;
+		}
+
+		// Look for the text indent selector and replace it.
+		$old_selector = '.wp-block-paragraph + .wp-block-paragraph';
+		$new_selector = '.wp-block-paragraph';
+
+		if ( isset( $feature_declarations[ $old_selector ] ) ) {
+			$declarations = $feature_declarations[ $old_selector ];
+			unset( $feature_declarations[ $old_selector ] );
+			$feature_declarations[ $new_selector ] = $declarations;
+		}
+
+		return $feature_declarations;
+	}
+
+	/**
 	 * An internal method to get the block nodes from a theme.json file.
 	 *
 	 * @since 6.1.0
@@ -2742,6 +2879,23 @@ class WP_Theme_JSON {
 					'variations' => $variation_selectors,
 					'css'        => $selector,
 				);
+
+				// Handle any pseudo selectors for the block.
+				if ( isset( static::VALID_BLOCK_PSEUDO_SELECTORS[ $name ] ) ) {
+					foreach ( static::VALID_BLOCK_PSEUDO_SELECTORS[ $name ] as $pseudo_selector ) {
+						if ( isset( $theme_json['styles']['blocks'][ $name ][ $pseudo_selector ] ) ) {
+							$nodes[] = array(
+								'name'       => $name,
+								'path'       => array( 'styles', 'blocks', $name, $pseudo_selector ),
+								'selector'   => static::append_to_selector( $selector, $pseudo_selector ),
+								'selectors'  => $feature_selectors,
+								'duotone'    => $duotone_selector,
+								'variations' => $variation_selectors,
+								'css'        => static::append_to_selector( $selector, $pseudo_selector ),
+							);
+						}
+					}
+				}
 			}
 
 			if ( isset( $theme_json['styles']['blocks'][ $name ]['elements'] ) ) {
@@ -2799,6 +2953,10 @@ class WP_Theme_JSON {
 		$feature_declarations = static::get_feature_declarations_for_node( $block_metadata, $node );
 		$is_root_selector     = static::ROOT_BLOCK_SELECTOR === $selector;
 
+		// Update text indent selector for paragraph blocks based on the textIndent setting.
+		$block_name           = $block_metadata['name'] ?? null;
+		$feature_declarations = static::update_paragraph_text_indent_selector( $feature_declarations, $settings, $block_name );
+
 		// If there are style variations, generate the declarations for them, including any feature selectors the block may have.
 		$style_variation_declarations    = array();
 		$style_variation_custom_css      = array();
@@ -2810,6 +2968,9 @@ class WP_Theme_JSON {
 
 				// Generate any feature/subfeature style declarations for the current style variation.
 				$variation_declarations = static::get_feature_declarations_for_node( $block_metadata, $style_variation_node );
+
+				// Update text indent selector for paragraph blocks based on the textIndent setting.
+				$variation_declarations = static::update_paragraph_text_indent_selector( $variation_declarations, $settings, $block_name );
 
 				// Combine selectors with style variation's selector and add to overall style variation declarations.
 				foreach ( $variation_declarations as $current_selector => $new_declarations ) {
@@ -2838,6 +2999,18 @@ class WP_Theme_JSON {
 
 				// Compute declarations for remaining styles not covered by feature level selectors.
 				$style_variation_declarations[ $style_variation['selector'] ] = static::compute_style_properties( $style_variation_node, $settings, null, $this->theme_json );
+
+				// Process pseudo-selectors for this variation (e.g., :hover, :focus)
+				if ( isset( $block_metadata['name'] ) ) {
+					$block_name = $block_metadata['name'];
+				} elseif ( in_array( 'blocks', $block_metadata['path'], true ) && count( $block_metadata['path'] ) >= 3 ) {
+					$block_name = $block_metadata['path'][2];
+				} else {
+					$block_name = null;
+				}
+				$variation_pseudo_declarations = static::process_pseudo_selectors( $style_variation_node, $style_variation['selector'], $settings, $block_name );
+				$style_variation_declarations  = array_merge( $style_variation_declarations, $variation_pseudo_declarations );
+
 				// Store custom CSS for the style variation.
 				if ( isset( $style_variation_node['css'] ) ) {
 					$style_variation_custom_css[ $style_variation['selector'] ] = $this->process_blocks_custom_css( $style_variation_node['css'], $style_variation['selector'] );
@@ -2873,6 +3046,23 @@ class WP_Theme_JSON {
 		}
 
 		/*
+		 * Check if we're processing a block pseudo-selector.
+		 * $block_metadata['path'] = array( 'styles', 'blocks', 'core/button', ':hover' );
+		 */
+		$is_processing_block_pseudo = false;
+		$block_pseudo_selector      = null;
+		if ( in_array( 'blocks', $block_metadata['path'], true ) && count( $block_metadata['path'] ) >= 4 ) {
+			$block_name        = $block_metadata['path'][2]; // 'core/button'
+			$last_path_element = $block_metadata['path'][ count( $block_metadata['path'] ) - 1 ]; // ':hover'
+
+			if ( isset( static::VALID_BLOCK_PSEUDO_SELECTORS[ $block_name ] ) &&
+				in_array( $last_path_element, static::VALID_BLOCK_PSEUDO_SELECTORS[ $block_name ], true ) ) {
+				$is_processing_block_pseudo = true;
+				$block_pseudo_selector      = $last_path_element;
+			}
+		}
+
+		/*
 		 * Check for allowed pseudo classes (e.g. ":hover") from the $selector ("a:hover").
 		 * This also resets the array keys.
 		 */
@@ -2901,6 +3091,14 @@ class WP_Theme_JSON {
 			&& in_array( $pseudo_selector, static::VALID_ELEMENT_PSEUDO_SELECTORS[ $current_element ], true )
 		) {
 			$declarations = static::compute_style_properties( $node[ $pseudo_selector ], $settings, null, $this->theme_json, $selector, $use_root_padding );
+		} elseif ( $is_processing_block_pseudo ) {
+			// Process block pseudo-selector styles
+			// For block pseudo-selectors, we need to get the block data first, then access the pseudo-selector
+			$block_name  = $block_metadata['path'][2]; // 'core/button'
+			$block_data  = _wp_array_get( $this->theme_json, array( 'styles', 'blocks', $block_name ), array() );
+			$pseudo_data = $block_data[ $block_pseudo_selector ] ?? array();
+
+			$declarations = static::compute_style_properties( $pseudo_data, $settings, null, $this->theme_json, $selector, $use_root_padding );
 		} else {
 			$declarations = static::compute_style_properties( $node, $settings, null, $this->theme_json, $selector, $use_root_padding );
 		}
@@ -3648,6 +3846,35 @@ class WP_Theme_JSON {
 	}
 
 	/**
+	 * Preserves valid typed settings from input to output based on type markers in schema.
+	 *
+	 * Recursively iterates through the schema and validates/preserves settings
+	 * that have type markers (e.g., boolean) in VALID_SETTINGS.
+	 *
+	 * @since 7.0.0
+	 *
+	 * @param array             $input  Input settings to process.
+	 * @param array             $output Output settings array (passed by reference).
+	 * @param array             $schema Schema to validate against (typically VALID_SETTINGS).
+	 * @param array<string|int> $path   Current path in the schema (for recursive calls).
+	 */
+	private static function preserve_valid_typed_settings( $input, &$output, $schema, $path = array() ) {
+		foreach ( $schema as $key => $schema_value ) {
+			$current_path = array_merge( $path, array( $key ) );
+
+			// Validate boolean type markers.
+			if ( is_bool( $schema_value ) ) {
+				$value = _wp_array_get( $input, $current_path, null );
+				if ( is_bool( $value ) ) {
+					_wp_array_set( $output, $current_path, $value ); // Preserve boolean value.
+				}
+			} elseif ( is_array( $schema_value ) ) {
+				self::preserve_valid_typed_settings( $input, $output, $schema_value, $current_path ); // Recurse into nested structure.
+			}
+		}
+	}
+
+	/**
 	 * Processes a setting node and returns the same node
 	 * without the insecure settings.
 	 *
@@ -3705,6 +3932,9 @@ class WP_Theme_JSON {
 
 		// Ensure indirect properties not included in any `PRESETS_METADATA` value are allowed.
 		static::remove_indirect_properties( $input, $output );
+
+		// Preserve all valid settings that have type markers in VALID_SETTINGS.
+		self::preserve_valid_typed_settings( $input, $output, static::VALID_SETTINGS );
 
 		return $output;
 	}

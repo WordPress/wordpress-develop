@@ -1,90 +1,91 @@
 // Import CodeMirror core to be exposed as window.wp.CodeMirror.
-var CodeMirror = require( 'codemirror/lib/codemirror' );
+import CodeMirror from 'codemirror/lib/codemirror';
 
 // Keymaps
-require( 'codemirror/keymap/emacs' );
-require( 'codemirror/keymap/sublime' );
-require( 'codemirror/keymap/vim' );
+import 'codemirror/keymap/emacs';
+import 'codemirror/keymap/sublime';
+import 'codemirror/keymap/vim';
 
 // Addons (Hinting)
-require( 'codemirror/addon/hint/show-hint' );
-require( 'codemirror/addon/hint/anyword-hint' );
-require( 'codemirror/addon/hint/css-hint' );
-require( 'codemirror/addon/hint/html-hint' );
-require( 'codemirror/addon/hint/javascript-hint' );
-require( 'codemirror/addon/hint/sql-hint' );
-require( 'codemirror/addon/hint/xml-hint' );
+import 'codemirror/addon/hint/show-hint';
+import 'codemirror/addon/hint/anyword-hint';
+import 'codemirror/addon/hint/css-hint';
+import 'codemirror/addon/hint/html-hint';
+import 'codemirror/addon/hint/javascript-hint';
+import 'codemirror/addon/hint/sql-hint';
+import 'codemirror/addon/hint/xml-hint';
 
 // Addons (Linting)
-require( 'codemirror/addon/lint/lint' );
-require( 'codemirror/addon/lint/css-lint' );
-require( 'codemirror/addon/lint/html-lint' );
-require( 'codemirror/addon/lint/javascript-lint' );
-require( 'codemirror/addon/lint/json-lint' );
+import 'codemirror/addon/lint/lint';
+import 'codemirror/addon/lint/css-lint';
+import 'codemirror/addon/lint/html-lint';
+
+import '../../src/js/_enqueues/vendor/codemirror/javascript-lint';
+import 'codemirror/addon/lint/json-lint';
 
 // Addons (Other)
-require( 'codemirror/addon/comment/comment' );
-require( 'codemirror/addon/comment/continuecomment' );
-require( 'codemirror/addon/fold/xml-fold' );
-require( 'codemirror/addon/mode/overlay' );
-require( 'codemirror/addon/edit/closebrackets' );
-require( 'codemirror/addon/edit/closetag' );
-require( 'codemirror/addon/edit/continuelist' );
-require( 'codemirror/addon/edit/matchbrackets' );
-require( 'codemirror/addon/edit/matchtags' );
-require( 'codemirror/addon/edit/trailingspace' );
-require( 'codemirror/addon/dialog/dialog' );
-require( 'codemirror/addon/display/autorefresh' );
-require( 'codemirror/addon/display/fullscreen' );
-require( 'codemirror/addon/display/panel' );
-require( 'codemirror/addon/display/placeholder' );
-require( 'codemirror/addon/display/rulers' );
-require( 'codemirror/addon/fold/brace-fold' );
-require( 'codemirror/addon/fold/comment-fold' );
-require( 'codemirror/addon/fold/foldcode' );
-require( 'codemirror/addon/fold/foldgutter' );
-require( 'codemirror/addon/fold/indent-fold' );
-require( 'codemirror/addon/fold/markdown-fold' );
-require( 'codemirror/addon/merge/merge' );
-require( 'codemirror/addon/mode/loadmode' );
-require( 'codemirror/addon/mode/multiplex' );
-require( 'codemirror/addon/mode/simple' );
-require( 'codemirror/addon/runmode/runmode' );
-require( 'codemirror/addon/runmode/colorize' );
-require( 'codemirror/addon/runmode/runmode-standalone' );
-require( 'codemirror/addon/scroll/annotatescrollbar' );
-require( 'codemirror/addon/scroll/scrollpastend' );
-require( 'codemirror/addon/scroll/simplescrollbars' );
-require( 'codemirror/addon/search/search' );
-require( 'codemirror/addon/search/jump-to-line' );
-require( 'codemirror/addon/search/match-highlighter' );
-require( 'codemirror/addon/search/matchesonscrollbar' );
-require( 'codemirror/addon/search/searchcursor' );
-require( 'codemirror/addon/tern/tern' );
-require( 'codemirror/addon/tern/worker' );
-require( 'codemirror/addon/wrap/hardwrap' );
-require( 'codemirror/addon/selection/active-line' );
-require( 'codemirror/addon/selection/mark-selection' );
-require( 'codemirror/addon/selection/selection-pointer' );
+import 'codemirror/addon/comment/comment';
+import 'codemirror/addon/comment/continuecomment';
+import 'codemirror/addon/fold/xml-fold';
+import 'codemirror/addon/mode/overlay';
+import 'codemirror/addon/edit/closebrackets';
+import 'codemirror/addon/edit/closetag';
+import 'codemirror/addon/edit/continuelist';
+import 'codemirror/addon/edit/matchbrackets';
+import 'codemirror/addon/edit/matchtags';
+import 'codemirror/addon/edit/trailingspace';
+import 'codemirror/addon/dialog/dialog';
+import 'codemirror/addon/display/autorefresh';
+import 'codemirror/addon/display/fullscreen';
+import 'codemirror/addon/display/panel';
+import 'codemirror/addon/display/placeholder';
+import 'codemirror/addon/display/rulers';
+import 'codemirror/addon/fold/brace-fold';
+import 'codemirror/addon/fold/comment-fold';
+import 'codemirror/addon/fold/foldcode';
+import 'codemirror/addon/fold/foldgutter';
+import 'codemirror/addon/fold/indent-fold';
+import 'codemirror/addon/fold/markdown-fold';
+import 'codemirror/addon/merge/merge';
+import 'codemirror/addon/mode/loadmode';
+import 'codemirror/addon/mode/multiplex';
+import 'codemirror/addon/mode/simple';
+import 'codemirror/addon/runmode/runmode';
+import 'codemirror/addon/runmode/colorize';
+import 'codemirror/addon/runmode/runmode-standalone';
+import 'codemirror/addon/scroll/annotatescrollbar';
+import 'codemirror/addon/scroll/scrollpastend';
+import 'codemirror/addon/scroll/simplescrollbars';
+import 'codemirror/addon/search/search';
+import 'codemirror/addon/search/jump-to-line';
+import 'codemirror/addon/search/match-highlighter';
+import 'codemirror/addon/search/matchesonscrollbar';
+import 'codemirror/addon/search/searchcursor';
+import 'codemirror/addon/tern/tern';
+import 'codemirror/addon/tern/worker';
+import 'codemirror/addon/wrap/hardwrap';
+import 'codemirror/addon/selection/active-line';
+import 'codemirror/addon/selection/mark-selection';
+import 'codemirror/addon/selection/selection-pointer';
 
 // Modes
-require( 'codemirror/mode/meta' );
-require( 'codemirror/mode/clike/clike' );
-require( 'codemirror/mode/css/css' );
-require( 'codemirror/mode/diff/diff' );
-require( 'codemirror/mode/htmlmixed/htmlmixed' );
-require( 'codemirror/mode/http/http' );
-require( 'codemirror/mode/javascript/javascript' );
-require( 'codemirror/mode/jsx/jsx' );
-require( 'codemirror/mode/markdown/markdown' );
-require( 'codemirror/mode/gfm/gfm' );
-require( 'codemirror/mode/nginx/nginx' );
-require( 'codemirror/mode/php/php' );
-require( 'codemirror/mode/sass/sass' );
-require( 'codemirror/mode/shell/shell' );
-require( 'codemirror/mode/sql/sql' );
-require( 'codemirror/mode/xml/xml' );
-require( 'codemirror/mode/yaml/yaml' );
+import 'codemirror/mode/meta';
+import 'codemirror/mode/clike/clike';
+import 'codemirror/mode/css/css';
+import 'codemirror/mode/diff/diff';
+import 'codemirror/mode/htmlmixed/htmlmixed';
+import 'codemirror/mode/http/http';
+import 'codemirror/mode/javascript/javascript';
+import 'codemirror/mode/jsx/jsx';
+import 'codemirror/mode/markdown/markdown';
+import 'codemirror/mode/gfm/gfm';
+import 'codemirror/mode/nginx/nginx';
+import 'codemirror/mode/php/php';
+import 'codemirror/mode/sass/sass';
+import 'codemirror/mode/shell/shell';
+import 'codemirror/mode/sql/sql';
+import 'codemirror/mode/xml/xml';
+import 'codemirror/mode/yaml/yaml';
 
 /**
  * Please note that the codemirror-standalone "runmode" addon is setting `window.CodeMirror`
