@@ -17,7 +17,8 @@
 	},
 	"suggest": {
 		"ext-dom": "*",
-		"ext-ftp": "*"
+		"ext-ftp": "*",
+		"ext-ssh2": "*"
 	},
 	"require-dev": {
 		"composer/ca-bundle": "1.5.11",
