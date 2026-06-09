@@ -113,11 +113,11 @@ if ( 'approved' === wp_get_comment_status( $comment ) && $comment->comment_post_
 <?php _e( 'Status:' ); ?> <span id="comment-status-display">
 <?php
 $comment_statuses = _wp_get_custom_comment_statuses();
-$status_labels     = array_merge(
+$status_labels    = array_merge(
 	$comment_statuses,
 	array(
-		'0'    => _x( 'Pending', 'comment status' ),
-		'1'    => _x( 'Approved', 'comment status' ),
+		'0'     => _x( 'Pending', 'comment status' ),
+		'1'     => _x( 'Approved', 'comment status' ),
 		'spam'  => _x( 'Spam', 'comment status' ),
 		'trash' => _x( 'Trash', 'comment status' ),
 	)

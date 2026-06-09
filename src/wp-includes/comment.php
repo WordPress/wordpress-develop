@@ -336,7 +336,7 @@ function _wp_get_custom_comment_statuses() {
 	$custom_statuses   = array_diff_key( get_comment_statuses(), array_flip( $reserved_statuses ) );
 
 	foreach ( $custom_statuses as $status => $label ) {
-		if ( $status !== sanitize_key( $status ) || strlen( $status ) > 20 ) {
+		if ( sanitize_key( $status ) !== $status || 20 < strlen( $status ) ) {
 			unset( $custom_statuses[ $status ] );
 		}
 	}
