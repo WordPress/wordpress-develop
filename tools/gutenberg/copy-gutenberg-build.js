@@ -441,14 +441,10 @@ function generateScriptLoaderPackages() {
 				// Parse PHP array to JavaScript object
 				const assetData = parsePHPArray( match[ 1 ] );
 
-				// For regular scripts, use dependencies as-is
-				// Keep dependencies array (don't use module_dependencies)
+				// For regular scripts, use dependencies as-is.
 				if ( ! assetData.dependencies ) {
 					assetData.dependencies = [];
 				}
-
-				// Remove module_dependencies if present (not used for regular scripts)
-				delete assetData.module_dependencies;
 
 				// Create entries for both minified and non-minified versions
 				const jsPathMin = `${ entry.name }.min.js`;
@@ -920,9 +916,11 @@ async function main() {
 	const scriptsSrc = path.join( gutenbergBuildDir, scriptsConfig.source );
 	const scriptsDest = path.join( wpIncludesDir, scriptsConfig.destination );
 
-	// Transform function to remove source map comments from all JS files
+	// Transform function to remove source map comments from all JS files.
+	// Only match actual source map comments at the start of a line (possibly
+	// with whitespace), not occurrences inside string literals.
 	const removeSourceMaps = ( content ) => {
-		return content.replace( /\/\/# sourceMappingURL=.*$/gm, '' ).trimEnd();
+		return content.replace( /^\s*\/\/# sourceMappingURL=.*$/gm, '' ).trimEnd();
 	};
 
 	if ( fs.existsSync( scriptsSrc ) ) {

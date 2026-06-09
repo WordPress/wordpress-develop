@@ -227,9 +227,6 @@ jobs:
       - name: Deactivate WordPress Importer plugin
         run: npm run env:cli -- plugin deactivate wordpress-importer --path="/var/www/${LOCAL_DIR}"
 
-      - name: Update permalink structure
-        run: npm run env:cli -- rewrite structure '/%year%/%monthnum%/%postname%/' --path="/var/www/${LOCAL_DIR}"
-
       - name: Install additional languages
         run: |
           npm run env:cli -- language core install de_DE --path="/var/www/${LOCAL_DIR}"

@@ -657,7 +657,7 @@ function create_initial_post_types() {
 		)
 	);
 
-	if ( get_option( 'enable_real_time_collaboration' ) ) {
+	if ( get_option( 'wp_enable_real_time_collaboration' ) ) {
 		register_post_type(
 			'wp_sync_storage',
 			array(
@@ -2828,9 +2828,11 @@ function unregister_post_meta( $post_type, $meta_key ) {
  * @since 1.2.0
  *
  * @param int $post_id Optional. Post ID. Default is the ID of the global `$post`.
- * @return mixed An array of values.
- *               False for an invalid `$post_id` (non-numeric, zero, or negative value).
- *               An empty string if a valid but non-existing post ID is passed.
+ * @return array<string, array<int, string>>|false Array of post meta values keyed by meta key, or false on failure.
+ *                                                 Post meta values will always be strings, even for values which would
+ *                                                 otherwise be retrieved individually as arrays or objects via
+ *                                                 {@see get_post_meta()}. An empty array is returned if the post has
+ *                                                 no post meta.
  */
 function get_post_custom( $post_id = 0 ) {
 	$post_id = absint( $post_id );
@@ -8667,7 +8669,7 @@ function wp_create_initial_post_meta() {
 		)
 	);
 
-	if ( get_option( 'enable_real_time_collaboration' ) ) {
+	if ( get_option( 'wp_enable_real_time_collaboration' ) ) {
 		register_meta(
 			'post',
 			'_crdt_document',
