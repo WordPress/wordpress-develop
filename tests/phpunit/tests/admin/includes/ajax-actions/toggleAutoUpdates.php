@@ -125,7 +125,7 @@ class Tests_wp_ajax_toggle_auto_updates extends WP_Ajax_UnitTestCase {
 	public function test_toggle_auto_updates_theme_success(): void {
 		wp_set_current_user( self::$admin_id );
 
-		$theme = 'twentytwentyone';
+		$theme                = 'twentytwentyone';
 		$_POST['_ajax_nonce'] = wp_create_nonce( 'updates' );
 		$_POST['type']        = 'theme';
 		$_POST['asset']       = $theme;
