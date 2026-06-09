@@ -12,6 +12,14 @@
  * @since 2.5.0
  *
  * @see WP_Filesystem_Base
+ * @phpstan-type Options array{
+ *     hostname: non-empty-string,
+ *     username: non-empty-string,
+ *     password: string,
+ *     port: non-negative-int,
+ *     connection_type?: 'ftps',
+ *     ssl: bool,
+ * }
  */
 class WP_Filesystem_FTPext extends WP_Filesystem_Base {
 
@@ -20,6 +28,13 @@ class WP_Filesystem_FTPext extends WP_Filesystem_Base {
 	 * @var FTP\Connection|resource|false
 	 */
 	public $link;
+
+	/**
+	 * @since 7.1.0
+	 * @var array
+	 * @phpstan-var Options
+	 */
+	public $options;
 
 	/**
 	 * Constructor.
@@ -35,8 +50,15 @@ class WP_Filesystem_FTPext extends WP_Filesystem_Base {
 	 *     @type int    $port            Optional. FTP server port. Default 21.
 	 *     @type string $connection_type Optional. Connection type. Use 'ftps' to enable SSL.
 	 * }
+	 * @phpstan-param array{
+	 *     hostname: non-empty-string,
+	 *     username: non-empty-string,
+	 *     password: string,
+	 *     port?: non-negative-int,
+	 *     connection_type?: 'ftps',
+	 * }|null $opt
 	 */
-	public function __construct( $opt = array() ) {
+	public function __construct( $opt = null ) {
 		$this->method = 'ftpext';
 		$this->errors = new WP_Error();
 
@@ -51,35 +73,55 @@ class WP_Filesystem_FTPext extends WP_Filesystem_Base {
 			define( 'FS_TIMEOUT', 4 * MINUTE_IN_SECONDS );
 		}
 
+		$options = array();
+		if ( ! is_array( $opt ) ) {
+			$opt = array();
+		}
+
 		if ( empty( $opt['port'] ) ) {
-			$this->options['port'] = 21;
+			$options['port'] = 21;
 		} else {
-			$this->options['port'] = $opt['port'];
+			$options['port'] = $opt['port'];
 		}
 
 		if ( empty( $opt['hostname'] ) ) {
 			$this->errors->add( 'empty_hostname', __( 'FTP hostname is required' ) );
 		} else {
-			$this->options['hostname'] = $opt['hostname'];
+			$options['hostname'] = $opt['hostname'];
 		}
 
 		// Check if the options provided are OK.
 		if ( empty( $opt['username'] ) ) {
 			$this->errors->add( 'empty_username', __( 'FTP username is required' ) );
 		} else {
-			$this->options['username'] = $opt['username'];
+			$options['username'] = $opt['username'];
 		}
 
 		if ( empty( $opt['password'] ) ) {
 			$this->errors->add( 'empty_password', __( 'FTP password is required' ) );
 		} else {
-			$this->options['password'] = $opt['password'];
+			$options['password'] = $opt['password'];
 		}
 
-		$this->options['ssl'] = false;
+		$options['ssl'] = false;
 
 		if ( isset( $opt['connection_type'] ) && 'ftps' === $opt['connection_type'] ) {
-			$this->options['ssl'] = true;
+			$options['ssl'] = true;
+		}
+
+		if ( ! isset( $options['hostname'] ) ) {
+			$this->errors->add( 'empty_hostname', __( 'FTP hostname is required' ) );
+		}
+		if ( ! isset( $options['username'] ) ) {
+			$this->errors->add( 'empty_username', __( 'FTP username is required' ) );
+		}
+		if ( ! isset( $options['password'] ) ) {
+			$this->errors->add( 'empty_password', __( 'FTP password is required' ) );
+		}
+
+		if ( ! $this->errors->has_errors() ) {
+			/** @var Options $options */
+			$this->options = $options;
 		}
 	}
 
@@ -661,7 +703,7 @@ class WP_Filesystem_FTPext extends WP_Filesystem_Base {
 			$b['year']   = $lucifer[3];
 			$b['hour']   = $lucifer[4];
 			$b['minute'] = $lucifer[5];
-			$b['time']   = mktime( $lucifer[4] + ( strcasecmp( $lucifer[6], 'PM' ) === 0 ? 12 : 0 ), $lucifer[5], 0, $lucifer[1], $lucifer[2], $lucifer[3] );
+			$b['time']   = mktime( (int) $lucifer[4] + ( strcasecmp( $lucifer[6], 'PM' ) === 0 ? 12 : 0 ), (int) $lucifer[5], 0, (int) $lucifer[1], (int) $lucifer[2], (int) $lucifer[3] );
 			$b['am/pm']  = $lucifer[6];
 			$b['name']   = $lucifer[8];
 		} elseif ( ! $is_windows ) {
@@ -724,7 +766,7 @@ class WP_Filesystem_FTPext extends WP_Filesystem_Base {
 			$b['name'] = preg_replace( '/(\s*->\s*.*)$/', '', $b['name'] );
 		}
 
-		return $b;
+		return $b ?? '';
 	}
 
 	/**

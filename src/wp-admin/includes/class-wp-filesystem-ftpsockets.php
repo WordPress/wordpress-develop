@@ -12,6 +12,12 @@
  * @since 2.5.0
  *
  * @see WP_Filesystem_Base
+ * @phpstan-type Options array{
+ *     hostname: non-empty-string,
+ *     username: non-empty-string,
+ *     password: string,
+ *     port: non-negative-int,
+ * }
  */
 class WP_Filesystem_ftpsockets extends WP_Filesystem_Base {
 
@@ -20,6 +26,13 @@ class WP_Filesystem_ftpsockets extends WP_Filesystem_Base {
 	 * @var ftp
 	 */
 	public $ftp;
+
+	/**
+	 * @since 7.1.0
+	 * @var array
+	 * @phpstan-var Options
+	 */
+	public $options;
 
 	/**
 	 * Constructor.
@@ -34,8 +47,14 @@ class WP_Filesystem_ftpsockets extends WP_Filesystem_Base {
 	 * *     @type string $password Required. FTP password.
 	 * *     @type int $port Optional. FTP server port. Default 21.
 	 * * }
+	 * @phpstan-param array{
+	 *     hostname: non-empty-string,
+	 *     username: non-empty-string,
+	 *     password: string,
+	 *     port?: non-negative-int
+	 * } $opt
 	 */
-	public function __construct( $opt = array() ) {
+	public function __construct( $opt = null ) {
 		$this->method = 'ftpsockets';
 		$this->errors = new WP_Error();
 
@@ -46,29 +65,39 @@ class WP_Filesystem_ftpsockets extends WP_Filesystem_Base {
 
 		$this->ftp = new ftp();
 
+		$options = array();
+		if ( ! is_array( $opt ) ) {
+			$opt = array();
+		}
+
 		if ( empty( $opt['port'] ) ) {
-			$this->options['port'] = 21;
+			$options['port'] = 21;
 		} else {
-			$this->options['port'] = (int) $opt['port'];
+			$options['port'] = (int) $opt['port'];
 		}
 
 		if ( empty( $opt['hostname'] ) ) {
 			$this->errors->add( 'empty_hostname', __( 'FTP hostname is required' ) );
 		} else {
-			$this->options['hostname'] = $opt['hostname'];
+			$options['hostname'] = $opt['hostname'];
 		}
 
 		// Check if the options provided are OK.
 		if ( empty( $opt['username'] ) ) {
 			$this->errors->add( 'empty_username', __( 'FTP username is required' ) );
 		} else {
-			$this->options['username'] = $opt['username'];
+			$options['username'] = $opt['username'];
 		}
 
 		if ( empty( $opt['password'] ) ) {
 			$this->errors->add( 'empty_password', __( 'FTP password is required' ) );
 		} else {
-			$this->options['password'] = $opt['password'];
+			$options['password'] = $opt['password'];
+		}
+
+		if ( ! $this->errors->has_errors() ) {
+			/** @var Options $options */
+			$this->options = $options;
 		}
 	}
 
@@ -186,7 +215,7 @@ class WP_Filesystem_ftpsockets extends WP_Filesystem_Base {
 	 * @since 2.5.0
 	 *
 	 * @param string $file Path to the file.
-	 * @return array|false File contents in an array on success, false on failure.
+	 * @return string[]|false File contents in an array on success, false on failure.
 	 */
 	public function get_contents_array( $file ) {
 		return explode( "\n", $this->get_contents( $file ) );

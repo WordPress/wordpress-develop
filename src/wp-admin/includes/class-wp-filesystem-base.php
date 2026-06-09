@@ -44,6 +44,7 @@ class WP_Filesystem_Base {
 	public $errors = null;
 
 	/**
+	 * @var array<string, mixed>
 	 */
 	public $options = array();
 
@@ -440,9 +441,9 @@ class WP_Filesystem_Base {
 		$mode  = strtr( $mode, $trans );
 
 		$newmode  = $mode[0];
-		$newmode .= $mode[1] + $mode[2] + $mode[3];
-		$newmode .= $mode[4] + $mode[5] + $mode[6];
-		$newmode .= $mode[7] + $mode[8] + $mode[9];
+		$newmode .= (int) $mode[1] + (int) $mode[2] + (int) $mode[3];
+		$newmode .= (int) $mode[4] + (int) $mode[5] + (int) $mode[6];
+		$newmode .= (int) $mode[7] + (int) $mode[8] + (int) $mode[9];
 
 		return $newmode;
 	}

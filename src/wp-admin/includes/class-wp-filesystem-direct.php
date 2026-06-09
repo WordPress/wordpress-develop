@@ -23,6 +23,7 @@ class WP_Filesystem_Direct extends WP_Filesystem_Base {
 	 * @param mixed $arg Not used.
 	 */
 	public function __construct( $arg ) {
+		unset( $arg );
 		$this->method = 'direct';
 		$this->errors = new WP_Error();
 	}
@@ -240,7 +241,7 @@ class WP_Filesystem_Direct extends WP_Filesystem_Base {
 	 * @since 2.5.0
 	 *
 	 * @param string $file Path to the file.
-	 * @return string|false Username of the owner on success, false on failure.
+	 * @return string|int<1, max>|false Username of the owner on success, or UID of file owner if not available; false on failure.
 	 */
 	public function owner( $file ) {
 		$owneruid = @fileowner( $file );
@@ -285,7 +286,7 @@ class WP_Filesystem_Direct extends WP_Filesystem_Base {
 	 * @since 2.5.0
 	 *
 	 * @param string $file Path to the file.
-	 * @return string|false The group on success, false on failure.
+	 * @return string|int<1, max>|false Username of the owner on success, or group ID of file owner if not available; false on failure.
 	 */
 	public function group( $file ) {
 		$gid = @filegroup( $file );
