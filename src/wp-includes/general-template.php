@@ -5020,7 +5020,6 @@ function register_admin_color_schemes() {
 			'current' => '#fff',
 		)
 	);
-
 }
 
 /**
