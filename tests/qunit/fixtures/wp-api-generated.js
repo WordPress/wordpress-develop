@@ -11085,6 +11085,12 @@ mockedApiResponse.Schema = {
                             "type": "string",
                             "required": false
                         },
+                        "enable_real_time_collaboration": {
+                            "title": "",
+                            "description": "Enable Real-Time Collaboration",
+                            "type": "boolean",
+                            "required": false
+                        },
                         "posts_per_page": {
                             "title": "Maximum posts per page",
                             "description": "Blog pages show at most.",
@@ -14546,6 +14552,7 @@ mockedApiResponse.settings = {
     "use_smilies": true,
     "default_category": 1,
     "default_post_format": "0",
+    "enable_real_time_collaboration": true,
     "posts_per_page": 10,
     "show_on_front": "posts",
     "page_on_front": 0,

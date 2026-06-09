@@ -141,15 +141,22 @@ async function main() {
 	const startTime = Date.now();
 
 	try {
-		// On Windows, shell mode is used and needs the argument wrapped in quotes
-		// On Unix, arguments are passed directly without shell parsing
-		const baseUrlArg =
-			process.platform === 'win32'
-				? '--base-url="includes_url( \'build/\' )"'
-				: "--base-url=includes_url( 'build/' )";
-
-		await exec( 'npm', [ 'run', 'build', '--', '--skip-types', baseUrlArg ], {
+		// Invoke the build script directly with node instead of going through
+		// `npm run build --` to avoid shell argument mangling of the base-url
+		// value (which contains spaces, parentheses, and single quotes).
+		// The PATH is extended with node_modules/.bin so that bin commands
+		// like `wp-build` are found, matching what npm would normally provide.
+		const binPath = path.join( gutenbergDir, 'node_modules', '.bin' );
+		await exec( 'node', [
+			'bin/build.mjs',
+			'--skip-types',
+			"--base-url=includes_url( 'build/' )",
+		], {
 			cwd: gutenbergDir,
+			env: {
+				...process.env,
+				PATH: binPath + path.delimiter + process.env.PATH,
+			},
 		} );
 
 		const duration = Math.round( ( Date.now() - startTime ) / 1000 );

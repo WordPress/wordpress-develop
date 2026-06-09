@@ -7,7 +7,7 @@
 		"url": "https://develop.svn.wordpress.org/trunk"
 	},
 	"gutenberg": {
-		"ref": "59a08c5496008ca88f4b6b86f38838c3612d88c8"
+		"ref": "7a11a53377a95cba4d3786d71cadd4c2f0c5ac52"
 	},
 	"engines": {
 		"node": ">=20.10.0",
@@ -74,7 +74,7 @@
 		"webpack": "5.98.0"
 	},
 	"dependencies": {
-		"backbone": "1.6.0",
+		"backbone": "1.6.1",
 		"clipboard": "2.0.11",
 		"codemirror": "5.65.20",
 		"core-js-url-browser": "3.6.4",
@@ -92,7 +92,7 @@
 		"jquery-hoverintent": "1.10.2",
 		"json2php": "0.0.12",
 		"jsonlint": "1.6.3",
-		"lodash": "4.17.21",
+		"lodash": "4.17.23",
 		"masonry-layout": "4.2.2",
 		"moment": "2.30.1",
 		"objectFitPolyfill": "2.3.5",
