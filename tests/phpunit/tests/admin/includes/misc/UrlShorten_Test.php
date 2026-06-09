@@ -5,7 +5,7 @@
  *
  * @covers ::url_shorten
  */
-class Admin_Includes_Misc_UrlShorten_Test extends WP_UnitTestCase {
+class Tests_Admin_Includes_Misc_UrlShorten_Test extends WP_UnitTestCase {
 
 	public function test_url_shorten() {
 		$tests = array(
