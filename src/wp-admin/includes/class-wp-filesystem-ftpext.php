@@ -217,10 +217,14 @@ class WP_Filesystem_FTPext extends WP_Filesystem_Base {
 	 * @since 2.5.0
 	 *
 	 * @param string $file Path to the file.
-	 * @return array|false File contents in an array on success, false on failure.
+	 * @return string[]|false File contents in an array on success, false on failure.
 	 */
 	public function get_contents_array( $file ) {
-		return explode( "\n", $this->get_contents( $file ) );
+		$contents = $this->get_contents( $file );
+		if ( is_string( $contents ) ) {
+			return explode( "\n", $contents );
+		}
+		return false;
 	}
 
 	/**
