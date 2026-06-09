@@ -164,8 +164,6 @@ class Tests_HtmlApi_WpHtmlProcessor_Serialize extends WP_UnitTestCase {
 	/**
 	 * Data provider.
 	 *
-	 * @ticket 65372
-	 *
 	 * @return array[].
 	 */
 	public static function data_non_adjusted_foreign_attributes_with_colon() {
@@ -209,8 +207,6 @@ class Tests_HtmlApi_WpHtmlProcessor_Serialize extends WP_UnitTestCase {
 
 	/**
 	 * Data provider.
-	 *
-	 * @ticket 65372
 	 *
 	 * @return array[].
 	 */
