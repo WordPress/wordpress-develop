@@ -30,11 +30,10 @@ jobs:
     if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name == 'pull_request_target' }}
     steps:
       - name: Post a welcome comment
-        uses: wow-actions/welcome@68019c2c271561f63162fea75bb7707ef8a02c85 # v1.3.1
+        uses: actions/first-interaction@1c4688942c71f71d4f5502a26ea67c331730fa4d # v3.1.0
         with:
-          FIRST_PR_REACTIONS: 'hooray'
-          FIRST_PR_COMMENT: >
-            Hi @{{ author }}! 👋
+          pr_message: >
+            Hi there! 👋
 
 
             Thank you for your contribution to WordPress! 💖
