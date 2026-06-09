@@ -398,4 +398,22 @@ class Tests_WP_Interactivity_API_WP_Bind extends WP_UnitTestCase {
 		list($p) = $this->process_directives( $html );
 		$this->assertSame( true, $p->get_attribute( 'id' ) );
 	}
+
+	/**
+	 * Tests ignores unique IDs in bind directive.
+	 *
+	 * @ticket 64106
+	 *
+	 * @covers ::process_directives
+	 */
+	public function test_wp_bind_ignores_unique_ids() {
+		$html    = '<div data-wp-bind--id="myPlugin::state.trueValue"></div>';
+		list($p) = $this->process_directives( $html );
+		$this->assertSame( true, $p->get_attribute( 'id' ) );
+
+		$html    = '<div data-wp-bind--id---unique-id="myPlugin::state.trueValue"></div>';
+		list($p) = $this->process_directives( $html );
+		$this->assertNull( $p->get_attribute( 'id' ) );
+		$this->assertNull( $p->get_attribute( 'id---unique-id' ) );
+	}
 }

@@ -543,6 +543,62 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 				'expected_scripts'        => array( 'static-view-script', 'static-child-view-script', 'dynamic-view-script' ),
 				'expected_script_modules' => array( 'static-view-script-module', 'static-child-view-script-module', 'dynamic-view-script-module' ),
 			),
+			'admin_bar_assets_enqueued_in_block'      => array(
+				'set_up'                  => static function () {
+					wp_enqueue_script( 'admin-bar' );
+					wp_enqueue_style( 'admin-bar' );
+
+					add_filter(
+						'render_block_core/static',
+						static function ( $content ) {
+							$processor = new WP_HTML_Tag_Processor( $content );
+							$processor->next_tag();
+							$processor->add_class( wp_script_is( 'admin-bar', 'enqueued' ) ? 'yes-admin-bar-script-enqueued' : 'not-admin-bar-script-enqueued' );
+							$processor->add_class( wp_style_is( 'admin-bar', 'enqueued' ) ? 'yes-admin-bar-style-enqueued' : 'not-admin-bar-style-enqueued' );
+							return $processor->get_updated_html();
+						},
+						10,
+						3
+					);
+				},
+				'block_markup'            => '<!-- wp:static --><div class="static"></div><!-- /wp:static -->',
+				'expected_rendered_block' => '
+					<div class="static yes-admin-bar-script-enqueued yes-admin-bar-style-enqueued"></div>
+				',
+				'expected_styles'         => array( 'static-view-style', 'admin-bar' ),
+				'expected_scripts'        => array( 'static-view-script', 'admin-bar' ),
+				'expected_script_modules' => array( 'static-view-script-module' ),
+			),
+			'enqueues_in_wp_head_block'               => array(
+				'set_up'                  => static function () {
+					remove_all_actions( 'wp_head' );
+					remove_all_actions( 'wp_enqueue_scripts' );
+
+					add_action( 'wp_head', 'wp_enqueue_scripts', 1 );
+					add_action( 'wp_head', 'wp_print_styles', 8 );
+					add_action( 'wp_head', 'wp_print_head_scripts', 9 );
+					remove_action( 'wp_print_styles', 'print_emoji_styles' );
+
+					add_action(
+						'wp_enqueue_scripts',
+						static function () {
+							wp_enqueue_script( 'for-footer', '/footer.js', array(), null, array( 'in_footer' => true ) );
+						}
+					);
+					add_action(
+						'wp_head',
+						static function () {
+							wp_enqueue_style( 'for-footer', '/footer.css', array(), null );
+						},
+						10000
+					);
+				},
+				'block_markup'            => '<!-- wp:wp-head /-->',
+				'expected_rendered_block' => '',
+				'expected_styles'         => array( 'for-footer' ),
+				'expected_scripts'        => array( 'for-footer' ),
+				'expected_script_modules' => array(),
+			),
 		);
 	}
 
@@ -562,6 +618,16 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 		if ( $set_up instanceof Closure ) {
 			$set_up();
 		}
+
+		$this->registry->register(
+			'core/wp-head',
+			array(
+				'render_callback' => static function () {
+					return get_echo( 'wp_head' );
+				},
+			)
+		);
+
 		wp_register_style( 'static-view-style', home_url( '/static-view-style.css' ) );
 		wp_register_script( 'static-view-script', home_url( '/static-view-script.js' ) );
 		wp_register_script_module( 'static-view-script-module', home_url( '/static-view-script-module.js' ) );
@@ -608,44 +674,16 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 		$block          = new WP_Block( $parsed_block, $context, $this->registry );
 		$rendered_block = $block->render();
 
+		$this->assertSameSets( $expected_styles, wp_styles()->queue, 'Enqueued styles do not meet expectations' );
+		$this->assertSameSets( $expected_scripts, wp_scripts()->queue, 'Enqueued scripts do not meet expectations' );
+		$this->assertSameSets( $expected_script_modules, wp_script_modules()->get_queue(), 'Enqueued script modules do not meet expectations' );
+
 		$this->assertEqualHTML(
 			$expected_rendered_block,
 			$rendered_block,
 			'<body>',
 			"Rendered block does not contain expected HTML:\n$rendered_block"
 		);
-
-		remove_action( 'wp_print_styles', 'print_emoji_styles' );
-
-		$actual_styles  = array();
-		$printed_styles = get_echo( 'wp_print_styles' );
-		$processor      = new WP_HTML_Tag_Processor( $printed_styles );
-		while ( $processor->next_tag( array( 'tag_name' => 'LINK' ) ) ) {
-			if ( 1 === preg_match( '/^(.+)-css$/', $processor->get_attribute( 'id' ), $matches ) ) {
-				$actual_styles[] = $matches[1];
-			}
-		}
-		$this->assertSameSets( $expected_styles, $actual_styles, 'Enqueued styles do not meet expectations' );
-
-		$actual_scripts  = array();
-		$printed_scripts = get_echo( 'wp_print_scripts' );
-		$processor       = new WP_HTML_Tag_Processor( $printed_scripts );
-		while ( $processor->next_tag( array( 'tag_name' => 'SCRIPT' ) ) ) {
-			if ( 1 === preg_match( '/^(.+)-js$/', $processor->get_attribute( 'id' ), $matches ) ) {
-				$actual_scripts[] = $matches[1];
-			}
-		}
-		$this->assertSameSets( $expected_scripts, $actual_scripts, 'Enqueued scripts do not meet expectations' );
-
-		$actual_script_modules  = array();
-		$printed_script_modules = get_echo( array( wp_script_modules(), 'print_enqueued_script_modules' ) );
-		$processor              = new WP_HTML_Tag_Processor( $printed_script_modules );
-		while ( $processor->next_tag( array( 'tag_name' => 'SCRIPT' ) ) ) {
-			if ( 1 === preg_match( '/^(.+)-js-module$/', $processor->get_attribute( 'id' ), $matches ) ) {
-				$actual_script_modules[] = $matches[1];
-			}
-		}
-		$this->assertSameSets( $expected_script_modules, $actual_script_modules, 'Enqueued script modules do not meet expectations' );
 	}
 
 	/**

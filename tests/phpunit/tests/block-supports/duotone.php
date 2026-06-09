@@ -10,14 +10,6 @@
 
 class Tests_Block_Supports_Duotone extends WP_UnitTestCase {
 	/**
-	 * Cleans up CSS added to block-supports from duotone styles. We need to do this
-	 * in order to avoid impacting other tests.
-	 */
-	public static function wpTearDownAfterClass() {
-		WP_Style_Engine_CSS_Rules_Store::remove_all_stores();
-	}
-
-	/**
 	 * Tests whether the duotone preset class is added to the block.
 	 *
 	 * @ticket 58555

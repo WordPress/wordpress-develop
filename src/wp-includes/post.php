@@ -37,7 +37,18 @@ function create_initial_post_types() {
 			'rewrite'               => false,
 			'query_var'             => false,
 			'delete_with_user'      => true,
-			'supports'              => array( 'title', 'editor', 'author', 'thumbnail', 'excerpt', 'trackbacks', 'custom-fields', 'comments', 'revisions', 'post-formats' ),
+			'supports'              => array(
+				'title',
+				'editor' => array( 'notes' => true ),
+				'author',
+				'thumbnail',
+				'excerpt',
+				'trackbacks',
+				'custom-fields',
+				'comments',
+				'revisions',
+				'post-formats',
+			),
 			'show_in_rest'          => true,
 			'rest_base'             => 'posts',
 			'rest_controller_class' => 'WP_REST_Posts_Controller',
@@ -62,7 +73,16 @@ function create_initial_post_types() {
 			'rewrite'               => false,
 			'query_var'             => false,
 			'delete_with_user'      => true,
-			'supports'              => array( 'title', 'editor', 'author', 'thumbnail', 'page-attributes', 'custom-fields', 'comments', 'revisions' ),
+			'supports'              => array(
+				'title',
+				'editor' => array( 'notes' => true ),
+				'author',
+				'thumbnail',
+				'page-attributes',
+				'custom-fields',
+				'comments',
+				'revisions',
+			),
 			'show_in_rest'          => true,
 			'rest_base'             => 'pages',
 			'rest_controller_class' => 'WP_REST_Posts_Controller',
@@ -378,10 +398,8 @@ function create_initial_post_types() {
 			'show_in_menu'                    => false,
 			'show_in_rest'                    => true,
 			'rewrite'                         => false,
-			'rest_base'                       => 'templates',
-			'rest_controller_class'           => 'WP_REST_Templates_Controller',
-			'autosave_rest_controller_class'  => 'WP_REST_Template_Autosaves_Controller',
-			'revisions_rest_controller_class' => 'WP_REST_Template_Revisions_Controller',
+			'rest_base'                       => 'wp_template',
+			'rest_controller_class'           => 'WP_REST_Posts_Controller',
 			'late_route_registration'         => true,
 			'capability_type'                 => array( 'template', 'templates' ),
 			'capabilities'                    => array(
@@ -406,6 +424,7 @@ function create_initial_post_types() {
 				'editor',
 				'revisions',
 				'author',
+				'custom-fields',
 			),
 		)
 	);
@@ -2329,7 +2348,6 @@ function post_type_supports( $post_type, $feature ) {
 
 	return ( isset( $_wp_post_type_features[ $post_type ][ $feature ] ) );
 }
-
 /**
  * Retrieves a list of post type names that support a specific feature.
  *
@@ -8608,6 +8626,18 @@ function wp_create_initial_post_meta() {
 					'enum' => array( 'partial', 'unsynced' ),
 				),
 			),
+		)
+	);
+
+	// Allow setting the is_wp_suggestion meta field, which partly determines if
+	// a template is a custom template.
+	register_post_meta(
+		'wp_template',
+		'is_wp_suggestion',
+		array(
+			'type'         => 'boolean',
+			'show_in_rest' => true,
+			'single'       => true,
 		)
 	);
 }

@@ -222,14 +222,34 @@ CAP;
 	}
 
 	public function test_new_img_caption_shortcode_with_html_caption() {
+		$mark = "\u{203B}";
+
+		$this->assertStringNotContainsString(
+			self::HTML_CONTENT,
+			$mark,
+			'Test caption content should not contain the mark surround it: check test setup.'
+		);
+
 		$result = img_caption_shortcode(
 			array(
 				'width'   => 20,
-				'caption' => self::HTML_CONTENT,
+				'caption' => $mark . self::HTML_CONTENT . $mark,
 			)
 		);
 
-		$this->assertSame( 1, substr_count( $result, self::HTML_CONTENT ) );
+		$result_chunks = explode( $mark, $result );
+		$this->assertSame(
+			3,
+			count( $result_chunks ),
+			'Expected to find embedded caption inside marks, but failed to do so.'
+		);
+
+		$this->assertEqualHTML(
+			self::HTML_CONTENT,
+			$result_chunks[1],
+			'<body>',
+			'Should have embedded the caption inside the image output.'
+		);
 	}
 
 	public function test_new_img_caption_shortcode_new_format() {

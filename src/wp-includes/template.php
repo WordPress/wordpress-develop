@@ -323,14 +323,16 @@ function get_tag_template() {
  * The hierarchy for this template looks like:
  *
  * 1. taxonomy-{taxonomy_slug}-{term_slug}.php
- * 2. taxonomy-{taxonomy_slug}.php
- * 3. taxonomy.php
+ * 2. taxonomy-{taxonomy_slug}-{term_id}.php
+ * 3. taxonomy-{taxonomy_slug}.php
+ * 4. taxonomy.php
  *
  * An example of this is:
  *
  * 1. taxonomy-location-texas.php
- * 2. taxonomy-location.php
- * 3. taxonomy.php
+ * 2. taxonomy-location-67.php
+ * 3. taxonomy-location.php
+ * 4. taxonomy.php
  *
  * The template hierarchy and template path are filterable via the {@see '$type_template_hierarchy'}
  * and {@see '$type_template'} dynamic hooks, where `$type` is 'taxonomy'.
@@ -338,6 +340,7 @@ function get_tag_template() {
  * @since 2.5.0
  * @since 4.7.0 The decoded form of `taxonomy-{taxonomy_slug}-{term_slug}.php` was added to the top of the
  *              template hierarchy when the term slug contains multibyte characters.
+ * @since 6.9.0 Added `taxonomy-{taxonomy_slug}-{term_id}.php` to the hierarchy.
  *
  * @see get_query_template()
  *
@@ -357,6 +360,7 @@ function get_taxonomy_template() {
 		}
 
 		$templates[] = "taxonomy-$taxonomy-{$term->slug}.php";
+		$templates[] = "taxonomy-$taxonomy-{$term->term_id}.php";
 		$templates[] = "taxonomy-$taxonomy.php";
 	}
 	$templates[] = 'taxonomy.php';
@@ -828,7 +832,7 @@ function load_template( $_template_file, $load_once = true, $args = array() ) {
  * Checks whether the template should be output buffered for enhancement.
  *
  * By default, an output buffer is only started if a {@see 'wp_template_enhancement_output_buffer'} filter has been
- * added be the time a template is included at the {@see 'wp_before_include_template'} action. This allows template
+ * added by the time a template is included at the {@see 'wp_before_include_template'} action. This allows template
  * responses to be streamed as much as possible when no template enhancements are registered to apply.
  *
  * @since 6.9.0
@@ -926,13 +930,24 @@ function wp_finalize_template_enhancement_output_buffer( string $output, int $ph
 	$is_html_content_type = null;
 	$html_content_types   = array( 'text/html', 'application/xhtml+xml' );
 	foreach ( headers_list() as $header ) {
-		$header_parts = preg_split( '/\s*[:;]\s*/', strtolower( $header ) );
+		$header_parts = explode( ':', strtolower( $header ), 2 );
 		if (
-			is_array( $header_parts ) &&
-			count( $header_parts ) >= 2 &&
+			count( $header_parts ) === 2 &&
 			'content-type' === $header_parts[0]
 		) {
-			$is_html_content_type = in_array( $header_parts[1], $html_content_types, true );
+			/*
+			 * This is looking for very specific content types, therefore it
+			 * doesn’t need to fully parse the header’s value. Instead, it needs
+			 * only assert that the content type is one of the static HTML types.
+			 *
+			 * Example:
+			 *
+			 *     Content-Type: text/html; charset=utf8
+			 *     Content-Type: text/html  ;charset=latin4
+			 *     Content-Type:application/xhtml+xml
+			 */
+			$media_type           = trim( strtok( $header_parts[1], ';' ), " \t" );
+			$is_html_content_type = in_array( $media_type, $html_content_types, true );
 			break; // PHP only sends the first Content-Type header in the list.
 		}
 	}
