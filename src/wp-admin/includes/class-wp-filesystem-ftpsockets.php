@@ -41,7 +41,7 @@ class WP_Filesystem_ftpsockets extends WP_Filesystem_Base {
 	 *
 	 * @param array $opt {
 	 *     Array of connection options.
-	 * 
+	 *
 	 *     @type string $hostname Required. FTP server hostname.
 	 *     @type string $username Required. FTP username.
 	 *     @type string $password Required. FTP password.
