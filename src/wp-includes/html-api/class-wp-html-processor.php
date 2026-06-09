@@ -1428,7 +1428,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			$qualified_attribute_name = $this->get_qualified_attribute_name( $attribute_name );
 			$qualified_attribute_name = str_replace( "\x00", "\u{FFFD}", $qualified_attribute_name );
 			$qualified_attribute_name = wp_scrub_utf8( $qualified_attribute_name );
-			$serialized_attribute_name = self::get_serialized_attribute_name( $qualified_attribute_name );
+			$serialized_attribute_name = str_replace( ' ', ':', $qualified_attribute_name );
 			if ( isset( $seen_attribute_names[ $qualified_attribute_name ] ) ) {
 				continue;
 			} else {
@@ -1509,53 +1509,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		}
 
 		return $html;
-	}
-
-	/**
-	 * Returns an attribute name suitable for HTML serialization.
-	 *
-	 * Adjusted foreign attributes are represented with a space between the
-	 * namespace prefix and local name, but must be serialized with a colon.
-	 *
-	 * @since 6.9.0
-	 *
-	 * @param string $qualified_attribute_name Adjusted attribute name.
-	 * @return string Attribute name to serialize in HTML.
-	 */
-	private static function get_serialized_attribute_name( string $qualified_attribute_name ): string {
-		switch ( $qualified_attribute_name ) {
-			case 'xlink actuate':
-				return 'xlink:actuate';
-
-			case 'xlink arcrole':
-				return 'xlink:arcrole';
-
-			case 'xlink href':
-				return 'xlink:href';
-
-			case 'xlink role':
-				return 'xlink:role';
-
-			case 'xlink show':
-				return 'xlink:show';
-
-			case 'xlink title':
-				return 'xlink:title';
-
-			case 'xlink type':
-				return 'xlink:type';
-
-			case 'xml lang':
-				return 'xml:lang';
-
-			case 'xml space':
-				return 'xml:space';
-
-			case 'xmlns xlink':
-				return 'xmlns:xlink';
-		}
-
-		return $qualified_attribute_name;
 	}
 
 	/**
