@@ -76,7 +76,7 @@ class WP_Filesystem_SSH2 extends WP_Filesystem_Base {
 	 * @since 2.7.0
 	 *
 	 * @param array $opt {
-	 *     Optional. Array of connection options.
+	 *     Array of connection options.
 	 *
 	 *     @type string $hostname    Required. SSH server hostname.
 	 *     @type int    $port        Optional. SSH server port. Default 22.
