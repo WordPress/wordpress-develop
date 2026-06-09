@@ -514,7 +514,13 @@ final class WP_Autoload {
 	public static function autoload_phpmailer( string $class_name ) {
 		$prefix = 'PHPMailer\\PHPMailer\\';
 
-		if ( ! str_starts_with( $class_name, $prefix ) ) {
+		/*
+		 * Use strpos() rather than str_starts_with(): the autoloader runs in
+		 * bootstrap contexts (e.g. wp-admin/load-scripts.php) that do not load
+		 * the str_starts_with() polyfill from wp-includes/compat.php, so it must
+		 * not depend on PHP 8.0+ functions.
+		 */
+		if ( 0 !== strpos( $class_name, $prefix ) ) {
 			return;
 		}
 
@@ -542,8 +548,8 @@ final class WP_Autoload {
 		// Lowercase the class name as PHP isn't case sensitive.
 		$class_name = strtolower( $class_name );
 
-		// Load Avifinfo classes.
-		if ( str_starts_with( $class_name, 'avifinfo' ) ) {
+		// Load Avifinfo classes. strpos() is used instead of str_starts_with() to avoid depending on the compat.php polyfill (see autoload_phpmailer()).
+		if ( 0 === strpos( $class_name, 'avifinfo' ) ) {
 			// This file contains multiple classes, so we need to use require_once.
 			require_once ABSPATH . 'wp-includes/class-avif-info.php';
 			return;
@@ -557,7 +563,13 @@ final class WP_Autoload {
 			return;
 		}
 
-		require ABSPATH . self::CLASSES_PATHS[ $class_name ];
+		/*
+		 * Use require_once: some files map more than one class name to the same
+		 * path (e.g. services_json and services_json_error), and such files may
+		 * also be loaded directly elsewhere. require_once prevents a fatal
+		 * "Cannot redeclare class" error from a double include.
+		 */
+		require_once ABSPATH . self::CLASSES_PATHS[ $class_name ];
 	}
 }
 

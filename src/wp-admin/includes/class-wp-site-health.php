@@ -2401,18 +2401,35 @@ class WP_Site_Health {
 		$wp_core_classes = WP_Autoload::CLASSES_PATHS;
 		unset( $wp_core_classes['wp_object_cache'] );
 		foreach ( $wp_core_classes as $class_name => $class_path ) {
-			$default_path = ABSPATH . $class_path;
+			$default_path = wp_normalize_path( ABSPATH . $class_path );
+
+			/*
+			 * Skip classes that cannot be loaded. A class that is missing or
+			 * otherwise not loadable should not be reported as overridden, and
+			 * must not be allowed to fatal this test.
+			 */
+			if ( ! class_exists( $class_name ) ) {
+				continue;
+			}
 
 			/*
 			 * Init a Reflection class to get the real path of the class.
 			 * This is performed inside an output buffer to avoid any errors
 			 * that might be thrown by the ReflectionClass constructor.
 			 */
-			ob_start();
-			$reflection = new \ReflectionClass( $class_name );
-			ob_end_clean();
+			try {
+				ob_start();
+				$reflection = new \ReflectionClass( $class_name );
+				ob_end_clean();
+			} catch ( \ReflectionException $e ) {
+				ob_end_clean();
+				continue;
+			}
 
-			if ( $default_path !== $reflection->getFileName() ) {
+			// Normalize both paths so symlinks and directory separators do not cause false positives.
+			$reflection_path = wp_normalize_path( $reflection->getFileName() );
+
+			if ( $default_path !== $reflection_path ) {
 				$overridden_classes[ $reflection->getName() ] = $reflection->getFileName();
 			}
 		}

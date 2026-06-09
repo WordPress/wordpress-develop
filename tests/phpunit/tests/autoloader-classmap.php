@@ -195,8 +195,8 @@ class Tests_Autoloader_Classmap extends WP_UnitTestCase {
 			}
 
 			$file_contents = file_get_contents( $class_file );
-			// Extract the class name from the file.
-			preg_match( '/^class\s+([a-zA-Z0-9_]+)/m', $file_contents, $matches );
+			// Extract the class name from the file, allowing optional abstract/final modifiers and leading whitespace.
+			preg_match( '/^\s*(?:(?:abstract|final)\s+)?class\s+([a-zA-Z0-9_]+)/m', $file_contents, $matches );
 			if ( empty( $matches ) ) {
 				continue;
 			}
