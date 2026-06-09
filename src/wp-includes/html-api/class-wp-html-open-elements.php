@@ -364,6 +364,7 @@ class WP_HTML_Open_Elements {
 				'MARQUEE',
 				'OBJECT',
 				'OL',
+				'SELECT',
 				'TEMPLATE',
 				'UL',
 
@@ -412,6 +413,7 @@ class WP_HTML_Open_Elements {
 				'TH',
 				'MARQUEE',
 				'OBJECT',
+				'SELECT',
 				'TEMPLATE',
 
 				'math MI',
@@ -687,6 +689,7 @@ class WP_HTML_Open_Elements {
 			case 'TH':
 			case 'MARQUEE':
 			case 'OBJECT':
+			case 'SELECT':
 			case 'TEMPLATE':
 			case 'math MI':
 			case 'math MO':
@@ -743,6 +746,7 @@ class WP_HTML_Open_Elements {
 			case 'TH':
 			case 'MARQUEE':
 			case 'OBJECT':
+			case 'SELECT':
 			case 'TEMPLATE':
 			case 'math MI':
 			case 'math MO':
