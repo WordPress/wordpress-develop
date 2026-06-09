@@ -493,24 +493,48 @@ class WP_Ability {
 				sprintf(
 					/* translators: %s ability name. */
 					__( 'Ability "%s" does not define an input schema required to validate the provided input.' ),
-					esc_html( $this->name )
+					$this->name
 				)
 			);
 		}
 
 		$valid_input = rest_validate_value_from_schema( $input, $input_schema, 'input' );
 		if ( is_wp_error( $valid_input ) ) {
-			return new WP_Error(
+			$is_valid = new WP_Error(
 				'ability_invalid_input',
 				sprintf(
 					/* translators: %1$s ability name, %2$s error message. */
 					__( 'Ability "%1$s" has invalid input. Reason: %2$s' ),
-					esc_html( $this->name ),
+					$this->name,
 					$valid_input->get_error_message()
 				)
 			);
+		} else {
+			$is_valid = true;
 		}
 
+		/**
+		 * Filters the input validation result for an ability.
+		 *
+		 * Allows developers to add custom validation logic on top of the default
+		 * JSON Schema validation. If default validation already failed, the filter
+		 * receives the WP_Error object and can add additional error information or
+		 * override it. If default validation passed, the filter can add additional
+		 * validation checks and return a WP_Error if those checks fail.
+		 *
+		 * @since 7.1.0
+		 *
+		 * @param true|WP_Error $is_valid     The validation result from default validation.
+		 * @param mixed         $input        The input data being validated.
+		 * @param string        $ability_name The name of the ability.
+		 */
+		$validity = apply_filters( 'wp_ability_validate_input', $is_valid, $input, $this->name );
+		if ( false === $validity ) {
+			return new WP_Error( 'ability_invalid_input', __( 'Invalid input.' ) );
+		}
+		if ( is_wp_error( $validity ) && $validity->has_errors() ) {
+			return $validity;
+		}
 		return true;
 	}
 
@@ -537,7 +561,7 @@ class WP_Ability {
 				sprintf(
 					/* translators: 1: Ability name, 2: Exception message. */
 					__( 'Ability "%1$s" callback threw an exception: %2$s' ),
-					esc_html( $this->name ),
+					$this->name,
 					esc_html( $e->getMessage() )
 				)
 			);
@@ -566,7 +590,7 @@ class WP_Ability {
 			return new WP_Error(
 				'ability_invalid_permission_callback',
 				/* translators: %s ability name. */
-				sprintf( __( 'Ability "%s" does not have a valid permission callback.' ), esc_html( $this->name ) )
+				sprintf( __( 'Ability "%s" does not have a valid permission callback.' ), $this->name )
 			);
 		}
 
@@ -614,7 +638,7 @@ class WP_Ability {
 			$result = new WP_Error(
 				'ability_invalid_execute_callback',
 				/* translators: %s ability name. */
-				sprintf( __( 'Ability "%s" does not have a valid execute callback.' ), esc_html( $this->name ) )
+				sprintf( __( 'Ability "%s" does not have a valid execute callback.' ), $this->name )
 			);
 		} else {
 			$result = $this->invoke_callback( $this->execute_callback, $input );
@@ -653,22 +677,46 @@ class WP_Ability {
 	protected function validate_output( $output ) {
 		$output_schema = $this->get_output_schema();
 		if ( empty( $output_schema ) ) {
-			return true;
+			$is_valid = true;
+		} else {
+			$valid_output = rest_validate_value_from_schema( $output, $output_schema, 'output' );
+			if ( is_wp_error( $valid_output ) ) {
+				$is_valid = new WP_Error(
+					'ability_invalid_output',
+					sprintf(
+						/* translators: %1$s ability name, %2$s error message. */
+						__( 'Ability "%1$s" has invalid output. Reason: %2$s' ),
+						$this->name,
+						$valid_output->get_error_message()
+					)
+				);
+			} else {
+				$is_valid = true;
+			}
 		}
 
-		$valid_output = rest_validate_value_from_schema( $output, $output_schema, 'output' );
-		if ( is_wp_error( $valid_output ) ) {
-			return new WP_Error(
-				'ability_invalid_output',
-				sprintf(
-					/* translators: %1$s ability name, %2$s error message. */
-					__( 'Ability "%1$s" has invalid output. Reason: %2$s' ),
-					esc_html( $this->name ),
-					$valid_output->get_error_message()
-				)
-			);
+		/**
+		 * Filters the output validation result for an ability.
+		 *
+		 * Allows developers to add custom validation logic on top of the default
+		 * JSON Schema validation. If default validation already failed, the filter
+		 * receives the WP_Error object and can add additional error information or
+		 * override it. If default validation passed, the filter can add additional
+		 * validation checks and return a WP_Error if those checks fail.
+		 *
+		 * @since 7.1.0
+		 *
+		 * @param true|WP_Error $is_valid     The validation result from default validation.
+		 * @param mixed         $output       The output data being validated.
+		 * @param string        $ability_name The name of the ability.
+		 */
+		$validity = apply_filters( 'wp_ability_validate_output', $is_valid, $output, $this->name );
+		if ( false === $validity ) {
+			return new WP_Error( 'ability_invalid_output', __( 'Invalid output.' ) );
 		}
-
+		if ( is_wp_error( $validity ) && $validity->has_errors() ) {
+			return $validity;
+		}
 		return true;
 	}
 
@@ -677,12 +725,28 @@ class WP_Ability {
 	 * Before returning the return value, it also validates the output.
 	 *
 	 * @since 6.9.0
+	 * @since 7.1.0 Added the `wp_ability_invoked` action.
 	 * @since 7.1.0 Added the `wp_pre_execute_ability` filter.
 	 *
 	 * @param mixed $input Optional. The input data for the ability. Default `null`.
 	 * @return mixed|WP_Error The result of the ability execution, or WP_Error on failure.
 	 */
 	public function execute( $input = null ) {
+		/**
+		 * Fires when an ability is invoked, before any processing takes place.
+		 *
+		 * This action fires for every call regardless of outcome (validation failure,
+		 * permission denial, short-circuit, or successful execution), and before input
+		 * normalization so the raw input is captured as-is.
+		 *
+		 * @since 7.1.0
+		 *
+		 * @param string     $ability_name The name of the ability.
+		 * @param mixed      $input        The raw input data for the ability, before normalization.
+		 * @param WP_Ability $ability      The ability instance.
+		 */
+		do_action( 'wp_ability_invoked', $this->name, $input, $this );
+
 		/**
 		 * Filters whether to short-circuit ability execution.
 		 *
@@ -735,7 +799,7 @@ class WP_Ability {
 			return new WP_Error(
 				'ability_invalid_permissions',
 				/* translators: %s ability name. */
-				sprintf( __( 'Ability "%s" does not have necessary permission.' ), esc_html( $this->name ) )
+				sprintf( __( 'Ability "%s" does not have necessary permission.' ), $this->name )
 			);
 		}
 
@@ -743,11 +807,13 @@ class WP_Ability {
 		 * Fires before an ability gets executed, after input validation and permissions check.
 		 *
 		 * @since 6.9.0
+		 * @since 7.1.0 Added the `$ability` parameter.
 		 *
-		 * @param string $ability_name The name of the ability.
-		 * @param mixed  $input        The input data for the ability.
+		 * @param string     $ability_name The name of the ability.
+		 * @param mixed      $input        The input data for the ability.
+		 * @param WP_Ability $ability      The ability instance.
 		 */
-		do_action( 'wp_before_execute_ability', $this->name, $input );
+		do_action( 'wp_before_execute_ability', $this->name, $input, $this );
 
 		$result = $this->do_execute( $input );
 		if ( is_wp_error( $result ) ) {
@@ -763,12 +829,14 @@ class WP_Ability {
 		 * Fires immediately after an ability finished executing.
 		 *
 		 * @since 6.9.0
+		 * @since 7.1.0 Added the `$ability` parameter.
 		 *
-		 * @param string $ability_name The name of the ability.
-		 * @param mixed  $input        The input data for the ability.
-		 * @param mixed  $result       The result of the ability execution.
+		 * @param string     $ability_name The name of the ability.
+		 * @param mixed      $input        The input data for the ability.
+		 * @param mixed      $result       The result of the ability execution.
+		 * @param WP_Ability $ability      The ability instance.
 		 */
-		do_action( 'wp_after_execute_ability', $this->name, $input, $result );
+		do_action( 'wp_after_execute_ability', $this->name, $input, $result, $this );
 
 		return $result;
 	}

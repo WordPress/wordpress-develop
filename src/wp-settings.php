@@ -248,6 +248,7 @@ require ABSPATH . WPINC . '/block-supports/aria-label.php';
 require ABSPATH . WPINC . '/block-supports/anchor.php';
 require ABSPATH . WPINC . '/block-supports/block-visibility.php';
 require ABSPATH . WPINC . '/block-supports/custom-css.php';
+require ABSPATH . WPINC . '/block-supports/states.php';
 require ABSPATH . WPINC . '/style-engine.php';
 require ABSPATH . WPINC . '/fonts.php';
 require ABSPATH . WPINC . '/script-modules.php';

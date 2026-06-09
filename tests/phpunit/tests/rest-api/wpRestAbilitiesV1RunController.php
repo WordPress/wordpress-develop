@@ -977,6 +977,80 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that a validation filter error defaults to a 400 REST response.
+	 *
+	 * @ticket 64311
+	 */
+	public function test_validate_input_filter_error_defaults_to_bad_request_status(): void {
+		$filter = static function () {
+			return new WP_Error( 'validate_rejected', 'Rejected input.' );
+		};
+
+		add_filter( 'wp_ability_validate_input', $filter );
+
+		$request = new WP_REST_Request( 'POST', '/wp-abilities/v1/abilities/test/calculator/run' );
+		$request->set_header( 'Content-Type', 'application/json' );
+		$request->set_body(
+			wp_json_encode(
+				array(
+					'input' => array(
+						'a' => 5,
+						'b' => 3,
+					),
+				)
+			)
+		);
+
+		$response = $this->server->dispatch( $request );
+
+		remove_filter( 'wp_ability_validate_input', $filter );
+
+		$this->assertSame( 400, $response->get_status() );
+		$data = $response->get_data();
+		$this->assertSame( 'validate_rejected', $data['code'] );
+		$this->assertSame( 'Rejected input.', $data['message'] );
+	}
+
+	/**
+	 * Tests that a validation filter error with custom status keeps that status.
+	 *
+	 * @ticket 64311
+	 */
+	public function test_validate_input_filter_error_preserves_custom_status(): void {
+		$filter = static function () {
+			return new WP_Error(
+				'validate_unprocessable',
+				'Input cannot be validated.',
+				array( 'status' => 422 )
+			);
+		};
+
+		add_filter( 'wp_ability_validate_input', $filter );
+
+		$request = new WP_REST_Request( 'POST', '/wp-abilities/v1/abilities/test/calculator/run' );
+		$request->set_header( 'Content-Type', 'application/json' );
+		$request->set_body(
+			wp_json_encode(
+				array(
+					'input' => array(
+						'a' => 5,
+						'b' => 3,
+					),
+				)
+			)
+		);
+
+		$response = $this->server->dispatch( $request );
+
+		remove_filter( 'wp_ability_validate_input', $filter );
+
+		$this->assertSame( 422, $response->get_status() );
+		$data = $response->get_data();
+		$this->assertSame( 'validate_unprocessable', $data['code'] );
+		$this->assertSame( 'Input cannot be validated.', $data['message'] );
+	}
+
+	/**
 	 * Test ability without annotations defaults to POST method.
 	 *
 	 * @ticket 64098
