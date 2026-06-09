@@ -40,6 +40,8 @@ function wp_get_block_style_variation_name_from_registered_style( string $class_
 /**
  * Returns the child-layout-only subset of a layout object.
  *
+ * @since 7.1.0
+ *
  * @param mixed $layout Layout object.
  * @return array Child layout values, or an empty array.
  */
@@ -56,6 +58,8 @@ function wp_get_layout_child_values( $layout ) {
 
 /**
  * Returns the container-layout subset of a layout object.
+ *
+ * @since 7.1.0
  *
  * @param mixed $layout Layout object.
  * @return array Container layout values, or an empty array.
@@ -74,23 +78,27 @@ function wp_get_layout_container_values( $layout ) {
 /**
  * Sanitizes a block gap value before layout style generation.
  *
+ * @since 7.1.0
+ *
  * @param string|array|null $gap_value Block gap value.
  * @return string|array|null Sanitized block gap value.
  */
 function wp_sanitize_block_gap_value( $gap_value ) {
 	if ( is_array( $gap_value ) ) {
 		foreach ( $gap_value as $key => $value ) {
-			$gap_value[ $key ] = $value && preg_match( '%[\\(&=}]|/\*%', $value ) ? null : $value;
+			$gap_value[ $key ] = $value && preg_match( '%[\\\(&=}]|/\*%', $value ) ? null : $value;
 		}
 
 		return $gap_value;
 	}
 
-	return $gap_value && preg_match( '%[\\(&=}]|/\*%', $gap_value ) ? null : $gap_value;
+	return $gap_value && preg_match( '%[\\\(&=}]|/\*%', $gap_value ) ? null : $gap_value;
 }
 
 /**
  * Returns child layout styles for a block affected by its parent's layout.
+ *
+ * @since 7.1.0
  *
  * @param string     $selector           CSS selector.
  * @param array      $child_layout       Child layout values.
@@ -435,6 +443,7 @@ function wp_register_layout_support( $block_type ) {
  * @since 6.3.0 Added grid layout type.
  * @since 6.6.0 Removed duplicated selector from layout styles.
  *              Enabled negative margins for alignfull children of blocks with custom padding.
+ * @since 7.1.0 Added options array with options to process responsive styles.
  * @access private
  *
  * @param string               $selector                      CSS selector.

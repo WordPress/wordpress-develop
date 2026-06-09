@@ -848,6 +848,8 @@ class Tests_Block_Supports_States extends WP_UnitTestCase {
 	 * wrapper blocks) instead of being scoped to a separate `wp-states-...` class.
 	 *
 	 * @covers ::wp_render_layout_support_flag
+	 *
+	 * @ticket 65164
 	 */
 	public function test_responsive_block_gap_state_generates_layout_spacing_css() {
 		$this->ensure_block_registered(
@@ -911,6 +913,8 @@ class Tests_Block_Supports_States extends WP_UnitTestCase {
 	 * Tests that responsive block gap state CSS uses the block's active layout type.
 	 *
 	 * @covers ::wp_render_layout_support_flag
+	 *
+	 * @ticket 65164
 	 */
 	public function test_responsive_block_gap_state_uses_active_layout_type() {
 		$this->ensure_block_registered(
@@ -970,6 +974,8 @@ class Tests_Block_Supports_States extends WP_UnitTestCase {
 	 * Tests that responsive layout state CSS can override grid layout values.
 	 *
 	 * @covers ::wp_render_layout_support_flag
+	 *
+	 * @ticket 65164
 	 */
 	public function test_responsive_layout_state_generates_grid_layout_css() {
 		$this->ensure_block_registered(
@@ -1018,6 +1024,8 @@ class Tests_Block_Supports_States extends WP_UnitTestCase {
 	 * Tests that responsive layout state CSS can override grid columns.
 	 *
 	 * @covers ::wp_render_layout_support_flag
+	 *
+	 * @ticket 65164
 	 */
 	public function test_responsive_layout_state_generates_grid_column_count_css() {
 		$this->ensure_block_registered(
@@ -1067,6 +1075,8 @@ class Tests_Block_Supports_States extends WP_UnitTestCase {
 	 * classes, even when the base layout configuration is identical.
 	 *
 	 * @covers ::wp_render_layout_support_flag
+	 *
+	 * @ticket 65164
 	 */
 	public function test_responsive_layout_state_generates_distinct_container_classes_for_distinct_viewport_styles() {
 		$this->ensure_block_registered(
@@ -1150,6 +1160,8 @@ class Tests_Block_Supports_States extends WP_UnitTestCase {
 	 * Tests that responsive grid layout and block gap state CSS are both generated.
 	 *
 	 * @covers ::wp_render_layout_support_flag
+	 *
+	 * @ticket 65164
 	 */
 	public function test_responsive_layout_state_generates_grid_columns_and_gap_css() {
 		$this->ensure_block_registered(
@@ -1212,6 +1224,8 @@ class Tests_Block_Supports_States extends WP_UnitTestCase {
 	 * Tests that responsive grid block gap CSS does not repeat unchanged layout declarations.
 	 *
 	 * @covers ::wp_render_layout_support_flag
+	 *
+	 * @ticket 65164
 	 */
 	public function test_responsive_grid_block_gap_state_only_outputs_changed_layout_css() {
 		$this->ensure_block_registered(
@@ -1281,6 +1295,8 @@ class Tests_Block_Supports_States extends WP_UnitTestCase {
 	 * Tests that responsive child layout state CSS is generated.
 	 *
 	 * @covers ::wp_render_layout_support_flag
+	 *
+	 * @ticket 65164
 	 */
 	public function test_responsive_child_layout_state_generates_grid_span_css() {
 		$this->ensure_block_registered( 'test/responsive-child-layout-state' );
@@ -1325,6 +1341,8 @@ class Tests_Block_Supports_States extends WP_UnitTestCase {
 	 * the responsive @media rule to apply to the wrong element.
 	 *
 	 * @covers ::wp_render_layout_support_flag
+	 *
+	 * @ticket 65164
 	 */
 	public function test_responsive_layout_state_targets_inner_wrapper_for_wrapper_blocks() {
 		$this->ensure_block_registered(
