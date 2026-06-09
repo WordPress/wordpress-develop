@@ -183,6 +183,16 @@ class Tests_Autoloader_Classmap extends WP_UnitTestCase {
 			'wp-includes/class-avif-info.php', // 3rd-party library.
 			'wp-includes/class-simplepie.php', // 3rd-party library.
 			'wp-includes/class-snoopy.php',    // Deprecated.
+
+			/*
+			 * SimplePie wrapper classes. These extend SimplePie classes, so they
+			 * depend on SimplePie's autoloader being registered first. They are
+			 * loaded explicitly in fetch_feed() rather than via the WP autoloader.
+			 */
+			'wp-includes/class-wp-feed-cache.php',
+			'wp-includes/class-wp-feed-cache-transient.php',
+			'wp-includes/class-wp-simplepie-file.php',
+			'wp-includes/class-wp-simplepie-sanitize-kses.php',
 		);
 
 		foreach ( $regex as $file ) {

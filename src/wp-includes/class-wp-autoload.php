@@ -81,8 +81,6 @@ final class WP_Autoload {
 		'wp_error'                                    => 'wp-includes/class-wp-error.php',
 		'wp_exception'                                => 'wp-includes/class-wp-exception.php',
 		'wp_fatal_error_handler'                      => 'wp-includes/class-wp-fatal-error-handler.php',
-		'wp_feed_cache_transient'                     => 'wp-includes/class-wp-feed-cache-transient.php',
-		'wp_feed_cache'                               => 'wp-includes/class-wp-feed-cache.php',
 		'wp_filter_sentinel'                          => 'wp-includes/class-wp-filter-sentinel.php',
 		'wp_hook'                                     => 'wp-includes/class-wp-hook.php',
 		'wp_http_cookie'                              => 'wp-includes/class-wp-http-cookie.php',
@@ -129,8 +127,6 @@ final class WP_Autoload {
 		'wp_script_modules'                           => 'wp-includes/class-wp-script-modules.php',
 		'wp_scripts'                                  => 'wp-includes/class-wp-scripts.php',
 		'wp_session_tokens'                           => 'wp-includes/class-wp-session-tokens.php',
-		'wp_simplepie_file'                           => 'wp-includes/class-wp-simplepie-file.php',
-		'wp_simplepie_sanitize_kses'                  => 'wp-includes/class-wp-simplepie-sanitize-kses.php',
 		'wp_site_query'                               => 'wp-includes/class-wp-site-query.php',
 		'wp_site'                                     => 'wp-includes/class-wp-site.php',
 		'wp_speculation_rules'                        => 'wp-includes/class-wp-speculation-rules.php',
@@ -487,9 +483,14 @@ final class WP_Autoload {
 	 */
 	public static function register_external_bundled() {
 		require_once ABSPATH . 'wp-includes/Requests/src/Autoload.php';
-		require_once ABSPATH . 'wp-includes/class-simplepie.php';
 		require_once ABSPATH . 'wp-includes/php-ai-client/autoload.php';
 		require_once ABSPATH . 'wp-includes/sodium_compat/autoload.php';
+
+		/*
+		 * SimplePie is intentionally not loaded here. It is only needed when a
+		 * feed is fetched, so it is loaded lazily in fetch_feed() to avoid the
+		 * cost of registering its autoloader on every request.
+		 */
 
 		spl_autoload_register( array( '\WpOrg\Requests\Autoload', 'load' ) );
 		spl_autoload_register( array( __CLASS__, 'autoload_phpmailer' ) );
