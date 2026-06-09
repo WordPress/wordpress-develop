@@ -20,8 +20,6 @@ class Tests_wp_ajax_widgets_order extends WP_Ajax_UnitTestCase {
 
 	/**
 	 * Administrator user ID.
-	 *
-	 * @var int
 	 */
 	protected static int $admin_id;
 
