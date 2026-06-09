@@ -2542,4 +2542,55 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 			);
 		}
 	}
+
+	/**
+	 * Ensure that caps are updated correctly when using `update_option()` to save roles.
+	 *
+	 * Compares the efficiency and accuracy of updating role capabilities when `WP_Roles`
+	 * uses the database vs when the updates are done via `update_option()`.
+	 *
+	 * This method of updating roles is used in `populate_roles()` to reduce the number of
+	 * queries by approximately 300.
+	 *
+	 * @ticket 37687
+	 */
+	public function test_role_capabilities_updated_correctly_via_update_option() {
+		global $wp_roles;
+		$emcee_role = 'emcee';
+		$wp_roles->add_role( $emcee_role, 'Emcee', array( 'level_1' => true ) );
+		$this->flush_roles();
+
+		$expected_caps = array(
+			'level_1'             => true,
+			'attend_kit_kat_klub' => true,
+			'win_tony_award'      => true,
+		);
+
+		$start_queries = get_num_queries();
+		$wp_roles->add_cap( $emcee_role, 'attend_kit_kat_klub' );
+		$wp_roles->add_cap( $emcee_role, 'win_tony_award' );
+		$emcee_queries = get_num_queries() - $start_queries;
+		$this->flush_roles();
+		$emcee_caps = $wp_roles->get_role( $emcee_role )->capabilities;
+
+		$wp_roles->use_db = false;
+		$sally_role       = 'sally';
+		$wp_roles->add_role( $sally_role, 'Sally Bowles', array( 'level_1' => true ) );
+		$start_queries = get_num_queries();
+		$wp_roles->add_cap( $sally_role, 'attend_kit_kat_klub' );
+		$wp_roles->add_cap( $sally_role, 'win_tony_award' );
+
+		update_option( $wp_roles->role_key, $wp_roles->roles, true );
+		$sally_queries    = get_num_queries() - $start_queries;
+		$wp_roles->use_db = true;
+
+		// Restore the default value.
+		$this->flush_roles();
+		$sally_caps = $wp_roles->get_role( $sally_role )->capabilities;
+
+		$this->assertSameSetsWithIndex( $expected_caps, $emcee_caps, 'Emcee role should include the three expected capabilities.' );
+		$this->assertSameSetsWithIndex( $expected_caps, $sally_caps, 'Sally role should include the three expected capabilities.' );
+		$this->assertSameSetsWithIndex( $emcee_caps, $sally_caps, 'Emcee and Sally roles should have the same capabilities after update.' );
+		$this->assertLessThan( $emcee_queries, $sally_queries, 'Updating roles via update_option should be more efficient than WP_Roles using the database.' );
+	}
 }

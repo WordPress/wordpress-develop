@@ -10,14 +10,6 @@
 
 class Tests_Block_Supports_Duotone extends WP_UnitTestCase {
 	/**
-	 * Cleans up CSS added to block-supports from duotone styles. We need to do this
-	 * in order to avoid impacting other tests.
-	 */
-	public static function wpTearDownAfterClass() {
-		WP_Style_Engine_CSS_Rules_Store::remove_all_stores();
-	}
-
-	/**
 	 * Tests whether the duotone preset class is added to the block.
 	 *
 	 * @ticket 58555
@@ -78,7 +70,9 @@ class Tests_Block_Supports_Duotone extends WP_UnitTestCase {
 	public function test_get_slug_from_attribute( $data_attr, $expected ) {
 
 		$reflection = new ReflectionMethod( 'WP_Duotone', 'get_slug_from_attribute' );
-		$reflection->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$reflection->setAccessible( true );
+		}
 
 		$this->assertSame( $expected, $reflection->invoke( null, $data_attr ) );
 	}
@@ -99,6 +93,8 @@ class Tests_Block_Supports_Duotone extends WP_UnitTestCase {
 			'pipe-slug-no-value'              => array( 'var:preset|duotone|', '' ),
 			'css-var-spaces'                  => array( 'var(--wp--preset--duotone--    ', '' ),
 			'pipe-slug-spaces'                => array( 'var:preset|duotone|  ', '' ),
+			'array-of-colors'                 => array( array( '#000000', '#ffffff' ), '' ),
+			'empty-array'                     => array( array(), '' ),
 		);
 	}
 
@@ -128,7 +124,9 @@ class Tests_Block_Supports_Duotone extends WP_UnitTestCase {
 		 */
 		$wp_duotone                      = new WP_Duotone();
 		$block_css_declarations_property = new ReflectionProperty( 'WP_Duotone', 'block_css_declarations' );
-		$block_css_declarations_property->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$block_css_declarations_property->setAccessible( true );
+		}
 		$previous_value = $block_css_declarations_property->getValue();
 		$block_css_declarations_property->setValue( $wp_duotone, array() );
 
@@ -137,7 +135,9 @@ class Tests_Block_Supports_Duotone extends WP_UnitTestCase {
 
 		// Reset the property.
 		$block_css_declarations_property->setValue( $wp_duotone, $previous_value );
-		$block_css_declarations_property->setAccessible( false );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$block_css_declarations_property->setAccessible( false );
+		}
 
 		$this->assertNotEmpty( $actual );
 	}
@@ -147,7 +147,9 @@ class Tests_Block_Supports_Duotone extends WP_UnitTestCase {
 	 */
 	public function test_is_preset( $data_attr, $expected ) {
 		$reflection = new ReflectionMethod( 'WP_Duotone', 'is_preset' );
-		$reflection->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$reflection->setAccessible( true );
+		}
 
 		$this->assertSame( $expected, $reflection->invoke( null, $data_attr ) );
 	}
@@ -164,6 +166,8 @@ class Tests_Block_Supports_Duotone extends WP_UnitTestCase {
 			'css-var-invalid-slug-chars'      => array( 'var(--wp--preset--duotone--.)', false ),
 			'css-var-missing-end-parenthesis' => array( 'var(--wp--preset--duotone--blue-orange', false ),
 			'invalid'                         => array( 'not a valid attribute', false ),
+			'array-of-colors'                 => array( array( '#000000', '#ffffff' ), false ),
+			'empty-array'                     => array( array(), false ),
 		);
 	}
 
@@ -173,7 +177,9 @@ class Tests_Block_Supports_Duotone extends WP_UnitTestCase {
 	 */
 	public function test_colord_parse_hue( $value, $unit, $expected ) {
 		$reflection = new ReflectionMethod( 'WP_Duotone', 'colord_parse_hue' );
-		$reflection->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$reflection->setAccessible( true );
+		}
 
 		$this->assertSame( $expected, $reflection->invoke( null, $value, $unit ) );
 	}

@@ -597,6 +597,12 @@ EOF;
 			'Encoded named ref &amp;amp;'        => array( '&amp;amp;', '&amp;amp;' ),
 			'Encoded named ref &#38;amp;'        => array( '&#38;amp;', '&#038;amp;' ),
 			'Encoded named ref &#x26;amp;'       => array( '&#x26;amp;', '&#x26;amp;' ),
+			'Encoded numeric ref &amp;#39;'      => array( '&amp;#39;', '&amp;#39;' ),
+			'Encoded numeric ref &#38;#39;'      => array( '&#38;#39;', '&#038;#39;' ),
+			'Encoded numeric ref &#x26;#39;'     => array( '&#x26;#39;', '&#x26;#39;' ),
+			'Encoded hex ref &amp;#x27;'         => array( '&amp;#x27;', '&amp;#x27;' ),
+			'Encoded hex ref &#38;#x27;'         => array( '&#38;#x27;', '&#038;#x27;' ),
+			'Encoded hex ref &#x26;#x27;'        => array( '&#x26;#x27;', '&#x26;#x27;' ),
 
 			/*
 			 * The codepoint value here is outside of the valid unicode range whose
@@ -609,6 +615,7 @@ EOF;
 
 	/**
 	 * @ticket 26290
+	 * @ticket 63630
 	 *
 	 * @dataProvider data_normalize_entities
 	 */
@@ -992,6 +999,7 @@ EOF;
 	 * @ticket 56122
 	 * @ticket 58551
 	 * @ticket 60132
+	 * @ticket 64414
 	 *
 	 * @dataProvider data_safecss_filter_attr
 	 *
@@ -1172,6 +1180,23 @@ EOF;
 			array(
 				'css'      => 'object-fit: cover',
 				'expected' => 'object-fit: cover',
+			),
+			// `white-space` introduced in 6.9.0.
+			array(
+				'css'      => 'white-space: nowrap',
+				'expected' => 'white-space: nowrap',
+			),
+			array(
+				'css'      => 'white-space: pre',
+				'expected' => 'white-space: pre',
+			),
+			array(
+				'css'      => 'white-space: pre-wrap',
+				'expected' => 'white-space: pre-wrap',
+			),
+			array(
+				'css'      => 'white-space: pre-line',
+				'expected' => 'white-space: pre-line',
 			),
 			// Expressions are not allowed.
 			array(
@@ -1411,6 +1436,43 @@ EOF;
 				'css'      => 'opacity: 10',
 				'expected' => 'opacity: 10',
 			),
+			// `display` introduced in 7.0.0.
+			array(
+				'css'      => 'display: none',
+				'expected' => 'display: none',
+			),
+			array(
+				'css'      => 'display: block',
+				'expected' => 'display: block',
+			),
+			array(
+				'css'      => 'display: inline',
+				'expected' => 'display: inline',
+			),
+			array(
+				'css'      => 'display: inline-block',
+				'expected' => 'display: inline-block',
+			),
+			array(
+				'css'      => 'display: inline-flex',
+				'expected' => 'display: inline-flex',
+			),
+			array(
+				'css'      => 'display: inline-grid',
+				'expected' => 'display: inline-grid',
+			),
+			array(
+				'css'      => 'display: table',
+				'expected' => 'display: table',
+			),
+			array(
+				'css'      => 'display: flex',
+				'expected' => 'display: flex',
+			),
+			array(
+				'css'      => 'display: grid',
+				'expected' => 'display: grid',
+			),
 		);
 	}
 
@@ -1518,6 +1580,52 @@ EOF;
 			// Multiple wildcards.
 			array( 'd*ta-*', false ),
 			array( 'data**', false ),
+		);
+	}
+
+	/**
+	 * Tests that style attribute values are decoded before CSS filtering.
+	 *
+	 * @ticket 65270
+	 *
+	 * @dataProvider data_wp_kses_style_attr_decodes_entities_before_css_filtering
+	 *
+	 * @param string $content  A string of HTML to test.
+	 * @param string $expected Expected result after passing through KSES.
+	 */
+	public function test_wp_kses_style_attr_decodes_entities_before_css_filtering( $content, $expected ) {
+		$allowed_html = array(
+			'div' => array(
+				'style' => true,
+			),
+		);
+
+		$this->assertEqualHTML( $expected, wp_kses( $content, $allowed_html ) );
+	}
+
+	/**
+	 * Data provider for test_wp_kses_style_attr_decodes_entities_before_css_filtering().
+	 *
+	 * @return array[]
+	 */
+	public function data_wp_kses_style_attr_decodes_entities_before_css_filtering() {
+		return array(
+			'background image URL with single quotes' => array(
+				'<div style="background-image: url(\'https://localhost/image.jpg\');"></div>',
+				'<div style="background-image: url(&#039;https://localhost/image.jpg&#039;)"></div>',
+			),
+			'background image URL with entity-encoded double quotes' => array(
+				'<div style="background-image: url(&quot;https://localhost/image.jpg&quot;);"></div>',
+				'<div style="background-image: url(&quot;https://localhost/image.jpg&quot;)"></div>',
+			),
+			'background image URL with query string ampersand' => array(
+				'<div style="background-image: url(https://localhost/image.jpg?a=1&b=2);"></div>',
+				'<div style="background-image: url(https://localhost/image.jpg?a=1&amp;b=2)"></div>',
+			),
+			'background image URL followed by another declaration' => array(
+				'<div style="background-image:url(\'https://localhost/image.jpg\');background-size:cover;"></div>',
+				'<div style="background-image:url(&#039;https://localhost/image.jpg&#039;);background-size:cover"></div>',
+			),
 		);
 	}
 

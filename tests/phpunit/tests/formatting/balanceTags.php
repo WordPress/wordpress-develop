@@ -205,29 +205,29 @@ class Tests_Formatting_BalanceTags extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests closing unknown single tags.
+	 *
 	 * @ticket 1597
+	 * @dataProvider data_unknown_single_tags_with_closing_tag
 	 */
-	public function test_closes_unknown_single_tags_with_closing_tag() {
+	public function test_closes_unknown_single_tags_with_closing_tag( $input, $expected ) {
+		$this->assertSame( $expected, balanceTags( $input, true ) );
+	}
 
-		$inputs   = array(
-			'<strong/>',
-			'<em />',
-			'<p class="main1"/>',
-			'<p class="main2" />',
-			'<STRONG/>',
-		);
-		$expected = array(
-			'<strong></strong>',
-			'<em></em>',
-			'<p class="main1"></p>',
-			'<p class="main2"></p>',
+	/**
+	 * Data provider for test_closes_unknown_single_tags_with_closing_tag.
+	 *
+	 * @return array<string, array<string, string>>
+	 */
+	public function data_unknown_single_tags_with_closing_tag() {
+		return array(
+			'default'              => array( '<strong/>', '<strong></strong>' ),
+			'with-space'           => array( '<em />', '<em></em>' ),
+			'with-class'           => array( '<p class="main1"/>', '<p class="main1"></p>' ),
+			'with-class-and-space' => array( '<p class="main2" />', '<p class="main2"></p>' ),
 			// Valid tags are transformed to lowercase.
-			'<strong></strong>',
+			'uppercase'            => array( '<STRONG/>', '<strong></strong>' ),
 		);
-
-		foreach ( $inputs as $key => $input ) {
-			$this->assertSame( $expected[ $key ], balanceTags( $inputs[ $key ], true ) );
-		}
 	}
 
 	public function test_closes_unclosed_single_tags_having_attributes() {
