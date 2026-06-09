@@ -1731,9 +1731,19 @@ function _preload_old_requests_classes_and_interfaces( $to ) {
  * compatible with the old, resulting in a fatal error.
  * Preloading ensures the code is in memory before the code is updated.
  *
- * @since 6.6.0
+ * @since x.x.x
  */
 function _preload_core_classes_and_interfaces() {
+	/*
+	 * The autoloader maps class names to file paths. When upgrading from a
+	 * version of WordPress that predates the autoloader, the WP_Autoload class
+	 * is not present in the running process and there is nothing to preload,
+	 * because those classes were loaded explicitly rather than on demand.
+	 */
+	if ( ! class_exists( 'WP_Autoload' ) ) {
+		return;
+	}
+
 	/*
 	 * The classes to be preloaded.
 	 * These are lowercased to match the format used in the autoloader.
