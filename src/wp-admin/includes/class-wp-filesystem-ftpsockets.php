@@ -18,6 +18,7 @@
  *     password: string,
  *     port: non-negative-int,
  * }
+ * @phpstan-import-type FileListing from WP_Filesystem_Base
  */
 class WP_Filesystem_ftpsockets extends WP_Filesystem_Base {
 
@@ -682,6 +683,7 @@ class WP_Filesystem_ftpsockets extends WP_Filesystem_Base {
 	 *                                             files. False if unable to list directory contents.
 	 *     }
 	 * }
+	 * @phpstan-return FileListing[]|false
 	 */
 	public function dirlist( $path = '.', $include_hidden = true, $recursive = false ) {
 		if ( $this->is_file( $path ) ) {

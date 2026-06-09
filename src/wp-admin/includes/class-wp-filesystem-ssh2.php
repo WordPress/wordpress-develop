@@ -42,6 +42,7 @@
  *     private_key?: non-empty-string,
  *     hostkey?: array{ hostkey: non-empty-string },
  * }
+ * @phpstan-import-type FileListing from WP_Filesystem_Base
  */
 class WP_Filesystem_SSH2 extends WP_Filesystem_Base {
 
@@ -814,6 +815,7 @@ class WP_Filesystem_SSH2 extends WP_Filesystem_Base {
 	 *                                             files. False if unable to list directory contents.
 	 *     }
 	 * }
+	 * @phpstan-return FileListing[]|false
 	 */
 	public function dirlist( $path, $include_hidden = true, $recursive = false ) {
 		if ( $this->is_file( $path ) ) {

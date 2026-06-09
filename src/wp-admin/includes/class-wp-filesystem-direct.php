@@ -12,6 +12,7 @@
  * @since 2.5.0
  *
  * @see WP_Filesystem_Base
+ * @phpstan-import-type FileListing from WP_Filesystem_Base
  */
 class WP_Filesystem_Direct extends WP_Filesystem_Base {
 
@@ -640,6 +641,7 @@ class WP_Filesystem_Direct extends WP_Filesystem_Base {
 	 *                                             files. False if unable to list directory contents.
 	 *     }
 	 * }
+	 * @phpstan-return FileListing[]|false
 	 */
 	public function dirlist( $path, $include_hidden = true, $recursive = false ) {
 		if ( $this->is_file( $path ) ) {
