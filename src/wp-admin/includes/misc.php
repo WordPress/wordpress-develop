@@ -1007,13 +1007,14 @@ function admin_color_scheme_picker( $user_id ) {
 	ksort( $_wp_admin_css_colors );
 
 	if ( isset( $_wp_admin_css_colors['modern'] ) ) {
-		// Set Modern (new default), Classic ('fresh'), and Light first.
+		// Set Modern (new default), Classic ('fresh'), Light, and Dark first.
 		$_wp_admin_css_colors = array_filter(
 			array_merge(
 				array(
 					'modern' => '',
 					'fresh'  => '',
 					'light'  => '',
+					'dark'   => '',
 				),
 				$_wp_admin_css_colors
 			)
