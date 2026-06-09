@@ -109,6 +109,31 @@ class Tests_HtmlApi_WpHtmlProcessor_Serialize extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensures that adjusted foreign attributes are serialized with their namespace prefix.
+	 *
+	 * @ticket 65372
+	 */
+	public function test_serializes_adjusted_foreign_attributes_with_namespace_prefix() {
+		$svg = '<svg><a xlink:href="#target"></a></svg>';
+
+		$this->assertSame(
+			$svg,
+			WP_HTML_Processor::normalize( $svg ),
+			'Should have preserved xlink:href as a single namespaced attribute when normalizing.'
+		);
+
+		$processor = WP_HTML_Processor::create_fragment( $svg );
+		$this->assertTrue( $processor->next_token() );
+		$this->assertSame( '<svg>', $processor->serialize_token(), 'Should serialize the opening SVG tag.' );
+		$this->assertTrue( $processor->next_token() );
+		$this->assertSame(
+			'<a xlink:href="#target">',
+			$processor->serialize_token(),
+			'Should have preserved xlink:href as a single namespaced attribute when serializing the token.'
+		);
+	}
+
+	/**
 	 * Ensures that SCRIPT contents are not escaped, as they are not parsed like text nodes are.
 	 *
 	 * @ticket 62036
