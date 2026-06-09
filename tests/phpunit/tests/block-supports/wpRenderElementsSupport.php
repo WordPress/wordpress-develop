@@ -155,7 +155,7 @@ class Tests_Block_Supports_WpRenderElementsSupport extends WP_UnitTestCase {
 		$this->assertSame(
 			$block_content,
 			wp_render_elements_class_name( $block_content, $block ),
-			'Block content should be returned unchanged when className is not a string'
+			'Block content should be returned unchanged when className lacks a class with the expected prefix'
 		);
 	}
 
