@@ -51,7 +51,7 @@ class WP_Filesystem_ftpsockets extends WP_Filesystem_Base {
 	 *     hostname: non-empty-string,
 	 *     username: non-empty-string,
 	 *     password: string,
-	 *     port?: non-negative-int
+	 *     port?: non-negative-int,
 	 * } $opt
 	 */
 	public function __construct( $opt = null ) {
