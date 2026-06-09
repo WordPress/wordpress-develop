@@ -94,7 +94,6 @@ class WP_Filesystem_SSH2 extends WP_Filesystem_Base {
 	 *     port?: non-negative-int,
 	 *     public_key?: non-empty-string,
 	 *     private_key?: non-empty-string,
-	 *     hostkey?: array{ hostkey: non-empty-string },
 	 * }|null $opt
 	 */
 	public function __construct( $opt = null ) {
