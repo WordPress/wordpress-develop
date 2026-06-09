@@ -4025,10 +4025,11 @@ class WP_Query {
 
 			$this->queried_object = get_post_type_object( $post_type );
 		} elseif ( $this->is_posts_page ) {
-			$page_for_posts = get_option( 'page_for_posts' );
-
-			$this->queried_object    = get_post( $page_for_posts );
-			$this->queried_object_id = (int) $this->queried_object->ID;
+			$page_for_posts = get_post( get_option( 'page_for_posts' ) );
+			if ( $page_for_posts ) {
+				$this->queried_object    = $page_for_posts;
+				$this->queried_object_id = (int) $page_for_posts->ID;
+			}
 		} elseif ( $this->is_singular && ! empty( $this->post ) ) {
 			$this->queried_object    = $this->post;
 			$this->queried_object_id = (int) $this->post->ID;
