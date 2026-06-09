@@ -693,8 +693,8 @@ class WP_Filesystem_Direct extends WP_Filesystem_Base {
 			$struc['group']       = $this->group( $path . $entry );
 			$struc['size']        = $this->size( $path . $entry );
 			$struc['lastmodunix'] = $this->mtime( $path . $entry );
-			$struc['lastmod']     = is_string( $struc['lastmodunix'] ) ? gmdate( 'M j', $struc['lastmodunix'] ) : false;
-			$struc['time']        = is_string( $struc['lastmodunix'] ) ? gmdate( 'h:i:s', $struc['lastmodunix'] ) : false;
+			$struc['lastmod']     = is_int( $struc['lastmodunix'] ) ? gmdate( 'M j', $struc['lastmodunix'] ) : false;
+			$struc['time']        = is_int( $struc['lastmodunix'] ) ? gmdate( 'h:i:s', $struc['lastmodunix'] ) : false;
 			$struc['type']        = $this->is_dir( $path . $entry ) ? 'd' : 'f';
 
 			if ( 'd' === $struc['type'] ) {
