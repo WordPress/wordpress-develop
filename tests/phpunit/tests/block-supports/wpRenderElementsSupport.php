@@ -106,6 +106,60 @@ class Tests_Block_Supports_WpRenderElementsSupport extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that a non-string `className` attribute does not cause a fatal
+	 * error and the block content is returned unmodified.
+	 *
+	 * Block attributes such as `className` are always expected to be strings,
+	 * however invalid stored data can result in other types being present. The
+	 * render filter should fail gracefully rather than passing an array to
+	 * `preg_match()`.
+	 *
+	 * @ticket 65379
+	 *
+	 * @covers ::wp_render_elements_class_name
+	 */
+	public function test_elements_block_support_class_with_non_string_class_name(): void {
+		$block = array(
+			'blockName' => 'core/paragraph',
+			'attrs'     => array(
+				'className' => array( '0', '1' ),
+			),
+		);
+
+		$block_content = "<p class=\"0 1\">Test</p>\n";
+
+		$this->assertSame(
+			$block_content,
+			wp_render_elements_class_name( $block_content, $block ), // @phpstan-ignore argument.type (Intentionally passing bad attrs array.)
+			'Block content should be returned unchanged when className is not a string'
+		);
+	}
+
+	/**
+	 * Tests that a 'my-wp-elements-*' class name is skipped from processing.
+	 *
+	 * @ticket 65379
+	 *
+	 * @covers ::wp_render_elements_class_name
+	 */
+	public function test_elements_block_support_class_with_invalid_elements_prefix(): void {
+		$block = array(
+			'blockName' => 'core/paragraph',
+			'attrs'     => array(
+				'className' => 'my-wp-elements-foo',
+			),
+		);
+
+		$block_content = "<p>Test</p>\n";
+
+		$this->assertSame(
+			$block_content,
+			wp_render_elements_class_name( $block_content, $block ),
+			'Block content should be returned unchanged when className lacks a class with the expected prefix'
+		);
+	}
+
+	/**
 	 * Data provider.
 	 *
 	 * @return array
