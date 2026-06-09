@@ -311,4 +311,26 @@ EOT;
 		$this->assertSame( '//[::FFFF::127.0.0.1]/?foo%5Bbar%5D=baz', esc_url( '//[::FFFF::127.0.0.1]/?foo[bar]=baz' ) );
 		$this->assertSame( 'http://[::FFFF::127.0.0.1]/?foo%5Bbar%5D=baz', esc_url( 'http://[::FFFF::127.0.0.1]/?foo[bar]=baz' ) );
 	}
+
+	/**
+	 * Test that esc_url() handles null input without triggering
+	 * a PHP 8.1 "passing null to non-nullable" deprecation.
+	 *
+	 * @ticket 65432
+	 */
+	public function test_null_input_returns_empty_string() {
+		$this->assertSame( '', esc_url( null ) );
+	}
+
+	/**
+	 * Test that sanitize_url() handles null input without triggering
+	 * a PHP 8.1 "passing null to non-nullable" deprecation.
+	 *
+	 * @ticket 65432
+	 *
+	 * @covers ::sanitize_url
+	 */
+	public function test_sanitize_url_null_input_returns_empty_string() {
+		$this->assertSame( '', sanitize_url( null ) );
+	}
 }
