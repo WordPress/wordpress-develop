@@ -2582,6 +2582,41 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertEquals( 1, $updated->comment_approved );
 	}
 
+	/**
+	 * @ticket 20977
+	 */
+	public function test_update_comment_custom_status_no_change() {
+		wp_set_current_user( self::$admin_id );
+
+		$filter = static function ( $statuses ) {
+			$statuses['read'] = 'Read';
+
+			return $statuses;
+		};
+		add_filter( 'comment_statuses', $filter );
+
+		$comment_id = self::factory()->comment->create(
+			array(
+				'comment_approved' => 'read',
+				'comment_post_ID'  => self::$post_id,
+			)
+		);
+
+		$params = array(
+			'status' => 'read',
+		);
+
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/comments/%d', $comment_id ) );
+		$request->add_header( 'Content-Type', 'application/json' );
+		$request->set_body( wp_json_encode( $params ) );
+
+		$response = rest_get_server()->dispatch( $request );
+		remove_filter( 'comment_statuses', $filter );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( 'read', get_comment( $comment_id )->comment_approved );
+	}
+
 	public function test_update_comment_field_does_not_use_default_values() {
 		wp_set_current_user( self::$admin_id );
 
@@ -2609,6 +2644,124 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertSame( 'approved', $comment['status'] );
 		$this->assertEquals( 1, $updated->comment_approved );
 		$this->assertSame( 'some content', $updated->comment_content );
+	}
+
+	/**
+	 * @ticket 20977
+	 */
+	public function test_create_comment_with_invalid_status_returns_error() {
+		wp_set_current_user( self::$admin_id );
+
+		$params = array(
+			'post'         => self::$post_id,
+			'author_name'  => 'Homer J. Simpson',
+			'author_email' => 'homer@example.org',
+			'author_url'   => 'http://compuglobalhypermeganet.com',
+			'content'      => 'Aw, he loves beer. Here, little fella.',
+			'status'       => 'invalid-status',
+		);
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/comments' );
+		$request->add_header( 'Content-Type', 'application/json' );
+		$request->set_body( wp_json_encode( $params ) );
+
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertErrorResponse( 'rest_comment_invalid_status', $response, 400 );
+	}
+
+	/**
+	 * @ticket 20977
+	 */
+	public function test_update_comment_with_invalid_status_only_returns_error() {
+		wp_set_current_user( self::$admin_id );
+
+		$comment_id = self::factory()->comment->create(
+			array(
+				'comment_approved' => '0',
+				'comment_post_ID'  => self::$post_id,
+			)
+		);
+
+		$params = array(
+			'status' => 'invalid-status',
+		);
+
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/comments/%d', $comment_id ) );
+		$request->add_header( 'Content-Type', 'application/json' );
+		$request->set_body( wp_json_encode( $params ) );
+
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertErrorResponse( 'rest_comment_invalid_status', $response, 400 );
+		$this->assertSame( '0', get_comment( $comment_id )->comment_approved );
+	}
+
+	/**
+	 * @ticket 20977
+	 */
+	public function test_update_comment_status_is_rolled_back_when_comment_update_fails() {
+		wp_set_current_user( self::$admin_id );
+
+		$comment_id = self::factory()->comment->create(
+			array(
+				'comment_approved' => '0',
+				'comment_post_ID'  => self::$post_id,
+				'comment_content'  => 'Original content.',
+			)
+		);
+
+		$filter = static function () {
+			return new WP_Error( 'comment_update_failed', 'Comment update failed.' );
+		};
+		add_filter( 'wp_update_comment_data', $filter );
+
+		$params = array(
+			'content' => 'Updated content.',
+			'status'  => 'approve',
+		);
+
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/comments/%d', $comment_id ) );
+		$request->add_header( 'Content-Type', 'application/json' );
+		$request->set_body( wp_json_encode( $params ) );
+
+		$response = rest_get_server()->dispatch( $request );
+		remove_filter( 'wp_update_comment_data', $filter );
+
+		$this->assertErrorResponse( 'rest_comment_failed_edit', $response, 500 );
+
+		$updated = get_comment( $comment_id );
+		$this->assertSame( '0', $updated->comment_approved );
+		$this->assertSame( 'Original content.', $updated->comment_content );
+	}
+
+	/**
+	 * @ticket 20977
+	 */
+	public function test_update_comment_with_invalid_status_returns_error() {
+		wp_set_current_user( self::$admin_id );
+
+		$comment_id = self::factory()->comment->create(
+			array(
+				'comment_approved' => '0',
+				'comment_post_ID'  => self::$post_id,
+				'comment_content'  => 'Original content.',
+			)
+		);
+
+		$params = array(
+			'content' => 'Updated content.',
+			'status'  => 'invalid-status',
+		);
+
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/comments/%d', $comment_id ) );
+		$request->add_header( 'Content-Type', 'application/json' );
+		$request->set_body( wp_json_encode( $params ) );
+
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertErrorResponse( 'rest_comment_invalid_status', $response, 400 );
+
+		$updated = get_comment( $comment_id );
+		$this->assertSame( '0', $updated->comment_approved );
+		$this->assertSame( 'Original content.', $updated->comment_content );
 	}
 
 	public function test_update_comment_date_gmt() {
