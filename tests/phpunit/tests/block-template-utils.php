@@ -298,6 +298,87 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that a skip link is added and a MAIN element without an ID receives the default ID.
+	 *
+	 * @ticket 64361
+	 *
+	 * @covers ::_block_template_add_skip_link
+	 */
+	public function test_block_template_add_skip_link_inserts_link_and_adds_main_id_when_missing() {
+		$template_html = '<div class="wp-site-blocks"><main>Content</main></div>';
+		$expected      = '
+			<a class="skip-link screen-reader-text" id="wp-skip-link" href="#wp--skip-link--target">Skip to content</a>
+			<div class="wp-site-blocks"><main id="wp--skip-link--target">Content</main></div>
+		';
+
+		$this->assertEqualHTML( $expected, _block_template_add_skip_link( $template_html ) );
+	}
+
+	/**
+	 * Tests that an existing MAIN ID is reused for the skip link.
+	 *
+	 * @ticket 64361
+	 *
+	 * @covers ::_block_template_add_skip_link
+	 */
+	public function test_block_template_add_skip_link_uses_existing_main_id() {
+		$template_html = '<div class="wp-site-blocks"><main id="custom-id">Content</main></div>';
+		$expected      = '
+			<a class="skip-link screen-reader-text" id="wp-skip-link" href="#custom-id">Skip to content</a>
+			<div class="wp-site-blocks"><main id="custom-id">Content</main></div>
+		';
+
+		$this->assertEqualHTML( $expected, _block_template_add_skip_link( $template_html ) );
+	}
+
+	/**
+	 * Tests that a boolean MAIN ID is treated as missing and replaced with the default.
+	 *
+	 * @ticket 64361
+	 *
+	 * @covers ::_block_template_add_skip_link
+	 */
+	public function test_block_template_add_skip_link_handles_boolean_main_id() {
+		$template_html = '<div class="wp-site-blocks"><main id>Content</main></div>';
+		$expected      = '
+			<a class="skip-link screen-reader-text" id="wp-skip-link" href="#wp--skip-link--target">Skip to content</a>
+			<div class="wp-site-blocks"><main id="wp--skip-link--target">Content</main></div>
+		';
+
+		$this->assertEqualHTML( $expected, _block_template_add_skip_link( $template_html ) );
+	}
+
+	/**
+	 * Tests that a MAIN ID containing whitespace is preserved and used for the skip link.
+	 *
+	 * @ticket 64361
+	 *
+	 * @covers ::_block_template_add_skip_link
+	 */
+	public function test_block_template_add_skip_link_preserves_whitespace_main_id() {
+		$template_html = '<div class="wp-site-blocks"><main id=" my-id ">Content</main></div>';
+		$expected      = '
+			<a class="skip-link screen-reader-text" id="wp-skip-link" href="#%20my-id%20">Skip to content</a>
+			<div class="wp-site-blocks"><main id=" my-id ">Content</main></div>
+		';
+
+		$this->assertEqualHTML( $expected, _block_template_add_skip_link( $template_html ) );
+	}
+
+	/**
+	 * Tests that no changes are made when there is no MAIN element.
+	 *
+	 * @ticket 64361
+	 *
+	 * @covers ::_block_template_add_skip_link
+	 */
+	public function test_block_template_add_skip_link_does_not_modify_when_main_missing() {
+		$template_html = '<div class="wp-site-blocks"><div>Content</div></div>';
+
+		$this->assertSame( $template_html, _block_template_add_skip_link( $template_html ) );
+	}
+
+	/**
 	 * Should retrieve the template from the theme files.
 	 */
 	public function test_get_block_template_from_file() {

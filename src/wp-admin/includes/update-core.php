@@ -1241,7 +1241,7 @@ function update_core( $from, $to ) {
 		// Find the local version of the working directory.
 		$working_dir_local = WP_CONTENT_DIR . '/upgrade/' . basename( $from ) . $distro;
 
-		$checksums = get_core_checksums( $wp_version, isset( $wp_local_package ) ? $wp_local_package : 'en_US' );
+		$checksums = get_core_checksums( $wp_version, $wp_local_package ?? 'en_US' );
 
 		if ( is_array( $checksums ) && isset( $checksums[ $wp_version ] ) ) {
 			$checksums = $checksums[ $wp_version ]; // Compat code for 3.7-beta2.
@@ -1771,7 +1771,7 @@ function _redirect_to_about_wordpress( $new_version ) {
 	);
 	echo '</div>';
 	?>
-<script type="text/javascript">
+<script>
 window.location = 'about.php?updated';
 </script>
 	<?php

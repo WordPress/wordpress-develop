@@ -227,7 +227,7 @@ CAP;
 		$this->assertStringNotContainsString(
 			self::HTML_CONTENT,
 			$mark,
-			'Test caption content should not contain the mark surround it: check test setup.'
+			'Test caption content should not contain the mark surrounding it: check test setup.'
 		);
 
 		$result = img_caption_shortcode(

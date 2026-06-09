@@ -63,20 +63,12 @@ jobs:
       fail-fast: false
       matrix:
         os: [ 'ubuntu-24.04' ]
-        php: [ '7.2', '8.4' ]
+        php: [ '7.4', '8.4' ]
         db-type: [ 'mysql' ]
         db-version: [ '5.7', '8.4' ]
-        # WordPress 4.9 is the oldest version that supports PHP 7.2.
-        wp: [ '4.9', '6.7', '6.8', '6.9-RC1' ]
+        # WordPress 5.3 is the oldest version that supports PHP 7.4.
+        wp: [ '5.3', '6.7', '6.8', '6.9-RC1' ]
         multisite: [ false, true ]
-
-        exclude:
-          # The PHP <= 7.3/MySQL 8.4 jobs currently fail due to mysql_native_password being disabled by default. See https://core.trac.wordpress.org/ticket/61218.
-          - php: '7.2'
-            db-version: '8.4'
-          # WordPress 4.9 does not support PHP 8.4.
-          - php: '8.4'
-            wp: '4.9'
     with:
       os: ${{ matrix.os }}
       php: ${{ matrix.php }}
@@ -98,17 +90,11 @@ jobs:
       fail-fast: false
       matrix:
         os: [ 'ubuntu-24.04' ]
-        php: [ '7.2', '8.4' ]
+        php: [ '7.4', '8.4' ]
         db-type: [ 'mysql' ]
         db-version: [ '8.4' ]
-        # WordPress 4.9 is the oldest version that supports PHP 7.2.
         wp: [ '6.7', '6.8' ]
         multisite: [ false, true ]
-
-        exclude:
-          # The PHP <= 7.3/MySQL 8.4 jobs currently fail due to mysql_native_password being disabled by default. See https://core.trac.wordpress.org/ticket/61218.
-          - php: '7.2'
-            db-version: '8.4'
     with:
       os: ${{ matrix.os }}
       php: ${{ matrix.php }}

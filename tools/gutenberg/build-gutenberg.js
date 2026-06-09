@@ -114,6 +114,10 @@ async function main() {
 		gutenbergPackageJson.config.IS_GUTENBERG_PLUGIN = false;
 		gutenbergPackageJson.config.IS_WORDPRESS_CORE = true;
 
+		// Set wpPlugin.name for Core naming convention
+		gutenbergPackageJson.wpPlugin = gutenbergPackageJson.wpPlugin || {};
+		gutenbergPackageJson.wpPlugin.name = 'wp';
+
 		fs.writeFileSync(
 			gutenbergPackageJsonPath,
 			JSON.stringify( gutenbergPackageJson, null, '\t' ) + '\n'
@@ -121,6 +125,7 @@ async function main() {
 
 		console.log( '   ✅ IS_GUTENBERG_PLUGIN = false' );
 		console.log( '   ✅ IS_WORDPRESS_CORE = true' );
+		console.log( '   ✅ wpPlugin.name = wp' );
 	} catch ( error ) {
 		console.error(
 			'❌ Error modifying Gutenberg package.json:',
@@ -143,7 +148,7 @@ async function main() {
 				? '--base-url="includes_url( \'build\' )"'
 				: "--base-url=includes_url( 'build' )";
 
-		await exec( 'npm', [ 'run', 'build', '--', baseUrlArg ], {
+		await exec( 'npm', [ 'run', 'build', '--', '--fast', baseUrlArg ], {
 			cwd: gutenbergDir,
 		} );
 
@@ -151,7 +156,25 @@ async function main() {
 		console.log( `✅ Build completed in ${ duration }s` );
 	} catch ( error ) {
 		console.error( '❌ Build failed:', error.message );
-		process.exit( 1 );
+		throw error;
+	} finally {
+		// Restore Gutenberg's package.json regardless of success or failure
+		await restorePackageJson();
+	}
+}
+
+/**
+ * Restore Gutenberg's package.json to its original state.
+ */
+async function restorePackageJson() {
+	console.log( '\n🔄 Restoring Gutenberg package.json...' );
+	try {
+		await exec( 'git', [ 'checkout', '--', 'package.json' ], {
+			cwd: gutenbergDir,
+		} );
+		console.log( '✅ package.json restored' );
+	} catch ( error ) {
+		console.warn( '⚠️  Could not restore package.json:', error.message );
 	}
 }
 

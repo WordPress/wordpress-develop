@@ -400,11 +400,7 @@ function get_theme_feature_list( $api = true ) {
 		$wporg_features[ $feature_category ] = array();
 
 		foreach ( $feature_items as $feature ) {
-			if ( isset( $features[ $feature_category ][ $feature ] ) ) {
-				$wporg_features[ $feature_category ][ $feature ] = $features[ $feature_category ][ $feature ];
-			} else {
-				$wporg_features[ $feature_category ][ $feature ] = $feature;
-			}
+			$wporg_features[ $feature_category ][ $feature ] = $features[ $feature_category ][ $feature ] ?? $feature;
 		}
 	}
 
@@ -732,8 +728,8 @@ function wp_prepare_themes_for_js( $themes = null ) {
 			$customize_action = esc_url( $customize_action );
 		}
 
-		$update_requires_wp  = isset( $updates[ $slug ]['requires'] ) ? $updates[ $slug ]['requires'] : null;
-		$update_requires_php = isset( $updates[ $slug ]['requires_php'] ) ? $updates[ $slug ]['requires_php'] : null;
+		$update_requires_wp  = $updates[ $slug ]['requires'] ?? null;
+		$update_requires_php = $updates[ $slug ]['requires_php'] ?? null;
 
 		$auto_update        = in_array( $slug, $auto_updates, true );
 		$auto_update_action = $auto_update ? 'disable-auto-update' : 'enable-auto-update';

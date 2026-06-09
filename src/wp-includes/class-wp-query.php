@@ -796,7 +796,7 @@ class WP_Query {
 	 *                                                   disable cache priming for term meta, so that each
 	 *                                                   get_term_meta() call will hit the database.
 	 *                                                   Defaults to the value of `$update_post_term_cache`.
-	 *     @type int             $w                      The week number of the year. Default empty. Accepts numbers 0-53.
+	 *     @type int             $w                      The week number of the year. Default empty. Accepts numbers 1-53.
 	 *     @type int             $year                   The four-digit year. Default empty. Accepts any four-digit year.
 	 * }
 	 */
@@ -1860,11 +1860,7 @@ class WP_Query {
 	 * @return mixed Contents of the query variable.
 	 */
 	public function get( $query_var, $default_value = '' ) {
-		if ( isset( $this->query_vars[ $query_var ] ) ) {
-			return $this->query_vars[ $query_var ];
-		}
-
-		return $default_value;
+		return $this->query_vars[ $query_var ] ?? $default_value;
 	}
 
 	/**
@@ -4066,12 +4062,7 @@ class WP_Query {
 	 */
 	public function get_queried_object_id() {
 		$this->get_queried_object();
-
-		if ( isset( $this->queried_object_id ) ) {
-			return $this->queried_object_id;
-		}
-
-		return 0;
+		return $this->queried_object_id ?? 0;
 	}
 
 	/**

@@ -1,6 +1,9 @@
 # Confirms that installing WordPress using WP-CLI works successfully.
 #
 # This workflow is not meant to test wordpress-develop checkouts, but rather tagged versions officially available on WordPress.org.
+#
+# This workflow is triggered for all WordPress versions that are currently receiving security updates. It therefore needs to
+# retain support for older PHP and database versions.
 name: Installation Tests
 
 on:

@@ -333,8 +333,8 @@ JS;
 		// This dependent is registered but not enqueued, so it should not factor into the eligible loading strategy.
 		wp_register_script( 'dependent-script-a4', '/dependent-script-a4.js', array( 'main-script-a4' ), null );
 		$output   = get_echo( 'wp_print_scripts' );
-		$expected = str_replace( "'", '"', "<script src='/main-script-a4.js' id='main-script-a4-js' {$strategy} data-wp-strategy='{$strategy}'></script>" );
-		$this->assertStringContainsString( $expected, $output, 'Only enqueued dependents should affect the eligible strategy.' );
+		$expected = "<script src='/main-script-a4.js' id='main-script-a4-js' {$strategy} data-wp-strategy='{$strategy}'></script>";
+		$this->assertEqualHTMLScriptTagById( $expected, $output, 'Only enqueued dependents should affect the eligible strategy.' );
 	}
 
 	/**
@@ -1076,8 +1076,8 @@ HTML
 	public function test_loading_strategy_with_defer_having_no_dependents_nor_dependencies() {
 		wp_enqueue_script( 'main-script-d1', 'http://example.com/main-script-d1.js', array(), null, array( 'strategy' => 'defer' ) );
 		$output   = get_echo( 'wp_print_scripts' );
-		$expected = str_replace( "'", '"', "<script src='http://example.com/main-script-d1.js' id='main-script-d1-js' defer data-wp-strategy='defer'></script>\n" );
-		$this->assertStringContainsString( $expected, $output, 'Expected defer, as there is no dependent or dependency' );
+		$expected = "<script src='http://example.com/main-script-d1.js' id='main-script-d1-js' defer data-wp-strategy='defer'></script>\n";
+		$this->assertEqualHTMLScriptTagById( $expected, $output, 'Expected defer, as there is no dependent or dependency' );
 	}
 
 	/**
@@ -1096,7 +1096,7 @@ HTML
 		wp_enqueue_script( 'main-script-d2', 'http://example.com/main-script-d2.js', array( 'dependency-script-d2-1', 'dependency-script-d2-3' ), null, array( 'strategy' => 'defer' ) );
 		$output   = get_echo( 'wp_print_scripts' );
 		$expected = '<script src="http://example.com/main-script-d2.js" id="main-script-d2-js" defer data-wp-strategy="defer"></script>';
-		$this->assertStringContainsString( $expected, $output, 'Expected defer, as all dependencies are either deferred or blocking' );
+		$this->assertEqualHTMLScriptTagById( $expected, $output, 'Expected defer, as all dependencies are either deferred or blocking' );
 	}
 
 	/**
@@ -1115,7 +1115,7 @@ HTML
 		wp_enqueue_script( 'dependent-script-d3-3', 'http://example.com/dependent-script-d3-3.js', array( 'dependent-script-d3-2' ), null, array( 'strategy' => 'defer' ) );
 		$output   = get_echo( 'wp_print_scripts' );
 		$expected = '<script src="http://example.com/main-script-d3.js" id="main-script-d3-js" defer data-wp-strategy="defer"></script>';
-		$this->assertStringContainsString( $expected, $output, 'Expected defer, as all dependents have defer loading strategy' );
+		$this->assertEqualHTMLScriptTagById( $expected, $output, 'Expected defer, as all dependents have defer loading strategy' );
 	}
 
 	/**
@@ -1495,9 +1495,10 @@ HTML
 		wp_enqueue_script( 'dependent-script-d4-1', '/dependent-script-d4-1.js', array( 'main-script-d4' ), null, array( 'strategy' => 'defer' ) );
 		wp_enqueue_script( 'dependent-script-d4-2', '/dependent-script-d4-2.js', array( 'dependent-script-d4-1' ), null );
 		wp_enqueue_script( 'dependent-script-d4-3', '/dependent-script-d4-3.js', array( 'dependent-script-d4-2' ), null, array( 'strategy' => 'defer' ) );
+
 		$output   = get_echo( 'wp_print_scripts' );
-		$expected = str_replace( "'", '"', "<script src='/main-script-d4.js' id='main-script-d4-js' data-wp-strategy='defer'></script>\n" );
-		$this->assertStringContainsString( $expected, $output, 'Scripts registered as defer but that have all dependents with no strategy, should become blocking (no strategy).' );
+		$expected = "<script src='/main-script-d4.js' id='main-script-d4-js' data-wp-strategy='defer'></script>\n";
+		$this->assertEqualHTMLScriptTagById( $expected, $output, 'Scripts registered as defer but that have all dependents with no strategy, should become blocking (no strategy).' );
 	}
 
 	/**
