@@ -219,7 +219,11 @@ class WP_Filesystem_ftpsockets extends WP_Filesystem_Base {
 	 * @return string[]|false File contents in an array on success, false on failure.
 	 */
 	public function get_contents_array( $file ) {
-		return explode( "\n", $this->get_contents( $file ) );
+		$contents = $this->get_contents( $file );
+		if ( is_string( $contents ) ) {
+			return explode( "\n", $contents );
+		}
+		return false;
 	}
 
 	/**
@@ -279,6 +283,9 @@ class WP_Filesystem_ftpsockets extends WP_Filesystem_Base {
 	 */
 	public function cwd() {
 		$cwd = $this->ftp->pwd();
+		if ( ! is_string( $cwd ) ) {
+			return false;
+		}
 
 		if ( $cwd ) {
 			$cwd = trailingslashit( $cwd );
@@ -341,7 +348,7 @@ class WP_Filesystem_ftpsockets extends WP_Filesystem_Base {
 	 * @since 2.5.0
 	 *
 	 * @param string $file Path to the file.
-	 * @return string|false Username of the owner on success, false on failure.
+	 * @return string|int<1, max>|false Username of the owner on success, false on failure.
 	 */
 	public function owner( $file ) {
 		$dir = $this->dirlist( $file );
@@ -369,7 +376,7 @@ class WP_Filesystem_ftpsockets extends WP_Filesystem_Base {
 	 * @since 2.5.0
 	 *
 	 * @param string $file Path to the file.
-	 * @return string|false The group on success, false on failure.
+	 * @return string|int<1, max>|false The group on success, false on failure.
 	 */
 	public function group( $file ) {
 		$dir = $this->dirlist( $file );
@@ -513,9 +520,12 @@ class WP_Filesystem_ftpsockets extends WP_Filesystem_Base {
 	 * @return bool Whether $path is a directory.
 	 */
 	public function is_dir( $path ) {
-		$cwd = $this->cwd();
-
 		if ( $this->chdir( $path ) ) {
+			$cwd = $this->cwd();
+			if ( ! $cwd ) {
+				return false;
+			}
+
 			$this->chdir( $cwd );
 			return true;
 		}
