@@ -64,11 +64,12 @@ class Tests_Autoloader_Classmap extends WP_UnitTestCase {
 	 * @param string $file_path  File path relative to WP root directory.
 	 */
 	public function test_autoloader_classmap_is_in_correct_file( $class_name, $file_path ) {
+		$file_contents = strtolower( file_get_contents( ABSPATH . $file_path ) );
+
 		$this->assertTrue(
-			str_contains(
-				strtolower( file_get_contents( ABSPATH . $file_path ) ),
-				"class $class_name"
-			)
+			str_contains( $file_contents, "class $class_name" )
+				|| str_contains( $file_contents, "interface $class_name" )
+				|| str_contains( $file_contents, "trait $class_name" )
 		);
 	}
 
