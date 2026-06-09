@@ -69,7 +69,6 @@ input[type="url"],
 input[type="week"] {
 	padding: 0 12px;
 	/* inherits font size 14px */
-	line-height: 2.71428571; /* 38px for 40px min-height */
 	min-height: 40px;
 }
 
@@ -171,10 +170,11 @@ td > input[type="checkbox"],
 }
 
 input[type="radio"] {
+	display: inline-flex;
 	border-radius: 50%;
 	margin-right: 0.25rem;
-	/* 10px not sure if still necessary, comes from the MP6 redesign in r26072 */
-	line-height: 0.71428571;
+	align-items: center;
+	justify-content: center;
 }
 
 input[type="checkbox"]:checked::before,
@@ -211,10 +211,10 @@ input[type="radio"]:checked::before {
 	border-radius: 50%;
 	width: 0.5rem; /* 8px */
 	height: 0.5rem; /* 8px */
-	margin: 0.1875rem; /* 3px */
+	margin: auto;
 	background-color: #fff;
-	/* 16px not sure if still necessary, comes from the MP6 redesign in r26072 */
-	line-height: 1.14285714;
+	/* Only visible in Windows High Contrast mode */
+	outline: 4px solid transparent;
 }
 
 @-moz-document url-prefix() {
@@ -537,16 +537,34 @@ input[type="number"].tiny-text {
 	display: none;
 }
 
-.tablenav .actions select {
+.wp-core-ui .tablenav input[type="text"],
+.wp-core-ui .tablenav input[type="password"],
+.wp-core-ui .tablenav input[type="date"],
+.wp-core-ui .tablenav input[type="datetime"],
+.wp-core-ui .tablenav input[type="datetime-local"],
+.wp-core-ui .tablenav input[type="email"],
+.wp-core-ui .tablenav input[type="month"],
+.wp-core-ui .tablenav input[type="number"],
+.wp-core-ui .tablenav input[type="search"],
+.wp-core-ui .tablenav input[type="tel"],
+.wp-core-ui .tablenav input[type="time"],
+.wp-core-ui .tablenav input[type="url"],
+.wp-core-ui .tablenav input[type="week"],
+.wp-core-ui .tablenav select {
+	padding: 0 12px;
+	/* inherits font size 14px */
+	line-height: 2.14285714; /* 30px for 32px height with 14px font */
+	min-height: 32px;
+}
+
+.wp-core-ui .tablenav select {
 	float: left;
 	margin-right: 6px;
 	max-width: 12.5rem;
-	min-height: 32px;
-	line-height: 2.14285714; /* 30px for 32px height with 14px font */
 	padding: 0 24px 0 8px;
 }
 
-.tablenav .actions .button {
+.wp-core-ui .tablenav .button {
 	min-height: 32px;
 	line-height: 2.30769231; /* 30px for 32px height with 13px font */
 	padding: 0 12px;
@@ -563,6 +581,12 @@ input[type="number"].tiny-text {
 	font-size: 20px;
 	line-height: 1;
 	vertical-align: middle;
+}
+
+.button.wp-hide-pw.user-new-password-toggle {
+	display: inline-flex;
+	align-items: center;
+	column-gap: 4px;
 }
 
 .wp-cancel-pw .dashicons-no {
@@ -797,7 +821,6 @@ p.search-box {
 p.search-box input[type="search"],
 p.search-box input[type="text"] {
 	min-height: 32px;
-	line-height: 2.14285714; /* 30px for 32px height with 14px font */
 	padding: 0 8px;
 }
 
@@ -957,13 +980,6 @@ ul#add-to-blog-users {
 	line-height: 1.4;
 }
 
-.form-table input.tog,
-.form-table input[type="radio"] {
-	margin-top: -4px;
-	margin-right: 4px;
-	float: none;
-}
-
 .form-table .pre {
 	padding: 8px;
 	margin: 0;
@@ -1057,7 +1073,8 @@ table.form-table td .updated p {
 
 .application-password-display input.code {
 	margin-bottom: 6px;
-	width: 19em;
+	width: 100%;
+	max-width: 20em;
 }
 
 .auth-app-card.card {
@@ -1224,8 +1241,7 @@ table.form-table td .updated p {
 .options-general-php input.small-text {
 	width: 56px;
 	margin: -2px 0;
-	min-height: 24px;
-	line-height: 1.71428571; /* 24px for 14px font size */
+	min-height: 32px;
 }
 
 .options-general-php .spinner {
@@ -1588,7 +1604,6 @@ table.form-table td .updated p {
 		-webkit-appearance: none;
 		padding: 0 12px;
 		min-height: 40px;
-		line-height: 2.5; /* 40px for 16px font */
 	}
 
 	::-webkit-datetime-edit {

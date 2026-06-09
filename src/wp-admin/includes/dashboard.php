@@ -769,7 +769,8 @@ function _wp_dashboard_recent_comments_row( &$comment, $show_date = true ) {
 			$comment->comment_ID,
 			$comment->comment_post_ID,
 			esc_attr__( 'Reply to this comment' ),
-			__( 'Reply' )
+			/* translators: Comment reply button text. */
+			_x( 'Reply', 'verb' )
 		);
 
 		$actions['spam'] = sprintf(
@@ -1645,7 +1646,7 @@ function wp_dashboard_primary_output( $widget_id, $feeds ) {
  *
  * @since 3.0.0
  *
- * @return true|void True if not multisite, user can't upload files, or the space check option is disabled.
+ * @return true|null True if not multisite, user can't upload files, or the space check option is disabled.
  */
 function wp_dashboard_quota() {
 	if ( ! is_multisite() || ! current_user_can( 'upload_files' )
@@ -1706,6 +1707,7 @@ function wp_dashboard_quota() {
 	</ul>
 	</div>
 	<?php
+	return null;
 }
 
 /**
