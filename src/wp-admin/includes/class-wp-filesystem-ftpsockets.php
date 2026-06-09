@@ -262,7 +262,7 @@ class WP_Filesystem_ftpsockets extends WP_Filesystem_Base {
 
 		fseek( $temphandle, 0 ); // Skip back to the start of the file being written to.
 
-		$ret = $this->ftp->fput( $file, $temphandle );
+		$ret = (bool) $this->ftp->fput( $file, $temphandle );
 
 		reset_mbstring_encoding();
 
@@ -303,7 +303,7 @@ class WP_Filesystem_ftpsockets extends WP_Filesystem_Base {
 	 * @return bool True on success, false on failure.
 	 */
 	public function chdir( $dir ) {
-		return $this->ftp->chdir( $dir );
+		return (bool) $this->ftp->chdir( $dir );
 	}
 
 	/**
@@ -339,7 +339,7 @@ class WP_Filesystem_ftpsockets extends WP_Filesystem_Base {
 		}
 
 		// chmod the file or directory.
-		return $this->ftp->chmod( $file, $mode );
+		return (bool) $this->ftp->chmod( $file, $mode );
 	}
 
 	/**
@@ -430,7 +430,7 @@ class WP_Filesystem_ftpsockets extends WP_Filesystem_Base {
 	 * @return bool True on success, false on failure.
 	 */
 	public function move( $source, $destination, $overwrite = false ) {
-		return $this->ftp->rename( $source, $destination );
+		return (bool) $this->ftp->rename( $source, $destination );
 	}
 
 	/**
@@ -451,14 +451,14 @@ class WP_Filesystem_ftpsockets extends WP_Filesystem_Base {
 		}
 
 		if ( 'f' === $type || $this->is_file( $file ) ) {
-			return $this->ftp->delete( $file );
+			return (bool) $this->ftp->delete( $file );
 		}
 
 		if ( ! $recursive ) {
-			return $this->ftp->rmdir( $file );
+			return (bool) $this->ftp->rmdir( $file );
 		}
 
-		return $this->ftp->mdel( $file );
+		return (bool) $this->ftp->mdel( $file );
 	}
 
 	/**
@@ -578,7 +578,11 @@ class WP_Filesystem_ftpsockets extends WP_Filesystem_Base {
 	 * @return int|false Unix timestamp representing modification time, false on failure.
 	 */
 	public function mtime( $file ) {
-		return $this->ftp->mdtm( $file );
+		$modified_time = $this->ftp->mdtm( $file );
+		if ( false === $modified_time ) {
+			return false;
+		}
+		return (int) $modified_time;
 	}
 
 	/**
@@ -590,7 +594,11 @@ class WP_Filesystem_ftpsockets extends WP_Filesystem_Base {
 	 * @return int|false Size of the file in bytes on success, false on failure.
 	 */
 	public function size( $file ) {
-		return $this->ftp->filesize( $file );
+		$size = $this->ftp->filesize( $file );
+		if ( false === $size ) {
+			return false;
+		}
+		return (int) $size;
 	}
 
 	/**
@@ -705,9 +713,10 @@ class WP_Filesystem_ftpsockets extends WP_Filesystem_Base {
 
 		mbstring_binary_safe_encoding();
 
+		/** @var array<string, FileListing>|false $list */
 		$list = $this->ftp->dirlist( $path );
 
-		if ( empty( $list ) && ! $this->exists( $path ) ) {
+		if ( ! $list || ! $this->exists( $path ) ) {
 
 			reset_mbstring_encoding();
 
@@ -740,12 +749,14 @@ class WP_Filesystem_ftpsockets extends WP_Filesystem_Base {
 			}
 
 			// Replace symlinks formatted as "source -> target" with just the source name.
-			if ( $struc['islink'] ) {
-				$struc['name'] = preg_replace( '/(\s*->\s*.*)$/', '', $struc['name'] );
+			if ( $struc['islink'] ?? false ) {
+				$struc['name'] = (string) preg_replace( '/(\s*->\s*.*)$/', '', $struc['name'] );
 			}
 
 			// Add the octal representation of the file permissions.
-			$struc['permsn'] = $this->getnumchmodfromh( $struc['perms'] );
+			if ( isset( $struc['perms'] ) ) {
+				$struc['permsn'] = $this->getnumchmodfromh( $struc['perms'] );
+			}
 
 			$ret[ $struc['name'] ] = $struc;
 		}

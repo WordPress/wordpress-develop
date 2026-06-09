@@ -23,6 +23,8 @@
  *     lastmod?: string|false,
  *     time: string|false,
  *     type: string,
+ *     islink?: bool,
+ *     isdir?: bool,
  *     files?: mixed[]|false, // The mixed[] is actually FileListing[] but PHPStan does not support recursive or self-referencing array shapes.
  * }
  */
