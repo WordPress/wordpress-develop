@@ -1457,7 +1457,7 @@ function wp_print_community_events_templates() {
 							);
 						#>
 							{{ 'wordcamp' === event.type ? 'WordCamp' : titleCaseEventType }}
-							<span class="ce-separator"></span>
+							<span class="ce-separator" aria-hidden="true"></span>
 						<# } #>
 						<span class="event-city">{{ event.location.location }}</span>
 					</div>

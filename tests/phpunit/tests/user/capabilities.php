@@ -993,6 +993,42 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test adding capabilities, roles, and allcaps manually to a user.
+	 *
+	 * @ticket 58001
+	 *
+	 * @dataProvider data_add_user_properties_manually
+	 *
+	 * @param string $property_name  The property name to set.
+	 * @param array  $property_value The property value to set.
+	 * @param bool   $check_null     Whether to check that the property is null after unsetting it.
+	 */
+	public function test_add_user_properties_manually( $property_name, $property_value, $check_null ) {
+		$id                     = self::factory()->user->create();
+		$user                   = new WP_User( $id );
+		$user->{$property_name} = $property_value;
+
+		$this->assertSameSets( $property_value, $user->{$property_name}, "User property {$property_name} was not set correctly." );
+		unset( $user->{$property_name} );
+		if ( $check_null ) {
+			$this->assertNull( $user->{$property_name}, "User property {$property_name} should be null after unsetting it." );
+		}
+	}
+
+	/**
+	 * Data provider for test_add_user_properties_manually.
+	 *
+	 * @return array<string, array{0:string,1:array}>
+	 */
+	public function data_add_user_properties_manually() {
+		return array(
+			'caps'    => array( 'caps', array( 'foo' => true ), false ),
+			'roles'   => array( 'roles', array( 'foo' => true ), true ),
+			'allcaps' => array( 'allcaps', array( 'foo' => true ), true ),
+		);
+	}
+
+	/**
 	 * Test add_role with implied capabilities grant successfully grants capabilities.
 	 *
 	 * @ticket 43421
@@ -1098,6 +1134,41 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		remove_role( $role_name );
 		$this->flush_roles();
 		$this->assertFalse( $wp_roles->is_role( $role_name ) );
+	}
+
+	/**
+	 * @ticket 58001
+	 */
+	public function test_get_role_caps() {
+		$id_1   = self::$users['contributor']->ID;
+		$user_1 = new WP_User( $id_1 );
+
+		$role_caps = $user_1->get_role_caps();
+		$this->assertIsArray( $role_caps, 'User role capabilities should be an array' );
+		$this->assertArrayHasKey( 'edit_posts', $role_caps, 'User role capabilities should contain the edit_posts capability' );
+	}
+
+	/**
+	 * @ticket 58001
+	 */
+	public function test_user_lazy_capabilities() {
+		$id_1   = self::$users['contributor']->ID;
+		$user_1 = new WP_User( $id_1 );
+
+		$this->assertTrue( isset( $user_1->roles ), 'User roles should be set' );
+		$this->assertTrue( isset( $user_1->allcaps ), 'User all capabilities should be set' );
+		$this->assertTrue( isset( $user_1->caps ), 'User capabilities should be set' );
+		$this->assertIsArray( $user_1->roles, 'User roles should be an array' );
+		$this->assertSame( array( 'contributor' ), $user_1->roles, 'User roles should match' );
+		$this->assertIsArray( $user_1->allcaps, 'User allcaps should be an array' );
+		$this->assertIsArray( $user_1->caps, 'User caps should be an array' );
+
+		$caps = $this->getAllCapsAndRoles();
+		foreach ( $caps as $cap => $roles ) {
+			if ( in_array( 'contributor', $roles, true ) ) {
+				$this->assertTrue( $user_1->has_cap( $cap ), "User should have the {$cap} capability" );
+			}
+		}
 	}
 
 	/**

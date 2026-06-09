@@ -43,11 +43,11 @@
  * @return int How many code points were successfully scanned.
  */
 function _wp_scan_utf8( string $bytes, int &$at, int &$invalid_length, ?int $max_bytes = null, ?int $max_code_points = null ): int {
-	$byte_length       = strlen( $bytes );
-	$end               = min( $byte_length, $at + ( $max_bytes ?? PHP_INT_MAX ) );
-	$invalid_length    = 0;
-	$count             = 0;
-	$max_count         = $max_code_points ?? PHP_INT_MAX;
+	$byte_length    = strlen( $bytes );
+	$end            = min( $byte_length, $at + ( $max_bytes ?? PHP_INT_MAX ) );
+	$invalid_length = 0;
+	$count          = 0;
+	$max_count      = $max_code_points ?? PHP_INT_MAX;
 
 	for ( $i = $at; $i < $end && $count <= $max_count; $i++ ) {
 		/*
@@ -230,7 +230,7 @@ function _wp_scan_utf8( string $bytes, int &$at, int &$invalid_length, ?int $max
  * @since 6.9.0
  * @access private
  *
- * @see wp_is_valid_utf6()
+ * @see wp_is_valid_utf8()
  *
  * @param string $bytes String which might contain text encoded as UTF-8.
  * @return bool Whether the provided bytes can decode as valid UTF-8.

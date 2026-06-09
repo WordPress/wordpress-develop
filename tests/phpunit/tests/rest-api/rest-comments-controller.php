@@ -2493,6 +2493,30 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertErrorResponse( 'rest_comment_content_invalid', $response, 400 );
 	}
 
+	/**
+	 * @ticket 64049
+	 */
+	public function test_update_item_no_content_allow_empty_comment_filter() {
+		$post_id = self::factory()->post->create();
+
+		wp_set_current_user( self::$admin_id );
+
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/comments/%d', self::$approved_id ) );
+		$request->set_param( 'author_email', 'another@email.com' );
+
+		// Sending a request without content is fine.
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status() );
+
+		// Sending a request with empty comment content is also fine.
+		$request->set_param( 'author_email', 'yetanother@email.com' );
+		$request->set_param( 'content', '' );
+		add_filter( 'allow_empty_comment', '__return_true' );
+		$response = rest_get_server()->dispatch( $request );
+		remove_filter( 'allow_empty_comment', '__return_true' );
+		$this->assertSame( 200, $response->get_status() );
+	}
+
 	public function test_update_item_no_change() {
 		$comment = get_comment( self::$approved_id );
 

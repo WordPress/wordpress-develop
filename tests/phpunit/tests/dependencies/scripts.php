@@ -1232,10 +1232,11 @@ HTML
 				'fetchpriority' => 'high',
 			)
 		);
+		// Note: All of these scripts have fetchpriority=high because the leaf dependent script has that fetch priority.
 		$output    = get_echo( 'wp_print_scripts' );
-		$expected  = "<script type='text/javascript' src='/main-script-d4.js' id='main-script-d4-js' defer='defer' data-wp-strategy='defer'></script>\n";
-		$expected .= "<script type='text/javascript' src='/dependent-script-d4-1.js' id='dependent-script-d4-1-js' defer='defer' data-wp-strategy='defer'></script>\n";
-		$expected .= "<script type='text/javascript' src='/dependent-script-d4-2.js' id='dependent-script-d4-2-js' defer='defer' data-wp-strategy='async' fetchpriority='low'></script>\n";
+		$expected  = "<script type='text/javascript' src='/main-script-d4.js'        id='main-script-d4-js'        defer='defer' data-wp-strategy='defer' fetchpriority='high' data-wp-fetchpriority='auto'></script>\n";
+		$expected .= "<script type='text/javascript' src='/dependent-script-d4-1.js' id='dependent-script-d4-1-js' defer='defer' data-wp-strategy='defer' fetchpriority='high' data-wp-fetchpriority='auto'></script>\n";
+		$expected .= "<script type='text/javascript' src='/dependent-script-d4-2.js' id='dependent-script-d4-2-js' defer='defer' data-wp-strategy='async' fetchpriority='high' data-wp-fetchpriority='low'></script>\n";
 		$expected .= "<script type='text/javascript' src='/dependent-script-d4-3.js' id='dependent-script-d4-3-js' defer='defer' data-wp-strategy='defer' fetchpriority='high'></script>\n";
 
 		$this->assertEqualHTML( $expected, $output, '<body>', 'Scripts registered as defer but that have dependents that are async are expected to have said dependents deferred.' );
@@ -1341,6 +1342,150 @@ HTML
 	public function test_invalid_fetchpriority_on_alias() {
 		wp_register_script( 'alias', false, array(), null, array( 'fetchpriority' => 'low' ) );
 		$this->assertArrayNotHasKey( 'fetchpriority', wp_scripts()->registered['alias']->extra );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{enqueues: string[], expected: string}>
+	 */
+	public function data_provider_to_test_fetchpriority_bumping(): array {
+		return array(
+			'enqueue_bajo' => array(
+				'enqueues' => array( 'bajo' ),
+				'expected' => '<script fetchpriority="low" id="bajo-js" src="/bajo.js" type="text/javascript"></script>',
+			),
+			'enqueue_auto' => array(
+				'enqueues' => array( 'auto' ),
+				'expected' => '
+					<script type="text/javascript" src="/bajo.js" id="bajo-js" data-wp-fetchpriority="low"></script>
+					<script type="text/javascript" src="/auto.js" id="auto-js"></script>
+				',
+			),
+			'enqueue_alto' => array(
+				'enqueues' => array( 'alto' ),
+				'expected' => '
+					<script type="text/javascript" src="/bajo.js" id="bajo-js" fetchpriority="high" data-wp-fetchpriority="low"></script>
+					<script type="text/javascript" src="/auto.js" id="auto-js" fetchpriority="high" data-wp-fetchpriority="auto"></script>
+					<script type="text/javascript" src="/alto.js" id="alto-js" fetchpriority="high"></script>
+				',
+			),
+		);
+	}
+
+	/**
+	 * Tests a higher fetchpriority on a dependent script module causes the fetchpriority of a dependency script module to be bumped.
+	 *
+	 * @ticket 61734
+	 *
+	 * @covers WP_Scripts::get_dependents
+	 * @covers WP_Scripts::get_highest_fetchpriority_with_dependents
+	 * @covers WP_Scripts::do_item
+	 *
+	 * @dataProvider data_provider_to_test_fetchpriority_bumping
+	 */
+	public function test_fetchpriority_bumping( array $enqueues, string $expected ) {
+		wp_register_script( 'bajo', '/bajo.js', array(), null, array( 'fetchpriority' => 'low' ) );
+		wp_register_script( 'auto', '/auto.js', array( 'bajo' ), null, array( 'fetchpriority' => 'auto' ) );
+		wp_register_script( 'alto', '/alto.js', array( 'auto' ), null, array( 'fetchpriority' => 'high' ) );
+
+		foreach ( $enqueues as $enqueue ) {
+			wp_enqueue_script( $enqueue );
+		}
+
+		$actual = get_echo( 'wp_print_scripts' );
+		$this->assertEqualHTML( $expected, $actual, '<body>', "Snapshot:\n$actual" );
+	}
+
+	/**
+	 * Tests bumping fetchpriority with complex dependency graph.
+	 *
+	 * @ticket 61734
+	 * @link https://github.com/WordPress/wordpress-develop/pull/9770#issuecomment-3280065818
+	 *
+	 * @covers WP_Scripts::get_dependents
+	 * @covers WP_Scripts::get_highest_fetchpriority_with_dependents
+	 * @covers WP_Scripts::do_item
+	 */
+	public function test_fetchpriority_bumping_a_to_z() {
+		wp_register_script( 'a', '/a.js', array( 'b' ), null, array( 'fetchpriority' => 'low' ) );
+		wp_register_script( 'b', '/b.js', array( 'c' ), null, array( 'fetchpriority' => 'auto' ) );
+		wp_register_script( 'c', '/c.js', array( 'd', 'e' ), null, array( 'fetchpriority' => 'auto' ) );
+		wp_register_script( 'd', '/d.js', array( 'z' ), null, array( 'fetchpriority' => 'high' ) );
+		wp_register_script( 'e', '/e.js', array(), null, array( 'fetchpriority' => 'auto' ) );
+
+		wp_register_script( 'x', '/x.js', array( 'd', 'y' ), null, array( 'fetchpriority' => 'high' ) );
+		wp_register_script( 'y', '/y.js', array( 'z' ), null, array( 'fetchpriority' => 'auto' ) );
+		wp_register_script( 'z', '/z.js', array(), null, array( 'fetchpriority' => 'auto' ) );
+
+		wp_enqueue_script( 'a' );
+		wp_enqueue_script( 'x' );
+
+		$actual   = get_echo( 'wp_print_scripts' );
+		$expected = '
+			<script type="text/javascript" src="/z.js" id="z-js" fetchpriority="high" data-wp-fetchpriority="auto"></script>
+			<script type="text/javascript" src="/d.js" id="d-js" fetchpriority="high"></script>
+			<script type="text/javascript" src="/e.js" id="e-js"></script>
+			<script type="text/javascript" src="/c.js" id="c-js"></script>
+			<script type="text/javascript" src="/b.js" id="b-js"></script>
+			<script type="text/javascript" src="/a.js" id="a-js" fetchpriority="low"></script>
+			<script type="text/javascript" src="/y.js" id="y-js" fetchpriority="high" data-wp-fetchpriority="auto"></script>
+			<script type="text/javascript" src="/x.js" id="x-js" fetchpriority="high"></script>
+		';
+		$this->assertEqualHTML( $expected, $actual, '<body>', "Snapshot:\n$actual" );
+	}
+
+	/**
+	 * Tests that printing a script without enqueueing has the same output as when it is enqueued.
+	 *
+	 * @ticket 61734
+	 *
+	 * @covers WP_Scripts::do_item
+	 * @covers WP_Scripts::do_items
+	 * @covers ::wp_default_scripts
+	 *
+	 * @dataProvider data_provider_enqueue_or_not_to_enqueue
+	 */
+	public function test_printing_default_script_comment_reply_enqueued_or_not_enqueued( bool $enqueue ) {
+		$wp_scripts = wp_scripts();
+		wp_default_scripts( $wp_scripts );
+
+		$this->assertArrayHasKey( 'comment-reply', $wp_scripts->registered );
+		$wp_scripts->registered['comment-reply']->ver = null;
+		$this->assertArrayHasKey( 'fetchpriority', $wp_scripts->registered['comment-reply']->extra );
+		$this->assertSame( 'low', $wp_scripts->registered['comment-reply']->extra['fetchpriority'] );
+		$this->assertArrayHasKey( 'strategy', $wp_scripts->registered['comment-reply']->extra );
+		$this->assertSame( 'async', $wp_scripts->registered['comment-reply']->extra['strategy'] );
+		if ( $enqueue ) {
+			wp_enqueue_script( 'comment-reply' );
+			$markup = get_echo( array( $wp_scripts, 'do_items' ), array( false ) );
+		} else {
+			$markup = get_echo( array( $wp_scripts, 'do_items' ), array( array( 'comment-reply' ) ) );
+		}
+
+		$this->assertEqualHTML(
+			sprintf(
+				'<script type="text/javascript" src="%s" id="comment-reply-js" async="async" data-wp-strategy="async" fetchpriority="low"></script>',
+				includes_url( 'js/comment-reply.js' )
+			),
+			$markup
+		);
+	}
+
+	/**
+	 * Data provider for test_default_scripts_comment_reply_not_enqueued.
+	 *
+	 * @return array[]
+	 */
+	public static function data_provider_enqueue_or_not_to_enqueue(): array {
+		return array(
+			'not_enqueued' => array(
+				false,
+			),
+			'enqueued'     => array(
+				true,
+			),
+		);
 	}
 
 	/**

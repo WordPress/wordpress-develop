@@ -31,9 +31,21 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 
 		global $post_ID;
 		$post_ID = 1;
+
+		global $wp_scripts, $wp_styles;
+		$this->original_wp_scripts = $wp_scripts;
+		$this->original_wp_styles  = $wp_styles;
+		$wp_scripts                = null;
+		$wp_styles                 = null;
+		wp_scripts();
+		wp_styles();
 	}
 
 	public function tear_down() {
+		global $wp_scripts, $wp_styles;
+		$wp_scripts = $this->original_wp_scripts;
+		$wp_styles  = $this->original_wp_styles;
+
 		/** @var WP_REST_Server $wp_rest_server */
 		global $wp_rest_server;
 		$wp_rest_server = null;
@@ -41,6 +53,16 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 		$post_ID = null;
 		parent::tear_down();
 	}
+
+	/**
+	 * @var WP_Scripts|null
+	 */
+	protected $original_wp_scripts;
+
+	/**
+	 * @var WP_Styles|null
+	 */
+	protected $original_wp_styles;
 
 	public function filter_set_block_categories_post( $block_categories, $post ) {
 		if ( empty( $post ) ) {

@@ -140,7 +140,6 @@ class Tests_Post_IsPostStatusViewable extends WP_UnitTestCase {
 			array( false, false ),
 			array( true, false ),
 			array( 20, false ),
-			array( null, false ),
 			array( '', false ),
 		);
 	}

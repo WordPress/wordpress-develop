@@ -130,6 +130,28 @@ updates:
 
   # Monitor npm dependencies within default themes.
   - package-ecosystem: "npm"
+    directory: "/src/wp-content/themes/twentytwentyfive"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 20
+    groups:
+      twentytwentyfive-css:
+        patterns:
+          - "**browserslist*"
+          - "*css*"
+
+  - package-ecosystem: "npm"
+    directory: "/src/wp-content/themes/twentytwentytwo"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 20
+    groups:
+      twentytwentytwo-css:
+        patterns:
+          - "**browserslist*"
+          - "*css*"
+
+  - package-ecosystem: "npm"
     directory: "/src/wp-content/themes/twentytwentyone"
     schedule:
       interval: "weekly"

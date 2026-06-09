@@ -70,7 +70,7 @@ services:
       - wpdevnet
 
     ports:
-      - "3306"
+      - "${LOCAL_DB_PORTS-3306}"
 
     environment:
       MYSQL_ROOT_PASSWORD: password

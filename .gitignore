@@ -88,6 +88,12 @@ wp-tests-config.php
 /src/wp-content/themes/twentynineteen/node_modules
 /src/wp-content/themes/twentytwentyone/node_modules
 /src/wp-content/themes/twentytwenty/node_modules
+/src/wp-content/themes/twentytwentytwo/node_modules
+/src/wp-content/themes/twentytwentyfive/node_modules
+
+# Minified files in bundled themes
+/src/wp-content/themes/twentytwentytwo/*.min.css
+/src/wp-content/themes/twentytwentyfive/*.min.css
 
 # Operating system specific files
 .DS_Store

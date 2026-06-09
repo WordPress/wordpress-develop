@@ -246,9 +246,8 @@
 }
 
 .media-modal-close .media-modal-icon:before {
-	content: "\f158";
+	content: "\f158" / '';
 	font: normal 20px/1 dashicons;
-	speak: never;
 	vertical-align: middle;
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
@@ -1240,7 +1239,7 @@
 	font: normal 30px/1 dashicons !important;
 	color: #50575e;
 	display: inline-block;
-	content: "\f335";
+	content: "\f335" / '';
 	font-weight: 300;
 	margin-top: 1px;
 }
@@ -1994,7 +1993,7 @@
 }
 
 .media-modal .imgedit-help-toggled span.dashicons:before {
-	content: "\f142";
+	content: "\f142" / '';
 }
 
 .media-modal .imgedit-thumbnail-preview {
@@ -2173,17 +2172,16 @@
 
 .image-details .advanced-toggle:after {
 	font: normal 20px/1 dashicons;
-	speak: never;
 	vertical-align: top;
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
-	content: "\f140";
+	content: "\f140" / '';
 	display: inline-block;
 	margin-top: -2px;
 }
 
 .image-details .advanced-visible .advanced-toggle:after {
-	content: "\f142";
+	content: "\f142" / '';
 }
 
 .image-details .custom-size label, /* Back-compat for pre-5.3 */

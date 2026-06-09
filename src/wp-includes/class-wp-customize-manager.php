@@ -437,7 +437,7 @@ final class WP_Customize_Manager {
 			} )( wp.customize, <?php echo wp_json_encode( $settings, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ); ?> );
 			</script>
 			<?php
-			$message .= wp_get_inline_script_tag( wp_remove_surrounding_empty_script_tags( ob_get_clean() ) );
+			$message .= wp_get_inline_script_tag( wp_remove_surrounding_empty_script_tags( ob_get_clean() ) . "\n//# sourceURL=" . rawurlencode( __METHOD__ ) );
 		}
 
 		wp_die( $message );
@@ -2063,7 +2063,7 @@ final class WP_Customize_Manager {
 		} )();
 		</script>
 		<?php
-		wp_print_inline_script_tag( wp_remove_surrounding_empty_script_tags( ob_get_clean() ) );
+		wp_print_inline_script_tag( wp_remove_surrounding_empty_script_tags( ob_get_clean() ) . "\n//# sourceURL=" . rawurlencode( __METHOD__ ) );
 	}
 
 	/**
@@ -2185,7 +2185,7 @@ final class WP_Customize_Manager {
 			})( _wpCustomizeSettings.values );
 		</script>
 		<?php
-		wp_print_inline_script_tag( wp_remove_surrounding_empty_script_tags( ob_get_clean() ) );
+		wp_print_inline_script_tag( wp_remove_surrounding_empty_script_tags( ob_get_clean() ) . "\n//# sourceURL=" . rawurlencode( __METHOD__ ) );
 	}
 
 	/**
@@ -4980,7 +4980,7 @@ final class WP_Customize_Manager {
 			?>
 		</script>
 		<?php
-		wp_print_inline_script_tag( wp_remove_surrounding_empty_script_tags( ob_get_clean() ) );
+		wp_print_inline_script_tag( wp_remove_surrounding_empty_script_tags( ob_get_clean() ) . "\n//# sourceURL=" . rawurlencode( __METHOD__ ) );
 	}
 
 	/**

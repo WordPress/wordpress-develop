@@ -47,6 +47,7 @@ final class WP_Autoload {
 		'wp_block_parser'                             => 'wp-includes/class-wp-block-parser.php',
 		'wp_block_pattern_categories_registry'        => 'wp-includes/class-wp-block-pattern-categories-registry.php',
 		'wp_block_patterns_registry'                  => 'wp-includes/class-wp-block-patterns-registry.php',
+		'wp_block_processor'                          => 'wp-includes/class-wp-block-processor.php',
 		'wp_block_styles_registry'                    => 'wp-includes/class-wp-block-styles-registry.php',
 		'wp_block_supports'                           => 'wp-includes/class-wp-block-supports.php',
 		'wp_block_template'                           => 'wp-includes/class-wp-block-template.php',
