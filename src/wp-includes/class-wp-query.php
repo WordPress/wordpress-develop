@@ -4019,7 +4019,6 @@ class WP_Query {
 			}
 		} elseif ( $this->is_post_type_archive ) {
 			$post_type = $this->get( 'post_type' );
-
 			if ( is_array( $post_type ) ) {
 				$post_type = reset( $post_type );
 			}
@@ -4041,7 +4040,6 @@ class WP_Query {
 				$this->queried_object_id = $author;
 			} elseif ( $author_name ) {
 				$user = get_user_by( 'slug', $author_name );
-
 				if ( $user ) {
 					$this->queried_object_id = $user->ID;
 				}
@@ -4049,7 +4047,6 @@ class WP_Query {
 
 			if ( $this->queried_object_id ) {
 				$user = get_userdata( $this->queried_object_id );
-
 				if ( $user ) {
 					$this->queried_object = $user;
 				}
