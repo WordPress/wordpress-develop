@@ -570,6 +570,9 @@ class WP_Test_REST_Autosaves_Controller extends WP_Test_REST_Post_Type_Controlle
 	}
 
 	public function test_rest_autosave_draft_post_same_author() {
+		$original_option = get_option( 'enable_real_time_collaboration' );
+		update_option( 'enable_real_time_collaboration', false );
+
 		wp_set_current_user( self::$editor_id );
 
 		$post_data = array(
@@ -604,6 +607,7 @@ class WP_Test_REST_Autosaves_Controller extends WP_Test_REST_Post_Type_Controlle
 		$this->assertSame( $post_data['post_excerpt'], $post->post_excerpt );
 
 		wp_delete_post( $post_id );
+		update_option( 'enable_real_time_collaboration', $original_option );
 	}
 
 	public function test_rest_autosave_draft_post_different_author() {
@@ -744,6 +748,9 @@ class WP_Test_REST_Autosaves_Controller extends WP_Test_REST_Post_Type_Controlle
 	}
 
 	public function test_update_item_draft_page_with_parent() {
+		$original_option = get_option( 'enable_real_time_collaboration' );
+		update_option( 'enable_real_time_collaboration', false );
+
 		wp_set_current_user( self::$editor_id );
 		$request = new WP_REST_Request( 'POST', '/wp/v2/pages/' . self::$child_draft_page_id . '/autosaves' );
 		$request->add_header( 'Content-Type', 'application/x-www-form-urlencoded' );
@@ -761,6 +768,7 @@ class WP_Test_REST_Autosaves_Controller extends WP_Test_REST_Post_Type_Controlle
 
 		$this->assertSame( self::$child_draft_page_id, $data['id'] );
 		$this->assertSame( self::$parent_page_id, $data['parent'] );
+		update_option( 'enable_real_time_collaboration', $original_option );
 	}
 
 	public function test_schema_validation_is_applied() {
@@ -919,5 +927,82 @@ class WP_Test_REST_Autosaves_Controller extends WP_Test_REST_Post_Type_Controlle
 			'get_item request'  => array( '/wp/v2/posts/%d/autosaves/%d' ),
 			'get_items request' => array( '/wp/v2/posts/%d' ),
 		);
+	}
+
+	/**
+	 * When real-time collaboration is enabled, autosaving a draft post by the
+	 * same author should create a revision instead of updating the post directly.
+	 */
+	public function test_rest_autosave_draft_post_same_author_with_rtc() {
+		$original_option = get_option( 'enable_real_time_collaboration' );
+		update_option( 'enable_real_time_collaboration', true );
+
+		wp_set_current_user( self::$editor_id );
+
+		$post_data = array(
+			'post_content' => 'Test post content',
+			'post_title'   => 'Test post title',
+			'post_excerpt' => 'Test post excerpt',
+		);
+		$post_id   = wp_insert_post( $post_data );
+
+		$autosave_data = array(
+			'id'      => $post_id,
+			'content' => 'Updated post \ content',
+			'title'   => 'Updated post title',
+		);
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/posts/' . self::$post_id . '/autosaves' );
+		$request->add_header( 'Content-Type', 'application/json' );
+		$request->set_body( wp_json_encode( $autosave_data ) );
+
+		$response = rest_get_server()->dispatch( $request );
+		$new_data = $response->get_data();
+		$post     = get_post( $post_id );
+
+		// With RTC enabled, a revision is created instead of updating the post.
+		$this->assertNotSame( $post_id, $new_data['id'] );
+		$this->assertSame( $post_id, $new_data['parent'] );
+
+		// The autosave revision should have the updated content.
+		$this->assertSame( $autosave_data['content'], $new_data['content']['raw'] );
+		$this->assertSame( $autosave_data['title'], $new_data['title']['raw'] );
+
+		// The draft post should not be updated.
+		$this->assertSame( $post_data['post_content'], $post->post_content );
+		$this->assertSame( $post_data['post_title'], $post->post_title );
+		$this->assertSame( $post_data['post_excerpt'], $post->post_excerpt );
+
+		wp_delete_post( $post_id );
+		update_option( 'enable_real_time_collaboration', $original_option );
+	}
+
+	/**
+	 * When real-time collaboration is enabled, autosaving a draft page with
+	 * a parent should create a revision instead of updating the page directly.
+	 */
+	public function test_update_item_draft_page_with_parent_with_rtc() {
+		$original_option = get_option( 'enable_real_time_collaboration' );
+		update_option( 'enable_real_time_collaboration', true );
+
+		wp_set_current_user( self::$editor_id );
+		$request = new WP_REST_Request( 'POST', '/wp/v2/pages/' . self::$child_draft_page_id . '/autosaves' );
+		$request->add_header( 'Content-Type', 'application/x-www-form-urlencoded' );
+
+		$params = $this->set_post_data(
+			array(
+				'id'     => self::$child_draft_page_id,
+				'author' => self::$editor_id,
+			)
+		);
+
+		$request->set_body_params( $params );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		// With RTC enabled, a revision is created instead of updating the page.
+		$this->assertNotSame( self::$child_draft_page_id, $data['id'] );
+		$this->assertSame( self::$child_draft_page_id, $data['parent'] );
+		update_option( 'enable_real_time_collaboration', $original_option );
 	}
 }

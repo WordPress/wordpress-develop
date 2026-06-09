@@ -35,6 +35,12 @@ final class WP_Autoload {
 		'walker_pagedropdown'                         => 'wp-includes/class-walker-page-dropdown.php',
 		'walker_page'                                 => 'wp-includes/class-walker-page.php',
 		'wp_admin_bar'                                => 'wp-includes/class-wp-admin-bar.php',
+		'wp_ai_client_ability_function_resolver'      => 'wp-includes/ai-client/class-wp-ai-client-ability-function-resolver.php',
+		'wp_ai_client_cache'                          => 'wp-includes/ai-client/adapters/class-wp-ai-client-cache.php',
+		'wp_ai_client_discovery_strategy'             => 'wp-includes/ai-client/adapters/class-wp-ai-client-discovery-strategy.php',
+		'wp_ai_client_event_dispatcher'               => 'wp-includes/ai-client/adapters/class-wp-ai-client-event-dispatcher.php',
+		'wp_ai_client_http_client'                    => 'wp-includes/ai-client/adapters/class-wp-ai-client-http-client.php',
+		'wp_ai_client_prompt_builder'                 => 'wp-includes/ai-client/class-wp-ai-client-prompt-builder.php',
 		'wp_ajax_response'                            => 'wp-includes/class-wp-ajax-response.php',
 		'wp_application_passwords'                    => 'wp-includes/class-wp-application-passwords.php',
 		'wp_block_bindings_registry'                  => 'wp-includes/class-wp-block-bindings-registry.php',
@@ -483,6 +489,7 @@ final class WP_Autoload {
 	public static function register_external_bundled() {
 		require_once ABSPATH . 'wp-includes/Requests/src/Autoload.php';
 		require_once ABSPATH . 'wp-includes/class-simplepie.php';
+		require_once ABSPATH . 'wp-includes/php-ai-client/autoload.php';
 		require_once ABSPATH . 'wp-includes/sodium_compat/autoload.php';
 
 		spl_autoload_register( array( '\WpOrg\Requests\Autoload', 'load' ) );
