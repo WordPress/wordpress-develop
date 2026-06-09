@@ -83,6 +83,7 @@ final class WP_Autoload {
 		'wp_fatal_error_handler'                      => 'wp-includes/class-wp-fatal-error-handler.php',
 		'wp_feed_cache_transient'                     => 'wp-includes/class-wp-feed-cache-transient.php',
 		'wp_feed_cache'                               => 'wp-includes/class-wp-feed-cache.php',
+		'wp_filter_sentinel'                          => 'wp-includes/class-wp-filter-sentinel.php',
 		'wp_hook'                                     => 'wp-includes/class-wp-hook.php',
 		'wp_http_cookie'                              => 'wp-includes/class-wp-http-cookie.php',
 		'wp_http_curl'                                => 'wp-includes/class-wp-http-curl.php',
