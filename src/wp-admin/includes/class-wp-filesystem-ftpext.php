@@ -17,7 +17,6 @@
  *     username: non-empty-string,
  *     password: string,
  *     port: non-negative-int,
- *     connection_type?: 'ftps',
  *     ssl: bool,
  * }
  */
