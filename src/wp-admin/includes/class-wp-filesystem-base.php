@@ -41,7 +41,7 @@ class WP_Filesystem_Base {
 	 * Cached list of local filepaths to mapped remote filepaths.
 	 *
 	 * @since 2.7.0
-	 * @var array
+	 * @var array<string, string>
 	 */
 	public $cache = array();
 
@@ -68,7 +68,7 @@ class WP_Filesystem_Base {
 	 *
 	 * @since 2.7.0
 	 *
-	 * @return string The location of the remote path.
+	 * @return string|false The location of the remote path, or false on failure.
 	 */
 	public function abspath() {
 		$folder = $this->find_folder( ABSPATH );
@@ -89,7 +89,7 @@ class WP_Filesystem_Base {
 	 *
 	 * @since 2.7.0
 	 *
-	 * @return string The location of the remote path.
+	 * @return string|false The location of the remote path, or false on failure.
 	 */
 	public function wp_content_dir() {
 		return $this->find_folder( WP_CONTENT_DIR );
@@ -100,7 +100,7 @@ class WP_Filesystem_Base {
 	 *
 	 * @since 2.7.0
 	 *
-	 * @return string The location of the remote path.
+	 * @return string|false The location of the remote path, or false on failure.
 	 */
 	public function wp_plugins_dir() {
 		return $this->find_folder( WP_PLUGIN_DIR );
@@ -113,10 +113,10 @@ class WP_Filesystem_Base {
 	 *
 	 * @param string|false $theme Optional. The theme stylesheet or template for the directory.
 	 *                            Default false.
-	 * @return string The location of the remote path.
+	 * @return string|false The location of the remote path, or false on failure.
 	 */
 	public function wp_themes_dir( $theme = false ) {
-		$theme_root = get_theme_root( $theme );
+		$theme_root = get_theme_root( is_string( $theme ) ? $theme : '' );
 
 		// Account for relative theme roots.
 		if ( '/themes' === $theme_root || ! is_dir( $theme_root ) ) {
@@ -131,7 +131,7 @@ class WP_Filesystem_Base {
 	 *
 	 * @since 3.2.0
 	 *
-	 * @return string The location of the remote path.
+	 * @return string|false The location of the remote path, or false on failure.
 	 */
 	public function wp_lang_dir() {
 		return $this->find_folder( WP_LANG_DIR );
@@ -150,7 +150,7 @@ class WP_Filesystem_Base {
 	 *
 	 * @param string $base    Optional. The folder to start searching from. Default '.'.
 	 * @param bool   $verbose Optional. True to display debug information. Default false.
-	 * @return string The location of the remote path.
+	 * @return string|false The location of the remote path, or false on failure.
 	 */
 	public function find_base_dir( $base = '.', $verbose = false ) {
 		_deprecated_function( __FUNCTION__, '2.7.0', 'WP_Filesystem_Base::abspath() or WP_Filesystem_Base::wp_*_dir()' );
@@ -171,7 +171,7 @@ class WP_Filesystem_Base {
 	 *
 	 * @param string $base    Optional. The folder to start searching from. Default '.'.
 	 * @param bool   $verbose Optional. True to display debug information. Default false.
-	 * @return string The location of the remote path.
+	 * @return string|false The location of the remote path, or false on failure.
 	 */
 	public function get_base_dir( $base = '.', $verbose = false ) {
 		_deprecated_function( __FUNCTION__, '2.7.0', 'WP_Filesystem_Base::abspath() or WP_Filesystem_Base::wp_*_dir()' );
@@ -210,7 +210,9 @@ class WP_Filesystem_Base {
 				}
 
 				if ( $folder === $dir ) {
-					return trailingslashit( constant( $constant ) );
+					/** @var string $constant_value */
+					$constant_value = constant( $constant );
+					return trailingslashit( $constant_value );
 				}
 			}
 
@@ -221,7 +223,9 @@ class WP_Filesystem_Base {
 				}
 
 				if ( 0 === stripos( $folder, $dir ) ) { // $folder starts with $dir.
-					$potential_folder = preg_replace( '#^' . preg_quote( $dir, '#' ) . '/#i', trailingslashit( constant( $constant ) ), $folder );
+					/** @var string $constant_value */
+					$constant_value   = constant( $constant );
+					$potential_folder = (string) preg_replace( '#^' . preg_quote( $dir, '#' ) . '/#i', trailingslashit( $constant_value ), $folder );
 					$potential_folder = trailingslashit( $potential_folder );
 
 					if ( $this->is_dir( $potential_folder ) ) {
@@ -237,7 +241,7 @@ class WP_Filesystem_Base {
 			return trailingslashit( $folder );
 		}
 
-		$folder = preg_replace( '|^([a-z]{1}):|i', '', $folder ); // Strip out Windows drive letter if it's there.
+		$folder = (string) preg_replace( '|^([a-z]{1}):|i', '', $folder ); // Strip out Windows drive letter if it's there.
 		$folder = str_replace( '\\', '/', $folder ); // Windows path sanitization.
 
 		if ( isset( $this->cache[ $folder ] ) ) {
@@ -274,7 +278,10 @@ class WP_Filesystem_Base {
 	 */
 	public function search_for_folder( $folder, $base = '.', $loop = false ) {
 		if ( empty( $base ) || '.' === $base ) {
-			$base = trailingslashit( $this->cwd() );
+			$cwd = $this->cwd();
+			if ( is_string( $cwd ) ) {
+				$base = trailingslashit( $cwd );
+			}
 		}
 
 		$folder = untrailingslashit( $folder );
@@ -436,7 +443,7 @@ class WP_Filesystem_Base {
 	public function getnumchmodfromh( $mode ) {
 		$realmode = '';
 		$legal    = array( '', 'w', 'r', 'x', '-' );
-		$attarray = preg_split( '//', $mode );
+		$attarray = (array) preg_split( '//', $mode );
 
 		for ( $i = 0, $c = count( $attarray ); $i < $c; $i++ ) {
 			$key = array_search( $attarray[ $i ], $legal, true );
@@ -524,7 +531,7 @@ class WP_Filesystem_Base {
 	 * @abstract
 	 *
 	 * @param string $file Path to the file.
-	 * @return array|false File contents in an array on success, false on failure.
+	 * @return string[]|false File contents in an array on success, false on failure.
 	 */
 	public function get_contents_array( $file ) {
 		return false;
@@ -873,6 +880,7 @@ class WP_Filesystem_Base {
 	 *                                             files. False if unable to list directory contents.
 	 *     }
 	 * }
+	 * @phpstan-return FileListing[]|false
 	 */
 	public function dirlist( $path, $include_hidden = true, $recursive = false ) {
 		return false;
