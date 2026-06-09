@@ -203,6 +203,10 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 			'/wp/v2/font-families/(?P<font_family_id>[\d]+)/font-faces',
 			'/wp/v2/font-families/(?P<font_family_id>[\d]+)/font-faces/(?P<id>[\d]+)',
 			'/wp/v2/font-families/(?P<id>[\d]+)',
+			'/wp-abilities/v1',
+			'/wp-abilities/v1/abilities/(?P<name>[a-zA-Z0-9\-\/]+?)/run',
+			'/wp-abilities/v1/abilities/(?P<name>[a-zA-Z0-9\-\/]+)',
+			'/wp-abilities/v1/abilities',
 		);
 
 		$this->assertSameSets( $expected_routes, $routes );
@@ -213,7 +217,8 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 			'/' === $route ||
 			preg_match( '#^/oembed/1\.0(/.+)?$#', $route ) ||
 			preg_match( '#^/wp/v2(/.+)?$#', $route ) ||
-			preg_match( '#^/wp-site-health/v1(/.+)?$#', $route )
+			preg_match( '#^/wp-site-health/v1(/.+)?$#', $route ) ||
+			preg_match( '#^/wp-abilities/v1(/.+)?$#', $route )
 		);
 	}
 

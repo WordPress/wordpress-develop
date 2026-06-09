@@ -177,6 +177,12 @@ final class WP_Autoload {
 		'wp_interactivity_api_directives_processor'   => 'wp-includes/interactivity-api/class-wp-interactivity-api-directives-processor.php',
 		'wp_interactivity_api'                        => 'wp-includes/interactivity-api/class-wp-interactivity-api.php',
 
+		// Classes in the wp-includes/abilities-api folder.
+		'wp_abilities_registry'                       => 'wp-includes/abilities-api/class-wp-abilities-registry.php',
+		'wp_ability_categories_registry'              => 'wp-includes/abilities-api/class-wp-ability-categories-registry.php',
+		'wp_ability_category'                         => 'wp-includes/abilities-api/class-wp-ability-category.php',
+		'wp_ability'                                  => 'wp-includes/abilities-api/class-wp-ability.php',
+
 		// Classes in the wp-includes/customize/ folder.
 		'wp_customize_background_image_control'       => 'wp-includes/customize/class-wp-customize-background-image-control.php',
 		'wp_customize_background_image_setting'       => 'wp-includes/customize/class-wp-customize-background-image-setting.php',
@@ -268,6 +274,8 @@ final class WP_Autoload {
 		'wp_rest_application_passwords_controller'    => 'wp-includes/rest-api/endpoints/class-wp-rest-application-passwords-controller.php',
 		'wp_rest_attachments_controller'              => 'wp-includes/rest-api/endpoints/class-wp-rest-attachments-controller.php',
 		'wp_rest_autosaves_controller'                => 'wp-includes/rest-api/endpoints/class-wp-rest-autosaves-controller.php',
+		'wp_rest_abilities_v1_list_controller'        => 'wp-includes/rest-api/endpoints/class-wp-rest-abilities-v1-list-controller.php',
+		'wp_rest_abilities_v1_run_controller'         => 'wp-includes/rest-api/endpoints/class-wp-rest-abilities-v1-run-controller.php',
 		'wp_rest_block_directory_controller'          => 'wp-includes/rest-api/endpoints/class-wp-rest-block-directory-controller.php',
 		'wp_rest_block_pattern_categories_controller' => 'wp-includes/rest-api/endpoints/class-wp-rest-block-pattern-categories-controller.php',
 		'wp_rest_block_patterns_controller'           => 'wp-includes/rest-api/endpoints/class-wp-rest-block-patterns-controller.php',
