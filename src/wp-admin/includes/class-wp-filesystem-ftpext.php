@@ -769,7 +769,7 @@ class WP_Filesystem_FTPext extends WP_Filesystem_Base {
 					sscanf( $lucifer[5], '%d-%d-%d', $b['year'], $b['month'], $b['day'] );
 					sscanf( $lucifer[6], '%d:%d', $b['hour'], $b['minute'] );
 
-					$b['time'] = mktime( $b['hour'], $b['minute'], 0, $b['month'], $b['day'], $b['year'] );
+					$b['time'] = mktime( (int) $b['hour'], (int) $b['minute'], 0, (int) $b['month'], (int) $b['day'], (int) $b['year'] );
 					$b['name'] = $lucifer[7];
 				} else {
 					$b['month'] = $lucifer[5];
@@ -793,7 +793,7 @@ class WP_Filesystem_FTPext extends WP_Filesystem_Base {
 
 		// Replace symlinks formatted as "source -> target" with just the source name.
 		if ( isset( $b['islink'] ) && $b['islink'] ) {
-			$b['name'] = preg_replace( '/(\s*->\s*.*)$/', '', $b['name'] );
+			$b['name'] = (string) preg_replace( '/(\s*->\s*.*)$/', '', $b['name'] );
 		}
 
 		return $b ?? '';
@@ -848,11 +848,15 @@ class WP_Filesystem_FTPext extends WP_Filesystem_Base {
 		}
 
 		$pwd = ftp_pwd( $this->link );
+		if ( ! is_string( $pwd ) ) {
+			return false;
+		}
 
 		if ( ! @ftp_chdir( $this->link, $path ) ) { // Can't change to folder = folder doesn't exist.
 			return false;
 		}
 
+		/** @var string[]|false $list */
 		$list = ftp_rawlist( $this->link, '-a', false );
 
 		@ftp_chdir( $this->link, $pwd );
