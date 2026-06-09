@@ -177,6 +177,7 @@ class Tests_Autoloader_Classmap extends WP_UnitTestCase {
 		$ltrim_length = strlen( trailingslashit( ABSPATH ) );
 
 		$package_paths_to_ignore = array(
+			'wp-includes/class-wp-autoload.php', // The autoloader itself; loaded explicitly, never autoloaded.
 			'wp-includes/class-requests.php',  // 3rd-party library.
 			'wp-includes/Requests/',           // 3rd-party library.
 			'wp-includes/sodium_compat/',      // 3rd-party library.
