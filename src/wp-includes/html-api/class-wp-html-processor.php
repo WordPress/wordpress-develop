@@ -3206,12 +3206,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				return true;
 
 			/*
-			 * > An end tag whose tag name is "option"
-			 *
-			 * The "option" end tag is handled in the any other end tag section below.
-			 */
-
-			/*
 			 * > A start tag whose tag name is one of: "rb", "rtc"
 			 */
 			case '+RB':
