@@ -726,7 +726,7 @@ class Tests_Query extends WP_UnitTestCase {
 	/**
 	 * @ticket 65400
 	 */
-	public function test_get_queried_object_should_return_null_when_author_id_is_non_existent() {
+	public function test_get_queried_object_should_return_null_when_author_id_is_non_existent(): void {
 		add_action(
 			'parse_query',
 			static function ( $query ) {
@@ -743,7 +743,7 @@ class Tests_Query extends WP_UnitTestCase {
 	/**
 	 * @ticket 65400
 	 */
-	public function test_get_queried_object_should_return_null_when_author_is_unset() {
+	public function test_get_queried_object_should_return_null_when_author_is_unset(): void {
 		// Trigger is_author without a valid author query var.
 		add_action(
 			'parse_query',
