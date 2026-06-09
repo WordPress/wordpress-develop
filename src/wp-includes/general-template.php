@@ -5021,17 +5021,6 @@ function register_admin_color_schemes() {
 		)
 	);
 
-	wp_admin_css_color(
-		'dark',
-		_x( 'Dark', 'admin color scheme' ),
-		admin_url( "css/colors/dark/colors$suffix.css" ),
-		array( '#1e1e1e', '#2f2f2f', '#3858e9', '#6d8df8' ),
-		array(
-			'base'    => '#a0a5aa',
-			'focus'   => '#6d8df8',
-			'current' => '#fff',
-		)
-	);
 }
 
 /**
