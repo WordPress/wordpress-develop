@@ -140,9 +140,12 @@ class WP_Filesystem_Direct extends WP_Filesystem_Base {
 		// Is a directory, and we want recursive.
 		$file     = trailingslashit( $file );
 		$filelist = $this->dirlist( $file );
+		if ( false === $filelist ) {
+			return false;
+		}
 
-		foreach ( $filelist as $filename ) {
-			$this->chgrp( $file . $filename, $group, $recursive );
+		foreach ( $filelist as $file_listing ) {
+			$this->chgrp( $file . $file_listing['name'], $group, $recursive );
 		}
 
 		return true;
@@ -228,9 +231,12 @@ class WP_Filesystem_Direct extends WP_Filesystem_Base {
 
 		// Is a directory, and we want recursive.
 		$filelist = $this->dirlist( $file );
+		if ( false === $filelist ) {
+			return false;
+		}
 
-		foreach ( $filelist as $filename ) {
-			$this->chown( $file . '/' . $filename, $owner, $recursive );
+		foreach ( $filelist as $file_listing ) {
+			$this->chown( $file . '/' . $file_listing['name'], $owner, $recursive );
 		}
 
 		return true;
