@@ -175,12 +175,12 @@ class WP_Filesystem_FTPext extends WP_Filesystem_Base {
 	 *                      or if the file couldn't be retrieved.
 	 */
 	public function get_contents( $file ) {
-		$tempfile   = wp_tempnam( $file );
-		$temphandle = fopen( $tempfile, 'w+' );
-
 		if ( ! $this->link ) {
 			return false;
 		}
+
+		$tempfile   = wp_tempnam( $file );
+		$temphandle = fopen( $tempfile, 'w+' );
 
 		if ( ! $temphandle ) {
 			unlink( $tempfile );
