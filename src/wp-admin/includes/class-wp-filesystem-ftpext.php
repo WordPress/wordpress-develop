@@ -19,20 +19,7 @@
  *     port: non-negative-int,
  *     ssl: bool,
  * }
- * @phpstan-type FileListing array{
- *     name: string,
- *     perms?: string,
- *     permsn?: string,
- *     number?: int|string|false,
- *     owner?: string|false,
- *     group?: string|false,
- *     size: int|string|false,
- *     lastmodunix?: int|string|false,
- *     lastmod?: string|false,
- *     time: string|false,
- *     type: string,
- *     files?: mixed[]|false, // The mixed[] is actually FileListing[] but PHPStan does not support recursive or self-referencing array shapes.
- * }
+ * @phpstan-import-type FileListing from WP_Filesystem_Base
  */
 class WP_Filesystem_FTPext extends WP_Filesystem_Base {
 
