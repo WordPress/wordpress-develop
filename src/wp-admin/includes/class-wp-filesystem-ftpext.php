@@ -109,16 +109,6 @@ class WP_Filesystem_FTPext extends WP_Filesystem_Base {
 			$options['ssl'] = true;
 		}
 
-		if ( ! isset( $options['hostname'] ) ) {
-			$this->errors->add( 'empty_hostname', __( 'FTP hostname is required' ) );
-		}
-		if ( ! isset( $options['username'] ) ) {
-			$this->errors->add( 'empty_username', __( 'FTP username is required' ) );
-		}
-		if ( ! isset( $options['password'] ) ) {
-			$this->errors->add( 'empty_password', __( 'FTP password is required' ) );
-		}
-
 		if ( ! $this->errors->has_errors() ) {
 			/** @var Options $options */
 			$this->options = $options;
