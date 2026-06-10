@@ -826,7 +826,7 @@ class WP_Query {
 			$this->is_robots = true;
 		} elseif ( ! empty( $query_vars['favicon'] ) ) {
 			$this->is_favicon = true;
-		} elseif ( ! empty( $query_vars['sitemap'] ) || ! empty( $query_vars['sitemap-stylesheet'] ) ) {
+		} elseif ( ! empty( $query_vars['sitemap'] ) ) {
 			$this->is_sitemap = true;
 		}
 
