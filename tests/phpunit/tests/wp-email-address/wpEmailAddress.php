@@ -22,7 +22,7 @@ class Tests_WpEmailAddress extends WP_UnitTestCase {
 	 * @param string $address The email address to parse.
 	 */
 	public function test_from_string_returns_instance( $address ) {
-		$result = WP_Email_Address::from_string( $address, 'ascii' );
+		$result = WP_Email_Address::from_string( $address );
 		$this->assertInstanceOf( WP_Email_Address::class, $result );
 	}
 
@@ -168,7 +168,7 @@ class Tests_WpEmailAddress extends WP_UnitTestCase {
 	 * @param string $address The invalid email address string.
 	 */
 	public function test_from_string_rejects_invalid( $address ) {
-		$this->assertFalse( WP_Email_Address::from_string( $address, 'ascii' ) );
+		$this->assertNull( WP_Email_Address::from_string( $address ) );
 	}
 
 	/**
@@ -199,7 +199,7 @@ class Tests_WpEmailAddress extends WP_UnitTestCase {
 	 * @param string $address The invalid email address string.
 	 */
 	public function test_from_string_rejects_invalid_unicode( $address ) {
-		$this->assertFalse( WP_Email_Address::from_string( $address, 'unicode' ) );
+		$this->assertNull( WP_Email_Address::from_string( $address, 'unicode' ) );
 	}
 
 	/**
