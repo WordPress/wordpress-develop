@@ -699,7 +699,7 @@ class WP_Filesystem_ftpsockets extends WP_Filesystem_Base {
 	 *                                             False if not available.
 	 *         @type string|false     $lastmod     Last modified month (3 letters) and day (without leading 0), or
 	 *                                             false if not available.
-	 *         @type string|false     $time        Last modified time, or false if not available.
+	 *         @type int|string|false $time        Last modified time as a Unix timestamp, or false if not available.
 	 *         @type string           $type        Type of resource. 'f' for file, 'd' for directory, 'l' for link.
 	 *         @type array|false      $files       If a directory and `$recursive` is true, contains another array of
 	 *                                             files. False if unable to list directory contents.
@@ -720,7 +720,7 @@ class WP_Filesystem_ftpsockets extends WP_Filesystem_Base {
 		/** @var array<string, FileListing>|false $list */
 		$list = $this->ftp->dirlist( $path );
 
-		if ( false === $list || ( empty( $list ) && ! $this->exists( $path ) ) ) {
+		if ( ! is_array( $list ) || ( empty( $list ) && ! $this->exists( $path ) ) ) {
 
 			reset_mbstring_encoding();
 
