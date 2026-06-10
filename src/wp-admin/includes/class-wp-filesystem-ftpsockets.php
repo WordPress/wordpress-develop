@@ -110,6 +110,10 @@ class WP_Filesystem_ftpsockets extends WP_Filesystem_Base {
 	 * @return bool True on success, false on failure.
 	 */
 	public function connect() {
+		if ( $this->errors->has_errors() ) {
+			return false;
+		}
+
 		if ( ! $this->ftp ) {
 			return false;
 		}

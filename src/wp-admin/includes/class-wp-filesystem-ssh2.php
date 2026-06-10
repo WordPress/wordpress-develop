@@ -80,18 +80,17 @@ class WP_Filesystem_SSH2 extends WP_Filesystem_Base {
 	 *     Array of connection options.
 	 *
 	 *     @type string $hostname    Required. SSH server hostname.
-	 *     @type int    $port        Optional. SSH server port. Default 22.
 	 *     @type string $username    Required. SSH username.
+	 *     @type int    $port        Optional. SSH server port. Default 22.
 	 *     @type string $password    Optional. SSH password. May be empty when using keys.
 	 *     @type string $public_key  Optional. Path to public key file for publickey authentication.
 	 *     @type string $private_key Optional. Path to private key file for publickey authentication.
-	 *     @type array  $hostkey     Optional. Hostkey options passed to ssh2_connect.
 	 * }
 	 * @phpstan-param array{
 	 *     hostname: non-empty-string,
 	 *     username: non-empty-string,
-	 *     password?: string,
 	 *     port?: non-negative-int,
+	 *     password?: string,
 	 *     public_key?: non-empty-string,
 	 *     private_key?: non-empty-string,
 	 * }|null $opt
@@ -166,6 +165,10 @@ class WP_Filesystem_SSH2 extends WP_Filesystem_Base {
 	 * @return bool True on success, false on failure.
 	 */
 	public function connect() {
+		if ( $this->errors->has_errors() ) {
+			return false;
+		}
+
 		if ( ! isset( $this->options['hostkey'] ) ) {
 			$this->link = @ssh2_connect( $this->options['hostname'], $this->options['port'] );
 		} else {
