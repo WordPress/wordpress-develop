@@ -85,6 +85,16 @@ class Tests_HtmlApi_WpHtmlTagProcessor_Select extends WP_UnitTestCase {
 			'escaped space at end'                => array( "<div class=\"foo\u{FFFD}\"><div class=\"foo\"><div class=\"foo \">", '.foo\\ ', 0 ),
 			'escaped tab at end'                  => array( "<div class=\"foo\u{FFFD}\"><div class=\"foo\"><div class=\"foo\t\">", ".foo\\\t", 0 ),
 
+			/*
+			 * The end of input closes an open attribute selector ( and an
+			 * unterminated string ): tokenization auto-closes simple blocks
+			 * at EOF.
+			 */
+			'EOF-truncated attribute presence'    => array( '<div att match><span>', '[att', 1 ),
+			'EOF-truncated attribute value'       => array( '<div att=val match><div att=other>', '[att=val', 1 ),
+			'EOF-truncated quoted value'          => array( '<div att="a b" match><div att="a">', '[att="a b', 1 ),
+			'EOF-truncated with modifier'         => array( '<div att="VAL" match><div att=x>', '[att=val i', 1 ),
+
 			'list'                                => array( '<div><p match><a match><span>', 'a, p, .class, #id, [att]', 2 ),
 			'compound'                            => array( '<div att><custom-el att="bar" fruit="APPLE BANANA" match>', 'custom-el[att="bar"][    fruit ~= "banana" i]', 1 ),
 		);
@@ -122,6 +132,14 @@ class Tests_HtmlApi_WpHtmlTagProcessor_Select extends WP_UnitTestCase {
 			'escape before newline at end' => array( ".foo\\\n" ),
 			'escape before CR at end'      => array( ".foo\\\r" ),
 			'escape before FF at end'      => array( ".foo\\\f" ),
+
+			/*
+			 * EOF auto-closes an open attribute selector block, but
+			 * grammar-level truncation is still invalid.
+			 */
+			'truncated matcher without value' => array( '[a=' ),
+			'truncated half matcher'          => array( '[a~' ),
+			'lone open bracket'               => array( '[' ),
 		);
 	}
 }

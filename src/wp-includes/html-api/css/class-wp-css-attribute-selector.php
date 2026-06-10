@@ -258,14 +258,21 @@ final class WP_CSS_Attribute_Selector extends WP_CSS_Selector_Parser_Matcher {
 	 *
 	 * To create an instance of this class, use the {@see WP_CSS_Compound_Selector_List::from_selectors()} method.
 	 *
+	 * The end of input acts like a closing `]`: tokenization auto-closes
+	 * unterminated simple blocks (and unterminated strings) at EOF, so
+	 * `[att=val` is the same selector as `[att=val]`. Truncation inside the
+	 * selector grammar itself (e.g. `[` or `[att=`) is still invalid.
+	 *
+	 * https://www.w3.org/TR/css-syntax-3/#consume-simple-block
+	 *
 	 * @param string $input The selector string.
 	 * @param int    $offset The offset into the string. The offset is passed by reference and
 	 *                       will be updated if the parse is successful.
 	 * @return static|null The selector instance, or null if the parse was unsuccessful.
 	 */
 	public static function parse( string $input, int &$offset ) {
-		// Need at least 3 bytes [x]
-		if ( $offset + 2 >= strlen( $input ) ) {
+		// Need at least 2 bytes `[x`; the closing `]` may be supplied by the end of input.
+		if ( $offset + 1 >= strlen( $input ) ) {
 			return null;
 		}
 
@@ -283,8 +290,10 @@ final class WP_CSS_Attribute_Selector extends WP_CSS_Selector_Parser_Matcher {
 		}
 		self::parse_whitespace( $input, $updated_offset );
 
+		// The end of input auto-closes the attribute selector.
 		if ( $updated_offset >= strlen( $input ) ) {
-			return null;
+			$offset = $updated_offset;
+			return new WP_CSS_Attribute_Selector( $attr_name );
 		}
 
 		if ( ']' === $input[ $updated_offset ] ) {
@@ -292,15 +301,10 @@ final class WP_CSS_Attribute_Selector extends WP_CSS_Selector_Parser_Matcher {
 			return new WP_CSS_Attribute_Selector( $attr_name );
 		}
 
-		// need to match at least `=x]` at this point
-		if ( $updated_offset + 3 > strlen( $input ) ) {
-			return null;
-		}
-
 		if ( '=' === $input[ $updated_offset ] ) {
 			++$updated_offset;
 			$attr_matcher = WP_CSS_Attribute_Selector::MATCH_EXACT;
-		} elseif ( '=' === $input[ $updated_offset + 1 ] ) {
+		} elseif ( $updated_offset + 1 < strlen( $input ) && '=' === $input[ $updated_offset + 1 ] ) {
 			switch ( $input[ $updated_offset ] ) {
 				case '~':
 					$attr_matcher    = WP_CSS_Attribute_Selector::MATCH_ONE_OF_EXACT;
@@ -339,30 +343,32 @@ final class WP_CSS_Attribute_Selector extends WP_CSS_Selector_Parser_Matcher {
 		}
 
 		self::parse_whitespace( $input, $updated_offset );
-		if ( $updated_offset >= strlen( $input ) ) {
-			return null;
-		}
 
 		$attr_modifier = null;
-		switch ( $input[ $updated_offset ] ) {
-			case 'i':
-			case 'I':
-				$attr_modifier = WP_CSS_Attribute_Selector::MODIFIER_CASE_INSENSITIVE;
-				++$updated_offset;
-				break;
+		if ( $updated_offset < strlen( $input ) ) {
+			switch ( $input[ $updated_offset ] ) {
+				case 'i':
+				case 'I':
+					$attr_modifier = WP_CSS_Attribute_Selector::MODIFIER_CASE_INSENSITIVE;
+					++$updated_offset;
+					break;
 
-			case 's':
-			case 'S':
-				$attr_modifier = WP_CSS_Attribute_Selector::MODIFIER_CASE_SENSITIVE;
-				++$updated_offset;
-				break;
+				case 's':
+				case 'S':
+					$attr_modifier = WP_CSS_Attribute_Selector::MODIFIER_CASE_SENSITIVE;
+					++$updated_offset;
+					break;
+			}
+
+			if ( null !== $attr_modifier ) {
+				self::parse_whitespace( $input, $updated_offset );
+			}
 		}
 
-		if ( null !== $attr_modifier ) {
-			self::parse_whitespace( $input, $updated_offset );
-			if ( $updated_offset >= strlen( $input ) ) {
-				return null;
-			}
+		// The end of input auto-closes the attribute selector.
+		if ( $updated_offset >= strlen( $input ) ) {
+			$offset = $updated_offset;
+			return new self( $attr_name, $attr_matcher, $attr_val, $attr_modifier );
 		}
 
 		if ( ']' === $input[ $updated_offset ] ) {

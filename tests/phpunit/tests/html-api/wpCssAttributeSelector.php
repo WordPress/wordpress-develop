@@ -70,10 +70,36 @@ class Tests_HtmlApi_WpCssAttributeSelector extends WP_UnitTestCase {
 			'[escape-nl="foo\\nbar"]'  => array( "[escape-nl='foo\\\nbar']", 'escape-nl', WP_CSS_Attribute_Selector::MATCH_EXACT, 'foobar', null, '' ),
 			'[escape-seq="\\31 23"]'   => array( "[escape-seq='\\31 23']", 'escape-seq', WP_CSS_Attribute_Selector::MATCH_EXACT, '123', null, '' ),
 
+			/*
+			 * The end of input closes an open attribute selector: tokenization
+			 * auto-closes unterminated simple blocks (and strings) at EOF.
+			 *
+			 * https://www.w3.org/TR/css-syntax-3/#consume-simple-block
+			 */
+			'EOF [foo'                 => array( '[foo', 'foo', null, null, null, '' ),
+			'EOF [ \n foo'             => array( "[ \n foo", 'foo', null, null, null, '' ),
+			'EOF [foo '                => array( '[foo ', 'foo', null, null, null, '' ),
+			'EOF [a=b'                 => array( '[a=b', 'a', WP_CSS_Attribute_Selector::MATCH_EXACT, 'b', null, '' ),
+			'EOF [att=val '            => array( '[att=val ', 'att', WP_CSS_Attribute_Selector::MATCH_EXACT, 'val', null, '' ),
+			'EOF [a="b'                => array( '[a="b', 'a', WP_CSS_Attribute_Selector::MATCH_EXACT, 'b', null, '' ),
+			"EOF [a='b"                => array( "[a='b", 'a', WP_CSS_Attribute_Selector::MATCH_EXACT, 'b', null, '' ),
+			'EOF [a="b\\'              => array( '[a="b\\', 'a', WP_CSS_Attribute_Selector::MATCH_EXACT, 'b', null, '' ),
+			'EOF [a=b\\'               => array( '[a=b\\', 'a', WP_CSS_Attribute_Selector::MATCH_EXACT, "b\u{FFFD}", null, '' ),
+			'EOF [a^=b'                => array( '[a^=b', 'a', WP_CSS_Attribute_Selector::MATCH_PREFIXED_BY, 'b', null, '' ),
+			'EOF [att=val i'           => array( '[att=val i', 'att', WP_CSS_Attribute_Selector::MATCH_EXACT, 'val', WP_CSS_Attribute_Selector::MODIFIER_CASE_INSENSITIVE, '' ),
+			'EOF [att=val i '          => array( '[att=val i ', 'att', WP_CSS_Attribute_Selector::MATCH_EXACT, 'val', WP_CSS_Attribute_Selector::MODIFIER_CASE_INSENSITIVE, '' ),
+			'EOF [att="val"s'          => array( '[att="val"s', 'att', WP_CSS_Attribute_Selector::MATCH_EXACT, 'val', WP_CSS_Attribute_Selector::MODIFIER_CASE_SENSITIVE, '' ),
+
 			// Invalid
 			'Invalid: (empty string)'  => array( '' ),
 			'Invalid: foo'             => array( 'foo' ),
-			'Invalid: [foo'            => array( '[foo' ),
+			'Invalid: ['               => array( '[' ),
+			'Invalid: [ '              => array( '[ ' ),
+			'Invalid: [a='             => array( '[a=' ),
+			'Invalid: [a= '            => array( '[a= ' ),
+			'Invalid: [a~'             => array( '[a~' ),
+			'Invalid: [a=b x'          => array( '[a=b x' ),
+			'Invalid: [a i'            => array( '[a i' ),
 			'Invalid: [#foo]'          => array( '[#foo]' ),
 			'Invalid: [*|*]'           => array( '[*|*]' ),
 			'Invalid: [ns|*]'          => array( '[ns|*]' ),
@@ -85,12 +111,13 @@ class Tests_HtmlApi_WpCssAttributeSelector extends WP_UnitTestCase {
 			'Invalid: [a~=]'           => array( '[a~=]' ),
 			'Invalid: [a==b]'          => array( '[a==b]' ),
 			'Invalid: [a=1]'           => array( '[a=1]' ),
-			'Invalid: [att=val '       => array( '[att=val ' ),
+			'Invalid: [a=1'            => array( '[a=1' ),
 			'Invalid: [att i]'         => array( '[att i]' ),
 			'Invalid: [att s]'         => array( '[att s]' ),
 			"Invalid: [att='val\\n']"  => array( "[att='val\n']" ),
-			'Invalid: [att=val i '     => array( '[att=val i ' ),
+			"Invalid: [att='val\\n"    => array( "[att='val\n" ),
 			'Invalid: [att="val"ix'    => array( '[att="val"ix' ),
+			'Invalid: [att="val"ix '   => array( '[att="val"ix ' ),
 		);
 	}
 }
