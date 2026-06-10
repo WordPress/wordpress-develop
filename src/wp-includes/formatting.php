@@ -3799,11 +3799,15 @@ function iso8601_to_datetime( $date_string, $timezone = 'user' ) {
 /**
  * Sanitizes an email address.
  *
- * Strips stray whitespace from the input, then strips trailing dots from the domain. This is designed to recover from cut/paste mistakes without any risk of transforming the input into a different address than the user intended.
+ * Strips stray whitespace from the input, then strips trailing dots from the domain.
+ * This is designed to recover from cut/paste mistakes without any risk of transforming
+ * the input into a different address than the user intended.
  *
- * Validation and final form are determined by the 'sanitize_email' filter; the default filter is registered in default-filters.php and delegates to {@see WP_Email_Address::from_string()}.
+ * Validation and final form are determined by the 'sanitize_email' filter; the default
+ * filter is registered in default-filters.php and delegates to {@see WP_Email_Address::from_string()}.
  *
  * @since 1.5.0
+ * @since 7.1.0 Accepts Unicode email addresses on supporting platforms.
  *
  * @param string $email Email address to sanitize.
  * @return string The sanitized email address, or an empty string if invalid.
@@ -3813,16 +3817,18 @@ function sanitize_email( $email ) {
 	$email = trim( $email );
 
 	// Extract the address from "Display Name <address>" format.
-	if ( preg_match( '/<([^>]+)>/', $email, $matches ) ) {
+	if ( 1 === preg_match( '/<([^>]+)>/', $email, $matches ) ) {
 		$email = $matches[1];
 	}
 
-	// Strip soft hyphens and whitespace adjacent to structural separators (dots and @),
-	// e.g. copy-paste artifacts like "info@example\u{00AD}.com" or "info@example .com".
+	/*
+	 * Strip soft hyphens and whitespace adjacent to structural separators (dots and @),
+	 * e.g. copy-paste artifacts like "info@example\u{00AD}.com" or "info@example .com".
+	 */
 	$email = preg_replace( '/[\x{00AD}\s]*([.@])[\x{00AD}\s]*/u', '$1', $email ) ?? $email;
 
 	// Strip a trailing dot from the domain (e.g. if pasted from the end of a sentence).
-	if ( false !== strpos( $email, '@' ) ) {
+	if ( str_contains( $email, '@' ) ) {
 		list( $local, $domain ) = explode( '@', $email, 2 );
 		$domain                 = rtrim( $domain, '.' );
 		$email                  = $local . '@' . $domain;
