@@ -293,7 +293,7 @@ if ( ! defined( 'DB_CHARSET' ) || ! DB_CHARSET || ! $wpdb->get_row( $wpdb->prepa
 	$mysql_db_charset_compat = false;
 
 	$compat = sprintf(
-		/* translators: 1:  the value of the wp-config DB_CHARSET string. */
+		/* translators: %s:  the value of the wp-config DB_CHARSET string. */
 		__( 'You cannot install because your config is set to use "%s" as charset, which is not available in your database' ),
 		DB_CHARSET
 	);
