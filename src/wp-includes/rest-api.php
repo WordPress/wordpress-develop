@@ -718,14 +718,19 @@ function rest_ensure_response( $response ) {
  */
 function _rest_get_debug_backtrace_caller() {
 	$backtrace              = debug_backtrace( DEBUG_BACKTRACE_IGNORE_ARGS, 20 );
-	$normalized_content_dir = trailingslashit( wp_normalize_path( WP_CONTENT_DIR ) );
+	$normalized_content_dir = strtolower( trailingslashit( wp_normalize_path( WP_CONTENT_DIR ) ) );
 
 	foreach ( $backtrace as $i => $frame ) {
-		if ( ! isset( $frame['file'] ) || ! str_starts_with( wp_normalize_path( $frame['file'] ), $normalized_content_dir ) ) {
+		if ( ! isset( $frame['file'] ) ) {
 			continue;
 		}
 
-		$location = ' in ' . wp_normalize_path( $frame['file'] );
+		$normalized_file = wp_normalize_path( $frame['file'] );
+		if ( ! str_starts_with( strtolower( $normalized_file ), $normalized_content_dir ) ) {
+			continue;
+		}
+
+		$location = ' in ' . $normalized_file;
 		if ( isset( $frame['line'] ) ) {
 			$location .= ' on line ' . $frame['line'];
 		}
