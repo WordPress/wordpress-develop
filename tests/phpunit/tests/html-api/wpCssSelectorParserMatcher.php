@@ -58,6 +58,9 @@ class Tests_HtmlApi_WpCssSelectorParserMatcher extends WP_UnitTestCase {
 			'trailing .'                         => array( '😍foo123.xyz', '😍foo123', '.xyz' ),
 			'trailing " "'                       => array( '😍foo123 more', '😍foo123', ' more' ),
 			'escaped ASCII character'            => array( '\\xyz', 'xyz', '' ),
+			'escape after multibyte character'   => array( 'Ü\\sup', 'Üsup', '' ),
+			'escape after multibyte characters'  => array( 'ÜÜ\\sup', 'ÜÜsup', '' ),
+			'hex escape after multibyte character' => array( 'Ü\\31 23', 'Ü123', '' ),
 			'escaped space'                      => array( '\\ x', ' x', '' ),
 			'escaped emoji'                      => array( '\\😍', '😍', '' ),
 			'hex unicode codepoint'              => array( '\\1f0a1', '🂡', '' ),
@@ -158,6 +161,7 @@ class Tests_HtmlApi_WpCssSelectorParserMatcher extends WP_UnitTestCase {
 
 			"'foo\\nbar'"             => array( "'foo\\\nbar'", 'foobar', '' ),
 			"'foo\\31 23'"            => array( "'foo\\31 23'", 'foo123', '' ),
+			"'Ü\\sup'"                => array( "'Ü\\sup'", 'Üsup', '' ),
 			"'foo\\31\\n23'"          => array( "'foo\\31\n23'", 'foo123', '' ),
 			"'foo\\31\\t23'"          => array( "'foo\\31\t23'", 'foo123', '' ),
 			"'foo\\00003123'"         => array( "'foo\\00003123'", 'foo123', '' ),

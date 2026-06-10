@@ -250,7 +250,8 @@ abstract class WP_CSS_Selector_Parser_Matcher {
 			return $codepoint_char;
 		}
 
-		$codepoint_char = mb_substr( $input, $offset, 1, 'UTF-8' );
+		// $offset is a byte offset; mb_substr() expects a character offset.
+		$codepoint_char = mb_substr( substr( $input, $offset ), 0, 1, 'UTF-8' );
 		$offset        += strlen( $codepoint_char );
 		return $codepoint_char;
 	}
