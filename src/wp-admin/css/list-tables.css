@@ -1494,6 +1494,13 @@ ul.cat-checklist input[name="post_category[]"]:indeterminate::before {
 	margin-bottom: 0;
 }
 
+.plugin-install-tab-favorites form p {
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 4px;
+}
+
 /* Plugin card table view */
 .plugin-group {
 	overflow: hidden; /* clearfix */
