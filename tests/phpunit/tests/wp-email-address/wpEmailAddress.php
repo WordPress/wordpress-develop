@@ -37,13 +37,13 @@ class Tests_WpEmailAddress extends WP_UnitTestCase {
 	 * @param string $address The email address to parse.
 	 */
 	public function test_get_address_is_roundtrippable( $address ) {
-		$instance = WP_Email_Address::from_string( $address, 'ascii' );
+		$instance = WP_Email_Address::from_string( $address );
 
-		$round_trip = WP_Email_Address::from_string( $instance->get_ascii_address(), 'ascii' );
+		$round_trip = WP_Email_Address::from_string( $instance->get_ascii_address() );
 		$this->assertInstanceOf( WP_Email_Address::class, $round_trip );
 		$this->assertSame( $instance->get_ascii_address(), $round_trip->get_ascii_address() );
 
-		$round_trip = WP_Email_Address::from_string( $instance->get_unicode_address(), 'ascii' );
+		$round_trip = WP_Email_Address::from_string( $instance->get_unicode_address() );
 		$this->assertInstanceOf( WP_Email_Address::class, $round_trip );
 		$this->assertSame( $instance->get_unicode_address(), $round_trip->get_unicode_address() );
 	}
