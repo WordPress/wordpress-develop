@@ -228,8 +228,10 @@ final class WP_Email_Address {
 		/*
 		 * Without support for decoding punycode it’s not possible to validate
 		 * the email address, so abort if any domain labels require decoding.
+		 *
+		 * The pattern detects `xn--` prefixes and invalid ACE prefixes.
 		 */
-		$needs_decoding = str_starts_with( $ascii_domain, 'xn--' ) || str_contains( $ascii_domain, '.xn--' );
+		$needs_decoding = 1 === preg_match( '/(?:^|\.)..--/', $ascii_domain );
 		if ( $needs_decoding && ! function_exists( 'idn_to_utf8' ) ) {
 			return null;
 		}

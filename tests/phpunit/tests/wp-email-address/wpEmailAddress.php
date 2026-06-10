@@ -152,9 +152,9 @@ class Tests_WpEmailAddress extends WP_UnitTestCase {
 		};
 		add_filter( 'is_email', $filter, 10, 3 );
 		// Local part rescued, but domain has no dot — should still be rejected.
-		$result = WP_Email_Address::from_string( '"quoted"@nodots', 'ascii' );
+		$result = WP_Email_Address::from_string( '"quoted"@nodots' );
 		remove_filter( 'is_email', $filter, 10 );
-		$this->assertFalse( $result );
+		$this->assertNull( $result );
 	}
 
 	/**
@@ -199,7 +199,7 @@ class Tests_WpEmailAddress extends WP_UnitTestCase {
 	 * @param string $address The invalid email address string.
 	 */
 	public function test_from_string_rejects_invalid_unicode( $address ) {
-		$this->assertNull( WP_Email_Address::from_string( $address, 'unicode' ) );
+		$this->assertNull( WP_Email_Address::from_string( $address ) );
 	}
 
 	/**
