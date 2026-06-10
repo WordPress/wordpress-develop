@@ -467,7 +467,7 @@ class wpdb {
 	 *
 	 * @since 3.0.0
 	 *
-	 * @var string
+	 * @var string|null
 	 */
 	public $blogs;
 
@@ -476,7 +476,7 @@ class wpdb {
 	 *
 	 * @since 5.1.0
 	 *
-	 * @var string
+	 * @var string|null
 	 */
 	public $blogmeta;
 
@@ -485,7 +485,7 @@ class wpdb {
 	 *
 	 * @since 3.0.0
 	 *
-	 * @var string
+	 * @var string|null
 	 */
 	public $registration_log;
 
@@ -494,7 +494,7 @@ class wpdb {
 	 *
 	 * @since 3.0.0
 	 *
-	 * @var string
+	 * @var string|null
 	 */
 	public $signups;
 
@@ -503,7 +503,7 @@ class wpdb {
 	 *
 	 * @since 3.0.0
 	 *
-	 * @var string
+	 * @var string|null
 	 */
 	public $site;
 
@@ -512,7 +512,7 @@ class wpdb {
 	 *
 	 * @since 3.0.0
 	 *
-	 * @var string
+	 * @var string|null
 	 */
 	public $sitecategories;
 
@@ -521,7 +521,7 @@ class wpdb {
 	 *
 	 * @since 3.0.0
 	 *
-	 * @var string
+	 * @var string|null
 	 */
 	public $sitemeta;
 
@@ -826,7 +826,7 @@ class wpdb {
 	 *
 	 * @since 3.5.0
 	 *
-	 * @param string $name  The private member to unset
+	 * @param string $name The private member to unset.
 	 */
 	public function __unset( $name ) {
 		unset( $this->$name );
@@ -960,13 +960,7 @@ class wpdb {
 				return;
 			}
 
-			$modes_str = $modes_array[0];
-
-			if ( empty( $modes_str ) ) {
-				return;
-			}
-
-			$modes = explode( ',', $modes_str );
+			$modes = explode( ',', $modes_array[0] );
 		}
 
 		$modes = array_change_key_case( $modes, CASE_UPPER );
@@ -1459,11 +1453,11 @@ class wpdb {
 	 *                             individual arguments.
 	 * @param mixed       ...$args Further variables to substitute into the query's placeholders
 	 *                             if being called with individual arguments.
-	 * @return string|void Sanitized query string, if there is a query to prepare.
+	 * @return string|null Sanitized query string, if there is a query to prepare.
 	 */
 	public function prepare( $query, ...$args ) {
 		if ( is_null( $query ) ) {
-			return;
+			return null;
 		}
 
 		/*
@@ -1672,7 +1666,7 @@ class wpdb {
 				'6.2.0'
 			);
 
-			return;
+			return null;
 		}
 
 		$args_count = count( $args );
@@ -1690,7 +1684,7 @@ class wpdb {
 					'4.9.0'
 				);
 
-				return;
+				return null;
 			} else {
 				/*
 				 * If we don't have the right number of placeholders,
@@ -1800,7 +1794,7 @@ class wpdb {
 	 * @global array $EZSQL_ERROR Stores error information of query and error string.
 	 *
 	 * @param string $str The error to display.
-	 * @return void|false Void if the showing of errors is enabled, false if disabled.
+	 * @return null|false Null if the showing of errors is enabled, false if disabled.
 	 */
 	public function print_error( $str = '' ) {
 		global $EZSQL_ERROR;
@@ -1861,6 +1855,8 @@ class wpdb {
 				$query
 			);
 		}
+
+		return null;
 	}
 
 	/**
@@ -2123,7 +2119,7 @@ class wpdb {
 	 * @since 3.9.0
 	 *
 	 * @param bool $allow_bail Optional. Allows the function to bail. Default true.
-	 * @return bool|void True if the connection is up.
+	 * @return bool Whether the connection is up. Exits if down and $allow_bail is true.
 	 */
 	public function check_connection( $allow_bail = true ) {
 		// Check if the connection is alive.
@@ -2659,12 +2655,12 @@ class wpdb {
 	 * @see wpdb::$field_types
 	 * @see wp_set_wpdb_vars()
 	 *
-	 * @param string       $table           Table name.
-	 * @param array        $data            Data to update (in column => value pairs).
+	 * @param string          $table        Table name.
+	 * @param array           $data         Data to update (in column => value pairs).
 	 *                                      Both $data columns and $data values should be "raw" (neither should be SQL escaped).
 	 *                                      Sending a null value will cause the column to be set to NULL - the corresponding
 	 *                                      format is ignored in this case.
-	 * @param array        $where           A named array of WHERE clauses (in column => value pairs).
+	 * @param array           $where        A named array of WHERE clauses (in column => value pairs).
 	 *                                      Multiple clauses will be joined with ANDs.
 	 *                                      Both $where columns and $where values should be "raw".
 	 *                                      Sending a null value will create an IS NULL comparison - the corresponding
@@ -2910,7 +2906,7 @@ class wpdb {
 	 *
 	 * @since 4.2.0
 	 *
-	 * @param array $data {
+	 * @param array  $data {
 	 *     Array of values and formats keyed by their field names,
 	 *     as it comes from the wpdb::process_field_formats() method.
 	 *
@@ -2961,7 +2957,7 @@ class wpdb {
 	 *
 	 * @since 4.2.1
 	 *
-	 * @param array $data {
+	 * @param array  $data {
 	 *     Array of values, formats, and charsets keyed by their field names,
 	 *     as it comes from the wpdb::process_field_charsets() method.
 	 *
@@ -3062,7 +3058,7 @@ class wpdb {
 	 *                            correspond to an stdClass object, an associative array, or a numeric array,
 	 *                            respectively. Default OBJECT.
 	 * @param int         $y      Optional. Row to return. Indexed from 0. Default 0.
-	 * @return array|object|null|void Database query result in format specified by $output or null on failure.
+	 * @return array|object|null Database query result in format specified by $output or null on failure.
 	 */
 	public function get_row( $query = null, $output = OBJECT, $y = 0 ) {
 		$this->func_call = "\$db->get_row(\"$query\",$output,$y)";
@@ -3093,6 +3089,7 @@ class wpdb {
 		} else {
 			$this->print_error( ' $db->get_row(string query, output type, int offset) -- Output type must be one of: OBJECT, ARRAY_A, ARRAY_N' );
 		}
+		return null;
 	}
 
 	/**
@@ -3803,6 +3800,9 @@ class wpdb {
 		// Strip everything between parentheses except nested selects.
 		$query = preg_replace( '/\((?!\s*select)[^(]*?\)/is', '()', $query );
 
+		// Strip any leading SET STATEMENT statements.
+		$query = preg_replace( '/^SET STATEMENT.+?\sFOR\s+/is', '', $query );
+
 		// Quickly match most common queries.
 		if ( preg_match(
 			'/^\s*(?:'
@@ -3905,6 +3905,8 @@ class wpdb {
 				return $this->col_info[ $col_offset ]->{$info_type};
 			}
 		}
+
+		return null;
 	}
 
 	/**
@@ -3940,7 +3942,7 @@ class wpdb {
 	 * @param string $message    The error message.
 	 * @param string $error_code Optional. A computer-readable string to identify the error.
 	 *                           Default '500'.
-	 * @return void|false Void if the showing of errors is enabled, false if disabled.
+	 * @return false False if the showing of errors is disabled.
 	 */
 	public function bail( $message, $error_code = '500' ) {
 		if ( $this->show_errors ) {
@@ -3998,7 +4000,7 @@ class wpdb {
 	 * @since 2.5.0
 	 *
 	 * @global string $required_mysql_version The minimum required MySQL version string.
-	 * @return void|WP_Error
+	 * @return WP_Error|null
 	 */
 	public function check_database_version() {
 		global $required_mysql_version;
@@ -4009,6 +4011,8 @@ class wpdb {
 			/* translators: 1: WordPress version number, 2: Minimum required MySQL version number. */
 			return new WP_Error( 'database_version', sprintf( __( '<strong>Error:</strong> WordPress %1$s requires MySQL %2$s or higher' ), $wp_version, $required_mysql_version ) );
 		}
+
+		return null;
 	}
 
 	/**
@@ -4084,7 +4088,8 @@ class wpdb {
 		 * the polyfills from wp-includes/compat.php are not loaded.
 		 */
 		if ( '5.5.5' === $db_version && false !== strpos( $db_server_info, 'MariaDB' )
-			&& PHP_VERSION_ID < 80016 // PHP 8.0.15 or older.
+			&& ( PHP_VERSION_ID <= 80015 // PHP 8.0.15 or older.
+				|| 80100 <= PHP_VERSION_ID && PHP_VERSION_ID <= 80102 ) // PHP 8.1.0 to PHP 8.1.2.
 		) {
 			// Strip the '5.5.5-' prefix and set the version to the correct value.
 			$db_server_info = preg_replace( '/^5\.5\.5-(.*)/', '$1', $db_server_info );

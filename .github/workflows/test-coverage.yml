@@ -38,10 +38,8 @@ concurrency:
 permissions: {}
 
 env:
-  LOCAL_PHP_XDEBUG: true
-  LOCAL_PHP_XDEBUG_MODE: 'coverage'
-  LOCAL_PHP_MEMCACHED: ${{ false }}
-  PUPPETEER_SKIP_DOWNLOAD: ${{ true }}
+  LOCAL_PHP_MEMCACHED: false
+  PUPPETEER_SKIP_DOWNLOAD: true
 
 jobs:
   #
@@ -99,7 +97,7 @@ jobs:
 
     steps:
       - name: Dispatch workflow run
-        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
         with:
           retries: 2
           retry-exempt-status-codes: 418

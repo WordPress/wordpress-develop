@@ -36,6 +36,7 @@ final class WP_Post {
 	 *
 	 * @since 3.5.0
 	 * @var string
+	 * @phpstan-var numeric-string
 	 */
 	public $post_author = '0';
 
@@ -206,6 +207,7 @@ final class WP_Post {
 	 *
 	 * @since 3.5.0
 	 * @var string
+	 * @phpstan-var numeric-string
 	 */
 	public $comment_count = '0';
 
@@ -233,7 +235,7 @@ final class WP_Post {
 		global $wpdb;
 
 		$post_id = (int) $post_id;
-		if ( ! $post_id ) {
+		if ( $post_id <= 0 ) {
 			return false;
 		}
 
@@ -260,7 +262,7 @@ final class WP_Post {
 	 *
 	 * @since 3.5.0
 	 *
-	 * @param WP_Post|object $post Post object.
+	 * @param object $post Post object.
 	 */
 	public function __construct( $post ) {
 		foreach ( get_object_vars( $post ) as $key => $value ) {
