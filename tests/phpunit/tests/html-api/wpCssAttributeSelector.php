@@ -31,6 +31,7 @@ class Tests_HtmlApi_WpCssAttributeSelector extends WP_UnitTestCase {
 		if ( null === $expected_name ) {
 			$this->assertNull( $result );
 		} else {
+			$this->assertNotNull( $result, "Failed to parse attribute selector: {$input}" );
 			$this->assertSame( $expected_name, $result->name );
 			$this->assertSame( $expected_matcher, $result->matcher );
 			$this->assertSame( $expected_value, $result->value );
@@ -53,6 +54,7 @@ class Tests_HtmlApi_WpCssAttributeSelector extends WP_UnitTestCase {
 			'[href][href2]'            => array( '[href][href2]', 'href', null, null, null, '[href2]' ),
 			'[\n href\t\r]'            => array( "[\n href\t\r]", 'href', null, null, null, '' ),
 			'[href=foo]'               => array( '[href=foo]', 'href', WP_CSS_Attribute_Selector::MATCH_EXACT, 'foo', null, '' ),
+			'[a=b]'                    => array( '[a=b]', 'a', WP_CSS_Attribute_Selector::MATCH_EXACT, 'b', null, '' ),
 			'[href \n =   bar   ]'     => array( "[href \n =   bar   ]", 'href', WP_CSS_Attribute_Selector::MATCH_EXACT, 'bar', null, '' ),
 			'[href \n ^=   baz   ]'    => array( "[href \n ^=   baz   ]", 'href', WP_CSS_Attribute_Selector::MATCH_PREFIXED_BY, 'baz', null, '' ),
 
@@ -79,6 +81,10 @@ class Tests_HtmlApi_WpCssAttributeSelector extends WP_UnitTestCase {
 			'Invalid: [*| att]'        => array( '[*| att]' ),
 			'Invalid: [att * =]'       => array( '[att * =]' ),
 			'Invalid: [att+=val]'      => array( '[att+=val]' ),
+			'Invalid: [a=]'            => array( '[a=]' ),
+			'Invalid: [a~=]'           => array( '[a~=]' ),
+			'Invalid: [a==b]'          => array( '[a==b]' ),
+			'Invalid: [a=1]'           => array( '[a=1]' ),
 			'Invalid: [att=val '       => array( '[att=val ' ),
 			'Invalid: [att i]'         => array( '[att i]' ),
 			'Invalid: [att s]'         => array( '[att s]' ),

@@ -275,7 +275,7 @@ final class WP_CSS_Attribute_Selector extends WP_CSS_Selector_Parser_Matcher {
 		}
 
 		// need to match at least `=x]` at this point
-		if ( $updated_offset + 3 >= strlen( $input ) ) {
+		if ( $updated_offset + 3 > strlen( $input ) ) {
 			return null;
 		}
 
