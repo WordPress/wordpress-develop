@@ -41,6 +41,28 @@ class Tests_Unicode_WpHasNoncharacters extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensures that invalid UTF-8 does not prevent noncharacter detection.
+	 *
+	 * @ticket 65372
+	 */
+	public function test_detects_non_characters_when_string_contains_invalid_utf8() {
+		$this->assertTrue(
+			wp_has_noncharacters( "Invalid byte \xF1 before \u{FDD0}." ),
+			'Failed to detect noncharacter after invalid UTF-8.'
+		);
+
+		$this->assertTrue(
+			wp_has_noncharacters( "Noncharacter \u{10FFFF} before invalid byte \xF1." ),
+			'Failed to detect noncharacter before invalid UTF-8.'
+		);
+
+		$this->assertFalse(
+			wp_has_noncharacters( "Invalid byte \xF1 without noncharacters." ),
+			'Falsely detected noncharacter in invalid UTF-8.'
+		);
+	}
+
+	/**
 	 * Ensures that a noncharacter inside a string will be properly detected
 	 * using the fallback function when Unicode PCRE support is missing.
 	 *
