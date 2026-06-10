@@ -3633,7 +3633,7 @@ function is_email( $email, $deprecated = false ) {
  * Validates the email address using {@see WP_Email_Address::from_string()} with Unicode enabled.
  * Only acts when $context is null (which it is in the initial validation call); later rescue-context calls are passed through.
  *
- * @since 7.0.0
+ * @since 7.1.0
  *
  * @param string|false $value   The current filter value.
  * @param string       $email   The email address being checked.
@@ -3644,7 +3644,8 @@ function wp_is_unicode_email( $value, $email, $context ) {
 	if ( null !== $context ) {
 		return $value;
 	}
-	$result = WP_Email_Address::from_string( $email, true );
+
+	$result = WP_Email_Address::from_string( $email, 'unicode' );
 	return $result ? $result->get_unicode_address() : false;
 }
 
@@ -3654,7 +3655,7 @@ function wp_is_unicode_email( $value, $email, $context ) {
  * Validates the email address using {@see WP_Email_Address::from_string()} with Unicode disabled.
  * Only acts when $context is null (which it is in the initial validation call); later rescue-context calls are passed through.
  *
- * @since 7.0.0
+ * @since 7.1.0
  *
  * @param string|false $value   The current filter value.
  * @param string       $email   The email address being checked.
@@ -3665,7 +3666,8 @@ function wp_is_ascii_email( $value, $email, $context ) {
 	if ( null !== $context ) {
 		return $value;
 	}
-	$result = WP_Email_Address::from_string( $email, false );
+
+	$result = WP_Email_Address::from_string( $email, 'ascii' );
 	return $result ? $result->get_unicode_address() : false;
 }
 
@@ -3848,7 +3850,7 @@ function sanitize_email( $email ) {
  * Returns the canonical address from {@see WP_Email_Address::from_string()} with Unicode
  * enabled, or an empty string if the address is invalid.
  *
- * @since 7.0.0
+ * @since 7.1.0
  *
  * @param string      $value   The current filter value.
  * @param string      $email   The email address being sanitized.
@@ -3856,7 +3858,7 @@ function sanitize_email( $email ) {
  * @return string The canonical email address if valid, empty string otherwise.
  */
 function wp_sanitize_unicode_email( $value, $email, $context ) {
-	$result = WP_Email_Address::from_string( $email, true );
+	$result = WP_Email_Address::from_string( $email, 'unicode' );
 	return $result ? $result->get_unicode_address() : '';
 }
 
@@ -3866,7 +3868,7 @@ function wp_sanitize_unicode_email( $value, $email, $context ) {
  * Returns the canonical address from {@see WP_Email_Address::from_string()} with Unicode
  * disabled, or an empty string if the address is invalid.
  *
- * @since 7.0.0
+ * @since 7.1.0
  *
  * @param string      $value   The current filter value.
  * @param string      $email   The email address being sanitized.
@@ -3874,7 +3876,7 @@ function wp_sanitize_unicode_email( $value, $email, $context ) {
  * @return string The canonical email address if valid, empty string otherwise.
  */
 function wp_sanitize_ascii_email( $value, $email, $context ) {
-	$result = WP_Email_Address::from_string( $email, false );
+	$result = WP_Email_Address::from_string( $email, 'ascii' );
 	return $result ? $result->get_unicode_address() : '';
 }
 

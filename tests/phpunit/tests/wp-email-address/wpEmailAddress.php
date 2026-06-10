@@ -61,7 +61,7 @@ class Tests_WpEmailAddress extends WP_UnitTestCase {
 	 * @param string $address The email address to parse.
 	 */
 	public function test_localpart_and_domain_compose_address( $address ) {
-		$instance = WP_Email_Address::from_string( $address, false );
+		$instance = WP_Email_Address::from_string( $address, 'ascii' );
 
 		$this->assertSame(
 			$instance->get_localpart() . '@' . $instance->get_ascii_domain(),
@@ -116,7 +116,7 @@ class Tests_WpEmailAddress extends WP_UnitTestCase {
 		};
 		add_filter( 'is_email', $filter, 10, 3 );
 		// Quoted local part is valid per RFC 5321 but rejected by the WHATWG charset. WordPress agrees with the browsers.
-		$result = WP_Email_Address::from_string( '"quoted"@example.com', false );
+		$result = WP_Email_Address::from_string( '"quoted"@example.com', 'ascii' );
 		remove_filter( 'is_email', $filter, 10 );
 		$this->assertInstanceOf( WP_Email_Address::class, $result );
 	}
@@ -134,7 +134,7 @@ class Tests_WpEmailAddress extends WP_UnitTestCase {
 		};
 		add_filter( 'is_email', $filter, 10, 3 );
 		// Single-label domain is used for intranet mail servers.
-		$result = WP_Email_Address::from_string( 'user@mailserver', false );
+		$result = WP_Email_Address::from_string( 'user@mailserver', 'ascii' );
 		remove_filter( 'is_email', $filter, 10 );
 		$this->assertInstanceOf( WP_Email_Address::class, $result );
 	}
@@ -152,7 +152,7 @@ class Tests_WpEmailAddress extends WP_UnitTestCase {
 		};
 		add_filter( 'is_email', $filter, 10, 3 );
 		// Local part rescued, but domain has no dot — should still be rejected.
-		$result = WP_Email_Address::from_string( '"quoted"@nodots', false );
+		$result = WP_Email_Address::from_string( '"quoted"@nodots', 'ascii' );
 		remove_filter( 'is_email', $filter, 10 );
 		$this->assertFalse( $result );
 	}

@@ -329,6 +329,9 @@ final class WP_Email_Address {
 	 *     $email = WP_Email_Address::from_string( 'checkout@bücher.tld' );
 	 *     'xn--bcher-kva.tld' === $email->get_ascii_domain();
 	 *
+	 * Note! Do not mix a Unicode local part with an ASCII domain part.
+	 *       Prefer to keep the entire address in one form.
+	 *
 	 * @see self::get_unicode_domain()
 	 *
 	 * @return string Form of domain for machines, potentially containing
@@ -346,6 +349,9 @@ final class WP_Email_Address {
 	 *
 	 *     $email = WP_Email_Address::from_string( 'checkout@bücher.tld' );
 	 *     'bücher.tld' === $email->get_unicode_domain();
+	 *
+	 * Note! Do not mix a Unicode local part with an ASCII domain part.
+	 *       Prefer to keep the entire address in one form.
 	 *
 	 * @see self::get_ascii_domain()
 	 *
