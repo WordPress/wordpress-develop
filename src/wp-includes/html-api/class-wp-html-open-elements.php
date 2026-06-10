@@ -475,6 +475,7 @@ class WP_HTML_Open_Elements {
 	 * @since 6.7.0 Full implementation.
 	 *
 	 * @deprecated 7.1.0 This method is no longer part of the HTML standard.
+	 * @ignore
 	 *
 	 * @param string $tag_name Name of tag to check.
 	 * @return bool Always false; select scope no longer exists.

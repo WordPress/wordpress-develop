@@ -210,6 +210,7 @@ class WP_HTML_Processor_State {
 	 * @since 6.7.0
 	 *
 	 * @deprecated 7.1.0 The "in select" insertion mode was removed from the standard.
+	 * @ignore
 	 *
 	 * @see WP_HTML_Processor_State::$insertion_mode
 	 *
@@ -223,6 +224,7 @@ class WP_HTML_Processor_State {
 	 * @since 6.7.0
 	 *
 	 * @deprecated 7.1.0 The "in select in table" insertion mode was removed from the standard.
+	 * @ignore
 	 *
 	 * @see WP_HTML_Processor_State::$insertion_mode
 	 *
