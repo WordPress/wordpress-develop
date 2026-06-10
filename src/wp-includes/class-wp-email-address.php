@@ -3,26 +3,34 @@
  * Class 'WP_Email_Address'.
  *
  * @package WordPress
- * @since 7.0.0
+ * @since 7.1.0
  */
 
 /**
+ * WP_Email_Address Class.
+ *
  * Represents a validated email address. The address may or may not be deliverable.
  *
  * Use the static factory method {@see WP_Email_Address::from_string()} to create instances
- * of this class rather than the constructor, which is private.
+ * of this class rather than the constructor. This method only returns an instance for
+ * validated email addresses, and `null` if the provided email address fails to validate.
  *
- * @since 7.0.0
+ * Example:
+ *
+ *     $email = WP_Email_Address::from_string( 'wordpress@wordpress.org' );
+ *     'wordpress'     === $email->get_local_part();
+ *     'wordpress.org' === $email->get_domain();
+ *
+ * @since 7.1.0
  */
 final class WP_Email_Address {
-
 	/**
 	 * Regex for the local part when Unicode is not enabled.
 	 *
 	 * Matches the character set from the WHATWG email specification:
 	 * https://html.spec.whatwg.org/multipage/input.html#email-state-(type=email)
 	 *
-	 * @since 7.0.0
+	 * @since 7.1.0
 	 * @var string
 	 */
 	const LOCAL_PART_ASCII_REGEX = '/^[a-zA-Z0-9.!#$%&\'*+\/=?^_`{|}~-]+$/';
@@ -34,7 +42,7 @@ final class WP_Email_Address {
 	 * and applies the same grapheme-cluster structure used for domain labels:
 	 * each cluster must open with a non-combining character.
 	 *
-	 * @since 7.0.0
+	 * @since 7.1.0
 	 * @var string
 	 */
 	const LOCAL_PART_UNICODE_REGEX = '/^([\p{L}\p{N}.!#$%&\'*+\/=?^_`{|}~-]\p{M}*)+$/u';
@@ -45,7 +53,7 @@ final class WP_Email_Address {
 	 * Matches a label from the WHATWG email specification: starts and ends with
 	 * a letter or digit; internal characters may include hyphens.
 	 *
-	 * @since 7.0.0
+	 * @since 7.1.0
 	 * @var string
 	 */
 	const DOMAIN_LABEL_ASCII = '[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?';
@@ -57,7 +65,7 @@ final class WP_Email_Address {
 	 * with grapheme-cluster structure: each cluster must open with a letter or
 	 * digit (not a combining mark), followed by zero or more combining marks.
 	 *
-	 * @since 7.0.0
+	 * @since 7.1.0
 	 * @var string
 	 */
 	const DOMAIN_LABEL_UNICODE = '[\p{L}\p{N}]\p{M}*(?:(?:[\p{L}\p{N}-]\p{M}*)*[\p{L}\p{N}]\p{M}*)?';
@@ -68,7 +76,7 @@ final class WP_Email_Address {
 	 * Assembled from {@see self::DOMAIN_LABEL_ASCII}: one label, then zero or
 	 * more dot-separated labels.
 	 *
-	 * @since 7.0.0
+	 * @since 7.1.0
 	 * @var string
 	 */
 	const DOMAIN_ASCII_REGEX = '/^' . self::DOMAIN_LABEL_ASCII . '(?:\.' . self::DOMAIN_LABEL_ASCII . ')*$/';
@@ -79,7 +87,7 @@ final class WP_Email_Address {
 	 * Assembled from {@see self::DOMAIN_LABEL_UNICODE}: one label, then zero or
 	 * more dot-prefixed labels.
 	 *
-	 * @since 7.0.0
+	 * @since 7.1.0
 	 * @var string
 	 */
 	const DOMAIN_UNICODE_REGEX = '/^' . self::DOMAIN_LABEL_UNICODE . '(?:\.' . self::DOMAIN_LABEL_UNICODE . ')*$/u';
@@ -87,30 +95,56 @@ final class WP_Email_Address {
 	/**
 	 * The local part of the email address (the portion before the '@').
 	 *
-	 * @since 7.0.0
+	 * @since 7.1.0
 	 * @var string
 	 */
 	private $localpart;
 
 	/**
-	 * The domain part of the email address (the portion after the '@').
+	 * The email domain using punycode transcription instead of Unicode characters.
 	 *
-	 * @since 7.0.0
+	 * Example:
+	 *
+	 *     $email = WP_Email_Address::from_string( 'checkout@bücher.tld' );
+	 *     'xn--bcher-kva.tld' === $email->get_ascii_domain();
+	 *
+	 * @see self::$decoded_domain
+	 *
+	 * @since 7.1.0
 	 * @var string
 	 */
-	private $domain;
+	private $encoded_domain;
+
+	/**
+	 * The email domain, which may contain Unicode characters.
+	 *
+	 * Example:
+	 *
+	 *     $email = WP_Email_Address::from_string( 'checkout@bücher.tld' );
+	 *     'bücher.tld' === $email->get_unicode_domain();
+	 *
+	 * @see self::$encoded_domain
+	 *
+	 * @since 7.1.0
+	 * @var string
+	 */
+	private $decoded_domain;
 
 	/**
 	 * Private constructor. Use {@see WP_Email_Address::from_string()} to create instances.
 	 *
-	 * @since 7.0.0
+	 * @since 7.1.0
+	 * @private
 	 *
-	 * @param string $localpart The local part of the email address.
-	 * @param string $domain    The domain part of the email address.
+	 * @param string $localpart           The local part of the email address.
+	 * @param string $ascii_domain        The domain part of the email address, which may include punycode transcription.
+	 * @param string|null $unicode_domain The domain part of the email address, which may contain Unicode characters, or
+	 *                                    null if no Unicode translation exists.
 	 */
-	private function __construct( string $localpart, string $domain ) {
-		$this->localpart = $localpart;
-		$this->domain    = $domain;
+	private function __construct( string $localpart, string $ascii_domain, ?string $unicode_domain ) {
+		$this->localpart      = $localpart;
+		$this->encoded_domain = $ascii_domain;
+		$this->decoded_domain = $unicode_domain;
 	}
 
 	/**
@@ -130,88 +164,116 @@ final class WP_Email_Address {
 	 * they can't (in 2026), this class may or may not. (Note that
 	 * "<iframe src=...>"@example.com is valid according to the RFC.)
 	 *
-	 * @since 7.0.0
+	 * @since 7.1.0
 	 *
-	 * @param string $input   The email address string to parse.
-	 * @param bool   $unicode Whether to allow Unicode characters in the address.
-	 * @return WP_Email_Address|false A WP_Email_Address instance, or false if the input is invalid.
+	 * @param string            $input         The email address string to parse.
+	 * @param 'ascii'|'unicode' $character_set Allow only ASCII addresses or all valid Unicode addresses.
+	 * @return WP_Email_Address|null A WP_Email_Address instance, or null if the input fails to validate.
 	 */
-	public static function from_string( string $input, bool $unicode ) {
+	public static function from_string( string $input, string $character_set = 'unicode' ): ?WP_Email_Address {
 		// There must be exactly one '@' sign.
 		$at_pos = strpos( $input, '@' );
 		if ( false === $at_pos || strrpos( $input, '@' ) !== $at_pos ) {
-			return false;
+			return null;
 		}
 
-		$localpart = substr( $input, 0, $at_pos );
-		$domain    = substr( $input, $at_pos + 1 );
+		$allow_unicode  = 'unicode' === $character_set;
+		$localpart      = substr( $input, 0, $at_pos );
+		$ascii_domain   = substr( $input, $at_pos + 1 );
+		$domain_labels  = explode( '.', $ascii_domain );
+		$decoded_domain = $ascii_domain;
+		$local_pattern  = $allow_unicode ? self::LOCAL_PART_UNICODE_REGEX : self::LOCAL_PART_ASCII_REGEX;
+		$domain_pattern = $allow_unicode ? self::DOMAIN_UNICODE_REGEX : self::DOMAIN_ASCII_REGEX;
 
-		foreach ( explode( '.', $domain ) as $label ) {
+		foreach ( $domain_labels as $label ) {
 			// DNS limits each label to 63 octets.
 			if ( strlen( $label ) > 63 ) {
-				return false;
+				return null;
 			}
 		}
 
-		if ( $unicode && function_exists( 'idn_to_utf8' ) ) {
-			// Validate each domain label, decode any punycode to UTF-8, and
-			// reassemble the decoded labels into the local $domain variable.
+		if ( $allow_unicode ) {
+			/*
+			 * Without support for decoding punycode it’s not possible to validate
+			 * the email address, so abort if any domain labels require decoding.
+			 */
+			if (
+				! function_exists( 'idn_to_utf8' ) &&
+				( str_starts_with( $ascii_domain, 'xn--' ) || str_contains( $ascii_domain, '.xn--' ) )
+			) {
+				return null;
+			}
+
+			/*
+			 * Validate each domain label, decode any punycode to UTF-8, and
+			 * reassemble the decoded labels into the local $domain variable.
+			 */
 			$decoded_labels = array();
-			foreach ( explode( '.', $domain ) as $label ) {
+			foreach ( $domain_labels as $label ) {
 				// Decode punycode labels to their Unicode form for further validation.
 				if ( str_starts_with( $label, 'xn--' ) ) {
 					$label = idn_to_utf8( $label, IDNA_DEFAULT, INTL_IDNA_VARIANT_UTS46 );
 					if ( false === $label ) {
-						return false;
+						return null;
 					}
 				}
+
 				// Reject labels with a reserved ACE-like prefix (two chars followed by '--').
-				if ( preg_match( '/^..--/u', $label ) ) {
-					return false;
+				if ( 1 === preg_match( '/^..--/', $label ) ) {
+					return null;
 				}
 				$decoded_labels[] = $label;
 			}
-			$domain = implode( '.', $decoded_labels );
+			$decoded_domain = implode( '.', $decoded_labels );
 		} else {
 			// Without Unicode support, reject any non-ASCII byte in either part.
 			if ( preg_match( '/[\x80-\xff]/', $input ) ) {
-				return false;
+				return null;
 			}
 		}
 
-		// Both parts must be valid UTF-8, regardless of whether Unicode is requested. (A valid ASCII string is also valid UTF-8.)
-		if ( ! wp_is_valid_utf8( $localpart ) || ! wp_is_valid_utf8( $domain ) ) {
-			return false;
+		// All parts must be valid UTF-8, regardless of whether Unicode is requested. (A valid ASCII string is also valid UTF-8.)
+		if (
+			! wp_is_valid_utf8( $localpart ) ||
+			! wp_is_valid_utf8( $ascii_domain ) ||
+			! wp_is_valid_utf8( $decoded_domain )
+		) {
+			return null;
 		}
 
 		// Validate the local part against the allowed character set.
-		if ( ! preg_match( $unicode ? self::LOCAL_PART_UNICODE_REGEX : self::LOCAL_PART_ASCII_REGEX, $localpart ) ) {
+		if ( 1 !== preg_match( $local_pattern, $localpart ) ) {
 			/** This filter is documented in wp-includes/formatting.php */
 			if ( ! apply_filters( 'is_email', false, $input, 'local_invalid_chars' ) ) {
-				return false;
+				return null;
 			}
 		}
 
 		// The domain must contain at least one dot.
-		if ( ! str_contains( $domain, '.' ) ) {
+		if ( ! str_contains( $ascii_domain, '.' ) ) {
 			/** This filter is documented in wp-includes/formatting.php */
 			if ( ! apply_filters( 'is_email', false, $input, 'domain_no_periods' ) ) {
-				return false;
+				return null;
 			}
 		}
 
 		// Validate the domain against the allowed structure.
-		if ( ! preg_match( $unicode ? self::DOMAIN_UNICODE_REGEX : self::DOMAIN_ASCII_REGEX, $domain ) ) {
-			return false;
+		if ( 1 !== preg_match( $domain_pattern, $decoded_domain ) ) {
+			return null;
 		}
 
-		return new self( $localpart, $domain );
+		return new self( $localpart, $ascii_domain, $decoded_domain );
 	}
 
 	/**
 	 * Returns the local part of the email address (the portion before the '@').
 	 *
-	 * @since 7.0.0
+	 * Example:
+	 *
+	 *     $email = WP_Email_Address::from_string( 'checkout@bücher.tld' );
+	 *     'checkout' === $email->get_localpart();
+	 *
+	 * @since 7.1.0
 	 *
 	 * @return string The local part of the email address.
 	 */
@@ -220,14 +282,40 @@ final class WP_Email_Address {
 	}
 
 	/**
-	 * Returns the domain part of the email address (the portion after the '@').
+	 * Returns the ASCII form of the domain, suitable for contexts in which
+	 * other software will be reading and decoding it. May contain punycode.
 	 *
-	 * @since 7.0.0
+	 * Example:
+	 *
+	 *     $email = WP_Email_Address::from_string( 'checkout@bücher.tld' );
+	 *     'xn--bcher-kva.tld' === $email->get_ascii_domain();
+	 *
+	 * @see self::get_unicode_domain()
+	 *
+	 * @return string Form of domain for machines, potentially containing
+	 *                punycode translation of Unicode characters.
+	 */
+	public function get_ascii_domain(): string {
+		return $this->encoded_domain;
+	}
+
+	/**
+	 * Returns the Unicode form of the domain, suitable for contexts in which
+	 * humans will be reading it. May contain Unicode characters.
+	 *
+	 * Example:
+	 *
+	 *     $email = WP_Email_Address::from_string( 'checkout@bücher.tld' );
+	 *     'bücher.tld' === $email->get_unicode_domain();
+	 *
+	 * @see self::get_ascii_domain()
+	 *
+	 * @since 7.1.0
 	 *
 	 * @return string The domain part of the email address.
 	 */
-	public function get_domain(): string {
-		return $this->domain;
+	public function get_unicode_domain(): string {
+		return $this->decoded_domain;
 	}
 
 	/**
@@ -236,11 +324,11 @@ final class WP_Email_Address {
 	 * The returned value can always be passed to {@see WP_Email_Address::from_string()}
 	 * and will produce an equivalent WP_Email_Address instance.
 	 *
-	 * @since 7.0.0
+	 * @since 7.1.0
 	 *
 	 * @return string The complete email address.
 	 */
 	public function get_address(): string {
-		return $this->localpart . '@' . $this->domain;
+		return $this->localpart . '@' . $this->decoded_domain;
 	}
 }

@@ -50,14 +50,14 @@ class Tests_WpEmailAddress extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_from_string
 	 * @covers WP_Email_Address::get_localpart
-	 * @covers WP_Email_Address::get_domain
+	 * @covers WP_Email_Address::get_unicode_domain
 	 *
 	 * @param string $address The email address to parse.
 	 */
 	public function test_localpart_and_domain_compose_address( $address ) {
 		$instance = WP_Email_Address::from_string( $address, false );
 		$this->assertSame(
-			$instance->get_localpart() . '@' . $instance->get_domain(),
+			$instance->get_localpart() . '@' . $instance->get_unicode_domain(),
 			$instance->get_address()
 		);
 	}
