@@ -35,7 +35,7 @@
  *
  * @phpstan-type Options array{
  *     hostname: non-empty-string,
- *     username?: non-empty-string,
+ *     username: non-empty-string,
  *     password: string|null,
  *     port: non-negative-int,
  *     public_key?: non-empty-string,
@@ -81,7 +81,7 @@ class WP_Filesystem_SSH2 extends WP_Filesystem_Base {
 	 *
 	 *     @type string $hostname    Required. SSH server hostname.
 	 *     @type int    $port        Optional. SSH server port. Default 22.
-	 *     @type string $username    Optional. SSH username. Required when not using keys.
+	 *     @type string $username    Required. SSH username.
 	 *     @type string $password    Optional. SSH password. May be empty when using keys.
 	 *     @type string $public_key  Optional. Path to public key file for publickey authentication.
 	 *     @type string $private_key Optional. Path to private key file for publickey authentication.
@@ -89,7 +89,7 @@ class WP_Filesystem_SSH2 extends WP_Filesystem_Base {
 	 * }
 	 * @phpstan-param array{
 	 *     hostname: non-empty-string,
-	 *     username?: non-empty-string,
+	 *     username: non-empty-string,
 	 *     password?: string,
 	 *     port?: non-negative-int,
 	 *     public_key?: non-empty-string,
@@ -132,11 +132,12 @@ class WP_Filesystem_SSH2 extends WP_Filesystem_Base {
 			$options['hostkey'] = array( 'hostkey' => 'ssh-rsa,ssh-ed25519' );
 
 			$this->keys = true;
-		} elseif ( empty( $opt['username'] ) ) {
-			$this->errors->add( 'empty_username', __( 'SSH2 username is required' ) );
 		}
 
-		if ( ! empty( $opt['username'] ) ) {
+		// A username is always required, whether authenticating with a password or with keys.
+		if ( empty( $opt['username'] ) ) {
+			$this->errors->add( 'empty_username', __( 'SSH2 username is required' ) );
+		} else {
 			$options['username'] = $opt['username'];
 		}
 
@@ -184,8 +185,8 @@ class WP_Filesystem_SSH2 extends WP_Filesystem_Base {
 			return false;
 		}
 
-		if ( ! $this->keys && isset( $this->options['username'], $this->options['password'] ) ) {
-			if ( ! @ssh2_auth_password( $this->link, $this->options['username'], $this->options['password'] ) ) {
+		if ( ! $this->keys ) {
+			if ( ! @ssh2_auth_password( $this->link, $this->options['username'], $this->options['password'] ?? '' ) ) {
 				$this->errors->add(
 					'auth',
 					sprintf(
@@ -197,7 +198,7 @@ class WP_Filesystem_SSH2 extends WP_Filesystem_Base {
 
 				return false;
 			}
-		} elseif ( isset( $this->options['username'], $this->options['public_key'], $this->options['private_key'] ) && array_key_exists( 'password', $this->options ) ) {
+		} elseif ( isset( $this->options['public_key'], $this->options['private_key'] ) ) {
 			if ( ! @ssh2_auth_pubkey_file( $this->link, $this->options['username'], $this->options['public_key'], $this->options['private_key'], $this->options['password'] ?? '' ) ) {
 				$this->errors->add(
 					'auth',
