@@ -37,7 +37,7 @@
 	--accent-gradient: linear-gradient(90deg, #000000 4.7%, var(--accent-1) 83.84%)/*rtl:linear-gradient(-90deg, #000000 4.7%, var(--accent-1) 83.84%)*/;
 
 	/* Navigation colors. */
-	--nav-background: #fff;
+	--nav-background: var(--wp-admin-bg-card);
 	--nav-border: transparent;
 	--nav-color: var(--text);
 	--nav-current: var(--accent-1);
@@ -56,7 +56,7 @@
 .freedoms-php,
 .privacy-php,
 .contribute-php {
-	background: #fff;
+	background: var(--wp-admin-bg-card);
 }
 
 .about-php #wpcontent,
@@ -64,7 +64,7 @@
 .freedoms-php #wpcontent,
 .privacy-php #wpcontent,
 .contribute-php #wpcontent {
-	background: #fff;
+	background: var(--wp-admin-bg-card);
 	padding: 0 24px;
 }
 
@@ -993,7 +993,7 @@
 	background: #0073aa url(../images/w-logo-white.png?ver=20160308) no-repeat;
 	background-position: center 25px;
 	background-size: 80px 80px;
-	color: #fff;
+	color: var(--wp-admin-text-inverse);
 	font-size: 14px;
 	text-align: center;
 	font-weight: 600;
