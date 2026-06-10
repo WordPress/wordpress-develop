@@ -36,7 +36,7 @@ class Tests_Formatting_Antispambot extends WP_UnitTestCase {
 			'short address'        => array( 'a@b.co' ),
 			'ascii@nonascii'       => array( 'info@grå.org' ),
 			'nonascii@nonascii'    => array( 'grå@grå.org' ),
-			'decomposed unicode'   => array( 'gr\u{0061}\u{030a}blå@grå.org' ),
+			'decomposed unicode'   => array( "gr\u{0061}\u{030a}blå@grå.org" ),
 			'weird but legal dots' => array( '..@example.com' ),
 			'umlauts'              => array( 'bücher@gmx.de' ),
 			'three-byte UTF-8'     => array( "\u{FFFD}@who.knows.com" ),
