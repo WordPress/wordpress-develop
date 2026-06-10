@@ -942,13 +942,6 @@ a#remove-post-thumbnail:hover,
 	line-height: 2.30769231; /* 30px */
 }
 
-#delete-link {
-	line-height: 2.30769231; /* 30px */
-	vertical-align: middle;
-	text-align: left;
-	margin-left: 8px;
-}
-
 #delete-link a {
 	text-decoration: none;
 }
@@ -961,7 +954,6 @@ a#remove-post-thumbnail:hover,
 
 #publishing-action .spinner {
 	float: none;
-	margin-top: 5px;
 }
 
 #misc-publishing-actions {
@@ -1881,13 +1873,11 @@ p.auto-update-status {
 	border: 1px solid #c3c4c7;
 	border-top: none;
 	height: auto;
-	min-height: 32px; /* Compact size for header buttons */
 	margin-bottom: 0;
 	padding: 0 6px 0 16px;
 	background: #fff;
 	border-radius: 0 0 4px 4px;
 	color: #646970;
-	line-height: 2.30769231; /* 30px - matches compact button */
 	box-shadow: 0 0 0 transparent;
 	transition: box-shadow 0.1s linear;
 }
@@ -2460,7 +2450,7 @@ h1.nav-tab-wrapper, /* Back-compat for pre-4.4 */
 	filter: alpha(opacity=70);
 	width: 20px;
 	height: 20px;
-	margin: 4px 10px 0;
+	margin: 10px 10px 0;
 }
 
 .spinner.is-active,
@@ -2480,6 +2470,7 @@ h1.nav-tab-wrapper, /* Back-compat for pre-4.4 */
 }
 #template .submit .spinner {
 	float: none;
+	vertical-align: top;
 }
 
 .metabox-holder .stuffbox > h3, /* Back-compat for pre-4.4 */
@@ -4282,6 +4273,10 @@ img {
 
 	#screen-meta-links {
 		margin-bottom: 20px; /* Add margins beneath links for better spacing between boxes and elements */
+	}
+
+	#screen-meta-links .show-settings:after {
+		line-height: 1.9;
 	}
 
 	.wp-filter .search-form input[type="search"] {
