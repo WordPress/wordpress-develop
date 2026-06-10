@@ -192,18 +192,18 @@ final class WP_Email_Address {
 			}
 		}
 
-		if ( $allow_unicode ) {
-			/*
-			 * Without support for decoding punycode it’s not possible to validate
-			 * the email address, so abort if any domain labels require decoding.
-			 */
-			if (
-				! function_exists( 'idn_to_utf8' ) &&
-				( str_starts_with( $ascii_domain, 'xn--' ) || str_contains( $ascii_domain, '.xn--' ) )
-			) {
-				return null;
-			}
+		/*
+		 * Without support for decoding punycode it’s not possible to validate
+		 * the email address, so abort if any domain labels require decoding.
+		 */
+		if (
+			! function_exists( 'idn_to_utf8' ) &&
+			( str_starts_with( $ascii_domain, 'xn--' ) || str_contains( $ascii_domain, '.xn--' ) )
+		) {
+			return null;
+		}
 
+		if ( $allow_unicode ) {
 			/*
 			 * Validate each domain label, decode any punycode to UTF-8, and
 			 * reassemble the decoded labels into the local $domain variable.
