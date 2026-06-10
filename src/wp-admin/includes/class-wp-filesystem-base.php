@@ -280,10 +280,8 @@ class WP_Filesystem_Base {
 	 */
 	public function search_for_folder( $folder, $base = '.', $loop = false ) {
 		if ( empty( $base ) || '.' === $base ) {
-			$cwd = $this->cwd();
-			if ( is_string( $cwd ) ) {
-				$base = trailingslashit( $cwd );
-			}
+			$cwd  = $this->cwd();
+			$base = is_string( $cwd ) ? trailingslashit( $cwd ) : '/';
 		}
 
 		$folder = untrailingslashit( $folder );
