@@ -87,6 +87,16 @@ class Tests_HtmlApi_WpCssSelectorParserMatcher extends WP_UnitTestCase {
 			'can start with --\31 23'            => array( '--\31 23', '--123', '' ),
 			'ident ends before ]'                => array( 'ident]', 'ident', ']' ),
 
+			/*
+			 * > EOF
+			 * >   This is a parse error. Return U+FFFD REPLACEMENT CHARACTER (�).
+			 *
+			 * https://www.w3.org/TR/css-syntax-3/#consume-escaped-code-point
+			 */
+			'escape at EOF'                      => array( 'foo\\', "foo\u{fffd}", '' ),
+			'lone escape at EOF'                 => array( '\\', "\u{fffd}", '' ),
+			'hyphen then escape at EOF'          => array( '-\\', "-\u{fffd}", '' ),
+
 			// Invalid
 			'Invalid: (empty string)'            => array( '' ),
 			'Invalid: bad start >'               => array( '>ident' ),

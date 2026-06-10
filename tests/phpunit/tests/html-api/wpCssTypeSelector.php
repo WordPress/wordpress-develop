@@ -40,6 +40,7 @@ class Tests_HtmlApi_WpCssTypeSelector extends WP_UnitTestCase {
 			'a'                       => array( 'a', 'a', '' ),
 			'div.class'               => array( 'div.class', 'div', '.class' ),
 			'custom-type#id'          => array( 'custom-type#id', 'custom-type', '#id' ),
+			'escape at EOF foo\\'     => array( 'foo\\', "foo\u{fffd}", '' ),
 
 			// Invalid
 			'Invalid: (empty string)' => array( '' ),

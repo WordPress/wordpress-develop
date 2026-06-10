@@ -41,6 +41,29 @@ class Tests_HtmlApi_WpCssCompoundSelectorList extends WP_UnitTestCase {
 	}
 
 	/**
+	 * An escaped whitespace code point at the end of input belongs to the
+	 * ident and must survive input normalization: `.foo\ ` is the valid
+	 * class `foo ` (with a space), not a backslash at the end of input.
+	 *
+	 * @ticket 62653
+	 */
+	public function test_parse_escaped_whitespace_at_end_of_input() {
+		$result = WP_CSS_Compound_Selector_List::from_selectors( '.foo\\ ' );
+		$this->assertNotNull( $result );
+	}
+
+	/**
+	 * A backslash before a newline is not a valid escape; at the end of
+	 * input it must not be mistaken for trimmable trailing whitespace.
+	 *
+	 * @ticket 62653
+	 */
+	public function test_parse_escape_before_newline_at_end_of_input_is_invalid() {
+		$result = WP_CSS_Compound_Selector_List::from_selectors( ".foo\\\n" );
+		$this->assertNull( $result );
+	}
+
+	/**
 	 * @ticket 62653
 	 */
 	public function test_parse_empty_selector_list() {

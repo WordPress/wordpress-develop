@@ -75,6 +75,16 @@ class Tests_HtmlApi_WpHtmlTagProcessor_Select extends WP_UnitTestCase {
 			'attribute contains insensitive'      => array( '<p att="abcyz"><p att="abcXyz" match>', '[att*="x"i]', 1 ),
 			'attribute contains sensitive mod'    => array( '<p att="abcXyz"><p att="abcxyz" match>', '[att*="x"s]', 1 ),
 
+			/*
+			 * An escaped trailing whitespace code point is part of the ident,
+			 * not trailing whitespace: `.foo\ ` is the class `foo ` (with a
+			 * space). Class attribute values are whitespace-separated token
+			 * lists, so such a class can never match. It must NOT be confused
+			 * with a backslash at the end of input, which decodes to U+FFFD.
+			 */
+			'escaped space at end'                => array( "<div class=\"foo\u{FFFD}\"><div class=\"foo\"><div class=\"foo \">", '.foo\\ ', 0 ),
+			'escaped tab at end'                  => array( "<div class=\"foo\u{FFFD}\"><div class=\"foo\"><div class=\"foo\t\">", ".foo\\\t", 0 ),
+
 			'list'                                => array( '<div><p match><a match><span>', 'a, p, .class, #id, [att]', 2 ),
 			'compound'                            => array( '<div att><custom-el att="bar" fruit="APPLE BANANA" match>', 'custom-el[att="bar"][    fruit ~= "banana" i]', 1 ),
 		);
@@ -102,6 +112,16 @@ class Tests_HtmlApi_WpHtmlTagProcessor_Select extends WP_UnitTestCase {
 			'complex descendant' => array( 'div *' ),
 			'complex child'      => array( 'div > *' ),
 			'invalid selector'   => array( '[invalid!selector]' ),
+
+			/*
+			 * A backslash before a newline at the end of input is not a valid
+			 * escape and is not trailing whitespace: the selector is invalid.
+			 * The CR and FF variants are normalized to a newline before
+			 * tokenizing.
+			 */
+			'escape before newline at end' => array( ".foo\\\n" ),
+			'escape before CR at end'      => array( ".foo\\\r" ),
+			'escape before FF at end'      => array( ".foo\\\f" ),
 		);
 	}
 }

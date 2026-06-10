@@ -209,6 +209,14 @@ abstract class WP_CSS_Selector_Parser_Matcher {
 	 * @return string
 	 */
 	final protected static function consume_escaped_codepoint( $input, &$offset ): string {
+		/*
+		 * > EOF
+		 * >   This is a parse error. Return U+FFFD REPLACEMENT CHARACTER (�).
+		 */
+		if ( $offset >= strlen( $input ) ) {
+			return "\u{FFFD}";
+		}
+
 		$hex_length = strspn( $input, '0123456789abcdefABCDEF', $offset, 6 );
 		if ( $hex_length > 0 ) {
 			/**
@@ -339,10 +347,17 @@ abstract class WP_CSS_Selector_Parser_Matcher {
 	 * @return bool True if the next two codepoints are a valid escape, otherwise false.
 	 */
 	final protected static function next_two_are_valid_escape( string $input, int $offset ): bool {
-		if ( $offset + 1 >= strlen( $input ) ) {
+		if ( $offset >= strlen( $input ) ) {
 			return false;
 		}
-		return '\\' === $input[ $offset ] && "\n" !== $input[ $offset + 1 ];
+
+		/*
+		 * The second code point may be EOF. EOF is not a newline, so a
+		 * backslash at the end of input is a valid escape; consuming it
+		 * produces U+FFFD REPLACEMENT CHARACTER.
+		 */
+		return '\\' === $input[ $offset ] &&
+			( $offset + 1 >= strlen( $input ) || "\n" !== $input[ $offset + 1 ] );
 	}
 
 	/**
@@ -481,9 +496,15 @@ abstract class WP_CSS_Selector_Parser_Matcher {
 		 * > A selector string is a list of one or more complex selectors ([SELECTORS4], section 3.1) that may be surrounded by whitespace…
 		 *
 		 * This list includes \f.
-		 * A later step would normalize it to a known whitespace character, but it can be trimmed here as well.
+		 *
+		 * Only leading whitespace is removed here. Trailing whitespace may be
+		 * significant: a backslash may escape a final whitespace code point
+		 * into an ident (`.foo\ ` is the class `foo `), and a backslash
+		 * before a final newline is an invalid escape, while a backslash at
+		 * the end of input is a valid escape that decodes to U+FFFD. The
+		 * selector grammar consumes insignificant trailing whitespace itself.
 		 */
-		$input = trim( $input, " \t\r\n\f" );
+		$input = ltrim( $input, " \t\r\n\f" );
 
 		/*
 		 * > The input stream consists of the filtered code points pushed into it as the input byte stream is decoded.

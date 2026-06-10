@@ -40,6 +40,7 @@ class Tests_HtmlApi_WpCssClassSelector extends WP_UnitTestCase {
 			'valid .foo.bar'              => array( '.foo.bar', 'foo', '.bar' ),
 			'escaped .\31 23'             => array( '.\\31 23', '123', '' ),
 			'with descendant .\31 23 div' => array( '.\\31 23 div', '123', ' div' ),
+			'escape at EOF .foo\\'        => array( '.foo\\', "foo\u{fffd}", '' ),
 
 			'not class foo'               => array( 'foo' ),
 			'not class #bar'              => array( '#bar' ),
