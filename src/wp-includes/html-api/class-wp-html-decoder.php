@@ -60,17 +60,23 @@ class WP_HTML_Decoder {
 				continue;
 			}
 
-			// If there is a character reference, then the decoded value must exactly match what follows in the search string.
-			if ( 0 !== substr_compare( $search_text, $next_chunk, $search_at, strlen( $next_chunk ), $loose_case ) ) {
+			/*
+			 * If there is a character reference, then the decoded value must
+			 * match what follows in the search string. The search string may
+			 * end within a multi-code-point replacement, such as `&nvlt;`
+			 * decoding to `<⃒`, and still be a prefix match.
+			 */
+			$match_length = min( strlen( $next_chunk ), $search_length - $search_at );
+			if ( 0 !== substr_compare( $search_text, $next_chunk, $search_at, $match_length, $loose_case ) ) {
 				return false;
 			}
 
 			// The character reference matched, so continue checking.
 			$haystack_at += $token_length;
-			$search_at   += strlen( $next_chunk );
+			$search_at   += $match_length;
 		}
 
-		return true;
+		return $search_at === $search_length;
 	}
 
 	/**

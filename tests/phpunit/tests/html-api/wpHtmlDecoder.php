@@ -161,6 +161,11 @@ class Tests_HtmlApi_WpHtmlDecoder extends WP_UnitTestCase {
 			array( 'http://wordpress.org', 'Http', 'ascii-case-insensitive', true ),
 			array( 'http://wordpress.org', 'https', 'case-sensitive', false ),
 			array( 'http://wordpress.org', 'https', 'ascii-case-insensitive', false ),
+			array( '', 'http', 'case-sensitive', false ),
+			array( 'jav', 'javascript:', 'case-sensitive', false ),
+			array( 'jav', 'javascript:', 'ascii-case-insensitive', false ),
+			array( '&nvlt;script', '<', 'case-sensitive', true ),
+			array( '&nvgt;script', '>', 'case-sensitive', true ),
 		);
 	}
 }
