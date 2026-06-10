@@ -3816,14 +3816,17 @@ function sanitize_email( $email ) {
 	// Strip surrounding whitespace.
 	$email = trim( $email );
 
-	// Extract the address from "Display Name <address>" format.
-	if ( 1 === preg_match( '/<([^>]+)>/', $email, $matches ) ) {
+	// Extract the address from "Display Name <username@domain>" format.
+	if ( 1 === preg_match( '/<([^>]+)>$/', $email, $matches ) ) {
 		$email = $matches[1];
 	}
 
 	/*
 	 * Strip soft hyphens and whitespace adjacent to structural separators (dots and @),
 	 * e.g. copy-paste artifacts like "info@example\u{00AD}.com" or "info@example .com".
+	 *
+	 * In some cases, e.g. autocorrect, some older software has been seen to add the
+	 * space for unrecognized TLDs. This re-joins the parts for proper examination.
 	 */
 	$email = preg_replace( '/[\x{00AD}\s]*([.@])[\x{00AD}\s]*/u', '$1', $email ) ?? $email;
 
