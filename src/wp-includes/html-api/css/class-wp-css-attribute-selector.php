@@ -91,6 +91,66 @@ final class WP_CSS_Attribute_Selector extends WP_CSS_Selector_Parser_Matcher {
 	const MODIFIER_CASE_INSENSITIVE = 'case-insensitive';
 
 	/**
+	 * The attributes whose values HTML defines as ASCII case-insensitive
+	 * for attribute selectors on an HTML element, when the selector has no
+	 * `i`/`s` modifier. An explicit `s` modifier forces case-sensitive
+	 * matching even for these attributes; elements in other namespaces
+	 * (SVG, MathML) are unaffected.
+	 *
+	 * The names are stored as array keys for constant-time lookup.
+	 *
+	 * @see https://html.spec.whatwg.org/multipage/semantics-other.html#case-sensitivity-of-selectors
+	 */
+	const HTML_CASE_INSENSITIVE_ATTRIBUTE_VALUES = array(
+		'accept'         => true,
+		'accept-charset' => true,
+		'align'          => true,
+		'alink'          => true,
+		'axis'           => true,
+		'bgcolor'        => true,
+		'charset'        => true,
+		'checked'        => true,
+		'clear'          => true,
+		'codetype'       => true,
+		'color'          => true,
+		'compact'        => true,
+		'declare'        => true,
+		'defer'          => true,
+		'dir'            => true,
+		'direction'      => true,
+		'disabled'       => true,
+		'enctype'        => true,
+		'face'           => true,
+		'frame'          => true,
+		'hreflang'       => true,
+		'http-equiv'     => true,
+		'lang'           => true,
+		'language'       => true,
+		'link'           => true,
+		'media'          => true,
+		'method'         => true,
+		'multiple'       => true,
+		'nohref'         => true,
+		'noresize'       => true,
+		'noshade'        => true,
+		'nowrap'         => true,
+		'readonly'       => true,
+		'rel'            => true,
+		'rev'            => true,
+		'rules'          => true,
+		'scope'          => true,
+		'scrolling'      => true,
+		'selected'       => true,
+		'shape'          => true,
+		'target'         => true,
+		'text'           => true,
+		'type'           => true,
+		'valign'         => true,
+		'valuetype'      => true,
+		'vlink'          => true,
+	);
+
+	/**
 	 * The name of the attribute to match.
 	 *
 	 * @var string
@@ -185,7 +245,16 @@ final class WP_CSS_Attribute_Selector extends WP_CSS_Selector_Parser_Matcher {
 			$attr_value = '';
 		}
 
-		$case_insensitive = self::MODIFIER_CASE_INSENSITIVE === $this->modifier;
+		/*
+		 * Without an explicit modifier, HTML defines some attributes' values
+		 * as ASCII case-insensitive on HTML elements. An explicit `s`
+		 * modifier forces case-sensitive matching even for those.
+		 */
+		$case_insensitive = self::MODIFIER_CASE_INSENSITIVE === $this->modifier || (
+			null === $this->modifier &&
+			'html' === $processor->get_namespace() &&
+			isset( self::HTML_CASE_INSENSITIVE_ATTRIBUTE_VALUES[ strtolower( $this->name ) ] )
+		);
 
 		switch ( $this->matcher ) {
 			case self::MATCH_EXACT:

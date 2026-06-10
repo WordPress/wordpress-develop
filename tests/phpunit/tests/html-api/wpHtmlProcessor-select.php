@@ -63,6 +63,17 @@ class Tests_HtmlApi_WpHtmlProcessor_Select extends WP_UnitTestCase {
 			'empty value ^= i matches nothing' => array( '<i x=""><b x="abc">', '[x^="" i]', 0 ),
 			'empty value = matches empty'    => array( '<i x="" match><b x="abc">', '[x=""]', 1 ),
 			'empty value |= matches empty or hyphen-prefixed' => array( '<i x="" match><s x="-foo" match><b x="abc">', '[x|=""]', 2 ),
+
+			/*
+			 * HTML's case-insensitive attribute value list applies to
+			 * "an HTML element in an HTML document": a foreign element with
+			 * the same attribute name keeps case-sensitive matching.
+			 * ( Chromium applies the list to foreign elements as well,
+			 * diverging from the HTML specification here. )
+			 *
+			 * https://html.spec.whatwg.org/multipage/semantics-other.html#case-sensitivity-of-selectors
+			 */
+			'HTML-namespace-only attribute case-insensitivity' => array( '<!DOCTYPE html><a type="text" match></a><svg><a type="text"></a></svg>', '[type=TEXT]', 1 ),
 		);
 	}
 

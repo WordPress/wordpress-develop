@@ -95,6 +95,23 @@ class Tests_HtmlApi_WpHtmlTagProcessor_Select extends WP_UnitTestCase {
 			'EOF-truncated quoted value'          => array( '<div att="a b" match><div att="a">', '[att="a b', 1 ),
 			'EOF-truncated with modifier'         => array( '<div att="VAL" match><div att=x>', '[att=val i', 1 ),
 
+			/*
+			 * HTML defines a set of attributes whose values must match ASCII
+			 * case-insensitively in selectors when no modifier is present.
+			 * An explicit `s` modifier still forces case-sensitive matching.
+			 * Attributes outside the list stay case-sensitive by default.
+			 *
+			 * https://html.spec.whatwg.org/multipage/semantics-other.html#case-sensitivity-of-selectors
+			 */
+			'HTML insensitive attribute ='        => array( '<input type="text" match><input type="TEXT" match><input type="other">', '[type=TEXT]', 2 ),
+			'HTML insensitive attribute ~='       => array( '<a rel="NoFollow external" match><a rel="me">', '[rel~=nofollow]', 1 ),
+			'HTML insensitive attribute ^='       => array( '<b media="SCREEN and x" match><b media="print">', '[media^=screen]', 1 ),
+			'HTML insensitive attribute |='       => array( '<b hreflang="EN-US" match><b hreflang="deu">', '[hreflang|=en]', 1 ),
+			'HTML insensitive attribute s mod'    => array( '<input type="text" match><input type="TEXT">', '[type=text s]', 1 ),
+			'HTML insensitive attribute i mod'    => array( '<input type="text" match><input type="TEXT" match>', '[type=text i]', 2 ),
+			'unlisted attribute stays sensitive'  => array( '<i data-type="text"><i data-type="TEXT" match>', '[data-type=TEXT]', 1 ),
+			'listed attribute name is matched case-insensitively in the list' => array( '<input type="text" match>', '[TYPE=TEXT]', 1 ),
+
 			'list'                                => array( '<div><p match><a match><span>', 'a, p, .class, #id, [att]', 2 ),
 			'compound'                            => array( '<div att><custom-el att="bar" fruit="APPLE BANANA" match>', 'custom-el[att="bar"][    fruit ~= "banana" i]', 1 ),
 		);
