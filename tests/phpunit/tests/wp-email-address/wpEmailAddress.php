@@ -61,7 +61,7 @@ class Tests_WpEmailAddress extends WP_UnitTestCase {
 	 * @param string $address The email address to parse.
 	 */
 	public function test_localpart_and_domain_compose_address( $address ) {
-		$instance = WP_Email_Address::from_string( $address, 'ascii' );
+		$instance = WP_Email_Address::from_string( $address );
 
 		$this->assertSame(
 			$instance->get_localpart() . '@' . $instance->get_ascii_domain(),
