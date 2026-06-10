@@ -163,6 +163,24 @@ final class WP_CSS_Attribute_Selector extends WP_CSS_Selector_Parser_Matcher {
 			return true;
 		}
 
+		/*
+		 * The substring matchers match nothing when the value is empty:
+		 *
+		 * > If "val" is the empty string then the selector does not represent anything.
+		 *
+		 * https://www.w3.org/TR/selectors-4/#attribute-substrings
+		 */
+		if (
+			'' === $this->value &&
+			(
+				self::MATCH_PREFIXED_BY === $this->matcher ||
+				self::MATCH_SUFFIXED_BY === $this->matcher ||
+				self::MATCH_CONTAINS === $this->matcher
+			)
+		) {
+			return false;
+		}
+
 		if ( true === $attr_value ) {
 			$attr_value = '';
 		}

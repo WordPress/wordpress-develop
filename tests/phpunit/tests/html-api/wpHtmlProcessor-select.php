@@ -53,6 +53,16 @@ class Tests_HtmlApi_WpHtmlProcessor_Select extends WP_UnitTestCase {
 			'any child matches all children' => array( '<section><p match><i><em><p match>', 'section > *', 2 ),
 
 			'multiple complex selectors'     => array( '<section><div><p><span><i></i><p><i match>', 'section > div p > i', 1 ),
+
+			// Per Selectors-4, the substring matchers ^= $= *= match nothing when the value
+			// is empty. ~= also matches nothing: an empty string is never a list item.
+			'empty value ^= matches nothing' => array( '<i x=""><b x="abc">', '[x^=""]', 0 ),
+			'empty value $= matches nothing' => array( '<i x=""><b x="abc">', '[x$=""]', 0 ),
+			'empty value *= matches nothing' => array( '<i x=""><b x="abc">', '[x*=""]', 0 ),
+			'empty value ~= matches nothing' => array( '<i x=""><b x="abc">', '[x~=""]', 0 ),
+			'empty value ^= i matches nothing' => array( '<i x=""><b x="abc">', '[x^="" i]', 0 ),
+			'empty value = matches empty'    => array( '<i x="" match><b x="abc">', '[x=""]', 1 ),
+			'empty value |= matches empty or hyphen-prefixed' => array( '<i x="" match><s x="-foo" match><b x="abc">', '[x|=""]', 2 ),
 		);
 	}
 
