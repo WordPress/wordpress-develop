@@ -118,17 +118,17 @@ class Tests_Block_Supports_WpRenderElementsSupportStyles extends WP_UnitTestCase
 
 		// Both rules should be present with distinct class names.
 		$this->assertMatchesRegularExpression(
-			'/\.wp-elements-[a-f0-9]{32} a:where\(:not\(\.wp-element-button\)\)\{color:blue;\}/',
+			'/\.wp-elements-[a-f0-9]{32}[0-9]+ a:where\(:not\(\.wp-element-button\)\)\{color:blue;\}/',
 			$actual_stylesheet,
 			'First block element style should be present'
 		);
 		$this->assertMatchesRegularExpression(
-			'/\.wp-elements-[a-f0-9]{32} a:where\(:not\(\.wp-element-button\)\)\{color:blue;\}/',
+			'/\.wp-elements-[a-f0-9]{32}[0-9]+ a:where\(:not\(\.wp-element-button\)\)\{color:blue;\}/',
 			$actual_stylesheet,
 			'Second block element style should also be present'
 		);
 		// Count the number of distinct class names to confirm uniqueness.
-		preg_match_all( '/\.wp-elements-([a-f0-9]{32})/', $actual_stylesheet, $matches );
+		preg_match_all( '/\.wp-elements-([a-f0-9]{32}[0-9]+)/', $actual_stylesheet, $matches );
 		$unique_classes = array_unique( $matches[1] );
 		$this->assertCount( 2, $unique_classes, 'Both blocks should produce distinct class names' );
 	}
@@ -192,7 +192,7 @@ class Tests_Block_Supports_WpRenderElementsSupportStyles extends WP_UnitTestCase
 				'elements_styles' => array(
 					'button' => array( 'color' => $color_styles ),
 				),
-				'expected_styles' => '/^.wp-elements-[a-f0-9]{32} .wp-element-button, .wp-elements-[a-f0-9]{32} .wp-block-button__link' . $color_css_rules . '$/',
+				'expected_styles' => '/^.wp-elements-[a-f0-9]{32}[0-9]+ .wp-element-button, .wp-elements-[a-f0-9]{32}[0-9]+ .wp-block-button__link' . $color_css_rules . '$/',
 			),
 			'link element styles are applied'            => array(
 				'color_settings'  => array( 'link' => true ),
@@ -204,15 +204,15 @@ class Tests_Block_Supports_WpRenderElementsSupportStyles extends WP_UnitTestCase
 						),
 					),
 				),
-				'expected_styles' => '/^.wp-elements-[a-f0-9]{32} a:where\(:not\(.wp-element-button\)\)' . $color_css_rules .
-					'.wp-elements-[a-f0-9]{32} a:where\(:not\(.wp-element-button\)\):hover' . $color_css_rules . '$/',
+				'expected_styles' => '/^.wp-elements-[a-f0-9]{32}[0-9]+ a:where\(:not\(.wp-element-button\)\)' . $color_css_rules .
+					'.wp-elements-[a-f0-9]{32}[0-9]+ a:where\(:not\(.wp-element-button\)\):hover' . $color_css_rules . '$/',
 			),
 			'generic heading element styles are applied' => array(
 				'color_settings'  => array( 'heading' => true ),
 				'elements_styles' => array(
 					'heading' => array( 'color' => $color_styles ),
 				),
-				'expected_styles' => '/^.wp-elements-[a-f0-9]{32} h1, .wp-elements-[a-f0-9]{32} h2, .wp-elements-[a-f0-9]{32} h3, .wp-elements-[a-f0-9]{32} h4, .wp-elements-[a-f0-9]{32} h5, .wp-elements-[a-f0-9]{32} h6' . $color_css_rules . '$/',
+				'expected_styles' => '/^.wp-elements-[a-f0-9]{32}[0-9]+ h1, .wp-elements-[a-f0-9]{32}[0-9]+ h2, .wp-elements-[a-f0-9]{32}[0-9]+ h3, .wp-elements-[a-f0-9]{32}[0-9]+ h4, .wp-elements-[a-f0-9]{32}[0-9]+ h5, .wp-elements-[a-f0-9]{32}[0-9]+ h6' . $color_css_rules . '$/',
 			),
 			'individual heading element styles are applied' => array(
 				'color_settings'  => array( 'heading' => true ),
@@ -224,12 +224,12 @@ class Tests_Block_Supports_WpRenderElementsSupportStyles extends WP_UnitTestCase
 					'h5' => array( 'color' => $color_styles ),
 					'h6' => array( 'color' => $color_styles ),
 				),
-				'expected_styles' => '/^.wp-elements-[a-f0-9]{32} h1' . $color_css_rules .
-					'.wp-elements-[a-f0-9]{32} h2' . $color_css_rules .
-					'.wp-elements-[a-f0-9]{32} h3' . $color_css_rules .
-					'.wp-elements-[a-f0-9]{32} h4' . $color_css_rules .
-					'.wp-elements-[a-f0-9]{32} h5' . $color_css_rules .
-					'.wp-elements-[a-f0-9]{32} h6' . $color_css_rules . '$/',
+				'expected_styles' => '/^.wp-elements-[a-f0-9]{32}[0-9]+ h1' . $color_css_rules .
+					'.wp-elements-[a-f0-9]{32}[0-9]+ h2' . $color_css_rules .
+					'.wp-elements-[a-f0-9]{32}[0-9]+ h3' . $color_css_rules .
+					'.wp-elements-[a-f0-9]{32}[0-9]+ h4' . $color_css_rules .
+					'.wp-elements-[a-f0-9]{32}[0-9]+ h5' . $color_css_rules .
+					'.wp-elements-[a-f0-9]{32}[0-9]+ h6' . $color_css_rules . '$/',
 			),
 		);
 	}

@@ -16,18 +16,8 @@
  * @return string The unique class name.
  */
 function wp_get_elements_class_name( $block ) {
-	static $seen_hashes = array();
-
 	$hash = md5( serialize( $block ) );
-
-	if ( isset( $seen_hashes[ $hash ] ) ) {
-		++$seen_hashes[ $hash ];
-		return 'wp-elements-' . md5( $hash . $seen_hashes[ $hash ] );
-	}
-
-	$seen_hashes[ $hash ] = 0;
-
-	return 'wp-elements-' . $hash;
+	return wp_unique_prefixed_id( 'wp-elements-' . $hash );
 }
 
 /**

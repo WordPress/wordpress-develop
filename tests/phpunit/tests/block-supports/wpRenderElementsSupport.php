@@ -209,19 +209,19 @@ class Tests_Block_Supports_WpRenderElementsSupport extends WP_UnitTestCase {
 		$markup_two   = wp_render_elements_class_name( $block_markup, $block_two );
 
 		$this->assertMatchesRegularExpression(
-			'/^<p class="wp-elements-[a-f0-9]{32}">Hello <a href="http:\/\/www.wordpress.org\/">WordPress<\/a>!<\/p>$/',
+			'/^<p class="wp-elements-[a-f0-9]{32}[0-9]+">Hello <a href="http:\/\/www.wordpress.org\/">WordPress<\/a>!<\/p>$/',
 			$markup_one,
 			'First block should have wp-elements class applied'
 		);
 		$this->assertMatchesRegularExpression(
-			'/^<p class="wp-elements-[a-f0-9]{32}">Hello <a href="http:\/\/www.wordpress.org\/">WordPress<\/a>!<\/p>$/',
+			'/^<p class="wp-elements-[a-f0-9]{32}[0-9]+">Hello <a href="http:\/\/www.wordpress.org\/">WordPress<\/a>!<\/p>$/',
 			$markup_two,
 			'Second block should also have wp-elements class applied'
 		);
 
 		// Extract class names and verify they are different.
-		preg_match( '/wp-elements-([a-f0-9]{32})/', $markup_one, $match_one );
-		preg_match( '/wp-elements-([a-f0-9]{32})/', $markup_two, $match_two );
+		preg_match( '/wp-elements-([a-f0-9]{32}[0-9]+)/', $markup_one, $match_one );
+		preg_match( '/wp-elements-([a-f0-9]{32}[0-9]+)/', $markup_two, $match_two );
 		$this->assertNotEmpty( $match_one, 'First block class name should be extractable' );
 		$this->assertNotEmpty( $match_two, 'Second block class name should be extractable' );
 		$this->assertNotSame( $match_one[1], $match_two[1], 'Class names for identical blocks should be unique' );
@@ -306,7 +306,7 @@ class Tests_Block_Supports_WpRenderElementsSupport extends WP_UnitTestCase {
 					'button' => array( 'color' => $color_styles ),
 				),
 				'block_markup'    => '<p>Hello <a href="http://www.wordpress.org/">WordPress</a>!</p>',
-				'expected_markup' => '/^<p class="wp-elements-[a-f0-9]{32}">Hello <a href="http:\/\/www.wordpress.org\/">WordPress<\/a>!<\/p>$/',
+				'expected_markup' => '/^<p class="wp-elements-[a-f0-9]{32}[0-9]+">Hello <a href="http:\/\/www.wordpress.org\/">WordPress<\/a>!<\/p>$/',
 			),
 			'link element styles apply class to wrapper'   => array(
 				'color_settings'  => array( 'link' => true ),
@@ -314,7 +314,7 @@ class Tests_Block_Supports_WpRenderElementsSupport extends WP_UnitTestCase {
 					'link' => array( 'color' => $color_styles ),
 				),
 				'block_markup'    => '<p>Hello <a href="http://www.wordpress.org/">WordPress</a>!</p>',
-				'expected_markup' => '/^<p class="wp-elements-[a-f0-9]{32}">Hello <a href="http:\/\/www.wordpress.org\/">WordPress<\/a>!<\/p>$/',
+				'expected_markup' => '/^<p class="wp-elements-[a-f0-9]{32}[0-9]+">Hello <a href="http:\/\/www.wordpress.org\/">WordPress<\/a>!<\/p>$/',
 			),
 			'heading element styles apply class to wrapper' => array(
 				'color_settings'  => array( 'heading' => true ),
@@ -322,7 +322,7 @@ class Tests_Block_Supports_WpRenderElementsSupport extends WP_UnitTestCase {
 					'heading' => array( 'color' => $color_styles ),
 				),
 				'block_markup'    => '<p>Hello <a href="http://www.wordpress.org/">WordPress</a>!</p>',
-				'expected_markup' => '/^<p class="wp-elements-[a-f0-9]{32}">Hello <a href="http:\/\/www.wordpress.org\/">WordPress<\/a>!<\/p>$/',
+				'expected_markup' => '/^<p class="wp-elements-[a-f0-9]{32}[0-9]+">Hello <a href="http:\/\/www.wordpress.org\/">WordPress<\/a>!<\/p>$/',
 			),
 			'element styles apply class to wrapper when it has other classes' => array(
 				'color_settings'  => array( 'link' => true ),
@@ -330,7 +330,7 @@ class Tests_Block_Supports_WpRenderElementsSupport extends WP_UnitTestCase {
 					'link' => array( 'color' => $color_styles ),
 				),
 				'block_markup'    => '<p class="has-dark-gray-background-color has-background">Hello <a href="http://www.wordpress.org/">WordPress</a>!</p>',
-				'expected_markup' => '/^<p class="has-dark-gray-background-color has-background wp-elements-[a-f0-9]{32}">Hello <a href="http:\/\/www.wordpress.org\/">WordPress<\/a>!<\/p>$/',
+				'expected_markup' => '/^<p class="has-dark-gray-background-color has-background wp-elements-[a-f0-9]{32}[0-9]+">Hello <a href="http:\/\/www.wordpress.org\/">WordPress<\/a>!<\/p>$/',
 			),
 			'element styles apply class to wrapper when it has other attributes' => array(
 				'color_settings'  => array( 'link' => true ),
@@ -338,7 +338,7 @@ class Tests_Block_Supports_WpRenderElementsSupport extends WP_UnitTestCase {
 					'link' => array( 'color' => $color_styles ),
 				),
 				'block_markup'    => '<p id="anchor">Hello <a href="http://www.wordpress.org/">WordPress</a>!</p>',
-				'expected_markup' => '/^<p class="wp-elements-[a-f0-9]{32}" id="anchor">Hello <a href="http:\/\/www.wordpress.org\/">WordPress<\/a>!<\/p>$/',
+				'expected_markup' => '/^<p class="wp-elements-[a-f0-9]{32}[0-9]+" id="anchor">Hello <a href="http:\/\/www.wordpress.org\/">WordPress<\/a>!<\/p>$/',
 			),
 		);
 	}
