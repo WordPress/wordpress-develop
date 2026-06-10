@@ -12,11 +12,19 @@
  * @since 6.0.0
  * @access private
  *
- * @param array $block Block object.
+ * @param array $parsed_block Block object.
  * @return string The unique class name.
+ *
+ * @phpstan-param array{
+ *     attrs: array{
+ *         className?: string,
+ *         ...
+ *     },
+ *     ...
+ * } $parsed_block
  */
-function wp_get_elements_class_name( $block ): string {
-	$hash = md5( serialize( $block ) );
+function wp_get_elements_class_name( $parsed_block ): string {
+	$hash = md5( serialize( $parsed_block ) );
 	return wp_unique_prefixed_id( 'wp-elements-' . $hash );
 }
 
@@ -110,6 +118,21 @@ function wp_should_add_elements_class_name( $block, $options ) {
  *
  * @param array $parsed_block The parsed block.
  * @return array The same parsed block with elements classname added if appropriate.
+ *
+ * @phpstan-param array{
+ *     attrs: array{
+ *         className?: string,
+ *         ...
+ *     },
+ *     ...
+ * } $parsed_block
+ * @phpstan-return array{
+ *     attrs: array{
+ *         className?: string,
+ *         ...
+ *     },
+ *     ...
+ * }
  */
 function wp_render_elements_support_styles( $parsed_block ) {
 	/*
