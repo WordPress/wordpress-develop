@@ -287,7 +287,6 @@ if ( ! $mysql_compat && ! $php_compat ) {
 	);
 }
 
-
 // Validate the defined DB_CHARSET to the database server list of CHARACTER SET list.
 if ( ! defined( 'DB_CHARSET' ) || ! DB_CHARSET || ! $wpdb->get_row( $wpdb->prepare( 'SHOW CHARACTER SET WHERE Charset = %s', DB_CHARSET ) ) ) {
 	$mysql_db_charset_compat = false;
