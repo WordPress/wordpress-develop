@@ -298,6 +298,28 @@ html:lang(he-il) .rtl #wpadminbar * {
 	color: #72aee6;
 }
 
+#wpadminbar:not(.mobile) .ab-top-menu > li > .ab-item:focus,
+#wpadminbar:not(.mobile) .ab-top-menu > li:focus-within > .ab-item,
+#wpadminbar.nojq .quicklinks .ab-top-menu > li > .ab-item:focus {
+	background: #2271b1;
+	color: #fff;
+}
+
+#wpadminbar:not(.mobile) > #wp-toolbar .ab-top-menu > li > .ab-item:focus span.ab-label,
+#wpadminbar:not(.mobile) > #wp-toolbar .ab-top-menu > li:focus-within > .ab-item span.ab-label,
+#wpadminbar.nojq .quicklinks .ab-top-menu > li > .ab-item:focus span.ab-label,
+#wpadminbar:not(.mobile) .ab-top-menu > li > .ab-item:focus .ab-icon:before,
+#wpadminbar:not(.mobile) .ab-top-menu > li > .ab-item:focus:before,
+#wpadminbar:not(.mobile) .ab-top-menu > li > .ab-item:focus:after,
+#wpadminbar:not(.mobile) .ab-top-menu > li:focus-within > .ab-item .ab-icon:before,
+#wpadminbar:not(.mobile) .ab-top-menu > li:focus-within > .ab-item:before,
+#wpadminbar:not(.mobile) .ab-top-menu > li:focus-within > .ab-item:after,
+#wpadminbar.nojq .quicklinks .ab-top-menu > li > .ab-item:focus .ab-icon:before,
+#wpadminbar.nojq .quicklinks .ab-top-menu > li > .ab-item:focus:before,
+#wpadminbar.nojq .quicklinks .ab-top-menu > li > .ab-item:focus:after {
+	color: #fff;
+}
+
 #wpadminbar.mobile .quicklinks .ab-icon:before,
 #wpadminbar.mobile .quicklinks .ab-item:before {
 	color: #c3c4c7;
