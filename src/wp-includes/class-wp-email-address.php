@@ -21,6 +21,15 @@
  *     'wordpress'     === $email->get_local_part();
  *     'wordpress.org' === $email->get_domain();
  *
+ * @see self::from_string()        to parse and validate a provided email address.
+ * @see self::get_localpart()      for the local part or mailbox of the address.
+ * @see self::get_ascii_domain()   for an encoded version of the domain best suited for
+ *                                 printing in contexts where other software reads it and
+ *                                 decodes it, such as in an `<a href>` attribute.
+ * @see self::get_unicode_domain() for a decoded version of the domain best suited for
+ *                                 printing in contexts where humans read it, where any
+ *                                 Unicode characters print as they are, not as punycode.
+ *
  * @since 7.1.0
  */
 final class WP_Email_Address {
@@ -151,18 +160,43 @@ final class WP_Email_Address {
 	 * Creates a WP_Email_Address from a string.
 	 *
 	 * This method is intended to accept all strings that are considered valid email
-	 * addresses by the WHATWG HTML specification for the email input type:
+	 * addresses by the WHATWG HTML specification for the `email` input type
+	 * {@link https://html.spec.whatwg.org/multipage/input.html#email-state-(type=email)}
+	 * and some additional addresses, while rejecting strings that are more likely to
+	 * be typos, mispastes, or attacks. This class may reject a few address that are
+	 * valid according to RFC 5322, but it always accepts an address if it's valid
+	 * according to WHATWG. Put differently: If users can type an address into the
+	 * major browsers of 2026, this class accepts them, if they can't (in 2026),
+	 * this class may or may not.
 	 *
-	 *     https://html.spec.whatwg.org/multipage/input.html#email-state-(type=email)
+	 * Example:
 	 *
-	 * and some additional addresses, while rejecting strings that
-	 * are more likely to be typos, mispastes, or attacks. This class
-	 * may reject a few address that are valid according to RFC 5322,
-	 * but it always accepts an address if it's valid according to
-	 * WHATWG. Put differently: If users can type an address into
-	 * the major browsers of 2026, this class accepts them, if
-	 * they can't (in 2026), this class may or may not. (Note that
-	 * "<iframe src=...>"@example.com is valid according to the RFC.)
+	 *     // Typical all-US-ASCII email address.
+	 *     $email = WP_Email_Address::from_string( 'webmaster@example.com' );
+	 *     'webmaster'   === $email->get_localpart();
+	 *     'example.com' === $email->get_ascii_domain();
+	 *     'example.com' === $email->get_unicode_domain();
+	 *
+	 *     // Punycode domains are always decoded.
+	 *     $email = WP_Email_Address::from_string( 'books@xn--bcher-kva.de' );
+	 *     'books'            === $email->get_localpart();
+	 *     'xn--bcher-kva.de' === $email->get_ascii_domain();
+	 *     'Bücher.de'        === $email->get_unicode_domain();
+	 *
+	 *     // Unicode localparts are accepted if Unicode addresses are requested (the default).
+	 *     $email = WP_Email_Address::from_string( 'bücher@example.com' );
+	 *     'bücher' === $email->get_localpart();
+	 *
+	 *     // Addresses with non-ASCII are rejected if ASCII-only addresses are requested.
+	 *     null === WP_Email_Address::from_string( 'books@xn--bcher-kva.de', 'ascii' );
+	 *     null === WP_Email_Address::from_string( 'bücher@xn--bcher-kva.de', 'ascii' );
+	 *     null === WP_Email_Address::from_string( 'bücher@Bücher.de', 'ascii' );
+	 *
+	 *     // Some valid addresses (according to RFC 5322) are rejected.
+	 *     null === WP_Email_Address::from_string( '"<iframe src=...>"@example.com' );
+	 *
+	 * Note! If an address contains punycode encodings but the required {@see idn_to_utf8()}
+	 * function is missing (from the `intl` extension), this will reject that email address.
 	 *
 	 * @since 7.1.0
 	 *
@@ -181,7 +215,6 @@ final class WP_Email_Address {
 		$localpart      = substr( $input, 0, $at_pos );
 		$ascii_domain   = substr( $input, $at_pos + 1 );
 		$domain_labels  = explode( '.', $ascii_domain );
-		$decoded_domain = $ascii_domain;
 		$local_pattern  = $allow_unicode ? self::LOCAL_PART_UNICODE_REGEX : self::LOCAL_PART_ASCII_REGEX;
 		$domain_pattern = $allow_unicode ? self::DOMAIN_UNICODE_REGEX : self::DOMAIN_ASCII_REGEX;
 
@@ -196,18 +229,16 @@ final class WP_Email_Address {
 		 * Without support for decoding punycode it’s not possible to validate
 		 * the email address, so abort if any domain labels require decoding.
 		 */
-		if (
-			! function_exists( 'idn_to_utf8' ) &&
-			( str_starts_with( $ascii_domain, 'xn--' ) || str_contains( $ascii_domain, '.xn--' ) )
-		) {
+		$needs_decoding = str_starts_with( $ascii_domain, 'xn--' ) || str_contains( $ascii_domain, '.xn--' );
+		if ( $needs_decoding && ! function_exists( 'idn_to_utf8' ) ) {
 			return null;
 		}
 
-		if ( $allow_unicode ) {
-			/*
-			 * Validate each domain label, decode any punycode to UTF-8, and
-			 * reassemble the decoded labels into the local $domain variable.
-			 */
+		/*
+		 * Validate each domain label, decode any punycode to UTF-8, and
+		 * reassemble the decoded labels into the local $domain variable.
+		 */
+		if ( $needs_decoding ) {
 			$decoded_labels = array();
 			foreach ( $domain_labels as $label ) {
 				// Decode punycode labels to their Unicode form for further validation.
@@ -226,10 +257,18 @@ final class WP_Email_Address {
 			}
 			$decoded_domain = implode( '.', $decoded_labels );
 		} else {
-			// Without Unicode support, reject any non-ASCII byte in either part.
-			if ( preg_match( '/[\x80-\xff]/', $input ) ) {
-				return null;
-			}
+			$decoded_domain = $ascii_domain;
+		}
+
+		// Without Unicode support, reject any non-ASCII byte in either part.
+		if (
+			! $allow_unicode &&
+			(
+				1 === preg_match( '/[\x80-\xff]/', $input ) ||
+				1 === preg_match( '/[\x80-\xff]/', $decoded_domain )
+			)
+		) {
+			return null;
 		}
 
 		// All parts must be valid UTF-8, regardless of whether Unicode is requested. (A valid ASCII string is also valid UTF-8.)
