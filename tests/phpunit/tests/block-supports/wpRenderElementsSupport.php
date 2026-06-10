@@ -202,29 +202,25 @@ class Tests_Block_Supports_WpRenderElementsSupport extends WP_UnitTestCase {
 			),
 		);
 
-		$block_markup = '<p>Hello <a href="http://www.wordpress.org/">WordPress</a>!</p>';
-		$block_one    = wp_render_elements_support_styles( $block );
-		$block_two    = wp_render_elements_support_styles( $block );
-		$markup_one   = wp_render_elements_class_name( $block_markup, $block_one );
-		$markup_two   = wp_render_elements_class_name( $block_markup, $block_two );
+		$block_markup         = '<p>Hello <a href="http://www.wordpress.org/">WordPress</a>!</p>';
+		$elements_class_names = array();
+		$count                = 2;
+		for ( $i = 0; $i < $count; $i++ ) {
+			$rendered_block = wp_render_elements_class_name( $block_markup, wp_render_elements_support_styles( $block ) );
 
-		$this->assertMatchesRegularExpression(
-			'/^<p class="wp-elements-[a-f0-9]{32}[0-9]+">Hello <a href="http:\/\/www.wordpress.org\/">WordPress<\/a>!<\/p>$/',
-			$markup_one,
-			'First block should have wp-elements class applied'
-		);
-		$this->assertMatchesRegularExpression(
-			'/^<p class="wp-elements-[a-f0-9]{32}[0-9]+">Hello <a href="http:\/\/www.wordpress.org\/">WordPress<\/a>!<\/p>$/',
-			$markup_two,
-			'Second block should also have wp-elements class applied'
-		);
+			$processor = new WP_HTML_Tag_Processor( $rendered_block );
+			$this->assertTrue( $processor->next_tag( 'P' ), "Expected paragraph in block #$i." );
+			$elements_class_name = array_first(
+				array_filter(
+					iterator_to_array( $processor->class_list() ),
+					fn( string $class_name ) => (bool) preg_match( '/^wp-elements-[a-f0-9]{32}[0-9]+$/', $class_name )
+				)
+			);
+			$this->assertIsString( $elements_class_name, "Expected wp-elements class in block #$i." );
+			$elements_class_names[] = $elements_class_name;
+		}
 
-		// Extract class names and verify they are different.
-		preg_match( '/wp-elements-([a-f0-9]{32}[0-9]+)/', $markup_one, $match_one );
-		preg_match( '/wp-elements-([a-f0-9]{32}[0-9]+)/', $markup_two, $match_two );
-		$this->assertNotEmpty( $match_one, 'First block class name should be extractable' );
-		$this->assertNotEmpty( $match_two, 'Second block class name should be extractable' );
-		$this->assertNotSame( $match_one[1], $match_two[1], 'Class names for identical blocks should be unique' );
+		$this->assertSame( $count, count( array_unique( $elements_class_names ) ), 'Expected each rendered block to have a unique wp-elements class name.' );
 	}
 
 	/**
