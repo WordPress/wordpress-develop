@@ -703,6 +703,54 @@ function rest_ensure_response( $response ) {
 }
 
 /**
+ * Returns a formatted caller location string for REST API debug log entries.
+ *
+ * Searches the call stack for the first frame whose file lives inside WP_CONTENT_DIR,
+ * identifying the plugin or theme that triggered the notice. Used by the REST API
+ * debug handlers to append actionable location info to error_log() output.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @return string Formatted string such as ' called from my_func() in /path/plugin.php on line 8',
+ *                or ' called from (anonymous function) in /path/plugin.php on line 8' for closures,
+ *                or empty string when no plugin/theme frame is found in the call stack.
+ */
+function _rest_get_debug_backtrace_caller() {
+	$backtrace              = debug_backtrace( DEBUG_BACKTRACE_IGNORE_ARGS, 20 );
+	$normalized_content_dir = trailingslashit( wp_normalize_path( WP_CONTENT_DIR ) );
+
+	foreach ( $backtrace as $i => $frame ) {
+		if ( ! isset( $frame['file'] ) || ! str_starts_with( wp_normalize_path( $frame['file'] ), $normalized_content_dir ) ) {
+			continue;
+		}
+
+		$location = ' in ' . wp_normalize_path( $frame['file'] );
+		if ( isset( $frame['line'] ) ) {
+			$location .= ' on line ' . $frame['line'];
+		}
+
+		/*
+		 * The next frame holds the function that contains the offending call.
+		 * PHP represents closures as '{closure}' (< 8.4) or '{closure:file:line}' (>= 8.4),
+		 * both starting with '{'. These are replaced with a readable label.
+		 */
+		$next = $backtrace[ $i + 1 ] ?? array();
+		if ( ! empty( $next['function'] ) ) {
+			if ( str_starts_with( $next['function'], '{' ) ) {
+				return ' called from (anonymous function)' . $location;
+			}
+			$caller_func = isset( $next['class'] ) ? $next['class'] . ( $next['type'] ?? '::' ) . $next['function'] : $next['function'];
+			return ' called from ' . $caller_func . '()' . $location;
+		}
+
+		return $location;
+	}
+
+	return '';
+}
+
+/**
  * Handles _deprecated_function() errors.
  *
  * @since 4.4.0
@@ -712,7 +760,7 @@ function rest_ensure_response( $response ) {
  * @param string $version       Version.
  */
 function rest_handle_deprecated_function( $function_name, $replacement, $version ) {
-	if ( ! WP_DEBUG || headers_sent() ) {
+	if ( ! WP_DEBUG ) {
 		return;
 	}
 	if ( ! empty( $replacement ) ) {
@@ -723,7 +771,13 @@ function rest_handle_deprecated_function( $function_name, $replacement, $version
 		$string = sprintf( __( '%1$s (since %2$s; no alternative available)' ), $function_name, $version );
 	}
 
-	header( sprintf( 'X-WP-DeprecatedFunction: %s', $string ) );
+	if ( ! headers_sent() ) {
+		header( sprintf( 'X-WP-DeprecatedFunction: %s', $string ) );
+	}
+
+	if ( WP_DEBUG_LOG && ( error_reporting() & E_USER_DEPRECATED ) ) {
+		error_log( 'PHP Deprecated: ' . wp_strip_all_tags( $string ) . _rest_get_debug_backtrace_caller() );
+	}
 }
 
 /**
@@ -736,7 +790,7 @@ function rest_handle_deprecated_function( $function_name, $replacement, $version
  * @param string $version       Version.
  */
 function rest_handle_deprecated_argument( $function_name, $message, $version ) {
-	if ( ! WP_DEBUG || headers_sent() ) {
+	if ( ! WP_DEBUG ) {
 		return;
 	}
 	if ( $message ) {
@@ -747,7 +801,13 @@ function rest_handle_deprecated_argument( $function_name, $message, $version ) {
 		$string = sprintf( __( '%1$s (since %2$s; no alternative available)' ), $function_name, $version );
 	}
 
-	header( sprintf( 'X-WP-DeprecatedParam: %s', $string ) );
+	if ( ! headers_sent() ) {
+		header( sprintf( 'X-WP-DeprecatedParam: %s', $string ) );
+	}
+
+	if ( WP_DEBUG_LOG && ( error_reporting() & E_USER_DEPRECATED ) ) {
+		error_log( 'PHP Deprecated: ' . wp_strip_all_tags( $string ) . _rest_get_debug_backtrace_caller() );
+	}
 }
 
 /**
@@ -779,20 +839,7 @@ function rest_handle_doing_it_wrong( $function_name, $message, $version ) {
 	}
 
 	if ( WP_DEBUG_LOG && ( error_reporting() & E_USER_NOTICE ) ) {
-		$backtrace              = debug_backtrace( DEBUG_BACKTRACE_IGNORE_ARGS, 20 );
-		$caller                 = '';
-		$normalized_content_dir = trailingslashit( wp_normalize_path( WP_CONTENT_DIR ) );
-		// Find the first caller outside of WordPress core (plugin or theme).
-		foreach ( $backtrace as $frame ) {
-			if ( isset( $frame['file'] ) && str_starts_with( wp_normalize_path( $frame['file'] ), $normalized_content_dir ) ) {
-				$caller = ' in ' . $frame['file'];
-				if ( isset( $frame['line'] ) ) {
-					$caller .= ' on line ' . $frame['line'];
-				}
-				break;
-			}
-		}
-		error_log( 'PHP Notice: ' . wp_strip_all_tags( $string ) . $caller );
+		error_log( 'PHP Notice: ' . wp_strip_all_tags( $string ) . _rest_get_debug_backtrace_caller() );
 	}
 }
 
