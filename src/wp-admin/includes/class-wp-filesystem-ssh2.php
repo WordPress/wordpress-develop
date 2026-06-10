@@ -198,8 +198,8 @@ class WP_Filesystem_SSH2 extends WP_Filesystem_Base {
 
 				return false;
 			}
-		} elseif ( isset( $this->options['public_key'], $this->options['private_key'] ) ) {
-			if ( ! @ssh2_auth_pubkey_file( $this->link, $this->options['username'], $this->options['public_key'], $this->options['private_key'], $this->options['password'] ?? '' ) ) {
+		} else {
+			if ( ! @ssh2_auth_pubkey_file( $this->link, $this->options['username'], $this->options['public_key'] ?? '', $this->options['private_key'] ?? '', $this->options['password'] ?? '' ) ) {
 				$this->errors->add(
 					'auth',
 					sprintf(
