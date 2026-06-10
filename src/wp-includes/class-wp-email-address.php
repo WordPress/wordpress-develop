@@ -249,10 +249,8 @@ final class WP_Email_Address {
 					if ( false === $label ) {
 						return null;
 					}
-				}
-
-				// Reject labels with a reserved ACE-like prefix (two chars followed by '--').
-				if ( 1 === preg_match( '/^..--/', $label ) ) {
+				} elseif ( 1 === preg_match( '/^..--/', $label ) ) {
+					// Reject labels with a reserved ACE-like prefix (two chars followed by '--').
 					return null;
 				}
 				$decoded_labels[] = $label;
