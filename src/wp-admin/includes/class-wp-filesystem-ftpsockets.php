@@ -520,12 +520,12 @@ class WP_Filesystem_ftpsockets extends WP_Filesystem_Base {
 	 * @return bool Whether $path is a directory.
 	 */
 	public function is_dir( $path ) {
-		if ( $this->chdir( $path ) ) {
-			$cwd = $this->cwd();
-			if ( ! $cwd ) {
-				return false;
-			}
+		$cwd = $this->cwd();
+		if ( ! $cwd ) {
+			return false;
+		}
 
+		if ( $this->chdir( $path ) ) {
 			$this->chdir( $cwd );
 			return true;
 		}
