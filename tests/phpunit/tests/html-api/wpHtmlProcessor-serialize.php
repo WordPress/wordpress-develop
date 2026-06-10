@@ -341,6 +341,88 @@ class Tests_HtmlApi_WpHtmlProcessor_Serialize extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensures that the special leading newline rule applies only in the HTML namespace.
+	 *
+	 * @ticket 64607
+	 *
+	 * @dataProvider data_provider_special_leading_newline_namespace_serialization
+	 *
+	 * @param string $input    HTML input containing a PRE, LISTING, or TEXTAREA element.
+	 * @param string $expected Expected normalized output.
+	 */
+	public function test_special_leading_newline_rule_depends_on_namespace( string $input, string $expected ) {
+		$normalized = WP_HTML_Processor::normalize( $input );
+		$this->assertSame(
+			$expected,
+			$normalized,
+			'Should serialize special leading newlines according to the element namespace.'
+		);
+		$this->assertSame(
+			$expected,
+			WP_HTML_Processor::normalize( $normalized ),
+			'Normalizing already-normalized special leading newlines should not change them.'
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_provider_special_leading_newline_namespace_serialization() {
+		return array(
+			'MathML TEXTAREA'                            => array(
+				'<math><textarea>X</textarea></math>',
+				'<math><textarea>X</textarea></math>',
+			),
+			'MathML TEXTAREA with leading newline'       => array(
+				"<math><textarea>\nX</textarea></math>",
+				"<math><textarea>\nX</textarea></math>",
+			),
+			'SVG TEXTAREA'                               => array(
+				'<svg><textarea>X</textarea></svg>',
+				'<svg><textarea>X</textarea></svg>',
+			),
+			'SVG TEXTAREA with leading newline'          => array(
+				"<svg><textarea>\nX</textarea></svg>",
+				"<svg><textarea>\nX</textarea></svg>",
+			),
+			'HTML TEXTAREA inside SVG HTML integration point' => array(
+				'<svg><foreignObject><textarea>X</textarea></foreignObject></svg>',
+				"<svg><foreignObject><textarea>\nX</textarea></foreignObject></svg>",
+			),
+			'HTML TEXTAREA with leading newline inside SVG HTML integration point' => array(
+				"<svg><foreignObject><textarea>\n\nX</textarea></foreignObject></svg>",
+				"<svg><foreignObject><textarea>\n\nX</textarea></foreignObject></svg>",
+			),
+			'HTML TEXTAREA inside MathML text integration point' => array(
+				'<math><mtext><textarea>X</textarea></mtext></math>',
+				"<math><mtext><textarea>\nX</textarea></mtext></math>",
+			),
+			'HTML TEXTAREA with leading newline inside MathML text integration point' => array(
+				"<math><mtext><textarea>\n\nX</textarea></mtext></math>",
+				"<math><mtext><textarea>\n\nX</textarea></mtext></math>",
+			),
+			'HTML TEXTAREA inside MathML HTML integration point' => array(
+				'<math><annotation-xml encoding="text/html"><textarea>X</textarea></annotation-xml></math>',
+				"<math><annotation-xml encoding=\"text/html\"><textarea>\nX</textarea></annotation-xml></math>",
+			),
+			'HTML TEXTAREA with leading newline inside MathML HTML integration point' => array(
+				"<math><annotation-xml encoding=\"text/html\"><textarea>\n\nX</textarea></annotation-xml></math>",
+				"<math><annotation-xml encoding=\"text/html\"><textarea>\n\nX</textarea></annotation-xml></math>",
+			),
+			'HTML PRE after exiting SVG foreign content' => array(
+				'<svg><pre>X</pre></svg>',
+				"<svg></svg><pre>\nX</pre>",
+			),
+			'HTML LISTING after exiting MathML foreign content' => array(
+				'<math><listing>X</listing></math>',
+				"<math></math><listing>\nX</listing>",
+			),
+		);
+	}
+
+	/**
 	 * Ensures that fuzzer-discovered inputs do not emit native PHP errors.
 	 *
 	 * @ticket 65372
