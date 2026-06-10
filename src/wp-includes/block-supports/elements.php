@@ -120,13 +120,21 @@ function wp_should_add_elements_class_name( $block, $options ) {
  * @return array The same parsed block with elements classname added if appropriate.
  *
  * @phpstan-param array{
+ *     blockName: string,
  *     attrs: array{
  *         className?: string,
+ *         style?: array{
+ *             elements?: array<string, array{
+ *                 ":hover"?: array<string, string>,
+ *                 ...
+ *             }>,
+ *         },
  *         ...
  *     },
  *     ...
  * } $parsed_block
  * @phpstan-return array{
+ *     blockName: string,
  *     attrs: array{
  *         className?: string,
  *         ...
@@ -153,9 +161,12 @@ function wp_render_elements_support_styles( $parsed_block ) {
 		);
 	}
 
-	$block_type           = WP_Block_Type_Registry::get_instance()->get_registered( $parsed_block['blockName'] );
-	$element_block_styles = $parsed_block['attrs']['style']['elements'] ?? null;
+	$block_type = WP_Block_Type_Registry::get_instance()->get_registered( $parsed_block['blockName'] );
+	if ( ! $block_type ) {
+		return $parsed_block;
+	}
 
+	$element_block_styles = $parsed_block['attrs']['style']['elements'] ?? null;
 	if ( ! $element_block_styles ) {
 		return $parsed_block;
 	}
@@ -221,7 +232,7 @@ function wp_render_elements_support_styles( $parsed_block ) {
 				)
 			);
 
-			if ( isset( $element_style_object[':hover'] ) ) {
+			if ( isset( $element_style_object[':hover'], $element_config['hover_selector'] ) ) {
 				wp_style_engine_get_styles(
 					$element_style_object[':hover'],
 					array(
