@@ -76,7 +76,7 @@ class Tests_Block_Supports_WpRenderElementsSupportStyles extends WP_UnitTestCase
 	 *
 	 * @covers ::wp_get_elements_class_name
 	 */
-	public function test_elements_block_support_styles_with_duplicate_blocks() {
+	public function test_elements_block_support_styles_with_duplicate_blocks(): void {
 		$this->test_block_name = 'test/element-block-supports';
 
 		register_block_type(
