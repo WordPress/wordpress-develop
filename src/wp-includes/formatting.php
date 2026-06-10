@@ -3645,7 +3645,7 @@ function wp_is_unicode_email( $value, $email, $context ) {
 		return $value;
 	}
 	$result = WP_Email_Address::from_string( $email, true );
-	return $result ? $result->get_address() : false;
+	return $result ? $result->get_unicode_address() : false;
 }
 
 /**
@@ -3666,7 +3666,7 @@ function wp_is_ascii_email( $value, $email, $context ) {
 		return $value;
 	}
 	$result = WP_Email_Address::from_string( $email, false );
-	return $result ? $result->get_address() : false;
+	return $result ? $result->get_unicode_address() : false;
 }
 
 /**
@@ -3857,7 +3857,7 @@ function sanitize_email( $email ) {
  */
 function wp_sanitize_unicode_email( $value, $email, $context ) {
 	$result = WP_Email_Address::from_string( $email, true );
-	return $result ? $result->get_address() : '';
+	return $result ? $result->get_unicode_address() : '';
 }
 
 /**
@@ -3875,7 +3875,7 @@ function wp_sanitize_unicode_email( $value, $email, $context ) {
  */
 function wp_sanitize_ascii_email( $value, $email, $context ) {
 	$result = WP_Email_Address::from_string( $email, false );
-	return $result ? $result->get_address() : '';
+	return $result ? $result->get_unicode_address() : '';
 }
 
 /**

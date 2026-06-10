@@ -358,16 +358,42 @@ final class WP_Email_Address {
 	}
 
 	/**
-	 * Returns the complete email address as a string.
+	 * Returns the complete email address for contexts in which software
+	 * will read it; may contain punycode transliterated Unicode characters.
+	 *
+	 * Use this method in places such as an `<a href>` attribute where other
+	 * software will decode the address.
 	 *
 	 * The returned value can always be passed to {@see WP_Email_Address::from_string()}
 	 * and will produce an equivalent WP_Email_Address instance.
+	 *
+	 * @see self::get_unicode_address()
+	 *
+	 * @since 7.1.0
+	 *
+	 * @return string
+	 */
+	public function get_ascii_address(): string {
+		return $this->localpart . '@' . $this->encoded_domain;
+	}
+
+	/**
+	 * Returns the complete email address for contexts in which humans
+	 * will read it; may contain Unicode characters in the domain.
+	 *
+	 * Use this method in places such as HTML text nodes which visually
+	 * show the email address and domain.
+	 *
+	 * The returned value can always be passed to {@see WP_Email_Address::from_string()}
+	 * and will produce an equivalent WP_Email_Address instance.
+	 *
+	 * @see self::get_ascii_address()
 	 *
 	 * @since 7.1.0
 	 *
 	 * @return string The complete email address.
 	 */
-	public function get_address(): string {
+	public function get_unicode_address(): string {
 		return $this->localpart . '@' . $this->decoded_domain;
 	}
 }

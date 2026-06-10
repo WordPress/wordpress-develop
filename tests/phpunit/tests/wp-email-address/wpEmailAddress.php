@@ -32,15 +32,15 @@ class Tests_WpEmailAddress extends WP_UnitTestCase {
 	 * @since 7.0.0
 	 *
 	 * @dataProvider data_from_string
-	 * @covers WP_Email_Address::get_address
+	 * @covers WP_Email_Address::get_unicode_address
 	 *
 	 * @param string $address The email address to parse.
 	 */
 	public function test_get_address_is_roundtrippable( $address ) {
 		$instance  = WP_Email_Address::from_string( $address, false );
-		$roundtrip = WP_Email_Address::from_string( $instance->get_address(), false );
+		$roundtrip = WP_Email_Address::from_string( $instance->get_unicode_address(), false );
 		$this->assertInstanceOf( WP_Email_Address::class, $roundtrip );
-		$this->assertSame( $instance->get_address(), $roundtrip->get_address() );
+		$this->assertSame( $instance->get_unicode_address(), $roundtrip->get_unicode_address() );
 	}
 
 	/**
@@ -58,7 +58,7 @@ class Tests_WpEmailAddress extends WP_UnitTestCase {
 		$instance = WP_Email_Address::from_string( $address, false );
 		$this->assertSame(
 			$instance->get_localpart() . '@' . $instance->get_unicode_domain(),
-			$instance->get_address()
+			$instance->get_unicode_address()
 		);
 	}
 
