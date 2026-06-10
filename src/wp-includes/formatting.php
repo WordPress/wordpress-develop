@@ -3535,11 +3535,11 @@ function convert_smilies( $text ) {
  * Verifies that an email is valid.
  *
  * This accepts the addresses that matches the WHATWG specifications,
- * ie. what browsers use for <input type=email>. It also accepts some
+ * i.e. what browsers use for `<input type=email>`. It also accepts some
  * additional addresses.
  *
  * By default this accepts addresses like info@grå.org (also accepted
- * by Firefox' <input type=email>. You can disable unicode support by
+ * by Firefox) `<input type=email>`. You can disable Unicode support by
  * using the wp_is_ascii_email filter instead of wp_is_unicode_email,
  * which is the default.
  *
