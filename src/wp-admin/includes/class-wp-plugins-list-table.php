@@ -660,7 +660,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 	 *
 	 * @global string $status Current plugin status filter slug.
 	 *
-	 * @return array<string, string|array<string, string>> An associative array of bulk actions.
+	 * @return array<string, string> An associative array of bulk actions.
 	 */
 	protected function get_bulk_actions() {
 		global $status;
