@@ -127,7 +127,7 @@ function wp_schedule_single_event( $timestamp, $hook, $args = array(), $wp_error
 	 * current time) all events scheduled within the next ten minutes
 	 * are considered duplicates.
 	 */
-	$crons = _get_cron_array();
+	$crons = _get_cron_array( true );
 
 	$key       = md5( serialize( $event->args ) );
 	$duplicate = false;
@@ -318,7 +318,7 @@ function wp_schedule_event( $timestamp, $recurrence, $hook, $args = array(), $wp
 
 	$key = md5( serialize( $event->args ) );
 
-	$crons = _get_cron_array();
+	$crons = _get_cron_array( true );
 
 	$crons[ $event->timestamp ][ $event->hook ][ $key ] = array(
 		'schedule' => $event->schedule,
@@ -534,7 +534,7 @@ function wp_unschedule_event( $timestamp, $hook, $args = array(), $wp_error = fa
 		return $pre;
 	}
 
-	$crons = _get_cron_array();
+	$crons = _get_cron_array( true );
 	$key   = md5( serialize( $args ) );
 
 	unset( $crons[ $timestamp ][ $hook ][ $key ] );
@@ -1254,9 +1254,14 @@ function wp_get_ready_cron_jobs() {
  * @since 6.1.0 Return type modified to consistently return an array.
  * @access private
  *
+ * @param bool $fresh whether a non-cached version is required
  * @return array[] Array of cron events.
  */
-function _get_cron_array() {
+function _get_cron_array( $fresh = false ) {
+	if ( $fresh ) {
+		wp_cache_delete( 'alloptions', 'options' ); // there doesn't seem to be a more surgical way
+	}
+
 	$cron = get_option( 'cron' );
 	if ( ! is_array( $cron ) ) {
 		return array();
