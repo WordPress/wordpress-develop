@@ -2231,9 +2231,16 @@ class WP_HTML_Tag_Processor {
 		 * > case-insensitive match for each other.
 		 *     - HTML 5 spec
 		 *
+		 * The tokenizer would have replaced U+0000 NULL bytes in attribute
+		 * names with U+FFFD, so names which differ only by those bytes are
+		 * duplicates. The replacement applies to the comparable name — a
+		 * comparison artifact — while the raw span in the document remains
+		 * untouched.
+		 *
 		 * @see https://html.spec.whatwg.org/multipage/syntax.html#attributes-2:ascii-case-insensitive
+		 * @see https://html.spec.whatwg.org/#attribute-name-state
 		 */
-		$comparable_name = strtolower( $attribute_name );
+		$comparable_name = strtolower( str_replace( "\x00", "\u{FFFD}", $attribute_name ) );
 
 		// If an attribute is listed many times, only use the first declaration and ignore the rest.
 		if ( ! isset( $this->attributes[ $comparable_name ] ) ) {
@@ -2767,7 +2774,9 @@ class WP_HTML_Tag_Processor {
 	 * @since 6.2.0
 	 * @since 7.1.0 Applies input-stream preprocessing: newlines in the source value
 	 *              are normalized and NULL bytes are replaced with U+FFFD, as
-	 *              browsers do before decoding character references.
+	 *              browsers do before decoding character references. Attributes
+	 *              whose source name contains a NULL byte are addressed by the
+	 *              name with U+FFFD in its place, as in the DOM.
 	 *
 	 * @param string $name Name of attribute whose value is requested.
 	 * @return string|true|null Value of attribute or `null` if not available. Boolean attributes return `true`.
@@ -2871,6 +2880,8 @@ class WP_HTML_Tag_Processor {
 	 *     $p->get_attribute_names_with_prefix( 'data-' ) === null;
 	 *
 	 * @since 6.2.0
+	 * @since 7.1.0 NULL bytes in source attribute names are returned as U+FFFD,
+	 *              matching the tokenizer replacement browsers apply.
 	 *
 	 * @see https://html.spec.whatwg.org/multipage/syntax.html#attributes-2:ascii-case-insensitive
 	 *
