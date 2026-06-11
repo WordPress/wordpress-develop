@@ -39,7 +39,86 @@ class Tests_REST_WpRestIconsController extends WP_Test_REST_Controller_Testcase 
 	public function test_register_routes() {
 		$routes = rest_get_server()->get_routes();
 		$this->assertArrayHasKey( '/wp/v2/icons', $routes );
+		$this->assertArrayHasKey( '/wp/v2/icons/(?P<namespace>[a-z][a-z-]*)', $routes );
 		$this->assertArrayHasKey( '/wp/v2/icons/(?P<name>[a-z][a-z0-9-]*/[a-z][a-z0-9-]*)', $routes );
+	}
+
+	/**
+	 * @ticket 64651
+	 *
+	 * @covers WP_REST_Icons_Controller::get_items
+	 */
+	public function test_get_items_collection_scope() {
+		wp_register_icon_collection( 'rest-test-collection', array( 'label' => 'REST Test' ) );
+		wp_register_icon(
+			'bell',
+			'rest-test-collection',
+			array(
+				'label'   => 'Bell',
+				'content' => '<svg></svg>',
+			)
+		);
+
+		wp_set_current_user( self::$editor_id );
+
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/icons/rest-test-collection' );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertIsArray( $data );
+
+		$names = array_column( $data, 'name' );
+		$this->assertContains( 'rest-test-collection/bell', $names );
+		foreach ( $data as $icon ) {
+			$this->assertSame( 'rest-test-collection', $icon['collection'] );
+		}
+
+		wp_unregister_icon_collection( 'rest-test-collection' );
+	}
+
+	/**
+	 * @ticket 64651
+	 *
+	 * @covers WP_REST_Icons_Controller::get_items
+	 */
+	public function test_get_items_unknown_collection_returns_404() {
+		wp_set_current_user( self::$editor_id );
+
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/icons/unknown-collection' );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_icon_collection_not_found', $response, 404 );
+	}
+
+	/**
+	 * @ticket 64651
+	 *
+	 * @covers WP_REST_Icons_Controller::prepare_item_for_response
+	 */
+	public function test_response_includes_collection_field() {
+		wp_register_icon_collection( 'rest-test-collection', array( 'label' => 'REST Test' ) );
+		wp_register_icon(
+			'bell',
+			'rest-test-collection',
+			array(
+				'label'   => 'Bell',
+				'content' => '<svg></svg>',
+			)
+		);
+
+		wp_set_current_user( self::$editor_id );
+
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/icons/rest-test-collection/bell' );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertArrayHasKey( 'collection', $data );
+		$this->assertSame( 'rest-test-collection', $data['collection'] );
+		$this->assertSame( 'rest-test-collection/bell', $data['name'] );
+
+		wp_unregister_icon_collection( 'rest-test-collection' );
 	}
 
 	/**
