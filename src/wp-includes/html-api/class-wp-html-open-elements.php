@@ -530,16 +530,16 @@ class WP_HTML_Open_Elements {
 	 *
 	 * @see https://html.spec.whatwg.org/#stack-of-open-elements
 	 *
-	 * @return bool Whether a node was popped off of the stack.
+	 * @return WP_HTML_Token|null The node that was popped off of the stack, or null if the stack was empty.
 	 */
-	public function pop(): bool {
+	public function pop(): ?WP_HTML_Token {
 		$item = array_pop( $this->stack );
 		if ( null === $item ) {
-			return false;
+			return null;
 		}
 
 		$this->after_element_pop( $item );
-		return true;
+		return $item;
 	}
 
 	/**
