@@ -2771,6 +2771,9 @@ class WP_HTML_Tag_Processor {
 	 *     $p->get_attribute( 'class' ) === null;
 	 *
 	 * @since 6.2.0
+	 * @since 7.1.0 Applies input-stream preprocessing: newlines in the source value
+	 *              are normalized and NULL bytes are replaced with U+FFFD, as
+	 *              browsers do before decoding character references.
 	 *
 	 * @param string $name Name of attribute whose value is requested.
 	 * @return string|true|null Value of attribute or `null` if not available. Boolean attributes return `true`.
@@ -2824,7 +2827,32 @@ class WP_HTML_Tag_Processor {
 			return true;
 		}
 
+		return $this->get_decoded_source_attribute_value( $attribute );
+	}
+
+	/**
+	 * Returns the decoded value of an attribute found in the input document.
+	 *
+	 * The Tag Processor defers the HTML input-stream preprocessing and the
+	 * tokenizer's replacements while scanning; they must be applied when
+	 * reading a value out of the document: newlines are normalized and
+	 * U+0000 NULL bytes are replaced with U+FFFD, both before character
+	 * references are decoded.
+	 *
+	 * @see https://html.spec.whatwg.org/#preprocessing-the-input-stream
+	 * @see https://html.spec.whatwg.org/#attribute-value-(double-quoted)-state
+	 *
+	 * @since 7.1.0
+	 *
+	 * @param WP_HTML_Attribute_Token $attribute Attribute token from the input document.
+	 * @return string Decoded attribute value.
+	 */
+	private function get_decoded_source_attribute_value( WP_HTML_Attribute_Token $attribute ): string {
 		$raw_value = substr( $this->html, $attribute->value_starts_at, $attribute->value_length );
+
+		$raw_value = str_replace( "\r\n", "\n", $raw_value );
+		$raw_value = str_replace( "\r", "\n", $raw_value );
+		$raw_value = str_replace( "\x00", "\u{FFFD}", $raw_value );
 
 		return WP_HTML_Decoder::decode_attribute( $raw_value );
 	}
