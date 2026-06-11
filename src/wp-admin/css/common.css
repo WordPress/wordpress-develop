@@ -1084,10 +1084,12 @@ th.action-links {
 
 @media (forced-colors: active) {
 	.filter-links li > a {
-		border-bottom-color: transparent;
+		/* Canvas keeps the spacer border invisible; transparent would render as a visible border in Windows High Contrast mode. See ticket #65419. */
+		border-bottom-color: Canvas;
 	}
 
 	.filter-links .current {
+		/* The active tab indicator, visible in Windows High Contrast mode. */
 		border-bottom-color: Highlight;
 	}
 }
