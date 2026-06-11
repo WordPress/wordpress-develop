@@ -262,6 +262,43 @@ class Tests_HtmlApi_WpHtmlTagProcessor_InputPreprocessing extends WP_UnitTestCas
 	}
 
 	/**
+	 * Ensures tag-name queries match in the same replaced alphabet that
+	 * `get_tag()` exposes: a sought name containing U+FFFD matches source
+	 * names whose raw bytes contain NULL in its place, a sought name
+	 * containing a raw NULL byte matches nothing, and the value returned
+	 * by `get_tag()` round-trips into a successful query.
+	 *
+	 * This is also how WP_HTML_Processor::next_tag() matches, since it
+	 * compares sought names against the token name.
+	 *
+	 * @ticket 65372
+	 *
+	 * @covers ::next_tag
+	 */
+	public function test_tag_name_queries_match_replaced_names() {
+		$processor = new WP_HTML_Tag_Processor( "<di\x00v>" );
+		$this->assertTrue( $processor->next_tag( "DI\u{FFFD}V" ), 'Should have matched the tag by its replaced name.' );
+
+		$processor = new WP_HTML_Tag_Processor( "<di\x00v>" );
+		$this->assertTrue( $processor->next_tag(), 'Should have found the tag.' );
+		$tag_name  = $processor->get_tag();
+		$processor = new WP_HTML_Tag_Processor( "<di\x00v>" );
+		$this->assertTrue( $processor->next_tag( array( 'tag_name' => $tag_name ) ), 'The name returned by get_tag() should match in a query.' );
+
+		$processor = new WP_HTML_Tag_Processor( "<di\x00v>" );
+		$this->assertFalse( $processor->next_tag( "DI\x00V" ), 'Should not have matched the tag by its raw source name.' );
+
+		$processor = new WP_HTML_Tag_Processor( "<di\u{FFFD}v>" );
+		$this->assertTrue( $processor->next_tag( "DI\u{FFFD}V" ), 'Should have matched a raw U+FFFD name.' );
+
+		$processor = WP_HTML_Processor::create_full_parser( "<body><di\x00v>" );
+		$this->assertTrue( $processor->next_tag( array( 'tag_name' => "DI\u{FFFD}V" ) ), 'The HTML Processor should match the replaced name.' );
+
+		$processor = WP_HTML_Processor::create_full_parser( "<body><di\x00v>" );
+		$this->assertFalse( $processor->next_tag( array( 'tag_name' => "DI\x00V" ) ), 'The HTML Processor should not match the raw source name.' );
+	}
+
+	/**
 	 * Ensures class_list does not replace NULL bytes in API-supplied values.
 	 *
 	 * Browser-verified: `setAttribute('class', "a\x00b")` then reading
