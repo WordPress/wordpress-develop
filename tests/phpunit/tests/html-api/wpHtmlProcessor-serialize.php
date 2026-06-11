@@ -134,6 +134,30 @@ class Tests_HtmlApi_WpHtmlProcessor_Serialize extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * Ensures that XMP contents are not escaped, as they are not parsed like text nodes are.
+	 *
+	 * XMP contents are parsed as raw text: character references are never decoded.
+	 * Escaping the contents would change the document, e.g. a "<" would be replaced
+	 * by the literal text "&lt;" after serializing and re-parsing.
+	 *
+	 * @ticket 65372
+	 */
+	public function test_xmp_contents_are_not_escaped() {
+		$normalized = WP_HTML_Processor::normalize( "<xmp>1 < 2 &amp; apples > or\x00anges</xmp>" );
+
+		$this->assertSame(
+			"<xmp>1 < 2 &amp; apples > or\u{FFFD}anges</xmp>",
+			$normalized,
+			'Should have preserved text inside an XMP element, except for replacing NULL bytes.'
+		);
+		$this->assertSame(
+			$normalized,
+			WP_HTML_Processor::normalize( $normalized ),
+			'Normalizing already-normalized XMP should not escape the raw text again.'
+		);
+	}
+
 	public function test_unexpected_closing_tags_are_removed() {
 		$this->assertSame(
 			WP_HTML_Processor::normalize( 'one</div>two</span>three' ),
@@ -281,6 +305,7 @@ class Tests_HtmlApi_WpHtmlProcessor_Serialize extends WP_UnitTestCase {
 			'Foreign content text' => array( "<svg>one\x00two</svg>", "<svg>one\u{FFFD}two</svg>" ),
 			'SCRIPT content'       => array( "<script>alert(\x00)</script>", "<script>alert(\u{FFFD})</script>" ),
 			'STYLE content'        => array( "<style>\x00 {}</style>", "<style>\u{FFFD} {}</style>" ),
+			'XMP content'          => array( "<xmp>a\x00b</xmp>", "<xmp>a\u{FFFD}b</xmp>" ),
 			'Comment text'         => array( "<!-- \x00 -->", "<!-- \u{FFFD} -->" ),
 		);
 	}

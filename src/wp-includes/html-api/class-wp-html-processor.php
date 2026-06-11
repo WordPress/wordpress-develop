@@ -1498,6 +1498,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 
 				case 'SCRIPT':
 				case 'STYLE':
+				case 'XMP':
 					break;
 
 				default:
