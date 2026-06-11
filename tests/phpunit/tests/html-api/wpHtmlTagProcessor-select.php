@@ -136,9 +136,9 @@ class Tests_HtmlApi_WpHtmlTagProcessor_Select extends WP_UnitTestCase {
 	 */
 	public static function data_invalid_selectors(): array {
 		return array(
-			'complex descendant' => array( 'div *' ),
-			'complex child'      => array( 'div > *' ),
-			'invalid selector'   => array( '[invalid!selector]' ),
+			'complex descendant'              => array( 'div *' ),
+			'complex child'                   => array( 'div > *' ),
+			'invalid selector'                => array( '[invalid!selector]' ),
 
 			/*
 			 * A backslash before a newline at the end of input is not a valid
@@ -146,9 +146,9 @@ class Tests_HtmlApi_WpHtmlTagProcessor_Select extends WP_UnitTestCase {
 			 * The CR and FF variants are normalized to a newline before
 			 * tokenizing.
 			 */
-			'escape before newline at end' => array( ".foo\\\n" ),
-			'escape before CR at end'      => array( ".foo\\\r" ),
-			'escape before FF at end'      => array( ".foo\\\f" ),
+			'escape before newline at end'    => array( ".foo\\\n" ),
+			'escape before CR at end'         => array( ".foo\\\r" ),
+			'escape before FF at end'         => array( ".foo\\\f" ),
 
 			/*
 			 * EOF auto-closes an open attribute selector block, but
@@ -157,6 +157,58 @@ class Tests_HtmlApi_WpHtmlTagProcessor_Select extends WP_UnitTestCase {
 			'truncated matcher without value' => array( '[a=' ),
 			'truncated half matcher'          => array( '[a~' ),
 			'lone open bracket'               => array( '[' ),
+		);
+	}
+
+	/**
+	 * Selector strings are UTF-8 text: invalid byte sequences are replaced
+	 * with U+FFFD per maximal subpart before parsing. A selector containing
+	 * invalid bytes therefore matches a literal U+FFFD in the document, and
+	 * an identity escape of an invalid byte is equivalent to the same byte
+	 * unescaped — both are scrubbed before tokenization.
+	 *
+	 * @expectedIncorrectUsage WP_CSS_Compound_Selector_List::from_selectors
+	 */
+	public function test_select_scrubbed_selector_matches_replacement_character() {
+		$html = "<div class=\"a\u{FFFD}b\">";
+
+		$processor = new WP_HTML_Tag_Processor( $html );
+		$this->assertTrue(
+			$processor->select( ".a\xC0b" ),
+			'Scrubbed selector should match the replacement character in the document.'
+		);
+
+		$processor = new WP_HTML_Tag_Processor( $html );
+		$this->assertTrue(
+			$processor->select( ".a\\\xC0b" ),
+			'An identity escape of an invalid byte should be equivalent to the unescaped byte.'
+		);
+	}
+
+	/**
+	 * A selector containing invalid bytes can never match those same raw
+	 * bytes in a document: the selector side is scrubbed to U+FFFD while
+	 * the Tag Processor reports raw document bytes untouched.
+	 *
+	 * This pins a deliberate, documented divergence. If the HTML API value
+	 * getters (get_attribute(), class_list(), …) are ever changed to scrub
+	 * invalid UTF-8 in their return values, both sides become U+FFFD and
+	 * this case flips to a match — update this expectation in the same
+	 * change.
+	 *
+	 * The selector byte (0xC1) is unique within this file on purpose:
+	 * select() memoizes the most recently parsed selector string, so the
+	 * scrub notice only fires when this test's selector was not already
+	 * parsed by an earlier test. A unique selector string guarantees a
+	 * fresh parse regardless of test order.
+	 *
+	 * @expectedIncorrectUsage WP_CSS_Compound_Selector_List::from_selectors
+	 */
+	public function test_select_scrubbed_selector_does_not_match_raw_invalid_document_bytes() {
+		$processor = new WP_HTML_Tag_Processor( "<div class=\"a\xC1b\">" );
+		$this->assertFalse(
+			$processor->select( ".a\xC1b" ),
+			'Scrubbed selector should not match raw invalid bytes in the document.'
 		);
 	}
 }

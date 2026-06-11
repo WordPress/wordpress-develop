@@ -24,13 +24,12 @@ class Tests_HtmlApi_WpCssSelectorParserMatcher extends WP_UnitTestCase {
 		parent::set_up();
 
 		/*
-		 * Decoding invalid UTF-8 in identity escapes leaks the process-global
-		 * `mb_substitute_character()` setting into parse results. Pin it to a
-		 * distinctive character — U+2603 SNOWMAN (☃) — so that any dependence
-		 * on the setting is unmistakable in test expectations, rather than a
-		 * `?` that looks like an intentional placeholder. The escape-decode
-		 * cases below document the leak; a parser that decodes invalid bytes
-		 * to U+FFFD per CSS Syntax §3.2 would be unaffected by this setting.
+		 * Parse results must not depend on the process-global
+		 * `mb_substitute_character()` setting. Pin it to a distinctive
+		 * character — U+2603 SNOWMAN (☃) — for every test in this file: any
+		 * dependence on the setting would surface as a ☃ in the results
+		 * rather than the expected U+FFFD. This guards the invalid-byte
+		 * decode, which once leaked the setting into parse results.
 		 */
 		$this->original_substitute_character = mb_substitute_character();
 		mb_substitute_character( 0x2603 );
@@ -139,30 +138,25 @@ class Tests_HtmlApi_WpCssSelectorParserMatcher extends WP_UnitTestCase {
 			/*
 			 * Identity escapes of invalid UTF-8 byte sequences.
 			 *
-			 * These inputs are not valid UTF-8. The escaped invalid byte decodes to
-			 * the process-global `mb_substitute_character()` — pinned to U+2603 (☃)
-			 * in set_up() to make the dependence visible — and the offset then
-			 * advances by the byte length of *the substitute character* (3 bytes
-			 * for ☃, 1 byte for the default `?`), not of the invalid sequence.
-			 * The expectations below show the damage: following characters are
-			 * swallowed (the `z` in most cases) and the offset can even overrun
-			 * the end of the input (the lone-continuation and 0xF5 cases end with
-			 * the offset one byte past the end; see the dedicated offset test).
-			 *
-			 * These cases pin the current behavior to document the leak, not to
-			 * endorse it. CSS Syntax §3.2 decodes the input byte stream per the
-			 * WHATWG Encoding Standard, which replaces each maximal subpart of an
-			 * invalid sequence with U+FFFD; when the parser does that, these
-			 * expectations flip to U+FFFD outputs that are independent of
-			 * `mb_substitute_character()`.
+			 * These inputs are not valid UTF-8, which can only reach the parser
+			 * through a direct `parse()` call: the public `from_selectors()` API
+			 * replaces invalid byte sequences with U+FFFD before parsing. On
+			 * this un-normalized path the escape decodes the maximal subpart of
+			 * the invalid sequence (CSS Syntax §3.2 via the WHATWG Encoding
+			 * Standard) to a single U+FFFD — independent of the
+			 * `mb_substitute_character()` setting, which set_up() pins to ☃
+			 * precisely to prove that independence. Invalid bytes *after* the
+			 * escaped subpart are not escaped; they pass through this low-level
+			 * helper raw, exactly as unescaped invalid bytes do (the 0xAF,
+			 * 0xA0 0x80, and 0x90 0x80 0x80 tails below).
 			 */
-			'escaped lone continuation byte'       => array( "a\\\x80z", "a\u{2603}", '' ),
-			'escaped overlong lead 0xC0'           => array( "a\\\xC0\xAFz", "a\u{2603}", '' ),
-			'escaped invalid lead 0xF5'            => array( "a\\\xF5z", "a\u{2603}", '' ),
-			'escaped truncated 3-byte sequence'    => array( "a\\\xE2\x80z", "a\u{2603}", '' ),
-			'escaped truncated 4-byte at EOF'      => array( "a\\\xF0\x9F\x82", "a\u{2603}", '' ),
-			'escaped UTF-8-encoded surrogate'      => array( "a\\\xED\xA0\x80z", "a\u{2603}z", '' ),
-			'escaped sequence above U+10FFFF'      => array( "a\\\xF4\x90\x80\x80z", "a\u{2603}\x80z", '' ),
+			'escaped lone continuation byte'       => array( "a\\\x80z", "a\u{FFFD}z", '' ),
+			'escaped overlong lead 0xC0'           => array( "a\\\xC0\xAFz", "a\u{FFFD}\xAFz", '' ),
+			'escaped invalid lead 0xF5'            => array( "a\\\xF5z", "a\u{FFFD}z", '' ),
+			'escaped truncated 3-byte sequence'    => array( "a\\\xE2\x80z", "a\u{FFFD}z", '' ),
+			'escaped truncated 4-byte at EOF'      => array( "a\\\xF0\x9F\x82", "a\u{FFFD}", '' ),
+			'escaped UTF-8-encoded surrogate'      => array( "a\\\xED\xA0\x80z", "a\u{FFFD}\xA0\x80z", '' ),
+			'escaped sequence above U+10FFFF'      => array( "a\\\xF4\x90\x80\x80z", "a\u{FFFD}\x90\x80\x80z", '' ),
 
 			// Invalid
 			'Invalid: (empty string)'              => array( '' ),
@@ -206,19 +200,19 @@ class Tests_HtmlApi_WpCssSelectorParserMatcher extends WP_UnitTestCase {
 	/**
 	 * The rest-of-input assertion above cannot distinguish an offset at the end
 	 * of the input from one past it (`substr()` returns '' for both), so the
-	 * offset overrun caused by decoding an escaped invalid byte to a multibyte
-	 * substitute character is pinned explicitly here: the 3-byte ☃ advance over
-	 * the 1-byte invalid sequence leaves the offset one byte past the end.
-	 * Decoding invalid bytes to U+FFFD with maximal-subpart consumption would
-	 * turn this case into `"a\u{FFFD}z"` with the offset at the end of input.
+	 * offset arithmetic of the invalid-byte decode is pinned explicitly here:
+	 * the escape consumes exactly the 1-byte maximal subpart and the following
+	 * `z`, leaving the offset at — never past — the end of the input. (The
+	 * previous `mb_substr()`-based decode advanced by the byte length of the
+	 * substitute character and overran the end by one byte under the ☃ canary.)
 	 */
-	public function test_parse_ident_escaped_invalid_byte_overruns_offset() {
+	public function test_parse_ident_escaped_invalid_byte_does_not_overrun_offset() {
 		$input  = "a\\\x80z";
 		$offset = 0;
 		$result = $this->test_class::test_parse_ident( $input, $offset );
 
-		$this->assertSame( "a\u{2603}", $result, 'Ident did not match.' );
-		$this->assertSame( strlen( $input ) + 1, $offset, 'Offset did not overrun the end of input.' );
+		$this->assertSame( "a\u{FFFD}z", $result, 'Ident did not match.' );
+		$this->assertSame( strlen( $input ), $offset, 'Offset should stop exactly at the end of input.' );
 	}
 
 	/**
@@ -244,35 +238,44 @@ class Tests_HtmlApi_WpCssSelectorParserMatcher extends WP_UnitTestCase {
 	 */
 	public static function data_strings(): array {
 		return array(
-			'"foo"'                   => array( '"foo"', 'foo', '' ),
-			'"foo"after'              => array( '"foo"after', 'foo', 'after' ),
-			'"foo""two"'              => array( '"foo""two"', 'foo', '"two"' ),
-			'"foo"\'two\''            => array( '"foo"\'two\'', 'foo', "'two'" ),
+			'"foo"'                            => array( '"foo"', 'foo', '' ),
+			'"foo"after'                       => array( '"foo"after', 'foo', 'after' ),
+			'"foo""two"'                       => array( '"foo""two"', 'foo', '"two"' ),
+			'"foo"\'two\''                     => array( '"foo"\'two\'', 'foo', "'two'" ),
 
-			"'foo'"                   => array( "'foo'", 'foo', '' ),
-			"'foo'after"              => array( "'foo'after", 'foo', 'after' ),
-			"'foo'\"two\""            => array( "'foo'\"two\"", 'foo', '"two"' ),
-			"'foo''two'"              => array( "'foo''two'", 'foo', "'two'" ),
+			"'foo'"                            => array( "'foo'", 'foo', '' ),
+			"'foo'after"                       => array( "'foo'after", 'foo', 'after' ),
+			"'foo'\"two\""                     => array( "'foo'\"two\"", 'foo', '"two"' ),
+			"'foo''two'"                       => array( "'foo''two'", 'foo', "'two'" ),
 
-			"'foo\\nbar'"             => array( "'foo\\\nbar'", 'foobar', '' ),
-			"'foo\\31 23'"            => array( "'foo\\31 23'", 'foo123', '' ),
-			"'Ü\\sup'"                => array( "'Ü\\sup'", 'Üsup', '' ),
-			"'foo\\31\\n23'"          => array( "'foo\\31\n23'", 'foo123', '' ),
-			"'foo\\31\\t23'"          => array( "'foo\\31\t23'", 'foo123', '' ),
-			"'foo\\00003123'"         => array( "'foo\\00003123'", 'foo123', '' ),
+			"'foo\\nbar'"                      => array( "'foo\\\nbar'", 'foobar', '' ),
+			"'foo\\31 23'"                     => array( "'foo\\31 23'", 'foo123', '' ),
+			"'Ü\\sup'"                         => array( "'Ü\\sup'", 'Üsup', '' ),
+			"'foo\\31\\n23'"                   => array( "'foo\\31\n23'", 'foo123', '' ),
+			"'foo\\31\\t23'"                   => array( "'foo\\31\t23'", 'foo123', '' ),
+			"'foo\\00003123'"                  => array( "'foo\\00003123'", 'foo123', '' ),
 
-			"'foo\\"                  => array( "'foo\\", 'foo', '' ),
+			"'foo\\"                           => array( "'foo\\", 'foo', '' ),
 
-			'"'                       => array( '"', '', '' ),
-			'"\\"'                    => array( '"\\"', '"', '' ),
-			'"missing close'          => array( '"missing close', 'missing close', '' ),
+			/*
+			 * Invalid UTF-8 in string context, reachable only via a direct
+			 * parse() call ( from_selectors() scrubs first ): an escaped
+			 * invalid byte decodes its maximal subpart to U+FFFD, exactly as
+			 * in ident context; raw invalid bytes pass through unexamined.
+			 */
+			'string with escaped invalid byte' => array( "'a\\\xC0z'", "a\u{FFFD}z", '' ),
+			'string with raw invalid byte'     => array( "'a\xC0z'", "a\xC0z", '' ),
+
+			'"'                                => array( '"', '', '' ),
+			'"\\"'                             => array( '"\\"', '"', '' ),
+			'"missing close'                   => array( '"missing close', 'missing close', '' ),
 
 			// Invalid
-			'Invalid: (empty string)' => array( '' ),
-			'Invalid: .foo'           => array( '.foo' ),
-			'Invalid: #foo'           => array( '#foo' ),
-			"Invalid: 'newline\\n'"   => array( "'newline\n'" ),
-			'Invalid: foo'            => array( 'foo' ),
+			'Invalid: (empty string)'          => array( '' ),
+			'Invalid: .foo'                    => array( '.foo' ),
+			'Invalid: #foo'                    => array( '#foo' ),
+			"Invalid: 'newline\\n'"            => array( "'newline\n'" ),
+			'Invalid: foo'                     => array( 'foo' ),
 		);
 	}
 }

@@ -262,8 +262,6 @@ abstract class WP_CSS_Selector_Parser_Matcher {
 		 * Find the byte length of the code point at $offset without copying the rest
 		 * of the input: a code point is at most 4 bytes, so the scan is bounded and
 		 * an escape of valid UTF-8 decodes in O(1) regardless of selector length.
-		 * Escaped invalid bytes take the mb_substr() fallback below, which copies
-		 * the remaining input on each call.
 		 *
 		 * `_wp_utf8_codepoint_span()` is not suitable here: it does not bound the
 		 * scan, so its ASCII fast-path reads to the end of the input on every call,
@@ -279,16 +277,15 @@ abstract class WP_CSS_Selector_Parser_Matcher {
 		}
 
 		/*
-		 * The bytes at $offset are not valid UTF-8. Decode with mbstring to
-		 * preserve the parser's long-standing behavior for invalid input, which
-		 * depends on `mb_substitute_character()`: with the default setting the
-		 * substitute character `?` is returned and one byte is consumed.
-		 *
-		 * $offset is a byte offset; mb_substr() expects a character offset.
+		 * The bytes at $offset are not valid UTF-8, which can only happen when
+		 * `parse()` was called directly with un-normalized input: the public
+		 * `from_selectors()` API replaces ill-formed byte sequences with U+FFFD
+		 * before parsing. Decode consistently with that normalization — consume
+		 * the maximal subpart of the ill-formed sequence, whose length the scan
+		 * above reported, and return a single U+FFFD.
 		 */
-		$codepoint_char = mb_substr( substr( $input, $offset ), 0, 1, 'UTF-8' );
-		$offset        += strlen( $codepoint_char );
-		return $codepoint_char;
+		$offset += max( 1, $invalid_length );
+		return "\u{FFFD}";
 	}
 
 	/**
@@ -511,14 +508,39 @@ abstract class WP_CSS_Selector_Parser_Matcher {
 	}
 
 	/**
-	 * Normalizes selector input for processing.
+	 * Normalizes selector input for processing: decodes the byte stream as
+	 * UTF-8 ( replacing ill-formed sequences with U+FFFD ), then filters the
+	 * code points per the input-preprocessing rules.
 	 *
+	 * @see https://www.w3.org/TR/css-syntax-3/#input-byte-stream
 	 * @see https://www.w3.org/TR/css-syntax-3/#input-preprocessing
 	 *
 	 * @param string $input The selector string.
 	 * @return string The normalized selector string.
 	 */
 	final protected static function normalize_selector_input( string $input ): string {
+		/*
+		 * > The input byte stream defines the byte stream that comprises a style sheet.
+		 * > To decode bytes into a stream of code points…
+		 *
+		 * Selector strings are UTF-8 text. Decoding replaces each maximal
+		 * subpart of an ill-formed byte sequence with U+FFFD REPLACEMENT
+		 * CHARACTER (�), per the WHATWG Encoding Standard's UTF-8 decoder.
+		 * The replaced selector is unlikely to match the elements the
+		 * developer intended, so the replacement also reports a notice.
+		 *
+		 * https://www.w3.org/TR/css-syntax-3/#input-byte-stream
+		 */
+		$scrubbed = wp_scrub_utf8( $input );
+		if ( $scrubbed !== $input ) {
+			_doing_it_wrong(
+				get_called_class() . '::from_selectors',
+				'Selector strings must be valid UTF-8: ill-formed byte sequences were replaced with U+FFFD (�), which is unlikely to match the intended elements.',
+				'{WP_VERSION}'
+			);
+			$input = $scrubbed;
+		}
+
 		/*
 		 * > A selector string is a list of one or more complex selectors ([SELECTORS4], section 3.1) that may be surrounded by whitespace…
 		 *

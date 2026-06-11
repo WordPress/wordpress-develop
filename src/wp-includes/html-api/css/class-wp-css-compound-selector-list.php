@@ -18,6 +18,26 @@
  * It takes a CSS selector string and returns an instance of itself or `null` if the selector
  * is invalid or unsupported.
  *
+ * ### Text Encoding
+ *
+ * Selector strings are UTF-8 text. Ill-formed byte sequences in a selector string are
+ * replaced with U+FFFD REPLACEMENT CHARACTER (visually "�"), one per maximal subpart,
+ * before parsing — following the byte-decoding step CSS Syntax specifies for input
+ * byte streams (via the WHATWG Encoding Standard's UTF-8 decoder), not a browser's
+ * `querySelector`, which receives already-decoded strings and can never see ill-formed
+ * input. The replacement also triggers a `_doing_it_wrong()` notice, since a selector
+ * containing ill-formed bytes is almost always a developer error and, once replaced,
+ * matches only literal U+FFFD characters in the document.
+ *
+ * Note that the document side is byte-oriented and unscrubbed: the Tag Processor
+ * reports attribute values and class names with their raw bytes intact (see the
+ * "Text Encoding" section of {@see WP_HTML_Tag_Processor}). A selector containing
+ * ill-formed bytes therefore never matches those same raw bytes in a document.
+ * Selectors for non-UTF-8 ( but ASCII-compatible ) documents can only reliably match
+ * non-ASCII values by converting the selector and document to UTF-8 beforehand.
+ *
+ * @link https://www.w3.org/TR/css-syntax-3/#input-byte-stream
+ *
  * A subset of the CSS selector grammar is supported. The grammar is defined in the CSS Syntax
  * specification, which is available at {@link https://www.w3.org/TR/selectors/#grammar}.
  *
@@ -114,6 +134,10 @@ class WP_CSS_Compound_Selector_List extends WP_CSS_Selector_Parser_Matcher {
 	/**
 	 * Takes a CSS selector string and returns an instance of itself or `null` if the selector
 	 * string is invalid or unsupported.
+	 *
+	 * The selector string must be UTF-8: ill-formed byte sequences are replaced with
+	 * U+FFFD per maximal subpart before parsing and reported with `_doing_it_wrong()`.
+	 * See the "Text Encoding" section of the class documentation.
 	 *
 	 * @param string $input CSS selectors.
 	 * @return static|null
