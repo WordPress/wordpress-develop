@@ -258,7 +258,34 @@ abstract class WP_CSS_Selector_Parser_Matcher {
 			return $codepoint_char;
 		}
 
-		// $offset is a byte offset; mb_substr() expects a character offset.
+		/*
+		 * Find the byte length of the code point at $offset without copying the rest
+		 * of the input: a code point is at most 4 bytes, so the scan is bounded and
+		 * an escape of valid UTF-8 decodes in O(1) regardless of selector length.
+		 * Escaped invalid bytes take the mb_substr() fallback below, which copies
+		 * the remaining input on each call.
+		 *
+		 * `_wp_utf8_codepoint_span()` is not suitable here: it does not bound the
+		 * scan, so its ASCII fast-path reads to the end of the input on every call,
+		 * which is quadratic over a selector composed of escapes.
+		 */
+		$at             = $offset;
+		$invalid_length = 0;
+		_wp_scan_utf8( $input, $at, $invalid_length, 4, 1 );
+		if ( $at > $offset ) {
+			$codepoint_char = substr( $input, $offset, $at - $offset );
+			$offset         = $at;
+			return $codepoint_char;
+		}
+
+		/*
+		 * The bytes at $offset are not valid UTF-8. Decode with mbstring to
+		 * preserve the parser's long-standing behavior for invalid input, which
+		 * depends on `mb_substitute_character()`: with the default setting the
+		 * substitute character `?` is returned and one byte is consumed.
+		 *
+		 * $offset is a byte offset; mb_substr() expects a character offset.
+		 */
 		$codepoint_char = mb_substr( substr( $input, $offset ), 0, 1, 'UTF-8' );
 		$offset        += strlen( $codepoint_char );
 		return $codepoint_char;

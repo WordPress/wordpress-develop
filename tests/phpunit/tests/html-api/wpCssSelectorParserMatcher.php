@@ -97,6 +97,39 @@ class Tests_HtmlApi_WpCssSelectorParserMatcher extends WP_UnitTestCase {
 			'lone escape at EOF'                   => array( '\\', "\u{fffd}", '' ),
 			'hyphen then escape at EOF'            => array( '-\\', "-\u{fffd}", '' ),
 
+			// Identity escapes of multibyte characters, by UTF-8 sequence length.
+			'escaped 2-byte character'             => array( "\\\u{FC}z", "\u{FC}z", '' ),
+			'escaped 3-byte character'             => array( "\\\u{270F}z", "\u{270F}z", '' ),
+			'escaped 4-byte character'             => array( "\\\u{1F0A1}z", "\u{1F0A1}z", '' ),
+			'escaped 2-byte character at EOF'      => array( "a\\\u{FC}", "a\u{FC}", '' ),
+			'escaped 3-byte character at EOF'      => array( "a\\\u{270F}", "a\u{270F}", '' ),
+			'escaped 4-byte character at EOF'      => array( "a\\\u{1F0A1}", "a\u{1F0A1}", '' ),
+
+			/*
+			 * An escaped NUL byte passes through this low-level helper unchanged.
+			 * This is unreachable through the public selector API, where
+			 * normalize_selector_input() replaces NUL with U+FFFD before parsing.
+			 */
+			'escaped NUL byte'                     => array( "a\\\x00z", "a\x00z", '' ),
+
+			/*
+			 * Identity escapes of invalid UTF-8 byte sequences.
+			 *
+			 * These inputs are not valid UTF-8. The escaped invalid byte decodes via
+			 * mbstring substitution (`?` under the default `mb_substitute_character()`
+			 * setting) and one byte is consumed; any continuation bytes that follow
+			 * are appended verbatim by the ident-code-point path. These cases pin the
+			 * current behavior under the default mbstring settings; they do not
+			 * assert it is desirable.
+			 */
+			'escaped lone continuation byte'       => array( "a\\\x80z", 'a?z', '' ),
+			'escaped overlong lead 0xC0'           => array( "a\\\xC0\xAFz", "a?\xAFz", '' ),
+			'escaped invalid lead 0xF5'            => array( "a\\\xF5z", 'a?z', '' ),
+			'escaped truncated 3-byte sequence'    => array( "a\\\xE2\x80z", "a?\x80z", '' ),
+			'escaped truncated 4-byte at EOF'      => array( "a\\\xF0\x9F\x82", "a?\x9F\x82", '' ),
+			'escaped UTF-8-encoded surrogate'      => array( "a\\\xED\xA0\x80z", "a?\xA0\x80z", '' ),
+			'escaped sequence above U+10FFFF'      => array( "a\\\xF4\x90\x80\x80z", "a?\x90\x80\x80z", '' ),
+
 			// Invalid
 			'Invalid: (empty string)'              => array( '' ),
 			'Invalid: bad start >'                 => array( '>ident' ),
