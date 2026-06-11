@@ -600,6 +600,30 @@ class Tests_HtmlApi_WpHtmlProcessor_Serialize extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensures NULL bytes in attribute values set through the API serialize
+	 * as U+FFFD so that serialized output parses back to the same value.
+	 *
+	 * Browsers serialize the raw NULL byte in innerHTML, which does not
+	 * round-trip: re-parsing replaces it with U+FFFD. Serializing U+FFFD
+	 * directly is a benign deviation which keeps output idempotent, like
+	 * serializing decoded carriage returns as &#13;.
+	 *
+	 * @ticket 65372
+	 */
+	public function test_serialize_token_replaces_null_bytes_in_enqueued_attribute_values() {
+		$processor = WP_HTML_Processor::create_fragment( '<p title="x"></p>' );
+
+		$this->assertTrue( $processor->next_tag( 'P' ), 'Should find the P element.' );
+		$this->assertTrue( $processor->set_attribute( 'title', "a\x00b" ), 'Should have set the attribute.' );
+
+		$this->assertSame(
+			"<p title=\"a\u{FFFD}b\">",
+			$processor->serialize_token(),
+			'Should have serialized the NULL byte as U+FFFD.'
+		);
+	}
+
+	/**
 	 * Data provider.
 	 *
 	 * @return array[]
