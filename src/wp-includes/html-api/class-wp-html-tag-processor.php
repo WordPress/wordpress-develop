@@ -2859,9 +2859,19 @@ class WP_HTML_Tag_Processor {
 	private function get_decoded_source_attribute_value( WP_HTML_Attribute_Token $attribute ): string {
 		$raw_value = substr( $this->html, $attribute->value_starts_at, $attribute->value_length );
 
-		$raw_value = str_replace( "\r\n", "\n", $raw_value );
-		$raw_value = str_replace( "\r", "\n", $raw_value );
-		$raw_value = str_replace( "\x00", "\u{FFFD}", $raw_value );
+		/*
+		 * The checks before each replacement avoid scanning the value
+		 * multiple times when it contains none of the rare bytes which
+		 * require replacing; most values contain neither.
+		 */
+		if ( false !== strpos( $raw_value, "\r" ) ) {
+			$raw_value = str_replace( "\r\n", "\n", $raw_value );
+			$raw_value = str_replace( "\r", "\n", $raw_value );
+		}
+
+		if ( false !== strpos( $raw_value, "\x00" ) ) {
+			$raw_value = str_replace( "\x00", "\u{FFFD}", $raw_value );
+		}
 
 		return WP_HTML_Decoder::decode_attribute( $raw_value );
 	}
