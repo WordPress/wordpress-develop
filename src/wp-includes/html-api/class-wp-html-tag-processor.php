@@ -4845,14 +4845,37 @@ class WP_HTML_Tag_Processor {
 		}
 
 		// Does the tag name match the requested tag name in a case-insensitive manner?
-		if (
-			isset( $this->sought_tag_name ) &&
-			(
-				strlen( $this->sought_tag_name ) !== $this->tag_name_length ||
-				0 !== substr_compare( $this->html, $this->sought_tag_name, $this->tag_name_starts_at, $this->tag_name_length, true )
-			)
-		) {
-			return false;
+		if ( isset( $this->sought_tag_name ) ) {
+			$tag_name_matches = (
+				strlen( $this->sought_tag_name ) === $this->tag_name_length &&
+				0 === substr_compare( $this->html, $this->sought_tag_name, $this->tag_name_starts_at, $this->tag_name_length, true )
+			);
+
+			/*
+			 * Names are matched in the same alphabet `get_tag()` exposes,
+			 * where U+0000 NULL bytes appear as U+FFFD: a sought name
+			 * containing U+FFFD matches source names with NULL bytes in
+			 * its place, and a sought name containing a NULL byte matches
+			 * nothing, since no exposed name contains one. The byte
+			 * comparison above already agrees for names without NULL
+			 * bytes, so this only resolves the rare disagreements.
+			 */
+			if ( $tag_name_matches ) {
+				$tag_name_matches = false === strpos( $this->sought_tag_name, "\x00" );
+			} elseif ( false !== strpos( $this->sought_tag_name, "\u{FFFD}" ) ) {
+				$raw_name = substr( $this->html, $this->tag_name_starts_at, $this->tag_name_length );
+				if ( false !== strpos( $raw_name, "\x00" ) ) {
+					$exposed_name     = str_replace( "\x00", "\u{FFFD}", $raw_name );
+					$tag_name_matches = (
+						strlen( $this->sought_tag_name ) === strlen( $exposed_name ) &&
+						0 === substr_compare( $exposed_name, $this->sought_tag_name, 0, strlen( $exposed_name ), true )
+					);
+				}
+			}
+
+			if ( ! $tag_name_matches ) {
+				return false;
+			}
 		}
 
 		if ( null !== $this->sought_class_name && ! $this->has_class( $this->sought_class_name ) ) {
