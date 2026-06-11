@@ -132,6 +132,73 @@ class Tests_HtmlApi_WpHtmlTagProcessor_InputPreprocessing extends WP_UnitTestCas
 	}
 
 	/**
+	 * Ensures attribute names containing NULL bytes are exposed with U+FFFD and
+	 * are addressable only by their replaced name, as browsers expose them.
+	 *
+	 * Browser-verified: `getAttribute("da\u{FFFD}ta")` finds the attribute
+	 * parsed from `da\x00ta`; `getAttribute("da\x00ta")` does not.
+	 *
+	 * @ticket 65372
+	 *
+	 * @covers ::get_attribute
+	 * @covers ::get_attribute_names_with_prefix
+	 */
+	public function test_attribute_names_replace_null_bytes() {
+		$processor = new WP_HTML_Tag_Processor( "<div da\x00ta='1'>" );
+
+		$this->assertTrue( $processor->next_tag(), 'Should have found the tag.' );
+		$this->assertSame( array( "da\u{FFFD}ta" ), $processor->get_attribute_names_with_prefix( '' ) );
+		$this->assertSame( '1', $processor->get_attribute( "da\u{FFFD}ta" ), 'Should have found the attribute by its replaced name.' );
+		$this->assertNull( $processor->get_attribute( "da\x00ta" ), 'Should not have found the attribute by its raw source name.' );
+
+		$processor = new WP_HTML_Tag_Processor( "<div DA\x00TA='1'>" );
+
+		$this->assertTrue( $processor->next_tag(), 'Should have found the tag.' );
+		$this->assertSame( array( "da\u{FFFD}ta" ), $processor->get_attribute_names_with_prefix( '' ), 'Should have lowercased the name around the replacement character.' );
+	}
+
+	/**
+	 * Ensures attribute names which collapse to the same name after NULL-byte
+	 * replacement are duplicates of one attribute: the first in document order
+	 * provides the value and removal removes every collapsed copy.
+	 *
+	 * Browser-verified: `<div da\x00ta="1" da\u{FFFD}ta="2">` produces a single
+	 * attribute `da\u{FFFD}ta` with value "1".
+	 *
+	 * @ticket 65372
+	 *
+	 * @covers ::get_attribute
+	 * @covers ::remove_attribute
+	 */
+	public function test_attribute_names_collapsing_after_null_replacement_are_duplicates() {
+		$processor = new WP_HTML_Tag_Processor( "<div da\x00ta='1' da\u{FFFD}ta='2'>" );
+
+		$this->assertTrue( $processor->next_tag(), 'Should have found the tag.' );
+		$this->assertSame( array( "da\u{FFFD}ta" ), $processor->get_attribute_names_with_prefix( '' ) );
+		$this->assertSame( '1', $processor->get_attribute( "da\u{FFFD}ta" ), 'First duplicate should provide the value.' );
+
+		$this->assertTrue( $processor->remove_attribute( "da\u{FFFD}ta" ), 'Should have removed the attribute.' );
+		$this->assertSame( '<div  >', $processor->get_updated_html(), 'Should have removed all duplicates of the attribute.' );
+	}
+
+	/**
+	 * Ensures setting an attribute by its U+FFFD-replaced name updates the
+	 * source attribute whose raw name contains a NULL byte instead of adding
+	 * a second attribute.
+	 *
+	 * @ticket 65372
+	 *
+	 * @covers ::set_attribute
+	 */
+	public function test_set_attribute_updates_attribute_with_null_byte_in_source_name() {
+		$processor = new WP_HTML_Tag_Processor( "<div da\x00ta='old'>" );
+
+		$this->assertTrue( $processor->next_tag(), 'Should have found the tag.' );
+		$this->assertTrue( $processor->set_attribute( "da\u{FFFD}ta", 'new' ), 'Should have set the attribute.' );
+		$this->assertSame( "<div da\u{FFFD}ta=\"new\">", $processor->get_updated_html() );
+	}
+
+	/**
 	 * Ensures numeric character references for U+0000 decode to U+FFFD in text.
 	 *
 	 * @ticket 65372
