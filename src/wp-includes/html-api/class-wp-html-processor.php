@@ -1404,10 +1404,9 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			return $html;
 		}
 
-		$tag_name       = str_replace( "\x00", "\u{FFFD}", $this->get_tag() );
+		$tag_name       = $this->get_tag();
 		$in_html        = 'html' === $this->get_namespace();
 		$qualified_name = $in_html ? strtolower( $tag_name ) : $this->get_qualified_tag_name();
-		$qualified_name = str_replace( "\x00", "\u{FFFD}", $qualified_name );
 
 		if ( $this->is_tag_closer() ) {
 			$html .= "</{$qualified_name}>";
@@ -1426,7 +1425,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		$seen_attribute_names        = array();
 		foreach ( $attribute_names as $attribute_name ) {
 			$qualified_attribute_name = $this->get_qualified_attribute_name( $attribute_name );
-			$qualified_attribute_name = str_replace( "\x00", "\u{FFFD}", $qualified_attribute_name );
 			$qualified_attribute_name = wp_scrub_utf8( $qualified_attribute_name );
 			if ( isset( $seen_attribute_names[ $qualified_attribute_name ] ) ) {
 				continue;
@@ -1450,7 +1448,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			}
 
 			$previous_attribute_was_true = true === $value;
-			$html                        = str_replace( "\x00", "\u{FFFD}", $html );
 		}
 
 		if ( ! $in_html && $this->has_self_closing_flag() ) {
@@ -1518,17 +1515,20 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * feed, so emitting it raw would change the text on the next parse
 	 * and serialized output would never reach a fixed point.
 	 *
+	 * NULL bytes, possible in API-supplied values, serialize as U+FFFD
+	 * for the same reason: the tokenizer would replace or remove a raw
+	 * NULL byte on the next parse.
+	 *
 	 * @since 7.1.0
 	 *
 	 * @param string $text Decoded text to serialize.
 	 * @return string Serialized text.
 	 */
 	private static function serialize_decoded_text( string $text ): string {
-		return str_replace(
-			"\r",
-			'&#13;',
-			htmlspecialchars( $text, ENT_QUOTES | ENT_SUBSTITUTE | ENT_HTML5, 'UTF-8' )
-		);
+		$text = htmlspecialchars( $text, ENT_QUOTES | ENT_SUBSTITUTE | ENT_HTML5, 'UTF-8' );
+		$text = str_replace( "\r", '&#13;', $text );
+
+		return str_replace( "\x00", "\u{FFFD}", $text );
 	}
 
 	/**
