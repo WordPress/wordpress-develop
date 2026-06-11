@@ -79,7 +79,7 @@ class WP_List_Table {
 	protected $modes = array();
 
 	/**
-	 * Stores the value returned by ::get_column_info().
+	 * Stores the value returned by {@see self::get_column_info()}.
 	 *
 	 * @since 4.2.0
 	 *
