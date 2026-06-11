@@ -490,7 +490,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 	 *
 	 * @global string $status Current plugin status filter slug.
 	 *
-	 * @return array<string, string> An associative array of columns.
+	 * @return array<string, string> An associative array of column titles keyed by their column name.
 	 */
 	public function get_columns() {
 		global $status;
