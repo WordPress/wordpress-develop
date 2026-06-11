@@ -4667,7 +4667,6 @@ function wp_prepare_attachment_for_js( $attachment ) {
 		 * to check the image metadata, which we do second.
 		 */
 		foreach ( $possible_sizes as $size => $label ) {
-
 			/** This filter is documented in wp-includes/media.php */
 			$downsize = apply_filters( 'image_downsize', false, $attachment->ID, $size );
 
@@ -4682,22 +4681,22 @@ function wp_prepare_attachment_for_js( $attachment ) {
 					'url'         => $downsize[0],
 					'orientation' => $downsize[2] > $downsize[1] ? 'portrait' : 'landscape',
 				);
-			} elseif ( isset( $meta['sizes'][ $size ] ) ) {
-				// Nothing from the filter, so consult image metadata if we have it.
-				$size_meta = $meta['sizes'][ $size ];
+			}
 
-				/*
-				 * We have the actual image size, but might need to further constrain it if content_width is narrower.
-				 * Thumbnail, medium, and full sizes are also checked against the site's height/width options.
-				 */
-				list( $width, $height ) = image_constrain_size_for_editor( $size_meta['width'], $size_meta['height'], $size, 'edit' );
+			// If the image_downsize filter did not return anything, use the metadata.
+			if ( empty( $sizes ) && isset( $meta['sizes'] ) ) {
+				foreach ( $meta['sizes'] as $size => $size_meta ) {
+					// We have the actual image size, but might need to further constrain it if content_width is narrower.
+					// Thumbnail, medium, and full sizes are also checked against the site's height/width options.
+					list( $width, $height ) = image_constrain_size_for_editor( $size_meta['width'], $size_meta['height'], $size, 'edit' );
 
-				$sizes[ $size ] = array(
-					'height'      => $height,
-					'width'       => $width,
-					'url'         => $base_url . $size_meta['file'],
-					'orientation' => $height > $width ? 'portrait' : 'landscape',
-				);
+					$sizes[ $size ] = array(
+						'height'      => $height,
+						'width'       => $width,
+						'url'         => $base_url . $size_meta['file'],
+						'orientation' => $height > $width ? 'portrait' : 'landscape',
+					);
+				}
 			}
 		}
 
