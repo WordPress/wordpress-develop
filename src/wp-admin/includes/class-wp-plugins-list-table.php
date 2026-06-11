@@ -74,7 +74,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 	}
 
 	/**
-	 * Checks whether the current user can manage plugins for this screen.
+	 * Checks whether the current user can activate plugins for this screen.
 	 *
 	 * @since 3.1.0
 	 *
