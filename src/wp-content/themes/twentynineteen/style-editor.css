@@ -524,7 +524,7 @@ a {
   color: #0073aa;
 }
 a:hover, a:active {
-  color: rgb(0, 80.5, 119);
+  color: #005177;
   outline: 0;
   text-decoration: none;
 }
@@ -2238,7 +2238,7 @@ figcaption,
   color: #0073aa;
 }
 .wp-block-file .wp-block-file__textlink:hover {
-  color: rgb(0, 80.5, 119);
+  color: #005177;
   text-decoration: none;
 }
 .wp-block-file .wp-block-file__button {
@@ -2293,8 +2293,8 @@ figcaption,
   background-color: #0073aa;
 }
 .wp-block-separator.has-secondary-background-color {
-  color: rgb(0, 80.5, 119);
-  background-color: rgb(0, 80.5, 119);
+  color: #005177;
+  background-color: #005177;
 }
 .wp-block-separator.has-dark-gray-background-color {
   color: #111;

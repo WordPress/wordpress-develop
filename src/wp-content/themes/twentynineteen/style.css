@@ -2039,7 +2039,7 @@ a {
 
 a:hover,
 a:active {
-  color: rgb(0, 80.5, 119);
+  color: #005177;
   outline: 0;
   text-decoration: none;
 }
@@ -2592,7 +2592,7 @@ a:visited {
   color: #0073aa;
 }
 a:hover, a:active {
-  color: rgb(0, 80.5, 119);
+  color: #005177;
   outline: 0;
   text-decoration: none;
 }
@@ -2664,7 +2664,7 @@ body.page .main-navigation {
   margin-right: 0.5rem;
 }
 .main-navigation .main-menu > li > a:hover, .main-navigation .main-menu > li > a:hover + svg {
-  color: rgb(0, 80.5, 119);
+  color: #005177;
 }
 .main-navigation .main-menu > li.menu-item-has-children {
   display: inline-block;
@@ -2769,12 +2769,12 @@ body.page .main-navigation {
 .main-navigation .sub-menu > li > a:hover, .main-navigation .sub-menu > li > a:focus,
 .main-navigation .sub-menu > li > .menu-item-link-return:hover,
 .main-navigation .sub-menu > li > .menu-item-link-return:focus {
-  background: rgb(0, 80.5, 119);
+  background: #005177;
 }
 .main-navigation .sub-menu > li > a:hover:after, .main-navigation .sub-menu > li > a:focus:after,
 .main-navigation .sub-menu > li > .menu-item-link-return:hover:after,
 .main-navigation .sub-menu > li > .menu-item-link-return:focus:after {
-  background: rgb(0, 80.5, 119);
+  background: #005177;
 }
 .main-navigation .sub-menu > li > .menu-item-link-return {
   width: 100%;
@@ -3247,7 +3247,7 @@ body.page .main-navigation {
   hyphens: auto;
 }
 .post-navigation .nav-links a:hover {
-  color: rgb(0, 80.5, 119);
+  color: #005177;
 }
 @media only screen and (min-width: 1168px) {
   .post-navigation .nav-links .nav-previous,
@@ -3687,7 +3687,7 @@ body.page .main-navigation {
   color: #111;
 }
 .site-title a:hover {
-  color: rgb(74.375, 74.375, 74.375);
+  color: #4a4a4a;
 }
 .featured-image .site-title {
   margin: 0;
@@ -4068,7 +4068,7 @@ body.page .main-navigation {
   color: inherit;
 }
 .entry .entry-title a:hover {
-  color: rgb(74.375, 74.375, 74.375);
+  color: #4a4a4a;
 }
 .entry .entry-meta,
 .entry .entry-footer {
@@ -4318,7 +4318,7 @@ body.page .main-navigation {
   display: inline-block;
 }
 .author-bio .author-description .author-link:hover {
-  color: rgb(0, 80.5, 119);
+  color: #005177;
   text-decoration: none;
 }
 
@@ -4804,14 +4804,14 @@ body.page .main-navigation {
   color: inherit;
 }
 .comment .comment-author .fn a:hover {
-  color: rgb(0, 80.5, 119);
+  color: #005177;
 }
 .comment .comment-author .post-author-badge {
   border-radius: 100%;
   display: block;
   height: 18px;
   position: absolute;
-  background: rgb(0, 142.6, 210.8);
+  background: #008fd3;
   right: calc(100% - 2.5rem);
   top: -3px;
   width: 18px;
@@ -4841,7 +4841,7 @@ body.page .main-navigation {
 }
 .comment .comment-metadata > a:hover,
 .comment .comment-metadata .comment-edit-link:hover {
-  color: rgb(0, 80.5, 119);
+  color: #005177;
   text-decoration: none;
 }
 .comment .comment-metadata > * {
@@ -4900,7 +4900,7 @@ body.page .main-navigation {
 }
 .comment-reply-link:hover,
 #cancel-comment-reply-link:hover {
-  color: rgb(0, 80.5, 119);
+  color: #005177;
 }
 
 .discussion-avatar-list {
@@ -5227,7 +5227,7 @@ body.page .main-navigation {
   color: #0073aa;
 }
 .widget a:hover {
-  color: rgb(0, 80.5, 119);
+  color: #005177;
 }
 
 .widget_archive ul,
@@ -8230,7 +8230,7 @@ body.page .main-navigation {
 }
 .entry .entry-content .has-secondary-background-color,
 .entry .entry-content .wp-block-pullquote.is-style-solid-color.has-secondary-background-color {
-  background-color: rgb(0, 80.5, 119);
+  background-color: #005177;
 }
 .entry .entry-content .has-dark-gray-background-color,
 .entry .entry-content .wp-block-pullquote.is-style-solid-color.has-dark-gray-background-color {
@@ -8254,7 +8254,7 @@ body.page .main-navigation {
 .entry .entry-content .wp-block-pullquote blockquote.has-secondary-color,
 .entry .entry-content .wp-block-pullquote.is-style-solid-color blockquote.has-secondary-color,
 .entry .entry-content .wp-block-pullquote.is-style-solid-color blockquote.has-secondary-color > p {
-  color: rgb(0, 80.5, 119);
+  color: #005177;
 }
 .entry .entry-content .has-dark-gray-color,
 .entry .entry-content .wp-block-pullquote.is-style-solid-color blockquote.has-dark-gray-color,
