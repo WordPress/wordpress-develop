@@ -58,6 +58,9 @@ class Tests_HtmlApi_WpHtmlTagProcessor_InputPreprocessing extends WP_UnitTestCas
 			'Encoded CR is preserved'     => array( "<div a='x&#13;y'>", "x\ry" ),
 			'Encoded NULL becomes U+FFFD' => array( "<div a='x&#0;y'>", "x\u{FFFD}y" ),
 			'Raw CR before encoded CR'    => array( "<div a='x\r&#13;y'>", "x\n\ry" ),
+			'Raw CR and NULL byte'        => array( "<div a='x\r\x00y'>", "x\n\u{FFFD}y" ),
+			'Named reference before NULL' => array( "<div a='x&amp\x00;y'>", "x&\u{FFFD};y" ),
+			'Named reference before CR'   => array( "<div a='x&amp\ry'>", "x&\ny" ),
 		);
 	}
 
@@ -125,9 +128,10 @@ class Tests_HtmlApi_WpHtmlTagProcessor_InputPreprocessing extends WP_UnitTestCas
 	 */
 	public static function data_class_updates_with_preprocessing() {
 		return array(
-			'Raw CR'    => array( "<div class='a\rb'>", "<div class=\"a\nb added\">" ),
-			'Raw CRLF'  => array( "<div class='a\r\nb'>", "<div class=\"a\nb added\">" ),
-			'NULL byte' => array( "<div class='a\x00b'>", "<div class=\"a\u{FFFD}b added\">" ),
+			'Raw CR'                      => array( "<div class='a\rb'>", "<div class=\"a\nb added\">" ),
+			'Raw CRLF'                    => array( "<div class='a\r\nb'>", "<div class=\"a\nb added\">" ),
+			'NULL byte'                   => array( "<div class='a\x00b'>", "<div class=\"a\u{FFFD}b added\">" ),
+			'Named reference before NULL' => array( "<div class='&not\x00x'>", "<div class=\"\u{AC}\u{FFFD}x added\">" ),
 		);
 	}
 
