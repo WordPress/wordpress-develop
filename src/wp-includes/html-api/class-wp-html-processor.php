@@ -1493,9 +1493,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				case 'IFRAME':
 				case 'NOEMBED':
 				case 'NOFRAMES':
-					$text = '';
-					break;
-
 				case 'SCRIPT':
 				case 'STYLE':
 					break;

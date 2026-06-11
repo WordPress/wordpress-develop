@@ -134,6 +134,36 @@ class Tests_HtmlApi_WpHtmlProcessor_Serialize extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * Ensures that IFRAME, NOEMBED, and NOFRAMES contents are not escaped, as they are not parsed like text nodes are.
+	 *
+	 * @ticket 65372
+	 *
+	 * @dataProvider data_raw_text_elements_with_unescaped_contents
+	 *
+	 * @param string $tag_name Tag name under test.
+	 */
+	public function test_iframe_noembed_noframes_contents_are_not_escaped( string $tag_name ) {
+		$this->assertSame(
+			WP_HTML_Processor::normalize( "<{$tag_name}>apples > or\x00anges < p &amp;</{$tag_name}>" ),
+			"<{$tag_name}>apples > or\u{FFFD}anges < p &amp;</{$tag_name}>",
+			"Should have preserved text inside an {$tag_name} element, except for replacing NULL bytes."
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_raw_text_elements_with_unescaped_contents() {
+		return array(
+			'IFRAME'   => array( 'iframe' ),
+			'NOEMBED'  => array( 'noembed' ),
+			'NOFRAMES' => array( 'noframes' ),
+		);
+	}
+
 	public function test_unexpected_closing_tags_are_removed() {
 		$this->assertSame(
 			WP_HTML_Processor::normalize( 'one</div>two</span>three' ),
