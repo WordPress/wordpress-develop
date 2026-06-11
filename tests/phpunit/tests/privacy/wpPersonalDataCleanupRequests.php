@@ -89,7 +89,7 @@ class Tests_Privacy_WpPersonalDataCleanupRequests extends WP_UnitTestCase {
 	 * Return all scheduled cron entries for the given hook name.
 	 *
 	 * @param string $hook
-	 * @return array
+	 * @return list<array{ schedule: string, args: array<mixed>, interval: non-negative-int }>
 	 */
 	private function get_cron_events( string $hook ): array {
 		$events = array();
