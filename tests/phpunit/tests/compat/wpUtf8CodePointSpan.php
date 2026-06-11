@@ -5,8 +5,6 @@
  * @package    WordPress
  * @subpackage Charset
  *
- * @since      6.9.0
- *
  * @group      compat
  *
  * @covers ::_wp_utf8_codepoint_span()
@@ -14,8 +12,6 @@
 class Tests_Compat_wpUtf8CodePointSpan extends WP_UnitTestCase {
 	/**
 	 * Ensures that the span accounts for the requested number of code points.
-	 *
-	 * @ticket 63863
 	 *
 	 * @dataProvider data_codepoint_spans
 	 *
@@ -44,7 +40,7 @@ class Tests_Compat_wpUtf8CodePointSpan extends WP_UnitTestCase {
 	/**
 	 * Data provider.
 	 *
-	 * @return array[]
+	 * @return array<string, array{0: string, 1: int, 2: int, 3: int, 4: int}>
 	 */
 	public static function data_codepoint_spans() {
 		$long_ascii_run = str_repeat( 'a', 1024 );
