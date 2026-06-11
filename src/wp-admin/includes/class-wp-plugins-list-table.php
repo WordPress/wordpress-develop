@@ -756,6 +756,8 @@ class WP_Plugins_List_Table extends WP_List_Table {
 	/**
 	 * Gets the current action selected from the bulk actions dropdown.
 	 *
+	 * Also handles the 'clear-recent-list' action from the Recently Active plugins screen.
+	 *
 	 * @since 3.1.0
 	 *
 	 * @return string|false The action name. False if no action was selected.
