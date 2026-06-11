@@ -2844,9 +2844,11 @@ class WP_HTML_Tag_Processor {
 	 *
 	 * The Tag Processor defers the HTML input-stream preprocessing and the
 	 * tokenizer's replacements while scanning; they must be applied when
-	 * reading a value out of the document: newlines are normalized and
-	 * U+0000 NULL bytes are replaced with U+FFFD, both before character
-	 * references are decoded.
+	 * reading a value out of the document: newlines are normalized before
+	 * character references decode, and U+0000 NULL bytes are replaced
+	 * with U+FFFD. The replacements operate on bytes; NULL bytes inside
+	 * invalid UTF-8 sequences are replaced individually where a browser,
+	 * decoding the byte stream into characters first, may differ.
 	 *
 	 * @see https://html.spec.whatwg.org/#preprocessing-the-input-stream
 	 * @see https://html.spec.whatwg.org/#attribute-value-(double-quoted)-state
@@ -2860,20 +2862,32 @@ class WP_HTML_Tag_Processor {
 		$raw_value = substr( $this->html, $attribute->value_starts_at, $attribute->value_length );
 
 		/*
-		 * The checks before each replacement avoid scanning the value
-		 * multiple times when it contains none of the rare bytes which
-		 * require replacing; most values contain neither.
+		 * Newline normalization is part of preprocessing the input stream
+		 * and precedes character reference decoding: `&#13;` decodes into
+		 * a carriage return which must be preserved. The check avoids
+		 * scanning the value again when it contains no carriage return;
+		 * most values contain none.
 		 */
 		if ( false !== strpos( $raw_value, "\r" ) ) {
 			$raw_value = str_replace( "\r\n", "\n", $raw_value );
 			$raw_value = str_replace( "\r", "\n", $raw_value );
 		}
 
-		if ( false !== strpos( $raw_value, "\x00" ) ) {
-			$raw_value = str_replace( "\x00", "\u{FFFD}", $raw_value );
+		$decoded_value = WP_HTML_Decoder::decode_attribute( $raw_value );
+
+		/*
+		 * The tokenizer replaces U+0000 NULL bytes as it consumes input:
+		 * character references see the raw NULL byte — an unambiguous
+		 * follower for references without a terminating semicolon — and
+		 * no character reference decodes into NULL, so the replacement
+		 * applies equivalently after decoding, where it cannot disturb
+		 * how references parse.
+		 */
+		if ( false !== strpos( $decoded_value, "\x00" ) ) {
+			$decoded_value = str_replace( "\x00", "\u{FFFD}", $decoded_value );
 		}
 
-		return WP_HTML_Decoder::decode_attribute( $raw_value );
+		return $decoded_value;
 	}
 
 	/**
