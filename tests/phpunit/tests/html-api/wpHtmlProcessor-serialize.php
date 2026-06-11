@@ -592,10 +592,46 @@ class Tests_HtmlApi_WpHtmlProcessor_Serialize extends WP_UnitTestCase {
 
 		$processor->add_class( 'c' );
 
+		$serialized = $processor->serialize_token();
 		$this->assertSame(
 			"<p class=\"a\nb c\">",
-			$processor->serialize_token(),
+			$serialized,
 			'Should have serialized raw class carriage returns as line feeds before adding classes.'
+		);
+
+		$reparsed = WP_HTML_Processor::create_fragment( $serialized );
+		$this->assertTrue( $reparsed->next_tag( 'P' ), 'Should find the reparsed P element.' );
+		$this->assertSame( "a\nb c", $reparsed->get_attribute( 'class' ), 'The serialized class should parse back to the same value.' );
+	}
+
+	/**
+	 * Ensures rawtext element contents serialize without escaping:
+	 * character references do not decode inside SCRIPT and STYLE, so
+	 * escaping their contents or emitting `&#13;` there would corrupt them.
+	 *
+	 * @ticket 65372
+	 *
+	 * @dataProvider data_provider_rawtext_contents
+	 *
+	 * @param string $html HTML whose rawtext contents must serialize unchanged.
+	 */
+	public function test_normalize_preserves_rawtext_contents( string $html ) {
+		$this->assertSame(
+			$html,
+			WP_HTML_Processor::normalize( $html ),
+			'Should have serialized the rawtext contents unchanged.'
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_provider_rawtext_contents() {
+		return array(
+			'SCRIPT with character references' => array( '<script>a&#13;&amp;b</script>' ),
+			'STYLE with character references'  => array( '<style>a&#13;&amp;b</style>' ),
 		);
 	}
 
@@ -616,11 +652,16 @@ class Tests_HtmlApi_WpHtmlProcessor_Serialize extends WP_UnitTestCase {
 		$this->assertTrue( $processor->next_tag( 'P' ), 'Should find the P element.' );
 		$this->assertTrue( $processor->set_attribute( 'title', "a\x00b" ), 'Should have set the attribute.' );
 
+		$serialized = $processor->serialize_token();
 		$this->assertSame(
 			"<p title=\"a\u{FFFD}b\">",
-			$processor->serialize_token(),
+			$serialized,
 			'Should have serialized the NULL byte as U+FFFD.'
 		);
+
+		$reparsed = WP_HTML_Processor::create_fragment( $serialized );
+		$this->assertTrue( $reparsed->next_tag( 'P' ), 'Should find the reparsed P element.' );
+		$this->assertSame( "a\u{FFFD}b", $reparsed->get_attribute( 'title' ), 'The serialized title should parse back to the same value.' );
 	}
 
 	/**
