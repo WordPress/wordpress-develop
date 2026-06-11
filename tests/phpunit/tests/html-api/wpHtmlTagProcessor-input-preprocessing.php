@@ -98,6 +98,40 @@ class Tests_HtmlApi_WpHtmlTagProcessor_InputPreprocessing extends WP_UnitTestCas
 	}
 
 	/**
+	 * Ensures the existing class attribute value is preprocessed when enqueued
+	 * class updates are flushed into an attribute update.
+	 *
+	 * @ticket 65372
+	 *
+	 * @covers ::add_class
+	 *
+	 * @dataProvider data_class_updates_with_preprocessing
+	 *
+	 * @param string $html          HTML containing a tag with a class attribute.
+	 * @param string $expected_html Expected document after adding a class.
+	 */
+	public function test_class_updates_apply_input_preprocessing_to_existing_value( string $html, string $expected_html ) {
+		$processor = new WP_HTML_Tag_Processor( $html );
+
+		$this->assertTrue( $processor->next_tag(), 'Should have found the tag.' );
+		$this->assertTrue( $processor->add_class( 'added' ), 'Should have enqueued the class addition.' );
+		$this->assertSame( $expected_html, $processor->get_updated_html() );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_class_updates_with_preprocessing() {
+		return array(
+			'Raw CR'    => array( "<div class='a\rb'>", "<div class=\"a\nb added\">" ),
+			'Raw CRLF'  => array( "<div class='a\r\nb'>", "<div class=\"a\nb added\">" ),
+			'NULL byte' => array( "<div class='a\x00b'>", "<div class=\"a\u{FFFD}b added\">" ),
+		);
+	}
+
+	/**
 	 * Ensures numeric character references for U+0000 decode to U+FFFD in text.
 	 *
 	 * @ticket 65372
