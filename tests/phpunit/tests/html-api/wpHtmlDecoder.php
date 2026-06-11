@@ -62,6 +62,43 @@ class Tests_HtmlApi_WpHtmlDecoder extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensures that numeric character references for U+0000 decode to U+FFFD
+	 * while raw NULL bytes pass through the decoder untransformed.
+	 *
+	 * The tokenizer, not the decoder, is responsible for replacing raw NULL
+	 * bytes; in the Tag Processor that responsibility falls on the methods
+	 * which read values out of the input document.
+	 *
+	 * @ticket 65372
+	 *
+	 * @dataProvider data_null_code_points
+	 *
+	 * @param string $raw_value     Raw attribute value.
+	 * @param string $decoded_value The expected decoded attribute value.
+	 */
+	public function test_null_code_points_in_attribute_values( string $raw_value, string $decoded_value ) {
+		$this->assertSame(
+			$decoded_value,
+			WP_HTML_Decoder::decode_attribute( $raw_value ),
+			'Improperly decoded raw attribute value.'
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_null_code_points() {
+		return array(
+			'Decimal zero'                 => array( 'a&#0;b', "a\u{FFFD}b" ),
+			'Hexadecimal zero'             => array( 'a&#x0;b', "a\u{FFFD}b" ),
+			'Multiple zeros'               => array( 'a&#0000;b', "a\u{FFFD}b" ),
+			'Raw NULL byte passes through' => array( "a\x00b", "a\x00b" ),
+		);
+	}
+
+	/**
 	 * Ensures proper detection of attribute prefixes ignoring ASCII case.
 	 *
 	 * @ticket 61072
