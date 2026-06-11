@@ -258,6 +258,28 @@ class Tests_HtmlApi_WpHtmlTagProcessor_InputPreprocessing extends WP_UnitTestCas
 	}
 
 	/**
+	 * Ensures class_list does not replace NULL bytes in API-supplied values.
+	 *
+	 * Browser-verified: `setAttribute('class', "a\x00b")` then reading
+	 * `classList` yields the token "a\x00b" with the NULL byte preserved;
+	 * U+0000 replacement happens only in the tokenizer, and values from the
+	 * input document already receive it through `get_attribute()`.
+	 *
+	 * @ticket 65372
+	 *
+	 * @covers ::class_list
+	 * @covers ::has_class
+	 */
+	public function test_class_list_preserves_null_bytes_in_enqueued_values() {
+		$processor = new WP_HTML_Tag_Processor( '<div>' );
+
+		$this->assertTrue( $processor->next_tag(), 'Should have found the tag.' );
+		$this->assertTrue( $processor->set_attribute( 'class', "a\x00b c\u{FFFD}d" ), 'Should have set the class attribute.' );
+		$this->assertSame( array( "a\x00b", "c\u{FFFD}d" ), iterator_to_array( $processor->class_list(), false ), 'Should have preserved the NULL byte in the API-supplied class.' );
+		$this->assertTrue( $processor->has_class( "a\x00b" ) );
+	}
+
+	/**
 	 * Ensures numeric character references for U+0000 decode to U+FFFD in text.
 	 *
 	 * @ticket 65372
