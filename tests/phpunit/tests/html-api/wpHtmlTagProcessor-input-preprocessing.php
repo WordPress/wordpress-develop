@@ -321,6 +321,81 @@ class Tests_HtmlApi_WpHtmlTagProcessor_InputPreprocessing extends WP_UnitTestCas
 	}
 
 	/**
+	 * Ensures the class helpers operate on the replaced source value:
+	 * a class containing a NULL byte in the document is exposed, matched,
+	 * and queried by its U+FFFD spelling only.
+	 *
+	 * @ticket 65372
+	 *
+	 * @covers ::class_list
+	 * @covers ::has_class
+	 * @covers ::next_tag
+	 */
+	public function test_class_helpers_use_replaced_source_values() {
+		$processor = new WP_HTML_Tag_Processor( "<div class='a\x00b'>" );
+
+		$this->assertTrue( $processor->next_tag(), 'Should have found the tag.' );
+		$this->assertSame( array( "a\u{FFFD}b" ), iterator_to_array( $processor->class_list(), false ), 'Should have exposed the replaced class name.' );
+		$this->assertTrue( $processor->has_class( "a\u{FFFD}b" ), 'Should have matched the replaced class name.' );
+		$this->assertFalse( $processor->has_class( "a\x00b" ), 'Should not have matched the raw source class name.' );
+
+		$processor = new WP_HTML_Tag_Processor( "<div class='a\x00b'>" );
+		$this->assertTrue( $processor->next_tag( array( 'class_name' => "a\u{FFFD}b" ) ), 'Should have matched a class_name query by the replaced name.' );
+	}
+
+	/**
+	 * Ensures boolean attributes whose names contain NULL bytes are
+	 * addressable by their replaced name.
+	 *
+	 * @ticket 65372
+	 *
+	 * @covers ::get_attribute
+	 */
+	public function test_boolean_attribute_with_null_byte_in_name() {
+		$processor = new WP_HTML_Tag_Processor( "<div da\x00ta>" );
+
+		$this->assertTrue( $processor->next_tag(), 'Should have found the tag.' );
+		$this->assertTrue( $processor->get_attribute( "da\u{FFFD}ta" ), 'Should have reported the boolean attribute by its replaced name.' );
+	}
+
+	/**
+	 * Ensures attribute-name prefixes are matched verbatim against the
+	 * replaced names: a prefix spelled with U+FFFD matches, and a prefix
+	 * containing a raw NULL byte matches nothing.
+	 *
+	 * @ticket 65372
+	 *
+	 * @covers ::get_attribute_names_with_prefix
+	 */
+	public function test_attribute_name_prefixes_match_replaced_names() {
+		$processor = new WP_HTML_Tag_Processor( "<div da\x00ta='1'>" );
+
+		$this->assertTrue( $processor->next_tag(), 'Should have found the tag.' );
+		$this->assertSame( array( "da\u{FFFD}ta" ), $processor->get_attribute_names_with_prefix( "da\u{FFFD}" ), 'A replaced-name prefix should match.' );
+		$this->assertSame( array(), $processor->get_attribute_names_with_prefix( "da\x00" ), 'A raw NULL prefix should match nothing.' );
+	}
+
+	/**
+	 * Ensures the replaced tag names flow through HTML Processor tree
+	 * construction: an end tag spelled with U+FFFD closes an element
+	 * whose start tag was spelled with a raw NULL byte, as in browsers,
+	 * where both spellings tokenize to the same name.
+	 *
+	 * @ticket 65372
+	 */
+	public function test_html_processor_matches_end_tags_across_null_byte_spellings() {
+		$this->assertSame(
+			"<di\u{FFFD}v>x</di\u{FFFD}v>y",
+			WP_HTML_Processor::normalize( "<di\x00v>x</di\u{FFFD}v>y" ),
+			'The U+FFFD-spelled end tag should have closed the NULL-spelled element.'
+		);
+
+		$processor = WP_HTML_Processor::create_full_parser( "<body><di\x00v>x</di\u{FFFD}v>y" );
+		$this->assertTrue( $processor->next_tag( array( 'tag_name' => "DI\u{FFFD}V" ) ), 'Should have found the element by its replaced name.' );
+		$this->assertSame( array( 'HTML', 'BODY', "DI\u{FFFD}V" ), $processor->get_breadcrumbs(), 'Should have built breadcrumbs from replaced names.' );
+	}
+
+	/**
 	 * Ensures pending class updates are flushed for any case spelling of
 	 * the "class" attribute name, since attribute names are matched
 	 * ASCII-case-insensitively.

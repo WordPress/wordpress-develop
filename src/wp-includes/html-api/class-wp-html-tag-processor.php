@@ -2911,7 +2911,9 @@ class WP_HTML_Tag_Processor {
 	 *
 	 * @since 6.2.0
 	 * @since 7.1.0 NULL bytes in source attribute names are returned as U+FFFD,
-	 *              matching the tokenizer replacement browsers apply.
+	 *              matching the tokenizer replacement browsers apply. The prefix
+	 *              is matched verbatim against these replaced names; a prefix
+	 *              containing a NULL byte matches nothing.
 	 *
 	 * @see https://html.spec.whatwg.org/multipage/syntax.html#attributes-2:ascii-case-insensitive
 	 *
@@ -3000,6 +3002,8 @@ class WP_HTML_Tag_Processor {
 	 * account the current parsing context, whether HTML, SVG, or MathML.
 	 *
 	 * @since 6.7.0
+	 * @since 7.1.0 NULL bytes in source tag names are returned as U+FFFD,
+	 *              matching the tokenizer replacement browsers apply.
 	 *
 	 * @return string|null Name of current tag name.
 	 */
@@ -3856,6 +3860,12 @@ class WP_HTML_Tag_Processor {
 	 *
 	 *     // Renders as “Eggs &amp; Milk” in a browser, encoded as `<p>Eggs &amp;amp; Milk</p>`.
 	 *     $processor->set_modifiable_text( 'Eggs &amp; Milk' );
+	 *
+	 * Note: unlike attribute values set through `set_attribute()`, which read
+	 * back verbatim, text set through this method currently reads back through
+	 * `get_modifiable_text()` with newlines normalized and NULL bytes handled
+	 * as if the text had come from the input document. In the DOM, API-supplied
+	 * text round-trips verbatim; this asymmetry is a known limitation.
 	 *
 	 * @since 6.7.0
 	 * @since 6.9.0 Escapes all character references instead of trying to avoid double-escaping.
