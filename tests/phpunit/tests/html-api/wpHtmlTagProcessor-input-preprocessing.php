@@ -199,6 +199,65 @@ class Tests_HtmlApi_WpHtmlTagProcessor_InputPreprocessing extends WP_UnitTestCas
 	}
 
 	/**
+	 * Ensures tag names containing NULL bytes are exposed with U+FFFD,
+	 * matching the tokenizer's tag-name-state replacement in browsers.
+	 *
+	 * @ticket 65372
+	 *
+	 * @covers ::get_tag
+	 * @covers ::get_token_name
+	 */
+	public function test_get_tag_replaces_null_bytes() {
+		$processor = new WP_HTML_Tag_Processor( "<di\x00v>x</di\x00v>" );
+
+		$this->assertTrue( $processor->next_token(), 'Should have found the tag opener.' );
+		$this->assertSame( "DI\u{FFFD}V", $processor->get_tag() );
+		$this->assertSame( "DI\u{FFFD}V", $processor->get_token_name() );
+
+		$this->assertTrue( $processor->next_token(), 'Should have found the text node.' );
+		$this->assertSame( 'x', $processor->get_modifiable_text() );
+
+		$this->assertTrue( $processor->next_token(), 'Should have found the tag closer.' );
+		$this->assertTrue( $processor->is_tag_closer(), 'Should have matched the tag closer.' );
+		$this->assertSame( "DI\u{FFFD}V", $processor->get_tag() );
+	}
+
+	/**
+	 * Ensures NULL bytes in tag names do not affect special-element detection:
+	 * `<scr\x00ipt>` is not SCRIPT and does not switch into rawtext parsing,
+	 * in browsers or here. Internal identification uses raw bytes.
+	 *
+	 * @ticket 65372
+	 *
+	 * @covers ::get_tag
+	 */
+	public function test_null_byte_in_tag_name_does_not_select_rawtext_parsing() {
+		$processor = new WP_HTML_Tag_Processor( "<scr\x00ipt><b></b></scr\x00ipt>" );
+
+		$this->assertTrue( $processor->next_token(), 'Should have found the tag opener.' );
+		$this->assertSame( "SCR\u{FFFD}IPT", $processor->get_tag() );
+
+		$this->assertTrue( $processor->next_token(), 'Should have found the B tag, not raw text.' );
+		$this->assertSame( 'B', $processor->get_tag() );
+	}
+
+	/**
+	 * Ensures NULL bytes cannot appear in PI-lookalike comment tag names,
+	 * whose targets are restricted to ASCII name characters.
+	 *
+	 * @ticket 65372
+	 *
+	 * @covers ::get_tag
+	 */
+	public function test_pi_lookalike_target_stops_before_null_byte() {
+		$processor = new WP_HTML_Tag_Processor( "<?px\x00rest ?>" );
+
+		$this->assertTrue( $processor->next_token(), 'Should have found the comment.' );
+		$this->assertSame( WP_HTML_Tag_Processor::COMMENT_AS_PI_NODE_LOOKALIKE, $processor->get_comment_type() );
+		$this->assertSame( 'px', $processor->get_tag() );
+	}
+
+	/**
 	 * Ensures numeric character references for U+0000 decode to U+FFFD in text.
 	 *
 	 * @ticket 65372
