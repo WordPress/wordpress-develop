@@ -131,6 +131,9 @@ class WP_REST_Icons_Controller extends WP_REST_Controller {
 		$search   = $request->get_param( 'search' );
 		$icons    = WP_Icons_Registry::get_instance()->get_registered_icons( $search );
 		foreach ( $icons as $icon ) {
+			if ( empty( $icon['show_in_rest'] ) ) {
+				continue;
+			}
 			$prepared_icon = $this->prepare_item_for_response( $icon, $request );
 			$response[]    = $this->prepare_response_for_collection( $prepared_icon );
 		}
@@ -167,7 +170,7 @@ class WP_REST_Icons_Controller extends WP_REST_Controller {
 		$registry = WP_Icons_Registry::get_instance();
 		$icon     = $registry->get_registered_icon( $name );
 
-		if ( null === $icon ) {
+		if ( null === $icon || empty( $icon['show_in_rest'] ) ) {
 			return new WP_Error(
 				'rest_icon_not_found',
 				sprintf(

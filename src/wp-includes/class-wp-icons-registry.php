@@ -83,6 +83,7 @@ class WP_Icons_Registry {
 				array(
 					'label'     => $icon_data['label'],
 					'file_path' => $icons_directory . $icon_data['filePath'],
+					'show_in_rest' => ! empty( $icon_data['show_in_rest'] ),
 				)
 			);
 		}
@@ -97,11 +98,12 @@ class WP_Icons_Registry {
 	 * @param array  $icon_properties {
 	 *     List of properties for the icon.
 	 *
-	 *     @type string $label     Required. A human-readable label for the icon.
-	 *     @type string $content   Optional. SVG markup for the icon.
-	 *                             If not provided, the content will be retrieved from the `file_path` if set.
-	 *                             If both `content` and `file_path` are not set, the icon will not be registered.
-	 *     @type string $file_path Optional. The full path to the file containing the icon content.
+	 *     @type string $label        Required. A human-readable label for the icon.
+	 *     @type string $content      Optional. SVG markup for the icon.
+	 *                                If not provided, the content will be retrieved from the `file_path` if set.
+	 *                                If both `content` and `file_path` are not set, the icon will not be registered.
+	 *     @type string $file_path    Optional. The full path to the file containing the icon content.
+	 *     @type bool   $show_in_rest Optional. Whether the icon is available via the REST API. Default false.
 	 * }
 	 * @return bool True if the icon was registered with success and false otherwise.
 	 */
@@ -115,7 +117,7 @@ class WP_Icons_Registry {
 			return false;
 		}
 
-		$allowed_keys = array_fill_keys( array( 'label', 'content', 'file_path' ), 1 );
+		$allowed_keys = array_fill_keys( array( 'label', 'content', 'file_path', 'show_in_rest' ), 1 );
 		foreach ( array_keys( $icon_properties ) as $key ) {
 			if ( ! array_key_exists( $key, $allowed_keys ) ) {
 				_doing_it_wrong(
@@ -135,6 +137,15 @@ class WP_Icons_Registry {
 			_doing_it_wrong(
 				__METHOD__,
 				__( 'Icon label must be a string.' ),
+				'7.0.0'
+			);
+			return false;
+		}
+
+		if ( isset( $icon_properties['show_in_rest'] ) && ! is_bool( $icon_properties['show_in_rest'] ) ) {
+			_doing_it_wrong(
+				__METHOD__,
+				__( 'Icon "show_in_rest" property must be a boolean.' ),
 				'7.0.0'
 			);
 			return false;
