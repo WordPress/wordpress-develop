@@ -193,6 +193,7 @@ class Tests_Privacy_WpPersonalDataCleanupRequests extends WP_UnitTestCase {
 	 */
 	public function test_expired_pending_request_is_marked_failed(): void {
 		$id = wp_create_user_request( $this->unique_email(), 'export_personal_data' );
+		$this->assertIsInt( $id );
 
 		// Push the modification timestamp two days into the past.
 		$this->backdate_request( $id, 2 * DAY_IN_SECONDS );
@@ -217,6 +218,7 @@ class Tests_Privacy_WpPersonalDataCleanupRequests extends WP_UnitTestCase {
 		$ids = array();
 		for ( $i = 0; $i < 3; $i++ ) {
 			$id = wp_create_user_request( $this->unique_email(), 'export_personal_data' );
+			$this->assertIsInt( $id );
 			$this->backdate_request( $id, 2 * DAY_IN_SECONDS );
 			$ids[] = $id;
 		}
@@ -240,6 +242,7 @@ class Tests_Privacy_WpPersonalDataCleanupRequests extends WP_UnitTestCase {
 	 */
 	public function test_unexpired_pending_request_remains_pending(): void {
 		$id = wp_create_user_request( $this->unique_email(), 'export_personal_data' );
+		$this->assertIsInt( $id );
 
 		_wp_personal_data_cleanup_requests();
 
@@ -258,6 +261,7 @@ class Tests_Privacy_WpPersonalDataCleanupRequests extends WP_UnitTestCase {
 	 */
 	public function test_confirmed_requests_are_not_affected(): void {
 		$id = wp_create_user_request( $this->unique_email(), 'export_personal_data', array(), 'confirmed' );
+		$this->assertIsInt( $id );
 		$this->backdate_request( $id, 2 * DAY_IN_SECONDS );
 
 		_wp_personal_data_cleanup_requests();
@@ -278,6 +282,7 @@ class Tests_Privacy_WpPersonalDataCleanupRequests extends WP_UnitTestCase {
 	 */
 	public function test_expiry_duration_is_filterable(): void {
 		$id = wp_create_user_request( $this->unique_email(), 'export_personal_data' );
+		$this->assertIsInt( $id );
 		// 2 days old — past the 1-day default but within a 3-day window.
 		$this->backdate_request( $id, 2 * DAY_IN_SECONDS );
 
@@ -324,6 +329,7 @@ class Tests_Privacy_WpPersonalDataCleanupRequests extends WP_UnitTestCase {
 		update_option( 'timezone_string', '' );
 
 		$id = wp_create_user_request( $this->unique_email(), 'export_personal_data' );
+		$this->assertIsInt( $id );
 
 		/*
 		 * Backdate to 20 hours ago. The default expiry is DAY_IN_SECONDS (24 h),
@@ -361,6 +367,7 @@ class Tests_Privacy_WpPersonalDataCleanupRequests extends WP_UnitTestCase {
 		update_option( 'timezone_string', '' );
 
 		$id = wp_create_user_request( $this->unique_email(), 'export_personal_data' );
+		$this->assertIsInt( $id );
 
 		// Backdate to 25 hours ago — clearly past the 24-hour expiry window.
 		$this->backdate_request( $id, 25 * HOUR_IN_SECONDS, $offset_hours );
@@ -386,6 +393,7 @@ class Tests_Privacy_WpPersonalDataCleanupRequests extends WP_UnitTestCase {
 	 */
 	public function test_cron_callback_cleans_up_expired_requests(): void {
 		$id = wp_create_user_request( $this->unique_email(), 'export_personal_data' );
+		$this->assertIsInt( $id );
 		$this->backdate_request( $id, 2 * DAY_IN_SECONDS );
 
 		wp_privacy_personal_data_cleanup_requests();
@@ -404,6 +412,7 @@ class Tests_Privacy_WpPersonalDataCleanupRequests extends WP_UnitTestCase {
 	 */
 	public function test_cron_callback_does_not_affect_unexpired_requests(): void {
 		$id = wp_create_user_request( $this->unique_email(), 'export_personal_data' );
+		$this->assertIsInt( $id );
 
 		wp_privacy_personal_data_cleanup_requests();
 
