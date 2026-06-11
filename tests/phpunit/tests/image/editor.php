@@ -24,14 +24,14 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 	}
 
 	public function tear_down() {
-		WP_Image_Editor_Mock::$load_return                       = true;
-		WP_Image_Editor_Mock::$test_return                       = true;
-		WP_Image_Editor_Mock::$save_return                       = array();
-		WP_Image_Editor_Mock::$spy                               = array();
-		WP_Image_Editor_Mock::$edit_return                       = array();
-		WP_Image_Editor_Mock::$size_return                       = null;
-		WP_Image_Editor_Mock::$supports_mime_type_return         = true;
-		WP_Image_Editor_Mock::$supports_output_mime_type_return  = true;
+		WP_Image_Editor_Mock::$load_return                      = true;
+		WP_Image_Editor_Mock::$test_return                      = true;
+		WP_Image_Editor_Mock::$save_return                      = array();
+		WP_Image_Editor_Mock::$spy                              = array();
+		WP_Image_Editor_Mock::$edit_return                      = array();
+		WP_Image_Editor_Mock::$size_return                      = null;
+		WP_Image_Editor_Mock::$supports_mime_type_return        = true;
+		WP_Image_Editor_Mock::$supports_output_mime_type_return = true;
 
 		wp_cache_delete( 'wp_image_editor_choose', 'image_editor' );
 

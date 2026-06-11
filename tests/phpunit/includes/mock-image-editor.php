@@ -4,12 +4,12 @@ if ( class_exists( 'WP_Image_Editor' ) ) :
 
 	class WP_Image_Editor_Mock extends WP_Image_Editor {
 
-		public static $load_return = true;
-		public static $test_return = true;
-		public static $save_return = array();
-		public static $spy         = array();
-		public static $edit_return = array();
-		public static $size_return = null;
+		public static $load_return                      = true;
+		public static $test_return                      = true;
+		public static $save_return                      = array();
+		public static $spy                              = array();
+		public static $edit_return                      = array();
+		public static $size_return                      = null;
 		public static $supports_mime_type_return        = true;
 		public static $supports_output_mime_type_return = true;
 
