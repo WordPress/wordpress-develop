@@ -321,6 +321,23 @@ class Tests_HtmlApi_WpHtmlTagProcessor_InputPreprocessing extends WP_UnitTestCas
 	}
 
 	/**
+	 * Ensures pending class updates are flushed for any case spelling of
+	 * the "class" attribute name, since attribute names are matched
+	 * ASCII-case-insensitively.
+	 *
+	 * @ticket 65372
+	 *
+	 * @covers ::get_attribute
+	 */
+	public function test_get_attribute_flushes_class_updates_case_insensitively() {
+		$processor = new WP_HTML_Tag_Processor( '<div class="a">' );
+
+		$this->assertTrue( $processor->next_tag(), 'Should have found the tag.' );
+		$this->assertTrue( $processor->add_class( 'b' ), 'Should have enqueued the class addition.' );
+		$this->assertSame( 'a b', $processor->get_attribute( 'CLASS' ), 'Should have included pending class updates for an uppercase lookup.' );
+	}
+
+	/**
 	 * Ensures numeric character references for U+0000 decode to U+FFFD in text.
 	 *
 	 * @ticket 65372
