@@ -335,7 +335,7 @@ class Tests_Query_Results extends WP_UnitTestCase {
 	public function test_query_tag_b() {
 		$posts = $this->q->query( 'tag=tag-b' );
 
-		// There are 4 posts with Tag A.
+		// There are 4 posts with Tag B.
 		$this->assertCount( 4, $posts );
 		$this->assertSame( 'tags-b-and-c', $posts[0]->post_name );
 		$this->assertSame( 'tags-a-and-b', $posts[1]->post_name );
