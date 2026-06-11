@@ -806,6 +806,8 @@ do_action( 'pre_current_active_plugins', $plugins['all'] );
 <?php $wp_list_table->search_box( __( 'Search installed plugins' ), 'plugin' ); ?>
 </form>
 
+<?php $wp_list_table->author_filter_form(); ?>
+
 <form method="post" id="bulk-action-form">
 
 <input type="hidden" name="plugin_status" value="<?php echo esc_attr( $status ); ?>" />

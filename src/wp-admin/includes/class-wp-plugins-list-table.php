@@ -25,6 +25,17 @@ class WP_Plugins_List_Table extends WP_List_Table {
 	protected $show_autoupdates = true;
 
 	/**
+	 * Plugin authors for the "Filter by author" control, keyed by author key.
+	 *
+	 * Each value is an array containing a 'label' and a 'count'.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @var array
+	 */
+	protected $plugin_authors = array();
+
+	/**
 	 * Constructor.
 	 *
 	 * @since 3.1.0
@@ -311,6 +322,36 @@ class WP_Plugins_List_Table extends WP_List_Table {
 			$totals[ $type ] = count( $list );
 		}
 
+		// Build the list of plugin authors for the "Filter by author" control.
+		$this->plugin_authors = array();
+		foreach ( $plugins['all'] as $plugin_file => $plugin_data ) {
+			$author_key = $this->get_plugin_author_key( $plugin_file, $plugin_data );
+			if ( '' === $author_key ) {
+				continue;
+			}
+			if ( ! isset( $this->plugin_authors[ $author_key ] ) ) {
+				$this->plugin_authors[ $author_key ] = array(
+					'label' => ( isset( $plugin_data['AuthorName'] ) && '' !== $plugin_data['AuthorName'] ) ? $plugin_data['AuthorName'] : $author_key,
+					'count' => 0,
+				);
+			}
+			++$this->plugin_authors[ $author_key ]['count'];
+		}
+
+		/**
+		 * Filters the authors shown in the Plugins list table "Filter by author" control.
+		 *
+		 * The array is keyed by author key; each value is an array with a 'label' and a 'count'.
+		 * Returning the same key for several plugins merges author-name variants, while removing
+		 * an entry hides that author from the control.
+		 *
+		 * @since 7.1.0
+		 *
+		 * @param array $plugin_authors Map of author key to an array with 'label' and 'count'.
+		 * @param array $all_plugins    The full list of installed plugins, keyed by plugin file.
+		 */
+		$this->plugin_authors = apply_filters( 'plugins_list_authors', $this->plugin_authors, $plugins['all'] );
+
 		if ( empty( $plugins[ $status ] ) && ! in_array( $status, array( 'all', 'search' ), true ) ) {
 			$status = 'all';
 		}
@@ -321,7 +362,17 @@ class WP_Plugins_List_Table extends WP_List_Table {
 			$this->items[ $plugin_file ] = _get_plugin_data_markup_translate( $plugin_file, $plugin_data, false, true );
 		}
 
-		$total_this_page = $totals[ $status ];
+		// Narrow the current view by author when the "Filter by author" control is used.
+		$plugin_author = isset( $_REQUEST['plugin_author'] ) ? sanitize_key( $_REQUEST['plugin_author'] ) : '';
+		if ( '' !== $plugin_author ) {
+			foreach ( $this->items as $plugin_file => $plugin_data ) {
+				if ( $this->get_plugin_author_key( $plugin_file, $plugin_data ) !== $plugin_author ) {
+					unset( $this->items[ $plugin_file ] );
+				}
+			}
+		}
+
+		$total_this_page = ( '' !== $plugin_author ) ? count( $this->items ) : $totals[ $status ];
 
 		$js_plugins = array();
 		foreach ( $plugins as $key => $list ) {
@@ -361,6 +412,34 @@ class WP_Plugins_List_Table extends WP_List_Table {
 				'per_page'    => $plugins_per_page,
 			)
 		);
+	}
+
+	/**
+	 * Returns the author grouping key used to bucket a plugin in the "Filter by author" control.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @param string $plugin_file Path to the plugin file relative to the plugins directory.
+	 * @param array  $plugin_data An array of plugin data.
+	 * @return string The author grouping key, or an empty string when no author is set.
+	 */
+	protected function get_plugin_author_key( $plugin_file, $plugin_data ) {
+		$author_name = isset( $plugin_data['AuthorName'] ) ? $plugin_data['AuthorName'] : '';
+		$author_key  = ( '' === $author_name ) ? '' : sanitize_title( $author_name );
+
+		/**
+		 * Filters the author grouping key for a plugin in the Plugins list "Filter by author" control.
+		 *
+		 * Returning the same key for several plugins groups them under a single author, which allows
+		 * author-name header variants (for example "Team Yoast" and "Yoast") to be merged.
+		 *
+		 * @since 7.1.0
+		 *
+		 * @param string $author_key  Author grouping key derived from the plugin's AuthorName header.
+		 * @param string $plugin_file Path to the plugin file relative to the plugins directory.
+		 * @param array  $plugin_data An array of plugin data.
+		 */
+		return apply_filters( 'plugins_list_plugin_author', $author_key, $plugin_file, $plugin_data );
 	}
 
 	/**
@@ -675,6 +754,11 @@ class WP_Plugins_List_Table extends WP_List_Table {
 	protected function extra_tablenav( $which ) {
 		global $status;
 
+		// Offer a single "Filter by author" control whenever more than one author is installed.
+		if ( 'top' === $which && count( $this->plugin_authors ) > 1 ) {
+			$this->author_filter();
+		}
+
 		if ( ! in_array( $status, array( 'recently_activated', 'mustuse', 'dropins' ), true ) ) {
 			return;
 		}
@@ -697,6 +781,92 @@ class WP_Plugins_List_Table extends WP_List_Table {
 			) . '</p>';
 		}
 		echo '</div>';
+	}
+
+	/**
+	 * Displays the "Filter by author" controls in the table navigation.
+	 *
+	 * The plugins list table is rendered inside the bulk-actions POST form, which
+	 * cannot contain a nested filter form. The native <select> and submit button are
+	 * therefore associated, via the HTML5 "form" attribute, with the separate GET form
+	 * printed by author_filter_form(). Filtering is a plain GET request: it needs no
+	 * JavaScript, and nothing is inlined for a Content Security Policy to block.
+	 *
+	 * @since 7.1.0
+	 */
+	protected function author_filter() {
+		$current = isset( $_REQUEST['plugin_author'] ) ? sanitize_key( $_REQUEST['plugin_author'] ) : '';
+
+		echo '<div class="alignleft actions">';
+		printf(
+			'<label for="plugin-author-filter" class="screen-reader-text">%s</label>',
+			esc_html__( 'Filter by author' )
+		);
+		echo '<select name="plugin_author" id="plugin-author-filter" form="plugin-author-filter-form">';
+		printf(
+			'<option value=""%s>%s</option>',
+			selected( $current, '', false ),
+			esc_html__( 'All authors' )
+		);
+		foreach ( $this->plugin_authors as $author_key => $author ) {
+			$label = sprintf(
+				/* translators: 1: Plugin author name. 2: Number of plugins by this author. */
+				_x( '%1$s (%2$s)', 'plugins' ),
+				$author['label'],
+				number_format_i18n( $author['count'] )
+			);
+			printf(
+				'<option value="%s"%s>%s</option>',
+				esc_attr( $author_key ),
+				selected( $current, $author_key, false ),
+				esc_html( $label )
+			);
+		}
+		echo '</select>';
+		submit_button(
+			__( 'Filter' ),
+			'',
+			'',
+			false,
+			array(
+				'id'   => 'plugin-author-filter-submit',
+				'form' => 'plugin-author-filter-form',
+			)
+		);
+		echo '</div>';
+	}
+
+	/**
+	 * Prints the GET form that the "Filter by author" controls submit.
+	 *
+	 * This is printed outside the bulk-actions POST form (see wp-admin/plugins.php),
+	 * because a form cannot be nested in another form. The author <select> and its
+	 * submit button reference this form through their "form" attribute, so choosing an
+	 * author and pressing Filter performs a plain GET request. The hidden fields keep
+	 * the current status view and search term.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @global string $status Current plugin status view.
+	 */
+	public function author_filter_form() {
+		global $status;
+
+		if ( count( $this->plugin_authors ) < 2 ) {
+			return;
+		}
+
+		echo '<form id="plugin-author-filter-form" method="get">';
+		if ( 'all' !== $status ) {
+			printf( '<input type="hidden" name="plugin_status" value="%s" />', esc_attr( $status ) );
+		}
+		if ( isset( $_REQUEST['s'] ) && '' !== $_REQUEST['s'] ) {
+			printf(
+				'<input type="hidden" name="s" value="%s" />',
+				esc_attr( sanitize_text_field( wp_unslash( $_REQUEST['s'] ) ) )
+			);
+		}
+		echo '</form>';
 	}
 
 	/**
