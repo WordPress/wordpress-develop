@@ -24,12 +24,12 @@ class Tests_Privacy_WpPersonalDataCleanupRequests extends WP_UnitTestCase {
 	 *
 	 * @var int
 	 */
-	private static $email_counter = 0;
+	private static int $email_counter = 0;
 
 	/**
 	 * Load privacy-tools.php (not auto-loaded outside admin) and reset cron.
 	 */
-	public function set_up() {
+	public function set_up(): void {
 		parent::set_up();
 		_set_cron_array( array() );
 		require_once ABSPATH . 'wp-admin/includes/privacy-tools.php';
@@ -38,7 +38,7 @@ class Tests_Privacy_WpPersonalDataCleanupRequests extends WP_UnitTestCase {
 	/**
 	 * Clear the cron schedule and restore default timezone options.
 	 */
-	public function tear_down() {
+	public function tear_down(): void {
 		_set_cron_array( array() );
 		update_option( 'gmt_offset', '0' );
 		update_option( 'timezone_string', '' );
@@ -54,7 +54,7 @@ class Tests_Privacy_WpPersonalDataCleanupRequests extends WP_UnitTestCase {
 	 *
 	 * @return string
 	 */
-	private function unique_email() {
+	private function unique_email(): string {
 		return 'privacy-test-' . ( ++self::$email_counter ) . '@example.com';
 	}
 
@@ -66,7 +66,7 @@ class Tests_Privacy_WpPersonalDataCleanupRequests extends WP_UnitTestCase {
 	 * @param int $seconds      How far back to move the timestamps.
 	 * @param int $gmt_offset_h Site GMT offset in hours, used to derive local time.
 	 */
-	private function backdate_request( $post_id, $seconds, $gmt_offset_h = 0 ) {
+	private function backdate_request( int $post_id, int $seconds, int $gmt_offset_h = 0 ): void {
 		global $wpdb;
 
 		$utc_timestamp   = time() - $seconds;
@@ -89,7 +89,7 @@ class Tests_Privacy_WpPersonalDataCleanupRequests extends WP_UnitTestCase {
 	 * @param string $hook
 	 * @return array
 	 */
-	private function get_cron_events( $hook ) {
+	private function get_cron_events( string $hook ): array {
 		$events = array();
 		foreach ( _get_cron_array() as $hooks ) {
 			if ( isset( $hooks[ $hook ] ) ) {
@@ -110,7 +110,7 @@ class Tests_Privacy_WpPersonalDataCleanupRequests extends WP_UnitTestCase {
 	 *
 	 * @ticket 44498
 	 */
-	public function test_schedule_registers_cron_event_when_not_already_scheduled() {
+	public function test_schedule_registers_cron_event_when_not_already_scheduled(): void {
 		$this->assertFalse(
 			wp_next_scheduled( 'wp_privacy_personal_data_cleanup_requests' ),
 			'No event should be scheduled before the function runs.'
@@ -129,7 +129,7 @@ class Tests_Privacy_WpPersonalDataCleanupRequests extends WP_UnitTestCase {
 	 *
 	 * @ticket 44498
 	 */
-	public function test_schedule_uses_daily_recurrence() {
+	public function test_schedule_uses_daily_recurrence(): void {
 		wp_schedule_personal_data_cleanup_requests();
 
 		$this->assertSame(
@@ -144,7 +144,7 @@ class Tests_Privacy_WpPersonalDataCleanupRequests extends WP_UnitTestCase {
 	 *
 	 * @ticket 44498
 	 */
-	public function test_schedule_does_not_create_duplicate_event() {
+	public function test_schedule_does_not_create_duplicate_event(): void {
 		wp_schedule_personal_data_cleanup_requests();
 		$first_timestamp = wp_next_scheduled( 'wp_privacy_personal_data_cleanup_requests' );
 
@@ -168,7 +168,7 @@ class Tests_Privacy_WpPersonalDataCleanupRequests extends WP_UnitTestCase {
 	 *
 	 * @ticket 44498
 	 */
-	public function test_schedule_does_nothing_during_installation() {
+	public function test_schedule_does_nothing_during_installation(): void {
 		$prior = wp_installing();
 		wp_installing( true );
 
@@ -191,7 +191,7 @@ class Tests_Privacy_WpPersonalDataCleanupRequests extends WP_UnitTestCase {
 	 *
 	 * @ticket 44498
 	 */
-	public function test_expired_pending_request_is_marked_failed() {
+	public function test_expired_pending_request_is_marked_failed(): void {
 		$id = wp_create_user_request( $this->unique_email(), 'export_personal_data' );
 
 		// Push the modification timestamp two days into the past.
@@ -213,7 +213,7 @@ class Tests_Privacy_WpPersonalDataCleanupRequests extends WP_UnitTestCase {
 	 *
 	 * @ticket 44498
 	 */
-	public function test_multiple_expired_requests_are_all_marked_failed() {
+	public function test_multiple_expired_requests_are_all_marked_failed(): void {
 		$ids = array();
 		for ( $i = 0; $i < 3; $i++ ) {
 			$id = wp_create_user_request( $this->unique_email(), 'export_personal_data' );
@@ -238,7 +238,7 @@ class Tests_Privacy_WpPersonalDataCleanupRequests extends WP_UnitTestCase {
 	 *
 	 * @ticket 44498
 	 */
-	public function test_unexpired_pending_request_remains_pending() {
+	public function test_unexpired_pending_request_remains_pending(): void {
 		$id = wp_create_user_request( $this->unique_email(), 'export_personal_data' );
 
 		_wp_personal_data_cleanup_requests();
@@ -256,7 +256,7 @@ class Tests_Privacy_WpPersonalDataCleanupRequests extends WP_UnitTestCase {
 	 *
 	 * @ticket 44498
 	 */
-	public function test_confirmed_requests_are_not_affected() {
+	public function test_confirmed_requests_are_not_affected(): void {
 		$id = wp_create_user_request( $this->unique_email(), 'export_personal_data', array(), 'confirmed' );
 		$this->backdate_request( $id, 2 * DAY_IN_SECONDS );
 
@@ -276,7 +276,7 @@ class Tests_Privacy_WpPersonalDataCleanupRequests extends WP_UnitTestCase {
 	 *
 	 * @ticket 44498
 	 */
-	public function test_expiry_duration_is_filterable() {
+	public function test_expiry_duration_is_filterable(): void {
 		$id = wp_create_user_request( $this->unique_email(), 'export_personal_data' );
 		// 2 days old — past the 1-day default but within a 3-day window.
 		$this->backdate_request( $id, 2 * DAY_IN_SECONDS );
@@ -297,7 +297,7 @@ class Tests_Privacy_WpPersonalDataCleanupRequests extends WP_UnitTestCase {
 	 *
 	 * @return int
 	 */
-	public function filter_expiration_to_three_days() {
+	public function filter_expiration_to_three_days(): int {
 		return 3 * DAY_IN_SECONDS;
 	}
 
@@ -318,7 +318,7 @@ class Tests_Privacy_WpPersonalDataCleanupRequests extends WP_UnitTestCase {
 	 *
 	 * @ticket 44498
 	 */
-	public function test_unexpired_request_not_expired_on_utcplus_site() {
+	public function test_unexpired_request_not_expired_on_utcplus_site(): void {
 		$offset_hours = 5; // UTC+5
 		update_option( 'gmt_offset', $offset_hours );
 		update_option( 'timezone_string', '' );
@@ -355,7 +355,7 @@ class Tests_Privacy_WpPersonalDataCleanupRequests extends WP_UnitTestCase {
 	 *
 	 * @ticket 44498
 	 */
-	public function test_expired_request_is_marked_failed_on_utcminus_site() {
+	public function test_expired_request_is_marked_failed_on_utcminus_site(): void {
 		$offset_hours = -5; // UTC-5
 		update_option( 'gmt_offset', $offset_hours );
 		update_option( 'timezone_string', '' );
@@ -384,7 +384,7 @@ class Tests_Privacy_WpPersonalDataCleanupRequests extends WP_UnitTestCase {
 	 *
 	 * @ticket 44498
 	 */
-	public function test_cron_callback_cleans_up_expired_requests() {
+	public function test_cron_callback_cleans_up_expired_requests(): void {
 		$id = wp_create_user_request( $this->unique_email(), 'export_personal_data' );
 		$this->backdate_request( $id, 2 * DAY_IN_SECONDS );
 
@@ -402,7 +402,7 @@ class Tests_Privacy_WpPersonalDataCleanupRequests extends WP_UnitTestCase {
 	 *
 	 * @ticket 44498
 	 */
-	public function test_cron_callback_does_not_affect_unexpired_requests() {
+	public function test_cron_callback_does_not_affect_unexpired_requests(): void {
 		$id = wp_create_user_request( $this->unique_email(), 'export_personal_data' );
 
 		wp_privacy_personal_data_cleanup_requests();
