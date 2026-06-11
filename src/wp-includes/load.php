@@ -1790,24 +1790,6 @@ function wp_doing_cron() {
 }
 
 /**
- * Determines whether the current request is a WordPress sitemap request.
- *
- * @since 7.1.0
- *
- * @return bool True if it's a WordPress sitemap request, false otherwise.
- */
-function wp_doing_sitemap() {
-	/**
-	 * Filters whether the current request is a WordPress sitemap request.
-	 *
-	 * @since 7.1.0
-	 *
-	 * @param bool $wp_doing_sitemap Whether the current request is a WordPress sitemap request.
-	 */
-	return apply_filters( 'wp_doing_sitemap', defined( 'DOING_SITEMAP' ) && DOING_SITEMAP );
-}
-
-/**
  * Checks whether the given variable is a WordPress Error.
  *
  * Returns whether `$thing` is an instance of the `WP_Error` class.
