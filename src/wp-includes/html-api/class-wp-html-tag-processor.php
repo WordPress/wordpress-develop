@@ -2931,6 +2931,8 @@ class WP_HTML_Tag_Processor {
 	 *     $p->get_tag() === null;
 	 *
 	 * @since 6.2.0
+	 * @since 7.1.0 NULL bytes in the source tag name are returned as U+FFFD,
+	 *              matching the tokenizer replacement browsers apply.
 	 *
 	 * @return string|null Name of currently matched tag in input HTML, or `null` if none found.
 	 */
@@ -2939,7 +2941,15 @@ class WP_HTML_Tag_Processor {
 			return null;
 		}
 
-		$tag_name = substr( $this->html, $this->tag_name_starts_at, $this->tag_name_length );
+		/*
+		 * The tokenizer would have replaced U+0000 NULL bytes in the tag
+		 * name with U+FFFD; this is deferred to this read boundary. The
+		 * replacement never applies to internal identification, which
+		 * compares raw bytes (`scr\x00ipt` is not SCRIPT in browsers either).
+		 *
+		 * @see https://html.spec.whatwg.org/#tag-name-state
+		 */
+		$tag_name = str_replace( "\x00", "\u{FFFD}", substr( $this->html, $this->tag_name_starts_at, $this->tag_name_length ) );
 
 		if ( self::STATE_MATCHED_TAG === $this->parser_state ) {
 			return strtoupper( $tag_name );
@@ -3458,6 +3468,8 @@ class WP_HTML_Tag_Processor {
 	 * of the document without matching a token.
 	 *
 	 * @since 6.5.0
+	 * @since 7.1.0 NULL bytes in source tag names are returned as U+FFFD,
+	 *              matching the tokenizer replacement browsers apply.
 	 *
 	 * @return string|null Name of the matched token.
 	 */
