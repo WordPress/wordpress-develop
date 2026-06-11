@@ -195,6 +195,8 @@ class WP_HTML_Decoder {
 	 *     7    === $token_length; // `&notin;`
 	 *
 	 * @since 6.6.0
+	 * @since 7.1.0 Detects ambiguous followers of semicolon-less references
+	 *              by ASCII classification only, independent of the locale.
 	 *
 	 * @global WP_Token_Map $html5_named_character_references Mappings for HTML5 named character references.
 	 *
@@ -377,14 +379,20 @@ class WP_HTML_Decoder {
 		 * At this point though there's a match for an entry in the named
 		 * character reference table but the match doesn't end in `;`.
 		 * It may be allowed if it's followed by something unambiguous.
+		 *
+		 * Only an ASCII alphanumeric or U+003D EQUALS SIGN is ambiguous.
+		 * `ctype_alnum()` must be avoided here: its classification of
+		 * bytes 0x80 and above depends on the process locale, but only
+		 * these specific ASCII characters prevent decoding.
+		 *
+		 * @see https://html.spec.whatwg.org/#named-character-reference-state
 		 */
+		$follower           = $after_name < $length ? $text[ $after_name ] : '';
 		$ambiguous_follower = (
-			$after_name < $length &&
-			$name_at < $length &&
-			(
-				ctype_alnum( $text[ $after_name ] ) ||
-				'=' === $text[ $after_name ]
-			)
+			( 'a' <= $follower && 'z' >= $follower ) ||
+			( 'A' <= $follower && 'Z' >= $follower ) ||
+			( '0' <= $follower && '9' >= $follower ) ||
+			'=' === $follower
 		);
 
 		// It's non-ambiguous, safe to leave it in.
