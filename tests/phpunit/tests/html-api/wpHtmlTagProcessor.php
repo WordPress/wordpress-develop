@@ -2116,6 +2116,8 @@ HTML;
 			yield 'Script tag with </script\f> close'             => array( "<script></script\f>", true );
 			yield 'Script tag with </script\r> close'             => array( "<script></script\r>", true );
 			yield 'Script with type attribute'                    => array( '<script type="text/javascript"></script>', true );
+			yield 'Script text less-than sign before close'       => array( '<script><</script>', true );
+			yield 'Script text end-tag opener before close'       => array( '<script></</script>', true );
 			yield 'Script data escaped'                           => array( '<script><!--</script>', true );
 			yield 'Script data double-escaped exit (comment)'     => array( '<script><!--<script>--></script>', true );
 			yield 'Script data double-escaped exit (closed ">")'  => array( '<script><!--<script></script></script>', true );
