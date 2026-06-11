@@ -41,7 +41,8 @@ body .wp-block.aligncenter {
   margin-left: 0;
 }
 @media only screen and (min-width: 768px) {
-  body.block-editor-iframe__body, body.block-editor-writing-flow,
+  body.block-editor-iframe__body,
+  body.block-editor-writing-flow,
   body .block-editor-writing-flow {
     max-width: 80%;
     margin: 0 10%;
@@ -523,7 +524,8 @@ a {
   transition: color 110ms ease-in-out;
   color: #0073aa;
 }
-a:hover, a:active {
+a:hover,
+a:active {
   color: #005177;
   outline: 0;
   text-decoration: none;
@@ -1503,14 +1505,23 @@ figcaption,
 .wp-block-button:not(.is-style-squared) .wp-block-button__link {
   border-radius: 5px;
 }
-.wp-block-button.is-style-outline, .wp-block-button.is-style-outline:hover, .wp-block-button.is-style-outline:focus, .wp-block-button.is-style-outline:active {
+.wp-block-button.is-style-outline,
+.wp-block-button.is-style-outline:hover,
+.wp-block-button.is-style-outline:focus,
+.wp-block-button.is-style-outline:active {
   background: transparent;
   color: #0073aa;
 }
-.wp-block-button.is-style-outline .wp-block-button__link, .wp-block-button.is-style-outline:hover .wp-block-button__link, .wp-block-button.is-style-outline:focus .wp-block-button__link, .wp-block-button.is-style-outline:active .wp-block-button__link {
+.wp-block-button.is-style-outline .wp-block-button__link,
+.wp-block-button.is-style-outline:hover .wp-block-button__link,
+.wp-block-button.is-style-outline:focus .wp-block-button__link,
+.wp-block-button.is-style-outline:active .wp-block-button__link {
   background: transparent;
 }
-.wp-block-button.is-style-outline .wp-block-button__link:not(.has-text-color), .wp-block-button.is-style-outline:hover .wp-block-button__link:not(.has-text-color), .wp-block-button.is-style-outline:focus .wp-block-button__link:not(.has-text-color), .wp-block-button.is-style-outline:active .wp-block-button__link:not(.has-text-color) {
+.wp-block-button.is-style-outline .wp-block-button__link:not(.has-text-color),
+.wp-block-button.is-style-outline:hover .wp-block-button__link:not(.has-text-color),
+.wp-block-button.is-style-outline:focus .wp-block-button__link:not(.has-text-color),
+.wp-block-button.is-style-outline:active .wp-block-button__link:not(.has-text-color) {
   color: #0073aa;
 }
 
@@ -1636,11 +1647,13 @@ figcaption,
   border-width: 2px;
   border-color: #0073aa;
 }
-.wp-block-quote.is-large, .wp-block-quote.is-style-large {
+.wp-block-quote.is-large,
+.wp-block-quote.is-style-large {
   margin-top: 2.8125em;
   margin-bottom: 2.8125em;
 }
-.wp-block-quote.is-large p, .wp-block-quote.is-style-large p {
+.wp-block-quote.is-large p,
+.wp-block-quote.is-style-large p {
   font-size: 1.6875em;
   line-height: 1.3;
   margin-bottom: 0.5em;
@@ -1829,14 +1842,18 @@ figcaption,
 .wp-block-pullquote:not(.is-style-solid-color) .wp-block-pullquote__citation {
   color: #767676;
 }
-.wp-block-pullquote.has-text-color .wp-block-pullquote__citation, .wp-block-pullquote.has-primary-background-color blockquote p, .wp-block-pullquote.has-dark-gray-background-color blockquote p {
+.wp-block-pullquote.has-text-color .wp-block-pullquote__citation,
+.wp-block-pullquote.has-primary-background-color blockquote p,
+.wp-block-pullquote.has-dark-gray-background-color blockquote p {
   color: inherit;
 }
 .wp-block-pullquote.is-style-solid-color blockquote {
   width: calc(100% - 2 * 1rem);
   max-width: calc(100% - 2 * 1rem);
 }
-.wp-block-pullquote.is-style-solid-color blockquote a, .wp-block-pullquote.is-style-solid-color blockquote.has-text-color p, .wp-block-pullquote.is-style-solid-color blockquote.has-text-color a {
+.wp-block-pullquote.is-style-solid-color blockquote a,
+.wp-block-pullquote.is-style-solid-color blockquote.has-text-color p,
+.wp-block-pullquote.is-style-solid-color blockquote.has-text-color a {
   color: inherit;
 }
 .wp-block-pullquote.is-style-solid-color blockquote:not(.has-text-color) {
@@ -2267,7 +2284,8 @@ figcaption,
 }
 
 /** === Table === */
-.wp-block-table td, .wp-block-table th {
+.wp-block-table td,
+.wp-block-table th {
   border-color: #767676;
 }
 
@@ -2650,7 +2668,8 @@ ul.wp-block-archives li ul,
 .wp-block-latest-posts li {
   padding-bottom: 0.5rem;
 }
-.wp-block-latest-posts li.menu-item-has-children, .wp-block-latest-posts li:last-child {
+.wp-block-latest-posts li.menu-item-has-children,
+.wp-block-latest-posts li:last-child {
   padding-bottom: 0;
 }
 .wp-block-latest-posts li :not(:last-child) .wp-block-latest-posts__post-excerpt {
