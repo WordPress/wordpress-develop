@@ -1144,7 +1144,6 @@ function edit_term_link( $link = '', $before = '', $after = '', $term = null, $d
 		return null;
 	}
 
-	$tax = get_taxonomy( $term->taxonomy );
 	if ( ! current_user_can( 'edit_term', $term->term_id ) ) {
 		return null;
 	}
@@ -2649,7 +2648,8 @@ function get_previous_posts_page_link() {
  * @return string|null The previous posts page link if `$display = false`.
  */
 function previous_posts( $display = true ) {
-	$output = esc_url( get_previous_posts_page_link() );
+	$link   = get_previous_posts_page_link();
+	$output = $link ? esc_url( $link ) : '';
 
 	if ( $display ) {
 		echo $output;
@@ -4579,7 +4579,7 @@ function get_avatar_data( $id_or_email, $args = null ) {
 			}
 		} elseif ( $id_or_email instanceof WP_Comment ) {
 			$name = $id_or_email->comment_author;
-		} elseif ( is_string( $id_or_email ) && false !== strpos( $id_or_email, '@' ) ) {
+		} elseif ( is_string( $id_or_email ) && str_contains( $id_or_email, '@' ) ) {
 			$name = str_replace( array( '.', '_', '-' ), ' ', substr( $id_or_email, 0, strpos( $id_or_email, '@' ) ) );
 		}
 

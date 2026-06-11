@@ -21,6 +21,7 @@ on:
       # These files configure npm. Changes could affect the outcome.
       - 'package*.json'
       - '.nvmrc'
+      - '.npmrc'
       # This file configures TypeScript. Changes could affect the outcome.
       - 'tsconfig.json'
       # This directory contains TypeScript definitions. Changes could affect the outcome.

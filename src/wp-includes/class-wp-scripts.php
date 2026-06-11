@@ -201,7 +201,7 @@ class WP_Scripts extends WP_Dependencies {
 	 * @param string $handle  The script's registered handle.
 	 * @param bool   $display Optional. Whether to print the extra script
 	 *                        instead of just returning it. Default true.
-	 * @return bool|string|void Void if no data exists, extra scripts if `$display` is true,
+	 * @return bool|string|null Null if no data exists, extra scripts if `$display` is true,
 	 *                          true otherwise.
 	 */
 	public function print_scripts_l10n( $handle, $display = true ) {
@@ -217,13 +217,13 @@ class WP_Scripts extends WP_Dependencies {
 	 * @param string $handle  The script's registered handle.
 	 * @param bool   $display Optional. Whether to print the extra script
 	 *                        instead of just returning it. Default true.
-	 * @return bool|string|void Void if no data exists, extra scripts if `$display` is true,
+	 * @return bool|string|null Null if no data exists, extra scripts if `$display` is true,
 	 *                          true otherwise.
 	 */
 	public function print_extra_script( $handle, $display = true ) {
 		$output = $this->get_data( $handle, 'data' );
 		if ( ! $output ) {
-			return;
+			return null;
 		}
 
 		/*
@@ -885,7 +885,7 @@ JS;
 					sprintf(
 						/* translators: 1: $strategy, 2: $handle */
 						__( 'Invalid strategy `%1$s` defined for `%2$s` during script registration.' ),
-						$value,
+						is_string( $value ) ? $value : gettype( $value ),
 						$handle
 					),
 					'6.3.0'
@@ -897,7 +897,7 @@ JS;
 					sprintf(
 						/* translators: 1: $strategy, 2: $handle */
 						__( 'Cannot supply a strategy `%1$s` for script `%2$s` because it is an alias (it lacks a `src` value).' ),
-						$value,
+						is_string( $value ) ? $value : gettype( $value ),
 						$handle
 					),
 					'6.3.0'
