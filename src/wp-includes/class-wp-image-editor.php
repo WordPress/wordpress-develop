@@ -63,6 +63,18 @@ abstract class WP_Image_Editor {
 	}
 
 	/**
+	 * Checks to see if editor supports saving to the mime-type specified.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @param string $mime_type
+	 * @return bool
+	 */
+	public static function supports_output_mime_type( $mime_type ) {
+		return static::supports_mime_type( $mime_type );
+	}
+
+	/**
 	 * Loads image from $this->file into editor.
 	 *
 	 * @since 3.5.0
@@ -370,7 +382,7 @@ abstract class WP_Image_Editor {
 		$output_format = wp_get_image_editor_output_format( $filename, $mime_type );
 
 		if ( isset( $output_format[ $mime_type ] )
-			&& $this->supports_mime_type( $output_format[ $mime_type ] )
+			&& $this->supports_output_mime_type( $output_format[ $mime_type ] )
 		) {
 			$mime_type = $output_format[ $mime_type ];
 			$new_ext   = $this->get_extension( $mime_type );
@@ -380,7 +392,7 @@ abstract class WP_Image_Editor {
 		 * Double-check that the mime-type selected is supported by the editor.
 		 * If not, choose a default instead.
 		 */
-		if ( ! $this->supports_mime_type( $mime_type ) ) {
+		if ( ! $this->supports_output_mime_type( $mime_type ) ) {
 			/**
 			 * Filters default mime type prior to getting the file extension.
 			 *
