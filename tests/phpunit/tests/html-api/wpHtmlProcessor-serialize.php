@@ -510,6 +510,96 @@ class Tests_HtmlApi_WpHtmlProcessor_Serialize extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensures that decoded carriage returns are serialized as character references.
+	 *
+	 * @ticket 65372
+	 *
+	 * @dataProvider data_provider_decoded_carriage_returns
+	 *
+	 * @param string $input    HTML input containing a decoded carriage return.
+	 * @param string $expected Expected normalized output.
+	 */
+	public function test_normalize_serializes_decoded_carriage_returns_as_character_references( string $input, string $expected ) {
+		$normalized = WP_HTML_Processor::normalize( $input );
+
+		$this->assertSame( $expected, $normalized, 'Should have serialized the carriage return as a character reference.' );
+		$this->assertSame(
+			$expected,
+			WP_HTML_Processor::normalize( $normalized ),
+			'Normalizing already-normalized HTML should not change the serialized carriage return.'
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_provider_decoded_carriage_returns() {
+		return array(
+			'Regular text'    => array( '<p>a&#13;b</p>', '<p>a&#13;b</p>' ),
+			'Regular text with non-canonical character reference' => array( '<p>a&#x0D;b</p>', '<p>a&#13;b</p>' ),
+			'RCDATA title'    => array( '<title>a&#13;b</title>', '<title>a&#13;b</title>' ),
+			'RCDATA textarea with leading-newline preservation' => array( '<textarea>a&#13;b</textarea>', "<textarea>\na&#13;b</textarea>" ),
+			'Attribute value' => array( '<p title="a&#13;b"></p>', '<p title="a&#13;b"></p>' ),
+			'Table text'      => array( '<table><tr><td>x&#13;</td></tr></table>', '<table><tbody><tr><td>x&#13;</td></tr></tbody></table>' ),
+			'Template text'   => array( '<template><p>a&#13;b</p></template>', '<template><p>a&#13;b</p></template>' ),
+		);
+	}
+
+	/**
+	 * Ensures that raw carriage returns in attribute values are serialized as line feeds.
+	 *
+	 * @ticket 65372
+	 *
+	 * @dataProvider data_provider_raw_attribute_carriage_returns
+	 *
+	 * @param string $input    HTML input containing raw carriage returns.
+	 * @param string $expected Expected normalized output.
+	 */
+	public function test_normalize_serializes_raw_attribute_carriage_returns_as_line_feeds( string $input, string $expected ) {
+		$normalized = WP_HTML_Processor::normalize( $input );
+
+		$this->assertSame( $expected, $normalized, 'Should have serialized raw attribute carriage returns as line feeds.' );
+		$this->assertSame(
+			$expected,
+			WP_HTML_Processor::normalize( $normalized ),
+			'Normalizing already-normalized HTML should not change raw attribute newlines.'
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_provider_raw_attribute_carriage_returns() {
+		return array(
+			'Raw carriage return' => array( "<p title=\"a\rb\"></p>", "<p title=\"a\nb\"></p>" ),
+			'Raw CRLF pair'       => array( "<p title=\"a\r\nb\"></p>", "<p title=\"a\nb\"></p>" ),
+		);
+	}
+
+	/**
+	 * Ensures that raw carriage returns are normalized before class updates are serialized.
+	 *
+	 * @ticket 65372
+	 */
+	public function test_serialize_token_normalizes_raw_class_carriage_returns_before_class_updates() {
+		$processor = WP_HTML_Processor::create_fragment( "<p class=\"a\rb\"></p>" );
+
+		$this->assertTrue( $processor->next_tag( 'P' ), 'Should find the P element.' );
+
+		$processor->add_class( 'c' );
+
+		$this->assertSame(
+			"<p class=\"a\nb c\">",
+			$processor->serialize_token(),
+			'Should have serialized raw class carriage returns as line feeds before adding classes.'
+		);
+	}
+
+	/**
 	 * Data provider.
 	 *
 	 * @return array[]
