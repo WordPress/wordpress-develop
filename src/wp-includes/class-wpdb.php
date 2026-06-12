@@ -3059,6 +3059,24 @@ class wpdb {
 	 *                            respectively. Default OBJECT.
 	 * @param int         $y      Optional. Row to return. Indexed from 0. Default 0.
 	 * @return array|object|null Database query result in format specified by $output or null on failure.
+	 *
+	 * @phpstan-return (
+	 *     $query is non-falsy-string
+	 *         ? (
+	 *             $output is 'OBJECT'
+	 *                 ? stdClass|null
+	 *                 : (
+	 *                     $output is 'ARRAY_A'
+	 *                         ? array<string, mixed>|null
+	 *                         : (
+	 *                             $output is 'ARRAY_N'
+	 *                                 ? list<mixed>|null
+	 *                                 : null
+	 *                         )
+	 *                 )
+	 *         )
+	 *         : null
+	 * )
 	 */
 	public function get_row( $query = null, $output = OBJECT, $y = 0 ) {
 		$this->func_call = "\$db->get_row(\"$query\",$output,$y)";
