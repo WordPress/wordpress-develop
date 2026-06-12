@@ -87,6 +87,17 @@ foreach ( array(
 	add_filter( $filter, 'wp_filter_kses' );
 }
 
+// Email addresses: Allow unicode if and only if as the database can
+// store them. This affects all addresses, including those entered
+// into contact forms.
+if ( 'utf8mb4' === $wpdb->charset ) {
+	add_filter( 'is_email', 'wp_is_unicode_email', 10, 3 );
+	add_filter( 'sanitize_email', 'wp_sanitize_unicode_email', 10, 3 );
+} else {
+	add_filter( 'is_email', 'wp_is_ascii_email', 10, 3 );
+	add_filter( 'sanitize_email', 'wp_sanitize_ascii_email', 10, 3 );
+}
+
 // Display URL.
 foreach ( array( 'user_url', 'link_url', 'link_image', 'link_rss', 'comment_url', 'post_guid' ) as $filter ) {
 	if ( is_admin() ) {
@@ -421,6 +432,12 @@ add_action( 'do_all_pings', 'do_all_pingbacks', 10, 0 );
 add_action( 'do_all_pings', 'do_all_enclosures', 10, 0 );
 add_action( 'do_all_pings', 'do_all_trackbacks', 10, 0 );
 add_action( 'do_all_pings', 'generic_ping', 10, 0 );
+
+// Disable pings (pingbacks, trackbacks, and ping service notifications) in non-production environments.
+add_action( 'do_all_pings', 'wp_maybe_disable_outgoing_pings_for_environment', 1, 0 );
+add_action( 'pre_trackback_post', 'wp_maybe_disable_trackback_for_environment', 10, 0 );
+add_filter( 'xmlrpc_methods', 'wp_maybe_disable_xmlrpc_pingback_for_environment' );
+
 add_action( 'do_robots', 'do_robots' );
 add_action( 'do_favicon', 'do_favicon' );
 add_action( 'wp_before_include_template', 'wp_start_template_enhancement_output_buffer', 1000 ); // Late priority to let `wp_template_enhancement_output_buffer` filters and `wp_finalized_template_enhancement_output_buffer` actions be registered.
@@ -679,6 +696,13 @@ add_action( 'customize_controls_enqueue_scripts', 'wp_plupload_default_settings'
 add_action( 'plugins_loaded', '_wp_add_additional_image_sizes', 0 );
 add_filter( 'plupload_default_settings', 'wp_show_heic_upload_error' );
 
+// Client-side media processing.
+add_action( 'admin_init', 'wp_set_client_side_media_processing_flag' );
+// Cross-origin isolation for client-side media processing.
+add_action( 'load-post.php', 'wp_set_up_cross_origin_isolation' );
+add_action( 'load-post-new.php', 'wp_set_up_cross_origin_isolation' );
+add_action( 'load-site-editor.php', 'wp_set_up_cross_origin_isolation' );
+add_action( 'load-widgets.php', 'wp_set_up_cross_origin_isolation' );
 // Nav menu.
 add_filter( 'nav_menu_item_id', '_nav_menu_item_id_use_once', 10, 2 );
 add_filter( 'nav_menu_css_class', 'wp_nav_menu_remove_menu_item_has_children_class', 10, 4 );
