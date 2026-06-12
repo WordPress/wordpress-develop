@@ -3135,18 +3135,36 @@ class wpdb {
 	 *
 	 * @since 0.71
 	 *
-	 * @param string $query  SQL query.
-	 * @param string $output Optional. Any of ARRAY_A | ARRAY_N | OBJECT | OBJECT_K constants.
-	 *                       With one of the first three, return an array of rows indexed
-	 *                       from 0 by SQL result row number. Each row is an associative array
-	 *                       (column => value, ...), a numerically indexed array (0 => value, ...),
-	 *                       or an object ( ->column = value ), respectively. With OBJECT_K,
-	 *                       return an associative array of row objects keyed by the value
-	 *                       of each row's first column's value. Duplicate keys are discarded.
-	 *                       Default OBJECT.
-	 * @return array|object|null Database query results. Empty array when no rows match
-	 *                           or on database error. Null when $query is empty or
-	 *                           $output is invalid.
+	 * @param string|null $query  SQL query.
+	 * @param string      $output Optional. Any of ARRAY_A | ARRAY_N | OBJECT | OBJECT_K constants.
+	 *                            With one of the first three, return an array of rows indexed
+	 *                            from 0 by SQL result row number. Each row is an associative array
+	 *                            (column => value, ...), a numerically indexed array (0 => value, ...),
+	 *                            or an object ( ->column = value ), respectively. With OBJECT_K,
+	 *                            return an associative array of row objects keyed by the value
+	 *                            of each row's first column's value. Duplicate keys are discarded.
+	 *                            Default OBJECT.
+	 * @return array|null Database query results. Empty array when no rows match
+	 *                    or on database error. Null when $query is empty or
+	 *                    $output is invalid.
+	 *
+	 * @phpstan-return (
+	 *     $query is non-falsy-string
+	 *         ? (
+	 *             $output is 'OBJECT'|'OBJECT_K'
+	 *                 ? array<int|string, stdClass>
+	 *                 : (
+	 *                     $output is 'ARRAY_A'
+	 *                         ? array<int, array<string, mixed>>
+	 *                         : (
+	 *                             $output is 'ARRAY_N'
+	 *                                 ? array<int, list<mixed>>
+	 *                                 : null
+	 *                         )
+	 *                 )
+	 *         )
+	 *         : null
+	 * )
 	 */
 	public function get_results( $query = null, $output = OBJECT ) {
 		$this->func_call = "\$db->get_results(\"$query\", $output)";
