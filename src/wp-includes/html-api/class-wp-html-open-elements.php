@@ -21,6 +21,7 @@
  * > for misnested tags).
  *
  * @since 6.4.0
+ * @deprecated 7.1.0 WP_HTML_Processor manages its stack of open elements internally.
  *
  * @access private
  * @ignore
@@ -76,6 +77,20 @@ class WP_HTML_Open_Elements {
 	 * @var Closure|null
 	 */
 	private $push_handler = null;
+
+	/**
+	 * Constructor.
+	 *
+	 * @since 7.1.0
+	 * @deprecated 7.1.0 WP_HTML_Processor manages its stack of open elements internally.
+	 */
+	public function __construct() {
+		_deprecated_function(
+			__METHOD__,
+			'7.1.0',
+			'WP_HTML_Processor'
+		);
+	}
 
 	/**
 	 * Sets a pop handler that will be called when an item is popped off the stack of

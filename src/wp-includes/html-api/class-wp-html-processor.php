@@ -526,7 +526,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		 * > itself, if it is a form element), if any. (If there is no such form element, the
 		 * > form element pointer keeps its initial value, null.)
 		 */
-		foreach ( $this->state->stack_of_open_elements->walk_up() as $element ) {
+		foreach ( $this->walk_up_open_elements() as $element ) {
 			if ( 'FORM' === $element->node_name && 'html' === $element->namespace ) {
 				$fragment_processor->state->form_element                = clone $element;
 				$fragment_processor->state->form_element->bookmark_name = null;
@@ -565,7 +565,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		$token = substr( $this->html, $here->start, $here->length );
 
 		$open_elements = array();
-		foreach ( $this->state->stack_of_open_elements->stack as $item ) {
+		foreach ( $this->walk_down_open_elements() as $item ) {
 			$open_elements[] = $item->node_name;
 		}
 
@@ -995,7 +995,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 * When moving on to the next node, therefore, if the bottom-most element
 			 * on the stack is a void element, it must be closed.
 			 */
-			$top_node = $this->state->stack_of_open_elements->current_node();
+			$top_node = $this->current_open_element();
 			if ( isset( $top_node ) && ! $this->expects_closer( $top_node ) ) {
 				$this->pop_open_element();
 			}
@@ -1040,7 +1040,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		}
 
 		$parse_in_current_insertion_mode = (
-			0 === $this->state->stack_of_open_elements->count() ||
+			0 === $this->count_open_elements() ||
 			'html' === $adjusted_current_node->namespace ||
 			(
 				'math' === $adjusted_current_node->integration_node_type &&
@@ -1938,13 +1938,13 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 * > An end tag whose tag name is "template"
 			 */
 			case '-TEMPLATE':
-				if ( ! $this->state->stack_of_open_elements->contains( 'TEMPLATE' ) ) {
+				if ( ! $this->open_elements_contains( 'TEMPLATE' ) ) {
 					// @todo Indicate a parse error once it's possible.
 					return $this->step();
 				}
 
 				$this->generate_implied_end_tags_thoroughly();
-				if ( ! $this->state->stack_of_open_elements->current_node_is( 'TEMPLATE' ) ) {
+				if ( ! $this->current_open_element_is( 'TEMPLATE' ) ) {
 					// @todo Indicate a parse error once it's possible.
 				}
 
@@ -2291,7 +2291,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 * > A start tag whose tag name is "html"
 			 */
 			case '+HTML':
-				if ( ! $this->state->stack_of_open_elements->contains( 'TEMPLATE' ) ) {
+				if ( ! $this->open_elements_contains( 'TEMPLATE' ) ) {
 					/*
 					 * > Otherwise, for each attribute on the token, check to see if the attribute
 					 * > is already present on the top element of the stack of open elements. If
@@ -2330,9 +2330,9 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 */
 			case '+BODY':
 				if (
-					1 === $this->state->stack_of_open_elements->count() ||
-					'BODY' !== ( $this->state->stack_of_open_elements->at( 2 )->node_name ?? null ) ||
-					$this->state->stack_of_open_elements->contains( 'TEMPLATE' )
+					1 === $this->count_open_elements() ||
+					'BODY' !== ( $this->get_open_element_at( 2 )->node_name ?? null ) ||
+					$this->open_elements_contains( 'TEMPLATE' )
 				) {
 					// Ignore the token.
 					return $this->step();
@@ -2356,8 +2356,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 */
 			case '+FRAMESET':
 				if (
-					1 === $this->state->stack_of_open_elements->count() ||
-					'BODY' !== ( $this->state->stack_of_open_elements->at( 2 )->node_name ?? null ) ||
+					1 === $this->count_open_elements() ||
+					'BODY' !== ( $this->get_open_element_at( 2 )->node_name ?? null ) ||
 					false === $this->state->frameset_ok
 				) {
 					// Ignore the token.
@@ -2374,7 +2374,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 * > An end tag whose tag name is "body"
 			 */
 			case '-BODY':
-				if ( ! $this->state->stack_of_open_elements->has_element_in_scope( 'BODY' ) ) {
+				if ( ! $this->has_element_in_scope( 'BODY' ) ) {
 					// Parse error: ignore the token.
 					return $this->step();
 				}
@@ -2403,7 +2403,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 * > An end tag whose tag name is "html"
 			 */
 			case '-HTML':
-				if ( ! $this->state->stack_of_open_elements->has_element_in_scope( 'BODY' ) ) {
+				if ( ! $this->has_element_in_scope( 'BODY' ) ) {
 					// Parse error: ignore the token.
 					return $this->step();
 				}
@@ -2452,7 +2452,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case '+SECTION':
 			case '+SUMMARY':
 			case '+UL':
-				if ( $this->state->stack_of_open_elements->has_p_in_button_scope() ) {
+				if ( $this->has_p_in_button_scope() ) {
 					$this->close_a_p_element();
 				}
 
@@ -2468,13 +2468,13 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case '+H4':
 			case '+H5':
 			case '+H6':
-				if ( $this->state->stack_of_open_elements->has_p_in_button_scope() ) {
+				if ( $this->has_p_in_button_scope() ) {
 					$this->close_a_p_element();
 				}
 
 				if (
 					in_array(
-						$this->state->stack_of_open_elements->current_node()->node_name,
+						$this->current_open_element()->node_name,
 						array( 'H1', 'H2', 'H3', 'H4', 'H5', 'H6' ),
 						true
 					)
@@ -2491,7 +2491,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 */
 			case '+PRE':
 			case '+LISTING':
-				if ( $this->state->stack_of_open_elements->has_p_in_button_scope() ) {
+				if ( $this->has_p_in_button_scope() ) {
 					$this->close_a_p_element();
 				}
 
@@ -2511,14 +2511,14 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 * > A start tag whose tag name is "form"
 			 */
 			case '+FORM':
-				$stack_contains_template = $this->state->stack_of_open_elements->contains( 'TEMPLATE' );
+				$stack_contains_template = $this->open_elements_contains( 'TEMPLATE' );
 
 				if ( isset( $this->state->form_element ) && ! $stack_contains_template ) {
 					// Parse error: ignore the token.
 					return $this->step();
 				}
 
-				if ( $this->state->stack_of_open_elements->has_p_in_button_scope() ) {
+				if ( $this->has_p_in_button_scope() ) {
 					$this->close_a_p_element();
 				}
 
@@ -2537,7 +2537,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case '+DT':
 			case '+LI':
 				$this->state->frameset_ok = false;
-				$node                     = $this->state->stack_of_open_elements->current_node();
+				$node                     = $this->current_open_element();
 				$is_li                    = 'LI' === $token_name;
 
 				in_body_list_loop:
@@ -2548,7 +2548,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				if ( $is_li ? 'LI' === $node->node_name : ( 'DD' === $node->node_name || 'DT' === $node->node_name ) ) {
 					$node_name = $is_li ? 'LI' : $node->node_name;
 					$this->generate_implied_end_tags( $node_name );
-					if ( ! $this->state->stack_of_open_elements->current_node_is( $node_name ) ) {
+					if ( ! $this->current_open_element_is( $node_name ) ) {
 						// @todo Indicate a parse error once it's possible. This error does not impact the logic here.
 					}
 
@@ -2572,7 +2572,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 					 * > Otherwise, set node to the previous entry in the stack of open elements
 					 * > and return to the step labeled loop.
 					 */
-					foreach ( $this->state->stack_of_open_elements->walk_up( $node ) as $item ) {
+					foreach ( $this->walk_up_open_elements( $node ) as $item ) {
 						$node = $item;
 						break;
 					}
@@ -2580,7 +2580,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				}
 
 				in_body_list_done:
-				if ( $this->state->stack_of_open_elements->has_p_in_button_scope() ) {
+				if ( $this->has_p_in_button_scope() ) {
 					$this->close_a_p_element();
 				}
 
@@ -2588,7 +2588,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				return true;
 
 			case '+PLAINTEXT':
-				if ( $this->state->stack_of_open_elements->has_p_in_button_scope() ) {
+				if ( $this->has_p_in_button_scope() ) {
 					$this->close_a_p_element();
 				}
 
@@ -2604,7 +2604,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 * > A start tag whose tag name is "button"
 			 */
 			case '+BUTTON':
-				if ( $this->state->stack_of_open_elements->has_element_in_scope( 'BUTTON' ) ) {
+				if ( $this->has_element_in_scope( 'BUTTON' ) ) {
 					// @todo Indicate a parse error once it's possible. This error does not impact the logic here.
 					$this->generate_implied_end_tags();
 					$this->pop_open_elements_until( 'BUTTON' );
@@ -2649,14 +2649,14 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case '-SECTION':
 			case '-SUMMARY':
 			case '-UL':
-				if ( ! $this->state->stack_of_open_elements->has_element_in_scope( $token_name ) ) {
+				if ( ! $this->has_element_in_scope( $token_name ) ) {
 					// @todo Report parse error.
 					// Ignore the token.
 					return $this->step();
 				}
 
 				$this->generate_implied_end_tags();
-				if ( ! $this->state->stack_of_open_elements->current_node_is( $token_name ) ) {
+				if ( ! $this->current_open_element_is( $token_name ) ) {
 					// @todo Record parse error: this error doesn't impact parsing.
 				}
 				$this->pop_open_elements_until( $token_name );
@@ -2666,7 +2666,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 * > An end tag whose tag name is "form"
 			 */
 			case '-FORM':
-				if ( ! $this->state->stack_of_open_elements->contains( 'TEMPLATE' ) ) {
+				if ( ! $this->open_elements_contains( 'TEMPLATE' ) ) {
 					$node = $this->state->form_element;
 
 					/*
@@ -2678,7 +2678,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 					 */
 					if (
 						null === $node ||
-						! $this->state->stack_of_open_elements->has_element_in_scope( 'FORM' )
+						! $this->has_element_in_scope( 'FORM' )
 					) {
 						/*
 						 * Parse error: ignore the token.
@@ -2695,7 +2695,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 					$this->state->form_element = null;
 
 					$this->generate_implied_end_tags();
-					if ( $node !== $this->state->stack_of_open_elements->current_node() ) {
+					if ( $node !== $this->current_open_element() ) {
 						// @todo Indicate a parse error once it's possible. This error does not impact the logic here.
 						$this->bail( 'Cannot close a FORM when other elements remain open as this would throw off the breadcrumbs for the following tokens.' );
 					}
@@ -2709,14 +2709,14 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 					 *
 					 * Note that unlike in the clause above, this is checking for any FORM in scope.
 					 */
-					if ( ! $this->state->stack_of_open_elements->has_element_in_scope( 'FORM' ) ) {
+					if ( ! $this->has_element_in_scope( 'FORM' ) ) {
 						// Parse error: ignore the token.
 						return $this->step();
 					}
 
 					$this->generate_implied_end_tags();
 
-					if ( ! $this->state->stack_of_open_elements->current_node_is( 'FORM' ) ) {
+					if ( ! $this->current_open_element_is( 'FORM' ) ) {
 						// @todo Indicate a parse error once it's possible. This error does not impact the logic here.
 					}
 
@@ -2729,7 +2729,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 * > An end tag whose tag name is "p"
 			 */
 			case '-P':
-				if ( ! $this->state->stack_of_open_elements->has_p_in_button_scope() ) {
+				if ( ! $this->has_p_in_button_scope() ) {
 					$this->insert_html_element( $this->state->current_token );
 				}
 
@@ -2751,7 +2751,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 					 */
 					(
 						'LI' === $token_name &&
-						! $this->state->stack_of_open_elements->has_element_in_list_item_scope( 'LI' )
+						! $this->has_element_in_list_item_scope( 'LI' )
 					) ||
 					/*
 					 * An end tag whose tag name is one of: "dd", "dt":
@@ -2761,7 +2761,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 					 */
 					(
 						'LI' !== $token_name &&
-						! $this->state->stack_of_open_elements->has_element_in_scope( $token_name )
+						! $this->has_element_in_scope( $token_name )
 					)
 				) {
 					/*
@@ -2774,7 +2774,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 
 				$this->generate_implied_end_tags( $token_name );
 
-				if ( ! $this->state->stack_of_open_elements->current_node_is( $token_name ) ) {
+				if ( ! $this->current_open_element_is( $token_name ) ) {
 					// @todo Indicate a parse error once it's possible. This error does not impact the logic here.
 				}
 
@@ -2790,7 +2790,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case '-H4':
 			case '-H5':
 			case '-H6':
-				if ( ! $this->state->stack_of_open_elements->has_element_in_scope( '(internal: H1 through H6 - do not use)' ) ) {
+				if ( ! $this->has_element_in_scope( '(internal: H1 through H6 - do not use)' ) ) {
 					/*
 					 * This is a parse error; ignore the token.
 					 *
@@ -2801,7 +2801,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 
 				$this->generate_implied_end_tags();
 
-				if ( ! $this->state->stack_of_open_elements->current_node_is( $token_name ) ) {
+				if ( ! $this->current_open_element_is( $token_name ) ) {
 					// @todo Record parse error: this error doesn't impact parsing.
 				}
 
@@ -2857,7 +2857,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case '+NOBR':
 				$this->reconstruct_active_formatting_elements();
 
-				if ( $this->state->stack_of_open_elements->has_element_in_scope( 'NOBR' ) ) {
+				if ( $this->has_element_in_scope( 'NOBR' ) ) {
 					// Parse error.
 					$this->run_adoption_agency_algorithm();
 					$this->reconstruct_active_formatting_elements();
@@ -2906,13 +2906,13 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case '-APPLET':
 			case '-MARQUEE':
 			case '-OBJECT':
-				if ( ! $this->state->stack_of_open_elements->has_element_in_scope( $token_name ) ) {
+				if ( ! $this->has_element_in_scope( $token_name ) ) {
 					// Parse error: ignore the token.
 					return $this->step();
 				}
 
 				$this->generate_implied_end_tags();
-				if ( ! $this->state->stack_of_open_elements->current_node_is( $token_name ) ) {
+				if ( ! $this->current_open_element_is( $token_name ) ) {
 					// This is a parse error.
 				}
 
@@ -2930,7 +2930,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				 */
 				if (
 					WP_HTML_Tag_Processor::QUIRKS_MODE !== $this->compat_mode &&
-					$this->state->stack_of_open_elements->has_p_in_button_scope()
+					$this->has_p_in_button_scope()
 				) {
 					$this->close_a_p_element();
 				}
@@ -2993,7 +2993,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 * > A start tag whose tag name is "hr"
 			 */
 			case '+HR':
-				if ( $this->state->stack_of_open_elements->has_p_in_button_scope() ) {
+				if ( $this->has_p_in_button_scope() ) {
 					$this->close_a_p_element();
 				}
 				$this->insert_html_element( $this->state->current_token );
@@ -3039,7 +3039,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 * > A start tag whose tag name is "xmp"
 			 */
 			case '+XMP':
-				if ( $this->state->stack_of_open_elements->has_p_in_button_scope() ) {
+				if ( $this->has_p_in_button_scope() ) {
 					$this->close_a_p_element();
 				}
 
@@ -3113,7 +3113,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 */
 			case '+OPTGROUP':
 			case '+OPTION':
-				if ( $this->state->stack_of_open_elements->current_node_is( 'OPTION' ) ) {
+				if ( $this->current_open_element_is( 'OPTION' ) ) {
 					$this->pop_open_element();
 				}
 				$this->reconstruct_active_formatting_elements();
@@ -3125,10 +3125,10 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 */
 			case '+RB':
 			case '+RTC':
-				if ( $this->state->stack_of_open_elements->has_element_in_scope( 'RUBY' ) ) {
+				if ( $this->has_element_in_scope( 'RUBY' ) ) {
 					$this->generate_implied_end_tags();
 
-					if ( $this->state->stack_of_open_elements->current_node_is( 'RUBY' ) ) {
+					if ( $this->current_open_element_is( 'RUBY' ) ) {
 						// @todo Indicate a parse error once it's possible.
 					}
 				}
@@ -3141,10 +3141,10 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 */
 			case '+RP':
 			case '+RT':
-				if ( $this->state->stack_of_open_elements->has_element_in_scope( 'RUBY' ) ) {
+				if ( $this->has_element_in_scope( 'RUBY' ) ) {
 					$this->generate_implied_end_tags( 'RTC' );
 
-					$current_node_name = $this->state->stack_of_open_elements->current_node()->node_name;
+					$current_node_name = $this->current_open_element()->node_name;
 					if ( 'RTC' === $current_node_name || 'RUBY' === $current_node_name ) {
 						// @todo Indicate a parse error once it's possible.
 					}
@@ -3228,7 +3228,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 * of boundary in the stack. For example, a `</custom-tag>` should not
 			 * close anything beyond its containing `P` or `DIV` element.
 			 */
-			foreach ( $this->state->stack_of_open_elements->walk_up() as $node ) {
+			foreach ( $this->walk_up_open_elements() as $node ) {
 				if ( 'html' === $node->namespace && $token_name === $node->node_name ) {
 					break;
 				}
@@ -3240,11 +3240,11 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			}
 
 			$this->generate_implied_end_tags( $token_name );
-			if ( $node !== $this->state->stack_of_open_elements->current_node() ) {
+			if ( $node !== $this->current_open_element() ) {
 				// @todo Record parse error: this error doesn't impact parsing.
 			}
 
-			foreach ( $this->state->stack_of_open_elements->walk_up() as $item ) {
+			foreach ( $this->walk_up_open_elements() as $item ) {
 				$this->pop_open_element();
 				if ( $node === $item ) {
 					return true;
@@ -3285,7 +3285,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 * > tbody, template, tfoot, thead, or tr element
 			 */
 			case '#text':
-				$current_node      = $this->state->stack_of_open_elements->current_node();
+				$current_node      = $this->current_open_element();
 				$current_node_name = $current_node ? $current_node->node_name : null;
 				if (
 					$current_node_name && (
@@ -3416,7 +3416,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 * This tag in the IN TABLE insertion mode is a parse error.
 			 */
 			case '+TABLE':
-				if ( ! $this->state->stack_of_open_elements->has_element_in_table_scope( 'TABLE' ) ) {
+				if ( ! $this->has_element_in_table_scope( 'TABLE' ) ) {
 					return $this->step();
 				}
 
@@ -3428,7 +3428,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 * > An end tag whose tag name is "table"
 			 */
 			case '-TABLE':
-				if ( ! $this->state->stack_of_open_elements->has_element_in_table_scope( 'TABLE' ) ) {
+				if ( ! $this->has_element_in_table_scope( 'TABLE' ) ) {
 					// @todo Indicate a parse error once it's possible.
 					return $this->step();
 				}
@@ -3490,7 +3490,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 */
 			case '+FORM':
 				if (
-					$this->state->stack_of_open_elements->has_element_in_scope( 'TEMPLATE' ) ||
+					$this->has_element_in_scope( 'TEMPLATE' ) ||
 					isset( $this->state->form_element )
 				) {
 					return $this->step();
@@ -3575,13 +3575,13 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case '+THEAD':
 			case '+TR':
 			case '-TABLE':
-				if ( ! $this->state->stack_of_open_elements->has_element_in_table_scope( 'CAPTION' ) ) {
+				if ( ! $this->has_element_in_table_scope( 'CAPTION' ) ) {
 					// Parse error: ignore the token.
 					return $this->step();
 				}
 
 				$this->generate_implied_end_tags();
-				if ( ! $this->state->stack_of_open_elements->current_node_is( 'CAPTION' ) ) {
+				if ( ! $this->current_open_element_is( 'CAPTION' ) ) {
 					// @todo Indicate a parse error once it's possible.
 				}
 
@@ -3690,7 +3690,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 * > An end tag whose tag name is "colgroup"
 			 */
 			case '-COLGROUP':
-				if ( ! $this->state->stack_of_open_elements->current_node_is( 'COLGROUP' ) ) {
+				if ( ! $this->current_open_element_is( 'COLGROUP' ) ) {
 					// @todo Indicate a parse error once it's possible.
 					return $this->step();
 				}
@@ -3718,7 +3718,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		/*
 		 * > Anything else
 		 */
-		if ( ! $this->state->stack_of_open_elements->current_node_is( 'COLGROUP' ) ) {
+		if ( ! $this->current_open_element_is( 'COLGROUP' ) ) {
 			// @todo Indicate a parse error once it's possible.
 			return $this->step();
 		}
@@ -3775,7 +3775,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case '-TBODY':
 			case '-TFOOT':
 			case '-THEAD':
-				if ( ! $this->state->stack_of_open_elements->has_element_in_table_scope( $tag_name ) ) {
+				if ( ! $this->has_element_in_table_scope( $tag_name ) ) {
 					// Parse error: ignore the token.
 					return $this->step();
 				}
@@ -3797,9 +3797,9 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case '+THEAD':
 			case '-TABLE':
 				if (
-					! $this->state->stack_of_open_elements->has_element_in_table_scope( 'TBODY' ) &&
-					! $this->state->stack_of_open_elements->has_element_in_table_scope( 'THEAD' ) &&
-					! $this->state->stack_of_open_elements->has_element_in_table_scope( 'TFOOT' )
+					! $this->has_element_in_table_scope( 'TBODY' ) &&
+					! $this->has_element_in_table_scope( 'THEAD' ) &&
+					! $this->has_element_in_table_scope( 'TFOOT' )
 				) {
 					// Parse error: ignore the token.
 					return $this->step();
@@ -3868,7 +3868,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 * > An end tag whose tag name is "tr"
 			 */
 			case '-TR':
-				if ( ! $this->state->stack_of_open_elements->has_element_in_table_scope( 'TR' ) ) {
+				if ( ! $this->has_element_in_table_scope( 'TR' ) ) {
 					// Parse error: ignore the token.
 					return $this->step();
 				}
@@ -3890,7 +3890,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case '+THEAD':
 			case '+TR':
 			case '-TABLE':
-				if ( ! $this->state->stack_of_open_elements->has_element_in_table_scope( 'TR' ) ) {
+				if ( ! $this->has_element_in_table_scope( 'TR' ) ) {
 					// Parse error: ignore the token.
 					return $this->step();
 				}
@@ -3906,12 +3906,12 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case '-TBODY':
 			case '-TFOOT':
 			case '-THEAD':
-				if ( ! $this->state->stack_of_open_elements->has_element_in_table_scope( $tag_name ) ) {
+				if ( ! $this->has_element_in_table_scope( $tag_name ) ) {
 					// Parse error: ignore the token.
 					return $this->step();
 				}
 
-				if ( ! $this->state->stack_of_open_elements->has_element_in_table_scope( 'TR' ) ) {
+				if ( ! $this->has_element_in_table_scope( 'TR' ) ) {
 					// Ignore the token.
 					return $this->step();
 				}
@@ -3969,7 +3969,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 */
 			case '-TD':
 			case '-TH':
-				if ( ! $this->state->stack_of_open_elements->has_element_in_table_scope( $tag_name ) ) {
+				if ( ! $this->has_element_in_table_scope( $tag_name ) ) {
 					// Parse error: ignore the token.
 					return $this->step();
 				}
@@ -3982,7 +3982,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				 *       HTML element of the given name, such as `<center>`, and a foreign element of
 				 *       the same given name.
 				 */
-				if ( ! $this->state->stack_of_open_elements->current_node_is( $tag_name ) ) {
+				if ( ! $this->current_open_element_is( $tag_name ) ) {
 					// @todo Indicate a parse error once it's possible.
 				}
 
@@ -4032,7 +4032,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case '-TFOOT':
 			case '-THEAD':
 			case '-TR':
-				if ( ! $this->state->stack_of_open_elements->has_element_in_table_scope( $tag_name ) ) {
+				if ( ! $this->has_element_in_table_scope( $tag_name ) ) {
 					// Parse error: ignore the token.
 					return $this->step();
 				}
@@ -4114,7 +4114,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 * > A start tag whose tag name is "option"
 			 */
 			case '+OPTION':
-				if ( $this->state->stack_of_open_elements->current_node_is( 'OPTION' ) ) {
+				if ( $this->current_open_element_is( 'OPTION' ) ) {
 					$this->pop_open_element();
 				}
 				$this->insert_html_element( $this->state->current_token );
@@ -4129,11 +4129,11 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 */
 			case '+OPTGROUP':
 			case '+HR':
-				if ( $this->state->stack_of_open_elements->current_node_is( 'OPTION' ) ) {
+				if ( $this->current_open_element_is( 'OPTION' ) ) {
 					$this->pop_open_element();
 				}
 
-				if ( $this->state->stack_of_open_elements->current_node_is( 'OPTGROUP' ) ) {
+				if ( $this->current_open_element_is( 'OPTGROUP' ) ) {
 					$this->pop_open_element();
 				}
 
@@ -4144,9 +4144,9 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 * > An end tag whose tag name is "optgroup"
 			 */
 			case '-OPTGROUP':
-				$current_node = $this->state->stack_of_open_elements->current_node();
+				$current_node = $this->current_open_element();
 				if ( $current_node && 'OPTION' === $current_node->node_name ) {
-					foreach ( $this->state->stack_of_open_elements->walk_up( $current_node ) as $parent ) {
+					foreach ( $this->walk_up_open_elements( $current_node ) as $parent ) {
 						break;
 					}
 					if ( $parent && 'OPTGROUP' === $parent->node_name ) {
@@ -4154,7 +4154,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 					}
 				}
 
-				if ( $this->state->stack_of_open_elements->current_node_is( 'OPTGROUP' ) ) {
+				if ( $this->current_open_element_is( 'OPTGROUP' ) ) {
 					$this->pop_open_element();
 					return true;
 				}
@@ -4166,7 +4166,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 * > An end tag whose tag name is "option"
 			 */
 			case '-OPTION':
-				if ( $this->state->stack_of_open_elements->current_node_is( 'OPTION' ) ) {
+				if ( $this->current_open_element_is( 'OPTION' ) ) {
 					$this->pop_open_element();
 					return true;
 				}
@@ -4182,7 +4182,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 */
 			case '-SELECT':
 			case '+SELECT':
-				if ( ! $this->state->stack_of_open_elements->has_element_in_select_scope( 'SELECT' ) ) {
+				if ( ! $this->has_element_in_select_scope( 'SELECT' ) ) {
 					// Parse error: ignore the token.
 					return $this->step();
 				}
@@ -4198,7 +4198,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case '+INPUT':
 			case '+KEYGEN':
 			case '+TEXTAREA':
-				if ( ! $this->state->stack_of_open_elements->has_element_in_select_scope( 'SELECT' ) ) {
+				if ( ! $this->has_element_in_select_scope( 'SELECT' ) ) {
 					// Ignore the token.
 					return $this->step();
 				}
@@ -4274,7 +4274,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case '-TD':
 			case '-TH':
 				// @todo Indicate a parse error once it's possible.
-				if ( ! $this->state->stack_of_open_elements->has_element_in_table_scope( $token_name ) ) {
+				if ( ! $this->has_element_in_table_scope( $token_name ) ) {
 					return $this->step();
 				}
 				$this->pop_open_elements_until( 'SELECT' );
@@ -4405,7 +4405,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		/*
 		 * > An end-of-file token
 		 */
-		if ( ! $this->state->stack_of_open_elements->contains( 'TEMPLATE' ) ) {
+		if ( ! $this->open_elements_contains( 'TEMPLATE' ) ) {
 			// Stop parsing.
 			return false;
 		}
@@ -4584,7 +4584,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				 * > If the current node is the root html element, then this is a parse error;
 				 * > ignore the token. (fragment case)
 				 */
-				if ( $this->state->stack_of_open_elements->current_node_is( 'HTML' ) ) {
+				if ( $this->current_open_element_is( 'HTML' ) ) {
 					return $this->step();
 				}
 
@@ -4598,7 +4598,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				 * > (fragment case), and the current node is no longer a frameset element, then
 				 * > switch the insertion mode to "after frameset".
 				 */
-				if ( ! isset( $this->context_node ) && ! $this->state->stack_of_open_elements->current_node_is( 'FRAMESET' ) ) {
+				if ( ! isset( $this->context_node ) && ! $this->current_open_element_is( 'FRAMESET' ) ) {
 					$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_AFTER_FRAMESET;
 				}
 
@@ -5001,7 +5001,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case '-BR':
 			case '-P':
 				// @todo Indicate a parse error once it's possible.
-				foreach ( $this->state->stack_of_open_elements->walk_up() as $current_node ) {
+				foreach ( $this->walk_up_open_elements() as $current_node ) {
 					if (
 						'math' === $current_node->integration_node_type ||
 						'html' === $current_node->integration_node_type ||
@@ -5056,12 +5056,12 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		 * > Any other end tag
 		 */
 		if ( $this->is_tag_closer() ) {
-			$node = $this->state->stack_of_open_elements->current_node();
+			$node = $this->current_open_element();
 			if ( $tag_name !== $node->node_name ) {
 				// @todo Indicate a parse error once it's possible.
 			}
 			in_foreign_content_end_tag_loop:
-			if ( $node === $this->state->stack_of_open_elements->at( 1 ) ) {
+			if ( $node === $this->get_open_element_at( 1 ) ) {
 				return true;
 			}
 
@@ -5071,7 +5071,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 * > been popped from the stack, and then return.
 			 */
 			if ( 0 === strcasecmp( $node->node_name, $tag_name ) ) {
-				foreach ( $this->state->stack_of_open_elements->walk_up() as $item ) {
+				foreach ( $this->walk_up_open_elements() as $item ) {
 					$this->pop_open_element();
 					if ( $node === $item ) {
 						return true;
@@ -5079,7 +5079,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				}
 			}
 
-			foreach ( $this->state->stack_of_open_elements->walk_up( $node ) as $item ) {
+			foreach ( $this->walk_up_open_elements( $node ) as $item ) {
 				$node = $item;
 				break;
 			}
@@ -5627,7 +5627,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			/*
 			 * When moving backward, stateful stacks should be cleared.
 			 */
-			foreach ( $this->state->stack_of_open_elements->walk_up() as $item ) {
+			foreach ( $this->walk_up_open_elements() as $item ) {
 				$this->remove_open_element( $item );
 			}
 
@@ -5869,8 +5869,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		$no_exclusions = ! isset( $except_for_this_element );
 
 		while (
-			( $no_exclusions || ! $this->state->stack_of_open_elements->current_node_is( $except_for_this_element ) ) &&
-			in_array( $this->state->stack_of_open_elements->current_node()->node_name, $elements_with_implied_end_tags, true )
+			( $no_exclusions || ! $this->current_open_element_is( $except_for_this_element ) ) &&
+			in_array( $this->current_open_element()->node_name, $elements_with_implied_end_tags, true )
 		) {
 			$this->pop_open_element();
 		}
@@ -5911,7 +5911,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			'TR',
 		);
 
-		while ( in_array( $this->state->stack_of_open_elements->current_node()->node_name, $elements_with_implied_end_tags, true ) ) {
+		while ( in_array( $this->current_open_element()->node_name, $elements_with_implied_end_tags, true ) ) {
 			$this->pop_open_element();
 		}
 	}
@@ -5932,11 +5932,11 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @return WP_HTML_Token|null The adjusted current node.
 	 */
 	private function get_adjusted_current_node(): ?WP_HTML_Token {
-		if ( isset( $this->context_node ) && 1 === $this->state->stack_of_open_elements->count() ) {
+		if ( isset( $this->context_node ) && 1 === $this->count_open_elements() ) {
 			return $this->context_node;
 		}
 
-		return $this->state->stack_of_open_elements->current_node();
+		return $this->current_open_element();
 	}
 
 	/**
@@ -5978,7 +5978,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 * > element that is in the stack of open elements, then there is nothing to reconstruct;
 			 * > stop this algorithm.
 			 */
-			$this->state->stack_of_open_elements->contains_node( $last_entry )
+			$this->open_elements_contains_node( $last_entry )
 		) {
 			return false;
 		}
@@ -5997,7 +5997,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	private function reset_insertion_mode_appropriately(): void {
 		// Set the first node.
 		$first_node = null;
-		foreach ( $this->state->stack_of_open_elements->walk_down() as $first_node ) {
+		foreach ( $this->walk_down_open_elements() as $first_node ) {
 			break;
 		}
 
@@ -6005,7 +6005,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		 * > 1. Let _last_ be false.
 		 */
 		$last = false;
-		foreach ( $this->state->stack_of_open_elements->walk_up() as $node ) {
+		foreach ( $this->walk_up_open_elements() as $node ) {
 			/*
 			 * > 2. Let _node_ be the last node in the stack of open elements.
 			 * > 3. _Loop_: If _node_ is the first node in the stack of open elements, then set _last_
@@ -6040,7 +6040,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				 */
 				case 'SELECT':
 					if ( ! $last ) {
-						foreach ( $this->state->stack_of_open_elements->walk_up( $node ) as $ancestor ) {
+						foreach ( $this->walk_up_open_elements( $node ) as $ancestor ) {
 							if ( 'html' !== $ancestor->namespace ) {
 								continue;
 							}
@@ -6192,7 +6192,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	private function run_adoption_agency_algorithm(): void {
 		$budget       = 1000;
 		$subject      = $this->get_tag();
-		$current_node = $this->state->stack_of_open_elements->current_node();
+		$current_node = $this->current_open_element();
 
 		if (
 			// > If the current node is an HTML element whose tag name is subject
@@ -6234,13 +6234,13 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			}
 
 			// > If formatting element is not in the stack of open elements, then this is a parse error; remove the element from the list, and return.
-			if ( ! $this->state->stack_of_open_elements->contains_node( $formatting_element ) ) {
+			if ( ! $this->open_elements_contains_node( $formatting_element ) ) {
 				$this->state->active_formatting_elements->remove_node( $formatting_element );
 				return;
 			}
 
 			// > If formatting element is in the stack of open elements, but the element is not in scope, then this is a parse error; return.
-			if ( ! $this->state->stack_of_open_elements->has_element_in_scope( $formatting_element->node_name ) ) {
+			if ( ! $this->has_element_in_scope( $formatting_element->node_name ) ) {
 				return;
 			}
 
@@ -6250,7 +6250,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 */
 			$is_above_formatting_element = true;
 			$furthest_block              = null;
-			foreach ( $this->state->stack_of_open_elements->walk_down() as $item ) {
+			foreach ( $this->walk_down_open_elements() as $item ) {
 				if ( $is_above_formatting_element && $formatting_element->bookmark_name !== $item->bookmark_name ) {
 					continue;
 				}
@@ -6272,7 +6272,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 * > remove formatting element from the list of active formatting elements, and finally return.
 			 */
 			if ( null === $furthest_block ) {
-				foreach ( $this->state->stack_of_open_elements->walk_up() as $item ) {
+				foreach ( $this->walk_up_open_elements() as $item ) {
 					$this->pop_open_element();
 
 					if ( $formatting_element->bookmark_name === $item->bookmark_name ) {
@@ -6306,7 +6306,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	private function close_cell(): void {
 		$this->generate_implied_end_tags();
 		// @todo Parse error if the current node is a "td" or "th" element.
-		foreach ( $this->state->stack_of_open_elements->walk_up() as $element ) {
+		foreach ( $this->walk_up_open_elements() as $element ) {
 			$this->pop_open_element();
 			if ( 'TD' === $element->node_name || 'TH' === $element->node_name ) {
 				break;
@@ -6314,6 +6314,439 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		}
 		$this->state->active_formatting_elements->clear_up_to_last_marker();
 		$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_IN_ROW;
+	}
+
+	/**
+	 * Returns the node at the nth position on the stack of open elements.
+	 *
+	 * @since 7.1.0
+	 * @private
+	 *
+	 * @param int $nth Retrieve the nth item on the stack, with 1 being the top element.
+	 * @return WP_HTML_Token|null Node on the stack at the given location, or null if it doesn't exist.
+	 */
+	private function get_open_element_at( int $nth ): ?WP_HTML_Token {
+		foreach ( $this->walk_down_open_elements() as $item ) {
+			if ( 0 === --$nth ) {
+				return $item;
+			}
+		}
+
+		return null;
+	}
+
+	/**
+	 * Reports if a node of a given name is in the stack of open elements.
+	 *
+	 * @since 7.1.0
+	 * @private
+	 *
+	 * @param string $node_name Name of node for which to check.
+	 * @return bool Whether a node of the given name is in the stack of open elements.
+	 */
+	private function open_elements_contains( string $node_name ): bool {
+		foreach ( $this->walk_up_open_elements() as $item ) {
+			if ( $node_name === $item->node_name ) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * Reports if a specific node is in the stack of open elements.
+	 *
+	 * @since 7.1.0
+	 * @private
+	 *
+	 * @param WP_HTML_Token $token Look for this node in the stack.
+	 * @return bool Whether the referenced node is in the stack of open elements.
+	 */
+	private function open_elements_contains_node( WP_HTML_Token $token ): bool {
+		foreach ( $this->walk_up_open_elements() as $item ) {
+			if ( $token === $item ) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * Returns how many nodes are currently in the stack of open elements.
+	 *
+	 * @since 7.1.0
+	 * @private
+	 *
+	 * @return int How many nodes are in the stack of open elements.
+	 */
+	private function count_open_elements(): int {
+		return count( $this->state->stack_of_open_elements );
+	}
+
+	/**
+	 * Returns the current node in the stack of open elements.
+	 *
+	 * @since 7.1.0
+	 * @private
+	 *
+	 * @return WP_HTML_Token|null Current node, if one exists, otherwise null.
+	 */
+	private function current_open_element(): ?WP_HTML_Token {
+		$current_node = end( $this->state->stack_of_open_elements );
+
+		return $current_node ? $current_node : null;
+	}
+
+	/**
+	 * Indicates if the current node is of a given type or name.
+	 *
+	 * @since 7.1.0
+	 * @private
+	 *
+	 * @param string $identity Check if the current node has this name or type.
+	 * @return bool Whether there is a current element that matches the given identity.
+	 */
+	private function current_open_element_is( string $identity ): bool {
+		$current_node = end( $this->state->stack_of_open_elements );
+		if ( false === $current_node ) {
+			return false;
+		}
+
+		$current_node_name = $current_node->node_name;
+
+		return (
+			$current_node_name === $identity ||
+			( '#doctype' === $identity && 'html' === $current_node_name ) ||
+			( '#tag' === $identity && ctype_upper( $current_node_name ) )
+		);
+	}
+
+	/**
+	 * Returns whether an element is in a specific scope.
+	 *
+	 * @since 7.1.0
+	 * @private
+	 *
+	 * @param string   $tag_name         Name of tag check.
+	 * @param string[] $termination_list List of elements that terminate the search.
+	 * @return bool Whether the element was found in a specific scope.
+	 */
+	private function has_element_in_specific_scope( string $tag_name, array $termination_list ): bool {
+		foreach ( $this->walk_up_open_elements() as $node ) {
+			$namespaced_name = 'html' === $node->namespace
+				? $node->node_name
+				: "{$node->namespace} {$node->node_name}";
+
+			if ( $namespaced_name === $tag_name ) {
+				return true;
+			}
+
+			if (
+				'(internal: H1 through H6 - do not use)' === $tag_name &&
+				in_array( $namespaced_name, array( 'H1', 'H2', 'H3', 'H4', 'H5', 'H6' ), true )
+			) {
+				return true;
+			}
+
+			if ( in_array( $namespaced_name, $termination_list, true ) ) {
+				return false;
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * Returns whether a particular element is in scope.
+	 *
+	 * @since 7.1.0
+	 * @private
+	 *
+	 * @param string $tag_name Name of tag to check.
+	 * @return bool Whether given element is in scope.
+	 */
+	private function has_element_in_scope( string $tag_name ): bool {
+		return $this->has_element_in_specific_scope(
+			$tag_name,
+			array(
+				'APPLET',
+				'CAPTION',
+				'HTML',
+				'TABLE',
+				'TD',
+				'TH',
+				'MARQUEE',
+				'OBJECT',
+				'TEMPLATE',
+
+				'math MI',
+				'math MO',
+				'math MN',
+				'math MS',
+				'math MTEXT',
+				'math ANNOTATION-XML',
+
+				'svg FOREIGNOBJECT',
+				'svg DESC',
+				'svg TITLE',
+			)
+		);
+	}
+
+	/**
+	 * Returns whether a particular element is in list item scope.
+	 *
+	 * @since 7.1.0
+	 * @private
+	 *
+	 * @param string $tag_name Name of tag to check.
+	 * @return bool Whether given element is in scope.
+	 */
+	private function has_element_in_list_item_scope( string $tag_name ): bool {
+		return $this->has_element_in_specific_scope(
+			$tag_name,
+			array(
+				'APPLET',
+				'BUTTON',
+				'CAPTION',
+				'HTML',
+				'TABLE',
+				'TD',
+				'TH',
+				'MARQUEE',
+				'OBJECT',
+				'OL',
+				'TEMPLATE',
+				'UL',
+
+				'math MI',
+				'math MO',
+				'math MN',
+				'math MS',
+				'math MTEXT',
+				'math ANNOTATION-XML',
+
+				'svg FOREIGNOBJECT',
+				'svg DESC',
+				'svg TITLE',
+			)
+		);
+	}
+
+	/**
+	 * Returns whether a particular element is in button scope.
+	 *
+	 * @since 7.1.0
+	 * @private
+	 *
+	 * @param string $tag_name Name of tag to check.
+	 * @return bool Whether given element is in scope.
+	 */
+	private function has_element_in_button_scope( string $tag_name ): bool {
+		return $this->has_element_in_specific_scope(
+			$tag_name,
+			array(
+				'APPLET',
+				'BUTTON',
+				'CAPTION',
+				'HTML',
+				'TABLE',
+				'TD',
+				'TH',
+				'MARQUEE',
+				'OBJECT',
+				'TEMPLATE',
+
+				'math MI',
+				'math MO',
+				'math MN',
+				'math MS',
+				'math MTEXT',
+				'math ANNOTATION-XML',
+
+				'svg FOREIGNOBJECT',
+				'svg DESC',
+				'svg TITLE',
+			)
+		);
+	}
+
+	/**
+	 * Returns whether a particular element is in table scope.
+	 *
+	 * @since 7.1.0
+	 * @private
+	 *
+	 * @param string $tag_name Name of tag to check.
+	 * @return bool Whether given element is in scope.
+	 */
+	private function has_element_in_table_scope( string $tag_name ): bool {
+		return $this->has_element_in_specific_scope(
+			$tag_name,
+			array(
+				'HTML',
+				'TABLE',
+				'TEMPLATE',
+			)
+		);
+	}
+
+	/**
+	 * Returns whether a particular element is in select scope.
+	 *
+	 * @since 7.1.0
+	 * @private
+	 *
+	 * @param string $tag_name Name of tag to check.
+	 * @return bool Whether the given element is in SELECT scope.
+	 */
+	private function has_element_in_select_scope( string $tag_name ): bool {
+		foreach ( $this->walk_up_open_elements() as $node ) {
+			if ( $node->node_name === $tag_name ) {
+				return true;
+			}
+
+			if (
+				'OPTION' !== $node->node_name &&
+				'OPTGROUP' !== $node->node_name
+			) {
+				return false;
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * Returns whether a P is in BUTTON scope.
+	 *
+	 * @since 7.1.0
+	 * @private
+	 *
+	 * @return bool Whether a P is in BUTTON scope.
+	 */
+	private function has_p_in_button_scope(): bool {
+		return $this->state->has_p_in_button_scope;
+	}
+
+	/**
+	 * Steps through the stack of open elements, starting with the top element.
+	 *
+	 * @since 7.1.0
+	 * @private
+	 */
+	private function walk_down_open_elements() {
+		$count = count( $this->state->stack_of_open_elements );
+
+		for ( $i = 0; $i < $count; $i++ ) {
+			yield $this->state->stack_of_open_elements[ $i ];
+		}
+	}
+
+	/**
+	 * Steps through the stack of open elements, starting with the current node.
+	 *
+	 * @since 7.1.0
+	 * @private
+	 *
+	 * @param WP_HTML_Token|null $above_this_node Optional. Start traversing above this node, if provided.
+	 */
+	private function walk_up_open_elements( ?WP_HTML_Token $above_this_node = null ) {
+		$has_found_node = null === $above_this_node;
+
+		for ( $i = count( $this->state->stack_of_open_elements ) - 1; $i >= 0; $i-- ) {
+			$node = $this->state->stack_of_open_elements[ $i ];
+
+			if ( ! $has_found_node ) {
+				$has_found_node = $node === $above_this_node;
+				continue;
+			}
+
+			yield $node;
+		}
+	}
+
+	/**
+	 * Updates open-elements stack state after adding an element.
+	 *
+	 * @since 7.1.0
+	 * @private
+	 *
+	 * @param WP_HTML_Token $item Element that was added to the stack of open elements.
+	 */
+	private function after_push_open_element( WP_HTML_Token $item ): void {
+		$namespaced_name = 'html' === $item->namespace
+			? $item->node_name
+			: "{$item->namespace} {$item->node_name}";
+
+		switch ( $namespaced_name ) {
+			case 'APPLET':
+			case 'BUTTON':
+			case 'CAPTION':
+			case 'HTML':
+			case 'TABLE':
+			case 'TD':
+			case 'TH':
+			case 'MARQUEE':
+			case 'OBJECT':
+			case 'TEMPLATE':
+			case 'math MI':
+			case 'math MO':
+			case 'math MN':
+			case 'math MS':
+			case 'math MTEXT':
+			case 'math ANNOTATION-XML':
+			case 'svg FOREIGNOBJECT':
+			case 'svg DESC':
+			case 'svg TITLE':
+				$this->state->has_p_in_button_scope = false;
+				break;
+
+			case 'P':
+				$this->state->has_p_in_button_scope = true;
+				break;
+		}
+	}
+
+	/**
+	 * Updates open-elements stack state after removing an element.
+	 *
+	 * @since 7.1.0
+	 * @private
+	 *
+	 * @param WP_HTML_Token $item Element that was removed from the stack of open elements.
+	 */
+	private function after_open_element_pop( WP_HTML_Token $item ): void {
+		$namespaced_name = 'html' === $item->namespace
+			? $item->node_name
+			: "{$item->namespace} {$item->node_name}";
+
+		switch ( $namespaced_name ) {
+			case 'APPLET':
+			case 'BUTTON':
+			case 'CAPTION':
+			case 'HTML':
+			case 'P':
+			case 'TABLE':
+			case 'TD':
+			case 'TH':
+			case 'MARQUEE':
+			case 'OBJECT':
+			case 'TEMPLATE':
+			case 'math MI':
+			case 'math MO':
+			case 'math MN':
+			case 'math MS':
+			case 'math MTEXT':
+			case 'math ANNOTATION-XML':
+			case 'svg FOREIGNOBJECT':
+			case 'svg DESC':
+			case 'svg TITLE':
+				$this->state->has_p_in_button_scope = $this->has_element_in_button_scope( 'P' );
+				break;
+		}
 	}
 
 	/**
@@ -6325,7 +6758,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @param WP_HTML_Token $token Push this element onto the stack of open elements.
 	 */
 	private function push_open_element( WP_HTML_Token $token ): void {
-		$this->state->stack_of_open_elements->push( $token );
+		$this->state->stack_of_open_elements[] = $token;
+		$this->after_push_open_element( $token );
 
 		$is_virtual            = ! isset( $this->state->current_token ) || $this->is_tag_closer();
 		$same_node             = isset( $this->state->current_token ) && $token->node_name === $this->state->current_token->node_name;
@@ -6344,11 +6778,12 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @return WP_HTML_Token|null Element that was popped off of the stack, or null if the stack was empty.
 	 */
 	private function pop_open_element(): ?WP_HTML_Token {
-		$popped = $this->state->stack_of_open_elements->pop();
+		$popped = array_pop( $this->state->stack_of_open_elements );
 		if ( null === $popped ) {
 			return null;
 		}
 
+		$this->after_open_element_pop( $popped );
 		$this->after_pop_open_element( $popped );
 		return $popped;
 	}
@@ -6363,13 +6798,19 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @return bool Whether the element was found and removed.
 	 */
 	private function remove_open_element( WP_HTML_Token $token ): bool {
-		$removed = $this->state->stack_of_open_elements->remove_node( $token );
-		if ( null === $removed ) {
-			return false;
+		foreach ( $this->walk_up_open_elements() as $position_from_end => $item ) {
+			if ( $token->bookmark_name !== $item->bookmark_name ) {
+				continue;
+			}
+
+			$position_from_start = $this->count_open_elements() - $position_from_end - 1;
+			array_splice( $this->state->stack_of_open_elements, $position_from_start, 1 );
+			$this->after_open_element_pop( $item );
+			$this->after_pop_open_element( $item );
+			return true;
 		}
 
-		$this->after_pop_open_element( $removed );
-		return true;
+		return false;
 	}
 
 	/**
@@ -6381,8 +6822,23 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @param string $tag_name Name of the element to pop through.
 	 */
 	private function pop_open_elements_until( string $tag_name ): void {
-		foreach ( $this->state->stack_of_open_elements->pop_until( $tag_name ) as $popped ) {
-			$this->after_pop_open_element( $popped );
+		foreach ( $this->walk_up_open_elements() as $item ) {
+			$this->pop_open_element();
+
+			if ( 'html' !== $item->namespace ) {
+				continue;
+			}
+
+			if (
+				'(internal: H1 through H6 - do not use)' === $tag_name &&
+				in_array( $item->node_name, array( 'H1', 'H2', 'H3', 'H4', 'H5', 'H6' ), true )
+			) {
+				return;
+			}
+
+			if ( $tag_name === $item->node_name ) {
+				return;
+			}
 		}
 	}
 
@@ -6393,8 +6849,16 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @private
 	 */
 	private function clear_stack_to_table_context(): void {
-		foreach ( $this->state->stack_of_open_elements->clear_to_table_context() as $popped ) {
-			$this->after_pop_open_element( $popped );
+		foreach ( $this->walk_up_open_elements() as $item ) {
+			if (
+				'TABLE' === $item->node_name ||
+				'TEMPLATE' === $item->node_name ||
+				'HTML' === $item->node_name
+			) {
+				return;
+			}
+
+			$this->pop_open_element();
 		}
 	}
 
@@ -6405,8 +6869,18 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @private
 	 */
 	private function clear_stack_to_table_body_context(): void {
-		foreach ( $this->state->stack_of_open_elements->clear_to_table_body_context() as $popped ) {
-			$this->after_pop_open_element( $popped );
+		foreach ( $this->walk_up_open_elements() as $item ) {
+			if (
+				'TBODY' === $item->node_name ||
+				'TFOOT' === $item->node_name ||
+				'THEAD' === $item->node_name ||
+				'TEMPLATE' === $item->node_name ||
+				'HTML' === $item->node_name
+			) {
+				return;
+			}
+
+			$this->pop_open_element();
 		}
 	}
 
@@ -6417,8 +6891,16 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @private
 	 */
 	private function clear_stack_to_table_row_context(): void {
-		foreach ( $this->state->stack_of_open_elements->clear_to_table_row_context() as $popped ) {
-			$this->after_pop_open_element( $popped );
+		foreach ( $this->walk_up_open_elements() as $item ) {
+			if (
+				'TR' === $item->node_name ||
+				'TEMPLATE' === $item->node_name ||
+				'HTML' === $item->node_name
+			) {
+				return;
+			}
+
+			$this->pop_open_element();
 		}
 	}
 

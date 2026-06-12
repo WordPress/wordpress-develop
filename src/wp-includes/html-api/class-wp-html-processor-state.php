@@ -314,15 +314,25 @@ class WP_HTML_Processor_State {
 	/**
 	 * Tracks open elements while scanning HTML.
 	 *
-	 * This property is initialized in the constructor and never null.
-	 *
 	 * @since 6.4.0
 	 *
 	 * @see https://html.spec.whatwg.org/#stack-of-open-elements
 	 *
-	 * @var WP_HTML_Open_Elements
+	 * @var WP_HTML_Token[]
 	 */
-	public $stack_of_open_elements;
+	public $stack_of_open_elements = array();
+
+	/**
+	 * Whether a P element is in button scope currently.
+	 *
+	 * This value is maintained when elements are added and removed to avoid
+	 * frequent iteration over the stack of open elements.
+	 *
+	 * @since 6.4.0
+	 *
+	 * @var bool
+	 */
+	public $has_p_in_button_scope = false;
 
 	/**
 	 * Tracks open formatting elements, used to handle mis-nested formatting element tags.
@@ -449,7 +459,6 @@ class WP_HTML_Processor_State {
 	 * @see WP_HTML_Processor
 	 */
 	public function __construct() {
-		$this->stack_of_open_elements     = new WP_HTML_Open_Elements();
 		$this->active_formatting_elements = new WP_HTML_Active_Formatting_Elements();
 	}
 }
