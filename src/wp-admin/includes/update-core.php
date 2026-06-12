@@ -756,7 +756,6 @@ $_old_files = array(
 	// 6.3
 	'wp-includes/images/wlw',
 	'wp-includes/wlwmanifest.xml',
-	'wp-includes/random_compat',
 	// 6.4
 	'wp-includes/navigation-fallback.php',
 	'wp-includes/blocks/navigation/view-modal.min.js',
@@ -798,7 +797,6 @@ $_old_files = array(
 	'wp-includes/js/dist/vendor/react.min.js.LICENSE.txt',
 	'wp-includes/js/dist/vendor/wp-polyfill-importmap.js',
 	'wp-includes/js/dist/vendor/wp-polyfill-importmap.min.js',
-	'wp-includes/sodium_compat/src/Core/Base64/Common.php',
 	'wp-includes/SimplePie/Author.php',
 	'wp-includes/SimplePie/Cache.php',
 	'wp-includes/SimplePie/Caption.php',
