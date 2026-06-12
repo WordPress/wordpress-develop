@@ -134,36 +134,6 @@ class Tests_HtmlApi_WpHtmlProcessor_Serialize extends WP_UnitTestCase {
 		);
 	}
 
-	/**
-	 * Ensures that IFRAME, NOEMBED, and NOFRAMES contents are not escaped, as they are not parsed like text nodes are.
-	 *
-	 * @ticket 65372
-	 *
-	 * @dataProvider data_raw_text_elements_with_unescaped_contents
-	 *
-	 * @param string $tag_name Tag name under test.
-	 */
-	public function test_iframe_noembed_noframes_contents_are_not_escaped( string $tag_name ) {
-		$this->assertSame(
-			WP_HTML_Processor::normalize( "<{$tag_name}>apples > or\x00anges < p &amp;</{$tag_name}>" ),
-			"<{$tag_name}>apples > or\u{FFFD}anges < p &amp;</{$tag_name}>",
-			"Should have preserved text inside an {$tag_name} element, except for replacing NULL bytes."
-		);
-	}
-
-	/**
-	 * Data provider.
-	 *
-	 * @return array[]
-	 */
-	public static function data_raw_text_elements_with_unescaped_contents() {
-		return array(
-			'IFRAME'   => array( 'iframe' ),
-			'NOEMBED'  => array( 'noembed' ),
-			'NOFRAMES' => array( 'noframes' ),
-		);
-	}
-
 	public function test_unexpected_closing_tags_are_removed() {
 		$this->assertSame(
 			WP_HTML_Processor::normalize( 'one</div>two</span>three' ),
@@ -311,7 +281,105 @@ class Tests_HtmlApi_WpHtmlProcessor_Serialize extends WP_UnitTestCase {
 			'Foreign content text' => array( "<svg>one\x00two</svg>", "<svg>one\u{FFFD}two</svg>" ),
 			'SCRIPT content'       => array( "<script>alert(\x00)</script>", "<script>alert(\u{FFFD})</script>" ),
 			'STYLE content'        => array( "<style>\x00 {}</style>", "<style>\u{FFFD} {}</style>" ),
+			'IFRAME content'       => array( "<iframe>a\x00b</iframe>", "<iframe>a\u{FFFD}b</iframe>" ),
+			'NOEMBED content'      => array( "<noembed>a\x00b</noembed>", "<noembed>a\u{FFFD}b</noembed>" ),
+			'NOFRAMES content'     => array( "<noframes>a\x00b</noframes>", "<noframes>a\u{FFFD}b</noframes>" ),
 			'Comment text'         => array( "<!-- \x00 -->", "<!-- \u{FFFD} -->" ),
+		);
+	}
+
+	/**
+	 * Ensures that the contents of IFRAME, NOEMBED, and NOFRAMES elements are
+	 * preserved when serializing.
+	 *
+	 * These elements contain raw text which is part of the parsed document.
+	 * Dropping it would change the document's contents across a serialize and
+	 * re-parse cycle.
+	 *
+	 * @ticket 65372
+	 *
+	 * @dataProvider data_rawtext_elements_with_contents
+	 *
+	 * @param string $html Normalized HTML containing a rawtext element with contents.
+	 */
+	public function test_rawtext_element_contents_are_preserved_when_normalizing( string $html ) {
+		$this->assertSame(
+			$html,
+			WP_HTML_Processor::normalize( $html ),
+			'Should have preserved the rawtext element contents.'
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_rawtext_elements_with_contents() {
+		return array(
+			'IFRAME with following text'        => array( '<iframe>x</iframe>y' ),
+			'NOEMBED with following text'       => array( '<noembed>x</noembed>y' ),
+			'NOFRAMES with following text'      => array( '<section><noframes>x</noframes>y</section>' ),
+			'NOFRAMES before comment'           => array( '<section><noframes>x</noframes><!----></section>' ),
+			'IFRAME with markup-like contents'  => array( '<iframe><div>inert</div></iframe>' ),
+			'NOEMBED with character reference'  => array( '<noembed>&amp;</noembed>' ),
+			'NOFRAMES with character reference' => array( '<noframes>&lt;</noframes>' ),
+		);
+	}
+
+	/**
+	 * Ensures that the contents of IFRAME, NOEMBED, and NOFRAMES elements are
+	 * preserved when serializing full documents, including NOFRAMES elements
+	 * in the HEAD or after a FRAMESET.
+	 *
+	 * @ticket 65372
+	 *
+	 * @dataProvider data_full_documents_with_rawtext_elements
+	 *
+	 * @param string $html     Input HTML document.
+	 * @param string $expected Expected serialization of the full document.
+	 */
+	public function test_rawtext_element_contents_are_preserved_in_full_documents( string $html, string $expected ) {
+		$processor = WP_HTML_Processor::create_full_parser( $html );
+
+		$this->assertSame(
+			$expected,
+			$processor->serialize(),
+			'Should have preserved the rawtext element contents.'
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_full_documents_with_rawtext_elements() {
+		return array(
+			'IFRAME in BODY'          => array(
+				'<iframe>x</iframe>y',
+				'<html><head></head><body><iframe>x</iframe>y</body></html>',
+			),
+			'NOEMBED in BODY'         => array(
+				'a<noembed>x</noembed>',
+				'<html><head></head><body>a<noembed>x</noembed></body></html>',
+			),
+			'NOFRAMES in BODY'        => array(
+				'a<noframes>x</noframes>',
+				'<html><head></head><body>a<noframes>x</noframes></body></html>',
+			),
+			'NOFRAMES in HEAD'        => array(
+				'<head><noframes>x</noframes></head>z',
+				'<html><head><noframes>x</noframes></head><body>z</body></html>',
+			),
+			'NOFRAMES in FRAMESET'    => array(
+				'<html><frameset><noframes>x</noframes>',
+				'<html><head></head><frameset><noframes>x</noframes></frameset></html>',
+			),
+			'IFRAME before a comment' => array(
+				'<h3><div><small><dd><iframe>x</iframe><!---->',
+				'<html><head></head><body><h3><div><small><dd><iframe>x</iframe><!----></dd></small></div></h3></body></html>',
+			),
 		);
 	}
 
