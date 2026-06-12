@@ -133,7 +133,7 @@ switch ( $step ) {
 			$languages = wp_get_available_translations();
 			if ( $languages ) {
 				setup_config_display_header( 'language-chooser' );
-				echo '<h1 class="screen-reader-text">Select a default language</h1>';
+				echo '<h1 class="screen-reader-text">Welcome to WordPress</h1>';
 				echo '<form id="setup" method="post" action="?step=0">';
 				wp_install_language_form( $languages );
 				echo '</form>';
