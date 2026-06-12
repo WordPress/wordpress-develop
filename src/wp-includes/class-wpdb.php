@@ -3122,6 +3122,8 @@ class wpdb {
 	 * @param string|null $query Optional. SQL query. Defaults to previous query.
 	 * @param int         $x     Optional. Column to return. Indexed from 0. Default 0.
 	 * @return array Database query result. Array indexed from 0 by SQL result row number.
+	 *
+	 * @phpstan-return list<string|null>
 	 */
 	public function get_col( $query = null, $x = 0 ) {
 		if ( $query ) {
