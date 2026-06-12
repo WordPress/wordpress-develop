@@ -62,6 +62,80 @@ class Tests_HtmlApi_WpHtmlDecoder extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensures semicolonless legacy references decode before non-ASCII UTF-8 bytes in attributes.
+	 */
+	public function test_semicolonless_legacy_reference_before_multibyte_attribute_follower() {
+		$previous_locale = setlocale( LC_CTYPE, 0 );
+		$affected_locale = setlocale( LC_CTYPE, 'C.UTF-8', 'en_US.UTF-8', 'de_DE.UTF-8', 'fr_FR.UTF-8' );
+
+		if ( false === $affected_locale || ! ctype_alnum( "\xC2" ) ) {
+			if ( false !== $previous_locale ) {
+				setlocale( LC_CTYPE, $previous_locale );
+			}
+
+			$this->markTestSkipped( 'Requires an LC_CTYPE locale where ctype_alnum() classifies high-bit bytes as alphanumeric.' );
+		}
+
+		$raw_attribute = "&Aacute\xC2\x80";
+
+		try {
+			$this->assertSame(
+				"\xC3\x81\xC2\x80",
+				WP_HTML_Decoder::decode_attribute( $raw_attribute ),
+				'Should have decoded the semicolonless legacy reference before a multibyte follower.'
+			);
+
+			$match_byte_length = null;
+			$this->assertSame(
+				"\xC3\x81",
+				WP_HTML_Decoder::read_character_reference( 'attribute', $raw_attribute, 0, $match_byte_length ),
+				'Should have matched the semicolonless legacy reference before a multibyte follower.'
+			);
+			$this->assertSame( strlen( '&Aacute' ), $match_byte_length );
+		} finally {
+			if ( false !== $previous_locale ) {
+				setlocale( LC_CTYPE, $previous_locale );
+			}
+		}
+	}
+
+	/**
+	 * Ensures semicolonless legacy references remain ambiguous before ASCII alnum or equals.
+	 *
+	 * @dataProvider data_ambiguous_ascii_attribute_followers
+	 *
+	 * @param string $raw_attribute Raw attribute value with an ambiguous legacy reference follower.
+	 */
+	public function test_semicolonless_legacy_reference_before_ascii_attribute_follower_is_ambiguous( $raw_attribute ) {
+		$this->assertSame(
+			$raw_attribute,
+			WP_HTML_Decoder::decode_attribute( $raw_attribute ),
+			'Should not have decoded an ambiguous semicolonless legacy reference.'
+		);
+
+		$match_byte_length = 'sentinel';
+		$this->assertNull(
+			WP_HTML_Decoder::read_character_reference( 'attribute', $raw_attribute, 0, $match_byte_length ),
+			'Should not have matched an ambiguous semicolonless legacy reference.'
+		);
+		$this->assertSame( 'sentinel', $match_byte_length );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[].
+	 */
+	public static function data_ambiguous_ascii_attribute_followers() {
+		return array(
+			'ASCII digit' => array( '&Aacute0' ),
+			'ASCII uppercase alpha' => array( '&AacuteA' ),
+			'ASCII lowercase alpha' => array( '&Aacutea' ),
+			'equals' => array( '&Aacute=' ),
+		);
+	}
+
+	/**
 	 * Ensures proper detection of attribute prefixes ignoring ASCII case.
 	 *
 	 * @ticket 61072
