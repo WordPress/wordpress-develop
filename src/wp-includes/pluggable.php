@@ -2991,7 +2991,7 @@ if ( ! function_exists( 'wp_rand' ) ) :
 	 * Generates a random non-negative number.
 	 *
 	 * @since 2.6.2
-	 * @since 4.4.0 Uses PHP7 random_int() or the random_compat library if available.
+	 * @since 4.4.0 Uses PHP7 random_int() if available.
 	 * @since 6.1.0 Returns zero instead of a random number if both `$min` and `$max` are zero.
 	 *
 	 * @global string $rnd_value

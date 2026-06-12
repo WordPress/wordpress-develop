@@ -11,9 +11,12 @@
 		"issues": "https://core.trac.wordpress.org/"
 	},
 	"require": {
+		"php": ">=8.5",
 		"ext-hash": "*",
 		"ext-json": "*",
-		"php": ">=7.4"
+		"ext-mbstring": "*",
+		"ext-mysqli": "*",
+		"ext-sodium": "*"
 	},
 	"suggest": {
 		"ext-dom": "*"
