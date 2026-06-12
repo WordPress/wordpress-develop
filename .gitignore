@@ -118,3 +118,8 @@ wp-tests-config.php
 
 # Visual regression test diffs
 tests/visual-regression/specs/__snapshots__
+
+# Local planning & agent-instruction files (never tracked, never committed)
+/AGENTS.md
+/MODERNIZATION-PLAN-v2.md
+/PROJECT-SUMMARY.md
