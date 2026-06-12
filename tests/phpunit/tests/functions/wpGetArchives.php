@@ -4,6 +4,7 @@
  * @group functions
  *
  * @covers ::wp_get_archives
+ * @covers ::wp_get_archives_data
  */
 class Tests_Functions_wpGetArchives extends WP_UnitTestCase {
 	protected static $post_ids;
@@ -238,5 +239,87 @@ EOF;
 		);
 
 		$this->assertEqualHTML( $expected, $archives );
+	}
+
+	/**
+	 * @ticket 34058
+	 */
+	public function test_wp_get_archives_data_monthly() {
+		register_post_type( 'archive_data_test', array( 'public' => true ) );
+
+		self::factory()->post->create_many(
+			2,
+			array(
+				'post_type' => 'archive_data_test',
+				'post_date' => '2021-01-15 12:00:00',
+			)
+		);
+
+		self::factory()->post->create(
+			array(
+				'post_type' => 'archive_data_test',
+				'post_date' => '2021-02-15 12:00:00',
+			)
+		);
+
+		$archives = wp_get_archives_data(
+			array(
+				'type'      => 'monthly',
+				'post_type' => 'archive_data_test',
+				'order'     => 'ASC',
+			)
+		);
+
+		$this->assertContainsOnlyInstancesOf( 'stdClass', $archives );
+		$this->assertCount( 2, $archives );
+
+		$this->assertSame(
+			add_query_arg( 'post_type', 'archive_data_test', get_month_link( 2021, 1 ) ),
+			$archives[0]->url
+		);
+		$this->assertSame( 'January 2021', $archives[0]->label );
+		$this->assertSame( 2, $archives[0]->post_count );
+		$this->assertSame( 'monthly', $archives[0]->type );
+		$this->assertSame( 2021, $archives[0]->year );
+		$this->assertSame( 1, $archives[0]->month );
+		$this->assertFalse( $archives[0]->selected );
+
+		$this->assertSame(
+			add_query_arg( 'post_type', 'archive_data_test', get_month_link( 2021, 2 ) ),
+			$archives[1]->url
+		);
+		$this->assertSame( 'February 2021', $archives[1]->label );
+		$this->assertSame( 1, $archives[1]->post_count );
+		$this->assertSame( 'monthly', $archives[1]->type );
+		$this->assertSame( 2021, $archives[1]->year );
+		$this->assertSame( 2, $archives[1]->month );
+		$this->assertFalse( $archives[1]->selected );
+	}
+
+	/**
+	 * @ticket 34058
+	 */
+	public function test_wp_get_archives_data_is_used_by_wp_get_archives() {
+		register_post_type( 'archive_data_test', array( 'public' => true ) );
+
+		self::factory()->post->create(
+			array(
+				'post_type' => 'archive_data_test',
+				'post_date' => '2021-01-15 12:00:00',
+			)
+		);
+
+		$archives = wp_get_archives(
+			array(
+				'echo'            => false,
+				'post_type'       => 'archive_data_test',
+				'show_post_count' => true,
+			)
+		);
+
+		$expected_url = esc_url( add_query_arg( 'post_type', 'archive_data_test', get_month_link( 2021, 1 ) ) );
+		$expected     = "<li><a href='{$expected_url}'>January 2021</a>&nbsp;(1)</li>";
+
+		$this->assertSame( $expected, trim( $archives ) );
 	}
 }
