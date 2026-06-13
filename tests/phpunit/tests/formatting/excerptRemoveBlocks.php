@@ -190,4 +190,21 @@ class Tests_Formatting_ExcerptRemoveBlocks extends WP_UnitTestCase {
 		$this->assertStringNotContainsString( 'hidden inner', $output );
 		$this->assertStringContainsString( 'visible inner', $output );
 	}
+
+	/**
+	 * Tests that a block hidden only on a specific viewport is kept in the
+	 * excerpt. Viewport visibility only affects the rendered display via CSS,
+	 * so it must not strip the block's text from the excerpt.
+	 *
+	 * @ticket 65456
+	 */
+	public function test_excerpt_remove_blocks_keeps_viewport_hidden_block() {
+		$content = '<!-- wp:paragraph {"metadata":{"blockVisibility":{"viewport":{"desktop":false}}}} -->
+<p>Hello World</p>
+<!-- /wp:paragraph -->';
+
+		$output = excerpt_remove_blocks( $content );
+
+		$this->assertStringContainsString( 'Hello World', $output );
+	}
 }
