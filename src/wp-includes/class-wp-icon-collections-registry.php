@@ -58,10 +58,10 @@ class WP_Icon_Collections_Registry {
 			return false;
 		}
 
-		if ( ! preg_match( '/^[a-z][a-z-]*$/', $collection_slug ) ) {
+		if ( ! preg_match( '/^[a-z0-9-]+$/', $collection_slug ) ) {
 			_doing_it_wrong(
 				__METHOD__,
-				__( 'Icon collection slug must start with a lowercase letter and may only contain lowercase letters and hyphens.' ),
+				__( 'Icon collection slug must only contain lowercase alphanumeric characters and hyphens.' ),
 				'7.1.0'
 			);
 			return false;
