@@ -2553,7 +2553,7 @@ class WP_HTML_Tag_Processor {
 		);
 
 		$attribute_like_text_starts_at = $this->tag_name_starts_at + $this->tag_name_length;
-		$this->lexical_updates[]      = new WP_HTML_Text_Replacement(
+		$this->lexical_updates[]       = new WP_HTML_Text_Replacement(
 			$attribute_like_text_starts_at,
 			$this->token_starts_at + $this->token_length - 1 - $attribute_like_text_starts_at,
 			$updated_attributes
