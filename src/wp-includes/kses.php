@@ -2579,6 +2579,7 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 	 * Filters the list of allowed CSS attributes.
 	 *
 	 * @since 2.8.1
+	 * @since 7.1.0 Added support for SVG presentation attributes.
 	 *
 	 * @param string[] $attr Array of allowed CSS attributes.
 	 */
@@ -2736,6 +2737,55 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 			'box-shadow',
 			'aspect-ratio',
 			'container-type',
+
+			'fill',
+			'fill-opacity',
+			'fill-rule',
+
+			'stroke',
+			'stroke-dasharray',
+			'stroke-dashoffset',
+			'stroke-linecap',
+			'stroke-linejoin',
+			'stroke-miterlimit',
+			'stroke-opacity',
+			'stroke-width',
+
+			'color-interpolation',
+			'color-interpolation-filters',
+			'paint-order',
+			'stop-color',
+			'stop-opacity',
+			'flood-color',
+			'flood-opacity',
+			'lighting-color',
+
+			'marker',
+			'marker-start',
+			'marker-mid',
+			'marker-end',
+
+			'clip-rule',
+			'mask-type',
+
+			'cx',
+			'cy',
+			'r',
+			'rx',
+			'ry',
+			'x',
+			'y',
+			'd',
+
+			'alignment-baseline',
+			'baseline-shift',
+			'dominant-baseline',
+			'glyph-orientation-horizontal',
+			'glyph-orientation-vertical',
+			'text-anchor',
+
+			'shape-rendering',
+			'vector-effect',
 
 			// Custom CSS properties.
 			'--*',
