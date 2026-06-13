@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Icons API: WP_Icon_Collections_Registry class
  *

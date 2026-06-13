@@ -20,6 +20,8 @@ class WP_REST_Icons_Controller extends WP_REST_Controller {
 
 	/**
 	 * Constructs the controller.
+	 *
+	 * @since 7.0.0
 	 */
 	public function __construct() {
 		$this->namespace = 'wp/v2';
@@ -93,6 +95,8 @@ class WP_REST_Icons_Controller extends WP_REST_Controller {
 	/**
 	 * Checks whether a given request has permission to read icons.
 	 *
+	 * @since 7.0.0
+	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return true|WP_Error True if the request has read access, WP_Error object otherwise.
 	 */
@@ -119,6 +123,8 @@ class WP_REST_Icons_Controller extends WP_REST_Controller {
 
 	/**
 	 * Checks if a given request has access to read a specific icon.
+	 *
+	 * @since 7.0.0
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return true|WP_Error True if the request has read access for the item, WP_Error object otherwise.
@@ -173,6 +179,8 @@ class WP_REST_Icons_Controller extends WP_REST_Controller {
 	/**
 	 * Retrieves a specific icon.
 	 *
+	 * @since 7.0.0
+	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
@@ -188,6 +196,8 @@ class WP_REST_Icons_Controller extends WP_REST_Controller {
 
 	/**
 	 * Retrieves a specific icon from the registry.
+	 *
+	 * @since 7.0.0
 	 *
 	 * @param string $name Icon name.
 	 * @return array|WP_Error Icon data on success, or WP_Error object on failure.
