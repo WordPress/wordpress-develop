@@ -3063,6 +3063,7 @@ class wpdb {
 	 * @param int         $y      Optional. Row to return. Indexed from 0. Default 0.
 	 * @return array|object|null Database query result in format specified by $output or null on failure.
 	 *
+	 * @phpstan-param 'OBJECT'|'ARRAY_A'|'ARRAY_N' $output
 	 * @phpstan-return (
 	 *     $query is non-falsy-string
 	 *         ? (
@@ -3171,6 +3172,7 @@ class wpdb {
 	 *                    or on database error. Null when $query is empty or
 	 *                    $output is invalid.
 	 *
+	 * @phpstan-param 'OBJECT'|'OBJECT_K'|'ARRAY_A'|'ARRAY_N' $output
 	 * @phpstan-return (
 	 *     $query is non-falsy-string
 	 *         ? (
