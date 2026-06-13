@@ -50,13 +50,13 @@ on:
         type: boolean
         default: false
 env:
-  COMPOSER_INSTALL: ${{ false }}
+  COMPOSER_INSTALL: false
   LOCAL_PHP: ${{ inputs.php }}-fpm
   LOCAL_PHPUNIT: ${{ inputs.phpunit && inputs.phpunit || inputs.php }}-fpm
   LOCAL_PHP_MEMCACHED: ${{ inputs.memcached }}
   PHPUNIT_CONFIG: ${{ inputs.phpunit-config }}
   PHPUNIT_SCRIPT: php
-  PUPPETEER_SKIP_DOWNLOAD: ${{ true }}
+  PUPPETEER_SKIP_DOWNLOAD: true
   SLOW_TESTS: 'external-http,media'
 
 # Disable permissions for all available scopes by default.
@@ -87,6 +87,8 @@ jobs:
     name: PHP ${{ inputs.php }} / ${{ inputs.multisite && ' Multisite' || 'Single site' }}${{ inputs.split_slow && ' slow tests' || '' }}${{ inputs.memcached && ' with memcached' || '' }}
     runs-on: ${{ inputs.os }}
     timeout-minutes: 20
+    permissions:
+      contents: read
 
     steps:
       - name: Configure environment variables
@@ -95,13 +97,13 @@ jobs:
           echo "PHP_FPM_GID=$(id -g)" >> "$GITHUB_ENV"
 
       - name: Checkout repository
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
           persist-credentials: false
 
       - name: Set up Node.js
-        uses: actions/setup-node@cdca7365b2dadb8aad0a33bc7601856ffabcc48e # v4.3.0
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
         with:
           node-version-file: '.nvmrc'
           cache: npm
@@ -119,7 +121,7 @@ jobs:
 
       - name: Cache Composer dependencies
         if: ${{ env.COMPOSER_INSTALL == true }}
-        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
         env:
           cache-name: cache-composer-dependencies
         with:
