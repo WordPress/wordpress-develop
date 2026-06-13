@@ -3019,15 +3019,15 @@ class wpdb {
 	 * the value in the column and row specified is returned. If $query is null,
 	 * the value in the specified column and row from the previous SQL result is returned.
 	 *
+	 * Returns null both on failure and when the matched cell value is an empty
+	 * string. To distinguish the two cases, check `$this->last_error`.
+	 *
 	 * @since 0.71
 	 *
 	 * @param string|null $query Optional. SQL query. Defaults to null, use the result from the previous query.
 	 * @param int         $x     Optional. Column of value to return. Indexed from 0. Default 0.
 	 * @param int         $y     Optional. Row of value to return. Indexed from 0. Default 0.
-	 * @return string|null Database query result (as string), null on failure, or null when
-	 *                     the matched value is an empty string. The empty-string case is
-	 *                     indistinguishable from failure in the return value; consumers
-	 *                     that need to tell them apart should check `$this->last_error`.
+	 * @return string|null Database query result (as string), or null on failure or when the value is an empty string.
 	 */
 	public function get_var( $query = null, $x = 0, $y = 0 ) {
 		$this->func_call = "\$db->get_var(\"$query\", $x, $y)";
