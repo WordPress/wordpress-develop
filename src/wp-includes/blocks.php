@@ -2238,6 +2238,11 @@ function excerpt_remove_blocks( $content ) {
 	$output         = '';
 
 	foreach ( $blocks as $block ) {
+		// Skip blocks hidden via the visibility block support.
+		if ( false === ( $block['attrs']['metadata']['blockVisibility'] ?? null ) ) {
+			continue;
+		}
+
 		if ( in_array( $block['blockName'], $allowed_blocks, true ) ) {
 			if ( ! empty( $block['innerBlocks'] ) ) {
 				if ( in_array( $block['blockName'], $allowed_wrapper_blocks, true ) ) {
@@ -2299,6 +2304,11 @@ function _excerpt_render_inner_blocks( $parsed_block, $allowed_blocks ) {
 	$output = '';
 
 	foreach ( $parsed_block['innerBlocks'] as $inner_block ) {
+		// Skip blocks hidden via the visibility block support.
+		if ( false === ( $inner_block['attrs']['metadata']['blockVisibility'] ?? null ) ) {
+			continue;
+		}
+
 		if ( ! in_array( $inner_block['blockName'], $allowed_blocks, true ) ) {
 			continue;
 		}
