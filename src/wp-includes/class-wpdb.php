@@ -3176,15 +3176,19 @@ class wpdb {
 	 * @phpstan-return (
 	 *     $query is non-falsy-string
 	 *         ? (
-	 *             $output is 'OBJECT'|'OBJECT_K'
-	 *                 ? array<int|string, stdClass>
+	 *             $output is 'OBJECT'
+	 *                 ? list<stdClass>
 	 *                 : (
-	 *                     $output is 'ARRAY_A'
-	 *                         ? array<int, array<string, mixed>>
+	 *                     $output is 'OBJECT_K'
+	 *                         ? array<array-key, stdClass>
 	 *                         : (
-	 *                             $output is 'ARRAY_N'
-	 *                                 ? array<int, list<mixed>>
-	 *                                 : null
+	 *                             $output is 'ARRAY_A'
+	 *                                 ? list<array<string, mixed>>
+	 *                                 : (
+	 *                                     $output is 'ARRAY_N'
+	 *                                         ? list<list<mixed>>
+	 *                                         : null
+	 *                                 )
 	 *                         )
 	 *                 )
 	 *         )
