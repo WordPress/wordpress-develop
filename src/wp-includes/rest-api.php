@@ -717,7 +717,7 @@ function rest_ensure_response( $response ) {
  *                or empty string when no plugin/theme frame is found in the call stack.
  */
 function _rest_get_debug_backtrace_caller(): string {
-	$backtrace              = debug_backtrace( DEBUG_BACKTRACE_IGNORE_ARGS, 20 );
+	$backtrace              = debug_backtrace( DEBUG_BACKTRACE_IGNORE_ARGS );
 	$normalized_content_dir = strtolower( trailingslashit( wp_normalize_path( WP_CONTENT_DIR ) ) );
 
 	foreach ( $backtrace as $i => $frame ) {
