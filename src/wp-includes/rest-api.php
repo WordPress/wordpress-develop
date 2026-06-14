@@ -718,7 +718,7 @@ function rest_ensure_response( $response ) {
  */
 function _rest_get_debug_backtrace_caller(): string {
 	$backtrace              = debug_backtrace( DEBUG_BACKTRACE_IGNORE_ARGS );
-	$normalized_content_dir = strtolower( trailingslashit( wp_normalize_path( WP_CONTENT_DIR ) ) );
+	$normalized_content_dir = trailingslashit( wp_normalize_path( WP_CONTENT_DIR ) );
 
 	foreach ( $backtrace as $i => $frame ) {
 		if ( ! isset( $frame['file'] ) ) {
@@ -726,7 +726,7 @@ function _rest_get_debug_backtrace_caller(): string {
 		}
 
 		$normalized_file = wp_normalize_path( $frame['file'] );
-		if ( ! str_starts_with( strtolower( $normalized_file ), $normalized_content_dir ) ) {
+		if ( ! str_starts_with( $normalized_file, $normalized_content_dir ) ) {
 			continue;
 		}
 
@@ -745,7 +745,7 @@ function _rest_get_debug_backtrace_caller(): string {
 			if ( str_starts_with( $next['function'], '{' ) ) {
 				return ' called from (anonymous function)' . $location;
 			}
-			
+
 			/*
 			 * A call made from a file's global scope has no enclosing function; PHP
 			 * reports the include/require pseudo-function that loaded the file instead.
