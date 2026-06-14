@@ -745,6 +745,15 @@ function _rest_get_debug_backtrace_caller(): string {
 			if ( str_starts_with( $next['function'], '{' ) ) {
 				return ' called from (anonymous function)' . $location;
 			}
+			
+			/*
+			 * A call made from a file's global scope has no enclosing function; PHP
+			 * reports the include/require pseudo-function that loaded the file instead.
+			 * In that case only the location is meaningful.
+			 */
+			if ( in_array( $next['function'], array( 'require', 'require_once', 'include', 'include_once' ), true ) ) {
+				return $location;
+			}
 			$caller_func = $next['function'];
 			if ( isset( $next['class'] ) ) {
 				$caller_func = $next['class'] . $next['type'] . $caller_func;
