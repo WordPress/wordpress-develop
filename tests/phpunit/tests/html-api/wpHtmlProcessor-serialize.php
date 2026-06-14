@@ -109,6 +109,129 @@ class Tests_HtmlApi_WpHtmlProcessor_Serialize extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensures that adjusted foreign attributes are serialized with their namespace prefix.
+	 *
+	 * @ticket 65372
+	 */
+	public function test_serializes_adjusted_foreign_attributes_with_namespace_prefix(): void {
+		$svg = '<svg><a xlink:actuate="onLoad" xlink:arcrole="arc" xlink:href="#target" xlink:role="role" xlink:show="new" xlink:title="title" xlink:type="simple" xml:lang="en" xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"></a></svg>';
+
+		$this->assertSame(
+			$svg,
+			WP_HTML_Processor::normalize( $svg ),
+			'Should have preserved all adjusted foreign attributes when normalizing.'
+		);
+
+		$processor = WP_HTML_Processor::create_fragment( $svg );
+		$this->assertTrue( $processor->next_token() );
+		$this->assertSame( '<svg>', $processor->serialize_token(), 'Should serialize the opening SVG tag.' );
+		$this->assertTrue( $processor->next_token() );
+		$this->assertSame(
+			'<a xlink:actuate="onLoad" xlink:arcrole="arc" xlink:href="#target" xlink:role="role" xlink:show="new" xlink:title="title" xlink:type="simple" xml:lang="en" xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">',
+			$processor->serialize_token(),
+			'Should have serialized all adjusted foreign attributes with their namespace prefixes.'
+		);
+	}
+
+	/**
+	 * Ensures that non-adjusted foreign attributes retain their colon.
+	 *
+	 * @ticket 65372
+	 *
+	 * @dataProvider data_non_adjusted_foreign_attributes_with_colon
+	 *
+	 * @param string $svg            SVG markup to normalize.
+	 * @param string $serialized_tag Expected serialized token.
+	 */
+	public function test_serializes_non_adjusted_foreign_attributes_with_colon( string $svg, string $serialized_tag ): void {
+		$this->assertSame(
+			$svg,
+			WP_HTML_Processor::normalize( $svg ),
+			'Should have preserved non-adjusted colon attributes when normalizing.'
+		);
+
+		$processor = WP_HTML_Processor::create_fragment( $svg );
+		$this->assertTrue( $processor->next_token() );
+		$this->assertSame( '<svg>', $processor->serialize_token(), 'Should serialize the opening SVG tag.' );
+		$this->assertTrue( $processor->next_token() );
+		$this->assertSame(
+			$serialized_tag,
+			$processor->serialize_token(),
+			'Should have preserved non-adjusted colon attributes when serializing the token.'
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{0: string, 1: string}>
+	 */
+	public static function data_non_adjusted_foreign_attributes_with_colon(): array {
+		return array(
+			'xlink control' => array(
+				'<svg><a xlink:author="author" xlink:href="#target"></a></svg>',
+				'<a xlink:author="author" xlink:href="#target">',
+			),
+			'xml control'   => array(
+				'<svg><a xml:id="id" xml:lang="en"></a></svg>',
+				'<a xml:id="id" xml:lang="en">',
+			),
+			'xmlns control' => array(
+				'<svg><a xmlns:foo="urn:foo" xmlns:xlink="http://www.w3.org/1999/xlink"></a></svg>',
+				'<a xmlns:foo="urn:foo" xmlns:xlink="http://www.w3.org/1999/xlink">',
+			),
+			'source order'  => array(
+				'<svg><a foo:bar="baz" xlink:href="#target"></a></svg>',
+				'<a foo:bar="baz" xlink:href="#target">',
+			),
+		);
+	}
+
+	/**
+	 * Ensures that duplicate foreign attributes are removed upon serialization.
+	 *
+	 * @ticket 65372
+	 *
+	 * @dataProvider data_duplicate_foreign_attributes
+	 *
+	 * @param string $input    HTML containing duplicate foreign attributes.
+	 * @param string $expected Expected normalized HTML.
+	 */
+	public function test_duplicate_foreign_attributes_are_removed( string $input, string $expected ): void {
+		$this->assertSame(
+			$expected,
+			WP_HTML_Processor::normalize( $input ),
+			'Should have removed all but the first copy of a foreign attribute when duplicates exist.'
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{0: string, 1: string}>
+	 */
+	public static function data_duplicate_foreign_attributes(): array {
+		return array(
+			'adjusted xlink duplicate'       => array(
+				'<svg><a xlink:href="#first" XLINK:HREF="#second"></a></svg>',
+				'<svg><a xlink:href="#first"></a></svg>',
+			),
+			'adjusted xml duplicate'         => array(
+				'<svg><a xml:lang="en" XML:LANG="fr"></a></svg>',
+				'<svg><a xml:lang="en"></a></svg>',
+			),
+			'non-adjusted colon duplicate'   => array(
+				'<svg><a foo:bar="one" FOO:BAR="two"></a></svg>',
+				'<svg><a foo:bar="one"></a></svg>',
+			),
+			'adjusted and non-adjusted pair' => array(
+				'<svg><a xlink:href="#target" xlink:author="author"></a></svg>',
+				'<svg><a xlink:href="#target" xlink:author="author"></a></svg>',
+			),
+		);
+	}
+
+	/**
 	 * Ensures that SCRIPT contents are not escaped, as they are not parsed like text nodes are.
 	 *
 	 * @ticket 62036
@@ -338,6 +461,175 @@ class Tests_HtmlApi_WpHtmlProcessor_Serialize extends WP_UnitTestCase {
 		$this->assertEqualHTML( $expected, $normalized );
 		$normalized_twice = WP_HTML_Processor::normalize( $normalized );
 		$this->assertEqualHTML( $expected, $normalized_twice );
+	}
+
+	/**
+	 * Ensures that fuzzer-discovered inputs do not emit native PHP errors.
+	 *
+	 * @ticket 65372
+	 *
+	 * @dataProvider data_provider_fuzzer_native_error_cases
+	 *
+	 * @param string      $input    HTML input.
+	 * @param string|null $expected Expected normalized output, or null when unsupported.
+	 */
+	public function test_normalize_fuzzer_cases_do_not_emit_native_errors( string $input, ?string $expected ) {
+		$errors = array();
+
+		/*
+		 * This test is checking for native PHP warnings/notices. Unsupported HTML may
+		 * intentionally cause wp_trigger_error() under WP_DEBUG, which is separate
+		 * from the native errors this regression test is trying to catch.
+		 */
+		add_filter( 'wp_trigger_error_trigger_error', '__return_false' );
+		set_error_handler(
+			static function ( int $errno, string $errstr ) use ( &$errors ) {
+				$errors[] = "{$errno}: {$errstr}";
+				return true;
+			}
+		);
+
+		try {
+			$normalized = WP_HTML_Processor::normalize( $input );
+		} finally {
+			restore_error_handler();
+			remove_filter( 'wp_trigger_error_trigger_error', '__return_false' );
+		}
+
+		// Use assertSame() instead of assertEmpty() so PHPUnit shows captured error messages on failure.
+		$this->assertSame( array(), $errors );
+		$this->assertSame( $expected, $normalized, 'Should have normalized the input.' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_provider_fuzzer_native_error_cases() {
+		return array(
+			'Unsupported active formatting' => array( '<A><I><A>', null ),
+		);
+	}
+
+	/**
+	 * Ensures that normalized fuzzer-discovered inputs remain supported.
+	 *
+	 * @ticket 65372
+	 *
+	 * @dataProvider data_provider_normalized_fuzzer_cases_that_should_remain_supported
+	 *
+	 * @param string $input HTML input.
+	 */
+	public function test_normalized_fuzzer_cases_should_remain_supported( string $input ) {
+		$errors = array();
+		set_error_handler(
+			static function ( int $errno, string $errstr ) use ( &$errors ) {
+				$errors[] = "{$errno}: {$errstr}";
+				return true;
+			}
+		);
+
+		try {
+			$normalized       = WP_HTML_Processor::normalize( $input );
+			$normalized_twice = is_string( $normalized ) ? WP_HTML_Processor::normalize( $normalized ) : null;
+		} finally {
+			restore_error_handler();
+		}
+
+		// Use assertSame() instead of assertEmpty() so PHPUnit shows captured error messages on failure.
+		$this->assertSame( array(), $errors );
+		$this->assertIsString( $normalized, 'Input HTML should normalize successfully.' );
+		$this->assertIsString(
+			$normalized_twice,
+			'Normalized HTML should remain supported by the HTML Processor.'
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_provider_normalized_fuzzer_cases_that_should_remain_supported() {
+		return array(
+			'Unclosed SVG TITLE after P in EM'     => array( '<em><p><svg><title>' ),
+			'Unclosed SVG TITLE after P in STRONG' => array( '<strong><p><svg ><title>' ),
+		);
+	}
+
+	/**
+	 * Ensures that normalized fuzzer-discovered inputs are idempotent.
+	 *
+	 * @ticket 65372
+	 *
+	 * @dataProvider data_provider_normalized_fuzzer_cases_that_should_be_idempotent
+	 *
+	 * @param string $input HTML input.
+	 */
+	public function test_normalized_fuzzer_cases_should_be_idempotent( string $input ) {
+		$errors = array();
+		set_error_handler(
+			static function ( int $errno, string $errstr ) use ( &$errors ) {
+				$errors[] = "{$errno}: {$errstr}";
+				return true;
+			}
+		);
+
+		try {
+			$normalized       = WP_HTML_Processor::normalize( $input );
+			$normalized_twice = is_string( $normalized ) ? WP_HTML_Processor::normalize( $normalized ) : null;
+		} finally {
+			restore_error_handler();
+		}
+
+		// Use assertSame() instead of assertEmpty() so PHPUnit shows captured error messages on failure.
+		$this->assertSame( array(), $errors );
+		$this->assertIsString( $normalized, 'Input HTML should normalize successfully.' );
+		$this->assertSame(
+			$normalized,
+			$normalized_twice,
+			'Normalizing already-normalized HTML should not change it.'
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_provider_normalized_fuzzer_cases_that_should_be_idempotent() {
+		return array(
+			'Malformed quoted attribute boundary'       => array( '<A "/=>' ),
+			'Duplicate attribute after bare attribute'  => array( '<A V=5 R V=""=>' ),
+			'Duplicate DATA-ID after numeric attribute' => array( '<E DATA-ID=1 1 DATA-ID=""=>' ),
+			'Duplicate attribute before tag end'        => array( '<R V=5 R V=5 =>' ),
+			'NULL byte in foreign tag name'             => array( "<SVG><L\x00 D>" ),
+			'Malformed closing-looking attribute'       => array( '<a </=>' ),
+			'Malformed self-closing attribute'          => array( '<a h/=>' ),
+			'Duplicate ID with quote boundary'          => array( '<d ID=""" ID=""=>' ),
+			'Mixed-case duplicate TITLE'                => array( "<d TITLE=\"\"' title=\"\"=>" ),
+			'Colon before self-closing slash'           => array( '<e :/=>' ),
+			'Duplicate class after bare attribute'      => array( "<e class=y d class=''=>" ),
+			'Duplicate DATA-ID after hyphen'            => array( '<e data-id=1 - data-id="">' ),
+			'Duplicate title after quotes'              => array( "<e title=''' title=\"\"=>" ),
+			'FORM with SVG TITLE text edge'             => array( "<form ><svg ><title \"'></form><form>" ),
+			'FORM with TABLE and SCRIPT'                => array( '<form id><table te"><script></script><td srce" ID/></form><form claslicate">' ),
+			'FORM with TABLE CAPTION'                   => array( '<form><table><caption></form><form >' ),
+			'Short malformed G attribute C'             => array( '<g c/=>' ),
+			'Short malformed G attribute S'             => array( '<g s/=>' ),
+			'Duplicate SRC boundary'                    => array( '<g src=""g src="">' ),
+			'Short malformed H attribute'               => array( '<h f/=>' ),
+			'Malformed SRC equals boundary'             => array( '<i src=""= src=""=">' ),
+			'Malformed slash in tag opener'             => array( '<i/t/=>' ),
+			'Malformed L colon attribute'               => array( '<l :/=>' ),
+			'Malformed L less-than attribute'           => array( '<l/</=>' ),
+			'Malformed N less-than attribute'           => array( '<n </=>' ),
+			'Unclosed SVG TITLE after P'                => array( '<p><svg><title>' ),
+			'Duplicate ALT boundary'                    => array( '<r alt=\'\'d alt=""=>' ),
+			'NULL byte in SVG child tag'                => array( "<svg><l\x00 '>" ),
+			'NULL byte before slash in SVG child tag'   => array( "<svg><l\x00/r>" ),
+		);
 	}
 
 	/**

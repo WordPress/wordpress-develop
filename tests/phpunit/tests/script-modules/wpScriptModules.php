@@ -1904,22 +1904,24 @@ HTML;
 	}
 
 	/**
-	 * Tests that VIPS script modules are not registered in Core.
+	 * Tests that VIPS script modules always use minified file paths.
 	 *
-	 * The wasm-vips library is plugin-only and should not be included
-	 * in WordPress Core builds due to its large size (~16MB per file).
+	 * Non-minified VIPS files are not shipped because they are ~10MB of
+	 * inlined WASM with no debugging value, so the registration should
+	 * always point to the .min.js variants.
 	 *
-	 * @ticket 64906
+	 * @ticket 64734
 	 *
 	 * @covers ::wp_default_script_modules
 	 */
-	public function test_vips_script_modules_not_registered_in_core() {
+	public function test_vips_script_modules_always_use_minified_paths() {
 		wp_default_script_modules();
 		wp_enqueue_script_module( '@wordpress/vips/loader' );
 
 		$actual = get_echo( array( wp_script_modules(), 'print_enqueued_script_modules' ) );
 
-		$this->assertStringNotContainsString( 'vips', $actual );
+		$this->assertStringContainsString( 'vips/loader.min.js', $actual );
+		$this->assertStringNotContainsString( 'vips/loader.js"', $actual );
 	}
 
 	/**
@@ -2041,6 +2043,7 @@ HTML;
 			array( 'classic-dependency' ),
 			false,
 			array(
+				'strategy'            => 'defer',
 				'module_dependencies' => array(
 					'example',
 					array(
@@ -2109,6 +2112,7 @@ HTML;
 			array(),
 			false,
 			array(
+				'in_footer'           => true,
 				'module_dependencies' => array( 'classic-transitive-dependency' ),
 			)
 		);
@@ -2118,6 +2122,7 @@ HTML;
 			array( 'classic-transitive-dep' ),
 			false,
 			array(
+				'in_footer'           => true,
 				'module_dependencies' => array( 'not-enqueued' ),
 			)
 		);
@@ -2153,6 +2158,7 @@ HTML;
 			array(),
 			null,
 			array(
+				'strategy'            => 'defer',
 				'module_dependencies' => array( 'does-not-exist' ),
 			)
 		);
