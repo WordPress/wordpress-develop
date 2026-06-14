@@ -745,7 +745,10 @@ function _rest_get_debug_backtrace_caller(): string {
 			if ( str_starts_with( $next['function'], '{' ) ) {
 				return ' called from (anonymous function)' . $location;
 			}
-			$caller_func = isset( $next['class'] ) ? $next['class'] . ( $next['type'] ?? '::' ) . $next['function'] : $next['function'];
+			$caller_func = $next['function'];
+			if ( isset( $next['class'] ) ) {
+				$caller_func = $next['class'] . $next['type'] . $caller_func;
+			}
 			return ' called from ' . $caller_func . '()' . $location;
 		}
 
