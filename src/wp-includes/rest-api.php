@@ -716,7 +716,7 @@ function rest_ensure_response( $response ) {
  *                or ' called from (anonymous function) in /path/plugin.php on line 8' for closures,
  *                or empty string when no plugin/theme frame is found in the call stack.
  */
-function _rest_get_debug_backtrace_caller() {
+function _rest_get_debug_backtrace_caller(): string {
 	$backtrace              = debug_backtrace( DEBUG_BACKTRACE_IGNORE_ARGS, 20 );
 	$normalized_content_dir = strtolower( trailingslashit( wp_normalize_path( WP_CONTENT_DIR ) ) );
 
