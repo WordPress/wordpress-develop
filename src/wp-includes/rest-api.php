@@ -740,8 +740,8 @@ function _rest_get_debug_backtrace_caller(): string {
 		 * PHP represents closures as '{closure}' (< 8.4) or '{closure:file:line}' (>= 8.4),
 		 * both starting with '{'. These are replaced with a readable label.
 		 */
-		$next = $backtrace[ $i + 1 ] ?? array();
-		if ( ! empty( $next['function'] ) ) {
+		$next = $backtrace[ $i + 1 ] ?? null;
+		if ( $next ) {
 			if ( str_starts_with( $next['function'], '{' ) ) {
 				return ' called from (anonymous function)' . $location;
 			}
