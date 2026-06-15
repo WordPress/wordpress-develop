@@ -3733,6 +3733,43 @@ mockedApiResponse.Schema = {
                             "description": "Unique identifier for the attachment.",
                             "type": "integer",
                             "required": false
+                        },
+                        "sub_sizes": {
+                            "description": "Array of sub-size metadata collected from sideload responses.",
+                            "type": "array",
+                            "default": [],
+                            "items": {
+                                "type": "object",
+                                "properties": {
+                                    "image_size": {
+                                        "type": "string",
+                                        "required": true
+                                    },
+                                    "width": {
+                                        "type": "integer",
+                                        "minimum": 1
+                                    },
+                                    "height": {
+                                        "type": "integer",
+                                        "minimum": 1
+                                    },
+                                    "file": {
+                                        "type": "string"
+                                    },
+                                    "mime_type": {
+                                        "type": "string",
+                                        "pattern": "^image/.*"
+                                    },
+                                    "filesize": {
+                                        "type": "integer",
+                                        "minimum": 1
+                                    },
+                                    "original_image": {
+                                        "type": "string"
+                                    }
+                                }
+                            },
+                            "required": false
                         }
                     }
                 }
