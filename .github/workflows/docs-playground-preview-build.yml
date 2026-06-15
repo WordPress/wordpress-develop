@@ -23,7 +23,7 @@ jobs:
     timeout-minutes: 120
     permissions:
       contents: read
-    if: ${{ github.repository == 'WordPress/wordpress-develop' && ! github.event.pull_request.draft }}
+    if: ${{ github.repository == 'WordPress/wordpress-develop' }}
 
     steps:
       - name: Checkout trusted preview harness
