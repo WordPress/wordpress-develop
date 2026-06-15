@@ -114,7 +114,7 @@ class WP_Site_Health {
 
 		$issue_counts = get_transient( 'health-check-site-status-result' );
 
-		if ( false !== $issue_counts ) {
+		if ( is_string( $issue_counts ) ) {
 			$issue_counts = json_decode( $issue_counts, true );
 
 			/*
