@@ -914,7 +914,7 @@ class Tests_Block_Supports_States extends WP_UnitTestCase {
 		$actual_stylesheet = wp_style_engine_get_stylesheet_from_context( 'block-supports', array( 'prettify' => false ) );
 
 		$this->assertStringContainsString(
-			'@media (width <= 480px){.' . $matches[0] . ' .wp-block-button__link:hover{background-color:#ff00d0 !important;}}',
+			'@media (width <= 480px){.' . $matches[0] . ' .wp-block-button__link:hover{background-color:#ff00d0 !important;background-image:unset !important;}}',
 			$actual_stylesheet
 		);
 	}
