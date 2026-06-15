@@ -1,0 +1,42 @@
+name: Docs Playground Preview Publish
+
+on:
+  workflow_run:
+    workflows:
+      - 'Docs Playground Preview Build'
+    types:
+      - completed
+
+# Serialize publication for the same pull request commit.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.workflow_run.head_sha }}
+  cancel-in-progress: false
+
+# Disable permissions for all available scopes by default.
+# Any needed permissions should be configured at the job level.
+permissions: {}
+
+jobs:
+  publish-docs-playground-preview:
+    name: Publish docs Playground preview
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      actions: read
+      contents: write
+      issues: write
+      pull-requests: read
+    if: ${{ github.repository == 'WordPress/wordpress-develop' }}
+
+    steps:
+      - name: Checkout trusted preview publisher
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          ref: ${{ github.sha }}
+          show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
+          persist-credentials: false
+
+      - name: Publish docs preview comment
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: node .github/scripts/docs-playground-preview/publish.mjs
