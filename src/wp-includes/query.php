@@ -689,7 +689,7 @@ function is_favicon() {
  *
  * @return bool Whether the query is for a sitemap.
  */
-function is_sitemap() {
+function is_sitemap(): bool {
 	global $wp_query;
 
 	if ( ! isset( $wp_query ) ) {

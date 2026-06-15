@@ -414,9 +414,8 @@ class WP_Query {
 	 * Signifies whether the current query is for a sitemap.
 	 *
 	 * @since 7.1.0
-	 * @var bool
 	 */
-	public $is_sitemap = false;
+	public bool $is_sitemap = false;
 
 	/**
 	 * Signifies whether the current query is for the page_for_posts page.
@@ -4656,8 +4655,8 @@ class WP_Query {
 	 *
 	 * @return bool Whether the query is for a sitemap.
 	 */
-	public function is_sitemap() {
-		return (bool) $this->is_sitemap;
+	public function is_sitemap(): bool {
+		return $this->is_sitemap;
 	}
 
 	/**
