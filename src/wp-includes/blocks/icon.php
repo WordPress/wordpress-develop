@@ -10,7 +10,9 @@
  *
  * @since 7.0.0
  *
- * @param array $attributes The block attributes.
+ * @param array    $attributes The block attributes.
+ * @param string   $content    The block content.
+ * @param WP_Block $block      The block instance.
  *
  * @return string Returns the Icon.
  */

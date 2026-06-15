@@ -11,13 +11,6 @@
 		"label": {
 			"type": "string",
 			"role": "content"
-		},
-		"opensInNewTab": {
-			"type": "boolean",
-			"default": false
-		},
-		"description": {
-			"type": "string"
 		}
 	},
 	"usesContext": [
