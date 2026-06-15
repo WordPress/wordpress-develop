@@ -19,7 +19,7 @@ permissions: {}
 jobs:
   build-docs-playground-preview:
     name: Build docs Playground snapshot
-    if: ${{ github.repository == 'WordPress/wordpress-develop' }}
+    if: ${{ github.repository == 'WordPress/wordpress-develop' || github.repository == 'dmsnell/wordpress-develop' }}
     uses: WordPress/action-wp-playground-pr-preview/.github/workflows/preview-build.yml@43fc435558bc6cee69f5b214d6b8ca4f9f80c31d # v3
     permissions:
       contents: read
