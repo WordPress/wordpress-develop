@@ -829,7 +829,8 @@ class WP_Term_Query {
 			foreach ( $taxonomies as $_tax ) {
 				$children = _get_term_hierarchy( $_tax );
 				if ( ! empty( $children ) ) {
-					$term_objects = _get_term_children( $child_of, $term_objects, $_tax );
+					$ancestors    = array();
+					$term_objects = _get_term_children( $child_of, $term_objects, $_tax, $ancestors, $hierarchical );
 				}
 			}
 		}
