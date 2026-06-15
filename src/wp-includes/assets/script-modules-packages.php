@@ -88,7 +88,7 @@
 				'import' => 'static'
 			)
 		),
-		'version' => '1ecf748f10b95c76b349'
+		'version' => '3440d5367efaa2741a5b'
 	),
 	'block-library/query/view.js' => array(
 		'dependencies' => array(
@@ -128,7 +128,7 @@
 				'import' => 'static'
 			)
 		),
-		'version' => '1f60dd5e3fa56c6b2e2e'
+		'version' => '5d52d03cfb0ddbaca920'
 	),
 	'boot/index.js' => array(
 		'dependencies' => array(
@@ -166,7 +166,7 @@
 				'import' => 'static'
 			)
 		),
-		'version' => '7b98331334f7756a5210'
+		'version' => '72fd3d0a23e52ff8501f'
 	),
 	'connectors/index.js' => array(
 		'dependencies' => array(
@@ -177,7 +177,7 @@
 			'wp-i18n',
 			'wp-private-apis'
 		),
-		'version' => 'dce5e2b0fc240815717b'
+		'version' => '753a649aa400199df0fd'
 	),
 	'content-types/index.js' => array(
 		'dependencies' => array(
@@ -212,7 +212,7 @@
 				'import' => 'static'
 			)
 		),
-		'version' => '5fde95653aecf285d659'
+		'version' => 'b73e2c8d19862319099e'
 	),
 	'core-abilities/index.js' => array(
 		'dependencies' => array(
@@ -240,7 +240,7 @@
 				'import' => 'static'
 			)
 		),
-		'version' => '3e9b6e117adbaf70a10f'
+		'version' => '03b5e26742d2806990c6'
 	),
 	'interactivity/index.js' => array(
 		'dependencies' => array(
@@ -335,7 +335,7 @@
 		'dependencies' => array(
 			
 		),
-		'version' => '7ba90481a9cc1776ce7a'
+		'version' => '4972ce7ba840491f17bb'
 	),
 	'workflow/index.js' => array(
 		'dependencies' => array(
