@@ -39,7 +39,7 @@ $parent_file = 'options-general.php';
  * plugin capability discovery, and each connector's plugin record after
  * the JS hydrates, which noticeably delays first paint.
  *
- * @since 7.0.0
+ * @since 7.0.1
  * @access private
  *
  * @param array<string|array{ 0: string, 1?: 'GET'|'OPTIONS', 2?: int<100, 599>|int<100, 599>[] }> $preload_paths Paths already queued for preloading.
