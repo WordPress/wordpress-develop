@@ -3020,7 +3020,7 @@ class wpdb {
 	 * the value in the specified column and row from the previous SQL result is returned.
 	 *
 	 * Returns null both on failure and when the matched cell value is an empty
-	 * string. To distinguish the two cases, check `$this->last_error`.
+	 * string. To distinguish the two cases, check {@see self::$last_error}.
 	 *
 	 * @since 0.71
 	 *
