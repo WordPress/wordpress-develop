@@ -270,7 +270,6 @@ class Tests_oEmbed_wpOembed extends WP_UnitTestCase {
 
 		add_filter( 'pre_oembed_result', array( $this, '_filter_pre_oembed_result' ) );
 		$actual = $this->oembed->get_html( $permalink );
-		remove_filter( 'pre_oembed_result', array( $this, '_filter_pre_oembed_result' ) );
 
 		$this->assertNull( $this->pre_oembed_result_filtered );
 		$this->assertFalse( $actual );
