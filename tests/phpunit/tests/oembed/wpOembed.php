@@ -281,8 +281,8 @@ class Tests_oEmbed_wpOembed extends WP_UnitTestCase {
 	 * @ticket 65068
 	 * @covers WP_oEmbed::__construct
 	 */
-	public function test_malformed_provider_triggers_doing_it_wrong() {
-		$filter = static function ( $providers ) {
+	public function test_malformed_provider_triggers_doing_it_wrong(): void {
+		$filter = static function ( array $providers ): array {
 			$providers['bad_provider'] = array(
 				'url'      => '#https?://example\.site/.*#i',
 				'endpoint' => 'https://example.site/api/oembed',
@@ -302,9 +302,9 @@ class Tests_oEmbed_wpOembed extends WP_UnitTestCase {
 	 * @ticket 65068
 	 * @covers ::get_provider
 	 */
-	public function test_get_provider_handles_provider_without_regex_flag() {
+	public function test_get_provider_handles_provider_without_regex_flag(): void {
 		// Provider with only index 0 set (no regex flag) — should default $regex to false.
-		$this->oembed->providers['https://example.site/*'] = array( 'https://example.site/api/oembed' );
+		$this->oembed->providers['https://example.site/*'] = array( 'https://example.site/api/oembed' ); // @phpstan-ignore assign.propertyType (Intentionally omitted second item of array.)
 
 		$result = $this->oembed->get_provider( 'https://example.site/video/123' );
 
