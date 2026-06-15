@@ -707,4 +707,115 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 			$this->assertStringContainsString( __( 'Enabling this cache can significantly improve the performance of your site.' ), $result['description'] );
 		}
 	}
+
+	/**
+	 * Ensures the scheduled check caches the full results and a timestamp.
+	 *
+	 * The cached `health-check-site-status-result` transient must contain the
+	 * aggregate counts, the complete (unreduced) test results, and the time the
+	 * results were collected, so consumers can read the detailed Site Health
+	 * status without re-running the tests.
+	 *
+	 * @ticket 65232
+	 *
+	 * @covers ::wp_cron_scheduled_check
+	 */
+	public function test_wp_cron_scheduled_check_caches_full_results() {
+		$tests = array(
+			'direct' => array(
+				'fake_critical'    => array(
+					'label' => 'Fake critical',
+					'test'  => static function () {
+						return array(
+							'label'       => 'Critical label',
+							'status'      => 'critical',
+							'badge'       => array(
+								'label' => 'Security',
+								'color' => 'red',
+							),
+							'description' => '<p>Critical <strong>description</strong>.</p>',
+							'actions'     => '',
+							'test'        => 'fake_critical',
+						);
+					},
+				),
+				'fake_recommended' => array(
+					'label' => 'Fake recommended',
+					'test'  => static function () {
+						return array(
+							'label'       => 'Recommended label',
+							'status'      => 'recommended',
+							'description' => '<p>Recommended description.</p>',
+							'test'        => 'fake_recommended',
+						);
+					},
+				),
+				'fake_good'        => array(
+					'label' => 'Fake good',
+					'test'  => static function () {
+						return array(
+							'label'       => 'Good label',
+							'status'      => 'good',
+							'description' => '<p>Good description.</p>',
+							'test'        => 'fake_good',
+						);
+					},
+				),
+			),
+			'async'  => array(),
+		);
+
+		$filter = static function () use ( $tests ) {
+			return $tests;
+		};
+
+		add_filter( 'site_status_tests', $filter );
+
+		delete_transient( 'health-check-site-status-result' );
+
+		$before = time();
+		$this->instance->wp_cron_scheduled_check();
+		$after = time();
+
+		remove_filter( 'site_status_tests', $filter );
+
+		$cached = json_decode( get_transient( 'health-check-site-status-result' ), true );
+
+		$this->assertIsArray( $cached, 'The cached result should decode to an array.' );
+
+		// Aggregate counts are preserved at the top level.
+		$this->assertSame( 1, $cached['good'], 'There should be one good result.' );
+		$this->assertSame( 1, $cached['recommended'], 'There should be one recommended result.' );
+		$this->assertSame( 1, $cached['critical'], 'There should be one critical result.' );
+
+		// The full results are cached, including the passing (good) result.
+		$this->assertArrayHasKey( 'results', $cached, 'The full results should be cached.' );
+		$this->assertCount( 3, $cached['results'], 'All test results should be cached, not just actionable ones.' );
+
+		$results_by_test = array();
+		foreach ( $cached['results'] as $result ) {
+			$results_by_test[ $result['test'] ] = $result;
+		}
+
+		$this->assertSame(
+			array( 'fake_critical', 'fake_recommended', 'fake_good' ),
+			array_keys( $results_by_test ),
+			'Every test result should be cached.'
+		);
+
+		// The complete result is stored as produced, without stripping HTML.
+		$this->assertSame( 'critical', $results_by_test['fake_critical']['status'] );
+		$this->assertSame(
+			'<p>Critical <strong>description</strong>.</p>',
+			$results_by_test['fake_critical']['description'],
+			'The full result should be cached without reducing or stripping it.'
+		);
+		$this->assertArrayHasKey( 'badge', $results_by_test['fake_critical'], 'All result fields should be cached.' );
+
+		// A timestamp records when the results were collected.
+		$this->assertArrayHasKey( 'timestamp', $cached, 'A collection timestamp should be cached.' );
+		$this->assertIsInt( $cached['timestamp'] );
+		$this->assertGreaterThanOrEqual( $before, $cached['timestamp'] );
+		$this->assertLessThanOrEqual( $after, $cached['timestamp'] );
+	}
 }

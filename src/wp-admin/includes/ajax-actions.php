@@ -5458,6 +5458,8 @@ function wp_ajax_health_check_loopback_requests() {
  * Handles site health check to update the result status via AJAX.
  *
  * @since 5.2.0
+ * @since 7.1.0 The submitted counts are validated, and the full test results and
+ *              collection timestamp cached by the scheduled check are preserved.
  */
 function wp_ajax_health_check_site_status_result() {
 	check_ajax_referer( 'health-check-site-status-result' );
@@ -5466,7 +5468,37 @@ function wp_ajax_health_check_site_status_result() {
 		wp_send_json_error();
 	}
 
-	set_transient( 'health-check-site-status-result', wp_json_encode( $_POST['counts'] ) );
+	$counts = isset( $_POST['counts'] ) ? wp_unslash( $_POST['counts'] ) : null;
+
+	if ( ! is_array( $counts ) ) {
+		wp_send_json_error();
+	}
+
+	$site_status = array(
+		'good'        => isset( $counts['good'] ) ? (int) $counts['good'] : 0,
+		'recommended' => isset( $counts['recommended'] ) ? (int) $counts['recommended'] : 0,
+		'critical'    => isset( $counts['critical'] ) ? (int) $counts['critical'] : 0,
+	);
+
+	/*
+	 * Only the aggregate counts are refreshed here. Preserve the full test results
+	 * and the timestamp recorded by the scheduled check so they are not discarded
+	 * when the counts are updated from the Site Health screen.
+	 */
+	$cached = get_transient( 'health-check-site-status-result' );
+	$cached = is_string( $cached ) ? json_decode( $cached, true ) : null;
+
+	if ( is_array( $cached ) ) {
+		if ( isset( $cached['results'] ) && is_array( $cached['results'] ) ) {
+			$site_status['results'] = $cached['results'];
+		}
+
+		if ( isset( $cached['timestamp'] ) ) {
+			$site_status['timestamp'] = (int) $cached['timestamp'];
+		}
+	}
+
+	set_transient( 'health-check-site-status-result', wp_json_encode( $site_status ) );
 
 	wp_send_json_success();
 }

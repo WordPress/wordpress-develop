@@ -115,9 +115,20 @@ class WP_Site_Health {
 		$issue_counts = get_transient( 'health-check-site-status-result' );
 
 		if ( false !== $issue_counts ) {
-			$issue_counts = json_decode( $issue_counts );
+			$issue_counts = json_decode( $issue_counts, true );
 
-			$health_check_js_variables['site_status']['issues'] = $issue_counts;
+			/*
+			 * The cached result also stores the full test results and a timestamp.
+			 * Only the aggregate counts are needed on the client, so avoid localizing
+			 * the rest of the payload.
+			 */
+			if ( is_array( $issue_counts ) ) {
+				$health_check_js_variables['site_status']['issues'] = array(
+					'good'        => isset( $issue_counts['good'] ) ? (int) $issue_counts['good'] : 0,
+					'recommended' => isset( $issue_counts['recommended'] ) ? (int) $issue_counts['recommended'] : 0,
+					'critical'    => isset( $issue_counts['critical'] ) ? (int) $issue_counts['critical'] : 0,
+				);
+			}
 		}
 
 		if ( 'site-health' === $screen->id && ( ! isset( $_GET['tab'] ) || empty( $_GET['tab'] ) ) ) {
@@ -3359,6 +3370,9 @@ class WP_Site_Health {
 	 * Runs the scheduled event to check and update the latest site health status for the website.
 	 *
 	 * @since 5.4.0
+	 * @since 7.1.0 The cached result also stores the full test results under `results`
+	 *              and a `timestamp` indicating when they were collected, in addition
+	 *              to the aggregate `good`, `recommended`, and `critical` counts.
 	 */
 	public function wp_cron_scheduled_check() {
 		// Bootstrap wp-admin, as WP_Cron doesn't do this for us.
@@ -3454,6 +3468,10 @@ class WP_Site_Health {
 		}
 
 		foreach ( $results as $result ) {
+			if ( ! is_array( $result ) || ! isset( $result['status'] ) ) {
+				continue;
+			}
+
 			if ( 'critical' === $result['status'] ) {
 				++$site_status['critical'];
 			} elseif ( 'recommended' === $result['status'] ) {
@@ -3462,6 +3480,14 @@ class WP_Site_Health {
 				++$site_status['good'];
 			}
 		}
+
+		/*
+		 * Cache the full results alongside the aggregate counts so consumers can read
+		 * the detailed Site Health status without re-running the tests, and record when
+		 * the results were collected so their freshness can be evaluated.
+		 */
+		$site_status['results']   = $results;
+		$site_status['timestamp'] = time();
 
 		set_transient( 'health-check-site-status-result', wp_json_encode( $site_status ) );
 	}
