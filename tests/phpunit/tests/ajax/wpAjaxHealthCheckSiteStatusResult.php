@@ -25,6 +25,13 @@ class Tests_Ajax_wpAjaxHealthCheckSiteStatusResult extends WP_Ajax_UnitTestCase 
 	const TRANSIENT = 'health-check-site-status-result';
 
 	/**
+	 * User ID granted super admin privileges during a multisite test.
+	 *
+	 * @var int
+	 */
+	private $super_admin_user_id = 0;
+
+	/**
 	 * Sets up the test fixture.
 	 */
 	public function set_up() {
@@ -32,6 +39,30 @@ class Tests_Ajax_wpAjaxHealthCheckSiteStatusResult extends WP_Ajax_UnitTestCase 
 
 		// This Ajax action is not part of the core actions registered by the base test case.
 		add_action( 'wp_ajax_' . self::TRANSIENT, 'wp_ajax_health_check_site_status_result', 1 );
+	}
+
+	/**
+	 * Cleans up the test fixture.
+	 */
+	public function tear_down() {
+		if ( is_multisite() && $this->super_admin_user_id ) {
+			revoke_super_admin( $this->super_admin_user_id );
+			$this->super_admin_user_id = 0;
+		}
+
+		parent::tear_down();
+	}
+
+	/**
+	 * Sets the current user to one that can view Site Health checks.
+	 */
+	private function set_user_with_site_health_capability() {
+		$this->_setRole( 'administrator' );
+
+		if ( is_multisite() ) {
+			$this->super_admin_user_id = get_current_user_id();
+			grant_super_admin( $this->super_admin_user_id );
+		}
 	}
 
 	/**
@@ -81,7 +112,7 @@ class Tests_Ajax_wpAjaxHealthCheckSiteStatusResult extends WP_Ajax_UnitTestCase 
 			)
 		);
 
-		$this->_setRole( 'administrator' );
+		$this->set_user_with_site_health_capability();
 		$_POST['_wpnonce'] = wp_create_nonce( self::TRANSIENT );
 		$_POST['counts']   = array(
 			'good'        => 6,
@@ -113,7 +144,7 @@ class Tests_Ajax_wpAjaxHealthCheckSiteStatusResult extends WP_Ajax_UnitTestCase 
 	public function test_storing_counts_without_cached_results() {
 		delete_transient( self::TRANSIENT );
 
-		$this->_setRole( 'administrator' );
+		$this->set_user_with_site_health_capability();
 		$_POST['_wpnonce'] = wp_create_nonce( self::TRANSIENT );
 		$_POST['counts']   = array(
 			'good'        => 3,
@@ -143,7 +174,7 @@ class Tests_Ajax_wpAjaxHealthCheckSiteStatusResult extends WP_Ajax_UnitTestCase 
 		$existing = array( 'good' => 9 );
 		set_transient( self::TRANSIENT, wp_json_encode( $existing ) );
 
-		$this->_setRole( 'administrator' );
+		$this->set_user_with_site_health_capability();
 		$_POST['_wpnonce'] = wp_create_nonce( self::TRANSIENT );
 		// No 'counts' are supplied.
 
