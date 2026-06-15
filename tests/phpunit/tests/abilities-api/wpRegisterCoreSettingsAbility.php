@@ -25,6 +25,20 @@ class Tests_Abilities_API_WpRegisterCoreSettingsAbility extends WP_UnitTestCase 
 
 		register_initial_settings();
 
+		// A non-core setting flagged for the Abilities API, to verify that any registered
+		// setting (not just the core ones) is exposed by the ability.
+		register_setting(
+			'general',
+			'core_settings_ability_test_option',
+			array(
+				'type'              => 'integer',
+				'label'             => 'Custom Ability Setting',
+				'description'       => 'A custom setting exposed through the Abilities API.',
+				'show_in_abilities' => true,
+				'default'           => 42,
+			)
+		);
+
 		// Temporarily remove the unhook functions so we can register core abilities.
 		remove_action( 'wp_abilities_api_categories_init', '_unhook_core_ability_categories_registration', 1 );
 		remove_action( 'wp_abilities_api_init', '_unhook_core_abilities_registration', 1 );
@@ -50,6 +64,8 @@ class Tests_Abilities_API_WpRegisterCoreSettingsAbility extends WP_UnitTestCase 
 		foreach ( wp_get_ability_categories() as $ability_category ) {
 			wp_unregister_ability_category( $ability_category->get_slug() );
 		}
+
+		unregister_setting( 'general', 'core_settings_ability_test_option' );
 
 		parent::tear_down_after_class();
 	}
@@ -179,5 +195,27 @@ class Tests_Abilities_API_WpRegisterCoreSettingsAbility extends WP_UnitTestCase 
 
 		$this->assertWPError( $result );
 		$this->assertSame( 'ability_invalid_permissions', $result->get_error_code() );
+	}
+
+	/**
+	 * A setting registered with `show_in_abilities` (for example by a plugin) is exposed by the ability.
+	 *
+	 * @ticket 64146
+	 */
+	public function test_core_settings_exposes_a_custom_registered_setting(): void {
+		$ability = wp_get_ability( 'core/settings' );
+
+		// Present in both the input `settings` enum and the output schema built at registration.
+		$settings_branch = $ability->get_input_schema()['oneOf'][2];
+		$this->assertContains( 'core_settings_ability_test_option', $settings_branch['properties']['settings']['items']['enum'] );
+		$this->assertArrayHasKey( 'core_settings_ability_test_option', $ability->get_output_schema()['properties'] );
+
+		// And returned, correctly typed, by execute.
+		$this->become_admin();
+		update_option( 'core_settings_ability_test_option', 7 );
+
+		$result = $ability->execute( array( 'settings' => array( 'core_settings_ability_test_option' ) ) );
+
+		$this->assertSame( array( 'core_settings_ability_test_option' => 7 ), $result );
 	}
 }
