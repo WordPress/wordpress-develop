@@ -58,10 +58,10 @@ class WP_Settings_Abilities {
 	 * @since 7.1.0
 	 */
 	public static function register_get_settings(): void {
-		$settings   = self::get_exposed_settings();
-		$groups     = array_values( array_unique( array_filter( wp_list_pluck( $settings, 'group' ) ) ) );
-		$slugs      = array_keys( $settings );
-		$properties = array();
+		$settings      = self::get_exposed_settings();
+		$groups        = array_values( array_unique( array_filter( wp_list_pluck( $settings, 'group' ) ) ) );
+		$setting_names = array_keys( $settings );
+		$properties    = array();
 		foreach ( $settings as $exposed_name => $setting ) {
 			$properties[ $exposed_name ] = $setting['schema'];
 		}
@@ -72,7 +72,7 @@ class WP_Settings_Abilities {
 				'label'               => __( 'Get Settings' ),
 				'description'         => __( 'Returns WordPress settings as a flat map of setting name to value. By default returns all settings exposed to abilities, or optionally a subset filtered by settings group or by setting name.' ),
 				'category'            => self::CATEGORY,
-				'input_schema'        => self::get_settings_input_schema( $groups, $slugs ),
+				'input_schema'        => self::get_settings_input_schema( $groups, $setting_names ),
 				'output_schema'       => array(
 					'type'                 => 'object',
 					'description'          => __( 'A map of setting name to its current value.' ),
@@ -106,14 +106,14 @@ class WP_Settings_Abilities {
 
 		$settings = self::get_exposed_settings();
 		$group    = isset( $input['group'] ) ? (string) $input['group'] : '';
-		$slugs    = isset( $input['slugs'] ) && is_array( $input['slugs'] ) ? $input['slugs'] : array();
+		$names    = isset( $input['settings'] ) && is_array( $input['settings'] ) ? $input['settings'] : array();
 
 		$result = array();
 		foreach ( $settings as $exposed_name => $setting ) {
 			if ( '' !== $group && $setting['group'] !== $group ) {
 				continue;
 			}
-			if ( ! empty( $slugs ) && ! in_array( $exposed_name, $slugs, true ) ) {
+			if ( ! empty( $names ) && ! in_array( $exposed_name, $names, true ) ) {
 				continue;
 			}
 
@@ -142,11 +142,11 @@ class WP_Settings_Abilities {
 	 *
 	 * @since 7.1.0
 	 *
-	 * @param string[] $groups Available settings groups.
-	 * @param string[] $slugs  Available exposed setting names.
+	 * @param string[] $groups        Available settings groups.
+	 * @param string[] $setting_names Available exposed setting names.
 	 * @return array<string, mixed> The input JSON Schema.
 	 */
-	protected static function get_settings_input_schema( array $groups, array $slugs ): array {
+	protected static function get_settings_input_schema( array $groups, array $setting_names ): array {
 		return array(
 			'type'    => 'object',
 			'default' => array(),
@@ -173,13 +173,13 @@ class WP_Settings_Abilities {
 				array(
 					'title'                => __( 'Filter by name' ),
 					'type'                 => 'object',
-					'required'             => array( 'slugs' ),
+					'required'             => array( 'settings' ),
 					'properties'           => array(
-						'slugs' => array(
+						'settings' => array(
 							'type'        => 'array',
 							'items'       => array(
 								'type' => 'string',
-								'enum' => $slugs,
+								'enum' => $setting_names,
 							),
 							'description' => __( 'Return only the settings with these names.' ),
 						),

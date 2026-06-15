@@ -79,11 +79,11 @@ class Tests_Abilities_API_WpRegisterCoreSettingsAbility extends WP_UnitTestCase 
 	}
 
 	/**
-	 * The input schema exposes mutually exclusive `group` and `slugs` filters.
+	 * The input schema exposes mutually exclusive `group` and `settings` filters.
 	 *
 	 * @ticket 64146
 	 */
-	public function test_core_settings_input_schema_is_one_of_group_or_slugs(): void {
+	public function test_core_settings_input_schema_is_one_of_group_or_settings(): void {
 		$schema = wp_get_ability( 'core/settings' )->get_input_schema();
 
 		$this->assertSame( 'object', $schema['type'] );
@@ -95,10 +95,10 @@ class Tests_Abilities_API_WpRegisterCoreSettingsAbility extends WP_UnitTestCase 
 		$this->assertContains( 'general', $group_branch['properties']['group']['enum'] );
 		$this->assertContains( 'reading', $group_branch['properties']['group']['enum'] );
 
-		$slugs_branch = $schema['oneOf'][2];
-		$this->assertSame( array( 'slugs' ), $slugs_branch['required'] );
-		$this->assertContains( 'blogname', $slugs_branch['properties']['slugs']['items']['enum'] );
-		$this->assertContains( 'posts_per_page', $slugs_branch['properties']['slugs']['items']['enum'] );
+		$settings_branch = $schema['oneOf'][2];
+		$this->assertSame( array( 'settings' ), $settings_branch['required'] );
+		$this->assertContains( 'blogname', $settings_branch['properties']['settings']['items']['enum'] );
+		$this->assertContains( 'posts_per_page', $settings_branch['properties']['settings']['items']['enum'] );
 	}
 
 	/**
@@ -136,30 +136,30 @@ class Tests_Abilities_API_WpRegisterCoreSettingsAbility extends WP_UnitTestCase 
 	}
 
 	/**
-	 * The `slugs` filter narrows the response to the requested setting names.
+	 * The `settings` filter narrows the response to the requested setting names.
 	 *
 	 * @ticket 64146
 	 */
-	public function test_core_settings_filters_by_slugs(): void {
+	public function test_core_settings_filters_by_settings(): void {
 		$this->become_admin();
 
-		$result = wp_get_ability( 'core/settings' )->execute( array( 'slugs' => array( 'blogname', 'posts_per_page' ) ) );
+		$result = wp_get_ability( 'core/settings' )->execute( array( 'settings' => array( 'blogname', 'posts_per_page' ) ) );
 
 		$this->assertSame( array( 'blogname', 'posts_per_page' ), array_keys( $result ) );
 	}
 
 	/**
-	 * Supplying both `group` and `slugs` violates the `oneOf` and is rejected.
+	 * Supplying both `group` and `settings` violates the `oneOf` and is rejected.
 	 *
 	 * @ticket 64146
 	 */
-	public function test_core_settings_rejects_group_and_slugs_together(): void {
+	public function test_core_settings_rejects_group_and_settings_together(): void {
 		$this->become_admin();
 
 		$result = wp_get_ability( 'core/settings' )->execute(
 			array(
-				'group' => 'reading',
-				'slugs' => array( 'blogname' ),
+				'group'    => 'reading',
+				'settings' => array( 'blogname' ),
 			)
 		);
 
