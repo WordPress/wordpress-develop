@@ -1965,6 +1965,8 @@ body.full-overlay-active {
 .theme-install-overlay .wp-full-overlay-header .button {
 	float: right;
 	margin: 7px 10px 0 0; /* Vertically center 32px button in 45px header */
+	min-height: 32px;
+	line-height: 2.30769231; /* 30px for 32px height with 13px font */
 }
 
 .theme-install-overlay .wp-full-overlay-sidebar {
