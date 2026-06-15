@@ -448,6 +448,162 @@ class Tests_Block_Supports_Layout extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Check that wp_get_child_layout_style_rules() renders flex child sizing styles.
+	 *
+	 * @dataProvider data_wp_get_child_layout_style_rules
+	 *
+	 * @covers ::wp_get_child_layout_style_rules
+	 *
+	 * @param array      $child_layout       Child layout values.
+	 * @param array|null $viewport_overrides Optional child viewport layout overrides.
+	 * @param array      $expected_output    The expected output.
+	 */
+	public function test_wp_get_child_layout_style_rules( $child_layout, $viewport_overrides, $expected_output ) {
+		$actual_output = wp_get_child_layout_style_rules(
+			'.wp-container-content-test',
+			$child_layout,
+			array(),
+			$viewport_overrides
+		);
+
+		$this->assertSame( $expected_output, $actual_output );
+	}
+
+	/**
+	 * Data provider for test_wp_get_child_layout_style_rules().
+	 *
+	 * @return array
+	 */
+	public function data_wp_get_child_layout_style_rules() {
+		return array(
+			'legacy fixed sizing remains shrinkable'      => array(
+				'child_layout'       => array(
+					'selfStretch' => 'fixed',
+					'flexSize'    => '320px',
+				),
+				'viewport_overrides' => null,
+				'expected_output'    => array(
+					array(
+						'selector'     => '.wp-container-content-test',
+						'declarations' => array(
+							'flex-basis' => '320px',
+							'box-sizing' => 'border-box',
+						),
+					),
+				),
+			),
+			'fixed sizing can opt out of shrinking'       => array(
+				'child_layout'       => array(
+					'selfStretch' => 'fixedNoShrink',
+					'flexSize'    => '320px',
+				),
+				'viewport_overrides' => null,
+				'expected_output'    => array(
+					array(
+						'selector'     => '.wp-container-content-test',
+						'declarations' => array(
+							'flex-basis'  => '320px',
+							'flex-shrink' => '0',
+							'box-sizing'  => 'border-box',
+						),
+					),
+				),
+			),
+			'viewport overrides can switch fixedNoShrink to max' => array(
+				'child_layout'       => array(
+					'selfStretch' => 'fixedNoShrink',
+					'flexSize'    => '320px',
+				),
+				'viewport_overrides' => array(
+					'selfStretch' => 'fixed',
+				),
+				'expected_output'    => array(
+					array(
+						'selector'     => '.wp-container-content-test',
+						'declarations' => array(
+							'flex-basis'  => '320px',
+							'flex-shrink' => 'unset',
+							'box-sizing'  => 'border-box',
+						),
+					),
+				),
+			),
+			'viewport overrides can switch fixedNoShrink to fit' => array(
+				'child_layout'       => array(
+					'selfStretch' => 'fixedNoShrink',
+					'flexSize'    => '320px',
+				),
+				'viewport_overrides' => array(
+					'selfStretch' => 'fit',
+				),
+				'expected_output'    => array(
+					array(
+						'selector'     => '.wp-container-content-test',
+						'declarations' => array(
+							'flex-basis'  => 'unset',
+							'flex-shrink' => 'unset',
+						),
+					),
+				),
+			),
+			'viewport overrides can switch fixed to fit'  => array(
+				'child_layout'       => array(
+					'selfStretch' => 'fixed',
+					'flexSize'    => '320px',
+				),
+				'viewport_overrides' => array(
+					'selfStretch' => 'fit',
+				),
+				'expected_output'    => array(
+					array(
+						'selector'     => '.wp-container-content-test',
+						'declarations' => array(
+							'flex-basis' => 'unset',
+						),
+					),
+				),
+			),
+			'viewport overrides can switch fixedNoShrink to grow' => array(
+				'child_layout'       => array(
+					'selfStretch' => 'fixedNoShrink',
+					'flexSize'    => '320px',
+				),
+				'viewport_overrides' => array(
+					'selfStretch' => 'fill',
+				),
+				'expected_output'    => array(
+					array(
+						'selector'     => '.wp-container-content-test',
+						'declarations' => array(
+							'flex-basis'  => 'unset',
+							'flex-shrink' => 'unset',
+							'flex-grow'   => '1',
+						),
+					),
+				),
+			),
+			'viewport overrides can switch fixed to grow' => array(
+				'child_layout'       => array(
+					'selfStretch' => 'fixed',
+					'flexSize'    => '320px',
+				),
+				'viewport_overrides' => array(
+					'selfStretch' => 'fill',
+				),
+				'expected_output'    => array(
+					array(
+						'selector'     => '.wp-container-content-test',
+						'declarations' => array(
+							'flex-basis' => 'unset',
+							'flex-grow'  => '1',
+						),
+					),
+				),
+			),
+		);
+	}
+
+	/**
 	 * Checks that `wp_add_parent_layout_to_parsed_block` adds the parent layout attribute to the block object.
 	 *
 	 * @ticket 61111
