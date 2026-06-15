@@ -85,10 +85,10 @@ class Tests_HtmlApi_WpHtmlDecoder extends WP_UnitTestCase {
 	 */
 	public static function data_unmatched_named_character_references() {
 		return array(
-			'text invalid name'                       => array( 'data', '&bogus;' ),
-			'text invalid short-name candidate'       => array( 'data', '&Fv=q' ),
-			'attribute invalid name'                  => array( 'attribute', '&bogus;' ),
-			'attribute invalid short-name candidate'  => array( 'attribute', '&Fv=q' ),
+			'text invalid name'                      => array( 'data', '&bogus;' ),
+			'text invalid short-name candidate'      => array( 'data', '&Fv=q' ),
+			'attribute invalid name'                 => array( 'attribute', '&bogus;' ),
+			'attribute invalid short-name candidate' => array( 'attribute', '&Fv=q' ),
 		);
 	}
 
