@@ -44,12 +44,61 @@ jobs:
           show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
           persist-credentials: false
 
+      - name: Select preview harness
+        id: preview_harness
+        env:
+          AUTHOR_ASSOCIATION: ${{ github.event.pull_request.author_association }}
+        run: |
+          set -euo pipefail
+
+          required_files=(
+            '.github/docs-playground-preview/package-lock.json'
+            '.github/scripts/docs-playground-preview/build.mjs'
+          )
+
+          harness_has_required_files() {
+            local harness_path="$1"
+            local required_file
+
+            for required_file in "${required_files[@]}"; do
+              if [[ ! -f "$harness_path/$required_file" ]]; then
+                return 1
+              fi
+            done
+
+            return 0
+          }
+
+          if harness_has_required_files 'harness'; then
+            echo 'path=harness' >> "$GITHUB_OUTPUT"
+            echo 'source=base' >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          case "$AUTHOR_ASSOCIATION" in
+            OWNER|MEMBER|COLLABORATOR)
+              ;;
+            *)
+              echo '::error::The trusted docs preview harness is missing from the base checkout, and this pull request is not from a trusted repository member. Re-run after the harness lands on the base branch.'
+              exit 1
+              ;;
+          esac
+
+          if ! harness_has_required_files 'pr-source'; then
+            echo '::error::Neither the base checkout nor the pull request checkout contains a complete docs preview harness.'
+            exit 1
+          fi
+
+          echo '::warning::The docs preview harness is not present on the base SHA. Using the pull request copy for this trusted-member bootstrap run.'
+          echo 'path=pr-source' >> "$GITHUB_OUTPUT"
+          echo 'source=pull-request' >> "$GITHUB_OUTPUT"
+
       - name: Set up Node.js
         uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
         with:
           node-version: '20'
           cache: npm
-          cache-dependency-path: harness/.github/docs-playground-preview/package-lock.json
+          cache-dependency-path: ${{ steps.preview_harness.outputs.path }}/.github/docs-playground-preview/package-lock.json
 
       - name: Set up PHP
         uses: shivammathur/setup-php@7c071dfe9dc99bdf297fa79cb49ea005b9fcadbc # 2.37.1
@@ -58,15 +107,21 @@ jobs:
           tools: composer
 
       - name: Install preview tooling
-        run: npm ci --ignore-scripts --no-audit --no-fund --prefix harness/.github/docs-playground-preview
+        env:
+          PREVIEW_HARNESS_PATH: ${{ steps.preview_harness.outputs.path }}
+        run: npm ci --ignore-scripts --no-audit --no-fund --prefix "$PREVIEW_HARNESS_PATH/.github/docs-playground-preview"
 
       - name: Build snapshot
+        env:
+          PREVIEW_HARNESS_PATH: ${{ steps.preview_harness.outputs.path }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
-          node harness/.github/scripts/docs-playground-preview/build.mjs \
+          node "$PREVIEW_HARNESS_PATH/.github/scripts/docs-playground-preview/build.mjs" \
             --wp "$GITHUB_WORKSPACE/pr-source" \
             --out "$GITHUB_WORKSPACE/build" \
-            --pr-number "${{ github.event.pull_request.number }}" \
-            --head-sha "${{ github.event.pull_request.head.sha }}"
+            --pr-number "$PR_NUMBER" \
+            --head-sha "$PR_HEAD_SHA"
 
       - name: Upload docs preview artifact
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
