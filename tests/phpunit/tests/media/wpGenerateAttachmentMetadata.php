@@ -8,7 +8,17 @@
  */
 class Tests_Media_wpGenerateAttachmentMetadata extends WP_UnitTestCase {
 
+	private $backup_additional_image_sizes;
+
+	public function set_up(): void {
+		parent::set_up();
+
+		$this->backup_additional_image_sizes = wp_get_additional_image_sizes();
+	}
+
 	public function tear_down() {
+		$GLOBALS['_wp_additional_image_sizes'] = $this->backup_additional_image_sizes;
+
 		$this->remove_added_uploads();
 
 		parent::tear_down();
@@ -99,6 +109,34 @@ class Tests_Media_wpGenerateAttachmentMetadata extends WP_UnitTestCase {
 		$metadata = wp_get_attachment_metadata( $attachment );
 
 		// Check that the full sized image with `-scaled` is created for the PNG.
+		$this->assertStringContainsString( '-scaled.png', basename( $metadata['file'] ) );
+	}
+
+	/**
+	 * Checks that the big image threshold considers registered image widths.
+	 *
+	 * @ticket 48489
+	 */
+	public function test_wp_generate_attachment_metadata_big_image_threshold_considers_registered_image_widths() {
+		add_image_size( 'test-size-width-threshold', 3000, 100, true );
+
+		$attachment = $this->factory->attachment->create_upload_object( DIR_TESTDATA . '/images/png-tests/test-image-large.png' );
+		$metadata   = wp_get_attachment_metadata( $attachment );
+
+		$this->assertStringNotContainsString( '-scaled.png', basename( $metadata['file'] ) );
+	}
+
+	/**
+	 * Checks that the big image threshold ignores registered image heights.
+	 *
+	 * @ticket 48489
+	 */
+	public function test_wp_generate_attachment_metadata_big_image_threshold_ignores_registered_image_heights() {
+		add_image_size( 'test-size-height-threshold', 100, 9999, true );
+
+		$attachment = $this->factory->attachment->create_upload_object( DIR_TESTDATA . '/images/png-tests/test-image-large.png' );
+		$metadata   = wp_get_attachment_metadata( $attachment );
+
 		$this->assertStringContainsString( '-scaled.png', basename( $metadata['file'] ) );
 	}
 }
