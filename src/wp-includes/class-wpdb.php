@@ -3042,6 +3042,8 @@ class wpdb {
 
 		// Extract var out of cached results based on x,y vals.
 		if ( ! empty( $this->last_result[ $y ] ) ) {
+			// Column values are returned from the database as strings, or null for SQL NULL, but get_object_vars() types the property values as mixed.
+			/** @var list<string|null> $values */
 			$values = array_values( get_object_vars( $this->last_result[ $y ] ) );
 		}
 
