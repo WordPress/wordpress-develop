@@ -3028,6 +3028,7 @@ class wpdb {
 	 * @param int         $x     Optional. Column of value to return. Indexed from 0. Default 0.
 	 * @param int         $y     Optional. Row of value to return. Indexed from 0. Default 0.
 	 * @return string|null Database query result (as string), or null on failure or when the value is an empty string.
+	 * @phpstan-return non-empty-string|null
 	 */
 	public function get_var( $query = null, $x = 0, $y = 0 ) {
 		$this->func_call = "\$db->get_var(\"$query\", $x, $y)";
@@ -3130,7 +3131,7 @@ class wpdb {
 	 * @param string|null $query Optional. SQL query. Defaults to previous query.
 	 * @param int         $x     Optional. Column to return. Indexed from 0. Default 0.
 	 * @return array Database query result. Array indexed from 0 by SQL result row number.
-	 * @phpstan-return list<string|null>
+	 * @phpstan-return list<non-empty-string|null>
 	 */
 	public function get_col( $query = null, $x = 0 ) {
 		if ( $query ) {
