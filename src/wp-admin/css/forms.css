@@ -524,10 +524,6 @@ input[type="number"].tiny-text {
 	margin: 0 8px 0 0;
 }
 
-#delete_all {
-	margin-bottom: 0;
-}
-
 /* @since 5.7.0 secondary bulk action controls require JS. */
 .no-js label[for="bulk-action-selector-bottom"],
 .no-js select#bulk-action-selector-bottom,

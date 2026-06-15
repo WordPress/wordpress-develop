@@ -374,6 +374,10 @@
 	.find-box-inside {
 		bottom: 57px;
 	}
+
+	#delete_all {
+		margin-bottom: 0;
+	}
 }
 
 @media screen and (max-width: 660px) {
