@@ -124,9 +124,9 @@ class WP_Site_Health {
 			 */
 			if ( is_array( $issue_counts ) ) {
 				$health_check_js_variables['site_status']['issues'] = array(
-					'good'        => isset( $issue_counts['good'] ) ? (int) $issue_counts['good'] : 0,
-					'recommended' => isset( $issue_counts['recommended'] ) ? (int) $issue_counts['recommended'] : 0,
-					'critical'    => isset( $issue_counts['critical'] ) ? (int) $issue_counts['critical'] : 0,
+					'good'        => (int) ( $issue_counts['good'] ?? 0 ),
+					'recommended' => (int) ( $issue_counts['recommended'] ?? 0 ),
+					'critical'    => (int) ( $issue_counts['critical'] ?? 0 ),
 				);
 			}
 		}

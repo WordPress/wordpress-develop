@@ -5475,9 +5475,9 @@ function wp_ajax_health_check_site_status_result() {
 	}
 
 	$site_status = array(
-		'good'        => isset( $counts['good'] ) ? (int) $counts['good'] : 0,
-		'recommended' => isset( $counts['recommended'] ) ? (int) $counts['recommended'] : 0,
-		'critical'    => isset( $counts['critical'] ) ? (int) $counts['critical'] : 0,
+		'good'        => (int) ( $counts['good'] ?? 0 ),
+		'recommended' => (int) ( $counts['recommended'] ?? 0 ),
+		'critical'    => (int) ( $counts['critical'] ?? 0 ),
 	);
 
 	/*
