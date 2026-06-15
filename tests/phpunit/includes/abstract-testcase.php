@@ -18,7 +18,9 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	protected $expected_deprecated     = array();
 	protected $caught_deprecated       = array();
 	protected $expected_doing_it_wrong = array();
-	protected $caught_doing_it_wrong   = array();
+
+	/** @var non-empty-string[] */
+	protected $caught_doing_it_wrong = array();
 
 	protected static $hooks_saved = array();
 	protected static $ignore_files;

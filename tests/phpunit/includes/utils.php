@@ -433,13 +433,11 @@ function dmp_filter( $a ) {
 }
 
 /**
- * Gets the output of a given callback via output buffering.
+ * Gets the output buffer for invoking the provided callback.
  *
- * The return value of the callback is disregarded.
- *
- * @param callable          $callback Callback to capture the output from.
- * @param array<int, mixed> $args     The positional params to pass to the callback.
- * @return string Output buffer.
+ * @param callable $callback Callback.
+ * @param mixed[]  $args     Arguments.
+ * @return string Captured output.
  */
 function get_echo( callable $callback, array $args = array() ): string {
 	ob_start();
