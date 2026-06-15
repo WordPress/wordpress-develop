@@ -779,9 +779,14 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 
 		remove_filter( 'site_status_tests', $filter );
 
-		$cached = json_decode( get_transient( 'health-check-site-status-result' ), true );
+		$transient = get_transient( 'health-check-site-status-result' );
+		$this->assertIsString( $transient );
+		$cached = json_decode( $transient, true );
 
 		$this->assertIsArray( $cached, 'The cached result should decode to an array.' );
+		$this->assertArrayHasKey( 'good', $cached );
+		$this->assertArrayHasKey( 'recommended', $cached );
+		$this->assertArrayHasKey( 'critical', $cached );
 
 		// Aggregate counts are preserved at the top level.
 		$this->assertSame( 1, $cached['good'], 'There should be one good result.' );
@@ -790,10 +795,14 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 
 		// The full results are cached, including the passing (good) result.
 		$this->assertArrayHasKey( 'results', $cached, 'The full results should be cached.' );
+		$this->assertIsArray( $cached['results'] );
 		$this->assertCount( 3, $cached['results'], 'All test results should be cached, not just actionable ones.' );
 
 		$results_by_test = array();
 		foreach ( $cached['results'] as $result ) {
+			$this->assertIsArray( $result );
+			$this->assertArrayHasKey( 'test', $result );
+			$this->assertIsString( $result['test'] );
 			$results_by_test[ $result['test'] ] = $result;
 		}
 

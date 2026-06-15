@@ -124,7 +124,10 @@ class Tests_Ajax_wpAjaxHealthCheckSiteStatusResult extends WP_Ajax_UnitTestCase 
 
 		$this->assertTrue( $response['success'] );
 
-		$cached = json_decode( get_transient( self::TRANSIENT ), true );
+		$transient = get_transient( self::TRANSIENT );
+		$this->assertIsString( $transient );
+		$cached = json_decode( $transient, true );
+		$this->assertIsArray( $cached );
 
 		// The aggregate counts are refreshed from the request.
 		$this->assertSame( 6, $cached['good'] );
@@ -156,7 +159,13 @@ class Tests_Ajax_wpAjaxHealthCheckSiteStatusResult extends WP_Ajax_UnitTestCase 
 
 		$this->assertTrue( $response['success'] );
 
-		$cached = json_decode( get_transient( self::TRANSIENT ), true );
+		$transient = get_transient( self::TRANSIENT );
+		$this->assertIsString( $transient );
+		$cached = json_decode( $transient, true );
+		$this->assertIsArray( $cached );
+		$this->assertArrayHasKey( 'good', $cached );
+		$this->assertArrayHasKey( 'recommended', $cached );
+		$this->assertArrayHasKey( 'critical', $cached );
 
 		$this->assertSame( 3, $cached['good'] );
 		$this->assertSame( 1, $cached['recommended'] );
@@ -182,7 +191,9 @@ class Tests_Ajax_wpAjaxHealthCheckSiteStatusResult extends WP_Ajax_UnitTestCase 
 
 		$this->assertFalse( $response['success'] );
 
-		$cached = json_decode( get_transient( self::TRANSIENT ), true );
+		$transient = get_transient( self::TRANSIENT );
+		$this->assertIsString( $transient );
+		$cached = json_decode( $transient, true );
 		$this->assertSame( $existing, $cached, 'The cached result should be untouched.' );
 	}
 
