@@ -137,6 +137,85 @@ class Tests_Block_Supports_States extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that background-image reset is added when a state sets a solid background-color.
+	 *
+	 * @covers ::wp_get_state_declarations_with_background_resets
+	 */
+	public function test_adds_background_image_reset_for_solid_background_color() {
+		$actual = wp_get_state_declarations_with_background_resets(
+			array(
+				'background-color' => '#ff0000 !important',
+			)
+		);
+
+		$this->assertSame(
+			array(
+				'background-color' => '#ff0000 !important',
+				'background-image' => 'unset !important',
+			),
+			$actual
+		);
+	}
+
+	/**
+	 * Tests that background-image reset is not added when the state also sets a legacy gradient.
+	 *
+	 * @covers ::wp_get_state_declarations_with_background_resets
+	 */
+	public function test_no_background_image_reset_when_state_sets_legacy_gradient() {
+		$actual = wp_get_state_declarations_with_background_resets(
+			array(
+				'background-color' => '#ff0000 !important',
+				'background'       => 'linear-gradient(135deg, #ff0000, #0000ff) !important',
+			)
+		);
+
+		$this->assertSame(
+			array(
+				'background-color' => '#ff0000 !important',
+				'background'       => 'linear-gradient(135deg, #ff0000, #0000ff) !important',
+			),
+			$actual
+		);
+	}
+
+	/**
+	 * Tests that background-image reset is not added when the state also sets a modern gradient.
+	 *
+	 * @covers ::wp_get_state_declarations_with_background_resets
+	 */
+	public function test_no_background_image_reset_when_state_sets_modern_gradient() {
+		$actual = wp_get_state_declarations_with_background_resets(
+			array(
+				'background-color' => '#ff0000 !important',
+				'background-image' => 'linear-gradient(135deg, #ff0000, #0000ff) !important',
+			)
+		);
+
+		$this->assertSame(
+			array(
+				'background-color' => '#ff0000 !important',
+				'background-image' => 'linear-gradient(135deg, #ff0000, #0000ff) !important',
+			),
+			$actual
+		);
+	}
+
+	/**
+	 * Tests that declarations without background-color are returned unchanged.
+	 *
+	 * @covers ::wp_get_state_declarations_with_background_resets
+	 */
+	public function test_no_background_reset_when_no_background_color() {
+		$input  = array(
+			'color' => '#ff0000 !important',
+		);
+		$actual = wp_get_state_declarations_with_background_resets( $input );
+
+		$this->assertSame( $input, $actual );
+	}
+
+	/**
 	 * Tests that modifier classes on the first compound selector are preserved
 	 * when state selectors are scoped to the block wrapper.
 	 *
