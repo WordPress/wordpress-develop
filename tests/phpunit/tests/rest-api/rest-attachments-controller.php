@@ -3346,11 +3346,14 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	}
 
 	/**
-	 * Tests that the sideload endpoint includes 'scaled' in the image_size enum.
+	 * Tests that the sideload endpoint accepts 'scaled' as a valid image_size.
+	 *
+	 * The image_size argument is validated with a custom validate_callback rather
+	 * than an enum, so this confirms the callback accepts the 'scaled' size.
 	 *
 	 * @ticket 64737
 	 */
-	public function test_sideload_route_includes_scaled_enum() {
+	public function test_sideload_route_accepts_scaled_image_size() {
 		$this->enable_client_side_media_processing();
 
 		$server = rest_get_server();
@@ -3365,7 +3368,19 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 
 		$param_name = 'image_size';
 		$this->assertArrayHasKey( $param_name, $args, 'Route should have image_size arg.' );
-		$this->assertContains( 'scaled', $args[ $param_name ]['enum'], 'image_size enum should include scaled.' );
+		$this->assertArrayHasKey( 'validate_callback', $args[ $param_name ], 'image_size arg should have a validate_callback.' );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media/1/sideload' );
+
+		$this->assertTrue(
+			call_user_func( $args[ $param_name ]['validate_callback'], 'scaled', $request, $param_name ),
+			'image_size validation should accept the "scaled" size.'
+		);
+
+		$this->assertWPError(
+			call_user_func( $args[ $param_name ]['validate_callback'], 'not-a-real-size', $request, $param_name ),
+			'image_size validation should reject an unregistered size.'
+		);
 	}
 
 	/**
