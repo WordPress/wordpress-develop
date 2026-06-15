@@ -32,6 +32,11 @@ jobs:
       - name: Post a welcome comment
         uses: actions/first-interaction@1c4688942c71f71d4f5502a26ea67c331730fa4d # v3.1.0
         with:
+          # While issues are disabled for this repository and this will not post anywhere, this action configures both
+          # message inputs as required.
+          # See https://github.com/actions/first-interaction/issues/365.
+          issue_message: |
+            "Baseball is dull only to dull minds." - Red Barber
           pr_message: >
             Hi there! 👋
 

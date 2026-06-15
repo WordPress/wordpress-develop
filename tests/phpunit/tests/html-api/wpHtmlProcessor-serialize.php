@@ -109,6 +109,129 @@ class Tests_HtmlApi_WpHtmlProcessor_Serialize extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensures that adjusted foreign attributes are serialized with their namespace prefix.
+	 *
+	 * @ticket 65372
+	 */
+	public function test_serializes_adjusted_foreign_attributes_with_namespace_prefix(): void {
+		$svg = '<svg><a xlink:actuate="onLoad" xlink:arcrole="arc" xlink:href="#target" xlink:role="role" xlink:show="new" xlink:title="title" xlink:type="simple" xml:lang="en" xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"></a></svg>';
+
+		$this->assertSame(
+			$svg,
+			WP_HTML_Processor::normalize( $svg ),
+			'Should have preserved all adjusted foreign attributes when normalizing.'
+		);
+
+		$processor = WP_HTML_Processor::create_fragment( $svg );
+		$this->assertTrue( $processor->next_token() );
+		$this->assertSame( '<svg>', $processor->serialize_token(), 'Should serialize the opening SVG tag.' );
+		$this->assertTrue( $processor->next_token() );
+		$this->assertSame(
+			'<a xlink:actuate="onLoad" xlink:arcrole="arc" xlink:href="#target" xlink:role="role" xlink:show="new" xlink:title="title" xlink:type="simple" xml:lang="en" xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">',
+			$processor->serialize_token(),
+			'Should have serialized all adjusted foreign attributes with their namespace prefixes.'
+		);
+	}
+
+	/**
+	 * Ensures that non-adjusted foreign attributes retain their colon.
+	 *
+	 * @ticket 65372
+	 *
+	 * @dataProvider data_non_adjusted_foreign_attributes_with_colon
+	 *
+	 * @param string $svg            SVG markup to normalize.
+	 * @param string $serialized_tag Expected serialized token.
+	 */
+	public function test_serializes_non_adjusted_foreign_attributes_with_colon( string $svg, string $serialized_tag ): void {
+		$this->assertSame(
+			$svg,
+			WP_HTML_Processor::normalize( $svg ),
+			'Should have preserved non-adjusted colon attributes when normalizing.'
+		);
+
+		$processor = WP_HTML_Processor::create_fragment( $svg );
+		$this->assertTrue( $processor->next_token() );
+		$this->assertSame( '<svg>', $processor->serialize_token(), 'Should serialize the opening SVG tag.' );
+		$this->assertTrue( $processor->next_token() );
+		$this->assertSame(
+			$serialized_tag,
+			$processor->serialize_token(),
+			'Should have preserved non-adjusted colon attributes when serializing the token.'
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{0: string, 1: string}>
+	 */
+	public static function data_non_adjusted_foreign_attributes_with_colon(): array {
+		return array(
+			'xlink control' => array(
+				'<svg><a xlink:author="author" xlink:href="#target"></a></svg>',
+				'<a xlink:author="author" xlink:href="#target">',
+			),
+			'xml control'   => array(
+				'<svg><a xml:id="id" xml:lang="en"></a></svg>',
+				'<a xml:id="id" xml:lang="en">',
+			),
+			'xmlns control' => array(
+				'<svg><a xmlns:foo="urn:foo" xmlns:xlink="http://www.w3.org/1999/xlink"></a></svg>',
+				'<a xmlns:foo="urn:foo" xmlns:xlink="http://www.w3.org/1999/xlink">',
+			),
+			'source order'  => array(
+				'<svg><a foo:bar="baz" xlink:href="#target"></a></svg>',
+				'<a foo:bar="baz" xlink:href="#target">',
+			),
+		);
+	}
+
+	/**
+	 * Ensures that duplicate foreign attributes are removed upon serialization.
+	 *
+	 * @ticket 65372
+	 *
+	 * @dataProvider data_duplicate_foreign_attributes
+	 *
+	 * @param string $input    HTML containing duplicate foreign attributes.
+	 * @param string $expected Expected normalized HTML.
+	 */
+	public function test_duplicate_foreign_attributes_are_removed( string $input, string $expected ): void {
+		$this->assertSame(
+			$expected,
+			WP_HTML_Processor::normalize( $input ),
+			'Should have removed all but the first copy of a foreign attribute when duplicates exist.'
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{0: string, 1: string}>
+	 */
+	public static function data_duplicate_foreign_attributes(): array {
+		return array(
+			'adjusted xlink duplicate'       => array(
+				'<svg><a xlink:href="#first" XLINK:HREF="#second"></a></svg>',
+				'<svg><a xlink:href="#first"></a></svg>',
+			),
+			'adjusted xml duplicate'         => array(
+				'<svg><a xml:lang="en" XML:LANG="fr"></a></svg>',
+				'<svg><a xml:lang="en"></a></svg>',
+			),
+			'non-adjusted colon duplicate'   => array(
+				'<svg><a foo:bar="one" FOO:BAR="two"></a></svg>',
+				'<svg><a foo:bar="one"></a></svg>',
+			),
+			'adjusted and non-adjusted pair' => array(
+				'<svg><a xlink:href="#target" xlink:author="author"></a></svg>',
+				'<svg><a xlink:href="#target" xlink:author="author"></a></svg>',
+			),
+		);
+	}
+
+	/**
 	 * Ensures that SCRIPT contents are not escaped, as they are not parsed like text nodes are.
 	 *
 	 * @ticket 62036
