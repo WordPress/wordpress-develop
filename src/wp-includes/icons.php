@@ -42,8 +42,11 @@ function wp_unregister_icon_collection( $slug ) {
  *
  * @since 7.1.0
  *
- * @param string $icon_name  Icon name (e.g. "arrow-left").
- * @param string $collection Slug of a registered icon collection that this icon belongs to.
+ * @param string $icon_name Namespaced icon name in the form "collection/icon-name"
+ *                          (e.g. "my-plugin/arrow-left"). The "core" collection is
+ *                          reserved for WordPress core icons; third-party code should
+ *                          register icons under its own collection rather than the
+ *                          "core" collection.
  * @param array  $args {
  *     List of properties for the icon.
  *
@@ -55,8 +58,7 @@ function wp_unregister_icon_collection( $slug ) {
  * }
  * @return bool True if the icon was registered successfully, else false.
  */
-function wp_register_icon( $icon_name, $collection, $args ) {
-	$args['collection'] = $collection;
+function wp_register_icon( $icon_name, $args ) {
 	return WP_Icons_Registry::get_instance()->register( $icon_name, $args );
 }
 
@@ -65,12 +67,12 @@ function wp_register_icon( $icon_name, $collection, $args ) {
  *
  * @since 7.1.0
  *
- * @param string $icon_name  Icon name (e.g. "arrow-left").
- * @param string $collection Slug of the collection the icon belongs to.
+ * @param string $icon_name Namespaced icon name in the form "collection/icon-name"
+ *                          (e.g. "core/arrow-left").
  * @return bool True if the icon was unregistered successfully, else false.
  */
-function wp_unregister_icon( $icon_name, $collection ) {
-	return WP_Icons_Registry::get_instance()->unregister( $icon_name, $collection );
+function wp_unregister_icon( $icon_name ) {
+	return WP_Icons_Registry::get_instance()->unregister( $icon_name );
 }
 
 /**
@@ -131,8 +133,7 @@ function _wp_register_default_icons() {
 		}
 
 		wp_register_icon(
-			$icon_name,
-			'core',
+			'core/' . $icon_name,
 			array(
 				'label'     => $icon_data['label'],
 				'file_path' => $icons_directory . $icon_data['filePath'],

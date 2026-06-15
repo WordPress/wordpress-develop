@@ -81,11 +81,10 @@ class Tests_Icons_WpIconsRegistry extends WP_UnitTestCase {
 	 */
 	public function test_register_icon() {
 		$result = $this->registry->register(
-			'my-icon',
+			'test-collection/my-icon',
 			array(
-				'label'      => 'My Icon',
-				'content'    => '<svg></svg>',
-				'collection' => 'test-collection',
+				'label'   => 'My Icon',
+				'content' => '<svg></svg>',
 			)
 		);
 
@@ -95,10 +94,11 @@ class Tests_Icons_WpIconsRegistry extends WP_UnitTestCase {
 
 	public function data_invalid_icon_names() {
 		return array(
-			'non-string name'      => array( 1 ),
-			'contains slash'       => array( 'test-collection/plus' ),
-			'uppercase characters' => array( 'Plus' ),
-			'invalid characters'   => array( '_doing_it_wrong' ),
+			'non-string name'        => array( 1 ),
+			'non-namespaced name'    => array( 'plus' ),
+			'empty unqualified name' => array( 'test-collection/' ),
+			'uppercase characters'   => array( 'test-collection/Plus' ),
+			'invalid characters'     => array( 'test-collection/_doing_it_wrong' ),
 		);
 	}
 
@@ -111,13 +111,12 @@ class Tests_Icons_WpIconsRegistry extends WP_UnitTestCase {
 	 */
 	public function test_register_icon_twice() {
 		$settings = array(
-			'label'      => 'Icon',
-			'content'    => '<svg></svg>',
-			'collection' => 'test-collection',
+			'label'   => 'Icon',
+			'content' => '<svg></svg>',
 		);
 
-		$this->assertTrue( $this->registry->register( 'duplicate', $settings ) );
-		$this->assertFalse( $this->registry->register( 'duplicate', $settings ) );
+		$this->assertTrue( $this->registry->register( 'test-collection/duplicate', $settings ) );
+		$this->assertFalse( $this->registry->register( 'test-collection/duplicate', $settings ) );
 	}
 
 	/**
@@ -135,22 +134,24 @@ class Tests_Icons_WpIconsRegistry extends WP_UnitTestCase {
 		$result = $this->registry->register(
 			$name,
 			array(
-				'label'      => 'Icon',
-				'content'    => '<svg></svg>',
-				'collection' => 'test-collection',
+				'label'   => 'Icon',
+				'content' => '<svg></svg>',
 			)
 		);
 		$this->assertFalse( $result );
 	}
 
 	/**
+	 * Should reject a non-namespaced name, since the collection is derived from
+	 * the namespaced icon name in the form "collection/icon-name".
+	 *
 	 * @ticket 64651
 	 *
 	 * @covers ::register
 	 *
 	 * @expectedIncorrectUsage WP_Icons_Registry::register
 	 */
-	public function test_register_requires_collection() {
+	public function test_register_rejects_non_namespaced_name() {
 		$result = $this->registry->register(
 			'my-icon',
 			array(
@@ -162,25 +163,30 @@ class Tests_Icons_WpIconsRegistry extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Should reject `collection` passed as an icon property, since the collection
+	 * is derived from the namespaced icon name instead.
+	 *
 	 * @ticket 64651
 	 *
 	 * @covers ::register
 	 *
 	 * @expectedIncorrectUsage WP_Icons_Registry::register
 	 */
-	public function test_register_rejects_non_string_collection() {
+	public function test_register_rejects_collection_property() {
 		$result = $this->registry->register(
-			'my-icon',
+			'test-collection/my-icon',
 			array(
 				'label'      => 'Icon',
 				'content'    => '<svg></svg>',
-				'collection' => 123,
+				'collection' => 'test-collection',
 			)
 		);
 		$this->assertFalse( $result );
 	}
 
 	/**
+	 * Should fail when the name references a collection that is not registered.
+	 *
 	 * @ticket 64651
 	 *
 	 * @covers ::register
@@ -189,11 +195,10 @@ class Tests_Icons_WpIconsRegistry extends WP_UnitTestCase {
 	 */
 	public function test_register_rejects_unregistered_collection() {
 		$result = $this->registry->register(
-			'my-icon',
+			'unregistered-collection/my-icon',
 			array(
-				'label'      => 'Icon',
-				'content'    => '<svg></svg>',
-				'collection' => 'unregistered-collection',
+				'label'   => 'Icon',
+				'content' => '<svg></svg>',
 			)
 		);
 		$this->assertFalse( $result );
@@ -210,21 +215,19 @@ class Tests_Icons_WpIconsRegistry extends WP_UnitTestCase {
 
 		$this->assertTrue(
 			$this->registry->register(
-				'shared',
+				'test-collection/shared',
 				array(
-					'label'      => 'Shared A',
-					'content'    => '<svg></svg>',
-					'collection' => 'test-collection',
+					'label'   => 'Shared A',
+					'content' => '<svg></svg>',
 				)
 			)
 		);
 		$this->assertTrue(
 			$this->registry->register(
-				'shared',
+				'other-collection/shared',
 				array(
-					'label'      => 'Shared B',
-					'content'    => '<svg></svg>',
-					'collection' => 'other-collection',
+					'label'   => 'Shared B',
+					'content' => '<svg></svg>',
 				)
 			)
 		);
@@ -245,16 +248,15 @@ class Tests_Icons_WpIconsRegistry extends WP_UnitTestCase {
 	 */
 	public function test_unregister_icon() {
 		$this->registry->register(
-			'my-icon',
+			'test-collection/my-icon',
 			array(
-				'label'      => 'Icon',
-				'content'    => '<svg></svg>',
-				'collection' => 'test-collection',
+				'label'   => 'Icon',
+				'content' => '<svg></svg>',
 			)
 		);
 
 		$this->assertTrue( $this->registry->is_registered( 'test-collection/my-icon' ) );
-		$this->assertTrue( $this->registry->unregister( 'my-icon', 'test-collection' ) );
+		$this->assertTrue( $this->registry->unregister( 'test-collection/my-icon' ) );
 		$this->assertFalse( $this->registry->is_registered( 'test-collection/my-icon' ) );
 	}
 
@@ -266,7 +268,7 @@ class Tests_Icons_WpIconsRegistry extends WP_UnitTestCase {
 	 * @expectedIncorrectUsage WP_Icons_Registry::unregister
 	 */
 	public function test_unregister_unknown_icon() {
-		$this->assertFalse( $this->registry->unregister( 'ghost', 'test-collection' ) );
+		$this->assertFalse( $this->registry->unregister( 'test-collection/ghost' ) );
 	}
 
 	/**
@@ -278,11 +280,10 @@ class Tests_Icons_WpIconsRegistry extends WP_UnitTestCase {
 		$path = $this->create_temp_icon_file( '<svg><path d="M0 0"/></svg>' );
 
 		$this->registry->register(
-			'from-file',
+			'test-collection/from-file',
 			array(
-				'label'      => 'From File',
-				'file_path'  => $path,
-				'collection' => 'test-collection',
+				'label'     => 'From File',
+				'file_path' => $path,
 			)
 		);
 
@@ -317,11 +318,10 @@ class Tests_Icons_WpIconsRegistry extends WP_UnitTestCase {
 		$path = $this->create_temp_icon_file( $contents, $extension );
 
 		$this->registry->register(
-			'invalid-file',
+			'test-collection/invalid-file',
 			array(
-				'label'      => 'Invalid File',
-				'file_path'  => $path,
-				'collection' => 'test-collection',
+				'label'     => 'Invalid File',
+				'file_path' => $path,
 			)
 		);
 

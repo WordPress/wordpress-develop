@@ -51,8 +51,7 @@ class Tests_REST_WpRestIconsController extends WP_Test_REST_Controller_Testcase 
 	public function test_get_items_collection_scope() {
 		wp_register_icon_collection( 'rest-test-collection', array( 'label' => 'REST Test' ) );
 		wp_register_icon(
-			'bell',
-			'rest-test-collection',
+			'rest-test-collection/bell',
 			array(
 				'label'   => 'Bell',
 				'content' => '<svg></svg>',
@@ -99,8 +98,7 @@ class Tests_REST_WpRestIconsController extends WP_Test_REST_Controller_Testcase 
 	public function test_response_includes_collection_field() {
 		wp_register_icon_collection( 'rest-test-collection', array( 'label' => 'REST Test' ) );
 		wp_register_icon(
-			'bell',
-			'rest-test-collection',
+			'rest-test-collection/bell',
 			array(
 				'label'   => 'Bell',
 				'content' => '<svg></svg>',
