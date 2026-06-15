@@ -24,7 +24,8 @@
  * } $parsed_block
  */
 function wp_get_elements_class_name( $parsed_block ): string {
-	return wp_unique_prefixed_id( 'wp-elements-' );
+	$hash = md5( serialize( $parsed_block ) );
+	return wp_unique_prefixed_id( 'wp-elements-' . $hash );
 }
 
 /**
