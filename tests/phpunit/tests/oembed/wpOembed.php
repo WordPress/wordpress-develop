@@ -302,10 +302,13 @@ class Tests_oEmbed_wpOembed extends WP_UnitTestCase {
 	 * @covers ::get_provider
 	 */
 	public function test_get_provider_handles_provider_without_regex_flag(): void {
-		// Provider with only index 0 set (no regex flag) — should default $regex to false.
-		$this->oembed->providers['https://example.site/*'] = array( 'https://example.site/api/oembed' ); // @phpstan-ignore assign.propertyType (Intentionally omitted second item of array.)
+		// Use a dedicated instance to avoid leaking the test provider into the shared singleton.
+		$oembed = new WP_oEmbed();
 
-		$result = $this->oembed->get_provider( 'https://example.site/video/123' );
+		// Provider with only index 0 set (no regex flag) — should default $regex to false.
+		$oembed->providers['https://example.site/*'] = array( 'https://example.site/api/oembed' ); // @phpstan-ignore assign.propertyType (Intentionally omitted second item of array.)
+
+		$result = $oembed->get_provider( 'https://example.site/video/123' );
 
 		$this->assertSame( 'https://example.site/api/oembed', $result );
 	}
