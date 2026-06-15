@@ -26,10 +26,8 @@ class Tests_Ajax_wpAjaxHealthCheckSiteStatusResult extends WP_Ajax_UnitTestCase 
 
 	/**
 	 * User ID granted super admin privileges during a multisite test.
-	 *
-	 * @var int
 	 */
-	private $super_admin_user_id = 0;
+	private int $super_admin_user_id = 0;
 
 	/**
 	 * Sets up the test fixture.
