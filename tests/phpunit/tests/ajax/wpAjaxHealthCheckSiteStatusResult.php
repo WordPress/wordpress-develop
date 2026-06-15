@@ -77,7 +77,9 @@ class Tests_Ajax_wpAjaxHealthCheckSiteStatusResult extends WP_Ajax_UnitTestCase 
 			unset( $e );
 		}
 
-		return json_decode( $this->_last_response, true );
+		$response = json_decode( $this->_last_response, true );
+		assert( is_array( $response ) );
+		return $response;
 	}
 
 	/**
