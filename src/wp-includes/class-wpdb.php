@@ -3101,7 +3101,10 @@ class wpdb {
 		if ( OBJECT === $output ) {
 			return $this->last_result[ $y ] ? $this->last_result[ $y ] : null;
 		} elseif ( ARRAY_A === $output ) {
-			return $this->last_result[ $y ] ? get_object_vars( $this->last_result[ $y ] ) : null;
+			// get_object_vars() is typed as having int|string keys because object property names can be integer-like, but row column names are strings.
+			/** @var array<string, mixed>|null $row */
+			$row = $this->last_result[ $y ] ? get_object_vars( $this->last_result[ $y ] ) : null;
+			return $row;
 		} elseif ( ARRAY_N === $output ) {
 			return $this->last_result[ $y ] ? array_values( get_object_vars( $this->last_result[ $y ] ) ) : null;
 		} elseif ( OBJECT === strtoupper( $output ) ) {
@@ -3143,6 +3146,8 @@ class wpdb {
 				$new_array[ $i ] = $this->get_var( null, $x, $i );
 			}
 		}
+		// The sequential integer keys above form a list, which PHPStan cannot infer from the explicit offsets.
+		/** @var list<string|null> $new_array */
 		return $new_array;
 	}
 
@@ -3234,8 +3239,10 @@ class wpdb {
 					}
 				} else {
 					foreach ( (array) $this->last_result as $row ) {
-						// ...column name-keyed row arrays.
-						$new_array[] = get_object_vars( $row );
+						// ...column name-keyed row arrays. get_object_vars() is typed as having int|string keys, but row column names are strings.
+						/** @var array<string, mixed> $row_array */
+						$row_array   = get_object_vars( $row );
+						$new_array[] = $row_array;
 					}
 				}
 			}
