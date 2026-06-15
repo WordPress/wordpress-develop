@@ -278,8 +278,8 @@ class WP_oEmbed {
 	 *
 	 * @since 7.1.0
 	 *
-	 * @param int|string $match_mask The URL pattern used to match against URLs.
-	 * @param mixed      $data       The raw provider data to sanitize.
+	 * @param array-key $match_mask The URL pattern used to match against URLs.
+	 * @param mixed     $data       The raw provider data to sanitize.
 	 * @return array{ match_mask: non-empty-string, endpoint: non-empty-string, is_regex: bool }|null Normalized provider array, or null if malformed.
 	 */
 	private function sanitize_provider( $match_mask, $data ): ?array {
