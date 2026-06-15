@@ -1796,7 +1796,7 @@ function wp_doing_cron() {
  *
  * @return bool True if it's a WordPress sitemap request, false otherwise.
  */
-function wp_doing_sitemap() {
+function wp_doing_sitemap(): bool {
 	/**
 	 * Filters whether the current request is a WordPress sitemap request.
 	 *
