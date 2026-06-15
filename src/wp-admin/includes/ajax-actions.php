@@ -5468,7 +5468,7 @@ function wp_ajax_health_check_site_status_result() {
 		wp_send_json_error();
 	}
 
-	$counts = isset( $_POST['counts'] ) ? wp_unslash( $_POST['counts'] ) : null;
+	$counts = isset( $_POST['counts'] ) && is_array( $_POST['counts'] ) ? wp_unslash( $_POST['counts'] ) : null;
 
 	if ( ! is_array( $counts ) ) {
 		wp_send_json_error();
