@@ -799,19 +799,19 @@ async function listZipEntries(zipPath) {
 	const result = await run('zipinfo', ['-l', zipPath], { capture: true, label: `inspect ${zipPath}` });
 	const entries = [];
 	for (const line of result.stdout.split('\n')) {
-		const match = line.match(/^\s*[-dl][^\s]*\s+\S+\s+\S+\s+(\d+)\s+.*?\s+(.+)$/);
+		const match = line.match(/^\s*([-dl][^\s]*)\s+\S+\s+\S+\s+(\d+)\s+\S+\s+\d+\s+\S+\s+\S+\s+\S+\s+(.+)$/);
 		if (!match) {
 			continue;
 		}
-		const rawName = match[2].trim();
+		const rawName = match[3].trim();
 		const name = normalizeZipEntryName(rawName);
 		if (!name || /[\x00-\x1f]/.test(rawName)) {
 			throw new Error(`Unsafe zip entry: ${name}`);
 		}
-		if (line.trim().startsWith('l')) {
+		if (match[1].startsWith('l')) {
 			throw new Error(`Symlink zip entry is not allowed: ${name}`);
 		}
-		entries.push({ name, size: Number(match[1]) });
+		entries.push({ name, size: Number(match[2]) });
 	}
 	if (!entries.length) {
 		throw new Error(`No zip entries found in ${zipPath}`);
