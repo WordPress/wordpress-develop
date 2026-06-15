@@ -3158,8 +3158,9 @@ class wpdb {
 	 * Executes a SQL query and returns the entire SQL result.
 	 *
 	 * Returns an empty array when no rows match or when the database
-	 * reports an error for the query. Returns null only when $query is
-	 * empty or $output is not one of the recognized constants.
+	 * reports an error for the query. Returns null when $query is empty,
+	 * when $output is not one of the recognized constants, or when the
+	 * query cannot run because the connection is not ready.
 	 *
 	 * @since 0.71
 	 *
@@ -3173,14 +3174,14 @@ class wpdb {
 	 *                            of each row's first column's value. Duplicate keys are discarded.
 	 *                            Default OBJECT.
 	 * @return array|null Database query results. Empty array when no rows match
-	 *                    or on database error. Null when $query is empty or
-	 *                    $output is invalid.
+	 *                    or on database error. Null when $query is empty, when
+	 *                    $output is invalid, or when the connection is not ready.
 	 * @phpstan-param 'OBJECT'|'OBJECT_K'|'ARRAY_A'|'ARRAY_N' $output
 	 * @phpstan-return (
 	 *     $query is non-falsy-string
 	 *         ? (
 	 *             $output is 'OBJECT'
-	 *                 ? list<stdClass>
+	 *                 ? list<stdClass>|null
 	 *                 : (
 	 *                     $output is 'OBJECT_K'
 	 *                         ? array<array-key, stdClass>
