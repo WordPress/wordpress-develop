@@ -129,7 +129,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	/**
 	 * Retrieves the query params for the attachments collection.
 	 *
-	 * @since 7.0.0
+	 * @since 7.1.0
 	 *
 	 * @param string $method Optional. HTTP method of the request.
 	 *                       The arguments for `CREATABLE` requests are
@@ -289,7 +289,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	 * Creates a single attachment.
 	 *
 	 * @since 4.7.0
-	 * @since 7.0.0 Added `generate_sub_sizes` and `convert_format` parameters.
+	 * @since 7.1.0 Added `generate_sub_sizes` and `convert_format` parameters.
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response|WP_Error Response object on success, WP_Error object on failure.
@@ -313,7 +313,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		}
 
 		// Handle convert_format parameter.
-		if ( isset( $request['convert_format'] ) && ! $request['convert_format'] ) {
+		if ( false === $request['convert_format'] ) {
 			add_filter( 'image_editor_output_format', '__return_empty_array', 100 );
 		}
 
@@ -413,9 +413,9 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	/**
 	 * Removes filters added for client-side media processing.
 	 *
-	 * @since 7.0.0
+	 * @since 7.1.0
 	 */
-	private function remove_client_side_media_processing_filters() {
+	private function remove_client_side_media_processing_filters(): void {
 		remove_filter( 'intermediate_image_sizes_advanced', '__return_empty_array', 100 );
 		remove_filter( 'fallback_intermediate_image_sizes', '__return_empty_array', 100 );
 		remove_filter( 'wp_image_maybe_exif_rotate', '__return_false', 100 );
@@ -1994,7 +1994,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	 * Sideloading a file for an existing attachment
 	 * requires both update and create permissions.
 	 *
-	 * @since 7.0.0
+	 * @since 7.1.0
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return true|WP_Error True if the request has access to update the item, WP_Error object otherwise.
@@ -2006,13 +2006,13 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	/**
 	 * Side-loads a media file without creating a new attachment.
 	 *
-	 * @since 7.0.0
+	 * @since 7.1.0
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response|WP_Error Response object on success, WP_Error object on failure.
 	 */
 	public function sideload_item( WP_REST_Request $request ) {
-		$attachment_id = $request['id'];
+		$attachment_id = (int) $request['id'];
 
 		$post = $this->get_post( $attachment_id );
 
@@ -2031,7 +2031,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			);
 		}
 
-		if ( isset( $request['convert_format'] ) && ! $request['convert_format'] ) {
+		if ( false === $request['convert_format'] ) {
 			// Prevent image conversion as that is done client-side.
 			add_filter( 'image_editor_output_format', '__return_empty_array', 100 );
 		}
@@ -2177,7 +2177,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	 * However, here it is desired not to add the suffix in order to maintain the same
 	 * naming convention as if the file was uploaded regularly.
 	 *
-	 * @since 7.0.0
+	 * @since 7.1.0
 	 *
 	 * @link https://github.com/WordPress/wordpress-develop/blob/30954f7ac0840cfdad464928021d7f380940c347/src/wp-includes/functions.php#L2576-L2582
 	 *
@@ -2219,13 +2219,13 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	 * server-side plugins can process the attachment after all client-side
 	 * operations (upload, thumbnail generation, sideloads) are complete.
 	 *
-	 * @since 7.0.0
+	 * @since 7.1.0
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response|WP_Error Response object on success, WP_Error object on failure.
 	 */
 	public function finalize_item( WP_REST_Request $request ) {
-		$attachment_id = $request['id'];
+		$attachment_id = (int) $request['id'];
 
 		$post = $this->get_post( $attachment_id );
 		if ( is_wp_error( $post ) ) {

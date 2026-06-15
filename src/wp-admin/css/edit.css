@@ -5,7 +5,6 @@
 
 #poststuff #post-body {
 	padding: 0;
-	margin: 0 -4px;
 }
 
 #poststuff .postbox-container {
@@ -121,7 +120,6 @@ input#link_url {
 #edit-slug-box .cancel {
 	margin-right: 10px;
 	padding: 0;
-	font-size: 11px;
 }
 
 #comment-link-box {
@@ -140,7 +138,7 @@ input#link_url {
 #editable-post-name input {
 	font-size: 13px;
 	font-weight: 400;
-	height: 24px;
+	min-height: 32px;
 	margin: 0;
 	width: 16em;
 }
@@ -173,10 +171,6 @@ body.post-type-wp_navigation .inline-edit-status {
 }
 
 /* Post Screen */
-
-.metabox-holder .postbox-container .meta-box-sortables {
-	padding: 4px;
-}
 
 /* Only highlight drop zones when dragging and only in the 2 columns layout. */
 .is-dragging-metaboxes .metabox-holder .postbox-container .meta-box-sortables {
@@ -994,15 +988,16 @@ form#tags-filter {
 }
 
 .privacy-settings-accordion-actions {
-	text-align: right;
-	display: block;
+	justify-content: right;
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 1em;
 }
 
 .privacy-settings-accordion-actions .success {
 	display: none;
 	color: #007017;
-	padding-right: 1em;
-	padding-top: 6px;
 }
 
 .privacy-settings-accordion-actions .success.visible {
@@ -1066,6 +1061,10 @@ form#tags-filter {
 
 	#edit-slug-box {
 		padding: 0;
+	}
+
+	#editable-post-name input {
+		min-height: 40px;
 	}
 }
 
@@ -1542,6 +1541,9 @@ p.popular-tags a {
 }
 
 .edit-tag-actions {
+	display: flex;
+	align-items: center;
+	gap: 8px;
 	margin-top: 20px;
 }
 
