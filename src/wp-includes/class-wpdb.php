@@ -3221,9 +3221,14 @@ class wpdb {
 			if ( $this->last_result ) {
 				foreach ( $this->last_result as $row ) {
 					$var_by_ref = get_object_vars( $row );
-					// The first column's value is used as the key. A SQL NULL value surfaces as null here, so coerce it to
-					// an empty string to avoid the deprecated use of null as an array offset (PHP 8.5+).
-					/** @var array-key $key */
+					/**
+					 * The first column's value is used as the key.
+					 *
+					 * A SQL NULL value surfaces as null here, so coerce it to an empty string to avoid the deprecated
+					 * use of null as an array offset (PHP 8.5+).
+					 *
+					 * @var array-key $key
+					 */
 					$key = array_shift( $var_by_ref ) ?? '';
 					if ( ! isset( $new_array[ $key ] ) ) {
 						$new_array[ $key ] = $row;
