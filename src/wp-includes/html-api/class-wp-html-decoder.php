@@ -378,7 +378,7 @@ class WP_HTML_Decoder {
 		 * character reference table but the match doesn't end in `;`.
 		 * It may be allowed if it's followed by something unambiguous.
 		 */
-		$follower_byte       = $after_name < $length ? ord( $text[ $after_name ] ) : null;
+		$follower_byte      = $after_name < $length ? ord( $text[ $after_name ] ) : null;
 		$ambiguous_follower = (
 			null !== $follower_byte &&
 			(

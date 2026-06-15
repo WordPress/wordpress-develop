@@ -128,10 +128,10 @@ class Tests_HtmlApi_WpHtmlDecoder extends WP_UnitTestCase {
 	 */
 	public static function data_ambiguous_ascii_attribute_followers() {
 		return array(
-			'ASCII digit' => array( '&Aacute0' ),
+			'ASCII digit'           => array( '&Aacute0' ),
 			'ASCII uppercase alpha' => array( '&AacuteA' ),
 			'ASCII lowercase alpha' => array( '&Aacutea' ),
-			'equals' => array( '&Aacute=' ),
+			'equals'                => array( '&Aacute=' ),
 		);
 	}
 
