@@ -720,7 +720,7 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 	 *
 	 * @covers ::wp_cron_scheduled_check
 	 */
-	public function test_wp_cron_scheduled_check_caches_full_results() {
+	public function test_wp_cron_scheduled_check_caches_full_results(): void {
 		$tests = array(
 			'direct' => array(
 				'fake_critical'    => array(

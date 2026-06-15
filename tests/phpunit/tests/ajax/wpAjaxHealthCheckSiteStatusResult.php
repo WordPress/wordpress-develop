@@ -34,7 +34,7 @@ class Tests_Ajax_wpAjaxHealthCheckSiteStatusResult extends WP_Ajax_UnitTestCase 
 	/**
 	 * Sets up the test fixture.
 	 */
-	public function set_up() {
+	public function set_up(): void {
 		parent::set_up();
 
 		// This Ajax action is not part of the core actions registered by the base test case.
@@ -44,7 +44,7 @@ class Tests_Ajax_wpAjaxHealthCheckSiteStatusResult extends WP_Ajax_UnitTestCase 
 	/**
 	 * Cleans up the test fixture.
 	 */
-	public function tear_down() {
+	public function tear_down(): void {
 		if ( is_multisite() && $this->super_admin_user_id ) {
 			revoke_super_admin( $this->super_admin_user_id );
 			$this->super_admin_user_id = 0;
@@ -56,7 +56,7 @@ class Tests_Ajax_wpAjaxHealthCheckSiteStatusResult extends WP_Ajax_UnitTestCase 
 	/**
 	 * Sets the current user to one that can view Site Health checks.
 	 */
-	private function set_user_with_site_health_capability() {
+	private function set_user_with_site_health_capability(): void {
 		$this->_setRole( 'administrator' );
 
 		if ( is_multisite() ) {
@@ -88,7 +88,7 @@ class Tests_Ajax_wpAjaxHealthCheckSiteStatusResult extends WP_Ajax_UnitTestCase 
 	 *
 	 * @ticket 65232
 	 */
-	public function test_refreshing_counts_preserves_cached_results_and_timestamp() {
+	public function test_refreshing_counts_preserves_cached_results_and_timestamp(): void {
 		$timestamp = 1715714399;
 		$results   = array(
 			array(
@@ -141,7 +141,7 @@ class Tests_Ajax_wpAjaxHealthCheckSiteStatusResult extends WP_Ajax_UnitTestCase 
 	 *
 	 * @ticket 65232
 	 */
-	public function test_storing_counts_without_cached_results() {
+	public function test_storing_counts_without_cached_results(): void {
 		delete_transient( self::TRANSIENT );
 
 		$this->set_user_with_site_health_capability();
@@ -170,7 +170,7 @@ class Tests_Ajax_wpAjaxHealthCheckSiteStatusResult extends WP_Ajax_UnitTestCase 
 	 *
 	 * @ticket 65232
 	 */
-	public function test_invalid_counts_return_error_and_leave_cache_untouched() {
+	public function test_invalid_counts_return_error_and_leave_cache_untouched(): void {
 		$existing = array( 'good' => 9 );
 		set_transient( self::TRANSIENT, wp_json_encode( $existing ) );
 
@@ -191,7 +191,7 @@ class Tests_Ajax_wpAjaxHealthCheckSiteStatusResult extends WP_Ajax_UnitTestCase 
 	 *
 	 * @ticket 65232
 	 */
-	public function test_user_without_capability_cannot_write_cache() {
+	public function test_user_without_capability_cannot_write_cache(): void {
 		delete_transient( self::TRANSIENT );
 
 		$this->_setRole( 'subscriber' );
