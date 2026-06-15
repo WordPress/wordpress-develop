@@ -3143,11 +3143,9 @@ class wpdb {
 		// Extract the column values.
 		if ( $this->last_result ) {
 			for ( $i = 0, $j = count( $this->last_result ); $i < $j; $i++ ) {
-				$new_array[ $i ] = $this->get_var( null, $x, $i );
+				$new_array[] = $this->get_var( null, $x, $i );
 			}
 		}
-		// The sequential integer keys above form a list, which PHPStan cannot infer from the explicit offsets.
-		/** @var list<string|null> $new_array */
 		return $new_array;
 	}
 
