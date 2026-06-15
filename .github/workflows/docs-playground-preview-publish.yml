@@ -1,6 +1,6 @@
 name: Docs Playground Preview Publish
 
-on:
+on: # zizmor: ignore[dangerous-triggers] Publishes only the v3 preview-build artifact after the pinned reusable publisher validates workflow_run event/conclusion, artifact name, PR number, and head SHA.
   workflow_run:
     workflows:
       - 'Docs Playground Preview Build'
@@ -19,24 +19,42 @@ permissions: {}
 jobs:
   publish-docs-playground-preview:
     name: Publish docs Playground preview
-    runs-on: ubuntu-24.04
-    timeout-minutes: 10
+    if: ${{ github.repository == 'WordPress/wordpress-develop' }}
+    uses: WordPress/action-wp-playground-pr-preview/.github/workflows/preview-publish.yml@43fc435558bc6cee69f5b214d6b8ca4f9f80c31d # v3
     permissions:
       actions: read
       contents: write
-      issues: write
-      pull-requests: read
-    if: ${{ github.repository == 'WordPress/wordpress-develop' }}
-
-    steps:
-      - name: Checkout trusted preview publisher
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-        with:
-          ref: ${{ github.sha }}
-          show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
-          persist-credentials: false
-
-      - name: Publish docs preview comment
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: node .github/scripts/docs-playground-preview/publish.mjs
+      pull-requests: write
+    with:
+      release-tag: docs-playground-preview-artifacts
+      artifacts-to-keep: '2'
+      mode: comment
+      blueprint: |
+        {
+          "$schema": "https://playground.wordpress.net/blueprint-schema.json",
+          "meta": {
+            "title": "WordPress Core API Docs Preview",
+            "author": "WordPress Core",
+            "description": "Official DevHub Code Reference preview generated from a WordPress Core pull request."
+          },
+          "preferredVersions": {
+            "php": "8.4",
+            "wp": "6.9.1"
+          },
+          "landingPage": "/reference/classes/wp_html_tag_processor/",
+          "login": true,
+          "steps": [
+            {
+              "step": "unzip",
+              "zipFile": {
+                "resource": "url",
+                "url": "{{ARTIFACT_URL:docs-playground-snapshot}}"
+              },
+              "extractToPath": "/wordpress"
+            },
+            {
+              "step": "runPHP",
+              "code": "<?php\nrequire_once '/wordpress/wp-load.php';\n\n$scheme = ( ! empty( $_SERVER['HTTPS'] ) && 'off' !== $_SERVER['HTTPS'] ) ? 'https' : 'http';\n$host   = $_SERVER['HTTP_HOST'] ?? '127.0.0.1';\n$path   = dirname( $_SERVER['SCRIPT_NAME'] ?? '' );\n\nif ( '.' === $path || '/' === $path ) {\n\t$path = '';\n}\n\n$url = rtrim( $scheme . '://' . $host . $path, '/' );\nupdate_option( 'siteurl', $url );\nupdate_option( 'home', $url );\nflush_rewrite_rules( false );\n"
+            }
+          ]
+        }
