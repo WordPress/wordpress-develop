@@ -94,29 +94,22 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 								 * after route registration (e.g. via add_image_size()).
 								 */
 								'validate_callback' => static function ( $value, WP_REST_Request $request, string $param ) {
+                					$valid = rest_validate_request_arg( $locations, $request, $param );
+                					if ( true !== $valid ) {
+                						return $valid;
+                					}
 									$valid_sizes   = array_keys( wp_get_registered_image_subsizes() );
 									$valid_sizes[] = 'original';
 									$valid_sizes[] = 'scaled';
 									$valid_sizes[] = 'full';
 
-									$items = is_string( $value ) ? array( $value ) : ( is_array( $value ) ? $value : null );
-									if ( null === $items ) {
-										return new WP_Error(
-											'rest_invalid_type',
-											/* translators: %s: Parameter name. */
-											sprintf( __( '%s must be a string or an array of strings.' ), $param )
-										);
-									}
-
-									foreach ( $items as $item ) {
-										if ( ! is_string( $item ) || ! in_array( $item, $valid_sizes, true ) ) {
-											return new WP_Error(
-												'rest_not_in_enum',
-												/* translators: %s: Parameter name. */
-												sprintf( __( '%s contains an invalid image size.' ), $param )
-											);
-										}
-									}
+									$items = (array) $value;
+									$schema = array(
+										'type'  => 'array',
+										'items' => array( 'type' => 'string' ),
+										'enum'  => $valid_sizes,
+									);
+									return rest_validate_enum( $items, $schema, $param );
 
 									return true;
 								},
