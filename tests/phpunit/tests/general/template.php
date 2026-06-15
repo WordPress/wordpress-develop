@@ -902,6 +902,7 @@ class Tests_General_Template extends WP_UnitTestCase {
 		$processor = new WP_HTML_Tag_Processor( $output );
 
 		$this->assertTrue( $processor->next_tag( 'IMG' ), 'Expected IMG tag.' );
+		$this->assertTrue( $processor->has_class( 'wp-embed-site-icon' ), 'Expected IMG to have wp-embed-site-icon class.' );
 		$this->assertSame( $svg_url, $processor->get_attribute( 'src' ), '1x URL should be present in src.' );
 		$this->assertNull( $processor->get_attribute( 'srcset' ), 'srcset should be omitted when 1x and 2x URLs are identical.' );
 	}
