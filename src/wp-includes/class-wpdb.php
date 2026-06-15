@@ -3073,7 +3073,7 @@ class wpdb {
 	 *                 ? stdClass|null
 	 *                 : (
 	 *                     $output is 'ARRAY_A'
-	 *                         ? array<string, mixed>|null
+	 *                         ? array<array-key, mixed>|null
 	 *                         : (
 	 *                             $output is 'ARRAY_N'
 	 *                                 ? list<mixed>|null
@@ -3104,10 +3104,7 @@ class wpdb {
 		if ( OBJECT === $output ) {
 			return $this->last_result[ $y ] ? $this->last_result[ $y ] : null;
 		} elseif ( ARRAY_A === $output ) {
-			// get_object_vars() is typed as having int|string keys because object property names can be integer-like, but row column names are strings.
-			/** @var array<string, mixed>|null $row */
-			$row = $this->last_result[ $y ] ? get_object_vars( $this->last_result[ $y ] ) : null;
-			return $row;
+			return $this->last_result[ $y ] ? get_object_vars( $this->last_result[ $y ] ) : null;
 		} elseif ( ARRAY_N === $output ) {
 			return $this->last_result[ $y ] ? array_values( get_object_vars( $this->last_result[ $y ] ) ) : null;
 		} elseif ( OBJECT === strtoupper( $output ) ) {
@@ -3187,7 +3184,7 @@ class wpdb {
 	 *                         ? array<array-key, stdClass>
 	 *                         : (
 	 *                             $output is 'ARRAY_A'
-	 *                                 ? list<array<string, mixed>>
+	 *                                 ? list<array<array-key, mixed>>
 	 *                                 : (
 	 *                                     $output is 'ARRAY_N'
 	 *                                         ? list<list<mixed>>
@@ -3243,10 +3240,8 @@ class wpdb {
 					}
 				} else {
 					foreach ( (array) $this->last_result as $row ) {
-						// ...column name-keyed row arrays. get_object_vars() is typed as having int|string keys, but row column names are strings.
-						/** @var array<string, mixed> $row_array */
-						$row_array   = get_object_vars( $row );
-						$new_array[] = $row_array;
+						// ...column name-keyed row arrays.
+						$new_array[] = get_object_vars( $row );
 					}
 				}
 			}
