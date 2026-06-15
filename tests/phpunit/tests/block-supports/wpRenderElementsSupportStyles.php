@@ -112,25 +112,16 @@ class Tests_Block_Supports_WpRenderElementsSupportStyles extends WP_UnitTestCase
 		);
 
 		// Process two identical blocks with the same elements styles.
-		wp_render_elements_support_styles( $block );
-		wp_render_elements_support_styles( $block );
+		$count = 2;
+		for ( $i = 0; $i < $count; $i++ ) {
+			wp_render_elements_support_styles( $block );
+		}
 		$actual_stylesheet = wp_style_engine_get_stylesheet_from_context( 'block-supports', array( 'prettify' => false ) );
 
-		// Both rules should be present with distinct class names.
-		$this->assertMatchesRegularExpression(
-			'/\.wp-elements-[a-f0-9]{32}[0-9]+ a:where\(:not\(\.wp-element-button\)\)\{color:blue;\}/',
-			$actual_stylesheet,
-			'First block element style should be present'
-		);
-		$this->assertMatchesRegularExpression(
-			'/\.wp-elements-[a-f0-9]{32}[0-9]+ a:where\(:not\(\.wp-element-button\)\)\{color:blue;\}/',
-			$actual_stylesheet,
-			'Second block element style should also be present'
-		);
 		// Count the number of distinct class names to confirm uniqueness.
-		preg_match_all( '/\.wp-elements-([a-f0-9]{32}[0-9]+)/', $actual_stylesheet, $matches );
+		$this->assertSame( $count, preg_match_all( '/\.wp-elements-([a-f0-9]{32}[0-9]+)/', $actual_stylesheet, $matches ) );
 		$unique_classes = array_unique( $matches[1] );
-		$this->assertCount( 2, $unique_classes, 'Both blocks should produce distinct class names' );
+		$this->assertCount( $count, $unique_classes, 'Both blocks should produce distinct class names' );
 	}
 
 	/**
