@@ -1801,7 +1801,7 @@ table.form-table td .updated p {
 		padding: 0 12px;
 	}
 
-	p.search-box input[type="submit"] {
+	p.search-box input[type="submit"].button {
 		margin-bottom: 10px;
 	}
 
