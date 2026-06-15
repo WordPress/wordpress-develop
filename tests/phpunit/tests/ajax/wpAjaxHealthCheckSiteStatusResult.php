@@ -68,9 +68,9 @@ class Tests_Ajax_wpAjaxHealthCheckSiteStatusResult extends WP_Ajax_UnitTestCase 
 	/**
 	 * Dispatches the Ajax request and returns the decoded JSON response.
 	 *
-	 * @return array|null The decoded response, or null when no JSON was returned.
+	 * @return array{ success: bool, ... } The decoded response.
 	 */
-	private function dispatch_result_request() {
+	private function dispatch_result_request(): array {
 		$this->_last_response = '';
 
 		try {
