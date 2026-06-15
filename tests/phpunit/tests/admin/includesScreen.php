@@ -260,6 +260,41 @@ class Tests_Admin_IncludesScreen extends WP_UnitTestCase {
 		$this->assertFalse( $screen->is_block_editor );
 	}
 
+	public function test_meta_box_reordering_enabled_defaults_to_true() {
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+
+		$this->assertTrue( wp_is_meta_box_reordering_enabled() );
+	}
+
+	public function test_meta_box_reordering_enabled_respects_user_option() {
+		$user_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		wp_set_current_user( $user_id );
+		update_user_meta( $user_id, 'meta_box_reordering', 'disabled' );
+
+		$this->assertFalse( wp_is_meta_box_reordering_enabled() );
+	}
+
+	public function test_meta_box_reordering_option_is_rendered_for_screens_with_meta_boxes() {
+		global $wp_meta_boxes;
+
+		$old_wp_meta_boxes = $wp_meta_boxes;
+		$screen            = convert_to_screen( 'dashboard' );
+
+		add_meta_box( 'testbox1', 'Test Metabox', '__return_false', $screen );
+
+		try {
+			ob_start();
+			$screen->render_meta_box_reordering_options();
+			$output = ob_get_clean();
+		} finally {
+			$wp_meta_boxes = $old_wp_meta_boxes;
+		}
+
+		$this->assertStringContainsString( 'id="meta-box-reordering"', $output );
+		$this->assertStringContainsString( 'Additional settings', $output );
+		$this->assertStringContainsString( 'Enable box reordering', $output );
+	}
+
 	public function test_post_type_with_edit_prefix() {
 		register_post_type( 'edit-some-thing' );
 		$screen = convert_to_screen( 'edit-some-thing' );
