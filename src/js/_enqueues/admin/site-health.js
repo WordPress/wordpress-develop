@@ -161,6 +161,23 @@ jQuery( function( $ ) {
 			issue.test = issue.status + count;
 		}
 
+		/*
+		 * Collect the full result so it can be cached server-side. These results
+		 * include the asynchronous tests that only run in the browser.
+		 */
+		if ( 'undefined' === typeof SiteHealth.site_status.results ) {
+			SiteHealth.site_status.results = [];
+		}
+
+		SiteHealth.site_status.results.push( {
+			test: issue.test,
+			label: issue.label,
+			status: issue.status,
+			badge: issue.badge,
+			description: issue.description,
+			actions: issue.actions
+		} );
+
 		if ( 'critical' === issue.status ) {
 			heading = sprintf(
 				_n( '%s critical issue', '%s critical issues', count ),
@@ -250,6 +267,7 @@ jQuery( function( $ ) {
 		}
 
 		if ( isStatusTab ) {
+			// Refresh the lightweight counts first, so a large detailed payload can't block them.
 			$.post(
 				ajaxurl,
 				{
@@ -258,6 +276,18 @@ jQuery( function( $ ) {
 					'counts': SiteHealth.site_status.issues
 				}
 			);
+
+			// Send the full results separately, as a best-effort detailed cache update.
+			if ( 'undefined' !== typeof SiteHealth.site_status.results ) {
+				$.post(
+					ajaxurl,
+					{
+						'action': 'health-check-site-status-result',
+						'_wpnonce': SiteHealth.nonce.site_status_result,
+						'results': JSON.stringify( SiteHealth.site_status.results )
+					}
+				);
+			}
 
 			if ( 100 === val ) {
 				$( '.site-status-all-clear' ).removeClass( 'hide' );
@@ -375,6 +405,7 @@ jQuery( function( $ ) {
 				'recommended': 0,
 				'critical': 0
 			};
+			SiteHealth.site_status.results = [];
 		}
 
 		if ( 0 < SiteHealth.site_status.direct.length ) {

@@ -5457,9 +5457,13 @@ function wp_ajax_health_check_loopback_requests() {
 /**
  * Handles site health check to update the result status via AJAX.
  *
+ * The aggregate counts and the full per-test results are sent as two independent
+ * requests, so a large results payload cannot prevent the lightweight counts from being
+ * refreshed. Each is handled on its own here, and either may be omitted.
+ *
  * @since 5.2.0
- * @since 7.1.0 The submitted counts are validated, and the full test results and
- *              collection timestamp cached by the scheduled check are preserved.
+ * @since 7.1.0 The submitted counts are validated, and the optional full per-test results
+ *              are sanitized and cached separately as the authoritative detailed results.
  */
 function wp_ajax_health_check_site_status_result() {
 	check_ajax_referer( 'health-check-site-status-result' );
@@ -5468,37 +5472,37 @@ function wp_ajax_health_check_site_status_result() {
 		wp_send_json_error();
 	}
 
-	$counts = isset( $_POST['counts'] ) && is_array( $_POST['counts'] ) ? wp_unslash( $_POST['counts'] ) : null;
-
-	if ( ! is_array( $counts ) ) {
-		wp_send_json_error();
+	if ( ! class_exists( 'WP_Site_Health' ) ) {
+		require_once ABSPATH . 'wp-admin/includes/class-wp-site-health.php';
 	}
 
-	$site_status = array(
-		'good'        => (int) ( $counts['good'] ?? 0 ),
-		'recommended' => (int) ( $counts['recommended'] ?? 0 ),
-		'critical'    => (int) ( $counts['critical'] ?? 0 ),
-	);
+	$updated = false;
+
+	// Refresh the lightweight, autoloaded aggregate counts used by the admin menu and Dashboard.
+	if ( isset( $_POST['counts'] ) && is_array( $_POST['counts'] ) ) {
+		$counts = wp_unslash( $_POST['counts'] );
+		WP_Site_Health::set_site_status_counts( $counts );
+
+		$updated = true;
+	}
 
 	/*
-	 * Only the aggregate counts are refreshed here. Preserve the full test results
-	 * and the timestamp recorded by the scheduled check so they are not discarded
-	 * when the counts are updated from the Site Health screen.
+	 * Cache the full per-test results as the authoritative detailed results. These include
+	 * the asynchronous tests that require JavaScript to run. The values are sanitized in
+	 * WP_Site_Health::update_site_status_detail().
 	 */
-	$cached = get_transient( 'health-check-site-status-result' );
-	$cached = is_string( $cached ) ? json_decode( $cached, true ) : null;
+	if ( isset( $_POST['results'] ) && is_string( $_POST['results'] ) ) {
+		$results = json_decode( wp_unslash( $_POST['results'] ), true );
 
-	if ( is_array( $cached ) ) {
-		if ( isset( $cached['results'] ) && is_array( $cached['results'] ) ) {
-			$site_status['results'] = $cached['results'];
-		}
-
-		if ( isset( $cached['timestamp'] ) ) {
-			$site_status['timestamp'] = (int) $cached['timestamp'];
+		if ( is_array( $results ) ) {
+			WP_Site_Health::update_site_status_detail( $results, true );
+			$updated = true;
 		}
 	}
 
-	set_transient( 'health-check-site-status-result', wp_json_encode( $site_status ) );
+	if ( ! $updated ) {
+		wp_send_json_error();
+	}
 
 	wp_send_json_success();
 }
