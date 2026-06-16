@@ -93,7 +93,7 @@ window.addComment = ( function( window ) {
 			return;
 		}
 
-		cancelElement.addEventListener( 'click',      cancelEvent );
+		cancelElement.addEventListener( 'click', cancelEvent );
 
 		// Submit the comment form when the user types [Ctrl] or [Cmd] + [Enter].
 		var submitFormHandler = function( e ) {
@@ -116,7 +116,7 @@ window.addComment = ( function( window ) {
 		for ( var i = 0, l = links.length; i < l; i++ ) {
 			element = links[i];
 
-			element.addEventListener( 'click',      clickEvent );
+			element.addEventListener( 'click', clickEvent );
 		}
 	}
 
