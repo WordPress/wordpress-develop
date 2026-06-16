@@ -549,7 +549,15 @@ class WP_Debug_Data {
 				'value' => __( 'Enabled' ),
 				'debug' => true,
 			);
+		} elseif ( extension_loaded( 'Zend OPcache' ) ) {
+			// The extension is loaded but opcache.enable is off.
+			$fields['opcode_cache'] = array(
+				'label' => __( 'Opcode cache' ),
+				'value' => __( 'Disabled by configuration' ),
+				'debug' => 'not available',
+			);
 		} else {
+			// The Zend OPcache extension is not loaded.
 			$fields['opcode_cache'] = array(
 				'label' => __( 'Opcode cache' ),
 				'value' => __( 'Disabled' ),
