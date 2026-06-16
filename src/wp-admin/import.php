@@ -33,12 +33,8 @@ get_current_screen()->set_help_sidebar(
 	'<p>' . __( '<a href="https://wordpress.org/support/forums/">Support forums</a>' ) . '</p>'
 );
 
-if ( current_user_can( 'install_plugins' ) ) {
-	// List of popular importer plugins from the WordPress.org API.
-	$popular_importers = wp_get_popular_importers();
-} else {
-	$popular_importers = array();
-}
+// List of popular importer plugins from the WordPress.org API.
+$popular_importers = wp_get_popular_importers();
 
 // Detect and redirect invalid importers like 'movabletype', which is registered as 'mt'.
 if ( ! empty( $_GET['invalid'] ) && isset( $popular_importers[ $_GET['invalid'] ] ) ) {
@@ -78,25 +74,8 @@ endif;
 <p><?php _e( 'If you have posts or comments in another system, WordPress can import those into this site. To get started, choose a system to import from below:' ); ?></p>
 
 <?php
-// Registered (already installed) importers. They're stored in the global $wp_importers.
-$importers = get_importers();
-
-// If a popular importer is not registered, create a dummy registration that links to the plugin installer.
-foreach ( $popular_importers as $pop_importer => $pop_data ) {
-	if ( isset( $importers[ $pop_importer ] ) ) {
-		continue;
-	}
-	if ( isset( $importers[ $pop_data['importer-id'] ] ) ) {
-		continue;
-	}
-
-	// Fill the array of registered (already installed) importers with data of the popular importers from the WordPress.org API.
-	$importers[ $pop_data['importer-id'] ] = array(
-		$pop_data['name'],
-		$pop_data['description'],
-		'install' => $pop_data['plugin-slug'],
-	);
-}
+// Registered importers plus popular importer plugins from the WordPress.org API.
+$importers = wp_get_available_importers( $popular_importers );
 
 if ( empty( $importers ) ) {
 	echo '<p>' . __( 'No importers are available.' ) . '</p>'; // TODO: Make more helpful.
@@ -120,24 +99,29 @@ if ( empty( $importers ) ) {
 				if ( ! empty( $plugins ) ) {
 					$keys        = array_keys( $plugins );
 					$plugin_file = $plugin_slug . '/' . $keys[0];
-					$url         = wp_nonce_url(
-						add_query_arg(
-							array(
-								'action' => 'activate',
-								'plugin' => $plugin_file,
-								'from'   => 'import',
+
+					if ( current_user_can( 'activate_plugin', $plugin_file ) ) {
+						$url    = wp_nonce_url(
+							add_query_arg(
+								array(
+									'action' => 'activate',
+									'plugin' => $plugin_file,
+									'from'   => 'import',
+								),
+								admin_url( 'plugins.php' )
 							),
-							admin_url( 'plugins.php' )
-						),
-						'activate-plugin_' . $plugin_file
-					);
-					$action      = sprintf(
-						'<a href="%s" aria-label="%s">%s</a>',
-						esc_url( $url ),
-						/* translators: %s: Importer name. */
-						esc_attr( sprintf( __( 'Run %s' ), $data[0] ) ),
-						__( 'Run Importer' )
-					);
+							'activate-plugin_' . $plugin_file
+						);
+						$action = sprintf(
+							'<a href="%s" aria-label="%s">%s</a>',
+							esc_url( $url ),
+							/* translators: %s: Importer name. */
+							esc_attr( sprintf( __( 'Run %s' ), $data[0] ) ),
+							__( 'Run Importer' )
+						);
+					} else {
+						$action = __( 'This importer is installed but not active. Please activate it from the Plugins screen.' );
+					}
 
 					$is_plugin_installed = true;
 				}
