@@ -258,11 +258,8 @@ class Tests_HtmlApi_WpHtmlProcessor_Serialize extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Ensures that XMP contents are not escaped, as they are not parsed like text nodes are.
-	 *
-	 * XMP contents are parsed as raw text: character references are never decoded.
-	 * Escaping the contents would change the document, e.g. a "<" would be replaced
-	 * by the literal text "&lt;" after serializing and re-parsing.
+	 * XMP contents are parsed using the generic raw text element parsing algorithm.
+	 * Their contents should not be escaped with HTML character references on normalization.
 	 *
 	 * @ticket 65372
 	 */
