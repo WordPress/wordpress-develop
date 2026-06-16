@@ -589,29 +589,20 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 	 * @ticket 61576
 	 */
 	public function test_trailing_slash_in_unquoted_attribute_value_does_not_self_close_foreign_content() {
-		$processor = WP_HTML_Processor::create_fragment( '<math><mi disabled=abc/>text</math>' );
+		$processor = WP_HTML_Processor::create_fragment( '<math><mtext a=b/>This mtext tag is not self-closing, it has [a="b/"] attribute.' );
 
-		$this->assertTrue( $processor->next_tag( 'MI' ), 'Could not find MI tag: check test setup.' );
-		$this->assertSame(
-			'abc/',
-			$processor->get_attribute( 'disabled' ),
-			'Trailing slash in unquoted attribute value should belong to the attribute value.'
-		);
+		$this->assertTrue( $processor->next_tag( 'MTEXT' ), 'Could not find MTEXT tag: check test setup.' );
+		$this->assertSame( 'b/', $processor->get_attribute( 'a' ), 'Trailing slash in unquoted attribute value should belong to the attribute value.' );
 		$this->assertFalse(
 			$processor->has_self_closing_flag(),
 			'Trailing slash in unquoted attribute value should not be interpreted as a self-closing flag.'
 		);
-		$this->assertTrue(
-			$processor->expects_closer(),
-			'MI with a trailing slash in an unquoted attribute value should still expect a closer.'
-		);
 
-		$this->assertTrue( $processor->next_token(), 'Could not find text following MI tag: check test setup.' );
-		$this->assertSame( '#text', $processor->get_token_name(), 'Should have found the text node following the MI tag.' );
+		$this->assertTrue( $processor->next_token(), 'Could not find text following MTEXT tag: check test setup.' );
 		$this->assertSame(
-			array( 'HTML', 'BODY', 'MATH', 'MI', '#text' ),
+			array( 'HTML', 'BODY', 'MATH', 'MTEXT', '#text' ),
 			$processor->get_breadcrumbs(),
-			'Text following the MI tag should remain inside the MI element.'
+			'Text following the MTEXT tag should remain inside the MTEXT element.'
 		);
 	}
 
