@@ -2321,6 +2321,12 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		 */
 		$sub_sizes = $request['sub_sizes'] ?? array();
 
+		// Accumulate sub-sizes in a dedicated array. Writing them back through
+		// $metadata['sizes'] inside the loop makes PHPStan generalize $metadata
+		// to a union of all its value types, after which it can no longer treat
+		// the 'sizes' offset as an array.
+		$sizes = ( isset( $metadata['sizes'] ) && is_array( $metadata['sizes'] ) ) ? $metadata['sizes'] : array();
+
 		foreach ( $sub_sizes as $sub_size ) {
 			$image_size = $sub_size['image_size'];
 
@@ -2328,10 +2334,8 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			// sends a single sub-size entry with an array of names. Register the
 			// same file under each name. Arrays only contain regular sizes.
 			if ( is_array( $image_size ) ) {
-				$metadata['sizes'] = $metadata['sizes'] ?? array();
-
 				foreach ( $image_size as $name ) {
-					$metadata['sizes'][ $name ] = array(
+					$sizes[ $name ] = array(
 						'width'     => $sub_size['width'] ?? 0,
 						'height'    => $sub_size['height'] ?? 0,
 						'file'      => $sub_size['file'] ?? '',
@@ -2353,9 +2357,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 				$metadata['filesize'] = $sub_size['filesize'] ?? 0;
 				$metadata['file']     = $sub_size['file'] ?? '';
 			} else {
-				$metadata['sizes'] = $metadata['sizes'] ?? array();
-
-				$metadata['sizes'][ $image_size ] = array(
+				$sizes[ $image_size ] = array(
 					'width'     => $sub_size['width'] ?? 0,
 					'height'    => $sub_size['height'] ?? 0,
 					'file'      => $sub_size['file'] ?? '',
@@ -2363,6 +2365,10 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 					'filesize'  => $sub_size['filesize'] ?? 0,
 				);
 			}
+		}
+
+		if ( $sizes ) {
+			$metadata['sizes'] = $sizes;
 		}
 
 		/** This filter is documented in wp-admin/includes/image.php */
