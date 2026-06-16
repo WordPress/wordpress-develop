@@ -66,7 +66,7 @@
  * tags may be found with the shortest-matching breadcrumb query. That is,
  * `array( 'IMG' )` matches all IMG elements and `array( 'P', 'IMG' )`
  * matches all IMG elements directly inside a P element. To ensure that no
- * partial matches erroneously match, it's possible to specify in a query
+ * partial matches erroneously match it's possible to specify in a query
  * the full breadcrumb match all the way down from the root HTML element.
  *
  * Example:
@@ -623,7 +623,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * Various situations lead to parsing failure but this class will
 	 * return `false` in all those cases. To determine why something
-	 * failed, it's possible to request the last error. This can be
+	 * failed it's possible to request the last error. This can be
 	 * helpful to know to distinguish whether a given tag couldn't
 	 * be found or if content in the document caused the processor
 	 * to give up and abort processing.
@@ -1342,7 +1342,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * Serializes the currently-matched token.
 	 *
 	 * This method produces a fully-normative HTML string for the currently-matched token,
-	 * if able. If not matched at any token, or if the token doesn't correspond to any HTML,
+	 * if able. If not matched at any token or if the token doesn't correspond to any HTML
 	 * it will return an empty string (for example, presumptuous end tags are ignored).
 	 *
 	 * @see static::serialize()
