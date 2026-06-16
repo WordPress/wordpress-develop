@@ -2668,7 +2668,7 @@ class wpdb {
 	 * @param string[]|string $format       Optional. An array of formats to be mapped to each of the values in $data.
 	 *                                      If string, that format will be used for all of the values in $data.
 	 *                                      A format is one of '%d', '%f', '%s' (integer, float, string).
-	 *                                      If omitted, all values in $data will be treated as strings unless otherwise
+	 *                                      If omitted, all values in $where will be treated as strings unless otherwise
 	 *                                      specified in wpdb::$field_types. Default null.
 	 * @param string[]|string $where_format Optional. An array of formats to be mapped to each of the values in $where.
 	 *                                      If string, that format will be used for all of the items in $where.
