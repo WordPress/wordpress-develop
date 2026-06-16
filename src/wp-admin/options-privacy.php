@@ -127,7 +127,20 @@ if ( ! empty( $privacy_policy_page_id ) ) {
 			'error'
 		);
 	} else {
-		$privacy_policy_page_exists = true;
+		if ( 'trash' === $privacy_policy_page->post_status ) {
+			add_settings_error(
+				'page_for_privacy_policy',
+				'page_for_privacy_policy',
+				sprintf(
+					/* translators: %s: URL to Pages Trash. */
+					__( 'The currently selected Privacy Policy page is in the Trash. Please create or select a new Privacy Policy page or <a href="%s">restore the current page</a>.' ),
+					'edit.php?post_status=trash&post_type=page'
+				),
+				'error'
+			);
+		} else {
+			$privacy_policy_page_exists = true;
+		}
 	}
 }
 

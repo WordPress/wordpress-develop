@@ -32,14 +32,19 @@ class Tests_Privacy_WpPrivacyResetPolicyPageForPost extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that trashing the Privacy Policy page resets the option to 0.
+	 * Tests that trashing the Privacy Policy page does NOT reset the option,
+	 * so that restoring from trash preserves the assignment.
 	 *
 	 * @ticket 56694
 	 */
-	public function test_trashing_privacy_policy_page_resets_option(): void {
+	public function test_trashing_privacy_policy_page_does_not_reset_option(): void {
 		wp_trash_post( $this->policy_page_id );
 
-		$this->assertSame( 0, (int) get_option( 'wp_page_for_privacy_policy' ) );
+		$this->assertSame(
+			$this->policy_page_id,
+			(int) get_option( 'wp_page_for_privacy_policy' ),
+			'Trashing the Privacy Policy page should not reset wp_page_for_privacy_policy.'
+		);
 	}
 
 	/**
