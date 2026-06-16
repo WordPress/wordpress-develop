@@ -237,10 +237,6 @@ function generateScriptModulesPackages() {
 			const fullPath = path.join( dir, entry.name );
 
 			if ( entry.isDirectory() ) {
-				// Skip plugin-only packages (e.g., vips/wasm) that should not be in Core.
-				if ( entry.name === 'vips' ) {
-					continue;
-				}
 				processDirectory( fullPath, baseDir );
 			} else if ( entry.name.endsWith( '.min.asset.php' ) ) {
 				const relativePath = path.relative( baseDir, fullPath );
@@ -324,17 +320,6 @@ function generateScriptLoaderPackages() {
 			// For regular scripts, use dependencies as-is.
 			if ( ! assetData.dependencies ) {
 				assetData.dependencies = [];
-			}
-
-			// Strip plugin-only module dependencies (e.g., vips) that are not in Core.
-			if ( Array.isArray( assetData.module_dependencies ) ) {
-				assetData.module_dependencies =
-					assetData.module_dependencies.filter(
-						( dep ) =>
-							! ( dep.id || dep ).startsWith(
-								'@wordpress/vips'
-							)
-					);
 			}
 
 			assets[ `${ entry.name }.js` ] = assetData;
