@@ -1619,7 +1619,6 @@ class WP_HTML_Tag_Processor {
 				( 'p' === $html[ $at + 4 ] || 'P' === $html[ $at + 4 ] ) &&
 				( 't' === $html[ $at + 5 ] || 'T' === $html[ $at + 5 ] )
 			) ) {
-				// Reconsume the current byte; it may be another `<` starting the real closer.
 				continue;
 			}
 
