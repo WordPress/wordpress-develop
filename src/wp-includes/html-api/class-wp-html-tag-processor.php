@@ -630,7 +630,7 @@ class WP_HTML_Tag_Processor {
 	/**
 	 * Whether the current tag token has the self-closing flag.
 	 *
-	 * @since 6.9.0
+	 * @since 7.1.0
 	 *
 	 * @var bool
 	 */
