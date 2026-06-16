@@ -194,6 +194,7 @@ class Tests_Block_Supports_Layout extends WP_UnitTestCase {
 	 * @ticket 58548
 	 * @ticket 60292
 	 * @ticket 61111
+	 * @ticket 65101
 	 *
 	 * @dataProvider data_layout_support_flag_renders_classnames_on_wrapper
 	 *
@@ -353,6 +354,27 @@ class Tests_Block_Supports_Layout extends WP_UnitTestCase {
 					),
 				),
 				'expected_output' => '<p>A paragraph</p>',
+			),
+			'outer wrapper targeted when sibling element precedes inner blocks' => array(
+				'args'            => array(
+					'block_content' => '<div class="wp-block-group"><div class="wp-block-group__header">Header</div><p>Inner block</p></div>',
+					'block'         => array(
+						'blockName'    => 'core/group',
+						'attrs'        => array(
+							'layout' => array(
+								'type' => 'default',
+							),
+						),
+						'innerBlocks'  => array(),
+						'innerHTML'    => '<div class="wp-block-group"><div class="wp-block-group__header">Header</div><p>Inner block</p></div>',
+						'innerContent' => array(
+							'<div class="wp-block-group"><div class="wp-block-group__header">Header</div>',
+							null,
+							'</div>',
+						),
+					),
+				),
+				'expected_output' => '<div class="wp-block-group is-layout-flow wp-block-group-is-layout-flow"><div class="wp-block-group__header">Header</div><p>Inner block</p></div>',
 			),
 		);
 	}
