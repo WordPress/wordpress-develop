@@ -140,6 +140,8 @@ class Tests_Block_Supports_States extends WP_UnitTestCase {
 	 * Tests that background-image reset is added when a state sets a solid background-color.
 	 *
 	 * @covers ::wp_get_state_declarations_with_background_resets
+	 *
+	 * @ticket 65239
 	 */
 	public function test_adds_background_image_reset_for_solid_background_color() {
 		$actual = wp_get_state_declarations_with_background_resets(
@@ -161,6 +163,8 @@ class Tests_Block_Supports_States extends WP_UnitTestCase {
 	 * Tests that background-image reset is not added when the state also sets a legacy gradient.
 	 *
 	 * @covers ::wp_get_state_declarations_with_background_resets
+	 *
+	 * @ticket 65239
 	 */
 	public function test_no_background_image_reset_when_state_sets_legacy_gradient() {
 		$actual = wp_get_state_declarations_with_background_resets(
@@ -183,6 +187,8 @@ class Tests_Block_Supports_States extends WP_UnitTestCase {
 	 * Tests that background-image reset is not added when the state also sets a modern gradient.
 	 *
 	 * @covers ::wp_get_state_declarations_with_background_resets
+	 *
+	 * @ticket 65239
 	 */
 	public function test_no_background_image_reset_when_state_sets_modern_gradient() {
 		$actual = wp_get_state_declarations_with_background_resets(
@@ -205,6 +211,8 @@ class Tests_Block_Supports_States extends WP_UnitTestCase {
 	 * Tests that declarations without background-color are returned unchanged.
 	 *
 	 * @covers ::wp_get_state_declarations_with_background_resets
+	 *
+	 * @ticket 65239
 	 */
 	public function test_no_background_reset_when_no_background_color() {
 		$input  = array(
