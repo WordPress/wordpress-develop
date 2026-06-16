@@ -179,6 +179,10 @@ class WP_Sitemaps {
 			return;
 		}
 
+		if ( ! defined( 'DOING_SITEMAP' ) ) {
+			define( 'DOING_SITEMAP', true );
+		}
+
 		// Render stylesheet if this is stylesheet route.
 		if ( $stylesheet_type ) {
 			$stylesheet = new WP_Sitemaps_Stylesheet();
