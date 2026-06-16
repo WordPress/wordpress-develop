@@ -6,6 +6,14 @@
  * This script copies and transforms Gutenberg's build output to WordPress Core.
  * It handles path transformations from plugin structure to Core structure.
  *
+ * Since a number of files sourced from the downloaded zip file are subject to
+ * version control, the `src/` directory is used as the destination for all
+ * outputs of this file (both versioned and unversioned).
+ *
+ * Grunt will copy the files appropriately when running `build` instead of
+ * `build:dev`, and the repository's configured ignore rules will manage what
+ * can be committed.
+ *
  * @package WordPress
  */
 
@@ -14,24 +22,10 @@ const path = require( 'path' );
 const json2php = require( 'json2php' );
 const { fromString } = require( 'php-array-reader' );
 
-// Paths.
 const rootDir = path.resolve( __dirname, '../..' );
 const gutenbergDir = path.join( rootDir, 'gutenberg' );
 const gutenbergBuildDir = path.join( gutenbergDir, 'build' );
-
-/*
- * Determine build target from command line argument (--dev or --build-dir).
- * Default to 'src' for development.
- */
-const args = process.argv.slice( 2 );
-const buildDirArg = args.find( ( arg ) => arg.startsWith( '--build-dir=' ) );
-const buildTarget = buildDirArg
-	? buildDirArg.split( '=' )[ 1 ]
-	: args.includes( '--dev' )
-	? 'src'
-	: 'build';
-
-const wpIncludesDir = path.join( rootDir, buildTarget, 'wp-includes' );
+const wpIncludesDir = path.join( rootDir, 'src', 'wp-includes' );
 
 /**
  * Copy configuration.
@@ -109,86 +103,91 @@ function isExperimentalBlock( blockJsonPath ) {
 }
 
 /**
- * Copy all assets for blocks from Gutenberg to Core.
- * Handles scripts, styles, PHP, and JSON for all block types in a unified way.
+ * Generate a list of stable blocks.
  *
- * @param {Object} config - Block configuration from COPY_CONFIG.blocks
+ * @param {string} scriptsSrc - Path to the Gutenberg scripts source (e.g. `scripts/block-library`).
+ * @return {string[]} Stable block directory names.
  */
-function copyBlockAssets( config ) {
+function getStableBlocks( scriptsSrc ) {
+	if ( ! fs.existsSync( scriptsSrc ) ) {
+		return [];
+	}
+	return fs
+		.readdirSync( scriptsSrc, { withFileTypes: true } )
+		.filter( ( entry ) => entry.isDirectory() )
+		.map( ( entry ) => entry.name )
+		.filter( ( blockName ) => ! isExperimentalBlock(
+			path.join( scriptsSrc, blockName, 'block.json' )
+		) );
+}
+
+/**
+ * Copy `block.json` files for every stable block.
+ *
+ * @param {Object} config - Block configuration from `COPY_CONFIG.blocks`.
+ */
+function copyBlockJson( config ) {
 	const blocksDest = path.join( wpIncludesDir, config.destination );
 
 	for ( const source of config.sources ) {
 		const scriptsSrc = path.join( gutenbergBuildDir, source.scripts );
-		const stylesSrc = path.join( gutenbergBuildDir, source.styles );
-		const phpSrc = path.join( gutenbergBuildDir, source.php );
+		const blocks = getStableBlocks( scriptsSrc );
 
-		if ( ! fs.existsSync( scriptsSrc ) ) {
-			continue;
-		}
-
-		// Get all block directories from the scripts source.
-		const blockDirs = fs
-			.readdirSync( scriptsSrc, { withFileTypes: true } )
-			.filter( ( entry ) => entry.isDirectory() )
-			.map( ( entry ) => entry.name );
-
-		for ( const blockName of blockDirs ) {
-			// Skip experimental blocks.
-			const blockJsonPath = path.join(
-				scriptsSrc,
-				blockName,
-				'block.json'
-			);
-			if ( isExperimentalBlock( blockJsonPath ) ) {
-				continue;
-			}
-
+		for ( const blockName of blocks ) {
+			const blockSrc = path.join( scriptsSrc, blockName );
 			const blockDest = path.join( blocksDest, blockName );
 			fs.mkdirSync( blockDest, { recursive: true } );
 
-			// 1. Copy scripts/JSON (everything except PHP)
-			const blockScriptsSrc = path.join( scriptsSrc, blockName );
-			if ( fs.existsSync( blockScriptsSrc ) ) {
-				fs.cpSync(
-					blockScriptsSrc,
-					blockDest,
-					{
-						recursive: true,
-						// Skip PHP, copied from build in steps 3 & 4.
-						filter: f => ! f.endsWith( '.php' ),
-					}
+			const jsonFiles = fs
+				.readdirSync( blockSrc, { withFileTypes: true } )
+				.filter( ( entry ) => entry.isFile() && entry.name.endsWith( '.json' ) )
+				.map( ( entry ) => entry.name );
+
+			for ( const file of jsonFiles ) {
+				fs.copyFileSync(
+					path.join( blockSrc, file ),
+					path.join( blockDest, file )
 				);
 			}
+		}
 
-			// 2. Copy styles (if they exist in per-block directory)
-			const blockStylesSrc = path.join( stylesSrc, blockName );
-			if ( fs.existsSync( blockStylesSrc ) ) {
-				const cssFiles = fs
-					.readdirSync( blockStylesSrc )
-					.filter( ( file ) => file.endsWith( '.css' ) );
-				for ( const cssFile of cssFiles ) {
-					fs.copyFileSync(
-						path.join( blockStylesSrc, cssFile ),
-						path.join( blockDest, cssFile )
-					);
-				}
+		console.log(
+			`   ✅ ${ source.name } block.json copied (${ blocks.length } blocks)`
+		);
+	}
+}
+
+/**
+ * Copy block PHP files for every stable block.
+ *
+ * Handles both the top-level `<block>.php` dynamic block files and any nested
+ * `*.php` helpers under `<block>/` (e.g. `navigation-link/shared/render-submenu-icon.php`).
+ *
+ * @param {Object} config - Block configuration from `COPY_CONFIG.blocks`.
+ */
+function copyBlockPhp( config ) {
+	const blocksDest = path.join( wpIncludesDir, config.destination );
+
+	for ( const source of config.sources ) {
+		const scriptsSrc = path.join( gutenbergBuildDir, source.scripts );
+		const phpSrc = path.join( gutenbergBuildDir, source.php );
+		const blocks = getStableBlocks( scriptsSrc );
+
+		for ( const blockName of blocks ) {
+			// Top-level <block>.php (dynamic block file).
+			const topLevelPhpSrc = path.join( phpSrc, `${ blockName }.php` );
+			const topLevelPhpDest = path.join( blocksDest, `${ blockName }.php` );
+			if ( fs.existsSync( topLevelPhpSrc ) ) {
+				fs.mkdirSync( blocksDest, { recursive: true } );
+				fs.copyFileSync( topLevelPhpSrc, topLevelPhpDest );
 			}
 
-			// 3. Copy PHP from build
-			const blockPhpSrc = path.join( phpSrc, `${ blockName }.php` );
-			const phpDest = path.join(
-				wpIncludesDir,
-				config.destination,
-				`${ blockName }.php`
-			);
-			if ( fs.existsSync( blockPhpSrc ) ) {
-				fs.copyFileSync( blockPhpSrc, phpDest );
-			}
-
-			// 4. Copy PHP subdirectories from build (e.g., navigation-link/shared/*.php)
+			// Nested PHP helpers under <block>/, excluding the block's own index.php.
 			const blockPhpDir = path.join( phpSrc, blockName );
 			if ( fs.existsSync( blockPhpDir ) ) {
+				const blockDest = path.join( blocksDest, blockName );
 				const rootIndex = path.join( blockPhpDir, 'index.php' );
+
 				fs.cpSync( blockPhpDir, blockDest, {
 					recursive: true,
 					filter: function hasPhpFiles( src ) {
@@ -198,7 +197,6 @@ function copyBlockAssets( config ) {
 								( entry ) => hasPhpFiles( path.join( src, entry.name ) )
 							);
 						}
-						// Copy PHP files, but skip root index.php (handled by step 3).
 						return src.endsWith( '.php' ) && src !== rootIndex;
 					},
 				} );
@@ -206,7 +204,50 @@ function copyBlockAssets( config ) {
 		}
 
 		console.log(
-			`   ✅ ${ source.name } blocks copied (${ blockDirs.length } blocks)`
+			`   ✅ ${ source.name } block PHP copied (${ blocks.length } blocks)`
+		);
+	}
+}
+
+/**
+ * Copy per-block CSS files for every stable block.
+ *
+ * @param {Object} config - Block configuration from `COPY_CONFIG.blocks`.
+ */
+function copyBlockStyles( config ) {
+	const blocksDest = path.join( wpIncludesDir, config.destination );
+
+	for ( const source of config.sources ) {
+		const scriptsSrc = path.join( gutenbergBuildDir, source.scripts );
+		const stylesSrc = path.join( gutenbergBuildDir, source.styles );
+		const blocks = getStableBlocks( scriptsSrc );
+
+		let stylesCopied = 0;
+		for ( const blockName of blocks ) {
+			const blockStylesSrc = path.join( stylesSrc, blockName );
+			if ( ! fs.existsSync( blockStylesSrc ) ) {
+				continue;
+			}
+
+			const blockDest = path.join( blocksDest, blockName );
+			fs.mkdirSync( blockDest, { recursive: true } );
+
+			const cssFiles = fs
+				.readdirSync( blockStylesSrc )
+				.filter( ( file ) => file.endsWith( '.css' ) );
+			for ( const cssFile of cssFiles ) {
+				fs.copyFileSync(
+					path.join( blockStylesSrc, cssFile ),
+					path.join( blockDest, cssFile )
+				);
+			}
+			if ( cssFiles.length > 0 ) {
+				stylesCopied++;
+			}
+		}
+
+		console.log(
+			`   ✅ ${ source.name } block CSS copied (${ stylesCopied } blocks)`
 		);
 	}
 }
@@ -354,9 +395,10 @@ function generateScriptLoaderPackages() {
 }
 
 /**
- * Generate require-dynamic-blocks.php and require-static-blocks.php.
- * Reads all block.json files from wp-includes/blocks and categorizes them.
- * Only includes blocks from block-library, not widgets.
+ * Generate `require-*-blocks.php` files.
+ *
+ * Reads all `block.json` files from the block-library (widgets are ignored) and
+ * creates `require-dynamic-blocks.php` and `require-static-blocks.php` files.
  */
 function generateBlockRegistrationFiles() {
 	const blocksDir = path.join( wpIncludesDir, 'blocks' );
@@ -447,9 +489,11 @@ ${ staticBlocks.map( ( name ) => `\t'${ name }',` ).join( '\n' ) }
 }
 
 /**
- * Generate blocks-json.php from all block.json files.
- * Reads all block.json files and combines them into a single PHP array.
- * Uses json2php to maintain consistency with Core's formatting.
+ * Generate a `blocks-json.php` file.
+ *
+ * Reads all `block.json` files and combines them into a single PHP array.
+ *
+ * This must run after `copyBlockJson` has populated `wp-includes/blocks/`.
  */
 function generateBlocksJson() {
 	const blocksDir = path.join( wpIncludesDir, 'blocks' );
@@ -508,7 +552,7 @@ function generateBlocksJson() {
  * Main execution function.
  */
 async function main() {
-	console.log( `📦 Copying Gutenberg build to ${ buildTarget }/...` );
+	console.log( '📦 Copying Gutenberg build to src/...' );
 
 	if ( ! fs.existsSync( gutenbergBuildDir ) ) {
 		console.error( '❌ Gutenberg build directory not found' );
@@ -602,11 +646,16 @@ async function main() {
 		console.log( '   ✅ JavaScript packages copied' );
 	}
 
-	// 2. Copy blocks (unified: scripts, styles, PHP, JSON).
-	console.log( '\n📦 Copying blocks...' );
-	copyBlockAssets( COPY_CONFIG.blocks );
+	console.log( '\n📦 Copying block.json files...' );
+	copyBlockJson( COPY_CONFIG.blocks );
 
-	// 3. Generate script-modules-packages.php from individual asset files.
+	console.log( '\n📦 Copying block PHP files...' );
+	copyBlockPhp( COPY_CONFIG.blocks );
+
+	console.log( '\n📦 Copying block CSS files...' );
+	copyBlockStyles( COPY_CONFIG.blocks );
+
+	// 3. Generate script-modules-packages.php.
 	console.log( '\n📦 Generating script-modules-packages.php...' );
 	generateScriptModulesPackages();
 
