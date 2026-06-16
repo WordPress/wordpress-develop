@@ -104,7 +104,11 @@ switch ( $action ) {
 		}
 
 		// Wrap Quick Draft content in a Paragraph block.
-		if ( ! empty( $quickdraft_post_content ) && ! str_contains( $quickdraft_post_content, '<!-- wp:paragraph -->' ) ) {
+		if (
+			use_block_editor_for_post_type( 'post' ) &&
+			! empty( $quickdraft_post_content ) &&
+			! str_contains( $quickdraft_post_content, '<!-- wp:paragraph -->' )
+		) {
 			// Note that `edit_post()` reads from the $_POST superglobal by reference.
 			$_POST['content'] = sprintf(
 				'<!-- wp:paragraph -->%s<!-- /wp:paragraph -->',
