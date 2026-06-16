@@ -7283,6 +7283,38 @@ EOF;
 			'height' => 100,
 		);
 	}
+
+	/**
+	 * Test for image_editor_output_format filter.
+	 *
+	 * @ticket 62365
+	 */
+	public function test_output_format_mappings_with_plugin_overrides() {
+		add_filter(
+			'image_editor_output_format',
+			function ( $formats ) {
+				$formats['image/heic'] = 'image/webp';
+				$formats['image/jpeg'] = 'image/avif';
+				return $formats;
+			}
+		);
+
+		$filename  = 'test-image.heic';
+		$mime_type = 'image/heic';
+
+		$expected = array(
+			'image/heic'          => 'image/webp',
+			'image/heif'          => 'image/avif',
+			'image/heic-sequence' => 'image/avif',
+			'image/heif-sequence' => 'image/avif',
+			'image/jpeg'          => 'image/avif',
+		);
+
+		$actual = wp_get_image_editor_output_format( $filename, $mime_type );
+		$this->assertSame( $expected, $actual );
+
+		remove_all_filters( 'image_editor_output_format' );
+	}
 }
 
 /**

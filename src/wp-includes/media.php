@@ -6455,7 +6455,15 @@ function wp_get_image_editor_output_format( $filename, $mime_type ) {
 	 * @param string $filename  Path to the image.
 	 * @param string $mime_type The source image mime type.
 	 */
-	return apply_filters( 'image_editor_output_format', $output_format, $filename, $mime_type );
+	$output_format = apply_filters( 'image_editor_output_format', $output_format, $filename, $mime_type );
+
+	foreach ( $output_format as $source_mime => $target_mime ) {
+		if ( isset( $output_format[ $target_mime ] ) && $output_format[ $target_mime ] !== $target_mime ) {
+			$output_format[ $source_mime ] = $output_format[ $target_mime ];
+		}
+	}
+
+	return $output_format;
 }
 
 /**
