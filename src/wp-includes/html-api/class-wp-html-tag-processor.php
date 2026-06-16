@@ -628,6 +628,15 @@ class WP_HTML_Tag_Processor {
 	private $token_length;
 
 	/**
+	 * Whether the current tag token has the self-closing flag.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @var bool
+	 */
+	private $self_closing_flag = false;
+
+	/**
 	 * Byte offset in input document where current tag name starts.
 	 *
 	 * Example:
@@ -1079,6 +1088,7 @@ class WP_HTML_Tag_Processor {
 		$tag_name_starts_at   = $this->tag_name_starts_at;
 		$tag_name_length      = $this->tag_name_length;
 		$tag_ends_at          = $this->token_starts_at + $this->token_length;
+		$self_closing_flag    = $this->self_closing_flag;
 		$attributes           = $this->attributes;
 		$duplicate_attributes = $this->duplicate_attributes;
 
@@ -1136,6 +1146,7 @@ class WP_HTML_Tag_Processor {
 		$this->text_length          = $this->tag_name_starts_at - $this->text_starts_at;
 		$this->tag_name_starts_at   = $tag_name_starts_at;
 		$this->tag_name_length      = $tag_name_length;
+		$this->self_closing_flag    = $self_closing_flag;
 		$this->attributes           = $attributes;
 		$this->duplicate_attributes = $duplicate_attributes;
 
@@ -2143,7 +2154,19 @@ class WP_HTML_Tag_Processor {
 		$doc_length = strlen( $this->html );
 
 		// Skip whitespace and slashes.
-		$this->bytes_already_parsed += strspn( $this->html, " \t\f\r\n/", $this->bytes_already_parsed );
+		$skipped_start               = $this->bytes_already_parsed;
+		$this->bytes_already_parsed += strspn( $this->html, " \t\f\r\n/", $skipped_start );
+
+		// A slash inside an unquoted attribute value will not have been skipped here.
+		if (
+			$this->bytes_already_parsed < $doc_length &&
+			$this->bytes_already_parsed > $skipped_start &&
+			'/' === $this->html[ $this->bytes_already_parsed - 1 ] &&
+			'>' === $this->html[ $this->bytes_already_parsed ]
+		) {
+			$this->self_closing_flag = true;
+		}
+
 		if ( $this->bytes_already_parsed >= $doc_length ) {
 			$this->parser_state = self::STATE_INCOMPLETE_INPUT;
 
@@ -2327,6 +2350,7 @@ class WP_HTML_Tag_Processor {
 
 		$this->token_starts_at          = null;
 		$this->token_length             = null;
+		$this->self_closing_flag        = false;
 		$this->tag_name_starts_at       = null;
 		$this->tag_name_length          = null;
 		$this->text_starts_at           = 0;
@@ -3335,42 +3359,7 @@ class WP_HTML_Tag_Processor {
 			return false;
 		}
 
-		/*
-		 * The self-closing flag is the solidus at the _end_ of the tag, not the beginning.
-		 *
-		 * Example:
-		 *
-		 *     <figure />
-		 *             ^ this appears one character before the end of the closing ">".
-		 */
-		$self_closing_flag_at = $this->token_starts_at + $this->token_length - 2;
-		if ( '/' !== $this->html[ $self_closing_flag_at ] ) {
-			return false;
-		}
-
-		foreach ( $this->attributes as $attribute ) {
-			$attribute_ends_at = $attribute->start + $attribute->length;
-			if (
-				$self_closing_flag_at >= $attribute->start &&
-				$self_closing_flag_at < $attribute_ends_at
-			) {
-				return false;
-			}
-		}
-
-		foreach ( $this->duplicate_attributes ?? array() as $duplicate_attributes ) {
-			foreach ( $duplicate_attributes as $attribute ) {
-				$attribute_ends_at = $attribute->start + $attribute->length;
-				if (
-					$self_closing_flag_at >= $attribute->start &&
-					$self_closing_flag_at < $attribute_ends_at
-				) {
-					return false;
-				}
-			}
-		}
-
-		return true;
+		return $this->self_closing_flag;
 	}
 
 	/**

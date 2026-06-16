@@ -120,6 +120,45 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensures internally consumed special-element closers do not affect the opener's
+	 * self-closing flag.
+	 *
+	 * @ticket 61576
+	 *
+	 * @covers WP_HTML_Tag_Processor::has_self_closing_flag
+	 *
+	 * @dataProvider data_special_atomic_self_closing_flags
+	 *
+	 * @param string $html        Input HTML whose first tag might contain the self-closing flag `/`.
+	 * @param bool   $flag_is_set Whether the input HTML's first tag contains the self-closing flag.
+	 */
+	public function test_special_atomic_elements_report_opening_tag_self_closing_flag( string $html, bool $flag_is_set ) {
+		$processor = new WP_HTML_Tag_Processor( $html );
+
+		$this->assertTrue( $processor->next_token(), 'Expected to find complete special atomic tag.' );
+
+		if ( $flag_is_set ) {
+			$this->assertTrue( $processor->has_self_closing_flag(), 'Did not find the self-closing flag on the opening tag.' );
+		} else {
+			$this->assertFalse( $processor->has_self_closing_flag(), 'Reported the internally consumed closing tag self-closing flag on the opening tag.' );
+		}
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_special_atomic_self_closing_flags() {
+		return array(
+			'SCRIPT closer self-closing flag' => array( '<script>x</script/>', false ),
+			'STYLE closer self-closing flag'  => array( '<style>x</style/>', false ),
+			'TITLE closer self-closing flag'  => array( '<title>x</title/>', false ),
+			'TITLE opener self-closing flag'  => array( '<title/>x</title>', true ),
+		);
+	}
+
+	/**
 	 * Ensures a trailing slash in an unquoted attribute value is part of the value.
 	 *
 	 * @ticket 61576
