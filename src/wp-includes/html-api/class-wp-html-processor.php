@@ -353,6 +353,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * isn't UTF-8, first convert the document to UTF-8, then pass in the
 	 * converted HTML.
 	 *
+	 * @since 6.7.0
+	 *
 	 * @param string      $html                    Input HTML document to process.
 	 * @param string|null $known_definite_encoding Optional. If provided, specifies the charset used
 	 *                                             in the input byte stream. Currently must be UTF-8.
@@ -969,7 +971,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * token, or if it will self-close on the next step.
 	 *
 	 * Most HTML elements expect a closer, such as a P element or
-	 * a DIV element. Others, like an IMG element are void and don't
+	 * a DIV element. Others, like an IMG element, are void and don't
 	 * have a closing tag. Special elements, such as SCRIPT and STYLE,
 	 * are treated just like void tags. Text nodes and self-closing
 	 * foreign content will also act just like a void tag, immediately
@@ -1434,6 +1436,11 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			$qualified_attribute_name = $this->get_qualified_attribute_name( $attribute_name );
 			$qualified_attribute_name = str_replace( "\x00", "\u{FFFD}", $qualified_attribute_name );
 			$qualified_attribute_name = wp_scrub_utf8( $qualified_attribute_name );
+			/**
+			 * Spaces only appear via the foreign attribute adjustment table.
+			 * @see WP_HTML_Tag_Processor::get_qualified_attribute_name()
+			 */
+			$serialized_attribute_name = str_replace( ' ', ':', $qualified_attribute_name );
 			if ( isset( $seen_attribute_names[ $qualified_attribute_name ] ) ) {
 				continue;
 			} else {
@@ -1442,13 +1449,13 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 
 			if (
 				$previous_attribute_was_true &&
-				isset( $qualified_attribute_name[0] ) &&
-				'=' === $qualified_attribute_name[0]
+				isset( $serialized_attribute_name[0] ) &&
+				'=' === $serialized_attribute_name[0]
 			) {
 				$html .= '=""';
 			}
 
-			$html .= " {$qualified_attribute_name}";
+			$html .= " {$serialized_attribute_name}";
 			$value = $this->get_attribute( $attribute_name );
 
 			if ( is_string( $value ) ) {
@@ -5054,7 +5061,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @throws Exception When unable to allocate requested bookmark.
 	 *
-	 * @return string|false Name of created bookmark, or false if unable to create.
+	 * @return string Name of created bookmark.
 	 */
 	private function bookmark_token() {
 		if ( ! parent::set_bookmark( ++$this->bookmark_counter ) ) {
