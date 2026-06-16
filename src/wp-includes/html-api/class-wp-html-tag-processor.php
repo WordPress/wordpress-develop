@@ -2154,24 +2154,17 @@ class WP_HTML_Tag_Processor {
 		$doc_length = strlen( $this->html );
 
 		// Skip whitespace and slashes.
-		$skipped_start               = $this->bytes_already_parsed;
-		$this->bytes_already_parsed += strspn( $this->html, " \t\f\r\n/", $skipped_start );
-
-		// A slash inside an unquoted attribute value will not have been skipped here.
-		if (
-			$this->bytes_already_parsed < $doc_length &&
-			$this->bytes_already_parsed > $skipped_start &&
-			'/' === $this->html[ $this->bytes_already_parsed - 1 ] &&
-			'>' === $this->html[ $this->bytes_already_parsed ]
-		) {
-			$this->self_closing_flag = true;
-		}
-
+		$skipped_length              = strspn( $this->html, " \t\f\r\n/", $this->bytes_already_parsed );
+		$this->bytes_already_parsed += $skipped_length;
 		if ( $this->bytes_already_parsed >= $doc_length ) {
 			$this->parser_state = self::STATE_INCOMPLETE_INPUT;
 
 			return false;
 		}
+
+		$this->self_closing_flag = $skipped_length > 0 &&
+			'/' === $this->html[ $this->bytes_already_parsed - 1 ] &&
+			'>' === $this->html[ $this->bytes_already_parsed ];
 
 		/*
 		 * Treat the equal sign as a part of the attribute
