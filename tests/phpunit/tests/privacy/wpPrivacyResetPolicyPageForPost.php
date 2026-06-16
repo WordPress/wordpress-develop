@@ -152,4 +152,41 @@ class Tests_Privacy_WpPrivacyResetPolicyPageForPost extends WP_UnitTestCase {
 			'update_option() should not be called when wp_page_for_privacy_policy is already 0.'
 		);
 	}
+
+	/**
+	 * Tests that untrashing the Privacy Policy page preserves the option,
+	 * confirming the trash/restore cycle keeps the assignment intact.
+	 *
+	 * @ticket 56694
+	 */
+	public function test_untrashing_privacy_policy_page_preserves_option(): void {
+		wp_trash_post( $this->policy_page_id );
+		wp_untrash_post( $this->policy_page_id );
+
+		$this->assertSame(
+			$this->policy_page_id,
+			(int) get_option( 'wp_page_for_privacy_policy' ),
+			'Untrashing the Privacy Policy page should preserve wp_page_for_privacy_policy.'
+		);
+	}
+
+	/**
+	 * Tests that when trash is disabled (EMPTY_TRASH_DAYS=0), wp_trash_post()
+	 * permanently deletes the page and the option is reset.
+	 *
+	 * @ticket 56694
+	 */
+	public function test_trashing_resets_option_when_trash_is_disabled(): void {
+		add_filter( 'pre_option_empty_trash_days', '__return_zero' );
+
+		wp_trash_post( $this->policy_page_id );
+
+		remove_filter( 'pre_option_empty_trash_days', '__return_zero' );
+
+		$this->assertSame(
+			0,
+			(int) get_option( 'wp_page_for_privacy_policy' ),
+			'When trash is disabled, wp_trash_post() permanently deletes and should reset wp_page_for_privacy_policy.'
+		);
+	}
 }
