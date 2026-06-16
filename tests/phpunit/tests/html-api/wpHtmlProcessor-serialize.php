@@ -267,17 +267,12 @@ class Tests_HtmlApi_WpHtmlProcessor_Serialize extends WP_UnitTestCase {
 	 * @ticket 65372
 	 */
 	public function test_xmp_contents_are_not_escaped() {
-		$normalized = WP_HTML_Processor::normalize( "<xmp>1 < 2 &amp; apples > or\x00anges</xmp>" );
+		$normalized = WP_HTML_Processor::normalize( "<xmp> < > & \" ' \x00 </xmp>" );
 
 		$this->assertSame(
-			"<xmp>1 < 2 &amp; apples > or\u{FFFD}anges</xmp>",
+			"<xmp> < > & \" ' \u{FFFD} </xmp>",
 			$normalized,
 			'Should have preserved text inside an XMP element, except for replacing NULL bytes.'
-		);
-		$this->assertSame(
-			$normalized,
-			WP_HTML_Processor::normalize( $normalized ),
-			'Normalizing already-normalized XMP should not escape the raw text again.'
 		);
 	}
 
@@ -654,6 +649,7 @@ class Tests_HtmlApi_WpHtmlProcessor_Serialize extends WP_UnitTestCase {
 			'Duplicate ALT boundary'                    => array( '<r alt=\'\'d alt=""=>' ),
 			'NULL byte in SVG child tag'                => array( "<svg><l\x00 '>" ),
 			'NULL byte before slash in SVG child tag'   => array( "<svg><l\x00/r>" ),
+			'XMP generic raw text'                      => array( "<xmp> < > & \" ' \x00 </xmp>" ),
 		);
 	}
 
