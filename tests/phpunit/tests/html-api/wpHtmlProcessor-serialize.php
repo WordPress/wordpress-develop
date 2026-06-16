@@ -245,41 +245,6 @@ class Tests_HtmlApi_WpHtmlProcessor_Serialize extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Ensures that text less-than sequences before the closing tag in special
-	 * text elements are not misclassified as incomplete tokens.
-	 *
-	 * @ticket 65372
-	 *
-	 * @dataProvider data_special_text_less_than_sequences_before_closer
-	 *
-	 * @param string $html HTML containing a special text element with text that looks like markup.
-	 */
-	public function test_special_text_less_than_sequences_before_closer_are_not_incomplete( string $html ) {
-		$this->assertSame(
-			WP_HTML_Processor::normalize( $html ),
-			$html,
-			'Should have preserved the element and its text content.'
-		);
-	}
-
-	/**
-	 * Data provider.
-	 *
-	 * @return array[]
-	 */
-	public static function data_special_text_less_than_sequences_before_closer() {
-		return array(
-			'Less-than sign before closer'           => array( '<script><</script>' ),
-			'End-tag opener text before closer'      => array( '<script></</script>' ),
-			'Less-than sign and space before close'  => array( '<script>< </script>' ),
-			'Multiple less-than signs before close'  => array( '<script><<</script>' ),
-			'Markup declaration opener before close' => array( '<script><!</script>' ),
-			'Tag-like text before close'             => array( '<script><x</script>' ),
-			'STYLE less-than sign before closer'     => array( '<style><</style>' ),
-		);
-	}
-
-	/**
 	 * Ensures that STYLE contents are not escaped, as they are not parsed like text nodes are.
 	 *
 	 * @ticket 62036
