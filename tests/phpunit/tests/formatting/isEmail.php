@@ -42,7 +42,6 @@ class Tests_Formatting_IsEmail extends WP_UnitTestCase {
 			'info@grå.org',
 			'grå@grå.org',
 			"gr\u{0061}\u{030a}blå@grå.org",
-			'..@example.com',
 		);
 
 		foreach ( $valid_emails as $email ) {
@@ -54,6 +53,7 @@ class Tests_Formatting_IsEmail extends WP_UnitTestCase {
 	 * Ensures that unrecognized email addresses are rejected.
 	 *
 	 * @ticket 31992
+	 * @ticket 55821
 	 *
 	 * @dataProvider data_invalid_email_provider
 	 *
@@ -120,6 +120,17 @@ class Tests_Formatting_IsEmail extends WP_UnitTestCase {
 			 */
 			"a\x80b@example.com",  // invalid UTF-8 in local part.
 			"abc@\x80.org",        // invalid UTF-8 in domain subdomain.
+
+			/*
+			 * The local part is a dot-atom: dots may only separate non-empty
+			 * atoms. Leading dots, trailing dots, and consecutive dots are
+			 * invalid per RFC 5321/5322 and PHP's FILTER_VALIDATE_EMAIL, so
+			 * such addresses are undeliverable and best rejected. See #55821.
+			 */
+			'abc..def@xyz.com', // consecutive dots in local part.
+			'.abc@xyz.com',     // leading dot in local part.
+			'abc.@xyz.com',     // trailing dot in local part.
+			'..@example.com',   // only dots in local part.
 		);
 
 		foreach ( $invalid_emails as $email ) {

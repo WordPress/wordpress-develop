@@ -34,27 +34,53 @@
  */
 final class WP_Email_Address {
 	/**
-	 * Regex for the local part when Unicode is not enabled.
+	 * Pattern for a single ASCII local-part atom (no dot).
 	 *
-	 * Matches the character set from the WHATWG email specification:
+	 * Matches the character set from the WHATWG email specification, minus the
+	 * dot, which the dot-atom structure handles as a separator:
 	 * https://html.spec.whatwg.org/multipage/input.html#email-state-(type=email)
 	 *
 	 * @since 7.1.0
 	 * @var string
 	 */
-	const LOCAL_PART_ASCII_REGEX = '/^[a-zA-Z0-9.!#$%&\'*+\/=?^_`{|}~-]+$/';
+	const LOCAL_PART_ATOM_ASCII = '[a-zA-Z0-9!#$%&\'*+\/=?^_`{|}~-]+';
 
 	/**
-	 * Regex for the local part when Unicode is enabled.
+	 * Pattern for a single Unicode local-part atom (no dot).
 	 *
-	 * Extends the WHATWG character set to allow Unicode letters and numbers,
-	 * and applies the same grapheme-cluster structure used for domain labels:
-	 * each cluster must open with a non-combining character.
+	 * Extends the ASCII atom to allow Unicode letters and numbers, with the same
+	 * grapheme-cluster structure used for domain labels: each cluster must open
+	 * with a non-combining character, followed by zero or more combining marks.
 	 *
 	 * @since 7.1.0
 	 * @var string
 	 */
-	const LOCAL_PART_UNICODE_REGEX = '/^([\p{L}\p{N}.!#$%&\'*+\/=?^_`{|}~-]\p{M}*)+$/u';
+	const LOCAL_PART_ATOM_UNICODE = '(?:[\p{L}\p{N}!#$%&\'*+\/=?^_`{|}~-]\p{M}*)+';
+
+	/**
+	 * Regex for the local part when Unicode is not enabled.
+	 *
+	 * Assembled from {@see self::LOCAL_PART_ATOM_ASCII} as a dot-atom: one atom,
+	 * then zero or more dot-separated atoms. A leading dot, trailing dot, or two
+	 * consecutive dots are rejected, matching the stricter RFC 5321/5322 syntax
+	 * and PHP's FILTER_VALIDATE_EMAIL, because such addresses are undeliverable.
+	 *
+	 * @since 7.1.0
+	 * @var string
+	 */
+	const LOCAL_PART_ASCII_REGEX = '/^' . self::LOCAL_PART_ATOM_ASCII . '(?:\.' . self::LOCAL_PART_ATOM_ASCII . ')*$/';
+
+	/**
+	 * Regex for the local part when Unicode is enabled.
+	 *
+	 * Assembled from {@see self::LOCAL_PART_ATOM_UNICODE} as a dot-atom: one atom,
+	 * then zero or more dot-separated atoms. As with the ASCII variant, a leading
+	 * dot, trailing dot, or two consecutive dots are rejected.
+	 *
+	 * @since 7.1.0
+	 * @var string
+	 */
+	const LOCAL_PART_UNICODE_REGEX = '/^' . self::LOCAL_PART_ATOM_UNICODE . '(?:\.' . self::LOCAL_PART_ATOM_UNICODE . ')*$/u';
 
 	/**
 	 * Pattern for a single ASCII domain label (no dot).
