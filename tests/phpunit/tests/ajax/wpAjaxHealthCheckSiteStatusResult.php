@@ -4,9 +4,10 @@
  * Admin Ajax functions to be tested.
  */
 require_once ABSPATH . 'wp-admin/includes/ajax-actions.php';
+require_once ABSPATH . 'wp-admin/includes/class-wp-site-health.php';
 
 /**
- * Tests the Ajax handler that persists Site Health check result counts.
+ * Tests the Ajax handler that persists Site Health check results.
  *
  * @package WordPress
  * @subpackage UnitTests
@@ -20,9 +21,9 @@ require_once ABSPATH . 'wp-admin/includes/ajax-actions.php';
 class Tests_Ajax_wpAjaxHealthCheckSiteStatusResult extends WP_Ajax_UnitTestCase {
 
 	/**
-	 * The Site Health result transient and nonce action name.
+	 * The nonce action used by the Site Health result Ajax request.
 	 */
-	const TRANSIENT = 'health-check-site-status-result';
+	const ACTION = 'health-check-site-status-result';
 
 	/**
 	 * User ID granted super admin privileges during a multisite test.
@@ -36,7 +37,7 @@ class Tests_Ajax_wpAjaxHealthCheckSiteStatusResult extends WP_Ajax_UnitTestCase 
 		parent::set_up();
 
 		// This Ajax action is not part of the core actions registered by the base test case.
-		add_action( 'wp_ajax_' . self::TRANSIENT, 'wp_ajax_health_check_site_status_result', 1 );
+		add_action( 'wp_ajax_' . self::ACTION, 'wp_ajax_health_check_site_status_result', 1 );
 	}
 
 	/**
@@ -72,7 +73,7 @@ class Tests_Ajax_wpAjaxHealthCheckSiteStatusResult extends WP_Ajax_UnitTestCase 
 		$this->_last_response = '';
 
 		try {
-			$this->_handleAjax( self::TRANSIENT );
+			$this->_handleAjax( self::ACTION );
 		} catch ( WPAjaxDieContinueException $e ) {
 			unset( $e );
 		}
@@ -83,75 +84,178 @@ class Tests_Ajax_wpAjaxHealthCheckSiteStatusResult extends WP_Ajax_UnitTestCase 
 	}
 
 	/**
-	 * The browser only refreshes the counts, so the full results and timestamp
-	 * cached by the scheduled check must be preserved.
+	 * Returns the detailed cached results keyed by test name.
+	 *
+	 * @return array<string, array>
+	 */
+	private function get_detail_results_by_test(): array {
+		$detail = WP_Site_Health::get_site_status_detail();
+
+		if ( empty( $detail['results'] ) ) {
+			return array();
+		}
+
+		$by_test = array();
+		foreach ( $detail['results'] as $result ) {
+			$by_test[ $result['test'] ] = $result;
+		}
+
+		return $by_test;
+	}
+
+	/**
+	 * The aggregate counts are cached on their own, while the full results submitted by
+	 * the Site Health screen are sanitized and cached separately.
 	 *
 	 * @ticket 65232
 	 */
-	public function test_refreshing_counts_preserves_cached_results_and_timestamp(): void {
-		$timestamp = 1715714399;
-		$results   = array(
-			array(
-				'test'        => 'fake_critical',
-				'label'       => 'Critical label',
-				'status'      => 'critical',
-				'description' => '<p>Critical description.</p>',
-			),
-		);
+	public function test_posting_counts_and_results_caches_them_separately(): void {
+		delete_transient( WP_Site_Health::STATUS_RESULT_TRANSIENT );
+		delete_transient( WP_Site_Health::STATUS_DETAIL_TRANSIENT );
 
-		set_transient(
-			self::TRANSIENT,
+		$this->set_user_with_site_health_capability();
+		$_POST['_wpnonce'] = wp_create_nonce( self::ACTION );
+		$_POST['counts']   = array(
+			'good'        => 5,
+			'recommended' => 1,
+			'critical'    => 2,
+		);
+		$_POST['results']  = wp_slash(
 			wp_json_encode(
 				array(
-					'good'        => 5,
-					'recommended' => 0,
-					'critical'    => 1,
-					'results'     => $results,
-					'timestamp'   => $timestamp,
+					array(
+						'test'        => 'a',
+						'label'       => 'A',
+						'status'      => 'critical',
+						'description' => '<p>Bad</p><script>alert(1)</script>',
+						'actions'     => '',
+					),
+					array(
+						'test'        => 'b',
+						'label'       => 'B',
+						'status'      => 'recommended',
+						'description' => '<p>B</p>',
+					),
+					array(
+						'test'        => 'c',
+						'label'       => 'C',
+						'status'      => 'good',
+						'description' => '<p>C</p>',
+					),
+					array(
+						// An unrecognized status is dropped.
+						'test'        => 'd',
+						'label'       => 'D',
+						'status'      => 'bogus',
+						'description' => '<p>D</p>',
+					),
 				)
 			)
 		);
 
+		$response = $this->dispatch_result_request();
+
+		$this->assertTrue( $response['success'] );
+
+		// The counts transient holds only the aggregate counts.
+		$transient = get_transient( WP_Site_Health::STATUS_RESULT_TRANSIENT );
+		$this->assertIsString( $transient );
+		$this->assertSame(
+			array(
+				'good'        => 5,
+				'recommended' => 1,
+				'critical'    => 2,
+			),
+			json_decode( $transient, true )
+		);
+
+		// Only results with a recognized status are cached.
+		$results = $this->get_detail_results_by_test();
+		$this->assertSame( array( 'a', 'b', 'c' ), array_keys( $results ) );
+
+		// Disallowed HTML is stripped from the cached description.
+		$this->assertStringNotContainsString( '<script>', $results['a']['description'] );
+		$this->assertStringContainsString( '<p>Bad</p>', $results['a']['description'] );
+
+		// Each cached result carries a timestamp.
+		$this->assertIsInt( $results['a']['timestamp'] );
+		$this->assertGreaterThan( 0, $results['a']['timestamp'] );
+
+		// The detail cache exposes counts derived from its own (sanitized) results.
+		$this->assertSame(
+			array(
+				'good'        => 1,
+				'recommended' => 1,
+				'critical'    => 1,
+			),
+			WP_Site_Health::get_site_status_detail()['counts']
+		);
+	}
+
+	/**
+	 * Posting only the results updates the detailed cache without touching the counts cache.
+	 *
+	 * @ticket 65232
+	 */
+	public function test_posting_results_only_updates_detail_without_counts(): void {
+		delete_transient( WP_Site_Health::STATUS_RESULT_TRANSIENT );
+		delete_transient( WP_Site_Health::STATUS_DETAIL_TRANSIENT );
+
 		$this->set_user_with_site_health_capability();
-		$_POST['_wpnonce'] = wp_create_nonce( self::TRANSIENT );
-		$_POST['counts']   = array(
-			'good'        => 6,
-			'recommended' => 2,
-			'critical'    => 0,
+		$_POST['_wpnonce'] = wp_create_nonce( self::ACTION );
+		$_POST['results']  = wp_slash(
+			wp_json_encode(
+				array(
+					array(
+						'test'   => 'a',
+						'label'  => 'A',
+						'status' => 'critical',
+					),
+				)
+			)
 		);
 
 		$response = $this->dispatch_result_request();
 
 		$this->assertTrue( $response['success'] );
 
-		$transient = get_transient( self::TRANSIENT );
-		$this->assertIsString( $transient );
-		$cached = json_decode( $transient, true );
-		$this->assertIsArray( $cached );
+		// The detailed cache is updated.
+		$results = $this->get_detail_results_by_test();
+		$this->assertSame( array( 'a' ), array_keys( $results ) );
 
-		// The aggregate counts are refreshed from the request.
-		$this->assertSame( 6, $cached['good'] );
-		$this->assertSame( 2, $cached['recommended'] );
-		$this->assertSame( 0, $cached['critical'] );
-
-		// The results collected by the scheduled check and their timestamp are kept intact.
-		$this->assertSame( $results, $cached['results'], 'Cached results should be preserved.' );
-		$this->assertSame( $timestamp, $cached['timestamp'], 'The timestamp should not be changed by a counts update.' );
+		// The counts cache is not written by a results-only request.
+		$this->assertFalse( get_transient( WP_Site_Health::STATUS_RESULT_TRANSIENT ) );
 	}
 
 	/**
-	 * When nothing has been cached yet, only the counts are stored.
+	 * Posting only counts refreshes the counts cache and leaves the detailed cache intact.
 	 *
 	 * @ticket 65232
 	 */
-	public function test_storing_counts_without_cached_results(): void {
-		delete_transient( self::TRANSIENT );
+	public function test_posting_counts_only_leaves_detail_intact(): void {
+		$now = time();
+		set_transient(
+			WP_Site_Health::STATUS_DETAIL_TRANSIENT,
+			wp_json_encode(
+				array(
+					'results'   => array(
+						'seeded' => array(
+							'test'      => 'seeded',
+							'status'    => 'good',
+							'timestamp' => $now,
+						),
+					),
+					'timestamp' => $now,
+				)
+			),
+			MONTH_IN_SECONDS
+		);
 
 		$this->set_user_with_site_health_capability();
-		$_POST['_wpnonce'] = wp_create_nonce( self::TRANSIENT );
+		$_POST['_wpnonce'] = wp_create_nonce( self::ACTION );
 		$_POST['counts']   = array(
 			'good'        => 3,
-			'recommended' => 1,
+			'recommended' => 0,
 			'critical'    => 0,
 		);
 
@@ -159,63 +263,76 @@ class Tests_Ajax_wpAjaxHealthCheckSiteStatusResult extends WP_Ajax_UnitTestCase 
 
 		$this->assertTrue( $response['success'] );
 
-		$transient = get_transient( self::TRANSIENT );
+		$transient = get_transient( WP_Site_Health::STATUS_RESULT_TRANSIENT );
 		$this->assertIsString( $transient );
-		$cached = json_decode( $transient, true );
-		$this->assertIsArray( $cached );
-		$this->assertArrayHasKey( 'good', $cached );
-		$this->assertArrayHasKey( 'recommended', $cached );
-		$this->assertArrayHasKey( 'critical', $cached );
+		$this->assertSame(
+			array(
+				'good'        => 3,
+				'recommended' => 0,
+				'critical'    => 0,
+			),
+			json_decode( $transient, true )
+		);
 
-		$this->assertSame( 3, $cached['good'] );
-		$this->assertSame( 1, $cached['recommended'] );
-		$this->assertSame( 0, $cached['critical'] );
-		$this->assertArrayNotHasKey( 'results', $cached );
-		$this->assertArrayNotHasKey( 'timestamp', $cached );
+		$results = $this->get_detail_results_by_test();
+		$this->assertSame( array( 'seeded' ), array_keys( $results ), 'The detailed cache should be untouched.' );
 	}
 
 	/**
-	 * Non-array counts are rejected and leave the cached result untouched.
+	 * Non-array counts are rejected and leave both caches untouched.
 	 *
 	 * @ticket 65232
 	 */
-	public function test_invalid_counts_return_error_and_leave_cache_untouched(): void {
+	public function test_invalid_counts_return_error_and_write_nothing(): void {
 		$existing = array( 'good' => 9 );
-		set_transient( self::TRANSIENT, wp_json_encode( $existing ) );
+		set_transient( WP_Site_Health::STATUS_RESULT_TRANSIENT, wp_json_encode( $existing ) );
 
 		$this->set_user_with_site_health_capability();
-		$_POST['_wpnonce'] = wp_create_nonce( self::TRANSIENT );
+		$_POST['_wpnonce'] = wp_create_nonce( self::ACTION );
 		// No 'counts' are supplied.
 
 		$response = $this->dispatch_result_request();
 
 		$this->assertFalse( $response['success'] );
 
-		$transient = get_transient( self::TRANSIENT );
+		$transient = get_transient( WP_Site_Health::STATUS_RESULT_TRANSIENT );
 		$this->assertIsString( $transient );
-		$cached = json_decode( $transient, true );
-		$this->assertSame( $existing, $cached, 'The cached result should be untouched.' );
+		$this->assertSame( $existing, json_decode( $transient, true ), 'The counts cache should be untouched.' );
+		$this->assertFalse( get_transient( WP_Site_Health::STATUS_DETAIL_TRANSIENT ) );
 	}
 
 	/**
-	 * Users without the capability cannot write to the cache.
+	 * Users without the capability cannot write to either cache.
 	 *
 	 * @ticket 65232
 	 */
 	public function test_user_without_capability_cannot_write_cache(): void {
-		delete_transient( self::TRANSIENT );
+		delete_transient( WP_Site_Health::STATUS_RESULT_TRANSIENT );
+		delete_transient( WP_Site_Health::STATUS_DETAIL_TRANSIENT );
 
 		$this->_setRole( 'subscriber' );
-		$_POST['_wpnonce'] = wp_create_nonce( self::TRANSIENT );
+		$_POST['_wpnonce'] = wp_create_nonce( self::ACTION );
 		$_POST['counts']   = array(
 			'good'        => 1,
 			'recommended' => 1,
 			'critical'    => 1,
 		);
+		$_POST['results']  = wp_slash(
+			wp_json_encode(
+				array(
+					array(
+						'test'   => 'a',
+						'label'  => 'A',
+						'status' => 'critical',
+					),
+				)
+			)
+		);
 
 		$response = $this->dispatch_result_request();
 
 		$this->assertFalse( $response['success'] );
-		$this->assertFalse( get_transient( self::TRANSIENT ), 'No cache should be written for an unauthorized user.' );
+		$this->assertFalse( get_transient( WP_Site_Health::STATUS_RESULT_TRANSIENT ) );
+		$this->assertFalse( get_transient( WP_Site_Health::STATUS_DETAIL_TRANSIENT ) );
 	}
 }
