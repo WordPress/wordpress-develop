@@ -144,7 +144,7 @@ class Tests_Privacy_WpPrivacyResetPolicyPageForPost extends WP_UnitTestCase {
 
 		$other_page_id = self::factory()->post->create( array( 'post_type' => 'page' ) );
 		$this->assertIsInt( $other_page_id );
-		wp_trash_post( $other_page_id );
+		wp_delete_post( $other_page_id, true );
 
 		$this->assertSame(
 			0,
