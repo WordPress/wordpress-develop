@@ -46,7 +46,7 @@ class Tests_Icons_WpIconsRegistry extends WP_UnitTestCase {
 	 * Invokes WP_Icons_Registry::register despite it being private
 	 *
 	 * @param string $icon_name       Icon name including namespace.
-	 * @param array  $icon_properties Icon properties (label, content, filePath).
+	 * @param array  $icon_properties Icon properties (label, content, file_path).
 	 * @return bool True if the icon was registered successfully.
 	 */
 	private function register( $icon_name, $icon_properties ) {
