@@ -967,7 +967,9 @@ class Tests_Block_Supports_States extends WP_UnitTestCase {
 	/**
 	 * Tests that a responsive element color generates media-query scoped CSS.
 	 *
-	 * @ticket 65239
+	 * @covers ::wp_render_block_states_support
+	 *
+	 * @ticket 65164
 	 */
 	public function test_responsive_element_color_generates_media_query_scoped_css() {
 		$this->ensure_block_registered( 'core/group' );
