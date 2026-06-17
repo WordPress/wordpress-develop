@@ -109,9 +109,9 @@ class Tests_wp_ajax_add_menu_item extends WP_Ajax_UnitTestCase {
 		);
 
 		$_POST = array(
-			'action'                      => 'add-menu-item',
-			'menu-settings-column-nonce'  => wp_create_nonce( 'add-menu_item' ),
-			'menu-item'                   => array(
+			'action'                     => 'add-menu-item',
+			'menu-settings-column-nonce' => wp_create_nonce( 'add-menu_item' ),
+			'menu-item'                  => array(
 				array(
 					'menu-item-type'      => 'post_type',
 					'menu-item-object'    => 'page',
@@ -140,8 +140,8 @@ class Tests_wp_ajax_add_menu_item extends WP_Ajax_UnitTestCase {
 		wp_set_current_user( self::$admin_id );
 
 		$_POST = array(
-			'action'                      => 'add-menu-item',
-			'menu-settings-column-nonce'  => 'invalid-nonce',
+			'action'                     => 'add-menu-item',
+			'menu-settings-column-nonce' => 'invalid-nonce',
 		);
 
 		$this->expectException( WPAjaxDieStopException::class );
@@ -159,8 +159,8 @@ class Tests_wp_ajax_add_menu_item extends WP_Ajax_UnitTestCase {
 		wp_set_current_user( self::$subscriber_id );
 
 		$_POST = array(
-			'action'                      => 'add-menu-item',
-			'menu-settings-column-nonce'  => wp_create_nonce( 'add-menu_item' ),
+			'action'                     => 'add-menu-item',
+			'menu-settings-column-nonce' => wp_create_nonce( 'add-menu_item' ),
 		);
 
 		try {
