@@ -46,8 +46,8 @@ module.exports = function(grunt) {
 			'wp-admin/js/',
 			'wp-includes/js/*',
 			/*
-			 * This directory has shared responsibility and is manage through gutenbergUnversionedFiles, webpackFiles,
-			 * and copy:vendor-js.
+			 * This directory has shared responsibility and is managed through
+			 * gutenbergUnversionedFiles, webpackFiles, and copy:vendor-js.
 			 */
 			'!wp-includes/js/dist',
 			'wp-includes/js/dist/vendor/*.js',

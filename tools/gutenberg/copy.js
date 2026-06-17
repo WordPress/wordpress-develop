@@ -138,15 +138,11 @@ function copyBlockJson( config ) {
 			const blockDest = path.join( blocksDest, blockName );
 			fs.mkdirSync( blockDest, { recursive: true } );
 
-			const jsonFiles = fs
-				.readdirSync( blockSrc, { withFileTypes: true } )
-				.filter( ( entry ) => entry.isFile() && entry.name.endsWith( '.json' ) )
-				.map( ( entry ) => entry.name );
-
-			for ( const file of jsonFiles ) {
+			const blockJsonSrc = path.join( blockSrc, 'block.json' );
+			if ( fs.existsSync( blockJsonSrc ) ) {
 				fs.copyFileSync(
-					path.join( blockSrc, file ),
-					path.join( blockDest, file )
+					blockJsonSrc,
+					path.join( blockDest, 'block.json' )
 				);
 			}
 		}
