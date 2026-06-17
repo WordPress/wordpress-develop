@@ -357,8 +357,6 @@ class WP_Test_REST_Search_Controller extends WP_Test_REST_Controller_Testcase {
 	 *
 	 * @dataProvider data_readable_http_methods
 	 * @ticket 56481
-	 *
-	 * @param string $method HTTP method to use.
 	 */
 	public function test_get_items_search_type_post_subtype_invalid() {
 		$response = $this->do_request_with_params(
