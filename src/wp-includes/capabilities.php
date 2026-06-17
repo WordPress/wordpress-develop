@@ -1365,6 +1365,87 @@ function wp_maybe_grant_site_health_caps( $allcaps, $caps, $args, $user ) {
 	return $allcaps;
 }
 
+/**
+ * Filters the user capabilities to grant the `wp_knowledge` post type capabilities as necessary.
+ *
+ * The `wp_knowledge` post type uses a `knowledge`-prefixed capability set that is
+ * granted dynamically rather than stored on roles. Administrators (users with
+ * `manage_options`) receive every knowledge capability. Contributors, authors,
+ * and editors (users with `edit_posts`) may list and create knowledge rows and
+ * fully manage their own private rows; publishing knowledge and acting on other
+ * users' rows is reserved for administrators. Subscribers receive nothing and
+ * are stopped at the post-type door by the `read_knowledge` mapping.
+ *
+ * @since 7.1.0
+ *
+ * @param bool[]   $allcaps An array of all the user's capabilities.
+ * @param string[] $caps    Required primitive capabilities for the requested capability.
+ * @param array    $args {
+ *     Arguments that accompany the requested capability check.
+ *
+ *     @type string    $0 Requested capability.
+ *     @type int       $1 Concerned user ID.
+ *     @type mixed  ...$2 Optional second and further parameters, typically object ID.
+ * }
+ * @param WP_User  $user    The user object.
+ * @return bool[] Filtered array of the user's capabilities.
+ */
+function wp_maybe_grant_knowledge_caps( array $allcaps, array $caps, array $args, WP_User $user ): array {
+	if ( ! empty( $allcaps['manage_options'] ) ) {
+		$allcaps['read_knowledge']             = true;
+		$allcaps['edit_knowledge']             = true;
+		$allcaps['edit_others_knowledge']      = true;
+		$allcaps['edit_published_knowledge']   = true;
+		$allcaps['edit_private_knowledge']     = true;
+		$allcaps['publish_knowledge']          = true;
+		$allcaps['delete_knowledge']           = true;
+		$allcaps['delete_others_knowledge']    = true;
+		$allcaps['delete_published_knowledge'] = true;
+		$allcaps['delete_private_knowledge']   = true;
+		$allcaps['read_private_knowledge']     = true;
+
+		return $allcaps;
+	}
+
+	if ( empty( $allcaps['edit_posts'] ) ) {
+		return $allcaps;
+	}
+
+	/*
+	 * Ambient floor for contributors and above: `read_knowledge` clears the
+	 * post-type read check; `edit_knowledge` clears the create and ownership
+	 * checks that do not pass a post ID. Per-post primitives are granted only
+	 * in the per-post branch below.
+	 */
+	$allcaps['read_knowledge'] = true;
+	$allcaps['edit_knowledge'] = true;
+
+	if ( ! isset( $args[0], $args[2] ) ) {
+		return $allcaps;
+	}
+
+	if ( ! in_array( $args[0], array( 'edit_post', 'delete_post', 'read_post' ), true ) ) {
+		return $allcaps;
+	}
+
+	$post = get_post( $args[2] );
+	if (
+		! $post instanceof WP_Post ||
+		'wp_knowledge' !== $post->post_type ||
+		(int) $post->post_author !== (int) $user->ID ||
+		'private' !== $post->post_status
+	) {
+		return $allcaps;
+	}
+
+	$allcaps['edit_private_knowledge']   = true;
+	$allcaps['delete_knowledge']         = true;
+	$allcaps['delete_private_knowledge'] = true;
+	$allcaps['read_private_knowledge']   = true;
+
+	return $allcaps;
+}
+
 return;
 
 // Dummy gettext calls to get strings in the catalog.

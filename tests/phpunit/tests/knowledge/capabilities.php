@@ -1,0 +1,197 @@
+<?php
+/**
+ * Tests for the dynamically granted wp_knowledge capabilities.
+ *
+ * @package WordPress
+ * @subpackage Knowledge
+ *
+ * @group knowledge
+ * @group capabilities
+ *
+ * @covers ::wp_maybe_grant_knowledge_caps
+ */
+class Tests_Knowledge_Capabilities extends WP_UnitTestCase {
+
+	/**
+	 * User IDs keyed by role.
+	 *
+	 * @var int[]
+	 */
+	private static $users = array();
+
+	/**
+	 * A private knowledge row owned by the contributor.
+	 *
+	 * @var int
+	 */
+	private static $own_private;
+
+	/**
+	 * A published knowledge row owned by the contributor.
+	 *
+	 * @var int
+	 */
+	private static $own_published;
+
+	/**
+	 * A private knowledge row owned by the author.
+	 *
+	 * @var int
+	 */
+	private static $others_private;
+
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
+		foreach ( array( 'administrator', 'editor', 'author', 'contributor', 'subscriber' ) as $role ) {
+			self::$users[ $role ] = $factory->user->create( array( 'role' => $role ) );
+		}
+
+		self::$own_private = $factory->post->create(
+			array(
+				'post_type'   => 'wp_knowledge',
+				'post_status' => 'private',
+				'post_author' => self::$users['contributor'],
+			)
+		);
+
+		self::$own_published = $factory->post->create(
+			array(
+				'post_type'   => 'wp_knowledge',
+				'post_status' => 'publish',
+				'post_author' => self::$users['contributor'],
+			)
+		);
+
+		self::$others_private = $factory->post->create(
+			array(
+				'post_type'   => 'wp_knowledge',
+				'post_status' => 'private',
+				'post_author' => self::$users['author'],
+			)
+		);
+	}
+
+	/**
+	 * @ticket 65476
+	 */
+	public function test_administrator_has_every_primitive() {
+		wp_set_current_user( self::$users['administrator'] );
+
+		$this->assertTrue( current_user_can( 'read_knowledge' ) );
+		$this->assertTrue( current_user_can( 'edit_knowledge' ) );
+		$this->assertTrue( current_user_can( 'edit_others_knowledge' ) );
+		$this->assertTrue( current_user_can( 'publish_knowledge' ) );
+		$this->assertTrue( current_user_can( 'delete_knowledge' ) );
+		$this->assertTrue( current_user_can( 'delete_others_knowledge' ) );
+		$this->assertTrue( current_user_can( 'read_private_knowledge' ) );
+	}
+
+	/**
+	 * @ticket 65476
+	 */
+	public function test_administrator_can_act_on_others_rows() {
+		wp_set_current_user( self::$users['administrator'] );
+
+		$this->assertTrue( current_user_can( 'edit_post', self::$others_private ) );
+		$this->assertTrue( current_user_can( 'read_post', self::$others_private ) );
+		$this->assertTrue( current_user_can( 'delete_post', self::$others_private ) );
+	}
+
+	/**
+	 * @ticket 65476
+	 */
+	public function test_subscriber_has_no_access() {
+		wp_set_current_user( self::$users['subscriber'] );
+
+		$this->assertFalse( current_user_can( 'read_knowledge' ) );
+		$this->assertFalse( current_user_can( 'edit_knowledge' ) );
+	}
+
+	/**
+	 * @ticket 65476
+	 */
+	public function test_anonymous_has_no_access() {
+		wp_set_current_user( 0 );
+
+		$this->assertFalse( current_user_can( 'read_knowledge' ) );
+		$this->assertFalse( current_user_can( 'edit_knowledge' ) );
+	}
+
+	/**
+	 * @ticket 65476
+	 *
+	 * @dataProvider data_contributor_level_roles
+	 *
+	 * @param string $role Role slug.
+	 */
+	public function test_contributor_level_ambient_floor( $role ) {
+		wp_set_current_user( self::$users[ $role ] );
+
+		// May list and create knowledge.
+		$this->assertTrue( current_user_can( 'read_knowledge' ), "$role should read_knowledge" );
+		$this->assertTrue( current_user_can( 'edit_knowledge' ), "$role should edit_knowledge" );
+
+		// May not publish or act on other users' rows.
+		$this->assertFalse( current_user_can( 'publish_knowledge' ), "$role should not publish_knowledge" );
+		$this->assertFalse( current_user_can( 'edit_others_knowledge' ), "$role should not edit_others_knowledge" );
+		$this->assertFalse( current_user_can( 'delete_others_knowledge' ), "$role should not delete_others_knowledge" );
+	}
+
+	public function data_contributor_level_roles(): array {
+		return array(
+			'contributor' => array( 'contributor' ),
+			'author'      => array( 'author' ),
+			'editor'      => array( 'editor' ),
+		);
+	}
+
+	/**
+	 * @ticket 65476
+	 */
+	public function test_contributor_can_manage_own_private_row() {
+		wp_set_current_user( self::$users['contributor'] );
+
+		$this->assertTrue( current_user_can( 'edit_post', self::$own_private ) );
+		$this->assertTrue( current_user_can( 'read_post', self::$own_private ) );
+		$this->assertTrue( current_user_can( 'delete_post', self::$own_private ) );
+	}
+
+	/**
+	 * @ticket 65476
+	 */
+	public function test_contributor_cannot_edit_own_published_row() {
+		wp_set_current_user( self::$users['contributor'] );
+
+		// Publishing is reserved for administrators, so an already-published
+		// row falls outside the per-post grant.
+		$this->assertFalse( current_user_can( 'edit_post', self::$own_published ) );
+	}
+
+	/**
+	 * @ticket 65476
+	 */
+	public function test_contributor_cannot_act_on_others_rows() {
+		wp_set_current_user( self::$users['contributor'] );
+
+		$this->assertFalse( current_user_can( 'edit_post', self::$others_private ) );
+		$this->assertFalse( current_user_can( 'read_post', self::$others_private ) );
+		$this->assertFalse( current_user_can( 'delete_post', self::$others_private ) );
+	}
+
+	/**
+	 * @ticket 65476
+	 */
+	public function test_grant_does_not_apply_to_other_post_types() {
+		wp_set_current_user( self::$users['contributor'] );
+
+		$page_id = self::factory()->post->create(
+			array(
+				'post_type'   => 'page',
+				'post_status' => 'private',
+				'post_author' => self::$users['contributor'],
+			)
+		);
+
+		// The knowledge per-post grant must not leak into other post types.
+		$this->assertFalse( current_user_can( 'edit_post', $page_id ) );
+	}
+}

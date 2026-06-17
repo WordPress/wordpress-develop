@@ -16,6 +16,7 @@
  * See {@see 'init'}.
  *
  * @since 2.9.0
+ * @since 7.1.0 Added the `wp_knowledge` post type.
  */
 function create_initial_post_types() {
 	WP_Post_Type::reset_default_labels();
@@ -656,6 +657,55 @@ function create_initial_post_types() {
 			'supports'              => array( 'title' ),
 		)
 	);
+
+	register_post_type(
+		'wp_knowledge',
+		array(
+			'labels'                => array(
+				'name'          => _x( 'Knowledge', 'post type general name' ),
+				'singular_name' => _x( 'Knowledge Item', 'post type singular name' ),
+			),
+			'public'                => false,
+			'_builtin'              => true, /* internal use only. don't use this when registering your own post type. */
+			'hierarchical'          => false,
+			/*
+			 * Knowledge rows have no native post-type screens; they are managed
+			 * through the REST API and consuming features, not the wp-admin UI.
+			 */
+			'show_ui'               => false,
+			'map_meta_cap'          => true,
+			/*
+			 * "Knowledge" is a mass noun, so the singular and plural capability
+			 * bases must differ: with both set to `knowledge`, the generated
+			 * per-post meta caps (`edit_knowledge_item`) would collide with the
+			 * primitive caps (`edit_knowledge`). The `*_knowledge_item` forms are
+			 * never granted directly; `map_meta_cap()` resolves them onto the
+			 * primitives, which `wp_maybe_grant_knowledge_caps()` synthesizes.
+			 */
+			'capability_type'       => array( 'knowledge_item', 'knowledge' ),
+			/*
+			 * `read` is remapped so that subscribers (who hold the base `read`
+			 * capability) are stopped at the post-type door. Every other
+			 * primitive defaults to a `knowledge`-prefixed capability granted by
+			 * `wp_maybe_grant_knowledge_caps()`.
+			 */
+			'capabilities'          => array(
+				'read' => 'read_knowledge',
+			),
+			'query_var'             => false,
+			'rewrite'               => false,
+			'show_in_rest'          => true,
+			'rest_base'             => 'knowledge',
+			'rest_controller_class' => 'WP_REST_Knowledge_Controller',
+			'supports'              => array( 'title', 'editor', 'excerpt', 'author', 'revisions' ),
+		)
+	);
+	/*
+	 * Disable autosave endpoints for knowledge. 'editor' support implies
+	 * 'autosave', but knowledge is headless storage with no editor session, so
+	 * the autosave REST routes have no consumer. Revision history is retained.
+	 */
+	remove_post_type_support( 'wp_knowledge', 'autosave' );
 
 	register_post_status(
 		'publish',
