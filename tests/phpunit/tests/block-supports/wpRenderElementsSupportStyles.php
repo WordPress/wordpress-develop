@@ -119,7 +119,7 @@ class Tests_Block_Supports_WpRenderElementsSupportStyles extends WP_UnitTestCase
 		$actual_stylesheet = wp_style_engine_get_stylesheet_from_context( 'block-supports', array( 'prettify' => false ) );
 
 		// Count the number of distinct class names to confirm uniqueness.
-		$this->assertSame( $count, preg_match_all( '/\.wp-elements-([a-f0-9]{32}[0-9]+)/', $actual_stylesheet, $matches ) );
+		$this->assertSame( $count, preg_match_all( '/\.wp-elements-(\d+)/', $actual_stylesheet, $matches ) );
 		$unique_classes = array_unique( $matches[1] );
 		$this->assertCount( $count, $unique_classes, 'Both blocks should produce distinct class names' );
 	}
@@ -183,7 +183,7 @@ class Tests_Block_Supports_WpRenderElementsSupportStyles extends WP_UnitTestCase
 				'elements_styles' => array(
 					'button' => array( 'color' => $color_styles ),
 				),
-				'expected_styles' => '/^.wp-elements-[a-f0-9]{32}[0-9]+ .wp-element-button, .wp-elements-[a-f0-9]{32}[0-9]+ .wp-block-button__link' . $color_css_rules . '$/',
+				'expected_styles' => '/^.wp-elements-\d+ .wp-element-button, .wp-elements-\d+ .wp-block-button__link' . $color_css_rules . '$/',
 			),
 			'link element styles are applied'            => array(
 				'color_settings'  => array( 'link' => true ),
@@ -195,15 +195,15 @@ class Tests_Block_Supports_WpRenderElementsSupportStyles extends WP_UnitTestCase
 						),
 					),
 				),
-				'expected_styles' => '/^.wp-elements-[a-f0-9]{32}[0-9]+ a:where\(:not\(.wp-element-button\)\)' . $color_css_rules .
-					'.wp-elements-[a-f0-9]{32}[0-9]+ a:where\(:not\(.wp-element-button\)\):hover' . $color_css_rules . '$/',
+				'expected_styles' => '/^.wp-elements-\d+ a:where\(:not\(.wp-element-button\)\)' . $color_css_rules .
+					'.wp-elements-\d+ a:where\(:not\(.wp-element-button\)\):hover' . $color_css_rules . '$/',
 			),
 			'generic heading element styles are applied' => array(
 				'color_settings'  => array( 'heading' => true ),
 				'elements_styles' => array(
 					'heading' => array( 'color' => $color_styles ),
 				),
-				'expected_styles' => '/^.wp-elements-[a-f0-9]{32}[0-9]+ h1, .wp-elements-[a-f0-9]{32}[0-9]+ h2, .wp-elements-[a-f0-9]{32}[0-9]+ h3, .wp-elements-[a-f0-9]{32}[0-9]+ h4, .wp-elements-[a-f0-9]{32}[0-9]+ h5, .wp-elements-[a-f0-9]{32}[0-9]+ h6' . $color_css_rules . '$/',
+				'expected_styles' => '/^.wp-elements-\d+ h1, .wp-elements-\d+ h2, .wp-elements-\d+ h3, .wp-elements-\d+ h4, .wp-elements-\d+ h5, .wp-elements-\d+ h6' . $color_css_rules . '$/',
 			),
 			'individual heading element styles are applied' => array(
 				'color_settings'  => array( 'heading' => true ),
@@ -215,12 +215,12 @@ class Tests_Block_Supports_WpRenderElementsSupportStyles extends WP_UnitTestCase
 					'h5' => array( 'color' => $color_styles ),
 					'h6' => array( 'color' => $color_styles ),
 				),
-				'expected_styles' => '/^.wp-elements-[a-f0-9]{32}[0-9]+ h1' . $color_css_rules .
-					'.wp-elements-[a-f0-9]{32}[0-9]+ h2' . $color_css_rules .
-					'.wp-elements-[a-f0-9]{32}[0-9]+ h3' . $color_css_rules .
-					'.wp-elements-[a-f0-9]{32}[0-9]+ h4' . $color_css_rules .
-					'.wp-elements-[a-f0-9]{32}[0-9]+ h5' . $color_css_rules .
-					'.wp-elements-[a-f0-9]{32}[0-9]+ h6' . $color_css_rules . '$/',
+				'expected_styles' => '/^.wp-elements-\d+ h1' . $color_css_rules .
+					'.wp-elements-\d+ h2' . $color_css_rules .
+					'.wp-elements-\d+ h3' . $color_css_rules .
+					'.wp-elements-\d+ h4' . $color_css_rules .
+					'.wp-elements-\d+ h5' . $color_css_rules .
+					'.wp-elements-\d+ h6' . $color_css_rules . '$/',
 			),
 		);
 	}
