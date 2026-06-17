@@ -691,7 +691,7 @@ function wp_dashboard_recent_drafts( $drafts = false ) {
 		$the_content = wp_trim_words( $draft->post_content, $draft_length );
 
 		if ( $the_content ) {
-			echo '<p>' . $the_content . '</p>';
+			echo '<p class="draft-content">' . $the_content . '</p>';
 		}
 		echo "</li>\n";
 	}

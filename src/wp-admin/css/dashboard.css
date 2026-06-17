@@ -854,7 +854,7 @@ body #dashboard-widgets .postbox form .submit {
 	color: #646970;
 }
 
-#dashboard_quick_press .drafts p {
+#dashboard_quick_press .drafts .draft-content {
 	margin: 0;
 	word-wrap: break-word;
 }
