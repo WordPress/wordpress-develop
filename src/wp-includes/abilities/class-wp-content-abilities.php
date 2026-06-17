@@ -82,6 +82,17 @@ class WP_Content_Abilities {
 	const MAX_PER_PAGE = 100;
 
 	/**
+	 * Post types exposed through the Abilities API, computed once at registration.
+	 *
+	 * Cached so the input schema and the permission/execute callbacks derive from the exact
+	 * same set, and the post type list is only walked once per request.
+	 *
+	 * @since 7.1.0
+	 * @var array<string, WP_Post_Type>|null
+	 */
+	private static ?array $exposed_post_types = null;
+
+	/**
 	 * Registers all content abilities.
 	 *
 	 * Must run on the `wp_abilities_api_init` hook.
@@ -105,7 +116,10 @@ class WP_Content_Abilities {
 	 * @since 7.1.0
 	 */
 	public static function register_get_content(): void {
-		$post_types = array_keys( self::get_exposed_post_types() );
+		// Compute once; check_permission()/execute_get_content() reuse this set.
+		self::$exposed_post_types = self::get_exposed_post_types();
+
+		$post_types = array_keys( self::$exposed_post_types );
 		$statuses   = self::get_available_statuses();
 
 		wp_register_ability(
@@ -149,11 +163,11 @@ class WP_Content_Abilities {
 	 */
 	public static function check_permission( $input = array() ): bool {
 		$input   = is_array( $input ) ? $input : array();
-		$exposed = self::get_exposed_post_types();
+		$exposed = self::$exposed_post_types ?? self::get_exposed_post_types();
 
 		// Single-post mode (by ID).
 		if ( ! empty( $input['id'] ) ) {
-			$post = get_post( (int) $input['id'] );
+			$post = get_post( self::input_int( $input['id'] ) );
 
 			/*
 			 * For a missing post, an unexposed post type, or a post type that does not
@@ -173,7 +187,7 @@ class WP_Content_Abilities {
 		}
 
 		// Query / slug mode requires an exposed post type.
-		$post_type = isset( $input['post_type'] ) ? (string) $input['post_type'] : '';
+		$post_type = isset( $input['post_type'] ) && is_string( $input['post_type'] ) ? $input['post_type'] : '';
 		if ( '' === $post_type || ! isset( $exposed[ $post_type ] ) ) {
 			return false;
 		}
@@ -181,7 +195,7 @@ class WP_Content_Abilities {
 		$post_type_object = $exposed[ $post_type ];
 
 		// Base gate: must be able to read this post type at all.
-		if ( ! current_user_can( $post_type_object->cap->read ?? 'read' ) ) {
+		if ( ! current_user_can( self::capability( $post_type_object, 'read', 'read' ) ) ) {
 			return false;
 		}
 
@@ -193,12 +207,12 @@ class WP_Content_Abilities {
 		}
 
 		// Editors/authors of this post type may request any status set.
-		if ( current_user_can( $post_type_object->cap->edit_posts ?? 'edit_posts' ) ) {
+		if ( current_user_can( self::capability( $post_type_object, 'edit_posts', 'edit_posts' ) ) ) {
 			return true;
 		}
 
 		// Otherwise, private posts are allowed only with read_private_posts.
-		if ( current_user_can( $post_type_object->cap->read_private_posts ?? 'read_private_posts' ) ) {
+		if ( current_user_can( self::capability( $post_type_object, 'read_private_posts', 'read_private_posts' ) ) ) {
 			foreach ( $statuses as $status ) {
 				if ( 'private' !== $status && 'publish' !== $status ) {
 					return false;
@@ -211,6 +225,34 @@ class WP_Content_Abilities {
 	}
 
 	/**
+	 * Resolves a capability name from a post type's capability object, with a fallback.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @param WP_Post_Type $post_type_object The post type object.
+	 * @param string       $name             Capability key on the post type's `cap` object.
+	 * @param string       $fallback         Fallback capability name if unset or non-string.
+	 * @return string The resolved capability name.
+	 */
+	protected static function capability( WP_Post_Type $post_type_object, string $name, string $fallback ): string {
+		$capability = $post_type_object->cap->$name ?? $fallback;
+
+		return is_string( $capability ) ? $capability : $fallback;
+	}
+
+	/**
+	 * Casts a raw input value to a non-negative integer.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @param mixed $value The raw input value.
+	 * @return int The value as a non-negative integer, or 0 when not scalar.
+	 */
+	protected static function input_int( $value ): int {
+		return is_scalar( $value ) ? absint( $value ) : 0;
+	}
+
+	/**
 	 * Executes the `core/content` ability.
 	 *
 	 * @since 7.1.0
@@ -220,12 +262,12 @@ class WP_Content_Abilities {
 	 */
 	public static function execute_get_content( $input = array() ) {
 		$input   = is_array( $input ) ? $input : array();
-		$exposed = self::get_exposed_post_types();
+		$exposed = self::$exposed_post_types ?? self::get_exposed_post_types();
 		$fields  = self::normalize_fields( $input );
 
 		// Single-post mode (by ID).
 		if ( ! empty( $input['id'] ) ) {
-			$post = get_post( (int) $input['id'] );
+			$post = get_post( self::input_int( $input['id'] ) );
 
 			if ( ! $post
 				|| ! isset( $exposed[ $post->post_type ] )
@@ -243,13 +285,13 @@ class WP_Content_Abilities {
 		}
 
 		// Query / slug mode.
-		$post_type = isset( $input['post_type'] ) ? (string) $input['post_type'] : '';
+		$post_type = isset( $input['post_type'] ) && is_string( $input['post_type'] ) ? $input['post_type'] : '';
 		if ( '' === $post_type || ! isset( $exposed[ $post_type ] ) ) {
 			return self::not_found_error();
 		}
 
 		$per_page = self::normalize_per_page( $input );
-		$page     = isset( $input['page'] ) ? max( 1, (int) $input['page'] ) : 1;
+		$page     = isset( $input['page'] ) ? max( 1, self::input_int( $input['page'] ) ) : 1;
 
 		$query_args = array(
 			'post_type'           => $post_type,
@@ -259,22 +301,25 @@ class WP_Content_Abilities {
 			'ignore_sticky_posts' => true,
 		);
 
-		if ( ! empty( $input['slug'] ) ) {
-			$query_args['name'] = sanitize_title( (string) $input['slug'] );
+		if ( ! empty( $input['slug'] ) && is_string( $input['slug'] ) ) {
+			$query_args['name'] = sanitize_title( $input['slug'] );
 		}
 
 		if ( ! empty( $input['author'] ) ) {
-			$query_args['author'] = (int) $input['author'];
+			$query_args['author'] = self::input_int( $input['author'] );
 		}
 
 		if ( isset( $input['parent'] ) ) {
-			$query_args['post_parent'] = (int) $input['parent'];
+			$query_args['post_parent'] = self::input_int( $input['parent'] );
 		}
 
 		$query = new WP_Query( $query_args );
 
 		$posts = array();
 		foreach ( $query->posts as $post ) {
+			if ( ! $post instanceof WP_Post ) {
+				continue;
+			}
 			// Authoritative, row-level visibility check (author/status scoped).
 			if ( ! current_user_can( 'read_post', $post->ID ) ) {
 				continue;
@@ -294,11 +339,11 @@ class WP_Content_Abilities {
 	 *
 	 * @since 7.1.0
 	 *
-	 * @param array<string, mixed> $input The ability input.
+	 * @param array<mixed> $input The ability input.
 	 * @return int The clamped per-page value.
 	 */
 	protected static function normalize_per_page( array $input ): int {
-		$per_page = isset( $input['per_page'] ) ? (int) $input['per_page'] : self::DEFAULT_PER_PAGE;
+		$per_page = isset( $input['per_page'] ) ? self::input_int( $input['per_page'] ) : self::DEFAULT_PER_PAGE;
 
 		return max( 1, min( self::MAX_PER_PAGE, $per_page ) );
 	}
@@ -343,16 +388,18 @@ class WP_Content_Abilities {
 	 *
 	 * @since 7.1.0
 	 *
-	 * @param array<string, mixed> $input The ability input.
+	 * @param array<mixed> $input The ability input.
 	 * @return string[] Normalized list of post status slugs.
 	 */
 	protected static function normalize_statuses( array $input ): array {
 		$statuses = $input['status'] ?? array( 'publish' );
-		if ( ! is_array( $statuses ) || array() === $statuses ) {
+		if ( ! is_array( $statuses ) ) {
 			return array( 'publish' );
 		}
 
-		return array_map( 'sanitize_key', $statuses );
+		$statuses = array_values( array_filter( $statuses, 'is_string' ) );
+
+		return array() === $statuses ? array( 'publish' ) : array_map( 'sanitize_key', $statuses );
 	}
 
 	/**
@@ -362,7 +409,7 @@ class WP_Content_Abilities {
 	 *
 	 * @since 7.1.0
 	 *
-	 * @param array<string, mixed> $input The ability input.
+	 * @param array<mixed> $input The ability input.
 	 * @return string[] List of requested field names.
 	 */
 	protected static function normalize_fields( array $input ): array {
@@ -370,7 +417,8 @@ class WP_Content_Abilities {
 			return self::FIELDS;
 		}
 
-		$fields = array_intersect( self::FIELDS, array_map( 'strval', $input['fields'] ) );
+		$requested = array_filter( $input['fields'], 'is_string' );
+		$fields    = array_intersect( self::FIELDS, $requested );
 
 		return array() === $fields ? self::FIELDS : array_values( $fields );
 	}
@@ -387,7 +435,8 @@ class WP_Content_Abilities {
 	protected static function get_content_input_schema( array $post_types, array $statuses ): array {
 		return array(
 			'type'                 => 'object',
-			'default'              => array(),
+			// Object (not array()) so the serialized schema default is {}, consistent with type:object.
+			'default'              => (object) array(),
 			// `post_type` is required unless a single post is requested by `id`.
 			'anyOf'                => array(
 				array( 'required' => array( 'id' ) ),
@@ -670,6 +719,7 @@ class WP_Content_Abilities {
 	 * @return string The ISO 8601 date, or an empty string if unavailable.
 	 */
 	protected static function format_gmt_date( WP_Post $post, string $field ): string {
+		$field    = 'modified' === $field ? 'modified' : 'date';
 		$datetime = get_post_datetime( $post, $field, 'gmt' );
 		if ( $datetime ) {
 			return $datetime->format( 'c' );
