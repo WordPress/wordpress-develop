@@ -186,8 +186,10 @@ class WP_Icons_Registry {
 	/**
 	 * Sanitizes the icon SVG content.
 	 *
-	 * Logic borrowed from twentytwenty.
-	 * @see twentytwenty_get_theme_svg
+	 * Uses WP_HTML_Processor to extract the SVG element in its entirety before
+	 * applying wp_kses. This avoids issues where HTML tags like <p> inside the
+	 * content would terminate the SVG element when parsed as HTML, and ensures
+	 * proper handling of SVG structure including self-closing tags.
 	 *
 	 * @since 7.0.0
 	 *
@@ -195,32 +197,900 @@ class WP_Icons_Registry {
 	 * @return string The sanitized icon SVG content.
 	 */
 	protected function sanitize_icon_content( $icon_content ) {
+		// Core attributes applicable to most elements. `data-*` is a wildcard
+		// supported by wp_kses() and matches any data attribute.
+		$core_attributes = array_fill_keys(
+			array( 'id', 'class', 'style', 'data-*' ),
+			true
+		);
+
+		/*
+		 * ARIA and accessibility attributes. wp_kses() does not support an
+		 * `aria-*` wildcard, so every ARIA state and property is listed
+		 * explicitly. The list mirrors the WAI-ARIA states and properties.
+		 *
+		 * @see https://www.w3.org/TR/wai-aria-1.2/#state_prop_def
+		 */
+		$aria_attributes = array_fill_keys(
+			array(
+				'aria-activedescendant',
+				'aria-atomic',
+				'aria-autocomplete',
+				'aria-busy',
+				'aria-checked',
+				'aria-colcount',
+				'aria-colindex',
+				'aria-colspan',
+				'aria-controls',
+				'aria-current',
+				'aria-describedby',
+				'aria-description',
+				'aria-details',
+				'aria-disabled',
+				'aria-dropeffect',
+				'aria-errormessage',
+				'aria-expanded',
+				'aria-flowto',
+				'aria-grabbed',
+				'aria-haspopup',
+				'aria-hidden',
+				'aria-invalid',
+				'aria-keyshortcuts',
+				'aria-label',
+				'aria-labelledby',
+				'aria-level',
+				'aria-live',
+				'aria-modal',
+				'aria-multiline',
+				'aria-multiselectable',
+				'aria-orientation',
+				'aria-owns',
+				'aria-placeholder',
+				'aria-posinset',
+				'aria-pressed',
+				'aria-readonly',
+				'aria-relevant',
+				'aria-required',
+				'aria-roledescription',
+				'aria-rowcount',
+				'aria-rowindex',
+				'aria-rowspan',
+				'aria-selected',
+				'aria-setsize',
+				'aria-sort',
+				'aria-valuemax',
+				'aria-valuemin',
+				'aria-valuenow',
+				'aria-valuetext',
+				'role',
+				'focusable',
+				'tabindex',
+			),
+			true
+		);
+
+		// Presentation attributes for graphics elements (shapes, text, use, image).
+		$presentation_attributes = array_fill_keys(
+			array(
+				'fill',
+				'fill-opacity',
+				'fill-rule',
+				'stroke',
+				'stroke-width',
+				'stroke-linecap',
+				'stroke-linejoin',
+				'stroke-miterlimit',
+				'stroke-dasharray',
+				'stroke-dashoffset',
+				'stroke-opacity',
+				'opacity',
+				'transform',
+				'clip-path',
+				'clip-rule',
+				'mask',
+				'filter',
+				'visibility',
+				'display',
+				'color',
+				'color-interpolation',
+				'color-rendering',
+				'vector-effect',
+				'paint-order',
+			),
+			true
+		);
+
+		// Marker attributes (only for shape elements).
+		$marker_attributes = array_fill_keys(
+			array( 'marker-start', 'marker-mid', 'marker-end' ),
+			true
+		);
+
+		// Container attributes for grouping elements.
+		$container_attributes = array_fill_keys(
+			array(
+				'transform',
+				'clip-path',
+				'mask',
+				'filter',
+				'visibility',
+				'display',
+				'opacity',
+			),
+			true
+		);
+
+		/*
+		 * Allowed tags for wp_kses(). WP_HTML_Processor::normalize() with
+		 * constraints (similar structure to this array) is proposed to improve
+		 * HTML/SVG sanitization in the future.
+		 *
+		 * @link https://github.com/dmsnell/wordpress-develop/pull/20
+		 */
 		$allowed_tags = array(
-			'svg'     => array(
-				'class'       => true,
-				'xmlns'       => true,
-				'width'       => true,
-				'height'      => true,
-				'viewbox'     => true,
-				'aria-hidden' => true,
-				'role'        => true,
-				'focusable'   => true,
+			// Root SVG element.
+			'svg'                 => array_merge(
+				$core_attributes,
+				$aria_attributes,
+				$presentation_attributes,
+				array_fill_keys(
+					array(
+						'xmlns',
+						'xmlns:xlink',
+						'width',
+						'height',
+						'viewbox',
+						'preserveaspectratio',
+						'x',
+						'y',
+					),
+					true
+				)
 			),
-			'path'    => array(
-				'fill'      => true,
-				'fill-rule' => true,
-				'd'         => true,
-				'transform' => true,
+			// Basic shape elements (with markers).
+			'path'                => array_merge(
+				$core_attributes,
+				$aria_attributes,
+				$presentation_attributes,
+				$marker_attributes,
+				array_fill_keys(
+					array(
+						'd',
+						'pathlength',
+					),
+					true
+				)
 			),
-			'polygon' => array(
-				'fill'      => true,
-				'fill-rule' => true,
-				'points'    => true,
-				'transform' => true,
-				'focusable' => true,
+			'circle'              => array_merge(
+				$core_attributes,
+				$aria_attributes,
+				$presentation_attributes,
+				$marker_attributes,
+				array_fill_keys(
+					array(
+						'cx',
+						'cy',
+						'r',
+					),
+					true
+				)
+			),
+			'ellipse'             => array_merge(
+				$core_attributes,
+				$aria_attributes,
+				$presentation_attributes,
+				$marker_attributes,
+				array_fill_keys(
+					array(
+						'cx',
+						'cy',
+						'rx',
+						'ry',
+					),
+					true
+				)
+			),
+			'line'                => array_merge(
+				$core_attributes,
+				$aria_attributes,
+				$presentation_attributes,
+				$marker_attributes,
+				array_fill_keys(
+					array(
+						'x1',
+						'x2',
+						'y1',
+						'y2',
+					),
+					true
+				)
+			),
+			'polygon'             => array_merge(
+				$core_attributes,
+				$aria_attributes,
+				$presentation_attributes,
+				$marker_attributes,
+				array_fill_keys(
+					array(
+						'points',
+					),
+					true
+				)
+			),
+			'polyline'            => array_merge(
+				$core_attributes,
+				$aria_attributes,
+				$presentation_attributes,
+				$marker_attributes,
+				array_fill_keys(
+					array(
+						'points',
+					),
+					true
+				)
+			),
+			'rect'                => array_merge(
+				$core_attributes,
+				$aria_attributes,
+				$presentation_attributes,
+				$marker_attributes,
+				array_fill_keys(
+					array(
+						'x',
+						'y',
+						'width',
+						'height',
+						'rx',
+						'ry',
+					),
+					true
+				)
+			),
+			// Grouping and structural elements.
+			'g'                   => array_merge(
+				$core_attributes,
+				$aria_attributes,
+				$container_attributes
+			),
+			'defs'                => $core_attributes,
+			'view'                => array_merge(
+				$core_attributes,
+				array_fill_keys(
+					array(
+						'viewbox',
+						'preserveaspectratio',
+						'zoomandpan',
+						'viewtarget',
+					),
+					true
+				)
+			),
+			'symbol'              => array_merge(
+				$core_attributes,
+				$aria_attributes,
+				$container_attributes,
+				array_fill_keys(
+					array(
+						'viewbox',
+						'preserveaspectratio',
+						'x',
+						'y',
+						'width',
+						'height',
+					),
+					true
+				)
+			),
+			'use'                 => array_merge(
+				$core_attributes,
+				$aria_attributes,
+				$presentation_attributes,
+				array_fill_keys(
+					array(
+						'href',
+						'xlink:href',
+						'x',
+						'y',
+						'width',
+						'height',
+					),
+					true
+				)
+			),
+			'switch'              => array_merge(
+				$core_attributes,
+				$aria_attributes,
+				$container_attributes
+			),
+			// Linking element.
+			'a'                   => array_merge(
+				$core_attributes,
+				$aria_attributes,
+				$presentation_attributes,
+				$container_attributes,
+				array_fill_keys(
+					array(
+						'href',
+						'xlink:href',
+						'target',
+						'rel',
+						'type',
+					),
+					true
+				)
+			),
+			'clippath'            => array_merge(
+				$core_attributes,
+				array_fill_keys(
+					array(
+						'clippathunits',
+						'transform',
+					),
+					true
+				)
+			),
+			'mask'                => array_merge(
+				$core_attributes,
+				array_fill_keys(
+					array(
+						'x',
+						'y',
+						'width',
+						'height',
+						'maskunits',
+						'maskcontentunits',
+					),
+					true
+				)
+			),
+			// Gradient elements.
+			'lineargradient'      => array_merge(
+				$core_attributes,
+				array_fill_keys(
+					array(
+						'x1',
+						'x2',
+						'y1',
+						'y2',
+						'gradientunits',
+						'gradienttransform',
+						'spreadmethod',
+						'href',
+						'xlink:href',
+					),
+					true
+				)
+			),
+			'radialgradient'      => array_merge(
+				$core_attributes,
+				array_fill_keys(
+					array(
+						'cx',
+						'cy',
+						'r',
+						'fx',
+						'fy',
+						'fr',
+						'gradientunits',
+						'gradienttransform',
+						'spreadmethod',
+						'href',
+						'xlink:href',
+					),
+					true
+				)
+			),
+			'stop'                => array_merge(
+				$core_attributes,
+				array_fill_keys(
+					array(
+						'offset',
+						'stop-color',
+						'stop-opacity',
+					),
+					true
+				)
+			),
+			// Pattern element.
+			'pattern'             => array_merge(
+				$core_attributes,
+				array_fill_keys(
+					array(
+						'x',
+						'y',
+						'width',
+						'height',
+						'patternunits',
+						'patterncontentunits',
+						'patterntransform',
+						'viewbox',
+						'preserveaspectratio',
+						'href',
+						'xlink:href',
+					),
+					true
+				)
+			),
+			// Filter elements.
+			'filter'              => array_merge(
+				$core_attributes,
+				array_fill_keys(
+					array(
+						'x',
+						'y',
+						'width',
+						'height',
+						'filterunits',
+						'primitiveunits',
+					),
+					true
+				)
+			),
+			'feblend'             => array_fill_keys(
+				array(
+					'in',
+					'in2',
+					'mode',
+					'result',
+				),
+				true
+			),
+			'fecolormatrix'       => array_fill_keys(
+				array(
+					'in',
+					'type',
+					'values',
+					'result',
+				),
+				true
+			),
+			'fecomponenttransfer' => array_fill_keys(
+				array(
+					'in',
+					'result',
+				),
+				true
+			),
+			'fecomposite'         => array_fill_keys(
+				array(
+					'in',
+					'in2',
+					'operator',
+					'k1',
+					'k2',
+					'k3',
+					'k4',
+					'result',
+				),
+				true
+			),
+			'feconvolvematrix'    => array_fill_keys(
+				array(
+					'in',
+					'order',
+					'kernelmatrix',
+					'divisor',
+					'bias',
+					'targetx',
+					'targety',
+					'edgemode',
+					'preservealpha',
+					'result',
+				),
+				true
+			),
+			'fediffuselighting'   => array_fill_keys(
+				array(
+					'in',
+					'surfacescale',
+					'diffuseconstant',
+					'result',
+				),
+				true
+			),
+			'fedisplacementmap'   => array_fill_keys(
+				array(
+					'in',
+					'in2',
+					'scale',
+					'xchannelselector',
+					'ychannelselector',
+					'result',
+				),
+				true
+			),
+			'fedistantlight'      => array_fill_keys(
+				array(
+					'azimuth',
+					'elevation',
+				),
+				true
+			),
+			'feflood'             => array_fill_keys(
+				array(
+					'flood-color',
+					'flood-opacity',
+					'result',
+				),
+				true
+			),
+			'fegaussianblur'      => array_fill_keys(
+				array(
+					'in',
+					'stddeviation',
+					'edgemode',
+					'result',
+				),
+				true
+			),
+			'feimage'             => array_fill_keys(
+				array(
+					'href',
+					'xlink:href',
+					'preserveaspectratio',
+					'result',
+				),
+				true
+			),
+			'femerge'             => array_fill_keys(
+				array(
+					'result',
+				),
+				true
+			),
+			'femergenode'         => array_fill_keys(
+				array(
+					'in',
+				),
+				true
+			),
+			'femorphology'        => array_fill_keys(
+				array(
+					'in',
+					'operator',
+					'radius',
+					'result',
+				),
+				true
+			),
+			'feoffset'            => array_fill_keys(
+				array(
+					'in',
+					'dx',
+					'dy',
+					'result',
+				),
+				true
+			),
+			'fepointlight'        => array_fill_keys(
+				array(
+					'x',
+					'y',
+					'z',
+				),
+				true
+			),
+			'fespecularlighting'  => array_fill_keys(
+				array(
+					'in',
+					'surfacescale',
+					'specularconstant',
+					'specularexponent',
+					'result',
+				),
+				true
+			),
+			'fespotlight'         => array_fill_keys(
+				array(
+					'x',
+					'y',
+					'z',
+					'pointsatx',
+					'pointsaty',
+					'pointsatz',
+					'specularexponent',
+					'limitingconeangle',
+				),
+				true
+			),
+			'fetile'              => array_fill_keys(
+				array(
+					'in',
+					'result',
+				),
+				true
+			),
+			'feturbulence'        => array_fill_keys(
+				array(
+					'basefrequency',
+					'numoctaves',
+					'seed',
+					'stitchtiles',
+					'type',
+					'result',
+				),
+				true
+			),
+			'fefunca'             => array_fill_keys(
+				array(
+					'type',
+					'tablevalues',
+					'slope',
+					'intercept',
+					'amplitude',
+					'exponent',
+					'offset',
+				),
+				true
+			),
+			'fefuncb'             => array_fill_keys(
+				array(
+					'type',
+					'tablevalues',
+					'slope',
+					'intercept',
+					'amplitude',
+					'exponent',
+					'offset',
+				),
+				true
+			),
+			'fefuncg'             => array_fill_keys(
+				array(
+					'type',
+					'tablevalues',
+					'slope',
+					'intercept',
+					'amplitude',
+					'exponent',
+					'offset',
+				),
+				true
+			),
+			'fefuncr'             => array_fill_keys(
+				array(
+					'type',
+					'tablevalues',
+					'slope',
+					'intercept',
+					'amplitude',
+					'exponent',
+					'offset',
+				),
+				true
+			),
+			// Text elements.
+			'text'                => array_merge(
+				$core_attributes,
+				$aria_attributes,
+				$presentation_attributes,
+				array_fill_keys(
+					array(
+						'x',
+						'y',
+						'dx',
+						'dy',
+						'rotate',
+						'textlength',
+						'lengthadjust',
+						'text-anchor',
+						'font-family',
+						'font-size',
+						'font-weight',
+						'font-style',
+						'font-variant',
+						'text-decoration',
+						'writing-mode',
+						'letter-spacing',
+						'word-spacing',
+						'dominant-baseline',
+						'alignment-baseline',
+						'baseline-shift',
+					),
+					true
+				)
+			),
+			'tspan'               => array_merge(
+				$core_attributes,
+				$aria_attributes,
+				$presentation_attributes,
+				array_fill_keys(
+					array(
+						'x',
+						'y',
+						'dx',
+						'dy',
+						'rotate',
+						'textlength',
+						'lengthadjust',
+						'text-anchor',
+						'font-family',
+						'font-size',
+						'font-weight',
+						'font-style',
+						'text-decoration',
+					),
+					true
+				)
+			),
+			'textpath'            => array_merge(
+				$core_attributes,
+				$aria_attributes,
+				$presentation_attributes,
+				array_fill_keys(
+					array(
+						'href',
+						'xlink:href',
+						'startoffset',
+						'method',
+						'spacing',
+						'text-anchor',
+					),
+					true
+				)
+			),
+			// Descriptive elements.
+			'title'               => array(),
+			'desc'                => array(),
+			'metadata'            => array(),
+			// Image element.
+			'image'               => array_merge(
+				$core_attributes,
+				$aria_attributes,
+				$presentation_attributes,
+				array_fill_keys(
+					array(
+						'x',
+						'y',
+						'width',
+						'height',
+						'href',
+						'xlink:href',
+						'preserveaspectratio',
+					),
+					true
+				)
+			),
+			// Marker element.
+			'marker'              => array_merge(
+				$core_attributes,
+				array_fill_keys(
+					array(
+						'markerunits',
+						'refx',
+						'refy',
+						'markerwidth',
+						'markerheight',
+						'orient',
+						'preserveaspectratio',
+						'viewbox',
+					),
+					true
+				)
+			),
+			// Animation elements.
+			'animate'             => array_merge(
+				$core_attributes,
+				array_fill_keys(
+					array(
+						'attributename',
+						'from',
+						'to',
+						'dur',
+						'repeatcount',
+						'begin',
+						'end',
+						'values',
+						'keytimes',
+						'keysplines',
+						'calcmode',
+						'additive',
+						'accumulate',
+					),
+					true
+				)
+			),
+			'animatemotion'       => array_merge(
+				$core_attributes,
+				array_fill_keys(
+					array(
+						'path',
+						'keypoints',
+						'rotate',
+						'keytimes',
+						'keysplines',
+						'calcmode',
+						'from',
+						'to',
+						'values',
+						'dur',
+						'repeatcount',
+						'begin',
+						'end',
+						'additive',
+						'accumulate',
+					),
+					true
+				)
+			),
+			'animatetransform'    => array_merge(
+				$core_attributes,
+				array_fill_keys(
+					array(
+						'attributename',
+						'type',
+						'from',
+						'to',
+						'dur',
+						'repeatcount',
+						'begin',
+						'end',
+						'values',
+						'keytimes',
+						'keysplines',
+						'calcmode',
+						'additive',
+						'accumulate',
+					),
+					true
+				)
+			),
+			'set'                 => array_merge(
+				$core_attributes,
+				array_fill_keys(
+					array(
+						'attributename',
+						'to',
+						'begin',
+						'dur',
+						'end',
+						'repeatcount',
+					),
+					true
+				)
 			),
 		);
-		return wp_kses( $icon_content, $allowed_tags );
+
+		$processor = WP_HTML_Processor::create_fragment( $icon_content );
+		if ( ! $processor ) {
+			return '';
+		}
+
+		// Skip leading comments, XML declarations, doctype, and whitespace to
+		// reach the root SVG element.
+		while ( $processor->next_token() ) {
+			$token_type = $processor->get_token_type();
+			if ( '#tag' === $token_type ) {
+				break;
+			}
+			if (
+				'#comment' === $token_type
+				|| '#doctype' === $token_type
+				|| ( '#text' === $token_type && '' === trim( $processor->get_modifiable_text() ) )
+			) {
+				continue;
+			}
+			// Any other leading token (e.g. non-whitespace text) is invalid.
+			return '';
+		}
+
+		if ( 'SVG' !== $processor->get_tag() ) {
+			return '';
+		}
+
+		$svg   = $processor->serialize_token();
+		$depth = $processor->get_current_depth();
+		while ( $processor->next_token() && $processor->get_current_depth() >= $depth ) {
+			$svg .= $processor->serialize_token();
+		}
+		if (
+			null !== $processor->get_last_error()
+			|| $processor->paused_at_incomplete_token()
+		) {
+			return '';
+		}
+		$svg .= '</svg>';
+		return wp_kses( $svg, $allowed_tags );
 	}
 
 	/**
