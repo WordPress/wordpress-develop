@@ -20,7 +20,9 @@ class Tests_Icons_WpIconsRegistry extends WP_UnitTestCase {
 	private function sanitize_icon_content( $icon_content ) {
 		$registry = WP_Icons_Registry::get_instance();
 		$method   = new ReflectionMethod( $registry, 'sanitize_icon_content' );
-		$method->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$method->setAccessible( true );
+		}
 		return $method->invoke( $registry, $icon_content );
 	}
 
