@@ -586,6 +586,9 @@ function wp_dashboard_quick_press( $error_msg = false ) {
 				$error_msg,
 				array(
 					'additional_classes' => array( 'error' ),
+					'attributes'         => array(
+						'role' => 'alert',
+					),
 				)
 			);
 		}
