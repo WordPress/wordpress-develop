@@ -281,9 +281,9 @@ module.exports = function(grunt) {
 					const isExplicitGutenbergClean =
 						grunt.cli.tasks.length === 1 &&
 						grunt.cli.tasks[ 0 ] !== 'clean';
-					return isExplicitGutenbergClean
-						? gutenbergUnversionedFiles.concat( gutenbergVersionedFiles )
-						: gutenbergUnversionedFiles;
+					return isExplicitGutenbergClean ?
+						gutenbergUnversionedFiles.concat( gutenbergVersionedFiles ) :
+						gutenbergUnversionedFiles;
 				},
 			},
 
