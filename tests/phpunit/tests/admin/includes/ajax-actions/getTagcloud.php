@@ -167,7 +167,7 @@ class Tests_wp_ajax_get_tagcloud extends WP_Ajax_UnitTestCase {
 		// Ensure no tags exist for the taxonomy.
 		$tags = get_terms(
 			array(
-				'taxonomy' => 'post_tag',
+				'taxonomy'   => 'post_tag',
 				'hide_empty' => false,
 			)
 		);
