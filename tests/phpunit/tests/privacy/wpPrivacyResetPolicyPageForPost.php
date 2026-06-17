@@ -169,5 +169,4 @@ class Tests_Privacy_WpPrivacyResetPolicyPageForPost extends WP_UnitTestCase {
 			'Untrashing the Privacy Policy page should preserve wp_page_for_privacy_policy.'
 		);
 	}
-
 }
