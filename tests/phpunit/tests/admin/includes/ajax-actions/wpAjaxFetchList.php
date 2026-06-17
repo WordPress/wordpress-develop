@@ -31,7 +31,7 @@ class Tests_Ajax_wpAjaxFetchList extends WP_Ajax_UnitTestCase {
 		$list_class = 'WP_Posts_List_Table';
 
 		$_GET = array(
-			'list_args'  => array(
+			'list_args'              => array(
 				'class'  => $list_class,
 				'screen' => array(
 					'id' => 'edit-post',
@@ -78,7 +78,7 @@ class Tests_Ajax_wpAjaxFetchList extends WP_Ajax_UnitTestCase {
 		$list_class = 'WP_Posts_List_Table';
 
 		$_GET = array(
-			'list_args'  => array(
+			'list_args'              => array(
 				'class'  => $list_class,
 				'screen' => array(
 					'id' => 'edit-post',
@@ -114,7 +114,7 @@ class Tests_Ajax_wpAjaxFetchList extends WP_Ajax_UnitTestCase {
 		$list_class = 'WP_Posts_List_Table';
 
 		$_GET = array(
-			'list_args' => array(
+			'list_args'              => array(
 				'class' => $list_class,
 			),
 			'_ajax_fetch_list_nonce' => 'invalid-nonce',
@@ -137,7 +137,7 @@ class Tests_Ajax_wpAjaxFetchList extends WP_Ajax_UnitTestCase {
 		$list_class = 'Invalid_List_Table';
 
 		$_GET = array(
-			'list_args' => array(
+			'list_args'              => array(
 				'class' => $list_class,
 			),
 			'_ajax_fetch_list_nonce' => wp_create_nonce( "fetch-list-$list_class" ),
@@ -161,7 +161,7 @@ class Tests_Ajax_wpAjaxFetchList extends WP_Ajax_UnitTestCase {
 		$list_class = 'WP_Posts_List_Table';
 
 		$_GET = array(
-			'list_args'  => array(
+			'list_args'              => array(
 				'class'  => $list_class,
 				'screen' => array(
 					'id' => 'edit-post',
