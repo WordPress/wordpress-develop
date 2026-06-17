@@ -76,7 +76,7 @@ class WP_REST_Menus_Controller extends WP_REST_Terms_Controller {
 	/**
 	 * Checks whether the current user has read permission for the endpoint.
 	 *
-	 * This allows for any user that can `edit_theme_options` or edit any REST API available post type.
+	 * This allows for any user that can `manage_nav_menus` or edit any REST API available post type.
 	 *
 	 * @since 5.9.0
 	 *
@@ -90,7 +90,7 @@ class WP_REST_Menus_Controller extends WP_REST_Terms_Controller {
 			return true;
 		}
 
-		if ( current_user_can( 'edit_theme_options' ) ) {
+		if ( current_user_can( 'manage_nav_menus' ) ) {
 			return true;
 		}
 

@@ -18,16 +18,42 @@ class Tests_REST_WpRestMenuLocationsController extends WP_Test_REST_Controller_T
 	protected static $admin_id;
 
 	/**
+	 * @var int
+	 */
+	protected static $subscriber_id;
+
+	/**
 	 * Create fake data before our tests run.
 	 *
 	 * @param WP_UnitTest_Factory $factory Helper that lets us create fake data.
 	 */
 	public static function wpSetUpBeforeClass( $factory ) {
-		self::$admin_id = $factory->user->create(
+		self::$admin_id      = $factory->user->create(
 			array(
 				'role' => 'administrator',
 			)
 		);
+		self::$subscriber_id = $factory->user->create(
+			array(
+				'role' => 'subscriber',
+			)
+		);
+	}
+
+	/**
+	 * Grants manage_nav_menus to users who can read.
+	 *
+	 * @param string[] $caps    Primitive capabilities required of the user.
+	 * @param string   $cap     Capability being checked.
+	 * @param int      $user_id User ID.
+	 * @return string[] Primitive capabilities required of the user.
+	 */
+	public function grant_manage_nav_menus_to_users_who_can_read( $caps, $cap, $user_id ) {
+		if ( 'manage_nav_menus' === $cap && user_can( $user_id, 'read' ) ) {
+			return array( 'read' );
+		}
+
+		return $caps;
 	}
 
 	/**
@@ -103,6 +129,32 @@ class Tests_REST_WpRestMenuLocationsController extends WP_Test_REST_Controller_T
 		$this->assertSame( $menus, $names );
 		$menu_descriptions = array_map( 'ucfirst', $names );
 		$this->assertSame( $menu_descriptions, $descriptions );
+	}
+
+	/**
+	 * @ticket 29213
+	 * @covers ::get_items_permissions_check
+	 */
+	public function test_get_items_with_manage_nav_menus_permission() {
+		$menus = array( 'primary', 'secondary' );
+		$this->register_nav_menu_locations( array( 'primary', 'secondary' ) );
+		wp_set_current_user( self::$subscriber_id );
+		add_filter( 'map_meta_cap', array( $this, 'grant_manage_nav_menus_to_users_who_can_read' ), 10, 3 );
+
+		try {
+			$this->assertFalse( current_user_can( 'edit_theme_options' ) );
+			$this->assertTrue( current_user_can( 'manage_nav_menus' ) );
+
+			$request  = new WP_REST_Request( 'GET', '/wp/v2/menu-locations' );
+			$response = rest_get_server()->dispatch( $request );
+			$data     = array_values( $response->get_data() );
+			$names    = wp_list_pluck( $data, 'name' );
+
+			$this->assertSame( 200, $response->get_status() );
+			$this->assertSame( $menus, $names );
+		} finally {
+			remove_filter( 'map_meta_cap', array( $this, 'grant_manage_nav_menus_to_users_who_can_read' ), 10 );
+		}
 	}
 
 	/**

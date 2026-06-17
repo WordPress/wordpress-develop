@@ -636,7 +636,7 @@ class WP_Customize_Control {
 
 				echo $dropdown;
 				?>
-				<?php if ( $this->allow_addition && current_user_can( 'publish_pages' ) && current_user_can( 'edit_theme_options' ) ) : // Currently tied to menus functionality. ?>
+				<?php if ( $this->allow_addition && current_user_can( 'publish_pages' ) && current_user_can( 'manage_nav_menus' ) ) : // Currently tied to menus functionality. ?>
 					<button type="button" class="button-link add-new-toggle">
 						<?php
 						/* translators: %s: Add Page label. */

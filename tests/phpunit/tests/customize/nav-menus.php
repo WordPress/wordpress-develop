@@ -530,13 +530,21 @@ class Test_WP_Customize_Nav_Menus extends WP_UnitTestCase {
 	public function test_filter_dynamic_setting_args() {
 		$menus = new WP_Customize_Nav_Menus( $this->wp_customize );
 
-		$expected = array( 'type' => 'nav_menu_item' );
+		$expected = array(
+			'type'       => 'nav_menu_item',
+			'capability' => 'manage_nav_menus',
+		);
 		$results  = $menus->filter_dynamic_setting_args( $this->wp_customize, 'nav_menu_item[123]' );
 		$this->assertSame( $expected['type'], $results['type'] );
+		$this->assertSame( $expected['capability'], $results['capability'] );
 
-		$expected = array( 'type' => 'nav_menu' );
+		$expected = array(
+			'type'       => 'nav_menu',
+			'capability' => 'manage_nav_menus',
+		);
 		$results  = $menus->filter_dynamic_setting_args( $this->wp_customize, 'nav_menu[123]' );
 		$this->assertSame( $expected['type'], $results['type'] );
+		$this->assertSame( $expected['capability'], $results['capability'] );
 	}
 
 	/**
@@ -578,14 +586,22 @@ class Test_WP_Customize_Nav_Menus extends WP_UnitTestCase {
 			)
 		);
 		do_action( 'customize_register', $this->wp_customize );
-		$this->assertInstanceOf( 'WP_Customize_Nav_Menu_Item_Setting', $this->wp_customize->get_setting( "nav_menu_item[$item_id]" ) );
-		$this->assertSame( 'Primary', $this->wp_customize->get_section( "nav_menu[$menu_id]" )->title );
+		$nav_menu_item_setting = $this->wp_customize->get_setting( "nav_menu_item[$item_id]" );
+		$nav_menu_setting      = $this->wp_customize->get_setting( "nav_menu[$menu_id]" );
+		$nav_menu_section      = $this->wp_customize->get_section( "nav_menu[$menu_id]" );
+
+		$this->assertInstanceOf( 'WP_Customize_Nav_Menu_Item_Setting', $nav_menu_item_setting );
+		$this->assertSame( 'manage_nav_menus', $nav_menu_item_setting->capability );
+		$this->assertSame( 'manage_nav_menus', $nav_menu_setting->capability );
+		$this->assertSame( 'manage_nav_menus', $nav_menu_section->capability );
+		$this->assertSame( 'Primary', $nav_menu_section->title );
 		$this->assertSame( 'Hello World', $this->wp_customize->get_control( "nav_menu_item[$item_id]" )->label );
 
 		$nav_menus_created_posts_setting = $this->wp_customize->get_setting( 'nav_menus_created_posts' );
 		$this->assertInstanceOf( 'WP_Customize_Filter_Setting', $nav_menus_created_posts_setting );
 		$this->assertSame( 'postMessage', $nav_menus_created_posts_setting->transport );
 		$this->assertSame( array(), $nav_menus_created_posts_setting->default );
+		$this->assertSame( 'manage_nav_menus', $nav_menus_created_posts_setting->capability );
 		$this->assertSame( array( $this->wp_customize->nav_menus, 'sanitize_nav_menus_created_posts' ), $nav_menus_created_posts_setting->sanitize_callback );
 	}
 
@@ -829,12 +845,14 @@ class Test_WP_Customize_Nav_Menus extends WP_UnitTestCase {
 		$this->assertSame( 'nav_menu_instance', $args['type'] );
 		$this->assertSame( array( $this->wp_customize->nav_menus, 'render_nav_menu_partial' ), $args['render_callback'] );
 		$this->assertTrue( $args['container_inclusive'] );
+		$this->assertSame( 'manage_nav_menus', $args['capability'] );
 
 		$args = apply_filters( 'customize_dynamic_partial_args', array( 'fallback_refresh' => false ), 'nav_menu_instance[4099c7d8ad5cb9c94068b329da9893e3]' );
 		$this->assertIsArray( $args );
 		$this->assertSame( 'nav_menu_instance', $args['type'] );
 		$this->assertSame( array( $this->wp_customize->nav_menus, 'render_nav_menu_partial' ), $args['render_callback'] );
 		$this->assertTrue( $args['container_inclusive'] );
+		$this->assertSame( 'manage_nav_menus', $args['capability'] );
 		$this->assertFalse( $args['fallback_refresh'] );
 	}
 

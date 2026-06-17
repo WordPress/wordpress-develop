@@ -65,6 +65,22 @@ class Tests_REST_WpRestMenusController extends WP_Test_REST_Controller_Testcase 
 	}
 
 	/**
+	 * Grants manage_nav_menus to users who can read.
+	 *
+	 * @param string[] $caps    Primitive capabilities required of the user.
+	 * @param string   $cap     Capability being checked.
+	 * @param int      $user_id User ID.
+	 * @return string[] Primitive capabilities required of the user.
+	 */
+	public function grant_manage_nav_menus_to_users_who_can_read( $caps, $cap, $user_id ) {
+		if ( 'manage_nav_menus' === $cap && user_can( $user_id, 'read' ) ) {
+			return array( 'read' );
+		}
+
+		return $caps;
+	}
+
+	/**
 	 *
 	 */
 	public function set_up() {
@@ -187,6 +203,27 @@ class Tests_REST_WpRestMenusController extends WP_Test_REST_Controller_Testcase 
 	}
 
 	/**
+	 * @ticket 29213
+	 * @covers ::get_items_permissions_check
+	 */
+	public function test_get_items_with_manage_nav_menus_permission() {
+		wp_set_current_user( self::$subscriber_id );
+		add_filter( 'map_meta_cap', array( $this, 'grant_manage_nav_menus_to_users_who_can_read' ), 10, 3 );
+
+		try {
+			$this->assertFalse( current_user_can( 'edit_theme_options' ) );
+			$this->assertTrue( current_user_can( 'manage_nav_menus' ) );
+
+			$request = new WP_REST_Request( 'GET', '/wp/v2/menus' );
+			$request->set_param( 'per_page', self::$per_page );
+			$response = rest_get_server()->dispatch( $request );
+			$this->check_get_taxonomy_terms_response( $response );
+		} finally {
+			remove_filter( 'map_meta_cap', array( $this, 'grant_manage_nav_menus_to_users_who_can_read' ), 10 );
+		}
+	}
+
+	/**
 	 * @ticket 40878
 	 * @covers ::get_item
 	 */
@@ -268,6 +305,30 @@ class Tests_REST_WpRestMenusController extends WP_Test_REST_Controller_Testcase 
 		$this->assertSame( 'My Awesome menus', $data['name'] );
 		$this->assertSame( 'This menu is so awesome.', $data['description'] );
 		$this->assertSame( 'my-awesome-menus', $data['slug'] );
+	}
+
+	/**
+	 * @ticket 29213
+	 * @covers ::create_item
+	 */
+	public function test_create_item_with_manage_nav_menus_permission() {
+		wp_set_current_user( self::$subscriber_id );
+		add_filter( 'map_meta_cap', array( $this, 'grant_manage_nav_menus_to_users_who_can_read' ), 10, 3 );
+
+		try {
+			$this->assertFalse( current_user_can( 'edit_theme_options' ) );
+			$this->assertTrue( current_user_can( 'manage_nav_menus' ) );
+
+			$request = new WP_REST_Request( 'POST', '/wp/v2/menus' );
+			$request->set_param( 'name', 'My Granular Cap Menu' );
+			$response = rest_get_server()->dispatch( $request );
+			$data     = $response->get_data();
+
+			$this->assertSame( 201, $response->get_status() );
+			$this->assertSame( 'My Granular Cap Menu', $data['name'] );
+		} finally {
+			remove_filter( 'map_meta_cap', array( $this, 'grant_manage_nav_menus_to_users_who_can_read' ), 10 );
+		}
 	}
 
 	/**

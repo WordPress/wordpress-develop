@@ -172,12 +172,16 @@ class WP_Nav_Menu_Widget extends WP_Widget {
 				$url = admin_url( 'nav-menus.php' );
 			}
 
-			printf(
-				/* translators: %s: URL to create a new menu. */
-				__( 'No menus have been created yet. <a href="%s">Create some</a>.' ),
-				// The URL can be a `javascript:` link, so esc_attr() is used here instead of esc_url().
-				esc_attr( $url )
-			);
+			if ( current_user_can( 'manage_nav_menus' ) ) {
+				printf(
+					/* translators: %s: URL to create a new menu. */
+					__( 'No menus have been created yet. <a href="%s">Create some</a>.' ),
+					// The URL can be a `javascript:` link, so esc_attr() is used here instead of esc_url().
+					esc_attr( $url )
+				);
+			} else {
+				esc_html_e( 'No menus have been created yet.' );
+			}
 			?>
 		</p>
 		<div class="nav-menu-widget-form-controls" <?php echo $empty_menus_style; ?>>

@@ -53,7 +53,7 @@ final class WP_Customize_Nav_Menus {
 		add_action( 'customize_save_nav_menus_created_posts', array( $this, 'save_nav_menus_created_posts' ) );
 
 		// Skip remaining hooks when the user can't manage nav menus anyway.
-		if ( ! current_user_can( 'edit_theme_options' ) ) {
+		if ( ! current_user_can( 'manage_nav_menus' ) ) {
 			return;
 		}
 
@@ -92,7 +92,7 @@ final class WP_Customize_Nav_Menus {
 	public function ajax_load_available_items() {
 		check_ajax_referer( 'customize-menus', 'customize-menus-nonce' );
 
-		if ( ! current_user_can( 'edit_theme_options' ) ) {
+		if ( ! current_user_can( 'manage_nav_menus' ) ) {
 			wp_die( -1 );
 		}
 
@@ -317,7 +317,7 @@ final class WP_Customize_Nav_Menus {
 	public function ajax_search_available_items() {
 		check_ajax_referer( 'customize-menus', 'customize-menus-nonce' );
 
-		if ( ! current_user_can( 'edit_theme_options' ) ) {
+		if ( ! current_user_can( 'manage_nav_menus' ) ) {
 			wp_die( -1 );
 		}
 
@@ -594,13 +594,15 @@ final class WP_Customize_Nav_Menus {
 	public function filter_dynamic_setting_args( $setting_args, $setting_id ) {
 		if ( preg_match( WP_Customize_Nav_Menu_Setting::ID_PATTERN, $setting_id ) ) {
 			$setting_args = array(
-				'type'      => WP_Customize_Nav_Menu_Setting::TYPE,
-				'transport' => 'postMessage',
+				'type'       => WP_Customize_Nav_Menu_Setting::TYPE,
+				'transport'  => 'postMessage',
+				'capability' => 'manage_nav_menus',
 			);
 		} elseif ( preg_match( WP_Customize_Nav_Menu_Item_Setting::ID_PATTERN, $setting_id ) ) {
 			$setting_args = array(
-				'type'      => WP_Customize_Nav_Menu_Item_Setting::TYPE,
-				'transport' => 'postMessage',
+				'type'       => WP_Customize_Nav_Menu_Item_Setting::TYPE,
+				'transport'  => 'postMessage',
+				'capability' => 'manage_nav_menus',
 			);
 		}
 		return $setting_args;
@@ -681,6 +683,7 @@ final class WP_Customize_Nav_Menus {
 					'title'       => __( 'Menus' ),
 					'description' => $description,
 					'priority'    => 100,
+					'capability'  => 'manage_nav_menus',
 				)
 			)
 		);
@@ -709,6 +712,7 @@ final class WP_Customize_Nav_Menus {
 				'panel'       => 'nav_menus',
 				'priority'    => 30,
 				'description' => $description,
+				'capability'  => 'manage_nav_menus',
 			)
 		);
 
@@ -735,7 +739,8 @@ final class WP_Customize_Nav_Menus {
 
 			$setting = $this->manager->get_setting( $setting_id );
 			if ( $setting ) {
-				$setting->transport = 'postMessage';
+				$setting->transport  = 'postMessage';
+				$setting->capability = 'manage_nav_menus';
 				remove_filter( "customize_sanitize_{$setting_id}", 'absint' );
 				add_filter( "customize_sanitize_{$setting_id}", array( $this, 'intval_base10' ) );
 			} else {
@@ -747,6 +752,7 @@ final class WP_Customize_Nav_Menus {
 						'type'              => 'theme_mod',
 						'transport'         => 'postMessage',
 						'default'           => 0,
+						'capability'        => 'manage_nav_menus',
 					)
 				);
 			}
@@ -786,9 +792,10 @@ final class WP_Customize_Nav_Menus {
 					$this->manager,
 					$section_id,
 					array(
-						'title'    => html_entity_decode( $menu->name, ENT_QUOTES, get_bloginfo( 'charset' ) ),
-						'priority' => 10,
-						'panel'    => 'nav_menus',
+						'title'      => html_entity_decode( $menu->name, ENT_QUOTES, get_bloginfo( 'charset' ) ),
+						'priority'   => 10,
+						'panel'      => 'nav_menus',
+						'capability' => 'manage_nav_menus',
 					)
 				)
 			);
@@ -799,7 +806,8 @@ final class WP_Customize_Nav_Menus {
 					$this->manager,
 					$nav_menu_setting_id,
 					array(
-						'transport' => 'postMessage',
+						'transport'  => 'postMessage',
+						'capability' => 'manage_nav_menus',
 					)
 				)
 			);
@@ -823,8 +831,9 @@ final class WP_Customize_Nav_Menus {
 						$this->manager,
 						$menu_item_setting_id,
 						array(
-							'value'     => $value,
-							'transport' => 'postMessage',
+							'value'      => $value,
+							'transport'  => 'postMessage',
+							'capability' => 'manage_nav_menus',
 						)
 					)
 				);
@@ -850,10 +859,11 @@ final class WP_Customize_Nav_Menus {
 		$this->manager->add_section(
 			'add_menu',
 			array(
-				'type'     => 'new_menu',
-				'title'    => __( 'New Menu' ),
-				'panel'    => 'nav_menus',
-				'priority' => 20,
+				'type'       => 'new_menu',
+				'title'      => __( 'New Menu' ),
+				'panel'      => 'nav_menus',
+				'priority'   => 20,
+				'capability' => 'manage_nav_menus',
 			)
 		);
 
@@ -866,6 +876,7 @@ final class WP_Customize_Nav_Menus {
 					'type'              => 'option', // To prevent theme prefix in changeset.
 					'default'           => array(),
 					'sanitize_callback' => array( $this, 'sanitize_nav_menus_created_posts' ),
+					'capability'        => 'manage_nav_menus',
 				)
 			)
 		);
@@ -1003,6 +1014,10 @@ final class WP_Customize_Nav_Menus {
 
 		if ( ! current_user_can( 'customize' ) ) {
 			wp_send_json_error( 'customize_not_allowed', 403 );
+		}
+
+		if ( ! current_user_can( 'manage_nav_menus' ) ) {
+			wp_send_json_error( 'cannot_manage_nav_menus', 403 );
 		}
 
 		if ( empty( $_POST['params'] ) || ! is_array( $_POST['params'] ) ) {
@@ -1328,7 +1343,7 @@ final class WP_Customize_Nav_Menus {
 					'render_callback'     => array( $this, 'render_nav_menu_partial' ),
 					'container_inclusive' => true,
 					'settings'            => array(), // Empty because the nav menu instance may relate to a menu or a location.
-					'capability'          => 'edit_theme_options',
+					'capability'          => 'manage_nav_menus',
 				)
 			);
 		}

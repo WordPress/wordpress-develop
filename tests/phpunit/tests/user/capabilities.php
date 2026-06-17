@@ -282,6 +282,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 			'upload_plugins'              => array( 'administrator' ),
 			'upload_themes'               => array( 'administrator' ),
 			'customize'                   => array( 'administrator' ),
+			'manage_nav_menus'            => array( 'administrator' ),
 			'add_users'                   => array( 'administrator' ),
 			'install_languages'           => array( 'administrator' ),
 			'update_languages'            => array( 'administrator' ),
@@ -329,6 +330,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 			'manage_privacy_options'      => array(),
 
 			'customize'                   => array( 'administrator' ),
+			'manage_nav_menus'            => array( 'administrator' ),
 			'delete_site'                 => array( 'administrator' ),
 			'add_users'                   => array( 'administrator' ),
 
