@@ -66,6 +66,62 @@ class Tests_Icons_WpIconsRegistry extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Provides invalid icon names.
+	 *
+	 * @return array[]
+	 */
+	public function data_invalid_icon_names() {
+		return array(
+			'non-string name'      => array( 1 ),
+			'no namespace'         => array( 'plus' ),
+			'uppercase characters' => array( 'Test/Plus' ),
+			'invalid characters'   => array( 'test/_doing_it_wrong' ),
+		);
+	}
+
+	/**
+	 * Should fail to re-register the same icon.
+	 *
+	 * @ticket 64847
+	 *
+	 * @expectedIncorrectUsage WP_Icons_Registry::register
+	 */
+	public function test_register_icon_twice() {
+		$name     = 'test-plugin/duplicate';
+		$settings = array(
+			'label'   => 'Icon',
+			'content' => '<svg></svg>',
+		);
+
+		$result = $this->register( $name, $settings );
+		$this->assertTrue( $result );
+
+		$result2 = $this->register( $name, $settings );
+		$this->assertFalse( $result2 );
+	}
+
+
+	/**
+	 * Should fail to register icon with invalid names.
+	 *
+	 * @ticket 64847
+	 *
+	 * @dataProvider data_invalid_icon_names
+	 * @expectedIncorrectUsage WP_Icons_Registry::register
+	 *
+	 * @param mixed $icon_name Icon name to register.
+	 */
+	public function test_register_invalid_name( $icon_name ) {
+		$settings = array(
+			'label'   => 'Icon',
+			'content' => '<svg></svg>',
+		);
+
+		$result = $this->register( $icon_name, $settings );
+		$this->assertFalse( $result );
+	}
+
+	/**
 	 * Should register an icon that provides its content through `file_path`.
 	 *
 	 * @ticket 64847
