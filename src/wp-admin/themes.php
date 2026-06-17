@@ -381,18 +381,18 @@ if ( is_array( $submenu ) && isset( $submenu['themes.php'] ) ) {
 			$menu_hook           = get_plugin_page_hook( $submenu[ $item[2] ][0][2], $item[2] );
 
 			if ( file_exists( WP_PLUGIN_DIR . "/{$submenu[$item[2]][0][2]}" ) || ! empty( $menu_hook ) ) {
-				$current_theme_actions[] = "<a class='button$class' href='admin.php?page={$submenu[$item[2]][0][2]}'>{$item[0]}</a>";
+				$current_theme_actions[] = "<a class='button button-compact$class' href='admin.php?page={$submenu[$item[2]][0][2]}'>{$item[0]}</a>";
 			} else {
-				$current_theme_actions[] = "<a class='button$class' href='{$submenu[$item[2]][0][2]}'>{$item[0]}</a>";
+				$current_theme_actions[] = "<a class='button button-compact$class' href='{$submenu[$item[2]][0][2]}'>{$item[0]}</a>";
 			}
 		} elseif ( ! empty( $item[2] ) && current_user_can( $item[1] ) ) {
 			$menu_file = $item[2];
 
 			if ( current_user_can( 'customize' ) ) {
 				if ( 'custom-header' === $menu_file ) {
-					$current_theme_actions[] = "<a class='button hide-if-no-customize$class' href='customize.php?autofocus[control]=header_image'>{$item[0]}</a>";
+					$current_theme_actions[] = "<a class='button button-compact hide-if-no-customize$class' href='customize.php?autofocus[control]=header_image'>{$item[0]}</a>";
 				} elseif ( 'custom-background' === $menu_file ) {
-					$current_theme_actions[] = "<a class='button hide-if-no-customize$class' href='customize.php?autofocus[control]=background_image'>{$item[0]}</a>";
+					$current_theme_actions[] = "<a class='button button-compact hide-if-no-customize$class' href='customize.php?autofocus[control]=background_image'>{$item[0]}</a>";
 				}
 			}
 
@@ -402,9 +402,9 @@ if ( is_array( $submenu ) && isset( $submenu['themes.php'] ) ) {
 			}
 
 			if ( file_exists( ABSPATH . "wp-admin/$menu_file" ) ) {
-				$current_theme_actions[] = "<a class='button$class' href='{$item[2]}'>{$item[0]}</a>";
+				$current_theme_actions[] = "<a class='button button-compact$class' href='{$item[2]}'>{$item[0]}</a>";
 			} else {
-				$current_theme_actions[] = "<a class='button$class' href='themes.php?page={$item[2]}'>{$item[0]}</a>";
+				$current_theme_actions[] = "<a class='button button-compact$class' href='themes.php?page={$item[2]}'>{$item[0]}</a>";
 			}
 		}
 	}
