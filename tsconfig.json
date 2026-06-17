@@ -19,6 +19,7 @@
 		"lib": [ "es2020", "dom" ],
 		"typeRoots": [ "./typings", "./node_modules/@types" ],
 		"types": [
+			"node",
 			"wp-globals",
 			"codemirror/addon/lint/lint",
 			"codemirror/addon/hint/show-hint"
@@ -28,6 +29,8 @@
 	"files": [
 		"src/js/_enqueues/wp/code-editor.js",
 		"src/js/_enqueues/lib/codemirror/javascript-lint.js",
-		"src/js/_enqueues/lib/codemirror/htmlhint-kses.js"
+		"src/js/_enqueues/lib/codemirror/htmlhint-kses.js",
+		"tools/gutenberg/download.js",
+		"tools/gutenberg/utils.js"
 	]
 }
