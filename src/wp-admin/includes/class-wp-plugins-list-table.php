@@ -1293,7 +1293,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 					}
 
 					if ( ! empty( $plugin_data['AuthorName'] ) && isset( $plugin_data['slug'] ) && current_user_can( 'install_plugins' ) ) {
-						$author_name = wp_strip_all_tags( $plugin_data['AuthorName'] );
+						$author_name   = wp_strip_all_tags( $plugin_data['AuthorName'] );
 						$plugin_meta[] = sprintf(
 							'<a href="%s" aria-label="%s">%s</a>',
 							esc_url(
