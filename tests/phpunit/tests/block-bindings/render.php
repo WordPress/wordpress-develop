@@ -122,6 +122,16 @@ HTML
 				,
 				'<p>test source value</p>',
 			),
+			'list item block' => array(
+				'content',
+				<<<HTML
+<!-- wp:list-item -->
+<li>This should not appear</li>
+<!-- /wp:list-item -->
+HTML
+				,
+				'<li>test source value</li>',
+			),
 		);
 	}
 
