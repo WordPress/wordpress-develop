@@ -5654,7 +5654,7 @@ EOF;
 		copy( DIR_TESTDATA . '/images/33772.jpg', $file );
 
 		// Set JPEG output quality very low and WebP quality very high, this should force all generated WebP images to
-		// be larger than the the matching generated JPEGs.
+		// be larger than the matching generated JPEGs.
 		add_filter( 'wp_editor_set_quality', array( $this, 'image_editor_change_quality_low_jpeg' ), 10, 2 );
 
 		$editor = wp_get_image_editor( $file );
