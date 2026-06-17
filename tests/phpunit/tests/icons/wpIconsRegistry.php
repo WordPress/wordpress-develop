@@ -26,12 +26,6 @@ class Tests_Icons_WpIconsRegistry extends WP_UnitTestCase {
 	public function tear_down() {
 		$instance_property = new ReflectionProperty( WP_Icons_Registry::class, 'instance' );
 
-		/*
-		 * ReflectionProperty::setAccessible is:
-		 * - redundant as of 8.1.0, which made all properties accessible
-		 * - deprecated as of 8.5.0
-		 * - needed until 8.1.0, as property `instance` is private
-		 */
 		if ( PHP_VERSION_ID < 80100 ) {
 			$instance_property->setAccessible( true );
 		}
