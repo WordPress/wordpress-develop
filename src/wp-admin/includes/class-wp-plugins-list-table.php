@@ -1292,6 +1292,21 @@ class WP_Plugins_List_Table extends WP_List_Table {
 						);
 					}
 
+					if ( ! empty( $plugin_data['AuthorName'] ) && current_user_can( 'install_plugins' ) ) {
+						$plugin_meta[] = sprintf(
+							'<a href="%s" aria-label="%s">%s</a>',
+							esc_url(
+								network_admin_url(
+									'plugin-install.php?tab=search&s=' . urlencode( $plugin_data['AuthorName'] )
+								)
+							),
+							/* translators: %s: Plugin author name. */
+							esc_attr( sprintf( __( 'Search for more plugins by %s' ), $plugin_data['AuthorName'] ) ),
+							/* translators: %s: Plugin author name. */
+							sprintf( __( 'View more plugins by %s' ), $plugin_data['AuthorName'] )
+						);
+					}
+
 					/**
 					 * Filters the array of row meta for each plugin in the Plugins list table.
 					 *
