@@ -2154,6 +2154,14 @@ module.exports = function(grunt) {
 				];
 			} )
 		) );
+
+		grunt.log.writeln(
+			'Found ' + routeNames.length + ' route' + ( routeNames.length === 1 ? '' : 's' ) +
+			' registered in ' + registryPath + ':'
+		);
+		routeNames.forEach( function( name ) {
+			grunt.log.writeln( '  - ' + name );
+		} );
 	} );
 
 	grunt.registerTask( 'build:gutenberg', [
