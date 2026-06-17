@@ -680,7 +680,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 				$actions['update-selected'] = __( 'Update' );
 			}
 
-			if ( current_user_can( 'delete_plugins' ) && ( 'active' !== $status ) ) {
+			if ( current_user_can( 'delete_plugins' ) ) {
 				$actions['delete-selected'] = __( 'Delete' );
 			}
 
@@ -942,29 +942,29 @@ class WP_Plugins_List_Table extends WP_List_Table {
 							);
 						}
 					}
+				}
 
-					if ( current_user_can( 'delete_plugins' ) && ! is_plugin_active( $plugin_file ) ) {
-						if ( $has_dependents && ! $has_circular_dependency ) {
-							$actions['delete'] = __( 'Delete' ) .
-								'<span class="screen-reader-text">' .
-								__( 'You cannot delete this plugin as other plugins require it.' ) .
-								'</span>';
-						} else {
-							$delete_url = 'plugins.php?action=delete-selected' .
-								'&amp;checked[]=' . urlencode( $plugin_file ) .
-								'&amp;plugin_status=' . $context .
-								'&amp;paged=' . $page .
-								'&amp;s=' . $s;
+				if ( current_user_can( 'delete_plugins' ) ) {
+					if ( $has_dependents && ! $has_circular_dependency ) {
+						$actions['delete'] = __( 'Delete' ) .
+							'<span class="screen-reader-text">' .
+							__( 'You cannot delete this plugin as other plugins require it.' ) .
+							'</span>';
+					} else {
+						$delete_url = 'plugins.php?action=delete-selected' .
+							'&amp;checked[]=' . urlencode( $plugin_file ) .
+							'&amp;plugin_status=' . $context .
+							'&amp;paged=' . $page .
+							'&amp;s=' . $s;
 
-							$actions['delete'] = sprintf(
-								'<a href="%s" id="delete-%s" class="delete" aria-label="%s">%s</a>',
-								wp_nonce_url( $delete_url, 'bulk-plugins' ),
-								esc_attr( $plugin_id_attr ),
-								/* translators: %s: Plugin name. */
-								esc_attr( sprintf( _x( 'Delete %s', 'plugin' ), $plugin_data['Name'] ) ),
-								__( 'Delete' )
-							);
-						}
+						$actions['delete'] = sprintf(
+							'<a href="%s" id="delete-%s" class="delete" aria-label="%s">%s</a>',
+							wp_nonce_url( $delete_url, 'bulk-plugins' ),
+							esc_attr( $plugin_id_attr ),
+							/* translators: %s: Plugin name. */
+							esc_attr( sprintf( _x( 'Delete %s', 'plugin' ), $plugin_data['Name'] ) ),
+							__( 'Delete' )
+						);
 					}
 				}
 			} else {
@@ -1048,31 +1048,31 @@ class WP_Plugins_List_Table extends WP_List_Table {
 							);
 						}
 					}
-
-					if ( ! is_multisite() && current_user_can( 'delete_plugins' ) ) {
-						if ( $has_dependents && ! $has_circular_dependency ) {
-							$actions['delete'] = __( 'Delete' ) .
-								'<span class="screen-reader-text">' .
-								__( 'You cannot delete this plugin as other plugins require it.' ) .
-								'</span>';
-						} else {
-							$delete_url = 'plugins.php?action=delete-selected' .
-								'&amp;checked[]=' . urlencode( $plugin_file ) .
-								'&amp;plugin_status=' . $context .
-								'&amp;paged=' . $page .
-								'&amp;s=' . $s;
-
-							$actions['delete'] = sprintf(
-								'<a href="%s" id="delete-%s" class="delete" aria-label="%s">%s</a>',
-								wp_nonce_url( $delete_url, 'bulk-plugins' ),
-								esc_attr( $plugin_id_attr ),
-								/* translators: %s: Plugin name. */
-								esc_attr( sprintf( _x( 'Delete %s', 'plugin' ), $plugin_data['Name'] ) ),
-								__( 'Delete' )
-							);
-						}
-					}
 				} // End if $is_active.
+
+				if ( ! is_multisite() && current_user_can( 'delete_plugins' ) ) {
+					if ( $has_dependents && ! $has_circular_dependency ) {
+						$actions['delete'] = __( 'Delete' ) .
+							'<span class="screen-reader-text">' .
+							__( 'You cannot delete this plugin as other plugins require it.' ) .
+							'</span>';
+					} else {
+						$delete_url = 'plugins.php?action=delete-selected' .
+							'&amp;checked[]=' . urlencode( $plugin_file ) .
+							'&amp;plugin_status=' . $context .
+							'&amp;paged=' . $page .
+							'&amp;s=' . $s;
+
+						$actions['delete'] = sprintf(
+							'<a href="%s" id="delete-%s" class="delete" aria-label="%s">%s</a>',
+							wp_nonce_url( $delete_url, 'bulk-plugins' ),
+							esc_attr( $plugin_id_attr ),
+							/* translators: %s: Plugin name. */
+							esc_attr( sprintf( _x( 'Delete %s', 'plugin' ), $plugin_data['Name'] ) ),
+							__( 'Delete' )
+						);
+					}
+				}
 			} // End if $screen->in_admin( 'network' ).
 		} // End if $context.
 
