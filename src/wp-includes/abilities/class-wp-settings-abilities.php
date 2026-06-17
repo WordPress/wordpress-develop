@@ -35,6 +35,17 @@ class WP_Settings_Abilities {
 	const CATEGORY = 'site';
 
 	/**
+	 * Settings exposed through the Abilities API, computed once at registration.
+	 *
+	 * Cached so the input/output schema and the executed result derive from the exact same
+	 * structure, and {@see get_registered_settings()} is only walked once per request.
+	 *
+	 * @since 7.1.0
+	 * @var array<string, array{option: string, group: string, default: mixed, schema: array<string, mixed>}>|null
+	 */
+	private static $exposed_settings = null;
+
+	/**
 	 * Registers all settings abilities.
 	 *
 	 * Must run on the `wp_abilities_api_init` hook.
@@ -58,21 +69,28 @@ class WP_Settings_Abilities {
 	 * @since 7.1.0
 	 */
 	public static function register_get_settings(): void {
-		$settings      = self::get_exposed_settings();
-		$groups        = array_values( array_unique( array_filter( wp_list_pluck( $settings, 'group' ) ) ) );
-		$setting_names = array_keys( $settings );
-		$properties    = array();
+		// Compute once; execute_get_settings() reuses this exact structure.
+		self::$exposed_settings = self::get_exposed_settings();
+
+		$settings    = self::$exposed_settings;
+		$field_names = array_keys( $settings );
+		$groups      = array();
+		$properties  = array();
 		foreach ( $settings as $exposed_name => $setting ) {
 			$properties[ $exposed_name ] = $setting['schema'];
+			if ( '' === $setting['group'] || in_array( $setting['group'], $groups, true ) ) {
+				continue;
+			}
+			$groups[] = $setting['group'];
 		}
 
 		wp_register_ability(
 			'core/settings',
 			array(
 				'label'               => __( 'Get Settings' ),
-				'description'         => __( 'Returns WordPress settings as a flat map of setting name to value. By default returns all settings exposed to abilities, or optionally a subset filtered by settings group or by setting name.' ),
+				'description'         => __( 'Returns WordPress settings as a flat map of setting name to value. By default returns all settings exposed to abilities, or optionally a subset filtered by settings group, by setting name, or both.' ),
 				'category'            => self::CATEGORY,
-				'input_schema'        => self::get_settings_input_schema( $groups, $setting_names ),
+				'input_schema'        => self::get_settings_input_schema( $groups, $field_names ),
 				'output_schema'       => array(
 					'type'                 => 'object',
 					'description'          => __( 'A map of setting name to its current value.' ),
@@ -104,20 +122,20 @@ class WP_Settings_Abilities {
 	public static function execute_get_settings( $input = array() ): array {
 		$input = is_array( $input ) ? $input : array();
 
-		$settings = self::get_exposed_settings();
-		$group    = isset( $input['group'] ) ? (string) $input['group'] : '';
-		$names    = isset( $input['settings'] ) && is_array( $input['settings'] ) ? $input['settings'] : array();
+		$settings = self::$exposed_settings ?? self::get_exposed_settings();
+		$group    = isset( $input['group'] ) && is_string( $input['group'] ) ? $input['group'] : '';
+		$fields   = isset( $input['fields'] ) && is_array( $input['fields'] ) ? $input['fields'] : array();
 
 		$result = array();
 		foreach ( $settings as $exposed_name => $setting ) {
 			if ( '' !== $group && $setting['group'] !== $group ) {
 				continue;
 			}
-			if ( ! empty( $names ) && ! in_array( $exposed_name, $names, true ) ) {
+			if ( ! empty( $fields ) && ! in_array( $exposed_name, $fields, true ) ) {
 				continue;
 			}
 
-			$type  = isset( $setting['schema']['type'] ) ? (string) $setting['schema']['type'] : 'string';
+			$type  = isset( $setting['schema']['type'] ) && is_string( $setting['schema']['type'] ) ? $setting['schema']['type'] : 'string';
 			$value = get_option( $setting['option'], $setting['default'] );
 
 			$result[ $exposed_name ] = self::cast_value( $value, $type );
@@ -138,55 +156,38 @@ class WP_Settings_Abilities {
 	}
 
 	/**
-	 * Builds the input schema for the get ability: filter by group XOR by name.
+	 * Builds the input schema for the get ability: optional filters by group and/or name.
+	 *
+	 * Both `group` and `fields` are optional; supplying both narrows the response to their
+	 * intersection, and supplying neither returns every exposed setting.
 	 *
 	 * @since 7.1.0
 	 *
-	 * @param string[] $groups        Available settings groups.
-	 * @param string[] $setting_names Available exposed setting names.
+	 * @param string[] $groups      Available settings groups.
+	 * @param string[] $field_names Available exposed setting names.
 	 * @return array<string, mixed> The input JSON Schema.
 	 */
-	protected static function get_settings_input_schema( array $groups, array $setting_names ): array {
+	protected static function get_settings_input_schema( array $groups, array $field_names ): array {
 		return array(
-			'type'    => 'object',
-			'default' => array(),
-			// Filter by group OR by name, but not both at once.
-			'oneOf'   => array(
-				array(
-					'title'                => __( 'All settings' ),
-					'type'                 => 'object',
-					'additionalProperties' => false,
+			'type'                 => 'object',
+			// Object (not array()) so the serialized schema default is {}, consistent with type:object.
+			'default'              => (object) array(),
+			'properties'           => array(
+				'group'  => array(
+					'type'        => 'string',
+					'enum'        => $groups,
+					'description' => __( 'Return only settings that belong to this settings group.' ),
 				),
-				array(
-					'title'                => __( 'Filter by group' ),
-					'type'                 => 'object',
-					'required'             => array( 'group' ),
-					'properties'           => array(
-						'group' => array(
-							'type'        => 'string',
-							'enum'        => $groups,
-							'description' => __( 'Return only settings that belong to this settings group.' ),
-						),
+				'fields' => array(
+					'type'        => 'array',
+					'items'       => array(
+						'type' => 'string',
+						'enum' => $field_names,
 					),
-					'additionalProperties' => false,
-				),
-				array(
-					'title'                => __( 'Filter by name' ),
-					'type'                 => 'object',
-					'required'             => array( 'settings' ),
-					'properties'           => array(
-						'settings' => array(
-							'type'        => 'array',
-							'items'       => array(
-								'type' => 'string',
-								'enum' => $setting_names,
-							),
-							'description' => __( 'Return only the settings with these names.' ),
-						),
-					),
-					'additionalProperties' => false,
+					'description' => __( 'Return only the settings with these names.' ),
 				),
 			),
+			'additionalProperties' => false,
 		);
 	}
 
@@ -212,11 +213,11 @@ class WP_Settings_Abilities {
 			}
 
 			$option_name  = (string) $option_name;
-			$exposed_name = is_array( $show ) && ! empty( $show['name'] ) ? (string) $show['name'] : $option_name;
+			$exposed_name = is_array( $show ) && isset( $show['name'] ) && is_string( $show['name'] ) && '' !== $show['name'] ? $show['name'] : $option_name;
 
 			$settings[ $exposed_name ] = array(
 				'option'  => $option_name,
-				'group'   => isset( $args['group'] ) ? (string) $args['group'] : '',
+				'group'   => isset( $args['group'] ) && is_string( $args['group'] ) ? $args['group'] : '',
 				'default' => array_key_exists( 'default', $args ) ? $args['default'] : false,
 				'schema'  => self::value_schema( $args, $show ),
 			);
@@ -236,7 +237,7 @@ class WP_Settings_Abilities {
 	 */
 	protected static function value_schema( array $args, $show ): array {
 		$schema = array(
-			'type' => isset( $args['type'] ) ? (string) $args['type'] : 'string',
+			'type' => isset( $args['type'] ) && is_string( $args['type'] ) ? $args['type'] : 'string',
 		);
 		if ( ! empty( $args['label'] ) ) {
 			$schema['title'] = $args['label'];
@@ -245,7 +246,9 @@ class WP_Settings_Abilities {
 			$schema['description'] = $args['description'];
 		}
 		if ( is_array( $show ) && isset( $show['schema'] ) && is_array( $show['schema'] ) ) {
-			$schema = array_merge( $schema, $show['schema'] );
+			/** @var array<string, mixed> $show_schema */
+			$show_schema = $show['schema'];
+			$schema      = array_merge( $schema, $show_schema );
 		}
 
 		return $schema;
@@ -265,12 +268,15 @@ class WP_Settings_Abilities {
 			case 'boolean':
 				return (bool) $value;
 			case 'integer':
-				return (int) $value;
+				return is_scalar( $value ) ? (int) $value : 0;
 			case 'number':
-				return (float) $value;
+				return is_scalar( $value ) ? (float) $value : 0.0;
 			case 'array':
-			case 'object':
 				return is_array( $value ) ? $value : array();
+			case 'object':
+				// Cast to object so an empty/non-array value serializes as {} (not []) and
+				// satisfies the `object` output schema validated by execute().
+				return (object) ( is_array( $value ) ? $value : array() );
 			default:
 				return is_scalar( $value ) ? (string) $value : $value;
 		}
