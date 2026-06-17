@@ -978,7 +978,10 @@ function get_site_icon_url( $size = 512, $url = '', $blog_id = 0 ) {
 		} else {
 			$size_data = array( $size, $size );
 		}
-		$url = wp_get_attachment_image_url( $site_icon_id, $size_data );
+		$attachment_url = wp_get_attachment_image_url( $site_icon_id, $size_data );
+		if ( $attachment_url ) {
+			$url = $attachment_url;
+		}
 	}
 
 	if ( $switched_blog ) {
@@ -4155,27 +4158,31 @@ function wp_get_code_editor_settings( $args ) {
 			'outline-none'              => true,
 		),
 		'jshint'     => array(
-			'esversion' => 11,
-			'module'    => str_ends_with( $args['file'] ?? '', '.mjs' ),
+			'esversion'       => 11,
+			'module'          => str_ends_with( $args['file'] ?? '', '.mjs' ),
+
+			// This script module URL is intentionally referenced here instead of registering an espree script module
+			// in wp_default_script_modules(). This is a first stab at a core-only private module.
+			'espreeModuleUrl' => add_query_arg( 'ver', '9.6.1', includes_url( 'js/codemirror/espree.min.js' ) ),
 
 			// The following JSHint *linting rule* options are copied from
 			// <https://github.com/WordPress/wordpress-develop/blob/6.9.0/.jshintrc>.
 			// Parsing-related options such as `esversion` (and, in other contexts, `es5`, `es3`, `module`, `strict`)
 			// are honored by the Espree-based integration, but these linting-rule options are not interpreted by Espree
 			// and are kept only for compatibility/documentation with the original JSHint configuration.
-			'boss'      => true,
-			'curly'     => true,
-			'eqeqeq'    => true,
-			'eqnull'    => true,
-			'expr'      => true,
-			'immed'     => true,
-			'noarg'     => true,
-			'nonbsp'    => true,
-			'quotmark'  => 'single',
-			'undef'     => true,
-			'unused'    => true,
-			'browser'   => true,
-			'globals'   => array(
+			'boss'            => true,
+			'curly'           => true,
+			'eqeqeq'          => true,
+			'eqnull'          => true,
+			'expr'            => true,
+			'immed'           => true,
+			'noarg'           => true,
+			'nonbsp'          => true,
+			'quotmark'        => 'single',
+			'undef'           => true,
+			'unused'          => true,
+			'browser'         => true,
+			'globals'         => array(
 				'_'                 => false,
 				'Backbone'          => false,
 				'jQuery'            => false,
@@ -4937,7 +4944,7 @@ function register_admin_color_schemes() {
 		'light',
 		_x( 'Light', 'admin color scheme' ),
 		admin_url( "css/colors/light/colors$suffix.css" ),
-		array( '#e5e5e5', '#999', '#d64e07', '#04a4cc' ),
+		array( '#e5e5e5', '#6a6a6a', '#c64606', '#007cba' ),
 		array(
 			'base'    => '#999',
 			'focus'   => '#ccc',
@@ -4949,7 +4956,7 @@ function register_admin_color_schemes() {
 		'blue',
 		_x( 'Blue', 'admin color scheme' ),
 		admin_url( "css/colors/blue/colors$suffix.css" ),
-		array( '#096484', '#4796b3', '#52accc', '#74B6CE' ),
+		array( '#183751', '#245278', '#437aa8', '#e1a948' ),
 		array(
 			'base'    => '#e5f8ff',
 			'focus'   => '#fff',
@@ -4961,7 +4968,7 @@ function register_admin_color_schemes() {
 		'midnight',
 		_x( 'Midnight', 'admin color scheme' ),
 		admin_url( "css/colors/midnight/colors$suffix.css" ),
-		array( '#25282b', '#363b3f', '#69a8bb', '#e14d43' ),
+		array( '#232a2e', '#333c42', '#69a8bb', '#cf4339' ),
 		array(
 			'base'    => '#f1f2f3',
 			'focus'   => '#fff',
@@ -4973,7 +4980,7 @@ function register_admin_color_schemes() {
 		'sunrise',
 		_x( 'Sunrise', 'admin color scheme' ),
 		admin_url( "css/colors/sunrise/colors$suffix.css" ),
-		array( '#b43c38', '#cf4944', '#dd823b', '#ccaf0b' ),
+		array( '#6f2724', '#8a312d', '#ad631e', '#ccaf0b' ),
 		array(
 			'base'    => '#f3f1f1',
 			'focus'   => '#fff',
@@ -4985,7 +4992,7 @@ function register_admin_color_schemes() {
 		'ectoplasm',
 		_x( 'Ectoplasm', 'admin color scheme' ),
 		admin_url( "css/colors/ectoplasm/colors$suffix.css" ),
-		array( '#413256', '#523f6d', '#a3b745', '#d46f15' ),
+		array( '#392751', '#4a3369', '#646c3e', '#d46f15' ),
 		array(
 			'base'    => '#ece6f6',
 			'focus'   => '#fff',
@@ -4997,7 +5004,7 @@ function register_admin_color_schemes() {
 		'ocean',
 		_x( 'Ocean', 'admin color scheme' ),
 		admin_url( "css/colors/ocean/colors$suffix.css" ),
-		array( '#627c83', '#738e96', '#9ebaa0', '#aa9d88' ),
+		array( '#2b3f44', '#39535a', '#567958', '#aa9d88' ),
 		array(
 			'base'    => '#f2fcff',
 			'focus'   => '#fff',
@@ -5009,7 +5016,7 @@ function register_admin_color_schemes() {
 		'coffee',
 		_x( 'Coffee', 'admin color scheme' ),
 		admin_url( "css/colors/coffee/colors$suffix.css" ),
-		array( '#46403c', '#59524c', '#c7a589', '#9ea476' ),
+		array( '#382e27', '#5c4c40', '#916745', '#9ea476' ),
 		array(
 			'base'    => '#f3f2f1',
 			'focus'   => '#fff',
