@@ -95,26 +95,22 @@ class Tests_Abilities_API_WpRegisterCoreSettingsAbility extends WP_UnitTestCase 
 	}
 
 	/**
-	 * The input schema exposes mutually exclusive `group` and `settings` filters.
+	 * The input schema exposes optional `group` and `fields` filters.
 	 *
 	 * @ticket 64146
 	 */
-	public function test_core_settings_input_schema_is_one_of_group_or_settings(): void {
+	public function test_core_settings_input_schema_exposes_group_and_fields_filters(): void {
 		$schema = wp_get_ability( 'core/settings' )->get_input_schema();
 
 		$this->assertSame( 'object', $schema['type'] );
 		$this->assertArrayHasKey( 'default', $schema );
-		$this->assertCount( 3, $schema['oneOf'] );
+		$this->assertArrayNotHasKey( 'oneOf', $schema );
 
-		$group_branch = $schema['oneOf'][1];
-		$this->assertSame( array( 'group' ), $group_branch['required'] );
-		$this->assertContains( 'general', $group_branch['properties']['group']['enum'] );
-		$this->assertContains( 'reading', $group_branch['properties']['group']['enum'] );
+		$this->assertContains( 'general', $schema['properties']['group']['enum'] );
+		$this->assertContains( 'reading', $schema['properties']['group']['enum'] );
 
-		$settings_branch = $schema['oneOf'][2];
-		$this->assertSame( array( 'settings' ), $settings_branch['required'] );
-		$this->assertContains( 'blogname', $settings_branch['properties']['settings']['items']['enum'] );
-		$this->assertContains( 'posts_per_page', $settings_branch['properties']['settings']['items']['enum'] );
+		$this->assertContains( 'blogname', $schema['properties']['fields']['items']['enum'] );
+		$this->assertContains( 'posts_per_page', $schema['properties']['fields']['items']['enum'] );
 	}
 
 	/**
@@ -152,35 +148,36 @@ class Tests_Abilities_API_WpRegisterCoreSettingsAbility extends WP_UnitTestCase 
 	}
 
 	/**
-	 * The `settings` filter narrows the response to the requested setting names.
+	 * The `fields` filter narrows the response to the requested setting names.
 	 *
 	 * @ticket 64146
 	 */
-	public function test_core_settings_filters_by_settings(): void {
+	public function test_core_settings_filters_by_fields(): void {
 		$this->become_admin();
 
-		$result = wp_get_ability( 'core/settings' )->execute( array( 'settings' => array( 'blogname', 'posts_per_page' ) ) );
+		$result = wp_get_ability( 'core/settings' )->execute( array( 'fields' => array( 'blogname', 'posts_per_page' ) ) );
 
-		$this->assertSame( array( 'blogname', 'posts_per_page' ), array_keys( $result ) );
+		$this->assertEqualSets( array( 'blogname', 'posts_per_page' ), array_keys( $result ) );
 	}
 
 	/**
-	 * Supplying both `group` and `settings` violates the `oneOf` and is rejected.
+	 * Supplying both `group` and `fields` narrows the response to their intersection.
 	 *
 	 * @ticket 64146
 	 */
-	public function test_core_settings_rejects_group_and_settings_together(): void {
+	public function test_core_settings_combines_group_and_fields_filters(): void {
 		$this->become_admin();
 
+		// `blogname` is in the `general` group and `posts_per_page` in `reading`; only the
+		// latter satisfies both filters.
 		$result = wp_get_ability( 'core/settings' )->execute(
 			array(
-				'group'    => 'reading',
-				'settings' => array( 'blogname' ),
+				'group'  => 'reading',
+				'fields' => array( 'blogname', 'posts_per_page' ),
 			)
 		);
 
-		$this->assertWPError( $result );
-		$this->assertSame( 'ability_invalid_input', $result->get_error_code() );
+		$this->assertEqualSets( array( 'posts_per_page' ), array_keys( $result ) );
 	}
 
 	/**
@@ -205,16 +202,15 @@ class Tests_Abilities_API_WpRegisterCoreSettingsAbility extends WP_UnitTestCase 
 	public function test_core_settings_exposes_a_custom_registered_setting(): void {
 		$ability = wp_get_ability( 'core/settings' );
 
-		// Present in both the input `settings` enum and the output schema built at registration.
-		$settings_branch = $ability->get_input_schema()['oneOf'][2];
-		$this->assertContains( 'core_settings_ability_test_option', $settings_branch['properties']['settings']['items']['enum'] );
+		// Present in both the input `fields` enum and the output schema built at registration.
+		$this->assertContains( 'core_settings_ability_test_option', $ability->get_input_schema()['properties']['fields']['items']['enum'] );
 		$this->assertArrayHasKey( 'core_settings_ability_test_option', $ability->get_output_schema()['properties'] );
 
 		// And returned, correctly typed, by execute.
 		$this->become_admin();
 		update_option( 'core_settings_ability_test_option', 7 );
 
-		$result = $ability->execute( array( 'settings' => array( 'core_settings_ability_test_option' ) ) );
+		$result = $ability->execute( array( 'fields' => array( 'core_settings_ability_test_option' ) ) );
 
 		$this->assertSame( array( 'core_settings_ability_test_option' => 7 ), $result );
 	}
