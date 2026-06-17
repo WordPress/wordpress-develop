@@ -317,7 +317,6 @@ div.wp-menu-image:before {
 }
 
 .folded #adminmenu div.wp-menu-image {
-	width: 35px;
 	height: 30px;
 	position: absolute;
 	z-index: 25;
