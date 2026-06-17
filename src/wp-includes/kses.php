@@ -2765,7 +2765,9 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 			'marker-mid',
 			'marker-end',
 
+			'clip-path',
 			'clip-rule',
+			'mask',
 			'mask-type',
 
 			'cx',
@@ -2783,9 +2785,23 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 			'glyph-orientation-horizontal',
 			'glyph-orientation-vertical',
 			'text-anchor',
+			'unicode-bidi',
+			'word-spacing',
 
+			'font-size-adjust',
+			'font-stretch',
+
+			'color-rendering',
+			'image-rendering',
 			'shape-rendering',
+			'text-rendering',
 			'vector-effect',
+
+			'transform',
+			'transform-origin',
+
+			'pointer-events',
+			'visibility',
 
 			// Custom CSS properties.
 			'--*',
