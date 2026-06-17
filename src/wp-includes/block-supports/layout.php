@@ -116,13 +116,45 @@ function wp_get_child_layout_style_rules( $selector, $child_layout, $parent_layo
 		return array_key_exists( $property, $viewport_overrides );
 	};
 
-	$self_stretch = $child_layout['selfStretch'] ?? null;
+	$self_stretch      = $child_layout['selfStretch'] ?? null;
+	$base_self_stretch = $base_child_layout['selfStretch'] ?? null;
+
+	/*
+	 * These are the serialized `selfStretch` values. `max` used to be called
+	 * "Fixed" in the UI, but was renamed and replaced by `fixedNoShrink`.
+	 */
+	$flex_child_layout_values = array(
+		'fit'   => 'fit',
+		'grow'  => 'fill',
+		'max'   => 'fixed',
+		'fixed' => 'fixedNoShrink',
+	);
+	$flex_size_values         = array(
+		$flex_child_layout_values['max'],
+		$flex_child_layout_values['fixed'],
+	);
 
 	if ( null === $viewport_overrides || $has_viewport_property_override( 'selfStretch' ) || $has_viewport_property_override( 'flexSize' ) ) {
-		if ( 'fixed' === $self_stretch && isset( $child_layout['flexSize'] ) ) {
+		if (
+			null !== $viewport_overrides &&
+			( $flex_child_layout_values['fit'] === $self_stretch || $flex_child_layout_values['grow'] === $self_stretch ) &&
+			in_array( $base_self_stretch, $flex_size_values, true ) &&
+			isset( $base_child_layout['flexSize'] )
+		) {
+			$child_layout_declarations['flex-basis'] = 'unset';
+			if ( $flex_child_layout_values['fixed'] === $base_self_stretch ) {
+				$child_layout_declarations['flex-shrink'] = 'unset';
+			}
+		}
+		if ( in_array( $self_stretch, $flex_size_values, true ) && isset( $child_layout['flexSize'] ) ) {
 			$child_layout_declarations['flex-basis'] = $child_layout['flexSize'];
+			if ( $flex_child_layout_values['fixed'] === $self_stretch ) {
+				$child_layout_declarations['flex-shrink'] = '0';
+			} elseif ( null !== $viewport_overrides && $flex_child_layout_values['fixed'] === $base_self_stretch ) {
+				$child_layout_declarations['flex-shrink'] = 'unset';
+			}
 			$child_layout_declarations['box-sizing'] = 'border-box';
-		} elseif ( 'fill' === $self_stretch ) {
+		} elseif ( $flex_child_layout_values['grow'] === $self_stretch ) {
 			$child_layout_declarations['flex-grow'] = '1';
 		}
 	}
@@ -1271,10 +1303,29 @@ function wp_render_layout_support_flag( $block_content, $block ) {
 	$first_chunk                 = $block['innerContent'][0] ?? null;
 	if ( is_string( $first_chunk ) && count( $block['innerContent'] ) > 1 ) {
 		$first_chunk_processor = new WP_HTML_Tag_Processor( $first_chunk );
-		while ( $first_chunk_processor->next_tag() ) {
-			$class_attribute = $first_chunk_processor->get_attribute( 'class' );
+		/*
+		 * Use a stack to track open elements as tags are visited. Void elements
+		 * (those without a matching closing tag) are excluded so they don't
+		 * accumulate on the stack. At the end of the chunk, every element still
+		 * on the stack is unclosed — meaning its closing tag lives in a later
+		 * innerContent entry alongside the inner blocks, which makes it the
+		 * inner-block container. Elements that open and close within this chunk
+		 * are siblings that precede the inner blocks and should be ignored.
+		 * The last unclosed element with a class attribute is the best candidate
+		 * for the inner-block wrapper.
+		 */
+		$tag_stack = array();
+		while ( $first_chunk_processor->next_tag( array( 'tag_closers' => 'visit' ) ) ) {
+			if ( $first_chunk_processor->is_tag_closer() ) {
+				array_pop( $tag_stack );
+			} elseif ( ! WP_HTML_Processor::is_void( $first_chunk_processor->get_tag() ) ) {
+				$tag_stack[] = $first_chunk_processor->get_attribute( 'class' );
+			}
+		}
+		foreach ( array_reverse( $tag_stack ) as $class_attribute ) {
 			if ( is_string( $class_attribute ) && ! empty( $class_attribute ) ) {
 				$inner_block_wrapper_classes = $class_attribute;
+				break;
 			}
 		}
 	}
