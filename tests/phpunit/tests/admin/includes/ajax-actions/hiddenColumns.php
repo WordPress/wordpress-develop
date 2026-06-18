@@ -60,10 +60,10 @@ class Tests_wp_ajax_hidden_columns extends WP_Ajax_UnitTestCase {
 		wp_set_current_user( self::$admin_id );
 
 		$_POST = array(
-			'action'             => 'hidden-columns',
-			'screenoptionnonce'  => wp_create_nonce( 'screen-options-nonce' ),
-			'page'               => 'testpage',
-			'hidden'             => 'column1,column2,column3',
+			'action'            => 'hidden-columns',
+			'screenoptionnonce' => wp_create_nonce( 'screen-options-nonce' ),
+			'page'              => 'testpage',
+			'hidden'            => 'column1,column2,column3',
 		);
 
 		try {
@@ -87,8 +87,8 @@ class Tests_wp_ajax_hidden_columns extends WP_Ajax_UnitTestCase {
 		wp_set_current_user( self::$admin_id );
 
 		$_POST = array(
-			'action'             => 'hidden-columns',
-			'screenoptionnonce'  => 'invalid-nonce',
+			'action'            => 'hidden-columns',
+			'screenoptionnonce' => 'invalid-nonce',
 		);
 
 		$this->expectException( WPAjaxDieStopException::class );
@@ -106,9 +106,9 @@ class Tests_wp_ajax_hidden_columns extends WP_Ajax_UnitTestCase {
 		wp_set_current_user( self::$admin_id );
 
 		$_POST = array(
-			'action'             => 'hidden-columns',
-			'screenoptionnonce'  => wp_create_nonce( 'screen-options-nonce' ),
-			'page'               => 'invalid page!',
+			'action'            => 'hidden-columns',
+			'screenoptionnonce' => wp_create_nonce( 'screen-options-nonce' ),
+			'page'              => 'invalid page!',
 		);
 
 		try {
@@ -129,10 +129,10 @@ class Tests_wp_ajax_hidden_columns extends WP_Ajax_UnitTestCase {
 		wp_set_current_user( self::$admin_id );
 
 		$_POST = array(
-			'action'             => 'hidden-columns',
-			'screenoptionnonce'  => wp_create_nonce( 'screen-options-nonce' ),
-			'page'               => 'testpage',
-			'hidden'             => '',
+			'action'            => 'hidden-columns',
+			'screenoptionnonce' => wp_create_nonce( 'screen-options-nonce' ),
+			'page'              => 'testpage',
+			'hidden'            => '',
 		);
 
 		try {
