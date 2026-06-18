@@ -5777,7 +5777,8 @@ function wp_show_heic_upload_error( $plupload_settings ) {
 function wp_delete_attachment_heic_companion_file( $post_id ): bool {
 	$metadata = wp_get_attachment_metadata( $post_id, true );
 
-	if ( empty( $metadata['source_image'] ) || ! is_string( $metadata['source_image'] ) ) {
+	$source_image = $metadata['source_image'] ?? null;
+	if ( ! is_string( $source_image ) || '' === $source_image ) {
 		return false;
 	}
 
@@ -5793,15 +5794,13 @@ function wp_delete_attachment_heic_companion_file( $post_id ): bool {
 		return false;
 	}
 
-	$companion_path = path_join( dirname( $attached_file ), wp_basename( $metadata['source_image'] ) );
+	$companion_path = path_join( dirname( $attached_file ), wp_basename( $source_image ) );
 
 	if ( ! file_exists( $companion_path ) ) {
 		return false;
 	}
 
-	wp_delete_file_from_directory( $companion_path, $uploads['basedir'] );
-
-	return true;
+	return wp_delete_file_from_directory( $companion_path, $uploads['basedir'] );
 }
 
 /**
