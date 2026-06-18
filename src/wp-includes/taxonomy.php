@@ -274,11 +274,17 @@ function create_initial_taxonomies() {
 				'name'          => _x( 'Knowledge Types', 'taxonomy general name' ),
 				'singular_name' => _x( 'Knowledge Type', 'taxonomy singular name' ),
 			),
+			/*
+			 * Editing and assigning terms reuse the `wp_knowledge` primitive
+			 * `edit_knowledge_items` so that anyone who can edit a knowledge row
+			 * can also lazily create and assign its type. Managing or deleting the
+			 * type vocabulary itself stays an administrator task.
+			 */
 			'capabilities'       => array(
 				'manage_terms' => 'manage_options',
-				'edit_terms'   => 'edit_knowledge',
+				'edit_terms'   => 'edit_knowledge_items',
 				'delete_terms' => 'manage_options',
-				'assign_terms' => 'edit_knowledge',
+				'assign_terms' => 'edit_knowledge_items',
 			),
 			'query_var'          => false,
 			'rewrite'            => false,

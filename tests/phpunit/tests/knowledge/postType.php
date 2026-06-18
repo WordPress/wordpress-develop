@@ -93,14 +93,14 @@ class Tests_Knowledge_PostType extends WP_UnitTestCase {
 	public function test_read_capability_is_remapped() {
 		$post_type = get_post_type_object( 'wp_knowledge' );
 
-		$this->assertSame( 'read_knowledge', $post_type->cap->read );
+		$this->assertSame( 'read_knowledge_items', $post_type->cap->read );
 	}
 
 	/**
-	 * "Knowledge" is a mass noun, so the per-post meta capabilities (derived
-	 * from the singular base) must not collide with the primitive capabilities
-	 * (derived from the plural base). A collision would make checks such as
-	 * `current_user_can( 'edit_knowledge' )` ambiguous.
+	 * The per-post meta capabilities (derived from the singular `knowledge_item`
+	 * base) must not collide with the primitive capabilities (derived from the
+	 * plural `knowledge_items` base). A collision would make checks such as
+	 * `current_user_can( 'edit_knowledge_items' )` ambiguous.
 	 *
 	 * @ticket 65476
 	 * @covers ::create_initial_post_types
@@ -113,11 +113,11 @@ class Tests_Knowledge_PostType extends WP_UnitTestCase {
 		$this->assertSame( 'read_knowledge_item', $cap->read_post );
 		$this->assertSame( 'delete_knowledge_item', $cap->delete_post );
 
-		// Primitive capabilities are derived from the plural `knowledge` base.
-		$this->assertSame( 'edit_knowledge', $cap->edit_posts );
-		$this->assertSame( 'edit_others_knowledge', $cap->edit_others_posts );
-		$this->assertSame( 'publish_knowledge', $cap->publish_posts );
-		$this->assertSame( 'read_private_knowledge', $cap->read_private_posts );
+		// Primitive capabilities are derived from the plural `knowledge_items` base.
+		$this->assertSame( 'edit_knowledge_items', $cap->edit_posts );
+		$this->assertSame( 'edit_others_knowledge_items', $cap->edit_others_posts );
+		$this->assertSame( 'publish_knowledge_items', $cap->publish_posts );
+		$this->assertSame( 'read_private_knowledge_items', $cap->read_private_posts );
 
 		// The meta and primitive forms must be distinct.
 		$this->assertNotSame( $cap->edit_post, $cap->edit_posts );

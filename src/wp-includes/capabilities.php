@@ -1372,9 +1372,9 @@ function wp_maybe_grant_site_health_caps( $allcaps, $caps, $args, $user ) {
  * granted dynamically rather than stored on roles. Administrators (users with
  * `manage_options`) receive every knowledge capability. Contributors, authors,
  * and editors (users with `edit_posts`) may list and create knowledge rows and
- * fully manage their own private rows; publishing knowledge and acting on other
+ * fully manage their own private rows. Publishing knowledge and acting on other
  * users' rows is reserved for administrators. Subscribers receive nothing and
- * are stopped at the post-type door by the `read_knowledge` mapping.
+ * are stopped at the post-type door by the `read_knowledge_items` mapping.
  *
  * @since 7.1.0
  *
@@ -1392,17 +1392,17 @@ function wp_maybe_grant_site_health_caps( $allcaps, $caps, $args, $user ) {
  */
 function wp_maybe_grant_knowledge_caps( $allcaps, $caps, $args, $user ) {
 	if ( ! empty( $allcaps['manage_options'] ) ) {
-		$allcaps['read_knowledge']             = true;
-		$allcaps['edit_knowledge']             = true;
-		$allcaps['edit_others_knowledge']      = true;
-		$allcaps['edit_published_knowledge']   = true;
-		$allcaps['edit_private_knowledge']     = true;
-		$allcaps['publish_knowledge']          = true;
-		$allcaps['delete_knowledge']           = true;
-		$allcaps['delete_others_knowledge']    = true;
-		$allcaps['delete_published_knowledge'] = true;
-		$allcaps['delete_private_knowledge']   = true;
-		$allcaps['read_private_knowledge']     = true;
+		$allcaps['read_knowledge_items']             = true;
+		$allcaps['edit_knowledge_items']             = true;
+		$allcaps['edit_others_knowledge_items']      = true;
+		$allcaps['edit_published_knowledge_items']   = true;
+		$allcaps['edit_private_knowledge_items']     = true;
+		$allcaps['publish_knowledge_items']          = true;
+		$allcaps['delete_knowledge_items']           = true;
+		$allcaps['delete_others_knowledge_items']    = true;
+		$allcaps['delete_published_knowledge_items'] = true;
+		$allcaps['delete_private_knowledge_items']   = true;
+		$allcaps['read_private_knowledge_items']     = true;
 
 		return $allcaps;
 	}
@@ -1412,13 +1412,13 @@ function wp_maybe_grant_knowledge_caps( $allcaps, $caps, $args, $user ) {
 	}
 
 	/*
-	 * Ambient floor for contributors and above: `read_knowledge` clears the
-	 * post-type read check; `edit_knowledge` clears the create and ownership
+	 * Ambient floor for contributors and above: `read_knowledge_items` clears the
+	 * post-type read check; `edit_knowledge_items` clears the create and ownership
 	 * checks that do not pass a post ID. Per-post primitives are granted only
 	 * in the per-post branch below.
 	 */
-	$allcaps['read_knowledge'] = true;
-	$allcaps['edit_knowledge'] = true;
+	$allcaps['read_knowledge_items'] = true;
+	$allcaps['edit_knowledge_items'] = true;
 
 	if ( ! isset( $args[0], $args[2] ) ) {
 		return $allcaps;
@@ -1438,10 +1438,10 @@ function wp_maybe_grant_knowledge_caps( $allcaps, $caps, $args, $user ) {
 		return $allcaps;
 	}
 
-	$allcaps['edit_private_knowledge']   = true;
-	$allcaps['delete_knowledge']         = true;
-	$allcaps['delete_private_knowledge'] = true;
-	$allcaps['read_private_knowledge']   = true;
+	$allcaps['edit_private_knowledge_items']   = true;
+	$allcaps['delete_knowledge_items']         = true;
+	$allcaps['delete_private_knowledge_items'] = true;
+	$allcaps['read_private_knowledge_items']   = true;
 
 	return $allcaps;
 }

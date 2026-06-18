@@ -669,28 +669,20 @@ function create_initial_post_types() {
 			'_builtin'              => true, /* internal use only. don't use this when registering your own post type. */
 			'hierarchical'          => false,
 			/*
-			 * Knowledge rows have no native post-type screens; they are managed
+			 * Knowledge rows have no native post-type screens. They are managed
 			 * through the REST API and consuming features, not the wp-admin UI.
 			 */
 			'show_ui'               => false,
 			'map_meta_cap'          => true,
-			/*
-			 * "Knowledge" is a mass noun, so the singular and plural capability
-			 * bases must differ: with both set to `knowledge`, the generated
-			 * per-post meta caps (`edit_knowledge_item`) would collide with the
-			 * primitive caps (`edit_knowledge`). The `*_knowledge_item` forms are
-			 * never granted directly; `map_meta_cap()` resolves them onto the
-			 * primitives, which `wp_maybe_grant_knowledge_caps()` synthesizes.
-			 */
-			'capability_type'       => array( 'knowledge_item', 'knowledge' ),
+			'capability_type'       => array( 'knowledge_item', 'knowledge_items' ),
 			/*
 			 * `read` is remapped so that subscribers (who hold the base `read`
 			 * capability) are stopped at the post-type door. Every other
-			 * primitive defaults to a `knowledge`-prefixed capability granted by
-			 * `wp_maybe_grant_knowledge_caps()`.
+			 * primitive defaults to a `knowledge_items`-suffixed capability granted
+			 * by `wp_maybe_grant_knowledge_caps()`.
 			 */
 			'capabilities'          => array(
-				'read' => 'read_knowledge',
+				'read' => 'read_knowledge_items',
 			),
 			'query_var'             => false,
 			'rewrite'               => false,

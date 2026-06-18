@@ -76,13 +76,13 @@ class Tests_Knowledge_Capabilities extends WP_UnitTestCase {
 	public function test_administrator_has_every_primitive() {
 		wp_set_current_user( self::$users['administrator'] );
 
-		$this->assertTrue( current_user_can( 'read_knowledge' ) );
-		$this->assertTrue( current_user_can( 'edit_knowledge' ) );
-		$this->assertTrue( current_user_can( 'edit_others_knowledge' ) );
-		$this->assertTrue( current_user_can( 'publish_knowledge' ) );
-		$this->assertTrue( current_user_can( 'delete_knowledge' ) );
-		$this->assertTrue( current_user_can( 'delete_others_knowledge' ) );
-		$this->assertTrue( current_user_can( 'read_private_knowledge' ) );
+		$this->assertTrue( current_user_can( 'read_knowledge_items' ) );
+		$this->assertTrue( current_user_can( 'edit_knowledge_items' ) );
+		$this->assertTrue( current_user_can( 'edit_others_knowledge_items' ) );
+		$this->assertTrue( current_user_can( 'publish_knowledge_items' ) );
+		$this->assertTrue( current_user_can( 'delete_knowledge_items' ) );
+		$this->assertTrue( current_user_can( 'delete_others_knowledge_items' ) );
+		$this->assertTrue( current_user_can( 'read_private_knowledge_items' ) );
 	}
 
 	/**
@@ -102,8 +102,8 @@ class Tests_Knowledge_Capabilities extends WP_UnitTestCase {
 	public function test_subscriber_has_no_access() {
 		wp_set_current_user( self::$users['subscriber'] );
 
-		$this->assertFalse( current_user_can( 'read_knowledge' ) );
-		$this->assertFalse( current_user_can( 'edit_knowledge' ) );
+		$this->assertFalse( current_user_can( 'read_knowledge_items' ) );
+		$this->assertFalse( current_user_can( 'edit_knowledge_items' ) );
 	}
 
 	/**
@@ -112,8 +112,8 @@ class Tests_Knowledge_Capabilities extends WP_UnitTestCase {
 	public function test_anonymous_has_no_access() {
 		wp_set_current_user( 0 );
 
-		$this->assertFalse( current_user_can( 'read_knowledge' ) );
-		$this->assertFalse( current_user_can( 'edit_knowledge' ) );
+		$this->assertFalse( current_user_can( 'read_knowledge_items' ) );
+		$this->assertFalse( current_user_can( 'edit_knowledge_items' ) );
 	}
 
 	/**
@@ -127,13 +127,13 @@ class Tests_Knowledge_Capabilities extends WP_UnitTestCase {
 		wp_set_current_user( self::$users[ $role ] );
 
 		// May list and create knowledge.
-		$this->assertTrue( current_user_can( 'read_knowledge' ), "$role should read_knowledge" );
-		$this->assertTrue( current_user_can( 'edit_knowledge' ), "$role should edit_knowledge" );
+		$this->assertTrue( current_user_can( 'read_knowledge_items' ), "$role should read_knowledge_items" );
+		$this->assertTrue( current_user_can( 'edit_knowledge_items' ), "$role should edit_knowledge_items" );
 
 		// May not publish or act on other users' rows.
-		$this->assertFalse( current_user_can( 'publish_knowledge' ), "$role should not publish_knowledge" );
-		$this->assertFalse( current_user_can( 'edit_others_knowledge' ), "$role should not edit_others_knowledge" );
-		$this->assertFalse( current_user_can( 'delete_others_knowledge' ), "$role should not delete_others_knowledge" );
+		$this->assertFalse( current_user_can( 'publish_knowledge_items' ), "$role should not publish_knowledge_items" );
+		$this->assertFalse( current_user_can( 'edit_others_knowledge_items' ), "$role should not edit_others_knowledge_items" );
+		$this->assertFalse( current_user_can( 'delete_others_knowledge_items' ), "$role should not delete_others_knowledge_items" );
 	}
 
 	public function data_contributor_level_roles(): array {
