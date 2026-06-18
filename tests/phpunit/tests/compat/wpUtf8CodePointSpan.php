@@ -14,6 +14,9 @@ class Tests_Compat_wpUtf8CodePointSpan extends WP_UnitTestCase {
 	 * Ensures that the span accounts for the requested number of code points.
 	 *
 	 * @dataProvider data_codepoint_spans
+	 * 
+	 * @ticket 65483
+	 * @ticket 63863
 	 *
 	 * @param string $text
 	 * @param int    $byte_offset
