@@ -1432,9 +1432,24 @@ function wp_maybe_grant_knowledge_caps( $allcaps, $caps, $args, $user ) {
 	if (
 		! $post instanceof WP_Post ||
 		'wp_knowledge' !== $post->post_type ||
-		(int) $post->post_author !== (int) $user->ID ||
-		'private' !== $post->post_status
+		(int) $post->post_author !== (int) $user->ID
 	) {
+		return $allcaps;
+	}
+
+	/*
+	 * A trashed row keeps its pre-trash status in `_wp_trash_meta_status`.
+	 * Resolve that effective status so the author keeps the ability to restore
+	 * or permanently delete their own row once it is in the trash. A row trashed
+	 * from a non-private status (only reachable for administrators) still falls
+	 * outside the grant.
+	 */
+	$status = $post->post_status;
+	if ( 'trash' === $status ) {
+		$status = get_post_meta( $post->ID, '_wp_trash_meta_status', true );
+	}
+
+	if ( 'private' !== $status ) {
 		return $allcaps;
 	}
 

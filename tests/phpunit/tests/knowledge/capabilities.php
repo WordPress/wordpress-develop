@@ -156,6 +156,33 @@ class Tests_Knowledge_Capabilities extends WP_UnitTestCase {
 	}
 
 	/**
+	 * A contributor keeps control of their own row after trashing it.
+	 *
+	 * Trashing flips the status to `trash`, but the pre-trash `private` status is
+	 * preserved in `_wp_trash_meta_status`, so the per-post grant must still apply
+	 * and let the author permanently delete (or restore) their own trashed row.
+	 *
+	 * @ticket 65476
+	 */
+	public function test_contributor_can_delete_own_trashed_row() {
+		wp_set_current_user( self::$users['contributor'] );
+
+		$post_id = self::factory()->post->create(
+			array(
+				'post_type'   => 'wp_knowledge',
+				'post_status' => 'private',
+				'post_author' => self::$users['contributor'],
+			)
+		);
+
+		wp_trash_post( $post_id );
+		$this->assertSame( 'trash', get_post_status( $post_id ) );
+
+		$this->assertTrue( current_user_can( 'delete_post', $post_id ) );
+		$this->assertTrue( current_user_can( 'edit_post', $post_id ) );
+	}
+
+	/**
 	 * @ticket 65476
 	 */
 	public function test_contributor_cannot_edit_own_published_row() {
