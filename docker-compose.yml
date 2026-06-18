@@ -53,14 +53,15 @@ services:
 
     # Install the loopback-request shim (see tools/local-env/mu-plugins/fix-docker-loopback.php), then
     # copy or delete the Memcached dropin plugin file as appropriate.
-    # Note: this is a YAML folded block scalar, so each line break below collapses into a single space.
     command: >-
-      /bin/sh -c "mkdir -p /var/www/${LOCAL_DIR-src}/wp-content/mu-plugins
-      && cp -f /var/www/tools/local-env/mu-plugins/fix-docker-loopback.php /var/www/${LOCAL_DIR-src}/wp-content/mu-plugins/fix-docker-loopback.php;
-      if [ $LOCAL_PHP_MEMCACHED = true ];
-      then cp -n /var/www/tests/phpunit/includes/object-cache.php /var/www/src/wp-content/object-cache.php;
-      else rm -f /var/www/src/wp-content/object-cache.php;
-      fi && exec php-fpm"
+      /bin/sh -c "
+        mkdir -p /var/www/${LOCAL_DIR-src}/wp-content/mu-plugins && cp -f /var/www/tools/local-env/mu-plugins/fix-docker-loopback.php /var/www/${LOCAL_DIR-src}/wp-content/mu-plugins/fix-docker-loopback.php;
+        if [ $LOCAL_PHP_MEMCACHED = true ]; then
+          cp -n /var/www/tests/phpunit/includes/object-cache.php /var/www/src/wp-content/object-cache.php;
+        else
+          rm -f /var/www/src/wp-content/object-cache.php;
+        fi && exec php-fpm
+      "
 
     # The init directive ensures the command runs with a PID > 1, so Ctrl+C works correctly.
     init: true
