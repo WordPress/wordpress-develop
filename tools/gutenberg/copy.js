@@ -124,6 +124,95 @@ function getStableBlocks( scriptsSrc ) {
 }
 
 /**
+ * Copy JavaScript files.
+ *
+ * @param {ScriptsConfig} config - Scripts configuration from `COPY_CONFIG.scripts`.
+ */
+function copyScripts( config ) {
+	const scriptsSrc = path.join( gutenbergBuildDir, config.source );
+	const scriptsDest = path.join( wpIncludesDir, config.destination );
+
+	if ( ! fs.existsSync( scriptsSrc ) ) {
+		return;
+	}
+
+	const entries = fs.readdirSync( scriptsSrc, { withFileTypes: true } );
+
+	for ( const entry of entries ) {
+		const src = path.join( scriptsSrc, entry.name );
+
+		if ( entry.isDirectory() ) {
+			// Check if this should be copied as a directory (like vendors/).
+			if (
+				config.copyDirectories &&
+				config.directoryRenames &&
+				config.directoryRenames[ entry.name ]
+			) {
+				/*
+				 * Copy special directories with rename (vendors/ → vendor/).
+				 * Only copy react-jsx-runtime from vendors (react and react-dom come from Core's node_modules).
+				 */
+				const destName = config.directoryRenames[ entry.name ];
+				const dest = path.join( scriptsDest, destName );
+
+				if ( entry.name === 'vendors' ) {
+					// Only copy react-jsx-runtime files, skip react and react-dom.
+					const vendorFiles = fs.readdirSync( src );
+					let copiedCount = 0;
+					fs.mkdirSync( dest, { recursive: true } );
+					for ( const file of vendorFiles ) {
+						if (
+							file.startsWith( 'react-jsx-runtime' ) &&
+							file.endsWith( '.js' )
+						) {
+							const srcFile = path.join( src, file );
+							const destFile = path.join( dest, file );
+
+							fs.copyFileSync( srcFile, destFile );
+							copiedCount++;
+						}
+					}
+					console.log(
+						`   ✅ ${ entry.name }/ → ${ destName }/ (react-jsx-runtime only, ${ copiedCount } files)`
+					);
+				}
+			} else {
+				/*
+				 * Flatten package structure: package-name/index.js → package-name.js.
+				 * This matches Core's expected file structure.
+				 */
+				const packageFiles = fs.readdirSync( src );
+
+				for ( const file of packageFiles ) {
+					if ( /^index\.(js|min\.js)$/.test( file ) ) {
+						const srcFile = path.join( src, file );
+						// Replace 'index.' with 'package-name.'.
+						const destFile = file.replace(
+							/^index\./,
+							`${ entry.name }.`
+						);
+						const destPath = path.join( scriptsDest, destFile );
+
+						fs.mkdirSync( path.dirname( destPath ), {
+							recursive: true,
+						} );
+
+						fs.copyFileSync( srcFile, destPath );
+					}
+				}
+			}
+		} else if ( entry.isFile() && entry.name.endsWith( '.js' ) ) {
+			// Copy root-level JS files.
+			const dest = path.join( scriptsDest, entry.name );
+			fs.mkdirSync( path.dirname( dest ), { recursive: true } );
+			fs.copyFileSync( src, dest );
+		}
+	}
+
+	console.log( '   ✅ JavaScript packages copied' );
+}
+
+/**
  * Copy `block.json` files for every stable block.
  *
  * @param {Object} config - Block configuration from `COPY_CONFIG.blocks`.
@@ -560,89 +649,7 @@ async function main() {
 
 	// 1. Copy JavaScript packages.
 	console.log( '\n📦 Copying JavaScript packages...' );
-	const scriptsConfig = COPY_CONFIG.scripts;
-	const scriptsSrc = path.join( gutenbergBuildDir, scriptsConfig.source );
-	const scriptsDest = path.join( wpIncludesDir, scriptsConfig.destination );
-
-	if ( fs.existsSync( scriptsSrc ) ) {
-		const entries = fs.readdirSync( scriptsSrc, { withFileTypes: true } );
-
-		for ( const entry of entries ) {
-			const src = path.join( scriptsSrc, entry.name );
-
-			if ( entry.isDirectory() ) {
-				// Check if this should be copied as a directory (like vendors/).
-				if (
-					scriptsConfig.copyDirectories &&
-					scriptsConfig.directoryRenames &&
-					scriptsConfig.directoryRenames[ entry.name ]
-				) {
-					/*
-					 * Copy special directories with rename (vendors/ → vendor/).
-					 * Only copy react-jsx-runtime from vendors (react and react-dom come from Core's node_modules).
-					 */
-					const destName =
-						scriptsConfig.directoryRenames[ entry.name ];
-					const dest = path.join( scriptsDest, destName );
-
-					if ( entry.name === 'vendors' ) {
-						// Only copy react-jsx-runtime files, skip react and react-dom.
-						const vendorFiles = fs.readdirSync( src );
-						let copiedCount = 0;
-						fs.mkdirSync( dest, { recursive: true } );
-						for ( const file of vendorFiles ) {
-							if (
-								file.startsWith( 'react-jsx-runtime' ) &&
-								file.endsWith( '.js' )
-							) {
-								const srcFile = path.join( src, file );
-								const destFile = path.join( dest, file );
-
-								fs.copyFileSync( srcFile, destFile );
-								copiedCount++;
-							}
-						}
-						console.log(
-							`   ✅ ${ entry.name }/ → ${ destName }/ (react-jsx-runtime only, ${ copiedCount } files)`
-						);
-					}
-				} else {
-					/*
-					 * Flatten package structure: package-name/index.js → package-name.js.
-					 * This matches Core's expected file structure.
-					 */
-					const packageFiles = fs.readdirSync( src );
-
-					for ( const file of packageFiles ) {
-						if (
-							/^index\.(js|min\.js)$/.test( file )
-						) {
-							const srcFile = path.join( src, file );
-							// Replace 'index.' with 'package-name.'.
-							const destFile = file.replace(
-								/^index\./,
-								`${ entry.name }.`
-							);
-							const destPath = path.join( scriptsDest, destFile );
-
-							fs.mkdirSync( path.dirname( destPath ), {
-								recursive: true,
-							} );
-
-							fs.copyFileSync( srcFile, destPath );
-						}
-					}
-				}
-			} else if ( entry.isFile() && entry.name.endsWith( '.js' ) ) {
-				// Copy root-level JS files.
-				const dest = path.join( scriptsDest, entry.name );
-				fs.mkdirSync( path.dirname( dest ), { recursive: true } );
-				fs.copyFileSync( src, dest );
-			}
-		}
-
-		console.log( '   ✅ JavaScript packages copied' );
-	}
+	copyScripts( COPY_CONFIG.scripts );
 
 	console.log( '\n📦 Copying block.json files...' );
 	copyBlockJson( COPY_CONFIG.blocks );
