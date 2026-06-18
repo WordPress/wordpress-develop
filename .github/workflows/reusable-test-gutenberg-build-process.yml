@@ -97,6 +97,7 @@ jobs:
         working-directory: ${{ env.GUTENBERG_DIRECTORY }}
 
       - name: Check for uncommitted changes after building
+        shell: bash
         run: |
           if [ -n "$(git status --porcelain)" ]; then
             echo "Uncommitted changes detected:"

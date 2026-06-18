@@ -128,6 +128,7 @@ jobs:
         run: npm run ${{ inputs.directory == 'src' && 'build:dev' || 'build' }}
 
       - name: Check for uncommitted changes after building
+        shell: bash
         run: |
           if [ -n "$(git status --porcelain)" ]; then
             echo "Uncommitted changes detected:"
@@ -143,6 +144,7 @@ jobs:
         run: npm run grunt ${{ inputs.directory == 'src' && 'clean -- --dev' || 'clean' }}
 
       - name: Check for uncommitted changes after cleaning
+        shell: bash
         run: |
           if [ -n "$(git status --porcelain)" ]; then
             echo "Uncommitted changes detected:"
