@@ -2494,7 +2494,7 @@ class wpdb {
 	 *                                Both `$data` columns and `$data` values should be "raw" (neither should be SQL escaped).
 	 *                                Sending a null value will cause the column to be set to NULL - the corresponding
 	 *                                format is ignored in this case.
-	 * @param string[]|string $format Optional. An array of formats to be mapped to each of the value in `$data`.
+	 * @param string[]|string $format Optional. An array of formats to be mapped to each of the values in `$data`.
 	 *                                If string, that format will be used for all of the values in `$data`.
 	 *                                A format is one of '%d', '%f', '%s' (integer, float, string).
 	 *                                If omitted, all values in `$data` will be treated as strings unless otherwise
@@ -2547,7 +2547,7 @@ class wpdb {
 	 *                                A primary key or unique index is required to perform a replace operation.
 	 *                                Sending a null value will cause the column to be set to NULL - the corresponding
 	 *                                format is ignored in this case.
-	 * @param string[]|string $format Optional. An array of formats to be mapped to each of the value in `$data`.
+	 * @param string[]|string $format Optional. An array of formats to be mapped to each of the values in `$data`.
 	 *                                If string, that format will be used for all of the values in `$data`.
 	 *                                A format is one of '%d', '%f', '%s' (integer, float, string).
 	 *                                If omitted, all values in `$data` will be treated as strings unless otherwise
@@ -2574,7 +2574,7 @@ class wpdb {
 	 *                                Both `$data` columns and `$data` values should be "raw" (neither should be SQL escaped).
 	 *                                Sending a null value will cause the column to be set to NULL - the corresponding
 	 *                                format is ignored in this case.
-	 * @param string[]|string $format Optional. An array of formats to be mapped to each of the value in `$data`.
+	 * @param string[]|string $format Optional. An array of formats to be mapped to each of the values in `$data`.
 	 *                                If string, that format will be used for all of the values in `$data`.
 	 *                                A format is one of '%d', '%f', '%s' (integer, float, string).
 	 *                                If omitted, all values in `$data` will be treated as strings unless otherwise
