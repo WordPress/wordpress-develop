@@ -165,7 +165,8 @@ class Tests_REST_WpRestKnowledgeController extends WP_Test_REST_Controller_Testc
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/knowledge/' . self::$admin_private );
 		$response = rest_get_server()->dispatch( $request );
 
-		$this->assertContains( $response->get_status(), array( 401, 403 ) );
+		// The contributor is authenticated, so reading another user's private row is forbidden.
+		$this->assertSame( 403, $response->get_status() );
 	}
 
 	/**
@@ -233,6 +234,39 @@ class Tests_REST_WpRestKnowledgeController extends WP_Test_REST_Controller_Testc
 	}
 
 	/**
+	 * A contributor may edit their own private row.
+	 *
+	 * @ticket 65476
+	 */
+	public function test_contributor_can_update_own_row() {
+		wp_set_current_user( self::$contributor_id );
+
+		$post_id = $this->create_knowledge_post( self::$contributor_id );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/knowledge/' . $post_id );
+		$request->set_body_params( array( 'title' => 'Updated by contributor' ) );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( 'Updated by contributor', $response->get_data()['title']['raw'] );
+	}
+
+	/**
+	 * A contributor may not edit another user's row.
+	 *
+	 * @ticket 65476
+	 */
+	public function test_contributor_cannot_update_others_row() {
+		wp_set_current_user( self::$contributor_id );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/knowledge/' . self::$admin_private );
+		$request->set_body_params( array( 'title' => 'Attempted update' ) );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 403, $response->get_status() );
+	}
+
+	/**
 	 * @ticket 65476
 	 */
 	public function test_delete_item() {
@@ -246,6 +280,40 @@ class Tests_REST_WpRestKnowledgeController extends WP_Test_REST_Controller_Testc
 
 		$this->assertSame( 200, $response->get_status() );
 		$this->assertNull( get_post( $post_id ) );
+	}
+
+	/**
+	 * A contributor may delete their own private row.
+	 *
+	 * @ticket 65476
+	 */
+	public function test_contributor_can_delete_own_row() {
+		wp_set_current_user( self::$contributor_id );
+
+		$post_id = $this->create_knowledge_post( self::$contributor_id );
+
+		$request = new WP_REST_Request( 'DELETE', '/wp/v2/knowledge/' . $post_id );
+		$request->set_param( 'force', true );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertNull( get_post( $post_id ) );
+	}
+
+	/**
+	 * A contributor may not delete another user's row.
+	 *
+	 * @ticket 65476
+	 */
+	public function test_contributor_cannot_delete_others_row() {
+		wp_set_current_user( self::$contributor_id );
+
+		$request = new WP_REST_Request( 'DELETE', '/wp/v2/knowledge/' . self::$admin_private );
+		$request->set_param( 'force', true );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 403, $response->get_status() );
+		$this->assertInstanceOf( WP_Post::class, get_post( self::$admin_private ) );
 	}
 
 	/**
