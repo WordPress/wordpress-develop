@@ -49,6 +49,7 @@ jobs:
   # Verifies that installing npm dependencies and building WordPress works as expected.
   #
   # Performs the following steps:
+  # - Prevent line ending conversions (Windows only).
   # - Checks out the repository.
   # - Sets up Node.js.
   # - Logs debug information about the GitHub Action runner.
@@ -71,7 +72,7 @@ jobs:
     steps:
       # Windows converts LF to CRLF on checkout. This makes every built file appear as modified because the build output
       # will be CRLF.
-      - name: Configure Git line endings on Windows
+      - name: Prevent line ending conversions on Windows
         if: ${{ contains( inputs.os, 'windows-' ) }}
         run: |
           git config --global core.autocrlf false
