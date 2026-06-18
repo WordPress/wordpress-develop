@@ -1707,7 +1707,7 @@ module.exports = function(grunt) {
 			 */
 			grunt.util.spawn( {
 				grunt: true,
-				args: [ 'build:gutenberg', '--dev' ],
+				args: [ 'build:gutenberg' ],
 				opts: { stdio: 'inherit' }
 			}, function( buildError ) {
 				done( ! buildError );
