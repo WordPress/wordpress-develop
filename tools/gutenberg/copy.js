@@ -19,7 +19,9 @@
 
 const fs = require( 'fs' );
 const path = require( 'path' );
-const json2php = require( 'json2php' );
+const json2php = /** @type {typeof import('json2php').default} */ (
+	/** @type {unknown} */ ( require( 'json2php' ) )
+);
 const { fromString } = require( 'php-array-reader' );
 
 const rootDir = path.resolve( __dirname, '../..' );
@@ -106,7 +108,7 @@ const COPY_CONFIG = {
  * @throws Error when PHP source file unable to be read or parsed.
  *
  * @param {string} phpFilepath Absolute path of PHP file returning a single value.
- * @return {Object|Array} JavaScript representation of value from input file.
+ * @return {any} JavaScript representation of value from input file.
  */
 function readReturnedValueFromPHPFile( phpFilepath ) {
 	const content = fs.readFileSync( phpFilepath, 'utf8' );
@@ -306,17 +308,23 @@ function copyBlockPhp( config ) {
 				const blockDest = path.join( blocksDest, blockName );
 				const rootIndex = path.join( blockPhpDir, 'index.php' );
 
+				/**
+				 * @param {string} src
+				 * @return {boolean}
+				 */
+				function hasPhpFiles( src ) {
+					const stat = fs.statSync( src );
+					if ( stat.isDirectory() ) {
+						return fs.readdirSync( src, { withFileTypes: true } ).some(
+							( entry ) => hasPhpFiles( path.join( src, entry.name ) )
+						);
+					}
+					return src.endsWith( '.php' ) && src !== rootIndex;
+				}
+
 				fs.cpSync( blockPhpDir, blockDest, {
 					recursive: true,
-					filter: function hasPhpFiles( src ) {
-						const stat = fs.statSync( src );
-						if ( stat.isDirectory() ) {
-							return fs.readdirSync( src, { withFileTypes: true } ).some(
-								( entry ) => hasPhpFiles( path.join( src, entry.name ) )
-							);
-						}
-						return src.endsWith( '.php' ) && src !== rootIndex;
-					},
+					filter: hasPhpFiles,
 				} );
 			}
 		}
@@ -377,6 +385,7 @@ function copyBlockStyles( config ) {
  */
 function generateScriptModulesPackages() {
 	const modulesDir = path.join( gutenbergBuildDir, 'modules' );
+	/** @type {Record<string, any>} */
 	const assets = {};
 
 	/**
@@ -413,7 +422,7 @@ function generateScriptModulesPackages() {
 				} catch ( error ) {
 					console.error(
 						`   ⚠️  Error reading ${ relativePath }:`,
-						error.message
+						error instanceof Error ? error.message : String( error )
 					);
 				}
 			}
@@ -450,6 +459,7 @@ function generateScriptModulesPackages() {
  */
 function generateScriptLoaderPackages() {
 	const scriptsDir = path.join( gutenbergBuildDir, 'scripts' );
+	/** @type {Record<string, any>} */
 	const assets = {};
 
 	if ( ! fs.existsSync( scriptsDir ) ) {
@@ -485,7 +495,7 @@ function generateScriptLoaderPackages() {
 		} catch ( error ) {
 			console.error(
 				`   ⚠️  Error reading ${ entry.name }/index.min.asset.php:`,
-				error.message
+				error instanceof Error ? error.message : String( error )
 			);
 		}
 	}
@@ -615,6 +625,7 @@ ${ staticBlocks.map( ( name ) => `\t'${ name }',` ).join( '\n' ) }
  */
 function generateBlocksJson() {
 	const blocksDir = path.join( wpIncludesDir, 'blocks' );
+	/** @type {Record<string, any>} */
 	const blocks = {};
 
 	if ( ! fs.existsSync( blocksDir ) ) {
@@ -640,7 +651,7 @@ function generateBlocksJson() {
 			} catch ( error ) {
 				console.error(
 					`   ⚠️  Error reading ${ entry.name }/block.json:`,
-					error.message
+					error instanceof Error ? error.message : String( error )
 				);
 			}
 		}
