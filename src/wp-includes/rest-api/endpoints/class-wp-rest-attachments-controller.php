@@ -25,6 +25,14 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	protected $allow_batch = false;
 
 	/**
+	 * Post object associated with the current upload.
+	 *
+	 * @since 7.1.0
+	 * @var WP_Post|null
+	 */
+	private $upload_post = null;
+
+	/**
 	 * Registers the routes for attachments.
 	 *
 	 * @since 5.3.0
@@ -436,6 +444,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		$headers = $request->get_headers();
 
 		$time = null;
+		$post = null;
 
 		// Matches logic in media_handle_upload().
 		if ( ! empty( $request['post'] ) ) {
@@ -446,11 +455,15 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			}
 		}
 
+		$this->upload_post = $post;
+
 		if ( ! empty( $files ) ) {
 			$file = $this->upload_from_file( $files, $headers, $time );
 		} else {
 			$file = $this->upload_from_data( $request->get_body(), $headers, $time );
 		}
+
+		$this->upload_post = null;
 
 		if ( is_wp_error( $file ) ) {
 			return $file;
@@ -1479,7 +1492,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			'test_form' => false,
 		);
 
-		$sideloaded = wp_handle_sideload( $file_data, $overrides, $time );
+		$sideloaded = wp_handle_sideload( $file_data, $overrides, $time, $this->upload_post );
 
 		if ( isset( $sideloaded['error'] ) ) {
 			@unlink( $tmpfname );
@@ -1653,7 +1666,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		// Include filesystem functions to get access to wp_handle_upload().
 		require_once ABSPATH . 'wp-admin/includes/file.php';
 
-		$file = wp_handle_upload( $files['file'], $overrides, $time );
+		$file = wp_handle_upload( $files['file'], $overrides, $time, $this->upload_post );
 
 		if ( isset( $file['error'] ) ) {
 			return new WP_Error(
@@ -2064,11 +2077,15 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			$time = $parent_post->post_date;
 		}
 
+		$this->upload_post = $parent_post;
+
 		if ( ! empty( $files ) ) {
 			$file = $this->upload_from_file( $files, $headers, $time );
 		} else {
 			$file = $this->upload_from_data( $request->get_body(), $headers, $time );
 		}
+
+		$this->upload_post = null;
 
 		remove_filter( 'wp_unique_filename', $filter_filename );
 		remove_filter( 'image_editor_output_format', '__return_empty_array', 100 );
