@@ -191,7 +191,7 @@ jobs:
           name: pr-built-file-changes
           path: src/wp-content/themes/${{ matrix.theme }}/changes.diff
 
-      - name: Ensure version-controlled files are not modified or deleted
+      - name: Check for uncommitted changes after building
         run: |
           if [ -n "$(git status --porcelain)" ]; then
             echo "Uncommitted changes detected after build:"
