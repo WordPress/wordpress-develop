@@ -415,9 +415,9 @@ function wp_functionality_constants() {
 	 * before continuing in the background. This invokes a child process in
 	 * PHP-FPM and LSPHP and closes the HTTP connection to the client.
 	 *
-	 * @see https://www.php.net/manual/en/function.ignore-user-abort.php
-	 * @see https://www.php.net/manual/en/function.fastcgi-finish-request.php
-	 * @see https://www.php.net/manual/en/function.litespeed-finish-request.php
+	 * @link https://www.php.net/manual/en/function.ignore-user-abort.php
+	 * @link https://www.php.net/manual/en/function.fastcgi-finish-request.php
+	 * @link https://www.php.net/manual/en/function.litespeed-finish-request.php
 	 */
 	if ( ! defined( 'WP_CRON_FLUSH' ) ) {
 		define( 'WP_CRON_FLUSH', true );
