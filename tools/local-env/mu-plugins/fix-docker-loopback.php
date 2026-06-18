@@ -1,7 +1,7 @@
 <?php
 /**
  * Plugin Name: Fix Docker Loopback Requests
- * Description: Routes WordPress loopback HTTP requests (Site Health, wp_remote_get(home_url()), cron, etc.) to the Docker host gateway. Inside the php/cli containers "localhost" is the container's own loopback where nothing listens on the published port, so requests to home_url() fail with "cURL error 7: Could not connect to server". The docker-compose `extra_hosts: localhost:host-gateway` mapping is shadowed by Docker's default `127.0.0.1 localhost` entry, so this forces the gateway resolution at the cURL layer instead.
+ * Description: Routes WordPress loopback HTTP requests (Site Health, wp_remote_get(home_url()), cron, etc.) to the Docker host gateway. Inside the php/cli containers "localhost" is the container's own loopback where nothing listens on the published port, so requests to home_url() fail with "cURL error 7: Could not connect to server". The docker-compose `extra_hosts: localhost:host-gateway` mapping is meant to address this, but it has no effect when cURL resolves "localhost" via glibc's getaddrinfo(), which special-cases that name to loopback and never sees the /etc/hosts gateway entry. This shim is therefore not always necessary -- on resolvers that do honor the mapping (e.g. a c-ares-based libcurl) loopback already works -- but it forces the gateway resolution at the cURL layer for the environments where it does not.
  *
  * This is a development-environment-only shim and should never ship to production.
  *
