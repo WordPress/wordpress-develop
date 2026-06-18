@@ -1,30 +1,30 @@
 <?php
 /**
- * Tests for the WP_On_This_Day class.
+ * Tests for the WP_Dashboard_Widget_On_This_Day class.
  *
  * @group admin
  *
- * @coversDefaultClass WP_On_This_Day
+ * @coversDefaultClass WP_Dashboard_Widget_On_This_Day
  */
 class Tests_Admin_wpOnThisDay extends WP_UnitTestCase {
 	/**
-	 * Reflection method for invoking WP_On_This_Day::extract_excerpt_text().
+	 * Reflection method for invoking WP_Dashboard_Widget_On_This_Day::extract_excerpt_text().
 	 *
 	 * @var ReflectionMethod
 	 */
 	private static $extract_excerpt_text;
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
-		require_once ABSPATH . 'wp-admin/includes/class-wp-on-this-day.php';
+		require_once ABSPATH . 'wp-admin/includes/class-wp-dashboard-widget-on-this-day.php';
 
-		self::$extract_excerpt_text = new ReflectionMethod( 'WP_On_This_Day', 'extract_excerpt_text' );
+		self::$extract_excerpt_text = new ReflectionMethod( 'WP_Dashboard_Widget_On_This_Day', 'extract_excerpt_text' );
 		if ( PHP_VERSION_ID < 80100 ) {
 			self::$extract_excerpt_text->setAccessible( true );
 		}
 	}
 
 	/**
-	 * Invokes WP_On_This_Day::extract_excerpt_text().
+	 * Invokes WP_Dashboard_Widget_On_This_Day::extract_excerpt_text().
 	 *
 	 * @param string $source    HTML source to extract text from.
 	 * @param int    $max_chars Approximate character limit before truncation.
