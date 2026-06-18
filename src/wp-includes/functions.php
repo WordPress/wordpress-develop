@@ -586,16 +586,16 @@ function human_readable_duration( $duration = '' ) {
  */
 function get_weekstartend( $mysqlstring, $start_of_week = '' ) {
 	// MySQL string year.
-	$my = substr( $mysqlstring, 0, 4 );
+	$mysql_year = substr( $mysqlstring, 0, 4 );
 
 	// MySQL string month.
-	$mm = substr( $mysqlstring, 8, 2 );
+	$mysql_month = substr( $mysqlstring, 5, 2 );
 
 	// MySQL string day.
-	$md = substr( $mysqlstring, 5, 2 );
+	$mysql_day = substr( $mysqlstring, 8, 2 );
 
 	// The timestamp for MySQL string day.
-	$day = mktime( 0, 0, 0, $md, $mm, $my );
+	$day = mktime( 0, 0, 0, $mysql_month, $mysql_day, $mysql_year );
 
 	// The day of the week from the timestamp.
 	$weekday = (int) gmdate( 'w', $day );
@@ -1031,14 +1031,19 @@ function is_new_day() {
  * This is a convenient function for easily building URL queries.
  * It sets the separator to '&' and uses the _http_build_query() function.
  *
+ * Unlike PHP's native http_build_query(), this function does NOT URL-encode
+ * the keys or values. Callers are responsible for encoding values beforehand
+ * with urlencode() or rawurlencode(), or late-escaping the output with
+ * esc_url() before use.
+ *
  * @since 2.3.0
  *
- * @see _http_build_query() Used to build the query
+ * @see _http_build_query() Used to build the query.
  * @link https://www.php.net/manual/en/function.http-build-query.php for more on what
  *       http_build_query() does.
  *
- * @param array $data URL-encode key/value pairs.
- * @return string URL-encoded string.
+ * @param array $data Array of key/value pairs to build the query from.
+ * @return string Query string, without URL encoding applied.
  */
 function build_query( $data ) {
 	return _http_build_query( $data, null, '&', '', false );
@@ -1747,7 +1752,7 @@ function do_favicon() {
 	 */
 	do_action( 'do_faviconico' );
 
-	wp_redirect( get_site_icon_url( 32, includes_url( 'images/w-logo-blue-white-bg.png' ) ) );
+	wp_redirect( get_site_icon_url( 32, includes_url( 'images/w-logo-gray-white-bg.png' ) ) );
 	exit;
 }
 
@@ -3004,7 +3009,7 @@ function wp_upload_bits( $name, $deprecated, $bits, $time = null ) {
  * @since 2.5.0
  *
  * @param string $ext The extension to search.
- * @return string|void The file type, example: audio, video, document, spreadsheet, etc.
+ * @return string|null The file type, example: audio, video, document, spreadsheet, etc.
  */
 function wp_ext2type( $ext ) {
 	$ext = strtolower( $ext );
@@ -3015,6 +3020,7 @@ function wp_ext2type( $ext ) {
 			return $type;
 		}
 	}
+	return null;
 }
 
 /**
@@ -3774,9 +3780,9 @@ function wp_nonce_ays( $action ) {
  *                                  is a WP_Error.
  *     @type bool   $exit           Whether to exit the process after completion. Default true.
  * }
- * @return never|void Returns void if `$args['exit']` is false, otherwise exits.
+ * @return void Never returns if `$args['exit']` is true (the default), otherwise returns void.
  *
- * @phpstan-return ( $args['exit'] is false ? void : never )
+ * @phpstan-return ( $args is array{exit: false} ? void : never )
  */
 function wp_die( $message = '', $title = '', $args = array() ) {
 	global $wp_query;
@@ -3974,14 +3980,14 @@ function _default_wp_die_handler( $message, $title = '', $args = array() ) {
 			font-size: 14px ;
 		}
 		a {
-			color: #2271b1;
+			color: #3858e9;
 		}
 		a:hover,
 		a:active {
-			color: #135e96;
+			color: #183ad6;
 		}
 		a:focus {
-			color: #043959;
+			color: #183ad6;
 			box-shadow: 0 0 0 var(--wp-admin-border-width-focus, 1.5px) var(--wp-admin-theme-color, #3858e9);
 			outline: 2px solid transparent;
 		}
@@ -5105,7 +5111,7 @@ function _wp_array_get( $input_array, $path, $default_value = null ) {
 		}
 
 		if ( is_string( $path_element )
-			|| is_integer( $path_element )
+			|| is_int( $path_element )
 			|| null === $path_element
 		) {
 			/*
@@ -5182,7 +5188,7 @@ function _wp_array_set( &$input_array, $path, $value = null ) {
 
 	foreach ( $path as $path_element ) {
 		if (
-			! is_string( $path_element ) && ! is_integer( $path_element ) &&
+			! is_string( $path_element ) && ! is_int( $path_element ) &&
 			! is_null( $path_element )
 		) {
 			return;
@@ -5511,6 +5517,8 @@ function wp_ob_end_flush_all() {
  * @since 2.3.2
  *
  * @global wpdb $wpdb WordPress database abstraction object.
+ *
+ * @return never
  */
 function dead_db() {
 	global $wpdb;
@@ -7990,20 +7998,34 @@ function wp_raise_memory_limit( $context = 'admin' ) {
  * Generates a random UUID (version 4).
  *
  * @since 4.7.0
+ * @since 7.0.0 Uses wp_rand if available.
  *
  * @return string UUID.
  */
 function wp_generate_uuid4() {
+	static $backup_randomizer = false;
+	$randomizer               = function_exists( 'wp_rand' ) ? 'wp_rand' : $backup_randomizer;
+
+	if ( false === $randomizer ) {
+		try {
+			random_int( 0, 15705 );
+			$backup_randomizer = 'random_int';
+		} catch ( Exception $e ) {
+			$backup_randomizer = 'mt_rand';
+		}
+		$randomizer = $backup_randomizer;
+	}
+
 	return sprintf(
 		'%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
-		mt_rand( 0, 0xffff ),
-		mt_rand( 0, 0xffff ),
-		mt_rand( 0, 0xffff ),
-		mt_rand( 0, 0x0fff ) | 0x4000,
-		mt_rand( 0, 0x3fff ) | 0x8000,
-		mt_rand( 0, 0xffff ),
-		mt_rand( 0, 0xffff ),
-		mt_rand( 0, 0xffff )
+		$randomizer( 0, 0xffff ),
+		$randomizer( 0, 0xffff ),
+		$randomizer( 0, 0xffff ),
+		$randomizer( 0, 0x0fff ) | 0x4000,
+		$randomizer( 0, 0x3fff ) | 0x8000,
+		$randomizer( 0, 0xffff ),
+		$randomizer( 0, 0xffff ),
+		$randomizer( 0, 0xffff )
 	);
 }
 
@@ -8564,7 +8586,7 @@ function wp_get_default_update_php_url() {
  * @param string $after   Markup to output after the annotation. Default `</p>`.
  * @param bool   $display Whether to echo or return the markup. Default `true` for echo.
  *
- * @return string|void
+ * @return string|null Update PHP page annotation if available and $display is false, null otherwise.
  */
 function wp_update_php_annotation( $before = '<p class="description">', $after = '</p>', $display = true ) {
 	$annotation = wp_get_update_php_annotation();
@@ -8576,6 +8598,7 @@ function wp_update_php_annotation( $before = '<p class="description">', $after =
 			return $before . $annotation . $after;
 		}
 	}
+	return null;
 }
 
 /**

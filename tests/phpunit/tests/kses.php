@@ -1584,6 +1584,52 @@ EOF;
 	}
 
 	/**
+	 * Tests that style attribute values are decoded before CSS filtering.
+	 *
+	 * @ticket 65270
+	 *
+	 * @dataProvider data_wp_kses_style_attr_decodes_entities_before_css_filtering
+	 *
+	 * @param string $content  A string of HTML to test.
+	 * @param string $expected Expected result after passing through KSES.
+	 */
+	public function test_wp_kses_style_attr_decodes_entities_before_css_filtering( $content, $expected ) {
+		$allowed_html = array(
+			'div' => array(
+				'style' => true,
+			),
+		);
+
+		$this->assertEqualHTML( $expected, wp_kses( $content, $allowed_html ) );
+	}
+
+	/**
+	 * Data provider for test_wp_kses_style_attr_decodes_entities_before_css_filtering().
+	 *
+	 * @return array[]
+	 */
+	public function data_wp_kses_style_attr_decodes_entities_before_css_filtering() {
+		return array(
+			'background image URL with single quotes' => array(
+				'<div style="background-image: url(\'https://localhost/image.jpg\');"></div>',
+				'<div style="background-image: url(&#039;https://localhost/image.jpg&#039;)"></div>',
+			),
+			'background image URL with entity-encoded double quotes' => array(
+				'<div style="background-image: url(&quot;https://localhost/image.jpg&quot;);"></div>',
+				'<div style="background-image: url(&quot;https://localhost/image.jpg&quot;)"></div>',
+			),
+			'background image URL with query string ampersand' => array(
+				'<div style="background-image: url(https://localhost/image.jpg?a=1&b=2);"></div>',
+				'<div style="background-image: url(https://localhost/image.jpg?a=1&amp;b=2)"></div>',
+			),
+			'background image URL followed by another declaration' => array(
+				'<div style="background-image:url(\'https://localhost/image.jpg\');background-size:cover;"></div>',
+				'<div style="background-image:url(&#039;https://localhost/image.jpg&#039;);background-size:cover"></div>',
+			),
+		);
+	}
+
+	/**
 	 * Test URL sanitization in the style tag.
 	 *
 	 * @dataProvider data_kses_style_attr_with_url

@@ -60,7 +60,6 @@
 	/* Required min-height to make the jQuery UI Sortable drop zone work. */
 	min-height: 0;
 	margin: 0 8px 20px;
-	padding: 0;
 }
 
 #dashboard-widgets .meta-box-sortables:not(:empty) {
@@ -533,7 +532,6 @@
 	width: 40%;
 	margin: 0;
 	min-height: 32px;
-	line-height: 2.14285714;
 	padding: 0 8px;
 }
 
