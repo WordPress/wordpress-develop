@@ -703,7 +703,9 @@ module.exports = function(grunt) {
 					src: [
 						'**/*',
 						'!**/*.map',
-						'!vips/**',
+						// Skip non-minified VIPS files — they are ~16MB of inlined WASM
+						// with no debugging value over the minified versions.
+						'!vips/!(*.min).js',
 					],
 					dest: WORKING_DIR + 'wp-includes/js/dist/script-modules/',
 				} ],
@@ -2154,6 +2156,14 @@ module.exports = function(grunt) {
 				];
 			} )
 		) );
+
+		grunt.log.writeln(
+			'Found ' + routeNames.length + ' route' + ( routeNames.length === 1 ? '' : 's' ) +
+			' registered in ' + registryPath + ':'
+		);
+		routeNames.forEach( function( name ) {
+			grunt.log.writeln( '  - ' + name );
+		} );
 	} );
 
 	grunt.registerTask( 'build:gutenberg', [
