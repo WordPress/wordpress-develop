@@ -4,12 +4,12 @@
 
 ( function( $ ) {
 	function flashState( $button, message ) {
-		var original = $button.data( 'otdShareLabel' ) || $button.text();
+		var original = $button.data( 'wpOtdShareLabel' ) || $button.text();
 
-		$button.text( message ).addClass( 'is-copied' );
+		$button.text( message ).addClass( 'wp-on-this-day-is-copied' );
 
 		window.setTimeout( function() {
-			$button.text( original ).removeClass( 'is-copied' );
+			$button.text( original ).removeClass( 'wp-on-this-day-is-copied' );
 		}, 2000 );
 	}
 
@@ -32,7 +32,7 @@
 	}
 
 	function copyShareUrl( $button, url ) {
-		var success = $button.data( 'otdShareCopied' ) || 'Link copied!';
+		var success = $button.data( 'wpOtdShareCopied' ) || 'Link copied!';
 
 		function done() {
 			flashState( $button, success );
@@ -53,11 +53,11 @@
 		done();
 	}
 
-	$( '.on-this-day-post-share' ).on( 'click', function( event ) {
+	$( '.wp-on-this-day-post-share' ).on( 'click', function( event ) {
 		var $button = $( this ),
-			url = $button.data( 'otdShareUrl' ),
+			url = $button.data( 'wpOtdShareUrl' ),
 			shareData = {
-				title: $button.data( 'otdShareTitle' ) || document.title,
+				title: $button.data( 'wpOtdShareTitle' ) || document.title,
 				url: url
 			};
 
@@ -73,7 +73,7 @@
 		) {
 			navigator.share( shareData ).then(
 				function() {
-					flashState( $button, $button.data( 'otdShareShared' ) || 'Shared!' );
+					flashState( $button, $button.data( 'wpOtdShareShared' ) || 'Shared!' );
 				},
 				function( error ) {
 					if ( ! error || 'AbortError' !== error.name ) {
@@ -89,9 +89,9 @@
 
 	function setupCarousel() {
 		var $root = $( this ),
-			$slides = $root.find( '.on-this-day-post' ),
-			$counter = $root.find( '.on-this-day-carousel-current' ),
-			current = Math.max( 0, $slides.index( $slides.filter( '.is-active' ) ) );
+			$slides = $root.find( '.wp-on-this-day-post' ),
+			$counter = $root.find( '.wp-on-this-day-carousel-current' ),
+			current = Math.max( 0, $slides.index( $slides.filter( '.wp-on-this-day-is-active' ) ) );
 
 		if ( $slides.length < 2 ) {
 			return;
@@ -101,18 +101,18 @@
 			current = ( ( target % $slides.length ) + $slides.length ) % $slides.length;
 
 			$slides
-				.removeClass( 'is-active' )
+				.removeClass( 'wp-on-this-day-is-active' )
 				.attr( 'aria-hidden', 'true' )
 				.eq( current )
-				.addClass( 'is-active' )
+				.addClass( 'wp-on-this-day-is-active' )
 				.attr( 'aria-hidden', 'false' );
 			$counter.text( current + 1 );
 		}
 
-		$root.find( '.on-this-day-carousel-prev' ).on( 'click', function() {
+		$root.find( '.wp-on-this-day-carousel-prev' ).on( 'click', function() {
 			show( current - 1 );
 		} );
-		$root.find( '.on-this-day-carousel-next' ).on( 'click', function() {
+		$root.find( '.wp-on-this-day-carousel-next' ).on( 'click', function() {
 			show( current + 1 );
 		} );
 
@@ -129,5 +129,5 @@
 		show( current );
 	}
 
-	$( '.on-this-day-carousel' ).each( setupCarousel );
+	$( '.wp-on-this-day-carousel' ).each( setupCarousel );
 }( jQuery ) );

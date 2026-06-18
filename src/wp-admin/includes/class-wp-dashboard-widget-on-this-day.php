@@ -15,7 +15,7 @@
  *
  * @since 7.1.0
  */
-class WP_On_This_Day {
+class WP_Dashboard_Widget_On_This_Day {
 	/**
 	 * Number of posts to fetch for the widget.
 	 *
@@ -78,9 +78,9 @@ class WP_On_This_Day {
 		wp_enqueue_script( 'on-this-day' );
 
 		wp_add_dashboard_widget(
-			'dashboard_on_this_day',
+			'wp_dashboard_on_this_day',
 			sprintf(
-				'<span class="on-this-day-title" data-otd-window-label="%s">%s</span>',
+				'<span class="wp-on-this-day-title" data-wp-otd-window-label="%s">%s</span>',
 				esc_attr( self::get_window_label() ),
 				esc_html__( 'On This Day' )
 			),
@@ -91,11 +91,11 @@ class WP_On_This_Day {
 	/**
 	 * Renders the dashboard widget output.
 	 *
-	 * The rendered HTML is cached per user, locale, and site date. The
-	 * cache key also incorporates the posts group's `last_changed` token,
-	 * so any post mutation (publish, edit, delete, trash) automatically
-	 * invalidates the entry on the next read, and entries roll over
-	 * naturally at midnight.
+	 * The rendered HTML is cached per user and locale. The cache salt
+	 * incorporates the site date and the posts group's
+	 * `last_changed` token, so any post mutation (publish, edit, delete,
+	 * trash) automatically invalidates the entry on the next read, and
+	 * entries roll over naturally at midnight.
 	 *
 	 * Note: I made the trade-off to ignore `date_format` and `time_format`
 	 * option changes. They do not bust the cache; stale date strings clear
@@ -106,16 +106,18 @@ class WP_On_This_Day {
 	public static function render_dashboard_widget() {
 		$user_id = get_current_user_id();
 
-		$cache_key = sprintf(
-			'render:v%d:%d:%s:%s:%s',
+		$cache_key  = sprintf(
+			'render_otd_widget:v%d:%d:%s',
 			self::CACHE_VERSION,
 			$user_id,
-			determine_locale(),
+			determine_locale()
+		);
+		$cache_salt = array(
 			current_time( 'Y-m-d' ),
-			wp_cache_get_last_changed( 'posts' )
+			wp_cache_get_last_changed( 'posts' ),
 		);
 
-		$cached = wp_cache_get( $cache_key, self::CACHE_GROUP );
+		$cached = wp_cache_get_salted( $cache_key, self::CACHE_GROUP, $cache_salt );
 		if ( ! is_string( $cached ) ) {
 			$posts = self::get_posts( $user_id );
 
@@ -127,11 +129,11 @@ class WP_On_This_Day {
 			}
 			$cached = ob_get_clean();
 
-			wp_cache_set( $cache_key, $cached, self::CACHE_GROUP, DAY_IN_SECONDS );
+			wp_cache_set_salted( $cache_key, $cached, self::CACHE_GROUP, $cache_salt, DAY_IN_SECONDS );
 		}
 
-		echo '<div class="on-this-day-widget">';
-		echo '<div class="on-this-day-scroll">';
+		echo '<div class="wp-on-this-day-widget">';
+		echo '<div class="wp-on-this-day-scroll">';
 		// Already escaped at write time by the render_* methods below.
 		echo $cached; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		echo '</div>';
@@ -165,15 +167,16 @@ class WP_On_This_Day {
 		);
 
 		$args = array(
-			'author'              => (int) $user_id,
-			'post_type'           => 'post',
-			'post_status'         => array( 'publish' ),
-			'posts_per_page'      => self::POSTS_PER_PAGE,
-			'ignore_sticky_posts' => true,
-			'orderby'             => 'date',
-			'order'               => 'DESC',
-			'no_found_rows'       => true,
-			'date_query'          => $date_query,
+			'author'                 => (int) $user_id,
+			'post_type'              => 'post',
+			'post_status'            => array( 'publish' ),
+			'posts_per_page'         => self::POSTS_PER_PAGE,
+			'ignore_sticky_posts'    => true,
+			'orderby'                => 'date',
+			'order'                  => 'DESC',
+			'no_found_rows'          => true,
+			'update_post_term_cache' => false,
+			'date_query'             => $date_query,
 		);
 
 		/**
@@ -184,11 +187,34 @@ class WP_On_This_Day {
 		 * @param array $args    WP_Query arguments.
 		 * @param int   $user_id The author ID the query is scoped to.
 		 */
-		$args = apply_filters( 'dashboard_on_this_day_query_args', $args, $user_id );
+		$args = apply_filters( 'wp_dashboard_on_this_day_query_args', $args, $user_id );
 
 		$query = new WP_Query( $args );
 
 		return $query->posts;
+	}
+
+	/**
+	 * Builds date query clauses for each day in the 7-day window
+	 * centered on today.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @return array[] Date query clauses.
+	 */
+	protected static function get_window_date_query_clauses() {
+		$date    = current_datetime();
+		$clauses = array();
+
+		for ( $offset = -self::WINDOW_BEFORE_DAYS; $offset <= self::WINDOW_AFTER_DAYS; $offset++ ) {
+			$day_date  = $date->modify( ( $offset >= 0 ? '+' : '' ) . $offset . ' days' );
+			$clauses[] = array(
+				'month' => (int) $day_date->format( 'n' ),
+				'day'   => (int) $day_date->format( 'j' ),
+			);
+		}
+
+		return $clauses;
 	}
 
 	/**
@@ -295,29 +321,6 @@ class WP_On_This_Day {
 	}
 
 	/**
-	 * Builds date query clauses for each day in the 7-day window
-	 * centered on today.
-	 *
-	 * @since 7.1.0
-	 *
-	 * @return array[] Date query clauses.
-	 */
-	protected static function get_window_date_query_clauses() {
-		$date    = current_datetime();
-		$clauses = array();
-
-		for ( $offset = -self::WINDOW_BEFORE_DAYS; $offset <= self::WINDOW_AFTER_DAYS; $offset++ ) {
-			$day_date  = $date->modify( ( $offset >= 0 ? '+' : '' ) . $offset . ' days' );
-			$clauses[] = array(
-				'month' => (int) $day_date->format( 'n' ),
-				'day'   => (int) $day_date->format( 'j' ),
-			);
-		}
-
-		return $clauses;
-	}
-
-	/**
 	 * Renders the empty state shown when no matching posts exist.
 	 *
 	 * Outputs rendered HTML that has already been escaped at write time.
@@ -328,8 +331,8 @@ class WP_On_This_Day {
 	protected static function render_empty_state() {
 		$calendar_icon = WP_Icons_Registry::get_instance()->get_registered_icon( 'core/calendar' );
 		?>
-		<div class="on-this-day-empty">
-			<div class="on-this-day-empty-icon" aria-hidden="true">
+		<div class="wp-on-this-day-empty">
+			<div class="wp-on-this-day-empty-icon" aria-hidden="true">
 				<?php
 				if ( ! empty( $calendar_icon['content'] ) ) {
 					// SVG content is sanitized by WP_Icons_Registry.
@@ -337,11 +340,11 @@ class WP_On_This_Day {
 				}
 				?>
 			</div>
-			<p class="on-this-day-empty-text">
+			<p class="wp-on-this-day-empty-text">
 				<?php esc_html_e( 'Your blogging memories are still being made.' ); ?><br>
 				<?php esc_html_e( 'Check back again soon.' ); ?>
 			</p>
-			<p class="on-this-day-empty-cta">
+			<p class="wp-on-this-day-empty-cta">
 				<a href="<?php echo esc_url( admin_url( 'post-new.php' ) ); ?>" class="button button-primary">
 					<?php esc_html_e( 'Write a new post' ); ?>
 				</a>
@@ -365,11 +368,16 @@ class WP_On_This_Day {
 
 		if ( $is_carousel ) :
 			?>
-			<div class="on-this-day-carousel" role="region" aria-roledescription="carousel" aria-label="<?php esc_attr_e( 'On This Day posts' ); ?>">
+			<div
+				class="wp-on-this-day-carousel"
+				role="region"
+				aria-roledescription="carousel"
+				aria-label="<?php esc_attr_e( 'On This Day posts' ); ?>"
+			>
 			<?php
 		endif;
 		?>
-		<ul class="on-this-day-timeline<?php echo $is_carousel ? ' is-carousel' : ''; ?>">
+		<ul class="wp-on-this-day-timeline<?php echo $is_carousel ? ' wp-on-this-day-is-carousel' : ''; ?>">
 			<?php foreach ( $posts as $index => $post ) : ?>
 				<?php self::render_post( $post, $is_carousel && 0 === $index ); ?>
 			<?php endforeach; ?>
@@ -378,19 +386,31 @@ class WP_On_This_Day {
 		if ( $is_carousel ) :
 			$total = count( $posts );
 			?>
-				<p class="on-this-day-carousel-pagination" aria-live="polite">
-					<button type="button" class="on-this-day-carousel-prev" aria-label="<?php esc_attr_e( 'Previous post' ); ?>">&larr;</button>
-					<span class="on-this-day-carousel-counter">
+				<p class="wp-on-this-day-carousel-pagination" aria-live="polite">
+					<button
+						type="button"
+						class="wp-on-this-day-carousel-prev"
+						aria-label="<?php esc_attr_e( 'Previous post' ); ?>"
+					>
+						&larr;
+					</button>
+					<span class="wp-on-this-day-carousel-counter">
 						<?php
 						printf(
 							/* translators: 1: Current slide number, 2: Total slides. */
 							esc_html__( '%1$s of %2$s' ),
-							'<span class="on-this-day-carousel-current">1</span>',
-							'<span class="on-this-day-carousel-total">' . esc_html( number_format_i18n( $total ) ) . '</span>'
+							'<span class="wp-on-this-day-carousel-current">1</span>',
+							'<span class="wp-on-this-day-carousel-total">' . esc_html( number_format_i18n( $total ) ) . '</span>'
 						);
 						?>
 					</span>
-					<button type="button" class="on-this-day-carousel-next" aria-label="<?php esc_attr_e( 'Next post' ); ?>">&rarr;</button>
+					<button
+						type="button"
+						class="wp-on-this-day-carousel-next"
+						aria-label="<?php esc_attr_e( 'Next post' ); ?>"
+					>
+						&rarr;
+					</button>
 				</p>
 			</div>
 			<?php
@@ -416,31 +436,42 @@ class WP_On_This_Day {
 			$title = __( '(no title)' );
 		}
 
-		$excerpt = self::extract_excerpt_text(
-			has_excerpt( $post ) ? $post->post_excerpt : $post->post_content,
-			self::EXCERPT_CHAR_COUNT
-		);
+		$rendered_content = null;
+		if ( has_excerpt( $post ) ) {
+			$excerpt_source = get_the_excerpt( $post );
+		} else {
+			$rendered_content = self::get_rendered_post_content( $post );
+			$excerpt_source   = $rendered_content;
+		}
 
-		$current_year = (int) current_time( 'Y' );
-		$post_year    = (int) get_the_date( 'Y', $post );
-		$years_ago    = max( 1, $current_year - $post_year );
+		$excerpt      = self::extract_excerpt_text( $excerpt_source, self::EXCERPT_CHAR_COUNT );
 		$date_full    = get_the_date( get_option( 'date_format' ), $post );
 		$time_str     = get_the_time( get_option( 'time_format' ), $post );
 		$time_iso     = get_the_time( 'c', $post );
-		$image_url    = self::get_post_image_url( $post );
+		$post_age     = human_time_diff( get_post_timestamp( $post ) );
+		$image_url    = self::get_post_image_url( $post, $rendered_content );
+		$post_classes = array( 'wp-on-this-day-post' );
+
+		if ( $image_url ) {
+			$post_classes[] = 'wp-on-this-day-has-image';
+		}
+
+		if ( $is_active ) {
+			$post_classes[] = 'wp-on-this-day-is-active';
+		}
 		?>
-		<li class="on-this-day-post<?php echo $image_url ? ' has-image' : ''; ?><?php echo $is_active ? ' is-active' : ''; ?>">
-			<p class="on-this-day-post-when">
-				<span class="on-this-day-post-years-ago">
+		<li class="<?php echo esc_attr( implode( ' ', $post_classes ) ); ?>">
+			<p class="wp-on-this-day-post-when">
+				<span class="wp-on-this-day-post-years-ago">
 				<?php
 				printf(
-					/* translators: %s: Number of years, e.g. "1 year ago" or "5 years ago". */
-					esc_html( _n( '%s year ago', '%s years ago', $years_ago ) ),
-					esc_html( number_format_i18n( $years_ago ) )
+					/* translators: %s: Human-readable time difference, e.g. "1 year" or "5 years". */
+					esc_html__( '%s ago' ),
+					esc_html( $post_age )
 				);
 				?>
 				</span>
-				<time class="on-this-day-post-time" datetime="<?php echo esc_attr( $time_iso ); ?>">
+				<time class="wp-on-this-day-post-time" datetime="<?php echo esc_attr( $time_iso ); ?>">
 				<?php
 				echo esc_html(
 					sprintf(
@@ -454,35 +485,40 @@ class WP_On_This_Day {
 				</time>
 			</p>
 
-			<div class="on-this-day-post-row">
+			<div class="wp-on-this-day-post-row">
 				<?php if ( $image_url ) : ?>
-					<div class="on-this-day-post-image">
-						<a href="<?php echo esc_url( $view_link ); ?>" target="_blank" rel="noopener" tabindex="-1" aria-hidden="true">
+					<div class="wp-on-this-day-post-image">
+						<a href="<?php echo esc_url( $view_link ); ?>" tabindex="-1" aria-hidden="true">
 							<img src="<?php echo esc_url( $image_url ); ?>" alt="" loading="lazy" />
 						</a>
 					</div>
 				<?php endif; ?>
-				<div class="on-this-day-post-content">
+				<div class="wp-on-this-day-post-content">
 					<span class="screen-reader-text"><?php esc_html_e( 'Published post' ); ?></span>
 
-					<h4 class="on-this-day-post-title">
-						<a href="<?php echo esc_url( $view_link ); ?>" target="_blank" rel="noopener"><?php echo esc_html( $title ); ?></a>
+					<h4 class="wp-on-this-day-post-title">
+						<a href="<?php echo esc_url( $view_link ); ?>"><?php echo esc_html( $title ); ?></a>
 					</h4>
 
 					<?php if ( $excerpt ) : ?>
-						<p class="on-this-day-post-excerpt"><?php echo esc_html( $excerpt ); ?></p>
+						<p class="wp-on-this-day-post-excerpt"><?php echo esc_html( $excerpt ); ?></p>
 					<?php endif; ?>
 
-					<div class="on-this-day-post-actions">
-						<a class="on-this-day-post-action button button-primary button-compact" href="<?php echo esc_url( $view_link ); ?>" target="_blank" rel="noopener"><?php esc_html_e( 'View' ); ?></a>
+					<div class="wp-on-this-day-post-actions">
+						<a
+							class="wp-on-this-day-post-action button button-primary button-compact"
+							href="<?php echo esc_url( $view_link ); ?>"
+						>
+							<?php esc_html_e( 'View' ); ?>
+						</a>
 						<button
 							type="button"
-							class="on-this-day-post-action on-this-day-post-share button-link is-compact"
-							data-otd-share-url="<?php echo esc_attr( $view_link ); ?>"
-							data-otd-share-title="<?php echo esc_attr( $title ); ?>"
-							data-otd-share-label="<?php esc_attr_e( 'Share' ); ?>"
-							data-otd-share-copied="<?php esc_attr_e( 'Link copied!' ); ?>"
-							data-otd-share-shared="<?php esc_attr_e( 'Shared!' ); ?>"
+							class="wp-on-this-day-post-action wp-on-this-day-post-share button-link is-compact"
+							data-wp-otd-share-url="<?php echo esc_attr( $view_link ); ?>"
+							data-wp-otd-share-title="<?php echo esc_attr( $title ); ?>"
+							data-wp-otd-share-label="<?php esc_attr_e( 'Share' ); ?>"
+							data-wp-otd-share-copied="<?php esc_attr_e( 'Link copied!' ); ?>"
+							data-wp-otd-share-shared="<?php esc_attr_e( 'Shared!' ); ?>"
 						><?php esc_html_e( 'Share' ); ?></button>
 					</div>
 				</div>
@@ -492,17 +528,35 @@ class WP_On_This_Day {
 	}
 
 	/**
-	 * Returns a URL to a representative image for the post.
-	 *
-	 * Prefers the featured image. Falls back to the first image in the
-	 * post content or the first image in the first gallery.
+	 * Returns rendered post content.
 	 *
 	 * @since 7.1.0
 	 *
 	 * @param WP_Post $post Post object.
+	 * @return string Rendered post content.
+	 */
+	protected static function get_rendered_post_content( $post ) {
+		$content = get_the_content( '', false, $post );
+
+		/** This filter is documented in wp-includes/post-template.php */
+		$content = apply_filters( 'the_content', $content );
+
+		return str_replace( ']]>', ']]&gt;', $content );
+	}
+
+	/**
+	 * Returns a URL to a representative image for the post.
+	 *
+	 * Prefers the featured image. Falls back to the first image in the
+	 * rendered post content or the first image in the first gallery.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @param WP_Post     $post             Post object.
+	 * @param string|null $rendered_content Optional. Rendered post content.
 	 * @return string Image URL, or empty string.
 	 */
-	protected static function get_post_image_url( $post ) {
+	protected static function get_post_image_url( $post, $rendered_content = null ) {
 		if ( has_post_thumbnail( $post ) ) {
 			$url = get_the_post_thumbnail_url( $post, 'medium_large' );
 			if ( $url ) {
@@ -510,8 +564,12 @@ class WP_On_This_Day {
 			}
 		}
 
-		if ( ! empty( $post->post_content ) ) {
-			$processor = new WP_HTML_Tag_Processor( $post->post_content );
+		if ( null === $rendered_content ) {
+			$rendered_content = self::get_rendered_post_content( $post );
+		}
+
+		if ( '' !== trim( $rendered_content ) ) {
+			$processor = new WP_HTML_Tag_Processor( $rendered_content );
 			while ( $processor->next_tag( 'IMG' ) ) {
 				$src = $processor->get_attribute( 'src' );
 				if ( is_string( $src ) && '' !== trim( $src ) ) {

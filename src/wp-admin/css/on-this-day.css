@@ -3,8 +3,8 @@
    =============================================================================
    Organised as:
      1. Design tokens (custom properties on the widget root)
-     2. Postbox chrome (#dashboard_on_this_day)
-     3. Widget title date pill (`.on-this-day-title::after`)
+     2. Postbox chrome (#wp_dashboard_on_this_day)
+     3. Widget title date pill (`.wp-on-this-day-title::after`)
      4. Post list / carousel
      5. Post row (image, title, excerpt, date, actions)
      6. Empty state
@@ -15,31 +15,31 @@
    1. Design tokens
 
    Scoped to the postbox so the title spans (rendered in `.hndle`, outside the
-   `.on-this-day-widget` wrapper) can reference the same variables as the body.
+   `.wp-on-this-day-widget` wrapper) can reference the same variables as the body.
 
    Accent: `--wp-admin-theme-color*` are the only color custom properties core
    exposes at runtime (see src/wp-admin/css/colors/_tokens.scss), so the widget
    follows the user's selected admin color scheme (Blue, Modern, Coffee, etc.).
    Fallback values match the classic "Fresh" scheme.
    ----------------------------------------------------------------------------- */
-#dashboard_on_this_day {
+#wp_dashboard_on_this_day {
 	/* Accent - theme-color aware, follows the user's admin color scheme. */
-	--otd-accent:        var(--wp-admin-theme-color, #2271b1);
-	--otd-accent-dark:   var(--wp-admin-theme-color-darker-10, #135e96);
-	--otd-accent-rgb:    var(--wp-admin-theme-color--rgb, 34, 113, 177);
-	--otd-accent-8:      rgba(var(--otd-accent-rgb), 0.08);
-	--otd-accent-15:     rgba(var(--otd-accent-rgb), 0.15);
+	--wp-otd-widget-accent:        var(--wp-admin-theme-color, #2271b1);
+	--wp-otd-widget-accent-dark:   var(--wp-admin-theme-color-darker-10, #135e96);
+	--wp-otd-widget-accent-rgb:    var(--wp-admin-theme-color--rgb, 34, 113, 177);
+	--wp-otd-widget-accent-8:      rgba(var(--wp-otd-widget-accent-rgb), 0.08);
+	--wp-otd-widget-accent-15:     rgba(var(--wp-otd-widget-accent-rgb), 0.15);
 
 	/* Neutrals - classic wp-admin palette. */
-	--otd-ink:      #1d2327;
-	--otd-text:     #2c3338;
-	--otd-muted:    #646970;
-	--otd-subtle:   #8c8f94;
-	--otd-line:     #dcdcde;
+	--wp-otd-widget-ink:      #1d2327;
+	--wp-otd-widget-text:     #2c3338;
+	--wp-otd-widget-muted:    #646970;
+	--wp-otd-widget-subtle:   #8c8f94;
+	--wp-otd-widget-line:     #dcdcde;
 
 	/* Shape + motion. */
-	--otd-pill:     9999px;
-	--otd-ease:     0.15s ease;
+	--wp-otd-widget-pill:     9999px;
+	--wp-otd-widget-ease:     0.15s ease;
 
 	/* To honour the postbox border-radius. */
 	overflow: hidden;
@@ -48,7 +48,7 @@
 /* -----------------------------------------------------------------------------
    2. Postbox chrome
    ----------------------------------------------------------------------------- */
-#dashboard_on_this_day:not(.closed) .inside {
+#wp_dashboard_on_this_day:not(.closed) .inside {
 	margin: 0;
 	padding: 0;
 	max-height: 560px;
@@ -57,22 +57,22 @@
 	overflow: hidden;
 }
 
-#dashboard_on_this_day .hndle {
+#wp_dashboard_on_this_day .hndle {
 	gap: 0;
 }
 
-#dashboard_on_this_day .on-this-day-widget {
+#wp_dashboard_on_this_day .wp-on-this-day-widget {
 	display: flex;
 	flex-direction: column;
 	flex: 1 1 auto;
 	min-height: 0;
 	font-size: 13px;
-	color: var(--otd-ink);
+	color: var(--wp-otd-widget-ink);
 	line-height: 1.5;
 }
 
 /* Scrollable content area keeps the post list or empty state contained. */
-#dashboard_on_this_day .on-this-day-scroll {
+#wp_dashboard_on_this_day .wp-on-this-day-scroll {
 	flex: 1 1 auto;
 	min-height: 0;
 	overflow: auto;
@@ -83,17 +83,17 @@
 
    The widget is registered with a plain-text title ("On This Day") so that
    Screen Options and box-order preferences stay clean. The current date
-   window label is rendered from `data-otd-window-label` on the title span.
+   window label is rendered from `data-wp-otd-window-label` on the title span.
    ----------------------------------------------------------------------------- */
-#dashboard_on_this_day .on-this-day-title {
+#wp_dashboard_on_this_day .wp-on-this-day-title {
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
 	width: 100%;
 }
 
-#dashboard_on_this_day .on-this-day-title::after {
-	content: attr(data-otd-window-label);
+#wp_dashboard_on_this_day .wp-on-this-day-title::after {
+	content: attr(data-wp-otd-window-label);
 	display: inline-block;
 	margin-left: 10px;
 	padding: 2px 9px;
@@ -101,9 +101,9 @@
 	font-size: 11px;
 	letter-spacing: 0.3px;
 	text-transform: uppercase;
-	color: var(--otd-accent-dark);
-	background: var(--otd-accent-8);
-	border-radius: var(--otd-pill);
+	color: var(--wp-otd-widget-accent-dark);
+	background: var(--wp-otd-widget-accent-8);
+	border-radius: var(--wp-otd-widget-pill);
 	white-space: nowrap;
 	vertical-align: 1px;
 }
@@ -111,17 +111,17 @@
 /* -----------------------------------------------------------------------------
    4. Post list / carousel
    ----------------------------------------------------------------------------- */
-#dashboard_on_this_day .on-this-day-timeline {
+#wp_dashboard_on_this_day .wp-on-this-day-timeline {
 	margin: 0;
 	padding: 12px 20px 16px;
 	list-style: none;
 }
 
-#dashboard_on_this_day .on-this-day-timeline.is-carousel {
+#wp_dashboard_on_this_day .wp-on-this-day-timeline.wp-on-this-day-is-carousel {
 	overflow: hidden;
 }
 
-#dashboard_on_this_day .on-this-day-timeline.is-carousel .on-this-day-post {
+#wp_dashboard_on_this_day .wp-on-this-day-timeline.wp-on-this-day-is-carousel .wp-on-this-day-post {
 	box-sizing: border-box;
 	display: none;
 	border-bottom: 0;
@@ -129,70 +129,71 @@
 	padding-bottom: 0;
 }
 
-#dashboard_on_this_day .on-this-day-timeline.is-carousel .on-this-day-post.is-active {
+#wp_dashboard_on_this_day .wp-on-this-day-timeline.wp-on-this-day-is-carousel
+	.wp-on-this-day-post.wp-on-this-day-is-active {
 	display: block;
-	animation: otd-slide-forward 0.12s ease-out forwards;
+	animation: wp-otd-widget-slide-forward 0.12s ease-out forwards;
 }
 
-@keyframes otd-slide-forward {
+@keyframes wp-otd-widget-slide-forward {
 	from {
 		transform: scale(1.01);
 	}
 }
 
-#dashboard_on_this_day .on-this-day-carousel-pagination {
+#wp_dashboard_on_this_day .wp-on-this-day-carousel-pagination {
 	display: flex;
 	align-items: center;
 	justify-content: center;
 	gap: 10px;
 	margin: 4px 20px 16px;
 	font-size: 12px;
-	color: var(--otd-subtle);
+	color: var(--wp-otd-widget-subtle);
 	line-height: 1;
 }
 
-#dashboard_on_this_day .on-this-day-carousel-prev,
-#dashboard_on_this_day .on-this-day-carousel-next {
+#wp_dashboard_on_this_day .wp-on-this-day-carousel-prev,
+#wp_dashboard_on_this_day .wp-on-this-day-carousel-next {
 	background: transparent;
 	border: 0;
 	padding: 4px 6px;
 	font-size: 14px;
 	line-height: 1;
-	color: var(--otd-muted);
+	color: var(--wp-otd-widget-muted);
 	cursor: pointer;
 	border-radius: 3px;
-	transition: color var(--otd-ease), background var(--otd-ease);
+	transition: color var(--wp-otd-widget-ease), background var(--wp-otd-widget-ease);
 }
 
-#dashboard_on_this_day .on-this-day-carousel-prev:hover,
-#dashboard_on_this_day .on-this-day-carousel-prev:focus,
-#dashboard_on_this_day .on-this-day-carousel-next:hover,
-#dashboard_on_this_day .on-this-day-carousel-next:focus {
-	color: var(--otd-accent-dark);
-	background: var(--otd-accent-8);
+#wp_dashboard_on_this_day .wp-on-this-day-carousel-prev:hover,
+#wp_dashboard_on_this_day .wp-on-this-day-carousel-prev:focus,
+#wp_dashboard_on_this_day .wp-on-this-day-carousel-next:hover,
+#wp_dashboard_on_this_day .wp-on-this-day-carousel-next:focus {
+	color: var(--wp-otd-widget-accent-dark);
+	background: var(--wp-otd-widget-accent-8);
 	outline: none;
 }
 
-#dashboard_on_this_day .on-this-day-carousel-counter {
+#wp_dashboard_on_this_day .wp-on-this-day-carousel-counter {
 	font-variant-numeric: tabular-nums;
 }
 
 /* -----------------------------------------------------------------------------
    5. Post row
    ----------------------------------------------------------------------------- */
-#dashboard_on_this_day .on-this-day-post {
+#wp_dashboard_on_this_day .wp-on-this-day-post {
 	display: block;
 	padding: 4px 0 18px;
-	border-bottom: 1px solid var(--otd-line);
+	border-bottom: 1px solid var(--wp-otd-widget-line);
 	margin-bottom: 12px;
 }
 
-#dashboard_on_this_day .on-this-day-post:last-child {
+#wp_dashboard_on_this_day .wp-on-this-day-post:last-child {
 	border-bottom: 0;
 	margin-bottom: 0;
 }
 
-#dashboard_on_this_day .on-this-day-post-row {
+#wp_dashboard_on_this_day .wp-on-this-day-post-row {
 	display: flex;
 	flex-direction: row;
 	align-items: flex-start;
@@ -200,12 +201,12 @@
 	min-height: 110px;
 }
 
-#dashboard_on_this_day .on-this-day-post-content {
+#wp_dashboard_on_this_day .wp-on-this-day-post-content {
 	flex: 1 1 0;
 	min-width: 0;
 }
 
-#dashboard_on_this_day .on-this-day-post-when {
+#wp_dashboard_on_this_day .wp-on-this-day-post-when {
 	display: flex;
 	flex-direction: row;
 	flex-wrap: wrap;
@@ -215,68 +216,68 @@
 	line-height: 1.4;
 }
 
-#dashboard_on_this_day .on-this-day-post-years-ago {
+#wp_dashboard_on_this_day .wp-on-this-day-post-years-ago {
 	font-size: 13px;
 	font-weight: 600;
-	color: var(--otd-ink);
+	color: var(--wp-otd-widget-ink);
 }
 
-#dashboard_on_this_day .on-this-day-post-time {
+#wp_dashboard_on_this_day .wp-on-this-day-post-time {
 	font-size: 12px;
-	color: var(--otd-muted);
+	color: var(--wp-otd-widget-muted);
 }
 
-#dashboard_on_this_day .on-this-day-post-image {
+#wp_dashboard_on_this_day .wp-on-this-day-post-image {
 	flex: 0 0 110px;
 	width: 110px;
 	margin: 0;
 	border-radius: 6px;
 	overflow: hidden;
-	background: var(--otd-line);
+	background: var(--wp-otd-widget-line);
 	aspect-ratio: 1 / 1;
 }
 
-#dashboard_on_this_day .on-this-day-post-image a {
+#wp_dashboard_on_this_day .wp-on-this-day-post-image a {
 	display: block;
 	width: 100%;
 	height: 100%;
 	box-shadow: none;
 }
 
-#dashboard_on_this_day .on-this-day-post-image img {
+#wp_dashboard_on_this_day .wp-on-this-day-post-image img {
 	display: block;
 	width: 100%;
 	height: 100%;
 	object-fit: cover;
-	transition: transform var(--otd-ease);
+	transition: transform var(--wp-otd-widget-ease);
 }
 
-#dashboard_on_this_day .on-this-day-post-image a:hover img,
-#dashboard_on_this_day .on-this-day-post-image a:focus img {
+#wp_dashboard_on_this_day .wp-on-this-day-post-image a:hover img,
+#wp_dashboard_on_this_day .wp-on-this-day-post-image a:focus img {
 	transform: scale(1.02);
 }
 
-#dashboard_on_this_day .on-this-day-post-title {
+#wp_dashboard_on_this_day .wp-on-this-day-post-title {
 	margin: 0 0 2px;
 	font-size: 13px;
 	font-weight: 600;
 	line-height: 1.4;
 }
 
-#dashboard_on_this_day .on-this-day-post-title a {
-	color: var(--otd-ink);
+#wp_dashboard_on_this_day .wp-on-this-day-post-title a {
+	color: var(--wp-otd-widget-ink);
 	text-decoration: none;
 	box-shadow: none;
 }
 
-#dashboard_on_this_day .on-this-day-post-title a:hover,
-#dashboard_on_this_day .on-this-day-post-title a:focus {
-	color: var(--otd-accent);
+#wp_dashboard_on_this_day .wp-on-this-day-post-title a:hover,
+#wp_dashboard_on_this_day .wp-on-this-day-post-title a:focus {
+	color: var(--wp-otd-widget-accent);
 }
 
-#dashboard_on_this_day .on-this-day-post-excerpt {
+#wp_dashboard_on_this_day .wp-on-this-day-post-excerpt {
 	margin: 0 0 6px;
-	color: var(--otd-text);
+	color: var(--wp-otd-widget-text);
 	line-height: 1.5;
 	display: -webkit-box;
 	-webkit-box-orient: vertical;
@@ -288,7 +289,7 @@
 	max-height: calc(1.5em * 2);
 }
 
-#dashboard_on_this_day .on-this-day-post-actions {
+#wp_dashboard_on_this_day .wp-on-this-day-post-actions {
 	display: flex;
 	flex-wrap: wrap;
 	gap: 8px;
@@ -296,24 +297,24 @@
 	align-items: center;
 }
 
-#dashboard_on_this_day .on-this-day-post-share {
+#wp_dashboard_on_this_day .wp-on-this-day-post-share {
 	background: transparent;
 	border: 0;
 	padding: 0 4px;
 	cursor: pointer;
 	font: inherit;
-	color: var(--otd-accent);
+	color: var(--wp-otd-widget-accent);
 	text-decoration: underline;
-	transition: color var(--otd-ease);
+	transition: color var(--wp-otd-widget-ease);
 }
 
-#dashboard_on_this_day .on-this-day-post-share:hover,
-#dashboard_on_this_day .on-this-day-post-share:focus {
-	color: var(--otd-accent-dark);
+#wp_dashboard_on_this_day .wp-on-this-day-post-share:hover,
+#wp_dashboard_on_this_day .wp-on-this-day-post-share:focus {
+	color: var(--wp-otd-widget-accent-dark);
 }
 
-#dashboard_on_this_day .on-this-day-post-share.is-copied {
-	color: var(--otd-accent-dark);
+#wp_dashboard_on_this_day .wp-on-this-day-post-share.wp-on-this-day-is-copied {
+	color: var(--wp-otd-widget-accent-dark);
 	text-decoration: none;
 	font-weight: 600;
 }
@@ -321,7 +322,7 @@
 /* -----------------------------------------------------------------------------
    6. Empty state
    ----------------------------------------------------------------------------- */
-#dashboard_on_this_day .on-this-day-empty {
+#wp_dashboard_on_this_day .wp-on-this-day-empty {
 	box-sizing: border-box;
 	display: flex;
 	flex-direction: column;
@@ -331,28 +332,28 @@
 	text-align: left;
 }
 
-#dashboard_on_this_day .on-this-day-empty-icon {
+#wp_dashboard_on_this_day .wp-on-this-day-empty-icon {
 	width: 24px;
 	height: 24px;
 	margin: 0 0 28px;
 	color: #757575;
 }
 
-#dashboard_on_this_day .on-this-day-empty-icon svg {
+#wp_dashboard_on_this_day .wp-on-this-day-empty-icon svg {
 	display: block;
 	width: 24px;
 	height: 24px;
 	fill: currentColor;
 }
 
-#dashboard_on_this_day .on-this-day-empty-text {
+#wp_dashboard_on_this_day .wp-on-this-day-empty-text {
 	margin: 0 0 32px;
-	color: var(--otd-ink);
+	color: var(--wp-otd-widget-ink);
 	font-size: 14px;
 	line-height: 1.5;
 }
 
-#dashboard_on_this_day .on-this-day-empty-cta {
+#wp_dashboard_on_this_day .wp-on-this-day-empty-cta {
 	margin: 0;
 }
 
@@ -360,12 +361,13 @@
    7. Adaptive rules
    ----------------------------------------------------------------------------- */
 @media (prefers-reduced-motion: reduce) {
-	#dashboard_on_this_day .on-this-day-timeline.is-carousel .on-this-day-post.is-active {
+	#wp_dashboard_on_this_day .wp-on-this-day-timeline.wp-on-this-day-is-carousel
+		.wp-on-this-day-post.wp-on-this-day-is-active {
 		animation: none;
 	}
 
-	#dashboard_on_this_day .on-this-day-post-title a,
-	#dashboard_on_this_day .on-this-day-post-action {
+	#wp_dashboard_on_this_day .wp-on-this-day-post-title a,
+	#wp_dashboard_on_this_day .wp-on-this-day-post-action {
 		transition: none;
 	}
 }
