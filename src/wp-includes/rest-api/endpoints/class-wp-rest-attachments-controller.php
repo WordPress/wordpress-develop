@@ -1429,7 +1429,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	 * @param string      $data    Supplied file data.
 	 * @param array       $headers HTTP headers from the request.
 	 * @param string|null $time    Optional. Time formatted in 'yyyy/mm'. Default null.
-	 * @return array|WP_Error Data from wp_handle_sideload().
+	 * @return array{ file: non-empty-string, url: non-empty-string, type: non-empty-string }|WP_Error
 	 */
 	protected function upload_from_data( $data, $headers, $time = null ) {
 		if ( empty( $data ) ) {
@@ -1649,7 +1649,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	 * @param array       $files   Data from the `$_FILES` superglobal.
 	 * @param array       $headers HTTP headers from the request.
 	 * @param string|null $time    Optional. Time formatted in 'yyyy/mm'. Default null.
-	 * @return array|WP_Error Data from wp_handle_upload().
+	 * @return array{ file: non-empty-string, url: non-empty-string, type: non-empty-string }|WP_Error Data from wp_handle_upload().
 	 */
 	protected function upload_from_file( $files, $headers, $time = null ) {
 		if ( empty( $files ) ) {
