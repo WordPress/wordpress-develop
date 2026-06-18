@@ -10,7 +10,7 @@ require_once ABSPATH . 'wp-admin/includes/ajax-actions.php';
  *
  * @package WordPress
  * @subpackage UnitTests
- * @since 3.1.0
+ * @since 7.0.0
  *
  * @group ajax
  *
@@ -78,10 +78,13 @@ class Tests_wp_ajax_widgets_order extends WP_Ajax_UnitTestCase {
 			'savewidgets' => 'invalid-nonce',
 		);
 
-		$this->expectException( WPAjaxDieStopException::class );
-		$this->expectExceptionMessage( '-1' );
-
 		$this->_handleAjax( 'widgets-order' );
+		try {
+			$this->_handleAjax( 'widgets-order' );
+			$this->fail( 'Expected WPAjaxDieStopException was not thrown.' );
+		} catch ( WPAjaxDieStopException $e ) {
+			$this->assertSame( '-1', $e->getMessage() );
+		}
 	}
 
 	/**
