@@ -76,7 +76,7 @@ function wp_knowledge_types(): array {
  *
  * @param int $post_id Saved post ID.
  */
-function _wp_knowledge_ensure_default_type_term( int $post_id ): void {
+function wp_knowledge_ensure_default_type_term( int $post_id ): void {
 	if ( wp_is_post_revision( $post_id ) ) {
 		return;
 	}
@@ -124,7 +124,7 @@ function _wp_knowledge_ensure_default_type_term( int $post_id ): void {
  * @phpstan-param  array<non-empty-string, mixed> $data
  * @phpstan-return array<non-empty-string, mixed>
  */
-function _wp_knowledge_maybe_map_term_label( array $data, string $taxonomy ): array {
+function wp_knowledge_maybe_map_term_label( array $data, string $taxonomy ): array {
 	if ( 'wp_knowledge_type' !== $taxonomy ) {
 		return $data;
 	}

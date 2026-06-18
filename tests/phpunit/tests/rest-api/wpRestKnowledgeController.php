@@ -81,6 +81,14 @@ class Tests_REST_WpRestKnowledgeController extends WP_Test_REST_Controller_Testc
 
 		$this->assertArrayHasKey( '/wp/v2/knowledge', $routes );
 		$this->assertArrayHasKey( '/wp/v2/knowledge/(?P<id>[\d]+)', $routes );
+
+		// Revisions are supported.
+		$this->assertArrayHasKey( '/wp/v2/knowledge/(?P<parent>[\d]+)/revisions', $routes );
+		$this->assertArrayHasKey( '/wp/v2/knowledge/(?P<parent>[\d]+)/revisions/(?P<id>[\d]+)', $routes );
+
+		// Autosave support is removed, so the autosaves routes are not registered.
+		$this->assertArrayNotHasKey( '/wp/v2/knowledge/(?P<id>[\d]+)/autosaves', $routes );
+		$this->assertArrayNotHasKey( '/wp/v2/knowledge/(?P<parent>[\d]+)/autosaves/(?P<id>[\d]+)', $routes );
 	}
 
 	/**

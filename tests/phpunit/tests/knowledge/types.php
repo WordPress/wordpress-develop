@@ -47,7 +47,7 @@ class Tests_Knowledge_Types extends WP_UnitTestCase {
 	 * A knowledge row saved without a type term should fall back to `note`.
 	 *
 	 * @ticket 65476
-	 * @covers ::_wp_knowledge_ensure_default_type_term
+	 * @covers ::wp_knowledge_ensure_default_type_term
 	 */
 	public function test_default_type_term_is_assigned_on_save() {
 		$post_id = self::factory()->post->create(
@@ -66,7 +66,7 @@ class Tests_Knowledge_Types extends WP_UnitTestCase {
 	 * A row that already carries a type term should keep it, not gain `note`.
 	 *
 	 * @ticket 65476
-	 * @covers ::_wp_knowledge_ensure_default_type_term
+	 * @covers ::wp_knowledge_ensure_default_type_term
 	 */
 	public function test_existing_type_term_is_preserved_on_save() {
 		$post_id = self::factory()->post->create(
@@ -97,7 +97,7 @@ class Tests_Knowledge_Types extends WP_UnitTestCase {
 	 * A term lazily created from a registered slug gets the registered label.
 	 *
 	 * @ticket 65476
-	 * @covers ::_wp_knowledge_maybe_map_term_label
+	 * @covers ::wp_knowledge_maybe_map_term_label
 	 */
 	public function test_registered_slug_term_gets_mapped_label() {
 		$term = wp_insert_term( 'guideline', 'wp_knowledge_type' );
@@ -113,7 +113,7 @@ class Tests_Knowledge_Types extends WP_UnitTestCase {
 	 * A user-provided label (where name differs from the slug) is left intact.
 	 *
 	 * @ticket 65476
-	 * @covers ::_wp_knowledge_maybe_map_term_label
+	 * @covers ::wp_knowledge_maybe_map_term_label
 	 */
 	public function test_custom_label_is_not_overwritten() {
 		$term = wp_insert_term( 'My Custom Type', 'wp_knowledge_type', array( 'slug' => 'guideline' ) );
@@ -129,7 +129,7 @@ class Tests_Knowledge_Types extends WP_UnitTestCase {
 	 * The label mapping must not touch terms in other taxonomies.
 	 *
 	 * @ticket 65476
-	 * @covers ::_wp_knowledge_maybe_map_term_label
+	 * @covers ::wp_knowledge_maybe_map_term_label
 	 */
 	public function test_label_mapping_is_scoped_to_knowledge_taxonomy() {
 		$term = wp_insert_term( 'guideline', 'category' );

@@ -790,8 +790,8 @@ add_action( 'wp_loaded', '_add_template_loader_filters' );
 add_filter( 'rest_wp_navigation_item_schema', array( 'WP_Navigation_Fallback', 'update_wp_navigation_post_schema' ) );
 
 // wp_knowledge post type.
-add_action( 'save_post_wp_knowledge', '_wp_knowledge_ensure_default_type_term' );
-add_filter( 'wp_insert_term_data', '_wp_knowledge_maybe_map_term_label', 10, 2 );
+add_action( 'save_post_wp_knowledge', 'wp_knowledge_ensure_default_type_term' );
+add_filter( 'wp_insert_term_data', 'wp_knowledge_maybe_map_term_label', 10, 2 );
 
 // Fluid typography.
 add_filter( 'render_block', 'wp_render_typography_support', 10, 2 );

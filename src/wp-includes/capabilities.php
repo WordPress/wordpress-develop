@@ -1390,7 +1390,7 @@ function wp_maybe_grant_site_health_caps( $allcaps, $caps, $args, $user ) {
  * @param WP_User  $user    The user object.
  * @return bool[] Filtered array of the user's capabilities.
  */
-function wp_maybe_grant_knowledge_caps( array $allcaps, array $caps, array $args, WP_User $user ): array {
+function wp_maybe_grant_knowledge_caps( $allcaps, $caps, $args, $user ) {
 	if ( ! empty( $allcaps['manage_options'] ) ) {
 		$allcaps['read_knowledge']             = true;
 		$allcaps['edit_knowledge']             = true;
