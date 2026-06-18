@@ -5,6 +5,9 @@
  *
  * This is a development-environment-only shim and should never ship to production.
  *
+ * This file is copied from tools/local-env/mu-plugins/fix-docker-loopback.php, so ensure any changes are made there.
+ * Restart the environment to apply the changes, as that file will be re-copied when the container starts.
+ *
  * @package WordPress\Develop
  */
 
