@@ -78,7 +78,6 @@ class Tests_wp_ajax_widgets_order extends WP_Ajax_UnitTestCase {
 			'savewidgets' => 'invalid-nonce',
 		);
 
-		$this->_handleAjax( 'widgets-order' );
 		try {
 			$this->_handleAjax( 'widgets-order' );
 			$this->fail( 'Expected WPAjaxDieStopException was not thrown.' );
