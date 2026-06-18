@@ -37,6 +37,31 @@ class Tests_HtmlApi_WpHtmlDecoder extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensures that character references followed by NULL bytes do not emit native PHP errors.
+	 *
+	 * @ticket 65372
+	 */
+	public function test_character_reference_with_null_byte_does_not_emit_native_errors() {
+		$errors = array();
+		set_error_handler(
+			static function ( int $errno, string $errstr ) use ( &$errors ) {
+				$errors[] = "{$errno}: {$errstr}";
+				return true;
+			}
+		);
+
+		try {
+			$decoded = WP_HTML_Decoder::decode_text_node( "&\x00b" );
+		} finally {
+			restore_error_handler();
+		}
+
+		// Use assertSame() instead of assertEmpty() so PHPUnit shows captured error messages on failure.
+		$this->assertSame( array(), $errors );
+		$this->assertSame( "&\x00b", $decoded, 'Should have decoded the text without changing it.' );
+	}
+
+	/**
 	 * Ensures proper detection of attribute prefixes ignoring ASCII case.
 	 *
 	 * @ticket 61072
