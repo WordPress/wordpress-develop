@@ -38,8 +38,8 @@ class Tests_Icons_WpGetIcon extends WP_UnitTestCase {
 		$this->assertStringContainsString( 'viewbox="0 0 24 24"', $output );
 		$this->assertStringContainsString( 'width="24"', $output );
 		$this->assertStringContainsString( 'height="24"', $output );
-		$this->assertStringContainsString( 'class="wp-icon"', $output );
 		$this->assertStringContainsString( 'aria-hidden="true"', $output );
+		$this->assertStringContainsString( 'focusable="false"', $output );
 	}
 
 	/**
@@ -54,9 +54,35 @@ class Tests_Icons_WpGetIcon extends WP_UnitTestCase {
 	/**
 	 * @ticket 64847
 	 */
+	public function test_wp_get_icon_size_null_leaves_dimensions_untouched() {
+		$output = wp_get_icon( 'core/plus', array( 'size' => null ) );
+		$this->assertStringNotContainsString( 'width=', $output );
+		$this->assertStringNotContainsString( 'height=', $output );
+	}
+
+	/**
+	 * @ticket 64847
+	 */
+	public function test_wp_get_icon_size_zero_outputs_zero_dimensions() {
+		$output = wp_get_icon( 'core/plus', array( 'size' => 0 ) );
+		$this->assertStringContainsString( 'width="0"', $output );
+		$this->assertStringContainsString( 'height="0"', $output );
+	}
+
+	/**
+	 * @ticket 64847
+	 */
 	public function test_wp_get_icon_custom_class() {
 		$output = wp_get_icon( 'core/plus', array( 'class' => 'my-button-icon' ) );
-		$this->assertStringContainsString( 'class="wp-icon my-button-icon"', $output );
+		$this->assertStringContainsString( 'class="my-button-icon"', $output );
+	}
+
+	/**
+	 * @ticket 64847
+	 */
+	public function test_wp_get_icon_multiple_classes() {
+		$output = wp_get_icon( 'core/plus', array( 'class' => 'foo bar baz' ) );
+		$this->assertStringContainsString( 'class="foo bar baz"', $output );
 	}
 
 	/**
@@ -67,6 +93,7 @@ class Tests_Icons_WpGetIcon extends WP_UnitTestCase {
 		$this->assertStringContainsString( 'role="img"', $output );
 		$this->assertStringContainsString( 'aria-label="Add item"', $output );
 		$this->assertStringNotContainsString( 'aria-hidden', $output );
+		$this->assertStringNotContainsString( 'focusable', $output );
 	}
 
 	/**
@@ -75,6 +102,7 @@ class Tests_Icons_WpGetIcon extends WP_UnitTestCase {
 	public function test_wp_get_icon_without_label_is_hidden() {
 		$output = wp_get_icon( 'core/plus' );
 		$this->assertStringContainsString( 'aria-hidden="true"', $output );
+		$this->assertStringContainsString( 'focusable="false"', $output );
 		$this->assertStringNotContainsString( 'role="img"', $output );
 		$this->assertStringNotContainsString( 'aria-label', $output );
 	}
