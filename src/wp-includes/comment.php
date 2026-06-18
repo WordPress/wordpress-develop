@@ -4300,7 +4300,7 @@ function wp_create_initial_comment_meta() {
  * nesting stack keeps each note opener paired with its own closer so overlapping
  * notes and any user highlight `<mark>` left intact still resolve correctly.
  *
- * @since 6.9.0
+ * @since 7.1.0
  *
  * @param string $block_content Rendered block HTML.
  * @return string Block HTML with `wp-note` markers unwrapped.
