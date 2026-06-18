@@ -370,6 +370,77 @@ function get_search_form( $args = array() ) {
 }
 
 /**
+ * Retrieves the markup for an accessible tooltip.
+ *
+ * Returns a help button and its tooltip popover, linked with `aria-describedby`. Enqueue the
+ * `wp-tooltip` style where it is used; the login styles already do.
+ *
+ * @since 7.1.0
+ *
+ * @param string $content Plain-text tooltip content. An empty value returns an empty string.
+ * @param array  $args {
+ *     Optional. Arguments for building the tooltip.
+ *
+ *     @type string $id          Unique ID for the popover element. Default is a
+ *                               generated unique ID.
+ *     @type string $label       Accessible label for the toggle button.
+ *                               Default 'More information'.
+ *     @type string $close_label Accessible label for the close button. Default 'Close'.
+ *     @type string $icon        Dashicons icon class for the toggle button.
+ *                               Default 'dashicons-editor-help'.
+ *     @type string $class       Additional class(es) for the wrapping element.
+ *                               Default empty.
+ * }
+ * @return string Tooltip HTML markup, or an empty string when no content is provided.
+ */
+function wp_get_tooltip( $content, $args = array() ) {
+	$content = trim( (string) $content );
+
+	if ( '' === $content ) {
+		return '';
+	}
+
+	$defaults = array(
+		'id'          => '',
+		'label'       => __( 'More information' ),
+		'close_label' => __( 'Close' ),
+		'icon'        => 'dashicons-editor-help',
+		'class'       => '',
+	);
+
+	$args = wp_parse_args( $args, $defaults );
+
+	$id = '' !== $args['id'] ? $args['id'] : wp_unique_id( 'wp-tooltip-' );
+
+	$classes = 'wp-tooltip';
+	if ( '' !== $args['class'] ) {
+		$classes .= ' ' . $args['class'];
+	}
+
+	$icon = '' !== $args['icon'] ? ' ' . $args['icon'] : '';
+
+	return sprintf(
+		'<span class="%1$s">' .
+			'<button type="button" class="wp-tooltip__toggle" popovertarget="%2$s" aria-describedby="%2$s-text" aria-label="%3$s">' .
+				'<span class="dashicons%4$s" aria-hidden="true"></span>' .
+			'</button>' .
+			'<span popover="auto" id="%2$s" class="wp-tooltip__bubble">' .
+				'<span id="%2$s-text" class="wp-tooltip__text">%5$s</span>' .
+				'<button type="button" class="wp-tooltip__close" popovertarget="%2$s" popovertargetaction="hide" aria-label="%6$s">' .
+					'<span class="dashicons dashicons-no-alt" aria-hidden="true"></span>' .
+				'</button>' .
+			'</span>' .
+		'</span>',
+		esc_attr( $classes ),
+		esc_attr( $id ),
+		esc_attr( $args['label'] ),
+		esc_attr( $icon ),
+		esc_html( $content ),
+		esc_attr( $args['close_label'] )
+	);
+}
+
+/**
  * Displays the Log In/Out link.
  *
  * Displays a link, which allows users to navigate to the Log In page to log in
