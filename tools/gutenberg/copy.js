@@ -35,7 +35,7 @@ const wpIncludesDir = path.join( rootDir, 'src', 'wp-includes' );
  * @property {string}                 source           - Gutenberg-relative source directory (e.g. `'scripts'`).
  * @property {string}                 destination      - Subpath under `wp-includes/` where packages land (e.g. `'js/dist'`).
  * @property {boolean}                copyDirectories  - Whether to copy whole directories (with optional renames) as-is.
- * @property {Object<string, string>} directoryRenames - Map of source directory name → destination directory name.
+ * @property {Record<string, string>} directoryRenames - Map of source directory name → destination directory name.
  */
 
 /**
