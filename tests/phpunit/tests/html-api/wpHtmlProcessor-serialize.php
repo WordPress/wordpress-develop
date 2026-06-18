@@ -261,7 +261,7 @@ class Tests_HtmlApi_WpHtmlProcessor_Serialize extends WP_UnitTestCase {
 		$this->assertSame(
 			WP_HTML_Processor::normalize( 'one</div>two</span>three' ),
 			'onetwothree',
-			'Should have removed unpected closing tags.'
+			'Should have removed unexpected closing tags.'
 		);
 	}
 
