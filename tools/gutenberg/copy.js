@@ -28,6 +28,37 @@ const gutenbergBuildDir = path.join( gutenbergDir, 'build' );
 const wpIncludesDir = path.join( rootDir, 'src', 'wp-includes' );
 
 /**
+ * JS package copy configuration.
+ *
+ * @typedef ScriptsConfig
+ * @type {object}
+ * @property {string}                 source           - Gutenberg-relative source directory (e.g. `'scripts'`).
+ * @property {string}                 destination      - Subpath under `wp-includes/` where packages land (e.g. `'js/dist'`).
+ * @property {boolean}                copyDirectories  - Whether to copy whole directories (with optional renames) as-is.
+ * @property {Object<string, string>} directoryRenames - Map of source directory name → destination directory name.
+ */
+
+/**
+ * One block family entry — block library, widget blocks, etc.
+ *
+ * @typedef BlockConfigSource
+ * @type {object}
+ * @property {string} name    - Human-readable label (e.g. `'block-library'`, `'widgets'`).
+ * @property {string} scripts - Gutenberg-relative path to the block scripts directory.
+ * @property {string} styles  - Gutenberg-relative path to the block styles directory.
+ * @property {string} php     - Gutenberg-relative path to the block PHP directory.
+ */
+
+/**
+ * Block copy configuration.
+ *
+ * @typedef BlockConfig
+ * @type {object}
+ * @property {string}              destination - Subpath under `wp-includes/` where blocks land (e.g. `'blocks'`).
+ * @property {BlockConfigSource[]} sources     - One entry per block family.
+ */
+
+/**
  * Copy configuration.
  * Defines what to copy from Gutenberg build and where it goes in Core.
  */
@@ -215,7 +246,7 @@ function copyScripts( config ) {
 /**
  * Copy `block.json` files for every stable block.
  *
- * @param {Object} config - Block configuration from `COPY_CONFIG.blocks`.
+ * @param {BlockConfig} config - Block configuration from `COPY_CONFIG.blocks`.
  */
 function copyBlockJson( config ) {
 	const blocksDest = path.join( wpIncludesDir, config.destination );
@@ -250,7 +281,7 @@ function copyBlockJson( config ) {
  * Handles both the top-level `<block>.php` dynamic block files and any nested
  * `*.php` helpers under `<block>/` (e.g. `navigation-link/shared/render-submenu-icon.php`).
  *
- * @param {Object} config - Block configuration from `COPY_CONFIG.blocks`.
+ * @param {BlockConfig} config - Block configuration from `COPY_CONFIG.blocks`.
  */
 function copyBlockPhp( config ) {
 	const blocksDest = path.join( wpIncludesDir, config.destination );
@@ -299,7 +330,7 @@ function copyBlockPhp( config ) {
 /**
  * Copy per-block CSS files for every stable block.
  *
- * @param {Object} config - Block configuration from `COPY_CONFIG.blocks`.
+ * @param {BlockConfig} config - Block configuration from `COPY_CONFIG.blocks`.
  */
 function copyBlockStyles( config ) {
 	const blocksDest = path.join( wpIncludesDir, config.destination );
