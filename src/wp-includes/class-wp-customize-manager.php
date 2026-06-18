@@ -3056,7 +3056,7 @@ final class WP_Customize_Manager {
 	 *
 	 * The following re-formulates the logic from `wp_trash_post()` as done in
 	 * `wp_publish_post()`. The reason for bypassing `wp_trash_post()` is that it
-	 * will mutate the the `post_content` and the `post_name` when they should be
+	 * will mutate the `post_content` and the `post_name` when they should be
 	 * untouched.
 	 *
 	 * @since 4.9.0
@@ -5210,7 +5210,7 @@ final class WP_Customize_Manager {
 					'label'       => __( 'Site Icon' ),
 					'description' => sprintf(
 						/* translators: 1: pixel value for icon size. 2: pixel value for icon size. */
-						'<p>' . __( 'The Site Icon is what you see in browser tabs, bookmark bars, and within the WordPress mobile apps. It should be square and at least <code>%1$s by %2$s</code> pixels.' ) . '</p>',
+						'<p>' . __( 'The Site Icon is what you see in browser tabs, bookmark bars, and within the WordPress mobile apps. It should be square and at least <strong>%1$s by %2$s</strong> pixels.' ) . '</p>',
 						512,
 						512
 					),
