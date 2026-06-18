@@ -38,8 +38,6 @@ concurrency:
 permissions: {}
 
 env:
-  LOCAL_PHP_XDEBUG: true
-  LOCAL_PHP_XDEBUG_MODE: 'coverage'
   LOCAL_PHP_MEMCACHED: false
   PUPPETEER_SKIP_DOWNLOAD: true
 
