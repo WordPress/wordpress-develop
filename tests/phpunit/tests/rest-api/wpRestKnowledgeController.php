@@ -140,7 +140,7 @@ class Tests_REST_WpRestKnowledgeController extends WP_Test_REST_Controller_Testc
 
 		wp_set_current_user( self::$subscriber_id );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertSame( 403, $response->get_status() );
+		$this->assertErrorResponse( 'rest_cannot_read', $response, 403 );
 	}
 
 	/**
