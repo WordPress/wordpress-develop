@@ -105,6 +105,8 @@ function isExperimentalBlock( blockJsonPath ) {
 /**
  * Generate a list of stable blocks.
  *
+ * Blocks marked as `"__experimental": true` in a `block.json` file are excluded.
+ *
  * @param {string} scriptsSrc - Path to the Gutenberg scripts source (e.g. `scripts/block-library`).
  * @return {string[]} Stable block directory names.
  */
