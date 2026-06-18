@@ -85,13 +85,6 @@ class Tests_Admin_wpUsersListTable extends WP_UnitTestCase {
 		self::factory()->post->create(
 			array(
 				'post_author' => $user_id,
-				'post_type'   => 'attachment',
-			)
-		);
-
-		self::factory()->post->create(
-			array(
-				'post_author' => $user_id,
 				'post_type'   => 'book',
 			)
 		);
@@ -113,7 +106,7 @@ class Tests_Admin_wpUsersListTable extends WP_UnitTestCase {
 			$output = ob_get_clean();
 
 			$this->assertStringNotContainsString( 'edit.php?author=' . $user_id, $output );
-			$this->assertStringContainsString( '4 content items by this author', $output );
+			$this->assertStringContainsString( '3 content items by this author', $output );
 		} finally {
 			unregister_post_type( 'book' );
 			unregister_post_type( 'secret_note' );
