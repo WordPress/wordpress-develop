@@ -16,18 +16,39 @@
  * @package WordPress
  */
 
-ignore_user_abort( true );
+/*
+ * Prevent the cron from being killed if the connection is closed, unless
+ * WP_CRON_DISABLE_IGNORE_ABORT is set to true in wp-config.php.
+ *
+ * Some environments (e.g. LiteSpeed with LSPHP) may not support this
+ * behavior, in which case setting WP_CRON_DISABLE_IGNORE_ABORT to true
+ * can help avoid unexpected side effects.
+ */
+if ( ! defined( 'WP_CRON_DISABLE_IGNORE_ABORT' ) || ! WP_CRON_DISABLE_IGNORE_ABORT ) {
+	ignore_user_abort( true );
+}
 
 if ( ! headers_sent() ) {
 	header( 'Expires: Wed, 11 Jan 1984 05:00:00 GMT' );
 	header( 'Cache-Control: no-cache, must-revalidate, max-age=0' );
 }
 
-// Don't run cron until the request finishes, if possible.
-if ( function_exists( 'fastcgi_finish_request' ) ) {
-	fastcgi_finish_request();
-} elseif ( function_exists( 'litespeed_finish_request' ) ) {
-	litespeed_finish_request();
+/*
+ * Finish the HTTP response early so cron runs in the background, if possible.
+ * This can be disabled by setting WP_CRON_DISABLE_FLUSH to true in wp-config.php.
+ *
+ * On some server configurations (notably LiteSpeed with LSPHP), calling
+ * litespeed_finish_request() or fastcgi_finish_request() can prematurely
+ * terminate the cron process. Setting WP_CRON_DISABLE_FLUSH to true prevents
+ * this and allows cron jobs to complete normally.
+ */
+if ( ! defined( 'WP_CRON_DISABLE_FLUSH' ) || ! WP_CRON_DISABLE_FLUSH ) {
+	// Don't run cron until the request finishes, if possible.
+	if ( function_exists( 'fastcgi_finish_request' ) ) {
+		fastcgi_finish_request();
+	} elseif ( function_exists( 'litespeed_finish_request' ) ) {
+		litespeed_finish_request();
+	}
 }
 
 if ( ! empty( $_POST ) || defined( 'DOING_AJAX' ) || defined( 'DOING_CRON' ) ) {
