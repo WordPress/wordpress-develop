@@ -278,10 +278,16 @@ module.exports = function(grunt) {
 			 */
 			gutenberg: {
 				get src() {
-					if( grunt.cli.tasks.length === 1 && grunt.cli.tasks[ 0 ] !== 'clean' ) {
-						return gutenbergUnversionedFiles.concat( gutenbergVersionedFiles );
-					} else {
+					const cli = grunt.cli.tasks;
+					// Preserve versioned files only when running bare `grunt clean`.
+					const isBareCleanSweep =
+						cli.includes( 'clean' ) &&
+						! cli.includes( 'clean:gutenberg' );
+
+					if ( isBareCleanSweep ) {
 						return gutenbergUnversionedFiles;
+					} else {
+						return gutenbergUnversionedFiles.concat( gutenbergVersionedFiles );
 					}
 				},
 			},
