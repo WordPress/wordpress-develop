@@ -132,8 +132,8 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 	/**
 	 * Determines whether a test case should be skipped.
 	 *
-	 * @param string $test_name     Test name.
-	 * @param string $expected_tree Expected HTML tree structure.
+	 * @param string|null $test_context_element Context element for fragment parsing, or null for full document parsing.
+	 * @param string      $test_name            Test name.
 	 *
 	 * @return bool True if the test case should be skipped. False otherwise.
 	 */
@@ -338,12 +338,16 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Convert a given Html5lib test file into a test triplet.
+	 * Convert a given Html5lib test file into a series of test cases.
 	 *
 	 * @param string $filename Path to `.dat` file with test cases.
 	 *
-	 * @return array|Generator Test triplets of HTML fragment context element,
-	 *                         HTML, and the DOM structure it represents.
+	 * @return Generator<int, array{
+	 *     non-negative-int, // Line number.
+	 *     string|null,      // HTML fragment context element.
+	 *     string,           // HTML.
+	 *     string,           // DOM structure it represents.
+	 * }> Test cases.
 	 */
 	public static function parse_html5_dat_testfile( $filename ) {
 		$handle = fopen( $filename, 'r', false );
