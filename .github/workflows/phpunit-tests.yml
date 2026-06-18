@@ -76,7 +76,7 @@ jobs:
         os: [ ubuntu-24.04 ]
         php: [ '7.4', '8.0', '8.1', '8.2', '8.3', '8.4', '8.5' ]
         db-type: [ 'mysql' ]
-        db-version: [ '5.7', '8.0', '8.4' ]
+        db-version: [ '5.7', '8.0', '8.4', '9.7' ]
         tests-domain: [ 'example.org' ]
         multisite: [ false, true ]
         memcached: [ false ]
@@ -209,15 +209,13 @@ jobs:
         os: [ ubuntu-24.04 ]
         php: [ '7.4', '8.0', '8.1', '8.2', '8.3', '8.4', '8.5' ]
         db-type: [ 'mysql', 'mariadb' ]
-        db-version: [ '9.6', '12.1' ]
+        db-version: [ '12.1' ]
         multisite: [ false, true ]
         memcached: [ false ]
         db-innovation: [ true ]
 
         exclude:
           # Exclude version combinations that don't exist.
-          - db-type: 'mariadb'
-            db-version: '9.6'
           - db-type: 'mysql'
             db-version: '12.1'
     with:
@@ -283,14 +281,14 @@ jobs:
       fail-fast: false
       matrix:
         php: [ '7.4', '8.4' ]
-        db-version: [ '8.4', '11.8' ]
+        db-version: [ '9.7', '11.8' ]
         db-type: [ 'mysql', 'mariadb' ]
         multisite: [ false ]
 
         include:
           # Include one multisite job for each database type.
           - php: '8.4'
-            db-version: '8.4'
+            db-version: '9.7'
             db-type: 'mysql'
             multisite: true
           - php: '8.4'
@@ -299,13 +297,13 @@ jobs:
             multisite: true
           # Test with memcached.
           - php: '8.4'
-            db-version: '8.4'
+            db-version: '9.7'
             db-type: 'mysql'
             multisite: true
             memcached: true
           # Run specific test groups once.
           - php: '8.4'
-            db-version: '8.4'
+            db-version: '9.7'
             db-type: 'mysql'
             phpunit-test-groups: 'html-api-html5lib-tests'
 
@@ -314,7 +312,7 @@ jobs:
           - db-type: 'mysql'
             db-version: '11.8'
           - db-type: 'mariadb'
-            db-version: '8.4'
+            db-version: '9.7'
 
     with:
       php: ${{ matrix.php }}
