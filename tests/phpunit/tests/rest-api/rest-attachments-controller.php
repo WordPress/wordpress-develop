@@ -3347,7 +3347,10 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$path   = '/wp/v2/media/(?P<id>[\d]+)/sideload';
 		$this->assertArrayHasKey( $path, $routes, 'Sideload route should exist.' );
 		$this->assertIsArray( $routes[ $path ] );
-		$args = array_first( $routes[ $path ] );
+		$endpoint = array_first( $routes[ $path ] );
+		$this->assertIsArray( $endpoint );
+		$this->assertArrayHasKey( 'args', $endpoint, 'Route endpoint should declare args.' );
+		$args = $endpoint['args'];
 		$this->assertIsArray( $args );
 
 		$this->assertArrayHasKey( 'image_size', $args, 'Route should have image_size arg.' );
