@@ -35,6 +35,16 @@ class WP_REST_Abilities_V1_List_Controller extends WP_REST_Controller {
 	protected $rest_base = 'abilities';
 
 	/**
+	 * Allowed schema keywords for preparing ability schemas in REST responses.
+	 *
+	 * Computed lazily on first use and reused while preparing nested schemas.
+	 *
+	 * @since 7.1.0
+	 * @var array<string, true>|null
+	 */
+	private $allowed_schema_keywords = null;
+
+	/**
 	 * Registers the routes for abilities.
 	 *
 	 * @since 6.9.0
@@ -189,26 +199,6 @@ class WP_REST_Abilities_V1_List_Controller extends WP_REST_Controller {
 	}
 
 	/**
-	 * Additional schema keywords to preserve in REST responses.
-	 *
-	 * Ability schemas are exposed to clients as JSON Schema. Preserve additional
-	 * draft-04 keywords so clients can validate richer schemas, even when some
-	 * of those keywords are not enforced by the server-side REST schema validator.
-	 *
-	 * @since 7.1.0
-	 * @var string[]
-	 */
-	private const ADDITIONAL_ALLOWED_SCHEMA_KEYWORDS = array(
-		'required',
-		'allOf',
-		'not',
-		'$ref',
-		'definitions',
-		'dependencies',
-		'additionalItems',
-	);
-
-	/**
 	 * Determines whether the value is an associative array.
 	 *
 	 * @since 7.1.0
@@ -220,6 +210,21 @@ class WP_REST_Abilities_V1_List_Controller extends WP_REST_Controller {
 	 */
 	private function is_associative_array( $value ): bool {
 		return is_array( $value ) && ! wp_is_numeric_array( $value );
+	}
+
+	/**
+	 * Gets the allowed schema keywords for preparing ability schemas in REST responses.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @return array<string, true> Allowed schema keywords.
+	 */
+	private function get_allowed_schema_keywords_for_response(): array {
+		if ( null === $this->allowed_schema_keywords ) {
+			$this->allowed_schema_keywords = array_fill_keys( wp_get_json_schema_allowed_keywords( 'draft-04' ), true );
+		}
+
+		return $this->allowed_schema_keywords;
 	}
 
 	/**
@@ -253,17 +258,7 @@ class WP_REST_Abilities_V1_List_Controller extends WP_REST_Controller {
 			}
 		}
 
-		// Computed once and reused across the recursive calls for every schema node.
-		static $allowed_keywords = null;
-		$allowed_keywords      ??= array_fill_keys(
-			array_merge(
-				rest_get_allowed_schema_keywords(),
-				self::ADDITIONAL_ALLOWED_SCHEMA_KEYWORDS
-			),
-			true
-		);
-
-		$schema = array_intersect_key( $schema, $allowed_keywords );
+		$schema = array_intersect_key( $schema, $this->get_allowed_schema_keywords_for_response() );
 
 		// Collect draft-03 per-property `required: true` flags into a draft-04
 		// `required` array of property names on the parent object schema.
