@@ -329,13 +329,19 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 		if ( is_wp_error( $resized ) ) {
 			$saved = $resized;
 		} else {
-			$saved = $this->_save( $resized );
+			$filename = null;
 
-			if ( PHP_VERSION_ID < 80000 ) { // imagedestroy() has no effect as of PHP 8.0.
+			if ( ! empty( $size_data['suffix'] ) ) {
+				$filename = $this->generate_filename( $size_data['suffix'] );
+			}
+
+			$saved = $this->_save( $resized, $filename );
+
+			if ( PHP_VERSION_ID < 80000 ) {
+				// imagedestroy() has no effect as of PHP 8.0.
 				imagedestroy( $resized );
 			}
 		}
-
 		$this->size = $orig_size;
 
 		if ( ! is_wp_error( $saved ) ) {
