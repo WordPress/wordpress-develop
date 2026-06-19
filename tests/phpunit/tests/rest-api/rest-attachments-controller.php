@@ -3381,8 +3381,11 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$request->set_header( 'Content-Type', 'image/jpeg' );
 		$request->set_header( 'Content-Disposition', 'attachment; filename=canola.jpg' );
 		$request->set_body( (string) file_get_contents( self::$test_file ) );
-		$response      = rest_get_server()->dispatch( $request );
-		$attachment_id = $response->get_data()['id'];
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+		$this->assertIsArray( $data );
+		$this->assertArrayHasKey( 'id', $data );
+		$attachment_id = $data['id'];
 		$this->assertIsInt( $attachment_id );
 
 		$this->assertSame( 201, $response->get_status() );
