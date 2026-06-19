@@ -671,6 +671,10 @@ li#wp-admin-bar-menu-toggle {
 		padding-left: 10px;
 	}
 
+	.auto-fold #wpfooter {
+		margin-left: 0;
+	}
+
 	.sticky-menu #adminmenuwrap {
 		position: relative;
 		z-index: auto;
