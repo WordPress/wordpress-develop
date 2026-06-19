@@ -96,6 +96,14 @@ class WP_Meta_Query {
 	protected $has_or_relation = false;
 
 	/**
+	 * Whether the query contains any clauses requiring LEFT JOINs.
+	 *
+	 * @since 7.1.0
+	 * @var bool
+	 */
+	private $has_left_join = false;
+
+	/**
 	 * Constructor.
 	 *
 	 * @since 3.2.0
@@ -170,6 +178,8 @@ class WP_Meta_Query {
 			return;
 		}
 
+		$this->has_left_join = false;
+
 		if ( isset( $meta_query['relation'] ) && 'OR' === strtoupper( $meta_query['relation'] ) ) {
 			$this->relation = 'OR';
 		} else {
@@ -207,6 +217,14 @@ class WP_Meta_Query {
 			} elseif ( $this->is_first_order_clause( $query ) ) {
 				if ( isset( $query['value'] ) && array() === $query['value'] ) {
 					unset( $query['value'] );
+				}
+
+				if (
+					array_key_exists( 'key', $query ) &&
+					isset( $query['compare'] ) &&
+					'NOT EXISTS' === strtoupper( $query['compare'] )
+				) {
+					$this->has_left_join = true;
 				}
 
 				$clean_queries[ $key ] = $query;
@@ -608,7 +626,18 @@ class WP_Meta_Query {
 			} else {
 				$join .= " INNER JOIN $this->meta_table";
 				$join .= $i ? " AS $alias" : '';
-				$join .= " ON ( $this->primary_table.$this->primary_id_column = $alias.$this->meta_id_column )";
+
+				$join_on = "$this->primary_table.$this->primary_id_column = $alias.$this->meta_id_column";
+
+				if ( $this->should_include_meta_key_in_join( $clause, $parent_query, $clause_key ) ) {
+					$join_meta_key = $this->get_sql_for_join_meta_key( $clause, $alias );
+
+					if ( '' !== $join_meta_key ) {
+						$join_on .= " AND $join_meta_key";
+					}
+				}
+
+				$join .= " ON ( $join_on )";
 			}
 
 			$this->table_aliases[] = $alias;
@@ -794,6 +823,182 @@ class WP_Meta_Query {
 	}
 
 	/**
+	 * Determines whether a clause's meta_key comparison can be added to the JOIN clause.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @param array      $clause       Query clause.
+	 * @param array      $parent_query Parent query of $clause.
+	 * @param int|string $clause_key   The array key used to name the clause in the original `$meta_query` parameters.
+	 * @return bool Whether the meta_key comparison should be added to the JOIN clause.
+	 */
+	private function should_include_meta_key_in_join( $clause, $parent_query, $clause_key ) {
+		if ( ! array_key_exists( 'key', $clause ) ) {
+			return false;
+		}
+
+		if ( in_array( $clause['compare_key'], array( '!=', 'NOT IN', 'NOT LIKE', 'NOT EXISTS', 'NOT REGEXP' ), true ) ) {
+			return false;
+		}
+
+		/*
+		 * A filter can force a later clause to reuse this alias. Because that is not
+		 * knowable before the later clause is processed, avoid constraining aliases
+		 * while compatibility filtering is active.
+		 */
+		if ( has_filter( 'meta_query_find_compatible_table_alias' ) ) {
+			return false;
+		}
+
+		/*
+		 * Adding a meta_key condition to an INNER JOIN can change the results of OR
+		 * queries, because it may remove rows needed by another OR branch before the
+		 * WHERE clause is evaluated. When a NOT EXISTS clause is present, all joins
+		 * are later converted to LEFT JOINs, so non-matching branches remain NULL and
+		 * the WHERE clause preserves the existing boolean logic.
+		 */
+		if ( $this->has_or_relation && ! $this->has_left_join ) {
+			return false;
+		}
+
+		/*
+		 * In OR relations, compatible positive clauses can share the same table alias.
+		 * Do not constrain a shared alias to one clause's meta_key, as that would make
+		 * sibling clauses using different keys unable to match.
+		 */
+		if (
+			isset( $parent_query['relation'] ) &&
+			'OR' === $parent_query['relation'] &&
+			$this->has_compatible_or_relation_sibling( $clause, $parent_query, $clause_key )
+		) {
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
+	 * Generates the SQL fragment for a positive meta_key comparison in a JOIN clause.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @global wpdb $wpdb WordPress database abstraction object.
+	 *
+	 * @param array  $clause Query clause.
+	 * @param string $alias  Table alias.
+	 * @return string SQL fragment, or an empty string when no safe fragment can be generated.
+	 */
+	private function get_sql_for_join_meta_key( $clause, $alias ) {
+		global $wpdb;
+
+		switch ( $clause['compare_key'] ) {
+			case '=':
+			case 'EXISTS':
+				return $wpdb->prepare( "$alias.meta_key = %s", trim( $clause['key'] ) ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+
+			case 'LIKE':
+				$meta_compare_value = '%' . $wpdb->esc_like( trim( $clause['key'] ) ) . '%';
+				return $wpdb->prepare( "$alias.meta_key LIKE %s", $meta_compare_value ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+
+			case 'IN':
+				$meta_compare_string = "$alias.meta_key IN (" . substr( str_repeat( ',%s', count( $clause['key'] ) ), 1 ) . ')';
+				return $wpdb->prepare( $meta_compare_string, $clause['key'] ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+
+			case 'RLIKE':
+			case 'REGEXP':
+				$operator = $clause['compare_key'];
+				if ( isset( $clause['type_key'] ) && 'BINARY' === strtoupper( $clause['type_key'] ) ) {
+					$cast     = 'BINARY';
+					$meta_key = "CAST($alias.meta_key AS BINARY)";
+				} else {
+					$cast     = '';
+					$meta_key = "$alias.meta_key";
+				}
+
+				return $wpdb->prepare( "$meta_key $operator $cast %s", trim( $clause['key'] ) ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		}
+
+		return '';
+	}
+
+	/**
+	 * Determines whether a first-order clause has an OR sibling that can share its table alias.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @param array      $clause       Query clause.
+	 * @param array      $parent_query Parent query of $clause.
+	 * @param int|string $clause_key   The array key used to name the clause in the original `$meta_query` parameters.
+	 * @return bool Whether a compatible OR sibling exists.
+	 */
+	private function has_compatible_or_relation_sibling( $clause, $parent_query, $clause_key ) {
+		// Keep in sync with WP_Meta_Query::find_compatible_table_alias().
+		$compatible_compares = array( '=', 'IN', 'BETWEEN', 'LIKE', 'REGEXP', 'RLIKE', '>', '>=', '<', '<=' );
+		$clause_compare      = $this->get_normalized_meta_compare( $clause );
+
+		if ( ! in_array( $clause_compare, $compatible_compares, true ) ) {
+			return false;
+		}
+
+		foreach ( $parent_query as $sibling_key => $sibling ) {
+			if ( 'relation' === $sibling_key || $sibling_key === $clause_key ) {
+				continue;
+			}
+
+			if ( ! is_array( $sibling ) || ! $this->is_first_order_clause( $sibling ) ) {
+				continue;
+			}
+
+			$sibling_compare = $this->get_normalized_meta_compare( $sibling );
+
+			if ( in_array( $sibling_compare, $compatible_compares, true ) ) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * Normalizes a clause's meta_value compare operator using WP_Meta_Query defaults.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @param array $clause Query clause.
+	 * @return string Normalized meta_value compare operator.
+	 */
+	private function get_normalized_meta_compare( $clause ) {
+		if ( isset( $clause['compare'] ) ) {
+			$compare = strtoupper( $clause['compare'] );
+		} else {
+			$compare = isset( $clause['value'] ) && is_array( $clause['value'] ) ? 'IN' : '=';
+		}
+
+		switch ( $compare ) {
+			case '=':
+			case '!=':
+			case 'LIKE':
+			case 'NOT LIKE':
+			case 'IN':
+			case 'NOT IN':
+			case 'EXISTS':
+			case 'NOT EXISTS':
+			case 'RLIKE':
+			case 'REGEXP':
+			case 'NOT REGEXP':
+			case '>':
+			case '>=':
+			case '<':
+			case '<=':
+			case 'BETWEEN':
+			case 'NOT BETWEEN':
+				return $compare;
+		}
+
+		return '=';
+	}
+
+	/**
 	 * Gets a flattened list of sanitized meta clauses.
 	 *
 	 * This array should be used for clause lookup, as when the table alias and CAST type must be determined for
@@ -845,6 +1050,7 @@ class WP_Meta_Query {
 
 			// Clauses connected by OR can share joins as long as they have "positive" operators.
 			if ( 'OR' === $parent_query['relation'] ) {
+				// Keep in sync with WP_Meta_Query::has_compatible_or_relation_sibling().
 				$compatible_compares = array( '=', 'IN', 'BETWEEN', 'LIKE', 'REGEXP', 'RLIKE', '>', '>=', '<', '<=' );
 
 				// Clauses joined by AND with "negative" operators share a join only if they also share a key.

@@ -96,6 +96,56 @@ class Tests_Meta_Query extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 52559
+	 */
+	public function test_meta_key_is_added_to_join_when_not_exists_converts_joins_to_left_joins() {
+		global $wpdb;
+
+		$query = new WP_Meta_Query(
+			array(
+				'relation' => 'AND',
+				array(
+					'key'     => 'events_date_till',
+					'value'   => '20210217',
+					'compare' => '>=',
+				),
+				array(
+					'relation' => 'OR',
+					array(
+						'key'     => 'events_date_till',
+						'value'   => '20210217',
+						'compare' => '>',
+					),
+					array(
+						'relation' => 'AND',
+						array(
+							'key'     => 'events_date_till',
+							'value'   => '20210217',
+							'compare' => '=',
+						),
+						array(
+							'key'     => 'events_time_frame_end',
+							'value'   => '14:59:19',
+							'compare' => '>=',
+						),
+					),
+					array(
+						'key'     => 'events_time_frame_end',
+						'compare' => 'NOT EXISTS',
+					),
+				),
+			)
+		);
+
+		$sql = $query->get_sql( 'post', $wpdb->posts, 'ID', $this );
+
+		$this->assertStringNotContainsString( 'INNER JOIN', $sql['join'] );
+		$this->assertSame( 5, substr_count( $sql['join'], 'LEFT JOIN' ) );
+		$this->assertSame( 3, substr_count( $sql['join'], "meta_key = 'events_date_till'" ) );
+		$this->assertSame( 2, substr_count( $sql['join'], "meta_key = 'events_time_frame_end'" ) );
+	}
+
+	/**
 	 * WP_Query-style query must be at index 0 for order_by=meta_value to work.
 	 */
 	public function test_parse_query_vars_simple_query_index_0() {
