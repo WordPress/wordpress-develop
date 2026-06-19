@@ -1378,9 +1378,9 @@ function wp_maybe_grant_site_health_caps( $allcaps, $caps, $args, $user ) {
  *
  * @since 7.1.0
  *
- * @param bool[]   $allcaps An array of all the user's capabilities.
- * @param string[] $caps    Required primitive capabilities for the requested capability.
- * @param array    $args {
+ * @param array<string, bool> $allcaps An array of all the user's capabilities.
+ * @param string[]            $caps    Required primitive capabilities for the requested capability.
+ * @param array               $args {
  *     Arguments that accompany the requested capability check.
  *
  *     @type string    $0 Requested capability.
@@ -1388,7 +1388,8 @@ function wp_maybe_grant_site_health_caps( $allcaps, $caps, $args, $user ) {
  *     @type mixed  ...$2 Optional second and further parameters, typically object ID.
  * }
  * @param WP_User  $user    The user object.
- * @return bool[] Filtered array of the user's capabilities.
+ * @return array<string, bool> Filtered array of the user's capabilities.
+ * @phpstan-param array{ 0: string, 1: positive-int, 2: mixed, ... } $args
  */
 function wp_maybe_grant_knowledge_caps( $allcaps, $caps, $args, $user ) {
 	if ( ! empty( $allcaps['manage_options'] ) ) {
@@ -1420,7 +1421,7 @@ function wp_maybe_grant_knowledge_caps( $allcaps, $caps, $args, $user ) {
 	$allcaps['read_knowledge_items'] = true;
 	$allcaps['edit_knowledge_items'] = true;
 
-	if ( ! isset( $args[0], $args[2] ) ) {
+	if ( ! isset( $args[0], $args[2] ) || ! is_int( $args[2] ) ) {
 		return $allcaps;
 	}
 
