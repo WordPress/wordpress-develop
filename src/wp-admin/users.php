@@ -416,7 +416,7 @@ switch ( $wp_list_table->current_action() ) {
 				<ul style="list-style:none;">
 					<li>
 						<input type="radio" id="delete_option0" name="delete_option" value="delete" />
-						<label for="delete_option0"><?php _e( 'Delete all content.' ); ?></label>
+						<label for="delete_option0"><?php _e( 'Delete all content, including posts, pages, and media files.' ); ?></label>
 					</li>
 					<li>
 						<input type="radio" id="delete_option1" name="delete_option" value="reassign" />
