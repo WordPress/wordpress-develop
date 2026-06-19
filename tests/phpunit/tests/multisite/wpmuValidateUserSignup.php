@@ -141,8 +141,11 @@ class Tests_Multisite_wpmuValidateUserSignup extends WP_UnitTestCase {
 		add_filter( 'wpmu_welcome_user_notification', '__return_false' );
 
 		// Capture the plain-text key and signup ID from the action.
-		$signup_data = array( 'key' => null, 'signup_id' => null );
-		$listener    = static function( $u, $e, $key, $meta, $signup_id ) use ( &$signup_data ) {
+		$signup_data = array(
+			'key'       => null,
+			'signup_id' => null,
+		);
+		$listener    = static function ( $u, $e, $key, $meta, $signup_id ) use ( &$signup_data ) {
 			$signup_data['key']       = $key;
 			$signup_data['signup_id'] = $signup_id;
 		};

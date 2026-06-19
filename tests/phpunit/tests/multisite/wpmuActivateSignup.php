@@ -17,8 +17,11 @@ class Tests_Multisite_wpmuActivateSignup extends WP_UnitTestCase {
 	 * @return array{ key: string, signup_id: int }
 	 */
 	private function signup_user( $login, $email ) {
-		$data     = array( 'key' => null, 'signup_id' => null );
-		$listener = static function( $u, $e, $key, $meta, $signup_id ) use ( &$data ) {
+		$data     = array(
+			'key'       => null,
+			'signup_id' => null,
+		);
+		$listener = static function ( $u, $e, $key, $meta, $signup_id ) use ( &$data ) {
 			$data['key']       = $key;
 			$data['signup_id'] = $signup_id;
 		};
@@ -151,7 +154,12 @@ class Tests_Multisite_wpmuActivateSignup extends WP_UnitTestCase {
 	public function test_activate_signup_rejects_expired_key() {
 		$data = $this->signup_user( 'tuser38474e', 'tuser38474e@example.com' );
 
-		add_filter( 'activate_signup_expiration', static function() { return -1; } );
+		add_filter(
+			'activate_signup_expiration',
+			static function () {
+				return -1;
+			}
+		);
 		$result = wpmu_activate_signup( $data['key'], $data['signup_id'] );
 		remove_all_filters( 'activate_signup_expiration' );
 
@@ -165,7 +173,7 @@ class Tests_Multisite_wpmuActivateSignup extends WP_UnitTestCase {
 	public function test_activate_signup_expiration_filter_is_applied() {
 		$data          = $this->signup_user( 'tuser38474f', 'tuser38474f@example.com' );
 		$filter_called = false;
-		$filter        = static function( $duration ) use ( &$filter_called ) {
+		$filter        = static function ( $duration ) use ( &$filter_called ) {
 			$filter_called = true;
 			return $duration;
 		};
@@ -186,7 +194,7 @@ class Tests_Multisite_wpmuActivateSignup extends WP_UnitTestCase {
 		$data = $this->signup_user( 'tuser38474g', 'tuser38474g@example.com' );
 
 		$captured = '';
-		$capture  = static function( $args ) use ( &$captured ) {
+		$capture  = static function ( $args ) use ( &$captured ) {
 			$captured = $args['message'];
 			return $args;
 		};
