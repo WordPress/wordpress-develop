@@ -70,8 +70,7 @@ jobs:
     timeout-minutes: 20
 
     steps:
-      # Windows converts LF to CRLF on checkout. This makes every built file appear as modified because the build output
-      # will be CRLF.
+      # Windows can convert LF to CRLF on checkout, which can make built/generated files appear as modified.
       - name: Prevent line ending conversions on Windows
         if: ${{ contains( inputs.os, 'windows-' ) }}
         run: |
