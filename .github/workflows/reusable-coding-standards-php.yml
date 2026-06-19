@@ -37,7 +37,7 @@ jobs:
   # - Generate a report for displaying issues as pull request annotations.
   # - Runs PHPCS on the `tests` directory without (warnings included).
   # - Generate a report for displaying `test` directory issues as pull request annotations.
-  # - Ensures version-controlled files are not modified or deleted.
+  # - Checks for any uncommitted changes.
   phpcs:
     name: PHP checks
     runs-on: ubuntu-24.04
@@ -105,5 +105,10 @@ jobs:
         if: ${{ inputs.old-branch }}
         run: phpcbf
 
-      - name: Ensure version-controlled files are not modified during the tests
-        run: git diff --exit-code
+      - name: Check for uncommitted changes
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "Uncommitted changes detected:"
+            git status --porcelain
+            exit 1
+          fi

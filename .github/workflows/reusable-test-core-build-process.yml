@@ -49,15 +49,16 @@ jobs:
   # Verifies that installing npm dependencies and building WordPress works as expected.
   #
   # Performs the following steps:
+  # - Prevent line ending conversions (Windows only).
   # - Checks out the repository.
   # - Sets up Node.js.
   # - Logs debug information about the GitHub Action runner.
   # - Installs npm dependencies.
   # - Builds WordPress to run from the desired location (src or build).
-  # - Ensures version-controlled files are not modified or deleted.
+  # - Checks for any uncommitted changes after building.
   # - Creates a ZIP of the built WordPress files (when building to the build directory).
   # - Cleans up after building WordPress.
-  # - Ensures version-controlled files are not modified or deleted.
+  # - Checks for any uncommitted changes after cleaning.
   # - Uploads the ZIP as a GitHub Actions artifact (when building to the build directory).
   # - Saves the pull request number to a text file.
   # - Uploads the pull request number as an artifact.
@@ -69,6 +70,13 @@ jobs:
     timeout-minutes: 20
 
     steps:
+      # Windows can convert LF to CRLF on checkout, which can make built/generated files appear as modified.
+      - name: Prevent line ending conversions on Windows
+        if: ${{ contains( inputs.os, 'windows-' ) }}
+        run: |
+          git config --global core.autocrlf false
+          git config --global core.eol lf
+
       - name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
@@ -119,8 +127,14 @@ jobs:
       - name: Build WordPress to run from ${{ inputs.directory }}
         run: npm run ${{ inputs.directory == 'src' && 'build:dev' || 'build' }}
 
-      - name: Ensure version-controlled files are not modified or deleted during building
-        run: git diff --exit-code
+      - name: Check for uncommitted changes after building
+        shell: bash
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "Uncommitted changes detected:"
+            git status --porcelain
+            exit 1
+          fi
 
       - name: Create ZIP of built files
         if: ${{ inputs.directory == 'build' && contains( inputs.os, 'ubuntu-' ) }}
@@ -129,8 +143,14 @@ jobs:
       - name: Clean after building to run from ${{ inputs.directory }}
         run: npm run grunt ${{ inputs.directory == 'src' && 'clean -- --dev' || 'clean' }}
 
-      - name: Ensure version-controlled files are not modified or deleted during cleaning
-        run: git diff --exit-code
+      - name: Check for uncommitted changes after cleaning
+        shell: bash
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "Uncommitted changes detected:"
+            git status --porcelain
+            exit 1
+          fi
 
       - name: Upload ZIP as a GitHub Actions artifact
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1

@@ -39,7 +39,7 @@ jobs:
   # - Installs Core npm dependencies.
   # - Builds WordPress to run from the relevant location (src or build).
   # - Builds Gutenberg.
-  # - Ensures version-controlled files are not modified or deleted.
+  # - Checks for any uncommitted changes after building.
   build-process-tests:
     name: ${{ contains( inputs.os, 'macos-' ) && 'MacOS' || contains( inputs.os, 'windows-' ) && 'Windows' || 'Linux' }}
     permissions:
@@ -96,5 +96,11 @@ jobs:
         run: npm run build
         working-directory: ${{ env.GUTENBERG_DIRECTORY }}
 
-      - name: Ensure version-controlled files are not modified or deleted during building
-        run: git diff --exit-code
+      - name: Check for uncommitted changes after building
+        shell: bash
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "Uncommitted changes detected:"
+            git status --porcelain
+            exit 1
+          fi

@@ -102,7 +102,7 @@ jobs:
   # - Install MU plugin.
   # - Run performance tests.
   # - Archive artifacts.
-  # - Ensure version-controlled files are not modified or deleted.
+  # - Checks for any uncommitted changes.
   performance:
     name: Test ${{ inputs.subject == 'base' && inputs.BASE_TAG || inputs.subject }}
     runs-on: ubuntu-24.04
@@ -272,5 +272,10 @@ jobs:
           if-no-files-found: error
           include-hidden-files: true
 
-      - name: Ensure version-controlled files are not modified or deleted
-        run: git diff --exit-code
+      - name: Check for uncommitted changes
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "Uncommitted changes detected:"
+            git status --porcelain
+            exit 1
+          fi
