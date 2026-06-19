@@ -30,7 +30,7 @@ jobs:
   # - Make Composer packages available globally.
   # - Runs the PHP compatibility tests.
   # - Generate a report for displaying issues as pull request annotations.
-  # - Checks for any uncommitted changes.
+  # - Ensures version-controlled files are not modified or deleted.
   php-compatibility:
     name: Run compatibility checks
     runs-on: ubuntu-24.04
@@ -86,10 +86,5 @@ jobs:
         if: ${{ always() && steps.phpcs.outcome == 'failure' }}
         run: cs2pr ./.cache/phpcs-compat-report.xml
 
-      - name: Check for uncommitted changes
-        run: |
-          if [ -n "$(git status --porcelain)" ]; then
-            echo "Uncommitted changes detected:"
-            git status --porcelain
-            exit 1
-          fi
+      - name: Ensure version-controlled files are not modified or deleted
+        run: git diff --exit-code

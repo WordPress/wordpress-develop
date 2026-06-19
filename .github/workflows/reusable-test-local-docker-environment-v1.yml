@@ -71,7 +71,7 @@ jobs:
   # - Runs a WP CLI command.
   # - Tests the logs command.
   # - Tests the reset command.
-  # - Checks for any uncommitted changes.
+  # - Ensures version-controlled files are not modified or deleted.
   local-docker-environment-tests:
     name: ${{ 'mariadb' == inputs.db-type && 'MariaDB' || 'MySQL' }} ${{ inputs.db-version }}${{ inputs.memcached && ' with memcached' || '' }}${{ 'example.org' != inputs.tests-domain && format( ' {0}', inputs.tests-domain ) || '' }}
     permissions:
@@ -166,10 +166,5 @@ jobs:
       - name: Reset the Docker environment
         run: npm run env:reset
 
-      - name: Check for uncommitted changes
-        run: |
-          if [ -n "$(git status --porcelain)" ]; then
-            echo "Uncommitted changes detected:"
-            git status --porcelain
-            exit 1
-          fi
+      - name: Ensure version-controlled files are not modified or deleted
+        run: git diff --exit-code

@@ -24,10 +24,9 @@ jobs:
   # - Builds Emoji files.
   # - Builds bundled Root Certificate files.
   # - Builds WordPress.
-  # - Checks for uncommitted changes.
-  # - Stages all uncommitted changes and adds any unversioned files.
-  # - Displays a diff of all staged changes.
-  # - Saves staged changes to a .diff file.
+  # - Checks for changes to versioned files.
+  # - Displays the result of git diff for debugging purposes.
+  # - Saves the diff to a patch file.
   # - Uploads the patch file as an artifact.
   update-built-files:
     name: Check and update built files
@@ -79,26 +78,22 @@ jobs:
       - name: Build WordPress
         run: npm run build:dev
 
-      - name: Check for uncommitted changes
+      - name: Check for changes to versioned files
         id: built-file-check
         run: |
-          if [ -z "$(git status --porcelain)" ]; then
+          if git diff --quiet; then
             echo "uncommitted_changes=false" >> "$GITHUB_OUTPUT"
           else
             echo "uncommitted_changes=true" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Stage all changes for diff generation
+      - name: Display changes to versioned files
         if: ${{ steps.built-file-check.outputs.uncommitted_changes == 'true' }}
-        run: git add -A
-
-      - name: Display all uncommitted changes
-        if: ${{ steps.built-file-check.outputs.uncommitted_changes == 'true' }}
-        run: git diff --cached
+        run: git diff
 
       - name: Save diff to a file
         if: ${{ steps.built-file-check.outputs.uncommitted_changes == 'true' }}
-        run: git diff --cached --binary > ./changes.diff
+        run: git diff > ./changes.diff
 
       # Uploads the diff file as an artifact.
       - name: Upload diff file as artifact

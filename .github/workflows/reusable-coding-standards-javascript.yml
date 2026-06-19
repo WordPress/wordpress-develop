@@ -24,7 +24,7 @@ jobs:
   # - Logs debug information about the GitHub Action runner.
   # - Installs npm dependencies.
   # - Run the WordPress JSHint checks.
-  # - Checks for any uncommitted changes.
+  # - Ensures version-controlled files are not modified or deleted.
   jshint:
     name: JavaScript checks
     runs-on: ubuntu-24.04
@@ -57,10 +57,5 @@ jobs:
       - name: Run JSHint
         run: npm run grunt jshint
 
-      - name: Check for uncommitted changes
-        run: |
-          if [ -n "$(git status --porcelain)" ]; then
-            echo "Uncommitted changes detected:"
-            git status --porcelain
-            exit 1
-          fi
+      - name: Ensure version-controlled files are not modified or deleted
+        run: git diff --exit-code

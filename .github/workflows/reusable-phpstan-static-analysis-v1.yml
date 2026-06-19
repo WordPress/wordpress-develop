@@ -33,7 +33,7 @@ jobs:
   # - Configures caching for PHPStan static analysis scans.
   # - Runs PHPStan static analysis (with Pull Request annotations).
   # - Saves the PHPStan result cache.
-  # - Checks for any uncommitted changes.
+  # - Ensures version-controlled files are not modified or deleted.
   phpstan:
     name: Run PHP static analysis
     runs-on: ubuntu-24.04
@@ -102,10 +102,5 @@ jobs:
           path: .cache
           key: "phpstan-result-cache-${{ github.run_id }}"
 
-      - name: Check for uncommitted changes
-        run: |
-          if [ -n "$(git status --porcelain)" ]; then
-            echo "Uncommitted changes detected:"
-            git status --porcelain
-            exit 1
-          fi
+      - name: Ensure version-controlled files are not modified or deleted
+        run: git diff --exit-code

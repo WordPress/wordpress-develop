@@ -84,7 +84,7 @@ jobs:
   # - Logs debug information from inside the WordPress Docker container.
   # - Install WordPress within the Docker container.
   # - Run the PHPUnit tests.
-  # - Checks for any uncommitted changes.
+  # - Ensures version-controlled files are not modified or deleted.
   test-php:
     name: PHP ${{ inputs.php }} / ${{ inputs.multisite && ' Multisite' || 'Single Site' }}${{ inputs.split_slow && ' slow tests' || '' }}${{ inputs.memcached && ' with memcached' || '' }}
     runs-on: ${{ inputs.os }}
@@ -208,5 +208,5 @@ jobs:
         if: ${{ ! inputs.split_slow }}
         run: LOCAL_PHP_XDEBUG=true npm run "test:${PHPUNIT_SCRIPT}" -- -v --group xdebug --exclude-group __fakegroup__
 
-      - name: Check for uncommitted changes
+      - name: Ensure version-controlled files are not modified or deleted
         run: git diff --exit-code

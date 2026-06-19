@@ -112,12 +112,7 @@ jobs:
   # - Sets up Node.js.
   # - Installs npm dependencies.
   # - Runs the theme build script.
-  # - Checks for uncommitted changes.
-  # - Stages all uncommitted changes and adds any unversioned files.
-  # - Displays a diff of all staged changes.
-  # - Saves staged changes to a .diff file.
-  # - Uploads the diff file as an artifact.
-  # - Fails the job when uncommitted changes are detected.
+  # - Ensures version-controlled files are not modified or deleted.
   test-build-scripts:
     name: Test ${{ matrix.theme }} build script
     runs-on: ubuntu-24.04
@@ -161,27 +156,23 @@ jobs:
       - name: Build theme
         run: npm run build
 
-      - name: Check for uncommitted changes
+      - name: Check for changes to versioned files
         id: built-file-check
         if: ${{ github.event_name == 'pull_request' }}
         run: |
-          if [ -z "$(git status --porcelain)" ]; then
+          if git diff --quiet; then
             echo "uncommitted_changes=false" >> "$GITHUB_OUTPUT"
           else
             echo "uncommitted_changes=true" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Stage all changes for diff generation
+      - name: Display changes to versioned files
         if: ${{ steps.built-file-check.outputs.uncommitted_changes == 'true' }}
-        run: git add -A
-
-      - name: Display all uncommitted changes
-        if: ${{ steps.built-file-check.outputs.uncommitted_changes == 'true' }}
-        run: git diff --cached
+        run: git diff
 
       - name: Save diff to a file
         if: ${{ steps.built-file-check.outputs.uncommitted_changes == 'true' }}
-        run: git diff --cached --binary > ./changes.diff
+        run: git diff > ./changes.diff
 
       # Uploads the diff file as an artifact.
       - name: Upload diff file as artifact
@@ -191,21 +182,13 @@ jobs:
           name: pr-built-file-changes
           path: src/wp-content/themes/${{ matrix.theme }}/changes.diff
 
-      - name: Check for uncommitted changes after building
-        run: |
-          if [ -n "$(git status --porcelain)" ]; then
-            echo "Uncommitted changes detected after build:"
-            git status --porcelain
-            exit 1
-          fi
+      - name: Ensure version-controlled files are not modified or deleted
+        run: git diff --exit-code
 
   # Prepares bundled themes for release.
   #
   # Performs the following steps:
   # - Checks out the repository.
-  # - Sets up Node.js.
-  # - Installs npm dependencies.
-  # - Runs the theme build script.
   # - Uploads the theme files as a workflow artifact (files uploaded as an artifact are automatically zipped).
   bundle-theme:
     name: Create ${{ matrix.theme }} ZIP file
