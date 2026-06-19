@@ -65,7 +65,7 @@ jobs:
         LOCAL_SCRIPT_DEBUG: [ true, false ]
     with:
       LOCAL_SCRIPT_DEBUG: ${{ matrix.LOCAL_SCRIPT_DEBUG }}
-      gutenberg-version: '23.3.2'
+      gutenberg-version: '23.4.0'
 
   slack-notifications:
     name: Slack Notifications
