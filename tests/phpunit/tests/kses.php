@@ -1000,6 +1000,7 @@ EOF;
 	 * @ticket 58551
 	 * @ticket 60132
 	 * @ticket 64414
+	 * @ticket 65457
 	 *
 	 * @dataProvider data_safecss_filter_attr
 	 *
@@ -1472,6 +1473,43 @@ EOF;
 			array(
 				'css'      => 'display: grid',
 				'expected' => 'display: grid',
+			),
+			// SVG presentation attributes introduced in 7.1.0.
+			array(
+				'css'      => 'fill: none',
+				'expected' => 'fill: none',
+			),
+			array(
+				'css'      => 'fill-rule: evenodd',
+				'expected' => 'fill-rule: evenodd',
+			),
+			array(
+				'css'      => 'stroke: red',
+				'expected' => 'stroke: red',
+			),
+			array(
+				'css'      => 'stroke-width: 2',
+				'expected' => 'stroke-width: 2',
+			),
+			array(
+				'css'      => 'stroke-linecap: round',
+				'expected' => 'stroke-linecap: round',
+			),
+			array(
+				'css'      => 'paint-order: stroke',
+				'expected' => 'paint-order: stroke',
+			),
+			array(
+				'css'      => 'vector-effect: non-scaling-stroke',
+				'expected' => 'vector-effect: non-scaling-stroke',
+			),
+			array(
+				'css'      => 'clip-rule: evenodd',
+				'expected' => 'clip-rule: evenodd',
+			),
+			array(
+				'css'      => 'text-anchor: middle',
+				'expected' => 'text-anchor: middle',
 			),
 		);
 	}
