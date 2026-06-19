@@ -121,10 +121,14 @@ function wp_knowledge_ensure_default_type_term( int $post_id ): void {
  * @param string $taxonomy Taxonomy slug.
  * @return array Possibly modified term data.
  *
- * @phpstan-param  array<non-empty-string, mixed> $data
- * @phpstan-return array<non-empty-string, mixed>
+ * @phpstan-param  array{ name: string, slug: string } $data
+ * @phpstan-return array{ name: string, slug: string }
  */
-function wp_knowledge_maybe_map_term_label( array $data, string $taxonomy ): array {
+function wp_knowledge_maybe_map_term_label( $data, string $taxonomy ): array {
+	if ( ! is_array( $data ) ) {
+		$data = array_fill_keys( array( 'name', 'slug' ), '' );
+	}
+
 	if ( 'wp_knowledge_type' !== $taxonomy ) {
 		return $data;
 	}
