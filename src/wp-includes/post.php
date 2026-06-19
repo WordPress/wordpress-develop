@@ -6901,6 +6901,7 @@ function wp_delete_attachment_files( $post_id, $meta, $backup_sizes, $file ) {
  *                                                        height: int<1, max>,
  *                                                        'mime-type': non-empty-string,
  *                                                    }>
+ *                     ...
  *                 }|false
  */
 function wp_get_attachment_metadata( $attachment_id = 0, $unfiltered = false ) {
