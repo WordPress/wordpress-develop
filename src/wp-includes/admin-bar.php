@@ -395,9 +395,9 @@ function wp_admin_bar_site_menu( $wp_admin_bar ) {
 
 		if ( true === $show_site_icons && has_site_icon() ) {
 			$site_icon = sprintf(
-				'<img class="site-icon" src="%s" srcset="%s 2x" alt="" width="28" height="28" />',
-				esc_url( get_site_icon_url( 28 ) ),
-				esc_url( get_site_icon_url( 56 ) )
+				'<img class="site-icon" src="%s" srcset="%s 2x" alt="" width="20" height="20" />',
+				esc_url( get_site_icon_url( 32 ) ),
+				esc_url( get_site_icon_url( 64 ) )
 			);
 
 			$title         = $site_icon . $title;
