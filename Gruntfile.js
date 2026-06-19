@@ -147,6 +147,27 @@ module.exports = function(grunt) {
 	// Load PostCSS tasks.
 	grunt.loadNpmTasks('@lodder/grunt-postcss');
 
+	// Returns the SVG filenames listed in the icon library manifest, so only
+	// those icons are copied rather than the full `@wordpress/icons` library.
+	function getIconLibraryManifestFiles() {
+		var manifestPath = 'gutenberg/packages/icons/src/manifest.php';
+
+		if ( ! fs.existsSync( manifestPath ) ) {
+			throw new Error( 'Icon library manifest not found: ' + manifestPath );
+		}
+
+		var manifest = fs.readFileSync( manifestPath, 'utf8' );
+		var files = [];
+		var pattern = /'filePath'\s*=>\s*'library\/([^']+\.svg)'/g;
+		var match;
+
+		while ( ( match = pattern.exec( manifest ) ) !== null ) {
+			files.push( match[1] );
+		}
+
+		return files;
+	}
+
 	// Project configuration.
 	grunt.initConfig({
 		postcss: {
@@ -750,7 +771,7 @@ module.exports = function(grunt) {
 				files: [ {
 					expand: true,
 					cwd: 'gutenberg/packages/icons/src/library',
-					src: '*.svg',
+					src: getIconLibraryManifestFiles(),
 					dest: WORKING_DIR + 'wp-includes/images/icon-library',
 				} ],
 			},
