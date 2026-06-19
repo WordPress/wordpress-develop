@@ -6893,6 +6893,7 @@ function wp_delete_attachment_files( $post_id, $meta, $backup_sizes, $file ) {
  *                     width: int<1, max>,
  *                     height: int<1, max>,
  *                     file: non-empty-string,
+ *                     original_image?: non-empty-string,
  *                     source_image?: non-empty-string,
  *                     sizes: array<non-empty-string, array{
  *                                                        file: non-empty-string,
