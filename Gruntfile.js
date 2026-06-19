@@ -811,7 +811,9 @@ module.exports = function(grunt) {
 				files: [ {
 					expand: true,
 					cwd: 'gutenberg/packages/icons/src/library',
-					src: getIconLibraryManifestFiles(),
+					get src() {
+						return getIconLibraryManifestFiles();
+					},
 					dest: SOURCE_DIR + 'wp-includes/images/icon-library',
 				} ],
 			},
