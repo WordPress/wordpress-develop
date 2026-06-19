@@ -122,9 +122,15 @@ class WP_Settings_Abilities {
 	public static function execute_get_settings( $input = array() ): array {
 		$input = is_array( $input ) ? $input : array();
 
-		$settings = self::$exposed_settings ?? self::get_exposed_settings();
-		$group    = isset( $input['group'] ) && is_string( $input['group'] ) ? $input['group'] : '';
-		$fields   = isset( $input['fields'] ) && is_array( $input['fields'] ) ? $input['fields'] : array();
+		$settings = self::$exposed_settings;
+		if ( null === $settings ) {
+			// The cache is populated in register_get_settings() before the ability is
+			// registered, so this is unreachable in practice; bail defensively otherwise.
+			return array();
+		}
+
+		$group  = isset( $input['group'] ) && is_string( $input['group'] ) ? $input['group'] : '';
+		$fields = isset( $input['fields'] ) && is_array( $input['fields'] ) ? $input['fields'] : array();
 
 		$result = array();
 		foreach ( $settings as $exposed_name => $setting ) {
