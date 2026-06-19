@@ -1208,9 +1208,9 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 *
 	 * @since 4.7.0
 	 *
-	 * @param array           $prepared_args Optional. Prepared WP_Query arguments. Default empty array.
-	 * @param WP_REST_Request $request       Optional. Full details about the request.
-	 * @return array Items query arguments.
+	 * @param array<string, mixed> $prepared_args Optional. Prepared WP_Query arguments. Default empty array.
+	 * @param WP_REST_Request|null $request       Optional. Full details about the request.
+	 * @return array<string, mixed> Items query arguments.
 	 */
 	protected function prepare_items_query( $prepared_args = array(), $request = null ) {
 		$query_args = array();
