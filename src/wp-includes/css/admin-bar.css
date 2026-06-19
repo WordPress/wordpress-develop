@@ -595,8 +595,8 @@ html:lang(he-il) .rtl #wpadminbar * {
 #wpadminbar #wp-admin-bar-site-name > .ab-item .site-icon {
 	width: 20px;
 	height: 20px;
-	margin: 0 6px 0 0;
-	vertical-align: -5px;
+	vertical-align: middle;
+	margin: -2px 6px 0 0;
 	background: #f0f0f1;
 	border-radius: 2px;
 }
