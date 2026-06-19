@@ -69,7 +69,7 @@ class WP_Navigation_Fallback {
 	 */
 	public static function get_fallback() {
 		/**
-		 * Filters whether or not a fallback should be created.
+		 * Filters whether a fallback should be created.
 		 *
 		 * @since 6.3.0
 		 *
