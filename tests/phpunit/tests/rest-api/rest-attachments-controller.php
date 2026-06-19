@@ -3330,59 +3330,34 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 
 	/**
 	 * Tests that the sideload endpoint includes 'scaled' in the image_size enum.
-	 *
-	 * @ticket 64737
-	 */
-	public function test_sideload_route_includes_scaled_enum() {
-		$this->enable_client_side_media_processing();
-
-		$server = rest_get_server();
-		$routes = $server->get_routes();
-
-		$endpoint = '/wp/v2/media/(?P<id>[\d]+)/sideload';
-		$this->assertArrayHasKey( $endpoint, $routes, 'Sideload route should exist.' );
-
-		$route    = $routes[ $endpoint ];
-		$endpoint = $route[0];
-		$args     = $endpoint['args'];
-
-		$param_name = 'image_size';
-		$this->assertArrayHasKey( $param_name, $args, 'Route should have image_size arg.' );
-		$this->assertContains( 'scaled', $args[ $param_name ]['enum'], 'image_size enum should include scaled.' );
-	}
-
-	/**
 	 * Tests that the sideload endpoint includes 'original-heic' in the image_size enum.
-	 *
-	 * @ticket 64915
-	 */
-	public function test_sideload_route_includes_original_heic_enum(): void {
-		$this->enable_client_side_media_processing();
-
-		$routes   = rest_get_server()->get_routes();
-		$endpoint = $routes['/wp/v2/media/(?P<id>[\d]+)/sideload'][0];
-		$args     = $endpoint['args'];
-
-		$this->assertArrayHasKey( 'image_size', $args, 'Route should have image_size arg.' );
-		$this->assertContains( 'original-heic', $args['image_size']['enum'], 'image_size enum should include original-heic.' );
-	}
-
-	/**
 	 * Tests that the sideload endpoint does not expose a generate_sub_sizes arg.
 	 *
 	 * sideload_item() never reads the parameter, so advertising it on the route
 	 * would silently mislead clients into expecting server-side sub-size
 	 * generation. The arg only does real work on create_item() (POST /wp/v2/media).
 	 *
+	 * @ticket 64737
 	 * @ticket 64915
 	 */
-	public function test_sideload_route_excludes_generate_sub_sizes_arg(): void {
+	public function test_sideload_route_includes_and_excludes_expected_fields(): void {
 		$this->enable_client_side_media_processing();
 
-		$routes   = rest_get_server()->get_routes();
-		$endpoint = $routes['/wp/v2/media/(?P<id>[\d]+)/sideload'][0];
-		$args     = $endpoint['args'];
+		$routes = rest_get_server()->get_routes();
+		$path   = '/wp/v2/media/(?P<id>[\d]+)/sideload';
+		$this->assertArrayHasKey( $path, $routes, 'Sideload route should exist.' );
+		$this->assertIsArray( $routes[ $path ] );
+		$args = array_first( $routes[ $path ] );
 		$this->assertIsArray( $args );
+
+		$this->assertArrayHasKey( 'image_size', $args, 'Route should have image_size arg.' );
+		$this->assertIsArray( $args['image_size'] );
+		$this->assertArrayHasKey( 'enum', $args['image_size'] );
+		$this->assertIsArray( $args['image_size']['enum'] );
+
+		$this->assertContains( 'original-heic', $args['image_size']['enum'], 'image_size enum should include original-heic.' );
+
+		$this->assertContains( 'scaled', $args['image_size']['enum'], 'image_size enum should include scaled.' );
 
 		$this->assertArrayNotHasKey( 'generate_sub_sizes', $args, 'Sideload route should not advertise the unused generate_sub_sizes arg.' );
 	}
