@@ -1391,7 +1391,11 @@ function wp_maybe_grant_site_health_caps( $allcaps, $caps, $args, $user ) {
  * @return array<string, bool> Filtered array of the user's capabilities.
  * @phpstan-param array{ 0: string, 1: positive-int, 2: mixed, ... } $args
  */
-function wp_maybe_grant_knowledge_caps( $allcaps, $caps, $args, $user ) {
+function wp_maybe_grant_knowledge_caps( $allcaps, array $caps, array $args, WP_User $user ): array {
+	if ( ! is_array( $allcaps ) ) {
+		$allcaps = array();
+	}
+
 	if ( ! empty( $allcaps['manage_options'] ) ) {
 		$allcaps['read_knowledge_items']             = true;
 		$allcaps['edit_knowledge_items']             = true;
