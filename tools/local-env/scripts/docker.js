@@ -20,6 +20,25 @@ if ( [ 'exec', 'run' ].includes( dockerCommand[0] ) && ! process.stdin.isTTY ) {
 	dockerCommand.splice( 1, 0, '--no-TTY' );
 }
 
+/*
+ * `pcov.directory` restricts instrumentation to the configured `LOCAL_DIR`. This prevents PCOV from recording hits for
+ * `vendor/`, `tests/`, or WordPress test fixtures that PHPUnit would discard at report time anyway.
+ */
+if ( process.env.LOCAL_PHP_PCOV === 'true' && dockerCommand.includes( '--coverage-clover' ) ) {
+	const phpunitIdx = dockerCommand.findIndex( ( arg ) => typeof arg === 'string' && arg.endsWith( 'phpunit' ) );
+	if ( phpunitIdx !== -1 ) {
+		const localDir = process.env.LOCAL_DIR || 'src';
+		dockerCommand.splice(
+			phpunitIdx,
+			1,
+			'php',
+			'-d',
+			`pcov.directory=/var/www/${ localDir }`,
+			dockerCommand[ phpunitIdx ]
+		);
+	}
+}
+
 // Add a --defaults flag to any db command WP-CLI command. See https://core.trac.wordpress.org/ticket/63876.
 if ( dockerCommand.includes( 'cli' ) && dockerCommand.includes( 'db' ) && ! dockerCommand.includes( '--defaults' ) ) {
 	dockerCommand.push( '--defaults' );
