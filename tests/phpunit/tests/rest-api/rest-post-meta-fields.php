@@ -4014,4 +4014,68 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 			'string default'  => array( 'string', 'string', 'string2' ),
 		);
 	}
+
+	/**
+	 * Tests that the cache callback is re-hooked after a batch meta update.
+	 *
+	 * @ticket 65486
+	 */
+	public function test_update_value_batch_rehooks_cache_callback_after_update() {
+		register_meta(
+			'post',
+			'batch_key_1',
+			array(
+				'show_in_rest' => true,
+				'single'       => true,
+				'type'         => 'string',
+			)
+		);
+		register_meta(
+			'post',
+			'batch_key_2',
+			array(
+				'show_in_rest' => true,
+				'single'       => true,
+				'type'         => 'string',
+			)
+		);
+		register_meta(
+			'post',
+			'batch_key_3',
+			array(
+				'show_in_rest' => true,
+				'single'       => true,
+				'type'         => 'string',
+			)
+		);
+
+		global $wp_rest_server;
+		$wp_rest_server = new Spy_REST_Server();
+		do_action( 'rest_api_init', $wp_rest_server );
+
+		$this->grant_write_permission();
+
+		$data    = array(
+			'meta' => array(
+				'batch_key_1' => 'value1',
+				'batch_key_2' => 'value2',
+				'batch_key_3' => 'value3',
+			),
+		);
+		$request = new WP_REST_Request( 'POST', sprintf( '/wp/v2/posts/%d', self::$post_id ) );
+		$request->set_body_params( $data );
+
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status() );
+
+		// Verify meta values were persisted.
+		$this->assertSame( 'value1', get_post_meta( self::$post_id, 'batch_key_1', true ) );
+		$this->assertSame( 'value2', get_post_meta( self::$post_id, 'batch_key_2', true ) );
+		$this->assertSame( 'value3', get_post_meta( self::$post_id, 'batch_key_3', true ) );
+
+		// The cache callback must be re-hooked on all three meta actions.
+		$this->assertNotFalse( has_action( 'added_post_meta', 'wp_cache_set_posts_last_changed' ) );
+		$this->assertNotFalse( has_action( 'updated_post_meta', 'wp_cache_set_posts_last_changed' ) );
+		$this->assertNotFalse( has_action( 'deleted_post_meta', 'wp_cache_set_posts_last_changed' ) );
+	}
 }
