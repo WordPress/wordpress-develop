@@ -2761,9 +2761,9 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 			'lighting-color',
 
 			'marker',
-			'marker-start',
-			'marker-mid',
 			'marker-end',
+			'marker-mid',
+			'marker-start',
 
 			'clip-path',
 			'clip-rule',
