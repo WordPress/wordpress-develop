@@ -3021,7 +3021,10 @@ function register_initial_settings() {
  *     @type bool|array $show_in_abilities Whether this setting should be exposed through the Abilities API
  *                                         (e.g. the `core/settings` ability). When registering complex settings,
  *                                         this argument may optionally be an array with optional 'name' and
- *                                         'schema' keys, mirroring the `show_in_rest` shape.
+ *                                         'schema' keys, mirroring the `show_in_rest` shape. The set of exposed
+ *                                         settings is captured when the `core/settings` ability registers on the
+ *                                         `wp_abilities_api_init` hook, so a setting must be registered before
+ *                                         that hook fires to be exposed.
  *     @type mixed      $default           Default value when calling `get_option()`.
  * }
  */
