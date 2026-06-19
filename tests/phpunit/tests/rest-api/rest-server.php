@@ -2553,7 +2553,6 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		);
 
 		$response = rest_do_request( new WP_REST_Request( 'OPTIONS', '/test-ns/v1/test' ) );
-		remove_filter( 'wp_json_schema_allowed_keywords', $filter, 10 );
 
 		$args = $response->get_data()['endpoints'][0]['args'];
 
