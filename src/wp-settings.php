@@ -107,6 +107,7 @@ wp_set_lang_dir();
 
 // Load early WordPress files.
 require ABSPATH . WPINC . '/utf8.php';
+require ABSPATH . WPINC . '/class-wp-email-address.php';
 require ABSPATH . WPINC . '/formatting.php';
 require ABSPATH . WPINC . '/meta.php';
 require ABSPATH . WPINC . '/functions.php';

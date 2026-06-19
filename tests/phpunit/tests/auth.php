@@ -1518,7 +1518,7 @@ class Tests_Auth extends WP_UnitTestCase {
 	 */
 	public function test_wp_signon_using_email_with_an_apostrophe() {
 		$user_args = array(
-			'user_email' => "mail\'@example.com",
+			'user_email' => "mail'@example.com",
 			'user_pass'  => 'password',
 		);
 		self::factory()->user->create( $user_args );
@@ -1831,7 +1831,7 @@ class Tests_Auth extends WP_UnitTestCase {
 	 */
 	public function test_reset_password_with_apostrophe_in_email() {
 		$user_args = array(
-			'user_email' => "jo'hn@example.com",
+			'user_email' => "jo\'hn@example.com",
 			'user_pass'  => 'password',
 		);
 
