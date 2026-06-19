@@ -34,7 +34,7 @@ class WP_REST_Knowledge_Controller extends WP_REST_Posts_Controller {
 	 */
 	public function get_items_permissions_check( $request ) {
 		$post_type = get_post_type_object( $this->post_type );
-		if ( ! current_user_can( $post_type->cap->read ) ) {
+		if ( ! $post_type || ! current_user_can( $post_type->cap->read ) ) {
 			return new WP_Error(
 				'rest_cannot_read',
 				__( 'Sorry, you are not allowed to view knowledge.' ),
