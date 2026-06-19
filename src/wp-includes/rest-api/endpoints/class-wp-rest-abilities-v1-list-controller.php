@@ -98,6 +98,11 @@ class WP_REST_Abilities_V1_List_Controller extends WP_REST_Controller {
 			$query_args['namespace'] = $request['namespace'];
 		}
 
+		if ( ! empty( $request['meta'] ) ) {
+			// Merge caller meta first so the forced show_in_rest filter always wins.
+			$query_args['meta'] = array_merge( $request['meta'], $query_args['meta'] );
+		}
+
 		$abilities = wp_get_abilities( $query_args );
 
 		$page     = $request['page'];
@@ -495,6 +500,33 @@ class WP_REST_Abilities_V1_List_Controller extends WP_REST_Controller {
 				'type'              => 'string',
 				'sanitize_callback' => 'sanitize_key',
 				'validate_callback' => 'rest_validate_request_arg',
+			),
+			'meta'      => array(
+				'description'          => __( 'Limit results to abilities matching all of the given meta fields.' ),
+				'type'                 => 'object',
+				'properties'           => array(
+					// show_in_rest is omitted on purpose. It is forced on and cannot be filtered by a caller.
+					'annotations' => array(
+						'description'          => __( 'Limit results to abilities matching the given behavioral annotations.' ),
+						'type'                 => 'object',
+						'properties'           => array(
+							'readonly'    => array(
+								'description' => __( 'Whether the ability does not modify its environment.' ),
+								'type'        => array( 'boolean', 'null' ),
+							),
+							'destructive' => array(
+								'description' => __( 'Whether the ability may perform destructive updates to its environment.' ),
+								'type'        => array( 'boolean', 'null' ),
+							),
+							'idempotent'  => array(
+								'description' => __( 'Whether repeated calls with the same arguments have no additional effect.' ),
+								'type'        => array( 'boolean', 'null' ),
+							),
+						),
+						'additionalProperties' => true,
+					),
+				),
+				'additionalProperties' => true,
 			),
 		);
 	}

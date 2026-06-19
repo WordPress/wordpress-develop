@@ -829,6 +829,129 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test filtering abilities by a well-defined behavioral annotation.
+	 *
+	 * The 'test/system-info' fixture is the only ability marked read only. The
+	 * value is passed as a string, the way it arrives over the query string, so
+	 * this also confirms the meta schema coerces it to a boolean before matching.
+	 *
+	 * @ticket 64990
+	 */
+	public function test_filter_by_annotation(): void {
+		$request = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities' );
+		$request->set_param( 'meta', array( 'annotations' => array( 'readonly' => 'true' ) ) );
+		$request->set_param( 'per_page', 100 );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+
+		$names = wp_list_pluck( $response->get_data(), 'name' );
+
+		$this->assertContains( 'test/system-info', $names );
+		$this->assertNotContains( 'test/calculator', $names, 'Abilities not marked read only should be excluded.' );
+	}
+
+	/**
+	 * Test that a non-matching annotation returns empty results.
+	 *
+	 * No fixture marks itself destructive, so the result set is empty.
+	 *
+	 * @ticket 64990
+	 */
+	public function test_filter_by_non_matching_annotation(): void {
+		$request = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities' );
+		$request->set_param( 'meta', array( 'annotations' => array( 'destructive' => true ) ) );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertEmpty( $response->get_data() );
+	}
+
+	/**
+	 * Test filtering abilities by several meta conditions at once.
+	 *
+	 * All conditions must match (AND logic).
+	 *
+	 * @ticket 64990
+	 */
+	public function test_filter_by_multiple_meta_conditions(): void {
+		$this->register_test_ability(
+			'test/read-only-idempotent',
+			array(
+				'label'               => 'Read Only and Idempotent',
+				'description'         => 'Marked both read only and idempotent.',
+				'category'            => 'general',
+				'execute_callback'    => '__return_true',
+				'permission_callback' => '__return_true',
+				'meta'                => array(
+					'show_in_rest' => true,
+					'annotations'  => array(
+						'readonly'   => true,
+						'idempotent' => true,
+					),
+				),
+			)
+		);
+
+		$this->register_test_ability(
+			'test/read-only-only',
+			array(
+				'label'               => 'Read Only',
+				'description'         => 'Marked read only but not idempotent.',
+				'category'            => 'general',
+				'execute_callback'    => '__return_true',
+				'permission_callback' => '__return_true',
+				'meta'                => array(
+					'show_in_rest' => true,
+					'annotations'  => array(
+						'readonly' => true,
+					),
+				),
+			)
+		);
+
+		$request = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities' );
+		$request->set_param(
+			'meta',
+			array(
+				'annotations' => array(
+					'readonly'   => 'true',
+					'idempotent' => 'true',
+				),
+			)
+		);
+		$request->set_param( 'per_page', 100 );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+
+		$names = wp_list_pluck( $response->get_data(), 'name' );
+
+		$this->assertContains( 'test/read-only-idempotent', $names, 'An ability matching every condition should be included.' );
+		$this->assertNotContains( 'test/read-only-only', $names, 'An ability matching only one condition should be excluded.' );
+	}
+
+	/**
+	 * Test that a caller cannot use the meta filter to reveal abilities hidden from REST.
+	 *
+	 * The forced `show_in_rest => true` condition must always win, even when the
+	 * caller passes `show_in_rest => false` through the meta parameter.
+	 *
+	 * @ticket 64990
+	 */
+	public function test_filter_by_meta_cannot_override_show_in_rest(): void {
+		$request = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities' );
+		$request->set_param( 'meta', array( 'show_in_rest' => false ) );
+		$request->set_param( 'per_page', 100 );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+
+		$names = wp_list_pluck( $response->get_data(), 'name' );
+		$this->assertNotContains( 'test/not-show-in-rest', $names, 'A caller must not reveal hidden abilities through meta.' );
+	}
+
+	/**
 	 * Test that schema keywords outside the allow-list are stripped from ability schemas in REST response.
 	 *
 	 * @ticket 65035

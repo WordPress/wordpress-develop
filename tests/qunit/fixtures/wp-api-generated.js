@@ -12655,6 +12655,42 @@ mockedApiResponse.Schema = {
                             "description": "Limit results to abilities in a specific namespace.",
                             "type": "string",
                             "required": false
+                        },
+                        "meta": {
+                            "description": "Limit results to abilities matching all of the given meta fields.",
+                            "type": "object",
+                            "properties": {
+                                "annotations": {
+                                    "description": "Limit results to abilities matching the given behavioral annotations.",
+                                    "type": "object",
+                                    "properties": {
+                                        "readonly": {
+                                            "description": "Whether the ability does not modify its environment.",
+                                            "type": [
+                                                "boolean",
+                                                "null"
+                                            ]
+                                        },
+                                        "destructive": {
+                                            "description": "Whether the ability may perform destructive updates to its environment.",
+                                            "type": [
+                                                "boolean",
+                                                "null"
+                                            ]
+                                        },
+                                        "idempotent": {
+                                            "description": "Whether repeated calls with the same arguments have no additional effect.",
+                                            "type": [
+                                                "boolean",
+                                                "null"
+                                            ]
+                                        }
+                                    },
+                                    "additionalProperties": true
+                                }
+                            },
+                            "additionalProperties": true,
+                            "required": false
                         }
                     }
                 }
