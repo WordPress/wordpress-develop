@@ -208,8 +208,9 @@ class Tests_General_GetCalendar extends WP_UnitTestCase {
 
 		$this->assertSame( 0, $queries_cached, 'Second call should be cached with zero queries.' );
 
-		// Simulate clean_post_cache firing.
-		delete_get_calendar_cache();
+		// Firing clean_post_cache() should invalidate the calendar cache via the
+		// hook registered in default-filters.php.
+		clean_post_cache( self::$post_ids[0] );
 
 		$num_queries_start = get_num_queries();
 		get_echo( 'get_calendar' );
