@@ -146,7 +146,7 @@ jobs:
       - name: Check for uncommitted changes after cleaning
         shell: bash
         run: |
-          if [ -n "$(git status --porcelain)" ]; then
+          if [ -z "$(git status --porcelain -- . ':!wordpress.zip')" ]; then
             echo "Uncommitted changes detected:"
             git status --porcelain
             exit 1

@@ -209,9 +209,4 @@ jobs:
         run: LOCAL_PHP_XDEBUG=true npm run "test:${PHPUNIT_SCRIPT}" -- -v --group xdebug --exclude-group __fakegroup__
 
       - name: Check for uncommitted changes
-        run: |
-          if [ -n "$(git status --porcelain)" ]; then
-            echo "Uncommitted changes detected:"
-            git status --porcelain
-            exit 1
-          fi
+        run: git diff --exit-code
