@@ -393,12 +393,9 @@ function wp_admin_bar_site_menu( $wp_admin_bar ) {
 		/** This filter is documented in wp-includes/admin-bar.php */
 		$show_site_icons = apply_filters( 'wp_admin_bar_show_site_icons', true );
 
-		if ( $show_site_icons ) {
-			$site_icon_url = get_site_icon_url( 64 );
-			if ( $site_icon_url ) {
-				$title         = '<img class="site-icon" src="' . esc_url( $site_icon_url ) . '" alt="" />' . $title;
-				$meta['class'] = 'has-site-icon';
-			}
+		if ( true === $show_site_icons && has_site_icon() ) {
+			$title         = '<img class="site-icon" src="' . esc_url( get_site_icon_url( 64 ) ) . '" alt="" />' . $title;
+			$meta['class'] = 'has-site-icon';
 		}
 	}
 
