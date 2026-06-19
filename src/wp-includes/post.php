@@ -6900,7 +6900,7 @@ function wp_delete_attachment_files( $post_id, $meta, $backup_sizes, $file ) {
  *                                                        width: int<1, max>,
  *                                                        height: int<1, max>,
  *                                                        'mime-type': non-empty-string,
- *                                                    }>
+ *                                                    }>,
  *                     ...
  *                 }|false
  */
