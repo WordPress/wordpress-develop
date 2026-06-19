@@ -1429,7 +1429,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	 * @param string      $data    Supplied file data.
 	 * @param array       $headers HTTP headers from the request.
 	 * @param string|null $time    Optional. Time formatted in 'yyyy/mm'. Default null.
-	 * @return array{ file: non-empty-string, url: non-empty-string, type: non-empty-string }|WP_Error
+	 * @return array{ file: non-empty-string, url: non-empty-string, type: non-empty-string }|WP_Error Data from wp_handle_sideload().
 	 */
 	protected function upload_from_data( $data, $headers, $time = null ) {
 		if ( empty( $data ) ) {
