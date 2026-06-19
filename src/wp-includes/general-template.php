@@ -2346,7 +2346,7 @@ function get_calendar( $args = array() ) {
 	wp_recursive_ksort( $cache_args );
 
 	if ( ! wp_cache_supports( 'flush_group' ) ) {
-		$generation                  = wp_cache_get( 'get_calendar_generation', 'calendar' );
+		$generation                 = wp_cache_get( 'get_calendar_generation', 'calendar' );
 		$cache_args['_generation_'] = $generation ? (int) $generation : 0;
 	}
 
@@ -2394,10 +2394,17 @@ function get_calendar( $args = array() ) {
 		$thismonth = (int) $monthnum;
 		$thisyear  = (int) $year;
 	} elseif ( ! empty( $w ) ) {
+		// We need to get the month from MySQL.
 		$thisyear = (int) substr( $m, 0, 4 );
 		// It seems MySQL's weeks disagree with PHP's.
 		$d         = ( ( $w - 1 ) * 7 ) + 6;
-		$thismonth = (int) gmdate( 'm', strtotime( "{$thisyear}-01-01 + {$d} days" ) );
+		$thismonth = (int) $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT DATE_FORMAT((DATE_ADD('%d0101', INTERVAL %d DAY) ), '%%m')",
+				$thisyear,
+				$d
+			)
+		);
 	} elseif ( ! empty( $m ) ) {
 		$thisyear = (int) substr( $m, 0, 4 );
 		if ( strlen( $m ) < 6 ) {
