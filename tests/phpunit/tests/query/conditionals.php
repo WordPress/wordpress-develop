@@ -77,6 +77,11 @@ class Tests_Query_Conditionals extends WP_UnitTestCase {
 		$this->assertQueryTrue( 'is_404' );
 	}
 
+	public function test_atproto_did() {
+		$this->go_to( '/.well-known/atproto-did' );
+		$this->assertQueryTrue( 'is_atproto_did' );
+	}
+
 	public function test_permalink() {
 		$post_id = self::factory()->post->create( array( 'post_title' => 'hello-world' ) );
 		$this->go_to( get_permalink( $post_id ) );

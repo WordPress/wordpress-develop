@@ -550,6 +550,9 @@ add_action( 'init', '_wp_connectors_init', 15 );
 // Sitemaps actions.
 add_action( 'init', 'wp_sitemaps_get_server' );
 
+// AT Protocol actions.
+add_action( 'do_atproto_did', 'do_atproto_did' );
+
 /**
  * Filters formerly mixed into wp-includes.
  */

@@ -62,6 +62,7 @@ class Tests_Query_Vars extends WP_UnitTestCase {
 				'preview',
 				'robots',
 				'favicon',
+				'atproto_did',
 				'taxonomy',
 				'term',
 				'cpage',

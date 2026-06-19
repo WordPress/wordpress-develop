@@ -91,6 +91,7 @@ $allowed_options            = array(
 	'general'    => array(
 		'blogname',
 		'blogdescription',
+		'atproto_did',
 		'site_icon',
 		'gmt_offset',
 		'date_format',

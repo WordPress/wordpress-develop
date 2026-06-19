@@ -5003,6 +5003,13 @@ function sanitize_option( $option, $value ) {
 			}
 			break;
 
+		case 'atproto_did':
+			$value = is_string( $value ) ? trim( $value ) : '';
+			if ( '' !== $value && ! wp_is_atproto_did( $value ) ) {
+				$error = __( 'The AT Protocol DID you entered did not appear to be valid. Please enter a did:plc or did:web identifier.' );
+			}
+			break;
+
 		case 'date_format':
 		case 'time_format':
 		case 'mailserver_url':

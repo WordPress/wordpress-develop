@@ -54,6 +54,14 @@ if ( is_robots() ) {
 	 */
 	do_action( 'do_favicon' );
 	return;
+} elseif ( is_atproto_did() ) {
+	/**
+	 * Fired when the template loader determines an AT Protocol DID request.
+	 *
+	 * @since 7.1.0
+	 */
+	do_action( 'do_atproto_did' );
+	return;
 } elseif ( is_feed() ) {
 	do_feed();
 	return;
