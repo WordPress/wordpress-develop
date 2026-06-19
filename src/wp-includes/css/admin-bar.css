@@ -539,6 +539,10 @@ html:lang(he-il) .rtl #wpadminbar * {
 	margin: 0 8px 2px -2px;
 }
 
+#wpadminbar .quicklinks li img.blavatar {
+	border-radius: 2px;
+}
+
 #wpadminbar .quicklinks li div.blavatar:before {
 	content: "\f120";
 	content: "\f120" / '';
