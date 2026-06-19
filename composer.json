@@ -18,6 +18,7 @@
 	"suggest": {
 		"ext-curl": "*",
 		"ext-dom": "*"
+		"ext-mysqli": "*"
 	},
 	"require-dev": {
 		"composer/ca-bundle": "1.5.12",
