@@ -240,8 +240,8 @@ Please click the following link to confirm the invite:
 			);
 
 			if ( isset( $_POST['noconfirmation'] ) && current_user_can( 'manage_network_users' ) ) {
-				$key      = $wpdb->get_var( $wpdb->prepare( "SELECT activation_key FROM {$wpdb->signups} WHERE user_login = %s AND user_email = %s", $new_user_login, $new_user_email ) );
-				$new_user = wpmu_activate_signup( $key );
+				$row      = $wpdb->get_row( $wpdb->prepare( "SELECT activation_key, signup_id FROM {$wpdb->signups} WHERE user_login = %s AND user_email = %s", $new_user_login, $new_user_email ) );
+				$new_user = wpmu_activate_signup( $row->activation_key, $row->signup_id );
 				if ( is_wp_error( $new_user ) ) {
 					$redirect = add_query_arg( array( 'update' => 'addnoconfirmation' ), 'user-new.php' );
 				} elseif ( ! is_user_member_of_blog( $new_user['user_id'] ) ) {

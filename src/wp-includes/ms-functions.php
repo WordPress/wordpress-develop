@@ -800,9 +800,16 @@ function wpmu_validate_blog_signup( $blogname, $blog_title, $user = '' ) {
  * @param array  $meta       Optional. Signup meta data. By default, contains the requested privacy setting and lang_id.
  */
 function wpmu_signup_blog( $domain, $path, $title, $user, $user_email, $meta = array() ) {
-	global $wpdb;
+	global $wpdb, $wp_hasher;
 
 	$key = substr( md5( time() . wp_rand() . $domain ), 0, 16 );
+
+	if ( empty( $wp_hasher ) ) {
+		require_once ABSPATH . WPINC . '/class-phpass.php';
+		$wp_hasher = new PasswordHash( 8, true );
+	}
+
+	$hashed = time() . ':' . $wp_hasher->HashPassword( $key );
 
 	/**
 	 * Filters the metadata for a site signup.
@@ -818,8 +825,9 @@ function wpmu_signup_blog( $domain, $path, $title, $user, $user_email, $meta = a
 	 * @param string $user       The user's requested login name.
 	 * @param string $user_email The user's email address.
 	 * @param string $key        The user's activation key.
+	 * @param string $hashed     The user's hashed activation key.
 	 */
-	$meta = apply_filters( 'signup_site_meta', $meta, $domain, $path, $title, $user, $user_email, $key );
+	$meta = apply_filters( 'signup_site_meta', $meta, $domain, $path, $title, $user, $user_email, $key, $hashed );
 
 	$wpdb->insert(
 		$wpdb->signups,
@@ -830,7 +838,7 @@ function wpmu_signup_blog( $domain, $path, $title, $user, $user_email, $meta = a
 			'user_login'     => $user,
 			'user_email'     => $user_email,
 			'registered'     => current_time( 'mysql', true ),
-			'activation_key' => $key,
+			'activation_key' => $hashed,
 			'meta'           => serialize( $meta ),
 		)
 	);
@@ -847,8 +855,10 @@ function wpmu_signup_blog( $domain, $path, $title, $user, $user_email, $meta = a
 	 * @param string $user_email The user's email address.
 	 * @param string $key        The user's activation key.
 	 * @param array  $meta       Signup meta data. By default, contains the requested privacy setting and lang_id.
+	 * @param int    $signup_id  Signup ID.
+	 * @param string $hashed     The user's hashed activation key.
 	 */
-	do_action( 'after_signup_site', $domain, $path, $title, $user, $user_email, $key, $meta );
+	do_action( 'after_signup_site', $domain, $path, $title, $user, $user_email, $key, $meta, $wpdb->insert_id, $hashed );
 }
 
 /**
@@ -866,12 +876,19 @@ function wpmu_signup_blog( $domain, $path, $title, $user, $user_email, $meta = a
  * @param array  $meta       Optional. Signup meta data. Default empty array.
  */
 function wpmu_signup_user( $user, $user_email, $meta = array() ) {
-	global $wpdb;
+	global $wpdb, $wp_hasher;
 
 	// Format data.
 	$user       = preg_replace( '/\s+/', '', sanitize_user( $user, true ) );
 	$user_email = sanitize_email( $user_email );
 	$key        = substr( md5( time() . wp_rand() . $user_email ), 0, 16 );
+
+	if ( empty( $wp_hasher ) ) {
+		require_once ABSPATH . WPINC . '/class-phpass.php';
+		$wp_hasher = new PasswordHash( 8, true );
+	}
+
+	$hashed = time() . ':' . $wp_hasher->HashPassword( $key );
 
 	/**
 	 * Filters the metadata for a user signup.
@@ -884,8 +901,9 @@ function wpmu_signup_user( $user, $user_email, $meta = array() ) {
 	 * @param string $user       The user's requested login name.
 	 * @param string $user_email The user's email address.
 	 * @param string $key        The user's activation key.
+	 * @param string $hashed     The user's hashed activation key.
 	 */
-	$meta = apply_filters( 'signup_user_meta', $meta, $user, $user_email, $key );
+	$meta = apply_filters( 'signup_user_meta', $meta, $user, $user_email, $key, $hashed );
 
 	$wpdb->insert(
 		$wpdb->signups,
@@ -896,7 +914,7 @@ function wpmu_signup_user( $user, $user_email, $meta = array() ) {
 			'user_login'     => $user,
 			'user_email'     => $user_email,
 			'registered'     => current_time( 'mysql', true ),
-			'activation_key' => $key,
+			'activation_key' => $hashed,
 			'meta'           => serialize( $meta ),
 		)
 	);
@@ -910,8 +928,10 @@ function wpmu_signup_user( $user, $user_email, $meta = array() ) {
 	 * @param string $user_email The user's email address.
 	 * @param string $key        The user's activation key.
 	 * @param array  $meta       Signup meta data. Default empty array.
+	 * @param int    $signup_id  Signup ID.
+	 * @param string $hashed     The user's hashed activation key.
 	 */
-	do_action( 'after_signup_user', $user, $user_email, $key, $meta );
+	do_action( 'after_signup_user', $user, $user_email, $key, $meta, $wpdb->insert_id, $hashed );
 }
 
 /**
@@ -947,7 +967,8 @@ function wpmu_signup_blog_notification(
 	$user_email,
 	#[\SensitiveParameter]
 	$key,
-	$meta = array()
+	$meta = array(),
+	$signup_id = 0
 ) {
 	/**
 	 * Filters whether to bypass the new site email notification.
@@ -968,9 +989,9 @@ function wpmu_signup_blog_notification(
 
 	// Send email with activation link.
 	if ( ! is_subdomain_install() || get_current_network_id() !== 1 ) {
-		$activate_url = network_site_url( "wp-activate.php?key=$key" );
+		$activate_url = network_site_url( "wp-activate.php?key=$key&signup_id=$signup_id" );
 	} else {
-		$activate_url = "http://{$domain}{$path}wp-activate.php?key=$key"; // @todo Use *_url() API.
+		$activate_url = "http://{$domain}{$path}wp-activate.php?key=$key&signup_id=$signup_id"; // @todo Use *_url() API.
 	}
 
 	$activate_url = esc_url( $activate_url );
@@ -1088,7 +1109,8 @@ function wpmu_signup_user_notification(
 	$user_email,
 	#[\SensitiveParameter]
 	$key,
-	$meta = array()
+	$meta = array(),
+	$signup_id = 0
 ) {
 	/**
 	 * Filters whether to bypass the email notification for new user sign-up.
@@ -1139,7 +1161,7 @@ function wpmu_signup_user_notification(
 			$key,
 			$meta
 		),
-		site_url( "wp-activate.php?key=$key" )
+		site_url( "wp-activate.php?key=$key&signup_id=$signup_id" )
 	);
 
 	$subject = sprintf(
@@ -1188,19 +1210,56 @@ function wpmu_signup_user_notification(
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
- * @param string $key The activation key provided to the user.
+ * @param string $key       The activation key provided to the user.
+ * @param int    $signup_id The signup ID.
  * @return array|WP_Error An array containing information about the activated user and/or blog.
  */
 function wpmu_activate_signup(
 	#[\SensitiveParameter]
-	$key
+	$key,
+	$signup_id = 0
 ) {
-	global $wpdb;
+	global $wpdb, $wp_hasher;
 
-	$signup = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $wpdb->signups WHERE activation_key = %s", $key ) );
+	$signup = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $wpdb->signups WHERE activation_key = %s OR signup_id = %d", $key, $signup_id ) );
 
 	if ( empty( $signup ) ) {
 		return new WP_Error( 'invalid_key', __( 'Invalid activation key.' ) );
+	}
+
+	// The format of new keys is <timestamp>:<hashed_key>. If the stored key has no colon,
+	// it is a legacy plain-text key from before this hashing was introduced.
+	if ( false === strpos( $signup->activation_key, ':' ) ) {
+		// Legacy key: compare directly and allow activation for backwards compatibility.
+		// Pre-upgrade pending activations must continue to work after the site upgrades.
+		if ( $key !== $signup->activation_key ) {
+			return new WP_Error( 'invalid_key', __( 'Invalid activation key.' ) );
+		}
+	} else {
+		if ( empty( $wp_hasher ) ) {
+			require_once ABSPATH . WPINC . '/class-phpass.php';
+			$wp_hasher = new PasswordHash( 8, true );
+		}
+
+		list( $pass_request_time, $signup_key ) = explode( ':', $signup->activation_key, 2 );
+
+		if ( ! $wp_hasher->CheckPassword( $key, $signup_key ) ) {
+			return new WP_Error( 'invalid_key', __( 'Invalid activation key.' ) );
+		}
+
+		/**
+		 * Filters the expiration time of signup activation keys.
+		 *
+		 * @since 6.9.0
+		 *
+		 * @param int $expiration_duration The expiration time in seconds.
+		 */
+		$expiration_duration = apply_filters( 'activate_signup_expiration', DAY_IN_SECONDS );
+		$expiration_time     = $pass_request_time + $expiration_duration;
+
+		if ( time() > $expiration_time ) {
+			return new WP_Error( 'expired_key', __( 'Invalid key' ) );
+		}
 	}
 
 	if ( $signup->active ) {
@@ -1235,7 +1294,7 @@ function wpmu_activate_signup(
 				'active'    => 1,
 				'activated' => $now,
 			),
-			array( 'activation_key' => $key )
+			array( 'signup_id' => $signup->signup_id )
 		);
 
 		if ( isset( $user_already_exists ) ) {
@@ -1277,7 +1336,7 @@ function wpmu_activate_signup(
 					'active'    => 1,
 					'activated' => $now,
 				),
-				array( 'activation_key' => $key )
+				array( 'signup_id' => $signup->signup_id )
 			);
 		}
 		return $blog_id;
@@ -1289,7 +1348,7 @@ function wpmu_activate_signup(
 			'active'    => 1,
 			'activated' => $now,
 		),
-		array( 'activation_key' => $key )
+		array( 'signup_id' => $signup->signup_id )
 	);
 
 	/**

@@ -136,16 +136,22 @@ class Tests_Multisite_wpmuValidateUserSignup extends WP_UnitTestCase {
 	 * @ticket 43232
 	 */
 	public function test_should_not_fail_for_data_used_by_a_deleted_user() {
-		global $wpdb;
-
 		// Don't send notifications.
 		add_filter( 'wpmu_signup_user_notification', '__return_false' );
 		add_filter( 'wpmu_welcome_user_notification', '__return_false' );
 
+		// Capture the plain-text key and signup ID from the action.
+		$signup_data = array( 'key' => null, 'signup_id' => null );
+		$listener    = static function( $u, $e, $key, $meta, $signup_id ) use ( &$signup_data ) {
+			$signup_data['key']       = $key;
+			$signup_data['signup_id'] = $signup_id;
+		};
+		add_action( 'after_signup_user', $listener, 10, 5 );
+
 		// Signup, activate and delete new user.
 		wpmu_signup_user( 'foo123', 'foo@example.com' );
-		$key  = $wpdb->get_var( "SELECT activation_key FROM $wpdb->signups WHERE user_login = 'foo123'" );
-		$user = wpmu_activate_signup( $key );
+		remove_action( 'after_signup_user', $listener, 10 );
+		$user = wpmu_activate_signup( $signup_data['key'], $signup_data['signup_id'] );
 		wpmu_delete_user( $user['user_id'] );
 
 		$valid = wpmu_validate_user_signup( 'foo123', 'foo2@example.com' );
