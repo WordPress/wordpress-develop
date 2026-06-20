@@ -4300,6 +4300,14 @@ function wp_create_initial_comment_meta() {
  * nesting stack keeps each note opener paired with its own closer so overlapping
  * notes and any user highlight `<mark>` left intact still resolve correctly.
  *
+ * The low-level {@see WP_HTML_Tag_Processor} is used deliberately, rather than
+ * the tree-building {@see WP_HTML_Processor}. Note markers live in user-editable
+ * content, so the markup is not guaranteed to be well formed. On certain
+ * ill-formed nesting the tree builder aborts, which would leave note markers -
+ * and their metadata - in the rendered output. Scanning tokens instead removes
+ * every `wp-note` marker it encounters and degrades gracefully: an unbalanced or
+ * stray tag is left exactly as it was rather than corrupting surrounding markup.
+ *
  * @since 7.1.0
  *
  * @param string $block_content Rendered block HTML.
@@ -4310,10 +4318,12 @@ function wp_strip_inline_note_markers( $block_content ) {
 		return $block_content;
 	}
 
-	// Anonymous subclass exposing token removal, which WP_HTML_Tag_Processor
-	// does not provide publicly yet. Removing the current token via its bookmark
-	// span unwraps the `<mark>` (opener or closer) while keeping the text it
-	// wraps.
+	/*
+	 * Anonymous subclass exposing token removal, which WP_HTML_Tag_Processor
+	 * does not provide publicly yet. Removing the current token via its bookmark
+	 * span unwraps the `<mark>` (opener or closer) while keeping the text it
+	 * wraps.
+	 */
 	$processor = new class( $block_content ) extends WP_HTML_Tag_Processor {
 		/**
 		 * Removes the current token, keeping any text it wraps.
@@ -4327,8 +4337,10 @@ function wp_strip_inline_note_markers( $block_content ) {
 		}
 	};
 
-	// Walk every `<mark>`, tracking note nesting on a stack so each note opener
-	// pairs with its own closer, and unwrap only the note markers.
+	/*
+	 * Walk every `<mark>`, tracking note nesting on a stack so each note opener
+	 * pairs with its own closer, and unwrap only the note markers.
+	 */
 	$mark_stack = array();
 	$query      = array(
 		'tag_name'    => 'MARK',
