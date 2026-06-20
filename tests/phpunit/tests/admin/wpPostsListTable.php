@@ -330,4 +330,111 @@ class Tests_Admin_wpPostsListTable extends WP_UnitTestCase {
 
 		$this->assertSame( $expected, $actual );
 	}
+
+	/**
+	 * Ensures the Date column shows the modified date (not the future
+	 * publication date) for a pending post scheduled in the future.
+	 *
+	 * @ticket 40860
+	 *
+	 * @covers WP_Posts_List_Table::column_date
+	 */
+	public function test_column_date_shows_modified_date_for_pending_scheduled_post() {
+		global $mode;
+
+		$mode  = 'list';
+		$table = _get_list_table( 'WP_Posts_List_Table', array( 'screen' => 'edit-post' ) );
+
+		$future_gmt = gmdate( 'Y-m-d H:i:s', time() + WEEK_IN_SECONDS );
+		$now        = current_time( 'mysql' );
+		$now_gmt    = current_time( 'mysql', true );
+
+		$post_id = self::factory()->post->create(
+			array(
+				'post_status'   => 'pending',
+				'post_date'     => get_date_from_gmt( $future_gmt ),
+				'post_date_gmt' => $future_gmt,
+			)
+		);
+
+		// Force a modified date in the past (now), distinct from the future post_date.
+		global $wpdb;
+		$wpdb->update(
+			$wpdb->posts,
+			array(
+				'post_modified'     => $now,
+				'post_modified_gmt' => $now_gmt,
+			),
+			array( 'ID' => $post_id )
+		);
+		clean_post_cache( $post_id );
+
+		$post = get_post( $post_id );
+
+		ob_start();
+		$table->column_date( $post );
+		$output = ob_get_clean();
+
+		$modified_date = get_the_modified_time( __( 'Y/m/d' ), $post );
+		$future_date   = get_the_time( __( 'Y/m/d' ), $post );
+
+		$this->assertStringContainsString( 'Last Modified', $output, 'A pending post should display the "Last Modified" status.' );
+		$this->assertStringContainsString( $modified_date, $output, 'The Date column should display the post modified date.' );
+		$this->assertStringNotContainsString( $future_date, $output, 'The Date column should not display the future publication date for a pending post.' );
+	}
+
+	/**
+	 * Ensures the Date column still shows the publication date for
+	 * published and scheduled posts.
+	 *
+	 * @ticket 40860
+	 *
+	 * @covers WP_Posts_List_Table::column_date
+	 *
+	 * @dataProvider data_column_date_uses_publication_date_for_published_and_scheduled
+	 *
+	 * @param string $post_status   The post status to test.
+	 * @param string $expected_text The status label expected in the output.
+	 */
+	public function test_column_date_uses_publication_date_for_published_and_scheduled( $post_status, $expected_text ) {
+		global $mode;
+
+		$mode  = 'list';
+		$table = _get_list_table( 'WP_Posts_List_Table', array( 'screen' => 'edit-post' ) );
+
+		if ( 'future' === $post_status ) {
+			$date_gmt = gmdate( 'Y-m-d H:i:s', time() + DAY_IN_SECONDS );
+		} else {
+			$date_gmt = gmdate( 'Y-m-d H:i:s', time() - DAY_IN_SECONDS );
+		}
+
+		$post_id = self::factory()->post->create(
+			array(
+				'post_status'   => $post_status,
+				'post_date'     => get_date_from_gmt( $date_gmt ),
+				'post_date_gmt' => $date_gmt,
+			)
+		);
+
+		$post = get_post( $post_id );
+
+		ob_start();
+		$table->column_date( $post );
+		$output = ob_get_clean();
+
+		$this->assertStringContainsString( $expected_text, $output, 'The Date column should display the expected status label.' );
+		$this->assertStringContainsString( get_the_time( __( 'Y/m/d' ), $post ), $output, 'The Date column should display the publication date.' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_column_date_uses_publication_date_for_published_and_scheduled() {
+		return array(
+			'published post' => array( 'publish', 'Published' ),
+			'scheduled post' => array( 'future', 'Scheduled' ),
+		);
+	}
 }

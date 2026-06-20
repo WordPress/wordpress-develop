@@ -1193,7 +1193,8 @@ class WP_Posts_List_Table extends WP_List_Table {
 		if ( '0000-00-00 00:00:00' === $post->post_date ) {
 			$t_time    = __( 'Unpublished' );
 			$time_diff = 0;
-		} else {
+		} elseif ( 'publish' === $post->post_status || 'future' === $post->post_status ) {
+			// For published and scheduled posts, show the publication date and time.
 			$t_time = sprintf(
 				/* translators: 1: Post date, 2: Post time. */
 				__( '%1$s at %2$s' ),
@@ -1204,6 +1205,24 @@ class WP_Posts_List_Table extends WP_List_Table {
 			);
 
 			$time      = get_post_timestamp( $post );
+			$time_diff = time() - $time;
+		} else {
+			/*
+			 * For all other statuses (draft, pending, etc.), the "Last Modified"
+			 * label is shown below, so display the modified date and time to match.
+			 * This avoids showing a future scheduled date labeled as "Last Modified",
+			 * for example when a pending post has a future publication date.
+			 */
+			$t_time = sprintf(
+				/* translators: 1: Post modified date, 2: Post modified time. */
+				__( '%1$s at %2$s' ),
+				/* translators: Post modified date format. See https://www.php.net/manual/datetime.format.php */
+				get_the_modified_time( __( 'Y/m/d' ), $post ),
+				/* translators: Post modified time format. See https://www.php.net/manual/datetime.format.php */
+				get_the_modified_time( __( 'g:i a' ), $post )
+			);
+
+			$time      = get_post_timestamp( $post, 'modified' );
 			$time_diff = time() - $time;
 		}
 
