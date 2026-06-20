@@ -541,12 +541,14 @@ function wp_network_dashboard_right_now() {
  * Displays the Quick Draft widget.
  *
  * @since 3.8.0
+ * @since 7.1.0 Added $notice_type parameter.
  *
  * @global int $post_ID
  *
- * @param string|false $error_msg Optional. Error message. Default false.
+ * @param string|false $message     Optional. Error or success message. Default false.
+ * @param string       $notice_type Optional. Admin notice type. Default 'notice-error'.
  */
-function wp_dashboard_quick_press( $error_msg = false ) {
+function wp_dashboard_quick_press( $message = false, $notice_type = 'notice-error' ) {
 	global $post_ID;
 
 	if ( ! current_user_can( 'edit_posts' ) ) {
@@ -581,11 +583,11 @@ function wp_dashboard_quick_press( $error_msg = false ) {
 	<form name="post" action="<?php echo esc_url( admin_url( 'post.php' ) ); ?>" method="post" id="quick-press" class="initial-form hide-if-no-js">
 
 		<?php
-		if ( $error_msg ) {
+		if ( $message ) {
 			wp_admin_notice(
-				$error_msg,
+				$message,
 				array(
-					'additional_classes' => array( 'error' ),
+					'additional_classes' => array( $notice_type ),
 					'attributes'         => array(
 						'role' => 'alert',
 					),
