@@ -105,7 +105,7 @@ switch ( $action ) {
 
 		// Wrap Quick Draft content in a Paragraph block.
 		if (
-			use_block_editor_for_post_type( 'post' ) &&
+			use_block_editor_for_post_type( $post->post_type ) &&
 			! empty( $quickdraft_post_content ) &&
 			! str_contains( $quickdraft_post_content, '<!-- wp:paragraph -->' )
 		) {
