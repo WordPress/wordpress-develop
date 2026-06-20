@@ -15,6 +15,9 @@
  */
 class Tests_Comment_StripInlineNoteMarkers extends WP_UnitTestCase {
 
+	/**
+	 * @ticket 65482
+	 */
 	public function test_strip_unwraps_marker_from_mark() {
 		$html     = '<p>Hello <mark class="wp-note" data-id="7">marked</mark> world</p>';
 		$stripped = wp_strip_inline_note_markers( $html );
@@ -22,6 +25,9 @@ class Tests_Comment_StripInlineNoteMarkers extends WP_UnitTestCase {
 		$this->assertSame( '<p>Hello marked world</p>', $stripped );
 	}
 
+	/**
+	 * @ticket 65482
+	 */
 	public function test_strip_handles_multiple_markers_in_one_block() {
 		$html     = '<p><mark class="wp-note" data-id="1">a</mark> and <mark class="wp-note" data-id="2">b</mark></p>';
 		$stripped = wp_strip_inline_note_markers( $html );
@@ -29,6 +35,9 @@ class Tests_Comment_StripInlineNoteMarkers extends WP_UnitTestCase {
 		$this->assertSame( '<p>a and b</p>', $stripped );
 	}
 
+	/**
+	 * @ticket 65482
+	 */
 	public function test_strip_passes_through_block_content_without_markers() {
 		$html     = '<p>Plain text with no notes here.</p>';
 		$stripped = wp_strip_inline_note_markers( $html );
@@ -36,6 +45,9 @@ class Tests_Comment_StripInlineNoteMarkers extends WP_UnitTestCase {
 		$this->assertSame( $html, $stripped );
 	}
 
+	/**
+	 * @ticket 65482
+	 */
 	public function test_strip_keeps_other_classes_when_removing_wp_note() {
 		// The whole wrapper is removed, so any companion classes go with it.
 		$html     = '<p><mark class="custom wp-note other" data-id="3">x</mark></p>';
@@ -44,6 +56,9 @@ class Tests_Comment_StripInlineNoteMarkers extends WP_UnitTestCase {
 		$this->assertSame( '<p>x</p>', $stripped );
 	}
 
+	/**
+	 * @ticket 65482
+	 */
 	public function test_strip_leaves_unrelated_marks_untouched() {
 		// A user highlight (`core/text-color`) serializes as a plain `<mark>` and
 		// must survive untouched.
@@ -53,6 +68,9 @@ class Tests_Comment_StripInlineNoteMarkers extends WP_UnitTestCase {
 		$this->assertSame( $html, $stripped );
 	}
 
+	/**
+	 * @ticket 65482
+	 */
 	public function test_strip_does_not_match_partial_class_names() {
 		// `wp-note-foo` is a different class and must not be treated as a marker;
 		// a regex word boundary would incorrectly match it.
@@ -62,6 +80,9 @@ class Tests_Comment_StripInlineNoteMarkers extends WP_UnitTestCase {
 		$this->assertSame( $html, $stripped );
 	}
 
+	/**
+	 * @ticket 65482
+	 */
 	public function test_strip_preserves_user_mark_attributes_next_to_note() {
 		// A user/plugin `<mark>` with several attributes sitting beside a note
 		// marker must be returned byte-for-byte; only the `wp-note` wrapper goes.
@@ -71,6 +92,9 @@ class Tests_Comment_StripInlineNoteMarkers extends WP_UnitTestCase {
 		$this->assertSame( '<p><mark class="highlight" style="background-color:#ff0" data-id="99" title="kept">user</mark> and noted</p>', $stripped );
 	}
 
+	/**
+	 * @ticket 65482
+	 */
 	public function test_strip_preserves_nested_formatting() {
 		// A note wrapping already-formatted text (e.g. coloured text) serializes
 		// with nested inline elements. The wrapper is removed while the inner
@@ -81,6 +105,9 @@ class Tests_Comment_StripInlineNoteMarkers extends WP_UnitTestCase {
 		$this->assertSame( '<p>a <span style="color:red">red</span> b</p>', $stripped );
 	}
 
+	/**
+	 * @ticket 65482
+	 */
 	public function test_strip_unwraps_note_but_keeps_inner_highlight_mark() {
 		// A note wrapping a user highlight nests `<mark>` inside `<mark>`. Only the
 		// note wrapper is removed; the inner highlight `<mark>` is preserved, and
@@ -91,6 +118,9 @@ class Tests_Comment_StripInlineNoteMarkers extends WP_UnitTestCase {
 		$this->assertSame( '<p>a <mark style="background-color:#ff0">hi</mark> b</p>', $stripped );
 	}
 
+	/**
+	 * @ticket 65482
+	 */
 	public function test_strip_handles_overlapping_nested_note_markers() {
 		// Two notes anchored on overlapping text serialize as nested `<mark>`s.
 		// Both wrappers are removed and the text survives.
@@ -100,6 +130,9 @@ class Tests_Comment_StripInlineNoteMarkers extends WP_UnitTestCase {
 		$this->assertSame( '<p>abc</p>', $stripped );
 	}
 
+	/**
+	 * @ticket 65482
+	 */
 	public function test_strip_ignores_mark_like_text_inside_a_comment() {
 		// A `</mark>` sequence inside an HTML comment is text, not a tag. Walking
 		// the parsed token stream ignores it; a raw regex over the string would
@@ -111,6 +144,50 @@ class Tests_Comment_StripInlineNoteMarkers extends WP_UnitTestCase {
 		$this->assertSame( '<p>a<!-- </mark> -->btail</p>', $stripped );
 	}
 
+	/**
+	 * A note marker left unclosed (e.g. by a hand edit in the code editor) still
+	 * has its opener stripped, so no `wp-note` metadata leaks to the front end.
+	 *
+	 * @ticket 65482
+	 */
+	public function test_strip_unwraps_unclosed_note_marker() {
+		$html     = '<p><mark class="wp-note" data-id="1">a';
+		$stripped = wp_strip_inline_note_markers( $html );
+
+		$this->assertSame( '<p>a', $stripped );
+	}
+
+	/**
+	 * A stray `</mark>` closer with no matching opener is not a note marker, so it
+	 * is left exactly as it was rather than corrupting the surrounding markup.
+	 *
+	 * @ticket 65482
+	 */
+	public function test_strip_leaves_stray_mark_closer_untouched() {
+		$html     = '<p>a</mark>b</p>';
+		$stripped = wp_strip_inline_note_markers( $html );
+
+		$this->assertSame( $html, $stripped );
+	}
+
+	/**
+	 * Note markers can be crossed with other inline formatting in hand-edited or
+	 * otherwise ill-formed content. The full HTML tree builder would abort on this
+	 * nesting and leave the marker (and its metadata) in place; scanning tokens
+	 * strips the `wp-note` marker regardless and keeps the rest of the markup.
+	 *
+	 * @ticket 65482
+	 */
+	public function test_strip_unwraps_note_marker_with_improper_nesting() {
+		$html     = '<p><mark class="wp-note" data-id="1">a<i>b</mark>c</i></p>';
+		$stripped = wp_strip_inline_note_markers( $html );
+
+		$this->assertSame( '<p>a<i>bc</i></p>', $stripped );
+	}
+
+	/**
+	 * @ticket 65482
+	 */
 	public function test_strip_filter_is_registered_on_render_block() {
 		// Guards against future hook rewiring that would silently leave
 		// inline-note markers in rendered output.
