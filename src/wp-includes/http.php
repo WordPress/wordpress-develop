@@ -641,6 +641,100 @@ function ms_allowed_http_request_hosts( $is_external, $host ) {
 }
 
 /**
+ * Parses URL components using PHP's WHATWG URL parser.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param string $url URL to parse.
+ * @return array|false Array of URL components, or false on failure.
+ */
+function _wp_parse_url_components_whatwg( $url ) {
+	$parsed = \Uri\WhatWg\Url::parse( $url );
+
+	if ( null === $parsed ) {
+		return false;
+	}
+
+	$parts = array();
+
+	$scheme = $parsed->getScheme();
+	if ( null !== $scheme ) {
+		$parts['scheme'] = $scheme;
+	}
+
+	$host = $parsed->getAsciiHost();
+	if ( null !== $host ) {
+		$parts['host'] = $host;
+	}
+
+	$port = $parsed->getPort();
+	if ( null !== $port ) {
+		$parts['port'] = $port;
+	}
+
+	$user = $parsed->getUsername();
+	if ( null !== $user && '' !== $user ) {
+		$parts['user'] = $user;
+	}
+
+	$pass = $parsed->getPassword();
+	if ( null !== $pass && '' !== $pass ) {
+		$parts['pass'] = $pass;
+	}
+
+	$path = $parsed->getPath();
+
+	/*
+	 * WHATWG URLs normalize an empty path on special URLs to "/".
+	 * parse_url( 'https://example.com' ) does not return a path.
+	 */
+	if ( '' !== $path && ! ( '/' === $path && ! preg_match( '#^[a-z][a-z0-9+.-]*://[^/?#]+/#i', $url ) ) ) {
+		$parts['path'] = $path;
+	}
+
+	$query = $parsed->getQuery();
+	if ( null !== $query ) {
+		$parts['query'] = $query;
+	}
+
+	$fragment = $parsed->getFragment();
+	if ( null !== $fragment ) {
+		$parts['fragment'] = $fragment;
+	}
+
+	return $parts;
+}
+
+if ( class_exists( 'Uri\\WhatWg\\Url', false ) ) {
+	/**
+	 * Parses URL components.
+	 *
+	 * @since 7.1.0
+	 * @access private
+	 *
+	 * @param string $url URL to parse.
+	 * @return array|false Array of URL components, or false on failure.
+	 */
+	function _wp_parse_url_components( $url ) {
+		return _wp_parse_url_components_whatwg( $url );
+	}
+} else {
+	/**
+	 * Parses URL components.
+	 *
+	 * @since 7.1.0
+	 * @access private
+	 *
+	 * @param string $url URL to parse.
+	 * @return array|false Array of URL components, or false on failure.
+	 */
+	function _wp_parse_url_components( $url ) {
+		return parse_url( $url );
+	}
+}
+
+/**
  * A wrapper for PHP's parse_url() function that handles consistency in the return
  * values across PHP versions.
  *
@@ -654,6 +748,7 @@ function ms_allowed_http_request_hosts( $is_external, $host ) {
  *
  * @since 4.4.0
  * @since 4.7.0 The `$component` parameter was added for parity with PHP's `parse_url()`.
+ * @since 7.1.0 Use helper function to utilize PHP's WHATWG URL parser if available (PHP 8.5+)
  *
  * @link https://www.php.net/manual/en/function.parse-url.php
  *
@@ -670,23 +765,21 @@ function wp_parse_url( $url, $component = -1 ) {
 	$to_unset = array();
 	$url      = (string) $url;
 
-	if ( '//' === substr( $url, 0, 2 ) ) {
+	if ( str_starts_with( $url, '//' ) ) {
 		$to_unset[] = 'scheme';
 		$url        = 'placeholder:' . $url;
-	} elseif ( '/' === substr( $url, 0, 1 ) ) {
+	} elseif ( str_starts_with( $url, '/' ) ) {
 		$to_unset[] = 'scheme';
 		$to_unset[] = 'host';
 		$url        = 'placeholder://placeholder' . $url;
 	}
 
-	$parts = parse_url( $url );
+	$parts = _wp_parse_url_components( $url );
 
 	if ( false === $parts ) {
-		// Parsing failure.
-		return $parts;
+		return false;
 	}
 
-	// Remove the placeholder values.
 	foreach ( $to_unset as $key ) {
 		unset( $parts[ $key ] );
 	}
