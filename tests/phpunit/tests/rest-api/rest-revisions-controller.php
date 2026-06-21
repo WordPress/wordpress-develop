@@ -267,6 +267,78 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 	}
 
 	/**
+	 * Preparing a revision must not leak the revision into the global post.
+	 *
+	 * @ticket 65495
+	 *
+	 * @covers WP_REST_Revisions_Controller::prepare_item_for_response
+	 */
+	public function test_get_items_restores_global_post() {
+		wp_set_current_user( self::$editor_id );
+
+		$GLOBALS['post'] = get_post( self::$post_id );
+		setup_postdata( $GLOBALS['post'] );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts/' . self::$post_id . '/revisions' );
+		$request->set_param( 'context', 'edit' );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertInstanceOf( 'WP_Post', $GLOBALS['post'], 'The global post should still be set after the request.' );
+		$this->assertSame(
+			self::$post_id,
+			$GLOBALS['post']->ID,
+			'The global post should be restored to the post that was set before the request.'
+		);
+	}
+
+	/**
+	 * Preparing a revision for a HEAD request must also restore the global post.
+	 *
+	 * @ticket 65495
+	 *
+	 * @covers WP_REST_Revisions_Controller::prepare_item_for_response
+	 */
+	public function test_get_items_head_request_restores_global_post() {
+		wp_set_current_user( self::$editor_id );
+
+		$GLOBALS['post'] = get_post( self::$post_id );
+		setup_postdata( $GLOBALS['post'] );
+
+		$request = new WP_REST_Request( 'HEAD', '/wp/v2/posts/' . self::$post_id . '/revisions' );
+		$request->set_param( 'context', 'edit' );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertInstanceOf( 'WP_Post', $GLOBALS['post'], 'The global post should still be set after a HEAD request.' );
+		$this->assertSame(
+			self::$post_id,
+			$GLOBALS['post']->ID,
+			'The global post should be restored after a HEAD request.'
+		);
+	}
+
+	/**
+	 * When there is no global post before the request, none should be set afterwards.
+	 *
+	 * @ticket 65495
+	 *
+	 * @covers WP_REST_Revisions_Controller::prepare_item_for_response
+	 */
+	public function test_get_items_without_global_post_leaves_it_unset() {
+		wp_set_current_user( self::$editor_id );
+
+		unset( $GLOBALS['post'] );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts/' . self::$post_id . '/revisions' );
+		$request->set_param( 'context', 'edit' );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertArrayNotHasKey( 'post', $GLOBALS, 'The global post should not be set when there was none before the request.' );
+	}
+
+	/**
 	 * @dataProvider data_readable_http_methods
 	 * @ticket 56481
 	 *
@@ -639,16 +711,32 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 		$this->assertSame( rest_url( '/wp/v2/' . $parent_base . '/' . $revision->post_parent ), $links['parent'][0]['href'] );
 	}
 
-	public function test_get_item_sets_up_postdata() {
+	/**
+	 * The revision's postdata should be set up while preparing the response,
+	 * so rendered fields reflect the revision, without leaking into the global
+	 * post after the request completes.
+	 *
+	 * @ticket 65495
+	 */
+	public function test_get_item_sets_up_postdata_without_leaking_global_post() {
 		wp_set_current_user( self::$editor_id );
-		$request = new WP_REST_Request( 'GET', '/wp/v2/posts/' . self::$post_id . '/revisions/' . $this->revision_id1 );
-		rest_get_server()->dispatch( $request );
 
-		$post           = get_post();
-		$parent_post_id = wp_is_post_revision( $post->ID );
+		$GLOBALS['post'] = get_post( self::$post_id );
+		setup_postdata( $GLOBALS['post'] );
 
-		$this->assertSame( $post->ID, $this->revision_id1 );
-		$this->assertSame( $parent_post_id, self::$post_id );
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/posts/' . self::$post_id . '/revisions/' . $this->revision_id1 );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		// The rendered title reflects the revision, proving postdata was set up during preparation.
+		$this->assertSame( get_the_title( $this->revision_id1 ), $data['title']['rendered'] );
+
+		// The global post is restored to the post that was set before the request.
+		$this->assertSame(
+			self::$post_id,
+			$GLOBALS['post']->ID,
+			'The global post should not leak the revision after the request.'
+		);
 	}
 
 	/**

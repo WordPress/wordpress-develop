@@ -606,12 +606,23 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 		// Restores the more descriptive, specific name for use within this method.
 		$post = $item;
 
+		/*
+		 * Save the previous global post so it can be restored before returning.
+		 * Preparing the revision sets up the global post and post data, which
+		 * must not leak into the rest of the request (e.g. the autosaves endpoint
+		 * is preloaded in the block editor, where a leaked global post can cause
+		 * the editor to be initialized with the wrong post).
+		 */
+		$previous_post = isset( $GLOBALS['post'] ) ? $GLOBALS['post'] : null;
+
 		$GLOBALS['post'] = $post;
 
 		setup_postdata( $post );
 
 		// Don't prepare the response body for HEAD requests.
 		if ( $request->is_method( 'HEAD' ) ) {
+			$this->reset_post_data( $previous_post );
+
 			/** This filter is documented in wp-includes/rest-api/endpoints/class-wp-rest-revisions-controller.php */
 			return apply_filters( 'rest_prepare_revision', new WP_REST_Response( array() ), $post, $request );
 		}
@@ -706,6 +717,8 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 			$response->add_link( 'parent', rest_url( rest_get_route_for_post( $data['parent'] ) ) );
 		}
 
+		$this->reset_post_data( $previous_post );
+
 		/**
 		 * Filters a revision returned from the REST API.
 		 *
@@ -718,6 +731,27 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 		 * @param WP_REST_Request  $request  Request used to generate the response.
 		 */
 		return apply_filters( 'rest_prepare_revision', $response, $post, $request );
+	}
+
+	/**
+	 * Restores the global post to its previous value after preparing a revision.
+	 *
+	 * Preparing a revision overwrites the global post and post data via
+	 * setup_postdata(). This restores the global post that was in place
+	 * beforehand so the change does not leak into the rest of the request.
+	 *
+	 * @since 7.0.1
+	 *
+	 * @param WP_Post|null $previous_post The global post to restore, or null if there was none.
+	 */
+	private function reset_post_data( $previous_post ) {
+		if ( $previous_post instanceof WP_Post ) {
+			$GLOBALS['post'] = $previous_post;
+			setup_postdata( $previous_post );
+		} else {
+			unset( $GLOBALS['post'] );
+			wp_reset_postdata();
+		}
 	}
 
 	/**

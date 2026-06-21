@@ -731,16 +731,34 @@ class WP_Test_REST_Autosaves_Controller extends WP_Test_REST_Post_Type_Controlle
 		$this->assertSame( rest_url( '/wp/v2/' . $parent_base . '/' . $autosave->post_parent ), $links['parent'][0]['href'] );
 	}
 
-	public function test_get_item_sets_up_postdata() {
+	/**
+	 * The autosave's postdata should be set up while preparing the response,
+	 * so rendered fields reflect the autosave, without leaking into the global
+	 * post after the request completes.
+	 *
+	 * @ticket 65495
+	 */
+	public function test_get_item_sets_up_postdata_without_leaking_global_post() {
 		wp_set_current_user( self::$editor_id );
-		$request = new WP_REST_Request( 'GET', '/wp/v2/posts/' . self::$post_id . '/autosaves/' . self::$autosave_post_id );
-		rest_get_server()->dispatch( $request );
 
-		$post           = get_post();
-		$parent_post_id = wp_is_post_revision( $post->ID );
+		$GLOBALS['post'] = get_post( self::$post_id );
+		setup_postdata( $GLOBALS['post'] );
 
-		$this->assertSame( $post->ID, self::$autosave_post_id );
-		$this->assertSame( $parent_post_id, self::$post_id );
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/posts/' . self::$post_id . '/autosaves/' . self::$autosave_post_id );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$autosave = get_post( self::$autosave_post_id );
+
+		// The rendered title reflects the autosave, proving postdata was set up during preparation.
+		$this->assertSame( get_the_title( $autosave->ID ), $data['title']['rendered'] );
+
+		// The global post is restored to the post that was set before the request.
+		$this->assertSame(
+			self::$post_id,
+			$GLOBALS['post']->ID,
+			'The global post should not leak the autosave after the request.'
+		);
 	}
 
 	public function test_update_item_draft_page_with_parent() {
