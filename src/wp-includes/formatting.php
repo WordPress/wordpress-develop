@@ -331,7 +331,7 @@ function wptexturize( $text, $reset = false ) {
  * wptexturize(). Most tokens end with ASCII letters, numbers, or punctuation; only
  * multibyte text and closing quote entities need a regular expression check.
  *
- * @since 7.0.0
+ * @since 7.1.0
  *
  * @param string $text Text token from wptexturize().
  * @return bool Whether the text ends with quote context.
@@ -361,7 +361,7 @@ function _wptexturize_text_ends_with_quote_context( $text ) {
 /**
  * Determines whether a token is a closing tag for a common inline HTML element.
  *
- * @since 7.0.0
+ * @since 7.1.0
  *
  * @param string $text A token from wptexturize()'s split input.
  * @return bool Whether the token is a closing inline HTML element.
