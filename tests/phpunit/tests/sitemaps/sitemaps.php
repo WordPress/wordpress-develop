@@ -493,4 +493,52 @@ class Tests_Sitemaps_Sitemaps extends WP_UnitTestCase {
 
 		$this->assertTrue( is_404() );
 	}
+
+	/**
+	 * Ensures rendering a sitemap defines the DOING_SITEMAP constant.
+	 *
+	 * @ticket 56954
+	 *
+	 * @covers WP_Sitemaps::render_sitemaps
+	 * @covers ::wp_doing_sitemap
+	 *
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
+	 */
+	public function test_render_sitemaps_defines_doing_sitemap() {
+		$this->assertFalse( wp_doing_sitemap(), 'wp_doing_sitemap() should be false before a sitemap is rendered.' );
+
+		wp_register_sitemap_provider( 'foo', new WP_Sitemaps_Empty_Test_Provider( 'foo' ) );
+
+		$this->go_to( home_url( '/?sitemap=foo' ) );
+
+		wp_sitemaps_get_server()->render_sitemaps();
+
+		$this->assertTrue( defined( 'DOING_SITEMAP' ), 'The DOING_SITEMAP constant should be defined.' );
+		$this->assertTrue( wp_doing_sitemap(), 'wp_doing_sitemap() should be true while rendering a sitemap.' );
+	}
+
+	/**
+	 * Ensures the DOING_SITEMAP constant is not defined when sitemaps are disabled.
+	 *
+	 * The constant is only defined once the request has passed the preliminary
+	 * checks, so a disabled sitemap request should never reach that point.
+	 *
+	 * @ticket 56954
+	 *
+	 * @covers WP_Sitemaps::render_sitemaps
+	 *
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
+	 */
+	public function test_render_sitemaps_does_not_define_doing_sitemap_when_disabled() {
+		add_filter( 'wp_sitemaps_enabled', '__return_false' );
+
+		$this->go_to( home_url( '/?sitemap=index' ) );
+
+		wp_sitemaps_get_server()->render_sitemaps();
+
+		$this->assertFalse( defined( 'DOING_SITEMAP' ), 'The DOING_SITEMAP constant should not be defined when sitemaps are disabled.' );
+		$this->assertFalse( wp_doing_sitemap(), 'wp_doing_sitemap() should be false when sitemaps are disabled.' );
+	}
 }
