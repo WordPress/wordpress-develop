@@ -361,6 +361,10 @@ function _wptexturize_text_ends_with_quote_context( $text ) {
 /**
  * Determines whether a token is a closing tag for a common inline HTML element.
  *
+ * This mirrors the tag-name extraction in {@see wp_kses_split2()}, which is
+ * private and far broader, so it is intentionally not reused here. The element
+ * list is the inline complement of the block-level tags in {@see wpautop()}.
+ *
  * @since 7.1.0
  *
  * @param string $text A token from wptexturize()'s split input.
