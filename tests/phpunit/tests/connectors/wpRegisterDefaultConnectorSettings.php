@@ -8,9 +8,9 @@
  */
 class Tests_Connectors_WpRegisterDefaultConnectorSettings extends WP_UnitTestCase {
 
-	const CONNECTOR_ID = 'wp_test_non_ai_connector';
-	const SETTING_NAME = 'connectors_test_non_ai_api_key';
-	const USERNAME_SETTING_NAME = 'connectors_test_non_ai_username';
+	const CONNECTOR_ID                      = 'wp_test_non_ai_connector';
+	const SETTING_NAME                      = 'connectors_test_non_ai_api_key';
+	const USERNAME_SETTING_NAME             = 'connectors_test_non_ai_username';
 	const APPLICATION_PASSWORD_SETTING_NAME = 'connectors_test_non_ai_application_password';
 
 	/**

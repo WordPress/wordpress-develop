@@ -131,7 +131,7 @@ class Tests_Connectors_WpConnectorRegistry extends WP_UnitTestCase {
 	 * @ticket 64850
 	 */
 	public function test_register_generates_application_password_setting_names() {
-		$args = self::$default_args;
+		$args                   = self::$default_args;
 		$args['authentication'] = array(
 			'method'          => 'application_password',
 			'credentials_url' => 'https://example.com/profile.php',
@@ -149,7 +149,7 @@ class Tests_Connectors_WpConnectorRegistry extends WP_UnitTestCase {
 	 * @ticket 64850
 	 */
 	public function test_register_uses_custom_application_password_setting_names() {
-		$args = self::$default_args;
+		$args                   = self::$default_args;
 		$args['authentication'] = array(
 			'method'                            => 'application_password',
 			'username_setting_name'             => 'remote_site_username',
@@ -173,9 +173,9 @@ class Tests_Connectors_WpConnectorRegistry extends WP_UnitTestCase {
 	public function test_register_rejects_invalid_application_password_setting_names( string $setting_name_key, $value ) {
 		$this->setExpectedIncorrectUsage( 'WP_Connector_Registry::register' );
 
-		$args = self::$default_args;
+		$args                   = self::$default_args;
 		$args['authentication'] = array(
-			'method'           => 'application_password',
+			'method'          => 'application_password',
 			$setting_name_key => $value,
 		);
 
@@ -191,10 +191,10 @@ class Tests_Connectors_WpConnectorRegistry extends WP_UnitTestCase {
 	 */
 	public function data_invalid_application_password_setting_names(): array {
 		return array(
-			'empty username setting name'          => array( 'username_setting_name', '' ),
-			'non-string username setting name'     => array( 'username_setting_name', 123 ),
-			'empty password setting name'          => array( 'application_password_setting_name', '' ),
-			'non-string password setting name'     => array( 'application_password_setting_name', 123 ),
+			'empty username setting name'      => array( 'username_setting_name', '' ),
+			'non-string username setting name' => array( 'username_setting_name', 123 ),
+			'empty password setting name'      => array( 'application_password_setting_name', '' ),
+			'non-string password setting name' => array( 'application_password_setting_name', 123 ),
 		);
 	}
 

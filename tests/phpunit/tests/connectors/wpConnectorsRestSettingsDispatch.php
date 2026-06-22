@@ -7,8 +7,8 @@
  */
 class Tests_Connectors_WpConnectorsRestSettingsDispatch extends WP_UnitTestCase {
 
-	const CONNECTOR_ID = 'wp_test_application_password_connector';
-	const USERNAME_SETTING_NAME = 'connectors_test_remote_username';
+	const CONNECTOR_ID                      = 'wp_test_application_password_connector';
+	const USERNAME_SETTING_NAME             = 'connectors_test_remote_username';
 	const APPLICATION_PASSWORD_SETTING_NAME = 'connectors_test_remote_application_password';
 
 	/**
