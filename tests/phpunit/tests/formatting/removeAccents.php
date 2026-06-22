@@ -109,6 +109,16 @@ class Tests_Formatting_RemoveAccents extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 64821
+	 */
+	public function test_remove_accents_germanic_capital_eszett() {
+		// U+1E9E LATIN CAPITAL LETTER SHARP S, standardized in German orthography in 2017 (DIN 5008).
+		$this->assertSame( 'SS', remove_accents( 'ẞ', 'de_DE' ) );
+		// Verify it works in context alongside the lowercase variant.
+		$this->assertSame( 'SSstrasse', remove_accents( 'ẞstraße', 'de_DE' ) );
+	}
+
+	/**
 	 * @ticket 23907
 	 */
 	public function test_remove_danish_accents() {

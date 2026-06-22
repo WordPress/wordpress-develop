@@ -309,7 +309,6 @@ table.diff .diff-addedline ins {
 	float: right;
 	margin-left: 6px;
 	margin-right: 6px;
-	margin-top: 2px;
 }
 
 .diff-meta-from {
@@ -482,7 +481,7 @@ div.revisions-controls > .wp-slider > .ui-slider-handle {
 .wp-slider .ui-slider-handle.ui-state-focus {
 	background: #f0f0f1;
 	border-color: #8c8f94;
-	box-shadow: 0 0 0 2px #2271b1;
+	box-shadow: 0 0 0 var(--wp-admin-border-width-focus, 1.5px) var(--wp-admin-theme-color, #3858e9);
 	/* Only visible in Windows High Contrast mode */
 	outline: 2px solid transparent;
 }
@@ -631,9 +630,5 @@ div.revisions-controls > .wp-slider > .ui-slider-handle {
 		-ms-word-break: break-all;
 		word-break: break-all;
 		word-wrap: break-word;
-	}
-
-	.diff-meta input.restore-revision {
-		margin-top: 0;
 	}
 }
