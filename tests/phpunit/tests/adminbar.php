@@ -837,7 +837,7 @@ class Tests_AdminBar extends WP_UnitTestCase {
 		$node_site_name = $wp_admin_bar->get_node( 'site-name' );
 
 		$this->assertStringContainsString( '<img class="site-icon"', $node_site_name->title );
-		$this->assertStringContainsString( esc_url( get_site_icon_url( 28 ) ), $node_site_name->title );
+		$this->assertStringContainsString( esc_url( get_site_icon_url( 32 ) ), $node_site_name->title );
 		$this->assertSame( 'has-site-icon', $node_site_name->meta['class'] );
 	}
 
