@@ -81,6 +81,16 @@ class Tests_wp_ajax_upload_attachment extends WP_Ajax_UnitTestCase {
 			'_ajax_nonce' => wp_create_nonce( 'media-form' ),
 		);
 
+		$_FILES = array(
+			'async-upload' => array(
+				'name'     => 'canola.jpg',
+				'type'     => 'image/jpeg',
+				'tmp_name' => DIR_TESTDATA . '/images/canola.jpg',
+				'error'    => 0,
+				'size'     => filesize( DIR_TESTDATA . '/images/canola.jpg' ),
+			),
+		);
+
 		// wp_ajax_upload_attachment() uses echo and wp_die() instead of wp_send_json_error().
 		try {
 			$this->_handleAjax( 'upload-attachment' );
