@@ -2972,7 +2972,7 @@ function wp_upload_bits( $name, $deprecated, $bits, $time = null ) {
 	clearstatcache();
 
 	// Set correct file permissions.
-	$stat  = @ stat( dirname( $new_file ) );
+	$stat  = @ stat( _wp_get_dir_perms_stat_path( $new_file ) );
 	$perms = $stat['mode'] & 0007777;
 	$perms = $perms & 0000666;
 	chmod( $new_file, $perms );
@@ -7412,8 +7412,8 @@ function _device_can_upload() {
  * @return bool True if the path is a stream URL.
  */
 function wp_is_stream( $path ) {
-	$scheme_separator = strpos( $path, '://' );
 
+	$scheme_separator = strpos( $path, '://' );
 	if ( false === $scheme_separator ) {
 		// $path isn't a stream.
 		return false;
@@ -7424,6 +7424,27 @@ function wp_is_stream( $path ) {
 	return in_array( $stream, stream_get_wrappers(), true );
 }
 
+/**
+ * Gets the directory path used to inherit permissions for a file path.
+ *
+ * Stream wrappers that model directories as paths ending in a slash can require
+ * the trailing slash for `stat()` to resolve the parent directory.
+ *
+ * @since 6.9.0
+ *
+ * @param string $path File path.
+ * @return string Directory path to use with `stat()`.
+ */
+function _wp_get_dir_perms_stat_path( $path ) {
+
+	$dir = dirname( $path );
+
+	if ( wp_is_stream( $dir ) ) {
+		$dir = trailingslashit( $dir );
+	}
+
+	return $dir;
+}
 /**
  * Tests if the supplied date is valid for the Gregorian calendar.
  *

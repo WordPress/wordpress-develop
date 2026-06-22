@@ -8,6 +8,8 @@
  * @group wp-image-editor-gd
  */
 require_once __DIR__ . '/base.php';
+require_once DIR_TESTROOT . '/includes/class-wp-test-stream.php';
+require_once DIR_TESTROOT . '/includes/class-wp-test-strict-dir-stream.php';
 
 class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 
@@ -49,6 +51,35 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 		$gd_image_editor = new WP_Image_Editor_GD( null );
 		$expected        = (bool) ( imagetypes() & IMG_GIF );
 		$this->assertSame( $expected, $gd_image_editor->supports_mime_type( 'image/gif' ) );
+	}
+
+	/**
+	 * @ticket 42838
+	 * @requires function imagejpeg
+	 */
+	public function test_save_to_nested_stream_path() {
+		stream_wrapper_register( 'wptestgddir', 'WP_Test_Strict_Dir_Stream' );
+		WP_Test_Stream::$data = array(
+			'Tests_Image_Editor_GD' => array(
+				'/read.jpg'     => file_get_contents( DIR_TESTDATA . '/images/waffles.jpg' ),
+				'/nested-path/' => 'DIRECTORY',
+			),
+		);
+
+		$file            = 'wptestgddir://Tests_Image_Editor_GD/read.jpg';
+		$destination     = 'wptestgddir://Tests_Image_Editor_GD/nested-path/write.jpg';
+		$gd_image_editor = new WP_Image_Editor_GD( $file );
+
+		$loaded = $gd_image_editor->load();
+		$this->assertNotWPError( $loaded );
+
+		$saved = $gd_image_editor->save( $destination );
+
+		stream_wrapper_unregister( 'wptestgddir' );
+
+		$this->assertNotWPError( $saved );
+		$this->assertSame( $destination, $saved['path'] );
+		$this->assertArrayHasKey( '/nested-path/write.jpg', WP_Test_Stream::$data['Tests_Image_Editor_GD'] );
 	}
 
 	/**

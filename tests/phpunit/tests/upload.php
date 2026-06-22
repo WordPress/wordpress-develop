@@ -4,7 +4,6 @@
  * @group media
  */
 class Tests_Upload extends WP_UnitTestCase {
-
 	public $siteurl;
 
 	public function set_up() {
@@ -17,6 +16,16 @@ class Tests_Upload extends WP_UnitTestCase {
 		update_option( 'upload_path', 'wp-content/uploads' );
 		update_option( 'upload_url_path', '' );
 		update_option( 'uploads_use_yearmonth_folders', 1 );
+	}
+
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
+		require_once DIR_TESTROOT . '/includes/class-wp-test-stream.php';
+		require_once DIR_TESTROOT . '/includes/class-wp-test-strict-dir-stream.php';
+		stream_wrapper_register( 'wptestdir', 'WP_Test_Strict_Dir_Stream' );
+	}
+
+	public static function wpTearDownAfterClass() {
+		stream_wrapper_unregister( 'wptestdir' );
 	}
 
 	public function test_upload_dir_default() {
@@ -104,5 +113,34 @@ class Tests_Upload extends WP_UnitTestCase {
 		$this->assertSame( ABSPATH . 'wp-content/uploads' . $subdir, $info['path'] );
 		$this->assertSame( $subdir, $info['subdir'] );
 		$this->assertFalse( $info['error'] );
+	}
+
+	/**
+	 * @ticket 42838
+	 */
+	public function test_wp_upload_bits_should_support_stream_wrapper_directories() {
+		$filter = static function ( $uploads ) {
+			$uploads['path']    = 'wptestdir://uploads-test/uploads';
+			$uploads['basedir'] = 'wptestdir://uploads-test/uploads';
+			$uploads['subdir']  = '';
+			$uploads['url']     = 'https://example.org/uploads';
+			$uploads['baseurl'] = 'https://example.org/uploads';
+
+			return $uploads;
+		};
+
+		WP_Test_Stream::$data = array(
+			'uploads-test' => array(),
+		);
+
+		add_filter( 'upload_dir', $filter );
+
+		$upload = wp_upload_bits( 'stream.txt', null, 'stream wrapper contents' );
+
+		remove_filter( 'upload_dir', $filter );
+
+		$this->assertSame( 'stream wrapper contents', WP_Test_Stream::$data['uploads-test']['/uploads/stream.txt'] );
+		$this->assertSame( 'https://example.org/uploads/stream.txt', $upload['url'] );
+		$this->assertFalse( $upload['error'] );
 	}
 }
