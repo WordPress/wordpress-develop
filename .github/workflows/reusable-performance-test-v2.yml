@@ -196,7 +196,7 @@ jobs:
 
       - name: Install object cache drop-in
         if: ${{ inputs.memcached }}
-        run: cp src/wp-content/object-cache.php build/wp-content/object-cache.php
+        run: cp tests/phpunit/includes/object-cache.php build/wp-content/object-cache.php
 
       - name: Log running Docker containers
         run: docker ps -a
