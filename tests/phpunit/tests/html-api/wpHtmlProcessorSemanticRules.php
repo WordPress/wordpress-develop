@@ -442,10 +442,8 @@ class Tests_HtmlApi_WpHtmlProcessorSemanticRules extends WP_UnitTestCase {
 	 * @param string $tag_name Formatting tag name with no active formatting element.
 	 */
 	public function test_in_body_adoption_agency_fallback_preserves_ignored_end_tag_step_result( string $tag_name ): void {
-		$processor = WP_HTML_Processor::create_fragment( "<span></{$tag_name}>" );
-		$this->assertTrue( $processor->next_token(), 'Failed to find the SPAN opener before an unexpected end tag.' );
-		$this->assertSame( 'SPAN', $processor->get_tag(), "Expected to start test on SPAN element but found {$processor->get_tag()} instead." );
-		$this->assertFalse( $processor->next_token(), "Expected unexpected {$tag_name} end tag followed by EOF to return false." );
+		$processor = WP_HTML_Processor::create_fragment( "</{$tag_name}>" );
+		$this->assertFalse( $processor->step(), "Expected unexpected {$tag_name} end tag followed by EOF to return false." );
 	}
 
 	/**
