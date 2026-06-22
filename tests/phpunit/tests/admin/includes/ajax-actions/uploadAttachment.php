@@ -167,7 +167,7 @@ class Tests_wp_ajax_upload_attachment extends WP_Ajax_UnitTestCase {
 					}
 					return array( 'error' => $message );
 				};
-			return $overrides;
+				return $overrides;
 			},
 			10
 		);
