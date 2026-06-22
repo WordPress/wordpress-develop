@@ -163,7 +163,7 @@ class Tests_wp_ajax_get_revision_diffs extends WP_Ajax_UnitTestCase {
 
 		$_POST['post_id'] = 999999;
 		$_POST['compare'] = array( '1:2' );
-		$_REQUEST = array_merge( $_REQUEST, $_POST );
+		$_REQUEST         = array_merge( $_REQUEST, $_POST );
 
 		try {
 			$this->_handleAjax( 'get-revision-diffs' );
@@ -186,7 +186,7 @@ class Tests_wp_ajax_get_revision_diffs extends WP_Ajax_UnitTestCase {
 
 		$_POST['post_id'] = self::$post_id;
 		$_POST['compare'] = array( self::$revision_ids[1] . ':' . self::$revision_ids[0] );
-		$_REQUEST = array_merge( $_REQUEST, $_POST );
+		$_REQUEST         = array_merge( $_REQUEST, $_POST );
 
 		try {
 			$this->_handleAjax( 'get-revision-diffs' );
