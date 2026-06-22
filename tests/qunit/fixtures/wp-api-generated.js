@@ -12771,6 +12771,38 @@ mockedApiResponse.Schema = {
                     }
                 }
             ]
+        },
+        "/wp/v2/view-config": {
+            "namespace": "wp/v2",
+            "methods": [
+                "GET"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": {
+                        "kind": {
+                            "description": "Entity kind.",
+                            "type": "string",
+                            "required": true
+                        },
+                        "name": {
+                            "description": "Entity name.",
+                            "type": "string",
+                            "required": true
+                        }
+                    }
+                }
+            ],
+            "_links": {
+                "self": [
+                    {
+                        "href": "http://example.org/index.php?rest_route=/wp/v2/view-config"
+                    }
+                ]
+            }
         }
     },
     "image_sizes": {
