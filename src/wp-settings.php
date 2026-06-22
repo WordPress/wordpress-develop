@@ -34,6 +34,7 @@ global $wp_version, $wp_db_version, $tinymce_version, $required_php_version, $re
 require ABSPATH . WPINC . '/version.php';
 require ABSPATH . WPINC . '/compat-utf8.php';
 require ABSPATH . WPINC . '/compat.php';
+require ABSPATH . WPINC . '/compat-php.php';
 require ABSPATH . WPINC . '/load.php';
 
 // Check the server requirements.

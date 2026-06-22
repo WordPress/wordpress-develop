@@ -1,0 +1,218 @@
+<?php
+
+/**
+ * Returns the numeric byte size value for numeric php.ini directives.
+ *
+ * Generally this can be used in combination with {@see \ini_get()}
+ * for values that accept a numeric "byte" size, such as `post_max_size`.
+ * It will return the value which PHP interprets from the "shorthand"
+ * syntax, such as "128m" being 128 MiB and "128mb" being 128 B.
+ *
+ * @see \ini_parse_quantity()
+ *
+ * @since 7.0.0
+ *
+ * @param false|int|string $value
+ * @return int
+ */
+function wp_ini_parse_quantity( $value ) {
+	// A missing value is an implicit lack of limit, thus we return `0`, meaning "no limit."
+	if ( false === $value ) {
+		return 0;
+	}
+
+	/*
+	 * Directly return pre-parsed values so we can repeatedly call
+	 * this without tracking if we've already parsed a given value.
+	 */
+	if ( is_int( $value ) ) {
+		return $value;
+	}
+
+	/*
+	 * Non-string inputs "fail" to no limit, because there's
+	 * no limit we could ascribe to this invalid value.
+	 */
+	if ( ! is_string( $value ) ) {
+		return 0;
+	}
+
+	return function_exists( 'ini_parse_quantity' )
+		? ini_parse_quantity( $value )
+		: ini_parse_quantity_fallback( $value );
+}
+
+/**
+ * Returns larger of two php.ini directive quantity values.
+ *
+ * Example:
+ *     wp_ini_greater_quantity( '256m', -1 ) === -1
+ *     wp_ini_greater_quantity( '64K', '64') === '64K'
+ *     wp_ini_greater_quantity( 1000, 2000 ) === 2000
+ *
+ * @since 7.0.0
+ *
+ * @param int|string|false $a Quantity value.
+ * @param int|string|false $b Quantity value.
+ * @return int|string|false   Larger quantity value.
+ */
+function wp_ini_greater_quantity( $a, $b ) {
+	return wp_ini_quantity_cmp( $a, $b ) >= 0 ? $a : $b;
+}
+
+/**
+ * Returns smaller of two php.ini directive quantity values.
+ *
+ * Example:
+ *     wp_ini_lesser_quantity( '256m', -1 ) === '256m'
+ *     wp_ini_lesser_quantity( '64K', '64') === '64'
+ *     wp_ini_lesser_quantity( 1000, 2000 ) === 1000
+ *
+ * @since 7.0.0
+ *
+ * @param int|string|false $a Quantity value.
+ * @param int|string|false $b Quantity value.
+ * @return int|string|false   Smaller quantity value.
+ */
+function wp_ini_lesser_quantity( $a, $b ) {
+	return wp_ini_quantity_cmp( $a, $b ) <= 0 ? $a : $b;
+}
+
+/**
+ * Comparator for php.ini quantity values, can be used
+ * as the callback for functions such as `usort()`.
+ *
+ * Example:
+ *     $a  <  $b => -1
+ *     $a === $b =>  0
+ *     $a  >  $b =>  1
+ *
+ * @since 7.0.0
+ *
+ * @param int|string|false $a Quantity being compared.
+ * @param int|string|false $b Quantity against which $a is compared.
+ * @return -1|0|1
+ */
+function wp_ini_quantity_cmp( $a, $b ): int {
+	return wp_ini_parse_quantity( $a ) <=> wp_ini_parse_quantity( $b );
+}
+
+/**
+ * Fallback function to get interpreted size from ini shorthand syntax for
+ * systems running versions of PHP up to, but not including, 8.2.0.
+ *
+ * @see https://www.php.net/manual/en/function.ini-parse-quantity.php
+ * @see https://www.php.net/manual/en/faq.using.php#faq.using.shorthandbytes
+ *
+ * @since 7.0.0
+ *
+ * @param string $shorthand Ini shorthand to parse, must be a number followed by an optional
+ *                          multiplier. The following multipliers are supported: k/K (1024),
+ *                          m/M (1048576), g/G (1073741824). The number can be a decimal,
+ *                          hex (prefixed with 0x or 0X), octal (prefixed with 0o, 0O or 0)
+ *                          or binary (prefixed with 0b or 0B).
+ * @return int              the interpreted size in bytes as an int.
+ */
+function ini_parse_quantity_fallback( $shorthand ) {
+	$end    = strlen( $shorthand );
+	$at     = 0;
+	$scalar = 0;
+
+	/** Sign of numeric quantity, either positive (1) or negative (-1). */
+	$sign = 1;
+
+	/**
+	 * Numeric base of digits determined by string prefix (e.g. "0x" or "0").
+	 * Must be 8 for octal, 10 for decimal, or 16 for hexadecimal.
+	 */
+	$base = 10;
+
+	// Trim leading whitespace from the value.
+	$at += strspn( $shorthand, " \t\n\r\v\f", $at );
+	if ( $at >= $end ) {
+		return $scalar;
+	}
+
+	// Handle optional sign indicator.
+	switch ( $shorthand[ $at ] ) {
+		case '+':
+			$at++;
+			break;
+
+		case '-':
+			$sign = -1;
+			$at++;
+			break;
+	}
+
+	// Determine base for digit conversion, if not decimal.
+	$base_a = $shorthand[ $at ] ?? '';
+	$base_b = $shorthand[ $at + 1 ] ?? '';
+
+	if ( '0' === $base_a && ( 'x' === $base_b || 'X' === $base_b ) ) {
+		$base = 16;
+		$at  += 2;
+	} else if ( '0' === $base_a && '0' <= $base_b && $base_b <= '9' ) {
+		$base = 8;
+		$at  += 1;
+	}
+
+	// Trim leading zeros from the amount.
+	$at += strspn( $shorthand, '0', $at );
+
+	// Trap explicitly only the numeric digits for parsing to avoid PHP parsing strings like “1e5.”
+	$digits       = 8 === $base ? '01234567' : ( 10 === $base ? '0123456789' : '0123456789abcdefABCDEF' );
+	$digit_length = strspn( $shorthand, $digits, $at );
+	$scalar       = intval( substr( $shorthand, $at, $digit_length ), $base );
+
+	/*
+	 * The internal call to `strtoll()` clamps its return value when the
+	 * parsed value would lead to overflow, so recreate that here.
+	 */
+	if ( $sign > 0 && $scalar >= PHP_INT_MAX ) {
+		$scalar = PHP_INT_MAX;
+	} else if ( $sign < 0 && $scalar <= PHP_INT_MIN ) {
+		$scalar = PHP_INT_MIN;
+	}
+
+	/*
+	 * Do not use WP constants here (GB_IN_BYTES, MB_IN_BYTES, KB_IN_BYTES)
+	 * since they are re-definable; PHP shorthand values are hard-coded
+	 * in PHP itself and stay the same regardless of these constants. Also,
+	 * this file loads before these constants are defined.
+	 *
+	 * Note that it’s possible to overflow here, as happens in PHP itself.
+	 * Overflow results will likely not match PHP’s value, but will likely
+	 * break in most cases anyway and so leaving this loose is the best
+	 * that can be done without PHP reporting the internal values.
+	 */
+	switch ( $shorthand[ $end - 1 ] ) {
+		case 'g':
+		case 'G':
+			$scalar *= 1073741824; // 1024^3
+			break;
+
+		case 'm':
+		case 'M':
+			$scalar *= 1048576; // 1024^2
+			break;
+
+		case 'k':
+		case 'K':
+			$scalar *= 1024;
+			break;
+	}
+
+	/**
+	 * Since the overflow behavior is not reproduced here, any negative
+	 * value will report as `-1`, which normalizes negative values for
+	 * more consistent handling inside of plugin code, while large values
+	 * are capped at the max integer value.
+	 *
+	 * These values would be wrong, they are also undefined behavior in
+	 * PHP, so they are also not wrong in any specific way. This function
+	 * only needs to be reliable enough, given that PHP 8.2.0 introduces
+	 * the {@see \ini_parse_quantity()} function natively.
+	 */
+	return (int) max( -1, min( $scalar, PHP_INT_MAX ) );
+}
