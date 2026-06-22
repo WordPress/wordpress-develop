@@ -383,6 +383,24 @@ function get_the_content( $more_link_text = null, $strip_teaser = false, $post =
 }
 
 /**
+ * Determines whether a post has content.
+ *
+ * @since 7.1.0
+ *
+ * @param int|WP_Post|null $post Optional. Post ID or post object. Defaults to the global post.
+ * @return bool Whether the post has content.
+ */
+function has_content( $post = null ) {
+	$post = get_post( $post );
+
+	if ( ! $post instanceof WP_Post ) {
+		return false;
+	}
+
+	return '' !== trim( $post->post_content );
+}
+
+/**
  * Displays the post excerpt.
  *
  * @since 0.71
