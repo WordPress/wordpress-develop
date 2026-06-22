@@ -838,9 +838,9 @@ class WP_Query {
 		$query_vars['pagename']    = is_scalar( $query_vars['pagename'] ) ? trim( $query_vars['pagename'] ) : '';
 		$query_vars['name']        = is_scalar( $query_vars['name'] ) ? trim( $query_vars['name'] ) : '';
 		$query_vars['title']       = is_scalar( $query_vars['title'] ) ? trim( $query_vars['title'] ) : '';
-		$query_vars['author_name'] = is_string( $query_vars['author_name'] ) ? $query_vars['author_name'] : '';
-		$query_vars['feed']        = is_string( $query_vars['feed'] ) ? $query_vars['feed'] : '';
-		$query_vars['attachment']  = is_string( $query_vars['attachment'] ) ? $query_vars['attachment'] : '';
+		$query_vars['author_name'] = is_scalar( $query_vars['author_name'] ) ? $query_vars['author_name'] : '';
+		$query_vars['feed']        = is_scalar( $query_vars['feed'] ) ? $query_vars['feed'] : '';
+		$query_vars['attachment']  = is_scalar( $query_vars['attachment'] ) ? $query_vars['attachment'] : '';
 
 		if ( is_scalar( $query_vars['hour'] ) && '' !== $query_vars['hour'] ) {
 			$query_vars['hour'] = absint( $query_vars['hour'] );
