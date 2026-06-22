@@ -174,7 +174,7 @@ class WP_Icons_Registry {
 			_doing_it_wrong(
 				__METHOD__,
 				__( 'Icon "show_in_rest" property must be a boolean.' ),
-				'7.0.0'
+				'7.1.0'
 			);
 			return false;
 		}
