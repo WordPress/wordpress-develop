@@ -163,7 +163,7 @@ class Tests_HtmlApi_WpHtmlProcessorSemanticRules extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Verifies what when inserting a BUTTON element, when a BUTTON is already in scope,
+	 * Verifies that when inserting a BUTTON element, when a BUTTON is already in scope,
 	 * that the open button is closed with all other elements inside of it.
 	 *
 	 * @ticket 58961
@@ -195,7 +195,7 @@ class Tests_HtmlApi_WpHtmlProcessorSemanticRules extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Verifies what when inserting a BUTTON element, when a BUTTON is already in scope,
+	 * Verifies that when inserting a BUTTON element, when a BUTTON is already in scope,
 	 * that the open button is closed with all other elements inside of it, even if the
 	 * BUTTON in scope is not a direct parent of the new BUTTON element.
 	 *

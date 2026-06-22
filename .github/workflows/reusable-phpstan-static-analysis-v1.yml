@@ -23,11 +23,14 @@ jobs:
   #
   # Performs the following steps:
   # - Checks out the repository.
+  # - Sets up Node.js.
   # - Sets up PHP.
-  # - Installs Composer dependencies.
   # - Logs debug information.
-  # - Configures caching for PHP static analysis scans.
+  # - Installs Composer dependencies.
   # - Make Composer packages available globally.
+  # - Installs npm dependencies.
+  # - Builds WordPress.
+  # - Configures caching for PHPStan static analysis scans.
   # - Runs PHPStan static analysis (with Pull Request annotations).
   # - Saves the PHPStan result cache.
   # - Ensures version-controlled files are not modified or deleted.
