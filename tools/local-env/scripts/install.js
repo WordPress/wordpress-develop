@@ -84,29 +84,30 @@ function wp_cli( cmd ) {
 				process.stderr.write( error.stderr.toString() );
 			}
 
-			if ( 12 === attempt || ! wp_cli_container_is_starting( error ) ) {
+			if ( 12 === attempt || ! wp_cli_dependency_is_starting( error ) ) {
 				throw error;
 			}
 
-			// The Docker-backed WP-CLI container can lag behind on slower runners while images
-			// are still starting up, especially across the broader DB/version matrix.
+			// The Docker-backed WP-CLI container and database can lag behind on slower runners
+			// while images are still starting up, especially across the broader DB/version matrix.
 			const delay = Math.min( attempt, 5 ) * 1000;
-			console.warn( `The WP-CLI container is still starting, retrying in ${ delay / 1000 } second(s)...` );
+			console.warn( `The local environment is still starting, retrying in ${ delay / 1000 } second(s)...` );
 			sleep( delay );
 		}
 	}
 }
 
 /**
- * Determines whether the WP-CLI container is still starting.
+ * Determines whether a transient local-env startup dependency is still initializing.
  *
  * @param {Error & {stdout?: Buffer|string, stderr?: Buffer|string}} error Error thrown by execSync().
- * @return {boolean} Whether the CLI container is still starting up.
+ * @return {boolean} Whether the local environment is still starting up.
  */
-function wp_cli_container_is_starting( error ) {
+function wp_cli_dependency_is_starting( error ) {
 	const output = `${ error.stdout || '' }\n${ error.stderr || '' }\n${ error.message || '' }`;
 
-	return output.includes( 'service "cli" is not running' );
+	return output.includes( 'service "cli" is not running' ) ||
+		output.includes( 'Database connection error (2002) Connection refused' );
 }
 
 /**
