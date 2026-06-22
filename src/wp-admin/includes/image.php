@@ -416,10 +416,11 @@ function wp_create_image_subsizes( $file, $attachment_id ) {
  * Adds explicit filename suffixes for sub-size requests that would otherwise collide.
  *
  * When multiple requested sizes share the same target dimensions, cropped variants
- * can produce different images while still resolving to the same default `WIDTHxHEIGHT`
- * filename. In that case, add a crop-specific suffix to the cropped variants only.
+ * can produce different images while still resolving to the same default filename
+ * based on those width and height values. In that case, add a crop-specific suffix
+ * to the cropped variants only.
  *
- * @since 6.9.0
+ * @since 7.1.0
  * @access private
  *
  * @param array $new_sizes Registered image sub-sizes keyed by size name.
