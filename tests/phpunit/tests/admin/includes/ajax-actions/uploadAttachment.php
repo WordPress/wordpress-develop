@@ -44,7 +44,7 @@ class Tests_wp_ajax_upload_attachment extends WP_Ajax_UnitTestCase {
 			function ( $overrides ) {
 				$overrides['action'] = 'wp_handle_sideload';
 				return $overrides;
-		    }
+			}
 		);
 	}
 
@@ -138,10 +138,13 @@ class Tests_wp_ajax_upload_attachment extends WP_Ajax_UnitTestCase {
 		// If we use the 'wp_handle_upload_prefilter' to set 'error' to something,
 		// it will go to the error handler.
 
-		add_filter( 'wp_handle_upload_prefilter', function ( $file ) {
-			$file['error'] = 'mock_success';
-			return $file;
-		} );
+		add_filter(
+			'wp_handle_upload_prefilter',
+			function ( $file ) {
+				$file['error'] = 'mock_success';
+				return $file;
+			}
+		);
 
 		// We MUST ensure the error handler returns what we want.
 		// The default error handler is wp_handle_upload_error which returns array('error' => $message).
@@ -151,17 +154,17 @@ class Tests_wp_ajax_upload_attachment extends WP_Ajax_UnitTestCase {
 		add_filter(
 			'wp_handle_upload_overrides',
 			function ( $overrides ) {
-			$overrides['upload_error_handler'] = function( $file, $message ) {
-				if ( 'mock_success' === $message ) {
-					$upload_dir = wp_upload_dir();
-					$new_file   = $upload_dir['path'] . '/canola.jpg';
-					@copy( DIR_TESTDATA . '/images/canola.jpg', $new_file );
-					return array(
-						'file'  => $new_file,
-						'url'   => $upload_dir['url'] . '/canola.jpg',
-						'type'  => 'image/jpeg',
-					);
-				}
+				$overrides['upload_error_handler'] = function ( $file, $message ) {
+					if ( 'mock_success' === $message ) {
+						$upload_dir = wp_upload_dir();
+						$new_file   = $upload_dir['path'] . '/canola.jpg';
+						@copy( DIR_TESTDATA . '/images/canola.jpg', $new_file );
+						return array(
+							'file'  => $new_file,
+							'url'   => $upload_dir['url'] . '/canola.jpg',
+							'type'  => 'image/jpeg',
+						);
+					}
 				return array( 'error' => $message );
 			};
 			return $overrides;
