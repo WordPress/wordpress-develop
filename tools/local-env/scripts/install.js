@@ -61,7 +61,7 @@ wait_on( {
 function wp_cli( cmd ) {
 	const wp_cli_command = `npm --silent run env:cli -- ${cmd} --path=/var/www/${process.env.LOCAL_DIR}`;
 
-	for ( let attempt = 1; attempt <= 5; attempt++ ) {
+	for ( let attempt = 1; attempt <= 12; attempt++ ) {
 		try {
 			const output = execSync( wp_cli_command, {
 				encoding: 'utf8',
@@ -82,11 +82,13 @@ function wp_cli( cmd ) {
 				process.stderr.write( error.stderr.toString() );
 			}
 
-			if ( 5 === attempt || ! wp_cli_container_is_starting( error ) ) {
+			if ( 12 === attempt || ! wp_cli_container_is_starting( error ) ) {
 				throw error;
 			}
 
-			const delay = attempt * 1000;
+			// The Docker-backed WP-CLI container can lag behind on slower runners while images
+			// are still starting up, especially across the broader DB/version matrix.
+			const delay = Math.min( attempt, 5 ) * 1000;
 			console.warn( `The WP-CLI container is still starting, retrying in ${ delay / 1000 } second(s)...` );
 			sleep( delay );
 		}
