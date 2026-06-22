@@ -847,4 +847,36 @@ class WP_Test_REST_Settings_Controller extends WP_Test_REST_Controller_Testcase 
 
 		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
 	}
+
+	/**
+	 * Test that sending only an unregistered setting key returns 400.
+	 *
+	 * @ticket 41604
+	 */
+	public function test_update_item_with_only_unknown_setting_returns_400() {
+		wp_set_current_user( self::$administrator );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/settings' );
+		$request->set_query_params( array( 'this_setting_does_not_exist' => 'value' ) );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
+	}
+
+	/**
+	 * Test that sending an unregistered setting key via PUT returns 400.
+	 *
+	 * @ticket 41604
+	 */
+	public function test_update_item_via_put_with_unknown_setting_returns_400() {
+		wp_set_current_user( self::$administrator );
+
+		$request = new WP_REST_Request( 'PUT', '/wp/v2/settings' );
+		$request->set_query_params( array( 'this_setting_does_not_exist' => 'value' ) );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
+	}
 }
