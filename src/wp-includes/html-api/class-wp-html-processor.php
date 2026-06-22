@@ -6245,7 +6245,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @see https://html.spec.whatwg.org/#adoption-agency-algorithm
 	 *
-	 * @return bool Whether an element was found.
+	 * @return bool Whether the current token was handled without exhausting input.
 	 */
 	private function run_adoption_agency_algorithm(): bool {
 		$budget       = 1000;

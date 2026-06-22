@@ -447,6 +447,27 @@ class Tests_HtmlApi_WpHtmlProcessorSemanticRules extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Verifies that when the adoption agency algorithm returns after removing
+	 * a formatting element from the active formatting elements list, it does
+	 * not report the current token as EOF.
+	 *
+	 * @covers WP_HTML_Processor::step_in_body
+	 *
+	 * @ticket 65383
+	 *
+	 * @dataProvider data_in_body_adoption_agency_fallback_end_tags
+	 *
+	 * @param string $tag_name Formatting tag name with no open element.
+	 */
+	public function test_in_body_adoption_agency_removes_inactive_formatting_element_and_continues( string $tag_name ): void {
+		$processor = WP_HTML_Processor::create_fragment( "<p><{$tag_name}></p></{$tag_name}><span target></span>" );
+
+		$this->assertTrue( $processor->next_tag( $tag_name ), "Failed to find the {$tag_name} opener before it is popped by the P closer." );
+		$this->assertTrue( $processor->next_tag( 'SPAN' ), "Failed to advance past the inactive {$tag_name} closer to the following SPAN opener." );
+		$this->assertSame( array( 'HTML', 'BODY', 'SPAN' ), $processor->get_breadcrumbs(), "Expected SPAN to be a BODY child after the inactive {$tag_name} closer." );
+	}
+
+	/**
 	 * Data provider.
 	 *
 	 * @return array[string, array{0: string}]
