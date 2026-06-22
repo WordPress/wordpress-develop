@@ -293,13 +293,15 @@ class Tests_Abilities_API_WpRegisterAbilityCategory extends WP_UnitTestCase {
 	 * @ticket 64098
 	 */
 	public function test_get_existing_category_using_callback(): void {
-		$name     = self::$test_ability_category_name;
-		$args     = self::$test_ability_category_args;
-		$callback = static function ( $instance ) use ( $name, $args ) {
-			wp_register_ability_category( $name, $args );
-		};
+		$name = self::$test_ability_category_name;
+		$args = self::$test_ability_category_args;
 
-		add_action( 'wp_abilities_api_categories_init', $callback );
+		add_action(
+			'wp_abilities_api_categories_init',
+			static function ( $instance ) use ( $name, $args ) {
+				wp_register_ability_category( $name, $args );
+			}
+		);
 
 		// Reset the Registry, to ensure it's empty before the test.
 		$registry_reflection = new ReflectionClass( WP_Ability_Categories_Registry::class );
@@ -310,8 +312,6 @@ class Tests_Abilities_API_WpRegisterAbilityCategory extends WP_UnitTestCase {
 		$instance_prop->setValue( null, null );
 
 		$result = wp_get_ability_category( $name );
-
-		remove_action( 'wp_abilities_api_categories_init', $callback );
 
 		$this->assertInstanceOf( WP_Ability_Category::class, $result );
 		$this->assertSame( self::$test_ability_category_name, $result->get_slug() );
