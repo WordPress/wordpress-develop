@@ -10,6 +10,8 @@ class Tests_Connectors_WpRegisterDefaultConnectorSettings extends WP_UnitTestCas
 
 	const CONNECTOR_ID = 'wp_test_non_ai_connector';
 	const SETTING_NAME = 'connectors_test_non_ai_api_key';
+	const USERNAME_SETTING_NAME = 'connectors_test_non_ai_username';
+	const APPLICATION_PASSWORD_SETTING_NAME = 'connectors_test_non_ai_application_password';
 
 	/**
 	 * Snapshot of registered settings before each test.
@@ -97,5 +99,34 @@ class Tests_Connectors_WpRegisterDefaultConnectorSettings extends WP_UnitTestCas
 		_wp_register_default_connector_settings();
 
 		$this->assertArrayHasKey( self::SETTING_NAME, get_registered_settings() );
+	}
+
+	/**
+	 * @ticket 64850
+	 */
+	public function test_application_password_connector_registers_both_settings(): void {
+		WP_Connector_Registry::get_instance()->register(
+			self::CONNECTOR_ID,
+			array(
+				'name'           => 'Test Remote WordPress Connector',
+				'description'    => '',
+				'type'           => 'content_source',
+				'authentication' => array(
+					'method'                            => 'application_password',
+					'username_setting_name'             => self::USERNAME_SETTING_NAME,
+					'application_password_setting_name' => self::APPLICATION_PASSWORD_SETTING_NAME,
+				),
+			)
+		);
+
+		_wp_register_default_connector_settings();
+
+		$registered_settings = get_registered_settings();
+		$this->assertArrayHasKey( self::USERNAME_SETTING_NAME, $registered_settings );
+		$this->assertArrayHasKey( self::APPLICATION_PASSWORD_SETTING_NAME, $registered_settings );
+		$this->assertSame( 'Test Remote WordPress Connector Username', $registered_settings[ self::USERNAME_SETTING_NAME ]['label'] );
+		$this->assertSame( 'Test Remote WordPress Connector Application Password', $registered_settings[ self::APPLICATION_PASSWORD_SETTING_NAME ]['label'] );
+		$this->assertTrue( $registered_settings[ self::USERNAME_SETTING_NAME ]['show_in_rest'] );
+		$this->assertTrue( $registered_settings[ self::APPLICATION_PASSWORD_SETTING_NAME ]['show_in_rest'] );
 	}
 }

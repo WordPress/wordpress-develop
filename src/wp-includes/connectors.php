@@ -47,11 +47,16 @@ function wp_is_connector_registered( string $id ): bool {
  *     @type array  $authentication {
  *         Authentication configuration. When method is 'api_key', includes
  *         credentials_url, setting_name, and optionally constant_name and
- *         env_var_name. When 'none', only method is present.
+ *         env_var_name. When method is 'application_password', includes
+ *         credentials_url, username_setting_name, and
+ *         application_password_setting_name. When 'none', only method is present.
  *
- *         @type string $method          The authentication method: 'api_key' or 'none'.
+ *         @type string $method          The authentication method: 'api_key',
+ *                                       'application_password', or 'none'.
  *         @type string $credentials_url Optional. URL where users can obtain API credentials.
  *         @type string $setting_name    Optional. The setting name for the API key.
+ *         @type string $username_setting_name Optional. The setting name for the username.
+ *         @type string $application_password_setting_name Optional. The setting name for the application password.
  *         @type string $constant_name   Optional. PHP constant name for the API key.
  *         @type string $env_var_name    Optional. Environment variable name for the API key.
  *     }
@@ -70,9 +75,11 @@ function wp_is_connector_registered( string $id ): bool {
  *     logo_url?: non-empty-string,
  *     type: non-empty-string,
  *     authentication: array{
- *         method: 'api_key'|'none',
+ *         method: 'api_key'|'application_password'|'none',
  *         credentials_url?: non-empty-string,
  *         setting_name?: non-empty-string,
+ *         username_setting_name?: non-empty-string,
+ *         application_password_setting_name?: non-empty-string,
  *         constant_name?: non-empty-string,
  *         env_var_name?: non-empty-string
  *     },
@@ -111,11 +118,16 @@ function wp_get_connector( string $id ): ?array {
  *         @type array       $authentication {
  *             Authentication configuration. When method is 'api_key', includes
  *             credentials_url, setting_name, and optionally constant_name and
- *             env_var_name. When 'none', only method is present.
+ *             env_var_name. When method is 'application_password', includes
+ *             credentials_url, username_setting_name, and
+ *             application_password_setting_name. When 'none', only method is present.
  *
- *             @type string $method          The authentication method: 'api_key' or 'none'.
+ *             @type string $method          The authentication method: 'api_key',
+ *                                           'application_password', or 'none'.
  *             @type string $credentials_url Optional. URL where users can obtain API credentials.
  *             @type string $setting_name    Optional. The setting name for the API key.
+ *             @type string $username_setting_name Optional. The setting name for the username.
+ *             @type string $application_password_setting_name Optional. The setting name for the application password.
  *             @type string $constant_name   Optional. PHP constant name for the API key.
  *             @type string $env_var_name    Optional. Environment variable name for the API key.
  *         }
@@ -135,9 +147,11 @@ function wp_get_connector( string $id ): ?array {
  *     logo_url?: non-empty-string,
  *     type: non-empty-string,
  *     authentication: array{
- *         method: 'api_key'|'none',
+ *         method: 'api_key'|'application_password'|'none',
  *         credentials_url?: non-empty-string,
  *         setting_name?: non-empty-string,
+ *         username_setting_name?: non-empty-string,
+ *         application_password_setting_name?: non-empty-string,
  *         constant_name?: non-empty-string,
  *         env_var_name?: non-empty-string
  *     },
@@ -503,7 +517,7 @@ function _wp_connectors_is_ai_api_key_valid( string $key, string $provider_id ):
 }
 
 /**
- * Masks and validates connector API keys in REST responses.
+ * Masks and validates connector credentials in REST responses.
  *
  * On every `/wp/v2/settings` response, masks connector API key values so raw
  * keys are never exposed via the REST API.
@@ -533,6 +547,15 @@ function _wp_connectors_rest_settings_dispatch( WP_REST_Response $response, WP_R
 
 	foreach ( wp_get_connectors() as $connector_id => $connector_data ) {
 		$auth = $connector_data['authentication'];
+
+		if ( 'application_password' === $auth['method'] && ! empty( $auth['application_password_setting_name'] ) ) {
+			$setting_name = $auth['application_password_setting_name'];
+			if ( array_key_exists( $setting_name, $data ) && is_string( $data[ $setting_name ] ) && '' !== $data[ $setting_name ] ) {
+				$data[ $setting_name ] = _wp_connectors_mask_api_key( $data[ $setting_name ] );
+			}
+			continue;
+		}
+
 		if ( 'api_key' !== $auth['method'] || empty( $auth['setting_name'] ) ) {
 			continue;
 		}
@@ -576,12 +599,7 @@ function _wp_register_default_connector_settings(): void {
 
 	foreach ( wp_get_connectors() as $connector_data ) {
 		$auth = $connector_data['authentication'];
-		if ( 'api_key' !== $auth['method'] || empty( $auth['setting_name'] ) ) {
-			continue;
-		}
-
-		// Skip if the setting is already registered (e.g. by an owning plugin).
-		if ( isset( $registered_settings[ $auth['setting_name'] ] ) ) {
+		if ( 'api_key' !== $auth['method'] && 'application_password' !== $auth['method'] ) {
 			continue;
 		}
 
@@ -593,10 +611,9 @@ function _wp_register_default_connector_settings(): void {
 			continue;
 		}
 
-		register_setting(
-			'connectors',
-			$auth['setting_name'],
-			array(
+		$settings = array();
+		if ( 'api_key' === $auth['method'] && ! empty( $auth['setting_name'] ) ) {
+			$settings[ $auth['setting_name'] ] = array(
 				'type'              => 'string',
 				'label'             => sprintf(
 					/* translators: %s: Connector name. */
@@ -611,8 +628,49 @@ function _wp_register_default_connector_settings(): void {
 				'default'           => '',
 				'show_in_rest'      => true,
 				'sanitize_callback' => 'sanitize_text_field',
-			)
-		);
+			);
+		} elseif ( 'application_password' === $auth['method'] && ! empty( $auth['username_setting_name'] ) && ! empty( $auth['application_password_setting_name'] ) ) {
+			$settings[ $auth['username_setting_name'] ] = array(
+				'type'              => 'string',
+				'label'             => sprintf(
+					/* translators: %s: Connector name. */
+					__( '%s Username' ),
+					$connector_data['name']
+				),
+				'description'       => sprintf(
+					/* translators: %s: Connector name. */
+					__( 'Username for the %s connector.' ),
+					$connector_data['name']
+				),
+				'default'           => '',
+				'show_in_rest'      => true,
+				'sanitize_callback' => 'sanitize_text_field',
+			);
+			$settings[ $auth['application_password_setting_name'] ] = array(
+				'type'              => 'string',
+				'label'             => sprintf(
+					/* translators: %s: Connector name. */
+					__( '%s Application Password' ),
+					$connector_data['name']
+				),
+				'description'       => sprintf(
+					/* translators: %s: Connector name. */
+					__( 'Application password for the %s connector.' ),
+					$connector_data['name']
+				),
+				'default'           => '',
+				'show_in_rest'      => true,
+				'sanitize_callback' => 'sanitize_text_field',
+			);
+		}
+
+		foreach ( $settings as $setting_name => $setting_args ) {
+			// Skip settings already registered by the connector's owning plugin.
+			if ( isset( $registered_settings[ $setting_name ] ) ) {
+				continue;
+			}
+			register_setting( 'connectors', $setting_name, $setting_args );
+		}
 	}
 }
 add_action( 'init', '_wp_register_default_connector_settings', 20 );
@@ -698,6 +756,16 @@ function _wp_connectors_get_connector_script_module_data( array $data ): array {
 			} else {
 				$auth_out['isConnected'] = 'none' !== $key_source;
 			}
+		} elseif ( 'application_password' === $auth['method'] ) {
+			$username_setting_name             = $auth['username_setting_name'] ?? '';
+			$application_password_setting_name = $auth['application_password_setting_name'] ?? '';
+			$username                          = get_option( $username_setting_name, '' );
+			$application_password              = get_option( $application_password_setting_name, '' );
+
+			$auth_out['usernameSettingName']             = $username_setting_name;
+			$auth_out['applicationPasswordSettingName'] = $application_password_setting_name;
+			$auth_out['credentialsUrl']                 = $auth['credentials_url'] ?? null;
+			$auth_out['isConnected']                    = is_string( $username ) && '' !== $username && is_string( $application_password ) && '' !== $application_password;
 		}
 
 		$connector_out = array(
