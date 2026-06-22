@@ -488,7 +488,7 @@ class WP_REST_Abilities_V1_List_Controller extends WP_REST_Controller {
 	 * @return array<string, mixed> Collection parameters.
 	 */
 	public function get_collection_params(): array {
-		return array(
+		$query_params = array(
 			'context'   => $this->get_context_param( array( 'default' => 'view' ) ),
 			'page'      => array(
 				'description' => __( 'Current page of the collection.' ),
@@ -543,5 +543,18 @@ class WP_REST_Abilities_V1_List_Controller extends WP_REST_Controller {
 				'additionalProperties' => true,
 			),
 		);
+
+		/**
+		 * Filters REST API collection parameters for the abilities controller.
+		 *
+		 * Use this to declare the schema type of a custom meta key. A declared
+		 * type lets REST coerce a query-string value, for example "true" to a
+		 * boolean, before the meta filter matches it.
+		 *
+		 * @since 7.1.0
+		 *
+		 * @param array $query_params JSON Schema-formatted collection parameters.
+		 */
+		return apply_filters( 'rest_abilities_collection_params', $query_params );
 	}
 }
