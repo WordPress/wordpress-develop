@@ -889,7 +889,6 @@ function do_enclose( $content, $post ) {
 	global $wpdb;
 
 	// @todo Tidy this code and make the debug code optional.
-	require_once ABSPATH . WPINC . '/class-IXR.php';
 
 	$post = get_post( $post );
 	if ( ! $post ) {
@@ -5476,8 +5475,6 @@ function wp_maybe_load_widgets() {
 	if ( ! apply_filters( 'load_default_widgets', true ) ) {
 		return;
 	}
-
-	require_once ABSPATH . WPINC . '/default-widgets.php';
 
 	add_action( '_admin_menu', 'wp_widgets_add_menu' );
 }

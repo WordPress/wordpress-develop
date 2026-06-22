@@ -37,7 +37,6 @@ class Test_WP_Customize_Nav_Menu_Setting extends WP_UnitTestCase {
 	 */
 	public function set_up() {
 		parent::set_up();
-		require_once ABSPATH . WPINC . '/class-wp-customize-manager.php';
 		wp_set_current_user( self::$administrator_id );
 
 		global $wp_customize;

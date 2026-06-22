@@ -7,14 +7,6 @@
  * @since 3.0.0
  */
 
-// Don't load directly.
-if ( ! defined( 'ABSPATH' ) ) {
-	die( '-1' );
-}
-
-/** Walker_Nav_Menu class */
-require_once ABSPATH . WPINC . '/class-walker-nav-menu.php';
-
 /**
  * Displays a navigation menu.
  *

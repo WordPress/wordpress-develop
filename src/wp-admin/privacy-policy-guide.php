@@ -13,10 +13,6 @@ if ( ! current_user_can( 'manage_privacy_options' ) ) {
 	wp_die( __( 'Sorry, you are not allowed to manage privacy options on this site.' ) );
 }
 
-if ( ! class_exists( 'WP_Privacy_Policy_Content' ) ) {
-	require_once ABSPATH . 'wp-admin/includes/class-wp-privacy-policy-content.php';
-}
-
 // Used in the HTML title tag.
 $title = __( 'Privacy Policy Guide' );
 

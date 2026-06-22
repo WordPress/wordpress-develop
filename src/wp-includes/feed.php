@@ -802,13 +802,17 @@ function feed_content_type( $type = '' ) {
  * @return SimplePie\SimplePie|WP_Error SimplePie object on success or WP_Error object on failure.
  */
 function fetch_feed( $url ) {
+	/*
+	 * Explicitly bootstrap SimplePie's PSR-4 autoloader before using the namespaced API.
+	 * class-simplepie.php registers SimplePie's own autoloader (for SimplePie\* → src/)
+	 * and the legacy shim (for old-style SimplePie_* → library/), which also defines the
+	 * SIMPLEPIE_* backward-compatibility constants.  Without this, the WP_Autoload
+	 * handler fires for "simplepie\simplepie", hits require_once as a no-op on re-entry,
+	 * and SimplePie\SimplePie cannot be resolved.
+	 */
 	if ( ! class_exists( 'SimplePie\SimplePie', false ) ) {
 		require_once ABSPATH . WPINC . '/class-simplepie.php';
 	}
-
-	require_once ABSPATH . WPINC . '/class-wp-feed-cache-transient.php';
-	require_once ABSPATH . WPINC . '/class-wp-simplepie-file.php';
-	require_once ABSPATH . WPINC . '/class-wp-simplepie-sanitize-kses.php';
 
 	$feed = new SimplePie\SimplePie();
 
@@ -826,7 +830,6 @@ function fetch_feed( $url ) {
 		$feed->set_cache_location( 'wp_transient' );
 	} else {
 		// Back-compat for SimplePie 1.2.x.
-		require_once ABSPATH . WPINC . '/class-wp-feed-cache.php';
 		$feed->set_cache_class( 'WP_Feed_Cache' );
 	}
 

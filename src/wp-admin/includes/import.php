@@ -6,6 +6,13 @@
  * @subpackage Administration
  */
 
+/*
+ * class-wp-importer.php is loaded explicitly here rather than via WP_Autoload
+ * because the file defines the global function get_cli_args() outside the class
+ * body, which must be available whenever the importer system is active.
+ */
+require_once ABSPATH . 'wp-admin/includes/class-wp-importer.php';
+
 /**
  * Retrieves the list of importers.
  *

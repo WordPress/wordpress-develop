@@ -9,6 +9,3 @@
  */
 
 _deprecated_file( basename( __FILE__ ), '5.3.0', WPINC . '/class-wp-date-query.php' );
-
-/** WP_Date_Query class */
-require_once ABSPATH . WPINC . '/class-wp-date-query.php';

@@ -39,7 +39,6 @@ class Test_WP_Customize_Control extends WP_UnitTestCase {
 	public function set_up() {
 		parent::set_up();
 		wp_set_current_user( self::$user_id );
-		require_once ABSPATH . WPINC . '/class-wp-customize-manager.php';
 		$GLOBALS['wp_customize'] = new WP_Customize_Manager();
 		$this->wp_customize      = $GLOBALS['wp_customize'];
 	}

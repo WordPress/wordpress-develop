@@ -326,7 +326,6 @@ function core_auto_updates_settings() {
 		}
 	}
 
-	require_once ABSPATH . 'wp-admin/includes/class-wp-upgrader.php';
 	$updater = new WP_Automatic_Updater();
 
 	// Defaults:
@@ -845,8 +844,6 @@ function list_translation_updates() {
 function do_core_upgrade( $reinstall = false ) {
 	global $wp_filesystem;
 
-	require_once ABSPATH . 'wp-admin/includes/class-wp-upgrader.php';
-
 	if ( $reinstall ) {
 		$url = 'update-core.php?action=do-core-reinstall';
 	} else {
@@ -1276,7 +1273,6 @@ if ( 'upgrade-core' === $action ) {
 	check_admin_referer( 'upgrade-translations' );
 
 	require_once ABSPATH . 'wp-admin/admin-header.php';
-	require_once ABSPATH . 'wp-admin/includes/class-wp-upgrader.php';
 
 	$url     = 'update-core.php?action=do-translation-upgrade';
 	$nonce   = 'upgrade-translations';
