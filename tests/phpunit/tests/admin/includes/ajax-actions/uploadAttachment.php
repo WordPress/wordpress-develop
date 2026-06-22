@@ -160,9 +160,9 @@ class Tests_wp_ajax_upload_attachment extends WP_Ajax_UnitTestCase {
 						$new_file   = $upload_dir['path'] . '/canola.jpg';
 						@copy( DIR_TESTDATA . '/images/canola.jpg', $new_file );
 						return array(
-							'file'  => $new_file,
-							'url'   => $upload_dir['url'] . '/canola.jpg',
-							'type'  => 'image/jpeg',
+							'file' => $new_file,
+							'url'  => $upload_dir['url'] . '/canola.jpg',
+							'type' => 'image/jpeg',
 						);
 					}
 					return array( 'error' => $message );
