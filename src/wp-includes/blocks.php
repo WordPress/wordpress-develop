@@ -2238,7 +2238,10 @@ function excerpt_remove_blocks( $content ) {
 	$output         = '';
 
 	foreach ( $blocks as $block ) {
-		// Skip blocks hidden via the visibility block support.
+		// Hide the block whenever the value is boolean false, regardless of the
+		// block's current visibility support. This prevents blocks that previously
+		// supported visibility from unintentionally appearing on the front end
+		// after their support was disabled.
 		if ( false === ( $block['attrs']['metadata']['blockVisibility'] ?? null ) ) {
 			continue;
 		}
@@ -2304,7 +2307,10 @@ function _excerpt_render_inner_blocks( $parsed_block, $allowed_blocks ) {
 	$output = '';
 
 	foreach ( $parsed_block['innerBlocks'] as $inner_block ) {
-		// Skip blocks hidden via the visibility block support.
+		// Hide the block whenever the value is boolean false, regardless of the
+		// block's current visibility support. This prevents blocks that previously
+		// supported visibility from unintentionally appearing on the front end
+		// after their support was disabled.
 		if ( false === ( $inner_block['attrs']['metadata']['blockVisibility'] ?? null ) ) {
 			continue;
 		}
