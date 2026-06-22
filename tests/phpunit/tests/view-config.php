@@ -179,7 +179,6 @@ class Tests_View_Config_API extends WP_UnitTestCase {
 		$this->assertSameSets( self::CONFIG_KEYS, array_keys( $config ) );
 		$this->assertSame( array( 'custom' => true ), $config['form'] );
 		// Backfilled from defaults.
-		$this->assertSameSets( self::CONFIG_KEYS, array_keys( $config ) );
 		$this->assertSame( self::DEFAULT_VIEW, $config['default_view'] );
 		$this->assertSame( self::DEFAULT_LAYOUTS, $config['default_layouts'] );
 		$this->assertSame( self::DEFAULT_VIEW_LIST, $config['view_list'] );
