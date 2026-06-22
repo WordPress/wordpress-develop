@@ -555,6 +555,14 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 				'url'           => 'http://192.168.0.1/caniload.php',
 				'external_host' => false,
 			),
+			'a link-local address (RFC 3927)'              => array(
+				'url'           => 'http://169.254.1.1/caniload.php',
+				'external_host' => false,
+			),
+			'the cloud metadata endpoint (link-local)'     => array(
+				'url'           => 'http://169.254.169.254/latest/meta-data/iam/security-credentials/',
+				'external_host' => false,
+			),
 			'a port not considered safe by default'        => array(
 				'url' => 'https://example.com:81/caniload.php',
 			),
