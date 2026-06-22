@@ -997,7 +997,9 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	}
 
 	/**
-	 * Steps through the HTML document and stop at the next tag, if any.
+	 * For internal usage. Use {@see WP_HTML_Processor::next_tag()} or {@see WP_HTML_Processor::next_token()}.
+	 *
+	 * Steps through the HTML document and stop at the next node, if any.
 	 *
 	 * @since 6.4.0
 	 *
