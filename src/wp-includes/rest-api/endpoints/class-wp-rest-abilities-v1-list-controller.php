@@ -42,9 +42,9 @@ class WP_REST_Abilities_V1_List_Controller extends WP_REST_Controller {
 	 * preparing nested schemas.
 	 *
 	 * @since 7.1.0
-	 * @var array<string, true>|null
+	 * @var array<string, true>
 	 */
-	private $allowed_schema_keyword_lookup = null;
+	private array $allowed_schema_keyword_lookup;
 
 	/**
 	 * Registers the routes for abilities.
@@ -222,7 +222,7 @@ class WP_REST_Abilities_V1_List_Controller extends WP_REST_Controller {
 	 * @return array<string, true> Allowed schema keywords.
 	 */
 	private function get_allowed_schema_keywords_for_response(): array {
-		if ( null === $this->allowed_schema_keyword_lookup ) {
+		if ( ! isset( $this->allowed_schema_keyword_lookup ) ) {
 			$this->allowed_schema_keyword_lookup = array_fill_keys( wp_get_json_schema_allowed_keywords( 'draft-04' ), true );
 		}
 
