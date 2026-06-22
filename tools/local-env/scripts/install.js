@@ -59,7 +59,7 @@ wait_on( {
  * @param {string} cmd The WP-CLI command to run.
  */
 function wp_cli( cmd ) {
-	const wp_cli_command = `npm --silent run env:cli -- ${cmd} --path=/var/www/${process.env.LOCAL_DIR}`;
+	const wp_cli_command = `node ./tools/local-env/scripts/docker.js run --rm cli wp ${cmd} --path=/var/www/${process.env.LOCAL_DIR}`;
 
 	for ( let attempt = 1; attempt <= 12; attempt++ ) {
 		try {
