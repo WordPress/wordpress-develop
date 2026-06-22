@@ -36,8 +36,9 @@ writeFileSync( 'wp-tests-config.php', testConfig );
 wait_on( {
 	resources: [ `tcp:localhost:${process.env.LOCAL_PORT}`],
 	// CI runners can take noticeably longer than local machines before the forwarded
-	// web port begins accepting connections after `env:start` returns.
-	timeout: 60000,
+	// web port begins accepting connections after `env:start` returns, especially
+	// on slower DB/image combinations in the broader matrix.
+	timeout: 180000,
 } )
 	.catch( err => {
 		console.error( `Error: It appears the development environment has not been started. Message: ${ err.message }` );
