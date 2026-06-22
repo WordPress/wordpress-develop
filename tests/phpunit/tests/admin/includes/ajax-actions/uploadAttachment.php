@@ -165,10 +165,10 @@ class Tests_wp_ajax_upload_attachment extends WP_Ajax_UnitTestCase {
 							'type'  => 'image/jpeg',
 						);
 					}
-				return array( 'error' => $message );
-			};
+					return array( 'error' => $message );
+				};
 			return $overrides;
-		},
+			},
 			10
 		);
 
