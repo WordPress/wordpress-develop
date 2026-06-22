@@ -32,6 +32,10 @@ class Tests_wp_ajax_health_check_site_status_result extends WP_Ajax_UnitTestCase
 	 */
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ): void {
 		self::$admin_id = $factory->user->create( array( 'role' => 'administrator' ) );
+
+		if ( is_multisite() ) {
+			grant_super_admin( self::$admin_id );
+		}
 	}
 
 	public function set_up(): void {

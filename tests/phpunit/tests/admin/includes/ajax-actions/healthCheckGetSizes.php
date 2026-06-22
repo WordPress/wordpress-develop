@@ -32,6 +32,10 @@ class Tests_wp_ajax_health_check_get_sizes extends WP_Ajax_UnitTestCase {
 	 */
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ): void {
 		self::$admin_id = $factory->user->create( array( 'role' => 'administrator' ) );
+
+		if ( is_multisite() ) {
+			grant_super_admin( self::$admin_id );
+		}
 	}
 
 	public function set_up(): void {
@@ -87,6 +91,10 @@ class Tests_wp_ajax_health_check_get_sizes extends WP_Ajax_UnitTestCase {
 	 * @expectedDeprecated WP_Debug_Data::get_sizes
 	 */
 	public function test_health_check_get_sizes_success(): void {
+		if ( is_multisite() ) {
+			$this->markTestSkipped( 'The get_sizes health check is not available on multisite.' );
+		}
+
 		wp_set_current_user( self::$admin_id );
 
 		$_POST['_ajax_nonce'] = wp_create_nonce( 'health-check-site-status-result' );
