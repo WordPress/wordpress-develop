@@ -122,16 +122,18 @@ class Tests_wpStyleEngine extends WP_UnitTestCase {
 			'inline_valid_dimension_preset_style'          => array(
 				'block_styles'    => array(
 					'dimensions' => array(
-						'width'  => 'var:preset|dimension|large',
-						'height' => 'var:preset|dimension|modestly-small',
+						'width'     => 'var:preset|dimension|large',
+						'height'    => 'var:preset|dimension|modestly-small',
+						'objectFit' => 'cover',
 					),
 				),
 				'options'         => null,
 				'expected_output' => array(
-					'css'          => 'height:var(--wp--preset--dimension--modestly-small);width:var(--wp--preset--dimension--large);',
+					'css'          => 'height:var(--wp--preset--dimension--modestly-small);object-fit:cover;width:var(--wp--preset--dimension--large);',
 					'declarations' => array(
-						'height' => 'var(--wp--preset--dimension--modestly-small)',
-						'width'  => 'var(--wp--preset--dimension--large)',
+						'height'     => 'var(--wp--preset--dimension--modestly-small)',
+						'object-fit' => 'cover',
+						'width'      => 'var(--wp--preset--dimension--large)',
 					),
 				),
 			),
