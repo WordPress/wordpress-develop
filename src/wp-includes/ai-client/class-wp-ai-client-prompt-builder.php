@@ -185,7 +185,7 @@ class WP_AI_Client_Prompt_Builder {
 	public function __construct( ProviderRegistry $registry, $prompt = null ) {
 		try {
 			$this->builder = new PromptBuilder( $registry, $prompt, AiClient::getEventDispatcher() );
-		} catch ( Exception $e ) {
+		} catch ( Throwable $e ) {
 			$this->builder = new PromptBuilder( $registry, null, AiClient::getEventDispatcher() );
 			$this->error   = $this->exception_to_wp_error( $e );
 		}
@@ -358,7 +358,7 @@ class WP_AI_Client_Prompt_Builder {
 			}
 
 			return $result;
-		} catch ( Exception $e ) {
+		} catch ( Throwable $e ) {
 			$this->error = $this->exception_to_wp_error( $e );
 
 			if ( self::is_generating_method( $name ) ) {
@@ -377,10 +377,10 @@ class WP_AI_Client_Prompt_Builder {
 	 *
 	 * @since 7.0.0
 	 *
-	 * @param Exception $e The exception to convert.
+	 * @param Throwable $e The throwable to convert.
 	 * @return WP_Error The resulting WP_Error object.
 	 */
-	private function exception_to_wp_error( Exception $e ): WP_Error {
+	private function exception_to_wp_error( Throwable $e ): WP_Error {
 		if ( $e instanceof NetworkException ) {
 			$error_code  = 'prompt_network_error';
 			$status_code = 503;
