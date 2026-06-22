@@ -39,10 +39,13 @@ class Tests_wp_ajax_upload_attachment extends WP_Ajax_UnitTestCase {
 		add_action( 'wp_ajax_upload-attachment', 'wp_ajax_upload_attachment', 1 );
 
 		// Force the action to be something other than wp_handle_upload to bypass the is_uploaded_file check.
-		add_filter( 'wp_handle_upload_overrides', function ( $overrides ) {
-			$overrides['action'] = 'wp_handle_sideload';
-			return $overrides;
-		} );
+		add_filter(
+			'wp_handle_upload_overrides',
+			function ( $overrides ) {
+				$overrides['action'] = 'wp_handle_sideload';
+				return $overrides;
+		    }
+		);
 	}
 
 	/**
@@ -145,7 +148,9 @@ class Tests_wp_ajax_upload_attachment extends WP_Ajax_UnitTestCase {
 		// media_handle_upload checks for isset($file['error']).
 
 		// What if we filter 'wp_handle_upload_overrides' to change the error handler?
-		add_filter( 'wp_handle_upload_overrides', function ( $overrides ) {
+		add_filter(
+			'wp_handle_upload_overrides',
+			function ( $overrides ) {
 			$overrides['upload_error_handler'] = function( $file, $message ) {
 				if ( 'mock_success' === $message ) {
 					$upload_dir = wp_upload_dir();
@@ -160,7 +165,9 @@ class Tests_wp_ajax_upload_attachment extends WP_Ajax_UnitTestCase {
 				return array( 'error' => $message );
 			};
 			return $overrides;
-		}, 10 );
+		},
+			10
+		);
 
 		try {
 			$this->_handleAjax( 'upload-attachment' );
