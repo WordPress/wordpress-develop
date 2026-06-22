@@ -19,7 +19,7 @@ class WP_REST_Comment_Meta_Fields extends WP_REST_Meta_Fields {
 	/**
 	 * Cache invalidation callback for comments.
 	 *
-	 * @since 6.9.0
+	 * @since TBD
 	 * @var string
 	 */
 	protected $cache_callback = 'wp_cache_set_comments_last_changed';

@@ -18,7 +18,7 @@ abstract class WP_REST_Meta_Fields {
 	/**
 	 * Cache invalidation callback for the object type's last_changed key.
 	 *
-	 * @since 6.9.0
+	 * @since TBD
 	 * @var string
 	 */
 	protected $cache_callback = '';
