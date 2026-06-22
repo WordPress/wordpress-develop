@@ -125,7 +125,7 @@ class Tests_wp_ajax_upload_attachment extends WP_Ajax_UnitTestCase {
 		// If we use the 'wp_handle_upload_prefilter' to set 'error' to something,
 		// it will go to the error handler.
 
-		add_filter( 'wp_handle_upload_prefilter', function( $file ) {
+		add_filter( 'wp_handle_upload_prefilter', function ( $file ) {
 			$file['error'] = 'mock_success';
 			return $file;
 		} );
@@ -135,7 +135,7 @@ class Tests_wp_ajax_upload_attachment extends WP_Ajax_UnitTestCase {
 		// media_handle_upload checks for isset($file['error']).
 
 		// What if we filter 'wp_handle_upload_overrides' to change the error handler?
-		add_filter( 'wp_handle_upload_overrides', function( $overrides ) {
+		add_filter( 'wp_handle_upload_overrides', function ( $overrides ) {
 			$overrides['upload_error_handler'] = function( $file, $message ) {
 				if ( 'mock_success' === $message ) {
 					$upload_dir = wp_upload_dir();
