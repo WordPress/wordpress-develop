@@ -966,7 +966,60 @@ function wp_kses( $content, $allowed_html, $allowed_protocols = array() ) {
 	$content = wp_kses_normalize_entities( $content );
 	$content = wp_kses_hook( $content, $allowed_html, $allowed_protocols );
 
-	return wp_kses_split( $content, $allowed_html, $allowed_protocols );
+	$filter_dialog_autofocus = (
+		'post' === $allowed_html &&
+		false !== stripos( $content, 'autofocus' )
+	);
+	if ( $filter_dialog_autofocus ) {
+		$allowed_html = wp_kses_allowed_html( 'post' );
+		foreach ( $allowed_html as $tag => $attributes ) {
+			if ( is_array( $attributes ) ) {
+				$allowed_html[ $tag ]['autofocus'] = true;
+			}
+		}
+	}
+
+	$content = wp_kses_split( $content, $allowed_html, $allowed_protocols );
+
+	if ( $filter_dialog_autofocus ) {
+		$content = _wp_kses_strip_autofocus_outside_dialog( $content );
+	}
+
+	return $content;
+}
+
+/**
+ * Removes autofocus attributes unless the element appears within a dialog element.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param string $content Sanitized HTML content.
+ * @return string HTML content with invalid autofocus attributes removed.
+ */
+function _wp_kses_strip_autofocus_outside_dialog( $content ) {
+	$processor    = new WP_HTML_Tag_Processor( $content );
+	$dialog_depth = 0;
+
+	while ( $processor->next_tag( array( 'tag_closers' => 'visit' ) ) ) {
+		if ( 'DIALOG' === $processor->get_tag() && $processor->is_tag_closer() ) {
+			$dialog_depth = max( 0, $dialog_depth - 1 );
+			continue;
+		}
+
+		if (
+			null !== $processor->get_attribute( 'autofocus' ) &&
+			( 0 === $dialog_depth || 'DIALOG' === $processor->get_tag() )
+		) {
+			$processor->remove_attribute( 'autofocus' );
+		}
+
+		if ( 'DIALOG' === $processor->get_tag() ) {
+			++$dialog_depth;
+		}
+	}
+
+	return $processor->get_updated_html();
 }
 
 /**

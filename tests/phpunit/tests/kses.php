@@ -162,6 +162,26 @@ class Tests_Kses extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 65491
+	 */
+	public function test_wp_kses_post_allows_autofocus_only_inside_dialog() {
+		$this->assertEqualHTML(
+			'<dialog><button autofocus>Close</button></dialog><button>Outside</button>',
+			wp_kses_post( '<dialog autofocus><button autofocus>Close</button></dialog><button autofocus>Outside</button>' )
+		);
+	}
+
+	/**
+	 * @ticket 65491
+	 */
+	public function test_wp_kses_post_removes_autofocus_outside_dialog_after_unsupported_html() {
+		$this->assertStringNotContainsString(
+			'autofocus',
+			wp_kses_post( '<table>text</table><button autofocus>Outside</button>' )
+		);
+	}
+
+	/**
 	 * @dataProvider data_wp_filter_post_kses_abbr
 	 * @ticket 20210
 	 *
