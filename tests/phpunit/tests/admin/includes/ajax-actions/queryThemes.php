@@ -91,24 +91,24 @@ class Tests_wp_ajax_query_themes extends WP_Ajax_UnitTestCase {
 			return $res;
 		}
 
-		$theme              = new stdClass();
+		$theme                 = new stdClass();
 		$theme->screenshot_url = 'http://example.com/screenshot.png';
 		$theme->preview_url    = 'http://example.com/preview';
-		$theme->rating      = 100;
-		$theme->num_ratings = 5;
-		$theme->homepage    = 'http://example.com';
-		$theme->description = 'Description';
-		$theme->author      = array( 'display_name' => 'Author' );
-		$theme->version     = '1.0';
-		$theme->name        = 'Test Theme';
-		$theme->slug        = 'test-theme';
-		$theme->sections    = array( 'description' => 'Description' );
-		$theme->photovote   = '';
-		$theme->vendor      = '';
-		$theme->tags        = array();
-		$theme->screenshots = array();
-		$theme->requires      = '5.0';
-		$theme->requires_php  = '7.0';
+		$theme->rating         = 100;
+		$theme->num_ratings    = 5;
+		$theme->homepage       = 'http://example.com';
+		$theme->description    = 'Description';
+		$theme->author         = array( 'display_name' => 'Author' );
+		$theme->version        = '1.0';
+		$theme->name           = 'Test Theme';
+		$theme->slug           = 'test-theme';
+		$theme->sections       = array( 'description' => 'Description' );
+		$theme->photovote      = '';
+		$theme->vendor         = '';
+		$theme->tags           = array();
+		$theme->screenshots    = array();
+		$theme->requires       = '5.0';
+		$theme->requires_php   = '7.0';
 
 		$api          = new stdClass();
 		$api->info    = array(
