@@ -368,7 +368,6 @@ final class WP_Interactivity_API {
 	 * Registers the `@wordpress/interactivity` script modules.
 	 *
 	 * @since 6.5.0
-	 *
 	 * @deprecated 6.7.0 Script Modules registration is handled by {@see wp_default_script_modules()}.
 	 */
 	public function register_script_modules() {
