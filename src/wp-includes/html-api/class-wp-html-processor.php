@@ -3265,7 +3265,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	}
 
 	/**
-	 * Applies the "any other end tag" parsing instructions for the 'in body' insertion mode.
+	 * Applies the "any other end tag" parsing instructions for the IN BODY insertion mode.
 	 *
 	 * @since 7.1.0
 	 * @ignore
@@ -3273,7 +3273,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @throws WP_HTML_Unsupported_Exception When encountering unsupported HTML input.
 	 *
 	 * @see https://html.spec.whatwg.org/#parsing-main-inbody
-	 * @see WP_HTML_Processor::step
+	 * @see WP_HTML_Processor::step_in_body
 	 *
 	 * @return bool Whether an element was found.
 	 */
