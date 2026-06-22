@@ -3496,7 +3496,7 @@ class WP_Site_Health {
 	 *
 	 * @since 7.1.0
 	 *
-	 * @return array{good: int, recommended: int, critical: int} Aggregate counts. Each
+	 * @return array{good: non-negative-int, recommended: non-negative-int, critical: non-negative-int} Aggregate counts. Each
 	 *                                                            value is `0` when no
 	 *                                                            result has been cached.
 	 */
@@ -3554,7 +3554,7 @@ class WP_Site_Health {
 	 * @return array{
 	 *     results: list<array<string, mixed>>,
 	 *     counts: array{good: int, recommended: int, critical: int},
-	 *     timestamp: int,
+	 *     timestamp: non-negative-int,
 	 * } The cached results as a list, aggregate counts derived from those same results, and
 	 *   the time of the most recent update. `results` is empty, all counts are `0`, and
 	 *   `timestamp` is `0` when none are cached.
@@ -3576,7 +3576,7 @@ class WP_Site_Health {
 		if ( is_array( $cached ) && isset( $cached['results'] ) && is_array( $cached['results'] ) ) {
 			$detail['results']   = array_values( $cached['results'] );
 			$detail['counts']    = self::count_site_status_results( $detail['results'] );
-			$detail['timestamp'] = isset( $cached['timestamp'] ) ? (int) $cached['timestamp'] : 0;
+			$detail['timestamp'] = (int) ( $cached['timestamp'] ?? 0 );
 		}
 
 		return $detail;
@@ -3617,6 +3617,7 @@ class WP_Site_Health {
 			}
 
 			$test = $sanitized['test'];
+			unset( $sanitized['test'] );
 
 			/*
 			 * When not authoritative, keep a recent existing entry rather than overwriting
@@ -3665,7 +3666,7 @@ class WP_Site_Health {
 	 *
 	 * @since 7.1.0
 	 *
-	 * @param array<int, array<string, mixed>> $results List of result arrays.
+	 * @param array<int, array<string, array{ status?: string }>> $results List of result arrays.
 	 * @return array{good: int, recommended: int, critical: int} Aggregate counts. Any
 	 *                                                            unrecognized status is
 	 *                                                            counted as `good`.
@@ -3700,6 +3701,7 @@ class WP_Site_Health {
 	 * @param mixed $result Raw test result data.
 	 * @return array|null The sanitized result, or null when required fields are missing
 	 *                    or the status is not recognized.
+	 * @phpstan-return array{ test: non-empty-string, status: 'good'|'recommended'|'critical' }|null
 	 */
 	private static function sanitize_site_status_result( $result ): ?array {
 		if ( ! is_array( $result ) ) {
