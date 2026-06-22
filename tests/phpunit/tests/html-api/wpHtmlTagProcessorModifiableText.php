@@ -415,7 +415,7 @@ HTML
 		$this->assertSame(
 			$transformed,
 			$processor->get_updated_html(),
-			"Should have transformed the HTML as expected why modifying the target node's modifiable text."
+			"Should have transformed the HTML as expected when modifying the target node's modifiable text."
 		);
 	}
 
