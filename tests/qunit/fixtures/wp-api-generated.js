@@ -3148,6 +3148,18 @@ mockedApiResponse.Schema = {
                             "description": "The ID for the associated post of the attachment.",
                             "type": "integer",
                             "required": false
+                        },
+                        "generate_sub_sizes": {
+                            "type": "boolean",
+                            "default": true,
+                            "description": "Whether to generate image sub sizes.",
+                            "required": false
+                        },
+                        "convert_format": {
+                            "type": "boolean",
+                            "default": true,
+                            "description": "Whether to convert image formats.",
+                            "required": false
                         }
                     }
                 }
@@ -3658,6 +3670,68 @@ mockedApiResponse.Schema = {
                         "alt_text": {
                             "description": "Alternative text to display when attachment is not displayed.",
                             "type": "string",
+                            "required": false
+                        }
+                    }
+                }
+            ]
+        },
+        "/wp/v2/media/(?P<id>[\\d]+)/sideload": {
+            "namespace": "wp/v2",
+            "methods": [
+                "POST"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "POST"
+                    ],
+                    "args": {
+                        "id": {
+                            "description": "Unique identifier for the attachment.",
+                            "type": "integer",
+                            "required": false
+                        },
+                        "image_size": {
+                            "description": "Image size.",
+                            "type": "string",
+                            "enum": [
+                                "thumbnail",
+                                "medium",
+                                "medium_large",
+                                "large",
+                                "1536x1536",
+                                "2048x2048",
+                                "original",
+                                "full",
+                                "scaled"
+                            ],
+                            "required": true
+                        },
+                        "convert_format": {
+                            "type": "boolean",
+                            "default": true,
+                            "description": "Whether to convert image formats.",
+                            "required": false
+                        }
+                    }
+                }
+            ]
+        },
+        "/wp/v2/media/(?P<id>[\\d]+)/finalize": {
+            "namespace": "wp/v2",
+            "methods": [
+                "POST"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "POST"
+                    ],
+                    "args": {
+                        "id": {
+                            "description": "Unique identifier for the attachment.",
+                            "type": "integer",
                             "required": false
                         }
                     }
@@ -11011,12 +11085,6 @@ mockedApiResponse.Schema = {
                         "PATCH"
                     ],
                     "args": {
-                        "wordpress_api_key": {
-                            "title": "Akismet Anti-spam API Key",
-                            "description": "API key for the Akismet Anti-spam connector.",
-                            "type": "string",
-                            "required": false
-                        },
                         "title": {
                             "title": "Title",
                             "description": "Site title.",
@@ -11089,12 +11157,6 @@ mockedApiResponse.Schema = {
                             "title": "",
                             "description": "Default post format.",
                             "type": "string",
-                            "required": false
-                        },
-                        "wp_collaboration_enabled": {
-                            "title": "",
-                            "description": "Enable Real-Time Collaboration",
-                            "type": "boolean",
                             "required": false
                         },
                         "posts_per_page": {
@@ -12588,6 +12650,11 @@ mockedApiResponse.Schema = {
                             "description": "Limit results to abilities in specific ability category.",
                             "type": "string",
                             "required": false
+                        },
+                        "namespace": {
+                            "description": "Limit results to abilities in a specific namespace.",
+                            "type": "string",
+                            "required": false
                         }
                     }
                 }
@@ -12706,6 +12773,43 @@ mockedApiResponse.Schema = {
             ]
         }
     },
+    "image_sizes": {
+        "thumbnail": {
+            "width": 150,
+            "height": 150,
+            "crop": true
+        },
+        "medium": {
+            "width": 300,
+            "height": 300,
+            "crop": false
+        },
+        "medium_large": {
+            "width": 768,
+            "height": 0,
+            "crop": false
+        },
+        "large": {
+            "width": 1024,
+            "height": 1024,
+            "crop": false
+        },
+        "1536x1536": {
+            "width": 1536,
+            "height": 1536,
+            "crop": false
+        },
+        "2048x2048": {
+            "width": 2048,
+            "height": 2048,
+            "crop": false
+        }
+    },
+    "image_size_threshold": 2560,
+    "image_output_formats": {},
+    "jpeg_interlaced": false,
+    "png_interlaced": false,
+    "gif_interlaced": false,
     "site_logo": 0,
     "site_icon": 0,
     "site_icon_url": ""
@@ -14550,7 +14654,6 @@ mockedApiResponse.CommentModel = {
 };
 
 mockedApiResponse.settings = {
-    "wordpress_api_key": "",
     "title": "Test Blog",
     "description": "",
     "url": "http://example.org",
@@ -14563,7 +14666,6 @@ mockedApiResponse.settings = {
     "use_smilies": true,
     "default_category": 1,
     "default_post_format": "0",
-    "wp_collaboration_enabled": false,
     "posts_per_page": 10,
     "show_on_front": "posts",
     "page_on_front": 0,
