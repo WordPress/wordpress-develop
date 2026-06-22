@@ -3,7 +3,7 @@
 		'dependencies' => array(
 			
 		),
-		'version' => '1c371cb517a97cdbcb9f'
+		'version' => 'f62f48906198ea8abc60'
 	),
 	'abilities/index.js' => array(
 		'dependencies' => array(
@@ -22,7 +22,7 @@
 				'import' => 'static'
 			)
 		),
-		'version' => '383c7a8bd24a1f2fd9b9'
+		'version' => 'f465b12ad4eba72e96bb'
 	),
 	'block-library/accordion/view.js' => array(
 		'dependencies' => array(
@@ -166,7 +166,7 @@
 				'import' => 'static'
 			)
 		),
-		'version' => '1d8ac818498d717db8e2'
+		'version' => '81547e3fdb702354d690'
 	),
 	'connectors/index.js' => array(
 		'dependencies' => array(
@@ -212,7 +212,7 @@
 				'import' => 'static'
 			)
 		),
-		'version' => '64eaee0eab71fc96214c'
+		'version' => 'a78e3f27ada463bd4eed'
 	),
 	'core-abilities/index.js' => array(
 		'dependencies' => array(
@@ -240,7 +240,7 @@
 				'import' => 'static'
 			)
 		),
-		'version' => '03b5e26742d2806990c6'
+		'version' => '4f7b534006672b96b9e8'
 	),
 	'interactivity/index.js' => array(
 		'dependencies' => array(
@@ -280,7 +280,7 @@
 		'dependencies' => array(
 			
 		),
-		'version' => 'e5fd3ae6d2c3b6e669da'
+		'version' => '662cb0e7f68d2a21cd68'
 	),
 	'latex-to-mathml/loader.js' => array(
 		'dependencies' => array(
@@ -308,7 +308,7 @@
 			'wp-private-apis',
 			'wp-style-engine'
 		),
-		'version' => 'e9a1d3da960d762c5954'
+		'version' => '20ca41c3076613678aa6'
 	),
 	'route/index.js' => array(
 		'dependencies' => array(
@@ -317,7 +317,7 @@
 			'react-jsx-runtime',
 			'wp-private-apis'
 		),
-		'version' => '48a77bfa70722b4254e4'
+		'version' => 'ef851c0f4dda0d1dd359'
 	),
 	'vips/loader.js' => array(
 		'dependencies' => array(
@@ -335,7 +335,7 @@
 		'dependencies' => array(
 			
 		),
-		'version' => '4972ce7ba840491f17bb'
+		'version' => 'bef00f6d1e2a86eb1050'
 	),
 	'workflow/index.js' => array(
 		'dependencies' => array(
@@ -360,6 +360,6 @@
 				'import' => 'static'
 			)
 		),
-		'version' => 'c5983b82ce036952b349'
+		'version' => '47d179feab1d4354fbb1'
 	)
 );

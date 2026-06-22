@@ -10005,6 +10005,70 @@ function getValueFromVariable(features, blockName, variable) {
   return variable;
 }
 
+// packages/global-styles-engine/build-module/style-state-back-compat.mjs
+var LEGACY_STYLE_STATE_ALIASES = {
+  "@mobile": "mobile",
+  "@tablet": "tablet",
+  "-current": "@current"
+};
+function isObjectRecord(value) {
+  return !!value && typeof value === "object" && !Array.isArray(value);
+}
+function normalizeStyleStateNode(node) {
+  if (!isObjectRecord(node)) {
+    return node;
+  }
+  let normalized = node;
+  Object.entries(LEGACY_STYLE_STATE_ALIASES).forEach(
+    ([state, legacyState]) => {
+      if (Object.hasOwn(node, legacyState)) {
+        if (normalized === node) {
+          normalized = { ...node };
+        }
+        if (!Object.hasOwn(node, state)) {
+          normalized[state] = node[legacyState];
+        }
+        delete normalized[legacyState];
+      }
+    }
+  );
+  Object.entries(normalized).forEach(([key, value]) => {
+    if (!isObjectRecord(value)) {
+      return;
+    }
+    const normalizedValue = normalizeStyleStateNode(value);
+    if (normalizedValue !== value) {
+      if (normalized === node) {
+        normalized = { ...node };
+      }
+      normalized[key] = normalizedValue;
+    }
+  });
+  return normalized;
+}
+function normalizeStyleStateAliases(globalStyles) {
+  if (true) {
+    return globalStyles;
+  }
+  if (!globalStyles?.styles) {
+    return globalStyles;
+  }
+  const styles = normalizeStyleStateNode(globalStyles.styles);
+  return styles === globalStyles.styles ? globalStyles : { ...globalStyles, styles };
+}
+function getLegacyStyleStatePath(path) {
+  if (true) {
+    return void 0;
+  }
+  const pathParts = path.split(".");
+  const legacyPathParts = pathParts.map(
+    (part) => LEGACY_STYLE_STATE_ALIASES[part] ?? part
+  );
+  return legacyPathParts.some(
+    (part, index2) => part !== pathParts[index2]
+  ) ? legacyPathParts.join(".") : void 0;
+}
+
 // packages/global-styles-engine/build-module/settings/get-style.mjs
 function getStyle(globalStyles, path, blockName, shouldDecodeEncode = true) {
   const appendedPath = path ? "." + path : "";
@@ -10012,7 +10076,22 @@ function getStyle(globalStyles, path, blockName, shouldDecodeEncode = true) {
   if (!globalStyles) {
     return void 0;
   }
-  const rawResult = getValueFromObjectPath(globalStyles, finalPath);
+  let rawResult = getValueFromObjectPath(globalStyles, finalPath);
+  const legacyPath = getLegacyStyleStatePath(finalPath);
+  if (rawResult === void 0 && legacyPath) {
+    let hasCanonicalPath = true;
+    let currentValue = globalStyles;
+    for (const pathPart of finalPath.split(".")) {
+      if (!currentValue || typeof currentValue !== "object" || !Object.hasOwn(currentValue, pathPart)) {
+        hasCanonicalPath = false;
+        break;
+      }
+      currentValue = currentValue[pathPart];
+    }
+    if (!hasCanonicalPath) {
+      rawResult = getValueFromObjectPath(globalStyles, legacyPath);
+    }
+  }
   const result = shouldDecodeEncode ? getValueFromVariable(globalStyles, blockName, rawResult) : rawResult;
   return result;
 }
@@ -10022,7 +10101,7 @@ function setStyle(globalStyles, path, newValue, blockName) {
   const appendedPath = path ? "." + path : "";
   const finalPath = !blockName ? `styles${appendedPath}` : `styles.blocks.${blockName}${appendedPath}`;
   return setImmutably(
-    globalStyles,
+    normalizeStyleStateAliases(globalStyles),
     finalPath.split("."),
     newValue
   );
@@ -10059,25 +10138,29 @@ function isPlainObject(o3) {
 
 // packages/global-styles-engine/build-module/core/merge.mjs
 function mergeGlobalStyles(base, user) {
-  return (0, import_deepmerge.default)(base, user, {
-    /*
-     * We only pass as arrays the presets,
-     * in which case we want the new array of values
-     * to override the old array (no merging).
-     */
-    isMergeableObject: isPlainObject,
-    /*
-     * Exceptions to the above rule.
-     * Background images should be replaced, not merged,
-     * as they themselves are specific object definitions for the style.
-     */
-    customMerge: (key) => {
-      if (key === "backgroundImage") {
-        return (baseConfig, userConfig) => userConfig ?? baseConfig;
+  return (0, import_deepmerge.default)(
+    normalizeStyleStateAliases(base),
+    normalizeStyleStateAliases(user),
+    {
+      /*
+       * We only pass as arrays the presets,
+       * in which case we want the new array of values
+       * to override the old array (no merging).
+       */
+      isMergeableObject: isPlainObject,
+      /*
+       * Exceptions to the above rule.
+       * Background images should be replaced, not merged,
+       * as they themselves are specific object definitions for the style.
+       */
+      customMerge: (key) => {
+        if (key === "backgroundImage") {
+          return (baseConfig, userConfig) => userConfig ?? baseConfig;
+        }
+        return void 0;
       }
-      return void 0;
     }
-  });
+  );
 }
 
 // node_modules/colord/index.mjs
@@ -10391,8 +10474,8 @@ var VALID_BLOCK_STATES = {
   ]
 };
 var RESPONSIVE_STATES = [
-  { value: "tablet", label: (0, import_i18n.__)("Tablet") },
-  { value: "mobile", label: (0, import_i18n.__)("Mobile") }
+  { value: "@tablet", label: (0, import_i18n.__)("Tablet") },
+  { value: "@mobile", label: (0, import_i18n.__)("Mobile") }
 ];
 function removePropertiesFromObject(object, properties) {
   if (!properties?.length) {
