@@ -6287,7 +6287,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 
 			// > If there is no such element, then act as described in the "any other end tag" entry above and return.
 			if ( null === $formatting_element ) {
-				$this->bail( 'Cannot run adoption agency when "any other end tag" is required.' );
+				$this->step_in_body_any_other_end_tag();
+				return;
 			}
 
 			// > If formatting element is not in the stack of open elements, then this is a parse error; remove the element from the list, and return.
