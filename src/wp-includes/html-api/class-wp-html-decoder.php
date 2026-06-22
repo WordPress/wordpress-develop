@@ -83,7 +83,7 @@ class WP_HTML_Decoder {
 	 *
 	 * Example:
 	 *
-	 *     '“😄”' === WP_HTML_Decode::decode_text_node( '&#x93;&#x1f604;&#x94' );
+	 *     '“😄”' === WP_HTML_Decoder::decode_text_node( '&#x93;&#x1f604;&#x94' );
 	 *
 	 * @since 6.6.0
 	 *
@@ -103,7 +103,7 @@ class WP_HTML_Decoder {
 	 *
 	 * Example:
 	 *
-	 *     '“😄”' === WP_HTML_Decode::decode_attribute( '&#x93;&#x1f604;&#x94' );
+	 *     '“😄”' === WP_HTML_Decoder::decode_attribute( '&#x93;&#x1f604;&#x94' );
 	 *
 	 * @since 6.6.0
 	 *
@@ -424,7 +424,7 @@ class WP_HTML_Decoder {
 	 * @return string Converted code point, or `�` if invalid.
 	 */
 	public static function code_point_to_utf8_bytes( $code_point ): string {
-		$string = mb_chr( $code_point );
+		$string = mb_chr( $code_point, 'UTF-8' );
 
 		return false !== $string ? $string : '�';
 	}
