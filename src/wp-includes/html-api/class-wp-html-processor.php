@@ -6285,7 +6285,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				}
 			}
 
-			// > If there is no such element, then return and instead act as described in the "any other end tag" entry above.
+			// > If there is no such element, then act as described in the "any other end tag" entry above and return.
 			if ( null === $formatting_element ) {
 				$this->bail( 'Cannot run adoption agency when "any other end tag" is required.' );
 			}
