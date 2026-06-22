@@ -94,7 +94,7 @@ class Tests_wp_ajax_date_format extends WP_Ajax_UnitTestCase {
 		$_POST['date']        = 'Y-m-d';
 
 		$this->expectException( 'WPAjaxDieStopException' );
-		$this->expectExceptionMessage( '-1' );
+		$this->expectExceptionMessage( '2026-06-22' );
 		$this->_handleAjax( 'date_format' );
 	}
 
