@@ -9,24 +9,19 @@
 class Tests_Multisite_wpmuActivateSignup extends WP_UnitTestCase {
 
 	/**
-	 * Signs up a user and captures the plain-text activation key and signup ID
-	 * via the after_signup_user action (before hashing occurs in the DB).
+	 * Signs up a user and captures the URL payload from the after_signup_user action.
 	 *
 	 * @param string $login
 	 * @param string $email
-	 * @return array{ key: string, signup_id: int }
+	 * @return array{ key: string }
 	 */
 	private function signup_user( $login, $email ) {
-		$data     = array(
-			'key'       => null,
-			'signup_id' => null,
-		);
-		$listener = static function ( $u, $e, $key, $meta, $signup_id ) use ( &$data ) {
-			$data['key']       = $key;
-			$data['signup_id'] = $signup_id;
+		$data     = array( 'key' => null );
+		$listener = static function ( $u, $e, $payload ) use ( &$data ) {
+			$data['key'] = $payload;
 		};
 		add_filter( 'wpmu_signup_user_notification', '__return_false' );
-		add_action( 'after_signup_user', $listener, 10, 5 );
+		add_action( 'after_signup_user', $listener, 10, 3 );
 		wpmu_signup_user( $login, $email );
 		remove_action( 'after_signup_user', $listener, 10 );
 		remove_filter( 'wpmu_signup_user_notification', '__return_false' );
@@ -36,24 +31,24 @@ class Tests_Multisite_wpmuActivateSignup extends WP_UnitTestCase {
 	/**
 	 * @ticket 38474
 	 */
-	public function test_signup_user_stores_hashed_key() {
+	public function test_signup_user_stores_hmac_hash() {
 		global $wpdb;
 
 		$this->signup_user( 'tuser38474a', 'tuser38474a@example.com' );
 
 		$stored = $wpdb->get_var( "SELECT activation_key FROM $wpdb->signups WHERE user_login = 'tuser38474a'" );
 
-		$this->assertStringContainsString( ':', $stored, 'Stored activation key must be in timestamp:hash format.' );
+		$this->assertMatchesRegularExpression( '/^[A-Za-z0-9+\/]{43}=$/', $stored, 'Stored activation key must be a 44-char base64-encoded SHA-256 HMAC.' );
 	}
 
 	/**
 	 * @ticket 38474
 	 */
-	public function test_activate_signup_succeeds_with_valid_key_and_signup_id() {
+	public function test_activate_signup_succeeds_with_valid_payload() {
 		add_filter( 'wpmu_welcome_user_notification', '__return_false' );
 
 		$data   = $this->signup_user( 'tuser38474b', 'tuser38474b@example.com' );
-		$result = wpmu_activate_signup( $data['key'], $data['signup_id'] );
+		$result = wpmu_activate_signup( $data['key'] );
 
 		remove_filter( 'wpmu_welcome_user_notification', '__return_false' );
 
@@ -65,19 +60,8 @@ class Tests_Multisite_wpmuActivateSignup extends WP_UnitTestCase {
 	 * @ticket 38474
 	 */
 	public function test_activate_signup_fails_with_wrong_key() {
-		$data   = $this->signup_user( 'tuser38474c', 'tuser38474c@example.com' );
-		$result = wpmu_activate_signup( 'thisisnottherightkey', $data['signup_id'] );
-
-		$this->assertWPError( $result );
-		$this->assertSame( 'invalid_key', $result->get_error_code() );
-	}
-
-	/**
-	 * @ticket 38474
-	 */
-	public function test_activate_signup_fails_with_wrong_signup_id() {
-		$data   = $this->signup_user( 'tuser38474d', 'tuser38474d@example.com' );
-		$result = wpmu_activate_signup( $data['key'], 0 );
+		$this->signup_user( 'tuser38474c', 'tuser38474c@example.com' );
+		$result = wpmu_activate_signup( 'thisisnottherightkey' );
 
 		$this->assertWPError( $result );
 		$this->assertSame( 'invalid_key', $result->get_error_code() );
@@ -108,9 +92,8 @@ class Tests_Multisite_wpmuActivateSignup extends WP_UnitTestCase {
 				'meta'           => serialize( array() ),
 			)
 		);
-		$signup_id = $wpdb->insert_id;
 
-		$result = wpmu_activate_signup( $plain_key, $signup_id );
+		$result = wpmu_activate_signup( $plain_key );
 
 		remove_filter( 'wpmu_welcome_user_notification', '__return_false' );
 
@@ -140,9 +123,8 @@ class Tests_Multisite_wpmuActivateSignup extends WP_UnitTestCase {
 				'meta'           => serialize( array() ),
 			)
 		);
-		$signup_id = $wpdb->insert_id;
 
-		$result = wpmu_activate_signup( 'wrongkey', $signup_id );
+		$result = wpmu_activate_signup( 'wrongkey' );
 
 		$this->assertWPError( $result );
 		$this->assertSame( 'invalid_key', $result->get_error_code() );
@@ -160,7 +142,7 @@ class Tests_Multisite_wpmuActivateSignup extends WP_UnitTestCase {
 				return -1;
 			}
 		);
-		$result = wpmu_activate_signup( $data['key'], $data['signup_id'] );
+		$result = wpmu_activate_signup( $data['key'] );
 		remove_all_filters( 'activate_signup_expiration' );
 
 		$this->assertWPError( $result );
@@ -179,7 +161,7 @@ class Tests_Multisite_wpmuActivateSignup extends WP_UnitTestCase {
 		};
 
 		add_filter( 'activate_signup_expiration', $filter );
-		wpmu_activate_signup( $data['key'], $data['signup_id'] );
+		wpmu_activate_signup( $data['key'] );
 		remove_filter( 'activate_signup_expiration', $filter );
 
 		$this->assertTrue( $filter_called );
@@ -190,7 +172,7 @@ class Tests_Multisite_wpmuActivateSignup extends WP_UnitTestCase {
 	 *
 	 * @covers ::wpmu_signup_user_notification
 	 */
-	public function test_signup_user_notification_includes_signup_id_in_url() {
+	public function test_signup_user_notification_url_contains_key_payload() {
 		$data = $this->signup_user( 'tuser38474g', 'tuser38474g@example.com' );
 
 		$captured = '';
@@ -200,9 +182,9 @@ class Tests_Multisite_wpmuActivateSignup extends WP_UnitTestCase {
 		};
 
 		add_filter( 'wp_mail', $capture );
-		wpmu_signup_user_notification( 'tuser38474g', 'tuser38474g@example.com', $data['key'], array(), $data['signup_id'] );
+		wpmu_signup_user_notification( 'tuser38474g', 'tuser38474g@example.com', $data['key'], array() );
 		remove_filter( 'wp_mail', $capture );
 
-		$this->assertStringContainsString( 'signup_id=' . $data['signup_id'], $captured );
+		$this->assertStringContainsString( 'wp-activate.php?key=', $captured );
 	}
 }

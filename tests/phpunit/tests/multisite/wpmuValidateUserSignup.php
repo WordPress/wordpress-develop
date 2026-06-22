@@ -140,21 +140,17 @@ class Tests_Multisite_wpmuValidateUserSignup extends WP_UnitTestCase {
 		add_filter( 'wpmu_signup_user_notification', '__return_false' );
 		add_filter( 'wpmu_welcome_user_notification', '__return_false' );
 
-		// Capture the plain-text key and signup ID from the action.
-		$signup_data = array(
-			'key'       => null,
-			'signup_id' => null,
-		);
-		$listener    = static function ( $u, $e, $key, $meta, $signup_id ) use ( &$signup_data ) {
-			$signup_data['key']       = $key;
-			$signup_data['signup_id'] = $signup_id;
+		// Capture the activation payload from the action.
+		$payload  = null;
+		$listener = static function ( $u, $e, $key ) use ( &$payload ) {
+			$payload = $key;
 		};
-		add_action( 'after_signup_user', $listener, 10, 5 );
+		add_action( 'after_signup_user', $listener, 10, 3 );
 
 		// Signup, activate and delete new user.
 		wpmu_signup_user( 'foo123', 'foo@example.com' );
 		remove_action( 'after_signup_user', $listener, 10 );
-		$user = wpmu_activate_signup( $signup_data['key'], $signup_data['signup_id'] );
+		$user = wpmu_activate_signup( $payload );
 		wpmu_delete_user( $user['user_id'] );
 
 		$valid = wpmu_validate_user_signup( 'foo123', 'foo2@example.com' );

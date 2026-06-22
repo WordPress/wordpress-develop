@@ -23,9 +23,8 @@ $valid_error_codes = array( 'already_active', 'blog_taken' );
 list( $activate_path ) = explode( '?', wp_unslash( $_SERVER['REQUEST_URI'] ) );
 $activate_cookie       = 'wp-activate-' . COOKIEHASH;
 
-$key       = '';
-$signup_id = 0;
-$result    = null;
+$key    = '';
+$result = null;
 
 if ( isset( $_GET['key'] ) && isset( $_POST['key'] ) && $_GET['key'] !== $_POST['key'] ) {
 	wp_die( __( 'A key value mismatch has been detected. Please follow the link provided in your activation email.' ), __( 'An error occurred during the activation' ), 400 );
@@ -33,12 +32,6 @@ if ( isset( $_GET['key'] ) && isset( $_POST['key'] ) && $_GET['key'] !== $_POST[
 	$key = sanitize_text_field( $_GET['key'] );
 } elseif ( ! empty( $_POST['key'] ) ) {
 	$key = sanitize_text_field( $_POST['key'] );
-}
-
-if ( ! empty( $_GET['signup_id'] ) ) {
-	$signup_id = absint( $_GET['signup_id'] );
-} elseif ( ! empty( $_POST['signup_id'] ) ) {
-	$signup_id = absint( $_POST['signup_id'] );
 }
 
 if ( $key ) {
@@ -49,17 +42,17 @@ if ( $key ) {
 		wp_safe_redirect( $redirect_url );
 		exit;
 	} else {
-		$result = wpmu_activate_signup( $key, $signup_id );
+		$result = wpmu_activate_signup( $key );
 	}
 }
 
 if ( null === $result && isset( $_COOKIE[ $activate_cookie ] ) ) {
 	$key    = $_COOKIE[ $activate_cookie ];
-	$result = wpmu_activate_signup( $key, $signup_id );
+	$result = wpmu_activate_signup( $key );
 	setcookie( $activate_cookie, ' ', time() - YEAR_IN_SECONDS, $activate_path, COOKIE_DOMAIN, is_ssl(), true );
 }
 
-if ( null === $result || ( is_wp_error( $result ) && in_array( $result->get_error_code(), array( 'invalid_key', 'invalid_id', 'expired_key' ), true ) ) ) {
+if ( null === $result || ( is_wp_error( $result ) && 'invalid_key' === $result->get_error_code() ) ) {
 	status_header( 404 );
 } elseif ( is_wp_error( $result ) ) {
 	$error_code = $result->get_error_code();
@@ -136,10 +129,6 @@ $blog_details = get_site();
 			<p>
 				<label for="key"><?php _e( 'Activation Key:' ); ?></label>
 				<br /><input type="text" name="key" id="key" value="" size="50" autofocus="autofocus" />
-			</p>
-			<p>
-				<label for="signup_id"><?php _e( 'Signup ID:' ); ?></label>
-				<br /><input type="number" name="signup_id" id="signup_id" value="" size="50" />
 			</p>
 			<p class="submit">
 				<input id="submit" type="submit" name="Submit" class="submit" value="<?php esc_attr_e( 'Activate' ); ?>" />
