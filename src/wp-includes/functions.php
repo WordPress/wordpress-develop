@@ -5317,14 +5317,7 @@ function wp_is_numeric_array( $data ): bool {
 	if ( ! is_array( $data ) ) {
 		return false;
 	}
-
-	foreach ( $data as $key => $value ) {
-		if ( is_string( $key ) ) {
-			return false;
-		}
-	}
-
-	return true;
+	return array_all( $data, fn( $value, $key ) => ! is_string( $key ) );
 }
 
 /**
