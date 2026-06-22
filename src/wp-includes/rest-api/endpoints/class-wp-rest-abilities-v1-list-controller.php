@@ -217,6 +217,11 @@ class WP_REST_Abilities_V1_List_Controller extends WP_REST_Controller {
 	/**
 	 * Gets the allowed schema keywords for preparing ability schemas in REST responses.
 	 *
+	 * Uses the fuller draft-04 keyword set, not the smaller REST API subset.
+	 * The published schema is consumed by clients that re-validate values
+	 * against standard draft-04, so it keeps the keywords those validators
+	 * expect.
+	 *
 	 * @since 7.1.0
 	 *
 	 * @return array<string, true> Allowed schema keywords.

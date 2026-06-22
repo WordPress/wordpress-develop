@@ -11,9 +11,16 @@
  * Gets the JSON Schema keywords allowed for a given schema profile.
  *
  * Use the returned list to decide which keywords to keep when a schema is
- * output as JSON. Pass 'rest-api' for REST API route output. Pass 'draft-04'
- * for the larger set used when publishing schemas to clients, such as the
- * Abilities API.
+ * output as JSON. Both profiles describe JSON Schema draft-04 output, also
+ * called JSON Schema Version 4. They differ only in how much of the keyword
+ * vocabulary stays in the result.
+ *
+ * - 'rest-api' returns the subset of draft-04 that the WordPress REST API
+ *   uses for route output. This is the default.
+ * - 'draft-04' returns the larger draft-04 set used when publishing a schema
+ *   as a standalone document to clients, such as the Abilities API. It keeps
+ *   documentation and passthrough keywords like '$ref', 'definitions',
+ *   'allOf', 'not', 'dependencies', and 'additionalItems'.
  *
  * The keywords are allowed to stay in the schema output. This does not mean
  * WordPress validates or sanitizes values against them.
