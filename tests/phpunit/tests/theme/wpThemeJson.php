@@ -3196,7 +3196,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 						'core/group' => array(
 							'elements' => array(
 								'link' => array(
-									'color'  => array(
+									'color'   => array(
 										'text' => 'var:preset|color|dark-gray',
 									),
 									'@mobile' => array(
@@ -3224,7 +3224,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 					'core/group' => array(
 						'elements' => array(
 							'link' => array(
-								'color'  => array(
+								'color'   => array(
 									'text' => 'var(--wp--preset--color--dark-gray)',
 								),
 								'@mobile' => array(
