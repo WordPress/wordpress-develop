@@ -130,7 +130,9 @@ class Tests_Upload extends WP_UnitTestCase {
 		};
 
 		WP_Test_Stream::$data = array(
-			'uploads-test' => array(),
+			'uploads-test' => array(
+				'/uploads/' => 'DIRECTORY',
+			),
 		);
 
 		add_filter( 'upload_dir', $filter );
