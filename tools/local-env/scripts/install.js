@@ -35,7 +35,9 @@ writeFileSync( 'wp-tests-config.php', testConfig );
 // Once the site is available, install WordPress!
 wait_on( {
 	resources: [ `tcp:localhost:${process.env.LOCAL_PORT}`],
-	timeout: 3000,
+	// CI runners can take noticeably longer than local machines before the forwarded
+	// web port begins accepting connections after `env:start` returns.
+	timeout: 60000,
 } )
 	.catch( err => {
 		console.error( `Error: It appears the development environment has not been started. Message: ${ err.message }` );
