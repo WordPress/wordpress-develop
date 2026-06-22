@@ -59,5 +59,57 @@ wait_on( {
  * @param {string} cmd The WP-CLI command to run.
  */
 function wp_cli( cmd ) {
-	execSync( `npm --silent run env:cli -- ${cmd} --path=/var/www/${process.env.LOCAL_DIR}`, { stdio: 'inherit' } );
+	const wp_cli_command = `npm --silent run env:cli -- ${cmd} --path=/var/www/${process.env.LOCAL_DIR}`;
+
+	for ( let attempt = 1; attempt <= 5; attempt++ ) {
+		try {
+			const output = execSync( wp_cli_command, {
+				encoding: 'utf8',
+				stdio: [ 'ignore', 'pipe', 'pipe' ],
+			} );
+
+			if ( output ) {
+				process.stdout.write( output );
+			}
+
+			return;
+		} catch ( error ) {
+			if ( error.stdout ) {
+				process.stdout.write( error.stdout.toString() );
+			}
+
+			if ( error.stderr ) {
+				process.stderr.write( error.stderr.toString() );
+			}
+
+			if ( 5 === attempt || ! wp_cli_container_is_starting( error ) ) {
+				throw error;
+			}
+
+			const delay = attempt * 1000;
+			console.warn( `The WP-CLI container is still starting, retrying in ${ delay / 1000 } second(s)...` );
+			sleep( delay );
+		}
+	}
+}
+
+/**
+ * Determines whether the WP-CLI container is still starting.
+ *
+ * @param {Error & {stdout?: Buffer|string, stderr?: Buffer|string}} error Error thrown by execSync().
+ * @return {boolean} Whether the CLI container is still starting up.
+ */
+function wp_cli_container_is_starting( error ) {
+	const output = `${ error.stdout || '' }\n${ error.stderr || '' }\n${ error.message || '' }`;
+
+	return output.includes( 'service "cli" is not running' );
+}
+
+/**
+ * Sleeps synchronously for a specified number of milliseconds.
+ *
+ * @param {number} milliseconds The number of milliseconds to sleep.
+ */
+function sleep( milliseconds ) {
+	Atomics.wait( new Int32Array( new SharedArrayBuffer( 4 ) ), 0, 0, milliseconds );
 }
