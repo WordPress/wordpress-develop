@@ -371,7 +371,12 @@ function _wptexturize_text_ends_with_quote_context( $text ) {
  * @return bool Whether the token is a closing inline HTML element.
  */
 function _wptexturize_is_inline_closing_tag( $text ) {
-	if ( ! preg_match( '/^<\/([a-z][a-z0-9]*)\s*>$/i', $text, $matches ) ) {
+	// The caller only reaches this for '<'-prefixed tokens, and the $inline_tags
+	// allowlist below validates the tag name, so no regular expression is needed:
+	// require the '</' prefix and '>' suffix, then extract the name directly. The
+	// rtrim() preserves the optional whitespace permitted before '>' in a closing
+	// tag, while a leading space after '</' leaves a non-matching name.
+	if ( '</' !== substr( $text, 0, 2 ) || '>' !== substr( $text, -1 ) ) {
 		return false;
 	}
 
@@ -403,7 +408,9 @@ function _wptexturize_is_inline_closing_tag( $text ) {
 		'var',
 	);
 
-	return in_array( strtolower( $matches[1] ), $inline_tags, true );
+	$tag = strtolower( rtrim( substr( $text, 2, -1 ), " \t\n\r\f\x0B" ) );
+
+	return in_array( $tag, $inline_tags, true );
 }
 
 /**
