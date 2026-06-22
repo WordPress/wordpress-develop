@@ -110,13 +110,13 @@ class Tests_wp_ajax_query_themes extends WP_Ajax_UnitTestCase {
 		$theme->requires       = '5.0';
 		$theme->requires_php   = '7.0';
 
-		$api          = new stdClass();
-		$api->info    = array(
+		$api         = new stdClass();
+		$api->info   = array(
 			'page'    => 1,
 			'pages'   => 1,
 			'results' => 1,
 		);
-		$api->themes  = array( $theme );
+		$api->themes = array( $theme );
 
 		return $api;
 	}
