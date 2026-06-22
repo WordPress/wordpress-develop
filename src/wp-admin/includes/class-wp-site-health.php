@@ -3561,7 +3561,15 @@ class WP_Site_Health {
 	 * @since 7.1.0
 	 *
 	 * @return array{
-	 *     results: list<array<string, mixed>>,
+	 *     results: list<array{
+	 *         test: non-empty-string,
+	 *         label: string,
+	 *         status: 'good'|'recommended'|'critical',
+	 *         description: string,
+	 *         actions: string,
+	 *         badge?: array{ label: string, color: string },
+	 *         timestamp: non-negative-int,
+	 *     }>,
 	 *     counts: array{good: int, recommended: int, critical: int},
 	 *     timestamp: non-negative-int,
 	 * } The cached results as a list, aggregate counts derived from those same results, and
@@ -3583,7 +3591,13 @@ class WP_Site_Health {
 		$cached = is_string( $cached ) ? json_decode( $cached, true ) : null;
 
 		if ( is_array( $cached ) && isset( $cached['results'] ) && is_array( $cached['results'] ) ) {
-			$detail['results']   = array_values( $cached['results'] );
+			foreach ( $cached['results'] as $test => $result ) {
+				if ( is_array( $result ) ) {
+					// The test name is the cache key, so add it back for consumers.
+					$detail['results'][] = array( 'test' => (string) $test ) + $result;
+				}
+			}
+
 			$detail['counts']    = self::count_site_status_results( $detail['results'] );
 			$detail['timestamp'] = (int) ( $cached['timestamp'] ?? 0 );
 		}
@@ -3600,15 +3614,16 @@ class WP_Site_Health {
 	 *
 	 * @since 7.1.0
 	 *
-	 * @param array $results       List of raw Site Health test result arrays.
-	 * @param bool  $authoritative Whether to overwrite existing cached entries for the
-	 *                             same test. The Site Health screen passes `true` because
-	 *                             its results include the JavaScript-only asynchronous
-	 *                             tests. The scheduled check passes `false` so it refreshes
-	 *                             only missing or stale entries without discarding fresher
-	 *                             results collected from the screen.
+	 * @param array $results        List of raw Site Health test result arrays.
+	 * @param bool  $includes_async Whether the results include the JavaScript-only
+	 *                              asynchronous tests. The Site Health screen passes `true`
+	 *                              because it collects those tests in the browser, so its
+	 *                              entries take precedence over existing cached ones. The
+	 *                              scheduled check passes `false` since it cannot run the
+	 *                              asynchronous tests, so it only fills in missing or stale
+	 *                              entries without discarding fresher results from the screen.
 	 */
-	public static function update_site_status_detail( array $results, bool $authoritative ): void {
+	public static function update_site_status_detail( array $results, bool $includes_async ): void {
 		$now = time();
 
 		$cached = get_transient( self::STATUS_DETAIL_TRANSIENT );
@@ -3629,11 +3644,12 @@ class WP_Site_Health {
 			unset( $sanitized['test'] );
 
 			/*
-			 * When not authoritative, keep a recent existing entry rather than overwriting
-			 * it. This preserves results collected from the Site Health screen (including
-			 * the asynchronous tests) when the scheduled check runs afterwards.
+			 * When the results omit the asynchronous tests, keep a recent existing entry
+			 * rather than overwriting it. This preserves results collected from the Site
+			 * Health screen (including the asynchronous tests) when the scheduled check
+			 * runs afterwards.
 			 */
-			if ( ! $authoritative
+			if ( ! $includes_async
 				&& isset( $stored[ $test ]['timestamp'] )
 				&& ( $now - (int) $stored[ $test ]['timestamp'] ) < WEEK_IN_SECONDS
 			) {
@@ -3675,10 +3691,11 @@ class WP_Site_Health {
 	 *
 	 * @since 7.1.0
 	 *
-	 * @param array<int, array<string, array{ status?: string }>> $results List of result arrays.
-	 * @return array{good: int, recommended: int, critical: int} Aggregate counts. Any
-	 *                                                            unrecognized status is
-	 *                                                            counted as `good`.
+	 * @param array<int, array{ status: string }> $results List of result arrays, each with a status.
+	 * @return array{good: int, recommended: int, critical: int} Aggregate counts, one bucket
+	 *                                                            per status. A status other than
+	 *                                                            `recommended` or `critical`
+	 *                                                            counts as `good`.
 	 */
 	private static function count_site_status_results( array $results ): array {
 		$counts = array(
@@ -3688,7 +3705,7 @@ class WP_Site_Health {
 		);
 
 		foreach ( $results as $result ) {
-			$status = isset( $result['status'] ) ? $result['status'] : '';
+			$status = $result['status'];
 
 			if ( 'critical' === $status ) {
 				++$counts['critical'];
