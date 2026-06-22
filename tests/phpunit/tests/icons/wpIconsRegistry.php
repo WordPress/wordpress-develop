@@ -94,11 +94,10 @@ class Tests_Icons_WpIconsRegistry extends WP_UnitTestCase {
 
 	public function data_invalid_icon_names() {
 		return array(
-			'non-string name'        => array( 1 ),
-			'non-namespaced name'    => array( 'plus' ),
-			'empty unqualified name' => array( 'test-collection/' ),
-			'uppercase characters'   => array( 'test-collection/Plus' ),
-			'invalid characters'     => array( 'test-collection/_doing_it_wrong' ),
+			'non-string name'      => array( 1 ),
+			'empty name'           => array( 'test-collection/' ),
+			'uppercase characters' => array( 'test-collection/Plus' ),
+			'invalid characters'   => array( 'test-collection/_doing_it_wrong' ),
 		);
 	}
 
@@ -153,13 +152,15 @@ class Tests_Icons_WpIconsRegistry extends WP_UnitTestCase {
 	 */
 	public function test_register_rejects_non_namespaced_name() {
 		$result = $this->registry->register(
-			'my-icon',
+			'non-namespaced-icon',
 			array(
 				'label'   => 'Icon',
 				'content' => '<svg></svg>',
 			)
 		);
 		$this->assertFalse( $result );
+		$this->assertFalse( $this->registry->is_registered( 'core/non-namespaced-icon' ) );
+		$this->assertFalse( $this->registry->is_registered( 'non-namespaced-icon' ) );
 	}
 
 	/**
@@ -202,6 +203,73 @@ class Tests_Icons_WpIconsRegistry extends WP_UnitTestCase {
 			)
 		);
 		$this->assertFalse( $result );
+	}
+
+	/**
+	 * Should register an icon that provides its content through `file_path`.
+	 *
+	 * @ticket 64847
+	 *
+	 * @covers ::register
+	 */
+	public function test_register_icon_with_file_path() {
+		$path = $this->create_temp_icon_file( '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"></svg>' );
+
+		$result = $this->registry->register(
+			'test-collection/file-path-icon',
+			array(
+				'label'     => 'Icon',
+				'file_path' => $path,
+			)
+		);
+
+		$this->assertTrue( $result );
+		$this->assertTrue( $this->registry->is_registered( 'test-collection/file-path-icon' ) );
+
+		$icon = $this->registry->get_registered_icon( 'test-collection/file-path-icon' );
+		$this->assertStringContainsString( '<svg', $icon['content'] );
+	}
+
+	/**
+	 * Should fail to register an icon that provides both `content` and `file_path`.
+	 *
+	 * @ticket 64847
+	 *
+	 * @covers ::register
+	 *
+	 * @expectedIncorrectUsage WP_Icons_Registry::register
+	 */
+	public function test_register_icon_with_content_and_file_path() {
+		$result = $this->registry->register(
+			'test-collection/content-and-file-path',
+			array(
+				'label'     => 'Icon',
+				'content'   => '<svg></svg>',
+				'file_path' => '/path/to/icon.svg',
+			)
+		);
+		$this->assertFalse( $result );
+		$this->assertFalse( $this->registry->is_registered( 'test-collection/content-and-file-path' ) );
+	}
+
+	/**
+	 * Should fail to register an icon that provides neither `content` nor `file_path`.
+	 *
+	 * @ticket 64847
+	 *
+	 * @covers ::register
+	 *
+	 * @expectedIncorrectUsage WP_Icons_Registry::register
+	 */
+	public function test_register_icon_without_content_or_file_path() {
+		$result = $this->registry->register(
+			'test-collection/no-content',
+			array(
+				'label' => 'Icon',
+			)
+		);
+		$this->assertFalse( $result );
+		$this->assertFalse( $this->registry->is_registered( 'test-collection/no-content' ) );
 	}
 
 	/**

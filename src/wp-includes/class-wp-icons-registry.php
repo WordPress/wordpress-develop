@@ -70,15 +70,6 @@ class WP_Icons_Registry {
 			return false;
 		}
 
-		if ( ! is_array( $icon_properties ) ) {
-			_doing_it_wrong(
-				__METHOD__,
-				__( 'Icon properties must be an array.' ),
-				'7.1.0'
-			);
-			return false;
-		}
-
 		// Require a namespaced name in the form "collection/icon-name".
 		if ( false === strpos( $icon_name, '/' ) ) {
 			_doing_it_wrong(
@@ -91,6 +82,15 @@ class WP_Icons_Registry {
 
 		// Split the namespaced name into a collection slug and an unqualified icon name.
 		list( $collection, $unqualified_name ) = explode( '/', $icon_name, 2 );
+
+		if ( preg_match( '/[A-Z]/', $unqualified_name ) ) {
+			_doing_it_wrong(
+				__METHOD__,
+				__( 'Icon names must not contain uppercase characters.' ),
+				'7.1.0'
+			);
+			return false;
+		}
 
 		if ( ! preg_match( '/^[a-z][a-z0-9-]*$/', $unqualified_name ) ) {
 			_doing_it_wrong(
