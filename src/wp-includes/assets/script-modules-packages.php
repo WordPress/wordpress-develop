@@ -166,7 +166,7 @@
 				'import' => 'static'
 			)
 		),
-		'version' => '42d3f09bba14cce3054d'
+		'version' => '54bb5a420026a61c7e4f'
 	),
 	'connectors/index.js' => array(
 		'dependencies' => array(
@@ -190,7 +190,7 @@
 				'import' => 'static'
 			)
 		),
-		'version' => '7cd8fe3a80dded97579b'
+		'version' => '012760fd849397dd0031'
 	),
 	'edit-site-init/index.js' => array(
 		'dependencies' => array(
@@ -211,7 +211,7 @@
 		'dependencies' => array(
 			
 		),
-		'version' => '4d2a3a72c7410d548881'
+		'version' => 'efaa5193bbad9c60ffd1'
 	),
 	'interactivity-router/full-page.js' => array(
 		'dependencies' => array(
@@ -283,6 +283,24 @@
 			'wp-private-apis'
 		),
 		'version' => 'c5843b6c5e84b352f43b'
+	),
+	'vips/loader.js' => array(
+		'dependencies' => array(
+			
+		),
+		'module_dependencies' => array(
+			array(
+				'id' => '@wordpress/vips/worker',
+				'import' => 'dynamic'
+			)
+		),
+		'version' => '07c9acb45d3e5d81829a'
+	),
+	'vips/worker.js' => array(
+		'dependencies' => array(
+			
+		),
+		'version' => 'aff5e5c5b28ae6b73aaa'
 	),
 	'workflow/index.js' => array(
 		'dependencies' => array(
