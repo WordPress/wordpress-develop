@@ -99,7 +99,7 @@ class WP_REST_Abilities_V1_List_Controller extends WP_REST_Controller {
 		}
 
 		if ( ! empty( $request['meta'] ) ) {
-			// Merge caller meta first so the forced show_in_rest filter always wins.
+			// Merge caller meta first so the forced show_in_rest filter wins. This keeps a caller from using meta to reveal abilities hidden from REST.
 			$query_args['meta'] = array_merge( $request['meta'], $query_args['meta'] );
 		}
 
@@ -452,9 +452,23 @@ class WP_REST_Abilities_V1_List_Controller extends WP_REST_Controller {
 					'type'        => 'object',
 					'properties'  => array(
 						'annotations' => array(
-							'description' => __( 'Annotations for the ability.' ),
-							'type'        => array( 'boolean', 'null' ),
-							'default'     => null,
+							'description'          => __( 'Behavioral annotations for the ability.' ),
+							'type'                 => 'object',
+							'properties'           => array(
+								'readonly'    => array(
+									'description' => __( 'Whether the ability does not modify its environment.' ),
+									'type'        => array( 'boolean', 'null' ),
+								),
+								'destructive' => array(
+									'description' => __( 'Whether the ability may perform destructive updates to its environment.' ),
+									'type'        => array( 'boolean', 'null' ),
+								),
+								'idempotent'  => array(
+									'description' => __( 'Whether repeated calls with the same arguments have no additional effect.' ),
+									'type'        => array( 'boolean', 'null' ),
+								),
+							),
+							'additionalProperties' => true,
 						),
 					),
 					'context'     => array( 'view', 'edit' ),
