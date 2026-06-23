@@ -1929,6 +1929,17 @@ EOF;
 	}
 
 	/**
+	 * Test that Invoker Commands API attributes are preserved on buttons in post content.
+	 *
+	 * @ticket 64576
+	 */
+	public function test_wp_kses_button_invoker_command_attributes() {
+		$html = '<button type="button" commandfor="my-popover" command="toggle-popover">Toggle</button><div id="my-popover" popover>Content</div>';
+
+		$this->assertEqualHTML( $html, wp_kses_post( $html ) );
+	}
+
+	/**
 	 * Test that object tags are allowed under limited circumstances.
 	 *
 	 * @ticket 54261
