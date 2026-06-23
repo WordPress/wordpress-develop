@@ -369,7 +369,7 @@ class WP_HTML_Decoder {
 
 		/*
 		 * Named character references are NOT decoded if
-		 * - If the character reference was consumed as part of an attribute
+		 * - the character reference was consumed as part of an attribute
 		 * - AND the last character matched is not a U+003B SEMICOLON character (;)
 		 * - AND the next input character is either a U+003D EQUALS SIGN character (=)
 		 *   or an ASCII alphanumeric
