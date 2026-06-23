@@ -383,7 +383,7 @@ class WP_HTML_Decoder {
 
 		$follower_byte = ord( $text[ $after_name ] );
 		if (
-			0x3D === $follower_byte || //                              U+003D EQUALS SIGN
+			0x3D === $follower_byte || //                              EQUALS SIGN
 			( $follower_byte >= 0x30 && $follower_byte <= 0x39 ) || // ASCII digits 0-9
 			( $follower_byte >= 0x41 && $follower_byte <= 0x5A ) || // ASCII upper alpha A-Z
 			( $follower_byte >= 0x61 && $follower_byte <= 0x7A )    // ASCII lower alpha a-z
