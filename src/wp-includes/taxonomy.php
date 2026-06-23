@@ -1098,6 +1098,25 @@ function get_term( $term, $taxonomy = '', $output = OBJECT, $filter = 'raw' ) {
  */
 function get_term_by( $field, $value, $taxonomy = '', $output = OBJECT, $filter = 'raw' ) {
 
+	/**
+	 * Get all Term data from database by Term field and data.
+	 *
+	 * This allows one to short-circuit the default logic, perhaps by
+	 * replacing it with a routine that is more optimal for your setup.
+	 *
+	 * @since TBD
+	 *
+	 * @param string     $field    Either 'slug', 'name', 'id' (term_id), or 'term_taxonomy_id'
+	 * @param string|int $value    Search for this term value
+	 * @param string     $taxonomy Taxonomy name. Optional, if `$field` is 'term_taxonomy_id'.
+	 * @param string     $output   Constant OBJECT, ARRAY_A, or ARRAY_N
+	 * @param string     $filter   Optional, default is raw or no WordPress defined filter will applied.
+	 */
+	$pre = apply_filters( 'pre_get_term_by', null, $field, $value, $taxonomy, $output, $filter );
+	if ( null !== $pre ) {
+		return $pre;
+	}
+
 	// 'term_taxonomy_id' lookups don't require taxonomy checks.
 	if ( 'term_taxonomy_id' !== $field && ! taxonomy_exists( $taxonomy ) ) {
 		return false;
