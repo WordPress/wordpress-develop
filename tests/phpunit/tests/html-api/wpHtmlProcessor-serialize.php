@@ -257,11 +257,27 @@ class Tests_HtmlApi_WpHtmlProcessor_Serialize extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * XMP contents are parsed using the generic raw text element parsing algorithm.
+	 * Their contents should not be escaped with HTML character references on normalization.
+	 *
+	 * @ticket 65372
+	 */
+	public function test_xmp_contents_are_not_escaped() {
+		$normalized = WP_HTML_Processor::normalize( "<xmp> < > & \" ' \x00 </xmp>" );
+
+		$this->assertSame(
+			"<xmp> < > & \" ' \u{FFFD} </xmp>",
+			$normalized,
+			'Should have preserved text inside an XMP element, except for replacing NULL bytes.'
+		);
+	}
+
 	public function test_unexpected_closing_tags_are_removed() {
 		$this->assertSame(
 			WP_HTML_Processor::normalize( 'one</div>two</span>three' ),
 			'onetwothree',
-			'Should have removed unpected closing tags.'
+			'Should have removed unexpected closing tags.'
 		);
 	}
 
@@ -407,6 +423,7 @@ class Tests_HtmlApi_WpHtmlProcessor_Serialize extends WP_UnitTestCase {
 			'IFRAME content'       => array( "<iframe>a\x00b</iframe>", "<iframe>a\u{FFFD}b</iframe>" ),
 			'NOEMBED content'      => array( "<noembed>a\x00b</noembed>", "<noembed>a\u{FFFD}b</noembed>" ),
 			'NOFRAMES content'     => array( "<noframes>a\x00b</noframes>", "<noframes>a\u{FFFD}b</noframes>" ),
+			'XMP content'          => array( "<xmp>a\x00b</xmp>", "<xmp>a\u{FFFD}b</xmp>" ),
 			'Comment text'         => array( "<!-- \x00 -->", "<!-- \u{FFFD} -->" ),
 		);
 	}
@@ -727,6 +744,7 @@ class Tests_HtmlApi_WpHtmlProcessor_Serialize extends WP_UnitTestCase {
 			'Duplicate ALT boundary'                    => array( '<r alt=\'\'d alt=""=>' ),
 			'NULL byte in SVG child tag'                => array( "<svg><l\x00 '>" ),
 			'NULL byte before slash in SVG child tag'   => array( "<svg><l\x00/r>" ),
+			'XMP generic raw text'                      => array( "<xmp> < > & \" ' \x00 </xmp>" ),
 		);
 	}
 
