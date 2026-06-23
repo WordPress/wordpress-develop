@@ -82,8 +82,7 @@ jobs:
         if: ${{ inputs.test-certificates }}
         run: echo "date=$(/bin/date -u --date='last Mon' "+%F")" >> "$GITHUB_OUTPUT"
 
-      # Since Composer dependencies are installed using `composer update` and no lock file is in version control,
-      # passing a custom cache suffix ensures that the cache is flushed at least once per week.
+      # Passing a custom cache suffix ensures that the cache is flushed at least once per week.
       - name: Install Composer dependencies
         if: ${{ inputs.test-certificates }}
         uses: ramsey/composer-install@65e4f84970763564f46a70b8a54b90d033b3bdda # 4.0.0
