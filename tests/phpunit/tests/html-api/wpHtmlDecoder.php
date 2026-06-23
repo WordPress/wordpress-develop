@@ -197,21 +197,21 @@ class Tests_HtmlApi_WpHtmlDecoder extends WP_UnitTestCase {
 	 * @return Generator<string, array{ string }> Test cases.
 	 */
 	public static function data_semicolonless_attribute_character_reference_no_decode_followers(): Generator {
-		yield "Trialing '='" => array( '&Aacute=' );
+		yield "Equals sign follower '='" => array( '&Aacute=' );
 		// > An ASCII digit is a code point in the range U+0030 (0) to U+0039 (9), inclusive.
 		for ( $i = 0x30; $i <= 0x39; $i++ ) {
 			$char = chr( $i );
-			yield "ASCII digit follwer '{$char}'" => array( "&Aacute{$char}" );
+			yield "ASCII digit follower '{$char}'" => array( "&Aacute{$char}" );
 		}
 		// > An ASCII upper alpha is a code point in the range U+0041 (A) to U+005A (Z), inclusive.
 		for ( $i = 0x41; $i <= 0x5A; $i++ ) {
 			$char = chr( $i );
-			yield "ASCII upper alpha follwer '{$char}'" => array( "&Aacute{$char}" );
+			yield "ASCII upper alpha follower {$char}'" => array( "&Aacute{$char}" );
 		}
 		// > An ASCII lower alpha is a code point in the range U+0061 (a) to U+007A (z), inclusive.
 		for ( $i = 0x61; $i <= 0x7A; $i++ ) {
 			$char = chr( $i );
-			yield "ASCII lower alpha follwer '{$char}'" => array( "&Aacute{$char}" );
+			yield "ASCII lower alpha follower '{$char}'" => array( "&Aacute{$char}" );
 		}
 	}
 
