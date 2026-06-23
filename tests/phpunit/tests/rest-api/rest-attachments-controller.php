@@ -3587,6 +3587,8 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	 * This is the cross-origin-isolation fallback path: the server fetches the
 	 * remote image so the browser does not have to, and only the original is kept.
 	 *
+	 * @ticket 65517
+	 *
 	 * @covers WP_REST_Attachments_Controller::create_item
 	 * @covers WP_REST_Attachments_Controller::create_item_from_url
 	 */
@@ -3621,6 +3623,8 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	 * external image generates sub-sizes, so the filters applied in create_item()
 	 * still govern derivative generation on the URL path.
 	 *
+	 * @ticket 65517
+	 *
 	 * @covers WP_REST_Attachments_Controller::create_item
 	 * @covers WP_REST_Attachments_Controller::create_item_from_url
 	 */
@@ -3650,6 +3654,8 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	/**
 	 * Verifies that the REST-specific rest_after_insert_attachment action fires on
 	 * the URL sideload path, for parity with the uploaded-file path.
+	 *
+	 * @ticket 65517
 	 *
 	 * @covers WP_REST_Attachments_Controller::create_item_from_url
 	 */
@@ -3689,6 +3695,8 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	 * Verifies that a sideloaded external image is attached to the post passed in
 	 * the `post` parameter.
 	 *
+	 * @ticket 65517
+	 *
 	 * @covers WP_REST_Attachments_Controller::create_item
 	 * @covers WP_REST_Attachments_Controller::create_item_from_url
 	 */
@@ -3720,6 +3728,8 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	 * Verifies that a failed download propagates the WP_Error from download_url()
 	 * rather than creating an attachment.
 	 *
+	 * @ticket 65517
+	 *
 	 * @covers WP_REST_Attachments_Controller::create_item
 	 * @covers WP_REST_Attachments_Controller::create_item_from_url
 	 */
@@ -3749,6 +3759,8 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	 * Verifies that a URL with no usable path bails with a 400 before any
 	 * download is attempted, rather than handing an empty filename to the
 	 * sideload handler.
+	 *
+	 * @ticket 65517
 	 *
 	 * @covers WP_REST_Attachments_Controller::create_item_from_url
 	 */
@@ -3780,6 +3792,8 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	/**
 	 * Verifies that a user without the `upload_files` capability cannot sideload
 	 * an external image and that the request bails before any download happens.
+	 *
+	 * @ticket 65517
 	 *
 	 * @covers WP_REST_Attachments_Controller::create_item_from_url
 	 */
@@ -3816,6 +3830,8 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	/**
 	 * Verifies that the `url` argument is registered on the creatable media route
 	 * so requests can supply an external image URL to sideload.
+	 *
+	 * @ticket 65517
 	 *
 	 * @covers WP_REST_Attachments_Controller::get_endpoint_args_for_item_schema
 	 */
