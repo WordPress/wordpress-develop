@@ -368,10 +368,10 @@ class WP_HTML_Decoder {
 		$after_name = $name_at + $name_length;
 
 		/*
-		 * Named character references are NOT decoded if
+		 * A named character reference match is not decoded when all following conditions are true:
 		 * - the character reference was consumed as part of an attribute
-		 * - AND the last character matched is not a U+003B SEMICOLON character (;)
-		 * - AND the next input character is either a U+003D EQUALS SIGN character (=)
+		 * - the last character matched is not a U+003B SEMICOLON character (;)
+		 * - the next input character is either a U+003D EQUALS SIGN character (=)
 		 *   or an ASCII alphanumeric
 		 *
 		 * @see https://html.spec.whatwg.org/multipage/parsing.html#named-character-reference-state
