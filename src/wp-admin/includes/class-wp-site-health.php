@@ -1357,7 +1357,7 @@ class WP_Site_Health {
 			$result['description'] .= sprintf(
 				'<p>%s</p>',
 				sprintf(
-					'<span class="error"><span class="screen-reader-text">%s</span></span> %s',
+					'<span class="dashicons error" aria-hidden="true"></span><span class="screen-reader-text">%s</span> %s',
 					/* translators: Hidden accessibility text. */
 					__( 'Error' ),
 					sprintf(
@@ -2578,7 +2578,7 @@ class WP_Site_Health {
 		$action_url = apply_filters(
 			'site_status_persistent_object_cache_url',
 			/* translators: Localized Support reference. */
-			__( 'https://developer.wordpress.org/advanced-administration/performance/optimization/#persistent-object-cache' )
+			__( 'https://developer.wordpress.org/advanced-administration/performance/optimization/#object-caching' )
 		);
 
 		$result = array(
