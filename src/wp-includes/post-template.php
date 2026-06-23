@@ -1230,10 +1230,10 @@ function wp_dropdown_pages( $args = '' ) {
 
 		$output = "<select name='" . esc_attr( $parsed_args['name'] ) . "'" . $class . " id='" . esc_attr( $parsed_args['id'] ) . "'>\n";
 		if ( $parsed_args['show_option_no_change'] ) {
-			$output .= "\t<option value=\"-1\">" . $parsed_args['show_option_no_change'] . "</option>\n";
+			$output .= "\t<option value=\"-1\"" . selected( '-1', $parsed_args['selected'], false ) . '>' . $parsed_args['show_option_no_change'] . "</option>\n";
 		}
 		if ( $parsed_args['show_option_none'] ) {
-			$output .= "\t<option value=\"" . esc_attr( $parsed_args['option_none_value'] ) . '">' . $parsed_args['show_option_none'] . "</option>\n";
+			$output .= "\t<option value=\"" . esc_attr( $parsed_args['option_none_value'] ) . '"' . selected( $parsed_args['option_none_value'], $parsed_args['selected'], false ) . '>' . $parsed_args['show_option_none'] . "</option>\n";
 		}
 		$output .= walk_page_dropdown_tree( $pages, $parsed_args['depth'], $parsed_args );
 		$output .= "</select>\n";
