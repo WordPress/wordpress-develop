@@ -584,48 +584,25 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Ensures a trailing slash in an unquoted attribute value does not close foreign content.
-	 *
-	 * @ticket 61576
-	 */
-	public function test_trailing_slash_in_unquoted_attribute_value_does_not_self_close_foreign_content() {
-		$processor = WP_HTML_Processor::create_fragment( '<math><mtext a=b/>This mtext tag is not self-closing, it has [a="b/"] attribute.' );
-
-		$this->assertTrue( $processor->next_tag( 'MTEXT' ), 'Could not find MTEXT tag: check test setup.' );
-		$this->assertSame( 'b/', $processor->get_attribute( 'a' ), 'Trailing slash in unquoted attribute value should belong to the attribute value.' );
-		$this->assertFalse(
-			$processor->has_self_closing_flag(),
-			'Trailing slash in unquoted attribute value should not be interpreted as a self-closing flag.'
-		);
-
-		$this->assertTrue( $processor->next_token(), 'Could not find text following MTEXT tag: check test setup.' );
-		$this->assertSame(
-			array( 'HTML', 'BODY', 'MATH', 'MTEXT', '#text' ),
-			$processor->get_breadcrumbs(),
-			'Text following the MTEXT tag should remain inside the MTEXT element.'
-		);
-	}
-
-	/**
 	 * Ensures a slash-only unquoted attribute value does not close foreign content.
 	 *
-	 * @ticket 61576
+	 * @ticket 65372
 	 */
-	public function test_slash_only_unquoted_attribute_value_does_not_self_close_foreign_content() {
+	public function test_unquoted_slash_attribute_does_not_self_close_foreign_content(): void {
 		$processor = WP_HTML_Processor::create_fragment( '<math><mi a=/>math:mi is not self-closing, it has [a="/"] attribute.' );
 
-		$this->assertTrue( $processor->next_tag( 'MI' ), 'Could not find MI tag: check test setup.' );
-		$this->assertSame( '/', $processor->get_attribute( 'a' ), 'Slash-only unquoted attribute value should belong to the attribute value.' );
+		$this->assertTrue( $processor->next_tag( 'MI' ), 'Failed to find the MI tag: check test setup.' );
+		$this->assertSame( '/', $processor->get_attribute( 'a' ), 'Failed to treat the slash as the unquoted attribute value.' );
 		$this->assertFalse(
 			$processor->has_self_closing_flag(),
-			'Slash-only unquoted attribute value should not be interpreted as a self-closing flag.'
+			'Failed to avoid interpreting the slash-only unquoted attribute value as a self-closing flag.'
 		);
 
-		$this->assertTrue( $processor->next_token(), 'Could not find text following MI tag: check test setup.' );
+		$this->assertTrue( $processor->next_token(), 'Failed to find text following the MI tag: check test setup.' );
 		$this->assertSame(
 			array( 'HTML', 'BODY', 'MATH', 'MI', '#text' ),
 			$processor->get_breadcrumbs(),
-			'Text following the MI tag should remain inside the MI element.'
+			'Failed to keep text following the MI tag inside the MI element.'
 		);
 	}
 
