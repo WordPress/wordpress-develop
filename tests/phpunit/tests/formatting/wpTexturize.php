@@ -210,6 +210,22 @@ class Tests_Formatting_wpTexturize extends WP_UnitTestCase {
 		$this->assertSame( '<strong>He said</strong> &#8220;go&#8221;', wptexturize( '<strong>He said</strong> "go"' ) );
 	}
 
+	/**
+	 * The apostrophe after a closing inline tag is localizable (it uses the
+	 * `apostrophe` _x() string) and the preceding word-context check is Unicode
+	 * aware, so Romance-language elision and multibyte words resolve correctly.
+	 *
+	 * @ticket 18549
+	 */
+	public function test_historic_apostrophe_after_inline_tag_i18n() {
+		// French elision exposed by bolding a leading letter.
+		$this->assertSame( '<strong>l</strong>&#8217;homme', wptexturize( "<strong>l</strong>'homme" ) );
+		$this->assertSame( '<em>l</em>&#8217;eau', wptexturize( "<em>l</em>'eau" ) );
+		// Multibyte word context before the closing tag.
+		$this->assertSame( '<strong>café</strong>&#8217;s', wptexturize( "<strong>café</strong>'s" ) );
+		$this->assertSame( '<em>naïve</em>&#8217;s', wptexturize( "<em>naïve</em>'s" ) );
+	}
+
 	public function test_x() {
 		$this->assertSame( '14&#215;24', wptexturize( '14x24' ) );
 	}
