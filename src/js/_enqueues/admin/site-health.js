@@ -169,10 +169,6 @@ jQuery( function( $ ) {
 		 * Collect the full result so it can be cached server-side. These results
 		 * include the asynchronous tests that only run in the browser.
 		 */
-		if ( 'undefined' === typeof SiteHealth.site_status.results ) {
-			SiteHealth.site_status.results = [];
-		}
-
 		SiteHealth.site_status.results.push( {
 			test: issue.test,
 			label: issue.label,
@@ -282,7 +278,7 @@ jQuery( function( $ ) {
 			);
 
 			// Send the full results separately, as a best-effort detailed cache update.
-			if ( 'undefined' !== typeof SiteHealth.site_status.results ) {
+			if ( SiteHealth.site_status.results.length ) {
 				$.post(
 					ajaxurl,
 					{
@@ -411,7 +407,6 @@ jQuery( function( $ ) {
 				'recommended': 0,
 				'critical': 0
 			};
-			SiteHealth.site_status.results = [];
 		}
 
 		if ( 0 < SiteHealth.site_status.direct.length ) {
