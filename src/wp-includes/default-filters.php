@@ -828,4 +828,4 @@ foreach ( array( 'page', 'post', 'wp_block', 'wp_template_part', 'wp_template' )
 	);
 }
 
-unset( $filter, $action );
+unset( $filter, $action, $post_type );
