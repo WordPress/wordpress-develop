@@ -9280,37 +9280,37 @@ function wp_fast_hash(
 	return '$generic$' . sodium_bin2base64( $hashed, SODIUM_BASE64_VARIANT_URLSAFE_NO_PADDING );
 }
 
- /**
- * Move the admin notices below the heading tag via server-side processing. 
+/**
+ * Move the admin notices below the heading tag via server-side processing.
  * This prevents the visual glitch caused by JavaScript processing in the original fix.
- * 
- * @since 7.0.0
+ *
+ * @since 7.x.x
  */
 function wp_move_notice_after_heading() {
-    ob_start ( function( $html ) {
-        global $pagenow;
-        if ( ! class_exists( '\Dom\HTMLDocument' ) || empty( $html ) || ! is_string( $html ) || wp_doing_ajax() || ! is_user_logged_in() ) {
-            return $html;
-        }
-        
-        if ( 'admin-post.php' === $pagenow ||  ( defined( 'WP_CLI' ) && WP_CLI ) ) {
-            return $html;
-        }
-        
-        $dom = \Dom\HTMLDocument::createFromString( $html, LIBXML_NOERROR );
-        $headerEnd = $dom->querySelector( '.wrap :is( h1, h2 )' );
-        
-        $notices = $dom->querySelectorAll( 'div:is( .updated, .error, .notice ):not( .inline, .below-h2 )' );
-        if ( $headerEnd && $notices->length > 0 ) {
-            foreach ( $notices as $notice ) {
-                $headerEnd->parentNode->insertBefore( $notice, $headerEnd->nextSibling );
-            }
-            
-            return $dom->saveHTML();
-        }
-        
-        return $html;
-    });
+	ob_start ( function( $html ) {
+		global $pagenow;
+		if ( ! class_exists( '\Dom\HTMLDocument' ) || empty( $html ) || ! is_string( $html ) || wp_doing_ajax() || ! is_user_logged_in() ) {
+			return $html;
+		}
+
+		if ( 'admin-post.php' === $pagenow ||  ( defined( 'WP_CLI' ) && WP_CLI ) ) {
+			return $html;
+		}
+
+		$dom = \Dom\HTMLDocument::createFromString( $html, LIBXML_NOERROR );
+		$headerEnd = $dom->querySelector( '.wrap :is( h1, h2 )' );
+
+		$notices = $dom->querySelectorAll( 'div:is( .updated, .error, .notice ):not( .inline, .below-h2 )' );
+		if ( $headerEnd && $notices->length > 0 ) {
+			foreach ( $notices as $notice ) {
+				$headerEnd->parentNode->insertBefore( $notice, $headerEnd->nextSibling );
+			}
+
+			return $dom->saveHTML();
+		}
+
+		return $html;
+	});
 }
 
 /**
