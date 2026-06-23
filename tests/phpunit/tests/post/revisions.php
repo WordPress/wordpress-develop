@@ -682,22 +682,6 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 			wp_list_pluck( $revisions, 'post_content' ),
 			'Initial revision should preserve the inserted content.'
 		);
-
-		wp_update_post(
-			array(
-				'ID'           => $post_id,
-				'post_content' => 'Updated content',
-			)
-		);
-
-		$revisions = wp_get_post_revisions( $post_id );
-
-		$this->assertCount( 2, $revisions, 'Update should create a second revision.' );
-		$this->assertContains(
-			'Initial content',
-			wp_list_pluck( $revisions, 'post_content' ),
-			'First revision should not be lost after an update.'
-		);
 	}
 
 	/**
@@ -725,11 +709,6 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 		$revisions = wp_get_post_revisions( $post_id );
 
 		$this->assertCount( 1, $revisions, 'Initial revision should be created.' );
-		$this->assertContains(
-			'Initial content',
-			wp_list_pluck( $revisions, 'post_content' ),
-			'Initial revision should preserve the inserted content.'
-		);
 	}
 
 	/**

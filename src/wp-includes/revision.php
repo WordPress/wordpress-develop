@@ -109,13 +109,10 @@ function wp_save_post_revision_on_insert( $post_id, $post, $update ) {
 		return;
 	}
 
-	$revision_author = null;
-
-	if ( ! $update && 0 === get_current_user_id() ) {
-		$revision_author = $post->post_author;
-	}
-
-	wp_save_post_revision( $post_id, $revision_author );
+	wp_save_post_revision(
+		$post_id,
+		! $update && 0 === get_current_user_id() ? $post->post_author : null
+	);
 }
 
 /**
