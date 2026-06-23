@@ -113,7 +113,7 @@ class WP_REST_View_Config_Controller extends WP_REST_Controller {
 	 * @return string|null Capability required to read the config, or null if the
 	 *                     entity is not registered.
 	 */
-	private function get_required_capability( $kind, $name ) {
+	protected function get_required_capability( $kind, $name ) {
 		switch ( $kind ) {
 			case 'postType':
 				$post_type = get_post_type_object( $name );
@@ -193,7 +193,7 @@ class WP_REST_View_Config_Controller extends WP_REST_Controller {
 	 * @param array $schema The schema node describing the value.
 	 * @return mixed The normalized value, with empty object-typed arrays cast to objects.
 	 */
-	private function cast_empty_objects( $value, $schema ) {
+	protected function cast_empty_objects( $value, $schema ) {
 		if ( ! is_array( $value ) || ! is_array( $schema ) ) {
 			return $value;
 		}
@@ -396,7 +396,7 @@ class WP_REST_View_Config_Controller extends WP_REST_Controller {
 	 *
 	 * @return array Schema properties for the base view configuration.
 	 */
-	private function get_view_base_schema() {
+	protected function get_view_base_schema() {
 		return array(
 			'search'                => array(
 				'type' => 'string',
@@ -507,7 +507,7 @@ class WP_REST_View_Config_Controller extends WP_REST_Controller {
 	 *
 	 * @return array Schema for a column style object.
 	 */
-	private function get_column_style_schema() {
+	protected function get_column_style_schema() {
 		return array(
 			'type'       => 'object',
 			'properties' => array(
@@ -535,7 +535,7 @@ class WP_REST_View_Config_Controller extends WP_REST_Controller {
 	 *
 	 * @return array Schema for a table layout object.
 	 */
-	private function get_table_layout_schema() {
+	protected function get_table_layout_schema() {
 		return array(
 			'type'       => 'object',
 			'properties' => array(
@@ -561,7 +561,7 @@ class WP_REST_View_Config_Controller extends WP_REST_Controller {
 	 *
 	 * @return array Schema for a list layout object.
 	 */
-	private function get_list_layout_schema() {
+	protected function get_list_layout_schema() {
 		return array(
 			'type'       => 'object',
 			'properties' => array(
@@ -584,7 +584,7 @@ class WP_REST_View_Config_Controller extends WP_REST_Controller {
 	 *
 	 * @return array Schema for a combined layout object.
 	 */
-	private function get_combined_layout_schema() {
+	protected function get_combined_layout_schema() {
 		return array(
 			'type'       => 'object',
 			'properties' => array_merge(
@@ -602,7 +602,7 @@ class WP_REST_View_Config_Controller extends WP_REST_Controller {
 	 *
 	 * @return array Schema for a grid layout object.
 	 */
-	private function get_grid_layout_schema() {
+	protected function get_grid_layout_schema() {
 		return array(
 			'type'       => 'object',
 			'properties' => array(
@@ -633,7 +633,7 @@ class WP_REST_View_Config_Controller extends WP_REST_Controller {
 	 *
 	 * @return array Schema for a form layout object.
 	 */
-	private function get_form_layout_schema() {
+	protected function get_form_layout_schema() {
 		return array(
 			'oneOf' => array(
 				// RegularLayout.
@@ -795,7 +795,7 @@ class WP_REST_View_Config_Controller extends WP_REST_Controller {
 	 *
 	 * @return array Schema for a form field.
 	 */
-	private function get_form_field_schema() {
+	protected function get_form_field_schema() {
 		return array(
 			'oneOf' => array(
 				array( 'type' => 'string' ),
@@ -838,7 +838,7 @@ class WP_REST_View_Config_Controller extends WP_REST_Controller {
 	 *
 	 * @return array Schema properties for the form configuration.
 	 */
-	private function get_form_schema() {
+	protected function get_form_schema() {
 		return array(
 			'layout' => $this->get_form_layout_schema(),
 			'fields' => array(
