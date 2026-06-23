@@ -1852,11 +1852,10 @@ function rest_validate_json_schema_pattern( $pattern, $value ) {
  */
 function rest_find_matching_pattern_property_schema( $property, $args ) {
 	if ( isset( $args['patternProperties'] ) ) {
-		foreach ( $args['patternProperties'] as $pattern => $child_schema ) {
-			if ( rest_validate_json_schema_pattern( $pattern, $property ) ) {
-				return $child_schema;
-			}
-		}
+		return array_find(
+			$args['patternProperties'],
+			fn( $child_schema, $pattern ) => rest_validate_json_schema_pattern( $pattern, $property )
+		);
 	}
 
 	return null;
