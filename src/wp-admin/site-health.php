@@ -39,7 +39,7 @@ $wrapper_classes = array(
 $current_tab = $_GET['tab'] ?? '';
 
 $title = sprintf(
-	// translators: %s: The currently displayed tab.
+	/* translators: %s: The currently displayed tab. */
 	__( 'Site Health - %s' ),
 	( isset( $tabs[ $current_tab ] ) ? esc_html( $tabs[ $current_tab ] ) : esc_html( reset( $tabs ) ) )
 );

@@ -274,7 +274,7 @@ final class WP_Abilities_Registry {
 			_doing_it_wrong(
 				__METHOD__,
 				sprintf(
-					// translators: %s: init action.
+					/* translators: %s: init action. */
 					__( 'Ability API should not be initialized before the %s action has fired.' ),
 					'<code>init</code>'
 				),

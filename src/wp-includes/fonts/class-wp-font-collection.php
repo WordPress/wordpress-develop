@@ -118,7 +118,7 @@ final class WP_Font_Collection {
 		$file = file_exists( $file_or_url ) ? wp_normalize_path( realpath( $file_or_url ) ) : false;
 
 		if ( ! $url && ! $file ) {
-			// translators: %s: File path or URL to font collection JSON file.
+			/* translators: %s: File path or URL to font collection JSON file. */
 			$message = __( 'Font collection JSON file is invalid or does not exist.' );
 			_doing_it_wrong( __METHOD__, $message, '6.5.0' );
 			return new WP_Error( 'font_collection_json_missing', $message );
@@ -184,7 +184,7 @@ final class WP_Font_Collection {
 				return new WP_Error(
 					'font_collection_request_error',
 					sprintf(
-						// translators: %s: Font collection URL.
+						/* translators: %s: Font collection URL. */
 						__( 'Error fetching the font collection data from "%s".' ),
 						$url
 					)
@@ -224,7 +224,7 @@ final class WP_Font_Collection {
 		foreach ( $required_properties as $property ) {
 			if ( empty( $data[ $property ] ) ) {
 				$message = sprintf(
-					// translators: 1: Font collection slug, 2: Missing property name, e.g. "font_families".
+					/* translators: 1: Font collection slug, 2: Missing property name, e.g. "font_families". */
 					__( 'Font collection "%1$s" has missing or empty property: "%2$s".' ),
 					$this->slug,
 					$property

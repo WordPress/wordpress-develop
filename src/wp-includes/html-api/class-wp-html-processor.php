@@ -495,7 +495,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			_doing_it_wrong(
 				__METHOD__,
 				sprintf(
-					// translators: %s: A tag name like INPUT or BR.
+					/* translators: %s: A tag name like INPUT or BR. */
 					__( 'The context element cannot be a void element, found "%s".' ),
 					$tag_name
 				),
@@ -515,7 +515,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			_doing_it_wrong(
 				__METHOD__,
 				sprintf(
-					// translators: %s: A tag name like IFRAME or TEXTAREA.
+					/* translators: %s: A tag name like IFRAME or TEXTAREA. */
 					__( 'The context element "%s" is not supported.' ),
 					$tag_name
 				),

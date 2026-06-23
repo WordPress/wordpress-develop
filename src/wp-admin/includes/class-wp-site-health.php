@@ -2241,12 +2241,12 @@ class WP_Site_Health {
 				'<p>%s</p><p>%s<br>%s</p>',
 				__( 'When testing the REST API, an error was encountered:' ),
 				sprintf(
-					// translators: %s: The REST API URL.
+					/* translators: %s: The REST API URL. */
 					__( 'REST API Endpoint: %s' ),
 					$url
 				),
 				sprintf(
-					// translators: 1: The WordPress error code. 2: The WordPress error message.
+					/* translators: 1: The WordPress error code. 2: The WordPress error message. */
 					__( 'REST API Response: (%1$s) %2$s' ),
 					$r->get_error_code(),
 					$r->get_error_message()
@@ -2261,12 +2261,12 @@ class WP_Site_Health {
 				'<p>%s</p><p>%s<br>%s</p>',
 				__( 'When testing the REST API, an unexpected result was returned:' ),
 				sprintf(
-					// translators: %s: The REST API URL.
+					/* translators: %s: The REST API URL. */
 					__( 'REST API Endpoint: %s' ),
 					$url
 				),
 				sprintf(
-					// translators: 1: The WordPress error code. 2: The HTTP status code error message.
+					/* translators: 1: The WordPress error code. 2: The HTTP status code error message. */
 					__( 'REST API Response: (%1$s) %2$s' ),
 					wp_remote_retrieve_response_code( $r ),
 					wp_remote_retrieve_response_message( $r )
