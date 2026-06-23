@@ -367,12 +367,30 @@ class WP_HTML_Decoder {
 
 		$after_name = $name_at + $name_length;
 
-		/*
-		 * A named character reference match is not decoded when all following conditions are true:
+		/**
+		 * There is a special case where a matched named character reference is ignored and its
+		 * decoded replacement is not used. This applies when all of the following conditions
+		 * are true:
 		 * - the character reference was consumed as part of an attribute
 		 * - the last character matched is not a U+003B SEMICOLON character (;)
 		 * - the next input character is either a U+003D EQUALS SIGN character (=)
 		 *   or an ASCII alphanumeric
+		 *
+		 * Some illustrative examples follow. It's useful to know that both `not` and `not;` appear
+		 * on the list of named character references. Not all named character references appear with
+		 * and without the final `;`.
+		 *
+		 * - In _data context_, "&notme" decodes to "¬me". The first condition is not satisfied,
+		 *   so the decoded character reference is returned.
+		 * - In _attribute context_, "&not;me" decodes to "¬me" because it ends with a semicolon.
+		 *   The second condition is not satisfied, so the decoded character reference
+		 *   is returned.
+		 * - In _attribute context_, "&not己" decodes to "¬己". The third condition is not
+		 *   satisfied because the following code point is not an ASCII alphanumeric or equals sign.
+		 * - In _attribute context_, "&not" decodes to "¬". The third condition is not satisfied
+		 *   because there is no following code point to consider.
+		 * - In _attribute context_, "&notme" decodes to "&notme" (unmodified) because it
+		 *   satisfies all three conditions above.
 		 *
 		 * @see https://html.spec.whatwg.org/multipage/parsing.html#named-character-reference-state
 		 */
