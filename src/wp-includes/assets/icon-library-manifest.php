@@ -61,6 +61,10 @@ return array(
 		'label'    => _x( 'Block Table', 'icon label' ),
 		'filePath' => 'block-table.svg',
 	),
+	'brush'               => array(
+		'label'    => _x( 'Brush', 'icon label' ),
+		'filePath' => 'brush.svg',
+	),
 	'calendar'            => array(
 		'label'    => _x( 'Calendar', 'icon label' ),
 		'filePath' => 'calendar.svg',
@@ -141,6 +145,10 @@ return array(
 		'label'    => _x( 'Create', 'icon label' ),
 		'filePath' => 'create.svg',
 	),
+	'dashboard'           => array(
+		'label'    => _x( 'Dashboard', 'icon label' ),
+		'filePath' => 'dashboard.svg',
+	),
 	'desktop'             => array(
 		'label'    => _x( 'Desktop', 'icon label' ),
 		'filePath' => 'desktop.svg',
@@ -209,9 +217,17 @@ return array(
 		'label'    => _x( 'Language', 'icon label' ),
 		'filePath' => 'language.svg',
 	),
+	'link'                => array(
+		'label'    => _x( 'Link', 'icon label' ),
+		'filePath' => 'link.svg',
+	),
 	'map-marker'          => array(
 		'label'    => _x( 'Map Marker', 'icon label' ),
 		'filePath' => 'map-marker.svg',
+	),
+	'media'               => array(
+		'label'    => _x( 'Media', 'icon label' ),
+		'filePath' => 'media.svg',
 	),
 	'menu'                => array(
 		'label'    => _x( 'Menu', 'icon label' ),
@@ -233,6 +249,10 @@ return array(
 		'label'    => _x( 'Next', 'icon label' ),
 		'filePath' => 'next.svg',
 	),
+	'page'                => array(
+		'label'    => _x( 'Page', 'icon label' ),
+		'filePath' => 'page.svg',
+	),
 	'paragraph'           => array(
 		'label'    => _x( 'Paragraph', 'icon label' ),
 		'filePath' => 'paragraph.svg',
@@ -249,9 +269,17 @@ return array(
 		'label'    => _x( 'People', 'icon label' ),
 		'filePath' => 'people.svg',
 	),
+	'plugins'             => array(
+		'label'    => _x( 'Plugins', 'icon label' ),
+		'filePath' => 'plugins.svg',
+	),
 	'plus'                => array(
 		'label'    => _x( 'Plus', 'icon label' ),
 		'filePath' => 'plus.svg',
+	),
+	'post'                => array(
+		'label'    => _x( 'Post', 'icon label' ),
+		'filePath' => 'post.svg',
 	),
 	'plus-circle'         => array(
 		'label'    => _x( 'Plus Circle', 'icon label' ),
@@ -349,6 +377,14 @@ return array(
 		'label'    => _x( 'Tip', 'icon label' ),
 		'filePath' => 'tip.svg',
 	),
+	'tool'                => array(
+		'label'    => _x( 'Tool', 'icon label' ),
+		'filePath' => 'tool.svg',
+	),
+	'update'              => array(
+		'label'    => _x( 'Update', 'icon label' ),
+		'filePath' => 'update.svg',
+	),
 	'upload'              => array(
 		'label'    => _x( 'Upload', 'icon label' ),
 		'filePath' => 'upload.svg',
@@ -356,5 +392,9 @@ return array(
 	'verse'               => array(
 		'label'    => _x( 'Verse', 'icon label' ),
 		'filePath' => 'verse.svg',
+	),
+	'wordpress'           => array(
+		'label'    => _x( 'WordPress', 'icon label' ),
+		'filePath' => 'wordpress.svg',
 	),
 );
