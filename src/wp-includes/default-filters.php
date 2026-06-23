@@ -818,4 +818,15 @@ add_action( 'init', '_wp_register_default_font_collections' );
 add_filter( 'rest_pre_insert_wp_template', 'inject_ignored_hooked_blocks_metadata_attributes' );
 add_filter( 'rest_pre_insert_wp_template_part', 'inject_ignored_hooked_blocks_metadata_attributes' );
 
+// View Config API.
+$post_types = array( 'page', 'post', 'wp_block', 'wp_template_part', 'wp_template' );
+foreach ( $post_types as $post_type ) {
+	add_filter(
+		"get_entity_view_config_postType_{$post_type}",
+		"_wp_get_entity_view_config_post_type_{$post_type}",
+		10,
+		1
+	);
+}
+
 unset( $filter, $action );

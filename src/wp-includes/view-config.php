@@ -781,27 +781,3 @@ function _wp_get_entity_view_config_post_type_wp_template( $config ) {
 
 	return $config;
 }
-
-/**
- * Registers the default entity view configuration filters.
- *
- * Each post type with a bundled configuration registers a
- * `_wp_get_entity_view_config_post_type_{$post_type}` callback on its
- * `get_entity_view_config_postType_{$post_type}` hook. Plugins (such as
- * Gutenberg) may remove these defaults and install their own.
- *
- * @since 7.1.0
- */
-function _wp_register_entity_view_config_filters() {
-	$post_types = array( 'page', 'post', 'wp_block', 'wp_template_part', 'wp_template' );
-
-	foreach ( $post_types as $post_type ) {
-		add_filter(
-			"get_entity_view_config_postType_{$post_type}",
-			"_wp_get_entity_view_config_post_type_{$post_type}",
-			10,
-			1
-		);
-	}
-}
-add_action( 'init', '_wp_register_entity_view_config_filters' );
