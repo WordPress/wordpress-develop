@@ -13,6 +13,11 @@ class Tests_Functions_wpScheduleDeleteOldPrivacyExportFiles extends WP_UnitTestC
 		wp_unschedule_event( wp_next_scheduled( 'wp_privacy_delete_old_export_files' ), 'wp_privacy_delete_old_export_files' );
 	}
 
+	public function tear_down() {
+		// Remove installing mode
+		wp_installing( false );
+	}
+
 	/**
 	 * check that a schedule is set
 	 *
@@ -37,7 +42,6 @@ class Tests_Functions_wpScheduleDeleteOldPrivacyExportFiles extends WP_UnitTestC
 		$this->assertFalse( wp_next_scheduled( 'wp_privacy_delete_old_export_files' ) );
 		wp_schedule_delete_old_privacy_export_files();
 		$this->assertFalse( wp_next_scheduled( 'wp_privacy_delete_old_export_files' ) );
-		// Remove installing mode
-		wp_installing( false );
+
 	}
 }
