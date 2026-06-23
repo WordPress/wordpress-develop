@@ -126,22 +126,62 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 		$this->assertTrue( $annotations['idempotent'] );
 	}
 
-	public function test_input_schema_requires_id_or_post_type(): void {
+	public function test_input_schema_models_mutually_exclusive_modes(): void {
 		$schema = $this->ability()->get_input_schema();
 
 		$this->assertSame( 'object', $schema['type'] );
-		$this->assertSame(
+		$this->assertCount( 2, $schema['oneOf'] );
+
+		[ $by_id, $by_type ] = $schema['oneOf'];
+
+		// Mode 1 requires `id`; Mode 2 requires `post_type`. Both reject extra properties.
+		$this->assertSame( array( 'id' ), $by_id['required'] );
+		$this->assertSame( array( 'post_type' ), $by_type['required'] );
+		$this->assertFalse( $by_id['additionalProperties'] );
+		$this->assertFalse( $by_type['additionalProperties'] );
+
+		// Query-only filters live only in the query mode, not the by-ID mode.
+		$this->assertArrayHasKey( 'per_page', $by_type['properties'] );
+		$this->assertArrayNotHasKey( 'per_page', $by_id['properties'] );
+	}
+
+	public function test_id_mode_rejects_query_only_params(): void {
+		$this->login_as( 'administrator' );
+
+		$result = $this->ability()->execute(
 			array(
-				array( 'required' => array( 'id' ) ),
-				array( 'required' => array( 'post_type' ) ),
-			),
-			$schema['anyOf']
+				'id'       => 1,
+				'per_page' => 10,
+			)
 		);
-		$this->assertFalse( $schema['additionalProperties'] );
+
+		$this->assertWPError( $result );
+		$this->assertSame( 'ability_invalid_input', $result->get_error_code() );
+	}
+
+	public function test_id_mode_accepts_post_type_guard(): void {
+		$this->login_as( 'administrator' );
+
+		$post_id = self::factory()->post->create(
+			array(
+				'post_type'   => 'post',
+				'post_status' => 'publish',
+			)
+		);
+
+		$result = $this->ability()->execute(
+			array(
+				'id'        => $post_id,
+				'post_type' => 'post',
+			)
+		);
+
+		$this->assertIsArray( $result );
+		$this->assertSame( $post_id, $result['posts'][0]['id'] );
 	}
 
 	public function test_input_schema_post_type_enum_only_includes_exposed_types(): void {
-		$enum = $this->ability()->get_input_schema()['properties']['post_type']['enum'];
+		$enum = $this->ability()->get_input_schema()['oneOf'][1]['properties']['post_type']['enum'];
 
 		$this->assertContains( 'post', $enum );
 		$this->assertContains( 'page', $enum );
@@ -151,7 +191,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	}
 
 	public function test_input_schema_status_and_fields_enums(): void {
-		$properties = $this->ability()->get_input_schema()['properties'];
+		$properties = $this->ability()->get_input_schema()['oneOf'][1]['properties'];
 
 		$status_enum = $properties['status']['items']['enum'];
 		$this->assertContains( 'publish', $status_enum );
@@ -560,7 +600,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	public function test_per_page_is_capped(): void {
 		$this->login_as( 'administrator' );
 
-		$schema = $this->ability()->get_input_schema();
+		$schema = $this->ability()->get_input_schema()['oneOf'][1];
 
 		$this->assertSame( 100, $schema['properties']['per_page']['maximum'] );
 		$this->assertSame( 10, $schema['properties']['per_page']['default'] );
