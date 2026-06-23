@@ -24,7 +24,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	 *
 	 * @var string
 	 */
-	const HIDDEN_CPT = 'content_ability_hidden_cpt';
+	const HIDDEN_CPT = 'content_hidden_cpt';
 
 	/**
 	 * Registers post types and the core abilities once, before the schema is built.
@@ -242,7 +242,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 		$this->assertSame( 'post', $result['posts'][0]['type'] );
 	}
 
-	public function test_get_by_id_with_mismatched_post_type_returns_not_found(): void {
+	public function test_get_by_id_with_mismatched_post_type_is_denied(): void {
 		$this->login_as( 'administrator' );
 		$post_id = self::factory()->post->create( array( 'post_status' => 'publish' ) );
 
@@ -254,17 +254,32 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 		);
 
 		$this->assertWPError( $result );
-		$this->assertSame( 'content_not_found', $result->get_error_code() );
+		$this->assertSame( 'ability_invalid_permissions', $result->get_error_code() );
 	}
 
-	public function test_get_by_missing_id_returns_generic_not_found(): void {
+	public function test_get_by_missing_id_is_denied(): void {
 		$this->login_as( 'administrator' );
 
 		$result = $this->ability()->execute( array( 'id' => 999999 ) );
 
 		$this->assertWPError( $result );
-		$this->assertSame( 'content_not_found', $result->get_error_code() );
-		$this->assertSame( 404, $result->get_error_data()['status'] );
+		$this->assertSame( 'ability_invalid_permissions', $result->get_error_code() );
+	}
+
+	public function test_get_by_id_for_unexposed_post_type_is_denied(): void {
+		$post_id = self::factory()->post->create(
+			array(
+				'post_type'   => self::HIDDEN_CPT,
+				'post_status' => 'publish',
+			)
+		);
+
+		$this->login_as( 'administrator' );
+
+		$result = $this->ability()->execute( array( 'id' => $post_id ) );
+
+		$this->assertWPError( $result );
+		$this->assertSame( 'ability_invalid_permissions', $result->get_error_code() );
 	}
 
 	/*
@@ -422,14 +437,23 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 		$this->assertSame( 'ability_invalid_permissions', $result->get_error_code() );
 	}
 
-	public function test_subscriber_can_read_published_posts(): void {
-		$published = self::factory()->post->create( array( 'post_status' => 'publish' ) );
+	public function test_subscriber_cannot_request_published_content(): void {
 		$this->login_as( 'subscriber' );
 
 		$result = $this->ability()->execute( array( 'post_type' => 'post' ) );
-		$ids    = wp_list_pluck( $result['posts'], 'id' );
 
-		$this->assertContains( $published, $ids );
+		$this->assertWPError( $result );
+		$this->assertSame( 'ability_invalid_permissions', $result->get_error_code() );
+	}
+
+	public function test_subscriber_cannot_get_single_published_post_by_id(): void {
+		$post_id = self::factory()->post->create( array( 'post_status' => 'publish' ) );
+		$this->login_as( 'subscriber' );
+
+		$result = $this->ability()->execute( array( 'id' => $post_id ) );
+
+		$this->assertWPError( $result );
+		$this->assertSame( 'ability_invalid_permissions', $result->get_error_code() );
 	}
 
 	public function test_subscriber_cannot_request_draft_status(): void {
@@ -491,7 +515,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 		$this->assertNotContains( $draft_a, $ids );
 	}
 
-	public function test_administrator_can_read_private_posts(): void {
+	public function test_administrator_can_access_private_posts(): void {
 		$private = self::factory()->post->create( array( 'post_status' => 'private' ) );
 		$this->login_as( 'administrator' );
 
@@ -521,26 +545,23 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	 * -------------------------------------------------------------------------
 	 */
 
-	public function test_password_protected_content_withheld_from_non_editor(): void {
+	public function test_raw_content_visible_to_editor(): void {
 		$post_id = self::factory()->post->create(
 			array(
-				'post_status'   => 'publish',
-				'post_password' => 'secret',
-				'post_content'  => 'Top secret body.',
-				'post_excerpt'  => 'Secret excerpt.',
+				'post_status'  => 'publish',
+				'post_content' => 'Public body with raw block markup.',
 			)
 		);
 
-		$this->login_as( 'subscriber' );
+		$this->login_as( 'editor' );
 		$result = $this->ability()->execute(
 			array(
 				'id'     => $post_id,
-				'fields' => array( 'id', 'raw_content', 'excerpt' ),
+				'fields' => array( 'id', 'raw_content' ),
 			)
 		);
 
-		$this->assertSame( '', $result['posts'][0]['raw_content'] );
-		$this->assertSame( '', $result['posts'][0]['excerpt'] );
+		$this->assertSame( 'Public body with raw block markup.', $result['posts'][0]['raw_content'] );
 	}
 
 	public function test_password_protected_content_visible_to_editor(): void {
