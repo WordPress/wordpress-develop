@@ -367,27 +367,34 @@ class WP_HTML_Decoder {
 
 		$after_name = $name_at + $name_length;
 
-		/*
-		 * A named character reference match is not decoded when all following conditions are true:
-		 * - the character reference was consumed as part of an attribute
-		 * - the last character matched is not a U+003B SEMICOLON character (;)
-		 * - the next input character is either a U+003D EQUALS SIGN character (=)
-		 *   or an ASCII alphanumeric
-		 *
-		 * @see https://html.spec.whatwg.org/multipage/parsing.html#named-character-reference-state
-		 */
-		if ( 'attribute' !== $context || ';' === $text[ $after_name - 1 ] || $after_name >= $length ) {
+		// If the match ended with a semicolon then it should always be decoded.
+		if ( ';' === $text[ $name_at + $name_length - 1 ] ) {
 			$match_byte_length = $after_name - $at;
 			return $replacement;
 		}
 
-		$follower_byte = ord( $text[ $after_name ] );
-		if (
-			0x3D === $follower_byte || //                              EQUALS SIGN
-			( $follower_byte >= 0x30 && $follower_byte <= 0x39 ) || // ASCII digits 0-9
-			( $follower_byte >= 0x41 && $follower_byte <= 0x5A ) || // ASCII upper alpha A-Z
-			( $follower_byte >= 0x61 && $follower_byte <= 0x7A )    // ASCII lower alpha a-z
-		) {
+		/*
+		 * At this point though there's a match for an entry in the named
+		 * character reference table but the match doesn't end in `;`.
+		 * It may be allowed if it's followed by something unambiguous.
+		 */
+		$ambiguous_follower = (
+			$after_name < $length &&
+			$name_at < $length &&
+			(
+				ctype_alnum( $text[ $after_name ] ) ||
+				'=' === $text[ $after_name ]
+			)
+		);
+
+		// It's non-ambiguous, safe to leave it in.
+		if ( ! $ambiguous_follower ) {
+			$match_byte_length = $after_name - $at;
+			return $replacement;
+		}
+
+		// It's ambiguous, which isn't allowed inside attributes.
+		if ( 'attribute' === $context ) {
 			return null;
 		}
 
