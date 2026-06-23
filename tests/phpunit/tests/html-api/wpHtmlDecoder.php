@@ -63,6 +63,8 @@ class Tests_HtmlApi_WpHtmlDecoder extends WP_UnitTestCase {
 
 	/**
 	 * Ensures semicolonless legacy references decode before non-ASCII UTF-8 bytes in attributes.
+	 *
+	 * @ticket 65372
 	 */
 	public function test_semicolonless_legacy_reference_before_multibyte_attribute_follower() {
 		$previous_locale = setlocale( LC_CTYPE, 0 );
@@ -103,6 +105,8 @@ class Tests_HtmlApi_WpHtmlDecoder extends WP_UnitTestCase {
 	 * Ensures semicolonless legacy references remain ambiguous before ASCII alnum or equals.
 	 *
 	 * @dataProvider data_ambiguous_ascii_attribute_followers
+	 *
+	 * @ticket 65372
 	 *
 	 * @param string $raw_attribute Raw attribute value with an ambiguous legacy reference follower.
 	 */
