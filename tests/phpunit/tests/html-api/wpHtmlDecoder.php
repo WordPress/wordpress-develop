@@ -13,26 +13,23 @@
  */
 class Tests_HtmlApi_WpHtmlDecoder extends WP_UnitTestCase {
 	/**
-	 * Previous LC_CTYPE locale.
+	 * Original LC_CTYPE locale.
 	 *
-	 * @var string|false
+	 * @var string|null
 	 */
-	private static $previous_lc_ctype_locale = false;
+	private static ?string $original_lc_ctype = null;
 
 	/**
 	 * Locale where ctype_alnum() classifies high-bit bytes as alphanumeric.
 	 *
 	 * @var string|null
 	 */
-	private static $problematic_lc_ctype_locale = null;
+	private static ?string $problematic_lc_ctype = null;
 
-	/**
-	 * Runs the routine before setting up all tests.
-	 */
 	public static function set_up_before_class() {
 		parent::set_up_before_class();
 
-		self::$previous_lc_ctype_locale = setlocale( LC_CTYPE, 0 );
+		self::$original_lc_ctype = setlocale( LC_CTYPE, 0 );
 
 		// Find a locale where ctype_alnum() classifies high-bit bytes as alphanumeric.
 		$locale_candidates = array(
@@ -43,35 +40,21 @@ class Tests_HtmlApi_WpHtmlDecoder extends WP_UnitTestCase {
 			'en_GB.UTF-8',
 			'en_GB.utf8',
 		);
-
 		foreach ( $locale_candidates as $locale ) {
 			$candidate_locale = setlocale( LC_CTYPE, $locale );
 
 			if ( false !== $candidate_locale && ctype_alnum( "\xC2" ) ) {
-				self::$problematic_lc_ctype_locale = $candidate_locale;
+				self::$problematic_lc_ctype = $candidate_locale;
 				break;
 			}
 		}
 
-		if ( null === self::$problematic_lc_ctype_locale ) {
-			if ( false !== self::$previous_lc_ctype_locale ) {
-				setlocale( LC_CTYPE, self::$previous_lc_ctype_locale );
-			}
-		}
+		setlocale( LC_CTYPE, self::$original_lc_ctype );
 	}
 
-	/**
-	 * Runs the routine after all tests have been run.
-	 */
-	public static function tear_down_after_class() {
-		if ( false !== self::$previous_lc_ctype_locale ) {
-			setlocale( LC_CTYPE, self::$previous_lc_ctype_locale );
-		}
-
-		self::$previous_lc_ctype_locale    = false;
-		self::$problematic_lc_ctype_locale = null;
-
-		parent::tear_down_after_class();
+	public function tear_down() {
+		setlocale( LC_CTYPE, self::$original_lc_ctype );
+		parent::tear_down();
 	}
 
 	/**
@@ -130,24 +113,24 @@ class Tests_HtmlApi_WpHtmlDecoder extends WP_UnitTestCase {
 	 *
 	 * @ticket 65372
 	 */
-	public function test_semicolonless_legacy_reference_before_multibyte_attribute_follower( string $encoded_attribute_value, string $expected, int $expected_byte_length ): void {
-		if ( null === self::$problematic_lc_ctype_locale ) {
-			$this->markTestSkipped( 'Requires an LC_CTYPE locale where ctype_alnum() classifies high-bit bytes as alphanumeric.' );
+	public function test_semicolonless_legacy_reference_before_multibyte_attribute_follower( string $encoded_attribute_value, string $expected, string $expected_decode, int $expected_byte_length ): void {
+		if ( null !== self::$problematic_lc_ctype ) {
+			setlocale( LC_CTYPE, self::$problematic_lc_ctype );
 		}
 
 		$this->assertSame(
 			$expected,
 			WP_HTML_Decoder::decode_attribute( $encoded_attribute_value ),
-			'Should have decoded the semicolonless legacy reference before a multibyte follower.'
+			'Failed to decode the full attribute value as expected.'
 		);
 
 		$match_byte_length = null;
 		$this->assertSame(
-			$encoded_attribute_value,
+			$expected_decode,
 			WP_HTML_Decoder::read_character_reference( 'attribute', $encoded_attribute_value, 0, $match_byte_length ),
-			'Should have matched the semicolonless legacy reference before a multibyte follower.'
+			'Failed to decode the character reference as expected.'
 		);
-		$this->assertSame( $expected_byte_length, $match_byte_length );
+		$this->assertSame( $expected_byte_length, $match_byte_length, 'Failed to produce expected byte length.' );
 	}
 
 	/**
@@ -161,17 +144,18 @@ class Tests_HtmlApi_WpHtmlDecoder extends WP_UnitTestCase {
 	 *
 	 * @return Array<array{
 	 *   string, // Encoded attribute value.
-	 *   string, // Expected decode.
-	 *   int,    // Matched character reference byte length.
+	 *   string, // Expected full decode.
+	 *   string, // Expected character decode.
+	 *   int,    // Replaced character reference byte length.
 	 * }> Test cases.
 	 */
 	public static function data_semicolonless_attribute_behaviors(): array {
 		return array(
-			array( '&copy¯\_(ツ)_/¯', '©¯\_(ツ)_/¯', 5 ),
-			array( '&notಠ_ಠ', '¬ಠ_ಠ', 4 ),
-			array( '&nbsp£20', "\xA0£20", 5 ),
-			array( '&nbsp🎉', "\xA0🎉", 5 ),
-			array( '&reg™', '®™', 4 ),
+			array( '&copy¯\_(ツ)_/¯', '©¯\_(ツ)_/¯', '©', 5 ),
+			array( '&notಠ_ಠ', '¬ಠ_ಠ', '¬', 4 ),
+			array( '&nbsp£20', "\u{00A0}£20", "\u{00A0}", 5 ),
+			array( '&nbsp🎉', "\u{00A0}🎉", "\u{00A0}", 5 ),
+			array( '&reg™', '®™', '®', 4 ),
 		);
 	}
 
