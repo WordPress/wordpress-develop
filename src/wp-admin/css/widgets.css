@@ -336,9 +336,9 @@
 }
 
 .sidebar-name .handlediv:focus .toggle-indicator:before {
-	box-shadow:
-		0 0 0 1px #4f94d4,
-		0 0 2px 1px rgba(79, 148, 212, 0.8);
+	box-shadow: 0 0 0 var(--wp-admin-border-width-focus, 1.5px) var(--wp-admin-theme-color, #3858e9);
+	/* Only visible in Windows High Contrast mode */
+	outline: 2px solid transparent;
 }
 
 .sidebar-name h2,
@@ -423,7 +423,6 @@ div#widgets-left .widget-holder {
 	word-wrap: break-word;
 	-ms-word-break: break-all;
 	word-break: break-word;
-	-webkit-hyphens: auto;
 	hyphens: auto;
 }
 
@@ -583,6 +582,12 @@ div#widgets-right .closed .widgets-sortables {
 	padding: 0 15px;
 }
 
+.widget-control-actions {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+}
+
 .editwidget .widget-control-actions {
 	margin-top: 20px;
 }
@@ -725,12 +730,13 @@ div#widgets-right .widget-top:hover,
 }
 
 .widgets-chooser .widgets-chooser-selected .widgets-chooser-button {
-	background: #2271b1;
+	background: var(--wp-admin-theme-color, #3858e9);
 	color: #fff;
 }
 
 .widgets-chooser .widgets-chooser-selected:before {
 	content: "\f147";
+	content: "\f147" / '';
 	display: block;
 	-webkit-font-smoothing: antialiased;
 	font: normal 26px/1 dashicons;

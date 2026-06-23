@@ -92,7 +92,7 @@ function ms_site_check() {
 
 	$blog = get_site();
 
-	if ( '1' == $blog->deleted ) {
+	if ( '1' === $blog->deleted ) {
 		if ( file_exists( WP_CONTENT_DIR . '/blog-deleted.php' ) ) {
 			return WP_CONTENT_DIR . '/blog-deleted.php';
 		} else {
@@ -100,7 +100,7 @@ function ms_site_check() {
 		}
 	}
 
-	if ( '2' == $blog->deleted ) {
+	if ( '2' === $blog->deleted ) {
 		if ( file_exists( WP_CONTENT_DIR . '/blog-inactive.php' ) ) {
 			return WP_CONTENT_DIR . '/blog-inactive.php';
 		} else {
@@ -115,7 +115,7 @@ function ms_site_check() {
 		}
 	}
 
-	if ( '1' == $blog->archived || '1' == $blog->spam ) {
+	if ( '1' === $blog->archived || '1' === $blog->spam ) {
 		if ( file_exists( WP_CONTENT_DIR . '/blog-suspended.php' ) ) {
 			return WP_CONTENT_DIR . '/blog-suspended.php';
 		} else {
@@ -129,9 +129,9 @@ function ms_site_check() {
 /**
  * Retrieves the closest matching network for a domain and path.
  *
- * @since 3.9.0
+ * {@internal In 4.4.0, converted to a wrapper for WP_Network::get_by_path()}
  *
- * @internal In 4.4.0, converted to a wrapper for WP_Network::get_by_path()
+ * @since 3.9.0
  *
  * @param string   $domain   Domain to check.
  * @param string   $path     Path to check.
@@ -377,13 +377,13 @@ function ms_load_current_site_and_network( $domain, $path, $subdomain = false ) 
 	}
 
 	// The network declared by the site trumps any constants.
-	if ( $current_blog && $current_blog->site_id != $current_site->id ) {
+	if ( $current_blog && (int) $current_blog->site_id !== $current_site->id ) {
 		$current_site = WP_Network::get_instance( $current_blog->site_id );
 	}
 
 	// No network has been found, bail.
 	if ( empty( $current_site ) ) {
-		/** This action is documented in wp-includes/ms-settings.php */
+		/** This action is documented in wp-includes/ms-load.php */
 		do_action( 'ms_network_not_found', $domain, $path );
 
 		return false;
@@ -419,7 +419,10 @@ function ms_load_current_site_and_network( $domain, $path, $subdomain = false ) 
 
 		if ( $subdomain && ! defined( 'NOBLOGREDIRECT' ) ) {
 			// For a "subdomain" installation, redirect to the signup form specifically.
-			$destination .= 'wp-signup.php?new=' . str_replace( '.' . $current_site->domain, '', $domain );
+			$path = 'wp-signup.php?new=' . str_replace( '.' . $current_site->domain, '', $domain );
+
+			/** This filter is documented in wp-includes/link-template.php */
+			$destination = apply_filters( 'network_site_url', $destination . $path, $path, $scheme );
 		} elseif ( $subdomain ) {
 			/*
 			 * For a "subdomain" installation, the NOBLOGREDIRECT constant
@@ -497,7 +500,7 @@ function ms_not_installed( $domain, $path ) {
 	$msg .= sprintf(
 		/* translators: %s: Documentation URL. */
 		__( 'Read the <a href="%s" target="_blank">Debugging a WordPress Network</a> article. Some of the suggestions there may help you figure out what went wrong.' ),
-		__( 'https://wordpress.org/documentation/article/debugging-a-wordpress-network/' )
+		__( 'https://developer.wordpress.org/advanced-administration/debug/debug-network/' )
 	);
 	$msg .= ' ' . __( 'If you are still stuck with this message, then check that your database contains the following tables:' ) . '</p><ul>';
 	foreach ( $wpdb->tables( 'global' ) as $t => $table ) {
@@ -552,11 +555,11 @@ function wpmu_current_site() {
 /**
  * Retrieves an object containing information about the requested network.
  *
+ * {@internal In 4.6.0, converted to use get_network()}
+ *
  * @since 3.9.0
  * @deprecated 4.7.0 Use get_network()
  * @see get_network()
- *
- * @internal In 4.6.0, converted to use get_network()
  *
  * @param object|int $network The network's database row or ID.
  * @return WP_Network|false Object containing network information if found, false if not.

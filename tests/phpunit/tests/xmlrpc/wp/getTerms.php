@@ -46,6 +46,7 @@ class Tests_XMLRPC_wp_getTerms extends WP_XMLRPC_UnitTestCase {
 
 		$results = $this->myxmlrpcserver->wp_getTerms( array( 1, 'editor', 'editor', 'category' ) );
 		$this->assertNotIXRError( $results );
+		$this->assertNotEmpty( $results );
 
 		foreach ( $results as $term ) {
 			$this->assertIsInt( $term['count'] );

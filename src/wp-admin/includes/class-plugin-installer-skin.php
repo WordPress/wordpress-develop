@@ -24,6 +24,12 @@ class Plugin_Installer_Skin extends WP_Upgrader_Skin {
 	private $is_downgrading = false;
 
 	/**
+	 * Constructor.
+	 *
+	 * Sets up the plugin installer skin.
+	 *
+	 * @since 2.8.0
+	 *
 	 * @param array $args
 	 */
 	public function __construct( $args = array() ) {
@@ -39,7 +45,7 @@ class Plugin_Installer_Skin extends WP_Upgrader_Skin {
 
 		$this->type      = $args['type'];
 		$this->url       = $args['url'];
-		$this->api       = isset( $args['api'] ) ? $args['api'] : array();
+		$this->api       = $args['api'] ?? array();
 		$this->overwrite = $args['overwrite'];
 
 		parent::__construct( $args );
@@ -121,7 +127,7 @@ class Plugin_Installer_Skin extends WP_Upgrader_Skin {
 			$install_actions['network_activate'] = sprintf(
 				'<a class="button button-primary" href="%s" target="_parent">%s</a>',
 				wp_nonce_url( 'plugins.php?action=activate&amp;networkwide=1&amp;plugin=' . urlencode( $plugin_file ), 'activate-plugin_' . $plugin_file ),
-				__( 'Network Activate' )
+				_x( 'Network Activate', 'plugin' )
 			);
 			unset( $install_actions['activate_plugin'] );
 		}
@@ -259,8 +265,8 @@ class Plugin_Installer_Skin extends WP_Upgrader_Skin {
 		$blocked_message  = '<p>' . esc_html__( 'The plugin cannot be updated due to the following:' ) . '</p>';
 		$blocked_message .= '<ul class="ul-disc">';
 
-		$requires_php = isset( $new_plugin_data['RequiresPHP'] ) ? $new_plugin_data['RequiresPHP'] : null;
-		$requires_wp  = isset( $new_plugin_data['RequiresWP'] ) ? $new_plugin_data['RequiresWP'] : null;
+		$requires_php = $new_plugin_data['RequiresPHP'] ?? null;
+		$requires_wp  = $new_plugin_data['RequiresWP'] ?? null;
 
 		if ( ! is_php_version_compatible( $requires_php ) ) {
 			$error = sprintf(
@@ -278,7 +284,7 @@ class Plugin_Installer_Skin extends WP_Upgrader_Skin {
 			$error = sprintf(
 				/* translators: 1: Current WordPress version, 2: Version required by the uploaded plugin. */
 				__( 'Your WordPress version is %1$s, however the uploaded plugin requires %2$s.' ),
-				get_bloginfo( 'version' ),
+				esc_html( wp_get_wp_version() ),
 				$requires_wp
 			);
 
@@ -293,13 +299,13 @@ class Plugin_Installer_Skin extends WP_Upgrader_Skin {
 				$warning = sprintf(
 					/* translators: %s: Documentation URL. */
 					__( 'You are uploading an older version of a current plugin. You can continue to install the older version, but be sure to <a href="%s">back up your database and files</a> first.' ),
-					__( 'https://wordpress.org/documentation/article/wordpress-backups/' )
+					__( 'https://developer.wordpress.org/advanced-administration/security/backup/' )
 				);
 			} else {
 				$warning = sprintf(
 					/* translators: %s: Documentation URL. */
 					__( 'You are updating a plugin. Be sure to <a href="%s">back up your database and files</a> first.' ),
-					__( 'https://wordpress.org/documentation/article/wordpress-backups/' )
+					__( 'https://developer.wordpress.org/advanced-administration/security/backup/' )
 				);
 			}
 

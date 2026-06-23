@@ -80,12 +80,12 @@ if ( $comments ) {
 				$pagination_classes = '';
 
 				// If we're only showing the "Next" link, add a class indicating so.
-				if ( ! str_contains( $comment_pagination, 'prev page-numbers' ) ) {
+				if ( false === strpos( $comment_pagination, 'prev page-numbers' ) ) {
 					$pagination_classes = ' only-next';
 				}
 				?>
 
-				<nav class="comments-pagination pagination<?php echo $pagination_classes; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- static output ?>" aria-label="<?php esc_attr_e( 'Comments', 'twentytwenty' ); ?>">
+				<nav class="comments-pagination pagination<?php echo $pagination_classes; ?>" aria-label="<?php esc_attr_e( 'Comments', 'twentytwenty' ); ?>">
 					<?php echo wp_kses_post( $comment_pagination ); ?>
 				</nav>
 
