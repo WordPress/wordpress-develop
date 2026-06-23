@@ -166,8 +166,34 @@ class Tests_Kses extends WP_UnitTestCase {
 	 */
 	public function test_wp_kses_post_allows_autofocus_only_inside_dialog() {
 		$this->assertEqualHTML(
-			'<dialog><button autofocus>Close</button></dialog><button>Outside</button>',
-			wp_kses_post( '<dialog autofocus><button autofocus>Close</button></dialog><button autofocus>Outside</button>' )
+			'<dialog><button autofocus="autofocus">Close</button></dialog><button>Outside</button>',
+			wp_kses_post( '<dialog autofocus><button autofocus="autofocus">Close</button></dialog><button autofocus>Outside</button>' )
+		);
+	}
+
+	/**
+	 * @ticket 65491
+	 */
+	public function test_wp_kses_post_tracks_autofocus_in_nested_dialogs() {
+		$this->assertEqualHTML(
+			'<dialog><button autofocus>Outer</button><dialog><button autofocus>Inner</button></dialog><button autofocus>Outer again</button></dialog><button>Outside</button>',
+			wp_kses_post( '<dialog><button autofocus>Outer</button><dialog><button autofocus>Inner</button></dialog><button autofocus>Outer again</button></dialog><button autofocus>Outside</button>' )
+		);
+	}
+
+	/**
+	 * @ticket 65491
+	 */
+	public function test_wp_kses_does_not_allow_dialog_autofocus_outside_post_context() {
+		$this->assertEqualHTML(
+			'<dialog><button>Close</button></dialog>',
+			wp_kses(
+				'<dialog><button autofocus>Close</button></dialog>',
+				array(
+					'dialog' => array(),
+					'button' => array(),
+				)
+			)
 		);
 	}
 

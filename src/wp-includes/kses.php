@@ -944,6 +944,9 @@ if ( ! CUSTOM_TAGS ) {
  *
  * This function expects unslashed data.
  *
+ * In the `post` context, `autofocus` is preserved only on descendants of
+ * `dialog` elements. Other contexts require an explicit allow-list entry.
+ *
  * @see wp_kses_post() for specifically filtering post content and fields.
  * @see wp_allowed_protocols() for the default allowed protocols in link URLs.
  *
@@ -966,6 +969,11 @@ function wp_kses( $content, $allowed_html, $allowed_protocols = array() ) {
 	$content = wp_kses_normalize_entities( $content );
 	$content = wp_kses_hook( $content, $allowed_html, $allowed_protocols );
 
+	/*
+	 * `autofocus` is safe for dialog focus management but disruptive elsewhere.
+	 * KSES does not track ancestor context while splitting tags, so post content
+	 * allows it briefly and removes instances outside dialog descendants below.
+	 */
 	$filter_dialog_autofocus = (
 		'post' === $allowed_html &&
 		false !== stripos( $content, 'autofocus' )
@@ -991,8 +999,12 @@ function wp_kses( $content, $allowed_html, $allowed_protocols = array() ) {
 /**
  * Removes autofocus attributes unless the element appears within a dialog element.
  *
+ * Autofocus is also removed from dialog elements themselves, as it only applies
+ * to the focusable descendants.
+ *
  * @since 7.1.0
  * @access private
+ * @ignore
  *
  * @param string $content Sanitized HTML content.
  * @return string HTML content with invalid autofocus attributes removed.
