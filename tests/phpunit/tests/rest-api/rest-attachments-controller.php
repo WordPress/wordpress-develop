@@ -3617,6 +3617,75 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	}
 
 	/**
+	 * Verifies that, with the default generate_sub_sizes (true), sideloading an
+	 * external image generates sub-sizes, so the filters applied in create_item()
+	 * still govern derivative generation on the URL path.
+	 *
+	 * @covers WP_REST_Attachments_Controller::create_item
+	 * @covers WP_REST_Attachments_Controller::create_item_from_url
+	 */
+	public function test_create_item_from_url_generates_subsizes_by_default() {
+		$this->enable_client_side_media_processing();
+
+		wp_set_current_user( self::$superadmin_id );
+
+		add_filter( 'pre_http_request', array( $this, 'mock_image_download' ), 10, 3 );
+
+		// Note: generate_sub_sizes is intentionally not set, so it defaults to true.
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
+		$request->set_param( 'url', 'https://example.com/full.jpg' );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		remove_filter( 'pre_http_request', array( $this, 'mock_image_download' ), 10 );
+
+		$data = $response->get_data();
+
+		$this->assertSame( 201, $response->get_status() );
+
+		$metadata = wp_get_attachment_metadata( $data['id'], true );
+		$this->assertNotEmpty( $metadata['sizes'] ?? array(), 'Sub-sizes should be generated when generate_sub_sizes is true.' );
+	}
+
+	/**
+	 * Verifies that the REST-specific rest_after_insert_attachment action fires on
+	 * the URL sideload path, for parity with the uploaded-file path.
+	 *
+	 * @covers WP_REST_Attachments_Controller::create_item_from_url
+	 */
+	public function test_create_item_from_url_fires_rest_after_insert_attachment() {
+		$this->enable_client_side_media_processing();
+
+		wp_set_current_user( self::$superadmin_id );
+
+		$fired = array();
+		$spy   = static function ( $attachment, $request, $creating ) use ( &$fired ) {
+			$fired = array(
+				'id'       => $attachment->ID,
+				'creating' => $creating,
+			);
+		};
+
+		add_filter( 'pre_http_request', array( $this, 'mock_image_download' ), 10, 3 );
+		add_action( 'rest_after_insert_attachment', $spy, 10, 3 );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
+		$request->set_param( 'url', 'https://example.com/hooked.jpg' );
+		$request->set_param( 'generate_sub_sizes', false );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		remove_action( 'rest_after_insert_attachment', $spy, 10 );
+		remove_filter( 'pre_http_request', array( $this, 'mock_image_download' ), 10 );
+
+		$data = $response->get_data();
+
+		$this->assertSame( 201, $response->get_status() );
+		$this->assertSame( $data['id'], $fired['id'] ?? null, 'rest_after_insert_attachment should fire with the new attachment.' );
+		$this->assertTrue( $fired['creating'] ?? null, 'rest_after_insert_attachment should report creating=true.' );
+	}
+
+	/**
 	 * Verifies that a sideloaded external image is attached to the post passed in
 	 * the `post` parameter.
 	 *

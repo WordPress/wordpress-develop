@@ -295,8 +295,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	 * Creates a single attachment.
 	 *
 	 * @since 4.7.0
-	 * @since 7.1.0 Added `generate_sub_sizes` and `convert_format` parameters.
-	 * @since 7.1.0 Added the `url` parameter to sideload an external image on the server.
+	 * @since 7.1.0 Added the `generate_sub_sizes`, `convert_format`, and `url` parameters.
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response|WP_Error Response object on success, WP_Error object on failure.
@@ -497,8 +496,21 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			return $attachment_id;
 		}
 
+		$attachment = get_post( $attachment_id );
+
 		$request->set_param( 'context', 'edit' );
-		$response = $this->prepare_item_for_response( get_post( $attachment_id ), $request );
+
+		/*
+		 * media_handle_sideload() fires the standard insert hooks (including
+		 * wp_after_insert_post), but not the REST-specific action, so fire it
+		 * here for parity with the uploaded-file path in create_item().
+		 *
+		 * This action is documented in
+		 * wp-includes/rest-api/endpoints/class-wp-rest-attachments-controller.php
+		 */
+		do_action( 'rest_after_insert_attachment', $attachment, $request, true );
+
+		$response = $this->prepare_item_for_response( $attachment, $request );
 		$response->set_status( 201 );
 		$response->header( 'Location', rest_url( rest_get_route_for_post( $attachment_id ) ) );
 
