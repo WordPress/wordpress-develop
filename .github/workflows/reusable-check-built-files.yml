@@ -47,8 +47,11 @@ jobs:
           node-version-file: '.nvmrc'
           cache: npm
 
+      # Passing a custom cache suffix ensures that the cache is flushed at least once per week.
       - name: Install Composer dependencies
         uses: ramsey/composer-install@65e4f84970763564f46a70b8a54b90d033b3bdda # 4.0.0
+        with:
+          custom-cache-suffix: $(/bin/date -u --date='last Mon' "+%F")
 
       - name: Log debug information
         run: |
