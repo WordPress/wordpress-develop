@@ -326,6 +326,44 @@ class WP_REST_View_Config_Controller_Test extends WP_Test_REST_TestCase {
 	}
 
 	/**
+	 * Empty object-typed values nested inside a `view_list` item's `view`
+	 * override serialize as JSON objects ({}), not arrays ([]).
+	 *
+	 * The `view.layout` (and its `styles` map) are typed as objects by the
+	 * schema but are not produced by core data, so this exercises the
+	 * schema-driven cast against a value supplied through the documented
+	 * `get_entity_view_config_{$kind}_{$name}` filter.
+	 *
+	 * @covers ::get_items
+	 */
+	public function test_empty_objects_inside_view_list_view_serialize_as_json_objects() {
+		wp_set_current_user( self::$editor_id );
+
+		$filter = static function ( $config ) {
+			$config['view_list'][] = array(
+				'title' => 'Custom',
+				'slug'  => 'custom',
+				'view'  => array(
+					'type'   => 'table',
+					'layout' => array(
+						'styles' => array(),
+					),
+				),
+			);
+			return $config;
+		};
+		add_filter( 'get_entity_view_config_custom_kind_custom_name', $filter );
+
+		$decoded = json_decode( wp_json_encode( $this->dispatch_request( 'custom_kind', 'custom_name' )->get_data() ) );
+
+		remove_filter( 'get_entity_view_config_custom_kind_custom_name', $filter );
+
+		$view = end( $decoded->view_list );
+		$this->assertIsObject( $view->view->layout );
+		$this->assertIsObject( $view->view->layout->styles );
+	}
+
+	/**
 	 * The item schema exposes the documented top-level properties.
 	 *
 	 * @covers ::get_item_schema

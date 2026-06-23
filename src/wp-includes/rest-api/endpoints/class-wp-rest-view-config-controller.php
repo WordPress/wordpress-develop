@@ -149,35 +149,100 @@ class WP_REST_View_Config_Controller extends WP_REST_Controller {
 		$name = $request->get_param( 'name' );
 
 		$config = wp_get_entity_view_config( $kind, $name );
+		$schema = $this->get_item_schema();
 
 		/*
-		 * The schema types these as objects, but PHP encodes empty arrays as
-		 * JSON arrays ([]). Cast the object-typed values that may be empty so
-		 * they serialize as JSON objects ({}) and match the schema.
+		 * PHP encodes empty arrays as JSON arrays ([]), but the schema types
+		 * several of these values as objects. Walk the config against the schema
+		 * and cast empty arrays to objects so they serialize as JSON objects ({})
+		 * and match the schema, regardless of which entity (or filter) produced
+		 * the data.
 		 */
-		$default_view = $config['default_view'];
-		if ( isset( $default_view['layout'] ) ) {
-			$default_view['layout'] = (object) $default_view['layout'];
-		}
-
-		$default_layouts = $config['default_layouts'];
-		foreach ( $default_layouts as $view_type => $layout ) {
-			if ( isset( $layout['layout'] ) ) {
-				$layout['layout'] = (object) $layout['layout'];
-			}
-			$default_layouts[ $view_type ] = (object) $layout;
-		}
-
 		$response = array(
 			'kind'            => $kind,
 			'name'            => $name,
-			'default_view'    => $default_view,
-			'default_layouts' => $default_layouts,
-			'view_list'       => $config['view_list'],
-			'form'            => (object) $config['form'],
+			'default_view'    => $this->cast_empty_objects( $config['default_view'], $schema['properties']['default_view'] ),
+			'default_layouts' => $this->cast_empty_objects( $config['default_layouts'], $schema['properties']['default_layouts'] ),
+			'view_list'       => $this->cast_empty_objects( $config['view_list'], $schema['properties']['view_list'] ),
+			'form'            => $this->cast_empty_objects( $config['form'], $schema['properties']['form'] ),
 		);
 
 		return rest_ensure_response( $response );
+	}
+
+	/**
+	 * Recursively casts empty arrays to objects where the schema types them as
+	 * objects.
+	 *
+	 * PHP cannot distinguish an empty associative array from an empty list, so
+	 * `json_encode()` always serializes `array()` as a JSON array (`[]`). The
+	 * REST schema, however, types several values as objects, which must encode
+	 * as `{}`. This walks the value against its schema and casts any empty,
+	 * object-typed array to an object. Non-empty associative arrays already
+	 * encode as objects, so they are left as arrays and only recursed into to
+	 * fix any nested empty objects.
+	 *
+	 * Union schemas (`oneOf`/`anyOf`) are handled only for the empty-array case:
+	 * an empty value is cast to an object when any branch allows an object. Such
+	 * values are not recursed into, which is sufficient for the form schema
+	 * where they never contain empty nested objects.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @param mixed $value  The value to normalize.
+	 * @param array $schema The schema node describing the value.
+	 * @return mixed The normalized value, with empty object-typed arrays cast to objects.
+	 */
+	private function cast_empty_objects( $value, $schema ) {
+		if ( ! is_array( $value ) || ! is_array( $schema ) ) {
+			return $value;
+		}
+
+		if ( isset( $schema['oneOf'] ) || isset( $schema['anyOf'] ) ) {
+			$branches = isset( $schema['oneOf'] ) ? $schema['oneOf'] : $schema['anyOf'];
+			if ( array() === $value ) {
+				foreach ( $branches as $branch ) {
+					if ( is_array( $branch ) && in_array( 'object', (array) ( isset( $branch['type'] ) ? $branch['type'] : array() ), true ) ) {
+						return (object) array();
+					}
+				}
+			}
+			return $value;
+		}
+
+		$types = (array) ( isset( $schema['type'] ) ? $schema['type'] : array() );
+
+		if ( in_array( 'array', $types, true ) && isset( $schema['items'] ) ) {
+			foreach ( $value as $index => $item ) {
+				$value[ $index ] = $this->cast_empty_objects( $item, $schema['items'] );
+			}
+			return $value;
+		}
+
+		if ( in_array( 'object', $types, true ) ) {
+			if ( isset( $schema['properties'] ) ) {
+				foreach ( $schema['properties'] as $property => $property_schema ) {
+					if ( array_key_exists( $property, $value ) ) {
+						$value[ $property ] = $this->cast_empty_objects( $value[ $property ], $property_schema );
+					}
+				}
+			}
+			if ( isset( $schema['additionalProperties'] ) && is_array( $schema['additionalProperties'] ) ) {
+				foreach ( $value as $key => $item ) {
+					if ( isset( $schema['properties'][ $key ] ) ) {
+						continue;
+					}
+					$value[ $key ] = $this->cast_empty_objects( $item, $schema['additionalProperties'] );
+				}
+			}
+
+			// Empty object-typed arrays must serialize as {} to match the schema.
+			if ( array() === $value ) {
+				return (object) array();
+			}
+		}
+
+		return $value;
 	}
 
 	/**
