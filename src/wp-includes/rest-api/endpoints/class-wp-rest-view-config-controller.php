@@ -68,7 +68,20 @@ class WP_REST_View_Config_Controller extends WP_REST_Controller {
 	 * @return true|WP_Error True if the request has read access, WP_Error object otherwise.
 	 */
 	public function get_items_permissions_check( $request ) {
-		if ( ! current_user_can( 'edit_posts' ) ) {
+		$kind = $request->get_param( 'kind' );
+		$name = $request->get_param( 'name' );
+
+		$capability = $this->get_required_capability( $kind, $name );
+
+		if ( null === $capability ) {
+			return new WP_Error(
+				'rest_view_config_invalid_entity',
+				__( 'Invalid entity kind or name.' ),
+				array( 'status' => 404 )
+			);
+		}
+
+		if ( ! current_user_can( $capability ) ) {
 			return new WP_Error(
 				'rest_cannot_read',
 				__( 'Sorry, you are not allowed to read view config.' ),
@@ -77,6 +90,50 @@ class WP_REST_View_Config_Controller extends WP_REST_Controller {
 		}
 
 		return true;
+	}
+
+	/**
+	 * Resolves the capability required to read the view config for an entity.
+	 *
+	 * Known kinds map to the capability that gates managing that entity's list:
+	 * post types use their own `edit_posts` capability (which honors custom
+	 * `capability_type` registrations), taxonomies use `manage_terms`, and
+	 * root-level entities use `manage_options`. A post type or taxonomy that is
+	 * not registered, or not exposed to the REST API, resolves to `null` so the
+	 * request is treated as referencing an unknown entity.
+	 *
+	 * Any other kind falls back to `edit_posts`. This keeps entities registered
+	 * through the `get_entity_view_config_{$kind}_{$name}` filter readable behind
+	 * a baseline capability.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @param string $kind The entity kind (e.g. `postType`).
+	 * @param string $name The entity name (e.g. `page`).
+	 * @return string|null Capability required to read the config, or null if the
+	 *                     entity is not registered.
+	 */
+	private function get_required_capability( $kind, $name ) {
+		switch ( $kind ) {
+			case 'postType':
+				$post_type = get_post_type_object( $name );
+				if ( $post_type && $post_type->show_in_rest ) {
+					return $post_type->cap->edit_posts;
+				}
+				return null;
+
+			case 'taxonomy':
+				$taxonomy = get_taxonomy( $name );
+				if ( $taxonomy && $taxonomy->show_in_rest ) {
+					return $taxonomy->cap->manage_terms;
+				}
+				return null;
+
+			case 'root':
+				return 'manage_options';
+		}
+
+		return 'edit_posts';
 	}
 
 	/**
