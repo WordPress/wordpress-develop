@@ -183,7 +183,7 @@ class Tests_Connectors_WpRegisterDefaultConnectorSettings extends WP_UnitTestCas
 	 */
 	public function data_application_password_settings(): array {
 		return array(
-			'username setting already registered'             => array(
+			'username setting already registered' => array(
 				self::USERNAME_SETTING_NAME,
 				self::APPLICATION_PASSWORD_SETTING_NAME,
 			),
