@@ -437,6 +437,18 @@ function _wp_connectors_mask_api_key( string $key ): string {
 }
 
 /**
+ * Masks an application password without revealing any characters.
+ *
+ * @since 7.0.0
+ * @access private
+ *
+ * @return string The masked application password.
+ */
+function _wp_connectors_mask_application_password(): string {
+	return str_repeat( "\u{2022}", 16 );
+}
+
+/**
  * Determines the source of an API key for a given connector.
  *
  * Checks in order: environment variable, PHP constant, database.
@@ -552,7 +564,7 @@ function _wp_connectors_rest_settings_dispatch( WP_REST_Response $response, WP_R
 		if ( 'application_password' === $auth['method'] && ! empty( $auth['application_password_setting_name'] ) ) {
 			$setting_name = $auth['application_password_setting_name'];
 			if ( array_key_exists( $setting_name, $data ) && is_string( $data[ $setting_name ] ) && '' !== $data[ $setting_name ] ) {
-				$data[ $setting_name ] = _wp_connectors_mask_api_key( $data[ $setting_name ] );
+				$data[ $setting_name ] = _wp_connectors_mask_application_password();
 			}
 			continue;
 		}

@@ -4,6 +4,7 @@
  *
  * @group connectors
  * @covers ::_wp_connectors_rest_settings_dispatch
+ * @covers ::_wp_connectors_mask_application_password
  */
 class Tests_Connectors_WpConnectorsRestSettingsDispatch extends WP_UnitTestCase {
 
@@ -60,7 +61,7 @@ class Tests_Connectors_WpConnectorsRestSettingsDispatch extends WP_UnitTestCase 
 		$data   = $result->get_data();
 
 		$this->assertSame( 'remote-user', $data[ self::USERNAME_SETTING_NAME ] );
-		$this->assertSame( _wp_connectors_mask_api_key( $application_password ), $data[ self::APPLICATION_PASSWORD_SETTING_NAME ] );
+		$this->assertSame( str_repeat( "\u{2022}", 16 ), $data[ self::APPLICATION_PASSWORD_SETTING_NAME ] );
 		$this->assertNotSame( $application_password, $data[ self::APPLICATION_PASSWORD_SETTING_NAME ] );
 	}
 }
