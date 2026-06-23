@@ -2380,6 +2380,8 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 		$this->assertNotNull( $params );
 		$this->assertArrayHasKey( 'properties', $params );
 		$this->assertArrayHasKey( 'title', $params['properties'] );
+		$this->assertSame( array( 'title' ), $params['required'] );
+		$this->assertArrayNotHasKey( 'required', $params['properties']['title'] );
 	}
 
 	/**
