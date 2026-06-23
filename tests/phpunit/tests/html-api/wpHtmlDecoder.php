@@ -187,7 +187,7 @@ class Tests_HtmlApi_WpHtmlDecoder extends WP_UnitTestCase {
 	 * Data provider.
 	 *
 	 * HTML character references with followers that trigger the literal flush behavior
-	 * when parsing attribute values. HTML defines this as `"` or an ASCII alphanumeric character.
+	 * when parsing attribute values. HTML defines this as `=` or an ASCII alphanumeric character.
 	 *
 	 * > An ASCII alphanumeric is an ASCII digit or ASCII alpha.
 	 * > An ASCII alpha is an ASCII upper alpha or ASCII lower alpha.
