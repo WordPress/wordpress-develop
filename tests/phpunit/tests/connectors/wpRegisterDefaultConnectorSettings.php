@@ -27,7 +27,7 @@ class Tests_Connectors_WpRegisterDefaultConnectorSettings extends WP_UnitTestCas
 		parent::set_up();
 
 		global $wp_registered_settings;
-		$this->original_registered_settings = $wp_registered_settings;
+		$this->original_registered_settings = is_array( $wp_registered_settings ) ? $wp_registered_settings : array();
 	}
 
 	/**
@@ -128,5 +128,69 @@ class Tests_Connectors_WpRegisterDefaultConnectorSettings extends WP_UnitTestCas
 		$this->assertSame( 'Test Remote WordPress Connector Application Password', $registered_settings[ self::APPLICATION_PASSWORD_SETTING_NAME ]['label'] );
 		$this->assertTrue( $registered_settings[ self::USERNAME_SETTING_NAME ]['show_in_rest'] );
 		$this->assertTrue( $registered_settings[ self::APPLICATION_PASSWORD_SETTING_NAME ]['show_in_rest'] );
+	}
+
+	/**
+	 * @ticket 64850
+	 *
+	 * @dataProvider data_application_password_settings
+	 *
+	 * @param string $pre_registered_setting_name Setting name registered by the connector plugin.
+	 * @param string $other_setting_name          Setting name registered by Core.
+	 */
+	public function test_application_password_connector_skips_already_registered_settings( string $pre_registered_setting_name, string $other_setting_name ): void {
+		register_setting(
+			'connectors',
+			$pre_registered_setting_name,
+			array(
+				'type'              => 'string',
+				'label'             => 'Plugin-owned setting',
+				'description'       => 'Registered by the connector plugin.',
+				'default'           => 'plugin-default',
+				'show_in_rest'      => false,
+				'sanitize_callback' => 'sanitize_text_field',
+			)
+		);
+
+		WP_Connector_Registry::get_instance()->register(
+			self::CONNECTOR_ID,
+			array(
+				'name'           => 'Test Remote WordPress Connector',
+				'description'    => '',
+				'type'           => 'content_source',
+				'authentication' => array(
+					'method'                            => 'application_password',
+					'username_setting_name'             => self::USERNAME_SETTING_NAME,
+					'application_password_setting_name' => self::APPLICATION_PASSWORD_SETTING_NAME,
+				),
+			)
+		);
+
+		_wp_register_default_connector_settings();
+
+		$registered_settings = get_registered_settings();
+		$this->assertArrayHasKey( $pre_registered_setting_name, $registered_settings );
+		$this->assertArrayHasKey( $other_setting_name, $registered_settings );
+		$this->assertSame( 'Plugin-owned setting', $registered_settings[ $pre_registered_setting_name ]['label'] );
+		$this->assertSame( 'plugin-default', $registered_settings[ $pre_registered_setting_name ]['default'] );
+		$this->assertFalse( $registered_settings[ $pre_registered_setting_name ]['show_in_rest'] );
+	}
+
+	/**
+	 * Data provider for application-password settings.
+	 *
+	 * @return array<string, array{string, string}> Test cases.
+	 */
+	public function data_application_password_settings(): array {
+		return array(
+			'username setting already registered'             => array(
+				self::USERNAME_SETTING_NAME,
+				self::APPLICATION_PASSWORD_SETTING_NAME,
+			),
+			'application password setting already registered' => array(
+				self::APPLICATION_PASSWORD_SETTING_NAME,
+				self::USERNAME_SETTING_NAME,
+			),
+		);
 	}
 }
