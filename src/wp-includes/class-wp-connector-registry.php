@@ -205,12 +205,12 @@ final class WP_Connector_Registry {
 		}
 
 		if ( empty( $args['authentication']['method'] ) || ! in_array( $args['authentication']['method'], array( 'api_key', 'application_password', 'none' ), true ) ) {
-			_doing_it_wrong(
-				__METHOD__,
-				/* translators: %s: Connector ID. */
+				_doing_it_wrong(
+					__METHOD__,
+					/* translators: %s: Connector ID. */
 					sprintf( __( 'Connector "%s" authentication method must be "api_key", "application_password", or "none".' ), esc_html( $id ) ),
-				'7.0.0'
-			);
+					'7.0.0'
+				);
 			return null;
 		}
 
