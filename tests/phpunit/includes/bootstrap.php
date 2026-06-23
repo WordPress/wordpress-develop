@@ -157,7 +157,7 @@ if ( class_exists( '\Yoast\PHPUnitPolyfills\Autoload' )
 			$phpunit_polyfills_minimum_version
 		);
 	} elseif ( defined( 'WP_RUN_CORE_TESTS' ) && WP_RUN_CORE_TESTS ) {
-		echo 'Please run `composer install` to install the latest version.' . PHP_EOL;
+		echo 'Please run `composer install` to install the required version.' . PHP_EOL;
 	}
 	exit( 1 );
 }
