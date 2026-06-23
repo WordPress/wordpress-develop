@@ -363,5 +363,5 @@ function wp_register_core_abilities(): void {
 	);
 
 	// Register the content abilities (currently the read-only `core/content`).
-	WP_Content_Abilities::register();
+	( new WP_Content_Abilities() )->register();
 }

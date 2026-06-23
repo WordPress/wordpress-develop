@@ -562,8 +562,8 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 
 		$schema = $this->ability()->get_input_schema();
 
-		$this->assertSame( WP_Content_Abilities::MAX_PER_PAGE, $schema['properties']['per_page']['maximum'] );
-		$this->assertSame( WP_Content_Abilities::DEFAULT_PER_PAGE, $schema['properties']['per_page']['default'] );
+		$this->assertSame( 100, $schema['properties']['per_page']['maximum'] );
+		$this->assertSame( 10, $schema['properties']['per_page']['default'] );
 	}
 
 	public function test_single_post_reports_totals(): void {
