@@ -426,6 +426,16 @@ final class WP_Content_Abilities {
 	/**
 	 * Builds the input schema for the `core/content` ability.
 	 *
+	 * The ability has two mutually exclusive modes, modeled as a `oneOf` so invalid
+	 * combinations are rejected rather than silently ignored:
+	 *
+	 *   - Get a single post by `id` (optionally guarded by `post_type`).
+	 *   - Query a set of posts by `post_type` plus filters (`slug`, `status`, `author`,
+	 *     `parent`, `page`, `per_page`).
+	 *
+	 * Each mode sets `additionalProperties: false`, so e.g. passing `per_page` alongside `id`
+	 * fails validation instead of being dropped. `fields` is accepted in both modes.
+	 *
 	 * @since 7.1.0
 	 *
 	 * @param string[] $post_types Exposed post type names.
@@ -433,74 +443,90 @@ final class WP_Content_Abilities {
 	 * @return array<string, mixed> The input JSON Schema.
 	 */
 	private function get_content_input_schema( array $post_types, array $statuses ): array {
+		$fields = array(
+			'type'        => 'array',
+			'uniqueItems' => true,
+			'items'       => array(
+				'type' => 'string',
+				'enum' => $this->fields,
+			),
+			'description' => __( 'Limit each returned post to these fields. If omitted, all supported fields are returned.' ),
+		);
+
 		return array(
-			'type'                 => 'object',
-			// Object (not array()) so the serialized schema default is {}, consistent with type:object.
-			'default'              => (object) array(),
-			// `post_type` is required unless a single post is requested by `id`.
-			'anyOf'                => array(
-				array( 'required' => array( 'id' ) ),
-				array( 'required' => array( 'post_type' ) ),
-			),
-			'properties'           => array(
-				'post_type' => array(
-					'type'        => 'string',
-					'enum'        => $post_types,
-					'description' => __( 'Post type to retrieve. Required unless `id` is provided.' ),
-				),
-				'id'        => array(
-					'type'        => 'integer',
-					'minimum'     => 1,
-					'description' => __( 'Retrieve a single post by ID. When provided, `post_type` is optional.' ),
-				),
-				'slug'      => array(
-					'type'        => 'string',
-					'description' => __( 'Retrieve posts by slug. Requires `post_type`, as slugs are not unique across post types.' ),
-				),
-				'status'    => array(
-					'type'        => 'array',
-					'uniqueItems' => true,
-					'default'     => array( 'publish' ),
-					'items'       => array(
-						'type' => 'string',
-						'enum' => $statuses,
+			'type'  => 'object',
+			'oneOf' => array(
+				// Mode 1: retrieve a single post by ID.
+				array(
+					'title'                => __( 'Get a single post by ID' ),
+					'required'             => array( 'id' ),
+					'additionalProperties' => false,
+					'properties'           => array(
+						'id'        => array(
+							'type'        => 'integer',
+							'minimum'     => 1,
+							'description' => __( 'Retrieve a single post by ID.' ),
+						),
+						'post_type' => array(
+							'type'        => 'string',
+							'enum'        => $post_types,
+							'description' => __( 'Optional. Restrict the lookup to this post type; the post is returned only if it matches.' ),
+						),
+						'fields'    => $fields,
 					),
-					'description' => __( 'Filter by one or more post statuses. Defaults to publish. Non-published statuses require the appropriate capabilities.' ),
 				),
-				'author'    => array(
-					'type'        => 'integer',
-					'minimum'     => 1,
-					'description' => __( 'Filter by author user ID.' ),
-				),
-				'parent'    => array(
-					'type'        => 'integer',
-					'minimum'     => 0,
-					'description' => __( 'Filter by parent post ID, for hierarchical post types. Use 0 for top-level posts.' ),
-				),
-				'fields'    => array(
-					'type'        => 'array',
-					'uniqueItems' => true,
-					'items'       => array(
-						'type' => 'string',
-						'enum' => $this->fields,
+				// Mode 2: query a set of posts by post type and filters.
+				array(
+					'title'                => __( 'Query posts by type and filters' ),
+					'required'             => array( 'post_type' ),
+					'additionalProperties' => false,
+					'properties'           => array(
+						'post_type' => array(
+							'type'        => 'string',
+							'enum'        => $post_types,
+							'description' => __( 'Post type to query.' ),
+						),
+						'slug'      => array(
+							'type'        => 'string',
+							'description' => __( 'Filter by slug. Combined with `post_type`, as slugs are not unique across post types.' ),
+						),
+						'status'    => array(
+							'type'        => 'array',
+							'uniqueItems' => true,
+							'default'     => array( 'publish' ),
+							'items'       => array(
+								'type' => 'string',
+								'enum' => $statuses,
+							),
+							'description' => __( 'Filter by one or more post statuses. Defaults to publish. Non-published statuses require the appropriate capabilities.' ),
+						),
+						'author'    => array(
+							'type'        => 'integer',
+							'minimum'     => 1,
+							'description' => __( 'Filter by author user ID.' ),
+						),
+						'parent'    => array(
+							'type'        => 'integer',
+							'minimum'     => 0,
+							'description' => __( 'Filter by parent post ID, for hierarchical post types. Use 0 for top-level posts.' ),
+						),
+						'fields'    => $fields,
+						'page'      => array(
+							'type'        => 'integer',
+							'minimum'     => 1,
+							'default'     => 1,
+							'description' => __( 'Page of results to return.' ),
+						),
+						'per_page'  => array(
+							'type'        => 'integer',
+							'minimum'     => 1,
+							'maximum'     => self::MAX_PER_PAGE,
+							'default'     => self::DEFAULT_PER_PAGE,
+							'description' => __( 'Maximum number of posts to return per page.' ),
+						),
 					),
-					'description' => __( 'Limit each returned post to these fields. If omitted, all supported fields are returned.' ),
-				),
-				'page'      => array(
-					'type'        => 'integer',
-					'minimum'     => 1,
-					'default'     => 1,
-					'description' => __( 'Page of results to return in query mode. Ignored when retrieving a single post by ID.' ),
-				),
-				'per_page'  => array(
-					'type'        => 'integer',
-					'minimum'     => 1,
-					'maximum'     => self::MAX_PER_PAGE,
-					'default'     => self::DEFAULT_PER_PAGE,
-					'description' => __( 'Maximum number of posts to return per page in query mode.' ),
 				),
 			),
-			'additionalProperties' => false,
 		);
 	}
 
