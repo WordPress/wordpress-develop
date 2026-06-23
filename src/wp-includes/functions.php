@@ -3015,7 +3015,10 @@ function wp_ext2type( $ext ) {
 	$ext = strtolower( $ext );
 
 	$ext2type = wp_get_ext_types();
-	return array_find_key( $ext2type, fn( $exts ) => in_array( $ext, $exts, true ) );
+	return array_find_key(
+		$ext2type,
+		fn( $exts ) => in_array( $ext, $exts, true )
+	);
 }
 
 /**
