@@ -138,11 +138,11 @@ class Tests_HtmlApi_WpHtmlDecoder extends WP_UnitTestCase {
 	 *
 	 * Attribute values encoded with character references including followers that are
 	 * treated as alphanumerics by `ctype_alnum()` on some systems, but should never
-	 * be recognized as ASCII Alphanumerics according the the HTML standards.
+	 * be recognized as ASCII Alphanumerics according to the HTML standards.
 	 *
 	 * @see https://html.spec.whatwg.org/#named-character-reference-state
 	 *
-	 * @return Array<array{
+	 * @return array<array{
 	 *   string, // Encoded attribute value.
 	 *   string, // Expected full decode.
 	 *   string, // Expected character decode.
