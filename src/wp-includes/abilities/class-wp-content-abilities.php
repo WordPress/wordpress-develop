@@ -12,10 +12,10 @@ declare( strict_types = 1 );
 /**
  * Core class used to register content-related abilities.
  *
- * Provides the read-only `core/content` ability, which retrieves one or more posts of a
- * post type that opts in via the `show_in_abilities` argument. It supports fetching a
- * single post by ID or slug, or querying multiple posts with a small set of filters, and
- * returns a basic, support-aware set of fields per post.
+ * Provides the read-only `core/content` ability, which retrieves one or more editable
+ * posts of a post type that opts in via the `show_in_abilities` argument. It supports
+ * fetching a single editable post by ID or slug, or querying multiple editable posts
+ * with a small set of filters, and returns a basic, support-aware set of fields per post.
  *
  * The class is intentionally structured around shared building blocks (exposed post type
  * discovery, schema generation, per-post formatting and permission checks) so a future
@@ -126,7 +126,7 @@ final class WP_Content_Abilities {
 			'core/content',
 			array(
 				'label'               => __( 'Get Content' ),
-				'description'         => __( 'Retrieves one or more posts of a post type exposed to abilities. Fetch a single post by ID or by slug, or query multiple posts filtered by post type, status, author, or parent. Returns a basic, support-aware set of fields per post.' ),
+				'description'         => __( 'Retrieves one or more editable posts of a post type exposed to abilities. Fetch a single editable post by ID or by slug, or query multiple editable posts filtered by post type, status, author, or parent. Returns a basic, support-aware set of fields per post.' ),
 				'category'            => self::CATEGORY,
 				'input_schema'        => $this->get_content_input_schema( $post_types, $statuses ),
 				'output_schema'       => $this->get_content_output_schema(),
@@ -152,9 +152,9 @@ final class WP_Content_Abilities {
 	 * Permission callback for the `core/content` ability.
 	 *
 	 * Implements defense in depth: this gate decides whether the request may proceed at
-	 * all (coarse, by post type capabilities and requested statuses), while the per-post
-	 * `read_post` meta capability check in {@see self::execute_get_content()} is the
-	 * authoritative, row-level enforcement of author-scoped visibility.
+	 * all (coarse, by post type capabilities), while the per-post `edit_post` meta
+	 * capability check in {@see self::execute_get_content()} is the authoritative,
+	 * row-level enforcement of author-scoped visibility.
 	 *
 	 * @since 7.1.0
 	 *
@@ -169,21 +169,14 @@ final class WP_Content_Abilities {
 		if ( ! empty( $input['id'] ) ) {
 			$post = get_post( $this->input_int( $input['id'] ) );
 
-			/*
-			 * For a missing post, an unexposed post type, or a post type that does not
-			 * match the requested one, fall back to a generic capability check rather
-			 * than a row-level check on a guessed ID, so the response cannot be used to
-			 * enumerate IDs or probe post-type membership. Execution returns a uniform
-			 * 404 in these cases.
-			 */
 			if ( ! $post
 				|| ! isset( $exposed[ $post->post_type ] )
 				|| ( ! empty( $input['post_type'] ) && $post->post_type !== $input['post_type'] )
 			) {
-				return current_user_can( 'read' );
+				return false;
 			}
 
-			return current_user_can( 'read_post', $post->ID );
+			return current_user_can( 'edit_post', $post->ID );
 		}
 
 		// Query / slug mode requires an exposed post type.
@@ -192,36 +185,10 @@ final class WP_Content_Abilities {
 			return false;
 		}
 
-		$post_type_object = $exposed[ $post_type ];
+		$post_type_object      = $exposed[ $post_type ];
+		$edit_posts_capability = $this->capability( $post_type_object, 'edit_posts', 'edit_posts' );
 
-		// Base gate: must be able to read this post type at all.
-		if ( ! current_user_can( $this->capability( $post_type_object, 'read', 'read' ) ) ) {
-			return false;
-		}
-
-		$statuses = $this->normalize_statuses( $input );
-
-		// Only published posts requested: always allowed for readers.
-		if ( array( 'publish' ) === $statuses ) {
-			return true;
-		}
-
-		// Editors/authors of this post type may request any status set.
-		if ( current_user_can( $this->capability( $post_type_object, 'edit_posts', 'edit_posts' ) ) ) {
-			return true;
-		}
-
-		// Otherwise, private posts are allowed only with read_private_posts.
-		if ( current_user_can( $this->capability( $post_type_object, 'read_private_posts', 'read_private_posts' ) ) ) {
-			foreach ( $statuses as $status ) {
-				if ( 'private' !== $status && 'publish' !== $status ) {
-					return false;
-				}
-			}
-			return true;
-		}
-
-		return false;
+		return current_user_can( $edit_posts_capability );
 	}
 
 	/**
@@ -272,7 +239,7 @@ final class WP_Content_Abilities {
 			if ( ! $post
 				|| ! isset( $exposed[ $post->post_type ] )
 				|| ( ! empty( $input['post_type'] ) && $post->post_type !== $input['post_type'] )
-				|| ! current_user_can( 'read_post', $post->ID )
+				|| ! current_user_can( 'edit_post', $post->ID )
 			) {
 				return $this->not_found_error();
 			}
@@ -298,6 +265,7 @@ final class WP_Content_Abilities {
 			'post_status'         => $this->normalize_statuses( $input ),
 			'posts_per_page'      => $per_page,
 			'paged'               => $page,
+			'perm'                => 'editable',
 			'ignore_sticky_posts' => true,
 		);
 
@@ -320,8 +288,7 @@ final class WP_Content_Abilities {
 			if ( ! $post instanceof WP_Post ) {
 				continue;
 			}
-			// Authoritative, row-level visibility check (author/status scoped).
-			if ( ! current_user_can( 'read_post', $post->ID ) ) {
+			if ( ! current_user_can( 'edit_post', $post->ID ) ) {
 				continue;
 			}
 			$posts[] = $this->format_post( $post, $fields );
@@ -429,9 +396,9 @@ final class WP_Content_Abilities {
 	 * The ability has two mutually exclusive modes, modeled as a `oneOf` so invalid
 	 * combinations are rejected rather than silently ignored:
 	 *
-	 *   - Get a single post by `id` (optionally guarded by `post_type`).
-	 *   - Query a set of posts by `post_type` plus filters (`slug`, `status`, `author`,
-	 *     `parent`, `page`, `per_page`).
+	 *   - Get a single editable post by `id` (optionally guarded by `post_type`).
+	 *   - Query a set of editable posts by `post_type` plus filters (`slug`, `status`,
+	 *     `author`, `parent`, `page`, `per_page`).
 	 *
 	 * Each mode sets `additionalProperties: false`, so e.g. passing `per_page` alongside `id`
 	 * fails validation instead of being dropped. `fields` is accepted in both modes.
@@ -456,35 +423,35 @@ final class WP_Content_Abilities {
 		return array(
 			'type'  => 'object',
 			'oneOf' => array(
-				// Mode 1: retrieve a single post by ID.
+				// Mode 1: retrieve a single editable post by ID.
 				array(
-					'title'                => __( 'Get a single post by ID' ),
+					'title'                => __( 'Get a single editable post by ID' ),
 					'required'             => array( 'id' ),
 					'additionalProperties' => false,
 					'properties'           => array(
 						'id'        => array(
 							'type'        => 'integer',
 							'minimum'     => 1,
-							'description' => __( 'Retrieve a single post by ID.' ),
+							'description' => __( 'Retrieve a single editable post by ID.' ),
 						),
 						'post_type' => array(
 							'type'        => 'string',
 							'enum'        => $post_types,
-							'description' => __( 'Optional. Restrict the lookup to this post type; the post is returned only if it matches.' ),
+							'description' => __( 'Optional. Restrict the lookup to this post type; the post is returned only if it matches and the current user can edit it.' ),
 						),
 						'fields'    => $fields,
 					),
 				),
-				// Mode 2: query a set of posts by post type and filters.
+				// Mode 2: query a set of editable posts by post type and filters.
 				array(
-					'title'                => __( 'Query posts by type and filters' ),
+					'title'                => __( 'Query editable posts by type and filters' ),
 					'required'             => array( 'post_type' ),
 					'additionalProperties' => false,
 					'properties'           => array(
 						'post_type' => array(
 							'type'        => 'string',
 							'enum'        => $post_types,
-							'description' => __( 'Post type to query.' ),
+							'description' => __( 'Post type to query for editable posts.' ),
 						),
 						'slug'      => array(
 							'type'        => 'string',
@@ -498,7 +465,7 @@ final class WP_Content_Abilities {
 								'type' => 'string',
 								'enum' => $statuses,
 							),
-							'description' => __( 'Filter by one or more post statuses. Defaults to publish. Non-published statuses require the appropriate capabilities.' ),
+							'description' => __( 'Filter editable posts by one or more post statuses. Defaults to publish. Non-published statuses require the appropriate capabilities.' ),
 						),
 						'author'    => array(
 							'type'        => 'integer',
@@ -583,7 +550,7 @@ final class WP_Content_Abilities {
 				),
 				'raw_content' => array(
 					'type'        => 'string',
-					'description' => __( 'The raw, unfiltered post content (block markup). Present when the post type supports the editor. Empty when withheld for a password-protected post.' ),
+					'description' => __( 'The raw, unfiltered post content (block markup). Present when the post type supports the editor.' ),
 				),
 				'author'      => array(
 					'type'                 => 'object',
@@ -613,16 +580,16 @@ final class WP_Content_Abilities {
 			'properties'           => array(
 				'posts'       => array(
 					'type'        => 'array',
-					'description' => __( 'The posts matching the request. A single-element list when requested by ID.' ),
+					'description' => __( 'The editable posts matching the request. A single-element list when requested by ID.' ),
 					'items'       => $post_schema,
 				),
 				'total'       => array(
 					'type'        => 'integer',
-					'description' => __( 'Total number of posts matching the query, across all pages. Surfaced over REST as the X-WP-Total header.' ),
+					'description' => __( 'Total number of posts matching the query, across all pages, after applying the editable permission filter to the query. Surfaced over REST as the X-WP-Total header.' ),
 				),
 				'total_pages' => array(
 					'type'        => 'integer',
-					'description' => __( 'Total number of pages available. Surfaced over REST as the X-WP-TotalPages header.' ),
+					'description' => __( 'Total number of query result pages available after applying the editable permission filter to the query. Surfaced over REST as the X-WP-TotalPages header.' ),
 				),
 			),
 		);
@@ -646,7 +613,8 @@ final class WP_Content_Abilities {
 		$wants     = static function ( string $field ) use ( $fields ): bool {
 			return in_array( $field, $fields, true );
 		};
-		$protected = post_password_required( $post ) && ! current_user_can( 'edit_post', $post->ID );
+		$can_edit  = current_user_can( 'edit_post', $post->ID );
+		$protected = post_password_required( $post ) && ! $can_edit;
 
 		$data = array();
 
@@ -681,7 +649,7 @@ final class WP_Content_Abilities {
 		}
 
 		if ( $wants( 'raw_content' ) && post_type_supports( $type, 'editor' ) ) {
-			$data['raw_content'] = $protected ? '' : (string) $post->post_content;
+			$data['raw_content'] = $can_edit && ! $protected ? (string) $post->post_content : '';
 		}
 
 		if ( $wants( 'author' ) && post_type_supports( $type, 'author' ) ) {
@@ -761,9 +729,9 @@ final class WP_Content_Abilities {
 	/**
 	 * Builds the uniform not-found error.
 	 *
-	 * The same generic 404 is returned for a missing post, an unexposed post type, a
-	 * type mismatch, or a post the user cannot read, so the ability cannot be used to
-	 * enumerate IDs or probe post-type membership.
+	 * Used by execution when content cannot be resolved or edited after permission
+	 * checks. The permission callback fails closed for uncertain by-ID lookups before
+	 * execution runs.
 	 *
 	 * @since 7.1.0
 	 *

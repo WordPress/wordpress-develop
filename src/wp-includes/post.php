@@ -1758,7 +1758,7 @@ function get_post_types( $args = array(), $output = 'names', $operator = 'and' )
  *     @type bool         $show_in_rest                    Whether to include the post type in the REST API. Set this to true
  *                                                         for the post type to be available in the block editor.
  *     @type bool|array   $show_in_abilities               Whether to expose this post type through the Abilities API, so its
- *                                                         readable posts can be retrieved via the read-only `core/content`
+ *                                                         editable posts can be retrieved via the read-only `core/content`
  *                                                         ability (subject to per-post capability checks). Accepts a boolean
  *                                                         or an array reserved for enabling specific operations. Default false.
  *     @type string       $rest_base                       To change the base URL of REST API route. Default is $post_type.

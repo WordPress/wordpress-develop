@@ -132,6 +132,14 @@ class Tests_REST_API_WpRestAbilitiesContentController extends WP_UnitTestCase {
 		$this->assertSame( 403, $response->get_status() );
 	}
 
+	public function test_subscriber_requesting_published_posts_receives_403(): void {
+		wp_set_current_user( self::$subscriber_id );
+
+		$response = $this->server->dispatch( $this->run_request( array( 'post_type' => 'post' ) ) );
+
+		$this->assertSame( 403, $response->get_status() );
+	}
+
 	public function test_admin_query_returns_published_posts(): void {
 		$post_id = self::factory()->post->create(
 			array(
@@ -182,7 +190,7 @@ class Tests_REST_API_WpRestAbilitiesContentController extends WP_UnitTestCase {
 				)
 			)
 		);
-		$data = $response->get_data();
+		$data     = $response->get_data();
 
 		$this->assertSame( 200, $response->get_status() );
 		$this->assertCount( 2, $data['posts'] );
