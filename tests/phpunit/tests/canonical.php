@@ -438,6 +438,32 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 	}
 
 	/**
+	 * Ensure equivalent query args are not redirected when only the encoding changes.
+	 *
+	 * @ticket 51733
+	 */
+	public function test_static_front_page_does_not_redirect_equivalent_query_string_encoding() {
+		$page_id = self::factory()->post->create(
+			array(
+				'post_type' => 'page',
+			)
+		);
+
+		$show_on_front = get_option( 'show_on_front' );
+		$page_on_front = get_option( 'page_on_front' );
+
+		try {
+			update_option( 'show_on_front', 'page' );
+			update_option( 'page_on_front', $page_id );
+
+			$this->assertCanonical( '/?test=a+b+c', '/?test=a+b+c', 51733 );
+		} finally {
+			update_option( 'show_on_front', $show_on_front );
+			update_option( 'page_on_front', $page_on_front );
+		}
+	}
+
+	/**
 	 * Ensure NOT EXISTS queries do not trigger not-countable or undefined array key errors.
 	 *
 	 * @ticket 55955
