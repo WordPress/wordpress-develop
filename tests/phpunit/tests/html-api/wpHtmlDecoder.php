@@ -206,7 +206,7 @@ class Tests_HtmlApi_WpHtmlDecoder extends WP_UnitTestCase {
 		// > An ASCII upper alpha is a code point in the range U+0041 (A) to U+005A (Z), inclusive.
 		for ( $i = 0x41; $i <= 0x5A; $i++ ) {
 			$char = chr( $i );
-			yield "ASCII upper alpha follower {$char}'" => array( "&Aacute{$char}" );
+			yield "ASCII upper alpha follower '{$char}'" => array( "&Aacute{$char}" );
 		}
 		// > An ASCII lower alpha is a code point in the range U+0061 (a) to U+007A (z), inclusive.
 		for ( $i = 0x61; $i <= 0x7A; $i++ ) {
