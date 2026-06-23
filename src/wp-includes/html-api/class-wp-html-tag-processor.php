@@ -634,7 +634,7 @@ class WP_HTML_Tag_Processor {
 	 *
 	 * @var bool
 	 */
-	private $self_closing_flag = false;
+	private $has_self_closing_flag = false;
 
 	/**
 	 * Byte offset in input document where current tag name starts.
@@ -1085,12 +1085,12 @@ class WP_HTML_Tag_Processor {
 		 * the closing to tag to point to the opening of the special atomic
 		 * tag sequence.
 		 */
-		$tag_name_starts_at   = $this->tag_name_starts_at;
-		$tag_name_length      = $this->tag_name_length;
-		$tag_ends_at          = $this->token_starts_at + $this->token_length;
-		$self_closing_flag    = $this->self_closing_flag;
-		$attributes           = $this->attributes;
-		$duplicate_attributes = $this->duplicate_attributes;
+		$tag_name_starts_at    = $this->tag_name_starts_at;
+		$tag_name_length       = $this->tag_name_length;
+		$tag_ends_at           = $this->token_starts_at + $this->token_length;
+		$has_self_closing_flag = $this->has_self_closing_flag;
+		$attributes            = $this->attributes;
+		$duplicate_attributes  = $this->duplicate_attributes;
 
 		// Find the closing tag if necessary.
 		switch ( $tag_name ) {
@@ -1140,15 +1140,15 @@ class WP_HTML_Tag_Processor {
 		 * functions that skip the contents have moved all the internal cursors past
 		 * the inner content of the tag.
 		 */
-		$this->token_starts_at      = $was_at;
-		$this->token_length         = $this->bytes_already_parsed - $this->token_starts_at;
-		$this->text_starts_at       = $tag_ends_at;
-		$this->text_length          = $this->tag_name_starts_at - $this->text_starts_at;
-		$this->tag_name_starts_at   = $tag_name_starts_at;
-		$this->tag_name_length      = $tag_name_length;
-		$this->self_closing_flag    = $self_closing_flag;
-		$this->attributes           = $attributes;
-		$this->duplicate_attributes = $duplicate_attributes;
+		$this->token_starts_at       = $was_at;
+		$this->token_length          = $this->bytes_already_parsed - $this->token_starts_at;
+		$this->text_starts_at        = $tag_ends_at;
+		$this->text_length           = $this->tag_name_starts_at - $this->text_starts_at;
+		$this->tag_name_starts_at    = $tag_name_starts_at;
+		$this->tag_name_length       = $tag_name_length;
+		$this->has_self_closing_flag = $has_self_closing_flag;
+		$this->attributes            = $attributes;
+		$this->duplicate_attributes  = $duplicate_attributes;
 
 		return true;
 	}
@@ -2162,7 +2162,7 @@ class WP_HTML_Tag_Processor {
 			return false;
 		}
 
-		$this->self_closing_flag = $skipped_length > 0 &&
+		$this->has_self_closing_flag = $skipped_length > 0 &&
 			'/' === $this->html[ $this->bytes_already_parsed - 1 ] &&
 			'>' === $this->html[ $this->bytes_already_parsed ];
 
@@ -2343,7 +2343,7 @@ class WP_HTML_Tag_Processor {
 
 		$this->token_starts_at          = null;
 		$this->token_length             = null;
-		$this->self_closing_flag        = false;
+		$this->has_self_closing_flag    = false;
 		$this->tag_name_starts_at       = null;
 		$this->tag_name_length          = null;
 		$this->text_starts_at           = 0;
@@ -3352,7 +3352,7 @@ class WP_HTML_Tag_Processor {
 			return false;
 		}
 
-		return $this->self_closing_flag;
+		return $this->has_self_closing_flag;
 	}
 
 	/**

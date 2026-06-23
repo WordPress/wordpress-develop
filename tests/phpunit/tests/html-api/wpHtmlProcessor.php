@@ -607,6 +607,29 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensures a slash-only unquoted attribute value does not close foreign content.
+	 *
+	 * @ticket 61576
+	 */
+	public function test_slash_only_unquoted_attribute_value_does_not_self_close_foreign_content() {
+		$processor = WP_HTML_Processor::create_fragment( '<math><mi a=/>math:mi is not self-closing, it has [a="/"] attribute.' );
+
+		$this->assertTrue( $processor->next_tag( 'MI' ), 'Could not find MI tag: check test setup.' );
+		$this->assertSame( '/', $processor->get_attribute( 'a' ), 'Slash-only unquoted attribute value should belong to the attribute value.' );
+		$this->assertFalse(
+			$processor->has_self_closing_flag(),
+			'Slash-only unquoted attribute value should not be interpreted as a self-closing flag.'
+		);
+
+		$this->assertTrue( $processor->next_token(), 'Could not find text following MI tag: check test setup.' );
+		$this->assertSame(
+			array( 'HTML', 'BODY', 'MATH', 'MI', '#text' ),
+			$processor->get_breadcrumbs(),
+			'Text following the MI tag should remain inside the MI element.'
+		);
+	}
+
+	/**
 	 * Ensures that expects_closer works for void-like elements in foreign content.
 	 *
 	 * For example, `<svg><input>text` creates an `svg:input` that contains a text node.
