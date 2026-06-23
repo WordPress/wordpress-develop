@@ -151,13 +151,6 @@ class WP_REST_View_Config_Controller extends WP_REST_Controller {
 		$config = wp_get_entity_view_config( $kind, $name );
 		$schema = $this->get_item_schema();
 
-		/*
-		 * PHP encodes empty arrays as JSON arrays ([]), but the schema types
-		 * several of these values as objects. Walk the config against the schema
-		 * and cast empty arrays to objects so they serialize as JSON objects ({})
-		 * and match the schema, regardless of which entity (or filter) produced
-		 * the data.
-		 */
 		$response = array(
 			'kind'            => $kind,
 			'name'            => $name,
