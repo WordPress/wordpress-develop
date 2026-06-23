@@ -1066,12 +1066,10 @@ function wp_get_sidebars_widgets( $deprecated = true ) {
 function wp_get_sidebar( $id ) {
 	global $wp_registered_sidebars;
 
-	$sidebar = array_find(
-		(array) $wp_registered_sidebars,
-		fn( $sidebar ) => $sidebar['id'] === $id 
-	);
-	if ( null !== $sidebar ) {
-		return $sidebar;
+	foreach ( (array) $wp_registered_sidebars as $sidebar ) {
+		if ( $sidebar['id'] === $id ) {
+			return $sidebar;
+		}
 	}
 
 	if ( 'wp_inactive_widgets' === $id ) {
