@@ -367,36 +367,27 @@ class WP_HTML_Decoder {
 
 		$after_name = $name_at + $name_length;
 
-		// If the match ended with a semicolon then it should always be decoded.
-		if ( ';' === $text[ $name_at + $name_length - 1 ] ) {
-			$match_byte_length = $after_name - $at;
-			return $replacement;
-		}
-
 		/*
-		 * At this point though there's a match for an entry in the named
-		 * character reference table but the match doesn't end in `;`.
-		 * It may be allowed if it's followed by something unambiguous.
+		 * Named character references are NOT decoded if
+		 * - If the character reference was consumed as part of an attribute
+		 * - AND the last character matched is not a U+003B SEMICOLON character (;)
+		 * - AND the next input character is either a U+003D EQUALS SIGN character (=)
+		 *   or an ASCII alphanumeric
+		 *
+		 * @see https://html.spec.whatwg.org/multipage/parsing.html#named-character-reference-state
 		 */
-		$follower_byte      = $after_name < $length ? ord( $text[ $after_name ] ) : null;
-		$ambiguous_follower = (
-			null !== $follower_byte &&
-			(
-				( $follower_byte >= 0x30 && $follower_byte <= 0x39 ) ||
-				( $follower_byte >= 0x41 && $follower_byte <= 0x5A ) ||
-				( $follower_byte >= 0x61 && $follower_byte <= 0x7A ) ||
-				0x3D === $follower_byte
-			)
-		);
-
-		// It's non-ambiguous, safe to leave it in.
-		if ( ! $ambiguous_follower ) {
+		if ( 'attribute' !== $context || ';' === $text[ $after_name - 1 ] || $after_name >= $length ) {
 			$match_byte_length = $after_name - $at;
 			return $replacement;
 		}
 
-		// It's ambiguous, which isn't allowed inside attributes.
-		if ( 'attribute' === $context ) {
+		$follower_byte = ord( $text[ $after_name ] );
+		if (
+			0x3D === $follower_byte || //                              U+003D EQUALS SIGN
+			( $follower_byte >= 0x30 && $follower_byte <= 0x39 ) || // ASCII digits 0-9
+			( $follower_byte >= 0x41 && $follower_byte <= 0x5A ) || // ASCII upper alpha A-Z
+			( $follower_byte >= 0x61 && $follower_byte <= 0x7A )    // ASCII lower alpha a-z
+		) {
 			return null;
 		}
 
