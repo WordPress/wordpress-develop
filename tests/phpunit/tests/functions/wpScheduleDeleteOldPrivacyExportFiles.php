@@ -2,7 +2,7 @@
 /**
  * @group functions
  *
- * @covers ::test_wp_schedule_delete_old_privacy_export_files
+ * @covers ::wp_schedule_delete_old_privacy_export_files
  */
 class Tests_Functions_wpScheduleDeleteOldPrivacyExportFiles extends WP_UnitTestCase {
 
