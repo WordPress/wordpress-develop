@@ -4,7 +4,6 @@
  *
  * @group connectors
  * @covers ::_wp_connectors_rest_settings_dispatch
- * @covers ::_wp_connectors_mask_application_password
  */
 class Tests_Connectors_WpConnectorsRestSettingsDispatch extends WP_UnitTestCase {
 
