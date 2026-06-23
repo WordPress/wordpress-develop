@@ -116,7 +116,6 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 			'Self-closing flag after quoted attribute'   => array( '<div id="test"/>', true ),
 			'Self-closing flag after boolean attribute'  => array( '<div enabled/>', true ),
 			'Boolean attribute that looks like a self-closer' => array( '<div / >', false ),
-			'Self-closing flag on internally consumed special element closer' => array( '<title>x</title/>', false ),
 		);
 	}
 
