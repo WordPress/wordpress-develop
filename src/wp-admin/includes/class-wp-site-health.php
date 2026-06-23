@@ -122,13 +122,14 @@ class WP_Site_Health {
 				'site_status_result' => wp_create_nonce( 'health-check-site-status-result' ),
 			),
 			'site_status' => array(
-				'direct' => array(),
-				'async'  => array(),
-				'issues' => array(
+				'direct'  => array(),
+				'async'   => array(),
+				'issues'  => array(
 					'good'        => 0,
 					'recommended' => 0,
 					'critical'    => 0,
 				),
+				'results' => array(),
 			),
 		);
 
