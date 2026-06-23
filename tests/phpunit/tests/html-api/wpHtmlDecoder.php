@@ -13,6 +13,68 @@
  */
 class Tests_HtmlApi_WpHtmlDecoder extends WP_UnitTestCase {
 	/**
+	 * Previous LC_CTYPE locale.
+	 *
+	 * @var string|false
+	 */
+	private static $previous_lc_ctype_locale = false;
+
+	/**
+	 * Locale where ctype_alnum() classifies high-bit bytes as alphanumeric.
+	 *
+	 * @var string|null
+	 */
+	private static $problematic_lc_ctype_locale = null;
+
+	/**
+	 * Runs the routine before setting up all tests.
+	 */
+	public static function set_up_before_class() {
+		parent::set_up_before_class();
+
+		self::$previous_lc_ctype_locale = setlocale( LC_CTYPE, 0 );
+
+		// Find a locale where ctype_alnum() classifies high-bit bytes as alphanumeric.
+		$locale_candidates = array(
+			'C.UTF-8',
+			'C.utf8',
+			'en_US.UTF-8',
+			'en_US.utf8',
+			'en_GB.UTF-8',
+			'en_GB.utf8',
+		);
+
+		foreach ( $locale_candidates as $locale ) {
+			$candidate_locale = setlocale( LC_CTYPE, $locale );
+
+			if ( false !== $candidate_locale && ctype_alnum( "\xC2" ) ) {
+				self::$problematic_lc_ctype_locale = $candidate_locale;
+				break;
+			}
+		}
+
+		if ( null === self::$problematic_lc_ctype_locale ) {
+			if ( false !== self::$previous_lc_ctype_locale ) {
+				setlocale( LC_CTYPE, self::$previous_lc_ctype_locale );
+			}
+		}
+	}
+
+	/**
+	 * Runs the routine after all tests have been run.
+	 */
+	public static function tear_down_after_class() {
+		if ( false !== self::$previous_lc_ctype_locale ) {
+			setlocale( LC_CTYPE, self::$previous_lc_ctype_locale );
+		}
+
+		self::$previous_lc_ctype_locale    = false;
+		self::$problematic_lc_ctype_locale = null;
+
+		parent::tear_down_after_class();
+	}
+
+	/**
 	 * Ensures proper decoding of edge cases.
 	 *
 	 * @ticket 61072
@@ -69,33 +131,7 @@ class Tests_HtmlApi_WpHtmlDecoder extends WP_UnitTestCase {
 	 * @ticket 65372
 	 */
 	public function test_semicolonless_legacy_reference_before_multibyte_attribute_follower( string $encoded_attribute_value, string $expected, int $expected_byte_length ): void {
-		$previous_locale = setlocale( LC_CTYPE, 0 );
-
-		// Find a locale where ctype_alnum() classifies high-bit bytes as alphanumeric.
-		$locale_candidates = array(
-			'C.UTF-8',
-			'C.utf8',
-			'en_US.UTF-8',
-			'en_US.utf8',
-			'en_GB.UTF-8',
-			'en_GB.utf8',
-		);
-
-		$affected_locale = false;
-		foreach ( $locale_candidates as $locale ) {
-			$candidate_locale = setlocale( LC_CTYPE, $locale );
-
-			if ( false !== $candidate_locale && ctype_alnum( "\xC2" ) ) {
-				$affected_locale = $candidate_locale;
-				break;
-			}
-		}
-
-		if ( false === $affected_locale ) {
-			if ( false !== $previous_locale ) {
-				setlocale( LC_CTYPE, $previous_locale );
-			}
-
+		if ( null === self::$problematic_lc_ctype_locale ) {
 			$this->markTestSkipped( 'Requires an LC_CTYPE locale where ctype_alnum() classifies high-bit bytes as alphanumeric.' );
 		}
 
