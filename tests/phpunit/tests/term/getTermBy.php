@@ -59,6 +59,23 @@ class Tests_Term_GetTermBy extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 36978
+	 */
+	public function test_get_term_by_pre_filter() {
+		add_filter( 'pre_get_term_by', array( $this, 'filter_pre_get_term_by' ) );
+
+		$term = get_term_by( 'slug', 'foo', 'category' );
+
+		remove_filter( 'pre_get_term_by', array( $this, 'filter_pre_get_term_by' ) );
+
+		$this->assertSame( 'short-circuited', $term );
+	}
+
+	public function filter_pre_get_term_by() {
+		return 'short-circuited';
+	}
+
+	/**
 	 * @ticket 33281
 	 */
 	public function test_get_term_by_with_nonexistent_id_should_return_false() {
