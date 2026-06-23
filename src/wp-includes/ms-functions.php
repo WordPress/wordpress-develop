@@ -786,6 +786,44 @@ function wpmu_validate_blog_signup( $blogname, $blog_title, $user = '' ) {
 }
 
 /**
+ * Generates an activation key pair for a multisite signup.
+ *
+ * Returns a URL-safe base64 payload to embed in the activation link, and a
+ * base64-encoded HMAC-SHA256 hash to store in the database. The payload encodes
+ * `email:timestamp:random` and the hash is computed over that same string using
+ * `AUTH_KEY` + `AUTH_SALT`, so the stored value can be reconstructed from the
+ * link without storing the random component separately.
+ *
+ * The payload uses URL-safe base64 (`-_`, no padding) for embedding in links.
+ * The hash uses standard base64 (`+/=`) since it is stored in the DB, not URLs.
+ * Both fit within the legacy `activation_key varchar(50)` column constraint.
+ *
+ * @since 6.9.0
+ * @access private
+ *
+ * @param string $user_email The user's email address, embedded in the payload.
+ * @return array {
+ *     @type string $payload URL-safe base64-encoded activation payload for the email link.
+ *     @type string $hash    Base64-encoded HMAC-SHA256 hash to store in the database.
+ * }
+ */
+function _wp_generate_signup_key( $user_email ) {
+	$timestamp = time();
+	$random    = function_exists( 'random_bytes' )
+		? bin2hex( random_bytes( 8 ) )
+		: substr( md5( $timestamp . wp_rand() . $user_email ), 0, 16 );
+	$triplet   = $user_email . ':' . $timestamp . ':' . $random;
+	$payload   = rtrim( strtr( base64_encode( $triplet ), '+/', '-_' ), '=' );
+	$hash      = base64_encode( hash_hmac( 'sha256', $triplet, wp_salt( 'auth' ), true ) );
+
+	return array(
+		'key'     => $random,
+		'payload' => $payload,
+		'hash'    => $hash,
+	);
+}
+
+/**
  * Records site signup information for future activation.
  *
  * @since MU (3.0.0)
@@ -802,11 +840,10 @@ function wpmu_validate_blog_signup( $blogname, $blog_title, $user = '' ) {
 function wpmu_signup_blog( $domain, $path, $title, $user, $user_email, $meta = array() ) {
 	global $wpdb;
 
-	$key       = substr( md5( time() . wp_rand() . $domain ), 0, 16 );
-	$timestamp = time();
-	$triplet   = $user_email . ':' . $timestamp . ':' . $key;
-	$payload   = rtrim( strtr( base64_encode( $triplet ), '+/', '-_' ), '=' );
-	$hash      = base64_encode( hash_hmac( 'sha256', $triplet, wp_salt( 'auth' ), true ) );
+	$signup_key = _wp_generate_signup_key( $user_email );
+	$key        = $signup_key['key'];
+	$payload    = $signup_key['payload'];
+	$hash       = $signup_key['hash'];
 
 	/**
 	 * Filters the metadata for a site signup.
@@ -875,11 +912,11 @@ function wpmu_signup_user( $user, $user_email, $meta = array() ) {
 	// Format data.
 	$user       = preg_replace( '/\s+/', '', sanitize_user( $user, true ) );
 	$user_email = sanitize_email( $user_email );
-	$key        = substr( md5( time() . wp_rand() . $user_email ), 0, 16 );
-	$timestamp  = time();
-	$triplet    = $user_email . ':' . $timestamp . ':' . $key;
-	$payload    = rtrim( strtr( base64_encode( $triplet ), '+/', '-_' ), '=' );
-	$hash       = base64_encode( hash_hmac( 'sha256', $triplet, wp_salt( 'auth' ), true ) );
+
+	$signup_key = _wp_generate_signup_key( $user_email );
+	$key        = $signup_key['key'];
+	$payload    = $signup_key['payload'];
+	$hash       = $signup_key['hash'];
 
 	/**
 	 * Filters the metadata for a user signup.
@@ -1245,8 +1282,8 @@ function wpmu_activate_signup(
 		if ( time() > ( (int) $timestamp + $expiration_duration ) ) {
 			return new WP_Error( 'expired_key', __( 'Invalid key' ) );
 		}
-	} else {
-		// Legacy plain-text key — allow for backwards compatibility with pre-upgrade pending activations.
+	} elseif ( 1 === preg_match( '~^[0-9a-f]{16}$~', $key ) ) {
+		// Legacy plain-text 16-char hex key — allow for BC with pre-upgrade pending activations.
 		$signup = $wpdb->get_row(
 			$wpdb->prepare( "SELECT * FROM $wpdb->signups WHERE activation_key = %s", $key )
 		);
@@ -1254,6 +1291,8 @@ function wpmu_activate_signup(
 		if ( empty( $signup ) ) {
 			return new WP_Error( 'invalid_key', __( 'Invalid activation key.' ) );
 		}
+	} else {
+		return new WP_Error( 'invalid_key', __( 'Invalid activation key.' ) );
 	}
 
 	if ( $signup->active ) {
