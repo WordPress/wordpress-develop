@@ -68,9 +68,36 @@ class Tests_HtmlApi_WpHtmlDecoder extends WP_UnitTestCase {
 	 */
 	public function test_semicolonless_legacy_reference_before_multibyte_attribute_follower() {
 		$previous_locale = setlocale( LC_CTYPE, 0 );
-		$affected_locale = setlocale( LC_CTYPE, 'C.UTF-8', 'en_US.UTF-8', 'de_DE.UTF-8', 'fr_FR.UTF-8' );
 
-		if ( false === $affected_locale || ! ctype_alnum( "\xC2" ) ) {
+		$locale_candidates = array(
+			'C.UTF-8',
+			'C.utf8',
+			'en_US.UTF-8',
+			'en_US.utf8',
+			'en_GB.UTF-8',
+			'en_GB.utf8',
+			'en_AU.UTF-8',
+			'en_AU.utf8',
+			'en_CA.UTF-8',
+			'en_CA.utf8',
+			'en_NZ.UTF-8',
+			'en_NZ.utf8',
+			'en_IE.UTF-8',
+			'en_IE.utf8',
+		);
+
+		$affected_locale = false;
+
+		foreach ( $locale_candidates as $locale ) {
+			$candidate_locale = setlocale( LC_CTYPE, $locale );
+
+			if ( false !== $candidate_locale && ctype_alnum( "\xC2" ) ) {
+				$affected_locale = $candidate_locale;
+				break;
+			}
+		}
+
+		if ( false === $affected_locale ) {
 			if ( false !== $previous_locale ) {
 				setlocale( LC_CTYPE, $previous_locale );
 			}
