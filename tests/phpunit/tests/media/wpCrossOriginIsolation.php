@@ -90,6 +90,9 @@ class Tests_Media_wpCrossOriginIsolation extends WP_UnitTestCase {
 	 * @ticket 64766
 	 */
 	public function test_returns_early_when_user_cannot_upload() {
+		// Enable client-side media processing so the capability check is reached.
+		add_filter( 'wp_client_side_media_processing_enabled', '__return_true' );
+
 		$user_id = self::factory()->user->create( array( 'role' => 'subscriber' ) );
 		wp_set_current_user( $user_id );
 
