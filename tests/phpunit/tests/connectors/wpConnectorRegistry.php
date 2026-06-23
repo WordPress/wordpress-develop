@@ -227,10 +227,10 @@ class Tests_Connectors_WpConnectorRegistry extends WP_UnitTestCase {
 	 */
 	public function data_application_password_setting_names_for_other_auth_methods(): array {
 		return array(
-			'api_key with username setting name'             => array( 'api_key', 'username_setting_name' ),
+			'api_key with username setting name'          => array( 'api_key', 'username_setting_name' ),
 			'api_key with application password setting name' => array( 'api_key', 'application_password_setting_name' ),
-			'none with username setting name'                => array( 'none', 'username_setting_name' ),
-			'none with application password setting name'    => array( 'none', 'application_password_setting_name' ),
+			'none with username setting name'             => array( 'none', 'username_setting_name' ),
+			'none with application password setting name' => array( 'none', 'application_password_setting_name' ),
 		);
 	}
 
