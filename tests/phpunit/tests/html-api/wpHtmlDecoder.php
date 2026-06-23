@@ -64,11 +64,14 @@ class Tests_HtmlApi_WpHtmlDecoder extends WP_UnitTestCase {
 	/**
 	 * Ensures semicolonless legacy references decode before non-ASCII UTF-8 bytes in attributes.
 	 *
+	 * @dataProvider data_semicolonless_attribute_behaviors
+	 *
 	 * @ticket 65372
 	 */
-	public function test_semicolonless_legacy_reference_before_multibyte_attribute_follower() {
+	public function test_semicolonless_legacy_reference_before_multibyte_attribute_follower( string $encoded_attribute_value, string $expected, int $expected_byte_length ): void {
 		$previous_locale = setlocale( LC_CTYPE, 0 );
 
+		// Find a locale where ctype_alnum() classifies high-bit bytes as alphanumeric.
 		$locale_candidates = array(
 			'C.UTF-8',
 			'C.utf8',
@@ -76,18 +79,9 @@ class Tests_HtmlApi_WpHtmlDecoder extends WP_UnitTestCase {
 			'en_US.utf8',
 			'en_GB.UTF-8',
 			'en_GB.utf8',
-			'en_AU.UTF-8',
-			'en_AU.utf8',
-			'en_CA.UTF-8',
-			'en_CA.utf8',
-			'en_NZ.UTF-8',
-			'en_NZ.utf8',
-			'en_IE.UTF-8',
-			'en_IE.utf8',
 		);
 
 		$affected_locale = false;
-
 		foreach ( $locale_candidates as $locale ) {
 			$candidate_locale = setlocale( LC_CTYPE, $locale );
 
@@ -105,39 +99,56 @@ class Tests_HtmlApi_WpHtmlDecoder extends WP_UnitTestCase {
 			$this->markTestSkipped( 'Requires an LC_CTYPE locale where ctype_alnum() classifies high-bit bytes as alphanumeric.' );
 		}
 
-		$raw_attribute = "&Aacute\xC2\x80";
+		$this->assertSame(
+			$expected,
+			WP_HTML_Decoder::decode_attribute( $encoded_attribute_value ),
+			'Should have decoded the semicolonless legacy reference before a multibyte follower.'
+		);
 
-		try {
-			$this->assertSame(
-				"\xC3\x81\xC2\x80",
-				WP_HTML_Decoder::decode_attribute( $raw_attribute ),
-				'Should have decoded the semicolonless legacy reference before a multibyte follower.'
-			);
-
-			$match_byte_length = null;
-			$this->assertSame(
-				"\xC3\x81",
-				WP_HTML_Decoder::read_character_reference( 'attribute', $raw_attribute, 0, $match_byte_length ),
-				'Should have matched the semicolonless legacy reference before a multibyte follower.'
-			);
-			$this->assertSame( strlen( '&Aacute' ), $match_byte_length );
-		} finally {
-			if ( false !== $previous_locale ) {
-				setlocale( LC_CTYPE, $previous_locale );
-			}
-		}
+		$match_byte_length = null;
+		$this->assertSame(
+			$encoded_attribute_value,
+			WP_HTML_Decoder::read_character_reference( 'attribute', $encoded_attribute_value, 0, $match_byte_length ),
+			'Should have matched the semicolonless legacy reference before a multibyte follower.'
+		);
+		$this->assertSame( $expected_byte_length, $match_byte_length );
 	}
 
 	/**
-	 * Ensures semicolonless legacy references remain ambiguous before ASCII alnum or equals.
+	 * Data provider.
 	 *
-	 * @dataProvider data_ambiguous_ascii_attribute_followers
+	 * Attribute values encoded with character references including followers that are
+	 * treated as alphanumerics by `ctype_alnum()` on some systems, but should never
+	 * be recognized as ASCII Alphanumerics according the the HTML standards.
+	 *
+	 * @see https://html.spec.whatwg.org/#named-character-reference-state
+	 *
+	 * @return Array<array{
+	 *   string, // Encoded attribute value.
+	 *   string, // Expected decode.
+	 *   int,    // Matched character reference byte length.
+	 * }> Test cases.
+	 */
+	public static function data_semicolonless_attribute_behaviors(): array {
+		return array(
+			array( '&copy¯\_(ツ)_/¯', '©¯\_(ツ)_/¯', 5 ),
+			array( '&notಠ_ಠ', '¬ಠ_ಠ', 4 ),
+			array( '&nbsp£20', "\xA0£20", 5 ),
+			array( '&nbsp🎉', "\xA0🎉", 5 ),
+			array( '&reg™', '®™', 4 ),
+		);
+	}
+
+	/**
+	 * Ensures ambiguous ampersand is recognized with trailing ASCII alphanumerics.
+	 *
+	 * @dataProvider data_semicolonless_attribute_character_reference_no_decode_followers
 	 *
 	 * @ticket 65372
 	 *
 	 * @param string $raw_attribute Raw attribute value with an ambiguous legacy reference follower.
 	 */
-	public function test_semicolonless_legacy_reference_before_ascii_attribute_follower_is_ambiguous( $raw_attribute ) {
+	public function test_ascii_alphanumeric_attribute_follower_is_ambiguous( string $raw_attribute ): void {
 		$this->assertSame(
 			$raw_attribute,
 			WP_HTML_Decoder::decode_attribute( $raw_attribute ),
@@ -155,15 +166,33 @@ class Tests_HtmlApi_WpHtmlDecoder extends WP_UnitTestCase {
 	/**
 	 * Data provider.
 	 *
-	 * @return array[].
+	 * HTML character references with followers that trigger the literal flush behavior
+	 * when parsing attribute values. HTML defines this as `"` or an ASCII alphanumeric character.
+	 *
+	 * > An ASCII alphanumeric is an ASCII digit or ASCII alpha.
+	 * > An ASCII alpha is an ASCII upper alpha or ASCII lower alpha.
+	 *
+	 * @see https://html.spec.whatwg.org/#named-character-reference-state
+	 *
+	 * @return Generator<string, array{ string }> Test cases.
 	 */
-	public static function data_ambiguous_ascii_attribute_followers() {
-		return array(
-			'ASCII digit'           => array( '&Aacute0' ),
-			'ASCII uppercase alpha' => array( '&AacuteA' ),
-			'ASCII lowercase alpha' => array( '&Aacutea' ),
-			'equals'                => array( '&Aacute=' ),
-		);
+	public static function data_semicolonless_attribute_character_reference_no_decode_followers(): Generator {
+		yield "Trialing '='" => array( '&Aacute=' );
+		// > An ASCII digit is a code point in the range U+0030 (0) to U+0039 (9), inclusive.
+		for ( $i = 0x30; $i <= 0x39; $i++ ) {
+			$char = chr( $i );
+			yield "ASCII digit follwer '{$char}'" => array( "&Aacute{$char}" );
+		}
+		// > An ASCII upper alpha is a code point in the range U+0041 (A) to U+005A (Z), inclusive.
+		for ( $i = 0x41; $i <= 0x5A; $i++ ) {
+			$char = chr( $i );
+			yield "ASCII upper alpha follwer '{$char}'" => array( "&Aacute{$char}" );
+		}
+		// > An ASCII lower alpha is a code point in the range U+0061 (a) to U+007A (z), inclusive.
+		for ( $i = 0x61; $i <= 0x7A; $i++ ) {
+			$char = chr( $i );
+			yield "ASCII lower alpha follwer '{$char}'" => array( "&Aacute{$char}" );
+		}
 	}
 
 	/**
