@@ -9281,7 +9281,7 @@ function wp_fast_hash(
 }
 
 /**
- * Move the admin notices below the heading tag via server-side processing.
+ * Moves the admin notices below the heading tag via server-side processing.
  * This prevents the visual glitch caused by JavaScript processing in the original fix.
  *
  * @since 7.x.x
