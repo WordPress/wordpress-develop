@@ -3511,24 +3511,9 @@ class WP_Site_Health {
 	 *                                                            result has been cached.
 	 */
 	public static function get_site_status_counts(): array {
-		$counts = array(
-			'good'        => 0,
-			'recommended' => 0,
-			'critical'    => 0,
+		return self::normalize_status_counts(
+			self::read_status_cache( self::STATUS_RESULT_TRANSIENT ) ?? array()
 		);
-
-		$cached = get_transient( self::STATUS_RESULT_TRANSIENT );
-		$cached = is_string( $cached ) ? json_decode( $cached, true ) : null;
-
-		if ( ! is_array( $cached ) ) {
-			return $counts;
-		}
-
-		$counts['good']        = (int) ( $cached['good'] ?? 0 );
-		$counts['recommended'] = (int) ( $cached['recommended'] ?? 0 );
-		$counts['critical']    = (int) ( $cached['critical'] ?? 0 );
-
-		return $counts;
 	}
 
 	/**
@@ -3541,13 +3526,7 @@ class WP_Site_Health {
 	public static function set_site_status_counts( array $counts ): void {
 		set_transient(
 			self::STATUS_RESULT_TRANSIENT,
-			wp_json_encode(
-				array(
-					'good'        => (int) ( $counts['good'] ?? 0 ),
-					'recommended' => (int) ( $counts['recommended'] ?? 0 ),
-					'critical'    => (int) ( $counts['critical'] ?? 0 ),
-				)
-			)
+			wp_json_encode( self::normalize_status_counts( $counts ) )
 		);
 	}
 
@@ -3584,10 +3563,9 @@ class WP_Site_Health {
 			'timestamp' => 0,
 		);
 
-		$cached = get_transient( self::STATUS_DETAIL_TRANSIENT );
-		$cached = is_string( $cached ) ? json_decode( $cached, true ) : null;
+		$cached = self::read_status_cache( self::STATUS_DETAIL_TRANSIENT );
 
-		if ( is_array( $cached ) && isset( $cached['results'] ) && is_array( $cached['results'] ) ) {
+		if ( null !== $cached && isset( $cached['results'] ) && is_array( $cached['results'] ) ) {
 			foreach ( $cached['results'] as $test => $result ) {
 				if ( is_array( $result ) ) {
 					// The test name is the cache key, so add it back for consumers.
@@ -3623,10 +3601,9 @@ class WP_Site_Health {
 	public static function update_site_status_detail( array $results, bool $includes_async ): void {
 		$now = time();
 
-		$cached = get_transient( self::STATUS_DETAIL_TRANSIENT );
-		$cached = is_string( $cached ) ? json_decode( $cached, true ) : null;
+		$cached = self::read_status_cache( self::STATUS_DETAIL_TRANSIENT );
 
-		$stored = ( is_array( $cached ) && isset( $cached['results'] ) && is_array( $cached['results'] ) )
+		$stored = ( null !== $cached && isset( $cached['results'] ) && is_array( $cached['results'] ) )
 			? $cached['results']
 			: array();
 
@@ -3680,6 +3657,38 @@ class WP_Site_Health {
 				)
 			),
 			MONTH_IN_SECONDS
+		);
+	}
+
+	/**
+	 * Reads and decodes a cached Site Health transient.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @param string $transient Transient name.
+	 * @return array|null The decoded array, or null when nothing valid is cached.
+	 */
+	private static function read_status_cache( string $transient ): ?array {
+		$cached = get_transient( $transient );
+		$cached = is_string( $cached ) ? json_decode( $cached, true ) : null;
+
+		return is_array( $cached ) ? $cached : null;
+	}
+
+	/**
+	 * Normalizes a set of aggregate status counts to integers.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @param array $counts Raw counts that may be missing keys or hold non-integer values.
+	 * @return array{good: non-negative-int, recommended: non-negative-int, critical: non-negative-int} The good,
+	 *                                                            recommended, and critical counts.
+	 */
+	private static function normalize_status_counts( array $counts ): array {
+		return array(
+			'good'        => max( 0, (int) ( $counts['good'] ?? 0 ) ),
+			'recommended' => max( 0, (int) ( $counts['recommended'] ?? 0 ) ),
+			'critical'    => max( 0, (int) ( $counts['critical'] ?? 0 ) ),
 		);
 	}
 

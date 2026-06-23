@@ -270,7 +270,7 @@ jQuery( function( $ ) {
 				}
 			);
 
-			// Send the full results separately, as a best-effort detailed cache update.
+			// Send the per-test results separately, as a best-effort detailed cache update.
 			if ( SiteHealth.site_status.results.length ) {
 				$.post(
 					ajaxurl,
