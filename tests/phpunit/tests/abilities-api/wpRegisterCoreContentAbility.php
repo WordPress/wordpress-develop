@@ -199,12 +199,19 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 		$this->assertContains( 'private', $status_enum );
 		$this->assertNotContains( 'trash', $status_enum );
 		$this->assertNotContains( 'auto-draft', $status_enum );
-		$this->assertSame( array( 'publish' ), $properties['status']['default'] );
 
 		$fields_enum = $properties['fields']['items']['enum'];
 		$this->assertContains( 'raw_content', $fields_enum );
 		$this->assertContains( 'title', $fields_enum );
 		$this->assertContains( 'author', $fields_enum );
+	}
+
+	public function test_input_schema_omits_oneof_branch_defaults(): void {
+		$properties = $this->ability()->get_input_schema()['oneOf'][1]['properties'];
+
+		$this->assertArrayNotHasKey( 'default', $properties['status'] );
+		$this->assertArrayNotHasKey( 'default', $properties['page'] );
+		$this->assertArrayNotHasKey( 'default', $properties['per_page'] );
 	}
 
 	public function test_output_schema_has_no_required_fields(): void {
@@ -624,7 +631,6 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 		$schema = $this->ability()->get_input_schema()['oneOf'][1];
 
 		$this->assertSame( 100, $schema['properties']['per_page']['maximum'] );
-		$this->assertSame( 10, $schema['properties']['per_page']['default'] );
 	}
 
 	public function test_single_post_reports_totals(): void {
