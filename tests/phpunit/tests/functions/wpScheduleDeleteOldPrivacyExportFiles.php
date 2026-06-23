@@ -31,7 +31,7 @@ class Tests_Functions_wpScheduleDeleteOldPrivacyExportFiles extends WP_UnitTestC
 	}
 
 	/**
-	 * check that no schedule is set when in installing mode
+	 * check that no schedule is set when WP is in installing mode
 	 *
 	 * @ticket 59707
 	 */
@@ -42,6 +42,5 @@ class Tests_Functions_wpScheduleDeleteOldPrivacyExportFiles extends WP_UnitTestC
 		$this->assertFalse( wp_next_scheduled( 'wp_privacy_delete_old_export_files' ) );
 		wp_schedule_delete_old_privacy_export_files();
 		$this->assertFalse( wp_next_scheduled( 'wp_privacy_delete_old_export_files' ) );
-
 	}
 }
