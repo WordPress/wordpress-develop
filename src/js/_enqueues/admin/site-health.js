@@ -162,16 +162,13 @@ jQuery( function( $ ) {
 		}
 
 		/*
-		 * Collect the full result so it can be cached server-side. These results
-		 * include the asynchronous tests that only run in the browser.
+		 * Collect the test name and status so they can be cached server-side. These
+		 * include the asynchronous tests that only run in the browser. Labels are left
+		 * out on purpose, as they are translated and the cache is shared across locales.
 		 */
 		SiteHealth.site_status.results.push( {
 			test: issue.test,
-			label: issue.label,
-			status: issue.status,
-			badge: issue.badge,
-			description: issue.description,
-			actions: issue.actions
+			status: issue.status
 		} );
 
 		if ( 'critical' === issue.status ) {

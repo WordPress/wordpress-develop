@@ -104,7 +104,7 @@ class Tests_Ajax_wpAjaxHealthCheckSiteStatusResult extends WP_Ajax_UnitTestCase 
 	}
 
 	/**
-	 * The aggregate counts are cached on their own, while the full results submitted by
+	 * The aggregate counts are cached on their own, while the results submitted by
 	 * the Site Health screen are sanitized and cached separately.
 	 *
 	 * @ticket 65232
@@ -173,9 +173,13 @@ class Tests_Ajax_wpAjaxHealthCheckSiteStatusResult extends WP_Ajax_UnitTestCase 
 		$results = $this->get_detail_results_by_test();
 		$this->assertSame( array( 'a', 'b', 'c' ), array_keys( $results ) );
 
-		// Disallowed HTML is stripped from the cached description.
-		$this->assertStringNotContainsString( '<script>', $results['a']['description'] );
-		$this->assertStringContainsString( '<p>Bad</p>', $results['a']['description'] );
+		// Only locale-independent fields are cached: the test name, status, and timestamp.
+		$this->assertSame(
+			array( 'test', 'status', 'timestamp' ),
+			array_keys( $results['a'] ),
+			'No translated or HTML fields should be cached.'
+		);
+		$this->assertSame( 'critical', $results['a']['status'] );
 
 		// Each cached result carries a timestamp.
 		$this->assertIsInt( $results['a']['timestamp'] );

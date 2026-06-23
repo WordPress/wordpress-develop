@@ -3564,11 +3564,7 @@ class WP_Site_Health {
 	 * @return array{
 	 *     results: list<array{
 	 *         test: non-empty-string,
-	 *         label: string,
 	 *         status: 'good'|'recommended'|'critical',
-	 *         description: string,
-	 *         actions: string,
-	 *         badge?: array{ label: string, color: string },
 	 *         timestamp: non-negative-int,
 	 *     }>,
 	 *     counts: array{good: int, recommended: int, critical: int},
@@ -3723,6 +3719,12 @@ class WP_Site_Health {
 	/**
 	 * Normalizes and sanitizes a single Site Health test result for caching.
 	 *
+	 * Only locale-independent fields are kept. Human-readable text (label, description,
+	 * actions, badge) is left out. Those strings are translated for the current user's
+	 * locale, and the cache is a single site-wide option, so storing them could serve
+	 * one user's locale to another. Consumers should resolve labels at read time in the
+	 * current locale.
+	 *
 	 * @since 7.1.0
 	 *
 	 * @param mixed $result Raw test result data.
@@ -3742,22 +3744,10 @@ class WP_Site_Health {
 			return null;
 		}
 
-		$sanitized = array(
-			'test'        => $test,
-			'label'       => isset( $result['label'] ) ? sanitize_text_field( (string) $result['label'] ) : '',
-			'status'      => $status,
-			'description' => isset( $result['description'] ) ? wp_kses_post( (string) $result['description'] ) : '',
-			'actions'     => isset( $result['actions'] ) ? wp_kses_post( (string) $result['actions'] ) : '',
+		return array(
+			'test'   => $test,
+			'status' => $status,
 		);
-
-		if ( isset( $result['badge'] ) && is_array( $result['badge'] ) ) {
-			$sanitized['badge'] = array(
-				'label' => isset( $result['badge']['label'] ) ? sanitize_text_field( (string) $result['badge']['label'] ) : '',
-				'color' => isset( $result['badge']['color'] ) ? sanitize_key( (string) $result['badge']['color'] ) : '',
-			);
-		}
-
-		return $sanitized;
 	}
 
 	/**

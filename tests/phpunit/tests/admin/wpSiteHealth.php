@@ -763,7 +763,7 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 
 	/**
 	 * The scheduled check stores only the aggregate counts in the autoloaded transient
-	 * and caches the full results separately.
+	 * and caches the per-test results separately.
 	 *
 	 * @ticket 65232
 	 *
@@ -838,18 +838,13 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 			array_keys( $results_by_test )
 		);
 
-		// Safe HTML in the description is preserved.
+		// Only locale-independent fields are stored: the test name, status, and timestamp.
 		$this->assertSame(
-			'<p>Critical <strong>description</strong>.</p>',
-			$results_by_test['fake_critical']['description']
+			array( 'test', 'status', 'timestamp' ),
+			array_keys( $results_by_test['fake_critical'] ),
+			'No translated or HTML fields should be cached.'
 		);
-		$this->assertSame(
-			array(
-				'label' => 'Security',
-				'color' => 'red',
-			),
-			$results_by_test['fake_critical']['badge']
-		);
+		$this->assertSame( 'critical', $results_by_test['fake_critical']['status'] );
 
 		// Each result carries its own collection timestamp.
 		$this->assertGreaterThanOrEqual( $before, $results_by_test['fake_critical']['timestamp'] );
@@ -927,10 +922,8 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 		$this->seed_site_status_detail(
 			array(
 				'fake_async' => array(
-					'test'        => 'fake_async',
-					'label'       => 'Async',
-					'status'      => 'good',
-					'description' => '<p>From the browser.</p>',
+					'test'   => 'fake_async',
+					'status' => 'good',
 				),
 			),
 			time()
@@ -939,10 +932,8 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 		$filter = $this->use_fake_site_status_tests(
 			array(
 				'fake_async' => array(
-					'test'        => 'fake_async',
-					'label'       => 'Async',
-					'status'      => 'critical',
-					'description' => '<p>From cron.</p>',
+					'test'   => 'fake_async',
+					'status' => 'critical',
 				),
 			)
 		);
@@ -953,8 +944,7 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 
 		$detail = WP_Site_Health::get_site_status_detail();
 		$this->assertCount( 1, $detail['results'] );
-		$this->assertSame( 'good', $detail['results'][0]['status'], 'The fresh browser result should be preserved.' );
-		$this->assertSame( '<p>From the browser.</p>', $detail['results'][0]['description'] );
+		$this->assertSame( 'good', $detail['results'][0]['status'], 'The fresh browser result should be preserved, not overwritten by cron.' );
 	}
 
 	/**
@@ -969,10 +959,8 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 		$this->seed_site_status_detail(
 			array(
 				'fake_test' => array(
-					'test'        => 'fake_test',
-					'label'       => 'Test',
-					'status'      => 'good',
-					'description' => '<p>Stale.</p>',
+					'test'   => 'fake_test',
+					'status' => 'good',
 				),
 			),
 			time() - 2 * WEEK_IN_SECONDS
@@ -981,10 +969,8 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 		$filter = $this->use_fake_site_status_tests(
 			array(
 				'fake_test' => array(
-					'test'        => 'fake_test',
-					'label'       => 'Test',
-					'status'      => 'critical',
-					'description' => '<p>Refreshed by cron.</p>',
+					'test'   => 'fake_test',
+					'status' => 'critical',
 				),
 			)
 		);
@@ -996,7 +982,6 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 		$detail = WP_Site_Health::get_site_status_detail();
 		$this->assertCount( 1, $detail['results'] );
 		$this->assertSame( 'critical', $detail['results'][0]['status'], 'A stale result should be refreshed by cron.' );
-		$this->assertSame( '<p>Refreshed by cron.</p>', $detail['results'][0]['description'] );
 	}
 
 	/**
