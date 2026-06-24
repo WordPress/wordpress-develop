@@ -7731,4 +7731,284 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		$this->assertStringNotContainsString( '-current', $stylesheet_unsupported );
 		$this->assertStringNotContainsString( 'current-menu-item', $stylesheet_unsupported );
 	}
+
+	/**
+	 * Tests that append_to_selector correctly appends to single and
+	 * compound (comma-separated) selectors.
+	 *
+	 * @ticket 65533
+	 *
+	 * @dataProvider data_append_to_selector
+	 *
+	 * @param string $selector  Original CSS selector.
+	 * @param string $to_append Selector to append.
+	 * @param string $expected  Expected resulting selector.
+	 */
+	public function test_append_to_selector( $selector, $to_append, $expected ) {
+		$theme_json = new ReflectionClass( 'WP_Theme_JSON' );
+
+		$func = $theme_json->getMethod( 'append_to_selector' );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$func->setAccessible( true );
+		}
+
+		$actual = $func->invoke( null, $selector, $to_append );
+
+		$this->assertSame( $expected, $actual );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, {selector: string, to_append: string, expeted: string}>
+	 */
+	public function data_append_to_selector() {
+		return array(
+			'single class selector'                        => array(
+				'selector'  => '.inner',
+				'to_append' => ':hover',
+				'expected'  => '.inner:hover',
+			),
+			'single element selector'                      => array(
+				'selector'  => 'p',
+				'to_append' => ':hover',
+				'expected'  => 'p:hover',
+			),
+			'single id selector'                           => array(
+				'selector'  => '#main',
+				'to_append' => ':focus',
+				'expected'  => '#main:focus',
+			),
+			'two comma-separated selectors without spaces' => array(
+				'selector'  => 'h1,h2',
+				'to_append' => ':hover',
+				'expected'  => 'h1:hover, h2:hover',
+			),
+			'three comma-separated selectors without spaces' => array(
+				'selector'  => 'h1,h2,h3',
+				'to_append' => ':focus',
+				'expected'  => 'h1:focus, h2:focus, h3:focus',
+			),
+			'comma-separated class selectors without spaces' => array(
+				'selector'  => '.foo,.bar',
+				'to_append' => '.is-active',
+				'expected'  => '.foo.is-active, .bar.is-active',
+			),
+			'append without leading pseudo'                => array(
+				'selector'  => '.child',
+				'to_append' => '.parent',
+				'expected'  => '.child.parent',
+			),
+			'compound selector with class append no comma spaces' => array(
+				'selector'  => '.a,.b',
+				'to_append' => '.parent',
+				'expected'  => '.a.parent, .b.parent',
+			),
+			'descendant selector appended'                 => array(
+				'selector'  => '.block .inner',
+				'to_append' => ':hover',
+				'expected'  => '.block .inner:hover',
+			),
+			'descendant selectors comma-separated without spaces' => array(
+				'selector'  => '.block .inner,.block .alt',
+				'to_append' => ':hover',
+				'expected'  => '.block .inner:hover, .block .alt:hover',
+			),
+			'empty selector'                               => array(
+				'selector'  => '',
+				'to_append' => ':hover',
+				'expected'  => ':hover',
+			),
+			'empty append'                                 => array(
+				'selector'  => '.child',
+				'to_append' => '',
+				'expected'  => '.child',
+			),
+			'both empty'                                   => array(
+				'selector'  => '',
+				'to_append' => '',
+				'expected'  => '',
+			),
+			'attribute selector'                           => array(
+				'selector'  => '[data-type="example"]',
+				'to_append' => ':hover',
+				'expected'  => '[data-type="example"]:hover',
+			),
+			'pseudo-class selector'                        => array(
+				'selector'  => ':where(.is-layout-flex)',
+				'to_append' => ':hover',
+				'expected'  => ':where(.is-layout-flex):hover',
+			),
+			'many comma-separated selectors without spaces' => array(
+				'selector'  => 'h1,h2,h3,h4,h5,h6',
+				'to_append' => ':hover',
+				'expected'  => 'h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover',
+			),
+			'real world block element selector'            => array(
+				'selector'  => 'p',
+				'to_append' => '.is-style-custom',
+				'expected'  => 'p.is-style-custom',
+			),
+			'real world compound block element selectors'  => array(
+				'selector'  => 'a,.wp-element-button',
+				'to_append' => '.is-style-custom',
+				'expected'  => 'a.is-style-custom, .wp-element-button.is-style-custom',
+			),
+			'spaces after commas are normalized'           => array(
+				'selector'  => 'h1, h2, h3',
+				'to_append' => ':hover',
+				'expected'  => 'h1:hover, h2:hover, h3:hover',
+			),
+			'spaces after commas normalized with class selectors' => array(
+				'selector'  => '.foo, .bar',
+				'to_append' => '.is-active',
+				'expected'  => '.foo.is-active, .bar.is-active',
+			),
+			'mixed whitespace around commas is normalized' => array(
+				'selector'  => '.a ,  .b , .c',
+				'to_append' => ':hover',
+				'expected'  => '.a:hover, .b:hover, .c:hover',
+			),
+		);
+	}
+
+	/**
+	 * Tests that prepend_to_selector correctly prepends to single and
+	 * compound (comma-separated) selectors.
+	 *
+	 * @ticket 65533
+	 *
+	 * @dataProvider data_prepend_to_selector
+	 *
+	 * @param string $selector   Original CSS selector.
+	 * @param string $to_prepend Selector to prepend.
+	 * @param string $expected   Expected resulting selector.
+	 */
+	public function test_prepend_to_selector( $selector, $to_prepend, $expected ) {
+		$theme_json = new ReflectionClass( 'WP_Theme_JSON' );
+
+		$func = $theme_json->getMethod( 'prepend_to_selector' );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$func->setAccessible( true );
+		}
+
+		$actual = $func->invoke( null, $selector, $to_prepend );
+
+		$this->assertSame( $expected, $actual );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, {selector: string, to_prepend: string, expeted: string}>
+	 */
+	public function data_prepend_to_selector() {
+		return array(
+			'single class selector'                        => array(
+				'selector'   => '.inner',
+				'to_prepend' => '.wrapper ',
+				'expected'   => '.wrapper .inner',
+			),
+			'single element selector'                      => array(
+				'selector'   => 'p',
+				'to_prepend' => '.wrapper ',
+				'expected'   => '.wrapper p',
+			),
+			'single id selector'                           => array(
+				'selector'   => '#main',
+				'to_prepend' => '.wrapper ',
+				'expected'   => '.wrapper #main',
+			),
+			'two comma-separated selectors without spaces' => array(
+				'selector'   => 'h1,h2',
+				'to_prepend' => '.wrapper ',
+				'expected'   => '.wrapper h1, .wrapper h2',
+			),
+			'three comma-separated selectors without spaces' => array(
+				'selector'   => 'h1,h2,h3',
+				'to_prepend' => '.some-class ',
+				'expected'   => '.some-class h1, .some-class h2, .some-class h3',
+			),
+			'comma-separated class selectors without spaces' => array(
+				'selector'   => '.foo,.bar',
+				'to_prepend' => '.prefix ',
+				'expected'   => '.prefix .foo, .prefix .bar',
+			),
+			'prepend without trailing space'               => array(
+				'selector'   => '.child',
+				'to_prepend' => '.parent',
+				'expected'   => '.parent.child',
+			),
+			'compound selector without trailing space no comma spaces' => array(
+				'selector'   => '.a,.b',
+				'to_prepend' => '.parent',
+				'expected'   => '.parent.a, .parent.b',
+			),
+			'descendant selector prepended'                => array(
+				'selector'   => '.block .inner',
+				'to_prepend' => '.scope ',
+				'expected'   => '.scope .block .inner',
+			),
+			'descendant selectors comma-separated without spaces' => array(
+				'selector'   => '.block .inner,.block .alt',
+				'to_prepend' => '.scope ',
+				'expected'   => '.scope .block .inner, .scope .block .alt',
+			),
+			'empty selector'                               => array(
+				'selector'   => '',
+				'to_prepend' => '.prefix ',
+				'expected'   => '.prefix ',
+			),
+			'empty prepend'                                => array(
+				'selector'   => '.child',
+				'to_prepend' => '',
+				'expected'   => '.child',
+			),
+			'both empty'                                   => array(
+				'selector'   => '',
+				'to_prepend' => '',
+				'expected'   => '',
+			),
+			'attribute selector'                           => array(
+				'selector'   => '[data-type="example"]',
+				'to_prepend' => '.scope ',
+				'expected'   => '.scope [data-type="example"]',
+			),
+			'pseudo-class selector'                        => array(
+				'selector'   => ':where(.is-layout-flex)',
+				'to_prepend' => '.editor ',
+				'expected'   => '.editor :where(.is-layout-flex)',
+			),
+			'many comma-separated selectors without spaces' => array(
+				'selector'   => 'h1,h2,h3,h4,h5,h6',
+				'to_prepend' => '.content ',
+				'expected'   => '.content h1, .content h2, .content h3, .content h4, .content h5, .content h6',
+			),
+			'real world block element selector'            => array(
+				'selector'   => 'p',
+				'to_prepend' => '.wp-block-group ',
+				'expected'   => '.wp-block-group p',
+			),
+			'real world compound block element selectors'  => array(
+				'selector'   => 'a,.wp-element-button',
+				'to_prepend' => '.wp-block-group ',
+				'expected'   => '.wp-block-group a, .wp-block-group .wp-element-button',
+			),
+			'spaces after commas are normalized'           => array(
+				'selector'   => 'h1, h2, h3',
+				'to_prepend' => '.some-class ',
+				'expected'   => '.some-class h1, .some-class h2, .some-class h3',
+			),
+			'spaces after commas normalized with class selectors' => array(
+				'selector'   => '.foo, .bar',
+				'to_prepend' => '.prefix ',
+				'expected'   => '.prefix .foo, .prefix .bar',
+			),
+			'mixed whitespace around commas are normalized' => array(
+				'selector'   => '.a ,  .b , .c',
+				'to_prepend' => '.pre ',
+				'expected'   => '.pre .a, .pre .b, .pre .c',
+			),
+		);
+	}
 }
