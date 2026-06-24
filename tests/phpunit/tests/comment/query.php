@@ -5665,7 +5665,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 	/**
 	 * Data provider for explicit-request tests against a filtered excluded type.
 	 *
-	 * @since 6.10.0
+	 * @since 7.1.0
 	 *
 	 * @return array<string, array{ query_args: array<string, string|array>, expected_types: string[] }>
 	 */
