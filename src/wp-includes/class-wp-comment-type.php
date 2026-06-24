@@ -180,8 +180,13 @@ final class WP_Comment_Type {
 		 */
 		$args = apply_filters( "register_{$comment_type}_comment_type_args", $args, $this->name );
 
+		/*
+		 * Note: 'label' is intentionally omitted from the defaults. Leaving the property
+		 * unset (null) lets get_comment_type_labels() fall back to the default labels, the
+		 * same way WP_Post_Type and WP_Taxonomy behave. A 'label' default of false would be
+		 * treated as a provided value and overwrite the default name with false.
+		 */
 		$defaults = array(
-			'label'       => false,
 			'labels'      => array(),
 			'description' => '',
 			'public'      => true,

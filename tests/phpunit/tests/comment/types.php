@@ -52,6 +52,19 @@ class Tests_Comment_Types extends WP_UnitTestCase {
 	/**
 	 * @ticket 35214
 	 */
+	public function test_register_comment_type_without_labels_uses_default_labels() {
+		register_comment_type( 'foo' );
+
+		$cobj = get_comment_type_object( 'foo' );
+
+		$this->assertSame( 'Comments', $cobj->label );
+		$this->assertSame( 'Comments', $cobj->labels->name );
+		$this->assertSame( 'Comment', $cobj->labels->singular_name );
+	}
+
+	/**
+	 * @ticket 35214
+	 */
 	public function test_register_comment_type_return_value() {
 		$this->assertInstanceOf( 'WP_Comment_Type', register_comment_type( 'foo' ) );
 	}
