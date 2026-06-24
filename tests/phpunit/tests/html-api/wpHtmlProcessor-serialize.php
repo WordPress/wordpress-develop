@@ -393,7 +393,7 @@ class Tests_HtmlApi_WpHtmlProcessor_Serialize extends WP_UnitTestCase {
 	/**
 	 * Data provider.
 	 *
-	 * @return array[]
+	 * @return array<string, array{string, string}>
 	 */
 	public static function data_tokens_with_null_bytes(): array {
 		return array(
@@ -421,7 +421,7 @@ class Tests_HtmlApi_WpHtmlProcessor_Serialize extends WP_UnitTestCase {
 	 *
 	 * @param string $html Normalized HTML containing a rawtext element with contents.
 	 */
-	public function test_rawtext_element_contents_are_preserved_when_normalizing( string $html ) {
+	public function test_rawtext_element_contents_are_preserved_when_normalizing( string $html ): void {
 		$this->assertSame(
 			$html,
 			WP_HTML_Processor::normalize( $html ),
