@@ -785,7 +785,7 @@ class WP_Comment_Query {
 		 * to filter every query individually. The 'note' comment type, used by the
 		 * editor, is excluded by default.
 		 *
-		 * @since 6.10.0
+		 * @since 7.1.0
 		 *
 		 * @param string[]         $excluded_types Comment types excluded from query results by default.
 		 *                                         Default array contains the 'note' type.
