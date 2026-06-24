@@ -145,7 +145,7 @@ final class WP_Content_Abilities {
 		$this->exposed_post_types = $this->get_exposed_post_types();
 
 		$post_types = array_keys( $this->exposed_post_types );
-		$statuses   = $this->get_available_statuses();
+		$statuses   = array_values( get_post_stati( array( 'internal' => false ) ) );
 
 		wp_register_ability(
 			'core/content',
@@ -218,28 +218,10 @@ final class WP_Content_Abilities {
 
 		$post_type_object = $exposed[ $post_type ];
 		if ( $requires_edit ) {
-			$edit_posts_capability = $this->capability( $post_type_object, 'edit_posts', 'edit_posts' );
-
-			return current_user_can( $edit_posts_capability );
+			return current_user_can( $post_type_object->cap->edit_posts );
 		}
 
 		return $this->can_query_statuses( $input, $post_type_object );
-	}
-
-	/**
-	 * Resolves a capability name from a post type's capability object, with a fallback.
-	 *
-	 * @since 7.1.0
-	 *
-	 * @param WP_Post_Type $post_type_object The post type object.
-	 * @param string       $name             Capability key on the post type's `cap` object.
-	 * @param string       $fallback         Fallback capability name if unset or non-string.
-	 * @return string The resolved capability name.
-	 */
-	private function capability( WP_Post_Type $post_type_object, string $name, string $fallback ): string {
-		$capability = $post_type_object->cap->$name ?? $fallback;
-
-		return is_string( $capability ) ? $capability : $fallback;
 	}
 
 	/**
@@ -270,9 +252,9 @@ final class WP_Content_Abilities {
 			return false;
 		}
 
-		$requested = array_filter( $input['fields'], 'is_string' );
+		$requested_fields = array_filter( $input['fields'], 'is_string' );
 
-		return array() !== array_intersect( self::EDIT_FIELDS, $requested );
+		return array() !== array_intersect( self::EDIT_FIELDS, $requested_fields );
 	}
 
 	/**
@@ -289,19 +271,16 @@ final class WP_Content_Abilities {
 	 * @return bool True if the requested statuses may be queried.
 	 */
 	private function can_query_statuses( array $input, WP_Post_Type $post_type_object ): bool {
-		$edit_posts_capability   = $this->capability( $post_type_object, 'edit_posts', 'edit_posts' );
-		$read_private_capability = $this->capability( $post_type_object, 'read_private_posts', 'read_private_posts' );
-
 		foreach ( $this->normalize_statuses( $input ) as $status ) {
 			if ( 'publish' === $status ) {
 				continue;
 			}
 
-			if ( 'private' === $status && current_user_can( $read_private_capability ) ) {
+			if ( 'private' === $status && current_user_can( $post_type_object->cap->read_private_posts ) ) {
 				continue;
 			}
 
-			if ( current_user_can( $edit_posts_capability ) ) {
+			if ( current_user_can( $post_type_object->cap->edit_posts ) ) {
 				continue;
 			}
 
@@ -464,29 +443,13 @@ final class WP_Content_Abilities {
 	 * @return array<string, WP_Post_Type> Exposed post type objects keyed by name.
 	 */
 	private function get_exposed_post_types(): array {
-		$exposed = array();
+		$exposed_post_types = array();
 
-		foreach ( get_post_types( array(), 'objects' ) as $post_type_object ) {
-			if ( empty( $post_type_object->show_in_abilities ) ) {
-				continue;
-			}
-			$exposed[ $post_type_object->name ] = $post_type_object;
+		foreach ( get_post_types( array( 'show_in_abilities' => true ), 'objects' ) as $post_type_object ) {
+			$exposed_post_types[ $post_type_object->name ] = $post_type_object;
 		}
 
-		return $exposed;
-	}
-
-	/**
-	 * Returns the post statuses that may be requested through the ability.
-	 *
-	 * Internal statuses (auto-draft, inherit, trash) are excluded.
-	 *
-	 * @since 7.1.0
-	 *
-	 * @return string[] List of public, non-internal post status slugs.
-	 */
-	private function get_available_statuses(): array {
-		return array_values( get_post_stati( array( 'internal' => false ) ) );
+		return $exposed_post_types;
 	}
 
 	/**
@@ -524,8 +487,8 @@ final class WP_Content_Abilities {
 			return $this->fields;
 		}
 
-		$requested = array_filter( $input['fields'], 'is_string' );
-		$fields    = array_intersect( $this->fields, $requested );
+		$requested_fields = array_filter( $input['fields'], 'is_string' );
+		$fields           = array_intersect( $this->fields, $requested_fields );
 
 		return array() === $fields ? $this->fields : array_values( $fields );
 	}
@@ -776,76 +739,76 @@ final class WP_Content_Abilities {
 	 * @return array<string, mixed> The formatted post data.
 	 */
 	private function format_post( WP_Post $post, array $fields ): array {
-		$type      = $post->post_type;
-		$wants     = static function ( string $field ) use ( $fields ): bool {
+		$post_type        = $post->post_type;
+		$fields_requested = static function ( string $field ) use ( $fields ): bool {
 			return in_array( $field, $fields, true );
 		};
-		$can_edit  = current_user_can( 'edit_post', $post->ID );
-		$protected = post_password_required( $post ) && ! $can_edit;
+		$can_edit         = current_user_can( 'edit_post', $post->ID );
+		$protected        = post_password_required( $post ) && ! $can_edit;
 
 		$data = array();
 
-		if ( $wants( 'id' ) ) {
+		if ( $fields_requested( 'id' ) ) {
 			$data['id'] = (int) $post->ID;
 		}
-		if ( $wants( 'type' ) ) {
-			$data['type'] = $type;
+		if ( $fields_requested( 'type' ) ) {
+			$data['type'] = $post_type;
 		}
-		if ( $wants( 'status' ) ) {
+		if ( $fields_requested( 'status' ) ) {
 			$data['status'] = $post->post_status;
 		}
-		if ( $wants( 'date' ) ) {
+		if ( $fields_requested( 'date' ) ) {
 			$data['date'] = $this->format_local_date( $post, 'date' );
 		}
-		if ( $wants( 'date_gmt' ) ) {
+		if ( $fields_requested( 'date_gmt' ) ) {
 			$data['date_gmt'] = $this->format_gmt_date( $post, 'date' );
 		}
-		if ( $wants( 'modified' ) ) {
+		if ( $fields_requested( 'modified' ) ) {
 			$data['modified'] = $this->format_local_date( $post, 'modified' );
 		}
-		if ( $wants( 'modified_gmt' ) ) {
+		if ( $fields_requested( 'modified_gmt' ) ) {
 			$data['modified_gmt'] = $this->format_gmt_date( $post, 'modified' );
 		}
-		if ( $wants( 'slug' ) ) {
+		if ( $fields_requested( 'slug' ) ) {
 			$data['slug'] = $post->post_name;
 		}
-		if ( $wants( 'link' ) ) {
+		if ( $fields_requested( 'link' ) ) {
 			$data['link'] = (string) get_permalink( $post );
 		}
 
-		if ( $wants( 'title_raw' ) && post_type_supports( $type, 'title' ) && $can_edit ) {
+		if ( $fields_requested( 'title_raw' ) && post_type_supports( $post_type, 'title' ) && $can_edit ) {
 			$data['title_raw'] = $post->post_title;
 		}
 
-		if ( $wants( 'title_rendered' ) && post_type_supports( $type, 'title' ) ) {
+		if ( $fields_requested( 'title_rendered' ) && post_type_supports( $post_type, 'title' ) ) {
 			$data['title_rendered'] = $this->get_title( $post );
 		}
 
-		if ( $wants( 'excerpt_raw' ) && post_type_supports( $type, 'excerpt' ) && $can_edit ) {
+		if ( $fields_requested( 'excerpt_raw' ) && post_type_supports( $post_type, 'excerpt' ) && $can_edit ) {
 			$data['excerpt_raw'] = $post->post_excerpt;
 		}
 
-		if ( $wants( 'excerpt_rendered' ) && post_type_supports( $type, 'excerpt' ) ) {
+		if ( $fields_requested( 'excerpt_rendered' ) && post_type_supports( $post_type, 'excerpt' ) ) {
 			$data['excerpt_rendered'] = $protected ? '' : (string) get_the_excerpt( $post );
 		}
 
-		if ( $wants( 'excerpt_protected' ) && post_type_supports( $type, 'excerpt' ) ) {
+		if ( $fields_requested( 'excerpt_protected' ) && post_type_supports( $post_type, 'excerpt' ) ) {
 			$data['excerpt_protected'] = (bool) $post->post_password;
 		}
 
-		if ( $wants( 'content_raw' ) && post_type_supports( $type, 'editor' ) && $can_edit ) {
+		if ( $fields_requested( 'content_raw' ) && post_type_supports( $post_type, 'editor' ) && $can_edit ) {
 			$data['content_raw'] = $post->post_content;
 		}
 
-		if ( $wants( 'content_rendered' ) && post_type_supports( $type, 'editor' ) ) {
+		if ( $fields_requested( 'content_rendered' ) && post_type_supports( $post_type, 'editor' ) ) {
 			$data['content_rendered'] = $protected ? '' : $this->get_rendered_content( $post );
 		}
 
-		if ( $wants( 'content_protected' ) && post_type_supports( $type, 'editor' ) ) {
+		if ( $fields_requested( 'content_protected' ) && post_type_supports( $post_type, 'editor' ) ) {
 			$data['content_protected'] = (bool) $post->post_password;
 		}
 
-		if ( $wants( 'author' ) && post_type_supports( $type, 'author' ) ) {
+		if ( $fields_requested( 'author' ) && post_type_supports( $post_type, 'author' ) ) {
 			$author         = get_userdata( (int) $post->post_author );
 			$data['author'] = array(
 				'id'           => (int) $post->post_author,
@@ -853,7 +816,7 @@ final class WP_Content_Abilities {
 			);
 		}
 
-		if ( $wants( 'parent' ) && is_post_type_hierarchical( $type ) ) {
+		if ( $fields_requested( 'parent' ) && is_post_type_hierarchical( $post_type ) ) {
 			$data['parent'] = (int) $post->post_parent;
 		}
 

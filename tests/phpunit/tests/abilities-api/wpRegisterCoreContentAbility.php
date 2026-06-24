@@ -99,6 +99,25 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Returns roles that can read public posts but cannot edit another user's post.
+	 *
+	 * @return array<string, array{role: string}> Role test cases.
+	 */
+	public function data_roles_without_edit_access_to_other_users_posts(): array {
+		return array(
+			'subscriber'  => array(
+				'role' => 'subscriber',
+			),
+			'contributor' => array(
+				'role' => 'contributor',
+			),
+			'author'      => array(
+				'role' => 'author',
+			),
+		);
+	}
+
+	/**
 	 * Convenience accessor for the ability.
 	 *
 	 * @return WP_Ability The core/content ability.
@@ -525,6 +544,66 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 		$this->assertSame( 'ability_invalid_permissions', $result->get_error_code() );
 	}
 
+	/**
+	 * Users who cannot edit another user's post do not receive raw fields by default.
+	 *
+	 * @dataProvider data_roles_without_edit_access_to_other_users_posts
+	 *
+	 * @param string $role The role to test.
+	 */
+	public function test_default_fields_omit_raw_fields_for_roles_without_edit_access_to_other_users_posts( string $role ): void {
+		$post_owner_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		$post_id       = self::factory()->post->create(
+			array(
+				'post_author'  => $post_owner_id,
+				'post_title'   => 'Readable title',
+				'post_content' => 'Readable body for limited role.',
+				'post_excerpt' => 'Readable excerpt.',
+				'post_status'  => 'publish',
+			)
+		);
+
+		$this->login_as( $role );
+
+		$result = $this->ability()->execute( array( 'id' => $post_id ) );
+
+		$this->assertIsArray( $result, 'The readable published post should be returned.' );
+		$this->assertSame( 'Readable title', $result['posts'][0]['title_rendered'], 'Rendered title should remain visible.' );
+		$this->assertStringContainsString( 'Readable body for limited role.', $result['posts'][0]['content_rendered'], 'Rendered content should remain visible.' );
+		$this->assertArrayNotHasKey( 'title_raw', $result['posts'][0], 'Raw title should be omitted.' );
+		$this->assertArrayNotHasKey( 'excerpt_raw', $result['posts'][0], 'Raw excerpt should be omitted.' );
+		$this->assertArrayNotHasKey( 'content_raw', $result['posts'][0], 'Raw content should be omitted.' );
+	}
+
+	/**
+	 * Users who cannot edit another user's post cannot explicitly request raw fields.
+	 *
+	 * @dataProvider data_roles_without_edit_access_to_other_users_posts
+	 *
+	 * @param string $role The role to test.
+	 */
+	public function test_raw_field_requests_are_denied_for_roles_without_edit_access_to_other_users_posts( string $role ): void {
+		$post_owner_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		$post_id       = self::factory()->post->create(
+			array(
+				'post_author' => $post_owner_id,
+				'post_status' => 'publish',
+			)
+		);
+
+		$this->login_as( $role );
+
+		$result = $this->ability()->execute(
+			array(
+				'id'     => $post_id,
+				'fields' => array( 'content_raw' ),
+			)
+		);
+
+		$this->assertWPError( $result );
+		$this->assertSame( 'ability_invalid_permissions', $result->get_error_code(), 'Raw field requests should require edit access to the post.' );
+	}
+
 	public function test_subscriber_cannot_request_draft_status(): void {
 		$this->login_as( 'subscriber' );
 
@@ -654,16 +733,25 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 		$this->assertStringContainsString( 'Top secret body.', $result['posts'][0]['content_rendered'] );
 	}
 
-	public function test_password_protected_rendered_content_is_empty_for_subscriber(): void {
-		$post_id = self::factory()->post->create(
+	/**
+	 * Password-protected rendered content is withheld from users who cannot edit the post.
+	 *
+	 * @dataProvider data_roles_without_edit_access_to_other_users_posts
+	 *
+	 * @param string $role The role to test.
+	 */
+	public function test_password_protected_rendered_content_is_empty_for_roles_without_edit_access_to_other_users_posts( string $role ): void {
+		$post_owner_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		$post_id       = self::factory()->post->create(
 			array(
+				'post_author'   => $post_owner_id,
 				'post_status'   => 'publish',
 				'post_password' => 'secret',
 				'post_content'  => 'Hidden rendered body.',
 			)
 		);
 
-		$this->login_as( 'subscriber' );
+		$this->login_as( $role );
 		$result = $this->ability()->execute(
 			array(
 				'id'     => $post_id,
@@ -671,8 +759,8 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertSame( '', $result['posts'][0]['content_rendered'] );
-		$this->assertTrue( $result['posts'][0]['content_protected'] );
+		$this->assertSame( '', $result['posts'][0]['content_rendered'], 'Password-protected rendered content should be withheld.' );
+		$this->assertTrue( $result['posts'][0]['content_protected'], 'The protected flag should reveal the field is password-protected.' );
 	}
 
 	/*
