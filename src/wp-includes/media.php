@@ -2885,6 +2885,7 @@ function gallery_shortcode( $attr ) {
 	 * Filters whether to print default gallery styles.
 	 *
 	 * @since 3.1.0
+	 * @since 3.9.0 Set the default to false when the theme supports HTML5 galleries.
 	 *
 	 * @param bool $print Whether to print default gallery styles.
 	 *                    Defaults to false if the theme supports HTML5 galleries.
@@ -2916,9 +2917,18 @@ function gallery_shortcode( $attr ) {
 	$gallery_div = "<div id='$selector' class='gallery galleryid-{$id} gallery-columns-{$columns} gallery-size-{$size_class}'>";
 
 	/**
-	 * Filters the default gallery shortcode CSS styles.
+	 * Filters the gallery shortcode's default CSS styles and opening HTML div container.
+	 *
+	 * To remove the CSS entirely, use the `use_default_gallery_style` filter instead:
+	 *
+	 *     add_filter( 'use_default_gallery_style', '__return_false' );
 	 *
 	 * @since 2.5.0
+	 * @since 3.1.0 Added classes for number of columns and size to opening div.
+	 * @since 5.3.0 Removed the `type` attribute for `style` tags when the theme
+	 *              supports HTML5 style, and changed the quotes from single to
+	 *              double for other themes.
+	 * @since 7.0.0 Removed the `type` attribute for any theme.
 	 *
 	 * @param string $gallery_style Default CSS styles and opening HTML div container
 	 *                              for the gallery shortcode output.
@@ -4563,7 +4573,7 @@ function wp_prepare_attachment_for_js( $attachment ) {
 		'id'            => $attachment->ID,
 		'title'         => $attachment->post_title,
 		'filename'      => wp_basename( get_attached_file( $attachment->ID ) ),
-		'url'           => $attachment_url,
+		'url'           => esc_url_raw( $attachment_url ),
 		'link'          => get_attachment_link( $attachment->ID ),
 		'alt'           => get_post_meta( $attachment->ID, '_wp_attachment_image_alt', true ),
 		'author'        => $attachment->post_author,
@@ -4669,7 +4679,7 @@ function wp_prepare_attachment_for_js( $attachment ) {
 				$sizes[ $size ] = array(
 					'height'      => $downsize[2],
 					'width'       => $downsize[1],
-					'url'         => $downsize[0],
+					'url'         => esc_url_raw( $downsize[0] ),
 					'orientation' => $downsize[2] > $downsize[1] ? 'portrait' : 'landscape',
 				);
 			} elseif ( isset( $meta['sizes'][ $size ] ) ) {
@@ -4685,7 +4695,7 @@ function wp_prepare_attachment_for_js( $attachment ) {
 				$sizes[ $size ] = array(
 					'height'      => $height,
 					'width'       => $width,
-					'url'         => $base_url . $size_meta['file'],
+					'url'         => esc_url_raw( $base_url . $size_meta['file'] ),
 					'orientation' => $height > $width ? 'portrait' : 'landscape',
 				);
 			}
@@ -4693,11 +4703,12 @@ function wp_prepare_attachment_for_js( $attachment ) {
 
 		if ( 'image' === $type ) {
 			if ( ! empty( $meta['original_image'] ) ) {
-				$response['originalImageURL']  = wp_get_original_image_url( $attachment->ID );
+				$original_image_url            = wp_get_original_image_url( $attachment->ID );
+				$response['originalImageURL']  = $original_image_url ? esc_url_raw( $original_image_url ) : '';
 				$response['originalImageName'] = wp_basename( wp_get_original_image_path( $attachment->ID ) );
 			}
 
-			$sizes['full'] = array( 'url' => $attachment_url );
+			$sizes['full'] = array( 'url' => esc_url_raw( $attachment_url ) );
 
 			if ( isset( $meta['height'], $meta['width'] ) ) {
 				$sizes['full']['height']      = $meta['height'];
@@ -4708,7 +4719,7 @@ function wp_prepare_attachment_for_js( $attachment ) {
 			$response = array_merge( $response, $sizes['full'] );
 		} elseif ( $meta['sizes']['full']['file'] ) {
 			$sizes['full'] = array(
-				'url'         => $base_url . $meta['sizes']['full']['file'],
+				'url'         => esc_url_raw( $base_url . $meta['sizes']['full']['file'] ),
 				'height'      => $meta['sizes']['full']['height'],
 				'width'       => $meta['sizes']['full']['width'],
 				'orientation' => $meta['sizes']['full']['height'] > $meta['sizes']['full']['width'] ? 'portrait' : 'landscape',
@@ -4747,7 +4758,7 @@ function wp_prepare_attachment_for_js( $attachment ) {
 			$response_image_full = wp_get_attachment_image_src( $id, 'full' );
 			if ( is_array( $response_image_full ) ) {
 				$response['image'] = array(
-					'src'    => $response_image_full[0],
+					'src'    => esc_url_raw( $response_image_full[0] ),
 					'width'  => $response_image_full[1],
 					'height' => $response_image_full[2],
 				);
@@ -4756,7 +4767,7 @@ function wp_prepare_attachment_for_js( $attachment ) {
 			$response_image_thumb = wp_get_attachment_image_src( $id, 'thumbnail' );
 			if ( is_array( $response_image_thumb ) ) {
 				$response['thumb'] = array(
-					'src'    => $response_image_thumb[0],
+					'src'    => esc_url_raw( $response_image_thumb[0] ),
 					'width'  => $response_image_thumb[1],
 					'height' => $response_image_thumb[2],
 				);
@@ -6445,5 +6456,222 @@ function wp_get_image_editor_output_format( $filename, $mime_type ) {
 	 * @param string $mime_type The source image mime type.
 	 */
 	return apply_filters( 'image_editor_output_format', $output_format, $filename, $mime_type );
+}
+
+/**
+ * Checks whether client-side media processing is enabled.
+ *
+ * Client-side media processing uses the browser's capabilities to handle
+ * tasks like image resizing and compression before uploading to the server.
+ *
+ * @since 7.1.0
+ *
+ * @return bool Whether client-side media processing is enabled.
+ */
+function wp_is_client_side_media_processing_enabled(): bool {
+	// This is due to SharedArrayBuffer requiring a secure context.
+	$host    = strtolower( (string) strtok( $_SERVER['HTTP_HOST'] ?? '', ':' ) );
+	$enabled = ( is_ssl() || 'localhost' === $host || str_ends_with( $host, '.localhost' ) );
+
+	/**
+	 * Filters whether client-side media processing is enabled.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @param bool $enabled Whether client-side media processing is enabled. Default true if the page is served in a secure context.
+	 */
+	return (bool) apply_filters( 'wp_client_side_media_processing_enabled', $enabled );
+}
+
+/**
+ * Sets a global JS variable to indicate that client-side media processing is enabled.
+ *
+ * @since 7.1.0
+ */
+function wp_set_client_side_media_processing_flag(): void {
+	if ( ! wp_is_client_side_media_processing_enabled() ) {
+		return;
+	}
+
+	wp_add_inline_script( 'wp-block-editor', 'window.__clientSideMediaProcessing = true;', 'before' );
+
+	$chromium_version = wp_get_chromium_major_version();
+
+	if ( null !== $chromium_version && $chromium_version >= 137 ) {
+		wp_add_inline_script( 'wp-block-editor', 'window.__documentIsolationPolicy = true;', 'before' );
+	}
+
+	/*
+	 * Register the @wordpress/vips/worker script module as a dynamic dependency
+	 * of the wp-upload-media classic script. This ensures it is included in the
+	 * import map so that the dynamic import() in upload-media.js can resolve it.
+	 */
+	wp_scripts()->add_data(
+		'wp-upload-media',
+		'module_dependencies',
+		array( '@wordpress/vips/worker' )
+	);
+}
+
+/**
+ * Returns the major Chrome/Chromium version from the current request's User-Agent.
+ *
+ * Matches all Chromium-based browsers (Chrome, Edge, Opera, Brave).
+ *
+ * @since 7.1.0
+ *
+ * @return int|null The major Chrome version, or null if not a Chromium browser.
+ */
+function wp_get_chromium_major_version(): ?int {
+	if ( empty( $_SERVER['HTTP_USER_AGENT'] ) ) {
+		return null;
+	}
+	if ( preg_match( '#Chrome/(\d+)#', $_SERVER['HTTP_USER_AGENT'], $matches ) ) {
+		return (int) $matches[1];
+	}
+	return null;
+}
+
+/**
+ * Enables cross-origin isolation in the block editor.
+ *
+ * Required for enabling SharedArrayBuffer for WebAssembly-based
+ * media processing in the editor. Uses Document-Isolation-Policy
+ * on supported browsers (Chromium 137+).
+ *
+ * Skips setup when a third-party page builder overrides the block
+ * editor via a custom `action` query parameter, as DIP would block
+ * same-origin iframe access that these editors rely on.
+ *
+ * @since 7.1.0
+ */
+function wp_set_up_cross_origin_isolation(): void {
+	if ( ! wp_is_client_side_media_processing_enabled() ) {
+		return;
+	}
+
+	$screen = get_current_screen();
+
+	if ( ! $screen ) {
+		return;
+	}
+
+	if ( ! $screen->is_block_editor() && 'site-editor' !== $screen->id && ! ( 'widgets' === $screen->id && wp_use_widgets_block_editor() ) ) {
+		return;
+	}
+
+	/*
+	 * Skip when a third-party page builder overrides the block editor.
+	 * DIP isolates the document into its own agent cluster,
+	 * which blocks same-origin iframe access that these editors rely on.
+	 */
+	if ( isset( $_GET['action'] ) && 'edit' !== $_GET['action'] ) {
+		return;
+	}
+
+	// Cross-origin isolation is not needed if users can't upload files anyway.
+	if ( ! current_user_can( 'upload_files' ) ) {
+		return;
+	}
+
+	wp_start_cross_origin_isolation_output_buffer();
+}
+
+/**
+ * Sends the Document-Isolation-Policy header for cross-origin isolation.
+ *
+ * Uses an output buffer to add crossorigin="anonymous" where needed.
+ *
+ * @since 7.1.0
+ */
+function wp_start_cross_origin_isolation_output_buffer(): void {
+	$chromium_version = wp_get_chromium_major_version();
+
+	if ( null === $chromium_version || $chromium_version < 137 ) {
+		return;
+	}
+
+	ob_start(
+		static function ( string $output ): string {
+			header( 'Document-Isolation-Policy: isolate-and-credentialless' );
+
+			return wp_add_crossorigin_attributes( $output );
+		}
+	);
+}
+
+/**
+ * Adds crossorigin="anonymous" to relevant tags in the given HTML string.
+ *
+ * @since 7.1.0
+ *
+ * @param string $html HTML input.
+ * @return string Modified HTML.
+ */
+function wp_add_crossorigin_attributes( string $html ): string {
+	$site_url = site_url();
+
+	$processor = new WP_HTML_Tag_Processor( $html );
+
+	// See https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/crossorigin.
+	$cross_origin_tag_attributes = array(
+		'AUDIO'  => array( 'src' ),
+		'LINK'   => array( 'href' ),
+		'SCRIPT' => array( 'src' ),
+		'VIDEO'  => array( 'src', 'poster' ),
+		'SOURCE' => array( 'src' ),
+	);
+
+	while ( $processor->next_tag() ) {
+		$tag = $processor->get_tag();
+
+		if ( ! isset( $cross_origin_tag_attributes[ $tag ] ) ) {
+			continue;
+		}
+		$crossorigin = $processor->get_attribute( 'crossorigin' );
+		if ( null !== $crossorigin ) {
+			continue;
+		}
+
+		if ( 'AUDIO' === $tag || 'VIDEO' === $tag ) {
+			$processor->set_bookmark( 'audio-video-parent' );
+		}
+
+		$processor->set_bookmark( 'resume' );
+
+		$sought = false;
+
+		$is_cross_origin = false;
+
+		foreach ( $cross_origin_tag_attributes[ $tag ] as $attr ) {
+			$url = $processor->get_attribute( $attr );
+			if ( is_string( $url ) && ! str_starts_with( $url, $site_url ) && ! str_starts_with( $url, '/' ) ) {
+				$is_cross_origin = true;
+			}
+
+			if ( $is_cross_origin ) {
+				break;
+			}
+		}
+
+		if ( $is_cross_origin ) {
+			if ( 'SOURCE' === $tag ) {
+				$sought = $processor->seek( 'audio-video-parent' );
+
+				if ( $sought ) {
+					$processor->set_attribute( 'crossorigin', 'anonymous' );
+				}
+			} else {
+				$processor->set_attribute( 'crossorigin', 'anonymous' );
+			}
+
+			if ( $sought ) {
+				$processor->seek( 'resume' );
+				$processor->release_bookmark( 'audio-video-parent' );
+			}
+		}
+	}
+
+	return $processor->get_updated_html();
 }
 
