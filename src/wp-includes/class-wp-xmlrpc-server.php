@@ -4892,6 +4892,7 @@ class wp_xmlrpc_server extends IXR_Server {
 		$domain = $current_blog->domain;
 		$path   = $current_blog->path . 'xmlrpc.php';
 
+		array_shift( $args );
 		$blogs = $this->wp_getUsersBlogs( $args );
 		if ( $blogs instanceof IXR_Error ) {
 			return $blogs;
