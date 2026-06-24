@@ -201,8 +201,10 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 		$this->assertNotContains( 'auto-draft', $status_enum );
 
 		$fields_enum = $properties['fields']['items']['enum'];
-		$this->assertContains( 'raw_content', $fields_enum );
-		$this->assertContains( 'title', $fields_enum );
+		$this->assertContains( 'content_raw', $fields_enum );
+		$this->assertContains( 'content_rendered', $fields_enum );
+		$this->assertContains( 'title_raw', $fields_enum );
+		$this->assertContains( 'title_rendered', $fields_enum );
 		$this->assertContains( 'author', $fields_enum );
 	}
 
@@ -218,9 +220,11 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 		$schema    = $this->ability()->get_output_schema();
 		$post_item = $schema['properties']['posts']['items'];
 
+		$this->assertSame( array( 'posts', 'total', 'total_pages' ), $schema['required'] );
 		$this->assertArrayNotHasKey( 'required', $post_item );
 		$this->assertFalse( $post_item['additionalProperties'] );
-		$this->assertArrayHasKey( 'raw_content', $post_item['properties'] );
+		$this->assertArrayHasKey( 'content_raw', $post_item['properties'] );
+		$this->assertArrayHasKey( 'content_rendered', $post_item['properties'] );
 	}
 
 	/*
@@ -244,8 +248,10 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 		$this->assertIsArray( $result );
 		$this->assertCount( 1, $result['posts'] );
 		$this->assertSame( $post_id, $result['posts'][0]['id'] );
-		$this->assertSame( 'Hello Content', $result['posts'][0]['title'] );
-		$this->assertSame( 'Body here.', $result['posts'][0]['raw_content'] );
+		$this->assertSame( 'Hello Content', $result['posts'][0]['title_raw'] );
+		$this->assertSame( 'Hello Content', $result['posts'][0]['title_rendered'] );
+		$this->assertSame( 'Body here.', $result['posts'][0]['content_raw'] );
+		$this->assertStringContainsString( 'Body here.', $result['posts'][0]['content_rendered'] );
 		$this->assertSame( 'post', $result['posts'][0]['type'] );
 	}
 
@@ -405,11 +411,11 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 		$result = $this->ability()->execute(
 			array(
 				'id'     => $post_id,
-				'fields' => array( 'id', 'title' ),
+				'fields' => array( 'id', 'title_rendered' ),
 			)
 		);
 
-		$this->assertSame( array( 'id', 'title' ), array_keys( $result['posts'][0] ) );
+			$this->assertSame( array( 'id', 'title_rendered' ), array_keys( $result['posts'][0] ) );
 	}
 
 	public function test_unsupported_fields_are_omitted_for_post_type(): void {
@@ -444,20 +450,76 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 		$this->assertSame( 'ability_invalid_permissions', $result->get_error_code() );
 	}
 
-	public function test_subscriber_cannot_request_published_content(): void {
+	public function test_subscriber_can_request_published_content(): void {
+		$post_id = self::factory()->post->create(
+			array(
+				'post_title'   => 'Visible to subscribers',
+				'post_content' => 'Rendered body for subscribers.',
+				'post_status'  => 'publish',
+			)
+		);
 		$this->login_as( 'subscriber' );
 
-		$result = $this->ability()->execute( array( 'post_type' => 'post' ) );
+		$result = $this->ability()->execute(
+			array(
+				'post_type' => 'post',
+				'fields'    => array( 'id', 'title_rendered', 'content_rendered' ),
+			)
+		);
+		$ids    = wp_list_pluck( $result['posts'], 'id' );
+
+		$this->assertContains( $post_id, $ids );
+		$post_index = array_search( $post_id, $ids, true );
+		$this->assertIsInt( $post_index );
+		$post = $result['posts'][ $post_index ];
+		$this->assertSame( 'Visible to subscribers', $post['title_rendered'] );
+		$this->assertStringContainsString( 'Rendered body for subscribers.', $post['content_rendered'] );
+		$this->assertArrayNotHasKey( 'content_raw', $post );
+	}
+
+	public function test_subscriber_can_get_single_published_post_by_id(): void {
+		$post_id = self::factory()->post->create(
+			array(
+				'post_title'   => 'Readable single',
+				'post_content' => 'Readable single body.',
+				'post_status'  => 'publish',
+			)
+		);
+		$this->login_as( 'subscriber' );
+
+		$result = $this->ability()->execute( array( 'id' => $post_id ) );
+
+		$this->assertIsArray( $result );
+		$this->assertSame( 'Readable single', $result['posts'][0]['title_rendered'] );
+		$this->assertStringContainsString( 'Readable single body.', $result['posts'][0]['content_rendered'] );
+		$this->assertArrayNotHasKey( 'title_raw', $result['posts'][0] );
+		$this->assertArrayNotHasKey( 'content_raw', $result['posts'][0] );
+	}
+
+	public function test_subscriber_cannot_request_raw_fields_in_query_mode(): void {
+		$this->login_as( 'subscriber' );
+
+		$result = $this->ability()->execute(
+			array(
+				'post_type' => 'post',
+				'fields'    => array( 'content_raw' ),
+			)
+		);
 
 		$this->assertWPError( $result );
 		$this->assertSame( 'ability_invalid_permissions', $result->get_error_code() );
 	}
 
-	public function test_subscriber_cannot_get_single_published_post_by_id(): void {
+	public function test_subscriber_cannot_request_raw_fields_for_single_post(): void {
 		$post_id = self::factory()->post->create( array( 'post_status' => 'publish' ) );
 		$this->login_as( 'subscriber' );
 
-		$result = $this->ability()->execute( array( 'id' => $post_id ) );
+		$result = $this->ability()->execute(
+			array(
+				'id'     => $post_id,
+				'fields' => array( 'content_raw' ),
+			)
+		);
 
 		$this->assertWPError( $result );
 		$this->assertSame( 'ability_invalid_permissions', $result->get_error_code() );
@@ -561,14 +623,14 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 		);
 
 		$this->login_as( 'editor' );
-		$result = $this->ability()->execute(
-			array(
-				'id'     => $post_id,
-				'fields' => array( 'id', 'raw_content' ),
-			)
-		);
+			$result = $this->ability()->execute(
+				array(
+					'id'     => $post_id,
+					'fields' => array( 'id', 'content_raw' ),
+				)
+			);
 
-		$this->assertSame( 'Public body with raw block markup.', $result['posts'][0]['raw_content'] );
+		$this->assertSame( 'Public body with raw block markup.', $result['posts'][0]['content_raw'] );
 	}
 
 	public function test_password_protected_content_visible_to_editor(): void {
@@ -581,14 +643,36 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 		);
 
 		$this->login_as( 'editor' );
-		$result = $this->ability()->execute(
+			$result = $this->ability()->execute(
+				array(
+					'id'     => $post_id,
+					'fields' => array( 'id', 'content_raw', 'content_rendered' ),
+				)
+			);
+
+		$this->assertSame( 'Top secret body.', $result['posts'][0]['content_raw'] );
+		$this->assertStringContainsString( 'Top secret body.', $result['posts'][0]['content_rendered'] );
+	}
+
+	public function test_password_protected_rendered_content_is_empty_for_subscriber(): void {
+		$post_id = self::factory()->post->create(
 			array(
-				'id'     => $post_id,
-				'fields' => array( 'id', 'raw_content' ),
+				'post_status'   => 'publish',
+				'post_password' => 'secret',
+				'post_content'  => 'Hidden rendered body.',
 			)
 		);
 
-		$this->assertSame( 'Top secret body.', $result['posts'][0]['raw_content'] );
+		$this->login_as( 'subscriber' );
+		$result = $this->ability()->execute(
+			array(
+				'id'     => $post_id,
+				'fields' => array( 'id', 'content_rendered', 'content_protected' ),
+			)
+		);
+
+		$this->assertSame( '', $result['posts'][0]['content_rendered'] );
+		$this->assertTrue( $result['posts'][0]['content_protected'] );
 	}
 
 	/*
