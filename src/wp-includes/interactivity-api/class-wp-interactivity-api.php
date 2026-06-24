@@ -126,6 +126,28 @@ final class WP_Interactivity_API {
 	private $current_element = null;
 
 	/**
+	 * Expression-evaluation state: safe and server-evaluable.
+	 *
+	 * @since 6.9.0
+	 */
+	private const EXPRESSION_VALID = 1;
+
+	/**
+	 * Expression-evaluation state: valid JS, but evaluation is deferred to
+	 * the browser hydration pass.
+	 *
+	 * @since 6.9.0
+	 */
+	private const EXPRESSION_DEFERRED = 0;
+
+	/**
+	 * Expression-evaluation state: invalid or dangerous input.
+	 *
+	 * @since 6.9.0
+	 */
+	private const EXPRESSION_INVALID = -1;
+
+	/**
 	 * Gets and/or sets the initial state of an Interactivity API store for a
 	 * given namespace.
 	 *
@@ -657,13 +679,292 @@ final class WP_Interactivity_API {
 			'context' => $context[ $ns ] ?? array(),
 		);
 
+		// Preserve the long-standing dotted-path contract that malformed
+		// directive values with leading/trailing whitespace are treated as
+		// invalid and return null. Without this guard, the experimental
+		// full-expression path would happily evaluate ` state.key` as
+		// `$__st['key']`, changing the observable behavior covered by
+		// `test_evaluate_non_existent_path`.
+		if ( trim( $path ) !== $path ) {
+			return null;
+		}
+
 		// Checks if the reference path is preceded by a negation operator (!).
 		$should_negate_value = '!' === $path[0];
-		$path                = $should_negate_value ? substr( $path, 1 ) : $path;
+		$path                = $should_negate_value ? trim( substr( $path, 1 ) ) : $path;
 
-		// Extracts the value from the store using the reference path.
-		$path_segments = explode( '.', $path );
-		$current       = $store;
+		// Full-expression path: when the path is not a simple dotted path,
+		// evaluate it as an expression. This mirrors the client-side
+		// getEvaluate full-expression path (new Function() in JS) and supports
+		// comparisons ( !==, ===, >, < ), logical operators, ternaries, and
+		// other basic JS-like expressions.
+		if ( ! preg_match( '/^(?:state|context)(?:\.[a-zA-Z_][a-zA-Z0-9_]*|\.[0-9]+)+$/', $path ) ) {
+			$result = $this->evaluate_full_expression( $path, $store, $ns );
+			return $should_negate_value ? ! $this->is_js_truthy( $result ) : $result;
+		}
+
+		// Extracts the value from the store using the reference path. The
+		// shared helper also accounts for derived-state getters (Closures)
+		// encountered along the path, invoking them on the server and
+		// recording the path prefix in `$derived_state_closures` so the client
+		// wiring for lazy hydration keeps working.
+		$current = $this->resolve_path_with_closures( $store, explode( '.', $path ), $ns );
+		if ( null === $current && '' === $path ) {
+			// `resolve_path_with_closures()` returns null both for missing
+			// paths and when a derived-state callback threw; the latter is
+			// already reported inside the helper, so a null return here is
+			// always "path does not exist".
+		}
+
+		// Returns the opposite if it contains a negation operator (!).
+		return $should_negate_value ? ! $this->is_js_truthy( $current ) : $current;
+	}
+
+	/**
+	 * Evaluates a full (non-dotted-path) expression and, while both engines
+	 * exist, compares their results under WP_DEBUG.
+	 *
+	 * Keeping the dual-engine dispatch behind this one method makes later
+	 * cleanup mechanical: whichever engine is not selected can be removed by
+	 * simplifying this method and deleting the unused helper(s) below.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @param string $path  Original JS expression.
+	 * @param array  $store Store root with 'state' and 'context' keys.
+	 * @param string $ns    Store namespace.
+	 * @return mixed The expression result.
+	 */
+	private function evaluate_full_expression( string $path, array $store, string $ns ) {
+		$result_a = $this->evaluate_full_expression_approach_a( $path, $store, $ns );
+		$result_b = $this->evaluate_full_expression_approach_b( $path, $store, $ns );
+
+		// WP_DEBUG-gated parity comparison. null+null is "both deferred or
+		// unsupported" (not a mismatch); null+value IS a mismatch and is
+		// logged — it signals a divergence in which expressions each engine
+		// considers supported or how it computed the result.
+		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+			$norm_a = is_bool( $result_a ) ? ( $result_a ? 'true' : 'false' ) : var_export( $result_a, true );
+			$norm_b = is_bool( $result_b ) ? ( $result_b ? 'true' : 'false' ) : var_export( $result_b, true );
+			if ( $norm_a !== $norm_b && ( null !== $result_a || null !== $result_b ) ) {
+				wp_trigger_error(
+					__METHOD__,
+					sprintf(
+						/* translators: 1: Directive expression, 2: Approach A result, 3: Approach B result. */
+						__( 'Interactivity API expression evaluation mismatch for "%1$s": Approach A returned %2$s, Approach B returned %3$s.' ),
+						$path,
+						$norm_a,
+						$norm_b
+					),
+					E_USER_WARNING
+				);
+			}
+		}
+
+		// Current candidate patch behavior: return Approach A's result while
+		// the direct comparison tests document the semantic differences.
+		return $result_a;
+	}
+
+	/**
+	 * Determines JS-style truthiness for the subset of value types directive
+	 * expressions can observe on the server.
+	 *
+	 * Key divergences from PHP:
+	 * - empty arrays are truthy in JS, falsy in PHP
+	 * - the string '0' is truthy in JS, falsy in PHP
+	 *
+	 * @since 6.9.0
+	 *
+	 * @param mixed $value Value to test.
+	 * @return bool Whether the value is truthy in JS terms.
+	 */
+	private function is_js_truthy( $value ): bool {
+		if ( null === $value ) {
+			return false;
+		}
+		if ( is_bool( $value ) ) {
+			return $value;
+		}
+		if ( is_int( $value ) || is_float( $value ) ) {
+			return 0 != $value;
+		}
+		if ( is_string( $value ) ) {
+			return '' !== $value;
+		}
+		if ( is_array( $value ) || is_object( $value ) ) {
+			return true;
+		}
+		return (bool) $value;
+	}
+
+	/**
+	 * Evaluates a full (non-dotted-path) expression using Approach A:
+	 * regex-transform state.X/context.X → PHP array access, validate the
+	 * token stream, substitute derived-state closures with JSON literals,
+	 * then eval() the resulting literal-only expression.
+	 *
+	 * This is the established behaviour and the result returned to the caller
+	 * during the dual-implementation comparison phase.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @param string $path  Directive expression (the original JS source).
+	 * @param array  $store  Store root with 'state' and 'context' keys.
+	 * @param string $ns     Store namespace (for derived-state recording).
+	 * @return mixed Computed value, or null when unsupported/invalid.
+	 */
+	private function evaluate_full_expression_approach_a( string $path, array $store, string $ns ) {
+		$__st  = $store['state'];
+		$__ctx = $store['context'];
+
+		// Transform state.X.Y.Z to $__st['X']['Y']['Z'].
+		$php_expr = preg_replace_callback(
+			'/state\.([a-zA-Z_]\w*(?:\.[a-zA-Z_]\w*)*)/',
+			function ( $m ) {
+				$parts = explode( '.', $m[1] );
+				$r     = '$__st';
+				foreach ( $parts as $p ) {
+					$r .= "['{$p}']";
+				}
+				return $r;
+			},
+			$path
+		);
+
+		// Transform context.X.Y.Z to $__ctx['X']['Y']['Z'].
+		$php_expr = preg_replace_callback(
+			'/context\.([a-zA-Z_]\w*(?:\.[a-zA-Z_]\w*)*)/',
+			function ( $m ) {
+				$parts = explode( '.', $m[1] );
+				$r     = '$__ctx';
+				foreach ( $parts as $p ) {
+					$r .= "['{$p}']";
+				}
+				return $r;
+			},
+			$php_expr
+		);
+
+		// Validate the post-transform expression: VALID / UNSUPPORTED / INVALID.
+		$safety = $this->evaluate_expression_safety( $php_expr );
+
+		if ( self::EXPRESSION_INVALID === $safety ) {
+			// INVALID — dangerous PHP constructs. Report and bail to the client.
+			_doing_it_wrong(
+				__METHOD__,
+				sprintf(
+					/* translators: %s: The directive expression. */
+					__( 'Interactivity API directive contained an unsafe expression: "%s".' ),
+					esc_html( $php_expr )
+				),
+				'6.9.0'
+			);
+			return null;
+		}
+
+		if ( self::EXPRESSION_DEFERRED === $safety ) {
+			// DEFERRED — valid JS that PHP cannot evaluate server-side
+			// (assignments, function/constant calls). Client handles it.
+			return null;
+		}
+
+		// VALID — substitute derived-state closures with JSON literals so
+		// eval() never sees a Closure object as an operand, then evaluate.
+		$substituted = $this->substitute_closures( $php_expr, $store, $ns );
+		if ( null === $substituted ) {
+			return null;
+		}
+
+		try {
+			$result = eval( "return ( $substituted );" );
+		} catch ( \Throwable $e ) {
+			$result = null;
+		}
+
+		return $result;
+	}
+
+	/**
+	 * Evaluates a full (non-dotted-path) expression using Approach B:
+	 * a custom lexer + recursive-descent parser + interpreter that consumes
+	 * the ORIGINAL JS expression directly (no regex transforms, no eval()).
+	 *
+	 * This is the challenger approach during the dual-implementation
+	 * comparison phase. It produces correct JS semantics for the supported
+	 * expression subset.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @param string $path  Directive expression (the original JS source).
+	 * @param array  $store  Store root with 'state' and 'context' keys.
+	 * @param string $ns     Store namespace (for derived-state recording).
+	 * @return mixed Computed value, or null when unsupported/invalid.
+	 */
+	private function evaluate_full_expression_approach_b( string $path, array $store, string $ns ) {
+		$evaluator = new WP_Interactivity_Expression_Evaluator(
+			function ( string $resolved_path ) use ( $store, $ns ) {
+				return $this->resolve_path_with_closures( $store, explode( '.', $resolved_path ), $ns );
+			}
+		);
+		return $evaluator->evaluate( $path );
+	}
+
+	/**
+	 * Records a derived-state closure path for a given namespace.
+	 *
+	 * The list of paths serialized to the client as `derivedStateClosures`
+	 * tells the client which server-side state getters need reactive wrapping
+	 * during hydration. Each path is the prefix up to and including the closure
+	 * location, e.g. for `state.complex.value` where `complex` is a Closure,
+	 * the recorded path is `state.complex`.
+	 *
+	 * Kept as a tiny helper so the dotted-path branch and the full-expression
+	 * evaluators (Approach A's `substitute_closures()` and Approach B's
+	 * `resolve()`) all record the same paths with the same semantics.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @param string $ns   Store namespace.
+	 * @param string $path Derived-state path prefix to record.
+	 */
+	private function record_derived_closure( string $ns, string $path ): void {
+		$this->derived_state_closures[ $ns ] = $this->derived_state_closures[ $ns ] ?? array();
+		if ( ! in_array( $path, $this->derived_state_closures[ $ns ], true ) ) {
+			$this->derived_state_closures[ $ns ][] = $path;
+		}
+	}
+
+	/**
+	 * Resolves a dotted reference path against a store root, invoking any
+	 * derived-state Closures encountered along the way.
+	 *
+	 * Shared by the simple dotted-path branch of {@see evaluate()} and by the
+	 * full-expression evaluators (both Approach A and Approach B) so that
+	 * derived-state getters behave identically across all server-side code
+	 * paths: the closure is invoked on the server, its namespace is pushed onto
+	 * the namespace stack for the duration of the call (so `state()` and
+	 * `get_context()` inside the getter resolve correctly), the path prefix is
+	 * recorded in `$derived_state_closures`, and resolution continues against
+	 * the closure's return value. If a closure returns another closure, that
+	 * subsequent closure is invoked on the next segment iteration — mirroring
+	 * the existing plain-path behaviour.
+	 *
+	 * The `'length'` pseudo-property for list arrays and strings is honoured
+	 * to mimic JavaScript's `.length` access, which directives rely on.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @param array  $root           The store root, e.g. `['state' => …, 'context' => …]`
+	 *                               for `evaluate()`, or a subtree during mid-path resolution.
+	 * @param array  $path_segments  Dotted path already split on '.'.
+	 * @param string $ns             Store namespace, used for derived-state recording.
+	 * @return mixed The resolved value, or null if the path does not exist.
+	 *                Note: null is ALSO returned if a derived-state callback throws;
+	 *                that case is reported via `_doing_it_wrong()` before returning.
+	 */
+	private function resolve_path_with_closures( $root, array $path_segments, string $ns ) {
+		$current = $root;
 		foreach ( $path_segments as $index => $path_segment ) {
 			/*
 			 * Special case for numeric arrays and strings. Add length
@@ -704,7 +1005,7 @@ final class WP_Interactivity_API {
 				break;
 			}
 
-			if ( $current instanceof Closure ) {
+			while ( $current instanceof Closure ) {
 				/*
 				 * This state getter's namespace is added to the stack so that
 				 * `state()` or `get_config()` read that namespace when called
@@ -714,26 +1015,21 @@ final class WP_Interactivity_API {
 				try {
 					$current = $current();
 
-					/*
-					 * Tracks derived state properties that are accessed during
-					 * rendering.
-					 *
-					 * @since 6.9.0
-					 */
-					$this->derived_state_closures[ $ns ] = $this->derived_state_closures[ $ns ] ?? array();
-
-					// Builds path for the current property and add it to tracking if not already present.
+					// Tracks derived state properties accessed during rendering.
 					$current_path = implode( '.', array_slice( $path_segments, 0, $index + 1 ) );
-					if ( ! in_array( $current_path, $this->derived_state_closures[ $ns ], true ) ) {
-						$this->derived_state_closures[ $ns ][] = $current_path;
-					}
+					$this->record_derived_closure( $ns, $current_path );
 				} catch ( Throwable $e ) {
 					_doing_it_wrong(
-						__METHOD__,
+						// Attribute the notice to the public-facing
+						// `evaluate` method (not this internal helper) so
+						// the existing `@expectedIncorrectUsage` contract on
+						// tests like `test_evaluate_derived_state_that_throws`
+						// keeps matching.
+						'WP_Interactivity_API::evaluate',
 						sprintf(
 							/* translators: 1: Path pointing to an Interactivity API state property, 2: Namespace for an Interactivity API store. */
 							__( 'Uncaught error executing a derived state callback with path "%1$s" and namespace "%2$s".' ),
-							$path,
+							implode( '.', $path_segments ),
 							$ns
 						),
 						'6.6.0'
@@ -746,8 +1042,449 @@ final class WP_Interactivity_API {
 			}
 		}
 
-		// Returns the opposite if it contains a negation operator (!).
-		return $should_negate_value ? ! $current : $current;
+		return $current;
+	}
+
+	/**
+	 * Checks whether a PHP expression (the post-regex-transform form of a
+	 * directive value) is safe to evaluate during SSR.
+	 *
+	 * Used by the full-expression path of {@see evaluate()} before invoking
+	 * `eval()`. The expression's `state.X` / `context.X` references have
+	 * already been rewritten to `$__st['X']` / `$__ctx['X']` by the regex
+	 * transforms; this method inspects the resulting token stream and
+	 * classifies the expression into one of three states.
+	 *
+	 * Possible return values:
+	 *   1  = VALID       — safe, read-only expression → evaluate with eval().
+	 *   0  = UNSUPPORTED — contains assignments or function/constant calls
+	 *                      (these are valid JS but PHP cannot evaluate them
+	 *                      server-side: actions live in view.js, and assigning
+	 *                      to a state/context leaf has no persistence on the
+	 *                      server). The client handles them at runtime.
+	 *  -1  = INVALID     — contains dangerous PHP constructs (object/static
+	 *                      access, namespace separators, code execution,
+	 *                      file inclusion, nested eval, open tags, etc.) or
+	 *                      characters that have no JS equivalent at all
+	 *                      (`.`, `;`, backticks, `@`, `#`, `\`). Returns null
+	 *                      and emits a `_doing_it_wrong()` notice.
+	 *
+	 * Variable names are restricted to `$__st` and `$__ctx` — anything else
+	 * (e.g. `$_SERVER`, `$evil`) is INVALID. Bare identifiers (`T_STRING`)
+	 * are restricted to `true`, `false`, `null`; any other identifier is
+	 * treated as a function/constant reference and marks the expression as
+	 * UNSUPPORTED (this is also what catches call syntax `foo(...)`, because
+	 * `(` and `)` are individually safe characters but `foo` is a non-allowed
+	 * `T_STRING`). See the implementation plan, decisions 4 and 5.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @param string $php_expr The PHP expression to validate (after regex transform).
+	 * @return int 1 (VALID), 0 (UNSUPPORTED), or -1 (INVALID).
+	 */
+	private function evaluate_expression_safety( string $php_expr ): int {
+		// Single-character tokens that are individually safe. Note that `(`,
+		// `)` and `,` are listed here; an unsanctioned function call is caught
+		// via the `T_STRING` identifier not being `true/false/null`, not via
+		// the parentheses themselves. `=` is also safe-as-a-character but
+		// treated specially below as an assignment operator.
+		$safe_chars = array(
+			' ', '(', ')', '[', ']', '?', ':', ',',
+			'+', '-', '*', '/', '%',
+			'=', '!', '~', '|', '&', '^', '<', '>',
+		);
+
+		// Compound-assignment and mutation tokens. These make an expression
+		// UNSUPPORTED (not INVALID): they would only modify local copies of
+		// state/context that do not persist across requests, so they are not
+		// dangerous; but PHP cannot faithfully model the JS mutation
+		// server-side, so the client handles them.
+		$assignment_tokens = array(
+			T_PLUS_EQUAL, T_MINUS_EQUAL, T_MUL_EQUAL, T_DIV_EQUAL,
+			T_MOD_EQUAL, T_POW_EQUAL, T_AND_EQUAL, T_OR_EQUAL, T_XOR_EQUAL,
+			T_SL_EQUAL, T_SR_EQUAL, T_COALESCE_EQUAL,
+			T_INC, T_DEC,
+		);
+
+		// Dangerous PHP constructs (reject-list). Touching any of these makes
+		// the expression INVALID — they enable code execution, sandbox escape,
+		// file access, or are PHP-specific operators with no JS equivalent
+		// (allowing them would produce expressions that work server-side but
+		// fail client-side, creating confusing SSR/hydration mismatches).
+		//
+		// Constants that do not exist on PHP 7.4 are define()-shimmed in
+		// `interactivity-api-token-shims.php` with sentinel integer values.
+		$dangerous = array(
+			// Object/static/namespace access.
+			T_OBJECT_OPERATOR, T_NULLSAFE_OBJECT_OPERATOR,
+			T_DOUBLE_COLON, T_PAAMAYIM_NEKUDOTAYIM,
+			T_NS_SEPARATOR,
+			T_NAME_FULLY_QUALIFIED, T_NAME_QUALIFIED, T_NAME_RELATIVE,
+
+			// Code execution / file inclusion.
+			T_EVAL, T_EXIT,
+			T_INCLUDE, T_INCLUDE_ONCE, T_REQUIRE, T_REQUIRE_ONCE,
+			T_NEW, T_CLONE,
+
+			// Function/closure definition.
+			T_FUNCTION, T_FN,
+
+			// Output / termination / scope manipulation.
+			T_ECHO, T_PRINT, T_UNSET, T_THROW,
+			T_GLOBAL, T_STATIC, T_GOTO, T_RETURN,
+			T_YIELD, T_YIELD_FROM, T_HALT_COMPILER,
+			T_ATTRIBUTE, T_NAMESPACE,
+
+			// PHP open/close tags and inline HTML.
+			T_OPEN_TAG, T_OPEN_TAG_WITH_ECHO, T_CLOSE_TAG, T_INLINE_HTML,
+
+			// PHP 8.1+ tokenizes a bare `&` in expressions using the
+			// ampersand token IDs, and the specific variant depends on the
+			// following token rather than on whether the `&` is actually a
+			// reference syntax construct. Both ampersand tokens are therefore
+			// allow-listed below in expression context; they are not a
+			// sandbox-escape vector on their own, and unsupported reference
+			// forms still fail later during eval/parse rather than executing.
+
+			// PHP-specific operators with no JS equivalent (kept out so SSR and
+			// hydration agree on what is even expressible).
+			T_SPACESHIP,
+			T_LOGICAL_AND, T_LOGICAL_OR, T_LOGICAL_XOR,
+			T_ARRAY, T_DOUBLE_ARROW,
+			T_ARRAY_CAST, T_BOOL_CAST, T_DOUBLE_CAST, T_INT_CAST,
+			T_OBJECT_CAST, T_STRING_CAST, T_UNSET_CAST, T_VOID_CAST,
+			T_EMPTY, T_ISSET,
+			T_CONCAT_EQUAL,
+			T_CURLY_OPEN, T_DOLLAR_OPEN_CURLY_BRACES, T_STRING_VARNAME,
+			T_START_HEREDOC, T_END_HEREDOC, T_NUM_STRING,
+			T_ENCAPSED_AND_WHITESPACE,
+
+			// Declarations / OOP keywords.
+			T_ABSTRACT, T_FINAL, T_PRIVATE, T_PROTECTED, T_PUBLIC,
+			T_PRIVATE_SET, T_PROTECTED_SET, T_PUBLIC_SET,
+			T_CLASS, T_INTERFACE, T_TRAIT, T_ENUM,
+			T_IMPLEMENTS, T_EXTENDS, T_INSTANCEOF, T_READONLY, T_DECLARE,
+			T_CONST, T_VAR, T_CALLABLE, T_INSTEADOF,
+
+			// Control flow (not expression-safe).
+			T_IF, T_ELSE, T_ELSEIF,
+			T_FOR, T_FOREACH, T_WHILE, T_DO,
+			T_SWITCH, T_CASE, T_DEFAULT, T_BREAK, T_CONTINUE,
+			T_TRY, T_CATCH, T_FINALLY,
+
+			// Other PHP-specific constructs.
+			T_MATCH, T_PIPE, T_ELLIPSIS, T_LIST, T_AS, T_USE,
+
+			// Magic constants — no JS equivalent, leak server internals.
+			T_CLASS_C, T_TRAIT_C, T_METHOD_C, T_FUNC_C,
+			T_NS_C, T_FILE, T_DIR, T_LINE, T_PROPERTY_C,
+
+			// Invalid characters (anything below ASCII 32 except \t \n \r).
+			T_BAD_CHARACTER,
+		);
+
+		try {
+			// `token_get_all()` parses source as PHP *only between open/close
+			// tags*; anything outside `<?php` is treated as T_INLINE_HTML and
+			// surfaces as a single giant forbidden token. Prepend a PHP open
+			// tag (with trailing whitespace) so the expression is parsed as
+			// code, then skip the leading T_OPEN_TAG in the loop and exclude
+			// its bytes from the round-trip byte-length check below.
+			$tokens = @token_get_all( '<?php ' . $php_expr );
+		} catch ( \Throwable $e ) {
+			return self::EXPRESSION_INVALID;
+		}
+
+		if ( ! is_array( $tokens ) || array() === $tokens ) {
+			return self::EXPRESSION_INVALID;
+		}
+
+		/*
+		 * Defense-in-depth: `token_get_all()` silently drops some byte
+		 * sequences (notably T_INLINE_HTML and T_BAD_CHARACTER fragments can
+		 * round-trip without preserving byte length). If the concatenated
+		 * byte length of the returned tokens (excluding the prepended
+		 * open-tag) does not match the input, the stream is unreliable and
+		 * we reject rather than risk `eval()` seeing bytes the validator
+		 * skipped.
+		 */
+		$byte_len = 0;
+		foreach ( $tokens as $token ) {
+			if ( is_string( $token ) ) {
+				$byte_len += strlen( $token );
+			} else {
+				$byte_len += strlen( $token[1] );
+			}
+		}
+		// Subtract the prepended "<?php " (6 bytes) from the token stream's
+		// total. The leading T_OPEN_TAG itself encodes those 6 bytes.
+		if ( $byte_len !== strlen( $php_expr ) + 6 ) {
+			return self::EXPRESSION_INVALID;
+		}
+
+		$has_assignment = false;
+		$has_fn_call    = false;
+
+		foreach ( $tokens as $token ) {
+			// ── Single-character token ─────────────────────────────────
+			if ( is_string( $token ) ) {
+				$char = $token;
+
+				// A bare `=` is the only single-character assignment operator.
+				// `token_get_all()` returns `==`, `===`, `!=`, `!==`, `<=`,
+				// `>=` as multi-character named tokens, so a bare `=` is
+				// always assignment.
+				if ( '=' === $char ) {
+					$has_assignment = true;
+					continue;
+				}
+
+				// Any other character not in the allow-list is INVALID. This
+				// catches backticks (`cmd` — shell execution), `;`
+				// (multi-statement), `.` (PHP string concat — no JS eq), `@`
+				// (error suppression), `#` (PHP comment that could hide a
+				// payload), and `\` (namespace separator; also a named token
+				// T_NS_SEPARATOR when leading an identifier, handled below —
+				// but standalone `\` is rejected here for clarity).
+				if ( ! in_array( $char, $safe_chars, true ) ) {
+					return self::EXPRESSION_INVALID;
+				}
+				continue;
+			}
+
+			// ── Named token ────────────────────────────────────────────
+			$token_id   = $token[0];
+			$token_text = $token[1];
+
+			// The leading T_OPEN_TAG we prepended to make token_get_all parse
+			// the expression as PHP code is intentionally present; skip it.
+			// Any *additional* open/close tag from the user's expression is
+			// still caught below via the $dangerous list (T_OPEN_TAG,
+			// T_CLOSE_TAG, etc.).
+			if ( T_OPEN_TAG === $token_id ) {
+				continue;
+			}
+
+			// Reject dangerous PHP constructs outright.
+			if ( in_array( $token_id, $dangerous, true ) ) {
+				return self::EXPRESSION_INVALID;
+			}
+
+			// Assignment / mutation tokens → UNSUPPORTED.
+			if ( in_array( $token_id, $assignment_tokens, true ) ) {
+				$has_assignment = true;
+				continue;
+			}
+
+			// Literal operands, operators, whitespace, and comments are
+			// allowed. `T_COMMENT` and `T_DOC_COMMENT` are harmless — PHP
+			// ignores them during eval. Allow-list the explicitly permitted
+			// token IDs; everything else falls through to the variable /
+			// identifier checks below, which is safe because unknown tokens
+			// are ignored rather than trusted.
+			$allowed_named = array(
+				T_LNUMBER, T_DNUMBER, T_CONSTANT_ENCAPSED_STRING,
+				T_WHITESPACE, T_COMMENT, T_DOC_COMMENT,
+				T_IS_EQUAL, T_IS_NOT_EQUAL, T_IS_IDENTICAL, T_IS_NOT_IDENTICAL,
+				T_IS_SMALLER_OR_EQUAL, T_IS_GREATER_OR_EQUAL,
+				T_BOOLEAN_AND, T_BOOLEAN_OR,
+				T_SL, T_SR, T_POW, T_COALESCE,
+				// PHP 8.1+ tokenization of a bare bitwise `&`.
+				T_AMPERSAND_FOLLOWED_BY_VAR_OR_VARARG,
+				T_AMPERSAND_NOT_FOLLOWED_BY_VAR_OR_VARARG,
+			);
+			if ( in_array( $token_id, $allowed_named, true ) ) {
+				continue;
+			}
+
+			// Variable references — only $__st and $__ctx are permitted.
+			if ( T_VARIABLE === $token_id ) {
+				if ( ! in_array( $token_text, array( '$__st', '$__ctx' ), true ) ) {
+					return self::EXPRESSION_INVALID;
+				}
+				continue;
+			}
+
+			// Bare identifiers — only true/false/null are permitted. Any other
+			// T_STRING is a function or constant name and marks the
+			// expression as UNSUPPORTED (the client evaluates it during
+			// hydration). This is the mechanism that catches call syntax:
+			// `foo(...)` tokenizes with `foo` as T_STRING and `(` `)` as
+			// safe single-character tokens; `foo` failing this check sets
+			// $has_fn_call and the expression returns null.
+			if ( T_STRING === $token_id ) {
+				if ( ! in_array( strtolower( $token_text ), array( 'true', 'false', 'null' ), true ) ) {
+					$has_fn_call = true;
+				}
+				continue;
+			}
+
+			// Any other named token not covered above is unknown — reject to
+			// be safe. New PHP tokens added in future versions will land here
+			// until explicitly reviewed and allow-listed.
+			return self::EXPRESSION_INVALID;
+		}
+
+		// Assignments or function/constant calls → DEFERRED to the client.
+		if ( $has_assignment || $has_fn_call ) {
+			return self::EXPRESSION_DEFERRED;
+		}
+
+		return self::EXPRESSION_VALID;
+	}
+
+	/**
+	 * Substitutes derived-state Closures in a (post-regex-transform) PHP
+	 * expression with JSON-encoded literals of their computed values.
+	 *
+	 * Approach A's `eval()` cannot invoke a Closure returned by an array
+	 * access — `$__st['foo']` whose value is a Closure yields the Closure
+	 * *object*, not its computed result, and `eval()` proceeds using the
+	 * object as an operand (which throws for `===`/`&&`/`<` etc.). To preserve
+	 * the existing SSR behaviour for compound expressions over derived-state
+	 * getters (e.g. `data-wp-bind--hidden="state.below10 && state.someFlag"`),
+	 * this pre-pass rewrites the expression so that every Closure-valued
+	 * `$__st[...]` / `$__ctx[...]` reference is replaced by the JSON literal of
+	 * its computed value. After substitution the expression contains only
+	 * literals and operators — no Closure object ever reaches `eval()`.
+	 *
+	 * The substitution walks the same per-segment path as
+	 * {@see resolve_path_with_closures()} so mid-path closures are invoked and
+	 * recorded with the same prefix semantics (e.g. for
+	 * `state.complex.value` where `complex` is a Closure, `state.complex` is
+	 * recorded and the walk continues from the closure's return value).
+	 *
+	 * @since 6.9.0
+	 *
+	 * @param string $php_expr The post-regex-transform PHP expression,
+	 *                         containing `$__st['X']['Y']` / `$__ctx['X']` references.
+	 * @param array  $store    The store root: `['state' => …, 'context' => …]`.
+	 * @param string $ns       Store namespace (for derived-state recording).
+	 * @return string|null The rewritten expression with Closures substituted
+	 *                     by literals, or null on any unexpected error or when
+	 *                     a substituted value is not JSON-encodable.
+	 */
+	private function substitute_closures( string $php_expr, array $store, string $ns ) {
+		// Match every $__st[...] / $__ctx[...] access, including chained
+		// segments like $__st['a']['b']['c']. The capture group is the
+		// literal source of the access so we can splice the replacement back
+		// into the expression.
+		$pattern = '/(\$__st|\$__ctx)((?:\[[\'"][a-zA-Z_][a-zA-Z0-9_]*[\'"]\])*)/';
+
+		$had_failure = false;
+		$callback = function ( $m ) use ( $store, $ns, &$had_failure ) {
+			// Determine the root ('state' or 'context').
+			if ( '$__st' === $m[1] ) {
+				$cur     = $store['state'] ?? array();
+				$root_key = 'state';
+			} else {
+				$cur     = $store['context'] ?? array();
+				$root_key = 'context';
+			}
+
+			// Parse the bracket-segment chain into segment strings.
+			$segments = array( $root_key );
+			if ( '' !== $m[2] ) {
+				preg_match_all( "/\[(['\"])([a-zA-Z_][a-zA-Z0-9_]*)\\1\]/", $m[2], $seg_matches );
+				foreach ( $seg_matches[2] as $seg ) {
+					$segments[] = $seg;
+				}
+			}
+
+			// Walk segments resolving the value, invoking Closures via the
+			// shared helper (so derived-state recording works the same as the
+			// dotted-path branch). resolve_path_with_closures() expects the
+			// root to include the first segment's key as is — but the helper
+			// starts by indexing into $cur, so pass a synthetic root that
+			// contains the first segment under its key. Simpler: walk manually
+			// here using the helper per-segment.
+			$recorded_prefix = array( $root_key );
+			foreach ( $segments as $i => $seg ) {
+				if ( 0 === $i ) {
+					// First segment selects state/context; $cur already set.
+					continue;
+				}
+
+				if ( ( is_array( $cur ) || $cur instanceof ArrayAccess ) && isset( $cur[ $seg ] ) ) {
+					$cur = $cur[ $seg ];
+				} elseif ( is_object( $cur ) && isset( $cur->$seg ) ) {
+					$cur = $cur->$seg;
+				} else {
+					$cur = null;
+					break;
+				}
+
+				// The current segment is now part of the resolved path prefix.
+				$recorded_prefix[] = $seg;
+
+				// If the current value is a Closure, invoke it the same way
+				// the dotted-path branch does: push the namespace, call,
+				// record the path prefix, pop the namespace. Repeat while a
+				// closure returns another closure so nested closure chains are
+				// fully resolved before the next path segment is accessed.
+				while ( $cur instanceof Closure ) {
+					// The prefix up to and including the current segment,
+					// matching the dotted-path branch's recording semantics
+					// exactly (e.g. state.nested for state.nested.flag).
+					$prefix_path = implode( '.', $recorded_prefix );
+
+					array_push( $this->namespace_stack, $ns );
+					try {
+						$cur = $cur();
+						$this->record_derived_closure( $ns, $prefix_path );
+					} catch ( Throwable $e ) {
+						$had_failure = true;
+						_doing_it_wrong(
+							'WP_Interactivity_API::substitute_closures',
+							sprintf(
+								/* translators: 1: Path pointing to an Interactivity API state property, 2: Namespace for an Interactivity API store. */
+								__( 'Uncaught error executing a derived state callback with path "%1$s" and namespace "%2$s".' ),
+								$prefix_path,
+								$ns
+							),
+							'6.9.0'
+						);
+						return 'null';
+					} finally {
+						array_pop( $this->namespace_stack );
+					}
+				}
+			}
+
+			// Encode the resolved value as a JSON literal PHP can eval. PHP's
+			// json_decode of the encoded output is used so the literal is a
+			// valid PHP expression (arrays become array literals via the
+			// decoded form wrapped in var_export-style). Actually json_encode
+			// produces valid PHP for scalars/objects/arrays (true, false,
+			// null, numbers, strings, arrays) — PHP's syntax matches JSON for
+			// these. The only edge case is resources and unsupported types.
+			$json = wp_json_encode( $cur );
+			if ( false === $json ) {
+				// Not JSON-encodable (resource, recursion, etc.). Bail the
+				// entire expression so the client handles it rather than
+				// partially evaluating the expression against a fabricated
+				// null value.
+				$had_failure = true;
+				return 'null';
+			}
+			return $json;
+		};
+
+		try {
+			$result = preg_replace_callback( $pattern, $callback, $php_expr );
+		} catch ( \Throwable $e ) {
+			return null; // Unsupported — caller falls back to client.
+		}
+
+		if ( null === $result ) {
+			return null;
+		}
+
+		if ( $had_failure ) {
+			return null;
+		}
+
+		return $result;
 	}
 
 	/**
