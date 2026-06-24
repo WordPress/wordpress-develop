@@ -440,7 +440,6 @@ class Tests_HtmlApi_WpHtmlProcessor_Serialize extends WP_UnitTestCase {
 			'NOEMBED'  => array( 'before<noembed> < > &amp; " \' </noembed>after' ),
 			'NOFRAMES' => array( 'before<noframes> < > &amp; " \' </noframes>after' ),
 			'XMP'      => array( 'before<xmp> < > &amp; " \' </xmp>after' ),
-
 		);
 	}
 
