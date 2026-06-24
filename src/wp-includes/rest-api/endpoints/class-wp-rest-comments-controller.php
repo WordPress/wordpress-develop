@@ -2055,11 +2055,6 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		if ( ! is_array( $supports['editor'] ) ) {
 			return false;
 		}
-		foreach ( $supports['editor'] as $item ) {
-			if ( ! empty( $item['notes'] ) ) {
-				return true;
-			}
-		}
-		return false;
+		return array_any( $supports['editor'], fn( $item ) => ! empty( $item['notes'] ) );
 	}
 }
