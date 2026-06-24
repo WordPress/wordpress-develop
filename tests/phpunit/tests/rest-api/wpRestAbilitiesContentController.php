@@ -132,10 +132,50 @@ class Tests_REST_API_WpRestAbilitiesContentController extends WP_UnitTestCase {
 		$this->assertSame( 403, $response->get_status() );
 	}
 
-	public function test_subscriber_requesting_published_posts_receives_403(): void {
+	public function test_subscriber_requesting_published_posts_receives_readable_fields(): void {
+		$post_id = self::factory()->post->create(
+			array(
+				'post_title'   => 'Published for subscriber via REST',
+				'post_content' => 'Subscriber REST body.',
+				'post_status'  => 'publish',
+			)
+		);
+
 		wp_set_current_user( self::$subscriber_id );
 
-		$response = $this->server->dispatch( $this->run_request( array( 'post_type' => 'post' ) ) );
+		$response = $this->server->dispatch(
+			$this->run_request(
+				array(
+					'post_type' => 'post',
+					'fields'    => array( 'id', 'title_rendered', 'content_rendered' ),
+				)
+			)
+		);
+		$data     = $response->get_data();
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertContains( $post_id, wp_list_pluck( $data['posts'], 'id' ) );
+
+		$post_index = array_search( $post_id, wp_list_pluck( $data['posts'], 'id' ), true );
+		$this->assertIsInt( $post_index );
+
+		$post = $data['posts'][ $post_index ];
+		$this->assertSame( 'Published for subscriber via REST', $post['title_rendered'] );
+		$this->assertStringContainsString( 'Subscriber REST body.', $post['content_rendered'] );
+		$this->assertArrayNotHasKey( 'content_raw', $post );
+	}
+
+	public function test_subscriber_requesting_raw_fields_receives_403(): void {
+		wp_set_current_user( self::$subscriber_id );
+
+		$response = $this->server->dispatch(
+			$this->run_request(
+				array(
+					'post_type' => 'post',
+					'fields'    => array( 'content_raw' ),
+				)
+			)
+		);
 
 		$this->assertSame( 403, $response->get_status() );
 	}
