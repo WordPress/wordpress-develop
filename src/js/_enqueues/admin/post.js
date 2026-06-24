@@ -303,6 +303,8 @@ window.wp = window.wp || {};
  */
 jQuery( function($) {
 	var stamp, visibility, $submitButtons, updateVisibility, updateText,
+		getPostStatusValue, setPostStatusValue, getPostStatusLabel,
+		ensurePublishPostStatus, removePublishPostStatus,
 		$textarea = $('#content'),
 		$document = $(document),
 		postId = $('#post_ID').val() || 0,
@@ -722,6 +724,81 @@ jQuery( function($) {
 		visibility = $('#post-visibility-display').html();
 
 		/**
+		 * Get the selected post status value.
+		 *
+		 * @ignore
+		 *
+		 * @return {string} Selected post status value.
+		 */
+		getPostStatusValue = function() {
+			return $postStatusSelect.find('input[name="post_status"]:checked').val();
+		};
+
+		/**
+		 * Set the selected post status value.
+		 *
+		 * @ignore
+		 *
+		 * @param {string} value Post status value.
+		 *
+		 * @return {void}
+		 */
+		setPostStatusValue = function( value ) {
+			$postStatusSelect.find('input[name="post_status"][value="' + value + '"]').prop('checked', true);
+		};
+
+		/**
+		 * Get the selected post status label.
+		 *
+		 * @ignore
+		 *
+		 * @return {string} Selected post status label.
+		 */
+		getPostStatusLabel = function() {
+			var $checked = $postStatusSelect.find('input[name="post_status"]:checked');
+
+			if ( ! $checked.length ) {
+				return '';
+			}
+
+			return $postStatusSelect.find('label[for="' + $checked.attr('id') + '"]').text();
+		};
+
+		/**
+		 * Ensure a publish status radio exists and is selected.
+		 *
+		 * @ignore
+		 *
+		 * @param {string} label Publish status label.
+		 *
+		 * @return {void}
+		 */
+		ensurePublishPostStatus = function( label ) {
+			var $publishStatus = $postStatusSelect.find('input[name="post_status"][value="publish"]');
+
+			if ( ! $publishStatus.length ) {
+				$postStatusSelect.find('.post-status-options').prepend(
+					'<span class="post-status-option post-status-option-publish"><input type="radio" name="post_status" id="post-status-radio-publish" value="publish" /> <label for="post-status-radio-publish" class="selectit"></label><br /></span>'
+				);
+				$publishStatus = $postStatusSelect.find('input[name="post_status"][value="publish"]');
+			}
+
+			$publishStatus.siblings('label').text( label );
+			setPostStatusValue('publish');
+		};
+
+		/**
+		 * Remove a dynamically added publish status radio.
+		 *
+		 * @ignore
+		 *
+		 * @return {void}
+		 */
+		removePublishPostStatus = function() {
+			$postStatusSelect.find('input[name="post_status"][value="publish"]').closest('.post-status-option').remove();
+		};
+
+		/**
 		 * When the visibility of a post changes sub-options should be shown or hidden.
 		 *
 		 * @ignore
@@ -757,8 +834,8 @@ jQuery( function($) {
 			if ( ! $timestampdiv.length )
 				return true;
 
-			var attemptedDate, originalDate, currentDate, publishOn, postStatus = $('#post_status'),
-				optPublish = $('option[value="publish"]', postStatus), aa = $('#aa').val(),
+			var attemptedDate, originalDate, currentDate, publishOn, postStatusValue,
+				aa = $('#aa').val(),
 				mm = $('#mm').val(), jj = $('#jj').val(), hh = $('#hh').val(), mn = $('#mn').val();
 
 			attemptedDate = new Date( aa, mm - 1, jj, hh, mn );
@@ -823,41 +900,34 @@ jQuery( function($) {
 			// Add "privately published" to post status when applies.
 			if ( $postVisibilitySelect.find('input:radio:checked').val() == 'private' ) {
 				$('#publish').val( __( 'Update' ) );
-				if ( 0 === optPublish.length ) {
-					postStatus.append('<option value="publish">' + __( 'Privately Published' ) + '</option>');
-				} else {
-					optPublish.html( __( 'Privately Published' ) );
-				}
-				$('option[value="publish"]', postStatus).prop('selected', true);
+				ensurePublishPostStatus( __( 'Privately Published' ) );
 				$('#misc-publishing-actions .edit-post-status').hide();
 			} else {
-				if ( $('#original_post_status').val() == 'future' || $('#original_post_status').val() == 'draft' ) {
-					if ( optPublish.length ) {
-						optPublish.remove();
-						postStatus.val($('#hidden_post_status').val());
+				if ( $('#original_post_status').val() == 'future' || $('#original_post_status').val() == 'draft' || $('#original_post_status').val() == 'auto-draft' ) {
+					if ( $postStatusSelect.find('input[name="post_status"][value="publish"]').length ) {
+						removePublishPostStatus();
+						setPostStatusValue($('#hidden_post_status').val());
 					}
 				} else {
-					optPublish.html( __( 'Published' ) );
+					$postStatusSelect.find('input[name="post_status"][value="publish"]').siblings('label').text( __( 'Published' ) );
 				}
-				if ( postStatus.is(':hidden') )
+				if ( $postStatusSelect.is(':hidden') )
 					$('#misc-publishing-actions .edit-post-status').show();
 			}
 
 			// Update "Status:" to currently selected status.
 			$('#post-status-display').text(
 				// Remove any potential tags from post status text.
-				wp.sanitize.stripTagsAndEncodeText( $('option:selected', postStatus).text() )
+				wp.sanitize.stripTagsAndEncodeText( getPostStatusLabel() )
 			);
 
 			// Show or hide the "Save Draft" button.
-			if (
-				$('option:selected', postStatus).val() == 'private' ||
-				$('option:selected', postStatus).val() == 'publish'
-			) {
+			postStatusValue = getPostStatusValue();
+			if ( postStatusValue == 'private' || postStatusValue == 'publish' ) {
 				$('#save-post').hide();
 			} else {
 				$('#save-post').show();
-				if ( $('option:selected', postStatus).val() == 'pending' ) {
+				if ( postStatusValue == 'pending' ) {
 					$('#save-post').show().val( __( 'Save as Pending' ) );
 				} else {
 					$('#save-post').show().val( __( 'Save Draft' ) );
@@ -973,7 +1043,7 @@ jQuery( function($) {
 		$postStatusSelect.siblings('a.edit-post-status').on( 'click', function( event ) {
 			if ( $postStatusSelect.is( ':hidden' ) ) {
 				$postStatusSelect.slideDown( 'fast', function() {
-					$postStatusSelect.find('select').trigger( 'focus' );
+					$postStatusSelect.find('input[type="radio"]').first().trigger( 'focus' );
 				} );
 				$(this).hide();
 			}
@@ -990,7 +1060,7 @@ jQuery( function($) {
 		// Cancel Post Status editing and hide the options.
 		$postStatusSelect.find('.cancel-post-status').on( 'click', function( event ) {
 			$postStatusSelect.slideUp( 'fast' ).siblings( 'a.edit-post-status' ).show().trigger( 'focus' );
-			$('#post_status').val( $('#hidden_post_status').val() );
+			setPostStatusValue( $('#hidden_post_status').val() );
 			updateText();
 			event.preventDefault();
 		});

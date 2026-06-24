@@ -706,10 +706,17 @@ form#tags-filter {
 	font-weight: 600;
 }
 
+#post-status-select,
 #post-visibility-select,
 #comment-status-radio {
 	line-height: 1.5;
 	margin-top: 3px;
+}
+
+#post-status-select .post-status-options {
+	border: 0;
+	margin: 0 0 0.7em;
+	padding: 0;
 }
 
 #linksubmitdiv .inside, /* Old Link Manager back-compat. */
