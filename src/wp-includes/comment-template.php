@@ -1185,6 +1185,9 @@ function get_comment_type( $comment_id = 0 ) {
  * @param string|false $pingback_text  Optional. String to display for pingback type. Default false.
  */
 function comment_type( $comment_text = false, $trackback_text = false, $pingback_text = false ) {
+	// Whether the caller supplied custom text for the default comment label.
+	$comment_text_overridden = ( false !== $comment_text );
+
 	if ( false === $comment_text ) {
 		$comment_text = _x( 'Comment', 'noun' );
 	}
@@ -1203,7 +1206,18 @@ function comment_type( $comment_text = false, $trackback_text = false, $pingback
 			echo $pingback_text;
 			break;
 		default:
-			echo $comment_text;
+			/*
+			 * For a registered, non-built-in comment type, fall back to its singular label
+			 * when the caller did not supply custom text. Built-in types and explicit
+			 * overrides keep their existing output.
+			 */
+			$comment_type_object = $comment_text_overridden ? null : get_comment_type_object( $type );
+
+			if ( $comment_type_object && ! $comment_type_object->_builtin && isset( $comment_type_object->labels->singular_name ) ) {
+				echo $comment_type_object->labels->singular_name;
+			} else {
+				echo $comment_text;
+			}
 	}
 }
 
