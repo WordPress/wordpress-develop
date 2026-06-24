@@ -537,6 +537,7 @@ class WP_Comment_Query {
 	 *
 	 * @since 4.4.0
 	 * @since 6.9.0 Excludes the 'note' comment type, unless 'all' or the 'note' types are requested.
+	 * @since 6.10.0 The default-excluded comment types are filterable via {@see 'default_excluded_comment_types'}.
 	 *
 	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *
@@ -771,13 +772,36 @@ class WP_Comment_Query {
 			'NOT IN' => (array) $this->query_vars['type__not_in'],
 		);
 
-		// Exclude the 'note' comment type, unless 'all' types or the 'note' type explicitly are requested.
-		if (
-			! in_array( 'all', $raw_types['IN'], true ) &&
-			! in_array( 'note', $raw_types['IN'], true ) &&
-			! in_array( 'note', $raw_types['NOT IN'], true )
-		) {
-			$raw_types['NOT IN'][] = 'note';
+		/**
+		 * Filters the comment types that are excluded from query results by default.
+		 *
+		 * Comment types in this list are omitted from `WP_Comment_Query` results
+		 * unless the query explicitly requests the 'all' type, or requests the
+		 * specific type via the 'type', 'type__in', or 'type__not_in' query
+		 * variables.
+		 *
+		 * This allows plugins to register "private" comment types that should not
+		 * surface in standard comment listings, counts, or feeds, without having
+		 * to filter every query individually. The 'note' comment type, used by the
+		 * editor, is excluded by default.
+		 *
+		 * @since 6.10.0
+		 *
+		 * @param string[]         $excluded_types Comment types excluded from query results by default.
+		 *                                         Default array contains the 'note' type.
+		 * @param WP_Comment_Query $query          The WP_Comment_Query instance (passed by reference).
+		 */
+		$excluded_types = apply_filters_ref_array( 'default_excluded_comment_types', array( array( 'note' ), &$this ) );
+
+		// Exclude the default-excluded comment types, unless 'all' types or that type explicitly are requested.
+		foreach ( array_unique( (array) $excluded_types ) as $excluded_type ) {
+			if (
+				! in_array( 'all', $raw_types['IN'], true ) &&
+				! in_array( $excluded_type, $raw_types['IN'], true ) &&
+				! in_array( $excluded_type, $raw_types['NOT IN'], true )
+			) {
+				$raw_types['NOT IN'][] = $excluded_type;
+			}
 		}
 
 		$comment_types = array();

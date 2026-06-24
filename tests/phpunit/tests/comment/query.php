@@ -5534,4 +5534,217 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 		$this->assertSame( 1, $counts['all'] );
 		$this->assertSame( 1, $counts['total_comments'] );
 	}
+
+	/**
+	 * Helper method to create the standard set of comments used by the
+	 * `default_excluded_comment_types` filter tests.
+	 *
+	 * Creates one comment of each of the 'comment', 'note', and 'private' types.
+	 *
+	 * @since 6.10.0
+	 *
+	 * @return array<'comment'|'note'|'private', int> Array of created comment IDs keyed by type.
+	 */
+	protected function create_excluded_type_test_comments(): array {
+		return array(
+			'comment' => self::factory()->comment->create(
+				array(
+					'comment_post_ID'  => self::$post_id,
+					'comment_approved' => '1',
+				)
+			),
+			'note'    => self::factory()->comment->create(
+				array(
+					'comment_post_ID'  => self::$post_id,
+					'comment_approved' => '1',
+					'comment_type'     => 'note',
+				)
+			),
+			'private' => self::factory()->comment->create(
+				array(
+					'comment_post_ID'  => self::$post_id,
+					'comment_approved' => '1',
+					'comment_type'     => 'private',
+				)
+			),
+		);
+	}
+
+	/**
+	 * Returns the comment types for a list of comment IDs.
+	 *
+	 * @param int[] $comment_ids Comment IDs.
+	 * @return string[] Comment types.
+	 */
+	private function get_comment_types_for_ids( array $comment_ids ): array {
+		return array_map(
+			static function ( int $comment_id ): string {
+				return get_comment( $comment_id )->comment_type;
+			},
+			$comment_ids
+		);
+	}
+
+	/**
+	 * A custom comment type added through the filter is excluded by default,
+	 * alongside the default-excluded 'note' type.
+	 *
+	 * @ticket 65537
+	 * @covers WP_Comment_Query::get_comment_ids
+	 */
+	public function test_default_excluded_comment_types_filter_excludes_custom_type() {
+		$this->create_excluded_type_test_comments();
+
+		add_filter(
+			'default_excluded_comment_types',
+			static function ( array $types ): array {
+				$types[] = 'private';
+				return $types;
+			}
+		);
+
+		$query = new WP_Comment_Query();
+		$found = $query->query( array( 'fields' => 'ids' ) );
+
+		$this->assertSameSets(
+			array( 'comment' ),
+			$this->get_comment_types_for_ids( $found ),
+			'The custom excluded type and the default note type should both be omitted.'
+		);
+	}
+
+	/**
+	 * Removing 'note' from the filtered list makes notes appear in default queries,
+	 * proving the default exclusion itself is filterable.
+	 *
+	 * @ticket 65537
+	 * @covers WP_Comment_Query::get_comment_ids
+	 */
+	public function test_default_excluded_comment_types_filter_can_remove_note() {
+		$this->create_excluded_type_test_comments();
+
+		add_filter( 'default_excluded_comment_types', '__return_empty_array' );
+
+		$query = new WP_Comment_Query();
+		$found = $query->query( array( 'fields' => 'ids' ) );
+
+		$this->assertSameSets(
+			array( 'comment', 'note', 'private' ),
+			$this->get_comment_types_for_ids( $found ),
+			'With an empty exclusion list, all comment types should be returned.'
+		);
+	}
+
+	/**
+	 * A custom excluded type is still returned when explicitly requested.
+	 *
+	 * @ticket 65537
+	 * @covers WP_Comment_Query::get_comment_ids
+	 * @dataProvider data_default_excluded_comment_types_explicit_request
+	 *
+	 * @param array<string, string|array> $query_args     Query arguments for WP_Comment_Query.
+	 * @param string[]                    $expected_types Expected comment types.
+	 */
+	public function test_default_excluded_comment_types_filter_respects_explicit_request( array $query_args, array $expected_types ) {
+		$this->create_excluded_type_test_comments();
+
+		add_filter(
+			'default_excluded_comment_types',
+			static function ( array $types ): array {
+				$types[] = 'private';
+				return $types;
+			}
+		);
+
+		$query = new WP_Comment_Query();
+		$found = $query->query( array_merge( $query_args, array( 'fields' => 'ids' ) ) );
+
+		$this->assertSameSets( $expected_types, $this->get_comment_types_for_ids( $found ) );
+	}
+
+	/**
+	 * Data provider for explicit-request tests against a filtered excluded type.
+	 *
+	 * @since 6.10.0
+	 *
+	 * @return array<string, array{ query_args: array<string, string|array>, expected_types: string[] }>
+	 */
+	public function data_default_excluded_comment_types_explicit_request(): array {
+		return array(
+			'type all includes excluded types'      => array(
+				'query_args'     => array( 'type' => 'all' ),
+				'expected_types' => array( 'comment', 'note', 'private' ),
+			),
+			'explicit custom type'                  => array(
+				'query_args'     => array( 'type' => 'private' ),
+				'expected_types' => array( 'private' ),
+			),
+			'custom type via type__in'              => array(
+				'query_args'     => array( 'type__in' => array( 'private' ) ),
+				'expected_types' => array( 'private' ),
+			),
+			'custom type with comment via type__in' => array(
+				'query_args'     => array( 'type__in' => array( 'private', 'comment' ) ),
+				'expected_types' => array( 'private', 'comment' ),
+			),
+		);
+	}
+
+	/**
+	 * The filter receives the default 'note' type and the WP_Comment_Query instance.
+	 *
+	 * @ticket 65537
+	 * @covers WP_Comment_Query::get_comment_ids
+	 */
+	public function test_default_excluded_comment_types_filter_receives_default_and_instance() {
+		$filter_args = array();
+
+		add_filter(
+			'default_excluded_comment_types',
+			static function ( $types, $query ) use ( &$filter_args ) {
+				$filter_args = array( $types, $query );
+				return $types;
+			},
+			10,
+			2
+		);
+
+		$query = new WP_Comment_Query();
+		$query->query( array( 'fields' => 'ids' ) );
+
+		$this->assertSame( array( 'note' ), $filter_args[0], 'The filter should receive the default note type.' );
+		$this->assertInstanceOf( WP_Comment_Query::class, $filter_args[1], 'The filter should receive the query instance.' );
+	}
+
+	/**
+	 * A custom excluded type is only added once to the query, even when a query
+	 * already excludes it via type__not_in.
+	 *
+	 * @ticket 65537
+	 * @covers WP_Comment_Query::get_comment_ids
+	 */
+	public function test_default_excluded_comment_types_filter_not_duplicated_in_query() {
+		global $wpdb;
+
+		$this->create_excluded_type_test_comments();
+
+		add_filter(
+			'default_excluded_comment_types',
+			static function ( array $types ): array {
+				$types[] = 'private';
+				return $types;
+			}
+		);
+
+		$query = new WP_Comment_Query();
+		$query->query(
+			array(
+				'type__not_in' => array( 'private' ),
+				'fields'       => 'ids',
+			)
+		);
+
+		$private_count = substr_count( $wpdb->last_query, "'private'" );
+		$this->assertSame( 1, $private_count, 'The private type should only appear once in the query.' );
+	}
 }
