@@ -28,27 +28,27 @@ class Tests_Functions_WpUniqueFilename extends WP_UnitTestCase {
 	 */
 	public function data_wp_unique_filename() {
 		return array(
-			'non-existing file'                 => array(
+			'non-existing file'                     => array(
 				'filename' => 'abcdefg.png',
 				'expected' => 'abcdefg.png',
 				'message'  => 'Test non-existing file, file name should be unchanged.',
 			),
-			'file already exists'               => array(
+			'file already exists'                   => array(
 				'filename' => 'test-image.png',
 				'expected' => 'test-image-1.png',
 				'message'  => 'File name not unique, number not appended.',
 			),
-			'uppercase extension'               => array(
+			'uppercase extension'                   => array(
 				'filename' => 'test-image.PNG',
 				'expected' => 'test-image-1.png',
 				'message'  => 'File name with uppercase extension not unique, number not appended.',
 			),
-			'already added number'              => array(
+			'already added number'                  => array(
 				'filename' => 'test-image-2.gif',
 				'expected' => 'test-image-2-1.gif',
 				'message'  => 'File name not unique, number not appended correctly.',
 			),
-			'special chars'                     => array(
+			'special chars'                         => array(
 				'filename' => 'testtést-imagé.png',
 				'expected' => 'testtest-image.png',
 				'message'  => 'Filename with special chars failed',
@@ -58,32 +58,32 @@ class Tests_Functions_WpUniqueFilename extends WP_UnitTestCase {
 				'expected' => 'test-image-1.png',
 				'message'  => 'Filename with special chars failed',
 			),
-			'single quotes in name'             => array(
+			'single quotes in name'                 => array(
 				'filename' => "abcdefg'h.png",
 				'expected' => 'abcdefgh.png',
 				'message'  => 'File with quote failed',
 			),
-			'double quotes in name'             => array(
+			'double quotes in name'                 => array(
 				'filename' => 'abcdefg"h.png',
 				'expected' => 'abcdefgh.png',
 				'message'  => 'File with quote failed',
 			),
-			'crazy name'                        => array(
+			'crazy name'                            => array(
 				'filename' => '12%af34567890#~!@#$..%^&*()|_+qwerty  fgh`jkl zx<>?:"{}[]="\'/?.png',
 				'expected' => '12af34567890@.^_qwerty-fghjkl-zx.png',
 				'message'  => 'Failed crazy file name',
 			),
-			'single slash'                      => array(
+			'single slash'                          => array(
 				'filename' => 'abcde\fg.png',
 				'expected' => 'abcdefg.png',
 				'message'  => 'Slash not removed',
 			),
-			'double slash'                      => array(
+			'double slash'                          => array(
 				'filename' => 'abcde\\fg.png',
 				'expected' => 'abcdefg.png',
 				'message'  => 'Double slashed not removed',
 			),
-			'triple slash'                      => array(
+			'triple slash'                          => array(
 				'filename' => 'abcde\\\fg.png',
 				'expected' => 'abcdefg.png',
 				'message'  => 'Triple slashed not removed',
