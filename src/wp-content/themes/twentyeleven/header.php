@@ -44,7 +44,6 @@ if ( ( $paged >= 2 || $page >= 2 ) && ! is_404() ) {
 	</title>
 <link rel="profile" href="https://gmpg.org/xfn/11" />
 <link rel="stylesheet" media="all" href="<?php echo esc_url( get_stylesheet_uri() ); ?>?ver=20260520" />
-<link rel="pingback" href="<?php echo esc_url( get_bloginfo( 'pingback_url' ) ); ?>">
 <?php
 	/*
 	 * We add some JavaScript to pages with the comment form

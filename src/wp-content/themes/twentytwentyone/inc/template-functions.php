@@ -60,11 +60,8 @@ add_filter( 'post_class', 'twenty_twenty_one_post_classes', 10, 3 );
  * @return void
  */
 function twenty_twenty_one_pingback_header() {
-	if ( is_singular() && pings_open() ) {
-		echo '<link rel="pingback" href="', esc_url( get_bloginfo( 'pingback_url' ) ), '">';
-	}
+	wp_pingback_link();
 }
-add_action( 'wp_head', 'twenty_twenty_one_pingback_header' );
 
 /**
  * Removes the `no-js` class from body if JS is supported.

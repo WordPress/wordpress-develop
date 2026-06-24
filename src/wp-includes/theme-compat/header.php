@@ -24,7 +24,6 @@ _deprecated_file(
 <title><?php echo wp_get_document_title(); ?></title>
 
 <link rel="stylesheet" href="<?php bloginfo( 'stylesheet_url' ); ?>" media="screen" />
-<link rel="pingback" href="<?php bloginfo( 'pingback_url' ); ?>" />
 
 <?php if ( file_exists( get_stylesheet_directory() . '/images/kubrickbgwide.jpg' ) ) { ?>
 <style media="screen">

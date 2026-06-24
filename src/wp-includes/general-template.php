@@ -3562,6 +3562,24 @@ function rsd_link() {
 }
 
 /**
+ * Displays the link to the pingback XML-RPC endpoint.
+ *
+ * @since 7.1.0
+ *
+ * @return void
+ */
+function wp_pingback_link() {
+	if ( ! is_singular() || ! pings_open( get_queried_object() ) ) {
+		return;
+	}
+
+	printf(
+		'<link rel="pingback" href="%s" />' . "\n",
+		esc_url( get_bloginfo( 'pingback_url', 'display' ) )
+	);
+}
+
+/**
  * Displays a referrer `strict-origin-when-cross-origin` meta tag.
  *
  * Outputs a referrer `strict-origin-when-cross-origin` meta tag that tells the browser not to send
