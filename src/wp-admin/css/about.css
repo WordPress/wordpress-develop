@@ -278,7 +278,7 @@
 	.about__section.has-2-columns.is-wider-right,
 	.about__section.has-2-columns.is-wider-left,
 	.about__section.has-3-columns {
-		display: block;
+		display: flex;
 		margin-bottom: calc(var(--gap) / 2);
 	}
 
@@ -337,6 +337,7 @@
 	/* Make image containers appear first */
 	.about__section.has-2-columns .column:has(.about__image) {
 		order: 2;
+		text-align: center;
 	}
 
 	/* Make text containers appear second */
@@ -515,7 +516,6 @@
 
 .about__container .about__image img {
 	max-width: 100%;
-	width: 100%;
 	height: auto;
 	border-radius: var(--border-radius);
 }

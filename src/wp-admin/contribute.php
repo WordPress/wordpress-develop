@@ -48,10 +48,12 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 	</nav>
 
 	<div class="about__section has-2-columns is-wider-right">
-		<div class="column">
-			<img src="<?php echo esc_url( admin_url( 'images/contribute-main.svg?ver=6.5' ) ); ?>" alt="" width="290" height="290" />
+		<div class="column is-left-padding-zero">
+			<div class="about__image">
+				<img src="<?php echo esc_url( admin_url( 'images/contribute-main.svg?ver=6.5' ) ); ?>" alt="" width="290" height="290" />
+			</div>
 		</div>
-		<div class="column is-vertically-aligned-center">
+		<div class="column is-vertically-aligned-center is-right-padding-zero">
 			<p><?php _e( 'Do you use WordPress for work, for personal projects, or even just for fun? You can help shape the long-term success of the open source project that powers millions of websites around the world.' ); ?></p>
 			<p><?php _e( 'Join the diverse WordPress contributor community and connect with other people who are passionate about maintaining a free and open web.' ); ?></p>
 
@@ -64,7 +66,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 	</div>
 
 	<div class="about__section has-2-columns is-wider-left">
-		<div class="column is-vertically-aligned-center">
+		<div class="column is-vertically-aligned-center is-left-padding-zero">
 			<h2 class="is-smaller-heading"><?php _e( 'No-code contribution' ); ?></h2>
 			<p><?php _e( 'WordPress may thrive on technical contributions, but you don&#8217;t have to code to contribute. Here are some of the ways you can make an impact without writing a single line of code:' ); ?></p>
 			<ul>
@@ -80,15 +82,19 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 				<li><?php _e( '<strong>Explore</strong> ways to reduce the environmental impact of websites.' ); ?></li>
 			</ul>
 		</div>
-		<div class="column">
-			<img src="<?php echo esc_url( admin_url( 'images/contribute-no-code.svg?ver=6.5' ) ); ?>" alt="" width="290" height="290" />
+		<div class="column is-right-padding-zero">
+			<div class="about__image">
+				<img src="<?php echo esc_url( admin_url( 'images/contribute-no-code.svg?ver=6.5' ) ); ?>" alt="" width="290" height="290" />
+			</div>
 		</div>
 	</div>
 	<div class="about__section has-2-columns is-wider-right">
-		<div class="column">
-			<img src="<?php echo esc_url( admin_url( 'images/contribute-code.svg?ver=6.5' ) ); ?>" alt="" width="290" height="290" />
+		<div class="column is-left-padding-zero">
+			<div class="about__image">
+				<img src="<?php echo esc_url( admin_url( 'images/contribute-code.svg?ver=6.5' ) ); ?>" alt="" width="290" height="290" />
+			</div>
 		</div>
-		<div class="column is-vertically-aligned-center">
+		<div class="column is-vertically-aligned-center is-right-padding-zero">
 			<h2 class="is-smaller-heading"><?php _e( 'Code-based contribution' ); ?></h2>
 			<p><?php _e( 'If you do code, or want to learn how, you can contribute technically in numerous ways:' ); ?></p>
 			<ul>
