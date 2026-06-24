@@ -205,6 +205,82 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensures reconstructed active formatting elements expose their original attributes.
+	 *
+	 * @ticket 58517
+	 *
+	 * @covers WP_HTML_Processor::reconstruct_active_formatting_elements
+	 * @covers WP_HTML_Processor::get_attribute
+	 * @covers WP_HTML_Processor::get_attribute_names_with_prefix
+	 * @covers WP_HTML_Processor::get_qualified_attribute_name
+	 * @covers WP_HTML_Processor::has_class
+	 * @covers WP_HTML_Processor::class_list
+	 */
+	public function test_reconstructed_formatting_elements_expose_source_attributes() {
+		$processor = WP_HTML_Processor::create_fragment(
+			'<p><em class="one two" data-test-id="14" inert>One<p><span>Two'
+		);
+
+		$this->assertTrue( $processor->next_tag( 'EM' ), 'Could not find original EM.' );
+		$this->assertTrue( $processor->next_tag( 'EM' ), 'Could not find reconstructed EM.' );
+
+		$this->assertSame( 'one two', $processor->get_attribute( 'class' ) );
+		$this->assertSame( '14', $processor->get_attribute( 'data-test-id' ) );
+		$this->assertTrue( $processor->get_attribute( 'inert' ) );
+		$this->assertSame( 'data-test-id', $processor->get_qualified_attribute_name( 'data-test-id' ) );
+		$this->assertTrue( $processor->has_class( 'one' ) );
+		$this->assertFalse( $processor->has_class( 'missing' ) );
+		$this->assertSame( array( 'one', 'two' ), iterator_to_array( $processor->class_list() ) );
+
+		$attribute_names = $processor->get_attribute_names_with_prefix( '' );
+		sort( $attribute_names );
+		$this->assertSame( array( 'class', 'data-test-id', 'inert' ), $attribute_names );
+	}
+
+	/**
+	 * Ensures reconstructed active formatting elements reparse updated source attributes.
+	 *
+	 * @ticket 58517
+	 *
+	 * @covers WP_HTML_Processor::reconstruct_active_formatting_elements
+	 * @covers WP_HTML_Processor::get_attribute
+	 */
+	public function test_reconstructed_formatting_elements_expose_updated_source_attributes() {
+		$processor = WP_HTML_Processor::create_fragment( '<p><em class="before">One<p><span>Two' );
+
+		$this->assertTrue( $processor->next_tag( 'EM' ), 'Could not find original EM.' );
+		$processor->set_attribute( 'class', 'after' );
+		$processor->get_updated_html();
+
+		$this->assertTrue( $processor->next_tag( 'EM' ), 'Could not find reconstructed EM.' );
+		$this->assertSame( 'after', $processor->get_attribute( 'class' ) );
+	}
+
+	/**
+	 * Ensures synthetic virtual elements do not report source attributes.
+	 *
+	 * @ticket 58517
+	 *
+	 * @covers WP_HTML_Processor::get_attribute
+	 * @covers WP_HTML_Processor::get_attribute_names_with_prefix
+	 * @covers WP_HTML_Processor::get_qualified_attribute_name
+	 * @covers WP_HTML_Processor::has_class
+	 * @covers WP_HTML_Processor::class_list
+	 */
+	public function test_synthetic_virtual_elements_do_not_expose_attributes() {
+		$processor = WP_HTML_Processor::create_fragment( '</p>' );
+
+		$this->assertTrue( $processor->next_tag(), 'Could not find implied P opener.' );
+		$this->assertSame( 'P', $processor->get_tag() );
+		$this->assertFalse( $processor->is_tag_closer() );
+		$this->assertNull( $processor->get_attribute( 'class' ) );
+		$this->assertNull( $processor->get_attribute_names_with_prefix( '' ) );
+		$this->assertNull( $processor->get_qualified_attribute_name( 'class' ) );
+		$this->assertNull( $processor->has_class( 'anything' ) );
+		$this->assertNull( $processor->class_list() );
+	}
+
+	/**
 	 * Ensure non-nesting tags do not nest.
 	 *
 	 * @ticket 60283

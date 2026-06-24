@@ -708,7 +708,7 @@ class WP_HTML_Tag_Processor {
 	 * @since 6.2.0
 	 * @var WP_HTML_Attribute_Token[]
 	 */
-	protected $attributes = array();
+	private $attributes = array();
 
 	/**
 	 * Tracks spans of duplicate attributes on a given tag, used for removing
@@ -3085,29 +3085,14 @@ class WP_HTML_Tag_Processor {
 			return null;
 		}
 
-		$namespace = $this->get_namespace();
-		return self::lookup_qualified_attribute_name( $namespace, $attribute_name );
-	}
-
-	/**
-	 * Returns the adjusted attribute name for a given attribute, taking into
-	 * account the provided namespace.
-	 *
-	 * @since 7.0.0
-	 *
-	 * @param string $ns             The namespace to use: 'html', 'svg', or 'math'.
-	 * @param string $attribute_name Which attribute to adjust.
-	 *
-	 * @return string The qualified attribute name.
-	 */
-	final protected static function lookup_qualified_attribute_name( string $ns, string $attribute_name ): string {
+		$namespace  = $this->get_namespace();
 		$lower_name = strtolower( $attribute_name );
 
-		if ( 'math' === $ns && 'definitionurl' === $lower_name ) {
+		if ( 'math' === $namespace && 'definitionurl' === $lower_name ) {
 			return 'definitionURL';
 		}
 
-		if ( 'svg' === $ns ) {
+		if ( 'svg' === $namespace ) {
 			switch ( $lower_name ) {
 				case 'attributename':
 					return 'attributeName';
@@ -3285,7 +3270,7 @@ class WP_HTML_Tag_Processor {
 			}
 		}
 
-		if ( 'html' !== $ns ) {
+		if ( 'html' !== $namespace ) {
 			switch ( $lower_name ) {
 				case 'xlink:actuate':
 					return 'xlink actuate';

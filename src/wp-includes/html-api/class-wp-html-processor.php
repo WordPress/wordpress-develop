@@ -258,18 +258,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 */
 	private $context_node = null;
 
-	/**
-	 * If a formatting element has been reconstructed, this will hold
-	 * the parsed attributes from the original format, once requested.
-	 *
-	 * These attributes are not modifiable.
-	 *
-	 * @since 7.0.0
-	 *
-	 * @var array
-	 */
-	protected $actively_reconstructed_formatting_attributes = array();
-
 	/*
 	 * Public Interface Functions
 	 */
@@ -910,6 +898,49 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			isset( $this->current_element->provenance ) &&
 			'virtual' === $this->current_element->provenance
 		);
+	}
+
+	/**
+	 * Returns a Tag Processor paused at the original source token for a virtual token.
+	 *
+	 * @since 7.0.0
+	 *
+	 * @return WP_HTML_Tag_Processor|null Processor paused at the source token, or null when unavailable.
+	 */
+	private function get_virtual_token_processor(): ?WP_HTML_Tag_Processor {
+		if (
+			! $this->is_virtual() ||
+			WP_HTML_Stack_Event::PUSH !== $this->current_element->operation
+		) {
+			return null;
+		}
+
+		$token = $this->current_element->token;
+		if ( ! isset( $token->bookmark_name, $this->bookmarks[ $token->bookmark_name ] ) ) {
+			return null;
+		}
+
+		$source_span = $this->bookmarks[ $token->bookmark_name ];
+		if ( 0 === $source_span->length ) {
+			return null;
+		}
+
+		$processor              = new WP_HTML_Tag_Processor(
+			substr( $this->html, $source_span->start, $source_span->length )
+		);
+		$processor->compat_mode = $this->compat_mode;
+		$processor->change_parsing_namespace( $token->namespace );
+
+		if (
+			! $processor->next_token() ||
+			'#tag' !== $processor->get_token_type() ||
+			$processor->is_tag_closer() ||
+			$token->node_name !== $processor->get_tag()
+		) {
+			return null;
+		}
+
+		return $processor;
 	}
 
 	/**
@@ -2878,7 +2909,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				if ( false === $this->state->active_formatting_elements->push( $this->state->current_token ) ) {
 					$this->bail( 'Cannot track formatting elements when encountering a fourth identical token.' );
 				}
-				$this->actively_reconstructed_formatting_attributes[ $this->state->current_token->bookmark_name ] = $this->attributes;
 				return true;
 
 			/*
@@ -2902,7 +2932,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				if ( false === $this->state->active_formatting_elements->push( $this->state->current_token ) ) {
 					$this->bail( 'Cannot track formatting elements when encountering a fourth identical token.' );
 				}
-				$this->actively_reconstructed_formatting_attributes[ $this->state->current_token->bookmark_name ] = $this->attributes;
 				return true;
 
 			/*
@@ -2921,7 +2950,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				if ( false === $this->state->active_formatting_elements->push( $this->state->current_token ) ) {
 					$this->bail( 'Cannot track formatting elements when encountering a fourth identical token.' );
 				}
-				$this->actively_reconstructed_formatting_attributes[ $this->state->current_token->bookmark_name ] = $this->attributes;
 				return true;
 
 			/*
@@ -5441,23 +5469,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 */
 	public function get_attribute( $name ) {
 		if ( $this->is_virtual() ) {
-			$virtual_attributes = $this->actively_reconstructed_formatting_attributes[ $this->current_element->token->bookmark_name ?? '' ] ?? null;
-			if ( null === $virtual_attributes ) {
-				return null;
-			}
-
-			$current_attributes    = $this->attributes;
-			$current_updates       = $this->lexical_updates;
-			$this->lexical_updates = array();
-			$this->attributes      = $virtual_attributes;
-			$parser_state          = $this->parser_state;
-			$this->parser_state    = WP_HTML_Tag_Processor::STATE_MATCHED_TAG;
-			$attribute_value       = parent::get_attribute( $name );
-			$this->attributes      = $current_attributes;
-			$this->parser_state    = $parser_state;
-			$this->lexical_updates = $current_updates;
-
-			return $attribute_value;
+			$processor = $this->get_virtual_token_processor();
+			return $processor ? $processor->get_attribute( $name ) : null;
 		}
 
 		return parent::get_attribute( $name );
@@ -5475,8 +5488,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 */
 	public function get_qualified_attribute_name( $attribute_name ): ?string {
 		if ( $this->is_virtual() ) {
-			$namespace = $this->current_element->token->namespace;
-			return self::lookup_qualified_attribute_name( $namespace, $attribute_name );
+			$processor = $this->get_virtual_token_processor();
+			return $processor ? $processor->get_qualified_attribute_name( $attribute_name ) : null;
 		}
 
 		return parent::get_qualified_attribute_name( $attribute_name );
@@ -5558,23 +5571,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 */
 	public function get_attribute_names_with_prefix( $prefix ): ?array {
 		if ( $this->is_virtual() ) {
-			$virtual_attributes = $this->actively_reconstructed_formatting_attributes[ $this->current_element->token->bookmark_name ?? '' ] ?? null;
-			if ( null === $virtual_attributes ) {
-				return null;
-			}
-
-			$current_attributes    = $this->attributes;
-			$current_updates       = $this->lexical_updates;
-			$this->lexical_updates = array();
-			$this->attributes      = $virtual_attributes;
-			$parser_state          = $this->parser_state;
-			$this->parser_state    = WP_HTML_Tag_Processor::STATE_MATCHED_TAG;
-			$attribute_names       = parent::get_attribute_names_with_prefix( $prefix );
-			$this->attributes      = $current_attributes;
-			$this->parser_state    = $parser_state;
-			$this->lexical_updates = $current_updates;
-
-			return $attribute_names;
+			$processor = $this->get_virtual_token_processor();
+			return $processor ? $processor->get_attribute_names_with_prefix( $prefix ) : null;
 		}
 
 		return parent::get_attribute_names_with_prefix( $prefix );
@@ -5609,15 +5607,16 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @since 6.6.0 Subclassed for the HTML Processor.
 	 *
-	 * @todo When reconstructing active formatting elements with attributes, find a way
-	 *       to indicate if the virtually-reconstructed formatting elements contain the
-	 *       wanted class name.
-	 *
 	 * @param string $wanted_class Look for this CSS class name, ASCII case-insensitive.
 	 * @return bool|null Whether the matched tag contains the given class name, or null if not matched.
 	 */
 	public function has_class( $wanted_class ): ?bool {
-		return $this->is_virtual() ? null : parent::has_class( $wanted_class );
+		if ( $this->is_virtual() ) {
+			$processor = $this->get_virtual_token_processor();
+			return $processor ? $processor->has_class( $wanted_class ) : null;
+		}
+
+		return parent::has_class( $wanted_class );
 	}
 
 	/**
@@ -5637,7 +5636,12 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @since 6.6.0 Subclassed for the HTML Processor.
 	 */
 	public function class_list() {
-		return $this->is_virtual() ? null : parent::class_list();
+		if ( $this->is_virtual() ) {
+			$processor = $this->get_virtual_token_processor();
+			return $processor ? $processor->class_list() : null;
+		}
+
+		return parent::class_list();
 	}
 
 	/**
