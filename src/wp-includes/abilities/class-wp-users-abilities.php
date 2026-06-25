@@ -269,22 +269,34 @@ class WP_Users_Abilities {
 	 * @return WP_User|null User object, or null when not found.
 	 */
 	private static function find_user( array $input ): ?WP_User {
-		if ( isset( $input['id'] ) ) {
+		if ( array_key_exists( 'id', $input ) ) {
 			$user = get_userdata( self::input_int( $input['id'] ) );
 			return $user instanceof WP_User ? $user : null;
 		}
 
-		if ( isset( $input['user_email'] ) && is_string( $input['user_email'] ) ) {
+		if ( array_key_exists( 'user_email', $input ) ) {
+			if ( ! is_string( $input['user_email'] ) ) {
+				return null;
+			}
+
 			$user = get_user_by( 'email', sanitize_email( $input['user_email'] ) );
 			return $user instanceof WP_User ? $user : null;
 		}
 
-		if ( isset( $input['user_login'] ) && is_string( $input['user_login'] ) ) {
+		if ( array_key_exists( 'user_login', $input ) ) {
+			if ( ! is_string( $input['user_login'] ) ) {
+				return null;
+			}
+
 			$user = get_user_by( 'login', $input['user_login'] );
 			return $user instanceof WP_User ? $user : null;
 		}
 
-		if ( isset( $input['user_nicename'] ) && is_string( $input['user_nicename'] ) ) {
+		if ( array_key_exists( 'user_nicename', $input ) ) {
+			if ( ! is_string( $input['user_nicename'] ) ) {
+				return null;
+			}
+
 			$user = get_user_by( 'slug', sanitize_title( $input['user_nicename'] ) );
 			return $user instanceof WP_User ? $user : null;
 		}
