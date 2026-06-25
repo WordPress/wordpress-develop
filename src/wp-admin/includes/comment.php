@@ -139,6 +139,8 @@ function get_comment_to_edit( $id ) {
  *
  * @since 2.3.0
  * @since 6.9.0 Exclude the 'note' comment type from the count.
+ * @since 7.1.0 The excluded comment types are derived from the
+ *              {@see 'default_excluded_comment_types'} filter.
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
@@ -158,7 +160,21 @@ function get_pending_comments_num( $post_id ) {
 	$post_id_array = array_map( 'intval', $post_id_array );
 	$post_id_in    = "'" . implode( "', '", $post_id_array ) . "'";
 
-	$pending = $wpdb->get_results( "SELECT comment_post_ID, COUNT(comment_ID) as num_comments FROM $wpdb->comments WHERE comment_post_ID IN ( $post_id_in ) AND comment_approved = '0' AND comment_type != 'note' GROUP BY comment_post_ID", ARRAY_A );
+	/** This filter is documented in wp-includes/class-wp-comment-query.php */
+	$excluded_types = apply_filters( 'default_excluded_comment_types', array( 'note' ), null );
+	$excluded_types = array_unique( array_filter( array_map( 'strval', (array) $excluded_types ) ) );
+
+	$type_not_in = '';
+	if ( $excluded_types ) {
+		$type_not_in = $wpdb->prepare(
+			sprintf( ' AND comment_type NOT IN ( %s )', implode( ', ', array_fill( 0, count( $excluded_types ), '%s' ) ) ),
+			$excluded_types
+		);
+	}
+
+	// $post_id_in is built from integers and $type_not_in is prepared above.
+	// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+	$pending = $wpdb->get_results( "SELECT comment_post_ID, COUNT(comment_ID) as num_comments FROM $wpdb->comments WHERE comment_post_ID IN ( $post_id_in ) AND comment_approved = '0'$type_not_in GROUP BY comment_post_ID", ARRAY_A );
 
 	if ( $single ) {
 		if ( empty( $pending ) ) {
