@@ -35,6 +35,18 @@ class WP_REST_Abilities_V1_List_Controller extends WP_REST_Controller {
 	protected $rest_base = 'abilities';
 
 	/**
+	 * Lookup map of allowed schema keywords for preparing ability schemas in REST responses.
+	 *
+	 * Keyword names are stored as keys so they can be matched with
+	 * array_intersect_key(). Computed lazily on first use and reused while
+	 * preparing nested schemas.
+	 *
+	 * @since 7.1.0
+	 * @var array<string, true>
+	 */
+	private array $allowed_schema_keyword_lookup;
+
+	/**
 	 * Registers the routes for abilities.
 	 *
 	 * @since 6.9.0
@@ -96,6 +108,11 @@ class WP_REST_Abilities_V1_List_Controller extends WP_REST_Controller {
 
 		if ( ! empty( $request['namespace'] ) ) {
 			$query_args['namespace'] = $request['namespace'];
+		}
+
+		if ( ! empty( $request['meta'] ) ) {
+			// Merge caller meta first so the forced show_in_rest filter wins. This keeps a caller from using meta to reveal abilities hidden from REST.
+			$query_args['meta'] = array_merge( $request['meta'], $query_args['meta'] );
 		}
 
 		$abilities = wp_get_abilities( $query_args );
@@ -189,18 +206,6 @@ class WP_REST_Abilities_V1_List_Controller extends WP_REST_Controller {
 	}
 
 	/**
-	 * WordPress-internal schema keywords to strip from REST responses.
-	 *
-	 * @since 7.0.0
-	 * @var array<string, true>
-	 */
-	private const INTERNAL_SCHEMA_KEYWORDS = array(
-		'sanitize_callback' => true,
-		'validate_callback' => true,
-		'arg_options'       => true,
-	);
-
-	/**
 	 * Determines whether the value is an associative array.
 	 *
 	 * @since 7.1.0
@@ -215,14 +220,42 @@ class WP_REST_Abilities_V1_List_Controller extends WP_REST_Controller {
 	}
 
 	/**
+	 * Gets the allowed schema keywords for preparing ability schemas in REST responses.
+	 *
+	 * Uses the fuller draft-04 keyword set, not the smaller REST API subset.
+	 * The published schema is consumed by clients that re-validate values
+	 * against standard draft-04, so it keeps the keywords those validators
+	 * expect.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @return array<string, true> Allowed schema keywords.
+	 */
+	private function get_allowed_schema_keywords_for_response(): array {
+		if ( ! isset( $this->allowed_schema_keyword_lookup ) ) {
+			$this->allowed_schema_keyword_lookup = array_fill_keys( wp_get_json_schema_allowed_keywords( 'draft-04' ), true );
+		}
+
+		return $this->allowed_schema_keyword_lookup;
+	}
+
+	/**
 	 * Transforms an ability schema for REST response output.
 	 *
-	 * Ability schemas may include WordPress-internal properties like
-	 * `sanitize_callback`, `validate_callback`, and `arg_options` that are
-	 * used server-side but are not valid JSON Schema keywords. This method
-	 * removes those specific keys so they are not exposed in REST responses.
-	 * It also converts empty array defaults to objects when the schema type is
-	 * 'object' to ensure proper JSON serialization as {} instead of [].
+	 * The input and output schemas are a public contract: REST clients (such as
+	 * the `@wordpress/abilities` JS client) consume them as standard JSON Schema
+	 * and validate ability input and output against them. The response must
+	 * therefore use JSON Schema draft-04 forms that standard validators
+	 * understand, not the WordPress-internal conventions that
+	 * `rest_validate_value_from_schema()` also accepts on the server.
+	 *
+	 * Ability schemas may include WordPress-internal properties or unsupported
+	 * schema keywords that should not be exposed in REST responses. This method
+	 * strips keys not recognized by the REST API schema handling. It also
+	 * converts empty array defaults to objects when the schema type is 'object'
+	 * to ensure proper JSON serialization as {} instead of [], and normalizes
+	 * the `required` keyword from the draft-03 per-property boolean form into
+	 * the draft-04 array of property names.
 	 *
 	 * @since 7.1.0
 	 *
@@ -237,7 +270,41 @@ class WP_REST_Abilities_V1_List_Controller extends WP_REST_Controller {
 			}
 		}
 
-		$schema = array_diff_key( $schema, self::INTERNAL_SCHEMA_KEYWORDS );
+		$schema = array_intersect_key( $schema, $this->get_allowed_schema_keywords_for_response() );
+
+		// Collect draft-03 per-property `required: true` flags into a draft-04
+		// `required` array of property names on the parent object schema.
+		//
+		// This mirrors rest_validate_object_value_from_schema(), where a draft-04
+		// `required` array takes precedence: when one is present, per-property
+		// booleans are ignored during validation. They are therefore left out of
+		// the array here as well (but still stripped from the output) so the
+		// published schema describes exactly what gets enforced.
+		if ( isset( $schema['properties'] ) && is_array( $schema['properties'] ) ) {
+			$has_required_array = isset( $schema['required'] ) && is_array( $schema['required'] );
+			$required           = array();
+			foreach ( $schema['properties'] as $property => &$property_schema ) {
+				if ( $this->is_associative_array( $property_schema ) && isset( $property_schema['required'] ) && is_bool( $property_schema['required'] ) ) {
+					if ( ! $has_required_array && true === $property_schema['required'] ) {
+						$required[] = (string) $property;
+					}
+					unset( $property_schema['required'] );
+				}
+			}
+			unset( $property_schema );
+
+			// Property keys are unique, so the collected list needs no deduplication.
+			// When a draft-04 array is already present, leave it untouched.
+			if ( ! $has_required_array && count( $required ) > 0 ) {
+				$schema['required'] = $required;
+			}
+		}
+
+		// A boolean `required` outside of an object's property list has no draft-04
+		// equivalent, so drop it rather than emit an invalid keyword.
+		if ( isset( $schema['required'] ) && is_bool( $schema['required'] ) ) {
+			unset( $schema['required'] );
+		}
 
 		// Sub-schema maps: keys are user-defined, values are sub-schemas.
 		// Note: 'dependencies' values can also be property-dependency arrays
@@ -387,9 +454,23 @@ class WP_REST_Abilities_V1_List_Controller extends WP_REST_Controller {
 					'type'        => 'object',
 					'properties'  => array(
 						'annotations' => array(
-							'description' => __( 'Annotations for the ability.' ),
-							'type'        => array( 'boolean', 'null' ),
-							'default'     => null,
+							'description'          => __( 'Behavioral annotations for the ability.' ),
+							'type'                 => 'object',
+							'properties'           => array(
+								'readonly'    => array(
+									'description' => __( 'Whether the ability does not modify its environment.' ),
+									'type'        => array( 'boolean', 'null' ),
+								),
+								'destructive' => array(
+									'description' => __( 'Whether the ability may perform destructive updates to its environment.' ),
+									'type'        => array( 'boolean', 'null' ),
+								),
+								'idempotent'  => array(
+									'description' => __( 'Whether repeated calls with the same arguments have no additional effect.' ),
+									'type'        => array( 'boolean', 'null' ),
+								),
+							),
+							'additionalProperties' => true,
 						),
 					),
 					'context'     => array( 'view', 'edit' ),
@@ -409,7 +490,7 @@ class WP_REST_Abilities_V1_List_Controller extends WP_REST_Controller {
 	 * @return array<string, mixed> Collection parameters.
 	 */
 	public function get_collection_params(): array {
-		return array(
+		$query_params = array(
 			'context'   => $this->get_context_param( array( 'default' => 'view' ) ),
 			'page'      => array(
 				'description' => __( 'Current page of the collection.' ),
@@ -436,6 +517,46 @@ class WP_REST_Abilities_V1_List_Controller extends WP_REST_Controller {
 				'sanitize_callback' => 'sanitize_key',
 				'validate_callback' => 'rest_validate_request_arg',
 			),
+			'meta'      => array(
+				'description'          => __( 'Limit results to abilities matching all of the given meta fields.' ),
+				'type'                 => 'object',
+				'properties'           => array(
+					// show_in_rest is omitted on purpose. It is forced on and cannot be filtered by a caller.
+					'annotations' => array(
+						'description'          => __( 'Limit results to abilities matching the given behavioral annotations.' ),
+						'type'                 => 'object',
+						'properties'           => array(
+							'readonly'    => array(
+								'description' => __( 'Whether the ability does not modify its environment.' ),
+								'type'        => array( 'boolean', 'null' ),
+							),
+							'destructive' => array(
+								'description' => __( 'Whether the ability may perform destructive updates to its environment.' ),
+								'type'        => array( 'boolean', 'null' ),
+							),
+							'idempotent'  => array(
+								'description' => __( 'Whether repeated calls with the same arguments have no additional effect.' ),
+								'type'        => array( 'boolean', 'null' ),
+							),
+						),
+						'additionalProperties' => true,
+					),
+				),
+				'additionalProperties' => true,
+			),
 		);
+
+		/**
+		 * Filters REST API collection parameters for the abilities controller.
+		 *
+		 * Use this to declare the schema type of a custom meta key. A declared
+		 * type lets REST coerce a query-string value, for example "true" to a
+		 * boolean, before the meta filter matches it.
+		 *
+		 * @since 7.1.0
+		 *
+		 * @param array $query_params JSON Schema-formatted collection parameters.
+		 */
+		return apply_filters( 'rest_abilities_collection_params', $query_params );
 	}
 }
