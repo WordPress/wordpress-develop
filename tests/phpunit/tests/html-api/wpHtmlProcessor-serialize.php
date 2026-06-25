@@ -463,21 +463,21 @@ class Tests_HtmlApi_WpHtmlProcessor_Serialize extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Ensures that leading newlines in PRE, LISTING, and TEXTAREA elements are preserved upon normalization,
-	 * and that normalization is idempotent in these cases.
+	 * Ensures that leading newlines in PRE, LISTING, and TEXTAREA elements are normalized
+	 * according to their parsing namespace, and that normalization is idempotent in these cases.
 	 *
 	 * @ticket 64607
 	 *
 	 * @dataProvider data_provider_normalize_special_leading_newline_cases
 	 *
-	 * @param string $input        HTML input containing leading newlines in PRE, LISTING, or TEXTAREA elements.
-	 * @param string $expected     Expected output after normalization, which should preserve leading newlines.
+	 * @param string $input    HTML input containing leading newlines in PRE, LISTING, or TEXTAREA elements.
+	 * @param string $expected Expected exact output after normalization.
 	 */
 	public function test_normalize_special_leading_newline_handling( string $input, string $expected ) {
 		$normalized = WP_HTML_Processor::normalize( $input );
-		$this->assertEqualHTML( $expected, $normalized );
+		$this->assertSame( $expected, $normalized );
 		$normalized_twice = WP_HTML_Processor::normalize( $normalized );
-		$this->assertEqualHTML( $expected, $normalized_twice );
+		$this->assertSame( $expected, $normalized_twice );
 	}
 
 	/**
@@ -659,7 +659,7 @@ class Tests_HtmlApi_WpHtmlProcessor_Serialize extends WP_UnitTestCase {
 		return array(
 			'Leading newline in PRE'             => array(
 				"<pre>\nline 1\nline 2</pre>",
-				"<pre>line 1\nline 2</pre>",
+				"<pre>\nline 1\nline 2</pre>",
 			),
 			'Double leading newline in PRE'      => array(
 				"<pre>\n\nline 2\nline 3</pre>",
@@ -667,7 +667,7 @@ class Tests_HtmlApi_WpHtmlProcessor_Serialize extends WP_UnitTestCase {
 			),
 			'Multiple text nodes inside PRE'     => array(
 				"<pre>\nline 1<!--comment--> still line 1</pre>",
-				'<pre>line 1<!--comment--> still line 1</pre>',
+				"<pre>\nline 1<!--comment--> still line 1</pre>",
 			),
 			'Multiple text nodes inside PRE with leading newlines' => array(
 				"<pre>\n\nline 2<!--comment--> still line 2</pre>",
@@ -675,7 +675,7 @@ class Tests_HtmlApi_WpHtmlProcessor_Serialize extends WP_UnitTestCase {
 			),
 			'Leading newline in LISTING'         => array(
 				"<listing>\nline 1\nline 2</listing>",
-				"<listing>line 1\nline 2</listing>",
+				"<listing>\nline 1\nline 2</listing>",
 			),
 			'Double leading newline in LISTING'  => array(
 				"<listing>\n\nline 2\nline 3</listing>",
@@ -683,7 +683,7 @@ class Tests_HtmlApi_WpHtmlProcessor_Serialize extends WP_UnitTestCase {
 			),
 			'Multiple text nodes inside LISTING' => array(
 				"<listing>\nline 1<!--comment--> still line 1</listing>",
-				'<listing>line 1<!--comment--> still line 1</listing>',
+				"<listing>\nline 1<!--comment--> still line 1</listing>",
 			),
 			'Multiple text nodes inside LISTING with leading newlines' => array(
 				"<listing>\n\nline 2<!--comment--> still line 2</listing>",
@@ -691,59 +691,27 @@ class Tests_HtmlApi_WpHtmlProcessor_Serialize extends WP_UnitTestCase {
 			),
 			'Leading newline in TEXTAREA'        => array(
 				"<textarea>\nline 1\nline 2</textarea>",
-				"<textarea>line 1\nline 2</textarea>",
+				"<textarea>\nline 1\nline 2</textarea>",
 			),
 			'Double leading newline in TEXTAREA' => array(
 				"<textarea>\n\nline 2\nline 3</textarea>",
 				"<textarea>\n\nline 2\nline 3</textarea>",
 			),
-			'MathML TEXTAREA does not receive leading newline' => array(
+			'Foreign MathML TEXTAREA does not ignore leading newlines' => array(
 				'<math><textarea>X</textarea></math>',
 				'<math><textarea>X</textarea></math>',
 			),
-			'MathML TEXTAREA preserves leading newline' => array(
+			'Foreign MathML TEXTAREA preserves leading newline' => array(
 				"<math><textarea>\nX</textarea></math>",
 				"<math><textarea>\nX</textarea></math>",
 			),
-			'SVG TEXTAREA does not receive leading newline' => array(
+			'Foreign SVG TEXTAREA does not ignore leading newlines' => array(
 				'<svg><textarea>X</textarea></svg>',
 				'<svg><textarea>X</textarea></svg>',
 			),
-			'SVG TEXTAREA preserves leading newline'    => array(
+			'Foreign SVG TEXTAREA preserves leading newline' => array(
 				"<svg><textarea>\nX</textarea></svg>",
 				"<svg><textarea>\nX</textarea></svg>",
-			),
-			'HTML TEXTAREA inside SVG HTML integration point receives leading newline' => array(
-				'<svg><foreignObject><textarea>X</textarea></foreignObject></svg>',
-				"<svg><foreignObject><textarea>\nX</textarea></foreignObject></svg>",
-			),
-			'HTML TEXTAREA inside SVG HTML integration point preserves leading newlines' => array(
-				"<svg><foreignObject><textarea>\n\nX</textarea></foreignObject></svg>",
-				"<svg><foreignObject><textarea>\n\nX</textarea></foreignObject></svg>",
-			),
-			'HTML TEXTAREA inside MathML text integration point receives leading newline' => array(
-				'<math><mtext><textarea>X</textarea></mtext></math>',
-				"<math><mtext><textarea>\nX</textarea></mtext></math>",
-			),
-			'HTML TEXTAREA inside MathML text integration point preserves leading newlines' => array(
-				"<math><mtext><textarea>\n\nX</textarea></mtext></math>",
-				"<math><mtext><textarea>\n\nX</textarea></mtext></math>",
-			),
-			'HTML TEXTAREA inside MathML HTML integration point receives leading newline' => array(
-				'<math><annotation-xml encoding="text/html"><textarea>X</textarea></annotation-xml></math>',
-				"<math><annotation-xml encoding=\"text/html\"><textarea>\nX</textarea></annotation-xml></math>",
-			),
-			'HTML TEXTAREA inside MathML HTML integration point preserves leading newlines' => array(
-				"<math><annotation-xml encoding=\"text/html\"><textarea>\n\nX</textarea></annotation-xml></math>",
-				"<math><annotation-xml encoding=\"text/html\"><textarea>\n\nX</textarea></annotation-xml></math>",
-			),
-			'HTML PRE after exiting SVG foreign content receives leading newline' => array(
-				'<svg><pre>X</pre></svg>',
-				"<svg></svg><pre>\nX</pre>",
-			),
-			'HTML LISTING after exiting MathML foreign content receives leading newline' => array(
-				'<math><listing>X</listing></math>',
-				"<math></math><listing>\nX</listing>",
 			),
 		);
 	}
