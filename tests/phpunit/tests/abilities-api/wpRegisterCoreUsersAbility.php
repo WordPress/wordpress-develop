@@ -202,7 +202,7 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 		$schema = wp_get_ability( 'core/users' )->get_input_schema();
 
 		$this->assertSame( 'object', $schema['type'] );
-		$this->assertArrayNotHasKey( 'default', $schema );
+		$this->assertEquals( (object) array(), $schema['default'] );
 		$this->assertCount( 5, $schema['oneOf'] );
 
 		$this->assertSame( array( 'id' ), $schema['oneOf'][0]['required'] );

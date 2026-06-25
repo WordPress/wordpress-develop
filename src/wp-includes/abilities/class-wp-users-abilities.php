@@ -498,8 +498,9 @@ class WP_Users_Abilities {
 		);
 
 		return array(
-			'type'  => 'object',
-			'oneOf' => array(
+			'type'    => 'object',
+			'default' => (object) array(),
+			'oneOf'   => array(
 				array(
 					'title'                => __( 'Get a single readable user by ID' ),
 					'required'             => array( 'id' ),
