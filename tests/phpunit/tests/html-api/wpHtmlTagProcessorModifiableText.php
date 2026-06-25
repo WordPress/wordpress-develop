@@ -666,6 +666,100 @@ HTML;
 	}
 
 	/**
+	 * Ensures that text node updates preserve a leading newline where the HTML parser
+	 * ignores one newline after the opening tag.
+	 *
+	 * @ticket 64609
+	 *
+	 * @dataProvider data_modifiable_text_ignores_leading_newline_text_nodes
+	 *
+	 * @param string $tag_name      Expected tag name.
+	 * @param string $set_text      Text to set.
+	 * @param string $expected_html Expected HTML output.
+	 */
+	public function test_modifiable_text_preserves_ignored_leading_newline_in_text_nodes( string $tag_name, string $set_text, string $expected_html ): void {
+		$html      = "<{$tag_name}>initial</{$tag_name}>";
+		$processor = new WP_HTML_Tag_Processor( $html );
+		$this->assertTrue( $processor->next_tag( $tag_name ), 'Failed to find target tag.' );
+		$this->assertTrue( $processor->next_token(), 'Failed to find text node.' );
+		$this->assertSame( '#text', $processor->get_token_name(), 'Should have found a text node.' );
+
+		$this->assertTrue( $processor->set_modifiable_text( $set_text ) );
+		$expected_text = strtr(
+			$set_text,
+			array(
+				"\r\n" => "\n",
+				"\r"   => "\n",
+			)
+		);
+		$this->assertSame(
+			$expected_text,
+			$processor->get_modifiable_text(),
+			'Should have preserved the leading newline when reading the updated text.'
+		);
+
+		$updated_html = $processor->get_updated_html();
+		$this->assertEqualHTML(
+			$expected_html,
+			$updated_html,
+			'<body>',
+			'Should have preserved the leading newline in the serialized HTML.'
+		);
+
+		$processor = new WP_HTML_Tag_Processor( $updated_html );
+		$this->assertTrue( $processor->next_tag( $tag_name ), 'Failed to find target tag after update.' );
+		$roundtrip_text = '';
+		while ( $processor->next_token() && '#text' === $processor->get_token_name() ) {
+			$roundtrip_text .= $processor->get_modifiable_text();
+		}
+		$this->assertSame(
+			$expected_text,
+			$roundtrip_text,
+			'Should have preserved the leading newline after reprocessing the updated HTML.'
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{0: string, 1: string, 2: string}>
+	 */
+	public static function data_modifiable_text_ignores_leading_newline_text_nodes(): array {
+		return array(
+			'PRE leading newline'                       => array(
+				'PRE',
+				"\nAFTER NEWLINE",
+				"<pre>\n\nAFTER NEWLINE</pre>",
+			),
+			'PRE leading carriage return'               => array(
+				'PRE',
+				"\rAFTER CR",
+				"<pre>\n\nAFTER CR</pre>",
+			),
+			'PRE leading carriage return + newline'     => array(
+				'PRE',
+				"\r\nAFTER CRLF",
+				"<pre>\n\nAFTER CRLF</pre>",
+			),
+			'LISTING leading newline'                   => array(
+				'LISTING',
+				"\nAFTER NEWLINE",
+				"<listing>\n\nAFTER NEWLINE</listing>",
+			),
+			'LISTING leading carriage return'           => array(
+				'LISTING',
+				"\rAFTER CR",
+				"<listing>\n\nAFTER CR</listing>",
+			),
+			'LISTING leading carriage return + newline' => array(
+				'LISTING',
+				"\r\nAFTER CRLF",
+				"<listing>\n\nAFTER CRLF</listing>",
+			),
+		);
+	}
+
+	/**
 	 * Ensures that `set_modifiable_text()` returns false for elements that are
 	 * not special "atomic" elements.
 	 *
