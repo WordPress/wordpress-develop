@@ -2159,6 +2159,11 @@ class WP_HTML_Tag_Processor {
 			return false;
 		}
 
+		/*
+		 * In `<g attr=/>`, `/` is the unquoted attribute value and has
+		 * already been consumed. A skipped slash immediately before `>`
+		 * represents the token's self-closing flag.
+		 */
 		$this->has_self_closing_flag = $skipped_length > 0 &&
 			'/' === $this->html[ $this->bytes_already_parsed - 1 ] &&
 			'>' === $this->html[ $this->bytes_already_parsed ];
