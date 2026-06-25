@@ -194,12 +194,13 @@ class Tests_Block_Supports_WpRenderElementsSupportStyles extends WP_UnitTestCase
 						':hover' => array( 'color' => $color_styles ),
 					),
 				),
+
 				/*
 				 * Only the base button rule should be emitted. The button element
 				 * type has no `hover_selector`, so the `:hover` object must be
 				 * ignored rather than triggering an undefined array key warning.
 				 */
-				'expected_styles' => '/^.wp-elements-[a-f0-9]{32} .wp-element-button, .wp-elements-[a-f0-9]{32} .wp-block-button__link' . $color_css_rules . '$/',
+				'expected_styles' => '/^.wp-elements-\d+ .wp-element-button, .wp-elements-\d+ .wp-block-button__link' . $color_css_rules . '$/',
 			),
 			'link element styles are applied'            => array(
 				'color_settings'  => array( 'link' => true ),
