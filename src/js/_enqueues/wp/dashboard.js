@@ -170,7 +170,7 @@ jQuery( function($) {
  			 */
 			function highlightLatestPost () {
 				var latestPost = $('.drafts ul li').first();
-				latestPost.css('background', '#fffbe5');
+				latestPost.css('background', '#cceebb');
 				setTimeout(function () {
 					latestPost.css('background', 'none');
 				}, 1000);

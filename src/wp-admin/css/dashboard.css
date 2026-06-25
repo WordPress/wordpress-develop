@@ -849,6 +849,9 @@ body #dashboard-widgets .postbox form .submit {
 
 #dashboard_quick_press .drafts li {
 	margin-bottom: 1em;
+	padding: 0.5em;
+	margin-left: -0.5em;
+	margin-right: -0.5em;
 }
 #dashboard_quick_press .drafts li time {
 	color: #646970;
