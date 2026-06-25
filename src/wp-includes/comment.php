@@ -2876,7 +2876,28 @@ function wp_update_comment_count_now( $post_id ) {
 	$new = apply_filters( 'pre_wp_update_comment_count_now', null, $old, $post_id );
 
 	if ( is_null( $new ) ) {
-		$new = (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM $wpdb->comments WHERE comment_post_ID = %d AND comment_approved = '1' AND comment_type != 'note'", $post_id ) );
+		/** This filter is documented in wp-includes/class-wp-comment-query.php */
+		$excluded_types = apply_filters( 'default_excluded_comment_types', array( 'note' ), null );
+		$excluded_types = array_unique( array_filter( array_map( 'strval', (array) $excluded_types ) ) );
+
+		if ( $excluded_types ) {
+			$new = (int) $wpdb->get_var(
+				$wpdb->prepare(
+					sprintf(
+						"SELECT COUNT(*) FROM $wpdb->comments WHERE comment_post_ID = %%d AND comment_approved = '1' AND comment_type NOT IN (%s)",
+						implode( ', ', array_fill( 0, count( $excluded_types ), '%s' ) )
+					),
+					array_merge( array( $post_id ), $excluded_types )
+				)
+			);
+		} else {
+			$new = (int) $wpdb->get_var(
+				$wpdb->prepare(
+					"SELECT COUNT(*) FROM $wpdb->comments WHERE comment_post_ID = %d AND comment_approved = '1'",
+					$post_id
+				)
+			);
+		}
 	} else {
 		$new = (int) $new;
 	}

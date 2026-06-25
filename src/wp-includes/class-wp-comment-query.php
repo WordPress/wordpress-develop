@@ -783,7 +783,9 @@ class WP_Comment_Query {
 		 * This allows plugins to keep comment types out of standard comment
 		 * listings, counts, or feeds by default, without having to filter every
 		 * query individually. The 'note' comment type, used by the editor, is
-		 * excluded by default.
+		 * excluded by default. The same set is applied when recalculating a
+		 * post's stored comment count in wp_update_comment_count_now(), so an
+		 * excluded type does not inflate get_comments_number().
 		 *
 		 * This exclusion is a default-visibility convenience, not an access-control
 		 * mechanism: callers can still retrieve excluded types explicitly (for
@@ -793,9 +795,10 @@ class WP_Comment_Query {
 		 *
 		 * @since 7.1.0
 		 *
-		 * @param string[]         $excluded_types Comment types excluded from query results by default.
-		 *                                         Default array contains the 'note' type.
-		 * @param WP_Comment_Query $query          The WP_Comment_Query instance (passed by reference).
+		 * @param string[]              $excluded_types Comment types excluded from query results by default.
+		 *                                               Default array contains the 'note' type.
+		 * @param WP_Comment_Query|null $query          The WP_Comment_Query instance (passed by reference),
+		 *                                               or null when recalculating a post's comment count.
 		 */
 		$excluded_types = apply_filters_ref_array( 'default_excluded_comment_types', array( array( 'note' ), &$this ) );
 
