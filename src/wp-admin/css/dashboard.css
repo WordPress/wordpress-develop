@@ -850,6 +850,14 @@ body #dashboard-widgets .postbox form .submit {
 #dashboard_quick_press .drafts li {
 	margin-bottom: 1em;
 }
+
+/* Transient highlight applied to a newly added draft. */
+#dashboard_quick_press .drafts li.highlighted-draft {
+	margin: -6px -12px calc(1em - 6px);
+	padding: 6px 12px;
+	background: #ceb;
+}
+
 #dashboard_quick_press .drafts li time {
 	color: #646970;
 }

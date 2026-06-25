@@ -170,9 +170,9 @@ jQuery( function($) {
  			 */
 			function highlightLatestPost () {
 				var latestPost = $('.drafts ul li').first();
-				latestPost.css('background', '#fffbe5');
+				latestPost.addClass('highlighted-draft');
 				setTimeout(function () {
-					latestPost.css('background', 'none');
+					latestPost.removeClass('highlighted-draft');
 				}, 1000);
 			}
 		} );
