@@ -1003,6 +1003,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @since 6.4.0
 	 *
+	 * @access private
+	 *
 	 * @throws Exception When unable to allocate a bookmark for the next token in the input HTML document.
 	 *
 	 * @see self::PROCESS_NEXT_NODE
