@@ -192,7 +192,22 @@ class WP_Users_Abilities {
 				$query_args['has_published_posts'] = $has_published_posts;
 			}
 		} else {
-			$query_args['has_published_posts'] = self::get_public_author_post_types();
+			$public_post_types   = self::get_public_post_types();
+			$has_published_posts = self::normalize_has_published_posts( $input );
+
+			if ( is_array( $has_published_posts ) ) {
+				$public_post_types = array_values( array_intersect( $public_post_types, $has_published_posts ) );
+			}
+
+			if ( array() === $public_post_types ) {
+				return array(
+					'users'       => array(),
+					'total'       => 0,
+					'total_pages' => 0,
+				);
+			}
+
+			$query_args['has_published_posts'] = $public_post_types;
 		}
 
 		$query = new WP_User_Query( $query_args );
@@ -345,7 +360,7 @@ class WP_Users_Abilities {
 	}
 
 	/**
-	 * Checks whether a user has published posts in REST-visible author post types.
+	 * Checks whether a user has published posts in public post types.
 	 *
 	 * @since 6.9.0
 	 *
@@ -353,7 +368,7 @@ class WP_Users_Abilities {
 	 * @return bool Whether the user is publicly visible as an author.
 	 */
 	private static function is_public_author( WP_User $user ): bool {
-		$post_types = self::get_public_author_post_types();
+		$post_types = self::get_public_post_types();
 		if ( array() === $post_types ) {
 			return false;
 		}
@@ -362,17 +377,17 @@ class WP_Users_Abilities {
 	}
 
 	/**
-	 * Returns REST-visible post types that support authors.
+	 * Returns public post types.
 	 *
 	 * @since 6.9.0
 	 *
-	 * @return string[] REST-visible author post type names.
+	 * @return string[] Public post type names.
 	 */
-	private static function get_public_author_post_types(): array {
+	private static function get_public_post_types(): array {
 		$post_types = array();
 
-		foreach ( get_post_types( array( 'show_in_rest' => true ), 'names' ) as $post_type ) {
-			if ( is_string( $post_type ) && post_type_supports( $post_type, 'author' ) ) {
+		foreach ( get_post_types( array( 'public' => true ), 'names' ) as $post_type ) {
+			if ( is_string( $post_type ) ) {
 				$post_types[] = $post_type;
 			}
 		}
