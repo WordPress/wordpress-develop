@@ -393,6 +393,19 @@ class WP_HTML_Decoder {
 		 * - In _attribute context_, "&notme" is left as the literal text "&notme": all
 		 *   three conditions hold.
 		 *
+		 * Without these special rules, ordinary URL query strings could have surprising
+		 * replacements applied. Consider:
+		 *
+		 *     <a href="/?random&degree&gt=0&lt=360&not=90">
+		 *
+		 * These special rules preserve the literal attribute value:
+		 * `/?random&degree&gt=0&lt=360&not=90`. Without them, the value would be decoded
+		 * as `/?random°ree>=0<=360¬=90`, likely not the intended value.
+		 *
+		 * (Authors should not rely on this. Escaping the example as
+		 * `/?random&amp;degree&amp;gt=0&amp;lt=360&amp;not=90` produces the intended
+		 * value regardless of the following character.)
+		 *
 		 * @see https://html.spec.whatwg.org/multipage/parsing.html#named-character-reference-state
 		 * @see https://html.spec.whatwg.org/multipage/named-characters.html#named-character-references
 		 */
