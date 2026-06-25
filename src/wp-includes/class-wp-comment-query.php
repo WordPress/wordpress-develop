@@ -780,10 +780,16 @@ class WP_Comment_Query {
 		 * specific type via the 'type', 'type__in', or 'type__not_in' query
 		 * variables.
 		 *
-		 * This allows plugins to register "private" comment types that should not
-		 * surface in standard comment listings, counts, or feeds, without having
-		 * to filter every query individually. The 'note' comment type, used by the
-		 * editor, is excluded by default.
+		 * This allows plugins to keep comment types out of standard comment
+		 * listings, counts, or feeds by default, without having to filter every
+		 * query individually. The 'note' comment type, used by the editor, is
+		 * excluded by default.
+		 *
+		 * This exclusion is a default-visibility convenience, not an access-control
+		 * mechanism: callers can still retrieve excluded types explicitly (for
+		 * example with 'type' => 'all'), so do not rely on this filter to keep
+		 * comment data private. Enforce capability checks wherever the data is
+		 * displayed or exposed (for example over REST).
 		 *
 		 * @since 7.1.0
 		 *
