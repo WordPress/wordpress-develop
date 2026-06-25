@@ -470,7 +470,7 @@ class Tests_HtmlApi_WpHtmlProcessorSemanticRules extends WP_UnitTestCase {
 	/**
 	 * Data provider.
 	 *
-	 * @return array[string, array{0: string}]
+	 * @return array<string, array{0: string}>
 	 */
 	public static function data_in_body_adoption_agency_fallback_end_tags(): array {
 		return array(

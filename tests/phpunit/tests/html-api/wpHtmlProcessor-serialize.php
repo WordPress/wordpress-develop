@@ -301,7 +301,7 @@ class Tests_HtmlApi_WpHtmlProcessor_Serialize extends WP_UnitTestCase {
 	/**
 	 * Data provider.
 	 *
-	 * @return array[string, array{0: string}]
+	 * @return array<string, array{0: string}>
 	 */
 	public static function data_formatting_tag_names(): array {
 		return array(
