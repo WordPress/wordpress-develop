@@ -17,7 +17,7 @@ declare( strict_types = 1 );
  * @since 6.9.0
  * @access private
  */
-class WP_Users_Abilities {
+final class WP_Users_Abilities {
 
 	/**
 	 * The ability category used for user abilities.
@@ -49,7 +49,7 @@ class WP_Users_Abilities {
 	 * @since 6.9.0
 	 * @var string[]
 	 */
-	private static $read_fields = array(
+	private $read_fields = array(
 		'id',
 		'display_name',
 		'description',
@@ -64,7 +64,7 @@ class WP_Users_Abilities {
 	 * @since 6.9.0
 	 * @var string[]
 	 */
-	private static $sensitive_fields = array(
+	private $sensitive_fields = array(
 		'user_login',
 		'user_email',
 		'first_name',
@@ -79,8 +79,8 @@ class WP_Users_Abilities {
 	 *
 	 * @since 6.9.0
 	 */
-	public static function register(): void {
-		self::register_get_users();
+	public function register(): void {
+		$this->register_get_users();
 	}
 
 	/**
@@ -88,17 +88,17 @@ class WP_Users_Abilities {
 	 *
 	 * @since 6.9.0
 	 */
-	private static function register_get_users(): void {
+	private function register_get_users(): void {
 		wp_register_ability(
 			'core/users',
 			array(
 				'label'               => __( 'Get Users' ),
 				'description'         => __( 'Retrieves one or more readable WordPress users. Fetch a single readable user by ID, user email, user login, or user nicename, or query a paginated collection optionally filtered by roles or published-post authorship.' ),
 				'category'            => self::CATEGORY,
-				'input_schema'        => self::get_users_input_schema(),
-				'output_schema'       => self::get_users_output_schema(),
-				'execute_callback'    => array( __CLASS__, 'execute_get_users' ),
-				'permission_callback' => array( __CLASS__, 'check_permission' ),
+				'input_schema'        => $this->get_users_input_schema(),
+				'output_schema'       => $this->get_users_output_schema(),
+				'execute_callback'    => array( $this, 'execute_get_users' ),
+				'permission_callback' => array( $this, 'check_permission' ),
 				'meta'                => array(
 					'annotations'  => array(
 						'readonly'    => true,
@@ -120,7 +120,7 @@ class WP_Users_Abilities {
 	 * @param mixed $input Optional. The ability input. Default empty array.
 	 * @return bool True if the request may proceed, false otherwise.
 	 */
-	public static function check_permission( $input = array() ): bool {
+	public function check_permission( $input = array() ): bool {
 		$input = is_array( $input ) ? $input : array();
 
 		if ( ! is_user_logged_in() ) {
@@ -131,17 +131,17 @@ class WP_Users_Abilities {
 			return false;
 		}
 
-		$lookup_type = self::get_lookup_type( $input );
+		$lookup_type = $this->get_lookup_type( $input );
 		if ( '' === $lookup_type ) {
 			return true;
 		}
 
-		$user = self::find_user( $input );
-		if ( ! $user instanceof WP_User || ! self::is_user_member_of_site( $user ) ) {
+		$user = $this->find_user( $input );
+		if ( ! $user instanceof WP_User || ! $this->is_user_member_of_site( $user ) ) {
 			return false;
 		}
 
-		return self::can_read_user_for_lookup( $user, $lookup_type );
+		return $this->can_read_user_for_lookup( $user, $lookup_type );
 	}
 
 	/**
@@ -152,29 +152,29 @@ class WP_Users_Abilities {
 	 * @param mixed $input Optional. The ability input. Default empty array.
 	 * @return array<string, mixed>|WP_Error A map with a `users` list, or a WP_Error on failure.
 	 */
-	public static function execute_get_users( $input = array() ) {
+	public function execute_get_users( $input = array() ) {
 		$input  = is_array( $input ) ? $input : array();
-		$fields = self::normalize_fields( $input );
+		$fields = $this->normalize_fields( $input );
 
-		$lookup_type = self::get_lookup_type( $input );
+		$lookup_type = $this->get_lookup_type( $input );
 		if ( '' !== $lookup_type ) {
-			$user = self::find_user( $input );
+			$user = $this->find_user( $input );
 			if ( ! $user instanceof WP_User
-				|| ! self::is_user_member_of_site( $user )
-				|| ! self::can_read_user_for_lookup( $user, $lookup_type )
+				|| ! $this->is_user_member_of_site( $user )
+				|| ! $this->can_read_user_for_lookup( $user, $lookup_type )
 			) {
-				return self::not_found_error();
+				return $this->not_found_error();
 			}
 
 			return array(
-				'users'       => array( self::format_user( $user, $fields ) ),
+				'users'       => array( $this->format_user( $user, $fields ) ),
 				'total'       => 1,
 				'total_pages' => 1,
 			);
 		}
 
-		$per_page = self::normalize_per_page( $input );
-		$page     = isset( $input['page'] ) ? max( 1, self::input_int( $input['page'] ) ) : 1;
+		$per_page = $this->normalize_per_page( $input );
+		$page     = isset( $input['page'] ) ? max( 1, $this->input_int( $input['page'] ) ) : 1;
 
 		$query_args = array(
 			'number'      => $per_page,
@@ -183,17 +183,17 @@ class WP_Users_Abilities {
 		);
 
 		if ( ! empty( $input['roles'] ) && current_user_can( 'list_users' ) ) {
-			$query_args['role__in'] = self::normalize_string_list( $input['roles'] );
+			$query_args['role__in'] = $this->normalize_string_list( $input['roles'] );
 		}
 
 		if ( current_user_can( 'list_users' ) ) {
-			$has_published_posts = self::normalize_has_published_posts( $input );
+			$has_published_posts = $this->normalize_has_published_posts( $input );
 			if ( null !== $has_published_posts ) {
 				$query_args['has_published_posts'] = $has_published_posts;
 			}
 		} else {
-			$public_post_types   = self::get_public_post_types();
-			$has_published_posts = self::normalize_has_published_posts( $input );
+			$public_post_types   = $this->get_public_post_types();
+			$has_published_posts = $this->normalize_has_published_posts( $input );
 
 			if ( is_array( $has_published_posts ) ) {
 				$public_post_types = array_values( array_intersect( $public_post_types, $has_published_posts ) );
@@ -214,11 +214,11 @@ class WP_Users_Abilities {
 
 		$users = array();
 		foreach ( $query->get_results() as $user ) {
-			if ( ! $user instanceof WP_User || ! self::is_user_member_of_site( $user ) || ! self::can_read_user( $user ) ) {
+			if ( ! $user instanceof WP_User || ! $this->is_user_member_of_site( $user ) || ! $this->can_read_user( $user ) ) {
 				continue;
 			}
 
-			$users[] = self::format_user( $user, $fields );
+			$users[] = $this->format_user( $user, $fields );
 		}
 
 		$total_users = (int) $query->get_total();
@@ -238,7 +238,7 @@ class WP_Users_Abilities {
 	 * @param mixed $value The raw input value.
 	 * @return int The value as a non-negative integer, or 0 when not scalar.
 	 */
-	private static function input_int( $value ): int {
+	private function input_int( $value ): int {
 		return is_scalar( $value ) ? absint( $value ) : 0;
 	}
 
@@ -250,7 +250,7 @@ class WP_Users_Abilities {
 	 * @param array<mixed> $input The ability input.
 	 * @return string The lookup type, or an empty string for collection mode.
 	 */
-	private static function get_lookup_type( array $input ): string {
+	private function get_lookup_type( array $input ): string {
 		foreach ( array( 'id', 'user_email', 'user_login', 'user_nicename' ) as $key ) {
 			if ( array_key_exists( $key, $input ) ) {
 				return $key;
@@ -268,9 +268,9 @@ class WP_Users_Abilities {
 	 * @param array<mixed> $input The ability input.
 	 * @return WP_User|null User object, or null when not found.
 	 */
-	private static function find_user( array $input ): ?WP_User {
+	private function find_user( array $input ): ?WP_User {
 		if ( array_key_exists( 'id', $input ) ) {
-			$user = get_userdata( self::input_int( $input['id'] ) );
+			$user = get_userdata( $this->input_int( $input['id'] ) );
 			return $user instanceof WP_User ? $user : null;
 		}
 
@@ -312,7 +312,7 @@ class WP_Users_Abilities {
 	 * @param WP_User $user User object.
 	 * @return bool Whether the user belongs to the current site.
 	 */
-	private static function is_user_member_of_site( WP_User $user ): bool {
+	private function is_user_member_of_site( WP_User $user ): bool {
 		return ! is_multisite() || is_user_member_of_blog( (int) $user->ID );
 	}
 
@@ -328,8 +328,8 @@ class WP_Users_Abilities {
 	 * @param string  $lookup_type Lookup type.
 	 * @return bool Whether the user can be read for that lookup type.
 	 */
-	private static function can_read_user_for_lookup( WP_User $user, string $lookup_type ): bool {
-		if ( self::is_current_user( $user ) ) {
+	private function can_read_user_for_lookup( WP_User $user, string $lookup_type ): bool {
+		if ( $this->is_current_user( $user ) ) {
 			return true;
 		}
 
@@ -341,7 +341,7 @@ class WP_Users_Abilities {
 			return false;
 		}
 
-		return self::is_public_author( $user );
+		return $this->is_public_author( $user );
 	}
 
 	/**
@@ -352,11 +352,11 @@ class WP_Users_Abilities {
 	 * @param WP_User $user User object.
 	 * @return bool Whether the user can be read.
 	 */
-	private static function can_read_user( WP_User $user ): bool {
-		return self::is_current_user( $user )
+	private function can_read_user( WP_User $user ): bool {
+		return $this->is_current_user( $user )
 			|| current_user_can( 'edit_user', $user->ID )
 			|| current_user_can( 'list_users' )
-			|| self::is_public_author( $user );
+			|| $this->is_public_author( $user );
 	}
 
 	/**
@@ -367,7 +367,7 @@ class WP_Users_Abilities {
 	 * @param WP_User $user User object.
 	 * @return bool Whether the current user is the target user.
 	 */
-	private static function is_current_user( WP_User $user ): bool {
+	private function is_current_user( WP_User $user ): bool {
 		return get_current_user_id() === (int) $user->ID;
 	}
 
@@ -379,8 +379,8 @@ class WP_Users_Abilities {
 	 * @param WP_User $user User object.
 	 * @return bool Whether the user is publicly visible as an author.
 	 */
-	private static function is_public_author( WP_User $user ): bool {
-		$post_types = self::get_public_post_types();
+	private function is_public_author( WP_User $user ): bool {
+		$post_types = $this->get_public_post_types();
 		if ( array() === $post_types ) {
 			return false;
 		}
@@ -395,7 +395,7 @@ class WP_Users_Abilities {
 	 *
 	 * @return string[] Public post type names.
 	 */
-	private static function get_public_post_types(): array {
+	private function get_public_post_types(): array {
 		$post_types = array();
 
 		foreach ( get_post_types( array( 'public' => true ), 'names' ) as $post_type ) {
@@ -415,8 +415,8 @@ class WP_Users_Abilities {
 	 * @param array<mixed> $input The ability input.
 	 * @return string[] List of requested field names.
 	 */
-	private static function normalize_fields( array $input ): array {
-		$available_fields = self::get_fields();
+	private function normalize_fields( array $input ): array {
+		$available_fields = $this->get_fields();
 
 		if ( empty( $input['fields'] ) || ! is_array( $input['fields'] ) ) {
 			return $available_fields;
@@ -435,14 +435,14 @@ class WP_Users_Abilities {
 	 *
 	 * @return string[] Supported field names.
 	 */
-	private static function get_fields(): array {
-		$fields = self::$read_fields;
+	private function get_fields(): array {
+		$fields = $this->read_fields;
 
 		if ( get_option( 'show_avatars' ) ) {
 			$fields[] = 'avatar_urls';
 		}
 
-		return array_merge( $fields, self::$sensitive_fields, array( 'roles' ) );
+		return array_merge( $fields, $this->sensitive_fields, array( 'roles' ) );
 	}
 
 	/**
@@ -453,8 +453,8 @@ class WP_Users_Abilities {
 	 * @param array<mixed> $input The ability input.
 	 * @return int The clamped per-page value.
 	 */
-	private static function normalize_per_page( array $input ): int {
-		$per_page = isset( $input['per_page'] ) ? self::input_int( $input['per_page'] ) : self::DEFAULT_PER_PAGE;
+	private function normalize_per_page( array $input ): int {
+		$per_page = isset( $input['per_page'] ) ? $this->input_int( $input['per_page'] ) : self::DEFAULT_PER_PAGE;
 
 		return max( 1, min( self::MAX_PER_PAGE, $per_page ) );
 	}
@@ -467,7 +467,7 @@ class WP_Users_Abilities {
 	 * @param mixed $value Raw value.
 	 * @return string[] Normalized strings.
 	 */
-	private static function normalize_string_list( $value ): array {
+	private function normalize_string_list( $value ): array {
 		if ( ! is_array( $value ) ) {
 			return array();
 		}
@@ -492,7 +492,7 @@ class WP_Users_Abilities {
 	 * @param array<mixed> $input The ability input.
 	 * @return bool|string[]|null Normalized query value, or null when absent/invalid.
 	 */
-	private static function normalize_has_published_posts( array $input ) {
+	private function normalize_has_published_posts( array $input ) {
 		if ( ! array_key_exists( 'has_published_posts', $input ) ) {
 			return null;
 		}
@@ -501,7 +501,7 @@ class WP_Users_Abilities {
 			return true;
 		}
 
-		$post_types = self::normalize_string_list( $input['has_published_posts'] );
+		$post_types = $this->normalize_string_list( $input['has_published_posts'] );
 
 		return array() === $post_types ? null : $post_types;
 	}
@@ -513,13 +513,13 @@ class WP_Users_Abilities {
 	 *
 	 * @return array<string, mixed> The input JSON Schema.
 	 */
-	private static function get_users_input_schema(): array {
+	private function get_users_input_schema(): array {
 		$fields = array(
 			'type'        => 'array',
 			'uniqueItems' => true,
 			'items'       => array(
 				'type' => 'string',
-				'enum' => self::get_fields(),
+				'enum' => $this->get_fields(),
 			),
 			'description' => __( 'Limit each returned user to these fields. If omitted, all fields visible to the current user are returned.' ),
 		);
@@ -633,7 +633,7 @@ class WP_Users_Abilities {
 	 *
 	 * @return array<string, mixed> The output JSON Schema.
 	 */
-	private static function get_users_output_schema(): array {
+	private function get_users_output_schema(): array {
 		$user_properties = array(
 			'id'              => array(
 				'type'        => 'integer',
@@ -686,6 +686,7 @@ class WP_Users_Abilities {
 			),
 			'user_registered' => array(
 				'type'        => 'string',
+				'format'      => 'date-time',
 				'description' => __( 'Registration date for the user. Present when the current user can view it.' ),
 			),
 			'roles'           => array(
@@ -742,13 +743,13 @@ class WP_Users_Abilities {
 	 * @param string[] $fields The requested field names.
 	 * @return array<string, mixed> The formatted user data.
 	 */
-	private static function format_user( WP_User $user, array $fields ): array {
+	private function format_user( WP_User $user, array $fields ): array {
 		$fields_requested = static function ( string $field ) use ( $fields ): bool {
 			return in_array( $field, $fields, true );
 		};
 
 		$user_id            = (int) $user->ID;
-		$can_view_sensitive = self::is_current_user( $user ) || current_user_can( 'edit_user', $user_id );
+		$can_view_sensitive = $this->is_current_user( $user ) || current_user_can( 'edit_user', $user_id );
 		$can_view_roles     = current_user_can( 'list_users' ) || current_user_can( 'edit_user', $user_id );
 
 		$data = array();
@@ -795,12 +796,12 @@ class WP_Users_Abilities {
 				$data['locale'] = (string) get_user_locale( $user );
 			}
 			if ( $fields_requested( 'user_registered' ) ) {
-				$data['user_registered'] = (string) $user->user_registered;
+				$data['user_registered'] = gmdate( 'c', strtotime( $user->user_registered ) );
 			}
 		}
 
 		if ( $fields_requested( 'roles' ) && $can_view_roles ) {
-			$data['roles'] = self::normalize_string_list( $user->roles );
+			$data['roles'] = $this->normalize_string_list( $user->roles );
 		}
 
 		return $data;
@@ -813,7 +814,7 @@ class WP_Users_Abilities {
 	 *
 	 * @return WP_Error Not found error.
 	 */
-	private static function not_found_error(): WP_Error {
+	private function not_found_error(): WP_Error {
 		return new WP_Error(
 			'user_not_found',
 			__( 'The requested user was not found.' ),

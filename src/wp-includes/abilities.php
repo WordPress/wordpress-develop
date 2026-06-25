@@ -45,7 +45,7 @@ function wp_register_core_abilities(): void {
 	$category_site = 'site';
 	$category_user = 'user';
 
-	WP_Users_Abilities::register();
+	( new WP_Users_Abilities() )->register();
 
 	$site_info_properties = array(
 		'name'        => array(
