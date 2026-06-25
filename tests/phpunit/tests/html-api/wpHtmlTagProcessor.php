@@ -115,7 +115,7 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 			'Slash inside unquoted attribute value'      => array( '<div id=test/>', false ),
 			'Self-closing flag after quoted attribute'   => array( '<div id="test"/>', true ),
 			'Self-closing flag after boolean attribute'  => array( '<div enabled/>', true ),
-			'Boolean attribute that looks like a self-closer' => array( '<div / >', false ),
+			'Ignored "/" and whitespace'                 => array( '<div / >', false ),
 		);
 	}
 
