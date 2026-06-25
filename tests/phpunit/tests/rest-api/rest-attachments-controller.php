@@ -53,7 +53,8 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	private static string $test_rtf_file;
 
 	/**
-	 * @var string[] The recorded posts query clauses.
+	 * @var array[] The recorded posts query clauses. Each entry is the array of
+	 *              SQL clause fragments passed to the `posts_clauses` filter.
 	 */
 	protected array $posts_clauses;
 

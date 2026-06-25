@@ -8,12 +8,6 @@ includes:
 	# The base configuration file for using PHPStan with the WordPress core codebase.
 	- tests/phpstan/base.neon
 
-	# Type-specifying extension so PHPUnit assertions (e.g. assertArrayHasKey(),
-	# assertInstanceOf(), assertNotNull()) narrow types in the analysis. Only the
-	# extension is included, not phpstan-phpunit's rules.neon, to avoid introducing
-	# new strict rules.
-	- vendor/phpstan/phpstan-phpunit/extension.neon
-
 	# The baseline file includes preexisting errors in the codebase that should be ignored.
 	# https://phpstan.org/user-guide/baseline
 	- tests/phpstan/baseline.php
