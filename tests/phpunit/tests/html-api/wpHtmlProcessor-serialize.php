@@ -474,17 +474,18 @@ class Tests_HtmlApi_WpHtmlProcessor_Serialize extends WP_UnitTestCase {
 	 * @param string $expected Expected exact output after normalization.
 	 */
 	public function test_normalize_special_leading_newline_handling( string $input, string $expected ) {
-		$normalized = WP_HTML_Processor::normalize( $input );
+		$normalized       = WP_HTML_Processor::normalize( $input );
+		$normalized_twice = WP_HTML_Processor::normalize( $normalized );
 
 		/*
-		 * Do not use assertEqualHTML() here. A leading newline after the start tag
-		 * in HTML PRE, LISTING, and TEXTAREA elements is ignored when parsed, so
-		 * `<textarea>X</textarea>` and `<textarea>\nX</textarea>` are equivalent
-		 * HTML. This test asserts the exact normalized serialization.
+		 * Byte equality pins normalize()'s serialized form; HTML equality verifies
+		 * semantic equivalence. This distinction matters because HTML parsing ignores
+		 * one leading LF after PRE, LISTING, and TEXTAREA start tags.
 		 */
 		$this->assertSame( $expected, $normalized );
-		$normalized_twice = WP_HTML_Processor::normalize( $normalized );
 		$this->assertSame( $expected, $normalized_twice );
+		$this->assertEqualHTML( $input, $normalized );
+		$this->assertEqualHTML( $normalized, $normalized_twice );
 	}
 
 	/**
