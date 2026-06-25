@@ -128,7 +128,7 @@
 				'import' => 'static'
 			)
 		),
-		'version' => '5d52d03cfb0ddbaca920'
+		'version' => '1f60dd5e3fa56c6b2e2e'
 	),
 	'boot/index.js' => array(
 		'dependencies' => array(
@@ -166,7 +166,7 @@
 				'import' => 'static'
 			)
 		),
-		'version' => '72fd3d0a23e52ff8501f'
+		'version' => 'ee45059f83b6c49290ed'
 	),
 	'connectors/index.js' => array(
 		'dependencies' => array(
@@ -212,7 +212,7 @@
 				'import' => 'static'
 			)
 		),
-		'version' => 'b73e2c8d19862319099e'
+		'version' => 'b022ce0e97e0c8c91ce3'
 	),
 	'core-abilities/index.js' => array(
 		'dependencies' => array(
