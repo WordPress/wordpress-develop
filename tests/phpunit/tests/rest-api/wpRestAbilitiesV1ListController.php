@@ -143,6 +143,30 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Helper to register an ability with a custom boolean meta key.
+	 *
+	 * The `featured` key stands in for any plugin-defined meta. It is not part
+	 * of the well-defined annotations, so the meta schema does not declare its
+	 * type by default.
+	 */
+	private function register_featured_ability(): void {
+		$this->register_test_ability(
+			'test/featured',
+			array(
+				'label'               => 'Featured',
+				'description'         => 'Declares a custom boolean meta value.',
+				'category'            => 'general',
+				'execute_callback'    => '__return_true',
+				'permission_callback' => '__return_true',
+				'meta'                => array(
+					'show_in_rest' => true,
+					'featured'     => true,
+				),
+			)
+		);
+	}
+
+	/**
 	 * Register test abilities for testing.
 	 */
 	private function register_test_abilities(): void {
@@ -826,6 +850,199 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 
 		$names = wp_list_pluck( $response->get_data(), 'name' );
 		$this->assertNotContains( 'test/not-show-in-rest', $names );
+	}
+
+	/**
+	 * Test filtering abilities by a well-defined behavioral annotation.
+	 *
+	 * The 'test/system-info' fixture is the only ability marked read only. The
+	 * value is passed as a string, the way it arrives over the query string, so
+	 * this also confirms the meta schema coerces it to a boolean before matching.
+	 *
+	 * @ticket 64990
+	 */
+	public function test_filter_by_annotation(): void {
+		$request = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities' );
+		$request->set_param( 'meta', array( 'annotations' => array( 'readonly' => 'true' ) ) );
+		$request->set_param( 'per_page', 100 );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+
+		$names = wp_list_pluck( $response->get_data(), 'name' );
+
+		$this->assertContains( 'test/system-info', $names );
+		$this->assertNotContains( 'test/calculator', $names, 'Abilities not marked read only should be excluded.' );
+	}
+
+	/**
+	 * Test that a non-matching annotation returns empty results.
+	 *
+	 * No fixture marks itself destructive, so the result set is empty.
+	 *
+	 * @ticket 64990
+	 */
+	public function test_filter_by_non_matching_annotation(): void {
+		$request = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities' );
+		$request->set_param( 'meta', array( 'annotations' => array( 'destructive' => true ) ) );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertEmpty( $response->get_data() );
+	}
+
+	/**
+	 * Test filtering abilities by several meta conditions at once.
+	 *
+	 * All conditions must match (AND logic).
+	 *
+	 * @ticket 64990
+	 */
+	public function test_filter_by_multiple_meta_conditions(): void {
+		$this->register_test_ability(
+			'test/read-only-idempotent',
+			array(
+				'label'               => 'Read Only and Idempotent',
+				'description'         => 'Marked both read only and idempotent.',
+				'category'            => 'general',
+				'execute_callback'    => '__return_true',
+				'permission_callback' => '__return_true',
+				'meta'                => array(
+					'show_in_rest' => true,
+					'annotations'  => array(
+						'readonly'   => true,
+						'idempotent' => true,
+					),
+				),
+			)
+		);
+
+		$this->register_test_ability(
+			'test/read-only-only',
+			array(
+				'label'               => 'Read Only',
+				'description'         => 'Marked read only but not idempotent.',
+				'category'            => 'general',
+				'execute_callback'    => '__return_true',
+				'permission_callback' => '__return_true',
+				'meta'                => array(
+					'show_in_rest' => true,
+					'annotations'  => array(
+						'readonly' => true,
+					),
+				),
+			)
+		);
+
+		$request = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities' );
+		$request->set_param(
+			'meta',
+			array(
+				'annotations' => array(
+					'readonly'   => 'true',
+					'idempotent' => 'true',
+				),
+			)
+		);
+		$request->set_param( 'per_page', 100 );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+
+		$names = wp_list_pluck( $response->get_data(), 'name' );
+
+		$this->assertContains( 'test/read-only-idempotent', $names, 'An ability matching every condition should be included.' );
+		$this->assertNotContains( 'test/read-only-only', $names, 'An ability matching only one condition should be excluded.' );
+	}
+
+	/**
+	 * Test that a caller cannot use the meta filter to reveal abilities hidden from REST.
+	 *
+	 * The forced `show_in_rest => true` condition must always win, even when the
+	 * caller passes `show_in_rest => false` through the meta parameter.
+	 *
+	 * @ticket 64990
+	 */
+	public function test_filter_by_meta_cannot_override_show_in_rest(): void {
+		$request = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities' );
+		$request->set_param( 'meta', array( 'show_in_rest' => false ) );
+		$request->set_param( 'per_page', 100 );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+
+		$names = wp_list_pluck( $response->get_data(), 'name' );
+		$this->assertNotContains( 'test/not-show-in-rest', $names, 'A caller must not reveal hidden abilities through meta.' );
+	}
+
+	/**
+	 * Test the default behavior for a custom meta key with no declared type.
+	 *
+	 * Open-ended meta keys arrive over the query string as strings. The meta
+	 * schema declares only the well-defined annotations, so a custom key such as
+	 * `featured` has no declared type. REST leaves the value "true" as a string,
+	 * and the strict meta match never equals the stored boolean. The ability is
+	 * excluded.
+	 *
+	 * @ticket 64990
+	 */
+	public function test_filter_by_custom_meta_without_declared_type_is_not_coerced(): void {
+		$this->register_featured_ability();
+
+		$request = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities' );
+		// The value is passed as a string, the way it arrives over the query string.
+		$request->set_param( 'meta', array( 'featured' => 'true' ) );
+		$request->set_param( 'per_page', 100 );
+
+		$response = $this->server->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+
+		$names = wp_list_pluck( $response->get_data(), 'name' );
+		$this->assertNotContains( 'test/featured', $names, 'A custom meta key without a declared type should not coerce the query-string value.' );
+	}
+
+	/**
+	 * Test that a filter can declare a custom meta key's type so its value coerces.
+	 *
+	 * A plugin can declare the type for its own meta key through the
+	 * `rest_abilities_collection_params` filter. REST then coerces the value
+	 * "true" to a boolean before matching, so the ability is included. This is
+	 * the supported way to make a custom meta key filterable.
+	 *
+	 * @ticket 64990
+	 */
+	public function test_filter_can_declare_custom_meta_type_for_coercion(): void {
+		$this->register_featured_ability();
+
+		// Declare the type for the custom meta key so REST coerces the value first.
+		add_filter(
+			'rest_abilities_collection_params',
+			static function ( array $query_params ): array {
+				$query_params['meta']['properties']['featured'] = array(
+					'type' => array( 'boolean', 'null' ),
+				);
+				return $query_params;
+			}
+		);
+
+		// Re-register the routes on a fresh server so the collection parameters pick up the filter.
+		global $wp_rest_server;
+		$wp_rest_server = new WP_REST_Server();
+		$this->server   = $wp_rest_server;
+		do_action( 'rest_api_init' );
+
+		$request = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities' );
+		// The value is passed as a string, the way it arrives over the query string.
+		$request->set_param( 'meta', array( 'featured' => 'true' ) );
+		$request->set_param( 'per_page', 100 );
+
+		$response = $this->server->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+
+		$names = wp_list_pluck( $response->get_data(), 'name' );
+		$this->assertContains( 'test/featured', $names, 'A declared schema type should coerce the query-string value before matching.' );
 	}
 
 	/**
