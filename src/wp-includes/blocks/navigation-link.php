@@ -127,7 +127,7 @@ function block_core_navigation_link_maybe_urldecode( $url ) {
  */
 function render_block_core_navigation_link( $attributes, $content, $block ) {
 	// Check if this navigation item should render based on post status.
-	if ( defined( 'IS_GUTENBERG_PLUGIN' ) && IS_GUTENBERG_PLUGIN ) {
+	if ( function_exists( 'gutenberg_block_core_shared_navigation_build_css_font_sizes' ) ) {
 		if ( ! gutenberg_block_core_shared_navigation_item_should_render( $attributes, $block ) ) {
 			return '';
 		}
@@ -142,7 +142,7 @@ function render_block_core_navigation_link( $attributes, $content, $block ) {
 	// collisions with the core version. Until this function is backported to
 	// core, we need to guard its use and only call the prefixed name in
 	//  the plugin.
-	if ( defined( 'IS_GUTENBERG_PLUGIN' ) && IS_GUTENBERG_PLUGIN ) {
+	if ( function_exists( 'gutenberg_block_core_shared_navigation_build_css_font_sizes' ) ) {
 		$font_sizes = gutenberg_block_core_shared_navigation_build_css_font_sizes( $block->context );
 	} else {
 		$font_sizes = block_core_shared_navigation_build_css_font_sizes( $block->context );
@@ -229,7 +229,7 @@ function render_block_core_navigation_link( $attributes, $content, $block ) {
 	if ( isset( $block->context['showSubmenuIcon'] ) && $block->context['showSubmenuIcon'] && $has_submenu ) {
 		// The submenu icon can be hidden by a CSS rule on the Navigation Block.
 		$html .= '<span class="wp-block-navigation__submenu-icon">';
-		if ( defined( 'IS_GUTENBERG_PLUGIN' ) && IS_GUTENBERG_PLUGIN ) {
+		if ( function_exists( 'gutenberg_block_core_shared_navigation_build_css_font_sizes' ) ) {
 			$html .= gutenberg_block_core_shared_navigation_render_submenu_icon();
 		} else {
 			$html .= block_core_shared_navigation_render_submenu_icon();
