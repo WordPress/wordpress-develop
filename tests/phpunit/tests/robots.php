@@ -11,6 +11,7 @@ class Tests_Robots extends WP_UnitTestCase {
 	public function set_up() {
 		parent::set_up();
 
+		$this->set_permalink_structure( '/%postname%/' );
 		remove_all_filters( 'wp_robots' );
 	}
 
@@ -138,6 +139,30 @@ class Tests_Robots extends WP_UnitTestCase {
 	 */
 	public function test_wp_robots_non_search_page() {
 		add_filter( 'wp_robots', 'wp_robots_noindex_search' );
+		$this->go_to( home_url() );
+
+		$output = get_echo( 'wp_robots' );
+		$this->assertStringNotContainsString( 'noindex', $output );
+	}
+
+	/**
+	 * @ticket 58751
+	 * @covers ::wp_robots_noindex_404
+	 */
+	public function test_wp_robots_404_page() {
+		add_filter( 'wp_robots', 'wp_robots_noindex_404' );
+		$this->go_to( '/this-page-does-not-exist' );
+
+		$output = get_echo( 'wp_robots' );
+		$this->assertStringContainsString( 'noindex', $output );
+	}
+
+	/**
+	 * @ticket 58751
+	 * @covers ::wp_robots_noindex_404
+	 */
+	public function test_wp_robots_non_404_page() {
+		add_filter( 'wp_robots', 'wp_robots_noindex_404' );
 		$this->go_to( home_url() );
 
 		$output = get_echo( 'wp_robots' );

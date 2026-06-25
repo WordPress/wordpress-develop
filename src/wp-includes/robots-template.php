@@ -124,6 +124,32 @@ function wp_robots_noindex_search( array $robots ) {
 }
 
 /**
+ * Adds `noindex` to the robots meta tag if a 404 error has occurred.
+ *
+ * If a 404 error has occurred then noindex will be output to
+ * tell web robots not to index the page content. Add this to the
+ * {@see 'wp_robots'} filter.
+ *
+ * Typical usage is as a {@see 'wp_robots'} callback:
+ *
+ *     add_filter( 'wp_robots', 'wp_robots_noindex_404' );
+ *
+ * @since x.x.x
+ *
+ * @see wp_robots_no_robots()
+ *
+ * @param array $robots Associative array of robots directives.
+ * @return array Filtered robots directives.
+ */
+function wp_robots_noindex_404( array $robots ) {
+	if ( is_404() ) {
+		return wp_robots_no_robots( $robots );
+	}
+
+	return $robots;
+}
+
+/**
  * Adds `noindex` to the robots meta tag.
  *
  * This directive tells web robots not to index the page content.
