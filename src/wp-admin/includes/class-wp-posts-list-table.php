@@ -101,6 +101,22 @@ class WP_Posts_List_Table extends WP_List_Table {
 			)
 		);
 
+		/**
+		 * Filters the number of posts authored by the current user.
+		 *
+		 * @since 7.1.0
+		 *
+		 * @param int    $user_posts_count Number of posts authored by the current user.
+		 * @param string $post_type         The post type.
+		 * @param int    $user_id           The current user ID.
+		 */
+		$this->user_posts_count = (int) apply_filters(
+			'user_posts_count',
+			$this->user_posts_count,
+			$post_type,
+			get_current_user_id()
+		);
+
 		if ( $this->user_posts_count
 			&& ! current_user_can( $post_type_object->cap->edit_others_posts )
 			&& empty( $_REQUEST['post_status'] ) && empty( $_REQUEST['all_posts'] )

@@ -330,4 +330,40 @@ class Tests_Admin_wpPostsListTable extends WP_UnitTestCase {
 
 		$this->assertSame( $expected, $actual );
 	}
+
+	/**
+	 * @ticket 47640
+	 *
+	 * @covers WP_Posts_List_Table::__construct
+	 * @covers WP_Posts_List_Table::get_views
+	 */
+	public function test_get_views_should_use_filtered_user_posts_count() {
+		global $avail_post_stati;
+
+		$user_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		wp_set_current_user( $user_id );
+
+		$filter = function ( $count, $post_type, $current_user_id ) use ( $user_id ) {
+			$this->assertSame( 0, $count );
+			$this->assertSame( 'page', $post_type );
+			$this->assertSame( $user_id, $current_user_id );
+
+			return 1;
+		};
+
+		add_filter( 'user_posts_count', $filter, 10, 3 );
+		$table = _get_list_table( 'WP_Posts_List_Table', array( 'screen' => 'edit-page' ) );
+		remove_filter( 'user_posts_count', $filter );
+
+		$avail_post_stati_backup = $avail_post_stati;
+		$avail_post_stati        = get_available_post_statuses();
+
+		$actual           = $table->get_views();
+		$avail_post_stati = $avail_post_stati_backup;
+
+		$this->assertSame(
+			'<a href="edit.php?post_type=page&#038;author=' . $user_id . '">Mine <span class="count">(1)</span></a>',
+			$actual['mine']
+		);
+	}
 }
