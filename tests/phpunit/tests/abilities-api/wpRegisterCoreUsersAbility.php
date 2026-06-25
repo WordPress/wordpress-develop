@@ -386,6 +386,84 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Collection mode for users without list_users honors public post type filters.
+	 *
+	 * @ticket 64146
+	 */
+	public function test_collection_mode_for_users_without_list_users_uses_public_post_types(): void {
+		register_post_type(
+			'wp_public_pt',
+			array(
+				'public'       => true,
+				'show_in_rest' => false,
+			)
+		);
+		register_post_type(
+			'wp_private_pt',
+			array(
+				'public' => false,
+			)
+		);
+
+		$public_author_id  = self::factory()->user->create( array( 'role' => 'author' ) );
+		$private_author_id = self::factory()->user->create( array( 'role' => 'author' ) );
+		$public_post_id    = self::factory()->post->create(
+			array(
+				'post_author' => $public_author_id,
+				'post_status' => 'publish',
+				'post_type'   => 'wp_public_pt',
+			)
+		);
+		$private_post_id   = self::factory()->post->create(
+			array(
+				'post_author' => $private_author_id,
+				'post_status' => 'publish',
+				'post_type'   => 'wp_private_pt',
+			)
+		);
+
+		try {
+			$this->assertFalse( get_post_type_object( 'wp_public_pt' )->show_in_rest );
+
+			wp_set_current_user( $this->subscriber_id );
+
+			$ability = wp_get_ability( 'core/users' );
+			$result  = $ability->execute(
+				array(
+					'has_published_posts' => array( 'wp_public_pt' ),
+					'fields'              => array( 'id' ),
+					'per_page'            => 100,
+				)
+			);
+
+			$this->assertIsArray( $result );
+			$ids = wp_list_pluck( $result['users'], 'id' );
+			$this->assertContains( $public_author_id, $ids );
+			$this->assertNotContains( $this->public_author_id, $ids );
+			$this->assertNotContains( $private_author_id, $ids );
+
+			$result = $ability->execute(
+				array(
+					'has_published_posts' => array( 'wp_private_pt' ),
+					'fields'              => array( 'id' ),
+				)
+			);
+
+			$this->assertIsArray( $result );
+			$this->assertSame( array(), $result['users'] );
+			$this->assertSame( 0, $result['total'] );
+			$this->assertSame( 0, $result['total_pages'] );
+		} finally {
+			wp_delete_post( $public_post_id, true );
+			wp_delete_post( $private_post_id, true );
+			wp_delete_user( $public_author_id );
+			wp_delete_user( $private_author_id );
+			unregister_post_type( 'wp_public_pt' );
+			unregister_post_type( 'wp_private_pt' );
+		}
+	}
+
+	/**
 	 * Administrators can query by role and receive roles.
 	 *
 	 * @ticket 64146
