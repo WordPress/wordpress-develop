@@ -999,6 +999,20 @@ function wp_admin_bar_command_palette_menu( WP_Admin_Bar $wp_admin_bar ): void {
 			),
 		)
 	);
+
+	// Duplicate into top-secondary for mobile viewport.
+	$wp_admin_bar->add_node(
+		array(
+			'parent' => 'top-secondary',
+			'id'     => 'mobile-command-palette',
+			'title'  => $title,
+			'href'   => '#',
+			'meta'   => array(
+				'class'   => 'hide-if-no-js',
+				'onclick' => 'wp.data.dispatch( "core/commands" ).open(); return false;',
+			),
+		)
+	);
 }
 
 /**
@@ -1121,6 +1135,15 @@ function wp_admin_bar_comments_menu( $wp_admin_bar ) {
 			'id'    => 'comments',
 			'title' => $icon . $title,
 			'href'  => admin_url( 'edit-comments.php' ),
+			'meta'  => array(
+				'menu_title' => $awaiting_mod > 0
+					? sprintf(
+						/* translators: %s: Number of comments awaiting moderation. */
+						__( 'Comments %s' ),
+						number_format_i18n( $awaiting_mod )
+					)
+					: __( 'Comments' ),
+			),
 		)
 	);
 }
@@ -1236,6 +1259,13 @@ function wp_admin_bar_updates_menu( $wp_admin_bar ) {
 			'id'    => 'updates',
 			'title' => $icon . $title,
 			'href'  => network_admin_url( 'update-core.php' ),
+			'meta'  => array(
+				'menu_title' => sprintf(
+					/* translators: %s: Number of updates available. */
+					__( 'Updates %s' ),
+					number_format_i18n( $update_data['counts']['total'] )
+				),
+			),
 		)
 	);
 }
@@ -1298,6 +1328,91 @@ function wp_admin_bar_recovery_mode_menu( $wp_admin_bar ) {
 			'href'   => $url,
 		)
 	);
+}
+
+/**
+ * Duplicate site and content-related shortcut menus (such as Updates and New)
+ * under the `site-name` menu and show them on mobile viewport, where
+ * the original shortcut menus are hidden to make room for the site title.
+ *
+ * @since 7.1.0
+ *
+ * @param WP_Admin_Bar $wp_admin_bar The WP_Admin_Bar instance.
+ */
+function wp_admin_bar_duplicate_shortcut_menus( $wp_admin_bar ) {
+	if ( ! $wp_admin_bar->get_node( 'site-name' ) ) {
+		return;
+	}
+
+	$shortcut_node_ids = array(
+		'site-editor',
+		'customize',
+		'updates',
+		'comments',
+		'new-content',
+		'edit',
+	);
+
+	$nodes = $wp_admin_bar->get_nodes();
+
+	$shortcut_nodes = array();
+	foreach ( $shortcut_node_ids as $node_id ) {
+		if ( isset( $nodes[ $node_id ] ) ) {
+			$shortcut_nodes[] = $nodes[ $node_id ];
+		}
+	}
+
+	if ( empty( $shortcut_nodes ) ) {
+		return;
+	}
+
+	$children_by_parent = array();
+	foreach ( $nodes as $node ) {
+		if ( ! empty( $node->parent ) ) {
+			$children_by_parent[ $node->parent ][] = $node;
+		}
+	}
+
+	$wp_admin_bar->add_group(
+		array(
+			'parent' => 'site-name',
+			'id'     => 'mobile-site-shortcuts',
+			'meta'   => array(
+				'class' => 'ab-sub-secondary',
+			),
+		)
+	);
+
+	foreach ( $shortcut_nodes as $node ) {
+		// Swap potentially icon-only markup for a plain text label
+		if ( ! empty( $node->meta['menu_title'] ) ) {
+			$node->title = $node->meta['menu_title'];
+		}
+		_wp_admin_bar_clone_subtree( $wp_admin_bar, $node, 'mobile-site-shortcuts', $children_by_parent );
+	}
+}
+
+/**
+ * Recursively clones a node and its descendants under a new parent.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param WP_Admin_Bar $wp_admin_bar       The WP_Admin_Bar instance.
+ * @param object       $node               The original node to clone.
+ * @param string       $new_parent         The ID of the new parent node.
+ * @param array        $children_by_parent Map of parent id => array of child node objects.
+ */
+function _wp_admin_bar_clone_subtree( $wp_admin_bar, $node, $new_parent, $children_by_parent ) {
+	$new_id        = 'mobile-site-shortcut-' . $node->id;
+	$clone         = clone $node;
+	$clone->id     = $new_id;
+	$clone->parent = $new_parent;
+	$wp_admin_bar->add_node( $clone );
+
+	foreach ( $children_by_parent[ $node->id ] ?? array() as $child ) {
+		_wp_admin_bar_clone_subtree( $wp_admin_bar, $child, $new_id, $children_by_parent );
+	}
 }
 
 /**

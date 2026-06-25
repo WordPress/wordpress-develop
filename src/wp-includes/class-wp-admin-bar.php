@@ -670,6 +670,9 @@ class WP_Admin_Bar {
 		}
 		add_action( 'admin_bar_menu', 'wp_admin_bar_edit_menu', 80 );
 
+		// Duplicate site and content-related shortcut menus under site menu for mobile viewport.
+		add_action( 'admin_bar_menu', 'wp_admin_bar_duplicate_shortcut_menus', 90 );
+
 		add_action( 'admin_bar_menu', 'wp_admin_bar_add_secondary_groups', 200 );
 
 		/**
