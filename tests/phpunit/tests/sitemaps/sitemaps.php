@@ -450,6 +450,151 @@ class Tests_Sitemaps_Sitemaps extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 51117
+	 */
+	public function test_sitemaps_render_on_parse_request() {
+		$sitemaps = wp_sitemaps_get_server();
+
+		$this->assertSame( 10, has_action( 'parse_request', array( $sitemaps, 'render_sitemaps' ) ) );
+		$this->assertFalse( has_action( 'template_redirect', array( $sitemaps, 'render_sitemaps' ) ) );
+	}
+
+	/**
+	 * @ticket 51117
+	 */
+	public function test_sitemap_requests_short_circuit_before_main_query() {
+		wp_sitemaps_get_server();
+
+		$pre_get_posts = static function ( $query ) {
+			throw new Exception( 'The main query was run.' );
+		};
+		$set_404       = static function ( $query ) {
+			throw new Exception( 'The sitemap request was handled.' );
+		};
+
+		add_action( 'pre_get_posts', $pre_get_posts );
+		add_action( 'set_404', $set_404 );
+
+		try {
+			$this->go_to( home_url( '/?sitemap=unknown' ) );
+			$this->fail( 'The sitemap request was not handled.' );
+		} catch ( Exception $e ) {
+			$this->assertSame( 'The sitemap request was handled.', $e->getMessage() );
+		} finally {
+			remove_action( 'pre_get_posts', $pre_get_posts );
+			remove_action( 'set_404', $set_404 );
+		}
+	}
+
+	/**
+	 * @ticket 51117
+	 *
+	 * @dataProvider data_sitemap_canonical_redirects
+	 *
+	 * @param array  $query_vars    Query vars for the sitemap request.
+	 * @param string $request_uri   Requested URI.
+	 * @param string $expected_path Expected redirect path.
+	 */
+	public function test_sitemap_requests_redirect_to_canonical_url_early( $query_vars, $request_uri, $expected_path ) {
+		$this->set_permalink_structure( '/%postname%/' );
+
+		$old_http_host   = $_SERVER['HTTP_HOST'] ?? null;
+		$old_request_uri = $_SERVER['REQUEST_URI'] ?? null;
+
+		$_SERVER['HTTP_HOST']   = wp_parse_url( home_url(), PHP_URL_HOST );
+		$_SERVER['REQUEST_URI'] = $request_uri;
+
+		$redirect_url = null;
+		$redirect     = static function ( $location ) use ( &$redirect_url ) {
+			$redirect_url = $location;
+			throw new Exception( 'The sitemap request was redirected.' );
+		};
+
+		add_filter( 'wp_redirect', $redirect );
+
+		try {
+			$wp             = new WP();
+			$wp->query_vars = $query_vars;
+
+			wp_sitemaps_get_server()->render_sitemaps( $wp );
+			$this->fail( 'The sitemap request was not redirected.' );
+		} catch ( Exception $e ) {
+			$this->assertSame( 'The sitemap request was redirected.', $e->getMessage() );
+		} finally {
+			remove_filter( 'wp_redirect', $redirect );
+
+			if ( null === $old_http_host ) {
+				unset( $_SERVER['HTTP_HOST'] );
+			} else {
+				$_SERVER['HTTP_HOST'] = $old_http_host;
+			}
+
+			if ( null === $old_request_uri ) {
+				unset( $_SERVER['REQUEST_URI'] );
+			} else {
+				$_SERVER['REQUEST_URI'] = $old_request_uri;
+			}
+		}
+
+		$this->assertSame( home_url( $expected_path ), $redirect_url );
+	}
+
+	/**
+	 * Data provider for test_sitemap_requests_redirect_to_canonical_url_early().
+	 *
+	 * @return array[] {
+	 *     Data to test with.
+	 *
+	 *     @type array  $0 Query vars for the sitemap request.
+	 *     @type string $1 Requested URI.
+	 *     @type string $2 Expected redirect path.
+	 * }
+	 */
+	public static function data_sitemap_canonical_redirects() {
+		return array(
+			'index'            => array(
+				array( 'sitemap' => 'index' ),
+				'/?sitemap=index',
+				'/wp-sitemap.xml',
+			),
+			'index with query' => array(
+				array( 'sitemap' => 'index' ),
+				'/?sitemap=index&foo=bar',
+				'/wp-sitemap.xml?foo=bar',
+			),
+			'legacy index'     => array(
+				array( 'sitemap' => 'index' ),
+				'/sitemap.xml?foo=bar',
+				'/wp-sitemap.xml?foo=bar',
+			),
+			'posts'            => array(
+				array(
+					'sitemap'         => 'posts',
+					'sitemap-subtype' => 'post',
+					'paged'           => 2,
+				),
+				'/?sitemap=posts&sitemap-subtype=post&paged=2',
+				'/wp-sitemap-posts-post-2.xml',
+			),
+			'stylesheet'       => array(
+				array( 'sitemap-stylesheet' => 'sitemap' ),
+				'/?sitemap-stylesheet=sitemap',
+				'/wp-sitemap.xsl',
+			),
+			'stylesheet query' => array(
+				array( 'sitemap-stylesheet' => 'sitemap' ),
+				'/?sitemap-stylesheet=sitemap&foo=bar',
+				'/wp-sitemap.xsl?foo=bar',
+			),
+			'index stylesheet' => array(
+				array( 'sitemap-stylesheet' => 'index' ),
+				'/?sitemap-stylesheet=index',
+				'/wp-sitemap-index.xsl',
+			),
+		);
+	}
+
+	/**
 	 * @ticket 50643
 	 */
 	public function test_sitemaps_enabled() {
@@ -468,9 +613,11 @@ class Tests_Sitemaps_Sitemaps extends WP_UnitTestCase {
 	 * @preserveGlobalState disabled
 	 */
 	public function test_disable_sitemap_should_return_404() {
+		global $wp_query;
+
 		add_filter( 'wp_sitemaps_enabled', '__return_false' );
 
-		$this->go_to( home_url( '/?sitemap=index' ) );
+		$wp_query->query_vars = array( 'sitemap' => 'index' );
 
 		wp_sitemaps_get_server()->render_sitemaps();
 
@@ -485,9 +632,26 @@ class Tests_Sitemaps_Sitemaps extends WP_UnitTestCase {
 	 * @preserveGlobalState disabled
 	 */
 	public function test_empty_url_list_should_return_404() {
+		global $wp_query;
+
 		wp_register_sitemap_provider( 'foo', new WP_Sitemaps_Empty_Test_Provider( 'foo' ) );
 
-		$this->go_to( home_url( '/?sitemap=foo' ) );
+		$wp_query->query_vars = array( 'sitemap' => 'foo' );
+
+		wp_sitemaps_get_server()->render_sitemaps();
+
+		$this->assertTrue( is_404() );
+	}
+
+	/**
+	 * @ticket 51117
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
+	 */
+	public function test_unknown_sitemap_provider_should_return_404() {
+		global $wp_query;
+
+		$wp_query->query_vars = array( 'sitemap' => 'unknown' );
 
 		wp_sitemaps_get_server()->render_sitemaps();
 
