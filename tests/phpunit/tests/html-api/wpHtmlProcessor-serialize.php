@@ -474,8 +474,7 @@ class Tests_HtmlApi_WpHtmlProcessor_Serialize extends WP_UnitTestCase {
 	 * @param string $expected Expected exact output after normalization.
 	 */
 	public function test_normalize_special_leading_newline_handling( string $input, string $expected ) {
-		$normalized       = WP_HTML_Processor::normalize( $input );
-		$normalized_twice = WP_HTML_Processor::normalize( $normalized );
+		$normalized = WP_HTML_Processor::normalize( $input );
 
 		/*
 		 * Byte equality pins normalize()'s serialized form; HTML equality verifies
@@ -483,8 +482,10 @@ class Tests_HtmlApi_WpHtmlProcessor_Serialize extends WP_UnitTestCase {
 		 * one leading LF after PRE, LISTING, and TEXTAREA start tags.
 		 */
 		$this->assertSame( $expected, $normalized );
-		$this->assertSame( $expected, $normalized_twice );
 		$this->assertEqualHTML( $input, $normalized );
+
+		$normalized_twice = WP_HTML_Processor::normalize( $normalized );
+		$this->assertSame( $expected, $normalized_twice );
 		$this->assertEqualHTML( $normalized, $normalized_twice );
 	}
 
