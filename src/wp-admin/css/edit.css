@@ -713,10 +713,13 @@ form#tags-filter {
 	margin-top: 3px;
 }
 
-#post-status-select .post-status-options {
-	border: 0;
-	margin: 0 0 0.7em;
-	padding: 0;
+#post-status-select select {
+	max-width: 100%;
+	width: 100%;
+}
+
+#post-status-select .post-status-actions {
+	margin: 0.7em 0 0;
 }
 
 #linksubmitdiv .inside, /* Old Link Manager back-compat. */

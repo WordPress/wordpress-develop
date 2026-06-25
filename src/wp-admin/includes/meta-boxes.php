@@ -141,28 +141,28 @@ function post_submit_meta_box( $post, $args = array() ) {
 
 				<div id="post-status-select" class="hide-if-js">
 					<input type="hidden" name="hidden_post_status" id="hidden_post_status" value="<?php echo esc_attr( ( 'auto-draft' === $post->post_status ) ? 'draft' : $post->post_status ); ?>" />
-					<fieldset id="post_status" class="post-status-options">
-						<legend class="screen-reader-text">
-							<?php
-							/* translators: Hidden accessibility text. */
-							_e( 'Set status' );
-							?>
-						</legend>
+					<label for="post_status" class="screen-reader-text">
+						<?php
+						/* translators: Hidden accessibility text. */
+						_e( 'Set status' );
+						?>
+					</label>
+					<select name="post_status" id="post_status">
 						<?php if ( 'publish' === $post->post_status ) : ?>
-							<span class="post-status-option"><input type="radio" name="post_status" id="post-status-radio-publish" value="publish" <?php checked( $post->post_status, 'publish' ); ?> /> <label for="post-status-radio-publish" class="selectit"><?php _e( 'Published' ); ?></label><br /></span>
+							<option<?php selected( $post->post_status, 'publish' ); ?> value='publish'><?php _e( 'Published' ); ?></option>
 						<?php elseif ( 'private' === $post->post_status ) : ?>
-							<span class="post-status-option"><input type="radio" name="post_status" id="post-status-radio-publish" value="publish" <?php checked( $post->post_status, 'private' ); ?> /> <label for="post-status-radio-publish" class="selectit"><?php _e( 'Privately Published' ); ?></label><br /></span>
+							<option<?php selected( $post->post_status, 'private' ); ?> value='publish'><?php _e( 'Privately Published' ); ?></option>
 						<?php elseif ( 'future' === $post->post_status ) : ?>
-							<span class="post-status-option"><input type="radio" name="post_status" id="post-status-radio-future" value="future" <?php checked( $post->post_status, 'future' ); ?> /> <label for="post-status-radio-future" class="selectit"><?php _e( 'Scheduled' ); ?></label><br /></span>
+							<option<?php selected( $post->post_status, 'future' ); ?> value='future'><?php _e( 'Scheduled' ); ?></option>
 						<?php endif; ?>
-							<span class="post-status-option"><input type="radio" name="post_status" id="post-status-radio-pending" value="pending" <?php checked( $post->post_status, 'pending' ); ?> /> <label for="post-status-radio-pending" class="selectit"><?php _e( 'Pending Review' ); ?></label><br /></span>
+							<option<?php selected( $post->post_status, 'pending' ); ?> value='pending'><?php _e( 'Pending Review' ); ?></option>
 						<?php if ( 'auto-draft' === $post->post_status ) : ?>
-							<span class="post-status-option"><input type="radio" name="post_status" id="post-status-radio-draft" value="draft" <?php checked( $post->post_status, 'auto-draft' ); ?> /> <label for="post-status-radio-draft" class="selectit"><?php _e( 'Draft' ); ?></label><br /></span>
+							<option<?php selected( $post->post_status, 'auto-draft' ); ?> value='draft'><?php _e( 'Draft' ); ?></option>
 						<?php else : ?>
-							<span class="post-status-option"><input type="radio" name="post_status" id="post-status-radio-draft" value="draft" <?php checked( $post->post_status, 'draft' ); ?> /> <label for="post-status-radio-draft" class="selectit"><?php _e( 'Draft' ); ?></label><br /></span>
+							<option<?php selected( $post->post_status, 'draft' ); ?> value='draft'><?php _e( 'Draft' ); ?></option>
 						<?php endif; ?>
-					</fieldset>
-					<p>
+					</select>
+					<p class="post-status-actions">
 						<a href="#post_status" class="save-post-status hide-if-no-js button"><?php _e( 'OK' ); ?></a>
 						<a href="#post_status" class="cancel-post-status hide-if-no-js button-cancel"><?php _e( 'Cancel' ); ?></a>
 					</p>
