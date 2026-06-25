@@ -3257,7 +3257,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			/*
 			 * > Any other end tag
 			 */
-			return $this->step_in_body_any_other_end_tag();
+			return $this->in_body_any_other_end_tag();
 		}
 
 		$this->bail( 'Should not have been able to reach end of IN BODY processing. Check HTML API code.' );
@@ -3278,7 +3278,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @return bool Whether an element was found.
 	 */
-	private function step_in_body_any_other_end_tag(): bool {
+	private function in_body_any_other_end_tag(): bool {
 		$token_name = $this->get_token_name();
 
 		/*
