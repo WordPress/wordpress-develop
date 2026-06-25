@@ -2145,7 +2145,8 @@ class WP_HTML_Tag_Processor {
 	 * @since 6.2.0
 	 * @ignore
 	 *
-	 * @return bool Whether an attribute was found before the end of the document.
+	 * @return bool True to indicate attribute parsing should continue. False if a stop condition
+	 *              was reached.
 	 */
 	private function parse_next_attribute(): bool {
 		$doc_length = strlen( $this->html );
@@ -2159,14 +2160,25 @@ class WP_HTML_Tag_Processor {
 			return false;
 		}
 
-		/*
-		 * In `<g attr=/>`, `/` is the unquoted attribute value and has
-		 * already been consumed. A skipped slash immediately before `>`
-		 * represents the token's self-closing flag.
+		/**
+		 * This block serves two purposes:
+		 *
+		 * - A fast path for common tag-ending `>`.
+		 * - A check for the self-closing flag which must appear as `/>`.
+		 *
+		 * In a tag like `<g attr=/>`, `/` is the attribute value, not a self-closing
+		 * flag. When it appears in this form, the parser has already consumed the
+		 * attribute value, `$skipped_length` is 0, and this checks below correctly
+		 * identify whether there is a self-closing flag.
+		 *
+		 * Note: Both start and end tags may have the self-closing flag.
 		 */
-		$this->has_self_closing_flag = $skipped_length > 0 &&
-			'/' === $this->html[ $this->bytes_already_parsed - 1 ] &&
-			'>' === $this->html[ $this->bytes_already_parsed ];
+		if ( '>' === $this->html[ $this->bytes_already_parsed ] ) {
+			if ( $skipped_length > 0 && '/' === $this->html[ $this->bytes_already_parsed - 1 ] ) {
+				$this->has_self_closing_flag = true;
+			}
+			return false;
+		}
 
 		/*
 		 * Treat the equal sign as a part of the attribute
