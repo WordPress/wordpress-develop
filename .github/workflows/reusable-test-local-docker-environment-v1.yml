@@ -93,6 +93,7 @@ jobs:
 
       - name: Set up Node.js
         uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+        background: true
         with:
           node-version-file: '.nvmrc'
           cache: npm
@@ -106,21 +107,31 @@ jobs:
       ##
       - name: Set up PHP
         uses: shivammathur/setup-php@7c071dfe9dc99bdf297fa79cb49ea005b9fcadbc # 2.37.1
+        background: true
         with:
           php-version: '${{ inputs.php }}'
           coverage: none
+
+      - name: Wait for setup commands
+        wait-all:
 
       # Since Composer dependencies are installed using `composer update` and no lock file is in version control,
       # passing a custom cache suffix ensures that the cache is flushed at least once per week.
       - name: Install Composer dependencies
         uses: ramsey/composer-install@65e4f84970763564f46a70b8a54b90d033b3bdda # 4.0.0
+        background: true
         with:
           custom-cache-suffix: $(/bin/date -u --date='last Mon' "+%F")
 
       - name: Install npm dependencies
+        background: true
         run: npm ci
 
+      - name: Wait for install commands
+        wait-all:
+
       - name: Build WordPress
+        background: true
         run: npm run build:dev
 
       - name: General debug information
@@ -137,8 +148,10 @@ jobs:
           docker -v
 
       - name: Start Docker environment
-        run: |
-          npm run env:start
+        run: npm run env:start
+
+      - name: Wait for build script & Docker environment
+        wait-all:
 
       - name: Log running Docker containers
         run: docker ps -a

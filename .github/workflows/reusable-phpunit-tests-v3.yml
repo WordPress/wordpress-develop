@@ -137,6 +137,7 @@ jobs:
 
       - name: Set up Node.js
         uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+        background: true
         with:
           node-version-file: '.nvmrc'
           cache: npm
@@ -150,22 +151,36 @@ jobs:
       ##
       - name: Set up PHP
         uses: shivammathur/setup-php@7c071dfe9dc99bdf297fa79cb49ea005b9fcadbc # 2.37.1
+        background: true
         with:
           php-version: '${{ inputs.php }}'
           coverage: none
+
+      - name: Wait for setup steps
+        wait-all:
 
       # Since Composer dependencies are installed using `composer update` and no lock file is in version control,
       # passing a custom cache suffix ensures that the cache is flushed at least once per week.
       - name: Install Composer dependencies
         uses: ramsey/composer-install@65e4f84970763564f46a70b8a54b90d033b3bdda # 4.0.0
+        background: true
         with:
           custom-cache-suffix: $(/bin/date -u --date='last Mon' "+%F")
 
       - name: Install npm dependencies
+        background: true
         run: npm ci
+
+      - name: Wait for install commands
+        wait-all:
 
       - name: Build WordPress
         run: npm run build:dev
+        background: true
+
+      - name: Start Docker environment
+        background: true
+        run: npm run env:start
 
       - name: General debug information
         run: |
@@ -180,9 +195,8 @@ jobs:
         run: |
           docker -v
 
-      - name: Start Docker environment
-        run: |
-          npm run env:start
+      - name: Wait for build script & Docker environment
+        wait-all:
 
       - name: Log running Docker containers
         run: docker ps -a
@@ -198,6 +212,7 @@ jobs:
           LOCAL_DB_CMD: ${{ env.LOCAL_DB_TYPE == 'mariadb' && contains( fromJSON('["5.5", "10.0", "10.1", "10.2", "10.3"]'), env.LOCAL_DB_VERSION ) && 'mysql' || env.LOCAL_DB_TYPE }}
 
       - name: Install WordPress
+        background: true
         run: npm run env:install
 
       # Installs PCOV as the code coverage driver for the PHPUnit run below.
@@ -213,6 +228,7 @@ jobs:
       #   during test warmup. The default of 64 is far too low here.
       - name: Install PCOV coverage driver
         if: ${{ inputs.coverage-report }}
+        background: true
         run: |
           docker compose exec -T -u 0 php sh -c '
             pecl install --force pcov-1.0.12 &&
@@ -224,6 +240,9 @@ jobs:
             } >> /usr/local/etc/php/conf.d/docker-php-ext-pcov.ini &&
             php -m | grep -i pcov
           '
+
+      - name: Wait for installation steps
+        wait-all:
 
       - name: Run external HTTP tests
         if: ${{ ! inputs.multisite && ! inputs.phpunit-test-groups && ! inputs.coverage-report }}

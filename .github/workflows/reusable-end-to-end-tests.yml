@@ -103,11 +103,15 @@ jobs:
         run: npx playwright install --with-deps chromium
 
       - name: Build WordPress
+        background: true
         run: npm run build
 
       - name: Start Docker environment
-        run: |
-          npm run env:start
+        background: true
+        run: npm run env:start
+
+      - name: Wait for build & Docker commands
+        wait-all:
 
       - name: Log running Docker containers
         run: docker ps -a
@@ -122,12 +126,14 @@ jobs:
           docker compose run --rm php locale -a
 
       - name: Install WordPress
+        background: true
+        run: npm run env:install
         env:
           LOCAL_SCRIPT_DEBUG: ${{ inputs.LOCAL_SCRIPT_DEBUG }}
-        run: npm run env:install
 
       - name: Install Gutenberg
         if: ${{ inputs.install-gutenberg }}
+        background: true
         run: |
           npm run env:cli -- plugin install gutenberg \
           ${{ inputs.gutenberg-version && '--version="${GUTENBERG_VERSION}"' || '' }} \
@@ -136,10 +142,14 @@ jobs:
           GUTENBERG_VERSION: ${{ inputs.gutenberg-version }}
 
       - name: Install additional languages
+        background: true
         run: |
           npm run env:cli -- language core install de_DE --path="/var/www/${LOCAL_DIR}"
           npm run env:cli -- language plugin install de_DE --all --path="/var/www/${LOCAL_DIR}"
           npm run env:cli -- language theme install de_DE --all --path="/var/www/${LOCAL_DIR}"
+
+      - name: Wait for install commands
+        wait-all:
 
       - name: Run E2E tests
         run: npm run test:e2e

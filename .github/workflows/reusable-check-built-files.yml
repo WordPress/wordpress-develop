@@ -51,6 +51,7 @@ jobs:
       # passing a custom cache suffix ensures that the cache is flushed at least once per week.
       - name: Install Composer dependencies
         uses: ramsey/composer-install@65e4f84970763564f46a70b8a54b90d033b3bdda # 4.0.0
+        background: true
         with:
           custom-cache-suffix: $(/bin/date -u --date='last Mon' "+%F")
 
@@ -62,18 +63,28 @@ jobs:
           git --version
 
       - name: Install npm Dependencies
+        background: true
         run: npm ci
 
+      - name: Wait for install commands
+        wait-all:
+
       - name: Run SASS precommit tasks
+        background: true
         run: npm run grunt precommit:css
 
       - name: Run Emoji precommit task
+        background: true
         run: npm run grunt precommit:emoji
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Run certificate tasks
+        background: true
         run: npm run grunt copy:certificates
+
+      - name: Wait for build commands
+        wait-all:
 
       - name: Build WordPress
         run: npm run build:dev
