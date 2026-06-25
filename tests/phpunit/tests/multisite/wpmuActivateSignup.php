@@ -191,6 +191,35 @@ class Tests_Multisite_wpmuActivateSignup extends WP_UnitTestCase {
 	}
 
 	/**
+	 * A legacy plain-text key registered before the expiration window must be rejected.
+	 *
+	 * @ticket 38474
+	 */
+	public function test_activate_signup_rejects_expired_legacy_key() {
+		global $wpdb;
+
+		$plain_key = 'aaaabbbbccccdddd';
+		$wpdb->insert(
+			$wpdb->signups,
+			array(
+				'domain'         => '',
+				'path'           => '',
+				'title'          => '',
+				'user_login'     => 'legacyuser38474c',
+				'user_email'     => 'legacy38474c@example.com',
+				'registered'     => gmdate( 'Y-m-d H:i:s', time() - DAY_IN_SECONDS - 1 ),
+				'activation_key' => $plain_key,
+				'meta'           => serialize( array() ),
+			)
+		);
+
+		$result = wpmu_activate_signup( $plain_key );
+
+		$this->assertWPError( $result );
+		$this->assertSame( 'expired_key', $result->get_error_code() );
+	}
+
+	/**
 	 * Ensure the stored activation key fits within 60 characters to account for sites
 	 * that have not updated their table schema (e.g. those using DO_NOT_UPGRADE_GLOBAL_TABLES).
 	 *

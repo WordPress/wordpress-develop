@@ -798,6 +798,9 @@ function wpmu_validate_blog_signup( $blogname, $blog_title, $user = '' ) {
  * The hash uses standard base64 (`+/=`) since it is stored in the DB, not URLs.
  * Both fit within the legacy `activation_key varchar(50)` column constraint.
  *
+ * Note: Activation links are invalidated when the site's authentication keys or salts
+ * change, consistent with how WordPress invalidates login sessions on salt rotation.
+ *
  * @since 6.9.0
  * @access private
  *
@@ -821,6 +824,55 @@ function _wp_generate_signup_key( $user_email ) {
 		'payload' => $payload,
 		'hash'    => $hash,
 	);
+}
+
+/**
+ * Resolves an activation key from an email link into a database lookup value.
+ *
+ * Handles both the HMAC-based format introduced in 6.9.0 and legacy plain 16-char
+ * hex keys from earlier WordPress versions.
+ *
+ * @since 6.9.0
+ * @access private
+ *
+ * @param string $key The activation key from the email link.
+ * @return array|null {
+ *     Parsed key data, or null if the key format is not recognized.
+ *
+ *     @type string      $format    'new' for HMAC keys, 'legacy' for plain hex keys.
+ *     @type string      $hash      The value to look up in the `activation_key` column.
+ *     @type string|null $email     User email embedded in the key (new format only).
+ *     @type int|null    $timestamp Key issuance timestamp embedded in the key (new format only).
+ * }
+ */
+function _wp_resolve_signup_key( $key ) {
+	// Restore base64 padding before decoding (it was stripped when the payload was generated).
+	$padded  = $key . str_repeat( '=', ( 4 - strlen( $key ) % 4 ) % 4 );
+	$decoded = base64_decode( strtr( $padded, '-_', '+/' ), true );
+	$parts   = is_string( $decoded ) ? explode( ':', $decoded, 3 ) : array();
+
+	if ( 3 === count( $parts ) && is_email( $parts[0] ) && ctype_digit( $parts[1] ) ) {
+		// New HMAC format: email:timestamp:random.
+		list( $email, $timestamp, $random ) = $parts;
+		return array(
+			'format'    => 'new',
+			'hash'      => base64_encode( hash_hmac( 'sha256', $decoded, wp_salt( 'auth' ), true ) ),
+			'email'     => $email,
+			'timestamp' => (int) $timestamp,
+		);
+	}
+
+	if ( 1 === preg_match( '~^[0-9a-f]{16}$~', $key ) ) {
+		// Legacy plain-text 16-char hex key — stored directly in the DB before 6.9.0.
+		return array(
+			'format'    => 'legacy',
+			'hash'      => $key,
+			'email'     => null,
+			'timestamp' => null,
+		);
+	}
+
+	return null;
 }
 
 /**
@@ -1242,57 +1294,48 @@ function wpmu_activate_signup(
 ) {
 	global $wpdb;
 
-	/*
-	 * New keys are URL-safe base64-encoded triplets: email:timestamp:random.
-	 * The DB stores hash_hmac('sha256', triplet, AUTH_KEY+AUTH_SALT).
-	 * Legacy keys are plain 16-char hex strings stored directly in the DB.
-	 */
-	// Restore base64 padding before decoding (it was stripped when the payload was generated).
-	$padded  = $key . str_repeat( '=', ( 4 - strlen( $key ) % 4 ) % 4 );
-	$decoded = base64_decode( strtr( $padded, '-_', '+/' ), true );
-	$parts   = is_string( $decoded ) ? explode( ':', $decoded, 3 ) : array();
+	$resolved = _wp_resolve_signup_key( $key );
 
-	if ( 3 === count( $parts ) && is_email( $parts[0] ) && ctype_digit( $parts[1] ) ) {
-		// New HMAC format.
-		list( $email, $timestamp, $random ) = $parts;
+	if ( null === $resolved ) {
+		return new WP_Error( 'invalid_key', __( 'Invalid activation key.' ) );
+	}
 
-		$expected_hash = base64_encode( hash_hmac( 'sha256', $decoded, wp_salt( 'auth' ), true ) );
-
+	if ( 'new' === $resolved['format'] ) {
 		$signup = $wpdb->get_row(
 			$wpdb->prepare(
 				"SELECT * FROM $wpdb->signups WHERE user_email = %s AND activation_key = %s",
-				$email,
-				$expected_hash
+				$resolved['email'],
+				$resolved['hash']
 			)
 		);
-
-		if ( empty( $signup ) ) {
-			return new WP_Error( 'invalid_key', __( 'Invalid activation key.' ) );
-		}
-
-		/**
-		 * Filters the expiration time of signup activation keys.
-		 *
-		 * @since 6.9.0
-		 *
-		 * @param int $expiration_duration The expiration time in seconds.
-		 */
-		$expiration_duration = apply_filters( 'activate_signup_expiration', DAY_IN_SECONDS );
-
-		if ( time() > ( (int) $timestamp + $expiration_duration ) ) {
-			return new WP_Error( 'expired_key', __( 'Invalid key' ) );
-		}
-	} elseif ( 1 === preg_match( '~^[0-9a-f]{16}$~', $key ) ) {
+	} else {
 		// Legacy plain-text 16-char hex key — allow for BC with pre-upgrade pending activations.
 		$signup = $wpdb->get_row(
-			$wpdb->prepare( "SELECT * FROM $wpdb->signups WHERE activation_key = %s", $key )
+			$wpdb->prepare( "SELECT * FROM $wpdb->signups WHERE activation_key = %s", $resolved['hash'] )
 		);
+	}
 
-		if ( empty( $signup ) ) {
-			return new WP_Error( 'invalid_key', __( 'Invalid activation key.' ) );
-		}
-	} else {
+	if ( empty( $signup ) ) {
 		return new WP_Error( 'invalid_key', __( 'Invalid activation key.' ) );
+	}
+
+	/**
+	 * Filters the expiration time of signup activation keys.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @param int $expiration_duration The expiration time in seconds.
+	 */
+	$expiration_duration = apply_filters( 'activate_signup_expiration', DAY_IN_SECONDS );
+
+	// For new keys, use the cryptographically bound timestamp from the payload.
+	// For legacy keys, fall back to the registered column in the database.
+	$issued_at = 'new' === $resolved['format']
+		? $resolved['timestamp']
+		: (int) mysql2date( 'U', $signup->registered );
+
+	if ( time() > ( $issued_at + $expiration_duration ) ) {
+		return new WP_Error( 'expired_key', __( 'Invalid key' ) );
 	}
 
 	if ( $signup->active ) {
