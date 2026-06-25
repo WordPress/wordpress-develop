@@ -368,30 +368,30 @@ class WP_HTML_Decoder {
 		$after_name = $name_at + $name_length;
 
 		/**
-		 * For historical reasons, a matched named character reference is ignored and its decoded
-		 * replacement is not used when all of the following conditions are true:
+		 * For historical reasons, a matched named character reference is left as literal
+		 * text (its decoded replacement is not used) when all of the following hold:
 		 *
-		 * 1. The character reference appears in attribute context.
-		 * 2. The last character matched is not a U+003B SEMICOLON (;).
-		 * 3. The next input character is either a U+003D EQUALS SIGN (=) or
-		 *    an ASCII alphanumeric.
+		 * 1. It was matched in attribute context.
+		 * 2. The match does not end in U+003B SEMICOLON (;) — i.e. it is one of the
+		 *    legacy forms recognized without a trailing semicolon.
+		 * 3. The next input character is U+003D EQUALS SIGN (=) or an ASCII alphanumeric.
 		 *
-		 * Some illustrative examples follow. Note that the names `not` and `not;` both appear
-		 * in the list of named character references. Character references start with `&` and
-		 * typically end with `;`, but some named character references can be recognized without
-		 * a final `;`.
+		 * Some illustrative examples follow. Note that both `not` and `not;` appear in the
+		 * named character references list. References start with `&` and typically end with
+		 * `;`, but the legacy forms are recognized without one.
 		 *
-		 * - In _data context_, "&notme" decodes to "¬me". Condition 1 is not satisfied,
-		 *   so the decoded character reference is returned.
-		 * - In _attribute context_, "&not;me" decodes to "¬me" because it ends with a semicolon.
-		 *   Condition 2 is not satisfied, so the decoded character reference
-		 *   is returned.
-		 * - In _attribute context_, "&not己" decodes to "¬己". Condition 3 is not
-		 *   satisfied because the following code point is not an ASCII alphanumeric or equals sign.
-		 * - In _attribute context_, "&not" decodes to "¬". Condition 3 is not satisfied
-		 *   because there is no following code point to consider.
-		 * - In _attribute context_, "&notme" decodes to "&notme" unchanged because it
-		 *   satisfies all three conditions above.
+		 * - In _data context_, "&notme" is decoded to "¬me": condition 1 fails (not an
+		 *   attribute), so the reference is decoded.
+		 * - In _attribute context_, "&not;me" is decoded to "¬me": the longest match is
+		 *   "not;", which ends in a semicolon, so condition 2 fails.
+		 * - In _attribute context_, "&not己" is decoded to "¬己": the following character
+		 *   "己" is a letter but not an ASCII alphanumeric (nor "="), so condition 3 fails.
+		 * - In _attribute context_, "&not" is decoded to "¬": there is no next input
+		 *   character, so condition 3 fails.
+		 * - In _attribute context_, "&not=me" is left as the literal text "&not=me": all
+		 *   three conditions hold.
+		 * - In _attribute context_, "&notme" is left as the literal text "&notme": all
+		 *   three conditions hold.
 		 *
 		 * @see https://html.spec.whatwg.org/multipage/parsing.html#named-character-reference-state
 		 * @see https://html.spec.whatwg.org/multipage/named-characters.html#named-character-references
