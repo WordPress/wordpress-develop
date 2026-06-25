@@ -114,4 +114,25 @@ class Tests_Comment_CommentType extends WP_UnitTestCase {
 
 		$this->assertSame( 'Custom', $this->get_comment_type_output( 'foo', 'Custom' ) );
 	}
+
+	/**
+	 * The registered label is escaped on output to guard against HTML/script injection.
+	 *
+	 * @ticket 35214
+	 */
+	public function test_registered_label_is_escaped_on_output() {
+		register_comment_type(
+			'foo',
+			array(
+				'labels' => array(
+					'singular_name' => '<img src=x onerror=alert(1)>Foo',
+				),
+			)
+		);
+
+		$this->assertSame(
+			esc_html( '<img src=x onerror=alert(1)>Foo' ),
+			$this->get_comment_type_output( 'foo' )
+		);
+	}
 }

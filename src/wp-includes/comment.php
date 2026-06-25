@@ -556,6 +556,9 @@ function get_comment_type_labels( $comment_type_object ) {
 	 *
 	 * @see get_comment_type_labels() for the full list of comment type labels.
 	 *
+	 * Labels are stored unescaped, mirroring the post type and taxonomy label
+	 * contract; callers must escape them on output (for example with esc_html()).
+	 *
 	 * @param object $labels Object with labels for the comment type as member variables.
 	 */
 	$labels = apply_filters( "comment_type_labels_{$comment_type}", $labels );

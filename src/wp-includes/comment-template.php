@@ -1214,7 +1214,7 @@ function comment_type( $comment_text = false, $trackback_text = false, $pingback
 			$comment_type_object = $comment_text_overridden ? null : get_comment_type_object( $type );
 
 			if ( $comment_type_object && ! $comment_type_object->_builtin && isset( $comment_type_object->labels->singular_name ) ) {
-				echo $comment_type_object->labels->singular_name;
+				echo esc_html( $comment_type_object->labels->singular_name );
 			} else {
 				echo $comment_text;
 			}
