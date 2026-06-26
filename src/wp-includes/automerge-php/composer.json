@@ -1,0 +1,22 @@
+{
+  "name": "wordpress-de/automerge-php",
+  "description": "Native PHP port of automerge for WordPress distributed editing research.",
+  "type": "library",
+  "license": "MIT",
+  "require": {
+    "php": ">=8.2",
+    "ext-json": "*",
+    "ext-mbstring": "*",
+    "ext-intl": "*",
+    "ext-libxml": "*"
+  },
+  "autoload": {
+    "psr-4": {
+      "WordPress\\DistributedEditing\\Automerge\\": "src/"
+    }
+  },
+  "scripts": {
+    "test": "php tests/run.php",
+    "porting-status": "php tests/run.php --status"
+  }
+}

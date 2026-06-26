@@ -17685,14 +17685,14 @@ function wp_de_rtc_get_rest_recovery_permission_contract( $post ) {
  *
  * The pinned port intentionally uses PHP 8.2 syntax. WordPress still supports
  * older PHP versions, so the server must check the version before registering
- * the autoloader or touching any class file from the submodule.
+ * the autoloader or touching any class file from the vendored runtime.
  *
  * @since 7.1.0
  *
  * @return array Availability details.
  */
 function wp_de_rtc_get_automerge_runtime_status() {
-	$library_path = ABSPATH . WPINC . '/de-rtc/automerge-php/src';
+	$library_path = ABSPATH . WPINC . '/automerge-php/src';
 
 	return array(
 		'available'        => PHP_VERSION_ID >= 80200 && function_exists( 'mb_convert_encoding' ) && file_exists( $library_path . '/NativePort.php' ),
@@ -17747,7 +17747,7 @@ function wp_de_rtc_load_automerge_runtime() {
 }
 
 /**
- * Autoloads classes from the pinned native PHP Automerge submodule.
+ * Autoloads classes from the vendored native PHP Automerge runtime.
  *
  * @since 7.1.0
  *
@@ -17761,7 +17761,7 @@ function wp_de_rtc_automerge_autoload( $class ) {
 	}
 
 	$relative = substr( $class, strlen( $prefix ) );
-	$path     = ABSPATH . WPINC . '/de-rtc/automerge-php/src/' . str_replace( '\\', '/', $relative ) . '.php';
+	$path     = ABSPATH . WPINC . '/automerge-php/src/' . str_replace( '\\', '/', $relative ) . '.php';
 
 	if ( file_exists( $path ) ) {
 		require_once $path;

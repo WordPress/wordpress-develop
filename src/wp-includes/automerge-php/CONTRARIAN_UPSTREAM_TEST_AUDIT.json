@@ -1,0 +1,32 @@
+{
+  "library": "automerge",
+  "generatedAt": "2026-05-23T00:23:00Z",
+  "verdict": "corrected-runtime-denominator",
+  "reportedMappedUpstreamTests": 680,
+  "reportedTotalKnownUpstreamTests": 680,
+  "reportedRegisteredMappedUpstreamTests": 688,
+  "reportedRegisteredTotalUpstreamTests": 688,
+  "reportedOptionalMappedUpstreamTests": 8,
+  "reportedOptionalPendingMappedTests": 1,
+  "reportedOptionalIgnoredMappedTests": 7,
+  "reportedWordPressScenarios": "10/10",
+  "contrarianEstimatedUpstreamTests": 680,
+  "contrarianEstimatedRegisteredUpstreamTests": 688,
+  "upstreamCommit": "44cd91582bd3ed9af05ef1a7843bb1074ad11112",
+  "upstreamTestCommands": [
+    "cd upstream/automerge/javascript && npm test",
+    "cd upstream/automerge/rust && cargo test -p automerge"
+  ],
+  "upstreamCommandResult": "Live audit rerun succeeded: JavaScript npm test reported 312 passing and 1 pending; Rust cargo test -p automerge reported 368 passing and 7 ignored. These match UPSTREAM_BENCHMARK.json and the raw artifacts under artifacts/upstream-benchmark/.",
+  "phpComposerTestResult": "Not rerun in this audit because composer test rewrites PORTING_STATUS.json timestamps. Current committed PORTING_STATUS.json at HEAD 6fc76de reports active=680/680, registeredMapped=688/688, optional=8/8, pending=1/1, ignored=7/7, and wp=10/10.",
+  "evidence": [
+    "UPSTREAM.md says the old 724 static audit estimate is superseded by runtime upstream counts.",
+    "UPSTREAM_BENCHMARK.json records countMethod runtime-runner-counts, activeTotal 680, registeredTotal 688, passed 680, failed 0, pending 1, ignored 7.",
+    "artifacts/upstream-benchmark/javascript-npm-test-current.txt and a live rerun both report 312 passing and 1 pending.",
+    "artifacts/upstream-benchmark/rust-cargo-test-current.txt and a live rerun both report Rust summaries totaling 368 passing and 7 ignored.",
+    "UPSTREAM_TEST_MANIFEST.json records 688 total entries, 680 active entries, 680 ported-passing active entries, 1 ported-pending-passing entry, 7 ported-ignored-passing entries, and 0 todo-unported entries.",
+    "The one pending JavaScript row is sync_test.ts:672 should sync three nodes; it is mapped by an optional PHP parity test.",
+    "The seven ignored Rust doctests are all storage parse/document doctest rows and are mapped by optional PHP parity tests."
+  ],
+  "recommendedStatusCorrection": "No correction needed for HEAD 6fc76de. Keep totalKnownUpstreamTests 680 and registeredTotalUpstreamTests 688. The 724 static estimate is stale and should not be used unless a future upstream runtime run reports additional active or registered rows."
+}
