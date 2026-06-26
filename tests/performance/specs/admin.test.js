@@ -6,13 +6,11 @@ import { test } from '@wordpress/e2e-test-utils-playwright';
 /**
  * Internal dependencies
  */
-import { camelCaseDashes } from '../utils';
+import { camelCaseDashes, locales } from '../utils';
 
 const results = {
 	timeToFirstByte: [],
 };
-
-const locales = [ 'en_US', 'de_DE' ];
 
 test.describe( 'Admin', () => {
 	for ( const locale of locales ) {
@@ -47,9 +45,14 @@ test.describe( 'Admin', () => {
 			const iterations = Number( process.env.TEST_RUNS );
 			for ( let i = 1; i <= iterations; i++ ) {
 				test( `Measure load time metrics (${ i } of ${ iterations })`, async ( {
+					page,
 					admin,
 					metrics,
 				} ) => {
+					// Clear caches using the clear-cache.php mu-plugin. Not actually loading the page.
+					await page.goto( '/?clear_cache' );
+
+					// This is the actual page to test.
 					await admin.visitAdminPage( '/' );
 
 					const serverTiming = await metrics.getServerTiming();
