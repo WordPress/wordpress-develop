@@ -62,7 +62,7 @@ function edit_user( $user_id = 0 ) {
 			wp_die( __( 'Sorry, you are not allowed to give users that role.' ), 403 );
 		}
 
-		$potential_role = isset( $wp_roles->role_objects[ $new_role ] ) ? $wp_roles->role_objects[ $new_role ] : false;
+		$potential_role = $wp_roles->role_objects[ $new_role ] ?? false;
 
 		/*
 		 * Don't let anyone with 'promote_users' edit their own role to something without it.
@@ -134,7 +134,7 @@ function edit_user( $user_id = 0 ) {
 	if ( $update ) {
 		$user->rich_editing         = isset( $_POST['rich_editing'] ) && 'false' === $_POST['rich_editing'] ? 'false' : 'true';
 		$user->syntax_highlighting  = isset( $_POST['syntax_highlighting'] ) && 'false' === $_POST['syntax_highlighting'] ? 'false' : 'true';
-		$user->admin_color          = isset( $_POST['admin_color'] ) ? sanitize_text_field( $_POST['admin_color'] ) : 'fresh';
+		$user->admin_color          = isset( $_POST['admin_color'] ) ? sanitize_text_field( $_POST['admin_color'] ) : 'modern';
 		$user->show_admin_bar_front = isset( $_POST['admin_bar_front'] ) ? 'true' : 'false';
 	}
 
@@ -306,14 +306,14 @@ function get_user_to_edit( $user_id ) {
  * @global wpdb $wpdb WordPress database abstraction object.
  *
  * @param int $user_id User ID.
- * @return array
+ * @return object[] The user's draft posts, with 'ID' and 'post_title' keys.
  */
 function get_users_drafts( $user_id ) {
 	global $wpdb;
 	$query = $wpdb->prepare( "SELECT ID, post_title FROM $wpdb->posts WHERE post_type = 'post' AND post_status = 'draft' AND post_author = %d ORDER BY post_modified DESC", $user_id );
 
 	/**
-	 * Filters the user's drafts query string.
+	 * Filters the SQL query string for the user's drafts query.
 	 *
 	 * @since 2.0.0
 	 *
@@ -482,7 +482,7 @@ function wp_revoke_user( $id ) {
 /**
  * @since 2.8.0
  *
- * @global int $user_ID
+ * @global int $user_ID Current user ID.
  *
  * @param false $errors Deprecated.
  */
@@ -505,8 +505,8 @@ function default_password_nag_handler( $errors = false ) {
 /**
  * @since 2.8.0
  *
- * @param int     $user_ID
- * @param WP_User $old_data
+ * @param int     $user_ID  User ID.
+ * @param WP_User $old_data The user object before the update.
  */
 function default_password_nag_edit_user( $user_ID, $old_data ) {
 	// Short-circuit it.
@@ -602,8 +602,8 @@ function use_ssl_preference( $user ) {
 /**
  * @since MU (3.0.0)
  *
- * @param string $text
- * @return string
+ * @param string $text The email body text.
+ * @return string User site invitation email message.
  */
 function admin_created_user_email( $text ) {
 	$roles = get_editable_roles();
@@ -638,7 +638,7 @@ Please click the following link to activate your user account:
  *
  * @since 5.6.0
  * @since 6.2.0 Allow insecure HTTP connections for the local environment.
- * @since 6.3.2 Validates the success and reject URLs to prevent javascript pseudo protocol being executed.
+ * @since 6.3.2 Validates the success and reject URLs to prevent `javascript` pseudo protocol from being executed.
  *
  * @param array   $request {
  *     The array of request data. All arguments are optional and may be empty.
@@ -700,12 +700,14 @@ function wp_is_authorize_application_password_request_valid( $request, $user ) {
 }
 
 /**
- * Validates the redirect URL protocol scheme. The protocol can be anything except http and javascript.
+ * Validates the redirect URL protocol scheme.
+ *
+ * The `http` scheme is allowed for loopback IP addresses (127.0.0.1, [::1])
+ * and local environments. The `javascript` and `data` protocols are always rejected.
  *
  * @since 6.3.2
  *
- * @param string $url - The redirect URL to be validated.
- *
+ * @param string $url The redirect URL to be validated.
  * @return true|WP_Error True if the redirect URL is valid, a WP_Error object otherwise.
  */
 function wp_is_authorize_application_redirect_url_valid( $url ) {
@@ -728,16 +730,17 @@ function wp_is_authorize_application_redirect_url_valid( $url ) {
 	 *
 	 * @since 6.3.2
 	 *
-	 * @param string[]  $bad_protocols Array of invalid protocols.
-	 * @param string    $url The redirect URL to be validated.
+	 * @param string[] $bad_protocols Array of invalid protocols.
+	 * @param string   $url The redirect URL to be validated.
 	 */
-	$invalid_protocols = array_map( 'strtolower', apply_filters( 'wp_authorize_application_redirect_url_invalid_protocols', $bad_protocols, $url ) );
+	$invalid_protocols = apply_filters( 'wp_authorize_application_redirect_url_invalid_protocols', $bad_protocols, $url );
+	$invalid_protocols = array_map( 'strtolower', $invalid_protocols );
 
 	$scheme   = wp_parse_url( $url, PHP_URL_SCHEME );
 	$host     = wp_parse_url( $url, PHP_URL_HOST );
 	$is_local = 'local' === wp_get_environment_type();
 
-	// validates if the proper URI format is applied to the $url
+	// Validates if the proper URI format is applied to the URL.
 	if ( empty( $host ) || empty( $scheme ) || in_array( strtolower( $scheme ), $invalid_protocols, true ) ) {
 		return new WP_Error(
 			'invalid_redirect_url_format',
@@ -745,7 +748,14 @@ function wp_is_authorize_application_redirect_url_valid( $url ) {
 		);
 	}
 
-	if ( 'http' === $scheme && ! $is_local ) {
+	// Allow insecure HTTP connections to locally hosted applications.
+	$is_loopback = in_array(
+		strtolower( $host ),
+		array( '127.0.0.1', '[::1]' ),
+		true
+	);
+
+	if ( 'http' === $scheme && ! $is_local && ! $is_loopback ) {
 		return new WP_Error(
 			'invalid_redirect_scheme',
 			__( 'The URL must be served over a secure connection.' )

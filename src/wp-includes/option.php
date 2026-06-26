@@ -132,10 +132,10 @@ function get_option( $option, $default_value = false ) {
 	$pre = apply_filters( "pre_option_{$option}", false, $option, $default_value );
 
 	/**
-	 * Filters the value of all existing options before it is retrieved.
+	 * Filters the value of any existing option before it is retrieved.
 	 *
-	 * Returning a truthy value from the filter will effectively short-circuit retrieval
-	 * and return the passed value instead.
+	 * Returning a value other than false from the filter will short-circuit retrieval
+	 * and return that value instead.
 	 *
 	 * @since 6.1.0
 	 *
@@ -162,37 +162,46 @@ function get_option( $option, $default_value = false ) {
 
 	if ( ! wp_installing() ) {
 		$alloptions = wp_load_alloptions();
-
+		/*
+		 * When getting an option value, we check in the following order for performance:
+		 *
+		 * 1. Check the 'alloptions' cache first to prioritize existing loaded options.
+		 * 2. Check the 'notoptions' cache before a cache lookup or DB hit.
+		 * 3. Check the 'options' cache prior to a DB hit.
+		 * 4. Check the DB for the option and cache it in either the 'options' or 'notoptions' cache.
+		 */
 		if ( isset( $alloptions[ $option ] ) ) {
 			$value = $alloptions[ $option ];
 		} else {
+			// Check for non-existent options first to avoid unnecessary object cache lookups and DB hits.
+			$notoptions = wp_cache_get( 'notoptions', 'options' );
+
+			if ( ! is_array( $notoptions ) ) {
+				$notoptions = array();
+				wp_cache_set( 'notoptions', $notoptions, 'options' );
+			}
+
+			if ( isset( $notoptions[ $option ] ) ) {
+				/**
+				 * Filters the default value for an option.
+				 *
+				 * The dynamic portion of the hook name, `$option`, refers to the option name.
+				 *
+				 * @since 3.4.0
+				 * @since 4.4.0 The `$option` parameter was added.
+				 * @since 4.7.0 The `$passed_default` parameter was added to distinguish between a `false` value and the default parameter value.
+				 *
+				 * @param mixed  $default_value  The default value to return if the option does not exist
+				 *                               in the database.
+				 * @param string $option         Option name.
+				 * @param bool   $passed_default Was `get_option()` passed a default value?
+				 */
+				return apply_filters( "default_option_{$option}", $default_value, $option, $passed_default );
+			}
+
 			$value = wp_cache_get( $option, 'options' );
 
 			if ( false === $value ) {
-				// Prevent non-existent options from triggering multiple queries.
-				$notoptions = wp_cache_get( 'notoptions', 'options' );
-
-				// Prevent non-existent `notoptions` key from triggering multiple key lookups.
-				if ( ! is_array( $notoptions ) ) {
-					$notoptions = array();
-					wp_cache_set( 'notoptions', $notoptions, 'options' );
-				} elseif ( isset( $notoptions[ $option ] ) ) {
-					/**
-					 * Filters the default value for an option.
-					 *
-					 * The dynamic portion of the hook name, `$option`, refers to the option name.
-					 *
-					 * @since 3.4.0
-					 * @since 4.4.0 The `$option` parameter was added.
-					 * @since 4.7.0 The `$passed_default` parameter was added to distinguish between a `false` value and the default parameter value.
-					 *
-					 * @param mixed  $default_value  The default value to return if the option does not exist
-					 *                               in the database.
-					 * @param string $option         Option name.
-					 * @param bool   $passed_default Was `get_option()` passed a default value?
-					 */
-					return apply_filters( "default_option_{$option}", $default_value, $option, $passed_default );
-				}
 
 				$row = $wpdb->get_row( $wpdb->prepare( "SELECT option_value FROM $wpdb->options WHERE option_name = %s LIMIT 1", $option ) );
 
@@ -236,7 +245,7 @@ function get_option( $option, $default_value = false ) {
 	 *
 	 * The dynamic portion of the hook name, `$option`, refers to the option name.
 	 *
-	 * @since 1.5.0 As 'option_' . $setting
+	 * @since 1.5.0 As `option_{$setting}`.
 	 * @since 3.0.0
 	 * @since 4.4.0 The `$option` parameter was added.
 	 *
@@ -250,32 +259,41 @@ function get_option( $option, $default_value = false ) {
 /**
  * Primes specific options into the cache with a single database query.
  *
- * Only options that do not already exist in cache will be primed.
+ * Only options that do not already exist in cache will be loaded.
  *
  * @since 6.4.0
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
- * @param array $options An array of option names to be primed.
+ * @param string[] $options An array of option names to be loaded.
  */
-function prime_options( $options ) {
+function wp_prime_option_caches( $options ) {
+	global $wpdb;
+
 	$alloptions     = wp_load_alloptions();
 	$cached_options = wp_cache_get_multiple( $options, 'options' );
+	$notoptions     = wp_cache_get( 'notoptions', 'options' );
+	if ( ! is_array( $notoptions ) ) {
+		$notoptions = array();
+	}
 
 	// Filter options that are not in the cache.
 	$options_to_prime = array();
 	foreach ( $options as $option ) {
-		if ( ( ! isset( $cached_options[ $option ] ) || ! $cached_options[ $option ] ) && ! isset( $alloptions[ $option ] ) ) {
+		if (
+			( ! isset( $cached_options[ $option ] ) || false === $cached_options[ $option ] )
+			&& ! isset( $alloptions[ $option ] )
+			&& ! isset( $notoptions[ $option ] )
+		) {
 			$options_to_prime[] = $option;
 		}
 	}
 
-	// Bail early if there are no options to be primed.
+	// Bail early if there are no options to be loaded.
 	if ( empty( $options_to_prime ) ) {
 		return;
 	}
 
-	global $wpdb;
 	$results = $wpdb->get_results(
 		$wpdb->prepare(
 			sprintf(
@@ -288,7 +306,12 @@ function prime_options( $options ) {
 
 	$options_found = array();
 	foreach ( $results as $result ) {
-		$options_found[ $result->option_name ] = maybe_unserialize( $result->option_value );
+		/*
+		 * The cache is primed with the raw value (i.e. not maybe_unserialized).
+		 *
+		 * `get_option()` will handle unserializing the value as needed.
+		 */
+		$options_found[ $result->option_name ] = $result->option_value;
 	}
 	wp_cache_set_multiple( $options_found, 'options' );
 
@@ -298,12 +321,6 @@ function prime_options( $options ) {
 	}
 
 	$options_not_found = array_diff( $options_to_prime, array_keys( $options_found ) );
-
-	$notoptions = wp_cache_get( 'notoptions', 'options' );
-
-	if ( ! is_array( $notoptions ) ) {
-		$notoptions = array();
-	}
 
 	// Add the options that were not found to the cache.
 	$update_notoptions = false;
@@ -321,34 +338,34 @@ function prime_options( $options ) {
 }
 
 /**
- * Primes all options registered with a specific option group.
+ * Primes the cache of all options registered with a specific option group.
  *
  * @since 6.4.0
  *
  * @global array $new_allowed_options
  *
- * @param string $option_group The option group to prime options for.
+ * @param string $option_group The option group to load options for.
  */
-function prime_options_by_group( $option_group ) {
+function wp_prime_option_caches_by_group( $option_group ) {
 	global $new_allowed_options;
 
 	if ( isset( $new_allowed_options[ $option_group ] ) ) {
-		prime_options( $new_allowed_options[ $option_group ] );
+		wp_prime_option_caches( $new_allowed_options[ $option_group ] );
 	}
 }
 
 /**
  * Retrieves multiple options.
  *
- * Options are primed as necessary first in order to use a single database query at most.
+ * Options are loaded as necessary first in order to use a single database query at most.
  *
  * @since 6.4.0
  *
- * @param array $options An array of option names to retrieve.
+ * @param string[] $options An array of option names to retrieve.
  * @return array An array of key-value pairs for the requested options.
  */
 function get_options( $options ) {
-	prime_options( $options );
+	wp_prime_option_caches( $options );
 
 	$result = array();
 	foreach ( $options as $option ) {
@@ -367,12 +384,13 @@ function get_options( $options ) {
  * by the plugin which are generally autoloaded can be set to not autoload when the plugin is inactive.
  *
  * @since 6.4.0
+ * @since 6.7.0 The autoload values 'yes' and 'no' are deprecated.
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
  * @param array $options Associative array of option names and their autoload values to set. The option names are
- *                       expected to not be SQL-escaped. The autoload values accept 'yes'|true to enable or 'no'|false
- *                       to disable.
+ *                       expected to not be SQL-escaped. The autoload values should be boolean values. For backward
+ *                       compatibility 'yes' and 'no' are also accepted, though using these values is deprecated.
  * @return array Associative array of all provided $options as keys and boolean values for whether their autoload value
  *               was updated.
  */
@@ -384,16 +402,21 @@ function wp_set_option_autoload_values( array $options ) {
 	}
 
 	$grouped_options = array(
-		'yes' => array(),
-		'no'  => array(),
+		'on'  => array(),
+		'off' => array(),
 	);
 	$results         = array();
 	foreach ( $options as $option => $autoload ) {
 		wp_protect_special_option( $option ); // Ensure only valid options can be passed.
-		if ( 'no' === $autoload || false === $autoload ) { // Sanitize autoload value and categorize accordingly.
-			$grouped_options['no'][] = $option;
+
+		/*
+		 * Sanitize autoload value and categorize accordingly.
+		 * The values 'yes', 'no', 'on', and 'off' are supported for backward compatibility.
+		 */
+		if ( 'off' === $autoload || 'no' === $autoload || false === $autoload ) {
+			$grouped_options['off'][] = $option;
 		} else {
-			$grouped_options['yes'][] = $option;
+			$grouped_options['on'][] = $option;
 		}
 		$results[ $option ] = false; // Initialize result value.
 	}
@@ -457,22 +480,24 @@ function wp_set_option_autoload_values( array $options ) {
 	}
 
 	/*
-	 * If any options were changed to 'yes', delete their individual caches, and delete 'alloptions' cache so that it
+	 * If any options were changed to 'on', delete their individual caches, and delete 'alloptions' cache so that it
 	 * is refreshed as needed.
-	 * If no options were changed to 'yes' but any options were changed to 'no', delete them from the 'alloptions'
-	 * cache. This is not necessary when options were changed to 'yes', since in that situation the entire cache is
+	 * If no options were changed to 'on' but any options were changed to 'no', delete them from the 'alloptions'
+	 * cache. This is not necessary when options were changed to 'on', since in that situation the entire cache is
 	 * deleted anyway.
 	 */
-	if ( $grouped_options['yes'] ) {
-		wp_cache_delete_multiple( $grouped_options['yes'], 'options' );
+	if ( $grouped_options['on'] ) {
+		wp_cache_delete_multiple( $grouped_options['on'], 'options' );
 		wp_cache_delete( 'alloptions', 'options' );
-	} elseif ( $grouped_options['no'] ) {
+	} elseif ( $grouped_options['off'] ) {
 		$alloptions = wp_load_alloptions( true );
-		foreach ( $grouped_options['no'] as $option ) {
+
+		foreach ( $grouped_options['off'] as $option ) {
 			if ( isset( $alloptions[ $option ] ) ) {
 				unset( $alloptions[ $option ] );
 			}
 		}
+
 		wp_cache_set( 'alloptions', $alloptions, 'options' );
 	}
 
@@ -486,12 +511,14 @@ function wp_set_option_autoload_values( array $options ) {
  * each option at once.
  *
  * @since 6.4.0
+ * @since 6.7.0 The autoload values 'yes' and 'no' are deprecated.
  *
  * @see wp_set_option_autoload_values()
  *
- * @param array       $options  List of option names. Expected to not be SQL-escaped.
- * @param string|bool $autoload Autoload value to control whether to load the options when WordPress starts up.
- *                              Accepts 'yes'|true to enable or 'no'|false to disable.
+ * @param string[] $options  List of option names. Expected to not be SQL-escaped.
+ * @param bool     $autoload Autoload value to control whether to load the options when WordPress starts up.
+ *                           For backward compatibility 'yes' and 'no' are also accepted, though using these values is
+ *                           deprecated.
  * @return array Associative array of all provided $options as keys and boolean values for whether their autoload value
  *               was updated.
  */
@@ -508,20 +535,19 @@ function wp_set_options_autoload( array $options, $autoload ) {
  * multiple options at once.
  *
  * @since 6.4.0
+ * @since 6.7.0 The autoload values 'yes' and 'no' are deprecated.
  *
  * @see wp_set_option_autoload_values()
  *
- * @param string      $option   Name of the option. Expected to not be SQL-escaped.
- * @param string|bool $autoload Autoload value to control whether to load the option when WordPress starts up.
- *                              Accepts 'yes'|true to enable or 'no'|false to disable.
+ * @param string $option   Name of the option. Expected to not be SQL-escaped.
+ * @param bool   $autoload Autoload value to control whether to load the option when WordPress starts up.
+ *                         For backward compatibility 'yes' and 'no' are also accepted, though using these values is
+ *                         deprecated.
  * @return bool True if the autoload value was modified, false otherwise.
  */
 function wp_set_option_autoload( $option, $autoload ) {
 	$result = wp_set_option_autoload_values( array( $option => $autoload ) );
-	if ( isset( $result[ $option ] ) ) {
-		return $result[ $option ];
-	}
-	return false;
+	return $result[ $option ] ?? false;
 }
 
 /**
@@ -596,7 +622,8 @@ function wp_load_alloptions( $force_cache = false ) {
 
 	if ( ! $alloptions ) {
 		$suppress      = $wpdb->suppress_errors();
-		$alloptions_db = $wpdb->get_results( "SELECT option_name, option_value FROM $wpdb->options WHERE autoload = 'yes'" );
+		$alloptions_db = $wpdb->get_results( "SELECT option_name, option_value FROM $wpdb->options WHERE autoload IN ( '" . implode( "', '", esc_sql( wp_autoload_values_to_autoload() ) ) . "' )" );
+
 		if ( ! $alloptions_db ) {
 			$alloptions_db = $wpdb->get_results( "SELECT option_name, option_value FROM $wpdb->options" );
 		}
@@ -632,50 +659,150 @@ function wp_load_alloptions( $force_cache = false ) {
 }
 
 /**
+ * Primes specific network options for the current network into the cache with a single database query.
+ *
+ * Only network options that do not already exist in cache will be loaded.
+ *
+ * If site is not multisite, then call wp_prime_option_caches().
+ *
+ * @since 6.6.0
+ *
+ * @see wp_prime_network_option_caches()
+ *
+ * @param string[] $options An array of option names to be loaded.
+ */
+function wp_prime_site_option_caches( array $options ) {
+	wp_prime_network_option_caches( null, $options );
+}
+
+/**
+ * Primes specific network options into the cache with a single database query.
+ *
+ * Only network options that do not already exist in cache will be loaded.
+ *
+ * If site is not multisite, then call wp_prime_option_caches().
+ *
+ * @since 6.6.0
+ *
+ * @global wpdb $wpdb WordPress database abstraction object.
+ *
+ * @param int|null $network_id ID of the network. Can be null to default to the current network ID.
+ * @param string[] $options    An array of option names to be loaded.
+ */
+function wp_prime_network_option_caches( $network_id, array $options ) {
+	global $wpdb;
+
+	if ( wp_installing() ) {
+		return;
+	}
+
+	if ( ! is_multisite() ) {
+		wp_prime_option_caches( $options );
+		return;
+	}
+
+	if ( $network_id && ! is_numeric( $network_id ) ) {
+		return;
+	}
+
+	$network_id = (int) $network_id;
+
+	// Fallback to the current network if a network ID is not specified.
+	if ( ! $network_id ) {
+		$network_id = get_current_network_id();
+	}
+
+	$cache_keys = array();
+	foreach ( $options as $option ) {
+		$cache_keys[ $option ] = "{$network_id}:{$option}";
+	}
+
+	$cache_group    = 'site-options';
+	$cached_options = wp_cache_get_multiple( array_values( $cache_keys ), $cache_group );
+
+	$notoptions_key = "$network_id:notoptions";
+	$notoptions     = wp_cache_get( $notoptions_key, $cache_group );
+
+	if ( ! is_array( $notoptions ) ) {
+		$notoptions = array();
+	}
+
+	// Filter options that are not in the cache.
+	$options_to_prime = array();
+	foreach ( $cache_keys as $option => $cache_key ) {
+		if (
+			( ! isset( $cached_options[ $cache_key ] ) || false === $cached_options[ $cache_key ] )
+			&& ! isset( $notoptions[ $option ] )
+		) {
+			$options_to_prime[] = $option;
+		}
+	}
+
+	// Bail early if there are no options to be loaded.
+	if ( empty( $options_to_prime ) ) {
+		return;
+	}
+
+	$query_args   = $options_to_prime;
+	$query_args[] = $network_id;
+	$results      = $wpdb->get_results(
+		$wpdb->prepare(
+			sprintf(
+				"SELECT meta_key, meta_value FROM $wpdb->sitemeta WHERE meta_key IN (%s) AND site_id = %s",
+				implode( ',', array_fill( 0, count( $options_to_prime ), '%s' ) ),
+				'%d'
+			),
+			$query_args
+		)
+	);
+
+	$data          = array();
+	$options_found = array();
+	foreach ( $results as $result ) {
+		$key                = $result->meta_key;
+		$cache_key          = $cache_keys[ $key ];
+		$data[ $cache_key ] = maybe_unserialize( $result->meta_value );
+		$options_found[]    = $key;
+	}
+	wp_cache_set_multiple( $data, $cache_group );
+	// If all options were found, no need to update `notoptions` cache.
+	if ( count( $options_found ) === count( $options_to_prime ) ) {
+		return;
+	}
+
+	$options_not_found = array_diff( $options_to_prime, $options_found );
+
+	// Add the options that were not found to the cache.
+	$update_notoptions = false;
+	foreach ( $options_not_found as $option_name ) {
+		if ( ! isset( $notoptions[ $option_name ] ) ) {
+			$notoptions[ $option_name ] = true;
+			$update_notoptions          = true;
+		}
+	}
+
+	// Only update the cache if it was modified.
+	if ( $update_notoptions ) {
+		wp_cache_set( $notoptions_key, $notoptions, $cache_group );
+	}
+}
+
+/**
  * Loads and primes caches of certain often requested network options if is_multisite().
  *
  * @since 3.0.0
  * @since 6.3.0 Also prime caches for network options when persistent object cache is enabled.
- *
- * @global wpdb $wpdb WordPress database abstraction object.
+ * @since 6.6.0 Uses wp_prime_network_option_caches().
  *
  * @param int $network_id Optional. Network ID of network for which to prime network options cache. Defaults to current network.
  */
 function wp_load_core_site_options( $network_id = null ) {
-	global $wpdb;
-
 	if ( ! is_multisite() || wp_installing() ) {
 		return;
 	}
+	$core_options = array( 'site_name', 'siteurl', 'active_sitewide_plugins', '_site_transient_timeout_theme_roots', '_site_transient_theme_roots', 'site_admins', 'can_compress_scripts', 'global_terms_enabled', 'ms_files_rewriting', 'WPLANG' );
 
-	if ( empty( $network_id ) ) {
-		$network_id = get_current_network_id();
-	}
-
-	$core_options = array( 'site_name', 'siteurl', 'active_sitewide_plugins', '_site_transient_timeout_theme_roots', '_site_transient_theme_roots', 'site_admins', 'can_compress_scripts', 'global_terms_enabled', 'ms_files_rewriting' );
-
-	if ( wp_using_ext_object_cache() ) {
-		$cache_keys = array();
-		foreach ( $core_options as $option ) {
-			$cache_keys[] = "{$network_id}:{$option}";
-		}
-		wp_cache_get_multiple( $cache_keys, 'site-options' );
-
-		return;
-	}
-
-	$core_options_in = "'" . implode( "', '", $core_options ) . "'";
-	$options         = $wpdb->get_results( $wpdb->prepare( "SELECT meta_key, meta_value FROM $wpdb->sitemeta WHERE meta_key IN ($core_options_in) AND site_id = %d", $network_id ) );
-
-	$data = array();
-	foreach ( $options as $option ) {
-		$key                = $option->meta_key;
-		$cache_key          = "{$network_id}:$key";
-		$option->meta_value = maybe_unserialize( $option->meta_value );
-
-		$data[ $cache_key ] = $option->meta_value;
-	}
-	wp_cache_set_multiple( $data, 'site-options' );
+	wp_prime_network_option_caches( $network_id, $core_options );
 }
 
 /**
@@ -692,20 +819,26 @@ function wp_load_core_site_options( $network_id = null ) {
  *
  * @since 1.0.0
  * @since 4.2.0 The `$autoload` parameter was added.
+ * @since 6.7.0 The autoload values 'yes' and 'no' are deprecated.
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
- * @param string      $option   Name of the option to update. Expected to not be SQL-escaped.
- * @param mixed       $value    Option value. Must be serializable if non-scalar. Expected to not be SQL-escaped.
- * @param string|bool $autoload Optional. Whether to load the option when WordPress starts up. For existing options,
- *                              `$autoload` can only be updated using `update_option()` if `$value` is also changed.
- *                              Accepts 'yes'|true to enable or 'no'|false to disable.
- *                              Autoloading too many options can lead to performance problems, especially if the
- *                              options are not frequently used. For options which are accessed across several places
- *                              in the frontend, it is recommended to autoload them, by using 'yes'|true.
- *                              For options which are accessed only on few specific URLs, it is recommended
- *                              to not autoload them, by using 'no'|false. For non-existent options, the default value
- *                              is 'yes'. Default null.
+ * @param string    $option   Name of the option to update. Expected to not be SQL-escaped.
+ * @param mixed     $value    Option value. Must be serializable if non-scalar. Expected to not be SQL-escaped.
+ * @param bool|null $autoload Optional. Whether to load the option when WordPress starts up.
+ *                            Accepts a boolean, or `null` to stick with the initial value or, if no initial value is
+ *                            set, to leave the decision up to default heuristics in WordPress.
+ *                            For existing options, `$autoload` can only be updated using `update_option()` if `$value`
+ *                            is also changed.
+ *                            For backward compatibility 'yes' and 'no' are also accepted, though using these values is
+ *                            deprecated.
+ *                            Autoloading too many options can lead to performance problems, especially if the
+ *                            options are not frequently used. For options which are accessed across several places
+ *                            in the frontend, it is recommended to autoload them, by using true.
+ *                            For options which are accessed only on few specific URLs, it is recommended
+ *                            to not autoload them, by using false.
+ *                            For non-existent options, the default is null, which means WordPress will determine
+ *                            the autoload value.
  * @return bool True if the value was updated, false otherwise.
  */
 function update_option( $option, $value, $autoload = null ) {
@@ -791,11 +924,6 @@ function update_option( $option, $value, $autoload = null ) {
 
 	/** This filter is documented in wp-includes/option.php */
 	if ( apply_filters( "default_option_{$option}", false, $option, false ) === $old_value ) {
-		// Default setting for new options is 'yes'.
-		if ( null === $autoload ) {
-			$autoload = 'yes';
-		}
-
 		return add_option( $option, $value, '', $autoload );
 	}
 
@@ -817,7 +945,17 @@ function update_option( $option, $value, $autoload = null ) {
 	);
 
 	if ( null !== $autoload ) {
-		$update_args['autoload'] = ( 'no' === $autoload || false === $autoload ) ? 'no' : 'yes';
+		$update_args['autoload'] = wp_determine_option_autoload_value( $option, $value, $serialized_value, $autoload );
+	} else {
+		// Retrieve the current autoload value to reevaluate it in case it was set automatically.
+		$raw_autoload = $wpdb->get_var( $wpdb->prepare( "SELECT autoload FROM $wpdb->options WHERE option_name = %s LIMIT 1", $option ) );
+		$allow_values = array( 'auto-on', 'auto-off', 'auto' );
+		if ( in_array( $raw_autoload, $allow_values, true ) ) {
+			$autoload = wp_determine_option_autoload_value( $option, $value, $serialized_value, $autoload );
+			if ( $autoload !== $raw_autoload ) {
+				$update_args['autoload'] = $autoload;
+			}
+		}
 	}
 
 	$result = $wpdb->update( $wpdb->options, $update_args, array( 'option_name' => $option ) );
@@ -836,22 +974,25 @@ function update_option( $option, $value, $autoload = null ) {
 		if ( ! isset( $update_args['autoload'] ) ) {
 			// Update the cached value based on where it is currently cached.
 			$alloptions = wp_load_alloptions( true );
+
 			if ( isset( $alloptions[ $option ] ) ) {
 				$alloptions[ $option ] = $serialized_value;
 				wp_cache_set( 'alloptions', $alloptions, 'options' );
 			} else {
 				wp_cache_set( $option, $serialized_value, 'options' );
 			}
-		} elseif ( 'yes' === $update_args['autoload'] ) {
+		} elseif ( in_array( $update_args['autoload'], wp_autoload_values_to_autoload(), true ) ) {
 			// Delete the individual cache, then set in alloptions cache.
 			wp_cache_delete( $option, 'options' );
 
 			$alloptions = wp_load_alloptions( true );
+
 			$alloptions[ $option ] = $serialized_value;
 			wp_cache_set( 'alloptions', $alloptions, 'options' );
 		} else {
 			// Delete the alloptions cache, then set the individual cache.
 			$alloptions = wp_load_alloptions( true );
+
 			if ( isset( $alloptions[ $option ] ) ) {
 				unset( $alloptions[ $option ] );
 				wp_cache_set( 'alloptions', $alloptions, 'options' );
@@ -902,23 +1043,28 @@ function update_option( $option, $value, $autoload = null ) {
  * options the same as the ones which are protected.
  *
  * @since 1.0.0
+ * @since 6.6.0 The $autoload parameter's default value was changed to null.
+ * @since 6.7.0 The autoload values 'yes' and 'no' are deprecated.
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
- * @param string      $option     Name of the option to add. Expected to not be SQL-escaped.
- * @param mixed       $value      Optional. Option value. Must be serializable if non-scalar.
- *                                Expected to not be SQL-escaped.
- * @param string      $deprecated Optional. Description. Not used anymore.
- * @param string|bool $autoload   Optional. Whether to load the option when WordPress starts up.
- *                                Accepts 'yes'|true to enable or 'no'|false to disable.
- *                                Autoloading too many options can lead to performance problems, especially if the
- *                                options are not frequently used. For options which are accessed across several places
- *                                in the frontend, it is recommended to autoload them, by using 'yes'|true.
- *                                For options which are accessed only on few specific URLs, it is recommended
- *                                to not autoload them, by using 'no'|false. Default 'yes'.
+ * @param string    $option     Name of the option to add. Expected to not be SQL-escaped.
+ * @param mixed     $value      Optional. Option value. Must be serializable if non-scalar.
+ *                              Expected to not be SQL-escaped.
+ * @param string    $deprecated Optional. Description. Not used anymore.
+ * @param bool|null $autoload   Optional. Whether to load the option when WordPress starts up.
+ *                              Accepts a boolean, or `null` to leave the decision up to default heuristics in
+ *                              WordPress. For backward compatibility 'yes' and 'no' are also accepted, though using
+ *                              these values is deprecated.
+ *                              Autoloading too many options can lead to performance problems, especially if the
+ *                              options are not frequently used. For options which are accessed across several places
+ *                              in the frontend, it is recommended to autoload them, by using true.
+ *                              For options which are accessed only on few specific URLs, it is recommended
+ *                              to not autoload them, by using false.
+ *                              Default is null, which means WordPress will determine the autoload value.
  * @return bool True if the option was added, false otherwise.
  */
-function add_option( $option, $value = '', $deprecated = '', $autoload = 'yes' ) {
+function add_option( $option, $value = '', $deprecated = '', $autoload = null ) {
 	global $wpdb;
 
 	if ( ! empty( $deprecated ) ) {
@@ -978,7 +1124,8 @@ function add_option( $option, $value = '', $deprecated = '', $autoload = 'yes' )
 	}
 
 	$serialized_value = maybe_serialize( $value );
-	$autoload         = ( 'no' === $autoload || false === $autoload ) ? 'no' : 'yes';
+
+	$autoload = wp_determine_option_autoload_value( $option, $value, $serialized_value, $autoload );
 
 	/**
 	 * Fires before an option is added.
@@ -996,7 +1143,7 @@ function add_option( $option, $value = '', $deprecated = '', $autoload = 'yes' )
 	}
 
 	if ( ! wp_installing() ) {
-		if ( 'yes' === $autoload ) {
+		if ( in_array( $autoload, wp_autoload_values_to_autoload(), true ) ) {
 			$alloptions            = wp_load_alloptions( true );
 			$alloptions[ $option ] = $serialized_value;
 			wp_cache_set( 'alloptions', $alloptions, 'options' );
@@ -1018,7 +1165,7 @@ function add_option( $option, $value = '', $deprecated = '', $autoload = 'yes' )
 	 *
 	 * The dynamic portion of the hook name, `$option`, refers to the option name.
 	 *
-	 * @since 2.5.0 As "add_option_{$name}"
+	 * @since 2.5.0 As `add_option_{$name}`
 	 * @since 3.0.0
 	 *
 	 * @param string $option Name of the option to add.
@@ -1080,8 +1227,9 @@ function delete_option( $option ) {
 	$result = $wpdb->delete( $wpdb->options, array( 'option_name' => $option ) );
 
 	if ( ! wp_installing() ) {
-		if ( 'yes' === $row->autoload ) {
+		if ( in_array( $row->autoload, wp_autoload_values_to_autoload(), true ) ) {
 			$alloptions = wp_load_alloptions( true );
+
 			if ( is_array( $alloptions ) && isset( $alloptions[ $option ] ) ) {
 				unset( $alloptions[ $option ] );
 				wp_cache_set( 'alloptions', $alloptions, 'options' );
@@ -1089,6 +1237,15 @@ function delete_option( $option ) {
 		} else {
 			wp_cache_delete( $option, 'options' );
 		}
+
+		$notoptions = wp_cache_get( 'notoptions', 'options' );
+
+		if ( ! is_array( $notoptions ) ) {
+			$notoptions = array();
+		}
+		$notoptions[ $option ] = true;
+
+		wp_cache_set( 'notoptions', $notoptions, 'options' );
 	}
 
 	if ( $result ) {
@@ -1117,6 +1274,97 @@ function delete_option( $option ) {
 	}
 
 	return false;
+}
+
+/**
+ *  Determines the appropriate autoload value for an option based on input.
+ *
+ *  This function checks the provided autoload value and returns a standardized value
+ *  ('on', 'off', 'auto-on', 'auto-off', or 'auto') based on specific conditions.
+ *
+ * If no explicit autoload value is provided, the function will check for certain heuristics around the given option.
+ * It will return `auto-on` to indicate autoloading, `auto-off` to indicate not autoloading, or `auto` if no clear
+ * decision could be made.
+ *
+ * @since 6.6.0
+ * @access private
+ *
+ * @param string    $option           The name of the option.
+ * @param mixed     $value            The value of the option to check its autoload value.
+ * @param mixed     $serialized_value The serialized value of the option to check its autoload value.
+ * @param bool|null $autoload         The autoload value to check.
+ *                                    Accepts 'on'|true to enable or 'off'|false to disable, or
+ *                                    'auto-on', 'auto-off', or 'auto' for internal purposes.
+ *                                    Any other autoload value will be forced to either 'auto-on',
+ *                                    'auto-off', or 'auto'.
+ *                                    'yes' and 'no' are supported for backward compatibility.
+ * @return string Returns the original $autoload value if explicit, or 'auto-on', 'auto-off',
+ *                or 'auto' depending on default heuristics.
+ */
+function wp_determine_option_autoload_value( $option, $value, $serialized_value, $autoload ) {
+
+	// Check if autoload is a boolean.
+	if ( is_bool( $autoload ) ) {
+		return $autoload ? 'on' : 'off';
+	}
+
+	switch ( $autoload ) {
+		case 'on':
+		case 'yes':
+			return 'on';
+		case 'off':
+		case 'no':
+			return 'off';
+	}
+
+	/**
+	 * Allows to determine the default autoload value for an option where no explicit value is passed.
+	 *
+	 * @since 6.6.0
+	 *
+	 * @param bool|null $autoload         The default autoload value to set. Returning true will be set as 'auto-on' in the
+	 *                                    database, false will be set as 'auto-off', and null will be set as 'auto'.
+	 * @param string    $option           The passed option name.
+	 * @param mixed     $value            The passed option value to be saved.
+	 * @param mixed     $serialized_value The passed option value to be saved, in serialized form.
+	 */
+	$autoload = apply_filters( 'wp_default_autoload_value', null, $option, $value, $serialized_value );
+	if ( is_bool( $autoload ) ) {
+		return $autoload ? 'auto-on' : 'auto-off';
+	}
+
+	return 'auto';
+}
+
+/**
+ * Filters the default autoload value to disable autoloading if the option value is too large.
+ *
+ * @since 6.6.0
+ * @access private
+ *
+ * @param bool|null $autoload         The default autoload value to set.
+ * @param string    $option           The passed option name.
+ * @param mixed     $value            The passed option value to be saved.
+ * @param mixed     $serialized_value The passed option value to be saved, in serialized form.
+ * @return bool|null Potentially modified $default.
+ */
+function wp_filter_default_autoload_value_via_option_size( $autoload, $option, $value, $serialized_value ) {
+	/**
+	 * Filters the maximum size of option value in bytes.
+	 *
+	 * @since 6.6.0
+	 *
+	 * @param int    $max_option_size The option-size threshold, in bytes. Default 150000.
+	 * @param string $option          The name of the option.
+	 */
+	$max_option_size = (int) apply_filters( 'wp_max_autoloaded_option_size', 150000, $option );
+	$size            = ! empty( $serialized_value ) ? strlen( $serialized_value ) : 0;
+
+	if ( $size > $max_option_size ) {
+		return false;
+	}
+
+	return $autoload;
 }
 
 /**
@@ -1209,9 +1457,11 @@ function get_transient( $transient ) {
 		if ( ! wp_installing() ) {
 			// If option is not in alloptions, it is not autoloaded and thus has a timeout.
 			$alloptions = wp_load_alloptions();
+
 			if ( ! isset( $alloptions[ $transient_option ] ) ) {
 				$transient_timeout = '_transient_timeout_' . $transient;
-				$timeout           = get_option( $transient_timeout );
+				wp_prime_option_caches( array( $transient_option, $transient_timeout ) );
+				$timeout = get_option( $transient_timeout );
 				if ( false !== $timeout && $timeout < time() ) {
 					delete_option( $transient_option );
 					delete_option( $transient_timeout );
@@ -1291,12 +1541,13 @@ function set_transient( $transient, $value, $expiration = 0 ) {
 	} else {
 		$transient_timeout = '_transient_timeout_' . $transient;
 		$transient_option  = '_transient_' . $transient;
+		wp_prime_option_caches( array( $transient_option, $transient_timeout ) );
 
 		if ( false === get_option( $transient_option ) ) {
-			$autoload = 'yes';
+			$autoload = true;
 			if ( $expiration ) {
-				$autoload = 'no';
-				add_option( $transient_timeout, time() + $expiration, '', 'no' );
+				$autoload = false;
+				add_option( $transient_timeout, time() + $expiration, '', false );
 			}
 			$result = add_option( $transient_option, $value, '', $autoload );
 		} else {
@@ -1309,8 +1560,8 @@ function set_transient( $transient, $value, $expiration = 0 ) {
 			if ( $expiration ) {
 				if ( false === get_option( $transient_timeout ) ) {
 					delete_option( $transient_option );
-					add_option( $transient_timeout, time() + $expiration, '', 'no' );
-					$result = add_option( $transient_option, $value, '', 'no' );
+					add_option( $transient_timeout, time() + $expiration, '', false );
+					$result = add_option( $transient_option, $value, '', false );
 					$update = false;
 				} else {
 					update_option( $transient_timeout, time() + $expiration );
@@ -1343,14 +1594,26 @@ function set_transient( $transient, $value, $expiration = 0 ) {
 		/**
 		 * Fires after the value for a transient has been set.
 		 *
-		 * @since 3.0.0
-		 * @since 3.6.0 The `$value` and `$expiration` parameters were added.
+		 * @since 6.8.0
 		 *
 		 * @param string $transient  The name of the transient.
 		 * @param mixed  $value      Transient value.
 		 * @param int    $expiration Time until expiration in seconds.
 		 */
-		do_action( 'setted_transient', $transient, $value, $expiration );
+		do_action( 'set_transient', $transient, $value, $expiration );
+
+		/**
+		 * Fires after the transient is set.
+		 *
+		 * @since 3.0.0
+		 * @since 3.6.0 The `$value` and `$expiration` parameters were added.
+		 * @deprecated 6.8.0 Use {@see 'set_transient'} instead.
+		 *
+		 * @param string $transient  The name of the transient.
+		 * @param mixed  $value      Transient value.
+		 * @param int    $expiration Time until expiration in seconds.
+		 */
+		do_action_deprecated( 'setted_transient', array( $transient, $value, $expiration ), '6.8.0', 'set_transient' );
 	}
 
 	return $result;
@@ -1364,9 +1627,9 @@ function set_transient( $transient, $value, $expiration = 0 ) {
  * The multi-table delete syntax is used to delete the transient record
  * from table a, and the corresponding transient_timeout record from table b.
  *
- * @global wpdb $wpdb WordPress database abstraction object.
- *
  * @since 4.9.0
+ *
+ * @global wpdb $wpdb WordPress database abstraction object.
  *
  * @param bool $force_db Optional. Force cleanup to run against the database even when an external object cache is used.
  */
@@ -1404,7 +1667,7 @@ function delete_expired_transients( $force_db = false ) {
 				time()
 			)
 		);
-	} elseif ( is_multisite() && is_main_site() && is_main_network() ) {
+	} elseif ( is_main_site() && is_main_network() ) {
 		// Multisite stores site transients in the sitemeta table.
 		$wpdb->query(
 			$wpdb->prepare(
@@ -1456,7 +1719,11 @@ function wp_user_settings() {
 		}
 
 		$last_saved = (int) get_user_option( 'user-settings-time', $user_id );
-		$current    = isset( $_COOKIE[ 'wp-settings-time-' . $user_id ] ) ? preg_replace( '/[^0-9]/', '', $_COOKIE[ 'wp-settings-time-' . $user_id ] ) : 0;
+		$current    = 0;
+
+		if ( isset( $_COOKIE[ 'wp-settings-time-' . $user_id ] ) ) {
+			$current = (int) preg_replace( '/[^0-9]/', '', $_COOKIE[ 'wp-settings-time-' . $user_id ] );
+		}
 
 		// The cookie is newer than the saved value. Update the user_option and leave the cookie as-is.
 		if ( $current > $last_saved ) {
@@ -1485,7 +1752,7 @@ function wp_user_settings() {
 function get_user_setting( $name, $default_value = false ) {
 	$all_user_settings = get_all_user_settings();
 
-	return isset( $all_user_settings[ $name ] ) ? $all_user_settings[ $name ] : $default_value;
+	return $all_user_settings[ $name ] ?? $default_value;
 }
 
 /**
@@ -1611,7 +1878,7 @@ function wp_set_all_user_settings( $user_settings ) {
 	}
 
 	if ( ! is_user_member_of_blog() ) {
-		return;
+		return null;
 	}
 
 	$settings = '';
@@ -1724,9 +1991,9 @@ function update_site_option( $option, $value ) {
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
- * @param int    $network_id    ID of the network. Can be null to default to the current network ID.
- * @param string $option        Name of the option to retrieve. Expected to not be SQL-escaped.
- * @param mixed  $default_value Optional. Value to return if the option doesn't exist. Default false.
+ * @param int|null $network_id    ID of the network. Can be null to default to the current network ID.
+ * @param string   $option        Name of the option to retrieve. Expected to not be SQL-escaped.
+ * @param mixed    $default_value Optional. Value to return if the option doesn't exist. Default false.
  * @return mixed Value set for the option.
  */
 function get_network_option( $network_id, $option, $default_value = false ) {
@@ -1751,22 +2018,41 @@ function get_network_option( $network_id, $option, $default_value = false ) {
 	 * Returning a value other than false from the filter will short-circuit retrieval
 	 * and return that value instead.
 	 *
-	 * @since 2.9.0 As 'pre_site_option_' . $key
+	 * @since 2.9.0 As `pre_site_option_{$key}`.
 	 * @since 3.0.0
 	 * @since 4.4.0 The `$option` parameter was added.
 	 * @since 4.7.0 The `$network_id` parameter was added.
 	 * @since 4.9.0 The `$default_value` parameter was added.
 	 *
-	 * @param mixed  $pre_option    The value to return instead of the option value. This differs from
-	 *                              `$default_value`, which is used as the fallback value in the event
+	 * @param mixed  $pre_site_option The value to return instead of the option value. This differs from
+	 *                                `$default_value`, which is used as the fallback value in the event
+	 *                                the option doesn't exist elsewhere in get_network_option().
+	 *                                Default false (to skip past the short-circuit).
+	 * @param string $option          Option name.
+	 * @param int    $network_id      ID of the network.
+	 * @param mixed  $default_value   The fallback value to return if the option does not exist.
+	 *                                Default false.
+	 */
+	$pre = apply_filters( "pre_site_option_{$option}", false, $option, $network_id, $default_value );
+
+	/**
+	 * Filters the value of any existing network option before it is retrieved.
+	 *
+	 * Returning a value other than false from the filter will short-circuit retrieval
+	 * and return that value instead.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @param mixed  $pre_option    The value to return instead of the network option value. This differs
+	 *                              from `$default_value`, which is used as the fallback value in the event
 	 *                              the option doesn't exist elsewhere in get_network_option().
 	 *                              Default false (to skip past the short-circuit).
-	 * @param string $option        Option name.
+	 * @param string $option        Name of the option.
 	 * @param int    $network_id    ID of the network.
 	 * @param mixed  $default_value The fallback value to return if the option does not exist.
 	 *                              Default false.
 	 */
-	$pre = apply_filters( "pre_site_option_{$option}", false, $option, $network_id, $default_value );
+	$pre = apply_filters( 'pre_site_option', $pre, $option, $network_id, $default_value );
 
 	if ( false !== $pre ) {
 		return $pre;
@@ -1835,7 +2121,7 @@ function get_network_option( $network_id, $option, $default_value = false ) {
 	 *
 	 * The dynamic portion of the hook name, `$option`, refers to the option name.
 	 *
-	 * @since 2.9.0 As 'site_option_' . $key
+	 * @since 2.9.0 As `site_option_{$key}`.
 	 * @since 3.0.0
 	 * @since 4.4.0 The `$option` parameter was added.
 	 * @since 4.7.0 The `$network_id` parameter was added.
@@ -1858,9 +2144,9 @@ function get_network_option( $network_id, $option, $default_value = false ) {
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
- * @param int    $network_id ID of the network. Can be null to default to the current network ID.
- * @param string $option     Name of the option to add. Expected to not be SQL-escaped.
- * @param mixed  $value      Option value, can be anything. Expected to not be SQL-escaped.
+ * @param int|null $network_id ID of the network. Can be null to default to the current network ID.
+ * @param string   $option     Name of the option to add. Expected to not be SQL-escaped.
+ * @param mixed    $value      Option value, can be anything. Expected to not be SQL-escaped.
  * @return bool True if the option was added, false otherwise.
  */
 function add_network_option( $network_id, $option, $value ) {
@@ -1884,7 +2170,7 @@ function add_network_option( $network_id, $option, $value ) {
 	 *
 	 * The dynamic portion of the hook name, `$option`, refers to the option name.
 	 *
-	 * @since 2.9.0 As 'pre_add_site_option_' . $key
+	 * @since 2.9.0 As `pre_add_site_option_{$key}`.
 	 * @since 3.0.0
 	 * @since 4.4.0 The `$option` parameter was added.
 	 * @since 4.7.0 The `$network_id` parameter was added.
@@ -1898,7 +2184,7 @@ function add_network_option( $network_id, $option, $value ) {
 	$notoptions_key = "$network_id:notoptions";
 
 	if ( ! is_multisite() ) {
-		$result = add_option( $option, $value, '', 'no' );
+		$result = add_option( $option, $value, '', false );
 	} else {
 		$cache_key = "$network_id:$option";
 
@@ -1948,7 +2234,7 @@ function add_network_option( $network_id, $option, $value ) {
 		 *
 		 * The dynamic portion of the hook name, `$option`, refers to the option name.
 		 *
-		 * @since 2.9.0 As "add_site_option_{$key}"
+		 * @since 2.9.0 As `add_site_option_{$key}`.
 		 * @since 3.0.0
 		 * @since 4.7.0 The `$network_id` parameter was added.
 		 *
@@ -1985,8 +2271,8 @@ function add_network_option( $network_id, $option, $value ) {
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
- * @param int    $network_id ID of the network. Can be null to default to the current network ID.
- * @param string $option     Name of the option to delete. Expected to not be SQL-escaped.
+ * @param int|null $network_id ID of the network. Can be null to default to the current network ID.
+ * @param string   $option     Name of the option to delete. Expected to not be SQL-escaped.
  * @return bool True if the option was deleted, false otherwise.
  */
 function delete_network_option( $network_id, $option ) {
@@ -2034,6 +2320,17 @@ function delete_network_option( $network_id, $option ) {
 				'site_id'  => $network_id,
 			)
 		);
+
+		if ( $result ) {
+			$notoptions_key = "$network_id:notoptions";
+			$notoptions     = wp_cache_get( $notoptions_key, 'site-options' );
+
+			if ( ! is_array( $notoptions ) ) {
+				$notoptions = array();
+			}
+			$notoptions[ $option ] = true;
+			wp_cache_set( $notoptions_key, $notoptions, 'site-options' );
+		}
 	}
 
 	if ( $result ) {
@@ -2043,7 +2340,7 @@ function delete_network_option( $network_id, $option ) {
 		 *
 		 * The dynamic portion of the hook name, `$option`, refers to the option name.
 		 *
-		 * @since 2.9.0 As "delete_site_option_{$key}"
+		 * @since 2.9.0 As `delete_site_option_{$key}`.
 		 * @since 3.0.0
 		 * @since 4.7.0 The `$network_id` parameter was added.
 		 *
@@ -2078,9 +2375,9 @@ function delete_network_option( $network_id, $option ) {
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
- * @param int    $network_id ID of the network. Can be null to default to the current network ID.
- * @param string $option     Name of the option. Expected to not be SQL-escaped.
- * @param mixed  $value      Option value. Expected to not be SQL-escaped.
+ * @param int|null $network_id ID of the network. Can be null to default to the current network ID.
+ * @param string   $option     Name of the option. Expected to not be SQL-escaped.
+ * @param mixed    $value      Option value. Expected to not be SQL-escaped.
  * @return bool True if the value was updated, false otherwise.
  */
 function update_network_option( $network_id, $option, $value ) {
@@ -2144,7 +2441,7 @@ function update_network_option( $network_id, $option, $value ) {
 	}
 
 	if ( ! is_multisite() ) {
-		$result = update_option( $option, $value, 'no' );
+		$result = update_option( $option, $value, false );
 	} else {
 		$value = sanitize_option( $option, $value );
 
@@ -2294,7 +2591,9 @@ function get_site_transient( $transient ) {
 		$transient_option = '_site_transient_' . $transient;
 		if ( ! in_array( $transient, $no_timeout, true ) ) {
 			$transient_timeout = '_site_transient_timeout_' . $transient;
-			$timeout           = get_site_option( $transient_timeout );
+			wp_prime_site_option_caches( array( $transient_option, $transient_timeout ) );
+
+			$timeout = get_site_option( $transient_timeout );
 			if ( false !== $timeout && $timeout < time() ) {
 				delete_site_option( $transient_option );
 				delete_site_option( $transient_timeout );
@@ -2372,6 +2671,7 @@ function set_site_transient( $transient, $value, $expiration = 0 ) {
 	} else {
 		$transient_timeout = '_site_transient_timeout_' . $transient;
 		$option            = '_site_transient_' . $transient;
+		wp_prime_site_option_caches( array( $option, $transient_timeout ) );
 
 		if ( false === get_site_option( $option ) ) {
 			if ( $expiration ) {
@@ -2405,13 +2705,25 @@ function set_site_transient( $transient, $value, $expiration = 0 ) {
 		/**
 		 * Fires after the value for a site transient has been set.
 		 *
-		 * @since 3.0.0
+		 * @since 6.8.0
 		 *
 		 * @param string $transient  The name of the site transient.
 		 * @param mixed  $value      Site transient value.
 		 * @param int    $expiration Time until expiration in seconds.
 		 */
-		do_action( 'setted_site_transient', $transient, $value, $expiration );
+		do_action( 'set_site_transient', $transient, $value, $expiration );
+
+		/**
+		 * Fires after the value for a site transient has been set.
+		 *
+		 * @since 3.0.0
+		 * @deprecated 6.8.0 Use {@see 'set_site_transient'} instead.
+		 *
+		 * @param string $transient  The name of the site transient.
+		 * @param mixed  $value      Site transient value.
+		 * @param int    $expiration Time until expiration in seconds.
+		 */
+		do_action_deprecated( 'setted_site_transient', array( $transient, $value, $expiration ), '6.8.0', 'set_site_transient' );
 	}
 
 	return $result;
@@ -2435,6 +2747,7 @@ function register_initial_settings() {
 				'name' => 'title',
 			),
 			'type'         => 'string',
+			'label'        => __( 'Title' ),
 			'description'  => __( 'Site title.' ),
 		)
 	);
@@ -2447,6 +2760,7 @@ function register_initial_settings() {
 				'name' => 'description',
 			),
 			'type'         => 'string',
+			'label'        => __( 'Tagline' ),
 			'description'  => __( 'Site tagline.' ),
 		)
 	);
@@ -2577,6 +2891,7 @@ function register_initial_settings() {
 		array(
 			'show_in_rest' => true,
 			'type'         => 'integer',
+			'label'        => __( 'Maximum posts per page' ),
 			'description'  => __( 'Blog pages show at most.' ),
 			'default'      => 10,
 		)
@@ -2588,6 +2903,7 @@ function register_initial_settings() {
 		array(
 			'show_in_rest' => true,
 			'type'         => 'string',
+			'label'        => __( 'Show on front' ),
 			'description'  => __( 'What to show on the front page' ),
 		)
 	);
@@ -2598,6 +2914,7 @@ function register_initial_settings() {
 		array(
 			'show_in_rest' => true,
 			'type'         => 'integer',
+			'label'        => __( 'Page on front' ),
 			'description'  => __( 'The ID of the page that should be displayed on the front page' ),
 		)
 	);
@@ -2636,6 +2953,7 @@ function register_initial_settings() {
 				),
 			),
 			'type'         => 'string',
+			'label'        => __( 'Allow comments on new posts' ),
 			'description'  => __( 'Allow people to submit comments on new posts.' ),
 		)
 	);
@@ -2650,6 +2968,7 @@ function register_initial_settings() {
  * @since 4.7.0 `$args` can be passed to set flags on the setting, similar to `register_meta()`.
  * @since 5.5.0 `$new_whitelist_options` was renamed to `$new_allowed_options`.
  *              Please consider writing more inclusive code.
+ * @since 6.6.0 Added the `label` argument.
  *
  * @global array $new_allowed_options
  * @global array $wp_registered_settings
@@ -2663,6 +2982,7 @@ function register_initial_settings() {
  *
  *     @type string     $type              The type of data associated with this setting.
  *                                         Valid values are 'string', 'boolean', 'integer', 'number', 'array', and 'object'.
+ *     @type string     $label             A label of the data attached to this setting.
  *     @type string     $description       A description of the data attached to this setting.
  *     @type callable   $sanitize_callback A callback function that sanitizes the option's value.
  *     @type bool|array $show_in_rest      Whether data associated with this setting should be included in the REST API.
@@ -2683,6 +3003,7 @@ function register_setting( $option_group, $option_name, $args = array() ) {
 	$defaults = array(
 		'type'              => 'string',
 		'group'             => $option_group,
+		'label'             => '',
 		'description'       => '',
 		'sanitize_callback' => null,
 		'show_in_rest'      => false,
@@ -2872,7 +3193,23 @@ function unregister_setting( $option_group, $option_name, $deprecated = '' ) {
  *
  * @global array $wp_registered_settings
  *
- * @return array List of registered settings, keyed by option name.
+ * @return array {
+ *     List of registered settings, keyed by option name.
+ *
+ *     @type array ...$0 {
+ *         Data used to describe the setting when registered.
+ *
+ *         @type string     $type              The type of data associated with this setting.
+ *                                             Valid values are 'string', 'boolean', 'integer', 'number', 'array', and 'object'.
+ *         @type string     $label             A label of the data attached to this setting.
+ *         @type string     $description       A description of the data attached to this setting.
+ *         @type callable   $sanitize_callback A callback function that sanitizes the option's value.
+ *         @type bool|array $show_in_rest      Whether data associated with this setting should be included in the REST API.
+ *                                             When registering complex settings, this argument may optionally be an
+ *                                             array with a 'schema' key.
+ *         @type mixed      $default           Default value when calling `get_option()`.
+ *     }
+ * }
  */
 function get_registered_settings() {
 	global $wp_registered_settings;
@@ -2908,4 +3245,29 @@ function filter_default_option( $default_value, $option, $passed_default ) {
 	}
 
 	return $registered[ $option ]['default'];
+}
+
+/**
+ * Returns the values that trigger autoloading from the options table.
+ *
+ * @since 6.6.0
+ *
+ * @return string[] The values that trigger autoloading.
+ */
+function wp_autoload_values_to_autoload() {
+	$autoload_values = array( 'yes', 'on', 'auto-on', 'auto' );
+
+	/**
+	 * Filters the autoload values that should be considered for autoloading from the options table.
+	 *
+	 * The filter can only be used to remove autoload values from the default list.
+	 *
+	 * @since 6.6.0
+	 *
+	 * @param string[] $autoload_values Autoload values used to autoload option.
+	 *                               Default list contains 'yes', 'on', 'auto-on', and 'auto'.
+	 */
+	$filtered_values = apply_filters( 'wp_autoload_values_to_autoload', $autoload_values );
+
+	return array_intersect( $filtered_values, $autoload_values );
 }

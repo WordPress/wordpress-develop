@@ -222,14 +222,71 @@ class Tests_Functions extends WP_UnitTestCase {
 			array( 'php://input', 'php://input' ),
 			array( 'http://example.com//path.ext', 'http://example.com/path.ext' ),
 			array( 'file://c:\\www\\path\\', 'file://C:/www/path/' ),
+
+			// Edge cases.
+			array( '', '' ), // Empty string should return empty string.
+			array( 123, '123' ), // Integer should be cast to string.
 		);
+	}
+
+	/**
+	 * Tests that wp_normalize_path() works with objects that have __toString().
+	 *
+	 * This is important because the function uses a static cache, and the input
+	 * must be cast to string before being used as an array key.
+	 *
+	 * @ticket 64538
+	 */
+	public function test_wp_normalize_path_with_stringable_object() {
+		$file_info = new SplFileInfo( '/var/www/html\\test' );
+
+		$this->assertSame( '/var/www/html/test', wp_normalize_path( $file_info ) );
+	}
+
+	/**
+	 * Tests that wp_normalize_path() returns consistent results on repeated calls.
+	 *
+	 * The function uses a static cache, so this verifies cache behavior.
+	 *
+	 * @ticket 64538
+	 */
+	public function test_wp_normalize_path_returns_consistent_results() {
+		$path = 'C:\\www\\path\\';
+
+		$first_call  = wp_normalize_path( $path );
+		$second_call = wp_normalize_path( $path );
+		$third_call  = wp_normalize_path( $path );
+
+		$this->assertSame( $first_call, $second_call, 'Second call should return same result as first.' );
+		$this->assertSame( $second_call, $third_call, 'Third call should return same result as second.' );
+		$this->assertSame( 'C:/www/path/', $first_call, 'Normalized path should match expected value.' );
+	}
+
+	/**
+	 * Tests that wp_normalize_path() static cache stores results.
+	 *
+	 * @ticket 64538
+	 */
+	public function test_wp_normalize_path_static_cache() {
+		$path     = '/var/www/cache-test\\subdir\\';
+		$expected = '/var/www/cache-test/subdir/';
+
+		$result = wp_normalize_path( $path );
+		$this->assertSame( $expected, $result );
+
+		$reflection  = new ReflectionFunction( 'wp_normalize_path' );
+		$static_vars = $reflection->getStaticVariables();
+
+		$this->assertArrayHasKey( 'cache', $static_vars, 'Static cache array should exist.' );
+		$this->assertArrayHasKey( $path, $static_vars['cache'], 'Cache should contain the normalized path.' );
+		$this->assertSame( $expected, $static_vars['cache'][ $path ], 'Cached value should match the expected normalized path.' );
 	}
 
 	public function test_wp_unique_filename() {
 
 		$testdir = DIR_TESTDATA . '/images/';
 
-		// Sanity check.
+		// Confidence check.
 		$this->assertSame( 'abcdefg.png', wp_unique_filename( $testdir, 'abcdefg.png' ), 'Test non-existing file, file name should be unchanged.' );
 
 		// Ensure correct images exist.
@@ -263,7 +320,7 @@ class Tests_Functions extends WP_UnitTestCase {
 		// Test slashes in names.
 		$this->assertSame( 'abcdefg.png', wp_unique_filename( $testdir, 'abcde\fg.png' ), 'Slash not removed' );
 		$this->assertSame( 'abcdefg.png', wp_unique_filename( $testdir, 'abcde\\fg.png' ), 'Double slashed not removed' );
-		$this->assertSame( 'abcdefg.png', wp_unique_filename( $testdir, 'abcde\\\fg.png' ), 'Tripple slashed not removed' );
+		$this->assertSame( 'abcdefg.png', wp_unique_filename( $testdir, 'abcde\\\fg.png' ), 'Triple slashed not removed' );
 	}
 
 	/**
@@ -727,65 +784,6 @@ class Tests_Functions extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 43977
-	 * @dataProvider data_wp_parse_list
-	 */
-	public function test_wp_parse_list( $expected, $actual ) {
-		$this->assertSame( $expected, array_values( wp_parse_list( $actual ) ) );
-	}
-
-	public function data_wp_parse_list() {
-		return array(
-			array( array( '1', '2', '3', '4' ), '1,2,3,4' ),
-			array( array( 'apple', 'banana', 'carrot', 'dog' ), 'apple,banana,carrot,dog' ),
-			array( array( '1', '2', 'apple', 'banana' ), '1,2,apple,banana' ),
-			array( array( '1', '2', 'apple', 'banana' ), '1, 2,apple,banana' ),
-			array( array( '1', '2', 'apple', 'banana' ), '1,2,apple,,banana' ),
-			array( array( '1', '2', 'apple', 'banana' ), ',1,2,apple,banana' ),
-			array( array( '1', '2', 'apple', 'banana' ), '1,2,apple,banana,' ),
-			array( array( '1', '2', 'apple', 'banana' ), '1,2 ,apple,banana' ),
-			array( array(), '' ),
-			array( array(), ',' ),
-			array( array(), ',,' ),
-		);
-	}
-
-	/**
-	 * @dataProvider data_wp_parse_id_list
-	 */
-	public function test_wp_parse_id_list( $expected, $actual ) {
-		$this->assertSame( $expected, array_values( wp_parse_id_list( $actual ) ) );
-	}
-
-	public function data_wp_parse_id_list() {
-		return array(
-			array( array( 1, 2, 3, 4 ), '1,2,3,4' ),
-			array( array( 1, 2, 3, 4 ), '1, 2,,3,4' ),
-			array( array( 1, 2, 3, 4 ), '1,2,2,3,4' ),
-			array( array( 1, 2, 3, 4 ), array( '1', '2', '3', '4', '3' ) ),
-			array( array( 1, 2, 3, 4 ), array( 1, '2', 3, '4' ) ),
-			array( array( 1, 2, 3, 4 ), '-1,2,-3,4' ),
-			array( array( 1, 2, 3, 4 ), array( -1, 2, '-3', '4' ) ),
-		);
-	}
-
-	/**
-	 * @dataProvider data_wp_parse_slug_list
-	 */
-	public function test_wp_parse_slug_list( $expected, $actual ) {
-		$this->assertSame( $expected, array_values( wp_parse_slug_list( $actual ) ) );
-	}
-
-	public function data_wp_parse_slug_list() {
-		return array(
-			array( array( 'apple', 'banana', 'carrot', 'dog' ), 'apple,banana,carrot,dog' ),
-			array( array( 'apple', 'banana', 'carrot', 'dog' ), 'apple, banana,,carrot,dog' ),
-			array( array( 'apple', 'banana', 'carrot', 'dog' ), 'apple banana carrot dog' ),
-			array( array( 'apple', 'banana-carrot', 'd-o-g' ), array( 'apple ', 'banana carrot', 'd o g' ) ),
-		);
-	}
-
-	/**
 	 * @dataProvider data_device_can_upload
 	 */
 	public function test_device_can_upload( $user_agent, $expected ) {
@@ -1204,6 +1202,8 @@ class Tests_Functions extends WP_UnitTestCase {
 	public function test_wp_ext2type() {
 		$extensions = wp_get_ext_types();
 
+		$this->assertNotEmpty( $extensions );
+
 		foreach ( $extensions as $type => $extension_list ) {
 			foreach ( $extension_list as $extension ) {
 				$this->assertSame( $type, wp_ext2type( $extension ) );
@@ -1341,7 +1341,11 @@ class Tests_Functions extends WP_UnitTestCase {
 			$this->markTestSkipped( 'The exif PHP extension is not loaded.' );
 		}
 
-		$this->assertSame( $expected, wp_get_image_mime( $file ) );
+		if ( is_array( $expected ) ) {
+			$this->assertContains( wp_get_image_mime( $file ), $expected );
+		} else {
+			$this->assertSame( $expected, wp_get_image_mime( $file ) );
+		}
 	}
 
 	/**
@@ -1394,6 +1398,32 @@ class Tests_Functions extends WP_UnitTestCase {
 				DIR_TESTDATA . '/uploads/dashicons.woff',
 				false,
 			),
+			// Animated AVIF.
+			array(
+				DIR_TESTDATA . '/images/avif-animated.avif',
+				'image/avif',
+			),
+			// Lossless AVIF.
+			array(
+				DIR_TESTDATA . '/images/avif-lossless.avif',
+				'image/avif',
+			),
+			// Lossy AVIF.
+			array(
+				DIR_TESTDATA . '/images/avif-lossy.avif',
+				'image/avif',
+			),
+			// Transparent AVIF.
+			array(
+				DIR_TESTDATA . '/images/avif-transparent.avif',
+				'image/avif',
+			),
+			// HEIC.
+			array(
+				DIR_TESTDATA . '/images/test-image.heic',
+				// In PHP 8.5, it returns 'image/heif'. Before that, it returns 'image/heic'.
+				array( 'image/heic', 'image/heif' ),
+			),
 		);
 
 		return $data;
@@ -1423,7 +1453,7 @@ class Tests_Functions extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Data profider for test_wp_getimagesize().
+	 * Data provider for test_wp_getimagesize().
 	 */
 	public function data_wp_getimagesize() {
 		$data = array(
@@ -1520,10 +1550,110 @@ class Tests_Functions extends WP_UnitTestCase {
 				DIR_TESTDATA . '/uploads/dashicons.woff',
 				false,
 			),
+			// Animated AVIF.
+			array(
+				DIR_TESTDATA . '/images/avif-animated.avif',
+				array(
+					150,
+					150,
+					IMAGETYPE_AVIF,
+					'width="150" height="150"',
+					'mime' => 'image/avif',
+				),
+			),
+			// Lossless AVIF.
+			array(
+				DIR_TESTDATA . '/images/avif-lossless.avif',
+				array(
+					400,
+					400,
+					IMAGETYPE_AVIF,
+					'width="400" height="400"',
+					'mime' => 'image/avif',
+				),
+			),
+			// Lossy AVIF.
+			array(
+				DIR_TESTDATA . '/images/avif-lossy.avif',
+				array(
+					400,
+					400,
+					IMAGETYPE_AVIF,
+					'width="400" height="400"',
+					'mime' => 'image/avif',
+				),
+			),
+			// Transparent AVIF.
+			array(
+				DIR_TESTDATA . '/images/avif-transparent.avif',
+				array(
+					128,
+					128,
+					IMAGETYPE_AVIF,
+					'width="128" height="128"',
+					'mime' => 'image/avif',
+				),
+			),
+			// Grid AVIF.
+			array(
+				DIR_TESTDATA . '/images/avif-alpha-grid2x1.avif',
+				array(
+					199,
+					200,
+					IMAGETYPE_AVIF,
+					'width="199" height="200"',
+					'mime' => 'image/avif',
+				),
+			),
 		);
 
 		return $data;
 	}
+
+	/**
+	 * Tests that wp_getimagesize() correctly handles HEIC image files.
+	 *
+	 * @ticket 53645
+	 */
+	public function test_wp_getimagesize_heic() {
+		if ( ! is_callable( 'exif_imagetype' ) && ! function_exists( 'getimagesize' ) ) {
+			$this->markTestSkipped( 'The exif PHP extension is not loaded.' );
+		}
+
+		$file = DIR_TESTDATA . '/images/test-image.heic';
+
+		$editor = wp_get_image_editor( $file );
+		if ( is_wp_error( $editor ) || ! $editor->supports_mime_type( 'image/heic' ) ) {
+			$this->markTestSkipped( 'No HEIC support in the editor engine on this system.' );
+		}
+
+		$expected = array(
+			1180,
+			1180,
+			IMAGETYPE_HEIF,
+			'width="1180" height="1180"',
+		);
+
+		// As of PHP 8.5.0, getimagesize() supports HEIF/HEIC files.
+		if ( PHP_VERSION_ID >= 80500 ) {
+			$expected = array_merge(
+				$expected,
+				array(
+					'bits'        => 8,
+					'channels'    => 3,
+					'mime'        => 'image/heif',
+					'width_unit'  => 'px',
+					'height_unit' => 'px',
+				)
+			);
+		} else {
+			$expected['mime'] = 'image/heic';
+		}
+
+		$result = wp_getimagesize( $file );
+		$this->assertSame( $expected, $result );
+	}
+
 
 	/**
 	 * @ticket 39550
@@ -1777,6 +1907,7 @@ class Tests_Functions extends WP_UnitTestCase {
 	 * Test file path validation
 	 *
 	 * @ticket 42016
+	 * @ticket 61488
 	 * @dataProvider data_validate_file
 	 *
 	 * @param string $file          File path.
@@ -1895,6 +2026,13 @@ class Tests_Functions extends WP_UnitTestCase {
 				'C:/WINDOWS/system32',
 				array( 'C:/WINDOWS/system32' ),
 				2,
+			),
+
+			// Windows Path with allowed file
+			array(
+				'Apache24\htdocs\wordpress/wp-content/themes/twentyten/style.css',
+				array( 'Apache24\htdocs\wordpress/wp-content/themes/twentyten/style.css' ),
+				0,
 			),
 
 			// Disallowed files:

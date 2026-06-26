@@ -241,7 +241,6 @@ class Tests_Admin_IncludesTheme extends WP_UnitTestCase {
 	 *
 	 * Differences in the structure can also trigger failure by causing PHP notices/warnings.
 	 *
-	 * @group external-http
 	 * @ticket 28121
 	 */
 	public function test_get_theme_featured_list_hardcoded() {

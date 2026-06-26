@@ -57,6 +57,8 @@ function get_postdata($postid) {
  *
  * @since 1.0.1
  * @deprecated 1.5.0
+ *
+ * @global WP_Query $wp_query WordPress Query object.
  */
 function start_wp() {
 	global $wp_query;
@@ -148,6 +150,7 @@ function previous_post($format='%', $previous='previous post: ', $title='yes', $
 
 	$string = '<a href="'.get_permalink($post->ID).'">'.$previous;
 	if ( 'yes' == $title )
+		/** This filter is documented in wp-includes/post-template.php */
 		$string .= apply_filters('the_title', $post->post_title, $post->ID);
 	$string .= '</a>';
 	$format = str_replace('%', $string, $format);
@@ -183,6 +186,7 @@ function next_post($format='%', $next='next post: ', $title='yes', $in_same_cat=
 
 	$string = '<a href="'.get_permalink($post->ID).'">'.$next;
 	if ( 'yes' == $title )
+		/** This filter is documented in wp-includes/post-template.php */
 		$string .= apply_filters('the_title', $post->post_title, $post->ID);
 	$string .= '</a>';
 	$format = str_replace('%', $string, $format);
@@ -703,7 +707,7 @@ function dropdown_cats($optionall = 1, $all = 'All', $orderby = 'ID', $order = '
 
 	$show_option_none = '';
 	if ( $optionnone )
-		$show_option_none = __('None');
+		$show_option_none = _x( 'None', 'Categories dropdown (show_option_none parameter)' );
 
 	$vars = compact('show_option_all', 'show_option_none', 'orderby', 'order',
 					'show_last_update', 'show_count', 'hide_empty', 'selected', 'exclude');
@@ -994,11 +998,11 @@ function get_links($category = -1, $before = '', $after = '<br />', $between = '
 
 		$output .= '<a href="' . $the_link . '"' . $rel . $title . $target. '>';
 
-		if ( $row->link_image != null && $show_images ) {
+		if ( '' != $row->link_image && $show_images ) {
 			if ( str_contains( $row->link_image, 'http' ) )
-				$output .= "<img src=\"$row->link_image\" $alt $title />";
+				$output .= '<img src="' . $row->link_image . '"' . $alt . $title . ' />';
 			else // If it's a relative path.
-				$output .= "<img src=\"" . get_option('siteurl') . "$row->link_image\" $alt $title />";
+				$output .= '<img src="' . get_option('siteurl') . $row->link_image . '"' . $alt . $title . ' />';
 		} else {
 			$output .= $name;
 		}
@@ -1058,6 +1062,7 @@ function get_links_list($order = 'name') {
 			// Handle each category.
 
 			// Display the category name.
+			/** This filter is documented in wp-includes/bookmark-template.php */
 			echo '  <li id="linkcat-' . $cat->term_id . '" class="linkcat"><h2>' . apply_filters('link_category', $cat->name ) . "</h2>\n\t<ul>\n";
 			// Call get_links() with all the appropriate params.
 			get_links($cat->term_id, '<li>', "</li>", "\n", true, 'name', false);
@@ -1818,7 +1823,7 @@ function _nc( $single, $plural, $number, $domain = 'default' ) {
  * @deprecated 2.8.0 Use _n()
  * @see _n()
  */
-function __ngettext( ...$args ) { // phpcs:ignore PHPCompatibility.FunctionNameRestrictions.ReservedFunctionNames.FunctionDoubleUnderscore
+function __ngettext( ...$args ) {
 	_deprecated_function( __FUNCTION__, '2.8.0', '_n()' );
 	return _n( ...$args );
 }
@@ -1830,7 +1835,7 @@ function __ngettext( ...$args ) { // phpcs:ignore PHPCompatibility.FunctionNameR
  * @deprecated 2.8.0 Use _n_noop()
  * @see _n_noop()
  */
-function __ngettext_noop( ...$args ) { // phpcs:ignore PHPCompatibility.FunctionNameRestrictions.ReservedFunctionNames.FunctionDoubleUnderscore
+function __ngettext_noop( ...$args ) {
 	_deprecated_function( __FUNCTION__, '2.8.0', '_n_noop()' );
 	return _n_noop( ...$args );
 
@@ -1908,7 +1913,7 @@ function get_attachment_icon_src( $id = 0, $fullsize = false ) {
 
 		$src = wp_get_attachment_url( $post->ID );
 		$src_file = & $file;
-	} elseif ( $src = wp_mime_type_icon( $post->ID ) ) {
+	} elseif ( $src = wp_mime_type_icon( $post->ID, '.svg' ) ) {
 		// No thumb, no image. We'll look for a mime-related icon instead.
 
 		/** This filter is documented in wp-includes/post.php */
@@ -2217,6 +2222,8 @@ function unregister_widget_control($id) {
  * @deprecated 3.0.0 Use delete_user_meta()
  * @see delete_user_meta()
  *
+ * @global wpdb $wpdb WordPress database abstraction object.
+ *
  * @param int $user_id User ID.
  * @param string $meta_key Metadata key.
  * @param mixed $meta_value Optional. Metadata value. Default empty.
@@ -2263,6 +2270,8 @@ function delete_usermeta( $user_id, $meta_key, $meta_value = '' ) {
  * @since 2.0.0
  * @deprecated 3.0.0 Use get_user_meta()
  * @see get_user_meta()
+ *
+ * @global wpdb $wpdb WordPress database abstraction object.
  *
  * @param int $user_id User ID
  * @param string $meta_key Optional. Metadata key. Default empty.
@@ -2315,6 +2324,8 @@ function get_usermeta( $user_id, $meta_key = '' ) {
  * @since 2.0.0
  * @deprecated 3.0.0 Use update_user_meta()
  * @see update_user_meta()
+ *
+ * @global wpdb $wpdb WordPress database abstraction object.
  *
  * @param int $user_id User ID
  * @param string $meta_key Metadata key.
@@ -2626,7 +2637,7 @@ function get_user_metavalues($ids) {
 /**
  * Sanitize every user field.
  *
- * If the context is 'raw', then the user object or array will get minimal santization of the int fields.
+ * If the context is 'raw', then the user object or array will get minimal sanitization of the int fields.
  *
  * @since 2.3.0
  * @deprecated 3.3.0
@@ -2694,6 +2705,7 @@ function get_boundary_post_rel_link($title = '%title', $in_same_cat = false, $ex
 
 	$title = str_replace('%title', $post->post_title, $title);
 	$title = str_replace('%date', $date, $title);
+	/** This filter is documented in wp-includes/post-template.php */
 	$title = apply_filters('the_title', $title, $post->ID);
 
 	$link = $start ? "<link rel='start' title='" : "<link rel='end' title='";
@@ -2753,6 +2765,8 @@ function index_rel_link() {
  * @since 2.8.0
  * @deprecated 3.3.0
  *
+ * @global WP_Post $post Global post object.
+ *
  * @param string $title Optional. Link title format. Default '%title'.
  * @return string
  */
@@ -2769,6 +2783,7 @@ function get_parent_post_rel_link( $title = '%title' ) {
 
 	$title = str_replace('%title', $post->post_title, $title);
 	$title = str_replace('%date', $date, $title);
+	/** This filter is documented in wp-includes/post-template.php */
 	$title = apply_filters('the_title', $title, $post->ID);
 
 	$link = "<link rel='up' title='";
@@ -3326,7 +3341,9 @@ function gd_edit_image_support($mime_type) {
 				return (imagetypes() & IMG_GIF) != 0;
 			case 'image/webp':
 				return (imagetypes() & IMG_WEBP) != 0;
-		}
+			case 'image/avif':
+				return (imagetypes() & IMG_AVIF) != 0;
+			}
 	} else {
 		switch( $mime_type ) {
 			case 'image/jpeg':
@@ -3337,6 +3354,8 @@ function gd_edit_image_support($mime_type) {
 				return function_exists('imagecreatefromgif');
 			case 'image/webp':
 				return function_exists('imagecreatefromwebp');
+			case 'image/avif':
+				return function_exists('imagecreatefromavif');
 		}
 	}
 	return false;
@@ -3357,7 +3376,7 @@ function wp_convert_bytes_to_hr( $bytes ) {
 
 	$units = array( 0 => 'B', 1 => 'KB', 2 => 'MB', 3 => 'GB', 4 => 'TB' );
 	$log   = log( $bytes, KB_IN_BYTES );
-	$power = (int) $log;
+	$power = ! is_nan( $log ) && ! is_infinite( $log ) ? (int) $log : 0;
 	$size  = KB_IN_BYTES ** ( $log - $power );
 
 	if ( ! is_nan( $size ) && array_key_exists( $power, $units ) ) {
@@ -3659,6 +3678,7 @@ function post_permalink( $post = 0 ) {
 function wp_get_http( $url, $file_path = false, $red = 1 ) {
 	_deprecated_function( __FUNCTION__, '4.4.0', 'WP_Http' );
 
+	// Add 60 seconds to the script timeout to ensure the remote request has enough time.
 	if ( function_exists( 'set_time_limit' ) ) {
 		@set_time_limit( 60 );
 	}
@@ -4062,8 +4082,6 @@ function _wp_register_meta_args_whitelist( $args, $default_args ) {
  * @deprecated 5.5.0 Use add_allowed_options() instead.
  *                   Please consider writing more inclusive code.
  *
- * @global array $allowed_options
- *
  * @param array        $new_options
  * @param string|array $options
  * @return array
@@ -4080,8 +4098,6 @@ function add_option_whitelist( $new_options, $options = '' ) {
  * @since 2.7.0
  * @deprecated 5.5.0 Use remove_allowed_options() instead.
  *                   Please consider writing more inclusive code.
- *
- * @global array $allowed_options
  *
  * @param array        $del_options
  * @param string|array $options
@@ -4253,9 +4269,7 @@ function wp_render_duotone_filter_preset( $preset ) {
 function wp_skip_border_serialization( $block_type ) {
 	_deprecated_function( __FUNCTION__, '6.0.0', 'wp_should_skip_block_supports_serialization()' );
 
-	$border_support = isset( $block_type->supports['__experimentalBorder'] )
-		? $block_type->supports['__experimentalBorder']
-		: false;
+	$border_support = $block_type->supports['__experimentalBorder'] ?? false;
 
 	return is_array( $border_support ) &&
 		array_key_exists( '__experimentalSkipSerialization', $border_support ) &&
@@ -4277,9 +4291,7 @@ function wp_skip_border_serialization( $block_type ) {
 function wp_skip_dimensions_serialization( $block_type ) {
 	_deprecated_function( __FUNCTION__, '6.0.0', 'wp_should_skip_block_supports_serialization()' );
 
-	$dimensions_support = isset( $block_type->supports['__experimentalDimensions'] )
-		? $block_type->supports['__experimentalDimensions']
-		: false;
+	$dimensions_support = $block_type->supports['__experimentalDimensions'] ?? false;
 
 	return is_array( $dimensions_support ) &&
 		array_key_exists( '__experimentalSkipSerialization', $dimensions_support ) &&
@@ -4301,9 +4313,7 @@ function wp_skip_dimensions_serialization( $block_type ) {
 function wp_skip_spacing_serialization( $block_type ) {
 	_deprecated_function( __FUNCTION__, '6.0.0', 'wp_should_skip_block_supports_serialization()' );
 
-	$spacing_support = isset( $block_type->supports['spacing'] )
-		? $block_type->supports['spacing']
-		: false;
+	$spacing_support = $block_type->supports['spacing'] ?? false;
 
 	return is_array( $spacing_support ) &&
 		array_key_exists( '__experimentalSkipSerialization', $spacing_support ) &&
@@ -4785,7 +4795,7 @@ function wp_img_tag_add_loading_attr( $image, $context ) {
 		return $image;
 	}
 
-	/** This filter is documented in wp-admin/includes/media.php */
+	/** This filter is documented in wp-includes/media.php */
 	$value = apply_filters( 'wp_img_tag_add_loading_attr', $value, $image, $context );
 
 	if ( $value ) {
@@ -5179,7 +5189,7 @@ function wp_get_duotone_filter_property( $preset ) {
  * Returns the duotone filter SVG string for the preset.
  *
  * @since 5.9.1
- * @deprecated 6.3.0
+ * @deprecated 6.3.0 Use WP_Duotone::get_filter_svg_from_preset() instead.
  *
  * @access private
  *
@@ -5187,7 +5197,7 @@ function wp_get_duotone_filter_property( $preset ) {
  * @return string Duotone SVG filter.
  */
 function wp_get_duotone_filter_svg( $preset ) {
-	_deprecated_function( __FUNCTION__, '6.3.0' );
+	_deprecated_function( __FUNCTION__, '6.3.0', 'WP_Duotone::get_filter_svg_from_preset()' );
 	return WP_Duotone::get_filter_svg_from_preset( $preset );
 }
 
@@ -5430,7 +5440,7 @@ function _wp_theme_json_webfonts_handler() {
 		$settings = WP_Theme_JSON_Resolver::get_merged_data()->get_settings();
 
 		// If in the editor, add webfonts defined in variations.
-		if ( is_admin() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) ) {
+		if ( is_admin() || wp_is_rest_endpoint() ) {
 			$variations = WP_Theme_JSON_Resolver::get_style_variations();
 			foreach ( $variations as $variation ) {
 				// Skip if fontFamilies are not defined in the variation.
@@ -5886,10 +5896,9 @@ function _wp_theme_json_webfonts_handler() {
 function print_embed_styles() {
 	_deprecated_function( __FUNCTION__, '6.4.0', 'wp_enqueue_embed_styles' );
 
-	$type_attr = current_theme_supports( 'html5', 'style' ) ? '' : ' type="text/css"';
-	$suffix    = SCRIPT_DEBUG ? '' : '.min';
+	$suffix = SCRIPT_DEBUG ? '' : '.min';
 	?>
-	<style<?php echo $type_attr; ?>>
+	<style>
 		<?php echo file_get_contents( ABSPATH . WPINC . "/css/wp-embed-template$suffix.css" ); ?>
 	</style>
 	<?php
@@ -5911,9 +5920,8 @@ function print_emoji_styles() {
 
 	$printed = true;
 
-	$type_attr = current_theme_supports( 'html5', 'style' ) ? '' : ' type="text/css"';
 	?>
-	<style<?php echo $type_attr; ?>>
+	<style>
 	img.wp-smiley,
 	img.emoji {
 		display: inline !important;
@@ -5938,9 +5946,8 @@ function print_emoji_styles() {
  */
 function wp_admin_bar_header() {
 	_deprecated_function( __FUNCTION__, '6.4.0', 'wp_enqueue_admin_bar_header_styles' );
-	$type_attr = current_theme_supports( 'html5', 'style' ) ? '' : ' type="text/css"';
 	?>
-	<style<?php echo $type_attr; ?> media="print">#wpadminbar { display:none; }</style>
+	<style media="print">#wpadminbar { display:none; }</style>
 	<?php
 }
 
@@ -5952,9 +5959,8 @@ function wp_admin_bar_header() {
  */
 function _admin_bar_bump_cb() {
 	_deprecated_function( __FUNCTION__, '6.4.0', 'wp_enqueue_admin_bar_bump_styles' );
-	$type_attr = current_theme_supports( 'html5', 'style' ) ? '' : ' type="text/css"';
 	?>
-	<style<?php echo $type_attr; ?> media="screen">
+	<style media="screen">
 	html { margin-top: 32px !important; }
 	@media screen and ( max-width: 782px ) {
 	  html { margin-top: 46px !important; }
@@ -5992,7 +5998,7 @@ function wp_update_https_detection_errors() {
 	 */
 	$support_errors = apply_filters( 'pre_wp_update_https_detection_errors', null );
 	if ( is_wp_error( $support_errors ) ) {
-		update_option( 'https_detection_errors', $support_errors->errors );
+		update_option( 'https_detection_errors', $support_errors->errors, false );
 		return;
 	}
 
@@ -6158,7 +6164,6 @@ function the_block_template_skip_link() {
 	<style id="skip-link-styles">
 		.skip-link.screen-reader-text {
 			border: 0;
-			clip: rect(1px,1px,1px,1px);
 			clip-path: inset(50%);
 			height: 1px;
 			margin: -1px;
@@ -6166,12 +6171,13 @@ function the_block_template_skip_link() {
 			padding: 0;
 			position: absolute !important;
 			width: 1px;
+			/* Many screen reader and browser combinations announce broken words as they would appear visually. */
 			word-wrap: normal !important;
+			word-break: normal !important;
 		}
 
 		.skip-link.screen-reader-text:focus {
 			background-color: #eee;
-			clip: auto !important;
 			clip-path: none;
 			color: #444;
 			display: block;
@@ -6232,4 +6238,298 @@ function the_block_template_skip_link() {
 	}() );
 	</script>
 	<?php
+}
+
+/**
+ * Ensure that the view script has the `wp-interactivity` dependency.
+ *
+ * @since 6.4.0
+ * @deprecated 6.5.0
+ */
+function block_core_query_ensure_interactivity_dependency() {
+	_deprecated_function( __FUNCTION__, '6.5.0', 'wp_register_script_module' );
+}
+
+/**
+ * Ensure that the view script has the `wp-interactivity` dependency.
+ *
+ * @since 6.4.0
+ * @deprecated 6.5.0
+ */
+function block_core_file_ensure_interactivity_dependency() {
+	_deprecated_function( __FUNCTION__, '6.5.0', 'wp_register_script_module' );
+}
+
+/**
+ * Ensures that the view script has the `wp-interactivity` dependency.
+ *
+ * @since 6.4.0
+ * @deprecated 6.5.0
+ */
+function block_core_image_ensure_interactivity_dependency() {
+	_deprecated_function( __FUNCTION__, '6.5.0', 'wp_register_script_module' );
+}
+
+/**
+ * Updates the block content with elements class names.
+ *
+ * @deprecated 6.6.0 Generation of element class name is handled via `render_block_data` filter.
+ *
+ * @since 5.8.0
+ * @since 6.4.0 Added support for button and heading element styling.
+ * @access private
+ *
+ * @param string $block_content Rendered block content.
+ * @param array  $block         Block object.
+ * @return string Filtered block content.
+ */
+function wp_render_elements_support( $block_content, $block ) {
+	_deprecated_function( __FUNCTION__, '6.6.0', 'wp_render_elements_class_name' );
+	return $block_content;
+}
+
+/**
+ * Processes the directives on the rendered HTML of the interactive blocks.
+ *
+ * This processes only one root interactive block at a time because the
+ * rendered HTML of that block contains the rendered HTML of all its inner
+ * blocks, including any interactive block. It does so by ignoring all the
+ * interactive inner blocks until the root interactive block is processed.
+ *
+ * @since 6.5.0
+ * @deprecated 6.6.0
+ *
+ * @param array $parsed_block The parsed block.
+ * @return array The same parsed block.
+ */
+function wp_interactivity_process_directives_of_interactive_blocks( array $parsed_block ): array {
+	_deprecated_function( __FUNCTION__, '6.6.0' );
+	return $parsed_block;
+}
+
+/**
+ * Gets the global styles custom CSS from theme.json.
+ *
+ * @since 6.2.0
+ * @deprecated 6.7.0 Use {@see 'wp_get_global_stylesheet'} instead for top-level custom CSS, or {@see 'WP_Theme_JSON::get_styles_for_block'} for block-level custom CSS.
+ *
+ * @return string The global styles custom CSS.
+ */
+function wp_get_global_styles_custom_css() {
+	_deprecated_function( __FUNCTION__, '6.7.0', 'wp_get_global_stylesheet' );
+	if ( ! wp_theme_has_theme_json() ) {
+		return '';
+	}
+	/*
+	 * Ignore cache when the development mode is set to 'theme', so it doesn't interfere with the theme
+	 * developer's workflow.
+	 */
+	$can_use_cached = ! wp_is_development_mode( 'theme' );
+
+	/*
+	 * By using the 'theme_json' group, this data is marked to be non-persistent across requests.
+	 * @see `wp_cache_add_non_persistent_groups()`.
+	 *
+	 * The rationale for this is to make sure derived data from theme.json
+	 * is always fresh from the potential modifications done via hooks
+	 * that can use dynamic data (modify the stylesheet depending on some option,
+	 * settings depending on user permissions, etc.).
+	 * See some of the existing hooks to modify theme.json behavior:
+	 * @see https://make.wordpress.org/core/2022/10/10/filters-for-theme-json-data/
+	 *
+	 * A different alternative considered was to invalidate the cache upon certain
+	 * events such as options add/update/delete, user meta, etc.
+	 * It was judged not enough, hence this approach.
+	 * @see https://github.com/WordPress/gutenberg/pull/45372
+	 */
+	$cache_key   = 'wp_get_global_styles_custom_css';
+	$cache_group = 'theme_json';
+	if ( $can_use_cached ) {
+		$cached = wp_cache_get( $cache_key, $cache_group );
+		if ( $cached ) {
+			return $cached;
+		}
+	}
+
+	$tree       = WP_Theme_JSON_Resolver::get_merged_data();
+	$stylesheet = $tree->get_custom_css();
+
+	if ( $can_use_cached ) {
+		wp_cache_set( $cache_key, $stylesheet, $cache_group );
+	}
+
+	return $stylesheet;
+}
+
+/**
+ * Enqueues the global styles custom css defined via theme.json.
+ *
+ * @since 6.2.0
+ * @deprecated 6.7.0 Use {@see 'wp_enqueue_global_styles'} instead.
+ */
+function wp_enqueue_global_styles_custom_css() {
+	_deprecated_function( __FUNCTION__, '6.7.0', 'wp_enqueue_global_styles' );
+	if ( ! wp_is_block_theme() ) {
+		return;
+	}
+
+	// Don't enqueue Customizer's custom CSS separately.
+	remove_action( 'wp_head', 'wp_custom_css_cb', 101 );
+
+	$custom_css  = wp_get_custom_css();
+	$custom_css .= wp_get_global_styles_custom_css();
+
+	if ( ! empty( $custom_css ) ) {
+		wp_add_inline_style( 'global-styles', $custom_css );
+	}
+}
+
+/**
+ * Generate block style variation instance name.
+ *
+ * @since 6.6.0
+ * @deprecated 6.7.0 Use `wp_unique_id( $variation . '--' )` instead.
+ *
+ * @access private
+ *
+ * @param array  $block     Block object.
+ * @param string $variation Slug for the block style variation.
+ *
+ * @return string The unique variation name.
+ */
+function wp_create_block_style_variation_instance_name( $block, $variation ) {
+	_deprecated_function( __FUNCTION__, '6.7.0', 'wp_unique_id' );
+	return $variation . '--' . md5( serialize( $block ) );
+}
+
+/**
+ * Returns whether the current user has the specified capability for a given site.
+ *
+ * @since 3.0.0
+ * @since 5.3.0 Formalized the existing and already documented `...$args` parameter
+ *              by adding it to the function signature.
+ * @since 5.8.0 Wraps current_user_can() after switching to blog.
+ * @deprecated 6.7.0 Use current_user_can_for_site() instead.
+ *
+ * @param int    $blog_id    Site ID.
+ * @param string $capability Capability name.
+ * @param mixed  ...$args    Optional further parameters, typically starting with an object ID.
+ * @return bool Whether the user has the given capability.
+ */
+function current_user_can_for_blog( $blog_id, $capability, ...$args ) {
+	return current_user_can_for_site( $blog_id, $capability, ...$args );
+}
+
+/**
+ * Loads classic theme styles on classic themes in the editor.
+ *
+ * This is used for backwards compatibility for Button and File blocks specifically.
+ *
+ * @since 6.1.0
+ * @since 6.2.0 Added File block styles.
+ * @deprecated 6.8.0 Styles are enqueued, not printed in the body element.
+ *
+ * @param array $editor_settings The array of editor settings.
+ * @return array A filtered array of editor settings.
+ */
+function wp_add_editor_classic_theme_styles( $editor_settings ) {
+	_deprecated_function( __FUNCTION__, '6.8.0', 'wp_enqueue_classic_theme_styles' );
+
+	if ( wp_theme_has_theme_json() ) {
+		return $editor_settings;
+	}
+
+	$suffix               = wp_scripts_get_suffix();
+	$classic_theme_styles = ABSPATH . WPINC . "/css/classic-themes$suffix.css";
+
+	/*
+	 * This follows the pattern of get_block_editor_theme_styles,
+	 * but we can't use get_block_editor_theme_styles directly as it
+	 * only handles external files or theme files.
+	 */
+	$classic_theme_styles_settings = array(
+		'css'            => file_get_contents( $classic_theme_styles ),
+		'__unstableType' => 'core',
+		'isGlobalStyles' => false,
+	);
+
+	// Add these settings to the start of the array so that themes can override them.
+	array_unshift( $editor_settings['styles'], $classic_theme_styles_settings );
+
+	return $editor_settings;
+}
+
+/**
+ * Prints a CSS rule to fix potential visual issues with images using `sizes=auto`.
+ *
+ * This rule overrides the similar rule in the default user agent stylesheet, to avoid images that use e.g.
+ * `width: auto` or `width: fit-content` to appear smaller.
+ *
+ * @since 6.7.1
+ * @deprecated 6.9.0 Use wp_enqueue_img_auto_sizes_contain_css_fix() instead.
+ * @see wp_enqueue_img_auto_sizes_contain_css_fix()
+ *
+ * @see https://html.spec.whatwg.org/multipage/rendering.html#img-contain-size
+ * @see https://core.trac.wordpress.org/ticket/62413
+ * @see https://core.trac.wordpress.org/ticket/62731
+ */
+function wp_print_auto_sizes_contain_css_fix() {
+	_deprecated_function( __FUNCTION__, '6.9.0', 'wp_enqueue_img_auto_sizes_contain_css_fix' );
+
+	/** This filter is documented in wp-includes/media.php */
+	$add_auto_sizes = apply_filters( 'wp_img_tag_add_auto_sizes', true );
+	if ( ! $add_auto_sizes ) {
+		return;
+	}
+
+	?>
+	<style>img:is([sizes="auto" i], [sizes^="auto," i]) { contain-intrinsic-size: 3000px 1500px }</style>
+	<?php
+}
+
+/**
+ * Adds slashes to a string or recursively adds slashes to strings within an array.
+ *
+ * This function is just a wrapper for `wp_slash()`. It was originally related to
+ * magic quotes functionality which was deprecated in PHP 5.3.0 and removed in PHP 5.4.0.
+ *
+ * @since 0.71
+ * @deprecated 7.0.0 Use wp_slash() instead.
+ * @see wp_slash()
+ *
+ * @param string|array $gpc String or array of data to slash.
+ * @return string|array Slashed `$gpc`.
+ */
+function addslashes_gpc( $gpc ) {
+	_deprecated_function( __FUNCTION__, '7.0.0', 'wp_slash()' );
+	return wp_slash( $gpc );
+}
+
+/**
+ * Sanitizes an attributes array into an attributes string to be placed inside a `<script>` tag.
+ *
+ * This function is deprecated, use {@see wp_get_script_tag()} or {@see wp_get_inline_script_tag()} instead.
+ *
+ * @since 5.7.0
+ * @deprecated 7.0.0 Use wp_get_script_tag() or wp_get_inline_script_tag().
+ * @see wp_get_script_tag()
+ * @see wp_get_inline_script_tag()
+ *
+ * @param array<string, string|bool> $attributes Key-value pairs representing `<script>` tag attributes.
+ * @return string String made of sanitized `<script>` tag attributes.
+ */
+function wp_sanitize_script_attributes( $attributes ) {
+	_deprecated_function( __FUNCTION__, '7.0.0', 'wp_get_script_tag() or wp_get_inline_script_tag()' );
+
+	$attributes_string = '';
+	foreach ( $attributes as $attribute_name => $attribute_value ) {
+		if ( is_bool( $attribute_value ) ) {
+			if ( $attribute_value ) {
+				$attributes_string .= ' ' . esc_attr( $attribute_name );
+			}
+		} else {
+			$attributes_string .= sprintf( ' %1$s="%2$s"', esc_attr( $attribute_name ), esc_attr( $attribute_value ) );
+		}
+	}
+	return $attributes_string;
 }

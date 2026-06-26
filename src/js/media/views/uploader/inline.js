@@ -115,7 +115,7 @@ UploaderInline = View.extend(/** @lends wp.media.view.UploaderInline.prototype *
 
 			$browser.detach().text( $placeholder.text() );
 			$browser[0].className = $placeholder[0].className;
-			$browser[0].setAttribute( 'aria-labelledby', $browser[0].id + ' ' + $placeholder[0].getAttribute('aria-labelledby') );
+			$browser[0].setAttribute( 'aria-describedby', $placeholder[0].getAttribute('aria-describedby') );
 			$placeholder.replaceWith( $browser.show() );
 		}
 
