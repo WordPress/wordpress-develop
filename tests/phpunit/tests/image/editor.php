@@ -50,11 +50,11 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 	}
 
 	/**
-	 * Tests that implementations inheriting the default mask method are not selected for mask requests.
+	 * Tests that implementations without a mask method are not selected for mask requests.
 	 *
 	 * @ticket 44405
 	 */
-	public function test_get_editor_does_not_select_implementation_inheriting_default_mask() {
+	public function test_get_editor_does_not_select_implementation_without_mask_method() {
 		$editor = wp_get_image_editor( DIR_TESTDATA . '/images/canola.jpg', array( 'methods' => array( 'mask' ) ) );
 
 		$this->assertWPError( $editor );
@@ -62,11 +62,11 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 	}
 
 	/**
-	 * Tests that implementations overriding the default mask method are selected for mask requests.
+	 * Tests that implementations with a mask method are selected for mask requests.
 	 *
 	 * @ticket 44405
 	 */
-	public function test_get_editor_selects_implementation_overriding_mask() {
+	public function test_get_editor_selects_implementation_with_mask_method() {
 		add_filter(
 			'wp_image_editors',
 			static function () {

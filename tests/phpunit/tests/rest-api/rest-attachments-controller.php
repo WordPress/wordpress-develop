@@ -3236,7 +3236,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	 * @ticket 44405
 	 * @requires function imagejpeg
 	 */
-	public function test_edit_image_mask_returns_error_when_editor_inherits_default_mask() {
+	public function test_edit_image_mask_returns_error_when_editor_does_not_support_mask() {
 		wp_set_current_user( self::$superadmin_id );
 		$attachment = self::factory()->attachment->create_upload_object( self::$test_file );
 

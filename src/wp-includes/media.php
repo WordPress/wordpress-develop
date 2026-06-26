@@ -4466,18 +4466,6 @@ function _wp_image_editor_choose( $args = array() ) {
 			continue;
 		}
 
-		if ( isset( $args['methods'] ) && in_array( 'mask', $args['methods'], true ) ) {
-			try {
-				$mask_method = new ReflectionMethod( $implementation, 'mask' );
-			} catch ( ReflectionException $e ) {
-				continue;
-			}
-
-			if ( WP_Image_Editor::class === $mask_method->getDeclaringClass()->getName() ) {
-				continue;
-			}
-		}
-
 		// Implementation should ideally support the output mime type as well if set and different than the passed type.
 		if (
 			isset( $args['mime_type'] ) &&

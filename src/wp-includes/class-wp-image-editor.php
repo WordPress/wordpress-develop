@@ -171,55 +171,6 @@ abstract class WP_Image_Editor {
 	abstract public function flip( $horz, $vert );
 
 	/**
-	 * Applies a mask to the current image.
-	 *
-	 * Implementations that support image masks should override this method.
-	 *
-	 * @since 7.1.0
-	 *
-	 * @param array $args {
-	 *     Mask arguments.
-	 *
-	 *     @type string $shape Mask shape. Accepts 'circle'.
-	 * }
-	 * @return true|WP_Error True on success, WP_Error object on failure.
-	 */
-	public function mask( $args ) {
-		$args = $this->validate_mask_args( $args );
-		if ( is_wp_error( $args ) ) {
-			return $args;
-		}
-
-		return new WP_Error(
-			'image_mask_unsupported',
-			__( 'Unsupported image mask.' ),
-			$this->file
-		);
-	}
-
-	/**
-	 * Validates and normalizes image mask arguments.
-	 *
-	 * @since 7.1.0
-	 *
-	 * @param array $args Mask arguments.
-	 * @return array|WP_Error Normalized mask arguments on success, WP_Error object on failure.
-	 */
-	protected function validate_mask_args( $args ) {
-		if ( ! is_array( $args ) || 'circle' !== ( $args['shape'] ?? null ) ) {
-			return new WP_Error(
-				'image_mask_unsupported',
-				__( 'Unsupported image mask.' ),
-				$this->file
-			);
-		}
-
-		return array(
-			'shape' => 'circle',
-		);
-	}
-
-	/**
 	 * Streams current image to browser.
 	 *
 	 * @since 3.5.0

@@ -494,9 +494,12 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 	 * @return true|WP_Error True on success, WP_Error object on failure.
 	 */
 	public function mask( $args ) {
-		$args = $this->validate_mask_args( $args );
-		if ( is_wp_error( $args ) ) {
-			return $args;
+		if ( ! is_array( $args ) || 'circle' !== ( $args['shape'] ?? null ) ) {
+			return new WP_Error(
+				'image_mask_unsupported',
+				__( 'Unsupported image mask.' ),
+				$this->file
+			);
 		}
 
 		if ( function_exists( 'imagepalettetotruecolor' ) ) {
