@@ -8,11 +8,11 @@
  */
 class Tests_functions_test_wpPrivacyExportsUrl extends WP_UnitTestCase {
 
-	public function tear_down(){
+	public function tear_down() {
 
 		remove_filter( 'wp_privacy_exports_url', array( $this, 'filter_wp_privacy_exports_url' ) );
 	}
-	
+
 	/**
 	 * @ticket 59709
 	 */
