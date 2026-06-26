@@ -1044,6 +1044,14 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			}
 		}
 
+		$has_mask_modifier = false;
+		foreach ( $modifiers as $modifier ) {
+			if ( 'mask' === ( $modifier['type'] ?? null ) ) {
+				$has_mask_modifier = true;
+				break;
+			}
+		}
+
 		/*
 		 * If the file doesn't exist, attempt a URL fopen on the src link.
 		 * This can occur with certain file replication plugins.
@@ -1054,9 +1062,26 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			$image_file_to_edit = _load_image_to_edit_path( $attachment_id );
 		}
 
-		$image_editor = wp_get_image_editor( $image_file_to_edit );
+		$image_editor_args = array();
+		if ( $has_mask_modifier ) {
+			$image_editor_args = array(
+				'methods'          => array( 'mask' ),
+				'mime_type'        => $mime_type,
+				'output_mime_type' => 'image/png',
+			);
+		}
+
+		$image_editor = wp_get_image_editor( $image_file_to_edit, $image_editor_args );
 
 		if ( is_wp_error( $image_editor ) ) {
+			if ( $has_mask_modifier ) {
+				return new WP_Error(
+					'rest_image_mask_unsupported',
+					__( 'Unable to mask this image.' ),
+					array( 'status' => 500 )
+				);
+			}
+
 			return new WP_Error(
 				'rest_unknown_image_file_type',
 				__( 'Unable to edit this image.' ),
@@ -1122,6 +1147,19 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 
 					break;
 
+				case 'mask':
+					$result = $image_editor->mask( $args );
+
+					if ( is_wp_error( $result ) ) {
+						return new WP_Error(
+							'rest_image_mask_failed',
+							__( 'Unable to mask this image.' ),
+							array( 'status' => 500 )
+						);
+					}
+
+					break;
+
 			}
 		}
 
@@ -1141,7 +1179,9 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			$image_name .= '-edited';
 		}
 
-		$filename = "{$image_name}.{$image_ext}";
+		$output_mime_type = $has_mask_modifier ? 'image/png' : null;
+		$output_ext       = $has_mask_modifier ? 'png' : $image_ext;
+		$filename         = "{$image_name}.{$output_ext}";
 
 		// Create the uploads subdirectory if needed.
 		$uploads = wp_upload_dir();
@@ -1150,7 +1190,19 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		$filename = wp_unique_filename( $uploads['path'], $filename );
 
 		// Save to disk.
-		$saved = $image_editor->save( $uploads['path'] . "/$filename" );
+		if ( $has_mask_modifier ) {
+			$disable_png_output_mapping = static function ( $output_format ) {
+				unset( $output_format['image/png'] );
+				return $output_format;
+			};
+			add_filter( 'image_editor_output_format', $disable_png_output_mapping, PHP_INT_MAX );
+		}
+
+		$saved = $image_editor->save( $uploads['path'] . "/$filename", $output_mime_type );
+
+		if ( $has_mask_modifier ) {
+			remove_filter( 'image_editor_output_format', $disable_png_output_mapping, PHP_INT_MAX );
+		}
 
 		if ( is_wp_error( $saved ) ) {
 			return $saved;
@@ -1162,7 +1214,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		// Check request fields and assign default values.
 		$new_attachment_post                 = $this->prepare_item_for_database( $request );
 		$new_attachment_post->post_mime_type = $saved['mime-type'];
-		$new_attachment_post->guid           = $uploads['url'] . "/$filename";
+		$new_attachment_post->guid           = $uploads['url'] . '/' . $saved['file'];
 
 		// Unset ID so wp_insert_attachment generates a new ID.
 		unset( $new_attachment_post->ID );
@@ -2262,10 +2314,35 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 								),
 							),
 						),
+						array(
+							'title'      => __( 'Mask' ),
+							'type'       => 'object',
+							'properties' => array(
+								'type' => array(
+									'description' => __( 'Mask type.' ),
+									'type'        => 'string',
+									'enum'        => array( 'mask' ),
+								),
+								'args' => array(
+									'description' => __( 'Mask arguments.' ),
+									'type'        => 'object',
+									'required'    => array(
+										'shape',
+									),
+									'properties'  => array(
+										'shape' => array(
+											'description' => __( 'Mask shape.' ),
+											'type'        => 'string',
+											'enum'        => array( 'circle' ),
+										),
+									),
+								),
+							),
+						),
 					),
 				),
-			),
-			'rotation'  => array(
+				),
+				'rotation'  => array(
 				'description'      => __( 'The amount to rotate the image clockwise in degrees. DEPRECATED: Use `modifiers` instead.' ),
 				'type'             => 'integer',
 				'minimum'          => 0,

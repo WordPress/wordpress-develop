@@ -84,6 +84,22 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 			return false;
 		}
 
+		if ( isset( $args['methods'] ) && in_array( 'mask', $args['methods'], true ) ) {
+			return (
+				class_exists( 'ImagickDraw', false ) &&
+				( defined( 'Imagick::ALPHACHANNEL_SET' ) || defined( 'Imagick::ALPHACHANNEL_ACTIVATE' ) ) &&
+				defined( 'Imagick::COMPOSITE_DSTIN' ) &&
+				method_exists( 'ImagickDraw', 'ellipse' ) &&
+				method_exists( 'ImagickDraw', 'setFillColor' ) &&
+				method_exists( 'Imagick', 'compositeImage' ) &&
+				method_exists( 'Imagick', 'drawImage' ) &&
+				method_exists( 'Imagick', 'getImageGeometry' ) &&
+				method_exists( 'Imagick', 'newImage' ) &&
+				method_exists( 'Imagick', 'setImageAlphaChannel' ) &&
+				method_exists( 'Imagick', 'setImageFormat' )
+			);
+		}
+
 		return true;
 	}
 
@@ -821,6 +837,63 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 			}
 		} catch ( Exception $e ) {
 			return new WP_Error( 'image_flip_error', $e->getMessage() );
+		}
+
+		return true;
+	}
+
+	/**
+	 * Applies a mask to the current image.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @param array $args {
+	 *     Mask arguments.
+	 *
+	 *     @type string $shape Mask shape. Accepts 'circle'.
+	 * }
+	 * @return true|WP_Error True on success, WP_Error object on failure.
+	 */
+	public function mask( $args ) {
+		$args = $this->validate_mask_args( $args );
+		if ( is_wp_error( $args ) ) {
+			return $args;
+		}
+
+		try {
+			if ( defined( 'Imagick::ALPHACHANNEL_SET' ) ) {
+				$this->image->setImageAlphaChannel( Imagick::ALPHACHANNEL_SET );
+			} elseif ( defined( 'Imagick::ALPHACHANNEL_ACTIVATE' ) ) {
+				$this->image->setImageAlphaChannel( Imagick::ALPHACHANNEL_ACTIVATE );
+			}
+
+			$geometry = $this->image->getImageGeometry();
+			$width    = (int) $geometry['width'];
+			$height   = (int) $geometry['height'];
+
+			$mask = new Imagick();
+			$mask->newImage( $width, $height, new ImagickPixel( 'transparent' ), 'png' );
+
+			$draw = new ImagickDraw();
+			$draw->setFillColor( new ImagickPixel( 'white' ) );
+			$draw->ellipse(
+				( $width - 1 ) / 2,
+				( $height - 1 ) / 2,
+				min( $width, $height ) / 2,
+				min( $width, $height ) / 2,
+				0,
+				360
+			);
+			$mask->drawImage( $draw );
+
+			$this->image->compositeImage( $mask, Imagick::COMPOSITE_DSTIN, 0, 0 );
+			$this->image->setImageFormat( 'PNG' );
+			$this->mime_type = 'image/png';
+
+			$mask->clear();
+			$mask->destroy();
+		} catch ( Exception $e ) {
+			return new WP_Error( 'image_mask_error', $e->getMessage(), $this->file );
 		}
 
 		return true;

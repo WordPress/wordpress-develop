@@ -4368,7 +4368,7 @@ function wp_get_image_editor( $path, $args = array() ) {
 	}
 
 	// Check and set the output mime type mapped to the input type.
-	if ( isset( $args['mime_type'] ) ) {
+	if ( isset( $args['mime_type'] ) && ! isset( $args['output_mime_type'] ) ) {
 		$output_format = wp_get_image_editor_output_format( $path, $args['mime_type'] );
 		if ( isset( $output_format[ $args['mime_type'] ] ) ) {
 			$args['output_mime_type'] = $output_format[ $args['mime_type'] ];
@@ -4464,6 +4464,18 @@ function _wp_image_editor_choose( $args = array() ) {
 			array_diff( $args['methods'], get_class_methods( $implementation ) ) ) {
 
 			continue;
+		}
+
+		if ( isset( $args['methods'] ) && in_array( 'mask', $args['methods'], true ) ) {
+			try {
+				$mask_method = new ReflectionMethod( $implementation, 'mask' );
+			} catch ( ReflectionException $e ) {
+				continue;
+			}
+
+			if ( WP_Image_Editor::class === $mask_method->getDeclaringClass()->getName() ) {
+				continue;
+			}
 		}
 
 		// Implementation should ideally support the output mime type as well if set and different than the passed type.
@@ -6798,4 +6810,3 @@ function wp_add_crossorigin_attributes( string $html ): string {
 
 	return $processor->get_updated_html();
 }
-

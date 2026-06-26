@@ -189,7 +189,10 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		if ( class_exists( WP_Image_Editor_Mock::class ) ) {
 			WP_Image_Editor_Mock::$spy         = array();
 			WP_Image_Editor_Mock::$edit_return = array();
+			WP_Image_Editor_Mock::$save_return = array();
 			WP_Image_Editor_Mock::$size_return = null;
+			WP_Image_Editor_Mock::$test_return = true;
+			WP_Image_Editor_Mock::$load_return = true;
 		}
 
 		parent::tear_down();
@@ -3112,6 +3115,172 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	}
 
 	/**
+	 * @ticket 44405
+	 * @requires function imagecreatefrompng
+	 */
+	public function test_edit_image_mask() {
+		if ( ! wp_image_editor_supports( array( 'mime_type' => 'image/jpeg', 'output_mime_type' => 'image/png', 'methods' => array( 'mask' ) ) ) ) {
+			$this->markTestSkipped( 'This test requires an image editor with mask support.' );
+		}
+
+		wp_set_current_user( self::$superadmin_id );
+		$attachment = self::factory()->attachment->create_upload_object( self::$test_file );
+
+		$params = array(
+			'modifiers' => array(
+				array(
+					'type' => 'crop',
+					'args' => array(
+						'left'   => 12.5,
+						'top'    => 0,
+						'width'  => 75,
+						'height' => 100,
+					),
+				),
+				array(
+					'type' => 'mask',
+					'args' => array(
+						'shape' => 'circle',
+					),
+				),
+			),
+			'src'       => wp_get_attachment_image_url( $attachment, 'full' ),
+		);
+
+		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment}/edit" );
+		$request->set_body_params( $params );
+		$response = rest_do_request( $request );
+		$item     = $response->get_data();
+
+		$this->assertSame( 201, $response->get_status() );
+		$this->assertSame( 'image/png', $item['mime_type'] );
+		$this->assertStringEndsWith( '-edited.png', $item['media_details']['file'] );
+		$this->assertArrayHasKey( 'parent_image', $item['media_details'] );
+		$this->assertSame( (string) $attachment, $item['media_details']['parent_image']['attachment_id'] );
+
+		$file = get_attached_file( $item['id'] );
+		$this->assertSame( 'image/png', wp_get_image_mime( $file ) );
+
+		$image = imagecreatefrompng( $file );
+		$this->assertNotFalse( $image );
+
+		$corner_color = imagecolorsforindex( $image, imagecolorat( $image, 0, 0 ) );
+		$center_color = imagecolorsforindex( $image, imagecolorat( $image, (int) floor( imagesx( $image ) / 2 ), (int) floor( imagesy( $image ) / 2 ) ) );
+
+		$this->assertSame( 127, $corner_color['alpha'] );
+		$this->assertLessThan( 127, $center_color['alpha'] );
+	}
+
+	/**
+	 * @ticket 44405
+	 * @requires function imagejpeg
+	 */
+	public function test_edit_image_mask_modifier_calls_mask_after_previous_modifiers() {
+		wp_set_current_user( self::$superadmin_id );
+		$attachment = self::factory()->attachment->create_upload_object( self::$test_file );
+
+		$this->setup_mock_editor( 'WP_Image_Editor_Mock_With_Mask' );
+		WP_Image_Editor_Mock::$size_return         = array(
+			'width'  => 640,
+			'height' => 480,
+		);
+		WP_Image_Editor_Mock::$edit_return['mask'] = new WP_Error();
+
+		$params = array(
+			'modifiers' => array(
+				array(
+					'type' => 'rotate',
+					'args' => array(
+						'angle' => 60,
+					),
+				),
+				array(
+					'type' => 'crop',
+					'args' => array(
+						'left'   => 10,
+						'top'    => 20,
+						'width'  => 30,
+						'height' => 40,
+					),
+				),
+				array(
+					'type' => 'mask',
+					'args' => array(
+						'shape' => 'circle',
+					),
+				),
+			),
+			'src'       => wp_get_attachment_image_url( $attachment, 'full' ),
+		);
+
+		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment}/edit" );
+		$request->set_body_params( $params );
+		$response = rest_do_request( $request );
+
+		$this->assertErrorResponse( 'rest_image_mask_failed', $response, 500 );
+		$this->assertSame( array( -60 ), WP_Image_Editor_Mock::$spy['rotate'][0] );
+		$this->assertSame( array( 64, 96, 192, 192 ), WP_Image_Editor_Mock::$spy['crop'][0] );
+		$this->assertSame( array( array( 'shape' => 'circle' ) ), WP_Image_Editor_Mock::$spy['mask'][0] );
+		$this->assertArrayNotHasKey( 'save', WP_Image_Editor_Mock::$spy );
+	}
+
+	/**
+	 * @ticket 44405
+	 * @requires function imagejpeg
+	 */
+	public function test_edit_image_mask_returns_error_when_editor_inherits_default_mask() {
+		wp_set_current_user( self::$superadmin_id );
+		$attachment = self::factory()->attachment->create_upload_object( self::$test_file );
+
+		$this->setup_mock_editor();
+
+		$params = array(
+			'modifiers' => array(
+				array(
+					'type' => 'mask',
+					'args' => array(
+						'shape' => 'circle',
+					),
+				),
+			),
+			'src'       => wp_get_attachment_image_url( $attachment, 'full' ),
+		);
+
+		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment}/edit" );
+		$request->set_body_params( $params );
+		$response = rest_do_request( $request );
+
+		$this->assertErrorResponse( 'rest_image_mask_unsupported', $response, 500 );
+	}
+
+	/**
+	 * @ticket 44405
+	 * @requires function imagejpeg
+	 */
+	public function test_edit_image_mask_rejects_unsupported_shape() {
+		wp_set_current_user( self::$superadmin_id );
+		$attachment = self::factory()->attachment->create_upload_object( self::$test_file );
+
+		$params = array(
+			'modifiers' => array(
+				array(
+					'type' => 'mask',
+					'args' => array(
+						'shape' => 'square',
+					),
+				),
+			),
+			'src'       => wp_get_attachment_image_url( $attachment, 'full' ),
+		);
+
+		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment}/edit" );
+		$request->set_body_params( $params );
+		$response = rest_do_request( $request );
+
+		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
+	}
+
+	/**
 	 * @ticket 50565
 	 * @requires function imagejpeg
 	 */
@@ -3152,14 +3321,14 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	 *
 	 * @since 5.5.0
 	 */
-	protected function setup_mock_editor() {
+	protected function setup_mock_editor( $editor_class = 'WP_Image_Editor_Mock' ) {
 		require_once ABSPATH . WPINC . '/class-wp-image-editor.php';
 		require_once DIR_TESTDATA . '/../includes/mock-image-editor.php';
 
 		add_filter(
 			'wp_image_editors',
-			static function () {
-				return array( 'WP_Image_Editor_Mock' );
+			static function () use ( $editor_class ) {
+				return array( $editor_class );
 			}
 		);
 	}

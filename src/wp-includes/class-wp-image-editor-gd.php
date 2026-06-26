@@ -51,6 +51,17 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 				return false;
 		}
 
+		if ( isset( $args['methods'] ) && in_array( 'mask', $args['methods'], true ) ) {
+			return (
+				self::supports_mime_type( 'image/png' ) &&
+				function_exists( 'imagealphablending' ) &&
+				function_exists( 'imagecolorallocatealpha' ) &&
+				function_exists( 'imagepng' ) &&
+				function_exists( 'imagesavealpha' ) &&
+				function_exists( 'imagesetpixel' )
+			);
+		}
+
 		return true;
 	}
 
@@ -468,6 +479,55 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 		}
 
 		return new WP_Error( 'image_flip_error', __( 'Image flip failed.' ), $this->file );
+	}
+
+	/**
+	 * Applies a mask to the current image.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @param array $args {
+	 *     Mask arguments.
+	 *
+	 *     @type string $shape Mask shape. Accepts 'circle'.
+	 * }
+	 * @return true|WP_Error True on success, WP_Error object on failure.
+	 */
+	public function mask( $args ) {
+		$args = $this->validate_mask_args( $args );
+		if ( is_wp_error( $args ) ) {
+			return $args;
+		}
+
+		if ( function_exists( 'imagepalettetotruecolor' ) ) {
+			imagepalettetotruecolor( $this->image );
+		}
+
+		imagealphablending( $this->image, false );
+		imagesavealpha( $this->image, true );
+
+		$width          = imagesx( $this->image );
+		$height         = imagesy( $this->image );
+		$transparent    = imagecolorallocatealpha( $this->image, 0, 0, 0, 127 );
+		$center_x       = ( $width - 1 ) / 2;
+		$center_y       = ( $height - 1 ) / 2;
+		$radius         = min( $width, $height ) / 2;
+		$radius_squared = $radius * $radius;
+
+		for ( $y = 0; $y < $height; $y++ ) {
+			for ( $x = 0; $x < $width; $x++ ) {
+				$dx = $x - $center_x;
+				$dy = $y - $center_y;
+
+				if ( ( $dx * $dx ) + ( $dy * $dy ) > $radius_squared ) {
+					imagesetpixel( $this->image, $x, $y, $transparent );
+				}
+			}
+		}
+
+		$this->mime_type = 'image/png';
+
+		return true;
 	}
 
 	/**
