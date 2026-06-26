@@ -51,8 +51,12 @@ jobs:
   # Performs the following steps:
   # - Checks out the repository.
   # - Sets up Node.js.
-  # - Logs debug information about the GitHub Action runner.
+  # - Sets up PHP.
+  # - Installs Composer dependencies.
   # - Installs npm dependencies.
+  # - Logs debug information about the GitHub Action runner.
+  # - Runs Emoji build scripts.
+  # - Runs bundled Root Certificate build scripts.
   # - Builds WordPress to run from the desired location (src or build).
   # - Ensures version-controlled files are not modified or deleted.
   # - Creates a ZIP of the built WordPress files (when building to the build directory).
@@ -75,51 +79,55 @@ jobs:
           show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
           persist-credentials: false
 
-      # This date is used to ensure that the PHPCS cache is cleared at least once every week.
-      # http://man7.org/linux/man-pages/man1/date.1.html
-      - name: "Get last Monday's date"
-        id: get-date
-        if: ${{ inputs.test-certificates }}
-        run: echo "date=$(/bin/date -u --date='last Mon' "+%F")" >> "$GITHUB_OUTPUT"
+      - parallel:
+        - name: Set up Node.js
+          uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+          with:
+            node-version-file: '.nvmrc'
+            cache: npm
 
-      # Since Composer dependencies are installed using `composer update` and no lock file is in version control,
-      # passing a custom cache suffix ensures that the cache is flushed at least once per week.
-      - name: Install Composer dependencies
-        if: ${{ inputs.test-certificates }}
-        uses: ramsey/composer-install@65e4f84970763564f46a70b8a54b90d033b3bdda # 4.0.0
-        background: true
-        with:
-          custom-cache-suffix: ${{ steps.get-date.outputs.date }}
+        ##
+        # This allows Composer dependencies to be installed using a single step.
+        #
+        # Since the tests are currently run within the Docker containers where the PHP version varies,
+        # the same PHP version needs to be configured for the action runner machine so that the correct
+        # dependency versions are installed and cached.
+        ##
+        - name: Set up PHP
+          uses: shivammathur/setup-php@7c071dfe9dc99bdf297fa79cb49ea005b9fcadbc # 2.37.1
+          with:
+            php-version: '8.3'
+            coverage: none
 
-      - name: Set up Node.js
-        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
-        background: true
-        with:
-          node-version-file: '.nvmrc'
-          cache: npm
+      - parallel:
+          # Since Composer dependencies are installed using `composer update` and no lock file is in version control,
+          # passing a custom cache suffix ensures that the cache is flushed at least once per week.
+        - name: Install Composer dependencies
+          if: ${{ inputs.test-certificates }}
+          uses: ramsey/composer-install@65e4f84970763564f46a70b8a54b90d033b3bdda # 4.0.0
+          with:
+            custom-cache-suffix: $(/bin/date -u --date='last Mon' "+%F")
 
-      - name: Wait for Node.js & Composer commands
-        wait-all:
+        - name: Install npm Dependencies
+          run: npm ci
 
-      - name: Log debug information
-        run: |
-          npm --version
-          node --version
-          curl --version
-          git --version
+        - name: Log debug information
+          run: |
+            npm --version
+            node --version
+            curl --version
+            git --version
 
-      - name: Install npm Dependencies
-        run: npm ci
+      - parallel:
+        - name: Run Emoji precommit task
+          if: ${{ inputs.test-emoji }}
+          run: npm run grunt precommit:emoji
+          env:
+            GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Run Emoji precommit task
-        if: ${{ inputs.test-emoji }}
-        run: npm run grunt precommit:emoji
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Ensure certificates files are updated
-        if: ${{ inputs.test-certificates }}
-        run: npm run grunt copy:certificates && npm run grunt build:certificates
+        - name: Ensure certificates files are updated
+          if: ${{ inputs.test-certificates }}
+          run: npm run grunt copy:certificates && npm run grunt build:certificates
 
       - name: Build WordPress to run from ${{ inputs.directory }}
         run: npm run ${{ inputs.directory == 'src' && 'build:dev' || 'build' }}

@@ -18,8 +18,8 @@ jobs:
   # - Checks out the repository.
   # - Sets up Node.js.
   # - Installs Composer dependencies.
-  # - Logs general debug information about the runner.
   # - Installs npm dependencies.
+  # - Logs general debug information about the runner.
   # - Builds CSS file using SASS.
   # - Builds Emoji files.
   # - Builds bundled Root Certificate files.
@@ -47,44 +47,35 @@ jobs:
           node-version-file: '.nvmrc'
           cache: npm
 
-      # Since Composer dependencies are installed using `composer update` and no lock file is in version control,
-      # passing a custom cache suffix ensures that the cache is flushed at least once per week.
-      - name: Install Composer dependencies
-        uses: ramsey/composer-install@65e4f84970763564f46a70b8a54b90d033b3bdda # 4.0.0
-        background: true
-        with:
-          custom-cache-suffix: $(/bin/date -u --date='last Mon' "+%F")
+      - parallel:
+        - name: Install npm Dependencies
+          run: npm ci
 
-      - name: Log debug information
-        run: |
-          npm --version
-          node --version
-          curl --version
-          git --version
+        # Since Composer dependencies are installed using `composer update` and no lock file is in version control,
+        # passing a custom cache suffix ensures that the cache is flushed at least once per week.
+        - name: Install Composer dependencies
+          uses: ramsey/composer-install@65e4f84970763564f46a70b8a54b90d033b3bdda # 4.0.0
+          with:
+            custom-cache-suffix: $(/bin/date -u --date='last Mon' "+%F")
 
-      - name: Install npm Dependencies
-        background: true
-        run: npm ci
+        - name: Log debug information
+          run: |
+            npm --version
+            node --version
+            curl --version
+            git --version
 
-      - name: Wait for install commands
-        wait-all:
+      - parallel:
+        - name: Run SASS precommit tasks
+          run: npm run grunt precommit:css
 
-      - name: Run SASS precommit tasks
-        background: true
-        run: npm run grunt precommit:css
+        - name: Run Emoji precommit task
+          run: npm run grunt precommit:emoji
+          env:
+            GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Run Emoji precommit task
-        background: true
-        run: npm run grunt precommit:emoji
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Run certificate tasks
-        background: true
-        run: npm run grunt copy:certificates
-
-      - name: Wait for build commands
-        wait-all:
+        - name: Run certificate tasks
+          run: npm run grunt copy:certificates
 
       - name: Build WordPress
         run: npm run build:dev

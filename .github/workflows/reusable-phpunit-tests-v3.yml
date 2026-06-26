@@ -112,6 +112,7 @@ jobs:
   # - Logs the running Docker containers.
   # - Logs debug information about what's installed within the WordPress Docker containers.
   # - Install WordPress within the Docker container.
+  # - Install the PCOV code coverage driver.
   # - Run the PHPUnit tests.
   # - Upload the code coverage report to Codecov.io.
   # - Ensures version-controlled files are not modified or deleted.
@@ -136,68 +137,56 @@ jobs:
           show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
           persist-credentials: false
 
-      - name: Set up Node.js
-        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
-        background: true
-        with:
-          node-version-file: '.nvmrc'
-          cache: npm
+      - parallel:
+        - name: Set up Node.js
+          uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+          with:
+            node-version-file: '.nvmrc'
+            cache: npm
 
-      ##
-      # This allows Composer dependencies to be installed using a single step.
-      #
-      # Since the tests are currently run within the Docker containers where the PHP version varies,
-      # the same PHP version needs to be configured for the action runner machine so that the correct
-      # dependency versions are installed and cached.
-      ##
-      - name: Set up PHP
-        uses: shivammathur/setup-php@7c071dfe9dc99bdf297fa79cb49ea005b9fcadbc # 2.37.1
-        background: true
-        with:
-          php-version: '${{ inputs.php }}'
-          coverage: none
+        ##
+        # This allows Composer dependencies to be installed using a single step.
+        #
+        # Since the tests are currently run within the Docker containers where the PHP version varies,
+        # the same PHP version needs to be configured for the action runner machine so that the correct
+        # dependency versions are installed and cached.
+        ##
+        - name: Set up PHP
+          uses: shivammathur/setup-php@7c071dfe9dc99bdf297fa79cb49ea005b9fcadbc # 2.37.1
+          with:
+            php-version: '${{ inputs.php }}'
+            coverage: none
 
-      - name: Wait for setup steps
-        wait-all:
+      - parallel:
+        # Since Composer dependencies are installed using `composer update` and no lock file is in version control,
+        # passing a custom cache suffix ensures that the cache is flushed at least once per week.
+        - name: Install Composer dependencies
+          uses: ramsey/composer-install@65e4f84970763564f46a70b8a54b90d033b3bdda # 4.0.0
+          with:
+            custom-cache-suffix: $(/bin/date -u --date='last Mon' "+%F")
 
-      # Since Composer dependencies are installed using `composer update` and no lock file is in version control,
-      # passing a custom cache suffix ensures that the cache is flushed at least once per week.
-      - name: Install Composer dependencies
-        uses: ramsey/composer-install@65e4f84970763564f46a70b8a54b90d033b3bdda # 4.0.0
-        background: true
-        with:
-          custom-cache-suffix: $(/bin/date -u --date='last Mon' "+%F")
+        - name: Install npm dependencies
+          run: npm ci
 
-      - name: Install npm dependencies
-        background: true
-        run: npm ci
+      - parallel:
+        - name: Build WordPress
+          run: npm run build:dev
 
-      - name: Wait for install commands
-        wait-all:
+        - name: Start Docker environment
+          run: npm run env:start
 
-      - name: Build WordPress
-        run: npm run build:dev
-        background: true
+        - name: General debug information
+          run: |
+            npm --version
+            node --version
+            curl --version
+            git --version
+            composer --version
+            locale -a
 
-      - name: Start Docker environment
-        background: true
-        run: npm run env:start
-
-      - name: General debug information
-        run: |
-          npm --version
-          node --version
-          curl --version
-          git --version
-          composer --version
-          locale -a
-
-      - name: Docker debug information
-        run: |
-          docker -v
-
-      - name: Wait for build script & Docker environment
-        wait-all:
+        - name: Docker debug information
+          run: |
+            docker -v
 
       - name: Log running Docker containers
         run: docker ps -a
@@ -212,38 +201,34 @@ jobs:
         env:
           LOCAL_DB_CMD: ${{ env.LOCAL_DB_TYPE == 'mariadb' && contains( fromJSON('["5.5", "10.0", "10.1", "10.2", "10.3"]'), env.LOCAL_DB_VERSION ) && 'mysql' || env.LOCAL_DB_TYPE }}
 
-      - name: Install WordPress
-        background: true
-        run: npm run env:install
+      - parallel:
+        - name: Install WordPress
+          run: npm run env:install
 
-      # Installs PCOV as the code coverage driver for the PHPUnit run below.
-      #
-      # The INI directives tune PCOV for WordPress's codebase:
-      # - `pcov.enabled` keeps the Zend hooks active (this is the default, but
-      #   stated explicitly for clarity).
-      # - `pcov.directory` restricts instrumentation to `src/`, so PCOV does not
-      #   record hits for `vendor/`, `tests/`, or WordPress test fixtures that
-      #   PHPUnit would discard at report time anyway.
-      # - `pcov.initial.files` pre-sizes the internal file tracking array for
-      #   the thousands of files under `src/`, avoiding reallocation churn
-      #   during test warmup. The default of 64 is far too low here.
-      - name: Install PCOV coverage driver
-        if: ${{ inputs.coverage-report }}
-        background: true
-        run: |
-          docker compose exec -T -u 0 php sh -c '
-            pecl install --force pcov-1.0.12 &&
-            docker-php-ext-enable pcov &&
-            {
-              echo "pcov.enabled=1"
-              echo "pcov.directory=/var/www/src"
-              echo "pcov.initial.files=10000"
-            } >> /usr/local/etc/php/conf.d/docker-php-ext-pcov.ini &&
-            php -m | grep -i pcov
-          '
-
-      - name: Wait for installation steps
-        wait-all:
+        # Installs PCOV as the code coverage driver for the PHPUnit run below.
+        #
+        # The INI directives tune PCOV for WordPress's codebase:
+        # - `pcov.enabled` keeps the Zend hooks active (this is the default, but
+        #   stated explicitly for clarity).
+        # - `pcov.directory` restricts instrumentation to `src/`, so PCOV does not
+        #   record hits for `vendor/`, `tests/`, or WordPress test fixtures that
+        #   PHPUnit would discard at report time anyway.
+        # - `pcov.initial.files` pre-sizes the internal file tracking array for
+        #   the thousands of files under `src/`, avoiding reallocation churn
+        #   during test warmup. The default of 64 is far too low here.
+        - name: Install PCOV coverage driver
+          if: ${{ inputs.coverage-report }}
+          run: |
+            docker compose exec -T -u 0 php sh -c '
+              pecl install --force pcov-1.0.12 &&
+              docker-php-ext-enable pcov &&
+              {
+                echo "pcov.enabled=1"
+                echo "pcov.directory=/var/www/src"
+                echo "pcov.initial.files=10000"
+              } >> /usr/local/etc/php/conf.d/docker-php-ext-pcov.ini &&
+              php -m | grep -i pcov
+            '
 
       - name: Run external HTTP tests
         if: ${{ ! inputs.multisite && ! inputs.phpunit-test-groups && ! inputs.coverage-report }}
