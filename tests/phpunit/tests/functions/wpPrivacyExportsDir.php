@@ -23,9 +23,9 @@ class Tests_Functions_wpPrivacyExportsDir extends WP_UnitTestCase {
 
 		add_filter( 'wp_privacy_exports_dir', array( $this, 'filter_wp_privacy_exports_dir' ) );
 
-		$expected_url = '/wp-personal-data-exports-url/';
-		$actual_url   = wp_privacy_exports_dir();
-		$this->assertEquals( $expected_url, $actual_url );
+		$expected_dir = '/wp-personal-data-exports-dir/';
+		$actual_dir   = wp_privacy_exports_dir();
+		$this->assertEquals( $expected_dir, $actual_dir );
 
 		remove_filter( 'wp_privacy_exports_dir', array( $this, 'filter_wp_privacy_exports_dir' ) );
 	}
