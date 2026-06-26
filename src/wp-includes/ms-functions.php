@@ -915,6 +915,35 @@ function wpmu_signup_user( $user, $user_email, $meta = array() ) {
 }
 
 /**
+ * Retrieves the URL for a site signup that has not been activated yet.
+ *
+ * @since x.x.x
+ *
+ * @param string $domain The new site domain.
+ * @param string $path   The new site path.
+ * @return string The signup site URL.
+ */
+function wpmu_get_signup_blog_url( $domain, $path ) {
+	$url = 'http://' . $domain . $path;
+
+	if ( ! is_subdomain_install() ) {
+		$scheme = wp_parse_url( get_home_url( get_network()->site_id ), PHP_URL_SCHEME );
+		$url    = set_url_scheme( $url, $scheme );
+	}
+
+	/**
+	 * Filters the URL for a site signup that has not been activated yet.
+	 *
+	 * @since x.x.x
+	 *
+	 * @param string $url    The signup site URL.
+	 * @param string $domain The new site domain.
+	 * @param string $path   The new site path.
+	 */
+	return apply_filters( 'wpmu_signup_blog_url', $url, $domain, $path );
+}
+
+/**
  * Sends a confirmation request email to a user when they sign up for a new site. The new site will not become active
  * until the confirmation link is clicked.
  *
@@ -966,11 +995,19 @@ function wpmu_signup_blog_notification(
 		return false;
 	}
 
+	$blog_url = wpmu_get_signup_blog_url( $domain, $path );
+
 	// Send email with activation link.
-	if ( ! is_subdomain_install() || get_current_network_id() !== 1 ) {
+	if ( ! is_subdomain_install() ) {
+		$scheme = wp_parse_url( $blog_url, PHP_URL_SCHEME );
+		if ( ! $scheme ) {
+			$scheme = null;
+		}
+		$activate_url = network_site_url( "wp-activate.php?key=$key", $scheme );
+	} elseif ( get_current_network_id() !== 1 ) {
 		$activate_url = network_site_url( "wp-activate.php?key=$key" );
 	} else {
-		$activate_url = "http://{$domain}{$path}wp-activate.php?key=$key"; // @todo Use *_url() API.
+		$activate_url = add_query_arg( 'key', $key, trailingslashit( $blog_url ) . 'wp-activate.php' );
 	}
 
 	$activate_url = esc_url( $activate_url );
@@ -1017,7 +1054,7 @@ function wpmu_signup_blog_notification(
 			$meta
 		),
 		$activate_url,
-		esc_url( "http://{$domain}{$path}" ),
+		esc_url( $blog_url ),
 		$key
 	);
 
@@ -1049,7 +1086,7 @@ function wpmu_signup_blog_notification(
 			$meta
 		),
 		$from_name,
-		esc_url( 'http://' . $domain . $path )
+		esc_url( $blog_url )
 	);
 
 	wp_mail( $user_email, wp_specialchars_decode( $subject ), $message, $message_headers );
