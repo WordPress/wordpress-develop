@@ -4367,7 +4367,7 @@ function wp_get_image_editor( $path, $args = array() ) {
 		}
 	}
 
-	// Check and set the output mime type mapped to the input type.
+	// Check and set the output mime type mapped to the input type unless a specific output mime type was requested.
 	if ( isset( $args['mime_type'] ) && ! isset( $args['output_mime_type'] ) ) {
 		$output_format = wp_get_image_editor_output_format( $path, $args['mime_type'] );
 		if ( isset( $output_format[ $args['mime_type'] ] ) ) {
