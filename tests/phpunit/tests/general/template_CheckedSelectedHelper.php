@@ -56,12 +56,9 @@ class Tests_General_Template_CheckedSelectedHelper extends WP_UnitTestCase {
 	 *
 	 * @ticket 53858
 	 * @covers ::readonly
+	 * @requires PHP < 8.1
 	 */
 	public function test_readonly_with_equal_values() {
-		if ( ! function_exists( 'readonly' ) ) {
-			$this->markTestSkipped( 'readonly() function is not available on PHP 8.1' );
-		}
-
 		$this->setExpectedDeprecated( 'readonly' );
 
 		// Call the function via a variable to prevent a parse error for this file on PHP 8.1.

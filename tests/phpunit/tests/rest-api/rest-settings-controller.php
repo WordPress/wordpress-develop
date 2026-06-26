@@ -4,9 +4,7 @@
  *
  * @package WordPress
  * @subpackage REST API
- */
-
-/**
+ *
  * @group restapi
  */
 class WP_Test_REST_Settings_Controller extends WP_Test_REST_Controller_Testcase {
@@ -773,7 +771,7 @@ class WP_Test_REST_Settings_Controller extends WP_Test_REST_Controller_Testcase 
 			),
 		);
 		$request = new WP_REST_Request( 'PUT', '/wp/v2/settings' );
-		$request->add_header( 'content-type', 'application/json' );
+		$request->add_header( 'Content-Type', 'application/json' );
 		$request->set_body( wp_json_encode( $data ) );
 
 		$response = rest_do_request( $request );
@@ -782,5 +780,20 @@ class WP_Test_REST_Settings_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertSame( 'my-string', $response->data['mycustomsetting']['test1'] );
 		$this->assertSame( 2, $response->data['mycustomsetting']['test2'] );
 		$this->assertSame( 3, $response->data['mycustomsetting']['test3'] );
+	}
+
+	/**
+	 * @ticket 61023
+	 */
+	public function test_provides_setting_metadata_in_schema() {
+		$request  = new WP_REST_Request( 'OPTIONS', '/wp/v2/settings' );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+		$title    = $data['schema']['properties']['title'];
+
+		$this->assertSame( 'string', $title['type'] );
+		$this->assertSame( 'Title', $title['title'] );
+		$this->assertSame( 'Site title.', $title['description'] );
+		$this->assertSame( null, $title['default'] );
 	}
 }

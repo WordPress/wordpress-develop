@@ -10,35 +10,53 @@
  * @since 6.1.0
  */
 
-
 /**
- * Global public interface method to generate styles from a single style object, e.g.,
- * the value of a block's attributes.style object or the top level styles in theme.json.
- * See: https://developer.wordpress.org/block-editor/reference-guides/theme-json-reference/theme-json-living/#styles and
- * https://developer.wordpress.org/block-editor/reference-guides/block-api/block-supports/
+ * Global public interface method to generate styles from a single style object,
+ * e.g. the value of a block's attributes.style object or the top level styles in theme.json.
  *
  * Example usage:
  *
- * $styles = wp_style_engine_get_styles( array( 'color' => array( 'text' => '#cccccc' ) ) );
- * // Returns `array( 'css' => 'color: #cccccc', 'declarations' => array( 'color' => '#cccccc' ), 'classnames' => 'has-color' )`.
+ *     $styles = wp_style_engine_get_styles(
+ *         array(
+ *             'color' => array( 'text' => '#cccccc' ),
+ *         )
+ *     );
  *
- * @access public
+ * Returns:
+ *
+ *     array(
+ *         'css'          => 'color: #cccccc',
+ *         'declarations' => array( 'color' => '#cccccc' ),
+ *         'classnames'   => 'has-color',
+ *     )
+ *
  * @since 6.1.0
+ *
+ * @see https://developer.wordpress.org/block-editor/reference-guides/theme-json-reference/theme-json-living/#styles
+ * @see https://developer.wordpress.org/block-editor/reference-guides/block-api/block-supports/
  *
  * @param array $block_styles The style object.
  * @param array $options {
  *     Optional. An array of options. Default empty array.
  *
- *     @type string|null $context                    An identifier describing the origin of the style object, e.g., 'block-supports' or 'global-styles'. Default is `null`.
- *                                                   When set, the style engine will attempt to store the CSS rules, where a selector is also passed.
- *     @type bool        $convert_vars_to_classnames Whether to skip converting incoming CSS var patterns, e.g., `var:preset|<PRESET_TYPE>|<PRESET_SLUG>`, to var( --wp--preset--* ) values. Default `false`.
- *     @type string      $selector                   Optional. When a selector is passed, the value of `$css` in the return value will comprise a full CSS rule `$selector { ...$css_declarations }`,
- *                                                   otherwise, the value will be a concatenated string of CSS declarations.
+ *     @type string|null $context                    An identifier describing the origin of the style object,
+ *                                                   e.g. 'block-supports' or 'global-styles'. Default null.
+ *                                                   When set, the style engine will attempt to store the CSS rules,
+ *                                                   where a selector is also passed.
+ *     @type bool        $convert_vars_to_classnames Whether to skip converting incoming CSS var patterns,
+ *                                                   e.g. `var:preset|<PRESET_TYPE>|<PRESET_SLUG>`,
+ *                                                   to `var( --wp--preset--* )` values. Default false.
+ *     @type string      $selector                   Optional. When a selector is passed,
+ *                                                   the value of `$css` in the return value will comprise
+ *                                                   a full CSS rule `$selector { ...$css_declarations }`,
+ *                                                   otherwise, the value will be a concatenated string
+ *                                                   of CSS declarations.
  * }
- *
  * @return array {
- *     @type string   $css          A CSS ruleset or declarations block formatted to be placed in an HTML `style` attribute or tag.
- *     @type string[] $declarations An associative array of CSS definitions, e.g., array( "$property" => "$value", "$property" => "$value" ).
+ *     @type string   $css          A CSS ruleset or declarations block
+ *                                  formatted to be placed in an HTML `style` attribute or tag.
+ *     @type string[] $declarations An associative array of CSS definitions,
+ *                                  e.g. `array( "$property" => "$value", "$property" => "$value" )`.
  *     @type string   $classnames   Classnames separated by a space.
  * }
  */
@@ -74,32 +92,51 @@ function wp_style_engine_get_styles( $block_styles, $options = array() ) {
 
 /**
  * Returns compiled CSS from a collection of selectors and declarations.
- * Useful for returning a compiled stylesheet from any collection of  CSS selector + declarations.
+ * Useful for returning a compiled stylesheet from any collection of CSS selector + declarations.
  *
  * Example usage:
- * $css_rules = array( array( 'selector' => '.elephant-are-cool', 'declarations' => array( 'color' => 'gray', 'width' => '3em' ) ) );
- * $css       = wp_style_engine_get_stylesheet_from_css_rules( $css_rules );
- * // Returns `.elephant-are-cool{color:gray;width:3em}`.
+ *
+ *     $css_rules = array(
+ *         array(
+ *             'selector'     => '.elephant-are-cool',
+ *             'declarations' => array(
+ *                 'color' => 'gray',
+ *                 'width' => '3em',
+ *             ),
+ *         ),
+ *     );
+ *
+ *     $css = wp_style_engine_get_stylesheet_from_css_rules( $css_rules );
+ *
+ * Returns:
+ *
+ *     .elephant-are-cool{color:gray;width:3em}
  *
  * @since 6.1.0
+ * @since 6.6.0 Added support for `$rules_group` in the `$css_rules` array.
  *
  * @param array $css_rules {
  *     Required. A collection of CSS rules.
  *
  *     @type array ...$0 {
+ *         @type string   $rules_group  A parent CSS selector in the case of nested CSS,
+ *                                      or a CSS nested @rule, such as `@media (min-width: 80rem)` or `@layer module`.
  *         @type string   $selector     A CSS selector.
- *         @type string[] $declarations An associative array of CSS definitions, e.g., array( "$property" => "$value", "$property" => "$value" ).
+ *         @type string[] $declarations An associative array of CSS definitions,
+ *                                      e.g. `array( "$property" => "$value", "$property" => "$value" )`.
  *     }
  * }
  * @param array $options {
  *     Optional. An array of options. Default empty array.
  *
- *     @type string|null $context  An identifier describing the origin of the style object, e.g., 'block-supports' or 'global-styles'. Default is 'block-supports'.
+ *     @type string|null $context  An identifier describing the origin of the style object,
+ *                                 e.g. 'block-supports' or 'global-styles'. Default 'block-supports'.
  *                                 When set, the style engine will attempt to store the CSS rules.
- *     @type bool        $optimize Whether to optimize the CSS output, e.g., combine rules. Default is `false`.
- *     @type bool        $prettify Whether to add new lines and indents to output. Default is the test of whether the global constant `SCRIPT_DEBUG` is defined.
+ *     @type bool        $optimize Whether to optimize the CSS output, e.g. combine rules.
+ *                                 Default false.
+ *     @type bool        $prettify Whether to add new lines and indents to output.
+ *                                 Defaults to whether the `SCRIPT_DEBUG` constant is defined.
  * }
- *
  * @return string A string of compiled CSS declarations, or empty string.
  */
 function wp_style_engine_get_stylesheet_from_css_rules( $css_rules, $options = array() ) {
@@ -120,11 +157,12 @@ function wp_style_engine_get_stylesheet_from_css_rules( $css_rules, $options = a
 			continue;
 		}
 
+		$rules_group = $css_rule['rules_group'] ?? null;
 		if ( ! empty( $options['context'] ) ) {
-			WP_Style_Engine::store_css_rule( $options['context'], $css_rule['selector'], $css_rule['declarations'] );
+			WP_Style_Engine::store_css_rule( $options['context'], $css_rule['selector'], $css_rule['declarations'], $rules_group );
 		}
 
-		$css_rule_objects[] = new WP_Style_Engine_CSS_Rule( $css_rule['selector'], $css_rule['declarations'] );
+		$css_rule_objects[] = new WP_Style_Engine_CSS_Rule( $css_rule['selector'], $css_rule['declarations'], $rules_group );
 	}
 
 	if ( empty( $css_rule_objects ) ) {
@@ -143,10 +181,11 @@ function wp_style_engine_get_stylesheet_from_css_rules( $css_rules, $options = a
  * @param array  $options {
  *     Optional. An array of options. Default empty array.
  *
- *     @type bool $optimize Whether to optimize the CSS output, e.g., combine rules. Default is `false`.
- *     @type bool $prettify Whether to add new lines and indents to output. Default is the test of whether the global constant `SCRIPT_DEBUG` is defined.
+ *     @type bool $optimize Whether to optimize the CSS output, e.g. combine rules.
+ *                          Default false.
+ *     @type bool $prettify Whether to add new lines and indents to output.
+ *                          Defaults to whether the `SCRIPT_DEBUG` constant is defined.
  * }
- *
  * @return string A compiled CSS string.
  */
 function wp_style_engine_get_stylesheet_from_context( $context, $options = array() ) {

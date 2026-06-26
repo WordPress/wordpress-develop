@@ -1,9 +1,11 @@
 <?php
 
 /**
- * @group functions.php
- * @group i18n
+ * @group date
  * @group datetime
+ * @group i18n
+ * @group functions
+ *
  * @covers ::wp_maybe_decline_date
  */
 class Tests_Date_MaybeDeclineDate extends WP_UnitTestCase {
