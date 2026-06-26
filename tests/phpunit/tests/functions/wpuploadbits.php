@@ -43,13 +43,14 @@ class Tests_Functions_WpUploadBits extends WP_UnitTestCase {
 	 *
 	 **/
 	public function test_should_return_error_if_bad_time_path_is_passed() {
+		$upload_dir = wp_upload_dir();
 		$this->assertSameSets(
 			array(
 				'path'    => ABSPATH . 'wp-content/uploads/.././/1',
-				'url'     => 'http://example.org/wp-content/uploads/.././/1',
+				'url'     => $upload_dir['baseurl'] . '/.././/1',
 				'subdir'  => '/.././/1',
 				'basedir' => ABSPATH . 'wp-content/uploads',
-				'baseurl' => 'http://example.org/wp-content/uploads',
+				'baseurl' => $upload_dir['baseurl'],
 				'error'   => 'Unable to create directory wp-content/uploads/.././/1. Is its parent directory writable by the server?',
 			),
 			wp_upload_bits( 'filename.jpg', null, 'bits', '../../12' )
@@ -62,14 +63,15 @@ class Tests_Functions_WpUploadBits extends WP_UnitTestCase {
 	 * @ticket 57130
 	 */
 	public function test_wp_upload_bits_should_create_file_in_upload_folder_with_given_content() {
-		$filename = ABSPATH . 'wp-content/uploads/9999/12/filename.txt';
-		$content  = 'file content';
+		$upload_dir = wp_upload_dir();
+		$filename   = ABSPATH . 'wp-content/uploads/9999/12/filename.txt';
+		$content    = 'file content';
 
 		$this->assertSameSets(
 			array(
 				'error' => false,
 				'path'  => $filename,
-				'url'   => 'http://example.org/wp-content/uploads/9999/12/filename.txt',
+				'url'   => $upload_dir['baseurl'] . '/9999/12/filename.txt',
 				'type'  => 'text/plain',
 
 			),
