@@ -25,6 +25,10 @@ class Spy_REST_Server extends WP_REST_Server {
 	 * @return mixed
 	 */
 	public function __call( $method, $args ) {
+		if ( ! method_exists( $this, $method ) ) {
+			throw new Error( sprintf( 'Call to undefined method %s::%s()', get_class( $this ), $method ) );
+		}
+
 		return call_user_func_array( array( $this, $method ), $args );
 	}
 
@@ -50,7 +54,7 @@ class Spy_REST_Server extends WP_REST_Server {
 	/**
 	 * Stores last set status.
 	 *
-	 * @param int $code HTTP status.
+	 * @param int $status HTTP status.
 	 */
 	public function set_status( $status ) {
 		$this->status = $status;
