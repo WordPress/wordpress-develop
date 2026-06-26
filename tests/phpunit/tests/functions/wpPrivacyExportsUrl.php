@@ -6,7 +6,7 @@
  *
  * @covers ::wp_privacy_exports_url
  */#
-class Tests_functions_test_wp_privacy_exports_url extends WP_UnitTestCase {
+class Tests_functions_test_wpPrivacyExportsUrl extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 59709
