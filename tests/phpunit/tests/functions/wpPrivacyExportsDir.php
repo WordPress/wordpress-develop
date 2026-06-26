@@ -5,7 +5,7 @@
  * @group functions.php
  *
  * @covers ::wp_privacy_exports_dir
- */#
+ */
 class Tests_Functions_wpPrivacyExportsDir extends WP_UnitTestCase {
 
 	/**
