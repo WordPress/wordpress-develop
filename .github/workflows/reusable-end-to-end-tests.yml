@@ -49,8 +49,10 @@ jobs:
   # - Sets environment variables.
   # - Checks out the repository.
   # - Sets up Node.js.
-  # - Logs debug information about the GitHub Action runner.
+  # - Sets up PHP.
   # - Installs npm dependencies.
+  # - Installs Composer dependencies.
+  # - Logs debug information about the GitHub Action runner.
   # - Install Playwright browsers.
   # - Builds WordPress to run from the `build` directory.
   # - Starts the WordPress Docker container.
@@ -87,6 +89,34 @@ jobs:
           node-version-file: '.nvmrc'
           cache: npm
 
+      ##
+      # This allows Composer dependencies to be installed using a single step.
+      #
+      # Since the tests are currently run within the Docker containers where the PHP version varies,
+      # the same PHP version needs to be configured for the action runner machine so that the correct
+      # dependency versions are installed and cached.
+      ##
+      - name: Set up PHP
+        uses: shivammathur/setup-php@7c071dfe9dc99bdf297fa79cb49ea005b9fcadbc # 2.37.1
+        background: true
+        with:
+          php-version: '${{ inputs.php }}'
+          coverage: none
+
+      - name: Wait for setup steps
+        wait-all:
+
+      - name: Install npm Dependencies
+        run: npm ci
+
+      # Since Composer dependencies are installed using `composer update` and no lock file is in version control,
+      # passing a custom cache suffix ensures that the cache is flushed at least once per week.
+      - name: Install Composer dependencies
+        uses: ramsey/composer-install@65e4f84970763564f46a70b8a54b90d033b3bdda # 4.0.0
+        background: true
+        with:
+          custom-cache-suffix: $(/bin/date -u --date='last Mon' "+%F")
+
       - name: Log debug information
         run: |
           npm --version
@@ -95,12 +125,12 @@ jobs:
           git --version
           locale -a
 
-      - name: Install npm Dependencies
-        run: npm ci
-
       - name: Install Playwright browsers
         if: ${{ inputs.install-playwright }}
         run: npx playwright install --with-deps chromium
+
+      - name: Wait for install commands
+        wait-all:
 
       - name: Build WordPress
         background: true
@@ -126,7 +156,6 @@ jobs:
           docker compose run --rm php locale -a
 
       - name: Install WordPress
-        background: true
         run: npm run env:install
         env:
           LOCAL_SCRIPT_DEBUG: ${{ inputs.LOCAL_SCRIPT_DEBUG }}
@@ -148,7 +177,7 @@ jobs:
           npm run env:cli -- language plugin install de_DE --all --path="/var/www/${LOCAL_DIR}"
           npm run env:cli -- language theme install de_DE --all --path="/var/www/${LOCAL_DIR}"
 
-      - name: Wait for install commands
+      - name: Wait for WP-CLI install commands
         wait-all:
 
       - name: Run E2E tests
