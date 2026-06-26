@@ -32,7 +32,7 @@ class Tests_Functions_wpGetNocacheHeaders extends WP_UnitTestCase {
 		$this->assertSameSetsWithIndex(
 			array(
 				'Expires'       => 'Wed, 11 Jan 1984 05:00:00 GMT',
-				'Cache-Control' => 'no-cache, must-revalidate, max-age=0',
+				'Cache-Control' => 'no-cache, must-revalidate, max-age=0, no-store, private',
 				'Last-Modified' => false,
 			),
 			wp_get_nocache_headers()
