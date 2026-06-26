@@ -48,37 +48,39 @@ jobs:
           show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
           persist-credentials: false
 
-      - name: Set up Node.js
-        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
-        with:
-          node-version-file: '.nvmrc'
-          cache: npm
+      - parallel:
+        - name: Set up Node.js
+          uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+          with:
+            node-version-file: '.nvmrc'
+            cache: npm
 
-      - name: Set up PHP
-        uses: shivammathur/setup-php@7c071dfe9dc99bdf297fa79cb49ea005b9fcadbc # 2.37.1
-        with:
-          php-version: ${{ inputs.php-version }}
-          coverage: none
-          tools: cs2pr
+        - name: Set up PHP
+          uses: shivammathur/setup-php@7c071dfe9dc99bdf297fa79cb49ea005b9fcadbc # 2.37.1
+          with:
+            php-version: ${{ inputs.php-version }}
+            coverage: none
+            tools: cs2pr
 
-      - name: General debug information
-        run: |
-          npm --version
-          node --version
-          composer --version
+      - parallel:
+        # Since Composer dependencies are installed using `composer update` and no lock file is in version control,
+        # passing a custom cache suffix ensures that the cache is flushed at least once per week.
+        - name: Install Composer dependencies
+          uses: ramsey/composer-install@65e4f84970763564f46a70b8a54b90d033b3bdda # 4.0.0
+          with:
+            custom-cache-suffix: $(/bin/date -u --date='last Mon' "+%F")
 
-      # Since Composer dependencies are installed using `composer update` and no lock file is in version control,
-      # passing a custom cache suffix ensures that the cache is flushed at least once per week.
-      - name: Install Composer dependencies
-        uses: ramsey/composer-install@65e4f84970763564f46a70b8a54b90d033b3bdda # 4.0.0
-        with:
-          custom-cache-suffix: $(/bin/date -u --date='last Mon' "+%F")
+        - name: Install npm dependencies
+          run: npm ci --ignore-scripts
+
+        - name: General debug information
+          run: |
+            npm --version
+            node --version
+            composer --version
 
       - name: Make Composer packages available globally
         run: echo "${PWD}/vendor/bin" >> "$GITHUB_PATH"
-
-      - name: Install npm dependencies
-        run: npm ci --ignore-scripts
 
       - name: Build WordPress
         run: npm run build:dev
