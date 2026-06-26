@@ -62,7 +62,7 @@ class Tests_Query_FieldsClause extends WP_UnitTestCase {
 
 		$this->assertEqualSets( $expected, $q->posts, 'Posts property for first query is not of expected form.' );
 		$this->assertSame( 5, $q->found_posts, 'Number of found posts is not five.' );
-		$this->assertEquals( 1, $q->max_num_pages, 'Number of found pages is not one.' );
+		$this->assertSame( 1, $q->max_num_pages, 'Number of found pages is not one.' );
 
 		// Test the second query's results match.
 		$q2 = new WP_Query( $query_args );
@@ -86,7 +86,7 @@ class Tests_Query_FieldsClause extends WP_UnitTestCase {
 
 		$this->assertEqualSets( $expected, $q->posts, 'Posts property for first query is not of expected form.' );
 		$this->assertSame( 5, $q->found_posts, 'Number of found posts is not five.' );
-		$this->assertEquals( 1, $q->max_num_pages, 'Number of found pages is not one.' );
+		$this->assertSame( 1, $q->max_num_pages, 'Number of found pages is not one.' );
 
 		// Test the second query's results match.
 		$q2 = new WP_Query( $query_args );
@@ -110,7 +110,7 @@ class Tests_Query_FieldsClause extends WP_UnitTestCase {
 
 		$this->assertEqualSets( $expected, $q->posts, 'Posts property for first query is not of expected form.' );
 		$this->assertSame( 5, $q->found_posts, 'Number of found posts is not five.' );
-		$this->assertEquals( 1, $q->max_num_pages, 'Number of found pages is not one.' );
+		$this->assertSame( 1, $q->max_num_pages, 'Number of found pages is not one.' );
 
 		// Test the second query's results match.
 		$q2 = new WP_Query( $query_args );
@@ -145,7 +145,7 @@ class Tests_Query_FieldsClause extends WP_UnitTestCase {
 
 		$this->assertEqualSets( $expected, $q->posts, 'Posts property for first query is not of expected form.' );
 		$this->assertSame( 5, $q->found_posts, 'Number of found posts is not five.' );
-		$this->assertEquals( 1, $q->max_num_pages, 'Number of found pages is not one.' );
+		$this->assertSame( 1, $q->max_num_pages, 'Number of found pages is not one.' );
 
 		// Test the second query's results match.
 		$q2 = new WP_Query( $query_args );
@@ -173,7 +173,7 @@ class Tests_Query_FieldsClause extends WP_UnitTestCase {
 
 		$this->assertEqualSets( $expected, $q->posts, 'Posts property for first query is not of expected form.' );
 		$this->assertSame( 5, $q->found_posts, 'Number of found posts is not five.' );
-		$this->assertEquals( 1, $q->max_num_pages, 'Number of found pages is not one.' );
+		$this->assertSame( 1, $q->max_num_pages, 'Number of found pages is not one.' );
 
 		// Test the second query's results match.
 		$q2 = new WP_Query( $query_args );
@@ -204,7 +204,7 @@ class Tests_Query_FieldsClause extends WP_UnitTestCase {
 
 		$this->assertEqualSets( $expected, $q->posts, 'Posts property for first query is not of expected form.' );
 		$this->assertSame( 5, $q->found_posts, 'Number of found posts is not five.' );
-		$this->assertEquals( 1, $q->max_num_pages, 'Number of found pages is not one.' );
+		$this->assertSame( 1, $q->max_num_pages, 'Number of found pages is not one.' );
 
 		// Test the second query's results match.
 		$q2 = new WP_Query( $query_args );

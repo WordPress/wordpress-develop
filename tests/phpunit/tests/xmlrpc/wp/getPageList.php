@@ -41,6 +41,7 @@ class Tests_XMLRPC_wp_getPageList extends WP_XMLRPC_UnitTestCase {
 
 		$results = $this->myxmlrpcserver->wp_getPageList( array( 1, 'editor', 'editor' ) );
 		$this->assertNotIXRError( $results );
+		$this->assertNotEmpty( $results );
 
 		foreach ( $results as $result ) {
 			$page     = get_post( $result->page_id );
