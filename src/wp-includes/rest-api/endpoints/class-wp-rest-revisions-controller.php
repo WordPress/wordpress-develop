@@ -226,6 +226,8 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 	 *
 	 * @since 4.7.0
 	 *
+	 * @see WP_REST_Posts_Controller::get_items()
+	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
@@ -252,6 +254,8 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 				array( 'status' => 400 )
 			);
 		}
+
+		$is_head_request = $request->is_method( 'HEAD' );
 
 		if ( wp_revisions_enabled( $parent ) ) {
 			$registered = $this->get_collection_params();
@@ -287,28 +291,53 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 				$args['orderby'] = 'date ID';
 			}
 
-			/** This filter is documented in wp-includes/rest-api/endpoints/class-wp-rest-posts-controller.php */
-			$args       = apply_filters( 'rest_revision_query', $args, $request );
+			if ( $is_head_request ) {
+				// Force the 'fields' argument. For HEAD requests, only post IDs are required to calculate pagination.
+				$args['fields'] = 'ids';
+				// Disable priming post meta for HEAD requests to improve performance.
+				$args['update_post_term_cache'] = false;
+				$args['update_post_meta_cache'] = false;
+			}
+
+			/**
+			 * Filters WP_Query arguments when querying revisions via the REST API.
+			 *
+			 * Serves the same purpose as the {@see 'rest_{$this->post_type}_query'} filter in
+			 * WP_REST_Posts_Controller, but for the standalone WP_REST_Revisions_Controller.
+			 *
+			 * @since 5.0.0
+			 *
+			 * @param array           $args    Array of arguments for WP_Query.
+			 * @param WP_REST_Request $request The REST API request.
+			 */
+			$args = apply_filters( 'rest_revision_query', $args, $request );
+			if ( ! is_array( $args ) ) {
+				$args = array();
+			}
 			$query_args = $this->prepare_items_query( $args, $request );
 
 			$revisions_query = new WP_Query();
 			$revisions       = $revisions_query->query( $query_args );
 			$offset          = isset( $query_args['offset'] ) ? (int) $query_args['offset'] : 0;
-			$page            = (int) $query_args['paged'];
+			$page            = isset( $query_args['paged'] ) ? (int) $query_args['paged'] : 0;
 			$total_revisions = $revisions_query->found_posts;
 
 			if ( $total_revisions < 1 ) {
-				// Out-of-bounds, run the query again without LIMIT for total count.
+				// Out-of-bounds, run the query without pagination/offset to get the total count.
 				unset( $query_args['paged'], $query_args['offset'] );
 
-				$count_query = new WP_Query();
-				$count_query->query( $query_args );
+				$count_query                          = new WP_Query();
+				$query_args['fields']                 = 'ids';
+				$query_args['posts_per_page']         = 1;
+				$query_args['update_post_meta_cache'] = false;
+				$query_args['update_post_term_cache'] = false;
 
+				$count_query->query( $query_args );
 				$total_revisions = $count_query->found_posts;
 			}
 
 			if ( $revisions_query->query_vars['posts_per_page'] > 0 ) {
-				$max_pages = ceil( $total_revisions / (int) $revisions_query->query_vars['posts_per_page'] );
+				$max_pages = (int) ceil( $total_revisions / (int) $revisions_query->query_vars['posts_per_page'] );
 			} else {
 				$max_pages = $total_revisions > 0 ? 1 : 0;
 			}
@@ -335,14 +364,18 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 			$page            = (int) $request['page'];
 		}
 
-		$response = array();
+		if ( ! $is_head_request ) {
+			$response = array();
 
-		foreach ( $revisions as $revision ) {
-			$data       = $this->prepare_item_for_response( $revision, $request );
-			$response[] = $this->prepare_response_for_collection( $data );
+			foreach ( $revisions as $revision ) {
+				$data       = $this->prepare_item_for_response( $revision, $request );
+				$response[] = $this->prepare_response_for_collection( $data );
+			}
+
+			$response = rest_ensure_response( $response );
+		} else {
+			$response = new WP_REST_Response( array() );
 		}
-
-		$response = rest_ensure_response( $response );
 
 		$response->header( 'X-WP-Total', (int) $total_revisions );
 		$response->header( 'X-WP-TotalPages', (int) $max_pages );
@@ -387,6 +420,7 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 	 * Retrieves one revision from the collection.
 	 *
 	 * @since 4.7.0
+	 * @since 6.5.0 Added a condition to check that parent id matches revision parent id.
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
@@ -400,6 +434,15 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 		$revision = $this->get_revision( $request['id'] );
 		if ( is_wp_error( $revision ) ) {
 			return $revision;
+		}
+
+		if ( (int) $parent->ID !== (int) $revision->post_parent ) {
+			return new WP_Error(
+				'rest_revision_parent_id_mismatch',
+				/* translators: %d: A post id. */
+				sprintf( __( 'The revision does not belong to the specified parent with id of "%d"' ), $parent->ID ),
+				array( 'status' => 404 )
+			);
 		}
 
 		$response = $this->prepare_item_for_response( $revision, $request );
@@ -521,6 +564,9 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 	 */
 	protected function prepare_items_query( $prepared_args = array(), $request = null ) {
 		$query_args = array();
+		if ( ! is_array( $prepared_args ) ) {
+			$prepared_args = array();
+		}
 
 		foreach ( $prepared_args as $key => $value ) {
 			/** This filter is documented in wp-includes/rest-api/endpoints/class-wp-rest-posts-controller.php */
@@ -550,6 +596,8 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 	 * @since 4.7.0
 	 * @since 5.9.0 Renamed `$post` to `$item` to match parent class for PHP 8 named parameter support.
 	 *
+	 * @global WP_Post $post Global post object.
+	 *
 	 * @param WP_Post         $item    Post revision object.
 	 * @param WP_REST_Request $request Request object.
 	 * @return WP_REST_Response Response object.
@@ -561,6 +609,12 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 		$GLOBALS['post'] = $post;
 
 		setup_postdata( $post );
+
+		// Don't prepare the response body for HEAD requests.
+		if ( $request->is_method( 'HEAD' ) ) {
+			/** This filter is documented in wp-includes/rest-api/endpoints/class-wp-rest-revisions-controller.php */
+			return apply_filters( 'rest_prepare_revision', new WP_REST_Response( array() ), $post, $request );
+		}
 
 		$fields = $this->get_fields_for_response( $request );
 		$data   = array();
@@ -597,35 +651,46 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 			$data['slug'] = $post->post_name;
 		}
 
-		if ( in_array( 'guid', $fields, true ) ) {
-			$data['guid'] = array(
-				/** This filter is documented in wp-includes/post-template.php */
-				'rendered' => apply_filters( 'get_the_guid', $post->guid, $post->ID ),
-				'raw'      => $post->guid,
-			);
+		if ( rest_is_field_included( 'guid', $fields ) ) {
+			$data['guid'] = array();
+		}
+		if ( rest_is_field_included( 'guid.rendered', $fields ) ) {
+			/** This filter is documented in wp-includes/post-template.php */
+			$data['guid']['rendered'] = apply_filters( 'get_the_guid', $post->guid, $post->ID );
+		}
+		if ( rest_is_field_included( 'guid.raw', $fields ) ) {
+			$data['guid']['raw'] = $post->guid;
 		}
 
-		if ( in_array( 'title', $fields, true ) ) {
-			$data['title'] = array(
-				'raw'      => $post->post_title,
-				'rendered' => get_the_title( $post->ID ),
-			);
+		if ( rest_is_field_included( 'title', $fields ) ) {
+			$data['title'] = array();
+		}
+		if ( rest_is_field_included( 'title.raw', $fields ) ) {
+			$data['title']['raw'] = $post->post_title;
+		}
+		if ( rest_is_field_included( 'title.rendered', $fields ) ) {
+			$data['title']['rendered'] = get_the_title( $post->ID );
 		}
 
-		if ( in_array( 'content', $fields, true ) ) {
-
-			$data['content'] = array(
-				'raw'      => $post->post_content,
-				/** This filter is documented in wp-includes/post-template.php */
-				'rendered' => apply_filters( 'the_content', $post->post_content ),
-			);
+		if ( rest_is_field_included( 'content', $fields ) ) {
+			$data['content'] = array();
+		}
+		if ( rest_is_field_included( 'content.raw', $fields ) ) {
+			$data['content']['raw'] = $post->post_content;
+		}
+		if ( rest_is_field_included( 'content.rendered', $fields ) ) {
+			/** This filter is documented in wp-includes/post-template.php */
+			$data['content']['rendered'] = apply_filters( 'the_content', $post->post_content );
 		}
 
-		if ( in_array( 'excerpt', $fields, true ) ) {
-			$data['excerpt'] = array(
-				'raw'      => $post->post_excerpt,
-				'rendered' => $this->prepare_excerpt_response( $post->post_excerpt, $post ),
-			);
+		if ( rest_is_field_included( 'excerpt', $fields ) ) {
+			$data['excerpt'] = array();
+		}
+		if ( rest_is_field_included( 'excerpt.raw', $fields ) ) {
+			$data['excerpt']['raw'] = $post->post_excerpt;
+		}
+		if ( rest_is_field_included( 'excerpt.rendered', $fields ) ) {
+			$data['excerpt']['rendered'] = $this->prepare_excerpt_response( $post->post_excerpt, $post );
 		}
 
 		if ( rest_is_field_included( 'meta', $fields ) ) {

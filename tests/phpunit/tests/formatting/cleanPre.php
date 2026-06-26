@@ -1,7 +1,7 @@
 <?php
 
 /**
- * The clean_pre() removes pararaph and line break
+ * The clean_pre() removes paragraph and line break
  * tags within `<pre>` elements as part of wpautop().
  *
  * @group formatting

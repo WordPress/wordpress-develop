@@ -32,7 +32,7 @@ get_current_screen()->add_help_tab(
 			'<p>' . sprintf(
 				/* translators: %s: Documentation URL. */
 				__( 'You can also control the display of your content in RSS feeds, including the maximum number of posts to display and whether to show full text or an excerpt. <a href="%s">Learn more about feeds</a>.' ),
-				__( 'https://wordpress.org/documentation/article/wordpress-feeds/' )
+				__( 'https://developer.wordpress.org/advanced-administration/wordpress/feeds/' )
 			) . '</p>' .
 			'<p>' . __( 'You must click the Save Changes button at the bottom of the screen for new settings to take effect.' ) . '</p>',
 	)
@@ -64,7 +64,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 <?php
 settings_fields( 'reading' );
 
-if ( ! in_array( get_option( 'blog_charset' ), array( 'utf8', 'utf-8', 'UTF8', 'UTF-8' ), true ) ) {
+if ( ! is_utf8_charset() ) {
 	add_settings_field( 'blog_charset', __( 'Encoding for pages and feeds' ), 'options_reading_blog_charset', 'reading', 'default', array( 'label_for' => 'blog_charset' ) );
 }
 ?>
@@ -81,24 +81,21 @@ else :
 	if ( 'page' === get_option( 'show_on_front' ) && ! get_option( 'page_on_front' ) && ! get_option( 'page_for_posts' ) ) {
 		update_option( 'show_on_front', 'posts' );
 	}
+
+	$your_homepage_displays_title = __( 'Your homepage displays' );
 	?>
 <table class="form-table" role="presentation">
 <tr>
-<th scope="row"><?php _e( 'Your homepage displays' ); ?></th>
+<th scope="row"><?php echo $your_homepage_displays_title; ?></th>
 <td id="front-static-pages"><fieldset>
-	<legend class="screen-reader-text"><span>
-		<?php
-		/* translators: Hidden accessibility text. */
-		_e( 'Your homepage displays' );
-		?>
-	</span></legend>
+	<legend class="screen-reader-text"><span><?php echo $your_homepage_displays_title; ?></span></legend>
 	<p><label>
-		<input name="show_on_front" type="radio" value="posts" class="tog" <?php checked( 'posts', get_option( 'show_on_front' ) ); ?> />
+		<input name="show_on_front" type="radio" value="posts" <?php checked( 'posts', get_option( 'show_on_front' ) ); ?> />
 		<?php _e( 'Your latest posts' ); ?>
 	</label>
 	</p>
 	<p><label>
-		<input name="show_on_front" type="radio" value="page" class="tog" <?php checked( 'page', get_option( 'show_on_front' ) ); ?> />
+		<input name="show_on_front" type="radio" value="page" <?php checked( 'page', get_option( 'show_on_front' ) ); ?> />
 		<?php
 		printf(
 			/* translators: %s: URL to Pages screen. */
@@ -145,7 +142,9 @@ else :
 </label></li>
 </ul>
 	<?php
-	if ( 'page' === get_option( 'show_on_front' ) && get_option( 'page_for_posts' ) === get_option( 'page_on_front' ) ) :
+	if ( 'page' === get_option( 'show_on_front' )
+		&& get_option( 'page_for_posts' ) === get_option( 'page_on_front' )
+	) :
 		wp_admin_notice(
 			__( '<strong>Warning:</strong> these pages should not be the same!' ),
 			array(
@@ -155,7 +154,13 @@ else :
 			)
 		);
 	endif;
-	if ( get_option( 'wp_page_for_privacy_policy' ) === get_option( 'page_for_posts' ) || get_option( 'wp_page_for_privacy_policy' ) === get_option( 'page_on_front' ) ) :
+
+	$privacy_policy_page = get_option( 'wp_page_for_privacy_policy' );
+
+	if ( $privacy_policy_page
+		&& ( get_option( 'page_for_posts' ) === $privacy_policy_page
+			|| get_option( 'page_on_front' ) === $privacy_policy_page )
+	) :
 		wp_admin_notice(
 			__( '<strong>Warning:</strong> these pages should not be the same as your Privacy Policy page!' ),
 			array(
@@ -179,15 +184,12 @@ else :
 <th scope="row"><label for="posts_per_rss"><?php _e( 'Syndication feeds show the most recent' ); ?></label></th>
 <td><input name="posts_per_rss" type="number" step="1" min="1" id="posts_per_rss" value="<?php form_option( 'posts_per_rss' ); ?>" class="small-text" /> <?php _e( 'items' ); ?></td>
 </tr>
+
+<?php $rss_use_excerpt_title = __( 'For each post in a feed, include' ); ?>
 <tr>
-<th scope="row"><?php _e( 'For each post in a feed, include' ); ?> </th>
+<th scope="row"><?php echo $rss_use_excerpt_title; ?> </th>
 <td><fieldset>
-	<legend class="screen-reader-text"><span>
-		<?php
-		/* translators: Hidden accessibility text. */
-		_e( 'For each post in a feed, include' );
-		?>
-	</span></legend>
+	<legend class="screen-reader-text"><span><?php echo $rss_use_excerpt_title; ?></span></legend>
 	<p>
 		<label><input name="rss_use_excerpt" type="radio" value="0" <?php checked( 0, get_option( 'rss_use_excerpt' ) ); ?>	/> <?php _e( 'Full text' ); ?></label><br />
 		<label><input name="rss_use_excerpt" type="radio" value="1" <?php checked( 1, get_option( 'rss_use_excerpt' ) ); ?> /> <?php _e( 'Excerpt' ); ?></label>
@@ -197,25 +199,18 @@ else :
 		printf(
 			/* translators: %s: Documentation URL. */
 			__( 'Your theme determines how content is displayed in browsers. <a href="%s">Learn more about feeds</a>.' ),
-			__( 'https://wordpress.org/documentation/article/wordpress-feeds/' )
+			__( 'https://developer.wordpress.org/advanced-administration/wordpress/feeds/' )
 		);
 		?>
 	</p>
 </fieldset></td>
 </tr>
 
+<?php $blog_privacy_selector_title = has_action( 'blog_privacy_selector' ) ? __( 'Site visibility' ) : __( 'Search engine visibility' ); ?>
 <tr class="option-site-visibility">
-<th scope="row"><?php has_action( 'blog_privacy_selector' ) ? _e( 'Site visibility' ) : _e( 'Search engine visibility' ); ?> </th>
+<th scope="row"><?php echo $blog_privacy_selector_title; ?> </th>
 <td><fieldset>
-	<legend class="screen-reader-text"><span>
-		<?php
-		has_action( 'blog_privacy_selector' )
-			/* translators: Hidden accessibility text. */
-			? _e( 'Site visibility' )
-			/* translators: Hidden accessibility text. */
-			: _e( 'Search engine visibility' );
-		?>
-	</span></legend>
+	<legend class="screen-reader-text"><span><?php echo $blog_privacy_selector_title; ?></span></legend>
 <?php if ( has_action( 'blog_privacy_selector' ) ) : ?>
 	<input id="blog-public" type="radio" name="blog_public" value="1" <?php checked( '1', get_option( 'blog_public' ) ); ?> />
 	<label for="blog-public"><?php _e( 'Allow search engines to index this site' ); ?></label><br />

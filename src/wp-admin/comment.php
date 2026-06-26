@@ -16,7 +16,8 @@ $submenu_file = 'edit-comments.php';
  * @global string $action
  */
 global $action;
-wp_reset_vars( array( 'action' ) );
+
+$action = ! empty( $_REQUEST['action'] ) ? sanitize_text_field( $_REQUEST['action'] ) : '';
 
 if ( isset( $_POST['deletecomment'] ) ) {
 	$action = 'deletecomment';
@@ -47,7 +48,8 @@ if ( isset( $_REQUEST['c'] ) ) {
 		);
 	}
 } else {
-	$comment = null;
+	$comment_id = 0;
+	$comment    = null;
 }
 
 switch ( $action ) {

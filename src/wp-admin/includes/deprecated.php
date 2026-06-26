@@ -53,7 +53,7 @@ function wp_shrink_dimensions( $width, $height, $wmax = 128, $hmax = 96 ) {
 }
 
 /**
- * Calculated the new dimensions for a downsampled image.
+ * Calculates the new dimensions for a downsampled image.
  *
  * @since 2.0.0
  * @deprecated 3.5.0 Use wp_constrain_dimensions()
@@ -1152,7 +1152,7 @@ function wp_nav_menu_locations_meta_box() {
 /**
  * This was once used to kick-off the Core Updater.
  *
- * Deprecated in favor of instantating a Core_Upgrader instance directly,
+ * Deprecated in favor of instantiating a Core_Upgrader instance directly,
  * and calling the 'upgrade' method.
  *
  * @since 2.7.0
@@ -1174,7 +1174,7 @@ function wp_update_core($current, $feedback = '') {
 /**
  * This was once used to kick-off the Plugin Updater.
  *
- * Deprecated in favor of instantating a Plugin_Upgrader instance directly,
+ * Deprecated in favor of instantiating a Plugin_Upgrader instance directly,
  * and calling the 'upgrade' method.
  * Unused since 2.8.0.
  *
@@ -1511,7 +1511,7 @@ function post_form_autocomplete_off() {
  */
 function options_permalink_add_js() {
 	?>
-	<script type="text/javascript">
+	<script>
 		jQuery( function() {
 			jQuery('.permalink-structure input:radio').change(function() {
 				if ( 'custom' == this.value )
