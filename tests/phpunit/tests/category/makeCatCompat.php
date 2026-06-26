@@ -1,7 +1,7 @@
 <?php
 /**
  * @group taxonomy
- * @group category.php
+ * @group category
  *
  * @covers ::_make_cat_compat
  */

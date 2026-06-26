@@ -1,7 +1,9 @@
 <?php
 
 /**
+ * @group functions
  * @group xmlrpc
+ *
  * @ticket 53490
  */
 class Tests_Functions_XMLRPC extends WP_UnitTestCase {

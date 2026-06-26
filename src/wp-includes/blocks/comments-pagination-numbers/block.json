@@ -1,6 +1,6 @@
 {
 	"$schema": "https://schemas.wp.org/trunk/block.json",
-	"apiVersion": 2,
+	"apiVersion": 3,
 	"name": "core/comments-pagination-numbers",
 	"title": "Comments Page Numbers",
 	"category": "theme",
@@ -9,8 +9,16 @@
 	"textdomain": "default",
 	"usesContext": [ "postId" ],
 	"supports": {
+		"anchor": true,
 		"reusable": false,
 		"html": false,
+		"color": {
+			"gradients": true,
+			"text": false,
+			"__experimentalDefaultControls": {
+				"background": true
+			}
+		},
 		"typography": {
 			"fontSize": true,
 			"lineHeight": true,
@@ -22,6 +30,16 @@
 			"__experimentalLetterSpacing": true,
 			"__experimentalDefaultControls": {
 				"fontSize": true
+			}
+		},
+		"interactivity": {
+			"clientNavigation": true
+		},
+		"spacing": {
+			"margin": true,
+			"padding": true,
+			"__experimentalDefaultControls": {
+				"padding": true
 			}
 		}
 	}

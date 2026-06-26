@@ -73,7 +73,7 @@ class WP_Object_Cache {
 	private $multisite;
 
 	/**
-	 * Sets up object properties; PHP 5 style constructor.
+	 * Sets up object properties.
 	 *
 	 * @since 2.0.8
 	 */
@@ -101,10 +101,9 @@ class WP_Object_Cache {
 	 *
 	 * @param string $name  Property to set.
 	 * @param mixed  $value Property value.
-	 * @return mixed Newly-set property.
 	 */
 	public function __set( $name, $value ) {
-		return $this->$name = $value;
+		$this->$name = $value;
 	}
 
 	/**
@@ -156,7 +155,7 @@ class WP_Object_Cache {
 		$message = is_string( $key )
 			? __( 'Cache key must not be an empty string.' )
 			/* translators: %s: The type of the given cache key. */
-			: sprintf( __( 'Cache key must be integer or non-empty string, %s given.' ), $type );
+			: sprintf( __( 'Cache key must be an integer or a non-empty string, %s given.' ), $type );
 
 		_doing_it_wrong(
 			sprintf( '%s::%s', __CLASS__, debug_backtrace( DEBUG_BACKTRACE_IGNORE_ARGS, 2 )[1]['function'] ),
@@ -356,7 +355,7 @@ class WP_Object_Cache {
 	 * @param string     $group Optional. Where the cache contents are grouped. Default 'default'.
 	 * @param bool       $force Optional. Unused. Whether to force an update of the local cache
 	 *                          from the persistent cache. Default false.
-	 * @param bool       $found Optional. Whether the key was found in the cache (passed by reference).
+	 * @param bool|null  $found Optional. Whether the key was found in the cache (passed by reference).
 	 *                          Disambiguates a return of false, a storable value. Default null.
 	 * @return mixed|false The cache contents on success, false on failure to retrieve contents.
 	 */
