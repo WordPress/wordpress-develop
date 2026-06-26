@@ -4745,8 +4745,15 @@ function wp_de_rtc_get_review_items_for_post( $post, $args = array() ) {
 		$where_values[]  = (int) $args['current_user_id'];
 	}
 
-	$where_sql = implode( ' AND ', $where_clauses );
-	$rows      = $wpdb->get_results(
+	$where_sql             = implode( ' AND ', $where_clauses );
+	$visible_pending_count = (int) $wpdb->get_var(
+		$wpdb->prepare(
+			"SELECT COUNT(*) FROM $table_sql WHERE $where_sql",
+			$where_values
+		)
+	);
+	$post_pending_count    = wp_de_rtc_get_pending_review_item_count_for_post( $post );
+	$rows                  = $wpdb->get_results(
 		$wpdb->prepare(
 			"SELECT * FROM $table_sql WHERE $where_sql ORDER BY created_at_gmt ASC LIMIT %d",
 			array_merge( $where_values, array( $limit ) )
@@ -4793,7 +4800,8 @@ function wp_de_rtc_get_review_items_for_post( $post, $args = array() ) {
 		'post_id'                  => (int) $post->ID,
 		'items'                    => $items,
 		'count'                    => count( $items ),
-		'pendingReviewItemCount'   => wp_de_rtc_get_pending_review_item_count_for_post( $post ),
+		'pendingReviewItemCount'     => $visible_pending_count,
+		'postPendingReviewItemCount' => $post_pending_count,
 		'storageReady'             => true,
 		'canReviewUnfilteredHtml'  => (bool) $args['can_review'],
 		'descriptorOnly'           => true,
@@ -5011,6 +5019,11 @@ function wp_de_rtc_record_review_required_items( $post, $review_items, $args = a
 	);
 	$table_sql         = wp_de_rtc_get_review_items_table_sql();
 	$current_time_gmt  = (string) $args['current_time_gmt'];
+
+	if ( '' === $current_time_gmt || false === strtotime( $current_time_gmt . ' UTC' ) ) {
+		$current_time_gmt = current_time( 'mysql', true );
+	}
+
 	$expires_at_gmt    = gmdate( 'Y-m-d H:i:s', strtotime( $current_time_gmt . ' UTC' ) + wp_de_rtc_get_review_items_pending_ttl_seconds() );
 	$current_user_id   = get_current_user_id();
 	$current_user      = get_userdata( $current_user_id );

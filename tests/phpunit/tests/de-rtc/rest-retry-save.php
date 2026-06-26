@@ -4790,7 +4790,13 @@ class Tests_DE_RTC_REST_Retry_Save extends WP_Test_REST_TestCase {
 		$this->assertStringContainsString( 'no-store', $author_list_response->get_headers()['Cache-Control'] );
 		$this->assertSame( 'review_items_loaded', $author_list_data['result'] );
 		$this->assertCount( 1, $author_list_data['items'] );
+		$this->assertSame( 1, $author_list_data['pendingReviewItemCount'] );
+		$this->assertSame( 1, $author_list_data['postPendingReviewItemCount'] );
 		$this->assertSame( $review_item_id, $author_list_data['items'][0]['reviewItemId'] );
+		$this->assertNotEmpty( $author_list_data['items'][0]['createdAtGmt'] );
+		$this->assertStringNotContainsString( '0000', $author_list_data['items'][0]['createdAtGmt'] );
+		$this->assertNotEmpty( $author_list_data['items'][0]['updatedAtGmt'] );
+		$this->assertNotEmpty( $author_list_data['items'][0]['expiresAtGmt'] );
 		$this->assertFalse( $author_list_data['items'][0]['rawContentIncluded'] );
 		$this->assertFalse( $author_list_data['items'][0]['canApprove'] );
 		$this->assertFalse( $author_list_data['items'][0]['canModifyAdopt'] );
@@ -4803,6 +4809,22 @@ class Tests_DE_RTC_REST_Retry_Save extends WP_Test_REST_TestCase {
 
 		$this->assertSame( 403, $author_detail_response->get_status() );
 		$this->assertStringContainsString( 'no-store', $author_detail_response->get_headers()['Cache-Control'] );
+
+		$other_author_id = self::factory()->user->create( array( 'role' => 'author' ) );
+		$other_author    = get_userdata( $other_author_id );
+		$other_author->add_cap( 'edit_others_posts' );
+		$other_author->add_cap( 'edit_published_posts' );
+		wp_set_current_user( $other_author_id );
+
+		$other_author_list_request  = new WP_REST_Request( 'GET', '/wp/v2/posts/' . $post_id . '/distributed-editing/review-items' );
+		$other_author_list_response = rest_get_server()->dispatch( $other_author_list_request );
+		$other_author_list_data     = $other_author_list_response->get_data();
+
+		$this->assertSame( 200, $other_author_list_response->get_status() );
+		$this->assertSame( 'review_items_loaded', $other_author_list_data['result'] );
+		$this->assertCount( 0, $other_author_list_data['items'] );
+		$this->assertSame( 0, $other_author_list_data['pendingReviewItemCount'] );
+		$this->assertSame( 1, $other_author_list_data['postPendingReviewItemCount'] );
 
 		wp_set_current_user( self::$admin_user_id );
 
