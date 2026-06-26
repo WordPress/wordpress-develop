@@ -12,8 +12,8 @@ class Tests_functions_test_wp_privacy_exports_url extends WP_UnitTestCase {
 	 * @ticket 59709
 	 */
 	public function test_wp_privacy_exports_url() {
-
-		$this->assertEquals( 'http://example.org/wp-content/uploads/wp-personal-data-exports/', wp_privacy_exports_url() );
+		$upload_dir = wp_upload_dir();
+		$this->assertEquals( $upload_dir['baseurl'] . '/wp-personal-data-exports/', wp_privacy_exports_url() );
 	}
 
 	/**
