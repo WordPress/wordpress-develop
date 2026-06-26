@@ -253,21 +253,18 @@
 		 * @return {void}
 		 */
 		add_postbox_toggles : function (page, args) {
-			var $handles = $( '.postbox .hndle, .postbox .handlediv' ),
-				$orderButtons = $( '.postbox .handle-order-higher, .postbox .handle-order-lower' );
-
 			this.page = page;
 			this.init( page, args );
 
-			$handles.on( 'click.postboxes', this.handle_click );
+			$document.on( 'click.postboxes', '.postbox .hndle, .postbox .handlediv', this.handle_click );
 
 			// Handle the order of the postboxes.
-			$orderButtons.on( 'click.postboxes', this.handleOrder );
+			$document.on( 'click.postboxes', '.postbox .handle-order-higher, .postbox .handle-order-lower', this.handleOrder );
 
 			/**
 			 * @since 2.7.0
 			 */
-			$('.postbox .hndle a').on( 'click', function(e) {
+			$document.on( 'click', '.postbox .hndle a', function(e) {
 				e.stopPropagation();
 			});
 
@@ -283,7 +280,7 @@
 			 *
 			 * @return {void}
 			 */
-			$( '.postbox a.dismiss' ).on( 'click.postboxes', function( e ) {
+			$document.on( 'click.postboxes', '.postbox a.dismiss', function( e ) {
 				var hide_id = $(this).parents('.postbox').attr('id') + '-hide';
 				e.preventDefault();
 				$( '#' + hide_id ).prop('checked', false).triggerHandler('click');
@@ -302,7 +299,7 @@
 			 *
 			 * @return {void}
 			 */
-			$('.hide-postbox-tog').on('click.postboxes', function() {
+			$document.on('click.postboxes', '.hide-postbox-tog', function() {
 				var $el = $(this),
 					boxId = $el.val(),
 					$postbox = $( '#' + boxId );
@@ -336,7 +333,7 @@
 			 *
 			 * @return {void}
 			 */
-			$('.columns-prefs input[type="radio"]').on('click.postboxes', function(){
+			$document.on('click.postboxes', '.columns-prefs input[type="radio"]', function(){
 				var n = parseInt($(this).val(), 10);
 
 				if ( n ) {
