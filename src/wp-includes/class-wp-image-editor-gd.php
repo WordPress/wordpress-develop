@@ -56,9 +56,9 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 				self::supports_mime_type( 'image/png' ) &&
 				function_exists( 'imagealphablending' ) &&
 				function_exists( 'imagecolorallocatealpha' ) &&
+				function_exists( 'imagefilledrectangle' ) &&
 				function_exists( 'imagepng' ) &&
-				function_exists( 'imagesavealpha' ) &&
-				function_exists( 'imagesetpixel' )
+				function_exists( 'imagesavealpha' )
 			);
 		}
 
@@ -518,13 +518,23 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 		$radius_squared = $radius * $radius;
 
 		for ( $y = 0; $y < $height; $y++ ) {
-			for ( $x = 0; $x < $width; $x++ ) {
-				$dx = $x - $center_x;
-				$dy = $y - $center_y;
+			$dy = $y - $center_y;
 
-				if ( ( $dx * $dx ) + ( $dy * $dy ) > $radius_squared ) {
-					imagesetpixel( $this->image, $x, $y, $transparent );
-				}
+			if ( ( $dy * $dy ) > $radius_squared ) {
+				imagefilledrectangle( $this->image, 0, $y, $width - 1, $y, $transparent );
+				continue;
+			}
+
+			$span  = sqrt( $radius_squared - ( $dy * $dy ) );
+			$left  = max( 0, (int) ceil( $center_x - $span ) );
+			$right = min( $width - 1, (int) floor( $center_x + $span ) );
+
+			if ( $left > 0 ) {
+				imagefilledrectangle( $this->image, 0, $y, $left - 1, $y, $transparent );
+			}
+
+			if ( $right < $width - 1 ) {
+				imagefilledrectangle( $this->image, $right + 1, $y, $width - 1, $y, $transparent );
 			}
 		}
 

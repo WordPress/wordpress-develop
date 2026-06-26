@@ -56,9 +56,9 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 			( imagetypes() & IMG_PNG ) !== 0 &&
 			function_exists( 'imagealphablending' ) &&
 			function_exists( 'imagecolorallocatealpha' ) &&
+			function_exists( 'imagefilledrectangle' ) &&
 			function_exists( 'imagepng' ) &&
-			function_exists( 'imagesavealpha' ) &&
-			function_exists( 'imagesetpixel' )
+			function_exists( 'imagesavealpha' )
 		);
 
 		$this->assertSame( $expected, WP_Image_Editor_GD::test( array( 'methods' => array( 'mask' ) ) ) );

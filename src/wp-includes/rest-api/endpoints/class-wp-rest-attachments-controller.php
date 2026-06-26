@@ -1074,7 +1074,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		$image_editor = wp_get_image_editor( $image_file_to_edit, $image_editor_args );
 
 		if ( is_wp_error( $image_editor ) ) {
-			if ( $has_mask_modifier ) {
+			if ( $has_mask_modifier && 'image_no_editor' === $image_editor->get_error_code() ) {
 				return new WP_Error(
 					'rest_image_mask_unsupported',
 					__( 'Unable to mask this image.' ),

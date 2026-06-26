@@ -3226,7 +3226,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$response = rest_do_request( $request );
 
 		$this->assertErrorResponse( 'rest_image_mask_failed', $response, 500 );
-		$this->assertSame( array( -60 ), WP_Image_Editor_Mock::$spy['rotate'][0] );
+		$this->assertSame( array( -60.0 ), WP_Image_Editor_Mock::$spy['rotate'][0] );
 		$this->assertSame( array( 64, 96, 192, 192 ), WP_Image_Editor_Mock::$spy['crop'][0] );
 		$this->assertSame( array( array( 'shape' => 'circle' ) ), WP_Image_Editor_Mock::$spy['mask'][0] );
 		$this->assertArrayNotHasKey( 'save', WP_Image_Editor_Mock::$spy );
@@ -3259,6 +3259,37 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$response = rest_do_request( $request );
 
 		$this->assertErrorResponse( 'rest_image_mask_unsupported', $response, 500 );
+	}
+
+	/**
+	 * @ticket 44405
+	 * @requires function imagejpeg
+	 */
+	public function test_edit_image_mask_preserves_image_load_errors() {
+		wp_set_current_user( self::$superadmin_id );
+		$attachment = self::factory()->attachment->create_upload_object( self::$test_file );
+
+		$this->setup_mock_editor( 'WP_Image_Editor_Mock_With_Mask' );
+		WP_Image_Editor_Mock::$load_return = new WP_Error( 'image_load_error' );
+
+		$params = array(
+			'modifiers' => array(
+				array(
+					'type' => 'mask',
+					'args' => array(
+						'shape' => 'circle',
+					),
+				),
+			),
+			'src'       => wp_get_attachment_image_url( $attachment, 'full' ),
+		);
+
+		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment}/edit" );
+		$request->set_body_params( $params );
+		$response = rest_do_request( $request );
+
+		$this->assertErrorResponse( 'rest_unknown_image_file_type', $response, 500 );
+		$this->assertArrayNotHasKey( 'mask', WP_Image_Editor_Mock::$spy );
 	}
 
 	/**
