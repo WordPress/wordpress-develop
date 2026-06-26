@@ -5,15 +5,9 @@
  * @package WordPress\UnitTests
  *
  * @since 5.1.0
- */
-
-/**
- * Tests_Admin_wpPrivacyRequestsTable class.
  *
  * @group admin
  * @group privacy
- *
- * @since 5.1.0
  */
 class Tests_Admin_wpPrivacyRequestsTable extends WP_UnitTestCase {
 
@@ -58,12 +52,16 @@ class Tests_Admin_wpPrivacyRequestsTable extends WP_UnitTestCase {
 
 		// Set the request type as 'export_personal_data'.
 		$reflection_property = $reflection->getProperty( 'request_type' );
-		$reflection_property->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$reflection_property->setAccessible( true );
+		}
 		$reflection_property->setValue( $instance, 'export_personal_data' );
 
 		// Set the post type as 'user_request'.
 		$reflection_property = $reflection->getProperty( 'post_type' );
-		$reflection_property->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$reflection_property->setAccessible( true );
+		}
 		$reflection_property->setValue( $instance, 'user_request' );
 
 		return $instance;
@@ -79,7 +77,7 @@ class Tests_Admin_wpPrivacyRequestsTable extends WP_UnitTestCase {
 	 * @param string|null $search   Search term.
 	 * @param string      $expected Expected in SQL query.
 
-	 * @dataProvider data_test_columns_should_be_sortable
+	 * @dataProvider data_columns_should_be_sortable
 	 * @covers WP_Privacy_Requests_Table::prepare_items
 	 * @ticket 43960
 	 */
@@ -131,7 +129,7 @@ class Tests_Admin_wpPrivacyRequestsTable extends WP_UnitTestCase {
 	 *     }
 	 * }
 	 */
-	public function data_test_columns_should_be_sortable() {
+	public function data_columns_should_be_sortable() {
 		return array(
 			// Default order (ID) DESC.
 			array(
@@ -202,13 +200,52 @@ class Tests_Admin_wpPrivacyRequestsTable extends WP_UnitTestCase {
 	/**
 	 * @ticket 42066
 	 *
-	 * @covers WP_Privacy_Requests_List_Table::get_views
+	 * @covers WP_Privacy_Requests_Table::get_views
 	 */
 	public function test_get_views_should_return_views_by_default() {
 		$expected = array(
-			'all' => '<a href="http://example.org/wp-admin/export-personal-data.php" class="current" aria-current="page">All <span class="count">(0)</span></a>',
+			'all' => '<a href="http://' . WP_TESTS_DOMAIN . '/wp-admin/export-personal-data.php" class="current" aria-current="page">All <span class="count">(0)</span></a>',
 		);
 
 		$this->assertSame( $expected, $this->get_mocked_class_instance()->get_views() );
+	}
+
+	/**
+	 * Test the get_timestamp_as_date method formats timestamps correctly.
+	 *
+	 * @ticket 44267
+	 *
+	 * @covers WP_Privacy_Requests_Table::get_timestamp_as_date
+	 */
+	public function test_get_timestamp_as_date() {
+		$table = $this->get_mocked_class_instance();
+
+		$reflection = new ReflectionClass( $table );
+		$method     = $reflection->getMethod( 'get_timestamp_as_date' );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$method->setAccessible( true );
+		}
+
+		$date_format = __( 'Y/m/d' );
+		$time_format = __( 'g:i a' );
+
+		$current_time = time();
+
+		$this->assertSame( '', $method->invoke( $table, '' ) );
+
+		// Test recent timestamp (less than 24 hours ago).
+		$recent_time = $current_time - HOUR_IN_SECONDS;
+		$result      = $method->invoke( $table, $recent_time );
+		$this->assertStringContainsString( 'ago', $result );
+
+		$old_time = $current_time - 2 * DAY_IN_SECONDS;
+		$result   = $method->invoke( $table, $old_time );
+
+		$date_part = date_i18n( $date_format, $old_time );
+		$time_part = date_i18n( $time_format, $old_time );
+
+		$this->assertStringContainsString( $date_part, $result );
+		$this->assertStringContainsString( 'at', $result );
+		$this->assertStringContainsString( $time_part, $result );
 	}
 }

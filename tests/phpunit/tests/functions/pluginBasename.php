@@ -3,8 +3,9 @@
 /**
  * Tests for plugin_basename()
  *
- * @group functions.php
+ * @group functions
  * @group plugins
+ *
  * @covers ::plugin_basename
  */
 class Tests_Functions_PluginBasename extends WP_UnitTestCase {

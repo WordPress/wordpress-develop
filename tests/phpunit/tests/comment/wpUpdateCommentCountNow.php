@@ -1,7 +1,7 @@
 <?php
 
 /**
- * @group  comment
+ * @group comment
  *
  * @covers ::wp_update_comment_count_now
  */
@@ -14,16 +14,14 @@ class Tests_Comment_wpUpdateCommentCountNow extends WP_UnitTestCase {
 	}
 
 	public function test_regular_post_updates_comment_count() {
-		global $wpdb;
-
 		$post_id = self::factory()->post->create();
 
 		self::factory()->comment->create_post_comments( $post_id, 1 );
 		$this->assertSame( '1', get_comments_number( $post_id ) );
 
-		$num_queries = $wpdb->num_queries;
+		$num_queries = get_num_queries();
 		$this->assertTrue( wp_update_comment_count_now( $post_id ) );
-		$this->assertSame( $num_queries + 2, $wpdb->num_queries );
+		$this->assertSame( $num_queries + 2, get_num_queries() );
 
 		$this->assertSame( '1', get_comments_number( $post_id ) );
 	}
@@ -38,14 +36,51 @@ class Tests_Comment_wpUpdateCommentCountNow extends WP_UnitTestCase {
 		self::factory()->comment->create_post_comments( $post_id, 1 );
 		$this->assertSame( '100', get_comments_number( $post_id ) );
 
-		$num_queries = $wpdb->num_queries;
+		$num_queries = get_num_queries();
 		$this->assertTrue( wp_update_comment_count_now( $post_id ) );
 		// Only one query is made instead of two.
-		$this->assertSame( $num_queries + 1, $wpdb->num_queries );
+		$this->assertSame( $num_queries + 1, get_num_queries() );
 
 		$this->assertSame( '100', get_comments_number( $post_id ) );
 
 		remove_filter( 'pre_wp_update_comment_count_now', array( $this, '_return_100' ) );
+	}
+
+	/**
+	 * @ticket 64325
+	 */
+	public function test_only_approved_regular_comments_are_counted() {
+		$post_id = self::factory()->post->create();
+
+		self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_approved' => 0,
+			)
+		);
+		self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_approved' => 1,
+			)
+		);
+		self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_type'     => 'note',
+				'comment_approved' => 0,
+			)
+		);
+		self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_type'     => 'note',
+				'comment_approved' => 1,
+			)
+		);
+
+		$this->assertTrue( wp_update_comment_count_now( $post_id ) );
+		$this->assertSame( '1', get_comments_number( $post_id ) );
 	}
 
 	public function _return_100() {

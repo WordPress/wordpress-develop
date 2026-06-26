@@ -1,6 +1,6 @@
 {
 	"$schema": "https://schemas.wp.org/trunk/block.json",
-	"apiVersion": 2,
+	"apiVersion": 3,
 	"name": "core/query-pagination-next",
 	"title": "Next Page",
 	"category": "theme",
@@ -12,8 +12,15 @@
 			"type": "string"
 		}
 	},
-	"usesContext": [ "queryId", "query", "paginationArrow" ],
+	"usesContext": [
+		"queryId",
+		"query",
+		"paginationArrow",
+		"showLabel",
+		"enhancedPagination"
+	],
 	"supports": {
+		"anchor": true,
 		"reusable": false,
 		"html": false,
 		"color": {
@@ -35,6 +42,9 @@
 			"__experimentalDefaultControls": {
 				"fontSize": true
 			}
+		},
+		"interactivity": {
+			"clientNavigation": true
 		}
 	}
 }

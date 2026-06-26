@@ -62,10 +62,12 @@ class WP_Customize_Header_Image_Control extends WP_Customize_Image_Control {
 				'get_url'  => 'get_header_image',
 			)
 		);
-
 	}
 
 	/**
+	 * Enqueues control related scripts/styles.
+	 *
+	 * @since 3.9.0
 	 */
 	public function enqueue() {
 		wp_enqueue_media();
@@ -97,6 +99,10 @@ class WP_Customize_Header_Image_Control extends WP_Customize_Image_Control {
 	}
 
 	/**
+	 * Prepares the control.
+	 *
+	 * @since 3.9.0
+	 *
 	 * @global Custom_Image_Header $custom_image_header
 	 */
 	public function prepare_control() {
@@ -114,6 +120,9 @@ class WP_Customize_Header_Image_Control extends WP_Customize_Image_Control {
 	}
 
 	/**
+	 * Prints header image template.
+	 *
+	 * @since 3.9.0
 	 */
 	public function print_header_image_template() {
 		?>
@@ -133,12 +142,24 @@ class WP_Customize_Header_Image_Control extends WP_Customize_Image_Control {
 			<button type="button" class="choice thumbnail"
 				data-customize-image-value="{{data.header.url}}"
 				data-customize-header-image-data="{{JSON.stringify(data.header)}}">
-				<span class="screen-reader-text"><?php _e( 'Set image' ); ?></span>
+				<span class="screen-reader-text">
+					<?php
+					/* translators: Hidden accessibility text. */
+					_e( 'Set image' );
+					?>
+				</span>
 				<img src="{{data.header.thumbnail_url}}" alt="{{data.header.alt_text || data.header.description}}" />
 			</button>
 
 			<# if ( data.type === 'uploaded' ) { #>
-				<button type="button" class="dashicons dashicons-no close"><span class="screen-reader-text"><?php _e( 'Remove image' ); ?></span></button>
+				<button type="button" class="dashicons dashicons-no close">
+					<span class="screen-reader-text">
+						<?php
+						/* translators: Hidden accessibility text. */
+						_e( 'Remove image' );
+						?>
+					</span>
+				</button>
 			<# } #>
 
 			<# } #>
@@ -162,19 +183,17 @@ class WP_Customize_Header_Image_Control extends WP_Customize_Image_Control {
 			<img src="{{data.header.thumbnail_url}}" alt="{{data.header.alt_text || data.header.description}}" />
 
 				<# } #>
-			<# } else { #>
-
-			<div class="placeholder">
-				<?php _e( 'No image set' ); ?>
-			</div>
-
 			<# } #>
 		</script>
 		<?php
 	}
 
 	/**
-	 * @return string|void
+	 * Gets current image source.
+	 *
+	 * @since 3.9.0
+	 *
+	 * @return string|null
 	 */
 	public function get_current_image_src() {
 		$src = $this->value();
@@ -185,6 +204,9 @@ class WP_Customize_Header_Image_Control extends WP_Customize_Image_Control {
 	}
 
 	/**
+	 * Renders the control's content.
+	 *
+	 * @since 3.9.0
 	 */
 	public function render_content() {
 		$visibility = $this->get_current_image_src() ? '' : ' style="display:none" ';
@@ -201,23 +223,23 @@ class WP_Customize_Header_Image_Control extends WP_Customize_Image_Control {
 			<p class="customizer-section-intro customize-control-description">
 				<?php
 				if ( current_theme_supports( 'custom-header', 'video' ) ) {
-					_e( 'Click &#8220;Add new image&#8221; to upload an image file from your computer. Your theme works best with an image that matches the size of your video &#8212; you&#8217;ll be able to crop your image once you upload it for a perfect fit.' );
+					_e( 'Click &#8220;Add Image&#8221; to upload an image file from your computer. Your theme works best with an image that matches the size of your video &#8212; you&#8217;ll be able to crop your image once you upload it for a perfect fit.' );
 				} elseif ( $width && $height ) {
 					printf(
 						/* translators: %s: Header size in pixels. */
-						__( 'Click &#8220;Add new image&#8221; to upload an image file from your computer. Your theme works best with an image with a header size of %s pixels &#8212; you&#8217;ll be able to crop your image once you upload it for a perfect fit.' ),
+						__( 'Click &#8220;Add Image&#8221; to upload an image file from your computer. Your theme works best with an image with a header size of %s pixels &#8212; you&#8217;ll be able to crop your image once you upload it for a perfect fit.' ),
 						sprintf( '<strong>%s &times; %s</strong>', $width, $height )
 					);
 				} elseif ( $width ) {
 					printf(
 						/* translators: %s: Header width in pixels. */
-						__( 'Click &#8220;Add new image&#8221; to upload an image file from your computer. Your theme works best with an image with a header width of %s pixels &#8212; you&#8217;ll be able to crop your image once you upload it for a perfect fit.' ),
+						__( 'Click &#8220;Add Image&#8221; to upload an image file from your computer. Your theme works best with an image with a header width of %s pixels &#8212; you&#8217;ll be able to crop your image once you upload it for a perfect fit.' ),
 						sprintf( '<strong>%s</strong>', $width )
 					);
 				} else {
 					printf(
 						/* translators: %s: Header height in pixels. */
-						__( 'Click &#8220;Add new image&#8221; to upload an image file from your computer. Your theme works best with an image with a header height of %s pixels &#8212; you&#8217;ll be able to crop your image once you upload it for a perfect fit.' ),
+						__( 'Click &#8220;Add Image&#8221; to upload an image file from your computer. Your theme works best with an image with a header height of %s pixels &#8212; you&#8217;ll be able to crop your image once you upload it for a perfect fit.' ),
 						sprintf( '<strong>%s</strong>', $height )
 					);
 				}
@@ -235,7 +257,7 @@ class WP_Customize_Header_Image_Control extends WP_Customize_Image_Control {
 			<div class="actions">
 				<?php if ( current_user_can( 'upload_files' ) ) : ?>
 				<button type="button"<?php echo $visibility; ?> class="button remove" aria-label="<?php esc_attr_e( 'Hide header image' ); ?>"><?php _e( 'Hide image' ); ?></button>
-				<button type="button" class="button new" id="header_image-button" aria-label="<?php esc_attr_e( 'Add new header image' ); ?>"><?php _e( 'Add new image' ); ?></button>
+				<button type="button" class="button new <?php echo ! $this->get_current_image_src() ? '' : 'customize-header-image-not-selected'; ?>" id="header_image-button" aria-label="<?php esc_attr_e( 'Add Header Image' ); ?>"><?php _e( 'Add Image' ); ?></button>
 				<?php endif; ?>
 			</div>
 			<div class="choices">
