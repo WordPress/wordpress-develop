@@ -3119,7 +3119,15 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	 * @requires function imagecreatefrompng
 	 */
 	public function test_edit_image_mask() {
-		if ( ! wp_image_editor_supports( array( 'mime_type' => 'image/jpeg', 'output_mime_type' => 'image/png', 'methods' => array( 'mask' ) ) ) ) {
+		if (
+			! wp_image_editor_supports(
+				array(
+					'mime_type'        => 'image/jpeg',
+					'output_mime_type' => 'image/png',
+					'methods'          => array( 'mask' ),
+				)
+			)
+		) {
 			$this->markTestSkipped( 'This test requires an image editor with mask support.' );
 		}
 

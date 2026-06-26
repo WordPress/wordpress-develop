@@ -2341,8 +2341,8 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 						),
 					),
 				),
-				),
-				'rotation'  => array(
+			),
+			'rotation'  => array(
 				'description'      => __( 'The amount to rotate the image clockwise in degrees. DEPRECATED: Use `modifiers` instead.' ),
 				'type'             => 'integer',
 				'minimum'          => 0,
