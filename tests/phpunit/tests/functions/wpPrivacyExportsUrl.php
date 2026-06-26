@@ -8,6 +8,11 @@
  */
 class Tests_functions_test_wpPrivacyExportsUrl extends WP_UnitTestCase {
 
+	public function tear_down(){
+
+		remove_filter( 'wp_privacy_exports_url', array( $this, 'filter_wp_privacy_exports_url' ) );
+	}
+	
 	/**
 	 * @ticket 59709
 	 */
@@ -26,8 +31,6 @@ class Tests_functions_test_wpPrivacyExportsUrl extends WP_UnitTestCase {
 		$expected_url = 'https://filtered.com/wp-personal-data-exports/';
 		$actual_url   = wp_privacy_exports_url();
 		$this->assertSame( $expected_url, $actual_url );
-
-		remove_filter( 'wp_privacy_exports_url', array( $this, 'filter_wp_privacy_exports_url' ) );
 	}
 
 	/**
