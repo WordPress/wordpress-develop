@@ -122,28 +122,41 @@ class Tests_DB extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 10041
+	 *
+	 * @dataProvider data_esc_like
+	 *
+	 * @param string $input    The input string.
+	 * @param string $expected The expected escaped string.
 	 */
-	public function test_esc_like() {
+	public function test_esc_like( $input, $expected ) {
 		global $wpdb;
 
-		$inputs   = array(
-			'howdy%',              // Single percent.
-			'howdy_',              // Single underscore.
-			'howdy\\',             // Single slash.
-			'howdy\\howdy%howdy_', // The works.
-			'howdy\'"[[]*#[^howdy]!+)(*&$#@!~|}{=--`/.,<>?', // Plain text.
-		);
-		$expected = array(
-			'howdy\\%',
-			'howdy\\_',
-			'howdy\\\\',
-			'howdy\\\\howdy\\%howdy\\_',
-			'howdy\'"[[]*#[^howdy]!+)(*&$#@!~|}{=--`/.,<>?',
-		);
+		$this->assertSame( $expected, $wpdb->esc_like( $input ) );
+	}
 
-		foreach ( $inputs as $key => $input ) {
-			$this->assertSame( $expected[ $key ], $wpdb->esc_like( $input ) );
-		}
+	public function data_esc_like() {
+		return array(
+			'single percent'    => array(
+				'howdy%',
+				'howdy\\%',
+			),
+			'single underscore' => array(
+				'howdy_',
+				'howdy\\_',
+			),
+			'single slash'      => array(
+				'howdy\\',
+				'howdy\\\\',
+			),
+			'the works'         => array(
+				'howdy\\howdy%howdy_',
+				'howdy\\\\howdy\\%howdy\\_',
+			),
+			'plain text'        => array(
+				'howdy\'"[[]*#[^howdy]!+)(*&$#@!~|}{=--`/.,<>?',
+				'howdy\'"[[]*#[^howdy]!+)(*&$#@!~|}{=--`/.,<>?',
+			),
+		);
 	}
 
 	/**
@@ -296,7 +309,7 @@ class Tests_DB extends WP_UnitTestCase {
 		$check_new_modes = $wpdb->get_var( 'SELECT @@SESSION.sql_mode;' );
 		$this->assertSameSets( $new_modes, explode( ',', $check_new_modes ) );
 
-		$wpdb->set_sql_mode( explode( ',', $current_modes ) );
+		$wpdb->set_sql_mode( empty( $current_modes ) ? array() : explode( ',', $current_modes ) );
 	}
 
 	/**
@@ -573,10 +586,10 @@ class Tests_DB extends WP_UnitTestCase {
 	/**
 	 * Test the `get_col()` method.
 	 *
-	 * @param string|null        $query       The query to run.
-	 * @param string|array       $expected    The expected resulting value.
-	 * @param arrray|string|null $last_result The value to assign to `$wpdb->last_result`.
-	 * @param int|string         $column      The column index to retrieve.
+	 * @param string|null       $query       The query to run.
+	 * @param string|array      $expected    The expected resulting value.
+	 * @param array|string|null $last_result The value to assign to `$wpdb->last_result`.
+	 * @param int|string        $column      The column index to retrieve.
 	 *
 	 * @dataProvider data_get_col
 	 *
@@ -607,10 +620,10 @@ class Tests_DB extends WP_UnitTestCase {
 	 * @return array {
 	 *     Arguments for testing `get_col()`.
 	 *
-	 *     @type string|null        $query       The query to run.
-	 *     @type string|array       $expected    The resulting expected value.
-	 *     @type arrray|string|null $last_result The value to assign to `$wpdb->last_result`.
-	 *     @type int|string         $column      The column index to retrieve.
+	 *     @type string|null       $query       The query to run.
+	 *     @type string|array      $expected    The resulting expected value.
+	 *     @type array|string|null $last_result The value to assign to `$wpdb->last_result`.
+	 *     @type int|string        $column      The column index to retrieve.
 	 */
 	public function data_get_col() {
 		global $wpdb;
@@ -850,6 +863,9 @@ class Tests_DB extends WP_UnitTestCase {
 
 			// @ticket 32763
 			'SELECT ' . str_repeat( 'a', 10000 ) . " FROM (SELECT * FROM $table) as subquery",
+
+			// @ticket 63777
+			"SET STATEMENT max_statement_time=1 FOR SELECT * FROM $table",
 		);
 
 		$querycount = count( $queries );
@@ -1439,10 +1455,6 @@ class Tests_DB extends WP_UnitTestCase {
 	public function test_charset_switched_to_utf8mb4() {
 		global $wpdb;
 
-		if ( ! $wpdb->has_cap( 'utf8mb4' ) ) {
-			$this->markTestSkipped( 'This test requires utf8mb4 support.' );
-		}
-
 		$charset = 'utf8';
 		$collate = 'utf8_general_ci';
 
@@ -1477,35 +1489,12 @@ class Tests_DB extends WP_UnitTestCase {
 	public function test_non_unicode_collations() {
 		global $wpdb;
 
-		if ( ! $wpdb->has_cap( 'utf8mb4' ) ) {
-			$this->markTestSkipped( 'This test requires utf8mb4 support.' );
-		}
-
 		$charset = 'utf8';
 		$collate = 'utf8_swedish_ci';
 
 		$result = $wpdb->determine_charset( $charset, $collate );
 
 		$this->assertSame( 'utf8mb4_swedish_ci', $result['collate'] );
-	}
-
-	/**
-	 * @ticket 37982
-	 */
-	public function test_charset_switched_to_utf8() {
-		global $wpdb;
-
-		if ( $wpdb->has_cap( 'utf8mb4' ) ) {
-			$this->markTestSkipped( 'This test requires utf8mb4 to not be supported.' );
-		}
-
-		$charset = 'utf8mb4';
-		$collate = 'utf8mb4_general_ci';
-
-		$result = $wpdb->determine_charset( $charset, $collate );
-
-		$this->assertSame( 'utf8', $result['charset'] );
-		$this->assertSame( 'utf8_general_ci', $result['collate'] );
 	}
 
 	/**
@@ -1712,7 +1701,7 @@ class Tests_DB extends WP_UnitTestCase {
 			),
 
 			/*
-			 * @ticket 56933.
+			 * @ticket 56933
 			 * When preparing a '%%%s%%', test that the inserted value
 			 * is not wrapped in single quotes between the 2 "%".
 			 */
@@ -1865,7 +1854,7 @@ class Tests_DB extends WP_UnitTestCase {
 			),
 
 			/*
-			 * @ticket 52506.
+			 * @ticket 52506
 			 * Adding an escape method for Identifiers (e.g. table/field names).
 			 */
 			array(
@@ -2011,7 +2000,9 @@ class Tests_DB extends WP_UnitTestCase {
 		$default = $wpdb->allow_unsafe_unquoted_parameters;
 
 		$property = new ReflectionProperty( $wpdb, 'allow_unsafe_unquoted_parameters' );
-		$property->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$property->setAccessible( true );
+		}
 		$property->setValue( $wpdb, $allow );
 
 		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
@@ -2019,7 +2010,9 @@ class Tests_DB extends WP_UnitTestCase {
 
 		// Reset.
 		$property->setValue( $wpdb, $default );
-		$property->setAccessible( false );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$property->setAccessible( false );
+		}
 
 		$this->assertSame( $expected, $actual );
 	}
@@ -2481,5 +2474,16 @@ class Tests_DB extends WP_UnitTestCase {
 		global $wpdb;
 
 		$this->assertTrue( $wpdb->use_mysqli );
+	}
+
+	/**
+	 * Verify "pinging" the database works cross-version PHP.
+	 *
+	 * @ticket 62061
+	 */
+	public function test_check_connection_returns_true_when_there_is_a_connection() {
+		global $wpdb;
+
+		$this->assertTrue( $wpdb->check_connection( false ) );
 	}
 }

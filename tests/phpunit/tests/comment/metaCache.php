@@ -7,6 +7,14 @@ class Tests_Comment_MetaCache extends WP_UnitTestCase {
 	protected $queries = 0;
 
 	/**
+	 * Performs setup tasks for every test.
+	 */
+	public function set_up() {
+		parent::set_up();
+		switch_theme( 'default' );
+	}
+
+	/**
 	 * @ticket 16894
 	 *
 	 * @covers ::update_comment_meta
@@ -187,23 +195,23 @@ class Tests_Comment_MetaCache extends WP_UnitTestCase {
 
 		$this->go_to( get_permalink( $p ) );
 
-		if ( have_posts() ) {
-			while ( have_posts() ) {
-				the_post();
+		$this->assertTrue( have_posts() );
 
-				// Load comments with `comments_template()`.
-				$cform = get_echo( 'comments_template' );
+		while ( have_posts() ) {
+			the_post();
 
-				// First request will hit the database.
-				$num_queries = get_num_queries();
-				get_comment_meta( $comment_ids[0], 'sauce' );
-				$this->assertSame( 1, get_num_queries() - $num_queries );
+			// Load comments with `comments_template()`.
+			$cform = get_echo( 'comments_template' );
 
-				// Second and third requests should be in cache.
-				get_comment_meta( $comment_ids[1], 'sauce' );
-				get_comment_meta( $comment_ids[2], 'sauce' );
-				$this->assertSame( 1, get_num_queries() - $num_queries );
-			}
+			// First request will hit the database.
+			$num_queries = get_num_queries();
+			get_comment_meta( $comment_ids[0], 'sauce' );
+			$this->assertSame( 1, get_num_queries() - $num_queries );
+
+			// Second and third requests should be in cache.
+			get_comment_meta( $comment_ids[1], 'sauce' );
+			get_comment_meta( $comment_ids[2], 'sauce' );
+			$this->assertSame( 1, get_num_queries() - $num_queries );
 		}
 	}
 
