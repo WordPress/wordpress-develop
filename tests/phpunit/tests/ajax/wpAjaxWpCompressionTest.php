@@ -25,7 +25,7 @@ class Tests_Ajax_wpAjaxWpCompressionTest extends WP_Ajax_UnitTestCase {
 		$this->logout();
 
 		// Set up a default request.
-		$_GET['test'] = 1;
+		$_GET['test'] = '1';
 
 		// Make the request.
 		$this->expectException( 'WPAjaxDieStopException' );
@@ -42,7 +42,7 @@ class Tests_Ajax_wpAjaxWpCompressionTest extends WP_Ajax_UnitTestCase {
 		$this->_setRole( 'administrator' );
 
 		// Set up a default request.
-		$_GET['test'] = 1;
+		$_GET['test'] = '1';
 
 		// Make the request.
 		try {
@@ -66,7 +66,8 @@ class Tests_Ajax_wpAjaxWpCompressionTest extends WP_Ajax_UnitTestCase {
 		$this->_setRole( 'administrator' );
 
 		// Set up a default request.
-		$_GET['test']                    = 2;
+		$_GET['test'] = '2';
+
 		$_SERVER['HTTP_ACCEPT_ENCODING'] = 'deflate';
 
 		// Make the request.
@@ -91,7 +92,8 @@ class Tests_Ajax_wpAjaxWpCompressionTest extends WP_Ajax_UnitTestCase {
 		$this->_setRole( 'administrator' );
 
 		// Set up a default request.
-		$_GET['test']                    = 2;
+		$_GET['test'] = '2';
+
 		$_SERVER['HTTP_ACCEPT_ENCODING'] = 'gzip';
 
 		// Make the request.
@@ -114,7 +116,8 @@ class Tests_Ajax_wpAjaxWpCompressionTest extends WP_Ajax_UnitTestCase {
 		$this->_setRole( 'administrator' );
 
 		// Set up a default request.
-		$_GET['test']                    = 2;
+		$_GET['test'] = '2';
+
 		$_SERVER['HTTP_ACCEPT_ENCODING'] = 'unknown';
 
 		// Make the request.

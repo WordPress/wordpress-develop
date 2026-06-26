@@ -40,7 +40,7 @@ function delete_theme( $stylesheet, $redirect = '' ) {
 			require_once ABSPATH . 'wp-admin/admin-footer.php';
 			exit;
 		}
-		return;
+		return null;
 	}
 
 	if ( ! WP_Filesystem( $credentials ) ) {
@@ -55,7 +55,7 @@ function delete_theme( $stylesheet, $redirect = '' ) {
 			require_once ABSPATH . 'wp-admin/admin-footer.php';
 			exit;
 		}
-		return;
+		return null;
 	}
 
 	if ( ! is_object( $wp_filesystem ) ) {
@@ -66,7 +66,7 @@ function delete_theme( $stylesheet, $redirect = '' ) {
 		return new WP_Error( 'fs_error', __( 'Filesystem error.' ), $wp_filesystem->errors );
 	}
 
-	// Get the base plugin folder.
+	// Get the base theme folder.
 	$themes_dir = $wp_filesystem->wp_themes_dir();
 	if ( empty( $themes_dir ) ) {
 		return new WP_Error( 'fs_no_themes_dir', __( 'Unable to locate WordPress theme directory.' ) );
@@ -114,6 +114,7 @@ function delete_theme( $stylesheet, $redirect = '' ) {
 		foreach ( $translations as $translation => $data ) {
 			$wp_filesystem->delete( WP_LANG_DIR . '/themes/' . $stylesheet . '-' . $translation . '.po' );
 			$wp_filesystem->delete( WP_LANG_DIR . '/themes/' . $stylesheet . '-' . $translation . '.mo' );
+			$wp_filesystem->delete( WP_LANG_DIR . '/themes/' . $stylesheet . '-' . $translation . '.l10n.php' );
 
 			$json_translation_files = glob( WP_LANG_DIR . '/themes/' . $stylesheet . '-' . $translation . '-*.json' );
 			if ( $json_translation_files ) {
@@ -399,11 +400,7 @@ function get_theme_feature_list( $api = true ) {
 		$wporg_features[ $feature_category ] = array();
 
 		foreach ( $feature_items as $feature ) {
-			if ( isset( $features[ $feature_category ][ $feature ] ) ) {
-				$wporg_features[ $feature_category ][ $feature ] = $features[ $feature_category ][ $feature ];
-			} else {
-				$wporg_features[ $feature_category ][ $feature ] = $feature;
-			}
+			$wporg_features[ $feature_category ][ $feature ] = $features[ $feature_category ][ $feature ] ?? $feature;
 		}
 	}
 
@@ -447,7 +444,7 @@ function get_theme_feature_list( $api = true ) {
  *
  * @since 2.8.0
  *
- * @param string       $action API action to perform: 'query_themes', 'theme_information',
+ * @param string       $action API action to perform: Accepts 'query_themes', 'theme_information',
  *                             'hot_tags' or 'feature_list'.
  * @param array|object $args   {
  *     Optional. Array or object of arguments to serialize for the Themes API. Default empty array.
@@ -492,9 +489,6 @@ function get_theme_feature_list( $api = true ) {
  *         for more information on the make-up of possible return objects depending on the value of `$action`.
  */
 function themes_api( $action, $args = array() ) {
-	// Include an unmodified $wp_version.
-	require ABSPATH . WPINC . '/version.php';
-
 	if ( is_array( $args ) ) {
 		$args = (object) $args;
 	}
@@ -510,7 +504,7 @@ function themes_api( $action, $args = array() ) {
 	}
 
 	if ( ! isset( $args->wp_version ) ) {
-		$args->wp_version = substr( $wp_version, 0, 3 ); // x.y
+		$args->wp_version = substr( wp_get_wp_version(), 0, 3 ); // x.y
 	}
 
 	/**
@@ -561,13 +555,14 @@ function themes_api( $action, $args = array() ) {
 
 		$http_args = array(
 			'timeout'    => 15,
-			'user-agent' => 'WordPress/' . $wp_version . '; ' . home_url( '/' ),
+			'user-agent' => 'WordPress/' . wp_get_wp_version() . '; ' . home_url( '/' ),
 		);
 		$request   = wp_remote_get( $url, $http_args );
 
 		if ( $ssl && is_wp_error( $request ) ) {
 			if ( ! wp_doing_ajax() ) {
-				trigger_error(
+				wp_trigger_error(
+					__FUNCTION__,
 					sprintf(
 						/* translators: %s: Support forums URL. */
 						__( 'An unexpected error occurred. Something may be wrong with WordPress.org or this server&#8217;s configuration. If you continue to have problems, please try the <a href="%s">support forums</a>.' ),
@@ -733,8 +728,8 @@ function wp_prepare_themes_for_js( $themes = null ) {
 			$customize_action = esc_url( $customize_action );
 		}
 
-		$update_requires_wp  = isset( $updates[ $slug ]['requires'] ) ? $updates[ $slug ]['requires'] : null;
-		$update_requires_php = isset( $updates[ $slug ]['requires_php'] ) ? $updates[ $slug ]['requires_php'] : null;
+		$update_requires_wp  = $updates[ $slug ]['requires'] ?? null;
+		$update_requires_php = $updates[ $slug ]['requires_php'] ?? null;
 
 		$auto_update        = in_array( $slug, $auto_updates, true );
 		$auto_update_action = $auto_update ? 'disable-auto-update' : 'enable-auto-update';
@@ -1110,6 +1105,8 @@ function customize_themes_print_templates() {
  *
  * @since 5.2.0
  *
+ * @global WP_Paused_Extensions_Storage $_paused_themes
+ *
  * @param string $theme Path to the theme directory relative to the themes directory.
  * @return bool True, if in the list of paused themes. False, not in the list.
  */
@@ -1129,6 +1126,8 @@ function is_theme_paused( $theme ) {
  * Gets the error that was recorded for a paused theme.
  *
  * @since 5.2.0
+ *
+ * @global WP_Paused_Extensions_Storage $_paused_themes
  *
  * @param string $theme Path to the theme directory relative to the themes
  *                      directory.
@@ -1159,12 +1158,17 @@ function wp_get_theme_error( $theme ) {
  *
  * @since 5.2.0
  *
+ * @global string $wp_stylesheet_path Path to current theme's stylesheet directory.
+ * @global string $wp_template_path   Path to current theme's template directory.
+ *
  * @param string $theme    Single theme to resume.
  * @param string $redirect Optional. URL to redirect to. Default empty string.
  * @return bool|WP_Error True on success, false if `$theme` was not paused,
  *                       `WP_Error` on failure.
  */
 function resume_theme( $theme, $redirect = '' ) {
+	global $wp_stylesheet_path, $wp_template_path;
+
 	list( $extension ) = explode( '/', $theme );
 
 	/*
@@ -1172,14 +1176,11 @@ function resume_theme( $theme, $redirect = '' ) {
 	 * creating a fatal error.
 	 */
 	if ( ! empty( $redirect ) ) {
-		$stylesheet_path = get_stylesheet_directory();
-		$template_path   = get_template_directory();
-
 		$functions_path = '';
-		if ( str_contains( $stylesheet_path, $extension ) ) {
-			$functions_path = $stylesheet_path . '/functions.php';
-		} elseif ( str_contains( $template_path, $extension ) ) {
-			$functions_path = $template_path . '/functions.php';
+		if ( str_contains( $wp_stylesheet_path, $extension ) ) {
+			$functions_path = $wp_stylesheet_path . '/functions.php';
+		} elseif ( str_contains( $wp_template_path, $extension ) ) {
+			$functions_path = $wp_template_path . '/functions.php';
 		}
 
 		if ( ! empty( $functions_path ) ) {
@@ -1218,7 +1219,8 @@ function resume_theme( $theme, $redirect = '' ) {
  *
  * @since 5.2.0
  *
- * @global string $pagenow The filename of the current screen.
+ * @global string                       $pagenow        The filename of the current screen.
+ * @global WP_Paused_Extensions_Storage $_paused_themes
  */
 function paused_themes_notice() {
 	if ( 'themes.php' === $GLOBALS['pagenow'] ) {

@@ -85,6 +85,20 @@ class Tests_Formatting_SanitizeTitleWithDashes extends WP_UnitTestCase {
 		$this->assertSame( 'do-the-dash', sanitize_title_with_dashes( 'Do &mdash; the &#8212; Dash', '', 'save' ) );
 	}
 
+	/**
+	 * @ticket 64089
+	 */
+	public function test_replaces_non_breaking_hyphen() {
+		$this->assertSame( 'do-the-dash', sanitize_title_with_dashes( 'Do‑the Dash', '', 'save' ) );
+	}
+
+	/**
+	 * @ticket 64089
+	 */
+	public function test_replaces_non_breaking_hyphen_entity() {
+		$this->assertSame( 'do-the-dash', sanitize_title_with_dashes( 'Do &#8209; the Dash', '', 'save' ) );
+	}
+
 	public function test_replaces_iexcel_iquest() {
 		$this->assertSame( 'just-a-slug', sanitize_title_with_dashes( 'Just ¡a Slug', '', 'save' ) );
 		$this->assertSame( 'just-a-slug', sanitize_title_with_dashes( 'Just a Slug¿', '', 'save' ) );

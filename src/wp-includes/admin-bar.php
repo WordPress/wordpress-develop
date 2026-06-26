@@ -62,9 +62,8 @@ function _wp_admin_bar_init() {
  * the function is also called late on {@see 'wp_footer'}.
  *
  * It includes the {@see 'admin_bar_menu'} action which should be used to hook in and
- * add new menus to the admin bar. That way you can be sure that you are adding at most
- * optimal point, right before the admin bar is rendered. This also gives you access to
- * the `$post` global, among others.
+ * add new menus to the admin bar. This also gives you access to the `$post` global,
+ * among others.
  *
  * @since 3.1.0
  * @since 5.4.0 Called on 'wp_body_open' action first, with 'wp_footer' as a fallback.
@@ -86,7 +85,10 @@ function wp_admin_bar_render() {
 	/**
 	 * Loads all necessary admin bar items.
 	 *
-	 * This is the hook used to add, remove, or manipulate admin bar items.
+	 * This hook can add, remove, or manipulate admin bar items. The priority
+	 * determines the placement for new items, and changes to existing items
+	 * would require a high priority. To remove or manipulate existing nodes
+	 * without a specific priority, use `wp_before_admin_bar_render`.
 	 *
 	 * @since 3.1.0
 	 *
@@ -139,6 +141,9 @@ function wp_admin_bar_wp_menu( $wp_admin_bar ) {
 				__( 'About WordPress' ) .
 			'</span>',
 		'href'  => $about_url,
+		'meta'  => array(
+			'menu_title' => __( 'About WordPress' ),
+		),
 	);
 
 	// Set tabindex="0" to make sub menus accessible when no URL is available.
@@ -200,7 +205,7 @@ function wp_admin_bar_wp_menu( $wp_admin_bar ) {
 			'parent' => 'wp-logo-external',
 			'id'     => 'learn',
 			'title'  => __( 'Learn WordPress' ),
-			'href'   => 'https://learn.wordpress.org/',
+			'href'   => __( 'https://learn.wordpress.org/' ),
 		)
 	);
 
@@ -255,9 +260,7 @@ function wp_admin_bar_sidebar_toggle( $wp_admin_bar ) {
  * @param WP_Admin_Bar $wp_admin_bar The WP_Admin_Bar instance.
  */
 function wp_admin_bar_my_account_item( $wp_admin_bar ) {
-	$user_id      = get_current_user_id();
-	$current_user = wp_get_current_user();
-
+	$user_id = get_current_user_id();
 	if ( ! $user_id ) {
 		return;
 	}
@@ -270,11 +273,10 @@ function wp_admin_bar_my_account_item( $wp_admin_bar ) {
 		$profile_url = false;
 	}
 
-	$avatar = get_avatar( $user_id, 26 );
 	/* translators: %s: Current user's display name. */
-	$howdy = sprintf( __( 'Howdy, %s' ), '<span class="display-name">' . $current_user->display_name . '</span>' );
-	$class = empty( $avatar ) ? '' : 'with-avatar';
+	$howdy = sprintf( __( 'Howdy, %s' ), '<span class="display-name">' . wp_get_current_user()->display_name . '</span>' );
 
+	$avatar = get_avatar( $user_id, 26 );
 	$wp_admin_bar->add_node(
 		array(
 			'id'     => 'my-account',
@@ -282,7 +284,9 @@ function wp_admin_bar_my_account_item( $wp_admin_bar ) {
 			'title'  => $howdy . $avatar,
 			'href'   => $profile_url,
 			'meta'   => array(
-				'class' => $class,
+				'class'      => empty( $avatar ) ? '' : 'with-avatar',
+				'menu_title' => wp_strip_all_tags( $howdy ),
+				'tabindex'   => ( false !== $profile_url ) ? '' : 0,
 			),
 		)
 	);
@@ -325,28 +329,18 @@ function wp_admin_bar_my_account_menu( $wp_admin_bar ) {
 		$user_info .= "<span class='username'>{$current_user->user_login}</span>";
 	}
 
+	if ( false !== $profile_url ) {
+		$user_info .= "<span class='display-name edit-profile'>" . __( 'Edit Profile' ) . '</span>';
+	}
+
 	$wp_admin_bar->add_node(
 		array(
 			'parent' => 'user-actions',
 			'id'     => 'user-info',
 			'title'  => $user_info,
 			'href'   => $profile_url,
-			'meta'   => array(
-				'tabindex' => -1,
-			),
 		)
 	);
-
-	if ( false !== $profile_url ) {
-		$wp_admin_bar->add_node(
-			array(
-				'parent' => 'user-actions',
-				'id'     => 'edit-profile',
-				'title'  => __( 'Edit Profile' ),
-				'href'   => $profile_url,
-			)
-		);
-	}
 
 	$wp_admin_bar->add_node(
 		array(
@@ -379,7 +373,7 @@ function wp_admin_bar_site_menu( $wp_admin_bar ) {
 	$blogname = get_bloginfo( 'name' );
 
 	if ( ! $blogname ) {
-		$blogname = preg_replace( '#^(https?://)?(www.)?#', '', get_home_url() );
+		$blogname = preg_replace( '#^(https?://)?(www\.)?#', '', get_home_url() );
 	}
 
 	if ( is_network_admin() ) {
@@ -397,6 +391,9 @@ function wp_admin_bar_site_menu( $wp_admin_bar ) {
 			'id'    => 'site-name',
 			'title' => $title,
 			'href'  => ( is_admin() || ! current_user_can( 'read' ) ) ? home_url( '/' ) : admin_url(),
+			'meta'  => array(
+				'menu_title' => $title,
+			),
 		)
 	);
 
@@ -418,7 +415,7 @@ function wp_admin_bar_site_menu( $wp_admin_bar ) {
 				array(
 					'parent' => 'site-name',
 					'id'     => 'edit-site',
-					'title'  => __( 'Edit Site' ),
+					'title'  => __( 'Manage Site' ),
 					'href'   => network_admin_url( 'site-info.php?id=' . get_current_blog_id() ),
 				)
 			);
@@ -436,16 +433,29 @@ function wp_admin_bar_site_menu( $wp_admin_bar ) {
 
 		// Add the appearance submenu items.
 		wp_admin_bar_appearance_menu( $wp_admin_bar );
+
+		// Add a Plugins link.
+		if ( current_user_can( 'activate_plugins' ) ) {
+			$wp_admin_bar->add_node(
+				array(
+					'parent' => 'site-name',
+					'id'     => 'plugins',
+					'title'  => __( 'Plugins' ),
+					'href'   => admin_url( 'plugins.php' ),
+				)
+			);
+		}
 	}
 }
 
 /**
- * Adds the "Edit site" link to the Toolbar.
+ * Adds the "Edit Site" link to the Toolbar.
  *
  * @since 5.9.0
+ * @since 6.3.0 Added `$_wp_current_template_id` global for editing of current template directly from the admin bar.
+ * @since 6.6.0 Added the `canvas` query arg to the Site Editor link.
  *
  * @global string $_wp_current_template_id
- * @since 6.3.0 Added `$_wp_current_template_id` global for editing of current template directly from the admin bar.
  *
  * @param WP_Admin_Bar $wp_admin_bar The WP_Admin_Bar instance.
  */
@@ -465,11 +475,12 @@ function wp_admin_bar_edit_site_menu( $wp_admin_bar ) {
 	$wp_admin_bar->add_node(
 		array(
 			'id'    => 'site-editor',
-			'title' => __( 'Edit site' ),
+			'title' => __( 'Edit Site' ),
 			'href'  => add_query_arg(
 				array(
 					'postType' => 'wp_template',
 					'postId'   => $_wp_current_template_id,
+					'canvas'   => 'edit',
 				),
 				admin_url( 'site-editor.php' )
 			),
@@ -482,8 +493,9 @@ function wp_admin_bar_edit_site_menu( $wp_admin_bar ) {
  *
  * @since 4.3.0
  *
- * @param WP_Admin_Bar $wp_admin_bar The WP_Admin_Bar instance.
  * @global WP_Customize_Manager $wp_customize
+ *
+ * @param WP_Admin_Bar $wp_admin_bar The WP_Admin_Bar instance.
  */
 function wp_admin_bar_customize_menu( $wp_admin_bar ) {
 	global $wp_customize;
@@ -682,7 +694,7 @@ function wp_admin_bar_my_sites_menu( $wp_admin_bar ) {
 		$blogname = $blog->blogname;
 
 		if ( ! $blogname ) {
-			$blogname = preg_replace( '#^(https?://)?(www.)?#', '', get_home_url() );
+			$blogname = preg_replace( '#^(https?://)?(www\.)?#', '', get_home_url() );
 		}
 
 		$menu_id = 'blog-' . $blog->userblog_id;
@@ -923,9 +935,77 @@ function wp_admin_bar_edit_menu( $wp_admin_bar ) {
 }
 
 /**
+ * Adds the command palette trigger button.
+ *
+ * Displays a button in the admin bar that shows the keyboard shortcut
+ * for opening the command palette.
+ *
+ * @since 7.0.0
+ *
+ * @param WP_Admin_Bar $wp_admin_bar The WP_Admin_Bar instance.
+ */
+function wp_admin_bar_command_palette_menu( WP_Admin_Bar $wp_admin_bar ): void {
+	if ( ! is_admin() || ! wp_script_is( 'wp-core-commands', 'enqueued' ) ) {
+		return;
+	}
+
+	$shortcut_labels = array(
+		'appleOS' => _x( '⌘K', 'keyboard shortcut to open the command palette' ),
+		'default' => _x( 'Ctrl+K', 'keyboard shortcut to open the command palette' ),
+	);
+	$apple_pattern   = 'Macintosh|Mac OS X|Mac_PowerPC';
+	$is_apple_os     = (bool) preg_match( "/{$apple_pattern}/i", $_SERVER['HTTP_USER_AGENT'] ?? '' );
+	$shortcut_label  = $is_apple_os ? $shortcut_labels['appleOS'] : $shortcut_labels['default'];
+	$title           = sprintf(
+		'<span class="ab-icon" aria-hidden="true"></span><span class="ab-label"><kbd>%s</kbd><span class="screen-reader-text"> %s</span></span>',
+		$shortcut_label,
+		/* translators: Hidden accessibility text. */
+		__( 'Open command palette' ),
+	);
+	/*
+	 * Detect Apple OS via JavaScript for sites behind a CDN blocking the UA header.
+	 *
+	 * Running the script as the admin bar is rendered avoids a flash of incorrect content
+	 * for users with Apple OS when the UA header is blocked. It also prevents the need for
+	 * wp-i18n to be loaded as a dependency.
+	 */
+	$function = <<<'JS'
+		( applePattern, appleOSLabel ) => {
+			if ( ! ( new RegExp( applePattern, 'i' ) ).test( navigator.userAgent ) ) {
+				return;
+			}
+			const kbd = document.querySelector( '#wp-admin-bar-command-palette .ab-label kbd' );
+			if ( kbd ) {
+				kbd.textContent = appleOSLabel;
+			}
+		}
+	JS;
+	$script   = sprintf(
+		'( %s )( %s, %s );',
+		$function,
+		wp_json_encode( $apple_pattern, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ),
+		wp_json_encode( $shortcut_labels['appleOS'], JSON_HEX_TAG | JSON_UNESCAPED_SLASHES )
+	);
+	$script  .= "\n//# sourceURL=" . rawurlencode( __FUNCTION__ );
+	$wp_admin_bar->add_node(
+		array(
+			'id'    => 'command-palette',
+			'title' => $title,
+			'href'  => '#',
+			'meta'  => array(
+				'class'   => 'hide-if-no-js',
+				'onclick' => 'wp.data.dispatch( "core/commands" ).open(); return false;',
+				'html'    => wp_get_inline_script_tag( $script ),
+			),
+		)
+	);
+}
+
+/**
  * Adds "Add New" menu.
  *
  * @since 3.1.0
+ * @since 6.5.0 Added a New Site link for network installations.
  *
  * @param WP_Admin_Bar $wp_admin_bar The WP_Admin_Bar instance.
  */
@@ -981,6 +1061,9 @@ function wp_admin_bar_new_content_menu( $wp_admin_bar ) {
 			'id'    => 'new-content',
 			'title' => $title,
 			'href'  => admin_url( current( array_keys( $actions ) ) ),
+			'meta'  => array(
+				'menu_title' => _x( 'New', 'admin bar menu group label' ),
+			),
 		)
 	);
 
@@ -993,6 +1076,17 @@ function wp_admin_bar_new_content_menu( $wp_admin_bar ) {
 				'id'     => $id,
 				'title'  => $title,
 				'href'   => admin_url( $link ),
+			)
+		);
+	}
+
+	if ( is_multisite() && current_user_can( 'create_sites' ) ) {
+		$wp_admin_bar->add_node(
+			array(
+				'parent' => 'new-content',
+				'id'     => 'add-new-site',
+				'title'  => _x( 'Site', 'add new from admin bar' ),
+				'href'   => network_admin_url( 'site-new.php' ),
 			)
 		);
 	}
