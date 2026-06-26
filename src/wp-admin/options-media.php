@@ -38,8 +38,8 @@ get_current_screen()->add_help_tab(
 
 get_current_screen()->set_help_sidebar(
 	'<p><strong>' . __( 'For more information:' ) . '</strong></p>' .
-	'<p>' . __( '<a href="https://wordpress.org/support/article/settings-media-screen/">Documentation on Media Settings</a>' ) . '</p>' .
-	'<p>' . __( '<a href="https://wordpress.org/support/">Support</a>' ) . '</p>'
+	'<p>' . __( '<a href="https://wordpress.org/documentation/article/settings-media-screen/">Documentation on Media Settings</a>' ) . '</p>' .
+	'<p>' . __( '<a href="https://wordpress.org/support/forums/">Support forums</a>' ) . '</p>'
 );
 
 require_once ABSPATH . 'wp-admin/admin-header.php';
@@ -56,23 +56,25 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 <p><?php _e( 'The sizes listed below determine the maximum dimensions in pixels to use when adding an image to the Media Library.' ); ?></p>
 
 <table class="form-table" role="presentation">
+<?php $thumbnail_size_title = __( 'Thumbnail size' ); ?>
 <tr>
-<th scope="row"><?php _e( 'Thumbnail size' ); ?></th>
-<td><fieldset><legend class="screen-reader-text"><span><?php _e( 'Thumbnail size' ); ?></span></legend>
+<th scope="row"><?php echo $thumbnail_size_title; ?></th>
+<td><fieldset><legend class="screen-reader-text"><span><?php echo $thumbnail_size_title; ?></span></legend>
 <label for="thumbnail_size_w"><?php _e( 'Width' ); ?></label>
 <input name="thumbnail_size_w" type="number" step="1" min="0" id="thumbnail_size_w" value="<?php form_option( 'thumbnail_size_w' ); ?>" class="small-text" />
 <br />
 <label for="thumbnail_size_h"><?php _e( 'Height' ); ?></label>
 <input name="thumbnail_size_h" type="number" step="1" min="0" id="thumbnail_size_h" value="<?php form_option( 'thumbnail_size_h' ); ?>" class="small-text" />
 </fieldset>
-<input name="thumbnail_crop" type="checkbox" id="thumbnail_crop" value="1" <?php checked( '1', get_option( 'thumbnail_crop' ) ); ?>/>
+<input name="thumbnail_crop" type="checkbox" id="thumbnail_crop" value="1"<?php checked( '1', get_option( 'thumbnail_crop' ) ); ?> />
 <label for="thumbnail_crop"><?php _e( 'Crop thumbnail to exact dimensions (normally thumbnails are proportional)' ); ?></label>
 </td>
 </tr>
 
+<?php $medium_size_title = __( 'Medium size' ); ?>
 <tr>
-<th scope="row"><?php _e( 'Medium size' ); ?></th>
-<td><fieldset><legend class="screen-reader-text"><span><?php _e( 'Medium size' ); ?></span></legend>
+<th scope="row"><?php echo $medium_size_title; ?></th>
+<td><fieldset><legend class="screen-reader-text"><span><?php echo $medium_size_title; ?></span></legend>
 <label for="medium_size_w"><?php _e( 'Max Width' ); ?></label>
 <input name="medium_size_w" type="number" step="1" min="0" id="medium_size_w" value="<?php form_option( 'medium_size_w' ); ?>" class="small-text" />
 <br />
@@ -81,9 +83,10 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 </fieldset></td>
 </tr>
 
+<?php $large_size_title = __( 'Large size' ); ?>
 <tr>
-<th scope="row"><?php _e( 'Large size' ); ?></th>
-<td><fieldset><legend class="screen-reader-text"><span><?php _e( 'Large size' ); ?></span></legend>
+<th scope="row"><?php echo $large_size_title; ?></th>
+<td><fieldset><legend class="screen-reader-text"><span><?php echo $large_size_title; ?></span></legend>
 <label for="large_size_w"><?php _e( 'Max Width' ); ?></label>
 <input name="large_size_w" type="number" step="1" min="0" id="large_size_w" value="<?php form_option( 'large_size_w' ); ?>" class="small-text" />
 <br />

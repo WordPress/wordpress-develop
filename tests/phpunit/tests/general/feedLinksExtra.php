@@ -2,8 +2,6 @@
 /**
  * Test feed_links_extra().
  *
- * @ticket 54713
- *
  * @group general
  * @group template
  *
@@ -164,15 +162,16 @@ class Tests_General_FeedLinksExtra extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @dataProvider data_feed_links_extra
 	 * @ticket 54713
 	 *
-	 * @param string $title     The expected title.
-	 * @param string $type      The name of the test class property containing the object ID.
-	 * @param array  $args {
+	 * @dataProvider data_feed_links_extra
+	 *
+	 * @param string $title The expected title.
+	 * @param string $type  The name of the test class property containing the object ID.
+	 * @param array  $args  {
 	 *        Optional arguments. Default empty.
 	 *
-	 *        @type string $separator     The separator between blog name and feed type.
+	 *        @type string $separator     The separator between site name and feed type.
 	 *        @type string $singletitle   The title of the comments feed.
 	 *        @type string $cattitle      The title of the category feed.
 	 *        @type string $tagtitle      The title of the tag feed.
@@ -210,7 +209,7 @@ class Tests_General_FeedLinksExtra extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_feed_links_extra() {
+	public static function data_feed_links_extra() {
 		return array(
 			'a post with a comment'                        => array(
 				'title' => 'Test Blog &raquo; Post with a comment Comments Feed',
@@ -400,8 +399,6 @@ class Tests_General_FeedLinksExtra extends WP_UnitTestCase {
 	/**
 	 * Helper function to get the permalink based on type.
 	 *
-	 * @ticket 54713
-	 *
 	 * @param string $type The name of the test class property containing the object ID.
 	 * @return string The permalink.
 	 */
@@ -440,7 +437,7 @@ class Tests_General_FeedLinksExtra extends WP_UnitTestCase {
 
 		$expected  = '<link rel="alternate" type="application/rss+xml"';
 		$expected .= ' title="Test Blog &raquo; Post with no comments Comments Feed"';
-		$expected .= ' href="http://example.org/?feed=rss2&#038;p=' . self::$post_no_comment_id . '" />' . "\n";
+		$expected .= ' href="http://' . WP_TESTS_DOMAIN . '/?feed=rss2&#038;p=' . self::$post_no_comment_id . '" />' . "\n";
 		$this->assertSame( $expected, get_echo( 'feed_links_extra' ) );
 	}
 
@@ -455,7 +452,7 @@ class Tests_General_FeedLinksExtra extends WP_UnitTestCase {
 
 		$expected  = '<link rel="alternate" type="application/rss+xml"';
 		$expected .= ' title="Test Blog &raquo; Post with no comments Comments Feed"';
-		$expected .= ' href="http://example.org/?feed=rss2&#038;p=' . self::$post_no_comment_id . '" />' . "\n";
+		$expected .= ' href="http://' . WP_TESTS_DOMAIN . '/?feed=rss2&#038;p=' . self::$post_no_comment_id . '" />' . "\n";
 		$this->assertSame( $expected, get_echo( 'feed_links_extra' ) );
 	}
 
@@ -470,7 +467,7 @@ class Tests_General_FeedLinksExtra extends WP_UnitTestCase {
 
 		$expected  = '<link rel="alternate" type="application/rss+xml"';
 		$expected .= ' title="Test Blog &raquo; Post with a comment Comments Feed"';
-		$expected .= ' href="http://example.org/?feed=rss2&#038;p=' . self::$post_with_comment_id . '" />' . "\n";
+		$expected .= ' href="http://' . WP_TESTS_DOMAIN . '/?feed=rss2&#038;p=' . self::$post_with_comment_id . '" />' . "\n";
 		$this->assertSame( $expected, get_echo( 'feed_links_extra' ) );
 	}
 
@@ -491,14 +488,14 @@ class Tests_General_FeedLinksExtra extends WP_UnitTestCase {
 	public function test_feed_links_extra_should_respect_feed_type() {
 		add_filter(
 			'default_feed',
-			static function() {
+			static function () {
 				return 'foo';
 			}
 		);
 
 		add_filter(
 			'feed_content_type',
-			static function() {
+			static function () {
 				return 'testing/foo';
 			}
 		);
@@ -507,7 +504,7 @@ class Tests_General_FeedLinksExtra extends WP_UnitTestCase {
 
 		$expected  = '<link rel="alternate" type="testing/foo"';
 		$expected .= ' title="Test Blog &raquo; Post with a comment Comments Feed"';
-		$expected .= ' href="http://example.org/?feed=foo&#038;p=' . self::$post_with_comment_id . '" />' . "\n";
+		$expected .= ' href="http://' . WP_TESTS_DOMAIN . '/?feed=foo&#038;p=' . self::$post_with_comment_id . '" />' . "\n";
 		$this->assertSame( $expected, get_echo( 'feed_links_extra' ) );
 	}
 
@@ -522,9 +519,9 @@ class Tests_General_FeedLinksExtra extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @dataProvider data_feed_links_extra_should_output_nothing_when_post_comments_feed_link_is_falsy
-	 *
 	 * @ticket 54703
+	 *
+	 * @dataProvider data_feed_links_extra_should_output_nothing_when_post_comments_feed_link_is_falsy
 	 *
 	 * @param string $callback The callback to use for the 'post_comments_feed_link' filter.
 	 */
@@ -581,9 +578,9 @@ class Tests_General_FeedLinksExtra extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @dataProvider data_feed_links_extra_should_output_nothing_when_filters_return_false
-	 *
 	 * @ticket 55904
+	 *
+	 * @dataProvider data_feed_links_extra_should_output_nothing_when_filters_return_false
 	 *
 	 * @param string $type   The name of the test class property containing the object ID.
 	 * @param string $filter The name of the filter to set to false.
@@ -602,7 +599,7 @@ class Tests_General_FeedLinksExtra extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_feed_links_extra_should_output_nothing_when_filters_return_false() {
+	public static function data_feed_links_extra_should_output_nothing_when_filters_return_false() {
 		return array(
 			'a post with a comment' => array(
 				'type'   => 'post_with_comment',
@@ -633,5 +630,16 @@ class Tests_General_FeedLinksExtra extends WP_UnitTestCase {
 				'filter' => 'feed_links_extra_show_search_feed',
 			),
 		);
+	}
+
+	/**
+	 * @ticket 63263
+	 */
+	public function test_feed_links_extra_should_work_fail_if_global_post_empty() {
+		$post_id = self::factory()->post->create();
+		$this->go_to( get_permalink( $post_id ) );
+		$GLOBALS['post'] = null;
+
+		$this->assertNotEmpty( get_echo( 'feed_links_extra' ) );
 	}
 }

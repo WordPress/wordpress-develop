@@ -1,15 +1,9 @@
 <?php
 /**
- * Reusable block rendering tests
+ * Tests for synced pattern rendering.
  *
  * @package WordPress
  * @subpackage Blocks
- * @since 5.0.0
- */
-
-/**
- * Tests for reusable block rendering.
- *
  * @since 5.0.0
  *
  * @group blocks
@@ -83,32 +77,48 @@ class Tests_Blocks_RenderReusable extends WP_UnitTestCase {
 	}
 
 	public function test_render() {
-		$block_type = WP_Block_Type_Registry::get_instance()->get_registered( 'core/block' );
-		$output     = $block_type->render( array( 'ref' => self::$block_id ) );
-		$this->assertSame( '<p>Hello world!</p>', $output );
+		$parsed_block = array(
+			'blockName' => 'core/block',
+			'attrs'     => array( 'ref' => self::$block_id ),
+		);
+		$block        = new WP_Block( $parsed_block );
+		$output       = $block->render();
+		$this->assertSame( '<p class="wp-block-paragraph">Hello world!</p>', $output );
 	}
 
 	/**
-	 * Make sure that a reusable block can be rendered twice in a row.
+	 * Make sure that a synced pattern can be rendered twice in a row.
 	 *
 	 * @ticket 52364
 	 */
 	public function test_render_subsequent() {
-		$block_type = WP_Block_Type_Registry::get_instance()->get_registered( 'core/block' );
-		$output     = $block_type->render( array( 'ref' => self::$block_id ) );
-		$output    .= $block_type->render( array( 'ref' => self::$block_id ) );
-		$this->assertSame( '<p>Hello world!</p><p>Hello world!</p>', $output );
+		$parsed_block = array(
+			'blockName' => 'core/block',
+			'attrs'     => array( 'ref' => self::$block_id ),
+		);
+		$block        = new WP_Block( $parsed_block );
+		$output       = $block->render();
+		$output      .= $block->render();
+		$this->assertSame( '<p class="wp-block-paragraph">Hello world!</p><p class="wp-block-paragraph">Hello world!</p>', $output );
 	}
 
 	public function test_ref_empty() {
-		$block_type = WP_Block_Type_Registry::get_instance()->get_registered( 'core/block' );
-		$output     = $block_type->render( array() );
+		$parsed_block = array(
+			'blockName' => 'core/block',
+			'attrs'     => array(),
+		);
+		$block        = new WP_Block( $parsed_block );
+		$output       = $block->render();
 		$this->assertSame( '', $output );
 	}
 
 	public function test_ref_wrong_post_type() {
-		$block_type = WP_Block_Type_Registry::get_instance()->get_registered( 'core/block' );
-		$output     = $block_type->render( array( 'ref' => self::$post_id ) );
+		$parsed_block = array(
+			'blockName' => 'core/block',
+			'attrs'     => array( 'ref' => self::$post_id ),
+		);
+		$block        = new WP_Block( $parsed_block );
+		$output       = $block->render();
 		$this->assertSame( '', $output );
 	}
 }

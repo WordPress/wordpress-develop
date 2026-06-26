@@ -105,5 +105,4 @@ class Tests_Upload extends WP_UnitTestCase {
 		$this->assertSame( $subdir, $info['subdir'] );
 		$this->assertFalse( $info['error'] );
 	}
-
 }

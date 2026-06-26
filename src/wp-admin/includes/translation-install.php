@@ -14,12 +14,26 @@
  *
  * @param string       $type Type of translations. Accepts 'plugins', 'themes', 'core'.
  * @param array|object $args Translation API arguments. Optional.
- * @return array|WP_Error On success an associative array of translations, WP_Error on failure.
+ * @return array|WP_Error {
+ *     On success an associative array of translations, WP_Error on failure.
+ *
+ *     @type array $translations {
+ *         List of translations, each an array of data.
+ *
+ *         @type array ...$0 {
+ *             @type string   $language     Language code.
+ *             @type string   $version      WordPress version.
+ *             @type string   $updated      Date the translation was last updated, in MySQL datetime format.
+ *             @type string   $english_name English name of the language.
+ *             @type string   $native_name  Native name of the language.
+ *             @type string   $package      URL to download the translation package.
+ *             @type string[] $iso          Array of ISO language codes.
+ *             @type array    $strings      Array of translated strings used in the installation process.
+ *         }
+ *     }
+ * }
  */
 function translations_api( $type, $args = null ) {
-	// Include an unmodified $wp_version.
-	require ABSPATH . WPINC . '/version.php';
-
 	if ( ! in_array( $type, array( 'plugins', 'themes', 'core' ), true ) ) {
 		return new WP_Error( 'invalid_type', __( 'Invalid translation type.' ) );
 	}
@@ -46,7 +60,7 @@ function translations_api( $type, $args = null ) {
 		$options = array(
 			'timeout' => 3,
 			'body'    => array(
-				'wp_version' => $wp_version,
+				'wp_version' => wp_get_wp_version(),
 				'locale'     => get_locale(),
 				'version'    => $args['version'], // Version of plugin, theme or core.
 			),
@@ -59,7 +73,8 @@ function translations_api( $type, $args = null ) {
 		$request = wp_remote_post( $url, $options );
 
 		if ( $ssl && is_wp_error( $request ) ) {
-			trigger_error(
+			wp_trigger_error(
+				__FUNCTION__,
 				sprintf(
 					/* translators: %s: Support forums URL. */
 					__( 'An unexpected error occurred. Something may be wrong with WordPress.org or this server&#8217;s configuration. If you continue to have problems, please try the <a href="%s">support forums</a>.' ),
@@ -102,7 +117,24 @@ function translations_api( $type, $args = null ) {
 	 *
 	 * @since 4.0.0
 	 *
-	 * @param array|WP_Error $res  Response as an associative array or WP_Error.
+	 * @param array|WP_Error $res  {
+	 *     On success an associative array of translations, WP_Error on failure.
+	 *
+	 *     @type array $translations {
+	 *         List of translations, each an array of data.
+	 *
+	 *         @type array ...$0 {
+	 *             @type string   $language     Language code.
+	 *             @type string   $version      WordPress version.
+	 *             @type string   $updated      Date the translation was last updated, in MySQL datetime format.
+	 *             @type string   $english_name English name of the language.
+	 *             @type string   $native_name  Native name of the language.
+	 *             @type string   $package      URL to download the translation package.
+	 *             @type string[] $iso          Array of ISO language codes.
+	 *             @type array    $strings      Array of translated strings used in the installation process.
+	 *         }
+	 *     }
+	 * }
 	 * @param string         $type The type of translations being requested.
 	 * @param object         $args Translation API arguments.
 	 */
@@ -116,8 +148,21 @@ function translations_api( $type, $args = null ) {
  *
  * @see translations_api()
  *
- * @return array[] Array of translations, each an array of data, keyed by the language. If the API response results
- *                 in an error, an empty array will be returned.
+ * @return array {
+ *     Array of translations keyed by the language code, each an associative array of data.
+ *     If the API response results in an error, an empty array will be returned.
+ *
+ *     @type array ...$0 {
+ *         @type string   $language     Language code.
+ *         @type string   $version      WordPress version.
+ *         @type string   $updated      Date the translation was last updated, in MySQL datetime format.
+ *         @type string   $english_name English name of the language.
+ *         @type string   $native_name  Native name of the language.
+ *         @type string   $package      URL to download the translation package.
+ *         @type string[] $iso          Array of ISO language codes.
+ *         @type array    $strings      Array of translated strings used in the installation process.
+ *     }
+ * }
  */
 function wp_get_available_translations() {
 	if ( ! wp_installing() ) {
@@ -127,17 +172,14 @@ function wp_get_available_translations() {
 		}
 	}
 
-	// Include an unmodified $wp_version.
-	require ABSPATH . WPINC . '/version.php';
-
-	$api = translations_api( 'core', array( 'version' => $wp_version ) );
+	$api = translations_api( 'core', array( 'version' => wp_get_wp_version() ) );
 
 	if ( is_wp_error( $api ) || empty( $api['translations'] ) ) {
 		return array();
 	}
 
 	$translations = array();
-	// Key the array with the language code for now.
+	// Key the array with the language code.
 	foreach ( $api['translations'] as $translation ) {
 		$translations[ $translation['language'] ] = $translation;
 	}
@@ -237,7 +279,7 @@ function wp_download_language_pack( $download ) {
 	$translation = (object) $translation;
 
 	require_once ABSPATH . 'wp-admin/includes/class-wp-upgrader.php';
-	$skin              = new Automatic_Upgrader_Skin;
+	$skin              = new Automatic_Upgrader_Skin();
 	$upgrader          = new Language_Pack_Upgrader( $skin );
 	$translation->type = 'core';
 	$result            = $upgrader->upgrade( $translation, array( 'clear_update_cache' => false ) );
@@ -263,7 +305,7 @@ function wp_can_install_language_pack() {
 	}
 
 	require_once ABSPATH . 'wp-admin/includes/class-wp-upgrader.php';
-	$skin     = new Automatic_Upgrader_Skin;
+	$skin     = new Automatic_Upgrader_Skin();
 	$upgrader = new Language_Pack_Upgrader( $skin );
 	$upgrader->init();
 
