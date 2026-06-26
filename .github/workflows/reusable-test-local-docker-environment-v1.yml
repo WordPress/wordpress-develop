@@ -109,7 +109,7 @@ jobs:
         - name: Set up PHP
           uses: shivammathur/setup-php@7c071dfe9dc99bdf297fa79cb49ea005b9fcadbc # 2.37.1
           with:
-            php-version: '${{ inputs.php }}'
+            php-version: '${{ inputs.php == 'latest' && '8.3' || inputs.php }}'
             coverage: none
 
       - parallel:
