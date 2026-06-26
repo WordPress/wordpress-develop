@@ -5,7 +5,7 @@
  * @group functions.php
  *
  * @covers ::wp_maybe_load_widgets
- */#
+ */
 class Tests_Functions_WpMaybeLoadWidgets extends WP_UnitTestCase {
 
 	/**
