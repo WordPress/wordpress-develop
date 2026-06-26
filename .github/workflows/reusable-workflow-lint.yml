@@ -58,7 +58,7 @@ jobs:
         uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7.6.0
 
       - name: Run zizmor
-        run: uvx zizmor@1.24.1 --persona=regular --format=sarif --strict-collection . > results.sarif
+        run: uvx zizmor@1.26.1 --persona=regular --format=sarif --strict-collection . > results.sarif
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
