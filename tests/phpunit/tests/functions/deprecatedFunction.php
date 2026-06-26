@@ -39,7 +39,7 @@ class Tests_Functions_deprecatedFunction extends WP_UnitTestCase {
 	 */
 	public function test_deprecated_function_action_called() {
 		$this->expectDeprecation();
-		$this->expectDeprecationMessage( 'Function function_name is deprecated since version 1! Use replacement_function instead.' );
+		$this->expectDeprecationMessage( 'Function function_name is <strong>deprecated</strong> since version 1! Use replacement_function instead.' );
 
 		$action = new MockAction();
 		add_filter( 'deprecated_function_run', array( $action, 'action' ) );
@@ -65,7 +65,7 @@ class Tests_Functions_deprecatedFunction extends WP_UnitTestCase {
 	 */
 	public function test_deprecated_function_filter_called() {
 		$this->expectDeprecation();
-		$this->expectDeprecationMessage( 'Function function_name is deprecated since version 1! Use replacement_function instead.' );
+		$this->expectDeprecationMessage( 'Function function_name is <strong>deprecated</strong> since version 1! Use replacement_function instead.' );
 
 		$filter = new MockAction();
 		add_filter( 'deprecated_function_trigger_error', array( $filter, 'filter' ) );
@@ -83,7 +83,7 @@ class Tests_Functions_deprecatedFunction extends WP_UnitTestCase {
 	 */
 	public function test_deprecated_function_no_replacement() {
 		$this->expectDeprecation();
-		$this->expectDeprecationMessage( 'Function function_name is deprecated since version 1 with no alternative available.' );
+		$this->expectDeprecationMessage( 'Function function_name is <strong>deprecated</strong> since version 1 with no alternative available.' );
 
 		_deprecated_function( 'function_name', 1 );
 	}
