@@ -18,7 +18,7 @@ class Tests_functions_test_wpPrivacyExportsUrl extends WP_UnitTestCase {
 	 */
 	public function test_wp_privacy_exports_url() {
 		$upload_dir = wp_upload_dir();
-		$this->assertEquals( $upload_dir['baseurl'] . '/wp-personal-data-exports/', wp_privacy_exports_url() );
+		$this->assertSame( $upload_dir['baseurl'] . '/wp-personal-data-exports/', wp_privacy_exports_url() );
 	}
 
 	/**
