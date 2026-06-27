@@ -961,7 +961,7 @@ function wp_get_registered_image_subsizes() {
  * Resolves the quality the same way WP_Image_Editor::set_quality() does when no
  * explicit quality is supplied: it starts from the per-format default, applies the
  * 'wp_editor_set_quality' filter, then the 'jpeg_quality' filter for JPEG output,
- * and clamps the result to the valid 1-100 range.
+ * resets out-of-range values to the per-format default, and squashes 0 to 1.
  *
  * This lets code outside of an image editor instance - such as the REST API, which
  * reports the quality client-side processing should use - resolve the same value the
@@ -1005,11 +1005,14 @@ function wp_get_image_encode_quality( string $mime_type, array $size = array(), 
 		$quality = (int) $quality;
 	}
 
+	// Reset out-of-range values to the default, matching WP_Image_Editor::set_quality().
+	if ( $quality < 0 || $quality > 100 ) {
+		$quality = $default_quality;
+	}
+
 	// Allow 0, but squash to 1, matching WP_Image_Editor::set_quality().
-	if ( $quality <= 0 ) {
+	if ( 0 === $quality ) {
 		$quality = 1;
-	} elseif ( $quality > 100 ) {
-		$quality = 100;
 	}
 
 	return $quality;
