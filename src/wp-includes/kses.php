@@ -2553,6 +2553,8 @@ function kses_init() {
  * @since 6.5.0 Added support for `background-repeat`.
  * @since 6.6.0 Added support for `grid-column`, `grid-row`, and `container-type`.
  * @since 6.9.0 Added support for `white-space`.
+ * @since 7.1.0 Added support for CSS anchor positioning properties and the
+ *              `anchor()` and `anchor-size()` functions.
  *
  * @param string $css        A string of CSS rules, decoded from an HTML `style` attribute.
  * @param string $deprecated Not used.
@@ -2734,6 +2736,16 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 			'aspect-ratio',
 			'container-type',
 
+			// CSS anchor positioning.
+			'anchor-name',
+			'anchor-scope',
+			'position-anchor',
+			'position-area',
+			'position-try',
+			'position-try-fallbacks',
+			'position-try-order',
+			'position-visibility',
+
 			'fill',
 			'fill-opacity',
 			'fill-rule',
@@ -2913,7 +2925,7 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 			 * Nested functions and parentheses are also removed, so long as the parentheses are balanced.
 			 */
 			$css_test_string = preg_replace(
-				'/\b(?:var|calc|min|max|minmax|clamp|repeat)(\((?:[^()]|(?1))*\))/',
+				'/\b(?:var|calc|min|max|minmax|clamp|repeat|anchor-size|anchor)(\((?:[^()]|(?1))*\))/',
 				'',
 				$css_test_string
 			);
