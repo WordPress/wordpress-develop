@@ -886,11 +886,12 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	 *     $processor = new WP_HTML_Tag_Processor( '<div class="header"></div>' );
 	 *     $processor->next_tag();
 	 *     $processor->set_attribute('class', '" onclick="alert');
-	 *     echo $p;
+	 *     echo $processor->get_updated_html();
 	 *     // <div class="" onclick="alert"></div>
 	 * ```
 	 *
-	 * To prevent it, `set_attribute` calls `esc_attr()` on its given values.
+	 * To prevent it, `set_attribute` escapes HTML syntax characters like `"` using
+	 * HTML character references.
 	 *
 	 * ```php
 	 *    <div class="&quot; onclick=&quot;alert"></div>
@@ -1523,11 +1524,11 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 		$this->assertSame(
 			'<div  id="first"><span class="not-main bold with-border" id="second">Text</span></div>',
 			$processor->get_updated_html(),
-			'Updated HTML does not reflect class attribute removed via subesequent remove_class() calls'
+			'Updated HTML does not reflect class attribute removed via subsequent remove_class() calls'
 		);
 		$this->assertNull(
 			$processor->get_attribute( 'class' ),
-			"get_attribute( 'class' ) did not return null for class attribute removed via subesequent remove_class() calls"
+			"get_attribute( 'class' ) did not return null for class attribute removed via subsequent remove_class() calls"
 		);
 	}
 
@@ -2116,6 +2117,8 @@ HTML;
 			yield 'Script tag with </script\f> close'             => array( "<script></script\f>", true );
 			yield 'Script tag with </script\r> close'             => array( "<script></script\r>", true );
 			yield 'Script with type attribute'                    => array( '<script type="text/javascript"></script>', true );
+			yield 'Script text less-than'                         => array( '<script><</script>', true );
+			yield 'Script text less-than solidus'                 => array( '<script></</script>', true );
 			yield 'Script data escaped'                           => array( '<script><!--</script>', true );
 			yield 'Script data double-escaped exit (comment)'     => array( '<script><!--<script>--></script>', true );
 			yield 'Script data double-escaped exit (closed ">")'  => array( '<script><!--<script></script></script>', true );
@@ -2887,11 +2890,11 @@ HTML;
 			),
 			'HTML tag opening inside attribute value'      => array(
 				'input'    => '<pre id="<code" class="wp-block-code <code is poetry&gt;"><code>This &lt;is> a &lt;strong is="true">thing.</code></pre><span>test</span>',
-				'expected' => '<pre foo="bar" id="<code" class="wp-block-code &lt;code is poetry&amp;gt; firstTag"><code class="secondTag">This &lt;is> a &lt;strong is="true">thing.</code></pre><span>test</span>',
+				'expected' => '<pre foo="bar" id="<code" class="wp-block-code &lt;code is poetry&gt; firstTag"><code class="secondTag">This &lt;is> a &lt;strong is="true">thing.</code></pre><span>test</span>',
 			),
 			'HTML tag brackets in attribute values and data markup' => array(
 				'input'    => '<pre id="<code-&gt;-block-&gt;" class="wp-block-code <code is poetry&gt;"><code>This &lt;is> a &lt;strong is="true">thing.</code></pre><span>test</span>',
-				'expected' => '<pre foo="bar" id="<code-&gt;-block-&gt;" class="wp-block-code &lt;code is poetry&amp;gt; firstTag"><code class="secondTag">This &lt;is> a &lt;strong is="true">thing.</code></pre><span>test</span>',
+				'expected' => '<pre foo="bar" id="<code-&gt;-block-&gt;" class="wp-block-code &lt;code is poetry&gt; firstTag"><code class="secondTag">This &lt;is> a &lt;strong is="true">thing.</code></pre><span>test</span>',
 			),
 			'Single and double quotes in attribute value'  => array(
 				'input'    => '<p title="Demonstrating how to use single quote (\') and double quote (&quot;)"><span>test</span>',
@@ -3025,6 +3028,50 @@ HTML
 				'input'    => '<hr id a  =5><span>test</span>',
 				'expected' => '<hr class="firstTag" foo="bar" id a  =5><span class="secondTag">test</span>',
 			),
+		);
+	}
+
+	/**
+	 * @ticket 64340
+	 */
+	public function test_class_changes_produce_correct_html() {
+		$processor = new WP_HTML_Tag_Processor( '<div class="&amp;">' );
+		$processor->next_tag();
+
+		$processor->add_class( '"' );
+		$processor->get_updated_html();
+
+		$processor->add_class( 'OK' );
+		$processor->get_updated_html();
+
+		$this->assertTrue( $processor->has_class( '&' ), 'Missing expected "&" class.' );
+		$this->assertTrue( $processor->has_class( '"' ), 'Missing expected \'"\' class.' );
+		$this->assertTrue( $processor->has_class( 'OK' ), 'Missing expected "OK" class.' );
+
+		$expected = '<div class="&amp; &quot; OK">';
+		$this->assertEqualHTML(
+			$expected,
+			$processor->get_updated_html(),
+			'<body>',
+			'HTML was not correctly updated after adding classes.'
+		);
+
+		$processor->remove_class( '&' );
+		$processor->get_updated_html();
+
+		$processor->remove_class( '"' );
+		$processor->get_updated_html();
+
+		$this->assertFalse( $processor->has_class( '&' ) );
+		$this->assertFalse( $processor->has_class( '"' ) );
+		$this->assertTrue( $processor->has_class( 'OK' ) );
+
+		$expected = '<div class="OK">';
+		$this->assertEqualHTML(
+			$expected,
+			$processor->get_updated_html(),
+			'<body>',
+			'HTML was not correctly updated after removing classes.'
 		);
 	}
 

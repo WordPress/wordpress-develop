@@ -11,6 +11,8 @@
 
 /**
  * Twenty Seventeen only works in WordPress 4.7 or later.
+ *
+ * @global string $wp_version The WordPress version string.
  */
 if ( version_compare( $GLOBALS['wp_version'], '4.7-alpha', '<' ) ) {
 	require get_template_directory() . '/inc/back-compat.php';
@@ -23,6 +25,10 @@ if ( version_compare( $GLOBALS['wp_version'], '4.7-alpha', '<' ) ) {
  * Note that this function is hooked into the after_setup_theme hook, which
  * runs before the init hook. The init hook is too late for some features, such
  * as indicating support for post thumbnails.
+ *
+ * @since Twenty Seventeen 1.0
+ *
+ * @global int $content_width Content width.
  */
 function twentyseventeen_setup() {
 
@@ -248,7 +254,7 @@ add_action( 'after_setup_theme', 'twentyseventeen_setup' );
  *
  * Priority 0 to make it available to lower priority callbacks.
  *
- * @global int $content_width
+ * @global int $content_width Content width.
  */
 function twentyseventeen_content_width() {
 
@@ -289,7 +295,7 @@ if ( ! function_exists( 'twentyseventeen_fonts_url' ) ) :
 	 * @since Twenty Seventeen 1.0
 	 * @since Twenty Seventeen 3.2 Replaced Google URL with self-hosted fonts.
 	 *
-	 * @return string Fonts URL for the theme.
+	 * @return string Font stylesheet URL or empty string if disabled.
 	 */
 	function twentyseventeen_fonts_url() {
 		$fonts_url = '';
@@ -443,7 +449,7 @@ function twentyseventeen_colors_css_wrap() {
 		$customize_preview_data_hue = 'data-hue="' . $hue . '"';
 	}
 	?>
-	<style type="text/css" id="custom-theme-colors" <?php echo $customize_preview_data_hue; ?>>
+	<style id="custom-theme-colors" <?php echo $customize_preview_data_hue; ?>>
 		<?php echo twentyseventeen_custom_colors_css(); ?>
 	</style>
 	<?php
@@ -461,7 +467,7 @@ function twentyseventeen_scripts() {
 	wp_enqueue_style( 'twentyseventeen-fonts', twentyseventeen_fonts_url(), array(), $font_version );
 
 	// Theme stylesheet.
-	wp_enqueue_style( 'twentyseventeen-style', get_stylesheet_uri(), array(), '20250415' );
+	wp_enqueue_style( 'twentyseventeen-style', get_stylesheet_uri(), array(), '20260520' );
 
 	// Theme block stylesheet.
 	wp_enqueue_style( 'twentyseventeen-block-style', get_theme_file_uri( '/assets/css/blocks.css' ), array( 'twentyseventeen-style' ), '20240729' );
@@ -681,7 +687,9 @@ if ( ! function_exists( 'wp_get_list_item_separator' ) ) :
 	 *
 	 * Added for backward compatibility to support pre-6.0.0 WordPress versions.
 	 *
-	 * @since 6.0.0
+	 * @since Twenty Seventeen 3.0
+	 *
+	 * @return string Locale-specific list item separator.
 	 */
 	function wp_get_list_item_separator() {
 		/* translators: Used between list items, there is a space after the comma. */

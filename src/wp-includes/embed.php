@@ -332,8 +332,19 @@ function wp_oembed_register_route() {
  *
  * @since 4.4.0
  * @since 6.8.0 Output was adjusted to only embed if the post supports it.
+ * @since 6.9.0 Now runs first at `wp_head` priority 4, with a fallback to priority 10. This helps ensure the discovery links appear within the first 150KB.
  */
 function wp_oembed_add_discovery_links() {
+	if ( doing_action( 'wp_head' ) ) {
+		// For back-compat, short-circuit if a plugin has removed the action at the original priority.
+		if ( ! has_action( 'wp_head', 'wp_oembed_add_discovery_links', 10 ) ) {
+			return;
+		}
+
+		// Prevent running again at the original priority.
+		remove_action( 'wp_head', 'wp_oembed_add_discovery_links' );
+	}
+
 	$output = '';
 
 	if ( is_singular() && is_post_embeddable() ) {
@@ -402,7 +413,7 @@ function wp_maybe_enqueue_oembed_host_js( $html ) {
  *
  * @since 4.4.0
  *
- * @param int|WP_Post $post Optional. Post ID or object. Defaults to the current post.
+ * @param int|WP_Post|null $post Optional. Post ID or object. Defaults to the current post.
  * @return string|false The post embed URL on success, false if the post doesn't exist.
  */
 function get_post_embed_url( $post = null ) {
@@ -471,9 +482,9 @@ function get_oembed_endpoint_url( $permalink = '', $format = 'json' ) {
  *
  * @since 4.4.0
  *
- * @param int         $width  The width for the response.
- * @param int         $height The height for the response.
- * @param int|WP_Post $post   Optional. Post ID or object. Default is global `$post`.
+ * @param int              $width  The width for the response.
+ * @param int              $height The height for the response.
+ * @param int|WP_Post|null $post   Optional. Post ID or object. Default is global `$post`.
  * @return string|false Embed code on success, false if post doesn't exist.
  */
 function get_post_embed_html( $width, $height, $post = null ) {
@@ -682,7 +693,7 @@ function get_oembed_response_data_for_url( $url, $args ) {
 		return false;
 	}
 
-	$width = isset( $args['width'] ) ? $args['width'] : 0;
+	$width = $args['width'] ?? 0;
 
 	$data = get_oembed_response_data( $post_id, $width );
 
@@ -728,10 +739,13 @@ function get_oembed_response_data_rich( $data, $post, $width, $height ) {
 	}
 
 	if ( $thumbnail_id ) {
-		list( $thumbnail_url, $thumbnail_width, $thumbnail_height ) = wp_get_attachment_image_src( $thumbnail_id, array( $width, 0 ) );
-		$data['thumbnail_url']                                      = $thumbnail_url;
-		$data['thumbnail_width']                                    = $thumbnail_width;
-		$data['thumbnail_height']                                   = $thumbnail_height;
+		$thumbnail_src = wp_get_attachment_image_src( $thumbnail_id, array( $width, 0 ) );
+
+		if ( is_array( $thumbnail_src ) ) {
+			$data['thumbnail_url']    = $thumbnail_src[0];
+			$data['thumbnail_width']  = $thumbnail_src[1];
+			$data['thumbnail_height'] = $thumbnail_src[2];
+		}
 	}
 
 	return $data;
@@ -1218,12 +1232,25 @@ function print_embed_sharing_dialog() {
  *
  * @since 4.5.0
  */
-function the_embed_site_title() {
+function the_embed_site_title(): void {
+	$fallback_icon_url = includes_url( 'images/w-logo-gray-white-bg.svg' );
+	$site_icon_url     = get_site_icon_url( 32, $fallback_icon_url );
+
+	$icon_img = '';
+	if ( $site_icon_url ) {
+		$site_icon_url_2x = get_site_icon_url( 64, $fallback_icon_url );
+		$srcset           = ( $site_icon_url_2x && $site_icon_url !== $site_icon_url_2x ) ? sprintf( ' srcset="%s 2x"', esc_url( $site_icon_url_2x ) ) : '';
+		$icon_img         = sprintf(
+			'<img src="%s"%s width="32" height="32" alt="" class="wp-embed-site-icon" />',
+			esc_url( $site_icon_url ),
+			$srcset
+		);
+	}
+
 	$site_title = sprintf(
-		'<a href="%s" target="_top"><img src="%s" srcset="%s 2x" width="32" height="32" alt="" class="wp-embed-site-icon" /><span>%s</span></a>',
+		'<a href="%s" target="_top">%s<span>%s</span></a>',
 		esc_url( home_url() ),
-		esc_url( get_site_icon_url( 32, includes_url( 'images/w-logo-blue.png' ) ) ),
-		esc_url( get_site_icon_url( 64, includes_url( 'images/w-logo-blue.png' ) ) ),
+		$icon_img,
 		esc_html( get_bloginfo( 'name' ) )
 	);
 

@@ -33,7 +33,7 @@
 		"shadow": true,
 		"layout": {
 			"allowEditing": false
-			},
+		},
 		"typography": {
 			"fontSize": true,
 			"lineHeight": true,
@@ -54,6 +54,9 @@
 			"type": "boolean",
 			"default": false
 		}
+	},
+	"providesContext": {
+		"core/accordion-open-by-default": "openByDefault"
 	},
 	"textdomain": "default",
 	"style": "wp-block-accordion-item"

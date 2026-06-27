@@ -26,7 +26,7 @@ class Twenty_Fourteen_Ephemera_Widget extends WP_Widget {
 	 *
 	 * @since Twenty Fourteen 1.0
 	 *
-	 * @return Twenty_Fourteen_Ephemera_Widget
+	 * @return Twenty_Fourteen_Ephemera_Widget Widget instance.
 	 */
 	public function __construct() {
 		parent::__construct(
@@ -65,6 +65,9 @@ class Twenty_Fourteen_Ephemera_Widget extends WP_Widget {
 	 * Outputs the HTML for this widget.
 	 *
 	 * @since Twenty Fourteen 1.0
+	 *
+	 * @global int $content_width Content width.
+	 * @global int $more
 	 *
 	 * @param array $args     An array of standard parameters for widgets in this theme.
 	 * @param array $instance An array of settings for this widget instance.

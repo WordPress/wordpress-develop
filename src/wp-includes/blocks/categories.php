@@ -47,6 +47,9 @@ function render_block_core_categories( $attributes, $content, $block ) {
 			$taxonomy->labels->singular_name
 		);
 
+		// Pre-select the current term using query var.
+		$args['selected'] = get_query_var( $taxonomy->query_var );
+
 		$show_label     = empty( $attributes['showLabel'] ) ? ' screen-reader-text' : '';
 		$default_label  = $taxonomy->label;
 		$label_text     = ! empty( $attributes['label'] ) ? wp_kses_post( $attributes['label'] ) : $default_label;
@@ -79,7 +82,7 @@ function render_block_core_categories( $attributes, $content, $block ) {
 		}
 	}
 
-	$wrapper_attributes = get_block_wrapper_attributes( array( 'class' => "wp-block-categories-{$type}" ) );
+	$wrapper_attributes = get_block_wrapper_attributes( array( 'class' => "wp-block-categories-{$type} wp-block-categories-taxonomy-{$attributes['taxonomy']}" ) );
 
 	return sprintf(
 		$wrapper_markup,
@@ -104,14 +107,33 @@ function build_dropdown_script_block_core_categories( $dropdown_id ) {
 	?>
 	<script>
 	( ( [ dropdownId, homeUrl ] ) => {
-		document.getElementById( dropdownId ).addEventListener( 'change', ( event ) => {
-			const dropdown = /** @type {HTMLSelectElement} */ ( event.target );
-			if ( dropdown.value && dropdown.value !== '-1' ) {
-				const url = new URL( homeUrl );
-				url.searchParams.set( dropdown.name, dropdown.value );
-				location.href = url.href;
+		const dropdown = document.getElementById( dropdownId );
+		function onSelectChange() {
+			setTimeout( () => {
+				if ( 'escape' === dropdown.dataset.lastkey ) {
+					return;
+				}
+				// Only navigate if a valid term is selected (not the default "Select [taxonomy]" option)
+				if ( dropdown.value && dropdown.value !== '-1' && dropdown instanceof HTMLSelectElement ) {
+					const url = new URL( homeUrl );
+					url.searchParams.set( dropdown.name, dropdown.value );
+					location.href = url.href;
+				}
+			}, 250 );
+		}
+		function onKeyUp( event ) {
+			if ( 'Escape' === event.key ) {
+				dropdown.dataset.lastkey = 'escape';
+			} else {
+				delete dropdown.dataset.lastkey;
 			}
-		} );
+		}
+		function onClick() {
+			delete dropdown.dataset.lastkey;
+		}
+		dropdown.addEventListener( 'keyup', onKeyUp );
+		dropdown.addEventListener( 'click', onClick );
+		dropdown.addEventListener( 'change', onSelectChange );
 	} )( <?php echo wp_json_encode( $exports, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ); ?> );
 	</script>
 	<?php

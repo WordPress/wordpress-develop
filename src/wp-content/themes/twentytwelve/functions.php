@@ -43,6 +43,8 @@ if ( ! isset( $content_width ) ) {
  * @uses set_post_thumbnail_size() To set a custom post thumbnail size.
  *
  * @since Twenty Twelve 1.0
+ *
+ * @global string $wp_version The WordPress version string.
  */
 function twentytwelve_setup() {
 	/*
@@ -160,7 +162,7 @@ if ( ! function_exists( 'twentytwelve_get_font_url' ) ) :
 	 * @since Twenty Twelve 1.2
 	 * @since Twenty Twelve 3.9 Replaced Google URL with self-hosted font.
 	 *
-	 * @return string Font stylesheet or empty string if disabled.
+	 * @return string Font stylesheet URL or empty string if disabled.
 	 */
 	function twentytwelve_get_font_url() {
 		$font_url = '';
@@ -181,6 +183,8 @@ endif;
  * Enqueues scripts and styles for front end.
  *
  * @since Twenty Twelve 1.0
+ *
+ * @global WP_Styles $wp_styles The WP_Styles object for printing styles.
  */
 function twentytwelve_scripts_styles() {
 	global $wp_styles;
@@ -212,10 +216,10 @@ function twentytwelve_scripts_styles() {
 	}
 
 	// Loads our main stylesheet.
-	wp_enqueue_style( 'twentytwelve-style', get_stylesheet_uri(), array(), '20250715' );
+	wp_enqueue_style( 'twentytwelve-style', get_stylesheet_uri(), array(), '20260520' );
 
 	// Theme block stylesheet.
-	wp_enqueue_style( 'twentytwelve-block-style', get_template_directory_uri() . '/css/blocks.css', array( 'twentytwelve-style' ), '20240812' );
+	wp_enqueue_style( 'twentytwelve-block-style', get_template_directory_uri() . '/css/blocks.css', array( 'twentytwelve-style' ), '20251031' );
 
 	// Register the Internet Explorer specific stylesheet.
 	wp_register_style( 'twentytwelve-ie', false, array( 'twentytwelve-style' ) );
@@ -229,7 +233,7 @@ add_action( 'wp_enqueue_scripts', 'twentytwelve_scripts_styles' );
  */
 function twentytwelve_block_editor_styles() {
 	// Block styles.
-	wp_enqueue_style( 'twentytwelve-block-editor-style', get_template_directory_uri() . '/css/editor-blocks.css', array(), '20250715' );
+	wp_enqueue_style( 'twentytwelve-block-editor-style', get_template_directory_uri() . '/css/editor-blocks.css', array(), '20260324' );
 	// Add custom fonts.
 	$font_version = ( 0 === strpos( (string) twentytwelve_get_font_url(), get_template_directory_uri() . '/' ) ) ? '20230328' : null;
 	wp_enqueue_style( 'twentytwelve-fonts', twentytwelve_get_font_url(), array(), $font_version );
@@ -241,6 +245,8 @@ add_action( 'enqueue_block_editor_assets', 'twentytwelve_block_editor_styles' );
  *
  * @since Twenty Twelve 2.2
  * @deprecated Twenty Twelve 3.9 Disabled filter because, by default, fonts are self-hosted.
+ *
+ * @global string $wp_version The WordPress version string.
  *
  * @param array   $urls          URLs to print for resource hints.
  * @param string  $relation_type The relation type the URLs are printed.
@@ -298,6 +304,9 @@ add_filter( 'mce_css', 'twentytwelve_mce_css' );
  * for output in head of document, based on current view.
  *
  * @since Twenty Twelve 1.0
+ *
+ * @global int $paged Page number of a list of posts.
+ * @global int $page  Page number of a single post.
  *
  * @param string $title Default title text for current view.
  * @param string $sep Optional separator.
@@ -396,7 +405,9 @@ if ( ! function_exists( 'wp_get_list_item_separator' ) ) :
 	 *
 	 * Added for backward compatibility to support pre-6.0.0 WordPress versions.
 	 *
-	 * @since 6.0.0
+	 * @since Twenty Twelve 3.7
+	 *
+	 * @return string Locale-specific list item separator.
 	 */
 	function wp_get_list_item_separator() {
 		/* translators: Used between list items, there is a space after the comma. */
@@ -409,6 +420,8 @@ if ( ! function_exists( 'twentytwelve_content_nav' ) ) :
 	 * Displays navigation to next/previous pages when applicable.
 	 *
 	 * @since Twenty Twelve 1.0
+	 *
+	 * @global WP_Query $wp_query WordPress Query object.
 	 */
 	function twentytwelve_content_nav( $html_id ) {
 		global $wp_query;
@@ -449,7 +462,12 @@ if ( ! function_exists( 'twentytwelve_comment' ) ) :
 	 *
 	 * @since Twenty Twelve 1.0
 	 *
-	 * @global WP_Post $post Global post object.
+	 * @global WP_Comment $comment Global comment object.
+	 * @global WP_Post    $post    Global post object.
+	 *
+	 * @param WP_Comment $comment The comment object.
+	 * @param array      $args    An array of comment arguments. @see get_comment_reply_link()
+	 * @param int        $depth   The depth of the comment.
 	 */
 	function twentytwelve_comment( $comment, $args, $depth ) {
 		$GLOBALS['comment'] = $comment;
@@ -642,6 +660,8 @@ add_filter( 'body_class', 'twentytwelve_body_class' );
  * templates, and when there are no active widgets in the sidebar.
  *
  * @since Twenty Twelve 1.0
+ *
+ * @global int $content_width Content width.
  */
 function twentytwelve_content_width() {
 	if ( is_page_template( 'page-templates/full-width.php' ) || is_attachment() || ! is_active_sidebar( 'sidebar-1' ) ) {
