@@ -1735,7 +1735,7 @@ EOF;
 	/**
 	 * @ticket 64742
 	 */
-	public function test_wp_get_attachment_image_src_with_icon_when_icon_file_size_cannot_be_read() {
+	public function test_wp_get_attachment_image_src_with_icon_when_icon_file_size_cannot_be_read(): void {
 		$post_id       = self::factory()->post->create();
 		$attachment_id = self::factory()->attachment->create_object(
 			'test.pdf',
@@ -1746,15 +1746,14 @@ EOF;
 			)
 		);
 
-		$filter = static function () {
-			return 'https://example.org/wp-includes/images/media/missing-icon.png';
-		};
-
-		add_filter( 'wp_mime_type_icon', $filter );
+		add_filter(
+			'wp_mime_type_icon',
+			static function () {
+				return 'https://example.org/wp-includes/images/media/missing-icon.png';
+			}
+		);
 
 		$this->assertFalse( wp_get_attachment_image_src( $attachment_id, 'thumbnail', true ) );
-
-		remove_filter( 'wp_mime_type_icon', $filter );
 	}
 
 	/**
