@@ -5761,45 +5761,6 @@ function wp_show_heic_upload_error( $plupload_settings ) {
 }
 
 /**
- * Deletes a preserved original companion file when its attachment is deleted.
- *
- * HEIC and JPEG XL uploads are converted to a web-viewable JPEG, and the
- * original file is sideloaded alongside it and recorded in
- * $metadata['original']. WordPress only tracks 'original_image' in
- * wp_delete_attachment_files(), so without this hook the companion original
- * would linger on disk after the attachment is deleted.
- *
- * @since 7.1.0
- *
- * @param int $post_id Attachment ID being deleted.
- */
-function wp_delete_attachment_preserved_original_companion_file( $post_id ) {
-	$metadata = wp_get_attachment_metadata( $post_id, true );
-
-	if ( empty( $metadata['original'] ) || ! is_string( $metadata['original'] ) ) {
-		return;
-	}
-
-	$attached_file = get_attached_file( $post_id, true );
-
-	if ( ! $attached_file ) {
-		return;
-	}
-
-	$uploads = wp_get_upload_dir();
-
-	if ( empty( $uploads['basedir'] ) ) {
-		return;
-	}
-
-	$original_path = path_join( dirname( $attached_file ), wp_basename( (string) $metadata['original'] ) );
-
-	if ( file_exists( $original_path ) ) {
-		wp_delete_file_from_directory( $original_path, $uploads['basedir'] );
-	}
-}
-
-/**
  * Determines whether a file is a JPEG XL image by inspecting its magic bytes.
  *
  * JXL files come in two flavors: a naked codestream (starts with 0xFF 0x0A)

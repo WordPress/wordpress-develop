@@ -68,13 +68,11 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			$valid_image_sizes = array_keys( wp_get_registered_image_subsizes() );
 			// Special case to set 'original_image' in attachment metadata.
 			$valid_image_sizes[] = 'original';
-			// HEIC/HEIF companion original preserved alongside the JPEG derivative.
-			// Stored under its own meta key so it never collides with 'original'
-			// (which the scaled-sideload flow also writes to).
-			$valid_image_sizes[] = 'original-heic';
-			// JPEG XL (JXL) companion original. Same metadata slot as HEIC; the
-			// two are mutually exclusive (an attachment is converted from either
-			// HEIC or JXL, never both).
+			// JPEG XL (JXL) companion original preserved alongside the JPEG
+			// derivative. Stored under the dedicated 'source_image' meta key so it
+			// never collides with 'original_image' (which the scaled-sideload flow
+			// writes). The HEIC companion shares this key and lands in the HEIC
+			// upload backport.
 			$valid_image_sizes[] = 'original-jxl';
 			// Used for PDF thumbnails.
 			$valid_image_sizes[] = 'full';
@@ -2114,13 +2112,14 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 
 		if ( 'original' === $image_size ) {
 			$metadata['original_image'] = wp_basename( $path );
-		} elseif ( 'original-heic' === $image_size || 'original-jxl' === $image_size ) {
-			// HEIC/JXL companion original: stored under its own meta key so
-			// the scaled-sideload flow (which writes 'original_image')
+		} elseif ( 'original-jxl' === $image_size ) {
+			// JXL companion original: stored under the dedicated 'source_image'
+			// meta key so the scaled-sideload flow (which writes 'original_image')
 			// cannot clobber it. 'original_image' keeps pointing at the
-			// web-viewable JPEG derivative. Cleanup on attachment delete
-			// is handled by wp_delete_attachment_preserved_original_companion_file().
-			$metadata['original'] = wp_basename( $path );
+			// web-viewable JPEG derivative. Cleanup on attachment delete is
+			// handled by the delete_attachment hook in the HEIC upload backport,
+			// which reads this same 'source_image' key.
+			$metadata['source_image'] = wp_basename( $path );
 		} elseif ( 'scaled' === $image_size ) {
 			// The current attached file is the original; record it as original_image.
 			$current_file = get_attached_file( $attachment_id, true );
