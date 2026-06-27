@@ -337,12 +337,11 @@ class WP_Icons_Registry {
 		$icons = array();
 
 		foreach ( $this->registered_icons as $icon ) {
-			if ( ! empty( $search ) ) {
-				$matches_name  = false !== stripos( $icon['name'], $search );
-				$matches_label = isset( $icon['label'] ) && false !== stripos( $icon['label'], $search );
-				if ( ! $matches_name && ! $matches_label ) {
-					continue;
-				}
+			if ( ! empty( $search )
+				&& false === stripos( $icon['name'], $search )
+				&& false === stripos( $icon['label'] ?? '', $search )
+			) {
+				continue;
 			}
 
 			$icon['content'] = $icon['content'] ?? $this->get_content( $icon['name'] );
