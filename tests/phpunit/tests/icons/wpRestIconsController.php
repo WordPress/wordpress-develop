@@ -31,6 +31,21 @@ class Tests_REST_WpRestIconsController extends WP_Test_REST_Controller_Testcase 
 		self::delete_user( self::$subscriber_id );
 	}
 
+	public function set_up() {
+		parent::set_up();
+
+		/*
+		 * Other suites reset the `WP_Icons_Registry` singleton, wiping the core icons that
+		 * `init` only registers once. Re-register them when empty so order-dependent tests pass.
+		 */
+		if ( ! WP_Icon_Collections_Registry::get_instance()->is_registered( 'core' ) ) {
+			_wp_register_default_icon_collections();
+		}
+		if ( empty( WP_Icons_Registry::get_instance()->get_registered_icons() ) ) {
+			_wp_register_default_icons();
+		}
+	}
+
 	/**
 	 * @ticket 64651
 	 *
@@ -199,7 +214,6 @@ class Tests_REST_WpRestIconsController extends WP_Test_REST_Controller_Testcase 
 	 * @covers WP_REST_Icons_Controller::prepare_item_for_response
 	 */
 	public function test_prepare_item() {
-		$this->markTestSkipped( 'No public icons are available in manifest.php yet' );
 		wp_set_current_user( self::$editor_id );
 
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/icons' );
@@ -232,7 +246,6 @@ class Tests_REST_WpRestIconsController extends WP_Test_REST_Controller_Testcase 
 	 * @covers ::get_items
 	 */
 	public function test_get_items_returns_icons_list() {
-		$this->markTestSkipped( 'No public icons are available in manifest.php yet' );
 		wp_set_current_user( self::$editor_id );
 
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/icons' );
@@ -300,7 +313,6 @@ class Tests_REST_WpRestIconsController extends WP_Test_REST_Controller_Testcase 
 	 * @covers ::get_item
 	 */
 	public function test_get_item_returns_specific_icon() {
-		$this->markTestSkipped( 'No public icons are available in manifest.php yet' );
 		wp_set_current_user( self::$editor_id );
 
 		/*
@@ -352,7 +364,6 @@ class Tests_REST_WpRestIconsController extends WP_Test_REST_Controller_Testcase 
 	 * @covers ::get_items
 	 */
 	public function test_get_items_search_filters_results() {
-		$this->markTestSkipped( 'No public icons are available in manifest.php yet' );
 		wp_set_current_user( self::$editor_id );
 
 		$request = new WP_REST_Request( 'GET', '/wp/v2/icons' );
@@ -470,7 +481,6 @@ class Tests_REST_WpRestIconsController extends WP_Test_REST_Controller_Testcase 
 	 * @covers ::get_item_permissions_check
 	 */
 	public function test_get_item_requires_permissions() {
-		$this->markTestSkipped( 'No public icons are available in manifest.php yet' );
 		// Get a valid icon name first with proper permissions
 		wp_set_current_user( self::$editor_id );
 		$list_request  = new WP_REST_Request( 'GET', '/wp/v2/icons' );
