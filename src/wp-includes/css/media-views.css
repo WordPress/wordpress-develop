@@ -361,6 +361,12 @@ label[for="media-attachment-date-filters"] {
 	grid-area: 1 / 2 / 2 / 3; 
 }
 
+label[for="media-attachment-filters"],
+label[for="media-attachment-date-filters"],
+label[for="media-search-input"] {
+	margin-bottom: 6px;
+}
+
 select#media-attachment-date-filters { 
 	grid-area: 2 / 2 / 3 / 3; 
 } 
