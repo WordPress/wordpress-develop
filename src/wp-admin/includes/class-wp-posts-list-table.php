@@ -1131,17 +1131,23 @@ class WP_Posts_List_Table extends WP_List_Table {
 			echo '<div class="locked-info"><span class="locked-avatar">' . $locked_avatar . '</span> <span class="locked-text">' . $locked_text . "</span></div>\n";
 		}
 
-		$pad = str_repeat( '&#8212; ', $this->current_level );
+		$pad = str_repeat( '<span class="aria-hidden">&#8212;</span> ', $this->current_level );
+		$described = '<span id="post_hierarchy_' . $post->ID . '" class="hidden">';
+		if ( $parent_name ) {
+			$described .= sprintf( __( 'Child of %s' ), $parent_name );
+		}
+		$described .= '</span>';
 		echo '<strong>';
 
 		$title = _draft_or_post_title();
 
 		if ( $can_edit_post && 'trash' !== $post->post_status ) {
 			printf(
-				'<a class="row-title" href="%s">%s%s</a>',
+				'%2$s<a class="row-title" href="%1$s" aria-describedby="post_hierarchy_%1$s">%3$s</a>%4$s',
 				get_edit_post_link( $post->ID ),
 				$pad,
-				$title
+				$title,
+				$described
 			);
 		} else {
 			printf(
