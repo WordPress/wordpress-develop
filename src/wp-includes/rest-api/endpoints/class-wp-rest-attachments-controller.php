@@ -2200,16 +2200,29 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		/** @var non-empty-string $image_size */
 		$image_size = $request['image_size'];
 
+		/*
+		 * Read the dimensions up front. A file whose dimensions cannot be read
+		 * is corrupted or an unsupported format and must be rejected rather than
+		 * silently stored with zero dimensions.
+		 */
 		$size = wp_getimagesize( $path );
 
-		// Validate dimensions match expected size.
-		if ( is_array( $size ) ) {
-			$validation = $this->validate_image_dimensions( $size[0], $size[1], $image_size, $attachment_id );
-			if ( is_wp_error( $validation ) ) {
-				// Clean up the uploaded file.
-				wp_delete_file( $path );
-				return $validation;
-			}
+		if ( ! $size ) {
+			// Clean up the uploaded file.
+			wp_delete_file( $path );
+			return new WP_Error(
+				'rest_upload_invalid_image',
+				__( 'Could not read image dimensions. The file may be corrupted or an unsupported format.' ),
+				array( 'status' => 400 )
+			);
+		}
+
+		// Validate dimensions match the expected size.
+		$validation = $this->validate_image_dimensions( $size[0], $size[1], $image_size, $attachment_id );
+		if ( is_wp_error( $validation ) ) {
+			// Clean up the uploaded file.
+			wp_delete_file( $path );
+			return $validation;
 		}
 
 		$metadata = wp_get_attachment_metadata( $attachment_id, true );
