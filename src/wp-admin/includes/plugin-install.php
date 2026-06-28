@@ -619,8 +619,8 @@ function install_plugin_information() {
 		<?php
 	}
 
-	echo '<div id="plugin-information-scrollable">';
-	echo "<div id='{$_tab}-title' class='{$_with_banner}'><div class='vignette'></div><h2>{$api->name}</h2></div>";
+	echo '<div id="plugin-information-scrollable" tabindex="0" role="region" aria-labelledby="plugin-name">';
+	echo "<div id='{$_tab}-title' class='{$_with_banner}'><div class='vignette'></div><h2 id='plugin-name'>{$api->name}</h2></div>";
 	echo "<div id='{$_tab}-tabs' class='{$_with_banner}'>\n";
 
 	foreach ( (array) $api->sections as $section_name => $content ) {
