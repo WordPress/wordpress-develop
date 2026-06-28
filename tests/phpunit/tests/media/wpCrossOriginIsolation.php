@@ -35,6 +35,11 @@ class Tests_Media_wpCrossOriginIsolation extends WP_UnitTestCase {
 	 */
 	private ?string $original_get_p;
 
+	/**
+	 * Original $pagenow value.
+	 */
+	private ?string $original_pagenow;
+
 	public function set_up() {
 		parent::set_up();
 		$this->original_user_agent = $_SERVER['HTTP_USER_AGENT'] ?? null;
@@ -42,6 +47,7 @@ class Tests_Media_wpCrossOriginIsolation extends WP_UnitTestCase {
 		$this->original_https      = $_SERVER['HTTPS'] ?? null;
 		$this->original_get_action = $_GET['action'] ?? null;
 		$this->original_get_p      = $_GET['p'] ?? null;
+		$this->original_pagenow    = $GLOBALS['pagenow'] ?? null;
 	}
 
 	public function tear_down() {
@@ -78,6 +84,12 @@ class Tests_Media_wpCrossOriginIsolation extends WP_UnitTestCase {
 		// Clean up any output buffers started during tests.
 		while ( ob_get_level() > 1 ) {
 			ob_end_clean();
+		}
+
+		if ( null === $this->original_pagenow ) {
+			unset( $GLOBALS['pagenow'] );
+		} else {
+			$GLOBALS['pagenow'] = $this->original_pagenow;
 		}
 
 		$GLOBALS['current_screen'] = null;
@@ -192,6 +204,7 @@ class Tests_Media_wpCrossOriginIsolation extends WP_UnitTestCase {
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
 		switch_theme( 'twentytwentyone' );
 		set_current_screen( 'site-editor' );
+		$GLOBALS['pagenow'] = 'site-editor.php';
 
 		unset( $_GET['p'] );
 		foreach ( $get as $key => $value ) {
@@ -233,6 +246,7 @@ class Tests_Media_wpCrossOriginIsolation extends WP_UnitTestCase {
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
 		switch_theme( 'twentytwentyone' );
 		set_current_screen( 'site-editor' );
+		$GLOBALS['pagenow'] = 'site-editor.php';
 
 		$_GET['p'] = '/page/about';
 
@@ -262,6 +276,7 @@ class Tests_Media_wpCrossOriginIsolation extends WP_UnitTestCase {
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
 		switch_theme( 'twentytwentyfour' );
 		set_current_screen( 'site-editor' );
+		$GLOBALS['pagenow'] = 'site-editor.php';
 
 		unset( $_GET['p'] );
 
