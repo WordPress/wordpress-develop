@@ -903,6 +903,8 @@ $_old_files = array(
 	'wp-includes/collaboration/class-wp-http-polling-sync-server.php',
 	'wp-includes/collaboration/class-wp-sync-post-meta-storage.php',
 	'wp-includes/collaboration/interface-wp-sync-storage.php',
+	'wp-includes/js/dist/sync.js',
+	'wp-includes/js/dist/sync.min.js',
 );
 
 /**
