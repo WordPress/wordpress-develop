@@ -1133,7 +1133,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 
 		$pad = str_repeat( '<span class="aria-hidden">&#8212;</span> ', $this->current_level );
 		$described = '<span id="post_hierarchy_' . $post->ID . '" class="hidden">';
-		if ( $parent_name ) {
+		if ( isset( $parent_name ) ) {
 			$described .= sprintf( __( 'Child of %s' ), $parent_name );
 		}
 		$described .= '</span>';
