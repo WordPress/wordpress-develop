@@ -436,9 +436,12 @@ class Tests_Admin_wpPluginsListTable extends WP_UnitTestCase {
 	 */
 	public function data_search_terms_against_translatable_plugin() {
 		return array(
-			'original (untranslated) name' => array( 'Fake Translated Plugin', true ),
-			'translated name'              => array( 'Wtyczka', true ),
-			'unrelated term'               => array( 'NoSuchPluginNameHere', false ),
+			'original (untranslated) name'     => array( 'Fake Translated Plugin', true ),
+			'translated name'                  => array( 'Wtyczka', true ),
+			'original name, different case'    => array( 'fake translated plugin', true ),
+			'translated name, different case'  => array( 'wtyczka', true ),
+			'translated name, upper case'      => array( 'WTYCZKA', true ),
+			'unrelated term'                   => array( 'NoSuchPluginNameHere', false ),
 		);
 	}
 

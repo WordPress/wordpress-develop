@@ -393,7 +393,8 @@ class WP_Plugins_List_Table extends WP_List_Table {
 	public function _search_callback( $plugin, $plugin_file = '' ) {
 		global $s;
 
-		$term = urldecode( $s );
+		// Lowercase the term so the search stays case-insensitive.
+		$term = strtolower( urldecode( $s ) );
 
 		/*
 		 * Search the original (untranslated) plugin data as well as the translated
@@ -407,7 +408,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 
 		foreach ( $plugin_data_sets as $plugin_data ) {
 			foreach ( $plugin_data as $value ) {
-				if ( is_string( $value ) && false !== stripos( strip_tags( $value ), $term ) ) {
+				if ( is_string( $value ) && str_contains( strtolower( strip_tags( $value ) ), $term ) ) {
 					return true;
 				}
 			}
