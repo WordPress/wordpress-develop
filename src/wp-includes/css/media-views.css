@@ -3014,6 +3014,14 @@ select#media-attachment-date-filters {
 	}
 }
 
+@media only screen and (max-width: 565px) {
+	label[for="media-attachment-filters"],
+	label[for="media-attachment-date-filters"],
+	label[for="media-search-input"] {
+		margin-bottom: 8px;
+	}
+}
+
 /**
  * HiDPI Displays
  */
