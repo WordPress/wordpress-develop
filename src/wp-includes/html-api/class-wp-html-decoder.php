@@ -398,9 +398,9 @@ class WP_HTML_Decoder {
 		 *
 		 *     <a href="/?random&degree&gt=0&lt=360&not=90">
 		 *
-		 * These special rules preserve the literal attribute value:
-		 * `/?random&degree&gt=0&lt=360&not=90`. Without them, the value would be decoded
-		 * as `/?random°ree>=0<=360¬=90`, likely not the intended value.
+		 * The literal attribute value `/?random&degree&gt=0&lt=360&not=90` is preserved
+		 * by the special handling. Otherwise, the value would decode to
+		 * `/?random°ree>=0<=360¬=90`, which is unlikely to be the author's intent.
 		 *
 		 * (Authors should not rely on this. Escaping the example as
 		 * `/?random&amp;degree&amp;gt=0&amp;lt=360&amp;not=90` produces the intended
