@@ -202,18 +202,14 @@ class WP_HTML_Style_Attribute_Processor {
 			return false;
 		}
 
-		if ( '' === trim( substr( $this->style, 0, $declaration['leading_start'] ), self::WHITESPACE ) ) {
-			$remove_start = $declaration['leading_start'];
-			$remove_end   = $declaration['trailing_end'];
-		} else {
-			$remove_start = $declaration['leading_start'];
-			$remove_end   = $declaration['after'];
-		}
+		$remove_start = $this->get_offset_before_preceding_whitespace( $declaration['start'] );
+		$remove_end   = $this->get_offset_after_following_whitespace( $declaration['after'] );
+		$replacement  = ( $remove_start > 0 && $remove_end < strlen( $this->style ) ) ? ' ' : '';
 
 		$this->queue_lexical_update(
 			$remove_start,
 			$remove_end - $remove_start,
-			'',
+			$replacement,
 			$this->current_declaration
 		);
 
@@ -679,6 +675,36 @@ class WP_HTML_Style_Attribute_Processor {
 			WP_CSS_Token_Processor::TOKEN_WHITESPACE === $token['type'] ||
 			WP_CSS_Token_Processor::TOKEN_COMMENT === $token['type']
 		);
+	}
+
+	/**
+	 * Gets the byte offset before contiguous whitespace ending at an offset.
+	 *
+	 * @param int $offset Byte offset.
+	 * @return int Offset before preceding whitespace.
+	 */
+	private function get_offset_before_preceding_whitespace( int $offset ): int {
+		while ( $offset > 0 && false !== strpos( self::WHITESPACE, $this->style[ $offset - 1 ] ) ) {
+			--$offset;
+		}
+
+		return $offset;
+	}
+
+	/**
+	 * Gets the byte offset after contiguous whitespace beginning at an offset.
+	 *
+	 * @param int $offset Byte offset.
+	 * @return int Offset after following whitespace.
+	 */
+	private function get_offset_after_following_whitespace( int $offset ): int {
+		$length = strlen( $this->style );
+
+		while ( $offset < $length && false !== strpos( self::WHITESPACE, $this->style[ $offset ] ) ) {
+			++$offset;
+		}
+
+		return $offset;
 	}
 
 	/**

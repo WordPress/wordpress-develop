@@ -184,6 +184,30 @@ class Tests_HtmlApi_WpHtmlStyleAttributeProcessor extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @covers ::remove_declaration
+	 * @covers ::get_updated_style
+	 */
+	public function test_remove_declaration_preserves_surrounding_comments() {
+		$processor = new WP_HTML_Style_Attribute_Processor( '/*keep*/ color: red; background: white;' );
+
+		$this->assertTrue( $processor->next_declaration( 'color' ) );
+		$this->assertTrue( $processor->remove_declaration() );
+		$this->assertSame( '/*keep*/ background: white;', $processor->get_updated_style() );
+
+		$processor = new WP_HTML_Style_Attribute_Processor( 'color: red; /*keep*/ background: white;' );
+
+		$this->assertTrue( $processor->next_declaration( 'color' ) );
+		$this->assertTrue( $processor->remove_declaration() );
+		$this->assertSame( '/*keep*/ background: white;', $processor->get_updated_style() );
+
+		$processor = new WP_HTML_Style_Attribute_Processor( 'color: red; /*keep*/ background: white;' );
+
+		$this->assertTrue( $processor->next_declaration( 'background' ) );
+		$this->assertTrue( $processor->remove_declaration() );
+		$this->assertSame( 'color: red; /*keep*/', $processor->get_updated_style() );
+	}
+
+	/**
 	 * @covers ::append_declaration
 	 * @covers ::get_updated_style
 	 */
