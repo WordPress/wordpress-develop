@@ -3,7 +3,7 @@
 declare( strict_types=1 );
 
 /**
- * Tests dispatching the core/content ability through the Abilities REST run endpoint.
+ * Tests dispatching the core/read-content ability through the Abilities REST run endpoint.
  *
  * @covers WP_Content_Abilities
  *
@@ -34,11 +34,11 @@ class Tests_REST_API_WpRestAbilitiesContentController extends WP_UnitTestCase {
 	protected static $subscriber_id;
 
 	/**
-	 * The run route for the core/content ability.
+	 * The run route for the core/read-content ability.
 	 *
 	 * @var string
 	 */
-	const RUN_ROUTE = '/wp-abilities/v1/abilities/core/content/run';
+	const RUN_ROUTE = '/wp-abilities/v1/abilities/core/read-content/run';
 
 	/**
 	 * Sets up users and registers the core abilities.
