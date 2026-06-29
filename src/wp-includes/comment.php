@@ -4328,7 +4328,7 @@ function wp_strip_inline_note_markers( $block_content ) {
 		/**
 		 * Removes the current token, keeping any text it wraps.
 		 */
-		public function remove_token() {
+		public function remove_token(): void {
 			// Always called after next_tag() returned true, so the bookmark is set.
 			$this->set_bookmark( 'here' );
 			$span = $this->bookmarks['here'];

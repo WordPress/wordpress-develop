@@ -18,7 +18,7 @@ class Tests_Comment_StripInlineNoteMarkers extends WP_UnitTestCase {
 	/**
 	 * @ticket 65482
 	 */
-	public function test_strip_unwraps_marker_from_mark() {
+	public function test_strip_unwraps_marker_from_mark(): void {
 		$html     = '<p>Hello <mark class="wp-note" data-id="7">marked</mark> world</p>';
 		$stripped = wp_strip_inline_note_markers( $html );
 
@@ -28,7 +28,7 @@ class Tests_Comment_StripInlineNoteMarkers extends WP_UnitTestCase {
 	/**
 	 * @ticket 65482
 	 */
-	public function test_strip_handles_multiple_markers_in_one_block() {
+	public function test_strip_handles_multiple_markers_in_one_block(): void {
 		$html     = '<p><mark class="wp-note" data-id="1">a</mark> and <mark class="wp-note" data-id="2">b</mark></p>';
 		$stripped = wp_strip_inline_note_markers( $html );
 
@@ -38,7 +38,7 @@ class Tests_Comment_StripInlineNoteMarkers extends WP_UnitTestCase {
 	/**
 	 * @ticket 65482
 	 */
-	public function test_strip_passes_through_block_content_without_markers() {
+	public function test_strip_passes_through_block_content_without_markers(): void {
 		$html     = '<p>Plain text with no notes here.</p>';
 		$stripped = wp_strip_inline_note_markers( $html );
 
@@ -48,7 +48,7 @@ class Tests_Comment_StripInlineNoteMarkers extends WP_UnitTestCase {
 	/**
 	 * @ticket 65482
 	 */
-	public function test_strip_keeps_other_classes_when_removing_wp_note() {
+	public function test_strip_keeps_other_classes_when_removing_wp_note(): void {
 		// The whole wrapper is removed, so any companion classes go with it.
 		$html     = '<p><mark class="custom wp-note other" data-id="3">x</mark></p>';
 		$stripped = wp_strip_inline_note_markers( $html );
@@ -59,7 +59,7 @@ class Tests_Comment_StripInlineNoteMarkers extends WP_UnitTestCase {
 	/**
 	 * @ticket 65482
 	 */
-	public function test_strip_leaves_unrelated_marks_untouched() {
+	public function test_strip_leaves_unrelated_marks_untouched(): void {
 		// A user highlight (`core/text-color`) serializes as a plain `<mark>` and
 		// must survive untouched.
 		$html     = '<p><mark style="background-color:#ff0">keep me</mark></p>';
@@ -71,7 +71,7 @@ class Tests_Comment_StripInlineNoteMarkers extends WP_UnitTestCase {
 	/**
 	 * @ticket 65482
 	 */
-	public function test_strip_does_not_match_partial_class_names() {
+	public function test_strip_does_not_match_partial_class_names(): void {
 		// `wp-note-foo` is a different class and must not be treated as a marker;
 		// a regex word boundary would incorrectly match it.
 		$html     = '<p><mark class="wp-note-foo">keep me</mark></p>';
@@ -83,7 +83,7 @@ class Tests_Comment_StripInlineNoteMarkers extends WP_UnitTestCase {
 	/**
 	 * @ticket 65482
 	 */
-	public function test_strip_preserves_user_mark_attributes_next_to_note() {
+	public function test_strip_preserves_user_mark_attributes_next_to_note(): void {
 		// A user/plugin `<mark>` with several attributes sitting beside a note
 		// marker must be returned byte-for-byte; only the `wp-note` wrapper goes.
 		$html     = '<p><mark class="highlight" style="background-color:#ff0" data-id="99" title="kept">user</mark> and <mark class="wp-note" data-id="4">noted</mark></p>';
@@ -95,7 +95,7 @@ class Tests_Comment_StripInlineNoteMarkers extends WP_UnitTestCase {
 	/**
 	 * @ticket 65482
 	 */
-	public function test_strip_preserves_nested_formatting() {
+	public function test_strip_preserves_nested_formatting(): void {
 		// A note wrapping already-formatted text (e.g. coloured text) serializes
 		// with nested inline elements. The wrapper is removed while the inner
 		// markup is preserved intact.
@@ -108,7 +108,7 @@ class Tests_Comment_StripInlineNoteMarkers extends WP_UnitTestCase {
 	/**
 	 * @ticket 65482
 	 */
-	public function test_strip_unwraps_note_but_keeps_inner_highlight_mark() {
+	public function test_strip_unwraps_note_but_keeps_inner_highlight_mark(): void {
 		// A note wrapping a user highlight nests `<mark>` inside `<mark>`. Only the
 		// note wrapper is removed; the inner highlight `<mark>` is preserved, and
 		// the closer pairing must not unbalance.
@@ -121,7 +121,7 @@ class Tests_Comment_StripInlineNoteMarkers extends WP_UnitTestCase {
 	/**
 	 * @ticket 65482
 	 */
-	public function test_strip_handles_overlapping_nested_note_markers() {
+	public function test_strip_handles_overlapping_nested_note_markers(): void {
 		// Two notes anchored on overlapping text serialize as nested `<mark>`s.
 		// Both wrappers are removed and the text survives.
 		$html     = '<p><mark class="wp-note" data-id="1">a<mark class="wp-note" data-id="2">b</mark>c</mark></p>';
@@ -133,7 +133,7 @@ class Tests_Comment_StripInlineNoteMarkers extends WP_UnitTestCase {
 	/**
 	 * @ticket 65482
 	 */
-	public function test_strip_ignores_mark_like_text_inside_a_comment() {
+	public function test_strip_ignores_mark_like_text_inside_a_comment(): void {
 		// A `</mark>` sequence inside an HTML comment is text, not a tag. Walking
 		// the parsed token stream ignores it; a raw regex over the string would
 		// mistake it for the note's closer, unbalance the pairing, and corrupt
@@ -150,7 +150,7 @@ class Tests_Comment_StripInlineNoteMarkers extends WP_UnitTestCase {
 	 *
 	 * @ticket 65482
 	 */
-	public function test_strip_unwraps_unclosed_note_marker() {
+	public function test_strip_unwraps_unclosed_note_marker(): void {
 		$html     = '<p><mark class="wp-note" data-id="1">a';
 		$stripped = wp_strip_inline_note_markers( $html );
 
@@ -163,7 +163,7 @@ class Tests_Comment_StripInlineNoteMarkers extends WP_UnitTestCase {
 	 *
 	 * @ticket 65482
 	 */
-	public function test_strip_leaves_stray_mark_closer_untouched() {
+	public function test_strip_leaves_stray_mark_closer_untouched(): void {
 		$html     = '<p>a</mark>b</p>';
 		$stripped = wp_strip_inline_note_markers( $html );
 
@@ -178,7 +178,7 @@ class Tests_Comment_StripInlineNoteMarkers extends WP_UnitTestCase {
 	 *
 	 * @ticket 65482
 	 */
-	public function test_strip_unwraps_note_marker_with_improper_nesting() {
+	public function test_strip_unwraps_note_marker_with_improper_nesting(): void {
 		$html     = '<p><mark class="wp-note" data-id="1">a<i>b</mark>c</i></p>';
 		$stripped = wp_strip_inline_note_markers( $html );
 
@@ -188,7 +188,7 @@ class Tests_Comment_StripInlineNoteMarkers extends WP_UnitTestCase {
 	/**
 	 * @ticket 65482
 	 */
-	public function test_strip_filter_is_registered_on_render_block() {
+	public function test_strip_filter_is_registered_on_render_block(): void {
 		// Guards against future hook rewiring that would silently leave
 		// inline-note markers in rendered output.
 		$this->assertNotFalse(
