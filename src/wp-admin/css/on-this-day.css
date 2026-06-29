@@ -1,95 +1,29 @@
 /* =============================================================================
    On This Day dashboard widget
-   =============================================================================
-   Organised as:
-     1. Design tokens (custom properties on the widget root)
-     2. Postbox chrome (#wp_dashboard_on_this_day)
-     3. Widget title date pill (`.wp-on-this-day-title::after`)
-     4. Post list / carousel
-     5. Post row (image, title, excerpt, date, actions)
-     6. Empty state
-     7. Adaptive rules
    ============================================================================= */
 
-/* -----------------------------------------------------------------------------
-   1. Design tokens
-
-   Scoped to the postbox so the title spans (rendered in `.hndle`, outside the
-   `.wp-on-this-day-widget` wrapper) can reference the same variables as the body.
-
-   Accent: `--wp-admin-theme-color*` are the only color custom properties core
-   exposes at runtime (see src/wp-admin/css/colors/_tokens.scss), so the widget
-   follows the user's selected admin color scheme (Blue, Modern, Coffee, etc.).
-   Fallback values match the classic "Fresh" scheme.
-   ----------------------------------------------------------------------------- */
 #wp_dashboard_on_this_day {
-	/* Accent - theme-color aware, follows the user's admin color scheme. */
-	--wp-otd-widget-accent:        var(--wp-admin-theme-color, #2271b1);
-	--wp-otd-widget-accent-dark:   var(--wp-admin-theme-color-darker-10, #135e96);
-	--wp-otd-widget-accent-rgb:    var(--wp-admin-theme-color--rgb, 34, 113, 177);
-	--wp-otd-widget-accent-8:      rgba(var(--wp-otd-widget-accent-rgb), 0.08);
-	--wp-otd-widget-accent-15:     rgba(var(--wp-otd-widget-accent-rgb), 0.15);
-
-	/* Neutrals - classic wp-admin palette. */
-	--wp-otd-widget-ink:      #1d2327;
-	--wp-otd-widget-text:     #2c3338;
-	--wp-otd-widget-muted:    #646970;
-	--wp-otd-widget-subtle:   #8c8f94;
-	--wp-otd-widget-line:     #dcdcde;
-
-	/* Shape + motion. */
-	--wp-otd-widget-pill:     9999px;
-	--wp-otd-widget-ease:     0.15s ease;
-
-	/* To honour the postbox border-radius. */
-	overflow: hidden;
+	--wp-otd-widget-accent-rgb:  var(--wp-admin-theme-color--rgb, 34, 113, 177);
+	--wp-otd-widget-muted:       #646970;
+	--wp-otd-widget-pill:        9999px;
+	--wp-otd-widget-accent-dark: var(--wp-admin-theme-color-darker-10, #135e96);
+	--wp-otd-widget-accent-8:    rgba(var(--wp-otd-widget-accent-rgb), 0.08);
 }
 
-/* -----------------------------------------------------------------------------
-   2. Postbox chrome
-   ----------------------------------------------------------------------------- */
-#wp_dashboard_on_this_day:not(.closed) .inside {
+#wp_dashboard_on_this_day .wp-on-this-day-year {
 	margin: 0;
 	padding: 0;
-	max-height: 560px;
-	display: flex;
-	flex-direction: column;
-	overflow: hidden;
 }
 
-#wp_dashboard_on_this_day .hndle {
-	gap: 0;
+#wp_dashboard_on_this_day .wp-on-this-day-year + .wp-on-this-day-year {
+	margin-top: 16px;
 }
 
-#wp_dashboard_on_this_day .wp-on-this-day-widget {
-	display: flex;
-	flex-direction: column;
-	flex: 1 1 auto;
-	min-height: 0;
-	font-size: 13px;
-	color: var(--wp-otd-widget-ink);
-	line-height: 1.5;
-}
-
-/* Scrollable content area keeps the post list or empty state contained. */
-#wp_dashboard_on_this_day .wp-on-this-day-scroll {
-	flex: 1 1 auto;
-	min-height: 0;
-	overflow: auto;
-}
-
-/* -----------------------------------------------------------------------------
-   3. Widget title date pill
-
-   The widget is registered with a plain-text title ("On This Day") so that
-   Screen Options and box-order preferences stay clean. The current date
-   window label is rendered from `data-wp-otd-window-label` on the title span.
-   ----------------------------------------------------------------------------- */
-#wp_dashboard_on_this_day .wp-on-this-day-title {
-	display: flex;
-	justify-content: space-between;
-	align-items: center;
-	width: 100%;
+#wp_dashboard_on_this_day .wp-on-this-day-year-heading {
+	margin: 0 0 8px;
+	font-size: 14px;
+	font-weight: 600;
+	line-height: 1.4;
 }
 
 #wp_dashboard_on_this_day .wp-on-this-day-title::after {
@@ -108,266 +42,12 @@
 	vertical-align: 1px;
 }
 
-/* -----------------------------------------------------------------------------
-   4. Post list / carousel
-   ----------------------------------------------------------------------------- */
-#wp_dashboard_on_this_day .wp-on-this-day-timeline {
-	margin: 0;
-	padding: 12px 20px 16px;
-	list-style: none;
+#wp_dashboard_on_this_day .wp-on-this-day-posts {
+	margin: 0 0 0 18px;
+	padding: 0;
+	list-style: disc;
 }
 
-#wp_dashboard_on_this_day .wp-on-this-day-timeline.wp-on-this-day-is-carousel {
-	overflow: hidden;
-}
-
-#wp_dashboard_on_this_day .wp-on-this-day-timeline.wp-on-this-day-is-carousel .wp-on-this-day-post {
-	box-sizing: border-box;
-	display: none;
-	border-bottom: 0;
-	margin-bottom: 0;
-	padding-bottom: 0;
-}
-
-#wp_dashboard_on_this_day .wp-on-this-day-timeline.wp-on-this-day-is-carousel
-	.wp-on-this-day-post.wp-on-this-day-is-active {
-	display: block;
-	animation: wp-otd-widget-slide-forward 0.12s ease-out forwards;
-}
-
-@keyframes wp-otd-widget-slide-forward {
-	from {
-		transform: scale(1.01);
-	}
-}
-
-#wp_dashboard_on_this_day .wp-on-this-day-carousel-pagination {
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	gap: 10px;
-	margin: 4px 20px 16px;
-	font-size: 12px;
-	color: var(--wp-otd-widget-subtle);
-	line-height: 1;
-}
-
-#wp_dashboard_on_this_day .wp-on-this-day-carousel-prev,
-#wp_dashboard_on_this_day .wp-on-this-day-carousel-next {
-	background: transparent;
-	border: 0;
-	padding: 4px 6px;
-	font-size: 14px;
-	line-height: 1;
+#wp_dashboard_on_this_day .wp-on-this-day-post-author {
 	color: var(--wp-otd-widget-muted);
-	cursor: pointer;
-	border-radius: 3px;
-	transition: color var(--wp-otd-widget-ease), background var(--wp-otd-widget-ease);
-}
-
-#wp_dashboard_on_this_day .wp-on-this-day-carousel-prev:hover,
-#wp_dashboard_on_this_day .wp-on-this-day-carousel-prev:focus,
-#wp_dashboard_on_this_day .wp-on-this-day-carousel-next:hover,
-#wp_dashboard_on_this_day .wp-on-this-day-carousel-next:focus {
-	color: var(--wp-otd-widget-accent-dark);
-	background: var(--wp-otd-widget-accent-8);
-	outline: none;
-}
-
-#wp_dashboard_on_this_day .wp-on-this-day-carousel-counter {
-	font-variant-numeric: tabular-nums;
-}
-
-/* -----------------------------------------------------------------------------
-   5. Post row
-   ----------------------------------------------------------------------------- */
-#wp_dashboard_on_this_day .wp-on-this-day-post {
-	display: block;
-	padding: 4px 0 18px;
-	border-bottom: 1px solid var(--wp-otd-widget-line);
-	margin-bottom: 12px;
-}
-
-#wp_dashboard_on_this_day .wp-on-this-day-post:last-child {
-	border-bottom: 0;
-	margin-bottom: 0;
-}
-
-#wp_dashboard_on_this_day .wp-on-this-day-post-row {
-	display: flex;
-	flex-direction: row;
-	align-items: flex-start;
-	gap: 14px;
-	min-height: 110px;
-}
-
-#wp_dashboard_on_this_day .wp-on-this-day-post-content {
-	flex: 1 1 0;
-	min-width: 0;
-}
-
-#wp_dashboard_on_this_day .wp-on-this-day-post-when {
-	display: flex;
-	flex-direction: row;
-	flex-wrap: wrap;
-	align-items: baseline;
-	gap: 8px;
-	margin: 0 0 16px;
-	line-height: 1.4;
-}
-
-#wp_dashboard_on_this_day .wp-on-this-day-post-years-ago {
-	font-size: 13px;
-	font-weight: 600;
-	color: var(--wp-otd-widget-ink);
-}
-
-#wp_dashboard_on_this_day .wp-on-this-day-post-time {
-	font-size: 12px;
-	color: var(--wp-otd-widget-muted);
-}
-
-#wp_dashboard_on_this_day .wp-on-this-day-post-image {
-	flex: 0 0 110px;
-	width: 110px;
-	margin: 0;
-	border-radius: 6px;
-	overflow: hidden;
-	background: var(--wp-otd-widget-line);
-	aspect-ratio: 1 / 1;
-}
-
-#wp_dashboard_on_this_day .wp-on-this-day-post-image a {
-	display: block;
-	width: 100%;
-	height: 100%;
-	box-shadow: none;
-}
-
-#wp_dashboard_on_this_day .wp-on-this-day-post-image img {
-	display: block;
-	width: 100%;
-	height: 100%;
-	object-fit: cover;
-	transition: transform var(--wp-otd-widget-ease);
-}
-
-#wp_dashboard_on_this_day .wp-on-this-day-post-image a:hover img,
-#wp_dashboard_on_this_day .wp-on-this-day-post-image a:focus img {
-	transform: scale(1.02);
-}
-
-#wp_dashboard_on_this_day .wp-on-this-day-post-title {
-	margin: 0 0 2px;
-	font-size: 13px;
-	font-weight: 600;
-	line-height: 1.4;
-}
-
-#wp_dashboard_on_this_day .wp-on-this-day-post-title a {
-	color: var(--wp-otd-widget-ink);
-	text-decoration: none;
-	box-shadow: none;
-}
-
-#wp_dashboard_on_this_day .wp-on-this-day-post-title a:hover,
-#wp_dashboard_on_this_day .wp-on-this-day-post-title a:focus {
-	color: var(--wp-otd-widget-accent);
-}
-
-#wp_dashboard_on_this_day .wp-on-this-day-post-excerpt {
-	margin: 0 0 6px;
-	color: var(--wp-otd-widget-text);
-	line-height: 1.5;
-	display: -webkit-box;
-	-webkit-box-orient: vertical;
-	-webkit-line-clamp: 2;
-	line-clamp: 2;
-	overflow: hidden;
-	text-overflow: ellipsis;
-	overflow-wrap: break-word;
-	max-height: calc(1.5em * 2);
-}
-
-#wp_dashboard_on_this_day .wp-on-this-day-post-actions {
-	display: flex;
-	flex-wrap: wrap;
-	gap: 8px;
-	margin-top: 10px;
-	align-items: center;
-}
-
-#wp_dashboard_on_this_day .wp-on-this-day-post-share {
-	background: transparent;
-	border: 0;
-	padding: 0 4px;
-	cursor: pointer;
-	font: inherit;
-	color: var(--wp-otd-widget-accent);
-	text-decoration: underline;
-	transition: color var(--wp-otd-widget-ease);
-}
-
-#wp_dashboard_on_this_day .wp-on-this-day-post-share:hover,
-#wp_dashboard_on_this_day .wp-on-this-day-post-share:focus {
-	color: var(--wp-otd-widget-accent-dark);
-}
-
-#wp_dashboard_on_this_day .wp-on-this-day-post-share.wp-on-this-day-is-copied {
-	color: var(--wp-otd-widget-accent-dark);
-	text-decoration: none;
-	font-weight: 600;
-}
-
-/* -----------------------------------------------------------------------------
-   6. Empty state
-   ----------------------------------------------------------------------------- */
-#wp_dashboard_on_this_day .wp-on-this-day-empty {
-	box-sizing: border-box;
-	display: flex;
-	flex-direction: column;
-	align-items: flex-start;
-	justify-content: flex-end;
-	padding: 24px;
-	text-align: left;
-}
-
-#wp_dashboard_on_this_day .wp-on-this-day-empty-icon {
-	width: 24px;
-	height: 24px;
-	margin: 0 0 28px;
-	color: #757575;
-}
-
-#wp_dashboard_on_this_day .wp-on-this-day-empty-icon svg {
-	display: block;
-	width: 24px;
-	height: 24px;
-	fill: currentColor;
-}
-
-#wp_dashboard_on_this_day .wp-on-this-day-empty-text {
-	margin: 0 0 32px;
-	color: var(--wp-otd-widget-ink);
-	font-size: 14px;
-	line-height: 1.5;
-}
-
-#wp_dashboard_on_this_day .wp-on-this-day-empty-cta {
-	margin: 0;
-}
-
-/* -----------------------------------------------------------------------------
-   7. Adaptive rules
-   ----------------------------------------------------------------------------- */
-@media (prefers-reduced-motion: reduce) {
-	#wp_dashboard_on_this_day .wp-on-this-day-timeline.wp-on-this-day-is-carousel
-		.wp-on-this-day-post.wp-on-this-day-is-active {
-		animation: none;
-	}
-
-	#wp_dashboard_on_this_day .wp-on-this-day-post-title a,
-	#wp_dashboard_on_this_day .wp-on-this-day-post-action {
-		transition: none;
-	}
 }
