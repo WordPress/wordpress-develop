@@ -37,7 +37,11 @@ class Tests_Formatting_IsEmail extends WP_UnitTestCase {
 			'ace@204.32.222.14',
 			'kevin@many.subdomains.make.a.happy.man.edu',
 			'a@b.co',
+			'a@b.c',
 			'bill+ted@example.com',
+			'info@grå.org',
+			'grå@grå.org',
+			"gr\u{0061}\u{030a}blå@grå.org",
 			'..@example.com',
 		);
 
@@ -74,10 +78,7 @@ class Tests_Formatting_IsEmail extends WP_UnitTestCase {
 			"sif i'd give u it, spamer!1",
 			'com.exampleNOSPAMbob',
 			'bob@your mom',
-			'a@b.c',
 			'" "@b.c',
-			'"@"@b.c',
-			'a@route.org@b.c',
 			'h(aj@couc.ou', // bad comment.
 			'hi@',
 			'hi@hi@couc.ou', // double @.
@@ -122,7 +123,60 @@ class Tests_Formatting_IsEmail extends WP_UnitTestCase {
 		);
 
 		foreach ( $invalid_emails as $email ) {
-			yield $email => array( $email );
+			yield self::invalid_utf8_as_ascii( $email ) => array( $email );
 		}
+	}
+
+	/**
+	 * Transforms invalid byte sequences in UTF-8 into representations of
+	 * each byte value, according to the maximal subpart rule.
+	 *
+	 * Example:
+	 *
+	 *     // For valid UTF-8 the output is the input.
+	 *     'test' === invalid_utf8_as_ascii( 'test' );
+	 *
+	 *     // Invalid bytes are represented with their hex value.
+	 *     'a(0x80)b' === invalid_utf8_as_ascii( "a\x80b" );
+	 *
+	 *     // Invalid byte sequences form maximal subparts.
+	 *     '(0xC2)(0xEF 0xBF)' === invalid_utf8_as_ascii( "\xC2\xEF\xBF" );
+	 *
+	 * @param string $text
+	 * @return string
+	 */
+	private static function invalid_utf8_as_ascii( string $text ): string {
+		$output        = '';
+		$at            = 0;
+		$was_at        = 0;
+		$end           = strlen( $text );
+		$invalid_bytes = 0;
+
+		while ( $at < $end ) {
+			if ( 0 === _wp_scan_utf8( $text, $at, $invalid_bytes ) && 0 === $invalid_bytes ) {
+				break;
+			}
+
+			if ( $at > $was_at ) {
+				$output .= substr( $text, $was_at, $at - $was_at );
+			}
+
+			if ( $invalid_bytes > 0 ) {
+				$output .= '(';
+
+				for ( $i = 0; $i < $invalid_bytes; $i++ ) {
+					$space   = $i > 0 ? ' ' : '';
+					$as_hex  = bin2hex( $text[ $at + $i ] );
+					$output .= "{$space}0x{$as_hex}";
+				}
+
+				$output .= ')';
+			}
+
+			$at    += $invalid_bytes;
+			$was_at = $at;
+		}
+
+		return $output;
 	}
 }
