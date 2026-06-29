@@ -78,11 +78,10 @@ class Bulk_Plugin_Upgrader_Skin extends Bulk_Upgrader_Skin {
 			),
 			'updates_page' => sprintf(
 				'<a href="%s" target="_parent">%s</a>',
-				self_admin_url( 'update-core.php' ),
+				self_admin_url( 'update-core.php?force-check=1' ),
 				__( 'Go to WordPress Updates page' )
 			),
 		);
-
 		if ( ! current_user_can( 'activate_plugins' ) ) {
 			unset( $update_actions['plugins_page'] );
 		}
