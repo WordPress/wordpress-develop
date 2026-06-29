@@ -44,6 +44,13 @@ class Tests_HtmlApi_WpHtmlTagProcessor_Select extends WP_UnitTestCase {
 		return array(
 			'simple type'                         => array( '<div match><div match><span>', 'div', 2 ),
 			'any type'                            => array( '<div match><span match>', '*', 2 ),
+			'escaped * type selector'             => array( '<p><div>', '\\*', 0 ),
+			'escaped lowercase hex * type'        => array( '<p><div>', '\\2a', 0 ),
+			'escaped uppercase hex * type'        => array( '<p><div>', '\\2A', 0 ),
+			'escaped padded hex * type'           => array( '<p><div>', '\\00002A', 0 ),
+			'escaped p type selector'             => array( '<p match><div>', '\\p', 1 ),
+			'escaped hex p type selector'         => array( '<p match><div>', '\\70', 1 ),
+			'escaped padded hex p type'           => array( '<p match><div>', '\\000070', 1 ),
 			'simple class'                        => array( '<div><div class="x" match><span><span class="x" match>', '.x', 2 ),
 			'simple id'                           => array( '<div><div id="x" match><span id="x" match>', '#x', 2 ),
 

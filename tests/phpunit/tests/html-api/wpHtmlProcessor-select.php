@@ -45,6 +45,13 @@ class Tests_HtmlApi_WpHtmlProcessor_Select extends WP_UnitTestCase {
 	public static function data_selectors(): array {
 		return array(
 			'any'                            => array( '<html match><head match><meta match><body match><p match>', '*', 5 ),
+			'escaped * type selector'        => array( '<!DOCTYPE html><p><div>', '\\*', 0 ),
+			'escaped lowercase hex * type'   => array( '<!DOCTYPE html><p><div>', '\\2a', 0 ),
+			'escaped uppercase hex * type'   => array( '<!DOCTYPE html><p><div>', '\\2A', 0 ),
+			'escaped padded hex * type'      => array( '<!DOCTYPE html><p><div>', '\\00002A', 0 ),
+			'escaped p type selector'        => array( '<!DOCTYPE html><p match><div>', '\\p', 1 ),
+			'escaped hex p type selector'    => array( '<!DOCTYPE html><p match><div>', '\\70', 1 ),
+			'escaped padded hex p type'      => array( '<!DOCTYPE html><p match><div>', '\\000070', 1 ),
 			'quirks mode ID'                 => array( '<p id="id" match><p id="ID" match>In quirks mode, ID matching is case-insensitive.', '#id', 2 ),
 			'quirks mode class'              => array( '<p class="c" match><p class="C" match>In quirks mode, class matching is case-insensitive.', '.c', 2 ),
 			'no-quirks mode ID'              => array( '<!DOCTYPE html><p id="id" match><p id="ID" match>In no-quirks mode, ID matching is case-sensitive.', '#id', 1 ),

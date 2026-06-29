@@ -18,19 +18,28 @@
  */
 final class WP_CSS_Type_Selector extends WP_CSS_Selector_Parser_Matcher {
 	/**
-	 * The element type (tag name) to match or '*' to match any element.
+	 * The element type (tag name) to match.
 	 *
 	 * @var string
 	 */
 	public $type;
 
 	/**
+	 * Whether the selector is the universal selector.
+	 *
+	 * @var bool
+	 */
+	private $is_universal;
+
+	/**
 	 * Constructor.
 	 *
-	 * @param string $type The element type (tag name) to match or '*' to match any element.
+	 * @param string $type         The element type (tag name) to match.
+	 * @param bool   $is_universal Whether the selector is the universal selector.
 	 */
-	private function __construct( string $type ) {
-		$this->type = $type;
+	private function __construct( string $type, bool $is_universal = false ) {
+		$this->type         = $type;
+		$this->is_universal = $is_universal;
 	}
 
 	/**
@@ -54,7 +63,7 @@ final class WP_CSS_Type_Selector extends WP_CSS_Selector_Parser_Matcher {
 	 * @return bool
 	 */
 	public function matches_tag( string $tag_name ): bool {
-		if ( '*' === $this->type ) {
+		if ( $this->is_universal ) {
 			return true;
 		}
 		return 0 === strcasecmp( $tag_name, $this->type );
@@ -77,7 +86,7 @@ final class WP_CSS_Type_Selector extends WP_CSS_Selector_Parser_Matcher {
 
 		if ( '*' === $input[ $offset ] ) {
 			++$offset;
-			return new WP_CSS_Type_Selector( '*' );
+			return new WP_CSS_Type_Selector( '*', true );
 		}
 
 		$result = self::parse_ident( $input, $offset );

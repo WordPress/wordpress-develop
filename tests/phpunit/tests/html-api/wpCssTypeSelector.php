@@ -30,6 +30,47 @@ class Tests_HtmlApi_WpCssTypeSelector extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 62653
+	 *
+	 * @dataProvider data_escaped_asterisk_type_selectors
+	 */
+	public function test_escaped_asterisk_is_type_selector_not_universal( string $input ) {
+		$offset = 0;
+		$result = WP_CSS_Type_Selector::parse( $input, $offset );
+
+		$this->assertInstanceOf( WP_CSS_Type_Selector::class, $result );
+		$this->assertSame( '*', $result->type );
+		$this->assertFalse( $result->matches_tag( 'DIV' ) );
+		$this->assertSame( '', substr( $input, $offset ) );
+	}
+
+	/**
+	 * @ticket 62653
+	 */
+	public function test_literal_asterisk_is_universal_selector() {
+		$offset = 0;
+		$result = WP_CSS_Type_Selector::parse( '*', $offset );
+
+		$this->assertInstanceOf( WP_CSS_Type_Selector::class, $result );
+		$this->assertSame( '*', $result->type );
+		$this->assertTrue( $result->matches_tag( 'DIV' ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public static function data_escaped_asterisk_type_selectors(): array {
+		return array(
+			'identity escape'       => array( '\\*' ),
+			'lowercase hex escape' => array( '\\2a' ),
+			'uppercase hex escape' => array( '\\2A' ),
+			'padded hex escape'    => array( '\\00002A' ),
+		);
+	}
+
+	/**
 	 * Data provider.
 	 *
 	 * @return array
