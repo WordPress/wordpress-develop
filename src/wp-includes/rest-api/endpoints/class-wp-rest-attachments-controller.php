@@ -2109,7 +2109,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	 *
 	 * A maximum of zero means the dimension is unconstrained.
 	 *
-	 * @since 7.0.0
+	 * @since 7.1.0
 	 *
 	 * @param int $value     The actual dimension in pixels.
 	 * @param int $max       The maximum allowed dimension in pixels. Zero means no constraint.
