@@ -454,10 +454,16 @@ class WP_Scripts extends WP_Dependencies {
 			 */
 			$filtered_src = apply_filters( 'script_loader_src', $src, $handle );
 
-			if (
+			if ( $script_data ) {
+				$this->do_concat = false;
+
+				// Have to print the so-far concatenated scripts right away to maintain the right order.
+				_print_scripts();
+				$this->reset();
+			} elseif (
 				is_string( $filtered_src )
 				&& $this->in_default_dir( $filtered_src )
-				&& ( $script_data || $before_script || $after_script || $translations_stop_concat || $this->is_delayed_strategy( $strategy ) )
+				&& ( $before_script || $after_script || $translations_stop_concat || $this->is_delayed_strategy( $strategy ) )
 			) {
 				$this->do_concat = false;
 
