@@ -714,12 +714,9 @@ form#tags-filter {
 }
 
 #post-status-select select {
-	max-width: 100%;
+	display: block;
+	margin-bottom: 0.7em;
 	width: 100%;
-}
-
-#post-status-select .post-status-actions {
-	margin: 0.7em 0 0;
 }
 
 #linksubmitdiv .inside, /* Old Link Manager back-compat. */
