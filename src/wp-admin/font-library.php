@@ -10,6 +10,14 @@
 /** WordPress Administration Bootstrap */
 require_once __DIR__ . '/admin.php';
 
+if ( ! wp_is_font_library_enabled() ) {
+	wp_die(
+		'<h1>' . __( 'Font Library is not available.' ) . '</h1>' .
+		'<p>' . __( 'The Font Library has been disabled on this site.' ) . '</p>',
+		403
+	);
+}
+
 if ( ! current_user_can( 'edit_theme_options' ) ) {
 	wp_die(
 		'<h1>' . __( 'You need a higher level of permission.' ) . '</h1>' .

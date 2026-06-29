@@ -110,6 +110,30 @@ function wp_unregister_font_collection( string $slug ) {
 }
 
 /**
+ * Determines whether the Font Library is enabled.
+ *
+ * The Font Library lets users with the `edit_theme_options` capability install
+ * and manage fonts from the admin interface. Returning false from the
+ * {@see 'wp_is_font_library_enabled'} filter removes the Font Library admin
+ * menu item and screen, which is useful for sites where fonts are managed by
+ * the theme and the feature is not needed in the interface.
+ *
+ * @since 7.1.0
+ *
+ * @return bool True if the Font Library is enabled, false otherwise.
+ */
+function wp_is_font_library_enabled() {
+	/**
+	 * Filters whether the Font Library is enabled.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @param bool $enabled Whether the Font Library is enabled. Default true.
+	 */
+	return (bool) apply_filters( 'wp_is_font_library_enabled', true );
+}
+
+/**
  * Retrieves font uploads directory information.
  *
  * Same as wp_font_dir() but "light weight" as it doesn't attempt to create the font uploads directory.
