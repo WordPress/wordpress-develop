@@ -290,14 +290,21 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		}
 
 		/*
-		 * Always allow HEIC/HEIF uploads through even if the server's image
-		 * editor doesn't support them. The client-side canvas fallback will
-		 * handle processing using the browser's native HEVC decoder.
+		 * Always allow still HEIC/HEIF uploads through even if the server's
+		 * image editor doesn't support them. The client-side canvas fallback
+		 * handles processing using the browser's native HEVC decoder.
+		 *
+		 * The '-sequence' variants (multi-frame Live Photos) are deliberately
+		 * excluded: neither the server nor the browser fallback can process
+		 * them yet, so they should fall through to the standard unsupported
+		 * mime-type error rather than be stored unprocessable.
 		 */
+		$still_heic_mime_types = array( 'image/heic', 'image/heif' );
+
 		if (
 			$prevent_unsupported_uploads &&
 			! empty( $files['file']['type'] ) &&
-			wp_is_heic_image_mime_type( $files['file']['type'] )
+			in_array( $files['file']['type'], $still_heic_mime_types, true )
 		) {
 			$prevent_unsupported_uploads = false;
 		}
