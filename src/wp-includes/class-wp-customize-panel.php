@@ -7,6 +7,11 @@
  * @since 4.0.0
  */
 
+// Don't load directly.
+if ( ! defined( 'ABSPATH' ) ) {
+	die( '-1' );
+}
+
 /**
  * Customize Panel class.
  *
@@ -346,16 +351,12 @@ class WP_Customize_Panel {
 	protected function render_template() {
 		?>
 		<li id="accordion-panel-{{ data.id }}" class="accordion-section control-section control-panel control-panel-{{ data.type }}">
-			<h3 class="accordion-section-title" tabindex="0">
-				{{ data.title }}
-				<span class="screen-reader-text">
-					<?php
-					/* translators: Hidden accessibility text. */
-					_e( 'Press return or enter to open this panel' );
-					?>
-				</span>
+			<h3 class="accordion-section-title">
+				<button type="button" class="accordion-trigger" aria-expanded="false" aria-controls="{{ data.id }}-content">
+					{{ data.title }}
+				</button>
 			</h3>
-			<ul class="accordion-sub-container control-panel-content"></ul>
+			<ul class="accordion-sub-container control-panel-content" id="{{ data.id }}-content"></ul>
 		</li>
 		<?php
 	}

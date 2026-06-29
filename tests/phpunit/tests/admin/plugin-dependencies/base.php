@@ -82,9 +82,13 @@ abstract class WP_PluginDependencies_UnitTestCase extends WP_UnitTestCase {
 			self::$reflected_members[ $property ] = new ReflectionProperty( self::$instance, $property );
 		}
 
-		self::$reflected_members[ $property ]->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			self::$reflected_members[ $property ]->setAccessible( true );
+		}
 		self::$reflected_members[ $property ]->setValue( self::$instance, $value );
-		self::$reflected_members[ $property ]->setAccessible( false );
+		if ( PHP_VERSION_ID < 80100 ) {
+			self::$reflected_members[ $property ]->setAccessible( false );
+		}
 	}
 
 	/**
@@ -98,9 +102,13 @@ abstract class WP_PluginDependencies_UnitTestCase extends WP_UnitTestCase {
 			self::$reflected_members[ $property ] = new ReflectionProperty( self::$instance, $property );
 		}
 
-		self::$reflected_members[ $property ]->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			self::$reflected_members[ $property ]->setAccessible( true );
+		}
 		$value = self::$reflected_members[ $property ]->getValue( self::$instance );
-		self::$reflected_members[ $property ]->setAccessible( false );
+		if ( PHP_VERSION_ID < 80100 ) {
+			self::$reflected_members[ $property ]->setAccessible( false );
+		}
 
 		return $value;
 	}
@@ -118,9 +126,13 @@ abstract class WP_PluginDependencies_UnitTestCase extends WP_UnitTestCase {
 			self::$reflected_members[ $method ] = new ReflectionMethod( self::$instance, $method );
 		}
 
-		self::$reflected_members[ $method ]->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			self::$reflected_members[ $method ]->setAccessible( true );
+		}
 		$value = self::$reflected_members[ $method ]->invokeArgs( self::$instance, $args );
-		self::$reflected_members[ $method ]->setAccessible( false );
+		if ( PHP_VERSION_ID < 80100 ) {
+			self::$reflected_members[ $method ]->setAccessible( false );
+		}
 
 		return $value;
 	}

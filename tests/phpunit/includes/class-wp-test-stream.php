@@ -57,7 +57,7 @@ class WP_Test_Stream {
 		$this->file   = $components['path'] ? $components['path'] : '/';
 
 		if ( empty( $this->bucket ) ) {
-			trigger_error( 'Cannot use an empty bucket name', E_USER_ERROR );
+			throw new Exception( 'Cannot use an empty bucket name' );
 		}
 
 		if ( ! isset( WP_Test_Stream::$data[ $this->bucket ] ) ) {

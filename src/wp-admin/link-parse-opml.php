@@ -55,9 +55,9 @@ function startElement( $parser, $tag_name, $attrs ) { // phpcs:ignore WordPress.
 		// Save the data away.
 		$names[]        = $name;
 		$urls[]         = $url;
-		$targets[]      = isset( $attrs['TARGET'] ) ? $attrs['TARGET'] : '';
-		$feeds[]        = isset( $attrs['XMLURL'] ) ? $attrs['XMLURL'] : '';
-		$descriptions[] = isset( $attrs['DESCRIPTION'] ) ? $attrs['DESCRIPTION'] : '';
+		$targets[]      = $attrs['TARGET'] ?? '';
+		$feeds[]        = $attrs['XMLURL'] ?? '';
+		$descriptions[] = $attrs['DESCRIPTION'] ?? '';
 	} // End if outline.
 }
 
@@ -96,6 +96,9 @@ if ( ! xml_parse( $xml_parser, $opml, true ) ) {
 	);
 }
 
-// Free up memory used by the XML parser.
-xml_parser_free( $xml_parser );
+if ( PHP_VERSION_ID < 80000 ) { // xml_parser_free() has no effect as of PHP 8.0.
+	// Free up memory used by the XML parser.
+	xml_parser_free( $xml_parser );
+}
+
 unset( $xml_parser );
