@@ -504,9 +504,12 @@ function wp_get_layout_style( $selector, $layout, $has_block_gap_support = false
 	$rules_group             = $options['rules_group'] ?? null;
 	$has_block_gap_override  = ! empty( $options['has_block_gap_override'] );
 	$should_output_block_gap = null === $viewport_overrides || $has_block_gap_override;
-	// Viewport styles only store changed fields. If a field is present with null,
-	// the user cleared a value inherited from the default viewport, so check
-	// whether the key exists rather than whether the value is truthy.
+
+	/*
+	 * Viewport styles only store changed fields. If a field is present with null,
+	 * the user cleared a value inherited from the default viewport, so check
+	 * whether the key exists rather than whether the value is truthy.
+	 */
 	$has_viewport_property_override = static function ( $property ) use ( $viewport_overrides ) {
 		return array_key_exists( $property, $viewport_overrides );
 	};
