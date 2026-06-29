@@ -250,6 +250,37 @@ class WP_Scripts extends WP_Dependencies {
 	}
 
 	/**
+	 * Prints data associated with a registered script.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @param string $handle The script's registered handle.
+	 */
+	private function print_script_data( $handle ) {
+		/**
+		 * Filters data associated with a given script.
+		 *
+		 * The dynamic portion of the hook name, `$handle`, refers to the script handle
+		 * that the data is associated with.
+		 *
+		 * @since 7.1.0
+		 *
+		 * @param array $data The data associated with the script.
+		 */
+		$data = apply_filters( "script_data_{$handle}", array() );
+
+		if ( is_array( $data ) && array() !== $data ) {
+			wp_print_inline_script_tag(
+				(string) wp_json_encode( $data ),
+				array(
+					'type' => 'application/json',
+					'id'   => "wp-script-data-{$handle}",
+				)
+			);
+		}
+	}
+
+	/**
 	 * Checks whether all dependents of a given handle are in the footer.
 	 *
 	 * If there are no dependents, this is considered the same as if all dependents were in the footer.
@@ -398,6 +429,7 @@ class WP_Scripts extends WP_Dependencies {
 			}
 		}
 
+		$this->print_script_data( $handle );
 		$this->print_extra_script( $handle );
 
 		// A single item may alias a set of items, by having dependencies, but no source.

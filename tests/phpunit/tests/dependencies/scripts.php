@@ -2661,6 +2661,27 @@ HTML;
 	}
 
 	/**
+	 * @ticket 58873
+	 */
+	public function test_script_data_filter_prints_data_before_localized_data() {
+		wp_enqueue_script( 'test-example', 'example.com', array(), null );
+		wp_localize_script( 'test-example', 'testExample', array( 'foo' => 'bar' ) );
+		add_filter(
+			'script_data_test-example',
+			static function ( $data ) {
+				$data['clientData'] = 'ok';
+				return $data;
+			}
+		);
+
+		$expected  = "<script type='application/json' id='wp-script-data-test-example'>\n{\"clientData\":\"ok\"}\n</script>\n";
+		$expected .= "<script id='test-example-js-extra'>\nvar testExample = {\"foo\":\"bar\"};\n//# sourceURL=test-example-js-extra\n</script>\n";
+		$expected .= "<script src='http://example.com' id='test-example-js'></script>\n";
+
+		$this->assertEqualHTML( $expected, get_echo( 'wp_print_scripts' ) );
+	}
+
+	/**
 	 * @ticket 14853
 	 */
 	public function test_wp_add_inline_script_before_with_concat() {
