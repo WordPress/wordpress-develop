@@ -2695,6 +2695,125 @@ function wp_migrate_old_typography_shape( $metadata ) {
 }
 
 /**
+ * Builds the date query for the On This Day Query Loop variation.
+ *
+ * @since 7.1.0
+ *
+ * @param DateTimeInterface|null $date Optional. Date to build the clause for. Default current date.
+ * @return array Date query clause.
+ */
+function _wp_get_on_this_day_query_date_query( $date = null ) {
+	if ( null === $date ) {
+		$date = current_datetime();
+	}
+
+	$year       = (int) $date->format( 'Y' );
+	$month      = (int) $date->format( 'm' );
+	$day        = (int) $date->format( 'd' );
+	$day_clause = array(
+		'month' => $month,
+		'day'   => $day,
+	);
+
+	if ( 2 === $month && 28 === $day && ! $date->format( 'L' ) ) {
+		$day_clause = array(
+			'relation' => 'OR',
+			$day_clause,
+			array(
+				'month' => 2,
+				'day'   => 29,
+			),
+		);
+	}
+
+	return array(
+		'relation' => 'AND',
+		array(
+			'before' => array( 'year' => $year ),
+		),
+		$day_clause,
+	);
+}
+
+/**
+ * Applies the On This Day date query to an existing WP_Query argument array.
+ *
+ * @since 7.1.0
+ *
+ * @param array $query WP_Query arguments.
+ * @return array Filtered WP_Query arguments.
+ */
+function _wp_apply_on_this_day_query_args( $query ) {
+	$on_this_day_date_query = _wp_get_on_this_day_query_date_query();
+
+	if ( ! empty( $query['date_query'] ) ) {
+		$query['date_query'] = array(
+			'relation' => 'AND',
+			$query['date_query'],
+			$on_this_day_date_query,
+		);
+	} else {
+		$query['date_query'] = $on_this_day_date_query;
+	}
+
+	$query['post_status']         = 'publish';
+	$query['ignore_sticky_posts'] = true;
+
+	return $query;
+}
+
+/**
+ * Filters Query Loop block arguments for the On This Day variation.
+ *
+ * @since 7.1.0
+ *
+ * @param array    $query WP_Query arguments.
+ * @param WP_Block $block Block instance.
+ * @return array Filtered WP_Query arguments.
+ */
+function _wp_filter_on_this_day_query_loop_block_query_vars( $query, $block ) {
+	if ( empty( $block->context['query']['onThisDay'] ) ) {
+		return $query;
+	}
+
+	return _wp_apply_on_this_day_query_args( $query );
+}
+
+/**
+ * Filters REST API post query arguments for the On This Day Query Loop variation preview.
+ *
+ * @since 7.1.0
+ *
+ * @param array           $args    WP_Query arguments.
+ * @param WP_REST_Request $request Request object.
+ * @return array Filtered WP_Query arguments.
+ */
+function _wp_filter_on_this_day_rest_post_query( $args, $request ) {
+	if ( ! wp_validate_boolean( $request['onThisDay'] ?? false ) ) {
+		return $args;
+	}
+
+	return _wp_apply_on_this_day_query_args( $args );
+}
+
+/**
+ * Adds the On This Day query parameter to REST API post collection parameters.
+ *
+ * @since 7.1.0
+ *
+ * @param array $query_params JSON Schema-formatted collection parameters.
+ * @return array Filtered collection parameters.
+ */
+function _wp_register_on_this_day_rest_post_collection_param( $query_params ) {
+	$query_params['onThisDay'] = array(
+		'description' => __( 'Limit results to posts published on this calendar day in previous years.' ),
+		'type'        => 'boolean',
+	);
+
+	return $query_params;
+}
+
+/**
  * Helper function that constructs a WP_Query args array from
  * a `Query` block properties.
  *
