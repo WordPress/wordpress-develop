@@ -1292,40 +1292,160 @@ class WP_Theme_JSON {
 	}
 
 	/**
-	 * Splits a selector list by top-level commas.
+	 * Splits a selector list into separate selectors.
 	 *
-	 * @since 7.0.0
+	 * While selectors are joined by commas, not all commas separate top-level selectors.
+	 * This method only separates top-level selectors, so some commas may appear inside
+	 * strings, nested selectors, and comments. Leading and trailing CSS whitespace is
+	 * trimmed from the returned list items.
 	 *
-	 * @param string $selector CSS selector list.
-	 * @return string[] Selectors.
+	 * Non-selector content, such as comments, are retained in the list in the same item
+	 * as the selector content they follow.
+	 *
+	 * Example:
+	 *
+	 *     array( '.wp-block' )    === self::split_selector_list( '.wp-block' );
+	 *     array( '.one', '.two' ) === self::split_selector_list( '.one, .two' );
+	 *
+	 *     // Nested selector lists are retained within their containing selector.
+	 *     array( ':is(.a, .b)', 'c' ) === self::split_selector_list( ':is(.a, .b), .c' );
+	 *
+	 *     // Commas within strings do not separate selectors.
+	 *     $selectors   = self::split_selector_list( '[data-label="Save, continue"],.fallback' );
+	 *     $selectors === array( '[data-label="Save, continue"]', '.fallback' )
+	 *
+	 *     array( 'lang(zh, "*-hant")', '.foo' ) === self::split_selector_list( 'lang(zh, "*-hant"), .foo' );
+	 *
+	 *     // Identifiers may contain escaped commas.
+	 *     array( '.foo\,bar', '.baz' ) === self::split_selector_list( '.foo\,bar,.baz' );
+	 *
+	 *     // Comments stay with the selector they follow.
+	 *     array( '.a /* a, the first *\/', '.b' ) === self::split_selector_list( '.a /* a, the first *\/,.b' );
+	 *
+	 * @see https://www.w3.org/TR/selectors/#parse-selector
+	 * @see https://www.w3.org/TR/css-syntax-3/
+	 *
+	 * @since 7.1.0
+	 *
+	 * @param string $selector CSS selector list as a string, e.g. '.wp-block .wp-block-paragraph'.
+	 * @return string[] List of trimmed selectors parsed from input list.
 	 */
-	protected static function split_selector_list( $selector ) {
+	protected static function split_selector_list( $selector ): array {
 		if ( ! str_contains( $selector, ',' ) ) {
-			return array( $selector );
+			// See note on trimming CSS whitespace in main loop.
+			return array( trim( $selector, " \t\n" ) );
 		}
 
 		$selectors         = array();
-		$current_selector  = '';
-		$parentheses_depth = 0;
 		$selector_length   = strlen( $selector );
+		$parentheses_depth = 0;
+		$at                = 0;
+		$was_at            = 0;
 
-		for ( $i = 0; $i < $selector_length; $i++ ) {
-			$char = $selector[ $i ];
+		while ( $at < $selector_length ) {
+			$next_at = $at + strcspn( $selector, '/,\'"()<-\\', $at );
+			if ( $next_at >= $selector_length ) {
+				break;
+			}
 
-			if ( '(' === $char ) {
-				++$parentheses_depth;
-			} elseif ( ')' === $char && $parentheses_depth > 0 ) {
-				--$parentheses_depth;
-			} elseif ( ',' === $char && 0 === $parentheses_depth ) {
-				$selectors[]      = $current_selector;
-				$current_selector = '';
+			$next_cp = $selector[ $next_at ];
+
+			// Escaped syntax characters do not act as delimiters.
+			if ( '\\' === $next_cp ) {
+				$at = min( $next_at + 2, $selector_length );
 				continue;
 			}
 
-			$current_selector .= $char;
+			/*
+			 * Start of a parenthesized expression, which maintains a stack of parentheses.
+			 * For the sake of this function, no selector list will be split inside parentheses.
+			 * Therefore it’s possible to jump ahead until this list completes.
+			 */
+			if ( '(' === $next_cp || ')' === $next_cp ) {
+				$parentheses_depth += '(' === $next_cp ? 1 : -1;
+				$at                 = $next_at + 1;
+				continue;
+			}
+
+			// Start of a string, which will be incorporated into the selector in which it’s found.
+			if ( "'" === $next_cp || '"' === $next_cp ) {
+				$end_of_string = $next_at + 1;
+				while ( $end_of_string < $selector_length ) {
+					$end_of_string += strcspn( $selector, "{$next_cp}\\", $end_of_string );
+					if ( $end_of_string >= $selector_length ) {
+						break;
+					}
+
+					$end_cp = $selector[ $end_of_string ];
+
+					// Skip escaped characters.
+					if ( '\\' === $end_cp ) {
+						$end_of_string = $end_of_string + 2;
+						continue;
+					}
+
+					if ( $next_cp === $end_cp ) {
+						++$end_of_string;
+						break;
+					}
+
+					++$end_of_string;
+				}
+
+				$at = $end_of_string;
+				continue;
+			}
+
+			// Start of a comment, which will be incorporated into the selector in which it’s found.
+			if ( '/' === $next_cp && ( $next_at + 1 ) < $selector_length && '*' === $selector[ $next_at + 1 ] ) {
+				$comment_end_at = strpos( $selector, '*/', $next_at + 1 );
+				$is_terminated  = false !== $comment_end_at;
+				$after_comment  = $is_terminated ? $comment_end_at + 2 : strlen( $selector );
+				$at             = $after_comment;
+				continue;
+			}
+
+			// Start of a CDO or CDC, which will be incorporated into the selector in which it’s found.
+			if (
+				( '<' === $next_cp && 0 === substr_compare( $selector, '<!--', $next_at, 4 ) ) ||
+				( '-' === $next_cp && 0 === substr_compare( $selector, '-->', $next_at, 3 ) )
+			) {
+				$at = $next_at + ( '<' === $next_cp ? 4 : 3 );
+				continue;
+			}
+
+			// Everything else is either a comma token or part of a selector.
+			if ( ',' === $next_cp && 0 === $parentheses_depth ) {
+				/**
+				 * Trim each selector so that downstream code doesn’t see whitespace
+				 * as the first character in a selector and get confused.
+				 *
+				 * There is inconsistency in this because comments and other syntax
+				 * are included which are also not part of the selector itself, but
+				 * a tradeoff is made between removing common syntax which carries
+				 * no meaning and rarer syntax which leaves auxiliary information.
+				 *
+				 * > A newline, U+0009 CHARACTER TABULATION, or U+0020 SPACE.
+				 * > Note that U+000D CARRIAGE RETURN and U+000C FORM FEED are
+				 * > not included in this definition, as they are converted
+				 * > to U+000A LINE FEED during preprocessing.
+				 *
+				 * @see https://www.w3.org/TR/css-syntax/#whitespace
+				 * @see https://www.w3.org/TR/css-syntax/#newline
+				 */
+				$selectors[] = trim( substr( $selector, $was_at, $next_at - $was_at ), " \t\n" );
+				$at          = $next_at + 1;
+				$was_at      = $at;
+				continue;
+			}
+
+			$at = $next_at + 1;
 		}
 
-		$selectors[] = $current_selector;
+		if ( $was_at < $selector_length ) {
+			// See note on trimming CSS whitespace in main loop.
+			$selectors[] = trim( substr( $selector, $was_at ), " \t\n" );
+		}
 
 		return $selectors;
 	}
