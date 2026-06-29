@@ -10,10 +10,15 @@
 /**
  * Core class used to inspect and modify CSS declarations in an HTML style attribute.
  *
- * The processor operates on decoded style attribute values. Values read from
- * {@see WP_HTML_Tag_Processor::get_attribute()} can be passed directly to this
- * class, and values returned by {@see WP_HTML_Style_Attribute_Processor::get_updated_style()}
- * can be passed back to {@see WP_HTML_Tag_Processor::set_attribute()}.
+ * The processor operates on the decoded CSS text value of a style attribute:
+ * the CSS declaration-list contents of a declaration block, excluding the
+ * delimiting braces. It does not parse HTML attribute syntax, decode character
+ * references, or operate on raw HTML markup.
+ *
+ * Values read from {@see WP_HTML_Tag_Processor::get_attribute()} can be passed
+ * directly to this class, and values returned by
+ * {@see WP_HTML_Style_Attribute_Processor::get_updated_style()} can be passed
+ * back to {@see WP_HTML_Tag_Processor::set_attribute()}.
  *
  * Unlike associative-array based style helpers, this processor preserves the
  * declaration list model of CSS. Multiple declarations with the same property
@@ -51,6 +56,13 @@ class WP_HTML_Style_Attribute_Processor {
 	private $declarations = array();
 
 	/**
+	 * Whether the style attribute value has been parsed.
+	 *
+	 * @var bool
+	 */
+	private $parsed = false;
+
+	/**
 	 * Index of the current declaration, or -1 before the first declaration.
 	 *
 	 * @var int
@@ -81,7 +93,7 @@ class WP_HTML_Style_Attribute_Processor {
 	/**
 	 * Constructor.
 	 *
-	 * @param string|bool|null $style Decoded style attribute value.
+	 * @param string|bool|null $style Decoded CSS text value from a style attribute.
 	 */
 	public function __construct( $style = '' ) {
 		if ( null === $style || true === $style ) {
@@ -91,7 +103,6 @@ class WP_HTML_Style_Attribute_Processor {
 		}
 
 		$this->style = $style;
-		$this->parse();
 	}
 
 	/**
@@ -100,10 +111,12 @@ class WP_HTML_Style_Attribute_Processor {
 	 * When a property name is provided, normal CSS properties are matched
 	 * ASCII-case-insensitively while custom properties are matched exactly.
 	 *
-	 * @param string|null $property_name Optional property name to match.
+	 * @param string|null $property_name Optional declaration property name to match.
 	 * @return bool Whether a matching declaration was found.
 	 */
 	public function next_declaration( ?string $property_name = null ): bool {
+		$this->ensure_parsed();
+
 		for ( $i = $this->current_declaration + 1; $i < count( $this->declarations ); $i++ ) {
 			if (
 				null === $property_name ||
@@ -234,6 +247,8 @@ class WP_HTML_Style_Attribute_Processor {
 			return false;
 		}
 
+		$this->ensure_parsed();
+
 		$old_declaration_count = count( $this->declarations );
 		$trimmed_style         = rtrim( $this->style, self::WHITESPACE );
 		$insert_at             = strlen( $trimmed_style );
@@ -265,9 +280,9 @@ class WP_HTML_Style_Attribute_Processor {
 	}
 
 	/**
-	 * Returns the updated style attribute value.
+	 * Returns the updated decoded CSS text value for the style attribute.
 	 *
-	 * @return string Updated style attribute value.
+	 * @return string Updated decoded CSS text value for the style attribute.
 	 */
 	public function get_updated_style(): string {
 		if ( empty( $this->lexical_updates ) ) {
@@ -305,8 +320,12 @@ class WP_HTML_Style_Attribute_Processor {
 	 * Parses CSS tokens and declarations from the style attribute value.
 	 */
 	private function parse(): void {
+		$this->tokens       = array();
+		$this->declarations = array();
+
 		$processor = WP_CSS_Token_Processor::create( $this->style );
 		if ( null === $processor ) {
+			$this->parsed = true;
 			return;
 		}
 
@@ -323,6 +342,18 @@ class WP_HTML_Style_Attribute_Processor {
 		}
 
 		$this->parse_declaration_list();
+		$this->parsed = true;
+	}
+
+	/**
+	 * Lazily parses the style attribute value when declaration access needs it.
+	 */
+	private function ensure_parsed(): void {
+		if ( $this->parsed ) {
+			return;
+		}
+
+		$this->parse();
 	}
 
 	/**
@@ -733,12 +764,11 @@ class WP_HTML_Style_Attribute_Processor {
 	private function apply_lexical_updates( int $current_declaration, bool $current_declaration_removed = false ): void {
 		$this->style = $this->get_updated_style();
 
-		$this->tokens                      = array();
-		$this->declarations                = array();
 		$this->lexical_updates             = array();
 		$this->lexical_update_order        = 0;
 		$this->current_declaration         = $current_declaration;
 		$this->current_declaration_removed = $current_declaration_removed;
+		$this->parsed                      = false;
 
 		$this->parse();
 
@@ -881,6 +911,7 @@ class WP_HTML_Style_Attribute_Processor {
 		$expected_after  = $expected_start + strlen( $declaration_text );
 		$candidate_style = substr( $this->style, 0, $insert_at ) . $separator . $declaration_text . substr( $this->style, $insert_at );
 		$candidate       = new self( $candidate_style );
+		$candidate->ensure_parsed();
 
 		if ( count( $candidate->declarations ) !== $old_declaration_count + 1 ) {
 			return false;

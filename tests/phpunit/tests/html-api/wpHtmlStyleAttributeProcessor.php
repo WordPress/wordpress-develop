@@ -85,6 +85,17 @@ class Tests_HtmlApi_WpHtmlStyleAttributeProcessor extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @covers ::next_declaration
+	 */
+	public function test_next_declaration_accepts_named_property_name_argument() {
+		$processor = new WP_HTML_Style_Attribute_Processor( 'color: red; background: white;' );
+
+		$this->assertTrue( $processor->next_declaration( property_name: 'background' ) );
+		$this->assertSame( 'background', $processor->get_property_name() );
+		$this->assertSame( 'white', $processor->get_value() );
+	}
+
+	/**
 	 * @covers ::is_important
 	 * @covers ::get_value
 	 */
