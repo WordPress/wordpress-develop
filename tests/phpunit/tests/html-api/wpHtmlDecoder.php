@@ -15,9 +15,9 @@ class Tests_HtmlApi_WpHtmlDecoder extends WP_UnitTestCase {
 	/**
 	 * Original LC_CTYPE locale.
 	 *
-	 * @var string|null
+	 * @var string|bool
 	 */
-	private static ?string $original_lc_ctype = null;
+	private static $original_lc_ctype = false;
 
 	/**
 	 * Locale where ctype_alnum() classifies high-bit bytes as alphanumeric.
@@ -49,11 +49,13 @@ class Tests_HtmlApi_WpHtmlDecoder extends WP_UnitTestCase {
 			}
 		}
 
-		setlocale( LC_CTYPE, self::$original_lc_ctype );
+		if ( self::$original_lc_ctype ) {
+			setlocale( LC_CTYPE, self::$original_lc_ctype );
+		}
 	}
 
 	public function tear_down() {
-		if ( null !== self::$original_lc_ctype ) {
+		if ( self::$original_lc_ctype ) {
 			setlocale( LC_CTYPE, self::$original_lc_ctype );
 		}
 		parent::tear_down();
