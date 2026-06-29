@@ -18,7 +18,7 @@
 	"suggest": {
 		"ext-dom": "*",
 		"ext-ftp": "*",
-    "ext-mysqli": "*",
+		"ext-mysqli": "*",
 		"ext-ssh2": "*"
 	},
 	"require-dev": {
