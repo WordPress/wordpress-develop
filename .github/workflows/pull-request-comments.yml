@@ -47,13 +47,21 @@ jobs:
             It looks like this is your first pull request to `wordpress-develop`. Here are a few things to be aware of that may help you out!
 
 
-            **No one monitors this repository for new pull requests.** Pull requests **must** be attached to a Trac ticket to be considered for inclusion in WordPress Core. To attach a pull request to a Trac ticket, please include the ticket's full URL in your pull request description.
+            **Pull requests should be attached to a [trac](https://core.trac.wordpress.org/) ticket.** WordPress Core does not use GitHub as an issue tracker, to ensure your pull request receives necessary attention, please include a link to the Trac ticket's full URL in your pull request description.
 
 
             **Pull requests are never merged on GitHub.** The WordPress codebase continues to be managed through the SVN repository that this GitHub repository mirrors. Please feel free to open pull requests to work on any contribution you are making.
 
 
             More information about how GitHub pull requests can be used to contribute to WordPress can be found in [the Core Handbook](https://make.wordpress.org/core/handbook/contribute/git/github-pull-requests-for-code-review/).
+
+
+            > [!IMPORTANT]
+            > If your Pull Request addresses a security issue, please close the PR. Vulnerabilities should be handled confidentially & the project's Responsible Disclosure Policy should be followed. Please refer to [Reporting Security Vulnerabilities - Make WordPress Core](https://make.wordpress.org/core/handbook/testing/reporting-security-vulnerabilities) for more information.
+
+
+            **Please link your WordPress.org account to GitHub.** To ensure your contribution is correctly credited in a WordPress release, please link your WordPress.org account to GitHub. If you have an existing WordPress.org account you can [link it to GitHub in your profile](https://profiles.wordpress.org/me/). If you do not have a WordPress.org account, please [register an account](https://login.wordpress.org/register).
+            More information available on [Associating GitHub accounts with WordPress.org profiles - Make WordPress Core](https://make.wordpress.org/core/2020/03/19/associating-github-accounts-with-wordpress-org-profiles/)
 
 
             **Please include automated tests.** Including tests in your pull request is one way to help your patch be considered faster. To learn about WordPress' test suites, visit the [Automated Testing](https://make.wordpress.org/core/handbook/testing/automated-testing/) page in the handbook.
