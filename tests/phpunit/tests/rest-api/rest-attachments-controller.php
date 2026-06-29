@@ -3276,8 +3276,10 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 
 		$this->assertSame( 200, $response->get_status(), 'Sideloading scaled image should succeed.' );
 
-		// The sideload endpoint returns lightweight sub-size data; the metadata
-		// is written later by the finalize endpoint.
+		/*
+		 * The sideload endpoint returns lightweight sub-size data; the metadata
+		 * is written later by the finalize endpoint.
+		 */
 		$sub_size = $response->get_data();
 		$this->assertSame( 'scaled', $sub_size['image_size'], 'Response should echo the image_size.' );
 		$this->assertSame( wp_basename( $original_file ), $sub_size['original_image'], 'Response original_image should be the basename of the original attached file.' );
@@ -3634,8 +3636,10 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 
 		$this->assertSame( 201, $response->get_status() );
 
-		// Sideload the 'original' version (simulating a rotated image), which
-		// returns the basename without writing metadata.
+		/*
+		 * Sideload the 'original' version (simulating a rotated image), which
+		 * returns the basename without writing metadata.
+		 */
 		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment_id}/sideload" );
 		$request->set_header( 'Content-Type', 'image/jpeg' );
 		$request->set_header( 'Content-Disposition', 'attachment; filename=canola-original.jpg' );
@@ -3784,16 +3788,20 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$attachment_id = $response->get_data()['id'];
 		$this->assertSame( 201, $response->get_status() );
 
-		// Simulate an alt-ext conversion mapping so an alt-extension companion
-		// (PNG here, HEIC in production) would otherwise get a `-1` suffix.
+		/*
+		 * Simulate an alt-ext conversion mapping so an alt-extension companion
+		 * (PNG here, HEIC in production) would otherwise get a `-1` suffix.
+		 */
 		$add_png_mapping = static function ( $formats ) {
 			$formats['image/png'] = 'image/jpeg';
 			return $formats;
 		};
 		add_filter( 'image_editor_output_format', $add_png_mapping, 5 );
 
-		// Sideload a companion sharing the same basename. Pass convert_format as
-		// the string "false" to match multipart/form-data request semantics.
+		/*
+		 * Sideload a companion sharing the same basename. Pass convert_format as
+		 * the string "false" to match multipart/form-data request semantics.
+		 */
 		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment_id}/sideload" );
 		$request->set_header( 'Content-Type', 'image/png' );
 		$request->set_header( 'Content-Disposition', 'attachment; filename=heic-companion.png' );

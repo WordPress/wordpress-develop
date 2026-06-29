@@ -2118,11 +2118,13 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 
 		$image_size = $request['image_size'];
 
-		// Build sub-size data to return to the client.
-		// The client accumulates these and sends them all to the finalize
-		// endpoint, which writes the metadata in a single operation. This
-		// avoids the read-modify-write race that concurrent sideloads for the
-		// same attachment would otherwise hit.
+		/*
+		 * Build sub-size data to return to the client.
+		 * The client accumulates these and sends them all to the finalize
+		 * endpoint, which writes the metadata in a single operation. This
+		 * avoids the read-modify-write race that concurrent sideloads for the
+		 * same attachment would otherwise hit.
+		 */
 		$sub_size_data = array(
 			'image_size' => $image_size,
 		);
