@@ -23,11 +23,14 @@ The processor's north star is:
 Creation uses:
 
 ```php
-WP_HTML_Style_Attribute_Processor::create( string $decoded_css_text ): static
+WP_HTML_Style_Attribute_Processor::create( $decoded_css_text )
 ```
 
-The constructor is private. `create()` always returns a processor instance for a
-string input.
+The constructor is private. `create()` accepts only string input and returns a
+processor instance of the called class. The implementation must remain
+compatible with WordPress' supported PHP versions, so the runtime signature may
+use PHPDoc and explicit validation instead of PHP syntax unavailable in those
+versions.
 
 Callers must not pass raw `WP_HTML_Tag_Processor::get_attribute( 'style' )`
 results directly unless they have already checked that the result is a string.
@@ -60,7 +63,7 @@ The internal declaration data consists of:
 Initial public methods:
 
 ```php
-public static function create( string $decoded_css_text ): static;
+public static function create( $decoded_css_text );
 public function next_declaration( ?string $property_name = null ): bool;
 public function get_property_name(): ?string;
 public function is_important(): ?bool;
