@@ -53,7 +53,9 @@ class Tests_HtmlApi_WpHtmlDecoder extends WP_UnitTestCase {
 	}
 
 	public function tear_down() {
-		setlocale( LC_CTYPE, self::$original_lc_ctype );
+		if ( null !== self::$original_lc_ctype ) {
+			setlocale( LC_CTYPE, self::$original_lc_ctype );
+		}
 		parent::tear_down();
 	}
 
