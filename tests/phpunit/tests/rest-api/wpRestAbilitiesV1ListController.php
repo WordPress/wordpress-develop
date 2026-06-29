@@ -143,6 +143,30 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Helper to register an ability with a custom boolean meta key.
+	 *
+	 * The `featured` key stands in for any plugin-defined meta. It is not part
+	 * of the well-defined annotations, so the meta schema does not declare its
+	 * type by default.
+	 */
+	private function register_featured_ability(): void {
+		$this->register_test_ability(
+			'test/featured',
+			array(
+				'label'               => 'Featured',
+				'description'         => 'Declares a custom boolean meta value.',
+				'category'            => 'general',
+				'execute_callback'    => '__return_true',
+				'permission_callback' => '__return_true',
+				'meta'                => array(
+					'show_in_rest' => true,
+					'featured'     => true,
+				),
+			)
+		);
+	}
+
+	/**
 	 * Register test abilities for testing.
 	 */
 	private function register_test_abilities(): void {
@@ -829,23 +853,221 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test that WordPress-internal schema keywords are stripped from ability schemas in REST response.
+	 * Test filtering abilities by a well-defined behavioral annotation.
+	 *
+	 * The 'test/system-info' fixture is the only ability marked read only. The
+	 * value is passed as a string, the way it arrives over the query string, so
+	 * this also confirms the meta schema coerces it to a boolean before matching.
+	 *
+	 * @ticket 64990
+	 */
+	public function test_filter_by_annotation(): void {
+		$request = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities' );
+		$request->set_param( 'meta', array( 'annotations' => array( 'readonly' => 'true' ) ) );
+		$request->set_param( 'per_page', 100 );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+
+		$names = wp_list_pluck( $response->get_data(), 'name' );
+
+		$this->assertContains( 'test/system-info', $names );
+		$this->assertNotContains( 'test/calculator', $names, 'Abilities not marked read only should be excluded.' );
+	}
+
+	/**
+	 * Test that a non-matching annotation returns empty results.
+	 *
+	 * No fixture marks itself destructive, so the result set is empty.
+	 *
+	 * @ticket 64990
+	 */
+	public function test_filter_by_non_matching_annotation(): void {
+		$request = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities' );
+		$request->set_param( 'meta', array( 'annotations' => array( 'destructive' => true ) ) );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertEmpty( $response->get_data() );
+	}
+
+	/**
+	 * Test filtering abilities by several meta conditions at once.
+	 *
+	 * All conditions must match (AND logic).
+	 *
+	 * @ticket 64990
+	 */
+	public function test_filter_by_multiple_meta_conditions(): void {
+		$this->register_test_ability(
+			'test/read-only-idempotent',
+			array(
+				'label'               => 'Read Only and Idempotent',
+				'description'         => 'Marked both read only and idempotent.',
+				'category'            => 'general',
+				'execute_callback'    => '__return_true',
+				'permission_callback' => '__return_true',
+				'meta'                => array(
+					'show_in_rest' => true,
+					'annotations'  => array(
+						'readonly'   => true,
+						'idempotent' => true,
+					),
+				),
+			)
+		);
+
+		$this->register_test_ability(
+			'test/read-only-only',
+			array(
+				'label'               => 'Read Only',
+				'description'         => 'Marked read only but not idempotent.',
+				'category'            => 'general',
+				'execute_callback'    => '__return_true',
+				'permission_callback' => '__return_true',
+				'meta'                => array(
+					'show_in_rest' => true,
+					'annotations'  => array(
+						'readonly' => true,
+					),
+				),
+			)
+		);
+
+		$request = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities' );
+		$request->set_param(
+			'meta',
+			array(
+				'annotations' => array(
+					'readonly'   => 'true',
+					'idempotent' => 'true',
+				),
+			)
+		);
+		$request->set_param( 'per_page', 100 );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+
+		$names = wp_list_pluck( $response->get_data(), 'name' );
+
+		$this->assertContains( 'test/read-only-idempotent', $names, 'An ability matching every condition should be included.' );
+		$this->assertNotContains( 'test/read-only-only', $names, 'An ability matching only one condition should be excluded.' );
+	}
+
+	/**
+	 * Test that a caller cannot use the meta filter to reveal abilities hidden from REST.
+	 *
+	 * The forced `show_in_rest => true` condition must always win, even when the
+	 * caller passes `show_in_rest => false` through the meta parameter.
+	 *
+	 * @ticket 64990
+	 */
+	public function test_filter_by_meta_cannot_override_show_in_rest(): void {
+		$request = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities' );
+		$request->set_param( 'meta', array( 'show_in_rest' => false ) );
+		$request->set_param( 'per_page', 100 );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+
+		$names = wp_list_pluck( $response->get_data(), 'name' );
+		$this->assertNotContains( 'test/not-show-in-rest', $names, 'A caller must not reveal hidden abilities through meta.' );
+	}
+
+	/**
+	 * Test the default behavior for a custom meta key with no declared type.
+	 *
+	 * Open-ended meta keys arrive over the query string as strings. The meta
+	 * schema declares only the well-defined annotations, so a custom key such as
+	 * `featured` has no declared type. REST leaves the value "true" as a string,
+	 * and the strict meta match never equals the stored boolean. The ability is
+	 * excluded.
+	 *
+	 * @ticket 64990
+	 */
+	public function test_filter_by_custom_meta_without_declared_type_is_not_coerced(): void {
+		$this->register_featured_ability();
+
+		$request = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities' );
+		// The value is passed as a string, the way it arrives over the query string.
+		$request->set_param( 'meta', array( 'featured' => 'true' ) );
+		$request->set_param( 'per_page', 100 );
+
+		$response = $this->server->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+
+		$names = wp_list_pluck( $response->get_data(), 'name' );
+		$this->assertNotContains( 'test/featured', $names, 'A custom meta key without a declared type should not coerce the query-string value.' );
+	}
+
+	/**
+	 * Test that a filter can declare a custom meta key's type so its value coerces.
+	 *
+	 * A plugin can declare the type for its own meta key through the
+	 * `rest_abilities_collection_params` filter. REST then coerces the value
+	 * "true" to a boolean before matching, so the ability is included. This is
+	 * the supported way to make a custom meta key filterable.
+	 *
+	 * @ticket 64990
+	 */
+	public function test_filter_can_declare_custom_meta_type_for_coercion(): void {
+		$this->register_featured_ability();
+
+		// Declare the type for the custom meta key so REST coerces the value first.
+		add_filter(
+			'rest_abilities_collection_params',
+			static function ( array $query_params ): array {
+				$query_params['meta']['properties']['featured'] = array(
+					'type' => array( 'boolean', 'null' ),
+				);
+				return $query_params;
+			}
+		);
+
+		// Re-register the routes on a fresh server so the collection parameters pick up the filter.
+		global $wp_rest_server;
+		$wp_rest_server = new WP_REST_Server();
+		$this->server   = $wp_rest_server;
+		do_action( 'rest_api_init' );
+
+		$request = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities' );
+		// The value is passed as a string, the way it arrives over the query string.
+		$request->set_param( 'meta', array( 'featured' => 'true' ) );
+		$request->set_param( 'per_page', 100 );
+
+		$response = $this->server->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+
+		$names = wp_list_pluck( $response->get_data(), 'name' );
+		$this->assertContains( 'test/featured', $names, 'A declared schema type should coerce the query-string value before matching.' );
+	}
+
+	/**
+	 * Test that schema keywords outside the allow-list are stripped from ability schemas in REST response.
 	 *
 	 * @ticket 65035
 	 */
-	public function test_internal_schema_keywords_stripped_from_response(): void {
+	public function test_unsupported_schema_keywords_stripped_from_response(): void {
 		$this->register_test_ability(
-			'test/with-internal-keywords',
+			'test/with-unsupported-keywords',
 			array(
-				'label'               => 'Test Internal Keywords',
-				'description'         => 'Tests stripping of internal schema keywords',
+				'label'               => 'Test Unsupported Keywords',
+				'description'         => 'Tests stripping of unsupported schema keywords',
 				'category'            => 'general',
 				'input_schema'        => array(
 					'type'       => 'object',
+					'required'   => array( 'content' ),
 					'properties' => array(
 						'content' => array(
 							'type'              => 'string',
 							'description'       => 'The content value.',
+							'example'           => 'example content',
+							'examples'          => array( 'example content' ),
+							'context'           => array( 'view', 'edit', 'embed' ),
+							'readonly'          => true,
 							'sanitize_callback' => 'sanitize_text_field',
 							'validate_callback' => 'is_string',
 							'arg_options'       => array( 'sanitize_callback' => 'wp_kses_post' ),
@@ -854,7 +1076,13 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 				),
 				'output_schema'       => array(
 					'type'              => 'string',
+					'example'           => 'example output',
+					'examples'          => array( 'example output' ),
+					'context'           => array( 'view', 'edit', 'embed' ),
+					'readonly'          => true,
 					'sanitize_callback' => 'sanitize_text_field',
+					'validate_callback' => 'is_string',
+					'arg_options'       => array( 'sanitize_callback' => 'wp_kses_post' ),
 				),
 				'execute_callback'    => static function ( $input ) {
 					return $input['content'];
@@ -864,7 +1092,7 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 			)
 		);
 
-		$request  = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities/test/with-internal-keywords' );
+		$request  = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities/test/with-unsupported-keywords' );
 		$response = $this->server->dispatch( $request );
 
 		$this->assertSame( 200, $response->get_status() );
@@ -875,18 +1103,29 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 		$this->assertArrayHasKey( 'content', $data['input_schema']['properties'] );
 		$this->assertArrayHasKey( 'output_schema', $data );
 
-		// Verify internal keywords are stripped from input_schema properties.
+		// Verify unsupported schema keywords are stripped from input_schema properties.
 		$content_schema = $data['input_schema']['properties']['content'];
 		$this->assertArrayNotHasKey( 'sanitize_callback', $content_schema );
 		$this->assertArrayNotHasKey( 'validate_callback', $content_schema );
 		$this->assertArrayNotHasKey( 'arg_options', $content_schema );
+		$this->assertArrayNotHasKey( 'example', $content_schema );
+		$this->assertArrayNotHasKey( 'examples', $content_schema );
+		$this->assertArrayNotHasKey( 'context', $content_schema );
+		$this->assertArrayNotHasKey( 'readonly', $content_schema );
 
 		// Verify valid JSON Schema keywords are preserved.
 		$this->assertSame( 'string', $content_schema['type'] );
 		$this->assertSame( 'The content value.', $content_schema['description'] );
+		$this->assertSame( array( 'content' ), $data['input_schema']['required'] );
 
 		// Verify internal keywords are stripped from output_schema.
 		$this->assertArrayNotHasKey( 'sanitize_callback', $data['output_schema'] );
+		$this->assertArrayNotHasKey( 'validate_callback', $data['output_schema'] );
+		$this->assertArrayNotHasKey( 'arg_options', $data['output_schema'] );
+		$this->assertArrayNotHasKey( 'example', $data['output_schema'] );
+		$this->assertArrayNotHasKey( 'examples', $data['output_schema'] );
+		$this->assertArrayNotHasKey( 'context', $data['output_schema'] );
+		$this->assertArrayNotHasKey( 'readonly', $data['output_schema'] );
 		$this->assertSame( 'string', $data['output_schema']['type'] );
 	}
 
@@ -947,19 +1186,20 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test that internal schema keywords are stripped from nested sub-schema locations.
+	 * Test that schema keywords outside the allow-list are stripped from nested sub-schema locations.
 	 *
 	 * @ticket 64098
 	 */
-	public function test_internal_schema_keywords_stripped_from_nested_sub_schemas(): void {
+	public function test_unsupported_schema_keywords_stripped_from_nested_sub_schemas(): void {
 		$this->register_test_ability(
-			'test/nested-internal-keywords',
+			'test/nested-unsupported-keywords',
 			array(
-				'label'               => 'Test Nested Keywords',
+				'label'               => 'Test Nested Unsupported Keywords',
 				'description'         => 'Tests stripping from all sub-schema locations',
 				'category'            => 'general',
 				'input_schema'        => array(
 					'type'                 => 'object',
+					'$ref'                 => '#/definitions/address',
 					'anyOf'                => array(
 						array(
 							'type'              => 'object',
@@ -1053,7 +1293,7 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 			)
 		);
 
-		$request  = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities/test/nested-internal-keywords' );
+		$request  = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities/test/nested-unsupported-keywords' );
 		$response = $this->server->dispatch( $request );
 
 		$this->assertSame( 200, $response->get_status() );
@@ -1061,6 +1301,7 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 		$data = $response->get_data();
 
 		// Verify internal keywords are stripped from anyOf sub-schemas.
+		$this->assertSame( '#/definitions/address', $data['input_schema']['$ref'] );
 		$this->assertArrayHasKey( 'anyOf', $data['input_schema'] );
 		$this->assertArrayNotHasKey( 'sanitize_callback', $data['input_schema']['anyOf'][0] );
 		$this->assertSame( 'object', $data['input_schema']['anyOf'][0]['type'] );
@@ -1122,5 +1363,311 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 		$this->assertArrayHasKey( 'additionalItems', $data['output_schema'] );
 		$this->assertArrayNotHasKey( 'sanitize_callback', $data['output_schema']['additionalItems'] );
 		$this->assertSame( 'boolean', $data['output_schema']['additionalItems']['type'] );
+	}
+
+	/**
+	 * Test that per-property `required` booleans become a draft-04 `required` array.
+	 *
+	 * @ticket 64955
+	 */
+	public function test_required_property_booleans_converted_to_draft_04_array(): void {
+		$this->register_test_ability(
+			'test/required-booleans',
+			array(
+				'label'               => 'Required Booleans',
+				'description'         => 'Tests conversion of per-property required booleans.',
+				'category'            => 'general',
+				'input_schema'        => array(
+					'type'       => 'object',
+					'properties' => array(
+						'title'    => array(
+							'type'     => 'string',
+							'required' => true,
+						),
+						'content'  => array(
+							'type'     => 'string',
+							'required' => true,
+						),
+						'optional' => array(
+							'type' => 'string',
+						),
+					),
+				),
+				'output_schema'       => array(
+					'type'       => 'object',
+					'properties' => array(
+						'id' => array(
+							'type'     => 'integer',
+							'required' => true,
+						),
+					),
+				),
+				'execute_callback'    => static function (): array {
+					return array( 'id' => 1 );
+				},
+				'permission_callback' => '__return_true',
+				'meta'                => array( 'show_in_rest' => true ),
+			)
+		);
+
+		$request  = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities/test/required-booleans' );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+
+		$data = $response->get_data();
+
+		// The `required` array lists the names of the properties flagged as required.
+		$this->assertArrayHasKey( 'required', $data['input_schema'] );
+		$this->assertSameSets( array( 'title', 'content' ), $data['input_schema']['required'] );
+
+		// The boolean flag is removed from each property sub-schema.
+		$this->assertArrayNotHasKey( 'required', $data['input_schema']['properties']['title'] );
+		$this->assertArrayNotHasKey( 'required', $data['input_schema']['properties']['content'] );
+		$this->assertArrayNotHasKey( 'required', $data['input_schema']['properties']['optional'] );
+
+		// Output schemas are normalized the same way.
+		$this->assertSame( array( 'id' ), $data['output_schema']['required'] );
+		$this->assertArrayNotHasKey( 'required', $data['output_schema']['properties']['id'] );
+	}
+
+	/**
+	 * Test that per-property `required` booleans are converted in nested object schemas.
+	 *
+	 * @ticket 64955
+	 */
+	public function test_required_booleans_converted_in_nested_object_schemas(): void {
+		$this->register_test_ability(
+			'test/required-nested',
+			array(
+				'label'               => 'Required Nested',
+				'description'         => 'Tests conversion within nested object schemas.',
+				'category'            => 'general',
+				'input_schema'        => array(
+					'type'       => 'object',
+					'properties' => array(
+						'address' => array(
+							'type'       => 'object',
+							'required'   => true,
+							'properties' => array(
+								'street' => array(
+									'type'     => 'string',
+									'required' => true,
+								),
+								'city'   => array(
+									'type' => 'string',
+								),
+							),
+						),
+					),
+				),
+				'execute_callback'    => static function () {
+					return null;
+				},
+				'permission_callback' => '__return_true',
+				'meta'                => array( 'show_in_rest' => true ),
+			)
+		);
+
+		$request  = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities/test/required-nested' );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+
+		$data    = $response->get_data();
+		$address = $data['input_schema']['properties']['address'];
+
+		// The outer object lists the nested object as a required property.
+		$this->assertSame( array( 'address' ), $data['input_schema']['required'] );
+
+		// The nested object's own boolean flag is replaced by a draft-04 array
+		// collecting its own required properties (proving the boolean was converted).
+		$this->assertSame( array( 'street' ), $address['required'] );
+		$this->assertArrayNotHasKey( 'required', $address['properties']['street'] );
+		$this->assertArrayNotHasKey( 'required', $address['properties']['city'] );
+	}
+
+	/**
+	 * Test that `required: false` is removed without emitting an empty `required` array.
+	 *
+	 * @ticket 64955
+	 */
+	public function test_required_false_booleans_removed_without_required_array(): void {
+		$this->register_test_ability(
+			'test/required-false',
+			array(
+				'label'               => 'Required False',
+				'description'         => 'Tests that required:false is stripped.',
+				'category'            => 'general',
+				'input_schema'        => array(
+					'type'       => 'object',
+					'properties' => array(
+						'maybe' => array(
+							'type'     => 'string',
+							'required' => false,
+						),
+					),
+				),
+				'execute_callback'    => static function () {
+					return null;
+				},
+				'permission_callback' => '__return_true',
+				'meta'                => array( 'show_in_rest' => true ),
+			)
+		);
+
+		$request  = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities/test/required-false' );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+
+		$data = $response->get_data();
+
+		$this->assertArrayNotHasKey( 'required', $data['input_schema'] );
+		$this->assertArrayNotHasKey( 'required', $data['input_schema']['properties']['maybe'] );
+	}
+
+	/**
+	 * Test that an existing draft-04 `required` array takes precedence over per-property booleans.
+	 *
+	 * This mirrors rest_validate_object_value_from_schema(), which ignores
+	 * per-property `required` booleans when a draft-04 `required` array is
+	 * present, so the published schema matches what is actually enforced.
+	 *
+	 * @ticket 64955
+	 */
+	public function test_required_draft_04_array_takes_precedence_over_booleans(): void {
+		$this->register_test_ability(
+			'test/required-mixed',
+			array(
+				'label'               => 'Required Mixed',
+				'description'         => 'Tests precedence of a draft-04 array over draft-03 booleans.',
+				'category'            => 'general',
+				'input_schema'        => array(
+					'type'       => 'object',
+					'required'   => array( 'title' ),
+					'properties' => array(
+						'title'   => array(
+							'type'     => 'string',
+							'required' => true,
+						),
+						'content' => array(
+							'type'     => 'string',
+							'required' => true,
+						),
+					),
+				),
+				'execute_callback'    => static function () {
+					return null;
+				},
+				'permission_callback' => '__return_true',
+				'meta'                => array( 'show_in_rest' => true ),
+			)
+		);
+
+		$request  = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities/test/required-mixed' );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+
+		$data = $response->get_data();
+
+		// The draft-04 array wins: the `content` boolean is ignored, not merged in.
+		$this->assertSame( array( 'title' ), $data['input_schema']['required'] );
+
+		// The per-property booleans are still stripped from the output.
+		$this->assertArrayNotHasKey( 'required', $data['input_schema']['properties']['title'] );
+		$this->assertArrayNotHasKey( 'required', $data['input_schema']['properties']['content'] );
+	}
+
+	/**
+	 * Test that a boolean `required` with no draft-04 equivalent (e.g. on a scalar) is dropped.
+	 *
+	 * @ticket 64955
+	 */
+	public function test_required_boolean_on_scalar_schema_removed(): void {
+		$this->register_test_ability(
+			'test/required-scalar',
+			array(
+				'label'               => 'Required Scalar',
+				'description'         => 'Tests stripping of a boolean required on a scalar schema.',
+				'category'            => 'general',
+				'input_schema'        => array(
+					'type'        => 'string',
+					'description' => 'The text to analyze.',
+					'required'    => true,
+				),
+				'output_schema'       => array(
+					'type'     => 'string',
+					'required' => true,
+				),
+				'execute_callback'    => static function ( $input ) {
+					return $input;
+				},
+				'permission_callback' => '__return_true',
+				'meta'                => array( 'show_in_rest' => true ),
+			)
+		);
+
+		$request  = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities/test/required-scalar' );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+
+		$data = $response->get_data();
+
+		$this->assertArrayNotHasKey( 'required', $data['input_schema'] );
+		$this->assertSame( 'string', $data['input_schema']['type'] );
+		$this->assertArrayNotHasKey( 'required', $data['output_schema'] );
+	}
+
+	/**
+	 * Test that per-property `required` booleans are converted in an array's `items` object.
+	 *
+	 * @ticket 64955
+	 */
+	public function test_required_booleans_converted_in_array_items_object_schemas(): void {
+		$this->register_test_ability(
+			'test/required-array-items',
+			array(
+				'label'               => 'Required Array Items',
+				'description'         => 'Tests conversion within array item object schemas.',
+				'category'            => 'general',
+				'input_schema'        => array(
+					'type'  => 'array',
+					'items' => array(
+						'type'       => 'object',
+						'properties' => array(
+							'id'    => array(
+								'type'     => 'integer',
+								'required' => true,
+							),
+							'label' => array(
+								'type' => 'string',
+							),
+						),
+					),
+				),
+				'execute_callback'    => static function () {
+					return null;
+				},
+				'permission_callback' => '__return_true',
+				'meta'                => array( 'show_in_rest' => true ),
+			)
+		);
+
+		$request  = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities/test/required-array-items' );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+
+		$data  = $response->get_data();
+		$items = $data['input_schema']['items'];
+
+		// The object schema inside `items` collects its own required properties
+		// into a draft-04 array, and the per-property boolean is removed.
+		$this->assertSame( array( 'id' ), $items['required'] );
+		$this->assertArrayNotHasKey( 'required', $items['properties']['id'] );
+		$this->assertArrayNotHasKey( 'required', $items['properties']['label'] );
 	}
 }
