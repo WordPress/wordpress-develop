@@ -3394,9 +3394,11 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 
 		$this->assertSame( 201, $response->get_status() );
 
-		// Sideload the HEIC companion using the real HEIC fixture. `convert_format`
-		// is disabled so the default HEIC -> JPEG output mapping does not rename
-		// the file or append an alt-extension suffix.
+		/*
+		 * Sideload the HEIC companion using the real HEIC fixture. `convert_format`
+		 * is disabled so the default HEIC -> JPEG output mapping does not rename
+		 * the file or append an alt-extension suffix.
+		 */
 		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment_id}/sideload" );
 		$request->set_header( 'Content-Type', 'image/heic' );
 		$request->set_header( 'Content-Disposition', 'attachment; filename=canola.heic' );

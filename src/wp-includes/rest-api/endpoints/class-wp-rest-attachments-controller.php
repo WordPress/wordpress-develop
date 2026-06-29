@@ -91,11 +91,13 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			$valid_image_sizes = array_keys( wp_get_registered_image_subsizes() );
 			// Special case to set 'original_image' in attachment metadata.
 			$valid_image_sizes[] = 'original';
-			// Source-format original preserved alongside a client-generated
-			// derivative (e.g. the HEIC kept next to its JPEG). Stored under
-			// the dedicated self::META_KEY_SOURCE_IMAGE key so it never
-			// collides with 'original_image' (which the scaled-sideload flow
-			// also writes to).
+			/*
+			 * Source-format original preserved alongside a client-generated
+			 * derivative (e.g. the HEIC kept next to its JPEG). Stored under
+			 * the dedicated self::META_KEY_SOURCE_IMAGE key so it never
+			 * collides with 'original_image' (which the scaled-sideload flow
+			 * also writes to).
+			 */
 			$valid_image_sizes[] = self::IMAGE_SIZE_SOURCE_ORIGINAL;
 			// Used for PDF thumbnails.
 			$valid_image_sizes[] = 'full';
@@ -287,9 +289,11 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			$prevent_unsupported_uploads = false;
 		}
 
-		// Always allow HEIC/HEIF uploads through even if the server's image
-		// editor doesn't support them. The client-side canvas fallback will
-		// handle processing using the browser's native HEVC decoder.
+		/*
+		 * Always allow HEIC/HEIF uploads through even if the server's image
+		 * editor doesn't support them. The client-side canvas fallback will
+		 * handle processing using the browser's native HEVC decoder.
+		 */
 		if (
 			$prevent_unsupported_uploads &&
 			! empty( $files['file']['type'] ) &&
@@ -2131,11 +2135,13 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		if ( 'original' === $image_size ) {
 			$metadata['original_image'] = wp_basename( $path );
 		} elseif ( self::IMAGE_SIZE_SOURCE_ORIGINAL === $image_size ) {
-			// Source-format original: stored under its own meta key so the
-			// scaled-sideload flow (which writes 'original_image') cannot
-			// clobber it. 'original_image' keeps pointing at the
-			// web-viewable JPEG derivative. Cleanup on attachment delete
-			// is handled by wp_delete_attachment_heic_companion_file().
+			/*
+			 * Source-format original: stored under its own meta key so the
+			 * scaled-sideload flow (which writes 'original_image') cannot
+			 * clobber it. 'original_image' keeps pointing at the
+			 * web-viewable JPEG derivative. Cleanup on attachment delete
+			 * is handled by wp_delete_attachment_heic_companion_file().
+			 */
 			$metadata[ self::META_KEY_SOURCE_IMAGE ] = wp_basename( $path );
 		} elseif ( 'scaled' === $image_size ) {
 			// The current attached file is the original; record it as original_image.

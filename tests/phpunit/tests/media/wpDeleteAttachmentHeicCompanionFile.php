@@ -76,8 +76,10 @@ class Tests_Media_wpDeleteAttachmentHeicCompanionFile extends WP_UnitTestCase {
 		$attached_file = get_attached_file( $attachment_id, true );
 		$this->assertIsString( $attached_file );
 
-		// Place a real file that a buggy, guard-less implementation could try to
-		// delete after running wp_basename() over the array value below.
+		/*
+		 * Place a real file that a buggy, guard-less implementation could try to
+		 * delete after running wp_basename() over the array value below.
+		 */
 		$bystander_path = dirname( $attached_file ) . '/should-not-delete.heic';
 		file_put_contents( $bystander_path, 'test' );
 		$this->assertFileExists( $bystander_path, 'Test fixture should be on disk.' );
