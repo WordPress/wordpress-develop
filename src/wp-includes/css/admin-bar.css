@@ -596,7 +596,7 @@ html:lang(he-il) .rtl #wpadminbar * {
 	width: 20px;
 	height: 20px;
 	vertical-align: middle;
-	margin: -2px 6px 0 0;
+	margin: -3px 6px 0 0;
 	background: #f0f0f1; /* matching my-account (user avatar) node's background */
 	border-radius: 2px;
 }
