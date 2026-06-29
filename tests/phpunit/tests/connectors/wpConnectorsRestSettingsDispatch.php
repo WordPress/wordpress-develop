@@ -16,6 +16,13 @@ class Tests_Connectors_WpConnectorsRestSettingsDispatch extends WP_UnitTestCase 
 	const CREDENTIALS_SETTING_NAME = 'connectors_test_remote_credentials';
 	const AI_KEY_SETTING_NAME      = 'connectors_ai_mock_connectors_test_api_key';
 
+	/*
+	 * A connector registered as an AI provider but absent from the AI Client
+	 * registry, so its key can never be verified (validation returns null).
+	 */
+	const UNVERIFIABLE_ID      = 'mock-connectors-unverifiable';
+	const UNVERIFIABLE_SETTING = 'connectors_test_unverifiable_api_key';
+
 	/**
 	 * Registers the mock AI provider connector once before any tests in this class run.
 	 */
@@ -33,7 +40,7 @@ class Tests_Connectors_WpConnectorsRestSettingsDispatch extends WP_UnitTestCase 
 	}
 
 	/**
-	 * Registers an application password connector before each test.
+	 * Registers the test connectors before each test.
 	 */
 	public function set_up(): void {
 		parent::set_up();
@@ -51,15 +58,31 @@ class Tests_Connectors_WpConnectorsRestSettingsDispatch extends WP_UnitTestCase 
 				),
 			)
 		);
+
+		WP_Connector_Registry::get_instance()->register(
+			self::UNVERIFIABLE_ID,
+			array(
+				'name'           => 'Mock Unverifiable',
+				'description'    => '',
+				'type'           => 'ai_provider',
+				'authentication' => array(
+					'method'       => 'api_key',
+					'setting_name' => self::UNVERIFIABLE_SETTING,
+				),
+			)
+		);
 	}
 
 	/**
-	 * Removes the test connector after each test.
+	 * Removes the test connectors after each test.
 	 */
 	public function tear_down(): void {
 		$registry = WP_Connector_Registry::get_instance();
 		if ( null !== $registry && $registry->is_registered( self::CONNECTOR_ID ) ) {
 			$registry->unregister( self::CONNECTOR_ID );
+		}
+		if ( null !== $registry && $registry->is_registered( self::UNVERIFIABLE_ID ) ) {
+			$registry->unregister( self::UNVERIFIABLE_ID );
 		}
 
 		parent::tear_down();
@@ -181,6 +204,58 @@ class Tests_Connectors_WpConnectorsRestSettingsDispatch extends WP_UnitTestCase 
 			_wp_connectors_mask_api_key( $submitted_key ),
 			$data[ self::AI_KEY_SETTING_NAME ],
 			'The submitted AI provider key should be masked in the response.'
+		);
+	}
+
+	/**
+	 * A validation result that is not an explicit failure must preserve the stored key.
+	 *
+	 * @ticket 65551
+	 */
+	public function test_indeterminate_validation_preserves_key(): void {
+		$this->setExpectedIncorrectUsage( '_wp_connectors_is_ai_api_key_valid' );
+
+		update_option( self::UNVERIFIABLE_SETTING, 'existing-valid-key' );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/settings' );
+		$request->set_param( self::UNVERIFIABLE_SETTING, 'existing-valid-key' );
+		$response = new WP_REST_Response( array( self::UNVERIFIABLE_SETTING => 'existing-valid-key' ) );
+
+		$result = _wp_connectors_rest_settings_dispatch( $response, rest_get_server(), $request );
+
+		$this->assertSame(
+			'existing-valid-key',
+			get_option( self::UNVERIFIABLE_SETTING ),
+			'The stored key should be preserved when validation is indeterminate.'
+		);
+
+		$data = $result->get_data();
+		$this->assertNotSame(
+			'',
+			$data[ self::UNVERIFIABLE_SETTING ],
+			'The response value should not be emptied when validation is indeterminate.'
+		);
+	}
+
+	/**
+	 * Read (GET) requests must never validate or discard the stored key.
+	 *
+	 * @ticket 65551
+	 */
+	public function test_get_request_does_not_discard_key(): void {
+		self::set_mock_provider_configured( false );
+
+		update_option( self::AI_KEY_SETTING_NAME, 'a-valid-secret-key' );
+
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/settings' );
+		$response = new WP_REST_Response( array( self::AI_KEY_SETTING_NAME => 'a-valid-secret-key' ) );
+
+		_wp_connectors_rest_settings_dispatch( $response, rest_get_server(), $request );
+
+		$this->assertSame(
+			'a-valid-secret-key',
+			get_option( self::AI_KEY_SETTING_NAME ),
+			'A GET request must not discard the stored key, even for an unconfigured provider.'
 		);
 	}
 }
