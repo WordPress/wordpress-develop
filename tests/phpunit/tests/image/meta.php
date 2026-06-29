@@ -98,7 +98,7 @@ class Tests_Image_Meta extends WP_UnitTestCase {
 	 */
 	public function test_exif_error() {
 		// https://core.trac.wordpress.org/ticket/6571
-		// This triggers a warning mesage when reading the Exif block.
+		// This triggers a warning message when reading the Exif block.
 		$out = wp_read_image_metadata( DIR_TESTDATA . '/images/waffles.jpg' );
 
 		$this->assertSame( '0', $out['aperture'], 'Aperture value not equivalent' );
@@ -127,6 +127,16 @@ class Tests_Image_Meta extends WP_UnitTestCase {
 		$this->assertSame( '0', $out['iso'], 'Iso value not equivalent' );
 		$this->assertSame( '0', $out['shutter_speed'], 'Shutter speed value not equivalent' );
 		$this->assertSame( '', $out['title'], 'Title value not the same' );
+	}
+
+	/**
+	 * @ticket 63895
+	 */
+	public function test_iptc_alt() {
+		// Image tests alt text from the IPTC photo metadata standard 2025.1.
+		$out = wp_read_image_metadata( DIR_TESTDATA . '/images/IPTC-PhotometadataRef-Std2025.1.jpg' );
+
+		$this->assertSame( 'This is the Alt Text description to support accessibility in 2025.1', $out['alt'], 'Alt text does not match source.' );
 	}
 
 	/**
@@ -200,6 +210,7 @@ class Tests_Image_Meta extends WP_UnitTestCase {
 					'title'             => '',
 					'orientation'       => '3',
 					'keywords'          => array(),
+					'alt'               => '',
 				),
 			),
 			'Exif from a Nikon D70 with IPTC data added later' => array(
@@ -217,6 +228,7 @@ class Tests_Image_Meta extends WP_UnitTestCase {
 					'title'             => 'IPTC Headline',
 					'orientation'       => '0',
 					'keywords'          => array(),
+					'alt'               => '',
 				),
 			),
 			'Exif from a DMC-LX2 camera with keywords' => array(
@@ -234,6 +246,7 @@ class Tests_Image_Meta extends WP_UnitTestCase {
 					'title'             => 'Photoshop Document Ttitle',
 					'orientation'       => '1',
 					'keywords'          => array( 'beach', 'baywatch', 'LA', 'sunset' ),
+					'alt'               => '',
 				),
 			),
 		);

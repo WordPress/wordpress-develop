@@ -48,7 +48,7 @@ class Tests_Shortcode extends WP_UnitTestCase {
 
 	// [footag foo="bar"]
 	public function shortcode_footag( $atts ) {
-		$foo = isset( $atts['foo'] ) ? $atts['foo'] : '';
+		$foo = $atts['foo'] ?? '';
 		return "foo = $foo";
 	}
 
@@ -693,10 +693,11 @@ EOF;
 	private function sub_registration( $input, $expected ) {
 		add_shortcode( $input, '' );
 		$actual = shortcode_exists( $input );
-		$this->assertSame( $expected, $actual );
 		if ( $actual ) {
 			remove_shortcode( $input );
 		}
+
+		$this->assertSame( $expected, $actual );
 	}
 
 	public function data_registration_bad() {

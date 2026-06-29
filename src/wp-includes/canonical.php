@@ -37,13 +37,13 @@
  * @param string $requested_url Optional. The URL that was requested, used to
  *                              figure if redirect is needed.
  * @param bool   $do_redirect   Optional. Redirect to the new URL.
- * @return string|void The string of the URL, if redirect needed.
+ * @return string|null The string of the URL, if redirect needed. Never returns if a redirect occurs, depending on $do_redirect.
  */
 function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 	global $wp_rewrite, $is_IIS, $wp_query, $wpdb, $wp;
 
 	if ( isset( $_SERVER['REQUEST_METHOD'] ) && ! in_array( strtoupper( $_SERVER['REQUEST_METHOD'] ), array( 'GET', 'HEAD' ), true ) ) {
-		return;
+		return null;
 	}
 
 	/*
@@ -62,7 +62,7 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 	if ( is_admin() || is_search() || is_preview() || is_trackback() || is_favicon()
 		|| ( $is_IIS && ! iis7_supports_permalinks() )
 	) {
-		return;
+		return null;
 	}
 
 	if ( ! $requested_url && isset( $_SERVER['HTTP_HOST'] ) ) {
@@ -74,20 +74,20 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 
 	$original = parse_url( $requested_url );
 	if ( false === $original ) {
-		return;
+		return null;
 	}
+
+	// Notice fixing.
+	$original += array(
+		'host'   => '',
+		'path'   => '',
+		'query'  => '',
+		'scheme' => '',
+	);
 
 	$redirect     = $original;
 	$redirect_url = false;
 	$redirect_obj = false;
-
-	// Notice fixing.
-	if ( ! isset( $redirect['path'] ) ) {
-		$redirect['path'] = '';
-	}
-	if ( ! isset( $redirect['query'] ) ) {
-		$redirect['query'] = '';
-	}
 
 	/*
 	 * If the original URL ended with non-breaking spaces, they were almost
@@ -553,16 +553,17 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 		$attachment_id        = get_query_var( 'attachment_id' );
 		$attachment_post      = get_post( $attachment_id );
 		$attachment_parent_id = $attachment_post ? $attachment_post->post_parent : 0;
+		$attachment_url       = wp_get_attachment_url( $attachment_id );
 
-		$attachment_url = wp_get_attachment_url( $attachment_id );
 		if ( $attachment_url !== $redirect_url ) {
 			/*
-			* If an attachment is attached to a post, it inherits the parent post's status. Fetch the
-			* parent post to check its status later.
-			*/
+			 * If an attachment is attached to a post, it inherits the parent post's status.
+			 * Fetch the parent post to check its status later.
+			 */
 			if ( $attachment_parent_id ) {
 				$redirect_obj = get_post( $attachment_parent_id );
 			}
+
 			$redirect_url = $attachment_url;
 		}
 
@@ -613,6 +614,14 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 	} else {
 		unset( $redirect['port'] );
 	}
+
+	// Notice prevention after new parse_url( $redirect_url ) calls
+	$redirect += array(
+		'host'   => '',
+		'path'   => '',
+		'query'  => '',
+		'scheme' => '',
+	);
 
 	// Trailing /index.php.
 	$redirect['path'] = preg_replace( '|/' . preg_quote( $wp_rewrite->index, '|' ) . '/*?$|', '/', $redirect['path'] );
@@ -762,7 +771,7 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 	}
 
 	if ( ! $redirect_url || $redirect_url === $requested_url ) {
-		return;
+		return null;
 	}
 
 	// Hex-encoded octets are case-insensitive.
@@ -821,7 +830,7 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 
 	// Yes, again -- in case the filter aborted the request.
 	if ( ! $redirect_url || strip_fragment_from_url( $redirect_url ) === strip_fragment_from_url( $requested_url ) ) {
-		return;
+		return null;
 	}
 
 	if ( $do_redirect ) {
@@ -832,7 +841,7 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 		} else {
 			// Debug.
 			// die("1: $redirect_url<br />2: " . redirect_canonical( $redirect_url, false ) );
-			return;
+			return null;
 		}
 	} else {
 		return $redirect_url;

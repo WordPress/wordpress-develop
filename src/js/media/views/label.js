@@ -10,7 +10,6 @@
  */
 var Label = wp.media.View.extend(/** @lends wp.media.view.Label.prototype */{
 	tagName: 'label',
-	className: 'screen-reader-text',
 
 	initialize: function() {
 		this.value = this.options.value;

@@ -430,10 +430,11 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 
 		$this->go_to( get_permalink( $p ) );
 
-		$url = redirect_canonical( add_query_arg( '%D0%BA%D0%BE%D0%BA%D0%BE%D0%BA%D0%BE', 1, site_url( '/' ) ), false );
-		$this->assertNull( $url );
+		$redirect = redirect_canonical( add_query_arg( '%D0%BA%D0%BE%D0%BA%D0%BE%D0%BA%D0%BE', 1, site_url( '/' ) ), false );
 
 		delete_option( 'page_on_front' );
+
+		$this->assertNull( $redirect );
 	}
 
 	/**
@@ -456,11 +457,12 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 			)
 		);
 
-		$url = redirect_canonical( get_term_feed_link( self::$terms['/category/parent/'] ), false );
+		$redirect = redirect_canonical( get_term_feed_link( self::$terms['/category/parent/'] ), false );
+
 		// Restore original global.
 		$GLOBALS['wp_query'] = $global_query;
 
-		$this->assertNull( $url );
+		$this->assertNull( $redirect );
 	}
 
 	/**
