@@ -76,7 +76,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 		parent::__construct(
 			array(
 				'plural' => 'posts',
-				'screen' => isset( $args['screen'] ) ? $args['screen'] : null,
+				'screen' => $args['screen'] ?? null,
 			)
 		);
 
@@ -437,7 +437,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 			if ( $this->is_trash ) {
 				$actions['untrash'] = __( 'Restore' );
 			} else {
-				$actions['edit'] = __( 'Edit' );
+				$actions['edit'] = _x( 'Bulk edit', 'verb' );
 			}
 		}
 
@@ -531,7 +531,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 			return;
 		}
 
-		$displayed_post_format = isset( $_GET['post_format'] ) ? $_GET['post_format'] : '';
+		$displayed_post_format = $_GET['post_format'] ?? '';
 		?>
 		<label for="filter-by-format" class="screen-reader-text">
 			<?php
@@ -596,7 +596,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 
 			if ( ! empty( $output ) ) {
 				echo $output;
-				submit_button( __( 'Filter' ), '', 'filter_action', false, array( 'id' => 'post-query-submit' ) );
+				submit_button( __( 'Filter' ), 'button-compact', 'filter_action', false, array( 'id' => 'post-query-submit' ) );
 			}
 		}
 
@@ -1138,10 +1138,8 @@ class WP_Posts_List_Table extends WP_List_Table {
 
 		if ( $can_edit_post && 'trash' !== $post->post_status ) {
 			printf(
-				'<a class="row-title" href="%s" aria-label="%s">%s%s</a>',
+				'<a class="row-title" href="%s">%s%s</a>',
 				get_edit_post_link( $post->ID ),
-				/* translators: %s: Post title. */
-				esc_attr( sprintf( __( '&#8220;%s&#8221; (Edit)' ), $title ) ),
 				$pad,
 				$title
 			);
@@ -1264,7 +1262,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 		?>
 		<div class="post-com-count-wrapper">
 		<?php
-			$pending_comments = isset( $this->comment_pending_count[ $post->ID ] ) ? $this->comment_pending_count[ $post->ID ] : 0;
+			$pending_comments = $this->comment_pending_count[ $post->ID ] ?? 0;
 
 			$this->comments_bubble( $post->ID, $pending_comments );
 		?>
@@ -1550,7 +1548,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 						esc_url( $preview_link ),
 						/* translators: %s: Post title. */
 						esc_attr( sprintf( __( 'Preview &#8220;%s&#8221;' ), $title ) ),
-						__( 'Preview' )
+						_x( 'Preview', 'verb' )
 					);
 				}
 			} elseif ( 'trash' !== $post->post_status ) {
@@ -1781,7 +1779,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 					<div class="inline-edit-group wp-clearfix">
 						<label class="alignleft">
 							<span class="title"><?php _e( 'Password' ); ?></span>
-							<span class="input-text-wrap"><input type="text" name="post_password" class="inline-edit-password-input" value="" /></span>
+							<span class="input-text-wrap"><input type="text" name="post_password" class="inline-edit-password-input ltr" value="" /></span>
 						</label>
 
 						<span class="alignleft inline-edit-or">
