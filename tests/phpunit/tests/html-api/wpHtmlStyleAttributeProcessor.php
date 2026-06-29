@@ -210,6 +210,39 @@ class Tests_HtmlApi_WpHtmlStyleAttributeProcessor extends WP_UnitTestCase {
 
 	/**
 	 * @covers ::append_declaration
+	 * @covers ::get_updated_style
+	 */
+	public function test_append_declaration_treats_comments_as_trivia_for_separators() {
+		$processor = new WP_HTML_Style_Attribute_Processor( '/*keep*/' );
+
+		$this->assertTrue( $processor->append_declaration( 'color', 'red' ) );
+		$this->assertSame( '/*keep*/ color: red;', $processor->get_updated_style() );
+
+		$processor = new WP_HTML_Style_Attribute_Processor( 'color: red;/*keep*/' );
+
+		$this->assertTrue( $processor->append_declaration( 'background', 'white' ) );
+		$this->assertSame( 'color: red;/*keep*/ background: white;', $processor->get_updated_style() );
+
+		$processor = new WP_HTML_Style_Attribute_Processor( 'color: var(--x;/*keep*/);' );
+
+		$this->assertTrue( $processor->append_declaration( 'background', 'white' ) );
+		$this->assertSame( 'color: var(--x;/*keep*/); background: white;', $processor->get_updated_style() );
+	}
+
+	/**
+	 * @covers ::append_declaration
+	 * @covers ::get_updated_style
+	 */
+	public function test_append_declaration_rejects_unclosed_component_value_append_points() {
+		$style     = 'color: var(--x;/*keep*/';
+		$processor = new WP_HTML_Style_Attribute_Processor( $style );
+
+		$this->assertFalse( $processor->append_declaration( 'background', 'white' ) );
+		$this->assertSame( $style, $processor->get_updated_style() );
+	}
+
+	/**
+	 * @covers ::append_declaration
 	 * @covers ::next_declaration
 	 */
 	public function test_appended_declarations_can_be_inspected_by_the_cursor() {

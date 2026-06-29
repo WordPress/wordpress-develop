@@ -241,16 +241,17 @@ class WP_HTML_Style_Attribute_Processor {
 		$old_declaration_count = count( $this->declarations );
 		$trimmed_style         = rtrim( $this->style, self::WHITESPACE );
 		$insert_at             = strlen( $trimmed_style );
-		$separator             = $this->has_queued_append_at( $insert_at ) ? ' ' : '';
+		$separator             = $this->get_append_separator( $insert_at );
+		$declaration_text      = $this->serialize_declaration( $property_name, $value, $important );
 
-		if ( '' === $separator && '' !== trim( $trimmed_style, self::WHITESPACE ) ) {
-			$separator = ( ';' === substr( $trimmed_style, -1 ) ) ? ' ' : '; ';
+		if ( ! $this->is_parseable_append( $insert_at, $separator, $declaration_text, $old_declaration_count ) ) {
+			return false;
 		}
 
 		$this->queue_lexical_update(
 			$insert_at,
 			0,
-			$separator . $this->serialize_declaration( $property_name, $value, $important ),
+			$separator . $declaration_text,
 			null
 		);
 
@@ -755,6 +756,112 @@ class WP_HTML_Style_Attribute_Processor {
 	private function has_queued_append_at( int $insert_at ): bool {
 		foreach ( $this->lexical_updates as $update ) {
 			if ( null === $update['declaration'] && $insert_at === $update['start'] && 0 === $update['length'] ) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * Gets the separator to use before an appended declaration.
+	 *
+	 * Comments and whitespace are CSS parser trivia. They do not determine
+	 * whether the existing declaration list needs a semicolon before appending.
+	 *
+	 * @param int $insert_at Byte offset at which the declaration will be inserted.
+	 * @return string Separator text.
+	 */
+	private function get_append_separator( int $insert_at ): string {
+		if ( $this->has_queued_append_at( $insert_at ) ) {
+			return ' ';
+		}
+
+		$last_token = $this->get_last_top_level_non_ignored_token_before( $insert_at );
+
+		if ( null === $last_token ) {
+			return $insert_at > 0 ? ' ' : '';
+		}
+
+		return WP_CSS_Token_Processor::TOKEN_SEMICOLON === $last_token['type'] ? ' ' : '; ';
+	}
+
+	/**
+	 * Gets the last top-level non-ignored token before a byte offset.
+	 *
+	 * @param int $insert_at Byte offset before which to scan.
+	 * @return array{type:string, value:string|null, start:int, length:int, end:int}|null Token metadata.
+	 */
+	private function get_last_top_level_non_ignored_token_before( int $insert_at ): ?array {
+		$count      = count( $this->tokens );
+		$index      = 0;
+		$last_token = null;
+
+		while ( $index < $count ) {
+			$token = $this->tokens[ $index ];
+
+			if ( $token['start'] >= $insert_at ) {
+				break;
+			}
+
+			if ( $this->is_ignored_token( $token ) ) {
+				++$index;
+				continue;
+			}
+
+			$last_token = $token;
+
+			if ( WP_CSS_Token_Processor::TOKEN_FUNCTION === $token['type'] ) {
+				list( $index ) = $this->consume_simple_block( $index, WP_CSS_Token_Processor::TOKEN_RIGHT_PAREN );
+				continue;
+			}
+
+			if ( WP_CSS_Token_Processor::TOKEN_LEFT_PAREN === $token['type'] ) {
+				list( $index ) = $this->consume_simple_block( $index, WP_CSS_Token_Processor::TOKEN_RIGHT_PAREN );
+				continue;
+			}
+
+			if ( WP_CSS_Token_Processor::TOKEN_LEFT_BRACKET === $token['type'] ) {
+				list( $index ) = $this->consume_simple_block( $index, WP_CSS_Token_Processor::TOKEN_RIGHT_BRACKET );
+				continue;
+			}
+
+			if ( WP_CSS_Token_Processor::TOKEN_LEFT_BRACE === $token['type'] ) {
+				list( $index ) = $this->consume_simple_block( $index, WP_CSS_Token_Processor::TOKEN_RIGHT_BRACE );
+				continue;
+			}
+
+			++$index;
+		}
+
+		return $last_token;
+	}
+
+	/**
+	 * Checks whether an appended declaration will parse as a new declaration.
+	 *
+	 * Malformed existing declarations can leave the append point inside an
+	 * unclosed component value. In that case preserving the original text and
+	 * appending a top-level declaration are incompatible.
+	 *
+	 * @param int    $insert_at             Byte offset at which the declaration will be inserted.
+	 * @param string $separator             Separator text.
+	 * @param string $declaration_text      Serialized declaration text.
+	 * @param int    $old_declaration_count Number of declarations before appending.
+	 * @return bool Whether the appended declaration is parseable.
+	 */
+	private function is_parseable_append( int $insert_at, string $separator, string $declaration_text, int $old_declaration_count ): bool {
+		$expected_start  = $insert_at + strlen( $separator );
+		$expected_after  = $expected_start + strlen( $declaration_text );
+		$candidate_style = substr( $this->style, 0, $insert_at ) . $separator . $declaration_text . substr( $this->style, $insert_at );
+		$candidate       = new self( $candidate_style );
+
+		if ( count( $candidate->declarations ) !== $old_declaration_count + 1 ) {
+			return false;
+		}
+
+		foreach ( $candidate->declarations as $declaration ) {
+			if ( $expected_start === $declaration['start'] && $expected_after === $declaration['after'] ) {
 				return true;
 			}
 		}
