@@ -5772,49 +5772,6 @@ function wp_show_heic_upload_error( $plupload_settings ) {
 }
 
 /**
- * Deletes the source-format companion file when its attachment is deleted.
- *
- * When the client-side media flow sideloads a source-format original (such as
- * a HEIC file) alongside a web-viewable derivative, the original's filename is
- * recorded in the 'source_image' metadata key. WordPress only tracks
- * 'original_image' in wp_delete_attachment_files(), so without this hook the
- * companion file would linger on disk after the attachment is deleted.
- *
- * @since 7.1.0
- *
- * @param int $post_id Attachment ID being deleted.
- * @return bool Whether a companion file was deleted.
- */
-function wp_delete_attachment_heic_companion_file( $post_id ): bool {
-	$metadata = wp_get_attachment_metadata( $post_id, true );
-
-	$source_image = $metadata['source_image'] ?? null;
-	if ( ! is_string( $source_image ) || '' === $source_image ) {
-		return false;
-	}
-
-	$attached_file = get_attached_file( $post_id, true );
-
-	if ( ! $attached_file ) {
-		return false;
-	}
-
-	$uploads = wp_get_upload_dir();
-
-	if ( empty( $uploads['basedir'] ) ) {
-		return false;
-	}
-
-	$companion_path = path_join( dirname( $attached_file ), wp_basename( $source_image ) );
-
-	if ( ! file_exists( $companion_path ) ) {
-		return false;
-	}
-
-	return wp_delete_file_from_directory( $companion_path, $uploads['basedir'] );
-}
-
-/**
  * Allows PHP's getimagesize() to be debuggable when necessary.
  *
  * @since 5.7.0

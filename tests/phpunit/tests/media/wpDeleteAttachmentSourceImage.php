@@ -1,12 +1,12 @@
 <?php
 
 /**
- * Tests for the `wp_delete_attachment_heic_companion_file()` function.
+ * Tests that wp_delete_attachment_files() removes the 'source_image' companion file.
  *
  * @group media
- * @covers ::wp_delete_attachment_heic_companion_file
+ * @covers ::wp_delete_attachment_files
  */
-class Tests_Media_wpDeleteAttachmentHeicCompanionFile extends WP_UnitTestCase {
+class Tests_Media_wpDeleteAttachmentSourceImage extends WP_UnitTestCase {
 
 	public function tear_down(): void {
 		$this->remove_added_uploads();
@@ -37,10 +37,9 @@ class Tests_Media_wpDeleteAttachmentHeicCompanionFile extends WP_UnitTestCase {
 		$metadata['source_image'] = $heic_name;
 		wp_update_attachment_metadata( $attachment_id, $metadata );
 
-		$this->assertTrue(
-			wp_delete_attachment_heic_companion_file( $attachment_id ),
-			'Function should report that a companion file was deleted.'
-		);
+		wp_delete_attachment( $attachment_id, true );
+
+		$this->assertNull( get_post( $attachment_id ) );
 		$this->assertFileDoesNotExist( $heic_path, 'Companion file should be deleted alongside the attachment.' );
 	}
 
@@ -56,9 +55,7 @@ class Tests_Media_wpDeleteAttachmentHeicCompanionFile extends WP_UnitTestCase {
 		$this->assertIsArray( $metadata );
 		$this->assertArrayNotHasKey( 'source_image', $metadata );
 
-		// Should report no deletion and not raise even though the hook fires.
-		$this->assertFalse( wp_delete_attachment_heic_companion_file( $attachment_id ) );
-
+		// Deletion should complete cleanly even though no companion file is recorded.
 		wp_delete_attachment( $attachment_id, true );
 
 		$this->assertNull( get_post( $attachment_id ) );
@@ -89,10 +86,10 @@ class Tests_Media_wpDeleteAttachmentHeicCompanionFile extends WP_UnitTestCase {
 		$metadata['source_image'] = array( 'file' => 'should-not-delete.heic' );
 		wp_update_attachment_metadata( $attachment_id, $metadata );
 
-		// Should report no deletion and not raise (no path_join() / file_exists() on an array).
-		$this->assertFalse( wp_delete_attachment_heic_companion_file( $attachment_id ) );
+		// Deletion should not raise (no str_replace() / file deletion on an array).
+		wp_delete_attachment( $attachment_id, true );
 
+		$this->assertNull( get_post( $attachment_id ) );
 		$this->assertFileExists( $bystander_path, 'The non-string guard must prevent any file deletion.' );
-		$this->assertFileExists( $attached_file, 'Attached file should still be on disk.' );
 	}
 }

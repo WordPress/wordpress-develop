@@ -2140,7 +2140,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			 * scaled-sideload flow (which writes 'original_image') cannot
 			 * clobber it. 'original_image' keeps pointing at the
 			 * web-viewable JPEG derivative. Cleanup on attachment delete
-			 * is handled by wp_delete_attachment_heic_companion_file().
+			 * is handled by wp_delete_attachment_files().
 			 */
 			$metadata[ self::META_KEY_SOURCE_IMAGE ] = wp_basename( $path );
 		} elseif ( 'scaled' === $image_size ) {
