@@ -58,6 +58,13 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 		remove_action( 'wp_abilities_api_categories_init', '_unhook_core_ability_categories_registration', 1 );
 		remove_action( 'wp_abilities_api_init', '_unhook_core_abilities_registration', 1 );
 
+		foreach ( wp_get_abilities() as $ability ) {
+			wp_unregister_ability( $ability->get_name() );
+		}
+		foreach ( wp_get_ability_categories() as $ability_category ) {
+			wp_unregister_ability_category( $ability_category->get_slug() );
+		}
+
 		add_action( 'wp_abilities_api_categories_init', 'wp_register_core_ability_categories' );
 		add_action( 'wp_abilities_api_init', 'wp_register_core_abilities' );
 		do_action( 'wp_abilities_api_categories_init' );
@@ -149,19 +156,32 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 		$schema = $this->ability()->get_input_schema();
 
 		$this->assertSame( 'object', $schema['type'] );
-		$this->assertCount( 2, $schema['oneOf'] );
+		$this->assertCount( 3, $schema['oneOf'] );
 
-		[ $by_id, $by_type ] = $schema['oneOf'];
+		[ $by_id, $by_slug, $query ] = $schema['oneOf'];
 
-		// Mode 1 requires `id`; Mode 2 requires `post_type`. Both reject extra properties.
 		$this->assertSame( array( 'id' ), $by_id['required'] );
-		$this->assertSame( array( 'post_type' ), $by_type['required'] );
+		$this->assertSame( array( 'post_type', 'slug' ), $by_slug['required'] );
+		$this->assertSame( array( 'post_type' ), $query['required'] );
 		$this->assertFalse( $by_id['additionalProperties'] );
-		$this->assertFalse( $by_type['additionalProperties'] );
+		$this->assertFalse( $by_slug['additionalProperties'] );
+		$this->assertFalse( $query['additionalProperties'] );
 
-		// Query-only filters live only in the query mode, not the by-ID mode.
-		$this->assertArrayHasKey( 'per_page', $by_type['properties'] );
+		// Query-only filters live only in the query mode, not the single-post modes.
+		$this->assertArrayHasKey( 'include', $query['properties'] );
+		$this->assertArrayHasKey( 'per_page', $query['properties'] );
 		$this->assertArrayNotHasKey( 'per_page', $by_id['properties'] );
+		$this->assertArrayNotHasKey( 'include', $by_slug['properties'] );
+		$this->assertArrayNotHasKey( 'slug', $query['properties'] );
+
+		$this->assertContains( 'post', $query['properties']['post_type']['enum'] );
+		$this->assertContains( 'page', $by_id['properties']['post_type']['enum'] );
+		$this->assertContains( 'page', $by_slug['properties']['post_type']['enum'] );
+
+		$this->assertSame( 1, $query['properties']['include']['minItems'] );
+		$this->assertTrue( $query['properties']['include']['uniqueItems'] );
+		$this->assertSame( 'integer', $query['properties']['include']['items']['type'] );
+		$this->assertSame( 1, $query['properties']['include']['items']['minimum'] );
 	}
 
 	public function test_id_mode_rejects_query_only_params(): void {
@@ -196,11 +216,12 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 		);
 
 		$this->assertIsArray( $result );
-		$this->assertSame( $post_id, $result['posts'][0]['id'] );
+		$this->assertSame( $post_id, $result['id'] );
+		$this->assertArrayNotHasKey( 'posts', $result );
 	}
 
 	public function test_input_schema_post_type_enum_only_includes_exposed_types(): void {
-		$enum = $this->ability()->get_input_schema()['oneOf'][1]['properties']['post_type']['enum'];
+		$enum = $this->ability()->get_input_schema()['oneOf'][2]['properties']['post_type']['enum'];
 
 		$this->assertContains( 'post', $enum );
 		$this->assertContains( 'page', $enum );
@@ -209,8 +230,35 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 		$this->assertNotContains( 'revision', $enum );
 	}
 
+	public function test_query_exposed_custom_post_type(): void {
+		$this->login_as( 'administrator' );
+
+		if ( ! post_type_exists( self::EXPOSED_CPT ) ) {
+			register_post_type(
+				self::EXPOSED_CPT,
+				array(
+					'public'            => true,
+					'show_in_abilities' => true,
+					'supports'          => array( 'title', 'editor', 'excerpt', 'author' ),
+				)
+			);
+		}
+
+		$post_id = self::factory()->post->create(
+			array(
+				'post_type'   => self::EXPOSED_CPT,
+				'post_status' => 'publish',
+			)
+		);
+
+		$result = $this->ability()->execute( array( 'post_type' => self::EXPOSED_CPT ) );
+		$ids    = wp_list_pluck( $result['posts'], 'id' );
+
+		$this->assertContains( $post_id, $ids );
+	}
+
 	public function test_input_schema_status_and_fields_enums(): void {
-		$properties = $this->ability()->get_input_schema()['oneOf'][1]['properties'];
+		$properties = $this->ability()->get_input_schema()['oneOf'][2]['properties'];
 
 		$status_enum = $properties['status']['items']['enum'];
 		$this->assertContains( 'publish', $status_enum );
@@ -228,22 +276,28 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	}
 
 	public function test_input_schema_omits_oneof_branch_defaults(): void {
-		$properties = $this->ability()->get_input_schema()['oneOf'][1]['properties'];
+		$properties = $this->ability()->get_input_schema()['oneOf'][2]['properties'];
 
 		$this->assertArrayNotHasKey( 'default', $properties['status'] );
 		$this->assertArrayNotHasKey( 'default', $properties['page'] );
 		$this->assertArrayNotHasKey( 'default', $properties['per_page'] );
 	}
 
-	public function test_output_schema_has_no_required_fields(): void {
-		$schema    = $this->ability()->get_output_schema();
-		$post_item = $schema['properties']['posts']['items'];
+	public function test_output_schema_describes_single_post_and_query_responses(): void {
+		$schema       = $this->ability()->get_output_schema();
+		$post_schema  = $schema['oneOf'][0];
+		$query_schema = $schema['oneOf'][1];
 
-		$this->assertSame( array( 'posts', 'total', 'total_pages' ), $schema['required'] );
-		$this->assertArrayNotHasKey( 'required', $post_item );
-		$this->assertFalse( $post_item['additionalProperties'] );
-		$this->assertArrayHasKey( 'content_raw', $post_item['properties'] );
-		$this->assertArrayHasKey( 'content_rendered', $post_item['properties'] );
+		$this->assertSame( 'object', $schema['type'] );
+		$this->assertCount( 2, $schema['oneOf'] );
+		$this->assertSame( 'object', $post_schema['type'] );
+		$this->assertArrayNotHasKey( 'required', $post_schema );
+		$this->assertFalse( $post_schema['additionalProperties'] );
+		$this->assertArrayHasKey( 'content_raw', $post_schema['properties'] );
+		$this->assertArrayHasKey( 'content_rendered', $post_schema['properties'] );
+		$this->assertSame( array( 'posts', 'total', 'total_pages' ), $query_schema['required'] );
+		$this->assertArrayHasKey( 'total', $query_schema['properties'] );
+		$this->assertArrayHasKey( 'total_pages', $query_schema['properties'] );
 	}
 
 	/*
@@ -265,13 +319,13 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 		$result = $this->ability()->execute( array( 'id' => $post_id ) );
 
 		$this->assertIsArray( $result );
-		$this->assertCount( 1, $result['posts'] );
-		$this->assertSame( $post_id, $result['posts'][0]['id'] );
-		$this->assertSame( 'Hello Content', $result['posts'][0]['title_raw'] );
-		$this->assertSame( 'Hello Content', $result['posts'][0]['title_rendered'] );
-		$this->assertSame( 'Body here.', $result['posts'][0]['content_raw'] );
-		$this->assertStringContainsString( 'Body here.', $result['posts'][0]['content_rendered'] );
-		$this->assertSame( 'post', $result['posts'][0]['type'] );
+		$this->assertSame( $post_id, $result['id'] );
+		$this->assertSame( 'Hello Content', $result['title_rendered'] );
+		$this->assertSame(
+			array( 'id', 'type', 'status', 'date', 'slug', 'title_rendered' ),
+			array_keys( $result )
+		);
+		$this->assertArrayNotHasKey( 'posts', $result );
 	}
 
 	public function test_get_by_id_with_mismatched_post_type_is_denied(): void {
@@ -332,7 +386,79 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 		$this->assertNotContains( $draft, $ids );
 	}
 
-	public function test_query_by_slug_requires_post_type(): void {
+	public function test_query_include_limits_results_and_preserves_order(): void {
+		$this->login_as( 'administrator' );
+
+		$first  = self::factory()->post->create( array( 'post_status' => 'publish' ) );
+		$second = self::factory()->post->create( array( 'post_status' => 'publish' ) );
+		$third  = self::factory()->post->create( array( 'post_status' => 'publish' ) );
+
+		$result = $this->ability()->execute(
+			array(
+				'post_type' => 'post',
+				'include'   => array( $third, $first ),
+				'fields'    => array( 'id' ),
+			)
+		);
+		$ids    = wp_list_pluck( $result['posts'], 'id' );
+
+		$this->assertSame( array( $third, $first ), $ids );
+		$this->assertNotContains( $second, $ids );
+	}
+
+	public function test_query_include_respects_requested_post_type(): void {
+		$this->login_as( 'administrator' );
+
+		$page_id = self::factory()->post->create(
+			array(
+				'post_type'   => 'page',
+				'post_status' => 'publish',
+			)
+		);
+		$post_id = self::factory()->post->create( array( 'post_status' => 'publish' ) );
+
+		$result = $this->ability()->execute(
+			array(
+				'post_type' => 'post',
+				'include'   => array( $page_id, $post_id ),
+				'fields'    => array( 'id' ),
+			)
+		);
+
+		$this->assertSame( array( $post_id ), wp_list_pluck( $result['posts'], 'id' ) );
+	}
+
+	public function test_query_include_respects_row_level_permissions(): void {
+		$author_a = self::factory()->user->create( array( 'role' => 'author' ) );
+		$author_b = self::factory()->user->create( array( 'role' => 'author' ) );
+
+		$draft_a = self::factory()->post->create(
+			array(
+				'post_author' => $author_a,
+				'post_status' => 'draft',
+			)
+		);
+		$draft_b = self::factory()->post->create(
+			array(
+				'post_author' => $author_b,
+				'post_status' => 'draft',
+			)
+		);
+
+		wp_set_current_user( $author_b );
+		$result = $this->ability()->execute(
+			array(
+				'post_type' => 'post',
+				'status'    => array( 'draft' ),
+				'include'   => array( $draft_a, $draft_b ),
+				'fields'    => array( 'id' ),
+			)
+		);
+
+		$this->assertSame( array( $draft_b ), wp_list_pluck( $result['posts'], 'id' ) );
+	}
+
+	public function test_slug_mode_requires_post_type(): void {
 		$this->login_as( 'administrator' );
 
 		$result = $this->ability()->execute( array( 'slug' => 'whatever' ) );
@@ -341,11 +467,12 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 		$this->assertSame( 'ability_invalid_input', $result->get_error_code() );
 	}
 
-	public function test_query_by_slug_within_post_type(): void {
+	public function test_get_single_published_post_by_slug(): void {
 		$this->login_as( 'administrator' );
 		$post_id = self::factory()->post->create(
 			array(
-				'post_name'   => 'find-me',
+				'post_name'   => 'content-slug-mode',
+				'post_title'  => 'Content Slug Mode',
 				'post_status' => 'publish',
 			)
 		);
@@ -353,12 +480,55 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 		$result = $this->ability()->execute(
 			array(
 				'post_type' => 'post',
-				'slug'      => 'find-me',
+				'slug'      => 'content-slug-mode',
 			)
 		);
 
-		$this->assertCount( 1, $result['posts'] );
-		$this->assertSame( $post_id, $result['posts'][0]['id'] );
+		$this->assertIsArray( $result );
+		$this->assertSame( $post_id, $result['id'] );
+		$this->assertSame( 'content-slug-mode', $result['slug'] );
+		$this->assertArrayNotHasKey( 'posts', $result );
+		$this->assertArrayNotHasKey( 'total', $result );
+	}
+
+	public function test_slug_mode_rejects_query_only_params(): void {
+		$this->login_as( 'administrator' );
+
+		$result = $this->ability()->execute(
+			array(
+				'post_type' => 'post',
+				'slug'      => 'whatever',
+				'per_page'  => 10,
+			)
+		);
+
+		$this->assertWPError( $result );
+		$this->assertSame( 'ability_invalid_input', $result->get_error_code() );
+	}
+
+	public function test_include_cannot_be_combined_with_single_post_modes(): void {
+		$this->login_as( 'administrator' );
+
+		$post_id = self::factory()->post->create( array( 'post_status' => 'publish' ) );
+
+		$by_id = $this->ability()->execute(
+			array(
+				'id'      => $post_id,
+				'include' => array( $post_id ),
+			)
+		);
+		$by_slug = $this->ability()->execute(
+			array(
+				'post_type' => 'post',
+				'slug'      => 'whatever',
+				'include'   => array( $post_id ),
+			)
+		);
+
+		$this->assertWPError( $by_id );
+		$this->assertSame( 'ability_invalid_input', $by_id->get_error_code() );
+		$this->assertWPError( $by_slug );
+		$this->assertSame( 'ability_invalid_input', $by_slug->get_error_code() );
 	}
 
 	public function test_query_filters_by_author(): void {
@@ -409,6 +579,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 			array(
 				'post_type' => 'page',
 				'parent'    => $parent,
+				'fields'    => array( 'id', 'parent' ),
 			)
 		);
 
@@ -434,13 +605,11 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 			)
 		);
 
-			$this->assertSame( array( 'id', 'title_rendered' ), array_keys( $result['posts'][0] ) );
+		$this->assertSame( array( 'id', 'title_rendered' ), array_keys( $result ) );
 	}
 
 	public function test_unsupported_fields_are_omitted_for_post_type(): void {
 		$this->login_as( 'administrator' );
-		// Pages do not support excerpt by default in this CPT, but `post` does; use the
-		// exposed CPT which does not support `comments`/`parent` to confirm omission.
 		$post_id = self::factory()->post->create(
 			array(
 				'post_type'   => 'post',
@@ -448,10 +617,15 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 			)
 		);
 
-		$result = $this->ability()->execute( array( 'id' => $post_id ) );
+		$result = $this->ability()->execute(
+			array(
+				'id'     => $post_id,
+				'fields' => array( 'id', 'parent' ),
+			)
+		);
 
-		// `post` is not hierarchical, so `parent` must be absent even though requested implicitly.
-		$this->assertArrayNotHasKey( 'parent', $result['posts'][0] );
+		// `post` is not hierarchical, so `parent` must be absent even when requested.
+		$this->assertArrayNotHasKey( 'parent', $result );
 	}
 
 	/*
@@ -509,10 +683,10 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 		$result = $this->ability()->execute( array( 'id' => $post_id ) );
 
 		$this->assertIsArray( $result );
-		$this->assertSame( 'Readable single', $result['posts'][0]['title_rendered'] );
-		$this->assertStringContainsString( 'Readable single body.', $result['posts'][0]['content_rendered'] );
-		$this->assertArrayNotHasKey( 'title_raw', $result['posts'][0] );
-		$this->assertArrayNotHasKey( 'content_raw', $result['posts'][0] );
+		$this->assertSame( 'Readable single', $result['title_rendered'] );
+		$this->assertArrayNotHasKey( 'title_raw', $result );
+		$this->assertArrayNotHasKey( 'content_raw', $result );
+		$this->assertArrayNotHasKey( 'content_rendered', $result );
 	}
 
 	public function test_subscriber_cannot_request_raw_fields_in_query_mode(): void {
@@ -568,11 +742,11 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 		$result = $this->ability()->execute( array( 'id' => $post_id ) );
 
 		$this->assertIsArray( $result, 'The readable published post should be returned.' );
-		$this->assertSame( 'Readable title', $result['posts'][0]['title_rendered'], 'Rendered title should remain visible.' );
-		$this->assertStringContainsString( 'Readable body for limited role.', $result['posts'][0]['content_rendered'], 'Rendered content should remain visible.' );
-		$this->assertArrayNotHasKey( 'title_raw', $result['posts'][0], 'Raw title should be omitted.' );
-		$this->assertArrayNotHasKey( 'excerpt_raw', $result['posts'][0], 'Raw excerpt should be omitted.' );
-		$this->assertArrayNotHasKey( 'content_raw', $result['posts'][0], 'Raw content should be omitted.' );
+		$this->assertSame( 'Readable title', $result['title_rendered'], 'Rendered title should remain visible.' );
+		$this->assertArrayNotHasKey( 'title_raw', $result, 'Raw title should be omitted.' );
+		$this->assertArrayNotHasKey( 'excerpt_raw', $result, 'Raw excerpt should be omitted.' );
+		$this->assertArrayNotHasKey( 'content_raw', $result, 'Raw content should be omitted.' );
+		$this->assertArrayNotHasKey( 'content_rendered', $result, 'Rendered content should be omitted from the lean default field set.' );
 	}
 
 	/**
@@ -702,14 +876,14 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 		);
 
 		$this->login_as( 'editor' );
-			$result = $this->ability()->execute(
-				array(
-					'id'     => $post_id,
-					'fields' => array( 'id', 'content_raw' ),
-				)
-			);
+		$result = $this->ability()->execute(
+			array(
+				'id'     => $post_id,
+				'fields' => array( 'id', 'content_raw' ),
+			)
+		);
 
-		$this->assertSame( 'Public body with raw block markup.', $result['posts'][0]['content_raw'] );
+		$this->assertSame( 'Public body with raw block markup.', $result['content_raw'] );
 	}
 
 	public function test_password_protected_content_visible_to_editor(): void {
@@ -722,15 +896,15 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 		);
 
 		$this->login_as( 'editor' );
-			$result = $this->ability()->execute(
-				array(
-					'id'     => $post_id,
-					'fields' => array( 'id', 'content_raw', 'content_rendered' ),
-				)
-			);
+		$result = $this->ability()->execute(
+			array(
+				'id'     => $post_id,
+				'fields' => array( 'id', 'content_raw', 'content_rendered' ),
+			)
+		);
 
-		$this->assertSame( 'Top secret body.', $result['posts'][0]['content_raw'] );
-		$this->assertStringContainsString( 'Top secret body.', $result['posts'][0]['content_rendered'] );
+		$this->assertSame( 'Top secret body.', $result['content_raw'] );
+		$this->assertStringContainsString( 'Top secret body.', $result['content_rendered'] );
 	}
 
 	/**
@@ -759,8 +933,8 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertSame( '', $result['posts'][0]['content_rendered'], 'Password-protected rendered content should be withheld.' );
-		$this->assertTrue( $result['posts'][0]['content_protected'], 'The protected flag should reveal the field is password-protected.' );
+		$this->assertSame( '', $result['content_rendered'], 'Password-protected rendered content should be withheld.' );
+		$this->assertTrue( $result['content_protected'], 'The protected flag should reveal the field is password-protected.' );
 	}
 
 	/*
@@ -800,19 +974,20 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	public function test_per_page_is_capped(): void {
 		$this->login_as( 'administrator' );
 
-		$schema = $this->ability()->get_input_schema()['oneOf'][1];
+		$schema = $this->ability()->get_input_schema()['oneOf'][2];
 
 		$this->assertSame( 100, $schema['properties']['per_page']['maximum'] );
 	}
 
-	public function test_single_post_reports_totals(): void {
+	public function test_single_post_does_not_return_query_totals(): void {
 		$this->login_as( 'administrator' );
 		$post_id = self::factory()->post->create( array( 'post_status' => 'publish' ) );
 
 		$result = $this->ability()->execute( array( 'id' => $post_id ) );
 
-		$this->assertSame( 1, $result['total'] );
-		$this->assertSame( 1, $result['total_pages'] );
+		$this->assertArrayNotHasKey( 'posts', $result );
+		$this->assertArrayNotHasKey( 'total', $result );
+		$this->assertArrayNotHasKey( 'total_pages', $result );
 	}
 
 	public function test_ability_opts_into_pagination(): void {

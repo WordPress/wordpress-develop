@@ -54,6 +54,13 @@ class Tests_REST_API_WpRestAbilitiesContentController extends WP_UnitTestCase {
 		remove_action( 'wp_abilities_api_categories_init', '_unhook_core_ability_categories_registration', 1 );
 		remove_action( 'wp_abilities_api_init', '_unhook_core_abilities_registration', 1 );
 
+		foreach ( wp_get_abilities() as $ability ) {
+			wp_unregister_ability( $ability->get_name() );
+		}
+		foreach ( wp_get_ability_categories() as $ability_category ) {
+			wp_unregister_ability_category( $ability_category->get_slug() );
+		}
+
 		add_action( 'wp_abilities_api_categories_init', 'wp_register_core_ability_categories' );
 		add_action( 'wp_abilities_api_init', 'wp_register_core_abilities' );
 		do_action( 'wp_abilities_api_categories_init' );
@@ -196,6 +203,27 @@ class Tests_REST_API_WpRestAbilitiesContentController extends WP_UnitTestCase {
 		$this->assertContains( $post_id, wp_list_pluck( $data['posts'], 'id' ) );
 	}
 
+	public function test_admin_query_include_limits_results(): void {
+		$first  = self::factory()->post->create( array( 'post_status' => 'publish' ) );
+		$second = self::factory()->post->create( array( 'post_status' => 'publish' ) );
+		$third  = self::factory()->post->create( array( 'post_status' => 'publish' ) );
+
+		$response = $this->server->dispatch(
+			$this->run_request(
+				array(
+					'post_type' => 'post',
+					'include'   => array( $third, $first ),
+					'fields'    => array( 'id' ),
+				)
+			)
+		);
+		$data     = $response->get_data();
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( array( $third, $first ), wp_list_pluck( $data['posts'], 'id' ) );
+		$this->assertNotContains( $second, wp_list_pluck( $data['posts'], 'id' ) );
+	}
+
 	public function test_get_single_post_by_id(): void {
 		$post_id = self::factory()->post->create( array( 'post_status' => 'publish' ) );
 
@@ -203,8 +231,33 @@ class Tests_REST_API_WpRestAbilitiesContentController extends WP_UnitTestCase {
 		$data     = $response->get_data();
 
 		$this->assertSame( 200, $response->get_status() );
-		$this->assertCount( 1, $data['posts'] );
-		$this->assertSame( $post_id, $data['posts'][0]['id'] );
+		$this->assertSame( $post_id, $data['id'] );
+		$this->assertArrayNotHasKey( 'posts', $data );
+		$this->assertArrayNotHasKey( 'total', $data );
+	}
+
+	public function test_get_single_post_by_slug(): void {
+		$post_id = self::factory()->post->create(
+			array(
+				'post_name'   => 'rest-content-slug',
+				'post_status' => 'publish',
+			)
+		);
+
+		$response = $this->server->dispatch(
+			$this->run_request(
+				array(
+					'post_type' => 'post',
+					'slug'      => 'rest-content-slug',
+				)
+			)
+		);
+		$data     = $response->get_data();
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( $post_id, $data['id'] );
+		$this->assertSame( 'rest-content-slug', $data['slug'] );
+		$this->assertArrayNotHasKey( 'posts', $data );
 	}
 
 	public function test_wrong_http_method_returns_405(): void {
