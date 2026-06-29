@@ -250,13 +250,14 @@ class WP_Scripts extends WP_Dependencies {
 	}
 
 	/**
-	 * Prints data associated with a registered script.
+	 * Gets data associated with a registered script.
 	 *
 	 * @since 7.1.0
 	 *
 	 * @param string $handle The script's registered handle.
+	 * @return string Script data HTML tag, or empty string when no data exists.
 	 */
-	private function print_script_data( $handle ) {
+	private function get_script_data( $handle ) {
 		/**
 		 * Filters data associated with a given script.
 		 *
@@ -269,20 +270,22 @@ class WP_Scripts extends WP_Dependencies {
 		 */
 		$data = apply_filters( "script_data_{$handle}", array() );
 
-		if ( is_array( $data ) && array() !== $data ) {
-			$json_encode_flags = JSON_HEX_TAG | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_LINE_TERMINATORS;
-			if ( ! is_utf8_charset() ) {
-				$json_encode_flags = JSON_HEX_TAG | JSON_UNESCAPED_SLASHES;
-			}
-
-			wp_print_inline_script_tag(
-				(string) wp_json_encode( $data, $json_encode_flags ),
-				array(
-					'type' => 'application/json',
-					'id'   => "wp-script-data-{$handle}",
-				)
-			);
+		if ( ! is_array( $data ) || array() === $data ) {
+			return '';
 		}
+
+		$json_encode_flags = JSON_HEX_TAG | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_LINE_TERMINATORS;
+		if ( ! is_utf8_charset() ) {
+			$json_encode_flags = JSON_HEX_TAG | JSON_UNESCAPED_SLASHES;
+		}
+
+		return wp_get_inline_script_tag(
+			(string) wp_json_encode( $data, $json_encode_flags ),
+			array(
+				'type' => 'application/json',
+				'id'   => "wp-script-data-{$handle}",
+			)
+		);
 	}
 
 	/**
@@ -373,6 +376,7 @@ class WP_Scripts extends WP_Dependencies {
 			return false;
 		}
 
+		$script_data   = $this->get_script_data( $handle );
 		$before_script = $this->get_inline_script_tag( $handle, 'before' );
 		$after_script  = $this->get_inline_script_tag( $handle, 'after' );
 
@@ -416,7 +420,7 @@ class WP_Scripts extends WP_Dependencies {
 			if (
 				is_string( $filtered_src )
 				&& $this->in_default_dir( $filtered_src )
-				&& ( $before_script || $after_script || $translations_stop_concat || $this->is_delayed_strategy( $strategy ) )
+				&& ( $script_data || $before_script || $after_script || $translations_stop_concat || $this->is_delayed_strategy( $strategy ) )
 			) {
 				$this->do_concat = false;
 
@@ -434,7 +438,7 @@ class WP_Scripts extends WP_Dependencies {
 			}
 		}
 
-		$this->print_script_data( $handle );
+		echo $script_data;
 		$this->print_extra_script( $handle );
 
 		// A single item may alias a set of items, by having dependencies, but no source.

@@ -2766,6 +2766,32 @@ HTML;
 	}
 
 	/**
+	 * @ticket 58873
+	 */
+	public function test_script_data_filter_prevents_concat() {
+		global $wp_scripts, $wp_version;
+
+		$wp_scripts->do_concat    = true;
+		$wp_scripts->default_dirs = array( $this->default_scripts_dir );
+
+		wp_enqueue_script( 'one', $this->default_scripts_dir . 'one.js' );
+		wp_enqueue_script( 'two', $this->default_scripts_dir . 'two.js' );
+		add_filter(
+			'script_data_two',
+			static function ( $data ) {
+				$data['clientData'] = 'ok';
+				return $data;
+			}
+		);
+
+		$expected  = "<script src='/wp-admin/load-scripts.php?c=0&amp;load%5Bchunk_0%5D=one&amp;ver={$wp_version}'></script>\n";
+		$expected .= "<script type='application/json' id='wp-script-data-two'>\n{\"clientData\":\"ok\"}\n</script>\n";
+		$expected .= "<script src='{$this->default_scripts_dir}two.js?ver={$wp_version}' id='two-js'></script>\n";
+
+		$this->assertEqualHTML( $expected, get_echo( 'wp_print_scripts' ) );
+	}
+
+	/**
 	 * Data provider.
 	 *
 	 * @return array
