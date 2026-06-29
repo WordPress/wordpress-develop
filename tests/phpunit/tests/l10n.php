@@ -490,7 +490,7 @@ class Tests_L10n extends WP_UnitTestCase {
 
 		unset( $_SERVER['HTTP_ACCEPT_LANGUAGE'] );
 
-		$this->assertSame( $expected, $actual, 'Parsed locales list does not expect actual list' );
+		$this->assertSame( $expected, $actual, 'Parsed locales list does not match expected list.' );
 	}
 
 	public static function data_get_locales_from_accept_language_header() {

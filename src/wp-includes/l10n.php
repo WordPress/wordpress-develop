@@ -2110,7 +2110,7 @@ function get_locales_from_accept_language_header() {
 
 	$matches = array();
 	// Parses a header value such as "fr-CH, fr;q=0.9, en;q=0.8, de;q=0.7, *;q=0.5".
-	preg_match_all( '((?P<code>[a-z-_A-Z]+|\*)([;q=]+?(?P<prio>1|0\.\d))?)', $_SERVER['HTTP_ACCEPT_LANGUAGE'], $matches );
+	preg_match_all( '/(?P<code>[A-Za-z0-9_-]+|\*)(?:\s*;\s*q\s*=\s*(?P<prio>1(?:\.0{0,3})?|0(?:\.\d{1,3})?))?/i', $_SERVER['HTTP_ACCEPT_LANGUAGE'], $matches );
 
 	if ( empty( $matches['code'] ) ) {
 		return $locales;
@@ -2130,16 +2130,25 @@ function get_locales_from_accept_language_header() {
 		$matches['prio']
 	);
 
-	// Sort codes by priority.
-	usort(
-		$codes,
-		static function ( $a, $b ) use ( $codes, $prios ) {
-			$index_a = array_search( $a, $codes, true );
-			$index_b = array_search( $b, $codes, true );
+	// Sort codes by priority (stable), keeping duplicates.
+	$weighted_codes = array();
+	foreach ( $codes as $i => $code ) {
+		$weighted_codes[] = array(
+			'code'  => $code,
+			'prio'  => $prios[ $i ] ?? 1.0,
+			'index' => $i,
+		);
+	}
 
-			return $prios[ $index_b ] <=> $prios[ $index_a ];
+	usort(
+		$weighted_codes,
+		static function ( $a, $b ) {
+			$cmp = $b['prio'] <=> $a['prio'];
+			return 0 !== $cmp ? $cmp : ( $a['index'] <=> $b['index'] );
 		}
 	);
+
+	$codes = array_column( $weighted_codes, 'code' );
 
 	$translations = array();
 

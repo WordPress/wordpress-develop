@@ -1575,7 +1575,7 @@ function wp_load_translations_early() {
 			$locales[] = $wp_local_package;
 		}
 
-		// Try the browser's locale
+		// Try the browser's locale.
 		$locales = array_merge( $locales, get_locales_from_accept_language_header() );
 
 		if ( ! $locales ) {
