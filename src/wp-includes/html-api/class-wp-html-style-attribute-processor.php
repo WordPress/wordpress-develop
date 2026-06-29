@@ -15,10 +15,12 @@
  * delimiting braces. It does not parse HTML attribute syntax, decode character
  * references, or operate on raw HTML markup.
  *
- * Values read from {@see WP_HTML_Tag_Processor::get_attribute()} can be passed
- * directly to this class, and values returned by
+ * String values read from {@see WP_HTML_Tag_Processor::get_attribute()} can be
+ * passed to this class, and values returned by
  * {@see WP_HTML_Style_Attribute_Processor::get_updated_style()} can be passed
- * back to {@see WP_HTML_Tag_Processor::set_attribute()}.
+ * back to {@see WP_HTML_Tag_Processor::set_attribute()}. Missing and boolean
+ * style attributes are an HTML concern and must be handled before creating this
+ * processor.
  *
  * Unlike associative-array based style helpers, this processor preserves the
  * declaration list model of CSS. Multiple declarations with the same property
@@ -32,7 +34,7 @@ class WP_HTML_Style_Attribute_Processor {
 	 *
 	 * @var string
 	 */
-	const WHITESPACE = " \t\n\r\f";
+	private const WHITESPACE = " \t\n\r\f";
 
 	/**
 	 * Decoded style attribute value.
@@ -51,7 +53,7 @@ class WP_HTML_Style_Attribute_Processor {
 	/**
 	 * Parsed declarations.
 	 *
-	 * @var array<int, array{name:string, raw_name:string, leading_start:int, start:int, after:int, trailing_end:int, value_start:int, value_end:int, important:bool}>
+	 * @var array<int, array{name:string, raw_name:string, leading_start:int, start:int, after:int, trailing_end:int, value_start:int, value_end:int, important:bool, important_start:int|null, important_end:int|null}>
 	 */
 	private $declarations = array();
 
@@ -93,16 +95,27 @@ class WP_HTML_Style_Attribute_Processor {
 	/**
 	 * Constructor.
 	 *
-	 * @param string|bool|null $style Decoded CSS text value from a style attribute.
+	 * Do not instantiate directly. Use
+	 * {@see WP_HTML_Style_Attribute_Processor::create()} instead.
+	 *
+	 * @param string $style Decoded CSS text value from a style attribute.
 	 */
-	public function __construct( $style = '' ) {
-		if ( null === $style || true === $style ) {
-			$style = '';
-		} elseif ( ! is_string( $style ) ) {
-			$style = '';
+	private function __construct( string $style ) {
+		$this->style = $style;
+	}
+
+	/**
+	 * Creates a processor for decoded CSS text from a style attribute.
+	 *
+	 * @param string $decoded_css_text Decoded CSS text value from a style attribute.
+	 * @return static Created processor.
+	 */
+	public static function create( $decoded_css_text ) {
+		if ( ! is_string( $decoded_css_text ) ) {
+			throw new TypeError( __METHOD__ . '(): Argument #1 ($decoded_css_text) must be of type string' );
 		}
 
-		$this->style = $style;
+		return new static( $decoded_css_text );
 	}
 
 	/**
@@ -144,32 +157,14 @@ class WP_HTML_Style_Attribute_Processor {
 	}
 
 	/**
-	 * Gets the current declaration's CSS value.
-	 *
-	 * The returned value does not include a trailing !important priority.
-	 *
-	 * @return string|null CSS value, or null when not on a declaration.
-	 */
-	public function get_value(): ?string {
-		$declaration = $this->get_current_declaration();
-		if ( null === $declaration ) {
-			return null;
-		}
-
-		return trim(
-			substr( $this->style, $declaration['value_start'], $declaration['value_end'] - $declaration['value_start'] ),
-			self::WHITESPACE
-		);
-	}
-
-	/**
 	 * Indicates whether the current declaration has an !important priority.
 	 *
-	 * @return bool Whether the current declaration has an !important priority.
+	 * @return bool|null Whether the current declaration has an !important priority,
+	 *                   or null when not on a declaration.
 	 */
-	public function is_important(): bool {
+	public function is_important(): ?bool {
 		$declaration = $this->get_current_declaration();
-		return null !== $declaration && $declaration['important'];
+		return null === $declaration ? null : $declaration['important'];
 	}
 
 	/**
@@ -182,12 +177,37 @@ class WP_HTML_Style_Attribute_Processor {
 	 */
 	public function set_value( string $value, ?bool $important = null ): bool {
 		$declaration = $this->get_current_declaration();
-		if ( null === $declaration || ! $this->is_valid_declaration_value( $value ) ) {
+		if ( null === $declaration ) {
+			return false;
+		}
+
+		if ( '' === $value ) {
+			return $this->remove_declaration();
+		}
+
+		if ( ! $this->is_valid_declaration_value( $value ) ) {
 			return false;
 		}
 
 		$is_important = null === $important ? $declaration['important'] : $important;
 		$text         = $this->serialize_declaration( $declaration['raw_name'], $value, $is_important );
+		$parsed_value = $this->get_parsed_declaration_value( $text );
+		if ( null === $parsed_value ) {
+			return false;
+		}
+
+		if (
+			! $this->is_current_declaration_replacement_safe(
+				$declaration,
+				$declaration['start'],
+				$declaration['after'] - $declaration['start'],
+				$text,
+				$is_important,
+				$parsed_value
+			)
+		) {
+			return false;
+		}
 
 		$this->queue_lexical_update(
 			$declaration['start'],
@@ -195,6 +215,98 @@ class WP_HTML_Style_Attribute_Processor {
 			$text,
 			$this->current_declaration
 		);
+
+		$this->apply_lexical_updates( $this->current_declaration );
+
+		return true;
+	}
+
+	/**
+	 * Sets the !important priority of the current declaration.
+	 *
+	 * @param bool $important Whether the declaration should be important.
+	 * @return bool Whether the current declaration priority is set as requested.
+	 */
+	public function set_important( bool $important ): bool {
+		$declaration = $this->get_current_declaration();
+		if ( null === $declaration ) {
+			return false;
+		}
+
+		if ( $important === $declaration['important'] ) {
+			return true;
+		}
+
+		if ( $important ) {
+			if ( $declaration['value_start'] >= $declaration['value_end'] ) {
+				return false;
+			}
+
+			$insert_at   = $declaration['value_end'];
+			$insert_text = ' !important';
+			if (
+				! $this->is_current_declaration_replacement_safe(
+					$declaration,
+					$declaration['value_end'],
+					0,
+					$insert_text,
+					true
+				)
+			) {
+				$eof_repair    = strlen( $this->style ) === $declaration['after']
+					? $this->get_eof_repair( $declaration['after'] )
+					: null;
+				$current_value = substr( $this->style, $declaration['value_start'], $declaration['after'] - $declaration['value_start'] );
+
+				if (
+					null === $eof_repair ||
+					'' === $eof_repair ||
+					! $this->is_current_declaration_replacement_safe(
+						$declaration,
+						$declaration['after'],
+						0,
+						$eof_repair . $insert_text,
+						true,
+						trim( $current_value . $eof_repair, self::WHITESPACE )
+					)
+				) {
+					return false;
+				}
+
+				$insert_at   = $declaration['after'];
+				$insert_text = $eof_repair . $insert_text;
+			}
+
+			$this->queue_lexical_update(
+				$insert_at,
+				0,
+				$insert_text,
+				$this->current_declaration
+			);
+		} else {
+			if ( null === $declaration['important_start'] || null === $declaration['important_end'] ) {
+				return false;
+			}
+
+			if (
+				! $this->is_current_declaration_replacement_safe(
+					$declaration,
+					$declaration['important_start'],
+					$declaration['important_end'] - $declaration['important_start'],
+					'',
+					false
+				)
+			) {
+				return false;
+			}
+
+			$this->queue_lexical_update(
+				$declaration['important_start'],
+				$declaration['important_end'] - $declaration['important_start'],
+				'',
+				$this->current_declaration
+			);
+		}
 
 		$this->apply_lexical_updates( $this->current_declaration );
 
@@ -218,6 +330,10 @@ class WP_HTML_Style_Attribute_Processor {
 		$remove_start = $this->get_offset_before_preceding_whitespace( $declaration['start'] );
 		$remove_end   = $this->get_offset_after_following_whitespace( $declaration['after'] );
 		$replacement  = ( $remove_start > 0 && $remove_end < strlen( $this->style ) ) ? ' ' : '';
+
+		if ( ! $this->is_remove_declaration_safe( $this->current_declaration, $remove_start, $remove_end - $remove_start, $replacement ) ) {
+			return false;
+		}
 
 		$this->queue_lexical_update(
 			$remove_start,
@@ -243,7 +359,11 @@ class WP_HTML_Style_Attribute_Processor {
 	 * @return bool Whether the declaration was appended.
 	 */
 	public function append_declaration( string $property_name, string $value, bool $important = false ): bool {
-		if ( ! $this->is_valid_property_name( $property_name ) || ! $this->is_valid_declaration_value( $value ) ) {
+		if (
+			'' === trim( $value, self::WHITESPACE ) ||
+			! $this->is_valid_property_name( $property_name ) ||
+			! $this->is_valid_declaration_value( $value )
+		) {
 			return false;
 		}
 
@@ -252,17 +372,28 @@ class WP_HTML_Style_Attribute_Processor {
 		$old_declaration_count = count( $this->declarations );
 		$trimmed_style         = rtrim( $this->style, self::WHITESPACE );
 		$insert_at             = strlen( $trimmed_style );
-		$separator             = $this->get_append_separator( $insert_at );
-		$declaration_text      = $this->serialize_declaration( $property_name, $value, $important );
+		$repair_at             = strlen( $this->style );
+		$eof_repair            = $this->get_eof_repair( $repair_at );
+		if ( null === $eof_repair ) {
+			return false;
+		}
 
-		if ( ! $this->is_parseable_append( $insert_at, $separator, $declaration_text, $old_declaration_count ) ) {
+		$separator        = $this->get_append_separator( $insert_at );
+		$serialized_name  = $this->is_custom_property_name( $property_name ) ? $property_name : strtolower( $property_name );
+		$declaration_text = $this->serialize_declaration( $serialized_name, $value, $important );
+		$parsed_value     = $this->get_parsed_declaration_value( $declaration_text );
+		if ( null === $parsed_value ) {
+			return false;
+		}
+
+		if ( ! $this->is_parseable_append( $repair_at, $eof_repair, $separator, $declaration_text, $old_declaration_count, $serialized_name, $parsed_value, $important ) ) {
 			return false;
 		}
 
 		$this->queue_lexical_update(
-			$insert_at,
+			$repair_at,
 			0,
-			$separator . $declaration_text,
+			$eof_repair . $separator . $declaration_text,
 			null
 		);
 
@@ -535,7 +666,7 @@ class WP_HTML_Style_Attribute_Processor {
 	 * @param int $start_index   First token index in the segment.
 	 * @param int $end_index     Token index after the segment.
 	 * @param int $after         Byte offset after the declaration.
-	 * @return array{name:string, raw_name:string, leading_start:int, start:int, after:int, trailing_end:int, value_start:int, value_end:int, important:bool}|null
+	 * @return array{name:string, raw_name:string, leading_start:int, start:int, after:int, trailing_end:int, value_start:int, value_end:int, important:bool, important_start:int|null, important_end:int|null}|null
 	 */
 	private function parse_declaration_segment( int $leading_start, int $start_index, int $end_index, int $after ): ?array {
 		$index = $this->skip_ignored_tokens( $start_index, $end_index );
@@ -549,6 +680,8 @@ class WP_HTML_Style_Attribute_Processor {
 			return null;
 		}
 
+		$name = $this->is_custom_property_name( $name ) ? $name : strtolower( $name );
+
 		++$index;
 		$index = $this->skip_ignored_tokens( $index, $end_index );
 
@@ -560,6 +693,8 @@ class WP_HTML_Style_Attribute_Processor {
 		$value_start_index = $this->skip_ignored_tokens( $index + 1, $end_index );
 		$value_end_index   = $this->trim_ignored_tokens( $value_start_index, $end_index );
 		$important         = false;
+		$important_start   = null;
+		$important_end     = null;
 		$top_level_tokens  = $this->get_top_level_non_ignored_token_indexes( $value_start_index, $value_end_index );
 		$top_level_count   = count( $top_level_tokens );
 		$last_value_index  = $top_level_count > 0 ? $top_level_tokens[ $top_level_count - 1 ] : null;
@@ -574,6 +709,8 @@ class WP_HTML_Style_Attribute_Processor {
 			'!' === $this->tokens[ $before_last_index ]['value']
 		) {
 			$important       = true;
+			$important_start = $this->tokens[ $before_last_index ]['start'];
+			$important_end   = $this->tokens[ $last_value_index ]['end'];
 			$value_end_index = $this->trim_ignored_tokens( $value_start_index, $before_last_index );
 		}
 
@@ -586,15 +723,17 @@ class WP_HTML_Style_Attribute_Processor {
 		}
 
 		return array(
-			'name'          => $name,
-			'raw_name'      => substr( $this->style, $name_token['start'], $name_token['length'] ),
-			'leading_start' => $leading_start,
-			'start'         => $name_token['start'],
-			'after'         => $after,
-			'trailing_end'  => $after,
-			'value_start'   => $value_start,
-			'value_end'     => $value_end,
-			'important'     => $important,
+			'name'            => $name,
+			'raw_name'        => substr( $this->style, $name_token['start'], $name_token['length'] ),
+			'leading_start'   => $leading_start,
+			'start'           => $name_token['start'],
+			'after'           => $after,
+			'trailing_end'    => $after,
+			'value_start'     => $value_start,
+			'value_end'       => $value_end,
+			'important'       => $important,
+			'important_start' => $important_start,
+			'important_end'   => $important_end,
 		);
 	}
 
@@ -741,7 +880,7 @@ class WP_HTML_Style_Attribute_Processor {
 	/**
 	 * Gets the current declaration metadata.
 	 *
-	 * @return array{name:string, raw_name:string, leading_start:int, start:int, after:int, trailing_end:int, value_start:int, value_end:int, important:bool}|null
+	 * @return array{name:string, raw_name:string, leading_start:int, start:int, after:int, trailing_end:int, value_start:int, value_end:int, important:bool, important_start:int|null, important_end:int|null}|null
 	 */
 	private function get_current_declaration(): ?array {
 		if (
@@ -753,6 +892,122 @@ class WP_HTML_Style_Attribute_Processor {
 		}
 
 		return $this->declarations[ $this->current_declaration ];
+	}
+
+	/**
+	 * Checks whether a replacement preserves the current declaration's structure.
+	 *
+	 * @param array{name:string, raw_name:string, leading_start:int, start:int, after:int, trailing_end:int, value_start:int, value_end:int, important:bool, important_start:int|null, important_end:int|null} $declaration        Current declaration metadata.
+	 * @param int                                                                                                                                                                                   $start              Byte offset at which to start the replacement.
+	 * @param int                                                                                                                                                                                   $length             Number of bytes to replace.
+	 * @param string                                                                                                                                                                                $text               Replacement text.
+	 * @param bool                                                                                                                                                                                  $expected_important Expected important flag after replacement.
+	 * @param string|null                                                                                                                                                                           $expected_value     Optional expected value source after replacement.
+	 * @return bool Whether the replacement is safe.
+	 */
+	private function is_current_declaration_replacement_safe( array $declaration, int $start, int $length, string $text, bool $expected_important, ?string $expected_value = null ): bool {
+		$candidate_style = substr( $this->style, 0, $start ) . $text . substr( $this->style, $start + $length );
+		$candidate       = new self( $candidate_style );
+		$candidate->ensure_parsed();
+
+		if (
+			count( $candidate->declarations ) !== count( $this->declarations ) ||
+			! isset( $candidate->declarations[ $this->current_declaration ] )
+		) {
+			return false;
+		}
+
+		$updated_declaration = $candidate->declarations[ $this->current_declaration ];
+		if (
+			$updated_declaration['name'] !== $declaration['name'] ||
+			$updated_declaration['important'] !== $expected_important
+		) {
+			return false;
+		}
+
+		$old_value = trim(
+			substr( $this->style, $declaration['value_start'], $declaration['value_end'] - $declaration['value_start'] ),
+			self::WHITESPACE
+		);
+		$new_value = trim(
+			substr( $candidate_style, $updated_declaration['value_start'], $updated_declaration['value_end'] - $updated_declaration['value_start'] ),
+			self::WHITESPACE
+		);
+
+		return null === $expected_value ? $old_value === $new_value : $expected_value === $new_value;
+	}
+
+	/**
+	 * Checks whether removing a declaration preserves remaining structure.
+	 *
+	 * @param int    $removed_declaration Removed declaration index.
+	 * @param int    $start               Byte offset at which to start the replacement.
+	 * @param int    $length              Number of bytes to replace.
+	 * @param string $text                Replacement text.
+	 * @return bool Whether the removal is safe.
+	 */
+	private function is_remove_declaration_safe( int $removed_declaration, int $start, int $length, string $text ): bool {
+		$candidate_style = substr( $this->style, 0, $start ) . $text . substr( $this->style, $start + $length );
+		$candidate       = new self( $candidate_style );
+		$candidate->ensure_parsed();
+
+		if ( count( $candidate->declarations ) !== count( $this->declarations ) - 1 ) {
+			return false;
+		}
+
+		$candidate_index = 0;
+		foreach ( $this->declarations as $index => $declaration ) {
+			if ( $removed_declaration === $index ) {
+				continue;
+			}
+
+			if ( ! isset( $candidate->declarations[ $candidate_index ] ) ) {
+				return false;
+			}
+
+			$candidate_declaration = $candidate->declarations[ $candidate_index ];
+			$value                 = trim(
+				substr( $this->style, $declaration['value_start'], $declaration['value_end'] - $declaration['value_start'] ),
+				self::WHITESPACE
+			);
+			$candidate_value       = trim(
+				substr( $candidate_style, $candidate_declaration['value_start'], $candidate_declaration['value_end'] - $candidate_declaration['value_start'] ),
+				self::WHITESPACE
+			);
+
+			if (
+				$candidate_declaration['name'] !== $declaration['name'] ||
+				$candidate_declaration['important'] !== $declaration['important'] ||
+				$candidate_value !== $value
+			) {
+				return false;
+			}
+
+			++$candidate_index;
+		}
+
+		return true;
+	}
+
+	/**
+	 * Gets the parsed value source from a serialized declaration.
+	 *
+	 * @param string $declaration_text Serialized declaration text.
+	 * @return string|null Parsed declaration value, or null if parsing failed.
+	 */
+	private function get_parsed_declaration_value( string $declaration_text ): ?string {
+		$processor = new self( $declaration_text );
+		$processor->ensure_parsed();
+
+		if ( 1 !== count( $processor->declarations ) ) {
+			return null;
+		}
+
+		$declaration = $processor->declarations[0];
+		return trim(
+			substr( $declaration_text, $declaration['value_start'], $declaration['value_end'] - $declaration['value_start'] ),
+			self::WHITESPACE
+		);
 	}
 
 	/**
@@ -894,6 +1149,107 @@ class WP_HTML_Style_Attribute_Processor {
 	}
 
 	/**
+	 * Gets required closing delimiters before appending at EOF.
+	 *
+	 * CSS closes unterminated functions and simple blocks at EOF. Appending must
+	 * materialize those closers before adding a new declaration.
+	 *
+	 * @param int $insert_at Byte offset at which the declaration will be inserted.
+	 * @return string|null Closing delimiters, or null when repair cannot be precise.
+	 */
+	private function get_eof_repair( int $insert_at ): ?string {
+		$stack = array();
+
+		foreach ( $this->tokens as $token ) {
+			if ( $token['start'] >= $insert_at ) {
+				break;
+			}
+
+			if ( $token['end'] > $insert_at ) {
+				return null;
+			}
+
+			switch ( $token['type'] ) {
+				case WP_CSS_Token_Processor::TOKEN_BAD_STRING:
+				case WP_CSS_Token_Processor::TOKEN_BAD_URL:
+					return null;
+
+				case WP_CSS_Token_Processor::TOKEN_COMMENT:
+					if (
+						strlen( $this->style ) === $token['end'] &&
+						'*/' !== substr( $this->style, -2 )
+					) {
+						return null;
+					}
+					break;
+
+				case WP_CSS_Token_Processor::TOKEN_FUNCTION:
+				case WP_CSS_Token_Processor::TOKEN_LEFT_PAREN:
+					$stack[] = ')';
+					break;
+
+				case WP_CSS_Token_Processor::TOKEN_URL:
+					if ( ! $this->is_url_token_closed( $token ) ) {
+						$stack[] = ')';
+					}
+					break;
+
+				case WP_CSS_Token_Processor::TOKEN_LEFT_BRACKET:
+					$stack[] = ']';
+					break;
+
+				case WP_CSS_Token_Processor::TOKEN_LEFT_BRACE:
+					$stack[] = '}';
+					break;
+
+				case WP_CSS_Token_Processor::TOKEN_RIGHT_PAREN:
+					if ( ! empty( $stack ) && ')' === end( $stack ) ) {
+						array_pop( $stack );
+					}
+					break;
+
+				case WP_CSS_Token_Processor::TOKEN_RIGHT_BRACKET:
+					if ( ! empty( $stack ) && ']' === end( $stack ) ) {
+						array_pop( $stack );
+					}
+					break;
+
+				case WP_CSS_Token_Processor::TOKEN_RIGHT_BRACE:
+					if ( ! empty( $stack ) && '}' === end( $stack ) ) {
+						array_pop( $stack );
+					}
+					break;
+			}
+		}
+
+		return implode( '', array_reverse( $stack ) );
+	}
+
+	/**
+	 * Checks whether a URL token source contains its real closing parenthesis.
+	 *
+	 * @param array{type:string, value:string|null, start:int, length:int, end:int} $token URL token metadata.
+	 * @return bool Whether the URL token was closed in source.
+	 */
+	private function is_url_token_closed( array $token ): bool {
+		$sentinel = ' !wp-style-attribute-processor-sentinel';
+		$source   = substr( $this->style, $token['start'], $token['length'] );
+		$scanner  = WP_CSS_Token_Processor::create( $source . $sentinel );
+		if ( null === $scanner || ! $scanner->next_token() ) {
+			return false;
+		}
+
+		if (
+			WP_CSS_Token_Processor::TOKEN_URL !== $scanner->get_token_type() ||
+			$scanner->get_token_length() > strlen( $source )
+		) {
+			return false;
+		}
+
+		return $scanner->next_token();
+	}
+
+	/**
 	 * Checks whether an appended declaration will parse as a new declaration.
 	 *
 	 * Malformed existing declarations can leave the append point inside an
@@ -901,15 +1257,19 @@ class WP_HTML_Style_Attribute_Processor {
 	 * appending a top-level declaration are incompatible.
 	 *
 	 * @param int    $insert_at             Byte offset at which the declaration will be inserted.
+	 * @param string $eof_repair            EOF repair text.
 	 * @param string $separator             Separator text.
 	 * @param string $declaration_text      Serialized declaration text.
 	 * @param int    $old_declaration_count Number of declarations before appending.
+	 * @param string $expected_name          Expected parsed property name.
+	 * @param string $expected_value         Expected parsed value source.
+	 * @param bool   $expected_important     Expected important flag.
 	 * @return bool Whether the appended declaration is parseable.
 	 */
-	private function is_parseable_append( int $insert_at, string $separator, string $declaration_text, int $old_declaration_count ): bool {
-		$expected_start  = $insert_at + strlen( $separator );
+	private function is_parseable_append( int $insert_at, string $eof_repair, string $separator, string $declaration_text, int $old_declaration_count, string $expected_name, string $expected_value, bool $expected_important ): bool {
+		$expected_start  = $insert_at + strlen( $eof_repair ) + strlen( $separator );
 		$expected_after  = $expected_start + strlen( $declaration_text );
-		$candidate_style = substr( $this->style, 0, $insert_at ) . $separator . $declaration_text . substr( $this->style, $insert_at );
+		$candidate_style = substr( $this->style, 0, $insert_at ) . $eof_repair . $separator . $declaration_text . substr( $this->style, $insert_at );
 		$candidate       = new self( $candidate_style );
 		$candidate->ensure_parsed();
 
@@ -919,7 +1279,16 @@ class WP_HTML_Style_Attribute_Processor {
 
 		foreach ( $candidate->declarations as $declaration ) {
 			if ( $expected_start === $declaration['start'] && $expected_after === $declaration['after'] ) {
-				return true;
+				$parsed_value = trim(
+					substr( $candidate_style, $declaration['value_start'], $declaration['value_end'] - $declaration['value_start'] ),
+					self::WHITESPACE
+				);
+
+				return (
+					$expected_name === $declaration['name'] &&
+					$expected_value === $parsed_value &&
+					$expected_important === $declaration['important']
+				);
 			}
 		}
 
@@ -1025,6 +1394,14 @@ class WP_HTML_Style_Attribute_Processor {
 	 * @return bool Whether the property name is valid.
 	 */
 	private function is_valid_property_name( string $property_name ): bool {
+		if (
+			'' === $property_name ||
+			false !== strpos( $property_name, '\\' ) ||
+			'--' === $property_name
+		) {
+			return false;
+		}
+
 		$processor = WP_CSS_Token_Processor::create( $property_name );
 		if ( null === $processor || ! $processor->next_token() ) {
 			return false;
@@ -1068,6 +1445,10 @@ class WP_HTML_Style_Attribute_Processor {
 	 * @return bool Whether the value is valid.
 	 */
 	private function is_valid_declaration_value( string $value ): bool {
+		if ( '' === trim( $value, self::WHITESPACE ) ) {
+			return false;
+		}
+
 		$sentinel_property = '--wp-style-attribute-processor-sentinel';
 		$processor         = WP_CSS_Token_Processor::create( $value . ';' . $sentinel_property . ':1' );
 		if ( null === $processor ) {
@@ -1135,19 +1516,24 @@ class WP_HTML_Style_Attribute_Processor {
 			return false;
 		}
 
-		$top_level_count = count( $top_level_tokens );
-		if ( $top_level_count < 2 ) {
-			return true;
+		if ( empty( $top_level_tokens ) ) {
+			return false;
 		}
 
-		$last_value_token  = $top_level_tokens[ $top_level_count - 1 ];
-		$before_last_token = $top_level_tokens[ $top_level_count - 2 ];
+		for ( $i = 1; $i < count( $top_level_tokens ); $i++ ) {
+			$token        = $top_level_tokens[ $i ];
+			$before_token = $top_level_tokens[ $i - 1 ];
 
-		return ! (
-			WP_CSS_Token_Processor::TOKEN_IDENT === $last_value_token['type'] &&
-			0 === strcasecmp( 'important', (string) $last_value_token['value'] ) &&
-			WP_CSS_Token_Processor::TOKEN_DELIM === $before_last_token['type'] &&
-			'!' === $before_last_token['value']
-		);
+			if (
+				WP_CSS_Token_Processor::TOKEN_IDENT === $token['type'] &&
+				0 === strcasecmp( 'important', (string) $token['value'] ) &&
+				WP_CSS_Token_Processor::TOKEN_DELIM === $before_token['type'] &&
+				'!' === $before_token['value']
+			) {
+				return false;
+			}
+		}
+
+		return true;
 	}
 }
