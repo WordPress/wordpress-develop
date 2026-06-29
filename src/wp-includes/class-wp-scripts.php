@@ -261,8 +261,45 @@ class WP_Scripts extends WP_Dependencies {
 		/**
 		 * Filters data associated with a given script.
 		 *
+		 * Scripts may require data that is required for initialization or is essential
+		 * to have immediately available on page load. These are suitable use cases for
+		 * this data.
+		 *
 		 * The dynamic portion of the hook name, `$handle`, refers to the script handle
 		 * that the data is associated with.
+		 *
+		 * This is best suited to pass essential data that must be available to the script
+		 * for initialization or immediately on page load. It does not replace the REST API
+		 * or fetching data from the client.
+		 *
+		 * Example:
+		 *
+		 *     add_filter(
+		 *         'script_data_my-handle',
+		 *         function ( array $data ): array {
+		 *             $data['dataForClient'] = 'ok';
+		 *             return $data;
+		 *         }
+		 *     );
+		 *
+		 * If the filter returns no data (an empty array), nothing will be embedded in the page.
+		 *
+		 * The data for a given script, if provided, will be JSON serialized in a script tag
+		 * with an ID of the form `wp-script-data-{$handle}`.
+		 *
+		 * The data can be read on the client with a pattern like this:
+		 *
+		 * Example:
+		 *
+		 *     const dataContainer = document.getElementById( 'wp-script-data-my-handle' );
+		 *     let data = {};
+		 *     if ( dataContainer ) {
+		 *         try {
+		 *             data = JSON.parse( dataContainer.textContent );
+		 *         } catch {}
+		 *     }
+		 *     // data.dataForClient === 'ok';
+		 *     initMyScriptWithData( data );
 		 *
 		 * @since 7.1.0
 		 *
