@@ -385,9 +385,7 @@ class Tests_Abilities_API_WpRegisterCoreAbilities extends WP_UnitTestCase {
 	 * @ticket 64384
 	 */
 	public function test_core_abilities_schemas_use_only_valid_keywords(): void {
-		$allowed_keywords = rest_get_allowed_schema_keywords();
-		// Add 'required' which is valid at the property level for draft-04.
-		$allowed_keywords[] = 'required';
+		$allowed_keywords = wp_get_json_schema_allowed_keywords( 'draft-04' );
 
 		$abilities = wp_get_abilities();
 
