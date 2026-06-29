@@ -13,6 +13,33 @@
  */
 class Tests_HtmlApi_WpHtmlStyleAttributeProcessor extends WP_UnitTestCase {
 	/**
+	 * @covers ::__construct
+	 * @covers ::next_declaration
+	 * @covers ::get_updated_style
+	 *
+	 * @dataProvider data_html_style_attribute_values
+	 *
+	 * @param string      $html           HTML containing a first div.
+	 * @param string      $expected_style Expected normalized style input.
+	 * @param string|null $property_name  Expected first property name.
+	 */
+	public function test_constructor_accepts_html_tag_processor_style_attribute_values( string $html, string $expected_style, ?string $property_name ) {
+		$tags = new WP_HTML_Tag_Processor( $html );
+		$this->assertTrue( $tags->next_tag( 'div' ) );
+
+		$processor = new WP_HTML_Style_Attribute_Processor( $tags->get_attribute( 'style' ) );
+
+		$this->assertSame( $expected_style, $processor->get_updated_style() );
+
+		if ( null === $property_name ) {
+			$this->assertFalse( $processor->next_declaration() );
+		} else {
+			$this->assertTrue( $processor->next_declaration() );
+			$this->assertSame( $property_name, $processor->get_property_name() );
+		}
+	}
+
+	/**
 	 * @covers ::next_declaration
 	 * @covers ::get_property_name
 	 * @covers ::get_value
@@ -174,6 +201,38 @@ class Tests_HtmlApi_WpHtmlStyleAttributeProcessor extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @covers ::next_declaration
+	 */
+	public function test_stray_right_brace_consumes_bad_declaration_until_semicolon() {
+		$processor = new WP_HTML_Style_Attribute_Processor( '} color: red; background: white;' );
+
+		$this->assertTrue( $processor->next_declaration() );
+		$this->assertSame( 'background', $processor->get_property_name() );
+		$this->assertSame( 'white', $processor->get_value() );
+		$this->assertFalse( $processor->next_declaration() );
+	}
+
+	/**
+	 * @covers ::next_declaration
+	 * @covers ::set_value
+	 * @covers ::get_updated_style
+	 */
+	public function test_escaped_property_names_match_decoded_names_and_preserve_raw_spelling() {
+		$processor = new WP_HTML_Style_Attribute_Processor( 'c\\6f lor: red; --t\\6f ne: cool; --Tone: warm;' );
+
+		$this->assertTrue( $processor->next_declaration( 'color' ) );
+		$this->assertSame( 'color', $processor->get_property_name() );
+		$this->assertTrue( $processor->set_value( 'green' ) );
+		$this->assertSame( 'c\\6f lor: green; --t\\6f ne: cool; --Tone: warm;', $processor->get_updated_style() );
+
+		$this->assertTrue( $processor->next_declaration( '--tone' ) );
+		$this->assertSame( '--tone', $processor->get_property_name() );
+		$this->assertSame( 'cool', $processor->get_value() );
+
+		$this->assertFalse( $processor->next_declaration( '--tone' ) );
+	}
+
+	/**
 	 * @covers ::is_important
 	 * @covers ::get_value
 	 */
@@ -183,6 +242,24 @@ class Tests_HtmlApi_WpHtmlStyleAttributeProcessor extends WP_UnitTestCase {
 		$this->assertTrue( $processor->next_declaration() );
 		$this->assertSame( 'var(--x, red !important', $processor->get_value() );
 		$this->assertFalse( $processor->is_important() );
+	}
+
+	/**
+	 * @covers ::is_important
+	 * @covers ::get_value
+	 *
+	 * @dataProvider data_important_priority_syntax
+	 *
+	 * @param string $style     Style attribute value.
+	 * @param string $value     Expected declaration value.
+	 * @param bool   $important Expected importance.
+	 */
+	public function test_important_priority_syntax_variants( string $style, string $value, bool $important ) {
+		$processor = new WP_HTML_Style_Attribute_Processor( $style );
+
+		$this->assertTrue( $processor->next_declaration() );
+		$this->assertSame( $value, $processor->get_value() );
+		$this->assertSame( $important, $processor->is_important() );
 	}
 
 	/**
@@ -240,6 +317,35 @@ class Tests_HtmlApi_WpHtmlStyleAttributeProcessor extends WP_UnitTestCase {
 		$this->assertSame(
 			'<div style="color: red; color: color(display-p3 1 0 0); background: white;">Text</div>',
 			$tags->get_updated_html()
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{string,string,string|null}>
+	 */
+	public static function data_html_style_attribute_values(): array {
+		return array(
+			'missing style attribute' => array( '<div>Text</div>', '', null ),
+			'boolean style attribute' => array( '<div style>Text</div>', '', null ),
+			'empty style attribute'   => array( '<div style="">Text</div>', '', null ),
+			'valued style attribute'  => array( '<div style="color: red">Text</div>', 'color: red', 'color' ),
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{string,string,bool}>
+	 */
+	public static function data_important_priority_syntax(): array {
+		return array(
+			'no whitespace'         => array( 'color: red!important;', 'red', true ),
+			'whitespace after bang' => array( 'color: red ! important;', 'red', true ),
+			'comment after bang'    => array( 'color: red ! /*x*/ important;', 'red', true ),
+			'escaped important'     => array( 'color: red !\\69mportant;', 'red', true ),
+			'extra trailing token'  => array( 'color: red ! important foo;', 'red ! important foo', false ),
 		);
 	}
 

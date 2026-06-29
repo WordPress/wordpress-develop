@@ -74,9 +74,15 @@ class WP_HTML_Style_Attribute_Processor {
 	/**
 	 * Constructor.
 	 *
-	 * @param string $style Decoded style attribute value.
+	 * @param string|bool|null $style Decoded style attribute value.
 	 */
-	public function __construct( string $style ) {
+	public function __construct( $style = '' ) {
+		if ( null === $style || true === $style ) {
+			$style = '';
+		} elseif ( ! is_string( $style ) ) {
+			$style = '';
+		}
+
 		$this->style = $style;
 		$this->parse();
 	}
@@ -323,12 +329,6 @@ class WP_HTML_Style_Attribute_Processor {
 
 			if ( WP_CSS_Token_Processor::TOKEN_AT_KEYWORD === $this->tokens[ $index ]['type'] ) {
 				list( $index, $previous_item_ends_at ) = $this->consume_at_rule( $index );
-				continue;
-			}
-
-			if ( WP_CSS_Token_Processor::TOKEN_RIGHT_BRACE === $this->tokens[ $index ]['type'] ) {
-				$previous_item_ends_at = $this->tokens[ $index ]['end'];
-				++$index;
 				continue;
 			}
 
