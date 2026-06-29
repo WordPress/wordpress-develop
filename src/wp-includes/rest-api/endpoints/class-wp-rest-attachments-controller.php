@@ -2006,7 +2006,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	/**
 	 * Validates that uploaded image dimensions are appropriate for the specified image size.
 	 *
-	 * @since 7.0.0
+	 * @since 7.1.0
 	 *
 	 * @param int    $width         Uploaded image width.
 	 * @param int    $height        Uploaded image height.
