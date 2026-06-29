@@ -490,13 +490,7 @@ function _wp_get_entity_view_config_post_type_wp_block( $config ) {
 					'labelPosition' => 'none',
 				),
 			),
-			array(
-				'id'     => 'sync-status',
-				'layout' => array(
-					'type'          => 'regular',
-					'labelPosition' => 'side',
-				),
-			),
+			'sync-status',
 			'revisions',
 		),
 	);
