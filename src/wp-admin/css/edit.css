@@ -334,6 +334,10 @@ form#tags-filter {
 	min-width: 0;
 }
 
+#side-sortables input#post_password {
+	width: 94%
+}
+
 #side-sortables .tagsdiv #newtag {
 	flex: 1;
 	min-width: 0;
@@ -711,33 +715,27 @@ form#tags-filter {
 #post-visibility-select input#post_password {
 	box-sizing: border-box;
 	width: 100%;
-	max-width: 100%;
+	margin-top: 3px;
 }
 
-#post-visibility-fieldset {
-	margin: 0;
-	padding: 0;
-	border: 0;
-}
-
-#post-visibility-fieldset input,
+#post-visibility-select input[name="visibility"],
 #post-visibility-select input#sticky {
 	margin: 2px 3px 5px 0;
 	vertical-align: middle;
 }
 
-#post-visibility-select #sticky-span,
+#post-visibility-select #sticky-span {
+	display: block;
+	margin-left: 23px;
+	margin-top: 2px;
+	margin-bottom: 2px;
+}
+
 #post-visibility-select #password-span {
 	display: block;
-	margin-top: 8px;
-}
-
-#post-visibility-select #sticky-span {
-	margin-left: 0;
-}
-
-#post-visibility-select input#post_password {
-	margin-top: 3px;
+	margin-left: 23px;
+	margin-top: 2px;
+	margin-bottom: 6px;
 }
 
 #post-visibility-select p {
@@ -1924,6 +1922,10 @@ table.links-table {
 	/* Publish Metabox Options */
 	#post-visibility-select {
 		line-height: 280%;
+	}
+
+	#post-visibility-select #password-span {
+		line-height: 1.5;
 	}
 
 	.wp-core-ui .save-post-visibility,

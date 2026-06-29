@@ -302,7 +302,7 @@ window.wp = window.wp || {};
  * All post and postbox controls and functionality.
  */
 jQuery( function($) {
-	var stamp, visibility, $submitButtons, updateVisibility, updateText, getSelectedVisibility, setSelectedVisibility,
+	var stamp, visibility, $submitButtons, updateVisibility, updateText,
 		$textarea = $('#content'),
 		$document = $(document),
 		postId = $('#post_ID').val() || 0,
@@ -720,12 +720,6 @@ jQuery( function($) {
 	if ( $('#submitdiv').length ) {
 		stamp = $('#timestamp').html();
 		visibility = $('#post-visibility-display').html();
-		getSelectedVisibility = function() {
-			return $postVisibilitySelect.find( 'input[name="visibility"]:checked' ).val();
-		};
-		setSelectedVisibility = function( value ) {
-			$( '#visibility-radio-' + value ).prop( 'checked', true );
-		};
 
 		/**
 		 * When the visibility of a post changes sub-options should be shown or hidden.
@@ -736,7 +730,7 @@ jQuery( function($) {
 		 */
 		updateVisibility = function() {
 			// Show sticky for public posts.
-			if ( getSelectedVisibility() != 'public' ) {
+			if ( $postVisibilitySelect.find('input:radio:checked').val() != 'public' ) {
 				$('#sticky').prop('checked', false);
 				$('#sticky-span').hide();
 			} else {
@@ -744,7 +738,7 @@ jQuery( function($) {
 			}
 
 			// Show password input field for password protected post.
-			if ( getSelectedVisibility() != 'password' ) {
+			if ( $postVisibilitySelect.find('input:radio:checked').val() != 'password' ) {
 				$('#password-span').hide();
 			} else {
 				$('#password-span').show();
@@ -827,7 +821,7 @@ jQuery( function($) {
 			}
 
 			// Add "privately published" to post status when applies.
-			if ( getSelectedVisibility() == 'private' ) {
+			if ( $postVisibilitySelect.find('input:radio:checked').val() == 'private' ) {
 				$('#publish').val( __( 'Update' ) );
 				if ( 0 === optPublish.length ) {
 					postStatus.append('<option value="publish">' + __( 'Privately Published' ) + '</option>');
@@ -878,7 +872,7 @@ jQuery( function($) {
 			if ( $postVisibilitySelect.is(':hidden') ) {
 				updateVisibility();
 				$postVisibilitySelect.slideDown( 'fast', function() {
-					$postVisibilitySelect.find( 'input[name="visibility"]' ).first().trigger( 'focus' );
+					$postVisibilitySelect.find( 'input[type="radio"]' ).first().trigger( 'focus' );
 				} );
 				$(this).hide();
 			}
@@ -887,19 +881,18 @@ jQuery( function($) {
 		// Cancel visibility selection area and hide it from view.
 		$postVisibilitySelect.find('.cancel-post-visibility').on( 'click', function( event ) {
 			$postVisibilitySelect.slideUp('fast');
-			setSelectedVisibility( $( '#hidden-post-visibility' ).val() );
+			$('#visibility-radio-' + $('#hidden-post-visibility').val()).prop('checked', true);
 			$('#post_password').val($('#hidden-post-password').val());
 			$('#sticky').prop('checked', $('#hidden-post-sticky').prop('checked'));
 			$('#post-visibility-display').html(visibility);
 			$('#visibility .edit-visibility').show().trigger( 'focus' );
-			updateVisibility();
 			updateText();
 			event.preventDefault();
 		});
 
 		// Set the selected visibility as current.
 		$postVisibilitySelect.find('.save-post-visibility').on( 'click', function( event ) { // Crazyhorse branch - multiple OK cancels.
-			var visibilityLabel = '', selectedVisibility = getSelectedVisibility();
+			var visibilityLabel = '', selectedVisibility = $postVisibilitySelect.find('input:radio:checked').val();
 
 			$postVisibilitySelect.slideUp('fast');
 			$('#visibility .edit-visibility').show().trigger( 'focus' );
@@ -926,7 +919,7 @@ jQuery( function($) {
 		});
 
 		// When the selection changes, update labels.
-		$postVisibilitySelect.find( 'input[name="visibility"]' ).on( 'change', function() {
+		$postVisibilitySelect.find('input:radio').on( 'change', function() {
 			updateVisibility();
 		});
 
