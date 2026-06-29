@@ -2682,6 +2682,58 @@ HTML;
 	}
 
 	/**
+	 * @ticket 58873
+	 */
+	public function test_script_data_filter_does_not_print_empty_data() {
+		wp_enqueue_script( 'test-example', 'example.com', array(), null );
+		add_filter(
+			'script_data_test-example',
+			static function ( $data ) {
+				return $data;
+			}
+		);
+
+		$expected = "<script src='http://example.com' id='test-example-js'></script>\n";
+
+		$this->assertEqualHTML( $expected, get_echo( 'wp_print_scripts' ) );
+	}
+
+	/**
+	 * @ticket 58873
+	 *
+	 * @dataProvider data_invalid_script_data
+	 *
+	 * @param mixed $data Data to return in filter.
+	 */
+	public function test_script_data_filter_does_not_print_invalid_data( $data ) {
+		wp_enqueue_script( 'test-example', 'example.com', array(), null );
+		add_filter(
+			'script_data_test-example',
+			static function () use ( $data ) {
+				return $data;
+			}
+		);
+
+		$expected = "<script src='http://example.com' id='test-example-js'></script>\n";
+
+		$this->assertEqualHTML( $expected, get_echo( 'wp_print_scripts' ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public static function data_invalid_script_data(): array {
+		return array(
+			'null'     => array( null ),
+			'stdClass' => array( new stdClass() ),
+			'number 1' => array( 1 ),
+			'string'   => array( 'string' ),
+		);
+	}
+
+	/**
 	 * @ticket 14853
 	 */
 	public function test_wp_add_inline_script_before_with_concat() {
