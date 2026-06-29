@@ -270,8 +270,13 @@ class WP_Scripts extends WP_Dependencies {
 		$data = apply_filters( "script_data_{$handle}", array() );
 
 		if ( is_array( $data ) && array() !== $data ) {
+			$json_encode_flags = JSON_HEX_TAG | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_LINE_TERMINATORS;
+			if ( ! is_utf8_charset() ) {
+				$json_encode_flags = JSON_HEX_TAG | JSON_UNESCAPED_SLASHES;
+			}
+
 			wp_print_inline_script_tag(
-				(string) wp_json_encode( $data ),
+				(string) wp_json_encode( $data, $json_encode_flags ),
 				array(
 					'type' => 'application/json',
 					'id'   => "wp-script-data-{$handle}",
