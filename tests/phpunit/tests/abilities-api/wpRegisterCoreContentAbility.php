@@ -3,7 +3,7 @@
 declare( strict_types=1 );
 
 /**
- * Tests for the core/content ability shipped with the Abilities API.
+ * Tests for the core/read-content ability shipped with the Abilities API.
  *
  * @covers wp_register_core_abilities
  * @covers WP_Content_Abilities
@@ -120,10 +120,10 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	/**
 	 * Convenience accessor for the ability.
 	 *
-	 * @return WP_Ability The core/content ability.
+	 * @return WP_Ability The core/read-content ability.
 	 */
 	private function ability(): WP_Ability {
-		return wp_get_ability( 'core/content' );
+		return wp_get_ability( 'core/read-content' );
 	}
 
 	/*

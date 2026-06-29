@@ -12,7 +12,7 @@ declare( strict_types = 1 );
 /**
  * Core class used to register content-related abilities.
  *
- * Provides the read-only `core/content` ability, which retrieves one or more readable
+ * Provides the read-only `core/read-content` ability, which retrieves one or more readable
  * posts of a post type that opts in via the `show_in_abilities` argument. It supports
  * fetching a single readable post by ID or slug, or querying multiple readable posts
  * with a small set of filters, and returns a support-aware set of fields per post.
@@ -136,7 +136,7 @@ final class WP_Content_Abilities {
 	}
 
 	/**
-	 * Registers the read-only `core/content` ability.
+	 * Registers the read-only `core/read-content` ability.
 	 *
 	 * @since 7.1.0
 	 */
@@ -148,9 +148,9 @@ final class WP_Content_Abilities {
 		$statuses   = array_values( get_post_stati( array( 'internal' => false ) ) );
 
 		wp_register_ability(
-			'core/content',
+			'core/read-content',
 			array(
-				'label'               => __( 'Get Content' ),
+				'label'               => __( 'Read Content' ),
 				'description'         => __( 'Retrieves one or more readable posts of a post type exposed to abilities. Fetch a single readable post by ID or by slug, or query multiple readable posts filtered by post type, status, author, or parent. Returns a basic, support-aware set of fields per post, with raw fields limited to users who can edit the post.' ),
 				'category'            => self::CATEGORY,
 				'input_schema'        => $this->get_content_input_schema( $post_types, $statuses ),
@@ -174,7 +174,7 @@ final class WP_Content_Abilities {
 	}
 
 	/**
-	 * Permission callback for the `core/content` ability.
+	 * Permission callback for the `core/read-content` ability.
 	 *
 	 * Implements defense in depth: this gate decides whether the request may proceed at
 	 * all, while the per-post read/edit checks in {@see self::execute_get_content()}
@@ -327,7 +327,7 @@ final class WP_Content_Abilities {
 	}
 
 	/**
-	 * Executes the `core/content` ability.
+	 * Executes the `core/read-content` ability.
 	 *
 	 * @since 7.1.0
 	 *
@@ -494,7 +494,7 @@ final class WP_Content_Abilities {
 	}
 
 	/**
-	 * Builds the input schema for the `core/content` ability.
+	 * Builds the input schema for the `core/read-content` ability.
 	 *
 	 * The ability has two mutually exclusive modes, modeled as a `oneOf` so invalid
 	 * combinations are rejected rather than silently ignored:
@@ -598,7 +598,7 @@ final class WP_Content_Abilities {
 	}
 
 	/**
-	 * Builds the output schema for the `core/content` ability.
+	 * Builds the output schema for the `core/read-content` ability.
 	 *
 	 * No field is marked required because the `fields` input lets the caller request any
 	 * subset, and a field is only present when its post type supports it.
