@@ -118,6 +118,25 @@ class Tests_HtmlApi_WpHtmlStyleAttributeProcessor extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @covers ::set_value
+	 * @covers ::get_value
+	 * @covers ::is_important
+	 */
+	public function test_getters_reflect_current_declaration_after_set_value() {
+		$processor = new WP_HTML_Style_Attribute_Processor( 'color: red; background: white;' );
+
+		$this->assertTrue( $processor->next_declaration( 'color' ) );
+		$this->assertTrue( $processor->set_value( 'green', true ) );
+
+		$this->assertSame( 'color', $processor->get_property_name() );
+		$this->assertSame( 'green', $processor->get_value() );
+		$this->assertTrue( $processor->is_important() );
+
+		$this->assertTrue( $processor->next_declaration() );
+		$this->assertSame( 'background', $processor->get_property_name() );
+	}
+
+	/**
 	 * @covers ::remove_declaration
 	 * @covers ::get_updated_style
 	 */
@@ -129,6 +148,25 @@ class Tests_HtmlApi_WpHtmlStyleAttributeProcessor extends WP_UnitTestCase {
 		$this->assertTrue( $processor->remove_declaration() );
 
 		$this->assertSame( 'color: red; background: white;', $processor->get_updated_style() );
+	}
+
+	/**
+	 * @covers ::remove_declaration
+	 * @covers ::get_property_name
+	 * @covers ::get_value
+	 */
+	public function test_getters_return_null_after_removing_current_declaration_until_cursor_advances() {
+		$processor = new WP_HTML_Style_Attribute_Processor( 'color: red; background: white;' );
+
+		$this->assertTrue( $processor->next_declaration( 'color' ) );
+		$this->assertTrue( $processor->remove_declaration() );
+
+		$this->assertNull( $processor->get_property_name() );
+		$this->assertNull( $processor->get_value() );
+		$this->assertFalse( $processor->is_important() );
+
+		$this->assertTrue( $processor->next_declaration() );
+		$this->assertSame( 'background', $processor->get_property_name() );
 	}
 
 	/**
@@ -167,6 +205,42 @@ class Tests_HtmlApi_WpHtmlStyleAttributeProcessor extends WP_UnitTestCase {
 		$this->assertTrue( $processor->append_declaration( 'color', 'red' ) );
 		$this->assertTrue( $processor->append_declaration( 'background', 'white' ) );
 
+		$this->assertSame( 'color: red; background: white;', $processor->get_updated_style() );
+	}
+
+	/**
+	 * @covers ::append_declaration
+	 * @covers ::next_declaration
+	 */
+	public function test_appended_declarations_can_be_inspected_by_the_cursor() {
+		$processor = new WP_HTML_Style_Attribute_Processor( '' );
+
+		$this->assertTrue( $processor->append_declaration( 'color', 'red' ) );
+
+		$this->assertTrue( $processor->next_declaration() );
+		$this->assertSame( 'color', $processor->get_property_name() );
+		$this->assertSame( 'red', $processor->get_value() );
+	}
+
+	/**
+	 * @covers ::append_declaration
+	 * @covers ::next_declaration
+	 * @covers ::get_property_name
+	 */
+	public function test_append_declaration_preserves_exhausted_cursor_until_it_advances() {
+		$processor = new WP_HTML_Style_Attribute_Processor( 'color: red;' );
+
+		$this->assertTrue( $processor->next_declaration() );
+		$this->assertFalse( $processor->next_declaration() );
+		$this->assertTrue( $processor->append_declaration( 'background', 'white' ) );
+
+		$this->assertNull( $processor->get_property_name() );
+		$this->assertNull( $processor->get_value() );
+		$this->assertFalse( $processor->set_value( 'green' ) );
+
+		$this->assertTrue( $processor->next_declaration() );
+		$this->assertSame( 'background', $processor->get_property_name() );
+		$this->assertSame( 'white', $processor->get_value() );
 		$this->assertSame( 'color: red; background: white;', $processor->get_updated_style() );
 	}
 

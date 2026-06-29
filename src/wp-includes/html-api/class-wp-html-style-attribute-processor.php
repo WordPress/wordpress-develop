@@ -58,6 +58,13 @@ class WP_HTML_Style_Attribute_Processor {
 	private $current_declaration = -1;
 
 	/**
+	 * Whether the current declaration was removed and no new declaration has been selected.
+	 *
+	 * @var bool
+	 */
+	private $current_declaration_removed = false;
+
+	/**
 	 * Lexical updates to apply to the original style attribute value.
 	 *
 	 * @var array<int, array{start:int, length:int, text:string, declaration:int|null, order:int}>
@@ -102,12 +109,14 @@ class WP_HTML_Style_Attribute_Processor {
 				null === $property_name ||
 				$this->matches_property_name( $this->declarations[ $i ]['name'], $property_name )
 			) {
-				$this->current_declaration = $i;
+				$this->current_declaration         = $i;
+				$this->current_declaration_removed = false;
 				return true;
 			}
 		}
 
-		$this->current_declaration = count( $this->declarations );
+		$this->current_declaration         = count( $this->declarations );
+		$this->current_declaration_removed = false;
 		return false;
 	}
 
@@ -174,6 +183,8 @@ class WP_HTML_Style_Attribute_Processor {
 			$this->current_declaration
 		);
 
+		$this->apply_lexical_updates( $this->current_declaration );
+
 		return true;
 	}
 
@@ -206,6 +217,8 @@ class WP_HTML_Style_Attribute_Processor {
 			$this->current_declaration
 		);
 
+		$this->apply_lexical_updates( $this->current_declaration - 1, true );
+
 		return true;
 	}
 
@@ -225,9 +238,10 @@ class WP_HTML_Style_Attribute_Processor {
 			return false;
 		}
 
-		$trimmed_style = rtrim( $this->style, self::WHITESPACE );
-		$insert_at     = strlen( $trimmed_style );
-		$separator     = $this->has_queued_append_at( $insert_at ) ? ' ' : '';
+		$old_declaration_count = count( $this->declarations );
+		$trimmed_style         = rtrim( $this->style, self::WHITESPACE );
+		$insert_at             = strlen( $trimmed_style );
+		$separator             = $this->has_queued_append_at( $insert_at ) ? ' ' : '';
 
 		if ( '' === $separator && '' !== trim( $trimmed_style, self::WHITESPACE ) ) {
 			$separator = ( ';' === substr( $trimmed_style, -1 ) ) ? ' ' : '; ';
@@ -238,6 +252,16 @@ class WP_HTML_Style_Attribute_Processor {
 			0,
 			$separator . $this->serialize_declaration( $property_name, $value, $important ),
 			null
+		);
+
+		$append_after_exhausted_cursor = $this->current_declaration >= $old_declaration_count;
+		$current_after_append          = $append_after_exhausted_cursor
+			? $old_declaration_count - 1
+			: $this->current_declaration;
+
+		$this->apply_lexical_updates(
+			$current_after_append,
+			$this->current_declaration_removed || $append_after_exhausted_cursor
 		);
 
 		return true;
@@ -662,11 +686,38 @@ class WP_HTML_Style_Attribute_Processor {
 	 * @return array{name:string, raw_name:string, leading_start:int, start:int, after:int, trailing_end:int, value_start:int, value_end:int, important:bool}|null
 	 */
 	private function get_current_declaration(): ?array {
-		if ( $this->current_declaration < 0 || ! isset( $this->declarations[ $this->current_declaration ] ) ) {
+		if (
+			$this->current_declaration_removed ||
+			$this->current_declaration < 0 ||
+			! isset( $this->declarations[ $this->current_declaration ] )
+		) {
 			return null;
 		}
 
 		return $this->declarations[ $this->current_declaration ];
+	}
+
+	/**
+	 * Applies queued lexical updates and reparses the updated style attribute value.
+	 *
+	 * @param int  $current_declaration         Declaration index to keep before the next cursor advance.
+	 * @param bool $current_declaration_removed Optional. Whether the current declaration was removed.
+	 */
+	private function apply_lexical_updates( int $current_declaration, bool $current_declaration_removed = false ): void {
+		$this->style = $this->get_updated_style();
+
+		$this->tokens                      = array();
+		$this->declarations                = array();
+		$this->lexical_updates             = array();
+		$this->lexical_update_order        = 0;
+		$this->current_declaration         = $current_declaration;
+		$this->current_declaration_removed = $current_declaration_removed;
+
+		$this->parse();
+
+		if ( $this->current_declaration >= count( $this->declarations ) ) {
+			$this->current_declaration = count( $this->declarations );
+		}
 	}
 
 	/**
