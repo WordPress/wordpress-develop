@@ -890,7 +890,8 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	 *     // <div class="" onclick="alert"></div>
 	 * ```
 	 *
-	 * To prevent it, `set_attribute` escapes dangerous characters (`"`, `'`, `<`, `>`, `&`) using HTML character references.
+	 * To prevent it, `set_attribute` escapes HTML syntax characters like `"` using
+	 * HTML character references.
 	 *
 	 * ```php
 	 *    <div class="&quot; onclick=&quot;alert"></div>
@@ -2116,6 +2117,8 @@ HTML;
 			yield 'Script tag with </script\f> close'             => array( "<script></script\f>", true );
 			yield 'Script tag with </script\r> close'             => array( "<script></script\r>", true );
 			yield 'Script with type attribute'                    => array( '<script type="text/javascript"></script>', true );
+			yield 'Script text less-than'                         => array( '<script><</script>', true );
+			yield 'Script text less-than solidus'                 => array( '<script></</script>', true );
 			yield 'Script data escaped'                           => array( '<script><!--</script>', true );
 			yield 'Script data double-escaped exit (comment)'     => array( '<script><!--<script>--></script>', true );
 			yield 'Script data double-escaped exit (closed ">")'  => array( '<script><!--<script></script></script>', true );
