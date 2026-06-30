@@ -538,8 +538,8 @@ function confirm_another_blog_signup( $domain, $path, $blog_title, $user_name, $
 		$login_url = wp_login_url();
 		restore_current_blog();
 	} else {
-		$home_url  = 'http://' . $domain . $path;
-		$login_url = 'http://' . $domain . $path . 'wp-login.php';
+		$home_url  = set_url_scheme( 'http://' . $domain . $path );
+		$login_url = set_url_scheme( 'http://' . $domain . $path . 'wp-login.php' );
 	}
 
 	$site = sprintf(
@@ -865,7 +865,14 @@ function confirm_blog_signup( $domain, $path, $blog_title, $user_name = '', $use
 	<h2>
 	<?php
 	/* translators: %s: Site address. */
-	printf( __( 'Congratulations! Your new site, %s, is almost ready.' ), "<a href='http://{$domain}{$path}'>{$blog_title}</a>" )
+	printf(
+		__( 'Congratulations! Your new site, %s, is almost ready.' ),
+		sprintf(
+			'<a href="%s">%s</a>',
+			esc_url( set_url_scheme( 'http://' . $domain . $path ) ),
+			$blog_title
+		)
+	)
 	?>
 	</h2>
 
