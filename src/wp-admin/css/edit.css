@@ -732,17 +732,18 @@ form#tags-filter {
 	vertical-align: middle;
 }
 
-#post-visibility-select #sticky-span {
-	display: block;
-	margin-left: calc(1rem + var(--post-visibility-control-gap) + 0.25em);
-	margin-top: 2px;
-	margin-bottom: 2px;
-}
-
+#post-visibility-select #sticky-span,
 #post-visibility-select #password-span {
 	display: block;
 	margin-left: calc(1rem + var(--post-visibility-control-gap) + 0.25em);
 	margin-top: 2px;
+}
+
+#post-visibility-select #sticky-span {
+	margin-bottom: 2px;
+}
+
+#post-visibility-select #password-span {
 	margin-bottom: 6px;
 }
 
