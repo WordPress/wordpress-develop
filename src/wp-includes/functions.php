@@ -8861,6 +8861,7 @@ function recurse_dirsize( $directory, $exclude = null, $max_execution_time = nul
 	}
 
 	if ( null === $max_execution_time ) {
+		// Keep the previous behavior but attempt to prevent fatal errors from timeout if possible.
 		$max_execution_time = ini_get( 'max_execution_time' );
 
 		// Leave 1 second "buffer" for other operations if $max_execution_time has reasonable value.
