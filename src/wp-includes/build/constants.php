@@ -9,6 +9,6 @@
  */
 
 return array(
-	'version' => '22.6.0-rc.1',
+	'version' => '23.4.0',
 	'build_url' => includes_url( 'build/' ),
 );

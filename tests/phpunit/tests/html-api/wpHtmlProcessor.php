@@ -643,6 +643,26 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensures foreign TEMPLATE elements do not satisfy HTML template handling.
+	 *
+	 * @ticket 65372
+	 */
+	public function test_unmatched_template_closer_after_mathml_template_is_ignored() {
+		$processor = WP_HTML_Processor::create_fragment( '<math><template><mi><c></template>here' );
+
+		$this->assertTrue( $processor->next_tag( 'C' ), 'Failed to find C tag.' );
+		$this->assertTrue( $processor->next_token(), 'Failed to advance past the C tag.' );
+
+		// Closing HTML </template> tag should be ignored, advancing to "here" text without modifying breadcrumbs.
+		$this->assertSame( '#text', $processor->get_token_type(), 'Failed to reach text node.' );
+		$this->assertSame( 'here', $processor->get_modifiable_text() );
+		$this->assertSame(
+			array( 'HTML', 'BODY', 'MATH', 'TEMPLATE', 'MI', 'C', '#text' ),
+			$processor->get_breadcrumbs(),
+		);
+	}
+
+	/**
 	 * Ensures that the tag processor is case sensitive when removing CSS classes in no-quirks mode.
 	 *
 	 * @ticket 61531
