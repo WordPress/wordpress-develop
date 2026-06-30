@@ -31,29 +31,68 @@ class Tests_Icons_WpIconCollectionsRegistry extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 64847
+	 * Registers an icon in the icons registry.
 	 *
-	 * @covers ::register
+	 * @param string $icon_name       Namespaced icon name (e.g. "plugin-a/alpha").
+	 * @param array  $icon_properties Icon properties (label, content, file_path).
+	 * @return bool True if the icon was registered successfully.
 	 */
-	public function test_register_collection() {
-		$result = $this->collections->register(
-			'my-collection',
-			array(
-				'label'       => 'My Collection',
-				'description' => 'A collection.',
-			)
-		);
-
-		$this->assertTrue( $result );
-		$this->assertTrue( $this->collections->is_registered( 'my-collection' ) );
-
-		$registered = $this->collections->get_registered( 'my-collection' );
-		$this->assertSame( 'my-collection', $registered['slug'] );
-		$this->assertSame( 'My Collection', $registered['label'] );
-		$this->assertSame( 'A collection.', $registered['description'] );
+	private function register_icon( $icon_name, $icon_properties ) {
+		return WP_Icons_Registry::get_instance()->register( $icon_name, $icon_properties );
 	}
 
 	/**
+	 * Data provider for valid collection slug candidates.
+	 *
+	 * @return array[]
+	 */
+	public function data_valid_collection_slugs() {
+		return array(
+			'simple slug'            => array( 'mycollection' ),
+			'digit at the start'     => array( '1-collection' ),
+			'digit in the slug'      => array( 'my-1-collection' ),
+			'digit at the end'       => array( 'collection1' ),
+			'underscore in the slug' => array( 'my_collection' ),
+			'hyphen in the slug'     => array( 'my-collection' ),
+		);
+	}
+
+	/**
+	 * Should register a collection with a valid slug.
+	 *
+	 * @ticket 64847
+	 *
+	 * @dataProvider data_valid_collection_slugs
+	 *
+	 * @covers ::register
+	 */
+	public function test_register_collection( $slug ) {
+		$result = $this->collections->register( $slug, array( 'label' => 'My Collection' ) );
+
+		$this->assertTrue( $result );
+		$this->assertTrue( $this->collections->is_registered( $slug ) );
+	}
+
+	/**
+	 * Data provider for invalid collection slug candidates.
+	 *
+	 * @return array[]
+	 */
+	public function data_invalid_collection_slugs() {
+		return array(
+			'non-string slug'         => array( 1 ),
+			'contains slash'          => array( 'plugin/icons' ),
+			'uppercase characters'    => array( 'Plugin' ),
+			'underscore at the start' => array( '_my-plugin' ),
+			'underscore at the end'   => array( 'my-plugin_' ),
+			'hyphen at the start'     => array( '-my-plugin' ),
+			'hyphen at the end'       => array( 'my-plugin-' ),
+		);
+	}
+
+	/**
+	 * Should fail to register a collection with an invalid slug.
+	 *
 	 * @ticket 64847
 	 *
 	 * @dataProvider data_invalid_collection_slugs
@@ -70,24 +109,8 @@ class Tests_Icons_WpIconCollectionsRegistry extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Data provider for invalid collection slug candidates.
+	 * Should fail to register the same collection twice.
 	 *
-	 * Collection slugs must be strings that start with a lowercase letter
-	 * and contain only lowercase letters and hyphens (no digits, no slashes,
-	 * no uppercase characters).
-	 *
-	 * @return array[]
-	 */
-	public function data_invalid_collection_slugs() {
-		return array(
-			'non-string slug'      => array( 1 ),
-			'contains slash'       => array( 'plugin/icons' ),
-			'uppercase characters' => array( 'Plugin' ),
-			'underscore'           => array( 'my_plugin' ),
-		);
-	}
-
-	/**
 	 * @ticket 64847
 	 *
 	 * @covers ::register
@@ -100,6 +123,8 @@ class Tests_Icons_WpIconCollectionsRegistry extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Should fail to register a collection with an unknown property.
+	 *
 	 * @ticket 64847
 	 *
 	 * @covers ::register
@@ -118,6 +143,9 @@ class Tests_Icons_WpIconCollectionsRegistry extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Unregistering a collection should cascade and remove all icons
+	 * belonging to it, while leaving icons from other collections intact.
+	 *
 	 * @ticket 64847
 	 *
 	 * @covers ::unregister
@@ -127,21 +155,21 @@ class Tests_Icons_WpIconCollectionsRegistry extends WP_UnitTestCase {
 		$this->collections->register( 'plugin-b', array( 'label' => 'B' ) );
 
 		$icons = WP_Icons_Registry::get_instance();
-		$icons->register(
+		$this->register_icon(
 			'plugin-a/alpha',
 			array(
 				'label'   => 'Alpha',
 				'content' => '<svg></svg>',
 			)
 		);
-		$icons->register(
+		$this->register_icon(
 			'plugin-a/beta',
 			array(
 				'label'   => 'Beta',
 				'content' => '<svg></svg>',
 			)
 		);
-		$icons->register(
+		$this->register_icon(
 			'plugin-b/gamma',
 			array(
 				'label'   => 'Gamma',
@@ -162,6 +190,8 @@ class Tests_Icons_WpIconCollectionsRegistry extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Should fail to unregister a collection that was never registered.
+	 *
 	 * @ticket 64847
 	 *
 	 * @covers ::unregister

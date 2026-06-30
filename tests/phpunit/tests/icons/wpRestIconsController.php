@@ -54,8 +54,8 @@ class Tests_REST_WpRestIconsController extends WP_Test_REST_Controller_Testcase 
 	public function test_register_routes() {
 		$routes = rest_get_server()->get_routes();
 		$this->assertArrayHasKey( '/wp/v2/icons', $routes );
-		$this->assertArrayHasKey( '/wp/v2/icons/(?P<namespace>[a-z][a-z-]*)', $routes );
-		$this->assertArrayHasKey( '/wp/v2/icons/(?P<name>[a-z][a-z0-9-]*/[a-z][a-z0-9-]*)', $routes );
+		$this->assertArrayHasKey( '/wp/v2/icons/(?P<namespace>[a-z0-9](?:[a-z0-9_-]*[a-z0-9])?)', $routes );
+		$this->assertArrayHasKey( '/wp/v2/icons/(?P<name>[a-z0-9](?:[a-z0-9_-]*[a-z0-9])?/[a-z0-9](?:[a-z0-9_-]*[a-z0-9])?)', $routes );
 	}
 
 	/**

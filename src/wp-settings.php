@@ -361,6 +361,7 @@ require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-font-families-contr
 require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-font-faces-controller.php';
 require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-font-collections-controller.php';
 require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-icons-controller.php';
+require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-icon-collections-controller.php';
 require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-view-config-controller.php';
 require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-abilities-v1-categories-controller.php';
 require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-abilities-v1-list-controller.php';
