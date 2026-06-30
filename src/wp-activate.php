@@ -153,10 +153,7 @@ $blog_details = get_site();
 					esc_url( wp_lostpassword_url() )
 				);
 			} else {
-				$url = set_url_scheme(
-					'http://' . $signup->domain . $blog_details->path,
-					is_ssl() ? 'https' : 'http'
-				);
+				$url = ( is_ssl() ? 'https://' : 'http://' ) . $signup->domain . $blog_details->path;
 
 				printf(
 					/* translators: 1: Site URL, 2: Username, 3: User email address, 4: Lost password URL. */
