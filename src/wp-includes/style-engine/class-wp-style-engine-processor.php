@@ -154,6 +154,7 @@ class WP_Style_Engine_Processor {
 			$declarations        = $rule->get_declarations()->get_declarations();
 			$declaration_options = $rule->get_declarations()->get_declaration_options();
 			ksort( $declarations );
+			// Declaration options are keyed by property and are part of the rule identity.
 			ksort( $declaration_options );
 			foreach ( $declaration_options as $property => $options ) {
 				if ( is_array( $options ) ) {
