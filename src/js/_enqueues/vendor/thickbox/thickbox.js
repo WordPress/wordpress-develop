@@ -11,7 +11,6 @@
 /* jshint -W038 */
 /* jshint -W040 */
 /* jshint -W069 */
-/* jshint -W082 */
 /* jshint -W097 */
 /* jshint -W098 */
 /* jshint -W109 */
@@ -165,24 +164,26 @@ function tb_show(caption, url, imageGroup) {//function called when the user clic
 
 			jQuery("#TB_closeWindowButton").on( 'click', tb_remove );
 
+			// Declared in the function scope (not the blocks below) so the keydown handler can reach them under strict mode.
+			var goPrev = function(){
+				if(jQuery(document).off("click",goPrev)){jQuery(document).off("click",goPrev);}
+				jQuery("#TB_window").remove();
+				jQuery("body").append("<div id='TB_window'></div>");
+				tb_show(TB_PrevCaption, TB_PrevURL, imageGroup);
+				return false;
+			};
+			var goNext = function(){
+				jQuery("#TB_window").remove();
+				jQuery("body").append("<div id='TB_window'></div>");
+				tb_show(TB_NextCaption, TB_NextURL, imageGroup);
+				return false;
+			};
+
 			if (!(TB_PrevHTML === "")) {
-				function goPrev(){
-					if(jQuery(document).off("click",goPrev)){jQuery(document).off("click",goPrev);}
-					jQuery("#TB_window").remove();
-					jQuery("body").append("<div id='TB_window'></div>");
-					tb_show(TB_PrevCaption, TB_PrevURL, imageGroup);
-					return false;
-				}
 				jQuery("#TB_prev").on( 'click', goPrev );
 			}
 
 			if (!(TB_NextHTML === "")) {
-				function goNext(){
-					jQuery("#TB_window").remove();
-					jQuery("body").append("<div id='TB_window'></div>");
-					tb_show(TB_NextCaption, TB_NextURL, imageGroup);
-					return false;
-				}
 				jQuery("#TB_next").on( 'click', goNext );
 
 			}
