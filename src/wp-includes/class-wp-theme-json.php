@@ -1263,7 +1263,7 @@ class WP_Theme_JSON {
 		foreach ( $selectors as $sel ) {
 			$new_selectors[] = $sel . $to_append;
 		}
-		return implode( ',', $new_selectors );
+		return implode( ', ', $new_selectors );
 	}
 
 	/**
@@ -1288,7 +1288,7 @@ class WP_Theme_JSON {
 		foreach ( $selectors as $sel ) {
 			$new_selectors[] = $to_prepend . $sel;
 		}
-		return implode( ',', $new_selectors );
+		return implode( ', ', $new_selectors );
 	}
 
 	/**
@@ -2334,8 +2334,6 @@ class WP_Theme_JSON {
 		$selectors_scoped = array();
 		foreach ( $scopes as $outer ) {
 			foreach ( $selectors as $inner ) {
-				$outer = trim( $outer );
-				$inner = trim( $inner );
 				if ( ! empty( $outer ) && ! empty( $inner ) ) {
 					$selectors_scoped[] = $outer . ' ' . $inner;
 				} elseif ( empty( $outer ) ) {
@@ -5368,7 +5366,7 @@ class WP_Theme_JSON {
 			);
 		}
 
-		return implode( ',', $result );
+		return implode( ', ', $result );
 	}
 
 	/**
@@ -5399,8 +5397,7 @@ class WP_Theme_JSON {
 		$selector_parts  = static::split_selector_list( $feature_selector );
 		$selector_parts  = array_map(
 			static function ( $selector ) use ( $variation_class ) {
-				$selector = trim( $selector );
-				$prefix   = $variation_class . ' ';
+				$prefix = $variation_class . ' ';
 
 				if ( str_starts_with( $selector, $prefix ) ) {
 					return substr( $selector, strlen( $prefix ) );
@@ -5413,7 +5410,7 @@ class WP_Theme_JSON {
 
 		return static::get_block_style_variation_selector(
 			$variation_name,
-			implode( ',', $selector_parts )
+			implode( ', ', $selector_parts )
 		);
 	}
 
