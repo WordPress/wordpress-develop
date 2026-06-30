@@ -236,6 +236,12 @@ class Tests_Theme_Support extends WP_UnitTestCase {
 	 * @covers ::remove_editor_styles
 	 */
 	public function test_editor_style_singular_and_editor_styles_plural_are_distinct() {
+		// Ensure a clean slate: supports may be left over from a prior test or the active theme.
+		remove_editor_styles();
+		remove_theme_support( 'editor-styles' );
+		$this->assertFalse( current_theme_supports( 'editor-style' ) );
+		$this->assertFalse( current_theme_supports( 'editor-styles' ) );
+
 		// 'editor-style' (singular) is the internal TinyMCE marker added by add_editor_style().
 		add_editor_style();
 		$this->assertTrue( current_theme_supports( 'editor-style' ) );
