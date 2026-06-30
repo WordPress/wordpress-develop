@@ -1,9 +1,21 @@
+'use strict';
 /*
  * Thickbox 3.1 - One Box To Rule Them All.
  * By Cody Lindley (http://www.codylindley.com)
  * Copyright (c) 2007 cody lindley
  * Licensed under the MIT License: http://www.opensource.org/licenses/mit-license.php
-*/
+ */
+
+/* global thickboxL10n, unescape */
+/* jshint -W018 */
+/* jshint -W038 */
+/* jshint -W040 */
+/* jshint -W069 */
+/* jshint -W082 */
+/* jshint -W097 */
+/* jshint -W098 */
+/* jshint -W109 */
+/* jshint -W116 */
 
 if ( typeof tb_pathToImage != 'string' ) {
 	var tb_pathToImage = thickboxL10n.loadingAnimation;
