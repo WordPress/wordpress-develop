@@ -7532,4 +7532,68 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		$this->assertStringNotContainsString( 'padding', $result, 'Boolean value should be skipped' );
 		$this->assertStringNotContainsString( 'gap', $result, 'Array value should be skipped' );
 	}
+
+	/**
+	 * Tests nothing!
+	 *
+	 * @ticket 9999999
+	 *
+	 * @dataProvider data_split_selector_list
+	 *
+	 * @param string $selector the full CSS selector
+	 * @param string[] $expected the split selectors
+	 */
+	public function test_do_a_thing( $selector, $expected ) {
+		$this->assertContains( $expected[0], $selector );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_split_selector_list() {
+		return array(
+			'simple selector list'                             => array(
+				'selector' => 'h1,h2',
+				'expected' => array( 'h1', 'h2' ),
+			),
+			'preserves whitespace around selectors'            => array(
+				'selector' => '.a ,  .b , .c',
+				'expected' => array( '.a ', '  .b ', ' .c' ),
+			),
+			'selector function list argument'                  => array(
+				'selector' => ':where(.a, .b),.c',
+				'expected' => array( ':where(.a, .b)', '.c' ),
+			),
+			'nested selector functions'                        => array(
+				'selector' => ':where(:not(.a, .b), .c),.d',
+				'expected' => array( ':where(:not(.a, .b), .c)', '.d' ),
+			),
+			'attribute string containing comma'                => array(
+				'selector' => '[data-label="Save, continue"],.fallback',
+				'expected' => array( '[data-label="Save, continue"]', '.fallback' ),
+			),
+			'escaped comma in identifier'                      => array(
+				'selector' => '.foo\,bar,.baz',
+				'expected' => array( '.foo\,bar', '.baz' ),
+			),
+			'escaped closing parenthesis in selector function' => array(
+				'selector' => ':is(.a\), .b), .c',
+				'expected' => array( ':is(.a\), .b)', ' .c' ),
+			),
+			'quoted function argument before top-level comma'  => array(
+				'selector' => ':lang(zh, "*-hant"),.foo',
+				'expected' => array( ':lang(zh, "*-hant")', '.foo' ),
+			),
+			'escaped quote and comma inside string'            => array(
+				'selector' => '[data-x="\",inside"],.b',
+				'expected' => array( '[data-x="\",inside"]', '.b' ),
+			),
+			'comment containing comma'                         => array(
+				'selector' => '.a/*,*/,.b',
+				'expected' => array( '.a/*,*/', '.b' ),
+			),
+		);
+	}
 }
