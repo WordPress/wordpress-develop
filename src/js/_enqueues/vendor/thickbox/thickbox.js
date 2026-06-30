@@ -90,6 +90,7 @@ function tb_show(caption, url, imageGroup) {//function called when the user clic
 			urlType == '.webp' ||
 			urlType == '.avif'
 		){//code to show images
+			var imgPreloader = new Image();
 
 			TB_PrevCaption = "";
 			TB_PrevURL = "";
@@ -120,7 +121,6 @@ function tb_show(caption, url, imageGroup) {//function called when the user clic
 				}
 			}
 
-			var imgPreloader = new Image();
 			imgPreloader.onload = function(){
 			imgPreloader.onload = null;
 
@@ -204,11 +204,12 @@ function tb_show(caption, url, imageGroup) {//function called when the user clic
 
 			var queryString = url.replace(/^[^\?]+\??/,'');
 			var params = tb_parseQuery( queryString );
-			var ajaxContentW = TB_WIDTH - 30;
-			var ajaxContentH = TB_HEIGHT - 45;
+			var ajaxContentW, ajaxContentH;
 
 			TB_WIDTH = (params['width']*1) + 30 || 630; //defaults to 630 if no parameters were added to URL
 			TB_HEIGHT = (params['height']*1) + 40 || 440; //defaults to 440 if no parameters were added to URL
+			ajaxContentW = TB_WIDTH - 30;
+			ajaxContentH = TB_HEIGHT - 45;
 
 			if(url.indexOf('TB_iframe') != -1){// either iframe or ajax window
 					var urlNoQuery = url.split('TB_');
@@ -336,8 +337,7 @@ function tb_getPageSize(){
 	var de = document.documentElement;
 	var w = window.innerWidth || self.innerWidth || (de&&de.clientWidth) || document.body.clientWidth;
 	var h = window.innerHeight || self.innerHeight || (de&&de.clientHeight) || document.body.clientHeight;
-	var arrayPageSize = [w,h];
-	return arrayPageSize;
+	return [w,h];
 }
 
 function tb_detectMacXFF() {
