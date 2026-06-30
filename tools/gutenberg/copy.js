@@ -499,8 +499,12 @@ function generateScriptLoaderPackages() {
 			if ( Array.isArray( assetData.module_dependencies ) ) {
 				assetData.module_dependencies =
 					assetData.module_dependencies.filter(
+						/**
+						 * @param {string|{ id: string }} dep
+						 * @return {boolean}
+						 */
 						( dep ) =>
-							! ( dep.id || dep ).startsWith(
+							! ( typeof dep === 'string' ? dep : dep.id ).startsWith(
 								'@wordpress/vips'
 							)
 					);
