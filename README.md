@@ -39,7 +39,7 @@ You can get started using the local development environment with these steps:
 1. Then clone the forked repository to your computer using `git clone https://github.com/<your-username>/wordpress-develop.git`.
 1. Navigate into the directory for the cloned repository using `cd wordpress-develop`.
 1. Add the origin repo as an `upstream` remote via `git remote add upstream https://github.com/WordPress/wordpress-develop.git`.
-1. Then you can keep your branches up to date via `git pull --ff upstream/trunk`, for example.
+1. Then you can keep your branches up to date via `git pull --ff upstream trunk`, for example.
 
 Alternatively, if you have the [GitHub CLI](https://cli.github.com/) installed, you can simply run `gh repo fork WordPress/wordpress-develop --clone --remote` ([docs](https://cli.github.com/manual/gh_repo_fork)). This command will:
 1. Fork the repository to your account (use the `--org` flag to clone into an organization).

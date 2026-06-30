@@ -957,7 +957,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 				'styles'  => array(
 					'blocks' => array(
 						'test/responsive-feature' => array(
-							'mobile' => array(
+							'@mobile' => array(
 								'color' => array(
 									'text' => 'red',
 								),
@@ -979,7 +979,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 
 		$mobile_metadata = array(
 			'name'        => 'test/responsive-feature',
-			'path'        => array( 'styles', 'blocks', 'test/responsive-feature', 'mobile' ),
+			'path'        => array( 'styles', 'blocks', 'test/responsive-feature', '@mobile' ),
 			'selector'    => '.wp-block-test-responsive-feature',
 			'selectors'   => array(
 				'color' => '.wp-block-test-responsive-feature .color-target',
@@ -1020,7 +1020,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 							'spacing' => array(
 								'blockGap' => '5rem',
 							),
-							'mobile'  => array(
+							'@mobile' => array(
 								'spacing' => array(
 									'blockGap' => '2rem',
 								),
@@ -1040,7 +1040,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 
 		$mobile_metadata = array(
 			'name'        => 'core/group',
-			'path'        => array( 'styles', 'blocks', 'core/group', 'mobile' ),
+			'path'        => array( 'styles', 'blocks', 'core/group', '@mobile' ),
 			'selector'    => '.wp-block-group',
 			'css'         => '.wp-block-group',
 			'media_query' => '@media (width <= 480px)',
@@ -1080,7 +1080,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 									),
 								),
 							),
-							'mobile'   => array(
+							'@mobile'  => array(
 								'elements' => array(
 									'link' => array(
 										'color'  => array(
@@ -1109,7 +1109,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		);
 
 		$mobile_link_node = array(
-			'path'        => array( 'styles', 'blocks', 'core/group', 'mobile', 'elements', 'link' ),
+			'path'        => array( 'styles', 'blocks', 'core/group', '@mobile', 'elements', 'link' ),
 			'selector'    => $link_selector,
 			'media_query' => '@media (width <= 480px)',
 		);
@@ -1120,7 +1120,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		);
 
 		$mobile_hover_node = array(
-			'path'        => array( 'styles', 'blocks', 'core/group', 'mobile', 'elements', 'link' ),
+			'path'        => array( 'styles', 'blocks', 'core/group', '@mobile', 'elements', 'link' ),
 			'selector'    => $link_selector . ':hover',
 			'media_query' => '@media (width <= 480px)',
 		);
@@ -1174,7 +1174,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 									'spacing' => array(
 										'blockGap' => '5rem',
 									),
-									'mobile'  => array(
+									'@mobile' => array(
 										'spacing' => array(
 											'blockGap' => '2rem',
 										),
@@ -1230,7 +1230,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 				'styles'  => array(
 					'blocks' => array(
 						'test/tablet-only' => array(
-							'tablet' => array(
+							'@tablet' => array(
 								'color' => array(
 									'text' => 'purple',
 								),
@@ -1243,7 +1243,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 
 		$tablet_metadata = array(
 			'name'        => 'test/tablet-only',
-			'path'        => array( 'styles', 'blocks', 'test/tablet-only', 'tablet' ),
+			'path'        => array( 'styles', 'blocks', 'test/tablet-only', '@tablet' ),
 			'selector'    => '.wp-block-test-tablet-only',
 			'media_query' => '@media (480px < width <= 782px)',
 		);
@@ -3196,15 +3196,15 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 						'core/group' => array(
 							'elements' => array(
 								'link' => array(
-									'color'  => array(
+									'color'   => array(
 										'text' => 'var:preset|color|dark-gray',
 									),
-									'mobile' => array(
+									'@mobile' => array(
 										'color' => array(
 											'text' => 'var:preset|color|dark-pink',
 										),
 									),
-									'tablet' => array(
+									'@tablet' => array(
 										'color' => array(
 											'text' => 'var:preset|color|dark-red',
 										),
@@ -3224,15 +3224,15 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 					'core/group' => array(
 						'elements' => array(
 							'link' => array(
-								'color'  => array(
+								'color'   => array(
 									'text' => 'var(--wp--preset--color--dark-gray)',
 								),
-								'mobile' => array(
+								'@mobile' => array(
 									'color' => array(
 										'text' => 'var(--wp--preset--color--dark-pink)',
 									),
 								),
-								'tablet' => array(
+								'@tablet' => array(
 									'color' => array(
 										'text' => 'var(--wp--preset--color--dark-red)',
 									),
@@ -3259,7 +3259,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 				'styles'  => array(
 					'blocks' => array(
 						'core/group' => array(
-							'mobile' => array(
+							'@mobile' => array(
 								'elements' => array(
 									'link' => array(
 										'color' => array(
@@ -3279,7 +3279,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 			'styles'  => array(
 				'blocks' => array(
 					'core/group' => array(
-						'mobile' => array(
+						'@mobile' => array(
 							'elements' => array(
 								'link' => array(
 									'color' => array(

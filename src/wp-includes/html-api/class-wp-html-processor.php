@@ -341,6 +341,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * isn't UTF-8, first convert the document to UTF-8, then pass in the
 	 * converted HTML.
 	 *
+	 * @since 6.7.0
+	 *
 	 * @param string      $html                    Input HTML document to process.
 	 * @param string|null $known_definite_encoding Optional. If provided, specifies the charset used
 	 *                                             in the input byte stream. Currently must be UTF-8.
@@ -957,7 +959,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * token, or if it will self-close on the next step.
 	 *
 	 * Most HTML elements expect a closer, such as a P element or
-	 * a DIV element. Others, like an IMG element are void and don't
+	 * a DIV element. Others, like an IMG element, are void and don't
 	 * have a closing tag. Special elements, such as SCRIPT and STYLE,
 	 * are treated just like void tags. Text nodes and self-closing
 	 * foreign content will also act just like a void tag, immediately
@@ -1428,6 +1430,11 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			$qualified_attribute_name = $this->get_qualified_attribute_name( $attribute_name );
 			$qualified_attribute_name = str_replace( "\x00", "\u{FFFD}", $qualified_attribute_name );
 			$qualified_attribute_name = wp_scrub_utf8( $qualified_attribute_name );
+			/**
+			 * Spaces only appear via the foreign attribute adjustment table.
+			 * @see WP_HTML_Tag_Processor::get_qualified_attribute_name()
+			 */
+			$serialized_attribute_name = str_replace( ' ', ':', $qualified_attribute_name );
 			if ( isset( $seen_attribute_names[ $qualified_attribute_name ] ) ) {
 				continue;
 			} else {
@@ -1436,13 +1443,13 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 
 			if (
 				$previous_attribute_was_true &&
-				isset( $qualified_attribute_name[0] ) &&
-				'=' === $qualified_attribute_name[0]
+				isset( $serialized_attribute_name[0] ) &&
+				'=' === $serialized_attribute_name[0]
 			) {
 				$html .= '=""';
 			}
 
-			$html .= " {$qualified_attribute_name}";
+			$html .= " {$serialized_attribute_name}";
 			$value = $this->get_attribute( $attribute_name );
 
 			if ( is_string( $value ) ) {
@@ -1498,6 +1505,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 
 				case 'SCRIPT':
 				case 'STYLE':
+				case 'XMP':
 					break;
 
 				default:
@@ -3249,38 +3257,60 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			/*
 			 * > Any other end tag
 			 */
-
-			/*
-			 * Find the corresponding tag opener in the stack of open elements, if
-			 * it exists before reaching a special element, which provides a kind
-			 * of boundary in the stack. For example, a `</custom-tag>` should not
-			 * close anything beyond its containing `P` or `DIV` element.
-			 */
-			foreach ( $this->state->stack_of_open_elements->walk_up() as $node ) {
-				if ( 'html' === $node->namespace && $token_name === $node->node_name ) {
-					break;
-				}
-
-				if ( self::is_special( $node ) ) {
-					// This is a parse error, ignore the token.
-					return $this->step();
-				}
-			}
-
-			$this->generate_implied_end_tags( $token_name );
-			if ( $node !== $this->state->stack_of_open_elements->current_node() ) {
-				// @todo Record parse error: this error doesn't impact parsing.
-			}
-
-			foreach ( $this->state->stack_of_open_elements->walk_up() as $item ) {
-				$this->state->stack_of_open_elements->pop();
-				if ( $node === $item ) {
-					return true;
-				}
-			}
+			return $this->in_body_any_other_end_tag();
 		}
 
 		$this->bail( 'Should not have been able to reach end of IN BODY processing. Check HTML API code.' );
+		// This unnecessary return prevents tools from inaccurately reporting type errors.
+		return false;
+	}
+
+	/**
+	 * Applies the "any other end tag" parsing instructions for the IN BODY insertion mode.
+	 *
+	 * @since 7.1.0
+	 * @ignore
+	 *
+	 * @throws WP_HTML_Unsupported_Exception When encountering unsupported HTML input.
+	 *
+	 * @see https://html.spec.whatwg.org/#parsing-main-inbody
+	 * @see WP_HTML_Processor::step_in_body
+	 *
+	 * @return bool Whether an element was found.
+	 */
+	private function in_body_any_other_end_tag(): bool {
+		$token_name = $this->get_token_name();
+
+		/*
+		 * Find the corresponding tag opener in the stack of open elements, if
+		 * it exists before reaching a special element, which provides a kind
+		 * of boundary in the stack. For example, a `</custom-tag>` should not
+		 * close anything beyond its containing `P` or `DIV` element.
+		 */
+		foreach ( $this->state->stack_of_open_elements->walk_up() as $node ) {
+			if ( 'html' === $node->namespace && $token_name === $node->node_name ) {
+				break;
+			}
+
+			if ( self::is_special( $node ) ) {
+				// This is a parse error, ignore the token.
+				return $this->step();
+			}
+		}
+
+		$this->generate_implied_end_tags( $token_name );
+		if ( $node !== $this->state->stack_of_open_elements->current_node() ) {
+			// @todo Record parse error: this error doesn't impact parsing.
+		}
+
+		foreach ( $this->state->stack_of_open_elements->walk_up() as $item ) {
+			$this->state->stack_of_open_elements->pop();
+			if ( $node === $item ) {
+				return true;
+			}
+		}
+
+		$this->bail( 'Should not have been able to reach end of "any other end tag" IN BODY processing. Check HTML API code.' );
 		// This unnecessary return prevents tools from inaccurately reporting type errors.
 		return false;
 	}
@@ -5208,7 +5238,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @throws Exception When unable to allocate requested bookmark.
 	 *
-	 * @return string|false Name of created bookmark, or false if unable to create.
+	 * @return string Name of created bookmark.
 	 */
 	private function bookmark_token() {
 		if ( ! parent::set_bookmark( ++$this->bookmark_counter ) ) {
