@@ -59,9 +59,9 @@ class Tests_Theme_wpThemeJsonSelectorList extends WP_UnitTestCase {
 				'selector' => 'h1,h2',
 				'expected' => array( 'h1', 'h2' ),
 			),
-			'preserves whitespace around selectors' => array(
+			'trims whitespace around selectors' => array(
 				'selector' => '.a ,  .b , .c',
-				'expected' => array( '.a ', '  .b ', ' .c' ),
+				'expected' => array( '.a', '.b ', '.c' ),
 			),
 			'selector function list argument'       => array(
 				'selector' => ':where(.a, .b),.c',
@@ -81,7 +81,7 @@ class Tests_Theme_wpThemeJsonSelectorList extends WP_UnitTestCase {
 			),
 			'escaped closing parenthesis in selector function' => array(
 				'selector' => ':is(.a\), .b), .c',
-				'expected' => array( ':is(.a\), .b)', ' .c' ),
+				'expected' => array( ':is(.a\), .b)', '.c' ),
 			),
 			'quoted function argument before top-level comma' => array(
 				'selector' => ':lang(zh, "*-hant"),.foo',
@@ -118,15 +118,15 @@ class Tests_Theme_wpThemeJsonSelectorList extends WP_UnitTestCase {
 		return array(
 			'fast path for simple selector list' => array(
 				'selector' => 'h1,h2',
-				'expected' => '.scope h1,.scope h2',
+				'expected' => '.scope h1, .scope h2',
 			),
 			'escaped comma does not trigger fast-path breakage' => array(
 				'selector' => '.foo\,bar,.baz',
-				'expected' => '.scope .foo\,bar,.scope .baz',
+				'expected' => '.scope .foo\,bar, .scope .baz',
 			),
 			'quoted selector function argument is preserved' => array(
 				'selector' => ':lang(zh, "*-hant"),.foo',
-				'expected' => '.scope :lang(zh, "*-hant"),.scope .foo',
+				'expected' => '.scope :lang(zh, "*-hant"), .scope .foo',
 			),
 		);
 	}

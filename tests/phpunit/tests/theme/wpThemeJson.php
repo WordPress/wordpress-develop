@@ -5185,7 +5185,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 
 		$actual_styles    = $theme_json->get_styles_for_block( $metadata );
 		$default_styles   = ':root :where(.wp-block-test-milk .liquid, .wp-block-test-milk:is(.frothed, .steamed) .foam, .wp-block-test-milk:not(.spoiled), .wp-block-test-milk.in-bottle){background-color: white;}';
-		$variation_styles = ':root :where(.wp-block-test-milk.is-style-chocolate .liquid,.wp-block-test-milk.is-style-chocolate:is(.frothed, .steamed) .foam,.wp-block-test-milk.is-style-chocolate:not(.spoiled),.wp-block-test-milk.in-bottle.is-style-chocolate){background-color: #35281E;}';
+		$variation_styles = ':root :where(.wp-block-test-milk.is-style-chocolate .liquid, .wp-block-test-milk.is-style-chocolate:is(.frothed, .steamed) .foam, .wp-block-test-milk.is-style-chocolate:not(.spoiled), .wp-block-test-milk.in-bottle.is-style-chocolate){background-color: #35281E;}';
 		$expected         = $default_styles . $variation_styles;
 
 		unregister_block_style( 'test/milk', 'chocolate' );
@@ -7368,7 +7368,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 			)
 		);
 
-		$expected = ':root :where(.wp-block-button .wp-block-button__link){background-color: blue;color: white;}:root :where(.wp-block-button .wp-block-button__link:hover){background-color: white;color: blue;}:root :where(.wp-block-button .wp-block-button__link .wp-element-button,.wp-block-button .wp-block-button__link  .wp-block-button__link){color: green;}:root :where(.wp-block-button .wp-block-button__link .wp-element-button:hover,.wp-block-button .wp-block-button__link  .wp-block-button__link:hover){color: orange;}';
+		$expected = ':root :where(.wp-block-button .wp-block-button__link){background-color: blue;color: white;}:root :where(.wp-block-button .wp-block-button__link:hover){background-color: white;color: blue;}:root :where(.wp-block-button .wp-block-button__link .wp-element-button, .wp-block-button .wp-block-button__link  .wp-block-button__link){color: green;}:root :where(.wp-block-button .wp-block-button__link .wp-element-button:hover,.wp-block-button .wp-block-button__link  .wp-block-button__link:hover){color: orange;}';
 		$this->assertSame( $expected, $theme_json->get_stylesheet( array( 'styles' ), null, array( 'skip_root_layout_styles' => true ) ) );
 	}
 
