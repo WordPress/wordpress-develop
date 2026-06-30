@@ -264,4 +264,63 @@ class Tests_Block_Supports_WpRenderCustomCssSupportStyles extends WP_UnitTestCas
 			),
 		);
 	}
+
+	/**
+	 * Tests that CSS is enqueued only once when the same block is rendered
+	 * multiple times, as happens inside a Query Loop.
+	 *
+	 * @ticket 65268
+	 *
+	 * @covers ::wp_render_custom_css_support_styles
+	 */
+	public function test_css_not_duplicated_on_repeated_renders() {
+		$this->test_block_name = 'test/custom-css-query-loop-dedup';
+		register_block_type(
+			$this->test_block_name,
+			array(
+				'api_version' => 3,
+				'attributes'  => array(
+					'style' => array(
+						'type' => 'object',
+					),
+				),
+				'supports'    => array( 'customCSS' => true ),
+			)
+		);
+
+		$parsed_block = array(
+			'blockName' => 'test/custom-css-query-loop-dedup',
+			'attrs'     => array(
+				'style' => array(
+					'css' => 'font-size: 2em; /* query-loop-dedup-test */',
+				),
+			),
+		);
+
+		// Simulate the same block being rendered multiple times inside a Query Loop.
+		$result = wp_render_custom_css_support_styles( $parsed_block );
+		wp_render_custom_css_support_styles( $parsed_block );
+		wp_render_custom_css_support_styles( $parsed_block );
+
+		// Extract the generated class name from the first render's result.
+		preg_match( '/wp-custom-css-\S+/', $result['attrs']['className'], $matches );
+		$class_name = $matches[0];
+
+		// Count how many times the CSS selector for this block appears in the enqueued inline styles.
+		$inline_styles = (array) wp_styles()->get_data( 'wp-block-custom-css', 'after' );
+		$occurrences   = 0;
+		foreach ( $inline_styles as $style ) {
+			if ( false !== strpos( $style, '.' . $class_name ) ) {
+				++$occurrences;
+			}
+		}
+
+		$this->assertSame(
+			1,
+			$occurrences,
+			'CSS should be enqueued exactly once even when the same block renders multiple times.'
+		);
+
+		wp_deregister_style( 'wp-block-custom-css' );
+	}
 }
