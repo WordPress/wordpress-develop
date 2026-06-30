@@ -1013,7 +1013,6 @@ class Tests_Block_Supports_States extends WP_UnitTestCase {
 	 * @covers ::wp_render_block_states_support
 	 *
 	 * @ticket 65561
-	 * @ticket 65239
 	 */
 	public function test_responsive_background_gradient_generates_media_query_scoped_css() {
 		$this->ensure_block_registered( 'core/group' );
