@@ -61,7 +61,7 @@ class Tests_Theme_wpThemeJsonSelectorList extends WP_UnitTestCase {
 			),
 			'trims whitespace around selectors'     => array(
 				'selector' => '.a ,  .b , .c',
-				'expected' => array( '.a', '.b ', '.c' ),
+				'expected' => array( '.a', '.b', '.c' ),
 			),
 			'selector function list argument'       => array(
 				'selector' => ':where(.a, .b),.c',
