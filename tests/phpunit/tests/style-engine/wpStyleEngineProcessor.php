@@ -415,4 +415,45 @@ class Tests_Style_Engine_wpStyleEngineProcessor extends WP_UnitTestCase {
 			'Return value of get_css() does not match expectations when combining 4 CSS rules'
 		);
 	}
+
+	/**
+	 * Tests that rules with different declaration options are not combined.
+	 *
+	 * @covers ::get_css
+	 *
+	 * @ticket 65561
+	 */
+	public function test_should_not_combine_rules_with_different_declaration_options() {
+		$important_declarations = new WP_Style_Engine_CSS_Declarations();
+		$important_declarations->add_declaration(
+			'color',
+			'red',
+			array(
+				'important' => true,
+			)
+		);
+
+		$processor = new WP_Style_Engine_Processor();
+		$processor->add_rules(
+			array(
+				new WP_Style_Engine_CSS_Rule( '.important-rule', $important_declarations ),
+				new WP_Style_Engine_CSS_Rule(
+					'.standard-rule',
+					array(
+						'color' => 'red',
+					)
+				),
+			)
+		);
+
+		$this->assertSame(
+			'.important-rule{color:red !important;}.standard-rule{color:red;}',
+			$processor->get_css(
+				array(
+					'prettify' => false,
+					'optimize' => true,
+				)
+			)
+		);
+	}
 }
