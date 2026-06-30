@@ -624,8 +624,8 @@ class wpdb {
 	 * Whether MySQL is used as the database engine.
 	 *
 	 * Set in wpdb::db_connect() to true, by default. This is used when checking
-	 * against the required MySQL version for WordPress. Normally, a replacement
-	 * database drop-in (db.php) will skip these checks, but setting this to true
+	 * against the required database server version for WordPress. Normally, a
+	 * replacement database drop-in (db.php) will skip these checks, but setting this to true
 	 * will force the checks to occur.
 	 *
 	 * @since 3.3.0
@@ -4067,17 +4067,24 @@ class wpdb {
 	 *
 	 * @since 2.5.0
 	 *
-	 * @global string $required_mysql_version The minimum required MySQL version string.
 	 * @return WP_Error|null
 	 */
 	public function check_database_version() {
-		global $required_mysql_version;
-		$wp_version = wp_get_wp_version();
+		$wp_version                = wp_get_wp_version();
+		$database_server_type      = $this->db_server_type();
+		$required_database_version = $this->db_required_version();
 
-		// Make sure the server has the required MySQL version.
-		if ( version_compare( $this->db_version(), $required_mysql_version, '<' ) ) {
-			/* translators: 1: WordPress version number, 2: Minimum required MySQL version number. */
-			return new WP_Error( 'database_version', sprintf( __( '<strong>Error:</strong> WordPress %1$s requires MySQL %2$s or higher' ), $wp_version, $required_mysql_version ) );
+		if ( version_compare( $this->db_version(), $required_database_version, '<' ) ) {
+			return new WP_Error(
+				'database_version',
+				sprintf(
+					/* translators: 1: WordPress version number, 2: Database server type, 3: Minimum required database server version number. */
+					__( '<strong>Error:</strong> WordPress %1$s requires %2$s version %3$s or higher' ),
+					$wp_version,
+					$database_server_type,
+					$required_database_version
+				)
+			);
 		}
 
 		return null;
@@ -4145,24 +4152,7 @@ class wpdb {
 	 * @return bool True when the database feature is supported, false otherwise.
 	 */
 	public function has_cap( $db_cap ) {
-		$db_version     = $this->db_version();
-		$db_server_info = $this->db_server_info();
-
-		/*
-		 * Account for MariaDB version being prefixed with '5.5.5-' on older PHP versions.
-		 *
-		 * Note: str_contains() is not used here, as this file can be included
-		 * directly outside of WordPress core, e.g. by HyperDB, in which case
-		 * the polyfills from wp-includes/compat.php are not loaded.
-		 */
-		if ( '5.5.5' === $db_version && false !== strpos( $db_server_info, 'MariaDB' )
-			&& ( PHP_VERSION_ID <= 80015 // PHP 8.0.15 or older.
-				|| 80100 <= PHP_VERSION_ID && PHP_VERSION_ID <= 80102 ) // PHP 8.1.0 to PHP 8.1.2.
-		) {
-			// Strip the '5.5.5-' prefix and set the version to the correct value.
-			$db_server_info = preg_replace( '/^5\.5\.5-(.*)/', '$1', $db_server_info );
-			$db_version     = preg_replace( '/[^0-9.].*/', '', $db_server_info );
-		}
+		$db_version = $this->db_version();
 
 		switch ( strtolower( $db_cap ) ) {
 			case 'collation':    // @since 2.5.0
@@ -4198,14 +4188,66 @@ class wpdb {
 	}
 
 	/**
+	 * Retrieves the database server type.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @return string Database server type, either 'MySQL' or 'MariaDB'.
+	 */
+	public function db_server_type() {
+		return false !== stripos( $this->db_server_info(), 'mariadb' ) ? 'MariaDB' : 'MySQL';
+	}
+
+	/**
+	 * Retrieves the minimum required database server version.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @global string $required_mysql_version   The minimum required MySQL version string.
+	 * @global string $required_mariadb_version The minimum required MariaDB version string.
+	 *
+	 * @param string|null $mysql_version   Optional. Minimum required MySQL version. Default null.
+	 * @param string|null $mariadb_version Optional. Minimum required MariaDB version. Defaults to
+	 *                                     `$mysql_version` when passed, otherwise the version required by WordPress.
+	 * @return string Minimum required database server version.
+	 */
+	public function db_required_version( $mysql_version = null, $mariadb_version = null ) {
+		global $required_mysql_version, $required_mariadb_version;
+
+		$use_global_mariadb_version = 0 === func_num_args();
+
+		if ( null === $mysql_version ) {
+			$mysql_version = $required_mysql_version;
+		}
+
+		if ( null === $mariadb_version || '' === $mariadb_version ) {
+			$mariadb_version = $use_global_mariadb_version ? ( $required_mariadb_version ?? $mysql_version ) : $mysql_version;
+		}
+
+		if ( 'MariaDB' === $this->db_server_type() ) {
+			return $mariadb_version;
+		}
+
+		return $mysql_version;
+	}
+
+	/**
 	 * Retrieves the database server version number.
 	 *
 	 * @since 2.7.0
+	 * @since 7.1.0 Returns the actual MariaDB version when the server info includes
+	 *              a `5.5.5-` prefix.
 	 *
 	 * @return string|null Version number on success, null on failure.
 	 */
 	public function db_version() {
-		return preg_replace( '/[^0-9.].*/', '', $this->db_server_info() );
+		$db_server_info = $this->db_server_info();
+
+		if ( false !== stripos( $db_server_info, 'mariadb' ) ) {
+			$db_server_info = preg_replace( '/^5\.5\.5-(?=\d)/', '', $db_server_info );
+		}
+
+		return preg_replace( '/[^0-9.].*/', '', $db_server_info );
 	}
 
 	/**

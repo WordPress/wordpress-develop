@@ -76,12 +76,22 @@ function wp_version_check( $extra_stats = array(), $force_check = false ) {
 	$current->last_checked = time();
 	set_site_transient( 'update_core', $current );
 
-	if ( method_exists( $wpdb, 'db_server_info' ) ) {
-		$mysql_version = $wpdb->db_server_info();
-	} elseif ( method_exists( $wpdb, 'db_version' ) ) {
-		$mysql_version = preg_replace( '/[^0-9.].*/', '', $wpdb->db_version() );
+	$db_server_info = method_exists( $wpdb, 'db_server_info' ) ? $wpdb->db_server_info() : '';
+
+	if ( method_exists( $wpdb, 'db_version' ) ) {
+		$mysql_version = $wpdb->db_version();
+	} elseif ( $db_server_info ) {
+		$mysql_version = preg_replace( '/[^0-9.].*/', '', $db_server_info );
 	} else {
 		$mysql_version = 'N/A';
+	}
+
+	if ( method_exists( $wpdb, 'db_server_type' ) ) {
+		$database_type = $wpdb->db_server_type();
+	} elseif ( false !== stripos( $db_server_info, 'mariadb' ) ) {
+		$database_type = 'MariaDB';
+	} else {
+		$database_type = 'MySQL';
 	}
 
 	if ( is_multisite() ) {
@@ -101,6 +111,7 @@ function wp_version_check( $extra_stats = array(), $force_check = false ) {
 		'php'                => $php_version,
 		'locale'             => $locale,
 		'mysql'              => $mysql_version,
+		'database_type'      => $database_type,
 		'local_package'      => $wp_local_package ?? '',
 		'blogs'              => $num_blogs,
 		'users'              => get_user_count(),
@@ -188,6 +199,7 @@ function wp_version_check( $extra_stats = array(), $force_check = false ) {
 	 *
 	 * @since 4.9.0
 	 * @since 6.1.0 Added `$extensions`, `$platform_flags`, and `$image_support` to the `$query` parameter.
+	 * @since 7.1.0 Added `$database_type` to the `$query` parameter.
 	 *
 	 * @param array $query {
 	 *     Version check query arguments.
@@ -195,7 +207,8 @@ function wp_version_check( $extra_stats = array(), $force_check = false ) {
 	 *     @type string $version            WordPress version number.
 	 *     @type string $php                PHP version number.
 	 *     @type string $locale             The locale to retrieve updates for.
-	 *     @type string $mysql              MySQL version number.
+	 *     @type string $mysql              Database server version number.
+	 *     @type string $database_type      Database server type.
 	 *     @type string $local_package      The value of the $wp_local_package global, when set.
 	 *     @type int    $blogs              Number of sites on this WordPress installation.
 	 *     @type int    $users              Number of users on this WordPress installation.
@@ -296,6 +309,7 @@ function wp_version_check( $extra_stats = array(), $force_check = false ) {
 					'version',
 					'php_version',
 					'mysql_version',
+					'mariadb_version',
 					'new_bundled',
 					'partial_version',
 					'notify_email',

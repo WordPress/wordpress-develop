@@ -535,6 +535,91 @@ class Tests_DB extends WP_UnitTestCase {
 		$this->assertEmpty( $wpdb->check_database_version() );
 	}
 
+	/**
+	 * @dataProvider data_db_server_type
+	 */
+	public function test_db_server_type( $db_server_info, $expected ) {
+		$this->assertSame( $expected, $this->get_wpdb_for_server_info( $db_server_info )->db_server_type() );
+	}
+
+	public function data_db_server_type() {
+		return array(
+			'MySQL'                        => array( '8.0.36', 'MySQL' ),
+			'MariaDB compatibility prefix' => array( '5.5.5-10.11.6-MariaDB-0ubuntu0.22.04.1', 'MariaDB' ),
+		);
+	}
+
+	/**
+	 * @dataProvider data_db_version
+	 */
+	public function test_db_version_normalizes_database_server_version( $db_server_info, $expected ) {
+		$this->assertSame( $expected, $this->get_wpdb_for_server_info( $db_server_info )->db_version() );
+	}
+
+	public function data_db_version() {
+		return array(
+			'MySQL'                        => array( '8.0.36', '8.0.36' ),
+			'MariaDB compatibility prefix' => array( '5.5.5-10.11.6-MariaDB-0ubuntu0.22.04.1', '10.11.6' ),
+		);
+	}
+
+	public function test_db_required_version_falls_back_to_mysql_version_when_mariadb_version_is_not_passed() {
+		$this->assertSame( '8.0', $this->get_wpdb_for_server_info( '10.6.18-MariaDB' )->db_required_version( '8.0' ) );
+	}
+
+	/**
+	 * @dataProvider data_db_required_version_selects_per_server_type
+	 */
+	public function test_db_required_version_selects_per_server_type( $db_server_info, $mysql_version, $mariadb_version, $expected ) {
+		$this->assertSame( $expected, $this->get_wpdb_for_server_info( $db_server_info )->db_required_version( $mysql_version, $mariadb_version ) );
+	}
+
+	public function data_db_required_version_selects_per_server_type() {
+		return array(
+			'MySQL selects mysql version'              => array( '8.0.36', '8.0', '10.6', '8.0' ),
+			'MariaDB selects mariadb version'          => array( '10.6.18-MariaDB', '8.0', '10.6', '10.6' ),
+			'MariaDB falls back when mariadb is empty' => array( '10.6.18-MariaDB', '8.0', '', '8.0' ),
+		);
+	}
+
+	public function test_check_database_version_uses_database_specific_requirements() {
+		global $required_mysql_version, $required_mariadb_version;
+
+		$previous_required_mysql_version   = $required_mysql_version;
+		$previous_required_mariadb_version = $required_mariadb_version;
+
+		try {
+			$required_mysql_version   = '8.0';
+			$required_mariadb_version = '10.6';
+
+			$this->assertNull( $this->get_wpdb_for_server_info( '8.0.36' )->check_database_version() );
+
+			$error = $this->get_wpdb_for_server_info( '10.5.23-MariaDB' )->check_database_version();
+			$this->assertWPError( $error );
+			$this->assertSame( 'database_version', $error->get_error_code() );
+			$this->assertStringContainsString( 'requires MariaDB version 10.6 or higher', $error->get_error_message() );
+
+			$this->assertNull( $this->get_wpdb_for_server_info( '10.6.18-MariaDB' )->check_database_version() );
+		} finally {
+			$required_mysql_version   = $previous_required_mysql_version;
+			$required_mariadb_version = $previous_required_mariadb_version;
+		}
+	}
+
+	private function get_wpdb_for_server_info( $db_server_info ) {
+		return new class( $db_server_info ) extends wpdb {
+			private $db_server_info;
+
+			public function __construct( $db_server_info ) {
+				$this->db_server_info = $db_server_info;
+			}
+
+			public function db_server_info() {
+				return $this->db_server_info;
+			}
+		};
+	}
+
 	public function test_bail() {
 		global $wpdb;
 

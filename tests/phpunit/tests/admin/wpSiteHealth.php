@@ -67,6 +67,186 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @dataProvider data_get_test_sql_server
+	 * @covers ::get_test_sql_server()
+	 */
+	public function test_get_test_sql_server( $state, $expected_status, $expected_label, $expected_badge, $expected_strings ) {
+		$this->set_sql_server_state( $state );
+
+		$result = $this->instance->get_test_sql_server();
+
+		$this->assertSame( $expected_status, $result['status'] );
+		$this->assertSame( $expected_label, $result['label'] );
+		$this->assertSame( $expected_badge, $result['badge']['label'] );
+		foreach ( $expected_strings as $needle ) {
+			$this->assertStringContainsString( $needle, $result['description'] );
+		}
+	}
+
+	public function data_get_test_sql_server() {
+		return array(
+			'MySQL up to date'      => array(
+				'state' => array(
+					'mysql_server_version'         => '8.0.36',
+					'is_mariadb'                   => false,
+					'mysql_required_version'       => '5.5.5',
+					'mysql_recommended_version'    => '8.0',
+					'is_acceptable_mysql_version'  => true,
+					'is_recommended_mysql_version' => true,
+				),
+				'good',
+				__( 'SQL server is up to date' ),
+				__( 'Performance' ),
+				array(),
+			),
+			'MariaDB below minimum' => array(
+				'state' => array(
+					'mysql_server_version'         => '10.5.23-MariaDB',
+					'is_mariadb'                   => true,
+					'mysql_required_version'       => '10.6',
+					'mysql_recommended_version'    => '11.0',
+					'is_acceptable_mysql_version'  => false,
+					'is_recommended_mysql_version' => false,
+				),
+				'critical',
+				__( 'Severely outdated SQL server' ),
+				__( 'Security' ),
+				array( 'WordPress requires MariaDB version 10.6 or higher' ),
+			),
+		);
+	}
+
+	/**
+	 * @covers ::get_test_sql_server()
+	 */
+	public function test_get_test_sql_server_includes_db_php_dropin_warning() {
+		$this->set_sql_server_state(
+			array(
+				'mysql_server_version'         => '8.0.36',
+				'is_mariadb'                   => false,
+				'mysql_required_version'       => '5.5.5',
+				'mysql_recommended_version'    => '8.0',
+				'is_acceptable_mysql_version'  => true,
+				'is_recommended_mysql_version' => true,
+			)
+		);
+
+		$dropin  = WP_CONTENT_DIR . '/db.php';
+		$created = ! file_exists( $dropin ) && false !== file_put_contents( $dropin, '<?php // Site Health test drop-in.' );
+
+		try {
+			$result = $this->instance->get_test_sql_server();
+		} finally {
+			if ( $created ) {
+				unlink( $dropin );
+			}
+		}
+
+		$this->assertSame( 'good', $result['status'] );
+		$this->assertStringContainsString( 'wp-content/db.php', $result['description'] );
+		$this->assertStringContainsString( 'MySQL database is not being used', $result['description'] );
+	}
+
+	/**
+	 * @dataProvider data_prepare_sql_data
+	 * @covers ::prepare_sql_data()
+	 */
+	public function test_prepare_sql_data( $db_version, $db_server_type, $mariadb_required, $expected_is_mariadb, $expected_required, $expected_recommended ) {
+		global $wpdb, $required_mysql_version, $required_mariadb_version;
+
+		$previous_wpdb                     = $wpdb;
+		$previous_required_mysql_version   = $required_mysql_version;
+		$previous_required_mariadb_version = $required_mariadb_version;
+
+		try {
+			$required_mysql_version   = '5.5.5';
+			$required_mariadb_version = $mariadb_required;
+
+			$GLOBALS['wpdb'] = new class( $db_version, $db_server_type ) extends wpdb {
+				private $db_version_value;
+				private $db_server_type_value;
+
+				public function __construct( $db_version, $db_server_type ) {
+					$this->db_version_value     = $db_version;
+					$this->db_server_type_value = $db_server_type;
+				}
+
+				public function db_version() {
+					return $this->db_version_value;
+				}
+
+				public function db_server_type() {
+					return $this->db_server_type_value;
+				}
+			};
+
+			$this->call_prepare_sql_data();
+			$state = $this->get_sql_server_state();
+
+			$this->assertSame( $expected_is_mariadb, $state['is_mariadb'] );
+			$this->assertSame( $db_version, $state['mysql_server_version'] );
+			$this->assertSame( $expected_required, $state['mysql_required_version'] );
+			$this->assertSame( $expected_recommended, $state['mysql_recommended_version'] );
+		} finally {
+			$GLOBALS['wpdb']          = $previous_wpdb;
+			$required_mysql_version   = $previous_required_mysql_version;
+			$required_mariadb_version = $previous_required_mariadb_version;
+		}
+	}
+
+	public function data_prepare_sql_data() {
+		return array(
+			'MySQL server'   => array( '8.0.36', 'MySQL', '10.6', false, '5.5.5', '8.0' ),
+			'MariaDB server' => array( '10.6.18', 'MariaDB', '10.6', true, '10.6', '10.6' ),
+		);
+	}
+
+	/**
+	 * Invokes the private `prepare_sql_data()` method via reflection.
+	 */
+	private function call_prepare_sql_data() {
+		$method = ( new ReflectionClass( $this->instance ) )->getMethod( 'prepare_sql_data' );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$method->setAccessible( true );
+		}
+		$method->invoke( $this->instance );
+	}
+
+	/**
+	 * Reads private `WP_Site_Health` SQL server state via reflection.
+	 *
+	 * @return array Map of property name to value.
+	 */
+	private function get_sql_server_state() {
+		$reflection = new ReflectionClass( $this->instance );
+		$state      = array();
+		foreach ( array( 'is_mariadb', 'mysql_server_version', 'mysql_required_version', 'mysql_recommended_version', 'is_acceptable_mysql_version', 'is_recommended_mysql_version' ) as $name ) {
+			$property = $reflection->getProperty( $name );
+			if ( PHP_VERSION_ID < 80100 ) {
+				$property->setAccessible( true );
+			}
+			$state[ $name ] = $property->getValue( $this->instance );
+		}
+		return $state;
+	}
+
+	/**
+	 * Sets private `WP_Site_Health` SQL server state via reflection.
+	 *
+	 * @param array $state Map of property name to value.
+	 */
+	private function set_sql_server_state( array $state ) {
+		$reflection = new ReflectionClass( $this->instance );
+		foreach ( $state as $name => $value ) {
+			$property = $reflection->getProperty( $name );
+			if ( PHP_VERSION_ID < 80100 ) {
+				$property->setAccessible( true );
+			}
+			$property->setValue( $this->instance, $value );
+		}
+	}
+
+	/**
 	 * Ensure Site Health reports correctly cron job reports.
 	 *
 	 * @ticket 47223

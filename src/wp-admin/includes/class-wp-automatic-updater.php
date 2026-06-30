@@ -282,7 +282,8 @@ class WP_Automatic_Updater {
 			if ( file_exists( WP_CONTENT_DIR . '/db.php' ) && empty( $wpdb->is_mysql ) ) {
 				$mysql_compat = true;
 			} else {
-				$mysql_compat = version_compare( $wpdb->db_version(), $item->mysql_version, '>=' );
+				$required_database_version = method_exists( $wpdb, 'db_required_version' ) ? $wpdb->db_required_version( $item->mysql_version, $item->mariadb_version ?? null ) : $item->mysql_version;
+				$mysql_compat              = version_compare( $wpdb->db_version(), $required_database_version, '>=' );
 			}
 
 			if ( ! $php_compat || ! $mysql_compat ) {
