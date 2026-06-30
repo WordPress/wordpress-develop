@@ -2900,10 +2900,12 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 		}
 
 		if ( $found && $gradient_attr ) {
-			$css_value = trim( $parts[1] );
-			if ( preg_match( '/^(repeating-)?(linear|radial|conic)-gradient\(([^()]|rgb[a]?\([^()]*\))*\)$/', $css_value ) ) {
-				// Remove the whole `gradient` bit that was matched above from the CSS.
-				$css_test_string = str_replace( $css_value, '', $css_test_string );
+			// Simplified: matches each `*-gradient()`, allowing one level of nested functions (e.g. rgb(), calc()).
+			preg_match_all( '/(?:repeating-)?(?:linear|radial|conic)-gradient\((?:[^()]|\([^()]*\))*\)/', $css_test_string, $gradient_matches );
+
+			foreach ( $gradient_matches[0] as $gradient_match ) {
+				// Remove each `gradient()` bit that was matched above from the CSS.
+				$css_test_string = str_replace( $gradient_match, '', $css_test_string );
 			}
 		}
 
@@ -2951,61 +2953,6 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 
 	return $css;
 }
-
-/**
- * Allow combined gradient and url() background-image values in inline styles.
- *
- * WordPress's safecss_filter_attr() handles gradient and url() values
- * separately for background-image, but fails when both appear in a single
- * comma-separated declaration. The url() portion is stripped from the test
- * string before the filter runs, but the gradient regex in core expects the
- * gradient to be the only value and doesn't match when a trailing comma and
- * whitespace remain. This leaves parentheses in the test string, which
- * triggers the unsafe-character check.
- *
- * This filter catches that case: the test string still contains a valid
- * gradient function with only commas and whitespace remaining after the
- * url() was removed.
- *
- * @since 7.1.0
- *
- * @param bool   $allow_css       Whether the CSS is allowed.
- * @param string $css_test_string The CSS declaration to test.
- * @return bool Whether the CSS is allowed.
- */
-function wp_kses_allow_background_image_combined( $allow_css, $css_test_string ) {
-	if ( $allow_css ) {
-		return $allow_css;
-	}
-
-	/*
-	 * The test string at this point has url() values already removed by
-	 * safecss_filter_attr. What remains is a gradient with comma/whitespace
-	 * residue where the url() was stripped. Two possible forms:
-	 *
-	 * Gradient first: "background-image:<gradient>(...), "
-	 * URL first:      "background-image:, <gradient>(...)"
-	 *
-	 * A trailing or leading comma (with optional whitespace) must be present
-	 * to confirm a url() was actually removed. Without that residue, the
-	 * gradient alone would already pass core's own check.
-	 */
-	$gradient_pattern = '(?:linear|radial|conic|repeating-linear|repeating-radial|repeating-conic)-gradient\((?:[^()]|\([^()]*\))*\)';
-	$var_pattern      = 'var\(--[a-zA-Z0-9_-]+(?:--[a-zA-Z0-9_-]+)*\)';
-	$value_pattern    = "(?:$gradient_pattern|$var_pattern)";
-
-	// Gradient/var first, then comma+whitespace residue from stripped url().
-	$pattern_gradient_first = '/^background-image\s*:\s*' . $value_pattern . '\s*,[\s,]*$/';
-	// Stripped url() first (comma+whitespace residue), then gradient/var.
-	$pattern_url_first = '/^background-image\s*:[\s,]*,\s*' . $value_pattern . '\s*$/';
-
-	if ( preg_match( $pattern_gradient_first, $css_test_string ) || preg_match( $pattern_url_first, $css_test_string ) ) {
-		return true;
-	}
-
-	return $allow_css;
-}
-add_filter( 'safecss_filter_attr_allow_css', 'wp_kses_allow_background_image_combined', 10, 2 );
 
 /**
  * Helper function to add global attributes to a tag in the allowed HTML list.

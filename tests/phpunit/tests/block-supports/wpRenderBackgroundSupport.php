@@ -288,14 +288,13 @@ class Tests_Block_Supports_WpRenderBackgroundSupport extends WP_UnitTestCase {
 	/**
 	 * Tests that combined background gradient and image CSS values pass KSES.
 	 *
-	 * WordPress's safecss_filter_attr() handles gradient and url() values
-	 * separately but strips the declaration when both appear in a single
-	 * comma-separated background-image. The wp_kses_allow_background_image_combined
-	 * filter should ensure these combined values survive sanitization.
+	 * safecss_filter_attr() removes each url() and gradient from its safety test
+	 * string, so gradients combined with a url() background image (in either
+	 * order) survive sanitization.
 	 *
 	 * @ticket 64974
 	 *
-	 * @covers ::wp_kses_allow_background_image_combined
+	 * @covers ::safecss_filter_attr
 	 *
 	 * @dataProvider data_background_combined_values_pass_kses
 	 *
