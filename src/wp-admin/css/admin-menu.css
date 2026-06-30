@@ -115,10 +115,6 @@
 	border-radius: 0;
 }
 
-#adminmenu li.wp-not-current-submenu > a.menu-top:focus:not(:focus-visible) {
-	box-shadow: none;
-}
-
 #adminmenu li.menu-top {
 	border: none;
 	min-height: 34px;
@@ -175,11 +171,6 @@
 	position: relative;
 	background-color: #1d2327;
 	color: #72aee6;
-}
-
-#adminmenu li.wp-not-current-submenu > a.menu-top:focus:not(:focus-visible) {
-	background-color: transparent;
-	color: #f0f0f1;
 }
 
 .folded #adminmenu li.menu-top:hover,
