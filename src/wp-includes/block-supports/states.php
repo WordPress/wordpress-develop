@@ -690,19 +690,19 @@ function wp_render_block_states_support( $block_content, $block ) {
 				)
 			);
 		}
-		$selector   = wp_build_state_selector(
+		$selector             = wp_build_state_selector(
 			".$unique_class",
 			$rule['selector'],
 			$rule['state']
 		);
-		$style_rule = array(
+		$important_style_rule = array(
 			'selector'     => $selector,
 			'declarations' => $important_declarations,
 		);
 		if ( ! empty( $rule['rules_group'] ) ) {
-			$style_rule['rules_group'] = $rule['rules_group'];
+			$important_style_rule['rules_group'] = $rule['rules_group'];
 		}
-		$style_rules[] = $style_rule;
+		$style_rules[] = $important_style_rule;
 
 		$fallback_declarations = wp_get_state_declarations_with_fallback_border_styles( $declarations );
 		foreach ( array_keys( $declarations ) as $property ) {
@@ -713,14 +713,14 @@ function wp_render_block_states_support( $block_content, $block ) {
 			continue;
 		}
 
-		$style_rule = array(
+		$fallback_style_rule = array(
 			'selector'     => $selector,
 			'declarations' => $fallback_declarations,
 		);
 		if ( ! empty( $rule['rules_group'] ) ) {
-			$style_rule['rules_group'] = $rule['rules_group'];
+			$fallback_style_rule['rules_group'] = $rule['rules_group'];
 		}
-		$style_rules[] = $style_rule;
+		$style_rules[] = $fallback_style_rule;
 	}
 
 	wp_style_engine_get_stylesheet_from_css_rules(
