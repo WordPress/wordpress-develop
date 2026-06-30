@@ -59,7 +59,7 @@ class Tests_Theme_wpThemeJsonSelectorList extends WP_UnitTestCase {
 				'selector' => 'h1,h2',
 				'expected' => array( 'h1', 'h2' ),
 			),
-			'trims whitespace around selectors' => array(
+			'trims whitespace around selectors'     => array(
 				'selector' => '.a ,  .b , .c',
 				'expected' => array( '.a', '.b ', '.c' ),
 			),
