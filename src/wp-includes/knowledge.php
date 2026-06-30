@@ -110,9 +110,10 @@ function wp_knowledge_ensure_default_type_term( int $post_id ): void {
  * filter runs after WordPress has computed both `name` and `slug`. A `name`
  * equal to `slug` indicates the term was created from a raw slug (for example by
  * wp_set_object_terms()) rather than from a user-provided label, so the label is
- * replaced with the title from wp_knowledge_types(). Because term names are
- * persisted in the database, the translated title is stored in the locale active
- * when the term is created.
+ * replaced with the title from wp_knowledge_types().
+ *
+ * The name is written once and shared by every user, so it is resolved in the
+ * site locale, not the locale of the request that happens to create the term.
  *
  * @since 7.1.0
  * @access private
@@ -137,9 +138,16 @@ function wp_knowledge_maybe_map_term_label( $data, string $taxonomy ): array {
 		return $data;
 	}
 
+	// Type titles may be translatable, so resolve them under the site locale.
+	$switched_locale = switch_to_locale( get_locale() );
+
 	$types = wp_knowledge_types();
 	if ( isset( $types[ $data['slug'] ] ) ) {
 		$data['name'] = $types[ $data['slug'] ]['title'];
+	}
+
+	if ( $switched_locale ) {
+		restore_previous_locale();
 	}
 
 	return $data;

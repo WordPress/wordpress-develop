@@ -139,4 +139,47 @@ class Tests_Knowledge_Types extends WP_UnitTestCase {
 
 		$this->assertSame( 'guideline', $created->name );
 	}
+
+	/**
+	 * A term name is stored once and shared, so the label must be resolved in the
+	 * site locale even when the request runs in a different one.
+	 *
+	 * @ticket 65476
+	 * @covers ::wp_knowledge_maybe_map_term_label
+	 */
+	public function test_label_is_resolved_in_site_locale() {
+		// Simulate a non-site request locale. Priority 1 runs before the locale
+		// switcher (priority 10), so the mapping's switch still wins.
+		$request_locale = 'de_DE';
+		add_filter(
+			'determine_locale',
+			static function () use ( $request_locale ) {
+				return $request_locale;
+			},
+			1
+		);
+
+		// The request runs in a non-site locale before the mapping switches.
+		$this->assertSame( $request_locale, determine_locale() );
+		$this->assertNotSame(
+			$request_locale,
+			get_locale(),
+			'Test setup requires the site locale to differ from the request locale.'
+		);
+
+		$captured = null;
+		add_filter(
+			'wp_knowledge_types',
+			static function ( $types ) use ( &$captured ) {
+				$captured = determine_locale();
+				return $types;
+			}
+		);
+
+		$term = wp_insert_term( 'note', 'wp_knowledge_type' );
+
+		$this->assertNotWPError( $term );
+		$this->assertSame( get_locale(), $captured, 'Label should be resolved in the site locale.' );
+		$this->assertNotSame( $request_locale, $captured, 'Label should not be resolved in the request locale.' );
+	}
 }
