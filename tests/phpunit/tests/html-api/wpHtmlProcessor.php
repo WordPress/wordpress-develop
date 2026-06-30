@@ -607,6 +607,100 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensures that removing an attribute after a slash separator doesn't self-close foreign content.
+	 *
+	 * @covers ::remove_attribute
+	 *
+	 * @dataProvider data_remove_attribute_after_slash_separator_preserves_foreign_content
+	 *
+	 * @param string $html            HTML containing a foreign element with an attribute after a slash separator.
+	 * @param string $tag_name        Foreign element tag name to modify.
+	 * @param string $updated_html    Expected updated HTML.
+	 * @param string $normalized_html Expected normalized HTML after reparsing the updated HTML.
+	 */
+	public function test_remove_attribute_after_slash_separator_preserves_foreign_content( $html, $tag_name, $updated_html, $normalized_html ) {
+		$processor = WP_HTML_Processor::create_fragment( $html );
+
+		$this->assertTrue( $processor->next_tag( $tag_name ), "Failed to find the {$tag_name} tag: check test setup." );
+		$this->assertFalse( $processor->has_self_closing_flag(), 'Test setup should not include a self-closing flag.' );
+		$this->assertTrue( $processor->expects_closer(), 'Test setup should expect a closing tag.' );
+
+		$this->assertTrue( $processor->remove_attribute( 'b' ), 'Could not remove the target attribute.' );
+
+		$this->assertSame(
+			$updated_html,
+			$processor->get_updated_html(),
+			'Removing the attribute should not leave a slash that turns into a self-closing flag.'
+		);
+		$this->assertFalse( $processor->has_self_closing_flag(), 'Removing the attribute should not create a self-closing flag.' );
+		$this->assertTrue( $processor->expects_closer(), 'Removing the attribute should not stop the element from expecting a closer.' );
+		$this->assertSame(
+			$normalized_html,
+			WP_HTML_Processor::normalize( $processor->get_updated_html() ),
+			'Updated HTML should preserve the foreign element as a non-self-closing element when parsed again.'
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_remove_attribute_after_slash_separator_preserves_foreign_content() {
+		return array(
+			'SVG G'      => array( '<svg><g /b></g></svg>', 'G', '<svg><g ></g></svg>', '<svg><g></g></svg>' ),
+			'MathML MI' => array( '<math><mi /b></mi></math>', 'MI', '<math><mi ></mi></math>', '<math><mi></mi></math>' ),
+		);
+	}
+
+	/**
+	 * Ensures that removing an attribute doesn't remove an existing foreign-content self-closing flag.
+	 *
+	 * @covers ::remove_attribute
+	 *
+	 * @dataProvider data_remove_attribute_preserves_foreign_content_self_closing_flag
+	 *
+	 * @param string $html            HTML containing a self-closing foreign element with an attribute.
+	 * @param string $tag_name        Foreign element tag name to modify.
+	 * @param string $updated_html    Expected updated HTML.
+	 * @param string $normalized_html Expected normalized HTML after reparsing the updated HTML.
+	 */
+	public function test_remove_attribute_preserves_foreign_content_self_closing_flag( $html, $tag_name, $updated_html, $normalized_html ) {
+		$processor = WP_HTML_Processor::create_fragment( $html );
+
+		$this->assertTrue( $processor->next_tag( $tag_name ), "Failed to find the {$tag_name} tag: check test setup." );
+		$this->assertTrue( $processor->has_self_closing_flag(), 'Test setup should include a self-closing flag.' );
+		$this->assertFalse( $processor->expects_closer(), 'Test setup should not expect a closing tag.' );
+
+		$this->assertTrue( $processor->remove_attribute( '=' ), 'Could not remove the target attribute.' );
+
+		$this->assertSame(
+			$updated_html,
+			$processor->get_updated_html(),
+			'Removing the attribute should preserve the original self-closing flag.'
+		);
+		$this->assertTrue( $processor->has_self_closing_flag(), 'Removing the attribute should preserve the self-closing flag.' );
+		$this->assertFalse( $processor->expects_closer(), 'Removing the attribute should not make the element expect a closer.' );
+		$this->assertSame(
+			$normalized_html,
+			WP_HTML_Processor::normalize( $processor->get_updated_html() ),
+			'Updated HTML should preserve the foreign element as a self-closing element when parsed again.'
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_remove_attribute_preserves_foreign_content_self_closing_flag() {
+		return array(
+			'SVG G'      => array( '<svg><g =/>text</svg>', 'G', '<svg><g />text</svg>', '<svg><g />text</svg>' ),
+			'MathML MI' => array( '<math><mi =/>text</math>', 'MI', '<math><mi />text</math>', '<math><mi />text</math>' ),
+		);
+	}
+
+	/**
 	 * Ensures that expects_closer works for void-like elements in foreign content.
 	 *
 	 * For example, `<svg><input>text` creates an `svg:input` that contains a text node.

@@ -2576,9 +2576,12 @@ class WP_HTML_Tag_Processor {
 				$accumulated_shift_for_given_point += $shift;
 			}
 
-			$output_buffer       .= substr( $this->html, $bytes_already_copied, $diff->start - $bytes_already_copied );
+			if ( $diff->start > $bytes_already_copied ) {
+				$output_buffer .= substr( $this->html, $bytes_already_copied, $diff->start - $bytes_already_copied );
+			}
+
 			$output_buffer       .= $diff->text;
-			$bytes_already_copied = $diff->start + $diff->length;
+			$bytes_already_copied = max( $bytes_already_copied, $diff->start + $diff->length );
 		}
 
 		$this->html = $output_buffer . substr( $this->html, $bytes_already_copied );
@@ -4544,22 +4547,56 @@ class WP_HTML_Tag_Processor {
 		 *
 		 *    Result: <div />
 		 */
-		$this->lexical_updates[ $name ] = new WP_HTML_Text_Replacement(
+		$attribute_removal = $this->get_attribute_removal_span(
 			$this->attributes[ $name ]->start,
-			$this->attributes[ $name ]->length,
+			$this->attributes[ $name ]->length
+		);
+
+		$this->lexical_updates[ $name ] = new WP_HTML_Text_Replacement(
+			$attribute_removal->start,
+			$attribute_removal->length,
 			''
 		);
 
 		// Removes any duplicated attributes if they were also present.
 		foreach ( $this->duplicate_attributes[ $name ] ?? array() as $attribute_token ) {
-			$this->lexical_updates[] = new WP_HTML_Text_Replacement(
+			$attribute_removal = $this->get_attribute_removal_span(
 				$attribute_token->start,
-				$attribute_token->length,
+				$attribute_token->length
+			);
+
+			$this->lexical_updates[] = new WP_HTML_Text_Replacement(
+				$attribute_removal->start,
+				$attribute_removal->length,
 				''
 			);
 		}
 
 		return true;
+	}
+
+	/**
+	 * Returns the full span to remove for an attribute.
+	 *
+	 * Slash characters may be used as attribute separators, as in `<div a/b>`.
+	 * If an attribute following those separators is removed without removing the
+	 * slash, then the remaining slash can become a self-closing flag.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @param int $start  Byte offset where the attribute starts.
+	 * @param int $length Byte length of the attribute.
+	 * @return WP_HTML_Span Full span to remove.
+	 */
+	private function get_attribute_removal_span( int $start, int $length ): WP_HTML_Span {
+		$tag_name_ends_at = $this->tag_name_starts_at + $this->tag_name_length;
+
+		while ( $start > $tag_name_ends_at && '/' === $this->html[ $start - 1 ] ) {
+			--$start;
+			++$length;
+		}
+
+		return new WP_HTML_Span( $start, $length );
 	}
 
 	/**
