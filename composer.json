@@ -17,7 +17,7 @@
 	},
 	"suggest": {
 		"ext-curl": "*",
-		"ext-dom": "*"
+		"ext-dom": "*",
 		"ext-mysqli": "*"
 	},
 	"require-dev": {
