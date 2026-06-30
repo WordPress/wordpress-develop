@@ -588,6 +588,12 @@ html:lang(he-il) .rtl #wpadminbar * {
 	content: "\f102" / '';
 }
 
+#wpadminbar #wp-admin-bar-site-name.has-site-icon > .ab-item {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+}
+
 #wpadminbar #wp-admin-bar-site-name.has-site-icon > .ab-item:before {
 	content: none;
 }
@@ -595,8 +601,6 @@ html:lang(he-il) .rtl #wpadminbar * {
 #wpadminbar #wp-admin-bar-site-name > .ab-item .site-icon {
 	width: 20px;
 	height: 20px;
-	vertical-align: middle;
-	margin: -3px 6px 0 0;
 	background: #f0f0f1; /* matching my-account (user avatar) node's background */
 	border-radius: 2px;
 }
