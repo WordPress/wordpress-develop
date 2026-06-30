@@ -425,7 +425,7 @@ final class WP_Style_Engine {
 	 *
 	 * @since 6.1.0
 	 * @since 6.6.0 Added the `$rules_group` parameter.
-	 * @since 7.1.0 The `$css_declarations` parameter also accepts a WP_Style_Engine_CSS_Declarations object.
+	 * @since 7.1.0 Extended `$css_declarations` parameter to accept `WP_Style_Engine_CSS_Declarations` object.
 	 *
 	 * @param string                                    $store_name       A valid store key.
 	 * @param string                                    $css_selector     When a selector is passed, the function will return

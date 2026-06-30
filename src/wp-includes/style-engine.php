@@ -114,7 +114,7 @@ function wp_style_engine_get_styles( $block_styles, $options = array() ) {
  *
  * @since 6.1.0
  * @since 6.6.0 Added support for `$rules_group` in the `$css_rules` array.
- * @since 7.1.0 The `declarations` value also accepts a WP_Style_Engine_CSS_Declarations object.
+ * @since 7.1.0 Extended `declarations` in `$css_rules` array to accept `WP_Style_Engine_CSS_Declarations` object.
  *
  * @param array $css_rules {
  *     Required. A collection of CSS rules.

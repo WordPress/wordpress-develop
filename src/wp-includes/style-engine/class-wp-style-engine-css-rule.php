@@ -81,7 +81,7 @@ class WP_Style_Engine_CSS_Rule {
 	 * Sets the declarations.
 	 *
 	 * @since 6.1.0
-	 * @since 7.1.0 Preserves declaration options when declarations are provided as a WP_Style_Engine_CSS_Declarations object.
+	 * @since 7.1.0 Preserves declaration options when declarations are provided as a `WP_Style_Engine_CSS_Declarations` object.
 	 *
 	 * @param string[]|WP_Style_Engine_CSS_Declarations $declarations An array of declarations (property => value pairs),
 	 *                                                                or a WP_Style_Engine_CSS_Declarations object.
