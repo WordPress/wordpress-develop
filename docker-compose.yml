@@ -55,7 +55,7 @@ services:
     # copy or delete the Memcached dropin plugin file as appropriate.
     command: >-
       /bin/sh -c "
-        mkdir -p /var/www/${LOCAL_DIR-src}/wp-content/mu-plugins && cp -f /var/www/tools/local-env/mu-plugins/fix-docker-loopback.php /var/www/${LOCAL_DIR-src}/wp-content/mu-plugins/fix-docker-loopback.php;
+        mkdir -m 777 -p /var/www/${LOCAL_DIR-src}/wp-content/mu-plugins && cp -f /var/www/tools/local-env/mu-plugins/fix-docker-loopback.php /var/www/${LOCAL_DIR-src}/wp-content/mu-plugins/fix-docker-loopback.php;
         if [ $LOCAL_PHP_MEMCACHED = true ]; then
           cp -n /var/www/tests/phpunit/includes/object-cache.php /var/www/src/wp-content/object-cache.php;
         else
