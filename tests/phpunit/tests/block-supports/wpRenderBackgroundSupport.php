@@ -126,7 +126,7 @@ class Tests_Block_Supports_WpRenderBackgroundSupport extends WP_UnitTestCase {
 	 */
 	public function data_background_block_support() {
 		return array(
-			'background image style is applied' => array(
+			'background image style is applied'      => array(
 				'theme_name'          => 'block-theme-child-with-fluid-typography',
 				'block_name'          => 'test/background-rules-are-output',
 				'background_settings' => array(

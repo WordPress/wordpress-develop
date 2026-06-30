@@ -576,7 +576,7 @@ class Tests_wpStyleEngine extends WP_UnitTestCase {
 				),
 			),
 
-			'inline_background_gradient_only'                    => array(
+			'inline_background_gradient_only'              => array(
 				'block_styles'    => array(
 					'background' => array(
 						'gradient' => 'linear-gradient(135deg,rgb(255,0,0) 0%,rgb(0,0,255) 100%)',
@@ -592,7 +592,7 @@ class Tests_wpStyleEngine extends WP_UnitTestCase {
 				),
 			),
 
-			'inline_background_gradient_with_preset_slug'       => array(
+			'inline_background_gradient_with_preset_slug'  => array(
 				'block_styles'    => array(
 					'background' => array(
 						'gradient' => 'var:preset|gradient|vivid-cyan-blue',
@@ -608,7 +608,7 @@ class Tests_wpStyleEngine extends WP_UnitTestCase {
 				),
 			),
 
-			'inline_background_gradient_and_image_combined'     => array(
+			'inline_background_gradient_and_image_combined' => array(
 				'block_styles'    => array(
 					'background' => array(
 						'backgroundImage' => array(
