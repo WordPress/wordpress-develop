@@ -11,10 +11,11 @@
  */
 
 /**
- * Builds the default `form` configuration shared by every post type entity.
+ * Builds the default `form` configuration for post types that don't provide their own.
  *
- * This is the single `form` consumed today; it is a sensible default for `post`,
- * `page`, and custom post types alike rather than being tailored per type.
+ * It is a sensible default for `post`, `page`, and custom post types alike rather
+ * than being tailored per type. Post types that need a different shape can replace
+ * it entirely with a dedicated `form` through their own filter callback.
  *
  * It is intentionally NOT gated by `supports`. The registered fields are the
  * single source of truth for what applies: each field is registered for a post
