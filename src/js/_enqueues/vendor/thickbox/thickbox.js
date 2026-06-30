@@ -9,6 +9,9 @@ if ( typeof tb_pathToImage != 'string' ) {
 	var tb_pathToImage = thickboxL10n.loadingAnimation;
 }
 
+var imgLoader, TB_PrevCaption, TB_PrevURL, TB_PrevHTML, TB_NextCaption, TB_NextURL,
+	TB_NextHTML, TB_imageCount, TB_FoundURL, TB_TempArray, TB_Counter, TB_WIDTH, TB_HEIGHT;
+
 /*!!!!!!!!!!!!!!!!! edit below this line at your own risk !!!!!!!!!!!!!!!!!!!!!!!*/
 
 //on page load call tb_init
@@ -117,7 +120,7 @@ function tb_show(caption, url, imageGroup) {//function called when the user clic
 				}
 			}
 
-			imgPreloader = new Image();
+			var imgPreloader = new Image();
 			imgPreloader.onload = function(){
 			imgPreloader.onload = null;
 
@@ -201,14 +204,14 @@ function tb_show(caption, url, imageGroup) {//function called when the user clic
 
 			var queryString = url.replace(/^[^\?]+\??/,'');
 			var params = tb_parseQuery( queryString );
+			var ajaxContentW = TB_WIDTH - 30;
+			var ajaxContentH = TB_HEIGHT - 45;
 
 			TB_WIDTH = (params['width']*1) + 30 || 630; //defaults to 630 if no parameters were added to URL
 			TB_HEIGHT = (params['height']*1) + 40 || 440; //defaults to 440 if no parameters were added to URL
-			ajaxContentW = TB_WIDTH - 30;
-			ajaxContentH = TB_HEIGHT - 45;
 
 			if(url.indexOf('TB_iframe') != -1){// either iframe or ajax window
-					urlNoQuery = url.split('TB_');
+					var urlNoQuery = url.split('TB_');
 					jQuery("#TB_iframeContent").remove();
 					if(params['modal'] != "true"){//iframe no modal
 						jQuery("#TB_window").append("<div id='TB_title'><div id='TB_ajaxWindowTitle'>"+caption+"</div><div id='TB_closeAjaxWindow'><button type='button' id='TB_closeWindowButton'><span class='screen-reader-text'>"+thickboxL10n.close+"</span><span class='tb-close-icon' aria-hidden='true'></span></button></div></div><iframe frameborder='0' hspace='0' allowtransparency='true' src='"+urlNoQuery[0]+"' id='TB_iframeContent' name='TB_iframeContent"+Math.round(Math.random()*1000)+"' onload='tb_showIframe()' style='width:"+(ajaxContentW + 29)+"px;height:"+(ajaxContentH + 17)+"px;' >"+thickboxL10n.noiframes+"</iframe>");
@@ -333,7 +336,7 @@ function tb_getPageSize(){
 	var de = document.documentElement;
 	var w = window.innerWidth || self.innerWidth || (de&&de.clientWidth) || document.body.clientWidth;
 	var h = window.innerHeight || self.innerHeight || (de&&de.clientHeight) || document.body.clientHeight;
-	arrayPageSize = [w,h];
+	var arrayPageSize = [w,h];
 	return arrayPageSize;
 }
 
