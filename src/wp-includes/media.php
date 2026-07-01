@@ -982,7 +982,7 @@ function wp_get_registered_image_subsizes() {
  *
  * @phpstan-param non-empty-string $mime_type
  * @phpstan-param array{ width?: non-negative-int, height?: non-negative-int } $size
- * @phpstan-param int<0, 100>|int $default_quality
+ * @phpstan-param int<0, 100>|null $default_quality
  * @phpstan-return int<1, 100>
  */
 function wp_get_image_encode_quality( string $mime_type, array $size = array(), ?int $default_quality = null ): int {
