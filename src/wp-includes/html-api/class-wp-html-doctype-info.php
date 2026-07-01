@@ -229,13 +229,9 @@ class WP_HTML_Doctype_Info {
 		 * >
 		 * > The system identifier and public identifier strings must be compared...
 		 * > in an ASCII case-insensitive manner.
-		 * >
-		 * In the HTML 4.01 Frameset/Transitional mode checks below, the specification
-		 * treats missing and empty string system identifiers equivalently.
 		 */
-		$system_identifier_is_missing_or_empty = null === $system_identifier || '' === $system_identifier;
-		$public_identifier            = null === $public_identifier ? '' : strtolower( $public_identifier );
-		$system_identifier            = null === $system_identifier ? '' : strtolower( $system_identifier );
+		$public_identifier = null === $public_identifier ? '' : strtolower( $public_identifier );
+		$system_identifier = null === $system_identifier ? '' : strtolower( $system_identifier );
 
 		/*
 		 * > The public identifier is set to…
@@ -335,11 +331,11 @@ class WP_HTML_Doctype_Info {
 		}
 
 		/*
-		 * > The system identifier is missing or the empty string, and the public
-		 * > identifier starts with…
+		 * > The system identifier is missing or the empty string, and the
+		 * > public identifier starts with…
 		 */
 		if (
-			$system_identifier_is_missing_or_empty && (
+			'' === $system_identifier && (
 				str_starts_with( $public_identifier, '-//w3c//dtd html 4.01 frameset//' ) ||
 				str_starts_with( $public_identifier, '-//w3c//dtd html 4.01 transitional//' )
 			)
@@ -369,7 +365,7 @@ class WP_HTML_Doctype_Info {
 		 * > public identifier starts with…
 		 */
 		if (
-			! $system_identifier_is_missing_or_empty && (
+			'' !== $system_identifier && (
 				str_starts_with( $public_identifier, '-//w3c//dtd html 4.01 frameset//' ) ||
 				str_starts_with( $public_identifier, '-//w3c//dtd html 4.01 transitional//' )
 			)
