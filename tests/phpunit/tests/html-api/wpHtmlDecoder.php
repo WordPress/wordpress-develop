@@ -285,7 +285,7 @@ class Tests_HtmlApi_WpHtmlDecoder extends WP_UnitTestCase {
 	 *
 	 * @param string $attribute_value  Raw attribute value from HTML string.
 	 * @param string $search_string    Prefix contained or not contained in encoded attribute value.
-	 * @param bool   $is_match         Whether the search string is a prefix for the attribute value
+	 * @param bool   $is_match         Whether the search string is a prefix for the attribute value.
 	 */
 	public function test_attribute_starts_with_checks_search_string_boundaries(
 		string $attribute_value,
@@ -313,16 +313,21 @@ class Tests_HtmlApi_WpHtmlDecoder extends WP_UnitTestCase {
 	public static function data_attribute_starts_with_search_string_boundaries(): Generator {
 		yield 'Empty attribute does not match non-empty prefix' => array( '', 'http', false );
 		yield 'Short attribute does not match longer prefix' => array(
-			'jav',
-			'javascript:',
+			'java',
+			'javascript',
 			false,
 		);
-		yield "2-byte &fjlig; (\x66\x6a) starts with f" => array(
+		yield 'Longer attribute matches shorter prefix' => array(
+			'javascript',
+			'java',
+			true,
+		);
+		yield "&fjlig; (decodes to 2-byte 'fj') starts with f" => array(
 			'&fjlig; is literally "f" followed by "j"',
 			'f',
 			true,
 		);
-		yield "2-byte &nvlt; (<⃒) starts with '<'" => array(
+		yield "&nvlt; (decodes to 2-byte '<⃒') starts with '<'" => array(
 			'&nvlt;script>',
 			'<',
 			true,
