@@ -1023,7 +1023,8 @@ module.exports = function(grunt) {
 				src: [
 					'js/_enqueues/**/*.js',
 					// Third party scripts.
-					'!js/_enqueues/vendor/**/*.js'
+					'!js/_enqueues/vendor/**/*.js',
+					'js/_enqueues/vendor/thickbox/thickbox.js',
 				],
 				// Remove once other JSHint errors are resolved.
 				options: {
