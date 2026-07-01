@@ -318,13 +318,23 @@ class Tests_HtmlApi_WpHtmlDecoder extends WP_UnitTestCase {
 			false,
 		);
 		yield "2-byte &fjlig; (\x66\x6a) starts with f" => array(
-			'&fjlig; is literally fj',
+			'&fjlig; is literally "f" followed by "j"',
 			'f',
 			true,
 		);
 		yield "2-byte &nvlt; (<⃒) starts with '<'" => array(
 			'&nvlt;script>',
 			'<',
+			true,
+		);
+		yield "Combining character references (¬̸) full match on '¬̸' prefix" => array(
+			'&not;&#x0338; A negated not?',
+			'¬̸',
+			true,
+		);
+		yield "Combining character references (¬̸) partial match on '¬' prefix" => array(
+			'&not;&$#x0338; A negated not?',
+			'¬',
 			true,
 		);
 	}
