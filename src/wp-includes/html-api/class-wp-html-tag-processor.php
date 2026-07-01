@@ -2394,7 +2394,7 @@ class WP_HTML_Tag_Processor {
 		}
 
 		if ( false === $existing_class && isset( $this->attributes['class'] ) ) {
-			$existing_class = $this->get_decoded_source_attribute_value( $this->attributes['class'] );
+			$existing_class = $this->get_decoded_attribute_value( $this->attributes['class'] );
 		}
 
 		if ( false === $existing_class ) {
@@ -2853,19 +2853,16 @@ class WP_HTML_Tag_Processor {
 			return true;
 		}
 
-		return $this->get_decoded_source_attribute_value( $attribute );
+		return $this->get_decoded_attribute_value( $attribute );
 	}
 
 	/**
-	 * Returns the value of an attribute found in the input document.
+	 * Decode an attribute value from source.
 	 *
-	 * Input stream processing is avoided but must be applied when
-	 * reading from the source document.
-	 *
-	 * Applies:
-	 *   - Newline normalization (CRLF and CR to LF)
-	 *   - NULL byte replacement (U+0000 to U+FFFD)
-	 *   - Attribute value decoding
+	 * This method applies the following transformations that the processor defers:
+	 *   - Normalize newlines  (input stream preprocessing)
+	 *   - Replace NULL bytes (tokenization)
+	 *   - Decode character references (tokenization)
 	 *
 	 * @since 7.1.0
 	 * @ignore
@@ -2873,7 +2870,7 @@ class WP_HTML_Tag_Processor {
 	 * @param WP_HTML_Attribute_Token $attribute Attribute token from the input document.
 	 * @return string Decoded attribute value.
 	 */
-	private function get_decoded_source_attribute_value( WP_HTML_Attribute_Token $attribute ): string {
+	private function get_decoded_attribute_value( WP_HTML_Attribute_Token $attribute ): string {
 		$raw_value = substr( $this->html, $attribute->value_starts_at, $attribute->value_length );
 		$raw_value = str_replace( "\r\n", "\n", $raw_value );
 		$raw_value = str_replace( "\r", "\n", $raw_value );
