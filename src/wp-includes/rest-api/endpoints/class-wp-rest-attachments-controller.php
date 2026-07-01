@@ -1344,8 +1344,8 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 				$output_mime    = $output_formats[ $mime_type ] ?? $mime_type;
 
 				$metadata    = wp_get_attachment_metadata( $post->ID, true );
-				$full_width  = ( is_array( $metadata ) && isset( $metadata['width'] ) ) ? (int) $metadata['width'] : 0;
-				$full_height = ( is_array( $metadata ) && isset( $metadata['height'] ) ) ? (int) $metadata['height'] : 0;
+				$full_width  = max( 0, ( is_array( $metadata ) && isset( $metadata['width'] ) ) ? (int) $metadata['width'] : 0 );
+				$full_height = max( 0, ( is_array( $metadata ) && isset( $metadata['height'] ) ) ? (int) $metadata['height'] : 0 );
 
 				$full_quality = wp_get_image_encode_quality(
 					$output_mime,
