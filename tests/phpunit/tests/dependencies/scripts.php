@@ -2768,7 +2768,7 @@ HTML;
 	/**
 	 * @ticket 58873
 	 */
-	public function test_script_client_data_filter_prevents_concat() {
+	public function test_script_client_data_filter_does_not_prevent_concat() {
 		global $wp_scripts, $wp_version;
 
 		$wp_scripts->do_concat    = true;
@@ -2784,17 +2784,23 @@ HTML;
 			}
 		);
 
-		$expected  = "<script src='/wp-admin/load-scripts.php?c=0&amp;load%5Bchunk_0%5D=one&amp;ver={$wp_version}'></script>\n";
-		$expected .= "<script type='application/json' id='wp-script-client-data-two'>\n{\"clientData\":\"ok\"}\n</script>\n";
-		$expected .= "<script src='{$this->default_scripts_dir}two.js?ver={$wp_version}' id='two-js'></script>\n";
+		$expected  = "<script type='application/json' id='wp-script-client-data-two'>\n{\"clientData\":\"ok\"}\n</script>\n";
+		$expected .= "<script src='/wp-admin/load-scripts.php?c=0&amp;load%5Bchunk_0%5D=one,two&amp;ver={$wp_version}'></script>\n";
 
-		$this->assertEqualHTML( $expected, get_echo( 'wp_print_scripts' ) );
+		$actual = get_echo(
+			static function () {
+				wp_print_scripts();
+				_print_scripts();
+			}
+		);
+
+		$this->assertEqualHTML( $expected, $actual );
 	}
 
 	/**
 	 * @ticket 58873
 	 */
-	public function test_script_client_data_filter_for_external_script_flushes_concat_before_printing() {
+	public function test_script_client_data_filter_for_external_script_prints_before_deferred_concat_output() {
 		global $wp_scripts, $wp_version;
 
 		$wp_scripts->do_concat    = true;
@@ -2810,11 +2816,143 @@ HTML;
 			}
 		);
 
-		$expected  = "<script src='/wp-admin/load-scripts.php?c=0&amp;load%5Bchunk_0%5D=one&amp;ver={$wp_version}'></script>\n";
-		$expected .= "<script type='application/json' id='wp-script-client-data-two'>\n{\"clientData\":\"ok\"}\n</script>\n";
+		$expected  = "<script type='application/json' id='wp-script-client-data-two'>\n{\"clientData\":\"ok\"}\n</script>\n";
+		$expected .= "<script src='/wp-admin/load-scripts.php?c=0&amp;load%5Bchunk_0%5D=one&amp;ver={$wp_version}'></script>\n";
 		$expected .= "<script src='https://example.com/two.js' id='two-js'></script>\n";
 
+		$actual = get_echo(
+			static function () {
+				wp_print_scripts();
+				_print_scripts();
+			}
+		);
+
+		$this->assertEqualHTML( $expected, $actual );
+	}
+
+	/**
+	 * @ticket 58873
+	 */
+	public function test_script_client_data_filter_with_localized_data_prints_before_concat_inline_script() {
+		global $wp_scripts, $wp_version;
+
+		$wp_scripts->do_concat    = true;
+		$wp_scripts->default_dirs = array( $this->default_scripts_dir );
+
+		wp_enqueue_script( 'one', $this->default_scripts_dir . 'one.js' );
+		wp_localize_script( 'one', 'testExample', array( 'foo' => 'bar' ) );
+		add_filter(
+			'script_client_data_one',
+			static function ( $client_data ) {
+				$client_data['clientData'] = 'ok';
+				return $client_data;
+			}
+		);
+
+		$expected  = "<script type='application/json' id='wp-script-client-data-one'>\n{\"clientData\":\"ok\"}\n</script>\n";
+		$expected .= "\n<script>\nvar testExample = {\"foo\":\"bar\"};\n//# sourceURL=js-inline-concat-one\n</script>\n";
+		$expected .= "<script src='/wp-admin/load-scripts.php?c=0&amp;load%5Bchunk_0%5D=one&amp;ver={$wp_version}'></script>\n";
+
+		$actual = get_echo(
+			static function () {
+				wp_print_scripts();
+				_print_scripts();
+			}
+		);
+
+		$this->assertEqualHTML( $expected, $actual );
+	}
+
+	/**
+	 * @ticket 58873
+	 */
+	public function test_script_client_data_filter_with_inline_script_still_prevents_concat() {
+		global $wp_scripts, $wp_version;
+
+		$wp_scripts->do_concat    = true;
+		$wp_scripts->default_dirs = array( $this->default_scripts_dir );
+
+		wp_enqueue_script( 'one', $this->default_scripts_dir . 'one.js' );
+		wp_add_inline_script( 'one', 'console.log("before one");', 'before' );
+		wp_add_inline_script( 'one', 'console.log("after one");' );
+		add_filter(
+			'script_client_data_one',
+			static function ( $client_data ) {
+				$client_data['clientData'] = 'ok';
+				return $client_data;
+			}
+		);
+
+		$expected  = "<script type='application/json' id='wp-script-client-data-one'>\n{\"clientData\":\"ok\"}\n</script>\n";
+		$expected .= "<script id='one-js-before'>\nconsole.log(\"before one\");\n//# sourceURL=one-js-before\n</script>\n";
+		$expected .= "<script src='{$this->default_scripts_dir}one.js?ver={$wp_version}' id='one-js'></script>\n";
+		$expected .= "<script id='one-js-after'>\nconsole.log(\"after one\");\n//# sourceURL=one-js-after\n</script>\n";
+
 		$this->assertEqualHTML( $expected, get_echo( 'wp_print_scripts' ) );
+	}
+
+	/**
+	 * @expectedDeprecated WP_Dependencies->add_data()
+	 *
+	 * @ticket 58873
+	 */
+	public function test_script_client_data_filter_does_not_print_for_conditional_script() {
+		global $wp_scripts;
+
+		$wp_scripts->do_concat    = true;
+		$wp_scripts->default_dirs = array( $this->default_scripts_dir );
+
+		wp_enqueue_script( 'one', $this->default_scripts_dir . 'one.js' );
+		wp_script_add_data( 'one', 'conditional', 'gte IE 9' );
+		add_filter(
+			'script_client_data_one',
+			static function ( $client_data ) {
+				$client_data['clientData'] = 'ok';
+				return $client_data;
+			}
+		);
+
+		$actual = get_echo(
+			static function () {
+				wp_print_scripts();
+				_print_scripts();
+			}
+		);
+
+		$this->assertSame( '', $actual );
+	}
+
+	/**
+	 * @ticket 58873
+	 */
+	public function test_script_client_data_filter_prints_when_script_moves_to_footer() {
+		wp_enqueue_script( 'script-a', 'https://example.com/script-a.js', array(), null, array( 'strategy' => 'defer' ) );
+		wp_enqueue_script( 'script-b', 'https://example.com/script-b.js', array( 'script-a' ), null, array( 'in_footer' => true ) );
+		add_filter(
+			'script_client_data_script-a',
+			static function ( $client_data ) {
+				$client_data['clientData'] = 'ok';
+				return $client_data;
+			}
+		);
+
+		$header = get_echo(
+			static function () {
+				wp_scripts()->do_head_items();
+			}
+		);
+		$footer = get_echo(
+			static function () {
+				wp_scripts()->do_footer_items();
+			}
+		);
+
+		$expected_footer  = "<script type='application/json' id='wp-script-client-data-script-a'>\n{\"clientData\":\"ok\"}\n</script>\n";
+		$expected_footer .= "<script src='https://example.com/script-a.js' id='script-a-js' data-wp-strategy='defer'></script>\n";
+		$expected_footer .= "<script src='https://example.com/script-b.js' id='script-b-js'></script>\n";
+
+		$this->assertSame( '', $header );
+		$this->assertEqualHTML( $expected_footer, $footer, '<body>', 'Expected client data for a moved script to print in the footer.' );
 	}
 
 	/**
