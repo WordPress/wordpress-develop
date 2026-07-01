@@ -1435,6 +1435,14 @@ final class WP_Interactivity_API {
 				return self::EXPRESSION_INVALID;
 			}
 
+			// On PHP < 8.0, `#[Attr]` is tokenized as T_COMMENT (not
+			// T_ATTRIBUTE), so it slips past the $dangerous check above.
+			// Reject any T_COMMENT that starts with `#[`, which is a PHP
+			// 8.0+ attribute on newer PHP but just a comment on older PHP.
+			if ( T_COMMENT === $token_id && str_starts_with( $token_text, '#[' ) ) {
+				return self::EXPRESSION_INVALID;
+			}
+
 			// Assignment / mutation tokens → UNSUPPORTED.
 			if ( in_array( $token_id, $assignment_tokens, true ) ) {
 				$has_assignment = true;

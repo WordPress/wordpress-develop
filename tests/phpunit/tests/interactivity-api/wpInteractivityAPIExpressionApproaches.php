@@ -244,7 +244,7 @@ class Tests_Interactivity_API_ExpressionApproaches extends WP_UnitTestCase {
 			'primitive loose equality'               => array(
 				'expr'       => 'state.emptyString == 0',
 				'expected_b' => true,
-				'expected_a' => false,
+				'expected_a' => PHP_VERSION_ID < 80000,
 			),
 			'null loose equality to false'           => array(
 				'expr'       => 'state.nullish == false',
@@ -274,7 +274,12 @@ class Tests_Interactivity_API_ExpressionApproaches extends WP_UnitTestCase {
 		$this->set_up_fixture( $invoked );
 		$this->assertSame( $expected_a, $this->evaluate_a( $expr ) );
 		$this->assertSame( $expected_b, $this->evaluate_b( $expr ) );
-		$this->assertNotSame( $this->evaluate_a( $expr ), $this->evaluate_b( $expr ) );
+		// Some cases (e.g. emptyString == 0 on PHP < 8.0) produce the
+		// same value from both approaches, so only assert divergence
+		// when the expected values actually differ.
+		if ( $expected_a !== $expected_b ) {
+			$this->assertNotSame( $this->evaluate_a( $expr ), $this->evaluate_b( $expr ) );
+		}
 	}
 
 	/**
