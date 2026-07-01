@@ -96,6 +96,14 @@ class WP_Scripts extends WP_Dependencies {
 	public $print_code = '';
 
 	/**
+	 * Holds client data HTML markup if concatenation is enabled.
+	 *
+	 * @since 7.1.0
+	 * @var string
+	 */
+	public $print_client_data = '';
+
+	/**
 	 * Holds a list of script handles which are not in the default directory
 	 * if concatenation is enabled.
 	 *
@@ -454,13 +462,7 @@ class WP_Scripts extends WP_Dependencies {
 			 */
 			$filtered_src = apply_filters( 'script_loader_src', $src, $handle );
 
-			if ( $client_data_tag ) {
-				$this->do_concat = false;
-
-				// Have to print the so-far concatenated scripts right away to maintain the right order.
-				_print_scripts();
-				$this->reset();
-			} elseif (
+			if (
 				is_string( $filtered_src )
 				&& $this->in_default_dir( $filtered_src )
 				&& ( $before_script || $after_script || $translations_stop_concat || $this->is_delayed_strategy( $strategy ) )
@@ -471,9 +473,10 @@ class WP_Scripts extends WP_Dependencies {
 				_print_scripts();
 				$this->reset();
 			} elseif ( $this->in_default_dir( $filtered_src ) ) {
-				$this->print_code     .= $this->print_extra_script( $handle, false );
-				$this->concat         .= "$handle,";
-				$this->concat_version .= "$handle$ver";
+				$this->print_client_data .= $client_data_tag;
+				$this->print_code        .= $this->print_extra_script( $handle, false );
+				$this->concat            .= "$handle,";
+				$this->concat_version    .= "$handle$ver";
 				return true;
 			} else {
 				$this->ext_handles .= "$handle,";
@@ -1305,13 +1308,14 @@ JS;
 	 * @since 2.8.0
 	 */
 	public function reset() {
-		$this->do_concat      = false;
-		$this->print_code     = '';
-		$this->concat         = '';
-		$this->concat_version = '';
-		$this->print_html     = '';
-		$this->ext_version    = '';
-		$this->ext_handles    = '';
+		$this->do_concat         = false;
+		$this->print_code        = '';
+		$this->print_client_data = '';
+		$this->concat            = '';
+		$this->concat_version    = '';
+		$this->print_html        = '';
+		$this->ext_version       = '';
+		$this->ext_handles       = '';
 	}
 
 	/**
