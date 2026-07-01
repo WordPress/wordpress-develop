@@ -35,7 +35,7 @@ class Tests_HtmlApi_WpHtmlTagProcessor_InputPreprocessing extends WP_UnitTestCas
 	 * @param string $html     HTML containing a tag with attribute `a`.
 	 * @param string $expected Expected attribute value after preprocessing and decoding.
 	 */
-	public function test_get_attribute_applies_input_preprocessing( string $html, string $expected ) {
+	public function test_get_attribute_applies_input_preprocessing( string $html, string $expected ): void {
 		$processor = new WP_HTML_Tag_Processor( $html );
 
 		$this->assertTrue( $processor->next_tag(), 'Should have found the tag.' );
@@ -45,9 +45,9 @@ class Tests_HtmlApi_WpHtmlTagProcessor_InputPreprocessing extends WP_UnitTestCas
 	/**
 	 * Data provider.
 	 *
-	 * @return array[]
+	 * @return array<string, array{string, string}>
 	 */
-	public static function data_attribute_values_with_preprocessing() {
+	public static function data_attribute_values_with_preprocessing(): array {
 		return array(
 			'Raw CR'                      => array( "<div a='x\ry'>", "x\ny" ),
 			'Raw CRLF'                    => array( "<div a='x\r\ny'>", "x\ny" ),
@@ -79,7 +79,7 @@ class Tests_HtmlApi_WpHtmlTagProcessor_InputPreprocessing extends WP_UnitTestCas
 	 *
 	 * @param string $value Plaintext attribute value to set and expect back unchanged.
 	 */
-	public function test_get_attribute_returns_enqueued_values_verbatim( string $value ) {
+	public function test_get_attribute_returns_enqueued_values_verbatim( string $value ): void {
 		$processor = new WP_HTML_Tag_Processor( '<div a="original">' );
 
 		$this->assertTrue( $processor->next_tag(), 'Should have found the tag.' );
@@ -90,9 +90,9 @@ class Tests_HtmlApi_WpHtmlTagProcessor_InputPreprocessing extends WP_UnitTestCas
 	/**
 	 * Data provider.
 	 *
-	 * @return array[]
+	 * @return array<string, array{string}>
 	 */
-	public static function data_enqueued_attribute_values() {
+	public static function data_enqueued_attribute_values(): array {
 		return array(
 			'Carriage return' => array( "x\ry" ),
 			'CRLF'            => array( "x\r\ny" ),
@@ -113,7 +113,7 @@ class Tests_HtmlApi_WpHtmlTagProcessor_InputPreprocessing extends WP_UnitTestCas
 	 * @param string $html          HTML containing a tag with a class attribute.
 	 * @param string $expected_html Expected document after adding a class.
 	 */
-	public function test_class_updates_apply_input_preprocessing_to_existing_value( string $html, string $expected_html ) {
+	public function test_class_updates_apply_input_preprocessing_to_existing_value( string $html, string $expected_html ): void {
 		$processor = new WP_HTML_Tag_Processor( $html );
 
 		$this->assertTrue( $processor->next_tag(), 'Should have found the tag.' );
@@ -124,9 +124,9 @@ class Tests_HtmlApi_WpHtmlTagProcessor_InputPreprocessing extends WP_UnitTestCas
 	/**
 	 * Data provider.
 	 *
-	 * @return array[]
+	 * @return array<string, array{string, string}>
 	 */
-	public static function data_class_updates_with_preprocessing() {
+	public static function data_class_updates_with_preprocessing(): array {
 		return array(
 			'Raw CR'                      => array( "<div class='a\rb'>", "<div class=\"a\nb added\">" ),
 			'Raw CRLF'                    => array( "<div class='a\r\nb'>", "<div class=\"a\nb added\">" ),
@@ -147,7 +147,7 @@ class Tests_HtmlApi_WpHtmlTagProcessor_InputPreprocessing extends WP_UnitTestCas
 	 * @covers ::get_attribute
 	 * @covers ::get_attribute_names_with_prefix
 	 */
-	public function test_attribute_names_replace_null_bytes() {
+	public function test_attribute_names_replace_null_bytes(): void {
 		$processor = new WP_HTML_Tag_Processor( "<div da\x00ta='1'>" );
 
 		$this->assertTrue( $processor->next_tag(), 'Should have found the tag.' );
@@ -174,7 +174,7 @@ class Tests_HtmlApi_WpHtmlTagProcessor_InputPreprocessing extends WP_UnitTestCas
 	 * @covers ::get_attribute
 	 * @covers ::remove_attribute
 	 */
-	public function test_attribute_names_collapsing_after_null_replacement_are_duplicates() {
+	public function test_attribute_names_collapsing_after_null_replacement_are_duplicates(): void {
 		$processor = new WP_HTML_Tag_Processor( "<div da\x00ta='1' da\u{FFFD}ta='2'>" );
 
 		$this->assertTrue( $processor->next_tag(), 'Should have found the tag.' );
@@ -194,7 +194,7 @@ class Tests_HtmlApi_WpHtmlTagProcessor_InputPreprocessing extends WP_UnitTestCas
 	 *
 	 * @covers ::set_attribute
 	 */
-	public function test_set_attribute_updates_attribute_with_null_byte_in_source_name() {
+	public function test_set_attribute_updates_attribute_with_null_byte_in_source_name(): void {
 		$processor = new WP_HTML_Tag_Processor( "<div da\x00ta='old'>" );
 
 		$this->assertTrue( $processor->next_tag(), 'Should have found the tag.' );
@@ -211,7 +211,7 @@ class Tests_HtmlApi_WpHtmlTagProcessor_InputPreprocessing extends WP_UnitTestCas
 	 * @covers ::get_tag
 	 * @covers ::get_token_name
 	 */
-	public function test_get_tag_replaces_null_bytes() {
+	public function test_get_tag_replaces_null_bytes(): void {
 		$processor = new WP_HTML_Tag_Processor( "<di\x00v>x</di\x00v>" );
 
 		$this->assertTrue( $processor->next_token(), 'Should have found the tag opener.' );
@@ -235,7 +235,7 @@ class Tests_HtmlApi_WpHtmlTagProcessor_InputPreprocessing extends WP_UnitTestCas
 	 *
 	 * @covers ::get_tag
 	 */
-	public function test_null_byte_in_tag_name_does_not_select_rawtext_parsing() {
+	public function test_null_byte_in_tag_name_does_not_select_rawtext_parsing(): void {
 		$processor = new WP_HTML_Tag_Processor( "<scr\x00ipt><b></b></scr\x00ipt>" );
 
 		$this->assertTrue( $processor->next_token(), 'Should have found the tag opener.' );
@@ -253,7 +253,7 @@ class Tests_HtmlApi_WpHtmlTagProcessor_InputPreprocessing extends WP_UnitTestCas
 	 *
 	 * @covers ::get_tag
 	 */
-	public function test_pi_lookalike_target_stops_before_null_byte() {
+	public function test_pi_lookalike_target_stops_before_null_byte(): void {
 		$processor = new WP_HTML_Tag_Processor( "<?px\x00rest ?>" );
 
 		$this->assertTrue( $processor->next_token(), 'Should have found the comment.' );
@@ -275,7 +275,7 @@ class Tests_HtmlApi_WpHtmlTagProcessor_InputPreprocessing extends WP_UnitTestCas
 	 *
 	 * @covers ::next_tag
 	 */
-	public function test_tag_name_queries_match_replaced_names() {
+	public function test_tag_name_queries_match_replaced_names(): void {
 		$processor = new WP_HTML_Tag_Processor( "<di\x00v>" );
 		$this->assertTrue( $processor->next_tag( "DI\u{FFFD}V" ), 'Should have matched the tag by its replaced name.' );
 
@@ -311,7 +311,7 @@ class Tests_HtmlApi_WpHtmlTagProcessor_InputPreprocessing extends WP_UnitTestCas
 	 * @covers ::class_list
 	 * @covers ::has_class
 	 */
-	public function test_class_list_preserves_null_bytes_in_enqueued_values() {
+	public function test_class_list_preserves_null_bytes_in_enqueued_values(): void {
 		$processor = new WP_HTML_Tag_Processor( '<div>' );
 
 		$this->assertTrue( $processor->next_tag(), 'Should have found the tag.' );
@@ -331,7 +331,7 @@ class Tests_HtmlApi_WpHtmlTagProcessor_InputPreprocessing extends WP_UnitTestCas
 	 * @covers ::has_class
 	 * @covers ::next_tag
 	 */
-	public function test_class_helpers_use_replaced_source_values() {
+	public function test_class_helpers_use_replaced_source_values(): void {
 		$processor = new WP_HTML_Tag_Processor( "<div class='a\x00b'>" );
 
 		$this->assertTrue( $processor->next_tag(), 'Should have found the tag.' );
@@ -351,7 +351,7 @@ class Tests_HtmlApi_WpHtmlTagProcessor_InputPreprocessing extends WP_UnitTestCas
 	 *
 	 * @covers ::get_attribute
 	 */
-	public function test_boolean_attribute_with_null_byte_in_name() {
+	public function test_boolean_attribute_with_null_byte_in_name(): void {
 		$processor = new WP_HTML_Tag_Processor( "<div da\x00ta>" );
 
 		$this->assertTrue( $processor->next_tag(), 'Should have found the tag.' );
@@ -367,7 +367,7 @@ class Tests_HtmlApi_WpHtmlTagProcessor_InputPreprocessing extends WP_UnitTestCas
 	 *
 	 * @covers ::get_attribute_names_with_prefix
 	 */
-	public function test_attribute_name_prefixes_match_replaced_names() {
+	public function test_attribute_name_prefixes_match_replaced_names(): void {
 		$processor = new WP_HTML_Tag_Processor( "<div da\x00ta='1'>" );
 
 		$this->assertTrue( $processor->next_tag(), 'Should have found the tag.' );
@@ -383,7 +383,7 @@ class Tests_HtmlApi_WpHtmlTagProcessor_InputPreprocessing extends WP_UnitTestCas
 	 *
 	 * @ticket 65372
 	 */
-	public function test_html_processor_matches_end_tags_across_null_byte_spellings() {
+	public function test_html_processor_matches_end_tags_across_null_byte_spellings(): void {
 		$this->assertSame(
 			"<di\u{FFFD}v>x</di\u{FFFD}v>y",
 			WP_HTML_Processor::normalize( "<di\x00v>x</di\u{FFFD}v>y" ),
@@ -404,7 +404,7 @@ class Tests_HtmlApi_WpHtmlTagProcessor_InputPreprocessing extends WP_UnitTestCas
 	 *
 	 * @covers ::get_attribute
 	 */
-	public function test_get_attribute_flushes_class_updates_case_insensitively() {
+	public function test_get_attribute_flushes_class_updates_case_insensitively(): void {
 		$processor = new WP_HTML_Tag_Processor( '<div class="a">' );
 
 		$this->assertTrue( $processor->next_tag(), 'Should have found the tag.' );
@@ -419,7 +419,7 @@ class Tests_HtmlApi_WpHtmlTagProcessor_InputPreprocessing extends WP_UnitTestCas
 	 *
 	 * @covers ::get_modifiable_text
 	 */
-	public function test_encoded_null_in_text_node_decodes_to_replacement_character() {
+	public function test_encoded_null_in_text_node_decodes_to_replacement_character(): void {
 		$processor = new WP_HTML_Tag_Processor( 'a&#0;b' );
 
 		$this->assertTrue( $processor->next_token(), 'Should have found the text node.' );
