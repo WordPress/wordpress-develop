@@ -286,32 +286,33 @@ class Tests_Block_Supports_WpRenderBackgroundSupport extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that combined background gradient and image CSS values pass KSES.
+	 * Tests that gradient background CSS values pass KSES.
 	 *
 	 * safecss_filter_attr() removes each url() and gradient from its safety test
-	 * string, so gradients combined with a url() background image (in either
-	 * order) survive sanitization.
+	 * string, so gradients that use functions beyond rgb()/rgba(), and gradients
+	 * combined with a url() background image (in either order), survive
+	 * sanitization.
 	 *
 	 * @ticket 64974
 	 *
 	 * @covers ::safecss_filter_attr
 	 *
-	 * @dataProvider data_background_combined_values_pass_kses
+	 * @dataProvider data_background_gradient_values_pass_kses
 	 *
 	 * @param string $css The CSS declaration to test.
 	 */
-	public function test_background_combined_values_pass_kses( $css ) {
+	public function test_background_gradient_values_pass_kses( $css ) {
 		$result = safecss_filter_attr( $css );
 		$this->assertNotEmpty( $result, "Expected CSS to be allowed: $css" );
 		$this->assertStringContainsString( 'background-image', $result );
 	}
 
 	/**
-	 * Data provider for combined background-image KSES tests.
+	 * Data provider for gradient background-image KSES tests.
 	 *
 	 * @return array[]
 	 */
-	public function data_background_combined_values_pass_kses() {
+	public function data_background_gradient_values_pass_kses() {
 		return array(
 			'gradient first with rgb colors'     => array(
 				'background-image: linear-gradient(135deg, rgb(255,0,0) 0%, rgb(0,0,255) 100%), url(https://example.com/image.jpg)',
@@ -351,6 +352,15 @@ class Tests_Block_Supports_WpRenderBackgroundSupport extends WP_UnitTestCase {
 			),
 			'gradient with hex colors'           => array(
 				'background-image: linear-gradient(135deg, #ff0000 0%, #0000ff 100%), url(https://example.com/image.jpg)',
+			),
+			'standalone hsl gradient'            => array(
+				'background-image: linear-gradient(135deg, hsl(0, 100%, 50%) 0%, hsl(240, 100%, 50%) 100%)',
+			),
+			'standalone oklch gradient'          => array(
+				'background-image: linear-gradient(oklch(0.7 0.15 30), oklch(0.5 0.2 260))',
+			),
+			'standalone gradient with calc'      => array(
+				'background-image: linear-gradient(red 0%, blue calc(50% + 10px))',
 			),
 		);
 	}
