@@ -2370,7 +2370,7 @@ module.exports = function(grunt) {
 
 	grunt.registerTask( 'browserslist:update', 'Update the local database of browser supports', function() {
 		grunt.log.writeln( `Updating browsers list` );
-		spawn( 'npx', [ 'browserslist@latest', '--update-db' ], {
+		spawn( 'npx', [ 'update-browserslist-db@latest' ], {
 			cwd: __dirname,
 			stdio: 'inherit',
 		} );
