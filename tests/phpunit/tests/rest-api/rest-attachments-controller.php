@@ -3452,7 +3452,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	 *
 	 * The image_size argument accepts either a single size name or an array of
 	 * size names, so it validates via a custom callback rather than an enum. The
-	 * callback must accept 'scaled' and the 'original-heic' source-format size,
+	 * callback must accept 'scaled' and the 'source_original' source-format size,
 	 * and reject unknown sizes.
 	 *
 	 * sideload_item() never reads generate_sub_sizes, so advertising it on the
@@ -3492,8 +3492,8 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 			'image_size validation should accept the scaled size.'
 		);
 		$this->assertTrue(
-			$validate( 'original-heic', $request, $param_name ),
-			'image_size validation should accept the original-heic source-format size.'
+			$validate( WP_REST_Attachments_Controller::IMAGE_SIZE_SOURCE_ORIGINAL, $request, $param_name ),
+			'image_size validation should accept the source_original source-format size.'
 		);
 		$this->assertTrue(
 			$validate( array( 'scaled' ), $request, $param_name ),
@@ -3508,7 +3508,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	}
 
 	/**
-	 * Tests sideloading an 'original-heic' companion file alongside its JPEG
+	 * Tests sideloading a 'source_original' companion file alongside its JPEG
 	 * derivative. The HEIC filename is recorded under $metadata['source_image']
 	 * so it does not collide with 'original_image', which the scaled-sideload
 	 * flow owns. Metadata is written by the finalize endpoint, not the sideload.
@@ -3516,7 +3516,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	 * @ticket 64915
 	 * @requires function imagejpeg
 	 */
-	public function test_sideload_original_heic_writes_metadata_source_image(): void {
+	public function test_sideload_source_original_writes_metadata_source_image(): void {
 		$this->enable_client_side_media_processing();
 
 		wp_set_current_user( self::$author_id );
@@ -3544,16 +3544,16 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment_id}/sideload" );
 		$request->set_header( 'Content-Type', 'image/heic' );
 		$request->set_header( 'Content-Disposition', 'attachment; filename=canola.heic' );
-		$request->set_param( 'image_size', 'original-heic' );
+		$request->set_param( 'image_size', WP_REST_Attachments_Controller::IMAGE_SIZE_SOURCE_ORIGINAL );
 		$request->set_param( 'convert_format', false );
 		$request->set_body( (string) file_get_contents( DIR_TESTDATA . '/images/test-image.heic' ) );
 		$response = rest_get_server()->dispatch( $request );
 
-		$this->assertSame( 200, $response->get_status(), 'Sideloading original-heic should succeed.' );
+		$this->assertSame( 200, $response->get_status(), 'Sideloading source_original should succeed.' );
 
 		$sub_size = $response->get_data();
 		$this->assertIsArray( $sub_size );
-		$this->assertSame( 'original-heic', $sub_size['image_size'], 'Response should echo the image_size.' );
+		$this->assertSame( WP_REST_Attachments_Controller::IMAGE_SIZE_SOURCE_ORIGINAL, $sub_size['image_size'], 'Response should echo the image_size.' );
 		$this->assertMatchesRegularExpression( '/canola.*\.heic$/', $sub_size['file'], 'Response file should reference the HEIC filename.' );
 
 		// Sideload must not write metadata; that happens in finalize.

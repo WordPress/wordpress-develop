@@ -34,7 +34,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	 * @since 7.1.0
 	 * @var string
 	 */
-	const IMAGE_SIZE_SOURCE_ORIGINAL = 'original-heic';
+	const IMAGE_SIZE_SOURCE_ORIGINAL = 'source_original';
 
 	/**
 	 * Metadata key holding the basename of the source-format original.
