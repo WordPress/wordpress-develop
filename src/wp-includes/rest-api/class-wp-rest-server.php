@@ -1380,7 +1380,7 @@ class WP_REST_Server {
 			$available['image_size_threshold'] = (int) apply_filters( 'big_image_size_threshold', 2560, array( 0, 0 ), '', 0 );
 
 			// Image output formats.
-			$input_formats  = array( 'image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/avif', 'image/heic' );
+			$input_formats  = array( 'image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/avif', 'image/heic', 'image/heif' );
 			$output_formats = array();
 			foreach ( $input_formats as $mime_type ) {
 				/** This filter is documented in wp-includes/media.php */
@@ -1649,7 +1649,7 @@ class WP_REST_Server {
 			}
 		}
 
-		$allowed_schema_keywords = array_flip( rest_get_allowed_schema_keywords() );
+		$allowed_schema_keywords = array_flip( wp_get_json_schema_allowed_keywords( 'rest-api' ) );
 
 		$route = preg_replace( '#\(\?P<(\w+?)>.*?\)#', '{$1}', $route );
 
@@ -1995,7 +1995,7 @@ class WP_REST_Server {
 			} elseif ( 'REDIRECT_HTTP_AUTHORIZATION' === $key && empty( $server['HTTP_AUTHORIZATION'] ) ) {
 				/*
 				 * In some server configurations, the authorization header is passed in this alternate location.
-				 * Since it would not be passed in in both places we do not check for both headers and resolve.
+				 * Since it would not be passed in both places we do not check for both headers and resolve.
 				 */
 				$headers['AUTHORIZATION'] = $value;
 			} elseif ( isset( $additional[ $key ] ) ) {
