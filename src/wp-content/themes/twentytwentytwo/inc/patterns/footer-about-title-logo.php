@@ -2,7 +2,6 @@
 /**
  * Footer with text, title, and logo
  */
-
 return array(
 	'title'      => __( 'Footer with text, title, and logo', 'twentytwentytwo' ),
 	'categories' => array( 'footer' ),

@@ -2,7 +2,6 @@
 /**
  * About page on solid color background
  */
-
 return array(
 	'title'      => __( 'About page on solid color background', 'twentytwentytwo' ),
 	'categories' => array( 'twentytwentytwo_pages' ),

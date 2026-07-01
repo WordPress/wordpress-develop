@@ -2,7 +2,6 @@
 /**
  * Text-based grid of posts block pattern
  */
-
 return array(
 	'title'      => __( 'Text-based grid of posts', 'twentytwentytwo' ),
 	'categories' => array( 'query' ),

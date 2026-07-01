@@ -2,7 +2,6 @@
 /**
  * Default posts block pattern
  */
-
 return array(
 	'title'      => __( 'Default posts', 'twentytwentytwo' ),
 	'categories' => array( 'query' ),

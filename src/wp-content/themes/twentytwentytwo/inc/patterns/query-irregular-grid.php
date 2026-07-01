@@ -2,7 +2,6 @@
 /**
  * Irregular grid of posts block pattern
  */
-
 return array(
 	'title'      => __( 'Irregular grid of posts', 'twentytwentytwo' ),
 	'categories' => array( 'query' ),

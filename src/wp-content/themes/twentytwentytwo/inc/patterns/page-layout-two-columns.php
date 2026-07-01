@@ -2,7 +2,6 @@
 /**
  * Page layout with two columns.
  */
-
 return array(
 	'title'      => __( 'Page layout with two columns', 'twentytwentytwo' ),
 	'categories' => array( 'twentytwentytwo_pages' ),

@@ -2,7 +2,6 @@
 /**
  * Default header block pattern
  */
-
 return array(
 	'title'      => __( 'Default header', 'twentytwentytwo' ),
 	'categories' => array( 'header' ),

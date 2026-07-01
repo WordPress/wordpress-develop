@@ -2,7 +2,6 @@
 /**
  * List of events block pattern
  */
-
 return array(
 	'title'      => __( 'List of events', 'twentytwentytwo' ),
 	'categories' => array( 'featured', 'text' ),

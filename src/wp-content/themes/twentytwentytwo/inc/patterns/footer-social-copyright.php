@@ -2,7 +2,6 @@
 /**
  * Footer with social links and copyright
  */
-
 return array(
 	'title'      => __( 'Footer with social links and copyright', 'twentytwentytwo' ),
 	'categories' => array( 'footer' ),

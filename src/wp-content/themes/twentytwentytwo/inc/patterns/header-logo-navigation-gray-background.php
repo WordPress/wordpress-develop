@@ -2,7 +2,6 @@
 /**
  * Logo and navigation header with gray background
  */
-
 return array(
 	'title'      => __( 'Logo and navigation header with background', 'twentytwentytwo' ),
 	'categories' => array( 'header' ),

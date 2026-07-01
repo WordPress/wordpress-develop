@@ -2,7 +2,6 @@
 /**
  * Grid of image posts block pattern
  */
-
 return array(
 	'title'      => __( 'Grid of image posts', 'twentytwentytwo' ),
 	'categories' => array( 'query' ),

@@ -2,7 +2,6 @@
 /**
  * Header with centered logo block pattern
  */
-
 return array(
 	'title'      => __( 'Header with centered logo', 'twentytwentytwo' ),
 	'categories' => array( 'header' ),

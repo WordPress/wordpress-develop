@@ -9,7 +9,6 @@
  * Viewport width: 1400
  * Description: A portfolio home page with a description and a 4-column post section with only feature images.
  */
-
 ?>
 
 <!-- wp:pattern {"slug":"twentytwentyfour/hidden-portfolio-hero"} /-->

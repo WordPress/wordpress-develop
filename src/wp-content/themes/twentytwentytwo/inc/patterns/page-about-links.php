@@ -2,7 +2,6 @@
 /**
  * About page links
  */
-
 return array(
 	'title'      => __( 'About page links', 'twentytwentytwo' ),
 	'categories' => array( 'twentytwentytwo_pages', 'buttons' ),

@@ -4,7 +4,6 @@
  * Slug: twentytwentyfour/hidden-comments
  * Inserter: no
  */
-
 ?>
 
 <!-- wp:comments {"className":"wp-block-comments-query-loop"} -->

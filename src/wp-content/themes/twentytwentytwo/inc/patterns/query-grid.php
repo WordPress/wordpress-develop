@@ -2,7 +2,6 @@
 /**
  * Grid of posts block pattern
  */
-
 return array(
 	'title'      => __( 'Grid of posts', 'twentytwentytwo' ),
 	'categories' => array( 'query' ),

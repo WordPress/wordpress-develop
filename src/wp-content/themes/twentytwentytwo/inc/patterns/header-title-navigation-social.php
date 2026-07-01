@@ -2,7 +2,6 @@
 /**
  * Title, navigation, and social links header block pattern
  */
-
 return array(
 	'title'      => __( 'Title, navigation, and social links header', 'twentytwentytwo' ),
 	'categories' => array( 'header' ),

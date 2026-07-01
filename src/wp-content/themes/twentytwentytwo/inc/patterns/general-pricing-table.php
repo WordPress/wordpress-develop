@@ -2,7 +2,6 @@
 /**
  * Pricing table block pattern
  */
-
 return array(
 	'title'      => __( 'Pricing table', 'twentytwentytwo' ),
 	'categories' => array( 'featured', 'columns', 'buttons' ),

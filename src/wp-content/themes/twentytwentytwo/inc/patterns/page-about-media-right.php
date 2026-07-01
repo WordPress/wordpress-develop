@@ -2,7 +2,6 @@
 /**
  * About page with media on the right
  */
-
 return array(
 	'title'      => __( 'About page with media on the right', 'twentytwentytwo' ),
 	'categories' => array( 'twentytwentytwo_pages' ),

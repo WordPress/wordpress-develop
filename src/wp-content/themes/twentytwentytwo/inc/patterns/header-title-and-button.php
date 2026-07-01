@@ -2,7 +2,6 @@
 /**
  * Title and button header block pattern
  */
-
 return array(
 	'title'      => __( 'Title and button header', 'twentytwentytwo' ),
 	'categories' => array( 'header' ),

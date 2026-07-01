@@ -2,7 +2,6 @@
 /**
  * Poster with right sidebar block pattern
  */
-
 return array(
 	'title'      => __( 'Poster with right sidebar', 'twentytwentytwo' ),
 	'categories' => array( 'twentytwentytwo_pages' ),

@@ -2,7 +2,6 @@
 /**
  * Text-only header with tagline and black background block pattern
  */
-
 return array(
 	'title'      => __( 'Text-only header with tagline and background', 'twentytwentytwo' ),
 	'categories' => array( 'header' ),

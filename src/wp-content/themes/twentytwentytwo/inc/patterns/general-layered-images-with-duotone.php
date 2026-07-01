@@ -2,7 +2,6 @@
 /**
  * Layered images with duotone block pattern
  */
-
 return array(
 	'title'      => __( 'Layered images with duotone', 'twentytwentytwo' ),
 	'categories' => array( 'featured', 'gallery' ),

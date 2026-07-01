@@ -4,7 +4,6 @@
  * Slug: twentytwentythree/hidden-no-results-content
  * Inserter: no
  */
-
 ?>
 <!-- wp:paragraph -->
 <p>

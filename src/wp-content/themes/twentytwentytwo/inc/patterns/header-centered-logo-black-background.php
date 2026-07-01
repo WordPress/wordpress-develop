@@ -2,7 +2,6 @@
 /**
  * Header with centered logo and black background
  */
-
 return array(
 	'title'      => __( 'Header with centered logo and background', 'twentytwentytwo' ),
 	'categories' => array( 'header' ),

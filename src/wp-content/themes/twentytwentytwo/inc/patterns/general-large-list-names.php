@@ -2,7 +2,6 @@
 /**
  * Large list of names block pattern
  */
-
 return array(
 	'title'      => __( 'Large list of names', 'twentytwentytwo' ),
 	'categories' => array( 'featured', 'text' ),

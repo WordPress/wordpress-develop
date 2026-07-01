@@ -2,7 +2,6 @@
 /**
  * Footer with navigation and citation
  */
-
 return array(
 	'title'      => __( 'Footer with navigation and citation', 'twentytwentytwo' ),
 	'categories' => array( 'footer' ),

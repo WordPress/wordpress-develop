@@ -2,7 +2,6 @@
 /**
  * About page with large image and buttons
  */
-
 return array(
 	'title'      => __( 'About page with large image and buttons', 'twentytwentytwo' ),
 	'categories' => array( 'twentytwentytwo_pages', 'buttons' ),

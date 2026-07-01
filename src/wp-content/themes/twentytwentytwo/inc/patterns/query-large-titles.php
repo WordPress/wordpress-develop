@@ -2,7 +2,6 @@
 /**
  * Large post titles block pattern
  */
-
 return array(
 	'title'      => __( 'Large post titles', 'twentytwentytwo' ),
 	'categories' => array( 'query' ),

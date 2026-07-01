@@ -2,7 +2,6 @@
 /**
  * About page links (dark)
  */
-
 return array(
 	'title'      => __( 'About page links (dark)', 'twentytwentytwo' ),
 	'categories' => array( 'twentytwentytwo_pages', 'buttons' ),
