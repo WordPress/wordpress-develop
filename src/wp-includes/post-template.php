@@ -1772,6 +1772,7 @@ function prepend_attachment( $content ) {
  * Retrieves protected post password form content.
  *
  * @since 1.0.0
+ * @since 7.2.0 Added Button block classes to the submit button for block themes.
  *
  * @param int|WP_Post $post Optional. Post ID or WP_Post object. Default is global $post.
  * @return string HTML content for password form for password-protected post.
@@ -1784,6 +1785,7 @@ function get_the_password_form( $post = 0 ) {
 	$aria                  = '';
 	$class                 = '';
 	$redirect_field        = '';
+	$button_class          = '';
 
 	// If the referrer is the same as the current request, the user has entered an invalid password.
 	if ( ! empty( $post->ID ) && wp_get_raw_referer() === get_permalink( $post->ID ) && isset( $_COOKIE[ 'wp-postpass_' . COOKIEHASH ] ) ) {
@@ -1809,9 +1811,16 @@ function get_the_password_form( $post = 0 ) {
 		);
 	}
 
+	if ( wp_is_block_theme() ) {
+		$button_class = ' class="wp-block-button__link ' . wp_theme_get_element_class_name( 'button' ) . '"';
+		if ( wp_style_is( 'wp-block-button', 'registered' ) ) {
+			wp_enqueue_style( 'wp-block-button' );
+		}
+	}
+
 	$output = '<form action="' . esc_url( site_url( 'wp-login.php?action=postpass', 'login_post' ) ) . '" class="post-password-form' . $class . '" method="post">' . $redirect_field . $invalid_password_html . '
 	<p>' . __( 'This content is password-protected. To view it, please enter the password below.' ) . '</p>
-	<p><label for="' . $field_id . '">' . __( 'Password:' ) . ' <input name="post_password" id="' . $field_id . '" type="password" spellcheck="false" required size="20"' . $aria . ' /></label> <input type="submit" name="Submit" value="' . esc_attr_x( 'Enter', 'post password form' ) . '" /></p></form>
+	<p><label for="' . $field_id . '">' . __( 'Password:' ) . ' <input name="post_password" id="' . $field_id . '" type="password" spellcheck="false" required size="20"' . $aria . ' /></label> <input type="submit" name="Submit" ' . $button_class . ' value="' . esc_attr_x( 'Enter', 'post password form' ) . '" /></p></form>
 	';
 
 	/**
