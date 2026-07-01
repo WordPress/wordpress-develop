@@ -1,0 +1,143 @@
+<?php
+/**
+ * Regex comparison test for the Interactivity API expression splitting.
+ *
+ * Compares two regex variations for the `splitStatements` /
+ * `split_expression_into_statements` helper:
+ *
+ *   - PHP version: matches escape sequences (\" , \/ , \' , \` ) as atomic
+ *     two-character units. Faster in PCRE, more precise on edge cases.
+ *   - JS-equivalent version: matches bare delimiter characters (/ , " , ' , ` ),
+ *     relying on greedy backtracking. This matches the upstream Datastar
+ *     genRx() regex.
+ *
+ * Usage: php tests/phpunit/tests/interactivity-api/regex-comparison.php
+ *
+ * @package WordPress
+ * @subpackage Interactivity API
+ */
+
+$phpRe = '/(\/(?:\\\\\/|[^\/])*\/|"(?:\\\\"|[^"])*"|\'(?:\\\\\'|[^\'])*\'|`(?:\\\\`|[^`])*`|\(\s*((?:function)\s*\(\s*\)|(?:\(\s*\))\s*=>)\s*(?:\{[\s\S]*?\}|[^;){]*)\s*\)\s*\(\s*\)|[^;])+/';
+
+$jsRe = '/(\/(?:\/|[^\/])*\/|"(?:\"|[^"])*"|\'(?:\'|[^\'])*\'|`(?:`|[^`])*`|\(\s*((?:function)\s*\(\s*\)|(?:\(\s*\))\s*=>)\s*(?:\{[\s\S]*?\}|[^;){]*)\s*\)\s*\(\s*\)|[^;])+/';
+
+define( 'ITER', 100000 );
+
+function compare( $input ) {
+	global $phpRe, $jsRe;
+	preg_match_all( $phpRe, $input, $p );
+	preg_match_all( $jsRe, $input, $j );
+	$php = $p[0] ?? array();
+	$js  = $j[0] ?? array();
+	return array( $php, $js, $php === $js );
+}
+
+function run_test( $input, $label ) {
+	[$php, $js, $match] = compare( $input );
+	echo ( $match ? 'OK' : 'MISMATCH' ) . ' ' . $label . "\n";
+	if ( ! $match ) {
+		echo '  PHP: ' . json_encode( $php ) . "\n  JS:  " . json_encode( $js ) . "\n";
+	}
+	return $match;
+}
+
+function bench( string $label, string $regex, string $input ): float {
+	$t = microtime( true );
+	for ( $i = 0; $i < ITER; $i++ ) {
+		preg_match_all( $regex, $input, $m );
+	}
+	$elapsed = ( microtime( true ) - $t ) * 1000;
+	printf( "%s: %.1fms\n", $label, $elapsed );
+	return $elapsed;
+}
+
+$perf_input = "state.count > 0 ? 'yes;no' : 'maybe;not'; /foo\\/bar/g; `hello;world`; (() => { return 1; })(); done";
+
+/* ───────────────────────────────────────────────────────────
+ * Test 1: Common directive expressions
+ * ─────────────────────────────────────────────────────────── */
+$common = array( 'state.count; state.flag', '"hello;world"; foo', "'a;b'; c", '`x;y`; z', '/a;b/; c', 'a/2; b', "state.count === 0 ? 'no' : 'yes'", '(() => { const x = 1; return x; })(); done' );
+
+echo "=== Common ===\n";
+
+foreach ( $common as $e ) {
+	run_test( $e, substr( $e, 0, 50 ) );
+}
+
+/* ───────────────────────────────────────────────────────────
+ * Test 2: Edge cases with escaped delimiters
+ * ─────────────────────────────────────────────────────────── */
+$edge = array( '/foo\/bar;baz/g', '"hello \"world;foo\""; x', "'it\'s;ok'; y", '`back\`tick;z`; w', '/foo\\\\/bar;baz/', '/a\/b\/c;d/g', '"a\"b;c\"d"; e' );
+
+echo "\n=== Edge ===\n";
+
+foreach ( $edge as $e ) {
+	run_test( $e, substr( $e, 0, 60 ) );
+}
+
+/* ───────────────────────────────────────────────────────────
+ * Test 3: Randomized fuzz (10 000 inputs)
+ * ─────────────────────────────────────────────────────────── */
+echo "\n=== Fuzz (10000 random expressions) ===\n";
+
+$chars = 'abcdefghijklmnopqrstuvwxyz0123456789;./\\\'"`(){}[]=+-*&|<> ';
+$mm    = 0;
+
+for ( $i = 0; $i < 10000; $i++ ) {
+	$len = 5 + random_int( 0, 40 );
+	$e   = '';
+	for ( $j = 0; $j < $len; $j++ ) {
+		$e .= $chars[ random_int( 0, strlen( $chars ) - 1 ) ];
+	}
+	[$php, $js, $match] = compare( $e );
+	if ( ! $match ) {
+		++$mm;
+		if ( $mm <= 3 ) {
+			echo 'MISMATCH: ' . json_encode( $e ) . "\n";
+			echo '  PHP: ' . json_encode( $php ) . "\n  JS:  " . json_encode( $js ) . "\n";
+		}
+	}
+}
+
+echo "Mismatches: $mm / 10000\n";
+
+/* ───────────────────────────────────────────────────────────
+ * Test 4: PHP vs JS-equivalent pattern performance
+ * ─────────────────────────────────────────────────────────── */
+echo "\n=== Performance (" . ITER . " iterations) ===\n";
+
+$tp = bench( 'PHP version', $phpRe, $perf_input );
+$tj = bench( 'JS version',  $jsRe, $perf_input );
+
+$d = ( $tj - $tp ) / $tp * 100;
+printf( "Delta: %.1f%% (%s)\n", abs( $d ), $d > 0 ? 'PHP faster' : 'JS faster' );
+
+/* ───────────────────────────────────────────────────────────
+ * Test 5: Non-capturing (?:...) vs capturing (...) groups
+ *
+ * The Datastar original uses (...) for inner alternations.
+ * Since preg_match_all() ignores capture groups the output is
+ * identical, but skipping the capture bookkeeping is
+ * measurably faster. ──────────────────────────────────────── */
+echo "\n=== Non-capturing vs capturing groups ===\n";
+
+$dstarOriginal = '/(\/(\\\\\/|[^\/])*\/|"(\\\\"|[^"])*"|\'(\\\\\'|[^\'])*\'|`(\\\\`|[^`])*`|\(\s*((function)\s*\(\s*\)|(\(\s*\))\s*=>)\s*(?:\{[\s\S]*?\}|[^;){]*)\s*\)\s*\(\s*\)|[^;])+/';
+
+$ourOptimized = '/(\/(?:\\\\\/|[^\/])*\/|"(?:\\\\"|[^"])*"|\'(?:\\\\\'|[^\'])*\'|`(?:\\\\`|[^`])*`|\(\s*((?:function)\s*\(\s*\)|(?:\(\s*\))\s*=>)\s*(?:\{[\s\S]*?\}|[^;){]*)\s*\)\s*\(\s*\)|[^;])+/';
+
+$all_ok = true;
+foreach ( array_merge( $common, $edge ) as $e ) {
+	preg_match_all( $dstarOriginal, $e, $a );
+	preg_match_all( $ourOptimized, $e, $b );
+	if ( ( $a[0] ?? array() ) !== ( $b[0] ?? array() ) ) {
+		$all_ok = false;
+		echo 'MISMATCH: ' . json_encode( $e ) . "\n";
+	}
+}
+echo 'Same output? ' . ( $all_ok ? 'yes' : 'NO' ) . "\n";
+
+$dstarTime = bench( 'Datastar original (capturing)', $dstarOriginal, $perf_input );
+$ourTime   = bench( 'Our version (non-capturing)',  $ourOptimized, $perf_input );
+
+$dt = ( $ourTime - $dstarTime ) / $dstarTime * 100;
+printf( "Delta: %.1f%% (%s)\n", abs( $dt ), $ourTime < $dstarTime ? '(?:) faster' : '(?:) slower' );
