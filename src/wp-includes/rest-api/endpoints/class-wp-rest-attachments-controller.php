@@ -504,10 +504,8 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		 * media_handle_sideload() fires the standard insert hooks (including
 		 * wp_after_insert_post), but not the REST-specific action, so fire it
 		 * here for parity with the uploaded-file path in create_item().
-		 *
-		 * This action is documented in
-		 * wp-includes/rest-api/endpoints/class-wp-rest-attachments-controller.php
 		 */
+		/** This action is documented in wp-includes/rest-api/endpoints/class-wp-rest-attachments-controller.php */
 		do_action( 'rest_after_insert_attachment', $attachment, $request, true );
 
 		$response = $this->prepare_item_for_response( $attachment, $request );
