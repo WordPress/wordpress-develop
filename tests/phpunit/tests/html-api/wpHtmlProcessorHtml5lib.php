@@ -38,6 +38,10 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 		'tests2/line0697'     => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
 		'tests2/line0709'     => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
 		'webkit01/line0231'   => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
+		'webkit02/line0692'   => 'Unimplemented: This parser does not clone selected OPTION content into SELECTEDCONTENT.',
+		'webkit02/line0706'   => 'Unimplemented: This parser does not clone selected OPTION content into SELECTEDCONTENT.',
+		'webkit02/line0732'   => 'Unimplemented: This parser does not clone selected OPTION content into SELECTEDCONTENT.',
+		'webkit02/line0748'   => 'Unimplemented: This parser does not clone selected OPTION content into SELECTEDCONTENT.',
 	);
 
 	/**

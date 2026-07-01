@@ -127,10 +127,10 @@
  * standard's customizable select elements changes.
  *
  * It does not implement the "maybe clone an option into selectedcontent" step that
- * copies the selected `OPTION` content into a `SELECTEDCONTENT` element. A
- * `SELECTEDCONTENT` is otherwise parsed like any other element. In the single case
- * where producing a correct tree would depend on that cloning, a
- * `SELECT > BUTTON > SELECTEDCONTENT`, the parser stops processing instead.
+ * copies the selected `OPTION` content into a `SELECTEDCONTENT` element when the
+ * `OPTION` is popped from the stack of open elements. A `SELECTEDCONTENT` element
+ * is parsed like any other element, and its contents reflect only the tokens in
+ * the source HTML.
  *
  * ### Unsupported Features
  *
@@ -151,6 +151,7 @@
  * @see WP_HTML_Tag_Processor
  * @see https://html.spec.whatwg.org/
  * @see https://github.com/whatwg/html/pull/10548 Customizable select elements parsing changes.
+ * @see https://github.com/whatwg/html/pull/11764 Selectedcontent clone-on-pop updates.
  * @phpstan-consistent-constructor
  */
 class WP_HTML_Processor extends WP_HTML_Tag_Processor {
@@ -3324,20 +3325,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			/*
 			 * > Any other start tag
 			 */
-
-			/*
-			 * SELECT > BUTTON > SELECTEDCONTENT requires special handling, cloning the
-			 * selected option. This is unsupported.
-			 */
-			if ( 'SELECTEDCONTENT' === $token_name ) {
-				$walker = $this->state->stack_of_open_elements->walk_up();
-				if ( null !== $walker->current() && $walker->current()->node_name === 'BUTTON' ) {
-					$walker->next();
-					if ( null !== $walker->current() && $walker->current()->node_name === 'SELECT' ) {
-						$this->bail( 'Cannot process SELECTEDCONTENT where cloning may be necessary.' );
-					}
-				}
-			}
 			$this->reconstruct_active_formatting_elements();
 			$this->insert_html_element( $this->state->current_token );
 			return true;
@@ -3345,15 +3332,10 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			/*
 			 * > Any other end tag
 			 *
-			 * OPTION end tags are handled here as well:
-			 *
-			 * > An end tag whose tag name is "option"
-			 * >   - Let option be the first option element in the stack of open elements.
-			 * >   - Run the steps for "any other end tag."
-			 * >   - If option is no longer in the stack of open elements, then run maybe clone
-			 * >     an option into selectedcontent given option.
-			 *
-			 * The "maybe clone an option into selectedcontent" algorithm is not implemented.
+			 * OPTION end tags are handled here as well. When an OPTION element is
+			 * popped off the stack of open elements, the HTML standard runs "maybe
+			 * clone an option into selectedcontent". This parser does not implement
+			 * that DOM cloning step.
 			 */
 			return $this->in_body_any_other_end_tag();
 		}
