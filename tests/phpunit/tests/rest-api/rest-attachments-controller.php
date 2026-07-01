@@ -4336,13 +4336,18 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		add_filter( 'image_editor_output_format', $add_png_mapping, 5 );
 
 		/*
-		 * Sideload a companion sharing the same basename. Pass convert_format as
-		 * the string "false" to match multipart/form-data request semantics.
+		 * Sideload a companion sharing the same basename. Use the source-format
+		 * original size: a source-format companion (HEIC in production, PNG
+		 * here) kept beside its JPEG derivative is exactly what this size
+		 * represents, and it is exempt from the sideload dimension validation
+		 * that would otherwise reject a companion whose dimensions differ from
+		 * the derivative. Pass convert_format as the string "false" to match
+		 * multipart/form-data request semantics.
 		 */
 		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment_id}/sideload" );
 		$request->set_header( 'Content-Type', 'image/png' );
 		$request->set_header( 'Content-Disposition', 'attachment; filename=heic-companion.png' );
-		$request->set_param( 'image_size', 'original' );
+		$request->set_param( 'image_size', WP_REST_Attachments_Controller::IMAGE_SIZE_SOURCE_ORIGINAL );
 		$request->set_param( 'convert_format', 'false' );
 		$request->set_body( (string) file_get_contents( DIR_TESTDATA . '/images/one-blue-pixel-100x100.png' ) );
 
