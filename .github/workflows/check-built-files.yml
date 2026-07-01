@@ -1,4 +1,4 @@
-# Checks for uncommitted changes to built files in pull requests.
+# Checks for uncommitted or unexpected changes to built files within pull requests.
 name: Check Built Files (PRs)
 
 on:
@@ -31,6 +31,7 @@ on:
       # Confirm any changes to relevant workflow files.
       - '.github/workflows/check-built-files.yml'
       - '.github/workflows/reusable-check-built-files.yml'
+      - '.github/workflows/reusable-compare-built-files-*.yml'
       # Changes to the default themes should be handled by the themes workflows.
       - '!src/wp-content/themes/twenty**'
 
@@ -46,9 +47,18 @@ concurrency:
 permissions: {}
 
 jobs:
+  # Checks built files for uncommitted changes.
   check-for-built-file-changes:
-    name: Check built files
-    if: ${{ github.repository == 'wordpress/wordpress-develop' }}
+    name: Check for uncommitted changes
+    if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
     uses: ./.github/workflows/reusable-check-built-files.yml
     permissions:
       contents: read
+
+  # Compares the build directory with the WordPress/WordPress repository.
+  compare-with-build-server:
+    name: Compare built files to WordPress/WordPress
+    uses: ./.github/workflows/reusable-compare-built-files-v1.yml
+    permissions:
+      contents: read
+    if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
