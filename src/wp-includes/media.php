@@ -906,8 +906,13 @@ function get_intermediate_image_sizes() {
  * @uses wp_get_additional_image_sizes()
  * @uses get_intermediate_image_sizes()
  *
- * @return array[] Associative array of arrays of image sub-size information,
- *                 keyed by image size name.
+ * @return array<string, array> Associative array of arrays of image sub-size information,
+ *                              keyed by image size name.
+ * @phpstan-return array<non-empty-string, array{
+ *                     width: non-negative-int,
+ *                     height: non-negative-int,
+ *                     crop: bool|array{ 'left'|'center'|'right', 'top'|'center'|'bottom' },
+ *                 }>
  */
 function wp_get_registered_image_subsizes() {
 	$additional_sizes = wp_get_additional_image_sizes();
