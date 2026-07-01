@@ -10,6 +10,31 @@
  */
 
 /**
+ * Redirects HTTP requests to HTTPS when SSL is forced for the site.
+ *
+ * @since x.x.x
+ * @access private
+ */
+function _wp_force_ssl_redirect() {
+	if ( ! force_ssl() || is_ssl() || ! isset( $_SERVER['HTTP_HOST'], $_SERVER['REQUEST_URI'] ) ) {
+		return;
+	}
+
+	if ( isset( $_SERVER['REQUEST_METHOD'] ) && ! in_array( strtoupper( $_SERVER['REQUEST_METHOD'] ), array( 'GET', 'HEAD' ), true ) ) {
+		return;
+	}
+
+	if ( str_starts_with( $_SERVER['REQUEST_URI'], 'http' ) ) {
+		$redirect = set_url_scheme( wp_unslash( $_SERVER['REQUEST_URI'] ), 'https' );
+	} else {
+		$redirect = 'https://' . wp_unslash( $_SERVER['HTTP_HOST'] ) . wp_unslash( $_SERVER['REQUEST_URI'] );
+	}
+
+	wp_safe_redirect( $redirect );
+	exit;
+}
+
+/**
  * Redirects incoming links to the proper URL based on the site url.
  *
  * Search engines consider www.somedomain.com and somedomain.com to be two

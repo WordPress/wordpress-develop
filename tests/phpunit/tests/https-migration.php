@@ -5,6 +5,11 @@
  */
 class Tests_HTTPS_Migration extends WP_UnitTestCase {
 
+	public function tear_down() {
+		force_ssl( false );
+		parent::tear_down();
+	}
+
 	/**
 	 * @ticket 51437
 	 */
@@ -23,6 +28,11 @@ class Tests_HTTPS_Migration extends WP_UnitTestCase {
 
 		// Should return true because HTTPS migration flag is marked as required.
 		update_option( 'https_migration_required', '1' );
+		$this->assertTrue( wp_should_replace_insecure_home_url() );
+
+		// Should return true when SSL is forced, even without the HTTPS migration flag.
+		update_option( 'https_migration_required', false );
+		force_ssl( true );
 		$this->assertTrue( wp_should_replace_insecure_home_url() );
 
 		// Should be overridable via filter.
