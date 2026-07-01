@@ -2663,18 +2663,18 @@ HTML;
 	/**
 	 * @ticket 58873
 	 */
-	public function test_script_data_filter_prints_data_before_localized_data() {
+	public function test_script_client_data_filter_prints_client_data_before_localized_data() {
 		wp_enqueue_script( 'test-example', 'example.com', array(), null );
 		wp_localize_script( 'test-example', 'testExample', array( 'foo' => 'bar' ) );
 		add_filter(
-			'script_data_test-example',
-			static function ( $data ) {
-				$data['clientData'] = 'ok';
-				return $data;
+			'script_client_data_test-example',
+			static function ( $client_data ) {
+				$client_data['clientData'] = 'ok';
+				return $client_data;
 			}
 		);
 
-		$expected  = "<script type='application/json' id='wp-script-data-test-example'>\n{\"clientData\":\"ok\"}\n</script>\n";
+		$expected  = "<script type='application/json' id='wp-script-client-data-test-example'>\n{\"clientData\":\"ok\"}\n</script>\n";
 		$expected .= "<script id='test-example-js-extra'>\nvar testExample = {\"foo\":\"bar\"};\n//# sourceURL=test-example-js-extra\n</script>\n";
 		$expected .= "<script src='http://example.com' id='test-example-js'></script>\n";
 
@@ -2684,12 +2684,12 @@ HTML;
 	/**
 	 * @ticket 58873
 	 */
-	public function test_script_data_filter_does_not_print_empty_data() {
+	public function test_script_client_data_filter_does_not_print_empty_data() {
 		wp_enqueue_script( 'test-example', 'example.com', array(), null );
 		add_filter(
-			'script_data_test-example',
-			static function ( $data ) {
-				return $data;
+			'script_client_data_test-example',
+			static function ( $client_data ) {
+				return $client_data;
 			}
 		);
 
@@ -2701,14 +2701,14 @@ HTML;
 	/**
 	 * @ticket 58873
 	 *
-	 * @dataProvider data_invalid_script_data
+	 * @dataProvider data_invalid_script_client_data
 	 *
-	 * @param mixed $data Data to return in filter.
+	 * @param mixed $data Client data to return in filter.
 	 */
-	public function test_script_data_filter_does_not_print_invalid_data( $data ) {
+	public function test_script_client_data_filter_does_not_print_invalid_data( $data ) {
 		wp_enqueue_script( 'test-example', 'example.com', array(), null );
 		add_filter(
-			'script_data_test-example',
+			'script_client_data_test-example',
 			static function () use ( $data ) {
 				return $data;
 			}
@@ -2724,7 +2724,7 @@ HTML;
 	 *
 	 * @return array
 	 */
-	public static function data_invalid_script_data(): array {
+	public static function data_invalid_script_client_data(): array {
 		return array(
 			'null'     => array( null ),
 			'stdClass' => array( new stdClass() ),
@@ -2736,13 +2736,13 @@ HTML;
 	/**
 	 * @ticket 58873
 	 *
-	 * @dataProvider data_script_data_encoding
+	 * @dataProvider data_script_client_data_encoding
 	 *
 	 * @param string $input    Raw input string.
 	 * @param string $expected Expected output string.
 	 * @param string $charset  Blog charset option.
 	 */
-	public function test_script_data_filter_encoding( $input, $expected, $charset ) {
+	public function test_script_client_data_filter_encoding( $input, $expected, $charset ) {
 		add_filter(
 			'pre_option_blog_charset',
 			static function () use ( $charset ) {
@@ -2752,14 +2752,14 @@ HTML;
 
 		wp_enqueue_script( 'test-example', 'example.com', array(), null );
 		add_filter(
-			'script_data_test-example',
-			static function ( $data ) use ( $input ) {
-				$data[''] = $input;
-				return $data;
+			'script_client_data_test-example',
+			static function ( $client_data ) use ( $input ) {
+				$client_data[''] = $input;
+				return $client_data;
 			}
 		);
 
-		$expected  = "<script type='application/json' id='wp-script-data-test-example'>\n{\"\":\"{$expected}\"}\n</script>\n";
+		$expected  = "<script type='application/json' id='wp-script-client-data-test-example'>\n{\"\":\"{$expected}\"}\n</script>\n";
 		$expected .= "<script src='http://example.com' id='test-example-js'></script>\n";
 
 		$this->assertEqualHTML( $expected, get_echo( 'wp_print_scripts' ) );
@@ -2768,7 +2768,7 @@ HTML;
 	/**
 	 * @ticket 58873
 	 */
-	public function test_script_data_filter_prevents_concat() {
+	public function test_script_client_data_filter_prevents_concat() {
 		global $wp_scripts, $wp_version;
 
 		$wp_scripts->do_concat    = true;
@@ -2777,15 +2777,15 @@ HTML;
 		wp_enqueue_script( 'one', $this->default_scripts_dir . 'one.js' );
 		wp_enqueue_script( 'two', $this->default_scripts_dir . 'two.js' );
 		add_filter(
-			'script_data_two',
-			static function ( $data ) {
-				$data['clientData'] = 'ok';
-				return $data;
+			'script_client_data_two',
+			static function ( $client_data ) {
+				$client_data['clientData'] = 'ok';
+				return $client_data;
 			}
 		);
 
 		$expected  = "<script src='/wp-admin/load-scripts.php?c=0&amp;load%5Bchunk_0%5D=one&amp;ver={$wp_version}'></script>\n";
-		$expected .= "<script type='application/json' id='wp-script-data-two'>\n{\"clientData\":\"ok\"}\n</script>\n";
+		$expected .= "<script type='application/json' id='wp-script-client-data-two'>\n{\"clientData\":\"ok\"}\n</script>\n";
 		$expected .= "<script src='{$this->default_scripts_dir}two.js?ver={$wp_version}' id='two-js'></script>\n";
 
 		$this->assertEqualHTML( $expected, get_echo( 'wp_print_scripts' ) );
@@ -2794,7 +2794,7 @@ HTML;
 	/**
 	 * @ticket 58873
 	 */
-	public function test_script_data_filter_for_external_script_flushes_concat_before_printing() {
+	public function test_script_client_data_filter_for_external_script_flushes_concat_before_printing() {
 		global $wp_scripts, $wp_version;
 
 		$wp_scripts->do_concat    = true;
@@ -2803,15 +2803,15 @@ HTML;
 		wp_enqueue_script( 'one', $this->default_scripts_dir . 'one.js' );
 		wp_enqueue_script( 'two', 'https://example.com/two.js', array(), null );
 		add_filter(
-			'script_data_two',
-			static function ( $data ) {
-				$data['clientData'] = 'ok';
-				return $data;
+			'script_client_data_two',
+			static function ( $client_data ) {
+				$client_data['clientData'] = 'ok';
+				return $client_data;
 			}
 		);
 
 		$expected  = "<script src='/wp-admin/load-scripts.php?c=0&amp;load%5Bchunk_0%5D=one&amp;ver={$wp_version}'></script>\n";
-		$expected .= "<script type='application/json' id='wp-script-data-two'>\n{\"clientData\":\"ok\"}\n</script>\n";
+		$expected .= "<script type='application/json' id='wp-script-client-data-two'>\n{\"clientData\":\"ok\"}\n</script>\n";
 		$expected .= "<script src='https://example.com/two.js' id='two-js'></script>\n";
 
 		$this->assertEqualHTML( $expected, get_echo( 'wp_print_scripts' ) );
@@ -2822,7 +2822,7 @@ HTML;
 	 *
 	 * @return array
 	 */
-	public static function data_script_data_encoding(): array {
+	public static function data_script_client_data_encoding(): array {
 		return array(
 			// UTF-8.
 			'Solidus'                                => array( '/', '/', 'UTF-8' ),

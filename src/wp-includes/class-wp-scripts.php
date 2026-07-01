@@ -250,64 +250,64 @@ class WP_Scripts extends WP_Dependencies {
 	}
 
 	/**
-	 * Gets data associated with a registered script.
+	 * Gets client data associated with a registered script.
 	 *
 	 * @since 7.1.0
 	 *
 	 * @param string $handle The script's registered handle.
-	 * @return string Script data HTML tag, or empty string when no data exists.
+	 * @return string Client data script tag, or empty string when no client data exists.
 	 */
-	private function get_script_data( $handle ) {
+	private function get_script_client_data_tag( $handle ) {
 		/**
-		 * Filters data associated with a given script.
+		 * Filters client data associated with a given script.
 		 *
-		 * Scripts may require data that is required for initialization or is essential
-		 * to have immediately available on page load. These are suitable use cases for
+		 * Scripts may require client data that is required for initialization or is
+		 * essential to have available on page load. These are suitable use cases for
 		 * this data.
 		 *
 		 * The dynamic portion of the hook name, `$handle`, refers to the script handle
-		 * that the data is associated with.
+		 * that the client data is associated with.
 		 *
-		 * This is best suited to pass essential data that must be available to the script
-		 * for initialization or immediately on page load. It does not replace the REST API
-		 * or fetching data from the client.
+		 * This is best suited to pass essential client data that must be available to the
+		 * script for initialization or immediately on page load. It does not replace the
+		 * REST API or client-side data fetching.
 		 *
 		 * Example:
 		 *
 		 *     add_filter(
-		 *         'script_data_my-handle',
-		 *         function ( array $data ): array {
-		 *             $data['dataForClient'] = 'ok';
-		 *             return $data;
+		 *         'script_client_data_my-handle',
+		 *         function ( array $client_data ): array {
+		 *             $client_data['dataForClient'] = 'ok';
+		 *             return $client_data;
 		 *         }
 		 *     );
 		 *
 		 * If the filter returns no data (an empty array), nothing will be embedded in the page.
 		 *
-		 * The data for a given script, if provided, will be JSON serialized in a script tag
-		 * with an ID of the form `wp-script-data-{$handle}`.
+		 * The client data for a given script, if provided, will be JSON serialized in a
+		 * script tag with an ID of the form `wp-script-client-data-{$handle}`.
 		 *
-		 * The data can be read on the client with a pattern like this:
+		 * The client data can be read with a pattern like this:
 		 *
 		 * Example:
 		 *
-		 *     const dataContainer = document.getElementById( 'wp-script-data-my-handle' );
-		 *     let data = {};
-		 *     if ( dataContainer ) {
+		 *     const clientDataContainer = document.getElementById( 'wp-script-client-data-my-handle' );
+		 *     let clientData = {};
+		 *     if ( clientDataContainer ) {
 		 *         try {
-		 *             data = JSON.parse( dataContainer.textContent );
+		 *             clientData = JSON.parse( clientDataContainer.textContent );
 		 *         } catch {}
 		 *     }
-		 *     // data.dataForClient === 'ok';
-		 *     initMyScriptWithData( data );
+		 *     // clientData.dataForClient === 'ok';
+		 *     initMyScriptWithData( clientData );
 		 *
 		 * @since 7.1.0
 		 *
-		 * @param array $data The data associated with the script.
+		 * @param array $client_data The client data associated with the script.
 		 */
-		$data = apply_filters( "script_data_{$handle}", array() );
+		$client_data = apply_filters( "script_client_data_{$handle}", array() );
 
-		if ( ! is_array( $data ) || array() === $data ) {
+		if ( ! is_array( $client_data ) || array() === $client_data ) {
 			return '';
 		}
 
@@ -317,10 +317,10 @@ class WP_Scripts extends WP_Dependencies {
 		}
 
 		return wp_get_inline_script_tag(
-			(string) wp_json_encode( $data, $json_encode_flags ),
+			(string) wp_json_encode( $client_data, $json_encode_flags ),
 			array(
 				'type' => 'application/json',
-				'id'   => "wp-script-data-{$handle}",
+				'id'   => "wp-script-client-data-{$handle}",
 			)
 		);
 	}
@@ -413,9 +413,9 @@ class WP_Scripts extends WP_Dependencies {
 			return false;
 		}
 
-		$script_data   = $this->get_script_data( $handle );
-		$before_script = $this->get_inline_script_tag( $handle, 'before' );
-		$after_script  = $this->get_inline_script_tag( $handle, 'after' );
+		$client_data_tag = $this->get_script_client_data_tag( $handle );
+		$before_script   = $this->get_inline_script_tag( $handle, 'before' );
+		$after_script    = $this->get_inline_script_tag( $handle, 'after' );
 
 		if ( $before_script || $after_script ) {
 			$inline_script_tag = $before_script . $after_script;
@@ -454,7 +454,7 @@ class WP_Scripts extends WP_Dependencies {
 			 */
 			$filtered_src = apply_filters( 'script_loader_src', $src, $handle );
 
-			if ( $script_data ) {
+			if ( $client_data_tag ) {
 				$this->do_concat = false;
 
 				// Have to print the so-far concatenated scripts right away to maintain the right order.
@@ -481,7 +481,7 @@ class WP_Scripts extends WP_Dependencies {
 			}
 		}
 
-		echo $script_data;
+		echo $client_data_tag;
 		$this->print_extra_script( $handle );
 
 		// A single item may alias a set of items, by having dependencies, but no source.
