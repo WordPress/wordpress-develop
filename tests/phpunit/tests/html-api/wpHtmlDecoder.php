@@ -120,7 +120,7 @@ class Tests_HtmlApi_WpHtmlDecoder extends WP_UnitTestCase {
 	 * @param string $context       Decoder context.
 	 * @param string $raw_text_node Raw text containing an unmatched named character reference.
 	 */
-	public function test_unmatched_named_character_reference_does_not_set_match_byte_length( $context, $raw_text_node ) {
+	public function test_unmatched_named_character_reference_does_not_set_match_byte_length( $context, $raw_text_node ): void {
 		$match_byte_length = 'sentinel';
 		$this->assertNull(
 			WP_HTML_Decoder::read_character_reference( $context, $raw_text_node, 0, $match_byte_length ),
@@ -132,9 +132,9 @@ class Tests_HtmlApi_WpHtmlDecoder extends WP_UnitTestCase {
 	/**
 	 * Data provider.
 	 *
-	 * @return array[].
+	 * @return array<string, array{string, string}>.
 	 */
-	public static function data_unmatched_named_character_references() {
+	public static function data_unmatched_named_character_references(): array {
 		return array(
 			'text invalid name'                      => array( 'data', '&bogus;' ),
 			'text invalid short-name candidate'      => array( 'data', '&Fv=q' ),
