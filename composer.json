@@ -13,11 +13,42 @@
 	"require": {
 		"ext-hash": "*",
 		"ext-json": "*",
+		"ext-mysqli": "*",
 		"php": ">=7.4"
 	},
 	"suggest": {
+		"ext-curl": "*",
 		"ext-dom": "*",
-		"ext-mysqli": "*"
+		"ext-exif": "*",
+		"ext-fileinfo": "*",
+		"ext-igbinary": "*",
+		"ext-imagick": "*",
+		"ext-intl": "*",
+		"ext-mbstring": "*",
+		"ext-openssl": "*",
+		"ext-xml": "*",
+		"ext-zip": "*",
+
+		"ext-apcu": "*",
+		"ext-memcached": "*",
+		"ext-opcache": "*",
+		"ext-redis": "*",
+
+		"ext-timezonedb": "*",
+
+		"ext-bc": "*",
+		"ext-filter": "*",
+		"ext-image": "*",
+		"ext-iconv": "*",
+		"ext-shmop": "*",
+		"ext-simplexml": "*",
+		"ext-sodium": "*",
+		"ext-xmlreader": "*",
+		"ext-zlib": "*",
+
+		"ext-ssh2": "*",
+		"ext-ftp": "*",
+		"ext-sockets": "*"
 	},
 	"require-dev": {
 		"composer/ca-bundle": "1.5.12",
