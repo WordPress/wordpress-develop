@@ -1183,13 +1183,7 @@ class WP_HTML_Tag_Processor {
 	 *     }
 	 *     // Outputs: "free <egg> lang-en "
 	 *
-	 * Class names from the input document already carry the tokenizer's
-	 * U+FFFD replacement of NULL bytes through `get_attribute()`; values
-	 * supplied through the API are returned verbatim, as `Element.classList`
-	 * does in the DOM.
-	 *
 	 * @since 6.4.0
-	 * @since 7.1.0 No longer replaces NULL bytes in API-supplied class values.
 	 *
 	 * @return Generator<int, non-empty-string>
 	 */
