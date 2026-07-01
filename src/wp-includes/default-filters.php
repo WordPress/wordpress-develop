@@ -696,6 +696,11 @@ add_action( 'customize_controls_enqueue_scripts', 'wp_plupload_default_settings'
 add_action( 'plugins_loaded', '_wp_add_additional_image_sizes', 0 );
 add_filter( 'plupload_default_settings', 'wp_show_heic_upload_error' );
 
+// JPEG XL (JXL) upload support: register the MIME type and restore it during
+// upload validation when fileinfo reports the non-canonical image/x-jxl form.
+add_filter( 'upload_mimes', 'wp_add_jxl_upload_mimes' );
+add_filter( 'wp_check_filetype_and_ext', 'wp_filter_jxl_filetype_and_ext', 10, 3 );
+
 // Client-side media processing.
 add_action( 'admin_init', 'wp_set_client_side_media_processing_flag' );
 // Cross-origin isolation for client-side media processing.

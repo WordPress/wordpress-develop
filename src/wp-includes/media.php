@@ -5772,6 +5772,94 @@ function wp_show_heic_upload_error( $plupload_settings ) {
 }
 
 /**
+ * Determines whether a file is a JPEG XL image by inspecting its magic bytes.
+ *
+ * JXL files come in two flavors: a naked codestream (starts with 0xFF 0x0A)
+ * and an ISOBMFF container (starts with the 12-byte JXL box signature).
+ *
+ * @since 7.1.0
+ *
+ * @param string $file Full path to the file.
+ * @return bool Whether the file is a JPEG XL image.
+ */
+function wp_is_jxl_file( $file ) {
+	$handle = @fopen( $file, 'rb' );
+	if ( ! $handle ) {
+		return false;
+	}
+
+	$bytes = fread( $handle, 12 );
+	fclose( $handle );
+
+	if ( ! is_string( $bytes ) || strlen( $bytes ) < 2 ) {
+		return false;
+	}
+
+	// Naked JXL codestream.
+	if ( "\xFF\x0A" === substr( $bytes, 0, 2 ) ) {
+		return true;
+	}
+
+	// JXL ISOBMFF container ("....JXL \r\n\x87\n").
+	if ( "\x00\x00\x00\x0C\x4A\x58\x4C\x20\x0D\x0A\x87\x0A" === $bytes ) {
+		return true;
+	}
+
+	return false;
+}
+
+/**
+ * Registers JPEG XL (JXL) as an allowed upload MIME type.
+ *
+ * JXL images are decoded to JPEG client-side via VIPS/WASM and the JPEG is
+ * uploaded; the original .jxl is preserved as a companion file. WordPress core
+ * does not include image/jxl in its default MIME list, so without this filter
+ * the editor's allowed-types check rejects the original .jxl before it can be
+ * converted, and the companion sideload is rejected by the server.
+ *
+ * @since 7.1.0
+ *
+ * @param array $mimes Allowed MIME types (extension => type).
+ * @return array Modified MIME types.
+ */
+function wp_add_jxl_upload_mimes( $mimes ) {
+	$mimes['jxl'] = 'image/jxl';
+	return $mimes;
+}
+
+/**
+ * Restores the JPEG XL MIME type during upload validation.
+ *
+ * fileinfo reports JXL as image/x-jxl (and getimagesize() cannot identify it
+ * at all), so WordPress core's wp_check_filetype_and_ext() rejects the upload
+ * because the detected MIME type does not match the registered image/jxl type.
+ * When the file is genuinely a JPEG XL (verified via its magic bytes), restore
+ * the expected extension and MIME type so the upload is allowed.
+ *
+ * @since 7.1.0
+ *
+ * @param array  $data     Values for the extension, MIME type, and corrected filename.
+ * @param string $file     Full path to the file.
+ * @param string $filename The name of the file.
+ * @return array Filtered values for the extension, MIME type, and corrected filename.
+ */
+function wp_filter_jxl_filetype_and_ext( $data, $file, $filename ) {
+	// Leave already-recognized files untouched.
+	if ( ! empty( $data['type'] ) ) {
+		return $data;
+	}
+
+	$ext = strtolower( pathinfo( $filename, PATHINFO_EXTENSION ) );
+
+	if ( 'jxl' === $ext && wp_is_jxl_file( $file ) ) {
+		$data['ext']  = 'jxl';
+		$data['type'] = 'image/jxl';
+	}
+
+	return $data;
+}
+
+/**
  * Allows PHP's getimagesize() to be debuggable when necessary.
  *
  * @since 5.7.0

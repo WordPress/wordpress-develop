@@ -68,6 +68,12 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			$valid_image_sizes = array_keys( wp_get_registered_image_subsizes() );
 			// Special case to set 'original_image' in attachment metadata.
 			$valid_image_sizes[] = 'original';
+			// JPEG XL (JXL) companion original preserved alongside the JPEG
+			// derivative. Stored under the dedicated 'source_image' meta key so it
+			// never collides with 'original_image' (which the scaled-sideload flow
+			// writes). The HEIC companion shares this key and lands in the HEIC
+			// upload backport.
+			$valid_image_sizes[] = 'original-jxl';
 			// Used for PDF thumbnails.
 			$valid_image_sizes[] = 'full';
 			// Client-side big image threshold: sideload the scaled version.
@@ -82,20 +88,25 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 						'callback'            => array( $this, 'sideload_item' ),
 						'permission_callback' => array( $this, 'sideload_item_permissions_check' ),
 						'args'                => array(
-							'id'             => array(
+							'id'                 => array(
 								'description' => __( 'Unique identifier for the attachment.' ),
 								'type'        => 'integer',
 							),
-							'image_size'     => array(
+							'image_size'         => array(
 								'description' => __( 'Image size.' ),
 								'type'        => 'string',
 								'enum'        => $valid_image_sizes,
 								'required'    => true,
 							),
-							'convert_format' => array(
+							'convert_format'     => array(
 								'type'        => 'boolean',
 								'default'     => true,
 								'description' => __( 'Whether to convert image formats.' ),
+							),
+							'generate_sub_sizes' => array(
+								'description' => __( 'Whether to generate image sub sizes from the sideloaded file.' ),
+								'type'        => 'boolean',
+								'default'     => false,
 							),
 						),
 					),
@@ -255,6 +266,17 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		// When the client handles image processing (generate_sub_sizes is false),
 		// skip the server-side image editor support check.
 		if ( false === $request['generate_sub_sizes'] ) {
+			$prevent_unsupported_uploads = false;
+		}
+
+		// Always allow HEIC/HEIF uploads through even if the server's image
+		// editor doesn't support them. The client-side canvas fallback will
+		// handle processing using the browser's native HEVC decoder.
+		if (
+			$prevent_unsupported_uploads &&
+			! empty( $files['file']['type'] ) &&
+			wp_is_heic_image_mime_type( $files['file']['type'] )
+		) {
 			$prevent_unsupported_uploads = false;
 		}
 
@@ -2090,6 +2112,14 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 
 		if ( 'original' === $image_size ) {
 			$metadata['original_image'] = wp_basename( $path );
+		} elseif ( 'original-jxl' === $image_size ) {
+			// JXL companion original: stored under the dedicated 'source_image'
+			// meta key so the scaled-sideload flow (which writes 'original_image')
+			// cannot clobber it. 'original_image' keeps pointing at the
+			// web-viewable JPEG derivative. Cleanup on attachment delete is
+			// handled by the delete_attachment hook in the HEIC upload backport,
+			// which reads this same 'source_image' key.
+			$metadata['source_image'] = wp_basename( $path );
 		} elseif ( 'scaled' === $image_size ) {
 			// The current attached file is the original; record it as original_image.
 			$current_file = get_attached_file( $attachment_id, true );

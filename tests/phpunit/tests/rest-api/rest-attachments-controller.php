@@ -3352,6 +3352,39 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	}
 
 	/**
+	 * Tests that the sideload endpoint includes 'original-jxl' in the image_size enum.
+	 *
+	 * @ticket 64915
+	 */
+	public function test_sideload_route_includes_original_jxl_enum() {
+		$this->enable_client_side_media_processing();
+
+		$routes   = rest_get_server()->get_routes();
+		$endpoint = $routes['/wp/v2/media/(?P<id>[\d]+)/sideload'][0];
+		$args     = $endpoint['args'];
+
+		$this->assertArrayHasKey( 'image_size', $args, 'Route should have image_size arg.' );
+		$this->assertContains( 'original-jxl', $args['image_size']['enum'], 'image_size enum should include original-jxl.' );
+	}
+
+	/**
+	 * Tests that the sideload endpoint exposes the generate_sub_sizes arg.
+	 *
+	 * @ticket 64915
+	 */
+	public function test_sideload_route_includes_generate_sub_sizes_arg() {
+		$this->enable_client_side_media_processing();
+
+		$routes   = rest_get_server()->get_routes();
+		$endpoint = $routes['/wp/v2/media/(?P<id>[\d]+)/sideload'][0];
+		$args     = $endpoint['args'];
+
+		$this->assertArrayHasKey( 'generate_sub_sizes', $args, 'Route should have generate_sub_sizes arg.' );
+		$this->assertSame( 'boolean', $args['generate_sub_sizes']['type'], 'generate_sub_sizes should be a boolean.' );
+		$this->assertFalse( $args['generate_sub_sizes']['default'], 'generate_sub_sizes should default to false on sideload.' );
+	}
+
+	/**
 	 * Tests the filter_wp_unique_filename method handles the -scaled suffix.
 	 *
 	 * @ticket 64737
