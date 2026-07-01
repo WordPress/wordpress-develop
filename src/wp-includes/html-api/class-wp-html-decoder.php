@@ -53,7 +53,7 @@ class WP_HTML_Decoder {
 				return false;
 			}
 
-			// If there's no character reference but the character do match, then it could still match.
+			// If there's no character reference but the characters do match, then it could still match.
 			if ( null === $next_chunk && $chars_match ) {
 				++$haystack_at;
 				++$search_at;
