@@ -117,7 +117,7 @@ switch ( $action ) {
 		}
 
 		edit_post();
-		wp_dashboard_quick_press( __( 'Draft created successfully.' ), 'notice-success' );
+		wp_dashboard_quick_press( __( 'Draft created successfully.' ), 'success' );
 		exit;
 
 	case 'postajaxpost':

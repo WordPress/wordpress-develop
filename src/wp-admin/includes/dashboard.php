@@ -546,9 +546,9 @@ function wp_network_dashboard_right_now() {
  * @global int $post_ID
  *
  * @param string|false $message     Optional. Error or success message. Default false.
- * @param string       $notice_type Optional. Admin notice type. Default 'notice-error'.
+ * @param string       $notice_type Optional. Admin notice type. Default 'error'.
  */
-function wp_dashboard_quick_press( $message = false, $notice_type = 'notice-error' ) {
+function wp_dashboard_quick_press( $message = false, $notice_type = 'error' ) {
 	global $post_ID;
 
 	if ( ! current_user_can( 'edit_posts' ) ) {
@@ -587,8 +587,8 @@ function wp_dashboard_quick_press( $message = false, $notice_type = 'notice-erro
 			wp_admin_notice(
 				$message,
 				array(
-					'additional_classes' => array( $notice_type ),
-					'attributes'         => array(
+					'type'       => $notice_type,
+					'attributes' => array(
 						'role' => 'alert',
 					),
 				)
