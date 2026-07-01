@@ -2857,18 +2857,15 @@ class WP_HTML_Tag_Processor {
 	}
 
 	/**
-	 * Returns the decoded value of an attribute found in the input document.
+	 * Returns the value of an attribute found in the input document.
 	 *
-	 * The Tag Processor defers the HTML input-stream preprocessing and the
-	 * tokenizer's replacements while scanning; they must be applied when
-	 * reading a value out of the document: newlines are normalized before
-	 * character references decode, and U+0000 NULL bytes are replaced
-	 * with U+FFFD. The replacements operate on bytes; NULL bytes inside
-	 * invalid UTF-8 sequences are replaced individually where a browser,
-	 * decoding the byte stream into characters first, may differ.
+	 * Input stream processing is avoided but must be applied when
+	 * reading from the source document.
 	 *
-	 * @see https://html.spec.whatwg.org/#preprocessing-the-input-stream
-	 * @see https://html.spec.whatwg.org/#attribute-value-(double-quoted)-state
+	 * Applies:
+	 *   - Newline normalization (CRLF and CR to LF)
+	 *   - NULL byte replacement (U+0000 to U+FFFD)
+	 *   - Attribute value decoding
 	 *
 	 * @since 7.1.0
 	 *
@@ -2877,34 +2874,10 @@ class WP_HTML_Tag_Processor {
 	 */
 	private function get_decoded_source_attribute_value( WP_HTML_Attribute_Token $attribute ): string {
 		$raw_value = substr( $this->html, $attribute->value_starts_at, $attribute->value_length );
-
-		/*
-		 * Newline normalization is part of preprocessing the input stream
-		 * and precedes character reference decoding: `&#13;` decodes into
-		 * a carriage return which must be preserved. The check avoids
-		 * scanning the value again when it contains no carriage return;
-		 * most values contain none.
-		 */
-		if ( false !== strpos( $raw_value, "\r" ) ) {
-			$raw_value = str_replace( "\r\n", "\n", $raw_value );
-			$raw_value = str_replace( "\r", "\n", $raw_value );
-		}
-
-		$decoded_value = WP_HTML_Decoder::decode_attribute( $raw_value );
-
-		/*
-		 * The tokenizer replaces U+0000 NULL bytes as it consumes input:
-		 * character references see the raw NULL byte — an unambiguous
-		 * follower for references without a terminating semicolon — and
-		 * no character reference decodes into NULL, so the replacement
-		 * applies equivalently after decoding, where it cannot disturb
-		 * how references parse.
-		 */
-		if ( false !== strpos( $decoded_value, "\x00" ) ) {
-			$decoded_value = str_replace( "\x00", "\u{FFFD}", $decoded_value );
-		}
-
-		return $decoded_value;
+		$raw_value = str_replace( "\r\n", "\n", $raw_value );
+		$raw_value = str_replace( "\r", "\n", $raw_value );
+		$raw_value = str_replace( "\x00", "\u{FFFD}", $raw_value );
+		return WP_HTML_Decoder::decode_attribute( $raw_value );
 	}
 
 	/**
