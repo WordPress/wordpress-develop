@@ -9,53 +9,54 @@
  */
 class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Controller_Testcase {
 
-	protected static $superadmin_id;
-	protected static $editor_id;
-	protected static $author_id;
-	protected static $contributor_id;
-	protected static $uploader_id;
-	protected static $rest_after_insert_attachment_count;
-	protected static $rest_insert_attachment_count;
+	protected static int $superadmin_id;
+	protected static int $editor_id;
+	protected static int $author_id;
+	protected static int $contributor_id;
+	protected static int $uploader_id;
+	protected static int $rest_after_insert_attachment_count;
+	protected static int $rest_insert_attachment_count;
 
 	/**
 	 * @var string The path to a test file.
 	 */
-	private static $test_file;
+	private static string $test_file;
 
 	/**
 	 * @var string The path to a second test file.
 	 */
-	private static $test_file2;
+	private static string $test_file2;
 
 	/**
 	 * @var string The path to the AVIF test image.
 	 */
-	private static $test_avif_file;
+	private static string $test_avif_file;
 
 	/**
 	 * @var string The path to the SVG test image.
 	 */
-	private static $test_svg_file;
+	private static string $test_svg_file;
 
 	/**
 	 * @var string The path to the test video.
 	 */
-	private static $test_video_file;
+	private static string $test_video_file;
 
 	/**
 	 * @var string The path to the test audio.
 	 */
-	private static $test_audio_file;
+	private static string $test_audio_file;
 
 	/**
 	 * @var string The path to the test RTF file.
 	 */
-	private static $test_rtf_file;
+	private static string $test_rtf_file;
 
 	/**
-	 * @var array The recorded posts query clauses.
+	 * @var array[] The recorded posts query clauses. Each entry is the array of
+	 *              SQL clause fragments passed to the `posts_clauses` filter.
 	 */
-	protected $posts_clauses;
+	protected array $posts_clauses;
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$superadmin_id  = $factory->user->create(
@@ -3016,6 +3017,106 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	}
 
 	/**
+	 * Test that still HEIC/HEIF uploads bypass the image editor support check.
+	 *
+	 * The browser's canvas fallback can always decode still HEIC/HEIF, so the
+	 * upload is allowed even when the server has no editor that supports it.
+	 *
+	 * @ticket 64915
+	 *
+	 * @dataProvider data_still_heic_mime_types
+	 *
+	 * @param string $mime_type Still HEIC/HEIF mime type.
+	 */
+	public function test_upload_still_heic_bypasses_unsupported_image_type_check( $mime_type ) {
+		wp_set_current_user( self::$author_id );
+
+		add_filter( 'wp_image_editors', '__return_empty_array' );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
+		$request->set_file_params(
+			array(
+				'file' => array(
+					'name'     => 'canola.heic',
+					'type'     => $mime_type,
+					'tmp_name' => DIR_TESTDATA . '/images/test-image.heic',
+					'error'    => 0,
+					'size'     => filesize( DIR_TESTDATA . '/images/test-image.heic' ),
+				),
+			)
+		);
+
+		$controller = new WP_REST_Attachments_Controller( 'attachment' );
+		$result     = $controller->create_item_permissions_check( $request );
+
+		// Should pass because the browser can decode still HEIC/HEIF client-side.
+		$this->assertTrue( $result );
+	}
+
+	/**
+	 * Data provider for still HEIC/HEIF mime types.
+	 *
+	 * @return array[]
+	 */
+	public function data_still_heic_mime_types() {
+		return array(
+			'heic' => array( 'image/heic' ),
+			'heif' => array( 'image/heif' ),
+		);
+	}
+
+	/**
+	 * Test that HEIC/HEIF sequence uploads do not bypass the editor support check.
+	 *
+	 * The multi-frame '-sequence' variants (Live Photos) cannot be processed by
+	 * the server or decoded by the browser fallback, so they should fall through
+	 * to the standard unsupported mime-type error rather than be stored.
+	 *
+	 * @ticket 64915
+	 *
+	 * @dataProvider data_heic_sequence_mime_types
+	 *
+	 * @param string $mime_type HEIC/HEIF sequence mime type.
+	 */
+	public function test_upload_heic_sequence_is_not_bypassed( $mime_type ) {
+		wp_set_current_user( self::$author_id );
+
+		add_filter( 'wp_image_editors', '__return_empty_array' );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
+		$request->set_file_params(
+			array(
+				'file' => array(
+					'name'     => 'live-photo.heic',
+					'type'     => $mime_type,
+					'tmp_name' => DIR_TESTDATA . '/images/test-image.heic',
+					'error'    => 0,
+					'size'     => filesize( DIR_TESTDATA . '/images/test-image.heic' ),
+				),
+			)
+		);
+
+		$controller = new WP_REST_Attachments_Controller( 'attachment' );
+		$result     = $controller->create_item_permissions_check( $request );
+
+		// Should fail: sequences are unsupported by both the server and the fallback.
+		$this->assertWPError( $result );
+		$this->assertSame( 'rest_upload_image_type_not_supported', $result->get_error_code() );
+	}
+
+	/**
+	 * Data provider for HEIC/HEIF sequence mime types.
+	 *
+	 * @return array[]
+	 */
+	public function data_heic_sequence_mime_types() {
+		return array(
+			'heic-sequence' => array( 'image/heic-sequence' ),
+			'heif-sequence' => array( 'image/heif-sequence' ),
+		);
+	}
+
+	/**
 	 * Test that uploading an SVG image doesn't throw a `rest_upload_image_type_not_supported` error.
 	 *
 	 * @ticket 63302
@@ -3346,28 +3447,37 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	}
 
 	/**
-	 * Tests that the sideload endpoint accepts 'scaled' as an image size.
+	 * Tests that the sideload endpoint accepts the expected image sizes and does
+	 * not expose a generate_sub_sizes arg.
 	 *
 	 * The image_size argument accepts either a single size name or an array of
-	 * size names, so it validates via a custom callback rather than an enum.
+	 * size names, so it validates via a custom callback rather than an enum. The
+	 * callback must accept 'scaled' and the 'source_original' source-format size,
+	 * and reject unknown sizes.
+	 *
+	 * sideload_item() never reads generate_sub_sizes, so advertising it on the
+	 * route would silently mislead clients into expecting server-side sub-size
+	 * generation. That arg only does real work on create_item() (POST /wp/v2/media).
 	 *
 	 * @ticket 64737
+	 * @ticket 64915
 	 */
-	public function test_sideload_route_accepts_scaled_image_size() {
+	public function test_sideload_route_accepts_expected_image_sizes() {
 		$this->enable_client_side_media_processing();
 
-		$server = rest_get_server();
-		$routes = $server->get_routes();
-
-		$endpoint = '/wp/v2/media/(?P<id>[\d]+)/sideload';
-		$this->assertArrayHasKey( $endpoint, $routes, 'Sideload route should exist.' );
-
-		$route    = $routes[ $endpoint ];
-		$endpoint = $route[0];
-		$args     = $endpoint['args'];
+		$routes = rest_get_server()->get_routes();
+		$path   = '/wp/v2/media/(?P<id>[\d]+)/sideload';
+		$this->assertArrayHasKey( $path, $routes, 'Sideload route should exist.' );
+		$this->assertIsArray( $routes[ $path ] );
+		$endpoint = array_first( $routes[ $path ] );
+		$this->assertIsArray( $endpoint );
+		$this->assertArrayHasKey( 'args', $endpoint, 'Route endpoint should declare args.' );
+		$args = $endpoint['args'];
+		$this->assertIsArray( $args );
 
 		$param_name = 'image_size';
 		$this->assertArrayHasKey( $param_name, $args, 'Route should have image_size arg.' );
+		$this->assertIsArray( $args[ $param_name ] );
 		$this->assertArrayHasKey(
 			'validate_callback',
 			$args[ $param_name ],
@@ -3382,6 +3492,10 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 			'image_size validation should accept the scaled size.'
 		);
 		$this->assertTrue(
+			$validate( WP_REST_Attachments_Controller::IMAGE_SIZE_SOURCE_ORIGINAL, $request, $param_name ),
+			'image_size validation should accept the source_original source-format size.'
+		);
+		$this->assertTrue(
 			$validate( array( 'scaled' ), $request, $param_name ),
 			'image_size validation should accept an array of size names.'
 		);
@@ -3389,6 +3503,75 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 			$validate( 'not-a-real-size', $request, $param_name ),
 			'image_size validation should reject an unknown size.'
 		);
+
+		$this->assertArrayNotHasKey( 'generate_sub_sizes', $args, 'Sideload route should not advertise the unused generate_sub_sizes arg.' );
+	}
+
+	/**
+	 * Tests sideloading a 'source_original' companion file alongside its JPEG
+	 * derivative. The HEIC filename is recorded under $metadata['source_image']
+	 * so it does not collide with 'original_image', which the scaled-sideload
+	 * flow owns. Metadata is written by the finalize endpoint, not the sideload.
+	 *
+	 * @ticket 64915
+	 * @requires function imagejpeg
+	 */
+	public function test_sideload_source_original_writes_metadata_source_image(): void {
+		$this->enable_client_side_media_processing();
+
+		wp_set_current_user( self::$author_id );
+
+		// Create the JPEG attachment that the HEIC will be a companion to.
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
+		$request->set_header( 'Content-Type', 'image/jpeg' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=canola.jpg' );
+		$request->set_body( (string) file_get_contents( self::$test_file ) );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+		$this->assertIsArray( $data );
+		$this->assertArrayHasKey( 'id', $data );
+		$attachment_id = $data['id'];
+		$this->assertIsInt( $attachment_id );
+
+		$this->assertSame( 201, $response->get_status() );
+
+		/*
+		 * Sideload the HEIC companion using the real HEIC fixture. `convert_format`
+		 * is disabled so the default HEIC -> JPEG output mapping does not rename
+		 * the file or append an alt-extension suffix. The sideload returns
+		 * lightweight sub-size data; metadata is written by finalize.
+		 */
+		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment_id}/sideload" );
+		$request->set_header( 'Content-Type', 'image/heic' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=canola.heic' );
+		$request->set_param( 'image_size', WP_REST_Attachments_Controller::IMAGE_SIZE_SOURCE_ORIGINAL );
+		$request->set_param( 'convert_format', false );
+		$request->set_body( (string) file_get_contents( DIR_TESTDATA . '/images/test-image.heic' ) );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status(), 'Sideloading source_original should succeed.' );
+
+		$sub_size = $response->get_data();
+		$this->assertIsArray( $sub_size );
+		$this->assertSame( WP_REST_Attachments_Controller::IMAGE_SIZE_SOURCE_ORIGINAL, $sub_size['image_size'], 'Response should echo the image_size.' );
+		$this->assertMatchesRegularExpression( '/canola.*\.heic$/', $sub_size['file'], 'Response file should reference the HEIC filename.' );
+
+		// Sideload must not write metadata; that happens in finalize.
+		$metadata = wp_get_attachment_metadata( $attachment_id, true );
+		$this->assertArrayNotHasKey( 'source_image', $metadata, 'Sideload should not write source_image metadata.' );
+
+		// Finalize with the collected sub-size, which writes the metadata.
+		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment_id}/finalize" );
+		$request->set_param( 'sub_sizes', array( $sub_size ) );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status(), 'Finalize should succeed.' );
+
+		$metadata = wp_get_attachment_metadata( $attachment_id );
+		$this->assertIsArray( $metadata );
+		$this->assertArrayHasKey( 'source_image', $metadata, "Metadata should contain 'source_image' for the HEIC companion." );
+		$this->assertMatchesRegularExpression( '/canola.*\.heic$/', $metadata['source_image'], "Metadata 'source_image' should reference the HEIC filename." );
+		$this->assertArrayNotHasKey( 'original_image', $metadata, "Metadata 'original_image' should be untouched by the HEIC sideload." );
 	}
 
 	/**
