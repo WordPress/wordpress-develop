@@ -1300,7 +1300,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		}
 
 		if ( wp_attachment_is_image( $post ) ) {
-			$mime_type = get_post_mime_type( $post );
+			$mime_type = (string) get_post_mime_type( $post );
 
 			/*
 			 * Per-file output format for images, evaluated with the real filename
