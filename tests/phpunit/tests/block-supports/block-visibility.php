@@ -80,12 +80,13 @@ class Tests_Block_Supports_Block_Visibility extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that block visibility support renders block normally when visibility is false
-	 * but blockVisibility support is not opted in.
+	 * Tests that block visibility support hides the block when visibility is false
+	 * even when blockVisibility support is not opted in.
 	 *
 	 * @ticket 64061
+	 * @ticket 65389
 	 */
-	public function test_block_visibility_support_shows_block_when_support_not_opted_in(): void {
+	public function test_block_visibility_support_hides_block_when_visibility_false_even_without_support(): void {
 		$this->register_visibility_block_with_support(
 			'test/visibility-block',
 			array( 'visibility' => false )
@@ -103,7 +104,7 @@ class Tests_Block_Supports_Block_Visibility extends WP_UnitTestCase {
 
 		$result = wp_render_block_visibility_support( $block_content, $block );
 
-		$this->assertSame( $block_content, $result, 'Block content should remain unchanged when blockVisibility support is not opted in.' );
+		$this->assertSame( '', $result, 'Block content should be empty when blockVisibility is false, even without visibility support.' );
 	}
 
 	/**

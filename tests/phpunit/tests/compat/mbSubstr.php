@@ -46,18 +46,18 @@ class Tests_Compat_mbSubstr extends WP_UnitTestCase {
 	 */
 	public function data_utf8_substrings() {
 		return array(
-			'баба'           => array( 'баба', 0, 3 ),
-			'баба'           => array( 'баба', 0, -1 ),
-			'баба'           => array( 'баба', 1, null ),
-			'баба'           => array( 'баба', -3, null ),
-			'баба'           => array( 'баба', -3, 2 ),
-			'баба'           => array( 'баба', -2, 1 ),
-			'баба'           => array( 'баба', 30, 1 ),
-			'баба'           => array( 'баба', 15, -30 ),
-			'баба'           => array( 'баба', -5, -5 ),
-			'баба'           => array( 'баба', 5, -3 ),
-			'баба'           => array( 'баба', -3, 5 ),
-			'I am your баба' => array( 'I am your баба', 0, 11 ),
+			'positive start, positive length'              => array( 'баба', 0, 3 ),
+			'positive start, negative length'              => array( 'баба', 0, -1 ),
+			'positive start, null length'                  => array( 'баба', 1, null ),
+			'negative start, null length'                  => array( 'баба', -3, null ),
+			'negative start, positive length'              => array( 'баба', -3, 2 ),
+			'negative start near end, positive length'     => array( 'баба', -2, 1 ),
+			'start beyond length, positive length'         => array( 'баба', 30, 1 ),
+			'start beyond length, large negative length'   => array( 'баба', 15, -30 ),
+			'negative start beyond start, negative length' => array( 'баба', -5, -5 ),
+			'start beyond length, negative length'         => array( 'баба', 5, -3 ),
+			'negative start, length beyond end'            => array( 'баба', -3, 5 ),
+			'multibyte character in longer string'         => array( 'I am your баба', 0, 11 ),
 		);
 	}
 
