@@ -16,7 +16,8 @@
 		"php": ">=7.4"
 	},
 	"suggest": {
-		"ext-dom": "*"
+		"ext-dom": "*",
+		"ext-mysqli": "*"
 	},
 	"require-dev": {
 		"composer/ca-bundle": "1.5.12",

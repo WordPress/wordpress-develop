@@ -257,11 +257,27 @@ class Tests_HtmlApi_WpHtmlProcessor_Serialize extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * XMP contents are parsed using the generic raw text element parsing algorithm.
+	 * Their contents should not be escaped with HTML character references on normalization.
+	 *
+	 * @ticket 65372
+	 */
+	public function test_xmp_contents_are_not_escaped() {
+		$normalized = WP_HTML_Processor::normalize( "<xmp> < > & \" ' \x00 </xmp>" );
+
+		$this->assertSame(
+			"<xmp> < > & \" ' \u{FFFD} </xmp>",
+			$normalized,
+			'Should have preserved text inside an XMP element, except for replacing NULL bytes.'
+		);
+	}
+
 	public function test_unexpected_closing_tags_are_removed() {
 		$this->assertSame(
 			WP_HTML_Processor::normalize( 'one</div>two</span>three' ),
 			'onetwothree',
-			'Should have removed unpected closing tags.'
+			'Should have removed unexpected closing tags.'
 		);
 	}
 
@@ -404,6 +420,7 @@ class Tests_HtmlApi_WpHtmlProcessor_Serialize extends WP_UnitTestCase {
 			'Foreign content text' => array( "<svg>one\x00two</svg>", "<svg>one\u{FFFD}two</svg>" ),
 			'SCRIPT content'       => array( "<script>alert(\x00)</script>", "<script>alert(\u{FFFD})</script>" ),
 			'STYLE content'        => array( "<style>\x00 {}</style>", "<style>\u{FFFD} {}</style>" ),
+			'XMP content'          => array( "<xmp>a\x00b</xmp>", "<xmp>a\u{FFFD}b</xmp>" ),
 			'Comment text'         => array( "<!-- \x00 -->", "<!-- \u{FFFD} -->" ),
 		);
 	}
@@ -446,21 +463,30 @@ class Tests_HtmlApi_WpHtmlProcessor_Serialize extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Ensures that leading newlines in PRE, LISTING, and TEXTAREA elements are preserved upon normalization,
-	 * and that normalization is idempotent in these cases.
+	 * Ensures that leading newlines in PRE, LISTING, and TEXTAREA elements are normalized
+	 * according to their parsing namespace, and that normalization is idempotent in these cases.
 	 *
 	 * @ticket 64607
 	 *
 	 * @dataProvider data_provider_normalize_special_leading_newline_cases
 	 *
 	 * @param string $input    HTML input containing leading newlines in PRE, LISTING, or TEXTAREA elements.
-	 * @param string $expected Expected output after normalization, which should preserve leading newlines.
+	 * @param string $expected Expected exact output after normalization.
 	 */
 	public function test_normalize_special_leading_newline_handling( string $input, string $expected ) {
 		$normalized = WP_HTML_Processor::normalize( $input );
-		$this->assertEqualHTML( $expected, $normalized );
+
+		/*
+		 * Byte equality pins normalize()'s serialized form; HTML equality verifies
+		 * semantic equivalence. This distinction matters because HTML parsing ignores
+		 * one leading LF after PRE, LISTING, and TEXTAREA start tags.
+		 */
+		$this->assertSame( $expected, $normalized );
+		$this->assertEqualHTML( $input, $normalized );
+
 		$normalized_twice = WP_HTML_Processor::normalize( $normalized );
-		$this->assertEqualHTML( $expected, $normalized_twice );
+		$this->assertSame( $expected, $normalized_twice );
+		$this->assertEqualHTML( $normalized, $normalized_twice );
 	}
 
 	/**
@@ -629,19 +655,20 @@ class Tests_HtmlApi_WpHtmlProcessor_Serialize extends WP_UnitTestCase {
 			'Duplicate ALT boundary'                    => array( '<r alt=\'\'d alt=""=>' ),
 			'NULL byte in SVG child tag'                => array( "<svg><l\x00 '>" ),
 			'NULL byte before slash in SVG child tag'   => array( "<svg><l\x00/r>" ),
+			'XMP generic raw text'                      => array( "<xmp> < > & \" ' \x00 </xmp>" ),
 		);
 	}
 
 	/**
 	 * Data provider.
 	 *
-	 * @return array[]
+	 * @return array<string, array{string, string}>
 	 */
-	public static function data_provider_normalize_special_leading_newline_cases() {
+	public static function data_provider_normalize_special_leading_newline_cases(): array {
 		return array(
 			'Leading newline in PRE'             => array(
 				"<pre>\nline 1\nline 2</pre>",
-				"<pre>line 1\nline 2</pre>",
+				"<pre>\nline 1\nline 2</pre>",
 			),
 			'Double leading newline in PRE'      => array(
 				"<pre>\n\nline 2\nline 3</pre>",
@@ -649,7 +676,7 @@ class Tests_HtmlApi_WpHtmlProcessor_Serialize extends WP_UnitTestCase {
 			),
 			'Multiple text nodes inside PRE'     => array(
 				"<pre>\nline 1<!--comment--> still line 1</pre>",
-				'<pre>line 1<!--comment--> still line 1</pre>',
+				"<pre>\nline 1<!--comment--> still line 1</pre>",
 			),
 			'Multiple text nodes inside PRE with leading newlines' => array(
 				"<pre>\n\nline 2<!--comment--> still line 2</pre>",
@@ -657,7 +684,7 @@ class Tests_HtmlApi_WpHtmlProcessor_Serialize extends WP_UnitTestCase {
 			),
 			'Leading newline in LISTING'         => array(
 				"<listing>\nline 1\nline 2</listing>",
-				"<listing>line 1\nline 2</listing>",
+				"<listing>\nline 1\nline 2</listing>",
 			),
 			'Double leading newline in LISTING'  => array(
 				"<listing>\n\nline 2\nline 3</listing>",
@@ -665,7 +692,7 @@ class Tests_HtmlApi_WpHtmlProcessor_Serialize extends WP_UnitTestCase {
 			),
 			'Multiple text nodes inside LISTING' => array(
 				"<listing>\nline 1<!--comment--> still line 1</listing>",
-				'<listing>line 1<!--comment--> still line 1</listing>',
+				"<listing>\nline 1<!--comment--> still line 1</listing>",
 			),
 			'Multiple text nodes inside LISTING with leading newlines' => array(
 				"<listing>\n\nline 2<!--comment--> still line 2</listing>",
@@ -673,11 +700,27 @@ class Tests_HtmlApi_WpHtmlProcessor_Serialize extends WP_UnitTestCase {
 			),
 			'Leading newline in TEXTAREA'        => array(
 				"<textarea>\nline 1\nline 2</textarea>",
-				"<textarea>line 1\nline 2</textarea>",
+				"<textarea>\nline 1\nline 2</textarea>",
 			),
 			'Double leading newline in TEXTAREA' => array(
 				"<textarea>\n\nline 2\nline 3</textarea>",
 				"<textarea>\n\nline 2\nline 3</textarea>",
+			),
+			'Foreign MathML TEXTAREA does not ignore leading newlines' => array(
+				'<math><textarea>X</textarea></math>',
+				'<math><textarea>X</textarea></math>',
+			),
+			'Foreign MathML TEXTAREA preserves leading newline' => array(
+				"<math><textarea>\nX</textarea></math>",
+				"<math><textarea>\nX</textarea></math>",
+			),
+			'Foreign SVG TEXTAREA does not ignore leading newlines' => array(
+				'<svg><textarea>X</textarea></svg>',
+				'<svg><textarea>X</textarea></svg>',
+			),
+			'Foreign SVG TEXTAREA preserves leading newline' => array(
+				"<svg><textarea>\nX</textarea></svg>",
+				"<svg><textarea>\nX</textarea></svg>",
 			),
 		);
 	}
