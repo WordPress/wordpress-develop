@@ -5,11 +5,16 @@
 	width: 100%;
 	position: relative;
 	-webkit-font-smoothing: subpixel-antialiased;
+	background: #1e1e1e;
 }
 
 #wpcontent {
 	height: 100%;
 	padding-left: 20px;
+	background: #f0f0f1;
+	border-radius: 8px;
+	margin-bottom: 8px;
+	margin-right: 8px;
 }
 
 #wpcontent,
@@ -222,7 +227,7 @@ body {
 }
 
 body {
-	background: #f0f0f1;
+	background: #1e1e1e;
 	color: #3c434a;
 	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
 	font-size: 13px;
@@ -2388,7 +2393,7 @@ html.wp-toolbar {
 	bottom: 0;
 	left: 0;
 	right: 0;
-	padding: 10px 20px;
+	padding: 10px 28px 18px 20px;
 	color: #50575e;
 }
 
