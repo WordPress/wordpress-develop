@@ -2260,13 +2260,11 @@ class WP_HTML_Tag_Processor {
 		 * > case-insensitive match for each other.
 		 *     - HTML 5 spec
 		 *
-		 * The tokenizer would have replaced U+0000 NULL bytes in attribute
-		 * names with U+FFFD, so names which differ only by those bytes are
-		 * duplicates. The replacement applies to the comparable name — a
-		 * comparison artifact — while the raw span in the document remains
-		 * untouched.
-		 *
 		 * @see https://html.spec.whatwg.org/multipage/syntax.html#attributes-2:ascii-case-insensitive
+		 *
+		 * The tokenizer replaces U+0000 NULL bytes in attribute
+		 * names with U+FFFD.
+		 *
 		 * @see https://html.spec.whatwg.org/#attribute-name-state
 		 */
 		$comparable_name = strtolower( str_replace( "\x00", "\u{FFFD}", $attribute_name ) );
