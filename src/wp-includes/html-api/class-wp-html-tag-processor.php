@@ -2868,6 +2868,7 @@ class WP_HTML_Tag_Processor {
 	 *   - Attribute value decoding
 	 *
 	 * @since 7.1.0
+	 * @ignore
 	 *
 	 * @param WP_HTML_Attribute_Token $attribute Attribute token from the input document.
 	 * @return string Decoded attribute value.
