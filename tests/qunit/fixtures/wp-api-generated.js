@@ -3693,19 +3693,14 @@ mockedApiResponse.Schema = {
                             "required": false
                         },
                         "image_size": {
-                            "description": "Image size.",
-                            "type": "string",
-                            "enum": [
-                                "thumbnail",
-                                "medium",
-                                "medium_large",
-                                "large",
-                                "1536x1536",
-                                "2048x2048",
-                                "original",
-                                "full",
-                                "scaled"
+                            "description": "Image size. Can be a single size name or an array of size names to register the same file under multiple sizes.",
+                            "type": [
+                                "string",
+                                "array"
                             ],
+                            "items": {
+                                "type": "string"
+                            },
                             "required": true
                         },
                         "convert_format": {
@@ -3742,7 +3737,14 @@ mockedApiResponse.Schema = {
                                 "type": "object",
                                 "properties": {
                                     "image_size": {
-                                        "type": "string",
+                                        "description": "Size name, or an array of size names when a single file is registered under multiple sizes with matching dimensions.",
+                                        "type": [
+                                            "string",
+                                            "array"
+                                        ],
+                                        "items": {
+                                            "type": "string"
+                                        },
                                         "required": true
                                     },
                                     "width": {
@@ -12911,10 +12913,6 @@ mockedApiResponse.Schema = {
         }
     },
     "image_size_threshold": 2560,
-    "image_output_formats": {},
-    "jpeg_interlaced": false,
-    "png_interlaced": false,
-    "gif_interlaced": false,
     "site_logo": 0,
     "site_icon": 0,
     "site_icon_url": ""

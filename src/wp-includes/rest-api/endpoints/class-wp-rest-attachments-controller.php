@@ -25,6 +25,29 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	protected $allow_batch = false;
 
 	/**
+	 * Image size token for the source-format original preserved alongside a
+	 * client-generated derivative (e.g. the HEIC file kept next to its JPEG).
+	 *
+	 * Used both in the `/sideload` route schema and when dispatching the
+	 * sideloaded file to its metadata key, so the two never drift apart.
+	 *
+	 * @since 7.1.0
+	 * @var string
+	 */
+	const IMAGE_SIZE_SOURCE_ORIGINAL = 'source_original';
+
+	/**
+	 * Metadata key holding the basename of the source-format original.
+	 *
+	 * Deliberately specific so it never collides with the generic `original`
+	 * or `original_image` keys other flows write to.
+	 *
+	 * @since 7.1.0
+	 * @var string
+	 */
+	const META_KEY_SOURCE_IMAGE = 'source_image';
+
+	/**
 	 * Registers the routes for attachments.
 	 *
 	 * @since 5.3.0
@@ -65,14 +88,6 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		);
 
 		if ( wp_is_client_side_media_processing_enabled() ) {
-			$valid_image_sizes = array_keys( wp_get_registered_image_subsizes() );
-			// Special case to set 'original_image' in attachment metadata.
-			$valid_image_sizes[] = 'original';
-			// Used for PDF thumbnails.
-			$valid_image_sizes[] = 'full';
-			// Client-side big image threshold: sideload the scaled version.
-			$valid_image_sizes[] = 'scaled';
-
 			register_rest_route(
 				$this->namespace,
 				'/' . $this->rest_base . '/(?P<id>[\d]+)/sideload',
@@ -87,10 +102,49 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 								'type'        => 'integer',
 							),
 							'image_size'     => array(
-								'description' => __( 'Image size.' ),
-								'type'        => 'string',
-								'enum'        => $valid_image_sizes,
-								'required'    => true,
+								'description'       => __( 'Image size. Can be a single size name or an array of size names to register the same file under multiple sizes.' ),
+								'type'              => array( 'string', 'array' ),
+								'items'             => array(
+									'type' => 'string',
+								),
+								'required'          => true,
+								/*
+								 * A custom callback is used instead of the default enum validation
+								 * because rest_is_array() treats scalar strings as single-element
+								 * lists (via wp_parse_list()), so a [ 'string', 'array' ] type alone
+								 * cannot enforce the enum. The callback validates each item against
+								 * the current list of registered sizes, which reflects sizes added
+								 * after route registration (e.g. via add_image_size()).
+								 */
+								'validate_callback' => static function ( $value, $request, $param ) {
+									$valid_sizes   = array_keys( wp_get_registered_image_subsizes() );
+									$valid_sizes[] = 'original';
+									$valid_sizes[] = 'scaled';
+									$valid_sizes[] = 'full';
+									// Source-format original (e.g. the HEIC kept alongside its JPEG derivative).
+									$valid_sizes[] = self::IMAGE_SIZE_SOURCE_ORIGINAL;
+
+									$items = is_string( $value ) ? array( $value ) : ( is_array( $value ) ? $value : null );
+									if ( null === $items ) {
+										return new WP_Error(
+											'rest_invalid_type',
+											/* translators: %s: Parameter name. */
+											sprintf( __( '%s must be a string or an array of strings.' ), $param )
+										);
+									}
+
+									foreach ( $items as $item ) {
+										if ( ! is_string( $item ) || ! in_array( $item, $valid_sizes, true ) ) {
+											return new WP_Error(
+												'rest_not_in_enum',
+												/* translators: %s: Parameter name. */
+												sprintf( __( '%s contains an invalid image size.' ), $param )
+											);
+										}
+									}
+
+									return true;
+								},
 							),
 							'convert_format' => array(
 								'type'        => 'boolean',
@@ -125,8 +179,12 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 									'type'       => 'object',
 									'properties' => array(
 										'image_size'     => array(
-											'type'     => 'string',
-											'required' => true,
+											'description' => __( 'Size name, or an array of size names when a single file is registered under multiple sizes with matching dimensions.' ),
+											'type'        => array( 'string', 'array' ),
+											'items'       => array(
+												'type' => 'string',
+											),
+											'required'    => true,
 										),
 										'width'          => array(
 											'type'    => 'integer',
@@ -291,6 +349,26 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		// When the client handles image processing (generate_sub_sizes is false),
 		// skip the server-side image editor support check.
 		if ( false === $request['generate_sub_sizes'] ) {
+			$prevent_unsupported_uploads = false;
+		}
+
+		/*
+		 * Always allow still HEIC/HEIF uploads through even if the server's
+		 * image editor doesn't support them. The client-side canvas fallback
+		 * handles processing using the browser's native HEVC decoder.
+		 *
+		 * The '-sequence' variants (multi-frame Live Photos) are deliberately
+		 * excluded: neither the server nor the browser fallback can process
+		 * them yet, so they should fall through to the standard unsupported
+		 * mime-type error rather than be stored unprocessable.
+		 */
+		$still_heic_mime_types = array( 'image/heic', 'image/heif' );
+
+		if (
+			$prevent_unsupported_uploads &&
+			! empty( $files['file']['type'] ) &&
+			in_array( $files['file']['type'], $still_heic_mime_types, true )
+		) {
 			$prevent_unsupported_uploads = false;
 		}
 
@@ -1078,7 +1156,8 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 
 		$response = parent::prepare_item_for_response( $post, $request );
 		$fields   = $this->get_fields_for_response( $request );
-		$data     = $response->get_data();
+		/** @var array<string, mixed> $data */
+		$data = $response->get_data();
 
 		if ( in_array( 'description', $fields, true ) ) {
 			$data['description'] = array(
@@ -1217,6 +1296,40 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			}
 
 			$data['exif_orientation'] = $orientation;
+		}
+
+		if ( wp_attachment_is_image( $post ) ) {
+			$mime_type = get_post_mime_type( $post );
+
+			/*
+			 * Per-file output format for images, evaluated with the real filename
+			 * and MIME type so plugins filtering image_editor_output_format can
+			 * make per-attachment decisions (e.g. JPEG -> WebP). Resolved the same
+			 * way WP_Image_Editor::set_quality() resolves the output format.
+			 */
+			if ( in_array( 'image_output_format', $fields, true ) ) {
+				$filename = get_attached_file( $post->ID );
+
+				/** This filter is documented in wp-includes/media.php */
+				$output_formats = apply_filters(
+					'image_editor_output_format',
+					array( $mime_type => $mime_type ),
+					$filename ? $filename : '',
+					$mime_type
+				);
+
+				$output_mime                 = $output_formats[ $mime_type ] ?? $mime_type;
+				$data['image_output_format'] = ( $output_mime !== $mime_type ) ? $output_mime : null;
+			}
+
+			/*
+			 * Per-file progressive/interlaced encoding flag for images, evaluated
+			 * against the attachment's MIME type.
+			 */
+			if ( in_array( 'image_save_progressive', $fields, true ) ) {
+				/** This filter is documented in wp-includes/class-wp-image-editor-gd.php */
+				$data['image_save_progressive'] = (bool) apply_filters( 'image_save_progressive', false, $mime_type );
+			}
 		}
 
 		$context = ! empty( $request['context'] ) ? $request['context'] : 'view';
@@ -1409,6 +1522,20 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			'readonly'    => true,
 		);
 
+		$schema['properties']['image_output_format'] = array(
+			'description' => __( 'The output MIME type this image should be converted to, based on the image_editor_output_format filter. Null if no conversion is needed.' ),
+			'type'        => array( 'string', 'null' ),
+			'context'     => array( 'edit' ),
+			'readonly'    => true,
+		);
+
+		$schema['properties']['image_save_progressive'] = array(
+			'description' => __( 'Whether to use progressive/interlaced encoding when saving this image.' ),
+			'type'        => 'boolean',
+			'context'     => array( 'edit' ),
+			'readonly'    => true,
+		);
+
 		unset( $schema['properties']['password'] );
 
 		$this->schema = $schema;
@@ -1425,7 +1552,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	 * @param string      $data    Supplied file data.
 	 * @param array       $headers HTTP headers from the request.
 	 * @param string|null $time    Optional. Time formatted in 'yyyy/mm'. Default null.
-	 * @return array|WP_Error Data from wp_handle_sideload().
+	 * @return array{ file: non-empty-string, url: non-empty-string, type: non-empty-string }|WP_Error Data from wp_handle_sideload().
 	 */
 	protected function upload_from_data( $data, $headers, $time = null ) {
 		if ( empty( $data ) ) {
@@ -1645,7 +1772,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	 * @param array       $files   Data from the `$_FILES` superglobal.
 	 * @param array       $headers HTTP headers from the request.
 	 * @param string|null $time    Optional. Time formatted in 'yyyy/mm'. Default null.
-	 * @return array|WP_Error Data from wp_handle_upload().
+	 * @return array{ file: non-empty-string, url: non-empty-string, type: non-empty-string }|WP_Error Data from wp_handle_upload().
 	 */
 	protected function upload_from_file( $files, $headers, $time = null ) {
 		if ( empty( $files ) ) {
@@ -2118,18 +2245,34 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 
 		$image_size = $request['image_size'];
 
-		/*
-		 * Build sub-size data to return to the client.
-		 * The client accumulates these and sends them all to the finalize
-		 * endpoint, which writes the metadata in a single operation. This
-		 * avoids the read-modify-write race that concurrent sideloads for the
-		 * same attachment would otherwise hit.
-		 */
+		// Build sub-size data to return to the client.
+		// The client accumulates these and sends them all to the finalize
+		// endpoint, which writes the metadata in a single operation. This
+		// avoids the read-modify-write race that concurrent sideloads for the
+		// same attachment would otherwise hit.
 		$sub_size_data = array(
 			'image_size' => $image_size,
 		);
 
-		if ( 'original' === $image_size ) {
+		if ( is_array( $image_size ) ) {
+			// Multiple registered sizes share these dimensions, so a single
+			// sideloaded file is reused for all of them. Arrays only carry
+			// regular sub-sizes; the special keys below are always scalar.
+			$size = wp_getimagesize( $path );
+
+			$sub_size_data['width']     = $size ? $size[0] : 0;
+			$sub_size_data['height']    = $size ? $size[1] : 0;
+			$sub_size_data['file']      = wp_basename( $path );
+			$sub_size_data['mime_type'] = $type;
+			$sub_size_data['filesize']  = wp_filesize( $path );
+		} elseif ( 'original' === $image_size ) {
+			$sub_size_data['file'] = wp_basename( $path );
+		} elseif ( self::IMAGE_SIZE_SOURCE_ORIGINAL === $image_size ) {
+			/*
+			 * Source-format original (e.g. the HEIC kept next to its JPEG
+			 * derivative). Record the filename so finalize_item can store it
+			 * under the dedicated source-image meta key.
+			 */
 			$sub_size_data['file'] = wp_basename( $path );
 		} elseif ( 'scaled' === $image_size ) {
 			// Record the current attached file as the original.
@@ -2266,8 +2409,35 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		foreach ( $sub_sizes as $sub_size ) {
 			$image_size = $sub_size['image_size'];
 
+			// When multiple size names share identical dimensions the client
+			// sends a single sub-size entry with an array of names. Register the
+			// same file under each name. Arrays only contain regular sizes.
+			if ( is_array( $image_size ) ) {
+				$metadata['sizes'] = $metadata['sizes'] ?? array();
+
+				foreach ( $image_size as $name ) {
+					$metadata['sizes'][ $name ] = array(
+						'width'     => $sub_size['width'] ?? 0,
+						'height'    => $sub_size['height'] ?? 0,
+						'file'      => $sub_size['file'] ?? '',
+						'mime-type' => $sub_size['mime_type'] ?? '',
+						'filesize'  => $sub_size['filesize'] ?? 0,
+					);
+				}
+				continue;
+			}
+
 			if ( 'original' === $image_size ) {
 				$metadata['original_image'] = $sub_size['file'];
+			} elseif ( self::IMAGE_SIZE_SOURCE_ORIGINAL === $image_size ) {
+				/*
+				 * Source-format original: stored under its own meta key so the
+				 * scaled-sideload flow (which writes 'original_image') cannot
+				 * clobber it. 'original_image' keeps pointing at the
+				 * web-viewable JPEG derivative. Cleanup on attachment delete
+				 * is handled by wp_delete_attachment_files().
+				 */
+				$metadata[ self::META_KEY_SOURCE_IMAGE ] = $sub_size['file'];
 			} elseif ( 'scaled' === $image_size ) {
 				if ( ! empty( $sub_size['original_image'] ) ) {
 					$metadata['original_image'] = $sub_size['original_image'];
