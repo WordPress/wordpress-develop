@@ -165,7 +165,13 @@ jQuery( function($) {
 			 * @return {void}
  			 */
 			function highlightLatestPost () {
-				var latestPost = $( '.drafts ul li' ) .first();
+				var latestPost = $( '.drafts ul li' ) .first(),
+					errorNotice = $( '#quick-press .notice-error' );
+
+				if ( errorNotice.length ) {
+					return;
+				}
+
 				latestPost.css( 'background', '#fffbe5' );
 				setTimeout( function () {
 					latestPost.css( 'background', 'none' );
