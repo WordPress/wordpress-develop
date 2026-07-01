@@ -5289,8 +5289,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *     $processor->get_tag() === null;
 	 *
 	 * @since 6.4.0
-	 * @since 7.1.0 NULL bytes in source tag names are returned as U+FFFD,
-	 *              matching the tokenizer replacement browsers apply.
 	 *
 	 * @return string|null Name of currently matched tag in input HTML, or `null` if none found.
 	 */
@@ -5352,8 +5350,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * of the document without matching a token.
 	 *
 	 * @since 6.6.0 Subclassed for the HTML Processor.
-	 * @since 7.1.0 NULL bytes in source tag names are returned as U+FFFD,
-	 *              matching the tokenizer replacement browsers apply.
 	 *
 	 * @return string|null Name of the matched token.
 	 */
