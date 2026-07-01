@@ -280,6 +280,7 @@ class Tests_HtmlApi_WpHtmlDecoder extends WP_UnitTestCase {
 	 * Ensures that `attribute_starts_with` respects the case sensitivity argument.
 	 *
 	 * @ticket 61072
+	 * @ticket 65372
 	 *
 	 * @dataProvider data_attributes_with_prefix_and_case_sensitive_match
 	 *
@@ -290,16 +291,16 @@ class Tests_HtmlApi_WpHtmlDecoder extends WP_UnitTestCase {
 	 * @param bool   $is_match         Whether the search string is a prefix for the attribute value,
 	 *                                 given the case sensitivity setting.
 	 */
-	public function test_attribute_starts_with_heeds_case_sensitivity( $attribute_value, $search_string, $case_sensitivity, $is_match ) {
+	public function test_attribute_starts_with_heeds_case_sensitivity( string $attribute_value, string $search_string, string $case_sensitivity, bool $is_match ): void {
 		if ( $is_match ) {
 			$this->assertTrue(
 				WP_HTML_Decoder::attribute_starts_with( $attribute_value, $search_string, $case_sensitivity ),
-				'Should have found attribute prefix with case-sensitive search.'
+				"Should have found attribute prefix with {$case_sensitivity} search."
 			);
 		} else {
 			$this->assertFalse(
 				WP_HTML_Decoder::attribute_starts_with( $attribute_value, $search_string, $case_sensitivity ),
-				'Should not have matched attribute with prefix with ASCII-case-insensitive search.'
+				"Should not have matched attribute with prefix with {$case_sensitivity} search."
 			);
 		}
 	}
@@ -307,9 +308,9 @@ class Tests_HtmlApi_WpHtmlDecoder extends WP_UnitTestCase {
 	/**
 	 * Data provider.
 	 *
-	 * @return array[].
+	 * @return array<array{string, string, string, bool}>.
 	 */
-	public static function data_attributes_with_prefix_and_case_sensitive_match() {
+	public static function data_attributes_with_prefix_and_case_sensitive_match(): array {
 		return array(
 			array( 'http://wordpress.org', 'http', 'case-sensitive', true ),
 			array( 'http://wordpress.org', 'http', 'ascii-case-insensitive', true ),
