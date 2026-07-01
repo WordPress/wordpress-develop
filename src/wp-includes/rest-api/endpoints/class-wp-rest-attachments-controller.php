@@ -156,6 +156,22 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 				'format'            => 'uri',
 				'description'       => __( 'URL of an external image to sideload into the media library, instead of uploading a file.' ),
 				'sanitize_callback' => 'sanitize_url',
+				'validate_callback' => static function ( $url ) {
+					/*
+					 * Reject URLs that are not safe to request server-side. wp_http_validate_url()
+					 * enforces an HTTP(S) scheme and blocks private, local, and otherwise
+					 * disallowed hosts, guarding the sideload against SSRF.
+					 */
+					if ( ! is_string( $url ) || false === wp_http_validate_url( $url ) ) {
+						return new WP_Error(
+							'rest_invalid_url',
+							__( 'Invalid URL. Provide a valid, publicly reachable HTTP or HTTPS image URL.' ),
+							array( 'status' => 400 )
+						);
+					}
+
+					return true;
+				},
 			);
 		}
 

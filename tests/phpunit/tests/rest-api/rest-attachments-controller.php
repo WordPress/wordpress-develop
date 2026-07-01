@@ -3854,4 +3854,48 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$this->assertSame( 'string', $creatable['args']['url']['type'] );
 		$this->assertSame( 'uri', $creatable['args']['url']['format'] );
 	}
+
+	/**
+	 * Verifies that the `url` argument rejects values that are not safe to
+	 * request server-side, guarding the sideload against SSRF.
+	 *
+	 * @ticket 65517
+	 *
+	 * @covers WP_REST_Attachments_Controller::get_endpoint_args_for_item_schema
+	 */
+	public function test_url_arg_rejects_unsafe_urls() {
+		$this->enable_client_side_media_processing();
+
+		$routes    = rest_get_server()->get_routes();
+		$creatable = null;
+		foreach ( $routes['/wp/v2/media'] as $route ) {
+			if ( ! empty( $route['methods'][ WP_REST_Server::CREATABLE ] ) ) {
+				$creatable = $route;
+				break;
+			}
+		}
+
+		$this->assertNotNull( $creatable, 'The media route should register a CREATABLE handler.' );
+		$this->assertArrayHasKey( 'validate_callback', $creatable['args']['url'] );
+
+		$validate = $creatable['args']['url']['validate_callback'];
+
+		// A well-formed URL on the site's own host passes validation.
+		$this->assertTrue( $validate( home_url( '/image.jpg' ) ), 'A safe URL should pass validation.' );
+
+		// A non-string, a disallowed scheme, and a malformed URL are all rejected.
+		$invalid_urls = array(
+			array( 'https://example.org/image.jpg' ),
+			'ftp://example.org/image.jpg',
+			'javascript:alert(1)',
+			'not-a-url',
+		);
+
+		foreach ( $invalid_urls as $invalid ) {
+			$result = $validate( $invalid );
+			$this->assertWPError( $result, 'An unsafe URL should be rejected.' );
+			$this->assertSame( 'rest_invalid_url', $result->get_error_code() );
+			$this->assertSame( 400, $result->get_error_data()['status'] );
+		}
+	}
 }
