@@ -1215,6 +1215,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 
 					$size_data['source_url'] = $image_src[0];
 				}
+				unset( $size_data );
 
 				$full_src = wp_get_attachment_image_src( $post->ID, 'full' );
 
