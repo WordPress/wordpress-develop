@@ -2955,14 +2955,6 @@ class WP_HTML_Tag_Processor {
 			return null;
 		}
 
-		/*
-		 * The tokenizer would have replaced U+0000 NULL bytes in the tag
-		 * name with U+FFFD; this is deferred to this read boundary. The
-		 * replacement never applies to internal identification, which
-		 * compares raw bytes (`scr\x00ipt` is not SCRIPT in browsers either).
-		 *
-		 * @see https://html.spec.whatwg.org/#tag-name-state
-		 */
 		$tag_name = str_replace( "\x00", "\u{FFFD}", substr( $this->html, $this->tag_name_starts_at, $this->tag_name_length ) );
 
 		if ( self::STATE_MATCHED_TAG === $this->parser_state ) {
