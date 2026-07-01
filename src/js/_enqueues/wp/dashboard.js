@@ -156,7 +156,7 @@ jQuery( function($) {
 				highlightLatestPost();
 
 				// Focus the title to allow for quickly drafting another post.
-				$( '#title' ).focus();
+				$( '#title' ).trigger( 'focus');
 			} );
 
 			/**
