@@ -11,7 +11,7 @@
  *     relying on greedy backtracking. This matches the upstream Datastar
  *     genRx() regex.
  *
- * Usage: php tests/phpunit/tests/interactivity-api/regex-comparison.php
+ * Usage: php tests/phpunit/development/regex-comparison.php
  *
  * @package WordPress
  * @subpackage Interactivity API
