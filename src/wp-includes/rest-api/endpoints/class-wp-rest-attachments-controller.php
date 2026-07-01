@@ -2315,34 +2315,42 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		$image_size = $request['image_size'];
 
 		/*
-		 * Read the dimensions up front. A file whose dimensions cannot be read
-		 * is corrupted or an unsupported format and must be rejected rather than
-		 * silently stored with zero dimensions.
+		 * Validate raster sub-sizes before storing them. Source-format companion
+		 * originals (e.g. a HEIC or JXL kept next to its JPEG derivative) are
+		 * exempt: their dimensions are neither validated nor recorded, and the
+		 * source format may not be readable by wp_getimagesize() at all.
 		 */
-		$size = wp_getimagesize( $path );
+		if ( self::IMAGE_SIZE_SOURCE_ORIGINAL !== $image_size ) {
+			/*
+			 * Read the dimensions up front. A file whose dimensions cannot be
+			 * read is corrupted or an unsupported format and must be rejected
+			 * rather than silently stored with zero dimensions.
+			 */
+			$size = wp_getimagesize( $path );
 
-		if ( ! $size ) {
-			// Clean up the uploaded file.
-			wp_delete_file( $path );
-			return new WP_Error(
-				'rest_upload_invalid_image',
-				__( 'Could not read image dimensions. The file may be corrupted or an unsupported format.' ),
-				array( 'status' => 400 )
-			);
-		}
-
-		/*
-		 * Validate the dimensions match the expected size. An array $image_size
-		 * represents multiple registered sizes sharing a single file; those are
-		 * handled by the per-size branch below, so only scalar sizes are
-		 * validated here.
-		 */
-		if ( ! is_array( $image_size ) ) {
-			$validation = $this->validate_image_dimensions( $size[0], $size[1], $image_size, $attachment_id );
-			if ( is_wp_error( $validation ) ) {
+			if ( ! $size ) {
 				// Clean up the uploaded file.
 				wp_delete_file( $path );
-				return $validation;
+				return new WP_Error(
+					'rest_upload_invalid_image',
+					__( 'Could not read image dimensions. The file may be corrupted or an unsupported format.' ),
+					array( 'status' => 400 )
+				);
+			}
+
+			/*
+			 * Validate the dimensions match the expected size. An array
+			 * $image_size represents multiple registered sizes sharing a single
+			 * file; those are handled by the per-size branch below, so only
+			 * scalar sizes are validated here.
+			 */
+			if ( ! is_array( $image_size ) ) {
+				$validation = $this->validate_image_dimensions( $size[0], $size[1], $image_size, $attachment_id );
+				if ( is_wp_error( $validation ) ) {
+					// Clean up the uploaded file.
+					wp_delete_file( $path );
+					return $validation;
+				}
 			}
 		}
 
@@ -2419,6 +2427,8 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			$sub_size_data['filesize'] = $filesize;
 			$sub_size_data['file']     = _wp_relative_upload_path( $path );
 		} else {
+			$size = wp_getimagesize( $path );
+
 			$sub_size_data['width']     = $size ? $size[0] : 0;
 			$sub_size_data['height']    = $size ? $size[1] : 0;
 			$sub_size_data['file']      = wp_basename( $path );

@@ -3963,11 +3963,13 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$this->assertSame( 201, $response->get_status() );
 
 		// Sideload a thumbnail sub-size; the response carries its metadata.
+		// test-image.jpg is 50x50, within the registered thumbnail maximum
+		// (150x150), so it passes sideload dimension validation.
 		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment_id}/sideload" );
 		$request->set_header( 'Content-Type', 'image/jpeg' );
 		$request->set_header( 'Content-Disposition', 'attachment; filename=canola-thumb.jpg' );
 		$request->set_param( 'image_size', 'thumbnail' );
-		$request->set_body( (string) file_get_contents( self::$test_file ) );
+		$request->set_body( (string) file_get_contents( DIR_TESTDATA . '/images/test-image.jpg' ) );
 		$response = rest_get_server()->dispatch( $request );
 
 		$this->assertSame( 200, $response->get_status(), 'Sideloading a thumbnail should succeed.' );
