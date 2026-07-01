@@ -3276,9 +3276,9 @@ function edit_form_image_editor( $post ) {
 		<p>
 			<label for="attachment_caption"><strong>
 				<?php
-				if ( str_starts_with( $post->post_mime_type, 'video' ) ) {
+				if ( wp_attachment_is( 'video', $post ) ) {
 					esc_html_e( 'Video Description' );
-				} elseif ( str_starts_with( $post->post_mime_type, 'image' ) ) {
+				} elseif ( wp_attachment_is( 'image', $post ) ) {
 					esc_html_e( 'Image Caption' );
 				} else {
 					esc_html_e( 'Caption' );
