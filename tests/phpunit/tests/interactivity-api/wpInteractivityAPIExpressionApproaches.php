@@ -146,31 +146,31 @@ class Tests_Interactivity_API_ExpressionApproaches extends WP_UnitTestCase {
 	 */
 	public function provider_matching_expressions(): array {
 		return array(
-			'basic comparison' => array(
+			'basic comparison'                       => array(
 				'expr'     => 'state.count !== context.n',
 				'expected' => true,
 			),
-			'nested ternary' => array(
+			'nested ternary'                         => array(
 				'expr'     => 'state.count > 10 ? "big" : ( state.flag ? "mid" : "small" )',
 				'expected' => 'mid',
 			),
-			'complex boolean grouping' => array(
+			'complex boolean grouping'               => array(
 				'expr'     => '(context.x || context.y) && (state.flag || context.y)',
 				'expected' => true,
 			),
-			'bitwise and' => array(
+			'bitwise and'                            => array(
 				'expr'     => 'state.count & 3',
 				'expected' => 1,
 			),
-			'shift and exponent' => array(
+			'shift and exponent'                     => array(
 				'expr'     => '(state.count << 1) + (2 ** 3)',
 				'expected' => 18,
 			),
-			'nullish coalescing with zero' => array(
+			'nullish coalescing with zero'           => array(
 				'expr'     => 'state.zero ?? 7',
 				'expected' => 0,
 			),
-			'nullish coalescing with empty string' => array(
+			'nullish coalescing with empty string'   => array(
 				'expr'     => 'state.emptyString ?? "fallback"',
 				'expected' => '',
 			),
@@ -201,17 +201,17 @@ class Tests_Interactivity_API_ExpressionApproaches extends WP_UnitTestCase {
 	 */
 	public function provider_known_divergences(): array {
 		return array(
-			'empty array truthiness in ternary' => array(
+			'empty array truthiness in ternary'      => array(
 				'expr'       => 'state.emptyArray ? "yes" : "no"',
 				'expected_b' => 'yes',
 				'expected_a' => 'no',
 			),
-			'string zero truthiness in ternary' => array(
+			'string zero truthiness in ternary'      => array(
 				'expr'       => 'state.zeroString ? "yes" : "no"',
 				'expected_b' => 'yes',
 				'expected_a' => 'no',
 			),
-			'operand-returning short circuit' => array(
+			'operand-returning short circuit'        => array(
 				'expr'       => 'state.zero && state.flag',
 				'expected_b' => 0,
 				'expected_a' => false,
@@ -226,37 +226,37 @@ class Tests_Interactivity_API_ExpressionApproaches extends WP_UnitTestCase {
 				'expected_b' => array(),
 				'expected_a' => true,
 			),
-			'negation of empty array truthiness' => array(
+			'negation of empty array truthiness'     => array(
 				'expr'       => '!state.emptyArray',
 				'expected_b' => false,
 				'expected_a' => true,
 			),
-			'negation of string zero truthiness' => array(
+			'negation of string zero truthiness'     => array(
 				'expr'       => '!state.zeroString',
 				'expected_b' => false,
 				'expected_a' => true,
 			),
-			'array short circuit truthiness' => array(
+			'array short circuit truthiness'         => array(
 				'expr'       => 'state.emptyArray && state.flag',
 				'expected_b' => true,
 				'expected_a' => false,
 			),
-			'primitive loose equality' => array(
+			'primitive loose equality'               => array(
 				'expr'       => 'state.emptyString == 0',
 				'expected_b' => true,
 				'expected_a' => false,
 			),
-			'null loose equality to false' => array(
+			'null loose equality to false'           => array(
 				'expr'       => 'state.nullish == false',
 				'expected_b' => false,
 				'expected_a' => true,
 			),
-			'string concatenation with plus' => array(
+			'string concatenation with plus'         => array(
 				'expr'       => 'state.name + context.n',
 				'expected_b' => 'bob42',
 				'expected_a' => null,
 			),
-			'string concatenation with zero string' => array(
+			'string concatenation with zero string'  => array(
 				'expr'       => 'state.name + state.zeroString',
 				'expected_b' => 'bob0',
 				'expected_a' => null,
@@ -288,11 +288,11 @@ class Tests_Interactivity_API_ExpressionApproaches extends WP_UnitTestCase {
 				'expr'     => 'context.y; context.x',
 				'expected' => true,
 			),
-			'comparison as last' => array(
+			'comparison as last'  => array(
 				'expr'     => 'state.count; state.flag && context.x',
 				'expected' => true,
 			),
-			'trailing semicolon' => array(
+			'trailing semicolon'  => array(
 				'expr'     => 'state.count;',
 				'expected' => 5,
 			),
@@ -319,9 +319,9 @@ class Tests_Interactivity_API_ExpressionApproaches extends WP_UnitTestCase {
 	 */
 	public function provider_actions_callbacks(): array {
 		return array(
-			'actions dot path'     => array( 'actions.someAction' ),
-			'callbacks dot path'   => array( 'callbacks.myCallback' ),
-			'actions with state'   => array( 'state.count && actions.isValid' ),
+			'actions dot path'       => array( 'actions.someAction' ),
+			'callbacks dot path'     => array( 'callbacks.myCallback' ),
+			'actions with state'     => array( 'state.count && actions.isValid' ),
 			'callbacks with context' => array( 'callbacks.x || context.x' ),
 		);
 	}

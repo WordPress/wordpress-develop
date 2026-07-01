@@ -67,7 +67,7 @@ class Tests_Interactivity_API_EvaluateFullExpression extends WP_UnitTestCase {
 	 */
 	private function get_derived_state_closures(): array {
 		$interactivity = new ReflectionClass( $this->interactivity );
-		$prop           = $interactivity->getProperty( 'derived_state_closures' );
+		$prop          = $interactivity->getProperty( 'derived_state_closures' );
 		if ( PHP_VERSION_ID < 80100 ) {
 			$prop->setAccessible( true );
 		}
@@ -83,8 +83,8 @@ class Tests_Interactivity_API_EvaluateFullExpression extends WP_UnitTestCase {
 	 */
 	private function evaluate( string $path, string $ns = 'myplugin' ) {
 		global $wp_interactivity;
-		$prev               = $wp_interactivity;
-		$wp_interactivity   = $this->interactivity;
+		$prev             = $wp_interactivity;
+		$wp_interactivity = $this->interactivity;
 
 		$evaluate = new ReflectionMethod( $this->interactivity, 'evaluate' );
 		if ( PHP_VERSION_ID < 80100 ) {
@@ -297,8 +297,8 @@ class Tests_Interactivity_API_EvaluateFullExpression extends WP_UnitTestCase {
 		$this->interactivity->state(
 			'myplugin',
 			array(
-				'a' => 6,
-				'b' => 3,
+				'a'     => 6,
+				'b'     => 3,
 				'shift' => 1,
 			)
 		);
@@ -334,7 +334,7 @@ class Tests_Interactivity_API_EvaluateFullExpression extends WP_UnitTestCase {
 		// Approach B targets JS semantics: `0 && true` → `0`. Assert via the
 		// dedicated Approach B path so the test does not flag the documented
 		// Approach A divergence as a regression.
-		$store = array(
+		$store  = array(
 			'state'   => $this->interactivity->state( 'myplugin' ),
 			'context' => $this->interactivity->get_context( 'myplugin' ),
 		);
@@ -597,7 +597,7 @@ class Tests_Interactivity_API_EvaluateFullExpression extends WP_UnitTestCase {
 		$this->set_up_fixture( $invoked );
 
 		// Approach A: transforms actions.* to null → false (PHP semantics).
-		$store = array(
+		$store    = array(
 			'state'   => $this->interactivity->state( 'myplugin' ),
 			'context' => $this->interactivity->get_context( 'myplugin' ),
 		);

@@ -30,6 +30,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * @since 6.9.0
  */
+// phpcs:ignore WordPress.Files.FileName.InvalidClassFileName
 class WP_Interactivity_UnsupportedExpression extends Exception {}
 
 /**
@@ -91,6 +92,7 @@ class WP_Interactivity_UnsupportedExpression extends Exception {}
  *
  * @since 6.9.0
  */
+// phpcs:ignore Generic.Files.OneObjectStructurePerFile.MultipleFound
 class WP_Interactivity_Expression_Evaluator {
 
 	/**
@@ -147,11 +149,11 @@ class WP_Interactivity_Expression_Evaluator {
 
 		try {
 			$this->tokens = $this->lex( $input );
-			$this->pos     = 0;
+			$this->pos    = 0;
 
 			// Parse statements separated by ';'. The last statement's
 			// value is the expression result (last-statement-wins).
-			$statements = array();
+			$statements   = array();
 			$statements[] = $this->parse_ternary();
 			while ( $this->match_op( ';' ) ) {
 				// Empty trailing statements (e.g. trailing ";") are
@@ -216,7 +218,7 @@ class WP_Interactivity_Expression_Evaluator {
 
 			// Numbers — integer if no '.', float if '.'.
 			if ( ctype_digit( $c ) ) {
-				$start = $i;
+				$start   = $i;
 				$has_dot = false;
 				while ( $i < $len && ( ctype_digit( $src[ $i ] ) || ( '.' === $src[ $i ] && ! $has_dot ) ) ) {
 					if ( '.' === $src[ $i ] ) {
@@ -224,7 +226,7 @@ class WP_Interactivity_Expression_Evaluator {
 					}
 					++$i;
 				}
-				$literal = substr( $src, $start, $i - $start );
+				$literal  = substr( $src, $start, $i - $start );
 				$tokens[] = array(
 					'type'  => 'num',
 					// Track integer-ness so `state.count === 100` matches when
@@ -259,8 +261,11 @@ class WP_Interactivity_Expression_Evaluator {
 			// Multi-character operators (3-char first, then 2-char).
 			$three = ( $i + 2 < $len ) ? substr( $src, $i, 3 ) : '';
 			if ( '===' === $three || '!==' === $three ) {
-				$tokens[] = array( 'type' => 'op', 'value' => $three );
-				$i += 3;
+				$tokens[] = array(
+					'type'  => 'op',
+					'value' => $three,
+				);
+				$i       += 3;
 				continue;
 			}
 			$two = ( $i + 1 < $len ) ? substr( $src, $i, 2 ) : '';
@@ -269,8 +274,11 @@ class WP_Interactivity_Expression_Evaluator {
 			// (no grammar rule consumes them) and the outer evaluate() will
 			// return null, which is the UNSUPPORTED outcome we want.
 			if ( in_array( $two, array( '??', '==', '!=', '<=', '>=', '&&', '||', '++', '--', '<<', '>>', '**' ), true ) ) {
-				$tokens[] = array( 'type' => 'op', 'value' => $two );
-				$i += 2;
+				$tokens[] = array(
+					'type'  => 'op',
+					'value' => $two,
+				);
+				$i       += 2;
 				continue;
 			}
 
@@ -280,7 +288,10 @@ class WP_Interactivity_Expression_Evaluator {
 			// included as a statement separator for multi-statement
 			// support.
 			if ( false !== strpos( '+-*/%()?:=,!~&|^<>[];', $c ) ) {
-				$tokens[] = array( 'type' => 'op', 'value' => $c );
+				$tokens[] = array(
+					'type'  => 'op',
+					'value' => $c,
+				);
 				++$i;
 				continue;
 			}
@@ -313,13 +324,25 @@ class WP_Interactivity_Expression_Evaluator {
 				// tokens so the evaluator's resolve() never sees them.
 				$lower = strtolower( $name );
 				if ( 'true' === $lower ) {
-					$tokens[] = array( 'type' => 'bool', 'value' => true );
+					$tokens[] = array(
+						'type'  => 'bool',
+						'value' => true,
+					);
 				} elseif ( 'false' === $lower ) {
-					$tokens[] = array( 'type' => 'bool', 'value' => false );
+					$tokens[] = array(
+						'type'  => 'bool',
+						'value' => false,
+					);
 				} elseif ( 'null' === $lower ) {
-					$tokens[] = array( 'type' => 'null', 'value' => null );
+					$tokens[] = array(
+						'type'  => 'null',
+						'value' => null,
+					);
 				} else {
-					$tokens[] = array( 'type' => 'id', 'value' => $name );
+					$tokens[] = array(
+						'type'  => 'id',
+						'value' => $name,
+					);
 				}
 				continue;
 			}
@@ -968,6 +991,7 @@ class WP_Interactivity_Expression_Evaluator {
 			return $value;
 		}
 		if ( is_int( $value ) || is_float( $value ) ) {
+			// phpcs:ignore Universal.Operators.StrictComparisons.LooseNotEqual
 			return 0 != $value;
 		}
 		if ( is_string( $value ) ) {
@@ -1054,6 +1078,7 @@ class WP_Interactivity_Expression_Evaluator {
 	 */
 	private function js_loose_equal( $a, $b ): bool {
 		if ( gettype( $a ) === gettype( $b ) ) {
+			// phpcs:ignore Universal.Operators.StrictComparisons.LooseEqual
 			return $a == $b;
 		}
 
@@ -1070,10 +1095,12 @@ class WP_Interactivity_Expression_Evaluator {
 
 		if ( ( is_int( $a ) || is_float( $a ) ) && is_string( $b ) ) {
 			$bn = $this->js_to_number( $b );
+			// phpcs:ignore Universal.Operators.StrictComparisons.LooseEqual
 			return ! is_nan( $bn ) && $a == $bn;
 		}
 		if ( is_string( $a ) && ( is_int( $b ) || is_float( $b ) ) ) {
 			$an = $this->js_to_number( $a );
+			// phpcs:ignore Universal.Operators.StrictComparisons.LooseEqual
 			return ! is_nan( $an ) && $an == $b;
 		}
 

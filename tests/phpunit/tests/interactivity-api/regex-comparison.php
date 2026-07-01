@@ -17,16 +17,16 @@
  * @subpackage Interactivity API
  */
 
-$phpRe = '/(\/(?:\\\\\/|[^\/])*\/|"(?:\\\\"|[^"])*"|\'(?:\\\\\'|[^\'])*\'|`(?:\\\\`|[^`])*`|\(\s*((?:function)\s*\(\s*\)|(?:\(\s*\))\s*=>)\s*(?:\{[\s\S]*?\}|[^;){]*)\s*\)\s*\(\s*\)|[^;])+/';
+$php_re = '/(\/(?:\\\\\/|[^\/])*\/|"(?:\\\\"|[^"])*"|\'(?:\\\\\'|[^\'])*\'|`(?:\\\\`|[^`])*`|\(\s*((?:function)\s*\(\s*\)|(?:\(\s*\))\s*=>)\s*(?:\{[\s\S]*?\}|[^;){]*)\s*\)\s*\(\s*\)|[^;])+/';
 
-$jsRe = '/(\/(?:\/|[^\/])*\/|"(?:\"|[^"])*"|\'(?:\'|[^\'])*\'|`(?:`|[^`])*`|\(\s*((?:function)\s*\(\s*\)|(?:\(\s*\))\s*=>)\s*(?:\{[\s\S]*?\}|[^;){]*)\s*\)\s*\(\s*\)|[^;])+/';
+$js_re = '/(\/(?:\/|[^\/])*\/|"(?:\"|[^"])*"|\'(?:\'|[^\'])*\'|`(?:`|[^`])*`|\(\s*((?:function)\s*\(\s*\)|(?:\(\s*\))\s*=>)\s*(?:\{[\s\S]*?\}|[^;){]*)\s*\)\s*\(\s*\)|[^;])+/';
 
 define( 'ITER', 100000 );
 
 function compare( $input ) {
-	global $phpRe, $jsRe;
-	preg_match_all( $phpRe, $input, $p );
-	preg_match_all( $jsRe, $input, $j );
+	global $php_re, $js_re;
+	preg_match_all( $php_re, $input, $p );
+	preg_match_all( $js_re, $input, $j );
 	$php = $p[0] ?? array();
 	$js  = $j[0] ?? array();
 	return array( $php, $js, $php === $js );
@@ -106,8 +106,8 @@ echo "Mismatches: $mm / 10000\n";
  * ─────────────────────────────────────────────────────────── */
 echo "\n=== Performance (" . ITER . " iterations) ===\n";
 
-$tp = bench( 'PHP version', $phpRe, $perf_input );
-$tj = bench( 'JS version',  $jsRe, $perf_input );
+$tp = bench( 'PHP version', $php_re, $perf_input );
+$tj = bench( 'JS version', $js_re, $perf_input );
 
 $d = ( $tj - $tp ) / $tp * 100;
 printf( "Delta: %.1f%% (%s)\n", abs( $d ), $d > 0 ? 'PHP faster' : 'JS faster' );
@@ -121,14 +121,14 @@ printf( "Delta: %.1f%% (%s)\n", abs( $d ), $d > 0 ? 'PHP faster' : 'JS faster' )
  * measurably faster. ──────────────────────────────────────── */
 echo "\n=== Non-capturing vs capturing groups ===\n";
 
-$dstarOriginal = '/(\/(\\\\\/|[^\/])*\/|"(\\\\"|[^"])*"|\'(\\\\\'|[^\'])*\'|`(\\\\`|[^`])*`|\(\s*((function)\s*\(\s*\)|(\(\s*\))\s*=>)\s*(?:\{[\s\S]*?\}|[^;){]*)\s*\)\s*\(\s*\)|[^;])+/';
+$dstar_original = '/(\/(\\\\\/|[^\/])*\/|"(\\\\"|[^"])*"|\'(\\\\\'|[^\'])*\'|`(\\\\`|[^`])*`|\(\s*((function)\s*\(\s*\)|(\(\s*\))\s*=>)\s*(?:\{[\s\S]*?\}|[^;){]*)\s*\)\s*\(\s*\)|[^;])+/';
 
-$ourOptimized = '/(\/(?:\\\\\/|[^\/])*\/|"(?:\\\\"|[^"])*"|\'(?:\\\\\'|[^\'])*\'|`(?:\\\\`|[^`])*`|\(\s*((?:function)\s*\(\s*\)|(?:\(\s*\))\s*=>)\s*(?:\{[\s\S]*?\}|[^;){]*)\s*\)\s*\(\s*\)|[^;])+/';
+$our_optimized = '/(\/(?:\\\\\/|[^\/])*\/|"(?:\\\\"|[^"])*"|\'(?:\\\\\'|[^\'])*\'|`(?:\\\\`|[^`])*`|\(\s*((?:function)\s*\(\s*\)|(?:\(\s*\))\s*=>)\s*(?:\{[\s\S]*?\}|[^;){]*)\s*\)\s*\(\s*\)|[^;])+/';
 
 $all_ok = true;
 foreach ( array_merge( $common, $edge ) as $e ) {
-	preg_match_all( $dstarOriginal, $e, $a );
-	preg_match_all( $ourOptimized, $e, $b );
+	preg_match_all( $dstar_original, $e, $a );
+	preg_match_all( $our_optimized, $e, $b );
 	if ( ( $a[0] ?? array() ) !== ( $b[0] ?? array() ) ) {
 		$all_ok = false;
 		echo 'MISMATCH: ' . json_encode( $e ) . "\n";
@@ -136,8 +136,8 @@ foreach ( array_merge( $common, $edge ) as $e ) {
 }
 echo 'Same output? ' . ( $all_ok ? 'yes' : 'NO' ) . "\n";
 
-$dstarTime = bench( 'Datastar original (capturing)', $dstarOriginal, $perf_input );
-$ourTime   = bench( 'Our version (non-capturing)',  $ourOptimized, $perf_input );
+$dstar_time = bench( 'Datastar original (capturing)', $dstar_original, $perf_input );
+$our_time   = bench( 'Our version (non-capturing)', $our_optimized, $perf_input );
 
-$dt = ( $ourTime - $dstarTime ) / $dstarTime * 100;
-printf( "Delta: %.1f%% (%s)\n", abs( $dt ), $ourTime < $dstarTime ? '(?:) faster' : '(?:) slower' );
+$dt = ( $our_time - $dstar_time ) / $dstar_time * 100;
+printf( "Delta: %.1f%% (%s)\n", abs( $dt ), $our_time < $dstar_time ? '(?:) faster' : '(?:) slower' );

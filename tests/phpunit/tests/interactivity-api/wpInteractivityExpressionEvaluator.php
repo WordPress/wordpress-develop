@@ -47,7 +47,7 @@ class Tests_Interactivity_ExpressionEvaluator extends WP_UnitTestCase {
 	 */
 	private function get_derived_state_closures(): array {
 		$interactivity = new ReflectionClass( $this->interactivity );
-		$prop           = $interactivity->getProperty( 'derived_state_closures' );
+		$prop          = $interactivity->getProperty( 'derived_state_closures' );
 		if ( PHP_VERSION_ID < 80100 ) {
 			$prop->setAccessible( true );
 		}
@@ -86,7 +86,7 @@ class Tests_Interactivity_ExpressionEvaluator extends WP_UnitTestCase {
 		);
 		$this->set_namespace_stack( 'myplugin' );
 
-		$store = array(
+		$store     = array(
 			'state'   => $this->interactivity->state( 'myplugin' ),
 			'context' => array(
 				'x' => true,
@@ -121,7 +121,7 @@ class Tests_Interactivity_ExpressionEvaluator extends WP_UnitTestCase {
 	 * @ticket 60356
 	 */
 	public function test_integer_vs_float_literals_with_strict_equality() {
-		$invoked = 0;
+		$invoked   = 0;
 		$evaluator = $this->evaluator( $invoked );
 		$this->assertTrue( $evaluator->evaluate( 'state.count === 5' ) );
 		$this->assertFalse( $evaluator->evaluate( 'state.count === 5.0' ) );
@@ -131,7 +131,7 @@ class Tests_Interactivity_ExpressionEvaluator extends WP_UnitTestCase {
 	 * @ticket 60356
 	 */
 	public function test_short_circuit_returns_js_semantics_operand() {
-		$invoked = 0;
+		$invoked   = 0;
 		$evaluator = $this->evaluator( $invoked );
 		$this->assertSame( 0, $evaluator->evaluate( 'state.zero && state.flag' ) );
 		$this->assertTrue( $evaluator->evaluate( 'state.flag || context.y' ) );
@@ -142,7 +142,7 @@ class Tests_Interactivity_ExpressionEvaluator extends WP_UnitTestCase {
 	 * @ticket 60356
 	 */
 	public function test_complex_boolean_logic_and_grouping() {
-		$invoked = 0;
+		$invoked   = 0;
 		$evaluator = $this->evaluator( $invoked );
 		$this->interactivity->state(
 			'myplugin',
@@ -155,7 +155,7 @@ class Tests_Interactivity_ExpressionEvaluator extends WP_UnitTestCase {
 				'f' => 4,
 			)
 		);
-		$store = array(
+		$store     = array(
 			'state'   => $this->interactivity->state( 'myplugin' ),
 			'context' => array(
 				'x' => true,
@@ -183,14 +183,14 @@ class Tests_Interactivity_ExpressionEvaluator extends WP_UnitTestCase {
 		$this->interactivity->state(
 			'myplugin',
 			array(
-				'a' => 6,
-				'b' => 3,
+				'a'     => 6,
+				'b'     => 3,
 				'shift' => 1,
 				'count' => 5,
 			)
 		);
 		$this->set_namespace_stack( 'myplugin' );
-		$store = array(
+		$store     = array(
 			'state'   => $this->interactivity->state( 'myplugin' ),
 			'context' => array(),
 		);
@@ -213,7 +213,7 @@ class Tests_Interactivity_ExpressionEvaluator extends WP_UnitTestCase {
 	 * @ticket 60356
 	 */
 	public function test_bare_function_call_and_comma_operator_return_null() {
-		$invoked = 0;
+		$invoked   = 0;
 		$evaluator = $this->evaluator( $invoked );
 		$this->assertNull( $evaluator->evaluate( 'doSomething()' ) );
 		$this->assertNull( $evaluator->evaluate( 'Math.max(state.count, context.n)' ) );
@@ -224,7 +224,7 @@ class Tests_Interactivity_ExpressionEvaluator extends WP_UnitTestCase {
 	 * @ticket 60356
 	 */
 	public function test_derived_state_closure_leaf_is_invoked_and_recorded() {
-		$invoked = 0;
+		$invoked   = 0;
 		$evaluator = $this->evaluator( $invoked );
 		$this->assertTrue( $evaluator->evaluate( 'state.value === 7' ) );
 		$this->assertSame( 1, $invoked );
@@ -235,7 +235,7 @@ class Tests_Interactivity_ExpressionEvaluator extends WP_UnitTestCase {
 	 * @ticket 60356
 	 */
 	public function test_mid_path_closure_is_invoked_and_prefix_recorded() {
-		$invoked = 0;
+		$invoked   = 0;
 		$evaluator = $this->evaluator( $invoked );
 		$this->assertTrue( $evaluator->evaluate( 'state.nested.flag && context.x' ) );
 		$this->assertSame( 1, $invoked );
@@ -246,7 +246,7 @@ class Tests_Interactivity_ExpressionEvaluator extends WP_UnitTestCase {
 	 * @ticket 60356
 	 */
 	public function test_closure_returning_closure_chain_is_fully_resolved() {
-		$invoked = 0;
+		$invoked   = 0;
 		$evaluator = $this->evaluator( $invoked );
 		$this->assertTrue( $evaluator->evaluate( 'state.chain === 9' ) );
 		$this->assertSame( 2, $invoked );
@@ -257,7 +257,7 @@ class Tests_Interactivity_ExpressionEvaluator extends WP_UnitTestCase {
 	 * @ticket 60356
 	 */
 	public function test_empty_input_returns_null() {
-		$invoked = 0;
+		$invoked   = 0;
 		$evaluator = $this->evaluator( $invoked );
 		$this->assertNull( $evaluator->evaluate( '' ) );
 	}
@@ -270,7 +270,7 @@ class Tests_Interactivity_ExpressionEvaluator extends WP_UnitTestCase {
 	 * @ticket 60356
 	 */
 	public function test_multi_statement_last_statement_wins() {
-		$invoked = 0;
+		$invoked   = 0;
 		$evaluator = $this->evaluator( $invoked );
 		$this->assertTrue( $evaluator->evaluate( 'state.count; context.x' ) );
 		// `state.count` evaluates to 5 (truthy, discarded),
@@ -281,7 +281,7 @@ class Tests_Interactivity_ExpressionEvaluator extends WP_UnitTestCase {
 	 * @ticket 60356
 	 */
 	public function test_multi_statement_with_side_effecty_first() {
-		$invoked = 0;
+		$invoked   = 0;
 		$evaluator = $this->evaluator( $invoked );
 		// The comparison in the last statement is what matters.
 		$this->assertTrue(
@@ -293,7 +293,7 @@ class Tests_Interactivity_ExpressionEvaluator extends WP_UnitTestCase {
 	 * @ticket 60356
 	 */
 	public function test_multi_statement_trailing_semicolon_is_ignored() {
-		$invoked = 0;
+		$invoked   = 0;
 		$evaluator = $this->evaluator( $invoked );
 		$this->assertSame( 5, $evaluator->evaluate( 'state.count;' ) );
 	}
@@ -302,7 +302,7 @@ class Tests_Interactivity_ExpressionEvaluator extends WP_UnitTestCase {
 	 * @ticket 60356
 	 */
 	public function test_multi_statement_with_unsupported_statement_returns_null() {
-		$invoked = 0;
+		$invoked   = 0;
 		$evaluator = $this->evaluator( $invoked );
 		// `state.flag++` is an assignment → unconsumed tokens → null.
 		$this->assertNull(
@@ -318,7 +318,7 @@ class Tests_Interactivity_ExpressionEvaluator extends WP_UnitTestCase {
 	 * @ticket 60356
 	 */
 	public function test_actions_identifier_resolves_to_null() {
-		$invoked = 0;
+		$invoked   = 0;
 		$evaluator = $this->evaluator( $invoked );
 		$this->assertNull( $evaluator->evaluate( 'actions.someAction' ) );
 		$this->assertNull( $evaluator->evaluate( 'callbacks.myCallback' ) );
@@ -328,7 +328,7 @@ class Tests_Interactivity_ExpressionEvaluator extends WP_UnitTestCase {
 	 * @ticket 60356
 	 */
 	public function test_actions_mixed_with_state_defers_to_client() {
-		$invoked = 0;
+		$invoked   = 0;
 		$evaluator = $this->evaluator( $invoked );
 		// state.count is 5 (truthy); actions.isValid is null.
 		// JS: 5 && null → null. The server resolves actions.* to null,
@@ -342,7 +342,7 @@ class Tests_Interactivity_ExpressionEvaluator extends WP_UnitTestCase {
 	 * @ticket 60356
 	 */
 	public function test_callbacks_identifier_in_expression() {
-		$invoked = 0;
+		$invoked   = 0;
 		$evaluator = $this->evaluator( $invoked );
 		// callbacks.x is null; null || true → true in JS.
 		// So the expression evaluates to true.

@@ -816,6 +816,7 @@ final class WP_Interactivity_API {
 			return $value;
 		}
 		if ( is_int( $value ) || is_float( $value ) ) {
+			// phpcs:ignore Universal.Operators.StrictComparisons.LooseNotEqual
 			return 0 != $value;
 		}
 		if ( is_string( $value ) ) {
@@ -866,33 +867,33 @@ final class WP_Interactivity_API {
 		// Process each statement; return the last statement's value.
 		$result = null;
 		foreach ( $statements as $statement ) {
-		// Transform state.X.Y.Z to $__st['X']['Y']['Z'].
-		$php_expr = preg_replace_callback(
-			'/state\.([a-zA-Z_]\w*(?:\.[a-zA-Z_]\w*)*)/',
-			function ( $m ) {
-				$parts = explode( '.', $m[1] );
-				$r     = '$__st';
-				foreach ( $parts as $p ) {
-					$r .= "['{$p}']";
-				}
-				return $r;
-			},
+			// Transform state.X.Y.Z to $__st['X']['Y']['Z'].
+			$php_expr = preg_replace_callback(
+				'/state\.([a-zA-Z_]\w*(?:\.[a-zA-Z_]\w*)*)/',
+				function ( $m ) {
+					$parts = explode( '.', $m[1] );
+					$r     = '$__st';
+					foreach ( $parts as $p ) {
+						$r .= "['{$p}']";
+					}
+					return $r;
+				},
 				$statement
-		);
+			);
 
-		// Transform context.X.Y.Z to $__ctx['X']['Y']['Z'].
-		$php_expr = preg_replace_callback(
-			'/context\.([a-zA-Z_]\w*(?:\.[a-zA-Z_]\w*)*)/',
-			function ( $m ) {
-				$parts = explode( '.', $m[1] );
-				$r     = '$__ctx';
-				foreach ( $parts as $p ) {
-					$r .= "['{$p}']";
-				}
-				return $r;
-			},
-			$php_expr
-		);
+			// Transform context.X.Y.Z to $__ctx['X']['Y']['Z'].
+			$php_expr = preg_replace_callback(
+				'/context\.([a-zA-Z_]\w*(?:\.[a-zA-Z_]\w*)*)/',
+				function ( $m ) {
+					$parts = explode( '.', $m[1] );
+					$r     = '$__ctx';
+					foreach ( $parts as $p ) {
+						$r .= "['{$p}']";
+					}
+					return $r;
+				},
+				$php_expr
+			);
 
 			// Transform actions.* and callbacks.* to the PHP literal
 			// `null`. These are client-only JS function references
@@ -906,40 +907,41 @@ final class WP_Interactivity_API {
 				$php_expr
 			);
 
-		// Validate the post-transform expression: VALID / UNSUPPORTED / INVALID.
-		$safety = $this->evaluate_expression_safety( $php_expr );
+			// Validate the post-transform expression: VALID / UNSUPPORTED / INVALID.
+			$safety = $this->evaluate_expression_safety( $php_expr );
 
-		if ( self::EXPRESSION_INVALID === $safety ) {
-			// INVALID — dangerous PHP constructs. Report and bail to the client.
-			_doing_it_wrong(
-				__METHOD__,
-				sprintf(
+			if ( self::EXPRESSION_INVALID === $safety ) {
+				// INVALID — dangerous PHP constructs. Report and bail to the client.
+				_doing_it_wrong(
+					__METHOD__,
+					sprintf(
 					/* translators: %s: The directive expression. */
-					__( 'Interactivity API directive contained an unsafe expression: "%s".' ),
-					esc_html( $php_expr )
-				),
-				'6.9.0'
-			);
-			return null;
-		}
+						__( 'Interactivity API directive contained an unsafe expression: "%s".' ),
+						esc_html( $php_expr )
+					),
+					'6.9.0'
+				);
+				return null;
+			}
 
-		if ( self::EXPRESSION_DEFERRED === $safety ) {
-			// DEFERRED — valid JS that PHP cannot evaluate server-side
-			// (assignments, function/constant calls). Client handles it.
-			return null;
-		}
+			if ( self::EXPRESSION_DEFERRED === $safety ) {
+				// DEFERRED — valid JS that PHP cannot evaluate server-side
+				// (assignments, function/constant calls). Client handles it.
+				return null;
+			}
 
-		// VALID — substitute derived-state closures with JSON literals so
-		// eval() never sees a Closure object as an operand, then evaluate.
-		$substituted = $this->substitute_closures( $php_expr, $store, $ns );
-		if ( null === $substituted ) {
-			return null;
-		}
+			// VALID — substitute derived-state closures with JSON literals so
+			// eval() never sees a Closure object as an operand, then evaluate.
+			$substituted = $this->substitute_closures( $php_expr, $store, $ns );
+			if ( null === $substituted ) {
+				return null;
+			}
 
-		try {
-			$result = eval( "return ( $substituted );" );
-		} catch ( \Throwable $e ) {
-			$result = null;
+			try {
+				// phpcs:ignore Squiz.PHP.Eval.Discouraged
+				$result = eval( "return ( $substituted );" );
+			} catch ( \Throwable $e ) {
+				$result = null;
 			}
 		}
 
@@ -1150,9 +1152,27 @@ final class WP_Interactivity_API {
 		// the parentheses themselves. `=` is also safe-as-a-character but
 		// treated specially below as an assignment operator.
 		$safe_chars = array(
-			' ', '(', ')', '[', ']', '?', ':', ',',
-			'+', '-', '*', '/', '%',
-			'=', '!', '~', '|', '&', '^', '<', '>',
+			' ',
+			'(',
+			')',
+			'[',
+			']',
+			'?',
+			':',
+			',',
+			'+',
+			'-',
+			'*',
+			'/',
+			'%',
+			'=',
+			'!',
+			'~',
+			'|',
+			'&',
+			'^',
+			'<',
+			'>',
 		);
 
 		// Compound-assignment and mutation tokens. These make an expression
@@ -1161,10 +1181,20 @@ final class WP_Interactivity_API {
 		// dangerous; but PHP cannot faithfully model the JS mutation
 		// server-side, so the client handles them.
 		$assignment_tokens = array(
-			T_PLUS_EQUAL, T_MINUS_EQUAL, T_MUL_EQUAL, T_DIV_EQUAL,
-			T_MOD_EQUAL, T_POW_EQUAL, T_AND_EQUAL, T_OR_EQUAL, T_XOR_EQUAL,
-			T_SL_EQUAL, T_SR_EQUAL, T_COALESCE_EQUAL,
-			T_INC, T_DEC,
+			T_PLUS_EQUAL,
+			T_MINUS_EQUAL,
+			T_MUL_EQUAL,
+			T_DIV_EQUAL,
+			T_MOD_EQUAL,
+			T_POW_EQUAL,
+			T_AND_EQUAL,
+			T_OR_EQUAL,
+			T_XOR_EQUAL,
+			T_SL_EQUAL,
+			T_SR_EQUAL,
+			T_COALESCE_EQUAL,
+			T_INC,
+			T_DEC,
 		);
 
 		// Dangerous PHP constructs (reject-list). Touching any of these makes
@@ -1177,27 +1207,49 @@ final class WP_Interactivity_API {
 		// `interactivity-api-token-shims.php` with sentinel integer values.
 		$dangerous = array(
 			// Object/static/namespace access.
-			T_OBJECT_OPERATOR, T_NULLSAFE_OBJECT_OPERATOR,
-			T_DOUBLE_COLON, T_PAAMAYIM_NEKUDOTAYIM,
+			T_OBJECT_OPERATOR,
+			T_NULLSAFE_OBJECT_OPERATOR,
+			T_DOUBLE_COLON,
+			T_PAAMAYIM_NEKUDOTAYIM,
 			T_NS_SEPARATOR,
-			T_NAME_FULLY_QUALIFIED, T_NAME_QUALIFIED, T_NAME_RELATIVE,
+			T_NAME_FULLY_QUALIFIED,
+			T_NAME_QUALIFIED,
+			T_NAME_RELATIVE,
 
 			// Code execution / file inclusion.
-			T_EVAL, T_EXIT,
-			T_INCLUDE, T_INCLUDE_ONCE, T_REQUIRE, T_REQUIRE_ONCE,
-			T_NEW, T_CLONE,
+			T_EVAL,
+			T_EXIT,
+			T_INCLUDE,
+			T_INCLUDE_ONCE,
+			T_REQUIRE,
+			T_REQUIRE_ONCE,
+			T_NEW,
+			T_CLONE,
 
 			// Function/closure definition.
-			T_FUNCTION, T_FN,
+			T_FUNCTION,
+			T_FN,
 
 			// Output / termination / scope manipulation.
-			T_ECHO, T_PRINT, T_UNSET, T_THROW,
-			T_GLOBAL, T_STATIC, T_GOTO, T_RETURN,
-			T_YIELD, T_YIELD_FROM, T_HALT_COMPILER,
-			T_ATTRIBUTE, T_NAMESPACE,
+			T_ECHO,
+			T_PRINT,
+			T_UNSET,
+			T_THROW,
+			T_GLOBAL,
+			T_STATIC,
+			T_GOTO,
+			T_RETURN,
+			T_YIELD,
+			T_YIELD_FROM,
+			T_HALT_COMPILER,
+			T_ATTRIBUTE,
+			T_NAMESPACE,
 
 			// PHP open/close tags and inline HTML.
-			T_OPEN_TAG, T_OPEN_TAG_WITH_ECHO, T_CLOSE_TAG, T_INLINE_HTML,
+			T_OPEN_TAG,
+			T_OPEN_TAG_WITH_ECHO,
+			T_CLOSE_TAG,
+			T_INLINE_HTML,
 
 			// PHP 8.1+ tokenizes a bare `&` in expressions using the
 			// ampersand token IDs, and the specific variant depends on the
@@ -1210,38 +1262,88 @@ final class WP_Interactivity_API {
 			// PHP-specific operators with no JS equivalent (kept out so SSR and
 			// hydration agree on what is even expressible).
 			T_SPACESHIP,
-			T_LOGICAL_AND, T_LOGICAL_OR, T_LOGICAL_XOR,
-			T_ARRAY, T_DOUBLE_ARROW,
-			T_ARRAY_CAST, T_BOOL_CAST, T_DOUBLE_CAST, T_INT_CAST,
-			T_OBJECT_CAST, T_STRING_CAST, T_UNSET_CAST, T_VOID_CAST,
-			T_EMPTY, T_ISSET,
+			T_LOGICAL_AND,
+			T_LOGICAL_OR,
+			T_LOGICAL_XOR,
+			T_ARRAY,
+			T_DOUBLE_ARROW,
+			T_ARRAY_CAST,
+			T_BOOL_CAST,
+			T_DOUBLE_CAST,
+			T_INT_CAST,
+			T_OBJECT_CAST,
+			T_STRING_CAST,
+			T_UNSET_CAST,
+			T_VOID_CAST,
+			T_EMPTY,
+			T_ISSET,
 			T_CONCAT_EQUAL,
-			T_CURLY_OPEN, T_DOLLAR_OPEN_CURLY_BRACES, T_STRING_VARNAME,
-			T_START_HEREDOC, T_END_HEREDOC, T_NUM_STRING,
+			T_CURLY_OPEN,
+			T_DOLLAR_OPEN_CURLY_BRACES,
+			T_STRING_VARNAME,
+			T_START_HEREDOC,
+			T_END_HEREDOC,
+			T_NUM_STRING,
 			T_ENCAPSED_AND_WHITESPACE,
 
 			// Declarations / OOP keywords.
-			T_ABSTRACT, T_FINAL, T_PRIVATE, T_PROTECTED, T_PUBLIC,
-			T_PRIVATE_SET, T_PROTECTED_SET, T_PUBLIC_SET,
-			T_CLASS, T_INTERFACE, T_TRAIT, T_ENUM,
-			T_IMPLEMENTS, T_EXTENDS, T_INSTANCEOF, T_READONLY, T_DECLARE,
-			T_CONST, T_VAR, T_CALLABLE, T_INSTEADOF,
+			T_ABSTRACT,
+			T_FINAL,
+			T_PRIVATE,
+			T_PROTECTED,
+			T_PUBLIC,
+			T_PRIVATE_SET,
+			T_PROTECTED_SET,
+			T_PUBLIC_SET,
+			T_CLASS,
+			T_INTERFACE,
+			T_TRAIT,
+			T_ENUM,
+			T_IMPLEMENTS,
+			T_EXTENDS,
+			T_INSTANCEOF,
+			T_READONLY,
+			T_DECLARE,
+			T_CONST,
+			T_VAR,
+			T_CALLABLE,
+			T_INSTEADOF,
 
 			// Control flow (not expression-safe).
-			T_IF, T_ELSE, T_ELSEIF,
-			T_FOR, T_FOREACH, T_WHILE, T_DO,
-			T_SWITCH, T_CASE, T_DEFAULT, T_BREAK, T_CONTINUE,
-			T_TRY, T_CATCH, T_FINALLY,
+			T_IF,
+			T_ELSE,
+			T_ELSEIF,
+			T_FOR,
+			T_FOREACH,
+			T_WHILE,
+			T_DO,
+			T_SWITCH,
+			T_CASE,
+			T_DEFAULT,
+			T_BREAK,
+			T_CONTINUE,
+			T_TRY,
+			T_CATCH,
+			T_FINALLY,
 
 			// Other PHP-specific constructs.
-			T_MATCH, T_PIPE, T_ELLIPSIS, T_LIST, T_AS, T_USE,
+			T_MATCH,
+			T_PIPE,
+			T_ELLIPSIS,
+			T_LIST,
+			T_AS,
+			T_USE,
 
 			// Magic constants — no JS equivalent, leak server internals.
-			T_CLASS_C, T_TRAIT_C, T_METHOD_C, T_FUNC_C,
-			T_NS_C, T_FILE, T_DIR, T_LINE, T_PROPERTY_C,
-
-			// Invalid characters (anything below ASCII 32 except \t \n \r).
-			T_BAD_CHARACTER,
+			T_CLASS_C,
+			T_TRAIT_C,
+			T_METHOD_C,
+			T_FUNC_C,
+			T_NS_C,
+			T_FILE,
+			T_DIR,
+			T_LINE,
+			T_PROPERTY_C,
 		);
 
 		try {
@@ -1251,6 +1353,7 @@ final class WP_Interactivity_API {
 			// tag (with trailing whitespace) so the expression is parsed as
 			// code, then skip the leading T_OPEN_TAG in the loop and exclude
 			// its bytes from the round-trip byte-length check below.
+			// phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
 			$tokens = @token_get_all( '<?php ' . $php_expr );
 		} catch ( \Throwable $e ) {
 			return self::EXPRESSION_INVALID;
@@ -1279,6 +1382,7 @@ final class WP_Interactivity_API {
 		}
 		// Subtract the prepended "<?php " (6 bytes) from the token stream's
 		// total. The leading T_OPEN_TAG itself encodes those 6 bytes.
+		// phpcs:ignore WordPress.PHP.YodaConditions.NotYoda
 		if ( $byte_len !== strlen( $php_expr ) + 6 ) {
 			return self::EXPRESSION_INVALID;
 		}
@@ -1344,12 +1448,24 @@ final class WP_Interactivity_API {
 			// identifier checks below, which is safe because unknown tokens
 			// are ignored rather than trusted.
 			$allowed_named = array(
-				T_LNUMBER, T_DNUMBER, T_CONSTANT_ENCAPSED_STRING,
-				T_WHITESPACE, T_COMMENT, T_DOC_COMMENT,
-				T_IS_EQUAL, T_IS_NOT_EQUAL, T_IS_IDENTICAL, T_IS_NOT_IDENTICAL,
-				T_IS_SMALLER_OR_EQUAL, T_IS_GREATER_OR_EQUAL,
-				T_BOOLEAN_AND, T_BOOLEAN_OR,
-				T_SL, T_SR, T_POW, T_COALESCE,
+				T_LNUMBER,
+				T_DNUMBER,
+				T_CONSTANT_ENCAPSED_STRING,
+				T_WHITESPACE,
+				T_COMMENT,
+				T_DOC_COMMENT,
+				T_IS_EQUAL,
+				T_IS_NOT_EQUAL,
+				T_IS_IDENTICAL,
+				T_IS_NOT_IDENTICAL,
+				T_IS_SMALLER_OR_EQUAL,
+				T_IS_GREATER_OR_EQUAL,
+				T_BOOLEAN_AND,
+				T_BOOLEAN_OR,
+				T_SL,
+				T_SR,
+				T_POW,
+				T_COALESCE,
 				// PHP 8.1+ tokenization of a bare bitwise `&`.
 				T_AMPERSAND_FOLLOWED_BY_VAR_OR_VARARG,
 				T_AMPERSAND_NOT_FOLLOWED_BY_VAR_OR_VARARG,
@@ -1433,13 +1549,13 @@ final class WP_Interactivity_API {
 		$pattern = '/(\$__st|\$__ctx)((?:\[[\'"][a-zA-Z_][a-zA-Z0-9_]*[\'"]\])*)/';
 
 		$had_failure = false;
-		$callback = function ( $m ) use ( $store, $ns, &$had_failure ) {
+		$callback    = function ( $m ) use ( $store, $ns, &$had_failure ) {
 			// Determine the root ('state' or 'context').
 			if ( '$__st' === $m[1] ) {
-				$cur     = $store['state'] ?? array();
+				$cur      = $store['state'] ?? array();
 				$root_key = 'state';
 			} else {
-				$cur     = $store['context'] ?? array();
+				$cur      = $store['context'] ?? array();
 				$root_key = 'context';
 			}
 

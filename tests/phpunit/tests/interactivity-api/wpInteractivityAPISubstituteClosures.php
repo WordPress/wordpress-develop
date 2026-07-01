@@ -47,7 +47,7 @@ class Tests_Interactivity_API_SubstituteClosures extends WP_UnitTestCase {
 	 */
 	private function get_derived_state_closures(): array {
 		$interactivity = new ReflectionClass( $this->interactivity );
-		$prop           = $interactivity->getProperty( 'derived_state_closures' );
+		$prop          = $interactivity->getProperty( 'derived_state_closures' );
 		if ( PHP_VERSION_ID < 80100 ) {
 			$prop->setAccessible( true );
 		}
@@ -93,7 +93,7 @@ class Tests_Interactivity_API_SubstituteClosures extends WP_UnitTestCase {
 		);
 		$this->set_namespace_stack( 'myplugin' );
 
-		$store = array(
+		$store  = array(
 			'state'   => $this->interactivity->state( 'myplugin' ),
 			'context' => array(),
 		);
@@ -119,7 +119,7 @@ class Tests_Interactivity_API_SubstituteClosures extends WP_UnitTestCase {
 		);
 		$this->set_namespace_stack( 'myplugin' );
 
-		$store = array(
+		$store  = array(
 			'state'   => $this->interactivity->state( 'myplugin' ),
 			'context' => array( 'x' => true ),
 		);
@@ -148,7 +148,7 @@ class Tests_Interactivity_API_SubstituteClosures extends WP_UnitTestCase {
 		);
 		$this->set_namespace_stack( 'myplugin' );
 
-		$store = array(
+		$store  = array(
 			'state'   => $this->interactivity->state( 'myplugin' ),
 			'context' => array(),
 		);
