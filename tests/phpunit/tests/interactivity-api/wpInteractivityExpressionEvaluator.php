@@ -261,4 +261,93 @@ class Tests_Interactivity_ExpressionEvaluator extends WP_UnitTestCase {
 		$evaluator = $this->evaluator( $invoked );
 		$this->assertNull( $evaluator->evaluate( '' ) );
 	}
+
+	/* ─────────────────────────────────────────────────────────
+	 * Multi-statement (`;`-delimited) support
+	 * ───────────────────────────────────────────────────────── */
+
+	/**
+	 * @ticket 60356
+	 */
+	public function test_multi_statement_last_statement_wins() {
+		$invoked = 0;
+		$evaluator = $this->evaluator( $invoked );
+		$this->assertTrue( $evaluator->evaluate( 'state.count; context.x' ) );
+		// `state.count` evaluates to 5 (truthy, discarded),
+		// `context.x` evaluates to true (returned).
+	}
+
+	/**
+	 * @ticket 60356
+	 */
+	public function test_multi_statement_with_side_effecty_first() {
+		$invoked = 0;
+		$evaluator = $this->evaluator( $invoked );
+		// The comparison in the last statement is what matters.
+		$this->assertTrue(
+			$evaluator->evaluate( 'state.count + 1; context.x && state.flag' )
+		);
+	}
+
+	/**
+	 * @ticket 60356
+	 */
+	public function test_multi_statement_trailing_semicolon_is_ignored() {
+		$invoked = 0;
+		$evaluator = $this->evaluator( $invoked );
+		$this->assertSame( 5, $evaluator->evaluate( 'state.count;' ) );
+	}
+
+	/**
+	 * @ticket 60356
+	 */
+	public function test_multi_statement_with_unsupported_statement_returns_null() {
+		$invoked = 0;
+		$evaluator = $this->evaluator( $invoked );
+		// `state.flag++` is an assignment → unconsumed tokens → null.
+		$this->assertNull(
+			$evaluator->evaluate( 'state.flag++; state.count' )
+		);
+	}
+
+	/* ─────────────────────────────────────────────────────────
+	 * actions.* / callbacks.* support
+	 * ───────────────────────────────────────────────────────── */
+
+	/**
+	 * @ticket 60356
+	 */
+	public function test_actions_identifier_resolves_to_null() {
+		$invoked = 0;
+		$evaluator = $this->evaluator( $invoked );
+		$this->assertNull( $evaluator->evaluate( 'actions.someAction' ) );
+		$this->assertNull( $evaluator->evaluate( 'callbacks.myCallback' ) );
+	}
+
+	/**
+	 * @ticket 60356
+	 */
+	public function test_actions_mixed_with_state_defers_to_client() {
+		$invoked = 0;
+		$evaluator = $this->evaluator( $invoked );
+		// state.count is 5 (truthy); actions.isValid is null.
+		// JS: 5 && null → null. The server resolves actions.* to null,
+		// so the expression evaluates to null → defer to client.
+		$this->assertNull(
+			$evaluator->evaluate( 'state.count && actions.isValid' )
+		);
+	}
+
+	/**
+	 * @ticket 60356
+	 */
+	public function test_callbacks_identifier_in_expression() {
+		$invoked = 0;
+		$evaluator = $this->evaluator( $invoked );
+		// callbacks.x is null; null || true → true in JS.
+		// So the expression evaluates to true.
+		$this->assertTrue(
+			$evaluator->evaluate( 'callbacks.x || context.x' )
+		);
+	}
 }

@@ -761,9 +761,38 @@ final class WP_Interactivity_API {
 			}
 		}
 
-		// Current candidate patch behavior: return Approach A's result while
-		// the direct comparison tests document the semantic differences.
+		// Return Approach A's result while the dual-implementation
+		// comparison is ongoing. Neither approach is canonical —
+		// both are experiments and one will be removed before merge.
 		return $result_a;
+	}
+
+	/**
+	 * Splits a JS expression into `;`-delimited statements, respecting
+	 * string literals, template literals, regex literals, and IIFEs.
+	 *
+	 * Mirrors the client-side `splitStatements()` helper in the Gutenberg
+	 * Interactivity package, and Datastar's `genRx()` statement regex.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @param string $expr JS expression possibly containing `;`.
+	 * @return string[]|null Array of statements, or null when the
+	 *                        expression contains no semicolons.
+	 */
+	private function split_expression_into_statements( string $expr ): ?array {
+		if ( ! str_contains( $expr, ';' ) ) {
+			return null;
+		}
+
+		// Matches: regex literals, double/single-quoted strings,
+		// template literals, IIFEs, or any non-semicolon character.
+		$re = '/(\/(?:\\\\\/|[^\/])*\/|"(?:\\\\"|[^"])*"|\'(?:\\\\\'|[^\'])*\'|`(?:\\\\`|[^`])*`|\(\s*((?:function)\s*\(\s*\)|(?:\(\s*\))\s*=>)\s*(?:\{[\s\S]*?\}|[^;){]*)\s*\)\s*\(\s*\)|[^;])+/';
+		if ( preg_match_all( $re, trim( $expr ), $matches ) ) {
+			return $matches[0];
+		}
+
+		return null;
 	}
 
 	/**
@@ -804,6 +833,12 @@ final class WP_Interactivity_API {
 	 * token stream, substitute derived-state closures with JSON literals,
 	 * then eval() the resulting literal-only expression.
 	 *
+	 * Supports `;`-delimited multi-statement expressions: each statement
+	 * is evaluated via the same pipeline, and the last statement's value
+	 * is returned. References to `actions.*` and `callbacks.*` are
+	 * regex-transformed to the PHP literal `null` (these are client-only
+	 * JS function references with no server-side equivalent).
+	 *
 	 * This is the established behaviour and the result returned to the caller
 	 * during the dual-implementation comparison phase.
 	 *
@@ -818,6 +853,19 @@ final class WP_Interactivity_API {
 		$__st  = $store['state'];
 		$__ctx = $store['context'];
 
+		// Split into statements on ';', respecting string literals,
+		// template literals, regex literals, and IIFEs.
+		$statements = array( $path );
+		if ( str_contains( $path, ';' ) ) {
+			$split = $this->split_expression_into_statements( $path );
+			if ( null !== $split ) {
+				$statements = $split;
+			}
+		}
+
+		// Process each statement; return the last statement's value.
+		$result = null;
+		foreach ( $statements as $statement ) {
 		// Transform state.X.Y.Z to $__st['X']['Y']['Z'].
 		$php_expr = preg_replace_callback(
 			'/state\.([a-zA-Z_]\w*(?:\.[a-zA-Z_]\w*)*)/',
@@ -829,7 +877,7 @@ final class WP_Interactivity_API {
 				}
 				return $r;
 			},
-			$path
+				$statement
 		);
 
 		// Transform context.X.Y.Z to $__ctx['X']['Y']['Z'].
@@ -845,6 +893,18 @@ final class WP_Interactivity_API {
 			},
 			$php_expr
 		);
+
+			// Transform actions.* and callbacks.* to the PHP literal
+			// `null`. These are client-only JS function references
+			// that have no server-side equivalent. Transforming them
+			// to null allows expressions like `callbacks.x || context.x`
+			// to evaluate correctly server-side while still deferring
+			// to the client when they are the sole value.
+			$php_expr = preg_replace(
+				'/\b(?:actions|callbacks)\.[a-zA-Z_]\w*(?:\.[a-zA-Z_]\w*)*/',
+				'null',
+				$php_expr
+			);
 
 		// Validate the post-transform expression: VALID / UNSUPPORTED / INVALID.
 		$safety = $this->evaluate_expression_safety( $php_expr );
@@ -880,6 +940,7 @@ final class WP_Interactivity_API {
 			$result = eval( "return ( $substituted );" );
 		} catch ( \Throwable $e ) {
 			$result = null;
+			}
 		}
 
 		return $result;

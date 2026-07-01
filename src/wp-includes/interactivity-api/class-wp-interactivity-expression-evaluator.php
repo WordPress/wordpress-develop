@@ -41,6 +41,7 @@ class WP_Interactivity_UnsupportedExpression extends Exception {}
  * injection surface that `eval()` would otherwise create.
  *
  * Supported grammar (lowest-precedence first):
+ *   Program         := Statement (';' Statement)*      // multi-statement
  *   Expression      := Ternary
  *   Ternary         := Nullish ( '?' Expression ':' Expression )?
  *   Nullish         := Or ( '??' Or )*
@@ -70,10 +71,15 @@ class WP_Interactivity_UnsupportedExpression extends Exception {}
  *     whitelist is wired server-side in this phase (these are client-only
  *     store references defined in view.js).
  *   - Comma operator `(a, b)`: leaves unconsumed tokens → null.
- *   - Multi-statement `;`-delimited expressions: `;` is not a token in the
- *     lexer's operator set, so it throws `WP_Interactivity_UnsupportedExpression`.
  *   - Object/static access (`.` outside dotted state/context paths,
  *     `->`, `::`), `new`, `include`, backticks, etc.: lexer/parser reject.
+ *
+ * Recognised identifier prefixes:
+ *   - `state.*`, `context.*` — resolved server-side via the resolver callback.
+ *   - `actions.*`, `callbacks.*` — recognised as valid but resolved to `null`
+ *     (these are client-only JS function references; the server cannot
+ *     invoke them). Expressions referencing actions/callbacks gracefully
+ *     defer to the client.
  *
  * Closures (derived-state getters with a PHP implementation) encountered as
  * stored values at a `state.X` / `context.X` leaf ARE invoked server-side,
@@ -125,6 +131,11 @@ class WP_Interactivity_Expression_Evaluator {
 	/**
 	 * Evaluates a JS-like expression string.
 	 *
+	 * Supports `;`-delimited multi-statement expressions with
+	 * "last statement wins" semantics (following Datastar's genRx
+	 * convention for return-value directives). If any statement is
+	 * unsupported, the entire expression returns null.
+	 *
 	 * @param string $input The original (pre-regex-transform) directive value.
 	 * @return mixed The computed value, or null if the expression is
 	 *               unsupported, malformed, or referenced an unknown path.
@@ -138,7 +149,18 @@ class WP_Interactivity_Expression_Evaluator {
 			$this->tokens = $this->lex( $input );
 			$this->pos     = 0;
 
-			$ast = $this->parse_ternary();
+			// Parse statements separated by ';'. The last statement's
+			// value is the expression result (last-statement-wins).
+			$statements = array();
+			$statements[] = $this->parse_ternary();
+			while ( $this->match_op( ';' ) ) {
+				// Empty trailing statements (e.g. trailing ";") are
+				// skipped — they produce no value.
+				if ( $this->is_complete() ) {
+					break;
+				}
+				$statements[] = $this->parse_ternary();
+			}
 
 			// Verify ALL tokens were consumed. Unconsumed tokens signal a
 			// construct the grammar doesn't support (assignment, comma
@@ -147,7 +169,12 @@ class WP_Interactivity_Expression_Evaluator {
 				return null;
 			}
 
-			return $this->eval_node( $ast );
+			// Evaluate each statement; return the last statement's value.
+			$result = null;
+			foreach ( $statements as $stmt ) {
+				$result = $this->eval_node( $stmt );
+			}
+			return $result;
 		} catch ( WP_Interactivity_UnsupportedExpression $e ) {
 			return null;
 		} catch ( Throwable $e ) {
@@ -249,8 +276,10 @@ class WP_Interactivity_Expression_Evaluator {
 
 			// Single-character operators. `=` is included so assignment
 			// expressions tokenize cleanly (the parser will leave it
-			// unconsumed → null, the UNSUPPORTED outcome).
-			if ( false !== strpos( '+-*/%()?:=,!~&|^<>[]', $c ) ) {
+			// unconsumed → null, the UNSUPPORTED outcome). `;` is
+			// included as a statement separator for multi-statement
+			// support.
+			if ( false !== strpos( '+-*/%()?:=,!~&|^<>[];', $c ) ) {
 				$tokens[] = array( 'type' => 'op', 'value' => $c );
 				++$i;
 				continue;
@@ -766,18 +795,29 @@ class WP_Interactivity_Expression_Evaluator {
 	 * derived-state Closures encountered along the way.
 	 *
 	 * The actual lookup is delegated to the resolver callback supplied at
-	 * construction time. Identifiers not starting with `state.` or `context.`
-	 * are still treated as UNSUPPORTED here, before the callback is invoked.
+	 * construction time. Identifiers starting with `actions.` or
+	 * `callbacks.` are recognized as valid client-only references and
+	 * resolve to `null` (the server cannot invoke JS functions).
+	 * Identifiers not starting with `state.`, `context.`, `actions.`, or
+	 * `callbacks.` are treated as UNSUPPORTED.
 	 *
 	 * @param string $path Dotted path, e.g. `state.foo.bar` or `context.x`.
 	 * @return mixed Resolved value, or null when the path does not exist.
 	 * @throws WP_Interactivity_UnsupportedExpression When the identifier is
-	 *         not a state./context. path.
+	 *         not a recognised path.
 	 */
 	private function resolve_identifier( string $path ) {
+		// Actions and callbacks are client-only JS function references.
+		// Recognise them as valid so expressions mixing state/context with
+		// actions/callbacks don't throw UNSUPPORTED. The server resolves
+		// them to null, which means "defer to client."
+		if ( 0 === strpos( $path, 'actions.' ) || 0 === strpos( $path, 'callbacks.' ) ) {
+			return null;
+		}
+
 		// Only state.* and context.* paths are resolvable server-side.
-		// Anything else (actions.x, callbacks.y, Math.max, etc.) is a
-		// client-side reference → UNSUPPORTED.
+		// Anything else (e.g. Math.max, console.log) is a client-side
+		// reference → UNSUPPORTED.
 		if ( 0 !== strpos( $path, 'state.' ) && 0 !== strpos( $path, 'context.' ) ) {
 			throw new WP_Interactivity_UnsupportedExpression( 'Unsupported identifier: ' . $path );
 		}

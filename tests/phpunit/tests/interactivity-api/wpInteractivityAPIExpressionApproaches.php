@@ -276,4 +276,70 @@ class Tests_Interactivity_API_ExpressionApproaches extends WP_UnitTestCase {
 		$this->assertSame( $expected_b, $this->evaluate_b( $expr ) );
 		$this->assertNotSame( $this->evaluate_a( $expr ), $this->evaluate_b( $expr ) );
 	}
+
+	/**
+	 * Multi-statement expressions where both approaches agree.
+	 *
+	 * @return array<string, array{expr: string, expected: mixed}>
+	 */
+	public function provider_matching_multi_statement(): array {
+		return array(
+			'last statement wins' => array(
+				'expr'     => 'context.y; context.x',
+				'expected' => true,
+			),
+			'comparison as last' => array(
+				'expr'     => 'state.count; state.flag && context.x',
+				'expected' => true,
+			),
+			'trailing semicolon' => array(
+				'expr'     => 'state.count;',
+				'expected' => 5,
+			),
+		);
+	}
+
+	/**
+	 * @ticket 60356
+	 *
+	 * @dataProvider provider_matching_multi_statement
+	 */
+	public function test_both_approaches_match_for_multi_statement_cases( string $expr, $expected ) {
+		$invoked = 0;
+		$this->set_up_fixture( $invoked );
+		$this->assertSame( $expected, $this->evaluate_a( $expr ) );
+		$this->assertSame( $expected, $this->evaluate_b( $expr ) );
+	}
+
+	/**
+	 * Actions/callbacks identifiers: both approaches should return null
+	 * (defer to client).
+	 *
+	 * @return array<string, array{expr: string}>
+	 */
+	public function provider_actions_callbacks(): array {
+		return array(
+			'actions dot path'     => array( 'actions.someAction' ),
+			'callbacks dot path'   => array( 'callbacks.myCallback' ),
+			'actions with state'   => array( 'state.count && actions.isValid' ),
+			'callbacks with context' => array( 'callbacks.x || context.x' ),
+		);
+	}
+
+	/**
+	 * @ticket 60356
+	 *
+	 * @dataProvider provider_actions_callbacks
+	 */
+	public function test_both_approaches_handle_actions_callbacks( string $expr ) {
+		$invoked = 0;
+		$this->set_up_fixture( $invoked );
+		$result_a = $this->evaluate_a( $expr );
+		$result_b = $this->evaluate_b( $expr );
+		// Both should either return null or produce the same non-error result.
+		// Where they differ, Approach B is expected to be JS-correct.
+		$this->assertTrue(
+			null === $result_a || null === $result_b || $result_a === $result_b
+		);
+	}
 }

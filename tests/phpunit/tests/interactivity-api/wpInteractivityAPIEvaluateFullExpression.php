@@ -525,4 +525,145 @@ class Tests_Interactivity_API_EvaluateFullExpression extends WP_UnitTestCase {
 		$this->setExpectedIncorrectUsage( 'WP_Interactivity_API::evaluate_full_expression_approach_a' );
 		$this->assertNull( $this->evaluate( $expr ) );
 	}
+
+	/* ──────────────────────────────────────────────────────────────────
+	 * Multi-statement (`;`-delimited) support
+	 * ────────────────────────────────────────────────────────────────── */
+
+	/**
+	 * @ticket 60356
+	 */
+	public function test_valid_multi_statement_last_statement_wins() {
+		$invoked = 0;
+		$this->set_up_fixture( $invoked );
+		$this->assertTrue( $this->evaluate( 'context.y; context.x' ) );
+		// context.y is false (discarded), context.x is true (returned).
+	}
+
+	/**
+	 * @ticket 60356
+	 */
+	public function test_valid_multi_statement_with_comparison_as_last() {
+		$invoked = 0;
+		$this->set_up_fixture( $invoked );
+		$this->assertTrue(
+			$this->evaluate( 'state.count; state.flag && context.x' )
+		);
+	}
+
+	/**
+	 * @ticket 60356
+	 */
+	public function test_valid_multi_statement_trailing_semicolon() {
+		$invoked = 0;
+		$this->set_up_fixture( $invoked );
+		$this->assertSame( 5, $this->evaluate( 'state.count;' ) );
+	}
+
+	/* ──────────────────────────────────────────────────────────────────
+	 * actions.* / callbacks.* support
+	 * ────────────────────────────────────────────────────────────────── */
+
+	/**
+	 * @ticket 60356
+	 */
+	public function test_actions_identifier_defers_to_client() {
+		$invoked = 0;
+		$this->set_up_fixture( $invoked );
+		// actions.* is client-only; the server returns null.
+		$this->assertNull( $this->evaluate( 'actions.someAction' ) );
+	}
+
+	/**
+	 * @ticket 60356
+	 */
+	public function test_callbacks_identifier_defers_to_client() {
+		$invoked = 0;
+		$this->set_up_fixture( $invoked );
+		$this->assertNull( $this->evaluate( 'callbacks.myCallback' ) );
+	}
+
+	/**
+	 * @ticket 60356
+	 *
+	 * Approach A transforms actions.* to null and evaluates; PHP's &&
+	 * semantics cause `5 && null` → `false` (not `null` as in JS).
+	 * Approach B correctly returns `null` (JS short-circuit semantics).
+	 * Test each approach individually to avoid the WP_DEBUG comparison
+	 * warning that flags this known divergence.
+	 */
+	public function test_actions_mixed_with_state_handled_by_both() {
+		$invoked = 0;
+		$this->set_up_fixture( $invoked );
+
+		// Approach A: transforms actions.* to null → false (PHP semantics).
+		$store = array(
+			'state'   => $this->interactivity->state( 'myplugin' ),
+			'context' => $this->interactivity->get_context( 'myplugin' ),
+		);
+		$method_a = new ReflectionMethod( $this->interactivity, 'evaluate_full_expression_approach_a' );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$method_a->setAccessible( true );
+		}
+		$this->assertFalse(
+			$method_a->invoke( $this->interactivity, 'state.count && actions.isValid', $store, 'myplugin' )
+		);
+
+		// Approach B: resolves actions.* to null → null (JS semantics).
+		$method_resolve = new ReflectionMethod( $this->interactivity, 'resolve_path_with_closures' );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$method_resolve->setAccessible( true );
+		}
+		$evaluator = new WP_Interactivity_Expression_Evaluator(
+			function ( string $path ) use ( $store, $method_resolve ) {
+				return $method_resolve->invoke( $this->interactivity, $store, explode( '.', $path ), 'myplugin' );
+			}
+		);
+		$this->assertNull(
+			$evaluator->evaluate( 'state.count && actions.isValid' )
+		);
+	}
+
+	/**
+	 * @ticket 60356
+	 */
+	public function test_callbacks_mixed_with_context_evaluates() {
+		$invoked = 0;
+		$this->set_up_fixture( $invoked );
+		// callbacks.x → null (transformed by Approach A, resolved by B).
+		// null || context.x → true (null is falsy, || returns right operand).
+		$this->assertTrue(
+			$this->evaluate( 'callbacks.x || context.x' )
+		);
+	}
+
+	/* ──────────────────────────────────────────────────────────────────
+	 * Negation operator on simple paths
+	 * ────────────────────────────────────────────────────────────────── */
+
+	/**
+	 * @ticket 60356
+	 *
+	 * Negation on simple dotted paths falls through to the full-expression
+	 * path where ! is handled naturally.
+	 */
+	public function test_negation_on_state_path() {
+		$invoked = 0;
+		$this->set_up_fixture( $invoked );
+		$this->assertFalse( $this->evaluate( '!state.flag' ) );
+	}
+
+	/**
+	 * @ticket 60356
+	 *
+	 * Double negation and negation combined with comparisons.
+	 */
+	public function test_negation_with_comparison() {
+		$invoked = 0;
+		$this->set_up_fixture( $invoked );
+		$this->assertTrue( $this->evaluate( '!context.y' ) ); // !false === true
+		$this->assertTrue( $this->evaluate( '!!state.flag' ) );
+		$this->assertFalse( $this->evaluate( '!state.count === 5' ) );
+		// JS: !5 is false, false === 5 is false.
+	}
 }
