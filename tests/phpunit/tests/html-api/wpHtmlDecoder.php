@@ -115,6 +115,8 @@ class Tests_HtmlApi_WpHtmlDecoder extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_unmatched_named_character_references
 	 *
+	 * @ticket 65372
+	 *
 	 * @param string $context       Decoder context.
 	 * @param string $raw_text_node Raw text containing an unmatched named character reference.
 	 */
