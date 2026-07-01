@@ -2800,11 +2800,6 @@ class WP_HTML_Tag_Processor {
 	 *     $p->get_attribute( 'class' ) === null;
 	 *
 	 * @since 6.2.0
-	 * @since 7.1.0 Applies input-stream preprocessing: newlines in the source value
-	 *              are normalized and NULL bytes are replaced with U+FFFD, as
-	 *              browsers do before decoding character references. Attributes
-	 *              whose source name contains a NULL byte are addressed by the
-	 *              name with U+FFFD in its place, as in the DOM.
 	 *
 	 * @param string $name Name of attribute whose value is requested.
 	 * @return string|true|null Value of attribute or `null` if not available. Boolean attributes return `true`.
