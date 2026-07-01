@@ -565,7 +565,7 @@ class Tests_Theme extends WP_UnitTestCase {
 		do_action( 'customize_register', $wp_customize );
 
 		// The post_date for auto-drafts is bumped to match the changeset post_date whenever it is modified
-		// to keep them from from being garbage collected by wp_delete_auto_drafts().
+		// to keep them from being garbage collected by wp_delete_auto_drafts().
 		$wp_customize->save_changeset_post(
 			array(
 				'data' => $data,

@@ -385,15 +385,32 @@ function wp_admin_bar_site_menu( $wp_admin_bar ) {
 	}
 
 	$title = wp_html_excerpt( $blogname, 40, '&hellip;' );
+	$meta  = array(
+		'menu_title' => $title,
+	);
+
+	if ( ! is_network_admin() && ! is_user_admin() ) {
+		/** This filter is documented in wp-includes/admin-bar.php */
+		$show_site_icons = apply_filters( 'wp_admin_bar_show_site_icons', true );
+
+		if ( true === $show_site_icons && has_site_icon() ) {
+			$site_icon = sprintf(
+				'<img class="site-icon" src="%s" srcset="%s 2x" alt="" width="20" height="20" />',
+				esc_url( get_site_icon_url( 32 ) ),
+				esc_url( get_site_icon_url( 64 ) )
+			);
+
+			$title         = $site_icon . $title;
+			$meta['class'] = 'has-site-icon';
+		}
+	}
 
 	$wp_admin_bar->add_node(
 		array(
 			'id'    => 'site-name',
 			'title' => $title,
 			'href'  => ( is_admin() || ! current_user_can( 'read' ) ) ? home_url( '/' ) : admin_url(),
-			'meta'  => array(
-				'menu_title' => $title,
-			),
+			'meta'  => $meta,
 		)
 	);
 
