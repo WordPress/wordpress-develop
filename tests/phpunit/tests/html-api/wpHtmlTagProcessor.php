@@ -1108,29 +1108,38 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Ensures that removing an attribute following a slash separator doesn't create a self-closing flag.
+	 * Ensures that removing attributes preserves self-closing flag state.
 	 *
 	 * @covers WP_HTML_Tag_Processor::remove_attribute
 	 *
-	 * @dataProvider data_remove_attribute_after_slash_separator_does_not_create_self_closing_flag
+	 * @dataProvider data_remove_attribute_preserves_self_closing_flag_state
 	 *
-	 * @param string $html                HTML containing an attribute after a slash separator.
-	 * @param string $attribute_to_remove Name of the attribute to remove.
-	 * @param string $expected            Expected updated HTML.
+	 * @param string $html                           HTML containing an attribute to remove.
+	 * @param string $attribute_to_remove            Name of the attribute to remove.
+	 * @param string $expected                       Expected updated HTML.
+	 * @param bool   $expected_has_self_closing_flag Expected self-closing flag state.
 	 */
-	public function test_remove_attribute_after_slash_separator_does_not_create_self_closing_flag( $html, $attribute_to_remove, $expected ) {
+	public function test_remove_attribute_preserves_self_closing_flag_state( $html, $attribute_to_remove, $expected, $expected_has_self_closing_flag ) {
 		$processor = new WP_HTML_Tag_Processor( $html );
 		$this->assertTrue( $processor->next_tag(), 'Could not find the DIV tag: check test setup.' );
-		$this->assertFalse( $processor->has_self_closing_flag(), 'Test setup should not include a self-closing flag.' );
+		$this->assertSame(
+			$expected_has_self_closing_flag,
+			$processor->has_self_closing_flag(),
+			'Test setup has the wrong self-closing flag state.'
+		);
 
 		$processor->remove_attribute( $attribute_to_remove );
 
 		$this->assertSame(
 			$expected,
 			$processor->get_updated_html(),
-			'Removing the attribute should not leave a slash that turns into a self-closing flag.'
+			'Removing the attribute should not change the self-closing flag state.'
 		);
-		$this->assertFalse( $processor->has_self_closing_flag(), 'Removing the attribute should not create a self-closing flag.' );
+		$this->assertSame(
+			$expected_has_self_closing_flag,
+			$processor->has_self_closing_flag(),
+			'Removing the attribute should preserve the self-closing flag state.'
+		);
 	}
 
 	/**
@@ -1138,56 +1147,20 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_remove_attribute_after_slash_separator_does_not_create_self_closing_flag() {
+	public static function data_remove_attribute_preserves_self_closing_flag_state() {
 		return array(
-			'Boolean attribute'                   => array( '<div /b>', 'b', '<div >' ),
-			'Unquoted attribute'                  => array( '<div /b=c>', 'b', '<div >' ),
-			'Double-quoted attribute'             => array( '<div /b="c">', 'b', '<div >' ),
-			'Single-quoted attribute'             => array( "<div /b='c'>", 'b', '<div >' ),
-			'Equals-sign attribute name'          => array( '<div /=>', '=', '<div >' ),
-			'Duplicate attribute after separator' => array( '<div b /b>', 'b', '<div  >' ),
-			'Multiple slash separators'           => array( '<div //b>', 'b', '<div >' ),
-		);
-	}
-
-	/**
-	 * Ensures that removing attributes before an existing self-closing flag preserves the flag.
-	 *
-	 * @covers WP_HTML_Tag_Processor::remove_attribute
-	 *
-	 * @dataProvider data_remove_attribute_preserves_existing_self_closing_flag
-	 *
-	 * @param string $html                HTML containing an attribute before a self-closing flag.
-	 * @param string $attribute_to_remove Name of the attribute to remove.
-	 * @param string $expected            Expected updated HTML.
-	 */
-	public function test_remove_attribute_preserves_existing_self_closing_flag( $html, $attribute_to_remove, $expected ) {
-		$processor = new WP_HTML_Tag_Processor( $html );
-		$this->assertTrue( $processor->next_tag(), 'Could not find the DIV tag: check test setup.' );
-		$this->assertTrue( $processor->has_self_closing_flag(), 'Test setup should include a self-closing flag.' );
-
-		$processor->remove_attribute( $attribute_to_remove );
-
-		$this->assertSame(
-			$expected,
-			$processor->get_updated_html(),
-			'Removing the attribute should preserve the original self-closing flag.'
-		);
-		$this->assertTrue( $processor->has_self_closing_flag(), 'Removing the attribute should preserve the self-closing flag.' );
-	}
-
-	/**
-	 * Data provider.
-	 *
-	 * @return array[]
-	 */
-	public static function data_remove_attribute_preserves_existing_self_closing_flag() {
-		return array(
-			'Boolean attribute before self-closing flag'          => array( '<div b/>', 'b', '<div />' ),
-			'Equals-sign attribute before self-closing flag'      => array( '<div =/>', '=', '<div />' ),
-			'Slash-separated attribute before self-closing flag'  => array( '<div /b/>', 'b', '<div />' ),
-			'Spaced boolean attribute before self-closing flag'   => array( '<div b />', 'b', '<div  />' ),
-			'Spaced equals-sign attribute before self-closing flag' => array( '<div = />', '=', '<div  />' ),
+			'Boolean attribute after slash separator'             => array( '<div /b>', 'b', '<div >', false ),
+			'Unquoted attribute after slash separator'            => array( '<div /b=c>', 'b', '<div >', false ),
+			'Double-quoted attribute after slash separator'       => array( '<div /b="c">', 'b', '<div >', false ),
+			'Single-quoted attribute after slash separator'       => array( "<div /b='c'>", 'b', '<div >', false ),
+			'Equals-sign attribute after slash separator'         => array( '<div /=>', '=', '<div >', false ),
+			'Duplicate attribute after slash separator'           => array( '<div b /b>', 'b', '<div  >', false ),
+			'Attribute after multiple slash separators'           => array( '<div //b>', 'b', '<div >', false ),
+			'Boolean attribute before self-closing flag'          => array( '<div b/>', 'b', '<div />', true ),
+			'Equals-sign attribute before self-closing flag'      => array( '<div =/>', '=', '<div />', true ),
+			'Slash-separated attribute before self-closing flag'  => array( '<div /b/>', 'b', '<div />', true ),
+			'Spaced boolean attribute before self-closing flag'   => array( '<div b />', 'b', '<div  />', true ),
+			'Spaced equals-sign attribute before self-closing flag' => array( '<div = />', '=', '<div  />', true ),
 		);
 	}
 
