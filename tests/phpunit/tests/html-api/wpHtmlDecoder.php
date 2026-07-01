@@ -113,9 +113,9 @@ class Tests_HtmlApi_WpHtmlDecoder extends WP_UnitTestCase {
 	/**
 	 * Ensures unmatched named character references leave the by-ref match length unchanged.
 	 *
-	 * @dataProvider data_unmatched_named_character_references
-	 *
 	 * @ticket 65372
+	 *
+	 * @dataProvider data_unmatched_named_character_references
 	 *
 	 * @param string $context       Decoder context.
 	 * @param string $raw_text_node Raw text containing an unmatched named character reference.
