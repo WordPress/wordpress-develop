@@ -362,12 +362,12 @@ class Tests_HtmlApi_WpHtmlDecoder extends WP_UnitTestCase {
 		if ( $is_match ) {
 			$this->assertTrue(
 				WP_HTML_Decoder::attribute_starts_with( $attribute_value, $search_string, $case_sensitivity ),
-				"Should have found attribute prefix with {$case_sensitivity} search."
+				'Should have found attribute prefix with case-sensitive search.'
 			);
 		} else {
 			$this->assertFalse(
 				WP_HTML_Decoder::attribute_starts_with( $attribute_value, $search_string, $case_sensitivity ),
-				"Should not have matched attribute with prefix with {$case_sensitivity} search."
+				'Should not have matched attribute with prefix with ASCII-case-insensitive search.'
 			);
 		}
 	}
@@ -375,9 +375,9 @@ class Tests_HtmlApi_WpHtmlDecoder extends WP_UnitTestCase {
 	/**
 	 * Data provider.
 	 *
-	 * @return array<array{string, string, string, bool}>.
+	 * @return array[].
 	 */
-	public static function data_attributes_with_prefix_and_case_sensitive_match(): array {
+	public static function data_attributes_with_prefix_and_case_sensitive_match() {
 		return array(
 			array( 'http://wordpress.org', 'http', 'case-sensitive', true ),
 			array( 'http://wordpress.org', 'http', 'ascii-case-insensitive', true ),
