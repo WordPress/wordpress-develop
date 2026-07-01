@@ -2262,8 +2262,8 @@ class WP_HTML_Tag_Processor {
 		 *
 		 * @see https://html.spec.whatwg.org/multipage/syntax.html#attributes-2:ascii-case-insensitive
 		 *
-		 * The tokenizer replaces U+0000 NULL bytes in attribute
-		 * names with U+FFFD.
+		 * The tokenizer replaces U+0000 NULL bytes in
+		 * attribute names with U+FFFD.
 		 *
 		 * @see https://html.spec.whatwg.org/#attribute-name-state
 		 */
