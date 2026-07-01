@@ -148,47 +148,6 @@ class Tests_HtmlApi_WpHtmlDecoder extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Ensures that the ambiguous-follower check for character references
-	 * lacking a terminating semicolon treats only ASCII alphanumerics and
-	 * the equals sign as ambiguous, regardless of the process locale.
-	 *
-	 * `ctype_alnum()` classifies bytes 0x80 and above as alphanumeric under
-	 * UTF-8 locales, wrongly suppressing decodes whose follower is a
-	 * non-ASCII byte, such as U+FFFD produced by NULL-byte replacement.
-	 *
-	 * @ticket 65372
-	 *
-	 * @see https://html.spec.whatwg.org/#named-character-reference-state
-	 *
-	 * @dataProvider data_semicolon_less_references_with_followers
-	 *
-	 * @param string $raw_value     Raw attribute value.
-	 * @param string $decoded_value The expected decoded attribute value.
-	 */
-	public function test_semicolon_less_reference_followers( string $raw_value, string $decoded_value ) {
-		$this->assertSame(
-			$decoded_value,
-			WP_HTML_Decoder::decode_attribute( $raw_value ),
-			'Improperly decoded raw attribute value.'
-		);
-	}
-
-	/**
-	 * Data provider.
-	 *
-	 * @return array[]
-	 */
-	public static function data_semicolon_less_references_with_followers() {
-		return array(
-			'U+FFFD follower decodes'            => array( "x&amp\u{FFFD};y", "x&\u{FFFD};y" ),
-			'Non-ASCII follower decodes'         => array( "x&amp\u{E9}y", "x&\u{E9}y" ),
-			'ASCII letter follower is ambiguous' => array( 'x&ampzy', 'x&ampzy' ),
-			'ASCII digit follower is ambiguous'  => array( 'x&amp1y', 'x&amp1y' ),
-			'Equals sign follower is ambiguous'  => array( 'x&amp=y', 'x&amp=y' ),
-		);
-	}
-
-	/**
 	 * Ensures semicolonless legacy references decode before non-ASCII UTF-8 bytes in attributes.
 	 *
 	 * @dataProvider data_semicolonless_attribute_behaviors
