@@ -277,10 +277,62 @@ class Tests_HtmlApi_WpHtmlDecoder extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensures that `attribute_starts_with` checks the full search string.
+	 *
+	 * @ticket 65372
+	 *
+	 * @dataProvider data_attribute_starts_with_search_string_boundaries
+	 *
+	 * @param string $attribute_value  Raw attribute value from HTML string.
+	 * @param string $search_string    Prefix contained or not contained in encoded attribute value.
+	 * @param bool   $is_match         Whether the search string is a prefix for the attribute value
+	 */
+	public function test_attribute_starts_with_checks_search_string_boundaries(
+		string $attribute_value,
+		string $search_string,
+		bool $is_match
+	): void {
+		if ( $is_match ) {
+			$this->assertTrue(
+				WP_HTML_Decoder::attribute_starts_with( $attribute_value, $search_string, 'case-sensitive' ),
+				'Should have matched attribute prefix.'
+			);
+		} else {
+			$this->assertFalse(
+				WP_HTML_Decoder::attribute_starts_with( $attribute_value, $search_string, 'case-sensitive' ),
+				'Should not have matched attribute with prefix.'
+			);
+		}
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return Generator<string, array{string, string, string, bool}> Test cases.
+	 */
+	public static function data_attribute_starts_with_search_string_boundaries(): Generator {
+		yield 'Empty attribute does not match non-empty prefix' => array( '', 'http', false );
+		yield 'Short attribute does not match longer prefix' => array(
+			'jav',
+			'javascript:',
+			false,
+		);
+		yield "2-byte &fjlig; (\x66\x6a) starts with f" => array(
+			'&fjlig; is literally fj',
+			'f',
+			true,
+		);
+		yield "2-byte &nvlt; (<⃒) starts with '<'" => array(
+			'&nvlt;script>',
+			'<',
+			true,
+		);
+	}
+
+	/**
 	 * Ensures that `attribute_starts_with` respects the case sensitivity argument.
 	 *
 	 * @ticket 61072
-	 * @ticket 65372
 	 *
 	 * @dataProvider data_attributes_with_prefix_and_case_sensitive_match
 	 *
@@ -291,7 +343,7 @@ class Tests_HtmlApi_WpHtmlDecoder extends WP_UnitTestCase {
 	 * @param bool   $is_match         Whether the search string is a prefix for the attribute value,
 	 *                                 given the case sensitivity setting.
 	 */
-	public function test_attribute_starts_with_heeds_case_sensitivity( string $attribute_value, string $search_string, string $case_sensitivity, bool $is_match ): void {
+	public function test_attribute_starts_with_heeds_case_sensitivity( $attribute_value, $search_string, $case_sensitivity, $is_match ) {
 		if ( $is_match ) {
 			$this->assertTrue(
 				WP_HTML_Decoder::attribute_starts_with( $attribute_value, $search_string, $case_sensitivity ),
@@ -320,11 +372,6 @@ class Tests_HtmlApi_WpHtmlDecoder extends WP_UnitTestCase {
 			array( 'http://wordpress.org', 'Http', 'ascii-case-insensitive', true ),
 			array( 'http://wordpress.org', 'https', 'case-sensitive', false ),
 			array( 'http://wordpress.org', 'https', 'ascii-case-insensitive', false ),
-			array( '', 'http', 'case-sensitive', false ),
-			array( 'jav', 'javascript:', 'case-sensitive', false ),
-			array( 'jav', 'javascript:', 'ascii-case-insensitive', false ),
-			array( '&nvlt;script', '<', 'case-sensitive', true ),
-			array( '&nvgt;script', '>', 'case-sensitive', true ),
 		);
 	}
 }
