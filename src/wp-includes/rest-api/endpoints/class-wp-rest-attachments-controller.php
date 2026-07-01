@@ -2222,14 +2222,18 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		} elseif ( 'original' === $image_size ) {
 			$sub_size_data['file'] = wp_basename( $path );
 		} elseif ( self::IMAGE_SIZE_SOURCE_ORIGINAL === $image_size ) {
-			// Source-format original (e.g. the HEIC kept next to its JPEG
-			// derivative). Record the filename so finalize_item can store it
-			// under the dedicated source-image meta key.
+			/*
+			 * Source-format original (e.g. the HEIC kept next to its JPEG
+			 * derivative). Record the filename so finalize_item can store it
+			 * under the dedicated source-image meta key.
+			 */
 			$sub_size_data['file'] = wp_basename( $path );
 		} elseif ( 'animated_video' === $image_size || 'animated_video_poster' === $image_size ) {
-			// Converted-video companion of an animated GIF (the MP4/WebM or
-			// its static first-frame poster). Record the filename so
-			// finalize_item can store it under its dedicated meta key.
+			/*
+			 * Converted-video companion of an animated GIF (the MP4/WebM or
+			 * its static first-frame poster). Record the filename so
+			 * finalize_item can store it under its dedicated meta key.
+			 */
 			$sub_size_data['file'] = wp_basename( $path );
 		} elseif ( 'scaled' === $image_size ) {
 			// Record the current attached file as the original.
