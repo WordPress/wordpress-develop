@@ -1,4 +1,3 @@
-'use strict';
 /*
  * Thickbox 3.1 - One Box To Rule Them All.
  * By Cody Lindley (http://www.codylindley.com)
@@ -11,7 +10,6 @@
 /* jshint -W038 */
 /* jshint -W040 */
 /* jshint -W069 */
-/* jshint -W097 */
 /* jshint -W098 */
 /* jshint -W109 */
 /* jshint -W116 */
@@ -27,6 +25,7 @@ var imgLoader, TB_PrevCaption, TB_PrevURL, TB_PrevHTML, TB_NextCaption, TB_NextU
 
 //on page load call tb_init
 jQuery(document).ready(function(){
+	'use strict';
 	tb_init('a.thickbox, area.thickbox, input.thickbox');//pass where to apply thickbox
 	imgLoader = new Image();// preload image
 	imgLoader.src = tb_pathToImage;
@@ -37,6 +36,7 @@ jQuery(document).ready(function(){
  * Remove the loading indicator when content in an iframe has loaded.
  */
 function tb_init(domChunk){
+	'use strict';
 	jQuery( 'body' )
 		.on( 'click', domChunk, tb_click )
 		.on( 'thickbox:iframe:loaded', function() {
@@ -45,6 +45,7 @@ function tb_init(domChunk){
 }
 
 function tb_click(){
+	'use strict';
 	var t = this.title || this.name || null;
 	var a = this.href || this.alt;
 	var g = this.rel || false;
@@ -54,6 +55,7 @@ function tb_click(){
 }
 
 function tb_show(caption, url, imageGroup) {//function called when the user clicks on a thickbox link
+	'use strict';
 
 	var $closeBtn;
 
@@ -302,11 +304,13 @@ function tb_show(caption, url, imageGroup) {//function called when the user clic
 
 //helper functions below
 function tb_showIframe(){
+	'use strict';
 	jQuery("#TB_load").remove();
 	jQuery("#TB_window").css({'visibility':'visible'}).trigger( 'thickbox:iframe:loaded' );
 }
 
 function tb_remove() {
+	'use strict';
  	jQuery("#TB_imageOff").off("click");
 	jQuery("#TB_closeWindowButton").off("click");
 	jQuery( '#TB_window' ).fadeOut( 'fast', function() {
@@ -324,6 +328,7 @@ function tb_remove() {
 }
 
 function tb_position() {
+	'use strict';
 var isIE6 = typeof document.body.style.maxHeight === "undefined";
 jQuery("#TB_window").css({marginLeft: '-' + parseInt((TB_WIDTH / 2),10) + 'px', width: TB_WIDTH + 'px'});
 	if ( ! isIE6 ) { // take away IE6
@@ -332,6 +337,7 @@ jQuery("#TB_window").css({marginLeft: '-' + parseInt((TB_WIDTH / 2),10) + 'px', 
 }
 
 function tb_parseQuery ( query ) {
+   'use strict';
    var Params = {};
    if ( ! query ) {return Params;}// return empty object
    var Pairs = query.split(/[;&]/);
@@ -347,6 +353,7 @@ function tb_parseQuery ( query ) {
 }
 
 function tb_getPageSize(){
+	'use strict';
 	var de = document.documentElement;
 	var w = window.innerWidth || self.innerWidth || (de&&de.clientWidth) || document.body.clientWidth;
 	var h = window.innerHeight || self.innerHeight || (de&&de.clientHeight) || document.body.clientHeight;
@@ -354,6 +361,7 @@ function tb_getPageSize(){
 }
 
 function tb_detectMacXFF() {
+  'use strict';
   var userAgent = navigator.userAgent.toLowerCase();
   if (userAgent.indexOf('mac') != -1 && userAgent.indexOf('firefox')!=-1) {
     return true;
