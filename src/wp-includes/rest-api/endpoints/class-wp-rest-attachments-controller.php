@@ -1301,10 +1301,12 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		if ( wp_attachment_is_image( $post ) ) {
 			$mime_type = get_post_mime_type( $post );
 
-			// Per-file output format for images, evaluated with the real filename
-			// and MIME type so plugins filtering image_editor_output_format can
-			// make per-attachment decisions (e.g. JPEG -> WebP). Resolved the same
-			// way WP_Image_Editor::set_quality() resolves the output format.
+			/*
+			 * Per-file output format for images, evaluated with the real filename
+			 * and MIME type so plugins filtering image_editor_output_format can
+			 * make per-attachment decisions (e.g. JPEG -> WebP). Resolved the same
+			 * way WP_Image_Editor::set_quality() resolves the output format.
+			 */
 			if ( in_array( 'image_output_format', $fields, true ) ) {
 				$filename = get_attached_file( $post->ID );
 
@@ -1320,8 +1322,10 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 				$data['image_output_format'] = ( $output_mime !== $mime_type ) ? $output_mime : null;
 			}
 
-			// Per-file progressive/interlaced encoding flag for images, evaluated
-			// against the attachment's MIME type.
+			/*
+			 * Per-file progressive/interlaced encoding flag for images, evaluated
+			 * against the attachment's MIME type.
+			 */
 			if ( in_array( 'image_save_progressive', $fields, true ) ) {
 				/** This filter is documented in wp-includes/class-wp-image-editor-gd.php */
 				$data['image_save_progressive'] = (bool) apply_filters( 'image_save_progressive', false, $mime_type );
