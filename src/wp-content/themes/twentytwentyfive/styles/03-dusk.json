@@ -1,5 +1,5 @@
 {
-	"$schema": "https://schemas.wp.org/trunk/theme.json",
+	"$schema": "https://schemas.wp.org/wp/6.7/theme.json",
 	"version": 3,
 	"title": "Dusk",
 	"settings": {
@@ -51,14 +51,54 @@
 			"color": {
 				"accent-2-opacity-20": "#650DD433"
 			}
+		},
+		"typography": {
+			"fontFamilies": [
+				{
+					"name": "Vollkorn",
+					"slug": "vollkorn",
+					"fontFamily": "Vollkorn, serif",
+					"fontFace": [
+						{
+							"src": [
+								"file:./assets/fonts/vollkorn/Vollkorn-Italic-VariableFont_wght.woff2"
+							],
+							"fontWeight": "400 900",
+							"fontStyle": "italic",
+							"fontFamily": "Vollkorn"
+						},
+						{
+							"src": [
+								"file:./assets/fonts/vollkorn/Vollkorn-VariableFont_wght.woff2"
+							],
+							"fontWeight": "400 900",
+							"fontStyle": "normal",
+							"fontFamily": "Vollkorn"
+						}
+					]
+				},
+				{
+					"name": "Fira Code",
+					"slug": "fira-code",
+					"fontFamily": "\"Fira Code\", monospace",
+					"fontFace": [
+						{
+							"src": [
+								"file:./assets/fonts/fira-code/FiraCode-VariableFont_wght.woff2"
+							],
+							"fontWeight": "300 700",
+							"fontStyle": "normal",
+							"fontFamily": "\"Fira Code\""
+						}
+					]
+				}
+			]
 		}
 	},
 	"styles": {
 		"typography": {
 			"fontFamily": "var:preset|font-family|fira-code",
 			"fontSize": "var:preset|font-size|medium",
-			"fontStyle": "normal",
-			"fontWeight": "300",
 			"letterSpacing": "-0.18px",
 			"lineHeight": "1.5"
 		},
@@ -88,15 +128,7 @@
 				"elements": {
 					"link": {
 						"color": {
-							"text": "var:preset|color|accent-2"
-						},
-						"typography": {
-							"textDecoration": "underline"
-						},
-						":hover": {
-							"typography": {
-								"textDecoration": "none"
-							}
+							"text": "currentColor"
 						}
 					}
 				}
@@ -111,15 +143,7 @@
 				"elements": {
 					"link": {
 						"color": {
-							"text": "var:preset|color|accent-2"
-						},
-						"typography": {
-							"textDecoration": "underline"
-						},
-						":hover": {
-							"typography": {
-								"textDecoration": "none"
-							}
+							"text": "currentColor"
 						}
 					}
 				}
@@ -261,19 +285,11 @@
 							"radius": "4px",
 							"width": "0.8px",
 							"style": "solid"
-						},
-						"typography": {
-							"textDecoration": "none"
-						},
-						":hover": {
-							"typography": {
-								"textDecoration": "underline"
-							}
 						}
 					}
 				}
 			},
-			"section-1":{
+			"section-1": {
 				"elements": {
 					"link": {
 						"color": {
@@ -300,12 +316,12 @@
 					},
 					"link": {
 						"color": {
-							"text": "var:preset|color|base"
+							"text": "currentColor"
 						}
 					},
 					"heading": {
 						"color": {
-							"text": "var:preset|color|base"
+							"text": "currentColor"
 						}
 					}
 				}
@@ -317,7 +333,7 @@
 				"elements": {
 					"heading": {
 						"color": {
-							"text": "var:preset|color|accent-2"
+							"text": "currentColor"
 						}
 					}
 				}
@@ -339,12 +355,12 @@
 					},
 					"link": {
 						"color": {
-							"text": "var:preset|color|base"
+							"text": "currentColor"
 						}
 					},
 					"heading": {
 						"color": {
-							"text": "var:preset|color|base"
+							"text": "currentColor"
 						}
 					}
 				}

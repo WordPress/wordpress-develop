@@ -434,25 +434,6 @@ jQuery( function($) {
 		$previewField.val('');
 	});
 
-	// This code is meant to allow tabbing from Title to Post content.
-	$('#title').on( 'keydown.editor-focus', function( event ) {
-		var editor;
-
-		if ( event.keyCode === 9 && ! event.ctrlKey && ! event.altKey && ! event.shiftKey ) {
-			editor = typeof tinymce != 'undefined' && tinymce.get('content');
-
-			if ( editor && ! editor.isHidden() ) {
-				editor.focus();
-			} else if ( $textarea.length ) {
-				$textarea.trigger( 'focus' );
-			} else {
-				return;
-			}
-
-			event.preventDefault();
-		}
-	});
-
 	// Auto save new posts after a title is typed.
 	if ( $( '#auto_draft' ).val() ) {
 		$( '#title' ).on( 'blur', function() {
@@ -585,16 +566,35 @@ jQuery( function($) {
 		}
 
 		// @todo Move to jQuery 1.3+, support for multiple hierarchical taxonomies, see wp-lists.js.
-		$('a', '#' + taxonomy + '-tabs').on( 'click', function( e ) {
-			e.preventDefault();
+		$('a', '#' + taxonomy + '-tabs').on( 'click keyup keydown', function( event ) {
 			var t = $(this).attr('href');
-			$(this).parent().addClass('tabs').siblings('li').removeClass('tabs');
-			$('#' + taxonomy + '-tabs').siblings('.tabs-panel').hide();
-			$(t).show();
-			if ( '#' + taxonomy + '-all' == t ) {
-				deleteUserSetting( settingName );
-			} else {
-				setUserSetting( settingName, 'pop' );
+			if ( event.type === 'keydown' && event.key === ' ' ) {
+				event.preventDefault();
+			}
+			if ( ( event.type === 'keyup' && event.key === ' ' ) || ( event.type === 'keydown' && event.key === 'Enter' ) || event.type === 'click' ) {
+				event.preventDefault();
+				$('#' + taxonomy + '-tabs a').removeAttr( 'aria-selected' ).attr( 'tabindex', '-1' );
+				$(this).attr( 'aria-selected', 'true' ).removeAttr( 'tabindex' );
+				$(this).parent().addClass('tabs').siblings('li').removeClass('tabs');
+				$('#' + taxonomy + '-tabs').siblings('.tabs-panel').hide();
+				$(t).show();
+				if ( '#' + taxonomy + '-all' == t ) {
+					deleteUserSetting( settingName );
+				} else {
+					setUserSetting( settingName, 'pop' );
+				}
+			}
+			if ( event.type === 'keyup' && ( event.key === 'ArrowRight' || event.key === 'ArrowLeft' ) ) {
+				$(this).attr( 'tabindex', '-1' );
+				let next = $(this).parent('li').next();
+				let prev = $(this).parent('li').prev();
+				if ( next.length > 0 ) {
+					next.find('a').removeAttr( 'tabindex');
+					next.find('a').trigger( 'focus' );
+				} else {
+					prev.find('a').removeAttr( 'tabindex');
+					prev.find('a').trigger( 'focus' );
+				}
 			}
 		});
 
@@ -678,8 +678,10 @@ jQuery( function($) {
 			'li.popular-category > label input[type="checkbox"]',
 			function() {
 				var t = $(this), c = t.is(':checked'), id = t.val();
-				if ( id && t.parents('#taxonomy-'+taxonomy).length )
-					$('#in-' + taxonomy + '-' + id + ', #in-popular-' + taxonomy + '-' + id).prop( 'checked', c );
+				if ( id && t.parents('#taxonomy-'+taxonomy).length ) {
+					$('input#in-' + taxonomy + '-' + id + ', input[id^="in-' + taxonomy + '-' + id + '-"]').prop('checked', c);
+					$('input#in-popular-' + taxonomy + '-' + id).prop('checked', c);
+				}
 			}
 		);
 
@@ -1026,7 +1028,7 @@ jQuery( function($) {
 		revert_e = $el.html();
 
 		buttons.html(
-			'<button type="button" class="save button button-small">' + __( 'OK' ) + '</button> ' +
+			'<button type="button" class="save button button-compact">' + __( 'OK' ) + '</button> ' +
 			'<button type="button" class="cancel button-link">' + __( 'Cancel' ) + '</button>'
 		);
 

@@ -412,7 +412,7 @@ function wp_resolve_numeric_slug_conflicts( $query_vars = array() ) {
 
 	// This is the potentially clashing slug.
 	$value = '';
-	if ( $compare && array_key_exists( $compare, $query_vars ) ) {
+	if ( array_key_exists( $compare, $query_vars ) ) {
 		$value = $query_vars[ $compare ];
 	}
 
@@ -460,9 +460,7 @@ function wp_resolve_numeric_slug_conflicts( $query_vars = array() ) {
 	}
 
 	// If we've gotten to this point, we have a slug/date clash. First, adjust for nextpage.
-	if ( '' !== $maybe_page ) {
-		$query_vars['page'] = (int) $maybe_page;
-	}
+	$query_vars['page'] = $maybe_page;
 
 	// Next, unset autodetected date-related query vars.
 	unset( $query_vars['year'] );
@@ -579,7 +577,7 @@ function url_to_postid( $url ) {
 	} else {
 		// Chop off /path/to/blog.
 		$home_path = parse_url( home_url( '/' ) );
-		$home_path = isset( $home_path['path'] ) ? $home_path['path'] : '';
+		$home_path = $home_path['path'] ?? '';
 		$url       = preg_replace( sprintf( '#^%s#', preg_quote( $home_path ) ), '', trailingslashit( $url ) );
 	}
 

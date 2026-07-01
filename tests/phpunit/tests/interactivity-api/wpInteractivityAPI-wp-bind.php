@@ -135,6 +135,20 @@ class Tests_WP_Interactivity_API_WP_Bind extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that `data-wp-bind` ignores directives with no suffix but still
+	 * processes valid bind directives on the same element.
+	 *
+	 * @ticket 64518
+	 *
+	 * @covers ::process_directives
+	 */
+	public function test_wp_bind_ignores_empty_suffix_but_processes_valid_binds() {
+		$html    = '<div data-wp-bind="myPlugin::state.id" data-wp-bind--id="myPlugin::state.id">Text</div>';
+		list($p) = $this->process_directives( $html );
+		$this->assertSame( 'some-id', $p->get_attribute( 'id' ) );
+	}
+
+	/**
 	 * Tests that `data-wp-bind` does nothing when referencing non-existent
 	 * references.
 	 *
@@ -397,5 +411,37 @@ class Tests_WP_Interactivity_API_WP_Bind extends WP_UnitTestCase {
 		$html    = '<div data-wp-bind--id="myPlugin::state.trueValue"></div>';
 		list($p) = $this->process_directives( $html );
 		$this->assertSame( true, $p->get_attribute( 'id' ) );
+	}
+
+	/**
+	 * Tests ignores unique IDs in bind directive.
+	 *
+	 * @ticket 64106
+	 *
+	 * @covers ::process_directives
+	 */
+	public function test_wp_bind_ignores_unique_ids() {
+		$html    = '<div data-wp-bind--id="myPlugin::state.trueValue"></div>';
+		list($p) = $this->process_directives( $html );
+		$this->assertSame( true, $p->get_attribute( 'id' ) );
+
+		$html    = '<div data-wp-bind--id---unique-id="myPlugin::state.trueValue"></div>';
+		list($p) = $this->process_directives( $html );
+		$this->assertNull( $p->get_attribute( 'id' ) );
+		$this->assertNull( $p->get_attribute( 'id---unique-id' ) );
+	}
+
+	/**
+	 * Tests that `data-wp-bind` ignores directives with unique IDs but still
+	 * processes valid bind directives on the same element.
+	 *
+	 * @ticket 64518
+	 *
+	 * @covers ::process_directives
+	 */
+	public function test_wp_bind_ignores_unique_id_but_processes_valid_binds() {
+		$html    = '<div data-wp-bind--id---unique-id="myPlugin::state.id" data-wp-bind--id="myPlugin::state.id">Text</div>';
+		list($p) = $this->process_directives( $html );
+		$this->assertSame( 'some-id', $p->get_attribute( 'id' ) );
 	}
 }

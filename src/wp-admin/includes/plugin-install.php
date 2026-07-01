@@ -399,11 +399,7 @@ function display_plugins_table() {
 			);
 			break;
 		case 'install_plugins_featured':
-			printf(
-				/* translators: %s: https://wordpress.org/plugins/ */
-				'<p>' . __( 'Plugins extend and expand the functionality of WordPress. You may install plugins in the <a href="%s">WordPress Plugin Directory</a> right from here, or upload a plugin in .zip format by clicking the button at the top of this page.' ) . '</p>',
-				__( 'https://wordpress.org/plugins/' )
-			);
+			echo '<br>';
 			break;
 		case 'install_plugins_recommended':
 			echo '<p>' . __( 'These suggestions are based on the plugins you and other users have installed.' ) . '</p>';
@@ -610,7 +606,7 @@ function install_plugin_information() {
 		$low          = empty( $api->banners['low'] ) ? $api->banners['high'] : $api->banners['low'];
 		$high         = empty( $api->banners['high'] ) ? $api->banners['low'] : $api->banners['high'];
 		?>
-		<style type="text/css">
+		<style>
 			#plugin-information-title.with-banner {
 				background-image: url( <?php echo esc_url( $low ); ?> );
 			}
@@ -800,8 +796,8 @@ function install_plugin_information() {
 	</div>
 	<div id="section-holder">
 	<?php
-	$requires_php = isset( $api->requires_php ) ? $api->requires_php : null;
-	$requires_wp  = isset( $api->requires ) ? $api->requires : null;
+	$requires_php = $api->requires_php ?? null;
+	$requires_wp  = $api->requires ?? null;
 
 	$compatible_php = is_php_version_compatible( $requires_php );
 	$compatible_wp  = is_wp_version_compatible( $requires_wp );
@@ -944,7 +940,7 @@ function wp_get_plugin_action_button( $name, $data, $compatible_php, $compatible
 				if ( $status['url'] ) {
 					if ( $compatible_php && $compatible_wp && $all_plugin_dependencies_installed && ! empty( $data->download_link ) ) {
 						$button = sprintf(
-							'<a class="install-now button" data-slug="%s" href="%s" aria-label="%s" data-name="%s" role="button">%s</a>',
+							'<a class="install-now button button-compact" data-slug="%s" href="%s" aria-label="%s" data-name="%s" role="button">%s</a>',
 							esc_attr( $data->slug ),
 							esc_url( $status['url'] ),
 							/* translators: %s: Plugin name and version. */
@@ -954,7 +950,7 @@ function wp_get_plugin_action_button( $name, $data, $compatible_php, $compatible
 						);
 					} else {
 						$button = sprintf(
-							'<button type="button" class="install-now button button-disabled" disabled="disabled">%s</button>',
+							'<button type="button" class="install-now button button-compact button-disabled" disabled="disabled">%s</button>',
 							_x( 'Install Now', 'plugin' )
 						);
 					}
@@ -965,7 +961,7 @@ function wp_get_plugin_action_button( $name, $data, $compatible_php, $compatible
 				if ( $status['url'] ) {
 					if ( $compatible_php && $compatible_wp ) {
 						$button = sprintf(
-							'<a class="update-now button aria-button-if-js" data-plugin="%s" data-slug="%s" href="%s" aria-label="%s" data-name="%s" role="button">%s</a>',
+							'<a class="update-now button button-compact aria-button-if-js" data-plugin="%s" data-slug="%s" href="%s" aria-label="%s" data-name="%s" role="button">%s</a>',
 							esc_attr( $status['file'] ),
 							esc_attr( $data->slug ),
 							esc_url( $status['url'] ),
@@ -976,7 +972,7 @@ function wp_get_plugin_action_button( $name, $data, $compatible_php, $compatible
 						);
 					} else {
 						$button = sprintf(
-							'<button type="button" class="button button-disabled" disabled="disabled">%s</button>',
+							'<button type="button" class="button button-compact button-disabled" disabled="disabled">%s</button>',
 							_x( 'Update Now', 'plugin' )
 						);
 					}
@@ -987,7 +983,7 @@ function wp_get_plugin_action_button( $name, $data, $compatible_php, $compatible
 			case 'newer_installed':
 				if ( is_plugin_active( $status['file'] ) ) {
 					$button = sprintf(
-						'<button type="button" class="button button-disabled" disabled="disabled">%s</button>',
+						'<button type="button" class="button button-compact button-disabled" disabled="disabled">%s</button>',
 						_x( 'Active', 'plugin' )
 					);
 				} elseif ( current_user_can( 'activate_plugin', $status['file'] ) ) {
@@ -1012,7 +1008,7 @@ function wp_get_plugin_action_button( $name, $data, $compatible_php, $compatible
 						}
 
 						$button = sprintf(
-							'<a href="%1$s" data-name="%2$s" data-slug="%3$s" data-plugin="%4$s" class="button button-primary activate-now" aria-label="%5$s" role="button">%6$s</a>',
+							'<a href="%1$s" data-name="%2$s" data-slug="%3$s" data-plugin="%4$s" class="button button-compact button-primary activate-now" aria-label="%5$s" role="button">%6$s</a>',
 							esc_url( $activate_url ),
 							esc_attr( $name ),
 							esc_attr( $data->slug ),
@@ -1022,13 +1018,13 @@ function wp_get_plugin_action_button( $name, $data, $compatible_php, $compatible
 						);
 					} else {
 						$button = sprintf(
-							'<button type="button" class="button button-disabled" disabled="disabled">%s</button>',
+							'<button type="button" class="button button-compact button-disabled" disabled="disabled">%s</button>',
 							is_network_admin() ? _x( 'Network Activate', 'plugin' ) : _x( 'Activate', 'plugin' )
 						);
 					}
 				} else {
 					$button = sprintf(
-						'<button type="button" class="button button-disabled" disabled="disabled">%s</button>',
+						'<button type="button" class="button button-compact button-disabled" disabled="disabled">%s</button>',
 						_x( 'Installed', 'plugin' )
 					);
 				}

@@ -97,6 +97,9 @@ const BUNDLED_PACKAGES = [
 	'@wordpress/interface',
 	'@wordpress/interactivity',
 	'@wordpress/sync',
+	'@wordpress/undo-manager',
+	'@wordpress/upload-media',
+	'@wordpress/fields',
 ];
 const MODULES = [
 	'@wordpress/interactivity',
@@ -105,6 +108,7 @@ const MODULES = [
 const SCRIPT_AND_MODULE_DUAL_PACKAGES = [
 	'@wordpress/a11y',
 	'@wordpress/block-library',
+	'@wordpress/block-editor',
 ];
 const WORDPRESS_NAMESPACE = '@wordpress/';
 
