@@ -394,10 +394,13 @@ function wp_admin_bar_site_menu( $wp_admin_bar ) {
 		$show_site_icons = apply_filters( 'wp_admin_bar_show_site_icons', true );
 
 		if ( true === $show_site_icons && has_site_icon() ) {
-			$site_icon = sprintf(
-				'<img class="site-icon" src="%s" srcset="%s 2x" alt="" width="20" height="20" />',
-				esc_url( get_site_icon_url( 32 ) ),
-				esc_url( get_site_icon_url( 64 ) )
+			$site_icon_url    = get_site_icon_url( 32 );
+			$site_icon_url_2x = get_site_icon_url( 64 );
+			$srcset           = ( $site_icon_url_2x && $site_icon_url !== $site_icon_url_2x ) ? sprintf( ' srcset="%s 2x"', esc_url( $site_icon_url_2x ) ) : '';
+			$site_icon        = sprintf(
+				'<img class="site-icon" src="%s"%s alt="" width="20" height="20" />',
+				esc_url( $site_icon_url ),
+				$srcset
 			);
 
 			$title         = $site_icon . $title;
