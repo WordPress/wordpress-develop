@@ -514,6 +514,7 @@ class Tests_Sitemaps_Sitemaps extends WP_UnitTestCase {
 
 		wp_sitemaps_get_server()->render_sitemaps();
 
+		// @phpstan-ignore method.alreadyNarrowedType (Other tests define DOING_SITEMAP, so PHPStan sees it as always defined; this asserts the runtime behavior it cannot model.)
 		$this->assertTrue( defined( 'DOING_SITEMAP' ), 'The DOING_SITEMAP constant should be defined.' );
 		$this->assertTrue( wp_doing_sitemap(), 'wp_doing_sitemap() should be true while rendering a sitemap.' );
 	}
