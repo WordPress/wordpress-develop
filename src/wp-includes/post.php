@@ -5250,6 +5250,18 @@ function wp_update_post( $postarr = array(), $wp_error = false, $fire_after_hook
 	// Escape data pulled from DB.
 	$post = wp_slash( $post );
 
+	if ( function_exists( 'wp_de_rtc_preflight_wp_update_post_base_version' ) ) {
+		$de_rtc_preflight = wp_de_rtc_preflight_wp_update_post_base_version( $postarr, $post );
+
+		if ( is_wp_error( $de_rtc_preflight ) ) {
+			return $wp_error ? $de_rtc_preflight : 0;
+		}
+
+		if ( is_array( $de_rtc_preflight ) ) {
+			$postarr = $de_rtc_preflight;
+		}
+	}
+
 	// Passed post category list overwrites existing category list if not empty.
 	if ( isset( $postarr['post_category'] ) && is_array( $postarr['post_category'] )
 		&& count( $postarr['post_category'] ) > 0
@@ -5295,7 +5307,13 @@ function wp_update_post( $postarr = array(), $wp_error = false, $fire_after_hook
 		}
 	}
 
-	return wp_insert_post( $postarr, $wp_error, $fire_after_hooks );
+	$updated_post_id = wp_insert_post( $postarr, $wp_error, $fire_after_hooks );
+
+	if ( function_exists( 'wp_de_rtc_cleanup_wp_update_post_base_version_preflight' ) ) {
+		wp_de_rtc_cleanup_wp_update_post_base_version_preflight( $postarr );
+	}
+
+	return $updated_post_id;
 }
 
 /**

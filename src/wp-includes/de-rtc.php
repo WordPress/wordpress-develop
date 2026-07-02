@@ -888,6 +888,9 @@ add_filter( 'rest_pre_insert_post', 'wp_de_rtc_rest_pre_insert_stale_base_probe'
 add_filter( 'rest_pre_insert_page', 'wp_de_rtc_rest_pre_insert_stale_base_probe', 5, 2 );
 add_filter( 'rest_pre_insert_post', 'wp_de_rtc_rest_pre_insert_automerge_raw_post_content_update', 10, 2 );
 add_filter( 'rest_pre_insert_page', 'wp_de_rtc_rest_pre_insert_automerge_raw_post_content_update', 10, 2 );
+add_filter( 'rest_prepare_post', 'wp_de_rtc_rest_prepare_post_base_version', 10, 3 );
+add_filter( 'rest_prepare_page', 'wp_de_rtc_rest_prepare_post_base_version', 10, 3 );
+add_filter( 'rest_request_after_callbacks', 'wp_de_rtc_rest_cleanup_automerge_raw_post_content_update', 10, 3 );
 add_filter( 'wp_insert_post_data', 'wp_de_rtc_preserve_automerge_sync_meta_on_post_update', 10, 4 );
 add_action( 'wp_loaded', 'wp_de_rtc_schedule_opaque_review_approval_proof_token_audit_cleanup' );
 add_action( 'wp_de_rtc_opaque_review_approval_proof_token_audit_cleanup', 'wp_de_rtc_run_opaque_review_approval_proof_token_audit_cleanup' );
@@ -14812,7 +14815,14 @@ function wp_de_rtc_apply_partial_safe_retry_save_plan( $post, $current, $partial
 		$next_sync_meta = wp_de_rtc_apply_automerge_authorship_to_sync_meta( $next_sync_meta, $safe_post_content, $partial_automerge_save_result, $authorship_context );
 	}
 
-	$next_version = wp_de_rtc_get_next_sync_meta_version( $server_version, $safe_post_content_hash );
+	$next_version   = wp_de_rtc_get_next_sync_meta_version( $server_version, $safe_post_content_hash );
+	$next_sync_meta = wp_de_rtc_update_automerge_version_snapshots(
+		$next_sync_meta,
+		$server_version,
+		$current['content'],
+		$next_version,
+		$safe_post_content
+	);
 
 	$next_sync_meta['version']          = $next_version;
 	$next_sync_meta['previous_version'] = $server_version;
@@ -15455,6 +15465,14 @@ function wp_de_rtc_save_retry_submitted_post( $post, $args = array() ) {
 
 		$next_sync_meta = wp_de_rtc_apply_automerge_authorship_to_sync_meta( $next_sync_meta, $save_post_content, $automerge_retry_save_result, $authorship_context );
 	}
+
+	$next_sync_meta = wp_de_rtc_update_automerge_version_snapshots(
+		$next_sync_meta,
+		$server_version,
+		$current['content'],
+		$next_version,
+		$save_post_content
+	);
 
 	$next_sync_meta['version']           = $next_version;
 	$next_sync_meta['previous_version']  = $server_version;
@@ -17848,6 +17866,54 @@ function wp_de_rtc_get_post_sync_meta_version( $post ) {
 }
 
 /**
+ * Adds the current DE-RTC base version to normal post REST responses.
+ *
+ * The legacy post endpoint now exposes the CRDT version a client should submit
+ * back as `base_version` on a future update. This is intentionally read-only:
+ * malformed or missing sync meta simply omits the value instead of attempting
+ * recovery from a response preparation hook.
+ *
+ * @since 7.1.0
+ *
+ * @param WP_REST_Response $response Response object.
+ * @param WP_Post          $post     Post object.
+ * @param WP_REST_Request  $request  Request object.
+ * @return WP_REST_Response Unchanged or augmented response.
+ */
+function wp_de_rtc_rest_prepare_post_base_version( $response, $post, $request ) {
+	if ( ! $response instanceof WP_REST_Response ) {
+		return $response;
+	}
+
+	$post = get_post( $post );
+
+	if ( ! $post || ! current_user_can( 'edit_post', $post->ID ) ) {
+		return $response;
+	}
+
+	if ( ! wp_de_rtc_is_enabled_for_post( $post ) ) {
+		return $response;
+	}
+
+	if ( ! wp_de_rtc_rest_normal_post_update_request_matches_post_type( $request, $post ) ) {
+		return $response;
+	}
+
+	$base_version = wp_de_rtc_get_post_sync_meta_version( $post );
+
+	if ( null === $base_version || '' === $base_version ) {
+		return $response;
+	}
+
+	$data                 = $response->get_data();
+	$data['base_version'] = $base_version;
+
+	$response->set_data( $data );
+
+	return $response;
+}
+
+/**
  * Returns whether Distributed Editing is enabled for the site.
  *
  * @since 7.1.0
@@ -19432,16 +19498,17 @@ function wp_de_rtc_get_automerge_block_native_current_base_merge_result( $base_c
 	 * @since 7.1.0
 	 * @access private
 	 *
-	 * @param WP_Post $post        Post being saved.
-	 * @param string  $session_key Opaque editor session key.
+	 * @param WP_Post  $post        Post being saved.
+	 * @param string   $session_key Opaque editor session key.
+	 * @param int|null $user_id     Optional user to attribute the edit to. Defaults to current user.
 	 * @return array Authorship context.
 	 */
-	function wp_de_rtc_get_retry_save_authorship_context( $post, $session_key = '' ) {
+	function wp_de_rtc_get_retry_save_authorship_context( $post, $session_key = '', $user_id = null ) {
 	$post            = get_post( $post );
 	$post_id         = $post ? (int) $post->ID : 0;
 	$attribution_key = wp_de_rtc_get_presence_attribution_key_for_session_key( $post_id, $session_key );
 	$has_presence_attribution = '' !== $attribution_key;
-	$user_id         = get_current_user_id();
+	$user_id         = null === $user_id ? get_current_user_id() : absint( $user_id );
 
 	if ( '' === $attribution_key ) {
 			$actor_hash       = wp_de_rtc_get_presence_actor_hash( $user_id );
@@ -19886,8 +19953,202 @@ function wp_de_rtc_get_automerge_result_encoding( $automerge_result ) {
 	$sync_meta['automerge_operation_count'] = count( $operations );
 	$sync_meta['post_content_hash'] = $save_content_hash;
 
-		return $sync_meta;
+	return $sync_meta;
+}
+
+/**
+ * Returns how many stripped-content snapshots Automerge sync meta should keep.
+ *
+ * These snapshots are a compatibility bridge for old REST clients that only
+ * know a CRDT document version. Healthy saves resolve the referenced base
+ * from current post_content metadata instead of scanning WordPress revisions.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @return int Snapshot limit.
+ */
+function wp_de_rtc_get_automerge_version_snapshot_limit() {
+	return 20;
+}
+
+/**
+ * Adds bounded base-version snapshots to Automerge sync metadata.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param array       $sync_meta        Existing sync metadata.
+ * @param string      $previous_version Previous server version.
+ * @param string      $previous_content Previous stripped post content.
+ * @param string|null $next_version     Optional next server version.
+ * @param string|null $next_content     Optional next stripped post content.
+ * @return array Updated sync metadata.
+ */
+function wp_de_rtc_update_automerge_version_snapshots( $sync_meta, $previous_version, $previous_content, $next_version = null, $next_content = null ) {
+	if ( ! is_array( $sync_meta ) ) {
+		$sync_meta = array();
 	}
+
+	$snapshots = isset( $sync_meta['version_snapshots'] ) && is_array( $sync_meta['version_snapshots'] )
+		? $sync_meta['version_snapshots']
+		: array();
+
+	$add_snapshot = static function ( $version, $content ) use ( &$snapshots ) {
+		$version = sanitize_text_field( (string) $version );
+
+		if ( '' === $version || ! is_string( $content ) ) {
+			return;
+		}
+
+		unset( $snapshots[ $version ] );
+
+		$snapshots[ $version ] = array(
+			'encoding'         => 'base64',
+			'content_base64'   => base64_encode( $content ),
+			'content_hash'     => wp_de_rtc_hash_content( $content ),
+			'raw_content_hash' => hash( 'sha256', $content ),
+		);
+	};
+
+	$add_snapshot( $previous_version, $previous_content );
+
+	if ( null !== $next_version && null !== $next_content ) {
+		$add_snapshot( $next_version, $next_content );
+	}
+
+	$limit = wp_de_rtc_get_automerge_version_snapshot_limit();
+
+	if ( count( $snapshots ) > $limit ) {
+		$snapshots = array_slice( $snapshots, -$limit, null, true );
+	}
+
+	$sync_meta['version_snapshots']       = $snapshots;
+	$sync_meta['version_snapshot_count'] = count( $snapshots );
+	$sync_meta['version_snapshot_limit'] = $limit;
+
+	return $sync_meta;
+}
+
+/**
+ * Resolves a CRDT document version to stripped content from current sync meta.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param int|WP_Post $post         Post being updated.
+ * @param array       $current      Parsed current post content.
+ * @param mixed       $base_version Requested CRDT document version.
+ * @return array|WP_Error Base content evidence or an error.
+ */
+function wp_de_rtc_get_automerge_base_content_for_version( $post, $current, $base_version ) {
+	$post         = get_post( $post );
+	$base_version = sanitize_text_field( (string) $base_version );
+
+	if (
+		'' === $base_version ||
+		! is_array( $current ) ||
+		! isset( $current['content'] ) ||
+		! is_string( $current['content'] ) ||
+		! isset( $current['sync_meta'] ) ||
+		! is_array( $current['sync_meta'] )
+	) {
+		return wp_de_rtc_get_reason_error(
+			'de_rtc_malformed_sync_payload',
+			__( 'Distributed Editing could not resolve the requested base version.' ),
+			array(
+				'detail'               => 'automerge_base_version_resolution_payload_malformed',
+				'raw_content_included' => false,
+				'saves_post'           => false,
+				'mutates_post_content' => false,
+				'creates_revision'     => false,
+				'claims_saved'         => false,
+			)
+		);
+	}
+
+	$server_version = isset( $current['sync_meta']['version'] ) ? sanitize_text_field( (string) $current['sync_meta']['version'] ) : '';
+
+	if ( $server_version === $base_version ) {
+		return array(
+			'found'        => true,
+			'version'      => $base_version,
+			'content'      => $current['content'],
+			'source'       => 'current_post_content',
+			'content_hash' => wp_de_rtc_hash_content( $current['content'] ),
+		);
+	}
+
+	$snapshots = isset( $current['sync_meta']['version_snapshots'] ) && is_array( $current['sync_meta']['version_snapshots'] )
+		? $current['sync_meta']['version_snapshots']
+		: array();
+
+	if ( ! isset( $snapshots[ $base_version ] ) || ! is_array( $snapshots[ $base_version ] ) ) {
+		return wp_de_rtc_get_stale_base_rejection_error(
+			$post,
+			array(
+				'client_base_version'      => $base_version,
+				'server_version'           => $server_version,
+				'rest_route'               => 'post_save_base_version_update',
+				'can_attempt_local_rebase' => false,
+			)
+		);
+	}
+
+	$snapshot = $snapshots[ $base_version ];
+	$encoded  = isset( $snapshot['content_base64'] ) && is_string( $snapshot['content_base64'] ) ? $snapshot['content_base64'] : '';
+	$content  = base64_decode( $encoded, true );
+
+	if ( ! is_string( $content ) ) {
+		return wp_de_rtc_get_reason_error(
+			'de_rtc_sync_meta_tampered',
+			__( 'Distributed Editing rejected the update because the base-version snapshot is malformed.' ),
+			array(
+				'detail'               => 'automerge_base_version_snapshot_decode_failed',
+				'client_base_version'  => $base_version,
+				'server_version'       => $server_version,
+				'raw_content_included' => false,
+				'saves_post'           => false,
+				'mutates_post_content' => false,
+				'creates_revision'     => false,
+				'claims_saved'         => false,
+			)
+		);
+	}
+
+	$content_hash     = wp_de_rtc_hash_content( $content );
+	$stored_hash      = isset( $snapshot['content_hash'] ) ? sanitize_text_field( (string) $snapshot['content_hash'] ) : '';
+	$stored_raw_hash  = isset( $snapshot['raw_content_hash'] ) ? sanitize_text_field( (string) $snapshot['raw_content_hash'] ) : '';
+	$content_raw_hash = hash( 'sha256', $content );
+
+	if (
+		( '' !== $stored_hash && ! hash_equals( $stored_hash, $content_hash ) ) ||
+		( '' !== $stored_raw_hash && ! hash_equals( $stored_raw_hash, $content_raw_hash ) )
+	) {
+		return wp_de_rtc_get_reason_error(
+			'de_rtc_sync_meta_tampered',
+			__( 'Distributed Editing rejected the update because the base-version snapshot hash does not match.' ),
+			array(
+				'detail'               => 'automerge_base_version_snapshot_hash_mismatch',
+				'client_base_version'  => $base_version,
+				'server_version'       => $server_version,
+				'raw_content_included' => false,
+				'saves_post'           => false,
+				'mutates_post_content' => false,
+				'creates_revision'     => false,
+				'claims_saved'         => false,
+			)
+		);
+	}
+
+	return array(
+		'found'        => true,
+		'version'      => $base_version,
+		'content'      => $content,
+		'source'       => 'current_sync_meta_version_snapshot',
+		'content_hash' => $content_hash,
+	);
+}
 
 	/**
 	 * Returns whether parsed sync metadata is the current server-owned Automerge schema.
@@ -20389,12 +20650,20 @@ function wp_de_rtc_is_current_automerge_sync_meta( $sync_meta, $format ) {
 		);
 		$next_sync_meta = wp_de_rtc_apply_automerge_metadata_to_sync_meta( $base_sync_meta, $automerge_result, $current_hash );
 
-		if ( is_wp_error( $next_sync_meta ) ) {
-			return $next_sync_meta;
-		}
+			if ( is_wp_error( $next_sync_meta ) ) {
+				return $next_sync_meta;
+			}
 
-		unset(
-			$next_sync_meta['pending_automerge_update'],
+			$next_sync_meta = wp_de_rtc_update_automerge_version_snapshots(
+				$next_sync_meta,
+				$base_version,
+				$base_content,
+				$next_version,
+				$current_content
+			);
+
+			unset(
+				$next_sync_meta['pending_automerge_update'],
 			$next_sync_meta['pending_automerge_encoding'],
 			$next_sync_meta['automerge_client_update'],
 			$next_sync_meta['automerge_update_role'],
@@ -20702,17 +20971,31 @@ function wp_de_rtc_get_pending_automerge_update_from_sync_meta( $sync_meta ) {
  * @since 7.1.0
  * @access private
  *
- * @param WP_Post $post                 Current post.
- * @param string  $incoming_post_content Submitted raw post content.
- * @param string  $source               Save entry-point label.
- * @return string|null|WP_Error Candidate post_content, null when DE-RTC should not handle it, or an error.
- */
-function wp_de_rtc_prepare_automerge_raw_post_content_update( $post, $incoming_post_content, $source ) {
-	if ( ! $post || ! wp_de_rtc_is_enabled_for_post( $post ) || ! is_string( $incoming_post_content ) ) {
-		return null;
-	}
+	 * @param WP_Post $post                 Current post.
+	 * @param string  $incoming_post_content Submitted raw post content.
+	 * @param string  $source               Save entry-point label.
+	 * @param array   $args                 Optional behavior arguments.
+	 * @return string|null|WP_Error Candidate post_content, null when DE-RTC should not handle it, or an error.
+	 */
+	function wp_de_rtc_prepare_automerge_raw_post_content_update( $post, $incoming_post_content, $source, $args = array() ) {
+		if ( ! $post || ! wp_de_rtc_is_enabled_for_post( $post ) || ! is_string( $incoming_post_content ) ) {
+			return null;
+		}
 
-	$current = wp_de_rtc_parse_post_content_sync_meta( $post->post_content );
+		$args                                = is_array( $args ) ? $args : array();
+		$explicit_base_version               = isset( $args['base_version'] ) ? sanitize_text_field( (string) $args['base_version'] ) : '';
+		$normal_rest_base_version_update     = '' !== $explicit_base_version && ! empty( $args['normal_rest_base_version_update'] );
+		$wp_update_post_base_version_update  = '' !== $explicit_base_version && ! empty( $args['wp_update_post_base_version_update'] );
+		$explicit_base_version_update        = $normal_rest_base_version_update || $wp_update_post_base_version_update;
+		$attributed_user_id                  = isset( $args['on_behalf_of'] ) ? absint( $args['on_behalf_of'] ) : get_current_user_id();
+		$executor_user_id                    = isset( $args['executor_user_id'] ) ? absint( $args['executor_user_id'] ) : get_current_user_id();
+		$attributed_user_can_unfiltered_html = $attributed_user_id ? user_can( $attributed_user_id, 'unfiltered_html' ) : current_user_can( 'unfiltered_html' );
+		$authorship_context                  = array();
+		$client_sync_meta_ignored_reason     = null;
+		$client_sync_meta_adopted            = false;
+		$automerge_update_source             = 'fabricated_from_submitted_content';
+
+		$current = wp_de_rtc_parse_post_content_sync_meta( $post->post_content );
 
 	if ( is_wp_error( $current ) ) {
 		return $current;
@@ -20727,27 +21010,31 @@ function wp_de_rtc_prepare_automerge_raw_post_content_update( $post, $incoming_p
 	$current_is_automerge = 'automerge' === $current['sync_meta_format'] && is_array( $current['sync_meta'] );
 	$incoming_is_automerge = 'automerge' === $incoming['sync_meta_format'] && is_array( $incoming['sync_meta'] );
 
-		if ( null !== $incoming['sync_meta'] && ! $incoming_is_automerge && ! $current_is_automerge ) {
-			return null;
-		}
+			if ( null !== $incoming['sync_meta'] && ! $incoming_is_automerge && ! $current_is_automerge ) {
+				return null;
+			}
 
-		if ( null !== $incoming['sync_meta'] && ! $incoming_is_automerge ) {
-			return wp_de_rtc_get_reason_error(
-				'de_rtc_unknown_sync_meta_format',
-				__( 'Distributed Editing rejected the save because the sync metadata format is not supported.' ),
+			if ( null !== $incoming['sync_meta'] && ! $incoming_is_automerge ) {
+				if ( $explicit_base_version_update && $current_is_automerge ) {
+					$client_sync_meta_ignored_reason = 'incoming_sync_meta_format_not_automerge';
+				} else {
+				return wp_de_rtc_get_reason_error(
+					'de_rtc_unknown_sync_meta_format',
+					__( 'Distributed Editing rejected the save because the sync metadata format is not supported.' ),
+					array(
+					'format' => $incoming['sync_meta_format'],
+					)
+				);
+				}
+			}
+
+			$current_external_repair = wp_de_rtc_get_repaired_automerge_current_post_snapshot(
+				$post,
+				$current,
 				array(
-				'format' => $incoming['sync_meta_format'],
+					'allow_empty_import' => $current_is_automerge || $incoming_is_automerge || $explicit_base_version_update,
 				)
 			);
-		}
-
-		$current_external_repair = wp_de_rtc_get_repaired_automerge_current_post_snapshot(
-			$post,
-			$current,
-			array(
-				'allow_empty_import' => $current_is_automerge || $incoming_is_automerge,
-			)
-		);
 
 		if ( is_wp_error( $current_external_repair ) ) {
 			return $current_external_repair;
@@ -20758,34 +21045,81 @@ function wp_de_rtc_prepare_automerge_raw_post_content_update( $post, $incoming_p
 			$current_is_automerge = true;
 		}
 
-		if ( ! $current_is_automerge && ! $incoming_is_automerge ) {
-			return null;
+			if ( ! $current_is_automerge && ! $incoming_is_automerge ) {
+				if ( $explicit_base_version_update ) {
+					return wp_de_rtc_get_reason_error(
+						'de_rtc_sync_meta_unrecoverable',
+						__( 'Distributed Editing could not merge the REST update because the current post has no Automerge sync metadata.' ),
+						array(
+							'detail'               => 'automerge_base_version_requires_current_sync_meta',
+							'client_base_version'  => $explicit_base_version,
+							'raw_content_included' => false,
+							'saves_post'           => false,
+							'mutates_post_content' => false,
+							'creates_revision'     => false,
+							'claims_saved'         => false,
+						)
+					);
+				}
+
+				return null;
+			}
+
+		$client_update = $incoming_is_automerge ? wp_de_rtc_get_pending_automerge_update_from_sync_meta( $incoming['sync_meta'] ) : null;
+
+		if ( is_wp_error( $client_update ) ) {
+			if ( $explicit_base_version_update ) {
+				$client_sync_meta_ignored_reason = $client_update->get_error_code();
+				$client_update                   = null;
+			} else {
+			return $client_update;
+			}
 		}
 
-	$client_update = $incoming_is_automerge ? wp_de_rtc_get_pending_automerge_update_from_sync_meta( $incoming['sync_meta'] ) : null;
+		$current_content     = $current['content'];
+		$proposed_content    = $incoming['content'];
+		$server_version      = $current_is_automerge && isset( $current['sync_meta']['version'] ) ? sanitize_text_field( (string) $current['sync_meta']['version'] ) : '0';
+		$client_base_version = $incoming_is_automerge && isset( $incoming['sync_meta']['client_base_version'] ) ? sanitize_text_field( (string) $incoming['sync_meta']['client_base_version'] ) : '';
 
-	if ( is_wp_error( $client_update ) ) {
-		return $client_update;
-	}
+		if ( $explicit_base_version_update ) {
+			if ( '' !== $client_base_version && $client_base_version !== $explicit_base_version ) {
+				$client_sync_meta_ignored_reason = 'client_sync_meta_base_version_mismatch';
+				$client_update                   = null;
+			}
 
-	$current_content     = $current['content'];
-	$proposed_content    = $incoming['content'];
-	$server_version      = $current_is_automerge && isset( $current['sync_meta']['version'] ) ? sanitize_text_field( (string) $current['sync_meta']['version'] ) : '0';
-	$client_base_version = $incoming_is_automerge && isset( $incoming['sync_meta']['client_base_version'] ) ? sanitize_text_field( (string) $incoming['sync_meta']['client_base_version'] ) : '';
+			if ( $incoming_is_automerge && isset( $incoming['sync_meta']['version'] ) ) {
+				$incoming_sync_meta_version = sanitize_text_field( (string) $incoming['sync_meta']['version'] );
 
-	if ( '' === $client_base_version && $incoming_is_automerge && isset( $incoming['sync_meta']['version'] ) ) {
-		$client_base_version = sanitize_text_field( (string) $incoming['sync_meta']['version'] );
-	}
+				if ( '' !== $incoming_sync_meta_version && $incoming_sync_meta_version !== $explicit_base_version ) {
+					$client_sync_meta_ignored_reason = 'client_sync_meta_version_mismatch';
+					$client_update                   = null;
+				}
+			}
+
+			$client_base_version = $explicit_base_version;
+		} elseif ( '' === $client_base_version && $incoming_is_automerge && isset( $incoming['sync_meta']['version'] ) ) {
+			$client_base_version = sanitize_text_field( (string) $incoming['sync_meta']['version'] );
+		}
 
 	$base_content     = $current_content;
 	$base_revision_id = 0;
 	$effective_client_base_version = '' !== $client_base_version ? $client_base_version : $server_version;
 	$automerge_result       = null;
 
-	if ( '' !== $client_base_version && $client_base_version !== $server_version ) {
-		$base_revision = wp_de_rtc_find_revision_with_sync_meta_version( $post, $client_base_version );
+		if ( '' !== $client_base_version && $client_base_version !== $server_version ) {
+			if ( $explicit_base_version_update ) {
+				$base_snapshot = wp_de_rtc_get_automerge_base_content_for_version( $post, $current, $client_base_version );
 
-		if ( is_wp_error( $base_revision ) ) {
+				if ( is_wp_error( $base_snapshot ) ) {
+					return $base_snapshot;
+				}
+
+				$base_content                   = $base_snapshot['content'];
+				$effective_client_base_version = $client_base_version;
+			} else {
+			$base_revision = wp_de_rtc_find_revision_with_sync_meta_version( $post, $client_base_version );
+
+			if ( is_wp_error( $base_revision ) ) {
 			return $base_revision;
 		}
 
@@ -20827,35 +21161,109 @@ function wp_de_rtc_prepare_automerge_raw_post_content_update( $post, $incoming_p
 			}
 		} else {
 			$base_content                  = $base_revision['content'];
-			$base_revision_id             = isset( $base_revision['revision_id'] ) ? (int) $base_revision['revision_id'] : 0;
-			$effective_client_base_version = $client_base_version;
-		}
-	}
-
-	if ( null === $automerge_result ) {
-		if ( null === $client_update ) {
-			$client_update = wp_de_rtc_create_automerge_update_for_content_change( $base_content, $proposed_content, 'client' );
+				$base_revision_id             = isset( $base_revision['revision_id'] ) ? (int) $base_revision['revision_id'] : 0;
+				$effective_client_base_version = $client_base_version;
+			}
+			}
 		}
 
-		$automerge_result = wp_de_rtc_get_automerge_retry_save_result( $base_content, $current_content, $proposed_content, $client_update );
+		if ( null === $automerge_result ) {
+			$client_update_from_sync_meta = null !== $client_update;
 
-		if ( is_wp_error( $automerge_result ) ) {
-			return $automerge_result;
+			if ( null === $client_update ) {
+				$client_update = wp_de_rtc_create_automerge_update_for_content_change( $base_content, $proposed_content, 'client' );
+				$automerge_update_source = $explicit_base_version_update ? 'fabricated_from_base_version' : 'fabricated_from_submitted_content';
+			} else {
+				$automerge_update_source = 'client_sync_meta';
+			}
+
+			$automerge_result = wp_de_rtc_get_automerge_retry_save_result( $base_content, $current_content, $proposed_content, $client_update );
+
+			if ( is_wp_error( $automerge_result ) ) {
+				if ( ! $explicit_base_version_update || ! $client_update_from_sync_meta ) {
+					return $automerge_result;
+				}
+
+				$client_sync_meta_ignored_reason = $automerge_result->get_error_code();
+				$client_update                   = wp_de_rtc_create_automerge_update_for_content_change( $base_content, $proposed_content, 'client' );
+				$automerge_update_source         = 'fabricated_from_base_version';
+				$automerge_result                = wp_de_rtc_get_automerge_retry_save_result( $base_content, $current_content, $proposed_content, $client_update );
+
+				if ( is_wp_error( $automerge_result ) ) {
+					return $automerge_result;
+				}
+			} elseif ( $client_update_from_sync_meta ) {
+				$client_sync_meta_adopted = true;
+			}
 		}
-	}
 
-	$merged_content = $automerge_result['merged_content'];
-	$save_hash      = wp_de_rtc_hash_content( $merged_content );
-	$next_version   = wp_de_rtc_get_next_sync_meta_version( $server_version, $save_hash );
-	$next_sync_meta = $current_is_automerge ? $current['sync_meta'] : array();
-	$next_sync_meta = wp_de_rtc_apply_automerge_metadata_to_sync_meta( $next_sync_meta, $automerge_result, $save_hash );
+		if ( $explicit_base_version_update ) {
+			$authorship_context = wp_de_rtc_get_retry_save_authorship_context( $post, '', $attributed_user_id );
+			$automerge_result  = wp_de_rtc_apply_authorship_context_to_automerge_result( $automerge_result, $authorship_context );
+		}
+
+		$merged_content = $automerge_result['merged_content'];
+		$save_hash      = wp_de_rtc_hash_content( $merged_content );
+
+		if ( $explicit_base_version_update && ! $attributed_user_can_unfiltered_html ) {
+			$normal_rest_kses_classification = wp_de_rtc_classify_kses_risky_block_review_items(
+				$post,
+				$merged_content,
+				array(
+					'base_post_content'        => $current_content,
+					'client_base_version'      => $client_base_version,
+					'server_version'           => $server_version,
+					'user_can_unfiltered_html' => false,
+					'author_id'                => $attributed_user_id,
+				)
+			);
+
+			if ( is_wp_error( $normal_rest_kses_classification ) ) {
+				return $normal_rest_kses_classification;
+			}
+
+			$normal_rest_review_items = isset( $normal_rest_kses_classification['review_items'] ) && is_array( $normal_rest_kses_classification['review_items'] )
+				? array_values( $normal_rest_kses_classification['review_items'] )
+				: array();
+
+			if ( ! empty( $normal_rest_review_items ) ) {
+				return wp_de_rtc_get_unfiltered_html_review_rejection_error(
+					$post,
+					array(
+						'pending_change_count'               => count( $normal_rest_review_items ),
+						'rest_route'                         => 'post_save_base_version_update',
+						'proposed_post_content_hash'         => wp_de_rtc_hash_content( $proposed_content ),
+						'candidate_post_content_hash'        => $save_hash,
+						'proposed_post_content_kses_review'  => wp_de_rtc_get_kses_post_content_review_evidence( $proposed_content ),
+						'candidate_post_content_kses_review' => wp_de_rtc_get_kses_post_content_review_evidence( $merged_content ),
+						'review_items'                       => $normal_rest_review_items,
+					)
+				);
+			}
+		}
+
+		$next_version   = wp_de_rtc_get_next_sync_meta_version( $server_version, $save_hash );
+		$next_sync_meta = $current_is_automerge ? $current['sync_meta'] : array();
+		$next_sync_meta = wp_de_rtc_apply_automerge_metadata_to_sync_meta( $next_sync_meta, $automerge_result, $save_hash );
 
 	if ( is_wp_error( $next_sync_meta ) ) {
-		return $next_sync_meta;
-	}
+			return $next_sync_meta;
+		}
 
-	unset(
-		$next_sync_meta['pending_automerge_update'],
+		if ( $explicit_base_version_update ) {
+			$next_sync_meta = wp_de_rtc_apply_automerge_authorship_to_sync_meta( $next_sync_meta, $merged_content, $automerge_result, $authorship_context );
+		}
+
+		$next_sync_meta = wp_de_rtc_update_automerge_version_snapshots(
+			$next_sync_meta,
+			$server_version,
+			$current_content,
+			$next_version,
+			$merged_content
+		);
+
+		unset(
+			$next_sync_meta['pending_automerge_update'],
 		$next_sync_meta['pending_automerge_encoding'],
 		$next_sync_meta['automerge_client_update'],
 		$next_sync_meta['automerge_update_role'],
@@ -20866,13 +21274,30 @@ function wp_de_rtc_prepare_automerge_raw_post_content_update( $post, $incoming_p
 	$next_sync_meta['previous_version']   = $server_version;
 		$next_sync_meta['last_server_update'] = array(
 			'type'                       => $source,
-			'user_id'                    => get_current_user_id(),
-			'session_label'              => wp_de_rtc_get_history_author_display_name( get_current_user_id() ),
-			'client_base_version'        => $effective_client_base_version,
-		'previous_server_version'    => $server_version,
-		'saved_stripped_content_hash' => $save_hash,
-			'merge_strategy'             => $automerge_result['merge_strategy'],
-		);
+			'user_id'                    => $attributed_user_id,
+				'session_label'              => wp_de_rtc_get_history_author_display_name( $attributed_user_id ),
+				'attribution_key'            => isset( $authorship_context['attributionKey'] ) ? $authorship_context['attributionKey'] : null,
+				'client_base_version'        => $effective_client_base_version,
+			'previous_server_version'    => $server_version,
+			'saved_stripped_content_hash' => $save_hash,
+				'merge_strategy'             => $automerge_result['merge_strategy'],
+				'automerge_update_source'    => $automerge_update_source,
+				'client_sync_meta_adopted'   => $client_sync_meta_adopted,
+			);
+
+			if ( $normal_rest_base_version_update ) {
+				$next_sync_meta['last_server_update']['normal_rest_base_version_update'] = true;
+			}
+
+			if ( $wp_update_post_base_version_update ) {
+				$next_sync_meta['last_server_update']['wp_update_post_base_version_update'] = true;
+				$next_sync_meta['last_server_update']['on_behalf_of']                       = $attributed_user_id;
+				$next_sync_meta['last_server_update']['executor_user_id']                   = $executor_user_id;
+			}
+
+			if ( null !== $client_sync_meta_ignored_reason ) {
+				$next_sync_meta['last_server_update']['client_sync_meta_ignored_reason'] = sanitize_key( (string) $client_sync_meta_ignored_reason );
+			}
 
 		if ( is_array( $current_external_repair ) ) {
 			$next_sync_meta['last_server_update']['external_repair'] = array(
@@ -20903,10 +21328,10 @@ function wp_de_rtc_prepare_automerge_raw_post_content_update( $post, $incoming_p
  * @param WP_REST_Request   $request       Request object.
  * @return stdClass|WP_Error Prepared post or a merge/apply error.
  */
-function wp_de_rtc_rest_pre_insert_automerge_raw_post_content_update( $prepared_post, $request ) {
-	if ( is_wp_error( $prepared_post ) || ! is_object( $prepared_post ) || ! isset( $prepared_post->post_content ) ) {
-		return $prepared_post;
-	}
+	function wp_de_rtc_rest_pre_insert_automerge_raw_post_content_update( $prepared_post, $request ) {
+		if ( is_wp_error( $prepared_post ) || ! is_object( $prepared_post ) || ! isset( $prepared_post->post_content ) ) {
+			return $prepared_post;
+		}
 
 	$post_id = 0;
 
@@ -20920,15 +21345,77 @@ function wp_de_rtc_rest_pre_insert_automerge_raw_post_content_update( $prepared_
 
 	$post = get_post( $post_id );
 
-	if ( ! $post ) {
-		return $prepared_post;
-	}
+		if ( ! $post ) {
+			return $prepared_post;
+		}
 
-	$candidate = wp_de_rtc_prepare_automerge_raw_post_content_update( $post, $prepared_post->post_content, 'rest_post_update' );
+		$base_version = $request->get_param( 'base_version' );
+		$args         = array();
 
-	if ( is_wp_error( $candidate ) ) {
-		return $candidate;
-	}
+		if ( null !== $base_version ) {
+			$base_version = sanitize_text_field( (string) $base_version );
+
+			if ( '' === $base_version ) {
+				return wp_de_rtc_get_reason_error(
+					'de_rtc_malformed_sync_payload',
+					__( 'Distributed Editing could not merge the REST update because base_version is empty.' ),
+					array(
+						'detail'               => 'normal_rest_base_version_empty',
+						'post_id'              => (int) $post->ID,
+						'raw_content_included' => false,
+						'saves_post'           => false,
+						'mutates_post_content' => false,
+						'creates_revision'     => false,
+						'claims_saved'         => false,
+					)
+				);
+			}
+
+			if ( ! wp_de_rtc_rest_normal_post_update_request_matches_post_type( $request, $post ) ) {
+				return wp_de_rtc_get_reason_error(
+					'rest_post_invalid_id',
+					__( 'Invalid post ID.' ),
+					array(
+						'status'               => 404,
+						'detail'               => 'normal_rest_base_version_route_post_type_mismatch',
+						'post_id'              => (int) $post->ID,
+						'raw_content_included' => false,
+						'saves_post'           => false,
+						'mutates_post_content' => false,
+						'creates_revision'     => false,
+						'claims_saved'         => false,
+					)
+				);
+			}
+
+			if ( ! $request->has_param( 'content' ) ) {
+				return wp_de_rtc_get_reason_error(
+					'de_rtc_malformed_sync_payload',
+					__( 'Distributed Editing could not merge the REST update because post content is missing.' ),
+					array(
+						'detail'               => 'normal_rest_base_version_content_missing',
+						'post_id'              => (int) $post->ID,
+						'client_base_version'  => $base_version,
+						'raw_content_included' => false,
+						'saves_post'           => false,
+						'mutates_post_content' => false,
+						'creates_revision'     => false,
+						'claims_saved'         => false,
+					)
+				);
+			}
+
+			$args = array(
+				'base_version'                    => $base_version,
+				'normal_rest_base_version_update' => true,
+			);
+		}
+
+		$candidate = wp_de_rtc_prepare_automerge_raw_post_content_update( $post, $prepared_post->post_content, 'rest_post_update', $args );
+
+		if ( is_wp_error( $candidate ) ) {
+			return $candidate;
+		}
 
 	if ( null === $candidate ) {
 		return $prepared_post;
@@ -20940,11 +21427,368 @@ function wp_de_rtc_rest_pre_insert_automerge_raw_post_content_update( $prepared_
 		$wp_de_rtc_prepared_automerge_raw_save_content = array();
 	}
 
-	$wp_de_rtc_prepared_automerge_raw_save_content[ (int) $post->ID ] = $candidate;
-	$prepared_post->post_content                               = $candidate;
+		$wp_de_rtc_prepared_automerge_raw_save_content[ (int) $post->ID ] = $candidate;
+		$prepared_post->post_content                               = $candidate;
 
-	return $prepared_post;
-}
+		if ( null !== $base_version && ! current_user_can( 'unfiltered_html' ) ) {
+			global $wp_de_rtc_rest_automerge_raw_save_kses_allowance_active;
+
+			if ( ! is_array( $wp_de_rtc_rest_automerge_raw_save_kses_allowance_active ) ) {
+				$wp_de_rtc_rest_automerge_raw_save_kses_allowance_active = array();
+			}
+
+			$wp_de_rtc_rest_automerge_raw_save_kses_allowance_active[ (int) $post->ID ] = true;
+			wp_de_rtc_enable_sync_meta_script_kses_allowance();
+		}
+
+		return $prepared_post;
+	}
+
+	/**
+	 * Returns whether a normal REST post update route matches the post type.
+	 *
+	 * @since 7.1.0
+	 * @access private
+	 *
+	 * @param WP_REST_Request $request Request object.
+	 * @param WP_Post         $post    Post object.
+	 * @return bool Whether the route is the normal post/page update route.
+	 */
+	function wp_de_rtc_rest_normal_post_update_request_matches_post_type( $request, $post ) {
+		$requested_rest_base = wp_de_rtc_get_rest_normal_post_update_request_rest_base( $request );
+		$post_rest_base      = wp_de_rtc_get_post_type_rest_base( $post->post_type );
+		$supported_bases     = wp_de_rtc_get_rest_recovery_post_type_rest_bases();
+
+		return (
+			'' !== $requested_rest_base &&
+			'' !== $post_rest_base &&
+			$requested_rest_base === $post_rest_base &&
+			in_array( $post_rest_base, $supported_bases, true )
+		);
+	}
+
+	/**
+	 * Returns the post type REST base from a normal REST post update route.
+	 *
+	 * Autosaves deliberately do not match this helper. The `base_version`
+	 * compatibility trigger only applies to normal post/page updates.
+	 *
+	 * @since 7.1.0
+	 * @access private
+	 *
+	 * @param WP_REST_Request $request Request object.
+	 * @return string Requested post type REST base, or empty string.
+	 */
+	function wp_de_rtc_get_rest_normal_post_update_request_rest_base( $request ) {
+		$route = $request->get_route();
+
+		if ( ! is_string( $route ) ) {
+			return '';
+		}
+
+		if ( ! preg_match( '#^/wp/v2/([^/]+)/\d+$#', $route, $matches ) ) {
+			return '';
+		}
+
+		return sanitize_key( $matches[1] );
+	}
+
+	/**
+	 * Cleans up temporary KSES allowance for normal REST base-version saves.
+	 *
+	 * @since 7.1.0
+	 * @access private
+	 *
+	 * @param WP_REST_Response|WP_HTTP_Response|WP_Error|mixed $response Result to send to the client.
+	 * @param array                                            $handler  Matched route handler.
+	 * @param WP_REST_Request                                  $request  Request object.
+	 * @return mixed Unchanged response.
+	 */
+	function wp_de_rtc_rest_cleanup_automerge_raw_post_content_update( $response, $handler, $request ) {
+		global $wp_de_rtc_rest_automerge_raw_save_kses_allowance_active;
+
+		if ( is_array( $wp_de_rtc_rest_automerge_raw_save_kses_allowance_active ) && ! empty( $wp_de_rtc_rest_automerge_raw_save_kses_allowance_active ) ) {
+			$wp_de_rtc_rest_automerge_raw_save_kses_allowance_active = array();
+			wp_de_rtc_disable_sync_meta_script_kses_allowance();
+		}
+
+		return $response;
+	}
+
+	/**
+	 * Prepares an explicit `base_version` update submitted through wp_update_post().
+	 *
+	 * `base_version` is intentionally the only trigger. When it is present,
+	 * WordPress treats the submitted post_content as a DE-aware merge request
+	 * rather than as a raw replacement, and attributes the semantic edit to
+	 * `on_behalf_of` when supplied.
+	 *
+	 * @since 7.1.0
+	 * @access private
+	 *
+	 * @param array $postarr       Slashed caller-supplied post array.
+	 * @param array $existing_post Slashed existing post row.
+	 * @return array|null|WP_Error Updated post array, null when not a DE update, or an error.
+	 */
+	function wp_de_rtc_preflight_wp_update_post_base_version( $postarr, $existing_post ) {
+		if ( ! is_array( $postarr ) || ! array_key_exists( 'base_version', $postarr ) ) {
+			return null;
+		}
+
+		$post_id = isset( $postarr['ID'] ) ? absint( $postarr['ID'] ) : 0;
+		$post    = get_post( $post_id );
+
+		if ( ! $post ) {
+			return null;
+		}
+
+		$base_version = sanitize_text_field( (string) wp_unslash( $postarr['base_version'] ) );
+
+		if ( '' === $base_version ) {
+			return wp_de_rtc_get_reason_error(
+				'de_rtc_malformed_sync_payload',
+				__( 'Distributed Editing could not merge the wp_update_post() update because base_version is empty.' ),
+				array(
+					'detail'               => 'wp_update_post_base_version_empty',
+					'post_id'              => (int) $post->ID,
+					'raw_content_included' => false,
+					'saves_post'           => false,
+					'mutates_post_content' => false,
+					'creates_revision'     => false,
+					'claims_saved'         => false,
+				)
+			);
+		}
+
+		if ( 'attachment' === $post->post_type ) {
+			return wp_de_rtc_get_reason_error(
+				'de_rtc_malformed_sync_payload',
+				__( 'Distributed Editing cannot merge attachment updates through wp_update_post().' ),
+				array(
+					'detail'               => 'wp_update_post_base_version_attachment_not_supported',
+					'post_id'              => (int) $post->ID,
+					'raw_content_included' => false,
+					'saves_post'           => false,
+					'mutates_post_content' => false,
+					'creates_revision'     => false,
+					'claims_saved'         => false,
+				)
+			);
+		}
+
+		if ( ! wp_de_rtc_is_enabled_for_post( $post ) ) {
+			return wp_de_rtc_get_reason_error(
+				'de_rtc_feature_disabled',
+				__( 'Distributed Editing is not enabled for this post.' ),
+				array(
+					'detail'               => 'wp_update_post_base_version_feature_disabled',
+					'post_id'              => (int) $post->ID,
+					'raw_content_included' => false,
+					'saves_post'           => false,
+					'mutates_post_content' => false,
+					'creates_revision'     => false,
+					'claims_saved'         => false,
+				)
+			);
+		}
+
+		$actor_user_id = isset( $postarr['on_behalf_of'] ) ? absint( wp_unslash( $postarr['on_behalf_of'] ) ) : get_current_user_id();
+
+		if ( ! $actor_user_id || ! get_userdata( $actor_user_id ) ) {
+			return wp_de_rtc_get_reason_error(
+				'de_rtc_malformed_sync_payload',
+				__( 'Distributed Editing could not merge the wp_update_post() update because on_behalf_of does not identify a user.' ),
+				array(
+					'detail'               => 'wp_update_post_base_version_missing_actor',
+					'post_id'              => (int) $post->ID,
+					'raw_content_included' => false,
+					'saves_post'           => false,
+					'mutates_post_content' => false,
+					'creates_revision'     => false,
+					'claims_saved'         => false,
+				)
+			);
+		}
+
+		if ( ! user_can( $actor_user_id, 'edit_post', (int) $post->ID ) ) {
+			return wp_de_rtc_get_reason_error(
+				'rest_cannot_edit',
+				__( 'Sorry, you are not allowed to edit this post.' ),
+				array(
+					'status'               => rest_authorization_required_code(),
+					'detail'               => 'wp_update_post_base_version_actor_cannot_edit_post',
+					'post_id'              => (int) $post->ID,
+					'raw_content_included' => false,
+					'saves_post'           => false,
+					'mutates_post_content' => false,
+					'creates_revision'     => false,
+					'claims_saved'         => false,
+				)
+			);
+		}
+
+		$incoming_post_content = array_key_exists( 'post_content', $postarr )
+			? wp_unslash( $postarr['post_content'] )
+			: ( isset( $existing_post['post_content'] ) ? wp_unslash( $existing_post['post_content'] ) : $post->post_content );
+
+		$candidate = wp_de_rtc_prepare_automerge_raw_post_content_update(
+			$post,
+			$incoming_post_content,
+			'wp_update_post',
+			array(
+				'base_version'                       => $base_version,
+				'wp_update_post_base_version_update' => true,
+				'on_behalf_of'                       => $actor_user_id,
+				'executor_user_id'                   => get_current_user_id(),
+			)
+		);
+
+		if ( is_wp_error( $candidate ) ) {
+			return $candidate;
+		}
+
+		if ( null === $candidate ) {
+			return wp_de_rtc_get_reason_error(
+				'de_rtc_sync_meta_unrecoverable',
+				__( 'Distributed Editing could not merge the wp_update_post() update because sync metadata is unavailable.' ),
+				array(
+					'detail'               => 'wp_update_post_base_version_prepare_returned_null',
+					'post_id'              => (int) $post->ID,
+					'client_base_version'  => $base_version,
+					'raw_content_included' => false,
+					'saves_post'           => false,
+					'mutates_post_content' => false,
+					'creates_revision'     => false,
+					'claims_saved'         => false,
+				)
+			);
+		}
+
+		global $wp_de_rtc_prepared_automerge_raw_save_content;
+
+		if ( ! is_array( $wp_de_rtc_prepared_automerge_raw_save_content ) ) {
+			$wp_de_rtc_prepared_automerge_raw_save_content = array();
+		}
+
+		$wp_de_rtc_prepared_automerge_raw_save_content[ (int) $post->ID ] = $candidate;
+		$postarr['post_content'] = wp_slash( $candidate );
+
+		wp_de_rtc_activate_wp_update_post_on_behalf_capability_context( $actor_user_id );
+
+		if ( ! user_can( $actor_user_id, 'unfiltered_html' ) ) {
+			global $wp_de_rtc_wp_update_post_automerge_raw_save_kses_allowance_active;
+
+			if ( ! is_array( $wp_de_rtc_wp_update_post_automerge_raw_save_kses_allowance_active ) ) {
+				$wp_de_rtc_wp_update_post_automerge_raw_save_kses_allowance_active = array();
+			}
+
+			$wp_de_rtc_wp_update_post_automerge_raw_save_kses_allowance_active[ (int) $post->ID ] = true;
+			wp_de_rtc_enable_sync_meta_script_kses_allowance();
+		}
+
+		return $postarr;
+	}
+
+	/**
+	 * Clears temporary wp_update_post() DE merge state.
+	 *
+	 * @since 7.1.0
+	 * @access private
+	 *
+	 * @param array $postarr Slashed post array.
+	 */
+	function wp_de_rtc_cleanup_wp_update_post_base_version_preflight( $postarr = array() ) {
+		if ( ! is_array( $postarr ) || ! array_key_exists( 'base_version', $postarr ) ) {
+			return;
+		}
+
+		global $wp_de_rtc_prepared_automerge_raw_save_content;
+
+		$post_id = isset( $postarr['ID'] ) ? absint( $postarr['ID'] ) : 0;
+
+		if ( $post_id && is_array( $wp_de_rtc_prepared_automerge_raw_save_content ) ) {
+			unset( $wp_de_rtc_prepared_automerge_raw_save_content[ $post_id ] );
+		}
+
+		global $wp_de_rtc_wp_update_post_automerge_raw_save_kses_allowance_active;
+
+		if ( is_array( $wp_de_rtc_wp_update_post_automerge_raw_save_kses_allowance_active ) && ! empty( $wp_de_rtc_wp_update_post_automerge_raw_save_kses_allowance_active ) ) {
+			$wp_de_rtc_wp_update_post_automerge_raw_save_kses_allowance_active = array();
+			wp_de_rtc_disable_sync_meta_script_kses_allowance();
+		}
+
+		wp_de_rtc_deactivate_wp_update_post_on_behalf_capability_context();
+	}
+
+	/**
+	 * Temporarily lets KSES capability checks use the `on_behalf_of` user.
+	 *
+	 * The PHP API is a trusted server-side entry point; attribution and
+	 * capability checks must follow the semantic editing user without forcing
+	 * plugins or cron jobs to mutate the global current user.
+	 *
+	 * @since 7.1.0
+	 * @access private
+	 *
+	 * @param int $user_id User ID to use as the capability source.
+	 */
+	function wp_de_rtc_activate_wp_update_post_on_behalf_capability_context( $user_id ) {
+		global $wp_de_rtc_wp_update_post_on_behalf_capability_user_id;
+
+		$wp_de_rtc_wp_update_post_on_behalf_capability_user_id = absint( $user_id );
+		add_filter( 'user_has_cap', 'wp_de_rtc_filter_wp_update_post_on_behalf_user_has_cap', 10, 4 );
+	}
+
+	/**
+	 * Clears the temporary `on_behalf_of` capability context.
+	 *
+	 * @since 7.1.0
+	 * @access private
+	 */
+	function wp_de_rtc_deactivate_wp_update_post_on_behalf_capability_context() {
+		global $wp_de_rtc_wp_update_post_on_behalf_capability_user_id;
+
+		$wp_de_rtc_wp_update_post_on_behalf_capability_user_id = 0;
+		remove_filter( 'user_has_cap', 'wp_de_rtc_filter_wp_update_post_on_behalf_user_has_cap', 10 );
+	}
+
+	/**
+	 * Mirrors primitive capabilities from the trusted `on_behalf_of` user.
+	 *
+	 * @since 7.1.0
+	 * @access private
+	 *
+	 * @param bool[]  $allcaps All capabilities for the current user.
+	 * @param string[] $caps    Required primitive capabilities.
+	 * @param array   $args     Capability check arguments.
+	 * @param WP_User $user     Current user object.
+	 * @return bool[] Filtered capabilities.
+	 */
+	function wp_de_rtc_filter_wp_update_post_on_behalf_user_has_cap( $allcaps, $caps, $args, $user ) {
+		global $wp_de_rtc_wp_update_post_on_behalf_capability_user_id;
+
+		$actor_user_id = isset( $wp_de_rtc_wp_update_post_on_behalf_capability_user_id ) ? absint( $wp_de_rtc_wp_update_post_on_behalf_capability_user_id ) : 0;
+
+		if ( ! $actor_user_id || ! is_array( $allcaps ) ) {
+			return $allcaps;
+		}
+
+		$actor = get_userdata( $actor_user_id );
+
+		if ( ! $actor || ! is_array( $actor->allcaps ) ) {
+			return $allcaps;
+		}
+
+		foreach ( $actor->allcaps as $capability => $granted ) {
+			if ( ! is_string( $capability ) || '' === $capability ) {
+				continue;
+			}
+
+			$allcaps[ $capability ] = (bool) $granted;
+		}
+
+		return $allcaps;
+	}
 
 /**
  * Preserves server-owned Automerge sync metadata for normal post update entry points.

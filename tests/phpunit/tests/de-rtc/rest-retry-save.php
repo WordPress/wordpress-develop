@@ -61,6 +61,165 @@ class Tests_DE_RTC_REST_Retry_Save extends WP_Test_REST_TestCase {
 	}
 
 	/**
+	 * @covers ::wp_de_rtc_rest_prepare_post_base_version
+	 * @covers ::wp_de_rtc_get_post_sync_meta_version
+	 */
+	public function test_rest_post_read_exposes_base_version_for_editable_distributed_editing_post() {
+		$current_content  = $this->add_automerge_sync_meta_to_content(
+			'<!-- wp:paragraph --><p>Legacy REST read base version post.</p><!-- /wp:paragraph -->',
+			211
+		);
+		$post_id          = self::factory()->post->create(
+			array(
+				'post_title'   => 'DE-RTC legacy REST read base version post',
+				'post_content' => $current_content,
+			)
+		);
+		$before_post      = get_post( $post_id );
+		$before_revisions = wp_get_post_revisions(
+			$post_id,
+			array(
+				'check_enabled' => false,
+			)
+		);
+		$request          = new WP_REST_Request( 'GET', '/wp/v2/posts/' . $post_id );
+
+		$request->set_param( 'context', 'edit' );
+		$request->set_param( '_fields', 'id,content.raw,base_version' );
+
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( $post_id, $data['id'] );
+		$this->assertSame( '211', $data['base_version'] );
+		$this->assertArrayHasKey( 'raw', $data['content'] );
+		$this->assertArrayNotHasKey( 'distributed_editing', $data );
+		$this->assertArrayNotHasKey( 'X-WP-DE-RTC-Base-Version', $response->get_headers() );
+		$this->assert_post_unchanged( $post_id, $before_post->post_content, $before_revisions );
+	}
+
+	/**
+	 * @covers ::wp_de_rtc_rest_prepare_post_base_version
+	 * @covers ::wp_de_rtc_get_post_sync_meta_version
+	 */
+	public function test_rest_page_read_exposes_base_version_for_editable_distributed_editing_page() {
+		$current_content = $this->add_automerge_sync_meta_to_content(
+			'<!-- wp:paragraph --><p>Legacy REST read base version page.</p><!-- /wp:paragraph -->',
+			212
+		);
+		$page_id         = self::factory()->post->create(
+			array(
+				'post_type'    => 'page',
+				'post_title'   => 'DE-RTC legacy REST read base version page',
+				'post_content' => $current_content,
+			)
+		);
+		$request         = new WP_REST_Request( 'GET', '/wp/v2/pages/' . $page_id );
+
+		$request->set_param( 'context', 'edit' );
+		$request->set_param( '_fields', 'id,base_version' );
+
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( $page_id, $data['id'] );
+		$this->assertSame( '212', $data['base_version'] );
+		$this->assertSame( array( 'id', 'base_version' ), array_keys( $data ) );
+	}
+
+	/**
+	 * @covers ::wp_de_rtc_rest_prepare_post_base_version
+	 */
+	public function test_rest_post_read_omits_base_version_when_distributed_editing_is_disabled() {
+		$current_content = $this->add_automerge_sync_meta_to_content(
+			'<!-- wp:paragraph --><p>Legacy REST disabled base version.</p><!-- /wp:paragraph -->',
+			213
+		);
+		$post_id         = self::factory()->post->create(
+			array(
+				'post_title'   => 'DE-RTC legacy REST disabled base version post',
+				'post_content' => $current_content,
+			)
+		);
+		$request         = new WP_REST_Request( 'GET', '/wp/v2/posts/' . $post_id );
+
+		update_option( 'wp_de_rtc_enabled', false );
+		$request->set_param( 'context', 'edit' );
+		$request->set_param( '_fields', 'id,base_version' );
+
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( $post_id, $data['id'] );
+		$this->assertArrayNotHasKey( 'base_version', $data );
+	}
+
+	/**
+	 * @covers ::wp_de_rtc_rest_prepare_post_base_version
+	 */
+	public function test_rest_post_read_omits_base_version_for_user_without_edit_permission() {
+		$current_content = $this->add_automerge_sync_meta_to_content(
+			'<!-- wp:paragraph --><p>Legacy REST subscriber base version.</p><!-- /wp:paragraph -->',
+			214
+		);
+		$post_id         = self::factory()->post->create(
+			array(
+				'post_status'  => 'publish',
+				'post_title'   => 'DE-RTC legacy REST subscriber base version post',
+				'post_content' => $current_content,
+			)
+		);
+		$request         = new WP_REST_Request( 'GET', '/wp/v2/posts/' . $post_id );
+
+		wp_set_current_user( self::$subscriber_user_id );
+		$request->set_param( 'context', 'view' );
+		$request->set_param( '_fields', 'id,base_version' );
+
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( $post_id, $data['id'] );
+		$this->assertArrayNotHasKey( 'base_version', $data );
+	}
+
+	/**
+	 * @covers ::wp_de_rtc_rest_prepare_post_base_version
+	 * @covers ::wp_de_rtc_get_post_sync_meta_version
+	 */
+	public function test_rest_post_read_omits_base_version_when_sync_meta_is_missing_without_mutating_post() {
+		$current_content  = '<!-- wp:paragraph --><p>Legacy REST missing sync metadata.</p><!-- /wp:paragraph -->';
+		$post_id          = self::factory()->post->create(
+			array(
+				'post_title'   => 'DE-RTC legacy REST missing sync meta post',
+				'post_content' => $current_content,
+			)
+		);
+		$before_post      = get_post( $post_id );
+		$before_revisions = wp_get_post_revisions(
+			$post_id,
+			array(
+				'check_enabled' => false,
+			)
+		);
+		$request          = new WP_REST_Request( 'GET', '/wp/v2/posts/' . $post_id );
+
+		$request->set_param( 'context', 'edit' );
+		$request->set_param( '_fields', 'id,base_version' );
+
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( $post_id, $data['id'] );
+		$this->assertArrayNotHasKey( 'base_version', $data );
+		$this->assert_post_unchanged( $post_id, $before_post->post_content, $before_revisions );
+	}
+
+	/**
 	 * @covers ::wp_de_rtc_rest_retry_submit_endpoint
 	 * @covers ::wp_de_rtc_get_retry_submit_acceptance_result
 	 * @covers ::wp_de_rtc_rest_retry_save_endpoint
@@ -4120,6 +4279,623 @@ class Tests_DE_RTC_REST_Retry_Save extends WP_Test_REST_TestCase {
 	}
 
 	/**
+	 * @covers ::wp_de_rtc_rest_pre_insert_automerge_raw_post_content_update
+	 * @covers ::wp_de_rtc_prepare_automerge_raw_post_content_update
+	 * @covers ::wp_de_rtc_update_automerge_version_snapshots
+	 */
+	public function test_rest_post_update_with_base_version_fabricates_current_base_update_without_submitted_sync_meta() {
+		$this->require_automerge_runtime();
+
+		$base_content    = '<!-- wp:paragraph --><p>Automerge REST base version current.</p><!-- /wp:paragraph -->';
+		$current_content = $this->add_automerge_sync_meta_to_content( $base_content, 121 );
+		$post_id         = self::factory()->post->create(
+			array(
+				'post_title'   => 'DE-RTC Automerge REST base version current post',
+				'post_content' => $current_content,
+			)
+		);
+		$updated_content = '<!-- wp:paragraph --><p>Automerge REST base version saved.</p><!-- /wp:paragraph -->';
+		$request         = new WP_REST_Request( 'POST', '/wp/v2/posts/' . $post_id );
+
+		$request->set_body_params(
+			array(
+				'content'      => $updated_content,
+				'base_version' => '121',
+			)
+		);
+
+		$response   = rest_get_server()->dispatch( $request );
+		$data       = $response->get_data();
+		$after_post = get_post( $post_id );
+		$parsed     = wp_de_rtc_parse_post_content_sync_meta( $after_post->post_content );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( '122', $data['base_version'] );
+		$this->assertIsArray( $parsed );
+		$this->assertSame( $updated_content, $parsed['content'] );
+		$this->assertSame( '122', $parsed['sync_meta']['version'] );
+		$this->assertSame( '121', $parsed['sync_meta']['previous_version'] );
+		$this->assertSame( '121', $parsed['sync_meta']['last_server_update']['client_base_version'] );
+		$this->assertSame( 'rest_post_update', $parsed['sync_meta']['last_server_update']['type'] );
+		$this->assertTrue( $parsed['sync_meta']['last_server_update']['normal_rest_base_version_update'] );
+		$this->assertFalse( $parsed['sync_meta']['last_server_update']['client_sync_meta_adopted'] );
+		$this->assertSame( 'fabricated_from_base_version', $parsed['sync_meta']['last_server_update']['automerge_update_source'] );
+		$this->assertSame( $base_content, $this->get_automerge_version_snapshot_content( $parsed['sync_meta'], '121' ) );
+		$this->assertSame( $updated_content, $this->get_automerge_version_snapshot_content( $parsed['sync_meta'], '122' ) );
+	}
+
+	/**
+	 * @covers ::wp_de_rtc_rest_pre_insert_automerge_raw_post_content_update
+	 * @covers ::wp_de_rtc_prepare_automerge_raw_post_content_update
+	 * @covers ::wp_de_rtc_get_automerge_base_content_for_version
+	 */
+	public function test_rest_post_update_with_base_version_merges_stale_update_from_sync_meta_snapshot_without_revision_lookup() {
+		$this->require_automerge_runtime();
+
+		$base_content   = '<!-- wp:paragraph --><p>Snapshot base first.</p><!-- /wp:paragraph --><!-- wp:paragraph --><p>Snapshot base second.</p><!-- /wp:paragraph -->';
+		$server_content = '<!-- wp:paragraph --><p>Snapshot base first.</p><!-- /wp:paragraph --><!-- wp:paragraph --><p>Snapshot server second.</p><!-- /wp:paragraph -->';
+		$local_content  = '<!-- wp:paragraph --><p>Snapshot local first.</p><!-- /wp:paragraph --><!-- wp:paragraph --><p>Snapshot base second.</p><!-- /wp:paragraph -->';
+		$merged_content = '<!-- wp:paragraph --><p>Snapshot local first.</p><!-- /wp:paragraph --><!-- wp:paragraph --><p>Snapshot server second.</p><!-- /wp:paragraph -->';
+		$sync_meta      = wp_de_rtc_update_automerge_version_snapshots(
+			array(
+				'version'            => '132',
+				'previous_version'   => '131',
+				'schema'             => 'de-rtc-automerge-v1',
+				'automerge_encoding' => 'native-automerge-blocks-v1',
+				'post_content_hash'  => wp_de_rtc_hash_content( $server_content ),
+			),
+			'131',
+			$base_content,
+			'132',
+			$server_content
+		);
+		$current_content = wp_de_rtc_add_sync_meta_to_post_content( $server_content, 'automerge', $sync_meta, 'prefix-block' );
+		$post_id         = self::factory()->post->create(
+			array(
+				'post_title'   => 'DE-RTC Automerge REST base version stale snapshot post',
+				'post_content' => $current_content,
+			)
+		);
+		$request         = new WP_REST_Request( 'POST', '/wp/v2/posts/' . $post_id );
+
+		$this->assertIsString( $current_content );
+		$request->set_body_params(
+			array(
+				'content'      => $local_content,
+				'base_version' => '131',
+			)
+		);
+
+		$response   = rest_get_server()->dispatch( $request );
+		$after_post = get_post( $post_id );
+		$parsed     = wp_de_rtc_parse_post_content_sync_meta( $after_post->post_content );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertIsArray( $parsed );
+		$this->assertSame( $merged_content, $parsed['content'] );
+		$this->assertSame( '133', $parsed['sync_meta']['version'] );
+		$this->assertSame( '132', $parsed['sync_meta']['previous_version'] );
+		$this->assertSame( '131', $parsed['sync_meta']['last_server_update']['client_base_version'] );
+		$this->assertTrue( $parsed['sync_meta']['last_server_update']['normal_rest_base_version_update'] );
+		$this->assertArrayNotHasKey( 'base_revision_id', $parsed['sync_meta']['last_server_update'] );
+		$this->assertSame( $base_content, $this->get_automerge_version_snapshot_content( $parsed['sync_meta'], '131' ) );
+		$this->assertSame( $server_content, $this->get_automerge_version_snapshot_content( $parsed['sync_meta'], '132' ) );
+		$this->assertSame( $merged_content, $this->get_automerge_version_snapshot_content( $parsed['sync_meta'], '133' ) );
+	}
+
+	/**
+	 * @covers ::wp_de_rtc_rest_pre_insert_automerge_raw_post_content_update
+	 * @covers ::wp_de_rtc_prepare_automerge_raw_post_content_update
+	 * @covers ::wp_de_rtc_apply_authorship_context_to_automerge_result
+	 */
+	public function test_rest_post_update_with_base_version_adopts_compatible_client_sync_meta_as_authenticated_user() {
+		$this->require_automerge_runtime();
+
+		$base_content    = '<!-- wp:paragraph --><p>Automerge REST client sync current.</p><!-- /wp:paragraph -->';
+		$current_content = $this->add_automerge_sync_meta_to_content( $base_content, 141 );
+		$post_id         = self::factory()->post->create(
+			array(
+				'post_title'   => 'DE-RTC Automerge REST client sync meta post',
+				'post_content' => $current_content,
+			)
+		);
+		$updated_content = '<!-- wp:paragraph --><p>Automerge REST client sync saved.</p><!-- /wp:paragraph -->';
+		$client_update   = wp_de_rtc_create_automerge_update_for_content_change( $base_content, $updated_content, 'test-client' );
+		$incoming_content = $this->add_automerge_sync_meta_to_content(
+			$updated_content,
+			141,
+			array(
+				'client_base_version'        => '141',
+				'pending_automerge_encoding' => 'native-automerge-blocks-v1',
+				'pending_automerge_update'   => base64_encode( wp_json_encode( $client_update, JSON_UNESCAPED_SLASHES ) ),
+			)
+		);
+		$request         = new WP_REST_Request( 'POST', '/wp/v2/posts/' . $post_id );
+
+		$request->set_body_params(
+			array(
+				'content'      => $incoming_content,
+				'base_version' => '141',
+			)
+		);
+
+		$response   = rest_get_server()->dispatch( $request );
+		$after_post = get_post( $post_id );
+		$parsed     = wp_de_rtc_parse_post_content_sync_meta( $after_post->post_content );
+		$saved_update = wp_de_rtc_decode_automerge_sync_meta_update( $parsed['sync_meta']['automerge_update'] );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( $updated_content, $parsed['content'] );
+		$this->assertTrue( $parsed['sync_meta']['last_server_update']['client_sync_meta_adopted'] );
+		$this->assertSame( 'client_sync_meta', $parsed['sync_meta']['last_server_update']['automerge_update_source'] );
+		$this->assertIsArray( $saved_update );
+		$this->assertArrayNotHasKey( 'test-client', $saved_update['stateVector'] );
+
+		foreach ( $saved_update['operations'] as $operation ) {
+			$this->assertNotSame( 'test-client', $operation['actor'] );
+		}
+	}
+
+	/**
+	 * @covers ::wp_de_rtc_rest_pre_insert_automerge_raw_post_content_update
+	 * @covers ::wp_de_rtc_prepare_automerge_raw_post_content_update
+	 */
+	public function test_rest_post_update_with_base_version_falls_back_to_fabricated_update_when_client_sync_meta_is_not_trustworthy() {
+		$this->require_automerge_runtime();
+
+		$base_content       = '<!-- wp:paragraph --><p>Automerge REST fallback current.</p><!-- /wp:paragraph -->';
+		$current_content    = $this->add_automerge_sync_meta_to_content( $base_content, 151 );
+		$post_id            = self::factory()->post->create(
+			array(
+				'post_title'   => 'DE-RTC Automerge REST client sync meta fallback post',
+				'post_content' => $current_content,
+			)
+		);
+		$updated_content    = '<!-- wp:paragraph --><p>Automerge REST fallback saved.</p><!-- /wp:paragraph -->';
+		$unrelated_content  = '<!-- wp:paragraph --><p>Automerge REST unrelated client update.</p><!-- /wp:paragraph -->';
+		$untrusted_update   = wp_de_rtc_create_automerge_update_for_content_change( $base_content, $unrelated_content, 'test-client' );
+		$incoming_content   = $this->add_automerge_sync_meta_to_content(
+			$updated_content,
+			151,
+			array(
+				'client_base_version'        => '151',
+				'pending_automerge_encoding' => 'native-automerge-blocks-v1',
+				'pending_automerge_update'   => base64_encode( wp_json_encode( $untrusted_update, JSON_UNESCAPED_SLASHES ) ),
+			)
+		);
+		$request            = new WP_REST_Request( 'POST', '/wp/v2/posts/' . $post_id );
+
+		$request->set_body_params(
+			array(
+				'content'      => $incoming_content,
+				'base_version' => '151',
+			)
+		);
+
+		$response   = rest_get_server()->dispatch( $request );
+		$after_post = get_post( $post_id );
+		$parsed     = wp_de_rtc_parse_post_content_sync_meta( $after_post->post_content );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( $updated_content, $parsed['content'] );
+		$this->assertFalse( $parsed['sync_meta']['last_server_update']['client_sync_meta_adopted'] );
+		$this->assertSame( 'fabricated_from_base_version', $parsed['sync_meta']['last_server_update']['automerge_update_source'] );
+		$this->assertSame( 'de_rtc_sync_meta_tampered', $parsed['sync_meta']['last_server_update']['client_sync_meta_ignored_reason'] );
+	}
+
+	/**
+	 * @covers ::wp_de_rtc_rest_pre_insert_automerge_raw_post_content_update
+	 * @covers ::wp_de_rtc_prepare_automerge_raw_post_content_update
+	 * @covers ::wp_de_rtc_get_automerge_base_content_for_version
+	 */
+	public function test_rest_post_update_with_base_version_rejects_unavailable_stale_crdt_version_without_revision_lookup() {
+		$this->require_automerge_runtime();
+
+		$base_content      = '<!-- wp:paragraph --><p>Automerge REST unavailable current.</p><!-- /wp:paragraph -->';
+		$current_content   = $this->add_automerge_sync_meta_to_content( $base_content, 162 );
+		$post_id           = self::factory()->post->create(
+			array(
+				'post_title'   => 'DE-RTC Automerge REST unavailable base version post',
+				'post_content' => $current_content,
+			)
+		);
+		$updated_content   = '<!-- wp:paragraph --><p>Automerge REST unavailable proposed.</p><!-- /wp:paragraph -->';
+		$before_post       = get_post( $post_id );
+		$before_revisions  = wp_get_post_revisions(
+			$post_id,
+			array(
+				'check_enabled' => false,
+			)
+		);
+		$request           = new WP_REST_Request( 'POST', '/wp/v2/posts/' . $post_id );
+
+		$request->set_body_params(
+			array(
+				'content'      => $updated_content,
+				'base_version' => '161',
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'stale_base_version_rejected', $response, 409 );
+		$this->assert_post_unchanged( $post_id, $before_post->post_content, $before_revisions );
+	}
+
+	/**
+	 * @covers ::wp_de_rtc_rest_pre_insert_automerge_raw_post_content_update
+	 * @covers ::wp_de_rtc_prepare_automerge_raw_post_content_update
+	 */
+	public function test_rest_post_update_with_base_version_allows_author_safe_edit_and_preserves_sync_meta() {
+		$this->require_automerge_runtime();
+
+		$base_content    = '<!-- wp:paragraph --><p>Automerge REST author safe current.</p><!-- /wp:paragraph -->';
+		$current_content = $this->add_automerge_sync_meta_to_content( $base_content, 171 );
+		$post_id         = self::factory()->post->create(
+			array(
+				'post_author'  => self::$author_user_id,
+				'post_title'   => 'DE-RTC Automerge REST author safe base version post',
+				'post_content' => $current_content,
+			)
+		);
+		$updated_content = '<!-- wp:paragraph --><p>Automerge REST author safe saved.</p><!-- /wp:paragraph -->';
+		$request         = new WP_REST_Request( 'POST', '/wp/v2/posts/' . $post_id );
+
+		wp_set_current_user( self::$author_user_id );
+		$request->set_body_params(
+			array(
+				'content'      => $updated_content,
+				'base_version' => '171',
+			)
+		);
+
+		$response   = rest_get_server()->dispatch( $request );
+		$after_post = get_post( $post_id );
+		$parsed     = wp_de_rtc_parse_post_content_sync_meta( $after_post->post_content );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertIsArray( $parsed );
+		$this->assertSame( $updated_content, $parsed['content'] );
+		$this->assertSame( '172', $parsed['sync_meta']['version'] );
+		$this->assertSame( self::$author_user_id, $parsed['sync_meta']['last_server_update']['user_id'] );
+		$this->assertStringStartsWith( '<!-- wp:sync-meta', $after_post->post_content );
+		$this->assertFalse( has_filter( 'wp_kses_allowed_html', 'wp_de_rtc_filter_sync_meta_script_kses_allowance' ) );
+	}
+
+	/**
+	 * @covers ::wp_de_rtc_rest_pre_insert_automerge_raw_post_content_update
+	 * @covers ::wp_de_rtc_prepare_automerge_raw_post_content_update
+	 * @covers ::wp_de_rtc_get_unfiltered_html_review_rejection_error
+	 */
+	public function test_rest_post_update_with_base_version_rejects_author_unsafe_edit_without_partial_write() {
+		$this->require_automerge_runtime();
+
+		$base_content     = '<!-- wp:paragraph --><p>Automerge REST author unsafe current.</p><!-- /wp:paragraph -->';
+		$current_content  = $this->add_automerge_sync_meta_to_content( $base_content, 181 );
+		$post_id          = self::factory()->post->create(
+			array(
+				'post_author'  => self::$author_user_id,
+				'post_title'   => 'DE-RTC Automerge REST author unsafe base version post',
+				'post_content' => $current_content,
+			)
+		);
+		$unsafe_content   = $base_content . '<!-- wp:html --><script>alert(1);</script><div>Unsafe script.</div><!-- /wp:html -->';
+		$before_post      = get_post( $post_id );
+		$before_revisions = wp_get_post_revisions(
+			$post_id,
+			array(
+				'check_enabled' => false,
+			)
+		);
+		$request          = new WP_REST_Request( 'POST', '/wp/v2/posts/' . $post_id );
+
+		wp_set_current_user( self::$author_user_id );
+		$request->set_body_params(
+			array(
+				'content'      => $unsafe_content,
+				'base_version' => '181',
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $request );
+		$error    = $response->as_error();
+		$data     = $error->get_error_data( 'de_rtc_unfiltered_html_would_change_content' );
+
+		$this->assertErrorResponse( 'de_rtc_unfiltered_html_would_change_content', $response, 403 );
+		$this->assertSame( 'post_save_base_version_update', $data['rest_route'] );
+		$this->assertSame( 'block_review_required', $data['result'] );
+		$this->assertSame( 1, $data['review_item_count'] );
+		$this->assertArrayNotHasKey( 'partial_safe_merge_applied', $data );
+		$this->assert_post_unchanged( $post_id, $before_post->post_content, $before_revisions );
+	}
+
+	/**
+	 * @covers ::wp_update_post
+	 * @covers ::wp_de_rtc_preflight_wp_update_post_base_version
+	 * @covers ::wp_de_rtc_prepare_automerge_raw_post_content_update
+	 * @covers ::wp_de_rtc_apply_authorship_context_to_automerge_result
+	 */
+	public function test_wp_update_post_with_base_version_saves_on_behalf_of_author_without_current_user() {
+		$this->require_automerge_runtime();
+
+		$base_content    = '<!-- wp:paragraph --><p>Automerge PHP API current.</p><!-- /wp:paragraph -->';
+		$current_content = $this->add_automerge_sync_meta_to_content( $base_content, 191 );
+		$post_id         = self::factory()->post->create(
+			array(
+				'post_author'  => self::$author_user_id,
+				'post_title'   => 'DE-RTC Automerge wp_update_post base version post',
+				'post_content' => $current_content,
+			)
+		);
+		$updated_content = '<!-- wp:paragraph --><p>Automerge PHP API saved.</p><!-- /wp:paragraph -->';
+
+		wp_set_current_user( 0 );
+
+		$updated_post_id = wp_update_post(
+			wp_slash(
+				array(
+					'ID'           => $post_id,
+					'post_title'   => 'DE-RTC Automerge wp_update_post updated title',
+					'post_content' => $updated_content,
+					'meta_input'   => array(
+						'de_rtc_wp_update_post_base_version' => 'yes',
+					),
+					'base_version' => '191',
+					'on_behalf_of' => self::$author_user_id,
+				)
+			),
+			true
+		);
+		$after_post      = get_post( $post_id );
+		$parsed          = wp_de_rtc_parse_post_content_sync_meta( $after_post->post_content );
+
+		$this->assertSame( $post_id, $updated_post_id );
+		$this->assertSame( 'DE-RTC Automerge wp_update_post updated title', $after_post->post_title );
+		$this->assertSame( 'yes', get_post_meta( $post_id, 'de_rtc_wp_update_post_base_version', true ) );
+		$this->assertIsArray( $parsed );
+		$this->assertSame( $updated_content, $parsed['content'] );
+		$this->assertSame( '192', $parsed['sync_meta']['version'] );
+		$this->assertSame( '191', $parsed['sync_meta']['previous_version'] );
+		$this->assertSame( '191', $parsed['sync_meta']['last_server_update']['client_base_version'] );
+		$this->assertSame( 'wp_update_post', $parsed['sync_meta']['last_server_update']['type'] );
+		$this->assertSame( self::$author_user_id, $parsed['sync_meta']['last_server_update']['user_id'] );
+		$this->assertSame( self::$author_user_id, $parsed['sync_meta']['last_server_update']['on_behalf_of'] );
+		$this->assertSame( 0, $parsed['sync_meta']['last_server_update']['executor_user_id'] );
+		$this->assertTrue( $parsed['sync_meta']['last_server_update']['wp_update_post_base_version_update'] );
+		$this->assertFalse( $parsed['sync_meta']['last_server_update']['client_sync_meta_adopted'] );
+		$this->assertSame( 'fabricated_from_base_version', $parsed['sync_meta']['last_server_update']['automerge_update_source'] );
+		$this->assertStringStartsWith( '<!-- wp:sync-meta', $after_post->post_content );
+		$this->assertFalse( has_filter( 'wp_kses_allowed_html', 'wp_de_rtc_filter_sync_meta_script_kses_allowance' ) );
+		$this->assertFalse( has_filter( 'user_has_cap', 'wp_de_rtc_filter_wp_update_post_on_behalf_user_has_cap' ) );
+	}
+
+	/**
+	 * @covers ::wp_update_post
+	 * @covers ::wp_de_rtc_preflight_wp_update_post_base_version
+	 * @covers ::wp_de_rtc_prepare_automerge_raw_post_content_update
+	 * @covers ::wp_de_rtc_apply_authorship_context_to_automerge_result
+	 */
+	public function test_wp_update_post_with_base_version_adopts_verified_client_sync_meta_on_behalf_of_user() {
+		$this->require_automerge_runtime();
+
+		$base_content    = '<!-- wp:paragraph --><p>Automerge PHP API client sync current.</p><!-- /wp:paragraph -->';
+		$current_content = $this->add_automerge_sync_meta_to_content( $base_content, 193 );
+		$post_id         = self::factory()->post->create(
+			array(
+				'post_author'  => self::$author_user_id,
+				'post_title'   => 'DE-RTC Automerge wp_update_post client sync meta post',
+				'post_content' => $current_content,
+			)
+		);
+		$updated_content = '<!-- wp:paragraph --><p>Automerge PHP API client sync saved.</p><!-- /wp:paragraph -->';
+		$client_update   = wp_de_rtc_create_automerge_update_for_content_change( $base_content, $updated_content, 'test-client' );
+		$incoming_content = $this->add_automerge_sync_meta_to_content(
+			$updated_content,
+			193,
+			array(
+				'client_base_version'        => '193',
+				'pending_automerge_encoding' => 'native-automerge-blocks-v1',
+				'pending_automerge_update'   => base64_encode( wp_json_encode( $client_update, JSON_UNESCAPED_SLASHES ) ),
+			)
+		);
+
+		wp_set_current_user( 0 );
+
+		$updated_post_id = wp_update_post(
+			wp_slash(
+				array(
+					'ID'           => $post_id,
+					'post_content' => $incoming_content,
+					'base_version' => '193',
+					'on_behalf_of' => self::$author_user_id,
+				)
+			),
+			true
+		);
+		$after_post      = get_post( $post_id );
+		$parsed          = wp_de_rtc_parse_post_content_sync_meta( $after_post->post_content );
+		$saved_update    = wp_de_rtc_decode_automerge_sync_meta_update( $parsed['sync_meta']['automerge_update'] );
+
+		$this->assertSame( $post_id, $updated_post_id );
+		$this->assertSame( $updated_content, $parsed['content'] );
+		$this->assertSame( '194', $parsed['sync_meta']['version'] );
+		$this->assertTrue( $parsed['sync_meta']['last_server_update']['client_sync_meta_adopted'] );
+		$this->assertSame( 'client_sync_meta', $parsed['sync_meta']['last_server_update']['automerge_update_source'] );
+		$this->assertSame( self::$author_user_id, $parsed['sync_meta']['last_server_update']['user_id'] );
+		$this->assertIsArray( $saved_update );
+		$this->assertArrayNotHasKey( 'test-client', $saved_update['stateVector'] );
+
+		foreach ( $saved_update['operations'] as $operation ) {
+			$this->assertNotSame( 'test-client', $operation['actor'] );
+		}
+	}
+
+	/**
+	 * @covers ::wp_update_post
+	 * @covers ::wp_de_rtc_preflight_wp_update_post_base_version
+	 * @covers ::wp_de_rtc_prepare_automerge_raw_post_content_update
+	 * @covers ::wp_de_rtc_get_repaired_automerge_current_post_snapshot
+	 */
+	public function test_wp_update_post_with_base_version_repairs_missing_sync_meta_before_merge() {
+		$this->require_automerge_runtime();
+
+		global $wpdb;
+
+		$base_content    = '<!-- wp:paragraph --><p>Automerge PHP API missing sync base.</p><!-- /wp:paragraph -->';
+		$updated_content = '<!-- wp:paragraph --><p>Automerge PHP API missing sync saved.</p><!-- /wp:paragraph -->';
+		$post_id         = self::factory()->post->create(
+			array(
+				'post_author'  => self::$author_user_id,
+				'post_title'   => 'DE-RTC Automerge wp_update_post missing sync meta post',
+				'post_content' => $this->add_automerge_sync_meta_to_content(
+					$base_content,
+					195,
+					array(
+						'post_content_hash'  => hash( 'sha256', $base_content ),
+						'last_server_update' => array(
+							'type'                        => 'test_seed',
+							'saved_stripped_content_hash' => hash( 'sha256', $base_content ),
+						),
+					)
+				),
+			)
+		);
+
+		$this->assertIsInt( wp_save_post_revision( $post_id ) );
+		$this->assertSame(
+			1,
+			$wpdb->update(
+				$wpdb->posts,
+				array(
+					'post_content' => $base_content,
+				),
+				array(
+					'ID' => $post_id,
+				)
+			)
+		);
+		clean_post_cache( $post_id );
+
+		wp_set_current_user( 0 );
+
+		$updated_post_id = wp_update_post(
+			wp_slash(
+				array(
+					'ID'           => $post_id,
+					'post_content' => $updated_content,
+					'base_version' => '195',
+					'on_behalf_of' => self::$author_user_id,
+				)
+			),
+			true
+		);
+		$after_post      = get_post( $post_id );
+		$parsed          = wp_de_rtc_parse_post_content_sync_meta( $after_post->post_content );
+
+		$this->assertSame( $post_id, $updated_post_id );
+		$this->assertSame( $updated_content, $parsed['content'] );
+		$this->assertSame( '197', $parsed['sync_meta']['version'] );
+		$this->assertSame( '196', $parsed['sync_meta']['previous_version'] );
+		$this->assertSame( 'missing_sync_meta_revision', $parsed['sync_meta']['last_server_update']['external_repair']['mode'] );
+		$this->assertSame( '196', $parsed['sync_meta']['last_server_update']['external_repair']['repaired_version'] );
+		$this->assertSame( self::$author_user_id, $parsed['sync_meta']['last_server_update']['user_id'] );
+	}
+
+	/**
+	 * @covers ::wp_update_post
+	 * @covers ::wp_de_rtc_preflight_wp_update_post_base_version
+	 * @covers ::wp_de_rtc_prepare_automerge_raw_post_content_update
+	 * @covers ::wp_de_rtc_get_unfiltered_html_review_rejection_error
+	 */
+	public function test_wp_update_post_with_base_version_rejects_unsafe_edit_using_on_behalf_capabilities() {
+		$this->require_automerge_runtime();
+
+		$base_content     = '<!-- wp:paragraph --><p>Automerge PHP API unsafe current.</p><!-- /wp:paragraph -->';
+		$current_content  = $this->add_automerge_sync_meta_to_content( $base_content, 198 );
+		$post_id          = self::factory()->post->create(
+			array(
+				'post_author'  => self::$author_user_id,
+				'post_title'   => 'DE-RTC Automerge wp_update_post unsafe post',
+				'post_content' => $current_content,
+			)
+		);
+		$unsafe_content   = $base_content . '<!-- wp:html --><script>alert(1);</script><div>Unsafe script.</div><!-- /wp:html -->';
+		$before_post      = get_post( $post_id );
+		$before_revisions = wp_get_post_revisions(
+			$post_id,
+			array(
+				'check_enabled' => false,
+			)
+		);
+
+		wp_set_current_user( self::$admin_user_id );
+
+		$result = wp_update_post(
+			wp_slash(
+				array(
+					'ID'           => $post_id,
+					'post_content' => $unsafe_content,
+					'base_version' => '198',
+					'on_behalf_of' => self::$author_user_id,
+				)
+			),
+			true
+		);
+		$data   = $result->get_error_data( 'de_rtc_unfiltered_html_would_change_content' );
+
+		$this->assertWPError( $result );
+		$this->assertSame( 'de_rtc_unfiltered_html_would_change_content', $result->get_error_code() );
+		$this->assertSame( 'block_review_required', $data['result'] );
+		$this->assertSame( 1, $data['review_item_count'] );
+		$this->assert_post_unchanged( $post_id, $before_post->post_content, $before_revisions );
+		$this->assertFalse( has_filter( 'wp_kses_allowed_html', 'wp_de_rtc_filter_sync_meta_script_kses_allowance' ) );
+		$this->assertFalse( has_filter( 'user_has_cap', 'wp_de_rtc_filter_wp_update_post_on_behalf_user_has_cap' ) );
+	}
+
+	/**
+	 * @covers ::wp_update_post
+	 * @covers ::wp_de_rtc_preflight_wp_update_post_base_version
+	 * @covers ::wp_de_rtc_prepare_automerge_raw_post_content_update
+	 */
+	public function test_wp_update_post_with_base_version_returns_zero_without_wp_error_on_rejection() {
+		$this->require_automerge_runtime();
+
+		$base_content     = '<!-- wp:paragraph --><p>Automerge PHP API unavailable current.</p><!-- /wp:paragraph -->';
+		$current_content  = $this->add_automerge_sync_meta_to_content( $base_content, 200 );
+		$post_id          = self::factory()->post->create(
+			array(
+				'post_author'  => self::$author_user_id,
+				'post_title'   => 'DE-RTC Automerge wp_update_post unavailable base version post',
+				'post_content' => $current_content,
+			)
+		);
+		$before_post      = get_post( $post_id );
+		$before_revisions = wp_get_post_revisions(
+			$post_id,
+			array(
+				'check_enabled' => false,
+			)
+		);
+
+		wp_set_current_user( 0 );
+
+		$result = wp_update_post(
+			wp_slash(
+				array(
+					'ID'           => $post_id,
+					'post_content' => '<!-- wp:paragraph --><p>Automerge PHP API unavailable saved.</p><!-- /wp:paragraph -->',
+					'base_version' => '199',
+					'on_behalf_of' => self::$author_user_id,
+				)
+			),
+			false
+		);
+
+		$this->assertSame( 0, $result );
+		$this->assert_post_unchanged( $post_id, $before_post->post_content, $before_revisions );
+	}
+
+	/**
 	 * @covers ::wp_de_rtc_preserve_automerge_sync_meta_on_post_update
 	 * @covers ::wp_de_rtc_prepare_automerge_raw_post_content_update
 	 * @covers ::wp_de_rtc_find_revision_with_sync_meta_version
@@ -7796,6 +8572,28 @@ class Tests_DE_RTC_REST_Retry_Save extends WP_Test_REST_TestCase {
 		$this->assertIsString( $content_with_sync_meta );
 
 		return $content_with_sync_meta;
+	}
+
+	/**
+	 * Returns stripped content stored for an Automerge version snapshot.
+	 *
+	 * @param array  $sync_meta Sync metadata.
+	 * @param string $version   Sync metadata version.
+	 * @return string|null Snapshot content, or null when absent/malformed.
+	 */
+	private function get_automerge_version_snapshot_content( $sync_meta, $version ) {
+		if (
+			! is_array( $sync_meta ) ||
+			! isset( $sync_meta['version_snapshots'][ $version ] ) ||
+			! is_array( $sync_meta['version_snapshots'][ $version ] ) ||
+			! isset( $sync_meta['version_snapshots'][ $version ]['content_base64'] )
+		) {
+			return null;
+		}
+
+		$content = base64_decode( $sync_meta['version_snapshots'][ $version ]['content_base64'], true );
+
+		return is_string( $content ) ? $content : null;
 	}
 
 	/**
