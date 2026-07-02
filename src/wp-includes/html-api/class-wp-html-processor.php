@@ -121,17 +121,6 @@
  *  - SCRIPT and STYLE tags containing text that looks like HTML but isn't, e.g. `<script>document.write('<p>Hi</p>');</script>`.
  *  - SCRIPT content which has been escaped, e.g. `<script><!-- document.write('<script>console.log("hi")</script>') --></script>`.
  *
- * ### Customizable select elements
- *
- * This parser implements the updated `SELECT` parsing rules introduced by the HTML
- * standard's customizable select elements changes.
- *
- * It does not implement the "maybe clone an option into selectedcontent" step that
- * copies the selected `OPTION` content into a `SELECTEDCONTENT` element when the
- * `OPTION` is popped from the stack of open elements. A `SELECTEDCONTENT` element
- * is parsed like any other element, and its contents reflect only the tokens in
- * the source HTML.
- *
  * ### Unsupported Features
  *
  * This parser does not report parse errors.
@@ -145,6 +134,9 @@
  * a process called "adoption" and "fostering." Because the nodes move to a location
  * in the document that the parser had already processed, this parser does not support
  * these situations and will bail.
+ *
+ * The parser does not implement the "maybe clone an option into selectedcontent" algorithm.
+ * SELECTEDCONTENT elements may not reflect the actual selected content.
  *
  * @since 6.4.0
  *
