@@ -98,7 +98,7 @@ class Tests_Abilities_API_WpRegisterCoreReadSettingsAbility extends WP_UnitTestC
 	/**
 	 * The input schema exposes optional `group` and `fields` filters.
 	 *
-	 * @ticket 64146
+	 * @ticket 64605
 	 */
 	public function test_core_read_settings_input_schema_exposes_group_and_fields_filters(): void {
 		$schema = wp_get_ability( 'core/read-settings' )->get_input_schema();
@@ -117,7 +117,7 @@ class Tests_Abilities_API_WpRegisterCoreReadSettingsAbility extends WP_UnitTestC
 	/**
 	 * Without input the ability returns a flat map of correctly typed setting values.
 	 *
-	 * @ticket 64146
+	 * @ticket 64605
 	 */
 	public function test_core_read_settings_returns_flat_typed_values(): void {
 		$this->become_admin();
@@ -137,7 +137,7 @@ class Tests_Abilities_API_WpRegisterCoreReadSettingsAbility extends WP_UnitTestC
 	/**
 	 * The `group` filter narrows the response to a single settings group.
 	 *
-	 * @ticket 64146
+	 * @ticket 64605
 	 */
 	public function test_core_read_settings_filters_by_group(): void {
 		$this->become_admin();
@@ -151,7 +151,7 @@ class Tests_Abilities_API_WpRegisterCoreReadSettingsAbility extends WP_UnitTestC
 	/**
 	 * The `fields` filter narrows the response to the requested setting names.
 	 *
-	 * @ticket 64146
+	 * @ticket 64605
 	 */
 	public function test_core_read_settings_filters_by_fields(): void {
 		$this->become_admin();
@@ -164,7 +164,7 @@ class Tests_Abilities_API_WpRegisterCoreReadSettingsAbility extends WP_UnitTestC
 	/**
 	 * Supplying both `group` and `fields` narrows the response to their intersection.
 	 *
-	 * @ticket 64146
+	 * @ticket 64605
 	 */
 	public function test_core_read_settings_combines_group_and_fields_filters(): void {
 		$this->become_admin();
@@ -184,7 +184,7 @@ class Tests_Abilities_API_WpRegisterCoreReadSettingsAbility extends WP_UnitTestC
 	/**
 	 * Users without `manage_options` cannot run the ability.
 	 *
-	 * @ticket 64146
+	 * @ticket 64605
 	 */
 	public function test_core_read_settings_requires_manage_options(): void {
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'subscriber' ) ) );
@@ -198,7 +198,7 @@ class Tests_Abilities_API_WpRegisterCoreReadSettingsAbility extends WP_UnitTestC
 	/**
 	 * A setting registered with `show_in_abilities` (for example by a plugin) is exposed by the ability.
 	 *
-	 * @ticket 64146
+	 * @ticket 64605
 	 */
 	public function test_core_read_settings_exposes_a_custom_registered_setting(): void {
 		$ability = wp_get_ability( 'core/read-settings' );
