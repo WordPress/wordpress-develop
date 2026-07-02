@@ -196,6 +196,13 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 		do_action( 'rest_after_insert_nav_menu_item', $nav_menu_item, $request, true );
 
 		$post = get_post( $nav_menu_item_id );
+		if ( ! $post ) {
+			return new WP_Error(
+				'rest_post_invalid_id',
+				__( 'Invalid post ID.' ),
+				array( 'status' => 404 )
+			);
+		}
 		wp_after_insert_post( $post, false, null );
 
 		$response = $this->prepare_item_for_response( $post, $request );

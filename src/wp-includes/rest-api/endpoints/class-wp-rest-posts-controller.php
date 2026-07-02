@@ -13,6 +13,26 @@
  * @since 4.7.0
  *
  * @see WP_REST_Controller
+ *
+ * @phpstan-type PreparedPost object{
+ *     ID?: int,
+ *     post_title?: string,
+ *     post_content?: string,
+ *     post_excerpt?: string,
+ *     post_type: string,
+ *     post_status?: string,
+ *     post_date?: string|null,
+ *     post_date_gmt?: string|null,
+ *     edit_date?: true,
+ *     post_name?: string,
+ *     post_author?: int,
+ *     post_parent?: int,
+ *     menu_order?: int,
+ *     comment_status?: string,
+ *     ping_status?: string,
+ *     page_template?: null,
+ *     meta_input?: array<string, string>,
+ * }&stdClass
  */
 class WP_REST_Posts_Controller extends WP_REST_Controller {
 	/**
@@ -694,6 +714,13 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		}
 
 		$post_type = get_post_type_object( $this->post_type );
+		if ( ! $post_type ) {
+			return new WP_Error(
+				'rest_post_invalid_type',
+				__( 'Invalid post type.' ),
+				array( 'status' => 400 )
+			);
+		}
 
 		if ( ! empty( $request['author'] ) && get_current_user_id() !== $request['author'] && ! current_user_can( $post_type->cap->edit_others_posts ) ) {
 			return new WP_Error(
@@ -753,6 +780,10 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			return $prepared_post;
 		}
 
+		/*
+		 * This is also set in the ::prepare_item_for_database() method above, but since the return value is filterable,
+		 * there is no guarantee.
+		 */
 		$prepared_post->post_type = $this->post_type;
 
 		if ( ! empty( $prepared_post->post_name )
@@ -763,13 +794,16 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			 * `wp_unique_post_slug()` returns the same slug for 'draft' or 'pending' posts.
 			 *
 			 * To ensure that a unique slug is generated, pass the post data with the 'publish' status.
+			 *
+			 * Note that neither ID nor post_parent are guaranteed to be set in ::prepare_item_for_database(), so this
+			 * is the reason for the null coalescing operator.
 			 */
 			$prepared_post->post_name = wp_unique_post_slug(
 				$prepared_post->post_name,
-				$prepared_post->id,
+				$prepared_post->ID ?? 0,
 				'publish',
 				$prepared_post->post_type,
-				$prepared_post->post_parent
+				$prepared_post->post_parent ?? 0
 			);
 		}
 
@@ -787,6 +821,13 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		}
 
 		$post = get_post( $post_id );
+		if ( ! $post ) {
+			return new WP_Error(
+				'rest_post_invalid_id',
+				__( 'Invalid post ID.' ),
+				array( 'status' => 404 )
+			);
+		}
 
 		/**
 		 * Fires after a single post is created or updated via the REST API.
@@ -843,7 +884,6 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			}
 		}
 
-		$post          = get_post( $post_id );
 		$fields_update = $this->update_additional_fields_for_object( $post, $request );
 
 		if ( is_wp_error( $fields_update ) ) {
@@ -874,6 +914,10 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		wp_after_insert_post( $post, false, null );
 
 		$response = $this->prepare_item_for_response( $post, $request );
+		if ( is_wp_error( $response ) ) {
+			return $response;
+		}
+
 		$response = rest_ensure_response( $response );
 
 		$response->set_status( 201 );
@@ -942,14 +986,12 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
 	public function update_item( $request ) {
-		$valid_check = $this->get_post( $request['id'] );
-		if ( is_wp_error( $valid_check ) ) {
-			return $valid_check;
+		$post_before = $this->get_post( $request['id'] );
+		if ( is_wp_error( $post_before ) ) {
+			return $post_before;
 		}
 
-		$post_before = get_post( $request['id'] );
-		$post        = $this->prepare_item_for_database( $request );
-
+		$post = $this->prepare_item_for_database( $request );
 		if ( is_wp_error( $post ) ) {
 			return $post;
 		}
@@ -964,15 +1006,17 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		 * `wp_unique_post_slug()` returns the same slug for 'draft' or 'pending' posts.
 		 *
 		 * To ensure that a unique slug is generated, pass the post data with the 'publish' status.
+		 *
+		 * Note that neither ID nor post_parent are guaranteed to be set in ::prepare_item_for_database(), so this
+		 * is the reason for the null coalescing operator.
 		 */
 		if ( ! empty( $post->post_name ) && in_array( $post_status, array( 'draft', 'pending' ), true ) ) {
-			$post_parent     = ! empty( $post->post_parent ) ? $post->post_parent : 0;
 			$post->post_name = wp_unique_post_slug(
 				$post->post_name,
-				$post->ID,
+				$post->ID ?? 0,
 				'publish',
 				$post->post_type,
-				$post_parent
+				$post->post_parent ?? 0
 			);
 		}
 
@@ -989,6 +1033,13 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		}
 
 		$post = get_post( $post_id );
+		if ( ! $post ) {
+			return new WP_Error(
+				'rest_post_invalid_id',
+				__( 'Invalid post ID.' ),
+				array( 'status' => 404 )
+			);
+		}
 
 		/** This action is documented in wp-includes/rest-api/endpoints/class-wp-rest-posts-controller.php */
 		do_action( "rest_insert_{$this->post_type}", $post, $request, false );
@@ -1029,7 +1080,6 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			}
 		}
 
-		$post          = get_post( $post_id );
 		$fields_update = $this->update_additional_fields_for_object( $post, $request );
 
 		if ( is_wp_error( $fields_update ) ) {
@@ -1283,13 +1333,15 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 * @since 4.7.0
 	 *
 	 * @param WP_REST_Request $request Request object.
-	 * @return stdClass|WP_Error Post object or WP_Error.
+	 * @return object|WP_Error Post object or WP_Error.
+	 * @phpstan-return PreparedPost|WP_Error
 	 */
 	protected function prepare_item_for_database( $request ) {
 		$prepared_post  = new stdClass();
 		$current_status = '';
 
 		// Post ID.
+		$existing_post = null;
 		if ( isset( $request['id'] ) ) {
 			$existing_post = $this->get_post( $request['id'] );
 			if ( is_wp_error( $existing_post ) ) {
@@ -1330,15 +1382,22 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		}
 
 		// Post type.
-		if ( empty( $request['id'] ) ) {
+		if ( ! $existing_post ) {
 			// Creating new post, use default type for the controller.
 			$prepared_post->post_type = $this->post_type;
 		} else {
 			// Updating a post, use previous type.
-			$prepared_post->post_type = get_post_type( $request['id'] );
+			$prepared_post->post_type = $existing_post->post_type;
 		}
 
 		$post_type = get_post_type_object( $prepared_post->post_type );
+		if ( ! $post_type ) {
+			return new WP_Error(
+				'rest_post_invalid_type',
+				__( 'Invalid post type.' ),
+				array( 'status' => 400 )
+			);
+		}
 
 		// Post status.
 		if (
@@ -1357,7 +1416,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 		// Post date.
 		if ( ! empty( $schema['properties']['date'] ) && ! empty( $request['date'] ) ) {
-			$current_date = isset( $prepared_post->ID ) ? get_post( $prepared_post->ID )->post_date : false;
+			$current_date = $existing_post ? $existing_post->post_date : false;
 			$date_data    = rest_get_date_with_gmt( $request['date'] );
 
 			if ( ! empty( $date_data ) && $current_date !== $date_data[0] ) {
@@ -1365,7 +1424,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 				$prepared_post->edit_date                                        = true;
 			}
 		} elseif ( ! empty( $schema['properties']['date_gmt'] ) && ! empty( $request['date_gmt'] ) ) {
-			$current_date = isset( $prepared_post->ID ) ? get_post( $prepared_post->ID )->post_date_gmt : false;
+			$current_date = $existing_post ? $existing_post->post_date_gmt : false;
 			$date_data    = rest_get_date_with_gmt( $request['date_gmt'], true );
 
 			if ( ! empty( $date_data ) && $current_date !== $date_data[1] ) {
@@ -1423,7 +1482,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 					);
 				}
 
-				if ( ! empty( $prepared_post->ID ) && is_sticky( $prepared_post->ID ) ) {
+				if ( $existing_post && is_sticky( $existing_post->ID ) ) {
 					return new WP_Error(
 						'rest_invalid_field',
 						__( 'A sticky post can not be password protected.' ),
@@ -1434,7 +1493,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		}
 
 		if ( ! empty( $schema['properties']['sticky'] ) && ! empty( $request['sticky'] ) ) {
-			if ( ! empty( $prepared_post->ID ) && post_password_required( $prepared_post->ID ) ) {
+			if ( $existing_post && post_password_required( $prepared_post->ID ) ) {
 				return new WP_Error(
 					'rest_invalid_field',
 					__( 'A password protected post can not be set to sticky.' ),

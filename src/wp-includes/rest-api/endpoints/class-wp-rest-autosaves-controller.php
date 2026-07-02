@@ -14,6 +14,8 @@
  *
  * @see WP_REST_Revisions_Controller
  * @see WP_REST_Controller
+ *
+ * @phpstan-import-type PreparedPost from WP_REST_Posts_Controller
  */
 class WP_REST_Autosaves_Controller extends WP_REST_Revisions_Controller {
 
@@ -220,7 +222,14 @@ class WP_REST_Autosaves_Controller extends WP_REST_Revisions_Controller {
 			return $post;
 		}
 
-		$prepared_post     = $this->parent_controller->prepare_item_for_database( $request );
+		$prepared_post = $this->parent_controller->prepare_item_for_database( $request );
+		if ( is_wp_error( $prepared_post ) ) {
+			return $prepared_post;
+		}
+
+		/**
+		 * @var PreparedPost $prepared_post
+		 */
 		$prepared_post->ID = $post->ID;
 		$user_id           = get_current_user_id();
 
@@ -260,6 +269,13 @@ class WP_REST_Autosaves_Controller extends WP_REST_Revisions_Controller {
 		}
 
 		$autosave = get_post( $autosave_id );
+		if ( ! $autosave ) {
+			return new WP_Error(
+				'rest_post_invalid_id',
+				__( 'Invalid post ID.' ),
+				array( 'status' => 404 )
+			);
+		}
 		$request->set_param( 'context', 'edit' );
 
 		$response = $this->prepare_item_for_response( $autosave, $request );

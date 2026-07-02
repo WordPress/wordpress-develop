@@ -575,7 +575,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 
 		$name       = wp_basename( $file['file'] );
 		$name_parts = pathinfo( $name );
-		$name       = trim( substr( $name, 0, -( 1 + strlen( $name_parts['extension'] ) ) ) );
+		$name       = trim( substr( $name, 0, -( 1 + strlen( $name_parts['extension'] ?? '' ) ) ) );
 
 		$url  = $file['url'];
 		$type = $file['type'];
@@ -603,6 +603,9 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		}
 
 		$attachment = $this->prepare_item_for_database( $request );
+		if ( is_wp_error( $attachment ) ) {
+			return $attachment;
+		}
 
 		$attachment->post_mime_type = $type;
 		$attachment->guid           = $url;
@@ -610,10 +613,12 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		// If the title was not set, use the original filename.
 		if ( empty( $attachment->post_title ) && ! empty( $files['file']['name'] ) ) {
 			// Remove the file extension (after the last `.`)
-			$tmp_title = substr( $files['file']['name'], 0, strrpos( $files['file']['name'], '.' ) );
-
-			if ( ! empty( $tmp_title ) ) {
-				$attachment->post_title = $tmp_title;
+			$last_dot_location = strrpos( $files['file']['name'], '.' );
+			if ( false !== $last_dot_location ) {
+				$tmp_title = substr( $files['file']['name'], 0, $last_dot_location );
+				if ( ! empty( $tmp_title ) ) {
+					$attachment->post_title = $tmp_title;
+				}
 			}
 		}
 
@@ -625,10 +630,6 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		// $post_parent is inherited from $attachment['post_parent'].
 		$id = wp_insert_attachment( wp_slash( (array) $attachment ), $file, 0, true, false );
 
-		if ( trim( $alt ) ) {
-			update_post_meta( $id, '_wp_attachment_image_alt', sanitize_text_field( $alt ) );
-		}
-
 		if ( is_wp_error( $id ) ) {
 			if ( 'db_update_error' === $id->get_error_code() ) {
 				$id->add_data( array( 'status' => 500 ) );
@@ -637,6 +638,10 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			}
 
 			return $id;
+		}
+
+		if ( trim( $alt ) ) {
+			update_post_meta( $id, '_wp_attachment_image_alt', sanitize_text_field( $alt ) );
 		}
 
 		$attachment = get_post( $id );
@@ -907,6 +912,13 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		if ( ! file_exists( $image_file_to_edit ) ) {
 			$image_file_to_edit = _load_image_to_edit_path( $attachment_id );
 		}
+		if ( false === $image_file_to_edit ) {
+			return new WP_Error(
+				'rest_cannot_get_image_file_to_edit',
+				__( 'Unable to get image file.' ),
+				array( 'status' => 404 )
+			);
+		}
 
 		$image_editor = wp_get_image_editor( $image_file_to_edit );
 
@@ -1014,7 +1026,11 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		$original_attachment_post = get_post( $attachment_id );
 
 		// Check request fields and assign default values.
-		$new_attachment_post                 = $this->prepare_item_for_database( $request );
+		$new_attachment_post = $this->prepare_item_for_database( $request );
+		if ( is_wp_error( $new_attachment_post ) ) {
+			return $new_attachment_post;
+		}
+
 		$new_attachment_post->post_mime_type = $saved['mime-type'];
 		$new_attachment_post->guid           = $uploads['url'] . "/$filename";
 
@@ -1100,7 +1116,15 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 
 		wp_update_attachment_metadata( $new_attachment_id, $new_image_meta );
 
-		$response = $this->prepare_item_for_response( get_post( $new_attachment_id ), $request );
+		$new_attachment_post = get_post( $new_attachment_id );
+		if ( ! $new_attachment_post ) {
+			return new WP_Error(
+				'rest_post_invalid_id',
+				__( 'Invalid post ID.' ),
+				array( 'status' => 404 )
+			);
+		}
+		$response = $this->prepare_item_for_response( $new_attachment_post, $request );
 		$response->set_status( 201 );
 		$response->header( 'Location', rest_url( sprintf( '%s/%s/%s', $this->namespace, $this->rest_base, $new_attachment_id ) ) );
 
@@ -1117,6 +1141,9 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	 */
 	protected function prepare_item_for_database( $request ) {
 		$prepared_attachment = parent::prepare_item_for_database( $request );
+		if ( is_wp_error( $prepared_attachment ) ) {
+			return $prepared_attachment;
+		}
 
 		// Attachment caption (post_excerpt internally).
 		if ( isset( $request['caption'] ) ) {
