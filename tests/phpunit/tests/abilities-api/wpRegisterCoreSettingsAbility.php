@@ -80,7 +80,7 @@ class Tests_Abilities_API_WpRegisterCoreSettingsAbility extends WP_UnitTestCase 
 	/**
 	 * The ability is registered in the `site` category and flagged read-only.
 	 *
-	 * @ticket 64146
+	 * @ticket 64605
 	 */
 	public function test_core_settings_ability_is_registered(): void {
 		$ability = wp_get_ability( 'core/settings' );
