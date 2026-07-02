@@ -1138,7 +1138,7 @@ class Tests_DE_RTC_REST_Presence extends WP_Test_REST_TestCase {
 	 * @covers ::wp_de_rtc_get_post_presence_storage_snapshot
 	 * @covers ::wp_de_rtc_get_presence_storage_row_freshness
 	 */
-	public function test_presence_snapshot_derives_freshness_and_expired_count_from_storage_timestamps_without_cleanup() {
+	public function test_presence_snapshot_derives_freshness_and_culls_expired_storage_timestamps_without_post_mutation() {
 		$post_id          = self::factory()->post->create(
 			array(
 				'post_title'   => 'DE-RTC timestamp-derived presence snapshot post',
@@ -1202,30 +1202,156 @@ class Tests_DE_RTC_REST_Presence extends WP_Test_REST_TestCase {
 
 		$this->assertSame( 3, $before_row_count );
 		$this->assertSame( 'presence_roster_snapshot', $snapshot['result'] );
-		$this->assertSame( 'recent', $roster['status'] );
-		$this->assertSame( 'recent', $roster['freshness'] );
+		$this->assertSame( 'active', $roster['status'] );
+		$this->assertSame( 'current', $roster['freshness'] );
 		$this->assertSame( 'de_rtc_presence_storage', $roster['source'] );
 		$this->assertTrue( $roster['storageBacked'] );
-		$this->assertSame( 2, $roster['visibleCount'] );
-		$this->assertSame( 3, $roster['totalKnownCount'] );
-		$this->assertSame( 1, $roster['expiredCount'] );
+		$this->assertSame( 1, $roster['visibleCount'] );
+		$this->assertSame( 1, $roster['totalKnownCount'] );
+		$this->assertSame( 0, $roster['expiredCount'] );
+		$this->assertTrue( $roster['culling']['applied'] );
+		$this->assertTrue( $roster['culling']['deleteOnRead'] );
+		$this->assertSame( 2, $roster['culling']['deletedCount'] );
+		$this->assertSame( 1, $roster['culling']['deletedExpiredCount'] );
+		$this->assertSame( 1, $roster['culling']['deletedStaleWithoutPendingCount'] );
 		$this->assertArrayHasKey( 'Current Timestamp', $entries_by_name );
-		$this->assertArrayHasKey( 'Recent Timestamp', $entries_by_name );
+		$this->assertArrayNotHasKey( 'Recent Timestamp', $entries_by_name );
 		$this->assertArrayNotHasKey( 'Expired Timestamp', $entries_by_name );
 		$this->assertSame( 'current', $entries_by_name['Current Timestamp']['freshness'] );
-		$this->assertSame( 'recent', $entries_by_name['Recent Timestamp']['freshness'] );
 		$this->assertSame( 'de_rtc_presence_storage', $contract['current_snapshot_source'] );
-		$this->assertSame( 1, $contract['freshness_model']['expired_count'] );
+		$this->assertSame( 0, $contract['freshness_model']['expired_count'] );
+		$this->assertTrue( $contract['mutates_presence_storage'] );
+		$this->assertTrue( $contract['deletes_presence_rows'] );
+		$this->assertTrue( $contract['freshness_model']['culling']['applied'] );
 		$this->assertSame( 120, $contract['freshness_model']['current_after_seconds'] );
 		$this->assertSame( 600, $contract['freshness_model']['expires_after_seconds'] );
 		$this->assertContains( 'expiredCount', $contract['schema_fields']['roster'] );
+		$this->assertContains( 'culling', $contract['schema_fields']['roster'] );
 		$this->assertFalse( $snapshot['records_presence_heartbeat'] );
 		$this->assertFalse( $snapshot['saves_post'] );
+		$this->assertTrue( $snapshot['mutates_presence_storage'] );
+		$this->assertTrue( $snapshot['deletes_presence_rows'] );
 		$this->assertFalse( $snapshot['mutates_post_content'] );
 		$this->assertFalse( $snapshot['creates_revision'] );
 		$this->assertFalse( $snapshot['changes_post_lock'] );
 		$this->assertFalse( $roster['claimsAbsence'] );
-		$this->assertSame( $before_row_count, $this->get_presence_row_count_for_post( $post_id ) );
+		$this->assertSame( $before_row_count - 2, $this->get_presence_row_count_for_post( $post_id ) );
+		$this->assert_post_unchanged( $post_id, $before_post->post_content, $before_revisions );
+	}
+
+	/**
+	 * @covers ::wp_de_rtc_get_post_presence_read_snapshot
+	 * @covers ::wp_de_rtc_get_post_presence_read_contract
+	 * @covers ::wp_de_rtc_get_post_presence_roster
+	 * @covers ::wp_de_rtc_get_post_presence_storage_snapshot
+	 * @covers ::wp_de_rtc_cull_presence_storage_rows
+	 * @covers ::wp_de_rtc_get_presence_culling_policy
+	 * @covers ::wp_de_rtc_get_presence_culling_state
+	 */
+	public function test_presence_snapshot_culls_stale_sessions_more_aggressively_without_pending_edits() {
+		$post_id          = self::factory()->post->create(
+			array(
+				'post_title'   => 'DE-RTC stale presence culling post',
+				'post_content' => '<!-- wp:paragraph --><p>Presence culling.</p><!-- /wp:paragraph -->',
+			)
+		);
+		$current_time_gmt = '2026-05-15 12:00:00';
+		$before_post      = get_post( $post_id );
+		$before_revisions = $this->get_post_revisions( $post_id );
+
+		wp_de_rtc_install_presence_table();
+		$this->insert_presence_row_for_post(
+			$post_id,
+			array(
+				'session_key'    => 'active-session',
+				'actor_key'      => 'active-actor',
+				'display_name'   => 'Active Editor',
+				'last_seen_gmt'  => '2026-05-15 11:59:50',
+				'expires_at_gmt' => '2026-05-15 12:10:00',
+			)
+		);
+		$this->insert_presence_row_for_post(
+			$post_id,
+			array(
+				'session_key'    => 'stale-without-pending-session',
+				'actor_key'      => 'stale-without-pending-actor',
+				'display_name'   => 'Stale No Pending',
+				'last_seen_gmt'  => '2026-05-15 11:57:30',
+				'expires_at_gmt' => '2026-05-15 12:10:00',
+			)
+		);
+		$this->insert_presence_row_for_post(
+			$post_id,
+			array(
+				'session_key'         => 'stale-with-pending-session',
+				'actor_key'           => 'stale-with-pending-actor',
+				'display_name'        => 'Stale With Pending',
+				'has_pending_changes' => 1,
+				'last_seen_gmt'       => '2026-05-15 11:56:00',
+				'expires_at_gmt'      => '2026-05-15 12:10:00',
+			)
+		);
+		$this->insert_presence_row_for_post(
+			$post_id,
+			array(
+				'session_key'          => 'old-pending-preview-session',
+				'actor_key'            => 'old-pending-preview-actor',
+				'display_name'         => 'Old Pending Preview',
+				'pending_preview_json' => wp_json_encode(
+					array(
+						'available' => true,
+						'items'     => array(
+							array(
+								'blockPath'       => array( 0 ),
+								'changeKind'      => 'added_block',
+								'blockName'       => 'core/paragraph',
+								'safePreviewText' => 'Old ghost',
+							),
+						),
+					)
+				),
+				'last_seen_gmt'        => '2026-05-15 11:54:30',
+				'expires_at_gmt'       => '2026-05-15 12:10:00',
+			)
+		);
+		$this->insert_presence_row_for_post(
+			$post_id,
+			array(
+				'session_key'    => 'current-tab-session',
+				'actor_key'      => 'current-tab-actor',
+				'display_name'   => 'Current Tab',
+				'last_seen_gmt'  => '2026-05-15 11:40:00',
+				'expires_at_gmt' => '2026-05-15 12:10:00',
+			)
+		);
+
+		$before_row_count = $this->get_presence_row_count_for_post( $post_id );
+		$snapshot         = wp_de_rtc_get_post_presence_read_snapshot(
+			$post_id,
+			array(
+				'current_time_gmt'    => $current_time_gmt,
+				'host_profile'        => 'cheap_shared_host',
+				'current_session_key' => 'current-tab-session',
+			)
+		);
+		$roster           = $snapshot['presence_roster'];
+		$names            = wp_list_pluck( $roster['entries'], 'displayName' );
+
+		$this->assertSame( 5, $before_row_count );
+		$this->assertSame( array( 'Active Editor', 'Stale With Pending' ), $names );
+		$this->assertSame( 2, $roster['visibleCount'] );
+		$this->assertSame( 2, $roster['totalKnownCount'] );
+		$this->assertTrue( $roster['culling']['applied'] );
+		$this->assertTrue( $roster['culling']['activeSessionObserved'] );
+		$this->assertSame( 2, $roster['culling']['deletedCount'] );
+		$this->assertSame( 1, $roster['culling']['deletedStaleWithoutPendingCount'] );
+		$this->assertSame( 1, $roster['culling']['deletedStaleWithPendingCount'] );
+		$this->assertSame( 1, $roster['culling']['deletedPendingPreviewCount'] );
+		$this->assertTrue( $roster['culling']['removesPendingPreviews'] );
+		$this->assertFalse( $roster['culling']['claimsAbsence'] );
+		$this->assertStringNotContainsString( 'Stale No Pending', wp_json_encode( $snapshot ) );
+		$this->assertStringNotContainsString( 'Old ghost', wp_json_encode( $snapshot ) );
+		$this->assertSame( $before_row_count - 2, $this->get_presence_row_count_for_post( $post_id ) );
 		$this->assert_post_unchanged( $post_id, $before_post->post_content, $before_revisions );
 	}
 
@@ -1268,6 +1394,7 @@ class Tests_DE_RTC_REST_Presence extends WP_Test_REST_TestCase {
 				'session_key'    => 'bounded-visible-gamma',
 				'actor_key'      => 'bounded-visible-gamma-actor',
 				'display_name'   => 'Visible Gamma',
+				'has_pending_changes' => 1,
 				'last_seen_gmt'  => '2026-05-15 11:57:30',
 				'expires_at_gmt' => '2026-05-15 12:10:00',
 			),
@@ -1275,6 +1402,7 @@ class Tests_DE_RTC_REST_Presence extends WP_Test_REST_TestCase {
 				'session_key'    => 'bounded-hidden-delta',
 				'actor_key'      => 'bounded-hidden-delta-actor',
 				'display_name'   => 'Hidden Delta',
+				'has_pending_changes' => 1,
 				'last_seen_gmt'  => '2026-05-15 11:57:20',
 				'expires_at_gmt' => '2026-05-15 12:10:00',
 			),
@@ -1282,6 +1410,7 @@ class Tests_DE_RTC_REST_Presence extends WP_Test_REST_TestCase {
 				'session_key'    => 'bounded-hidden-epsilon',
 				'actor_key'      => 'bounded-hidden-epsilon-actor',
 				'display_name'   => 'Hidden Epsilon',
+				'has_pending_changes' => 1,
 				'last_seen_gmt'  => '2026-05-15 11:57:10',
 				'expires_at_gmt' => '2026-05-15 12:10:00',
 			),
@@ -1319,14 +1448,16 @@ class Tests_DE_RTC_REST_Presence extends WP_Test_REST_TestCase {
 		$this->assertSame( 'de_rtc_presence_storage', $roster['source'] );
 		$this->assertTrue( $roster['storageBacked'] );
 		$this->assertSame( 3, $roster['visibleCount'] );
-		$this->assertSame( 6, $roster['totalKnownCount'] );
+		$this->assertSame( 5, $roster['totalKnownCount'] );
 		$this->assertSame( 2, $roster['hiddenCount'] );
-		$this->assertSame( 1, $roster['expiredCount'] );
+		$this->assertSame( 0, $roster['expiredCount'] );
+		$this->assertSame( 1, $roster['culling']['deletedExpiredCount'] );
 		$this->assertSame( array( 'Visible Alpha', 'Visible Beta', 'Visible Gamma' ), $visible_names );
 		$this->assertSame( 2, $contract['freshness_model']['hidden_count'] );
-		$this->assertSame( 1, $contract['freshness_model']['expired_count'] );
+		$this->assertSame( 0, $contract['freshness_model']['expired_count'] );
 		$this->assertFalse( $snapshot['records_presence_heartbeat'] );
 		$this->assertFalse( $snapshot['saves_post'] );
+		$this->assertTrue( $snapshot['mutates_presence_storage'] );
 		$this->assertFalse( $snapshot['mutates_post_content'] );
 		$this->assertFalse( $snapshot['creates_revision'] );
 		$this->assertFalse( $snapshot['changes_post_lock'] );
@@ -1334,7 +1465,7 @@ class Tests_DE_RTC_REST_Presence extends WP_Test_REST_TestCase {
 		$this->assertStringNotContainsString( 'Hidden Delta', $payload );
 		$this->assertStringNotContainsString( 'Hidden Epsilon', $payload );
 		$this->assertStringNotContainsString( 'Expired Zeta', $payload );
-		$this->assertSame( $before_row_count, $this->get_presence_row_count_for_post( $post_id ) );
+		$this->assertSame( $before_row_count - 1, $this->get_presence_row_count_for_post( $post_id ) );
 		$this->assert_post_unchanged( $post_id, $before_post->post_content, $before_revisions );
 	}
 
@@ -1346,7 +1477,7 @@ class Tests_DE_RTC_REST_Presence extends WP_Test_REST_TestCase {
 	 * @covers ::wp_de_rtc_get_post_presence_storage_snapshot
 	 * @covers ::wp_de_rtc_get_presence_storage_row_freshness
 	 */
-	public function test_presence_snapshot_reports_expired_only_storage_evidence_without_absence_claim_or_cleanup() {
+	public function test_presence_snapshot_culls_expired_only_storage_without_absence_claim_or_post_mutation() {
 		$post_id          = self::factory()->post->create(
 			array(
 				'post_title'   => 'DE-RTC expired-only presence snapshot post',
@@ -1385,19 +1516,22 @@ class Tests_DE_RTC_REST_Presence extends WP_Test_REST_TestCase {
 		$this->assertSame( 'de_rtc_presence_storage', $roster['source'] );
 		$this->assertTrue( $roster['storageBacked'] );
 		$this->assertSame( 0, $roster['visibleCount'] );
-		$this->assertSame( 1, $roster['totalKnownCount'] );
-		$this->assertSame( 1, $roster['expiredCount'] );
+		$this->assertSame( 0, $roster['totalKnownCount'] );
+		$this->assertSame( 0, $roster['expiredCount'] );
 		$this->assertSame( array(), $roster['entries'] );
+		$this->assertSame( 1, $roster['culling']['deletedCount'] );
+		$this->assertSame( 1, $roster['culling']['deletedExpiredCount'] );
 		$this->assertFalse( $roster['claimsAbsence'] );
 		$this->assertSame( 'de_rtc_presence_storage', $contract['current_snapshot_source'] );
-		$this->assertSame( 1, $contract['freshness_model']['expired_count'] );
+		$this->assertSame( 0, $contract['freshness_model']['expired_count'] );
 		$this->assertFalse( $data['records_presence_heartbeat'] );
 		$this->assertFalse( $data['saves_post'] );
+		$this->assertTrue( $data['mutates_presence_storage'] );
 		$this->assertFalse( $data['mutates_post_content'] );
 		$this->assertFalse( $data['creates_revision'] );
 		$this->assertFalse( $data['changes_post_lock'] );
 		$this->assertStringNotContainsString( 'Expired Only Editor', wp_json_encode( $data ) );
-		$this->assertSame( $before_row_count, $this->get_presence_row_count_for_post( $post_id ) );
+		$this->assertSame( $before_row_count - 1, $this->get_presence_row_count_for_post( $post_id ) );
 		$this->assert_post_unchanged( $post_id, $before_post->post_content, $before_revisions );
 	}
 
@@ -1712,6 +1846,8 @@ class Tests_DE_RTC_REST_Presence extends WP_Test_REST_TestCase {
 				'can_edit_post'  => 1,
 				'can_publish_post' => 0,
 				'can_save_dangerous_html' => 0,
+				'has_pending_changes' => 0,
+				'pending_preview_json' => '',
 				'last_seen_gmt'  => '2026-05-15 12:00:00',
 				'expires_at_gmt' => '2026-05-15 12:10:00',
 			)
@@ -1721,7 +1857,7 @@ class Tests_DE_RTC_REST_Presence extends WP_Test_REST_TestCase {
 		$this->assertNotFalse(
 			$wpdb->query(
 				$wpdb->prepare(
-					"INSERT INTO $table_sql ( post_id, session_key_hash, actor_hash, display_name, freshness, can_edit_post, can_publish_post, can_save_dangerous_html, last_seen_gmt, expires_at_gmt, created_at_gmt, updated_at_gmt ) VALUES ( %d, %s, %s, %s, %s, %d, %d, %d, %s, %s, %s, %s )",
+					"INSERT INTO $table_sql ( post_id, session_key_hash, actor_hash, display_name, freshness, can_edit_post, can_publish_post, can_save_dangerous_html, has_pending_changes, pending_preview_json, last_seen_gmt, expires_at_gmt, created_at_gmt, updated_at_gmt ) VALUES ( %d, %s, %s, %s, %s, %d, %d, %d, %d, NULLIF( %s, '' ), %s, %s, %s, %s )",
 					$post_id,
 					hash_hmac( 'sha256', $post_id . ':' . $args['session_key'], wp_salt( 'nonce' ) ),
 					hash_hmac( 'sha256', $args['actor_key'], wp_salt( 'auth' ) ),
@@ -1730,6 +1866,8 @@ class Tests_DE_RTC_REST_Presence extends WP_Test_REST_TestCase {
 					$args['can_edit_post'],
 					$args['can_publish_post'],
 					$args['can_save_dangerous_html'],
+					$args['has_pending_changes'],
+					$args['pending_preview_json'],
 					$args['last_seen_gmt'],
 					$args['expires_at_gmt'],
 					$args['last_seen_gmt'],

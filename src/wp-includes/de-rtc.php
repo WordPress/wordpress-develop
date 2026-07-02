@@ -1493,6 +1493,7 @@ function wp_de_rtc_get_empty_post_presence_roster() {
 		'exposesRawSelectedText'     => false,
 		'exposesCursorOffset'        => false,
 		'exposesUserIds'             => false,
+		'culling'                    => wp_de_rtc_get_presence_culling_state(),
 	);
 }
 
@@ -1556,9 +1557,12 @@ function wp_de_rtc_get_post_presence_roster( $post, $args = array() ) {
 	$entries          = $storage_snapshot['entries'];
 	$expired_count    = $storage_snapshot['expiredCount'];
 	$hidden_count     = isset( $storage_snapshot['hiddenCount'] ) ? absint( $storage_snapshot['hiddenCount'] ) : 0;
+	$culling          = isset( $storage_snapshot['culling'] ) && is_array( $storage_snapshot['culling'] )
+		? $storage_snapshot['culling']
+		: wp_de_rtc_get_presence_culling_state();
 	$roster           = wp_de_rtc_get_empty_post_presence_roster();
 
-	if ( empty( $entries ) && 0 === $expired_count && 0 === $hidden_count ) {
+	if ( empty( $entries ) && 0 === $expired_count && 0 === $hidden_count && empty( $culling['deletedCount'] ) ) {
 		$entry   = wp_de_rtc_get_post_lock_presence_entry( $post );
 		$entries = $entry ? array( $entry ) : array();
 
@@ -1592,16 +1596,18 @@ function wp_de_rtc_get_post_presence_roster( $post, $args = array() ) {
 	$roster['totalKnownCount'] = count( $entries ) + $hidden_count + $expired_count;
 	$roster['hiddenCount']     = $hidden_count;
 	$roster['expiredCount']    = $expired_count;
+	$roster['culling']         = $culling;
 
 	return $roster;
 }
 
 /**
- * Returns a read-only Distributed Editing presence storage snapshot.
+ * Returns a Distributed Editing presence storage snapshot.
  *
- * This is a read-only roster source. It does not write heartbeats, clean up
- * rows, install storage, save posts, mutate post content, create revisions, or
- * change post locks.
+ * The snapshot culls stale ephemeral presence rows before reading so abandoned
+ * avatars and pending previews disappear while active editors keep reporting.
+ * It does not write heartbeats, install storage, save posts, mutate post
+ * content, create revisions, or change post locks.
  *
  * @since 7.1.0
  *
@@ -1626,6 +1632,7 @@ function wp_de_rtc_get_post_presence_storage_snapshot( $post, $args = array() ) 
 			'entries'      => array(),
 			'hiddenCount'  => 0,
 			'expiredCount' => 0,
+			'culling'      => wp_de_rtc_get_presence_culling_state(),
 		);
 	}
 
@@ -1659,6 +1666,15 @@ function wp_de_rtc_get_post_presence_storage_snapshot( $post, $args = array() ) 
 		$where_clauses[] = 'actor_hash <> %s';
 		$where_values[]  = $current_actor;
 	}
+
+	$culling = wp_de_rtc_cull_presence_storage_rows(
+		$post,
+		array(
+			'current_time_gmt'    => $current_time_gmt,
+			'current_session_key' => $current_session_key,
+			'host_profile'        => $host_profile,
+		)
+	);
 
 	$where_sql                  = implode( ' AND ', $where_clauses );
 	$non_expired_where_sql      = $where_sql . ' AND expires_at_gmt > %s';
@@ -1712,6 +1728,7 @@ function wp_de_rtc_get_post_presence_storage_snapshot( $post, $args = array() ) 
 			'entries'      => array(),
 			'hiddenCount'  => max( 0, $visible_eligible_row_count ),
 			'expiredCount' => $expired_count,
+			'culling'      => $culling,
 		);
 	}
 
@@ -1842,15 +1859,240 @@ function wp_de_rtc_get_post_presence_storage_snapshot( $post, $args = array() ) 
 		'entries'      => $entries,
 		'hiddenCount'  => max( 0, $visible_eligible_row_count - count( $entries ) ),
 		'expiredCount' => $expired_count,
+		'culling'      => $culling,
 	);
 }
 
 /**
- * Returns active Distributed Editing presence entries from the dedicated table.
+ * Returns the balanced stale-session culling policy for presence storage.
  *
- * This is a read-only roster source. It does not write heartbeats, clean up
- * rows, install storage, save posts, mutate post content, create revisions, or
- * change post locks.
+ * The short no-pending window keeps abandoned avatars and ghosts from sticking
+ * around while another editor is clearly still active. Pending previews get a
+ * longer grace period because removing them discards another editor's visible
+ * proposed work.
+ *
+ * @since 7.1.0
+ *
+ * @param string $host_profile Optional host profile label.
+ * @return array Presence culling policy.
+ */
+function wp_de_rtc_get_presence_culling_policy( $host_profile = '' ) {
+	$host_profile               = is_string( $host_profile ) ? sanitize_key( $host_profile ) : '';
+	$heartbeat_interval_seconds = wp_de_rtc_get_presence_heartbeat_interval_seconds( $host_profile );
+	$expires_after_seconds      = wp_de_rtc_get_presence_heartbeat_expires_after_seconds( $host_profile );
+	$no_pending_after_seconds   = min( max( 90, $heartbeat_interval_seconds ), $expires_after_seconds );
+	$pending_after_seconds      = min( 300, $expires_after_seconds );
+
+	return array(
+		'strategy'                      => 'balanced_stale_session_culling',
+		'activeSessionWindowSeconds'    => $heartbeat_interval_seconds,
+		'noPendingCullAfterSeconds'     => $no_pending_after_seconds,
+		'pendingCullAfterSeconds'       => $pending_after_seconds,
+		'hardExpireAfterSeconds'        => $expires_after_seconds,
+		'deleteOnRead'                  => true,
+		'claimsAbsence'                 => false,
+	);
+}
+
+/**
+ * Returns a content-free presence culling state for roster responses.
+ *
+ * @since 7.1.0
+ *
+ * @param array|string $args Optional state arguments or host profile.
+ * @return array Presence culling state.
+ */
+function wp_de_rtc_get_presence_culling_state( $args = array() ) {
+	if ( is_string( $args ) ) {
+		$args = array( 'host_profile' => $args );
+	}
+
+	$args   = wp_parse_args(
+		is_array( $args ) ? $args : array(),
+		array(
+			'host_profile'                       => '',
+			'applied'                            => false,
+			'active_session_observed'            => false,
+			'deleted_count'                      => 0,
+			'deleted_expired_count'              => 0,
+			'deleted_stale_without_pending_count' => 0,
+			'deleted_stale_with_pending_count'   => 0,
+			'deleted_pending_preview_count'      => 0,
+			'mutates_presence_storage'           => null,
+			'storage_failure'                    => false,
+		)
+	);
+	$policy = wp_de_rtc_get_presence_culling_policy( $args['host_profile'] );
+	$mutates_presence_storage = null === $args['mutates_presence_storage']
+		? (bool) $args['applied']
+		: (bool) $args['mutates_presence_storage'];
+
+	return array_merge(
+		$policy,
+		array(
+			'applied'                         => (bool) $args['applied'],
+			'activeSessionObserved'          => (bool) $args['active_session_observed'],
+			'deletedCount'                   => absint( $args['deleted_count'] ),
+			'deletedExpiredCount'            => absint( $args['deleted_expired_count'] ),
+			'deletedStaleWithoutPendingCount' => absint( $args['deleted_stale_without_pending_count'] ),
+			'deletedStaleWithPendingCount'   => absint( $args['deleted_stale_with_pending_count'] ),
+			'deletedPendingPreviewCount'     => absint( $args['deleted_pending_preview_count'] ),
+			'mutatesPresenceStorage'         => $mutates_presence_storage,
+			'removesPendingPreviews'         => absint( $args['deleted_pending_preview_count'] ) > 0,
+			'storageFailure'                 => (bool) $args['storage_failure'],
+		)
+	);
+}
+
+/**
+ * Deletes stale presence rows for the current post before building a roster.
+ *
+ * This culls only ephemeral presence storage. It must not save posts, mutate
+ * post content, create revisions, or change post locks.
+ *
+ * @since 7.1.0
+ *
+ * @param WP_Post $post Post object.
+ * @param array   $args Optional culling arguments.
+ * @return array Presence culling state.
+ */
+function wp_de_rtc_cull_presence_storage_rows( $post, $args = array() ) {
+	global $wpdb;
+
+	$post = get_post( $post );
+
+	if ( ! $post || ! wp_de_rtc_presence_table_exists() ) {
+		return wp_de_rtc_get_presence_culling_state();
+	}
+
+	$args             = wp_parse_args(
+		$args,
+		array(
+			'current_time_gmt'    => current_time( 'mysql', true ),
+			'current_session_key' => '',
+			'host_profile'        => 'cheap_shared_host',
+			'batch_limit'         => null,
+		)
+	);
+	$current_time_gmt = (string) $args['current_time_gmt'];
+	$current_time     = strtotime( $current_time_gmt . ' UTC' );
+	$current_time     = $current_time ? $current_time : time();
+	$host_profile     = is_string( $args['host_profile'] ) ? sanitize_key( $args['host_profile'] ) : '';
+	$batch_limit      = null === $args['batch_limit'] ? wp_de_rtc_get_presence_cleanup_batch_limit( $host_profile ) : max( 1, absint( $args['batch_limit'] ) );
+	$policy           = wp_de_rtc_get_presence_culling_policy( $host_profile );
+	$table_name       = wp_de_rtc_get_presence_table_name();
+	$table_sql        = '`' . str_replace( '`', '``', $table_name ) . '`';
+	$current_actor    = wp_de_rtc_get_presence_actor_hash( get_current_user_id() );
+	$current_session_key  = is_string( $args['current_session_key'] ) ? trim( $args['current_session_key'] ) : '';
+	$current_session_hash = wp_de_rtc_get_presence_session_key_hash( $post->ID, $current_session_key );
+	$where_clauses        = array( 'post_id = %d' );
+	$where_values         = array( (int) $post->ID );
+
+	if ( '' !== $current_session_hash ) {
+		$where_clauses[] = 'session_key_hash <> %s';
+		$where_values[]  = $current_session_hash;
+	} elseif ( '' !== $current_actor ) {
+		$where_clauses[] = 'actor_hash <> %s';
+		$where_values[]  = $current_actor;
+	}
+
+	$active_cutoff_gmt     = gmdate( 'Y-m-d H:i:s', $current_time - (int) $policy['activeSessionWindowSeconds'] );
+	$no_pending_cutoff_gmt = gmdate( 'Y-m-d H:i:s', $current_time - (int) $policy['noPendingCullAfterSeconds'] );
+	$pending_cutoff_gmt    = gmdate( 'Y-m-d H:i:s', $current_time - (int) $policy['pendingCullAfterSeconds'] );
+	$active_session_count  = (int) $wpdb->get_var(
+		$wpdb->prepare(
+			"SELECT COUNT(*) FROM $table_sql WHERE post_id = %d AND expires_at_gmt > %s AND last_seen_gmt >= %s",
+			(int) $post->ID,
+			$current_time_gmt,
+			$active_cutoff_gmt
+		)
+	);
+	$active_session_observed = $active_session_count > 0;
+	$schema_current          = wp_de_rtc_presence_table_schema_current();
+	$pending_sql             = $schema_current
+		? "( has_pending_changes <> 0 OR ( pending_preview_json IS NOT NULL AND pending_preview_json <> '' ) )"
+		: '0 = 1';
+	$no_pending_sql          = $schema_current
+		? "( has_pending_changes = 0 AND ( pending_preview_json IS NULL OR pending_preview_json = '' ) )"
+		: '1 = 1';
+	$where_sql               = implode( ' AND ', $where_clauses );
+	$deleted_expired               = 0;
+	$deleted_stale_without_pending = 0;
+	$deleted_stale_with_pending    = 0;
+	$deleted_pending_preview       = 0;
+	$storage_failure               = false;
+
+	$deleted_expired = $wpdb->query(
+		$wpdb->prepare(
+			"DELETE FROM $table_sql WHERE $where_sql AND expires_at_gmt <= %s ORDER BY expires_at_gmt ASC LIMIT %d",
+			array_merge( $where_values, array( $current_time_gmt, $batch_limit ) )
+		)
+	);
+
+	if ( false === $deleted_expired ) {
+		$storage_failure  = true;
+		$deleted_expired  = 0;
+	}
+
+	if ( $active_session_observed ) {
+		if ( $schema_current ) {
+			$deleted_pending_preview = (int) $wpdb->get_var(
+				$wpdb->prepare(
+					"SELECT COUNT(*) FROM $table_sql WHERE $where_sql AND expires_at_gmt > %s AND last_seen_gmt <= %s AND $pending_sql AND pending_preview_json IS NOT NULL AND pending_preview_json <> ''",
+					array_merge( $where_values, array( $current_time_gmt, $pending_cutoff_gmt ) )
+				)
+			);
+		}
+
+		$deleted_stale_with_pending = $wpdb->query(
+			$wpdb->prepare(
+				"DELETE FROM $table_sql WHERE $where_sql AND expires_at_gmt > %s AND last_seen_gmt <= %s AND $pending_sql ORDER BY last_seen_gmt ASC LIMIT %d",
+				array_merge( $where_values, array( $current_time_gmt, $pending_cutoff_gmt, $batch_limit ) )
+			)
+		);
+
+		if ( false === $deleted_stale_with_pending ) {
+			$storage_failure              = true;
+			$deleted_stale_with_pending   = 0;
+			$deleted_pending_preview      = 0;
+		} else {
+			$deleted_pending_preview = min( $deleted_pending_preview, (int) $deleted_stale_with_pending );
+		}
+
+		$deleted_stale_without_pending = $wpdb->query(
+			$wpdb->prepare(
+				"DELETE FROM $table_sql WHERE $where_sql AND expires_at_gmt > %s AND last_seen_gmt <= %s AND $no_pending_sql ORDER BY last_seen_gmt ASC LIMIT %d",
+				array_merge( $where_values, array( $current_time_gmt, $no_pending_cutoff_gmt, $batch_limit ) )
+			)
+		);
+
+		if ( false === $deleted_stale_without_pending ) {
+			$storage_failure                 = true;
+			$deleted_stale_without_pending   = 0;
+		}
+	}
+
+	return wp_de_rtc_get_presence_culling_state(
+		array(
+			'host_profile'                        => $host_profile,
+			'applied'                             => true,
+			'active_session_observed'             => $active_session_observed,
+			'deleted_count'                       => (int) $deleted_expired + (int) $deleted_stale_without_pending + (int) $deleted_stale_with_pending,
+			'deleted_expired_count'               => (int) $deleted_expired,
+			'deleted_stale_without_pending_count' => (int) $deleted_stale_without_pending,
+			'deleted_stale_with_pending_count'    => (int) $deleted_stale_with_pending,
+			'deleted_pending_preview_count'       => $deleted_pending_preview,
+			'storage_failure'                     => $storage_failure,
+		)
+	);
+}
+
+/**
+ * Returns visible Distributed Editing presence entries from the dedicated table.
+ *
+ * This roster source may cull stale ephemeral rows before reading. It does not
+ * write heartbeats, install storage, save posts, mutate post content, create
+ * revisions, or change post locks.
  *
  * @since 7.1.0
  *
@@ -2016,6 +2258,7 @@ function wp_de_rtc_get_post_presence_read_snapshot( $post, $args = array() ) {
 			'limit'               => $limit,
 		)
 	);
+	$mutates_presence_storage = ! empty( $roster['storageBacked'] ) && ! empty( $roster['culling']['deleteOnRead'] );
 
 	return array(
 		'result'                       => 'presence_roster_snapshot',
@@ -2033,12 +2276,14 @@ function wp_de_rtc_get_post_presence_read_snapshot( $post, $args = array() ) {
 			)
 		),
 		'permission_contract'          => wp_de_rtc_get_rest_recovery_permission_contract( $post ),
-		'read_only'                    => true,
+		'read_only'                    => ! $mutates_presence_storage,
 		'accepts_current_session_key'  => true,
 		'current_session_key_compared_by_hash' => '' !== $current_session_key,
 		'raw_session_key_included'     => false,
 		'calls_save'                   => false,
 		'saves_post'                   => false,
+		'mutates_presence_storage'     => $mutates_presence_storage,
+		'deletes_presence_rows'        => $mutates_presence_storage,
 		'mutates_post_content'         => false,
 		'mutates_persisted_post_content' => false,
 		'creates_revision'             => false,
@@ -2078,6 +2323,7 @@ function wp_de_rtc_get_post_presence_read_contract( $post, $roster, $args = arra
 		)
 	);
 	$host_profile = is_string( $args['host_profile'] ) ? sanitize_key( $args['host_profile'] ) : '';
+	$mutates_presence_storage = ! empty( $roster['storageBacked'] ) && ! empty( $roster['culling']['deleteOnRead'] );
 
 	return array(
 		'schema'                       => 'de-rtc-presence-roster-v2',
@@ -2087,9 +2333,11 @@ function wp_de_rtc_get_post_presence_read_contract( $post, $roster, $args = arra
 		'route'                        => '/wp/v2/' . $rest_base . '/' . (int) $post->ID . '/distributed-editing/presence',
 		'requires_edit_post'           => true,
 		'requires_feature_enabled'     => true,
-		'read_only'                    => true,
+		'read_only'                    => ! $mutates_presence_storage,
 		'writes_presence'              => false,
 		'records_presence_heartbeat'   => false,
+		'mutates_presence_storage'     => $mutates_presence_storage,
+		'deletes_presence_rows'        => $mutates_presence_storage,
 		'enables_repeated_client_refresh' => false,
 		'session_identity'             => array(
 			'accepts_current_session_key'  => true,
@@ -2103,6 +2351,7 @@ function wp_de_rtc_get_post_presence_read_contract( $post, $roster, $args = arra
 			'snapshot_freshness'    => isset( $roster['freshness'] ) ? $roster['freshness'] : 'unknown',
 			'hidden_count'          => isset( $roster['hiddenCount'] ) ? (int) $roster['hiddenCount'] : 0,
 			'expired_count'         => isset( $roster['expiredCount'] ) ? (int) $roster['expiredCount'] : 0,
+			'culling'               => isset( $roster['culling'] ) && is_array( $roster['culling'] ) ? $roster['culling'] : wp_de_rtc_get_presence_culling_state( $host_profile ),
 			'claims_absence'        => false,
 			'current_after_seconds' => wp_de_rtc_get_presence_heartbeat_interval_seconds( $host_profile ),
 			'stale_after_seconds'   => wp_de_rtc_get_presence_heartbeat_interval_seconds( $host_profile ),
@@ -2126,6 +2375,7 @@ function wp_de_rtc_get_post_presence_read_contract( $post, $roster, $args = arra
 				'totalKnownCount',
 				'hiddenCount',
 				'expiredCount',
+				'culling',
 				'source',
 				'claimsAbsence',
 			),
