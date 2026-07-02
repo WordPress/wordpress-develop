@@ -1207,4 +1207,94 @@ class Tests_Term_Query extends WP_UnitTestCase {
 
 		$this->assertSame( ltrim( $q->request ), $q->request, 'The query has leading whitespace' );
 	}
+
+	/**
+	 * @ticket 32824
+	 */
+	public function test_search_defaults_unchanged_without_search_columns() {
+		register_taxonomy( 'wptests_tax', 'post' );
+
+		$term_id = self::factory()->term->create(
+			array(
+				'taxonomy'    => 'wptests_tax',
+				'name'        => 'Alpha',
+				'slug'        => 'alpha',
+				'description' => 'Matchable description text',
+			)
+		);
+
+		$q = new WP_Term_Query(
+			array(
+				'taxonomy'   => 'wptests_tax',
+				'hide_empty' => false,
+				'fields'     => 'ids',
+				'search'     => 'Matchable',
+			)
+		);
+
+		$this->assertNotContains( $term_id, $q->terms );
+	}
+
+	/**
+	 * @ticket 32824
+	 */
+	public function test_search_columns_can_include_description() {
+		register_taxonomy( 'wptests_tax', 'post' );
+
+		$term_id = self::factory()->term->create(
+			array(
+				'taxonomy'    => 'wptests_tax',
+				'name'        => 'Alpha',
+				'slug'        => 'alpha',
+				'description' => 'Matchable description text',
+			)
+		);
+
+		$q = new WP_Term_Query(
+			array(
+				'taxonomy'       => 'wptests_tax',
+				'hide_empty'     => false,
+				'fields'         => 'ids',
+				'search'         => 'Matchable',
+				'search_columns' => array( 'description' ),
+			)
+		);
+
+		$this->assertSameSets( array( $term_id ), $q->terms );
+	}
+
+	/**
+	 * @ticket 32824
+	 */
+	public function test_term_search_columns_filter_can_alter_columns() {
+		register_taxonomy( 'wptests_tax', 'post' );
+
+		$term_id = self::factory()->term->create(
+			array(
+				'taxonomy'    => 'wptests_tax',
+				'name'        => 'Alpha',
+				'slug'        => 'alpha',
+				'description' => 'Matchable description text',
+			)
+		);
+
+		$filter = static function () {
+			return array( 'description' );
+		};
+
+		add_filter( 'term_search_columns', $filter );
+
+		$q = new WP_Term_Query(
+			array(
+				'taxonomy'   => 'wptests_tax',
+				'hide_empty' => false,
+				'fields'     => 'ids',
+				'search'     => 'Matchable',
+			)
+		);
+
+		remove_filter( 'term_search_columns', $filter );
+
+		$this->assertSameSets( array( $term_id ), $q->terms );
+	}
 }
