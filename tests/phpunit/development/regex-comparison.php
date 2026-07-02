@@ -17,9 +17,9 @@
  * @subpackage Interactivity API
  */
 
-$php_re = '/(\/(?:\\\\\/|[^\/])*\/|"(?:\\\\"|[^"])*"|\'(?:\\\\\'|[^\'])*\'|`(?:\\\\`|[^`])*`|\(\s*((?:function)\s*\(\s*\)|(?:\(\s*\))\s*=>)\s*(?:\{[\s\S]*?\}|[^;){]*)\s*\)\s*\(\s*\)|[^;])+/';
+$php_re = '/(?:\/(?:\\\\\/|[^\/])*\/|"(?:\\\\"|[^"])*"|\'(?:\\\\\'|[^\'])*\'|`(?:\\\\`|[^`])*`|\(\s*(?:(?:function)\s*\(\s*\)|(?:\(\s*\))\s*=>)\s*(?:\{[\s\S]*?\}|[^;){]*)\s*\)\s*\(\s*\)|[^;])+/';
 
-$js_re = '/(\/(?:\/|[^\/])*\/|"(?:\"|[^"])*"|\'(?:\'|[^\'])*\'|`(?:`|[^`])*`|\(\s*((?:function)\s*\(\s*\)|(?:\(\s*\))\s*=>)\s*(?:\{[\s\S]*?\}|[^;){]*)\s*\)\s*\(\s*\)|[^;])+/';
+$js_re = '/(?:\/(?:\/|[^\/])*\/|"(?:\"|[^"])*"|\'(?:\'|[^\'])*\'|`(?:`|[^`])*`|\(\s*(?:(?:function)\s*\(\s*\)|(?:\(\s*\))\s*=>)\s*(?:\{[\s\S]*?\}|[^;){]*)\s*\)\s*\(\s*\)|[^;])+/';
 
 define( 'ITER', 100000 );
 
@@ -111,33 +111,3 @@ $tj = bench( 'JS version', $js_re, $perf_input );
 
 $d = ( $tj - $tp ) / $tp * 100;
 printf( "Delta: %.1f%% (%s)\n", abs( $d ), $d > 0 ? 'PHP faster' : 'JS faster' );
-
-/* ───────────────────────────────────────────────────────────
- * Test 5: Non-capturing (?:...) vs capturing (...) groups
- *
- * The Datastar original uses (...) for inner alternations.
- * Since preg_match_all() ignores capture groups the output is
- * identical, but skipping the capture bookkeeping is
- * measurably faster. ──────────────────────────────────────── */
-echo "\n=== Non-capturing vs capturing groups ===\n";
-
-$dstar_original = '/(\/(\\\\\/|[^\/])*\/|"(\\\\"|[^"])*"|\'(\\\\\'|[^\'])*\'|`(\\\\`|[^`])*`|\(\s*((function)\s*\(\s*\)|(\(\s*\))\s*=>)\s*(?:\{[\s\S]*?\}|[^;){]*)\s*\)\s*\(\s*\)|[^;])+/';
-
-$our_optimized = '/(\/(?:\\\\\/|[^\/])*\/|"(?:\\\\"|[^"])*"|\'(?:\\\\\'|[^\'])*\'|`(?:\\\\`|[^`])*`|\(\s*((?:function)\s*\(\s*\)|(?:\(\s*\))\s*=>)\s*(?:\{[\s\S]*?\}|[^;){]*)\s*\)\s*\(\s*\)|[^;])+/';
-
-$all_ok = true;
-foreach ( array_merge( $common, $edge ) as $e ) {
-	preg_match_all( $dstar_original, $e, $a );
-	preg_match_all( $our_optimized, $e, $b );
-	if ( ( $a[0] ?? array() ) !== ( $b[0] ?? array() ) ) {
-		$all_ok = false;
-		echo 'MISMATCH: ' . json_encode( $e ) . "\n";
-	}
-}
-echo 'Same output? ' . ( $all_ok ? 'yes' : 'NO' ) . "\n";
-
-$dstar_time = bench( 'Datastar original (capturing)', $dstar_original, $perf_input );
-$our_time   = bench( 'Our version (non-capturing)', $our_optimized, $perf_input );
-
-$dt = ( $our_time - $dstar_time ) / $dstar_time * 100;
-printf( "Delta: %.1f%% (%s)\n", abs( $dt ), $our_time < $dstar_time ? '(?:) faster' : '(?:) slower' );

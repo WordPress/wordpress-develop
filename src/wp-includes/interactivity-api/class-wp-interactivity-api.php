@@ -787,7 +787,7 @@ final class WP_Interactivity_API {
 
 		// Matches: regex literals, double/single-quoted strings,
 		// template literals, IIFEs, or any non-semicolon character.
-		$re = '/(\/(?:\\\\\/|[^\/])*\/|"(?:\\\\"|[^"])*"|\'(?:\\\\\'|[^\'])*\'|`(?:\\\\`|[^`])*`|\(\s*((?:function)\s*\(\s*\)|(?:\(\s*\))\s*=>)\s*(?:\{[\s\S]*?\}|[^;){]*)\s*\)\s*\(\s*\)|[^;])+/';
+		$re = '/(?:\/(?:\\\\\/|[^\/])*\/|"(?:\\\\"|[^"])*"|\'(?:\\\\\'|[^\'])*\'|`(?:\\\\`|[^`])*`|\(\s*(?:(?:function)\s*\(\s*\)|(?:\(\s*\))\s*=>)\s*(?:\{[\s\S]*?\}|[^;){]*)\s*\)\s*\(\s*\)|[^;])+/';
 		if ( preg_match_all( $re, trim( $expr ), $matches ) ) {
 			return $matches[0];
 		}
