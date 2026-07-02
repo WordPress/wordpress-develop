@@ -16,9 +16,17 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * @since 4.7.0
  *
+ * @see add_image_size()
+ *
  * @global array $_wp_additional_image_sizes
  *
  * @return array Additional images size data.
+ *
+ * @phpstan-return array<string, array{
+ *                     width: non-negative-int,
+ *                     height: non-negative-int,
+ *                     crop: array{ 'left'|'center'|'right', 'top'|'center'|'bottom' }|bool,
+ *                 }>
  */
 function wp_get_additional_image_sizes() {
 	global $_wp_additional_image_sizes;
@@ -296,6 +304,10 @@ function image_downsize( $id, $size = 'medium' ) {
  *     @type string $0 The x crop position. Accepts 'left', 'center', or 'right'.
  *     @type string $1 The y crop position. Accepts 'top', 'center', or 'bottom'.
  * }
+ *
+ * @phpstan-param non-negative-int $width
+ * @phpstan-param non-negative-int $height
+ * @phpstan-param array{ 'left'|'center'|'right', 'top'|'center'|'bottom' }|bool $crop
  */
 function add_image_size( $name, $width = 0, $height = 0, $crop = false ) {
 	global $_wp_additional_image_sizes;
@@ -908,8 +920,14 @@ function get_intermediate_image_sizes() {
  *
  * @return array[] Associative array of arrays of image sub-size information,
  *                 keyed by image size name.
+ *
+ * @phpstan-return array<string, array{
+ *                     width: non-negative-int,
+ *                     height: non-negative-int,
+ *                     crop: array{ 'left'|'center'|'right', 'top'|'center'|'bottom' }|bool,
+ *                 }>
  */
-function wp_get_registered_image_subsizes() {
+function wp_get_registered_image_subsizes(): array {
 	$additional_sizes = wp_get_additional_image_sizes();
 	$all_sizes        = array();
 
@@ -4573,7 +4591,7 @@ function wp_prepare_attachment_for_js( $attachment ) {
 		'id'            => $attachment->ID,
 		'title'         => $attachment->post_title,
 		'filename'      => wp_basename( get_attached_file( $attachment->ID ) ),
-		'url'           => $attachment_url,
+		'url'           => esc_url_raw( $attachment_url ),
 		'link'          => get_attachment_link( $attachment->ID ),
 		'alt'           => get_post_meta( $attachment->ID, '_wp_attachment_image_alt', true ),
 		'author'        => $attachment->post_author,
@@ -4679,7 +4697,7 @@ function wp_prepare_attachment_for_js( $attachment ) {
 				$sizes[ $size ] = array(
 					'height'      => $downsize[2],
 					'width'       => $downsize[1],
-					'url'         => $downsize[0],
+					'url'         => esc_url_raw( $downsize[0] ),
 					'orientation' => $downsize[2] > $downsize[1] ? 'portrait' : 'landscape',
 				);
 			} elseif ( isset( $meta['sizes'][ $size ] ) ) {
@@ -4695,7 +4713,7 @@ function wp_prepare_attachment_for_js( $attachment ) {
 				$sizes[ $size ] = array(
 					'height'      => $height,
 					'width'       => $width,
-					'url'         => $base_url . $size_meta['file'],
+					'url'         => esc_url_raw( $base_url . $size_meta['file'] ),
 					'orientation' => $height > $width ? 'portrait' : 'landscape',
 				);
 			}
@@ -4703,11 +4721,12 @@ function wp_prepare_attachment_for_js( $attachment ) {
 
 		if ( 'image' === $type ) {
 			if ( ! empty( $meta['original_image'] ) ) {
-				$response['originalImageURL']  = wp_get_original_image_url( $attachment->ID );
+				$original_image_url            = wp_get_original_image_url( $attachment->ID );
+				$response['originalImageURL']  = $original_image_url ? esc_url_raw( $original_image_url ) : '';
 				$response['originalImageName'] = wp_basename( wp_get_original_image_path( $attachment->ID ) );
 			}
 
-			$sizes['full'] = array( 'url' => $attachment_url );
+			$sizes['full'] = array( 'url' => esc_url_raw( $attachment_url ) );
 
 			if ( isset( $meta['height'], $meta['width'] ) ) {
 				$sizes['full']['height']      = $meta['height'];
@@ -4718,7 +4737,7 @@ function wp_prepare_attachment_for_js( $attachment ) {
 			$response = array_merge( $response, $sizes['full'] );
 		} elseif ( $meta['sizes']['full']['file'] ) {
 			$sizes['full'] = array(
-				'url'         => $base_url . $meta['sizes']['full']['file'],
+				'url'         => esc_url_raw( $base_url . $meta['sizes']['full']['file'] ),
 				'height'      => $meta['sizes']['full']['height'],
 				'width'       => $meta['sizes']['full']['width'],
 				'orientation' => $meta['sizes']['full']['height'] > $meta['sizes']['full']['width'] ? 'portrait' : 'landscape',
@@ -4757,7 +4776,7 @@ function wp_prepare_attachment_for_js( $attachment ) {
 			$response_image_full = wp_get_attachment_image_src( $id, 'full' );
 			if ( is_array( $response_image_full ) ) {
 				$response['image'] = array(
-					'src'    => $response_image_full[0],
+					'src'    => esc_url_raw( $response_image_full[0] ),
 					'width'  => $response_image_full[1],
 					'height' => $response_image_full[2],
 				);
@@ -4766,7 +4785,7 @@ function wp_prepare_attachment_for_js( $attachment ) {
 			$response_image_thumb = wp_get_attachment_image_src( $id, 'thumbnail' );
 			if ( is_array( $response_image_thumb ) ) {
 				$response['thumb'] = array(
-					'src'    => $response_image_thumb[0],
+					'src'    => esc_url_raw( $response_image_thumb[0] ),
 					'width'  => $response_image_thumb[1],
 					'height' => $response_image_thumb[2],
 				);
@@ -6556,6 +6575,22 @@ function wp_set_up_cross_origin_isolation(): void {
 	}
 
 	if ( ! $screen->is_block_editor() && 'site-editor' !== $screen->id && ! ( 'widgets' === $screen->id && wp_use_widgets_block_editor() ) ) {
+		return;
+	}
+
+	/*
+	 * Skip when rendering the classic-theme home route, which shows the site
+	 * preview in an iframe and must reach its `contentDocument` to neutralize
+	 * interactive elements. DIP would block that same-origin access.
+	 *
+	 * Keyed off $pagenow rather than the current screen so the guard keeps
+	 * working if the header set-up is ever moved to an earlier hook (such as
+	 * admin_init) where the screen is not yet available.
+	 */
+	global $pagenow;
+
+	// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+	if ( 'site-editor.php' === $pagenow && ! wp_is_block_theme() && ( ! isset( $_GET['p'] ) || '/' === $_GET['p'] ) ) {
 		return;
 	}
 
