@@ -3323,11 +3323,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		} else {
 			/*
 			 * > Any other end tag
-			 *
-			 * OPTION end tags are handled here as well. When an OPTION element is
-			 * popped off the stack of open elements, the HTML standard runs "maybe
-			 * clone an option into selectedcontent". This parser does not implement
-			 * that DOM cloning step.
 			 */
 			return $this->in_body_any_other_end_tag();
 		}
