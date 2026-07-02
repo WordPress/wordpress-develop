@@ -62,6 +62,8 @@ class Tests_Block_Supports_Duotone extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 65576
+	 * 
 	 * @covers ::restore_image_outer_container
 	 */
 	public function test_restore_image_outer_container_moves_duotone_class_to_wrapper_in_classic_theme() {
