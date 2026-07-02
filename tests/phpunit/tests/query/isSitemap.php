@@ -46,6 +46,20 @@ class Tests_Query_IsSitemap extends WP_UnitTestCase {
 	}
 
 	/**
+	 * The property gets reset when initialized.
+	 *
+	 * @covers WP_Query::init
+	 * @covers WP_Query::init_query_flags
+	 */
+	public function test_is_sitemap_gets_reset_to_false(): void {
+		$query = new WP_Query();
+
+		$query->is_sitemap = true;
+		$query->init();
+		$this->assertFalse( $query->is_sitemap, 'The $is_sitemap property should initialize as false.' );
+	}
+
+	/**
 	 * The flag is set when the "sitemap" query var is present (sitemap index route).
 	 *
 	 * @covers WP_Query::parse_query
