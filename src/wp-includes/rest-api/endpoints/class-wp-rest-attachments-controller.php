@@ -2220,6 +2220,15 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			return true;
 		}
 
+		/*
+		 * 'animated_video_poster' companion: a static poster image for the
+		 * converted video. It is a real image (so it has positive dimensions)
+		 * but is not a registered sub-size, so it has no dimension constraint.
+		 */
+		if ( 'animated_video_poster' === $image_size ) {
+			return true;
+		}
+
 		// Regular image sizes: validate against registered size constraints.
 		$registered_sizes = wp_get_registered_image_subsizes();
 
@@ -2367,16 +2376,19 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		$image_size = $request['image_size'];
 
 		/*
-		 * Validate raster sub-sizes before storing them. Companion files are
-		 * exempt: their dimensions are neither validated nor recorded, and the
-		 * file may not be readable by wp_getimagesize() at all. This applies to
-		 * source-format originals (e.g. a HEIC or JXL kept next to its JPEG
-		 * derivative) and to the converted-video companions of an animated GIF
-		 * (the MP4/WebM and its static first-frame poster).
+		 * Validate raster sub-sizes before storing them. Two companion sizes
+		 * are exempt because wp_getimagesize() may not be able to read the
+		 * file at all: the 'animated_video' companion of an animated GIF is a
+		 * video (MP4/WebM), and a source-format original (e.g. a HEIC or JXL
+		 * kept next to its JPEG derivative) may be an unreadable format. Their
+		 * dimensions are neither validated nor recorded. The
+		 * 'animated_video_poster' companion is a real image, so it is still
+		 * read and rejected if unreadable; validate_image_dimensions() skips
+		 * only the registered-size constraint for it.
 		 */
-		$companion_sizes = array( self::IMAGE_SIZE_SOURCE_ORIGINAL, 'animated_video', 'animated_video_poster' );
+		$skip_dimension_read = in_array( $image_size, array( self::IMAGE_SIZE_SOURCE_ORIGINAL, 'animated_video' ), true );
 
-		if ( ! in_array( $image_size, $companion_sizes, true ) ) {
+		if ( ! $skip_dimension_read ) {
 			/*
 			 * Read the dimensions up front. A file whose dimensions cannot be
 			 * read is corrupted or an unsupported format and must be rejected
