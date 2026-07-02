@@ -366,20 +366,100 @@ class Tests_DE_RTC_KSES_Block_Review extends WP_UnitTestCase {
 
 	/**
 	 * @covers ::wp_de_rtc_classify_kses_risky_block_review_items
-	 * @covers ::wp_de_rtc_get_kses_block_review_risk_reason
 	 */
-	public function test_deleted_risky_block_requires_hash_only_review_item() {
+	public function test_deleted_risky_block_does_not_require_review() {
 		$risky_block      = '<!-- wp:html --><script>alert("protected")</script><!-- /wp:html -->';
 		$base_content     = $risky_block . "\n" . '<!-- wp:paragraph --><p>Keep this paragraph.</p><!-- /wp:paragraph -->';
 		$proposed_content = '<!-- wp:paragraph --><p>Keep this paragraph.</p><!-- /wp:paragraph -->';
 		$post_id          = $this->create_sync_meta_post( $base_content, 25, self::$author_user_id );
 		$before_post      = get_post( $post_id );
 		$before_revisions = $this->get_post_revisions( $post_id );
-		$filtered_block   = wp_unslash( wp_filter_post_kses( wp_slash( $risky_block ) ) );
 
 		wp_set_current_user( self::$author_user_id );
 
 		$result = wp_de_rtc_classify_kses_risky_block_review_items( $post_id, $proposed_content );
+
+		$this->assertIsArray( $result );
+		$this->assertSame( 'no_review_required', $result['result'] );
+		$this->assertNull( $result['reason_code'] );
+		$this->assertSame( 0, $result['review_item_count'] );
+		$this->assertSame( 0, $result['pending_review_item_count'] );
+		$this->assertSame( array(), $result['review_items'] );
+		$this->assertSame( 'continue_save', $result['save_action'] );
+		$this->assertFalse( $result['pre_publish_review_required'] );
+		$this->assert_review_classification_omits_raw_content(
+			$result,
+			array( 'protected', 'wp:html', 'Keep this paragraph' )
+		);
+		$this->assert_post_unchanged( $post_id, $before_post->post_content, $before_revisions );
+	}
+
+	/**
+	 * @covers ::wp_de_rtc_classify_kses_risky_block_review_items
+	 * @covers ::wp_de_rtc_collect_kses_block_review_records
+	 * @covers ::wp_de_rtc_get_block_without_inner_blocks
+	 */
+	public function test_deleted_nested_risky_block_does_not_require_review() {
+		$risky_block      = '<!-- wp:html --><script>alert("nested-delete")</script>Script<!-- /wp:html -->';
+		$first_paragraph  = '<!-- wp:paragraph --><p>First nested paragraph.</p><!-- /wp:paragraph -->';
+		$second_paragraph = '<!-- wp:paragraph --><p>Second nested paragraph.</p><!-- /wp:paragraph -->';
+		$base_content     = '<!-- wp:group --><div class="wp-block-group"><!-- wp:quote --><blockquote class="wp-block-quote">' . $first_paragraph . $risky_block . $second_paragraph . '</blockquote><!-- /wp:quote --></div><!-- /wp:group -->';
+		$proposed_content = '<!-- wp:group --><div class="wp-block-group"><!-- wp:quote --><blockquote class="wp-block-quote">' . $first_paragraph . $second_paragraph . '</blockquote><!-- /wp:quote --></div><!-- /wp:group -->';
+		$post_id          = $this->create_sync_meta_post( $base_content, 34, self::$author_user_id );
+		$before_post      = get_post( $post_id );
+		$before_revisions = $this->get_post_revisions( $post_id );
+
+		wp_set_current_user( self::$author_user_id );
+
+		$result = wp_de_rtc_classify_kses_risky_block_review_items(
+			$post_id,
+			$proposed_content,
+			array(
+				'base_post_content'   => $base_content,
+				'client_base_version' => '34',
+				'author_id'           => self::$author_user_id,
+			)
+		);
+
+		$this->assertIsArray( $result );
+		$this->assertSame( 'no_review_required', $result['result'] );
+		$this->assertSame( 0, $result['review_item_count'] );
+		$this->assertSame( array(), $result['review_items'] );
+		$this->assertSame( 'continue_save', $result['save_action'] );
+		$this->assertFalse( $result['pre_publish_review_required'] );
+		$this->assert_review_classification_omits_raw_content(
+			$result,
+			array( 'nested-delete', 'Script', 'wp:html' )
+		);
+		$this->assert_post_unchanged( $post_id, $before_post->post_content, $before_revisions );
+	}
+
+	/**
+	 * @covers ::wp_de_rtc_classify_kses_risky_block_review_items
+	 * @covers ::wp_de_rtc_added_kses_block_change_requires_review
+	 * @covers ::wp_de_rtc_get_kses_block_review_risk_reason
+	 */
+	public function test_deleted_risky_block_with_added_risky_block_reviews_only_added_block() {
+		$deleted_risky_block = '<!-- wp:html --><script>alert("deleted-risky")</script><!-- /wp:html -->';
+		$kept_paragraph      = '<!-- wp:paragraph --><p>Keep this paragraph.</p><!-- /wp:paragraph -->';
+		$added_risky_block   = '<!-- wp:html --><script>alert("added-risky")</script><!-- /wp:html -->';
+		$base_content        = $deleted_risky_block . "\n" . $kept_paragraph;
+		$proposed_content    = $kept_paragraph . "\n" . $added_risky_block;
+		$post_id             = $this->create_sync_meta_post( $base_content, 35, self::$author_user_id );
+		$before_post         = get_post( $post_id );
+		$before_revisions    = $this->get_post_revisions( $post_id );
+
+		wp_set_current_user( self::$author_user_id );
+
+		$result = wp_de_rtc_classify_kses_risky_block_review_items(
+			$post_id,
+			$proposed_content,
+			array(
+				'base_post_content'   => $base_content,
+				'client_base_version' => '35',
+				'author_id'           => self::$author_user_id,
+			)
+		);
 
 		$this->assertIsArray( $result );
 		$this->assertSame( 'block_review_required', $result['result'] );
@@ -388,16 +468,15 @@ class Tests_DE_RTC_KSES_Block_Review extends WP_UnitTestCase {
 
 		$item = $result['review_items'][0];
 
-		$this->assertSame( 'deleted_block', $item['change_kind'] );
-		$this->assertSame( 'unfiltered_html_block_deleted', $item['risk_reason'] );
-		$this->assertSame( hash( 'sha256', $risky_block ), $item['base_content_hash'] );
-		$this->assertSame( hash( 'sha256', '' ), $item['proposed_content_hash'] );
-		$this->assertSame( hash( 'sha256', $filtered_block ), $item['kses_filtered_content_hash'] );
-		$this->assertFalse( $item['raw_content_included'] );
-		$this->assertFalse( $item['exposes_raw_content'] );
+		$this->assertSame( 'added_block', $item['change_kind'] );
+		$this->assertSame( 'core/html', $item['block_name'] );
+		$this->assertSame( array( 1 ), $item['block_path'] );
+		$this->assertSame( 'kses_would_remove_script', $item['risk_reason'] );
+		$this->assertSame( hash( 'sha256', '' ), $item['base_content_hash'] );
+		$this->assertSame( hash( 'sha256', $added_risky_block ), $item['proposed_content_hash'] );
 		$this->assert_review_classification_omits_raw_content(
 			$result,
-			array( 'protected', 'wp:html', 'Keep this paragraph' )
+			array( 'deleted-risky', 'added-risky', 'wp:html', 'Keep this paragraph' )
 		);
 		$this->assert_post_unchanged( $post_id, $before_post->post_content, $before_revisions );
 	}

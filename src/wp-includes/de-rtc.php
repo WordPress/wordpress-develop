@@ -16118,32 +16118,8 @@ function wp_de_rtc_classify_kses_risky_block_review_items( $post, $proposed_post
 			}
 		}
 
-		foreach ( $base_records as $path_key => $base_record ) {
-			if ( isset( $matched_base_record_keys[ $path_key ] ) ) {
-				continue;
-			}
-
-			$base_review     = wp_de_rtc_get_kses_post_content_review_evidence( $base_record['serialized_block'] );
-			$base_own_review = wp_de_rtc_get_kses_post_content_review_evidence( $base_record['serialized_own_block'] );
-
-			if ( empty( $base_own_review['would_change_content'] ) ) {
-				continue;
-			}
-
-			$review_items[] = wp_de_rtc_create_kses_block_review_item(
-				$base_record,
-				array(
-					'change_kind'                 => 'deleted_block',
-					'risk_reason'                 => 'unfiltered_html_block_deleted',
-					'author_id'                   => $author_id,
-					'base_version'                => $client_base_version,
-					'server_version'              => $server_version,
-					'base_content_hash'           => $base_review['content_hash'],
-					'proposed_content_hash'       => wp_de_rtc_hash_content( '' ),
-					'kses_filtered_content_hash'  => $base_review['filtered_content_hash'],
-				)
-			);
-		}
+		// Base-only records are deletions. Removing KSES-sensitive content does
+		// not persist unsafe markup, so deletion-only changes need no review.
 	}
 
 	$review_required = ! $user_can_unfiltered_html && ! empty( $review_items );
