@@ -6846,6 +6846,56 @@ function wp_delete_attachment_files( $post_id, $meta, $backup_sizes, $file ) {
 		}
 	}
 
+	/*
+	 * Delete the source-format companion file. The client-side media flow can
+	 * sideload a source-format original (such as a HEIC file) alongside a
+	 * web-viewable derivative, recording its filename under the 'source_image'
+	 * key. This is kept separate from 'original_image', which continues to
+	 * point at the derivative.
+	 */
+	if ( ! empty( $meta['source_image'] ) && is_string( $meta['source_image'] ) ) {
+		if ( empty( $intermediate_dir ) ) {
+			$intermediate_dir = path_join( $uploadpath['basedir'], dirname( $file ) );
+		}
+
+		$source_image = str_replace( wp_basename( $file ), $meta['source_image'], $file );
+
+		if ( ! empty( $source_image ) ) {
+			$source_image = path_join( $uploadpath['basedir'], $source_image );
+
+			if ( ! wp_delete_file_from_directory( $source_image, $intermediate_dir ) ) {
+				$deleted = false;
+			}
+		}
+	}
+
+	/*
+	 * Delete the animated-GIF video companions. When the client-side media flow
+	 * converts an opaque animated GIF to a web-safe video, the converted MP4/WebM
+	 * and a static first-frame JPEG poster are sideloaded alongside the GIF and
+	 * recorded under the 'animated_video' and 'animated_video_poster' keys. These
+	 * are kept separate from 'original_image', which continues to point at the GIF.
+	 */
+	foreach ( array( 'animated_video', 'animated_video_poster' ) as $companion_key ) {
+		if ( empty( $meta[ $companion_key ] ) || ! is_string( $meta[ $companion_key ] ) ) {
+			continue;
+		}
+
+		if ( empty( $intermediate_dir ) ) {
+			$intermediate_dir = path_join( $uploadpath['basedir'], dirname( $file ) );
+		}
+
+		$companion_file = str_replace( wp_basename( $file ), $meta[ $companion_key ], $file );
+
+		if ( ! empty( $companion_file ) ) {
+			$companion_file = path_join( $uploadpath['basedir'], $companion_file );
+
+			if ( ! wp_delete_file_from_directory( $companion_file, $intermediate_dir ) ) {
+				$deleted = false;
+			}
+		}
+	}
+
 	if ( is_array( $backup_sizes ) ) {
 		$del_dir = path_join( $uploadpath['basedir'], dirname( $meta['file'] ) );
 
@@ -6888,6 +6938,39 @@ function wp_delete_attachment_files( $post_id, $meta, $backup_sizes, $file ) {
  *     @type array  $image_meta Image metadata.
  *     @type int    $filesize   File size of the attachment.
  * }
+ *
+ * @phpstan-return array{
+ *                     width?: int<1, max>,
+ *                     height?: int<1, max>,
+ *                     file?: non-empty-string,
+ *                     filesize?: int<0, max>,
+ *                     original_image?: non-empty-string,
+ *                     source_image?: non-empty-string,
+ *                     sizes?: array<non-empty-string, array{
+ *                                                         file: non-empty-string,
+ *                                                         width: int<1, max>,
+ *                                                         height: int<1, max>,
+ *                                                         'mime-type': non-empty-string,
+ *                                                         filesize?: int<0, max>,
+ *                                                         ...
+ *                                                     }>,
+ *                     image_meta?: array{
+ *                                      aperture: numeric-string|int,
+ *                                      credit: string,
+ *                                      camera: string,
+ *                                      caption: string,
+ *                                      created_timestamp: numeric-string|int,
+ *                                      copyright: string,
+ *                                      focal_length: numeric-string|int,
+ *                                      iso: numeric-string|int,
+ *                                      shutter_speed: numeric-string|int,
+ *                                      title: string,
+ *                                      orientation: numeric-string|int,
+ *                                      keywords: list<string>,
+ *                                      alt: string,
+ *                                  },
+ *                     ...
+ *                 }|false
  */
 function wp_get_attachment_metadata( $attachment_id = 0, $unfiltered = false ) {
 	$attachment_id = (int) $attachment_id;
