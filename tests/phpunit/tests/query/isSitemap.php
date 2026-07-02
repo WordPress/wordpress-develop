@@ -28,7 +28,7 @@ class Tests_Query_IsSitemap extends WP_UnitTestCase {
 	 *
 	 * @param WP_UnitTest_Factory $factory Factory instance.
 	 */
-	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ): void {
 		self::$post_ids = $factory->post->create_many( 3 );
 	}
 
@@ -45,7 +45,7 @@ class Tests_Query_IsSitemap extends WP_UnitTestCase {
 	 *
 	 * @covers WP_Query::init
 	 */
-	public function test_is_sitemap_defaults_to_false() {
+	public function test_is_sitemap_defaults_to_false(): void {
 		$query = new WP_Query();
 
 		$this->assertFalse( $query->is_sitemap, 'The $is_sitemap property should default to false.' );
@@ -58,7 +58,7 @@ class Tests_Query_IsSitemap extends WP_UnitTestCase {
 	 * @covers WP_Query::parse_query
 	 * @covers WP_Query::is_sitemap
 	 */
-	public function test_is_sitemap_true_for_sitemap_index() {
+	public function test_is_sitemap_true_for_sitemap_index(): void {
 		$query = new WP_Query( array( 'sitemap' => 'index' ) );
 
 		$this->assertTrue( $query->is_sitemap, 'The $is_sitemap property should be true for a sitemap query.' );
@@ -71,7 +71,7 @@ class Tests_Query_IsSitemap extends WP_UnitTestCase {
 	 * @covers WP_Query::parse_query
 	 * @covers WP_Query::is_sitemap
 	 */
-	public function test_is_sitemap_true_for_sitemap_subtype() {
+	public function test_is_sitemap_true_for_sitemap_subtype(): void {
 		$query = new WP_Query(
 			array(
 				'sitemap'         => 'posts',
@@ -88,7 +88,7 @@ class Tests_Query_IsSitemap extends WP_UnitTestCase {
 	 *
 	 * @covers WP_Query::is_sitemap
 	 */
-	public function test_is_sitemap_return_type_is_bool() {
+	public function test_is_sitemap_return_type_is_bool(): void {
 		$query = new WP_Query( array( 'sitemap' => 'index' ) );
 
 		$this->assertIsBool( $query->is_sitemap(), 'WP_Query::is_sitemap() should return a boolean.' );
@@ -99,7 +99,7 @@ class Tests_Query_IsSitemap extends WP_UnitTestCase {
 	 *
 	 * @covers WP_Query::parse_query
 	 */
-	public function test_is_sitemap_false_for_empty_sitemap_var() {
+	public function test_is_sitemap_false_for_empty_sitemap_var(): void {
 		$query = new WP_Query( array( 'sitemap' => '' ) );
 
 		$this->assertFalse( $query->is_sitemap(), 'An empty "sitemap" query var should not set is_sitemap.' );
@@ -111,7 +111,7 @@ class Tests_Query_IsSitemap extends WP_UnitTestCase {
 	 *
 	 * @covers WP_Query::parse_query
 	 */
-	public function test_is_sitemap_false_for_stylesheet_route() {
+	public function test_is_sitemap_false_for_stylesheet_route(): void {
 		$query = new WP_Query( array( 'sitemap-stylesheet' => 'sitemap' ) );
 
 		$this->assertFalse( $query->is_sitemap(), 'The sitemap stylesheet route should not flag the query as a sitemap.' );
@@ -122,7 +122,7 @@ class Tests_Query_IsSitemap extends WP_UnitTestCase {
 	 *
 	 * @covers WP_Query::parse_query
 	 */
-	public function test_robots_takes_precedence_over_sitemap() {
+	public function test_robots_takes_precedence_over_sitemap(): void {
 		$query = new WP_Query(
 			array(
 				'robots'  => true,
@@ -139,7 +139,7 @@ class Tests_Query_IsSitemap extends WP_UnitTestCase {
 	 *
 	 * @covers WP_Query::is_sitemap
 	 */
-	public function test_is_sitemap_false_for_regular_query() {
+	public function test_is_sitemap_false_for_regular_query(): void {
 		$post_id = self::factory()->post->create();
 
 		$query = new WP_Query( array( 'p' => $post_id ) );
@@ -155,7 +155,7 @@ class Tests_Query_IsSitemap extends WP_UnitTestCase {
 	 *
 	 * @covers WP_Query::parse_query
 	 */
-	public function test_sitemap_query_is_not_home() {
+	public function test_sitemap_query_is_not_home(): void {
 		$query = new WP_Query( array( 'sitemap' => 'index' ) );
 
 		$this->assertTrue( $query->is_sitemap(), 'The sitemap query should be flagged as a sitemap.' );
@@ -168,7 +168,7 @@ class Tests_Query_IsSitemap extends WP_UnitTestCase {
 	 *
 	 * @covers ::is_sitemap
 	 */
-	public function test_global_is_sitemap_reflects_main_query() {
+	public function test_global_is_sitemap_reflects_main_query(): void {
 		// Prevent WP_Sitemaps from rendering and calling exit during go_to().
 		remove_action( 'template_redirect', array( wp_sitemaps_get_server(), 'render_sitemaps' ) );
 
@@ -185,7 +185,7 @@ class Tests_Query_IsSitemap extends WP_UnitTestCase {
 	 *
 	 * @covers ::is_sitemap
 	 */
-	public function test_global_is_sitemap_false_on_home() {
+	public function test_global_is_sitemap_false_on_home(): void {
 		$this->go_to( home_url( '/' ) );
 
 		$this->assertFalse( is_sitemap(), 'is_sitemap() should be false on the home page.' );
@@ -200,7 +200,7 @@ class Tests_Query_IsSitemap extends WP_UnitTestCase {
 	 *
 	 * @expectedIncorrectUsage is_sitemap
 	 */
-	public function test_global_is_sitemap_before_query_is_run() {
+	public function test_global_is_sitemap_before_query_is_run(): void {
 		$wp_query_temp = $GLOBALS['wp_query'];
 		unset( $GLOBALS['wp_query'] );
 
