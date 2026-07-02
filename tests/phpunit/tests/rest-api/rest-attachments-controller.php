@@ -3735,6 +3735,77 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	}
 
 	/**
+	 * Tests sideloading the animated-GIF video companions ('animated_video' and
+	 * 'animated_video_poster'). Each filename is recorded under its own metadata
+	 * key by the finalize endpoint and does not collide with 'original_image',
+	 * which keeps pointing at the GIF.
+	 *
+	 * The uploaded bytes are a JPEG stand-in: the sideload branch only records
+	 * wp_basename() of the stored file, so the metadata plumbing can be exercised
+	 * without depending on video upload support in the test environment.
+	 *
+	 * @ticket 65549
+	 * @requires function imagejpeg
+	 */
+	public function test_sideload_animated_video_companions_write_metadata(): void {
+		$this->enable_client_side_media_processing();
+
+		wp_set_current_user( self::$author_id );
+
+		// Create the (GIF) attachment the companions belong to.
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
+		$request->set_header( 'Content-Type', 'image/jpeg' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=canola.jpg' );
+		$request->set_body( (string) file_get_contents( self::$test_file ) );
+		$response      = rest_get_server()->dispatch( $request );
+		$attachment_id = $response->get_data()['id'];
+		$this->assertSame( 201, $response->get_status() );
+
+		// Sideload the converted-video companion.
+		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment_id}/sideload" );
+		$request->set_header( 'Content-Type', 'image/jpeg' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=canola-video.jpg' );
+		$request->set_param( 'image_size', 'animated_video' );
+		$request->set_body( (string) file_get_contents( self::$test_file ) );
+		$video_response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $video_response->get_status(), 'Sideloading animated_video should succeed.' );
+		$video_sub_size = $video_response->get_data();
+		$this->assertIsArray( $video_sub_size );
+		$this->assertSame( 'animated_video', $video_sub_size['image_size'], 'Response should echo the image_size.' );
+
+		// Sideload the poster companion.
+		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment_id}/sideload" );
+		$request->set_header( 'Content-Type', 'image/jpeg' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=canola-poster.jpg' );
+		$request->set_param( 'image_size', 'animated_video_poster' );
+		$request->set_body( (string) file_get_contents( self::$test_file ) );
+		$poster_response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $poster_response->get_status(), 'Sideloading animated_video_poster should succeed.' );
+		$poster_sub_size = $poster_response->get_data();
+		$this->assertIsArray( $poster_sub_size );
+		$this->assertSame( 'animated_video_poster', $poster_sub_size['image_size'], 'Response should echo the image_size.' );
+
+		// Sideload must not write metadata; that happens in finalize.
+		$metadata = wp_get_attachment_metadata( $attachment_id, true );
+		$this->assertArrayNotHasKey( 'animated_video', $metadata, 'Sideload should not write animated_video metadata.' );
+		$this->assertArrayNotHasKey( 'animated_video_poster', $metadata, 'Sideload should not write animated_video_poster metadata.' );
+
+		// Finalize with both collected sub-sizes, which writes the metadata.
+		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment_id}/finalize" );
+		$request->set_param( 'sub_sizes', array( $video_sub_size, $poster_sub_size ) );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status(), 'Finalize should succeed.' );
+
+		$metadata = wp_get_attachment_metadata( $attachment_id );
+		$this->assertIsArray( $metadata );
+		$this->assertArrayHasKey( 'animated_video', $metadata, "Metadata should contain 'animated_video'." );
+		$this->assertMatchesRegularExpression( '/canola-video.*\.jpg$/', $metadata['animated_video'], "Metadata 'animated_video' should reference the video companion filename." );
+		$this->assertArrayHasKey( 'animated_video_poster', $metadata, "Metadata should contain 'animated_video_poster'." );
+		$this->assertMatchesRegularExpression( '/canola-poster.*\.jpg$/', $metadata['animated_video_poster'], "Metadata 'animated_video_poster' should reference the poster filename." );
+		$this->assertArrayNotHasKey( 'original_image', $metadata, "Metadata 'original_image' should be untouched by the companion sideloads." );
+	}
+
+	/**
 	 * Tests the filter_wp_unique_filename method handles the -scaled suffix.
 	 *
 	 * @ticket 64737
