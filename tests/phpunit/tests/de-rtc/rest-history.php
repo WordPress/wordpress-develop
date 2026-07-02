@@ -112,6 +112,68 @@ class Tests_DE_RTC_REST_History extends WP_Test_REST_TestCase {
 	}
 
 	/**
+	 * @covers ::wp_de_rtc_rest_history_endpoint
+	 * @covers ::wp_de_rtc_get_history_row_from_post
+	 * @covers ::wp_de_rtc_get_sync_meta_recovery_attribution
+	 */
+	public function test_history_endpoint_labels_recovery_rows_as_system_authored() {
+		$current_content = '<!-- wp:paragraph --><p>Recovered history content.</p><!-- /wp:paragraph -->';
+		$recovery_actor  = wp_de_rtc_get_system_recovery_actor_descriptor(
+			null,
+			array(
+				'mode'                 => 'missing_sync_meta_revision',
+				'current_content_hash' => wp_de_rtc_hash_content( $current_content ),
+			)
+		);
+		$post_content    = wp_de_rtc_add_sync_meta_to_post_content(
+			$current_content,
+			'automerge',
+			array(
+				'schema'                  => 'de-rtc-automerge-v1',
+				'version'                 => '8',
+				'previous_version'        => '7',
+				'last_sync_meta_recovery' => array(
+					'type'                    => 'external_repair',
+					'mode'                    => 'missing_sync_meta_revision',
+					'actor'                   => $recovery_actor,
+					'content_hash_algorithm'  => 'sha256',
+				),
+				'last_server_update'      => array(
+					'type'         => 'external_repair',
+					'repair_actor' => $recovery_actor,
+				),
+			),
+			'prefix-block'
+		);
+
+		$this->assertIsString( $post_content );
+
+		$post_id          = self::factory()->post->create(
+			array(
+				'post_title'   => 'DE-RTC recovery history post',
+				'post_content' => $post_content,
+			)
+		);
+		$before_post      = get_post( $post_id );
+		$before_revisions = $this->get_post_revisions( $post_id );
+		$request          = new WP_REST_Request( 'GET', '/wp/v2/posts/' . $post_id . '/distributed-editing/history' );
+
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( 'history_loaded', $data['result'] );
+		$this->assertSame( 1, $data['count'] );
+		$this->assertSame( 'system', $data['history_items'][0]['actor_type'] );
+		$this->assertSame( 'WordPress', $data['history_items'][0]['author_display_name'] );
+		$this->assertSame( 'Recovered external changes', $data['history_items'][0]['session_label'] );
+		$this->assertSame( 'system', $data['history_items'][0]['recovery_attribution']['actor_type'] );
+		$this->assertSame( 'system:distributed-editing-recovery', $data['history_items'][0]['recovery_attribution']['attribution_key'] );
+		$this->assertFalse( $data['history_items'][0]['recovery_attribution']['human_actor'] );
+		$this->assert_post_unchanged( $post_id, $before_post->post_content, $before_revisions );
+	}
+
+	/**
 	 * @covers ::wp_de_rtc_rest_history_plan_endpoint
 	 * @covers ::wp_de_rtc_plan_post_history_action
 	 */

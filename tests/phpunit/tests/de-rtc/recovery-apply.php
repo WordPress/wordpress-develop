@@ -176,7 +176,9 @@ class Tests_DE_RTC_Recovery_Apply extends WP_UnitTestCase {
 		$this->assertGreaterThan( count( $before_revisions ), count( $after_revisions ) );
 		$this->assertIsArray( $parsed );
 		$this->assertSame( $current_content, $parsed['content'] );
-		$this->assertSame( $base_metadata, $parsed['sync_meta'] );
+		$this->assertSame( $base_metadata['version'], $parsed['sync_meta']['version'] );
+		$this->assertSame( $base_metadata['hash'], $parsed['sync_meta']['hash'] );
+		$this->assert_system_recovery_attribution( $parsed['sync_meta'], 'legacy_sync_meta_restore' );
 		$this->assertSame( 'diff-match-patch', $parsed['sync_meta_format'] );
 	}
 
@@ -228,5 +230,16 @@ class Tests_DE_RTC_Recovery_Apply extends WP_UnitTestCase {
 		$this->assertIsInt( $revision_id );
 
 		return $revision_id;
+	}
+
+	private function assert_system_recovery_attribution( $sync_meta, $expected_mode ) {
+		$this->assertIsArray( $sync_meta );
+		$this->assertArrayHasKey( 'last_sync_meta_recovery', $sync_meta );
+		$this->assertSame( $expected_mode, $sync_meta['last_sync_meta_recovery']['mode'] );
+		$this->assertSame( 'system', $sync_meta['last_sync_meta_recovery']['actor']['actor_type'] );
+		$this->assertSame( 'system:distributed-editing-recovery', $sync_meta['last_sync_meta_recovery']['actor']['attribution_key'] );
+		$this->assertSame( 'Recovered external changes', $sync_meta['last_sync_meta_recovery']['actor']['display_name'] );
+		$this->assertFalse( $sync_meta['last_sync_meta_recovery']['actor']['human_actor'] );
+		$this->assertFalse( $sync_meta['last_sync_meta_recovery']['actor']['exposes_user_id'] );
 	}
 }

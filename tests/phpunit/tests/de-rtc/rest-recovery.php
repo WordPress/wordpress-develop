@@ -216,6 +216,10 @@ class Tests_DE_RTC_REST_Recovery extends WP_Test_REST_TestCase {
 		$this->assertSame( 'candidate_update_valid', $data['result'] );
 		$this->assertSame( 'post_sync_meta_recovery', $data['rest_route'] );
 		$this->assertFalse( $data['would_apply'] );
+		$this->assertSame( 'system', $data['recovery_actor_type'] );
+		$this->assertSame( 'system:distributed-editing-recovery', $data['recovery_attribution_key'] );
+		$this->assertSame( 'sync_meta_recovery', $data['recovery_attribution_source'] );
+		$this->assertFalse( $data['recovery_attribution']['exposes_user_id'] );
 		$this->assertTrue( $data['permission_contract']['feature_enabled'] );
 		$this->assertSame( 'post', $data['permission_contract']['post_type'] );
 		$this->assertSame( 'posts', $data['permission_contract']['post_type_rest_base'] );
@@ -332,13 +336,18 @@ class Tests_DE_RTC_REST_Recovery extends WP_Test_REST_TestCase {
 		$this->assertSame( 'candidate_update_applied', $data['result'] );
 		$this->assertTrue( $data['applied'] );
 		$this->assertTrue( $data['revision_created'] );
+		$this->assertSame( 'system', $data['recovery_actor_type'] );
+		$this->assertSame( 'system:distributed-editing-recovery', $data['recovery_attribution_key'] );
+		$this->assertFalse( $data['recovery_attribution']['human_actor'] );
 		$this->assertSame( array_map( 'intval', array_keys( $before_revisions ) ), $data['revision_ids_before_apply'] );
 		$this->assertSame( array_map( 'intval', array_keys( $after_revisions ) ), $data['revision_ids_after_apply'] );
 		$this->assertCount( 1, $data['created_revision_ids'] );
 		$this->assertIsArray( $parsed );
 		$this->assertSame( $current_content, $parsed['content'] );
 		$this->assertSame( 'automerge', $parsed['sync_meta_format'] );
-		$this->assertSame( $base_metadata, $parsed['sync_meta'] );
+		$this->assertSame( $base_metadata['version'], $parsed['sync_meta']['version'] );
+		$this->assertSame( $base_metadata['hash'], $parsed['sync_meta']['hash'] );
+		$this->assert_system_recovery_attribution( $parsed['sync_meta'], 'legacy_sync_meta_restore' );
 	}
 
 	/**
@@ -468,5 +477,16 @@ class Tests_DE_RTC_REST_Recovery extends WP_Test_REST_TestCase {
 		$this->assertIsInt( $revision_id );
 
 		return $revision_id;
+	}
+
+	private function assert_system_recovery_attribution( $sync_meta, $expected_mode ) {
+		$this->assertIsArray( $sync_meta );
+		$this->assertArrayHasKey( 'last_sync_meta_recovery', $sync_meta );
+		$this->assertSame( $expected_mode, $sync_meta['last_sync_meta_recovery']['mode'] );
+		$this->assertSame( 'system', $sync_meta['last_sync_meta_recovery']['actor']['actor_type'] );
+		$this->assertSame( 'system:distributed-editing-recovery', $sync_meta['last_sync_meta_recovery']['actor']['attribution_key'] );
+		$this->assertSame( 'Recovered external changes', $sync_meta['last_sync_meta_recovery']['actor']['display_name'] );
+		$this->assertFalse( $sync_meta['last_sync_meta_recovery']['actor']['human_actor'] );
+		$this->assertFalse( $sync_meta['last_sync_meta_recovery']['actor']['exposes_user_id'] );
 	}
 }

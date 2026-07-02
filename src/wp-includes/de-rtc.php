@@ -7588,6 +7588,17 @@ function wp_de_rtc_get_history_author_display_name( $user_id ) {
  * @return string Session label.
  */
 function wp_de_rtc_get_history_session_label( $sync_meta ) {
+	$recovery_attribution = wp_de_rtc_get_sync_meta_recovery_attribution( $sync_meta );
+
+	if (
+		is_array( $recovery_attribution ) &&
+		isset( $recovery_attribution['actor']['display_name'] ) &&
+		is_string( $recovery_attribution['actor']['display_name'] ) &&
+		'' !== trim( $recovery_attribution['actor']['display_name'] )
+	) {
+		return sanitize_text_field( $recovery_attribution['actor']['display_name'] );
+	}
+
 	if ( is_array( $sync_meta ) && isset( $sync_meta['last_server_update'] ) && is_array( $sync_meta['last_server_update'] ) ) {
 		if ( isset( $sync_meta['last_server_update']['session_label'] ) && is_string( $sync_meta['last_server_update']['session_label'] ) && '' !== trim( $sync_meta['last_server_update']['session_label'] ) ) {
 			return sanitize_text_field( $sync_meta['last_server_update']['session_label'] );
@@ -7632,14 +7643,25 @@ function wp_de_rtc_get_history_row_from_post( $item, $is_current = false ) {
 		$sync_version = sanitize_text_field( (string) $sync_meta['version'] );
 	}
 
+	$recovery_attribution = wp_de_rtc_get_sync_meta_recovery_attribution( $sync_meta );
+	$actor_type           = is_array( $recovery_attribution ) ? 'system' : 'human';
+	$author_display_name  = wp_de_rtc_get_history_author_display_name( $item->post_author );
+	$session_label        = wp_de_rtc_get_history_session_label( $sync_meta );
+
+	if ( is_array( $recovery_attribution ) ) {
+		$author_display_name = 'WordPress';
+	}
+
 	return array(
 		'id'                       => $is_current ? 'current' : 'revision-' . (int) $item->ID,
 		'revision_id'              => $is_current ? 0 : (int) $item->ID,
 		'is_current'               => (bool) $is_current,
 		'date'                     => mysql_to_rfc3339( $item->post_date ),
 		'date_gmt'                 => mysql_to_rfc3339( $item->post_date_gmt ),
-		'author_display_name'      => wp_de_rtc_get_history_author_display_name( $item->post_author ),
-		'session_label'            => wp_de_rtc_get_history_session_label( $sync_meta ),
+		'author_display_name'      => $author_display_name,
+		'session_label'            => $session_label,
+		'actor_type'               => $actor_type,
+		'recovery_attribution'     => is_array( $recovery_attribution ) ? wp_de_rtc_get_recovery_attribution_response_fields( $recovery_attribution )['recovery_attribution'] : null,
 		'sync_version'             => $sync_version,
 		'previous_sync_version'    => is_array( $sync_meta ) && isset( $sync_meta['previous_version'] ) ? sanitize_text_field( (string) $sync_meta['previous_version'] ) : '',
 		'sync_meta_format'         => is_string( $sync_meta_format ) ? sanitize_key( $sync_meta_format ) : '',
@@ -8074,6 +8096,7 @@ function wp_de_rtc_get_post_snapshot_for_distributed_editing( $post ) {
 			'base_revision_id'               => $repaired['base_revision_id'],
 			'base_content_hash'              => $repaired['base_content_hash'],
 			'current_content_hash'           => $repaired['current_content_hash'],
+			'repair_actor'                   => isset( $repaired['recovery_actor'] ) ? $repaired['recovery_actor'] : null,
 			'content_hash_algorithm'         => 'sha256',
 			'applied'                        => true,
 			'apply_result'                   => isset( $recovery_apply['result'] ) ? $recovery_apply['result'] : null,
@@ -14191,6 +14214,8 @@ function wp_de_rtc_get_retry_save_candidate_post_content_hash_for_user( $post, $
 	$proposed_post_content_hash    = isset( $args['proposed_post_content_hash'] ) ? sanitize_text_field( (string) $args['proposed_post_content_hash'] ) : '';
 	$proposed_post_content         = isset( $args['proposed_post_content'] ) ? (string) $args['proposed_post_content'] : '';
 	$current                       = wp_de_rtc_parse_post_content_sync_meta( $post->post_content );
+	$actor_hash                    = wp_de_rtc_get_presence_actor_hash( $user_id );
+	$attribution_key               = '' !== $actor_hash ? 'user:' . substr( $actor_hash, 0, 24 ) : 'server:unknown';
 
 	if ( ! $user_id || ! is_array( $current ) || ! isset( $current['sync_meta'] ) ) {
 		return wp_de_rtc_get_reason_error(
@@ -14217,6 +14242,7 @@ function wp_de_rtc_get_retry_save_candidate_post_content_hash_for_user( $post, $
 		'type'                         => 'retry_save',
 		'user_id'                      => $user_id,
 		'session_label'                => wp_de_rtc_get_history_author_display_name( $user_id ),
+		'attribution_key'              => $attribution_key,
 		'client_base_version'          => $client_base_version,
 		'accepted_proof_server_version' => $accepted_proof_server_version,
 		'rebased_from_version'         => $rebased_from_version,
@@ -15469,6 +15495,7 @@ function wp_de_rtc_save_retry_submitted_post( $post, $args = array() ) {
 				'base_revision_id'       => $current_external_repair['base_revision_id'],
 				'base_content_hash'      => $current_external_repair['base_content_hash'],
 				'current_content_hash'   => $current_external_repair['current_content_hash'],
+				'repair_actor'           => isset( $current_external_repair['recovery_actor'] ) ? $current_external_repair['recovery_actor'] : null,
 				'content_hash_algorithm' => 'sha256',
 			);
 		}
@@ -19947,6 +19974,291 @@ function wp_de_rtc_is_current_automerge_sync_meta( $sync_meta, $format ) {
 	}
 
 	/**
+	 * Returns the synthetic actor descriptor for server-side sync-meta recovery.
+	 *
+	 * Recovery models content changed outside Distributed Editing as a server-made
+	 * metadata repair. It must not borrow the identity of the user who happened to
+	 * trigger the repair endpoint or create a fake WordPress user.
+	 *
+	 * @since 7.1.0
+	 * @access private
+	 *
+	 * @param WP_Post|int|null $post Post being repaired.
+	 * @param array            $args Content-free repair evidence used to derive a per-repair actor ID.
+	 * @return array Synthetic recovery actor descriptor.
+	 */
+	function wp_de_rtc_get_system_recovery_actor_descriptor( $post = null, $args = array() ) {
+		$post                 = get_post( $post );
+		$args                 = is_array( $args ) ? $args : array();
+		$post_id              = $post ? (int) $post->ID : 0;
+		$document_uuid        = isset( $args['document_uuid'] ) && is_string( $args['document_uuid'] ) && '' !== $args['document_uuid']
+			? sanitize_text_field( $args['document_uuid'] )
+			: 'de-rtc-post-' . $post_id;
+		$base_version         = isset( $args['base_version'] ) ? sanitize_text_field( (string) $args['base_version'] ) : '0';
+		$mode                 = isset( $args['mode'] ) ? sanitize_key( (string) $args['mode'] ) : 'sync_meta_recovery';
+		$base_revision_id     = isset( $args['base_revision_id'] ) ? (int) $args['base_revision_id'] : 0;
+		$current_content_hash = isset( $args['current_content_hash'] ) && is_string( $args['current_content_hash'] ) ? sanitize_text_field( $args['current_content_hash'] ) : '';
+		$actor_id             = 'wp-de-rtc-recovery-' . substr( hash( 'sha256', implode( '|', array( $document_uuid, $post_id, $base_version, $mode, $base_revision_id, $current_content_hash ) ) ), 0, 24 );
+
+		return array(
+			'actor_type'          => 'system',
+			'actor_id'            => $actor_id,
+			'attribution_key'     => 'system:distributed-editing-recovery',
+			'display_name'        => 'Recovered external changes',
+			'source'              => 'sync_meta_recovery',
+			'human_actor'         => false,
+			'focusable'           => false,
+			'exposes_user_id'     => false,
+			'exposes_login'       => false,
+			'exposes_email'       => false,
+			'exposes_session_key' => false,
+		);
+	}
+
+	/**
+	 * Returns whether a value is the canonical server recovery actor descriptor.
+	 *
+	 * @since 7.1.0
+	 * @access private
+	 *
+	 * @param mixed       $actor             Candidate descriptor.
+	 * @param string|null $expected_actor_id Optional expected per-repair actor ID.
+	 * @return bool Whether the descriptor is the server-owned recovery actor.
+	 */
+	function wp_de_rtc_is_system_recovery_actor_descriptor( $actor, $expected_actor_id = null ) {
+		if ( ! is_array( $actor ) ) {
+			return false;
+		}
+
+		foreach ( array( 'user_id', 'userId', 'login', 'user_login', 'email', 'user_email', 'session_key', 'sessionKey' ) as $forbidden_key ) {
+			if ( array_key_exists( $forbidden_key, $actor ) ) {
+				return false;
+			}
+		}
+
+		if (
+			! isset( $actor['actor_type'], $actor['actor_id'], $actor['attribution_key'], $actor['source'] ) ||
+			! isset( $actor['display_name'] ) ||
+			! is_string( $actor['display_name'] ) ||
+			'' === trim( $actor['display_name'] ) ||
+			! array_key_exists( 'human_actor', $actor ) ||
+			! array_key_exists( 'focusable', $actor ) ||
+			! array_key_exists( 'exposes_user_id', $actor ) ||
+			! array_key_exists( 'exposes_login', $actor ) ||
+			! array_key_exists( 'exposes_email', $actor ) ||
+			! array_key_exists( 'exposes_session_key', $actor ) ||
+			'system' !== $actor['actor_type'] ||
+			'system:distributed-editing-recovery' !== $actor['attribution_key'] ||
+			'sync_meta_recovery' !== $actor['source'] ||
+			false !== $actor['human_actor'] ||
+			false !== $actor['focusable'] ||
+			false !== $actor['exposes_user_id'] ||
+			false !== $actor['exposes_login'] ||
+			false !== $actor['exposes_email'] ||
+			false !== $actor['exposes_session_key']
+		) {
+			return false;
+		}
+
+		if ( null !== $expected_actor_id && ! hash_equals( (string) $expected_actor_id, (string) $actor['actor_id'] ) ) {
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
+	 * Adds server recovery attribution to native Automerge update evidence.
+	 *
+	 * @since 7.1.0
+	 * @access private
+	 *
+	 * @param array $update Native Automerge update evidence.
+	 * @param array $actor  Recovery actor descriptor.
+	 * @return array Update evidence with system attribution.
+	 */
+	function wp_de_rtc_apply_system_recovery_actor_to_automerge_update( $update, $actor ) {
+		if ( ! is_array( $update ) || ! wp_de_rtc_is_system_recovery_actor_descriptor( $actor ) ) {
+			return $update;
+		}
+
+		$update['actor_type']      = 'system';
+		$update['attribution_key'] = $actor['attribution_key'];
+		$update['human_actor']     = false;
+		$update['repair_actor']    = $actor;
+
+		if ( isset( $update['operations'] ) && is_array( $update['operations'] ) ) {
+			foreach ( $update['operations'] as $index => $operation ) {
+				if ( ! is_array( $operation ) ) {
+					continue;
+				}
+
+				$operation['actor']           = $actor['actor_id'];
+				$operation['actor_type']      = 'system';
+				$operation['attribution_key'] = $actor['attribution_key'];
+				$operation['human_actor']     = false;
+				$operation['sequence']        = isset( $operation['sequence'] ) ? (int) $operation['sequence'] : (int) $index;
+				$operation['id']              = $actor['actor_id'] . ':' . $operation['sequence'];
+				$update['operations'][ $index ] = $operation;
+			}
+		}
+
+		if ( isset( $update['operations'], $update['stateVector'] ) && is_array( $update['operations'] ) && is_array( $update['stateVector'] ) && count( $update['operations'] ) > 0 ) {
+			$update['stateVector'] = array(
+				$actor['actor_id'] => count( $update['operations'] ),
+			);
+		}
+
+		return $update;
+	}
+
+	/**
+	 * Returns recovery attribution stored in sync metadata.
+	 *
+	 * @since 7.1.0
+	 * @access private
+	 *
+	 * @param mixed $sync_meta Sync metadata.
+	 * @return array|null Recovery attribution descriptor, or null when absent.
+	 */
+	function wp_de_rtc_get_sync_meta_recovery_attribution( $sync_meta ) {
+		if ( ! is_array( $sync_meta ) ) {
+			return null;
+		}
+
+		if (
+			isset( $sync_meta['last_sync_meta_recovery'] ) &&
+			is_array( $sync_meta['last_sync_meta_recovery'] ) &&
+			isset( $sync_meta['last_sync_meta_recovery']['actor'] ) &&
+			wp_de_rtc_is_system_recovery_actor_descriptor( $sync_meta['last_sync_meta_recovery']['actor'] )
+		) {
+			return $sync_meta['last_sync_meta_recovery'];
+		}
+
+		if (
+			isset( $sync_meta['last_server_update'] ) &&
+			is_array( $sync_meta['last_server_update'] ) &&
+			isset( $sync_meta['last_server_update']['repair_actor'] ) &&
+			wp_de_rtc_is_system_recovery_actor_descriptor( $sync_meta['last_server_update']['repair_actor'] )
+		) {
+			return array(
+				'type'  => isset( $sync_meta['last_server_update']['type'] ) ? sanitize_key( (string) $sync_meta['last_server_update']['type'] ) : 'external_repair',
+				'actor' => $sync_meta['last_server_update']['repair_actor'],
+			);
+		}
+
+		return null;
+	}
+
+	/**
+	 * Returns content-free response fields for recovery attribution.
+	 *
+	 * @since 7.1.0
+	 * @access private
+	 *
+	 * @param array|null $attribution Recovery attribution descriptor.
+	 * @return array Response fields.
+	 */
+	function wp_de_rtc_get_recovery_attribution_response_fields( $attribution ) {
+		if (
+			! is_array( $attribution ) ||
+			! isset( $attribution['actor'] ) ||
+			! wp_de_rtc_is_system_recovery_actor_descriptor( $attribution['actor'] )
+		) {
+			return array(
+				'recovery_attribution'        => null,
+				'recovery_actor_type'         => null,
+				'recovery_attribution_key'    => null,
+				'recovery_attribution_source' => null,
+			);
+		}
+
+		$actor = $attribution['actor'];
+
+		return array(
+			'recovery_attribution'        => array(
+				'type'                    => isset( $attribution['type'] ) ? sanitize_key( (string) $attribution['type'] ) : 'sync_meta_recovery',
+				'mode'                    => isset( $attribution['mode'] ) ? sanitize_key( (string) $attribution['mode'] ) : '',
+				'actor_type'              => $actor['actor_type'],
+				'attribution_key'         => $actor['attribution_key'],
+				'display_name'            => $actor['display_name'],
+				'source'                  => $actor['source'],
+				'human_actor'             => false,
+				'focusable'               => false,
+				'exposes_user_id'         => false,
+				'exposes_login'           => false,
+				'exposes_email'           => false,
+				'exposes_session_key'     => false,
+				'content_hash_algorithm'  => isset( $attribution['content_hash_algorithm'] ) ? sanitize_key( (string) $attribution['content_hash_algorithm'] ) : 'sha256',
+			),
+			'recovery_actor_type'         => $actor['actor_type'],
+			'recovery_attribution_key'    => $actor['attribution_key'],
+			'recovery_attribution_source' => $actor['source'],
+		);
+	}
+
+	/**
+	 * Validates server-owned recovery attribution in a candidate sync-meta value.
+	 *
+	 * @since 7.1.0
+	 * @access private
+	 *
+	 * @param mixed $sync_meta Candidate sync metadata.
+	 * @return bool Whether recovery attribution is canonical and non-human.
+	 */
+	function wp_de_rtc_validate_sync_meta_recovery_attribution( $sync_meta ) {
+		$attribution = wp_de_rtc_get_sync_meta_recovery_attribution( $sync_meta );
+
+		if ( ! is_array( $attribution ) || ! isset( $attribution['actor'] ) ) {
+			return false;
+		}
+
+		$actor = $attribution['actor'];
+
+		if ( ! wp_de_rtc_is_system_recovery_actor_descriptor( $actor ) ) {
+			return false;
+		}
+
+		if (
+			isset( $sync_meta['last_server_update'] ) &&
+			is_array( $sync_meta['last_server_update'] ) &&
+			array_key_exists( 'user_id', $sync_meta['last_server_update'] ) &&
+			'external_repair' === ( $sync_meta['last_server_update']['type'] ?? null )
+		) {
+			return false;
+		}
+
+		if ( wp_de_rtc_is_current_automerge_sync_meta( $sync_meta, 'automerge' ) && isset( $sync_meta['automerge_update'] ) ) {
+			$update = wp_de_rtc_decode_automerge_sync_meta_update( $sync_meta['automerge_update'] );
+
+			if ( is_wp_error( $update ) || ! is_array( $update ) ) {
+				return false;
+			}
+
+			$operations = isset( $update['operations'] ) && is_array( $update['operations'] ) ? $update['operations'] : array();
+
+			foreach ( $operations as $index => $operation ) {
+				if (
+					! is_array( $operation ) ||
+					! isset( $operation['actor'], $operation['id'] ) ||
+					! hash_equals( $actor['actor_id'], (string) $operation['actor'] ) ||
+					! hash_equals( $actor['actor_id'] . ':' . ( isset( $operation['sequence'] ) ? (int) $operation['sequence'] : (int) $index ), (string) $operation['id'] )
+				) {
+					return false;
+				}
+			}
+
+			$state_vector = isset( $update['stateVector'] ) && is_array( $update['stateVector'] ) ? $update['stateVector'] : array();
+
+			if ( count( $operations ) > 0 && ( ! isset( $state_vector[ $actor['actor_id'] ] ) || (int) $state_vector[ $actor['actor_id'] ] !== count( $operations ) ) ) {
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	/**
 	 * Builds a server-owned Automerge repair for current post content.
 	 *
 	 * The body remains authoritative when an outside writer changes it. This
@@ -19980,8 +20292,20 @@ function wp_de_rtc_is_current_automerge_sync_meta( $sync_meta, $format ) {
 		$mode            = isset( $args['mode'] ) ? sanitize_key( (string) $args['mode'] ) : 'body_hash_drift';
 		$base_revision_id = isset( $args['base_revision_id'] ) ? (int) $args['base_revision_id'] : 0;
 		$sync_meta_position = isset( $args['sync_meta_position'] ) && is_string( $args['sync_meta_position'] ) ? $args['sync_meta_position'] : 'prefix-block';
-		$actor           = 'wp-external-repair-' . ( $post ? (int) $post->ID : 0 ) . '-' . substr( hash( 'sha256', $base_version . '|' . $mode ), 0, 12 );
+		$current_hash    = wp_de_rtc_hash_content( $current_content );
+		$recovery_actor  = wp_de_rtc_get_system_recovery_actor_descriptor(
+			$post,
+			array(
+				'document_uuid'        => isset( $base_sync_meta['document_uuid'] ) && is_string( $base_sync_meta['document_uuid'] ) ? $base_sync_meta['document_uuid'] : null,
+				'base_version'         => $base_version,
+				'mode'                 => $mode,
+				'base_revision_id'     => $base_revision_id,
+				'current_content_hash' => $current_hash,
+			)
+		);
+		$actor           = $recovery_actor['actor_id'];
 		$external_update = wp_de_rtc_create_legacy_automerge_update_for_content_change( $base_content, $current_content, $actor );
+		$external_update = wp_de_rtc_apply_system_recovery_actor_to_automerge_update( $external_update, $recovery_actor );
 		$port            = wp_de_rtc_get_automerge_native_port();
 
 		if ( is_wp_error( $port ) ) {
@@ -20028,7 +20352,6 @@ function wp_de_rtc_is_current_automerge_sync_meta( $sync_meta, $format ) {
 			);
 		}
 
-		$current_hash  = wp_de_rtc_hash_content( $current_content );
 		$next_version  = wp_de_rtc_get_next_sync_meta_version( $base_version, $current_hash );
 		$base_records  = wp_de_rtc_get_top_level_serialized_block_records( $base_content );
 		$current_records = wp_de_rtc_get_top_level_serialized_block_records( $current_content );
@@ -20050,6 +20373,7 @@ function wp_de_rtc_is_current_automerge_sync_meta( $sync_meta, $format ) {
 				'schema'      => 'de-rtc-automerge-v1',
 				'operations'  => isset( $external_update['operations'] ) && is_array( $external_update['operations'] ) ? $external_update['operations'] : array(),
 				'stateVector' => isset( $external_update['stateVector'] ) && is_array( $external_update['stateVector'] ) ? $external_update['stateVector'] : array(),
+				'repair_actor' => $recovery_actor,
 			),
 			'automerge_client_update' => $external_update,
 			'automerge_external_repair_update' => $external_update,
@@ -20079,10 +20403,27 @@ function wp_de_rtc_is_current_automerge_sync_meta( $sync_meta, $format ) {
 
 		$next_sync_meta['version']            = $next_version;
 		$next_sync_meta['previous_version']   = $base_version;
+		$next_sync_meta['last_sync_meta_recovery'] = array(
+			'type'                        => 'external_repair',
+			'mode'                        => $mode,
+			'actor'                       => $recovery_actor,
+			'previous_server_version'     => $base_version,
+			'repaired_server_version'     => $next_version,
+			'saved_stripped_content_hash' => $current_hash,
+			'base_content_hash'           => wp_de_rtc_hash_content( $base_content ),
+			'current_content_hash'        => $current_hash,
+			'content_hash_algorithm'      => 'sha256',
+		);
+
+		if ( $base_revision_id ) {
+			$next_sync_meta['last_sync_meta_recovery']['base_revision_id'] = $base_revision_id;
+		}
+
 		$next_sync_meta['last_server_update'] = array(
 			'type'                        => 'external_repair',
-			'user_id'                     => get_current_user_id(),
-			'session_label'               => wp_de_rtc_get_history_author_display_name( get_current_user_id() ),
+			'actor_type'                  => 'system',
+			'repair_actor'                => $recovery_actor,
+			'session_label'               => $recovery_actor['display_name'],
 			'external_repair_mode'        => $mode,
 			'previous_server_version'     => $base_version,
 			'saved_stripped_content_hash' => $current_hash,
@@ -20109,6 +20450,7 @@ function wp_de_rtc_is_current_automerge_sync_meta( $sync_meta, $format ) {
 			'base_revision_id'        => $base_revision_id,
 			'base_content_hash'       => wp_de_rtc_hash_content( $base_content ),
 			'current_content_hash'    => $current_hash,
+			'recovery_actor'          => $recovery_actor,
 			'automerge_external_repair_result' => $automerge_result,
 		);
 	}
@@ -20540,6 +20882,7 @@ function wp_de_rtc_prepare_automerge_raw_post_content_update( $post, $incoming_p
 				'base_revision_id'     => $current_external_repair['base_revision_id'],
 				'base_content_hash'    => $current_external_repair['base_content_hash'],
 				'current_content_hash' => $current_external_repair['current_content_hash'],
+				'repair_actor'         => isset( $current_external_repair['recovery_actor'] ) ? $current_external_repair['recovery_actor'] : null,
 				'content_hash_algorithm' => 'sha256',
 			);
 		}
@@ -21663,7 +22006,35 @@ function wp_de_rtc_plan_sync_meta_recovery_update( $decision_or_post ) {
 		);
 	}
 
-	$restored_raw_sync_meta = wp_de_rtc_format_sync_meta( $base_revision['sync_meta_format'], $base_revision['sync_meta'] );
+	$restored_sync_meta = $base_revision['sync_meta'];
+
+	if ( is_array( $restored_sync_meta ) ) {
+		$legacy_recovery_actor = wp_de_rtc_get_system_recovery_actor_descriptor(
+			get_post( (int) $decision['post_id'] ),
+			array(
+				'document_uuid'        => isset( $restored_sync_meta['document_uuid'] ) && is_string( $restored_sync_meta['document_uuid'] ) ? $restored_sync_meta['document_uuid'] : null,
+				'base_version'         => isset( $restored_sync_meta['version'] ) ? sanitize_text_field( (string) $restored_sync_meta['version'] ) : '0',
+				'mode'                 => 'legacy_sync_meta_restore',
+				'base_revision_id'     => isset( $base_revision['revision_id'] ) ? (int) $base_revision['revision_id'] : 0,
+				'current_content_hash' => $current_content_hash,
+			)
+		);
+		$restored_sync_meta['last_sync_meta_recovery'] = array(
+			'type'                        => 'sync_meta_restored_from_revision',
+			'mode'                        => 'legacy_sync_meta_restore',
+			'actor'                       => $legacy_recovery_actor,
+			'previous_server_version'     => isset( $restored_sync_meta['version'] ) ? sanitize_text_field( (string) $restored_sync_meta['version'] ) : '',
+			'repaired_server_version'     => isset( $restored_sync_meta['version'] ) ? sanitize_text_field( (string) $restored_sync_meta['version'] ) : '',
+			'saved_stripped_content_hash' => $current_content_hash,
+			'content_hash_algorithm'      => 'sha256',
+		);
+
+		if ( isset( $base_revision['revision_id'] ) ) {
+			$restored_sync_meta['last_sync_meta_recovery']['base_revision_id'] = (int) $base_revision['revision_id'];
+		}
+	}
+
+	$restored_raw_sync_meta = wp_de_rtc_format_sync_meta( $base_revision['sync_meta_format'], $restored_sync_meta );
 
 	if ( is_wp_error( $restored_raw_sync_meta ) ) {
 		return $restored_raw_sync_meta;
@@ -21674,7 +22045,7 @@ function wp_de_rtc_plan_sync_meta_recovery_update( $decision_or_post ) {
 	$candidate_post_content = wp_de_rtc_add_sync_meta_to_post_content(
 		$current_content,
 		$base_revision['sync_meta_format'],
-		$base_revision['sync_meta'],
+		$restored_sync_meta,
 		$base_revision['sync_meta_position']
 	);
 
@@ -21741,7 +22112,7 @@ function wp_de_rtc_plan_sync_meta_recovery_update( $decision_or_post ) {
 		'candidate_stripped_content_hash' => $candidate_stripped_content_hash,
 		'candidate_post_content'          => $candidate_post_content,
 		'candidate_post_content_hash'     => $candidate_post_content_hash,
-		'restored_sync_meta'              => $base_revision['sync_meta'],
+		'restored_sync_meta'              => $restored_sync_meta,
 		'restored_sync_meta_format'       => $base_revision['sync_meta_format'],
 		'restored_sync_meta_position'     => $base_revision['sync_meta_position'],
 		'restored_raw_sync_meta'          => $restored_raw_sync_meta,
@@ -22070,21 +22441,26 @@ function wp_de_rtc_get_reason_data( $reason_code, $data = array() ) {
  * @return array Dry-run result.
  */
 function wp_de_rtc_create_recovery_dry_run_result( $plan, $result, $validation_status, $valid, $can_apply, $checks ) {
-	return array(
-		'mode'                       => 'dry_run',
-		'result'                     => $result,
-		'validation_status'          => $validation_status,
-		'decision'                   => $plan['decision'],
-		'post_id'                    => (int) $plan['post_id'],
-		'valid'                      => $valid,
-		'can_apply'                  => $can_apply,
-		'would_apply'                => false,
-		'recovery_required'          => ! empty( $plan['recovery_required'] ),
-		'manual_resolution_required' => ! empty( $plan['manual_resolution_required'] ),
-		'reason'                     => isset( $plan['reason'] ) && is_array( $plan['reason'] ) ? $plan['reason'] : null,
-		'reason_code'                => isset( $plan['reason_code'] ) && is_string( $plan['reason_code'] ) ? $plan['reason_code'] : null,
-		'checks'                     => $checks,
-		'plan'                       => $plan,
+	$attribution = isset( $plan['restored_sync_meta'] ) ? wp_de_rtc_get_sync_meta_recovery_attribution( $plan['restored_sync_meta'] ) : null;
+
+	return array_merge(
+		array(
+			'mode'                       => 'dry_run',
+			'result'                     => $result,
+			'validation_status'          => $validation_status,
+			'decision'                   => $plan['decision'],
+			'post_id'                    => (int) $plan['post_id'],
+			'valid'                      => $valid,
+			'can_apply'                  => $can_apply,
+			'would_apply'                => false,
+			'recovery_required'          => ! empty( $plan['recovery_required'] ),
+			'manual_resolution_required' => ! empty( $plan['manual_resolution_required'] ),
+			'reason'                     => isset( $plan['reason'] ) && is_array( $plan['reason'] ) ? $plan['reason'] : null,
+			'reason_code'                => isset( $plan['reason_code'] ) && is_string( $plan['reason_code'] ) ? $plan['reason_code'] : null,
+			'checks'                     => $checks,
+			'plan'                       => $plan,
+		),
+		wp_de_rtc_get_recovery_attribution_response_fields( $attribution )
 	);
 }
 
@@ -22101,6 +22477,13 @@ function wp_de_rtc_create_recovery_dry_run_result( $plan, $result, $validation_s
  * @return array Apply result.
  */
 function wp_de_rtc_create_recovery_apply_result( $dry_run, $result, $applied, $extra = array() ) {
+	$attribution_fields = array(
+		'recovery_attribution'        => isset( $dry_run['recovery_attribution'] ) ? $dry_run['recovery_attribution'] : null,
+		'recovery_actor_type'         => isset( $dry_run['recovery_actor_type'] ) ? $dry_run['recovery_actor_type'] : null,
+		'recovery_attribution_key'    => isset( $dry_run['recovery_attribution_key'] ) ? $dry_run['recovery_attribution_key'] : null,
+		'recovery_attribution_source' => isset( $dry_run['recovery_attribution_source'] ) ? $dry_run['recovery_attribution_source'] : null,
+	);
+
 	return array_merge(
 		array(
 			'mode'                       => 'apply',
@@ -22119,6 +22502,7 @@ function wp_de_rtc_create_recovery_apply_result( $dry_run, $result, $applied, $e
 			'checks'                     => isset( $dry_run['checks'] ) && is_array( $dry_run['checks'] ) ? $dry_run['checks'] : array(),
 			'dry_run'                    => $dry_run,
 		),
+		$attribution_fields,
 		$extra
 	);
 }
@@ -26273,6 +26657,7 @@ function wp_de_rtc_validate_recovery_update_candidate( $plan ) {
 		'candidate_stripped_content_matches'      => false,
 		'candidate_sync_meta_matches'             => false,
 		'candidate_sync_meta_format_matches'      => false,
+		'candidate_recovery_attribution_valid'    => false,
 	);
 
 	if ( ! $checks['candidate_post_content_present'] ) {
@@ -26316,6 +26701,8 @@ function wp_de_rtc_validate_recovery_update_candidate( $plan ) {
 		is_string( $plan['restored_sync_meta_format'] ) &&
 		$parsed['sync_meta_format'] === $plan['restored_sync_meta_format']
 	);
+
+	$checks['candidate_recovery_attribution_valid'] = wp_de_rtc_validate_sync_meta_recovery_attribution( $parsed['sync_meta'] );
 
 	return $checks;
 }

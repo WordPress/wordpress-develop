@@ -3673,6 +3673,9 @@ class Tests_DE_RTC_REST_Retry_Save extends WP_Test_REST_TestCase {
 		$this->assertSame( '102', $parsed['sync_meta']['last_server_update']['external_repair']['repaired_version'] );
 		$this->assertSame( hash( 'sha256', $base_content ), $parsed['sync_meta']['last_server_update']['external_repair']['base_content_hash'] );
 		$this->assertSame( hash( 'sha256', $server_content ), $parsed['sync_meta']['last_server_update']['external_repair']['current_content_hash'] );
+		$this->assertSame( 'system', $parsed['sync_meta']['last_server_update']['external_repair']['repair_actor']['actor_type'] );
+		$this->assertSame( 'system:distributed-editing-recovery', $parsed['sync_meta']['last_server_update']['external_repair']['repair_actor']['attribution_key'] );
+		$this->assertSame( 'system', $parsed['sync_meta']['last_sync_meta_recovery']['actor']['actor_type'] );
 		$this->assertArrayNotHasKey( 'pending_automerge_update', $parsed['sync_meta'] );
 	}
 
@@ -3751,6 +3754,8 @@ class Tests_DE_RTC_REST_Retry_Save extends WP_Test_REST_TestCase {
 		$this->assertSame( 'wp_update_post', $parsed['sync_meta']['last_server_update']['type'] );
 		$this->assertSame( 'body_hash_drift', $parsed['sync_meta']['last_server_update']['external_repair']['mode'] );
 		$this->assertSame( '112', $parsed['sync_meta']['last_server_update']['external_repair']['repaired_version'] );
+		$this->assertSame( 'system', $parsed['sync_meta']['last_server_update']['external_repair']['repair_actor']['actor_type'] );
+		$this->assertSame( 'system', $parsed['sync_meta']['last_sync_meta_recovery']['actor']['actor_type'] );
 	}
 
 	/**

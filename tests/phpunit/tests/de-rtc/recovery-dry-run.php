@@ -83,10 +83,13 @@ class Tests_DE_RTC_Recovery_Dry_Run extends WP_UnitTestCase {
 				'candidate_stripped_content_matches'      => true,
 				'candidate_sync_meta_matches'             => true,
 				'candidate_sync_meta_format_matches'      => true,
+				'candidate_recovery_attribution_valid'    => true,
 			),
 			$dry_run['checks']
 		);
-		$this->assertSame( $base_metadata, $dry_run['plan']['restored_sync_meta'] );
+		$this->assertSame( $base_metadata['version'], $dry_run['plan']['restored_sync_meta']['version'] );
+		$this->assertSame( $base_metadata['hash'], $dry_run['plan']['restored_sync_meta']['hash'] );
+		$this->assertSame( 'system', $dry_run['plan']['restored_sync_meta']['last_sync_meta_recovery']['actor']['actor_type'] );
 		$this->assertSame( $current_content, $dry_run['plan']['candidate_stripped_content'] );
 
 		$this->assertSame( $before_post->post_content, $after_post->post_content );

@@ -88,7 +88,9 @@ class Tests_DE_RTC_Recovery_Plan extends WP_UnitTestCase {
 		$this->assertSame( hash( 'sha256', $current_content ), $plan['candidate_stripped_content_hash'] );
 		$this->assertSame( hash( 'sha256', $base_content ), $plan['base_revision_content_hash'] );
 		$this->assertSame( wp_de_rtc_hash_content( $plan['candidate_post_content'] ), $plan['candidate_post_content_hash'] );
-		$this->assertSame( $base_metadata, $plan['restored_sync_meta'] );
+		$this->assertSame( $base_metadata['version'], $plan['restored_sync_meta']['version'] );
+		$this->assertSame( $base_metadata['hash'], $plan['restored_sync_meta']['hash'] );
+		$this->assert_system_recovery_attribution( $plan['restored_sync_meta'], 'legacy_sync_meta_restore' );
 		$this->assertSame( 'automerge', $plan['restored_sync_meta_format'] );
 		$this->assertSame( 'prefix', $plan['restored_sync_meta_position'] );
 		$this->assertStringContainsString( 'data-wp-sync-meta="distributed-editing"', $plan['restored_raw_sync_meta'] );
@@ -97,7 +99,7 @@ class Tests_DE_RTC_Recovery_Plan extends WP_UnitTestCase {
 
 		$this->assertIsArray( $parsed_candidate );
 		$this->assertSame( $current_content, $parsed_candidate['content'] );
-		$this->assertSame( $base_metadata, $parsed_candidate['sync_meta'] );
+		$this->assertSame( $plan['restored_sync_meta'], $parsed_candidate['sync_meta'] );
 		$this->assertSame( 'automerge', $parsed_candidate['sync_meta_format'] );
 		$this->assertSame( 'prefix', $parsed_candidate['sync_meta_position'] );
 		$this->assertSame( $plan['restored_raw_sync_meta'], $parsed_candidate['raw_sync_meta'] );
@@ -146,7 +148,8 @@ class Tests_DE_RTC_Recovery_Plan extends WP_UnitTestCase {
 		$this->assertSame( 'recovery_required_restorable', $plan['decision'] );
 		$this->assertSame( $current_content, $plan['candidate_stripped_content'] );
 		$this->assertSame( 'automerge', $plan['restored_sync_meta_format'] );
-		$this->assertSame( $base_metadata, $plan['restored_sync_meta'] );
+		$this->assertSame( $base_metadata['version'], $plan['restored_sync_meta']['version'] );
+		$this->assert_system_recovery_attribution( $plan['restored_sync_meta'], 'legacy_sync_meta_restore' );
 	}
 
 	/**
@@ -265,6 +268,7 @@ class Tests_DE_RTC_Recovery_Plan extends WP_UnitTestCase {
 		$this->assertSame( 'de-rtc-automerge-v1', $plan['restored_sync_meta']['schema'] );
 		$this->assertSame( '1', $plan['restored_sync_meta']['version'] );
 		$this->assertSame( 'empty_import', $plan['restored_sync_meta']['last_server_update']['external_repair_mode'] );
+		$this->assert_system_recovery_attribution( $plan['restored_sync_meta'], 'empty_import' );
 		$this->assertSame( 'empty_import', $plan['external_change']['mode'] );
 
 		$this->assertSame( $before_post->post_content, $after_post->post_content );
@@ -316,6 +320,7 @@ class Tests_DE_RTC_Recovery_Plan extends WP_UnitTestCase {
 		$this->assertSame( 'missing_sync_meta_revision', $plan['restored_sync_meta']['last_server_update']['external_repair_mode'] );
 		$this->assertSame( 'native_automerge_external_repair_v1', $plan['restored_sync_meta']['last_server_update']['merge_strategy'] );
 		$this->assertSame( $revision_id, $plan['restored_sync_meta']['last_server_update']['base_revision_id'] );
+		$this->assert_system_recovery_attribution( $plan['restored_sync_meta'], 'missing_sync_meta_revision' );
 		$this->assertSame( 'missing_sync_meta_revision', $plan['external_change']['mode'] );
 		$this->assertSame( '11', $plan['external_change']['repaired_sync_meta_version'] );
 
@@ -416,6 +421,41 @@ class Tests_DE_RTC_Recovery_Plan extends WP_UnitTestCase {
 
 		if ( empty( $status['available'] ) ) {
 			$this->markTestSkipped( 'Native PHP Automerge runtime is not available.' );
+		}
+	}
+
+	private function assert_system_recovery_attribution( $sync_meta, $expected_mode ) {
+		$this->assertIsArray( $sync_meta );
+		$this->assertArrayHasKey( 'last_sync_meta_recovery', $sync_meta );
+		$this->assertSame( $expected_mode, $sync_meta['last_sync_meta_recovery']['mode'] );
+		$this->assertSame( 'system', $sync_meta['last_sync_meta_recovery']['actor']['actor_type'] );
+		$this->assertSame( 'system:distributed-editing-recovery', $sync_meta['last_sync_meta_recovery']['actor']['attribution_key'] );
+		$this->assertSame( 'Recovered external changes', $sync_meta['last_sync_meta_recovery']['actor']['display_name'] );
+		$this->assertFalse( $sync_meta['last_sync_meta_recovery']['actor']['human_actor'] );
+		$this->assertFalse( $sync_meta['last_sync_meta_recovery']['actor']['focusable'] );
+		$this->assertFalse( $sync_meta['last_sync_meta_recovery']['actor']['exposes_user_id'] );
+
+		if ( isset( $sync_meta['last_server_update'] ) && 'external_repair' === $sync_meta['last_server_update']['type'] ) {
+			$this->assertArrayNotHasKey( 'user_id', $sync_meta['last_server_update'] );
+			$this->assertSame( 'system', $sync_meta['last_server_update']['actor_type'] );
+			$this->assertSame( $sync_meta['last_sync_meta_recovery']['actor']['actor_id'], $sync_meta['last_server_update']['repair_actor']['actor_id'] );
+		}
+
+		if ( isset( $sync_meta['automerge_update'] ) ) {
+			$update = wp_de_rtc_decode_automerge_sync_meta_update( $sync_meta['automerge_update'] );
+
+			$this->assertNotWPError( $update );
+			$this->assertIsArray( $update );
+
+			foreach ( $update['operations'] as $index => $operation ) {
+				$this->assertSame( $sync_meta['last_sync_meta_recovery']['actor']['actor_id'], $operation['actor'] );
+				$this->assertSame( 'system', $operation['actor_type'] );
+				$this->assertSame( $sync_meta['last_sync_meta_recovery']['actor']['actor_id'] . ':' . $index, $operation['id'] );
+			}
+
+			if ( count( $update['operations'] ) > 0 ) {
+				$this->assertSame( count( $update['operations'] ), $update['stateVector'][ $sync_meta['last_sync_meta_recovery']['actor']['actor_id'] ] );
+			}
 		}
 	}
 }

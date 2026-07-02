@@ -2213,6 +2213,7 @@ class Tests_DE_RTC_REST_Permission_Flow extends WP_Test_REST_TestCase {
 		$filtered_proposed_content     = wp_unslash( wp_filter_post_kses( wp_slash( $proposed_content ) ) );
 		$next_version                  = wp_de_rtc_get_next_sync_meta_version( $server_version, $proposed_content_hash );
 		$next_sync_meta                = $current['sync_meta'];
+		$authorship_context            = wp_de_rtc_get_retry_save_authorship_context( $post );
 
 		$next_sync_meta['version']            = $next_version;
 		$next_sync_meta['previous_version']   = $server_version;
@@ -2220,6 +2221,7 @@ class Tests_DE_RTC_REST_Permission_Flow extends WP_Test_REST_TestCase {
 			'type'                         => 'retry_save',
 			'user_id'                      => get_current_user_id(),
 			'session_label'                => wp_de_rtc_get_history_author_display_name( get_current_user_id() ),
+			'attribution_key'              => isset( $authorship_context['attributionKey'] ) ? $authorship_context['attributionKey'] : null,
 			'client_base_version'          => $client_base_version,
 			'accepted_proof_server_version' => $accepted_proof_server_version,
 			'rebased_from_version'         => $rebased_from_version,
