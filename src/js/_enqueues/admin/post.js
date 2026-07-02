@@ -35,7 +35,7 @@ window.wp = window.wp || {};
 		 * @memberof commentsBox
 		 *
 		 * @param {number} total Total number of comments for this post.
-		 * @param {number} num   Optional. Number of comments to fetch, defaults to 20.
+		 * @param {number} num   Optional. Number of comments to fetch, defaults to 10.
 		 * @return {boolean} Always returns false.
 		 */
 		get : function(total, num) {
