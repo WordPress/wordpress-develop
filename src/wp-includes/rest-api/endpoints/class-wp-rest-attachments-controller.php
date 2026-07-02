@@ -2367,12 +2367,16 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		$image_size = $request['image_size'];
 
 		/*
-		 * Validate raster sub-sizes before storing them. Source-format companion
-		 * originals (e.g. a HEIC or JXL kept next to its JPEG derivative) are
+		 * Validate raster sub-sizes before storing them. Companion files are
 		 * exempt: their dimensions are neither validated nor recorded, and the
-		 * source format may not be readable by wp_getimagesize() at all.
+		 * file may not be readable by wp_getimagesize() at all. This applies to
+		 * source-format originals (e.g. a HEIC or JXL kept next to its JPEG
+		 * derivative) and to the converted-video companions of an animated GIF
+		 * (the MP4/WebM and its static first-frame poster).
 		 */
-		if ( self::IMAGE_SIZE_SOURCE_ORIGINAL !== $image_size ) {
+		$companion_sizes = array( self::IMAGE_SIZE_SOURCE_ORIGINAL, 'animated_video', 'animated_video_poster' );
+
+		if ( ! in_array( $image_size, $companion_sizes, true ) ) {
 			/*
 			 * Read the dimensions up front. A file whose dimensions cannot be
 			 * read is corrupted or an unsupported format and must be rejected
