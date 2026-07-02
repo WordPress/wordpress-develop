@@ -144,22 +144,41 @@ jQuery( document ).ready( function () {
 		QUnit.module( 'communityEvents.getTimeZone', function() {
 			QUnit.test( 'modern browsers should return a time zone name', function( assert ) {
 				// Simulate a modern browser.
-				var stub = sinon.stub( Intl.DateTimeFormat.prototype, 'resolvedOptions' );
-				stub.returns( { timeZone: 'America/Chicago' } );
+				//
+				// `getTimeZone()` builds a fresh `Intl.DateTimeFormat()` instance, so the
+				// constructor is replaced to control `resolvedOptions()`. Stubbing the
+				// prototype method is no longer sufficient, because `@sinonjs/fake-timers`
+				// (bundled with sinon) mirrors `Intl` inside the sandbox and the freshly
+				// constructed instance bypasses the prototype-level stub.
+				sinon.replace( Intl, 'DateTimeFormat', function() {
+					return {
+						resolvedOptions: function() {
+							return { timeZone: 'America/Chicago' };
+						}
+					};
+				} );
 
 				var actual = getTimeZone( startDate );
 
-				stub.restore();
-
 				assert.strictEqual( actual, 'America/Chicago' );
+
+				sinon.restore();
 			} );
 
 			QUnit.test( 'older browsers should fallback to a raw UTC offset', function( assert ) {
-				// Simulate IE11.
-				var resolvedOptionsStub = sinon.stub( Intl.DateTimeFormat.prototype, 'resolvedOptions' );
+				// Simulate IE11, which declares the `timeZone` property but leaves it undefined.
+				//
+				// The constructor is replaced rather than its prototype method, because
+				// `@sinonjs/fake-timers` (bundled with sinon) mirrors `Intl` inside the sandbox
+				// and a freshly constructed instance bypasses a prototype-level stub.
+				sinon.replace( Intl, 'DateTimeFormat', function() {
+					return {
+						resolvedOptions: function() {
+							return { timeZone: undefined };
+						}
+					};
+				} );
 				var getTimezoneOffsetStub = sinon.stub( Date.prototype, 'getTimezoneOffset' );
-
-				resolvedOptionsStub.returns( { timeZone: undefined } );
 
 				getTimezoneOffsetStub.returns( 300 );
 				var actual = getTimeZone( startDate );
@@ -173,8 +192,7 @@ jQuery( document ).ready( function () {
 				actual = getTimeZone( startDate );
 				assert.strictEqual( actual, 300, 'positive offset' ); // Intentionally opposite, see `getTimeZone()`.
 
-				resolvedOptionsStub.restore();
-				getTimezoneOffsetStub.restore();
+				sinon.restore();
 			} );
 		} );
 
