@@ -15,11 +15,15 @@ class Tests_Multisite_Network extends WP_UnitTestCase {
 	protected static $different_site_ids = array();
 
 	public function tear_down() {
+
 		global $current_site;
 		$current_site->id = 1;
+		deactivate_plugins( 'hello.php', true );
+		delete_option( 'plugin_rewrite_rules_change' );
+		delete_option( 'plugin_rewrite_rules_last_change' );
+		delete_site_option( 'plugin_rewrite_rules_network_change' );
 		parent::tear_down();
 	}
-
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$different_network_id = $factory->network->create(
 			array(
@@ -331,6 +335,35 @@ class Tests_Multisite_Network extends WP_UnitTestCase {
 	public function test_is_plugin_active_for_network_false() {
 		deactivate_plugins( 'hello.php', false, true );
 		$this->assertFalse( is_plugin_active_for_network( 'hello.php' ) );
+	}
+
+	/**
+	 * @ticket 47686
+	 */
+	public function test_network_plugin_activation_flushes_rewrite_rules_on_next_request() {
+		$flush = new MockAction();
+
+		update_option(
+			'plugin_rewrite_rules_last_change',
+			array(
+				'local'   => '',
+				'network' => '',
+			),
+			false
+		);
+		add_action( 'update_option_rewrite_rules', array( $flush, 'action' ) );
+
+		activate_plugin( 'hello.php', '', true );
+		check_plugin_rewrite_rules();
+
+		$last_change = get_option( 'plugin_rewrite_rules_last_change' );
+
+		$this->assertSame( '', get_option( 'plugin_rewrite_rules_change', '' ) );
+		$this->assertNotSame( '', get_site_option( 'plugin_rewrite_rules_network_change' ) );
+		$this->assertSame( get_site_option( 'plugin_rewrite_rules_network_change' ), $last_change['network'] );
+		$this->assertGreaterThan( 0, $flush->get_call_count() );
+
+		remove_action( 'update_option_rewrite_rules', array( $flush, 'action' ) );
 	}
 
 	public function helper_deactivate_hook() {

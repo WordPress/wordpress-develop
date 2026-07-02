@@ -375,12 +375,16 @@ add_action( 'wp_footer', 'wp_print_footer_scripts', 20 );
 add_action( 'template_redirect', 'wp_shortlink_header', 11, 0 );
 add_action( 'wp_print_footer_scripts', '_wp_footer_scripts' );
 add_action( 'init', '_register_core_block_patterns_and_categories' );
+add_action( 'init', 'check_plugin_rewrite_rules', 99 );
 add_action( 'init', 'check_theme_switched', 99 );
 add_action( 'init', array( 'WP_Block_Supports', 'init' ), 22 );
 add_action( 'switch_theme', 'wp_clean_theme_json_cache' );
 add_action( 'start_previewing_theme', 'wp_clean_theme_json_cache' );
 add_action( 'after_switch_theme', '_wp_menus_changed' );
 add_action( 'after_switch_theme', '_wp_sidebars_changed' );
+add_action( 'activated_plugin', 'wp_set_plugin_rewrite_rules_change', 10, 2 );
+add_action( 'deactivated_plugin', 'wp_set_plugin_rewrite_rules_change', 10, 2 );
+add_action( 'upgrader_process_complete', 'wp_maybe_set_plugin_rewrite_rules_change_on_upgrade', 10, 2 );
 add_action( 'wp_enqueue_scripts', 'wp_enqueue_emoji_styles' );
 add_action( 'wp_print_styles', 'print_emoji_styles' ); // Retained for backwards-compatibility. Unhooked by wp_enqueue_emoji_styles().
 

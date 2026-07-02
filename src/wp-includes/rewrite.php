@@ -276,10 +276,111 @@ function add_feed( $feedname, $callback ) {
  *                   rewrite_rules option (soft flush). Default is true (hard).
  */
 function flush_rewrite_rules( $hard = true ) {
+
 	global $wp_rewrite;
 
 	if ( is_callable( array( $wp_rewrite, 'flush_rules' ) ) ) {
 		$wp_rewrite->flush_rules( $hard );
+	}
+}
+
+/**
+ * Marks rewrite rules for flushing after plugin changes.
+ *
+ * Plugin activation and deactivation can happen before all rewrite providers
+ * have been registered, so the flush is deferred until the next request.
+ *
+ * @since 6.9.0
+ * @access private
+ *
+ * @param string $plugin       Path to the plugin file relative to the plugins directory.
+ * @param bool   $network_wide Whether the plugin change applies network-wide.
+ */
+function wp_set_plugin_rewrite_rules_change( $plugin, $network_wide ) {
+	$marker = microtime();
+
+	if ( $network_wide ) {
+		update_site_option( 'plugin_rewrite_rules_network_change', $marker );
+		return;
+	}
+
+	update_option( 'plugin_rewrite_rules_change', $marker, false );
+}
+
+/**
+ * Flushes rewrite rules on the next request after plugin changes.
+ *
+ * @since 6.9.0
+ * @access private
+ */
+function check_plugin_rewrite_rules() {
+	$current_versions = array(
+		'local'   => (string) get_option( 'plugin_rewrite_rules_change', '' ),
+		'network' => is_multisite() ? (string) get_site_option( 'plugin_rewrite_rules_network_change', '' ) : '',
+	);
+	$last_versions    = get_option( 'plugin_rewrite_rules_last_change', null );
+
+	if ( ! is_array( $last_versions ) ) {
+		update_option( 'plugin_rewrite_rules_last_change', $current_versions, false );
+
+		if ( '' === $current_versions['local'] && '' === $current_versions['network'] ) {
+			return;
+		}
+	} elseif ( $last_versions === $current_versions ) {
+		return;
+	}
+
+	flush_rewrite_rules();
+	update_option( 'plugin_rewrite_rules_last_change', $current_versions, false );
+}
+
+/**
+ * Marks rewrite rules for flushing after active plugin upgrades.
+ *
+ * @since 6.9.0
+ * @access private
+ *
+ * @param WP_Upgrader $upgrader   Upgrader instance.
+ * @param array       $hook_extra Extra arguments passed to the upgrader hooks.
+ */
+function wp_maybe_set_plugin_rewrite_rules_change_on_upgrade( $upgrader, $hook_extra ) {
+
+	if ( empty( $hook_extra['type'] ) || 'plugin' !== $hook_extra['type'] ) {
+		return;
+	}
+
+	if ( empty( $hook_extra['action'] ) || 'update' !== $hook_extra['action'] ) {
+		return;
+	}
+
+	if ( ! empty( $hook_extra['plugins'] ) ) {
+		$plugins = $hook_extra['plugins'];
+	} elseif ( ! empty( $hook_extra['plugin'] ) ) {
+		$plugins = array( $hook_extra['plugin'] );
+	} else {
+		return;
+	}
+
+	$network_wide = false;
+	$local        = false;
+
+	foreach ( $plugins as $plugin ) {
+		if ( is_plugin_active_for_network( $plugin ) ) {
+			$network_wide = true;
+			continue;
+		}
+
+		if ( is_plugin_active( $plugin ) ) {
+			$local = true;
+		}
+	}
+
+	if ( $network_wide ) {
+		wp_set_plugin_rewrite_rules_change( '', true );
+	}
+
+	if ( $local ) {
+		wp_set_plugin_rewrite_rules_change( '', false );
 	}
 }
 
