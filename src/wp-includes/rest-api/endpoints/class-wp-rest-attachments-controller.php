@@ -2215,11 +2215,10 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			return true;
 		}
 
-		// 'full' size (PDF thumbnails) and 'scaled': no further constraints.
-		if ( in_array( $image_size, array( 'full', 'scaled' ), true ) ) {
+		// 'full' size (PDF thumbnails), 'scaled', and animated GIF video companions: no further constraints.
+		if ( in_array( $image_size, array( 'full', 'scaled', 'animated_video', 'animated_video_poster' ), true ) ) {
 			return true;
 		}
-
 		// Regular image sizes: validate against registered size constraints.
 		$registered_sizes = wp_get_registered_image_subsizes();
 

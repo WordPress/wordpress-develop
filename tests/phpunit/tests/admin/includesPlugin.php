@@ -4,7 +4,6 @@
  * @group admin
  */
 class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
-
 	/**
 	 * Admin user ID.
 	 *
@@ -19,6 +18,15 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 
 	public static function wpTearDownAfterClass() {
 		self::_restore_mu_plugins();
+	}
+
+	public function tear_down() {
+		deactivate_plugins( 'hello.php', true );
+		delete_option( 'plugin_rewrite_rules_change' );
+		delete_option( 'plugin_rewrite_rules_last_change' );
+		delete_site_option( 'plugin_rewrite_rules_network_change' );
+
+		parent::tear_down();
 	}
 
 	public function test_get_plugin_data() {
@@ -399,6 +407,57 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 		$this->assertFalse( $test );
 
 		deactivate_plugins( 'hello.php' );
+	}
+
+	/**
+	 * @ticket 47686
+	 */
+	public function test_plugin_activation_flushes_rewrite_rules_on_next_request() {
+		activate_plugin( 'hello.php' );
+		check_plugin_rewrite_rules();
+
+		$last_change = get_option( 'plugin_rewrite_rules_last_change' );
+
+		$this->assertNotSame( '', get_option( 'plugin_rewrite_rules_change' ) );
+		$this->assertSame( get_option( 'plugin_rewrite_rules_change' ), $last_change['local'] );
+	}
+
+	/**
+	 * @ticket 47686
+	 */
+	public function test_plugin_deactivation_flushes_rewrite_rules_on_next_request() {
+		activate_plugin( 'hello.php' );
+		delete_option( 'plugin_rewrite_rules_change' );
+
+		deactivate_plugins( 'hello.php' );
+		check_plugin_rewrite_rules();
+
+		$last_change = get_option( 'plugin_rewrite_rules_last_change' );
+
+		$this->assertNotSame( '', get_option( 'plugin_rewrite_rules_change' ) );
+		$this->assertSame( get_option( 'plugin_rewrite_rules_change' ), $last_change['local'] );
+	}
+
+	/**
+	 * @ticket 47686
+	 */
+	public function test_active_plugin_upgrade_flushes_rewrite_rules_on_next_request() {
+		activate_plugin( 'hello.php' );
+
+		wp_maybe_set_plugin_rewrite_rules_change_on_upgrade(
+			new stdClass(),
+			array(
+				'type'   => 'plugin',
+				'action' => 'update',
+				'plugin' => 'hello.php',
+			)
+		);
+		check_plugin_rewrite_rules();
+
+		$last_change = get_option( 'plugin_rewrite_rules_last_change' );
+
+		$this->assertNotSame( '', get_option( 'plugin_rewrite_rules_change' ) );
+		$this->assertSame( get_option( 'plugin_rewrite_rules_change' ), $last_change['local'] );
 	}
 
 	/**
