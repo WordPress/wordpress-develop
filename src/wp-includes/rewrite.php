@@ -314,19 +314,22 @@ function wp_set_plugin_rewrite_rules_change( $plugin, $network_wide ) {
  * @access private
  */
 function check_plugin_rewrite_rules() {
+	if ( wp_installing() ) {
+		return;
+	}
+
 	$current_versions = array(
 		'local'   => (string) get_option( 'plugin_rewrite_rules_change', '' ),
 		'network' => is_multisite() ? (string) get_site_option( 'plugin_rewrite_rules_network_change', '' ) : '',
 	);
 	$last_versions    = get_option( 'plugin_rewrite_rules_last_change', null );
+	$has_changes      = '' !== $current_versions['local'] || '' !== $current_versions['network'];
 
-	if ( ! is_array( $last_versions ) ) {
-		update_option( 'plugin_rewrite_rules_last_change', $current_versions, false );
+	if ( ! $has_changes ) {
+		return;
+	}
 
-		if ( '' === $current_versions['local'] && '' === $current_versions['network'] ) {
-			return;
-		}
-	} elseif ( $last_versions === $current_versions ) {
+	if ( is_array( $last_versions ) && $last_versions === $current_versions ) {
 		return;
 	}
 

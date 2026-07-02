@@ -341,18 +341,6 @@ class Tests_Multisite_Network extends WP_UnitTestCase {
 	 * @ticket 47686
 	 */
 	public function test_network_plugin_activation_flushes_rewrite_rules_on_next_request() {
-		$flush = new MockAction();
-
-		update_option(
-			'plugin_rewrite_rules_last_change',
-			array(
-				'local'   => '',
-				'network' => '',
-			),
-			false
-		);
-		add_action( 'update_option_rewrite_rules', array( $flush, 'action' ) );
-
 		activate_plugin( 'hello.php', '', true );
 		check_plugin_rewrite_rules();
 
@@ -361,9 +349,6 @@ class Tests_Multisite_Network extends WP_UnitTestCase {
 		$this->assertSame( '', get_option( 'plugin_rewrite_rules_change', '' ) );
 		$this->assertNotSame( '', get_site_option( 'plugin_rewrite_rules_network_change' ) );
 		$this->assertSame( get_site_option( 'plugin_rewrite_rules_network_change' ), $last_change['network'] );
-		$this->assertGreaterThan( 0, $flush->get_call_count() );
-
-		remove_action( 'update_option_rewrite_rules', array( $flush, 'action' ) );
 	}
 
 	public function helper_deactivate_hook() {

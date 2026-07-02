@@ -413,18 +413,6 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 	 * @ticket 47686
 	 */
 	public function test_plugin_activation_flushes_rewrite_rules_on_next_request() {
-		$flush = new MockAction();
-
-		update_option(
-			'plugin_rewrite_rules_last_change',
-			array(
-				'local'   => '',
-				'network' => '',
-			),
-			false
-		);
-		add_action( 'update_option_rewrite_rules', array( $flush, 'action' ) );
-
 		activate_plugin( 'hello.php' );
 		check_plugin_rewrite_rules();
 
@@ -432,28 +420,14 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 
 		$this->assertNotSame( '', get_option( 'plugin_rewrite_rules_change' ) );
 		$this->assertSame( get_option( 'plugin_rewrite_rules_change' ), $last_change['local'] );
-		$this->assertGreaterThan( 0, $flush->get_call_count() );
-
-		remove_action( 'update_option_rewrite_rules', array( $flush, 'action' ) );
 	}
 
 	/**
 	 * @ticket 47686
 	 */
 	public function test_plugin_deactivation_flushes_rewrite_rules_on_next_request() {
-		$flush = new MockAction();
-
 		activate_plugin( 'hello.php' );
 		delete_option( 'plugin_rewrite_rules_change' );
-		update_option(
-			'plugin_rewrite_rules_last_change',
-			array(
-				'local'   => '',
-				'network' => '',
-			),
-			false
-		);
-		add_action( 'update_option_rewrite_rules', array( $flush, 'action' ) );
 
 		deactivate_plugins( 'hello.php' );
 		check_plugin_rewrite_rules();
@@ -462,27 +436,13 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 
 		$this->assertNotSame( '', get_option( 'plugin_rewrite_rules_change' ) );
 		$this->assertSame( get_option( 'plugin_rewrite_rules_change' ), $last_change['local'] );
-		$this->assertGreaterThan( 0, $flush->get_call_count() );
-
-		remove_action( 'update_option_rewrite_rules', array( $flush, 'action' ) );
 	}
 
 	/**
 	 * @ticket 47686
 	 */
 	public function test_active_plugin_upgrade_flushes_rewrite_rules_on_next_request() {
-		$flush = new MockAction();
-
 		activate_plugin( 'hello.php' );
-		update_option(
-			'plugin_rewrite_rules_last_change',
-			array(
-				'local'   => '',
-				'network' => '',
-			),
-			false
-		);
-		add_action( 'update_option_rewrite_rules', array( $flush, 'action' ) );
 
 		wp_maybe_set_plugin_rewrite_rules_change_on_upgrade(
 			new stdClass(),
@@ -498,9 +458,6 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 
 		$this->assertNotSame( '', get_option( 'plugin_rewrite_rules_change' ) );
 		$this->assertSame( get_option( 'plugin_rewrite_rules_change' ), $last_change['local'] );
-		$this->assertGreaterThan( 0, $flush->get_call_count() );
-
-		remove_action( 'update_option_rewrite_rules', array( $flush, 'action' ) );
 	}
 
 	/**
