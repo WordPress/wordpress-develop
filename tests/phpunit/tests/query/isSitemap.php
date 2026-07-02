@@ -36,7 +36,7 @@ class Tests_Query_IsSitemap extends WP_UnitTestCase {
 	/**
 	 * The property defaults to false on a freshly initialized query.
 	 *
-	 * @covers WP_Query::init
+	 * @covers WP_Query::is_sitemap
 	 */
 	public function test_is_sitemap_defaults_to_false(): void {
 		$query = new WP_Query();
