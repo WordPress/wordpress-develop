@@ -206,9 +206,10 @@ class Tests_HTTP_Functions extends WP_UnitTestCase {
 	 * @ticket 43231
 	 *
 	 * @covers WP_HTTP_Requests_Response::__construct
+	 * @covers WP_Http_Cookie::__construct
+	 * @covers WP_Http::normalize_cookies
 	 * @covers ::wp_remote_retrieve_cookies
 	 * @covers ::wp_remote_retrieve_cookie
-	 * @covers WP_Http
 	 */
 	public function test_get_cookie_host_only() {
 		// Emulate WP_Http::request() internals.

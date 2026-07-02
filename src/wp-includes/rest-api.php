@@ -428,6 +428,10 @@ function create_initial_rest_routes() {
 	// Icons.
 	$icons_controller = new WP_REST_Icons_Controller();
 	$icons_controller->register_routes();
+
+	// View Config.
+	$view_config_controller = new WP_REST_View_Config_Controller();
+	$view_config_controller->register_routes();
 }
 
 /**
@@ -2091,13 +2095,10 @@ function rest_are_values_equal( $value1, $value2 ) {
 			return false;
 		}
 
-		foreach ( $value1 as $index => $value ) {
-			if ( ! array_key_exists( $index, $value2 ) || ! rest_are_values_equal( $value, $value2[ $index ] ) ) {
-				return false;
-			}
-		}
-
-		return true;
+		return array_all(
+			$value1,
+			fn( $value, $index ) => array_key_exists( $index, $value2 ) && rest_are_values_equal( $value, $value2[ $index ] )
+		);
 	}
 
 	if ( is_int( $value1 ) && is_float( $value2 )
