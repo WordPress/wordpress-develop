@@ -4273,7 +4273,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	 * `image_editor_output_format` filter is never suppressed - meaning the
 	 * server still performs the format conversion the client opted out of.
 	 *
-	 * @ticket 64737
+	 * @ticket 65329
 	 * @covers WP_REST_Attachments_Controller::register_routes
 	 */
 	public function test_sideload_route_declares_convert_format_boolean() {
@@ -4304,7 +4304,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	 * `image_editor_output_format` only maps HEIC/HEIF to JPEG; a local filter
 	 * adds a PNG to JPEG mapping to trigger the same alt-ext check.
 	 *
-	 * @ticket 64737
+	 * @ticket 65329
 	 * @covers WP_REST_Attachments_Controller::sideload_item
 	 * @covers WP_REST_Attachments_Controller::register_routes
 	 * @requires function imagejpeg
