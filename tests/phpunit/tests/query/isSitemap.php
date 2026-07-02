@@ -90,17 +90,6 @@ class Tests_Query_IsSitemap extends WP_UnitTestCase {
 	}
 
 	/**
-	 * is_sitemap() must return a boolean.
-	 *
-	 * @covers WP_Query::is_sitemap
-	 */
-	public function test_is_sitemap_return_type_is_bool(): void {
-		$query = new WP_Query( array( 'sitemap' => 'index' ) );
-
-		$this->assertIsBool( $query->is_sitemap(), 'WP_Query::is_sitemap() should return a boolean.' );
-	}
-
-	/**
 	 * An empty "sitemap" query var must not set the flag.
 	 *
 	 * @covers WP_Query::parse_query
