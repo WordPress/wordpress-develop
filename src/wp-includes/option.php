@@ -3019,10 +3019,10 @@ function register_initial_settings() {
  *                                         When registering complex settings, this argument may optionally be an
  *                                         array with a 'schema' key.
  *     @type bool|array $show_in_abilities Whether this setting should be exposed through the Abilities API
- *                                         (e.g. the `core/settings` ability). When registering complex settings,
+ *                                         (e.g. the `core/read-settings` ability). When registering complex settings,
  *                                         this argument may optionally be an array with optional 'name' and
  *                                         'schema' keys, mirroring the `show_in_rest` shape. The set of exposed
- *                                         settings is captured when the `core/settings` ability registers on the
+ *                                         settings is captured when the `core/read-settings` ability registers on the
  *                                         `wp_abilities_api_init` hook, so a setting must be registered before
  *                                         that hook fires to be exposed.
  *     @type mixed      $default           Default value when calling `get_option()`.
@@ -3245,7 +3245,7 @@ function unregister_setting( $option_group, $option_name, $deprecated = '' ) {
  *                                             When registering complex settings, this argument may optionally be an
  *                                             array with a 'schema' key.
  *         @type bool|array $show_in_abilities Whether this setting should be exposed through the Abilities API
- *                                             (e.g. the `core/settings` ability). May optionally be an array with
+ *                                             (e.g. the `core/read-settings` ability). May optionally be an array with
  *                                             optional 'name' and 'schema' keys, mirroring the `show_in_rest` shape.
  *         @type mixed      $default           Default value when calling `get_option()`.
  *     }

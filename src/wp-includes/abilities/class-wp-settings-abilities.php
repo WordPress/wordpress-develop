@@ -12,7 +12,7 @@ declare( strict_types = 1 );
 /**
  * Core class used to register settings-related abilities.
  *
- * Provides the read-only `core/settings` ability and the shared building blocks
+ * Provides the read-only `core/read-settings` ability and the shared building blocks
  * (exposed-settings discovery, schema generation, value casting) that are intended to
  * also back a future write-oriented `core/manage-settings` ability.
  *
@@ -64,7 +64,7 @@ final class WP_Settings_Abilities {
 	}
 
 	/**
-	 * Registers the read-only `core/settings` ability.
+	 * Registers the read-only `core/read-settings` ability.
 	 *
 	 * @since 7.1.0
 	 */
@@ -85,9 +85,9 @@ final class WP_Settings_Abilities {
 		}
 
 		wp_register_ability(
-			'core/settings',
+			'core/read-settings',
 			array(
-				'label'               => __( 'Get Settings' ),
+				'label'               => __( 'Read Settings' ),
 				'description'         => __( 'Returns WordPress settings as a flat map of setting name to value. By default returns all settings exposed to abilities, or optionally a subset filtered by settings group, by setting name, or both.' ),
 				'category'            => self::CATEGORY,
 				'input_schema'        => $this->get_settings_input_schema( $groups, $field_names ),
@@ -112,7 +112,7 @@ final class WP_Settings_Abilities {
 	}
 
 	/**
-	 * Executes the `core/settings` ability.
+	 * Executes the `core/read-settings` ability.
 	 *
 	 * @since 7.1.0
 	 *
