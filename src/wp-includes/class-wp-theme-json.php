@@ -1185,8 +1185,10 @@ class WP_Theme_JSON {
 			if ( isset( static::VALID_BLOCK_CUSTOM_STATES[ $block ] ) ) {
 				foreach ( static::VALID_BLOCK_CUSTOM_STATES[ $block ] as $custom_state ) {
 					$custom_state_schema = $styles_non_top_level;
-					// The same pseudo-selectors valid for the block at the top level
-					// are also valid within each custom state.
+					/*
+					 * The same pseudo-selectors valid for the block at the top level
+					 * are also valid within each custom state.
+					 */
 					if ( isset( static::VALID_BLOCK_PSEUDO_SELECTORS[ $block ] ) ) {
 						foreach ( static::VALID_BLOCK_PSEUDO_SELECTORS[ $block ] as $pseudo ) {
 							$custom_state_schema[ $pseudo ] = $styles_non_top_level;
@@ -3275,6 +3277,7 @@ class WP_Theme_JSON {
 								'path'       => array( 'styles', 'blocks', $name, $custom_state ),
 								'selector'   => $custom_css_selector,
 								'selectors'  => $feature_selectors,
+								'elements'   => $selectors[ $name ]['elements'] ?? array(),
 								'duotone'    => $duotone_selector,
 								'variations' => $variation_selectors,
 								'css'        => $custom_css_selector,
@@ -3290,6 +3293,7 @@ class WP_Theme_JSON {
 											'path'       => array( 'styles', 'blocks', $name, $custom_state, $pseudo ),
 											'selector'   => $compound_css_selector,
 											'selectors'  => $feature_selectors,
+											'elements'   => $selectors[ $name ]['elements'] ?? array(),
 											'duotone'    => $duotone_selector,
 											'variations' => $variation_selectors,
 											'css'        => $compound_css_selector,
