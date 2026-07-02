@@ -16,6 +16,17 @@ declare( strict_types = 1 );
  * (exposed-settings discovery, schema generation, value casting) that are intended to
  * also back a future write-oriented `core/manage-settings` ability.
  *
+ * Unlike the other core abilities, which are self-contained closures registered directly
+ * in wp_register_core_abilities(), the settings abilities live in a dedicated class
+ * because they share state: the set of exposed settings is computed once at registration
+ * and reused by the input schema, the output schema, and the execute callback, and the
+ * same helpers are meant to be shared with the future write ability.
+ *
+ * The exposed settings are captured when the ability registers on `wp_abilities_api_init`,
+ * so a setting must be registered with `show_in_abilities` before that hook fires to be
+ * exposed. Core registers its own settings on `rest_api_init`, which always precedes the
+ * lazy initialization of the abilities registry during REST API requests.
+ *
  * This class is part of WordPress' internal implementation of the core abilities and is
  * not part of the public API. It may be changed or removed at any time without notice.
  * Do not use it directly or rely on its existence.
