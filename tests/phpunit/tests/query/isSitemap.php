@@ -14,13 +14,6 @@
 class Tests_Query_IsSitemap extends WP_UnitTestCase {
 
 	/**
-	 * Post IDs created for the shared fixture.
-	 *
-	 * @var int[]
-	 */
-	public static array $post_ids;
-
-	/**
 	 * Set up the shared fixture.
 	 *
 	 * Published posts are required so that a sitemap request does not turn into a
@@ -29,13 +22,7 @@ class Tests_Query_IsSitemap extends WP_UnitTestCase {
 	 * @param WP_UnitTest_Factory $factory Factory instance.
 	 */
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ): void {
-		self::$post_ids = array_map(
-			static function ( $id ): int {
-				assert( is_int( $id ) );
-				return $id;
-			},
-			$factory->post->create_many( 3 )
-		);
+		$factory->post->create_many( 3 );
 	}
 
 	public function set_up() {
