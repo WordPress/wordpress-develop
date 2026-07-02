@@ -505,7 +505,7 @@ class Tests_Sitemaps_Sitemaps extends WP_UnitTestCase {
 	 * @runInSeparateProcess
 	 * @preserveGlobalState disabled
 	 */
-	public function test_render_sitemaps_defines_doing_sitemap() {
+	public function test_render_sitemaps_defines_doing_sitemap(): void {
 		$this->assertFalse( wp_doing_sitemap(), 'wp_doing_sitemap() should be false before a sitemap is rendered.' );
 
 		wp_register_sitemap_provider( 'foo', new WP_Sitemaps_Empty_Test_Provider( 'foo' ) );
@@ -531,7 +531,7 @@ class Tests_Sitemaps_Sitemaps extends WP_UnitTestCase {
 	 * @runInSeparateProcess
 	 * @preserveGlobalState disabled
 	 */
-	public function test_render_sitemaps_does_not_define_doing_sitemap_when_disabled() {
+	public function test_render_sitemaps_does_not_define_doing_sitemap_when_disabled(): void {
 		add_filter( 'wp_sitemaps_enabled', '__return_false' );
 
 		$this->go_to( home_url( '/?sitemap=index' ) );

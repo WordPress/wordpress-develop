@@ -15,7 +15,7 @@ class Tests_Load_WpDoingSitemap extends WP_UnitTestCase {
 	 *
 	 * @ticket 56954
 	 */
-	public function test_should_return_false_by_default() {
+	public function test_should_return_false_by_default(): void {
 		$this->assertFalse( wp_doing_sitemap() );
 	}
 
@@ -24,7 +24,7 @@ class Tests_Load_WpDoingSitemap extends WP_UnitTestCase {
 	 *
 	 * @ticket 56954
 	 */
-	public function test_filter_can_force_true() {
+	public function test_filter_can_force_true(): void {
 		add_filter( 'wp_doing_sitemap', '__return_true' );
 
 		$this->assertTrue( wp_doing_sitemap() );
@@ -41,7 +41,7 @@ class Tests_Load_WpDoingSitemap extends WP_UnitTestCase {
 	 * @runInSeparateProcess
 	 * @preserveGlobalState disabled
 	 */
-	public function test_constant_defined_returns_true() {
+	public function test_constant_defined_returns_true(): void {
 		$this->assertFalse( wp_doing_sitemap(), 'wp_doing_sitemap() should be false before the constant is defined.' );
 
 		define( 'DOING_SITEMAP', true );
@@ -57,7 +57,7 @@ class Tests_Load_WpDoingSitemap extends WP_UnitTestCase {
 	 * @runInSeparateProcess
 	 * @preserveGlobalState disabled
 	 */
-	public function test_filter_overrides_constant() {
+	public function test_filter_overrides_constant(): void {
 		define( 'DOING_SITEMAP', true );
 
 		add_filter( 'wp_doing_sitemap', '__return_false' );

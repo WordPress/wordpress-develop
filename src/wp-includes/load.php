@@ -1804,7 +1804,7 @@ function wp_doing_sitemap(): bool {
 	 *
 	 * @param bool $wp_doing_sitemap Whether the current request is a WordPress sitemap request.
 	 */
-	return apply_filters( 'wp_doing_sitemap', defined( 'DOING_SITEMAP' ) && DOING_SITEMAP );
+	return (bool) apply_filters( 'wp_doing_sitemap', defined( 'DOING_SITEMAP' ) && DOING_SITEMAP );
 }
 
 /**
