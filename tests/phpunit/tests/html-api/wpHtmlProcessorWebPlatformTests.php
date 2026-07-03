@@ -27,36 +27,63 @@ class Tests_HtmlApi_WebPlatformTests extends WP_UnitTestCase {
 	 * Skip specific tests that may not be supported or have known issues.
 	 */
 	const SKIP_TESTS = array(
-		'noscript01/line0014'       => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
-		'tests14/line0022'          => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
-		'tests14/line0055'          => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
-		'tests19/line0488'          => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
-		'tests19/line0500'          => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
-		'tests19/line1079'          => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
-		'tests2/line0207'           => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
-		'tests2/line0686'           => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
-		'tests2/line0697'           => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
-		'tests2/line0709'           => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
-		'menuitem-element/line0161' => 'Unimplemented: This parser does not support customizable SELECT element content.',
-		'tests9/line0048'           => 'Unimplemented: This parser does not support customizable SELECT element content.',
-		'tests9/line0059'           => 'Unimplemented: This parser does not support customizable SELECT element content.',
-		'tests9/line0299'           => 'Unimplemented: This parser does not support customizable SELECT element content.',
-		'tests10/line0035'          => 'Unimplemented: This parser does not support customizable SELECT element content.',
-		'tests10/line0046'          => 'Unimplemented: This parser does not support customizable SELECT element content.',
-		'tests10/line0259'          => 'Unimplemented: This parser does not support customizable SELECT element content.',
-		'tests18/line0227'          => 'Unimplemented: This parser does not support customizable SELECT element content.',
-		'webkit01/line0231'         => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
-		'webkit02/line0557'         => 'Unimplemented: This parser does not support customizable SELECT element content.',
-		'webkit02/line0590'         => 'Unimplemented: This parser does not support customizable SELECT element content.',
-		'webkit02/line0611'         => 'Unimplemented: This parser does not support customizable SELECT element content.',
-		'webkit02/line0624'         => 'Unimplemented: This parser does not support customizable SELECT element content.',
-		'webkit02/line0637'         => 'Unimplemented: This parser does not support customizable SELECT element content.',
-		'webkit02/line0652'         => 'Unimplemented: This parser does not support customizable SELECT element content.',
-		'webkit02/line0666'         => 'Unimplemented: This parser does not support customizable SELECT element content.',
-		'webkit02/line0692'         => 'Unimplemented: This parser does not support customizable SELECT element content.',
-		'webkit02/line0706'         => 'Unimplemented: This parser does not support customizable SELECT element content.',
-		'webkit02/line0732'         => 'Unimplemented: This parser does not support customizable SELECT element content.',
-		'webkit02/line0748'         => 'Unimplemented: This parser does not support customizable SELECT element content.',
+		'noscript01/line0014'              => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
+		'tests14/line0022'                 => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
+		'tests14/line0055'                 => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
+		'tests19/line0488'                 => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
+		'tests19/line0500'                 => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
+		'tests19/line1079'                 => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
+		'tests2/line0207'                  => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
+		'tests2/line0686'                  => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
+		'tests2/line0697'                  => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
+		'tests2/line0709'                  => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
+		'menuitem-element/line0161'        => 'Unimplemented: This parser does not support customizable SELECT element content.',
+		/*
+		 * These tests contain escape sequences (`\t`, `\uXXXX`) in their input which the
+		 * expected tree assumes were decoded, but the test runner supplies the input verbatim.
+		 * Parsed per the specification, the input produces different nodes than the tests
+		 * expect. Browsers fail these test cases as well.
+		 */
+		'processing-instructions/line0077' => 'Broken test: input escape sequence is never decoded.',
+		'processing-instructions/line0085' => 'Broken test: input escape sequence is never decoded.',
+		'processing-instructions/line0093' => 'Broken test: input escape sequence is never decoded.',
+		'processing-instructions/line0101' => 'Broken test: input escape sequence is never decoded.',
+		'processing-instructions/line0598' => 'Broken test: input escape sequence is never decoded.',
+		'processing-instructions/line0638' => 'Broken test: input escape sequence is never decoded.',
+		'processing-instructions/line0646' => 'Broken test: input escape sequence is never decoded.',
+		'processing-instructions/line0654' => 'Broken test: input escape sequence is never decoded.',
+		'processing-instructions/line0774' => 'Broken test: input escape sequence is never decoded.',
+		'processing-instructions/line0782' => 'Broken test: input escape sequence is never decoded.',
+		'processing-instructions/line0790' => 'Broken test: input escape sequence is never decoded.',
+		'processing-instructions/line0798' => 'Broken test: input escape sequence is never decoded.',
+		/*
+		 * These expected trees appear to be mechanical conversions of the previous
+		 * bogus-comment expectations. `<?COMMENT?>` must parse into a processing
+		 * instruction with target "COMMENT" and empty data: the final `?` is consumed
+		 * in the "processing instruction questionable state" and never becomes data.
+		 * Browsers fail these test cases as well.
+		 */
+		'tests1/line0601'                  => 'Broken test: expected tree does not match the HTML Standard.',
+		'tests1/line0640'                  => 'Broken test: expected tree does not match the HTML Standard.',
+		'tests9/line0048'                  => 'Unimplemented: This parser does not support customizable SELECT element content.',
+		'tests9/line0059'                  => 'Unimplemented: This parser does not support customizable SELECT element content.',
+		'tests9/line0299'                  => 'Unimplemented: This parser does not support customizable SELECT element content.',
+		'tests10/line0035'                 => 'Unimplemented: This parser does not support customizable SELECT element content.',
+		'tests10/line0046'                 => 'Unimplemented: This parser does not support customizable SELECT element content.',
+		'tests10/line0259'                 => 'Unimplemented: This parser does not support customizable SELECT element content.',
+		'tests18/line0227'                 => 'Unimplemented: This parser does not support customizable SELECT element content.',
+		'webkit01/line0231'                => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
+		'webkit02/line0557'                => 'Unimplemented: This parser does not support customizable SELECT element content.',
+		'webkit02/line0590'                => 'Unimplemented: This parser does not support customizable SELECT element content.',
+		'webkit02/line0611'                => 'Unimplemented: This parser does not support customizable SELECT element content.',
+		'webkit02/line0624'                => 'Unimplemented: This parser does not support customizable SELECT element content.',
+		'webkit02/line0637'                => 'Unimplemented: This parser does not support customizable SELECT element content.',
+		'webkit02/line0652'                => 'Unimplemented: This parser does not support customizable SELECT element content.',
+		'webkit02/line0666'                => 'Unimplemented: This parser does not support customizable SELECT element content.',
+		'webkit02/line0692'                => 'Unimplemented: This parser does not support customizable SELECT element content.',
+		'webkit02/line0706'                => 'Unimplemented: This parser does not support customizable SELECT element content.',
+		'webkit02/line0732'                => 'Unimplemented: This parser does not support customizable SELECT element content.',
+		'webkit02/line0748'                => 'Unimplemented: This parser does not support customizable SELECT element content.',
 	);
 
 	/**
@@ -323,6 +350,16 @@ class Tests_HtmlApi_WebPlatformTests extends WP_UnitTestCase {
 				case '#funky-comment':
 					// Comments must be "<" then "!-- " then the data then " -->".
 					$output .= str_repeat( self::TREE_INDENT, $indent_level ) . "<!-- {$processor->get_modifiable_text()} -->\n";
+					break;
+
+				case '#processing-instruction':
+					/*
+					 * Processing instructions must be "<?" then the target then,
+					 * unless the data is empty, a space and the data, and finally "?>".
+					 */
+					$pi_data = $processor->get_modifiable_text();
+					$pi_data = '' === $pi_data ? '' : " {$pi_data}";
+					$output .= str_repeat( self::TREE_INDENT, $indent_level ) . "<?{$processor->get_tag()}{$pi_data}?>\n";
 					break;
 
 				case '#comment':
