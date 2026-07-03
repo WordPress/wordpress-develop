@@ -382,9 +382,47 @@ class Tests_HtmlApi_WpHtmlProcessor_Serialize extends WP_UnitTestCase {
 			'CDATA look-alike'                      => array( '<!', '[CDATA[inside]]', '>' ),
 			'Immediately-closed markup instruction' => array( '<!', '?', '>' ),
 			'Warning Symbol'                        => array( '<!', '', '>' ),
-			'PHP block look-alike'                  => array( '<', '?php foo(); ?', '>' ),
+			'PHP short echo tag'                    => array( '<', '?= "Hello" ?', '>' ),
 			'Funky comment'                         => array( '</', '%display-name', '>' ),
 			'XML Processing Instruction look-alike' => array( '<', '?xml foo ', '>' ),
+		);
+	}
+
+	/**
+	 * Ensures that processing instructions are serialized in their normative form.
+	 *
+	 * Note that the serialized form separates the target from the data with a
+	 * single space and always terminates with `>`, regardless of the original
+	 * syntax. Data ending in `?` cannot be represented: `<?t d??>` holds the
+	 * data `d?` but its serialization `<?t d?>` re-parses with the data `d`.
+	 *
+	 * @ticket 61530
+	 *
+	 * @dataProvider data_processing_instructions
+	 *
+	 * @param string $html     Input containing a processing instruction.
+	 * @param string $expected Normative serialization of the input.
+	 */
+	public function test_serializes_processing_instructions( string $html, string $expected ) {
+		$this->assertSame(
+			WP_HTML_Processor::normalize( $html ),
+			$expected,
+			'Should have serialized the processing instruction in its normative form.'
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_processing_instructions() {
+		return array(
+			'PHP block'               => array( '<?php foo(); ?>', '<?php foo(); >' ),
+			'Unclosed PHP block'      => array( '<?php foo(); >', '<?php foo(); >' ),
+			'Empty data'              => array( '<?wp-bit?>', '<?wp-bit >' ),
+			'Whitespace-only data'    => array( '<?wp-bit   ?>', '<?wp-bit >' ),
+			'Data with question mark' => array( '<?wp-bit smile??>', '<?wp-bit smile?>' ),
 		);
 	}
 
