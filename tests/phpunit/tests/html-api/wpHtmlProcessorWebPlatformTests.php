@@ -37,9 +37,6 @@ class Tests_HtmlApi_WebPlatformTests extends WP_UnitTestCase {
 		'tests2/line0686'           => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
 		'tests2/line0697'           => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
 		'tests2/line0709'           => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
-		'tests1/line0601'           => 'Unimplemented: This parser treats processing instructions as comments.',
-		'tests1/line0640'           => 'Unimplemented: This parser treats processing instructions as comments.',
-		'html5test-com/line0129'    => 'Unimplemented: This parser treats processing instructions as comments.',
 		'menuitem-element/line0161' => 'Unimplemented: This parser does not support customizable SELECT element content.',
 		'tests9/line0048'           => 'Unimplemented: This parser does not support customizable SELECT element content.',
 		'tests9/line0059'           => 'Unimplemented: This parser does not support customizable SELECT element content.',
@@ -60,13 +57,6 @@ class Tests_HtmlApi_WebPlatformTests extends WP_UnitTestCase {
 		'webkit02/line0706'         => 'Unimplemented: This parser does not support customizable SELECT element content.',
 		'webkit02/line0732'         => 'Unimplemented: This parser does not support customizable SELECT element content.',
 		'webkit02/line0748'         => 'Unimplemented: This parser does not support customizable SELECT element content.',
-	);
-
-	/**
-	 * Skip test files that exercise parser behavior unsupported by the HTML API.
-	 */
-	const SKIP_TEST_PREFIXES = array(
-		'processing-instructions/' => 'Unimplemented: This parser treats processing instructions as comments.',
 	);
 
 	/**
@@ -173,12 +163,6 @@ class Tests_HtmlApi_WebPlatformTests extends WP_UnitTestCase {
 
 		if ( array_key_exists( $test_name, self::SKIP_TESTS ) ) {
 			return true;
-		}
-
-		foreach ( array_keys( self::SKIP_TEST_PREFIXES ) as $test_prefix ) {
-			if ( str_starts_with( $test_name, $test_prefix ) ) {
-				return true;
-			}
 		}
 
 		return false;
