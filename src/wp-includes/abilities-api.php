@@ -19,9 +19,14 @@
  *
  * ## Working with Abilities
  *
- * Abilities must be registered on the `wp_abilities_api_init` action hook.
- * Attempting to register an ability outside of this hook will fail and
- * trigger a `_doing_it_wrong()` notice.
+ * Register abilities on the `wp_abilities_api_init` action hook. The hook fires
+ * once, when the abilities registry is first initialized (on or after the `init`
+ * action), which guarantees the ability is available to every discovery surface
+ * from the start. Registration is also supported at any later point in the
+ * request - for example from code that initializes on `rest_api_init`, or in
+ * long-running runtimes that load plugin code after WordPress has booted.
+ * Attempting to register an ability before the `init` action has fired will
+ * fail and trigger a `_doing_it_wrong()` notice.
 
  * Example:
  *
@@ -72,7 +77,9 @@
  *
  * ## Best Practices
  *
- *  - Always register abilities on the `wp_abilities_api_init` hook.
+ *  - Prefer registering abilities on the `wp_abilities_api_init` hook, so they
+ *    are available to all discovery surfaces from the moment the registry
+ *    initializes.
  *  - Use namespaced ability names to prevent conflicts.
  *  - Implement robust permission checks in permission callbacks.
  *  - Provide an `input_schema` to ensure data integrity and document expected inputs.
@@ -90,7 +97,8 @@ declare( strict_types = 1 );
 /**
  * Registers a new ability using the Abilities API. It requires three steps:
  *
- *  1. Hook into the `wp_abilities_api_init` action.
+ *  1. Hook into the `wp_abilities_api_init` action (recommended), or call at
+ *     any later point after the `init` action has fired.
  *  2. Call `wp_register_ability()` with a namespaced name and configuration.
  *  3. Provide execute and permission callbacks.
  *
@@ -220,6 +228,9 @@ declare( strict_types = 1 );
  * This allows abilities to be invoked via HTTP requests to the WordPress REST API.
  *
  * @since 6.9.0
+ * @since 7.1.0 Registration is supported at any point after the `init` action has
+ *              fired; the `wp_abilities_api_init` action is no longer the only
+ *              registration window.
  *
  * @see WP_Abilities_Registry::register()
  * @see wp_register_ability_category()
@@ -276,16 +287,16 @@ declare( strict_types = 1 );
  * @return WP_Ability|null The registered ability instance on success, `null` on failure.
  */
 function wp_register_ability( string $name, array $args ): ?WP_Ability {
-	if ( ! doing_action( 'wp_abilities_api_init' ) ) {
+	if ( ! did_action( 'init' ) ) {
 		_doing_it_wrong(
 			__FUNCTION__,
 			sprintf(
-				/* translators: 1: wp_abilities_api_init, 2: string value of the ability name. */
-				__( 'Abilities must be registered on the %1$s action. The ability %2$s was not registered.' ),
-				'<code>wp_abilities_api_init</code>',
+				/* translators: 1: init, 2: string value of the ability name. */
+				__( 'Abilities cannot be registered before the %1$s action has fired. The ability %2$s was not registered.' ),
+				'<code>init</code>',
 				'<code>' . esc_html( $name ) . '</code>'
 			),
-			'6.9.0'
+			'7.1.0'
 		);
 		return null;
 	}
@@ -598,7 +609,10 @@ function _wp_get_abilities_match_meta( array $meta, array $conditions ): bool {
  * discoverability and management. Ability categories must be registered before abilities
  * that reference them.
  *
- * Ability categories must be registered on the `wp_abilities_api_categories_init` action hook.
+ * Register ability categories on the `wp_abilities_api_categories_init` action
+ * hook (recommended), or at any later point after the `init` action has fired.
+ * Attempting to register an ability category before `init` will fail and
+ * trigger a `_doing_it_wrong()` notice.
  *
  * Example:
  *
@@ -614,6 +628,9 @@ function _wp_get_abilities_match_meta( array $meta, array $conditions ): bool {
  *     add_action( 'wp_abilities_api_categories_init', 'my_plugin_register_categories' );
  *
  * @since 6.9.0
+ * @since 7.1.0 Registration is supported at any point after the `init` action has
+ *              fired; the `wp_abilities_api_categories_init` action is no longer
+ *              the only registration window.
  *
  * @see WP_Ability_Categories_Registry::register()
  * @see wp_register_ability()
@@ -631,16 +648,16 @@ function _wp_get_abilities_match_meta( array $meta, array $conditions ): bool {
  * @return WP_Ability_Category|null The registered ability category instance on success, `null` on failure.
  */
 function wp_register_ability_category( string $slug, array $args ): ?WP_Ability_Category {
-	if ( ! doing_action( 'wp_abilities_api_categories_init' ) ) {
+	if ( ! did_action( 'init' ) ) {
 		_doing_it_wrong(
 			__FUNCTION__,
 			sprintf(
-				/* translators: 1: wp_abilities_api_categories_init, 2: ability category slug. */
-				__( 'Ability categories must be registered on the %1$s action. The ability category %2$s was not registered.' ),
-				'<code>wp_abilities_api_categories_init</code>',
+				/* translators: 1: init, 2: ability category slug. */
+				__( 'Ability categories cannot be registered before the %1$s action has fired. The ability category %2$s was not registered.' ),
+				'<code>init</code>',
 				'<code>' . esc_html( $slug ) . '</code>'
 			),
-			'6.9.0'
+			'7.1.0'
 		);
 		return null;
 	}

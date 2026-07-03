@@ -54,13 +54,14 @@ class Tests_Abilities_API_WpRegisterAbilityCategory extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test registering ability category before `wp_abilities_api_categories_init` hook.
+	 * Test registering an ability category outside the `wp_abilities_api_categories_init` hook.
 	 *
-	 * @ticket 64098
+	 * Late registration is supported: once the `init` action has fired, an
+	 * ability category can be registered at any point in the request.
 	 *
-	 * @expectedIncorrectUsage wp_register_ability_category
+	 * @ticket 65583
 	 */
-	public function test_register_category_before_init_hook(): void {
+	public function test_register_category_after_categories_init_hook(): void {
 		$this->assertFalse( doing_action( 'wp_abilities_api_categories_init' ) );
 
 		$result = wp_register_ability_category(
@@ -68,15 +69,17 @@ class Tests_Abilities_API_WpRegisterAbilityCategory extends WP_UnitTestCase {
 			self::$test_ability_category_args
 		);
 
-		$this->assertNull( $result );
+		$this->assertInstanceOf( WP_Ability_Category::class, $result );
+		$this->assertTrue( wp_has_ability_category( self::$test_ability_category_name ) );
 	}
 
 	/**
 	 * Tests registering an ability category when `init` action has not fired.
 	 *
 	 * @ticket 64098
+	 * @ticket 65583
 	 *
-	 * @expectedIncorrectUsage WP_Ability_Categories_Registry::get_instance
+	 * @expectedIncorrectUsage wp_register_ability_category
 	 */
 	public function test_register_ability_category_no_init_action(): void {
 		global $wp_actions;
@@ -86,8 +89,6 @@ class Tests_Abilities_API_WpRegisterAbilityCategory extends WP_UnitTestCase {
 
 		// Reset the action count to simulate it not being fired.
 		unset( $wp_actions['init'] );
-
-		$this->simulate_doing_wp_ability_categories_init_action();
 
 		$result = wp_register_ability_category(
 			self::$test_ability_category_name,

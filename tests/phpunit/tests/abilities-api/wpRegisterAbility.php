@@ -129,26 +129,32 @@ class Test_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests registering an ability when `wp_abilities_api_init` action has not fired.
+	 * Tests registering an ability outside the `wp_abilities_api_init` action.
 	 *
-	 * @ticket 64098
+	 * Late registration is supported: once the `init` action has fired, an
+	 * ability can be registered at any point in the request, and it must be
+	 * discoverable through the regular retrieval functions.
 	 *
-	 * @expectedIncorrectUsage wp_register_ability
+	 * @ticket 65583
 	 */
-	public function test_register_ability_no_abilities_api_init_action(): void {
+	public function test_register_ability_after_abilities_api_init_action(): void {
 		$this->assertFalse( doing_action( 'wp_abilities_api_init' ) );
 
 		$result = wp_register_ability( self::$test_ability_name, self::$test_ability_args );
 
-		$this->assertNull( $result );
+		$this->assertInstanceOf( WP_Ability::class, $result );
+		$this->assertTrue( wp_has_ability( self::$test_ability_name ) );
+		$this->assertSame( $result, wp_get_ability( self::$test_ability_name ) );
+		$this->assertArrayHasKey( self::$test_ability_name, wp_get_abilities() );
 	}
 
 	/**
 	 * Tests registering an ability when `init` action has not fired.
 	 *
 	 * @ticket 64098
+	 * @ticket 65583
 	 *
-	 * @expectedIncorrectUsage WP_Abilities_Registry::get_instance
+	 * @expectedIncorrectUsage wp_register_ability
 	 */
 	public function test_register_ability_no_init_action(): void {
 		global $wp_actions;
@@ -158,8 +164,6 @@ class Test_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 
 		// Reset the action count to simulate it not being fired.
 		unset( $wp_actions['init'] );
-
-		$this->simulate_doing_wp_abilities_init_action();
 
 		$result = wp_register_ability( self::$test_ability_name, self::$test_ability_args );
 
