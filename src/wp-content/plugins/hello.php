@@ -9,6 +9,8 @@ Plugin URI: http://wordpress.org/plugins/hello-dolly/
 Description: This is not just a plugin, it symbolizes the hope and enthusiasm of an entire generation summed up in two words sung most famously by Louis Armstrong: Hello, Dolly. When activated you will randomly see a lyric from <cite>Hello, Dolly</cite> in the upper right of your admin screen on every page.
 Author: Matt Mullenweg
 Version: 1.7.2
+License: GPLv2 or later
+License URI: https://www.gnu.org/licenses/gpl-2.0.html
 Author URI: http://ma.tt/
 Text Domain: hello-dolly
 */
@@ -52,22 +54,22 @@ Dolly'll never go away again";
 	$lyrics = explode( "\n", $lyrics );
 
 	// And then randomly choose a line.
-	return wptexturize( $lyrics[ mt_rand( 0, count( $lyrics ) - 1 ) ] );
+	return wptexturize( $lyrics[ wp_rand( 0, count( $lyrics ) - 1 ) ] ); // FIX: Changed mt_rand to wp_rand
 }
 
 // This just echoes the chosen line, we'll position it later.
 function hello_dolly() {
 	$chosen = hello_dolly_get_lyric();
-	$lang   = '';
+	$lang   = '';
 	if ( 'en_' !== substr( get_user_locale(), 0, 3 ) ) {
 		$lang = ' lang="en"';
 	}
 
 	printf(
 		'<p id="dolly"><span class="screen-reader-text">%s </span><span dir="ltr"%s>%s</span></p>',
-		__( 'Quote from Hello Dolly song, by Jerry Herman:' ),
-		$lang,
-		$chosen
+		esc_html__( 'Quote from Hello Dolly song, by Jerry Herman:', 'hello-dolly' ), // phpcs:ignore WordPress.WP.I18n.TextDomainMismatch
+		esc_attr( $lang ), // FIX: Added esc_attr
+		esc_html( $chosen ) // FIX: Added esc_html
 	);
 }
 
