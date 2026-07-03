@@ -23,6 +23,7 @@
  * @since 6.4.0
  *
  * @access private
+ * @ignore
  *
  * @see https://html.spec.whatwg.org/#stack-of-open-elements
  * @see WP_HTML_Processor
@@ -77,7 +78,7 @@ class WP_HTML_Open_Elements {
 	 * Sets a pop handler that will be called when an item is popped off the stack of
 	 * open elements.
 	 *
-	 * The function will be called with the pushed item as its argument.
+	 * The function will be called with the popped item as its argument.
 	 *
 	 * @since 6.6.0
 	 *
@@ -102,7 +103,7 @@ class WP_HTML_Open_Elements {
 	}
 
 	/**
-	 * Returns the name of the node at the nth position on the stack
+	 * Returns the node at the nth position on the stack
 	 * of open elements, or `null` if no such position exists.
 	 *
 	 * Note that this uses a 1-based index, which represents the
@@ -113,7 +114,7 @@ class WP_HTML_Open_Elements {
 	 *
 	 * @param int $nth Retrieve the nth item on the stack, with 1 being
 	 *                 the top element, 2 being the second, etc...
-	 * @return WP_HTML_Token|null Name of the node on the stack at the given location,
+	 * @return WP_HTML_Token|null The node on the stack at the given location,
 	 *                            or `null` if the location isn't on the stack.
 	 */
 	public function at( int $nth ): ?WP_HTML_Token {
@@ -127,16 +128,16 @@ class WP_HTML_Open_Elements {
 	}
 
 	/**
-	 * Reports if a node of a given name is in the stack of open elements.
+	 * Reports if an HTML element of a given name is on the stack of open elements.
 	 *
 	 * @since 6.7.0
 	 *
-	 * @param string $node_name Name of node for which to check.
+	 * @param string $node_name Name of HTML element for which to check.
 	 * @return bool Whether a node of the given name is in the stack of open elements.
 	 */
 	public function contains( string $node_name ): bool {
 		foreach ( $this->walk_up() as $item ) {
-			if ( $node_name === $item->node_name ) {
+			if ( 'html' === $item->namespace && $node_name === $item->node_name ) {
 				return true;
 			}
 		}
@@ -167,7 +168,7 @@ class WP_HTML_Open_Elements {
 	 *
 	 * @since 6.4.0
 	 *
-	 * @return int How many node are in the stack of open elements.
+	 * @return int How many nodes are in the stack of open elements.
 	 */
 	public function count(): int {
 		return count( $this->stack );
@@ -715,7 +716,7 @@ class WP_HTML_Open_Elements {
 		}
 
 		if ( null !== $this->push_handler ) {
-			( $this->push_handler )( $item );
+			call_user_func( $this->push_handler, $item );
 		}
 	}
 
@@ -737,7 +738,11 @@ class WP_HTML_Open_Elements {
 		 * When adding support for new elements, expand this switch to trap
 		 * cases where the precalculated value needs to change.
 		 */
-		switch ( $item->node_name ) {
+		$namespaced_name = 'html' === $item->namespace
+			? $item->node_name
+			: "{$item->namespace} {$item->node_name}";
+
+		switch ( $namespaced_name ) {
 			case 'APPLET':
 			case 'BUTTON':
 			case 'CAPTION':
@@ -763,7 +768,7 @@ class WP_HTML_Open_Elements {
 		}
 
 		if ( null !== $this->pop_handler ) {
-			( $this->pop_handler )( $item );
+			call_user_func( $this->pop_handler, $item );
 		}
 	}
 

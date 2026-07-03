@@ -213,7 +213,7 @@
  *
  * ### Bookmarks
  *
- * While scanning through the input HTMl document it's possible to set
+ * While scanning through the input HTML document it's possible to set
  * a named bookmark when a particular tag is found. Later on, after
  * continuing to scan other tags, it's possible to `seek` to one of
  * the set bookmarks and then proceed again from that point forward.
@@ -286,7 +286,7 @@
  *
  * For these elements the Tag Processor treats the entire sequence as one,
  * from the opening tag, including its contents, through its closing tag.
- * This means that the it's not possible to match the closing tag for a
+ * This means that it's not possible to match the closing tag for a
  * SCRIPT element unless it's unexpected; the Tag Processor already matched
  * it when it found the opening tag.
  *
@@ -298,7 +298,7 @@
  *    closing the SCRIPT from inside a JavaScript string. E.g. `console.log( '</script>' )`.
  *  - `TITLE` and `TEXTAREA` whose contents are treated as plaintext and then any
  *    character references are decoded. E.g. `1 &lt; 2 < 3` becomes `1 < 2 < 3`.
- *  - `IFRAME`, `NOSCRIPT`, `NOEMBED`, `NOFRAME`, `STYLE` whose contents are treated as
+ *  - `IFRAME`, `NOEMBED`, `NOFRAMES`, `STYLE` whose contents are treated as
  *    raw plaintext and left as-is. E.g. `1 &lt; 2 < 3` remains `1 &lt; 2 < 3`.
  *
  * #### Other tokens with modifiable text.
@@ -329,7 +329,7 @@
  *      and disallows "xml" as a name, since it's special. The Tag Processor only recognizes
  *      target names with an ASCII-representable subset of characters. It also exhibits the
  *      same constraint as with CDATA sections, in that `>` cannot exist within the token
- *      since Processing Instructions do no exist within HTML and their syntax transforms
+ *      since Processing Instructions do not exist within HTML and their syntax transforms
  *      into a bogus comment in the DOM.
  *
  * ## Design and limitations
@@ -521,7 +521,7 @@ class WP_HTML_Tag_Processor {
 	 *       - A TABLE start tag `<table>` implicitly closes any open `P` element.
 	 *
 	 *   - In `QUIRKS_MODE`:
-	 *       - CSS class and ID selectors match match in an ASCII case-insensitive manner.
+	 *       - CSS class and ID selectors match in an ASCII case-insensitive manner.
 	 *       - A TABLE start tag `<table>` opens a `TABLE` element as a child of a `P`
 	 *         element if one is open.
 	 *
@@ -614,18 +614,27 @@ class WP_HTML_Tag_Processor {
 	 * Example:
 	 *
 	 *     <div id="test">...
-	 *     012345678901234
-	 *     - token length is 14 - 0 = 14
+	 *     0123456789012345
+	 *     - token length is 15 - 0 = 15
 	 *
 	 *     a <!-- comment --> is a token.
 	 *     0123456789 123456789 123456789
-	 *     - token length is 17 - 2 = 15
+	 *     - token length is 18 - 2 = 16
 	 *
 	 * @since 6.5.0
 	 *
 	 * @var int|null
 	 */
 	private $token_length;
+
+	/**
+	 * Whether the current tag token has the self-closing flag.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @var bool
+	 */
+	private $has_self_closing_flag = false;
 
 	/**
 	 * Byte offset in input document where current tag name starts.
@@ -881,6 +890,8 @@ class WP_HTML_Tag_Processor {
 	 *     @type string|null $tag_closers  "visit" or "skip": whether to stop on tag closers, e.g. </div>.
 	 * }
 	 * @return bool Whether a tag was matched.
+	 *
+	 * @phpstan-impure
 	 */
 	public function next_tag( $query = null ): bool {
 		$this->parse_query( $query );
@@ -924,8 +935,6 @@ class WP_HTML_Tag_Processor {
 	 *  - a DOCTYPE declaration.
 	 *  - a processing instruction, e.g. `<?xml version="1.0" ?>`.
 	 *
-	 * The Tag Processor currently only supports the tag token.
-	 *
 	 * @since 6.5.0
 	 * @since 6.7.0 Recognizes CDATA sections within foreign content.
 	 *
@@ -945,8 +954,7 @@ class WP_HTML_Tag_Processor {
 	 * applying patches before searching for the next token.
 	 *
 	 * @since 6.5.0
-	 *
-	 * @access private
+	 * @ignore
 	 *
 	 * @return bool Whether a token was parsed.
 	 */
@@ -1072,14 +1080,15 @@ class WP_HTML_Tag_Processor {
 		 *
 		 * Preserve the opening tag pointers, as these will be overwritten
 		 * when finding the closing tag. They will be reset after finding
-		 * the closing to tag to point to the opening of the special atomic
+		 * the closing tag to point to the opening of the special atomic
 		 * tag sequence.
 		 */
-		$tag_name_starts_at   = $this->tag_name_starts_at;
-		$tag_name_length      = $this->tag_name_length;
-		$tag_ends_at          = $this->token_starts_at + $this->token_length;
-		$attributes           = $this->attributes;
-		$duplicate_attributes = $this->duplicate_attributes;
+		$tag_name_starts_at    = $this->tag_name_starts_at;
+		$tag_name_length       = $this->tag_name_length;
+		$tag_ends_at           = $this->token_starts_at + $this->token_length;
+		$has_self_closing_flag = $this->has_self_closing_flag;
+		$attributes            = $this->attributes;
+		$duplicate_attributes  = $this->duplicate_attributes;
 
 		// Find the closing tag if necessary.
 		switch ( $tag_name ) {
@@ -1129,14 +1138,15 @@ class WP_HTML_Tag_Processor {
 		 * functions that skip the contents have moved all the internal cursors past
 		 * the inner content of the tag.
 		 */
-		$this->token_starts_at      = $was_at;
-		$this->token_length         = $this->bytes_already_parsed - $this->token_starts_at;
-		$this->text_starts_at       = $tag_ends_at;
-		$this->text_length          = $this->tag_name_starts_at - $this->text_starts_at;
-		$this->tag_name_starts_at   = $tag_name_starts_at;
-		$this->tag_name_length      = $tag_name_length;
-		$this->attributes           = $attributes;
-		$this->duplicate_attributes = $duplicate_attributes;
+		$this->token_starts_at       = $was_at;
+		$this->token_length          = $this->bytes_already_parsed - $this->token_starts_at;
+		$this->text_starts_at        = $tag_ends_at;
+		$this->text_length           = $this->tag_name_starts_at - $this->text_starts_at;
+		$this->tag_name_starts_at    = $tag_name_starts_at;
+		$this->tag_name_length       = $tag_name_length;
+		$this->has_self_closing_flag = $has_self_closing_flag;
+		$this->attributes            = $attributes;
+		$this->duplicate_attributes  = $duplicate_attributes;
 
 		return true;
 	}
@@ -1148,7 +1158,7 @@ class WP_HTML_Tag_Processor {
 	 * Example:
 	 *
 	 *     $processor = new WP_HTML_Tag_Processor( '<input type="text" value="Th' );
-	 *     false      === $processor->get_next_tag();
+	 *     false      === $processor->next_tag();
 	 *     true       === $processor->paused_at_incomplete_token();
 	 *
 	 * @since 6.5.0
@@ -1174,6 +1184,8 @@ class WP_HTML_Tag_Processor {
 	 *     // Outputs: "free <egg> lang-en "
 	 *
 	 * @since 6.4.0
+	 *
+	 * @return Generator<int, non-empty-string>
 	 */
 	public function class_list() {
 		if ( self::STATE_MATCHED_TAG !== $this->parser_state ) {
@@ -1382,6 +1394,7 @@ class WP_HTML_Tag_Processor {
 	 * Skips contents of generic rawtext elements.
 	 *
 	 * @since 6.3.2
+	 * @ignore
 	 *
 	 * @see https://html.spec.whatwg.org/#generic-raw-text-element-parsing-algorithm
 	 *
@@ -1401,6 +1414,7 @@ class WP_HTML_Tag_Processor {
 	 * Skips contents of RCDATA elements, namely title and textarea tags.
 	 *
 	 * @since 6.2.0
+	 * @ignore
 	 *
 	 * @see https://html.spec.whatwg.org/multipage/parsing.html#rcdata-state
 	 *
@@ -1419,7 +1433,7 @@ class WP_HTML_Tag_Processor {
 			$this->tag_name_starts_at = $at;
 
 			// Fail if there is no possible tag closer.
-			if ( false === $at || ( $at + $tag_length ) >= $doc_length ) {
+			if ( false === $at || ( $at + 2 + $tag_length ) >= $doc_length ) {
 				return false;
 			}
 
@@ -1492,6 +1506,7 @@ class WP_HTML_Tag_Processor {
 	 * Skips contents of script tags.
 	 *
 	 * @since 6.2.0
+	 * @ignore
 	 *
 	 * @return bool Whether the script tag was closed before the end of the document.
 	 */
@@ -1615,7 +1630,6 @@ class WP_HTML_Tag_Processor {
 				( 'p' === $html[ $at + 4 ] || 'P' === $html[ $at + 4 ] ) &&
 				( 't' === $html[ $at + 5 ] || 'T' === $html[ $at + 5 ] )
 			) ) {
-				++$at;
 				continue;
 			}
 
@@ -1701,6 +1715,7 @@ class WP_HTML_Tag_Processor {
 	 *
 	 * @since 6.2.0
 	 * @since 6.2.1 Support abruptly-closed comments, invalid-tag-closer-comments, and empty elements.
+	 * @ignore
 	 *
 	 * @return bool Whether a tag was found before the end of the document.
 	 */
@@ -1808,6 +1823,12 @@ class WP_HTML_Tag_Processor {
 
 					// Abruptly-closed empty comments are a sequence of dashes followed by `>`.
 					$span_of_dashes = strspn( $html, '-', $closer_at );
+					if ( $doc_length <= $span_of_dashes + $closer_at ) {
+						$this->parser_state = self::STATE_INCOMPLETE_INPUT;
+
+						return false;
+					}
+
 					if ( '>' === $html[ $closer_at + $span_of_dashes ] ) {
 						/*
 						 * @todo When implementing `set_modifiable_text()` ensure that updates to this token
@@ -2122,6 +2143,7 @@ class WP_HTML_Tag_Processor {
 	 * Parses the next attribute.
 	 *
 	 * @since 6.2.0
+	 * @ignore
 	 *
 	 * @return bool Whether an attribute was found before the end of the document.
 	 */
@@ -2129,10 +2151,31 @@ class WP_HTML_Tag_Processor {
 		$doc_length = strlen( $this->html );
 
 		// Skip whitespace and slashes.
-		$this->bytes_already_parsed += strspn( $this->html, " \t\f\r\n/", $this->bytes_already_parsed );
+		$skipped_length              = strspn( $this->html, " \t\f\r\n/", $this->bytes_already_parsed );
+		$this->bytes_already_parsed += $skipped_length;
 		if ( $this->bytes_already_parsed >= $doc_length ) {
 			$this->parser_state = self::STATE_INCOMPLETE_INPUT;
 
+			return false;
+		}
+
+		/**
+		 * This block serves two purposes:
+		 *
+		 * - A fast path for common tag-ending `>`.
+		 * - A check for the self-closing flag which must appear as `/>`.
+		 *
+		 * In a tag like `<g attr=/>`, `/` is the attribute value, not a self-closing
+		 * flag. When it appears in this form, the parser has already consumed the
+		 * attribute value, `$skipped_length` is 0, and this checks below correctly
+		 * identify whether there is a self-closing flag.
+		 *
+		 * Note: Both start and end tags may have the self-closing flag.
+		 */
+		if ( '>' === $this->html[ $this->bytes_already_parsed ] ) {
+			if ( $skipped_length > 0 && '/' === $this->html[ $this->bytes_already_parsed - 1 ] ) {
+				$this->has_self_closing_flag = true;
+			}
 			return false;
 		}
 
@@ -2259,6 +2302,7 @@ class WP_HTML_Tag_Processor {
 	 * Move the internal cursor past any immediate successive whitespace.
 	 *
 	 * @since 6.2.0
+	 * @ignore
 	 */
 	private function skip_whitespace(): void {
 		$this->bytes_already_parsed += strspn( $this->html, " \t\f\r\n", $this->bytes_already_parsed );
@@ -2268,6 +2312,7 @@ class WP_HTML_Tag_Processor {
 	 * Applies attribute updates and cleans up once a tag is fully parsed.
 	 *
 	 * @since 6.2.0
+	 * @ignore
 	 */
 	private function after_tag(): void {
 		/*
@@ -2311,6 +2356,7 @@ class WP_HTML_Tag_Processor {
 
 		$this->token_starts_at          = null;
 		$this->token_length             = null;
+		$this->has_self_closing_flag    = false;
 		$this->tag_name_starts_at       = null;
 		$this->tag_name_length          = null;
 		$this->text_starts_at           = 0;
@@ -2327,6 +2373,7 @@ class WP_HTML_Tag_Processor {
 	 * (they are accumulated in different data formats for performance).
 	 *
 	 * @since 6.2.0
+	 * @ignore
 	 *
 	 * @see WP_HTML_Tag_Processor::$lexical_updates
 	 * @see WP_HTML_Tag_Processor::$classname_updates
@@ -2490,6 +2537,7 @@ class WP_HTML_Tag_Processor {
 	 * @since 6.2.0
 	 * @since 6.2.1 Accumulates shift for internal cursor and passed pointer.
 	 * @since 6.3.0 Invalidate any bookmarks whose targets are overwritten.
+	 * @ignore
 	 *
 	 * @param int $shift_this_point Accumulate and return shift for this position.
 	 * @return int How many bytes the given pointer moved in response to the updates.
@@ -2507,7 +2555,7 @@ class WP_HTML_Tag_Processor {
 		 * replacement must be made before all others which follow it
 		 * at later string indices in the input document.
 		 *
-		 * Sorting avoid making out-of-order replacements which
+		 * Sorting avoids making out-of-order replacements which
 		 * can lead to mangled output, partially-duplicated
 		 * attributes, and overwritten attributes.
 		 */
@@ -2647,6 +2695,7 @@ class WP_HTML_Tag_Processor {
 	 * Compare two WP_HTML_Text_Replacement objects.
 	 *
 	 * @since 6.2.0
+	 * @ignore
 	 *
 	 * @param WP_HTML_Text_Replacement $a First attribute update.
 	 * @param WP_HTML_Text_Replacement $b Second attribute update.
@@ -2680,6 +2729,7 @@ class WP_HTML_Tag_Processor {
 	 *  - If no updates are enqueued, the return will be `false` to differentiate from "removed."
 	 *
 	 * @since 6.2.0
+	 * @ignore
 	 *
 	 * @param string $comparable_name The attribute name in its comparable form.
 	 * @return string|boolean|null Value of enqueued update if present, otherwise false.
@@ -3051,6 +3101,12 @@ class WP_HTML_Tag_Processor {
 	 * Returns the adjusted attribute name for a given attribute, taking into
 	 * account the current parsing context, whether HTML, SVG, or MathML.
 	 *
+	 * In SVG and MathML contexts, adjusted foreign attributes with a namespace
+	 * prefix use a space between the prefix and local name. For example,
+	 * `xlink:href` is returned as `xlink href`, while the unprefixed `xmlns`
+	 * attribute is returned as `xmlns`. Non-adjusted attributes with a colon in
+	 * their name, such as `foo:bar`, are returned unchanged.
+	 *
 	 * @since 6.7.0
 	 *
 	 * @param string $attribute_name Which attribute to adjust.
@@ -3309,15 +3365,7 @@ class WP_HTML_Tag_Processor {
 			return false;
 		}
 
-		/*
-		 * The self-closing flag is the solidus at the _end_ of the tag, not the beginning.
-		 *
-		 * Example:
-		 *
-		 *     <figure />
-		 *             ^ this appears one character before the end of the closing ">".
-		 */
-		return '/' === $this->html[ $this->token_starts_at + $this->token_length - 2 ];
+		return $this->has_self_closing_flag;
 	}
 
 	/**
@@ -3535,9 +3583,9 @@ class WP_HTML_Tag_Processor {
 	 *     true  === $processor->next_token();                   // Text is "Apples & Oranges".
 	 *     false === $processor->subdivide_text_appropriately();
 	 *
-	 *     $processor = new WP_HTML_Tag_Processor( "&#x13; \r\n\tMore" );
-	 *     true  === $processor->next_token();                   // Text is "␤ ␤␉More".
-	 *     true  === $processor->subdivide_text_appropriately(); // Text is "␤ ␤␉".
+	 *     $processor = new WP_HTML_Tag_Processor( "&#xD; \r\n\tMore" );
+	 *     true  === $processor->next_token();                   // Text is "␍ ␊␉More".
+	 *     true  === $processor->subdivide_text_appropriately(); // Text is "␍ ␊␉".
 	 *     true  === $processor->next_token();                   // Text is "More".
 	 *     false === $processor->subdivide_text_appropriately();
 	 *
@@ -3807,7 +3855,14 @@ class WP_HTML_Tag_Processor {
 			return true;
 		}
 
-		if ( self::STATE_MATCHED_TAG !== $this->parser_state ) {
+		/*
+		 * The rest of this function handles modifiable text for special "atomic" HTML elements.
+		 * Only tags in the HTML namespace should be processed.
+		 */
+		if (
+			self::STATE_MATCHED_TAG !== $this->parser_state ||
+			'html' !== $this->get_namespace()
+		) {
 			return false;
 		}
 
@@ -3878,6 +3933,17 @@ class WP_HTML_Tag_Processor {
 				);
 
 				/*
+				 * HTML ignores a single leading newline in this context. If a leading newline
+				 * is intended, preserve it by adding an extra newline.
+				 */
+				if (
+					'TEXTAREA' === $this->get_tag() &&
+					1 === strspn( $plaintext_content, "\n\r", 0, 1 )
+				) {
+					$plaintext_content = "\n{$plaintext_content}";
+				}
+
+				/*
 				 * These don't _need_ to be escaped, but since they are decoded it's
 				 * safe to leave them escaped and this can prevent other code from
 				 * naively detecting tags within the contents.
@@ -3915,6 +3981,7 @@ class WP_HTML_Tag_Processor {
 	 * @see https://html.spec.whatwg.org/multipage/scripting.html#prepare-the-script-element
 	 *
 	 * @since 7.0.0
+	 * @ignore
 	 *
 	 * @return 'javascript'|'json'|null Type of script element content if matched and recognized.
 	 */
@@ -4188,6 +4255,7 @@ class WP_HTML_Tag_Processor {
 	 * @see wp_html_api_script_element_escaping_diagram_source()
 	 *
 	 * @since 7.0.0
+	 * @ignore
 	 *
 	 * @param string $sourcecode Raw contents intended to be serialized into an HTML SCRIPT element.
 	 * @return string Escaped form of input contents which will not lead to premature closing of the containing SCRIPT element.
@@ -4653,6 +4721,7 @@ class WP_HTML_Tag_Processor {
 	 * Parses tag query input into internal search criteria.
 	 *
 	 * @since 6.2.0
+	 * @ignore
 	 *
 	 * @param array|string|null $query {
 	 *     Optional. Which tag name to find, having which class, etc. Default is to find any tag.
@@ -4719,6 +4788,7 @@ class WP_HTML_Tag_Processor {
 	 * Checks whether a given tag and its attributes match the search criteria.
 	 *
 	 * @since 6.2.0
+	 * @ignore
 	 *
 	 * @return bool Whether the given tag and its attribute match the search criteria.
 	 */
@@ -4893,7 +4963,7 @@ class WP_HTML_Tag_Processor {
 	 *     </2>
 	 *
 	 * Funky comments are tag closers with invalid tag names. Note
-	 * that in HTML these are turn into bogus comments. Nonetheless,
+	 * that in HTML these are turned into bogus comments. Nonetheless,
 	 * the Tag Processor recognizes them in a stream of HTML and
 	 * exposes them for inspection and modification.
 	 *
@@ -5029,4 +5099,13 @@ class WP_HTML_Tag_Processor {
 	 * @since 6.7.0
 	 */
 	const TEXT_IS_WHITESPACE = 'TEXT_IS_WHITESPACE';
+
+	/**
+	 * Wakeup magic method.
+	 *
+	 * @since 6.9.2
+	 */
+	public function __wakeup() {
+		throw new \LogicException( __CLASS__ . ' should never be unserialized' );
+	}
 }
