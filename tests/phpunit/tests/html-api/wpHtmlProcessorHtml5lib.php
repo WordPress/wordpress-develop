@@ -6,9 +6,9 @@
  * This test suite runs a set of tests on the HTML API using a third-party suite of test fixtures.
  * A third-party test suite allows the HTML API's behavior to be compared against an external
  * standard. Without a third-party, there is risk of oversight or misinterpretation of the standard
- * being implemented in application code and in tests. html5lib-tests is used by other projects like
- * browsers or other HTML parsers for the same purpose of validating behavior against an
- * external reference.
+ * being implemented in application code and in tests. The html5lib tree-construction tests are
+ * used by other projects like browsers or other HTML parsers for the same purpose of validating
+ * behavior against an external reference.
  *
  * See the README file at DIR_TESTDATA / html5lib-tests for details on the third-party suite.
  *
@@ -27,22 +27,51 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 	 * Skip specific tests that may not be supported or have known issues.
 	 */
 	const SKIP_TESTS = array(
-		'noscript01/line0014' => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
-		'tests14/line0022'    => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
-		'tests14/line0055'    => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
-		'tests19/line0488'    => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
-		'tests19/line0500'    => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
-		'tests19/line1079'    => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
-		'tests2/line0207'     => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
-		'tests2/line0686'     => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
-		'tests2/line0697'     => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
-		'tests2/line0709'     => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
-		'webkit01/line0231'   => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
+		'noscript01/line0014'       => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
+		'tests14/line0022'          => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
+		'tests14/line0055'          => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
+		'tests19/line0488'          => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
+		'tests19/line0500'          => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
+		'tests19/line1079'          => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
+		'tests2/line0207'           => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
+		'tests2/line0686'           => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
+		'tests2/line0697'           => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
+		'tests2/line0709'           => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
+		'tests1/line0601'           => 'Unimplemented: This parser treats processing instructions as comments.',
+		'tests1/line0640'           => 'Unimplemented: This parser treats processing instructions as comments.',
+		'html5test-com/line0129'    => 'Unimplemented: This parser treats processing instructions as comments.',
+		'menuitem-element/line0161' => 'Unimplemented: This parser does not support customizable SELECT element content.',
+		'tests9/line0048'           => 'Unimplemented: This parser does not support customizable SELECT element content.',
+		'tests9/line0059'           => 'Unimplemented: This parser does not support customizable SELECT element content.',
+		'tests9/line0299'           => 'Unimplemented: This parser does not support customizable SELECT element content.',
+		'tests10/line0035'          => 'Unimplemented: This parser does not support customizable SELECT element content.',
+		'tests10/line0046'          => 'Unimplemented: This parser does not support customizable SELECT element content.',
+		'tests10/line0259'          => 'Unimplemented: This parser does not support customizable SELECT element content.',
+		'tests18/line0227'          => 'Unimplemented: This parser does not support customizable SELECT element content.',
+		'webkit01/line0231'         => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
+		'webkit02/line0557'         => 'Unimplemented: This parser does not support customizable SELECT element content.',
+		'webkit02/line0590'         => 'Unimplemented: This parser does not support customizable SELECT element content.',
+		'webkit02/line0611'         => 'Unimplemented: This parser does not support customizable SELECT element content.',
+		'webkit02/line0624'         => 'Unimplemented: This parser does not support customizable SELECT element content.',
+		'webkit02/line0637'         => 'Unimplemented: This parser does not support customizable SELECT element content.',
+		'webkit02/line0652'         => 'Unimplemented: This parser does not support customizable SELECT element content.',
+		'webkit02/line0666'         => 'Unimplemented: This parser does not support customizable SELECT element content.',
+		'webkit02/line0692'         => 'Unimplemented: This parser does not support customizable SELECT element content.',
+		'webkit02/line0706'         => 'Unimplemented: This parser does not support customizable SELECT element content.',
+		'webkit02/line0732'         => 'Unimplemented: This parser does not support customizable SELECT element content.',
+		'webkit02/line0748'         => 'Unimplemented: This parser does not support customizable SELECT element content.',
+	);
+
+	/**
+	 * Skip test files that exercise parser behavior unsupported by the HTML API.
+	 */
+	const SKIP_TEST_PREFIXES = array(
+		'processing-instructions/' => 'Unimplemented: This parser treats processing instructions as comments.',
 	);
 
 	/**
 	 * Verify the parsing results of the HTML Processor against the
-	 * test cases in the Html5lib tests project.
+	 * test cases in the Web Platform Tests html5lib tree-construction suite.
 	 *
 	 * @ticket 60227
 	 *
@@ -98,7 +127,7 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 	/**
 	 * Data provider.
 	 *
-	 * Tests from https://github.com/html5lib/html5lib-tests
+	 * Tests from https://github.com/web-platform-tests/wpt/tree/master/html/syntax/parsing/resources
 	 *
 	 * @return array[]
 	 */
@@ -144,6 +173,12 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 
 		if ( array_key_exists( $test_name, self::SKIP_TESTS ) ) {
 			return true;
+		}
+
+		foreach ( array_keys( self::SKIP_TEST_PREFIXES ) as $test_prefix ) {
+			if ( str_starts_with( $test_name, $test_prefix ) ) {
+				return true;
+			}
 		}
 
 		return false;

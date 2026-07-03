@@ -1,7 +1,7 @@
 Credits
 =======
 
-The ``html5lib`` test data is maintained by:
+The ``html5lib`` test data was originally maintained by:
 
 - James Graham
 - Geoffrey Sneddon
