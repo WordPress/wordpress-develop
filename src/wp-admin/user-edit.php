@@ -376,6 +376,7 @@ switch ( $action ) {
 						</td>
 					</tr>
 
+					<?php if ( user_can( $profile_user, 'upload_files' ) ) : ?>
 					<tr class="user-media-library-infinite-scrolling-wrap">
 						<th scope="row"><?php _e( 'Infinite Scrolling' ); ?></th>
 						<td>
@@ -384,6 +385,7 @@ switch ( $action ) {
 							</label>
 						</td>
 					</tr>
+					<?php endif; ?>
 
 					<?php
 					$languages                = get_available_languages();
