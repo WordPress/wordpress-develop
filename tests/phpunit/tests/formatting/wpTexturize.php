@@ -384,7 +384,7 @@ class Tests_Formatting_wpTexturize extends WP_UnitTestCase {
 			),
 			array(
 				"word <'word word",    // Invalid HTML.
-				"word <'word word",
+				'word <&#8217;word word',
 			),
 			array(
 				"word &lt;'word word", // Valid HTML input makes curly quotes.
@@ -412,7 +412,7 @@ class Tests_Formatting_wpTexturize extends WP_UnitTestCase {
 			),
 			array(
 				"word<'word word",
-				"word<'word word",
+				'word<&#8217;word word',
 			),
 			array(
 				"word&lt;'word word",
@@ -440,7 +440,7 @@ class Tests_Formatting_wpTexturize extends WP_UnitTestCase {
 			),
 			array(
 				"word <' word word",
-				"word <' word word",
+				'word <&#8217; word word',
 			),
 			array(
 				"word &lt;' word word",
@@ -468,7 +468,7 @@ class Tests_Formatting_wpTexturize extends WP_UnitTestCase {
 			),
 			array(
 				"word<' word word",
-				"word<' word word",
+				'word<&#8217; word word',
 			),
 			array(
 				"word&lt;' word word",
@@ -620,7 +620,7 @@ class Tests_Formatting_wpTexturize extends WP_UnitTestCase {
 			),
 			array(
 				'word <"word word', // Invalid HTML.
-				'word <"word word',
+				'word <&#8221;word word',
 			),
 			array(
 				'word &lt;"word word',
@@ -652,7 +652,7 @@ class Tests_Formatting_wpTexturize extends WP_UnitTestCase {
 			),
 			array(
 				'word<"word word',
-				'word<"word word',
+				'word<&#8221;word word',
 			),
 			array(
 				'word&lt;"word word',
@@ -1326,7 +1326,7 @@ class Tests_Formatting_wpTexturize extends WP_UnitTestCase {
 			),
 			array(
 				'<br [gallery ...] ... /',
-				'<br [gallery ...] ... /',
+				'<br [gallery ...] &#8230; /',
 			),
 			array(
 				'<br ... />',
@@ -1366,7 +1366,7 @@ class Tests_Formatting_wpTexturize extends WP_UnitTestCase {
 			),
 			array(
 				'<br [[gallery ...]] ... /',
-				'<br [[gallery ...]] ... /',
+				'<br [[gallery ...]] &#8230; /',
 			),
 			array(
 				'[[gallery ...]]...[[gallery ...]]',
@@ -2153,6 +2153,11 @@ String with a number followed by a single quote !q1!Expendables 3!q1! vestibulum
 			array(
 				'<iframe srcdoc="<body></body>"></iframe>',
 				'<iframe srcdoc="<body></body>"></iframe>',
+			),
+			// Ticket 43785
+			array(
+				'<script type="text/javascript">if(a<b)window&&document</script>',
+				'<script type="text/javascript">if(a<b)window&&document</script>',
 			),
 		);
 	}
