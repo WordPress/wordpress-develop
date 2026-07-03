@@ -5043,7 +5043,7 @@ function wp_enqueue_media( $args = array() ) {
 	$infinite_scrolling = true;
 
 	// A user can opt out of infinite scrolling via their profile's personal options.
-	if ( 'false' === get_user_option( 'media_library_infinite_scrolling' ) ) {
+	if ( 'false' === get_user_option( 'infinite_scrolling' ) ) {
 		$infinite_scrolling = false;
 	}
 

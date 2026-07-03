@@ -377,10 +377,10 @@ switch ( $action ) {
 					</tr>
 
 					<?php if ( user_can( $profile_user, 'upload_files' ) ) : ?>
-					<tr class="user-media-library-infinite-scrolling-wrap">
+					<tr class="user-infinite-scrolling-wrap">
 						<th scope="row"><?php _e( 'Infinite Scrolling' ); ?></th>
 						<td>
-							<label for="media_library_infinite_scrolling"><input name="media_library_infinite_scrolling" type="checkbox" id="media_library_infinite_scrolling" value="false" <?php checked( 'false', $profile_user->media_library_infinite_scrolling ); ?> />
+							<label for="infinite_scrolling"><input name="infinite_scrolling" type="checkbox" id="infinite_scrolling" value="false" <?php checked( 'false', $profile_user->infinite_scrolling ); ?> />
 								<?php _e( 'Disable infinite scrolling in the Media Library grid view' ); ?>
 							</label>
 						</td>

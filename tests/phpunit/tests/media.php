@@ -113,7 +113,7 @@ CAP;
 	 * Tests the precedence rules for the Media Library infinite scrolling setting.
 	 *
 	 * Infinite scrolling is enabled by default. A user can opt out via the
-	 * `media_library_infinite_scrolling` personal option, and the
+	 * `infinite_scrolling` personal option, and the
 	 * `media_library_infinite_scrolling` filter takes precedence over both.
 	 *
 	 * @ticket 65564
@@ -132,7 +132,7 @@ CAP;
 		);
 
 		// User preference: disabling it via the personal option turns it off.
-		update_user_meta( $user_id, 'media_library_infinite_scrolling', 'false' );
+		update_user_meta( $user_id, 'infinite_scrolling', 'false' );
 		$this->assertSame(
 			0,
 			$this->get_media_infinite_scrolling_setting(),
