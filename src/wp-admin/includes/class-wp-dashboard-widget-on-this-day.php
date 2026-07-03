@@ -78,15 +78,10 @@ class WP_Dashboard_Widget_On_This_Day {
 	/**
 	 * Renders the dashboard widget output.
 	 *
-	 * The rendered HTML is cached per user and locale. The cache salt
-	 * incorporates the site date and the posts group's
-	 * `last_changed` token, so any post mutation (publish, edit, delete,
-	 * trash) automatically invalidates the entry on the next read, and
-	 * entries roll over naturally at midnight.
-	 *
-	 * Note: I made the trade-off to ignore `date_format` and `time_format`
-	 * option changes. They do not bust the cache; stale date strings clear
-	 * on the next post mutation or at midnight.
+	 * The rendered HTML is cached per user and locale. The cache salt includes
+	 * the current site date and the posts group's `last_changed` token, so any
+	 * post mutation (publish, edit, delete, trash) invalidates the entry on the
+	 * next read and the site-date salt changes once per day.
 	 *
 	 * @since 7.1.0
 	 */
@@ -137,7 +132,7 @@ class WP_Dashboard_Widget_On_This_Day {
 	 * @param int $user_id Current user ID for filter context.
 	 * @return WP_Post[] Array of posts ordered by newest first.
 	 */
-	public static function get_posts( $user_id ) {
+	public static function get_posts_on_this_day( $user_id ) {
 		$today      = current_datetime();
 		$year       = (int) $today->format( 'Y' );
 		$date_query = array(
@@ -243,7 +238,7 @@ class WP_Dashboard_Widget_On_This_Day {
 			return $cached;
 		}
 
-		$posts = self::get_posts( $user_id );
+		$posts = self::get_posts_on_this_day( $user_id );
 
 		wp_cache_set_salted( $cache_key, $posts, self::CACHE_GROUP, $cache_salt, DAY_IN_SECONDS );
 
@@ -339,15 +334,17 @@ class WP_Dashboard_Widget_On_This_Day {
 		<li class="wp-on-this-day-post">
 			<a href="<?php the_permalink(); ?>"><?php echo esc_html( $title ); ?></a>
 			<?php if ( get_current_user_id() !== $author_id ) : ?>
-				<span class="wp-on-this-day-post-author">
-					<?php
-					printf(
+				<?php
+				$escaped_attribution = esc_html(
+					sprintf(
 						/* translators: %s: Post author's display name. */
-						esc_html__( 'by %s' ),
-						esc_html( get_the_author() )
-					);
-					?>
-				</span>
+						__( 'by %s' ),
+						get_the_author()
+					)
+				);
+
+				echo '<span class="wp-on-this-day-post-author">' . $escaped_attribution . '</span>';
+				?>
 			<?php endif; ?>
 		</li>
 		<?php

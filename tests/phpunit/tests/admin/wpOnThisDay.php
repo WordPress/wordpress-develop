@@ -277,6 +277,7 @@ class Tests_Admin_wpOnThisDay extends WP_UnitTestCase {
 		$this->assertStringNotContainsString( 'by Current Writer', $output );
 		$this->assertStringContainsString( 'A note from someone else', $output );
 		$this->assertStringContainsString( 'by Guest Writer', $output );
+		$this->assertStringContainsString( '<span class="wp-on-this-day-post-author">by Guest Writer</span>', $output );
 	}
 
 	/**
