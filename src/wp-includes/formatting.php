@@ -663,7 +663,7 @@ function get_html_split_regex() {
 			.     '(?'          // Conditional expression follows.
 			.         $escaped  // Find end of escaped element.
 			.     '|'           // ...else...
-			.         '(?:"[^"]*"|\'[^\']*\'|[^>])*+>?' // Find end of element, allowing > inside quoted strings.
+			.         '(?:"[^"]*"|\'[^\']*\'|[^<>])*+>' // Find end of element, allowing > inside quoted strings.
 			.     ')'
 			. ')/';
 		// phpcs:enable
@@ -701,7 +701,7 @@ function _get_wptexturize_split_regex( $shortcode_regex = '' ) {
 			. '(?(?=!--)'        // Is this a comment?
 			.     $comment_regex // Find end of comment.
 			. '|'
-			.     '(?:"[^"]*"|\'[^\']*\'|[^>])*+>?' // Find end of element, allowing > inside quoted strings.
+			.     '(?:"[^"]*"|\'[^\']*\'|[^<>])*+>' // Find end of element, allowing > inside quoted strings.
 			. ')';
 		// phpcs:enable
 	}
