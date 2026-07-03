@@ -1952,10 +1952,11 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$response   = rest_get_server()->dispatch( $request );
 		$data       = $response->get_data();
 		$properties = $data['schema']['properties'];
-		$this->assertCount( 34, $properties );
+		$this->assertCount( 35, $properties );
 		$this->assertArrayHasKey( 'author', $properties );
 		$this->assertArrayHasKey( 'alt_text', $properties );
 		$this->assertArrayHasKey( 'exif_orientation', $properties );
+		$this->assertArrayHasKey( 'image_quality', $properties );
 		$this->assertArrayHasKey( 'image_output_format', $properties );
 		$this->assertArrayHasKey( 'image_save_progressive', $properties );
 		$this->assertArrayHasKey( 'filename', $properties );
@@ -1993,6 +1994,115 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$this->assertArrayHasKey( 'missing_image_sizes', $properties );
 		$this->assertArrayHasKey( 'featured_media', $properties );
 		$this->assertArrayHasKey( 'class_list', $properties );
+	}
+
+	/**
+	 * @ticket 65262
+	 */
+	public function test_image_quality_schema() {
+		$request    = new WP_REST_Request( 'OPTIONS', '/wp/v2/media' );
+		$response   = rest_get_server()->dispatch( $request );
+		$data       = $response->get_data();
+		$properties = $data['schema']['properties'];
+
+		$this->assertArrayHasKey( 'image_quality', $properties );
+		$this->assertSame( 'object', $properties['image_quality']['type'] );
+		$this->assertContains( 'edit', $properties['image_quality']['context'] );
+		$this->assertTrue( $properties['image_quality']['readonly'] );
+
+		$default = $properties['image_quality']['properties']['default'];
+		$this->assertSame( 'integer', $default['type'] );
+		$this->assertSame( 1, $default['minimum'] );
+		$this->assertSame( 100, $default['maximum'] );
+
+		$sizes = $properties['image_quality']['properties']['sizes'];
+		$this->assertSame( 'object', $sizes['type'] );
+		// Sizes are enumerated from the registered sub-sizes, each bounded 1-100.
+		$this->assertArrayHasKey( 'thumbnail', $sizes['properties'] );
+		$this->assertSame( 'integer', $sizes['properties']['thumbnail']['type'] );
+		$this->assertSame( 1, $sizes['properties']['thumbnail']['minimum'] );
+		$this->assertSame( 100, $sizes['properties']['thumbnail']['maximum'] );
+	}
+
+	/**
+	 * @ticket 65262
+	 * @requires function imagejpeg
+	 */
+	public function test_image_quality_default_in_response() {
+		wp_set_current_user( self::$editor_id );
+		$attachment = self::factory()->attachment->create_upload_object( self::$test_file );
+
+		$request = new WP_REST_Request( 'GET', "/wp/v2/media/{$attachment}" );
+		$request->set_param( 'context', 'edit' );
+		$response = rest_do_request( $request );
+		$data     = $response->get_data();
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertArrayHasKey( 'image_quality', $data );
+		// JPEG default quality is 82; no filter, so no per-size overrides.
+		$this->assertSame( 82, $data['image_quality']['default'] );
+		$this->assertSame( array(), $data['image_quality']['sizes'] );
+	}
+
+	/**
+	 * @ticket 65262
+	 * @requires function imagejpeg
+	 */
+	public function test_image_quality_with_size_aware_filter() {
+		wp_set_current_user( self::$editor_id );
+		$attachment = self::factory()->attachment->create_upload_object( self::$test_file );
+
+		// Lower the quality for small images (e.g. thumbnails) only.
+		$filter = static function ( $quality, $mime_type, $size ) {
+			if ( is_array( $size ) && ! empty( $size['width'] ) && $size['width'] <= 300 ) {
+				return 60;
+			}
+			return $quality;
+		};
+		add_filter( 'wp_editor_set_quality', $filter, 10, 3 );
+
+		$request = new WP_REST_Request( 'GET', "/wp/v2/media/{$attachment}" );
+		$request->set_param( 'context', 'edit' );
+		$response = rest_do_request( $request );
+		$data     = $response->get_data();
+
+		remove_filter( 'wp_editor_set_quality', $filter, 10 );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertArrayHasKey( 'image_quality', $data );
+		// The full-size image (> 300px wide) keeps the default quality.
+		$this->assertSame( 82, $data['image_quality']['default'] );
+		// The thumbnail size (150x150) is <= 300px and diverges to 60.
+		$this->assertArrayHasKey( 'thumbnail', $data['image_quality']['sizes'] );
+		$this->assertSame( 60, $data['image_quality']['sizes']['thumbnail'] );
+	}
+
+	/**
+	 * The reported quality must include the legacy jpeg_quality filter, the same
+	 * way WP_Image_Editor::set_quality() applies it for JPEG output.
+	 *
+	 * @ticket 65262
+	 * @requires function imagejpeg
+	 */
+	public function test_image_quality_honors_jpeg_quality_filter() {
+		wp_set_current_user( self::$editor_id );
+		$attachment = self::factory()->attachment->create_upload_object( self::$test_file );
+
+		$filter = static function () {
+			return 70;
+		};
+		add_filter( 'jpeg_quality', $filter );
+
+		$request = new WP_REST_Request( 'GET', "/wp/v2/media/{$attachment}" );
+		$request->set_param( 'context', 'edit' );
+		$response = rest_do_request( $request );
+		$data     = $response->get_data();
+
+		remove_filter( 'jpeg_quality', $filter );
+
+		$this->assertSame( 200, $response->get_status() );
+		// JPEG output, so the jpeg_quality filter overrides the 82 default.
+		$this->assertSame( 70, $data['image_quality']['default'] );
 	}
 
 	/**
