@@ -696,27 +696,12 @@ function get_html_split_regex() {
  * @return string The regular expression.
  */
 function _get_wptexturize_split_regex( $shortcode_regex = '' ) {
-	static $html_regex;
-
-	if ( ! isset( $html_regex ) ) {
-		// phpcs:disable Squiz.Strings.ConcatenationSpacing.PaddingFound -- don't remove regex indentation
-		$comment_regex =
-			'!'             // Start of comment, after the <.
-			. '(?:'         // Unroll the loop: Consume everything until --> is found.
-			.     '-(?!->)' // Dash not followed by end of comment.
-			.     '[^\-]*+' // Consume non-dashes.
-			. ')*+'         // Loop possessively.
-			. '(?:-->)?';   // End of comment. If not found, match all input.
-
-		$html_regex = // Needs replaced with wp_html_split() per Shortcode API Roadmap.
-			'<'                  // Find start of element.
-			. '(?(?=!--)'        // Is this a comment?
-			.     $comment_regex // Find end of comment.
-			. '|'
-			.     '(?:"[^"]*"|\'[^\']*\'|[^<>])*+>' // Find end of element, allowing > inside quoted strings.
-			. ')';
-		// phpcs:enable
-	}
+	/*
+	 * Derive the HTML pattern from get_html_split_regex() instead of
+	 * maintaining a separate copy. Strip the outer '/(' prefix and
+	 * ')/' suffix to get the inner matching pattern.
+	 */
+	$html_regex = substr( get_html_split_regex(), 2, -2 );
 
 	if ( empty( $shortcode_regex ) ) {
 		$regex = '/(' . $html_regex . ')/';
