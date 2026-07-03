@@ -250,8 +250,20 @@ function wptexturize( $text, $reset = false ) {
 			} else {
 				// This is an HTML element delimiter.
 
-				// Replace each & with &#038; unless it already looks like an entity.
-				$curl = preg_replace( '/&(?!#(?:\d+|x[a-f0-9]+);|[a-z1-4]{1,8};)/i', '&#038;', $curl );
+				/*
+				 * Replace each & with &#038; unless it already looks like an entity,
+				 * but preserve & inside quoted attribute values (e.g. Tailwind
+				 * arbitrary variants like [&>.swiper-pagination] in class attrs).
+				 */
+				$curl = preg_replace_callback(
+					'/"[^"]*"|\'[^\']*\'|(&(?!#(?:\d+|x[a-f0-9]+);|[a-z1-4]{1,8};))/i',
+					static function ( $matches ) {
+						// Quoted strings (captured by first two alternations): return unchanged.
+						// Bare & (captured in group 1): replace with &#038;.
+						return isset( $matches[1] ) && '' !== $matches[1] ? '&#038;' : $matches[0];
+					},
+					$curl
+				);
 
 				_wptexturize_pushpop_element( $curl, $no_texturize_tags_stack, $no_texturize_tags );
 			}
