@@ -1797,14 +1797,7 @@ function wp_doing_cron() {
  * @return bool True if it's a WordPress sitemap request, false otherwise.
  */
 function wp_doing_sitemap(): bool {
-	/**
-	 * Filters whether the current request is a WordPress sitemap request.
-	 *
-	 * @since 7.1.0
-	 *
-	 * @param bool $wp_doing_sitemap Whether the current request is a WordPress sitemap request.
-	 */
-	return (bool) apply_filters( 'wp_doing_sitemap', defined( 'DOING_SITEMAP' ) && DOING_SITEMAP );
+	return defined( 'DOING_SITEMAP' ) && DOING_SITEMAP;
 }
 
 /**
