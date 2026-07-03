@@ -2086,6 +2086,7 @@ String with a number followed by a single quote !q1!Expendables 3!q1! vestibulum
 	 *
 	 * @covers ::_get_wptexturize_split_regex
 	 * @covers ::_get_wptexturize_shortcode_regex
+	 * @covers ::get_html_split_regex
 	 */
 	public function test_pcre_performance( $input ) {
 		global $shortcode_tags;
