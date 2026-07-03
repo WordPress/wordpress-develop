@@ -1278,11 +1278,11 @@ class Tests_Formatting_wpTexturize extends WP_UnitTestCase {
 			),
 			array(
 				'[ photos by <a href="http://example.com/?a[]=1&a[]=2"> this guy & that guy </a> ]',
-				'[ photos by <a href="http://example.com/?a[]=1&#038;a[]=2"> this guy &#038; that guy </a> ]',
+				'[ photos by <a href="http://example.com/?a[]=1&a[]=2"> this guy &#038; that guy </a> ]',
 			),
 			array(
 				'[photos by <a href="http://example.com/?a[]=1&a[]=2"> this guy & that guy </a>]',
-				'[photos by <a href="http://example.com/?a[]=1&#038;a[]=2"> this guy &#038; that guy </a>]',
+				'[photos by <a href="http://example.com/?a[]=1&a[]=2"> this guy &#038; that guy </a>]',
 			),
 			array(
 				'& <script>&&</script>',
@@ -2158,6 +2158,11 @@ String with a number followed by a single quote !q1!Expendables 3!q1! vestibulum
 			array(
 				'<script type="text/javascript">if(a<b)window&&document</script>',
 				'<script type="text/javascript">if(a<b)window&&document</script>',
+			),
+			// Ticket 57381
+			array(
+				'<div class="swiper [&>.swiper-pagination]:static">content</div>',
+				'<div class="swiper [&>.swiper-pagination]:static">content</div>',
 			),
 		);
 	}
