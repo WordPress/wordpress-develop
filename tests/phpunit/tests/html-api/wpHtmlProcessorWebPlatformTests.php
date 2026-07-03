@@ -6,11 +6,11 @@
  * This test suite runs a set of tests on the HTML API using a third-party suite of test fixtures.
  * A third-party test suite allows the HTML API's behavior to be compared against an external
  * standard. Without a third-party, there is risk of oversight or misinterpretation of the standard
- * being implemented in application code and in tests. The html5lib tree-construction tests are
- * used by other projects like browsers or other HTML parsers for the same purpose of validating
- * behavior against an external reference.
+ * being implemented in application code and in tests. The Web Platform Tests tree-construction
+ * fixtures are used by other projects like browsers or other HTML parsers for the same purpose
+ * of validating behavior against an external reference.
  *
- * See the README file at DIR_TESTDATA / html5lib-tests for details on the third-party suite.
+ * See the README file at DIR_TESTDATA / web-platform-tests for details on the third-party suite.
  *
  * @package WordPress
  * @subpackage HTML-API
@@ -18,9 +18,9 @@
  * @since 6.6.0
  *
  * @group html-api
- * @group html-api-html5lib-tests
+ * @group html-api-web-platform-tests
  */
-class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
+class Tests_HtmlApi_WebPlatformTests extends WP_UnitTestCase {
 	const TREE_INDENT = '  ';
 
 	/**
@@ -71,11 +71,11 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 
 	/**
 	 * Verify the parsing results of the HTML Processor against the
-	 * test cases in the Web Platform Tests html5lib tree-construction suite.
+	 * test cases in the Web Platform Tests tree-construction suite.
 	 *
 	 * @ticket 60227
 	 *
-	 * @dataProvider data_external_html5lib_tests
+	 * @dataProvider data_external_web_platform_tests
 	 *
 	 * @param string|null $fragment_context Context element in which to parse HTML, such as BODY or SVG.
 	 * @param string      $html             Given test HTML.
@@ -131,8 +131,8 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_external_html5lib_tests() {
-		$test_dir = DIR_TESTDATA . '/html5lib-tests/tree-construction/';
+	public function data_external_web_platform_tests() {
+		$test_dir = DIR_TESTDATA . '/web-platform-tests/tree-construction/';
 
 		$handle = opendir( $test_dir );
 		while ( false !== ( $entry = readdir( $handle ) ) ) {
@@ -140,7 +140,7 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 				continue;
 			}
 
-			foreach ( self::parse_html5_dat_testfile( $test_dir . $entry ) as $k => $test ) {
+			foreach ( self::parse_web_platform_test_file( $test_dir . $entry ) as $k => $test ) {
 				// strip .dat extension from filename
 				$test_suite = substr( $entry, 0, -4 );
 				$line       = str_pad( strval( $test[0] ), 4, '0', STR_PAD_LEFT );
@@ -185,7 +185,7 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Generates the tree-like structure represented in the Html5lib tests.
+	 * Generates the tree-like structure represented in the Web Platform Tests fixtures.
 	 *
 	 * @param string|null $fragment_context Context element in which to parse HTML, such as BODY or SVG.
 	 * @param string      $html             Given test HTML.
@@ -263,7 +263,7 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 						}
 
 						/*
-						 * Sorts attributes to match html5lib sort order.
+						 * Sorts attributes to match Web Platform Tests tree-construction order.
 						 *
 						 *  - First comes normal HTML attributes.
 						 *  - Then come adjusted foreign attributes; these have spaces in their names.
@@ -373,7 +373,7 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Convert a given Html5lib test file into a series of test cases.
+	 * Convert a given Web Platform Tests fixture file into a series of test cases.
 	 *
 	 * @param string $filename Path to `.dat` file with test cases.
 	 *
@@ -384,7 +384,7 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 	 *     string,           // DOM structure it represents.
 	 * }> Test cases.
 	 */
-	public static function parse_html5_dat_testfile( $filename ) {
+	public static function parse_web_platform_test_file( $filename ) {
 		$handle = fopen( $filename, 'r', false );
 
 		/**

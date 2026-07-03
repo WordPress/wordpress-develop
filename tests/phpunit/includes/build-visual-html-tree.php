@@ -119,7 +119,7 @@ function build_visual_html_tree( string $html, ?string $fragment_context ): stri
 					}
 
 					/*
-					 * Sorts attributes to match html5lib sort order.
+					 * Sorts attributes to match Web Platform Tests tree-construction order.
 					 *
 					 *  - First comes normal HTML attributes.
 					 *  - Then come adjusted foreign attributes; these have spaces in their names.
