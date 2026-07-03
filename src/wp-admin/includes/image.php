@@ -97,16 +97,26 @@ function wp_get_missing_image_subsizes( $attachment_id ) {
 		return $registered_sizes;
 	}
 
-	// Use the originally uploaded image dimensions as full_width and full_height.
+	// Use the originally uploaded image dimensions as full_width and full_height,
+	// but only if the image has not been rotated (i.e. aspect ratios match).
 	if ( ! empty( $image_meta['original_image'] ) ) {
 		$image_file = wp_get_original_image_path( $attachment_id );
 		$imagesize  = wp_getimagesize( $image_file );
+
+		if ( ! empty( $imagesize ) ) {
+			$rotated_ratio  = ( $image_meta['height'] > 0 ) ? $image_meta['width'] / $image_meta['height'] : 0;
+			$original_ratio = ( $imagesize[1] > 0 ) ? $imagesize[0] / $imagesize[1] : 0;
+
+			// If ratios match the image was not rotated; use original dimensions
+			// as they may allow additional sub-sizes to be generated.
+			if ( abs( $rotated_ratio - $original_ratio ) < 0.01 ) {
+				$full_width  = $imagesize[0];
+				$full_height = $imagesize[1];
+			}
+		}
 	}
 
-	if ( ! empty( $imagesize ) ) {
-		$full_width  = $imagesize[0];
-		$full_height = $imagesize[1];
-	} else {
+	if ( empty( $full_width ) ) {
 		$full_width  = (int) $image_meta['width'];
 		$full_height = (int) $image_meta['height'];
 	}
