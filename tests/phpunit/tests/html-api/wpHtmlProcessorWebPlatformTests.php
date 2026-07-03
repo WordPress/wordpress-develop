@@ -10,7 +10,7 @@
  * fixtures are used by other projects like browsers or other HTML parsers for the same purpose
  * of validating behavior against an external reference.
  *
- * See the README file at DIR_TESTDATA / web-platform-tests for details on the third-party suite.
+ * See the README file at `DIR_TESTDATA . "/web-platform-tests"` for details on the third-party suite.
  *
  * @package WordPress
  * @subpackage HTML-API
@@ -132,7 +132,7 @@ class Tests_HtmlApi_WebPlatformTests extends WP_UnitTestCase {
 	 * @return array[]
 	 */
 	public function data_external_web_platform_tests() {
-		$test_dir = DIR_TESTDATA . '/web-platform-tests/tree-construction/';
+		$test_dir = DIR_TESTDATA . '/web-platform-tests/html_syntax_parsing_resources/';
 
 		$handle = opendir( $test_dir );
 		while ( false !== ( $entry = readdir( $handle ) ) ) {
