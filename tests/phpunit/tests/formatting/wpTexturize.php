@@ -2111,6 +2111,52 @@ String with a number followed by a single quote !q1!Expendables 3!q1! vestibulum
 		$this->assertSame( 'F&#8211;oo<', wptexturize( 'F--oo<', true ) );
 	}
 
+	/**
+	 * Ensure that > inside quoted attribute values does not cause premature
+	 * tag splitting, which would leave quotes exposed to texturization.
+	 *
+	 * @ticket 63997
+	 * @dataProvider data_gt_in_quoted_attribute_values
+	 */
+	public function test_gt_in_quoted_attribute_values( $input, $output ) {
+		$this->assertSame( $output, wptexturize( $input ) );
+	}
+
+	public function data_gt_in_quoted_attribute_values() {
+		return array(
+			// Single-quoted attribute containing double quotes and >.
+			array(
+				'<div data-test=\'a > 0 ? "yes" : "no"\'>content</div>',
+				'<div data-test=\'a > 0 ? "yes" : "no"\'>content</div>',
+			),
+			// Double-quoted attribute containing single quotes and >.
+			array(
+				"<div data-test=\"a > 0 ? 'yes' : 'no'\">content</div>",
+				"<div data-test=\"a > 0 ? 'yes' : 'no'\">content</div>",
+			),
+			// Multiple attributes, with > in one of them.
+			array(
+				'<div data-a="x > y" data-b="z">content</div>',
+				'<div data-a="x > y" data-b="z">content</div>',
+			),
+			// Escaped &gt; with nested quotes should still work as before.
+			array(
+				'<div data-test=\'a &gt; 0 ? "yes" : "no"\'>content</div>',
+				'<div data-test=\'a &gt; 0 ? "yes" : "no"\'>content</div>',
+			),
+			// Ticket 63997
+			array(
+				'<div data-template="Label <% value %>" data-label="{A \'message\' string}">Content</div>',
+				'<div data-template="Label <% value %>" data-label="{A \'message\' string}">Content</div>',
+			),
+			// Ticket 63426
+			array(
+				'<iframe srcdoc="<body></body>"></iframe>',
+				'<iframe srcdoc="<body></body>"></iframe>',
+			),
+		);
+	}
+
 	public function data_whole_posts() {
 		require_once DIR_TESTDATA . '/formatting/whole-posts.php';
 		return data_whole_posts();

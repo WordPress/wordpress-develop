@@ -38,6 +38,34 @@ class Tests_Formatting_wpHtmlSplit extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that > inside quoted attribute values does not cause premature
+	 * tag splitting in wp_html_split().
+	 *
+	 * @ticket 63997
+	 * @dataProvider data_gt_in_quoted_attribute_values
+	 */
+	public function test_gt_in_quoted_attribute_values( $input, $output ) {
+		return $this->assertSame( $output, wp_html_split( $input ) );
+	}
+
+	public function data_gt_in_quoted_attribute_values() {
+		return array(
+			array(
+				'<div data-test="a > b">content</div>',
+				array( '', '<div data-test="a > b">', 'content', '</div>', '' ),
+			),
+			array(
+				'<div data-test=\'a > b\'>content</div>',
+				array( '', '<div data-test=\'a > b\'>', 'content', '</div>', '' ),
+			),
+			array(
+				'<div data-test="a > b" data-other="c &gt; d">content</div>',
+				array( '', '<div data-test="a > b" data-other="c &gt; d">', 'content', '</div>', '' ),
+			),
+		);
+	}
+
+	/**
 	 * Automated performance testing of the main regex.
 	 *
 	 * @dataProvider data_whole_posts
