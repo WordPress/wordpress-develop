@@ -22,10 +22,13 @@ declare( strict_types = 1 );
  * and reused by the input schema, the output schema, and the execute callback, and the
  * same helpers are meant to be shared with the future write ability.
  *
- * The exposed settings are captured when the ability registers on `wp_abilities_api_init`,
- * so a setting must be registered with `show_in_abilities` before that hook fires to be
- * exposed. Core registers its own settings on `rest_api_init`, which always precedes the
- * lazy initialization of the abilities registry during REST API requests.
+ * The exposed settings are captured when the ability registers on `wp_abilities_api_init`.
+ * That hook fires lazily on first use of the abilities registry, which is not ordered
+ * relative to `rest_api_init` (where core registers its own settings) and can happen
+ * without it entirely, e.g. on cron or WP-CLI. register() therefore ensures core's
+ * initial settings are registered before the snapshot is computed. Plugin settings
+ * flagged with `show_in_abilities` must be registered before the abilities registry is
+ * first used in a request; registering them on `init` is reliable.
  *
  * This class is part of WordPress' internal implementation of the core abilities and is
  * not part of the public API. It may be changed or removed at any time without notice.
@@ -64,6 +67,18 @@ final class WP_Settings_Abilities {
 	 * @since 7.1.0
 	 */
 	public function register(): void {
+		/*
+		 * Core's initial settings register on `rest_api_init`, which fires lazily and
+		 * independently of `wp_abilities_api_init`: on cron, WP-CLI, or any request where
+		 * abilities are used before the REST server loads, it may not have fired — or may
+		 * be mid-fire at a priority before register_initial_settings() runs. Ensure the
+		 * core settings exist before the exposed-settings snapshot below is computed;
+		 * re-registering them again later on `rest_api_init` is harmless.
+		 */
+		if ( ! did_action( 'rest_api_init' ) || doing_action( 'rest_api_init' ) ) {
+			register_initial_settings();
+		}
+
 		$this->register_get_settings();
 
 		/*

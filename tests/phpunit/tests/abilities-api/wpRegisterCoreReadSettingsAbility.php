@@ -13,17 +13,37 @@ declare( strict_types=1 );
 class Tests_Abilities_API_WpRegisterCoreReadSettingsAbility extends WP_UnitTestCase {
 
 	/**
+	 * Backup of the `$wp_registered_settings` global, restored after the class.
+	 *
+	 * @var array|null
+	 */
+	private static $registered_settings_backup;
+
+	/**
+	 * Number of times `rest_api_init` had fired before the class ran, or null if never.
+	 *
+	 * @var int|null
+	 */
+	private static $rest_api_init_count;
+
+	/**
 	 * Set up before the class.
 	 *
-	 * The core settings are registered on `rest_api_init`, so register them up front to
-	 * mirror the request context in which the ability builds its schema and runs.
+	 * The ability is registered under the ordering that used to break it: no settings
+	 * registered yet and `rest_api_init` never fired, as on cron, WP-CLI, or any request
+	 * that uses the Abilities API before the REST server loads. The ability must
+	 * self-register core's initial settings (see WP_Settings_Abilities::register()).
 	 *
 	 * @since 7.1.0
 	 */
 	public static function set_up_before_class(): void {
 		parent::set_up_before_class();
 
-		register_initial_settings();
+		global $wp_registered_settings, $wp_actions;
+		self::$registered_settings_backup = $wp_registered_settings;
+		self::$rest_api_init_count        = $wp_actions['rest_api_init'] ?? null;
+		$wp_registered_settings           = array();
+		unset( $wp_actions['rest_api_init'] );
 
 		// A non-core setting flagged for the Abilities API, to verify that any registered
 		// setting (not just the core ones) is exposed by the ability.
@@ -67,6 +87,12 @@ class Tests_Abilities_API_WpRegisterCoreReadSettingsAbility extends WP_UnitTestC
 
 		unregister_setting( 'general', 'core_read_settings_ability_test_option' );
 
+		global $wp_registered_settings, $wp_actions;
+		$wp_registered_settings = self::$registered_settings_backup;
+		if ( null !== self::$rest_api_init_count ) {
+			$wp_actions['rest_api_init'] = self::$rest_api_init_count;
+		}
+
 		parent::tear_down_after_class();
 	}
 
@@ -75,6 +101,26 @@ class Tests_Abilities_API_WpRegisterCoreReadSettingsAbility extends WP_UnitTestC
 	 */
 	private function become_admin(): void {
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+	}
+
+	/**
+	 * Core settings are exposed even when the abilities registry initializes in a request
+	 * where `rest_api_init` (which registers core's initial settings) has never fired.
+	 *
+	 * The class setup registers the ability with no settings registered up front, so this
+	 * asserts that the ability took care of registering core's initial settings itself.
+	 *
+	 * @ticket 64605
+	 */
+	public function test_core_read_settings_registers_initial_settings_without_rest_api_init(): void {
+		$ability = wp_get_ability( 'core/read-settings' );
+
+		$this->assertArrayHasKey( 'blogname', $ability->get_output_schema()['properties'] );
+
+		$this->become_admin();
+		$result = $ability->execute( array( 'fields' => array( 'blogname' ) ) );
+
+		$this->assertArrayHasKey( 'blogname', $result );
 	}
 
 	/**
