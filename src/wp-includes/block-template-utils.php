@@ -417,7 +417,7 @@ function _get_block_templates_files( $template_type, $query = array() ) {
 			$template_slug      = substr(
 				$template_file,
 				// Starting position of slug.
-				strpos( $template_file, $template_base_path . DIRECTORY_SEPARATOR ) + 1 + strlen( $template_base_path ),
+				strrpos( $template_file, $template_base_path . DIRECTORY_SEPARATOR ) + 1 + strlen( $template_base_path ),
 				// Subtract ending '.html'.
 				-5
 			);
