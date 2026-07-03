@@ -31,7 +31,7 @@ errors.
 
 Then there \*may\* be a line that says "\#document-fragment", which must
 be followed by a newline (LF), followed by a string of characters that
-indicates the context element, followed by a newline (LF). If the string 
+indicates the context element, followed by a newline (LF). If the string
 of characters starts with "svg ", the context element is in the SVG
 namespace and the substring after "svg " is the local name. If the
 string of characters starts with "math ", the context element is in the
