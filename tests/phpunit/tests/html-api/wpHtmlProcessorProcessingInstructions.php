@@ -62,6 +62,7 @@ class Tests_HtmlApi_WpHtmlProcessorProcessingInstruction extends WP_UnitTestCase
 			'Single-character target'      => array( '<?x data>', 'x', 'data' ),
 			'Digits and hyphens in target' => array( '<?r2-d2 data>', 'r2-d2', 'data' ),
 			'XML lookalike target prefix'  => array( '<?xml2 data>', 'xml2', 'data' ),
+			'IMAGE target not rewritten'   => array( '<?IMAGE data?>', 'IMAGE', 'data' ),
 		);
 	}
 

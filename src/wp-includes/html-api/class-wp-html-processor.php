@@ -5353,8 +5353,12 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		/*
 		 * > A start tag whose tag name is "image"
 		 * > Change the token's tag name to "img" and reprocess it. (Don't ask.)
+		 *
+		 * This only applies to tags; a processing instruction target or a
+		 * comment which looks like a processing instruction may also report
+		 * a tag name and must not be rewritten.
 		 */
-		return ( 'IMAGE' === $tag_name && 'html' === $this->get_namespace() )
+		return ( 'IMAGE' === $tag_name && 'html' === $this->get_namespace() && '#tag' === $this->get_token_type() )
 			? 'IMG'
 			: $tag_name;
 	}
