@@ -376,6 +376,15 @@ switch ( $action ) {
 						</td>
 					</tr>
 
+					<tr class="user-media-library-infinite-scrolling-wrap">
+						<th scope="row"><?php _e( 'Infinite Scrolling' ); ?></th>
+						<td>
+							<label for="media_library_infinite_scrolling"><input name="media_library_infinite_scrolling" type="checkbox" id="media_library_infinite_scrolling" value="false" <?php checked( 'false', $profile_user->media_library_infinite_scrolling ); ?> />
+								<?php _e( 'Disable infinite scrolling in the media library' ); ?>
+							</label>
+						</td>
+					</tr>
+
 					<?php
 					$languages                = get_available_languages();
 					$can_install_translations = current_user_can( 'install_languages' ) && wp_can_install_language_pack();

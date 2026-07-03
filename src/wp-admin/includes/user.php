@@ -132,10 +132,11 @@ function edit_user( $user_id = 0 ) {
 	}
 
 	if ( $update ) {
-		$user->rich_editing         = isset( $_POST['rich_editing'] ) && 'false' === $_POST['rich_editing'] ? 'false' : 'true';
-		$user->syntax_highlighting  = isset( $_POST['syntax_highlighting'] ) && 'false' === $_POST['syntax_highlighting'] ? 'false' : 'true';
-		$user->admin_color          = isset( $_POST['admin_color'] ) ? sanitize_text_field( $_POST['admin_color'] ) : 'modern';
-		$user->show_admin_bar_front = isset( $_POST['admin_bar_front'] ) ? 'true' : 'false';
+		$user->rich_editing                     = isset( $_POST['rich_editing'] ) && 'false' === $_POST['rich_editing'] ? 'false' : 'true';
+		$user->syntax_highlighting              = isset( $_POST['syntax_highlighting'] ) && 'false' === $_POST['syntax_highlighting'] ? 'false' : 'true';
+		$user->media_library_infinite_scrolling = isset( $_POST['media_library_infinite_scrolling'] ) && 'false' === $_POST['media_library_infinite_scrolling'] ? 'false' : 'true';
+		$user->admin_color                      = isset( $_POST['admin_color'] ) ? sanitize_text_field( $_POST['admin_color'] ) : 'modern';
+		$user->show_admin_bar_front             = isset( $_POST['admin_bar_front'] ) ? 'true' : 'false';
 	}
 
 	$user->comment_shortcuts = isset( $_POST['comment_shortcuts'] ) && 'true' === $_POST['comment_shortcuts'] ? 'true' : '';
