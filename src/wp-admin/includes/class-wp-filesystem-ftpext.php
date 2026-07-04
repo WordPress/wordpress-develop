@@ -710,15 +710,9 @@ class WP_Filesystem_FTPext extends WP_Filesystem_Base {
 				$b['type'] = 'f';
 			}
 
-			$b['size']   = $lucifer[7];
-			$b['month']  = $lucifer[1];
-			$b['day']    = $lucifer[2];
-			$b['year']   = $lucifer[3];
-			$b['hour']   = $lucifer[4];
-			$b['minute'] = $lucifer[5];
-			$b['time']   = mktime( (int) $lucifer[4] + ( strcasecmp( $lucifer[6], 'PM' ) === 0 ? 12 : 0 ), (int) $lucifer[5], 0, (int) $lucifer[1], (int) $lucifer[2], (int) $lucifer[3] );
-			$b['am/pm']  = $lucifer[6];
-			$b['name']   = $lucifer[8];
+			$b['size'] = $lucifer[7];
+			$b['time'] = mktime( (int) $lucifer[4] + ( strcasecmp( $lucifer[6], 'PM' ) === 0 ? 12 : 0 ), (int) $lucifer[5], 0, (int) $lucifer[1], (int) $lucifer[2], (int) $lucifer[3] );
+			$b['name'] = $lucifer[8];
 		} elseif ( ! $is_windows ) {
 			$lucifer = preg_split( '/[ ]/', $line, 9, PREG_SPLIT_NO_EMPTY );
 
@@ -749,26 +743,26 @@ class WP_Filesystem_FTPext extends WP_Filesystem_Base {
 				$b['size']   = $lucifer[4];
 
 				if ( 8 === $lcount ) {
-					sscanf( $lucifer[5], '%d-%d-%d', $b['year'], $b['month'], $b['day'] );
-					sscanf( $lucifer[6], '%d:%d', $b['hour'], $b['minute'] );
+					sscanf( $lucifer[5], '%d-%d-%d', $year, $month, $day );
+					sscanf( $lucifer[6], '%d:%d', $hour, $minute );
 
-					$b['time'] = mktime( (int) $b['hour'], (int) $b['minute'], 0, (int) $b['month'], (int) $b['day'], (int) $b['year'] );
+					$b['time'] = mktime( (int) $hour, (int) $minute, 0, (int) $month, (int) $day, (int) $year );
 					$b['name'] = $lucifer[7];
 				} else {
-					$b['month'] = $lucifer[5];
-					$b['day']   = $lucifer[6];
+					$month = $lucifer[5];
+					$day   = $lucifer[6];
 
 					if ( preg_match( '/([0-9]{2}):([0-9]{2})/', $lucifer[7], $l2 ) ) {
-						$b['year']   = gmdate( 'Y' );
-						$b['hour']   = $l2[1];
-						$b['minute'] = $l2[2];
+						$year   = gmdate( 'Y' );
+						$hour   = $l2[1];
+						$minute = $l2[2];
 					} else {
-						$b['year']   = $lucifer[7];
-						$b['hour']   = 0;
-						$b['minute'] = 0;
+						$year   = $lucifer[7];
+						$hour   = 0;
+						$minute = 0;
 					}
 
-					$b['time'] = strtotime( sprintf( '%d %s %d %02d:%02d', $b['day'], $b['month'], $b['year'], $b['hour'], $b['minute'] ) );
+					$b['time'] = strtotime( sprintf( '%d %s %d %02d:%02d', $day, $month, $year, $hour, $minute ) );
 					$b['name'] = $lucifer[8];
 				}
 			}
