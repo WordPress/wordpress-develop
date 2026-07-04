@@ -13,8 +13,8 @@
  *
  * @see WP_Filesystem_Base
  * @phpstan-type Options array{
- *     hostname: non-empty-string,
- *     username: non-empty-string,
+ *     hostname: string,
+ *     username: string,
  *     password: string,
  *     port: non-negative-int,
  *     ssl: bool,
@@ -59,8 +59,15 @@ class WP_Filesystem_FTPext extends WP_Filesystem_Base {
 	 * }|null $opt
 	 */
 	public function __construct( $opt = null ) {
-		$this->method = 'ftpext';
-		$this->errors = new WP_Error();
+		$this->method  = 'ftpext';
+		$this->errors  = new WP_Error();
+		$this->options = array(
+			'port'     => 21,
+			'hostname' => '',
+			'username' => '',
+			'password' => '',
+			'ssl'      => false,
+		);
 
 		// Check if possible to use ftp functions.
 		if ( ! extension_loaded( 'ftp' ) ) {
@@ -73,45 +80,35 @@ class WP_Filesystem_FTPext extends WP_Filesystem_Base {
 			define( 'FS_TIMEOUT', 4 * MINUTE_IN_SECONDS );
 		}
 
-		$options = array();
 		if ( ! is_array( $opt ) ) {
 			$opt = array();
 		}
 
-		if ( empty( $opt['port'] ) ) {
-			$options['port'] = 21;
-		} else {
-			$options['port'] = $opt['port'];
+		if ( ! empty( $opt['port'] ) ) {
+			$this->options['port'] = $opt['port'];
 		}
 
 		if ( empty( $opt['hostname'] ) ) {
 			$this->errors->add( 'empty_hostname', __( 'FTP hostname is required' ) );
 		} else {
-			$options['hostname'] = $opt['hostname'];
+			$this->options['hostname'] = $opt['hostname'];
 		}
 
 		// Check if the options provided are OK.
 		if ( empty( $opt['username'] ) ) {
 			$this->errors->add( 'empty_username', __( 'FTP username is required' ) );
 		} else {
-			$options['username'] = $opt['username'];
+			$this->options['username'] = $opt['username'];
 		}
 
 		if ( empty( $opt['password'] ) ) {
 			$this->errors->add( 'empty_password', __( 'FTP password is required' ) );
 		} else {
-			$options['password'] = $opt['password'];
+			$this->options['password'] = $opt['password'];
 		}
-
-		$options['ssl'] = false;
 
 		if ( isset( $opt['connection_type'] ) && 'ftps' === $opt['connection_type'] ) {
-			$options['ssl'] = true;
-		}
-
-		if ( ! $this->errors->has_errors() ) {
-			/** @var Options $options */
-			$this->options = $options;
+			$this->options['ssl'] = true;
 		}
 	}
 

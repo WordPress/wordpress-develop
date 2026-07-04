@@ -34,8 +34,8 @@
  * @subpackage Filesystem
  *
  * @phpstan-type Options array{
- *     hostname: non-empty-string,
- *     username: non-empty-string,
+ *     hostname: string,
+ *     username: string,
  *     password: string|null,
  *     port: non-negative-int,
  *     public_key?: non-empty-string,
@@ -96,8 +96,14 @@ class WP_Filesystem_SSH2 extends WP_Filesystem_Base {
 	 * }|null $opt
 	 */
 	public function __construct( $opt = null ) {
-		$this->method = 'ssh2';
-		$this->errors = new WP_Error();
+		$this->method  = 'ssh2';
+		$this->errors  = new WP_Error();
+		$this->options = array(
+			'port'     => 22,
+			'hostname' => '',
+			'username' => '',
+			'password' => null,
+		);
 
 		// Check if possible to use ssh2 functions.
 		if ( ! extension_loaded( 'ssh2' ) ) {
@@ -105,30 +111,27 @@ class WP_Filesystem_SSH2 extends WP_Filesystem_Base {
 			return;
 		}
 
-		$options = array();
 		if ( ! is_array( $opt ) ) {
 			$opt = array();
 		}
 
 		// Set defaults:
-		if ( empty( $opt['port'] ) ) {
-			$options['port'] = 22;
-		} else {
-			$options['port'] = $opt['port'];
+		if ( ! empty( $opt['port'] ) ) {
+			$this->options['port'] = $opt['port'];
 		}
 
 		if ( empty( $opt['hostname'] ) ) {
 			$this->errors->add( 'empty_hostname', __( 'SSH2 hostname is required' ) );
 		} else {
-			$options['hostname'] = $opt['hostname'];
+			$this->options['hostname'] = $opt['hostname'];
 		}
 
 		// Check if the options provided are OK.
 		if ( ! empty( $opt['public_key'] ) && ! empty( $opt['private_key'] ) ) {
-			$options['public_key']  = $opt['public_key'];
-			$options['private_key'] = $opt['private_key'];
+			$this->options['public_key']  = $opt['public_key'];
+			$this->options['private_key'] = $opt['private_key'];
 
-			$options['hostkey'] = array( 'hostkey' => 'ssh-rsa,ssh-ed25519' );
+			$this->options['hostkey'] = array( 'hostkey' => 'ssh-rsa,ssh-ed25519' );
 
 			$this->keys = true;
 		}
@@ -137,23 +140,14 @@ class WP_Filesystem_SSH2 extends WP_Filesystem_Base {
 		if ( empty( $opt['username'] ) ) {
 			$this->errors->add( 'empty_username', __( 'SSH2 username is required' ) );
 		} else {
-			$options['username'] = $opt['username'];
+			$this->options['username'] = $opt['username'];
 		}
 
-		if ( empty( $opt['password'] ) ) {
+		if ( ! empty( $opt['password'] ) ) {
+			$this->options['password'] = $opt['password'];
+		} elseif ( ! $this->keys ) {
 			// Password can be blank if we are using keys.
-			if ( ! $this->keys ) {
-				$this->errors->add( 'empty_password', __( 'SSH2 password is required' ) );
-			} else {
-				$options['password'] = null;
-			}
-		} else {
-			$options['password'] = $opt['password'];
-		}
-
-		if ( ! $this->errors->has_errors() ) {
-			/** @var Options $options */
-			$this->options = $options;
+			$this->errors->add( 'empty_password', __( 'SSH2 password is required' ) );
 		}
 	}
 
