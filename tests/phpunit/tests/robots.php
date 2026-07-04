@@ -147,13 +147,9 @@ class Tests_Robots extends WP_UnitTestCase {
 	/**
 	 * @ticket 63467
 	 */
-	public function test_do_robots_uses_filtered_admin_url_paths() {
-		$filter = static function ( $url, $path, $blog_id, $scheme ) {
-			if ( 'admin-ajax.php' === $path ) {
-				return home_url( '/control/admin-ajax.php', $scheme );
-			}
-
-			return home_url( '/control/', $scheme );
+	public function test_do_robots_uses_filtered_admin_url_paths(): void {
+		$filter = static function ( string $url, string $path, ?int $blog_id, string $scheme ): string {
+			return home_url( "/control/$path", $scheme );
 		};
 
 		add_filter( 'admin_url', $filter, 10, 4 );
