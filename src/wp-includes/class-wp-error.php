@@ -73,7 +73,7 @@ class WP_Error {
 	 *
 	 * @return list<int|string> List of error codes, if available.
 	 */
-	public function get_error_codes() {
+	public function get_error_codes(): array {
 		if ( ! $this->has_errors() ) {
 			return array();
 		}
@@ -107,7 +107,7 @@ class WP_Error {
 	 *                         Default empty string.
 	 * @return string[] Error strings on success, or empty array if there are none.
 	 */
-	public function get_error_messages( $code = '' ) {
+	public function get_error_messages( $code = '' ): array {
 		// Return all messages if no code specified.
 		if ( empty( $code ) ) {
 			$all_messages = array();
@@ -173,7 +173,7 @@ class WP_Error {
 	 *
 	 * @return bool If the instance contains errors.
 	 */
-	public function has_errors() {
+	public function has_errors(): bool {
 		if ( ! empty( $this->errors ) ) {
 			return true;
 		}
