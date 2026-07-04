@@ -148,15 +148,16 @@ class Tests_Robots extends WP_UnitTestCase {
 	 * @ticket 63467
 	 */
 	public function test_do_robots_uses_filtered_admin_url_paths(): void {
-		$filter = static function ( string $url, string $path, ?int $blog_id, string $scheme ): string {
-			return home_url( "/control/$path", $scheme );
-		};
-
-		add_filter( 'admin_url', $filter, 10, 4 );
+		add_filter(
+			'admin_url',
+			static function ( string $url, string $path, ?int $blog_id, string $scheme ): string {
+				return home_url( "/control/$path", $scheme );
+			},
+			10,
+			4
+		);
 
 		$output = get_echo( 'do_robots' );
-
-		remove_filter( 'admin_url', $filter, 10 );
 
 		$this->assertStringNotContainsString( 'wp-admin', $output );
 		$this->assertStringContainsString( "Disallow: /control/\n", $output );
