@@ -21,7 +21,7 @@ class WP_Error {
 	 * Stores the list of errors.
 	 *
 	 * @since 2.1.0
-	 * @var array
+	 * @var array<int|string, string[]>
 	 */
 	public $errors = array();
 
@@ -29,7 +29,7 @@ class WP_Error {
 	 * Stores the most recently added data for each error code.
 	 *
 	 * @since 2.1.0
-	 * @var array
+	 * @var array<int|string, mixed>
 	 */
 	public $error_data = array();
 
@@ -37,7 +37,7 @@ class WP_Error {
 	 * Stores previously added data added for error codes, oldest-to-newest by code.
 	 *
 	 * @since 5.6.0
-	 * @var array[]
+	 * @var array<int|string, mixed[]>
 	 */
 	protected $additional_data = array();
 
@@ -71,7 +71,7 @@ class WP_Error {
 	 *
 	 * @since 2.1.0
 	 *
-	 * @return array List of error codes, if available.
+	 * @return list<int|string> List of error codes, if available.
 	 */
 	public function get_error_codes() {
 		if ( ! $this->has_errors() ) {
@@ -189,7 +189,7 @@ class WP_Error {
 	 * @param string     $message Error message.
 	 * @param mixed      $data    Optional. Error data. Default empty string.
 	 */
-	public function add( $code, $message, $data = '' ) {
+	public function add( $code, $message, $data = '' ): void {
 		$this->errors[ $code ][] = $message;
 
 		if ( ! empty( $data ) ) {
@@ -218,7 +218,7 @@ class WP_Error {
 	 * @param mixed      $data Error data.
 	 * @param string|int $code Error code.
 	 */
-	public function add_data( $data, $code = '' ) {
+	public function add_data( $data, $code = '' ): void {
 		if ( empty( $code ) ) {
 			$code = $this->get_error_code();
 		}
@@ -238,7 +238,7 @@ class WP_Error {
 	 * @param string|int $code Error code.
 	 * @return mixed[] Array of error data, if it exists.
 	 */
-	public function get_all_error_data( $code = '' ) {
+	public function get_all_error_data( $code = '' ): array {
 		if ( empty( $code ) ) {
 			$code = $this->get_error_code();
 		}
@@ -266,7 +266,7 @@ class WP_Error {
 	 *
 	 * @param string|int $code Error code.
 	 */
-	public function remove( $code ) {
+	public function remove( $code ): void {
 		unset( $this->errors[ $code ] );
 		unset( $this->error_data[ $code ] );
 		unset( $this->additional_data[ $code ] );
@@ -279,7 +279,7 @@ class WP_Error {
 	 *
 	 * @param WP_Error $error Error object to merge.
 	 */
-	public function merge_from( WP_Error $error ) {
+	public function merge_from( WP_Error $error ): void {
 		static::copy_errors( $error, $this );
 	}
 
@@ -290,7 +290,7 @@ class WP_Error {
 	 *
 	 * @param WP_Error $error Error object to export into.
 	 */
-	public function export_to( WP_Error $error ) {
+	public function export_to( WP_Error $error ): void {
 		static::copy_errors( $this, $error );
 	}
 
@@ -302,7 +302,7 @@ class WP_Error {
 	 * @param WP_Error $from The WP_Error to copy from.
 	 * @param WP_Error $to   The WP_Error to copy to.
 	 */
-	protected static function copy_errors( WP_Error $from, WP_Error $to ) {
+	protected static function copy_errors( WP_Error $from, WP_Error $to ): void {
 		foreach ( $from->get_error_codes() as $code ) {
 			foreach ( $from->get_error_messages( $code ) as $error_message ) {
 				$to->add( $code, $error_message );
