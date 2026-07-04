@@ -118,11 +118,7 @@ class WP_Error {
 			return $all_messages;
 		}
 
-		if ( isset( $this->errors[ $code ] ) ) {
-			return $this->errors[ $code ];
-		} else {
-			return array();
-		}
+		return $this->errors[ $code ] ?? array();
 	}
 
 	/**
@@ -161,9 +157,7 @@ class WP_Error {
 			$code = $this->get_error_code();
 		}
 
-		if ( isset( $this->error_data[ $code ] ) ) {
-			return $this->error_data[ $code ];
-		}
+		return $this->error_data[ $code ] ?? null;
 	}
 
 	/**
