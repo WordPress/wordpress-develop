@@ -2526,6 +2526,52 @@ Shankle pork chop prosciutto ribeye ham hock pastrami. T-bone shank brisket baco
 		$this->check_create_post_response( $response );
 	}
 
+	/**
+	 * Ensures creating a draft/pending post with an explicit slug does not emit
+	 * "Undefined property: stdClass::$id" (PHP 8+) from wp_unique_post_slug().
+	 *
+	 * @ticket XXXXX
+	 *
+	 * @covers WP_REST_Posts_Controller::create_item
+	 */
+	public function test_create_draft_with_slug_does_not_emit_undefined_property_warning() {
+		wp_set_current_user( self::$editor_id );
+
+		$caught = array();
+		set_error_handler(
+			static function ( $errno, $errstr ) use ( &$caught ) {
+				$caught[] = $errstr;
+				return true;
+			},
+			E_WARNING | E_NOTICE | E_DEPRECATED
+		);
+
+		try {
+			$request = new WP_REST_Request( 'POST', '/wp/v2/posts' );
+			$request->set_body_params(
+				array(
+					'title'  => 'Draft with explicit slug',
+					'status' => 'draft',
+					'slug'   => 'draft-with-explicit-slug',
+				)
+			);
+			$response = rest_get_server()->dispatch( $request );
+		} finally {
+			restore_error_handler();
+		}
+
+		$this->assertSame( 201, $response->get_status() );
+		$this->assertSame( 'draft-with-explicit-slug', $response->get_data()['slug'] );
+
+		foreach ( $caught as $message ) {
+			$this->assertStringNotContainsString(
+				'Undefined property: stdClass::$id',
+				$message,
+				'Creating a draft with a slug should not emit an undefined property warning.'
+			);
+		}
+	}
+
 	public function data_post_dates() {
 		$all_statuses = array(
 			'draft',
