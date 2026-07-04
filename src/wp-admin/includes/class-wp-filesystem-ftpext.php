@@ -120,7 +120,12 @@ class WP_Filesystem_FTPext extends WP_Filesystem_Base {
 	 * @return bool True on success, false on failure.
 	 */
 	public function connect() {
-		if ( $this->errors->has_errors() ) {
+		/*
+		 * Bail if the constructor recorded a configuration error. Connection and
+		 * authentication errors are excluded so that a failed connection attempt
+		 * can be retried on the same instance.
+		 */
+		if ( $this->errors->has_errors() && ! array_intersect( array( 'connect', 'auth' ), $this->errors->get_error_codes() ) ) {
 			return false;
 		}
 
