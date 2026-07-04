@@ -293,7 +293,7 @@ class WP_Filesystem_Direct extends WP_Filesystem_Base {
 	 * @since 2.5.0
 	 *
 	 * @param string $file Path to the file.
-	 * @return string|int<1, max>|false Username of the owner on success, or group ID of file owner if not available; false on failure.
+	 * @return string|int<1, max>|false Group name on success, or GID of the file's group if not available; false on failure.
 	 */
 	public function group( $file ) {
 		$gid = @filegroup( $file );
