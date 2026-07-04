@@ -168,7 +168,7 @@ class WP_Error {
 	 * @return bool If the instance contains errors.
 	 */
 	public function has_errors(): bool {
-		return count( $this->errors ) > 0;
+		return (bool) $this->errors;
 	}
 
 	/**
