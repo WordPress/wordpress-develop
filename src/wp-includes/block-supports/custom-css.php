@@ -25,6 +25,18 @@
  *     },
  *     ...
  * } $parsed_block
+ * @phpstan-return array{
+ *     blockName: string|null,
+ *     attrs: array{
+ *         className?: string,
+ *         style?: array{
+ *             css?: string,
+ *             ...
+ *         },
+ *         ...
+ *     },
+ *     ...
+ * }
  */
 function wp_render_custom_css_support_styles( $parsed_block ) {
 	$custom_css = $parsed_block['attrs']['style']['css'] ?? null;
