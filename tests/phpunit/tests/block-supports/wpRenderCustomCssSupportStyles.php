@@ -14,6 +14,9 @@ class Tests_Block_Supports_WpRenderCustomCssSupportStyles extends WP_UnitTestCas
 	public function set_up() {
 		parent::set_up();
 		$this->test_block_name = null;
+
+		global $wp_styles;
+		$wp_styles = null;
 	}
 
 	public function tear_down() {
@@ -21,6 +24,10 @@ class Tests_Block_Supports_WpRenderCustomCssSupportStyles extends WP_UnitTestCas
 			unregister_block_type( $this->test_block_name );
 		}
 		$this->test_block_name = null;
+
+		global $wp_styles;
+		$wp_styles = null;
+
 		parent::tear_down();
 	}
 
@@ -319,7 +326,5 @@ class Tests_Block_Supports_WpRenderCustomCssSupportStyles extends WP_UnitTestCas
 			$occurrences,
 			'CSS should be enqueued exactly once even when the same block renders multiple times.'
 		);
-
-		wp_deregister_style( 'wp-block-custom-css' );
 	}
 }
