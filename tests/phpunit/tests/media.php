@@ -109,6 +109,69 @@ CAP;
 		$this->assertSame( 'img_caption_shortcode', $shortcode_tags['wp_caption'] );
 	}
 
+	/**
+	 * Tests the precedence rules for the Media Library infinite scrolling setting.
+	 *
+	 * Infinite scrolling is enabled by default. A user can opt out via the
+	 * `infinite_scrolling` personal option, and the
+	 * `media_library_infinite_scrolling` filter takes precedence over both.
+	 *
+	 * @ticket 65564
+	 *
+	 * @covers ::wp_enqueue_media
+	 */
+	public function test_wp_enqueue_media_infinite_scrolling_precedence() {
+		$user_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		wp_set_current_user( $user_id );
+
+		// Default: no user preference and no filter, infinite scrolling is enabled.
+		$this->assertSame(
+			1,
+			$this->get_media_infinite_scrolling_setting(),
+			'Infinite scrolling should be enabled by default.'
+		);
+
+		// User preference: disabling it via the personal option turns it off.
+		update_user_meta( $user_id, 'infinite_scrolling', 'false' );
+		$this->assertSame(
+			0,
+			$this->get_media_infinite_scrolling_setting(),
+			'The user preference should disable infinite scrolling.'
+		);
+
+		// Filter precedence: a filter overrides the user preference.
+		add_filter( 'media_library_infinite_scrolling', '__return_true' );
+		$this->assertSame(
+			1,
+			$this->get_media_infinite_scrolling_setting(),
+			'The filter should take precedence over the user preference.'
+		);
+	}
+
+	/**
+	 * Helper that runs wp_enqueue_media() and returns the computed
+	 * `infiniteScrolling` media view setting.
+	 *
+	 * @return int The infiniteScrolling setting: 1 when enabled, 0 when disabled.
+	 */
+	private function get_media_infinite_scrolling_setting() {
+		// wp_enqueue_media() only runs once per request; reset the guard so it
+		// can be invoked again for each scenario.
+		unset( $GLOBALS['wp_actions']['wp_enqueue_media'] );
+
+		$infinite_scrolling = null;
+		$capture            = static function ( $settings ) use ( &$infinite_scrolling ) {
+			$infinite_scrolling = $settings['infiniteScrolling'];
+			return $settings;
+		};
+
+		add_filter( 'media_view_settings', $capture );
+		wp_enqueue_media();
+		remove_filter( 'media_view_settings', $capture );
+
+		return $infinite_scrolling;
+	}
+
 	public function test_img_caption_shortcode_with_empty_params() {
 		$result = img_caption_shortcode( array() );
 		$this->assertSame( '', $result );
@@ -5654,7 +5717,7 @@ EOF;
 		copy( DIR_TESTDATA . '/images/33772.jpg', $file );
 
 		// Set JPEG output quality very low and WebP quality very high, this should force all generated WebP images to
-		// be larger than the the matching generated JPEGs.
+		// be larger than the matching generated JPEGs.
 		add_filter( 'wp_editor_set_quality', array( $this, 'image_editor_change_quality_low_jpeg' ), 10, 2 );
 
 		$editor = wp_get_image_editor( $file );
@@ -7282,6 +7345,81 @@ EOF;
 			'width'  => 200,
 			'height' => 100,
 		);
+	}
+
+	/**
+	 * @ticket 65262
+	 * @covers ::wp_get_image_encode_quality
+	 */
+	public function test_wp_get_image_encode_quality_defaults() {
+		// JPEG (and any non-WebP) defaults to 82, WebP to 86.
+		$this->assertSame( 82, wp_get_image_encode_quality( 'image/jpeg' ) );
+		$this->assertSame( 82, wp_get_image_encode_quality( 'image/png' ) );
+		$this->assertSame( 86, wp_get_image_encode_quality( 'image/webp' ) );
+	}
+
+	/**
+	 * @ticket 65262
+	 * @covers ::wp_get_image_encode_quality
+	 */
+	public function test_wp_get_image_encode_quality_applies_wp_editor_set_quality() {
+		$filter = static function ( $quality, $mime_type, $size ) {
+			return ( ! empty( $size['width'] ) && $size['width'] <= 300 ) ? 55 : $quality;
+		};
+		add_filter( 'wp_editor_set_quality', $filter, 10, 3 );
+
+		$small = wp_get_image_encode_quality( 'image/webp', array( 'width' => 150 ) );
+		$large = wp_get_image_encode_quality( 'image/webp', array( 'width' => 1200 ) );
+
+		remove_filter( 'wp_editor_set_quality', $filter, 10 );
+
+		$this->assertSame( 55, $small );
+		$this->assertSame( 86, $large );
+	}
+
+	/**
+	 * The legacy jpeg_quality filter must apply for JPEG output only, matching
+	 * WP_Image_Editor::set_quality().
+	 *
+	 * @ticket 65262
+	 * @covers ::wp_get_image_encode_quality
+	 */
+	public function test_wp_get_image_encode_quality_applies_jpeg_quality() {
+		$filter = static function () {
+			return 70;
+		};
+		add_filter( 'jpeg_quality', $filter );
+
+		$jpeg = wp_get_image_encode_quality( 'image/jpeg' );
+		$webp = wp_get_image_encode_quality( 'image/webp' );
+
+		remove_filter( 'jpeg_quality', $filter );
+
+		$this->assertSame( 70, $jpeg );
+		// Non-JPEG output ignores jpeg_quality.
+		$this->assertSame( 86, $webp );
+	}
+
+	/**
+	 * Out-of-range filtered values fall back to the default; 0 squashes to 1.
+	 *
+	 * @ticket 65262
+	 * @covers ::wp_get_image_encode_quality
+	 */
+	public function test_wp_get_image_encode_quality_clamps_out_of_range() {
+		$too_high = static function () {
+			return 150;
+		};
+		add_filter( 'wp_editor_set_quality', $too_high );
+		$this->assertSame( 82, wp_get_image_encode_quality( 'image/jpeg' ) );
+		remove_filter( 'wp_editor_set_quality', $too_high );
+
+		$zero = static function () {
+			return 0;
+		};
+		add_filter( 'wp_editor_set_quality', $zero );
+		$this->assertSame( 1, wp_get_image_encode_quality( 'image/png' ) );
+		remove_filter( 'wp_editor_set_quality', $zero );
 	}
 }
 
