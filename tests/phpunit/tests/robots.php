@@ -158,6 +158,7 @@ class Tests_Robots extends WP_UnitTestCase {
 
 		remove_filter( 'admin_url', $filter, 10 );
 
+		$this->assertStringNotContainsString( 'wp-admin', $output );
 		$this->assertStringContainsString( "Disallow: /control/\n", $output );
 		$this->assertStringContainsString( "Allow: /control/admin-ajax.php\n", $output );
 	}
