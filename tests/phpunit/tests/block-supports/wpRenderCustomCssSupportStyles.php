@@ -273,7 +273,7 @@ class Tests_Block_Supports_WpRenderCustomCssSupportStyles extends WP_UnitTestCas
 	 *
 	 * @covers ::wp_render_custom_css_support_styles
 	 */
-	public function test_css_not_duplicated_on_repeated_renders() {
+	public function test_css_not_duplicated_on_repeated_renders(): void {
 		$this->test_block_name = 'test/custom-css-query-loop-dedup';
 		register_block_type(
 			$this->test_block_name,
@@ -303,16 +303,15 @@ class Tests_Block_Supports_WpRenderCustomCssSupportStyles extends WP_UnitTestCas
 		wp_render_custom_css_support_styles( $parsed_block );
 
 		// Extract the generated class name from the first render's result.
-		preg_match( '/wp-custom-css-\S+/', $result['attrs']['className'], $matches );
-		$class_name = $matches[0];
+		$this->assertSame( 1, preg_match( '/(^|\s)(wp-custom-css-\S+)/', $result['attrs']['className'] ?? '', $matches ) );
+		$class_name = $matches[1];
 
 		// Count how many times the CSS selector for this block appears in the enqueued inline styles.
 		$inline_styles = (array) wp_styles()->get_data( 'wp-block-custom-css', 'after' );
 		$occurrences   = 0;
 		foreach ( $inline_styles as $style ) {
-			if ( false !== strpos( $style, '.' . $class_name ) ) {
-				++$occurrences;
-			}
+			$this->assertIsString( $style );
+			$occurrences += substr_count( $style, '.' . $class_name );
 		}
 
 		$this->assertSame(
