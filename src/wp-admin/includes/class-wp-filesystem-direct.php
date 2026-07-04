@@ -24,6 +24,7 @@ class WP_Filesystem_Direct extends WP_Filesystem_Base {
 	 * @param mixed $arg Not used.
 	 */
 	public function __construct( $arg ) {
+		// The $arg parameter is required for signature parity with the other transports, but is unused here.
 		unset( $arg );
 		$this->method = 'direct';
 		$this->errors = new WP_Error();
