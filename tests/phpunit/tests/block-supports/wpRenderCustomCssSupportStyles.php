@@ -310,7 +310,7 @@ class Tests_Block_Supports_WpRenderCustomCssSupportStyles extends WP_UnitTestCas
 		wp_render_custom_css_support_styles( $parsed_block );
 
 		// Extract the generated class name from the first render's result.
-		$this->assertSame( 1, preg_match( '/(^|\s)(wp-custom-css-\S+)/', $result['attrs']['className'] ?? '', $matches ) );
+		$this->assertSame( 1, preg_match( '/(?:^|\s)(wp-custom-css-\S+)/', $result['attrs']['className'] ?? '', $matches ) );
 		$class_name = $matches[1];
 
 		// Count how many times the CSS selector for this block appears in the enqueued inline styles.
