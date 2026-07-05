@@ -111,18 +111,14 @@ class WP_Error {
 		// Return all messages if no code specified.
 		if ( empty( $code ) ) {
 			$all_messages = array();
-			foreach ( (array) $this->errors as $code => $messages ) {
+			foreach ( (array) $this->errors as $messages ) {
 				$all_messages = array_merge( $all_messages, $messages );
 			}
 
 			return $all_messages;
 		}
 
-		if ( isset( $this->errors[ $code ] ) ) {
-			return $this->errors[ $code ];
-		} else {
-			return array();
-		}
+		return $this->errors[ $code ] ?? array();
 	}
 
 	/**
@@ -161,9 +157,7 @@ class WP_Error {
 			$code = $this->get_error_code();
 		}
 
-		if ( isset( $this->error_data[ $code ] ) ) {
-			return $this->error_data[ $code ];
-		}
+		return $this->error_data[ $code ] ?? null;
 	}
 
 	/**
@@ -174,10 +168,7 @@ class WP_Error {
 	 * @return bool If the instance contains errors.
 	 */
 	public function has_errors() {
-		if ( ! empty( $this->errors ) ) {
-			return true;
-		}
-		return false;
+		return (bool) $this->errors;
 	}
 
 	/**
@@ -188,6 +179,7 @@ class WP_Error {
 	 * @param string|int $code    Error code.
 	 * @param string     $message Error message.
 	 * @param mixed      $data    Optional. Error data. Default empty string.
+	 * @return void
 	 */
 	public function add( $code, $message, $data = '' ): void {
 		$this->errors[ $code ][] = $message;
@@ -217,6 +209,7 @@ class WP_Error {
 	 *
 	 * @param mixed      $data Error data.
 	 * @param string|int $code Error code.
+	 * @return void
 	 */
 	public function add_data( $data, $code = '' ): void {
 		if ( empty( $code ) ) {
@@ -265,6 +258,7 @@ class WP_Error {
 	 * @since 4.1.0
 	 *
 	 * @param string|int $code Error code.
+	 * @return void
 	 */
 	public function remove( $code ): void {
 		unset( $this->errors[ $code ] );
@@ -278,6 +272,7 @@ class WP_Error {
 	 * @since 5.6.0
 	 *
 	 * @param WP_Error $error Error object to merge.
+	 * @return void
 	 */
 	public function merge_from( WP_Error $error ): void {
 		static::copy_errors( $error, $this );
@@ -289,6 +284,7 @@ class WP_Error {
 	 * @since 5.6.0
 	 *
 	 * @param WP_Error $error Error object to export into.
+	 * @return void
 	 */
 	public function export_to( WP_Error $error ): void {
 		static::copy_errors( $this, $error );
@@ -301,6 +297,7 @@ class WP_Error {
 	 *
 	 * @param WP_Error $from The WP_Error to copy from.
 	 * @param WP_Error $to   The WP_Error to copy to.
+	 * @return void
 	 */
 	protected static function copy_errors( WP_Error $from, WP_Error $to ): void {
 		foreach ( $from->get_error_codes() as $code ) {
