@@ -257,7 +257,7 @@ function wptexturize( $text, $reset = false ) {
 				 */
 				$curl = preg_replace_callback(
 					'/"[^"]*"|\'[^\']*\'|(&(?!#(?:\d+|x[a-f0-9]+);|[a-z1-4]{1,8};))/i',
-					static function ( $matches ) {
+					static function ( array $matches ): string {
 						// Quoted strings (captured by first two alternations): return unchanged.
 						// Bare & (captured in group 1): replace with &#038;.
 						return isset( $matches[1] ) && '' !== $matches[1] ? '&#038;' : $matches[0];

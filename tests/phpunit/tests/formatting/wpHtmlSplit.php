@@ -44,11 +44,16 @@ class Tests_Formatting_wpHtmlSplit extends WP_UnitTestCase {
 	 * @ticket 63997
 	 * @dataProvider data_gt_in_quoted_attribute_values
 	 */
-	public function test_gt_in_quoted_attribute_values( $input, $output ) {
+	public function test_gt_in_quoted_attribute_values( string $input, array $output ): void {
 		return $this->assertSame( $output, wp_html_split( $input ) );
 	}
 
-	public function data_gt_in_quoted_attribute_values() {
+	/**
+	 * Data provider for {@see self::test_gt_in_quoted_attribute_values()}.
+	 *
+	 * @return list<array{input: string, output: array{ string, string, string, string, string }}>
+	 */
+	public function data_gt_in_quoted_attribute_values(): array {
 		return array(
 			array(
 				'<div data-test="a > b">content</div>',
