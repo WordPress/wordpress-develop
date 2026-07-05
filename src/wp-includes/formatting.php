@@ -1566,6 +1566,7 @@ function utf8_uri_encode( $utf8_string, $length = 0, $encode_ascii_characters = 
  * | U+00F6   | ö     | oe          | Latin small letter o with diaeresis     |
  * | U+00DC   | Ü     | Ue          | Latin capital letter U with diaeresis   |
  * | U+00FC   | ü     | ue          | Latin small letter u with diaeresis     |
+ * | U+1E9E   | ẞ     | SS          | Latin capital letter sharp s            |
  * | U+00DF   | ß     | ss          | Latin small letter sharp s              |
  *
  * Danish (`da_DK`) locale:
@@ -1599,6 +1600,7 @@ function utf8_uri_encode( $utf8_string, $length = 0, $encode_ascii_characters = 
  * @since 5.7.0 Added locale support for `de_AT`.
  * @since 6.0.0 Added the `$locale` parameter.
  * @since 6.1.0 Added Unicode NFC encoding normalization support.
+ * @since 7.0.0 Added capital Eszett (U+1E9E) support for German locales.
  *
  * @param string $text   Text that might have accent characters.
  * @param string $locale Optional. The locale to use for accent removal. Some character
@@ -1972,6 +1974,7 @@ function remove_accents( $text, $locale = '' ) {
 			$chars['ö'] = 'oe';
 			$chars['Ü'] = 'Ue';
 			$chars['ü'] = 'ue';
+			$chars['ẞ'] = 'SS';
 			$chars['ß'] = 'ss';
 		} elseif ( 'da_DK' === $locale ) {
 			$chars['Æ'] = 'Ae';
@@ -2172,6 +2175,7 @@ function sanitize_user( $username, $strict = false ) {
 	 */
 	return apply_filters( 'sanitize_user', $username, $raw_username, $strict );
 }
+
 
 /**
  * Sanitizes a string key.
@@ -2898,30 +2902,88 @@ function urldecode_deep( $value ) {
 }
 
 /**
- * Converts email addresses characters to HTML entities to block spam bots.
+ * Obscures email addresses in HTML to prevent spam bots from harvesting them.
+ *
+ * Typically this will randomly replace characters from the email address with
+ * HTML character references; however, when the hex encoding parameter is set,
+ * some characters will also be represented in their percent-encoded form.
+ *
+ * Because this function is randomized, the outputs for any given input may
+ * differ between calls. This helps diversify the ways the email addresses
+ * are obscured.
+ *
+ * When non-UTF-8 inputs are provided, any spans of invalid UTF-8 bytes will
+ * be passed through without any obfuscation.
+ *
+ * Example:
+ *
+ *     $email      = 'noreply@example.com';
+ *     $obscured   = antispambot( $email );
+ *     $obscured === 'nore&#112;&#108;y&#64;e&#120;ample.com';
+ *
+ *     // Hex-encoding also obscures characters with percent-encoding.
+ *     $obscured   = antispambot( $email, 1 );
+ *     $obscured === '%6e&#111;&#114;e%70l%79&#64;%65x%61mp&#108;&#101;%2e%63%6f&#109;';
+ *
+ *     // Non-UTF-8 characters are not obfuscated. "\xFC" is Latin1 "ü".
+ *     $obscured   = antispambot( "b\xFCcher@library.de" );
+ *     $obscured === 'b�cher&#64;li&#98;r&#97;r&#121;.&#100;&#101;';
+ *     $obscured === "b\xFCcher&#64;li&#98;r&#97;r&#121;.&#100;&#101;"
  *
  * @since 0.71
+ * @since 7.1.0 Masquerades multibyte characters.
  *
  * @param string $email_address Email address.
  * @param int    $hex_encoding  Optional. Set to 1 to enable hex encoding.
  * @return string Converted email address.
  */
 function antispambot( $email_address, $hex_encoding = 0 ) {
-	$email_no_spam_address = '';
+	$obfuscated     = '';
+	$at             = 0;
+	$end            = strlen( $email_address );
+	$invalid_length = 0;
 
-	for ( $i = 0, $len = strlen( $email_address ); $i < $len; $i++ ) {
-		$j = rand( 0, 1 + $hex_encoding );
-
-		if ( 0 === $j ) {
-			$email_no_spam_address .= '&#' . ord( $email_address[ $i ] ) . ';';
-		} elseif ( 1 === $j ) {
-			$email_no_spam_address .= $email_address[ $i ];
-		} elseif ( 2 === $j ) {
-			$email_no_spam_address .= '%' . zeroise( dechex( ord( $email_address[ $i ] ) ), 2 );
+	while ( $at < $end ) {
+		$was_at = $at;
+		if (
+			0 === _wp_scan_utf8( $email_address, $at, $invalid_length, null, 1 ) &&
+			0 === $invalid_length
+		) {
+			break;
 		}
+
+		$character_length = $at - $was_at;
+
+		if ( $character_length > 0 ) {
+			$character = substr( $email_address, $was_at, $character_length );
+
+			switch ( rand( 0, 1 + $hex_encoding ) ) {
+				case 0:
+					$code_point  = mb_ord( $character );
+					$obfuscated .= "&#{$code_point};";
+					break;
+
+				case 1:
+					$obfuscated .= $character;
+					break;
+
+				case 2:
+					for ( $i = 0; $i < $character_length; $i++ ) {
+						$hex_value   = bin2hex( $character[ $i ] );
+						$obfuscated .= "%{$hex_value}";
+					}
+					break;
+			}
+		}
+
+		if ( 0 !== $invalid_length ) {
+			$obfuscated .= substr( $email_address, $at, $invalid_length );
+		}
+
+		$at += $invalid_length;
 	}
 
-	return str_replace( '@', '&#64;', $email_no_spam_address );
+	return str_replace( '@', '&#64;', $obfuscated );
 }
 
 /**
@@ -3528,7 +3590,14 @@ function convert_smilies( $text ) {
 /**
  * Verifies that an email is valid.
  *
- * Does not grok i18n domains. Not RFC compliant.
+ * This accepts the addresses that matches the WHATWG specifications,
+ * i.e. what browsers use for `<input type=email>`. It also accepts some
+ * additional addresses.
+ *
+ * By default this accepts addresses like info@grå.org (also accepted
+ * by Firefox) `<input type=email>`. You can disable Unicode support by
+ * using the wp_is_ascii_email filter instead of wp_is_unicode_email,
+ * which is the default.
  *
  * @since 0.71
  *
@@ -3541,84 +3610,65 @@ function is_email( $email, $deprecated = false ) {
 		_deprecated_argument( __FUNCTION__, '3.0.0' );
 	}
 
-	// Test for the minimum length the email can be.
-	if ( strlen( $email ) < 6 ) {
-		/**
-		 * Filters whether an email address is valid.
-		 *
-		 * This filter is evaluated under several different contexts, such as 'email_too_short',
-		 * 'email_no_at', 'local_invalid_chars', 'domain_period_sequence', 'domain_period_limits',
-		 * 'domain_no_periods', 'sub_hyphen_limits', 'sub_invalid_chars', or no specific context.
-		 *
-		 * @since 2.8.0
-		 *
-		 * @param string|false $is_email The email address if successfully passed the is_email() checks, false otherwise.
-		 * @param string       $email    The email address being checked.
-		 * @param string       $context  Context under which the email was tested.
-		 */
-		return apply_filters( 'is_email', false, $email, 'email_too_short' );
-	}
-
-	// Test for an @ character after the first position.
-	if ( false === strpos( $email, '@', 1 ) ) {
-		/** This filter is documented in wp-includes/formatting.php */
-		return apply_filters( 'is_email', false, $email, 'email_no_at' );
-	}
-
-	// Split out the local and domain parts.
-	list( $local, $domain ) = explode( '@', $email, 2 );
-
-	/*
-	 * LOCAL PART
-	 * Test for invalid characters.
+	/**
+	 * Filters whether an email address is valid.
+	 *
+	 * This filter is evaluated under several different contexts, such as
+	 * 'local_invalid_chars', 'domain_no_periods', or no specific context.
+	 * Filters registered on this hook perform the actual validation; the
+	 * default filter is registered in default-filters.php.
+	 *
+	 * @since 2.8.0
+	 *
+	 * @param string|false $is_email The email address if successfully passed the is_email() checks, false otherwise.
+	 * @param string       $email    The email address being checked.
+	 * @param string|null  $context  Context under which the email was tested, or null for the initial call.
 	 */
-	if ( ! preg_match( '/^[a-zA-Z0-9!#$%&\'*+\/=?^_`{|}~\.-]+$/', $local ) ) {
-		/** This filter is documented in wp-includes/formatting.php */
-		return apply_filters( 'is_email', false, $email, 'local_invalid_chars' );
+	return apply_filters( 'is_email', false, $email, null );
+}
+
+/**
+ * Default is_email filter for databases that support Unicode (db charset is utf8mb4).
+ *
+ * Validates the email address using {@see WP_Email_Address::from_string()} with Unicode enabled.
+ * Only acts when $context is null (which it is in the initial validation call); later rescue-context calls are passed through.
+ *
+ * @since 7.1.0
+ *
+ * @param string|false $value   The current filter value.
+ * @param string       $email   The email address being checked.
+ * @param string|null  $context Validation context, or null for the initial call.
+ * @return string|false The email address if valid, false otherwise.
+ */
+function wp_is_unicode_email( $value, $email, $context ) {
+	if ( null !== $context ) {
+		return $value;
 	}
 
-	/*
-	 * DOMAIN PART
-	 * Test for sequences of periods.
-	 */
-	if ( preg_match( '/\.{2,}/', $domain ) ) {
-		/** This filter is documented in wp-includes/formatting.php */
-		return apply_filters( 'is_email', false, $email, 'domain_period_sequence' );
+	$result = WP_Email_Address::from_string( $email, 'unicode' );
+	return $result ? $result->get_unicode_address() : false;
+}
+
+/**
+ * Default is_email filter for databases that do not support Unicode (db charset is not utf8mb4).
+ *
+ * Validates the email address using {@see WP_Email_Address::from_string()} with Unicode disabled.
+ * Only acts when $context is null (which it is in the initial validation call); later rescue-context calls are passed through.
+ *
+ * @since 7.1.0
+ *
+ * @param string|false $value   The current filter value.
+ * @param string       $email   The email address being checked.
+ * @param string|null  $context Validation context, or null for the initial call.
+ * @return string|false The email address if valid, false otherwise.
+ */
+function wp_is_ascii_email( $value, $email, $context ) {
+	if ( null !== $context ) {
+		return $value;
 	}
 
-	// Test for leading and trailing periods and whitespace.
-	if ( trim( $domain, " \t\n\r\0\x0B." ) !== $domain ) {
-		/** This filter is documented in wp-includes/formatting.php */
-		return apply_filters( 'is_email', false, $email, 'domain_period_limits' );
-	}
-
-	// Split the domain into subs.
-	$subs = explode( '.', $domain );
-
-	// Assume the domain will have at least two subs.
-	if ( 2 > count( $subs ) ) {
-		/** This filter is documented in wp-includes/formatting.php */
-		return apply_filters( 'is_email', false, $email, 'domain_no_periods' );
-	}
-
-	// Loop through each sub.
-	foreach ( $subs as $sub ) {
-		// Test for leading and trailing hyphens and whitespace.
-		if ( trim( $sub, " \t\n\r\0\x0B-" ) !== $sub ) {
-			/** This filter is documented in wp-includes/formatting.php */
-			return apply_filters( 'is_email', false, $email, 'sub_hyphen_limits' );
-		}
-
-		// Test for invalid characters.
-		if ( ! preg_match( '/^[a-z0-9-]+$/i', $sub ) ) {
-			/** This filter is documented in wp-includes/formatting.php */
-			return apply_filters( 'is_email', false, $email, 'sub_invalid_chars' );
-		}
-	}
-
-	// Congratulations, your email made it!
-	/** This filter is documented in wp-includes/formatting.php */
-	return apply_filters( 'is_email', $email, $email, null );
+	$result = WP_Email_Address::from_string( $email, 'ascii' );
+	return $result ? $result->get_unicode_address() : false;
 }
 
 /**
@@ -3747,109 +3797,96 @@ function iso8601_to_datetime( $date_string, $timezone = 'user' ) {
 }
 
 /**
- * Strips out all characters that are not allowable in an email.
+ * Sanitizes an email address.
+ *
+ * Strips stray whitespace from the input, then strips trailing dots from the domain.
+ * This is designed to recover from cut/paste mistakes without any risk of transforming
+ * the input into a different address than the user intended.
+ *
+ * Validation and final form are determined by the 'sanitize_email' filter; the default
+ * filter is registered in default-filters.php and delegates to {@see WP_Email_Address::from_string()}.
  *
  * @since 1.5.0
+ * @since 7.1.0 Accepts Unicode email addresses on supporting platforms.
  *
- * @param string $email Email address to filter.
- * @return string Filtered email address.
+ * @param string $email Email address to sanitize.
+ * @return string The sanitized email address, or an empty string if invalid.
  */
 function sanitize_email( $email ) {
-	// Test for the minimum length the email can be.
-	if ( strlen( $email ) < 6 ) {
-		/**
-		 * Filters a sanitized email address.
-		 *
-		 * This filter is evaluated under several contexts, including 'email_too_short',
-		 * 'email_no_at', 'local_invalid_chars', 'domain_period_sequence', 'domain_period_limits',
-		 * 'domain_no_periods', 'domain_no_valid_subs', or no context.
-		 *
-		 * @since 2.8.0
-		 *
-		 * @param string $sanitized_email The sanitized email address.
-		 * @param string $email           The email address, as provided to sanitize_email().
-		 * @param string|null $message    A message to pass to the user. null if email is sanitized.
-		 */
-		return apply_filters( 'sanitize_email', '', $email, 'email_too_short' );
-	}
+	// Strip surrounding whitespace.
+	$email = trim( $email );
 
-	// Test for an @ character after the first position.
-	if ( false === strpos( $email, '@', 1 ) ) {
-		/** This filter is documented in wp-includes/formatting.php */
-		return apply_filters( 'sanitize_email', '', $email, 'email_no_at' );
-	}
-
-	// Split out the local and domain parts.
-	list( $local, $domain ) = explode( '@', $email, 2 );
-
-	/*
-	 * LOCAL PART
-	 * Test for invalid characters.
-	 */
-	$local = preg_replace( '/[^a-zA-Z0-9!#$%&\'*+\/=?^_`{|}~\.-]/', '', $local );
-	if ( '' === $local ) {
-		/** This filter is documented in wp-includes/formatting.php */
-		return apply_filters( 'sanitize_email', '', $email, 'local_invalid_chars' );
+	// Extract the address from "Display Name <username@domain>" format.
+	if ( 1 === preg_match( '/<([^>]+)>$/', $email, $matches ) ) {
+		$email = $matches[1];
 	}
 
 	/*
-	 * DOMAIN PART
-	 * Test for sequences of periods.
+	 * Strip soft hyphens and whitespace adjacent to structural separators (dots and @),
+	 * e.g. copy-paste artifacts like "info@example\u{00AD}.com" or "info@example .com".
+	 *
+	 * In some cases, e.g. autocorrect, some older software has been seen to add the
+	 * space for unrecognized TLDs. This re-joins the parts for proper examination.
 	 */
-	$domain = preg_replace( '/\.{2,}/', '', $domain );
-	if ( '' === $domain ) {
-		/** This filter is documented in wp-includes/formatting.php */
-		return apply_filters( 'sanitize_email', '', $email, 'domain_period_sequence' );
+	$email = preg_replace( '/[\x{00AD}\s]*([.@])[\x{00AD}\s]*/u', '$1', $email ) ?? $email;
+
+	// Strip a trailing dot from the domain (e.g. if pasted from the end of a sentence).
+	if ( str_contains( $email, '@' ) ) {
+		list( $local, $domain ) = explode( '@', $email, 2 );
+		$domain                 = rtrim( $domain, '.' );
+		$email                  = $local . '@' . $domain;
 	}
 
-	// Test for leading and trailing periods and whitespace.
-	$domain = trim( $domain, " \t\n\r\0\x0B." );
-	if ( '' === $domain ) {
-		/** This filter is documented in wp-includes/formatting.php */
-		return apply_filters( 'sanitize_email', '', $email, 'domain_period_limits' );
-	}
+	/**
+	 * Filters a sanitized email address.
+	 *
+	 * Filters registered on this hook perform the actual validation and return
+	 * the canonical email string on success or an empty string on failure.
+	 * The default filter is registered in default-filters.php.
+	 *
+	 * @since 2.8.0
+	 *
+	 * @param string      $sanitized_email The sanitized email address, or empty string.
+	 * @param string      $email           The email address as provided to sanitize_email().
+	 * @param string|null $context         Validation context, or null for the initial call.
+	 */
+	return apply_filters( 'sanitize_email', '', $email, null );
+}
 
-	// Split the domain into subs.
-	$subs = explode( '.', $domain );
+/**
+ * Default sanitize_email filter for databases that support Unicode (db charset is utf8mb4).
+ *
+ * Returns the canonical address from {@see WP_Email_Address::from_string()} with Unicode
+ * enabled, or an empty string if the address is invalid.
+ *
+ * @since 7.1.0
+ *
+ * @param string      $value   The current filter value.
+ * @param string      $email   The email address being sanitized.
+ * @param string|null $context Sanitization context, always null.
+ * @return string The canonical email address if valid, empty string otherwise.
+ */
+function wp_sanitize_unicode_email( $value, $email, $context ) {
+	$result = WP_Email_Address::from_string( $email, 'unicode' );
+	return $result ? $result->get_unicode_address() : '';
+}
 
-	// Assume the domain will have at least two subs.
-	if ( 2 > count( $subs ) ) {
-		/** This filter is documented in wp-includes/formatting.php */
-		return apply_filters( 'sanitize_email', '', $email, 'domain_no_periods' );
-	}
-
-	// Create an array that will contain valid subs.
-	$new_subs = array();
-
-	// Loop through each sub.
-	foreach ( $subs as $sub ) {
-		// Test for leading and trailing hyphens.
-		$sub = trim( $sub, " \t\n\r\0\x0B-" );
-
-		// Test for invalid characters.
-		$sub = preg_replace( '/[^a-z0-9-]+/i', '', $sub );
-
-		// If there's anything left, add it to the valid subs.
-		if ( '' !== $sub ) {
-			$new_subs[] = $sub;
-		}
-	}
-
-	// If there aren't 2 or more valid subs.
-	if ( 2 > count( $new_subs ) ) {
-		/** This filter is documented in wp-includes/formatting.php */
-		return apply_filters( 'sanitize_email', '', $email, 'domain_no_valid_subs' );
-	}
-
-	// Join valid subs into the new domain.
-	$domain = implode( '.', $new_subs );
-
-	// Put the email back together.
-	$sanitized_email = $local . '@' . $domain;
-
-	// Congratulations, your email made it!
-	/** This filter is documented in wp-includes/formatting.php */
-	return apply_filters( 'sanitize_email', $sanitized_email, $email, null );
+/**
+ * Default sanitize_email filter for databases that do not support Unicode (db charset is not utf8mb4).
+ *
+ * Returns the canonical address from {@see WP_Email_Address::from_string()} with Unicode
+ * disabled, or an empty string if the address is invalid.
+ *
+ * @since 7.1.0
+ *
+ * @param string      $value   The current filter value.
+ * @param string      $email   The email address being sanitized.
+ * @param string|null $context Sanitization context, always null.
+ * @return string The canonical email address if valid, empty string otherwise.
+ */
+function wp_sanitize_ascii_email( $value, $email, $context ) {
+	$result = WP_Email_Address::from_string( $email, 'ascii' );
+	return $result ? $result->get_unicode_address() : '';
 }
 
 /**
@@ -5895,7 +5932,7 @@ function wp_enqueue_emoji_styles() {
  *
  * @since 4.2.0
  */
-function print_emoji_detection_script() {
+function print_emoji_detection_script(): void {
 	static $printed = false;
 
 	if ( $printed ) {
@@ -5904,10 +5941,18 @@ function print_emoji_detection_script() {
 
 	$printed = true;
 
-	if ( did_action( 'wp_print_footer_scripts' ) ) {
-		_print_emoji_detection_script();
+	if ( is_admin() ) {
+		if ( did_action( 'admin_print_footer_scripts' ) ) {
+			_print_emoji_detection_script();
+		} else {
+			add_action( 'admin_print_footer_scripts', '_print_emoji_detection_script' );
+		}
 	} else {
-		add_action( 'wp_print_footer_scripts', '_print_emoji_detection_script' );
+		if ( did_action( 'wp_print_footer_scripts' ) ) {
+			_print_emoji_detection_script();
+		} else {
+			add_action( 'wp_print_footer_scripts', '_print_emoji_detection_script' );
+		}
 	}
 }
 
@@ -6232,7 +6277,7 @@ function url_shorten( $url, $length = 35 ) {
  * @since 3.4.0
  *
  * @param string $color
- * @return string|void
+ * @return string|null The sanitized hex color, or null if invalid.
  */
 function sanitize_hex_color( $color ) {
 	if ( '' === $color ) {
@@ -6243,6 +6288,7 @@ function sanitize_hex_color( $color ) {
 	if ( preg_match( '|^#([A-Fa-f0-9]{3}){1,2}$|', $color ) ) {
 		return $color;
 	}
+	return null;
 }
 
 /**

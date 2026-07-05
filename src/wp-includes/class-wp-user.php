@@ -121,9 +121,9 @@ class WP_User {
 	 *
 	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *
-	 * @param int|string|stdClass|WP_User $id      User's ID, a WP_User object, or a user object from the DB.
-	 * @param string                      $name    Optional. User's username
-	 * @param int                         $site_id Optional Site ID, defaults to current site.
+	 * @param int|string|object $id      User's ID, a WP_User object, or a user object from the DB.
+	 * @param string            $name    Optional. User's username
+	 * @param int               $site_id Optional Site ID, defaults to current site.
 	 */
 	public function __construct( $id = 0, $name = '', $site_id = 0 ) {
 		global $wpdb;
@@ -827,13 +827,7 @@ class WP_User {
 		unset( $capabilities['do_not_allow'] );
 
 		// Must have ALL requested caps.
-		foreach ( (array) $caps as $cap ) {
-			if ( empty( $capabilities[ $cap ] ) ) {
-				return false;
-			}
-		}
-
-		return true;
+		return array_all( (array) $caps, fn( $cap, $key ) => ! empty( $capabilities[ $cap ] ) );
 	}
 
 	/**

@@ -9,53 +9,54 @@
  */
 class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Controller_Testcase {
 
-	protected static $superadmin_id;
-	protected static $editor_id;
-	protected static $author_id;
-	protected static $contributor_id;
-	protected static $uploader_id;
-	protected static $rest_after_insert_attachment_count;
-	protected static $rest_insert_attachment_count;
+	protected static int $superadmin_id;
+	protected static int $editor_id;
+	protected static int $author_id;
+	protected static int $contributor_id;
+	protected static int $uploader_id;
+	protected static int $rest_after_insert_attachment_count;
+	protected static int $rest_insert_attachment_count;
 
 	/**
 	 * @var string The path to a test file.
 	 */
-	private static $test_file;
+	private static string $test_file;
 
 	/**
 	 * @var string The path to a second test file.
 	 */
-	private static $test_file2;
+	private static string $test_file2;
 
 	/**
 	 * @var string The path to the AVIF test image.
 	 */
-	private static $test_avif_file;
+	private static string $test_avif_file;
 
 	/**
 	 * @var string The path to the SVG test image.
 	 */
-	private static $test_svg_file;
+	private static string $test_svg_file;
 
 	/**
 	 * @var string The path to the test video.
 	 */
-	private static $test_video_file;
+	private static string $test_video_file;
 
 	/**
 	 * @var string The path to the test audio.
 	 */
-	private static $test_audio_file;
+	private static string $test_audio_file;
 
 	/**
 	 * @var string The path to the test RTF file.
 	 */
-	private static $test_rtf_file;
+	private static string $test_rtf_file;
 
 	/**
-	 * @var array The recorded posts query clauses.
+	 * @var array[] The recorded posts query clauses. Each entry is the array of
+	 *              SQL clause fragments passed to the `posts_clauses` filter.
 	 */
-	protected $posts_clauses;
+	protected array $posts_clauses;
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$superadmin_id  = $factory->user->create(
@@ -192,6 +193,18 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		}
 
 		parent::tear_down();
+	}
+
+	/**
+	 * Enables client-side media processing and reinitializes the REST server
+	 * so that the sideload and finalize routes are registered.
+	 */
+	private function enable_client_side_media_processing(): void {
+		add_filter( 'wp_client_side_media_processing_enabled', '__return_true' );
+
+		global $wp_rest_server;
+		$wp_rest_server = new Spy_REST_Server();
+		do_action( 'rest_api_init', $wp_rest_server );
 	}
 
 	public function test_register_routes() {
@@ -1939,9 +1952,15 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$response   = rest_get_server()->dispatch( $request );
 		$data       = $response->get_data();
 		$properties = $data['schema']['properties'];
-		$this->assertCount( 29, $properties );
+		$this->assertCount( 35, $properties );
 		$this->assertArrayHasKey( 'author', $properties );
 		$this->assertArrayHasKey( 'alt_text', $properties );
+		$this->assertArrayHasKey( 'exif_orientation', $properties );
+		$this->assertArrayHasKey( 'image_quality', $properties );
+		$this->assertArrayHasKey( 'image_output_format', $properties );
+		$this->assertArrayHasKey( 'image_save_progressive', $properties );
+		$this->assertArrayHasKey( 'filename', $properties );
+		$this->assertArrayHasKey( 'filesize', $properties );
 		$this->assertArrayHasKey( 'caption', $properties );
 		$this->assertArrayHasKey( 'raw', $properties['caption']['properties'] );
 		$this->assertArrayHasKey( 'rendered', $properties['caption']['properties'] );
@@ -1975,6 +1994,273 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$this->assertArrayHasKey( 'missing_image_sizes', $properties );
 		$this->assertArrayHasKey( 'featured_media', $properties );
 		$this->assertArrayHasKey( 'class_list', $properties );
+	}
+
+	/**
+	 * @ticket 65262
+	 */
+	public function test_image_quality_schema() {
+		$request    = new WP_REST_Request( 'OPTIONS', '/wp/v2/media' );
+		$response   = rest_get_server()->dispatch( $request );
+		$data       = $response->get_data();
+		$properties = $data['schema']['properties'];
+
+		$this->assertArrayHasKey( 'image_quality', $properties );
+		$this->assertSame( 'object', $properties['image_quality']['type'] );
+		$this->assertContains( 'edit', $properties['image_quality']['context'] );
+		$this->assertTrue( $properties['image_quality']['readonly'] );
+
+		$default = $properties['image_quality']['properties']['default'];
+		$this->assertSame( 'integer', $default['type'] );
+		$this->assertSame( 1, $default['minimum'] );
+		$this->assertSame( 100, $default['maximum'] );
+
+		$sizes = $properties['image_quality']['properties']['sizes'];
+		$this->assertSame( 'object', $sizes['type'] );
+		// Sizes are enumerated from the registered sub-sizes, each bounded 1-100.
+		$this->assertArrayHasKey( 'thumbnail', $sizes['properties'] );
+		$this->assertSame( 'integer', $sizes['properties']['thumbnail']['type'] );
+		$this->assertSame( 1, $sizes['properties']['thumbnail']['minimum'] );
+		$this->assertSame( 100, $sizes['properties']['thumbnail']['maximum'] );
+	}
+
+	/**
+	 * @ticket 65262
+	 * @requires function imagejpeg
+	 */
+	public function test_image_quality_default_in_response() {
+		wp_set_current_user( self::$editor_id );
+		$attachment = self::factory()->attachment->create_upload_object( self::$test_file );
+
+		$request = new WP_REST_Request( 'GET', "/wp/v2/media/{$attachment}" );
+		$request->set_param( 'context', 'edit' );
+		$response = rest_do_request( $request );
+		$data     = $response->get_data();
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertArrayHasKey( 'image_quality', $data );
+		// JPEG default quality is 82; no filter, so no per-size overrides.
+		$this->assertSame( 82, $data['image_quality']['default'] );
+		$this->assertSame( array(), $data['image_quality']['sizes'] );
+	}
+
+	/**
+	 * @ticket 65262
+	 * @requires function imagejpeg
+	 */
+	public function test_image_quality_with_size_aware_filter() {
+		wp_set_current_user( self::$editor_id );
+		$attachment = self::factory()->attachment->create_upload_object( self::$test_file );
+
+		// Lower the quality for small images (e.g. thumbnails) only.
+		$filter = static function ( $quality, $mime_type, $size ) {
+			if ( is_array( $size ) && ! empty( $size['width'] ) && $size['width'] <= 300 ) {
+				return 60;
+			}
+			return $quality;
+		};
+		add_filter( 'wp_editor_set_quality', $filter, 10, 3 );
+
+		$request = new WP_REST_Request( 'GET', "/wp/v2/media/{$attachment}" );
+		$request->set_param( 'context', 'edit' );
+		$response = rest_do_request( $request );
+		$data     = $response->get_data();
+
+		remove_filter( 'wp_editor_set_quality', $filter, 10 );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertArrayHasKey( 'image_quality', $data );
+		// The full-size image (> 300px wide) keeps the default quality.
+		$this->assertSame( 82, $data['image_quality']['default'] );
+		// The thumbnail size (150x150) is <= 300px and diverges to 60.
+		$this->assertArrayHasKey( 'thumbnail', $data['image_quality']['sizes'] );
+		$this->assertSame( 60, $data['image_quality']['sizes']['thumbnail'] );
+	}
+
+	/**
+	 * The reported quality must include the legacy jpeg_quality filter, the same
+	 * way WP_Image_Editor::set_quality() applies it for JPEG output.
+	 *
+	 * @ticket 65262
+	 * @requires function imagejpeg
+	 */
+	public function test_image_quality_honors_jpeg_quality_filter() {
+		wp_set_current_user( self::$editor_id );
+		$attachment = self::factory()->attachment->create_upload_object( self::$test_file );
+
+		$filter = static function () {
+			return 70;
+		};
+		add_filter( 'jpeg_quality', $filter );
+
+		$request = new WP_REST_Request( 'GET', "/wp/v2/media/{$attachment}" );
+		$request->set_param( 'context', 'edit' );
+		$response = rest_do_request( $request );
+		$data     = $response->get_data();
+
+		remove_filter( 'jpeg_quality', $filter );
+
+		$this->assertSame( 200, $response->get_status() );
+		// JPEG output, so the jpeg_quality filter overrides the 82 default.
+		$this->assertSame( 70, $data['image_quality']['default'] );
+	}
+
+	/**
+	 * Tests the image_output_format / image_save_progressive schema properties.
+	 *
+	 * @ticket 65367
+	 *
+	 * @covers WP_REST_Attachments_Controller::get_item_schema
+	 */
+	public function test_image_output_format_and_progressive_schema(): void {
+		$request    = new WP_REST_Request( 'OPTIONS', '/wp/v2/media' );
+		$response   = rest_get_server()->dispatch( $request );
+		$data       = $response->get_data();
+		$properties = $data['schema']['properties'];
+
+		$this->assertArrayHasKey( 'image_output_format', $properties );
+		$this->assertSame( array( 'string', 'null' ), $properties['image_output_format']['type'] );
+		$this->assertSame( array( 'edit' ), $properties['image_output_format']['context'] );
+		$this->assertTrue( $properties['image_output_format']['readonly'] );
+
+		$this->assertArrayHasKey( 'image_save_progressive', $properties );
+		$this->assertSame( 'boolean', $properties['image_save_progressive']['type'] );
+		$this->assertSame( array( 'edit' ), $properties['image_save_progressive']['context'] );
+		$this->assertTrue( $properties['image_save_progressive']['readonly'] );
+	}
+
+	/**
+	 * Verifies image_output_format is null by default (no conversion needed) and
+	 * image_save_progressive defaults to false on a freshly uploaded JPEG.
+	 *
+	 * @ticket 65367
+	 *
+	 * @covers WP_REST_Attachments_Controller::create_item
+	 * @covers WP_REST_Attachments_Controller::prepare_item_for_response
+	 */
+	public function test_image_output_format_and_progressive_defaults_in_create_response(): void {
+		wp_set_current_user( self::$superadmin_id );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
+		$request->set_header( 'Content-Type', 'image/jpeg' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=canola.jpg' );
+		$request->set_param( 'context', 'edit' );
+		$request->set_param( 'generate_sub_sizes', false );
+		$request->set_body( file_get_contents( DIR_TESTDATA . '/images/canola.jpg' ) );
+
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertSame( 201, $response->get_status() );
+		$this->assertArrayHasKey( 'image_output_format', $data );
+		$this->assertNull( $data['image_output_format'] );
+		$this->assertArrayHasKey( 'image_save_progressive', $data );
+		$this->assertFalse( $data['image_save_progressive'] );
+	}
+
+	/**
+	 * Verifies image_output_format reflects an image_editor_output_format filter
+	 * that remaps JPEG to WebP, and that the filter sees the real attached
+	 * filename and MIME type.
+	 *
+	 * @ticket 65367
+	 *
+	 * @covers WP_REST_Attachments_Controller::prepare_item_for_response
+	 */
+	public function test_image_output_format_with_custom_filter(): void {
+		wp_set_current_user( self::$superadmin_id );
+
+		$attachment_id = self::factory()->attachment->create_upload_object( DIR_TESTDATA . '/images/canola.jpg' );
+
+		$captured = array();
+		add_filter(
+			'image_editor_output_format',
+			static function ( $formats, $filename, $mime_type ) use ( &$captured ) {
+				$captured['filename']  = $filename;
+				$captured['mime_type'] = $mime_type;
+				$formats['image/jpeg'] = 'image/webp';
+				return $formats;
+			},
+			10,
+			3
+		);
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/media/' . $attachment_id );
+		$request->set_param( 'context', 'edit' );
+
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertArrayHasKey( 'image_output_format', $data );
+		$this->assertSame( 'image/webp', $data['image_output_format'] );
+
+		// The filter must be invoked with the real attached filename and MIME type.
+		$this->assertStringEndsWith( '.jpg', (string) $captured['filename'] );
+		$this->assertSame( 'image/jpeg', $captured['mime_type'] );
+	}
+
+	/**
+	 * Verifies image_save_progressive surfaces the filter result for the
+	 * attachment's MIME type.
+	 *
+	 * @ticket 65367
+	 *
+	 * @covers WP_REST_Attachments_Controller::prepare_item_for_response
+	 */
+	public function test_image_save_progressive_with_custom_filter(): void {
+		wp_set_current_user( self::$superadmin_id );
+
+		$attachment_id = self::factory()->attachment->create_upload_object( DIR_TESTDATA . '/images/canola.jpg' );
+
+		add_filter(
+			'image_save_progressive',
+			static function ( $progressive, $mime_type ) {
+				return 'image/jpeg' === $mime_type;
+			},
+			10,
+			2
+		);
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/media/' . $attachment_id );
+		$request->set_param( 'context', 'edit' );
+
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertArrayHasKey( 'image_save_progressive', $data );
+		$this->assertTrue( $data['image_save_progressive'] );
+	}
+
+	/**
+	 * Non-image attachments must not surface the image_* fields.
+	 *
+	 * @ticket 65367
+	 *
+	 * @covers WP_REST_Attachments_Controller::prepare_item_for_response
+	 */
+	public function test_image_output_format_skipped_for_non_image(): void {
+		wp_set_current_user( self::$superadmin_id );
+
+		$attachment_id = self::factory()->attachment->create_object(
+			DIR_TESTDATA . '/uploads/dashicons.woff',
+			0,
+			array(
+				'post_mime_type' => 'application/font-woff',
+				'post_type'      => 'attachment',
+			)
+		);
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/media/' . $attachment_id );
+		$request->set_param( 'context', 'edit' );
+
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertArrayNotHasKey( 'image_output_format', $data );
+		$this->assertArrayNotHasKey( 'image_save_progressive', $data );
 	}
 
 	public function test_get_additional_field_registration() {
@@ -2927,6 +3213,180 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	}
 
 	/**
+	 * Test that unsupported image type check is skipped when not generating sub-sizes.
+	 *
+	 * When the client handles image processing (generate_sub_sizes is false),
+	 * the server should not check image editor support.
+	 *
+	 * Tests the permissions check directly with file params set, since the core
+	 * check uses get_file_params() which is only populated for multipart uploads.
+	 *
+	 * @ticket 64836
+	 */
+	public function test_upload_unsupported_image_type_skipped_when_not_generating_sub_sizes() {
+		wp_set_current_user( self::$author_id );
+
+		add_filter( 'wp_image_editors', '__return_empty_array' );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
+		$request->set_file_params(
+			array(
+				'file' => array(
+					'name'     => 'avif-lossy.avif',
+					'type'     => 'image/avif',
+					'tmp_name' => self::$test_avif_file,
+					'error'    => 0,
+					'size'     => filesize( self::$test_avif_file ),
+				),
+			)
+		);
+		$request->set_param( 'generate_sub_sizes', false );
+
+		$controller = new WP_REST_Attachments_Controller( 'attachment' );
+		$result     = $controller->create_item_permissions_check( $request );
+
+		// Should pass because generate_sub_sizes is false (client handles processing).
+		$this->assertTrue( $result );
+	}
+
+	/**
+	 * Test that unsupported image type check is enforced when generating sub-sizes.
+	 *
+	 * When the server handles image processing (generate_sub_sizes is true),
+	 * the server should still check image editor support.
+	 *
+	 * Tests the permissions check directly with file params set, since the core
+	 * check uses get_file_params() which is only populated for multipart uploads.
+	 *
+	 * @ticket 64836
+	 */
+	public function test_upload_unsupported_image_type_enforced_when_generating_sub_sizes() {
+		wp_set_current_user( self::$author_id );
+
+		add_filter( 'wp_image_editors', '__return_empty_array' );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
+		$request->set_file_params(
+			array(
+				'file' => array(
+					'name'     => 'avif-lossy.avif',
+					'type'     => 'image/avif',
+					'tmp_name' => self::$test_avif_file,
+					'error'    => 0,
+					'size'     => filesize( self::$test_avif_file ),
+				),
+			)
+		);
+
+		$controller = new WP_REST_Attachments_Controller( 'attachment' );
+		$result     = $controller->create_item_permissions_check( $request );
+
+		// Should fail because the server needs to generate sub-sizes but can't.
+		$this->assertWPError( $result );
+		$this->assertSame( 'rest_upload_image_type_not_supported', $result->get_error_code() );
+	}
+
+	/**
+	 * Test that still HEIC/HEIF uploads bypass the image editor support check.
+	 *
+	 * The browser's canvas fallback can always decode still HEIC/HEIF, so the
+	 * upload is allowed even when the server has no editor that supports it.
+	 *
+	 * @ticket 64915
+	 *
+	 * @dataProvider data_still_heic_mime_types
+	 *
+	 * @param string $mime_type Still HEIC/HEIF mime type.
+	 */
+	public function test_upload_still_heic_bypasses_unsupported_image_type_check( $mime_type ) {
+		wp_set_current_user( self::$author_id );
+
+		add_filter( 'wp_image_editors', '__return_empty_array' );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
+		$request->set_file_params(
+			array(
+				'file' => array(
+					'name'     => 'canola.heic',
+					'type'     => $mime_type,
+					'tmp_name' => DIR_TESTDATA . '/images/test-image.heic',
+					'error'    => 0,
+					'size'     => filesize( DIR_TESTDATA . '/images/test-image.heic' ),
+				),
+			)
+		);
+
+		$controller = new WP_REST_Attachments_Controller( 'attachment' );
+		$result     = $controller->create_item_permissions_check( $request );
+
+		// Should pass because the browser can decode still HEIC/HEIF client-side.
+		$this->assertTrue( $result );
+	}
+
+	/**
+	 * Data provider for still HEIC/HEIF mime types.
+	 *
+	 * @return array[]
+	 */
+	public function data_still_heic_mime_types() {
+		return array(
+			'heic' => array( 'image/heic' ),
+			'heif' => array( 'image/heif' ),
+		);
+	}
+
+	/**
+	 * Test that HEIC/HEIF sequence uploads do not bypass the editor support check.
+	 *
+	 * The multi-frame '-sequence' variants (Live Photos) cannot be processed by
+	 * the server or decoded by the browser fallback, so they should fall through
+	 * to the standard unsupported mime-type error rather than be stored.
+	 *
+	 * @ticket 64915
+	 *
+	 * @dataProvider data_heic_sequence_mime_types
+	 *
+	 * @param string $mime_type HEIC/HEIF sequence mime type.
+	 */
+	public function test_upload_heic_sequence_is_not_bypassed( $mime_type ) {
+		wp_set_current_user( self::$author_id );
+
+		add_filter( 'wp_image_editors', '__return_empty_array' );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
+		$request->set_file_params(
+			array(
+				'file' => array(
+					'name'     => 'live-photo.heic',
+					'type'     => $mime_type,
+					'tmp_name' => DIR_TESTDATA . '/images/test-image.heic',
+					'error'    => 0,
+					'size'     => filesize( DIR_TESTDATA . '/images/test-image.heic' ),
+				),
+			)
+		);
+
+		$controller = new WP_REST_Attachments_Controller( 'attachment' );
+		$result     = $controller->create_item_permissions_check( $request );
+
+		// Should fail: sequences are unsupported by both the server and the fallback.
+		$this->assertWPError( $result );
+		$this->assertSame( 'rest_upload_image_type_not_supported', $result->get_error_code() );
+	}
+
+	/**
+	 * Data provider for HEIC/HEIF sequence mime types.
+	 *
+	 * @return array[]
+	 */
+	public function data_heic_sequence_mime_types() {
+		return array(
+			'heic-sequence' => array( 'image/heic-sequence' ),
+			'heif-sequence' => array( 'image/heif-sequence' ),
+		);
+	}
+
+	/**
 	 * Test that uploading an SVG image doesn't throw a `rest_upload_image_type_not_supported` error.
 	 *
 	 * @ticket 63302
@@ -3150,5 +3610,1022 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 
 		// Verify that the data is an array (not an object).
 		$this->assertIsArray( $captured_data, 'Data passed to wp_insert_attachment should be an array' );
+	}
+
+	/**
+	 * Tests sideloading a scaled image for an existing attachment.
+	 *
+	 * @ticket 64737
+	 * @ticket 65329
+	 * @requires function imagejpeg
+	 */
+	public function test_sideload_scaled_image() {
+		$this->enable_client_side_media_processing();
+
+		wp_set_current_user( self::$author_id );
+
+		// First, create an attachment.
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
+		$request->set_header( 'Content-Type', 'image/jpeg' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=canola.jpg' );
+		$request->set_body( file_get_contents( self::$test_file ) );
+		$response      = rest_get_server()->dispatch( $request );
+		$data          = $response->get_data();
+		$attachment_id = $data['id'];
+
+		$this->assertSame( 201, $response->get_status() );
+
+		$original_file = get_attached_file( $attachment_id, true );
+
+		// Sideload a "scaled" version of the image.
+		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment_id}/sideload" );
+		$request->set_header( 'Content-Type', 'image/jpeg' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=canola-scaled.jpg' );
+		$request->set_param( 'image_size', 'scaled' );
+		$request->set_body( file_get_contents( self::$test_file ) );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status(), 'Sideloading scaled image should succeed.' );
+
+		// The sideload endpoint returns lightweight sub-size data; the metadata
+		// is written later by the finalize endpoint.
+		$sub_size = $response->get_data();
+		$this->assertSame( 'scaled', $sub_size['image_size'], 'Response should echo the image_size.' );
+		$this->assertSame( wp_basename( $original_file ), $sub_size['original_image'], 'Response original_image should be the basename of the original attached file.' );
+		$this->assertGreaterThan( 0, $sub_size['width'], 'Response width should be positive.' );
+		$this->assertGreaterThan( 0, $sub_size['height'], 'Response height should be positive.' );
+		$this->assertGreaterThan( 0, $sub_size['filesize'], 'Response filesize should be positive.' );
+		$this->assertStringContainsString( 'scaled', $sub_size['file'], 'Response file should reference the scaled version.' );
+
+		// The attached file is still repointed to the scaled version during sideload.
+		$new_file = get_attached_file( $attachment_id, true );
+		$this->assertStringContainsString( 'scaled', wp_basename( $new_file ), 'Attached file should now be the scaled version.' );
+
+		// Finalize with the collected sub-size, which writes the metadata.
+		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment_id}/finalize" );
+		$request->set_param( 'sub_sizes', array( $sub_size ) );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status(), 'Finalize should succeed.' );
+
+		$metadata = wp_get_attachment_metadata( $attachment_id );
+
+		// The original file should now be recorded as original_image.
+		$this->assertArrayHasKey( 'original_image', $metadata, 'Metadata should contain original_image.' );
+		$this->assertSame( wp_basename( $original_file ), $metadata['original_image'], 'original_image should be the basename of the original attached file.' );
+
+		// Metadata should have width, height, filesize, and file updated.
+		$this->assertArrayHasKey( 'width', $metadata, 'Metadata should contain width.' );
+		$this->assertArrayHasKey( 'height', $metadata, 'Metadata should contain height.' );
+		$this->assertArrayHasKey( 'filesize', $metadata, 'Metadata should contain filesize.' );
+		$this->assertArrayHasKey( 'file', $metadata, 'Metadata should contain file.' );
+		$this->assertStringContainsString( 'scaled', $metadata['file'], 'Metadata file should reference the scaled version.' );
+		$this->assertGreaterThan( 0, $metadata['width'], 'Width should be positive.' );
+		$this->assertGreaterThan( 0, $metadata['height'], 'Height should be positive.' );
+		$this->assertGreaterThan( 0, $metadata['filesize'], 'Filesize should be positive.' );
+	}
+
+	/**
+	 * Tests that sideloading scaled image requires authentication.
+	 *
+	 * @ticket 64737
+	 * @requires function imagejpeg
+	 */
+	public function test_sideload_scaled_image_requires_auth() {
+		$this->enable_client_side_media_processing();
+
+		wp_set_current_user( self::$author_id );
+
+		// Create an attachment.
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
+		$request->set_header( 'Content-Type', 'image/jpeg' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=canola.jpg' );
+		$request->set_body( file_get_contents( self::$test_file ) );
+		$response      = rest_get_server()->dispatch( $request );
+		$attachment_id = $response->get_data()['id'];
+
+		// Try sideloading without authentication.
+		wp_set_current_user( 0 );
+
+		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment_id}/sideload" );
+		$request->set_header( 'Content-Type', 'image/jpeg' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=canola-scaled.jpg' );
+		$request->set_param( 'image_size', 'scaled' );
+		$request->set_body( file_get_contents( self::$test_file ) );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_cannot_edit_image', $response, 401 );
+	}
+
+	/**
+	 * Tests that the sideload endpoint accepts the expected image sizes and does
+	 * not expose a generate_sub_sizes arg.
+	 *
+	 * The image_size argument accepts either a single size name or an array of
+	 * size names, so it validates via a custom callback rather than an enum. The
+	 * callback must accept 'scaled' and the 'source_original' source-format size,
+	 * and reject unknown sizes.
+	 *
+	 * sideload_item() never reads generate_sub_sizes, so advertising it on the
+	 * route would silently mislead clients into expecting server-side sub-size
+	 * generation. That arg only does real work on create_item() (POST /wp/v2/media).
+	 *
+	 * @ticket 64737
+	 * @ticket 64915
+	 */
+	public function test_sideload_route_accepts_expected_image_sizes() {
+		$this->enable_client_side_media_processing();
+
+		$routes = rest_get_server()->get_routes();
+		$path   = '/wp/v2/media/(?P<id>[\d]+)/sideload';
+		$this->assertArrayHasKey( $path, $routes, 'Sideload route should exist.' );
+		$this->assertIsArray( $routes[ $path ] );
+		$endpoint = array_first( $routes[ $path ] );
+		$this->assertIsArray( $endpoint );
+		$this->assertArrayHasKey( 'args', $endpoint, 'Route endpoint should declare args.' );
+		$args = $endpoint['args'];
+		$this->assertIsArray( $args );
+
+		$param_name = 'image_size';
+		$this->assertArrayHasKey( $param_name, $args, 'Route should have image_size arg.' );
+		$this->assertIsArray( $args[ $param_name ] );
+		$this->assertArrayHasKey(
+			'validate_callback',
+			$args[ $param_name ],
+			'image_size arg should validate via a callback.'
+		);
+
+		$validate = $args[ $param_name ]['validate_callback'];
+		$request  = new WP_REST_Request( 'POST', '/wp/v2/media/1/sideload' );
+
+		$this->assertTrue(
+			$validate( 'scaled', $request, $param_name ),
+			'image_size validation should accept the scaled size.'
+		);
+		$this->assertTrue(
+			$validate( WP_REST_Attachments_Controller::IMAGE_SIZE_SOURCE_ORIGINAL, $request, $param_name ),
+			'image_size validation should accept the source_original source-format size.'
+		);
+		$this->assertTrue(
+			$validate( array( 'scaled' ), $request, $param_name ),
+			'image_size validation should accept an array of size names.'
+		);
+		$this->assertWPError(
+			$validate( 'not-a-real-size', $request, $param_name ),
+			'image_size validation should reject an unknown size.'
+		);
+
+		$this->assertArrayNotHasKey( 'generate_sub_sizes', $args, 'Sideload route should not advertise the unused generate_sub_sizes arg.' );
+	}
+
+	/**
+	 * Tests sideloading a 'source_original' companion file alongside its JPEG
+	 * derivative. The HEIC filename is recorded under $metadata['source_image']
+	 * so it does not collide with 'original_image', which the scaled-sideload
+	 * flow owns. Metadata is written by the finalize endpoint, not the sideload.
+	 *
+	 * @ticket 64915
+	 * @requires function imagejpeg
+	 */
+	public function test_sideload_source_original_writes_metadata_source_image(): void {
+		$this->enable_client_side_media_processing();
+
+		wp_set_current_user( self::$author_id );
+
+		// Create the JPEG attachment that the HEIC will be a companion to.
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
+		$request->set_header( 'Content-Type', 'image/jpeg' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=canola.jpg' );
+		$request->set_body( (string) file_get_contents( self::$test_file ) );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+		$this->assertIsArray( $data );
+		$this->assertArrayHasKey( 'id', $data );
+		$attachment_id = $data['id'];
+		$this->assertIsInt( $attachment_id );
+
+		$this->assertSame( 201, $response->get_status() );
+
+		/*
+		 * Sideload the HEIC companion using the real HEIC fixture. `convert_format`
+		 * is disabled so the default HEIC -> JPEG output mapping does not rename
+		 * the file or append an alt-extension suffix. The sideload returns
+		 * lightweight sub-size data; metadata is written by finalize.
+		 */
+		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment_id}/sideload" );
+		$request->set_header( 'Content-Type', 'image/heic' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=canola.heic' );
+		$request->set_param( 'image_size', WP_REST_Attachments_Controller::IMAGE_SIZE_SOURCE_ORIGINAL );
+		$request->set_param( 'convert_format', false );
+		$request->set_body( (string) file_get_contents( DIR_TESTDATA . '/images/test-image.heic' ) );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status(), 'Sideloading source_original should succeed.' );
+
+		$sub_size = $response->get_data();
+		$this->assertIsArray( $sub_size );
+		$this->assertSame( WP_REST_Attachments_Controller::IMAGE_SIZE_SOURCE_ORIGINAL, $sub_size['image_size'], 'Response should echo the image_size.' );
+		$this->assertMatchesRegularExpression( '/canola.*\.heic$/', $sub_size['file'], 'Response file should reference the HEIC filename.' );
+
+		// Sideload must not write metadata; that happens in finalize.
+		$metadata = wp_get_attachment_metadata( $attachment_id, true );
+		$this->assertArrayNotHasKey( 'source_image', $metadata, 'Sideload should not write source_image metadata.' );
+
+		// Finalize with the collected sub-size, which writes the metadata.
+		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment_id}/finalize" );
+		$request->set_param( 'sub_sizes', array( $sub_size ) );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status(), 'Finalize should succeed.' );
+
+		$metadata = wp_get_attachment_metadata( $attachment_id );
+		$this->assertIsArray( $metadata );
+		$this->assertArrayHasKey( 'source_image', $metadata, "Metadata should contain 'source_image' for the HEIC companion." );
+		$this->assertMatchesRegularExpression( '/canola.*\.heic$/', $metadata['source_image'], "Metadata 'source_image' should reference the HEIC filename." );
+		$this->assertArrayNotHasKey( 'original_image', $metadata, "Metadata 'original_image' should be untouched by the HEIC sideload." );
+	}
+
+	/**
+	 * Tests sideloading the animated-GIF video companions ('animated_video' and
+	 * 'animated_video_poster'). Each filename is recorded under its own metadata
+	 * key by the finalize endpoint and does not collide with 'original_image',
+	 * which keeps pointing at the GIF.
+	 *
+	 * The uploaded bytes are a JPEG stand-in: the sideload branch only records
+	 * wp_basename() of the stored file, so the metadata plumbing can be exercised
+	 * without depending on video upload support in the test environment.
+	 *
+	 * @ticket 65549
+	 * @requires function imagejpeg
+	 */
+	public function test_sideload_animated_video_companions_write_metadata(): void {
+		$this->enable_client_side_media_processing();
+
+		wp_set_current_user( self::$author_id );
+
+		// Create the (GIF) attachment the companions belong to.
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
+		$request->set_header( 'Content-Type', 'image/jpeg' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=canola.jpg' );
+		$request->set_body( (string) file_get_contents( self::$test_file ) );
+		$response      = rest_get_server()->dispatch( $request );
+		$attachment_id = $response->get_data()['id'];
+		$this->assertSame( 201, $response->get_status() );
+
+		// Sideload the converted-video companion.
+		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment_id}/sideload" );
+		$request->set_header( 'Content-Type', 'image/jpeg' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=canola-video.jpg' );
+		$request->set_param( 'image_size', 'animated_video' );
+		$request->set_body( (string) file_get_contents( self::$test_file ) );
+		$video_response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $video_response->get_status(), 'Sideloading animated_video should succeed.' );
+		$video_sub_size = $video_response->get_data();
+		$this->assertIsArray( $video_sub_size );
+		$this->assertSame( 'animated_video', $video_sub_size['image_size'], 'Response should echo the image_size.' );
+
+		// Sideload the poster companion.
+		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment_id}/sideload" );
+		$request->set_header( 'Content-Type', 'image/jpeg' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=canola-poster.jpg' );
+		$request->set_param( 'image_size', 'animated_video_poster' );
+		$request->set_body( (string) file_get_contents( self::$test_file ) );
+		$poster_response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $poster_response->get_status(), 'Sideloading animated_video_poster should succeed.' );
+		$poster_sub_size = $poster_response->get_data();
+		$this->assertIsArray( $poster_sub_size );
+		$this->assertSame( 'animated_video_poster', $poster_sub_size['image_size'], 'Response should echo the image_size.' );
+
+		// Sideload must not write metadata; that happens in finalize.
+		$metadata = wp_get_attachment_metadata( $attachment_id, true );
+		$this->assertArrayNotHasKey( 'animated_video', $metadata, 'Sideload should not write animated_video metadata.' );
+		$this->assertArrayNotHasKey( 'animated_video_poster', $metadata, 'Sideload should not write animated_video_poster metadata.' );
+
+		// Finalize with both collected sub-sizes, which writes the metadata.
+		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment_id}/finalize" );
+		$request->set_param( 'sub_sizes', array( $video_sub_size, $poster_sub_size ) );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status(), 'Finalize should succeed.' );
+
+		$metadata = wp_get_attachment_metadata( $attachment_id );
+		$this->assertIsArray( $metadata );
+		$this->assertArrayHasKey( 'animated_video', $metadata, "Metadata should contain 'animated_video'." );
+		$this->assertMatchesRegularExpression( '/canola-video.*\.jpg$/', $metadata['animated_video'], "Metadata 'animated_video' should reference the video companion filename." );
+		$this->assertArrayHasKey( 'animated_video_poster', $metadata, "Metadata should contain 'animated_video_poster'." );
+		$this->assertMatchesRegularExpression( '/canola-poster.*\.jpg$/', $metadata['animated_video_poster'], "Metadata 'animated_video_poster' should reference the poster filename." );
+		$this->assertArrayNotHasKey( 'original_image', $metadata, "Metadata 'original_image' should be untouched by the companion sideloads." );
+	}
+
+	/**
+	 * Tests the filter_wp_unique_filename method handles the -scaled suffix.
+	 *
+	 * @ticket 64737
+	 * @requires function imagejpeg
+	 */
+	public function test_sideload_scaled_unique_filename() {
+		$this->enable_client_side_media_processing();
+
+		wp_set_current_user( self::$author_id );
+
+		// Create an attachment.
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
+		$request->set_header( 'Content-Type', 'image/jpeg' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=canola.jpg' );
+		$request->set_body( file_get_contents( self::$test_file ) );
+		$response      = rest_get_server()->dispatch( $request );
+		$attachment_id = $response->get_data()['id'];
+
+		// Sideload with the -scaled suffix.
+		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment_id}/sideload" );
+		$request->set_header( 'Content-Type', 'image/jpeg' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=canola-scaled.jpg' );
+		$request->set_param( 'image_size', 'scaled' );
+		$request->set_body( file_get_contents( self::$test_file ) );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status(), 'Sideloading scaled image should succeed.' );
+
+		// The filename should retain the -scaled suffix without numeric disambiguation.
+		$new_file = get_attached_file( $attachment_id, true );
+		$basename = wp_basename( $new_file );
+		$this->assertMatchesRegularExpression( '/canola-scaled\.jpg$/', $basename, 'Scaled filename should not have numeric suffix appended.' );
+	}
+
+	/**
+	 * Tests that sideloading a scaled image for a different attachment retains the numeric suffix
+	 * when a file with the same name already exists on disk.
+	 *
+	 * @ticket 64737
+	 * @requires function imagejpeg
+	 */
+	public function test_sideload_scaled_unique_filename_conflict() {
+		$this->enable_client_side_media_processing();
+
+		wp_set_current_user( self::$author_id );
+
+		// Create the first attachment.
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
+		$request->set_header( 'Content-Type', 'image/jpeg' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=canola.jpg' );
+		$request->set_body( file_get_contents( self::$test_file ) );
+		$response        = rest_get_server()->dispatch( $request );
+		$attachment_id_a = $response->get_data()['id'];
+
+		// Sideload a scaled image for attachment A, creating canola-scaled.jpg on disk.
+		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment_id_a}/sideload" );
+		$request->set_header( 'Content-Type', 'image/jpeg' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=canola-scaled.jpg' );
+		$request->set_param( 'image_size', 'scaled' );
+		$request->set_body( file_get_contents( self::$test_file ) );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status(), 'First sideload should succeed.' );
+
+		// Create a second, different attachment.
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
+		$request->set_header( 'Content-Type', 'image/jpeg' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=other.jpg' );
+		$request->set_body( file_get_contents( self::$test_file ) );
+		$response        = rest_get_server()->dispatch( $request );
+		$attachment_id_b = $response->get_data()['id'];
+
+		// Sideload scaled for attachment B using the same filename that already exists on disk.
+		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment_id_b}/sideload" );
+		$request->set_header( 'Content-Type', 'image/jpeg' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=canola-scaled.jpg' );
+		$request->set_param( 'image_size', 'scaled' );
+		$request->set_body( file_get_contents( self::$test_file ) );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status(), 'Second sideload should succeed.' );
+
+		// The filename should have a numeric suffix since the base name does not match this attachment.
+		$new_file = get_attached_file( $attachment_id_b, true );
+		$basename = wp_basename( $new_file );
+		$this->assertMatchesRegularExpression( '/canola-scaled-\d+\.jpg$/', $basename, 'Scaled filename should have numeric suffix when file conflicts with a different attachment.' );
+	}
+
+	/**
+	 * Tests that sideloading rejects an image whose dimensions exceed the
+	 * registered maximum for the target image size.
+	 *
+	 * @ticket 64798
+	 * @covers WP_REST_Attachments_Controller::sideload_item
+	 * @covers WP_REST_Attachments_Controller::validate_image_dimensions
+	 * @requires function imagejpeg
+	 */
+	public function test_sideload_item_rejects_oversized_dimensions() {
+		$this->enable_client_side_media_processing();
+
+		wp_set_current_user( self::$author_id );
+
+		// Create an attachment from canola.jpg (640x480).
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
+		$request->set_header( 'Content-Type', 'image/jpeg' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=canola.jpg' );
+		$request->set_body( file_get_contents( self::$test_file ) );
+		$response      = rest_get_server()->dispatch( $request );
+		$attachment_id = $response->get_data()['id'];
+
+		// Sideload the 640x480 image claiming it is a thumbnail (150x150 max).
+		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment_id}/sideload" );
+		$request->set_header( 'Content-Type', 'image/jpeg' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=canola-150x150.jpg' );
+		$request->set_param( 'image_size', 'thumbnail' );
+		$request->set_body( file_get_contents( self::$test_file ) );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 400, $response->get_status(), 'Oversized sideload should be rejected.' );
+		$this->assertSame( 'rest_upload_dimension_mismatch', $response->get_data()['code'] );
+	}
+
+	/**
+	 * Tests that sideloading accepts an image whose dimensions fit within the
+	 * registered maximum for the target image size.
+	 *
+	 * @ticket 64798
+	 * @covers WP_REST_Attachments_Controller::sideload_item
+	 * @covers WP_REST_Attachments_Controller::validate_image_dimensions
+	 * @requires function imagejpeg
+	 */
+	public function test_sideload_item_accepts_valid_dimensions() {
+		$this->enable_client_side_media_processing();
+
+		wp_set_current_user( self::$author_id );
+
+		// Create an attachment from canola.jpg (640x480).
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
+		$request->set_header( 'Content-Type', 'image/jpeg' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=canola.jpg' );
+		$request->set_body( file_get_contents( self::$test_file ) );
+		$response      = rest_get_server()->dispatch( $request );
+		$attachment_id = $response->get_data()['id'];
+
+		// test-image.jpg is 50x50, well within the thumbnail maximum (150x150).
+		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment_id}/sideload" );
+		$request->set_header( 'Content-Type', 'image/jpeg' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=test-thumbnail.jpg' );
+		$request->set_param( 'image_size', 'thumbnail' );
+		$request->set_body( file_get_contents( DIR_TESTDATA . '/images/test-image.jpg' ) );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status(), 'Valid thumbnail sideload should succeed.' );
+	}
+
+	/**
+	 * Tests that sideloading the 'original' size rejects an image whose
+	 * dimensions do not match the original attachment dimensions.
+	 *
+	 * @ticket 64798
+	 * @covers WP_REST_Attachments_Controller::sideload_item
+	 * @covers WP_REST_Attachments_Controller::validate_image_dimensions
+	 * @requires function imagejpeg
+	 */
+	public function test_sideload_item_rejects_original_dimension_mismatch() {
+		$this->enable_client_side_media_processing();
+
+		wp_set_current_user( self::$author_id );
+
+		// Create an attachment from canola.jpg (640x480).
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
+		$request->set_header( 'Content-Type', 'image/jpeg' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=canola.jpg' );
+		$request->set_body( file_get_contents( self::$test_file ) );
+		$response      = rest_get_server()->dispatch( $request );
+		$attachment_id = $response->get_data()['id'];
+
+		// Sideload a 50x50 image as the original; it does not match 640x480.
+		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment_id}/sideload" );
+		$request->set_header( 'Content-Type', 'image/jpeg' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=canola.jpg' );
+		$request->set_param( 'image_size', 'original' );
+		$request->set_body( file_get_contents( DIR_TESTDATA . '/images/test-image.jpg' ) );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 400, $response->get_status(), 'Mismatched original sideload should be rejected.' );
+		$this->assertSame( 'rest_upload_dimension_mismatch', $response->get_data()['code'] );
+	}
+
+	/**
+	 * Tests that sideloading the 'original' size accepts an image whose
+	 * dimensions match the original attachment dimensions.
+	 *
+	 * @ticket 64798
+	 * @covers WP_REST_Attachments_Controller::sideload_item
+	 * @covers WP_REST_Attachments_Controller::validate_image_dimensions
+	 * @requires function imagejpeg
+	 */
+	public function test_sideload_item_accepts_matching_original_dimensions() {
+		$this->enable_client_side_media_processing();
+
+		wp_set_current_user( self::$author_id );
+
+		// Create an attachment from canola.jpg (640x480).
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
+		$request->set_header( 'Content-Type', 'image/jpeg' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=canola.jpg' );
+		$request->set_body( file_get_contents( self::$test_file ) );
+		$response      = rest_get_server()->dispatch( $request );
+		$attachment_id = $response->get_data()['id'];
+
+		// Sideload the same 640x480 image as the original; dimensions match.
+		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment_id}/sideload" );
+		$request->set_header( 'Content-Type', 'image/jpeg' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=canola-original.jpg' );
+		$request->set_param( 'image_size', 'original' );
+		$request->set_body( file_get_contents( self::$test_file ) );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status(), 'Matching original sideload should succeed.' );
+	}
+
+	/**
+	 * Tests that sideloading a file whose dimensions cannot be read is rejected
+	 * rather than stored with zero dimensions.
+	 *
+	 * The body is a JFIF header with no frame data: its magic bytes identify it
+	 * as a JPEG so the upload itself succeeds, but wp_getimagesize() cannot
+	 * determine dimensions, which is the corrupted/unsupported-format case.
+	 *
+	 * @ticket 64798
+	 * @covers WP_REST_Attachments_Controller::sideload_item
+	 */
+	public function test_sideload_item_rejects_unreadable_image() {
+		$this->enable_client_side_media_processing();
+
+		wp_set_current_user( self::$author_id );
+
+		// Create an attachment from canola.jpg (640x480).
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
+		$request->set_header( 'Content-Type', 'image/jpeg' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=canola.jpg' );
+		$request->set_body( file_get_contents( self::$test_file ) );
+		$response      = rest_get_server()->dispatch( $request );
+		$attachment_id = $response->get_data()['id'];
+
+		// A JPEG SOI + JFIF APP0 marker followed immediately by EOI: valid magic
+		// bytes, but no SOF marker, so wp_getimagesize() returns false.
+		$unreadable = "\xFF\xD8\xFF\xE0\x00\x10JFIF\x00\x01\x01\x00\x00\x01\x00\x01\x00\x00\xFF\xD9";
+
+		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment_id}/sideload" );
+		$request->set_header( 'Content-Type', 'image/jpeg' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=canola-thumbnail.jpg' );
+		$request->set_param( 'image_size', 'thumbnail' );
+		$request->set_body( $unreadable );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 400, $response->get_status(), 'Unreadable image sideload should be rejected.' );
+		$this->assertSame( 'rest_upload_invalid_image', $response->get_data()['code'] );
+	}
+
+	/**
+	 * Tests that the finalize endpoint triggers wp_generate_attachment_metadata.
+	 *
+	 * @ticket 62243
+	 * @covers WP_REST_Attachments_Controller::finalize_item
+	 * @requires function imagejpeg
+	 */
+	public function test_finalize_item(): void {
+		$this->enable_client_side_media_processing();
+
+		wp_set_current_user( self::$author_id );
+
+		// Create an attachment.
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
+		$request->set_header( 'Content-Type', 'image/jpeg' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=canola.jpg' );
+		$request->set_body( (string) file_get_contents( self::$test_file ) );
+		$response      = rest_get_server()->dispatch( $request );
+		$attachment_id = $response->get_data()['id'];
+
+		$this->assertSame( 201, $response->get_status() );
+
+		// Track whether wp_generate_attachment_metadata filter fires.
+		$filter_metadata = null;
+		$filter_id       = null;
+		$filter_context  = null;
+		add_filter(
+			'wp_generate_attachment_metadata',
+			function ( array $metadata, int $id, string $context ) use ( &$filter_metadata, &$filter_id, &$filter_context ) {
+				$filter_metadata = $metadata;
+				$filter_id       = $id;
+				$filter_context  = $context;
+				$metadata['foo'] = 'bar';
+				return $metadata;
+			},
+			10,
+			3
+		);
+
+		// Call the finalize endpoint.
+		$request  = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment_id}/finalize" );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status(), 'Finalize endpoint should return 200.' );
+		$this->assertIsArray( $filter_metadata );
+		$this->assertStringContainsString( 'canola', $filter_metadata['file'], 'Expected the canola image to have been had its metadata updated.' );
+		$this->assertSame( $attachment_id, $filter_id, 'Expected the post ID to be passed to the filter.' );
+		$this->assertSame( 'update', $filter_context, 'Filter context should be "update".' );
+		$resulting_metadata = wp_get_attachment_metadata( $attachment_id );
+		$this->assertIsArray( $resulting_metadata );
+		$this->assertArrayHasKey( 'foo', $resulting_metadata, 'Expected new metadata key to have been added.' );
+		$this->assertSame( 'bar', $resulting_metadata['foo'], 'Expected filtered metadata to be updated.' );
+	}
+
+	/**
+	 * Tests that the finalize endpoint requires authentication.
+	 *
+	 * @ticket 62243
+	 * @covers WP_REST_Attachments_Controller::finalize_item
+	 * @requires function imagejpeg
+	 */
+	public function test_finalize_item_requires_auth(): void {
+		$this->enable_client_side_media_processing();
+
+		wp_set_current_user( self::$author_id );
+
+		// Create an attachment.
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
+		$request->set_header( 'Content-Type', 'image/jpeg' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=canola.jpg' );
+		$request->set_body( (string) file_get_contents( self::$test_file ) );
+		$response      = rest_get_server()->dispatch( $request );
+		$attachment_id = $response->get_data()['id'];
+
+		// Try finalizing without authentication.
+		wp_set_current_user( 0 );
+
+		$request  = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment_id}/finalize" );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_cannot_edit_image', $response, 401 );
+	}
+
+	/**
+	 * Tests that the finalize endpoint returns error for invalid attachment ID.
+	 *
+	 * @ticket 62243
+	 * @covers WP_REST_Attachments_Controller::finalize_item
+	 */
+	public function test_finalize_item_invalid_id(): void {
+		$this->enable_client_side_media_processing();
+
+		wp_set_current_user( self::$author_id );
+
+		$invalid_id = PHP_INT_MAX;
+		$this->assertNull( get_post( $invalid_id ), 'Expected invalid ID to not exist for an existing post.' );
+		$request  = new WP_REST_Request( 'POST', "/wp/v2/media/$invalid_id/finalize" );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_post_invalid_id', $response, 404 );
+	}
+
+	/**
+	 * Tests that the finalize endpoint writes regular sub-size metadata
+	 * collected from sideload responses.
+	 *
+	 * @ticket 65329
+	 * @covers WP_REST_Attachments_Controller::finalize_item
+	 * @requires function imagejpeg
+	 */
+	public function test_finalize_writes_regular_sub_sizes(): void {
+		$this->enable_client_side_media_processing();
+
+		wp_set_current_user( self::$author_id );
+
+		// Create an attachment without generating sub-sizes server-side.
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
+		$request->set_header( 'Content-Type', 'image/jpeg' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=canola.jpg' );
+		$request->set_param( 'generate_sub_sizes', false );
+		$request->set_body( (string) file_get_contents( self::$test_file ) );
+		$response      = rest_get_server()->dispatch( $request );
+		$attachment_id = $response->get_data()['id'];
+
+		$this->assertSame( 201, $response->get_status() );
+
+		// Sideload a thumbnail sub-size; the response carries its metadata.
+		// test-image.jpg is 50x50, within the registered thumbnail maximum
+		// (150x150), so it passes sideload dimension validation.
+		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment_id}/sideload" );
+		$request->set_header( 'Content-Type', 'image/jpeg' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=canola-thumb.jpg' );
+		$request->set_param( 'image_size', 'thumbnail' );
+		$request->set_body( (string) file_get_contents( DIR_TESTDATA . '/images/test-image.jpg' ) );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status(), 'Sideloading a thumbnail should succeed.' );
+
+		$sub_size = $response->get_data();
+		$this->assertSame( 'thumbnail', $sub_size['image_size'], 'Response should echo the image_size.' );
+
+		// Finalize with the collected sub-size, which writes it into metadata.
+		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment_id}/finalize" );
+		$request->set_param( 'sub_sizes', array( $sub_size ) );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status(), 'Finalize should succeed.' );
+
+		$metadata = wp_get_attachment_metadata( $attachment_id );
+		$this->assertArrayHasKey( 'sizes', $metadata, 'Metadata should contain sizes.' );
+		$this->assertArrayHasKey( 'thumbnail', $metadata['sizes'], 'Metadata sizes should contain the sideloaded thumbnail.' );
+		$this->assertSame( 'image/jpeg', $metadata['sizes']['thumbnail']['mime-type'], 'Thumbnail mime-type should be recorded.' );
+		$this->assertGreaterThan( 0, $metadata['sizes']['thumbnail']['filesize'], 'Thumbnail filesize should be positive.' );
+	}
+
+	/**
+	 * Tests that the finalize endpoint records original_image from an
+	 * 'original' sub-size collected from a sideload response.
+	 *
+	 * @ticket 65329
+	 * @covers WP_REST_Attachments_Controller::finalize_item
+	 * @requires function imagejpeg
+	 */
+	public function test_finalize_writes_original_metadata(): void {
+		$this->enable_client_side_media_processing();
+
+		wp_set_current_user( self::$author_id );
+
+		// Create an attachment without generating sub-sizes server-side.
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
+		$request->set_header( 'Content-Type', 'image/jpeg' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=canola.jpg' );
+		$request->set_param( 'generate_sub_sizes', false );
+		$request->set_body( (string) file_get_contents( self::$test_file ) );
+		$response      = rest_get_server()->dispatch( $request );
+		$attachment_id = $response->get_data()['id'];
+
+		$this->assertSame( 201, $response->get_status() );
+
+		// Sideload the 'original' version (simulating a rotated image), which
+		// returns the basename without writing metadata.
+		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment_id}/sideload" );
+		$request->set_header( 'Content-Type', 'image/jpeg' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=canola-original.jpg' );
+		$request->set_param( 'image_size', 'original' );
+		$request->set_body( (string) file_get_contents( self::$test_file ) );
+		$response      = rest_get_server()->dispatch( $request );
+		$original_data = $response->get_data();
+
+		$this->assertSame( 200, $response->get_status(), 'Sideloading the original should succeed.' );
+		$this->assertSame( 'original', $original_data['image_size'], 'Response should echo the image_size.' );
+		$this->assertSame( 'canola-original.jpg', $original_data['file'], 'Response should return the file basename.' );
+
+		// Sideload must not write metadata; that happens in finalize.
+		$metadata = wp_get_attachment_metadata( $attachment_id, true );
+		$this->assertArrayNotHasKey( 'original_image', $metadata, 'Sideload should not write original_image metadata.' );
+
+		// Finalize with the collected original sub-size.
+		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment_id}/finalize" );
+		$request->set_param( 'sub_sizes', array( $original_data ) );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status(), 'Finalize should succeed.' );
+
+		$metadata = wp_get_attachment_metadata( $attachment_id );
+		$this->assertSame( 'canola-original.jpg', $metadata['original_image'], 'Finalize should record original_image from the sub-size.' );
+	}
+
+	/**
+	 * Tests that the finalize endpoint preserves existing image_meta (EXIF)
+	 * when adding sub-sizes collected from sideload responses.
+	 *
+	 * @ticket 65329
+	 * @covers WP_REST_Attachments_Controller::finalize_item
+	 * @requires function imagejpeg
+	 * @requires extension exif
+	 */
+	public function test_finalize_preserves_image_meta(): void {
+		$this->enable_client_side_media_processing();
+
+		wp_set_current_user( self::$author_id );
+
+		$exif_file = DIR_TESTDATA . '/images/2004-07-22-DSC_0008.jpg';
+
+		// Create an attachment without generating sub-sizes server-side.
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
+		$request->set_header( 'Content-Type', 'image/jpeg' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=2004-07-22-DSC_0008.jpg' );
+		$request->set_param( 'generate_sub_sizes', false );
+		$request->set_body( (string) file_get_contents( $exif_file ) );
+		$response      = rest_get_server()->dispatch( $request );
+		$attachment_id = $response->get_data()['id'];
+
+		$this->assertSame( 201, $response->get_status() );
+
+		$original_image_meta = wp_get_attachment_metadata( $attachment_id, true )['image_meta'];
+
+		// Finalize with a thumbnail sub-size.
+		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment_id}/finalize" );
+		$request->set_param(
+			'sub_sizes',
+			array(
+				array(
+					'image_size' => 'thumbnail',
+					'width'      => 150,
+					'height'     => 150,
+					'file'       => '2004-07-22-DSC_0008-150x150.jpg',
+					'mime_type'  => 'image/jpeg',
+					'filesize'   => 5000,
+				),
+			)
+		);
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status(), 'Finalize should succeed.' );
+
+		$metadata = wp_get_attachment_metadata( $attachment_id );
+
+		// The sub-size should have been added.
+		$this->assertArrayHasKey( 'thumbnail', $metadata['sizes'], 'Finalize should add the thumbnail sub-size.' );
+
+		// The EXIF image_meta should be unchanged.
+		$this->assertSame( $original_image_meta['aperture'], $metadata['image_meta']['aperture'], 'Aperture should be preserved.' );
+		$this->assertSame( $original_image_meta['camera'], $metadata['image_meta']['camera'], 'Camera should be preserved.' );
+		$this->assertSame( $original_image_meta['focal_length'], $metadata['image_meta']['focal_length'], 'Focal length should be preserved.' );
+		$this->assertSame( $original_image_meta['iso'], $metadata['image_meta']['iso'], 'ISO should be preserved.' );
+	}
+
+	/**
+	 * Tests that the sideload route declares `convert_format` as a boolean arg.
+	 *
+	 * Without this declaration, multipart/form-data requests deliver the value as
+	 * a string ("false") which evaluates truthy in PHP, so the sideload handler's
+	 * `if ( ! $request['convert_format'] )` check never fires and the
+	 * `image_editor_output_format` filter is never suppressed - meaning the
+	 * server still performs the format conversion the client opted out of.
+	 *
+	 * @ticket 65329
+	 * @covers WP_REST_Attachments_Controller::register_routes
+	 */
+	public function test_sideload_route_declares_convert_format_boolean() {
+		$this->enable_client_side_media_processing();
+
+		$routes   = rest_get_server()->get_routes();
+		$endpoint = '/wp/v2/media/(?P<id>[\d]+)/sideload';
+		$this->assertArrayHasKey( $endpoint, $routes, 'Sideload route should exist.' );
+
+		$args = $routes[ $endpoint ][0]['args'];
+
+		$this->assertArrayHasKey( 'convert_format', $args, 'Route should declare convert_format.' );
+		$this->assertSame( 'boolean', $args['convert_format']['type'], 'convert_format should be a boolean.' );
+		$this->assertTrue( $args['convert_format']['default'], 'convert_format should default to true.' );
+	}
+
+	/**
+	 * Tests that sideloading with `convert_format=false` (sent as the string
+	 * "false", matching multipart/form-data semantics) suppresses the
+	 * alt-extension collision check in `wp_unique_filename()`, so a companion
+	 * file sharing the attachment basename does not get a numeric suffix.
+	 *
+	 * Mirrors the HEIC companion upload flow: a JPEG derivative is created via
+	 * the media endpoint, then the original is sideloaded under the same stem.
+	 * Without the arg declared as boolean, "false" coerces truthy, the filter
+	 * is never added, and the companion is bumped to `-1` while the JPEG stays
+	 * unsuffixed. PNG stands in for HEIC because core's default
+	 * `image_editor_output_format` only maps HEIC/HEIF to JPEG; a local filter
+	 * adds a PNG to JPEG mapping to trigger the same alt-ext check.
+	 *
+	 * @ticket 65329
+	 * @covers WP_REST_Attachments_Controller::sideload_item
+	 * @covers WP_REST_Attachments_Controller::register_routes
+	 * @requires function imagejpeg
+	 */
+	public function test_sideload_convert_format_false_suppresses_alt_ext_suffix() {
+		$this->enable_client_side_media_processing();
+
+		wp_set_current_user( self::$author_id );
+
+		// Upload a JPEG "parent" attachment the way client-side uploads do.
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
+		$request->set_header( 'Content-Type', 'image/jpeg' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=heic-companion.jpg' );
+		$request->set_param( 'generate_sub_sizes', false );
+		$request->set_body( (string) file_get_contents( self::$test_file ) );
+
+		$response      = rest_get_server()->dispatch( $request );
+		$attachment_id = $response->get_data()['id'];
+		$this->assertSame( 201, $response->get_status() );
+
+		/*
+		 * Simulate an alt-ext conversion mapping so an alt-extension companion
+		 * (PNG here, HEIC in production) would otherwise get a `-1` suffix.
+		 */
+		$add_png_mapping = static function ( $formats ) {
+			$formats['image/png'] = 'image/jpeg';
+			return $formats;
+		};
+		add_filter( 'image_editor_output_format', $add_png_mapping, 5 );
+
+		/*
+		 * Sideload a companion sharing the same basename. Use the source-format
+		 * original size: a source-format companion (HEIC in production, PNG
+		 * here) kept beside its JPEG derivative is exactly what this size
+		 * represents, and it is exempt from the sideload dimension validation
+		 * that would otherwise reject a companion whose dimensions differ from
+		 * the derivative. Pass convert_format as the string "false" to match
+		 * multipart/form-data request semantics.
+		 */
+		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment_id}/sideload" );
+		$request->set_header( 'Content-Type', 'image/png' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=heic-companion.png' );
+		$request->set_param( 'image_size', WP_REST_Attachments_Controller::IMAGE_SIZE_SOURCE_ORIGINAL );
+		$request->set_param( 'convert_format', 'false' );
+		$request->set_body( (string) file_get_contents( DIR_TESTDATA . '/images/one-blue-pixel-100x100.png' ) );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		remove_filter( 'image_editor_output_format', $add_png_mapping, 5 );
+
+		$this->assertSame( 200, $response->get_status() );
+
+		$data = $response->get_data();
+		$this->assertSame(
+			'heic-companion.png',
+			$data['file'],
+			'Companion file should share the attachment basename without a numeric suffix.'
+		);
+	}
+
+	/**
+	 * Tests that sideloading with an array of image sizes registers the single
+	 * file under each size name when finalized.
+	 *
+	 * @ticket 64737
+	 * @covers WP_REST_Attachments_Controller::sideload_item
+	 * @covers WP_REST_Attachments_Controller::finalize_item
+	 * @requires function imagejpeg
+	 */
+	public function test_sideload_image_size_array() {
+		$this->enable_client_side_media_processing();
+
+		wp_set_current_user( self::$author_id );
+
+		// Create an attachment without generating sub-sizes server-side.
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
+		$request->set_header( 'Content-Type', 'image/jpeg' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=canola.jpg' );
+		$request->set_param( 'generate_sub_sizes', false );
+		$request->set_body( (string) file_get_contents( self::$test_file ) );
+		$response      = rest_get_server()->dispatch( $request );
+		$attachment_id = $response->get_data()['id'];
+
+		$this->assertSame( 201, $response->get_status() );
+
+		// Sideload a single file registered under multiple sizes.
+		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment_id}/sideload" );
+		$request->set_header( 'Content-Type', 'image/jpeg' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=canola-dup.jpg' );
+		$request->set_param( 'image_size', array( 'thumbnail', 'medium' ) );
+		$request->set_body( (string) file_get_contents( self::$test_file ) );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status(), 'Sideloading with an array of sizes should succeed.' );
+
+		$sub_size = $response->get_data();
+		$this->assertSame( array( 'thumbnail', 'medium' ), $sub_size['image_size'], 'Response should echo the array of sizes.' );
+
+		// Finalize with the collected sub-size.
+		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment_id}/finalize" );
+		$request->set_param( 'sub_sizes', array( $sub_size ) );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status(), 'Finalize should succeed.' );
+
+		$metadata = wp_get_attachment_metadata( $attachment_id );
+		$this->assertArrayHasKey( 'thumbnail', $metadata['sizes'], 'Metadata should register the thumbnail size.' );
+		$this->assertArrayHasKey( 'medium', $metadata['sizes'], 'Metadata should register the medium size.' );
+		$this->assertSame(
+			$metadata['sizes']['thumbnail']['file'],
+			$metadata['sizes']['medium']['file'],
+			'Both sizes should reference the same physical file.'
+		);
+	}
+
+	/**
+	 * Tests that the sideload endpoint rejects an invalid image size name.
+	 *
+	 * @ticket 64737
+	 * @requires function imagejpeg
+	 */
+	public function test_sideload_image_size_invalid() {
+		$this->enable_client_side_media_processing();
+
+		wp_set_current_user( self::$author_id );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
+		$request->set_header( 'Content-Type', 'image/jpeg' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=canola.jpg' );
+		$request->set_body( (string) file_get_contents( self::$test_file ) );
+		$response      = rest_get_server()->dispatch( $request );
+		$attachment_id = $response->get_data()['id'];
+
+		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment_id}/sideload" );
+		$request->set_header( 'Content-Type', 'image/jpeg' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=canola-x.jpg' );
+		$request->set_param( 'image_size', array( 'thumbnail', 'not-a-real-size' ) );
+		$request->set_body( (string) file_get_contents( self::$test_file ) );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 400, $response->get_status(), 'An unknown size name should be rejected.' );
 	}
 }

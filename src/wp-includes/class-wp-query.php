@@ -1189,7 +1189,7 @@ class WP_Query {
 					'field'    => 'slug',
 				);
 
-				if ( ! empty( $t->rewrite['hierarchical'] ) ) {
+				if ( is_string( $query_vars[ $t->query_var ] ) && ! empty( $t->rewrite['hierarchical'] ) ) {
 					$query_vars[ $t->query_var ] = wp_basename( $query_vars[ $t->query_var ] );
 				}
 
@@ -3469,21 +3469,21 @@ class WP_Query {
 		}
 
 		if ( ! empty( $this->posts ) && $this->is_comment_feed && $this->is_singular ) {
-			/** This filter is documented in wp-includes/query.php */
+			/** This filter is documented in wp-includes/class-wp-query.php */
 			$cjoin = apply_filters_ref_array( 'comment_feed_join', array( '', &$this ) );
 
-			/** This filter is documented in wp-includes/query.php */
+			/** This filter is documented in wp-includes/class-wp-query.php */
 			$cwhere = apply_filters_ref_array( 'comment_feed_where', array( "WHERE comment_post_ID = '{$this->posts[0]->ID}' AND comment_approved = '1'", &$this ) );
 
-			/** This filter is documented in wp-includes/query.php */
+			/** This filter is documented in wp-includes/class-wp-query.php */
 			$cgroupby = apply_filters_ref_array( 'comment_feed_groupby', array( '', &$this ) );
 			$cgroupby = ( ! empty( $cgroupby ) ) ? 'GROUP BY ' . $cgroupby : '';
 
-			/** This filter is documented in wp-includes/query.php */
+			/** This filter is documented in wp-includes/class-wp-query.php */
 			$corderby = apply_filters_ref_array( 'comment_feed_orderby', array( 'comment_date_gmt DESC', &$this ) );
 			$corderby = ( ! empty( $corderby ) ) ? 'ORDER BY ' . $corderby : '';
 
-			/** This filter is documented in wp-includes/query.php */
+			/** This filter is documented in wp-includes/class-wp-query.php */
 			$climits = apply_filters_ref_array( 'comment_feed_limits', array( 'LIMIT ' . get_option( 'posts_per_rss' ), &$this ) );
 
 			$comments_request = "SELECT {$wpdb->comments}.comment_ID FROM {$wpdb->comments} $cjoin $cwhere $cgroupby $corderby $climits";
@@ -3803,7 +3803,7 @@ class WP_Query {
 				$post = get_post( $post );
 			} elseif ( isset( $post->ID ) ) {
 				/*
-				 * Partial objecct queried.
+				 * Partial object queried.
 				 *
 				 * The post object was queried with a partial set of
 				 * fields, populate the entire object for the loop.
@@ -4019,17 +4019,17 @@ class WP_Query {
 			}
 		} elseif ( $this->is_post_type_archive ) {
 			$post_type = $this->get( 'post_type' );
-
 			if ( is_array( $post_type ) ) {
 				$post_type = reset( $post_type );
 			}
 
 			$this->queried_object = get_post_type_object( $post_type );
 		} elseif ( $this->is_posts_page ) {
-			$page_for_posts = get_option( 'page_for_posts' );
-
-			$this->queried_object    = get_post( $page_for_posts );
-			$this->queried_object_id = (int) $this->queried_object->ID;
+			$posts_page = get_post( get_option( 'page_for_posts' ) );
+			if ( $posts_page ) {
+				$this->queried_object    = $posts_page;
+				$this->queried_object_id = (int) $posts_page->ID;
+			}
 		} elseif ( $this->is_singular && ! empty( $this->post ) ) {
 			$this->queried_object    = $this->post;
 			$this->queried_object_id = (int) $this->post->ID;
@@ -4041,13 +4041,17 @@ class WP_Query {
 				$this->queried_object_id = $author;
 			} elseif ( $author_name ) {
 				$user = get_user_by( 'slug', $author_name );
-
 				if ( $user ) {
 					$this->queried_object_id = $user->ID;
 				}
 			}
 
-			$this->queried_object = get_userdata( $this->queried_object_id );
+			if ( $this->queried_object_id ) {
+				$user = get_userdata( $this->queried_object_id );
+				if ( $user ) {
+					$this->queried_object = $user;
+				}
+			}
 		}
 
 		return $this->queried_object;
@@ -4816,7 +4820,7 @@ class WP_Query {
 	 * @global int     $numpages
 	 *
 	 * @param WP_Post|object|int $post WP_Post instance or Post ID/object.
-	 * @return true True when finished.
+	 * @return bool True on success, false on failure.
 	 */
 	public function setup_postdata( $post ) {
 		global $id, $authordata, $currentday, $currentmonth, $page, $pages, $multipage, $more, $numpages;
@@ -4826,12 +4830,12 @@ class WP_Query {
 		}
 
 		if ( ! $post ) {
-			return;
+			return false;
 		}
 
 		$elements = $this->generate_postdata( $post );
 		if ( false === $elements ) {
-			return;
+			return false;
 		}
 
 		$id           = $elements['id'];
