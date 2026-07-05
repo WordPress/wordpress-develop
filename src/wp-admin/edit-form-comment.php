@@ -201,25 +201,130 @@ if ( current_user_can( 'edit_post', $post_id ) ) {
 </div>
 
 <?php
-if ( $comment->comment_parent ) :
+$parent_display = __( 'None' );
+
+if ( $comment->comment_parent ) {
 	$parent = get_comment( $comment->comment_parent );
-	if ( $parent ) :
-		$parent_link = esc_url( get_comment_link( $parent ) );
-		$name        = get_comment_author( $parent );
-		?>
-	<div class="misc-pub-section misc-pub-reply-to">
-		<?php
-		printf(
-			/* translators: %s: Comment link. */
-			__( 'In reply to: %s' ),
-			'<b><a href="' . $parent_link . '">' . $name . '</a></b>'
-		);
-		?>
-	</div>
-		<?php
-endif;
-endif;
+
+	if ( $parent ) {
+		$parent_link    = esc_url( get_comment_link( $parent ) );
+		$name           = get_comment_author( $parent );
+		$parent_display = '<a href="' . $parent_link . '">' . $name . '</a>';
+	}
+}
+
+$post_comments = get_comments(
+	array(
+		'post_id' => $comment->comment_post_ID,
+		'type'    => 'comment',
+		'status'  => 'all',
+		'orderby' => 'comment_date_gmt',
+		'order'   => 'ASC',
+	)
+);
+
+// Group comments by parent to find this comment's descendants, which cannot become its parent.
+$comments_by_parent = array();
+
+foreach ( $post_comments as $post_comment ) {
+	$comments_by_parent[ (int) $post_comment->comment_parent ][] = (int) $post_comment->comment_ID;
+}
+
+$comment_descendants = array();
+$comment_queue       = array( $comment->comment_ID );
+
+while ( $comment_queue ) {
+	$descendant_parent = array_shift( $comment_queue );
+
+	if ( isset( $comments_by_parent[ $descendant_parent ] ) ) {
+		foreach ( $comments_by_parent[ $descendant_parent ] as $descendant_id ) {
+			$comment_descendants[ $descendant_id ] = true;
+			$comment_queue[]                       = $descendant_id;
+		}
+	}
+}
 ?>
+<div class="misc-pub-section misc-pub-reply-to">
+<span id="comment-parent-display">
+<?php
+printf(
+	/* translators: %s: Parent comment link, or 'None'. */
+	__( 'In reply to: %s' ),
+	'<b>' . $parent_display . '</b>'
+);
+?>
+</span>
+<a href="#edit_comment_parent" class="edit-comment-parent hide-if-no-js"><span aria-hidden="true"><?php _e( 'Edit' ); ?></span> <span class="screen-reader-text">
+	<?php
+	/* translators: Hidden accessibility text. */
+	_e( 'Edit parent comment' );
+	?>
+</span></a>
+<fieldset id="comment-parent-div" class="hide-if-js">
+<legend class="screen-reader-text">
+	<?php
+	/* translators: Hidden accessibility text. */
+	_e( 'Parent comment' );
+	?>
+</legend>
+<label for="comment_parent"><?php _e( 'Parent comment' ); ?></label>
+<select name="comment_parent" id="comment_parent">
+	<option value="0"<?php selected( 0, (int) $comment->comment_parent ); ?>><?php _e( 'None (top-level comment)' ); ?></option>
+	<?php
+	$current_parent_listed = false;
+
+	foreach ( $post_comments as $post_comment ) {
+		$post_comment_id = (int) $post_comment->comment_ID;
+
+		if ( $post_comment_id === $comment->comment_ID || isset( $comment_descendants[ $post_comment_id ] ) ) {
+			continue;
+		}
+
+		if ( $post_comment_id === (int) $comment->comment_parent ) {
+			$current_parent_listed = true;
+		}
+
+		$option_label = sprintf(
+			/* translators: 1: Comment author, 2: Comment excerpt. */
+			__( '%1$s: %2$s' ),
+			get_comment_author( $post_comment ),
+			get_comment_excerpt( $post_comment )
+		);
+
+		printf(
+			"\t<option value=\"%d\" data-author=\"%s\"%s>%s</option>\n",
+			$post_comment_id,
+			esc_attr( get_comment_author( $post_comment ) ),
+			selected( $post_comment_id, (int) $comment->comment_parent, false ),
+			esc_html( $option_label )
+		);
+	}
+
+	// The current parent may not be listed, e.g. a pingback or a comment no longer publicly visible.
+	if ( $comment->comment_parent && ! $current_parent_listed && $parent ) {
+		$option_label = sprintf(
+			/* translators: 1: Comment author, 2: Comment excerpt. */
+			__( '%1$s: %2$s' ),
+			get_comment_author( $parent ),
+			get_comment_excerpt( $parent )
+		);
+
+		printf(
+			"\t<option value=\"%d\" data-author=\"%s\" selected=\"selected\">%s</option>\n",
+			(int) $comment->comment_parent,
+			esc_attr( get_comment_author( $parent ) ),
+			esc_html( $option_label )
+		);
+	}
+	?>
+</select>
+<input type="hidden" id="hidden_comment_parent" value="<?php echo esc_attr( $comment->comment_parent ); ?>" />
+<p>
+<a href="#edit_comment_parent" class="save-comment-parent hide-if-no-js button"><?php _e( 'OK' ); ?></a>
+<a href="#edit_comment_parent" class="cancel-comment-parent hide-if-no-js button-cancel"><?php _e( 'Cancel' ); ?></a>
+</p>
+</fieldset>
+</div>
 
 <?php
 	/**

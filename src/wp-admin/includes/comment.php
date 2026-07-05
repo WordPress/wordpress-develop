@@ -46,6 +46,7 @@ function comment_exists( $comment_author, $comment_date, $timezone = 'blog' ) {
  *
  * @since 2.0.0
  * @since 5.5.0 A return value was added.
+ * @since 7.1.0 The comment parent can be updated via `$_POST['comment_parent']`.
  *
  * @return int|WP_Error The value 1 if the comment was updated, 0 if not updated.
  *                      A WP_Error object on failure.
@@ -72,6 +73,43 @@ function edit_comment() {
 	}
 	if ( isset( $_POST['comment_ID'] ) ) {
 		$_POST['comment_ID'] = (int) $_POST['comment_ID'];
+	}
+
+	if ( isset( $_POST['comment_parent'] ) ) {
+		$comment_id     = (int) $_POST['comment_ID'];
+		$comment_parent = (int) $_POST['comment_parent'];
+
+		$_POST['comment_parent'] = $comment_parent;
+
+		$comment = get_comment( $comment_id );
+
+		if ( $comment && $comment_parent !== (int) $comment->comment_parent ) {
+			if ( $comment_parent === $comment_id ) {
+				return new WP_Error( 'comment_parent_invalid', __( 'A comment cannot be a reply to itself.' ) );
+			}
+
+			if ( $comment_parent ) {
+				$parent = get_comment( $comment_parent );
+
+				if ( ! $parent || (int) $parent->comment_post_ID !== (int) $comment->comment_post_ID ) {
+					return new WP_Error( 'comment_parent_invalid', __( 'The parent must be another comment on the same post.' ) );
+				}
+
+				// Walk up the new parent's ancestors to prevent creating a threading loop.
+				$ancestors = array();
+				$ancestor  = $parent;
+
+				while ( $ancestor && $ancestor->comment_parent && ! isset( $ancestors[ $ancestor->comment_ID ] ) ) {
+					if ( (int) $ancestor->comment_parent === $comment_id ) {
+						return new WP_Error( 'comment_parent_invalid', __( 'A comment cannot be a reply to one of its own replies.' ) );
+					}
+
+					$ancestors[ $ancestor->comment_ID ] = true;
+
+					$ancestor = get_comment( $ancestor->comment_parent );
+				}
+			}
+		}
 	}
 
 	foreach ( array( 'aa', 'mm', 'jj', 'hh', 'mn' ) as $timeunit ) {
