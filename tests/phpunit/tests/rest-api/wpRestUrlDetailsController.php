@@ -1,15 +1,9 @@
 <?php
 /**
- * WP_REST_URL_Details_Controller tests.
+ * Unit tests covering WP_REST_URL_Details_Controller functionality.
  *
  * @package WordPress
  * @subpackage REST_API
- * @since 5.9.0
- */
-
-/**
- * Tests for WP_REST_URL_Details_Controller.
- *
  * @since 5.9.0
  *
  * @covers WP_REST_URL_Details_Controller
@@ -49,11 +43,15 @@ class Tests_REST_WpRestUrlDetailsController extends WP_Test_REST_Controller_Test
 	/**
 	 * URL placeholder.
 	 *
+	 * Even though the request is being intercepted with a mocked response, it is not fully bypassing the network. The
+	 * REST API endpoint is validating the `url` parameter with `wp_http_validate_url()` which includes a call to
+	 * `gethostbyname()`. So the domain used in the placeholder URL must be valid to ensure it passes a validity check.
+	 *
 	 * @since 5.9.0
 	 *
 	 * @var string
 	 */
-	const URL_PLACEHOLDER = 'https://placeholder-site.com';
+	const URL_PLACEHOLDER = 'https://example.com';
 
 	/**
 	 * Array of request args.
@@ -102,7 +100,7 @@ class Tests_REST_WpRestUrlDetailsController extends WP_Test_REST_Controller_Test
 	}
 
 	/**
-	 * @covers WP_REST_URL_Details_Controller::get_routes
+	 * @covers WP_REST_URL_Details_Controller::register_routes
 	 *
 	 * @ticket 54358
 	 */
@@ -135,9 +133,9 @@ class Tests_REST_WpRestUrlDetailsController extends WP_Test_REST_Controller_Test
 		$this->assertSame(
 			array(
 				'title'       => 'Example Website — - with encoded content.',
-				'icon'        => 'https://placeholder-site.com/favicon.ico?querystringaddedfortesting',
+				'icon'        => 'https://example.com/favicon.ico?querystringaddedfortesting',
 				'description' => 'Example description text here. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore.',
-				'image'       => 'https://placeholder-site.com/images/home/screen-themes.png?3',
+				'image'       => 'https://example.com/images/home/screen-themes.png?3',
 			),
 			$data
 		);
@@ -290,7 +288,6 @@ class Tests_REST_WpRestUrlDetailsController extends WP_Test_REST_Controller_Test
 
 		$expected = strtolower( 'Unable to retrieve body from response at this URL' );
 		$this->assertStringContainsString( $expected, strtolower( $data['message'] ), 'Response "message" does not contain "' . $expected . '"' );
-
 	}
 
 	/**
@@ -303,7 +300,7 @@ class Tests_REST_WpRestUrlDetailsController extends WP_Test_REST_Controller_Test
 
 		add_filter(
 			'rest_url_details_http_request_args',
-			static function( $args, $url ) {
+			static function ( $args, $url ) {
 				return array_merge(
 					$args,
 					array(
@@ -346,7 +343,7 @@ class Tests_REST_WpRestUrlDetailsController extends WP_Test_REST_Controller_Test
 		// Force cache to return a known value as the remote URL http response body.
 		add_filter(
 			"pre_site_transient_{$transient_name}",
-			static function() {
+			static function () {
 				return '<html><head><title>This value from cache.</title></head><body></body></html>';
 			}
 		);
@@ -374,7 +371,7 @@ class Tests_REST_WpRestUrlDetailsController extends WP_Test_REST_Controller_Test
 	public function test_allows_filtering_data_retrieved_for_a_given_url() {
 		add_filter(
 			'rest_prepare_url_details',
-			static function( $response ) {
+			static function ( $response ) {
 
 				$data = $response->get_data();
 
@@ -388,7 +385,6 @@ class Tests_REST_WpRestUrlDetailsController extends WP_Test_REST_Controller_Test
 				);
 
 				return $response;
-
 			}
 		);
 
@@ -425,7 +421,7 @@ class Tests_REST_WpRestUrlDetailsController extends WP_Test_REST_Controller_Test
 		 */
 		add_filter(
 			'rest_prepare_url_details',
-			static function( $response, $url ) {
+			static function ( $response, $url ) {
 				return new WP_REST_Response(
 					array(
 						'status'        => 418,
@@ -452,7 +448,7 @@ class Tests_REST_WpRestUrlDetailsController extends WP_Test_REST_Controller_Test
 
 		$this->assertSame( 418, $data['status'], 'Response "status" is not 418' );
 
-		$expected = 'Response for URL https://placeholder-site.com altered via rest_prepare_url_details filter';
+		$expected = 'Response for URL https://example.com altered via rest_prepare_url_details filter';
 		$this->assertSame( $expected, $data['response'], 'Response "response" is not "' . $expected . '"' );
 	}
 
@@ -1048,28 +1044,46 @@ class Tests_REST_WpRestUrlDetailsController extends WP_Test_REST_Controller_Test
 		);
 	}
 
+	/**
+	 * @doesNotPerformAssertions
+	 */
 	public function test_context_param() {
-		$this->markTestSkipped( 'Controller does not use context_param.' );
+		// Controller does not use get_context_param().
 	}
 
+	/**
+	 * @doesNotPerformAssertions
+	 */
 	public function test_get_item() {
-		$this->markTestSkipped( 'Controller does not have get_item route.' );
+		// Controller does not implement get_item().
 	}
 
+	/**
+	 * @doesNotPerformAssertions
+	 */
 	public function test_create_item() {
-		$this->markTestSkipped( 'Controller does not have create_item route.' );
+		// Controller does not implement create_item().
 	}
 
+	/**
+	 * @doesNotPerformAssertions
+	 */
 	public function test_update_item() {
-		$this->markTestSkipped( 'Controller does not have update_item route.' );
+		// Controller does not implement update_item().
 	}
 
+	/**
+	 * @doesNotPerformAssertions
+	 */
 	public function test_delete_item() {
-		$this->markTestSkipped( 'Controller does not have delete_item route.' );
+		// Controller does not implement delete_item().
 	}
 
+	/**
+	 * @doesNotPerformAssertions
+	 */
 	public function test_prepare_item() {
-		$this->markTestSkipped( 'Controller does not have prepare_item route.' );
+		// Controller does not implement prepare_item().
 	}
 
 	/**
@@ -1078,20 +1092,20 @@ class Tests_REST_WpRestUrlDetailsController extends WP_Test_REST_Controller_Test
 	 *
 	 * @return array faux/mocked response.
 	 */
-	public function mock_success_request_to_remote_url( $response, $args ) {
-		return $this->mock_request_to_remote_url( 'success', $args );
+	public function mock_success_request_to_remote_url( $response, $parsed_args ) {
+		return $this->mock_request_to_remote_url( 'success', $parsed_args );
 	}
 
-	public function mock_failed_request_to_remote_url( $response, $args ) {
-		return $this->mock_request_to_remote_url( 'failure', $args );
+	public function mock_failed_request_to_remote_url( $response, $parsed_args ) {
+		return $this->mock_request_to_remote_url( 'failure', $parsed_args );
 	}
 
-	public function mock_request_to_remote_url_with_empty_body_response( $response, $args ) {
-		return $this->mock_request_to_remote_url( 'empty_body', $args );
+	public function mock_request_to_remote_url_with_empty_body_response( $response, $parsed_args ) {
+		return $this->mock_request_to_remote_url( 'empty_body', $parsed_args );
 	}
 
-	private function mock_request_to_remote_url( $result_type, $args ) {
-		$this->request_args = $args;
+	private function mock_request_to_remote_url( $result_type, $parsed_args ) {
+		$this->request_args = $parsed_args;
 
 		$types = array(
 			'success',
@@ -1186,7 +1200,9 @@ class Tests_REST_WpRestUrlDetailsController extends WP_Test_REST_Controller_Test
 	protected function get_reflective_method( $method_name ) {
 		$class  = new ReflectionClass( WP_REST_URL_Details_Controller::class );
 		$method = $class->getMethod( $method_name );
-		$method->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$method->setAccessible( true );
+		}
 		return $method;
 	}
 }

@@ -2,6 +2,8 @@
 
 /**
  * @group formatting
+ *
+ * @covers ::wp_slash
  */
 class Tests_Formatting_wpSlash extends WP_UnitTestCase {
 
@@ -82,7 +84,7 @@ class Tests_Formatting_wpSlash extends WP_UnitTestCase {
 		$this->assertSame( $arr, wp_slash( $arr ) ); // Keyed array.
 		$this->assertSame( array_values( $arr ), wp_slash( array_values( $arr ) ) ); // Non-keyed.
 
-		$obj = new stdClass;
+		$obj = new stdClass();
 		foreach ( $arr as $k => $v ) {
 			$obj->$k = $v;
 		}
@@ -100,4 +102,36 @@ class Tests_Formatting_wpSlash extends WP_UnitTestCase {
 		$this->assertSame( array( $new ), wp_slash( array( $old ) ) ); // Non-keyed.
 	}
 
+	/**
+	 * Tests that addslashes_gpc() returns the same result as wp_slash() for strings.
+	 *
+	 * @ticket 64539
+	 * @covers ::addslashes_gpc
+	 * @expectedDeprecated addslashes_gpc
+	 */
+	public function test_addslashes_gpc_matches_wp_slash_for_strings() {
+		$input = "String with 'quotes' and \"double quotes\"";
+		$this->assertSame( wp_slash( $input ), addslashes_gpc( $input ) );
+	}
+
+	/**
+	 * Tests that addslashes_gpc() returns the same result as wp_slash() for arrays.
+	 *
+	 * @ticket 64539
+	 * @covers ::addslashes_gpc
+	 * @expectedDeprecated addslashes_gpc
+	 */
+	public function test_addslashes_gpc_matches_wp_slash_for_arrays() {
+		$input = array(
+			'field1' => "Value with 'apostrophe'",
+			'field2' => 'Value with "quotes"',
+			'field3' => 'user@example.com',
+			'nested' => array(
+				'key1' => 'Nested value with \\ backslash',
+				'key2' => array( 'deeply', 'nested', 'array' ),
+			),
+		);
+
+		$this->assertSame( wp_slash( $input ), addslashes_gpc( $input ) );
+	}
 }

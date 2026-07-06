@@ -1,12 +1,8 @@
 <?php
 /**
- * Test_WP_Customize_Control tests.
+ * Tests for the Test_WP_Customize_Control class.
  *
  * @package WordPress
- */
-
-/**
- * Tests for the Test_WP_Customize_Control class.
  *
  * @todo This is missing dedicated tests for all but one of the methods.
  *
@@ -22,11 +18,27 @@ class Test_WP_Customize_Control extends WP_UnitTestCase {
 	public $wp_customize;
 
 	/**
+	 * Shared user ID for the tests.
+
+	 * @var int
+	 */
+	public static $user_id = 0;
+
+	/**
+	 * Set up shared fixtures.
+	 *
+	 * @param WP_UnitTest_Factory $factory Factory.
+	 */
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
+		self::$user_id = $factory->user->create( array( 'role' => 'administrator' ) );
+	}
+
+	/**
 	 * Set up.
 	 */
 	public function set_up() {
 		parent::set_up();
-		wp_set_current_user( $this->factory()->user->create( array( 'role' => 'administrator' ) ) );
+		wp_set_current_user( self::$user_id );
 		require_once ABSPATH . WPINC . '/class-wp-customize-manager.php';
 		$GLOBALS['wp_customize'] = new WP_Customize_Manager();
 		$this->wp_customize      = $GLOBALS['wp_customize'];
@@ -138,21 +150,21 @@ class Test_WP_Customize_Control extends WP_UnitTestCase {
 		$this->assertStringContainsString( '<option value="0">', $content, 'Dropdown-pages renders select even without any pages published.' );
 
 		// Ensure that auto-draft pages are included if they are among the nav_menus_created_posts.
-		$auto_draft_page_id = $this->factory()->post->create(
+		$auto_draft_page_id = self::factory()->post->create(
 			array(
 				'post_type'   => 'page',
 				'post_status' => 'auto-draft',
 				'post_title'  => 'Auto Draft Page',
 			)
 		);
-		$this->factory()->post->create(
+		self::factory()->post->create(
 			array(
 				'post_type'   => 'page',
 				'post_status' => 'auto-draft',
 				'post_title'  => 'Orphan Auto Draft Page',
 			)
 		);
-		$auto_draft_post_id = $this->factory()->post->create(
+		$auto_draft_post_id = self::factory()->post->create(
 			array(
 				'post_type'   => 'post',
 				'post_status' => 'auto-draft',

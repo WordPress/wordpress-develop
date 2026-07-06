@@ -1,17 +1,17 @@
 /*!
- * jQuery UI Button 1.13.1
- * http://jqueryui.com
+ * jQuery UI Button 1.13.3
+ * https://jqueryui.com
  *
- * Copyright jQuery Foundation and other contributors
+ * Copyright OpenJS Foundation and other contributors
  * Released under the MIT license.
- * http://jquery.org/license
+ * https://jquery.org/license
  */
 
 //>>label: Button
 //>>group: Widgets
 //>>description: Enhances a form with themeable buttons.
-//>>docs: http://api.jqueryui.com/button/
-//>>demos: http://jqueryui.com/button/
+//>>docs: https://api.jqueryui.com/button/
+//>>demos: https://jqueryui.com/button/
 //>>css.structure: ../../themes/base/core.css
 //>>css.structure: ../../themes/base/button.css
 //>>css.theme: ../../themes/base/theme.css
@@ -30,7 +30,8 @@
 			"./controlgroup",
 			"./checkboxradio",
 
-			"./core"
+			"../keycode",
+			"../widget"
 		], factory );
 	} else {
 
@@ -41,7 +42,7 @@
 "use strict";
 
 $.widget( "ui.button", {
-	version: "1.13.1",
+	version: "1.13.3",
 	defaultElement: "<button>",
 	options: {
 		classes: {
@@ -240,8 +241,8 @@ $.widget( "ui.button", {
 
 		// Make sure we can't end up with a button that has neither text nor icon
 		if ( key === "showLabel" ) {
-			this._toggleClass( "ui-button-icon-only", null, !value );
-			this._updateTooltip();
+				this._toggleClass( "ui-button-icon-only", null, !value );
+				this._updateTooltip();
 		}
 
 		if ( key === "label" ) {
@@ -306,7 +307,7 @@ if ( $.uiBackCompat !== false ) {
 				this.options.text = this.options.showLabel;
 			}
 			if ( !this.options.icon && ( this.options.icons.primary ||
-				this.options.icons.secondary ) ) {
+					this.options.icons.secondary ) ) {
 				if ( this.options.icons.primary ) {
 					this.options.icon = this.options.icons.primary;
 				} else {

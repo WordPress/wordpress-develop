@@ -14,6 +14,9 @@ class Tests_Feed_RSS2 extends WP_UnitTestCase {
 	public static $category;
 	public static $post_date;
 
+	private $post_count;
+	private $excerpt_only;
+
 	/**
 	 * Setup a new user and attribute some posts.
 	 */
@@ -58,6 +61,9 @@ class Tests_Feed_RSS2 extends WP_UnitTestCase {
 		foreach ( self::$posts as $post ) {
 			wp_set_object_terms( $post, self::$category->slug, 'category' );
 		}
+
+		// Assign a tagline option.
+		update_option( 'blogdescription', 'Just another WordPress site' );
 	}
 
 	/**
@@ -73,6 +79,13 @@ class Tests_Feed_RSS2 extends WP_UnitTestCase {
 
 		$this->set_permalink_structure( '/%year%/%monthnum%/%day%/%postname%/' );
 		create_initial_taxonomies();
+	}
+
+	/**
+	 * Tear down.
+	 */
+	public static function wpTearDownAfterClass() {
+		delete_option( 'blogdescription' );
 	}
 
 	/**
@@ -233,7 +246,7 @@ class Tests_Feed_RSS2 extends WP_UnitTestCase {
 			}
 			$cats = array_filter( $cats );
 			// Should be the same number of categories.
-			$this->assertSame( count( $cats ), count( $categories ) );
+			$this->assertCount( count( $cats ), $categories );
 
 			// ..with the same names.
 			foreach ( $cats as $id => $cat ) {
@@ -275,6 +288,8 @@ class Tests_Feed_RSS2 extends WP_UnitTestCase {
 
 		// Get all the rss -> channel -> item elements.
 		$items = xml_find( $xml, 'rss', 'channel', 'item' );
+
+		$this->assertNotEmpty( $items );
 
 		// Check each of the items against the known post data.
 		foreach ( $items as $key => $item ) {
@@ -473,7 +488,7 @@ class Tests_Feed_RSS2 extends WP_UnitTestCase {
 	 *
 	 * @ticket 4575
 	 *
-	 * @dataProvider data_test_get_feed_build_date
+	 * @dataProvider data_get_feed_build_date
 	 */
 	public function test_get_feed_build_date( $url, $element ) {
 		$this->go_to( $url );
@@ -487,11 +502,131 @@ class Tests_Feed_RSS2 extends WP_UnitTestCase {
 	}
 
 
-	public function data_test_get_feed_build_date() {
+	public function data_get_feed_build_date() {
 		return array(
 			array( '/?feed=rss2', 'rss' ),
 			array( '/?feed=commentsrss2', 'rss' ),
 		);
+	}
 
+	/**
+	 * Test that the Last-Modified is a post's date when a more recent comment exists,
+	 * but the "withcomments=1" query var is not passed.
+	 *
+	 * @ticket 47968
+	 *
+	 * @covers WP::send_headers
+	 */
+	public function test_feed_last_modified_should_be_a_post_date_when_withcomments_is_not_passed() {
+		$last_week = gmdate( 'Y-m-d H:i:s', strtotime( '-1 week' ) );
+		$yesterday = gmdate( 'Y-m-d H:i:s', strtotime( '-1 day' ) );
+
+		// Create a post dated last week.
+		$post_id = self::factory()->post->create( array( 'post_date' => $last_week ) );
+
+		// Create a comment dated yesterday.
+		self::factory()->comment->create(
+			array(
+				'comment_post_ID' => $post_id,
+				'comment_date'    => $yesterday,
+			)
+		);
+
+		// The Last-Modified header should have the post's date when "withcomments" is not passed.
+		add_filter(
+			'wp_headers',
+			function ( $headers ) use ( $last_week ) {
+				$this->assertSame(
+					strtotime( $headers['Last-Modified'] ),
+					strtotime( $last_week ),
+					'Last-Modified was not the date of the post'
+				);
+				return $headers;
+			}
+		);
+
+		$this->go_to( '/?feed=rss2' );
+	}
+
+	/**
+	 * Test that the Last-Modified is a comment's date when a more recent comment exists,
+	 * and the "withcomments=1" query var is passed.
+	 *
+	 * @ticket 47968
+	 *
+	 * @covers WP::send_headers
+	 */
+	public function test_feed_last_modified_should_be_the_date_of_a_comment_that_is_the_latest_update_when_withcomments_is_passed() {
+		$last_week = gmdate( 'Y-m-d H:i:s', strtotime( '-1 week' ) );
+		$yesterday = gmdate( 'Y-m-d H:i:s', strtotime( '-1 day' ) );
+
+		// Create a post dated last week.
+		$post_id = self::factory()->post->create( array( 'post_date' => $last_week ) );
+
+		// Create a comment dated yesterday.
+		self::factory()->comment->create(
+			array(
+				'comment_post_ID' => $post_id,
+				'comment_date'    => $yesterday,
+			)
+		);
+
+		// The Last-Modified header should have the comment's date when "withcomments=1" is passed.
+		add_filter(
+			'wp_headers',
+			function ( $headers ) use ( $yesterday ) {
+				$this->assertSame(
+					strtotime( $headers['Last-Modified'] ),
+					strtotime( $yesterday ),
+					'Last-Modified was not the date of the comment'
+				);
+				return $headers;
+			}
+		);
+
+		$this->go_to( '/?feed=rss2&withcomments=1' );
+	}
+
+	/**
+	 * Test that the Last-Modified is the latest post's date when an earlier post and comment exist,
+	 * and the "withcomments=1" query var is passed.
+	 *
+	 * @ticket 47968
+	 *
+	 * @covers WP::send_headers
+	 */
+	public function test_feed_last_modified_should_be_the_date_of_a_post_that_is_the_latest_update_when_withcomments_is_passed() {
+		$last_week = gmdate( 'Y-m-d H:i:s', strtotime( '-1 week' ) );
+		$yesterday = gmdate( 'Y-m-d H:i:s', strtotime( '-1 day' ) );
+		$today     = gmdate( 'Y-m-d H:i:s' );
+
+		// Create a post dated last week.
+		$post_id = self::factory()->post->create( array( 'post_date' => $last_week ) );
+
+		// Create a comment dated yesterday.
+		self::factory()->comment->create(
+			array(
+				'comment_post_ID' => $post_id,
+				'comment_date'    => $yesterday,
+			)
+		);
+
+		// Create a post dated today.
+		self::factory()->post->create( array( 'post_date' => $today ) );
+
+		// The Last-Modified header should have the date from today's post when it is the latest update.
+		add_filter(
+			'wp_headers',
+			function ( $headers ) use ( $today ) {
+				$this->assertSame(
+					strtotime( $headers['Last-Modified'] ),
+					strtotime( $today ),
+					'Last-Modified was not the date of the most recent post'
+				);
+				return $headers;
+			}
+		);
+
+		$this->go_to( '/?feed=rss2&withcomments=1' );
 	}
 }

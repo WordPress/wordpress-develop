@@ -23,8 +23,13 @@
 		} );
 
 		// Toggle buttons and submenu items with active children menu items.
-		container.querySelectorAll( '.current-menu-ancestor > button, .current-menu-ancestor > .sub-menu' ).forEach( function( subItem ) {
-			subItem.classList.add( 'toggle-on' );
+		container.querySelectorAll( '.current-menu-ancestor > button' ).forEach( function( ancestorToggle ) {
+			ancestorToggle.classList.add( 'toggle-on' );
+			ancestorToggle.setAttribute( 'aria-expanded', 'true' );
+		} );
+
+		container.querySelectorAll( '.current-menu-ancestor > .sub-menu' ).forEach( function( subMenu ) {
+			subMenu.classList.add( 'toggled-on' );
 		} );
 
 		container.querySelectorAll( '.dropdown-toggle' ).forEach( function( dropdownToggle ) {
@@ -34,12 +39,29 @@
 				if ( this.nextElementSibling && this.nextElementSibling.matches( '.children, .sub-menu' ) ) {
 					this.nextElementSibling.classList.toggle( 'toggled-on' );
 				}
-				this.setAttribute( 'aria-expanded', this.getAttribute( 'aria-expanded' ) === 'false' ? 'true' : 'false' );
+				this.setAttribute( 'aria-expanded', this.classList.contains( 'toggle-on' ) ? 'true' : 'false' );
 				this.innerHTML = this.innerHTML === screenReaderText.expand ? screenReaderText.collapse : screenReaderText.expand;
 			} );
 		} );
 	}
 	initMainNavigation( document.querySelector( '.main-navigation' ) );
+
+	// Add unique ID to each .sub-menu and aria-controls to parent links
+	function addUniqueIDToSubMenus() {
+		var subMenus = document.querySelectorAll( '.main-navigation .sub-menu' );
+		subMenus.forEach( function( subMenu, index ) {
+			var parentLi = subMenu.closest( 'li.menu-item-has-children' );
+			subMenu.id = 'sub-menu-' + (index + 1);
+			if ( parentLi ) {
+				var parentLink = parentLi.querySelector( 'button' );
+				if ( parentLink ) {
+					parentLink.setAttribute( 'aria-controls', subMenu.id );
+				}
+			}
+		} );
+	}
+
+	addUniqueIDToSubMenus();
 
 	// Re-initialize the main navigation when it is updated, persisting any existing submenu expanded states.
 	// This is only relevant for the Customize preview where jQuery is expected to be loaded.
@@ -93,7 +115,7 @@
 	} )();
 
 	/**
-	 * Add or remove ARIA attributes.
+	 * Adds or removes ARIA attributes.
 	 *
 	 * Determine the size of the window and add the default ARIA attributes
 	 * for the menu toggle if it's visible.
@@ -117,9 +139,10 @@
 		var windowPos = document.documentElement.scrollTop,
 			windowHeight = document.documentElement.clientHeight,
 			sidebarHeight = sidebar.clientHeight,
-			bodyHeight = document.body.clientHeight;
+			page = document.getElementById( 'page' ),
+			pageHeight = page ? page.clientHeight : 0;
 
-		if( document.documentElement.clientWidth > 955 && bodyHeight > sidebarHeight && ( windowPos + windowHeight ) >= sidebarHeight ) {
+		if ( document.documentElement.clientWidth > 955 && pageHeight > sidebarHeight && ( windowPos + windowHeight ) >= sidebarHeight ) {
 			sidebar.style.position = 'fixed';
 			sidebar.style.bottom = sidebarHeight > windowHeight ? 0 : 'auto';
 		} else {

@@ -2,6 +2,8 @@
 
 /**
  * @group formatting
+ *
+ * @covers ::_wp_specialchars
  */
 class Tests_Formatting_wpSpecialchars extends WP_UnitTestCase {
 	public function test_wp_specialchars_basics() {
@@ -14,6 +16,8 @@ class Tests_Formatting_wpSpecialchars extends WP_UnitTestCase {
 
 	public function test_allowed_entity_names() {
 		global $allowedentitynames;
+
+		$this->assertNotEmpty( $allowedentitynames );
 
 		// Allowed entities should be unchanged.
 		foreach ( $allowedentitynames as $ent ) {

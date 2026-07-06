@@ -17,7 +17,7 @@ get_header(); ?>
 				<header class="page-header">
 					<h1 class="page-title">
 					<?php
-						/* translators: %s: Ñategory title. */
+						/* translators: %s: Category title. */
 						printf( __( 'Category Archives: %s', 'twentyeleven' ), '<span>' . single_cat_title( '', false ) . '</span>' );
 					?>
 					</h1>
@@ -30,7 +30,7 @@ get_header(); ?>
 						 *
 						 * @since Twenty Eleven 1.0
 						 *
-						 * @param string The default category description HTML.
+						 * @param string $html The default category description HTML.
 						 */
 						echo apply_filters( 'category_archive_meta', '<div class="category-archive-meta">' . $category_description . '</div>' );
 					}

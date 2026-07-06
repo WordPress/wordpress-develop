@@ -25,6 +25,13 @@ function add_filter() {}
 /**
  * @ignore
  */
+function has_filter() {
+	return false;
+}
+
+/**
+ * @ignore
+ */
 function esc_attr() {}
 
 /**
@@ -66,7 +73,8 @@ function get_bloginfo() {}
  * @ignore
  */
 function is_admin() {
-	return true;}
+	return true;
+}
 
 /**
  * @ignore
