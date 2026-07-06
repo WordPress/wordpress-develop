@@ -4440,6 +4440,11 @@ function wp_get_post_terms( $post_id = 0, $taxonomy = 'post_tag', $args = array(
  *                       Default ARRAY_A.
  * @return array|false Array of recent posts, where the type of each element is determined
  *                     by the `$output` parameter. Empty array on failure.
+ *
+ * @phpstan-param 'OBJECT'|'ARRAY_A' $output
+ * @phpstan-return (
+ *     $output is 'ARRAY_A' ? array<int, array<string, mixed>> : WP_Post[]|false
+ * )
  */
 function wp_get_recent_posts( $args = array(), $output = ARRAY_A ) {
 
