@@ -86,4 +86,40 @@ class Tests_User_GetTheAuthorPostsLink extends WP_UnitTestCase {
 
 		$this->assertSame( '', get_the_author_posts_link() );
 	}
+
+	/**
+	 * @ticket 39844
+	 */
+	public function test_get_the_author_posts_link_returns_author_name_when_url_is_empty() {
+		$author = get_userdata( self::$author_id );
+
+		$GLOBALS['authordata'] = $author;
+
+		add_filter( 'author_link', '__return_empty_string' );
+		$link = get_the_author_posts_link();
+		remove_filter( 'author_link', '__return_empty_string' );
+
+		unset( $GLOBALS['authordata'] );
+
+		$this->assertSame( 'Test Author', $link );
+	}
+
+	/**
+	 * @ticket 39844
+	 */
+	public function test_get_the_author_posts_link_returns_author_name_when_url_is_http_placeholder() {
+		$author = get_userdata( self::$author_id );
+
+		$GLOBALS['authordata'] = $author;
+
+		add_filter( 'author_link', static function () {
+			return 'http://';
+		} );
+		$link = get_the_author_posts_link();
+		remove_all_filters( 'author_link' );
+
+		unset( $GLOBALS['authordata'] );
+
+		$this->assertSame( 'Test Author', $link );
+	}
 }
