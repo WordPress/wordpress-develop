@@ -32,6 +32,12 @@ class Tests_Ajax_wpAjaxDeleteComment extends WP_Ajax_UnitTestCase {
 	 */
 	protected static $post_id;
 
+	public function set_up() {
+		parent::set_up();
+
+		add_action( 'wp_ajax_empty-comments', 'wp_ajax_empty_comments', 1 );
+	}
+
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$post_id = $factory->post->create();
 
@@ -43,14 +49,41 @@ class Tests_Ajax_wpAjaxDeleteComment extends WP_Ajax_UnitTestCase {
 	 * Clears the POST actions in between requests.
 	 */
 	protected function _clear_post_action() {
+
 		unset( $_POST['trash'] );
 		unset( $_POST['untrash'] );
 		unset( $_POST['spam'] );
 		unset( $_POST['unspam'] );
 		unset( $_POST['delete'] );
+		unset( $_POST['comment_status'] );
+		unset( $_POST['pagegen_timestamp'] );
 		$this->_last_response = '';
 	}
 
+	/**
+	 * Makes an AJAX request to empty spam or trash comments.
+	 *
+	 * @param string $comment_status Comment status.
+	 * @param string $delete_time    Delete timestamp.
+	 * @param string $nonce          Nonce.
+	 * @return array Decoded response.
+	 */
+	protected function _empty_comments( $comment_status, $delete_time, $nonce = '' ) {
+
+		$this->_clear_post_action();
+
+		$_POST['comment_status']    = $comment_status;
+		$_POST['pagegen_timestamp'] = $delete_time;
+		$_POST['_ajax_nonce']       = $nonce ? $nonce : wp_create_nonce( 'bulk-comments' );
+
+		try {
+			$this->_handleAjax( 'empty-comments' );
+		} catch ( WPAjaxDieContinueException $e ) {
+			unset( $e );
+		}
+
+		return json_decode( $this->_last_response, true );
+	}
 	/*
 	 * Test prototype
 	 */
@@ -338,15 +371,168 @@ class Tests_Ajax_wpAjaxDeleteComment extends WP_Ajax_UnitTestCase {
 	 * Tests trashing an already trashed comment, etc.
 	 */
 	public function test_ajax_trash_double_action() {
+
 		// Test trash/untrash.
 		$this->_test_double_action( self::$comments[0], 'trash' );
 		$this->_test_double_action( self::$comments[0], 'untrash' );
-
 		// Test spam/unspam.
 		$this->_test_double_action( self::$comments[1], 'spam' );
 		$this->_test_double_action( self::$comments[1], 'unspam' );
 
 		// Test delete.
 		$this->_test_double_action( self::$comments[2], 'delete' );
+	}
+
+	/**
+	 * Tests emptying spam comments in batches.
+	 *
+	 * @covers ::wp_ajax_empty_comments
+	 */
+	public function test_ajax_empty_comments_deletes_spam_in_batches() {
+
+		$this->_setRole( 'administrator' );
+
+		$comment_ids = self::factory()->comment->create_many(
+			3,
+			array(
+				'comment_post_ID'  => self::$post_id,
+				'comment_approved' => 'spam',
+			)
+		);
+
+		add_filter( 'wp_empty_comments_batch_size', array( $this, 'filter_empty_comments_batch_size' ) );
+
+		$response = $this->_empty_comments( 'spam', gmdate( 'Y-m-d H:i:s', time() + 10 ) );
+
+		remove_filter( 'wp_empty_comments_batch_size', array( $this, 'filter_empty_comments_batch_size' ) );
+
+		$this->assertTrue( $response['success'] );
+		$this->assertSame( 2, $response['data']['deleted'] );
+		$this->assertSame( 1, $response['data']['remaining'] );
+		$this->assertFalse( $response['data']['done'] );
+		$this->assertNull( get_comment( $comment_ids[0] ) );
+		$this->assertNull( get_comment( $comment_ids[1] ) );
+		$this->assertInstanceOf( WP_Comment::class, get_comment( $comment_ids[2] ) );
+	}
+
+	/**
+	 * Tests emptying trash comments returns done when all matching comments are deleted.
+	 *
+	 * @covers ::wp_ajax_empty_comments
+	 */
+	public function test_ajax_empty_comments_returns_done_when_trash_is_empty() {
+
+		$this->_setRole( 'administrator' );
+
+		self::factory()->comment->create_many(
+			2,
+			array(
+				'comment_post_ID'  => self::$post_id,
+				'comment_approved' => 'trash',
+			)
+		);
+
+		$response = $this->_empty_comments( 'trash', gmdate( 'Y-m-d H:i:s', time() + 10 ) );
+
+		$this->assertTrue( $response['success'] );
+		$this->assertSame( 2, $response['data']['deleted'] );
+		$this->assertSame( 0, $response['data']['remaining'] );
+		$this->assertTrue( $response['data']['done'] );
+	}
+
+	/**
+	 * Tests emptying comments does not delete comments newer than the page generation timestamp.
+	 *
+	 * @covers ::wp_ajax_empty_comments
+	 */
+	public function test_ajax_empty_comments_preserves_comments_after_pagegen_timestamp() {
+
+		$this->_setRole( 'administrator' );
+
+		$delete_time = gmdate( 'Y-m-d H:i:s', time() );
+		$old_comment = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_id,
+				'comment_approved' => 'spam',
+				'comment_date'     => gmdate( 'Y-m-d H:i:s', time() - 10 ),
+				'comment_date_gmt' => gmdate( 'Y-m-d H:i:s', time() - 10 ),
+			)
+		);
+		$new_comment = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_id,
+				'comment_approved' => 'spam',
+				'comment_date'     => gmdate( 'Y-m-d H:i:s', time() + 10 ),
+				'comment_date_gmt' => gmdate( 'Y-m-d H:i:s', time() + 10 ),
+			)
+		);
+
+		$response = $this->_empty_comments( 'spam', $delete_time );
+
+		$this->assertTrue( $response['success'] );
+		$this->assertSame( 1, $response['data']['deleted'] );
+		$this->assertSame( 0, $response['data']['remaining'] );
+		$this->assertNull( get_comment( $old_comment ) );
+		$this->assertInstanceOf( WP_Comment::class, get_comment( $new_comment ) );
+	}
+
+	/**
+	 * Tests emptying comments rejects unsupported statuses.
+	 *
+	 * @covers ::wp_ajax_empty_comments
+	 */
+	public function test_ajax_empty_comments_rejects_invalid_status() {
+
+		$this->_setRole( 'administrator' );
+
+		$response = $this->_empty_comments( 'approved', gmdate( 'Y-m-d H:i:s', time() + 10 ) );
+
+		$this->assertFalse( $response['success'] );
+		$this->assertSame( 'Invalid comment status.', $response['data']['message'] );
+	}
+
+	/**
+	 * Tests emptying comments requires moderation permissions.
+	 *
+	 * @covers ::wp_ajax_empty_comments
+	 */
+	public function test_ajax_empty_comments_requires_moderation_permission() {
+
+		$this->_setRole( 'subscriber' );
+
+		$response = $this->_empty_comments( 'spam', gmdate( 'Y-m-d H:i:s', time() + 10 ) );
+
+		$this->assertFalse( $response['success'] );
+		$this->assertSame( 'Sorry, you are not allowed to moderate comments on this site.', $response['data']['message'] );
+	}
+
+	/**
+	 * Tests emptying comments requires a valid nonce.
+	 *
+	 * @covers ::wp_ajax_empty_comments
+	 */
+	public function test_ajax_empty_comments_requires_valid_nonce() {
+
+		$this->_setRole( 'administrator' );
+
+		$this->_clear_post_action();
+
+		$_POST['comment_status']    = 'spam';
+		$_POST['pagegen_timestamp'] = gmdate( 'Y-m-d H:i:s', time() + 10 );
+		$_POST['_ajax_nonce']       = wp_create_nonce( uniqid() );
+
+		$this->expectException( 'WPAjaxDieStopException' );
+		$this->expectExceptionMessage( '-1' );
+		$this->_handleAjax( 'empty-comments' );
+	}
+
+	/**
+		* Filters the empty comments batch size for tests.
+		*
+	 * @return int Batch size.
+	 */
+	public function filter_empty_comments_batch_size() {
+
+		return 2;
 	}
 }
