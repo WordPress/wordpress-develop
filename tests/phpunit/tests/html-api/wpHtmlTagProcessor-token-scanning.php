@@ -618,7 +618,7 @@ HTML
 
 	/**
 	 * Ensures that Processing Instruction nodes with reserved XML targets
-	 * are properly parsed as comments.
+	 * are properly parsed as bogus comments.
 	 *
 	 * @ticket 60170
 	 *
@@ -637,15 +637,14 @@ HTML
 		);
 
 		$this->assertSame(
-			WP_HTML_Processor::COMMENT_AS_PI_NODE_LOOKALIKE,
+			WP_HTML_Processor::COMMENT_AS_INVALID_HTML,
 			$processor->get_comment_type(),
-			'Should have detected a Processing Instruction-like invalid comment.'
+			'Should have detected a bogus comment.'
 		);
 
-		$this->assertSame(
-			'xml',
+		$this->assertNull(
 			$processor->get_tag(),
-			"Should have found PI target as tag name but found {$processor->get_tag()} instead."
+			'Should not have been able to query tag name on non-element token.'
 		);
 
 		$this->assertNull(
@@ -654,9 +653,15 @@ HTML
 		);
 
 		$this->assertSame(
-			' version="1.0"',
+			'xml version="1.0"?',
 			$processor->get_modifiable_text(),
 			'Found incorrect modifiable text.'
+		);
+
+		$this->assertSame(
+			'?xml version="1.0"?',
+			$processor->get_full_comment_text(),
+			'Found incorrect full comment text.'
 		);
 	}
 

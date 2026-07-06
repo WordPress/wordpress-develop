@@ -2108,40 +2108,6 @@ class WP_HTML_Tag_Processor {
 				$this->text_length          = $closer_at - $this->text_starts_at;
 				$this->bytes_already_parsed = $closer_at + 1;
 
-				/*
-				 * Identify a Processing Instruction node were HTML to allow this target.
-				 *
-				 * XML allows for more target names than HTML, including the reserved
-				 * `xml` and `xml-stylesheet` names and names containing `:` and `.`,
-				 * but this code only identifies those with ASCII-representable target
-				 * names. This means that it may identify some Processing Instruction
-				 * nodes as bogus comments, but it will not misinterpret the HTML
-				 * structure. By limiting the identification to these target names the
-				 * Tag Processor can avoid the need to start parsing UTF-8 sequences.
-				 *
-				 * > NameStartChar ::= ":" | [A-Z] | "_" | [a-z] | [#xC0-#xD6] | [#xD8-#xF6] | [#xF8-#x2FF] |
-				 *                     [#x370-#x37D] | [#x37F-#x1FFF] | [#x200C-#x200D] | [#x2070-#x218F] |
-				 *                     [#x2C00-#x2FEF] | [#x3001-#xD7FF] | [#xF900-#xFDCF] | [#xFDF0-#xFFFD] |
-				 *                     [#x10000-#xEFFFF]
-				 * > NameChar      ::= NameStartChar | "-" | "." | [0-9] | #xB7 | [#x0300-#x036F] | [#x203F-#x2040]
-				 *
-				 * @see https://www.w3.org/TR/2006/REC-xml11-20060816/#NT-PITarget
-				 */
-				if ( $this->token_length >= 5 && '?' === $html[ $closer_at - 1 ] ) {
-					$comment_text     = substr( $html, $this->token_starts_at + 2, $this->token_length - 4 );
-					$pi_target_length = strspn( $comment_text, 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ:_' );
-
-					if ( 0 < $pi_target_length ) {
-						$pi_target_length += strspn( $comment_text, 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789:_-.', $pi_target_length );
-
-						$this->comment_type       = self::COMMENT_AS_PI_NODE_LOOKALIKE;
-						$this->tag_name_starts_at = $this->token_starts_at + 2;
-						$this->tag_name_length    = $pi_target_length;
-						$this->text_starts_at    += $pi_target_length;
-						$this->text_length       -= $pi_target_length + 1;
-					}
-				}
-
 				return true;
 			}
 
@@ -3004,13 +2970,6 @@ class WP_HTML_Tag_Processor {
 			return $tag_name;
 		}
 
-		if (
-			self::STATE_COMMENT === $this->parser_state &&
-			self::COMMENT_AS_PI_NODE_LOOKALIKE === $this->get_comment_type()
-		) {
-			return $tag_name;
-		}
-
 		return null;
 	}
 
@@ -3563,7 +3522,6 @@ class WP_HTML_Tag_Processor {
 	 * @see self::COMMENT_AS_CDATA_LOOKALIKE
 	 * @see self::COMMENT_AS_INVALID_HTML
 	 * @see self::COMMENT_AS_HTML_COMMENT
-	 * @see self::COMMENT_AS_PI_NODE_LOOKALIKE
 	 *
 	 * @since 6.5.0
 	 *
@@ -3611,9 +3569,6 @@ class WP_HTML_Tag_Processor {
 
 			case self::COMMENT_AS_CDATA_LOOKALIKE:
 				return "[CDATA[{$this->get_modifiable_text()}]]";
-
-			case self::COMMENT_AS_PI_NODE_LOOKALIKE:
-				return "?{$this->get_tag()}{$this->get_modifiable_text()}?";
 
 			/*
 			 * This represents "bogus comments state" from HTML tokenization.
@@ -5102,23 +5057,15 @@ class WP_HTML_Tag_Processor {
 
 	/**
 	 * Indicates that a comment would be parsed as a Processing
-	 * Instruction node, were its target allowed within HTML.
+	 * Instruction node, were they to exist within HTML.
 	 *
-	 * Example:
-	 *
-	 *     <?xml version="1.0" ?>
-	 *     <?wp.like count=5 ?>
-	 *
-	 * These are HTML comments, but they look like processing
-	 * instructions. HTML parses processing instructions with
-	 * an allowable target into processing instruction nodes,
-	 * but the reserved `xml` and `xml-stylesheet` targets and
-	 * XML-valid targets with characters outside of the allowed
-	 * set become bogus comments instead.
+	 * This comment type is no longer produced. Processing instructions
+	 * with an allowable target parse into their own token type, while
+	 * all other `<?` syntax produces a bogus comment of type
+	 * `COMMENT_AS_INVALID_HTML`.
 	 *
 	 * @since 6.5.0
-	 * @since 7.1.0 Only applies to reserved and XML-specific target names;
-	 *              other processing instructions produce their own token.
+	 * @deprecated 7.1.0 Use `COMMENT_AS_INVALID_HTML` instead.
 	 */
 	const COMMENT_AS_PI_NODE_LOOKALIKE = 'COMMENT_AS_PI_NODE_LOOKALIKE';
 

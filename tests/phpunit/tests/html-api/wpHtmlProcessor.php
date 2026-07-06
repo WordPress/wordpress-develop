@@ -307,12 +307,12 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 	 */
 	public static function data_self_contained_node_tokens() {
 		$self_contained_nodes = array(
-			'Normative comment'                => array( '<!-- comment -->' ),
-			'Comment with invalid closing'     => array( '<!-- comment --!>' ),
-			'CDATA Section lookalike'          => array( '<![CDATA[ comment ]]>' ),
-			'Processing Instruction lookalike' => array( '<?ok comment ?>' ),
-			'Funky comment'                    => array( '<//wp:post-meta key=isbn>' ),
-			'Text node'                        => array( 'Trombone' ),
+			'Normative comment'            => array( '<!-- comment -->' ),
+			'Comment with invalid closing' => array( '<!-- comment --!>' ),
+			'CDATA Section lookalike'      => array( '<![CDATA[ comment ]]>' ),
+			'Processing Instruction'       => array( '<?ok comment ?>' ),
+			'Funky comment'                => array( '<//wp:post-meta key=isbn>' ),
+			'Text node'                    => array( 'Trombone' ),
 		);
 
 		foreach ( self::data_void_tags_not_ignored_in_body() as $tag_name => $_name ) {

@@ -5659,7 +5659,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @see self::COMMENT_AS_CDATA_LOOKALIKE
 	 * @see self::COMMENT_AS_INVALID_HTML
 	 * @see self::COMMENT_AS_HTML_COMMENT
-	 * @see self::COMMENT_AS_PI_NODE_LOOKALIKE
 	 *
 	 * @since 6.6.0 Subclassed for the HTML Processor.
 	 *

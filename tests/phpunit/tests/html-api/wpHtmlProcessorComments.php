@@ -41,9 +41,9 @@ class Tests_HtmlApi_WpHtmlProcessorComments extends WP_UnitTestCase {
 			'Invalid HTML comment !'            => array( '<! Bang opener >', WP_HTML_Processor::COMMENT_AS_INVALID_HTML, ' Bang opener ' ),
 			'Invalid HTML comment ?'            => array( '<? Question opener >', WP_HTML_Processor::COMMENT_AS_INVALID_HTML, ' Question opener ' ),
 			'CDATA comment'                     => array( '<![CDATA[ cdata body ]]>', WP_HTML_Processor::COMMENT_AS_CDATA_LOOKALIKE, ' cdata body ' ),
-			'Processing instruction xml'        => array( '<?xml version="1.0" ?>', WP_HTML_Processor::COMMENT_AS_PI_NODE_LOOKALIKE, ' version="1.0" ', 'xml' ),
-			'Processing instruction stylesheet' => array( '<?xml-stylesheet href="a.css" ?>', WP_HTML_Processor::COMMENT_AS_PI_NODE_LOOKALIKE, ' href="a.css" ', 'xml-stylesheet' ),
-			'Processing instruction XML target' => array( '<?wp.bit const HTML_COMMENT = true; ?>', WP_HTML_Processor::COMMENT_AS_PI_NODE_LOOKALIKE, ' const HTML_COMMENT = true; ', 'wp.bit' ),
+			'Processing instruction xml'        => array( '<?xml version="1.0" ?>', WP_HTML_Processor::COMMENT_AS_INVALID_HTML, 'xml version="1.0" ?' ),
+			'Processing instruction stylesheet' => array( '<?xml-stylesheet href="a.css" ?>', WP_HTML_Processor::COMMENT_AS_INVALID_HTML, 'xml-stylesheet href="a.css" ?' ),
+			'Processing instruction XML target' => array( '<?wp.bit const HTML_COMMENT = true; ?>', WP_HTML_Processor::COMMENT_AS_INVALID_HTML, 'wp.bit const HTML_COMMENT = true; ?' ),
 			'Processing instruction bad target' => array( '<?$var Not a target. ?>', WP_HTML_Processor::COMMENT_AS_INVALID_HTML, '$var Not a target. ?' ),
 			'PHP short echo tag'                => array( '<?= "Hello" ?>', WP_HTML_Processor::COMMENT_AS_INVALID_HTML, '= "Hello" ?' ),
 		);
