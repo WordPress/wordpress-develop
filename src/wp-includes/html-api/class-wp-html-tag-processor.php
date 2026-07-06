@@ -5043,11 +5043,11 @@ class WP_HTML_Tag_Processor {
 
 	/**
 	 * Indicates that the parser has found a processing instruction
-	 * and it's possible to read its target and modifiable text.
+	 * and it's possible to read its target and data.
 	 *
 	 * Example:
 	 *
-	 *     <?wp-bit {"just": "kidding"}?>
+	 *     <?wp-bit {"just": "kidding"}>
 	 *
 	 * Processing instructions with an allowable target are parsed
 	 * into processing instruction nodes. The reserved `xml` and
