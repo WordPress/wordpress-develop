@@ -6214,7 +6214,7 @@ function get_page_by_path( $page_path, $output = OBJECT, $post_type = 'page' ) {
 		if ( '0' === $cached || 0 === $cached ) {
 			return null;
 		} else {
-			return get_post( $cached, $output );
+			return get_post( (int) $cached, $output );
 		}
 	}
 
@@ -6242,7 +6242,8 @@ function get_page_by_path( $page_path, $output = OBJECT, $post_type = 'page' ) {
 		AND post_type IN ($post_type_in_string)
 	";
 
-	$pages = $wpdb->get_results( $sql, OBJECT_K );
+	/** @var array<object{ ID: string, post_name: string, post_parent: string, post_type: string }> $pages */
+	$pages = $wpdb->get_results( $sql, OBJECT_K ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- The escaping has been applied above via esc_sql().
 
 	$revparts = array_reverse( $parts );
 
@@ -6281,7 +6282,7 @@ function get_page_by_path( $page_path, $output = OBJECT, $post_type = 'page' ) {
 	wp_cache_set_salted( $cache_key, $found_id, 'post-queries', $last_changed );
 
 	if ( $found_id ) {
-		return get_post( $found_id, $output );
+		return get_post( (int) $found_id, $output );
 	}
 
 	return null;
