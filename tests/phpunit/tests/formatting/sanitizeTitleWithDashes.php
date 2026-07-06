@@ -2,6 +2,8 @@
 
 /**
  * @group formatting
+ *
+ * @covers ::sanitize_title_with_dashes
  */
 class Tests_Formatting_SanitizeTitleWithDashes extends WP_UnitTestCase {
 	public function test_strips_html() {
@@ -83,6 +85,20 @@ class Tests_Formatting_SanitizeTitleWithDashes extends WP_UnitTestCase {
 		$this->assertSame( 'do-the-dash', sanitize_title_with_dashes( 'Do &mdash; the &#8212; Dash', '', 'save' ) );
 	}
 
+	/**
+	 * @ticket 64089
+	 */
+	public function test_replaces_non_breaking_hyphen() {
+		$this->assertSame( 'do-the-dash', sanitize_title_with_dashes( 'Do‑the Dash', '', 'save' ) );
+	}
+
+	/**
+	 * @ticket 64089
+	 */
+	public function test_replaces_non_breaking_hyphen_entity() {
+		$this->assertSame( 'do-the-dash', sanitize_title_with_dashes( 'Do &#8209; the Dash', '', 'save' ) );
+	}
+
 	public function test_replaces_iexcel_iquest() {
 		$this->assertSame( 'just-a-slug', sanitize_title_with_dashes( 'Just ¡a Slug', '', 'save' ) );
 		$this->assertSame( 'just-a-slug', sanitize_title_with_dashes( 'Just a Slug¿', '', 'save' ) );
@@ -149,6 +165,7 @@ class Tests_Formatting_SanitizeTitleWithDashes extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 47912
+	 * @ticket 55117
 	 * @dataProvider data_removes_non_visible_characters_without_width
 	 *
 	 * @param string $title     The title to be sanitized.
@@ -177,6 +194,7 @@ class Tests_Formatting_SanitizeTitleWithDashes extends WP_UnitTestCase {
 			'only %e2%80%ad'     => array( '%e2%80%ad' ),
 			'only %e2%80%ae'     => array( '%e2%80%ae' ),
 			'only %ef%bb%bf'     => array( '%ef%bb%bf' ),
+			'only %ef%bf%bc'     => array( '%ef%bf%bc' ),
 
 			// Non-visible characters within the title.
 			'in middle of title' => array(
@@ -200,6 +218,7 @@ class Tests_Formatting_SanitizeTitleWithDashes extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 47912
+	 * @ticket 55117
 	 * @dataProvider data_non_visible_characters_without_width_when_not_save
 	 *
 	 * @param string $title     The title to be sanitized.
@@ -228,6 +247,7 @@ class Tests_Formatting_SanitizeTitleWithDashes extends WP_UnitTestCase {
 			'only %e2%80%ad'     => array( '%e2%80%ad', '%e2%80%ad' ),
 			'only %e2%80%ae'     => array( '%e2%80%ae', '%e2%80%ae' ),
 			'only %ef%bb%bf'     => array( '%ef%bb%bf', '%ef%bb%bf' ),
+			'only %ef%bf%bc'     => array( '%ef%bf%bc', '%ef%bf%bc' ),
 
 			// Non-visible characters within the title.
 			'in middle of title' => array(

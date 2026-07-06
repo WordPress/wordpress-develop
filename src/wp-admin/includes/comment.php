@@ -8,7 +8,7 @@
  */
 
 /**
- * Determine if a comment exists based on author and date.
+ * Determines if a comment exists based on author and date.
  *
  * For best performance, use `$timezone = 'gmt'`, which queries a field that is properly indexed. The default value
  * for `$timezone` is 'blog' for legacy reasons.
@@ -42,7 +42,7 @@ function comment_exists( $comment_author, $comment_date, $timezone = 'blog' ) {
 }
 
 /**
- * Update a comment with values provided in $_POST.
+ * Updates a comment with values provided in $_POST.
  *
  * @since 2.0.0
  * @since 5.5.0 A return value was added.
@@ -135,9 +135,10 @@ function get_comment_to_edit( $id ) {
 }
 
 /**
- * Get the number of pending comments on a post or posts
+ * Gets the number of pending comments on a post or posts.
  *
  * @since 2.3.0
+ * @since 6.9.0 Exclude the 'note' comment type from the count.
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
@@ -157,7 +158,7 @@ function get_pending_comments_num( $post_id ) {
 	$post_id_array = array_map( 'intval', $post_id_array );
 	$post_id_in    = "'" . implode( "', '", $post_id_array ) . "'";
 
-	$pending = $wpdb->get_results( "SELECT comment_post_ID, COUNT(comment_ID) as num_comments FROM $wpdb->comments WHERE comment_post_ID IN ( $post_id_in ) AND comment_approved = '0' GROUP BY comment_post_ID", ARRAY_A );
+	$pending = $wpdb->get_results( "SELECT comment_post_ID, COUNT(comment_ID) as num_comments FROM $wpdb->comments WHERE comment_post_ID IN ( $post_id_in ) AND comment_approved = '0' AND comment_type != 'note' GROUP BY comment_post_ID", ARRAY_A );
 
 	if ( $single ) {
 		if ( empty( $pending ) ) {
@@ -197,6 +198,8 @@ function floated_admin_avatar( $name ) {
 }
 
 /**
+ * Enqueues comment shortcuts jQuery script.
+ *
  * @since 2.7.0
  */
 function enqueue_comment_hotkeys_js() {
@@ -206,7 +209,9 @@ function enqueue_comment_hotkeys_js() {
 }
 
 /**
- * Display error message at bottom of comments.
+ * Displays error message at bottom of comments.
+ *
+ * @since 2.5.0
  *
  * @param string $msg Error Message. Assumed to contain HTML and be sanitized.
  */

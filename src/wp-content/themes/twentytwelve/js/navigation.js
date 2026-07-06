@@ -46,6 +46,14 @@
 		return;
 	}
 
+	// Assign an ID for the default page list if no menu is set as Primary.
+	if ( ! menu.id ) {
+		menu.id = 'twentytwelve-page-list-menu';
+	}
+
+	button.setAttribute( 'aria-controls', menu.id );
+	button.setAttribute( 'aria-expanded', 'false' );
+
 	button.onclick = function() {
 		if ( ! menu.classList.contains( 'nav-menu' ) ) {
 			menu.className = 'nav-menu';
@@ -53,6 +61,7 @@
 
 		button.classList.toggle( 'toggled-on' );
 		menu.classList.toggle( 'toggled-on' );
+		button.setAttribute( 'aria-expanded', button.classList.contains( 'toggled-on' ) ? 'true' : 'false' );
 	};
 
 	// Better focus for hidden submenu items for accessibility.

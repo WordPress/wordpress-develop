@@ -2,6 +2,8 @@
 
 /**
  * @group formatting
+ *
+ * @covers ::sanitize_user
  */
 class Tests_Formatting_SanitizeUser extends WP_UnitTestCase {
 	public function test_strips_html() {

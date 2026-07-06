@@ -1,10 +1,10 @@
 /*!
- * jQuery UI Accordion 1.13.1
- * http://jqueryui.com
+ * jQuery UI Accordion 1.13.3
+ * https://jqueryui.com
  *
- * Copyright jQuery Foundation and other contributors
+ * Copyright OpenJS Foundation and other contributors
  * Released under the MIT license.
- * http://jquery.org/license
+ * https://jquery.org/license
  */
 
 //>>label: Accordion
@@ -12,8 +12,8 @@
 /* eslint-disable max-len */
 //>>description: Displays collapsible content panels for presenting information in a limited amount of space.
 /* eslint-enable max-len */
-//>>docs: http://api.jqueryui.com/accordion/
-//>>demos: http://jqueryui.com/accordion/
+//>>docs: https://api.jqueryui.com/accordion/
+//>>demos: https://jqueryui.com/accordion/
 //>>css.structure: ../../themes/base/core.css
 //>>css.structure: ../../themes/base/accordion.css
 //>>css.theme: ../../themes/base/theme.css
@@ -26,7 +26,10 @@
 		// AMD. Register as an anonymous module.
 		define( [
 			"jquery",
-			"./core"
+			"../version",
+			"../keycode",
+			"../unique-id",
+			"../widget"
 		], factory );
 	} else {
 
@@ -37,7 +40,7 @@
 "use strict";
 
 return $.widget( "ui.accordion", {
-	version: "1.13.1",
+	version: "1.13.3",
 	options: {
 		active: 0,
 		animate: {},
@@ -204,24 +207,24 @@ return $.widget( "ui.accordion", {
 			toFocus = false;
 
 		switch ( event.keyCode ) {
-			case keyCode.RIGHT:
-			case keyCode.DOWN:
-				toFocus = this.headers[ ( currentIndex + 1 ) % length ];
-				break;
-			case keyCode.LEFT:
-			case keyCode.UP:
-				toFocus = this.headers[ ( currentIndex - 1 + length ) % length ];
-				break;
-			case keyCode.SPACE:
-			case keyCode.ENTER:
-				this._eventHandler( event );
-				break;
-			case keyCode.HOME:
-				toFocus = this.headers[ 0 ];
-				break;
-			case keyCode.END:
-				toFocus = this.headers[ length - 1 ];
-				break;
+		case keyCode.RIGHT:
+		case keyCode.DOWN:
+			toFocus = this.headers[ ( currentIndex + 1 ) % length ];
+			break;
+		case keyCode.LEFT:
+		case keyCode.UP:
+			toFocus = this.headers[ ( currentIndex - 1 + length ) % length ];
+			break;
+		case keyCode.SPACE:
+		case keyCode.ENTER:
+			this._eventHandler( event );
+			break;
+		case keyCode.HOME:
+			toFocus = this.headers[ 0 ];
+			break;
+		case keyCode.END:
+			toFocus = this.headers[ length - 1 ];
+			break;
 		}
 
 		if ( toFocus ) {
@@ -244,15 +247,15 @@ return $.widget( "ui.accordion", {
 
 		// Was collapsed or no panel
 		if ( ( options.active === false && options.collapsible === true ) ||
-			!this.headers.length ) {
+				!this.headers.length ) {
 			options.active = false;
 			this.active = $();
 
-			// active false only when collapsible is true
+		// active false only when collapsible is true
 		} else if ( options.active === false ) {
 			this._activate( 0 );
 
-			// was active, but active panel is gone
+		// was active, but active panel is gone
 		} else if ( this.active.length && !$.contains( this.element[ 0 ], this.active[ 0 ] ) ) {
 
 			// all remaining panel are disabled
@@ -260,12 +263,12 @@ return $.widget( "ui.accordion", {
 				options.active = false;
 				this.active = $();
 
-				// activate previous panel
+			// activate previous panel
 			} else {
 				this._activate( Math.max( 0, options.active - 1 ) );
 			}
 
-			// was active, active panel still exists
+		// was active, active panel still exists
 		} else {
 
 			// make sure active index is correct
@@ -322,20 +325,20 @@ return $.widget( "ui.accordion", {
 				panel.attr( "aria-labelledby", headerId );
 			} )
 			.next()
-			.attr( "role", "tabpanel" );
+				.attr( "role", "tabpanel" );
 
 		this.headers
 			.not( this.active )
-			.attr( {
-				"aria-selected": "false",
-				"aria-expanded": "false",
-				tabIndex: -1
-			} )
-			.next()
-			.attr( {
-				"aria-hidden": "true"
-			} )
-			.hide();
+				.attr( {
+					"aria-selected": "false",
+					"aria-expanded": "false",
+					tabIndex: -1
+				} )
+				.next()
+					.attr( {
+						"aria-hidden": "true"
+					} )
+					.hide();
 
 		// Make sure at least one header is in the tab order
 		if ( !this.active.length ) {
@@ -347,9 +350,9 @@ return $.widget( "ui.accordion", {
 				tabIndex: 0
 			} )
 				.next()
-				.attr( {
-					"aria-hidden": "false"
-				} );
+					.attr( {
+						"aria-hidden": "false"
+					} );
 		}
 
 		this._createIcons();
@@ -454,11 +457,11 @@ return $.widget( "ui.accordion", {
 
 		if (
 
-			// click on active header, but not collapsible
-			( clickedIsActive && !options.collapsible ) ||
+				// click on active header, but not collapsible
+				( clickedIsActive && !options.collapsible ) ||
 
-			// allow canceling activation
-			( this._trigger( "beforeActivate", event, eventData ) === false ) ) {
+				// allow canceling activation
+				( this._trigger( "beforeActivate", event, eventData ) === false ) ) {
 			return;
 		}
 
@@ -534,11 +537,11 @@ return $.widget( "ui.accordion", {
 		toShow
 			.attr( "aria-hidden", "false" )
 			.prev()
-			.attr( {
-				"aria-selected": "true",
-				"aria-expanded": "true",
-				tabIndex: 0
-			} );
+				.attr( {
+					"aria-selected": "true",
+					"aria-expanded": "true",
+					tabIndex: 0
+				} );
 	},
 
 	_animate: function( toShow, toHide, data ) {

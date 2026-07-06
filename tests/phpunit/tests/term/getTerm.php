@@ -2,11 +2,44 @@
 
 /**
  * @group taxonomy
+ *
+ * @covers ::get_term
  */
 class Tests_Term_GetTerm extends WP_UnitTestCase {
+	/**
+	 * Shared terms.
+	 *
+	 * @var array[]
+	 */
+	public static $shared_terms = array();
+
+	/**
+	 * Test taxonomy term object.
+	 *
+	 * @var WP_Term
+	 */
+	public static $term;
+
+	/**
+	 * Set up shared fixtures.
+	 *
+	 * @param WP_UnitTest_Factory $factory
+	 */
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
+		register_taxonomy( 'wptests_tax', 'post' );
+		self::$shared_terms = self::generate_shared_terms();
+
+		self::$term = $factory->term->create_and_get( array( 'taxonomy' => 'wptests_tax' ) );
+	}
+
+	/**
+	 * Set up the test fixtures.
+	 */
 	public function set_up() {
 		parent::set_up();
+		// Required as taxonomies are reset between tests.
 		register_taxonomy( 'wptests_tax', 'post' );
+		register_taxonomy( 'wptests_tax_2', 'post' );
 	}
 
 	/**
@@ -14,35 +47,35 @@ class Tests_Term_GetTerm extends WP_UnitTestCase {
 	 *
 	 * @return array Array of term_id/old_term_id/term_taxonomy_id triplets.
 	 */
-	protected function generate_shared_terms() {
+	protected static function generate_shared_terms() {
 		global $wpdb;
 
 		register_taxonomy( 'wptests_tax_2', 'post' );
 
-		$t1 = wp_insert_term( 'Foo', 'wptests_tax' );
-		$t2 = wp_insert_term( 'Foo', 'wptests_tax_2' );
+		$term_1 = wp_insert_term( 'Foo', 'wptests_tax' );
+		$term_2 = wp_insert_term( 'Foo', 'wptests_tax_2' );
 
 		// Manually modify because shared terms shouldn't naturally occur.
 		$wpdb->update(
 			$wpdb->term_taxonomy,
-			array( 'term_id' => $t1['term_id'] ),
-			array( 'term_taxonomy_id' => $t2['term_taxonomy_id'] ),
+			array( 'term_id' => $term_1['term_id'] ),
+			array( 'term_taxonomy_id' => $term_2['term_taxonomy_id'] ),
 			array( '%d' ),
 			array( '%d' )
 		);
 
-		clean_term_cache( $t1['term_id'] );
+		clean_term_cache( $term_1['term_id'] );
 
 		return array(
 			array(
-				'term_id'          => $t1['term_id'],
-				'old_term_id'      => $t1['term_id'],
-				'term_taxonomy_id' => $t1['term_taxonomy_id'],
+				'term_id'          => $term_1['term_id'],
+				'old_term_id'      => $term_1['term_id'],
+				'term_taxonomy_id' => $term_1['term_taxonomy_id'],
 			),
 			array(
-				'term_id'          => $t1['term_id'],
-				'old_term_id'      => $t2['term_id'],
-				'term_taxonomy_id' => $t2['term_taxonomy_id'],
+				'term_id'          => $term_1['term_id'],
+				'old_term_id'      => $term_2['term_id'],
+				'term_taxonomy_id' => $term_2['term_taxonomy_id'],
 			),
 		);
 	}
@@ -60,17 +93,14 @@ class Tests_Term_GetTerm extends WP_UnitTestCase {
 	}
 
 	public function test_passing_term_object_should_skip_database_query_when_filter_property_is_empty() {
-		global $wpdb;
-
-		$term = self::factory()->term->create_and_get( array( 'taxonomy' => 'wptests_tax' ) );
+		$term = self::$term;
 		clean_term_cache( $term->term_id, 'wptests_tax' );
 
-		$num_queries = $wpdb->num_queries;
+		$num_queries = get_num_queries();
 
-		unset( $term->filter );
 		$term_a = get_term( $term, 'wptests_tax' );
 
-		$this->assertSame( $num_queries, $wpdb->num_queries );
+		$this->assertSame( $num_queries, get_num_queries() );
 	}
 
 	public function test_passing_term_string_that_casts_to_int_0_should_return_null() {
@@ -82,36 +112,34 @@ class Tests_Term_GetTerm extends WP_UnitTestCase {
 	}
 
 	public function test_cache_should_be_populated_by_successful_fetch() {
-		global $wpdb;
-
-		$t = self::factory()->term->create( array( 'taxonomy' => 'wptests_tax' ) );
-		clean_term_cache( $t, 'wptests_tax' );
+		$term_id = self::$term->term_id;
+		clean_term_cache( $term_id, 'wptests_tax' );
 
 		// Prime cache.
-		$term_a      = get_term( $t, 'wptests_tax' );
-		$num_queries = $wpdb->num_queries;
+		$term_a      = get_term( $term_id, 'wptests_tax' );
+		$num_queries = get_num_queries();
 
 		// Second call shouldn't require a database query.
-		$term_b = get_term( $t, 'wptests_tax' );
-		$this->assertSame( $num_queries, $wpdb->num_queries );
+		$term_b = get_term( $term_id, 'wptests_tax' );
+		$this->assertSame( $num_queries, get_num_queries() );
 		$this->assertEquals( $term_a, $term_b );
 	}
 
 	public function test_output_object() {
-		$t = self::factory()->term->create( array( 'taxonomy' => 'wptests_tax' ) );
-		$this->assertIsObject( get_term( $t, 'wptests_tax', OBJECT ) );
+		$term_id = self::$term->term_id;
+		$this->assertIsObject( get_term( $term_id, 'wptests_tax', OBJECT ) );
 	}
 
 	public function test_output_array_a() {
-		$t    = self::factory()->term->create( array( 'taxonomy' => 'wptests_tax' ) );
-		$term = get_term( $t, 'wptests_tax', ARRAY_A );
+		$term_id = self::$term->term_id;
+		$term    = get_term( $term_id, 'wptests_tax', ARRAY_A );
 		$this->assertIsArray( $term );
 		$this->assertArrayHasKey( 'term_id', $term );
 	}
 
 	public function test_output_array_n() {
-		$t    = self::factory()->term->create( array( 'taxonomy' => 'wptests_tax' ) );
-		$term = get_term( $t, 'wptests_tax', ARRAY_N );
+		$term_id = self::$term->term_id;
+		$term    = get_term( $term_id, 'wptests_tax', ARRAY_N );
 		$this->assertIsArray( $term );
 		$this->assertArrayNotHasKey( 'term_id', $term );
 		foreach ( $term as $k => $v ) {
@@ -120,8 +148,8 @@ class Tests_Term_GetTerm extends WP_UnitTestCase {
 	}
 
 	public function test_output_should_fall_back_to_object_for_invalid_input() {
-		$t = self::factory()->term->create( array( 'taxonomy' => 'wptests_tax' ) );
-		$this->assertIsObject( get_term( $t, 'wptests_tax', 'foo' ) );
+		$term_id = self::$term->term_id;
+		$this->assertIsObject( get_term( $term_id, 'wptests_tax', 'foo' ) );
 	}
 
 	/**
@@ -131,10 +159,10 @@ class Tests_Term_GetTerm extends WP_UnitTestCase {
 	public function test_numeric_properties_should_be_cast_to_ints() {
 		global $wpdb;
 
-		$t = self::factory()->term->create( array( 'taxonomy' => 'wptests_tax' ) );
+		$term_id = self::$term->term_id;
 
 		// Get raw data from the database.
-		$term_data = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $wpdb->terms t JOIN $wpdb->term_taxonomy tt ON ( t.term_id = tt.term_id ) WHERE t.term_id = %d", $t ) );
+		$term_data = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $wpdb->terms t JOIN $wpdb->term_taxonomy tt ON ( t.term_id = tt.term_id ) WHERE t.term_id = %d", $term_id ) );
 
 		$contexts = array( 'raw', 'edit', 'db', 'display', 'rss', 'attribute', 'js' );
 
@@ -154,7 +182,7 @@ class Tests_Term_GetTerm extends WP_UnitTestCase {
 	 * @ticket 34332
 	 */
 	public function test_should_return_null_when_provided_taxonomy_does_not_match_actual_term_taxonomy() {
-		$term_id = self::factory()->term->create( array( 'taxonomy' => 'post_tag' ) );
+		$term_id = self::$term->term_id;
 		$this->assertNull( get_term( $term_id, 'category' ) );
 	}
 
@@ -162,7 +190,7 @@ class Tests_Term_GetTerm extends WP_UnitTestCase {
 	 * @ticket 34533
 	 */
 	public function test_should_return_wp_error_when_term_is_shared_and_no_taxonomy_is_specified() {
-		$terms = $this->generate_shared_terms();
+		$terms = self::$shared_terms;
 
 		$found = get_term( $terms[0]['term_id'] );
 
@@ -173,7 +201,7 @@ class Tests_Term_GetTerm extends WP_UnitTestCase {
 	 * @ticket 34533
 	 */
 	public function test_should_return_term_when_term_is_shared_and_correct_taxonomy_is_specified() {
-		$terms = $this->generate_shared_terms();
+		$terms = self::$shared_terms;
 
 		$found = get_term( $terms[0]['term_id'], 'wptests_tax' );
 
@@ -185,7 +213,7 @@ class Tests_Term_GetTerm extends WP_UnitTestCase {
 	 * @ticket 34533
 	 */
 	public function test_should_return_null_when_term_is_shared_and_incorrect_taxonomy_is_specified() {
-		$terms = $this->generate_shared_terms();
+		$terms = self::$shared_terms;
 
 		$found = get_term( $terms[0]['term_id'], 'post_tag' );
 
@@ -196,19 +224,17 @@ class Tests_Term_GetTerm extends WP_UnitTestCase {
 	 * @ticket 34533
 	 */
 	public function test_shared_term_in_cache_should_be_ignored_when_specifying_a_different_taxonomy() {
-		global $wpdb;
-
-		$terms = $this->generate_shared_terms();
+		$terms = self::$shared_terms;
 
 		// Prime cache for 'wptests_tax'.
 		get_term( $terms[0]['term_id'], 'wptests_tax' );
-		$num_queries = $wpdb->num_queries;
+		$num_queries = get_num_queries();
 
 		// Database should be hit again.
 		$found = get_term( $terms[1]['term_id'], 'wptests_tax_2' );
-		$num_queries++;
+		++$num_queries;
 
-		$this->assertSame( $num_queries, $wpdb->num_queries );
+		$this->assertSame( $num_queries, get_num_queries() );
 		$this->assertInstanceOf( 'WP_Term', $found );
 		$this->assertSame( 'wptests_tax_2', $found->taxonomy );
 	}
@@ -217,11 +243,11 @@ class Tests_Term_GetTerm extends WP_UnitTestCase {
 	 * @ticket 34533
 	 */
 	public function test_should_return_error_when_only_matching_term_is_in_an_invalid_taxonomy() {
-		$t = self::factory()->term->create( array( 'taxonomy' => 'wptests_tax' ) );
+		$term_id = self::$term->term_id;
 
 		_unregister_taxonomy( 'wptests_tax' );
 
-		$found = get_term( $t );
+		$found = get_term( $term_id );
 		$this->assertWPError( $found );
 		$this->assertSame( 'invalid_taxonomy', $found->get_error_code() );
 	}
@@ -230,7 +256,7 @@ class Tests_Term_GetTerm extends WP_UnitTestCase {
 	 * @ticket 34533
 	 */
 	public function test_term_should_be_returned_when_id_is_shared_only_with_invalid_taxonomies() {
-		$terms = $this->generate_shared_terms();
+		$terms = self::$shared_terms;
 
 		_unregister_taxonomy( 'wptests_tax' );
 

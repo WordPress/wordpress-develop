@@ -9,10 +9,15 @@ class Tests_Option_Transient extends WP_UnitTestCase {
 		parent::set_up();
 
 		if ( wp_using_ext_object_cache() ) {
-			$this->markTestSkipped( 'Not testable with an external object cache.' );
+			$this->markTestSkipped( 'This test requires that an external object cache is not in use.' );
 		}
 	}
 
+	/**
+	 * @covers ::get_transient
+	 * @covers ::set_transient
+	 * @covers ::delete_transient
+	 */
 	public function test_the_basics() {
 		$key    = 'key1';
 		$value  = 'value1';
@@ -29,6 +34,11 @@ class Tests_Option_Transient extends WP_UnitTestCase {
 		$this->assertFalse( delete_transient( $key ) );
 	}
 
+	/**
+	 * @covers ::get_transient
+	 * @covers ::set_transient
+	 * @covers ::delete_transient
+	 */
 	public function test_serialized_data() {
 		$key   = rand_str();
 		$value = array(
@@ -47,6 +57,10 @@ class Tests_Option_Transient extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 22807
+	 *
+	 * @covers ::get_option
+	 * @covers ::set_transient
+	 * @covers ::update_option
 	 */
 	public function test_transient_data_with_timeout() {
 		$key   = rand_str();
@@ -67,7 +81,93 @@ class Tests_Option_Transient extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure get_transient() makes a single database request.
+	 *
+	 * @ticket 61193
+	 *
+	 * @covers ::get_transient
+	 */
+	public function test_get_transient_with_timeout_makes_a_single_database_call() {
+		global $wpdb;
+		$key                        = 'test_transient';
+		$value                      = 'test_value';
+		$timeout                    = 100;
+		$expected_query             = "SELECT option_name, option_value FROM $wpdb->options WHERE option_name IN ('_transient_{$key}','_transient_timeout_{$key}')";
+		$unexpected_query_transient = "SELECT option_value FROM $wpdb->options WHERE option_name = '_transient_{$key}' LIMIT 1";
+		$unexpected_query_timeout   = "SELECT option_value FROM $wpdb->options WHERE option_name = '_transient_timeout_{$key}' LIMIT 1";
+		$queries                    = array();
+
+		set_transient( $key, $value, $timeout );
+
+		// Clear the cache of both the transient and the timeout.
+		$option_names = array(
+			'_transient_' . $key,
+			'_transient_timeout_' . $key,
+		);
+		foreach ( $option_names as $option_name ) {
+			wp_cache_delete( $option_name, 'options' );
+		}
+
+		add_filter(
+			'query',
+			function ( $query ) use ( &$queries ) {
+				$queries[] = $query;
+				return $query;
+			}
+		);
+
+		$before_queries = get_num_queries();
+		$this->assertSame( $value, get_transient( $key ) );
+		$transient_queries = get_num_queries() - $before_queries;
+		$this->assertSame( 1, $transient_queries, 'Expected a single database query to retrieve the transient.' );
+		$this->assertContains( $expected_query, $queries, 'Expected query to prime both transient options in a single call.' );
+		// Note: Some versions of PHPUnit and/or the test suite may report failures as asserting to contain rather than not to contain.
+		$this->assertNotContains( $unexpected_query_transient, $queries, 'Unexpected query of transient option individually.' );
+		$this->assertNotContains( $unexpected_query_timeout, $queries, 'Unexpected query of transient timeout option individually.' );
+	}
+
+	/**
+	 * Ensure set_transient() primes the option cache checking for an existing transient.
+	 *
+	 * @ticket 61193
+	 *
+	 * @covers ::set_transient
+	 */
+	public function test_set_transient_primes_option_cache() {
+		global $wpdb;
+		$key                        = 'test_transient';
+		$value                      = 'test_value';
+		$timeout                    = 100;
+		$expected_query             = "SELECT option_name, option_value FROM $wpdb->options WHERE option_name IN ('_transient_{$key}','_transient_timeout_{$key}')";
+		$unexpected_query_transient = "SELECT option_value FROM $wpdb->options WHERE option_name = '_transient_{$key}' LIMIT 1";
+		$unexpected_query_timeout   = "SELECT option_value FROM $wpdb->options WHERE option_name = '_transient_timeout_{$key}' LIMIT 1";
+		$queries                    = array();
+
+		add_filter(
+			'query',
+			function ( $query ) use ( &$queries ) {
+				$queries[] = $query;
+				return $query;
+			}
+		);
+
+		$before_queries = get_num_queries();
+		$this->assertTrue( set_transient( $key, $value, $timeout ) );
+		$transient_queries = get_num_queries() - $before_queries;
+		$this->assertSame( 3, $transient_queries, 'Expected three database queries setting the transient.' );
+		$this->assertContains( $expected_query, $queries, 'Expected query to prime both transient options in a single call.' );
+		// Note: Some versions of PHPUnit and/or the test suite may report failures as asserting to contain rather than not to contain.
+		$this->assertNotContains( $unexpected_query_transient, $queries, 'Unexpected query of transient option individually.' );
+		$this->assertNotContains( $unexpected_query_timeout, $queries, 'Unexpected query of transient timeout option individually.' );
+	}
+
+	/**
 	 * @ticket 22807
+	 *
+	 * @covers ::set_transient
+	 * @covers ::get_transient
+	 * @covers ::get_option
+	 * @covers ::update_option
 	 */
 	public function test_transient_add_timeout() {
 		$key    = rand_str();
@@ -91,6 +191,9 @@ class Tests_Option_Transient extends WP_UnitTestCase {
 	 * If get_option( $transient_timeout ) returns false, don't bother trying to delete the transient.
 	 *
 	 * @ticket 30380
+	 *
+	 * @covers ::set_transient
+	 * @covers ::get_transient
 	 */
 	public function test_nonexistent_key_dont_delete_if_false() {
 		// Create a bogus a transient.
@@ -119,6 +222,9 @@ class Tests_Option_Transient extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 30380
+	 *
+	 * @covers ::set_transient
+	 * @covers ::get_transient
 	 */
 	public function test_nonexistent_key_old_timeout() {
 		// Create a transient.
@@ -145,14 +251,16 @@ class Tests_Option_Transient extends WP_UnitTestCase {
 
 		$expected = array(
 			array(
-				'action' => 'action',
-				'tag'    => 'delete_option',
-				'args'   => array( $transient_option ),
+				'action'    => 'action',
+				'hook_name' => 'delete_option',
+				'tag'       => 'delete_option', // Back compat.
+				'args'      => array( $transient_option ),
 			),
 			array(
-				'action' => 'action',
-				'tag'    => 'delete_option',
-				'args'   => array( $timeout ),
+				'action'    => 'action',
+				'hook_name' => 'delete_option',
+				'tag'       => 'delete_option', // Back compat.
+				'args'      => array( $timeout ),
 			),
 		);
 		$this->assertSame( $expected, $a->get_events() );

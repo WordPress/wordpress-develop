@@ -257,7 +257,10 @@ twentytwenty.coverModals = {
 						clickedEl = false;
 					}
 
-					_win.scrollTo( 0, Math.abs( _win.twentytwenty.scrolled + getAdminBarHeight() ) );
+					_win.scrollTo({
+						top: Math.abs( _win.twentytwenty.scrolled + getAdminBarHeight() ),
+						behavior: 'instant'
+					});
 
 					_win.twentytwenty.scrolled = 0;
 				}, 500 );
@@ -331,7 +334,7 @@ twentytwenty.intrinsicRatioVideos = {
 		} );
 	}
 
-}; // twentytwenty.instrinsicRatioVideos
+}; // twentytwenty.intrinsicRatioVideos
 
 /*	-----------------------------------------------------------------------------------------------
 	Modal Menu
@@ -438,28 +441,90 @@ twentytwenty.primaryMenu = {
 
 		links = menu.getElementsByTagName( 'a' );
 
-		// Each time a menu link is focused or blurred, toggle focus.
+		// Each time a menu link is focused, update focus.
 		for ( i = 0, len = links.length; i < len; i++ ) {
-			links[i].addEventListener( 'focus', toggleFocus, true );
-			links[i].addEventListener( 'blur', toggleFocus, true );
+			links[i].addEventListener( 'focus', updateFocus, true );
 		}
 
-		//Sets or removes the .focus class on an element.
-		function toggleFocus() {
+		menu.addEventListener( 'focusout', removeFocus, true );
+
+		// Remove focus classes from menu.
+		function removeFocus(e){
+			const leavingMenu = ! menu.contains( e.relatedTarget );
+
+			if ( leavingMenu ) {
+				// Remove focus from all li elements of primary-menu.
+				menu.querySelectorAll( 'li' ).forEach( function( el ) {
+					if ( el.classList.contains( 'focus' ) ) {
+						el.classList.remove( 'focus', 'closed' );
+					}
+				});
+			}
+		}
+
+		// Update focus class on an element.
+		function updateFocus() {
 			var self = this;
 
-			// Move up through the ancestors of the current link until we hit .primary-menu.
-			while ( -1 === self.className.indexOf( 'primary-menu' ) ) {
-				// On li elements toggle the class .focus.
-				if ( 'li' === self.tagName.toLowerCase() ) {
-					if ( -1 !== self.className.indexOf( 'focus' ) ) {
-						self.className = self.className.replace( ' focus', '' );
-					} else {
-						self.className += ' focus';
-					}
+			// Remove focus from all li elements of primary-menu.
+			menu.querySelectorAll( 'li' ).forEach( function( el ){
+				if ( el.classList.contains( 'closed' ) ) {
+					el.classList.remove( 'closed' );
 				}
-				self = self.parentElement;
+				if ( el.classList.contains( 'focus' ) ) {
+					el.classList.remove( 'focus' );
+				}
+			});
+			
+			// Set focus on current `a` element's parent `li`.
+			self.parentElement.classList.add( 'focus' );
+			// If current element is inside sub-menu find main parent li and add focus.
+			if ( self.closest( '.menu-item-has-children' ) ) {
+				twentytwentyFindParents( self, 'li.menu-item-has-children' ).forEach( function( element ) {
+					element.classList.add( 'focus' );
+				});
 			}
+		}
+
+		// When the `esc` key is pressed while in menu, move focus up one level.
+		menu.addEventListener( 'keydown', removeFocusEsc, true );
+
+		// Remove focus when `esc` key pressed.
+		function removeFocusEsc( e ) {
+			e = e || window.event;
+			var isEscape = false,
+				focusedElement = e.target;
+
+			// Find if pressed key is `esc`.
+			if ( 'key' in e ) {
+				isEscape = ( e.key === 'Escape' || e.key === 'Esc' );
+			} else {
+				isEscape = ( e.keyCode === 27 );
+			}
+
+			// If pressed key is esc, remove focus class from parent menu li.
+			if ( isEscape ) {
+				var parentLi = focusedElement.closest( 'li' ),
+					nestedParent = closestExcludingSelf( parentLi, 'li.menu-item-has-children' ),
+					focusPosition = nestedParent ? nestedParent.querySelector('a') : false;
+
+					if ( null !== nestedParent ) {
+						nestedParent.classList.add( 'focus' );
+						focusPosition.focus();
+					} else {
+						parentLi.classList.remove( 'focus' );
+						parentLi.classList.add( 'closed' );
+					}
+			}
+		}
+
+		function closestExcludingSelf(element, selector) {
+			if ( ! element || ! selector ) {
+				return null;
+			}
+			const parent = element.parentElement;
+
+			return parent ? parent.closest(selector) : null;
 		}
 	}
 }; // twentytwenty.primaryMenu
@@ -678,20 +743,36 @@ twentytwentyDomReady( function() {
 /* Toggle an attribute ----------------------- */
 
 function twentytwentyToggleAttribute( element, attribute, trueVal, falseVal ) {
-	if ( element.classList.contains( 'close-search-toggle' ) ) {
+	var toggles;
+
+	if ( ! element.hasAttribute( attribute ) ) {
 		return;
 	}
+
 	if ( trueVal === undefined ) {
 		trueVal = true;
 	}
 	if ( falseVal === undefined ) {
 		falseVal = false;
 	}
-	if ( element.getAttribute( attribute ) !== trueVal ) {
-		element.setAttribute( attribute, trueVal );
-	} else {
-		element.setAttribute( attribute, falseVal );
-	}
+
+	/*
+	 * Take into account multiple toggle elements that need their state to be
+	 * synced. For example: the Search toggle buttons for desktop and mobile.
+	 */
+	toggles = document.querySelectorAll( '[data-toggle-target="' + element.dataset.toggleTarget + '"]' );
+
+	toggles.forEach( function( toggle ) {
+		if ( ! toggle.hasAttribute( attribute ) ) {
+			return;
+		}
+
+		if ( toggle.getAttribute( attribute ) !== trueVal ) {
+			toggle.setAttribute( attribute, trueVal );
+		} else {
+			toggle.setAttribute( attribute, falseVal );
+		}
+	} );
 }
 
 /**

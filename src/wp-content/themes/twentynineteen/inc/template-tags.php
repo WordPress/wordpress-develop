@@ -43,6 +43,7 @@ if ( ! function_exists( 'twentynineteen_posted_by' ) ) :
 			/* translators: 1: SVG icon. 2: Post author, only visible to screen readers. 3: Author link. */
 			'<span class="byline">%1$s<span class="screen-reader-text">%2$s</span><span class="author vcard"><a class="url fn n" href="%3$s">%4$s</a></span></span>',
 			twentynineteen_get_icon_svg( 'person', 16 ),
+			/* translators: Hidden accessibility text. */
 			__( 'Posted by', 'twentynineteen' ),
 			esc_url( get_author_posts_url( get_the_author_meta( 'ID' ) ) ),
 			esc_html( get_the_author() )
@@ -88,9 +89,10 @@ if ( ! function_exists( 'twentynineteen_entry_footer' ) ) :
 					/* translators: 1: SVG icon. 2: Posted in label, only visible to screen readers. 3: List of categories. */
 					'<span class="cat-links">%1$s<span class="screen-reader-text">%2$s</span>%3$s</span>',
 					twentynineteen_get_icon_svg( 'archive', 16 ),
+					/* translators: Hidden accessibility text. */
 					__( 'Posted in', 'twentynineteen' ),
 					$categories_list
-				); // WPCS: XSS OK.
+				);
 			}
 
 			$tags_list = get_the_tag_list( '', wp_get_list_item_separator() );
@@ -99,9 +101,10 @@ if ( ! function_exists( 'twentynineteen_entry_footer' ) ) :
 					/* translators: 1: SVG icon. 2: Posted in label, only visible to screen readers. 3: List of tags. */
 					'<span class="tags-links">%1$s<span class="screen-reader-text">%2$s </span>%3$s</span>',
 					twentynineteen_get_icon_svg( 'tag', 16 ),
+					/* translators: Hidden accessibility text. */
 					__( 'Tags:', 'twentynineteen' ),
 					$tags_list
-				); // WPCS: XSS OK.
+				);
 			}
 		}
 
@@ -199,7 +202,7 @@ endif;
 
 if ( ! function_exists( 'twentynineteen_comment_form' ) ) :
 	/**
-	 * Documentation for function.
+	 * Displays the comment form.
 	 */
 	function twentynineteen_comment_form( $order ) {
 		if ( true === $order || strtolower( $order ) === strtolower( get_option( 'comment_order', 'asc' ) ) ) {
@@ -215,20 +218,23 @@ endif;
 
 if ( ! function_exists( 'twentynineteen_the_posts_navigation' ) ) :
 	/**
-	 * Documentation for function.
+	 * Displays the next and previous posts navigation.
 	 */
 	function twentynineteen_the_posts_navigation() {
+		$order          = get_query_var( 'order', 'DESC' );
+		$new_posts_text = __( 'Newer posts', 'twentynineteen' );
+		$old_posts_text = __( 'Older posts', 'twentynineteen' );
 		the_posts_pagination(
 			array(
 				'mid_size'  => 2,
 				'prev_text' => sprintf(
 					'%s <span class="nav-prev-text">%s</span>',
 					twentynineteen_get_icon_svg( 'chevron_left', 22 ),
-					__( 'Newer posts', 'twentynineteen' )
+					( 'DESC' === $order ) ? $new_posts_text : $old_posts_text
 				),
 				'next_text' => sprintf(
 					'<span class="nav-next-text">%s</span> %s',
-					__( 'Older posts', 'twentynineteen' ),
+					( 'DESC' === $order ) ? $old_posts_text : $new_posts_text,
 					twentynineteen_get_icon_svg( 'chevron_right', 22 )
 				),
 			)
@@ -238,7 +244,7 @@ endif;
 
 if ( ! function_exists( 'wp_body_open' ) ) :
 	/**
-	 * Fire the wp_body_open action.
+	 * Fires the wp_body_open action.
 	 *
 	 * Added for backward compatibility to support pre-5.2.0 WordPress versions.
 	 *

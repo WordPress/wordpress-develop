@@ -29,9 +29,9 @@ $result = null;
 if ( isset( $_GET['key'] ) && isset( $_POST['key'] ) && $_GET['key'] !== $_POST['key'] ) {
 	wp_die( __( 'A key value mismatch has been detected. Please follow the link provided in your activation email.' ), __( 'An error occurred during the activation' ), 400 );
 } elseif ( ! empty( $_GET['key'] ) ) {
-	$key = $_GET['key'];
+	$key = sanitize_text_field( $_GET['key'] );
 } elseif ( ! empty( $_POST['key'] ) ) {
-	$key = $_POST['key'];
+	$key = sanitize_text_field( $_POST['key'] );
 }
 
 if ( $key ) {
@@ -64,10 +64,6 @@ if ( null === $result || ( is_wp_error( $result ) && 'invalid_key' === $result->
 
 nocache_headers();
 
-if ( is_object( $wp_object_cache ) ) {
-	$wp_object_cache->cache_enabled = false;
-}
-
 // Fix for page title.
 $wp_query->is_404 = false;
 
@@ -87,7 +83,7 @@ do_action( 'activate_header' );
  */
 function do_activate_header() {
 	/**
-	 * Fires before the Site Activation page is loaded.
+	 * Fires within the `<head>` section of the Site Activation page.
 	 *
 	 * Fires on the {@see 'wp_head'} action.
 	 *
@@ -104,12 +100,14 @@ add_action( 'wp_head', 'do_activate_header' );
  */
 function wpmu_activate_stylesheet() {
 	?>
-	<style type="text/css">
-		form { margin-top: 2em; }
-		#submit, #key { width: 90%; font-size: 24px; }
-		#language { margin-top: .5em; }
-		.error { background: #f66; }
-		span.h3 { padding: 0 8px; font-size: 1.3em; font-weight: 600; }
+	<style>
+		.wp-activate-container { width: 90%; margin: 0 auto; text-align: start; padding: 24px; box-sizing: border-box; }
+		.wp-activate-container form { margin: 24px 0; }
+		.wp-activate-container p { font-size: 18px; }
+		#key, #submit { font-size: 24px; box-sizing: border-box; margin: 5px 0; }
+		#key { width: 100%; direction: ltr; }
+		#submit { width: auto; }
+		span.h3 { font-weight: 600; }
 	</style>
 	<?php
 }
@@ -119,7 +117,7 @@ add_filter( 'wp_robots', 'wp_robots_sensitive_page' );
 
 get_header( 'wp-activate' );
 
-$blog_details = get_blog_details();
+$blog_details = get_site();
 ?>
 
 <div id="signup-content" class="widecolumn">
@@ -127,10 +125,10 @@ $blog_details = get_blog_details();
 	<?php if ( ! $key ) { ?>
 
 		<h2><?php _e( 'Activation Key Required' ); ?></h2>
-		<form name="activateform" id="activateform" method="post" action="<?php echo network_site_url( $blog_details->path . 'wp-activate.php' ); ?>">
+		<form name="activateform" id="activateform" method="post" action="<?php echo esc_url( network_site_url( $blog_details->path . 'wp-activate.php' ) ); ?>">
 			<p>
 				<label for="key"><?php _e( 'Activation Key:' ); ?></label>
-				<br /><input type="text" name="key" id="key" value="" size="50" />
+				<br /><input type="text" name="key" id="key" value="" size="50" autofocus="autofocus" />
 			</p>
 			<p class="submit">
 				<input id="submit" type="submit" name="Submit" class="submit" value="<?php esc_attr_e( 'Activate' ); ?>" />
@@ -149,19 +147,19 @@ $blog_details = get_blog_details();
 				printf(
 					/* translators: 1: Login URL, 2: Username, 3: User email address, 4: Lost password URL. */
 					__( 'Your account has been activated. You may now <a href="%1$s">log in</a> to the site using your chosen username of &#8220;%2$s&#8221;. Please check your email inbox at %3$s for your password and login instructions. If you do not receive an email, please check your junk or spam folder. If you still do not receive an email within an hour, you can <a href="%4$s">reset your password</a>.' ),
-					network_site_url( $blog_details->path . 'wp-login.php', 'login' ),
-					$signup->user_login,
-					$signup->user_email,
-					wp_lostpassword_url()
+					esc_url( network_site_url( $blog_details->path . 'wp-login.php', 'login' ) ),
+					esc_html( $signup->user_login ),
+					esc_html( $signup->user_email ),
+					esc_url( wp_lostpassword_url() )
 				);
 			} else {
 				printf(
 					/* translators: 1: Site URL, 2: Username, 3: User email address, 4: Lost password URL. */
 					__( 'Your site at %1$s is active. You may now log in to your site using your chosen username of &#8220;%2$s&#8221;. Please check your email inbox at %3$s for your password and login instructions. If you do not receive an email, please check your junk or spam folder. If you still do not receive an email within an hour, you can <a href="%4$s">reset your password</a>.' ),
-					sprintf( '<a href="http://%1$s%2$s">%1$s%2$s</a>', $signup->domain, $blog_details->path ),
-					$signup->user_login,
-					$signup->user_email,
-					wp_lostpassword_url()
+					sprintf( '<a href="http://%1$s">%1$s</a>', esc_url( $signup->domain . $blog_details->path ) ),
+					esc_html( $signup->user_login ),
+					esc_html( $signup->user_email ),
+					esc_url( wp_lostpassword_url() )
 				);
 			}
 			echo '</p>';
@@ -169,18 +167,18 @@ $blog_details = get_blog_details();
 			?>
 			<h2><?php _e( 'An error occurred during the activation' ); ?></h2>
 			<?php if ( is_wp_error( $result ) ) : ?>
-				<p><?php echo $result->get_error_message(); ?></p>
+				<p><?php echo esc_html( $result->get_error_message() ); ?></p>
 			<?php endif; ?>
 			<?php
 		} else {
-			$url  = isset( $result['blog_id'] ) ? get_home_url( (int) $result['blog_id'] ) : '';
+			$url  = isset( $result['blog_id'] ) ? esc_url( get_home_url( (int) $result['blog_id'] ) ) : '';
 			$user = get_userdata( (int) $result['user_id'] );
 			?>
 			<h2><?php _e( 'Your account is now active!' ); ?></h2>
 
 			<div id="signup-welcome">
-			<p><span class="h3"><?php _e( 'Username:' ); ?></span> <?php echo $user->user_login; ?></p>
-			<p><span class="h3"><?php _e( 'Password:' ); ?></span> <?php echo $result['password']; ?></p>
+			<p><span class="h3"><?php _e( 'Username:' ); ?></span> <?php echo esc_html( $user->user_login ); ?></p>
+			<p><span class="h3"><?php _e( 'Password:' ); ?></span> <?php echo esc_html( $result['password'] ); ?></p>
 			</div>
 
 			<?php
@@ -192,7 +190,7 @@ $blog_details = get_blog_details();
 				<p class="view">
 				<?php
 					/* translators: 1: Site URL, 2: Login URL. */
-					printf( __( 'Your account is now activated. <a href="%1$s">View your site</a> or <a href="%2$s">Log in</a>' ), $url, esc_url( $login_url ) );
+					printf( __( 'Your account is now activated. <a href="%1$s">View your site</a> or <a href="%2$s">Log in</a>' ), esc_url( $url ), esc_url( $login_url ) );
 				?>
 				</p>
 			<?php else : ?>
@@ -201,8 +199,8 @@ $blog_details = get_blog_details();
 					printf(
 						/* translators: 1: Login URL, 2: Network home URL. */
 						__( 'Your account is now activated. <a href="%1$s">Log in</a> or go back to the <a href="%2$s">homepage</a>.' ),
-						network_site_url( $blog_details->path . 'wp-login.php', 'login' ),
-						network_home_url( $blog_details->path )
+						esc_url( network_site_url( $blog_details->path . 'wp-login.php', 'login' ) ),
+						esc_url( network_home_url( $blog_details->path ) )
 					);
 				?>
 				</p>
@@ -213,9 +211,5 @@ $blog_details = get_blog_details();
 	?>
 	</div>
 </div>
-<script type="text/javascript">
-	var key_input = document.getElementById('key');
-	key_input && key_input.focus();
-</script>
 <?php
 get_footer( 'wp-activate' );

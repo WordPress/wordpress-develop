@@ -5,13 +5,14 @@
  *
  * @since 5.3.0
  *
- * @group functions.php
+ * @group functions
+ *
  * @covers ::get_status_header_desc
  */
 class Tests_Functions_GetStatusHeaderDesc extends WP_UnitTestCase {
 
 	/**
-	 * @dataProvider _status_strings
+	 * @dataProvider data_get_status_header_desc
 	 *
 	 * @param int    $code     HTTP status code.
 	 * @param string $expected Status description.
@@ -23,9 +24,9 @@ class Tests_Functions_GetStatusHeaderDesc extends WP_UnitTestCase {
 	/**
 	 * Data provider for test_get_status_header_desc().
 	 *
-	 * @return array
+	 * @return array[]
 	 */
-	public function _status_strings() {
+	public function data_get_status_header_desc() {
 		return array(
 			array( 200, 'OK' ),
 			array( 301, 'Moved Permanently' ),
@@ -39,5 +40,23 @@ class Tests_Functions_GetStatusHeaderDesc extends WP_UnitTestCase {
 			array( 9999, '' ),
 			array( 'random', '' ),
 		);
+	}
+
+	/**
+	 * Tests that the HTTP response codes stored in the `$wp_header_to_desc` global
+	 * match the constants in the WP_Http class.
+	 *
+	 * @ticket 35426
+	 */
+	public function test_http_response_code_constants() {
+		global $wp_header_to_desc;
+
+		$ref       = new ReflectionClass( 'WP_Http' );
+		$constants = $ref->getConstants();
+
+		// This primes the `$wp_header_to_desc` global:
+		get_status_header_desc( 200 );
+
+		$this->assertSame( array_keys( $wp_header_to_desc ), array_values( $constants ) );
 	}
 }
