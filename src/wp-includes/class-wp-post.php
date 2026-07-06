@@ -319,7 +319,7 @@ final class WP_Post {
 				$terms = get_the_terms( $this, 'category' );
 			}
 
-			if ( empty( $terms ) || is_wp_error( $terms ) ) {
+			if ( empty( $terms ) || $terms instanceof WP_Error ) {
 				return array();
 			}
 
@@ -331,7 +331,7 @@ final class WP_Post {
 				$terms = get_the_terms( $this, 'post_tag' );
 			}
 
-			if ( empty( $terms ) || is_wp_error( $terms ) ) {
+			if ( empty( $terms ) || $terms instanceof WP_Error ) {
 				return array();
 			}
 
