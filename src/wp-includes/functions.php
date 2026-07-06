@@ -1711,7 +1711,9 @@ function do_feed_atom( $for_comments ) {
  *              filter callback.
  */
 function do_robots() {
-	header( 'Content-Type: text/plain; charset=utf-8' );
+	if ( ! headers_sent() ) {
+		header( 'Content-Type: text/plain; charset=utf-8' );
+	}
 
 	/**
 	 * Fires when displaying the robots.txt file.
@@ -1723,10 +1725,8 @@ function do_robots() {
 	$output = "User-agent: *\n";
 	$public = (bool) get_option( 'blog_public' );
 
-	$site_url = parse_url( site_url() );
-	$path     = ( ! empty( $site_url['path'] ) ) ? $site_url['path'] : '';
-	$output  .= "Disallow: $path/wp-admin/\n";
-	$output  .= "Allow: $path/wp-admin/admin-ajax.php\n";
+	$output .= 'Disallow: ' . wp_parse_url( admin_url(), PHP_URL_PATH ) . "\n";
+	$output .= 'Allow: ' . wp_parse_url( admin_url( 'admin-ajax.php' ), PHP_URL_PATH ) . "\n";
 
 	/**
 	 * Filters the robots.txt output.
@@ -2341,6 +2341,14 @@ function win_is_writable( $path ) {
  * @see wp_upload_dir()
  *
  * @return array See wp_upload_dir() for description.
+ * @phpstan-return array{
+ *                     path: non-empty-string,
+ *                     url: non-empty-string,
+ *                     subdir: non-empty-string,
+ *                     basedir: non-empty-string,
+ *                     baseurl: non-empty-string,
+ *                 }
+ *                |array{ error: non-empty-string }
  */
 function wp_get_upload_dir() {
 	return wp_upload_dir( null, false );
@@ -2382,6 +2390,14 @@ function wp_get_upload_dir() {
  *     @type string       $baseurl URL path without subdir.
  *     @type string|false $error   False or error message.
  * }
+ * @phpstan-return array{
+ *                     path: non-empty-string,
+ *                     url: non-empty-string,
+ *                     subdir: non-empty-string,
+ *                     basedir: non-empty-string,
+ *                     baseurl: non-empty-string,
+ *                 }
+ *                |array{ error: non-empty-string }
  */
 function wp_upload_dir( $time = null, $create_dir = true, $refresh_cache = false ) {
 	static $cache = array(), $tested_paths = array();
@@ -8862,12 +8878,7 @@ function recurse_dirsize( $directory, $exclude = null, $max_execution_time = nul
 
 	if ( null === $max_execution_time ) {
 		// Keep the previous behavior but attempt to prevent fatal errors from timeout if possible.
-		if ( function_exists( 'ini_get' ) ) {
-			$max_execution_time = ini_get( 'max_execution_time' );
-		} else {
-			// Disable...
-			$max_execution_time = 0;
-		}
+		$max_execution_time = ini_get( 'max_execution_time' );
 
 		// Leave 1 second "buffer" for other operations if $max_execution_time has reasonable value.
 		if ( $max_execution_time > 10 ) {
