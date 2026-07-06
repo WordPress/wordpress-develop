@@ -61,6 +61,7 @@ class WP_Network {
 	 *
 	 * @since 4.4.0
 	 * @var string
+	 * @phpstan-var numeric-string
 	 */
 	private $blog_id = '0';
 

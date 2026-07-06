@@ -34,6 +34,7 @@ final class WP_Site {
 	 *
 	 * @since 4.5.0
 	 * @var string
+	 * @phpstan-var numeric-string
 	 */
 	public $blog_id;
 
@@ -63,6 +64,7 @@ final class WP_Site {
 	 *
 	 * @since 4.5.0
 	 * @var string
+	 * @phpstan-var numeric-string
 	 */
 	public $site_id = '0';
 
@@ -89,6 +91,7 @@ final class WP_Site {
 	 *
 	 * @since 4.5.0
 	 * @var string
+	 * @phpstan-var numeric-string
 	 */
 	public $public = '1';
 
@@ -99,6 +102,7 @@ final class WP_Site {
 	 *
 	 * @since 4.5.0
 	 * @var string
+	 * @phpstan-var numeric-string
 	 */
 	public $archived = '0';
 
@@ -112,6 +116,7 @@ final class WP_Site {
 	 *
 	 * @since 4.5.0
 	 * @var string
+	 * @phpstan-var numeric-string
 	 */
 	public $mature = '0';
 
@@ -122,6 +127,7 @@ final class WP_Site {
 	 *
 	 * @since 4.5.0
 	 * @var string
+	 * @phpstan-var numeric-string
 	 */
 	public $spam = '0';
 
@@ -132,6 +138,7 @@ final class WP_Site {
 	 *
 	 * @since 4.5.0
 	 * @var string
+	 * @phpstan-var numeric-string
 	 */
 	public $deleted = '0';
 
@@ -142,6 +149,7 @@ final class WP_Site {
 	 *
 	 * @since 4.5.0
 	 * @var string
+	 * @phpstan-var numeric-string
 	 */
 	public $lang_id = '0';
 
