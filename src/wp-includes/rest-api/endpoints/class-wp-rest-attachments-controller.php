@@ -250,13 +250,23 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 				'format'            => 'uri',
 				'description'       => __( 'URL of an external image to sideload into the media library, instead of uploading a file.' ),
 				'sanitize_callback' => 'sanitize_url',
-				'validate_callback' => static function ( $url ) {
+				'validate_callback' => static function ( $url, $request, $param ) {
+					/*
+					 * A custom validate_callback replaces the default
+					 * rest_validate_request_arg(), so re-apply it first to keep
+					 * the schema checks (string type, uri format) enforced.
+					 */
+					$valid = rest_validate_request_arg( $url, $request, $param );
+					if ( is_wp_error( $valid ) ) {
+						return $valid;
+					}
+
 					/*
 					 * Reject URLs that are not safe to request server-side. wp_http_validate_url()
 					 * enforces an HTTP(S) scheme and blocks private, local, and otherwise
 					 * disallowed hosts, guarding the sideload against SSRF.
 					 */
-					if ( ! is_string( $url ) || false === wp_http_validate_url( $url ) ) {
+					if ( false === wp_http_validate_url( $url ) ) {
 						return new WP_Error(
 							'rest_invalid_url',
 							__( 'Invalid URL. Provide a valid, publicly reachable HTTP or HTTPS image URL.' ),
@@ -594,6 +604,21 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			return new WP_Error(
 				'rest_invalid_url',
 				__( 'Could not determine a filename from the provided URL.' ),
+				array( 'status' => 400 )
+			);
+		}
+
+		/*
+		 * Only download URLs whose extension maps to an allowed image MIME type.
+		 * The sideload handler would reject other types anyway (via
+		 * wp_check_filetype_and_ext()), but checking first avoids downloading
+		 * files that can never be accepted, such as PHP scripts.
+		 */
+		$filetype = wp_check_filetype( $filename );
+		if ( ! $filetype['type'] || ! str_starts_with( $filetype['type'], 'image/' ) ) {
+			return new WP_Error(
+				'rest_invalid_url',
+				__( 'The provided URL does not point to a supported image file.' ),
 				array( 'status' => 400 )
 			);
 		}

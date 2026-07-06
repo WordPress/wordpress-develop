@@ -4595,6 +4595,58 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	}
 
 	/**
+	 * Verifies that a URL pointing to a file without an allowed image extension,
+	 * such as a PHP script, is rejected before any download is attempted.
+	 *
+	 * @ticket 65517
+	 *
+	 * @dataProvider data_create_item_from_url_rejects_non_image_extension
+	 *
+	 * @covers WP_REST_Attachments_Controller::create_item_from_url
+	 *
+	 * @param string $url URL with a disallowed file extension.
+	 */
+	public function test_create_item_from_url_rejects_non_image_extension( $url ) {
+		$this->enable_client_side_media_processing();
+
+		wp_set_current_user( self::$superadmin_id );
+
+		// Fail loudly if the guard does not bail and a download is attempted.
+		$downloaded = false;
+		$track      = static function () use ( &$downloaded ) {
+			$downloaded = true;
+			return new WP_Error( 'http_request_failed', 'Should not be reached.' );
+		};
+		add_filter( 'pre_http_request', $track );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
+		$request->set_param( 'url', $url );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		remove_filter( 'pre_http_request', $track );
+
+		$this->assertSame( 'rest_invalid_url', $response->get_data()['code'] );
+		$this->assertSame( 400, $response->get_status() );
+		$this->assertFalse( $downloaded, 'No download should be attempted for a non-image URL.' );
+	}
+
+	/**
+	 * Data provider for test_create_item_from_url_rejects_non_image_extension().
+	 *
+	 * @return array[]
+	 */
+	public function data_create_item_from_url_rejects_non_image_extension() {
+		return array(
+			'PHP script'       => array( 'https://example.com/evil.php' ),
+			'HTML document'    => array( 'https://example.com/page.html' ),
+			'video file'       => array( 'https://example.com/clip.mp4' ),
+			'no extension'     => array( 'https://example.com/image' ),
+			'double extension' => array( 'https://example.com/photo.jpg.php' ),
+		);
+	}
+
+	/**
 	 * Verifies that a user without the `upload_files` capability cannot sideload
 	 * an external image and that the request bails before any download happens.
 	 *
@@ -4630,6 +4682,29 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$this->assertSame( 'rest_cannot_create', $result->get_error_code() );
 		$this->assertSame( 403, $result->get_error_data()['status'] );
 		$this->assertFalse( $downloaded, 'No download should be attempted without upload_files.' );
+	}
+
+	/**
+	 * Verifies that schema validation still applies to the `url` argument even
+	 * though it registers a custom `validate_callback`, which replaces the
+	 * default rest_validate_request_arg() unless re-applied.
+	 *
+	 * @ticket 65517
+	 *
+	 * @covers WP_REST_Attachments_Controller::get_endpoint_args_for_item_schema
+	 */
+	public function test_create_item_from_url_rejects_non_string_url() {
+		$this->enable_client_side_media_processing();
+
+		wp_set_current_user( self::$superadmin_id );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
+		$request->set_param( 'url', array( 'https://example.com/image.jpg' ) );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 'rest_invalid_param', $response->get_data()['code'] );
+		$this->assertSame( 400, $response->get_status() );
 	}
 
 	/**
@@ -4684,20 +4759,20 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$this->assertArrayHasKey( 'validate_callback', $creatable['args']['url'] );
 
 		$validate = $creatable['args']['url']['validate_callback'];
+		$request  = new WP_REST_Request( 'POST', '/wp/v2/media' );
 
 		// A well-formed URL on the site's own host passes validation.
-		$this->assertTrue( $validate( home_url( '/image.jpg' ) ), 'A safe URL should pass validation.' );
+		$this->assertTrue( $validate( home_url( '/image.jpg' ), $request, 'url' ), 'A safe URL should pass validation.' );
 
-		// A non-string, a disallowed scheme, and a malformed URL are all rejected.
+		// A disallowed scheme and a malformed URL are both rejected.
 		$invalid_urls = array(
-			array( 'https://example.org/image.jpg' ),
 			'ftp://example.org/image.jpg',
 			'javascript:alert(1)',
 			'not-a-url',
 		);
 
 		foreach ( $invalid_urls as $invalid ) {
-			$result = $validate( $invalid );
+			$result = $validate( $invalid, $request, 'url' );
 			$this->assertWPError( $result, 'An unsafe URL should be rejected.' );
 			$this->assertSame( 'rest_invalid_url', $result->get_error_code() );
 			$this->assertSame( 400, $result->get_error_data()['status'] );
