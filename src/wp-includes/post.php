@@ -986,6 +986,15 @@ function _wp_relative_upload_path( $path ) {
  *                       correspond to a WP_Post object, an associative array, or a numeric array,
  *                       respectively. Default OBJECT.
  * @return WP_Post[]|array[]|int[] Array of post objects, arrays, or IDs, depending on `$output`.
+ *
+ * @phpstan-param 'OBJECT'|'ARRAY_A'|'ARRAY_N' $output
+ * @phpstan-return (
+ *     $args is array{ fields: 'ids', ... } ? int[] : (
+ *         $output is 'ARRAY_A' ? array<int, array<string, mixed>> : (
+ *             $output is 'ARRAY_N' ? array<int, array<int, mixed>> : WP_Post[]
+ *         )
+ *     )
+ * )
  */
 function get_children( $args = '', $output = OBJECT ) {
 	$kids = array();
