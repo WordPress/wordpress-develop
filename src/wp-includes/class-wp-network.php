@@ -18,8 +18,11 @@
  *
  * @since 4.4.0
  *
- * @property int $id
- * @property int $site_id
+ * @property int    $id
+ * @property string $blog_id
+ * @property int    $site_id
+ *
+ * @phpstan-property numeric-string $blog_id
  */
 #[AllowDynamicProperties]
 class WP_Network {
