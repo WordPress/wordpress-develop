@@ -3109,9 +3109,9 @@ class WP_HTML_Tag_Processor {
 	 *
 	 * @since 6.7.0
 	 *
-	 * @param string $attribute_name Which attribute to adjust.
+	 * @param string $attribute_name Which attribute name to adjust.
 	 *
-	 * @return string|null
+	 * @return string|null The qualified attribute name or null if not on matched tag.
 	 */
 	public function get_qualified_attribute_name( $attribute_name ): ?string {
 		if ( self::STATE_MATCHED_TAG !== $this->parser_state ) {
@@ -3125,7 +3125,7 @@ class WP_HTML_Tag_Processor {
 			return 'definitionURL';
 		}
 
-		if ( 'svg' === $this->get_namespace() ) {
+		if ( 'svg' === $namespace ) {
 			switch ( $lower_name ) {
 				case 'attributename':
 					return 'attributeName';
