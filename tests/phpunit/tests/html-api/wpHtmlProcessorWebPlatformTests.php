@@ -10,7 +10,7 @@
  * fixtures are used by other projects like browsers or other HTML parsers for the same purpose
  * of validating behavior against an external reference.
  *
- * See the README file at `DIR_TESTDATA . "/web-platform-tests"` for details on the third-party suite.
+ * See the README file at DIR_TESTDATA / web-platform-tests for details on the third-party suite.
  *
  * @package WordPress
  * @subpackage HTML-API
