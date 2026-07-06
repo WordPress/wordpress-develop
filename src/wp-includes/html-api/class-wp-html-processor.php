@@ -1403,11 +1403,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				break;
 
 			/*
-			 * Processing instructions are serialized as `<?target data>` per the
-			 * HTML fragment serialization algorithm. Note that this differs from
-			 * the parsed syntax, which may have ended with `?>`: data ending in
-			 * `?` cannot be represented and will lose that final `?` when the
-			 * serialized document is parsed again.
+			 * Processing instructions are serialized as `<?target data>`, not `<?target data?>`.
+			 * Both forms are equivalent on parse.
 			 *
 			 * @see https://html.spec.whatwg.org/multipage/parsing.html#serialising-html-fragments
 			 */
