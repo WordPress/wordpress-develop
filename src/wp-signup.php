@@ -179,7 +179,7 @@ function show_blog_form( $blogname = '', $blog_title = '', $errors = '' ) {
 	if ( ! empty( $languages ) ) :
 		?>
 		<p>
-			<label for="site-language"><?php _e( 'Site Language:' ); ?></label>
+			<label for="site-language"><?php _e( 'Site Language:' ); ?> <span class="dashicons dashicons-translation" aria-hidden="true"></span></label>
 			<?php
 			// Network default.
 			$lang = get_site_option( 'WPLANG' );
