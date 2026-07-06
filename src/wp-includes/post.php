@@ -1110,6 +1110,17 @@ function get_extended( $post ) {
  *                                 or 'display'. Default 'raw'.
  * @return WP_Post|array|null Type corresponding to $output on success or null on failure.
  *                            When $output is OBJECT, a `WP_Post` instance is returned.
+ *
+ * @phpstan-param int|numeric-string|WP_Post|null $post
+ * @phpstan-param 'OBJECT'|'ARRAY_A'|'ARRAY_N' $output
+ * @phpstan-param 'raw'|'edit'|'db'|'display' $filter
+ * @phpstan-return (
+ *     $output is 'ARRAY_A' ? array<string, mixed>|null : (
+ *         $output is 'ARRAY_N' ? array<int, mixed>|null : (
+ *             WP_Post|null
+ *         )
+ *     )
+ * )
  */
 function get_post( $post = null, $output = OBJECT, $filter = 'raw' ) {
 	if ( empty( $post ) && isset( $GLOBALS['post'] ) ) {
@@ -1119,18 +1130,21 @@ function get_post( $post = null, $output = OBJECT, $filter = 'raw' ) {
 	if ( $post instanceof WP_Post ) {
 		$_post = $post;
 	} elseif ( is_object( $post ) ) {
+		/** @var stdClass $post */
 		if ( empty( $post->filter ) ) {
 			$_post = sanitize_post( $post, 'raw' );
 			$_post = new WP_Post( $_post );
 		} elseif ( 'raw' === $post->filter ) {
 			$_post = new WP_Post( $post );
 		} elseif ( isset( $post->ID ) ) {
-			$_post = WP_Post::get_instance( $post->ID );
+			$_post = WP_Post::get_instance( (int) $post->ID );
 		} else {
 			$_post = null;
 		}
+	} elseif ( is_numeric( $post ) ) {
+		$_post = WP_Post::get_instance( (int) $post );
 	} else {
-		$_post = WP_Post::get_instance( $post );
+		$_post = null;
 	}
 
 	if ( ! $_post ) {
@@ -1138,6 +1152,9 @@ function get_post( $post = null, $output = OBJECT, $filter = 'raw' ) {
 	}
 
 	$_post = $_post->filter( $filter );
+	if ( ! $_post ) {
+		return null;
+	}
 
 	if ( ARRAY_A === $output ) {
 		return $_post->to_array();
@@ -1202,6 +1219,13 @@ function get_post_ancestors( $post ) {
  * @param string      $context Optional. How to filter the field. Accepts 'raw', 'edit', 'db',
  *                             or 'display'. Default 'display'.
  * @return int|string|int[] The value of the post field on success, empty string on failure.
+ *
+ * @phpstan-param 'raw'|'edit'|'db'|'display' $context
+ * @phpstan-return (
+ *     $field is 'ID'|'post_parent'|'menu_order' ? int : (
+ *         $field is 'ancestors' ? non-negative-int[] : string
+ *     )
+ * )
  */
 function get_post_field( $field, $post = null, $context = 'display' ) {
 	$post = get_post( $post );
@@ -1642,6 +1666,7 @@ function get_post_type_object( $post_type ) {
  *                               element from the array needs to match; 'and' means all elements
  *                               must match; 'not' means no elements may match. Default 'and'.
  * @return string[]|WP_Post_Type[] An array of post type names or objects.
+ * @phpstan-return ( $output is 'names' ? string[] : WP_Post_Type[] )
  */
 function get_post_types( $args = array(), $output = 'names', $operator = 'and' ) {
 	global $wp_post_types;
@@ -2916,6 +2941,14 @@ function is_sticky( $post_id = 0 ) {
  *                                      'attribute', or 'js'. Default 'display'.
  * @return object|WP_Post|array The now sanitized post object or array (will be the
  *                              same type as `$post`).
+ *
+ * @phpstan-param stdClass|WP_Post|array<string, mixed> $post
+ * @phpstan-param 'raw'|'edit'|'db'|'display'|'attribute'|'js' $context
+ * @phpstan-return (
+ *     $post is WP_Post ? WP_Post : (
+ *         $post is stdClass ? stdClass : array<string, mixed>
+ *     )
+ * )
  */
 function sanitize_post( $post, $context = 'display' ) {
 	if ( is_object( $post ) ) {
@@ -2927,7 +2960,7 @@ function sanitize_post( $post, $context = 'display' ) {
 			$post->ID = 0;
 		}
 		foreach ( array_keys( get_object_vars( $post ) ) as $field ) {
-			$post->$field = sanitize_post_field( $field, $post->$field, $post->ID, $context );
+			$post->$field = sanitize_post_field( $field, $post->$field, (int) $post->ID, $context );
 		}
 		$post->filter = $context;
 	} elseif ( is_array( $post ) ) {
@@ -2939,7 +2972,7 @@ function sanitize_post( $post, $context = 'display' ) {
 			$post['ID'] = 0;
 		}
 		foreach ( array_keys( $post ) as $field ) {
-			$post[ $field ] = sanitize_post_field( $field, $post[ $field ], $post['ID'], $context );
+			$post[ $field ] = sanitize_post_field( $field, $post[ $field ], (int) $post['ID'], $context );
 		}
 		$post['filter'] = $context;
 	}
@@ -2962,6 +2995,13 @@ function sanitize_post( $post, $context = 'display' ) {
  * @param string $context Optional. How to sanitize the field. Possible values are 'raw', 'edit',
  *                        'db', 'display', 'attribute' and 'js'. Default 'display'.
  * @return mixed Sanitized value.
+ *
+ * @phpstan-param 'raw'|'edit'|'db'|'display'|'attribute'|'js' $context
+ * @phpstan-return (
+ *     $field is 'ID'|'post_parent'|'menu_order' ? int : (
+ *         $field is 'ancestors' ? non-negative-int[] : string
+ *     )
+ * )
  */
 function sanitize_post_field( $field, $value, $post_id, $context = 'display' ) {
 	$int_fields = array( 'ID', 'post_parent', 'menu_order' );
@@ -2972,7 +3012,7 @@ function sanitize_post_field( $field, $value, $post_id, $context = 'display' ) {
 	// Fields which contain arrays of integers.
 	$array_int_fields = array( 'ancestors' );
 	if ( in_array( $field, $array_int_fields, true ) ) {
-		$value = array_map( 'absint', $value );
+		$value = array_map( 'absint', (array) $value );
 		return $value;
 	}
 
