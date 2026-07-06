@@ -506,6 +506,31 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 41638
+	 *
+	 * @covers ::get_mu_plugins
+	 * @covers ::wp_get_mu_plugins
+	 */
+	public function test_mu_plugins_should_ignore_dot_prefixed_php_files() {
+		if ( ! is_dir( WPMU_PLUGIN_DIR ) ) {
+			mkdir( WPMU_PLUGIN_DIR );
+		}
+
+		file_put_contents( WPMU_PLUGIN_DIR . '/.hidden.php', '<?php // Test.' );
+		file_put_contents( WPMU_PLUGIN_DIR . '/visible.php', '<?php // Test 2.' );
+
+		$found_admin = get_mu_plugins();
+		$found_load  = wp_get_mu_plugins();
+
+		// Clean up.
+		unlink( WPMU_PLUGIN_DIR . '/.hidden.php' );
+		unlink( WPMU_PLUGIN_DIR . '/visible.php' );
+
+		$this->assertSame( array( 'visible.php' ), array_keys( $found_admin ) );
+		$this->assertSame( array( WPMU_PLUGIN_DIR . '/visible.php' ), $found_load );
+	}
+
+	/**
 	 * @covers ::_sort_uname_callback
 	 */
 	public function test__sort_uname_callback() {

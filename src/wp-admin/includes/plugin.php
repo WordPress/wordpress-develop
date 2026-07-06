@@ -358,6 +358,7 @@ function get_plugins( $plugin_folder = '' ) {
  * Checks the mu-plugins directory and retrieve all mu-plugin files with any plugin data.
  *
  * WordPress only includes mu-plugin files in the base mu-plugins directory (wp-content/mu-plugins).
+ * Files beginning with a dot are ignored.
  *
  * @since 3.0.0
  * @return array[] Array of arrays of mu-plugin data, keyed by plugin file name. See get_plugin_data().
@@ -374,7 +375,7 @@ function get_mu_plugins() {
 	$plugins_dir = @opendir( WPMU_PLUGIN_DIR );
 	if ( $plugins_dir ) {
 		while ( ( $file = readdir( $plugins_dir ) ) !== false ) {
-			if ( str_ends_with( $file, '.php' ) ) {
+			if ( ! str_starts_with( $file, '.' ) && str_ends_with( $file, '.php' ) ) {
 				$plugin_files[] = $file;
 			}
 		}
