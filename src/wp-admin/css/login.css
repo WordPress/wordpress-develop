@@ -447,7 +447,8 @@ input::-ms-reveal {
 }
 
 .language-switcher label {
-	margin-right: 0.25em;
+	display: block;
+	margin-bottom: 0.5em;
 }
 
 .language-switcher label .dashicons {
