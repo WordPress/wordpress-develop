@@ -104,7 +104,7 @@
 			secondary.classList.toggle( 'toggled-on' );
 			window.dispatchEvent( new Event( 'resize' ) );
 			this.classList.toggle( 'toggled-on' );
-			if ( -1 !== this.classList.contains( 'toggled-on' ) && -1 !== secondary.classList.contains( 'toggled-on' ) ) {
+			if ( this.classList.contains( 'toggled-on' ) && secondary.classList.contains( 'toggled-on' ) ) {
 				this.setAttribute( 'aria-expanded', 'true' );
 				secondary.setAttribute( 'aria-expanded', 'true' );
 			} else {
@@ -123,6 +123,10 @@
 	 * @since Twenty Fifteen 1.1
 	 */
 	function onResizeARIA() {
+		if ( ! secondary || ! button ) {
+			return;
+		}
+
 		if ( document.documentElement.clientWidth < 955 ) {
 			button.setAttribute( 'aria-expanded', 'false' );
 			secondary.setAttribute( 'aria-expanded', 'false' );
@@ -136,6 +140,10 @@
 
 	// Sidebar scrolling.
 	function resizeAndScroll() {
+		if ( ! sidebar ) {
+			return;
+		}
+
 		var windowPos = document.documentElement.scrollTop,
 			windowHeight = document.documentElement.clientHeight,
 			sidebarHeight = sidebar.clientHeight,
@@ -144,7 +152,7 @@
 
 		if ( document.documentElement.clientWidth > 955 && pageHeight > sidebarHeight && ( windowPos + windowHeight ) >= sidebarHeight ) {
 			sidebar.style.position = 'fixed';
-			sidebar.style.bottom = sidebarHeight > windowHeight ? 0 : 'auto';
+			sidebar.style.bottom = sidebarHeight > windowHeight ? '0' : 'auto';
 		} else {
 			sidebar.style.position = 'relative';
 		}
@@ -160,10 +168,12 @@
 			resizeTimer = setTimeout( resizeAndScroll, 500 );
 			onResizeARIA();
 		} );
-		sidebar.getElementsByTagName( 'button' ).forEach( function( sidebarButton ) {
-			sidebarButton.addEventListener( 'click', resizeAndScroll );
-			sidebarButton.addEventListener( 'keydown', resizeAndScroll );
-		} );
+		if ( sidebar ) {
+			sidebar.querySelectorAll( 'button' ).forEach( function( sidebarButton ) {
+				sidebarButton.addEventListener( 'click', resizeAndScroll );
+				sidebarButton.addEventListener( 'keydown', resizeAndScroll );
+			} );
+		}
 
 		for ( var i = 0; i < 6; i++ ) {
 			setTimeout( resizeAndScroll, 100 * i );

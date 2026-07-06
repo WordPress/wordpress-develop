@@ -463,7 +463,7 @@ function twentyfifteen_scripts() {
 		'twentyfifteen-script',
 		get_template_directory_uri() . '/js/functions.js',
 		array(),
-		'20260705',
+		'20260706',
 		array(
 			'in_footer' => false, // Because involves header.
 			'strategy'  => 'defer',
