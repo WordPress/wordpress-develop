@@ -161,6 +161,56 @@ class Tests_Connectors_WpConnectorRegistry extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 64850
+	 */
+	public function test_register_accepts_application_password_constant_and_env_names() {
+		$args                   = self::$default_args;
+		$args['authentication'] = array(
+			'method'        => 'application_password',
+			'constant_name' => 'REMOTE_SITE_CREDENTIALS',
+			'env_var_name'  => 'REMOTE_SITE_CREDENTIALS',
+		);
+
+		$result = $this->registry->register( 'remote-site', $args );
+
+		$this->assertSame( 'REMOTE_SITE_CREDENTIALS', $result['authentication']['constant_name'] );
+		$this->assertSame( 'REMOTE_SITE_CREDENTIALS', $result['authentication']['env_var_name'] );
+	}
+
+	/**
+	 * @ticket 64850
+	 *
+	 * @dataProvider data_application_password_external_name_keys
+	 *
+	 * @param string $name_key Authentication argument key.
+	 */
+	public function test_register_rejects_empty_application_password_external_names( string $name_key ) {
+		$this->setExpectedIncorrectUsage( 'WP_Connector_Registry::register' );
+
+		$args                   = self::$default_args;
+		$args['authentication'] = array(
+			'method'  => 'application_password',
+			$name_key => '',
+		);
+
+		$result = $this->registry->register( 'remote-site', $args );
+
+		$this->assertNull( $result );
+	}
+
+	/**
+	 * Data provider for application-password constant and environment variable name keys.
+	 *
+	 * @return array<string, array{string}> Test cases.
+	 */
+	public function data_application_password_external_name_keys(): array {
+		return array(
+			'constant name'             => array( 'constant_name' ),
+			'environment variable name' => array( 'env_var_name' ),
+		);
+	}
+
+	/**
+	 * @ticket 64850
 	 *
 	 * @dataProvider data_application_password_setting_names
 	 *

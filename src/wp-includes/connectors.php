@@ -45,17 +45,17 @@ function wp_is_connector_registered( string $id ): bool {
  *     @type string $logo_url       Optional. URL to the connector's logo image.
  *     @type string $type           The connector type, e.g. 'ai_provider'.
  *     @type array  $authentication {
- *         Authentication configuration. When method is 'api_key', includes
- *         credentials_url, setting_name, and optionally constant_name and
- *         env_var_name. When method is 'application_password', includes
- *         credentials_url and setting_name. When 'none', only method is present.
+ *         Authentication configuration. When method is 'api_key' or
+ *         'application_password', includes credentials_url, setting_name, and
+ *         optionally constant_name and env_var_name. When 'none', only method
+ *         is present.
  *
  *         @type string $method          The authentication method: 'api_key',
  *                                       'application_password', or 'none'.
  *         @type string $credentials_url Optional. URL where users can obtain API credentials.
  *         @type string $setting_name    Optional. The setting name for the API key or application-password credentials.
- *         @type string $constant_name   Optional. PHP constant name for the API key.
- *         @type string $env_var_name    Optional. Environment variable name for the API key.
+ *         @type string $constant_name   Optional. PHP constant name for the API key or application-password credentials.
+ *         @type string $env_var_name    Optional. Environment variable name for the API key or application-password credentials.
  *     }
  *     @type array  $plugin         {
  *         Optional. Plugin data for install/activate UI.
@@ -111,17 +111,17 @@ function wp_get_connector( string $id ): ?array {
  *         @type string      $logo_url       Optional. URL to the connector's logo image.
  *         @type string      $type           The connector type, e.g. 'ai_provider'.
  *         @type array       $authentication {
- *             Authentication configuration. When method is 'api_key', includes
- *             credentials_url, setting_name, and optionally constant_name and
- *             env_var_name. When method is 'application_password', includes
- *             credentials_url and setting_name. When 'none', only method is present.
+ *             Authentication configuration. When method is 'api_key' or
+ *             'application_password', includes credentials_url, setting_name,
+ *             and optionally constant_name and env_var_name. When 'none', only
+ *             method is present.
  *
  *             @type string $method          The authentication method: 'api_key',
  *                                           'application_password', or 'none'.
  *             @type string $credentials_url Optional. URL where users can obtain API credentials.
  *             @type string $setting_name    Optional. The setting name for the API key or application-password credentials.
- *             @type string $constant_name   Optional. PHP constant name for the API key.
- *             @type string $env_var_name    Optional. Environment variable name for the API key.
+ *             @type string $constant_name   Optional. PHP constant name for the API key or application-password credentials.
+ *             @type string $env_var_name    Optional. Environment variable name for the API key or application-password credentials.
  *         }
  *         @type array       $plugin         {
  *             Optional. Plugin data for install/activate UI.
@@ -468,6 +468,90 @@ function _wp_connectors_get_api_key_source( string $setting_name, string $env_va
 }
 
 /**
+ * Parses a `username:password` credentials string.
+ *
+ * Splits on the first colon, matching the HTTP Basic authentication
+ * userinfo format, so passwords may contain colons.
+ *
+ * @since 7.0.0
+ * @access private
+ *
+ * @param string $value The raw credentials string.
+ * @return array{username: string, password: string} Parsed credentials. Both values
+ *                                                   are empty when the string is malformed.
+ */
+function _wp_connectors_parse_application_password_credentials( string $value ): array {
+	$separator = strpos( $value, ':' );
+	$username  = false === $separator ? '' : substr( $value, 0, $separator );
+	$password  = false === $separator ? '' : substr( $value, $separator + 1 );
+
+	if ( '' === $username || '' === $password ) {
+		return array(
+			'username' => '',
+			'password' => '',
+		);
+	}
+
+	return array(
+		'username' => $username,
+		'password' => $password,
+	);
+}
+
+/**
+ * Resolves application-password credentials for a connector.
+ *
+ * Checks in order: environment variable, PHP constant, database. The
+ * environment variable and constant are only checked when their respective
+ * names are provided, and must contain the credentials as a single
+ * `username:password` string. A non-empty environment variable or constant
+ * claims the source even when malformed, in which case the resolved
+ * credentials are empty.
+ *
+ * @since 7.0.0
+ * @access private
+ *
+ * @param array $auth The connector's authentication configuration.
+ * @return array{username: string, password: string, source: string} Resolved credentials and
+ *                                                                   their source: 'env', 'constant',
+ *                                                                   'database', or 'none'.
+ */
+function _wp_connectors_get_application_password_credentials( array $auth ): array {
+	// Check environment variable first.
+	$env_var_name = $auth['env_var_name'] ?? '';
+	if ( '' !== $env_var_name ) {
+		$env_value = getenv( $env_var_name );
+		if ( false !== $env_value && '' !== $env_value ) {
+			$credentials           = _wp_connectors_parse_application_password_credentials( $env_value );
+			$credentials['source'] = 'env';
+			return $credentials;
+		}
+	}
+
+	// Check PHP constant.
+	$constant_name = $auth['constant_name'] ?? '';
+	if ( '' !== $constant_name && defined( $constant_name ) ) {
+		$const_value = constant( $constant_name );
+		if ( is_string( $const_value ) && '' !== $const_value ) {
+			$credentials           = _wp_connectors_parse_application_password_credentials( $const_value );
+			$credentials['source'] = 'constant';
+			return $credentials;
+		}
+	}
+
+	// Check database.
+	$stored   = get_option( $auth['setting_name'] ?? '', array() );
+	$username = is_array( $stored ) && isset( $stored['username'] ) && is_string( $stored['username'] ) ? $stored['username'] : '';
+	$password = is_array( $stored ) && isset( $stored['password'] ) && is_string( $stored['password'] ) ? $stored['password'] : '';
+
+	return array(
+		'username' => $username,
+		'password' => $password,
+		'source'   => '' !== $username || '' !== $password ? 'database' : 'none',
+	);
+}
+
+/**
  * Checks whether an API key is valid for a given provider.
  *
  * @since 7.0.0
@@ -795,14 +879,12 @@ function _wp_connectors_get_connector_script_module_data( array $data ): array {
 				$auth_out['isConnected'] = 'none' !== $key_source;
 			}
 		} elseif ( 'application_password' === $auth['method'] ) {
-			$setting_name = $auth['setting_name'] ?? '';
-			$credentials  = get_option( $setting_name, array() );
-			$username     = is_array( $credentials ) ? ( $credentials['username'] ?? '' ) : '';
-			$password     = is_array( $credentials ) ? ( $credentials['password'] ?? '' ) : '';
+			$credentials = _wp_connectors_get_application_password_credentials( $auth );
 
-			$auth_out['settingName']    = $setting_name;
+			$auth_out['settingName']    = $auth['setting_name'] ?? '';
 			$auth_out['credentialsUrl'] = $auth['credentials_url'] ?? null;
-			$auth_out['isConnected']    = is_string( $username ) && '' !== $username && is_string( $password ) && '' !== $password;
+			$auth_out['keySource']      = $credentials['source'];
+			$auth_out['isConnected']    = '' !== $credentials['username'] && '' !== $credentials['password'];
 		}
 
 		$connector_out = array(
