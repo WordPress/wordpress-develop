@@ -109,6 +109,69 @@ CAP;
 		$this->assertSame( 'img_caption_shortcode', $shortcode_tags['wp_caption'] );
 	}
 
+	/**
+	 * Tests the precedence rules for the Media Library infinite scrolling setting.
+	 *
+	 * Infinite scrolling is enabled by default. A user can opt out via the
+	 * `infinite_scrolling` personal option, and the
+	 * `media_library_infinite_scrolling` filter takes precedence over both.
+	 *
+	 * @ticket 65564
+	 *
+	 * @covers ::wp_enqueue_media
+	 */
+	public function test_wp_enqueue_media_infinite_scrolling_precedence() {
+		$user_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		wp_set_current_user( $user_id );
+
+		// Default: no user preference and no filter, infinite scrolling is enabled.
+		$this->assertSame(
+			1,
+			$this->get_media_infinite_scrolling_setting(),
+			'Infinite scrolling should be enabled by default.'
+		);
+
+		// User preference: disabling it via the personal option turns it off.
+		update_user_meta( $user_id, 'infinite_scrolling', 'false' );
+		$this->assertSame(
+			0,
+			$this->get_media_infinite_scrolling_setting(),
+			'The user preference should disable infinite scrolling.'
+		);
+
+		// Filter precedence: a filter overrides the user preference.
+		add_filter( 'media_library_infinite_scrolling', '__return_true' );
+		$this->assertSame(
+			1,
+			$this->get_media_infinite_scrolling_setting(),
+			'The filter should take precedence over the user preference.'
+		);
+	}
+
+	/**
+	 * Helper that runs wp_enqueue_media() and returns the computed
+	 * `infiniteScrolling` media view setting.
+	 *
+	 * @return int The infiniteScrolling setting: 1 when enabled, 0 when disabled.
+	 */
+	private function get_media_infinite_scrolling_setting() {
+		// wp_enqueue_media() only runs once per request; reset the guard so it
+		// can be invoked again for each scenario.
+		unset( $GLOBALS['wp_actions']['wp_enqueue_media'] );
+
+		$infinite_scrolling = null;
+		$capture            = static function ( $settings ) use ( &$infinite_scrolling ) {
+			$infinite_scrolling = $settings['infiniteScrolling'];
+			return $settings;
+		};
+
+		add_filter( 'media_view_settings', $capture );
+		wp_enqueue_media();
+		remove_filter( 'media_view_settings', $capture );
+
+		return $infinite_scrolling;
+	}
+
 	public function test_img_caption_shortcode_with_empty_params() {
 		$result = img_caption_shortcode( array() );
 		$this->assertSame( '', $result );
