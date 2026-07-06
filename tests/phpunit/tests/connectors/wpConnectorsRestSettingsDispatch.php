@@ -7,9 +7,8 @@
  */
 class Tests_Connectors_WpConnectorsRestSettingsDispatch extends WP_UnitTestCase {
 
-	const CONNECTOR_ID                      = 'wp_test_application_password_connector';
-	const USERNAME_SETTING_NAME             = 'connectors_test_remote_username';
-	const APPLICATION_PASSWORD_SETTING_NAME = 'connectors_test_remote_application_password';
+	const CONNECTOR_ID             = 'wp_test_application_password_connector';
+	const CREDENTIALS_SETTING_NAME = 'connectors_test_remote_credentials';
 
 	/**
 	 * Registers an application password connector before each test.
@@ -23,9 +22,8 @@ class Tests_Connectors_WpConnectorsRestSettingsDispatch extends WP_UnitTestCase 
 				'name'           => 'Test Remote WordPress Connector',
 				'type'           => 'content_source',
 				'authentication' => array(
-					'method'                            => 'application_password',
-					'username_setting_name'             => self::USERNAME_SETTING_NAME,
-					'application_password_setting_name' => self::APPLICATION_PASSWORD_SETTING_NAME,
+					'method'       => 'application_password',
+					'setting_name' => self::CREDENTIALS_SETTING_NAME,
 				),
 			)
 		);
@@ -50,8 +48,10 @@ class Tests_Connectors_WpConnectorsRestSettingsDispatch extends WP_UnitTestCase 
 		$application_password = 'abcd efgh ijkl mnop 1234';
 		$response             = new WP_REST_Response(
 			array(
-				self::USERNAME_SETTING_NAME             => 'remote-user',
-				self::APPLICATION_PASSWORD_SETTING_NAME => $application_password,
+				self::CREDENTIALS_SETTING_NAME => array(
+					'username' => 'remote-user',
+					'password' => $application_password,
+				),
 			)
 		);
 		$request              = new WP_REST_Request( 'GET', '/wp/v2/settings' );
@@ -59,8 +59,8 @@ class Tests_Connectors_WpConnectorsRestSettingsDispatch extends WP_UnitTestCase 
 		$result = _wp_connectors_rest_settings_dispatch( $response, rest_get_server(), $request );
 		$data   = $result->get_data();
 
-		$this->assertSame( 'remote-user', $data[ self::USERNAME_SETTING_NAME ] );
-		$this->assertSame( str_repeat( "\u{2022}", 16 ), $data[ self::APPLICATION_PASSWORD_SETTING_NAME ] );
-		$this->assertNotSame( $application_password, $data[ self::APPLICATION_PASSWORD_SETTING_NAME ] );
+		$this->assertSame( 'remote-user', $data[ self::CREDENTIALS_SETTING_NAME ]['username'] );
+		$this->assertSame( str_repeat( "\u{2022}", 16 ), $data[ self::CREDENTIALS_SETTING_NAME ]['password'] );
+		$this->assertNotSame( $application_password, $data[ self::CREDENTIALS_SETTING_NAME ]['password'] );
 	}
 }

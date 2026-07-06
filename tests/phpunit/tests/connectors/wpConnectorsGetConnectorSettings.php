@@ -68,7 +68,7 @@ class Tests_Connectors_WpGetConnectors extends WP_UnitTestCase {
 	/**
 	 * @ticket 64850
 	 */
-	public function test_application_password_connector_has_setting_names(): void {
+	public function test_application_password_connector_has_setting_name(): void {
 		$connector_id = 'remote-site';
 
 		WP_Connector_Registry::get_instance()->register(
@@ -87,8 +87,7 @@ class Tests_Connectors_WpGetConnectors extends WP_UnitTestCase {
 			$connector = wp_get_connectors()[ $connector_id ];
 
 			$this->assertSame( 'application_password', $connector['authentication']['method'] );
-			$this->assertSame( 'connectors_content_source_remote_site_username', $connector['authentication']['username_setting_name'] );
-			$this->assertSame( 'connectors_content_source_remote_site_application_password', $connector['authentication']['application_password_setting_name'] );
+			$this->assertSame( 'connectors_content_source_remote_site_credentials', $connector['authentication']['setting_name'] );
 		} finally {
 			if ( wp_is_connector_registered( $connector_id ) ) {
 				WP_Connector_Registry::get_instance()->unregister( $connector_id );

@@ -8,10 +8,9 @@
  */
 class Tests_Connectors_WpRegisterDefaultConnectorSettings extends WP_UnitTestCase {
 
-	const CONNECTOR_ID                      = 'wp_test_non_ai_connector';
-	const SETTING_NAME                      = 'connectors_test_non_ai_api_key';
-	const USERNAME_SETTING_NAME             = 'connectors_test_non_ai_username';
-	const APPLICATION_PASSWORD_SETTING_NAME = 'connectors_test_non_ai_application_password';
+	const CONNECTOR_ID             = 'wp_test_non_ai_connector';
+	const SETTING_NAME             = 'connectors_test_non_ai_api_key';
+	const CREDENTIALS_SETTING_NAME = 'connectors_test_non_ai_credentials';
 
 	/**
 	 * Snapshot of registered settings before each test.
@@ -104,7 +103,7 @@ class Tests_Connectors_WpRegisterDefaultConnectorSettings extends WP_UnitTestCas
 	/**
 	 * @ticket 64850
 	 */
-	public function test_application_password_connector_registers_both_settings(): void {
+	public function test_application_password_connector_registers_credentials_setting(): void {
 		WP_Connector_Registry::get_instance()->register(
 			self::CONNECTOR_ID,
 			array(
@@ -112,9 +111,8 @@ class Tests_Connectors_WpRegisterDefaultConnectorSettings extends WP_UnitTestCas
 				'description'    => '',
 				'type'           => 'content_source',
 				'authentication' => array(
-					'method'                            => 'application_password',
-					'username_setting_name'             => self::USERNAME_SETTING_NAME,
-					'application_password_setting_name' => self::APPLICATION_PASSWORD_SETTING_NAME,
+					'method'       => 'application_password',
+					'setting_name' => self::CREDENTIALS_SETTING_NAME,
 				),
 			)
 		);
@@ -122,33 +120,38 @@ class Tests_Connectors_WpRegisterDefaultConnectorSettings extends WP_UnitTestCas
 		_wp_register_default_connector_settings();
 
 		$registered_settings = get_registered_settings();
-		$this->assertArrayHasKey( self::USERNAME_SETTING_NAME, $registered_settings );
-		$this->assertArrayHasKey( self::APPLICATION_PASSWORD_SETTING_NAME, $registered_settings );
-		$this->assertSame( 'Test Remote WordPress Connector Username', $registered_settings[ self::USERNAME_SETTING_NAME ]['label'] );
-		$this->assertSame( 'Test Remote WordPress Connector Application Password', $registered_settings[ self::APPLICATION_PASSWORD_SETTING_NAME ]['label'] );
-		$this->assertTrue( $registered_settings[ self::USERNAME_SETTING_NAME ]['show_in_rest'] );
-		$this->assertTrue( $registered_settings[ self::APPLICATION_PASSWORD_SETTING_NAME ]['show_in_rest'] );
+		$this->assertArrayHasKey( self::CREDENTIALS_SETTING_NAME, $registered_settings );
+		$this->assertSame( 'object', $registered_settings[ self::CREDENTIALS_SETTING_NAME ]['type'] );
+		$this->assertSame( 'Test Remote WordPress Connector Credentials', $registered_settings[ self::CREDENTIALS_SETTING_NAME ]['label'] );
+		$this->assertSame(
+			array(
+				'username' => '',
+				'password' => '',
+			),
+			$registered_settings[ self::CREDENTIALS_SETTING_NAME ]['default']
+		);
+		$this->assertSame( 'object', $registered_settings[ self::CREDENTIALS_SETTING_NAME ]['show_in_rest']['schema']['type'] );
+		$this->assertArrayHasKey( 'username', $registered_settings[ self::CREDENTIALS_SETTING_NAME ]['show_in_rest']['schema']['properties'] );
+		$this->assertArrayHasKey( 'password', $registered_settings[ self::CREDENTIALS_SETTING_NAME ]['show_in_rest']['schema']['properties'] );
 	}
 
 	/**
 	 * @ticket 64850
-	 *
-	 * @dataProvider data_application_password_settings
-	 *
-	 * @param string $pre_registered_setting_name Setting name registered by the connector plugin.
-	 * @param string $other_setting_name          Setting name registered by Core.
 	 */
-	public function test_application_password_connector_skips_already_registered_settings( string $pre_registered_setting_name, string $other_setting_name ): void {
+	public function test_application_password_connector_skips_already_registered_setting(): void {
 		register_setting(
 			'connectors',
-			$pre_registered_setting_name,
+			self::CREDENTIALS_SETTING_NAME,
 			array(
-				'type'              => 'string',
+				'type'              => 'object',
 				'label'             => 'Plugin-owned setting',
 				'description'       => 'Registered by the connector plugin.',
-				'default'           => 'plugin-default',
+				'default'           => array(
+					'username' => 'plugin-default',
+					'password' => '',
+				),
 				'show_in_rest'      => false,
-				'sanitize_callback' => 'sanitize_text_field',
+				'sanitize_callback' => '_wp_connectors_sanitize_application_password_credentials',
 			)
 		);
 
@@ -159,9 +162,8 @@ class Tests_Connectors_WpRegisterDefaultConnectorSettings extends WP_UnitTestCas
 				'description'    => '',
 				'type'           => 'content_source',
 				'authentication' => array(
-					'method'                            => 'application_password',
-					'username_setting_name'             => self::USERNAME_SETTING_NAME,
-					'application_password_setting_name' => self::APPLICATION_PASSWORD_SETTING_NAME,
+					'method'       => 'application_password',
+					'setting_name' => self::CREDENTIALS_SETTING_NAME,
 				),
 			)
 		);
@@ -169,28 +171,15 @@ class Tests_Connectors_WpRegisterDefaultConnectorSettings extends WP_UnitTestCas
 		_wp_register_default_connector_settings();
 
 		$registered_settings = get_registered_settings();
-		$this->assertArrayHasKey( $pre_registered_setting_name, $registered_settings );
-		$this->assertArrayHasKey( $other_setting_name, $registered_settings );
-		$this->assertSame( 'Plugin-owned setting', $registered_settings[ $pre_registered_setting_name ]['label'] );
-		$this->assertSame( 'plugin-default', $registered_settings[ $pre_registered_setting_name ]['default'] );
-		$this->assertFalse( $registered_settings[ $pre_registered_setting_name ]['show_in_rest'] );
-	}
-
-	/**
-	 * Data provider for application-password settings.
-	 *
-	 * @return array<string, array{string, string}> Test cases.
-	 */
-	public function data_application_password_settings(): array {
-		return array(
-			'username setting already registered' => array(
-				self::USERNAME_SETTING_NAME,
-				self::APPLICATION_PASSWORD_SETTING_NAME,
+		$this->assertArrayHasKey( self::CREDENTIALS_SETTING_NAME, $registered_settings );
+		$this->assertSame( 'Plugin-owned setting', $registered_settings[ self::CREDENTIALS_SETTING_NAME ]['label'] );
+		$this->assertSame(
+			array(
+				'username' => 'plugin-default',
+				'password' => '',
 			),
-			'application password setting already registered' => array(
-				self::APPLICATION_PASSWORD_SETTING_NAME,
-				self::USERNAME_SETTING_NAME,
-			),
+			$registered_settings[ self::CREDENTIALS_SETTING_NAME ]['default']
 		);
+		$this->assertFalse( $registered_settings[ self::CREDENTIALS_SETTING_NAME ]['show_in_rest'] );
 	}
 }
