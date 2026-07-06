@@ -9,6 +9,13 @@
 class Tests_Multisite_wpmuValidateUserSignup extends WP_UnitTestCase {
 
 	/**
+	 * Stores the activation key captured during signup.
+	 *
+	 * @var string
+	 */
+	private $captured_activation_key = '';
+
+	/**
 	 * @dataProvider data_user_name
 	 */
 	public function test_user_name( $user_name, $error_message ) {
@@ -134,6 +141,9 @@ class Tests_Multisite_wpmuValidateUserSignup extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 43232
+	 * @ticket 38474
+	 *
+	 * @covers wpmu_validate_user_signup
 	 */
 	public function test_should_not_fail_for_data_used_by_a_deleted_user() {
 		global $wpdb;
@@ -142,16 +152,25 @@ class Tests_Multisite_wpmuValidateUserSignup extends WP_UnitTestCase {
 		add_filter( 'wpmu_signup_user_notification', '__return_false' );
 		add_filter( 'wpmu_welcome_user_notification', '__return_false' );
 
+		// Capture the activation key.
+		add_action( 'after_signup_user', array( $this, 'capture_activation_key' ), 10, 6 );
+
 		// Signup, activate and delete new user.
 		wpmu_signup_user( 'foo123', 'foo@example.com' );
-		$key  = $wpdb->get_var( "SELECT activation_key FROM $wpdb->signups WHERE user_login = 'foo123'" );
-		$user = wpmu_activate_signup( $key );
+
+		remove_action( 'after_signup_user', array( $this, 'capture_activation_key' ) );
+
+		$signup_id = $wpdb->get_var( $wpdb->prepare( "SELECT signup_id FROM $wpdb->signups WHERE user_login = %s", 'foo123' ) );
+		$this->assertNotEmpty( $signup_id, 'Failed to retrieve signup_id.' );
+		$this->assertNotEmpty( $this->captured_activation_key, 'Failed to capture activation key.' );
+
+		$user = wpmu_activate_signup( $this->captured_activation_key, $signup_id );
 		wpmu_delete_user( $user['user_id'] );
 
 		$valid = wpmu_validate_user_signup( 'foo123', 'foo2@example.com' );
 
 		remove_filter( 'wpmu_signup_user_notification', '__return_false' );
-		remove_filter( 'wpmu_signup_user_notification', '__return_false' );
+		remove_filter( 'wpmu_welcome_user_notification', '__return_false' );
 
 		$this->assertNotContains( 'user_name', $valid['errors']->get_error_codes() );
 		$this->assertNotContains( 'user_email', $valid['errors']->get_error_codes() );
@@ -269,5 +288,21 @@ class Tests_Multisite_wpmuValidateUserSignup extends WP_UnitTestCase {
 		$role = get_role( 'editor' );
 		$this->assertInstanceOf( 'WP_Role', $role, 'The editor role should exist.' );
 		wp_ensure_editable_role( 'editor' );
+	}
+
+	/**
+	 * Captures the activation key passed through the filter.
+	 *
+	 * @param string $user The user login.
+	 * @param string $user_email The user email.
+	 * @param string $key The activation key.
+	 * @param int    $signup_id The signup ID.
+	 * @param array  $meta The signup meta.
+	 * @param string $hashed The hashed activation key.
+	 * @return string The activation key.
+	 */
+	public function capture_activation_key( $user, $user_email, $key, $signup_id, $meta, $hashed ) {
+		$this->captured_activation_key = $key;
+		return $key;
 	}
 }

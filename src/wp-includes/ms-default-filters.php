@@ -26,7 +26,7 @@ add_action( 'init', 'maybe_add_existing_user_to_blog' );
 add_action( 'wpmu_new_user', 'newuser_notify_siteadmin' );
 add_action( 'wpmu_activate_user', 'add_new_user_to_blog', 10, 3 );
 add_action( 'wpmu_activate_user', 'wpmu_welcome_user_notification', 10, 3 );
-add_action( 'after_signup_user', 'wpmu_signup_user_notification', 10, 4 );
+add_action( 'after_signup_user', 'wpmu_signup_user_notification', 10, 5 );
 add_action( 'network_site_new_created_user', 'wp_send_new_user_notifications' );
 add_action( 'network_site_users_created_user', 'wp_send_new_user_notifications' );
 add_action( 'network_user_new_created_user', 'wp_send_new_user_notifications' );
@@ -39,7 +39,7 @@ add_action( 'switch_blog', 'wp_switch_roles_and_user', 1, 2 );
 // Blogs.
 add_filter( 'wpmu_validate_blog_signup', 'signup_nonce_check' );
 add_action( 'wpmu_activate_blog', 'wpmu_welcome_notification', 10, 5 );
-add_action( 'after_signup_site', 'wpmu_signup_blog_notification', 10, 7 );
+add_action( 'after_signup_site', 'wpmu_signup_blog_notification', 10, 8 );
 add_filter( 'wp_normalize_site_data', 'wp_normalize_site_data', 10, 1 );
 add_action( 'wp_validate_site_data', 'wp_validate_site_data', 10, 3 );
 add_action( 'wp_insert_site', 'wp_maybe_update_network_site_counts_on_update', 10, 1 );
