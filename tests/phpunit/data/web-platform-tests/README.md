@@ -7,7 +7,7 @@ The current tests can be found on GitHub at
 [`web-platform-tests/wpt/html/syntax/parsing/resources`](https://github.com/web-platform-tests/wpt/tree/master/html/syntax/parsing/resources).
 
 The version of the WPT files was taken from the git commit with
-SHA [`1ae157bacf6cb1db64a60875800a30c80a4fc93c`](https://github.com/web-platform-tests/wpt/tree/1ae157bacf6cb1db64a60875800a30c80a4fc93c/html/syntax/parsing/resources).
+SHA [`a315c382eac131075717bee5343225434508b0d2`](https://github.com/web-platform-tests/wpt/commit/a315c382eac131075717bee5343225434508b0d2).
 
 ## Updating
 
