@@ -18,13 +18,15 @@
 	}
 
 	function getSiblingElements( element, selector ) {
-		var siblingElements = [];
+		var siblingElements = [],
+			children = element.parentElement.children,
+			i;
 
-		element.parentElement.children.forEach( function( sibling ) {
-			if ( sibling !== element && ( ! selector || sibling.matches( selector ) ) ) {
-				siblingElements.push( sibling );
+		for ( i = 0; i < children.length; i++ ) {
+			if ( children[ i ] !== element && ( ! selector || children[ i ].matches( selector ) ) ) {
+				siblingElements.push( children[ i ] );
 			}
-		} );
+		}
 
 		return siblingElements;
 	}
@@ -70,17 +72,19 @@
 			parentElement.classList.toggle( 'focus' );
 		} );
 	}
-	document.querySelector( '.main-navigation' ).getElementsByTagName( 'a' ).forEach( function( menuLink ) {
+	nav.querySelectorAll( 'a' ).forEach( function( menuLink ) {
 		menuLink.addEventListener( 'focus', toggleParentsFocusClass );
 		menuLink.addEventListener( 'blur', toggleParentsFocusClass );
 	} );
 
+	// Use event delegation so the handler also covers dynamically added menu items.
 	if ( 'ontouchstart' in window ) {
 		document.body.addEventListener( 'touchstart', function( e ) {
-			for ( var target = e.target; target && target != this; target = target.parentNode ) {
+			var target, el;
+			for ( target = e.target; target && target !== this; target = target.parentNode ) {
 				if ( target.matches( '.menu-item-has-children > a, .page_item_has_children > a' ) ) {
-					var el = getParentElements( target, 'li' )[0];
-					if ( el.classList.contains( 'focus' ) ) {
+					el = getParentElements( target, 'li' )[0];
+					if ( el && ! el.classList.contains( 'focus' ) ) {
 						e.preventDefault();
 						el.classList.add( 'focus' );
 						getSiblingElements( el, '.focus' ).forEach( function( siblingElement ) {
@@ -90,19 +94,6 @@
 					break;
 				}
 			}
-		} );
-		document.querySelectorAll( '.menu-item-has-children > a, .page_item_has_children > a' ).forEach( function( menuLink ) {
-			menuLink.addEventListener( 'touchstart', function( e ) {
-				var el = getParentElements( this, 'li' )[0];
-
-				if ( el.classList.contains( 'focus' ) ) {
-					e.preventDefault();
-					el.classList.add( 'focus' );
-					getSiblingElements( el, '.focus' ).forEach( function( siblingElement ) {
-						siblingElement.classList.remove( 'focus' );
-					} );
-				}
-			} );
-		} );
+		}, { passive: false } ); // Explicitly non-passive, as browsers default to passive touch listeners on body.
 	}
 } )();
