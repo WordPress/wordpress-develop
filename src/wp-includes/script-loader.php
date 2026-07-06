@@ -2944,6 +2944,102 @@ function wp_enqueue_editor_format_library_assets() {
 }
 
 /**
+ * Enqueues the On This Day Query Loop variation in the block editor.
+ *
+ * @since 7.1.0
+ */
+function _wp_enqueue_on_this_day_query_loop_variation() {
+	$variation = array(
+		'name'            => 'core/on-this-day',
+		'title'           => __( 'On This Day' ),
+		'description'     => __( 'Display posts published on this calendar day in previous years.' ),
+		'icon'            => 'calendar',
+		'scope'           => array( 'inserter', 'transform' ),
+		'isActive'        => array( 'namespace' ),
+		'allowedControls' => array(
+			'perPage',
+			'offset',
+			'pages',
+			'order',
+			'sticky',
+			'taxQuery',
+			'author',
+			'search',
+			'parents',
+			'format',
+		),
+		'attributes'      => array(
+			'namespace' => 'core/on-this-day',
+			'query'     => array(
+				'perPage'   => 10,
+				'pages'     => 0,
+				'offset'    => 0,
+				'postType'  => 'post',
+				'order'     => 'desc',
+				'orderBy'   => 'date',
+				'author'    => '',
+				'search'    => '',
+				'exclude'   => array(),
+				'sticky'    => 'ignore',
+				'inherit'   => false,
+				'taxQuery'  => null,
+				'parents'   => array(),
+				'format'    => array(),
+				'onThisDay' => true,
+			),
+		),
+		'innerBlocks'     => array(
+			array(
+				'core/post-template',
+				array(),
+				array(
+					array(
+						'core/post-title',
+						array(
+							'isLink' => true,
+						),
+					),
+					array( 'core/post-date' ),
+					array( 'core/post-excerpt' ),
+				),
+			),
+			array(
+				'core/query-pagination',
+				array(),
+				array(
+					array( 'core/query-pagination-previous' ),
+					array( 'core/query-pagination-numbers' ),
+					array( 'core/query-pagination-next' ),
+				),
+			),
+			array(
+				'core/query-no-results',
+				array(),
+				array(
+					array(
+						'core/paragraph',
+						array(
+							'content' => __( 'No posts found from this day in previous years.' ),
+						),
+					),
+				),
+			),
+		),
+	);
+
+	wp_register_script( 'wp-on-this-day-query-loop-variation', false, array( 'wp-blocks' ), true, array( 'in_footer' => true ) );
+	wp_add_inline_script(
+		'wp-on-this-day-query-loop-variation',
+		sprintf(
+			'wp.blocks.registerBlockVariation( %s, %s );',
+			wp_json_encode( 'core/query', JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ),
+			wp_json_encode( $variation, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES )
+		)
+	);
+	wp_enqueue_script( 'wp-on-this-day-query-loop-variation' );
+}
+
+/**
  * Formats `<script>` loader tags.
  *
  * It is possible to inject attributes in the `<script>` tag via the {@see 'wp_script_attributes'} filter.

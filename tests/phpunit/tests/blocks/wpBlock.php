@@ -1402,6 +1402,122 @@ HTML
 		);
 	}
 
+	public function test_enqueue_on_this_day_query_loop_variation() {
+		$handle = 'wp-on-this-day-query-loop-variation';
+
+		_wp_enqueue_on_this_day_query_loop_variation();
+
+		$after = wp_scripts()->get_data( $handle, 'after' );
+
+		$this->assertTrue( wp_script_is( $handle, 'enqueued' ) );
+		$this->assertIsArray( $after );
+		$this->assertStringContainsString( 'wp.blocks.registerBlockVariation( "core/query"', implode( "\n", $after ) );
+		$this->assertStringContainsString( '"name":"core/on-this-day"', implode( "\n", $after ) );
+		$this->assertStringContainsString( '"onThisDay":true', implode( "\n", $after ) );
+	}
+
+	public function test_get_on_this_day_query_date_query() {
+		$date  = new DateTimeImmutable( '2026-06-29 12:00:00', wp_timezone() );
+		$query = _wp_get_on_this_day_query_date_query( $date );
+
+		$this->assertSame(
+			array(
+				'relation' => 'AND',
+				array(
+					'before' => array( 'year' => 2026 ),
+				),
+				array(
+					'month' => 6,
+					'day'   => 29,
+				),
+			),
+			$query
+		);
+	}
+
+	public function test_get_on_this_day_query_date_query_includes_february_29_on_february_28_in_non_leap_year() {
+		$date  = new DateTimeImmutable( '2023-02-28 12:00:00', wp_timezone() );
+		$query = _wp_get_on_this_day_query_date_query( $date );
+
+		$this->assertSame(
+			array(
+				'relation' => 'AND',
+				array(
+					'before' => array( 'year' => 2023 ),
+				),
+				array(
+					'relation' => 'OR',
+					array(
+						'month' => 2,
+						'day'   => 28,
+					),
+					array(
+						'month' => 2,
+						'day'   => 29,
+					),
+				),
+			),
+			$query
+		);
+	}
+
+	public function test_get_on_this_day_query_date_query_does_not_include_february_29_on_february_28_in_leap_year() {
+		$date  = new DateTimeImmutable( '2024-02-28 12:00:00', wp_timezone() );
+		$query = _wp_get_on_this_day_query_date_query( $date );
+
+		$this->assertSame(
+			array(
+				'relation' => 'AND',
+				array(
+					'before' => array( 'year' => 2024 ),
+				),
+				array(
+					'month' => 2,
+					'day'   => 28,
+				),
+			),
+			$query
+		);
+	}
+
+	public function test_build_query_vars_from_on_this_day_query_loop_block() {
+		$this->registry->register(
+			'core/example',
+			array( 'uses_context' => array( 'query' ) )
+		);
+
+		$parsed_blocks = parse_blocks( '<!-- wp:example {"ok":true} -->a<!-- wp:example /-->b<!-- /wp:example -->' );
+		$parsed_block  = $parsed_blocks[0];
+		$context       = array(
+			'query' => array(
+				'onThisDay' => true,
+			),
+		);
+		$block         = new WP_Block( $parsed_block, $context, $this->registry );
+		$query         = build_query_vars_from_query_block( $block, 1 );
+
+		$this->assertSame( _wp_get_on_this_day_query_date_query(), $query['date_query'] );
+		$this->assertSame( 'publish', $query['post_status'] );
+		$this->assertTrue( $query['ignore_sticky_posts'] );
+	}
+
+	public function test_on_this_day_rest_post_query_filter() {
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$request->set_param( 'onThisDay', true );
+
+		$query = _wp_filter_on_this_day_rest_post_query( array(), $request );
+
+		$this->assertSame( _wp_get_on_this_day_query_date_query(), $query['date_query'] );
+		$this->assertSame( 'publish', $query['post_status'] );
+		$this->assertTrue( $query['ignore_sticky_posts'] );
+	}
+
+	public function test_on_this_day_rest_post_collection_param() {
+		$query_params = _wp_register_on_this_day_rest_post_collection_param( array() );
+
+		$this->assertSame( 'boolean', $query_params['onThisDay']['type'] );
+	}
+
 	/**
 	 * @ticket 52991
 	 */
