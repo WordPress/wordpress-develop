@@ -10,24 +10,18 @@ class Admin_Includes_Comment_EditComment_Test extends WP_UnitTestCase {
 
 	/**
 	 * Admin user ID.
-	 *
-	 * @var int
 	 */
-	public static $admin_id;
+	public static int $admin_id;
 
 	/**
 	 * Post ID to add comments to.
-	 *
-	 * @var int
 	 */
-	public static $post_id;
+	public static int $post_id;
 
 	/**
 	 * Another post ID, to test cross-post re-parenting.
-	 *
-	 * @var int
 	 */
-	public static $other_post_id;
+	public static int $other_post_id;
 
 	/**
 	 * Create the user and posts for the tests.

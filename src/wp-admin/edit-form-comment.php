@@ -207,9 +207,11 @@ if ( $comment->comment_parent ) {
 	$parent = get_comment( $comment->comment_parent );
 
 	if ( $parent ) {
-		$parent_link    = esc_url( get_comment_link( $parent ) );
-		$name           = get_comment_author( $parent );
-		$parent_display = '<a href="' . $parent_link . '">' . $name . '</a>';
+		$parent_display = sprintf(
+			'<a href="%s">%s</a>',
+			esc_url( get_comment_link( $parent ) ),
+			esc_html( get_comment_author( $parent ) )
+		);
 	}
 }
 
@@ -231,7 +233,7 @@ foreach ( $post_comments as $post_comment ) {
 }
 
 $comment_descendants = array();
-$comment_queue       = array( $comment->comment_ID );
+$comment_queue       = array( (int) $comment->comment_ID );
 
 while ( $comment_queue ) {
 	$descendant_parent = array_shift( $comment_queue );
@@ -276,7 +278,7 @@ printf(
 	foreach ( $post_comments as $post_comment ) {
 		$post_comment_id = (int) $post_comment->comment_ID;
 
-		if ( $post_comment_id === $comment->comment_ID || isset( $comment_descendants[ $post_comment_id ] ) ) {
+		if ( $post_comment_id === (int) $comment->comment_ID || isset( $comment_descendants[ $post_comment_id ] ) ) {
 			continue;
 		}
 
@@ -292,7 +294,7 @@ printf(
 		);
 
 		printf(
-			"\t<option value=\"%d\" data-author=\"%s\"%s>%s</option>\n",
+			"\t<option value='%d' data-author='%s'%s>%s</option>\n",
 			$post_comment_id,
 			esc_attr( get_comment_author( $post_comment ) ),
 			selected( $post_comment_id, (int) $comment->comment_parent, false ),
@@ -301,7 +303,7 @@ printf(
 	}
 
 	// The current parent may not be listed, e.g. a pingback or a comment no longer publicly visible.
-	if ( $comment->comment_parent && ! $current_parent_listed && $parent ) {
+	if ( $comment->comment_parent && ! $current_parent_listed && isset( $parent ) ) {
 		$option_label = sprintf(
 			/* translators: 1: Comment author, 2: Comment excerpt. */
 			__( '%1$s: %2$s' ),
@@ -310,7 +312,7 @@ printf(
 		);
 
 		printf(
-			"\t<option value=\"%d\" data-author=\"%s\" selected=\"selected\">%s</option>\n",
+			"\t<option value='%d' data-author='%s' selected>%s</option>\n",
 			(int) $comment->comment_parent,
 			esc_attr( get_comment_author( $parent ) ),
 			esc_html( $option_label )
