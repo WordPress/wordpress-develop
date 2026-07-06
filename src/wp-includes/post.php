@@ -6190,6 +6190,16 @@ function get_page( $page, $output = OBJECT, $filter = 'raw' ) {
  *                                respectively. Default OBJECT.
  * @param string|array $post_type Optional. Post type or array of post types. Default 'page'.
  * @return WP_Post|array|null WP_Post (or array) on success, or null on failure.
+ *
+ * @phpstan-param 'OBJECT'|'ARRAY_A'|'ARRAY_N' $output
+ * @phpstan-param string|string[]              $post_type
+ * @phpstan-return (
+ *     $output is 'ARRAY_A' ? array<string, mixed>|null : (
+ *         $output is 'ARRAY_N' ? array<int, mixed>|null : (
+ *             WP_Post|null
+ *         )
+ *     )
+ * )
  */
 function get_page_by_path( $page_path, $output = OBJECT, $post_type = 'page' ) {
 	global $wpdb;
