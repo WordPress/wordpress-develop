@@ -639,8 +639,8 @@ class Theme_Upgrader extends WP_Upgrader {
 			);
 		}
 
-		$requires_php = isset( $new_theme_data['RequiresPHP'] ) ? $new_theme_data['RequiresPHP'] : null;
-		$requires_wp  = isset( $new_theme_data['RequiresWP'] ) ? $new_theme_data['RequiresWP'] : null;
+		$requires_php = $new_theme_data['RequiresPHP'] ?? null;
+		$requires_wp  = $new_theme_data['RequiresWP'] ?? null;
 
 		if ( ! is_php_version_compatible( $requires_php ) ) {
 			$error = sprintf(
@@ -685,7 +685,7 @@ class Theme_Upgrader extends WP_Upgrader {
 			return $response;
 		}
 
-		$theme = isset( $theme['theme'] ) ? $theme['theme'] : '';
+		$theme = $theme['theme'] ?? '';
 
 		// Only run if active theme.
 		if ( get_stylesheet() !== $theme ) {
@@ -717,7 +717,7 @@ class Theme_Upgrader extends WP_Upgrader {
 			return $response;
 		}
 
-		$theme = isset( $theme['theme'] ) ? $theme['theme'] : '';
+		$theme = $theme['theme'] ?? '';
 
 		// Only run if active theme.
 		if ( get_stylesheet() !== $theme ) {
@@ -746,7 +746,7 @@ class Theme_Upgrader extends WP_Upgrader {
 	 *
 	 * @since 2.8.0
 	 *
-	 * @global WP_Filesystem_Base $wp_filesystem Subclass
+	 * @global WP_Filesystem_Base $wp_filesystem Filesystem subclass.
 	 *
 	 * @param bool   $removed
 	 * @param string $local_destination

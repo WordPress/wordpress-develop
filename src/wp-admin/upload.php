@@ -87,7 +87,7 @@ if ( ! empty( $_GET['trashed'] ) && absint( $_GET['trashed'] ) ) {
 
 	$message .= sprintf(
 		' <a href="%1$s">%2$s</a>',
-		esc_url( wp_nonce_url( 'upload.php?doaction=undo&action=untrash&ids=' . ( isset( $_GET['ids'] ) ? $_GET['ids'] : '' ), 'bulk-media' ) ),
+		esc_url( wp_nonce_url( 'upload.php?doaction=undo&action=untrash&ids=' . ( $_GET['ids'] ?? '' ), 'bulk-media' ) ),
 		__( 'Undo' )
 	);
 
@@ -117,7 +117,7 @@ $messages[2] = __( 'Media file permanently deleted.' );
 $messages[3] = __( 'Error saving media file.' );
 $messages[4] = __( 'Media file moved to the Trash.' ) . sprintf(
 	' <a href="%1$s">%2$s</a>',
-	esc_url( wp_nonce_url( 'upload.php?doaction=undo&action=untrash&ids=' . ( isset( $_GET['ids'] ) ? $_GET['ids'] : '' ), 'bulk-media' ) ),
+	esc_url( wp_nonce_url( 'upload.php?doaction=undo&action=untrash&ids=' . ( $_GET['ids'] ?? '' ), 'bulk-media' ) ),
 	__( 'Undo' )
 );
 $messages[5] = __( 'Media file restored from the Trash.' );
@@ -180,7 +180,7 @@ if ( 'grid' === $mode ) {
 			'content' =>
 				'<p>' . __( 'All the files you&#8217;ve uploaded are listed in the Media Library, with the most recent uploads listed first.' ) . '</p>' .
 				'<p>' . __( 'You can view your media in a simple visual grid or a list with columns. Switch between these views using the icons to the left above the media.' ) . '</p>' .
-				'<p>' . __( 'To delete media items, click the Bulk Select button at the top of the screen. Select any items you wish to delete, then click the Delete Selected button. Clicking the Cancel Selection button takes you back to viewing your media.' ) . '</p>',
+				'<p>' . __( 'To delete media items, click the <strong>Bulk select</strong> button at the top of the screen. Select any items you wish to delete, then click the <strong>Delete permanently</strong> button. Clicking the <strong>Cancel</strong> button takes you back to viewing your media.' ) . '</p>',
 		)
 	);
 

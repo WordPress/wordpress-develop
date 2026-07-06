@@ -22,10 +22,10 @@ require_once ABSPATH . 'wp-admin/includes/class-walker-nav-menu-checklist.php';
  */
 function _wp_ajax_menu_quick_search( $request = array() ) {
 	$args            = array();
-	$type            = isset( $request['type'] ) ? $request['type'] : '';
-	$object_type     = isset( $request['object_type'] ) ? $request['object_type'] : '';
-	$query           = isset( $request['q'] ) ? $request['q'] : '';
-	$response_format = isset( $request['response-format'] ) ? $request['response-format'] : '';
+	$type            = $request['type'] ?? '';
+	$object_type     = $request['object_type'] ?? '';
+	$query           = $request['q'] ?? '';
+	$response_format = $request['response-format'] ?? '';
 
 	if ( ! $response_format || ! in_array( $response_format, array( 'json', 'markup' ), true ) ) {
 		$response_format = 'json';
@@ -363,7 +363,7 @@ function wp_nav_menu_item_link_meta_box() {
 	<div class="customlinkdiv" id="customlinkdiv">
 		<input type="hidden" value="custom" name="menu-item[<?php echo $_nav_menu_placeholder; ?>][menu-item-type]" />
 		<p id="menu-item-url-wrap" class="wp-clearfix">
-			<label class="howto" for="custom-menu-item-url"><?php _e( 'URL' ); ?></label>
+			<label for="custom-menu-item-url"><?php _e( 'URL' ); ?></label>
 			<input id="custom-menu-item-url" name="menu-item[<?php echo $_nav_menu_placeholder; ?>][menu-item-url]"
 				type="text"<?php wp_nav_menu_disabled_check( $nav_menu_selected_id ); ?>
 				class="code menu-item-textbox form-required" placeholder="https://"
@@ -372,14 +372,14 @@ function wp_nav_menu_item_link_meta_box() {
 		</p>
 
 		<p id="menu-item-name-wrap" class="wp-clearfix">
-			<label class="howto" for="custom-menu-item-name"><?php _e( 'Link Text' ); ?></label>
+			<label for="custom-menu-item-name"><?php _e( 'Link Text' ); ?></label>
 			<input id="custom-menu-item-name" name="menu-item[<?php echo $_nav_menu_placeholder; ?>][menu-item-title]"
 				type="text"<?php wp_nav_menu_disabled_check( $nav_menu_selected_id ); ?>
 				class="regular-text menu-item-textbox"
 			/>
 		</p>
 
-		<p class="button-controls wp-clearfix">
+		<p class="button-controls button-controls-customlinkdiv">
 			<span class="add-to-menu">
 				<input id="submit-customlinkdiv" name="add-custom-menu-item"
 					type="submit"<?php wp_nav_menu_disabled_check( $nav_menu_selected_id ); ?>
@@ -820,7 +820,7 @@ function wp_nav_menu_item_post_type_meta_box( $data_object, $box ) {
 			<?php endif; ?>
 		</div><!-- /.tabs-panel -->
 
-		<p class="button-controls wp-clearfix" data-items-type="<?php echo esc_attr( "posttype-{$post_type_name}" ); ?>">
+		<p class="button-controls" data-items-type="<?php echo esc_attr( "posttype-{$post_type_name}" ); ?>">
 			<span class="list-controls hide-if-no-js">
 				<input type="checkbox"<?php wp_nav_menu_disabled_check( $nav_menu_selected_id ); ?>
 					id="<?php echo esc_attr( $tab_name ); ?>" class="select-all"
@@ -1115,7 +1115,7 @@ function wp_nav_menu_item_taxonomy_meta_box( $data_object, $box ) {
 			</ul>
 		</div><!-- /.tabs-panel -->
 
-		<p class="button-controls wp-clearfix" data-items-type="<?php echo esc_attr( "taxonomy-{$taxonomy_name}" ); ?>">
+		<p class="button-controls" data-items-type="<?php echo esc_attr( "taxonomy-{$taxonomy_name}" ); ?>">
 			<span class="list-controls hide-if-no-js">
 				<input type="checkbox"<?php wp_nav_menu_disabled_check( $nav_menu_selected_id ); ?>
 					id="<?php echo esc_attr( $tab_name ); ?>" class="select-all"
@@ -1183,19 +1183,19 @@ function wp_save_nav_menu_items( $menu_id = 0, $menu_data = array() ) {
 			}
 
 			$args = array(
-				'menu-item-db-id'       => ( isset( $_item_object_data['menu-item-db-id'] ) ? $_item_object_data['menu-item-db-id'] : '' ),
-				'menu-item-object-id'   => ( isset( $_item_object_data['menu-item-object-id'] ) ? $_item_object_data['menu-item-object-id'] : '' ),
-				'menu-item-object'      => ( isset( $_item_object_data['menu-item-object'] ) ? $_item_object_data['menu-item-object'] : '' ),
-				'menu-item-parent-id'   => ( isset( $_item_object_data['menu-item-parent-id'] ) ? $_item_object_data['menu-item-parent-id'] : '' ),
-				'menu-item-position'    => ( isset( $_item_object_data['menu-item-position'] ) ? $_item_object_data['menu-item-position'] : '' ),
-				'menu-item-type'        => ( isset( $_item_object_data['menu-item-type'] ) ? $_item_object_data['menu-item-type'] : '' ),
-				'menu-item-title'       => ( isset( $_item_object_data['menu-item-title'] ) ? $_item_object_data['menu-item-title'] : '' ),
-				'menu-item-url'         => ( isset( $_item_object_data['menu-item-url'] ) ? $_item_object_data['menu-item-url'] : '' ),
-				'menu-item-description' => ( isset( $_item_object_data['menu-item-description'] ) ? $_item_object_data['menu-item-description'] : '' ),
-				'menu-item-attr-title'  => ( isset( $_item_object_data['menu-item-attr-title'] ) ? $_item_object_data['menu-item-attr-title'] : '' ),
-				'menu-item-target'      => ( isset( $_item_object_data['menu-item-target'] ) ? $_item_object_data['menu-item-target'] : '' ),
-				'menu-item-classes'     => ( isset( $_item_object_data['menu-item-classes'] ) ? $_item_object_data['menu-item-classes'] : '' ),
-				'menu-item-xfn'         => ( isset( $_item_object_data['menu-item-xfn'] ) ? $_item_object_data['menu-item-xfn'] : '' ),
+				'menu-item-db-id'       => $_item_object_data['menu-item-db-id'] ?? '',
+				'menu-item-object-id'   => $_item_object_data['menu-item-object-id'] ?? '',
+				'menu-item-object'      => $_item_object_data['menu-item-object'] ?? '',
+				'menu-item-parent-id'   => $_item_object_data['menu-item-parent-id'] ?? '',
+				'menu-item-position'    => $_item_object_data['menu-item-position'] ?? '',
+				'menu-item-type'        => $_item_object_data['menu-item-type'] ?? '',
+				'menu-item-title'       => $_item_object_data['menu-item-title'] ?? '',
+				'menu-item-url'         => $_item_object_data['menu-item-url'] ?? '',
+				'menu-item-description' => $_item_object_data['menu-item-description'] ?? '',
+				'menu-item-attr-title'  => $_item_object_data['menu-item-attr-title'] ?? '',
+				'menu-item-target'      => $_item_object_data['menu-item-target'] ?? '',
+				'menu-item-classes'     => $_item_object_data['menu-item-classes'] ?? '',
+				'menu-item-xfn'         => $_item_object_data['menu-item-xfn'] ?? '',
 			);
 
 			$items_saved[] = wp_update_nav_menu_item( $menu_id, $_actual_db_id, $args );
@@ -1447,7 +1447,7 @@ function wp_nav_menu_update_menu_items( $nav_menu_selected_id, $nav_menu_selecte
 
 			$args = array();
 			foreach ( $post_fields as $field ) {
-				$args[ $field ] = isset( $_POST[ $field ][ $_key ] ) ? $_POST[ $field ][ $_key ] : '';
+				$args[ $field ] = $_POST[ $field ][ $_key ] ?? '';
 			}
 
 			$menu_item_db_id = wp_update_nav_menu_item(

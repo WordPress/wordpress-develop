@@ -161,7 +161,7 @@ class WP_Http {
 	 *         @type int|false    $code    HTTP response status code.
 	 *         @type string|false $message HTTP response message.
 	 *     }
-	 *     @type WP_HTTP_Cookie[]                                  $cookies       Array of cookies set by the server.
+	 *     @type WP_Http_Cookie[]                                  $cookies       Array of cookies set by the server.
 	 *     @type string|null                                       $filename      Optional. Filename of the response.
 	 *     @type WP_HTTP_Requests_Response|null                    $http_response Response object.
 	 * }
@@ -299,7 +299,8 @@ class WP_Http {
 		}
 
 		if ( $this->block_request( $url ) ) {
-			$response = new WP_Error( 'http_request_not_executed', __( 'User has blocked requests through HTTP.' ) );
+			/* translators: %s: URL to which the HTTP request was blocked. */
+			$response = new WP_Error( 'http_request_not_executed', sprintf( __( 'User has blocked requests through HTTP to the URL: %s.' ), $url ) );
 			/** This action is documented in wp-includes/class-wp-http.php */
 			do_action( 'http_api_debug', $response, 'response', 'WpOrg\Requests\Requests', $parsed_args, $url );
 			return $response;
@@ -692,7 +693,7 @@ class WP_Http {
 
 		return array(
 			'headers' => $response[0],
-			'body'    => isset( $response[1] ) ? $response[1] : '',
+			'body'    => $response[1] ?? '',
 		);
 	}
 
@@ -804,7 +805,7 @@ class WP_Http {
 	 */
 	public static function buildCookieHeader( &$r ) { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.MethodNameInvalid
 		if ( ! empty( $r['cookies'] ) ) {
-			// Upgrade any name => value cookie pairs to WP_HTTP_Cookie instances.
+			// Upgrade any name => value cookie pairs to WP_Http_Cookie instances.
 			foreach ( $r['cookies'] as $name => $value ) {
 				if ( ! is_object( $value ) ) {
 					$r['cookies'][ $name ] = new WP_Http_Cookie(
