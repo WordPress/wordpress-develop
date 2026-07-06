@@ -1301,8 +1301,8 @@ HTML
 				'post_type'    => 'post',
 				'order'        => 'DESC',
 				'orderby'      => 'date',
-				'tax_query'    => array(),
 				'post__not_in' => array( $sticky_post_id ),
+				'tax_query'    => array(),
 			),
 			$query_args
 		);
