@@ -1213,7 +1213,6 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 		$posts1 = $query1->query( $args );
 
 		$args           = array(
-			'cache_results'          => true,
 			'fields'                 => 'ids',
 			'suppress_filters'       => true,
 			'cache_results'          => true,
