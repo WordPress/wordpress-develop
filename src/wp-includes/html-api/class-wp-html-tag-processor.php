@@ -493,7 +493,7 @@ class WP_HTML_Tag_Processor {
 	 * | *Comment*                | Found a comment or bogus comment; this is modifiable.                |
 	 * | *Presumptuous*           | Found an empty tag closer: `</>`.                                    |
 	 * | *Funky comment*          | Found a tag closer with an invalid tag name; this is modifiable.     |
-	 * | *Processing instruction* | Found a processing instruction, e.g. `<?wp-bit smile?>`.             |
+	 * | *Processing instruction* | Found a processing instruction, e.g. `<?pi-target data>`.            |
 	 *
 	 * @since 6.5.0
 	 *
