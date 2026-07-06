@@ -15,12 +15,14 @@
  *
  * @since 4.5.0
  *
- * @property int    $id
- * @property int    $network_id
- * @property string $blogname
- * @property string $siteurl
- * @property int    $post_count
- * @property string $home
+ * @property int              $id
+ * @property int              $network_id
+ * @property string           $blogname
+ * @property string           $siteurl
+ * @property int|string|false $post_count
+ * @property string           $home
+ *
+ * @phpstan-property int|numeric-string|false $post_count
  */
 #[AllowDynamicProperties]
 final class WP_Site {
