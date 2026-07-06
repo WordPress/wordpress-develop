@@ -1357,7 +1357,7 @@ class WP_Site_Health {
 			$result['description'] .= sprintf(
 				'<p>%s</p>',
 				sprintf(
-					'<span class="error"><span class="screen-reader-text">%s</span></span> %s',
+					'<span class="dashicons error" aria-hidden="true"></span><span class="screen-reader-text">%s</span> %s',
 					/* translators: Hidden accessibility text. */
 					__( 'Error' ),
 					sprintf(
@@ -2322,16 +2322,6 @@ class WP_Site_Health {
 			'test'        => 'file_uploads',
 		);
 
-		if ( ! function_exists( 'ini_get' ) ) {
-			$result['status']       = 'critical';
-			$result['description'] .= sprintf(
-				/* translators: %s: ini_get() */
-				__( 'The %s function has been disabled, some media settings are unavailable because of this.' ),
-				'<code>ini_get()</code>'
-			);
-			return $result;
-		}
-
 		if ( empty( ini_get( 'file_uploads' ) ) ) {
 			$result['status']       = 'critical';
 			$result['description'] .= sprintf(
@@ -2578,7 +2568,7 @@ class WP_Site_Health {
 		$action_url = apply_filters(
 			'site_status_persistent_object_cache_url',
 			/* translators: Localized Support reference. */
-			__( 'https://developer.wordpress.org/advanced-administration/performance/optimization/#persistent-object-cache' )
+			__( 'https://developer.wordpress.org/advanced-administration/performance/optimization/#object-caching' )
 		);
 
 		$result = array(
@@ -3834,13 +3824,7 @@ class WP_Site_Health {
 			'users_count'    => $wpdb->users,
 		);
 
-		foreach ( $threshold_map as $threshold => $table ) {
-			if ( $thresholds[ $threshold ] <= $results[ $table ]->rows ) {
-				return true;
-			}
-		}
-
-		return false;
+		return array_any( $threshold_map, fn( $table, $threshold ) => $thresholds[ $threshold ] <= $results[ $table ]->rows );
 	}
 
 	/**
