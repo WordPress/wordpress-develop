@@ -95,6 +95,16 @@ class Tests_Rewrite extends WP_UnitTestCase {
 		$this->assertStringContainsString( $redirect, $extra_rules_top[ $pattern ] );
 	}
 
+	public function test_atproto_did_rewrite_rule() {
+		global $wp_rewrite;
+
+		$wp_rewrite->flush_rules();
+
+		$rewrite_rules = $wp_rewrite->rewrite_rules();
+
+		$this->assertSame( 'index.php?atproto_did=1', $rewrite_rules['\.well-known/atproto-did$'] );
+	}
+
 	public function test_url_to_postid() {
 
 		$id = self::factory()->post->create();

@@ -97,6 +97,20 @@ $tagline_description = sprintf(
 <p class="description" id="tagline-description"><?php echo $tagline_description; ?></p></td>
 </tr>
 
+<tr>
+<th scope="row"><label for="atproto_did"><?php _e( 'AT Protocol DID' ); ?></label></th>
+<td><input name="atproto_did" type="text" id="atproto_did" aria-describedby="atproto-did-description" value="<?php form_option( 'atproto_did' ); ?>" class="regular-text code" />
+<p class="description" id="atproto-did-description">
+<?php
+printf(
+	/* translators: %s: .well-known URL path. */
+	__( 'Used to verify this domain as an AT Protocol handle. WordPress publishes it at %s.' ),
+	'<code>/.well-known/atproto-did</code>'
+);
+?>
+</p></td>
+</tr>
+
 <?php if ( current_user_can( 'upload_files' ) ) : ?>
 <tr class="hide-if-no-js site-icon-section">
 <th scope="row"><?php _e( 'Site Icon' ); ?></th>

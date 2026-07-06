@@ -116,6 +116,7 @@ require ABSPATH . WPINC . '/class-wp-email-address.php';
 require ABSPATH . WPINC . '/formatting.php';
 require ABSPATH . WPINC . '/meta.php';
 require ABSPATH . WPINC . '/functions.php';
+require ABSPATH . WPINC . '/atproto.php';
 require ABSPATH . WPINC . '/class-wp-meta-query.php';
 require ABSPATH . WPINC . '/class-wp-matchesmapregex.php';
 require ABSPATH . WPINC . '/class-wp.php';

@@ -705,8 +705,9 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 		$redirect['path'] = trailingslashit( $redirect['path'] );
 	}
 
-	// Remove trailing slash for robots.txt or sitemap requests.
+	// Remove trailing slash for robots.txt, sitemap, or AT Protocol DID requests.
 	if ( is_robots()
+		|| is_atproto_did()
 		|| ! empty( get_query_var( 'sitemap' ) ) || ! empty( get_query_var( 'sitemap-stylesheet' ) )
 	) {
 		$redirect['path'] = untrailingslashit( $redirect['path'] );

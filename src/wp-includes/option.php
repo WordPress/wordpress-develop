@@ -2765,6 +2765,18 @@ function register_initial_settings() {
 		)
 	);
 
+	register_setting(
+		'general',
+		'atproto_did',
+		array(
+			'show_in_rest' => true,
+			'type'         => 'string',
+			'label'        => __( 'AT Protocol DID' ),
+			'description'  => __( 'A decentralized identifier for AT Protocol handle verification.' ),
+			'default'      => '',
+		)
+	);
+
 	if ( ! is_multisite() ) {
 		register_setting(
 			'general',
