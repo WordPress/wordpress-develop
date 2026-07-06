@@ -72,6 +72,18 @@ class Tests_Formatting_SanitizeTitleWithDashes extends WP_UnitTestCase {
 		$this->assertSame( 'dont-break-the-space', sanitize_title_with_dashes( "don't&nbsp;break&#160;the&nbsp;space", '', 'save' ) );
 	}
 
+	/**
+	 * Non-breaking spaces must become a hyphen in the default (display) context
+	 * too, otherwise the surrounding words are merged when the entity is stripped.
+	 *
+	 * @ticket 31790
+	 */
+	public function test_replaces_nbsp_in_display_context() {
+		$this->assertSame( 'foo-bar', sanitize_title_with_dashes( "foo\xc2\xa0bar" ) );
+		$this->assertSame( 'foo-bar', sanitize_title_with_dashes( 'foo&nbsp;bar' ) );
+		$this->assertSame( 'foo-bar', sanitize_title_with_dashes( 'foo&#160;bar' ) );
+	}
+
 	public function test_replaces_ndash_mdash() {
 		$this->assertSame( 'do-the-dash', sanitize_title_with_dashes( 'Do – the Dash', '', 'save' ) );
 		$this->assertSame( 'do-the-dash', sanitize_title_with_dashes( 'Do the — Dash', '', 'save' ) );
