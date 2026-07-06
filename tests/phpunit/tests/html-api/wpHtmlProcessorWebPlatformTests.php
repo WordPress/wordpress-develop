@@ -60,13 +60,16 @@ class Tests_HtmlApi_WebPlatformTests extends WP_UnitTestCase {
 		'webkit02/line0706'         => 'Unimplemented: This parser does not support customizable SELECT element content.',
 		'webkit02/line0732'         => 'Unimplemented: This parser does not support customizable SELECT element content.',
 		'webkit02/line0748'         => 'Unimplemented: This parser does not support customizable SELECT element content.',
+
+		'tests1/line0602'           => 'Unimplemented: Updated Processing Instruction parsing.',
+		'tests1/line0641'           => 'Unimplemented: Updated Processing Instruction parsing.',
 	);
 
 	/**
 	 * Skip test files that exercise parser behavior unsupported by the HTML API.
 	 */
 	const SKIP_TEST_PREFIXES = array(
-		'processing-instructions/' => 'Unimplemented: This parser treats processing instructions as comments.',
+		'processing-instructions/' => 'Unimplemented: Updated Processing Instruction parsing.',
 	);
 
 	/**
