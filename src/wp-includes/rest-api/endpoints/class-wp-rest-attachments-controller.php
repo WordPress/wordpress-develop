@@ -123,6 +123,9 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 									$valid_sizes[] = 'full';
 									// Source-format original (e.g. the HEIC kept alongside its JPEG derivative).
 									$valid_sizes[] = self::IMAGE_SIZE_SOURCE_ORIGINAL;
+									// Converted-video companions for an animated GIF (the MP4/WebM and its poster).
+									$valid_sizes[] = 'animated_video';
+									$valid_sizes[] = 'animated_video_poster';
 
 									$items = is_string( $value ) ? array( $value ) : ( is_array( $value ) ? $value : null );
 									if ( null === $items ) {
@@ -1156,7 +1159,8 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 
 		$response = parent::prepare_item_for_response( $post, $request );
 		$fields   = $this->get_fields_for_response( $request );
-		$data     = $response->get_data();
+		/** @var array<string, mixed> $data */
+		$data = $response->get_data();
 
 		if ( in_array( 'description', $fields, true ) ) {
 			$data['description'] = array(
@@ -1214,6 +1218,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 
 					$size_data['source_url'] = $image_src[0];
 				}
+				unset( $size_data );
 
 				$full_src = wp_get_attachment_image_src( $post->ID, 'full' );
 
@@ -1295,6 +1300,87 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			}
 
 			$data['exif_orientation'] = $orientation;
+		}
+
+		if ( wp_attachment_is_image( $post ) ) {
+			$mime_type = (string) get_post_mime_type( $post );
+
+			/*
+			 * Per-file output format for images, evaluated with the real filename
+			 * and MIME type so plugins filtering image_editor_output_format can
+			 * make per-attachment decisions (e.g. JPEG -> WebP). Resolved the same
+			 * way WP_Image_Editor::set_quality() resolves the output format.
+			 */
+			if ( in_array( 'image_output_format', $fields, true ) ) {
+				$filename = get_attached_file( $post->ID );
+
+				/** This filter is documented in wp-includes/media.php */
+				$output_formats = apply_filters(
+					'image_editor_output_format',
+					array( $mime_type => $mime_type ),
+					$filename ? $filename : '',
+					$mime_type
+				);
+
+				$output_mime                 = $output_formats[ $mime_type ] ?? $mime_type;
+				$data['image_output_format'] = ( $output_mime !== $mime_type ) ? $output_mime : null;
+			}
+
+			/*
+			 * Per-file progressive/interlaced encoding flag for images, evaluated
+			 * against the attachment's MIME type.
+			 */
+			if ( in_array( 'image_save_progressive', $fields, true ) ) {
+				/** This filter is documented in wp-includes/class-wp-image-editor-gd.php */
+				$data['image_save_progressive'] = (bool) apply_filters( 'image_save_progressive', false, $mime_type );
+			}
+
+			if ( in_array( 'image_quality', $fields, true ) ) {
+				$filename = get_attached_file( $post->ID );
+
+				/** This filter is documented in wp-includes/media.php */
+				$output_formats = apply_filters(
+					'image_editor_output_format',
+					array( $mime_type => $mime_type ),
+					$filename ? $filename : '',
+					$mime_type
+				);
+				$output_mime    = $output_formats[ $mime_type ] ?? $mime_type;
+
+				$metadata    = wp_get_attachment_metadata( $post->ID, true );
+				$full_width  = max( 0, ( is_array( $metadata ) && isset( $metadata['width'] ) ) ? (int) $metadata['width'] : 0 );
+				$full_height = max( 0, ( is_array( $metadata ) && isset( $metadata['height'] ) ) ? (int) $metadata['height'] : 0 );
+
+				$full_quality = wp_get_image_encode_quality(
+					$output_mime,
+					array(
+						'width'  => $full_width,
+						'height' => $full_height,
+					)
+				);
+
+				$size_quality = array();
+
+				foreach ( wp_get_registered_image_subsizes() as $size_name => $size_data ) {
+					$quality = wp_get_image_encode_quality(
+						$output_mime,
+						array(
+							'width'  => (int) $size_data['width'],
+							'height' => (int) $size_data['height'],
+						)
+					);
+
+					// Only report sizes whose quality diverges from the full-size value.
+					if ( $quality !== $full_quality ) {
+						$size_quality[ $size_name ] = $quality;
+					}
+				}
+
+				$data['image_quality'] = array(
+					'default' => $full_quality,
+					'sizes'   => $size_quality,
+				);
+			}
 		}
 
 		$context = ! empty( $request['context'] ) ? $request['context'] : 'view';
@@ -1483,6 +1569,49 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		$schema['properties']['exif_orientation'] = array(
 			'description' => __( 'EXIF orientation value. Values 1-8 follow the EXIF specification, where 1 means no rotation needed.' ),
 			'type'        => 'integer',
+			'context'     => array( 'edit' ),
+			'readonly'    => true,
+		);
+
+		// Enumerate the registered sub-sizes so the schema documents exactly which
+		// keys may appear under "sizes".
+		$size_quality_properties = array();
+		foreach ( array_keys( wp_get_registered_image_subsizes() ) as $size_name ) {
+			$size_quality_properties[ $size_name ] = array(
+				'type'    => 'integer',
+				'minimum' => 1,
+				'maximum' => 100,
+			);
+		}
+
+		$schema['properties']['image_quality'] = array(
+			'description' => __( 'Encode quality (1-100) from the wp_editor_set_quality filter, resolved against the output MIME type. The "default" value applies to the full-size image; "sizes" lists per-registered-size overrides where the filtered value differs from "default".' ),
+			'type'        => 'object',
+			'context'     => array( 'edit' ),
+			'readonly'    => true,
+			'properties'  => array(
+				'default' => array(
+					'type'    => 'integer',
+					'minimum' => 1,
+					'maximum' => 100,
+				),
+				'sizes'   => array(
+					'type'       => 'object',
+					'properties' => $size_quality_properties,
+				),
+			),
+		);
+
+		$schema['properties']['image_output_format'] = array(
+			'description' => __( 'The output MIME type this image should be converted to, based on the image_editor_output_format filter. Null if no conversion is needed.' ),
+			'type'        => array( 'string', 'null' ),
+			'context'     => array( 'edit' ),
+			'readonly'    => true,
+		);
+
+		$schema['properties']['image_save_progressive'] = array(
+			'description' => __( 'Whether to use progressive/interlaced encoding when saving this image.' ),
+			'type'        => 'boolean',
 			'context'     => array( 'edit' ),
 			'readonly'    => true,
 		);
@@ -2118,6 +2247,132 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	}
 
 	/**
+	 * Validates that uploaded image dimensions are appropriate for the specified image size.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @param int    $width         Uploaded image width.
+	 * @param int    $height        Uploaded image height.
+	 * @param string $image_size    The target image size name.
+	 * @param int    $attachment_id The attachment ID.
+	 * @return true|WP_Error True if valid, WP_Error if invalid.
+	 */
+	private function validate_image_dimensions( int $width, int $height, string $image_size, int $attachment_id ) {
+		// All image sizes require positive dimensions.
+		if ( $width <= 0 || $height <= 0 ) {
+			return new WP_Error(
+				'rest_upload_invalid_dimensions',
+				__( 'Uploaded image must have positive dimensions.' ),
+				array( 'status' => 400 )
+			);
+		}
+
+		// 'original' size: should match original attachment dimensions.
+		if ( 'original' === $image_size ) {
+			$metadata = wp_get_attachment_metadata( $attachment_id, true );
+			if ( is_array( $metadata ) && isset( $metadata['width'], $metadata['height'] ) ) {
+				$expected_width  = (int) $metadata['width'];
+				$expected_height = (int) $metadata['height'];
+
+				if ( $width !== $expected_width || $height !== $expected_height ) {
+					return new WP_Error(
+						'rest_upload_dimension_mismatch',
+						sprintf(
+							/* translators: 1: Actual width, 2: actual height, 3: expected width, 4: expected height. */
+							__( 'Uploaded image dimensions (%1$dx%2$d) do not match original image dimensions (%3$dx%4$d).' ),
+							$width,
+							$height,
+							$expected_width,
+							$expected_height
+						),
+						array( 'status' => 400 )
+					);
+				}
+			}
+			return true;
+		}
+
+		// 'full' size (PDF thumbnails) and 'scaled': no further constraints.
+		if ( in_array( $image_size, array( 'full', 'scaled' ), true ) ) {
+			return true;
+		}
+
+		/*
+		 * 'animated_video_poster' companion: a static poster image for the
+		 * converted video. It is a real image (so it has positive dimensions)
+		 * but is not a registered sub-size, so it has no dimension constraint.
+		 */
+		if ( 'animated_video_poster' === $image_size ) {
+			return true;
+		}
+
+		// Regular image sizes: validate against registered size constraints.
+		$registered_sizes = wp_get_registered_image_subsizes();
+
+		if ( ! isset( $registered_sizes[ $image_size ] ) ) {
+			return new WP_Error(
+				'rest_upload_unknown_size',
+				__( 'Unknown image size.' ),
+				array( 'status' => 400 )
+			);
+		}
+
+		$size_data  = $registered_sizes[ $image_size ];
+		$max_width  = (int) $size_data['width'];
+		$max_height = (int) $size_data['height'];
+
+		// Validate dimensions don't exceed the registered size maximums.
+		// Allow 1px tolerance for rounding differences.
+		$tolerance = 1;
+
+		if ( $this->dimension_exceeds_max( $width, $max_width, $tolerance ) ) {
+			return new WP_Error(
+				'rest_upload_dimension_mismatch',
+				sprintf(
+					/* translators: 1: Image size name, 2: maximum width, 3: actual width. */
+					__( 'Uploaded image width (%3$d) exceeds maximum for "%1$s" size (%2$d).' ),
+					$image_size,
+					$max_width,
+					$width
+				),
+				array( 'status' => 400 )
+			);
+		}
+
+		if ( $this->dimension_exceeds_max( $height, $max_height, $tolerance ) ) {
+			return new WP_Error(
+				'rest_upload_dimension_mismatch',
+				sprintf(
+					/* translators: 1: Image size name, 2: maximum height, 3: actual height. */
+					__( 'Uploaded image height (%3$d) exceeds maximum for "%1$s" size (%2$d).' ),
+					$image_size,
+					$max_height,
+					$height
+				),
+				array( 'status' => 400 )
+			);
+		}
+
+		return true;
+	}
+
+	/**
+	 * Checks whether a dimension exceeds the maximum allowed value.
+	 *
+	 * A maximum of zero means the dimension is unconstrained.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @param int $value     The actual dimension in pixels.
+	 * @param int $max       The maximum allowed dimension in pixels. Zero means no constraint.
+	 * @param int $tolerance Pixel tolerance allowed for rounding differences.
+	 * @return bool True if the value exceeds the maximum plus tolerance.
+	 */
+	private function dimension_exceeds_max( int $value, int $max, int $tolerance ): bool {
+		return $max > 0 && $value > $max + $tolerance;
+	}
+
+	/**
 	 * Side-loads a media file without creating a new attachment.
 	 *
 	 * @since 7.1.0
@@ -2194,7 +2449,55 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		$type = $file['type'];
 		$path = $file['file'];
 
+		/** @var non-empty-string $image_size */
 		$image_size = $request['image_size'];
+
+		/*
+		 * Validate raster sub-sizes before storing them. Two companion sizes
+		 * are exempt because wp_getimagesize() may not be able to read the
+		 * file at all: the 'animated_video' companion of an animated GIF is a
+		 * video (MP4/WebM), and a source-format original (e.g. a HEIC or JXL
+		 * kept next to its JPEG derivative) may be an unreadable format. Their
+		 * dimensions are neither validated nor recorded. The
+		 * 'animated_video_poster' companion is a real image, so it is still
+		 * read and rejected if unreadable; validate_image_dimensions() skips
+		 * only the registered-size constraint for it.
+		 */
+		$skip_dimension_read = in_array( $image_size, array( self::IMAGE_SIZE_SOURCE_ORIGINAL, 'animated_video' ), true );
+
+		if ( ! $skip_dimension_read ) {
+			/*
+			 * Read the dimensions up front. A file whose dimensions cannot be
+			 * read is corrupted or an unsupported format and must be rejected
+			 * rather than silently stored with zero dimensions.
+			 */
+			$size = wp_getimagesize( $path );
+
+			if ( ! $size ) {
+				// Clean up the uploaded file.
+				wp_delete_file( $path );
+				return new WP_Error(
+					'rest_upload_invalid_image',
+					__( 'Could not read image dimensions. The file may be corrupted or an unsupported format.' ),
+					array( 'status' => 400 )
+				);
+			}
+
+			/*
+			 * Validate the dimensions match the expected size. An array
+			 * $image_size represents multiple registered sizes sharing a single
+			 * file; those are handled by the per-size branch below, so only
+			 * scalar sizes are validated here.
+			 */
+			if ( ! is_array( $image_size ) ) {
+				$validation = $this->validate_image_dimensions( $size[0], $size[1], $image_size, $attachment_id );
+				if ( is_wp_error( $validation ) ) {
+					// Clean up the uploaded file.
+					wp_delete_file( $path );
+					return $validation;
+				}
+			}
+		}
 
 		// Build sub-size data to return to the client.
 		// The client accumulates these and sends them all to the finalize
@@ -2223,6 +2526,13 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			 * Source-format original (e.g. the HEIC kept next to its JPEG
 			 * derivative). Record the filename so finalize_item can store it
 			 * under the dedicated source-image meta key.
+			 */
+			$sub_size_data['file'] = wp_basename( $path );
+		} elseif ( 'animated_video' === $image_size || 'animated_video_poster' === $image_size ) {
+			/*
+			 * Converted-video companion of an animated GIF (the MP4/WebM or
+			 * its static first-frame poster). Record the filename so
+			 * finalize_item can store it under its dedicated meta key.
 			 */
 			$sub_size_data['file'] = wp_basename( $path );
 		} elseif ( 'scaled' === $image_size ) {
@@ -2389,6 +2699,16 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 				 * is handled by wp_delete_attachment_files().
 				 */
 				$metadata[ self::META_KEY_SOURCE_IMAGE ] = $sub_size['file'];
+			} elseif ( 'animated_video' === $image_size ) {
+				/*
+				 * Converted-video companion of an animated GIF. Stored under its
+				 * own meta key; 'original_image' keeps pointing at the GIF. Cleanup
+				 * on attachment delete is handled by wp_delete_attachment_files().
+				 */
+				$metadata['animated_video'] = $sub_size['file'];
+			} elseif ( 'animated_video_poster' === $image_size ) {
+				// Static first-frame poster for the converted video.
+				$metadata['animated_video_poster'] = $sub_size['file'];
 			} elseif ( 'scaled' === $image_size ) {
 				if ( ! empty( $sub_size['original_image'] ) ) {
 					$metadata['original_image'] = $sub_size['original_image'];

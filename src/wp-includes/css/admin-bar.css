@@ -455,6 +455,7 @@ html:lang(he-il) .rtl #wpadminbar * {
 	top: 4px;
 	width: 64px;
 	height: 64px;
+	border-radius: 50%;
 }
 
 #wpadminbar #wp-admin-bar-user-info a {
@@ -481,9 +482,10 @@ html:lang(he-il) .rtl #wpadminbar * {
 #wpadminbar #wp-admin-bar-my-account.with-avatar > .ab-empty-item img,
 #wpadminbar #wp-admin-bar-my-account.with-avatar > a img {
 	width: auto;
-	height: 16px;
+	height: 20px;
 	padding: 0;
-	border: 1px solid #8c8f94;
+	border: 1px solid #2c353b;
+	border-radius: 50%;
 	background: #f0f0f1;
 	line-height: 1.84615384;
 	vertical-align: middle;
@@ -602,8 +604,6 @@ html:lang(he-il) .rtl #wpadminbar * {
 	background: #f0f0f1; /* matching my-account (user avatar) node's background */
 	border-radius: 2px;
 }
-
-
 
 /**
  * Comments
@@ -1000,7 +1000,7 @@ html:lang(he-il) .rtl #wpadminbar * {
 	#wpadminbar #wp-admin-bar-my-account > a {
 		position: relative;
 		white-space: nowrap;
-		text-indent: 150%; /* More than 100% indention is needed since this element has padding */
+		text-indent: 150%; /* More than 100% indentation is needed since this element has padding */
 		width: 28px;
 		padding: 0 10px;
 		overflow: hidden; /* Prevent link text from forcing horizontal scrolling on mobile */
@@ -1008,10 +1008,11 @@ html:lang(he-il) .rtl #wpadminbar * {
 
 	#wpadminbar .quicklinks li#wp-admin-bar-my-account.with-avatar > a img {
 		position: absolute;
-		top: 13px;
+		top: 12px;
 		right: 10px;
-		width: 26px;
-		height: 26px;
+		width: 28px;
+		height: 28px;
+		border-radius: 50%;
 	}
 
 	#wpadminbar #wp-admin-bar-user-actions.ab-submenu {
