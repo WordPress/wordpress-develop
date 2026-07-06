@@ -12913,10 +12913,6 @@ mockedApiResponse.Schema = {
         }
     },
     "image_size_threshold": 2560,
-    "image_output_formats": {},
-    "jpeg_interlaced": false,
-    "png_interlaced": false,
-    "gif_interlaced": false,
     "site_logo": 0,
     "site_icon": 0,
     "site_icon_url": ""

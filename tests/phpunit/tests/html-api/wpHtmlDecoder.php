@@ -111,6 +111,39 @@ class Tests_HtmlApi_WpHtmlDecoder extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensures unmatched named character references leave the by-ref match length unchanged.
+	 *
+	 * @ticket 65372
+	 *
+	 * @dataProvider data_unmatched_named_character_references
+	 *
+	 * @param string $context       Decoder context.
+	 * @param string $raw_text_node Raw text containing an unmatched named character reference.
+	 */
+	public function test_unmatched_named_character_reference_does_not_set_match_byte_length( $context, $raw_text_node ): void {
+		$match_byte_length = 'sentinel';
+		$this->assertNull(
+			WP_HTML_Decoder::read_character_reference( $context, $raw_text_node, 0, $match_byte_length ),
+			'Should not have matched an unmatched named character reference.'
+		);
+		$this->assertSame( 'sentinel', $match_byte_length );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{string, string}>.
+	 */
+	public static function data_unmatched_named_character_references(): array {
+		return array(
+			'text invalid name'                      => array( 'data', '&bogus;' ),
+			'text invalid short-name candidate'      => array( 'data', '&Fv=q' ),
+			'attribute invalid name'                 => array( 'attribute', '&bogus;' ),
+			'attribute invalid short-name candidate' => array( 'attribute', '&Fv=q' ),
+		);
+	}
+
+	/**
 	 * Ensures semicolonless legacy references decode before non-ASCII UTF-8 bytes in attributes.
 	 *
 	 * @dataProvider data_semicolonless_attribute_behaviors
