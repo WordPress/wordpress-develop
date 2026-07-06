@@ -1222,8 +1222,8 @@ function get_post_ancestors( $post ) {
  *
  * @phpstan-param 'raw'|'edit'|'db'|'display' $context
  * @phpstan-return (
- *     $field is 'ID'|'post_parent'|'menu_order' ? int : (
- *         $field is 'ancestors' ? non-negative-int[] : string
+ *     $field is 'ID'|'post_parent'|'menu_order' ? int|'' : (
+ *         $field is 'ancestors' ? non-negative-int[]|'' : string
  *     )
  * )
  */
