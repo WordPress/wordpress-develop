@@ -4469,6 +4469,7 @@ function wp_get_recent_posts( $args = array(), $output = ARRAY_A ) {
 		'suppress_filters' => true,
 	);
 
+	/** @var array{ fields: null, ... } $parsed_args */
 	$parsed_args = wp_parse_args( $args, $defaults );
 
 	$results = get_posts( $parsed_args );
@@ -4476,7 +4477,9 @@ function wp_get_recent_posts( $args = array(), $output = ARRAY_A ) {
 	// Backward compatibility. Prior to 3.1 expected posts to be returned in array.
 	if ( ARRAY_A === $output ) {
 		foreach ( $results as $key => $result ) {
-			$results[ $key ] = get_object_vars( $result );
+			/** @var array<string, mixed> $object_vars */
+			$object_vars     = get_object_vars( $result );
+			$results[ $key ] = $object_vars;
 		}
 		return $results ? $results : array();
 	}
