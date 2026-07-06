@@ -482,18 +482,18 @@ class WP_HTML_Tag_Processor {
 	/**
 	 * Specifies mode of operation of the parser at any given time.
 	 *
-	 * | State           | Meaning                                                              |
-	 * | ----------------|----------------------------------------------------------------------|
-	 * | *Ready*         | The parser is ready to run.                                          |
-	 * | *Complete*      | There is nothing left to parse.                                      |
-	 * | *Incomplete*    | The HTML ended in the middle of a token; nothing more can be parsed. |
-	 * | *Matched tag*   | Found an HTML tag; it's possible to modify its attributes.           |
-	 * | *Text node*     | Found a #text node; this is plaintext and modifiable.                |
-	 * | *CDATA node*    | Found a CDATA section; this is modifiable.                           |
-	 * | *Comment*       | Found a comment or bogus comment; this is modifiable.                |
-	 * | *Presumptuous*  | Found an empty tag closer: `</>`.                                    |
-	 * | *Funky comment* | Found a tag closer with an invalid tag name; this is modifiable.     |
-	 * | *PI node*       | Found a processing instruction, e.g. `<?wp-bit smile?>`.             |
+	 * | State                    | Meaning                                                              |
+	 * |--------------------------|----------------------------------------------------------------------|
+	 * | *Ready*                  | The parser is ready to run.                                          |
+	 * | *Complete*               | There is nothing left to parse.                                      |
+	 * | *Incomplete*             | The HTML ended in the middle of a token; nothing more can be parsed. |
+	 * | *Matched tag*            | Found an HTML tag; it's possible to modify its attributes.           |
+	 * | *Text node*              | Found a #text node; this is plaintext and modifiable.                |
+	 * | *CDATA node*             | Found a CDATA section; this is modifiable.                           |
+	 * | *Comment*                | Found a comment or bogus comment; this is modifiable.                |
+	 * | *Presumptuous*           | Found an empty tag closer: `</>`.                                    |
+	 * | *Funky comment*          | Found a tag closer with an invalid tag name; this is modifiable.     |
+	 * | *Processing instruction* | Found a processing instruction, e.g. `<?wp-bit smile?>`.             |
 	 *
 	 * @since 6.5.0
 	 *
@@ -507,7 +507,7 @@ class WP_HTML_Tag_Processor {
 	 * @see WP_HTML_Tag_Processor::STATE_DOCTYPE
 	 * @see WP_HTML_Tag_Processor::STATE_PRESUMPTUOUS_TAG
 	 * @see WP_HTML_Tag_Processor::STATE_FUNKY_COMMENT
-	 * @see WP_HTML_Tag_Processor::STATE_PI_NODE
+	 * @see WP_HTML_Tag_Processor::STATE_PROCESSING_INSTRUCTION
 	 *
 	 * @var string
 	 */
@@ -2091,7 +2091,7 @@ class WP_HTML_Tag_Processor {
 						--$data_length;
 					}
 
-					$this->parser_state         = self::STATE_PI_NODE;
+					$this->parser_state         = self::STATE_PROCESSING_INSTRUCTION;
 					$this->tag_name_starts_at   = $target_at;
 					$this->tag_name_length      = $target_length;
 					$this->token_length         = $closer_at + 1 - $this->token_starts_at;
@@ -3000,7 +3000,7 @@ class WP_HTML_Tag_Processor {
 		 * Processing instruction targets are case-sensitive
 		 * and returned as they appear in the input HTML.
 		 */
-		if ( self::STATE_PI_NODE === $this->parser_state ) {
+		if ( self::STATE_PROCESSING_INSTRUCTION === $this->parser_state ) {
 			return $tag_name;
 		}
 
@@ -3543,7 +3543,7 @@ class WP_HTML_Tag_Processor {
 			case self::STATE_FUNKY_COMMENT:
 				return '#funky-comment';
 
-			case self::STATE_PI_NODE:
+			case self::STATE_PROCESSING_INSTRUCTION:
 				return '#processing-instruction';
 		}
 
@@ -3773,7 +3773,7 @@ class WP_HTML_Tag_Processor {
 			self::STATE_COMMENT === $this->parser_state ||
 			self::STATE_DOCTYPE === $this->parser_state ||
 			self::STATE_FUNKY_COMMENT === $this->parser_state ||
-			self::STATE_PI_NODE === $this->parser_state
+			self::STATE_PROCESSING_INSTRUCTION === $this->parser_state
 		) {
 			return str_replace( "\x00", "\u{FFFD}", $text );
 		}
@@ -5060,7 +5060,7 @@ class WP_HTML_Tag_Processor {
 	 *
 	 * @access private
 	 */
-	const STATE_PI_NODE = 'STATE_PI_NODE';
+	const STATE_PROCESSING_INSTRUCTION = 'STATE_PROCESSING_INSTRUCTION';
 
 	/**
 	 * Indicates that a comment was created when encountering abruptly-closed HTML comment.
