@@ -1404,12 +1404,21 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 
 			/*
 			 * Processing instructions are serialized as `<?target data>`, not `<?target data?>`.
-			 * Both forms are equivalent on parse.
+			 * Both forms are parsed equivalently.
 			 *
 			 * @see https://html.spec.whatwg.org/multipage/parsing.html#serialising-html-fragments
 			 */
 			case '#processing-instruction':
-				$html .= "<?{$this->get_tag()} {$this->get_modifiable_text()}>";
+				/*
+				 * A final `?` is ignored when parsing a processing instruction. If the data ends
+				 * with `?`, it must be doubled to ensure its recognized as part of the data and
+				 * not the closing `?>` sequence.
+				 */
+				$data = $this->get_modifiable_text();
+				if ( str_ends_with( $data, '?' ) ) {
+					$data .= '?';
+				}
+				$html .= "<?{$this->get_tag()} {$data}>";
 				break;
 
 			case '#cdata-section':

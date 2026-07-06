@@ -393,8 +393,8 @@ class Tests_HtmlApi_WpHtmlProcessor_Serialize extends WP_UnitTestCase {
 	 *
 	 * Note that the serialized form separates the target from the data with a
 	 * single space and always terminates with `>`, regardless of the original
-	 * syntax. Data ending in `?` cannot be represented: `<?t d??>` holds the
-	 * data `d?` but its serialization `<?t d?>` re-parses with the data `d`.
+	 * syntax. Data ending in `?` doubles the final `?` because a `?` immediately
+	 * preceding the `>` would be consumed as part of a `?>` closer on parse.
 	 *
 	 * @ticket 61530
 	 *
@@ -403,7 +403,7 @@ class Tests_HtmlApi_WpHtmlProcessor_Serialize extends WP_UnitTestCase {
 	 * @param string $html     Input containing a processing instruction.
 	 * @param string $expected Normative serialization of the input.
 	 */
-	public function test_serializes_processing_instructions( string $html, string $expected ) {
+	public function test_serializes_processing_instructions( string $html, string $expected ): void {
 		$this->assertSame(
 			WP_HTML_Processor::normalize( $html ),
 			$expected,
@@ -412,17 +412,38 @@ class Tests_HtmlApi_WpHtmlProcessor_Serialize extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensures that normalizing an already-normalized processing instruction does not change it.
+	 *
+	 * @ticket 61530
+	 *
+	 * @dataProvider data_processing_instructions
+	 *
+	 * @param string $html     Input containing a processing instruction.
+	 * @param string $expected Normative serialization of the input.
+	 */
+	public function test_processing_instruction_normalization_is_idempotent( string $html, string $expected ): void {
+		$this->assertSame(
+			$expected,
+			WP_HTML_Processor::normalize( $expected ),
+			'Normalizing an already-normalized processing instruction should not change it.'
+		);
+	}
+
+	/**
 	 * Data provider.
 	 *
-	 * @return array[]
+	 * @return array<string, array{0: string, 1: string}>
 	 */
 	public function data_processing_instructions() {
 		return array(
-			'PHP block'               => array( '<?php foo(); ?>', '<?php foo(); >' ),
-			'Unclosed PHP block'      => array( '<?php foo(); >', '<?php foo(); >' ),
-			'Empty data'              => array( '<?wp-bit?>', '<?wp-bit >' ),
-			'Whitespace-only data'    => array( '<?wp-bit   ?>', '<?wp-bit >' ),
-			'Data with question mark' => array( '<?wp-bit smile??>', '<?wp-bit smile?>' ),
+			'PHP block'                     => array( '<?php foo(); ?>', '<?php foo(); >' ),
+			'Unclosed PHP block'            => array( '<?php foo(); >', '<?php foo(); >' ),
+			'Empty data'                    => array( '<?wp-bit?>', '<?wp-bit >' ),
+			'Whitespace-only data'          => array( '<?wp-bit   ?>', '<?wp-bit >' ),
+			'Data ending in question mark'  => array( '<?target data??>', '<?target data??>' ),
+			'Data of a lone question mark'  => array( '<?wp-bit ??>', '<?wp-bit ??>' ),
+			'Data with question mark runs'  => array( '<?wp-bit what?? news??>', '<?wp-bit what?? news??>' ),
+			'Question mark then whitespace' => array( '<?wp-bit sure? >', '<?wp-bit sure? >' ),
 		);
 	}
 
