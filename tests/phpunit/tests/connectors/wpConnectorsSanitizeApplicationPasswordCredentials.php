@@ -105,6 +105,27 @@ class Tests_Connectors_WpConnectorsSanitizeApplicationPasswordCredentials extend
 	/**
 	 * @ticket 64850
 	 */
+	public function test_empty_sanitized_username_discards_submitted_password(): void {
+		update_option(
+			self::CREDENTIALS_SETTING_NAME,
+			array(
+				'username' => '%ab',
+				'password' => 'abcd efgh ijkl mnop 1234',
+			)
+		);
+
+		$this->assertSame(
+			array(
+				'username' => '',
+				'password' => '',
+			),
+			get_option( self::CREDENTIALS_SETTING_NAME )
+		);
+	}
+
+	/**
+	 * @ticket 64850
+	 */
 	public function test_missing_fields_preserve_stored_credentials(): void {
 		update_option(
 			self::CREDENTIALS_SETTING_NAME,

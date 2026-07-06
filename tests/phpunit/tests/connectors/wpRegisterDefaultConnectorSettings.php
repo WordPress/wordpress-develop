@@ -180,6 +180,45 @@ class Tests_Connectors_WpRegisterDefaultConnectorSettings extends WP_UnitTestCas
 			),
 			$registered_settings[ self::CREDENTIALS_SETTING_NAME ]['default']
 		);
-		$this->assertFalse( $registered_settings[ self::CREDENTIALS_SETTING_NAME ]['show_in_rest'] );
+			$this->assertFalse( $registered_settings[ self::CREDENTIALS_SETTING_NAME ]['show_in_rest'] );
+	}
+
+	/**
+	 * @ticket 64850
+	 */
+	public function test_already_registered_setting_skips_before_is_active_callback(): void {
+		$is_active_called = false;
+
+		register_setting(
+			'connectors',
+			self::CREDENTIALS_SETTING_NAME,
+			array(
+				'type'         => 'object',
+				'show_in_rest' => false,
+			)
+		);
+
+		WP_Connector_Registry::get_instance()->register(
+			self::CONNECTOR_ID,
+			array(
+				'name'           => 'Test Remote WordPress Connector',
+				'description'    => '',
+				'type'           => 'content_source',
+				'authentication' => array(
+					'method'       => 'application_password',
+					'setting_name' => self::CREDENTIALS_SETTING_NAME,
+				),
+				'plugin'         => array(
+					'is_active' => static function () use ( &$is_active_called ): bool {
+						$is_active_called = true;
+						return true;
+					},
+				),
+			)
+		);
+
+		_wp_register_default_connector_settings();
+
+		$this->assertFalse( $is_active_called );
 	}
 }

@@ -473,7 +473,7 @@ function _wp_connectors_get_api_key_source( string $setting_name, string $env_va
  * Splits on the first colon, matching the HTTP Basic authentication
  * userinfo format, so passwords may contain colons.
  *
- * @since 7.0.0
+ * @since 7.1.0
  * @access private
  *
  * @param string $value The raw credentials string.
@@ -508,7 +508,7 @@ function _wp_connectors_parse_application_password_credentials( string $value ):
  * claims the source even when malformed, in which case the resolved
  * credentials are empty.
  *
- * @since 7.0.0
+ * @since 7.1.0
  * @access private
  *
  * @param array $auth The connector's authentication configuration.
@@ -547,7 +547,7 @@ function _wp_connectors_get_application_password_credentials( array $auth ): arr
 	return array(
 		'username' => $username,
 		'password' => $password,
-		'source'   => '' !== $username || '' !== $password ? 'database' : 'none',
+		'source'   => '' !== $username && '' !== $password ? 'database' : 'none',
 	);
 }
 
@@ -599,8 +599,10 @@ function _wp_connectors_is_ai_api_key_valid( string $key, string $provider_id ):
  * places in REST responses also keeps the stored password, so a masked
  * settings response can be submitted back to the endpoint unchanged.
  * Pass an empty string to clear a field.
+ * If the sanitized username is empty, both fields are discarded so partial
+ * credentials cannot leave an orphaned secret.
  *
- * @since 7.0.0
+ * @since 7.1.0
  * @access private
  *
  * @param mixed $value The submitted setting value.
@@ -631,14 +633,21 @@ function _wp_connectors_sanitize_application_password_credentials( $value ): arr
 		$credentials['password'] = isset( $stored['password'] ) && is_string( $stored['password'] ) ? $stored['password'] : '';
 	}
 
+	if ( '' === $credentials['username'] ) {
+		return array(
+			'username' => '',
+			'password' => '',
+		);
+	}
+
 	return $credentials;
 }
 
 /**
  * Masks and validates connector credentials in REST responses.
  *
- * On every `/wp/v2/settings` response, masks connector API key and application
- * password values so raw credentials are never exposed via the REST API.
+ * On every `/wp/v2/settings` response, masks connector API key values and the
+ * password field of default application-password credential objects.
  *
  * On POST or PUT requests, validates each updated AI provider API key before
  * masking. If validation fails, the key is reverted to an empty string.
@@ -725,6 +734,11 @@ function _wp_register_default_connector_settings(): void {
 			continue;
 		}
 
+		if ( empty( $auth['setting_name'] ) || isset( $registered_settings[ $auth['setting_name'] ] ) ) {
+			continue;
+		}
+		$setting_name = $auth['setting_name'];
+
 		if ( ! isset( $connector_data['plugin']['is_active'] ) || ! is_callable( $connector_data['plugin']['is_active'] ) ) {
 			continue;
 		}
@@ -733,65 +747,64 @@ function _wp_register_default_connector_settings(): void {
 			continue;
 		}
 
-		$settings = array();
-		if ( 'api_key' === $auth['method'] && ! empty( $auth['setting_name'] ) ) {
-			$settings[ $auth['setting_name'] ] = array(
-				'type'              => 'string',
-				'label'             => sprintf(
-					/* translators: %s: Connector name. */
-					__( '%s API Key' ),
-					$connector_data['name']
-				),
-				'description'       => sprintf(
-					/* translators: %s: Connector name. */
-					__( 'API key for the %s connector.' ),
-					$connector_data['name']
-				),
-				'default'           => '',
-				'show_in_rest'      => true,
-				'sanitize_callback' => 'sanitize_text_field',
-			);
-		} elseif ( 'application_password' === $auth['method'] && ! empty( $auth['setting_name'] ) ) {
-			$settings[ $auth['setting_name'] ] = array(
-				'type'              => 'object',
-				'label'             => sprintf(
-					/* translators: %s: Connector name. */
-					__( '%s Credentials' ),
-					$connector_data['name']
-				),
-				'description'       => sprintf(
-					/* translators: %s: Connector name. */
-					__( 'Application password credentials for the %s connector.' ),
-					$connector_data['name']
-				),
-				'default'           => array(
-					'username' => '',
-					'password' => '',
-				),
-				'show_in_rest'      => array(
-					'schema' => array(
-						'type'                 => 'object',
-						'properties'           => array(
-							'username' => array(
-								'type' => 'string',
-							),
-							'password' => array(
-								'type' => 'string',
-							),
-						),
-						'additionalProperties' => false,
+		if ( 'api_key' === $auth['method'] ) {
+			register_setting(
+				'connectors',
+				$setting_name,
+				array(
+					'type'              => 'string',
+					'label'             => sprintf(
+						/* translators: %s: Connector name. */
+						__( '%s API Key' ),
+						$connector_data['name']
 					),
-				),
-				'sanitize_callback' => '_wp_connectors_sanitize_application_password_credentials',
+					'description'       => sprintf(
+						/* translators: %s: Connector name. */
+						__( 'API key for the %s connector.' ),
+						$connector_data['name']
+					),
+					'default'           => '',
+					'show_in_rest'      => true,
+					'sanitize_callback' => 'sanitize_text_field',
+				)
 			);
-		}
-
-		foreach ( $settings as $setting_name => $setting_args ) {
-			// Skip settings already registered by the connector's owning plugin.
-			if ( isset( $registered_settings[ $setting_name ] ) ) {
-				continue;
-			}
-			register_setting( 'connectors', $setting_name, $setting_args );
+		} elseif ( 'application_password' === $auth['method'] ) {
+			register_setting(
+				'connectors',
+				$setting_name,
+				array(
+					'type'              => 'object',
+					'label'             => sprintf(
+						/* translators: %s: Connector name. */
+						__( '%s Credentials' ),
+						$connector_data['name']
+					),
+					'description'       => sprintf(
+						/* translators: %s: Connector name. */
+						__( 'Application password credentials for the %s connector.' ),
+						$connector_data['name']
+					),
+					'default'           => array(
+						'username' => '',
+						'password' => '',
+					),
+					'show_in_rest'      => array(
+						'schema' => array(
+							'type'                 => 'object',
+							'properties'           => array(
+								'username' => array(
+									'type' => 'string',
+								),
+								'password' => array(
+									'type' => 'string',
+								),
+							),
+							'additionalProperties' => false,
+						),
+					),
+					'sanitize_callback' => '_wp_connectors_sanitize_application_password_credentials',
+				)
+			);
 		}
 	}
 }

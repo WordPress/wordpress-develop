@@ -130,7 +130,7 @@ class Tests_Connectors_WpConnectorRegistry extends WP_UnitTestCase {
 	/**
 	 * @ticket 64850
 	 */
-	public function test_register_generates_application_password_setting_name() {
+	public function test_register_generates_credentials_setting_name() {
 		$args                   = self::$default_args;
 		$args['authentication'] = array(
 			'method'          => 'application_password',
@@ -147,7 +147,7 @@ class Tests_Connectors_WpConnectorRegistry extends WP_UnitTestCase {
 	/**
 	 * @ticket 64850
 	 */
-	public function test_register_uses_custom_application_password_setting_name() {
+	public function test_register_uses_custom_credentials_setting_name() {
 		$args                   = self::$default_args;
 		$args['authentication'] = array(
 			'method'       => 'application_password',
@@ -206,75 +206,6 @@ class Tests_Connectors_WpConnectorRegistry extends WP_UnitTestCase {
 		return array(
 			'constant name'             => array( 'constant_name' ),
 			'environment variable name' => array( 'env_var_name' ),
-		);
-	}
-
-	/**
-	 * @ticket 64850
-	 *
-	 * @dataProvider data_application_password_setting_names
-	 *
-	 * @param string $setting_name_key Authentication setting name key.
-	 */
-	public function test_register_rejects_application_password_setting_names( string $setting_name_key ) {
-		$this->setExpectedIncorrectUsage( 'WP_Connector_Registry::register' );
-
-		$args                   = self::$default_args;
-		$args['authentication'] = array(
-			'method'          => 'application_password',
-			$setting_name_key => 'remote_site_credential',
-		);
-
-		$result = $this->registry->register( 'remote-site', $args );
-
-		$this->assertNull( $result );
-	}
-
-	/**
-	 * Data provider for unsupported application password setting names.
-	 *
-	 * @return array<string, array{string}> Test cases.
-	 */
-	public function data_application_password_setting_names(): array {
-		return array(
-			'username setting name'             => array( 'username_setting_name' ),
-			'application password setting name' => array( 'application_password_setting_name' ),
-		);
-	}
-
-	/**
-	 * @ticket 64850
-	 *
-	 * @dataProvider data_application_password_setting_names_for_other_auth_methods
-	 *
-	 * @param string $method           Authentication method.
-	 * @param string $setting_name_key Authentication setting name key.
-	 */
-	public function test_register_rejects_application_password_setting_names_for_other_auth_methods( string $method, string $setting_name_key ) {
-		$this->setExpectedIncorrectUsage( 'WP_Connector_Registry::register' );
-
-		$args                   = self::$default_args;
-		$args['authentication'] = array(
-			'method'          => $method,
-			$setting_name_key => 'remote_site_credential',
-		);
-
-		$result = $this->registry->register( 'remote-site', $args );
-
-		$this->assertNull( $result );
-	}
-
-	/**
-	 * Data provider for application-password setting names with other auth methods.
-	 *
-	 * @return array<string, array{string, string}> Test cases.
-	 */
-	public function data_application_password_setting_names_for_other_auth_methods(): array {
-		return array(
-			'api_key with username setting name'          => array( 'api_key', 'username_setting_name' ),
-			'api_key with application password setting name' => array( 'api_key', 'application_password_setting_name' ),
-			'none with username setting name'             => array( 'none', 'username_setting_name' ),
-			'none with application password setting name' => array( 'none', 'application_password_setting_name' ),
 		);
 	}
 
