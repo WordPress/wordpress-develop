@@ -2603,6 +2603,10 @@ function is_post_embeddable( $post = null ) {
  *     @type bool       $suppress_filters Whether to suppress filters. Default true.
  * }
  * @return WP_Post[]|int[] Array of post objects or post IDs.
+ *
+ * @phpstan-return (
+ *     $args is array{ fields: 'ids', ... } ? int[] : WP_Post[]
+ * )
  */
 function get_posts( $args = null ) {
 	$defaults = array(
