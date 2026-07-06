@@ -4544,6 +4544,10 @@ function wp_get_recent_posts( $args = array(), $output = ARRAY_A ) {
  * @param bool  $wp_error         Optional. Whether to return a WP_Error on failure. Default false.
  * @param bool  $fire_after_hooks Optional. Whether to fire the after insert hooks. Default true.
  * @return int|WP_Error The post ID on success. The value 0 or WP_Error on failure.
+ *
+ * @phpstan-return (
+ *     $wp_error is false ? int : int|WP_Error
+ * )
  */
 function wp_insert_post( $postarr, $wp_error = false, $fire_after_hooks = true ) {
 	global $wpdb;
@@ -5269,6 +5273,10 @@ function wp_insert_post( $postarr, $wp_error = false, $fire_after_hooks = true )
  * @param bool         $wp_error         Optional. Whether to return a WP_Error on failure. Default false.
  * @param bool         $fire_after_hooks Optional. Whether to fire the after insert hooks. Default true.
  * @return int|WP_Error The post ID on success. The value 0 or WP_Error on failure.
+ *
+ * @phpstan-return (
+ *     $wp_error is false ? int : int|WP_Error
+ * )
  */
 function wp_update_post( $postarr = array(), $wp_error = false, $fire_after_hooks = true ) {
 	if ( is_object( $postarr ) ) {
@@ -6701,6 +6709,10 @@ function is_local_attachment( $url ) {
  * @param bool         $wp_error         Optional. Whether to return a WP_Error on failure. Default false.
  * @param bool         $fire_after_hooks Optional. Whether to fire the after insert hooks. Default true.
  * @return int|WP_Error The attachment ID on success. The value 0 or WP_Error on failure.
+ *
+ * @phpstan-return (
+ *     $wp_error is false ? int : int|WP_Error
+ * )
  */
 function wp_insert_attachment( $args, $file = false, $parent_post_id = 0, $wp_error = false, $fire_after_hooks = true ) {
 	$defaults = array(
