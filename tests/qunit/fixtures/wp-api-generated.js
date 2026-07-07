@@ -3693,19 +3693,14 @@ mockedApiResponse.Schema = {
                             "required": false
                         },
                         "image_size": {
-                            "description": "Image size.",
-                            "type": "string",
-                            "enum": [
-                                "thumbnail",
-                                "medium",
-                                "medium_large",
-                                "large",
-                                "1536x1536",
-                                "2048x2048",
-                                "original",
-                                "full",
-                                "scaled"
+                            "description": "Image size. Can be a single size name or an array of size names to register the same file under multiple sizes.",
+                            "type": [
+                                "string",
+                                "array"
                             ],
+                            "items": {
+                                "type": "string"
+                            },
                             "required": true
                         },
                         "convert_format": {
@@ -3732,6 +3727,50 @@ mockedApiResponse.Schema = {
                         "id": {
                             "description": "Unique identifier for the attachment.",
                             "type": "integer",
+                            "required": false
+                        },
+                        "sub_sizes": {
+                            "description": "Array of sub-size metadata collected from sideload responses.",
+                            "type": "array",
+                            "default": [],
+                            "items": {
+                                "type": "object",
+                                "properties": {
+                                    "image_size": {
+                                        "description": "Size name, or an array of size names when a single file is registered under multiple sizes with matching dimensions.",
+                                        "type": [
+                                            "string",
+                                            "array"
+                                        ],
+                                        "items": {
+                                            "type": "string"
+                                        },
+                                        "required": true
+                                    },
+                                    "width": {
+                                        "type": "integer",
+                                        "minimum": 1
+                                    },
+                                    "height": {
+                                        "type": "integer",
+                                        "minimum": 1
+                                    },
+                                    "file": {
+                                        "type": "string"
+                                    },
+                                    "mime_type": {
+                                        "type": "string",
+                                        "pattern": "^image/.*"
+                                    },
+                                    "filesize": {
+                                        "type": "integer",
+                                        "minimum": 1
+                                    },
+                                    "original_image": {
+                                        "type": "string"
+                                    }
+                                }
+                            },
                             "required": false
                         }
                     }
@@ -12874,10 +12913,6 @@ mockedApiResponse.Schema = {
         }
     },
     "image_size_threshold": 2560,
-    "image_output_formats": {},
-    "jpeg_interlaced": false,
-    "png_interlaced": false,
-    "gif_interlaced": false,
     "site_logo": 0,
     "site_icon": 0,
     "site_icon_url": ""
