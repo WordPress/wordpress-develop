@@ -288,24 +288,17 @@ class Tests_Privacy_WpPersonalDataCleanupRequests extends WP_UnitTestCase {
 		// 2 days old — past the 1-day default but within a 3-day window.
 		$this->backdate_request( $id, 2 * DAY_IN_SECONDS );
 
-		add_filter( 'user_request_key_expiration', array( $this, 'filter_expiration_to_three_days' ) );
+		add_filter(
+			'user_request_key_expiration',
+			static fn () => 3 * DAY_IN_SECONDS
+		);
 		_wp_personal_data_cleanup_requests();
-		remove_filter( 'user_request_key_expiration', array( $this, 'filter_expiration_to_three_days' ) );
 
 		$this->assertSame(
 			'request-pending',
 			get_post_status( $id ),
 			'With a 3-day expiry, a 2-day-old request should remain request-pending.'
 		);
-	}
-
-	/**
-	 * Filter callback: extend expiry to three days.
-	 *
-	 * @return int
-	 */
-	public function filter_expiration_to_three_days(): int {
-		return 3 * DAY_IN_SECONDS;
 	}
 
 	/**
