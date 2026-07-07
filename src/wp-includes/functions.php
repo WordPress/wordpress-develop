@@ -1614,6 +1614,26 @@ function wp_set_cookie( string $name, string $value, array $options = array() ) 
 }
 
 /**
+ * Removes a cookie from the browser.
+ *
+ * Sends a cookie with an empty value and an expiry time in the past, which
+ * instructs the browser to delete it. The path and domain must match those
+ * used when the cookie was originally set for the removal to take effect.
+ *
+ * @since x.y.z
+ *
+ * @param string $name    The name of the cookie.
+ * @param array  $options Optional. Options to pass to setcookie(). See wp_set_cookie() for the full list.
+ *                        Default empty array.
+ * @return bool True if the cookie was removed successfully, false otherwise.
+ */
+function wp_unset_cookie( string $name, array $options = array() ) : bool {
+	$options['expires'] = time() - YEAR_IN_SECONDS;
+
+	return wp_set_cookie( $name, ' ', $options );
+}
+
+/**
  * Sets the HTTP headers for caching for 10 days with JavaScript content type.
  *
  * @since 2.1.0

@@ -60,7 +60,13 @@ if ( $key ) {
 if ( null === $result && isset( $_COOKIE[ $activate_cookie ] ) ) {
 	$key    = $_COOKIE[ $activate_cookie ];
 	$result = wpmu_activate_signup( $key );
-	setcookie( $activate_cookie, ' ', time() - YEAR_IN_SECONDS, $activate_path, COOKIE_DOMAIN, is_ssl(), true );
+	wp_unset_cookie(
+		$activate_cookie,
+		array(
+			'path'   => $activate_path,
+			'domain' => COOKIE_DOMAIN,
+		)
+	);
 }
 
 if ( null === $result || ( is_wp_error( $result ) && 'invalid_key' === $result->get_error_code() ) ) {

@@ -1934,7 +1934,12 @@ function delete_all_user_settings() {
 	}
 
 	update_user_option( $user_id, 'user-settings', '', false );
-	setcookie( 'wp-settings-' . $user_id, ' ', time() - YEAR_IN_SECONDS, SITECOOKIEPATH );
+	wp_unset_cookie(
+		'wp-settings-' . $user_id,
+		array(
+			'path' => SITECOOKIEPATH,
+		)
+	);
 }
 
 /**

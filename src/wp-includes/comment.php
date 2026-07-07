@@ -586,10 +586,27 @@ function wp_set_comment_cookies( $comment, $user, $cookies_consent = true ) {
 
 	if ( false === $cookies_consent ) {
 		// Remove any existing cookies.
-		$past = time() - YEAR_IN_SECONDS;
-		setcookie( 'comment_author_' . COOKIEHASH, ' ', $past, COOKIEPATH, COOKIE_DOMAIN );
-		setcookie( 'comment_author_email_' . COOKIEHASH, ' ', $past, COOKIEPATH, COOKIE_DOMAIN );
-		setcookie( 'comment_author_url_' . COOKIEHASH, ' ', $past, COOKIEPATH, COOKIE_DOMAIN );
+		wp_unset_cookie(
+			'comment_author_' . COOKIEHASH,
+			array(
+				'path'   => COOKIEPATH,
+				'domain' => COOKIE_DOMAIN,
+			)
+		);
+		wp_unset_cookie(
+			'comment_author_email_' . COOKIEHASH,
+			array(
+				'path'   => COOKIEPATH,
+				'domain' => COOKIE_DOMAIN,
+			)
+		);
+		wp_unset_cookie(
+			'comment_author_url_' . COOKIEHASH,
+			array(
+				'path'   => COOKIEPATH,
+				'domain' => COOKIE_DOMAIN,
+			)
+		);
 
 		return;
 	}

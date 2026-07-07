@@ -1018,7 +1018,13 @@ switch ( $action ) {
 		}
 
 		if ( ! $user || is_wp_error( $user ) ) {
-			setcookie( $rp_cookie, ' ', time() - YEAR_IN_SECONDS, $rp_path, COOKIE_DOMAIN, is_ssl(), true );
+			wp_unset_cookie(
+				$rp_cookie,
+				array(
+					'path'   => $rp_path,
+					'domain' => COOKIE_DOMAIN,
+				)
+			);
 
 			if ( $user && $user->get_error_code() === 'expired_key' ) {
 				wp_redirect( site_url( 'wp-login.php?action=lostpassword&error=expiredkey' ) );
@@ -1548,7 +1554,13 @@ switch ( $action ) {
 		if ( isset( $_COOKIE[ $rp_cookie ] ) && is_string( $_COOKIE[ $rp_cookie ] ) ) {
 			$user_login      = sanitize_user( strtok( wp_unslash( $_COOKIE[ $rp_cookie ] ), ':' ) );
 			list( $rp_path ) = explode( '?', wp_unslash( $_SERVER['REQUEST_URI'] ) );
-			setcookie( $rp_cookie, ' ', time() - YEAR_IN_SECONDS, $rp_path, COOKIE_DOMAIN, is_ssl(), true );
+			wp_unset_cookie(
+				$rp_cookie,
+				array(
+					'path'   => $rp_path,
+					'domain' => COOKIE_DOMAIN,
+				)
+			);
 		}
 
 		login_header( __( 'Log In' ), '', $errors );
