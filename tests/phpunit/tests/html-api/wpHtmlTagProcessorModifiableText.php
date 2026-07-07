@@ -459,7 +459,7 @@ HTML
 	 * @param string $new_data Data to set on the processing instruction.
 	 * @param string $expected Expected document after the update.
 	 */
-	public function test_sets_processing_instruction_data( string $html, string $new_data, string $expected ) {
+	public function test_sets_processing_instruction_data( string $html, string $new_data, string $expected ): void {
 		$processor = new WP_HTML_Tag_Processor( $html );
 		$processor->next_token();
 
@@ -525,9 +525,9 @@ HTML
 	/**
 	 * Data provider.
 	 *
-	 * @return array[]
+	 * @return array<string, array{0: string, 1: string, 2: string}>
 	 */
-	public static function data_processing_instruction_data_updates() {
+	public static function data_processing_instruction_data_updates(): array {
 		return array(
 			'Replace data'                     => array( '<?wp-bit before?>', 'after', '<?wp-bit after?>' ),
 			'Bare closer preserved'            => array( '<?wp-bit before>', 'after', '<?wp-bit after>' ),
@@ -549,7 +549,7 @@ HTML
 	 *
 	 * @ticket 61530
 	 */
-	public function test_replaces_previous_processing_instruction_data_update() {
+	public function test_replaces_previous_processing_instruction_data_update(): void {
 		$processor = new WP_HTML_Tag_Processor( '<?wp-bit?>' );
 		$processor->next_token();
 

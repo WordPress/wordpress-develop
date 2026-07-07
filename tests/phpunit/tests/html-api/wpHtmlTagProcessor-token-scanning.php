@@ -626,7 +626,7 @@ HTML
 	 *
 	 * @covers WP_HTML_Tag_Processor::next_token
 	 */
-	public function test_basic_assertion_xml_processing_instruction() {
+	public function test_basic_assertion_xml_processing_instruction(): void {
 		$processor = new WP_HTML_Tag_Processor( '<?xml version="1.0"?>' );
 		$processor->next_token();
 

@@ -23,7 +23,7 @@ class Tests_HtmlApi_WpHtmlProcessorProcessingInstruction extends WP_UnitTestCase
 	 * @param string $expected_target Target of the processing instruction.
 	 * @param string $expected_data   Data of the processing instruction.
 	 */
-	public function test_processing_instructions( string $html, string $expected_target, string $expected_data ) {
+	public function test_processing_instructions( string $html, string $expected_target, string $expected_data ): void {
 		$processor = WP_HTML_Processor::create_fragment( $html );
 		$processor->next_token();
 
@@ -41,9 +41,9 @@ class Tests_HtmlApi_WpHtmlProcessorProcessingInstruction extends WP_UnitTestCase
 	 * further text through the closing `>` is, excepting a final `?` when
 	 * the processing instruction is closed by `?>`.
 	 *
-	 * @return array[]
+	 * @return array<string, array{0: string, 1: string, 2: string}>
 	 */
-	public static function data_processing_instructions() {
+	public static function data_processing_instructions(): array {
 		return array(
 			'Basic'                        => array( '<?pi-target Instruction body. ?>', 'pi-target', 'Instruction body. ' ),
 			'PHP block'                    => array( '<?php const HTML_COMMENT = true; ?>', 'php', 'const HTML_COMMENT = true; ' ),
@@ -78,7 +78,7 @@ class Tests_HtmlApi_WpHtmlProcessorProcessingInstruction extends WP_UnitTestCase
 	 *
 	 * @param string $html Input whose processing-instruction-like syntax has an invalid target.
 	 */
-	public function test_invalid_targets_become_comments( string $html ) {
+	public function test_invalid_targets_become_comments( string $html ): void {
 		$processor = WP_HTML_Processor::create_fragment( $html );
 		$processor->next_token();
 
@@ -88,9 +88,9 @@ class Tests_HtmlApi_WpHtmlProcessorProcessingInstruction extends WP_UnitTestCase
 	/**
 	 * Data provider.
 	 *
-	 * @return array[]
+	 * @return array<string, array{0: string}>
 	 */
-	public static function data_invalid_targets() {
+	public static function data_invalid_targets(): array {
 		return array(
 			'Reserved xml target'            => array( '<?xml version="1.0"?>' ),
 			'Reserved xml-stylesheet target' => array( '<?xml-stylesheet href="a.css"?>' ),
@@ -116,7 +116,7 @@ class Tests_HtmlApi_WpHtmlProcessorProcessingInstruction extends WP_UnitTestCase
 	 *
 	 * @param string $html Input ending inside a processing instruction.
 	 */
-	public function test_incomplete_processing_instruction( string $html ) {
+	public function test_incomplete_processing_instruction( string $html ): void {
 		$processor = WP_HTML_Processor::create_full_parser( $html );
 
 		$this->assertFalse( $processor->next_token() );
@@ -126,9 +126,9 @@ class Tests_HtmlApi_WpHtmlProcessorProcessingInstruction extends WP_UnitTestCase
 	/**
 	 * Data provider.
 	 *
-	 * @return array[]
+	 * @return array<string, array{0: string}>
 	 */
-	public static function data_incomplete_processing_instructions() {
+	public static function data_incomplete_processing_instructions(): array {
 		return array(
 			'Bare opener'        => array( '<?' ),
 			'Target only'        => array( '<?start' ),
@@ -153,7 +153,7 @@ class Tests_HtmlApi_WpHtmlProcessorProcessingInstruction extends WP_UnitTestCase
 	 * @param string $html        Input containing a processing instruction somewhere.
 	 * @param string $breadcrumbs Breadcrumbs of the processing instruction, joined by " > ".
 	 */
-	public function test_processing_instruction_placement( string $html, string $breadcrumbs ) {
+	public function test_processing_instruction_placement( string $html, string $breadcrumbs ): void {
 		$processor = WP_HTML_Processor::create_full_parser( $html );
 
 		while ( $processor->next_token() ) {
@@ -173,9 +173,9 @@ class Tests_HtmlApi_WpHtmlProcessorProcessingInstruction extends WP_UnitTestCase
 	/**
 	 * Data provider.
 	 *
-	 * @return array[]
+	 * @return array<string, array{0: string, 1: string}>
 	 */
-	public static function data_processing_instruction_placement() {
+	public static function data_processing_instruction_placement(): array {
 		return array(
 			'Before HTML'        => array( '<?wp-bit?><html>', '#processing-instruction' ),
 			'In HEAD'            => array( '<head><?wp-bit?>', 'HTML > HEAD > #processing-instruction' ),
@@ -198,7 +198,7 @@ class Tests_HtmlApi_WpHtmlProcessorProcessingInstruction extends WP_UnitTestCase
 	 *
 	 * @param string $html Input containing processing-instruction-like syntax in a raw text element.
 	 */
-	public function test_no_processing_instruction_in_raw_text( string $html ) {
+	public function test_no_processing_instruction_in_raw_text( string $html ): void {
 		$processor = WP_HTML_Processor::create_fragment( $html );
 
 		while ( $processor->next_token() ) {
@@ -213,9 +213,9 @@ class Tests_HtmlApi_WpHtmlProcessorProcessingInstruction extends WP_UnitTestCase
 	/**
 	 * Data provider.
 	 *
-	 * @return array[]
+	 * @return array<string, array{0: string}>
 	 */
-	public static function data_raw_text_elements() {
+	public static function data_raw_text_elements(): array {
 		return array(
 			'SCRIPT'   => array( '<script><?php echo "?>"; ?></script>' ),
 			'STYLE'    => array( '<style><?wp-bit?></style>' ),

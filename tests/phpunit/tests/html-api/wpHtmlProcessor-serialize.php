@@ -434,7 +434,7 @@ class Tests_HtmlApi_WpHtmlProcessor_Serialize extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{0: string, 1: string}>
 	 */
-	public function data_processing_instructions() {
+	public function data_processing_instructions(): array {
 		return array(
 			'PHP block'                     => array( '<?php foo(); ?>', '<?php foo(); >' ),
 			'Unclosed PHP block'            => array( '<?php foo(); >', '<?php foo(); >' ),
