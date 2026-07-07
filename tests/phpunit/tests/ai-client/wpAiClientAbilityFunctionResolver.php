@@ -667,6 +667,54 @@ class Tests_AI_Client_AbilityFunctionResolver extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test execute_abilities ignores non-ability function calls.
+	 *
+	 * A message may contain function calls for tools handled elsewhere (not
+	 * prefixed with `wpab__`). Those must be left untouched rather than answered
+	 * with a spurious `invalid_ability_call` error response, matching the parts
+	 * that has_ability_calls() reports.
+	 *
+	 * @ticket 65504
+	 */
+	public function test_execute_abilities_ignores_non_ability_function_calls() {
+		$resolver = new WP_AI_Client_Ability_Function_Resolver( 'wpaiclienttests/simple' );
+
+		$ability_call = new FunctionCall(
+			'call-ability',
+			'wpab__wpaiclienttests__simple',
+			array()
+		);
+
+		$other_call = new FunctionCall(
+			'call-other',
+			'some_other_tool',
+			array()
+		);
+
+		$message = new ModelMessage(
+			array(
+				new MessagePart( $ability_call ),
+				new MessagePart( $other_call ),
+			)
+		);
+
+		$result = $resolver->execute_abilities( $message );
+
+		$this->assertInstanceOf( UserMessage::class, $result );
+		$parts = $result->getParts();
+		// Only the ability call should produce a response; the other tool is left alone.
+		$this->assertCount( 1, $parts );
+
+		$response = $parts[0]->getFunctionResponse();
+		$this->assertInstanceOf( FunctionResponse::class, $response );
+		$this->assertSame( 'wpab__wpaiclienttests__simple', $response->getName() );
+		$data = $response->getResponse();
+		$this->assertArrayNotHasKey( 'code', $data );
+		$this->assertArrayHasKey( 'success', $data );
+		$this->assertTrue( $data['success'] );
+	}
+
+	/**
 	 * Test execute_abilities with ability that has parameters.
 	 *
 	 * @ticket 64591
