@@ -4,7 +4,7 @@
 | <html>
 |   <head>
 |   <body>
-|     <?something?>
+|     <?something ?>
 
 #data
 <body><?something><span>
@@ -12,7 +12,7 @@
 | <html>
 |   <head>
 |   <body>
-|     <?something?>
+|     <?something ?>
 |     <span>
 
 #data
@@ -37,8 +37,8 @@
 | <html>
 |   <head>
 |   <body>
-|     <?one?>
-|     <?two?>
+|     <?one ?>
+|     <?two ?>
 
 #data
 <body><?a$><?b$><?good?>
@@ -48,7 +48,7 @@
 |   <body>
 |     <!-- ?a$ -->
 |     <!-- ?b$ -->
-|     <?good?>
+|     <?good ?>
 
 #data
 <body><?hey there?>
@@ -146,7 +146,7 @@ there=1?>
 | <html>
 |   <head>
 |   <body>
-|     <?module-handler?>
+|     <?module-handler ?>
 
 #data
 <body><?module-handler data>
@@ -162,7 +162,7 @@ there=1?>
 | <html>
 |   <head>
 |   <body>
-|     <?view-port?>
+|     <?view-port ?>
 
 #data
 <body><?view-port data>
@@ -178,7 +178,7 @@ there=1?>
 | <html>
 |   <head>
 |   <body>
-|     <?config-v2?>
+|     <?config-v2 ?>
 
 #data
 <body><?config-v2 data>
@@ -194,7 +194,7 @@ there=1?>
 | <html>
 |   <head>
 |   <body>
-|     <?x?>
+|     <?x ?>
 
 #data
 <body><?x data>
@@ -210,7 +210,7 @@ there=1?>
 | <html>
 |   <head>
 |   <body>
-|     <?zz2op?>
+|     <?zz2op ?>
 
 #data
 <body><?zz2op data>
@@ -226,7 +226,7 @@ there=1?>
 | <html>
 |   <head>
 |   <body>
-|     <?xla-?>
+|     <?xla- ?>
 
 #data
 <body><?xla- data>
@@ -242,7 +242,7 @@ there=1?>
 | <html>
 |   <head>
 |   <body>
-|     <?a-b-c?>
+|     <?a-b-c ?>
 
 #data
 <body><?a-b-c data>
@@ -258,7 +258,7 @@ there=1?>
 | <html>
 |   <head>
 |   <body>
-|     <?v-123?>
+|     <?v-123 ?>
 
 #data
 <body><?v-123 data>
@@ -274,7 +274,7 @@ there=1?>
 | <html>
 |   <head>
 |   <body>
-|     <?a0-b1-c2?>
+|     <?a0-b1-c2 ?>
 
 #data
 <body><?a0-b1-c2 data>
@@ -290,7 +290,7 @@ there=1?>
 | <html>
 |   <head>
 |   <body>
-|     <?page-404?>
+|     <?page-404 ?>
 
 #data
 <body><?page-404 data>
@@ -306,7 +306,7 @@ there=1?>
 | <html>
 |   <head>
 |   <body>
-|     <?r2-d2?>
+|     <?r2-d2 ?>
 
 #data
 <body><?r2-d2 data>
@@ -322,7 +322,7 @@ there=1?>
 | <html>
 |   <head>
 |   <body>
-|     <?level-99?>
+|     <?level-99 ?>
 
 #data
 <body><?level-99 data>
@@ -338,7 +338,7 @@ there=1?>
 | <html>
 |   <head>
 |   <body>
-|     <?UPPERCASE?>
+|     <?UPPERCASE ?>
 
 #data
 <body><?UPPERCASE data>
@@ -354,7 +354,7 @@ there=1?>
 | <html>
 |   <head>
 |   <body>
-|     <?all-KINDS-of-CaSeS?>
+|     <?all-KINDS-of-CaSeS ?>
 
 #data
 <body><?all-KINDS-of-CaSeS data>
@@ -370,7 +370,7 @@ there=1?>
 | <html>
 |   <head>
 |   <body>
-|     <?user_name?>
+|     <?user_name ?>
 
 #data
 <body><?user_name data>
@@ -386,7 +386,7 @@ there=1?>
 | <html>
 |   <head>
 |   <body>
-|     <?S_S-S_S?>
+|     <?S_S-S_S ?>
 
 #data
 <body><?S_S-S_S data>
@@ -402,7 +402,7 @@ there=1?>
 | <html>
 |   <head>
 |   <body>
-|     <?b_?>
+|     <?b_ ?>
 
 #data
 <body><?b_ data>
@@ -418,7 +418,7 @@ there=1?>
 | <html>
 |   <head>
 |   <body>
-|     <?_prefix?>
+|     <?_prefix ?>
 
 #data
 <body><?_prefix data>
@@ -434,7 +434,7 @@ there=1?>
 | <html>
 |   <head>
 |   <body>
-|     <?_x132?>
+|     <?_x132 ?>
 
 #data
 <body><?_x132 data>
@@ -450,7 +450,7 @@ there=1?>
 | <html>
 |   <head>
 |   <body>
-|     <?_-_?>
+|     <?_-_ ?>
 
 #data
 <body><?_-_ data>
@@ -466,7 +466,7 @@ there=1?>
 | <html>
 |   <head>
 |   <body>
-|     <?_?>
+|     <?_ ?>
 
 #data
 <body><?_ data>
@@ -482,7 +482,7 @@ there=1?>
 | <html>
 |   <head>
 |   <body>
-|     <?A----------------?>
+|     <?A---------------- ?>
 
 #data
 <body><?A---------------- data>
@@ -498,7 +498,7 @@ there=1?>
 | <html>
 |   <head>
 |   <body>
-|     <?z0123456789?>
+|     <?z0123456789 ?>
 
 #data
 <body><?z0123456789 data>
@@ -514,7 +514,7 @@ there=1?>
 | <html>
 |   <head>
 |   <body>
-|     <?m-0?>
+|     <?m-0 ?>
 
 #data
 <body><?m-0 data>
@@ -861,7 +861,7 @@ there=1?>
 |   <head>
 |   <body>
 |     <div>
-|       <?something?>
+|       <?something ?>
 
 #data
 <div><?something good></div>
@@ -879,7 +879,7 @@ there=1?>
 |   <head>
 |   <body>
 |     <table>
-|       <?something?>
+|       <?something ?>
 
 #data
 <table><tr><?something></tr></table>
@@ -890,7 +890,7 @@ there=1?>
 |     <table>
 |       <tbody>
 |         <tr>
-|           <?something?>
+|           <?something ?>
 
 #data
 <script><?something></script>
@@ -913,7 +913,7 @@ there=1?>
 #data
 <?something>
 #document
-| <?something?>
+| <?something ?>
 | <html>
 |   <head>
 |   <body>
@@ -923,14 +923,14 @@ there=1?>
 #document
 | <html>
 |   <head>
-|     <?something?>
+|     <?something ?>
 |   <body>
 
 #data
 <html><?something><head>
 #document
 | <html>
-|   <?something?>
+|   <?something ?>
 |   <head>
 |   <body>
 
@@ -939,7 +939,7 @@ there=1?>
 #document
 | <html>
 |   <head>
-|   <?something?>
+|   <?something ?>
 |   <body>
 
 #data
@@ -948,7 +948,7 @@ there=1?>
 | <html>
 |   <head>
 |   <body>
-|   <?something?>
+|   <?something ?>
 
 #data
 <html><body></body></html><?something>
@@ -956,7 +956,7 @@ there=1?>
 | <html>
 |   <head>
 |   <body>
-| <?something?>
+| <?something ?>
 
 #data
 <body><template><?something></template>
@@ -966,7 +966,7 @@ there=1?>
 |   <body>
 |     <template>
 |       content
-|         <?something?>
+|         <?something ?>
 
 #data
 <body><textarea><?something></textarea>
