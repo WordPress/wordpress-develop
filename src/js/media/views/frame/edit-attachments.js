@@ -1,5 +1,6 @@
 var Frame = wp.media.view.Frame,
 	MediaFrame = wp.media.view.MediaFrame,
+	l10n = wp.media.view.l10n,
 
 	$ = jQuery,
 	EditAttachments;
@@ -202,26 +203,34 @@ EditAttachments = MediaFrame.extend(/** @lends wp.media.view.MediaFrame.EditAtta
 	 * Click handler to switch to the previous media item.
 	 */
 	previousMediaItem: function() {
+		var model;
+
 		if ( ! this.hasPrevious() ) {
 			return;
 		}
 
-		this.trigger( 'refresh', this.library.at( this.getCurrentIndex() - 1 ) );
+		model = this.library.at( this.getCurrentIndex() - 1 );
+		this.trigger( 'refresh', model );
 		// Move focus to the Previous button. When there are no more items, to the Next button.
 		this.focusNavButton( this.hasPrevious() ? '.left' : '.right' );
+		this.announceMediaItem( model );
 	},
 
 	/**
 	 * Click handler to switch to the next media item.
 	 */
 	nextMediaItem: function() {
+		var model;
+
 		if ( ! this.hasNext() ) {
 			return;
 		}
 
-		this.trigger( 'refresh', this.library.at( this.getCurrentIndex() + 1 ) );
+		model = this.library.at( this.getCurrentIndex() + 1 );
+		this.trigger( 'refresh', model );
 		// Move focus to the Next button. When there are no more items, to the Previous button.
 		this.focusNavButton( this.hasNext() ? '.right' : '.left' );
+		this.announceMediaItem( model );
 	},
 
 	/**
@@ -233,6 +242,14 @@ EditAttachments = MediaFrame.extend(/** @lends wp.media.view.MediaFrame.EditAtta
 	 */
 	focusNavButton: function( which ) {
 		$( which ).trigger( 'focus' );
+	},
+
+	announceMediaItem: function( model ) {
+		var title = model.get( 'title' ) || model.get( 'filename' ) || model.get( 'id' );
+
+		wp.a11y.speak( l10n.mediaItemViewed.replace( '%s', function() {
+			return title;
+		} ) );
 	},
 
 	getCurrentIndex: function() {
@@ -248,11 +265,11 @@ EditAttachments = MediaFrame.extend(/** @lends wp.media.view.MediaFrame.EditAtta
 	},
 	/**
 	 * Respond to the keyboard events: Alt + right arrow, Alt + left arrow,
-	 * except when focus is in an interactive field. Requires the Alt modifier
-	 * key to avoid interfering with screen reader navigation.
+	 * except when focus is in a form field. Requires the Alt modifier key to
+	 * avoid interfering with screen reader navigation.
 	 */
 	keyEvent: function( event ) {
-		if ( ( 'INPUT' === event.target.nodeName || 'TEXTAREA' === event.target.nodeName || 'SELECT' === event.target.nodeName || 'BUTTON' === event.target.nodeName || 'A' === event.target.nodeName ) && ! event.target.disabled ) {
+		if ( ( 'INPUT' === event.target.nodeName || 'TEXTAREA' === event.target.nodeName || 'SELECT' === event.target.nodeName ) && ! event.target.disabled ) {
 			return;
 		}
 

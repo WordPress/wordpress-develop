@@ -16,6 +16,15 @@ themes = wp.themes = wp.themes || {};
 themes.data = _wpThemeSettings;
 l10n = themes.data.l10n;
 
+// Announce the theme shown after previous/next navigation.
+themes.announceTheme = function( model ) {
+	var name = model.get( 'name' ) || model.get( 'id' );
+
+	wp.a11y.speak( l10n.themeViewed.replace( '%s', function() {
+		return name;
+	} ) );
+};
+
 // Shortcut for isInstall check.
 themes.isInstall = !! themes.data.settings.isInstall;
 
@@ -549,6 +558,7 @@ themes.view.Theme = wp.Backbone.View.extend({
 			preview.render();
 			this.setNavButtonsState();
 			$( '.next-theme' ).trigger( 'focus' );
+			themes.announceTheme( self.current );
 		})
 		.listenTo( preview, 'theme:previous', function() {
 
@@ -579,6 +589,7 @@ themes.view.Theme = wp.Backbone.View.extend({
 			preview.render();
 			this.setNavButtonsState();
 			$( '.previous-theme' ).trigger( 'focus' );
+			themes.announceTheme( self.current );
 		});
 
 		this.listenTo( preview, 'preview:close', function() {
@@ -1326,6 +1337,7 @@ themes.view.Themes = wp.Backbone.View.extend({
 
 			// Trigger a route update for the current model.
 			self.theme.trigger( 'theme:expand', nextModel.cid );
+			themes.announceTheme( nextModel );
 
 		}
 	},
@@ -1353,6 +1365,7 @@ themes.view.Themes = wp.Backbone.View.extend({
 
 			// Trigger a route update for the current model.
 			self.theme.trigger( 'theme:expand', previousModel.cid );
+			themes.announceTheme( previousModel );
 
 		}
 	},
