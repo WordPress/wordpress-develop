@@ -1557,6 +1557,63 @@ function nocache_headers() {
 }
 
 /**
+ * Defines a cookie to be sent along with the rest of the HTTP headers.
+ *
+ * Wrapper for PHP's native setcookie() that provides a filter to adjust the
+ * options for all cookies in one place, and a short-circuit filter to prevent
+ * a cookie from being sent.
+ *
+ * The options are passed to setcookie() unchanged, so its native defaults apply
+ * to any that are omitted.
+ *
+ * @since x.y.z
+ *
+ * @param string $name    The name of the cookie.
+ * @param string $value   The value of the cookie.
+ * @param array  $options {
+ *     Optional. Options to pass to setcookie(). Default empty array.
+ *
+ *     @type int    $expires  The time the cookie expires, as a Unix timestamp.
+ *     @type string $path     The path on the server in which the cookie will be available on.
+ *     @type string $domain   The (sub)domain that the cookie is available to.
+ *     @type bool   $secure   Indicates that the cookie should only be transmitted over a secure HTTPS connection from the client.
+ *     @type bool   $httponly When true the cookie will be made accessible only through the HTTP protocol.
+ *     @type string $samesite Whether the cookie should be available for cross-site requests. Accepts 'Lax', 'Strict', or 'None'.
+ * }
+ * @return bool Whether the cookie was sent successfully.
+ */
+function wp_set_cookie( string $name, string $value, array $options = array() ) : bool {
+	/**
+	 * Filters the options used when a cookie is sent to the browser.
+	 *
+	 * @since x.y.z
+	 *
+	 * @param array  $options The options passed to setcookie(). See wp_set_cookie() for the full list.
+	 * @param string $name    The name of the cookie.
+	 * @param string $value   The value of the cookie.
+	 */
+	$options = apply_filters( 'wp_set_cookie_options', $options, $name, $value );
+
+	/**
+	 * Filters whether a cookie should be sent to the browser.
+	 *
+	 * Returning false prevents the cookie from being sent.
+	 *
+	 * @since x.y.z
+	 *
+	 * @param bool   $send    Whether to send the cookie. Default true.
+	 * @param string $name    The name of the cookie.
+	 * @param string $value   The value of the cookie.
+	 * @param array  $options The options passed to setcookie(). See wp_set_cookie() for the full list.
+	 */
+	if ( ! apply_filters( 'send_cookie', true, $name, $value, $options ) ) {
+		return false;
+	}
+
+	return setcookie( $name, $value, $options );
+}
+
+/**
  * Sets the HTTP headers for caching for 10 days with JavaScript content type.
  *
  * @since 2.1.0
