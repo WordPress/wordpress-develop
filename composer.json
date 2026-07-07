@@ -17,7 +17,9 @@
 	},
 	"suggest": {
 		"ext-dom": "*",
-		"ext-mysqli": "*"
+		"ext-ftp": "*",
+		"ext-mysqli": "*",
+		"ext-ssh2": "*"
 	},
 	"require-dev": {
 		"composer/ca-bundle": "1.5.12",
@@ -25,6 +27,7 @@
 		"wp-coding-standards/wpcs": "~3.3.0",
 		"phpcompatibility/phpcompatibility-wp": "~2.1.3",
 		"phpstan/phpstan": "2.2.2",
+		"phpstan/phpstan-phpunit": "2.0.16",
 		"yoast/phpunit-polyfills": "^1.1.0"
 	},
 	"config": {
