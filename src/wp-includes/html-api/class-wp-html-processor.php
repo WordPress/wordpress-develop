@@ -1402,14 +1402,14 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				$html .= "<!--{$this->get_full_comment_text()}-->";
 				break;
 
-			/*
+			/**
 			 * Processing instructions are serialized as `<?target data>`, not `<?target data?>`.
 			 * Both forms are parsed equivalently.
 			 *
 			 * @see https://html.spec.whatwg.org/multipage/parsing.html#serialising-html-fragments
 			 */
 			case '#processing-instruction':
-				/*
+				/**
 				 * A final `?` is ignored when parsing a processing instruction. If the data ends
 				 * with `?`, it must be doubled to ensure its recognized as part of the data and
 				 * not the closing `?>` sequence.
