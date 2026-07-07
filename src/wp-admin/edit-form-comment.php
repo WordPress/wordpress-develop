@@ -215,34 +215,67 @@ if ( $comment->comment_parent ) {
 	}
 }
 
-$post_comments = get_comments(
-	array(
-		'post_id' => $comment->comment_post_ID,
-		'type'    => 'comment',
-		'status'  => 'all',
-		'orderby' => 'comment_date_gmt',
-		'order'   => 'ASC',
-	)
-);
+// The parent can only be changed when threaded comments are enabled.
+$comment_threading_enabled = get_option( 'thread_comments' );
 
-// Group comments by parent to find this comment's descendants, which cannot become its parent.
-$comments_by_parent = array();
+if ( $comment_threading_enabled ) {
+	$max_thread_depth = (int) get_option( 'thread_comments_depth' );
 
-foreach ( $post_comments as $post_comment ) {
-	$comments_by_parent[ (int) $post_comment->comment_parent ][] = (int) $post_comment->comment_ID;
-}
+	// Limit the number of comments to keep memory usage and the size of the dropdown reasonable on busy posts.
+	$post_comments = get_comments(
+		array(
+			'post_id' => $comment->comment_post_ID,
+			'type'    => 'comment',
+			'status'  => array( 'approve', 'hold' ),
+			'orderby' => 'comment_date_gmt',
+			'order'   => 'DESC',
+			'number'  => 100,
+		)
+	);
 
-$comment_descendants = array();
-$comment_queue       = array( (int) $comment->comment_ID );
+	// Restore chronological order for display.
+	$post_comments = array_reverse( $post_comments );
 
-while ( $comment_queue ) {
-	$descendant_parent = array_shift( $comment_queue );
+	$post_comments_by_id = array();
 
-	if ( isset( $comments_by_parent[ $descendant_parent ] ) ) {
-		foreach ( $comments_by_parent[ $descendant_parent ] as $descendant_id ) {
-			$comment_descendants[ $descendant_id ] = true;
-			$comment_queue[]                       = $descendant_id;
+	foreach ( $post_comments as $post_comment ) {
+		$post_comments_by_id[ (int) $post_comment->comment_ID ] = $post_comment;
+	}
+
+	// Group comments by parent to find this comment's descendants, which cannot become its parent.
+	$comments_by_parent = array();
+
+	foreach ( $post_comments as $post_comment ) {
+		$comments_by_parent[ (int) $post_comment->comment_parent ][] = (int) $post_comment->comment_ID;
+	}
+
+	$comment_descendants = array();
+	$comment_queue       = array( (int) $comment->comment_ID );
+
+	while ( $comment_queue ) {
+		$descendant_parent = array_shift( $comment_queue );
+
+		if ( isset( $comments_by_parent[ $descendant_parent ] ) ) {
+			foreach ( $comments_by_parent[ $descendant_parent ] as $descendant_id ) {
+				$comment_descendants[ $descendant_id ] = true;
+				$comment_queue[]                       = $descendant_id;
+			}
 		}
+	}
+
+	// Compute each comment's depth, since comments at the maximum threading depth cannot become a parent.
+	$comment_depths = array();
+
+	foreach ( $post_comments as $post_comment ) {
+		$depth       = 1;
+		$ancestor_id = (int) $post_comment->comment_parent;
+
+		while ( $ancestor_id && isset( $post_comments_by_id[ $ancestor_id ] ) ) {
+			++$depth;
+			$ancestor_id = (int) $post_comments_by_id[ $ancestor_id ]->comment_parent;
+		}
+
+		$comment_depths[ (int) $post_comment->comment_ID ] = $depth;
 	}
 }
 ?>
@@ -256,6 +289,7 @@ printf(
 );
 ?>
 </span>
+<?php if ( $comment_threading_enabled ) : ?>
 <a href="#edit_comment_parent" class="edit-comment-parent hide-if-no-js"><span aria-hidden="true"><?php _e( 'Edit' ); ?></span> <span class="screen-reader-text">
 	<?php
 	/* translators: Hidden accessibility text. */
@@ -271,7 +305,12 @@ printf(
 </legend>
 <label for="comment_parent"><?php _e( 'Parent comment' ); ?></label>
 <select name="comment_parent" id="comment_parent">
-	<option value="0"<?php selected( 0, (int) $comment->comment_parent ); ?>><?php _e( 'None (top-level comment)' ); ?></option>
+	<option value="0"<?php selected( 0, (int) $comment->comment_parent ); ?>>
+		<?php
+		/* translators: Option in the parent comment dropdown, meaning the comment has no parent. */
+		_e( 'None (top-level comment)' );
+		?>
+	</option>
 	<?php
 	$current_parent_listed = false;
 
@@ -279,6 +318,11 @@ printf(
 		$post_comment_id = (int) $post_comment->comment_ID;
 
 		if ( $post_comment_id === (int) $comment->comment_ID || isset( $comment_descendants[ $post_comment_id ] ) ) {
+			continue;
+		}
+
+		// Comments already at the maximum threading depth cannot become a parent.
+		if ( $max_thread_depth && $comment_depths[ $post_comment_id ] >= $max_thread_depth ) {
 			continue;
 		}
 
@@ -326,6 +370,7 @@ printf(
 <a href="#edit_comment_parent" class="cancel-comment-parent hide-if-no-js button-cancel"><?php _e( 'Cancel' ); ?></a>
 </p>
 </fieldset>
+<?php endif; ?>
 </div>
 
 <?php

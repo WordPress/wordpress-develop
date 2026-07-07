@@ -190,4 +190,116 @@ class Admin_Includes_Comment_EditComment_Test extends WP_UnitTestCase {
 		$this->assertNotWPError( $result );
 		$this->assertSame( (string) $parent_id, get_comment( $comment_id )->comment_parent );
 	}
+
+	/**
+	 * @ticket 65570
+	 */
+	public function test_should_reject_new_parent_when_comment_threading_is_disabled() {
+		update_option( 'thread_comments', 0 );
+
+		$parent_id  = self::factory()->comment->create( array( 'comment_post_ID' => self::$post_id ) );
+		$comment_id = self::factory()->comment->create( array( 'comment_post_ID' => self::$post_id ) );
+
+		$result = $this->update_comment_parent( $comment_id, $parent_id );
+
+		$this->assertWPError( $result );
+		$this->assertSame( 'comment_parent_invalid', $result->get_error_code() );
+		$this->assertSame( '0', get_comment( $comment_id )->comment_parent );
+	}
+
+	/**
+	 * @ticket 65570
+	 */
+	public function test_should_allow_clearing_parent_when_comment_threading_is_disabled() {
+		update_option( 'thread_comments', 0 );
+
+		$parent_id  = self::factory()->comment->create( array( 'comment_post_ID' => self::$post_id ) );
+		$comment_id = self::factory()->comment->create(
+			array(
+				'comment_post_ID' => self::$post_id,
+				'comment_parent'  => $parent_id,
+			)
+		);
+
+		$result = $this->update_comment_parent( $comment_id, 0 );
+
+		$this->assertSame( 1, $result );
+		$this->assertSame( '0', get_comment( $comment_id )->comment_parent );
+	}
+
+	/**
+	 * @ticket 65570
+	 */
+	public function test_should_reject_parent_at_maximum_threading_depth() {
+		update_option( 'thread_comments_depth', 2 );
+
+		$top_id     = self::factory()->comment->create( array( 'comment_post_ID' => self::$post_id ) );
+		$child_id   = self::factory()->comment->create(
+			array(
+				'comment_post_ID' => self::$post_id,
+				'comment_parent'  => $top_id,
+			)
+		);
+		$comment_id = self::factory()->comment->create( array( 'comment_post_ID' => self::$post_id ) );
+
+		$result = $this->update_comment_parent( $comment_id, $child_id );
+
+		$this->assertWPError( $result );
+		$this->assertSame( 'comment_parent_invalid', $result->get_error_code() );
+		$this->assertSame( '0', get_comment( $comment_id )->comment_parent );
+	}
+
+	/**
+	 * @ticket 65570
+	 */
+	public function test_should_reject_parent_of_a_different_comment_type() {
+		$parent_id  = self::factory()->comment->create(
+			array(
+				'comment_post_ID' => self::$post_id,
+				'comment_type'    => 'pingback',
+			)
+		);
+		$comment_id = self::factory()->comment->create( array( 'comment_post_ID' => self::$post_id ) );
+
+		$result = $this->update_comment_parent( $comment_id, $parent_id );
+
+		$this->assertWPError( $result );
+		$this->assertSame( 'comment_parent_invalid', $result->get_error_code() );
+		$this->assertSame( '0', get_comment( $comment_id )->comment_parent );
+	}
+
+	/**
+	 * @ticket 65570
+	 *
+	 * @dataProvider data_should_reject_spam_or_trashed_parent
+	 *
+	 * @param string $comment_approved The parent's comment_approved value.
+	 */
+	public function test_should_reject_spam_or_trashed_parent( $comment_approved ) {
+		$parent_id  = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_id,
+				'comment_approved' => $comment_approved,
+			)
+		);
+		$comment_id = self::factory()->comment->create( array( 'comment_post_ID' => self::$post_id ) );
+
+		$result = $this->update_comment_parent( $comment_id, $parent_id );
+
+		$this->assertWPError( $result );
+		$this->assertSame( 'comment_parent_invalid', $result->get_error_code() );
+		$this->assertSame( '0', get_comment( $comment_id )->comment_parent );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_should_reject_spam_or_trashed_parent() {
+		return array(
+			'a spam parent'    => array( 'spam' ),
+			'a trashed parent' => array( 'trash' ),
+		);
+	}
 }

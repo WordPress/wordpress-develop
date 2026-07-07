@@ -83,31 +83,49 @@ function edit_comment() {
 
 		$comment = get_comment( $comment_id );
 
-		if ( $comment && $comment_parent !== (int) $comment->comment_parent ) {
+		if ( $comment && $comment_parent && $comment_parent !== (int) $comment->comment_parent ) {
+			if ( ! get_option( 'thread_comments' ) ) {
+				return new WP_Error( 'comment_parent_invalid', __( 'The comment parent cannot be changed because threaded comments are disabled.' ) );
+			}
+
 			if ( $comment_parent === $comment_id ) {
 				return new WP_Error( 'comment_parent_invalid', __( 'A comment cannot be a reply to itself.' ) );
 			}
 
-			if ( $comment_parent ) {
-				$parent = get_comment( $comment_parent );
+			$parent = get_comment( $comment_parent );
 
-				if ( ! $parent || (int) $parent->comment_post_ID !== (int) $comment->comment_post_ID ) {
-					return new WP_Error( 'comment_parent_invalid', __( 'The parent must be another comment on the same post.' ) );
+			if ( ! $parent || (int) $parent->comment_post_ID !== (int) $comment->comment_post_ID ) {
+				return new WP_Error( 'comment_parent_invalid', __( 'The parent must be another comment on the same post.' ) );
+			}
+
+			if ( $parent->comment_type !== $comment->comment_type ) {
+				return new WP_Error( 'comment_parent_invalid', __( 'The parent must be a comment of the same type.' ) );
+			}
+
+			if ( in_array( wp_get_comment_status( $parent ), array( 'spam', 'trash' ), true ) ) {
+				return new WP_Error( 'comment_parent_invalid', __( 'The parent cannot be a comment in the Trash or marked as spam.' ) );
+			}
+
+			// Walk up the new parent's ancestors to prevent creating a threading loop.
+			$ancestors    = array();
+			$ancestor     = $parent;
+			$parent_depth = 1;
+
+			while ( $ancestor && $ancestor->comment_parent && ! isset( $ancestors[ $ancestor->comment_ID ] ) ) {
+				if ( (int) $ancestor->comment_parent === $comment_id ) {
+					return new WP_Error( 'comment_parent_invalid', __( 'A comment cannot be a reply to one of its own replies.' ) );
 				}
 
-				// Walk up the new parent's ancestors to prevent creating a threading loop.
-				$ancestors = array();
-				$ancestor  = $parent;
+				$ancestors[ $ancestor->comment_ID ] = true;
+				++$parent_depth;
 
-				while ( $ancestor && $ancestor->comment_parent && ! isset( $ancestors[ $ancestor->comment_ID ] ) ) {
-					if ( (int) $ancestor->comment_parent === $comment_id ) {
-						return new WP_Error( 'comment_parent_invalid', __( 'A comment cannot be a reply to one of its own replies.' ) );
-					}
+				$ancestor = get_comment( $ancestor->comment_parent );
+			}
 
-					$ancestors[ $ancestor->comment_ID ] = true;
+			$max_thread_depth = (int) get_option( 'thread_comments_depth' );
 
-					$ancestor = get_comment( $ancestor->comment_parent );
-				}
+			if ( $max_thread_depth && $parent_depth >= $max_thread_depth ) {
+				return new WP_Error( 'comment_parent_invalid', __( 'The parent comment is already at the maximum threading depth.' ) );
 			}
 		}
 	}

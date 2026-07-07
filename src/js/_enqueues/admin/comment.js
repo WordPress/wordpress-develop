@@ -102,7 +102,7 @@ jQuery( function($) {
 
 	var $commentparentdiv = $( '#comment-parent-div' ),
 		$commentparentdisplay = $( '#comment-parent-display' ),
-		commentparent = $commentparentdisplay.html(),
+		originalcommentparentdisplay = $commentparentdisplay.html(),
 		$editcommentparent = $commentparentdiv.siblings( 'a.edit-comment-parent' );
 
 	/**
@@ -141,7 +141,7 @@ jQuery( function($) {
 		$editcommentparent.show().trigger( 'focus' );
 		$commentparentdiv.slideUp( 'fast' );
 		$( '#comment_parent' ).val( $( '#hidden_comment_parent' ).val() );
-		$commentparentdisplay.html( commentparent );
+		$commentparentdisplay.html( originalcommentparentdisplay );
 		event.preventDefault();
 	});
 
@@ -161,9 +161,13 @@ jQuery( function($) {
 
 		event.preventDefault();
 
-		$commentparentdisplay
-			.text( wp.i18n.__( 'In reply to:' ) + ' ' )
-			.append( $( '<b />' ).text( parentLabel ) );
+		$commentparentdisplay.html(
+			wp.i18n.sprintf(
+				/* translators: %s: Parent comment author. */
+				wp.i18n.__( 'In reply to: %s' ),
+				$( '<b />' ).text( parentLabel ).prop( 'outerHTML' )
+			)
+		);
 
 		// Move focus back to the Edit link.
 		$editcommentparent.show().trigger( 'focus' );
