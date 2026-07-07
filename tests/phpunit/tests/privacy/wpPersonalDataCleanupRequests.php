@@ -62,7 +62,7 @@ class Tests_Privacy_WpPersonalDataCleanupRequests extends WP_UnitTestCase {
 	 * Overwrite the post_modified (local) and post_modified_gmt (UTC) columns
 	 * for a post so it appears to have been created $seconds ago.
 	 *
-	 * @global wpdb $wpdb WordPress database abastraction.
+	 * @global wpdb $wpdb WordPress database abstraction.
 	 *
 	 * @param int $post_id      The post to backdate.
 	 * @param int $seconds      How far back to move the timestamps.
