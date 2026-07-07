@@ -334,7 +334,7 @@ printf(
 			/* translators: 1: Comment author, 2: Comment excerpt. */
 			__( '%1$s: %2$s' ),
 			get_comment_author( $post_comment ),
-			get_comment_excerpt( $post_comment )
+			wp_html_excerpt( get_comment_excerpt( $post_comment ), 50, '…' )
 		);
 
 		printf(
@@ -352,7 +352,7 @@ printf(
 			/* translators: 1: Comment author, 2: Comment excerpt. */
 			__( '%1$s: %2$s' ),
 			get_comment_author( $parent ),
-			get_comment_excerpt( $parent )
+			wp_html_excerpt( get_comment_excerpt( $parent ), 50, '…' )
 		);
 
 		printf(
