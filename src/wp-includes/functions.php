@@ -8511,6 +8511,8 @@ function wp_schedule_delete_old_privacy_export_files() {
  * Schedules a WP-Cron job to clean up personal data requests.
  *
  * @since 7.1.0
+ *
+ * @see wp_privacy_personal_data_cleanup_requests()
  */
 function wp_schedule_personal_data_cleanup_requests(): void {
 	if ( wp_installing() ) {
