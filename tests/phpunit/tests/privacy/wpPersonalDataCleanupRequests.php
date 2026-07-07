@@ -35,16 +35,6 @@ class Tests_Privacy_WpPersonalDataCleanupRequests extends WP_UnitTestCase {
 		require_once ABSPATH . 'wp-admin/includes/privacy-tools.php';
 	}
 
-	/**
-	 * Clear the cron schedule and restore default timezone options.
-	 */
-	public function tear_down(): void {
-		_set_cron_array( array() );
-		update_option( 'gmt_offset', '0' );
-		update_option( 'timezone_string', '' );
-		parent::tear_down();
-	}
-
 	// =========================================================================
 	// Helpers
 	// =========================================================================
