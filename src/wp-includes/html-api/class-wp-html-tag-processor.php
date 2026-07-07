@@ -3798,7 +3798,11 @@ class WP_HTML_Tag_Processor {
 	 * that escaping strings like `</script>` won’t break the script; in these
 	 * cases, updates will be rejected and it’s up to calling code to perform
 	 * language-specific escaping or workarounds. Similarly, it will not allow
-	 * setting content into a comment which would prematurely terminate the comment.
+	 * setting content into a comment which would prematurely terminate the comment,
+	 * or processing instruction data which cannot be represented: data containing
+	 * a `>`, which would prematurely terminate the processing instruction, or data
+	 * with leading whitespace, which is indistinguishable from the whitespace
+	 * separating the data from its target.
 	 *
 	 * Example:
 	 *
@@ -3836,6 +3840,7 @@ class WP_HTML_Tag_Processor {
 	 *
 	 * @since 6.7.0
 	 * @since 6.9.0 Escapes all character references instead of trying to avoid double-escaping.
+	 * @since 7.1.0 Supports setting processing instruction data.
 	 *
 	 * @param string $plaintext_content New text content to represent in the matched token.
 	 * @return bool Whether the text was able to update.
@@ -3875,6 +3880,92 @@ class WP_HTML_Tag_Processor {
 				$this->text_length,
 				$plaintext_content
 			);
+
+			return true;
+		}
+
+		// Processing instruction data is not encoded.
+		if ( self::STATE_PROCESSING_INSTRUCTION === $this->parser_state ) {
+			/*
+			 * A processing instruction ends at the first `>` in its
+			 * raw syntax: data containing one cannot be represented.
+			 */
+			if ( str_contains( $plaintext_content, '>' ) ) {
+				return false;
+			}
+
+			/*
+			 * All whitespace between the target and the data is skipped when
+			 * parsing: data with leading whitespace cannot be represented.
+			 */
+			if ( 0 !== strspn( $plaintext_content, " \t\f\r\n" ) ) {
+				return false;
+			}
+
+			$token_end = $this->token_starts_at + $this->token_length;
+
+			/**
+			 * The update comprises up to three replacements, each anchored
+			 * at its own distinct offset: replacements sharing an offset
+			 * apply in an unpredictable order (ties sort by their text).
+			 * This is why existing syntax is rewritten below where a plain
+			 * insertion may have seemed appropriate. A single
+			 * *modifiable text* replacement is undesirable becuase it would
+			 * report the wrong result to `get_modifiable_text()`.
+			 *
+			 * - *modifiable text separator* rewrites the final byte of the
+			 *   target as itself plus a space when no whitespace separates
+			 *   the target from its data; otherwise the new data would
+			 *   merge into and extend the target name. A space inserted
+			 *   before the data would share the data’s offset.
+			 *
+			 * - *modifiable text* holds the data verbatim, so reading the
+			 *   modifiable text returns this value even before the update
+			 *   is applied. It spans through the end of the token,
+			 *   consuming the old data and closer, which would otherwise
+			 *   share its offset when the existing data is empty.
+			 *
+			 * - *modifiable text closer* restores the closing syntax after
+			 *   the end of the token. Data ending in `?` forces the `?>`
+			 *   closer, because parsing drops a `?` found directly before
+			 *   the closing `>`. Otherwise the original closer form is
+			 *   preserved.
+			 *
+			 * As named updates, repeated calls replace these pending
+			 * replacements instead of accumulating them.
+			 *
+			 * For example, to set `data?` on `<?target>`, three
+			 * replacements are necessary to produce the
+			 * correct result `<?target data??>`:
+			 *
+			 *     <?target>
+			 *            ┬┬┬
+			 *            ││└─ closer:    insert `?>` after the token
+			 *            │└── data:      replace `>` with `data?`
+			 *            └─── separator: replace `t` with `t `
+			 *
+			 */
+			if ( '' !== $plaintext_content && $this->text_starts_at === $this->tag_name_starts_at + $this->tag_name_length ) {
+				$this->lexical_updates['modifiable text separator'] = new WP_HTML_Text_Replacement(
+					$this->text_starts_at - 1,
+					1,
+					$this->html[ $this->text_starts_at - 1 ] . ' '
+				);
+			} else {
+				unset( $this->lexical_updates['modifiable text separator'] );
+			}
+
+			$this->lexical_updates['modifiable text'] = new WP_HTML_Text_Replacement(
+				$this->text_starts_at,
+				$token_end - $this->text_starts_at,
+				$plaintext_content
+			);
+
+			$closer = ( str_ends_with( $plaintext_content, '?' ) || '?' === $this->html[ $token_end - 2 ] )
+				? '?>'
+				: '>';
+
+			$this->lexical_updates['modifiable text closer'] = new WP_HTML_Text_Replacement( $token_end, 0, $closer );
 
 			return true;
 		}

@@ -428,6 +428,8 @@ HTML
 		return array(
 			'Text node (start)'       => array( 'Text', 1, 'Blubber', 'Blubber' ),
 			'Text node (middle)'      => array( '<em>Bold move</em>', 2, 'yo', '<em>yo</em>' ),
+			'PI node'                 => array( 'before<?wp-bit data?>after', 2, 'other', 'before<?wp-bit other?>after' ),
+			'PI node (no separator)'  => array( '<?wp-bit?>', 1, '{"just": "kidding"}', '<?wp-bit {"just": "kidding"}?>' ),
 			'Text node (end)'         => array( '<img>of a dog', 2, 'of a cat', '<img>of a cat' ),
 			'Encoded text node'       => array( '<figcaption>birds and dogs</figcaption>', 2, '<birds> & <dogs>', '<figcaption>&lt;birds&gt; &amp; &lt;dogs&gt;</figcaption>' ),
 			'SCRIPT tag'              => array( 'before<script></script>after', 2, 'const img = "<img> & <br>";', 'before<script>const img = "<img> & <br>";</script>after' ),
@@ -438,6 +440,133 @@ HTML
 			'TITLE tag'               => array( 'a<title>has no need to escape</title>b', 2, "so it <doesn't>", "a<title>so it <doesn't></title>b" ),
 			'TITLE (escape)'          => array( 'a<title>has no need to escape</title>b', 2, 'but it does for </title>', 'a<title>but it does for &lt;/title></title>b' ),
 			'TITLE (escape+attrs)'    => array( 'a<title>has no need to escape</title>b', 2, 'but it does for </title not an="attribute">', 'a<title>but it does for &lt;/title not an="attribute"></title>b' ),
+		);
+	}
+
+	/**
+	 * Ensures that processing instruction data updates re-parse to the value which was set.
+	 *
+	 * The processing instruction syntax cannot represent every data value verbatim:
+	 * a separating space must be added when the data would abut the target, and
+	 * data ending in `?` requires the `?>` form of the closer so that the final
+	 * `?` isn't consumed as part of the closing syntax.
+	 *
+	 * @ticket 61530
+	 *
+	 * @dataProvider data_processing_instruction_data_updates
+	 *
+	 * @param string $html     Contains a processing instruction as its first token.
+	 * @param string $new_data Data to set on the processing instruction.
+	 * @param string $expected Expected document after the update.
+	 */
+	public function test_sets_processing_instruction_data( string $html, string $new_data, string $expected ) {
+		$processor = new WP_HTML_Tag_Processor( $html );
+		$processor->next_token();
+
+		$this->assertSame(
+			'#processing-instruction',
+			$processor->get_token_name(),
+			'Should have found a processing instruction: check test setup.'
+		);
+
+		$target = $processor->get_tag();
+
+		$this->assertTrue(
+			$processor->set_modifiable_text( $new_data ),
+			'Should have set the processing instruction data.'
+		);
+
+		$this->assertSame(
+			$new_data,
+			$processor->get_modifiable_text(),
+			'Should have read back the enqueued data before flushing the update.'
+		);
+
+		$this->assertSame(
+			$expected,
+			$processor->get_updated_html(),
+			'Should have updated the document as expected.'
+		);
+
+		$this->assertSame(
+			$new_data,
+			$processor->get_modifiable_text(),
+			'Should have read back the data after flushing the update.'
+		);
+
+		$this->assertSame(
+			$target,
+			$processor->get_tag(),
+			'Should not have changed the processing instruction target.'
+		);
+
+		$reparsed = new WP_HTML_Tag_Processor( $expected );
+		$reparsed->next_token();
+
+		$this->assertSame(
+			'#processing-instruction',
+			$reparsed->get_token_name(),
+			'Should have found a processing instruction when re-parsing the updated document.'
+		);
+
+		$this->assertSame(
+			$target,
+			$reparsed->get_tag(),
+			'Should have preserved the target when re-parsing the updated document.'
+		);
+
+		$this->assertSame(
+			$new_data,
+			$reparsed->get_modifiable_text(),
+			'Should have found the set data when re-parsing the updated document.'
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_processing_instruction_data_updates() {
+		return array(
+			'Replace data'                     => array( '<?wp-bit before?>', 'after', '<?wp-bit after?>' ),
+			'Bare closer preserved'            => array( '<?wp-bit before>', 'after', '<?wp-bit after>' ),
+			'Separator inserted'               => array( '<?wp-bit?>', '{"just": "kidding"}', '<?wp-bit {"just": "kidding"}?>' ),
+			'Separator inserted (bare closer)' => array( '<?wp-bit>', 'data', '<?wp-bit data>' ),
+			'Data abutting target'             => array( '<?wp-bit?data>', 'x', '<?wp-bit x>' ),
+			'Data ending in ?'                 => array( '<?wp-bit d>', 'd?', '<?wp-bit d??>' ),
+			'Data ending in ? (?> closer)'     => array( '<?wp-bit x?>', 'd?', '<?wp-bit d??>' ),
+			'Data of only ?'                   => array( '<?wp-bit?>', '?', '<?wp-bit ??>' ),
+			'Emptied (?> closer)'              => array( '<?wp-bit data?>', '', '<?wp-bit ?>' ),
+			'Emptied (bare closer)'            => array( '<?wp-bit data>', '', '<?wp-bit >' ),
+			'Empty data set on empty data'     => array( '<?wp-bit?>', '', '<?wp-bit?>' ),
+		);
+	}
+
+	/**
+	 * Ensures that repeated processing instruction data updates replace
+	 * each other instead of accumulating syntax adjustments.
+	 *
+	 * @ticket 61530
+	 */
+	public function test_replaces_previous_processing_instruction_data_update() {
+		$processor = new WP_HTML_Tag_Processor( '<?wp-bit?>' );
+		$processor->next_token();
+
+		$this->assertTrue(
+			$processor->set_modifiable_text( 'first?' ),
+			'Should have set the initial processing instruction data.'
+		);
+
+		$this->assertTrue(
+			$processor->set_modifiable_text( 'second' ),
+			'Should have replaced the pending processing instruction data.'
+		);
+
+		$this->assertSame(
+			'<?wp-bit second?>',
+			$processor->get_updated_html(),
+			'Should have applied only the last update to the document.'
 		);
 	}
 
@@ -490,6 +619,10 @@ HTML
 		return array(
 			'Comment with -->'                        => array( '<!-- this is a comment -->', 'Comments end in -->' ),
 			'Comment with --!>'                       => array( '<!-- this is a comment -->', 'Invalid but legitimate comments end in --!>' ),
+			'PI with >'                               => array( '<?wp-bit some data?>', 'Processing instructions end at the first >' ),
+			'PI with leading space'                   => array( '<?wp-bit some data?>', ' leading whitespace is skipped after the target' ),
+			'PI with leading tab'                     => array( '<?wp-bit some data?>', "\tleading whitespace is skipped after the target" ),
+			'PI with only whitespace'                 => array( '<?wp-bit some data?>', ' ' ),
 			'Non-JS SCRIPT with <script>'             => array( '<script type="text/html">Replace me</script>', '<!-- Just a <script>' ),
 			'Non-JS SCRIPT with </script>'            => array( '<script type="text/plain">Replace me</script>', 'Just a </script>' ),
 			'Non-JS SCRIPT with <script attributes>'  => array( '<script language="text">Replace me</script>', '<!-- <script sneaky>after' ),
