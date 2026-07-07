@@ -71,7 +71,7 @@ class WP_Icons_Registry {
 		}
 
 		// Require a namespaced name in the form "collection/icon-name".
-		if ( false === strpos( $icon_name, '/' ) ) {
+		if ( ! str_contains( $icon_name, '/' ) ) {
 			_doing_it_wrong(
 				__METHOD__,
 				__( 'Icon name must be namespaced in the form "collection/icon-name".' ),
