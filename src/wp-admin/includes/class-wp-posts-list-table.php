@@ -1162,9 +1162,9 @@ class WP_Posts_List_Table extends WP_List_Table {
 
 		if ( $can_edit_post && 'trash' !== $post->post_status ) {
 			printf(
-				'%2$s<a class="row-title" href="%1$s"%3$s>%4$s</a>%5$s',
-				get_edit_post_link( $post->ID ),
+				'%1$s<a class="row-title" href="%2$s"%3$s>%4$s</a>%5$s',
 				$pad,
+				get_edit_post_link( $post->ID ),
 				$described_by_attr,
 				$title,
 				$hierarchy
