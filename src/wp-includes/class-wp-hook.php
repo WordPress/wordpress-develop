@@ -15,7 +15,7 @@
  * @see Iterator
  * @see ArrayAccess
  *
- * @phpstan-type WP_Hook_Callback array{
+ * @phpstan-type Hook_Callback array{
  *   function: callable,
  *   accepted_args: int,
  * }
@@ -28,7 +28,7 @@ final class WP_Hook implements Iterator, ArrayAccess {
 	 *
 	 * @since 4.7.0
 	 * @var array
-	 * @phpstan-var array<int, array<string, WP_Hook_Callback>>
+	 * @phpstan-var array<int, array<string, Hook_Callback>>
 	 */
 	public $callbacks = array();
 
@@ -445,7 +445,7 @@ final class WP_Hook implements Iterator, ArrayAccess {
 	 * @since 4.7.0
 	 *
 	 * @param array $filters Filters to normalize. See documentation above for details.
-	 * @phpstan-param array<string, WP_Hook|array<int, array<WP_Hook_Callback>>> $filters
+	 * @phpstan-param array<string, WP_Hook|array<int, array<Hook_Callback>>> $filters
 	 * @return array<string, WP_Hook> Array of normalized filters keyed by hook name.
 	 */
 	public static function build_preinitialized_hooks( $filters ) {
@@ -499,7 +499,7 @@ final class WP_Hook implements Iterator, ArrayAccess {
 	 *
 	 * @param mixed $offset The offset to retrieve.
 	 * @return mixed If set, the value at the specified offset, null otherwise.
-	 * @phpstan-return array<string, WP_Hook_Callback>|null
+	 * @phpstan-return array<string, Hook_Callback>|null
 	 */
 	#[ReturnTypeWillChange]
 	public function offsetGet( $offset ) {
@@ -550,7 +550,7 @@ final class WP_Hook implements Iterator, ArrayAccess {
 	 * @link https://www.php.net/manual/en/iterator.current.php
 	 *
 	 * @return array|false Array of callbacks at current priority, false if there are no more elements.
-	 * @phpstan-return array<string, WP_Hook_Callback>|false
+	 * @phpstan-return array<string, Hook_Callback>|false
 	 */
 	#[ReturnTypeWillChange]
 	public function current() {
@@ -565,7 +565,7 @@ final class WP_Hook implements Iterator, ArrayAccess {
 	 * @link https://www.php.net/manual/en/iterator.next.php
 	 *
 	 * @return array|false Array of callbacks at next priority, false if there are no more elements.
-	 * @phpstan-return array<string, WP_Hook_Callback>|false
+	 * @phpstan-return array<string, Hook_Callback>|false
 	 */
 	#[ReturnTypeWillChange]
 	public function next() {
