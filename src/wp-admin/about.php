@@ -70,10 +70,10 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 						_n(
 							'<strong>Version %1$s</strong> addressed %2$s bug.',
 							'<strong>Version %1$s</strong> addressed %2$s bugs.',
-							17
+							31
 						),
 						'7.0.1',
-						17
+						31
 					);
 					?>
 					<?php
