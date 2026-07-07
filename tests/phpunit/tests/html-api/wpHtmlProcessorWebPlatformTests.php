@@ -334,8 +334,7 @@ class Tests_HtmlApi_WebPlatformTests extends WP_UnitTestCase {
 					 * unless the data is empty, a space and the data, and finally "?>".
 					 */
 					$pi_data = $processor->get_modifiable_text();
-					$pi_data = '' === $pi_data ? '' : " {$pi_data}";
-					$output .= str_repeat( self::TREE_INDENT, $indent_level ) . "<?{$processor->get_tag()}{$pi_data}?>\n";
+					$output .= str_repeat( self::TREE_INDENT, $indent_level ) . "<?{$processor->get_tag()} {$pi_data}?>\n";
 					break;
 
 				case '#comment':
