@@ -934,6 +934,7 @@ a#remove-post-thumbnail:hover,
 	border-top: 1px solid #dcdcde;
 	background: #f6f7f7;
 	display: flex;
+	flex-wrap: wrap;
 	align-items: center;
 	justify-content: space-between;
 }
@@ -1416,6 +1417,17 @@ th.action-links {
 	.filter-group li {
 		padding: 0;
 		width: 50%;
+	}
+
+	.wp-filter .search-form input[type="search"] {
+		min-height: 40px;
+		padding: 0 12px;
+	}
+
+	.wp-filter .search-form select,
+	.wp-filter .filter-items select {
+		min-height: 40px;
+		padding: 0 24px 0 12px;
 	}
 }
 
