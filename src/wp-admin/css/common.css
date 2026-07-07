@@ -536,12 +536,14 @@ code {
 	vertical-align: top;
 }
 
-.widefat tbody th.check-column {
+.widefat tbody th.check-column,
+.widefat tbody td.check-column {
 	padding: 9px 0 22px;
 }
 
 .widefat thead td.check-column,
 .widefat tbody th.check-column,
+.widefat tbody td.check-column,
 .updates-table tbody td.check-column,
 .widefat tfoot td.check-column {
 	padding: 11px 0 0 3px;

@@ -966,7 +966,7 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 						}
 					}
 
-					echo "<th scope='row' class='theme-title column-primary{$extra_classes}'><strong>" . $item->display( 'Name' ) . $active_theme_label . '</strong>';
+					echo "<th scope='row' class='theme-title column-primary{$extra_classes}' aria-label='" . esc_attr( $item->display( 'Name' ) ) . "'><strong>" . $item->display( 'Name' ) . $active_theme_label . '</strong>';
 
 					$this->column_name( $item );
 

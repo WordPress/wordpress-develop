@@ -1768,6 +1768,26 @@ class WP_List_Table {
 	protected function column_cb( $item ) {}
 
 	/**
+	 * Returns a clean, human-readable label for the primary column's row header.
+	 *
+	 * Used as the `aria-label` attribute value on the `<th scope="row">` element,
+	 * giving screen readers a concise cell name instead of computing it from
+	 * the full cell content (which may include row action links, excerpts, etc.).
+	 *
+	 * Subclasses should override this method to return the item's primary
+	 * identifier (e.g. post title, plugin name, username). Return an empty string
+	 * to omit the attribute.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @param object|array $item The current item.
+	 * @return string The aria-label value, or an empty string.
+	 */
+	protected function get_primary_column_aria_label( $item ) {
+		return '';
+	}
+
+	/**
 	 * Generates the columns for a single row of the table.
 	 *
 	 * @since 3.1.0
@@ -1808,20 +1828,19 @@ class WP_List_Table {
 					$primary
 				);
 			} else {
-				$tag   = ( $primary === $column_name ) ? 'th' : 'td';
-				$scope = ( $primary === $column_name ) ? ' scope="row"' : '';
+				$is_primary = ( $primary === $column_name );
+				$tag        = $is_primary ? 'th' : 'td';
+				$scope      = $is_primary ? ' scope="row"' : '';
 
-				$abbr = '';
-				if (
-					$primary === $column_name
-					&& ! empty( $sortable )
-					&& isset( $sortable[ $column_name ][2] )
-					&& $sortable[ $column_name ][2]
-				) {
-					$abbr = ' abbr="' . esc_attr( $sortable[ $column_name ][2] ) . '"';
+				$aria_label = '';
+				if ( $is_primary ) {
+					$label = $this->get_primary_column_aria_label( $item );
+					if ( '' !== $label ) {
+						$aria_label = ' aria-label="' . esc_attr( $label ) . '"';
+					}
 				}
 
-				echo "<$tag $attributes $scope $abbr>";
+				echo "<$tag $attributes$scope$aria_label>";
 
 				if ( method_exists( $this, 'column_' . $column_name ) ) {
 					echo call_user_func( array( $this, 'column_' . $column_name ), $item );

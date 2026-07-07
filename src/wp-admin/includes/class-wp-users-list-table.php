@@ -565,9 +565,14 @@ class WP_Users_List_Table extends WP_List_Table {
 			if ( 'cb' === $column_name ) {
 				$row .= "<td class='check-column'>$checkbox</td>";
 			} else {
-				$tag = ( $primary === $column_name ) ? 'th' : 'td';
-				$scope = ( $primary === $column_name ) ? ' scope="row"' : '';
-				$row .= "<$tag $attributes$scope>";
+				$is_primary = ( $primary === $column_name );
+				$tag        = $is_primary ? 'th' : 'td';
+				$scope      = $is_primary ? ' scope="row"' : '';
+				$aria_label = '';
+				if ( $is_primary ) {
+					$aria_label = ' aria-label="' . esc_attr( $user_object->user_login ) . '"';
+				}
+				$row .= "<$tag $attributes$scope$aria_label>";
 				switch ( $column_name ) {
 					case 'username':
 						$row .= "$avatar $edit";
