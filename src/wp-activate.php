@@ -117,6 +117,7 @@ add_filter( 'wp_robots', 'wp_robots_sensitive_page' );
 
 get_header( 'wp-activate' );
 
+/** @var WP_Site $blog_details */
 $blog_details = get_site();
 ?>
 
@@ -138,6 +139,11 @@ $blog_details = get_site();
 		<?php
 	} else {
 		if ( is_wp_error( $result ) && in_array( $result->get_error_code(), $valid_error_codes, true ) ) {
+			/**
+			 * Row from the wp_signups table.
+			 *
+			 * @var object{ signup_id: string, domain: string, path: string, title: string, user_login: string, user_email: string, registered: string, activated: string, active: string, activation_key: string, meta: string|null } $signup
+			 */
 			$signup = $result->get_error_data();
 			?>
 			<h2><?php _e( 'Your account is now active!' ); ?></h2>
