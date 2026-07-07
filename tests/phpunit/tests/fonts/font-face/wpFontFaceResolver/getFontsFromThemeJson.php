@@ -144,6 +144,8 @@ class Tests_Fonts_WPFontFaceResolver_GetFontsFromThemeJson extends WP_Font_Face_
 	/**
 	 * @dataProvider data_should_get_font_family_name
 	 *
+	 * @ticket 59911
+	 *
 	 * @param array  $fonts         Fonts to test.
 	 * @param string $expected_name Expected font-family name.
 	 */
@@ -252,6 +254,107 @@ class Tests_Fonts_WPFontFaceResolver_GetFontsFromThemeJson extends WP_Font_Face_
 				),
 				'expected_name' => 'DM Sans',
 			),
+			'CSS variable in preset, real name in fontFace' => array(
+				'fonts'         => array(
+					array(
+						'fontFamily' => 'var(--font-primary)',
+						'name'       => 'Primary (Inter)',
+						'slug'       => 'primary',
+						'fontFace'   => array(
+							array(
+								'fontFamily' => 'Inter',
+								'fontStyle'  => 'normal',
+								'fontWeight' => '400',
+								'src'        => array(
+									'file:./assets/fonts/dm-sans/DMSans-Regular.woff2',
+								),
+							),
+						),
+					),
+				),
+				'expected_name' => 'Inter',
+			),
+			'multi-font stack in preset, single font in fontFace' => array(
+				'fonts'         => array(
+					array(
+						'fontFamily' => 'CustomEllipsisFont, DesignerFont, serif',
+						'name'       => 'DesignerFont',
+						'slug'       => 'headings',
+						'fontFace'   => array(
+							array(
+								'fontFamily' => 'DesignerFont',
+								'fontStyle'  => 'normal',
+								'fontWeight' => '400',
+								'src'        => array(
+									'file:./assets/fonts/dm-sans/DMSans-Regular.woff2',
+								),
+							),
+						),
+					),
+				),
+				'expected_name' => 'DesignerFont',
+			),
+			'preset fontFamily omitted, fontFace fontFamily defined' => array(
+				'fonts'         => array(
+					array(
+						'name'     => 'Halcom Variable',
+						'slug'     => 'halcom',
+						'fontFace' => array(
+							array(
+								'fontFamily' => 'Halcom Variable',
+								'fontStyle'  => 'normal',
+								'fontWeight' => '500 700',
+								'src'        => array(
+									'file:./assets/fonts/dm-sans/DMSans-Regular.woff2',
+								),
+							),
+						),
+					),
+				),
+				'expected_name' => 'Halcom Variable',
+			),
 		);
+	}
+
+	/**
+	 * Ensures the generated font-family does not use the preset fontFamily value.
+	 *
+	 * @ticket 59911
+	 */
+	public function test_should_not_use_preset_font_family_in_font_face() {
+		switch_theme( static::FONTS_THEME );
+
+		$replace_fonts = static function ( $theme_json_data ) {
+			$data = $theme_json_data->get_data();
+
+			$data['settings']['typography']['fontFamilies']['theme'] = array(
+				array(
+					'fontFamily' => 'var(--font-primary)',
+					'name'       => 'Primary (Inter)',
+					'slug'       => 'primary',
+					'fontFace'   => array(
+						array(
+							'fontFamily' => 'Inter',
+							'fontStyle'  => 'normal',
+							'fontWeight' => '400',
+							'src'        => array(
+								'file:./assets/fonts/dm-sans/DMSans-Regular.woff2',
+							),
+						),
+					),
+				),
+			);
+
+			return new WP_Theme_JSON_Data( $data );
+		};
+
+		add_filter( 'wp_theme_json_data_theme', $replace_fonts );
+		$fonts = WP_Font_Face_Resolver::get_fonts_from_theme_json();
+		remove_filter( 'wp_theme_json_data_theme', $replace_fonts );
+
+		$fonts = array_merge( array(), ...array_map( 'array_values', $fonts ) );
+
+		$this->assertSame( 'Inter', $fonts[0]['font-family'] );
+		$this->assertNotSame( 'var(--font-primary)', $fonts[0]['font-family'] );
 	}
 }
