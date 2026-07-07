@@ -1582,7 +1582,7 @@ function nocache_headers() {
  * }
  * @return bool Whether the cookie was sent successfully.
  */
-function wp_set_cookie( string $name, string $value, array $options = array() ) : bool {
+function wp_set_cookie( string $name, string $value, array $options = array() ): bool {
 	/**
 	 * Filters the options used when a cookie is sent to the browser.
 	 *
@@ -1627,7 +1627,7 @@ function wp_set_cookie( string $name, string $value, array $options = array() ) 
  *                        Default empty array.
  * @return bool True if the cookie was removed successfully, false otherwise.
  */
-function wp_unset_cookie( string $name, array $options = array() ) : bool {
+function wp_unset_cookie( string $name, array $options = array() ): bool {
 	$options['expires'] = time() - YEAR_IN_SECONDS;
 
 	return wp_set_cookie( $name, ' ', $options );
