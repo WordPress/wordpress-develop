@@ -1173,6 +1173,8 @@ if ( ! function_exists( 'wp_set_auth_cookie' ) ) :
 		/**
 		 * Allows preventing auth cookies from actually being sent to the client.
 		 *
+		 * See also the {@see 'send_cookie'} filter.
+		 *
 		 * @since 4.7.4
 		 * @since 6.2.0 The `$expire`, `$expiration`, `$user_id`, `$scheme`, and `$token` parameters were added.
 		 *

@@ -1588,7 +1588,7 @@ function wp_set_cookie( string $name, string $value, array $options = array() ) 
 	 *
 	 * @since x.y.z
 	 *
-	 * @param array  $options The options passed to setcookie(). See wp_set_cookie() for the full list.
+	 * @param array  $options The options to pass to setcookie().
 	 * @param string $name    The name of the cookie.
 	 * @param string $value   The value of the cookie.
 	 */
@@ -1604,7 +1604,7 @@ function wp_set_cookie( string $name, string $value, array $options = array() ) 
 	 * @param bool   $send    Whether to send the cookie. Default true.
 	 * @param string $name    The name of the cookie.
 	 * @param string $value   The value of the cookie.
-	 * @param array  $options The options passed to setcookie(). See wp_set_cookie() for the full list.
+	 * @param array  $options The options to pass to setcookie().
 	 */
 	if ( ! apply_filters( 'send_cookie', true, $name, $value, $options ) ) {
 		return false;
