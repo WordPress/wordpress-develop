@@ -292,20 +292,18 @@ jQuery( function( $ ) {
 					// Setup copy.
 					window.getSelection().removeAllRanges();
 
-					// Hide tutorial content and the actions toolbar (which contains
-					// the "Copied!" notice and button label) before selecting, so
-					// neither ends up in the copied text - see #58969.
+					// Hide tutorial content to remove from copied content.
 					range = document.createRange();
 					$parent.addClass( 'hide-privacy-policy-tutorial' );
-					$parent.find( '.privacy-settings-accordion-actions' ).addClass( 'hide-privacy-policy-tutorial' );
 
-					// Copy action.
-					range.selectNodeContents( $parent[0] );
+					// Copy action. Select only the dedicated copy-content wrapper
+					// so the actions toolbar (which contains the "Copied!" notice
+					// and button label) is never part of the selection - see #58969.
+					range.selectNodeContents( $parent.find( '.privacy-text-copy-content' )[0] );
 					window.getSelection().addRange( range );
 					document.execCommand( 'copy' );
 
 					// Reset section.
-					$parent.find( '.privacy-settings-accordion-actions' ).removeClass( 'hide-privacy-policy-tutorial' );
 					$parent.removeClass( 'hide-privacy-policy-tutorial' );
 					window.getSelection().removeAllRanges();
 
