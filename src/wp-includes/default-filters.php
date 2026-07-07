@@ -25,7 +25,7 @@
 
 // Don't load directly.
 if ( ! defined( 'ABSPATH' ) ) {
-	die( '-1' );
+	exit;
 }
 
 // Strip, trim, kses, special chars for string saves.
@@ -85,6 +85,17 @@ foreach ( array(
 	add_filter( $filter, 'wp_strip_all_tags' );
 	add_filter( $filter, 'sanitize_url' );
 	add_filter( $filter, 'wp_filter_kses' );
+}
+
+// Email addresses: Allow unicode if and only if as the database can
+// store them. This affects all addresses, including those entered
+// into contact forms.
+if ( 'utf8mb4' === $wpdb->charset ) {
+	add_filter( 'is_email', 'wp_is_unicode_email', 10, 3 );
+	add_filter( 'sanitize_email', 'wp_sanitize_unicode_email', 10, 3 );
+} else {
+	add_filter( 'is_email', 'wp_is_ascii_email', 10, 3 );
+	add_filter( 'sanitize_email', 'wp_sanitize_ascii_email', 10, 3 );
 }
 
 // Display URL.
@@ -806,4 +817,14 @@ add_action( 'init', '_wp_register_default_font_collections' );
 add_filter( 'rest_pre_insert_wp_template', 'inject_ignored_hooked_blocks_metadata_attributes' );
 add_filter( 'rest_pre_insert_wp_template_part', 'inject_ignored_hooked_blocks_metadata_attributes' );
 
-unset( $filter, $action );
+// View Config API.
+foreach ( array( 'page', 'wp_block', 'wp_template_part', 'wp_template' ) as $post_type ) {
+	add_filter(
+		"get_entity_view_config_postType_{$post_type}",
+		"_wp_get_entity_view_config_post_type_{$post_type}",
+		10,
+		1
+	);
+}
+
+unset( $filter, $action, $post_type );

@@ -41,12 +41,26 @@ class Tests_Formatting_SanitizeEmail extends WP_UnitTestCase {
 	 */
 	public function data_sanitized_email_pairs() {
 		return array(
-			'shorter than 6 characters'      => array( 'a@b', '' ),
-			'contains no @'                  => array( 'ab', '' ),
-			'just a TLD'                     => array( 'abc@com', '' ),
-			'plain'                          => array( 'abc@example.com', 'abc@example.com' ),
-			'invalid utf8 subdomain dropped' => array( "abc@sub.\x80.org", 'abc@sub.org' ),
-			'all subdomains invalid utf8'    => array( "abc@\x80.org", '' ),
+			'shorter than 6 characters'        => array( 'a@b', '' ),
+			'contains no @'                    => array( 'ab', '' ),
+			'just a TLD'                       => array( 'abc@com', '' ),
+			'plain'                            => array( 'abc@example.com', 'abc@example.com' ),
+			'unicode domain'                   => array( 'abc@grå.org', 'abc@grå.org' ),
+			'unicode local part'               => array( 'grå@example.com', 'grå@example.com' ),
+			'unicode local and domain'         => array( 'grå@grå.org', 'grå@grå.org' ),
+			'invalid utf8 in local'            => array( "a\x80b@example.com", '' ),
+			'invalid utf8 subdomain'           => array( "abc@sub.\x80.org", '' ),
+			'all subdomains invalid utf8'      => array( "abc@\x80.org", '' ),
+			'soft hyphen before dot'           => array( "info@example\xC2\xAD.com", 'info@example.com' ),
+			'soft hyphen after dot'            => array( "info@example.\xC2\xADcom", 'info@example.com' ),
+			'space before dot'                 => array( 'info@example .com', 'info@example.com' ),
+			'space after dot'                  => array( 'info@example. com', 'info@example.com' ),
+			'soft hyphen and space around dot' => array( "info@example \xC2\xAD.com", 'info@example.com' ),
+			'space around at sign'             => array( 'info @ example.com', 'info@example.com' ),
+			'soft hyphen before at sign'       => array( "info\xC2\xAD@example.com", 'info@example.com' ),
+			'display name with angle brackets' => array( 'Alice Example <alice@example.com>', 'alice@example.com' ),
+			'angle brackets only'              => array( '<alice@example.com>', 'alice@example.com' ),
+			'angle brackets invalid address'   => array( 'Alice <not-an-email>', '' ),
 		);
 	}
 
