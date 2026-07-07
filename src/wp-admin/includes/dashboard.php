@@ -610,6 +610,19 @@ function wp_dashboard_quick_press( $error_msg = false ) {
 			<input type="hidden" name="action" id="quickpost-action" value="post-quickdraft-save" />
 			<input type="hidden" name="post_ID" value="<?php echo $post_ID; ?>" />
 			<input type="hidden" name="post_type" value="post" />
+			<?php
+			if ( current_theme_supports( 'post-formats' ) && post_type_supports( 'post', 'post-formats' ) && get_option( 'default_post_format' ) ) {
+				/**
+				* Filters the post format for quick draft posts.
+				*
+				* @since 6.9.0
+				*
+				* @param string $post_format The post format to use. Default is the site's default post format.
+				*/
+				$post_format = apply_filters( 'quick_draft_post_format', get_option( 'default_post_format' ) );
+				echo '<input type="hidden" name="post_format" value="' . esc_attr( $post_format ) . '" />';
+			}
+			?>
 			<?php wp_nonce_field( 'add-post' ); ?>
 			<?php submit_button( __( 'Save Draft' ), 'primary', 'save', false, array( 'id' => 'save-post' ) ); ?>
 			<br class="clear" />

@@ -8,10 +8,16 @@ test.describe( 'Quick Draft', () => {
 		await requestUtils.deleteAllPosts();
 	} );
 
-	test( 'Allows draft to be created with Title and Content', async ( {
+	test( 'Allows draft to be created with Title and Content and check default post format', async ( {
 	   admin,
-	   page
+	   page,
+	   requestUtils
 	} ) => {
+		// First set the default post format to Quote.
+		await admin.visitAdminPage( 'options-writing.php' );
+		await page.selectOption( '#default_post_format', 'quote' );
+		await page.getByRole( 'button', { name: 'Save Changes' } ).click();
+
 		await admin.visitAdminPage( '/' );
 
 		// Wait for Quick Draft title field to appear.
@@ -36,6 +42,17 @@ test.describe( 'Quick Draft', () => {
 		await expect(
 			page.locator( '.drafts .draft-title' ).first().getByRole( 'link' )
 		).toHaveText( 'Test Draft Title' );
+
+		// Get the post ID from the URL of the first draft.
+		const draftLink = page.locator( '.drafts .draft-title' ).first().getByRole( 'link' );
+		const draftUrl = await draftLink.getAttribute( 'href' );
+		const draftId = draftUrl.match( /post=(\d+)/ )[ 1 ];
+
+		// Verify the post format is set to quote using the REST API.
+		const response = await requestUtils.rest( {
+			path: `/wp/v2/posts/${draftId}`,
+		} );
+		expect( response.format ).toBe( 'quote' );
 
 		// Check that new draft appears in Posts page
 		await admin.visitAdminPage( '/edit.php' );
