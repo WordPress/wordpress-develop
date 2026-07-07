@@ -13,8 +13,8 @@ declare( strict_types = 1 );
  * Core class used to register settings-related abilities.
  *
  * Provides the read-only `core/read-settings` ability and the shared building blocks
- * (exposed-settings discovery, schema generation, value casting) that are intended to
- * also back a future write-oriented `core/manage-settings` ability.
+ * (exposed-settings discovery and schema generation) that are intended to also back a
+ * future write-oriented `core/manage-settings` ability.
  *
  * Unlike the other core abilities, which are self-contained closures registered directly
  * in wp_register_core_abilities(), the settings abilities live in a dedicated class
@@ -83,7 +83,7 @@ final class WP_Settings_Abilities {
 
 		/*
 		 * A future write-oriented ability can be registered here, reusing the shared
-		 * helpers below (get_exposed_settings(), value_schema(), cast_value()):
+		 * helpers below (get_exposed_settings() and value_schema()):
 		 *
 		 *     $this->register_manage_settings();
 		 */
@@ -167,10 +167,18 @@ final class WP_Settings_Abilities {
 				continue;
 			}
 
-			$type  = isset( $setting['schema']['type'] ) && is_string( $setting['schema']['type'] ) ? $setting['schema']['type'] : 'string';
 			$value = get_option( $setting['option'], $setting['default'] );
 
-			$result[ $exposed_name ] = $this->cast_value( $value, $type );
+			/*
+			 * Mirror WP_REST_Settings_Controller::prepare_value(): a stored value that
+			 * does not conform to the setting's schema is dropped from the response rather
+			 * than left to fail output validation for the entire core/read-settings call.
+			 */
+			if ( is_wp_error( rest_validate_value_from_schema( $value, $setting['schema'] ) ) ) {
+				continue;
+			}
+
+			$result[ $exposed_name ] = rest_sanitize_value_from_schema( $value, $setting['schema'] );
 		}
 
 		return $result;
@@ -284,33 +292,5 @@ final class WP_Settings_Abilities {
 		}
 
 		return $schema;
-	}
-
-	/**
-	 * Casts a stored option value to the type declared in its settings registration.
-	 *
-	 * @since 7.1.0
-	 *
-	 * @param mixed  $value The raw option value.
-	 * @param string $type  The registered setting type.
-	 * @return mixed The value cast to the declared type.
-	 */
-	private function cast_value( $value, string $type ) {
-		switch ( $type ) {
-			case 'boolean':
-				return (bool) $value;
-			case 'integer':
-				return is_scalar( $value ) ? (int) $value : 0;
-			case 'number':
-				return is_scalar( $value ) ? (float) $value : 0.0;
-			case 'array':
-				return is_array( $value ) ? $value : array();
-			case 'object':
-				// Cast to object so an empty/non-array value serializes as {} (not []) and
-				// satisfies the `object` output schema validated by execute().
-				return (object) ( is_array( $value ) ? $value : array() );
-			default:
-				return is_scalar( $value ) ? (string) $value : $value;
-		}
 	}
 }
