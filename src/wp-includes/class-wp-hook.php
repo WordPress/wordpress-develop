@@ -19,6 +19,9 @@
  *   function: callable,
  *   accepted_args: int,
  * }
+ *
+ * @phpstan-implements Iterator<int, array<string, Hook_Callback>>
+ * @phpstan-implements ArrayAccess<int, array<string, Hook_Callback>>
  */
 #[AllowDynamicProperties]
 final class WP_Hook implements Iterator, ArrayAccess {
@@ -482,7 +485,7 @@ final class WP_Hook implements Iterator, ArrayAccess {
 	 *
 	 * @link https://www.php.net/manual/en/arrayaccess.offsetexists.php
 	 *
-	 * @param mixed $offset An offset to check for.
+	 * @param int $offset An offset to check for.
 	 * @return bool True if the offset exists, false otherwise.
 	 */
 	#[ReturnTypeWillChange]
@@ -497,8 +500,8 @@ final class WP_Hook implements Iterator, ArrayAccess {
 	 *
 	 * @link https://www.php.net/manual/en/arrayaccess.offsetget.php
 	 *
-	 * @param mixed $offset The offset to retrieve.
-	 * @return mixed If set, the value at the specified offset, null otherwise.
+	 * @param int $offset The offset to retrieve.
+	 * @return array|null If set, the value at the specified offset, null otherwise.
 	 * @phpstan-return array<string, Hook_Callback>|null
 	 */
 	#[ReturnTypeWillChange]
@@ -513,8 +516,9 @@ final class WP_Hook implements Iterator, ArrayAccess {
 	 *
 	 * @link https://www.php.net/manual/en/arrayaccess.offsetset.php
 	 *
-	 * @param mixed $offset The offset to assign the value to.
-	 * @param mixed $value The value to set.
+	 * @param int|null $offset The offset to assign the value to.
+	 * @param array    $value The value to set.
+	 * @phpstan-param array<string, Hook_Callback> $value
 	 */
 	#[ReturnTypeWillChange]
 	public function offsetSet( $offset, $value ) {
@@ -534,7 +538,7 @@ final class WP_Hook implements Iterator, ArrayAccess {
 	 *
 	 * @link https://www.php.net/manual/en/arrayaccess.offsetunset.php
 	 *
-	 * @param mixed $offset The offset to unset.
+	 * @param int $offset The offset to unset.
 	 */
 	#[ReturnTypeWillChange]
 	public function offsetUnset( $offset ) {
