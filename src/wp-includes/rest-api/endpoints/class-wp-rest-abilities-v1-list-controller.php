@@ -98,6 +98,11 @@ class WP_REST_Abilities_V1_List_Controller extends WP_REST_Controller {
 			$query_args['namespace'] = $request['namespace'];
 		}
 
+		if ( ! empty( $request['meta'] ) ) {
+			// Merge caller meta first so the forced show_in_rest filter wins. This keeps a caller from using meta to reveal abilities hidden from REST.
+			$query_args['meta'] = array_merge( $request['meta'], $query_args['meta'] );
+		}
+
 		$abilities = wp_get_abilities( $query_args );
 
 		$page     = $request['page'];
@@ -189,102 +194,6 @@ class WP_REST_Abilities_V1_List_Controller extends WP_REST_Controller {
 	}
 
 	/**
-	 * Normalizes schema empty object defaults.
-	 *
-	 * Converts empty array defaults to objects when the schema type is 'object'
-	 * to ensure proper JSON serialization as {} instead of [].
-	 *
-	 * @since 6.9.0
-	 *
-	 * @param array<string, mixed> $schema The schema array.
-	 * @return array<string, mixed> The normalized schema.
-	 */
-	private function normalize_schema_empty_object_defaults( array $schema ): array {
-		if ( isset( $schema['type'] ) && 'object' === $schema['type'] && isset( $schema['default'] ) ) {
-			$default = $schema['default'];
-			if ( is_array( $default ) && empty( $default ) ) {
-				$schema['default'] = (object) $default;
-			}
-		}
-		return $schema;
-	}
-
-	/**
-	 * WordPress-internal schema keywords to strip from REST responses.
-	 *
-	 * @since 7.0.0
-	 * @var array<string, true>
-	 */
-	private const INTERNAL_SCHEMA_KEYWORDS = array(
-		'sanitize_callback' => true,
-		'validate_callback' => true,
-		'arg_options'       => true,
-	);
-
-	/**
-	 * Recursively removes WordPress-internal keywords from a schema.
-	 *
-	 * Ability schemas may include WordPress-internal properties like
-	 * `sanitize_callback`, `validate_callback`, and `arg_options` that are
-	 * used server-side but are not valid JSON Schema keywords. This method
-	 * removes those specific keys so they are not exposed in REST responses.
-	 *
-	 * @since 7.0.0
-	 *
-	 * @param array<string, mixed> $schema The schema array.
-	 * @return array<string, mixed> The schema without WordPress-internal keywords.
-	 */
-	private function strip_internal_schema_keywords( array $schema ): array {
-		$schema = array_diff_key( $schema, self::INTERNAL_SCHEMA_KEYWORDS );
-
-		// Sub-schema maps: keys are user-defined, values are sub-schemas.
-		// Note: 'dependencies' values can also be property-dependency arrays
-		// (numeric arrays of strings) which are skipped via wp_is_numeric_array().
-		foreach ( array( 'properties', 'patternProperties', 'definitions', 'dependencies' ) as $keyword ) {
-			if ( isset( $schema[ $keyword ] ) && is_array( $schema[ $keyword ] ) ) {
-				foreach ( $schema[ $keyword ] as $key => $child_schema ) {
-					if ( is_array( $child_schema ) && ! wp_is_numeric_array( $child_schema ) ) {
-						$schema[ $keyword ][ $key ] = $this->strip_internal_schema_keywords( $child_schema );
-					}
-				}
-			}
-		}
-
-		// Single sub-schema keywords.
-		foreach ( array( 'not', 'additionalProperties', 'additionalItems' ) as $keyword ) {
-			if ( isset( $schema[ $keyword ] ) && is_array( $schema[ $keyword ] ) ) {
-				$schema[ $keyword ] = $this->strip_internal_schema_keywords( $schema[ $keyword ] );
-			}
-		}
-
-		// Items: single schema or tuple array of schemas.
-		if ( isset( $schema['items'] ) ) {
-			if ( wp_is_numeric_array( $schema['items'] ) ) {
-				foreach ( $schema['items'] as $index => $item_schema ) {
-					if ( is_array( $item_schema ) ) {
-						$schema['items'][ $index ] = $this->strip_internal_schema_keywords( $item_schema );
-					}
-				}
-			} elseif ( is_array( $schema['items'] ) ) {
-				$schema['items'] = $this->strip_internal_schema_keywords( $schema['items'] );
-			}
-		}
-
-		// Array-of-schemas keywords.
-		foreach ( array( 'anyOf', 'oneOf', 'allOf' ) as $keyword ) {
-			if ( isset( $schema[ $keyword ] ) && is_array( $schema[ $keyword ] ) ) {
-				foreach ( $schema[ $keyword ] as $index => $sub_schema ) {
-					if ( is_array( $sub_schema ) ) {
-						$schema[ $keyword ][ $index ] = $this->strip_internal_schema_keywords( $sub_schema );
-					}
-				}
-			}
-		}
-
-		return $schema;
-	}
-
-	/**
 	 * Prepares an ability for response.
 	 *
 	 * @since 6.9.0
@@ -299,12 +208,8 @@ class WP_REST_Abilities_V1_List_Controller extends WP_REST_Controller {
 			'label'         => $ability->get_label(),
 			'description'   => $ability->get_description(),
 			'category'      => $ability->get_category(),
-			'input_schema'  => $this->strip_internal_schema_keywords(
-				$this->normalize_schema_empty_object_defaults( $ability->get_input_schema() )
-			),
-			'output_schema' => $this->strip_internal_schema_keywords(
-				$this->normalize_schema_empty_object_defaults( $ability->get_output_schema() )
-			),
+			'input_schema'  => wp_prepare_json_schema_for_client( $ability->get_input_schema() ),
+			'output_schema' => wp_prepare_json_schema_for_client( $ability->get_output_schema() ),
 			'meta'          => $ability->get_meta(),
 		);
 
@@ -389,9 +294,23 @@ class WP_REST_Abilities_V1_List_Controller extends WP_REST_Controller {
 					'type'        => 'object',
 					'properties'  => array(
 						'annotations' => array(
-							'description' => __( 'Annotations for the ability.' ),
-							'type'        => array( 'boolean', 'null' ),
-							'default'     => null,
+							'description'          => __( 'Behavioral annotations for the ability.' ),
+							'type'                 => 'object',
+							'properties'           => array(
+								'readonly'    => array(
+									'description' => __( 'Whether the ability does not modify its environment.' ),
+									'type'        => array( 'boolean', 'null' ),
+								),
+								'destructive' => array(
+									'description' => __( 'Whether the ability may perform destructive updates to its environment.' ),
+									'type'        => array( 'boolean', 'null' ),
+								),
+								'idempotent'  => array(
+									'description' => __( 'Whether repeated calls with the same arguments have no additional effect.' ),
+									'type'        => array( 'boolean', 'null' ),
+								),
+							),
+							'additionalProperties' => true,
 						),
 					),
 					'context'     => array( 'view', 'edit' ),
@@ -411,7 +330,7 @@ class WP_REST_Abilities_V1_List_Controller extends WP_REST_Controller {
 	 * @return array<string, mixed> Collection parameters.
 	 */
 	public function get_collection_params(): array {
-		return array(
+		$query_params = array(
 			'context'   => $this->get_context_param( array( 'default' => 'view' ) ),
 			'page'      => array(
 				'description' => __( 'Current page of the collection.' ),
@@ -438,6 +357,46 @@ class WP_REST_Abilities_V1_List_Controller extends WP_REST_Controller {
 				'sanitize_callback' => 'sanitize_key',
 				'validate_callback' => 'rest_validate_request_arg',
 			),
+			'meta'      => array(
+				'description'          => __( 'Limit results to abilities matching all of the given meta fields.' ),
+				'type'                 => 'object',
+				'properties'           => array(
+					// show_in_rest is omitted on purpose. It is forced on and cannot be filtered by a caller.
+					'annotations' => array(
+						'description'          => __( 'Limit results to abilities matching the given behavioral annotations.' ),
+						'type'                 => 'object',
+						'properties'           => array(
+							'readonly'    => array(
+								'description' => __( 'Whether the ability does not modify its environment.' ),
+								'type'        => array( 'boolean', 'null' ),
+							),
+							'destructive' => array(
+								'description' => __( 'Whether the ability may perform destructive updates to its environment.' ),
+								'type'        => array( 'boolean', 'null' ),
+							),
+							'idempotent'  => array(
+								'description' => __( 'Whether repeated calls with the same arguments have no additional effect.' ),
+								'type'        => array( 'boolean', 'null' ),
+							),
+						),
+						'additionalProperties' => true,
+					),
+				),
+				'additionalProperties' => true,
+			),
 		);
+
+		/**
+		 * Filters REST API collection parameters for the abilities controller.
+		 *
+		 * Use this to declare the schema type of a custom meta key. A declared
+		 * type lets REST coerce a query-string value, for example "true" to a
+		 * boolean, before the meta filter matches it.
+		 *
+		 * @since 7.1.0
+		 *
+		 * @param array $query_params JSON Schema-formatted collection parameters.
+		 */
+		return apply_filters( 'rest_abilities_collection_params', $query_params );
 	}
 }
