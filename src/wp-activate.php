@@ -179,7 +179,8 @@ $blog_details = get_site();
 			<?php endif; ?>
 			<?php
 		} else {
-			$url  = isset( $result['blog_id'] ) ? esc_url( get_home_url( (int) $result['blog_id'] ) ) : '';
+			$url = isset( $result['blog_id'] ) ? esc_url( get_home_url( (int) $result['blog_id'] ) ) : '';
+			/** @var WP_User $user */
 			$user = get_userdata( (int) $result['user_id'] );
 			?>
 			<h2><?php _e( 'Your account is now active!' ); ?></h2>
