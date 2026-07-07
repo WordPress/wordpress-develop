@@ -202,6 +202,40 @@ class Tests_Privacy_WpPersonalDataCleanupRequests extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Failing an expired request should also clear its confirmation key.
+	 *
+	 * The hashed confirmation key is stored in the post_password column by
+	 * wp_generate_user_request_key(), and the cleanup routine blanks it when
+	 * marking a request as failed.
+	 *
+	 * @ticket 44498
+	 */
+	public function test_expired_request_confirmation_key_is_cleared(): void {
+		$id = wp_create_user_request( $this->unique_email(), 'export_personal_data' );
+		$this->assertIsInt( $id );
+
+		// Sends the confirmation email, generating and storing the hashed key.
+		$this->assertTrue( wp_send_user_request( $id ) );
+		$this->assertNotSame(
+			'',
+			get_post_field( 'post_password', $id ),
+			'Sending the request should store a hashed confirmation key in post_password.'
+		);
+
+		// Backdate after sending, since wp_send_user_request() bumps post_modified.
+		$this->backdate_request( $id, 2 * DAY_IN_SECONDS );
+
+		_wp_personal_data_cleanup_requests();
+
+		$this->assertSame( 'request-failed', get_post_status( $id ) );
+		$this->assertSame(
+			'',
+			get_post_field( 'post_password', $id ),
+			'Failing an expired request should clear the stored confirmation key.'
+		);
+	}
+
+	/**
 	 * Multiple expired requests should all be cleaned up in a single pass.
 	 *
 	 * @ticket 44498
@@ -405,6 +439,49 @@ class Tests_Privacy_WpPersonalDataCleanupRequests extends WP_UnitTestCase {
 			'request-pending',
 			get_post_status( $id ),
 			'The cron callback should leave unexpired requests alone.'
+		);
+	}
+
+	// =========================================================================
+	// Default hook wiring (default-filters.php)
+	// =========================================================================
+
+	/**
+	 * The scheduler and the cron callback should be registered by default.
+	 *
+	 * @ticket 44498
+	 */
+	public function test_default_hooks_are_registered(): void {
+		$this->assertSame(
+			10,
+			has_action( 'init', 'wp_schedule_personal_data_cleanup_requests' ),
+			'The scheduler should be hooked to init.'
+		);
+
+		$this->assertSame(
+			10,
+			has_action( 'wp_privacy_personal_data_cleanup_requests', 'wp_privacy_personal_data_cleanup_requests' ),
+			'The cleanup callback should be hooked to the cron action.'
+		);
+	}
+
+	/**
+	 * Firing the cron action, as WP-Cron does, should run the cleanup end to end
+	 * via the callback registered in default-filters.php.
+	 *
+	 * @ticket 44498
+	 */
+	public function test_cron_action_triggers_cleanup(): void {
+		$id = wp_create_user_request( $this->unique_email(), 'export_personal_data' );
+		$this->assertIsInt( $id );
+		$this->backdate_request( $id, 2 * DAY_IN_SECONDS );
+
+		do_action( 'wp_privacy_personal_data_cleanup_requests' );
+
+		$this->assertSame(
+			'request-failed',
+			get_post_status( $id ),
+			'Firing the cron action should mark the expired request as failed.'
 		);
 	}
 }
