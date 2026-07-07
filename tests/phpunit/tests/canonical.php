@@ -438,6 +438,37 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 42512
+	 */
+	public function test_redirect_canonical_with_idn_static_front_page() {
+		$home          = get_option( 'home' );
+		$show_on_front = get_option( 'show_on_front' );
+		$page_on_front = get_option( 'page_on_front' );
+
+		$p = self::factory()->post->create(
+			array(
+				'post_type' => 'page',
+			)
+		);
+
+		try {
+			update_option( 'home', 'http://centös.example' );
+			update_option( 'show_on_front', 'page' );
+			update_option( 'page_on_front', $p );
+
+			$this->go_to( '/' );
+
+			$redirect = redirect_canonical( 'http://xn--cents-mua.example/', false );
+		} finally {
+			update_option( 'home', $home );
+			update_option( 'show_on_front', $show_on_front );
+			update_option( 'page_on_front', $page_on_front );
+		}
+
+		$this->assertNull( $redirect );
+	}
+
+	/**
 	 * Ensure NOT EXISTS queries do not trigger not-countable or undefined array key errors.
 	 *
 	 * @ticket 55955
