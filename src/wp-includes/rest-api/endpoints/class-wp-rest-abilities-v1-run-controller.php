@@ -89,7 +89,7 @@ class WP_REST_Abilities_V1_Run_Controller extends WP_REST_Controller {
 			);
 		}
 
-		$input  = $this->get_input_from_request( $request );
+		$input  = $this->get_input_from_request( $request, $ability );
 		$result = $ability->execute( $input );
 		if ( is_wp_error( $result ) ) {
 			return $result;
@@ -158,7 +158,7 @@ class WP_REST_Abilities_V1_Run_Controller extends WP_REST_Controller {
 			return $is_valid;
 		}
 
-		$input = $this->get_input_from_request( $request );
+		$input = $this->get_input_from_request( $request, $ability );
 		$input = $ability->normalize_input( $input );
 		if ( is_wp_error( $input ) ) {
 			return $this->ensure_error_status( $input, 400 );
@@ -206,21 +206,116 @@ class WP_REST_Abilities_V1_Run_Controller extends WP_REST_Controller {
 	/**
 	 * Extracts input parameters from the request.
 	 *
+	 * When an ability is provided, the extracted input is coerced to the types declared
+	 * in the ability's input schema before it is returned, so a `permission_callback` or
+	 * `execute_callback` receives natively typed input regardless of transport.
+	 *
 	 * @since 6.9.0
+	 * @since 7.1.0 Added the `$ability` parameter to coerce input to the ability schema.
 	 *
 	 * @param WP_REST_Request $request The request object.
+	 * @param WP_Ability|null $ability Optional. The ability whose input schema the input is
+	 *                                 coerced against. Default `null` (no coercion).
 	 * @return mixed|null The input parameters.
 	 */
-	private function get_input_from_request( $request ) {
+	private function get_input_from_request( $request, $ability = null ) {
 		if ( in_array( $request->get_method(), array( 'GET', 'DELETE' ), true ) ) {
 			// For GET and DELETE requests, look for 'input' query parameter.
 			$query_params = $request->get_query_params();
-			return $query_params['input'] ?? null;
+			$input        = $query_params['input'] ?? null;
+		} else {
+			// For POST requests, look for 'input' in JSON body.
+			$json_params = $request->get_json_params();
+			$input       = $json_params['input'] ?? null;
 		}
 
-		// For POST requests, look for 'input' in JSON body.
-		$json_params = $request->get_json_params();
-		return $json_params['input'] ?? null;
+		if ( $ability instanceof WP_Ability ) {
+			$input = $this->coerce_input_to_schema( $input, $ability );
+		}
+
+		return $input;
+	}
+
+	/**
+	 * Coerces raw request input to the types declared in the ability input schema.
+	 *
+	 * REST GET and DELETE requests deliver every scalar as a string ("10", "true") and
+	 * comma-separated values as a single string, so without coercion an ability receives
+	 * raw strings where its schema declares integers, booleans, or arrays. This sanitizes
+	 * the extracted input against the ability's registered input schema — the same snapshot
+	 * {@see WP_Ability::validate_input()} runs against — so coercion and validation always
+	 * agree and every ability receives natively typed input regardless of transport.
+	 *
+	 * Coercion is non-destructive with respect to validation. Input is only coerced when it
+	 * already validates against the schema, and any error produced while sanitizing (including
+	 * one nested inside the returned value) causes the raw input to be returned unchanged.
+	 * `validate_input()` therefore remains the single authority on whether input is accepted
+	 * and continues to emit the user-facing error for invalid input. `null` input and abilities
+	 * without an input schema are passed through untouched.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @param mixed      $input   Raw input extracted from the request.
+	 * @param WP_Ability $ability The ability being executed.
+	 * @return mixed Coerced input, or the raw input when it cannot be safely coerced.
+	 */
+	private function coerce_input_to_schema( $input, WP_Ability $ability ) {
+		if ( null === $input ) {
+			return $input;
+		}
+
+		$schema = $ability->get_input_schema();
+		if ( empty( $schema ) ) {
+			return $input;
+		}
+
+		/*
+		 * Only coerce input that already validates. Sanitizing invalid input can silently
+		 * change which values are accepted -- `additionalProperties: false` strips unknown
+		 * keys, and a non-numeric string casts to 0 -- so leaving invalid input untouched
+		 * lets validate_input() reject it exactly as it does without coercion.
+		 */
+		if ( is_wp_error( rest_validate_value_from_schema( $input, $schema, 'input' ) ) ) {
+			return $input;
+		}
+
+		$sanitized = rest_sanitize_value_from_schema( $input, $schema, 'input' );
+
+		/*
+		 * Sanitizing can still surface an error the lenient validation above did not, such as
+		 * items that are unique as strings but collide once cast to integers (`uniqueItems`).
+		 * The error may be returned at the top level or nested inside the returned array, so
+		 * scan recursively and fall back to the raw input on any error.
+		 */
+		if ( $this->input_contains_error( $sanitized ) ) {
+			return $input;
+		}
+
+		return $sanitized;
+	}
+
+	/**
+	 * Determines whether a sanitized value is, or contains, a WP_Error.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @param mixed $value The value to inspect.
+	 * @return bool True if the value is, or contains, a WP_Error.
+	 */
+	private function input_contains_error( $value ): bool {
+		if ( is_wp_error( $value ) ) {
+			return true;
+		}
+
+		if ( is_array( $value ) ) {
+			foreach ( $value as $item ) {
+				if ( $this->input_contains_error( $item ) ) {
+					return true;
+				}
+			}
+		}
+
+		return false;
 	}
 
 	/**
