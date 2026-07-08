@@ -1388,30 +1388,34 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Registers a read-only ability that reflects the PHP type and value of each input field.
+	 * Registers an ability that reflects the input value and its PHP type back to the caller.
+	 *
+	 * The execute callback returns the received `value` and its `gettype()`, so a test can assert
+	 * the exact value and PHP type the ability received, whether it is a scalar, an array, or an
+	 * object of fields.
 	 *
 	 * @param string $name         Ability name.
 	 * @param array  $input_schema Input schema for the ability.
+	 * @param array  $annotations  Optional. Ability annotations. Defaults to a read-only ability
+	 *                             (GET). Pass an empty array for a POST ability.
 	 */
-	private function register_reflecting_ability( string $name, array $input_schema ): void {
+	private function register_reflecting_ability( string $name, array $input_schema, array $annotations = array( 'readonly' => true ) ): void {
 		$this->register_test_ability(
 			$name,
 			array(
 				'label'               => 'Reflecting Ability',
-				'description'         => 'Reflects the received PHP types back to the caller.',
+				'description'         => 'Reflects the received input value and PHP type.',
 				'category'            => 'general',
 				'input_schema'        => $input_schema,
 				'execute_callback'    => static function ( $input ) {
-					$reflected = array();
-					foreach ( (array) $input as $key => $value ) {
-						$reflected[ $key ]             = $value;
-						$reflected[ $key . '__type' ] = gettype( $value );
-					}
-					return $reflected;
+					return array(
+						'value' => $input,
+						'type'  => gettype( $input ),
+					);
 				},
 				'permission_callback' => '__return_true',
 				'meta'                => array(
-					'annotations'  => array( 'readonly' => true ),
+					'annotations'  => $annotations,
 					'show_in_rest' => true,
 				),
 			)
@@ -1419,144 +1423,173 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that string scalars from a GET request are coerced to the schema types.
+	 * Dispatches a run request for an ability, nesting the value under the `input` parameter.
 	 *
-	 * PHP delivers every scalar in a GET query string as a string ("10", "true") and a
-	 * comma-separated list as a single string, so before coercion an ability received raw
-	 * strings where its schema declared an integer, a boolean, or an array. The controller
-	 * now sanitizes the input against the ability's input schema before it runs.
+	 * GET and DELETE send the input as query parameters, POST sends it as a JSON body. Pass
+	 * `null` to send no input at all.
 	 *
-	 * @ticket 65594
+	 * @param string $method HTTP method.
+	 * @param string $name   Ability name.
+	 * @param mixed  $input  Optional. Input value, or null to send no input. Default null.
+	 * @return WP_REST_Response The dispatched response.
 	 */
-	public function test_get_string_scalars_are_coerced_to_schema_types(): void {
-		$this->register_reflecting_ability(
-			'test/typed-input',
-			array(
-				'type'       => 'object',
-				'properties' => array(
-					'count' => array( 'type' => 'integer' ),
-					'flag'  => array( 'type' => 'boolean' ),
-					'tags'  => array(
-						'type'  => 'array',
-						'items' => array( 'type' => 'string' ),
-					),
-				),
-			)
-		);
+	private function dispatch_run( string $method, string $name, $input = null ) {
+		$request = new WP_REST_Request( $method, "/wp-abilities/v1/abilities/{$name}/run" );
 
-		// Values as PHP delivers them from an HTTP GET query string: all strings.
-		$request = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities/test/typed-input/run' );
-		$request->set_query_params(
-			array(
-				'input' => array(
-					'count' => '10',
-					'flag'  => 'true',
-					'tags'  => 'a,b',
-				),
-			)
-		);
+		if ( null !== $input ) {
+			if ( in_array( $method, array( 'GET', 'DELETE' ), true ) ) {
+				$request->set_query_params( array( 'input' => $input ) );
+			} else {
+				$request->set_header( 'Content-Type', 'application/json' );
+				$request->set_body( wp_json_encode( array( 'input' => $input ) ) );
+			}
+		}
 
-		$response = $this->server->dispatch( $request );
-		$this->assertSame( 200, $response->get_status() );
-
-		$data = $response->get_data();
-		$this->assertSame( 'integer', $data['count__type'], 'Integer field should be coerced from string.' );
-		$this->assertSame( 10, $data['count'] );
-		$this->assertSame( 'boolean', $data['flag__type'], 'Boolean field should be coerced from string.' );
-		$this->assertTrue( $data['flag'] );
-		$this->assertSame( 'array', $data['tags__type'], 'A comma-separated string should be coerced to an array.' );
-		$this->assertSame( array( 'a', 'b' ), $data['tags'] );
-
-		// The string "false" must coerce to boolean false, not a truthy string.
-		$request = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities/test/typed-input/run' );
-		$request->set_query_params(
-			array(
-				'input' => array( 'flag' => 'false' ),
-			)
-		);
-
-		$response = $this->server->dispatch( $request );
-		$this->assertSame( 200, $response->get_status() );
-		$data = $response->get_data();
-		$this->assertSame( 'boolean', $data['flag__type'] );
-		$this->assertFalse( $data['flag'] );
+		return $this->server->dispatch( $request );
 	}
 
 	/**
-	 * Tests that an array supplied via bracket syntax is preserved through coercion.
+	 * Data provider for input coerced to the ability input schema over a GET request.
 	 *
-	 * @ticket 65594
+	 * Covers fields nested inside an object as well as a top-level scalar or array input.
+	 *
+	 * @return array<string, array{0: array, 1: mixed, 2: mixed}> Schema, raw input, and the
+	 *                                                            expected coerced value.
 	 */
-	public function test_get_bracket_array_input_is_preserved(): void {
-		$this->register_reflecting_ability(
-			'test/typed-array',
-			array(
-				'type'       => 'object',
-				'properties' => array(
-					'tags' => array(
-						'type'  => 'array',
-						'items' => array( 'type' => 'string' ),
-					),
+	public function data_input_is_coerced(): array {
+		$object_schema = array(
+			'type'       => 'object',
+			'properties' => array(
+				'count' => array( 'type' => 'integer' ),
+				'flag'  => array( 'type' => 'boolean' ),
+				'tags'  => array(
+					'type'  => 'array',
+					'items' => array( 'type' => 'string' ),
 				),
-			)
+			),
 		);
 
-		// input[tags][]=a&input[tags][]=b arrives as a real array.
-		$request = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities/test/typed-array/run' );
-		$request->set_query_params(
-			array(
-				'input' => array( 'tags' => array( 'a', 'b' ) ),
-			)
+		$tags_object_schema = array(
+			'type'       => 'object',
+			'properties' => array(
+				'tags' => array(
+					'type'  => 'array',
+					'items' => array( 'type' => 'string' ),
+				),
+			),
 		);
 
-		$response = $this->server->dispatch( $request );
-		$this->assertSame( 200, $response->get_status() );
+		// Two-mode schema mirroring real read abilities: select by id, or return a collection.
+		$one_of_schema = array(
+			'type'  => 'object',
+			'oneOf' => array(
+				array(
+					'title'                => 'by_id',
+					'type'                 => 'object',
+					'properties'           => array(
+						'id' => array( 'type' => 'integer' ),
+					),
+					'required'             => array( 'id' ),
+					'additionalProperties' => false,
+				),
+				array(
+					'title'                => 'collection',
+					'type'                 => 'object',
+					'properties'           => array(
+						'per_page' => array( 'type' => 'integer' ),
+						'fields'   => array(
+							'type'  => 'array',
+							'items' => array( 'type' => 'string' ),
+						),
+					),
+					'required'             => array( 'per_page' ),
+					'additionalProperties' => false,
+				),
+			),
+		);
 
-		$data = $response->get_data();
-		$this->assertSame( 'array', $data['tags__type'] );
-		$this->assertSame( array( 'a', 'b' ), $data['tags'] );
-	}
-
-	/**
-	 * Tests that coercion reaches values nested several levels inside the input.
-	 *
-	 * Sanitizing walks `properties` recursively, so a query string arriving as
-	 * `input[a][b][id]=22&input[a][b][is_ok]=true&input[a][b][parts]=x,y` is typed at every depth
-	 * rather than only at the top level.
-	 *
-	 * @ticket 65594
-	 */
-	public function test_get_deeply_nested_input_is_coerced(): void {
-		$this->register_reflecting_ability(
-			'test/nested-typed-input',
-			array(
-				'type'       => 'object',
-				'properties' => array(
-					'a' => array(
-						'type'       => 'object',
-						'properties' => array(
-							'b' => array(
-								'type'       => 'object',
-								'properties' => array(
-									'id'    => array( 'type' => 'integer' ),
-									'is_ok' => array( 'type' => 'boolean' ),
-									'parts' => array(
-										'type'  => 'array',
-										'items' => array( 'type' => 'string' ),
-									),
+		// Object nested two levels deep, to confirm coercion walks `properties` recursively.
+		$deep_schema = array(
+			'type'       => 'object',
+			'properties' => array(
+				'a' => array(
+					'type'       => 'object',
+					'properties' => array(
+						'b' => array(
+							'type'       => 'object',
+							'properties' => array(
+								'id'    => array( 'type' => 'integer' ),
+								'is_ok' => array( 'type' => 'boolean' ),
+								'parts' => array(
+									'type'  => 'array',
+									'items' => array( 'type' => 'string' ),
 								),
 							),
 						),
 					),
 				),
-			)
+			),
 		);
 
-		// Values as PHP delivers them from an HTTP GET query string: all strings, at every depth.
-		$request = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities/test/nested-typed-input/run' );
-		$request->set_query_params(
-			array(
-				'input' => array(
+		return array(
+			// Fields nested inside an object.
+			'object integer field'           => array(
+				$object_schema,
+				array( 'count' => '10' ),
+				array( 'count' => 10 ),
+			),
+			'object boolean true'            => array(
+				$object_schema,
+				array( 'flag' => 'true' ),
+				array( 'flag' => true ),
+			),
+			'object boolean false'           => array(
+				$object_schema,
+				array( 'flag' => 'false' ),
+				array( 'flag' => false ),
+			),
+			'object comma-separated array'   => array(
+				$object_schema,
+				array( 'tags' => 'a,b' ),
+				array( 'tags' => array( 'a', 'b' ) ),
+			),
+			'object all fields at once'      => array(
+				$object_schema,
+				array(
+					'count' => '10',
+					'flag'  => 'true',
+					'tags'  => 'a,b',
+				),
+				array(
+					'count' => 10,
+					'flag'  => true,
+					'tags'  => array( 'a', 'b' ),
+				),
+			),
+			'object bracket array preserved' => array(
+				$tags_object_schema,
+				array( 'tags' => array( 'a', 'b' ) ),
+				array( 'tags' => array( 'a', 'b' ) ),
+			),
+			'oneOf id mode'                  => array(
+				$one_of_schema,
+				array( 'id' => '5' ),
+				array( 'id' => 5 ),
+			),
+			'oneOf collection mode'          => array(
+				$one_of_schema,
+				array(
+					'per_page' => '2',
+					'fields'   => 'id,name',
+				),
+				array(
+					'per_page' => 2,
+					'fields'   => array( 'id', 'name' ),
+				),
+			),
+			'deeply nested object'           => array(
+				$deep_schema,
+				array(
 					'a' => array(
 						'b' => array(
 							'id'    => '22',
@@ -1565,139 +1598,109 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 						),
 					),
 				),
-			)
+				array(
+					'a' => array(
+						'b' => array(
+							'id'    => 22,
+							'is_ok' => true,
+							'parts' => array( 'x', 'y' ),
+						),
+					),
+				),
+			),
+
+			// Top-level (non-object) input.
+			'top-level integer'              => array( array( 'type' => 'integer' ), '10', 10 ),
+			'top-level number'               => array( array( 'type' => 'number' ), '3.5', 3.5 ),
+			'top-level boolean true'         => array( array( 'type' => 'boolean' ), 'true', true ),
+			'top-level boolean false'        => array( array( 'type' => 'boolean' ), 'false', false ),
+			'top-level string unchanged'     => array( array( 'type' => 'string' ), 'hello', 'hello' ),
+			// A numeric string against a `string` schema must stay a string, not become an integer.
+			'numeric string stays string'    => array( array( 'type' => 'string' ), '10', '10' ),
+			'top-level array of integers'    => array(
+				array(
+					'type'  => 'array',
+					'items' => array( 'type' => 'integer' ),
+				),
+				'1,2,3',
+				array( 1, 2, 3 ),
+			),
 		);
-
-		$response = $this->server->dispatch( $request );
-		$this->assertSame( 200, $response->get_status() );
-
-		$nested = $response->get_data()['a']['b'];
-		$this->assertSame( 22, $nested['id'], 'A nested integer should be coerced from its query string value.' );
-		$this->assertTrue( $nested['is_ok'], 'A nested boolean should be coerced from its query string value.' );
-		$this->assertSame( array( 'x', 'y' ), $nested['parts'], 'A nested comma-separated string should be coerced to an array.' );
 	}
 
 	/**
-	 * Tests that a `oneOf` input schema resolves the matching branch and coerces against it.
+	 * Tests that GET input is coerced to the types declared in the ability input schema.
 	 *
-	 * Mirrors the two-mode schema used by real read abilities: one branch selects a single
-	 * record by id, the other returns a collection. The branches are distinguished by their
-	 * required keys and `additionalProperties: false`, so exactly one matches a valid request.
+	 * PHP delivers every scalar in a GET query string as a string ("10", "true") and a
+	 * comma-separated list as a single string, so the whole input must arrive natively typed,
+	 * whether it is a field nested in an object or a top-level scalar or array.
 	 *
 	 * @ticket 65594
+	 *
+	 * @dataProvider data_input_is_coerced
+	 *
+	 * @param array $schema   Ability input schema.
+	 * @param mixed $input    Raw input as delivered over a GET query string.
+	 * @param mixed $expected Expected input value after coercion.
 	 */
-	public function test_get_oneof_schema_resolves_and_coerces_each_mode(): void {
-		$this->register_reflecting_ability(
-			'test/one-of-input',
-			array(
-				'type'  => 'object',
-				'oneOf' => array(
-					array(
-						'title'                => 'by_id',
-						'type'                 => 'object',
-						'properties'           => array(
-							'id' => array( 'type' => 'integer' ),
-						),
-						'required'             => array( 'id' ),
-						'additionalProperties' => false,
-					),
-					array(
-						'title'                => 'collection',
-						'type'                 => 'object',
-						'properties'           => array(
-							'per_page' => array( 'type' => 'integer' ),
-							'fields'   => array(
-								'type'  => 'array',
-								'items' => array( 'type' => 'string' ),
-							),
-						),
-						'required'             => array( 'per_page' ),
-						'additionalProperties' => false,
-					),
-				),
-			)
-		);
+	public function test_get_input_is_coerced( array $schema, $input, $expected ): void {
+		$this->register_reflecting_ability( 'test/coerced-input', $schema );
 
-		// Id mode.
-		$request = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities/test/one-of-input/run' );
-		$request->set_query_params(
-			array(
-				'input' => array( 'id' => '5' ),
-			)
-		);
-
-		$response = $this->server->dispatch( $request );
+		$response = $this->dispatch_run( 'GET', 'test/coerced-input', $input );
 		$this->assertSame( 200, $response->get_status() );
-		$data = $response->get_data();
-		$this->assertSame( 'integer', $data['id__type'] );
-		$this->assertSame( 5, $data['id'] );
+		$this->assertSame( $expected, $response->get_data()['value'] );
+	}
 
-		// Collection mode.
-		$request = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities/test/one-of-input/run' );
-		$request->set_query_params(
-			array(
-				'input' => array(
-					'per_page' => '2',
-					'fields'   => 'id,name',
-				),
-			)
+	/**
+	 * Data provider for input that coercion must not rescue.
+	 *
+	 * @return array<string, array{0: array, 1: array}> Schema and the invalid raw input.
+	 */
+	public function data_invalid_input_returns_400(): array {
+		$schema = array(
+			'type'                 => 'object',
+			'properties'           => array(
+				'count' => array( 'type' => 'integer' ),
+			),
+			'additionalProperties' => false,
 		);
 
-		$response = $this->server->dispatch( $request );
-		$this->assertSame( 200, $response->get_status() );
-		$data = $response->get_data();
-		$this->assertSame( 'integer', $data['per_page__type'] );
-		$this->assertSame( 2, $data['per_page'] );
-		$this->assertSame( 'array', $data['fields__type'] );
-		$this->assertSame( array( 'id', 'name' ), $data['fields'] );
+		return array(
+			// An unknown property must still be rejected, not silently stripped.
+			'unknown property under additionalProperties:false' => array(
+				$schema,
+				array(
+					'count'   => '10',
+					'unknown' => 'x',
+				),
+			),
+			// A non-numeric string must still be rejected, not coerced to 0.
+			'non-numeric string for an integer' => array(
+				$schema,
+				array( 'count' => 'not-a-number' ),
+			),
+		);
 	}
 
 	/**
 	 * Tests that coercion never rescues otherwise-invalid input.
 	 *
-	 * Sanitizing invalid input could silently change which values are accepted: an unknown
-	 * property under `additionalProperties: false` would be stripped, and a non-numeric string
-	 * would cast to 0. Coercion is only applied to input that already validates, so both cases
-	 * still produce the authoritative `ability_invalid_input` (400) from validation.
+	 * Sanitizing invalid input could silently change what is accepted, so coercion runs only on
+	 * input that already validates. Invalid input therefore still returns the authoritative
+	 * `ability_invalid_input` (400) from validation.
 	 *
 	 * @ticket 65594
+	 *
+	 * @dataProvider data_invalid_input_returns_400
+	 *
+	 * @param array $schema Ability input schema.
+	 * @param array $input  Invalid raw input that must not be coerced.
 	 */
-	public function test_coercion_does_not_mask_invalid_input(): void {
-		$this->register_reflecting_ability(
-			'test/strict-typed-input',
-			array(
-				'type'                 => 'object',
-				'properties'           => array(
-					'count' => array( 'type' => 'integer' ),
-				),
-				'additionalProperties' => false,
-			)
-		);
+	public function test_invalid_input_returns_400( array $schema, array $input ): void {
+		$this->register_reflecting_ability( 'test/strict-typed-input', $schema );
 
-		// An unknown property must still be rejected, not silently stripped.
-		$request = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities/test/strict-typed-input/run' );
-		$request->set_query_params(
-			array(
-				'input' => array(
-					'count'   => '10',
-					'unknown' => 'x',
-				),
-			)
-		);
+		$response = $this->dispatch_run( 'GET', 'test/strict-typed-input', $input );
 
-		$response = $this->server->dispatch( $request );
-		$this->assertSame( 400, $response->get_status() );
-		$this->assertSame( 'ability_invalid_input', $response->get_data()['code'] );
-
-		// A non-numeric string must still be rejected, not coerced to 0.
-		$request = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities/test/strict-typed-input/run' );
-		$request->set_query_params(
-			array(
-				'input' => array( 'count' => 'not-a-number' ),
-			)
-		);
-
-		$response = $this->server->dispatch( $request );
 		$this->assertSame( 400, $response->get_status() );
 		$this->assertSame( 'ability_invalid_input', $response->get_data()['code'] );
 	}
@@ -1705,10 +1708,8 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 	/**
 	 * Tests that `validate_input()` decides what gets coerced, filters included.
 	 *
-	 * Coercion asks `validate_input()` rather than `rest_validate_value_from_schema()` whether the
-	 * input is acceptable, so a `wp_ability_validate_input` filter that overrides a schema failure
-	 * accepts the input for coercion too. Asking the schema directly would leave input the filter
-	 * accepts uncoerced, handing the ability the raw query string values it was meant to type.
+	 * Coercion gates on `validate_input()`, not the raw schema, so a `wp_ability_validate_input`
+	 * filter that accepts input the schema rejects makes that input coerced too.
 	 *
 	 * @ticket 65594
 	 */
@@ -1727,27 +1728,18 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 		);
 
 		// Below `minimum`, so the schema rejects it.
-		$query_params = array( 'input' => array( 'count' => '10' ) );
+		$input = array( 'count' => '10' );
 
-		$request = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities/test/filtered-typed-input/run' );
-		$request->set_query_params( $query_params );
-
-		$response = $this->server->dispatch( $request );
+		$response = $this->dispatch_run( 'GET', 'test/filtered-typed-input', $input );
 		$this->assertSame( 400, $response->get_status(), 'Schema validation should reject the input on its own.' );
 		$this->assertSame( 'ability_invalid_input', $response->get_data()['code'] );
 
 		// A filter that accepts the input makes it valid, so it must also be coerced.
 		add_filter( 'wp_ability_validate_input', '__return_true' );
 
-		$request = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities/test/filtered-typed-input/run' );
-		$request->set_query_params( $query_params );
-
-		$response = $this->server->dispatch( $request );
+		$response = $this->dispatch_run( 'GET', 'test/filtered-typed-input', $input );
 		$this->assertSame( 200, $response->get_status() );
-
-		$data = $response->get_data();
-		$this->assertSame( 'integer', $data['count__type'], 'Input a validation filter accepts should be coerced.' );
-		$this->assertSame( 10, $data['count'] );
+		$this->assertSame( array( 'count' => 10 ), $response->get_data()['value'], 'Input a validation filter accepts should be coerced.' );
 	}
 
 	/**
@@ -1759,64 +1751,41 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 	 * @ticket 65594
 	 */
 	public function test_post_typed_input_is_unchanged(): void {
-		$this->register_test_ability(
+		// An empty annotations array registers a POST (non-read-only) ability.
+		$this->register_reflecting_ability(
 			'test/typed-input-post',
 			array(
-				'label'               => 'Typed Input POST',
-				'description'         => 'Reflects the received PHP types back to the caller.',
-				'category'            => 'general',
-				'input_schema'        => array(
-					'type'       => 'object',
-					'properties' => array(
-						'count' => array( 'type' => 'integer' ),
-						'flag'  => array( 'type' => 'boolean' ),
-						'tags'  => array(
-							'type'  => 'array',
-							'items' => array( 'type' => 'string' ),
-						),
+				'type'       => 'object',
+				'properties' => array(
+					'count' => array( 'type' => 'integer' ),
+					'flag'  => array( 'type' => 'boolean' ),
+					'tags'  => array(
+						'type'  => 'array',
+						'items' => array( 'type' => 'string' ),
 					),
 				),
-				'execute_callback'    => static function ( $input ) {
-					return array(
-						'count'      => $input['count'],
-						'count_type' => gettype( $input['count'] ),
-						'flag'       => $input['flag'],
-						'flag_type'  => gettype( $input['flag'] ),
-						'tags'       => $input['tags'],
-						'tags_type'  => gettype( $input['tags'] ),
-					);
-				},
-				'permission_callback' => '__return_true',
-				'meta'                => array(
-					'show_in_rest' => true,
-				),
-			)
+			),
+			array()
 		);
 
-		$request = new WP_REST_Request( 'POST', '/wp-abilities/v1/abilities/test/typed-input-post/run' );
-		$request->set_header( 'Content-Type', 'application/json' );
-		$request->set_body(
-			wp_json_encode(
-				array(
-					'input' => array(
-						'count' => 10,
-						'flag'  => true,
-						'tags'  => array( 'a', 'b' ),
-					),
-				)
+		$response = $this->dispatch_run(
+			'POST',
+			'test/typed-input-post',
+			array(
+				'count' => 10,
+				'flag'  => true,
+				'tags'  => array( 'a', 'b' ),
 			)
 		);
-
-		$response = $this->server->dispatch( $request );
 		$this->assertSame( 200, $response->get_status() );
-
-		$data = $response->get_data();
-		$this->assertSame( 'integer', $data['count_type'] );
-		$this->assertSame( 10, $data['count'] );
-		$this->assertSame( 'boolean', $data['flag_type'] );
-		$this->assertTrue( $data['flag'] );
-		$this->assertSame( 'array', $data['tags_type'] );
-		$this->assertSame( array( 'a', 'b' ), $data['tags'] );
+		$this->assertSame(
+			array(
+				'count' => 10,
+				'flag'  => true,
+				'tags'  => array( 'a', 'b' ),
+			),
+			$response->get_data()['value']
+		);
 	}
 
 	/**
@@ -1842,20 +1811,65 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 			)
 		);
 
-		$request  = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities/test/no-input-schema/run' );
-		$response = $this->server->dispatch( $request );
+		$response = $this->dispatch_run( 'GET', 'test/no-input-schema' );
 
 		$this->assertSame( 200, $response->get_status() );
 		$this->assertTrue( $response->get_data()['ran'] );
 	}
 
 	/**
+	 * Tests that the permission callback receives natively typed input.
+	 *
+	 * Coercion runs before `check_ability_permissions()`, so an ability that inspects its input
+	 * during the permission check sees the coerced integer, not the raw "10" string the GET query
+	 * string delivered. The gate runs first, so the first recorded type is the one it acted on.
+	 *
+	 * @ticket 65594
+	 */
+	public function test_permission_callback_receives_typed_input(): void {
+		$seen        = new stdClass();
+		$seen->types = array();
+
+		$this->register_test_ability(
+			'test/permission-typed-input',
+			array(
+				'label'               => 'Permission Typed Input',
+				'description'         => 'Records the type the permission callback receives.',
+				'category'            => 'general',
+				'input_schema'        => array(
+					'type'       => 'object',
+					'properties' => array(
+						'count' => array( 'type' => 'integer' ),
+					),
+				),
+				'permission_callback' => static function ( $input ) use ( $seen ) {
+					$seen->types[] = gettype( $input['count'] );
+					return true;
+				},
+				'execute_callback'    => static function ( $input ) {
+					return array( 'count__type' => gettype( $input['count'] ) );
+				},
+				'meta'                => array(
+					'annotations'  => array( 'readonly' => true ),
+					'show_in_rest' => true,
+				),
+			)
+		);
+
+		$response = $this->dispatch_run( 'GET', 'test/permission-typed-input', array( 'count' => '10' ) );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertNotEmpty( $seen->types, 'The permission callback should have run.' );
+		$this->assertSame( 'integer', $seen->types[0], 'The REST permission gate should receive coerced (typed) input, not a raw string.' );
+		$this->assertSame( 'integer', $response->get_data()['count__type'] );
+	}
+
+	/**
 	 * Tests that a value which only fails validation once coerced falls back to the raw input.
 	 *
-	 * `["1", "01"]` is unique as strings (so it validates and its `oneOf`/schema branch matches)
-	 * but collides once cast to integers, so sanitizing produces a nested `rest_duplicate_items`
-	 * error inside the returned array. The recursive error scan detects the nested error and
-	 * returns the raw input, so validation still accepts it and no `WP_Error` reaches the ability.
+	 * `["1", "01"]` is unique as strings but collides once cast to integers, so it cannot be
+	 * coerced without producing a `uniqueItems` error. The raw input is kept instead, so
+	 * validation still accepts it and no `WP_Error` reaches the ability.
 	 *
 	 * @ticket 65594
 	 */
@@ -1874,20 +1888,10 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 			)
 		);
 
-		$request = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities/test/unique-items-input/run' );
-		$request->set_query_params(
-			array(
-				'input' => array(
-					'include' => array( '1', '01' ),
-				),
-			)
-		);
-
-		$response = $this->server->dispatch( $request );
+		$response = $this->dispatch_run( 'GET', 'test/unique-items-input', array( 'include' => array( '1', '01' ) ) );
 
 		// Accepted (unique as strings) and the ability received the raw values, not a WP_Error.
 		$this->assertSame( 200, $response->get_status() );
-		$this->assertSame( 'array', $response->get_data()['include__type'] );
-		$this->assertSame( array( '1', '01' ), $response->get_data()['include'] );
+		$this->assertSame( array( 'include' => array( '1', '01' ) ), $response->get_data()['value'] );
 	}
 }

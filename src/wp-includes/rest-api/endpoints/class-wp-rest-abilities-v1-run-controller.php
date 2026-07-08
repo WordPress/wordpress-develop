@@ -35,25 +35,6 @@ class WP_REST_Abilities_V1_Run_Controller extends WP_REST_Controller {
 	protected $rest_base = 'abilities';
 
 	/**
-	 * The request the coerced input in `$coerced_input` was computed for.
-	 *
-	 * Written by `check_ability_permissions()` on every call, so it always describes the
-	 * dispatch in progress rather than an earlier one that reused the same request object.
-	 *
-	 * @since 7.1.0
-	 * @var WP_REST_Request|null
-	 */
-	private $coerced_input_request = null;
-
-	/**
-	 * Coerced input computed for `$coerced_input_request`.
-	 *
-	 * @since 7.1.0
-	 * @var mixed
-	 */
-	private $coerced_input = null;
-
-	/**
 	 * Registers the routes for ability execution.
 	 *
 	 * @since 6.9.0
@@ -108,15 +89,7 @@ class WP_REST_Abilities_V1_Run_Controller extends WP_REST_Controller {
 			);
 		}
 
-		/*
-		 * check_ability_permissions() always runs first for this request and has already coerced
-		 * the input against the ability's schema. Reuse that value instead of validating and
-		 * sanitizing a second time, falling back for callers that reach this method directly.
-		 */
-		$input = $this->coerced_input_request === $request
-			? $this->coerced_input
-			: $this->get_input_from_request( $request, $ability );
-
+		$input  = $this->get_input_from_request( $request );
 		$result = $ability->execute( $input );
 		if ( is_wp_error( $result ) ) {
 			return $result;
@@ -185,16 +158,7 @@ class WP_REST_Abilities_V1_Run_Controller extends WP_REST_Controller {
 			return $is_valid;
 		}
 
-		/*
-		 * Coercing validates the input against the ability's schema, so hand the result to
-		 * execute_ability() rather than let it repeat the work. Assigned unconditionally: this
-		 * method runs at the start of every dispatch, so the stored value can never describe an
-		 * earlier dispatch that happened to reuse the same request object.
-		 */
-		$input                       = $this->get_input_from_request( $request, $ability );
-		$this->coerced_input_request = $request;
-		$this->coerced_input         = $input;
-
+		$input = $this->get_input_from_request( $request );
 		$input = $ability->normalize_input( $input );
 		if ( is_wp_error( $input ) ) {
 			return $this->ensure_error_status( $input, 400 );
@@ -242,52 +206,58 @@ class WP_REST_Abilities_V1_Run_Controller extends WP_REST_Controller {
 	/**
 	 * Extracts input parameters from the request.
 	 *
-	 * When an ability is provided, the extracted input is coerced to the types declared
-	 * in the ability's input schema before it is returned, so a `permission_callback` or
-	 * `execute_callback` receives natively typed input regardless of transport.
-	 *
 	 * @since 6.9.0
-	 * @since 7.1.0 Added the `$ability` parameter to coerce input to the ability schema.
 	 *
 	 * @param WP_REST_Request $request The request object.
-	 * @param WP_Ability|null $ability Optional. The ability whose input schema the input is
-	 *                                 coerced against. Default `null` (no coercion).
 	 * @return mixed|null The input parameters.
 	 */
-	private function get_input_from_request( $request, $ability = null ) {
+	private function get_input_from_request( $request ) {
 		if ( in_array( $request->get_method(), array( 'GET', 'DELETE' ), true ) ) {
 			// For GET and DELETE requests, look for 'input' query parameter.
 			$query_params = $request->get_query_params();
-			$input        = $query_params['input'] ?? null;
-		} else {
-			// For POST requests, look for 'input' in JSON body.
-			$json_params = $request->get_json_params();
-			$input       = $json_params['input'] ?? null;
+			return $query_params['input'] ?? null;
 		}
 
-		if ( $ability instanceof WP_Ability ) {
-			$input = $this->coerce_input_to_schema( $input, $ability );
+		// For POST requests, look for 'input' in JSON body.
+		$json_params = $request->get_json_params();
+		return $json_params['input'] ?? null;
+	}
+
+	/**
+	 * Sanitizes the run input by coercing it to the ability's input schema.
+	 *
+	 * Registered as the `input` argument `sanitize_callback` so that both
+	 * `check_ability_permissions()` and `execute_ability()` receive natively typed input
+	 * regardless of transport.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @see WP_REST_Abilities_V1_Run_Controller::coerce_input_to_schema()
+	 *
+	 * @param mixed           $input   Raw input extracted from the request.
+	 * @param WP_REST_Request $request The request object.
+	 * @return mixed Coerced input, or the raw input when it cannot be safely coerced.
+	 */
+	public function sanitize_input_for_ability( $input, $request ) {
+		$ability = wp_get_ability( $request['name'] );
+		if ( ! $ability instanceof WP_Ability ) {
+			return $input;
 		}
 
-		return $input;
+		return $this->coerce_input_to_schema( $input, $ability );
 	}
 
 	/**
 	 * Coerces raw request input to the types declared in the ability input schema.
 	 *
-	 * REST GET and DELETE requests deliver every scalar as a string ("10", "true") and
-	 * comma-separated values as a single string, so without coercion an ability receives
-	 * raw strings where its schema declares integers, booleans, or arrays. This sanitizes
-	 * the extracted input against the ability's registered input schema — the same snapshot
-	 * {@see WP_Ability::validate_input()} runs against — so coercion and validation always
-	 * agree and every ability receives natively typed input regardless of transport.
+	 * GET and DELETE deliver every scalar as a string ("10", "true") and a list as a single
+	 * comma-separated string, so without coercion an ability receives raw strings where its
+	 * schema declares integers, booleans, or arrays.
 	 *
-	 * Coercion is non-destructive with respect to validation. Input is only coerced when
-	 * {@see WP_Ability::validate_input()} accepts it, and any error produced while sanitizing
-	 * (including one nested inside the returned value) causes the raw input to be returned
-	 * unchanged. `validate_input()` therefore remains the single authority on whether input is
-	 * accepted and continues to emit the user-facing error for invalid input. `null` input and
-	 * abilities without an input schema are passed through untouched.
+	 * Coercion never changes what validation accepts. Input is coerced only when
+	 * {@see WP_Ability::validate_input()} already accepts it, and any error surfaced while
+	 * sanitizing falls back to the raw input, so `validate_input()` stays the single authority
+	 * on what is rejected.
 	 *
 	 * @since 7.1.0
 	 *
@@ -369,9 +339,10 @@ class WP_REST_Abilities_V1_Run_Controller extends WP_REST_Controller {
 	public function get_run_args(): array {
 		return array(
 			'input' => array(
-				'description' => __( 'Input parameters for the ability execution.' ),
-				'type'        => array( 'integer', 'number', 'boolean', 'string', 'array', 'object', 'null' ),
-				'default'     => null,
+				'description'       => __( 'Input parameters for the ability execution.' ),
+				'type'              => array( 'integer', 'number', 'boolean', 'string', 'array', 'object', 'null' ),
+				'default'           => null,
+				'sanitize_callback' => array( $this, 'sanitize_input_for_ability' ),
 			),
 		);
 	}
