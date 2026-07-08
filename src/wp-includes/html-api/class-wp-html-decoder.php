@@ -65,58 +65,59 @@ class WP_HTML_Decoder {
 			 * or more bytes. The chunk is atomic on the haystack side — decoding
 			 * produces all of it at once and the raw cursor can only skip the
 			 * entire reference — but this is a prefix test, so the search text
-			 * may legitimately end part-way through the chunk. The overlapping
-			 * bytes must be compared.
+			 * may legitimately end part-way through the chunk. Only the overlapping
+			 * bytes can be compared.
 			 *
 			 * For example, `&fjlig;` (7 bytes) decodes into the chunk
 			 * `fj` (2 bytes).
 			 *
-			 *                       at
+			 *                       haystack at
+			 *                       │
 			 *                       │      ┌─after matching "fj" continue here
 			 *                       │      │ (+ $token_length / 7 bytes)
 			 *                       ↓      ↓
 			 *     Haystack:    start&fjlig;ord
 			 *                       ╰──┬──╯
 			 *                          fj - decoded "&fjlig;" character reference chunk
+			 *                               will be tested against the search text.
 			 *
-			 *                       at
+			 *                       search at
+			 *                       │
 			 *                       │ ┌─after matching "fj" continue here
 			 *                       │ │ (+ $match_length / 2 bytes)
 			 *                       ↓ ↓
 			 *     Search A:    startfjord      min( 2, 5 ) = 2: `fj` matches,
 			 *                                  continue scanning at `o`.
 			 *
-			 *                       at
+			 *                       search at
 			 *                       ↓
 			 *     Search B:    startf          min( 2, 1 ) = 1: `f` matches and
 			 *                                  the search text is exhausted, so
 			 *                                  the prefix is confirmed.
 			 *
-			 *                       at
+			 *                       search at
 			 *                       ↓
 			 *     Search C:    startfr         min( 2, 2 ) = 2: `fj` differs
 			 *                                  from `fr`, no match is possible.
 			 *
-			 * Using `min()` and `substr_compare()` ensures that only the overlapping bytes
-			 * are compared and length mismatches do not cause a false negative:
+			 * The comparison must be limited to the overlap: the smaller of the chunk
+			 * length and the remaining search text length. Relying exclusively on
+			 * either length leads to false negatives:
 			 *
 			 *     // Search A: remaining search text is longer than the decoded chunk.
 			 *     // Using length 5 (`$search_length - $search_at`) would cause a false negative:
-			 *     substr_compare( 'startfjord', 'fj', 5, 5 );
+			 *     substr_compare( 'startfjord', 'fj', 5, 5 ); // non-zero
 			 *     // Using length 2 (`strlen( $next_chunk )`) matches correctly:
-			 *     substr_compare( 'startfjord', 'fj', 5, 2 );
+			 *     substr_compare( 'startfjord', 'fj', 5, 2 ); // 0
 			 *
 			 *     // Search B: remaining search text is shorter than the decoded chunk.
-			 *     // Using length 1 (`$search_length - $search_at`) matches correctly:
-			 *     substr_compare( 'startf', 'fj', 5, 1 );
 			 *     // Using length 2 (`strlen( $next_chunk )`) would cause a false negative:
-			 *     substr_compare( 'startf', 'fj', 5, 2 );
+			 *     substr_compare( 'startf', 'fj', 5, 2 ); // non-zero
+			 *     // Using length 1 (`$search_length - $search_at`) matches correctly:
+			 *     substr_compare( 'startf', 'fj', 5, 1 ); // 0
 			 *
-			 * After comparing, each cursor must advance by what it consumed: the
-			 * haystack by the raw reference length (`$token_length`), the search
-			 * text by only the overlapping decoded bytes (`$match_length`). If the
-			 * search text is exhausted, the match is complete, the loop terminates,
-			 * and the function returns true.
+			 * A match that exhausts the search text (Search B) ends the loop with
+			 * `$search_at === $search_length`, which the final return reports as success.
 			 */
 			$match_length = min( strlen( $next_chunk ), $search_length - $search_at );
 			if ( 0 !== substr_compare( $search_text, $next_chunk, $search_at, $match_length, $loose_case ) ) {
