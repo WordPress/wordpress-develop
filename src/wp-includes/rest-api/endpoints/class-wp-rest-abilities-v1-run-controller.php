@@ -35,6 +35,25 @@ class WP_REST_Abilities_V1_Run_Controller extends WP_REST_Controller {
 	protected $rest_base = 'abilities';
 
 	/**
+	 * The request the coerced input in `$coerced_input` was computed for.
+	 *
+	 * Written by `check_ability_permissions()` on every call, so it always describes the
+	 * dispatch in progress rather than an earlier one that reused the same request object.
+	 *
+	 * @since 7.1.0
+	 * @var WP_REST_Request|null
+	 */
+	private $coerced_input_request = null;
+
+	/**
+	 * Coerced input computed for `$coerced_input_request`.
+	 *
+	 * @since 7.1.0
+	 * @var mixed
+	 */
+	private $coerced_input = null;
+
+	/**
 	 * Registers the routes for ability execution.
 	 *
 	 * @since 6.9.0
@@ -89,7 +108,15 @@ class WP_REST_Abilities_V1_Run_Controller extends WP_REST_Controller {
 			);
 		}
 
-		$input  = $this->get_input_from_request( $request, $ability );
+		/*
+		 * check_ability_permissions() always runs first for this request and has already coerced
+		 * the input against the ability's schema. Reuse that value instead of validating and
+		 * sanitizing a second time, falling back for callers that reach this method directly.
+		 */
+		$input = $this->coerced_input_request === $request
+			? $this->coerced_input
+			: $this->get_input_from_request( $request, $ability );
+
 		$result = $ability->execute( $input );
 		if ( is_wp_error( $result ) ) {
 			return $result;
@@ -158,7 +185,16 @@ class WP_REST_Abilities_V1_Run_Controller extends WP_REST_Controller {
 			return $is_valid;
 		}
 
-		$input = $this->get_input_from_request( $request, $ability );
+		/*
+		 * Coercing validates the input against the ability's schema, so hand the result to
+		 * execute_ability() rather than let it repeat the work. Assigned unconditionally: this
+		 * method runs at the start of every dispatch, so the stored value can never describe an
+		 * earlier dispatch that happened to reuse the same request object.
+		 */
+		$input                       = $this->get_input_from_request( $request, $ability );
+		$this->coerced_input_request = $request;
+		$this->coerced_input         = $input;
+
 		$input = $ability->normalize_input( $input );
 		if ( is_wp_error( $input ) ) {
 			return $this->ensure_error_status( $input, 400 );
@@ -246,12 +282,12 @@ class WP_REST_Abilities_V1_Run_Controller extends WP_REST_Controller {
 	 * {@see WP_Ability::validate_input()} runs against — so coercion and validation always
 	 * agree and every ability receives natively typed input regardless of transport.
 	 *
-	 * Coercion is non-destructive with respect to validation. Input is only coerced when it
-	 * already validates against the schema, and any error produced while sanitizing (including
-	 * one nested inside the returned value) causes the raw input to be returned unchanged.
-	 * `validate_input()` therefore remains the single authority on whether input is accepted
-	 * and continues to emit the user-facing error for invalid input. `null` input and abilities
-	 * without an input schema are passed through untouched.
+	 * Coercion is non-destructive with respect to validation. Input is only coerced when
+	 * {@see WP_Ability::validate_input()} accepts it, and any error produced while sanitizing
+	 * (including one nested inside the returned value) causes the raw input to be returned
+	 * unchanged. `validate_input()` therefore remains the single authority on whether input is
+	 * accepted and continues to emit the user-facing error for invalid input. `null` input and
+	 * abilities without an input schema are passed through untouched.
 	 *
 	 * @since 7.1.0
 	 *
@@ -274,8 +310,13 @@ class WP_REST_Abilities_V1_Run_Controller extends WP_REST_Controller {
 		 * change which values are accepted -- `additionalProperties: false` strips unknown
 		 * keys, and a non-numeric string casts to 0 -- so leaving invalid input untouched
 		 * lets validate_input() reject it exactly as it does without coercion.
+		 *
+		 * validate_input() is asked rather than rest_validate_value_from_schema() so that the
+		 * `wp_ability_validate_input` filter decides what counts as valid here as well. A filter
+		 * that overrides a schema failure accepts the input, so the input is coerced; a filter
+		 * that rejects otherwise valid input leaves it untouched for validate_input() to report.
 		 */
-		if ( is_wp_error( rest_validate_value_from_schema( $input, $schema, 'input' ) ) ) {
+		if ( is_wp_error( $ability->validate_input( $input ) ) ) {
 			return $input;
 		}
 

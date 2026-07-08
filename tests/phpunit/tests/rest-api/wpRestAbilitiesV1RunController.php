@@ -1643,6 +1643,54 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that `validate_input()` decides what gets coerced, filters included.
+	 *
+	 * Coercion asks `validate_input()` rather than `rest_validate_value_from_schema()` whether the
+	 * input is acceptable, so a `wp_ability_validate_input` filter that overrides a schema failure
+	 * accepts the input for coercion too. Asking the schema directly would leave input the filter
+	 * accepts uncoerced, handing the ability the raw query string values it was meant to type.
+	 *
+	 * @ticket 64098
+	 */
+	public function test_validate_input_filter_override_still_coerces(): void {
+		$this->register_reflecting_ability(
+			'test/filtered-typed-input',
+			array(
+				'type'       => 'object',
+				'properties' => array(
+					'count' => array(
+						'type'    => 'integer',
+						'minimum' => 100,
+					),
+				),
+			)
+		);
+
+		// Below `minimum`, so the schema rejects it.
+		$query_params = array( 'input' => array( 'count' => '10' ) );
+
+		$request = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities/test/filtered-typed-input/run' );
+		$request->set_query_params( $query_params );
+
+		$response = $this->server->dispatch( $request );
+		$this->assertSame( 400, $response->get_status(), 'Schema validation should reject the input on its own.' );
+		$this->assertSame( 'ability_invalid_input', $response->get_data()['code'] );
+
+		// A filter that accepts the input makes it valid, so it must also be coerced.
+		add_filter( 'wp_ability_validate_input', '__return_true' );
+
+		$request = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities/test/filtered-typed-input/run' );
+		$request->set_query_params( $query_params );
+
+		$response = $this->server->dispatch( $request );
+		$this->assertSame( 200, $response->get_status() );
+
+		$data = $response->get_data();
+		$this->assertSame( 'integer', $data['count__type'], 'Input a validation filter accepts should be coerced.' );
+		$this->assertSame( 10, $data['count'] );
+	}
+
+	/**
 	 * Tests that already-typed POST input is unchanged by coercion.
 	 *
 	 * JSON delivers native types, so coercion is a near no-op for POST. Applying it uniformly
