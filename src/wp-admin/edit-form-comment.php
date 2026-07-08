@@ -249,18 +249,28 @@ if ( $comment_threading_enabled ) {
 		$comments_by_parent[ (int) $post_comment->comment_parent ][] = (int) $post_comment->comment_ID;
 	}
 
-	$comment_descendants = array();
-	$comment_queue       = array( (int) $comment->comment_ID );
+	// Walk the descendants level by level, which also gives the height of the subtree that moves with the comment.
+	$comment_descendants    = array();
+	$comment_subtree_height = 1;
+	$comment_level          = array( (int) $comment->comment_ID );
 
-	while ( $comment_queue ) {
-		$descendant_parent = array_shift( $comment_queue );
+	while ( $comment_level ) {
+		$next_level = array();
 
-		if ( isset( $comments_by_parent[ $descendant_parent ] ) ) {
-			foreach ( $comments_by_parent[ $descendant_parent ] as $descendant_id ) {
-				$comment_descendants[ $descendant_id ] = true;
-				$comment_queue[]                       = $descendant_id;
+		foreach ( $comment_level as $level_comment_id ) {
+			if ( isset( $comments_by_parent[ $level_comment_id ] ) ) {
+				foreach ( $comments_by_parent[ $level_comment_id ] as $descendant_id ) {
+					$comment_descendants[ $descendant_id ] = true;
+					$next_level[]                          = $descendant_id;
+				}
 			}
 		}
+
+		if ( $next_level ) {
+			++$comment_subtree_height;
+		}
+
+		$comment_level = $next_level;
 	}
 
 	// Compute each comment's depth, since comments at the maximum threading depth cannot become a parent.
@@ -321,8 +331,8 @@ printf(
 			continue;
 		}
 
-		// Comments already at the maximum threading depth cannot become a parent.
-		if ( $max_thread_depth && $comment_depths[ $post_comment_id ] >= $max_thread_depth ) {
+		// The comment and the replies that move with it must stay within the maximum threading depth.
+		if ( $max_thread_depth && $comment_depths[ $post_comment_id ] + $comment_subtree_height > $max_thread_depth ) {
 			continue;
 		}
 

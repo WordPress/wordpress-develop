@@ -124,8 +124,41 @@ function edit_comment() {
 
 			$max_thread_depth = (int) get_option( 'thread_comments_depth' );
 
-			if ( $max_thread_depth && $parent_depth >= $max_thread_depth ) {
-				return new WP_Error( 'comment_parent_invalid', __( 'The parent comment is already at the maximum threading depth.' ) );
+			if ( $max_thread_depth ) {
+				if ( $parent_depth >= $max_thread_depth ) {
+					return new WP_Error( 'comment_parent_invalid', __( 'The parent comment is already at the maximum threading depth.' ) );
+				}
+
+				// The comment's replies move with it, so the whole subtree must stay within the maximum depth.
+				$subtree_height = 1;
+				$subtree_ids    = array( $comment_id => true );
+				$level_ids      = array( $comment_id );
+
+				while ( $level_ids && $parent_depth + $subtree_height <= $max_thread_depth ) {
+					$level_ids = get_comments(
+						array(
+							'parent__in' => $level_ids,
+							'fields'     => 'ids',
+							'status'     => 'any',
+							'orderby'    => 'none',
+						)
+					);
+
+					// Guard against a comment appearing twice, e.g. a loop in existing data.
+					$level_ids = array_diff( array_map( 'intval', $level_ids ), array_keys( $subtree_ids ) );
+
+					foreach ( $level_ids as $level_id ) {
+						$subtree_ids[ $level_id ] = true;
+					}
+
+					if ( $level_ids ) {
+						++$subtree_height;
+					}
+				}
+
+				if ( $parent_depth + $subtree_height > $max_thread_depth ) {
+					return new WP_Error( 'comment_parent_invalid', __( 'The replies to this comment would exceed the maximum threading depth.' ) );
+				}
 			}
 		}
 	}

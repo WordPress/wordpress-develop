@@ -252,6 +252,57 @@ class Admin_Includes_Comment_EditComment_Test extends WP_UnitTestCase {
 	/**
 	 * @ticket 65570
 	 */
+	public function test_should_reject_parent_when_replies_would_exceed_maximum_threading_depth() {
+		update_option( 'thread_comments_depth', 3 );
+
+		$top_id     = self::factory()->comment->create( array( 'comment_post_ID' => self::$post_id ) );
+		$mid_id     = self::factory()->comment->create(
+			array(
+				'comment_post_ID' => self::$post_id,
+				'comment_parent'  => $top_id,
+			)
+		);
+		$comment_id = self::factory()->comment->create( array( 'comment_post_ID' => self::$post_id ) );
+		self::factory()->comment->create(
+			array(
+				'comment_post_ID' => self::$post_id,
+				'comment_parent'  => $comment_id,
+			)
+		);
+
+		// The comment itself would be at depth 3, but its reply would end up at depth 4.
+		$result = $this->update_comment_parent( $comment_id, $mid_id );
+
+		$this->assertWPError( $result );
+		$this->assertSame( 'comment_parent_invalid', $result->get_error_code() );
+		$this->assertSame( '0', get_comment( $comment_id )->comment_parent );
+	}
+
+	/**
+	 * @ticket 65570
+	 */
+	public function test_should_allow_moving_comment_with_replies_within_maximum_threading_depth() {
+		update_option( 'thread_comments_depth', 3 );
+
+		$top_id     = self::factory()->comment->create( array( 'comment_post_ID' => self::$post_id ) );
+		$comment_id = self::factory()->comment->create( array( 'comment_post_ID' => self::$post_id ) );
+		self::factory()->comment->create(
+			array(
+				'comment_post_ID' => self::$post_id,
+				'comment_parent'  => $comment_id,
+			)
+		);
+
+		// The comment ends up at depth 2 and its reply at depth 3, the maximum.
+		$result = $this->update_comment_parent( $comment_id, $top_id );
+
+		$this->assertSame( 1, $result );
+		$this->assertSame( (string) $top_id, get_comment( $comment_id )->comment_parent );
+	}
+
+	/**
+	 * @ticket 65570
+	 */
 	public function test_should_reject_parent_of_a_different_comment_type() {
 		$parent_id  = self::factory()->comment->create(
 			array(
