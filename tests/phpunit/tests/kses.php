@@ -981,6 +981,55 @@ EOF;
 	}
 
 	/**
+	 * @ticket 65491
+	 *
+	 * Verifies that autofocus is retained for dialog and descendants inside a dialog.
+	 * Uses an explicit allowlist so the test can include input elements as well.
+	 */
+	public function test_wp_kses_allows_autofocus_for_dialog_and_descendants() {
+		$allowed_html = array(
+			'dialog' => array(
+				'open'      => true,
+				'autofocus' => true,
+			),
+			'button' => array(
+				'autofocus' => true,
+			),
+			'div'    => array(),
+			'input'  => array(
+				'type'      => true,
+				'autofocus' => true,
+			),
+		);
+
+		$content  = '<dialog open autofocus><button autofocus>Open</button><div><button autofocus>Inside</button></div><input type="text" autofocus /></dialog>';
+		$expected = '<dialog open autofocus><button autofocus>Open</button><div><button autofocus>Inside</button></div><input type="text" autofocus /></dialog>';
+
+		$this->assertEqualHTML( $expected, wp_kses( $content, $allowed_html ) );
+	}
+
+	/**
+	 * @ticket 65491
+	 *
+	 * Verifies that autofocus is removed outside of dialog context.
+	 * Uses an explicit allowlist so the test can include input elements as well.
+	 */
+	public function test_wp_kses_removes_autofocus_outside_dialog_context() {
+		$allowed_html = array(
+			'button' => array(),
+			'div'    => array(),
+			'input'  => array(
+				'type' => true,
+			),
+		);
+
+		$content  = '<button autofocus>Outside</button><div><button autofocus>Inside</button></div><input type="text" autofocus />';
+		$expected = '<button>Outside</button><div><button>Inside</button></div><input type="text" />';
+
+		$this->assertEqualHTML( $expected, wp_kses( $content, $allowed_html ) );
+	}
+
+	/**
 	 * @ticket 43312
 	 */
 	public function test_wp_kses_attr_no_attributes_allowed_with_false() {

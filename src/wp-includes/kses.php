@@ -158,9 +158,10 @@ if ( ! CUSTOM_TAGS ) {
 			'popover' => true,
 		),
 		'dialog'     => array(
-			'closedby' => true,
-			'open'     => true,
-			'popover'  => true,
+			'autofocus' => true,
+			'closedby'  => true,
+			'open'      => true,
+			'popover'   => true,
 		),
 		'dl'         => array(),
 		'dt'         => array(),
@@ -1196,6 +1197,7 @@ function wp_kses_split( $content, $allowed_html, $allowed_protocols ) {
 
 	$pass_allowed_html      = $allowed_html;
 	$pass_allowed_protocols = $allowed_protocols;
+	_wp_kses_track_in_dialog_context( '', '', false, true );
 
 	$token_pattern = <<<REGEX
 ~
@@ -1282,6 +1284,48 @@ function _wp_kses_split_callback( $matches ) {
 	global $pass_allowed_html, $pass_allowed_protocols;
 
 	return wp_kses_split2( $matches[0], $pass_allowed_html, $pass_allowed_protocols );
+}
+
+/**
+ * Tracks whether the current KSES pass is inside an open dialog element.
+ *
+ * The state is kept in a static local variable so context can be updated as
+ * tags are processed without relying on a global.
+ *
+ * @access private
+ * @ignore
+ *
+ * @param string $element    The current tag name.
+ * @param string $attrlist   The current tag's attribute string.
+ * @param bool   $is_closing Whether the current token is a closing tag.
+ * @param bool   $reset      Whether to reset the tracked depth for a new pass.
+ * @return bool Whether the current tag is inside an open dialog element.
+ */
+function _wp_kses_track_in_dialog_context( $element = '', $attrlist = '', $is_closing = false, $reset = false ) {
+	static $in_dialog_depth = 0;
+
+	if ( $reset ) {
+		$in_dialog_depth = 0;
+		return false;
+	}
+
+	$elem_low = strtolower( $element );
+	if ( $is_closing ) {
+		if ( 'dialog' === $elem_low ) {
+			$in_dialog_depth = max( 0, $in_dialog_depth - 1 );
+		}
+
+		return $in_dialog_depth > 0;
+	}
+
+	$is_inside_dialog = $in_dialog_depth > 0 || 'dialog' === $elem_low;
+	$is_self_closing  = preg_match( '%\s*/\s*$%', $attrlist );
+
+	if ( 'dialog' === $elem_low && ! $is_self_closing ) {
+		++$in_dialog_depth;
+	}
+
+	return $is_inside_dialog;
 }
 
 /**
@@ -1389,6 +1433,7 @@ function wp_kses_split2( $content, $allowed_html, $allowed_protocols ) {
 	$slash    = trim( $matches[1] );
 	$elem     = $matches[2];
 	$attrlist = $matches[3];
+	$elem_low = strtolower( $elem );
 
 	if ( ! is_array( $allowed_html ) ) {
 		$allowed_html = wp_kses_allowed_html( $allowed_html );
@@ -1401,10 +1446,14 @@ function wp_kses_split2( $content, $allowed_html, $allowed_protocols ) {
 
 	// No attributes are allowed for closing elements.
 	if ( '' !== $slash ) {
+		_wp_kses_track_in_dialog_context( $elem, '', true );
 		return "</$elem>";
 	}
 
-	return wp_kses_attr( $elem, $attrlist, $allowed_html, $allowed_protocols );
+	$is_dialog_or_descendant = _wp_kses_track_in_dialog_context( $elem, $attrlist );
+	$sanitized_tag           = wp_kses_attr( $elem, $attrlist, $allowed_html, $allowed_protocols, array( 'in_dialog' => $is_dialog_or_descendant ) );
+
+	return $sanitized_tag;
 }
 
 /**
@@ -1427,6 +1476,7 @@ function wp_kses_split2( $content, $allowed_html, $allowed_protocols ) {
  * @since 1.0.0
  * @since 5.9.0 Added support for an array of allowed values for attributes.
  *              Added support for required attributes.
+ * @since 7.1.0 Added parameter `$context` for context-aware attribute checks.
  *
  * @param string         $element           HTML element/tag.
  * @param string         $attr              HTML attributes from HTML element to closing HTML element tag.
@@ -1434,9 +1484,10 @@ function wp_kses_split2( $content, $allowed_html, $allowed_protocols ) {
  *                                          or a context name such as 'post'. See wp_kses_allowed_html()
  *                                          for the list of accepted context names.
  * @param string[]       $allowed_protocols Array of allowed URL protocols.
+ * @param array{ in_dialog?: bool } $context Optional context data for attribute checks.
  * @return string Sanitized HTML element.
  */
-function wp_kses_attr( $element, $attr, $allowed_html, $allowed_protocols ) {
+function wp_kses_attr( $element, $attr, $allowed_html, $allowed_protocols, $context = array() ) {
 	if ( ! is_array( $allowed_html ) ) {
 		$allowed_html = wp_kses_allowed_html( $allowed_html );
 	}
@@ -1480,7 +1531,7 @@ function wp_kses_attr( $element, $attr, $allowed_html, $allowed_protocols ) {
 		// Check if this attribute is required.
 		$required = isset( $required_attrs[ strtolower( $arreach['name'] ) ] );
 
-		if ( wp_kses_attr_check( $arreach['name'], $arreach['value'], $arreach['whole'], $arreach['vless'], $element, $allowed_html ) ) {
+		if ( wp_kses_attr_check( $arreach['name'], $arreach['value'], $arreach['whole'], $arreach['vless'], $element, $allowed_html, $context ) ) {
 			$attr2 .= ' ' . $arreach['whole'];
 
 			// If this was a required attribute, we can mark it as found.
@@ -1509,6 +1560,7 @@ function wp_kses_attr( $element, $attr, $allowed_html, $allowed_protocols ) {
  *
  * @since 4.2.3
  * @since 5.0.0 Added support for `data-*` wildcard attributes.
+ * @since 7.1.0 Added parameter `$context` for context-aware attribute checks.
  *
  * @param string $name         The attribute name. Passed by reference. Returns empty string when not allowed.
  * @param string $value        The attribute value. Passed by reference. Returns a filtered value.
@@ -1516,9 +1568,10 @@ function wp_kses_attr( $element, $attr, $allowed_html, $allowed_protocols ) {
  * @param string $vless        Whether the attribute is valueless. Use 'y' or 'n'.
  * @param string $element      The name of the element to which this attribute belongs.
  * @param array  $allowed_html The full list of allowed elements and attributes.
+ * @param array{ in_dialog?: bool } $context Optional context data for attribute checks.
  * @return bool Whether or not the attribute is allowed.
  */
-function wp_kses_attr_check( &$name, &$value, &$whole, $vless, $element, $allowed_html ) {
+function wp_kses_attr_check( &$name, &$value, &$whole, $vless, $element, $allowed_html, $context = array() ) {
 	$name_low    = strtolower( $name );
 	$element_low = strtolower( $element );
 
@@ -1530,6 +1583,10 @@ function wp_kses_attr_check( &$name, &$value, &$whole, $vless, $element, $allowe
 	}
 
 	$allowed_attr = $allowed_html[ $element_low ];
+
+	if ( 'autofocus' === $name_low && ( 'dialog' === $element_low || ! empty( $context['in_dialog'] ) ) ) {
+		return true;
+	}
 
 	if ( ! isset( $allowed_attr[ $name_low ] ) || '' === $allowed_attr[ $name_low ] ) {
 		/*
