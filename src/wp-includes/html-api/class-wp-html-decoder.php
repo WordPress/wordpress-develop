@@ -97,17 +97,20 @@ class WP_HTML_Decoder {
 			 *     Search C:    startfr         min( 2, 2 ) = 2: `fj` differs
 			 *                                  from `fr`, no match is possible.
 			 *
-			 * Using `min()` and `substr_compare()` ensures that only the
-			 * overlapping bytes are compared and length mismatches do not cause
-			 * a false negative in cases A or B:
+			 * Using `min()` and `substr_compare()` ensures that only the overlapping bytes
+			 * are compared and length mismatches do not cause a false negative:
 			 *
 			 *     // Search A: remaining search text is longer than the decoded chunk.
-			 *     substr_compare( 'startfjord', 'fj', 5, 5 ); // non-zero; incorrect mis-match
-			 *     substr_compare( 'startfjord', 'fj', 5, 2 ); // 0; match
+			 *     // Using length 5 (`$search_length - $search_at`) would cause a false negative:
+			 *     substr_compare( 'startfjord', 'fj', 5, 5 );
+			 *     // Using length 2 (`strlen( $next_chunk )`) matches correctly:
+			 *     substr_compare( 'startfjord', 'fj', 5, 2 );
 			 *
 			 *     // Search B: remaining search text is shorter than the decoded chunk.
-			 *     substr_compare( 'startf', 'fj', 5, 2 ); // non-zero; incorrect mis-match
-			 *     substr_compare( 'startf', 'fj', 5, 1 ); // 0; match
+			 *     // Using length 1 (`$search_length - $search_at`) matches correctly:
+			 *     substr_compare( 'startf', 'fj', 5, 1 );
+			 *     // Using length 2 (`strlen( $next_chunk )`) would cause a false negative:
+			 *     substr_compare( 'startf', 'fj', 5, 2 );
 			 *
 			 * After comparing, each cursor must advance by what it consumed: the
 			 * haystack by the raw reference length (`$token_length`), the search
