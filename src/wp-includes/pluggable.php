@@ -1608,6 +1608,10 @@ if ( ! function_exists( 'wp_is_internal_url' ) ) :
 			return true;
 		}
 
+		if ( ! is_blog_installed() ) {
+			return false;
+		}
+
 		$site_url = site_url();
 
 		return substr( $url, 0, strlen( $site_url ) ) === $site_url;
