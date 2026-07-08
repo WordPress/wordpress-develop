@@ -1518,6 +1518,66 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that coercion reaches values nested several levels inside the input.
+	 *
+	 * Sanitizing walks `properties` recursively, so a query string arriving as
+	 * `input[a][b][id]=22&input[a][b][is_ok]=true&input[a][b][parts]=x,y` is typed at every depth
+	 * rather than only at the top level.
+	 *
+	 * @ticket 65594
+	 */
+	public function test_get_deeply_nested_input_is_coerced(): void {
+		$this->register_reflecting_ability(
+			'test/nested-typed-input',
+			array(
+				'type'       => 'object',
+				'properties' => array(
+					'a' => array(
+						'type'       => 'object',
+						'properties' => array(
+							'b' => array(
+								'type'       => 'object',
+								'properties' => array(
+									'id'    => array( 'type' => 'integer' ),
+									'is_ok' => array( 'type' => 'boolean' ),
+									'parts' => array(
+										'type'  => 'array',
+										'items' => array( 'type' => 'string' ),
+									),
+								),
+							),
+						),
+					),
+				),
+			)
+		);
+
+		// Values as PHP delivers them from an HTTP GET query string: all strings, at every depth.
+		$request = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities/test/nested-typed-input/run' );
+		$request->set_query_params(
+			array(
+				'input' => array(
+					'a' => array(
+						'b' => array(
+							'id'    => '22',
+							'is_ok' => 'true',
+							'parts' => 'x,y',
+						),
+					),
+				),
+			)
+		);
+
+		$response = $this->server->dispatch( $request );
+		$this->assertSame( 200, $response->get_status() );
+
+		$nested = $response->get_data()['a']['b'];
+		$this->assertSame( 22, $nested['id'], 'A nested integer should be coerced from its query string value.' );
+		$this->assertTrue( $nested['is_ok'], 'A nested boolean should be coerced from its query string value.' );
+		$this->assertSame( array( 'x', 'y' ), $nested['parts'], 'A nested comma-separated string should be coerced to an array.' );
+	}
+
+	/**
 	 * Tests that a `oneOf` input schema resolves the matching branch and coerces against it.
 	 *
 	 * Mirrors the two-mode schema used by real read abilities: one branch selects a single
