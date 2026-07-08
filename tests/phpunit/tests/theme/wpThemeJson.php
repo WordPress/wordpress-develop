@@ -1005,8 +1005,8 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	public function test_get_viewport_media_queries_uses_valid_custom_breakpoint_without_merging_defaults() {
 		$this->assertSame(
 			array(
-				'mobile'  => '@media (width <= 640px)',
-				'desktop' => '@media (width > 640px)',
+				'@mobile'  => '@media (width <= 640px)',
+				'@desktop' => '@media (width > 640px)',
 			),
 			WP_Theme_JSON::get_viewport_media_queries(
 				array(
@@ -1024,9 +1024,9 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	public function test_get_viewport_media_queries_uses_defaults_when_no_custom_breakpoints_are_valid() {
 		$this->assertSame(
 			array(
-				'mobile'  => '@media (width <= 480px)',
-				'tablet'  => '@media (480px < width <= 782px)',
-				'desktop' => '@media (width > 782px)',
+				'@mobile'  => '@media (width <= 480px)',
+				'@tablet'  => '@media (480px < width <= 782px)',
+				'@desktop' => '@media (width > 782px)',
 			),
 			WP_Theme_JSON::get_viewport_media_queries(
 				array(
@@ -1040,11 +1040,11 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		);
 	}
 
-	public function test_get_viewport_media_queries_uses_valid_tablet_breakpoint_as_mobile_when_mobile_is_invalid() {
+	public function test_get_viewport_media_queries_uses_valid_tablet_breakpoint_with_single_max_width_query_when_mobile_is_invalid() {
 		$this->assertSame(
 			array(
-				'mobile'  => '@media (width <= 64rem)',
-				'desktop' => '@media (width > 64rem)',
+				'@tablet'  => '@media (width <= 64rem)',
+				'@desktop' => '@media (width > 64rem)',
 			),
 			WP_Theme_JSON::get_viewport_media_queries(
 				array(
@@ -1055,6 +1055,27 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 					'include_desktop' => true,
 				)
 			)
+		);
+	}
+
+	public function test_viewport_settings_preserve_valid_tablet_breakpoint_when_mobile_is_invalid() {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version'  => WP_Theme_JSON::LATEST_SCHEMA,
+				'settings' => array(
+					'viewport' => array(
+						'mobile' => '100%',
+						'tablet' => '64rem',
+					),
+				),
+			)
+		);
+
+		$this->assertSame(
+			array(
+				'tablet' => '64rem',
+			),
+			$theme_json->get_raw_data()['settings']['viewport']
 		);
 	}
 
@@ -1084,8 +1105,8 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	public function test_get_viewport_media_queries_omits_tablet_when_its_breakpoint_is_not_larger_than_mobile() {
 		$this->assertSame(
 			array(
-				'mobile'  => '@media (width <= 64rem)',
-				'desktop' => '@media (width > 64rem)',
+				'@mobile'  => '@media (width <= 64rem)',
+				'@desktop' => '@media (width > 64rem)',
 			),
 			WP_Theme_JSON::get_viewport_media_queries(
 				array(
@@ -1183,6 +1204,53 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		);
 		$this->assertStringNotContainsString(
 			'color: blue',
+			$stylesheet
+		);
+	}
+
+	public function test_get_stylesheet_uses_single_max_width_tablet_query_when_mobile_is_invalid() {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version'  => WP_Theme_JSON::LATEST_SCHEMA,
+				'settings' => array(
+					'viewport' => array(
+						'mobile' => '100%',
+						'tablet' => '64rem',
+					),
+				),
+				'styles'   => array(
+					'blocks' => array(
+						'core/group' => array(
+							'@mobile' => array(
+								'color' => array(
+									'text' => 'red',
+								),
+							),
+							'@tablet' => array(
+								'color' => array(
+									'text' => 'blue',
+								),
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$stylesheet = $theme_json->get_stylesheet( array( 'styles' ), null, array( 'skip_root_layout_styles' => true ) );
+
+		$this->assertSame(
+			array(
+				'tablet' => '64rem',
+			),
+			$theme_json->get_raw_data()['settings']['viewport']
+		);
+		$this->assertStringContainsString(
+			'@media (width <= 64rem){:root :where(.wp-block-group){color: blue;}}',
+			$stylesheet
+		);
+		$this->assertStringNotContainsString(
+			'color: red',
 			$stylesheet
 		);
 	}
