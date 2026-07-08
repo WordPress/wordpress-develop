@@ -116,6 +116,10 @@ class WP_HTML_Decoder {
 			 *     // Using length 1 (`$search_length - $search_at`) matches correctly:
 			 *     substr_compare( 'startf', 'fj', 5, 1 ); // 0
 			 *
+			 * After a match, each cursor must advance by its own measure — the raw
+			 * reference and its decoded chunk have unrelated lengths (7 and 2 above):
+			 * `$haystack_at` skips the whole raw reference (`$token_length`) while
+			 * `$search_at` advances only by the decoded bytes matched (`$match_length`).
 			 * A match that exhausts the search text (Search B) ends the loop with
 			 * `$search_at === $search_length`, which the final return reports as success.
 			 */
