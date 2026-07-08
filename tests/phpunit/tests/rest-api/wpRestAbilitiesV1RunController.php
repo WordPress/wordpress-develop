@@ -1426,7 +1426,7 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 	 * strings where its schema declared an integer, a boolean, or an array. The controller
 	 * now sanitizes the input against the ability's input schema before it runs.
 	 *
-	 * @ticket 64098
+	 * @ticket 65594
 	 */
 	public function test_get_string_scalars_are_coerced_to_schema_types(): void {
 		$this->register_reflecting_ability(
@@ -1485,7 +1485,7 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 	/**
 	 * Tests that an array supplied via bracket syntax is preserved through coercion.
 	 *
-	 * @ticket 64098
+	 * @ticket 65594
 	 */
 	public function test_get_bracket_array_input_is_preserved(): void {
 		$this->register_reflecting_ability(
@@ -1524,7 +1524,7 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 	 * record by id, the other returns a collection. The branches are distinguished by their
 	 * required keys and `additionalProperties: false`, so exactly one matches a valid request.
 	 *
-	 * @ticket 64098
+	 * @ticket 65594
 	 */
 	public function test_get_oneof_schema_resolves_and_coerces_each_mode(): void {
 		$this->register_reflecting_ability(
@@ -1600,7 +1600,7 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 	 * would cast to 0. Coercion is only applied to input that already validates, so both cases
 	 * still produce the authoritative `ability_invalid_input` (400) from validation.
 	 *
-	 * @ticket 64098
+	 * @ticket 65594
 	 */
 	public function test_coercion_does_not_mask_invalid_input(): void {
 		$this->register_reflecting_ability(
@@ -1650,7 +1650,7 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 	 * accepts the input for coercion too. Asking the schema directly would leave input the filter
 	 * accepts uncoerced, handing the ability the raw query string values it was meant to type.
 	 *
-	 * @ticket 64098
+	 * @ticket 65594
 	 */
 	public function test_validate_input_filter_override_still_coerces(): void {
 		$this->register_reflecting_ability(
@@ -1696,7 +1696,7 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 	 * JSON delivers native types, so coercion is a near no-op for POST. Applying it uniformly
 	 * keeps GET and POST consistent without altering already-typed values.
 	 *
-	 * @ticket 64098
+	 * @ticket 65594
 	 */
 	public function test_post_typed_input_is_unchanged(): void {
 		$this->register_test_ability(
@@ -1762,7 +1762,7 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 	/**
 	 * Tests that an ability without an input schema is unaffected by coercion.
 	 *
-	 * @ticket 64098
+	 * @ticket 65594
 	 */
 	public function test_input_without_schema_passes_through(): void {
 		$this->register_test_ability(
@@ -1797,7 +1797,7 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 	 * error inside the returned array. The recursive error scan detects the nested error and
 	 * returns the raw input, so validation still accepts it and no `WP_Error` reaches the ability.
 	 *
-	 * @ticket 64098
+	 * @ticket 65594
 	 */
 	public function test_nested_sanitize_error_falls_back_to_raw_input(): void {
 		$this->register_reflecting_ability(
