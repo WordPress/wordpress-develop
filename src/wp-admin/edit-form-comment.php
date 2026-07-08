@@ -236,16 +236,12 @@ if ( $comment_threading_enabled ) {
 	// Restore chronological order for display.
 	$post_comments = array_reverse( $post_comments );
 
+	// Index the comments by ID and by parent, to compute depths and find descendants.
 	$post_comments_by_id = array();
+	$comments_by_parent  = array();
 
 	foreach ( $post_comments as $post_comment ) {
-		$post_comments_by_id[ (int) $post_comment->comment_ID ] = $post_comment;
-	}
-
-	// Group comments by parent to find this comment's descendants, which cannot become its parent.
-	$comments_by_parent = array();
-
-	foreach ( $post_comments as $post_comment ) {
+		$post_comments_by_id[ (int) $post_comment->comment_ID ]      = $post_comment;
 		$comments_by_parent[ (int) $post_comment->comment_parent ][] = (int) $post_comment->comment_ID;
 	}
 

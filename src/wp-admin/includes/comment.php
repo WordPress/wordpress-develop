@@ -94,16 +94,14 @@ function edit_comment() {
 
 			$parent = get_comment( $comment_parent );
 
-			if ( ! $parent || (int) $parent->comment_post_ID !== (int) $comment->comment_post_ID ) {
-				return new WP_Error( 'comment_parent_invalid', __( 'The parent must be another comment on the same post.' ) );
-			}
-
-			if ( $parent->comment_type !== $comment->comment_type ) {
-				return new WP_Error( 'comment_parent_invalid', __( 'The parent must be a comment of the same type.' ) );
-			}
-
-			if ( in_array( wp_get_comment_status( $parent ), array( 'spam', 'trash' ), true ) ) {
-				return new WP_Error( 'comment_parent_invalid', __( 'The parent cannot be a comment in the Trash or marked as spam.' ) );
+			// The parent must be a comment of the same type, on the same post, and not in the Trash or marked as spam.
+			if (
+				! $parent
+				|| (int) $parent->comment_post_ID !== (int) $comment->comment_post_ID
+				|| $parent->comment_type !== $comment->comment_type
+				|| in_array( wp_get_comment_status( $parent ), array( 'spam', 'trash' ), true )
+			) {
+				return new WP_Error( 'comment_parent_invalid', __( 'Invalid parent comment.' ) );
 			}
 
 			// Walk up the new parent's ancestors to prevent creating a threading loop.
@@ -125,13 +123,13 @@ function edit_comment() {
 			$max_thread_depth = (int) get_option( 'thread_comments_depth' );
 
 			if ( $max_thread_depth ) {
-				if ( $parent_depth >= $max_thread_depth ) {
-					return new WP_Error( 'comment_parent_invalid', __( 'The parent comment is already at the maximum threading depth.' ) );
-				}
-
-				// The comment's replies move with it, so the whole subtree must stay within the maximum depth.
+				/*
+				 * The comment's replies move with it, so the whole subtree must stay within
+				 * the maximum depth. Measure its height one level of replies at a time,
+				 * stopping as soon as the subtree cannot fit, which also bounds the loop
+				 * should the stored comment hierarchy contain a cycle.
+				 */
 				$subtree_height = 1;
-				$subtree_ids    = array( $comment_id => true );
 				$level_ids      = array( $comment_id );
 
 				while ( $level_ids && $parent_depth + $subtree_height <= $max_thread_depth ) {
@@ -144,20 +142,13 @@ function edit_comment() {
 						)
 					);
 
-					// Guard against a comment appearing twice, e.g. a loop in existing data.
-					$level_ids = array_diff( array_map( 'intval', $level_ids ), array_keys( $subtree_ids ) );
-
-					foreach ( $level_ids as $level_id ) {
-						$subtree_ids[ $level_id ] = true;
-					}
-
 					if ( $level_ids ) {
 						++$subtree_height;
 					}
 				}
 
 				if ( $parent_depth + $subtree_height > $max_thread_depth ) {
-					return new WP_Error( 'comment_parent_invalid', __( 'The replies to this comment would exceed the maximum threading depth.' ) );
+					return new WP_Error( 'comment_parent_invalid', __( 'The comment cannot be moved there because it or its replies would exceed the maximum threading depth.' ) );
 				}
 			}
 		}

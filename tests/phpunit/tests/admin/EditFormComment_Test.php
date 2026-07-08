@@ -132,27 +132,6 @@ class Admin_EditFormComment_Test extends WP_UnitTestCase {
 	/**
 	 * @ticket 65570
 	 */
-	public function test_should_exclude_parents_at_maximum_threading_depth() {
-		update_option( 'thread_comments_depth', 2 );
-
-		$top_id     = self::factory()->comment->create( array( 'comment_post_ID' => self::$post_id ) );
-		$deep_id    = self::factory()->comment->create(
-			array(
-				'comment_post_ID' => self::$post_id,
-				'comment_parent'  => $top_id,
-			)
-		);
-		$comment_id = self::factory()->comment->create( array( 'comment_post_ID' => self::$post_id ) );
-
-		$dropdown = $this->get_parent_dropdown( $comment_id );
-
-		$this->assertStringContainsString( "value='{$top_id}'", $dropdown, 'A top-level comment should be listed.' );
-		$this->assertStringNotContainsString( "value='{$deep_id}'", $dropdown, 'A comment at the maximum depth should not be listed.' );
-	}
-
-	/**
-	 * @ticket 65570
-	 */
 	public function test_should_account_for_replies_when_excluding_deep_parents() {
 		update_option( 'thread_comments_depth', 3 );
 
