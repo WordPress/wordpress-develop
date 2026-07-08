@@ -25,7 +25,7 @@
 
 // Don't load directly.
 if ( ! defined( 'ABSPATH' ) ) {
-	die( '-1' );
+	exit;
 }
 
 // Strip, trim, kses, special chars for string saves.
@@ -85,6 +85,17 @@ foreach ( array(
 	add_filter( $filter, 'wp_strip_all_tags' );
 	add_filter( $filter, 'sanitize_url' );
 	add_filter( $filter, 'wp_filter_kses' );
+}
+
+// Email addresses: Allow unicode if and only if as the database can
+// store them. This affects all addresses, including those entered
+// into contact forms.
+if ( 'utf8mb4' === $wpdb->charset ) {
+	add_filter( 'is_email', 'wp_is_unicode_email', 10, 3 );
+	add_filter( 'sanitize_email', 'wp_sanitize_unicode_email', 10, 3 );
+} else {
+	add_filter( 'is_email', 'wp_is_ascii_email', 10, 3 );
+	add_filter( 'sanitize_email', 'wp_sanitize_ascii_email', 10, 3 );
 }
 
 // Display URL.
@@ -453,6 +464,8 @@ add_filter( 'wp_privacy_personal_data_exporters', 'wp_register_user_personal_dat
 add_filter( 'wp_privacy_personal_data_erasers', 'wp_register_comment_personal_data_eraser' );
 add_action( 'init', 'wp_schedule_delete_old_privacy_export_files' );
 add_action( 'wp_privacy_delete_old_export_files', 'wp_privacy_delete_old_export_files' );
+add_action( 'init', 'wp_schedule_personal_data_cleanup_requests' );
+add_action( 'wp_privacy_personal_data_cleanup_requests', 'wp_privacy_personal_data_cleanup_requests' );
 
 // Cron tasks.
 add_action( 'wp_scheduled_delete', 'wp_scheduled_delete' );
@@ -778,6 +791,9 @@ add_filter( 'rest_wp_navigation_item_schema', array( 'WP_Navigation_Fallback', '
 // Fluid typography.
 add_filter( 'render_block', 'wp_render_typography_support', 10, 2 );
 
+// Inline note markers.
+add_filter( 'render_block', 'wp_strip_inline_note_markers' );
+
 // User preferences.
 add_action( 'init', 'wp_register_persisted_preferences_meta' );
 
@@ -806,4 +822,14 @@ add_action( 'init', '_wp_register_default_font_collections' );
 add_filter( 'rest_pre_insert_wp_template', 'inject_ignored_hooked_blocks_metadata_attributes' );
 add_filter( 'rest_pre_insert_wp_template_part', 'inject_ignored_hooked_blocks_metadata_attributes' );
 
-unset( $filter, $action );
+// View Config API.
+foreach ( array( 'page', 'wp_block', 'wp_template_part', 'wp_template' ) as $post_type ) {
+	add_filter(
+		"get_entity_view_config_postType_{$post_type}",
+		"_wp_get_entity_view_config_post_type_{$post_type}",
+		10,
+		1
+	);
+}
+
+unset( $filter, $action, $post_type );
