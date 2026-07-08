@@ -5425,7 +5425,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *  - `#processing-instruction` when matched on a processing instruction.
 	 *
 	 * @since 6.6.0 Subclassed for the HTML Processor.
-	 * @since 7.1.0 Recognizes processing instructions.
+	 * @since 7.1.0 Recognize processing instructions according to an HTML
+	 *              specification update.
 	 *
 	 * @return string|null What kind of token is matched, or null.
 	 */
