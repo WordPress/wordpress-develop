@@ -82,7 +82,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 						__( 'For more information, see <a href="%s">the release notes</a>.' ),
 						sprintf(
 							/* translators: %s: WordPress version. */
-							esc_url( __( 'https://wordpress.org/support/wordpress-version/version-%s/' ) ),
+							esc_url( __( 'https://wordpress.org/documentation/wordpress-version/version-%s/' ) ),
 							sanitize_title( '7.0.1' )
 						)
 					);
