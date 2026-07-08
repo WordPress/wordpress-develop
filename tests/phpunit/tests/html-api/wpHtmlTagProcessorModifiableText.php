@@ -448,8 +448,8 @@ HTML
 	 *
 	 * The processing instruction syntax cannot represent every data value verbatim:
 	 * a separating space must be added when the data would abut the target, and
-	 * data ending in `?` requires the `?>` form of the closer so that the final
-	 * `?` isn't consumed as part of the closing syntax.
+	 * the update always writes the `?>` form of the closer, whose `?` is dropped
+	 * when parsing, so that data ending in `?` remains intact.
 	 *
 	 * @ticket 61530
 	 *
@@ -530,15 +530,15 @@ HTML
 	public static function data_processing_instruction_data_updates(): array {
 		return array(
 			'Replace data'                     => array( '<?wp-bit before?>', 'after', '<?wp-bit after?>' ),
-			'Bare closer preserved'            => array( '<?wp-bit before>', 'after', '<?wp-bit after>' ),
+			'Bare closer rewritten'            => array( '<?wp-bit before>', 'after', '<?wp-bit after?>' ),
 			'Separator inserted'               => array( '<?wp-bit?>', '{"just": "kidding"}', '<?wp-bit {"just": "kidding"}?>' ),
-			'Separator inserted (bare closer)' => array( '<?wp-bit>', 'data', '<?wp-bit data>' ),
-			'Data abutting target'             => array( '<?wp-bit?data>', 'x', '<?wp-bit x>' ),
+			'Separator inserted (bare closer)' => array( '<?wp-bit>', 'data', '<?wp-bit data?>' ),
+			'Data abutting target'             => array( '<?wp-bit?data>', 'x', '<?wp-bit x?>' ),
 			'Data ending in ?'                 => array( '<?wp-bit d>', 'd?', '<?wp-bit d??>' ),
 			'Data ending in ? (?> closer)'     => array( '<?wp-bit x?>', 'd?', '<?wp-bit d??>' ),
 			'Data of only ?'                   => array( '<?wp-bit?>', '?', '<?wp-bit ??>' ),
 			'Emptied (?> closer)'              => array( '<?wp-bit data?>', '', '<?wp-bit ?>' ),
-			'Emptied (bare closer)'            => array( '<?wp-bit data>', '', '<?wp-bit >' ),
+			'Emptied (bare closer)'            => array( '<?wp-bit data>', '', '<?wp-bit ?>' ),
 			'Empty data set on empty data'     => array( '<?wp-bit?>', '', '<?wp-bit?>' ),
 		);
 	}

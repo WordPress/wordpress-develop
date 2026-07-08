@@ -392,9 +392,9 @@ class Tests_HtmlApi_WpHtmlProcessor_Serialize extends WP_UnitTestCase {
 	 * Ensures that processing instructions are serialized in their normative form.
 	 *
 	 * Note that the serialized form separates the target from the data with a
-	 * single space and always terminates with `>`, regardless of the original
-	 * syntax. Data ending in `?` doubles the final `?` because a `?` immediately
-	 * preceding the `>` would be consumed as part of a `?>` closer on parse.
+	 * single space and always terminates with `?>`, regardless of the original
+	 * syntax. The closer's `?` is dropped on parse, so this form represents any
+	 * data, including data ending in `?`.
 	 *
 	 * @ticket 61530
 	 *
@@ -436,14 +436,14 @@ class Tests_HtmlApi_WpHtmlProcessor_Serialize extends WP_UnitTestCase {
 	 */
 	public function data_processing_instructions(): array {
 		return array(
-			'PHP block'                     => array( '<?php foo(); ?>', '<?php foo(); >' ),
-			'Unclosed PHP block'            => array( '<?php foo(); >', '<?php foo(); >' ),
-			'Empty data'                    => array( '<?wp-bit?>', '<?wp-bit >' ),
-			'Whitespace-only data'          => array( '<?wp-bit   ?>', '<?wp-bit >' ),
+			'PHP block'                     => array( '<?php foo(); ?>', '<?php foo(); ?>' ),
+			'Unclosed PHP block'            => array( '<?php foo(); >', '<?php foo(); ?>' ),
+			'Empty data'                    => array( '<?wp-bit?>', '<?wp-bit ?>' ),
+			'Whitespace-only data'          => array( '<?wp-bit   ?>', '<?wp-bit ?>' ),
 			'Data ending in question mark'  => array( '<?target data??>', '<?target data??>' ),
 			'Data of a lone question mark'  => array( '<?wp-bit ??>', '<?wp-bit ??>' ),
 			'Data with question mark runs'  => array( '<?wp-bit what?? news??>', '<?wp-bit what?? news??>' ),
-			'Question mark then whitespace' => array( '<?wp-bit sure? >', '<?wp-bit sure? >' ),
+			'Question mark then whitespace' => array( '<?wp-bit sure? >', '<?wp-bit sure? ?>' ),
 		);
 	}
 

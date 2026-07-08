@@ -3991,17 +3991,16 @@ class WP_HTML_Tag_Processor {
 			/**
 			 * A single replacement spans from the start of the data through
 			 * the end of the token, holding the raw syntax for that region:
-			 * an optional separating space, the data, and the closer. The
-			 * raw syntax may differ from the data it holds:
+			 * an optional separating space, the data, and the `?>` closer.
+			 * The raw syntax may differ from the data it holds:
 			 *
 			 * - When no whitespace separates the target from its data, e.g.
 			 *   in `<?target?>`, a space is prefixed so that the new data
 			 *   doesn't merge into and extend the target name.
 			 *
-			 * - Data ending in `?` forces the `?>` form of the closer,
-			 *   because parsing drops a `?` found directly before the
-			 *   closing `>`. Otherwise the original closer form is
-			 *   preserved.
+			 * - The closer is always written in its `?>` form, whose `?` is
+			 *   dropped when parsing. This represents any data, including
+			 *   data ending in `?`: the data `d?` is written as `d??>`.
 			 *
 			 * `get_modifiable_text()` finds the data within the raw syntax
 			 * of a pending update by applying these same rules.
@@ -4020,14 +4019,10 @@ class WP_HTML_Tag_Processor {
 				$this->text_starts_at === $this->tag_name_starts_at + $this->tag_name_length
 			);
 
-			$closer = ( str_ends_with( $plaintext_content, '?' ) || '?' === $this->html[ $token_end - 2 ] )
-				? '?>'
-				: '>';
-
 			$this->lexical_updates['modifiable text'] = new WP_HTML_Text_Replacement(
 				$this->text_starts_at,
 				$token_end - $this->text_starts_at,
-				( $needs_separator ? ' ' : '' ) . $plaintext_content . $closer
+				( $needs_separator ? ' ' : '' ) . $plaintext_content . '?>'
 			);
 
 			return true;
