@@ -3730,6 +3730,26 @@ class WP_HTML_Tag_Processor {
 			: substr( $this->html, $this->text_starts_at, $this->text_length );
 
 		/*
+		 * An enqueued processing instruction update holds raw syntax
+		 * spanning from the start of the data through the end of the
+		 * token. Find the data within it by applying the same rules
+		 * used when parsing the document: whitespace following the
+		 * target is skipped, the data ends before the closing `>`,
+		 * and a `?` directly before that `>` belongs to the `?>`
+		 * form of the closer.
+		 *
+		 * @see WP_HTML_Tag_Processor::set_modifiable_text()
+		 */
+		if ( $has_enqueued_update && self::STATE_PROCESSING_INSTRUCTION === $this->parser_state ) {
+			$data_at  = strspn( $text, " \t\f\r\n" );
+			$data_end = strlen( $text ) - 1;
+			if ( $data_end - 1 >= $data_at && '?' === $text[ $data_end - 1 ] ) {
+				--$data_end;
+			}
+			$text = substr( $text, $data_at, $data_end - $data_at );
+		}
+
+		/*
 		 * Pre-processing the input stream would normally happen before
 		 * any parsing is done, but deferring it means it's possible to
 		 * skip in most cases. When getting the modifiable text, however
@@ -3924,67 +3944,46 @@ class WP_HTML_Tag_Processor {
 			$token_end = $this->token_starts_at + $this->token_length;
 
 			/**
-			 * The update comprises up to three replacements, each anchored
-			 * at its own distinct offset: replacements sharing an offset
-			 * apply in an unpredictable order (ties sort by their text).
-			 * This is why existing syntax is rewritten below where a plain
-			 * insertion may have seemed appropriate. A single
-			 * *modifiable text* replacement is undesirable becuase it would
-			 * report the wrong result to `get_modifiable_text()`.
+			 * A single replacement spans from the start of the data through
+			 * the end of the token, holding the raw syntax for that region:
+			 * an optional separating space, the data, and the closer. The
+			 * raw syntax may differ from the data it holds:
 			 *
-			 * - *modifiable text separator* rewrites the final byte of the
-			 *   target as itself plus a space when no whitespace separates
-			 *   the target from its data; otherwise the new data would
-			 *   merge into and extend the target name. A space inserted
-			 *   before the data would share the data’s offset.
+			 * - When no whitespace separates the target from its data, e.g.
+			 *   in `<?target?>`, a space is prefixed so that the new data
+			 *   doesn't merge into and extend the target name.
 			 *
-			 * - *modifiable text* holds the data verbatim, so reading the
-			 *   modifiable text returns this value even before the update
-			 *   is applied. It spans through the end of the token,
-			 *   consuming the old data and closer, which would otherwise
-			 *   share its offset when the existing data is empty.
-			 *
-			 * - *modifiable text closer* restores the closing syntax after
-			 *   the end of the token. Data ending in `?` forces the `?>`
-			 *   closer, because parsing drops a `?` found directly before
-			 *   the closing `>`. Otherwise the original closer form is
+			 * - Data ending in `?` forces the `?>` form of the closer,
+			 *   because parsing drops a `?` found directly before the
+			 *   closing `>`. Otherwise the original closer form is
 			 *   preserved.
 			 *
-			 * As named updates, repeated calls replace these pending
-			 * replacements instead of accumulating them.
+			 * `get_modifiable_text()` finds the data within the raw syntax
+			 * of a pending update by applying these same rules.
 			 *
-			 * For example, to set `data?` on `<?target>`, three
-			 * replacements are necessary to produce the
-			 * correct result `<?target data??>`:
+			 * For example, setting `data?` on `<?target>` replaces the
+			 * final `>` with ` data??>`:
 			 *
 			 *     <?target>
-			 *            ┬┬┬
-			 *            ││└─ closer:    insert `?>` after the token
-			 *            │└── data:      replace `>` with `data?`
-			 *            └─── separator: replace `t` with `t `
+			 *             ┬
+			 *             └─ replace `>` with ` data??>`
 			 *
+			 * producing `<?target data??>`, which holds the data `data?`.
 			 */
-			if ( '' !== $plaintext_content && $this->text_starts_at === $this->tag_name_starts_at + $this->tag_name_length ) {
-				$this->lexical_updates['modifiable text separator'] = new WP_HTML_Text_Replacement(
-					$this->text_starts_at - 1,
-					1,
-					$this->html[ $this->text_starts_at - 1 ] . ' '
-				);
-			} else {
-				unset( $this->lexical_updates['modifiable text separator'] );
-			}
-
-			$this->lexical_updates['modifiable text'] = new WP_HTML_Text_Replacement(
-				$this->text_starts_at,
-				$token_end - $this->text_starts_at,
-				$plaintext_content
+			$needs_separator = (
+				'' !== $plaintext_content &&
+				$this->text_starts_at === $this->tag_name_starts_at + $this->tag_name_length
 			);
 
 			$closer = ( str_ends_with( $plaintext_content, '?' ) || '?' === $this->html[ $token_end - 2 ] )
 				? '?>'
 				: '>';
 
-			$this->lexical_updates['modifiable text closer'] = new WP_HTML_Text_Replacement( $token_end, 0, $closer );
+			$this->lexical_updates['modifiable text'] = new WP_HTML_Text_Replacement(
+				$this->text_starts_at,
+				$token_end - $this->text_starts_at,
+				( $needs_separator ? ' ' : '' ) . $plaintext_content . $closer
+			);
 
 			return true;
 		}
