@@ -1633,7 +1633,6 @@ function wp_default_styles( $styles ) {
 	$styles->add( 'l10n', "/wp-admin/css/l10n$suffix.css" );
 	$styles->add( 'code-editor', "/wp-admin/css/code-editor$suffix.css", array( 'wp-codemirror' ) );
 	$styles->add( 'site-health', "/wp-admin/css/site-health$suffix.css" );
-	$styles->add( 'on-this-day', "/wp-admin/css/on-this-day$suffix.css" );
 
 	$styles->add( 'wp-admin', false, array( 'dashicons', 'common', 'forms', 'admin-menu', 'dashboard', 'list-tables', 'edit', 'revisions', 'media', 'themes', 'about', 'nav-menus', 'widgets', 'site-icon', 'l10n', 'wp-base-styles' ) );
 
@@ -1855,7 +1854,6 @@ function wp_default_styles( $styles ) {
 		'customize-preview',
 		'login',
 		'site-health',
-		'on-this-day',
 		'wp-empty-template-alert',
 		// Includes CSS.
 		'buttons',

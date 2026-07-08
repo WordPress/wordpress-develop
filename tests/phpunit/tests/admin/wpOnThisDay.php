@@ -1,31 +1,16 @@
 <?php
 /**
- * Tests for the WP_Dashboard_Widget_On_This_Day class.
+ * Tests for the On This Day dashboard widget functions.
  *
  * @group admin
- *
- * @coversDefaultClass WP_Dashboard_Widget_On_This_Day
  */
 class Tests_Admin_wpOnThisDay extends WP_UnitTestCase {
-	/**
-	 * Reflection method for invoking WP_Dashboard_Widget_On_This_Day::get_date_query_clause().
-	 *
-	 * @var ReflectionMethod
-	 */
-	private static $get_date_query_clause;
-
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
-		require_once ABSPATH . 'wp-admin/includes/class-wp-dashboard-widget-on-this-day.php';
-
-		self::$get_date_query_clause = new ReflectionMethod( 'WP_Dashboard_Widget_On_This_Day', 'get_date_query_clause' );
-		if ( PHP_VERSION_ID < 80100 ) {
-			self::$get_date_query_clause->setAccessible( true );
-		}
+		require_once ABSPATH . 'wp-admin/includes/dashboard-on-this-day.php';
 	}
 
 	public function tear_down() {
 		unset( $GLOBALS['wp_meta_boxes']['dashboard'] );
-		wp_dequeue_style( 'on-this-day' );
 
 		parent::tear_down();
 	}
@@ -41,8 +26,6 @@ class Tests_Admin_wpOnThisDay extends WP_UnitTestCase {
 		set_current_screen( 'dashboard' );
 
 		$GLOBALS['wp_meta_boxes']['dashboard'] = array();
-
-		wp_dequeue_style( 'on-this-day' );
 	}
 
 	/**
@@ -99,59 +82,56 @@ class Tests_Admin_wpOnThisDay extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Invokes WP_Dashboard_Widget_On_This_Day::get_date_query_clause().
+	 * Invokes _wp_dashboard_on_this_day_date_query_clause().
 	 *
 	 * @param string $date Date string.
 	 * @return array Date query clause.
 	 */
 	private static function get_date_query_clause( $date ) {
-		return self::$get_date_query_clause->invoke( null, new DateTimeImmutable( $date, wp_timezone() ) );
+		return _wp_dashboard_on_this_day_date_query_clause( new DateTimeImmutable( $date, wp_timezone() ) );
 	}
 
 	/**
-	 * @covers ::register_widget
+	 * @covers ::wp_dashboard_on_this_day_setup
 	 */
-	public function test_register_widget_does_not_add_dashboard_widget_without_matching_posts() {
+	public function test_setup_does_not_add_dashboard_widget_without_matching_posts() {
 		$this->set_up_dashboard_screen();
 
 		$user_id = self::factory()->user->create( array( 'role' => 'author' ) );
 		wp_set_current_user( $user_id );
 
-		WP_Dashboard_Widget_On_This_Day::register_widget();
+		wp_dashboard_on_this_day_setup();
 
 		$dashboard_widgets = $GLOBALS['wp_meta_boxes']['dashboard']['normal']['core'] ?? array();
 
 		$this->assertArrayNotHasKey( 'wp_dashboard_on_this_day', $dashboard_widgets );
-		$this->assertFalse( wp_style_is( 'on-this-day', 'enqueued' ) );
 	}
 
 	/**
-	 * @covers ::register_widget
-	 * @covers ::get_window_label
+	 * @covers ::wp_dashboard_on_this_day_setup
 	 */
-	public function test_register_widget_adds_dashboard_widget_with_matching_posts() {
+	public function test_setup_adds_dashboard_widget_with_matching_posts() {
 		$this->set_up_dashboard_screen();
 
 		$user_id = self::factory()->user->create( array( 'role' => 'author' ) );
 		wp_set_current_user( $user_id );
 		$this->create_matching_post( $user_id );
 
-		WP_Dashboard_Widget_On_This_Day::register_widget();
+		wp_dashboard_on_this_day_setup();
 
 		$dashboard_widgets = $GLOBALS['wp_meta_boxes']['dashboard']['normal']['core'] ?? array();
 
 		$this->assertArrayHasKey( 'wp_dashboard_on_this_day', $dashboard_widgets );
 		$this->assertStringContainsString(
-			'data-wp-otd-window-label="' . esc_attr( WP_Dashboard_Widget_On_This_Day::get_window_label() ) . '"',
+			'<span class="wp-on-this-day-date">' . esc_html( wp_date( 'F jS' ) ) . '</span>',
 			$dashboard_widgets['wp_dashboard_on_this_day']['title']
 		);
-		$this->assertTrue( wp_style_is( 'on-this-day', 'enqueued' ) );
 	}
 
 	/**
-	 * @covers ::register_widget
+	 * @covers ::wp_dashboard_on_this_day_setup
 	 */
-	public function test_register_widget_adds_dashboard_widget_with_matching_post_from_another_author() {
+	public function test_setup_adds_dashboard_widget_with_matching_post_from_another_author() {
 		$this->set_up_dashboard_screen();
 
 		$user_id       = self::factory()->user->create( array( 'role' => 'author' ) );
@@ -159,16 +139,15 @@ class Tests_Admin_wpOnThisDay extends WP_UnitTestCase {
 		wp_set_current_user( $user_id );
 		$this->create_matching_post( $other_user_id );
 
-		WP_Dashboard_Widget_On_This_Day::register_widget();
+		wp_dashboard_on_this_day_setup();
 
 		$dashboard_widgets = $GLOBALS['wp_meta_boxes']['dashboard']['normal']['core'] ?? array();
 
 		$this->assertArrayHasKey( 'wp_dashboard_on_this_day', $dashboard_widgets );
-		$this->assertTrue( wp_style_is( 'on-this-day', 'enqueued' ) );
 	}
 
 	/**
-	 * @covers ::get_date_query_clause
+	 * @covers ::_wp_dashboard_on_this_day_date_query_clause
 	 */
 	public function test_get_date_query_clause_includes_february_29_on_february_28_in_non_leap_year() {
 		$clause = self::get_date_query_clause( '2023-02-28 12:00:00' );
@@ -190,7 +169,7 @@ class Tests_Admin_wpOnThisDay extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @covers ::get_date_query_clause
+	 * @covers ::_wp_dashboard_on_this_day_date_query_clause
 	 */
 	public function test_get_date_query_clause_does_not_include_february_29_on_february_28_in_leap_year() {
 		$clause = self::get_date_query_clause( '2024-02-28 12:00:00' );
@@ -205,7 +184,7 @@ class Tests_Admin_wpOnThisDay extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @covers ::get_date_query_clause
+	 * @covers ::_wp_dashboard_on_this_day_date_query_clause
 	 */
 	public function test_get_date_query_clause_matches_february_29_on_leap_day() {
 		$clause = self::get_date_query_clause( '2024-02-29 12:00:00' );
@@ -220,38 +199,38 @@ class Tests_Admin_wpOnThisDay extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @covers ::render_dashboard_widget
+	 * @covers ::wp_dashboard_on_this_day
 	 */
-	public function test_render_dashboard_widget_outputs_nothing_without_matching_posts() {
+	public function test_widget_outputs_nothing_without_matching_posts() {
 		$user_id = self::factory()->user->create( array( 'role' => 'author' ) );
 		wp_set_current_user( $user_id );
 
 		ob_start();
-		WP_Dashboard_Widget_On_This_Day::render_dashboard_widget();
+		wp_dashboard_on_this_day();
 		$output = ob_get_clean();
 
 		$this->assertSame( '', $output );
 	}
 
 	/**
-	 * @covers ::render_dashboard_widget
+	 * @covers ::wp_dashboard_on_this_day
 	 */
-	public function test_render_dashboard_widget_ignores_nearby_prior_year_posts() {
+	public function test_widget_ignores_nearby_prior_year_posts() {
 		$user_id = self::factory()->user->create( array( 'role' => 'author' ) );
 		wp_set_current_user( $user_id );
 		$this->create_nearby_post( $user_id );
 
 		ob_start();
-		WP_Dashboard_Widget_On_This_Day::render_dashboard_widget();
+		wp_dashboard_on_this_day();
 		$output = ob_get_clean();
 
 		$this->assertSame( '', $output );
 	}
 
 	/**
-	 * @covers ::render_dashboard_widget
+	 * @covers ::wp_dashboard_on_this_day
 	 */
-	public function test_render_dashboard_widget_labels_posts_from_other_authors() {
+	public function test_widget_labels_posts_from_other_authors() {
 		$user_id       = self::factory()->user->create(
 			array(
 				'display_name' => 'Current Writer',
@@ -270,7 +249,7 @@ class Tests_Admin_wpOnThisDay extends WP_UnitTestCase {
 		$this->create_matching_post( $other_user_id, 'A note from someone else' );
 
 		ob_start();
-		WP_Dashboard_Widget_On_This_Day::render_dashboard_widget();
+		wp_dashboard_on_this_day();
 		$output = ob_get_clean();
 
 		$this->assertStringContainsString( 'A note from me', $output );
@@ -281,9 +260,9 @@ class Tests_Admin_wpOnThisDay extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @covers ::render_dashboard_widget
+	 * @covers ::wp_dashboard_on_this_day
 	 */
-	public function test_render_dashboard_widget_groups_posts_by_year() {
+	public function test_widget_groups_posts_by_year() {
 		$user_id = self::factory()->user->create( array( 'role' => 'author' ) );
 		wp_set_current_user( $user_id );
 
@@ -292,21 +271,40 @@ class Tests_Admin_wpOnThisDay extends WP_UnitTestCase {
 		$this->create_matching_post( $user_id, 'Late-night shipping log', 2, '12:00:00' );
 
 		ob_start();
-		WP_Dashboard_Widget_On_This_Day::render_dashboard_widget();
+		wp_dashboard_on_this_day();
 		$output = ob_get_clean();
 
 		$last_year     = current_datetime()->modify( '-1 year' )->format( 'Y' );
 		$two_years_ago = current_datetime()->modify( '-2 years' )->format( 'Y' );
 
-		$this->assertStringContainsString( '3 posts have been published in previous years:', $output );
+		$this->assertStringContainsString( '3 posts have been published on this day:', $output );
 		$this->assertStringContainsString( '<ul class="wp-on-this-day-years">', $output );
-		$this->assertStringNotContainsString( 'wp-on-this-day-scroll', $output );
 		$this->assertStringContainsString( '<h3 class="wp-on-this-day-year-heading">' . $last_year . '</h3>', $output );
 		$this->assertStringContainsString( '<h3 class="wp-on-this-day-year-heading">' . $two_years_ago . '</h3>', $output );
 		$this->assertStringContainsString( 'Pretending to meditate', $output );
 		$this->assertStringContainsString( 'Slow internet and good books', $output );
 		$this->assertStringContainsString( 'Late-night shipping log', $output );
-		$this->assertStringNotContainsString( 'wp-on-this-day-carousel', $output );
-		$this->assertStringNotContainsString( 'wp-on-this-day-post-share', $output );
+	}
+
+	/**
+	 * @covers ::wp_dashboard_on_this_day
+	 * @covers ::wp_dashboard_on_this_day_get_posts
+	 */
+	public function test_widget_limits_posts_to_ten() {
+		$user_id = self::factory()->user->create( array( 'role' => 'author' ) );
+		wp_set_current_user( $user_id );
+
+		for ( $years_ago = 1; $years_ago <= 11; $years_ago++ ) {
+			$this->create_matching_post( $user_id, 'Anniversary post ' . $years_ago, $years_ago );
+		}
+
+		ob_start();
+		wp_dashboard_on_this_day();
+		$output = ob_get_clean();
+
+		$this->assertStringContainsString( '10 posts have been published on this day:', $output );
+		$this->assertStringContainsString( 'Anniversary post 1<', $output );
+		$this->assertStringContainsString( 'Anniversary post 10<', $output );
+		$this->assertStringNotContainsString( 'Anniversary post 11', $output );
 	}
 }
