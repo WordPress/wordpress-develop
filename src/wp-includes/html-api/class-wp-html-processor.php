@@ -1407,9 +1407,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 * `?` is dropped when parsing. This represents any data unambiguously, including
 			 * data ending in `?`: the data `d?` is serialized as `<?target d??>`.
 			 *
-			 * The HTML fragment serialization algorithm specifies the `<?target data>`
-			 * form instead, which cannot represent data ending in `?`.
-			 *
 			 * @see https://html.spec.whatwg.org/multipage/parsing.html#serialising-html-fragments
 			 */
 			case '#processing-instruction':
