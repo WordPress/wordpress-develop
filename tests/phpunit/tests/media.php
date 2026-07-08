@@ -376,14 +376,23 @@ CAP;
 	 * maintain HTML validity and accessibility.
 	 *
 	 * @ticket 65315
+	 * @covers ::img_caption_shortcode
 	 */
 	public function test_img_caption_shortcode_unique_ids_per_instance(): void {
+		/*
+		 * Important: The id part of this must be unique among unit tests, or else the test will fail due to
+		 * wp_unique_prefixed_id() not returning the expected increment.
+		 */
+		$id         = 'attachment_65315';
+		$caption_id = 'caption_attachment_65315';
+
 		// First instance with caption "My caption"
 		$result_1 = img_caption_shortcode(
 			array(
-				'width'   => 20,
-				'id'      => 'attachment_123',
-				'caption' => 'My caption',
+				'width'      => 20,
+				'id'         => $id,
+				'caption'    => 'My caption',
+				'caption_id' => $caption_id,
 			),
 			self::IMG_CONTENT . 'My caption'
 		);
@@ -391,9 +400,10 @@ CAP;
 		// Second instance - identical to first
 		$result_2 = img_caption_shortcode(
 			array(
-				'width'   => 20,
-				'id'      => 'attachment_123',
-				'caption' => 'My caption',
+				'width'      => 20,
+				'id'         => $id,
+				'caption'    => 'My caption',
+				'caption_id' => $caption_id,
 			),
 			self::IMG_CONTENT . 'My caption'
 		);
@@ -401,9 +411,10 @@ CAP;
 		// Third instance - same image, different caption
 		$result_3 = img_caption_shortcode(
 			array(
-				'width'   => 20,
-				'id'      => 'attachment_123',
-				'caption' => 'Different caption',
+				'width'      => 20,
+				'id'         => $id,
+				'caption'    => 'Different caption',
+				'caption_id' => $caption_id,
 			),
 			self::IMG_CONTENT . 'Different caption'
 		);
@@ -426,6 +437,11 @@ CAP;
 		$this->assertNotSame( $figure_id_2, $figure_id_3, 'Second and third figures should have different IDs' );
 		$this->assertNotSame( $figure_id_1, $figure_id_3, 'First and third figures should have different IDs' );
 
+		// The first Figure ID should be identical to the supplied ID, and the others should have unique suffixes.
+		$this->assertSame( $id, $figure_id_1 );
+		$this->assertSame( "$id-2", $figure_id_2 );
+		$this->assertSame( "$id-3", $figure_id_3 );
+
 		// Caption IDs should all exist
 		$this->assertNotEmpty( $caption_id_1, 'First caption should have an ID' );
 		$this->assertNotEmpty( $caption_id_2, 'Second caption should have an ID' );
@@ -435,6 +451,11 @@ CAP;
 		$this->assertNotSame( $caption_id_1, $caption_id_2, 'First and second captions should have different IDs even with identical content' );
 		$this->assertNotSame( $caption_id_2, $caption_id_3, 'Second and third captions should have different IDs' );
 		$this->assertNotSame( $caption_id_1, $caption_id_3, 'First and third captions should have different IDs' );
+
+		// The first Caption ID should have no.
+		$this->assertSame( $caption_id, $caption_id_1 );
+		$this->assertSame( "$caption_id-2", $caption_id_2 );
+		$this->assertSame( "$caption_id-3", $caption_id_3 );
 	}
 
 	/**

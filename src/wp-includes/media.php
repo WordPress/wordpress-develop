@@ -2693,14 +2693,14 @@ function img_caption_shortcode( $attr, $content = '' ) {
 
 	if ( $atts['id'] ) {
 		$atts['id']      = sanitize_html_class( $atts['id'] );
-		$unique_id_value = (string) preg_replace( '/-1$/', '', wp_unique_prefixed_id( $atts['id'] ) );
+		$unique_id_value = (string) preg_replace( '/-1$/', '', wp_unique_prefixed_id( $atts['id'] . '-' ) );
 		$id              = 'id="' . esc_attr( $unique_id_value ) . '" ';
 	}
 
 	if ( $atts['caption_id'] ) {
 		// User explicitly provided a caption_id - make it unique.
 		$atts['caption_id'] = sanitize_html_class( $atts['caption_id'] );
-		$caption_id_value   = preg_replace( '/-1$/', '', wp_unique_prefixed_id( $atts['caption_id'] ) );
+		$caption_id_value   = preg_replace( '/-1$/', '', wp_unique_prefixed_id( $atts['caption_id'] . '-' ) );
 	} elseif ( $unique_id_value ) {
 		// Derive from the already-unique figure ID - guaranteed unique, no need for second call.
 		$caption_id_value = 'caption-' . str_replace( '_', '-', $unique_id_value );
