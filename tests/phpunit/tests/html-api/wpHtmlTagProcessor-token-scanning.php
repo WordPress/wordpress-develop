@@ -637,14 +637,15 @@ HTML
 		);
 
 		$this->assertSame(
-			WP_HTML_Processor::COMMENT_AS_INVALID_HTML,
+			WP_HTML_Processor::COMMENT_AS_PI_NODE_LOOKALIKE,
 			$processor->get_comment_type(),
-			'Should have detected a bogus comment.'
+			'Should have detected a Processing Instruction-like invalid comment.'
 		);
 
-		$this->assertNull(
+		$this->assertSame(
+			'xml',
 			$processor->get_tag(),
-			'Should not have been able to query tag name on non-element token.'
+			"Should have found PI target as tag name but found {$processor->get_tag()} instead."
 		);
 
 		$this->assertNull(
@@ -653,7 +654,7 @@ HTML
 		);
 
 		$this->assertSame(
-			'xml version="1.0"?',
+			' version="1.0"',
 			$processor->get_modifiable_text(),
 			'Found incorrect modifiable text.'
 		);
