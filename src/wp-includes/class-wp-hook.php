@@ -258,7 +258,7 @@ final class WP_Hook implements Iterator, ArrayAccess {
 			return $this->has_filters();
 		}
 
-		$function_key = _wp_filter_build_unique_id( $hook_name, $callback, 0 );
+		$function_key = _wp_filter_build_unique_id( $hook_name, $callback, is_int( $priority ) ? $priority : 10 );
 
 		if ( ! $function_key ) {
 			return false;
