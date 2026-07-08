@@ -60,7 +60,47 @@ class WP_HTML_Decoder {
 				continue;
 			}
 
-			// If there is a character reference, then the decoded value must exactly match what follows in the search string.
+			/**
+			 * A character reference in the haystack decodes into a chunk of one
+			 * or more bytes. The chunk is atomic on the haystack side — decoding
+			 * produces all of it at once and the raw cursor can only skip the
+			 * entire reference — but this is a prefix test, so the search text
+			 * may legitimately end part-way through the chunk. Only the bytes
+			 * where the two overlap can be compared, hence the `min()`.
+			 *
+			 * For example, `&fjlig;` (7 bytes) decodes into the chunk
+			 * `fj` (2 bytes).
+			 *
+			 *                       at
+			 *                       │    after matching "fj" continue here
+			 *                       ↓      ↓
+			 *     Haystack:    start&fjlig;ord
+			 *                       ╰──┬──╯
+			 *                          fj - decoded "fjlig;" character reference chunk
+			 *
+			 *                       after matching "fj" continue here
+			 *                         ↓
+			 *     Search A:    startfjo        min( 2, 3 ) = 2: `fj` matches,
+			 *                                  continue scanning at `o`.
+			 *
+			 *     Search B:    startf          min( 2, 1 ) = 1: `f` matches and
+			 *                                  the search text is exhausted, so
+			 *                                  the prefix is confirmed.
+			 *
+			 *     Search C:    startfr         min( 2, 2 ) = 2: `fj` differs
+			 *                                  from `fr`, no match is possible.
+			 *
+			 * Comparing the full chunk length instead of the `min()` would read
+			 * past the end of the search text and wrongly reject Search B:
+			 *
+			 *     substr_compare( 'startfjord', 'startf', 5, 2 ); // 1
+			 *
+			 * After comparing, each cursor must advance by what it consumed: the
+			 * haystack by the raw reference length ($token_length), the search
+			 * text by only the overlapping decoded bytes ($match_length). If the
+			 * search text is exhausted, the match is complete, the loop terminates,
+			 * and the function returns true.
+			 */
 			$match_length = min( strlen( $next_chunk ), $search_length - $search_at );
 			if ( 0 !== substr_compare( $search_text, $next_chunk, $search_at, $match_length, $loose_case ) ) {
 				return false;
