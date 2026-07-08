@@ -2109,15 +2109,15 @@ class WP_HTML_Tag_Processor {
 				$this->bytes_already_parsed = $closer_at + 1;
 
 				/*
-				 * Identify a Processing Instruction node were HTML to allow this target.
+				 * Identify an XML-like Processing Instruction node.
 				 *
-				 * XML allows for more target names than HTML, including the reserved
-				 * `xml` and `xml-stylesheet` names and names containing `:` and `.`,
-				 * but this code only identifies those with ASCII-representable target
-				 * names. This means that it may identify some Processing Instruction
-				 * nodes as bogus comments, but it will not misinterpret the HTML
-				 * structure. By limiting the identification to these target names the
-				 * Tag Processor can avoid the need to start parsing UTF-8 sequences.
+				 * HTML and XML processing instrcutions have different parsing rules.
+				 * The HTML API recognizes XML-like processing instructions that are
+				 * _not_ HTML processing instrcution. The HTML standard transforms
+				 * them to "bogus comments," represented by the HTML API as comments
+				 * with the `COMMENT_AS_PI_NODE_LOOKALIKE` type. This includes the
+				 * special targets `xml` and `xml-stylesheet` which are reserved
+				 * targets not allowed in HTML processing instrcutions.
 				 *
 				 * > NameStartChar ::= ":" | [A-Z] | "_" | [a-z] | [#xC0-#xD6] | [#xD8-#xF6] | [#xF8-#x2FF] |
 				 *                     [#x370-#x37D] | [#x37F-#x1FFF] | [#x200C-#x200D] | [#x2070-#x218F] |
