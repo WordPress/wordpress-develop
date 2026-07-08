@@ -65,35 +65,43 @@ class WP_HTML_Decoder {
 			 * or more bytes. The chunk is atomic on the haystack side — decoding
 			 * produces all of it at once and the raw cursor can only skip the
 			 * entire reference — but this is a prefix test, so the search text
-			 * may legitimately end part-way through the chunk. Only the bytes
-			 * where the two overlap can be compared, hence the `min()`.
+			 * may legitimately end part-way through the chunk. The overlapping
+			 * bytes must be compared.
 			 *
 			 * For example, `&fjlig;` (7 bytes) decodes into the chunk
 			 * `fj` (2 bytes).
 			 *
 			 *                       at
-			 *                       │    after matching "fj" continue here
+			 *                       │     after matching "fj" continue here
+			 *                       │     (+ $token_lengh / 7 bytes)
 			 *                       ↓      ↓
 			 *     Haystack:    start&fjlig;ord
 			 *                       ╰──┬──╯
-			 *                          fj - decoded "fjlig;" character reference chunk
+			 *                          fj - decoded "&fjlig;" character reference chunk
 			 *
-			 *                       after matching "fj" continue here
-			 *                         ↓
-			 *     Search A:    startfjo        min( 2, 3 ) = 2: `fj` matches,
-			 *                                  continue scanning at `o`.
-			 *
+			 *                      at
+			 *                       │ after matching "fj" continue here
+			 *                       │ (+ $match_length / 2 bytes)
+			 *                       ↓ ↓
+			 *     Search A:    startfjord      min( 2, 3 ) = 2: `fj` matches,
+			 *                       │          continue scanning at `o`.
+			 *                       ↓
 			 *     Search B:    startf          min( 2, 1 ) = 1: `f` matches and
 			 *                                  the search text is exhausted, so
-			 *                                  the prefix is confirmed.
-			 *
+			 *                       │          the prefix is confirmed.
+			 *                       ↓
 			 *     Search C:    startfr         min( 2, 2 ) = 2: `fj` differs
 			 *                                  from `fr`, no match is possible.
 			 *
-			 * Comparing the full chunk length instead of the `min()` would read
-			 * past the end of the search text and wrongly reject Search B:
+			 * Using `min()` and `substr_compare()` ensures that only the
+			 * overlapping bytes are compared and length mismatches do not cause
+			 * a false negative in cases A or B:
 			 *
-			 *     substr_compare( 'startfjord', 'startf', 5, 2 ); // 1
+			 *     // Search A: remaining search text is longer than the decoded chunk.
+			 *     substr_compare( 'startfjord', 'fj', 5, 5 ); // 1
+			 *
+			 *     // Search B: remaining search text is shorter than the decoded chunk.
+			 *     substr_compare( 'startf', 'fj', 5, 2 ); // -1
 			 *
 			 * After comparing, each cursor must advance by what it consumed: the
 			 * haystack by the raw reference length ($token_length), the search
