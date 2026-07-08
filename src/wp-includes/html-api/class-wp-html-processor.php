@@ -1403,9 +1403,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				break;
 
 			/**
-			 * Processing instructions are serialized with an explicit `?>` closer, whose
-			 * `?` is dropped when parsing. This represents any data unambiguously, including
-			 * data ending in `?`: the data `d?` is serialized as `<?target d??>`.
+			 * Processing instructions are serialized as `"<?" target " " data "?>"`.
 			 *
 			 * @see https://html.spec.whatwg.org/multipage/parsing.html#serialising-html-fragments
 			 */
