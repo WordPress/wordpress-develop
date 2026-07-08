@@ -474,6 +474,9 @@ class WP_Theme_JSON {
 			'fixed'  => null,
 			'sticky' => null,
 		),
+		'blockVisibility'               => array(
+			'allowEditing' => true,
+		),
 		'spacing'                       => array(
 			'customSpacingSize'   => null,
 			'defaultSpacingSizes' => null,
