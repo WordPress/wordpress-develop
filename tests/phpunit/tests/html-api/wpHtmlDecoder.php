@@ -125,7 +125,7 @@ class Tests_HtmlApi_WpHtmlDecoder extends WP_UnitTestCase {
 	 * @param string $raw_value     Raw attribute value.
 	 * @param string $decoded_value The expected decoded attribute value.
 	 */
-	public function test_null_code_points_in_attribute_values( string $raw_value, string $decoded_value ) {
+	public function test_null_code_points_in_attribute_values( string $raw_value, string $decoded_value ): void {
 		$this->assertSame(
 			$decoded_value,
 			WP_HTML_Decoder::decode_attribute( $raw_value ),
@@ -136,9 +136,9 @@ class Tests_HtmlApi_WpHtmlDecoder extends WP_UnitTestCase {
 	/**
 	 * Data provider.
 	 *
-	 * @return array[]
+	 * @return array<string, array{string, string}>
 	 */
-	public static function data_null_code_points() {
+	public static function data_null_code_points(): array {
 		return array(
 			'Decimal zero'                 => array( 'a&#0;b', "a\u{FFFD}b" ),
 			'Hexadecimal zero'             => array( 'a&#x0;b', "a\u{FFFD}b" ),
