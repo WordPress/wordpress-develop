@@ -72,23 +72,27 @@ class WP_HTML_Decoder {
 			 * `fj` (2 bytes).
 			 *
 			 *                       at
-			 *                       │     after matching "fj" continue here
-			 *                       │     (+ $token_lengh / 7 bytes)
+			 *                       │      ┌─after matching "fj" continue here
+			 *                       │      │ (+ $token_length / 7 bytes)
 			 *                       ↓      ↓
 			 *     Haystack:    start&fjlig;ord
 			 *                       ╰──┬──╯
 			 *                          fj - decoded "&fjlig;" character reference chunk
 			 *
-			 *                      at
-			 *                       │ after matching "fj" continue here
-			 *                       │ (+ $match_length / 2 bytes)
+			 *                       at
+			 *                       │ ┌─after matching "fj" continue here
+			 *                       │ │ (+ $match_length / 2 bytes)
 			 *                       ↓ ↓
-			 *     Search A:    startfjord      min( 2, 3 ) = 2: `fj` matches,
-			 *                       │          continue scanning at `o`.
+			 *     Search A:    startfjord      min( 2, 5 ) = 2: `fj` matches,
+			 *                                  continue scanning at `o`.
+			 *
+			 *                       at
 			 *                       ↓
 			 *     Search B:    startf          min( 2, 1 ) = 1: `f` matches and
 			 *                                  the search text is exhausted, so
-			 *                       │          the prefix is confirmed.
+			 *                                  the prefix is confirmed.
+			 *
+			 *                       at
 			 *                       ↓
 			 *     Search C:    startfr         min( 2, 2 ) = 2: `fj` differs
 			 *                                  from `fr`, no match is possible.
@@ -98,14 +102,16 @@ class WP_HTML_Decoder {
 			 * a false negative in cases A or B:
 			 *
 			 *     // Search A: remaining search text is longer than the decoded chunk.
-			 *     substr_compare( 'startfjord', 'fj', 5, 5 ); // 1
+			 *     substr_compare( 'startfjord', 'fj', 5, 5 ); // non-zero; incorrect mis-match
+			 *     substr_compare( 'startfjord', 'fj', 5, 2 ); // 0; match
 			 *
 			 *     // Search B: remaining search text is shorter than the decoded chunk.
-			 *     substr_compare( 'startf', 'fj', 5, 2 ); // -1
+			 *     substr_compare( 'startf', 'fj', 5, 2 ); // non-zero; incorrect mis-match
+			 *     substr_compare( 'startf', 'fj', 5, 1 ); // 0; match
 			 *
 			 * After comparing, each cursor must advance by what it consumed: the
-			 * haystack by the raw reference length ($token_length), the search
-			 * text by only the overlapping decoded bytes ($match_length). If the
+			 * haystack by the raw reference length (`$token_length`), the search
+			 * text by only the overlapping decoded bytes (`$match_length`). If the
 			 * search text is exhausted, the match is complete, the loop terminates,
 			 * and the function returns true.
 			 */
