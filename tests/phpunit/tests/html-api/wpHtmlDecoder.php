@@ -403,12 +403,12 @@ class Tests_HtmlApi_WpHtmlDecoder extends WP_UnitTestCase {
 			true,
 		);
 		yield "Combining character references (¬̸) full match on '¬̸' prefix" => array(
-			'&not;&#x0338; A negated not?',
+			'&not;&#x338; A negated not?',
 			'¬̸',
 			true,
 		);
 		yield "Combining character references (¬̸) partial match on '¬' prefix" => array(
-			'&not;&$#x0338; A negated not?',
+			'&not;&#x338; A negated not?',
 			'¬',
 			true,
 		);
