@@ -73,9 +73,15 @@ BLOCK["example/block"]
 TREE;
 
 		yield 'Text nodes in blocks' => array( $block_markup, $tree_structure );
+
+		yield 'Processing instruction' => array(
+			'<?wp-bit {"just":"kidding"}?>',
+			"<?wp-bit {\"just\":\"kidding\"}?>\n",
+		);
 	}
 
 	/**
+	 * @ticket 60170
 	 * @ticket 63527
 	 * @ticket 64531
 	 *
