@@ -378,7 +378,6 @@ require ABSPATH . WPINC . '/sitemaps/class-wp-sitemaps-index.php';
 require ABSPATH . WPINC . '/sitemaps/class-wp-sitemaps-provider.php';
 require ABSPATH . WPINC . '/sitemaps/class-wp-sitemaps-registry.php';
 require ABSPATH . WPINC . '/sitemaps/class-wp-sitemaps-renderer.php';
-require ABSPATH . WPINC . '/sitemaps/class-wp-sitemaps-stylesheet.php';
 require ABSPATH . WPINC . '/sitemaps/providers/class-wp-sitemaps-posts.php';
 require ABSPATH . WPINC . '/sitemaps/providers/class-wp-sitemaps-taxonomies.php';
 require ABSPATH . WPINC . '/sitemaps/providers/class-wp-sitemaps-users.php';

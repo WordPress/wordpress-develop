@@ -135,11 +135,6 @@ class WP_Sitemaps {
 		// Register index route.
 		add_rewrite_rule( '^wp-sitemap\.xml$', 'index.php?sitemap=index', 'top' );
 
-		// Register rewrites for the XSL stylesheet.
-		add_rewrite_tag( '%sitemap-stylesheet%', '([^?]+)' );
-		add_rewrite_rule( '^wp-sitemap\.xsl$', 'index.php?sitemap-stylesheet=sitemap', 'top' );
-		add_rewrite_rule( '^wp-sitemap-index\.xsl$', 'index.php?sitemap-stylesheet=index', 'top' );
-
 		// Register routes for providers.
 		add_rewrite_rule(
 			'^wp-sitemap-([a-z]+?)-([a-z\d_-]+?)-(\d+?)\.xml$',
@@ -163,13 +158,12 @@ class WP_Sitemaps {
 	public function render_sitemaps() {
 		global $wp_query;
 
-		$sitemap         = sanitize_text_field( get_query_var( 'sitemap' ) );
-		$object_subtype  = sanitize_text_field( get_query_var( 'sitemap-subtype' ) );
-		$stylesheet_type = sanitize_text_field( get_query_var( 'sitemap-stylesheet' ) );
-		$paged           = absint( get_query_var( 'paged' ) );
+		$sitemap        = sanitize_text_field( get_query_var( 'sitemap' ) );
+		$object_subtype = sanitize_text_field( get_query_var( 'sitemap-subtype' ) );
+		$paged          = absint( get_query_var( 'paged' ) );
 
-		// Bail early if this isn't a sitemap or stylesheet route.
-		if ( ! ( $sitemap || $stylesheet_type ) ) {
+		// Bail early if this isn't a sitemap route.
+		if ( ! $sitemap ) {
 			return;
 		}
 
@@ -177,14 +171,6 @@ class WP_Sitemaps {
 			$wp_query->set_404();
 			status_header( 404 );
 			return;
-		}
-
-		// Render stylesheet if this is stylesheet route.
-		if ( $stylesheet_type ) {
-			$stylesheet = new WP_Sitemaps_Stylesheet();
-
-			$stylesheet->render_stylesheet( $stylesheet_type );
-			exit;
 		}
 
 		// Render the index.
