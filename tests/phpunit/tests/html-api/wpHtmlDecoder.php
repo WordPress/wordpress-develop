@@ -392,12 +392,12 @@ class Tests_HtmlApi_WpHtmlDecoder extends WP_UnitTestCase {
 			'java',
 			true,
 		);
-		yield "&fjlig; (decodes to 2-byte 'fj') starts with f" => array(
+		yield "&fjlig; (decodes to 2-codepoint 'fj') starts with f" => array(
 			'&fjlig; is literally "f" followed by "j"',
 			'f',
 			true,
 		);
-		yield "&nvlt; (decodes to 2-byte '<⃒') starts with '<'" => array(
+		yield "&nvlt; (decodes to 2-codepoint '<⃒') starts with '<'" => array(
 			'&nvlt;script>',
 			'<',
 			true,
