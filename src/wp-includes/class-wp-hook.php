@@ -197,12 +197,13 @@ final class WP_Hook implements Iterator, ArrayAccess {
 	 *
 	 * @since 4.7.0
 	 *
-	 * @param string   $hook_name The filter hook to which the function to be removed is hooked.
-	 * @param callable $callback  The callback to be removed from running when the filter is applied.
-	 *                            This method can be called unconditionally to speculatively remove
-	 *                            a callback that may or may not exist.
-	 * @param int      $priority  The exact priority used when adding the original filter callback.
+	 * @param string                $hook_name The filter hook to which the function to be removed is hooked.
+	 * @param callable|string|array $callback  The callback to be removed from running when the filter is applied.
+	 *                                         This method can be called unconditionally to speculatively remove
+	 *                                         a callback that may or may not exist.
+	 * @param int                   $priority  The exact priority used when adding the original filter callback.
 	 * @return bool Whether the callback existed before it was removed.
+	 * @phpstan-param callable|string|array{ 0: string|object, 1: string, ... } $callback
 	 */
 	public function remove_filter( $hook_name, $callback, $priority ) {
 		if ( null === $priority ) {
@@ -239,17 +240,18 @@ final class WP_Hook implements Iterator, ArrayAccess {
 	 * @since 4.7.0
 	 * @since 6.9.0 Added the `$priority` parameter.
 	 *
-	 * @param string         $hook_name Optional. The name of the filter hook. Default empty.
-	 * @param callable|false $callback  Optional. The callback to check for.
-	 *                                  This method can be called unconditionally to speculatively check
-	 *                                  a callback that may or may not exist. Default false.
-	 * @param int|false      $priority  Optional. The specific priority at which to check for the callback.
+	 * @param string                      $hook_name Optional. The name of the filter hook. Default empty.
+	 * @param callable|string|array|false $callback  Optional. The callback to check for.
+	 *                                               This method can be called unconditionally to speculatively check
+	 *                                               a callback that may or may not exist. Default false.
+	 * @param int|false                   $priority  Optional. The specific priority at which to check for the callback.
 	 *                                               Default false.
 	 * @return bool|int If `$callback` is omitted, returns boolean for whether the hook has
 	 *                  anything registered. When checking a specific function, the priority
 	 *                  of that hook is returned, or false if the function is not attached.
 	 *                  If `$callback` and `$priority` are both provided, a boolean is returned
 	 *                  for whether the specific function is registered at that priority.
+	 * @phpstan-param callable|string|array{ 0: string|object, 1: string, ... }|false $callback
 	 */
 	public function has_filter( $hook_name = '', $callback = false, $priority = false ) {
 		if ( false === $callback ) {
