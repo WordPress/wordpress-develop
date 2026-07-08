@@ -3160,6 +3160,12 @@ mockedApiResponse.Schema = {
                             "default": true,
                             "description": "Whether to convert image formats.",
                             "required": false
+                        },
+                        "url": {
+                            "type": "string",
+                            "format": "uri",
+                            "description": "URL of an external image to sideload into the media library, instead of uploading a file.",
+                            "required": false
                         }
                     }
                 }
