@@ -1,6 +1,6 @@
 <?php
 /**
- * Icons API: Icon rendering helper functions.
+ * Icons API: Icon-rendering helper functions.
  *
  * @package WordPress
  * @subpackage Icons
