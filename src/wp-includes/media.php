@@ -2656,6 +2656,16 @@ function img_caption_shortcode( $attr, $content = '' ) {
 		return $output;
 	}
 
+	/**
+	 * @var array{
+	 *     id: string,
+	 *     caption_id: string,
+	 *     align: string,
+	 *     width: string,
+	 *     caption: string,
+	 *     class: string,
+	 * } $atts
+	 */
 	$atts = shortcode_atts(
 		array(
 			'id'         => '',
@@ -2675,13 +2685,15 @@ function img_caption_shortcode( $attr, $content = '' ) {
 		return $content;
 	}
 
-	$id          = '';
-	$caption_id  = '';
-	$describedby = '';
+	$id               = '';
+	$caption_id       = '';
+	$describedby      = '';
+	$unique_id_value  = '';
+	$caption_id_value = '';
 
 	if ( $atts['id'] ) {
-		$atts['id'] = sanitize_html_class( $atts['id'] );
-		$unique_id_value = preg_replace( '/-1$/', '', wp_unique_prefixed_id( $atts['id'] ) );
+		$atts['id']      = sanitize_html_class( $atts['id'] );
+		$unique_id_value = (string) preg_replace( '/-1$/', '', wp_unique_prefixed_id( $atts['id'] ) );
 		$id              = 'id="' . esc_attr( $unique_id_value ) . '" ';
 	}
 
@@ -2689,11 +2701,9 @@ function img_caption_shortcode( $attr, $content = '' ) {
 		// User explicitly provided a caption_id - make it unique.
 		$atts['caption_id'] = sanitize_html_class( $atts['caption_id'] );
 		$caption_id_value   = preg_replace( '/-1$/', '', wp_unique_prefixed_id( $atts['caption_id'] ) );
-	} elseif ( $atts['id'] ) {
+	} elseif ( $unique_id_value ) {
 		// Derive from the already-unique figure ID - guaranteed unique, no need for second call.
 		$caption_id_value = 'caption-' . str_replace( '_', '-', $unique_id_value );
-	} else {
-		$caption_id_value = '';
 	}
 
 	if ( $caption_id_value ) {
