@@ -30,12 +30,24 @@ class Tests_Media_wpCrossOriginIsolation extends WP_UnitTestCase {
 	 */
 	private ?string $original_get_action;
 
+	/**
+	 * Original $_GET['p'] value.
+	 */
+	private ?string $original_get_p;
+
+	/**
+	 * Original $pagenow value.
+	 */
+	private ?string $original_pagenow;
+
 	public function set_up() {
 		parent::set_up();
 		$this->original_user_agent = $_SERVER['HTTP_USER_AGENT'] ?? null;
 		$this->original_http_host  = $_SERVER['HTTP_HOST'] ?? null;
 		$this->original_https      = $_SERVER['HTTPS'] ?? null;
 		$this->original_get_action = $_GET['action'] ?? null;
+		$this->original_get_p      = $_GET['p'] ?? null;
+		$this->original_pagenow    = $GLOBALS['pagenow'] ?? null;
 	}
 
 	public function tear_down() {
@@ -63,10 +75,24 @@ class Tests_Media_wpCrossOriginIsolation extends WP_UnitTestCase {
 			$_GET['action'] = $this->original_get_action;
 		}
 
+		if ( null === $this->original_get_p ) {
+			unset( $_GET['p'] );
+		} else {
+			$_GET['p'] = $this->original_get_p;
+		}
+
 		// Clean up any output buffers started during tests.
 		while ( ob_get_level() > 1 ) {
 			ob_end_clean();
 		}
+
+		if ( null === $this->original_pagenow ) {
+			unset( $GLOBALS['pagenow'] );
+		} else {
+			$GLOBALS['pagenow'] = $this->original_pagenow;
+		}
+
+		$GLOBALS['current_screen'] = null;
 
 		remove_all_filters( 'wp_client_side_media_processing_enabled' );
 		parent::tear_down();
@@ -157,6 +183,110 @@ class Tests_Media_wpCrossOriginIsolation extends WP_UnitTestCase {
 		$level_after = ob_get_level();
 
 		$this->assertSame( $level_before, $level_after, 'Output buffer should not be started for Safari.' );
+	}
+
+	/**
+	 * The site editor home route on a classic theme skips DIP, because the
+	 * editor renders the front end in a same-origin iframe and must reach its
+	 * `contentDocument` to neutralize interactive elements. DIP would block
+	 * that access.
+	 *
+	 * @ticket 65399
+	 *
+	 * @dataProvider data_classic_theme_site_editor_home_routes
+	 *
+	 * @param array $get The $_GET state representing the home route.
+	 */
+	public function test_skips_cross_origin_isolation_for_classic_theme_site_editor_home( array $get ) {
+		$_SERVER['HTTP_USER_AGENT'] = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36';
+		$_SERVER['HTTP_HOST']       = 'localhost';
+
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+		switch_theme( 'twentytwentyone' );
+		set_current_screen( 'site-editor' );
+		$GLOBALS['pagenow'] = 'site-editor.php';
+
+		unset( $_GET['p'] );
+		foreach ( $get as $key => $value ) {
+			$_GET[ $key ] = $value;
+		}
+
+		$level_before = ob_get_level();
+		wp_set_up_cross_origin_isolation();
+		$level_after = ob_get_level();
+
+		$this->assertSame( $level_before, $level_after, 'DIP should be skipped on the classic-theme site editor home route.' );
+	}
+
+	/**
+	 * Data provider for the classic-theme site editor home route.
+	 *
+	 * @return array[]
+	 */
+	public function data_classic_theme_site_editor_home_routes() {
+		return array(
+			'no p query var'   => array( array() ),
+			'p query var is /' => array( array( 'p' => '/' ) ),
+		);
+	}
+
+	/**
+	 * The site editor on a classic theme still sets up cross-origin isolation
+	 * for routes other than the home route.
+	 *
+	 * @ticket 65399
+	 *
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
+	 */
+	public function test_sets_up_cross_origin_isolation_for_classic_theme_site_editor_non_home_route() {
+		$_SERVER['HTTP_USER_AGENT'] = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36';
+		$_SERVER['HTTP_HOST']       = 'localhost';
+
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+		switch_theme( 'twentytwentyone' );
+		set_current_screen( 'site-editor' );
+		$GLOBALS['pagenow'] = 'site-editor.php';
+
+		$_GET['p'] = '/page/about';
+
+		$level_before = ob_get_level();
+		wp_set_up_cross_origin_isolation();
+		$level_after = ob_get_level();
+
+		$this->assertSame( $level_before + 1, $level_after, 'DIP should be set up on a non-home site editor route.' );
+
+		ob_end_clean();
+	}
+
+	/**
+	 * The site editor on a block theme always sets up cross-origin isolation,
+	 * including on the home route, because block themes do not render the
+	 * classic site preview iframe.
+	 *
+	 * @ticket 65399
+	 *
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
+	 */
+	public function test_sets_up_cross_origin_isolation_for_block_theme_site_editor_home() {
+		$_SERVER['HTTP_USER_AGENT'] = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36';
+		$_SERVER['HTTP_HOST']       = 'localhost';
+
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+		switch_theme( 'twentytwentyfour' );
+		set_current_screen( 'site-editor' );
+		$GLOBALS['pagenow'] = 'site-editor.php';
+
+		unset( $_GET['p'] );
+
+		$level_before = ob_get_level();
+		wp_set_up_cross_origin_isolation();
+		$level_after = ob_get_level();
+
+		$this->assertSame( $level_before + 1, $level_after, 'DIP should be set up on the block-theme site editor home route.' );
+
+		ob_end_clean();
 	}
 
 	/**
