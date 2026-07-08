@@ -282,23 +282,23 @@ class Tests_Formatting_Redirect extends WP_UnitTestCase {
 	 */
 	public function data_wp_create_preload_header() {
 		return array(
-			'relative path ending in slash'    => array(
+			'relative path ending in slash'               => array(
 				'/wp-admin/',
 				'Link: </wp-admin/>; rel=preload; as=document',
 			),
-			'relative path ending in .php'     => array(
+			'relative path ending in .php'                => array(
 				'/wp-login.php',
 				'Link: </wp-login.php>; rel=preload; as=document',
 			),
-			'relative path with query string'  => array(
+			'relative path with query string'             => array(
 				'/wp-login.php?redirect_to=%2Fwp-admin%2F&reauth=1',
 				'Link: </wp-login.php?redirect_to=%2Fwp-admin%2F&reauth=1>; rel=preload; as=document',
 			),
-			'same-site absolute URL'           => array(
+			'same-site absolute URL'                      => array(
 				site_url( '/wp-login.php' ),
 				'Link: </wp-login.php>; rel=preload; as=document',
 			),
-			'external URL returns empty string' => array(
+			'external URL returns empty string'           => array(
 				'https://external.example.com/wp-login.php',
 				'',
 			),
@@ -308,5 +308,4 @@ class Tests_Formatting_Redirect extends WP_UnitTestCase {
 			),
 		);
 	}
-
 }
