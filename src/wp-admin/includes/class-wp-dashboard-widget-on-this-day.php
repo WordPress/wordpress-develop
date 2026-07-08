@@ -25,29 +25,12 @@ class WP_Dashboard_Widget_On_This_Day {
 	const POSTS_PER_PAGE = -1;
 
 	/**
-	 * Object cache group used for storing widget results.
-	 *
-	 * @since 7.1.0
-	 * @var string
-	 */
-	const CACHE_GROUP = 'on_this_day';
-
-	/**
 	 * Dashboard widget ID.
 	 *
 	 * @since 7.1.0
 	 * @var string
 	 */
 	const WIDGET_ID = 'wp_dashboard_on_this_day';
-
-	/**
-	 * Cache version. Bump when the rendered markup changes so stale
-	 * entries from older releases are naturally ignored.
-	 *
-	 * @since 7.1.0
-	 * @var int
-	 */
-	const CACHE_VERSION = 6;
 
 	/**
 	 * Registers the dashboard widget and its supporting assets.
@@ -78,45 +61,17 @@ class WP_Dashboard_Widget_On_This_Day {
 	/**
 	 * Renders the dashboard widget output.
 	 *
-	 * The rendered HTML is cached per user and locale. The cache salt includes
-	 * the current site date and the posts group's `last_changed` token, so any
-	 * post mutation (publish, edit, delete, trash) invalidates the entry on the
-	 * next read and the site-date salt changes once per day.
-	 *
 	 * @since 7.1.0
 	 */
 	public static function render_dashboard_widget() {
-		$user_id = get_current_user_id();
+		$posts = self::get_posts_on_this_day();
 
-		$cache_key  = sprintf(
-			'render_otd_widget:v%d:%d:%s',
-			self::CACHE_VERSION,
-			$user_id,
-			determine_locale()
-		);
-		$cache_salt = array(
-			current_time( 'Y-m-d' ),
-			wp_cache_get_last_changed( 'posts' ),
-		);
-
-		$cached = wp_cache_get_salted( $cache_key, self::CACHE_GROUP, $cache_salt );
-		if ( ! is_string( $cached ) ) {
-			$posts = self::get_cached_posts( $user_id );
-
-			if ( empty( $posts ) ) {
-				return;
-			}
-
-			ob_start();
-			self::render_posts( $posts );
-			$cached = ob_get_clean();
-
-			wp_cache_set_salted( $cache_key, $cached, self::CACHE_GROUP, $cache_salt, DAY_IN_SECONDS );
+		if ( empty( $posts ) ) {
+			return;
 		}
 
 		echo '<div class="wp-on-this-day-widget">';
-		// Already escaped at write time by the render_* methods below.
-		echo $cached; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		self::render_posts( $posts );
 		echo '</div>';
 	}
 
@@ -125,14 +80,14 @@ class WP_Dashboard_Widget_On_This_Day {
 	 * calendar day in previous years.
 	 *
 	 * The date constraint matches today's month and day, combined with a
-	 * `before` clause anchored to January 1 of the current year.
+	 * `before` clause anchored to January 1 of the current year. Results are
+	 * cached by WP_Query's native query caching.
 	 *
 	 * @since 7.1.0
 	 *
-	 * @param int $user_id Current user ID for filter context.
 	 * @return WP_Post[] Array of posts ordered by newest first.
 	 */
-	public static function get_posts_on_this_day( $user_id ) {
+	public static function get_posts_on_this_day() {
 		$today      = current_datetime();
 		$year       = (int) $today->format( 'Y' );
 		$date_query = array(
@@ -160,10 +115,9 @@ class WP_Dashboard_Widget_On_This_Day {
 		 *
 		 * @since 7.1.0
 		 *
-		 * @param array $args    WP_Query arguments.
-		 * @param int   $user_id Current user ID.
+		 * @param array $args WP_Query arguments.
 		 */
-		$args = apply_filters( 'wp_dashboard_on_this_day_query_args', $args, $user_id );
+		$args = apply_filters( 'wp_dashboard_on_this_day_query_args', $args );
 
 		$query = new WP_Query( $args );
 
@@ -189,18 +143,23 @@ class WP_Dashboard_Widget_On_This_Day {
 			'day'   => $day,
 		);
 
-		if ( 2 !== $month || 28 !== $day || $date->format( 'L' ) ) {
-			return $clause;
+		// Display leap day posts on Feb 28 in non leap years.
+		if (
+			28 === $day
+			&& 2 === $month
+			&& false === (bool) $date->format( 'L' )
+		) {
+			$clause = array(
+				'relation' => 'OR',
+				$clause,
+				array(
+					'month' => 2,
+					'day'   => 29,
+				),
+			);
 		}
 
-		return array(
-			'relation' => 'OR',
-			$clause,
-			array(
-				'month' => 2,
-				'day'   => 29,
-			),
-		);
+		return $clause;
 	}
 
 	/**
@@ -211,45 +170,11 @@ class WP_Dashboard_Widget_On_This_Day {
 	 * @return bool True when matching posts exist, false otherwise.
 	 */
 	public static function has_posts() {
-		return ! empty( self::get_cached_posts( get_current_user_id() ) );
-	}
-
-	/**
-	 * Retrieves cached posts for the widget.
-	 *
-	 * @since 7.1.0
-	 *
-	 * @param int $user_id Current user ID for cache and filter context.
-	 * @return WP_Post[] Array of posts ordered by newest first.
-	 */
-	protected static function get_cached_posts( $user_id ) {
-		$cache_salt = array(
-			current_time( 'Y-m-d' ),
-			wp_cache_get_last_changed( 'posts' ),
-		);
-		$cache_key  = sprintf(
-			'query_posts:v%d:%d',
-			self::CACHE_VERSION,
-			(int) $user_id
-		);
-
-		$cached = wp_cache_get_salted( $cache_key, self::CACHE_GROUP, $cache_salt );
-		if ( is_array( $cached ) ) {
-			return $cached;
-		}
-
-		$posts = self::get_posts_on_this_day( $user_id );
-
-		wp_cache_set_salted( $cache_key, $posts, self::CACHE_GROUP, $cache_salt, DAY_IN_SECONDS );
-
-		return $posts;
+		return ! empty( self::get_posts_on_this_day() );
 	}
 
 	/**
 	 * Renders the post list grouped by publication year.
-	 *
-	 * Outputs rendered HTML that has already been escaped at write time.
-	 * Callers must echo the captured buffer as-is to avoid double-escaping.
 	 *
 	 * @since 7.1.0
 	 *
@@ -277,8 +202,8 @@ class WP_Dashboard_Widget_On_This_Day {
 				esc_html(
 					/* translators: %s: Number of posts. */
 					_n(
-						'%s post has been published in a previous year:',
-						'%s posts have been published in previous years:',
+						'%s post has been published on this day:',
+						'%s posts have been published on this day:',
 						$post_count
 					)
 				),
@@ -329,21 +254,21 @@ class WP_Dashboard_Widget_On_This_Day {
 			$title = __( '(no title)' );
 		}
 
-		$author_id = (int) get_post_field( 'post_author', get_the_ID() );
+		$author_id   = (int) get_post_field( 'post_author', get_the_ID() );
+		$author_name = $author_id > 0 ? (string) get_the_author() : '';
+		$show_author = '' !== trim( $author_name ) && get_current_user_id() !== $author_id;
 		?>
 		<li class="wp-on-this-day-post">
 			<a href="<?php the_permalink(); ?>"><?php echo esc_html( $title ); ?></a>
-			<?php if ( get_current_user_id() !== $author_id ) : ?>
+			<?php if ( $show_author ) : ?>
 				<?php
-				$escaped_attribution = esc_html(
+				echo '<span class="wp-on-this-day-post-author">' . esc_html(
 					sprintf(
 						/* translators: %s: Post author's display name. */
 						__( 'by %s' ),
-						get_the_author()
+						$author_name
 					)
-				);
-
-				echo '<span class="wp-on-this-day-post-author">' . $escaped_attribution . '</span>';
+				) . '</span>';
 				?>
 			<?php endif; ?>
 		</li>

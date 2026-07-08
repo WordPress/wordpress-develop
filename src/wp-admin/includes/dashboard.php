@@ -89,13 +89,11 @@ function wp_dashboard_setup() {
 	}
 
 	// On This Day.
-	if ( current_user_can( 'edit_posts' ) ) {
-		if ( ! class_exists( 'WP_Dashboard_Widget_On_This_Day' ) ) {
-			require_once ABSPATH . 'wp-admin/includes/class-wp-dashboard-widget-on-this-day.php';
-		}
-
-		WP_Dashboard_Widget_On_This_Day::register_widget();
+	if ( ! class_exists( 'WP_Dashboard_Widget_On_This_Day' ) ) {
+		require_once ABSPATH . 'wp-admin/includes/class-wp-dashboard-widget-on-this-day.php';
 	}
+
+	WP_Dashboard_Widget_On_This_Day::register_widget();
 
 	// WordPress Events and News.
 	wp_add_dashboard_widget( 'dashboard_primary', __( 'WordPress Events and News' ), 'wp_dashboard_events_news' );
