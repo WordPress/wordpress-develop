@@ -1388,9 +1388,9 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Registers an ability that reflects the input value and its PHP type back to the caller.
+	 * Registers an ability that reflects the received input value back to the caller.
 	 *
-	 * The execute callback returns the received `value` and its `gettype()`, so a test can assert
+	 * The execute callback returns the received input under `value`, so a test can assert
 	 * the exact value and PHP type the ability received, whether it is a scalar, an array, or an
 	 * object of fields.
 	 *
@@ -1404,14 +1404,11 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 			$name,
 			array(
 				'label'               => 'Reflecting Ability',
-				'description'         => 'Reflects the received input value and PHP type.',
+				'description'         => 'Reflects the received input value.',
 				'category'            => 'general',
 				'input_schema'        => $input_schema,
 				'execute_callback'    => static function ( $input ) {
-					return array(
-						'value' => $input,
-						'type'  => gettype( $input ),
-					);
+					return array( 'value' => $input );
 				},
 				'permission_callback' => '__return_true',
 				'meta'                => array(
@@ -1847,7 +1844,7 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 					return true;
 				},
 				'execute_callback'    => static function ( $input ) {
-					return array( 'count__type' => gettype( $input['count'] ) );
+					return $input;
 				},
 				'meta'                => array(
 					'annotations'  => array( 'readonly' => true ),
@@ -1861,7 +1858,7 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 		$this->assertSame( 200, $response->get_status() );
 		$this->assertNotEmpty( $seen->types, 'The permission callback should have run.' );
 		$this->assertSame( 'integer', $seen->types[0], 'The REST permission gate should receive coerced (typed) input, not a raw string.' );
-		$this->assertSame( 'integer', $response->get_data()['count__type'] );
+		$this->assertSame( array( 'count' => 10 ), $response->get_data(), 'The execute callback should receive coerced input too.' );
 	}
 
 	/**
