@@ -24,6 +24,9 @@ class WP_HTML_Decoder {
 	 *     false  === WP_HTML_Decoder::attribute_starts_with( $value, 'https:', 'ascii-case-insensitive' );
 	 *
 	 * @since 6.6.0
+	 * @since 7.1.0 Matches when the search string ends part-way through a decoded
+	 *              character reference, and no longer matches when the attribute
+	 *              value is shorter than the search string.
 	 *
 	 * @param string $haystack         String containing the raw non-decoded attribute value.
 	 * @param string $search_text      Does the attribute value start with this plain string.
