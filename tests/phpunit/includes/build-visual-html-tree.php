@@ -211,7 +211,8 @@ function build_visual_html_tree( string $html, ?string $fragment_context ): stri
 				break;
 
 			case '#processing-instruction':
-				$output .= "<?{$processor->get_tag()} {$processor->get_modifiable_text()}?>\n";
+				// Processing instructions must be "<?", the target, a space, the data, "?", and ">".
+				$output .= str_repeat( $tree_indent, $indent_level ) . "<?{$processor->get_tag()} {$processor->get_modifiable_text()}?>\n";
 				break;
 
 			case '#funky-comment':

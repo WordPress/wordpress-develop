@@ -75,13 +75,19 @@ TREE;
 		yield 'Text nodes in blocks' => array( $block_markup, $tree_structure );
 
 		yield 'Processing instruction' => array(
-			'<?wp-bit {"just":"kidding"}?>',
-			"<?wp-bit {\"just\":\"kidding\"}?>\n",
+			'<div>before<?target arbitrary="data & things" >after',
+			<<<'TREE'
+			<div>
+			  "before"
+			  <?target arbitrary="data & things" ?>
+			  "after"
+
+			TREE,
 		);
 	}
 
 	/**
-	 * @ticket 60170
+	 * @ticket 65582
 	 * @ticket 63527
 	 * @ticket 64531
 	 *
