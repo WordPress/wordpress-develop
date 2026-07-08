@@ -2520,6 +2520,47 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 	}
 
 	/**
+	 * @ticket 64955
+	 */
+	public function test_get_data_for_route_includes_filtered_json_schema_keywords() {
+		$filter = static function ( $keywords, $schema_profile ) {
+			if ( 'rest-api' === $schema_profile ) {
+				$keywords[] = 'xRestApiKeyword';
+			}
+
+			return $keywords;
+		};
+
+		add_filter( 'wp_json_schema_allowed_keywords', $filter, 10, 2 );
+
+		register_rest_route(
+			'test-ns/v1',
+			'/test',
+			array(
+				'methods'             => 'POST',
+				'callback'            => static function () {
+					return new WP_REST_Response( 'test' );
+				},
+				'permission_callback' => '__return_true',
+				'args'                => array(
+					'param' => array(
+						'type'            => 'string',
+						'xRestApiKeyword' => true,
+						'invalid'         => true,
+					),
+				),
+			)
+		);
+
+		$response = rest_do_request( new WP_REST_Request( 'OPTIONS', '/test-ns/v1/test' ) );
+
+		$args = $response->get_data()['endpoints'][0]['args'];
+
+		$this->assertArrayHasKey( 'xRestApiKeyword', $args['param'] );
+		$this->assertArrayNotHasKey( 'invalid', $args['param'] );
+	}
+
+	/**
 	 * @ticket 53056
 	 */
 	public function test_json_encode_error_results_in_500_status_code() {
