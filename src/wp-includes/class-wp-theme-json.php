@@ -4613,6 +4613,7 @@ class WP_Theme_JSON {
 	 * Remove insecure element styles within a variation or block.
 	 *
 	 * @since 6.8.0
+	 * @since 7.1.0 Added the `$responsive_media_queries` parameter.
 	 *
 	 * @param array      $elements                 The elements to process.
 	 * @param array|null $responsive_media_queries Optional. Media queries whose keys define allowed
@@ -4661,8 +4662,11 @@ class WP_Theme_JSON {
 
 	/**
 	 * Remove insecure styles from inner blocks and their elements.
+	 * When responsive media queries are provided, nested responsive state styles
+	 * for those media-query keys are re-added after the base sanitization pass.
 	 *
 	 * @since 6.8.0
+	 * @since 7.1.0 Added the `$responsive_media_queries` parameter.
 	 *
 	 * @param array      $blocks                   The block styles to process.
 	 * @param array|null $responsive_media_queries Optional. Media queries whose keys define allowed
@@ -4734,13 +4738,13 @@ class WP_Theme_JSON {
 	 * without the insecure settings.
 	 *
 	 * @since 5.9.0
+	 * @since 7.1.0 Added the `$is_root` parameter.
 	 *
-	 * @param array $input          Node to process.
-	 * @param bool  $allow_viewport Whether to preserve and sanitize top-level
-	 *                              viewport settings.
+	 * @param array $input   Node to process.
+	 * @param bool  $is_root Optional. Whether the node is the root settings node. Default false.
 	 * @return array
 	 */
-	protected static function remove_insecure_settings( $input, $allow_viewport = true ) {
+	protected static function remove_insecure_settings( $input, $is_root = false ) {
 		$output = array();
 		foreach ( static::PRESETS_METADATA as $preset_metadata ) {
 			foreach ( static::VALID_ORIGINS as $origin ) {
@@ -4793,7 +4797,7 @@ class WP_Theme_JSON {
 		// Preserve all valid settings that have type markers in VALID_SETTINGS.
 		self::preserve_valid_typed_settings( $input, $output, static::VALID_SETTINGS );
 
-		if ( $allow_viewport && array_key_exists( 'viewport', $input ) ) {
+		if ( $is_root && array_key_exists( 'viewport', $input ) ) {
 			$output['viewport'] = static::sanitize_viewport_settings( $input['viewport'] );
 		}
 
