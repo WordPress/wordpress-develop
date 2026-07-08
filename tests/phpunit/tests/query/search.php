@@ -681,4 +681,3 @@ class Tests_Query_Search extends WP_UnitTestCase {
 		return $sql . ' /* posts_search */';
 	}
 }
-
