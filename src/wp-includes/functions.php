@@ -7,7 +7,7 @@
 
 // Don't load directly.
 if ( ! defined( 'ABSPATH' ) ) {
-	die( '-1' );
+	exit;
 }
 
 require ABSPATH . WPINC . '/option.php';
@@ -8505,6 +8505,38 @@ function wp_schedule_delete_old_privacy_export_files() {
 	if ( ! wp_next_scheduled( 'wp_privacy_delete_old_export_files' ) ) {
 		wp_schedule_event( time(), 'hourly', 'wp_privacy_delete_old_export_files' );
 	}
+}
+
+/**
+ * Schedules a WP-Cron job to clean up personal data requests.
+ *
+ * @since 7.1.0
+ *
+ * @see wp_privacy_personal_data_cleanup_requests()
+ */
+function wp_schedule_personal_data_cleanup_requests(): void {
+	if ( wp_installing() ) {
+		return;
+	}
+
+	if ( ! wp_next_scheduled( 'wp_privacy_personal_data_cleanup_requests' ) ) {
+		wp_schedule_event( time(), 'daily', 'wp_privacy_personal_data_cleanup_requests' );
+	}
+}
+
+/**
+ * Fires the personal data cleanup requests handler during cron.
+ *
+ * Loads the admin privacy tools file if needed (e.g. during cron, where
+ * wp-admin/includes/privacy-tools.php is not loaded automatically).
+ *
+ * @since 7.1.0
+ */
+function wp_privacy_personal_data_cleanup_requests(): void {
+	if ( ! function_exists( '_wp_personal_data_cleanup_requests' ) ) {
+		require_once ABSPATH . 'wp-admin/includes/privacy-tools.php';
+	}
+	_wp_personal_data_cleanup_requests();
 }
 
 /**
