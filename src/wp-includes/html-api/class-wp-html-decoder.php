@@ -417,38 +417,44 @@ class WP_HTML_Decoder {
 
 		$after_name = $name_at + $name_length;
 
-		/*
-		 * For historical reasons, a matched named character reference is left as
-		 * literal text — its decoded replacement is not used — when all of the
-		 * following hold:
+		/**
+		 * For historical reasons, a matched named character reference is left as literal
+		 * text (its decoded replacement is not used) when all of the following hold:
 		 *
 		 * 1. It was matched in attribute context.
-		 * 2. The match does not end in U+003B SEMICOLON (;), i.e. it is one of the
+		 * 2. The match does not end in U+003B SEMICOLON (;) — i.e. it is one of the
 		 *    legacy forms recognized without a trailing semicolon.
 		 * 3. The next input character is U+003D EQUALS SIGN (=) or an ASCII alphanumeric.
 		 *
-		 * For example — note that both `not` and `not;` appear in the named
-		 * character reference table:
+		 * Some illustrative examples follow. Note that both `not` and `not;` appear in the
+		 * named character references list. References start with `&` and typically end with
+		 * `;`, but the legacy forms are recognized without one.
 		 *
-		 * - In data context, `&notme` decodes to `¬me`: condition 1 fails.
-		 * - In attribute context:
-		 *   - `&not;me` decodes to `¬me`: the longest match, `not;`, ends in a
-		 *     semicolon, so condition 2 fails.
-		 *   - `&not己` decodes to `¬己`: `己` is a letter, but neither `=` nor an
-		 *     ASCII alphanumeric, so condition 3 fails.
-		 *   - `&not` decodes to `¬`: there is no next input character, so
-		 *     condition 3 fails.
-		 *   - `&not=me` and `&notme` are left as literal text: all three hold.
+		 * - In _data context_, "&notme" is decoded to "¬me": condition 1 fails (not an
+		 *   attribute), so the reference is decoded.
+		 * - In _attribute context_, "&not;me" is decoded to "¬me": the longest match is
+		 *   "not;", which ends in a semicolon, so condition 2 fails.
+		 * - In _attribute context_, "&not己" is decoded to "¬己": the following character
+		 *   "己" is a letter but not an ASCII alphanumeric (nor "="), so condition 3 fails.
+		 * - In _attribute context_, "&not" is decoded to "¬": there is no next input
+		 *   character, so condition 3 fails.
+		 * - In _attribute context_, "&not=me" is left as the literal text "&not=me": all
+		 *   three conditions hold.
+		 * - In _attribute context_, "&notme" is left as the literal text "&notme": all
+		 *   three conditions hold.
 		 *
-		 * Without these rules, ordinary URL query strings could have surprising
+		 * Without these special rules, ordinary URL query strings could have surprising
 		 * replacements applied. Consider:
 		 *
 		 *     <a href="/?random&degree&gt=0&lt=360&not=90">
 		 *
-		 * The special handling preserves the literal attribute value; plain decoding
-		 * would produce `/?random°ree>=0<=360¬=90`, which is unlikely to be the
-		 * author's intent. (Authors should not rely on this: escaping each `&` as
-		 * `&amp;` produces the intended value regardless of the following character.)
+		 * The literal attribute value `/?random&degree&gt=0&lt=360&not=90` is preserved
+		 * by the special handling. Otherwise, the value would decode to
+		 * `/?random°ree>=0<=360¬=90`, which is unlikely to be the author's intent.
+		 *
+		 * (Authors should not rely on this. Escaping the example as
+		 * `/?random&amp;degree&amp;gt=0&amp;lt=360&amp;not=90` produces the intended
+		 * value regardless of the following character.)
 		 *
 		 * @see https://html.spec.whatwg.org/multipage/parsing.html#named-character-reference-state
 		 * @see https://html.spec.whatwg.org/multipage/named-characters.html#named-character-references
