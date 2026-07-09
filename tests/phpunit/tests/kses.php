@@ -981,10 +981,10 @@ EOF;
 	}
 
 	/**
-	 * @ticket 65491
-	 *
 	 * Verifies that autofocus is retained for dialog and descendants inside a dialog.
 	 * Uses an explicit allowlist so the test can include input elements as well.
+	 *
+	 * @ticket 65491
 	 */
 	public function test_wp_kses_allows_autofocus_for_dialog_and_descendants() {
 		$allowed_html = array(
@@ -1009,10 +1009,10 @@ EOF;
 	}
 
 	/**
-	 * @ticket 65491
-	 *
 	 * Verifies that autofocus is removed outside of dialog context.
 	 * Uses an explicit allowlist so the test can include input elements as well.
+	 *
+	 * @ticket 65491
 	 */
 	public function test_wp_kses_removes_autofocus_outside_dialog_context() {
 		$allowed_html = array(

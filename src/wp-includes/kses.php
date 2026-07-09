@@ -1292,6 +1292,7 @@ function _wp_kses_split_callback( $matches ) {
  * The state is kept in a static local variable so context can be updated as
  * tags are processed without relying on a global.
  *
+ * @since 7.1.0
  * @access private
  * @ignore
  *
@@ -1478,13 +1479,13 @@ function wp_kses_split2( $content, $allowed_html, $allowed_protocols ) {
  *              Added support for required attributes.
  * @since 7.1.0 Added parameter `$context` for context-aware attribute checks.
  *
- * @param string         $element           HTML element/tag.
- * @param string         $attr              HTML attributes from HTML element to closing HTML element tag.
- * @param array[]|string $allowed_html      An array of allowed HTML elements and attributes,
- *                                          or a context name such as 'post'. See wp_kses_allowed_html()
- *                                          for the list of accepted context names.
- * @param string[]       $allowed_protocols Array of allowed URL protocols.
- * @param array{ in_dialog?: bool } $context Optional context data for attribute checks.
+ * @param string                    $element           HTML element/tag.
+ * @param string                    $attr              HTML attributes from HTML element to closing HTML element tag.
+ * @param array[]|string            $allowed_html      An array of allowed HTML elements and attributes,
+ *                                                     or a context name such as 'post'. See wp_kses_allowed_html()
+ *                                                     for the list of accepted context names.
+ * @param string[]                  $allowed_protocols Array of allowed URL protocols.
+ * @param array{ in_dialog?: bool } $context           Optional context data for attribute checks.
  * @return string Sanitized HTML element.
  */
 function wp_kses_attr( $element, $attr, $allowed_html, $allowed_protocols, $context = array() ) {
@@ -1562,13 +1563,13 @@ function wp_kses_attr( $element, $attr, $allowed_html, $allowed_protocols, $cont
  * @since 5.0.0 Added support for `data-*` wildcard attributes.
  * @since 7.1.0 Added parameter `$context` for context-aware attribute checks.
  *
- * @param string $name         The attribute name. Passed by reference. Returns empty string when not allowed.
- * @param string $value        The attribute value. Passed by reference. Returns a filtered value.
- * @param string $whole        The `name=value` input. Passed by reference. Returns filtered input.
- * @param string $vless        Whether the attribute is valueless. Use 'y' or 'n'.
- * @param string $element      The name of the element to which this attribute belongs.
- * @param array  $allowed_html The full list of allowed elements and attributes.
- * @param array{ in_dialog?: bool } $context Optional context data for attribute checks.
+ * @param string                    $name         The attribute name. Passed by reference. Returns empty string when not allowed.
+ * @param string                    $value        The attribute value. Passed by reference. Returns a filtered value.
+ * @param string                    $whole        The `name=value` input. Passed by reference. Returns filtered input.
+ * @param string                    $vless        Whether the attribute is valueless. Use 'y' or 'n'.
+ * @param string                    $element      The name of the element to which this attribute belongs.
+ * @param array                     $allowed_html The full list of allowed elements and attributes.
+ * @param array{ in_dialog?: bool } $context      Optional context data for attribute checks.
  * @return bool Whether or not the attribute is allowed.
  */
 function wp_kses_attr_check( &$name, &$value, &$whole, $vless, $element, $allowed_html, $context = array() ) {
