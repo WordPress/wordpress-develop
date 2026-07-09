@@ -277,7 +277,7 @@ class Tests_Feed_Atom extends WP_UnitTestCase {
 		$feed    = $this->do_atom();
 		$xml     = xml_to_array( $feed );
 		$entries = xml_find( $xml, 'feed', 'entry' );
-		$entries = array_slice( $entries, 0, 1 );
+		$entries = array_first( $entries );
 
 		$this->assertNotEmpty( $entries );
 

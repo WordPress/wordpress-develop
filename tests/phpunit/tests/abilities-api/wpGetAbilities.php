@@ -574,7 +574,7 @@ class Tests_Abilities_API_WpGetAbilities extends WP_UnitTestCase {
 			array(
 				'namespace'       => 'test',
 				'result_callback' => static function ( array $abilities ): array {
-					return array_slice( $abilities, 0, 1 );
+					return array_first( $abilities );
 				},
 			)
 		);
@@ -598,7 +598,7 @@ class Tests_Abilities_API_WpGetAbilities extends WP_UnitTestCase {
 		$this->register_test_ability( 'test/ability-two' );
 
 		$filter = static function ( array $abilities ): array {
-			return array_slice( $abilities, 0, 1 );
+			return array_first( $abilities );
 		};
 
 		add_filter( 'wp_get_abilities_result', $filter );

@@ -1592,7 +1592,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertCount( 0, $response->get_data() );
 
 		$this->assertCount( 1, $this->posts_clauses );
-		$this->posts_clauses = array_slice( $this->posts_clauses, 0, 1 );
+		$this->posts_clauses = array_first( $this->posts_clauses );
 
 		$this->assertPostsWhere( " AND {posts}.ID IN (0) AND {posts}.post_type = 'post' AND (({posts}.post_status = 'publish'))" );
 
@@ -1623,7 +1623,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertCount( 0, $response->get_data() );
 
 		$this->assertCount( 1, $this->posts_clauses );
-		$this->posts_clauses = array_slice( $this->posts_clauses, 0, 1 );
+		$this->posts_clauses = array_first( $this->posts_clauses );
 
 		$this->assertPostsWhere( " AND {posts}.ID IN (0) AND {posts}.post_type = 'post' AND (({posts}.post_status = 'publish'))" );
 	}
@@ -1641,7 +1641,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertCount( 0, $response->get_data() );
 
 		$this->assertCount( 1, $this->posts_clauses );
-		$this->posts_clauses = array_slice( $this->posts_clauses, 0, 1 );
+		$this->posts_clauses = array_first( $this->posts_clauses );
 
 		$this->assertPostsWhere( " AND {posts}.ID IN (0) AND {posts}.post_type = 'post' AND (({posts}.post_status = 'publish'))" );
 	}
