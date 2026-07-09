@@ -3247,7 +3247,7 @@ function wp_unique_term_slug( $slug, $term ) {
  *     alias_of?: string,
  *     description?: string,
  *     parent?: non-negative-int,
- *     slug?: string,
+ *     slug?: string|null,
  *     ...
  * } $args
  * @phpstan-return array{
