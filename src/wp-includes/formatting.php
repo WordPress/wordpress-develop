@@ -2851,7 +2851,11 @@ function untrailingslashit( $value ) {
  *
  * @phpstan-template T
  * @phpstan-param T $value
- * @phpstan-return T
+ * @phpstan-return (
+ *     T is string ? string : (
+ *         T is array ? array<key-of<T>, ( value-of<T> is string ? string : value-of<T> )> : T
+ *     )
+ * )
  */
 function stripslashes_deep( $value ) {
 	return map_deep( $value, 'stripslashes_from_strings_only' );
@@ -5181,7 +5185,7 @@ function sanitize_option( $option, $value ) {
  *
  * @phpstan-template T
  * @phpstan-param T $value
- * @phpstan-return T
+ * @phpstan-return (T is array ? array<key-of<T>, mixed> : (T is object ? T : mixed))
  */
 function map_deep( $value, $callback ) {
 	if ( is_array( $value ) ) {
@@ -5827,8 +5831,8 @@ function sanitize_trackback_urls( $to_ping ) {
  * @phpstan-template T
  * @phpstan-param T $value
  * @phpstan-return (
- *     $value is mixed[] ? mixed[] : (
- *         $value is string ? string : T
+ *     T is string ? string : (
+ *         T is array ? array<key-of<T>, ( value-of<T> is string ? string : value-of<T> )> : T
  *     )
  * )
  */
@@ -5857,7 +5861,11 @@ function wp_slash( $value ) {
  *
  * @phpstan-template T
  * @phpstan-param T $value
- * @phpstan-return T
+ * @phpstan-return (
+ *     T is string ? string : (
+ *         T is array ? array<key-of<T>, ( value-of<T> is string ? string : value-of<T> )> : T
+ *     )
+ * )
  */
 function wp_unslash( $value ) {
 	return stripslashes_deep( $value );
