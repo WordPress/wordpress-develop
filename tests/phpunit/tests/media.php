@@ -365,7 +365,7 @@ CAP;
 			self::IMG_CONTENT . self::HTML_CONTENT
 		);
 
-		$this->assertSame( 1, preg_match( '/aria-describedby="caption-myId(?:[0-9]+)?"/', $result ) );
+		$this->assertMatchesRegularExpression( '/aria-describedby="caption-myId(?:-[0-9]+)?"/', $result );
 	}
 
 	/**
