@@ -413,9 +413,10 @@ switch ( $wp_list_table->current_action() ) {
 					<legend>
 					<?php
 					printf(
-						/* translators: %s: User login. */
-						__( '%s: What should be done with the content owned by this user?' ),
-						$user->user_login
+						/* translators: 1: User login, 2: User ID. */
+						__( '1$%s (ID #%2$s): What should be done with the content owned by this user?' ),
+						'<strong>' . $user->user_login . '</strong>',
+						$id
 					);
 					?>
 					</legend>
