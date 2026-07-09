@@ -1405,7 +1405,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			/**
 			 * Processing instructions are serialized as `"<?" target " " data "?>"`.
 			 *
-			 * @see https://html.spec.whatwg.org/multipage/parsing.html#serialising-html-fragments
+			 * @link https://html.spec.whatwg.org/multipage/parsing.html#serialising-html-fragments
 			 */
 			case '#processing-instruction':
 				$html .= "<?{$this->get_tag()} {$this->get_modifiable_text()}?>";

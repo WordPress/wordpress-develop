@@ -2030,7 +2030,7 @@ class WP_HTML_Tag_Processor {
 				return true;
 			}
 
-			/*
+			/**
 			 * `<?` transitions to the processing instruction open state.
 			 *
 			 * A processing instruction whose target starts with an ASCII letter or `_`,
@@ -2041,7 +2041,7 @@ class WP_HTML_Tag_Processor {
 			 * Both forms end at the nearest `>`; a processing instruction cannot
 			 * contain one in the HTML syntax.
 			 *
-			 * See https://html.spec.whatwg.org/multipage/parsing.html#processing-instruction-open-state
+			 * @link https://html.spec.whatwg.org/multipage/parsing.html#processing-instruction-open-state
 			 */
 			if ( ! $this->is_closing_tag && '?' === $html[ $at + 1 ] ) {
 				$closer_at = strpos( $html, '>', $at + 2 );
@@ -4000,7 +4000,7 @@ class WP_HTML_Tag_Processor {
 			 * region into a fixed form: a separating space, the data, and
 			 * the `?>` closer.
 			 *
-			 * `get_modifiable_text()` performs necessary parsing to
+			 * {@see self::get_modifiable_text()} performs necessary parsing to
 			 * return the correct processing instruction data based
 			 * on the modifiable text lexical update.
 			 */
@@ -5161,7 +5161,7 @@ class WP_HTML_Tag_Processor {
 	 * `xml-stylesheet` targets, and targets with characters outside
 	 * an ASCII-representable subset, are turned into bogus comments.
 	 *
-	 * @see https://html.spec.whatwg.org/multipage/parsing.html#processing-instruction-open-state
+	 * @link https://html.spec.whatwg.org/multipage/parsing.html#processing-instruction-open-state
 	 *
 	 * @since 7.1.0
 	 *
