@@ -371,6 +371,175 @@ class Tests_Admin_WpListTable extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that `WP_List_Table::pagination()` uses the configured admin URL.
+	 *
+	 * @ticket 58161
+	 *
+	 * @dataProvider data_admin_url_paths
+	 *
+	 * @covers WP_List_Table::pagination
+	 *
+	 * @param string      $request_uri   Current request URI.
+	 * @param string|null $admin_url     Admin URL.
+	 * @param string      $expected_path Expected path relative to the admin URL.
+	 */
+	public function test_pagination_uses_admin_url_when_http_host_differs_from_site_url( $request_uri, $admin_url, $expected_path ) {
+		$server_orig  = $_SERVER;
+		$request_orig = $_REQUEST;
+		$siteurl_orig = get_option( 'siteurl' );
+		$filter       = null;
+
+		if ( null !== $admin_url ) {
+			$filter = static function ( $_url, $path ) use ( $admin_url ) {
+				return $admin_url . ltrim( $path, '/' );
+			};
+
+			add_filter( 'self_admin_url', $filter, 10, 2 );
+		}
+
+		try {
+			update_option( 'siteurl', 'http://example.org' );
+			$_SERVER['HTTP_HOST']   = '127.0.0.1:8090';
+			$_SERVER['REQUEST_URI'] = sprintf( $request_uri, 1 );
+			$_REQUEST               = array( 'paged' => 1 );
+
+			$set_pagination_args = new ReflectionMethod( $this->list_table, 'set_pagination_args' );
+			$pagination          = new ReflectionMethod( $this->list_table, 'pagination' );
+
+			if ( PHP_VERSION_ID < 80100 ) {
+				$set_pagination_args->setAccessible( true );
+				$pagination->setAccessible( true );
+			}
+
+			$set_pagination_args->invoke(
+				$this->list_table,
+				array(
+					'total_items' => 30,
+					'per_page'    => 10,
+				)
+			);
+
+			ob_start();
+			$pagination->invoke( $this->list_table, 'top' );
+			$actual = ob_get_clean();
+
+			$expected_url = null === $admin_url ? admin_url( $expected_path ) : $admin_url . $expected_path;
+			$expected     = esc_url( add_query_arg( 'paged', 2, $expected_url ) );
+
+			$this->assertStringContainsString( "href='$expected'", $actual );
+			$this->assertStringNotContainsString( '127.0.0.1:8090', $actual );
+		} finally {
+			if ( null !== $filter ) {
+				remove_filter( 'self_admin_url', $filter, 10 );
+			}
+
+			$_SERVER  = $server_orig;
+			$_REQUEST = $request_orig;
+			update_option( 'siteurl', $siteurl_orig );
+		}
+	}
+
+	/**
+	 * Tests that `WP_List_Table::print_column_headers()` uses the configured admin URL.
+	 *
+	 * @ticket 58161
+	 *
+	 * @dataProvider data_admin_url_paths
+	 *
+	 * @covers WP_List_Table::print_column_headers
+	 *
+	 * @param string      $request_uri   Current request URI.
+	 * @param string|null $admin_url     Admin URL.
+	 * @param string      $expected_path Expected path relative to the admin URL.
+	 */
+	public function test_print_column_headers_uses_admin_url_when_http_host_differs_from_site_url( $request_uri, $admin_url, $expected_path ) {
+		$server_orig  = $_SERVER;
+		$get_orig     = $_GET;
+		$siteurl_orig = get_option( 'siteurl' );
+		$filter       = null;
+
+		if ( null !== $admin_url ) {
+			$filter = static function ( $_url, $path ) use ( $admin_url ) {
+				return $admin_url . ltrim( $path, '/' );
+			};
+
+			add_filter( 'self_admin_url', $filter, 10, 2 );
+		}
+
+		try {
+			update_option( 'siteurl', 'http://example.org' );
+			$_SERVER['HTTP_HOST']   = '127.0.0.1:8090';
+			$_SERVER['REQUEST_URI'] = sprintf( $request_uri, 2 );
+			$_GET                   = array();
+
+			$column_headers = new ReflectionProperty( $this->list_table, '_column_headers' );
+
+			if ( PHP_VERSION_ID < 80100 ) {
+				$column_headers->setAccessible( true );
+			}
+
+			$column_headers->setValue(
+				$this->list_table,
+				array(
+					array( 'title' => 'Title' ),
+					array(),
+					array( 'title' => array( 'title', false ) ),
+					'title',
+				)
+			);
+
+			$actual = get_echo( array( $this->list_table, 'print_column_headers' ) );
+
+			$expected_url = null === $admin_url ? admin_url( $expected_path ) : $admin_url . $expected_path;
+			$expected     = esc_url(
+				add_query_arg(
+					array(
+						'orderby' => 'title',
+						'order'   => 'asc',
+					),
+					$expected_url
+				)
+			);
+
+			$this->assertStringContainsString( 'href="' . $expected . '"', $actual );
+			$this->assertStringNotContainsString( '127.0.0.1:8090', $actual );
+		} finally {
+			if ( null !== $filter ) {
+				remove_filter( 'self_admin_url', $filter, 10 );
+			}
+
+			$_SERVER = $server_orig;
+			$_GET    = $get_orig;
+			update_option( 'siteurl', $siteurl_orig );
+		}
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public function data_admin_url_paths() {
+		return array(
+			'site admin'    => array(
+				'request_uri'   => '/wp-admin/edit.php?post_type=post&paged=%d',
+				'admin_url'     => null,
+				'expected_path' => 'edit.php?post_type=post',
+			),
+			'network admin' => array(
+				'request_uri'   => '/wp-admin/network/sites.php?paged=%d',
+				'admin_url'     => 'http://example.org/wp-admin/network/',
+				'expected_path' => 'sites.php',
+			),
+			'user admin'    => array(
+				'request_uri'   => '/wp-admin/user/profile.php?paged=%d',
+				'admin_url'     => 'http://example.org/wp-admin/user/',
+				'expected_path' => 'profile.php',
+			),
+		);
+	}
+
+	/**
 	 * @dataProvider data_compat_fields
 	 * @ticket 58896
 	 *
