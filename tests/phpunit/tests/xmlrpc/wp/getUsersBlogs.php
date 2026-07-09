@@ -33,10 +33,10 @@ class Tests_XMLRPC_wp_getUsersBlogs extends WP_XMLRPC_UnitTestCase {
 	 */
 	public function data_non_string_credentials() {
 		return array(
-			'an array as password'              => array( 'subscriber', array() ),
-			'an array as username'              => array( array(), 'subscriber' ),
-			'arrays as username and password'   => array( array(), array() ),
-			'an integer as password'            => array( 'subscriber', 12345 ),
+			'an array as password'            => array( 'subscriber', array() ),
+			'an array as username'            => array( array(), 'subscriber' ),
+			'arrays as username and password' => array( array(), array() ),
+			'an integer as password'          => array( 'subscriber', 12345 ),
 		);
 	}
 }
