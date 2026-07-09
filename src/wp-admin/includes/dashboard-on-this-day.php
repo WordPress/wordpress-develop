@@ -8,23 +8,29 @@
  */
 
 /**
- * Registers the On This Day dashboard widget when matching posts exist.
+ * Registers the On This Day dashboard widget.
  *
  * Designed to be the single entry point called from the dashboard setup
- * routine.
+ * routine. The widget is always registered so that it remains available in
+ * Screen Options and keeps its user-customized position. When there are no
+ * matching posts, a marker class is added to the title so the widget can be
+ * hidden with CSS.
  *
  * @since 7.1.0
  */
 function wp_dashboard_on_this_day_setup() {
-	$posts = wp_dashboard_on_this_day_get_posts();
-
-	if ( empty( $posts ) ) {
-		return;
+	$title_class = 'wp-on-this-day-title';
+	if ( empty( wp_dashboard_on_this_day_get_posts() ) ) {
+		$title_class .= ' wp-on-this-day-title-empty';
 	}
 
 	wp_add_dashboard_widget(
 		'wp_dashboard_on_this_day',
-		__( 'On This Day' ),
+		sprintf(
+			'<span class="%s">%s</span>',
+			esc_attr( $title_class ),
+			esc_html__( 'On This Day' )
+		),
 		'wp_dashboard_on_this_day'
 	);
 }
@@ -40,6 +46,9 @@ function wp_dashboard_on_this_day() {
 	$posts = wp_dashboard_on_this_day_get_posts();
 
 	if ( empty( $posts ) ) {
+		// Placeholder shown when a user reveals the hidden widget via Screen
+		// Options on a day with no matching posts.
+		echo '<p>' . esc_html__( 'No posts were published on this day in previous years.' ) . '</p>';
 		return;
 	}
 
@@ -55,23 +64,33 @@ function wp_dashboard_on_this_day() {
 
 		$posts_by_year[ $year ][] = $post;
 	}
+
+	/* translators: Date format for the On This Day widget date, without year. See https://www.php.net/manual/datetime.format.php */
+	$date = '<strong>' . esc_html( wp_date( _x( 'F jS', 'on this day date format' ) ) ) . '</strong>';
 	?>
 	<div class="wp-on-this-day-widget">
 		<p>
 			<?php
-			printf(
-				esc_html(
-					/* translators: 1: Number of posts, 2: Date, without year. */
-					_n(
-						'%1$s post has been published on %2$s:',
-						'%1$s posts have been published on %2$s:',
-						$post_count
-					)
-				),
-				esc_html( number_format_i18n( $post_count ) ),
-				/* translators: Date format for the On This Day widget date, without year. See https://www.php.net/manual/datetime.format.php */
-				'<strong>' . esc_html( wp_date( _x( 'F jS', 'on this day date format' ) ) ) . '</strong>'
-			);
+			if ( 1 === $post_count ) {
+				printf(
+					/* translators: %s: Date, without year. */
+					esc_html__( 'One post has been published on %s:' ),
+					$date // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Date is escaped above.
+				);
+			} else {
+				printf(
+					esc_html(
+						/* translators: 1: Number of posts, 2: Date, without year. */
+						_n(
+							'%1$s post has been published on %2$s:',
+							'%1$s posts have been published on %2$s:',
+							$post_count
+						)
+					),
+					esc_html( number_format_i18n( $post_count ) ),
+					$date // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Date is escaped above.
+				);
+			}
 			?>
 		</p>
 		<ul>
@@ -147,6 +166,7 @@ function wp_dashboard_on_this_day_get_posts() {
 		'order'                  => 'DESC',
 		'no_found_rows'          => true,
 		'update_post_term_cache' => false,
+		'update_post_meta_cache' => false,
 		'date_query'             => $date_query,
 	);
 

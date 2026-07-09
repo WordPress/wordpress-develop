@@ -1019,6 +1019,12 @@ body #dashboard-widgets .postbox form .submit {
 
 /* On This Day dashboard widget */
 
+/* Hide the widget when there are no matching posts, while keeping it registered
+   so it stays available in Screen Options and preserves its user position. */
+#wp_dashboard_on_this_day:has(.wp-on-this-day-title-empty) {
+	display: none;
+}
+
 #wp_dashboard_on_this_day h3 {
 	font-weight: 600;
 }

@@ -94,7 +94,7 @@ class Tests_Admin_wpOnThisDay extends WP_UnitTestCase {
 	/**
 	 * @covers ::wp_dashboard_on_this_day_setup
 	 */
-	public function test_setup_does_not_add_dashboard_widget_without_matching_posts() {
+	public function test_setup_registers_hidden_widget_without_matching_posts() {
 		$this->set_up_dashboard_screen();
 
 		$user_id = self::factory()->user->create( array( 'role' => 'author' ) );
@@ -104,7 +104,11 @@ class Tests_Admin_wpOnThisDay extends WP_UnitTestCase {
 
 		$dashboard_widgets = $GLOBALS['wp_meta_boxes']['dashboard']['normal']['core'] ?? array();
 
-		$this->assertArrayNotHasKey( 'wp_dashboard_on_this_day', $dashboard_widgets );
+		$this->assertArrayHasKey( 'wp_dashboard_on_this_day', $dashboard_widgets );
+		$this->assertStringContainsString(
+			'wp-on-this-day-title-empty',
+			$dashboard_widgets['wp_dashboard_on_this_day']['title']
+		);
 	}
 
 	/**
@@ -122,7 +126,14 @@ class Tests_Admin_wpOnThisDay extends WP_UnitTestCase {
 		$dashboard_widgets = $GLOBALS['wp_meta_boxes']['dashboard']['normal']['core'] ?? array();
 
 		$this->assertArrayHasKey( 'wp_dashboard_on_this_day', $dashboard_widgets );
-		$this->assertSame( 'On This Day', $dashboard_widgets['wp_dashboard_on_this_day']['title'] );
+		$this->assertSame(
+			'<span class="wp-on-this-day-title">On This Day</span>',
+			$dashboard_widgets['wp_dashboard_on_this_day']['title']
+		);
+		$this->assertStringNotContainsString(
+			'wp-on-this-day-title-empty',
+			$dashboard_widgets['wp_dashboard_on_this_day']['title']
+		);
 	}
 
 	/**
@@ -198,7 +209,7 @@ class Tests_Admin_wpOnThisDay extends WP_UnitTestCase {
 	/**
 	 * @covers ::wp_dashboard_on_this_day
 	 */
-	public function test_widget_outputs_nothing_without_matching_posts() {
+	public function test_widget_outputs_placeholder_without_matching_posts() {
 		$user_id = self::factory()->user->create( array( 'role' => 'author' ) );
 		wp_set_current_user( $user_id );
 
@@ -206,7 +217,8 @@ class Tests_Admin_wpOnThisDay extends WP_UnitTestCase {
 		wp_dashboard_on_this_day();
 		$output = ob_get_clean();
 
-		$this->assertSame( '', $output );
+		$this->assertStringContainsString( 'No posts were published on this day in previous years.', $output );
+		$this->assertStringNotContainsString( '<ul>', $output );
 	}
 
 	/**
@@ -221,7 +233,23 @@ class Tests_Admin_wpOnThisDay extends WP_UnitTestCase {
 		wp_dashboard_on_this_day();
 		$output = ob_get_clean();
 
-		$this->assertSame( '', $output );
+		$this->assertStringNotContainsString( 'Almost a memory', $output );
+		$this->assertStringContainsString( 'No posts were published on this day in previous years.', $output );
+	}
+
+	/**
+	 * @covers ::wp_dashboard_on_this_day
+	 */
+	public function test_widget_uses_singular_copy_for_a_single_post() {
+		$user_id = self::factory()->user->create( array( 'role' => 'author' ) );
+		wp_set_current_user( $user_id );
+		$this->create_matching_post( $user_id );
+
+		ob_start();
+		wp_dashboard_on_this_day();
+		$output = ob_get_clean();
+
+		$this->assertStringContainsString( 'One post has been published on <strong>' . wp_date( 'F jS' ) . '</strong>:', $output );
 	}
 
 	/**
