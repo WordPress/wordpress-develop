@@ -3949,6 +3949,11 @@ class WP_HTML_Tag_Processor {
 		) {
 			// Check if the text could close the comment.
 			if ( 1 === preg_match( '/--!?>/', $plaintext_content ) ) {
+				_doing_it_wrong(
+					__METHOD__,
+					__( 'Comment text cannot contain a comment closer.' ),
+					'7.1.0'
+				);
 				return false;
 			}
 
@@ -3968,6 +3973,11 @@ class WP_HTML_Tag_Processor {
 			 * raw syntax: data containing one cannot be represented.
 			 */
 			if ( str_contains( $plaintext_content, '>' ) ) {
+				_doing_it_wrong(
+					__METHOD__,
+					__( 'Processing instruction data cannot contain ">".' ),
+					'7.1.0'
+				);
 				return false;
 			}
 
@@ -3976,6 +3986,11 @@ class WP_HTML_Tag_Processor {
 			 * parsing: data with leading whitespace cannot be represented.
 			 */
 			if ( 0 !== strspn( $plaintext_content, " \t\f\r\n" ) ) {
+				_doing_it_wrong(
+					__METHOD__,
+					__( 'Processing instruction data cannot start with whitespace. Try ltrim( $data, " \t\f\r\n" ).' ),
+					'7.1.0'
+				);
 				return false;
 			}
 
@@ -4023,6 +4038,11 @@ class WP_HTML_Tag_Processor {
 			self::STATE_MATCHED_TAG !== $this->parser_state ||
 			'html' !== $this->get_namespace()
 		) {
+			_doing_it_wrong(
+				__METHOD__,
+				__( 'This token does not support setting modifiable text.' ),
+				'7.1.0'
+			);
 			return false;
 		}
 
@@ -4056,6 +4076,11 @@ class WP_HTML_Tag_Processor {
 					false !== stripos( $plaintext_content, '<script' ) ||
 					false !== stripos( $plaintext_content, '</script' )
 				) {
+					_doing_it_wrong(
+						__METHOD__,
+						__( 'SCRIPT text with an unrecognized content type cannot contain a SCRIPT tag. Apply the escaping appropriate for the content type.' ),
+						'7.1.0'
+					);
 					return false;
 				}
 				$this->lexical_updates['modifiable text'] = new WP_HTML_Text_Replacement(
@@ -4120,6 +4145,11 @@ class WP_HTML_Tag_Processor {
 				return true;
 		}
 
+		_doing_it_wrong(
+			__METHOD__,
+			__( 'Only the SCRIPT, STYLE, TEXTAREA, and TITLE tags support setting modifiable text.' ),
+			'7.1.0'
+		);
 		return false;
 	}
 

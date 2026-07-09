@@ -349,6 +349,8 @@ HTML
 	 *
 	 * @dataProvider data_tokens_not_supporting_modifiable_text_updates
 	 *
+	 * @expectedIncorrectUsage WP_HTML_Tag_Processor::set_modifiable_text
+	 *
 	 * @param string $html             Contains HTML with a token not supporting modifiable text updates.
 	 * @param int    $advance_n_tokens Count of times to run `next_token()` before reaching target node.
 	 */
@@ -583,6 +585,8 @@ HTML
 	 *
 	 * @dataProvider data_unallowed_modifiable_text_updates
 	 *
+	 * @expectedIncorrectUsage WP_HTML_Tag_Processor::set_modifiable_text
+	 *
 	 * @param string $html_with_nonempty_modifiable_text Will be used to find the test element.
 	 * @param string $invalid_update                     Update containing possibly-compromising text.
 	 */
@@ -807,6 +811,8 @@ HTML;
 	 *
 	 * @ticket 64751
 	 * @dataProvider data_set_modifiable_fails_non_atomic_tags
+	 *
+	 * @expectedIncorrectUsage WP_HTML_Tag_Processor::set_modifiable_text
 	 */
 	public function test_set_modifiable_fails_non_atomic_tags(
 		string $html,
