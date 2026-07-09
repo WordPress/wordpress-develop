@@ -2863,6 +2863,22 @@ class WP_Site_Health {
 	 * @since 5.6.0 Added support for `has_rest` and `permissions`.
 	 *
 	 * @return array The list of tests to run.
+	 *
+	 * @phpstan-return array{
+	 *     direct: array<string, array{
+	 *         label: string,
+	 *         test: callable|string,
+	 *         skip_cron?: bool,
+	 *     }>,
+	 *     async: array<string, array{
+	 *         label: string,
+	 *         test: string,
+	 *         has_rest?: bool,
+	 *         skip_cron?: bool,
+	 *         async_direct_test?: callable,
+	 *         headers?: array<string, string>,
+	 *     }>,
+	 * }
 	 */
 	public static function get_tests() {
 		$tests = array(
