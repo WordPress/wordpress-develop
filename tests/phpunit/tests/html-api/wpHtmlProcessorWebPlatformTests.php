@@ -6,11 +6,11 @@
  * This test suite runs a set of tests on the HTML API using a third-party suite of test fixtures.
  * A third-party test suite allows the HTML API's behavior to be compared against an external
  * standard. Without a third-party, there is risk of oversight or misinterpretation of the standard
- * being implemented in application code and in tests. html5lib-tests is used by other projects like
- * browsers or other HTML parsers for the same purpose of validating behavior against an
- * external reference.
+ * being implemented in application code and in tests. The Web Platform Tests tree-construction
+ * fixtures are used by other projects like browsers or other HTML parsers for the same purpose
+ * of validating behavior against an external reference.
  *
- * See the README file at DIR_TESTDATA / html5lib-tests for details on the third-party suite.
+ * See the README file at DIR_TESTDATA / web-platform-tests for details on the third-party suite.
  *
  * @package WordPress
  * @subpackage HTML-API
@@ -18,35 +18,67 @@
  * @since 6.6.0
  *
  * @group html-api
- * @group html-api-html5lib-tests
+ * @group html-api-web-platform-tests
  */
-class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
+class Tests_HtmlApi_WebPlatformTests extends WP_UnitTestCase {
 	const TREE_INDENT = '  ';
 
 	/**
 	 * Skip specific tests that may not be supported or have known issues.
 	 */
 	const SKIP_TESTS = array(
-		'noscript01/line0014' => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
-		'tests14/line0022'    => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
-		'tests14/line0055'    => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
-		'tests19/line0488'    => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
-		'tests19/line0500'    => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
-		'tests19/line1079'    => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
-		'tests2/line0207'     => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
-		'tests2/line0686'     => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
-		'tests2/line0697'     => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
-		'tests2/line0709'     => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
-		'webkit01/line0231'   => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
+		'noscript01/line0014'       => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
+		'tests14/line0022'          => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
+		'tests14/line0055'          => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
+		'tests19/line0488'          => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
+		'tests19/line0500'          => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
+		'tests19/line1079'          => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
+		'tests2/line0207'           => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
+		'tests2/line0686'           => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
+		'tests2/line0697'           => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
+		'tests2/line0709'           => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
+		'tests1/line0601'           => 'Unimplemented: This parser treats processing instructions as comments.',
+		'tests1/line0640'           => 'Unimplemented: This parser treats processing instructions as comments.',
+		'html5test-com/line0129'    => 'Unimplemented: This parser treats processing instructions as comments.',
+		'menuitem-element/line0161' => 'Unimplemented: This parser does not support customizable SELECT element content.',
+		'tests9/line0048'           => 'Unimplemented: This parser does not support customizable SELECT element content.',
+		'tests9/line0059'           => 'Unimplemented: This parser does not support customizable SELECT element content.',
+		'tests9/line0299'           => 'Unimplemented: This parser does not support customizable SELECT element content.',
+		'tests10/line0035'          => 'Unimplemented: This parser does not support customizable SELECT element content.',
+		'tests10/line0046'          => 'Unimplemented: This parser does not support customizable SELECT element content.',
+		'tests10/line0259'          => 'Unimplemented: This parser does not support customizable SELECT element content.',
+		'tests18/line0227'          => 'Unimplemented: This parser does not support customizable SELECT element content.',
+		'webkit01/line0231'         => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
+		'webkit02/line0557'         => 'Unimplemented: This parser does not support customizable SELECT element content.',
+		'webkit02/line0590'         => 'Unimplemented: This parser does not support customizable SELECT element content.',
+		'webkit02/line0611'         => 'Unimplemented: This parser does not support customizable SELECT element content.',
+		'webkit02/line0624'         => 'Unimplemented: This parser does not support customizable SELECT element content.',
+		'webkit02/line0637'         => 'Unimplemented: This parser does not support customizable SELECT element content.',
+		'webkit02/line0652'         => 'Unimplemented: This parser does not support customizable SELECT element content.',
+		'webkit02/line0666'         => 'Unimplemented: This parser does not support customizable SELECT element content.',
+		'webkit02/line0692'         => 'Unimplemented: This parser does not support customizable SELECT element content.',
+		'webkit02/line0706'         => 'Unimplemented: This parser does not support customizable SELECT element content.',
+		'webkit02/line0732'         => 'Unimplemented: This parser does not support customizable SELECT element content.',
+		'webkit02/line0748'         => 'Unimplemented: This parser does not support customizable SELECT element content.',
+
+		'tests1/line0602'           => 'Unimplemented: Updated Processing Instruction parsing.',
+		'tests1/line0641'           => 'Unimplemented: Updated Processing Instruction parsing.',
+	);
+
+	/**
+	 * Skip test files that exercise parser behavior unsupported by the HTML API.
+	 */
+	const SKIP_TEST_PREFIXES = array(
+		'processing-instructions/' => 'Unimplemented: Updated Processing Instruction parsing.',
 	);
 
 	/**
 	 * Verify the parsing results of the HTML Processor against the
-	 * test cases in the Html5lib tests project.
+	 * test cases in the Web Platform Tests tree-construction suite.
 	 *
 	 * @ticket 60227
 	 *
-	 * @dataProvider data_external_html5lib_tests
+	 * @dataProvider data_external_web_platform_tests
 	 *
 	 * @param string|null $fragment_context Context element in which to parse HTML, such as BODY or SVG.
 	 * @param string      $html             Given test HTML.
@@ -98,12 +130,12 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 	/**
 	 * Data provider.
 	 *
-	 * Tests from https://github.com/html5lib/html5lib-tests
+	 * Tests from https://github.com/web-platform-tests/wpt/tree/master/html/syntax/parsing/resources
 	 *
 	 * @return array[]
 	 */
-	public function data_external_html5lib_tests() {
-		$test_dir = DIR_TESTDATA . '/html5lib-tests/tree-construction/';
+	public function data_external_web_platform_tests() {
+		$test_dir = DIR_TESTDATA . '/web-platform-tests/html_syntax_parsing_resources/';
 
 		$handle = opendir( $test_dir );
 		while ( false !== ( $entry = readdir( $handle ) ) ) {
@@ -111,7 +143,7 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 				continue;
 			}
 
-			foreach ( self::parse_html5_dat_testfile( $test_dir . $entry ) as $k => $test ) {
+			foreach ( self::parse_web_platform_test_file( $test_dir . $entry ) as $k => $test ) {
 				// strip .dat extension from filename
 				$test_suite = substr( $entry, 0, -4 );
 				$line       = str_pad( strval( $test[0] ), 4, '0', STR_PAD_LEFT );
@@ -146,11 +178,17 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 			return true;
 		}
 
+		foreach ( array_keys( self::SKIP_TEST_PREFIXES ) as $test_prefix ) {
+			if ( str_starts_with( $test_name, $test_prefix ) ) {
+				return true;
+			}
+		}
+
 		return false;
 	}
 
 	/**
-	 * Generates the tree-like structure represented in the Html5lib tests.
+	 * Generates the tree-like structure represented in the Web Platform Tests fixtures.
 	 *
 	 * @param string|null $fragment_context Context element in which to parse HTML, such as BODY or SVG.
 	 * @param string      $html             Given test HTML.
@@ -228,7 +266,7 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 						}
 
 						/*
-						 * Sorts attributes to match html5lib sort order.
+						 * Sorts attributes to match Web Platform Tests tree-construction order.
 						 *
 						 *  - First comes normal HTML attributes.
 						 *  - Then come adjusted foreign attributes; these have spaces in their names.
@@ -338,7 +376,7 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Convert a given Html5lib test file into a series of test cases.
+	 * Convert a given Web Platform Tests fixture file into a series of test cases.
 	 *
 	 * @param string $filename Path to `.dat` file with test cases.
 	 *
@@ -349,7 +387,7 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 	 *     string,           // DOM structure it represents.
 	 * }> Test cases.
 	 */
-	public static function parse_html5_dat_testfile( $filename ) {
+	public static function parse_web_platform_test_file( $filename ) {
 		$handle = fopen( $filename, 'r', false );
 
 		/**
