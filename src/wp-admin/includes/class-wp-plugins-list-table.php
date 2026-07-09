@@ -27,7 +27,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 	/**
 	 * Constructor.
 	 *
-	 * @since 3.1.0
+	 * @since 3.2.0
 	 *
 	 * @see WP_List_Table::__construct() for more information on default arguments.
 	 *
@@ -63,18 +63,22 @@ class WP_Plugins_List_Table extends WP_List_Table {
 	}
 
 	/**
-	 * Gets a list of CSS classes for the WP_List_Table table tag.
+	 * Gets the CSS classes for the list table element.
 	 *
-	 * @return array<string, string> Array of CSS classes for the table tag.
+	 * @since 3.1.0
+	 *
+	 * @return string[] Array of CSS classes for the table tag.
 	 */
 	protected function get_table_classes() {
 		return array( 'widefat', $this->_args['plural'] );
 	}
 
 	/**
-	 * Checks the current user's permissions.
+	 * Checks whether the current user can activate plugins for this screen.
 	 *
-	 * @return bool True if the user can activate plugins, false otherwise.
+	 * @since 3.1.0
+	 *
+	 * @return bool Whether the current user can activate plugins.
 	 */
 	public function ajax_user_can() {
 		return current_user_can( 'activate_plugins' );
@@ -83,13 +87,15 @@ class WP_Plugins_List_Table extends WP_List_Table {
 	/**
 	 * Prepares the list of items for displaying.
 	 *
-	 * @global string                              $status  The current plugin status filter.
-	 * @global array<string, array<string, mixed>> $plugins Array of plugins grouped by status.
-	 * @global array<string, int>                  $totals  Array of plugin counts by status.
-	 * @global int                                 $page    The current page number.
-	 * @global string                              $orderby The field to order the plugins by.
-	 * @global string                              $order   The sort order (ASC or DESC).
-	 * @global string                              $s       URL encoded search term.
+	 * @since 3.1.0
+	 *
+	 * @global string                                             $status  Current plugin status filter slug.
+	 * @global array<string, array<string, array<string, mixed>>> $plugins Array of plugin data arrays grouped by status.
+	 * @global array<string, int>                                 $totals  Count of plugins for each status group.
+	 * @global int                                                $page    Current page number.
+	 * @global string                                             $orderby Column name to sort by.
+	 * @global string                                             $order   Sort direction, 'ASC' or 'DESC'.
+	 * @global string                                             $s       URL-encoded search term.
 	 */
 	public function prepare_items() {
 		global $status, $plugins, $totals, $page, $orderby, $order, $s;
@@ -370,12 +376,14 @@ class WP_Plugins_List_Table extends WP_List_Table {
 	}
 
 	/**
-	 * Callback to search within the list of plugins.
+	 * Callback to filter plugins by a search term.
+	 *
+	 * @since 3.1.0
 	 *
 	 * @global string $s URL encoded search term.
 	 *
-	 * @param array<string, string> $plugin Plugin data.
-	 * @return bool True if the search term matches the plugin data, false otherwise.
+	 * @param array<string, mixed> $plugin Plugin data array to check against the search term.
+	 * @return bool True if the plugin matches the search term, false otherwise.
 	 */
 	public function _search_callback( $plugin ) {
 		global $s;
@@ -390,13 +398,16 @@ class WP_Plugins_List_Table extends WP_List_Table {
 	}
 
 	/**
-	 * Callback to sort the list of plugins.
+	 * Callback to sort plugins by a given column.
 	 *
-	 * @global string $orderby The field to order the plugins by.
-	 * @global string $order   The sort order (ASC or DESC).
-	 * @param array<string, mixed> $plugin_a The first plugin parameter.
-	 * @param array<string, mixed> $plugin_b The second plugin parameter.
-	 * @return int A sort weight (-1, 0, or 1).
+	 * @since 3.1.0
+	 *
+	 * @global string $orderby The column name to sort by.
+	 * @global string $order   The sort direction ('ASC' or 'DESC').
+	 *
+	 * @param array<string, mixed> $plugin_a First plugin data array to compare.
+	 * @param array<string, mixed> $plugin_b Second plugin data array to compare.
+	 * @return int Negative if $plugin_a sorts before $plugin_b, positive if after, 0 if equal.
 	 */
 	public function _order_callback( $plugin_a, $plugin_b ) {
 		global $orderby, $order;
@@ -416,9 +427,11 @@ class WP_Plugins_List_Table extends WP_List_Table {
 	}
 
 	/**
-	 * Outputs the message to be displayed when there are no items.
+	 * Message to be displayed when there are no items.
 	 *
-	 * @global array<string, array<string, mixed>> $plugins Array of plugins grouped by status.
+	 * @since 3.1.0
+	 *
+	 * @global array<string, array<string, array<string, mixed>>> $plugins Array of plugin data arrays grouped by status.
 	 */
 	public function no_items() {
 		global $plugins;
@@ -471,11 +484,13 @@ class WP_Plugins_List_Table extends WP_List_Table {
 	}
 
 	/**
-	 * Gets a list of columns.
+	 * Gets the list of columns for this list table.
 	 *
-	 * @global string $status The current plugin status filter.
+	 * @since 3.1.0
 	 *
-	 * @return array<string, string> Array of column titles keyed by their column name.
+	 * @global string $status Current plugin status filter slug.
+	 *
+	 * @return array<string, string> An associative array of column titles keyed by their column name.
 	 */
 	public function get_columns() {
 		global $status;
@@ -494,20 +509,25 @@ class WP_Plugins_List_Table extends WP_List_Table {
 	}
 
 	/**
-	 * Gets a list of sortable columns.
+	 * Gets the list of sortable columns for this list table.
 	 *
-	 * @return array<string, string|array<string, bool>> Array of sortable columns.
+	 * @since 3.1.0
+	 *
+	 * @return array<string, array<int, string|bool>|string> An associative array of sortable columns.
 	 */
 	protected function get_sortable_columns() {
 		return array();
 	}
 
 	/**
-	 * Gets the list of views available on this table.
+	 * Gets an associative array of status filter links for the views area.
 	 *
-	 * @global array<string, int> $totals Array of plugin counts by status.
-	 * @global string             $status The current plugin status filter.
-	 * @return array<string, string> Array of HTML links to views on this table.
+	 * @since 3.1.0
+	 *
+	 * @global array<string, int> $totals Count of plugins for each status group.
+	 * @global string             $status Current plugin status filter slug.
+	 *
+	 * @return array<string, string> An associative array of views.
 	 */
 	protected function get_views() {
 		global $totals, $status;
@@ -634,10 +654,13 @@ class WP_Plugins_List_Table extends WP_List_Table {
 	}
 
 	/**
-	 * Gets the list of bulk actions to display.
+	 * Gets the available bulk actions for the plugins list table.
 	 *
-	 * @global string $status The current plugin status filter.
-	 * @return array<string, string> Array of bulk action labels keyed by their action.
+	 * @since 3.1.0
+	 *
+	 * @global string $status Current plugin status filter slug.
+	 *
+	 * @return array<string, string> An associative array of bulk actions.
 	 */
 	protected function get_bulk_actions() {
 		global $status;
@@ -677,8 +700,12 @@ class WP_Plugins_List_Table extends WP_List_Table {
 	/**
 	 * Displays the bulk actions dropdown.
 	 *
-	 * @global string $status The current plugin status filter.
-	 * @param string $which  The location of the bulk actions: 'top' or 'bottom'.
+	 * @since 3.1.0
+	 *
+	 * @global string $status Current plugin status filter slug.
+	 *
+	 * @param string $which The location of the bulk actions: Either 'top' or 'bottom'.
+	 *                      This is designated as optional for backward compatibility.
 	 */
 	public function bulk_actions( $which = '' ) {
 		global $status;
@@ -691,10 +718,13 @@ class WP_Plugins_List_Table extends WP_List_Table {
 	}
 
 	/**
-	 * Outputs extra controls to be displayed between bulk actions and pagination.
+	 * Displays extra table navigation for the plugins list table.
 	 *
-	 * @global string $status The current plugin status filter.
-	 * @param string $which  The location of the extra table nav markup: 'top' or 'bottom'.
+	 * @since 3.1.0
+	 *
+	 * @global string $status Current plugin status filter slug.
+	 *
+	 * @param string $which The location: 'top' or 'bottom'.
 	 */
 	protected function extra_tablenav( $which ) {
 		global $status;
@@ -726,7 +756,11 @@ class WP_Plugins_List_Table extends WP_List_Table {
 	/**
 	 * Gets the current action selected from the bulk actions dropdown.
 	 *
-	 * @return string|false The action name or false if no action was selected.
+	 * Also handles the 'clear-recent-list' action from the Recently Active plugins screen.
+	 *
+	 * @since 3.1.0
+	 *
+	 * @return string|false The action name. False if no action was selected.
 	 */
 	public function current_action() {
 		if ( isset( $_POST['clear-recent-list'] ) ) {
@@ -741,7 +775,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 	 *
 	 * @since 3.1.0
 	 *
-	 * @global string $status The current plugin status filter.
+	 * @global string $status Current plugin status filter slug.
 	 */
 	public function display_rows() {
 		global $status;
@@ -756,14 +790,17 @@ class WP_Plugins_List_Table extends WP_List_Table {
 	}
 
 	/**
-	 * Generates a single row for the list table.
+	 * Generates the markup for a single plugin row.
 	 *
-	 * @global string             $status The current plugin status filter.
-	 * @global int                $page   The current page number.
-	 * @global string             $s      URL encoded search term.
-	 * @global array<string, int> $totals Array of plugin counts by status.
+	 * @since 3.1.0
 	 *
-	 * @param array<string, mixed> $item Array containing plugin file and plugin data.
+	 * @global string             $status Current plugin status filter slug.
+	 * @global int                $page   Current page number.
+	 * @global string             $s      URL-encoded search term.
+	 * @global array<string, int> $totals Count of plugins for each status group.
+	 *
+	 * @param array $item The current item. An array containing the plugin file path and plugin data.
+	 * @phpstan-param array{string, array<string, mixed>} $item
 	 */
 	public function single_row( $item ) {
 		global $status, $page, $s, $totals;
