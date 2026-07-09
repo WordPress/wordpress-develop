@@ -2605,6 +2605,11 @@ body.iframe {
 	display: block;
 }
 
+.delete-and-reassign-users-form legend {
+	margin: 1em 0;
+	line-height: 1.5;
+}
+
 .importers {
 	font-size: 16px;
 	width: auto;
