@@ -13,7 +13,7 @@ class Tests_Knowledge_Types extends WP_UnitTestCase {
 	 * @ticket 65476
 	 * @covers ::wp_knowledge_types
 	 */
-	public function test_default_types_are_registered() {
+	public function test_default_types_are_registered(): void {
 		$types = wp_knowledge_types();
 
 		$this->assertArrayHasKey( 'guideline', $types );
@@ -29,8 +29,8 @@ class Tests_Knowledge_Types extends WP_UnitTestCase {
 	 * @ticket 65476
 	 * @covers ::wp_knowledge_types
 	 */
-	public function test_types_are_filterable() {
-		$callback = static function ( $types ) {
+	public function test_types_are_filterable(): void {
+		$callback = static function ( array $types ): array {
 			$types['skill'] = array( 'title' => 'Skill' );
 			return $types;
 		};
@@ -49,13 +49,14 @@ class Tests_Knowledge_Types extends WP_UnitTestCase {
 	 * @ticket 65476
 	 * @covers ::wp_knowledge_ensure_default_type_term
 	 */
-	public function test_default_type_term_is_assigned_on_save() {
+	public function test_default_type_term_is_assigned_on_save(): void {
 		$post_id = self::factory()->post->create(
 			array(
 				'post_type'   => 'wp_knowledge',
 				'post_status' => 'private',
 			)
 		);
+		$this->assertIsInt( $post_id );
 
 		$terms = wp_get_object_terms( $post_id, 'wp_knowledge_type', array( 'fields' => 'slugs' ) );
 
@@ -68,16 +69,18 @@ class Tests_Knowledge_Types extends WP_UnitTestCase {
 	 * @ticket 65476
 	 * @covers ::wp_knowledge_ensure_default_type_term
 	 */
-	public function test_existing_type_term_is_preserved_on_save() {
+	public function test_existing_type_term_is_preserved_on_save(): void {
 		$post_id = self::factory()->post->create(
 			array(
 				'post_type'   => 'wp_knowledge',
 				'post_status' => 'private',
 			)
 		);
+		$this->assertIsInt( $post_id );
 
 		// Assign a non-default term, replacing the `note` fallback from creation.
 		$term = wp_insert_term( 'memory', 'wp_knowledge_type' );
+		$this->assertIsArray( $term );
 		wp_set_object_terms( $post_id, (int) $term['term_id'], 'wp_knowledge_type' );
 
 		// A subsequent save must not re-add the `note` fallback.
@@ -99,11 +102,12 @@ class Tests_Knowledge_Types extends WP_UnitTestCase {
 	 * @ticket 65476
 	 * @covers ::wp_knowledge_maybe_map_term_label
 	 */
-	public function test_registered_slug_term_gets_mapped_label() {
+	public function test_registered_slug_term_gets_mapped_label(): void {
 		$term = wp_insert_term( 'guideline', 'wp_knowledge_type' );
-		$this->assertNotWPError( $term );
+		$this->assertIsArray( $term );
 
 		$created = get_term( $term['term_id'], 'wp_knowledge_type' );
+		$this->assertInstanceOf( WP_Term::class, $created );
 
 		$this->assertSame( 'guideline', $created->slug );
 		$this->assertSame( 'Guideline', $created->name );
@@ -115,11 +119,12 @@ class Tests_Knowledge_Types extends WP_UnitTestCase {
 	 * @ticket 65476
 	 * @covers ::wp_knowledge_maybe_map_term_label
 	 */
-	public function test_custom_label_is_not_overwritten() {
+	public function test_custom_label_is_not_overwritten(): void {
 		$term = wp_insert_term( 'My Custom Type', 'wp_knowledge_type', array( 'slug' => 'guideline' ) );
-		$this->assertNotWPError( $term );
+		$this->assertIsArray( $term );
 
 		$created = get_term( $term['term_id'], 'wp_knowledge_type' );
+		$this->assertInstanceOf( WP_Term::class, $created );
 
 		$this->assertSame( 'guideline', $created->slug );
 		$this->assertSame( 'My Custom Type', $created->name );
@@ -131,11 +136,12 @@ class Tests_Knowledge_Types extends WP_UnitTestCase {
 	 * @ticket 65476
 	 * @covers ::wp_knowledge_maybe_map_term_label
 	 */
-	public function test_label_mapping_is_scoped_to_knowledge_taxonomy() {
+	public function test_label_mapping_is_scoped_to_knowledge_taxonomy(): void {
 		$term = wp_insert_term( 'guideline', 'category' );
-		$this->assertNotWPError( $term );
+		$this->assertIsArray( $term );
 
 		$created = get_term( $term['term_id'], 'category' );
+		$this->assertInstanceOf( WP_Term::class, $created );
 
 		$this->assertSame( 'guideline', $created->name );
 	}
@@ -147,7 +153,7 @@ class Tests_Knowledge_Types extends WP_UnitTestCase {
 	 * @ticket 65476
 	 * @covers ::wp_knowledge_maybe_map_term_label
 	 */
-	public function test_label_is_resolved_in_site_locale() {
+	public function test_label_is_resolved_in_site_locale(): void {
 		// Simulate a non-site request locale. Priority 1 runs before the locale
 		// switcher (priority 10), so the mapping's switch still wins.
 		$request_locale = 'de_DE';

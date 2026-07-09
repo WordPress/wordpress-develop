@@ -14,7 +14,7 @@ class Tests_Knowledge_PostType extends WP_UnitTestCase {
 	 * @ticket 65476
 	 * @covers ::create_initial_post_types
 	 */
-	public function test_post_type_is_registered() {
+	public function test_post_type_is_registered(): void {
 		$this->assertTrue( post_type_exists( 'wp_knowledge' ) );
 	}
 
@@ -22,10 +22,10 @@ class Tests_Knowledge_PostType extends WP_UnitTestCase {
 	 * @ticket 65476
 	 * @covers ::create_initial_post_types
 	 */
-	public function test_post_type_is_builtin_and_private() {
+	public function test_post_type_is_builtin_and_private(): void {
 		$post_type = get_post_type_object( 'wp_knowledge' );
 
-		$this->assertInstanceOf( 'WP_Post_Type', $post_type );
+		$this->assertInstanceOf( WP_Post_Type::class, $post_type );
 		$this->assertTrue( $post_type->_builtin, '_builtin should be true' );
 		$this->assertFalse( $post_type->public, 'public should be false' );
 		$this->assertFalse( $post_type->show_ui, 'show_ui should be false' );
@@ -36,8 +36,9 @@ class Tests_Knowledge_PostType extends WP_UnitTestCase {
 	 * @ticket 65476
 	 * @covers ::create_initial_post_types
 	 */
-	public function test_post_type_rest_configuration() {
+	public function test_post_type_rest_configuration(): void {
 		$post_type = get_post_type_object( 'wp_knowledge' );
+		$this->assertInstanceOf( WP_Post_Type::class, $post_type );
 
 		$this->assertTrue( $post_type->show_in_rest, 'show_in_rest should be true' );
 		$this->assertSame( 'knowledge', $post_type->rest_base );
@@ -48,7 +49,7 @@ class Tests_Knowledge_PostType extends WP_UnitTestCase {
 	 * @ticket 65476
 	 * @covers ::create_initial_post_types
 	 */
-	public function test_post_type_supports() {
+	public function test_post_type_supports(): void {
 		$this->assertTrue( post_type_supports( 'wp_knowledge', 'title' ) );
 		$this->assertTrue( post_type_supports( 'wp_knowledge', 'editor' ) );
 		$this->assertTrue( post_type_supports( 'wp_knowledge', 'excerpt' ) );
@@ -62,10 +63,12 @@ class Tests_Knowledge_PostType extends WP_UnitTestCase {
 	 * @ticket 65476
 	 * @covers ::create_initial_post_types
 	 */
-	public function test_post_type_supports_revisions_with_default_controller() {
+	public function test_post_type_supports_revisions_with_default_controller(): void {
 		$this->assertTrue( post_type_supports( 'wp_knowledge', 'revisions' ) );
 
-		$controller = get_post_type_object( 'wp_knowledge' )->get_revisions_rest_controller();
+		$post_type = get_post_type_object( 'wp_knowledge' );
+		$this->assertInstanceOf( WP_Post_Type::class, $post_type );
+		$controller = $post_type->get_revisions_rest_controller();
 		$this->assertInstanceOf( 'WP_REST_Revisions_Controller', $controller );
 	}
 
@@ -78,9 +81,11 @@ class Tests_Knowledge_PostType extends WP_UnitTestCase {
 	 * @ticket 65476
 	 * @covers ::create_initial_post_types
 	 */
-	public function test_post_type_does_not_support_autosaves() {
+	public function test_post_type_does_not_support_autosaves(): void {
 		$this->assertFalse( post_type_supports( 'wp_knowledge', 'autosave' ) );
-		$this->assertNull( get_post_type_object( 'wp_knowledge' )->get_autosave_rest_controller() );
+		$post_type = get_post_type_object( 'wp_knowledge' );
+		$this->assertInstanceOf( WP_Post_Type::class, $post_type );
+		$this->assertNull( $post_type->get_autosave_rest_controller() );
 	}
 
 	/**
@@ -90,8 +95,9 @@ class Tests_Knowledge_PostType extends WP_UnitTestCase {
 	 * @ticket 65476
 	 * @covers ::create_initial_post_types
 	 */
-	public function test_read_capability_is_remapped() {
+	public function test_read_capability_is_remapped(): void {
 		$post_type = get_post_type_object( 'wp_knowledge' );
+		$this->assertInstanceOf( WP_Post_Type::class, $post_type );
 
 		$this->assertSame( 'read_knowledge_items', $post_type->cap->read );
 	}
@@ -105,8 +111,10 @@ class Tests_Knowledge_PostType extends WP_UnitTestCase {
 	 * @ticket 65476
 	 * @covers ::create_initial_post_types
 	 */
-	public function test_post_type_meta_caps_do_not_collide_with_primitives() {
-		$cap = get_post_type_object( 'wp_knowledge' )->cap;
+	public function test_post_type_meta_caps_do_not_collide_with_primitives(): void {
+		$post_type = get_post_type_object( 'wp_knowledge' );
+		$this->assertInstanceOf( WP_Post_Type::class, $post_type );
+		$cap = $post_type->cap;
 
 		// Meta capabilities are derived from the singular `knowledge_item` base.
 		$this->assertSame( 'edit_knowledge_item', $cap->edit_post );
@@ -129,11 +137,12 @@ class Tests_Knowledge_PostType extends WP_UnitTestCase {
 	 * @ticket 65476
 	 * @covers ::create_initial_taxonomies
 	 */
-	public function test_knowledge_type_taxonomy_is_attached() {
+	public function test_knowledge_type_taxonomy_is_attached(): void {
 		$this->assertTrue( taxonomy_exists( 'wp_knowledge_type' ) );
 		$this->assertContains( 'wp_knowledge_type', get_object_taxonomies( 'wp_knowledge' ) );
 
 		$taxonomy = get_taxonomy( 'wp_knowledge_type' );
+		$this->assertInstanceOf( WP_Taxonomy::class, $taxonomy );
 		$this->assertTrue( $taxonomy->hierarchical, 'taxonomy should be hierarchical' );
 		$this->assertFalse( $taxonomy->public, 'taxonomy should not be public' );
 		$this->assertTrue( $taxonomy->show_in_rest, 'taxonomy should be shown in REST' );

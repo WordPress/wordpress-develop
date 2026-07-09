@@ -17,30 +17,24 @@ class Tests_Knowledge_Capabilities extends WP_UnitTestCase {
 	 *
 	 * @var int[]
 	 */
-	private static $users = array();
+	private static array $users = array();
 
 	/**
 	 * A private knowledge row owned by the contributor.
-	 *
-	 * @var int
 	 */
-	private static $own_private;
+	private static int $own_private;
 
 	/**
 	 * A published knowledge row owned by the contributor.
-	 *
-	 * @var int
 	 */
-	private static $own_published;
+	private static int $own_published;
 
 	/**
 	 * A private knowledge row owned by the author.
-	 *
-	 * @var int
 	 */
-	private static $others_private;
+	private static int $others_private;
 
-	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ): void {
 		foreach ( array( 'administrator', 'editor', 'author', 'contributor', 'subscriber' ) as $role ) {
 			self::$users[ $role ] = $factory->user->create( array( 'role' => $role ) );
 		}
@@ -73,7 +67,7 @@ class Tests_Knowledge_Capabilities extends WP_UnitTestCase {
 	/**
 	 * @ticket 65476
 	 */
-	public function test_administrator_has_every_primitive() {
+	public function test_administrator_has_every_primitive(): void {
 		wp_set_current_user( self::$users['administrator'] );
 
 		$this->assertTrue( current_user_can( 'read_knowledge_items' ) );
@@ -88,7 +82,7 @@ class Tests_Knowledge_Capabilities extends WP_UnitTestCase {
 	/**
 	 * @ticket 65476
 	 */
-	public function test_administrator_can_act_on_others_rows() {
+	public function test_administrator_can_act_on_others_rows(): void {
 		wp_set_current_user( self::$users['administrator'] );
 
 		$this->assertTrue( current_user_can( 'edit_post', self::$others_private ) );
@@ -99,7 +93,7 @@ class Tests_Knowledge_Capabilities extends WP_UnitTestCase {
 	/**
 	 * @ticket 65476
 	 */
-	public function test_subscriber_has_no_access() {
+	public function test_subscriber_has_no_access(): void {
 		wp_set_current_user( self::$users['subscriber'] );
 
 		$this->assertFalse( current_user_can( 'read_knowledge_items' ) );
@@ -109,7 +103,7 @@ class Tests_Knowledge_Capabilities extends WP_UnitTestCase {
 	/**
 	 * @ticket 65476
 	 */
-	public function test_anonymous_has_no_access() {
+	public function test_anonymous_has_no_access(): void {
 		wp_set_current_user( 0 );
 
 		$this->assertFalse( current_user_can( 'read_knowledge_items' ) );
@@ -123,7 +117,7 @@ class Tests_Knowledge_Capabilities extends WP_UnitTestCase {
 	 *
 	 * @param string $role Role slug.
 	 */
-	public function test_contributor_level_ambient_floor( $role ) {
+	public function test_contributor_level_ambient_floor( $role ): void {
 		wp_set_current_user( self::$users[ $role ] );
 
 		// May list and create knowledge.
@@ -147,7 +141,7 @@ class Tests_Knowledge_Capabilities extends WP_UnitTestCase {
 	/**
 	 * @ticket 65476
 	 */
-	public function test_contributor_can_manage_own_private_row() {
+	public function test_contributor_can_manage_own_private_row(): void {
 		wp_set_current_user( self::$users['contributor'] );
 
 		$this->assertTrue( current_user_can( 'edit_post', self::$own_private ) );
@@ -164,7 +158,7 @@ class Tests_Knowledge_Capabilities extends WP_UnitTestCase {
 	 *
 	 * @ticket 65476
 	 */
-	public function test_contributor_can_delete_own_trashed_row() {
+	public function test_contributor_can_delete_own_trashed_row(): void {
 		wp_set_current_user( self::$users['contributor'] );
 
 		$post_id = self::factory()->post->create(
@@ -174,6 +168,7 @@ class Tests_Knowledge_Capabilities extends WP_UnitTestCase {
 				'post_author' => self::$users['contributor'],
 			)
 		);
+		$this->assertIsInt( $post_id );
 
 		wp_trash_post( $post_id );
 		$this->assertSame( 'trash', get_post_status( $post_id ) );
@@ -185,7 +180,7 @@ class Tests_Knowledge_Capabilities extends WP_UnitTestCase {
 	/**
 	 * @ticket 65476
 	 */
-	public function test_contributor_cannot_edit_own_published_row() {
+	public function test_contributor_cannot_edit_own_published_row(): void {
 		wp_set_current_user( self::$users['contributor'] );
 
 		// Publishing is reserved for administrators, so an already-published
@@ -196,7 +191,7 @@ class Tests_Knowledge_Capabilities extends WP_UnitTestCase {
 	/**
 	 * @ticket 65476
 	 */
-	public function test_contributor_cannot_act_on_others_rows() {
+	public function test_contributor_cannot_act_on_others_rows(): void {
 		wp_set_current_user( self::$users['contributor'] );
 
 		$this->assertFalse( current_user_can( 'edit_post', self::$others_private ) );
@@ -207,7 +202,7 @@ class Tests_Knowledge_Capabilities extends WP_UnitTestCase {
 	/**
 	 * @ticket 65476
 	 */
-	public function test_grant_does_not_apply_to_other_post_types() {
+	public function test_grant_does_not_apply_to_other_post_types(): void {
 		wp_set_current_user( self::$users['contributor'] );
 
 		$page_id = self::factory()->post->create(

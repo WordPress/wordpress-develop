@@ -12,27 +12,16 @@
  */
 class Tests_REST_WpRestKnowledgeController extends WP_Test_REST_Controller_Testcase {
 
-	/**
-	 * @var int
-	 */
-	protected static $admin_id;
+	protected static int $admin_id;
 
-	/**
-	 * @var int
-	 */
-	protected static $contributor_id;
+	protected static int $contributor_id;
 
-	/**
-	 * @var int
-	 */
-	protected static $subscriber_id;
+	protected static int $subscriber_id;
 
 	/**
 	 * A private knowledge row owned by the administrator.
-	 *
-	 * @var int
 	 */
-	protected static $admin_private;
+	protected static int $admin_private;
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$admin_id       = $factory->user->create( array( 'role' => 'administrator' ) );
@@ -49,7 +38,7 @@ class Tests_REST_WpRestKnowledgeController extends WP_Test_REST_Controller_Testc
 		);
 	}
 
-	public static function wpTearDownAfterClass() {
+	public static function wpTearDownAfterClass(): void {
 		self::delete_user( self::$admin_id );
 		self::delete_user( self::$contributor_id );
 		self::delete_user( self::$subscriber_id );
@@ -76,7 +65,7 @@ class Tests_REST_WpRestKnowledgeController extends WP_Test_REST_Controller_Testc
 	/**
 	 * @ticket 65476
 	 */
-	public function test_register_routes() {
+	public function test_register_routes(): void {
 		$routes = rest_get_server()->get_routes();
 
 		$this->assertArrayHasKey( '/wp/v2/knowledge', $routes );
@@ -94,7 +83,7 @@ class Tests_REST_WpRestKnowledgeController extends WP_Test_REST_Controller_Testc
 	/**
 	 * @ticket 65476
 	 */
-	public function test_context_param() {
+	public function test_context_param(): void {
 		wp_set_current_user( self::$admin_id );
 
 		$request  = new WP_REST_Request( 'OPTIONS', '/wp/v2/knowledge' );
@@ -108,7 +97,7 @@ class Tests_REST_WpRestKnowledgeController extends WP_Test_REST_Controller_Testc
 	/**
 	 * @ticket 65476
 	 */
-	public function test_get_items() {
+	public function test_get_items(): void {
 		wp_set_current_user( self::$admin_id );
 
 		// The collection defaults to the `publish` status; knowledge rows are
@@ -132,7 +121,7 @@ class Tests_REST_WpRestKnowledgeController extends WP_Test_REST_Controller_Testc
 	/**
 	 * @ticket 65476
 	 */
-	public function test_get_items_requires_authentication() {
+	public function test_get_items_requires_authentication(): void {
 		wp_set_current_user( 0 );
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/knowledge' );
 		$response = rest_get_server()->dispatch( $request );
@@ -146,7 +135,7 @@ class Tests_REST_WpRestKnowledgeController extends WP_Test_REST_Controller_Testc
 	/**
 	 * @ticket 65476
 	 */
-	public function test_get_item() {
+	public function test_get_item(): void {
 		wp_set_current_user( self::$admin_id );
 
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/knowledge/' . self::$admin_private );
@@ -159,7 +148,7 @@ class Tests_REST_WpRestKnowledgeController extends WP_Test_REST_Controller_Testc
 	/**
 	 * @ticket 65476
 	 */
-	public function test_contributor_cannot_read_others_private_row() {
+	public function test_contributor_cannot_read_others_private_row(): void {
 		wp_set_current_user( self::$contributor_id );
 
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/knowledge/' . self::$admin_private );
@@ -172,7 +161,7 @@ class Tests_REST_WpRestKnowledgeController extends WP_Test_REST_Controller_Testc
 	/**
 	 * @ticket 65476
 	 */
-	public function test_create_item() {
+	public function test_create_item(): void {
 		wp_set_current_user( self::$admin_id );
 
 		$request = new WP_REST_Request( 'POST', '/wp/v2/knowledge' );
@@ -188,7 +177,7 @@ class Tests_REST_WpRestKnowledgeController extends WP_Test_REST_Controller_Testc
 	/**
 	 * @ticket 65476
 	 */
-	public function test_contributor_create_defaults_to_private() {
+	public function test_contributor_create_defaults_to_private(): void {
 		wp_set_current_user( self::$contributor_id );
 
 		$request = new WP_REST_Request( 'POST', '/wp/v2/knowledge' );
@@ -202,7 +191,7 @@ class Tests_REST_WpRestKnowledgeController extends WP_Test_REST_Controller_Testc
 	/**
 	 * @ticket 65476
 	 */
-	public function test_contributor_cannot_publish() {
+	public function test_contributor_cannot_publish(): void {
 		wp_set_current_user( self::$contributor_id );
 
 		$request = new WP_REST_Request( 'POST', '/wp/v2/knowledge' );
@@ -220,7 +209,7 @@ class Tests_REST_WpRestKnowledgeController extends WP_Test_REST_Controller_Testc
 	/**
 	 * @ticket 65476
 	 */
-	public function test_update_item() {
+	public function test_update_item(): void {
 		wp_set_current_user( self::$admin_id );
 
 		$post_id = $this->create_knowledge_post( self::$admin_id );
@@ -238,7 +227,7 @@ class Tests_REST_WpRestKnowledgeController extends WP_Test_REST_Controller_Testc
 	 *
 	 * @ticket 65476
 	 */
-	public function test_contributor_can_update_own_row() {
+	public function test_contributor_can_update_own_row(): void {
 		wp_set_current_user( self::$contributor_id );
 
 		$post_id = $this->create_knowledge_post( self::$contributor_id );
@@ -256,7 +245,7 @@ class Tests_REST_WpRestKnowledgeController extends WP_Test_REST_Controller_Testc
 	 *
 	 * @ticket 65476
 	 */
-	public function test_contributor_cannot_update_others_row() {
+	public function test_contributor_cannot_update_others_row(): void {
 		wp_set_current_user( self::$contributor_id );
 
 		$request = new WP_REST_Request( 'POST', '/wp/v2/knowledge/' . self::$admin_private );
@@ -269,7 +258,7 @@ class Tests_REST_WpRestKnowledgeController extends WP_Test_REST_Controller_Testc
 	/**
 	 * @ticket 65476
 	 */
-	public function test_delete_item() {
+	public function test_delete_item(): void {
 		wp_set_current_user( self::$admin_id );
 
 		$post_id = $this->create_knowledge_post( self::$admin_id );
@@ -287,7 +276,7 @@ class Tests_REST_WpRestKnowledgeController extends WP_Test_REST_Controller_Testc
 	 *
 	 * @ticket 65476
 	 */
-	public function test_contributor_can_delete_own_row() {
+	public function test_contributor_can_delete_own_row(): void {
 		wp_set_current_user( self::$contributor_id );
 
 		$post_id = $this->create_knowledge_post( self::$contributor_id );
@@ -305,7 +294,7 @@ class Tests_REST_WpRestKnowledgeController extends WP_Test_REST_Controller_Testc
 	 *
 	 * @ticket 65476
 	 */
-	public function test_contributor_cannot_delete_others_row() {
+	public function test_contributor_cannot_delete_others_row(): void {
 		wp_set_current_user( self::$contributor_id );
 
 		$request = new WP_REST_Request( 'DELETE', '/wp/v2/knowledge/' . self::$admin_private );
@@ -319,7 +308,7 @@ class Tests_REST_WpRestKnowledgeController extends WP_Test_REST_Controller_Testc
 	/**
 	 * @ticket 65476
 	 */
-	public function test_prepare_item() {
+	public function test_prepare_item(): void {
 		wp_set_current_user( self::$admin_id );
 
 		$request = new WP_REST_Request( 'GET', '/wp/v2/knowledge/' . self::$admin_private );
@@ -337,7 +326,7 @@ class Tests_REST_WpRestKnowledgeController extends WP_Test_REST_Controller_Testc
 	/**
 	 * @ticket 65476
 	 */
-	public function test_get_item_schema() {
+	public function test_get_item_schema(): void {
 		wp_set_current_user( self::$admin_id );
 
 		$request    = new WP_REST_Request( 'OPTIONS', '/wp/v2/knowledge' );
