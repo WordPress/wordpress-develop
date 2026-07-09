@@ -1380,14 +1380,14 @@ function wp_maybe_grant_site_health_caps( $allcaps, $caps, $args, $user ) {
  *
  * @param array<string, bool> $allcaps An array of all the user's capabilities.
  * @param string[]            $caps    Required primitive capabilities for the requested capability.
- * @param array               $args {
+ * @param array               $args    {
  *     Arguments that accompany the requested capability check.
  *
  *     @type string    $0 Requested capability.
  *     @type int       $1 Concerned user ID.
  *     @type mixed  ...$2 Optional second and further parameters, typically object ID.
  * }
- * @param WP_User  $user    The user object.
+ * @param WP_User             $user    The user object.
  * @return array<string, bool> Filtered array of the user's capabilities.
  * @phpstan-param array{ 0: string, 1: positive-int, 2: mixed, ... } $args
  */
