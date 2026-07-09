@@ -97,7 +97,7 @@ class WP_Site_Health {
 	 *
 	 * @since 5.4.0
 	 *
-	 * @return WP_Site_Health|null
+	 * @return WP_Site_Health
 	 */
 	public static function get_instance() {
 		self::$instance ??= new WP_Site_Health();
