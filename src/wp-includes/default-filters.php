@@ -25,7 +25,7 @@
 
 // Don't load directly.
 if ( ! defined( 'ABSPATH' ) ) {
-	die( '-1' );
+	exit;
 }
 
 // Strip, trim, kses, special chars for string saves.
@@ -464,6 +464,8 @@ add_filter( 'wp_privacy_personal_data_exporters', 'wp_register_user_personal_dat
 add_filter( 'wp_privacy_personal_data_erasers', 'wp_register_comment_personal_data_eraser' );
 add_action( 'init', 'wp_schedule_delete_old_privacy_export_files' );
 add_action( 'wp_privacy_delete_old_export_files', 'wp_privacy_delete_old_export_files' );
+add_action( 'init', 'wp_schedule_personal_data_cleanup_requests' );
+add_action( 'wp_privacy_personal_data_cleanup_requests', 'wp_privacy_personal_data_cleanup_requests' );
 
 // Cron tasks.
 add_action( 'wp_scheduled_delete', 'wp_scheduled_delete' );
@@ -644,7 +646,6 @@ add_action( 'enqueue_block_editor_assets', 'wp_enqueue_editor_format_library_ass
 add_action( 'enqueue_block_editor_assets', 'wp_enqueue_block_editor_script_modules' );
 add_action( 'enqueue_block_editor_assets', 'wp_enqueue_global_styles_css_custom_properties' );
 add_action( 'enqueue_block_editor_assets', '_wp_enqueue_auto_register_blocks' );
-add_action( 'enqueue_block_editor_assets', 'wp_declare_classic_block_necessary' );
 add_action( 'wp_print_scripts', 'wp_just_in_time_script_localization' );
 add_filter( 'print_scripts_array', 'wp_prototype_before_jquery' );
 add_action( 'customize_controls_print_styles', 'wp_resource_hints', 1 );
@@ -790,6 +791,9 @@ add_filter( 'rest_wp_navigation_item_schema', array( 'WP_Navigation_Fallback', '
 // Fluid typography.
 add_filter( 'render_block', 'wp_render_typography_support', 10, 2 );
 
+// Inline note markers.
+add_filter( 'render_block', 'wp_strip_inline_note_markers' );
+
 // User preferences.
 add_action( 'init', 'wp_register_persisted_preferences_meta' );
 
@@ -820,11 +824,13 @@ add_filter( 'rest_pre_insert_wp_template_part', 'inject_ignored_hooked_blocks_me
 
 // View Config API.
 foreach ( array( 'page', 'wp_block', 'wp_template_part', 'wp_template' ) as $post_type ) {
+	// Base definitions run before the default priority, so third-party
+	// callbacks registered at the default compose on top of them
+	// regardless of registration order.
 	add_filter(
 		"get_entity_view_config_postType_{$post_type}",
 		"_wp_get_entity_view_config_post_type_{$post_type}",
-		10,
-		1
+		5
 	);
 }
 
