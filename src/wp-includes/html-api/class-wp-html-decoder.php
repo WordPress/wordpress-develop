@@ -89,17 +89,17 @@ class WP_HTML_Decoder {
 			 *                       │ ┌─after matching `fj` continue here
 			 *                       │ │ (advance by $match_length, 2 bytes)
 			 *                       ↓ ↓
-			 *     Search A:    startfjord      min( 2, 5 ) = 2: `fj` matches,
+			 *     Search A:    startfjord      Compare 2 bytes: `fj` matches,
 			 *                                  continue matching at `o`.
 			 *
 			 *                       $search_at
 			 *                       ↓
-			 *     Search B:    startf          min( 2, 1 ) = 1: `f` matches and the
+			 *     Search B:    startf          Compare 1 byte: `f` matches and the
 			 *                                  search text is exhausted — prefix confirmed.
 			 *
 			 *                       $search_at
 			 *                       ↓
-			 *     Search C:    startfr         min( 2, 2 ) = 2: `fj` differs
+			 *     Search C:    startfr         Compare 2 bytes: `fj` differs
 			 *                                  from `fr`, no match is possible.
 			 *
 			 * The `min()` is required in both directions: Search A fails if the
