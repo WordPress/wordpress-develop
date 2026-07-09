@@ -32,7 +32,7 @@ class WP_REST_Icons_Controller extends WP_REST_Controller {
 	 * Registers the routes for the objects of the controller.
 	 *
 	 * @since 7.0.0
-	 * @since 7.1.0 Added the `/icons/<namespace>` collection-scoped route.
+	 * @since 7.1.0 Added the `/icons/<collection>` collection-scoped route.
 	 */
 	public function register_routes() {
 		register_rest_route(
@@ -51,10 +51,10 @@ class WP_REST_Icons_Controller extends WP_REST_Controller {
 
 		register_rest_route(
 			$this->namespace,
-			'/' . $this->rest_base . '/(?P<namespace>[a-z0-9](?:[a-z0-9_-]*[a-z0-9])?)',
+			'/' . $this->rest_base . '/(?P<collection>[a-z0-9](?:[a-z0-9_-]*[a-z0-9])?)',
 			array(
 				'args'   => array(
-					'namespace' => array(
+					'collection' => array(
 						'description' => __( 'Icon collection slug.' ),
 						'type'        => 'string',
 					),
@@ -142,13 +142,13 @@ class WP_REST_Icons_Controller extends WP_REST_Controller {
 	 * Retrieves all icons, optionally scoped to a collection.
 	 *
 	 * @since 7.0.0
-	 * @since 7.1.0 Supports filtering by collection via the `namespace` URL segment.
+	 * @since 7.1.0 Supports filtering by collection.
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
 	public function get_items( $request ) {
-		$collection = $request->get_param( 'namespace' );
+		$collection = $request->get_param( 'collection' );
 
 		if ( null !== $collection && ! WP_Icon_Collections_Registry::get_instance()->is_registered( $collection ) ) {
 			return new WP_Error(
@@ -306,14 +306,14 @@ class WP_REST_Icons_Controller extends WP_REST_Controller {
 	 * Retrieves the query params for the icons collection.
 	 *
 	 * @since 7.0.0
-	 * @since 7.1.0 Added the `namespace` parameter.
+	 * @since 7.1.0 Added the `collection` parameter.
 	 *
 	 * @return array Collection parameters.
 	 */
 	public function get_collection_params() {
 		$query_params                       = parent::get_collection_params();
 		$query_params['context']['default'] = 'view';
-		$query_params['namespace']          = array(
+		$query_params['collection']         = array(
 			'description' => __( 'Limit results to icons belonging to the given collection slug.' ),
 			'type'        => 'string',
 			'pattern'     => '^[a-z0-9]([a-z0-9_-]*[a-z0-9])?$',

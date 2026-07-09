@@ -203,7 +203,7 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 			'/wp/v2/icon-collections',
 			'/wp/v2/icon-collections/(?P<slug>[a-z0-9](?:[a-z0-9_-]*[a-z0-9])?)',
 			'/wp/v2/icons',
-			'/wp/v2/icons/(?P<namespace>[a-z0-9](?:[a-z0-9_-]*[a-z0-9])?)',
+			'/wp/v2/icons/(?P<collection>[a-z0-9](?:[a-z0-9_-]*[a-z0-9])?)',
 			'/wp/v2/icons/(?P<name>[a-z0-9](?:[a-z0-9_-]*[a-z0-9])?/[a-z0-9](?:[a-z0-9_-]*[a-z0-9])?)',
 			'/wp/v2/view-config',
 			'/wp-abilities/v1',
