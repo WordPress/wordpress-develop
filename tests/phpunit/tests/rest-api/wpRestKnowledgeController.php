@@ -23,17 +23,26 @@ class Tests_REST_WpRestKnowledgeController extends WP_Test_REST_Controller_Testc
 	 */
 	protected static int $admin_private;
 
-	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
-		self::$admin_id       = $factory->user->create( array( 'role' => 'administrator' ) );
-		self::$contributor_id = $factory->user->create( array( 'role' => 'contributor' ) );
-		self::$subscriber_id  = $factory->user->create( array( 'role' => 'subscriber' ) );
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ): void {
+		$throw_if_not_int = static function ( $value ): int {
+			if ( ! is_int( $value ) ) {
+				throw new Exception( 'Value is not an int.' );
+			}
+			return $value;
+		};
 
-		self::$admin_private = $factory->post->create(
-			array(
-				'post_type'   => 'wp_knowledge',
-				'post_status' => 'private',
-				'post_author' => self::$admin_id,
-				'post_title'  => 'Admin private knowledge',
+		self::$admin_id       = $throw_if_not_int( $factory->user->create( array( 'role' => 'administrator' ) ) );
+		self::$contributor_id = $throw_if_not_int( $factory->user->create( array( 'role' => 'contributor' ) ) );
+		self::$subscriber_id  = $throw_if_not_int( $factory->user->create( array( 'role' => 'subscriber' ) ) );
+
+		self::$admin_private = $throw_if_not_int(
+			$factory->post->create(
+				array(
+					'post_type'   => 'wp_knowledge',
+					'post_status' => 'private',
+					'post_author' => self::$admin_id,
+					'post_title'  => 'Admin private knowledge',
+				)
 			)
 		);
 	}
@@ -49,10 +58,12 @@ class Tests_REST_WpRestKnowledgeController extends WP_Test_REST_Controller_Testc
 	 * Creates a private knowledge row for the given author.
 	 *
 	 * @param int $author_id Author user ID.
+	 *
 	 * @return int Post ID.
+	 * @throws Exception In the unlikely event that a factory is unable to create a post.
 	 */
 	private function create_knowledge_post( int $author_id ): int {
-		return self::factory()->post->create(
+		$post = self::factory()->post->create(
 			array(
 				'post_type'   => 'wp_knowledge',
 				'post_status' => 'private',
@@ -60,6 +71,10 @@ class Tests_REST_WpRestKnowledgeController extends WP_Test_REST_Controller_Testc
 				'post_title'  => 'Knowledge row',
 			)
 		);
+		if ( ! is_int( $post ) ) {
+			throw new Exception( 'Factory post creation failure' );
+		}
+		return $post;
 	}
 
 	/**
@@ -89,8 +104,11 @@ class Tests_REST_WpRestKnowledgeController extends WP_Test_REST_Controller_Testc
 		$request  = new WP_REST_Request( 'OPTIONS', '/wp/v2/knowledge' );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
+		$this->assertIsArray( $data );
 
+		$this->assertTrue( isset( $data['endpoints'][0]['args']['context']['default'] ) ); // @phpstan-ignore offsetAccess.nonOffsetAccessible, offsetAccess.nonOffsetAccessible, offsetAccess.nonOffsetAccessible, offsetAccess.nonOffsetAccessible
 		$this->assertSame( 'view', $data['endpoints'][0]['args']['context']['default'] );
+		$this->assertTrue( isset( $data['endpoints'][0]['args']['context']['enum'] ) ); // @phpstan-ignore offsetAccess.nonOffsetAccessible
 		$this->assertSame( array( 'view', 'embed', 'edit' ), $data['endpoints'][0]['args']['context']['enum'] );
 	}
 
@@ -142,7 +160,10 @@ class Tests_REST_WpRestKnowledgeController extends WP_Test_REST_Controller_Testc
 		$response = rest_get_server()->dispatch( $request );
 
 		$this->assertSame( 200, $response->get_status() );
-		$this->assertSame( self::$admin_private, $response->get_data()['id'] );
+		$data = $response->get_data();
+		$this->assertIsArray( $data );
+		$this->assertArrayHasKey( 'id', $data );
+		$this->assertSame( self::$admin_private, $data['id'] );
 	}
 
 	/**
@@ -170,6 +191,8 @@ class Tests_REST_WpRestKnowledgeController extends WP_Test_REST_Controller_Testc
 
 		$this->assertSame( 201, $response->get_status() );
 		$data = $response->get_data();
+		$this->assertIsArray( $data );
+		$this->assertArrayHasKey( 'status', $data );
 		// With no status supplied, new rows default to private rather than draft.
 		$this->assertSame( 'private', $data['status'] );
 	}
@@ -183,9 +206,12 @@ class Tests_REST_WpRestKnowledgeController extends WP_Test_REST_Controller_Testc
 		$request = new WP_REST_Request( 'POST', '/wp/v2/knowledge' );
 		$request->set_body_params( array( 'title' => 'Created by contributor' ) );
 		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+		$this->assertIsArray( $data );
+		$this->assertArrayHasKey( 'status', $data );
 
 		$this->assertSame( 201, $response->get_status() );
-		$this->assertSame( 'private', $response->get_data()['status'] );
+		$this->assertSame( 'private', $data['status'] );
 	}
 
 	/**
@@ -219,7 +245,10 @@ class Tests_REST_WpRestKnowledgeController extends WP_Test_REST_Controller_Testc
 		$response = rest_get_server()->dispatch( $request );
 
 		$this->assertSame( 200, $response->get_status() );
-		$this->assertSame( 'Updated title', $response->get_data()['title']['raw'] );
+		$data = $response->get_data();
+		$this->assertIsArray( $data );
+		$this->assertTrue( isset( $data['title']['raw'] ) ); // @phpstan-ignore offsetAccess.nonOffsetAccessible
+		$this->assertSame( 'Updated title', $data['title']['raw'] );
 	}
 
 	/**
@@ -237,7 +266,10 @@ class Tests_REST_WpRestKnowledgeController extends WP_Test_REST_Controller_Testc
 		$response = rest_get_server()->dispatch( $request );
 
 		$this->assertSame( 200, $response->get_status() );
-		$this->assertSame( 'Updated by contributor', $response->get_data()['title']['raw'] );
+		$data = $response->get_data();
+		$this->assertIsArray( $data );
+		$this->assertTrue( isset( $data['title']['raw'] ) ); // @phpstan-ignore offsetAccess.nonOffsetAccessible
+		$this->assertSame( 'Updated by contributor', $data['title']['raw'] );
 	}
 
 	/**
@@ -315,6 +347,7 @@ class Tests_REST_WpRestKnowledgeController extends WP_Test_REST_Controller_Testc
 		$request->set_param( 'context', 'edit' );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
+		$this->assertIsArray( $data );
 
 		$this->assertSame( 200, $response->get_status() );
 		$this->assertArrayHasKey( 'id', $data );
@@ -329,9 +362,13 @@ class Tests_REST_WpRestKnowledgeController extends WP_Test_REST_Controller_Testc
 	public function test_get_item_schema(): void {
 		wp_set_current_user( self::$admin_id );
 
-		$request    = new WP_REST_Request( 'OPTIONS', '/wp/v2/knowledge' );
-		$response   = rest_get_server()->dispatch( $request );
-		$properties = $response->get_data()['schema']['properties'];
+		$request  = new WP_REST_Request( 'OPTIONS', '/wp/v2/knowledge' );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+		$this->assertIsArray( $data );
+		$this->assertTrue( isset( $data['schema']['properties'] ) ); // @phpstan-ignore offsetAccess.nonOffsetAccessible
+		$properties = $data['schema']['properties'];
+		$this->assertIsArray( $properties );
 
 		$this->assertArrayHasKey( 'id', $properties );
 		$this->assertArrayHasKey( 'title', $properties );

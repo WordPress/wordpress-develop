@@ -35,31 +35,44 @@ class Tests_Knowledge_Capabilities extends WP_UnitTestCase {
 	private static int $others_private;
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ): void {
+		$throw_if_not_int = static function ( $value ): int {
+			if ( ! is_int( $value ) ) {
+				throw new Exception( 'Value is not an int.' );
+			}
+			return $value;
+		};
+
 		foreach ( array( 'administrator', 'editor', 'author', 'contributor', 'subscriber' ) as $role ) {
-			self::$users[ $role ] = $factory->user->create( array( 'role' => $role ) );
+			self::$users[ $role ] = $throw_if_not_int( $factory->user->create( array( 'role' => $role ) ) );
 		}
 
-		self::$own_private = $factory->post->create(
-			array(
-				'post_type'   => 'wp_knowledge',
-				'post_status' => 'private',
-				'post_author' => self::$users['contributor'],
+		self::$own_private = $throw_if_not_int(
+			$factory->post->create(
+				array(
+					'post_type'   => 'wp_knowledge',
+					'post_status' => 'private',
+					'post_author' => self::$users['contributor'],
+				)
 			)
 		);
 
-		self::$own_published = $factory->post->create(
-			array(
-				'post_type'   => 'wp_knowledge',
-				'post_status' => 'publish',
-				'post_author' => self::$users['contributor'],
+		self::$own_published = $throw_if_not_int(
+			$factory->post->create(
+				array(
+					'post_type'   => 'wp_knowledge',
+					'post_status' => 'publish',
+					'post_author' => self::$users['contributor'],
+				)
 			)
 		);
 
-		self::$others_private = $factory->post->create(
-			array(
-				'post_type'   => 'wp_knowledge',
-				'post_status' => 'private',
-				'post_author' => self::$users['author'],
+		self::$others_private = $throw_if_not_int(
+			$factory->post->create(
+				array(
+					'post_type'   => 'wp_knowledge',
+					'post_status' => 'private',
+					'post_author' => self::$users['author'],
+				)
 			)
 		);
 	}
