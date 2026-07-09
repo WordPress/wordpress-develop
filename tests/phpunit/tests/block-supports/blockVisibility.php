@@ -413,6 +413,9 @@ class Tests_Block_Supports_BlockVisibility extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * @ticket 65596
+	 */
 	public function test_block_visibility_support_uses_custom_viewport_breakpoints(): void {
 		$this->register_visibility_block_with_support(
 			'test/viewport-custom-breakpoints',
@@ -476,6 +479,9 @@ class Tests_Block_Supports_BlockVisibility extends WP_UnitTestCase {
 		}
 	}
 
+	/**
+	 * @ticket 65596
+	 */
 	public function test_block_visibility_support_uses_single_max_width_tablet_query_for_single_breakpoint(): void {
 		$this->register_visibility_block_with_support(
 			'test/viewport-tablet-only-breakpoint',

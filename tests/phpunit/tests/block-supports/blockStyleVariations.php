@@ -162,6 +162,8 @@ class Tests_Block_Supports_BlockStyleVariations extends WP_UnitTestCase {
 
 	/**
 	 * Tests that state styles in block style variations use custom viewport breakpoints.
+	 *
+	 * @ticket 65596
 	 */
 	public function test_block_style_variation_state_styles_use_custom_viewport_breakpoints() {
 		switch_theme( 'block-theme' );

@@ -4612,6 +4612,9 @@ class WP_Theme_JSON {
 	/**
 	 * Remove insecure element styles within a variation or block.
 	 *
+	 *  * When responsive media queries are provided, nested responsive state styles
+	 * matching those viewport state keys are re-added after the base sanitization pass.
+	 *
 	 * @since 6.8.0
 	 * @since 7.1.0 Added the `$responsive_media_queries` parameter.
 	 *
@@ -4662,6 +4665,7 @@ class WP_Theme_JSON {
 
 	/**
 	 * Remove insecure styles from inner blocks and their elements.
+	 *
 	 * When responsive media queries are provided, nested responsive state styles
 	 * for those media-query keys are re-added after the base sanitization pass.
 	 *

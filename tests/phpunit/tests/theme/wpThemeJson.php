@@ -1002,6 +1002,9 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * @ticket 65596
+	 */
 	public function test_get_viewport_media_queries_uses_valid_custom_breakpoint_without_merging_defaults() {
 		$this->assertSame(
 			array(
@@ -1021,6 +1024,9 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * @ticket 65596
+	 */
 	public function test_get_viewport_media_queries_uses_defaults_when_no_custom_breakpoints_are_valid() {
 		$this->assertSame(
 			array(
@@ -1040,6 +1046,9 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * @ticket 65596
+	 */
 	public function test_get_viewport_media_queries_uses_valid_tablet_breakpoint_with_single_max_width_query_when_mobile_is_invalid() {
 		$this->assertSame(
 			array(
@@ -1058,6 +1067,9 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * @ticket 65596
+	 */
 	public function test_viewport_settings_preserve_valid_tablet_breakpoint_when_mobile_is_invalid() {
 		$theme_json = new WP_Theme_JSON(
 			array(
@@ -1079,6 +1091,9 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * @ticket 65596
+	 */
 	public function test_viewport_settings_use_defaults_when_no_custom_breakpoints_are_valid() {
 		$theme_json = new WP_Theme_JSON(
 			array(
@@ -1102,6 +1117,9 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * @ticket 65596
+	 */
 	public function test_get_viewport_media_queries_omits_tablet_when_its_breakpoint_is_not_larger_than_mobile() {
 		$this->assertSame(
 			array(
@@ -1120,6 +1138,9 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * @ticket 65596
+	 */
 	public function test_get_stylesheet_uses_custom_viewport_breakpoints_for_responsive_block_styles() {
 		$theme_json = new WP_Theme_JSON(
 			array(
@@ -1161,6 +1182,9 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * @ticket 65596
+	 */
 	public function test_get_stylesheet_omits_tablet_styles_when_its_breakpoint_is_not_larger_than_mobile() {
 		$theme_json = new WP_Theme_JSON(
 			array(
@@ -1208,6 +1232,9 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * @ticket 65596
+	 */
 	public function test_get_stylesheet_uses_single_max_width_tablet_query_when_mobile_is_invalid() {
 		$theme_json = new WP_Theme_JSON(
 			array(
