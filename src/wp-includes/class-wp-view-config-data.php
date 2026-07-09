@@ -259,13 +259,10 @@ class WP_View_Config_Data {
 			// The patch key is the identity.
 			unset( $value['slug'] );
 
-			$index = null;
-			foreach ( $view_list as $i => $item ) {
-				if ( is_array( $item ) && isset( $item['slug'] ) && $item['slug'] === $slug ) {
-					$index = $i;
-					break;
-				}
-			}
+			$index = array_find_key(
+				$view_list,
+				fn( $item ) => is_array( $item ) && isset( $item['slug'] ) && $item['slug'] === $slug
+			);
 
 			if ( null === $index ) {
 				$view_list[] = array_merge( array( 'slug' => $slug ), $value );
