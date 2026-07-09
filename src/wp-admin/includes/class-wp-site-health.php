@@ -3686,7 +3686,7 @@ class WP_Site_Health {
 	 *
 	 * @since 7.1.0
 	 *
-	 * @param array $counts Raw counts that may be missing keys or hold non-integer values.
+	 * @param array<string, int> $counts Raw counts that may be missing keys or hold non-integer values.
 	 * @return array{good: non-negative-int, recommended: non-negative-int, critical: non-negative-int} The good,
 	 *                                                            recommended, and critical counts.
 	 */
