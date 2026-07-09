@@ -421,7 +421,7 @@ switch ( $wp_list_table->current_action() ) {
 					?>
 					</legend>
 
-					<ul style="list-style:none;">
+					<ul>
 						<li>
 							<input type="radio" id="delete_option_<?php echo esc_attr( $id ); ?>" name="delete_option[<?php echo esc_attr( $id ); ?>]" value="delete" required />
 							<label for="delete_option_<?php echo esc_attr( $id ); ?>"><?php _e( 'Delete all content.' ); ?></label>
