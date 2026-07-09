@@ -64,17 +64,16 @@ class WP_HTML_Decoder {
 			}
 
 			/**
-			 * At this point `$next_chunk` holds a non-empty decoded chunk — the two
-			 * checks above returned for every null case, and no character reference
-			 * decodes to an empty string. The chunk is atomic on the haystack side:
-			 * the raw cursor can only skip the entire reference, `$token_length`
-			 * bytes, set by reference at the `read_character_reference()` call.
-			 * But this is a prefix test, and the search text may end part-way
-			 * through the chunk; only the overlapping bytes can be compared,
-			 * folding ASCII case when `$loose_case` is set.
+			 * The decoded character reference in `$next_chunk` must be compared with the
+			 * corresponding `$search_text` bytes checking for matching prefixes. The remaining
+			 * search text may be shorter than the decoded chunk, in which case a partial match
+			 * satisfies the prefix. Otherwise, if the decoded chunk is fully matched, the
+			 * comparison must continue after advancing the appropriate byte lengths: the character
+			 * reference token length in the haystack and the decoded chunk length in the
+			 * search text.
 			 *
-			 * For example, consider searches that have reached the character
-			 * reference `&fjlig;` (7 bytes), decoded into the 2-byte chunk `fj`:
+			 * For example, consider searches that have reached the character reference
+			 * `&fjlig;` (7 bytes), decoded into the 2-byte chunk `fj`:
 			 *
 			 *                       $haystack_at
 			 *                       │
@@ -107,16 +106,9 @@ class WP_HTML_Decoder {
 			 * comparison length comes from the search text, Search B if it comes
 			 * from the chunk.
 			 *
-			 * Chunks are byte sequences, not characters. `&fjlig;` is unusual in
-			 * decoding to two ASCII characters; most multi-byte chunks are a single
-			 * non-ASCII character whose bytes the search text may split:
-			 * `attribute_starts_with( '&copy;x', "\xC2" )` is true because `"\xC2"`
-			 * is a byte-prefix of the two-byte decoded `©`.
-			 *
-			 * After a match, each cursor advances by its own measure — the raw
-			 * reference and its decoded chunk have unrelated lengths (7 and 2 above).
-			 * A match that exhausts the search text (Search B) ends the loop with
-			 * `$search_at === $search_length`, which the final return reports as success.
+			 * After a match each cursor must advance by the appropriate length, the haystack
+			 * cursor by the character reference token length, and the search cursor by the
+			 * matched length.
 			 */
 			$match_length = min( strlen( $next_chunk ), $search_length - $search_at );
 			if ( 0 !== substr_compare( $search_text, $next_chunk, $search_at, $match_length, $loose_case ) ) {
