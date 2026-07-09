@@ -41,7 +41,7 @@ class Tests_HtmlApi_WebPlatformTests extends WP_UnitTestCase {
 		'tests1/line0640'        => 'Unimplemented: This parser treats processing instructions as comments.',
 		'html5test-com/line0129' => 'Unimplemented: This parser treats processing instructions as comments.',
 		'webkit01/line0231'      => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
-		'webkit04/line0692'      => 'Unimplemented: This parser does not clone selected OPTION content into SELECTEDCONTENT.',
+		'webkit02/line0692'      => 'Unimplemented: This parser does not clone selected OPTION content into SELECTEDCONTENT.',
 		'webkit02/line0706'      => 'Unimplemented: This parser does not clone selected OPTION content into SELECTEDCONTENT.',
 		'webkit02/line0732'      => 'Unimplemented: This parser does not clone selected OPTION content into SELECTEDCONTENT.',
 		'webkit02/line0748'      => 'Unimplemented: This parser does not clone selected OPTION content into SELECTEDCONTENT.',
