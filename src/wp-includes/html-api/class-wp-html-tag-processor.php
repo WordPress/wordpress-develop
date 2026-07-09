@@ -3505,7 +3505,7 @@ class WP_HTML_Tag_Processor {
 	 * @since 7.1.0 Recognizes processing instructions.
 	 *
 	 * @return string|null What kind of token is matched, or null.
-	 * @phpstan-return '#tag'|'#text'|'#cdata-section'|'#comment'|'#doctype'|'#presumptuous-tag'|'#funky-comment'|'#processing-instruction'|null What kind of token is matched, or null.
+	 * @phpstan-return '#tag'|'#text'|'#cdata-section'|'#comment'|'#doctype'|'#presumptuous-tag'|'#funky-comment'|'#processing-instruction'|null
 	 */
 	public function get_token_type(): ?string {
 		switch ( $this->parser_state ) {
