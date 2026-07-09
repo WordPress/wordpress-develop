@@ -31,7 +31,7 @@ errors.
 
 Then there \*may\* be a line that says "\#document-fragment", which must
 be followed by a newline (LF), followed by a string of characters that
-indicates the context element, followed by a newline (LF). If the string 
+indicates the context element, followed by a newline (LF). If the string
 of characters starts with "svg ", the context element is in the SVG
 namespace and the substring after "svg " is the local name. If the
 string of characters starts with "math ", the context element is in the
@@ -67,9 +67,7 @@ per parent node that the node has before the root document node.
     double-quotes, another space an the system id in double-quotes, and
     then in any case "`>`".
 -   Processing instructions must be "`<?`", then the target, then a
-    space, then the data and then "`>`". (The HTML parser cannot emit
-    processing instructions, but scripts can, and the WebVTT to DOM
-    rules can emit them.)
+    space, then the data and then "`?>`".
 -   Template contents are represented by the string "content" with the
     children below it.
 
