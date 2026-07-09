@@ -1270,7 +1270,7 @@ function _load_script_textdomain_from_src( string $handle, string $src, string $
 		 */
 
 		$theme_dir = array_last( explode( '/', $theme_root ) );
-		$dirname   = $theme_dir[0] === $relative[0] ? 'themes' : 'plugins';
+		$dirname   = $theme_dir === $relative[0] ? 'themes' : 'plugins';
 
 		$languages_path = WP_LANG_DIR . '/' . $dirname;
 
