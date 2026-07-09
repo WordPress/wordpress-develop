@@ -2111,13 +2111,13 @@ class WP_HTML_Tag_Processor {
 				/*
 				 * Identify an XML-like Processing Instruction node.
 				 *
-				 * HTML and XML processing instrcutions have different parsing rules.
+				 * HTML and XML processing instructions have different parsing rules.
 				 * The HTML API recognizes XML-like processing instructions that are
-				 * _not_ HTML processing instrcution. The HTML standard transforms
+				 * _not_ HTML processing instructions. The HTML standard transforms
 				 * them to "bogus comments," represented by the HTML API as comments
 				 * with the `COMMENT_AS_PI_NODE_LOOKALIKE` type. This includes the
 				 * special targets `xml` and `xml-stylesheet` which are reserved
-				 * targets not allowed in HTML processing instrcutions.
+				 * targets not allowed in HTML processing instructions.
 				 *
 				 * > NameStartChar ::= ":" | [A-Z] | "_" | [a-z] | [#xC0-#xD6] | [#xD8-#xF6] | [#xF8-#x2FF] |
 				 *                     [#x370-#x37D] | [#x37F-#x1FFF] | [#x200C-#x200D] | [#x2070-#x218F] |
