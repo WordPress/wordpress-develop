@@ -18,7 +18,7 @@ class WP_Site_Health {
 	private $mysql_server_version        = '';
 	private $mysql_required_version      = '5.5';
 	private $mysql_recommended_version   = '8.0';
-	private $mariadb_recommended_version = '10.6';
+	private $mariadb_recommended_version = '10.11';
 
 	public $php_memory_limit;
 
@@ -1372,7 +1372,7 @@ class WP_Site_Health {
 			$result['description'] .= sprintf(
 				'<p>%s</p>',
 				sprintf(
-					'<span class="error"><span class="screen-reader-text">%s</span></span> %s',
+					'<span class="dashicons error" aria-hidden="true"></span><span class="screen-reader-text">%s</span> %s',
 					/* translators: Hidden accessibility text. */
 					__( 'Error' ),
 					sprintf(
@@ -2336,16 +2336,6 @@ class WP_Site_Health {
 			'actions'     => '',
 			'test'        => 'file_uploads',
 		);
-
-		if ( ! function_exists( 'ini_get' ) ) {
-			$result['status']       = 'critical';
-			$result['description'] .= sprintf(
-				/* translators: %s: ini_get() */
-				__( 'The %s function has been disabled, some media settings are unavailable because of this.' ),
-				'<code>ini_get()</code>'
-			);
-			return $result;
-		}
 
 		if ( empty( ini_get( 'file_uploads' ) ) ) {
 			$result['status']       = 'critical';
@@ -4127,13 +4117,7 @@ class WP_Site_Health {
 			'users_count'    => $wpdb->users,
 		);
 
-		foreach ( $threshold_map as $threshold => $table ) {
-			if ( $thresholds[ $threshold ] <= $results[ $table ]->rows ) {
-				return true;
-			}
-		}
-
-		return false;
+		return array_any( $threshold_map, fn( $table, $threshold ) => $thresholds[ $threshold ] <= $results[ $table ]->rows );
 	}
 
 	/**
