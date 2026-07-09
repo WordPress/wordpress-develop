@@ -3276,12 +3276,10 @@ function edit_form_image_editor( $post ) {
 		<p>
 			<label for="attachment_caption"><strong>
 				<?php
-				if ( wp_attachment_is( 'video', $post ) ) {
-					esc_html_e( 'Video Description' );
-				} elseif ( wp_attachment_is( 'image', $post ) ) {
+				if ( wp_attachment_is( 'image', $post ) ) {
 					esc_html_e( 'Image Caption' );
 				} else {
-					esc_html_e( 'Caption' );
+					esc_html_e( 'Short Description' );
 				}
 				?>
 			</strong></label><br />
