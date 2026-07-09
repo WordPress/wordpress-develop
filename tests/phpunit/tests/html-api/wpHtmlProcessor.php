@@ -644,7 +644,7 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 	/**
 	 * Ensures that the HTML Processor correctly handles TEMPLATE tag closing and namespaces.
 	 *
-	 * This is a tricky test case that corresponds to the html5lib tests "template/line1466".
+	 * This is a tricky test case that corresponds to the Web Platform Tests fixture "template/line1466".
 	 *
 	 * When the `</template>` token is reached it is in the HTML namespace (thanks to the
 	 * SVG `foreignObject` element). It is not handled as foreign content; therefore, it
@@ -652,7 +652,7 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 	 * SVG `TEMPLATE` element (the second `<template>` token).
 	 *
 	 * The test is included here because it may show up as unsupported markup and be skipped by
-	 * the html5lib test suite.
+	 * the Web Platform Tests suite.
 	 *
 	 * @ticket 61576
 	 */
