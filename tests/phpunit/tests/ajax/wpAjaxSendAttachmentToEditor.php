@@ -36,6 +36,14 @@ class Tests_Ajax_wpAjaxSendAttachmentToEditor extends WP_Ajax_UnitTestCase {
 	}
 
 	/**
+	 * Tear down the test fixture.
+	 */
+	public function tear_down() {
+		$this->remove_added_uploads();
+		parent::tear_down();
+	}
+
+	/**
 	 * @ticket 36578
 	 *
 	 * @covers ::get_image_send_to_editor
