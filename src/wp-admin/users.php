@@ -400,9 +400,10 @@ switch ( $wp_list_table->current_action() ) {
 					<p>
 					<?php
 					printf(
-						/* translators: %s: User login. */
-						__( '%s: This user does not have any content.' ),
-						$user->user_login
+						/* translators: 1: User login. 2: User ID */
+						__( '%1$s (ID #%2$s): This user does not have any content.' ),
+						'<strong>' . $user->user_login . '</strong>',
+						$id
 					);
 					?>
 					</p>
@@ -414,7 +415,7 @@ switch ( $wp_list_table->current_action() ) {
 					<?php
 					printf(
 						/* translators: 1: User login, 2: User ID. */
-						__( '1$%s (ID #%2$s): What should be done with the content owned by this user?' ),
+						__( '%1$s (ID #%2$s): What should be done with the content owned by this user?' ),
 						'<strong>' . $user->user_login . '</strong>',
 						$id
 					);
