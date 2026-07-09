@@ -157,13 +157,16 @@ jQuery( function($) {
 	 */
 	$commentparentdiv.find( '.save-comment-parent' ).on( 'click', function( event ) {
 		var $selected = $( '#comment_parent option:selected' ),
-			parentLabel = $selected.data( 'author' ) || $selected.text();
+			parentLabel = '0' === $selected.val() ?
+				/* translators: Displayed when a comment has no parent. */
+				wp.i18n.__( 'None' ) :
+				$selected.data( 'author' ) || $selected.text();
 
 		event.preventDefault();
 
 		$commentparentdisplay.html(
 			wp.i18n.sprintf(
-				/* translators: %s: Parent comment author. */
+				/* translators: %s: Parent comment link, or 'None'. */
 				wp.i18n.__( 'In reply to: %s' ),
 				$( '<b />' ).text( parentLabel ).prop( 'outerHTML' )
 			)
