@@ -2443,7 +2443,7 @@ function wp_get_object_terms( $object_ids, $taxonomies, $args = array() ) {
  *     alias_of?: string,
  *     description?: string|null,
  *     parent?: int|numeric-string,
- *     slug?: string,
+ *     slug?: string|null,
  *     ...
  * } $args
  * @phpstan-return array{
