@@ -3527,7 +3527,7 @@ class WP_Site_Health {
 	 *
 	 * @since 7.1.0
 	 *
-	 * @param array $counts Aggregate counts.
+	 * @param array<string, int> $counts Aggregate counts.
 	 */
 	public static function set_site_status_counts( array $counts ): void {
 		set_transient(
