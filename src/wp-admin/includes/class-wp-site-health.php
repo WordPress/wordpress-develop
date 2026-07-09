@@ -7,6 +7,13 @@
  * @since 5.2.0
  */
 
+/**
+ * @phpstan-type Test_Status_Counts array{
+ *      good: non-negative-int,
+ *      recommended: non-negative-int,
+ *      critical: non-negative-int,
+ *  }
+ */
 #[AllowDynamicProperties]
 class WP_Site_Health {
 	private static $instance = null;
@@ -3512,9 +3519,7 @@ class WP_Site_Health {
 	 *
 	 * @since 7.1.0
 	 *
-	 * @return array{good: non-negative-int, recommended: non-negative-int, critical: non-negative-int} Aggregate counts. Each
-	 *                                                            value is `0` when no
-	 *                                                            result has been cached.
+	 * @return Test_Status_Counts Aggregate counts. Each value is `0` when no result has been cached.
 	 */
 	public static function get_site_status_counts(): array {
 		return self::normalize_status_counts(
@@ -3552,7 +3557,7 @@ class WP_Site_Health {
 	 *         status: 'good'|'recommended'|'critical',
 	 *         timestamp: non-negative-int,
 	 *     }>,
-	 *     counts: array{good: int, recommended: int, critical: int},
+	 *     counts: Test_Status_Counts,
 	 *     timestamp: non-negative-int,
 	 * } The cached results as a list, aggregate counts derived from those same results, and
 	 *   the time of the most recent update. `results` is empty, all counts are `0`, and
@@ -3687,11 +3692,8 @@ class WP_Site_Health {
 	 * @since 7.1.0
 	 *
 	 * @param array<string, int> $counts Raw counts that may be missing keys or hold non-integer values.
-	 * @return array{
-	 *     good: non-negative-int,
-	 *     recommended: non-negative-int,
-	 *     critical: non-negative-int,
-	 * }
+	 * @return array The good, recommended, and critical counts.
+	 * @phpstan-return Test_Status_Counts
 	 */
 	private static function normalize_status_counts( array $counts ): array {
 		return array(
@@ -3707,10 +3709,8 @@ class WP_Site_Health {
 	 * @since 7.1.0
 	 *
 	 * @param array<int, array{ status: string }> $results List of result arrays, each with a status.
-	 * @return array{good: int, recommended: int, critical: int} Aggregate counts, one bucket
-	 *                                                            per status. A status other than
-	 *                                                            `recommended` or `critical`
-	 *                                                            counts as `good`.
+	 * @return array Aggregate counts, one bucket per status. A status other than `recommended` or `critical` counts as `good`.
+	 * @phpstan-return Test_Status_Counts
 	 */
 	private static function count_site_status_results( array $results ): array {
 		$counts = array(
