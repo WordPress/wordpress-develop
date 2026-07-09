@@ -109,6 +109,15 @@ class WP_Icon_Collections_Registry {
 			return false;
 		}
 
+		if ( isset( $collection_properties['description'] ) && ! is_string( $collection_properties['description'] ) ) {
+			_doing_it_wrong(
+				__METHOD__,
+				__( 'Icon collection description must be a string.' ),
+				'7.1.0'
+			);
+			return false;
+		}
+
 		$defaults = array(
 			'description' => '',
 		);
