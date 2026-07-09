@@ -17,10 +17,8 @@ class WP_HTML_Decoder {
 	 * of how it might be encoded in HTML. For instance, `http:` could be represented as `http:`
 	 * or as `http&colon;` or as `&#x68;ttp:` or as `h&#116;tp&colon;`, or in many other ways.
 	 *
-	 * This is equivalent to decoding the attribute value and comparing the leading bytes of
-	 * the result against the search text, but it avoids allocating the decoded value. The
-	 * comparison is byte-oriented, so the search text may end part-way through a decoded
-	 * character reference, and even part-way through a multi-byte character.
+	 * This is equivalent to a byte-prefix test against the decoded attribute value, without
+	 * the need to allocate and decode the fulle string.
 	 *
 	 * Example:
 	 *
@@ -69,16 +67,16 @@ class WP_HTML_Decoder {
 			}
 
 			/**
-			 * At this point `$next_chunk` is non-null, because the two checks above
-			 * returned for every null case, and a decoded chunk is never empty. The
-			 * chunk is atomic on the haystack side, since the raw cursor can only skip
-			 * the entire reference. But this is a prefix test, so the search text may
-			 * legitimately end part-way through the chunk. Only the overlapping bytes
-			 * can be compared: the lesser of the chunk length and the remaining
-			 * search-text length. Under `ascii-case-insensitive` matching, those
-			 * overlapping bytes are compared with ASCII case folding.
+			 * At this point `$next_chunk` holds a non-empty decoded chunk — the two
+			 * checks above returned for every null case, and no character reference
+			 * decodes to an empty string. The chunk is atomic on the haystack side:
+			 * the raw cursor can only skip the entire reference, `$token_length`
+			 * bytes, set by reference at the `read_character_reference()` call.
+			 * But this is a prefix test, and the search text may end part-way
+			 * through the chunk; only the overlapping bytes can be compared,
+			 * folding ASCII case when `$loose_case` is set.
 			 *
-			 * For example, consider different searches that have reached the character
+			 * For example, consider searches that have reached the character
 			 * reference `&fjlig;` (7 bytes), decoded into the 2-byte chunk `fj`:
 			 *
 			 *                       $haystack_at
@@ -88,8 +86,7 @@ class WP_HTML_Decoder {
 			 *                       ↓      ↓
 			 *     Haystack:    start&fjlig;ord
 			 *                       ╰──┬──╯
-			 *                          fj - decoded `&fjlig;` character reference chunk
-			 *                               will be tested against the search text.
+			 *                          fj - the decoded chunk, tested against the search text.
 			 *
 			 *                       $search_at
 			 *                       │
@@ -102,31 +99,26 @@ class WP_HTML_Decoder {
 			 *                       $search_at
 			 *                       ↓
 			 *     Search B:    startf          min( 2, 1 ) = 1: `f` matches and the
-			 *                                  search text is exhausted, so the
-			 *                                  prefix is confirmed.
+			 *                                  search text is exhausted — prefix confirmed.
 			 *
 			 *                       $search_at
 			 *                       ↓
 			 *     Search C:    startfr         min( 2, 2 ) = 2: `fj` differs
 			 *                                  from `fr`, no match is possible.
 			 *
-			 * Taking the `min()` is required in both directions. Search A fails if the
-			 * comparison length comes from the search text, and Search B fails if it
-			 * comes from the chunk.
+			 * The `min()` is required in both directions: Search A fails if the
+			 * comparison length comes from the search text, Search B if it comes
+			 * from the chunk.
 			 *
 			 * Chunks are byte sequences, not characters. `&fjlig;` is unusual in
 			 * decoding to two ASCII characters; most multi-byte chunks are a single
-			 * non-ASCII character, e.g. `&copy;` decodes into the two bytes of `©`.
-			 * The search text may end between those bytes, just as it ends inside the
-			 * chunk in Search B: `attribute_starts_with( '&copy;x', "\xC2" )` is true
-			 * because `"\xC2"` is a byte-prefix of the decoded value.
+			 * non-ASCII character whose bytes the search text may split:
+			 * `attribute_starts_with( '&copy;x', "\xC2" )` is true because `"\xC2"`
+			 * is a byte-prefix of the two-byte decoded `©`.
 			 *
-			 * After a match, each cursor advances by its own measure, because the raw
+			 * After a match, each cursor advances by its own measure — the raw
 			 * reference and its decoded chunk have unrelated lengths (7 and 2 above).
-			 * `$haystack_at` skips the whole raw reference (`$token_length`, which
-			 * `read_character_reference()` set by reference), while `$search_at`
-			 * advances only by the decoded bytes matched (`$match_length`). A match
-			 * that exhausts the search text (Search B) ends the loop with
+			 * A match that exhausts the search text (Search B) ends the loop with
 			 * `$search_at === $search_length`, which the final return reports as success.
 			 */
 			$match_length = min( strlen( $next_chunk ), $search_length - $search_at );
@@ -437,43 +429,37 @@ class WP_HTML_Decoder {
 		$after_name = $name_at + $name_length;
 
 		/*
-		 * For historical reasons, a matched named character reference is left as literal
-		 * text (its decoded replacement is not used) when all of the following hold:
+		 * For historical reasons, a matched named character reference is left as
+		 * literal text — its decoded replacement is not used — when all of the
+		 * following hold:
 		 *
 		 * 1. It was matched in attribute context.
-		 * 2. The match does not end in U+003B SEMICOLON (;) — i.e. it is one of the
+		 * 2. The match does not end in U+003B SEMICOLON (;), i.e. it is one of the
 		 *    legacy forms recognized without a trailing semicolon.
 		 * 3. The next input character is U+003D EQUALS SIGN (=) or an ASCII alphanumeric.
 		 *
-		 * Some illustrative examples follow. Note that both `not` and `not;` appear in the
-		 * named character references list. References start with `&` and typically end with
-		 * `;`, but the legacy forms are recognized without one.
+		 * For example — note that both `not` and `not;` appear in the named
+		 * character reference table:
 		 *
-		 * - In _data context_, "&notme" is decoded to "¬me": condition 1 fails (not an
-		 *   attribute), so the reference is decoded.
-		 * - In _attribute context_, "&not;me" is decoded to "¬me": the longest match is
-		 *   "not;", which ends in a semicolon, so condition 2 fails.
-		 * - In _attribute context_, "&not己" is decoded to "¬己": the following character
-		 *   "己" is a letter but not an ASCII alphanumeric (nor "="), so condition 3 fails.
-		 * - In _attribute context_, "&not" is decoded to "¬": there is no next input
-		 *   character, so condition 3 fails.
-		 * - In _attribute context_, "&not=me" is left as the literal text "&not=me": all
-		 *   three conditions hold.
-		 * - In _attribute context_, "&notme" is left as the literal text "&notme": all
-		 *   three conditions hold.
+		 * - In data context, `&notme` decodes to `¬me`: condition 1 fails.
+		 * - In attribute context:
+		 *   - `&not;me` decodes to `¬me`: the longest match, `not;`, ends in a
+		 *     semicolon, so condition 2 fails.
+		 *   - `&not己` decodes to `¬己`: `己` is a letter, but neither `=` nor an
+		 *     ASCII alphanumeric, so condition 3 fails.
+		 *   - `&not` decodes to `¬`: there is no next input character, so
+		 *     condition 3 fails.
+		 *   - `&not=me` and `&notme` are left as literal text: all three hold.
 		 *
-		 * Without these special rules, ordinary URL query strings could have surprising
+		 * Without these rules, ordinary URL query strings could have surprising
 		 * replacements applied. Consider:
 		 *
 		 *     <a href="/?random&degree&gt=0&lt=360&not=90">
 		 *
-		 * The literal attribute value `/?random&degree&gt=0&lt=360&not=90` is preserved
-		 * by the special handling. Otherwise, the value would decode to
-		 * `/?random°ree>=0<=360¬=90`, which is unlikely to be the author's intent.
-		 *
-		 * (Authors should not rely on this. Escaping the example as
-		 * `/?random&amp;degree&amp;gt=0&amp;lt=360&amp;not=90` produces the intended
-		 * value regardless of the following character.)
+		 * The special handling preserves the literal attribute value; plain decoding
+		 * would produce `/?random°ree>=0<=360¬=90`, which is unlikely to be the
+		 * author's intent. (Authors should not rely on this: escaping each `&` as
+		 * `&amp;` produces the intended value regardless of the following character.)
 		 *
 		 * @see https://html.spec.whatwg.org/multipage/parsing.html#named-character-reference-state
 		 * @see https://html.spec.whatwg.org/multipage/named-characters.html#named-character-references
