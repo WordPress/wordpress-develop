@@ -464,6 +464,8 @@ add_filter( 'wp_privacy_personal_data_exporters', 'wp_register_user_personal_dat
 add_filter( 'wp_privacy_personal_data_erasers', 'wp_register_comment_personal_data_eraser' );
 add_action( 'init', 'wp_schedule_delete_old_privacy_export_files' );
 add_action( 'wp_privacy_delete_old_export_files', 'wp_privacy_delete_old_export_files' );
+add_action( 'init', 'wp_schedule_personal_data_cleanup_requests' );
+add_action( 'wp_privacy_personal_data_cleanup_requests', 'wp_privacy_personal_data_cleanup_requests' );
 
 // Cron tasks.
 add_action( 'wp_scheduled_delete', 'wp_scheduled_delete' );
@@ -822,11 +824,13 @@ add_filter( 'rest_pre_insert_wp_template_part', 'inject_ignored_hooked_blocks_me
 
 // View Config API.
 foreach ( array( 'page', 'wp_block', 'wp_template_part', 'wp_template' ) as $post_type ) {
+	// Base definitions run before the default priority, so third-party
+	// callbacks registered at the default compose on top of them
+	// regardless of registration order.
 	add_filter(
 		"get_entity_view_config_postType_{$post_type}",
 		"_wp_get_entity_view_config_post_type_{$post_type}",
-		10,
-		1
+		5
 	);
 }
 
