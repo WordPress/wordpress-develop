@@ -78,6 +78,7 @@ function wpmu_signup_stylesheet() {
 		.mu_register input[type="email"],
 			.mu_register #user_name { direction: ltr; }
 		.mu_register #site-language { display: block; }
+		.mu_register label[for="site-language"] .dashicons { margin-left: 0.5em; }
 		.mu_register .prefix_address,
 			.mu_register .suffix_address { font-size: 18px; display: inline-block; direction: ltr; }
 		.mu_register label,
@@ -91,6 +92,7 @@ function wpmu_signup_stylesheet() {
 		.mu_register .signup-options .wp-signup-radio-button { display: block; }
 		.mu_register .privacy-intro .wp-signup-radio-button { margin-right: 0.5em; }
 		.rtl .mu_register .wp-signup-blogname { direction: ltr; text-align: right; }
+		.rtl .mu_register label[for="site-language"] .dashicons { margin-right: 0.5em; margin-left: 0; }
 	</style>
 	<?php
 }
