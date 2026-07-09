@@ -105,12 +105,12 @@ function wp_knowledge_ensure_default_type_term( int $post_id ): void {
 /**
  * Swaps a raw knowledge-type slug for its registered label on term creation.
  *
- * Hooked to the `wp_insert_term_data` filter. When wp_set_object_terms() is
+ * Hooked to the `wp_insert_term_data` filter. When `wp_set_object_terms()` is
  * called with a slug that does not yet exist, wp_insert_term() fires and this
  * filter runs after WordPress has computed both `name` and `slug`. A `name`
  * equal to `slug` indicates the term was created from a raw slug (for example by
- * wp_set_object_terms()) rather than from a user-provided label, so the label is
- * replaced with the title from wp_knowledge_types().
+ * `wp_set_object_terms()`) rather than from a user-provided label, so the label is
+ * replaced with the title from {@see wp_knowledge_types()}.
  *
  * The name is written once and shared by every user, so it is resolved in the
  * site locale, not the locale of the request that happens to create the term.
