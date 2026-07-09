@@ -24,12 +24,7 @@ function wp_dashboard_on_this_day_setup() {
 
 	wp_add_dashboard_widget(
 		'wp_dashboard_on_this_day',
-		sprintf(
-			'<span class="wp-on-this-day-title">%s <span class="wp-on-this-day-date">%s</span></span>',
-			esc_html__( 'On This Day' ),
-			/* translators: Date format for the On This Day widget date, without year. See https://www.php.net/manual/datetime.format.php */
-			esc_html( wp_date( _x( 'F jS', 'on this day date format' ) ) )
-		),
+		__( 'On This Day' ),
 		'wp_dashboard_on_this_day'
 	);
 }
@@ -40,12 +35,8 @@ function wp_dashboard_on_this_day_setup() {
  * Outputs the matching posts grouped by publication year, newest year first.
  *
  * @since 7.1.0
- *
- * @global WP_Post $post Global post object.
  */
 function wp_dashboard_on_this_day() {
-	global $post;
-
 	$posts = wp_dashboard_on_this_day_get_posts();
 
 	if ( empty( $posts ) ) {
@@ -55,50 +46,72 @@ function wp_dashboard_on_this_day() {
 	$posts_by_year = array();
 	$post_count    = count( $posts );
 
-	foreach ( $posts as $current_post ) {
-		$year = get_the_date( 'Y', $current_post );
+	foreach ( $posts as $post ) {
+		$year = get_the_date( 'Y', $post );
 
 		if ( ! isset( $posts_by_year[ $year ] ) ) {
 			$posts_by_year[ $year ] = array();
 		}
 
-		$posts_by_year[ $year ][] = $current_post;
+		$posts_by_year[ $year ][] = $post;
 	}
 	?>
 	<div class="wp-on-this-day-widget">
-		<p class="wp-on-this-day-summary">
+		<p>
 			<?php
 			printf(
 				esc_html(
-					/* translators: %s: Number of posts. */
+					/* translators: 1: Number of posts, 2: Date, without year. */
 					_n(
-						'%s post has been published on this day:',
-						'%s posts have been published on this day:',
+						'%1$s post has been published on %2$s:',
+						'%1$s posts have been published on %2$s:',
 						$post_count
 					)
 				),
-				esc_html( number_format_i18n( $post_count ) )
+				esc_html( number_format_i18n( $post_count ) ),
+				/* translators: Date format for the On This Day widget date, without year. See https://www.php.net/manual/datetime.format.php */
+				'<strong>' . esc_html( wp_date( _x( 'F jS', 'on this day date format' ) ) ) . '</strong>'
 			);
 			?>
 		</p>
-		<ul class="wp-on-this-day-years">
+		<ul>
 			<?php foreach ( $posts_by_year as $year => $year_posts ) : ?>
-				<li class="wp-on-this-day-year">
-					<h3 class="wp-on-this-day-year-heading"><?php echo esc_html( $year ); ?></h3>
-					<ul class="wp-on-this-day-posts">
-						<?php
-						foreach ( $year_posts as $post ) {
-							setup_postdata( $post );
-							_wp_dashboard_on_this_day_post();
-						}
-						?>
+				<li>
+					<h3><?php echo esc_html( $year ); ?></h3>
+					<ul>
+						<?php foreach ( $year_posts as $year_post ) : ?>
+							<?php
+							$title = get_the_title( $year_post );
+
+							if ( '' === trim( $title ) ) {
+								$title = __( '(no title)' );
+							}
+
+							$author_id   = (int) $year_post->post_author;
+							$author_name = $author_id > 0 ? (string) get_the_author_meta( 'display_name', $author_id ) : '';
+							$show_author = '' !== trim( $author_name ) && get_current_user_id() !== $author_id;
+							?>
+							<li>
+								<a href="<?php echo esc_url( get_permalink( $year_post ) ); ?>"><?php echo esc_html( $title ); ?></a>
+								<?php if ( $show_author ) : ?>
+									<?php
+									echo '<span class="wp-on-this-day-post-author">' . esc_html(
+										sprintf(
+											/* translators: %s: Post author's display name. */
+											__( 'by %s' ),
+											$author_name
+										)
+									) . '</span>';
+									?>
+								<?php endif; ?>
+							</li>
+						<?php endforeach; ?>
 					</ul>
 				</li>
 			<?php endforeach; ?>
 		</ul>
 	</div>
 	<?php
-	wp_reset_postdata();
 }
 
 /**
@@ -188,40 +201,4 @@ function _wp_dashboard_on_this_day_date_query_clause( $date ) {
 	}
 
 	return $clause;
-}
-
-/**
- * Renders a single linked post title for the On This Day dashboard widget.
- *
- * Must be called with the global post set up via `setup_postdata()`.
- *
- * @since 7.1.0
- * @access private
- */
-function _wp_dashboard_on_this_day_post() {
-	$title = get_the_title();
-
-	if ( '' === trim( $title ) ) {
-		$title = __( '(no title)' );
-	}
-
-	$author_id   = (int) get_post_field( 'post_author', get_the_ID() );
-	$author_name = $author_id > 0 ? (string) get_the_author() : '';
-	$show_author = '' !== trim( $author_name ) && get_current_user_id() !== $author_id;
-	?>
-	<li class="wp-on-this-day-post">
-		<a href="<?php the_permalink(); ?>"><?php echo esc_html( $title ); ?></a>
-		<?php if ( $show_author ) : ?>
-			<?php
-			echo '<span class="wp-on-this-day-post-author">' . esc_html(
-				sprintf(
-					/* translators: %s: Post author's display name. */
-					__( 'by %s' ),
-					$author_name
-				)
-			) . '</span>';
-			?>
-		<?php endif; ?>
-	</li>
-	<?php
 }

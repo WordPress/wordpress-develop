@@ -122,10 +122,7 @@ class Tests_Admin_wpOnThisDay extends WP_UnitTestCase {
 		$dashboard_widgets = $GLOBALS['wp_meta_boxes']['dashboard']['normal']['core'] ?? array();
 
 		$this->assertArrayHasKey( 'wp_dashboard_on_this_day', $dashboard_widgets );
-		$this->assertStringContainsString(
-			'<span class="wp-on-this-day-date">' . esc_html( wp_date( 'F jS' ) ) . '</span>',
-			$dashboard_widgets['wp_dashboard_on_this_day']['title']
-		);
+		$this->assertSame( 'On This Day', $dashboard_widgets['wp_dashboard_on_this_day']['title'] );
 	}
 
 	/**
@@ -277,10 +274,9 @@ class Tests_Admin_wpOnThisDay extends WP_UnitTestCase {
 		$last_year     = current_datetime()->modify( '-1 year' )->format( 'Y' );
 		$two_years_ago = current_datetime()->modify( '-2 years' )->format( 'Y' );
 
-		$this->assertStringContainsString( '3 posts have been published on this day:', $output );
-		$this->assertStringContainsString( '<ul class="wp-on-this-day-years">', $output );
-		$this->assertStringContainsString( '<h3 class="wp-on-this-day-year-heading">' . $last_year . '</h3>', $output );
-		$this->assertStringContainsString( '<h3 class="wp-on-this-day-year-heading">' . $two_years_ago . '</h3>', $output );
+		$this->assertStringContainsString( '3 posts have been published on <strong>' . wp_date( 'F jS' ) . '</strong>:', $output );
+		$this->assertStringContainsString( '<h3>' . $last_year . '</h3>', $output );
+		$this->assertStringContainsString( '<h3>' . $two_years_ago . '</h3>', $output );
 		$this->assertStringContainsString( 'Pretending to meditate', $output );
 		$this->assertStringContainsString( 'Slow internet and good books', $output );
 		$this->assertStringContainsString( 'Late-night shipping log', $output );
@@ -302,7 +298,7 @@ class Tests_Admin_wpOnThisDay extends WP_UnitTestCase {
 		wp_dashboard_on_this_day();
 		$output = ob_get_clean();
 
-		$this->assertStringContainsString( '10 posts have been published on this day:', $output );
+		$this->assertStringContainsString( '10 posts have been published on <strong>' . wp_date( 'F jS' ) . '</strong>:', $output );
 		$this->assertStringContainsString( 'Anniversary post 1<', $output );
 		$this->assertStringContainsString( 'Anniversary post 10<', $output );
 		$this->assertStringNotContainsString( 'Anniversary post 11', $output );
