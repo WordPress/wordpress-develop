@@ -3576,7 +3576,7 @@ class WP_Site_Health {
 
 		$cached = self::read_status_cache( self::STATUS_DETAIL_TRANSIENT );
 
-		if ( null !== $cached && isset( $cached['results'] ) && is_array( $cached['results'] ) ) {
+		if ( null !== $cached ) {
 			foreach ( $cached['results'] as $test => $result ) {
 				if ( is_array( $result ) ) {
 					// The test name is the cache key, so add it back for consumers.
@@ -3614,9 +3614,7 @@ class WP_Site_Health {
 
 		$cached = self::read_status_cache( self::STATUS_DETAIL_TRANSIENT );
 
-		$stored = ( null !== $cached && isset( $cached['results'] ) && is_array( $cached['results'] ) )
-			? $cached['results']
-			: array();
+		$stored = null !== $cached ? $cached['results'] : array();
 
 		foreach ( $results as $result ) {
 			$sanitized = self::sanitize_site_status_result( $result );
@@ -3677,13 +3675,23 @@ class WP_Site_Health {
 	 * @since 7.1.0
 	 *
 	 * @param string $transient Transient name.
-	 * @return mixed[]|null The decoded array, or null when nothing valid is cached.
+	 * @return array{ results: array }|null The decoded array, or null when nothing valid is cached.
 	 */
 	private static function read_status_cache( string $transient ): ?array {
 		$cached = get_transient( $transient );
-		$cached = is_string( $cached ) ? json_decode( $cached, true ) : null;
+		if ( ! is_string( $cached ) ) {
+			return null;
+		}
+		$cached = json_decode( $cached, true );
+		if (
+			! is_array( $cached ) ||
+			! isset( $cached['results'] ) ||
+			! is_array( $cached['results'] )
+		) {
+			return null;
+		}
 
-		return is_array( $cached ) ? $cached : null;
+		return $cached;
 	}
 
 	/**
