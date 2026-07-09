@@ -1937,11 +1937,11 @@ if ( ! function_exists( 'wp_notify_postauthor' ) ) :
 					break;
 			}
 
-			/* translators: %s: Comment URL. */
 			if ( 'note' === $comment->comment_type ) {
 				$notify_message .= get_edit_post_link( $comment->comment_post_ID, 'url' ) . "\r\n";
 			} else {
 				$notify_message .= get_permalink( $comment->comment_post_ID ) . "#comments\r\n\r\n";
+				/* translators: %s: Comment URL. */
 				$notify_message .= sprintf( __( 'Permalink: %s' ), get_comment_link( $comment ) ) . "\r\n";
 			}
 
@@ -2263,7 +2263,7 @@ if ( ! function_exists( 'wp_new_user_notification' ) ) :
 	 * @since 4.6.0 The `$notify` parameter accepts 'user' for sending notification only to the user created.
 	 *
 	 * @param int    $user_id    User ID.
-	 * @param null   $deprecated Not used (argument deprecated).
+	 * @param mixed  $deprecated Not used.
 	 * @param string $notify     Optional. Type of notification that should happen. Accepts 'admin' or an empty
 	 *                           string (admin only), 'user', or 'both' (admin and user). Default empty.
 	 */
@@ -2372,9 +2372,7 @@ if ( ! function_exists( 'wp_new_user_notification' ) ) :
 
 		$switched_locale = switch_to_user_locale( $user_id );
 
-		/* translators: %s: User login. */
-		$message  = sprintf( __( 'Username: %s' ), $user->user_login ) . "\r\n\r\n";
-		$message .= __( 'To set your password, visit the following address:' ) . "\r\n\r\n";
+		$message  = __( 'To set your password, visit the following address:' ) . "\r\n\r\n";
 
 		/*
 		 * Since some user login names end in a period, this could produce ambiguous URLs that

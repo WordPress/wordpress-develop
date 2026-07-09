@@ -134,6 +134,7 @@ function edit_user( $user_id = 0 ) {
 	if ( $update ) {
 		$user->rich_editing         = isset( $_POST['rich_editing'] ) && 'false' === $_POST['rich_editing'] ? 'false' : 'true';
 		$user->syntax_highlighting  = isset( $_POST['syntax_highlighting'] ) && 'false' === $_POST['syntax_highlighting'] ? 'false' : 'true';
+		$user->infinite_scrolling   = isset( $_POST['infinite_scrolling'] ) && 'false' === $_POST['infinite_scrolling'] ? 'false' : 'true';
 		$user->admin_color          = isset( $_POST['admin_color'] ) ? sanitize_text_field( $_POST['admin_color'] ) : 'modern';
 		$user->show_admin_bar_front = isset( $_POST['admin_bar_front'] ) ? 'true' : 'false';
 	}
@@ -700,7 +701,10 @@ function wp_is_authorize_application_password_request_valid( $request, $user ) {
 }
 
 /**
- * Validates the redirect URL protocol scheme. The protocol can be anything except `http` and `javascript`.
+ * Validates the redirect URL protocol scheme.
+ *
+ * The `http` scheme is allowed for loopback IP addresses (127.0.0.1, [::1])
+ * and local environments. The `javascript` and `data` protocols are always rejected.
  *
  * @since 6.3.2
  *
@@ -745,7 +749,14 @@ function wp_is_authorize_application_redirect_url_valid( $url ) {
 		);
 	}
 
-	if ( 'http' === $scheme && ! $is_local ) {
+	// Allow insecure HTTP connections to locally hosted applications.
+	$is_loopback = in_array(
+		strtolower( $host ),
+		array( '127.0.0.1', '[::1]' ),
+		true
+	);
+
+	if ( 'http' === $scheme && ! $is_local && ! $is_loopback ) {
 		return new WP_Error(
 			'invalid_redirect_scheme',
 			__( 'The URL must be served over a secure connection.' )

@@ -541,12 +541,14 @@ function wp_network_dashboard_right_now() {
  * Displays the Quick Draft widget.
  *
  * @since 3.8.0
+ * @since 7.1.0 Added $notice_type parameter.
  *
  * @global int $post_ID
  *
- * @param string|false $error_msg Optional. Error message. Default false.
+ * @param string|false $message     Optional. Error or success message. Default false.
+ * @param string       $notice_type Optional. Admin notice type. Default 'error'.
  */
-function wp_dashboard_quick_press( $error_msg = false ) {
+function wp_dashboard_quick_press( $message = false, $notice_type = 'error' ) {
 	global $post_ID;
 
 	if ( ! current_user_can( 'edit_posts' ) ) {
@@ -578,14 +580,17 @@ function wp_dashboard_quick_press( $error_msg = false ) {
 	$post_ID = (int) $post->ID;
 	?>
 
-	<form name="post" action="<?php echo esc_url( admin_url( 'post.php' ) ); ?>" method="post" id="quick-press" class="initial-form hide-if-no-js">
+	<form name="post" action="<?php echo esc_url( admin_url( 'post.php' ) ); ?>" method="post" id="quick-press" class="hide-if-no-js">
 
 		<?php
-		if ( $error_msg ) {
+		if ( $message ) {
 			wp_admin_notice(
-				$error_msg,
+				$message,
 				array(
-					'additional_classes' => array( 'error' ),
+					'type'       => $notice_type,
+					'attributes' => array(
+						'role' => 'alert',
+					),
 				)
 			);
 		}
@@ -688,7 +693,7 @@ function wp_dashboard_recent_drafts( $drafts = false ) {
 		$the_content = wp_trim_words( $draft->post_content, $draft_length );
 
 		if ( $the_content ) {
-			echo '<p>' . $the_content . '</p>';
+			echo '<p class="draft-content">' . $the_content . '</p>';
 		}
 		echo "</li>\n";
 	}
@@ -772,7 +777,8 @@ function _wp_dashboard_recent_comments_row( &$comment, $show_date = true ) {
 			$comment->comment_ID,
 			$comment->comment_post_ID,
 			esc_attr__( 'Reply to this comment' ),
-			__( 'Reply' )
+			/* translators: Comment reply button text. */
+			_x( 'Reply', 'verb' )
 		);
 
 		$actions['spam'] = sprintf(
@@ -1648,7 +1654,7 @@ function wp_dashboard_primary_output( $widget_id, $feeds ) {
  *
  * @since 3.0.0
  *
- * @return true|void True if not multisite, user can't upload files, or the space check option is disabled.
+ * @return true|null True if not multisite, user can't upload files, or the space check option is disabled.
  */
 function wp_dashboard_quota() {
 	if ( ! is_multisite() || ! current_user_can( 'upload_files' )
@@ -1709,6 +1715,7 @@ function wp_dashboard_quota() {
 	</ul>
 	</div>
 	<?php
+	return null;
 }
 
 /**
