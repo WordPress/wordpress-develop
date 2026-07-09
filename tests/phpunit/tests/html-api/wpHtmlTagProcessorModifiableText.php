@@ -539,7 +539,8 @@ HTML
 			'Data of only ?'                   => array( '<?wp-bit?>', '?', '<?wp-bit ??>' ),
 			'Emptied (?> closer)'              => array( '<?wp-bit data?>', '', '<?wp-bit ?>' ),
 			'Emptied (bare closer)'            => array( '<?wp-bit data>', '', '<?wp-bit ?>' ),
-			'Empty data set on empty data'     => array( '<?wp-bit?>', '', '<?wp-bit?>' ),
+			'Empty data set on empty data'     => array( '<?wp-bit?>', '', '<?wp-bit ?>' ),
+			'Whitespace run normalized'        => array( "<?wp-bit \t\n old?>", 'new', '<?wp-bit new?>' ),
 		);
 	}
 

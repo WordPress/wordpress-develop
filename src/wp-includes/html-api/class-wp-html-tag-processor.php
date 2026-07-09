@@ -3775,23 +3775,16 @@ class WP_HTML_Tag_Processor {
 			: substr( $this->html, $this->text_starts_at, $this->text_length );
 
 		/*
-		 * An enqueued processing instruction update holds raw syntax
-		 * spanning from the start of the data through the end of the
-		 * token. Find the data within it by applying the same rules
-		 * used when parsing the document: whitespace following the
-		 * target is skipped, the data ends before the closing `>`,
-		 * and a `?` directly before that `>` belongs to the `?>`
-		 * form of the closer.
+		 * An enqueued processing instruction update holds normalized raw
+		 * syntax spanning from the end of the target through the end of
+		 * the token: a separating space, the data, and the `?>` closer.
+		 * The data is found by skipping the leading whitespace and
+		 * dropping the two bytes of the closer.
 		 *
 		 * @see WP_HTML_Tag_Processor::set_modifiable_text()
 		 */
 		if ( $has_enqueued_update && self::STATE_PROCESSING_INSTRUCTION === $this->parser_state ) {
-			$data_at  = strspn( $text, " \t\f\r\n" );
-			$data_end = strlen( $text ) - 1;
-			if ( $data_end - 1 >= $data_at && '?' === $text[ $data_end - 1 ] ) {
-				--$data_end;
-			}
-			$text = substr( $text, $data_at, $data_end - $data_at );
+			$text = substr( $text, strspn( $text, " \t\f\r\n" ), -2 );
 		}
 
 		/*
@@ -3986,24 +3979,21 @@ class WP_HTML_Tag_Processor {
 				return false;
 			}
 
-			$token_end = $this->token_starts_at + $this->token_length;
-
 			/**
-			 * A single replacement spans from the start of the data through
-			 * the end of the token, holding the raw syntax for that region:
-			 * an optional separating space, the data, and the `?>` closer.
-			 * The raw syntax may differ from the data it holds:
+			 * A single replacement spans from the end of the target through
+			 * the end of the token, normalizing the raw syntax for that
+			 * region into a fixed form: a separating space, the data, and
+			 * the `?>` closer.
 			 *
-			 * - When no whitespace separates the target from its data, e.g.
-			 *   in `<?target?>`, a space is prefixed so that the new data
-			 *   doesn't merge into and extend the target name.
+			 * - The space separates the data from the target, which would
+			 *   otherwise merge with data in syntax like `<?target?>`.
 			 *
-			 * - The closer is always written in its `?>` form, whose `?` is
-			 *   dropped when parsing. This represents any data, including
-			 *   data ending in `?`: the data `d?` is written as `d??>`.
+			 * - The `?>` closer represents any data, including data ending
+			 *   in `?`, because parsing drops the `?` found directly before
+			 *   the closing `>`: the data `d?` is written as `d??>`.
 			 *
 			 * `get_modifiable_text()` finds the data within the raw syntax
-			 * of a pending update by applying these same rules.
+			 * of a pending update by reversing these rules.
 			 *
 			 * For example, setting `data?` on `<?target>` replaces the
 			 * final `>` with ` data??>`:
@@ -4014,15 +4004,12 @@ class WP_HTML_Tag_Processor {
 			 *
 			 * producing `<?target data??>`, which holds the data `data?`.
 			 */
-			$needs_separator = (
-				'' !== $plaintext_content &&
-				$this->text_starts_at === $this->tag_name_starts_at + $this->tag_name_length
-			);
+			$data_at = $this->tag_name_starts_at + $this->tag_name_length;
 
 			$this->lexical_updates['modifiable text'] = new WP_HTML_Text_Replacement(
-				$this->text_starts_at,
-				$token_end - $this->text_starts_at,
-				( $needs_separator ? ' ' : '' ) . $plaintext_content . '?>'
+				$data_at,
+				$this->token_starts_at + $this->token_length - $data_at,
+				" {$plaintext_content}?>"
 			);
 
 			return true;
