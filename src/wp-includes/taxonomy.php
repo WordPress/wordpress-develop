@@ -2049,7 +2049,7 @@ function wp_delete_object_term_relationships( $object_id, $taxonomies ) {
  *                           deletion of default Category. WP_Error if the taxonomy does not exist.
  * @phpstan-param non-empty-string $taxonomy
  * @phpstan-param string|array{
- *     default?: int|numeric-string,
+ *     default?: positive-int,
  *     force_default?: bool,
  * } $args
  * @phpstan-return bool|WP_Error|0
@@ -2446,7 +2446,7 @@ function wp_get_object_terms( $object_ids, $taxonomies, $args = array() ) {
  * @phpstan-param string|array{
  *     alias_of?: string,
  *     description?: string|null,
- *     parent?: int|numeric-string,
+ *     parent?: non-negative-int,
  *     slug?: string|null,
  *     ...
  * } $args
