@@ -377,8 +377,7 @@ function login_footer( $input_id = '' ) {
 				<form id="language-switcher" method="get">
 
 					<label for="language-switcher-locales">
-						<span class="dashicons dashicons-translation" aria-hidden="true"></span>
-						<?php _e( 'Language' ); ?>
+						<?php _e( 'Language' ); ?><span class="dashicons dashicons-translation" aria-hidden="true"></span>
 					</label>
 
 					<?php
