@@ -3988,7 +3988,7 @@ class WP_HTML_Tag_Processor {
 			if ( 0 !== strspn( $plaintext_content, " \t\f\r\n" ) ) {
 				_doing_it_wrong(
 					__METHOD__,
-					__( 'Processing instruction data cannot start with whitespace. Try ltrim( $data, " \t\f\r\n" ).' ),
+					__( 'Processing instruction data cannot start with whitespace. Try ltrim( $plaintext_content, " \t\f\r\n" ).' ),
 					'7.1.0'
 				);
 				return false;
