@@ -800,12 +800,10 @@ function wp_print_media_templates() {
 		<?php endforeach; ?>
 		<# } #>
 		<span class="setting" data-setting="caption">
-			<# if ( 'video' === data.type ) { #>
-			<label for="attachment-details-caption" class="name"><?php esc_html_e( 'Video Description' ); ?></label>
-			<# } else if ( 'image' === data.type ) { #>
+			<# if ( 'image' === data.type ) { #>
 			<label for="attachment-details-caption" class="name"><?php esc_html_e( 'Image Caption' ); ?></label>
 			<# } else { #>
-			<label for="attachment-details-caption" class="name"><?php esc_html_e( 'Caption' ); ?></label>
+			<label for="attachment-details-caption" class="name"><?php esc_html_e( 'Short Description' ); ?></label>
 			<# } #>
 			<textarea id="attachment-details-caption" {{ maybeReadOnly }}>{{ data.caption }}</textarea>
 		</span>
