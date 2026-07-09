@@ -2437,6 +2437,16 @@ function wp_get_object_terms( $object_ids, $taxonomies, $args = array() ) {
  *     @type int        $term_id          The new term ID.
  *     @type int|string $term_taxonomy_id The new term taxonomy ID. Can be a numeric string.
  * }
+ * @phpstan-param string|array{
+ *     alias_of?: string,
+ *     description?: string,
+ *     parent?: non-negative-int,
+ *     slug?: string,
+ * } $args
+ * @phpstan-return array{
+ *     term_id: int,
+ *     term_taxonomy_id: int|numeric-string,
+ * }|WP_Error
  */
 function wp_insert_term( $term, $taxonomy, $args = array() ) {
 	global $wpdb;
@@ -3218,7 +3228,7 @@ function wp_unique_term_slug( $slug, $term ) {
  *
  * @param int          $term_id  The ID of the term.
  * @param string       $taxonomy The taxonomy of the term.
- * @param array        $args {
+ * @param array|string $args {
  *     Optional. Array of arguments for updating a term.
  *
  *     @type string $alias_of    Slug of the term to make this term an alias of.
@@ -3229,6 +3239,16 @@ function wp_unique_term_slug( $slug, $term ) {
  * }
  * @return array|WP_Error An array containing the `term_id` and `term_taxonomy_id`,
  *                        WP_Error otherwise.
+ * @phpstan-param string|array{
+ *     alias_of?: string,
+ *     description?: string,
+ *     parent?: non-negative-int,
+ *     slug?: string,
+ * } $args
+ * @phpstan-return array{
+ *     term_id: int,
+ *     term_taxonomy_id: int,
+ * }|WP_Error
  */
 function wp_update_term( $term_id, $taxonomy, $args = array() ) {
 	global $wpdb;
