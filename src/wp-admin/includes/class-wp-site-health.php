@@ -3532,7 +3532,7 @@ class WP_Site_Health {
 	 *
 	 * @since 7.1.0
 	 *
-	 * @param array<string, int> $counts Aggregate counts.
+	 * @param mixed[] $counts Aggregate counts.
 	 */
 	public static function set_site_status_counts( array $counts ): void {
 		set_transient(
@@ -3677,7 +3677,7 @@ class WP_Site_Health {
 	 * @since 7.1.0
 	 *
 	 * @param string $transient Transient name.
-	 * @return array|null The decoded array, or null when nothing valid is cached.
+	 * @return mixed[]|null The decoded array, or null when nothing valid is cached.
 	 */
 	private static function read_status_cache( string $transient ): ?array {
 		$cached = get_transient( $transient );
@@ -3691,7 +3691,7 @@ class WP_Site_Health {
 	 *
 	 * @since 7.1.0
 	 *
-	 * @param array<string, int> $counts Raw counts that may be missing keys or hold non-integer values.
+	 * @param mixed[] $counts Raw counts that may be missing keys or hold non-integer values.
 	 * @return array The good, recommended, and critical counts.
 	 * @phpstan-return Test_Status_Counts
 	 */
