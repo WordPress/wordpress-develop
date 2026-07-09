@@ -2047,6 +2047,8 @@ function wp_delete_object_term_relationships( $object_id, $taxonomies ) {
  * }
  * @return bool|int|WP_Error True on success, false if term does not exist. Zero on attempted
  *                           deletion of default Category. WP_Error if the taxonomy does not exist.
+ * @phpstan-param non-empty-string $taxonomy
+ * @phpstan-return bool|WP_Error|0
  */
 function wp_delete_term( $term, $taxonomy, $args = array() ) {
 	global $wpdb;
