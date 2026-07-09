@@ -628,6 +628,15 @@ class WP_HTML_Tag_Processor {
 	private $token_length;
 
 	/**
+	 * Whether the current tag token has the self-closing flag.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @var bool
+	 */
+	private $has_self_closing_flag = false;
+
+	/**
 	 * Byte offset in input document where current tag name starts.
 	 *
 	 * Example:
@@ -1074,11 +1083,12 @@ class WP_HTML_Tag_Processor {
 		 * the closing tag to point to the opening of the special atomic
 		 * tag sequence.
 		 */
-		$tag_name_starts_at   = $this->tag_name_starts_at;
-		$tag_name_length      = $this->tag_name_length;
-		$tag_ends_at          = $this->token_starts_at + $this->token_length;
-		$attributes           = $this->attributes;
-		$duplicate_attributes = $this->duplicate_attributes;
+		$tag_name_starts_at    = $this->tag_name_starts_at;
+		$tag_name_length       = $this->tag_name_length;
+		$tag_ends_at           = $this->token_starts_at + $this->token_length;
+		$has_self_closing_flag = $this->has_self_closing_flag;
+		$attributes            = $this->attributes;
+		$duplicate_attributes  = $this->duplicate_attributes;
 
 		// Find the closing tag if necessary.
 		switch ( $tag_name ) {
@@ -1128,14 +1138,15 @@ class WP_HTML_Tag_Processor {
 		 * functions that skip the contents have moved all the internal cursors past
 		 * the inner content of the tag.
 		 */
-		$this->token_starts_at      = $was_at;
-		$this->token_length         = $this->bytes_already_parsed - $this->token_starts_at;
-		$this->text_starts_at       = $tag_ends_at;
-		$this->text_length          = $this->tag_name_starts_at - $this->text_starts_at;
-		$this->tag_name_starts_at   = $tag_name_starts_at;
-		$this->tag_name_length      = $tag_name_length;
-		$this->attributes           = $attributes;
-		$this->duplicate_attributes = $duplicate_attributes;
+		$this->token_starts_at       = $was_at;
+		$this->token_length          = $this->bytes_already_parsed - $this->token_starts_at;
+		$this->text_starts_at        = $tag_ends_at;
+		$this->text_length           = $this->tag_name_starts_at - $this->text_starts_at;
+		$this->tag_name_starts_at    = $tag_name_starts_at;
+		$this->tag_name_length       = $tag_name_length;
+		$this->has_self_closing_flag = $has_self_closing_flag;
+		$this->attributes            = $attributes;
+		$this->duplicate_attributes  = $duplicate_attributes;
 
 		return true;
 	}
@@ -1206,7 +1217,7 @@ class WP_HTML_Tag_Processor {
 				return;
 			}
 
-			$name = str_replace( "\x00", "\u{FFFD}", substr( $class, $at, $length ) );
+			$name = substr( $class, $at, $length );
 			if ( $is_quirks ) {
 				$name = strtolower( $name );
 			}
@@ -2140,10 +2151,31 @@ class WP_HTML_Tag_Processor {
 		$doc_length = strlen( $this->html );
 
 		// Skip whitespace and slashes.
-		$this->bytes_already_parsed += strspn( $this->html, " \t\f\r\n/", $this->bytes_already_parsed );
+		$skipped_length              = strspn( $this->html, " \t\f\r\n/", $this->bytes_already_parsed );
+		$this->bytes_already_parsed += $skipped_length;
 		if ( $this->bytes_already_parsed >= $doc_length ) {
 			$this->parser_state = self::STATE_INCOMPLETE_INPUT;
 
+			return false;
+		}
+
+		/**
+		 * This block serves two purposes:
+		 *
+		 * - A fast path for common tag-ending `>`.
+		 * - A check for the self-closing flag which must appear as `/>`.
+		 *
+		 * In a tag like `<g attr=/>`, `/` is the attribute value, not a self-closing
+		 * flag. When it appears in this form, the parser has already consumed the
+		 * attribute value, `$skipped_length` is 0, and this checks below correctly
+		 * identify whether there is a self-closing flag.
+		 *
+		 * Note: Both start and end tags may have the self-closing flag.
+		 */
+		if ( '>' === $this->html[ $this->bytes_already_parsed ] ) {
+			if ( $skipped_length > 0 && '/' === $this->html[ $this->bytes_already_parsed - 1 ] ) {
+				$this->has_self_closing_flag = true;
+			}
 			return false;
 		}
 
@@ -2229,8 +2261,13 @@ class WP_HTML_Tag_Processor {
 		 *     - HTML 5 spec
 		 *
 		 * @see https://html.spec.whatwg.org/multipage/syntax.html#attributes-2:ascii-case-insensitive
+		 *
+		 * The tokenizer replaces U+0000 NULL bytes in
+		 * attribute names with U+FFFD.
+		 *
+		 * @see https://html.spec.whatwg.org/#attribute-name-state
 		 */
-		$comparable_name = strtolower( $attribute_name );
+		$comparable_name = strtolower( str_replace( "\x00", "\u{FFFD}", $attribute_name ) );
 
 		// If an attribute is listed many times, only use the first declaration and ignore the rest.
 		if ( ! isset( $this->attributes[ $comparable_name ] ) ) {
@@ -2324,6 +2361,7 @@ class WP_HTML_Tag_Processor {
 
 		$this->token_starts_at          = null;
 		$this->token_length             = null;
+		$this->has_self_closing_flag    = false;
 		$this->tag_name_starts_at       = null;
 		$this->tag_name_length          = null;
 		$this->text_starts_at           = 0;
@@ -2356,13 +2394,7 @@ class WP_HTML_Tag_Processor {
 		}
 
 		if ( false === $existing_class && isset( $this->attributes['class'] ) ) {
-			$existing_class = WP_HTML_Decoder::decode_attribute(
-				substr(
-					$this->html,
-					$this->attributes['class']->value_starts_at,
-					$this->attributes['class']->value_length
-				)
-			);
+			$existing_class = $this->get_decoded_attribute_value( $this->attributes['class'] );
 		}
 
 		if ( false === $existing_class ) {
@@ -2790,7 +2822,7 @@ class WP_HTML_Tag_Processor {
 		 * attribute values. If any exist, those enqueued class changes must first be flushed out
 		 * into an attribute value update.
 		 */
-		if ( 'class' === $name ) {
+		if ( 'class' === $comparable ) {
 			$this->class_name_updates_to_attributes_updates();
 		}
 
@@ -2821,8 +2853,28 @@ class WP_HTML_Tag_Processor {
 			return true;
 		}
 
-		$raw_value = substr( $this->html, $attribute->value_starts_at, $attribute->value_length );
+		return $this->get_decoded_attribute_value( $attribute );
+	}
 
+	/**
+	 * Decode an attribute value from source.
+	 *
+	 * This method applies the following transformations that the processor defers:
+	 *   - Normalize newlines  (input stream preprocessing)
+	 *   - Replace NULL bytes (tokenization)
+	 *   - Decode character references (tokenization)
+	 *
+	 * @since 7.1.0
+	 * @ignore
+	 *
+	 * @param WP_HTML_Attribute_Token $attribute Attribute token from the input document.
+	 * @return string Decoded attribute value.
+	 */
+	private function get_decoded_attribute_value( WP_HTML_Attribute_Token $attribute ): string {
+		$raw_value = substr( $this->html, $attribute->value_starts_at, $attribute->value_length );
+		$raw_value = str_replace( "\r\n", "\n", $raw_value );
+		$raw_value = str_replace( "\r", "\n", $raw_value );
+		$raw_value = str_replace( "\x00", "\u{FFFD}", $raw_value );
 		return WP_HTML_Decoder::decode_attribute( $raw_value );
 	}
 
@@ -2903,7 +2955,7 @@ class WP_HTML_Tag_Processor {
 			return null;
 		}
 
-		$tag_name = substr( $this->html, $this->tag_name_starts_at, $this->tag_name_length );
+		$tag_name = str_replace( "\x00", "\u{FFFD}", substr( $this->html, $this->tag_name_starts_at, $this->tag_name_length ) );
 
 		if ( self::STATE_MATCHED_TAG === $this->parser_state ) {
 			return strtoupper( $tag_name );
@@ -3332,15 +3384,7 @@ class WP_HTML_Tag_Processor {
 			return false;
 		}
 
-		/*
-		 * The self-closing flag is the solidus at the _end_ of the tag, not the beginning.
-		 *
-		 * Example:
-		 *
-		 *     <figure />
-		 *             ^ this appears one character before the end of the closing ">".
-		 */
-		return '/' === $this->html[ $this->token_starts_at + $this->token_length - 2 ];
+		return $this->has_self_closing_flag;
 	}
 
 	/**
@@ -4773,14 +4817,14 @@ class WP_HTML_Tag_Processor {
 		}
 
 		// Does the tag name match the requested tag name in a case-insensitive manner?
-		if (
-			isset( $this->sought_tag_name ) &&
-			(
-				strlen( $this->sought_tag_name ) !== $this->tag_name_length ||
-				0 !== substr_compare( $this->html, $this->sought_tag_name, $this->tag_name_starts_at, $this->tag_name_length, true )
-			)
-		) {
-			return false;
+		if ( isset( $this->sought_tag_name ) ) {
+			$tag_name = $this->get_tag();
+			if (
+				strlen( $this->sought_tag_name ) !== strlen( $tag_name ) ||
+				0 !== substr_compare( $tag_name, $this->sought_tag_name, 0, null, true )
+			) {
+				return false;
+			}
 		}
 
 		if ( null !== $this->sought_class_name && ! $this->has_class( $this->sought_class_name ) ) {
