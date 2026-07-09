@@ -64,66 +64,64 @@ class WP_HTML_Decoder {
 			}
 
 			/**
-			 * A character reference in the haystack decodes into a chunk of one
-			 * or more bytes. The chunk is atomic on the haystack side — decoding
-			 * produces all of it at once and the raw cursor can only skip the
-			 * entire reference — but this is a prefix test, so the search text
-			 * may legitimately end part-way through the chunk. Only the overlapping
-			 * bytes can be compared.
+			 * At this point `$next_chunk` is non-null, because the two checks above
+			 * returned for every null case, and a decoded chunk is never empty. The
+			 * chunk is atomic on the haystack side, since the raw cursor can only skip
+			 * the entire reference. But this is a prefix test, so the search text may
+			 * legitimately end part-way through the chunk. Only the overlapping bytes
+			 * can be compared: the lesser of the chunk length and the remaining
+			 * search-text length. Under `ascii-case-insensitive` matching, those
+			 * overlapping bytes are compared with ASCII case folding.
 			 *
-			 * For example, `&fjlig;` (7 bytes) decodes into the chunk
-			 * `fj` (2 bytes).
+			 * For example, consider different searches that have reached the character
+			 * reference `&fjlig;` (7 bytes), decoded into the 2-byte chunk `fj`:
 			 *
-			 *                       haystack at
+			 *                       $haystack_at
 			 *                       │
-			 *                       │      ┌─after matching "fj" continue here
-			 *                       │      │ (+ $token_length / 7 bytes)
+			 *                       │      ┌─after matching `fj` continue here
+			 *                       │      │ (advance by $token_length, 7 bytes)
 			 *                       ↓      ↓
 			 *     Haystack:    start&fjlig;ord
 			 *                       ╰──┬──╯
-			 *                          fj - decoded "&fjlig;" character reference chunk
+			 *                          fj - decoded `&fjlig;` character reference chunk
 			 *                               will be tested against the search text.
 			 *
-			 *                       search at
+			 *                       $search_at
 			 *                       │
-			 *                       │ ┌─after matching "fj" continue here
-			 *                       │ │ (+ $match_length / 2 bytes)
+			 *                       │ ┌─after matching `fj` continue here
+			 *                       │ │ (advance by $match_length, 2 bytes)
 			 *                       ↓ ↓
 			 *     Search A:    startfjord      min( 2, 5 ) = 2: `fj` matches,
-			 *                                  continue scanning at `o`.
+			 *                                  continue matching at `o`.
 			 *
-			 *                       search at
+			 *                       $search_at
 			 *                       ↓
-			 *     Search B:    startf          min( 2, 1 ) = 1: `f` matches and
-			 *                                  the search text is exhausted, so
-			 *                                  the prefix is confirmed.
+			 *     Search B:    startf          min( 2, 1 ) = 1: `f` matches and the
+			 *                                  search text is exhausted, so the
+			 *                                  prefix is confirmed.
 			 *
-			 *                       search at
+			 *                       $search_at
 			 *                       ↓
 			 *     Search C:    startfr         min( 2, 2 ) = 2: `fj` differs
 			 *                                  from `fr`, no match is possible.
 			 *
-			 * The comparison must be limited to the overlap: the smaller of the chunk
-			 * length and the remaining search text length. Relying exclusively on
-			 * either length leads to false negatives:
+			 * Taking the `min()` is required in both directions. Search A fails if the
+			 * comparison length comes from the search text, and Search B fails if it
+			 * comes from the chunk.
 			 *
-			 *     // Search A: remaining search text is longer than the decoded chunk.
-			 *     // Using length 5 (`$search_length - $search_at`) would cause a false negative:
-			 *     substr_compare( 'startfjord', 'fj', 5, 5 ); // non-zero
-			 *     // Using length 2 (`strlen( $next_chunk )`) matches correctly:
-			 *     substr_compare( 'startfjord', 'fj', 5, 2 ); // 0
+			 * Chunks are byte sequences, not characters. `&fjlig;` is unusual in
+			 * decoding to two ASCII characters; most multi-byte chunks are a single
+			 * non-ASCII character, e.g. `&copy;` decodes into the two bytes of `©`.
+			 * The search text may end between those bytes, just as it ends inside the
+			 * chunk in Search B: `attribute_starts_with( '&copy;x', "\xC2" )` is true
+			 * because `"\xC2"` is a byte-prefix of the decoded value.
 			 *
-			 *     // Search B: remaining search text is shorter than the decoded chunk.
-			 *     // Using length 2 (`strlen( $next_chunk )`) would cause a false negative:
-			 *     substr_compare( 'startf', 'fj', 5, 2 ); // non-zero
-			 *     // Using length 1 (`$search_length - $search_at`) matches correctly:
-			 *     substr_compare( 'startf', 'fj', 5, 1 ); // 0
-			 *
-			 * After a match, each cursor must advance by its own measure — the raw
-			 * reference and its decoded chunk have unrelated lengths (7 and 2 above):
-			 * `$haystack_at` skips the whole raw reference (`$token_length`) while
-			 * `$search_at` advances only by the decoded bytes matched (`$match_length`).
-			 * A match that exhausts the search text (Search B) ends the loop with
+			 * After a match, each cursor advances by its own measure, because the raw
+			 * reference and its decoded chunk have unrelated lengths (7 and 2 above).
+			 * `$haystack_at` skips the whole raw reference (`$token_length`, which
+			 * `read_character_reference()` set by reference), while `$search_at`
+			 * advances only by the decoded bytes matched (`$match_length`). A match
+			 * that exhausts the search text (Search B) ends the loop with
 			 * `$search_at === $search_length`, which the final return reports as success.
 			 */
 			$match_length = min( strlen( $next_chunk ), $search_length - $search_at );
@@ -433,7 +431,7 @@ class WP_HTML_Decoder {
 
 		$after_name = $name_at + $name_length;
 
-		/**
+		/*
 		 * For historical reasons, a matched named character reference is left as literal
 		 * text (its decoded replacement is not used) when all of the following hold:
 		 *
