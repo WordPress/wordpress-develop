@@ -3246,7 +3246,7 @@ function wp_unique_term_slug( $slug, $term ) {
  * @phpstan-param array{
  *     alias_of?: string,
  *     description?: string,
- *     parent?: int|numeric-string,
+ *     parent?: non-negative-int,
  *     slug?: string|null,
  *     ...
  * } $args
