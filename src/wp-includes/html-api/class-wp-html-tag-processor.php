@@ -935,7 +935,7 @@ class WP_HTML_Tag_Processor {
 	 *  - a text node - the plaintext inside tags.
 	 *  - an HTML comment.
 	 *  - a DOCTYPE declaration.
-	 *  - a processing instruction, e.g. `<?wp-bit {"just": "kidding"}?>`.
+	 *  - an HTML processing instruction, e.g. `<?pi …data?>`.
 	 *
 	 * @since 6.5.0
 	 * @since 6.7.0 Recognizes CDATA sections within foreign content.
