@@ -3242,7 +3242,7 @@ function wp_unique_term_slug( $slug, $term ) {
  * }
  * @return array|WP_Error An array containing the `term_id` and `term_taxonomy_id`,
  *                        WP_Error otherwise.
- * @phpstan-param string|array{
+ * @phpstan-param array{
  *     alias_of?: string,
  *     description?: string,
  *     parent?: non-negative-int,
