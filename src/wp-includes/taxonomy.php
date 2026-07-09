@@ -2444,6 +2444,7 @@ function wp_get_object_terms( $object_ids, $taxonomies, $args = array() ) {
  *     description?: string,
  *     parent?: non-negative-int,
  *     slug?: string,
+ *     ...
  * } $args
  * @phpstan-return array{
  *     term_id: int,
@@ -3247,6 +3248,7 @@ function wp_unique_term_slug( $slug, $term ) {
  *     description?: string,
  *     parent?: non-negative-int,
  *     slug?: string,
+ *     ...
  * } $args
  * @phpstan-return array{
  *     term_id: int,
