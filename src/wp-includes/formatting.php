@@ -5823,6 +5823,14 @@ function sanitize_trackback_urls( $to_ping ) {
  *
  * @param string|array $value String or array of data to slash.
  * @return string|array Slashed `$value`, in the same type as supplied.
+ *
+ * @phpstan-template T
+ * @phpstan-param T $value
+ * @phpstan-return (
+ *     $value is mixed[] ? mixed[] : (
+ *         $value is string ? string : T
+ *     )
+ * )
  */
 function wp_slash( $value ) {
 	if ( is_array( $value ) ) {
