@@ -3047,7 +3047,6 @@ function wp_get_inline_script_tag( $data, $attributes = array() ) {
 		$processor->set_attribute( $name, $value ?? true );
 	}
 
-	// `set_modifiable_text()` explains the rejection through `_doing_it_wrong()`.
 	if ( ! $processor->set_modifiable_text( $data ) ) {
 		return '';
 	}
