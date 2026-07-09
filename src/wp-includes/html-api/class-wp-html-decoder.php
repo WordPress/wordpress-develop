@@ -17,6 +17,11 @@ class WP_HTML_Decoder {
 	 * of how it might be encoded in HTML. For instance, `http:` could be represented as `http:`
 	 * or as `http&colon;` or as `&#x68;ttp:` or as `h&#116;tp&colon;`, or in many other ways.
 	 *
+	 * This is equivalent to decoding the attribute value and comparing the leading bytes of
+	 * the result against the search text, but it avoids allocating the decoded value. The
+	 * comparison is byte-oriented, so the search text may end part-way through a decoded
+	 * character reference, and even part-way through a multi-byte character.
+	 *
 	 * Example:
 	 *
 	 *     $value = 'http&colon;//wordpress.org/';
