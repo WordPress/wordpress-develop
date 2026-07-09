@@ -2441,8 +2441,8 @@ function wp_get_object_terms( $object_ids, $taxonomies, $args = array() ) {
  * }
  * @phpstan-param string|array{
  *     alias_of?: string,
- *     description?: string,
- *     parent?: non-negative-int,
+ *     description?: string|null,
+ *     parent?: int|numeric-string,
  *     slug?: string,
  *     ...
  * } $args
