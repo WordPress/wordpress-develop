@@ -1,9 +1,9 @@
 <?php
 /**
- * Tests for _wp_connectors_sanitize_application_password_credentials().
+ * Tests for wp_connectors_sanitize_application_password_credentials().
  *
  * @group connectors
- * @covers ::_wp_connectors_sanitize_application_password_credentials
+ * @covers ::wp_connectors_sanitize_application_password_credentials
  */
 class Tests_Connectors_WpConnectorsSanitizeApplicationPasswordCredentials extends WP_UnitTestCase {
 

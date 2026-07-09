@@ -161,7 +161,7 @@ class Tests_Connectors_WpConnectorsGetConnectorScriptModuleData extends WP_UnitT
 	 * @ticket 64850
 	 */
 	public function test_malformed_environment_variable_credentials_fall_back_to_database(): void {
-		$this->setExpectedIncorrectUsage( '_wp_connectors_get_application_password_credentials' );
+		$this->setExpectedIncorrectUsage( 'wp_connectors_get_application_password_credentials' );
 
 		$this->register_connector( array( 'env_var_name' => self::CREDENTIALS_ENV_VAR_NAME ) );
 		putenv( self::CREDENTIALS_ENV_VAR_NAME . '=missing-a-separator' );
@@ -184,7 +184,7 @@ class Tests_Connectors_WpConnectorsGetConnectorScriptModuleData extends WP_UnitT
 	 * @ticket 64850
 	 */
 	public function test_malformed_environment_variable_credentials_without_fallback_are_not_connected(): void {
-		$this->setExpectedIncorrectUsage( '_wp_connectors_get_application_password_credentials' );
+		$this->setExpectedIncorrectUsage( 'wp_connectors_get_application_password_credentials' );
 
 		$this->register_connector( array( 'env_var_name' => self::CREDENTIALS_ENV_VAR_NAME ) );
 		putenv( self::CREDENTIALS_ENV_VAR_NAME . '=missing-a-separator' );

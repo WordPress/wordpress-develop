@@ -480,7 +480,7 @@ function _wp_connectors_get_api_key_source( string $setting_name, string $env_va
  * @return array{username: string, password: string} Parsed credentials. Both values
  *                                                   are empty when the string is malformed.
  */
-function _wp_connectors_parse_application_password_credentials( string $value ): array {
+function wp_connectors_parse_application_password_credentials( string $value ): array {
 	$separator = strpos( $value, ':' );
 	// Trim so surrounding whitespace or a trailing newline (common when the
 	// value comes from a file or `.env`) does not become part of the credentials.
@@ -519,13 +519,13 @@ function _wp_connectors_parse_application_password_credentials( string $value ):
  *                                                                   their source: 'env', 'constant',
  *                                                                   'database', or 'none'.
  */
-function _wp_connectors_get_application_password_credentials( array $auth ): array {
+function wp_connectors_get_application_password_credentials( array $auth ): array {
 	// Check environment variable first.
 	$env_var_name = $auth['env_var_name'] ?? '';
 	if ( '' !== $env_var_name ) {
 		$env_value = getenv( $env_var_name );
 		if ( false !== $env_value && '' !== $env_value ) {
-			$credentials = _wp_connectors_parse_application_password_credentials( $env_value );
+			$credentials = wp_connectors_parse_application_password_credentials( $env_value );
 			if ( '' !== $credentials['username'] && '' !== $credentials['password'] ) {
 				$credentials['source'] = 'env';
 				return $credentials;
@@ -536,7 +536,7 @@ function _wp_connectors_get_application_password_credentials( array $auth ): arr
 				sprintf(
 					/* translators: %s: Environment variable name. */
 					__( 'The %s environment variable must contain application password credentials in "username:password" format.' ),
-					$env_var_name
+					esc_html( $env_var_name )
 				),
 				'7.1.0'
 			);
@@ -548,7 +548,7 @@ function _wp_connectors_get_application_password_credentials( array $auth ): arr
 	if ( '' !== $constant_name && defined( $constant_name ) ) {
 		$const_value = constant( $constant_name );
 		if ( is_string( $const_value ) && '' !== $const_value ) {
-			$credentials = _wp_connectors_parse_application_password_credentials( $const_value );
+			$credentials = wp_connectors_parse_application_password_credentials( $const_value );
 			if ( '' !== $credentials['username'] && '' !== $credentials['password'] ) {
 				$credentials['source'] = 'constant';
 				return $credentials;
@@ -559,7 +559,7 @@ function _wp_connectors_get_application_password_credentials( array $auth ): arr
 				sprintf(
 					/* translators: %s: PHP constant name. */
 					__( 'The %s constant must contain application password credentials in "username:password" format.' ),
-					$constant_name
+					esc_html( $constant_name )
 				),
 				'7.1.0'
 			);
@@ -638,7 +638,7 @@ function _wp_connectors_is_ai_api_key_valid( string $key, string $provider_id ):
  *                       `sanitize_option_{$option}` filter name when omitted.
  * @return array{username: string, password: string} Sanitized credentials.
  */
-function _wp_connectors_sanitize_application_password_credentials( $value, string $option = '' ): array {
+function wp_connectors_sanitize_application_password_credentials( $value, string $option = '' ): array {
 	if ( ! is_array( $value ) ) {
 		$value = array();
 	}
@@ -836,7 +836,7 @@ function _wp_register_default_connector_settings(): void {
 						),
 					),
 					'sanitize_callback' => static function ( $value ) use ( $setting_name ) {
-						return _wp_connectors_sanitize_application_password_credentials( $value, $setting_name );
+						return wp_connectors_sanitize_application_password_credentials( $value, $setting_name );
 					},
 				)
 			);
@@ -927,7 +927,7 @@ function _wp_connectors_get_connector_script_module_data( array $data ): array {
 				$auth_out['isConnected'] = 'none' !== $key_source;
 			}
 		} elseif ( 'application_password' === $auth['method'] ) {
-			$credentials = _wp_connectors_get_application_password_credentials( $auth );
+			$credentials = wp_connectors_get_application_password_credentials( $auth );
 
 			$auth_out['settingName']    = $auth['setting_name'] ?? '';
 			$auth_out['credentialsUrl'] = $auth['credentials_url'] ?? null;

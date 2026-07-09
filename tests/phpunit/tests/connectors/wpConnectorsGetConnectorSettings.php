@@ -87,7 +87,7 @@ class Tests_Connectors_WpGetConnectors extends WP_UnitTestCase {
 			$connector = wp_get_connectors()[ $connector_id ];
 
 			$this->assertSame( 'application_password', $connector['authentication']['method'] );
-			$this->assertSame( 'connectors_content_source_remote_site_credentials', $connector['authentication']['setting_name'] );
+			$this->assertSame( 'connectors_content_source_remote_site_application_password', $connector['authentication']['setting_name'] );
 		} finally {
 			if ( wp_is_connector_registered( $connector_id ) ) {
 				WP_Connector_Registry::get_instance()->unregister( $connector_id );

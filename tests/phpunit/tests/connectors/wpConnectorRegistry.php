@@ -141,7 +141,7 @@ class Tests_Connectors_WpConnectorRegistry extends WP_UnitTestCase {
 
 		$this->assertSame( 'application_password', $result['authentication']['method'] );
 		$this->assertSame( 'https://example.com/profile.php', $result['authentication']['credentials_url'] );
-		$this->assertSame( 'connectors_test_type_remote_site_credentials', $result['authentication']['setting_name'] );
+		$this->assertSame( 'connectors_test_type_remote_site_application_password', $result['authentication']['setting_name'] );
 	}
 
 	/**

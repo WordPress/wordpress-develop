@@ -151,7 +151,7 @@ class Tests_Connectors_WpRegisterDefaultConnectorSettings extends WP_UnitTestCas
 					'password' => '',
 				),
 				'show_in_rest'      => false,
-				'sanitize_callback' => '_wp_connectors_sanitize_application_password_credentials',
+				'sanitize_callback' => 'wp_connectors_sanitize_application_password_credentials',
 			)
 		);
 
