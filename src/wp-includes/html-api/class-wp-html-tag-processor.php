@@ -4000,24 +4000,9 @@ class WP_HTML_Tag_Processor {
 			 * region into a fixed form: a separating space, the data, and
 			 * the `?>` closer.
 			 *
-			 * - The space separates the data from the target, which would
-			 *   otherwise merge with data in syntax like `<?target?>`.
-			 *
-			 * - The `?>` closer represents any data, including data ending
-			 *   in `?`, because parsing drops the `?` found directly before
-			 *   the closing `>`: the data `d?` is written as `d??>`.
-			 *
-			 * `get_modifiable_text()` finds the data within the raw syntax
-			 * of a pending update by reversing these rules.
-			 *
-			 * For example, setting `data?` on `<?target>` replaces the
-			 * final `>` with ` data??>`:
-			 *
-			 *     <?target>
-			 *             ┬
-			 *             └─ replace `>` with ` data??>`
-			 *
-			 * producing `<?target data??>`, which holds the data `data?`.
+			 * `get_modifiable_text()` performs necessary parsing to
+			 * return the correct processing instruction data based
+			 * on the modifiable text lexical update.
 			 */
 			$data_at = $this->tag_name_starts_at + $this->tag_name_length;
 
