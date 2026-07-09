@@ -717,6 +717,11 @@ class wp_xmlrpc_server extends IXR_Server {
 			return $this->error;
 		}
 
+		if ( ! is_string( $args[0] ) || ! is_string( $args[1] ) ) {
+			$this->error = new IXR_Error( 400, __( 'Invalid arguments passed to this XML-RPC method.  Requires two strings.' ) );
+			return $this->error;
+		}
+
 		// If this isn't on WPMU then just use blogger_getUsersBlogs().
 		if ( ! is_multisite() ) {
 			array_unshift( $args, 1 );
