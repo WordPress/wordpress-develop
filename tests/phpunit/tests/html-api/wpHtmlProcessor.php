@@ -310,9 +310,9 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 			'Normative comment'              => array( '<!-- comment -->' ),
 			'Comment with invalid closing'   => array( '<!-- comment --!>' ),
 			'CDATA Section lookalike'        => array( '<![CDATA[ comment ]]>' ),
-			'Processing Instruction'         => array( '<?ok comment ?>' ),
+			'Processing Instruction'         => array( '<?ok pi ?>' ),
 			'Bogus PI-lookalike xml comment' => array( '<?xml version="1.0"?>' ),
-			'Bogus PI-lookalike comment'     => array( '<?🔥?>' ),
+			'Bogus comment'                  => array( '<?🔥?>' ),
 			'Funky comment'                  => array( '<//wp:post-meta key=isbn>' ),
 			'Text node'                      => array( 'Trombone' ),
 		);
