@@ -45,6 +45,19 @@ class Tests_HtmlApi_WpHtmlProcessor_Serialize extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensures that SELECTEDCONTENT is parsed like an ordinary element.
+	 *
+	 * @ticket 63736
+	 */
+	public function test_selectedcontent_is_not_unsupported() {
+		$this->assertSame(
+			WP_HTML_Processor::normalize( '<select><button><selectedcontent></button><option selected>Y' ),
+			'<select><button><selectedcontent></selectedcontent></button><option selected>Y</option></select>',
+			'Should not bail on SELECTEDCONTENT when selected OPTION cloning would be needed.'
+		);
+	}
+
+	/**
 	 * Ensures that boolean attributes remain boolean and do not gain values.
 	 *
 	 * @ticket 62036
