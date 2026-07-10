@@ -772,14 +772,14 @@ class WP_Posts_List_Table extends WP_List_Table {
 			$sortables = array(
 				'title'    => array( 'title', false, __( 'Title' ), $title_orderby_text, 'asc' ),
 				'parent'   => array( 'parent', false ),
-				'comments' => array( 'comment_count', false, __( 'Comments' ), __( 'Table ordered by Comments.' ) ),
+				'comments' => array( 'comment_count', true, __( 'Comments' ), __( 'Table ordered by Comments.' ) ),
 				'date'     => array( 'date', true, __( 'Date' ), __( 'Table ordered by Date.' ) ),
 			);
 		} else {
 			$sortables = array(
 				'title'    => array( 'title', false, __( 'Title' ), __( 'Table ordered by Title.' ) ),
 				'parent'   => array( 'parent', false ),
-				'comments' => array( 'comment_count', false, __( 'Comments' ), __( 'Table ordered by Comments.' ) ),
+				'comments' => array( 'comment_count', true, __( 'Comments' ), __( 'Table ordered by Comments.' ) ),
 				'date'     => array( 'date', true, __( 'Date' ), __( 'Table ordered by Date.' ), 'desc' ),
 			);
 		}
