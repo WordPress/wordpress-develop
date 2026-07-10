@@ -45,6 +45,19 @@ class Tests_HtmlApi_WpHtmlProcessor_Serialize extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensures that SELECTEDCONTENT is parsed like an ordinary element.
+	 *
+	 * @ticket 63736
+	 */
+	public function test_selectedcontent_is_not_unsupported() {
+		$this->assertSame(
+			WP_HTML_Processor::normalize( '<select><button><selectedcontent></button><option selected>Y' ),
+			'<select><button><selectedcontent></selectedcontent></button><option selected>Y</option></select>',
+			'Should not bail on SELECTEDCONTENT when selected OPTION cloning would be needed.'
+		);
+	}
+
+	/**
 	 * Ensures that boolean attributes remain boolean and do not gain values.
 	 *
 	 * @ticket 62036
@@ -382,9 +395,68 @@ class Tests_HtmlApi_WpHtmlProcessor_Serialize extends WP_UnitTestCase {
 			'CDATA look-alike'                      => array( '<!', '[CDATA[inside]]', '>' ),
 			'Immediately-closed markup instruction' => array( '<!', '?', '>' ),
 			'Warning Symbol'                        => array( '<!', '', '>' ),
-			'PHP block look-alike'                  => array( '<', '?php foo(); ?', '>' ),
+			'PHP short echo tag'                    => array( '<', '?= "Hello" ?', '>' ),
 			'Funky comment'                         => array( '</', '%display-name', '>' ),
 			'XML Processing Instruction look-alike' => array( '<', '?xml foo ', '>' ),
+		);
+	}
+
+	/**
+	 * Ensures that processing instructions are serialized in their normative form.
+	 *
+	 * Note that the serialized form separates the target from the data with a
+	 * single space and always terminates with `?>`, regardless of the original
+	 * syntax. The closer's `?` is dropped on parse, so this form represents any
+	 * data, including data ending in `?`.
+	 *
+	 * @ticket 61530
+	 *
+	 * @dataProvider data_processing_instructions
+	 *
+	 * @param string $html     Input containing a processing instruction.
+	 * @param string $expected Normative serialization of the input.
+	 */
+	public function test_serializes_processing_instructions( string $html, string $expected ): void {
+		$this->assertSame(
+			WP_HTML_Processor::normalize( $html ),
+			$expected,
+			'Should have serialized the processing instruction in its normative form.'
+		);
+	}
+
+	/**
+	 * Ensures that normalizing an already-normalized processing instruction does not change it.
+	 *
+	 * @ticket 61530
+	 *
+	 * @dataProvider data_processing_instructions
+	 *
+	 * @param string $html     Input containing a processing instruction.
+	 * @param string $expected Normative serialization of the input.
+	 */
+	public function test_processing_instruction_normalization_is_idempotent( string $html, string $expected ): void {
+		$this->assertSame(
+			$expected,
+			WP_HTML_Processor::normalize( $expected ),
+			'Normalizing an already-normalized processing instruction should not change it.'
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{0: string, 1: string}>
+	 */
+	public function data_processing_instructions(): array {
+		return array(
+			'PHP block'                     => array( '<?php foo(); ?>', '<?php foo(); ?>' ),
+			'Unclosed PHP block'            => array( '<?php foo(); >', '<?php foo(); ?>' ),
+			'Empty data'                    => array( '<?wp-bit?>', '<?wp-bit ?>' ),
+			'Whitespace-only data'          => array( '<?wp-bit   ?>', '<?wp-bit ?>' ),
+			'Data ending in question mark'  => array( '<?target data??>', '<?target data??>' ),
+			'Data of a lone question mark'  => array( '<?wp-bit ??>', '<?wp-bit ??>' ),
+			'Data with question mark runs'  => array( '<?wp-bit what?? news??>', '<?wp-bit what?? news??>' ),
+			'Question mark then whitespace' => array( '<?wp-bit sure? >', '<?wp-bit sure? ?>' ),
 		);
 	}
 
@@ -463,21 +535,30 @@ class Tests_HtmlApi_WpHtmlProcessor_Serialize extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Ensures that leading newlines in PRE, LISTING, and TEXTAREA elements are preserved upon normalization,
-	 * and that normalization is idempotent in these cases.
+	 * Ensures that leading newlines in PRE, LISTING, and TEXTAREA elements are normalized
+	 * according to their parsing namespace, and that normalization is idempotent in these cases.
 	 *
 	 * @ticket 64607
 	 *
 	 * @dataProvider data_provider_normalize_special_leading_newline_cases
 	 *
 	 * @param string $input    HTML input containing leading newlines in PRE, LISTING, or TEXTAREA elements.
-	 * @param string $expected Expected output after normalization, which should preserve leading newlines.
+	 * @param string $expected Expected exact output after normalization.
 	 */
 	public function test_normalize_special_leading_newline_handling( string $input, string $expected ) {
 		$normalized = WP_HTML_Processor::normalize( $input );
-		$this->assertEqualHTML( $expected, $normalized );
+
+		/*
+		 * Byte equality pins normalize()'s serialized form; HTML equality verifies
+		 * semantic equivalence. This distinction matters because HTML parsing ignores
+		 * one leading LF after PRE, LISTING, and TEXTAREA start tags.
+		 */
+		$this->assertSame( $expected, $normalized );
+		$this->assertEqualHTML( $input, $normalized );
+
 		$normalized_twice = WP_HTML_Processor::normalize( $normalized );
-		$this->assertEqualHTML( $expected, $normalized_twice );
+		$this->assertSame( $expected, $normalized_twice );
+		$this->assertEqualHTML( $normalized, $normalized_twice );
 	}
 
 	/**
@@ -653,13 +734,13 @@ class Tests_HtmlApi_WpHtmlProcessor_Serialize extends WP_UnitTestCase {
 	/**
 	 * Data provider.
 	 *
-	 * @return array[]
+	 * @return array<string, array{string, string}>
 	 */
-	public static function data_provider_normalize_special_leading_newline_cases() {
+	public static function data_provider_normalize_special_leading_newline_cases(): array {
 		return array(
 			'Leading newline in PRE'             => array(
 				"<pre>\nline 1\nline 2</pre>",
-				"<pre>line 1\nline 2</pre>",
+				"<pre>\nline 1\nline 2</pre>",
 			),
 			'Double leading newline in PRE'      => array(
 				"<pre>\n\nline 2\nline 3</pre>",
@@ -667,7 +748,7 @@ class Tests_HtmlApi_WpHtmlProcessor_Serialize extends WP_UnitTestCase {
 			),
 			'Multiple text nodes inside PRE'     => array(
 				"<pre>\nline 1<!--comment--> still line 1</pre>",
-				'<pre>line 1<!--comment--> still line 1</pre>',
+				"<pre>\nline 1<!--comment--> still line 1</pre>",
 			),
 			'Multiple text nodes inside PRE with leading newlines' => array(
 				"<pre>\n\nline 2<!--comment--> still line 2</pre>",
@@ -675,7 +756,7 @@ class Tests_HtmlApi_WpHtmlProcessor_Serialize extends WP_UnitTestCase {
 			),
 			'Leading newline in LISTING'         => array(
 				"<listing>\nline 1\nline 2</listing>",
-				"<listing>line 1\nline 2</listing>",
+				"<listing>\nline 1\nline 2</listing>",
 			),
 			'Double leading newline in LISTING'  => array(
 				"<listing>\n\nline 2\nline 3</listing>",
@@ -683,7 +764,7 @@ class Tests_HtmlApi_WpHtmlProcessor_Serialize extends WP_UnitTestCase {
 			),
 			'Multiple text nodes inside LISTING' => array(
 				"<listing>\nline 1<!--comment--> still line 1</listing>",
-				'<listing>line 1<!--comment--> still line 1</listing>',
+				"<listing>\nline 1<!--comment--> still line 1</listing>",
 			),
 			'Multiple text nodes inside LISTING with leading newlines' => array(
 				"<listing>\n\nline 2<!--comment--> still line 2</listing>",
@@ -691,11 +772,27 @@ class Tests_HtmlApi_WpHtmlProcessor_Serialize extends WP_UnitTestCase {
 			),
 			'Leading newline in TEXTAREA'        => array(
 				"<textarea>\nline 1\nline 2</textarea>",
-				"<textarea>line 1\nline 2</textarea>",
+				"<textarea>\nline 1\nline 2</textarea>",
 			),
 			'Double leading newline in TEXTAREA' => array(
 				"<textarea>\n\nline 2\nline 3</textarea>",
 				"<textarea>\n\nline 2\nline 3</textarea>",
+			),
+			'Foreign MathML TEXTAREA does not ignore leading newlines' => array(
+				'<math><textarea>X</textarea></math>',
+				'<math><textarea>X</textarea></math>',
+			),
+			'Foreign MathML TEXTAREA preserves leading newline' => array(
+				"<math><textarea>\nX</textarea></math>",
+				"<math><textarea>\nX</textarea></math>",
+			),
+			'Foreign SVG TEXTAREA does not ignore leading newlines' => array(
+				'<svg><textarea>X</textarea></svg>',
+				'<svg><textarea>X</textarea></svg>',
+			),
+			'Foreign SVG TEXTAREA preserves leading newline' => array(
+				"<svg><textarea>\nX</textarea></svg>",
+				"<svg><textarea>\nX</textarea></svg>",
 			),
 		);
 	}
