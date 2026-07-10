@@ -547,7 +547,11 @@ function _wp_connectors_rest_settings_dispatch( WP_REST_Response $response, WP_R
 		// On update, validate AI provider keys before masking.
 		// Non-AI connectors accept keys as-is; the service plugin handles its own validation.
 		if ( $is_update && is_string( $value ) && '' !== $value && 'ai_provider' === $connector_data['type'] ) {
-			if ( true !== _wp_connectors_is_ai_api_key_valid( $value, $connector_id ) ) {
+			/*
+			 * Discard the key only when validation explicitly reports it as invalid.
+			 * Any other result preserves the stored key.
+			 */
+			if ( false === _wp_connectors_is_ai_api_key_valid( $value, $connector_id ) ) {
 				update_option( $setting_name, '' );
 				$data[ $setting_name ] = '';
 				continue;
