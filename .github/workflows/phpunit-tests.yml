@@ -252,7 +252,7 @@ jobs:
         php: [ '7.4', '8.0', '8.4' ]
         db-type: [ 'mysql' ]
         db-version: [ '8.4' ]
-        phpunit-test-groups: [ 'html-api-html5lib-tests' ]
+        phpunit-test-groups: [ 'html-api-web-platform-tests' ]
         # A matrix value is needed in the 'name' directive for proper grouping in the GitHub UI.
         label: [ 'HTML API' ]
     with:
@@ -305,7 +305,7 @@ jobs:
           - php: '8.4'
             db-version: '9.7'
             db-type: 'mysql'
-            phpunit-test-groups: 'html-api-html5lib-tests'
+            phpunit-test-groups: 'html-api-web-platform-tests'
 
         exclude:
           # Exclude PHP versions that are not supported by the database versions.
