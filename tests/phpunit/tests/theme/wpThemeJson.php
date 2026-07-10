@@ -7108,6 +7108,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	/**
 	 * @ticket 61165
 	 * @ticket 61769
+	 * @ticket 65608
 	 *
 	 * @dataProvider data_process_blocks_custom_css
 	 *
@@ -7181,6 +7182,56 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 					'css'      => 'color: red; margin: auto; &.one{color: blue;} & .two{color: green;} &::before{color: yellow;} & ::before{color: purple;}  &.three::before{color: orange;} & .four::before{color: skyblue;}',
 				),
 				'expected' => ':root :where(.foo, .bar){color: red; margin: auto;}:root :where(.foo.one, .bar.one){color: blue;}:root :where(.foo .two, .bar .two){color: green;}:root :where(.foo, .bar)::before{color: yellow;}:root :where(.foo, .bar) ::before{color: purple;}:root :where(.foo.three, .bar.three)::before{color: orange;}:root :where(.foo .four, .bar .four)::before{color: skyblue;}',
+			),
+			// Non-string CSS input should be handled gracefully.
+			'null css'                     => array(
+				'input'    => array(
+					'selector' => '.foo',
+					'css'      => null,
+				),
+				'expected' => '',
+			),
+			'false css'                    => array(
+				'input'    => array(
+					'selector' => '.foo',
+					'css'      => false,
+				),
+				'expected' => '',
+			),
+			'true css'                     => array(
+				'input'    => array(
+					'selector' => '.foo',
+					'css'      => true,
+				),
+				'expected' => '',
+			),
+			'integer css'                  => array(
+				'input'    => array(
+					'selector' => '.foo',
+					'css'      => 123,
+				),
+				'expected' => '',
+			),
+			'float css'                    => array(
+				'input'    => array(
+					'selector' => '.foo',
+					'css'      => 1.5,
+				),
+				'expected' => '',
+			),
+			'array css'                    => array(
+				'input'    => array(
+					'selector' => '.foo',
+					'css'      => array( 'color: red;' ),
+				),
+				'expected' => '',
+			),
+			'object css'                   => array(
+				'input'    => array(
+					'selector' => '.foo',
+					'css'      => new stdClass(),
+				),
+				'expected' => '',
 			),
 		);
 	}
