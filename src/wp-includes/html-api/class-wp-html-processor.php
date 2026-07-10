@@ -1401,6 +1401,15 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				$html .= "<!--{$this->get_full_comment_text()}-->";
 				break;
 
+			/**
+			 * Processing instructions are serialized as `"<?" target " " data "?>"`.
+			 *
+			 * @link https://html.spec.whatwg.org/multipage/parsing.html#serialising-html-fragments
+			 */
+			case '#processing-instruction':
+				$html .= "<?{$this->get_tag()} {$this->get_modifiable_text()}?>";
+				break;
+
 			case '#cdata-section':
 				$html .= "<![CDATA[{$this->get_modifiable_text()}]]>";
 				break;
@@ -1561,10 +1570,12 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 
 			/*
 			 * > A comment token
+			 * > A processing instruction token
 			 */
 			case '#comment':
 			case '#funky-comment':
 			case '#presumptuous-tag':
+			case '#processing-instruction':
 				$this->insert_html_element( $this->state->current_token );
 				return true;
 
@@ -1627,10 +1638,12 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 
 			/*
 			 * > A comment token
+			 * > A processing instruction token
 			 */
 			case '#comment':
 			case '#funky-comment':
 			case '#presumptuous-tag':
+			case '#processing-instruction':
 				$this->insert_html_element( $this->state->current_token );
 				return true;
 
@@ -1732,10 +1745,12 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 
 			/*
 			 * > A comment token
+			 * > A processing instruction token
 			 */
 			case '#comment':
 			case '#funky-comment':
 			case '#presumptuous-tag':
+			case '#processing-instruction':
 				$this->insert_html_element( $this->state->current_token );
 				return true;
 
@@ -1831,10 +1846,12 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 
 			/*
 			 * > A comment token
+			 * > A processing instruction token
 			 */
 			case '#comment':
 			case '#funky-comment':
 			case '#presumptuous-tag':
+			case '#processing-instruction':
 				$this->insert_html_element( $this->state->current_token );
 				return true;
 
@@ -2157,10 +2174,12 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 
 			/*
 			 * > A comment token
+			 * > A processing instruction token
 			 */
 			case '#comment':
 			case '#funky-comment':
 			case '#presumptuous-tag':
+			case '#processing-instruction':
 				$this->insert_html_element( $this->state->current_token );
 				return true;
 
@@ -2317,6 +2336,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case '#comment':
 			case '#funky-comment':
 			case '#presumptuous-tag':
+			case '#processing-instruction':
 				$this->insert_html_element( $this->state->current_token );
 				return true;
 
@@ -3462,10 +3482,12 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 
 			/*
 			 * > A comment token
+			 * > A processing instruction token
 			 */
 			case '#comment':
 			case '#funky-comment':
 			case '#presumptuous-tag':
+			case '#processing-instruction':
 				$this->insert_html_element( $this->state->current_token );
 				return true;
 
@@ -3783,10 +3805,12 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 
 			/*
 			 * > A comment token
+			 * > A processing instruction token
 			 */
 			case '#comment':
 			case '#funky-comment':
 			case '#presumptuous-tag':
+			case '#processing-instruction':
 				$this->insert_html_element( $this->state->current_token );
 				return true;
 
@@ -4199,12 +4223,14 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			/*
 			 * > A character token
 			 * > A comment token
+			 * > A processing instruction token
 			 * > A DOCTYPE token
 			 */
 			case '#text':
 			case '#comment':
 			case '#funky-comment':
 			case '#presumptuous-tag':
+			case '#processing-instruction':
 			case 'html':
 				return $this->step_in_body();
 
@@ -4340,10 +4366,12 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 
 			/*
 			 * > A comment token
+			 * > A processing instruction token
 			 */
 			case '#comment':
 			case '#funky-comment':
 			case '#presumptuous-tag':
+			case '#processing-instruction':
 				$this->bail( 'Content outside of BODY is unsupported.' );
 				break;
 
@@ -4433,10 +4461,12 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 
 			/*
 			 * > A comment token
+			 * > A processing instruction token
 			 */
 			case '#comment':
 			case '#funky-comment':
 			case '#presumptuous-tag':
+			case '#processing-instruction':
 				$this->insert_html_element( $this->state->current_token );
 				return true;
 
@@ -4553,10 +4583,12 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 
 			/*
 			 * > A comment token
+			 * > A processing instruction token
 			 */
 			case '#comment':
 			case '#funky-comment':
 			case '#presumptuous-tag':
+			case '#processing-instruction':
 				$this->insert_html_element( $this->state->current_token );
 				return true;
 
@@ -4623,10 +4655,12 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		switch ( $op ) {
 			/*
 			 * > A comment token
+			 * > A processing instruction token
 			 */
 			case '#comment':
 			case '#funky-comment':
 			case '#presumptuous-tag':
+			case '#processing-instruction':
 				$this->bail( 'Content outside of HTML is unsupported.' );
 				break;
 
@@ -4687,10 +4721,12 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		switch ( $op ) {
 			/*
 			 * > A comment token
+			 * > A processing instruction token
 			 */
 			case '#comment':
 			case '#funky-comment':
 			case '#presumptuous-tag':
+			case '#processing-instruction':
 				$this->bail( 'Content outside of HTML is unsupported.' );
 				break;
 
@@ -4810,10 +4846,12 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 
 			/*
 			 * > A comment token
+			 * > A processing instruction token
 			 */
 			case '#comment':
 			case '#funky-comment':
 			case '#presumptuous-tag':
+			case '#processing-instruction':
 				$this->insert_foreign_element( $this->state->current_token, false );
 				return true;
 
@@ -5121,8 +5159,12 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		/*
 		 * > A start tag whose tag name is "image"
 		 * > Change the token's tag name to "img" and reprocess it. (Don't ask.)
+		 *
+		 * This only applies to tags; a processing instruction target or a
+		 * comment which looks like a processing instruction may also report
+		 * a tag name and must not be rewritten.
 		 */
-		return ( 'IMAGE' === $tag_name && 'html' === $this->get_namespace() )
+		return ( 'IMAGE' === $tag_name && 'html' === $this->get_namespace() && '#tag' === $this->get_token_type() )
 			? 'IMG'
 			: $tag_name;
 	}
@@ -5191,8 +5233,11 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *  - `#doctype` when matched on a DOCTYPE declaration.
 	 *  - `#presumptuous-tag` when matched on an empty tag closer.
 	 *  - `#funky-comment` when matched on a funky comment.
+	 *  - `#processing-instruction` when matched on a processing instruction.
 	 *
 	 * @since 6.6.0 Subclassed for the HTML Processor.
+	 * @since 7.1.0 Recognize processing instructions according to an HTML
+	 *              specification update.
 	 *
 	 * @return string|null What kind of token is matched, or null.
 	 */
