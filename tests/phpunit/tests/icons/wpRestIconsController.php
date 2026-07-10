@@ -297,6 +297,27 @@ class Tests_REST_WpRestIconsController extends WP_Test_REST_Controller_Testcase 
 	}
 
 	/**
+	 * Test that GET /wp/v2/icons/?search= searches icon labels too.
+	 *
+	 * @ticket 64847
+	 *
+	 * @covers ::get_items
+	 */
+	public function test_get_items_search_includes_label() {
+		wp_set_current_user( self::$editor_id );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/icons' );
+
+		// The '@' character is only found in the *label* for core/at-symbol
+		$request->set_param( 'search', '@' );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertEquals( array( 'core/at-symbol' ), array_column( $data, 'name' ) );
+	}
+
+	/**
 	 * Test that search is case-insensitive.
 	 *
 	 * @ticket 64651
