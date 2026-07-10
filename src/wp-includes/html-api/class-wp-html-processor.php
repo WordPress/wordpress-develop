@@ -142,8 +142,6 @@
  *
  * @see WP_HTML_Tag_Processor
  * @see https://html.spec.whatwg.org/
- * @see https://github.com/whatwg/html/pull/10548 Customizable select elements parsing changes.
- * @see https://github.com/whatwg/html/pull/11764 Selectedcontent clone-on-pop updates.
  * @phpstan-consistent-constructor
  */
 class WP_HTML_Processor extends WP_HTML_Tag_Processor {
