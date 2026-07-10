@@ -880,7 +880,10 @@ class wpdb {
 	 */
 	public function determine_charset( $charset, $collate ) {
 		if ( ( ! ( $this->dbh instanceof mysqli ) ) || empty( $this->dbh ) ) {
-			return ['charset' => $charset, 'collate' => $collate];
+			return array(
+ 				'charset' => $charset,
+ 				'collate' => $collate,
+			);
 		}
 
 		if ( 'utf8' === $charset ) {
@@ -901,7 +904,10 @@ class wpdb {
 			$collate = 'utf8mb4_unicode_520_ci';
 		}
 
-		return ['charset' => $charset, 'collate' => $collate];
+		return array(
+ 				'charset' => $charset,
+ 				'collate' => $collate,
+			);
 	}
 
 	/**
