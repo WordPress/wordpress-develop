@@ -828,10 +828,7 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 		$this->assertArrayHasKey( 'results', $detail );
 		$this->assertCount( 3, $detail['results'], 'All results should be cached, not just actionable ones.' );
 
-		$results_by_test = array();
-		foreach ( $detail['results'] as $result ) {
-			$results_by_test[ $result['test'] ] = $result;
-		}
+		$results_by_test = $detail['results'];
 
 		$this->assertSame(
 			array( 'fake_critical', 'fake_recommended', 'fake_good' ),
@@ -839,8 +836,8 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 		);
 
 		// Only locale-independent fields are stored: the test name, status, and timestamp.
-		$this->assertSame(
-			array( 'test', 'status', 'timestamp' ),
+		$this->assertSameSets(
+			array( 'status', 'timestamp' ),
 			array_keys( $results_by_test['fake_critical'] ),
 			'No translated or HTML fields should be cached.'
 		);
@@ -899,10 +896,7 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 		remove_filter( 'pre_http_request', $http );
 
 		$detail        = WP_Site_Health::get_site_status_detail();
-		$results_by_id = array();
-		foreach ( $detail['results'] as $result ) {
-			$results_by_id[ $result['test'] ] = $result;
-		}
+		$results_by_id = $detail['results'];
 
 		$this->assertArrayHasKey( 'my_async', $results_by_id, 'The unavailable async test should be cached under its identifier.' );
 		$this->assertSame( 'recommended', $results_by_id['my_async']['status'] );
@@ -944,7 +938,7 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 
 		$detail = WP_Site_Health::get_site_status_detail();
 		$this->assertCount( 1, $detail['results'] );
-		$this->assertSame( 'good', $detail['results'][0]['status'], 'The fresh browser result should be preserved, not overwritten by cron.' );
+		$this->assertSame( 'good', array_first( $detail['results'] )['status'], 'The fresh browser result should be preserved, not overwritten by cron.' );
 	}
 
 	/**
@@ -981,7 +975,7 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 
 		$detail = WP_Site_Health::get_site_status_detail();
 		$this->assertCount( 1, $detail['results'] );
-		$this->assertSame( 'critical', $detail['results'][0]['status'], 'A stale result should be refreshed by cron.' );
+		$this->assertSame( 'critical', array_first( $detail['results'] )['status'], 'A stale result should be refreshed by cron.' );
 	}
 
 	/**
@@ -1000,12 +994,10 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 				array(
 					'results'   => array(
 						'recent' => array(
-							'test'      => 'recent',
 							'status'    => 'good',
 							'timestamp' => $now,
 						),
 						'old'    => array(
-							'test'      => 'old',
 							'status'    => 'good',
 							'timestamp' => $now - 2 * MONTH_IN_SECONDS,
 						),
@@ -1021,7 +1013,7 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 
 		$detail = WP_Site_Health::get_site_status_detail();
 		$this->assertCount( 1, $detail['results'] );
-		$this->assertSame( 'recent', $detail['results'][0]['test'] );
+		$this->assertArrayHasKey( 'recent', $detail['results'] );
 	}
 
 	/**
