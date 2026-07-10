@@ -4168,7 +4168,7 @@ function wp_user_personal_data_exporter( $email_address ) {
 /**
 * Registers the personal data eraser for users.
 *
-* @since 6.7.0
+* @since 7.1.0
 *
 * @param array $erasers An array of personal data erasers.
 * @return array An array of personal data erasers.
@@ -4185,7 +4185,7 @@ function wp_register_user_personal_data_eraser( $erasers ) {
 /**
 * Erases core user profile data for a personal data erasure request.
 *
-* @since 6.7.0
+* @since 7.1.0
 *
 * @param string $email_address The user's email address.
 * @param int    $page          Unused. Part of the eraser signature.
@@ -4225,7 +4225,7 @@ function wp_user_personal_data_eraser( $email_address, $page = 1 ) {
 	/**
 	 * Filters the list of user meta keys removed during a personal data erasure request.
 	 *
-	 * @since 6.7.0
+	 * @since 7.1.0
 	 *
 	 * @param string[] $meta_keys_to_erase User meta keys slated for deletion.
 	 * @param WP_User  $user               The user whose data is being erased.
