@@ -978,36 +978,38 @@ function confirm_delete_users( $users ) {
 							<?php
 						} else {
 							?>
-							<p>
+							<fieldset>
+								<legend>
 								<?php
 								/* translators: %s: Link to user's site. */
 								printf( __( 'Site: %s' ), $user_site );
 								?>
-							</p>
-							<ul>
-								<li>
-									<input type="radio" id="delete_option_<?php echo esc_attr( $details->userblog_id . '_' . $delete_user->ID ); ?>" name="delete[<?php echo $details->userblog_id . '][' . $delete_user->ID; ?>]" value="delete" required />
-									<label for="delete_option_<?php echo esc_attr( $details->userblog_id . '_' . $delete_user->ID ); ?>"><?php _e( 'Delete all content.' ); ?></label>
-								</li>
-								<li>
-									<input type="radio" id="reassign_option_<?php echo esc_attr( $details->userblog_id . '_' . $delete_user->ID ); ?>" name="delete[<?php echo $details->userblog_id . '][' . $delete_user->ID; ?>]" value="reassign" required />
-									<label for="reassign_option_<?php echo esc_attr( $details->userblog_id . '_' . $delete_user->ID ); ?>"><?php _e( 'Attribute all content to another user.' ); ?></label>
+								</legend>
+								<ul>
+									<li>
+										<input type="radio" id="delete_option_<?php echo esc_attr( $details->userblog_id . '_' . $delete_user->ID ); ?>" name="delete[<?php echo $details->userblog_id . '][' . $delete_user->ID; ?>]" value="delete" required />
+										<label for="delete_option_<?php echo esc_attr( $details->userblog_id . '_' . $delete_user->ID ); ?>"><?php _e( 'Delete all content.' ); ?></label>
+									</li>
+									<li>
+										<input type="radio" id="reassign_option_<?php echo esc_attr( $details->userblog_id . '_' . $delete_user->ID ); ?>" name="delete[<?php echo $details->userblog_id . '][' . $delete_user->ID; ?>]" value="reassign" required />
+										<label for="reassign_option_<?php echo esc_attr( $details->userblog_id . '_' . $delete_user->ID ); ?>"><?php _e( 'Attribute all content to another user.' ); ?></label>
 
-									<label for="reassign_user_<?php echo esc_attr( $details->userblog_id . '_' . $delete_user->ID ); ?>" class="screen-reader-text"><?php _e( 'Select a user to attribute the content to.' ); ?></label>
-									<?php
-									wp_dropdown_users(
-										array(
-											'show_option_none' => __( 'Select a user' ),
-											'name'    => "blog[$user_id][$key]",
-											'include' => $blog_users,
-											'show'    => 'display_name_with_login',
-											'id'      => "reassign_user_{$details->userblog_id}_{$delete_user->ID}",
-										)
-									);
-									?>
+										<label for="reassign_user_<?php echo esc_attr( $details->userblog_id . '_' . $delete_user->ID ); ?>" class="screen-reader-text"><?php _e( 'Select a user to attribute the content to.' ); ?></label>
+										<?php
+										wp_dropdown_users(
+											array(
+												'show_option_none' => __( 'Select a user' ),
+												'name'    => "blog[$user_id][$key]",
+												'include' => $blog_users,
+												'show'    => 'display_name_with_login',
+												'id'      => "reassign_user_{$details->userblog_id}_{$delete_user->ID}",
+											)
+										);
+										?>
 
-								</li>
-							</ul>
+									</li>
+								</ul>
+							</fieldset>
 							<?php
 						}
 					}
