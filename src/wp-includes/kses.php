@@ -212,8 +212,8 @@ if ( ! CUSTOM_TAGS ) {
 		),
 		'i'          => array(),
 		'img'        => array(
-			'alt'           => true,
 			'align'         => true,
+			'alt'           => true,
 			'border'        => true,
 			'decoding'      => true,
 			'fetchpriority' => true,
@@ -221,12 +221,12 @@ if ( ! CUSTOM_TAGS ) {
 			'hspace'        => true,
 			'loading'       => true,
 			'longdesc'      => true,
-			'vspace'        => true,
+			'sizes'         => true,
 			'src'           => true,
 			'srcset'        => true,
 			'usemap'        => true,
+			'vspace'        => true,
 			'width'         => true,
-			'sizes'         => true,
 		),
 		'ins'        => array(
 			'datetime' => true,
@@ -304,10 +304,10 @@ if ( ! CUSTOM_TAGS ) {
 		),
 		'small'      => array(),
 		'source'     => array(
-			'srcset' => true,
-			'type'   => true,
 			'media'  => true,
 			'sizes'  => true,
+			'srcset' => true,
+			'type'   => true,
 		),
 		'strike'     => array(),
 		'strong'     => array(),
@@ -1252,9 +1252,9 @@ function wp_kses_uri_attributes() {
 		'poster',
 		'profile',
 		'src',
+		'srcset',
 		'usemap',
 		'xmlns',
-		'srcset',
 	);
 
 	/**
@@ -1681,20 +1681,21 @@ function wp_kses_hair( $attr, $allowed_protocols ) {
  *
  * @since 7.1.0
  *
- * @param string   $attrname          The attribute name to test.
- * @param string   $attrvalue         The attribute value to sanitize.
+ * @param string   $attr_name         The attribute name to test.
+ * @param string   $attr_value        The attribute value to sanitize.
  * @param string[] $allowed_protocols Array of allowed URL protocols.
- * @param string[] $multi_uri         Optional. Attributes that can contain multiple URIs. Default is array( 'srcset' ).
+ * @param string[] $multi_uri_attrs   Optional. Attributes that can contain multiple URIs. Default is array( 'srcset' ).
  * @return string Sanitized attribute value.
  */
-function wp_kses_sanitize_uris( $attrname, $attrvalue, $allowed_protocols, $multi_uri = array( 'srcset' ) ) {
-	$uris = wp_kses_uri_attributes();
+function wp_kses_sanitize_uris( string $attr_name, string $attr_value, array $allowed_protocols, array $multi_uri_attrs = array( 'srcset' ) ): string {
+	$attr_name = strtolower( $attr_name );
+	$uri_attrs = wp_kses_uri_attributes();
 
-	if ( ! in_array( strtolower( $attrname ), $uris, true ) ) {
-		return $attrvalue;
+	if ( ! in_array( $attr_name, $uri_attrs, true ) ) {
+		return $attr_value;
 	}
 
-	if ( in_array( strtolower( $attrname ), $multi_uri, true ) ) {
+	if ( in_array( $attr_name, $multi_uri_attrs, true ) ) {
 		/*
 		 * Parse srcset-style attributes using the descriptor to find entry boundaries.
 		 *
@@ -1712,31 +1713,31 @@ function wp_kses_sanitize_uris( $attrname, $attrvalue, $allowed_protocols, $mult
 		$delim_anchored = '/^\s+' . $descriptor . '\s*,\s*$/i';
 		$entry_pattern  = '/^(\s*)(.*?)(\s+' . $descriptor . ')?\s*$/i';
 
-		$parts  = preg_split( $delim_pattern, $attrvalue, -1, PREG_SPLIT_DELIM_CAPTURE );
+		$parts  = (array) preg_split( $delim_pattern, $attr_value, -1, PREG_SPLIT_DELIM_CAPTURE );
 		$result = '';
 
-		for ( $i = 0, $len = count( $parts ); $i < $len; $i++ ) {
-			if ( preg_match( $delim_anchored, $parts[ $i ] ) ) {
-				// This is a delimiter: space + descriptor + comma. Append it as-is.
-				$result .= $parts[ $i ];
+		foreach ( $parts as $part ) {
+			if ( preg_match( $delim_anchored, $part ) ) {
+				// This is a delimiter between two entries. Append it as-is to preserve spacing.
+				$result .= $part;
+				continue;
+			}
+
+			// This is a URL (possibly with a trailing descriptor for the last entry).
+			if ( preg_match( $entry_pattern, $part, $matches ) ) {
+				$leading_whitespace  = $matches[1];
+				$url                 = $matches[2];
+				$trailing_descriptor = $matches[3] ?? '';
+				$result             .= $leading_whitespace . wp_kses_bad_protocol( $url, $allowed_protocols ) . $trailing_descriptor;
 			} else {
-				// This is a URL (possibly with a trailing descriptor for the last entry).
-				$entry = $parts[ $i ];
-				if ( preg_match( $entry_pattern, $entry, $m ) ) {
-					$leading_ws    = $m[1];
-					$url           = $m[2];
-					$trailing_desc = isset( $m[3] ) ? $m[3] : '';
-					$result       .= $leading_ws . wp_kses_bad_protocol( $url, $allowed_protocols ) . $trailing_desc;
-				} else {
-					$result .= wp_kses_bad_protocol( $entry, $allowed_protocols );
-				}
+				$result .= wp_kses_bad_protocol( $part, $allowed_protocols );
 			}
 		}
 
 		return $result;
 	}
 
-	return wp_kses_bad_protocol( $attrvalue, $allowed_protocols );
+	return wp_kses_bad_protocol( $attr_value, $allowed_protocols );
 }
 
 /**
