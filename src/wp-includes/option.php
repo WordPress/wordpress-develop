@@ -2732,11 +2732,12 @@ function set_site_transient( $transient, $value, $expiration = 0 ) {
 /**
  * Registers default settings available in WordPress.
  *
- * The settings registered here are primarily useful for the REST API, so this
- * does not encompass all settings available in WordPress.
+ * The settings registered here are primarily useful for the REST API and the
+ * Abilities API, so this does not encompass all settings available in WordPress.
  *
  * @since 4.7.0
  * @since 6.0.1 The `show_on_front`, `page_on_front`, and `page_for_posts` options were added.
+ * @since 7.1.0 Added `show_in_abilities` support for the exposed settings.
  */
 function register_initial_settings() {
 	register_setting(
@@ -2999,6 +3000,7 @@ function register_initial_settings() {
  * @since 5.5.0 `$new_whitelist_options` was renamed to `$new_allowed_options`.
  *              Please consider writing more inclusive code.
  * @since 6.6.0 Added the `label` argument.
+ * @since 7.1.0 Added the `show_in_abilities` argument.
  *
  * @global array $new_allowed_options
  * @global array $wp_registered_settings
@@ -3046,6 +3048,7 @@ function register_setting( $option_group, $option_name, $args = array() ) {
 		'description'       => '',
 		'sanitize_callback' => null,
 		'show_in_rest'      => false,
+		'show_in_abilities' => false,
 	);
 
 	// Back-compat: old sanitize callback is added.
@@ -3229,6 +3232,7 @@ function unregister_setting( $option_group, $option_name, $deprecated = '' ) {
  * Retrieves an array of registered settings.
  *
  * @since 4.7.0
+ * @since 7.1.0 Registered setting data includes the `show_in_abilities` argument.
  *
  * @global array $wp_registered_settings
  *
