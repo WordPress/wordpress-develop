@@ -141,7 +141,7 @@
  * @since 6.4.0
  *
  * @see WP_HTML_Tag_Processor
- * @see https://html.spec.whatwg.org/
+ * @link https://html.spec.whatwg.org/
  * @phpstan-consistent-constructor
  */
 class WP_HTML_Processor extends WP_HTML_Tag_Processor {
