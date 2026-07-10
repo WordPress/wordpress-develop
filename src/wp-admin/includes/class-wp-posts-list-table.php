@@ -1015,8 +1015,8 @@ class WP_Posts_List_Table extends WP_List_Table {
 	/**
 	 * Gets a trimmed excerpt to display in place of a missing post title.
 	 *
-	 * Only returns text in the Compact list view for posts that have no title
-	 * and do not require a password.
+	 * Only returns text in the Compact list view for posts that have no title,
+	 * do not require a password, and that the current user is allowed to read.
 	 *
 	 * @since 7.1.0
 	 *
