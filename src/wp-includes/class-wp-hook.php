@@ -85,6 +85,9 @@ final class WP_Hook implements Iterator, ArrayAccess {
 		}
 
 		$idx = _wp_filter_build_unique_id( $hook_name, $callback, $priority );
+		if ( null === $idx ) {
+			return;
+		}
 
 		$priority_existed = isset( $this->callbacks[ $priority ] );
 
@@ -492,7 +495,7 @@ final class WP_Hook implements Iterator, ArrayAccess {
 	 */
 	#[ReturnTypeWillChange]
 	public function offsetGet( $offset ) {
-		return isset( $this->callbacks[ $offset ] ) ? $this->callbacks[ $offset ] : null;
+		return $this->callbacks[ $offset ] ?? null;
 	}
 
 	/**
