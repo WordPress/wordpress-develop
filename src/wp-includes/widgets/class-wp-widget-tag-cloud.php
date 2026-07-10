@@ -42,7 +42,7 @@ class WP_Widget_Tag_Cloud extends WP_Widget {
 	public function widget( $args, $instance ) {
 		$current_taxonomy = $this->_get_current_taxonomy( $instance );
 
-		if ( ! empty( $instance['title'] ) ) {
+		if ( isset( $instance['title'] ) && '' !== $instance['title'] ) {
 			$title = $instance['title'];
 		} else {
 			if ( 'post_tag' === $current_taxonomy ) {
@@ -89,7 +89,7 @@ class WP_Widget_Tag_Cloud extends WP_Widget {
 		$title = apply_filters( 'widget_title', $title, $instance, $this->id_base );
 
 		echo $args['before_widget'];
-		if ( $title ) {
+		if ( '' !== $title ) {
 			echo $args['before_title'] . $title . $args['after_title'];
 		}
 
@@ -144,7 +144,11 @@ class WP_Widget_Tag_Cloud extends WP_Widget {
 	 * @param array $instance Current settings.
 	 */
 	public function form( $instance ) {
-		$title = ! empty( $instance['title'] ) ? $instance['title'] : '';
+		if ( isset( $instance['title'] ) && '' !== $instance['title'] ) {
+			$title = $instance['title'];
+		} else {
+			$title = '';
+		}
 		$count = isset( $instance['count'] ) ? (bool) $instance['count'] : false;
 		?>
 		<p>

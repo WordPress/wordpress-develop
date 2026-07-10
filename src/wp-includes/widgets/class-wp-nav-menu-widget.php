@@ -48,14 +48,18 @@ class WP_Nav_Menu_Widget extends WP_Widget {
 		}
 
 		$default_title = __( 'Menu' );
-		$title         = ! empty( $instance['title'] ) ? $instance['title'] : '';
+		if ( isset( $instance['title'] ) && '' !== $instance['title'] ) {
+			$title = $instance['title'];
+		} else {
+			$title = $default_title;
+		}
 
 		/** This filter is documented in wp-includes/widgets/class-wp-widget-pages.php */
 		$title = apply_filters( 'widget_title', $title, $instance, $this->id_base );
 
 		echo $args['before_widget'];
 
-		if ( $title ) {
+		if ( '' !== $title ) {
 			echo $args['before_title'] . $title . $args['after_title'];
 		}
 
@@ -123,7 +127,7 @@ class WP_Nav_Menu_Widget extends WP_Widget {
 	 */
 	public function update( $new_instance, $old_instance ) {
 		$instance = array();
-		if ( ! empty( $new_instance['title'] ) ) {
+		if ( isset( $new_instance['title'] ) && '' !== $new_instance['title'] ) {
 			$instance['title'] = sanitize_text_field( $new_instance['title'] );
 		}
 		if ( ! empty( $new_instance['nav_menu'] ) ) {

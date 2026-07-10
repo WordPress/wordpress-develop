@@ -227,12 +227,16 @@ class WP_Widget_Text extends WP_Widget {
 	public function widget( $args, $instance ) {
 		global $post;
 
-		$title = ! empty( $instance['title'] ) ? $instance['title'] : '';
+		if ( isset( $instance['title'] ) && '' !== $instance['title'] ) {
+			$title = $instance['title'];
+		} else {
+			$title = '';
+		}
 
 		/** This filter is documented in wp-includes/widgets/class-wp-widget-pages.php */
 		$title = apply_filters( 'widget_title', $title, $instance, $this->id_base );
 
-		$text                  = ! empty( $instance['text'] ) ? $instance['text'] : '';
+		$text                  = isset( $instance['text'] ) && '' !== $instance['text'] ? $instance['text'] : '';
 		$is_visual_text_widget = ( ! empty( $instance['visual'] ) && ! empty( $instance['filter'] ) );
 
 		// In 4.8.0 only, visual Text widgets get filter=content, without visual prop; upgrade instance props just-in-time.
@@ -328,7 +332,7 @@ class WP_Widget_Text extends WP_Widget {
 		}
 
 		echo $args['before_widget'];
-		if ( ! empty( $title ) ) {
+		if ( '' !== $title ) {
 			echo $args['before_title'] . $title . $args['after_title'];
 		}
 

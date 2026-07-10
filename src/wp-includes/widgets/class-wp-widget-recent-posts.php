@@ -47,7 +47,11 @@ class WP_Widget_Recent_Posts extends WP_Widget {
 		}
 
 		$default_title = __( 'Recent Posts' );
-		$title         = ( ! empty( $instance['title'] ) ) ? $instance['title'] : $default_title;
+		if ( isset( $instance['title'] ) && '' !== $instance['title'] ) {
+			$title = $instance['title'];
+		} else {
+			$title = $default_title;
+		}
 
 		/** This filter is documented in wp-includes/widgets/class-wp-widget-pages.php */
 		$title = apply_filters( 'widget_title', $title, $instance, $this->id_base );
@@ -90,7 +94,7 @@ class WP_Widget_Recent_Posts extends WP_Widget {
 		<?php echo $args['before_widget']; ?>
 
 		<?php
-		if ( $title ) {
+		if ( '' !== $title ) {
 			echo $args['before_title'] . $title . $args['after_title'];
 		}
 
@@ -111,7 +115,11 @@ class WP_Widget_Recent_Posts extends WP_Widget {
 			<?php foreach ( $r->posts as $recent_post ) : ?>
 				<?php
 				$post_title   = get_the_title( $recent_post->ID );
-				$title        = ( ! empty( $post_title ) ) ? $post_title : __( '(no title)' );
+				if ( isset( $post_title ) && '' !== $post_title ) {
+					$title = $post_title;
+				} else {
+					$title = __( '(no title)' );
+				}
 				$aria_current = '';
 
 				if ( get_queried_object_id() === $recent_post->ID ) {

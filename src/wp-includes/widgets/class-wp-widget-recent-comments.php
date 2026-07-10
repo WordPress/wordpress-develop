@@ -79,7 +79,11 @@ class WP_Widget_Recent_Comments extends WP_Widget {
 		$output = '';
 
 		$default_title = __( 'Recent Comments' );
-		$title         = ( ! empty( $instance['title'] ) ) ? $instance['title'] : $default_title;
+		if ( isset( $instance['title'] ) && '' !== $instance['title'] ) {
+			$title = $instance['title'];
+		} else {
+			$title = $default_title;
+		}
 
 		/** This filter is documented in wp-includes/widgets/class-wp-widget-pages.php */
 		$title = apply_filters( 'widget_title', $title, $instance, $this->id_base );
@@ -113,7 +117,7 @@ class WP_Widget_Recent_Comments extends WP_Widget {
 		);
 
 		$output .= $args['before_widget'];
-		if ( $title ) {
+		if ( '' !== $title ) {
 			$output .= $args['before_title'] . $title . $args['after_title'];
 		}
 

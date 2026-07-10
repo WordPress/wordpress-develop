@@ -44,14 +44,18 @@ class WP_Widget_Meta extends WP_Widget {
 	 */
 	public function widget( $args, $instance ) {
 		$default_title = __( 'Meta' );
-		$title         = ! empty( $instance['title'] ) ? $instance['title'] : $default_title;
+		if ( isset( $instance['title'] ) && '' !== $instance['title'] ) {
+			$title = $instance['title'];
+		} else {
+			$title = $default_title;
+		}
 
 		/** This filter is documented in wp-includes/widgets/class-wp-widget-pages.php */
 		$title = apply_filters( 'widget_title', $title, $instance, $this->id_base );
 
 		echo $args['before_widget'];
 
-		if ( $title ) {
+		if ( '' !== $title ) {
 			echo $args['before_title'] . $title . $args['after_title'];
 		}
 

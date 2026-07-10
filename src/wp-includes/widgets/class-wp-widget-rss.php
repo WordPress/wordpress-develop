@@ -64,13 +64,17 @@ class WP_Widget_RSS extends WP_Widget {
 		}
 
 		$rss   = fetch_feed( $url );
-		$title = $instance['title'];
+		if ( isset( $instance['title'] ) && '' !== $instance['title'] ) {
+			$title = $instance['title'];
+		} else {
+			$title = '';
+		}
 		$desc  = '';
 		$link  = '';
 
 		if ( ! is_wp_error( $rss ) ) {
 			$desc = esc_attr( strip_tags( html_entity_decode( $rss->get_description(), ENT_QUOTES, get_option( 'blog_charset' ) ) ) );
-			if ( empty( $title ) ) {
+			if ( '' === $title ) {
 				$title = strip_tags( $rss->get_title() );
 			}
 			$link = strip_tags( $rss->get_permalink() );
@@ -79,14 +83,14 @@ class WP_Widget_RSS extends WP_Widget {
 			}
 		}
 
-		if ( empty( $title ) ) {
+		if ( '' === $title ) {
 			$title = ! empty( $desc ) ? $desc : __( 'Unknown Feed' );
 		}
 
 		/** This filter is documented in wp-includes/widgets/class-wp-widget-pages.php */
 		$title = apply_filters( 'widget_title', $title, $instance, $this->id_base );
 
-		if ( $title ) {
+		if ( '' !== $title ) {
 			$feed_link = '';
 			$feed_url  = strip_tags( $url );
 			$feed_icon = includes_url( 'images/rss.png' );
@@ -114,7 +118,7 @@ class WP_Widget_RSS extends WP_Widget {
 		}
 
 		echo $args['before_widget'];
-		if ( $title ) {
+		if ( '' !== $title ) {
 			echo $args['before_title'] . $title . $args['after_title'];
 		}
 

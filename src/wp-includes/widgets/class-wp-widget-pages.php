@@ -42,7 +42,11 @@ class WP_Widget_Pages extends WP_Widget {
 	 */
 	public function widget( $args, $instance ) {
 		$default_title = __( 'Pages' );
-		$title         = ! empty( $instance['title'] ) ? $instance['title'] : $default_title;
+		if ( isset( $instance['title'] ) && '' !== $instance['title'] ) {
+			$title = $instance['title'];
+		} else {
+			$title = $default_title;
+		}
 
 		/**
 		 * Filters the widget title.
@@ -88,7 +92,7 @@ class WP_Widget_Pages extends WP_Widget {
 
 		if ( ! empty( $output ) ) {
 			echo $args['before_widget'];
-			if ( $title ) {
+			if ( '' !== $title ) {
 				echo $args['before_title'] . $title . $args['after_title'];
 			}
 
