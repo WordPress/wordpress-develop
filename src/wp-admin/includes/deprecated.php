@@ -1598,5 +1598,5 @@ function image_attachment_fields_to_save( $post, $attachment ) {
  * @access private
  */
 function delete_users_add_js() {
-	_deprecated_function( __FUNCTION__, '7.0.0' );
+	_deprecated_function( __FUNCTION__, '7.1.0' );
 }
