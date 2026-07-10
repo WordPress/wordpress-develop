@@ -259,6 +259,18 @@ class Tests_Compat_clamp extends WP_UnitTestCase {
 	/**
 	 * @ticket 65143
 	 *
+	 * Test that clamp() throws when $min is INF and $max is finite.
+	 */
+	public function test_clamp_throws_when_inf_min_greater_than_max(): void {
+		$this->expectException( $this->value_error_class() );
+		$this->expectExceptionMessage( 'clamp(): Argument #2 ($min) must be smaller than or equal to argument #3 ($max)' );
+
+		clamp( 5, INF, 10 );
+	}
+
+	/**
+	 * @ticket 65143
+	 *
 	 * Test that clamp() with a NAN value returns NAN (no exception).
 	 */
 	public function test_clamp_with_nan_value_returns_nan(): void {
@@ -269,12 +281,13 @@ class Tests_Compat_clamp extends WP_UnitTestCase {
 	/**
 	 * Returns the expected exception class for ValueError-equivalent errors.
 	 *
-	 * On PHP 8.0+, _wp_throw_value_error() throws ValueError.
-	 * On PHP 7.x, it falls back to InvalidArgumentException.
+	 * Mirrors the check in _wp_throw_value_error(): ValueError is thrown whenever
+	 * the class exists (PHP 8.0+ or provided by a polyfill), with
+	 * InvalidArgumentException as the fallback on PHP 7.x.
 	 *
 	 * @return string The fully qualified exception class name.
 	 */
 	private function value_error_class(): string {
-		return PHP_VERSION_ID >= 80000 ? ValueError::class : InvalidArgumentException::class;
+		return class_exists( 'ValueError', false ) ? ValueError::class : InvalidArgumentException::class;
 	}
 }
