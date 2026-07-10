@@ -1048,7 +1048,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 			if ( 'excerpt' !== $mode && '' === get_the_title( $post ) && ! post_password_required( $post ) ) {
 				$excerpt = get_the_excerpt( $post );
 				if ( '' !== $excerpt && is_string( $excerpt ) ) {
-					$post_title .= ' ' . esc_html( wp_trim_words( $excerpt, 15, '&hellip;' ) );
+					$post_title .= ' ' . esc_html( wp_trim_words( $excerpt, 15 ) );
 				}
 			}
 			?>
@@ -1160,7 +1160,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 		if ( 'excerpt' !== $mode && '' === get_the_title( $post ) && ! post_password_required( $post ) ) {
 			$excerpt = get_the_excerpt( $post );
 			if ( '' !== $excerpt && is_string( $excerpt ) ) {
-				$title .= ' <span class="trimmed-post-excerpt">' . esc_html( wp_trim_words( $excerpt, 15, '&hellip;' ) ) . '</span>';
+				$title .= ' <span class="trimmed-post-excerpt">' . esc_html( wp_trim_words( $excerpt, 15 ) ) . '</span>';
 			}
 		}
 
