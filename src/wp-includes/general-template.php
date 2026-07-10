@@ -4548,6 +4548,14 @@ function get_language_attributes( $doctype = 'html' ) {
 
 	$lang = get_bloginfo( 'language' );
 	if ( $lang ) {
+		$locale = str_replace( '-', '_', $lang );
+
+		if ( 'en_US' !== $locale ) {
+			if ( ! function_exists( 'has_translation' ) || ! has_translation( 'html_lang_attribute', 'default', $locale ) ) {
+				$lang = 'en-US';
+			}
+		}
+
 		if ( 'text/html' === get_option( 'html_type' ) || 'html' === $doctype ) {
 			$attributes[] = 'lang="' . esc_attr( $lang ) . '"';
 		}
