@@ -9,10 +9,18 @@
 
 /**
  * @phpstan-type Test_Status_Counts array{
- *      good: non-negative-int,
- *      recommended: non-negative-int,
- *      critical: non-negative-int,
- *  }
+ *     good: non-negative-int,
+ *     recommended: non-negative-int,
+ *     critical: non-negative-int,
+ * }
+ * @phpstan-type Stored_Test_Results array{
+ *     results: array<non-empty-string, array{
+ *         status: 'good'|'recommended'|'critical',
+ *         timestamp: non-negative-int,
+ *     }>,
+ *     counts: Test_Status_Counts, // TODO: This is redundant.
+ *     timestamp: non-negative-int,
+ * }
  */
 #[AllowDynamicProperties]
 class WP_Site_Health {
@@ -35,6 +43,50 @@ class WP_Site_Health {
 	public $last_late_cron       = null;
 	private $timeout_missed_cron = null;
 	private $timeout_late_cron   = null;
+
+	private const STORED_STATUS_SCHEMA = array(
+		'type'       => 'object',
+		'properties' => array(
+			'results'   => array(
+				'type'                 => 'object',
+				'additionalProperties' => array(
+					'type'       => 'object',
+					'properties' => array(
+						'status'    => array(
+							'type' => 'string',
+							'enum' => array( 'good', 'recommended', 'critical' ),
+						),
+						'timestamp' => array(
+							'type'    => 'integer',
+							'minimum' => 1,
+						),
+					),
+				),
+			),
+			// TODO: This counts is redundant. Why store it? It can be computed at runtime from the results.
+			'counts'    => array(
+				'type'       => 'object',
+				'properties' => array(
+					'good'        => array(
+						'type'    => 'integer',
+						'minimum' => 0,
+					),
+					'recommended' => array(
+						'type'    => 'integer',
+						'minimum' => 0,
+					),
+					'critical'    => array(
+						'type'    => 'integer',
+						'minimum' => 0,
+					),
+				),
+			),
+			'timestamp' => array(
+				'type'    => 'integer',
+				'minimum' => 1,
+			),
+		),
+	);
 
 	/**
 	 * Transient name for the cached aggregate Site Health status counts.
@@ -3522,9 +3574,7 @@ class WP_Site_Health {
 	 * @return Test_Status_Counts Aggregate counts. Each value is `0` when no result has been cached.
 	 */
 	public static function get_site_status_counts(): array {
-		return self::normalize_status_counts(
-			self::read_status_cache( self::STATUS_RESULT_TRANSIENT ) ?? array()
-		);
+		return self::read_status_cache( self::STATUS_RESULT_TRANSIENT )['counts'];
 	}
 
 	/**
@@ -3533,12 +3583,19 @@ class WP_Site_Health {
 	 * @since 7.1.0
 	 *
 	 * @param mixed[] $counts Aggregate counts.
+	 * @return true|WP_Error True when the counts were saved, or WP_Error on failure.
 	 */
-	public static function set_site_status_counts( array $counts ): void {
-		set_transient(
-			self::STATUS_RESULT_TRANSIENT,
-			wp_json_encode( self::normalize_status_counts( $counts ) )
-		);
+	public static function set_site_status_counts( array $counts ) {
+		$validity = rest_validate_value_from_schema( $counts, self::STORED_STATUS_SCHEMA['properties']['counts'] );
+		if ( is_wp_error( $validity ) ) {
+			return $validity;
+		}
+
+		if ( ! set_transient( self::STATUS_RESULT_TRANSIENT, wp_json_encode( $counts ) ) ) {
+			return new WP_Error( 'set_transient_error' );
+		}
+
+		return true;
 	}
 
 	/**
@@ -3550,45 +3607,15 @@ class WP_Site_Health {
 	 * consistent view of counts and detailed results should read both from here.
 	 *
 	 * @since 7.1.0
+	 * @todo This method is now not used.
 	 *
-	 * @return array{
-	 *     results: list<array{
-	 *         test: non-empty-string,
-	 *         status: 'good'|'recommended'|'critical',
-	 *         timestamp: non-negative-int,
-	 *     }>,
-	 *     counts: Test_Status_Counts,
-	 *     timestamp: non-negative-int,
-	 * } The cached results as a list, aggregate counts derived from those same results, and
+	 * @return array The cached results as a list, aggregate counts derived from those same results, and
 	 *   the time of the most recent update. `results` is empty, all counts are `0`, and
 	 *   `timestamp` is `0` when none are cached.
+	 * @phpstan-return Stored_Test_Results
 	 */
 	public static function get_site_status_detail(): array {
-		$detail = array(
-			'results'   => array(),
-			'counts'    => array(
-				'good'        => 0,
-				'recommended' => 0,
-				'critical'    => 0,
-			),
-			'timestamp' => 0,
-		);
-
-		$cached = self::read_status_cache( self::STATUS_DETAIL_TRANSIENT );
-
-		if ( null !== $cached ) {
-			foreach ( $cached['results'] as $test => $result ) {
-				if ( is_array( $result ) ) {
-					// The test name is the cache key, so add it back for consumers.
-					$detail['results'][] = array( 'test' => (string) $test ) + $result;
-				}
-			}
-
-			$detail['counts']    = self::count_site_status_results( $detail['results'] );
-			$detail['timestamp'] = (int) ( $cached['timestamp'] ?? 0 );
-		}
-
-		return $detail;
+		return self::read_status_cache( self::STATUS_DETAIL_TRANSIENT );
 	}
 
 	/**
@@ -3600,21 +3627,19 @@ class WP_Site_Health {
 	 *
 	 * @since 7.1.0
 	 *
-	 * @param array $results        List of raw Site Health test result arrays.
-	 * @param bool  $includes_async Whether the results include the JavaScript-only
-	 *                              asynchronous tests. The Site Health screen passes `true`
-	 *                              because it collects those tests in the browser, so its
-	 *                              entries take precedence over existing cached ones. The
-	 *                              scheduled check passes `false` since it cannot run the
-	 *                              asynchronous tests, so it only fills in missing or stale
-	 *                              entries without discarding fresher results from the screen.
+	 * @param mixed[] $results        List of raw Site Health test result arrays.
+	 * @param bool    $includes_async Whether the results include the JavaScript-only
+	 *                                asynchronous tests. The Site Health screen passes `true`
+	 *                                because it collects those tests in the browser, so its
+	 *                                entries take precedence over existing cached ones. The
+	 *                                scheduled check passes `false` since it cannot run the
+	 *                                asynchronous tests, so it only fills in missing or stale
+	 *                                entries without discarding fresher results from the screen.
 	 */
 	public static function update_site_status_detail( array $results, bool $includes_async ): void {
 		$now = time();
 
 		$cached = self::read_status_cache( self::STATUS_DETAIL_TRANSIENT );
-
-		$stored = null !== $cached ? $cached['results'] : array();
 
 		foreach ( $results as $result ) {
 			$sanitized = self::sanitize_site_status_result( $result );
@@ -3633,24 +3658,24 @@ class WP_Site_Health {
 			 * runs afterwards.
 			 */
 			if ( ! $includes_async
-				&& isset( $stored[ $test ]['timestamp'] )
-				&& ( $now - (int) $stored[ $test ]['timestamp'] ) < WEEK_IN_SECONDS
+				&& isset( $cached['results'][ $test ]['timestamp'] )
+				&& ( $now - (int) $cached['results'][ $test ]['timestamp'] ) < WEEK_IN_SECONDS
 			) {
 				continue;
 			}
 
-			$sanitized['timestamp'] = $now;
-			$stored[ $test ]        = $sanitized;
+			$sanitized['timestamp']     = $now;
+			$cached['results'][ $test ] = $sanitized;
 		}
 
 		// Drop results that have not been refreshed within the last month.
-		foreach ( $stored as $test => $result ) {
+		foreach ( $cached['results'] as $test => $result ) {
 			if ( ! isset( $result['timestamp'] ) || ( $now - (int) $result['timestamp'] ) > MONTH_IN_SECONDS ) {
-				unset( $stored[ $test ] );
+				unset( $cached['results'][ $test ] );
 			}
 		}
 
-		if ( empty( $stored ) ) {
+		if ( empty( $cached['results'] ) ) {
 			delete_transient( self::STATUS_DETAIL_TRANSIENT );
 			return;
 		}
@@ -3659,9 +3684,9 @@ class WP_Site_Health {
 			self::STATUS_DETAIL_TRANSIENT,
 			wp_json_encode(
 				array(
-					'results'   => $stored,
+					'results'   => $cached['results'],
 					// A counts snapshot derived from the same results, kept for self-describing cache reads.
-					'counts'    => self::count_site_status_results( array_values( $stored ) ),
+					'counts'    => self::count_site_status_results( array_values( $cached['results'] ) ),
 					'timestamp' => $now,
 				)
 			),
@@ -3673,24 +3698,39 @@ class WP_Site_Health {
 	 * Reads and decodes a cached Site Health transient.
 	 *
 	 * @since 7.1.0
+	 * @todo Why is the $transient a parameter for this function? It can read the constant directly.
 	 *
 	 * @param string $transient Transient name.
-	 * @return array{ results: array }|null The decoded array, or null when nothing valid is cached.
+	 * @return array The stored status.
+	 * @phpstan-return Stored_Test_Results
 	 */
-	private static function read_status_cache( string $transient ): ?array {
+	private static function read_status_cache( string $transient ): array {
 		$cached = get_transient( $transient );
-		if ( ! is_string( $cached ) ) {
-			return null;
-		}
-		$cached = json_decode( $cached, true );
-		if (
-			! is_array( $cached ) ||
-			! isset( $cached['results'] ) ||
-			! is_array( $cached['results'] )
-		) {
-			return null;
+		if ( is_string( $cached ) ) {
+			$cached = json_decode( $cached, true );
 		}
 
+		$validity = false;
+		if ( is_array( $cached ) ) {
+			$validity = rest_validate_value_from_schema( $cached, self::STORED_STATUS_SCHEMA );
+		}
+
+		if ( true !== $validity ) {
+			$cached = array(
+				'results'   => array(),
+				'counts'    => array(),
+				'timestamp' => 0,
+			);
+		}
+
+		foreach ( array_keys( self::STORED_STATUS_SCHEMA['properties']['counts']['properties'] ) as $key ) {
+			/** @var array{ counts: array<string, int>, ... } $cached */
+			if ( ! isset( $cached['counts'][ $key ] ) ) {
+				$cached['counts'][ $key ] = 0;
+			}
+		}
+
+		/** @var Stored_Test_Results $cached */
 		return $cached;
 	}
 
@@ -3716,7 +3756,7 @@ class WP_Site_Health {
 	 *
 	 * @since 7.1.0
 	 *
-	 * @param array<int, array{ status: string }> $results List of result arrays, each with a status.
+	 * @param list<array{ status: string, ... }> $results List of result arrays, each with a status.
 	 * @return array Aggregate counts, one bucket per status. A status other than `recommended` or `critical` counts as `good`.
 	 * @phpstan-return Test_Status_Counts
 	 */
