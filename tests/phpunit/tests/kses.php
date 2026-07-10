@@ -3170,4 +3170,47 @@ HTML;
 		$result = wp_kses_one_attr( ' sizes="(max-width: 600px) 100vw, 50vw"', 'img' );
 		$this->assertSame( ' sizes="(max-width: 600px) 100vw, 50vw"', $result );
 	}
+
+	/**
+	 * Test srcset entries without descriptors are still sanitized individually.
+	 *
+	 * Per the HTML spec, the descriptor is optional, so "safe.jpg, evil.jpg" contains
+	 * two candidates. URLs in srcset must encode whitespace as %20, so a comma
+	 * adjacent to whitespace always separates two entries and each entry must be
+	 * protocol-checked on its own.
+	 *
+	 * @ticket 29807
+	 * @covers ::wp_kses_sanitize_uris
+	 * @dataProvider data_wp_kses_srcset_entries_without_descriptors
+	 */
+	public function test_wp_kses_srcset_entries_without_descriptors( $input, $expected ) {
+		$allowed_protocols = wp_allowed_protocols();
+		$result            = wp_kses_sanitize_uris( 'srcset', $input, $allowed_protocols );
+		$this->assertSame( $expected, $result );
+	}
+
+	public function data_wp_kses_srcset_entries_without_descriptors() {
+		return array(
+			'bad protocol in second descriptor-less entry' => array(
+				'safe.jpg, javascript:alert(1)',
+				'safe.jpg, alert(1)',
+			),
+			'bad protocol in first descriptor-less entry'  => array(
+				'javascript:alert(1), safe.jpg',
+				'alert(1), safe.jpg',
+			),
+			'comma before whitespace separates entries'    => array(
+				'a.jpg ,javascript:alert(1) 2x',
+				'a.jpg ,alert(1) 2x',
+			),
+			'descriptor-less entries with valid URLs pass through' => array(
+				'small.jpg, large.jpg',
+				'small.jpg, large.jpg',
+			),
+			'comma without adjacent whitespace stays part of the URL' => array(
+				'cdn.example/format=auto,quality=80/img.jpg',
+				'cdn.example/format=auto,quality=80/img.jpg',
+			),
+		);
+	}
 }

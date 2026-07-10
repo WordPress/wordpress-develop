@@ -1697,20 +1697,24 @@ function wp_kses_sanitize_uris( string $attr_name, string $attr_value, array $al
 
 	if ( in_array( $attr_name, $multi_uri_attrs, true ) ) {
 		/*
-		 * Parse srcset-style attributes using the descriptor to find entry boundaries.
+		 * Parse srcset-style attributes into entries so each URL can be sanitized individually.
 		 *
 		 * Srcset entries are: URL [descriptor], URL [descriptor], ...
-		 * Descriptors match patterns like "480w", "2x", or "1.5x".
+		 * Descriptors match patterns like "480w", "2x", or "1.5x", and are optional.
 		 *
-		 * A naive split on commas breaks URLs that contain commas internally
+		 * A naive split on all commas breaks URLs that contain commas internally
 		 * (e.g. CDN image resizer URLs like cdn-cgi/image/format=auto,quality=80/...).
 		 *
-		 * Instead, split on: whitespace + descriptor + comma (+ optional whitespace).
-		 * This correctly identifies only the commas that separate srcset entries.
+		 * Instead, treat a comma as an entry separator only when it cannot be part
+		 * of a URL, which is the case when it:
+		 * - follows a width or pixel density descriptor (e.g. "img.jpg 2x, next.jpg"), or
+		 * - is adjacent to whitespace (URLs in srcset must encode whitespace as %20,
+		 *   so a comma next to whitespace always separates two entries).
 		 */
 		$descriptor     = '\d+(?:\.\d+)?[wx]';
-		$delim_pattern  = '/(\s+' . $descriptor . '\s*,\s*)/i';
-		$delim_anchored = '/^\s+' . $descriptor . '\s*,\s*$/i';
+		$delimiter      = '\s+' . $descriptor . '\s*,\s*|\s*,\s+|\s+,\s*';
+		$delim_pattern  = '/(' . $delimiter . ')/i';
+		$delim_anchored = '/^(?:' . $delimiter . ')$/i';
 		$entry_pattern  = '/^(\s*)(.*?)(\s+' . $descriptor . ')?\s*$/i';
 
 		$parts  = (array) preg_split( $delim_pattern, $attr_value, -1, PREG_SPLIT_DELIM_CAPTURE );
