@@ -388,6 +388,17 @@ function wp_dashboard_right_now() {
 	?>
 	</ul>
 	<?php
+
+	/**
+	 * Fires immediately after the 'At a Glance' dashboard widget items list.
+	 *
+	 * Allows developers to add additional lists or separators below the primary
+	 * 'At a Glance' list before the version and privacy information.
+	 *
+	 * @since 7.1.0
+	 */
+	do_action( 'dashboard_glance_items_after' );
+
 	update_right_now_message();
 
 	// Check if search engines are asked not to index this site.
