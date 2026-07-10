@@ -166,10 +166,9 @@ jQuery( function( $ ) {
 		 * include the asynchronous tests that only run in the browser. Labels are left
 		 * out on purpose, as they are translated and the cache is shared across locales.
 		 */
-		SiteHealth.site_status.results.push( {
-			test: issue.test,
+		SiteHealth.site_status[ issue.test ] = {
 			status: issue.status
-		} );
+		};
 
 		if ( 'critical' === issue.status ) {
 			heading = sprintf(
@@ -271,7 +270,7 @@ jQuery( function( $ ) {
 			);
 
 			// Send the per-test results separately, as a best-effort detailed cache update.
-			if ( SiteHealth.site_status.results.length ) {
+			if ( Object.keys( SiteHealth.site_status.results ).length > 0 ) {
 				$.post(
 					ajaxurl,
 					{

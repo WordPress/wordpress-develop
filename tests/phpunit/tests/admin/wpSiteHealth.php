@@ -711,7 +711,7 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 	/**
 	 * Registers a controlled set of direct Site Health tests via `site_status_tests`.
 	 *
-	 * @param array<string, array> $direct Map of result arrays to return, keyed by test name.
+	 * @param array<string, mixed[]> $direct Map of result arrays to return, keyed by test name.
 	 * @return Closure The filter callback, so the caller can remove it.
 	 */
 	private function use_fake_site_status_tests( array $direct ): Closure {
@@ -741,8 +741,8 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 	/**
 	 * Seeds the detailed Site Health results cache.
 	 *
-	 * @param array<string, array> $results Map of result arrays keyed by test name.
-	 * @param int                  $time    Timestamp to store for the cache and each result.
+	 * @param array<string, mixed[]> $results Map of result arrays keyed by test name.
+	 * @param int                    $time    Timestamp to store for the cache and each result.
 	 */
 	private function seed_site_status_detail( array $results, int $time ): void {
 		foreach ( $results as $test => $result ) {
@@ -916,8 +916,8 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 		$this->seed_site_status_detail(
 			array(
 				'fake_async' => array(
-					'test'   => 'fake_async',
-					'status' => 'good',
+					'status'    => 'good',
+					'timestamp' => time(),
 				),
 			),
 			time()

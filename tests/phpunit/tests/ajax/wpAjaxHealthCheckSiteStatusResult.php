@@ -84,26 +84,6 @@ class Tests_Ajax_wpAjaxHealthCheckSiteStatusResult extends WP_Ajax_UnitTestCase 
 	}
 
 	/**
-	 * Returns the detailed cached results keyed by test name.
-	 *
-	 * @return array<string, array>
-	 */
-	private function get_detail_results_by_test(): array {
-		$detail = WP_Site_Health::get_site_status_detail();
-
-		if ( empty( $detail['results'] ) ) {
-			return array();
-		}
-
-		$by_test = array();
-		foreach ( $detail['results'] as $result ) {
-			$by_test[ $result['test'] ] = $result;
-		}
-
-		return $by_test;
-	}
-
-	/**
 	 * The aggregate counts are cached on their own, while the results submitted by
 	 * the Site Health screen are sanitized and cached separately.
 	 *
@@ -170,7 +150,7 @@ class Tests_Ajax_wpAjaxHealthCheckSiteStatusResult extends WP_Ajax_UnitTestCase 
 		);
 
 		// Only results with a recognized status are cached.
-		$results = $this->get_detail_results_by_test();
+		$results = WP_Site_Health::get_site_status_detail()['results'];
 		$this->assertSame( array( 'a', 'b', 'c' ), array_keys( $results ) );
 
 		// Only locale-independent fields are cached: the test name, status, and timestamp.
@@ -224,7 +204,7 @@ class Tests_Ajax_wpAjaxHealthCheckSiteStatusResult extends WP_Ajax_UnitTestCase 
 		$this->assertTrue( $response['success'] );
 
 		// The detailed cache is updated.
-		$results = $this->get_detail_results_by_test();
+		$results = WP_Site_Health::get_site_status_detail()['results'];
 		$this->assertSame( array( 'a' ), array_keys( $results ) );
 
 		// The counts cache is not written by a results-only request.
@@ -278,7 +258,7 @@ class Tests_Ajax_wpAjaxHealthCheckSiteStatusResult extends WP_Ajax_UnitTestCase 
 			json_decode( $transient, true )
 		);
 
-		$results = $this->get_detail_results_by_test();
+		$results = WP_Site_Health::get_site_status_detail()['results'];
 		$this->assertSame( array( 'seeded' ), array_keys( $results ), 'The detailed cache should be untouched.' );
 	}
 

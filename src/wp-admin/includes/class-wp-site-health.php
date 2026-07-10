@@ -13,11 +13,12 @@
  *     recommended: non-negative-int,
  *     critical: non-negative-int,
  * }
+ * @phpstan-type Stored_Test_Result array{
+ *     status: 'good'|'recommended'|'critical',
+ *     timestamp: non-negative-int,
+ * }
  * @phpstan-type Stored_Test_Results array{
- *     results: array<non-empty-string, array{
- *         status: 'good'|'recommended'|'critical',
- *         timestamp: non-negative-int,
- *     }>,
+ *     results: array<non-empty-string, Stored_Test_Result>,
  *     counts: Test_Status_Counts, // TODO: This is redundant.
  *     timestamp: non-negative-int,
  * }
@@ -44,23 +45,26 @@ class WP_Site_Health {
 	private $timeout_missed_cron = null;
 	private $timeout_late_cron   = null;
 
+	private const VALID_STATUS_VALUES = array( 'good', 'recommended', 'critical' );
+
 	private const STORED_STATUS_SCHEMA = array(
 		'type'       => 'object',
 		'properties' => array(
 			'results'   => array(
 				'type'                 => 'object',
 				'additionalProperties' => array(
-					'type'       => 'object',
-					'properties' => array(
+					'type'                 => 'object',
+					'properties'           => array(
 						'status'    => array(
 							'type' => 'string',
-							'enum' => array( 'good', 'recommended', 'critical' ),
+							'enum' => self::VALID_STATUS_VALUES,
 						),
 						'timestamp' => array(
 							'type'    => 'integer',
 							'minimum' => 1,
 						),
 					),
+					'additionalProperties' => false,
 				),
 			),
 			// TODO: This counts is redundant. Why store it? It can be computed at runtime from the results.
@@ -188,7 +192,7 @@ class WP_Site_Health {
 					'recommended' => 0,
 					'critical'    => 0,
 				),
-				'results' => array(),
+				'results' => new stdClass(),
 			),
 		);
 
@@ -3542,7 +3546,7 @@ class WP_Site_Health {
 				continue;
 			}
 
-			$status = isset( $result['status'] ) ? $result['status'] : '';
+			$status = $result['status'] ?? '';
 
 			if ( 'critical' === $status ) {
 				++$site_status['critical'];
@@ -3563,7 +3567,15 @@ class WP_Site_Health {
 		 * entries so it does not discard fresher results collected from the Site Health
 		 * screen, which also include the asynchronous tests that require JavaScript to run.
 		 */
-		self::update_site_status_detail( $results, false );
+		$results_to_store = array();
+		foreach ( $results as $result ) {
+			$test = $result['test'] ?? null;
+			if ( is_string( $test ) ) {
+				unset( $result['test'] );
+				$results_to_store[ $test ] = wp_array_slice_assoc( $result, array( 'status', 'timestamp' ) );
+			}
+		}
+		self::update_site_status_detail( $results_to_store, false );
 	}
 
 	/**
@@ -3641,15 +3653,17 @@ class WP_Site_Health {
 
 		$cached = self::read_status_cache( self::STATUS_DETAIL_TRANSIENT );
 
-		foreach ( $results as $result ) {
-			$sanitized = self::sanitize_site_status_result( $result );
-
-			if ( null === $sanitized ) {
+		foreach ( $results as $test => $result ) {
+			$test = sanitize_text_field( $test );
+			if ( '' === $test ) {
 				continue;
 			}
 
-			$test = $sanitized['test'];
-			unset( $sanitized['test'] );
+			$validity = rest_validate_value_from_schema( $result, self::STORED_STATUS_SCHEMA['properties']['results']['additionalProperties'] );
+			if ( true !== $validity ) {
+				continue;
+			}
+			/** @var Stored_Test_Result $result */
 
 			/*
 			 * When the results omit the asynchronous tests, keep a recent existing entry
@@ -3657,15 +3671,16 @@ class WP_Site_Health {
 			 * Health screen (including the asynchronous tests) when the scheduled check
 			 * runs afterwards.
 			 */
-			if ( ! $includes_async
-				&& isset( $cached['results'][ $test ]['timestamp'] )
-				&& ( $now - (int) $cached['results'][ $test ]['timestamp'] ) < WEEK_IN_SECONDS
+			if (
+				! $includes_async
+				&& isset( $cached['results'][ $test ] )
+				&& ( $now - $cached['results'][ $test ]['timestamp'] ) < WEEK_IN_SECONDS
 			) {
 				continue;
 			}
 
-			$sanitized['timestamp']     = $now;
-			$cached['results'][ $test ] = $sanitized;
+			$result['timestamp']        = $now;
+			$cached['results'][ $test ] = $result;
 		}
 
 		// Drop results that have not been refreshed within the last month.
@@ -3780,40 +3795,6 @@ class WP_Site_Health {
 		}
 
 		return $counts;
-	}
-
-	/**
-	 * Normalizes and sanitizes a single Site Health test result for caching.
-	 *
-	 * Only locale-independent fields are kept. Human-readable text (label, description,
-	 * actions, badge) is left out. Those strings are translated for the current user's
-	 * locale, and the cache is a single site-wide option, so storing them could serve
-	 * one user's locale to another. Consumers should resolve labels at read time in the
-	 * current locale.
-	 *
-	 * @since 7.1.0
-	 *
-	 * @param mixed $result Raw test result data.
-	 * @return array|null The sanitized result, or null when required fields are missing
-	 *                    or the status is not recognized.
-	 * @phpstan-return array{ test: non-empty-string, status: 'good'|'recommended'|'critical' }|null
-	 */
-	private static function sanitize_site_status_result( $result ): ?array {
-		if ( ! is_array( $result ) ) {
-			return null;
-		}
-
-		$test   = isset( $result['test'] ) ? sanitize_text_field( (string) $result['test'] ) : '';
-		$status = isset( $result['status'] ) ? sanitize_key( (string) $result['status'] ) : '';
-
-		if ( '' === $test || ! in_array( $status, array( 'good', 'recommended', 'critical' ), true ) ) {
-			return null;
-		}
-
-		return array(
-			'test'   => $test,
-			'status' => $status,
-		);
 	}
 
 	/**
