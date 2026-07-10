@@ -64,6 +64,7 @@ class WP_Site_Health {
 							'minimum' => 1,
 						),
 					),
+					'required'             => array( 'status' ),
 					'additionalProperties' => false,
 				),
 			),
@@ -90,6 +91,7 @@ class WP_Site_Health {
 				'minimum' => 1,
 			),
 		),
+		'required'   => array( 'results', 'counts' ),
 	);
 
 	/**

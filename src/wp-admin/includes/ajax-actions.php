@@ -5476,15 +5476,13 @@ function wp_ajax_health_check_site_status_result() {
 		require_once ABSPATH . 'wp-admin/includes/class-wp-site-health.php';
 	}
 
-	$updated = false;
+	$save_results = array();
 
 	// Refresh the lightweight, autoloaded aggregate counts used by the admin menu and Dashboard.
 	// TODO: We don't need to keep this anymore. We can just obtain the counts at runtime from the stored results.
 	if ( isset( $_POST['counts'] ) && is_array( $_POST['counts'] ) ) {
-		$counts = wp_unslash( $_POST['counts'] );
-		WP_Site_Health::set_site_status_counts( $counts );
-
-		$updated = true;
+		$counts         = wp_unslash( $_POST['counts'] );
+		$save_results[] = WP_Site_Health::set_site_status_counts( $counts );
 	}
 
 	/*
@@ -5496,13 +5494,17 @@ function wp_ajax_health_check_site_status_result() {
 		$results = json_decode( wp_unslash( $_POST['results'] ), true );
 
 		if ( is_array( $results ) ) {
-			WP_Site_Health::update_site_status_detail( $results, true );
-			$updated = true;
+			$save_results[] = WP_Site_Health::update_site_status_detail( $results, true );
 		}
 	}
 
-	if ( ! $updated ) {
+	if ( count( $save_results ) === 0 ) {
 		wp_send_json_error();
+	}
+
+	$errors = array_filter( $save_results, 'is_wp_error' );
+	if ( count( $errors ) > 0 ) {
+		wp_send_json_error( $errors );
 	}
 
 	wp_send_json_success();
