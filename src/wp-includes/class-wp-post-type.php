@@ -374,7 +374,7 @@ final class WP_Post_Type {
 	/**
 	 * Whether this post type should be exposed through the Abilities API.
 	 *
-	 * Default false. When truthy, the post type's editable posts can be retrieved
+	 * Default false. When truthy, the post type's readable posts can be retrieved
 	 * through the read-only `core/read-content` ability, subject to per-post capability
 	 * checks. May be an array to enable specific operations in the future.
 	 *
