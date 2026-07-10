@@ -117,8 +117,7 @@ function wp_register_core_abilities(): void {
 					),
 				),
 				'additionalProperties' => false,
-				// Object (not array()) so the serialized schema default is {}, consistent with type:object.
-				'default'              => (object) array(),
+				'default'              => array(),
 			),
 			'output_schema'       => array(
 				'type'                 => 'object',
@@ -235,8 +234,7 @@ function wp_register_core_abilities(): void {
 					),
 				),
 				'additionalProperties' => false,
-				// Object (not array()) so the serialized schema default is {}, consistent with type:object.
-				'default'              => (object) array(),
+				'default'              => array(),
 			),
 			'output_schema'       => array(
 				'type'                 => 'object',
@@ -323,8 +321,7 @@ function wp_register_core_abilities(): void {
 					),
 				),
 				'additionalProperties' => false,
-				// Object (not array()) so the serialized schema default is {}, consistent with type:object.
-				'default'              => (object) array(),
+				'default'              => array(),
 			),
 			'output_schema'       => array(
 				'type'                 => 'object',
