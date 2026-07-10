@@ -727,11 +727,11 @@ if ( ! function_exists( 'clamp' ) ) {
 	 */
 	function clamp( $value, $min, $max ) {
 		if ( is_float( $min ) && is_nan( $min ) ) {
-			_wp_throw_value_error( 'clamp(): Argument #2 ($min) cannot be NAN' );
+			_wp_throw_value_error( 'clamp(): Argument #2 ($min) must not be NAN' );
 		}
 
 		if ( is_float( $max ) && is_nan( $max ) ) {
-			_wp_throw_value_error( 'clamp(): Argument #3 ($max) cannot be NAN' );
+			_wp_throw_value_error( 'clamp(): Argument #3 ($max) must not be NAN' );
 		}
 
 		if ( $max < $min ) {

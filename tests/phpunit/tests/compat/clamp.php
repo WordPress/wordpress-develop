@@ -227,7 +227,7 @@ class Tests_Compat_clamp extends WP_UnitTestCase {
 	 */
 	public function test_clamp_throws_for_nan_min(): void {
 		$this->expectException( $this->value_error_class() );
-		$this->expectExceptionMessage( 'clamp(): Argument #2 ($min) cannot be NAN' );
+		$this->expectExceptionMessage( 'clamp(): Argument #2 ($min) must not be NAN' );
 
 		clamp( 5, NAN, 10 );
 	}
@@ -239,7 +239,7 @@ class Tests_Compat_clamp extends WP_UnitTestCase {
 	 */
 	public function test_clamp_throws_for_nan_max(): void {
 		$this->expectException( $this->value_error_class() );
-		$this->expectExceptionMessage( 'clamp(): Argument #3 ($max) cannot be NAN' );
+		$this->expectExceptionMessage( 'clamp(): Argument #3 ($max) must not be NAN' );
 
 		clamp( 5, 0, NAN );
 	}
