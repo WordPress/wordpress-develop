@@ -204,15 +204,31 @@ class Tests_REST_API_WpRestAbilitiesContentController extends WP_UnitTestCase {
 	}
 
 	public function test_admin_query_include_limits_results(): void {
-		$first  = self::factory()->post->create( array( 'post_status' => 'publish' ) );
-		$second = self::factory()->post->create( array( 'post_status' => 'publish' ) );
-		$third  = self::factory()->post->create( array( 'post_status' => 'publish' ) );
+		$first  = self::factory()->post->create(
+			array(
+				'post_status' => 'publish',
+				'post_date'   => '2026-01-01 10:00:00',
+			)
+		);
+		$second = self::factory()->post->create(
+			array(
+				'post_status' => 'publish',
+				'post_date'   => '2026-02-01 10:00:00',
+			)
+		);
+		$third  = self::factory()->post->create(
+			array(
+				'post_status' => 'publish',
+				'post_date'   => '2026-03-01 10:00:00',
+			)
+		);
 
 		$response = $this->server->dispatch(
 			$this->run_request(
 				array(
 					'post_type' => 'post',
-					'include'   => array( $third, $first ),
+					// Deliberately pass IDs in the opposite of the expected date order.
+					'include'   => array( $first, $third ),
 					'fields'    => array( 'id' ),
 				)
 			)
@@ -289,5 +305,22 @@ class Tests_REST_API_WpRestAbilitiesContentController extends WP_UnitTestCase {
 		$this->assertCount( 2, $data['posts'] );
 		$this->assertGreaterThanOrEqual( 3, $data['total'] );
 		$this->assertSame( (int) ceil( $data['total'] / 2 ), $data['total_pages'] );
+	}
+
+	public function test_out_of_range_page_returns_400(): void {
+		self::factory()->post->create( array( 'post_status' => 'publish' ) );
+
+		$response = $this->server->dispatch(
+			$this->run_request(
+				array(
+					'post_type' => 'post',
+					'per_page'  => 1,
+					'page'      => 999,
+				)
+			)
+		);
+
+		$this->assertSame( 400, $response->get_status() );
+		$this->assertSame( 'content_invalid_page_number', $response->get_data()['code'] );
 	}
 }
