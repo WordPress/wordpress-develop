@@ -22,7 +22,8 @@ $parent_file = 'options-general.php';
 /* translators: Date and time format for exact current time, mainly about timezones, see https://www.php.net/manual/datetime.format.php */
 $timezone_format = _x( 'Y-m-d H:i:s', 'timezone date format' );
 
-add_action( 'admin_head', 'options_general_add_js' );
+wp_enqueue_script( 'options' );
+wp_localize_script( 'options', 'optionsL10n', array( 'homeURL' => get_home_url() ) );
 
 $options_help = '<p>' . __( 'The fields on this screen determine some of the basics of your site setup.' ) . '</p>' .
 	'<p>' . __( 'Most themes show the site title at the top of every page, in the title bar of the browser, and as the identifying name for syndicated feeds. Many themes also show the tagline.' ) . '</p>';
