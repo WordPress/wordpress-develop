@@ -369,13 +369,20 @@ function wp_dashboard_right_now() {
 	 * is wrapped in list-item tags on output.
 	 *
 	 * @since 3.8.0
+	 * @since 7.1.0 Added support for an array of items with `class` and `content` keys.
 	 *
-	 * @param string[] $items Array of extra 'At a Glance' widget items.
+	 * @param string[]|array[] $items Array of extra 'At a Glance' widget items.
+	 *                                If an array, each element should be an array with
+	 *                                `class` and `content` keys.
 	 */
 	$elements = apply_filters( 'dashboard_glance_items', array() );
 
-	if ( $elements ) {
-		echo '<li>' . implode( "</li>\n<li>", $elements ) . "</li>\n";
+	foreach ( (array) $elements as $element ) {
+		if ( is_array( $element ) ) {
+			printf( "<li class='%s'>%s</li>\n", esc_attr( $element['class'] ), $element['content'] );
+		} else {
+			echo '<li>' . $element . "</li>\n";
+		}
 	}
 
 	?>
