@@ -310,6 +310,10 @@
 		<exclude-pattern>/tests/phpunit/tests/db/charset\.php</exclude-pattern>
 	</rule>
 
+	<rule ref="WordPress.DB.RestrictedClasses">
+		<exclude-pattern>/src/wp-includes/sqlite/*\.php</exclude-pattern>
+	</rule>
+
 	<!-- Allow the WP DB related tests for issues with prepared SQL placeholders
 		 (as the handling of those are being tested). -->
 	<rule ref="WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare">

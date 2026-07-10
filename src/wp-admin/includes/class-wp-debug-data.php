@@ -1584,6 +1584,11 @@ class WP_Debug_Data {
 				'label' => 'WP_MAX_MEMORY_LIMIT',
 				'value' => WP_MAX_MEMORY_LIMIT,
 			),
+			'DB_ENGINE'           => array(
+				'label' => 'DB_ENGINE',
+				'value' => ( defined( 'DB_ENGINE' ) ? DB_ENGINE : __( 'Undefined' ) ),
+				'debug' => ( defined( 'DB_ENGINE' ) ? DB_ENGINE : 'undefined' ),
+			),
 			'WP_DEBUG'            => array(
 				'label' => 'WP_DEBUG',
 				'value' => WP_DEBUG ? __( 'Enabled' ) : __( 'Disabled' ),
@@ -1670,20 +1675,26 @@ class WP_Debug_Data {
 	private static function get_wp_database(): array {
 		global $wpdb;
 
-		// Populate the database debug fields.
-		if ( is_object( $wpdb->dbh ) ) {
-			// mysqli or PDO.
-			$extension = get_class( $wpdb->dbh );
+		$db_engine = defined( 'DB_ENGINE' ) && 'sqlite' === DB_ENGINE ? 'sqlite' : 'mysql';
+		$extension = null;
+		if ( 'mysql' === $db_engine ) {
+			// Populate the database debug fields.
+			if ( is_object( $wpdb->dbh ) ) {
+				// mysqli or PDO.
+				$extension = get_class( $wpdb->dbh );
+			}
+			$server = $wpdb->get_var( 'SELECT VERSION()' );
 		} else {
-			// Unknown sql extension.
-			$extension = null;
+			$server = class_exists( 'SQLite3' ) ? SQLite3::version()['versionString'] : null;
 		}
-
-		$server = $wpdb->get_var( 'SELECT VERSION()' );
 
 		$client_version = $wpdb->dbh->client_info;
 
 		$fields = array(
+			'db_engine'          => array(
+				'label' => __( 'Database engine' ),
+				'value' => 'sqlite' === $db_engine ? 'SQLite' : 'MySQL/MariaDB',
+			),
 			'extension'          => array(
 				'label' => __( 'Database Extension' ),
 				'value' => $extension,
@@ -1735,6 +1746,18 @@ class WP_Debug_Data {
 				'value' => self::get_mysql_var( 'max_connections' ),
 			),
 		);
+
+		if ( 'sqlite' === $db_engine ) {
+			$fields['database_file'] = array(
+				'label'   => __( 'Database file' ),
+				'value'   => FQDB,
+			);
+
+			$fields['database_size'] = array(
+				'label' => __( 'Database size' ),
+				'value' => size_format( filesize( FQDB ) ),
+			);
+		}
 
 		return array(
 			'label'  => __( 'Database' ),
