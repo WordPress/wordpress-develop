@@ -589,8 +589,8 @@ function list_meta( $meta ) {
 <table id="list-table" style="display: none;">
 	<thead>
 	<tr>
-		<th class="left">' . _x( 'Name', 'meta name' ) . '</th>
-		<th>' . __( 'Value' ) . '</th>
+		<th class="left">' . esc_html_x( 'Name', 'meta name' ) . '</th>
+		<th>' . esc_html__( 'Value' ) . '</th>
 	</tr>
 	</thead>
 	<tbody id="the-list" data-wp-lists="list:meta">
@@ -604,8 +604,8 @@ function list_meta( $meta ) {
 <table id="list-table">
 	<thead>
 	<tr>
-		<th class="left"><?php _ex( 'Name', 'meta name' ); ?></th>
-		<th><?php _e( 'Value' ); ?></th>
+		<th class="left"><?php echo esc_html_x( 'Name', 'meta name' ); ?></th>
+		<th><?php echo esc_html__( 'Value' ); ?></th>
 	</tr>
 	</thead>
 	<tbody id='the-list' data-wp-lists='list:meta'>
@@ -1038,7 +1038,7 @@ function wp_import_upload_form( $action ) {
 		?>
 <input type="file" id="upload" name="import" size="25" />
 <input type="hidden" name="action" value="save" />
-<input type="hidden" name="max_file_size" value="<?php echo $bytes; ?>" />
+<input type="hidden" name="max_file_size" value="<?php echo (int) $bytes; ?>" />
 </p>
 		<?php submit_button( __( 'Upload file and import' ), 'primary' ); ?>
 </form>
@@ -1383,7 +1383,7 @@ function do_meta_boxes( $screen, $context, $data_object ) {
 							__( 'Warning:' ) .
 						' </span>';
 					}
-					echo $box['title'];
+					echo esc_html( $box['title'] );
 					echo "</h2>\n";
 
 					if ( 'dashboard_browser_nag' !== $box['id'] ) {
@@ -1780,7 +1780,7 @@ function do_settings_sections( $page ) {
 		}
 
 		if ( $section['title'] ) {
-			echo "<h2>{$section['title']}</h2>\n";
+			echo '<h2>' . esc_html( $section['title'] ) . "</h2>\n";
 		}
 
 		if ( $section['callback'] ) {
@@ -1830,9 +1830,9 @@ function do_settings_fields( $page, $section ) {
 		echo "<tr{$class}>";
 
 		if ( ! empty( $field['args']['label_for'] ) ) {
-			echo '<th scope="row"><label for="' . esc_attr( $field['args']['label_for'] ) . '">' . $field['title'] . '</label></th>';
+			echo '<th scope="row"><label for="' . esc_attr( $field['args']['label_for'] ) . '">' . esc_html( $field['title'] ) . '</label></th>';
 		} else {
-			echo '<th scope="row">' . $field['title'] . '</th>';
+			echo '<th scope="row">' . esc_html( $field['title'] ) . '</th>';
 		}
 
 		echo '<td>';
@@ -2015,7 +2015,7 @@ function settings_errors( $setting = '', $sanitize = false, $hide_on_update = fa
 		);
 
 		$output .= "<div id='$css_id' class='$css_class'> \n";
-		$output .= "<p><strong>{$details['message']}</strong></p>";
+		$output .= '<p><strong>' . wp_kses_post( $details['message'] ) . '</strong></p>';
 		$output .= "</div> \n";
 	}
 
@@ -2139,7 +2139,7 @@ function iframe_header( $title = '', $deprecated = false ) {
 	header( 'Content-Type: ' . get_option( 'html_type' ) . '; charset=' . get_option( 'blog_charset' ) );
 	_wp_admin_html_begin();
 	?>
-<title><?php bloginfo( 'name' ); ?> &rsaquo; <?php echo $title; ?> &#8212; <?php _e( 'WordPress' ); ?></title>
+<title><?php bloginfo( 'name' ); ?> &rsaquo; <?php echo esc_html( $title ); ?> &#8212; <?php _e( 'WordPress' ); ?></title>
 	<?php
 	wp_enqueue_style( 'colors' );
 	?>
@@ -2186,7 +2186,7 @@ var ajaxurl = '<?php echo esc_js( admin_url( 'admin-ajax.php', 'relative' ) ); ?
 	?>
 </head>
 	<?php
-	$admin_body_id = isset( $body_id ) ? 'id="' . $body_id . '" ' : '';
+	$admin_body_id = isset( $body_id ) ? 'id="' . esc_attr( $body_id ) . '" ' : '';
 
 	/** This filter is documented in wp-admin/admin-header.php */
 	$admin_body_classes = apply_filters( 'admin_body_class', '' );
@@ -2268,7 +2268,7 @@ function _post_states( $post, $display = true ) {
 
 			$suffix = ( $i < $state_count ) ? $separator : '';
 
-			$post_states_html .= "<span class='post-state'>{$state}{$suffix}</span>";
+			$post_states_html .= '<span class="post-state">' . esc_html( $state ) . esc_html( $suffix ) . '</span>';
 		}
 	}
 
@@ -2396,7 +2396,7 @@ function _media_states( $post, $display = true ) {
 
 			$suffix = ( $i < $state_count ) ? $separator : '';
 
-			$media_states_string .= "<span class='post-state'>{$state}{$suffix}</span>";
+			$media_states_string .= '<span class="post-state">' . esc_html( $state ) . esc_html( $suffix ) . '</span>';
 		}
 	}
 
