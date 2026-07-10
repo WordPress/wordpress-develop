@@ -1539,7 +1539,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 */
 	private static function serialize_decoded_text( string $text ): string {
 		$text = htmlspecialchars( $text, ENT_QUOTES | ENT_SUBSTITUTE | ENT_HTML5, 'UTF-8' );
-		$text = str_replace( "\r", '&#13;', $text );
+		$text = str_replace( "\r", '&#xD;', $text );
 
 		return str_replace( "\x00", "\u{FFFD}", $text );
 	}
