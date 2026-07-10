@@ -879,6 +879,8 @@ function wp_default_scripts( $scripts ) {
 	$scripts->add( 'wp-auth-check', "/wp-includes/js/wp-auth-check$suffix.js", array( 'heartbeat' ), false, 1 );
 	$scripts->set_translations( 'wp-auth-check' );
 
+	$scripts->add( 'wp-tooltip', '/wp-includes/js/wp-tooltip.js', array(), false, 1 );
+
 	$scripts->add( 'wp-lists', "/wp-includes/js/wp-lists$suffix.js", array( 'wp-ajax-response', 'jquery-color' ), false, 1 );
 
 	$scripts->add( 'site-icon', '/wp-admin/js/site-icon.js', array( 'jquery' ), false, 1 );

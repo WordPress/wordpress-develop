@@ -1514,6 +1514,7 @@ switch ( $action ) {
 		}
 
 		wp_enqueue_script( 'user-profile' );
+		wp_enqueue_script( 'wp-tooltip' );
 		?>
 
 		<form name="loginform" id="loginform" action="<?php echo esc_url( site_url( 'wp-login.php', 'login_post' ) ); ?>" method="post">
@@ -1564,7 +1565,16 @@ switch ( $action ) {
 					$rememberme_help_text,
 					array(
 						'id'    => 'rememberme-help',
-						'label' => __( 'More information about &#8220;Remember Me&#8221;' ),
+						'label' => __( 'More about &#8220;Remember Me&#8221;' ),
+					)
+				);
+				// This iteration is present only for testing and comparison purposes.
+				echo wp_get_tooltip(
+					$rememberme_help_text,
+					array(
+						'id'    => 'rememberme-help-toggletip',
+						'label' => __( 'More about &#8220;Remember Me&#8221;' ),
+						'type'  => 'toggletip',
 					)
 				);
 				?>

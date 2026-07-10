@@ -26,7 +26,7 @@
 .wp-tooltip .wp-tooltip__toggle:focus,
 .wp-tooltip .wp-tooltip__close:hover,
 .wp-tooltip .wp-tooltip__close:focus {
-	color: var(--wp-admin-theme-color, #2271b1);
+	color: var(--wp-admin-theme-color, #3858e9);
 }
 
 .wp-tooltip .wp-tooltip__toggle:focus,
