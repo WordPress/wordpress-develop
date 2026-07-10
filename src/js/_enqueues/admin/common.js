@@ -2373,7 +2373,7 @@ $( function( $ ) {
  * fieldset), and their reassign dropdowns use different "no selection" values.
  * The logic below works per radio group so it covers both.
  *
- * @since 7.0.0
+ * @since 7.1.0
  */
 (function(){
 	const { _n, sprintf } = wp.i18n;
