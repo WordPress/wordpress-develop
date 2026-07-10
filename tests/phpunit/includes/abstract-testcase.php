@@ -1187,6 +1187,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 			'is_preview',
 			'is_robots',
 			'is_favicon',
+			'is_sitemap',
 			'is_search',
 			'is_single',
 			'is_singular',
