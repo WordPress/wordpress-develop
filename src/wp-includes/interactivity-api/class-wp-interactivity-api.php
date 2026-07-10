@@ -138,8 +138,8 @@ final class WP_Interactivity_API {
 	 * @since 6.5.0
 	 * @since 6.6.0 The `$store_namespace` param is optional.
 	 *
-	 * @param string $store_namespace Optional. The unique store namespace identifier.
-	 * @param array  $state           Optional. The array that will be merged with the existing state for the specified
+	 * @param string|null $store_namespace Optional. The unique store namespace identifier.
+	 * @param array|null  $state           Optional. The array that will be merged with the existing state for the specified
 	 *                                store namespace.
 	 * @return array The current state for the specified store namespace. This will be the updated state if a $state
 	 *               argument was provided.
@@ -311,7 +311,7 @@ final class WP_Interactivity_API {
 	 *
 	 * @since 6.6.0
 	 *
-	 * @param string $store_namespace Optional. The unique store namespace identifier.
+	 * @param string|null $store_namespace Optional. The unique store namespace identifier.
 	 */
 	public function get_context( ?string $store_namespace = null ): array {
 		if ( null === $this->context_stack ) {
@@ -384,7 +384,7 @@ final class WP_Interactivity_API {
 	public function add_hooks() {
 		add_filter( 'script_module_data_@wordpress/interactivity', array( $this, 'filter_script_module_interactivity_data' ) );
 		add_filter( 'script_module_data_@wordpress/interactivity-router', array( $this, 'filter_script_module_interactivity_router_data' ) );
-		add_filter( 'wp_script_attributes', array( $this, 'add_load_on_client_navigation_attribute_to_script_modules' ), 10, 1 );
+		add_filter( 'wp_script_attributes', array( $this, 'add_load_on_client_navigation_attribute_to_script_modules' ) );
 	}
 
 	/**
@@ -1086,8 +1086,7 @@ final class WP_Interactivity_API {
 	 */
 	private function data_wp_class_processor( WP_Interactivity_API_Directives_Processor $p, string $mode ) {
 		if ( 'enter' === $mode ) {
-			$all_class_directives = $p->get_attribute_names_with_prefix( 'data-wp-class--' );
-			$entries              = $this->get_directive_entries( $p, 'class' );
+			$entries = $this->get_directive_entries( $p, 'class' );
 			foreach ( $entries as $entry ) {
 				if ( empty( $entry['suffix'] ) ) {
 					continue;
