@@ -3206,12 +3206,12 @@ div.action-links {
 	}
 
 	#plugin-information-scrollable {
-		height: calc(100% - 58px);
+		height: calc(100% - 59px);
 	}
 
 	#plugin-information-footer {
 		padding: 12px 16px 0;
-		height: 46px; /* Actual height = 46+12 = 58 */
+		height: 46px; /* Actual height = 46+12+1 (border) = 59 */
 	}
 }
 
