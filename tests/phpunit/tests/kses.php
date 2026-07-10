@@ -2648,8 +2648,8 @@ HTML;
 			// Test srcset with bad protocol.
 			array( 'srcset', 'javascript:alert(1) 1x, http://example.com/image.jpg 2x', 'alert(1) 1x, http://example.com/image.jpg 2x' ),
 
-			// Test custom multi_uri parameter.
-			array( 'custom', 'url1.jpg, url2.jpg', 'url1.jpg, url2.jpg', array( 'custom' ) ),
+			// A custom $multi_uri_attrs entry has no effect on an attribute that is not a URI attribute.
+			array( 'custom', 'javascript:alert(1), url2.jpg', 'javascript:alert(1), url2.jpg', array( 'custom' ) ),
 
 			// Uppercase attribute name on a single-URI attribute is normalised.
 			array( 'SRC', 'javascript:alert(1)', 'alert(1)' ),
@@ -2661,6 +2661,35 @@ HTML;
 			// The whole value is treated as one URL, so wp_kses_bad_protocol() strips more than per-entry parsing would.
 			array( 'srcset', 'javascript:alert(1) 1x, http://example.com/image.jpg 2x', '//example.com/image.jpg 2x', array() ),
 		);
+	}
+
+	/**
+	 * Test that a custom attribute can opt in to multi-URI sanitization.
+	 *
+	 * The attribute must be registered as a URI attribute (via the
+	 * `wp_kses_uri_attributes` filter) and passed in $multi_uri_attrs for
+	 * per-entry sanitization to apply.
+	 *
+	 * @ticket 29807
+	 * @covers ::wp_kses_sanitize_uris
+	 */
+	public function test_wp_kses_sanitize_uris_custom_multi_uri_attribute() {
+		$add_custom = static function ( $uri_attrs ) {
+			$uri_attrs[] = 'data-srcset';
+			return $uri_attrs;
+		};
+		add_filter( 'wp_kses_uri_attributes', $add_custom );
+
+		$result = wp_kses_sanitize_uris(
+			'data-srcset',
+			'javascript:alert(1) 1x, https://example.com/img.jpg 2x',
+			wp_allowed_protocols(),
+			array( 'data-srcset' )
+		);
+
+		remove_filter( 'wp_kses_uri_attributes', $add_custom );
+
+		$this->assertSame( 'alert(1) 1x, https://example.com/img.jpg 2x', $result );
 	}
 
 	/**

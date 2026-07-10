@@ -954,6 +954,36 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that setting a srcset attribute preserves the value as-is.
+	 *
+	 * srcset is a URI attribute per wp_kses_uri_attributes(), but unlike single-URL
+	 * attributes it holds a comma-separated list of URLs with optional descriptors.
+	 * Passing the whole value through esc_url() would encode the descriptor spaces
+	 * as %20 and collapse the list into one broken URL.
+	 *
+	 * @ticket 29807
+	 *
+	 * @covers WP_HTML_Tag_Processor::set_attribute
+	 */
+	public function test_set_attribute_preserves_srcset_value() {
+		$srcset    = 'small.jpg 480w, medium.jpg 800w, large.jpg 2x';
+		$processor = new WP_HTML_Tag_Processor( '<img src="small.jpg">' );
+		$processor->next_tag();
+		$processor->set_attribute( 'srcset', $srcset );
+
+		$this->assertSame(
+			'<img srcset="small.jpg 480w, medium.jpg 800w, large.jpg 2x" src="small.jpg">',
+			$processor->get_updated_html(),
+			'set_attribute() did not preserve the srcset value verbatim'
+		);
+		$this->assertSame(
+			$srcset,
+			$processor->get_attribute( 'srcset' ),
+			'get_attribute() did not return the srcset value set via set_attribute()'
+		);
+	}
+
+	/**
 	 * @ticket 56299
 	 *
 	 * @covers WP_HTML_Tag_Processor::set_attribute
