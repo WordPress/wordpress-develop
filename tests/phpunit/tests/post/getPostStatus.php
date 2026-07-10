@@ -265,10 +265,9 @@ class Tests_Post_GetPostStatus extends WP_UnitTestCase {
 	 */
 	public static function data_get_post_status_resolves_inherit_for_non_attachment() {
 		return array(
-			'parent published'  => array( 'publish', 'publish' ),
-			'parent draft'      => array( 'draft', 'draft' ),
-			'parent private'    => array( 'private', 'private' ),
+			'parent published' => array( 'publish', 'publish' ),
+			'parent draft'     => array( 'draft', 'draft' ),
+			'parent private'   => array( 'private', 'private' ),
 		);
 	}
 }
-
