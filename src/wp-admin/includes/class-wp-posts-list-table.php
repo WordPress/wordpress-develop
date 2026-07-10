@@ -1028,7 +1028,11 @@ class WP_Posts_List_Table extends WP_List_Table {
 	protected function get_no_title_excerpt( $post ) {
 		global $mode;
 
-		if ( 'excerpt' === $mode || '' !== get_the_title( $post ) || post_password_required( $post ) ) {
+		if ( 'excerpt' === $mode
+			|| '' !== get_the_title( $post )
+			|| post_password_required( $post )
+			|| ! current_user_can( 'read_post', $post->ID )
+		) {
 			return '';
 		}
 
