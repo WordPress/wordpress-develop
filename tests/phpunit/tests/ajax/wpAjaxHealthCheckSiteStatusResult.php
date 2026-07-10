@@ -103,38 +103,43 @@ class Tests_Ajax_wpAjaxHealthCheckSiteStatusResult extends WP_Ajax_UnitTestCase 
 		$_POST['results']  = wp_slash(
 			wp_json_encode(
 				array(
-					array(
-						'test'        => 'a',
-						'label'       => 'A',
-						'status'      => 'critical',
-						'description' => '<p>Bad</p><script>alert(1)</script>',
-						'actions'     => '',
+					'a' => array(
+						'status' => 'critical',
 					),
-					array(
-						'test'        => 'b',
-						'label'       => 'B',
-						'status'      => 'recommended',
-						'description' => '<p>B</p>',
+					'b' => array(
+						'status' => 'recommended',
 					),
-					array(
-						'test'        => 'c',
-						'label'       => 'C',
-						'status'      => 'good',
-						'description' => '<p>C</p>',
+					'c' => array(
+						'status' => 'good',
 					),
-					array(
-						// An unrecognized status is dropped.
-						'test'        => 'd',
-						'label'       => 'D',
-						'status'      => 'bogus',
-						'description' => '<p>D</p>',
+					'd' => array(
+						// An unrecognized status is rejected.
+						'status' => 'bogus',
 					),
 				)
 			)
 		);
 
 		$response = $this->dispatch_result_request();
+		$this->assertFalse( $response['success'] );
 
+		$_POST['results'] = wp_slash(
+			wp_json_encode(
+				array(
+					'a' => array(
+						'status' => 'critical',
+					),
+					'b' => array(
+						'status' => 'recommended',
+					),
+					'c' => array(
+						'status' => 'good',
+					),
+				)
+			)
+		);
+
+		$response = $this->dispatch_result_request();
 		$this->assertTrue( $response['success'] );
 
 		// The counts transient holds only the aggregate counts.
@@ -154,8 +159,8 @@ class Tests_Ajax_wpAjaxHealthCheckSiteStatusResult extends WP_Ajax_UnitTestCase 
 		$this->assertSame( array( 'a', 'b', 'c' ), array_keys( $results ) );
 
 		// Only locale-independent fields are cached: the test name, status, and timestamp.
-		$this->assertSame(
-			array( 'test', 'status', 'timestamp' ),
+		$this->assertSameSets(
+			array( 'status', 'timestamp' ),
 			array_keys( $results['a'] ),
 			'No translated or HTML fields should be cached.'
 		);
@@ -190,9 +195,7 @@ class Tests_Ajax_wpAjaxHealthCheckSiteStatusResult extends WP_Ajax_UnitTestCase 
 		$_POST['results']  = wp_slash(
 			wp_json_encode(
 				array(
-					array(
-						'test'   => 'a',
-						'label'  => 'A',
+					'a' => array(
 						'status' => 'critical',
 					),
 				)
@@ -224,11 +227,11 @@ class Tests_Ajax_wpAjaxHealthCheckSiteStatusResult extends WP_Ajax_UnitTestCase 
 				array(
 					'results'   => array(
 						'seeded' => array(
-							'test'      => 'seeded',
 							'status'    => 'good',
 							'timestamp' => $now,
 						),
 					),
+					'counts'    => array(),
 					'timestamp' => $now,
 				)
 			),
