@@ -881,8 +881,8 @@ class wpdb {
 	public function determine_charset( $charset, $collate ) {
 		if ( ( ! ( $this->dbh instanceof mysqli ) ) || empty( $this->dbh ) ) {
 			return array(
- 				'charset' => $charset,
- 				'collate' => $collate,
+				'charset' => $charset,
+				'collate' => $collate,
 			);
 		}
 
@@ -905,9 +905,9 @@ class wpdb {
 		}
 
 		return array(
- 				'charset' => $charset,
- 				'collate' => $collate,
-			);
+			'charset' => $charset,
+			'collate' => $collate,
+		);
 	}
 
 	/**
