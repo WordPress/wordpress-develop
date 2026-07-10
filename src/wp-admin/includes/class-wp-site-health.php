@@ -3603,6 +3603,11 @@ class WP_Site_Health {
 			return $validity;
 		}
 
+		$stored_value = wp_json_encode( $counts );
+		if ( get_transient( self::STATUS_RESULT_TRANSIENT ) === $stored_value ) {
+			return true;
+		}
+
 		if ( ! set_transient( self::STATUS_RESULT_TRANSIENT, wp_json_encode( $counts ) ) ) {
 			return new WP_Error( 'set_transient_error' );
 		}
@@ -3647,8 +3652,9 @@ class WP_Site_Health {
 	 *                                scheduled check passes `false` since it cannot run the
 	 *                                asynchronous tests, so it only fills in missing or stale
 	 *                                entries without discarding fresher results from the screen.
+	 * @return true|WP_Error True on success, WP_Error on failure.
 	 */
-	public static function update_site_status_detail( array $results, bool $includes_async ): void {
+	public static function update_site_status_detail( array $results, bool $includes_async ) {
 		$now = time();
 
 		$cached = self::read_status_cache( self::STATUS_DETAIL_TRANSIENT );
@@ -3656,12 +3662,13 @@ class WP_Site_Health {
 		foreach ( $results as $test => $result ) {
 			$test = sanitize_text_field( $test );
 			if ( '' === $test ) {
-				continue;
+				return new WP_Error( 'invalid_test' );
 			}
 
+			// TODO: Return as error.
 			$validity = rest_validate_value_from_schema( $result, self::STORED_STATUS_SCHEMA['properties']['results']['additionalProperties'] );
 			if ( true !== $validity ) {
-				continue;
+				return $validity;
 			}
 			/** @var Stored_Test_Result $result */
 
@@ -3692,21 +3699,25 @@ class WP_Site_Health {
 
 		if ( empty( $cached['results'] ) ) {
 			delete_transient( self::STATUS_DETAIL_TRANSIENT );
-			return;
+			return true;
 		}
 
-		set_transient(
-			self::STATUS_DETAIL_TRANSIENT,
-			wp_json_encode(
-				array(
-					'results'   => $cached['results'],
-					// A counts snapshot derived from the same results, kept for self-describing cache reads.
-					'counts'    => self::count_site_status_results( array_values( $cached['results'] ) ),
-					'timestamp' => $now,
-				)
-			),
-			MONTH_IN_SECONDS
+		$stored_value = wp_json_encode(
+			array(
+				'results'   => $cached['results'],
+				// A counts snapshot derived from the same results, kept for self-describing cache reads.
+				'counts'    => self::count_site_status_results( array_values( $cached['results'] ) ),
+				'timestamp' => $now,
+			)
 		);
+		if ( get_transient( self::STATUS_RESULT_TRANSIENT ) === $stored_value ) {
+			return true;
+		}
+
+		if ( ! set_transient( self::STATUS_DETAIL_TRANSIENT, $stored_value, MONTH_IN_SECONDS ) ) {
+			return new WP_Error( 'set_transient_error' );
+		}
+		return true;
 	}
 
 	/**
