@@ -1013,18 +1013,43 @@ class WP_Posts_List_Table extends WP_List_Table {
 	}
 
 	/**
+	 * Gets a trimmed excerpt to display in place of a missing post title.
+	 *
+	 * Only returns text in the Compact list view for posts that have no title
+	 * and do not require a password.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @global string $mode List table view mode.
+	 *
+	 * @param WP_Post $post The current WP_Post object.
+	 * @return string The escaped, trimmed excerpt, or an empty string.
+	 */
+	protected function get_no_title_excerpt( $post ) {
+		global $mode;
+
+		if ( 'excerpt' === $mode || '' !== get_the_title( $post ) || post_password_required( $post ) ) {
+			return '';
+		}
+
+		$excerpt = get_the_excerpt( $post );
+
+		if ( '' === $excerpt || ! is_string( $excerpt ) ) {
+			return '';
+		}
+
+		return esc_html( wp_trim_words( $excerpt, 15 ) );
+	}
+
+	/**
 	 * Handles the checkbox column output.
 	 *
 	 * @since 4.3.0
 	 * @since 5.9.0 Renamed `$post` to `$item` to match parent class for PHP 8 named parameter support.
 	 *
-	 * @global string $mode List table view mode.
-	 *
 	 * @param WP_Post $item The current WP_Post object.
 	 */
 	public function column_cb( $item ) {
-		global $mode;
-
 		// Restores the more descriptive, specific name for use within this method.
 		$post = $item;
 
@@ -1045,11 +1070,9 @@ class WP_Posts_List_Table extends WP_List_Table {
 			$post_title = _draft_or_post_title();
 
 			// If the post has no title, try adding part of the excerpt.
-			if ( 'excerpt' !== $mode && '' === get_the_title( $post ) && ! post_password_required( $post ) ) {
-				$excerpt = get_the_excerpt( $post );
-				if ( '' !== $excerpt && is_string( $excerpt ) ) {
-					$post_title .= ' ' . esc_html( wp_trim_words( $excerpt, 15 ) );
-				}
+			$no_title_excerpt = $this->get_no_title_excerpt( $post );
+			if ( '' !== $no_title_excerpt ) {
+				$post_title .= ' ' . $no_title_excerpt;
 			}
 			?>
 			<input id="cb-select-<?php the_ID(); ?>" type="checkbox" name="post[]" value="<?php the_ID(); ?>" />
@@ -1157,11 +1180,9 @@ class WP_Posts_List_Table extends WP_List_Table {
 		$title = _draft_or_post_title();
 
 		// If the post has no title, try adding part of the excerpt.
-		if ( 'excerpt' !== $mode && '' === get_the_title( $post ) && ! post_password_required( $post ) ) {
-			$excerpt = get_the_excerpt( $post );
-			if ( '' !== $excerpt && is_string( $excerpt ) ) {
-				$title .= ' <span class="trimmed-post-excerpt">' . esc_html( wp_trim_words( $excerpt, 15 ) ) . '</span>';
-			}
+		$no_title_excerpt = $this->get_no_title_excerpt( $post );
+		if ( '' !== $no_title_excerpt ) {
+			$title .= ' <span class="trimmed-post-excerpt">' . $no_title_excerpt . '</span>';
 		}
 
 		if ( $can_edit_post && 'trash' !== $post->post_status ) {
