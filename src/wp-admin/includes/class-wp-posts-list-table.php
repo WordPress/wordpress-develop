@@ -1050,6 +1050,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 	 *
 	 * @since 4.3.0
 	 * @since 5.9.0 Renamed `$post` to `$item` to match parent class for PHP 8 named parameter support.
+	 * @since 7.1.0 Includes a trimmed excerpt for untitled posts in Compact view.
 	 *
 	 * @param WP_Post $item The current WP_Post object.
 	 */
@@ -1123,6 +1124,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 	 * Handles the title column output.
 	 *
 	 * @since 4.3.0
+	 * @since 7.1.0 Includes a trimmed excerpt for untitled posts in Compact view.
 	 *
 	 * @global string $mode List table view mode.
 	 *
