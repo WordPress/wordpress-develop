@@ -1000,6 +1000,7 @@ EOF;
 	 * @ticket 58551
 	 * @ticket 60132
 	 * @ticket 64414
+	 * @ticket 65457
 	 *
 	 * @dataProvider data_safecss_filter_attr
 	 *
@@ -1473,6 +1474,43 @@ EOF;
 				'css'      => 'display: grid',
 				'expected' => 'display: grid',
 			),
+			// SVG presentation attributes introduced in 7.1.0.
+			array(
+				'css'      => 'fill: none',
+				'expected' => 'fill: none',
+			),
+			array(
+				'css'      => 'fill-rule: evenodd',
+				'expected' => 'fill-rule: evenodd',
+			),
+			array(
+				'css'      => 'stroke: red',
+				'expected' => 'stroke: red',
+			),
+			array(
+				'css'      => 'stroke-width: 2',
+				'expected' => 'stroke-width: 2',
+			),
+			array(
+				'css'      => 'stroke-linecap: round',
+				'expected' => 'stroke-linecap: round',
+			),
+			array(
+				'css'      => 'paint-order: stroke',
+				'expected' => 'paint-order: stroke',
+			),
+			array(
+				'css'      => 'vector-effect: non-scaling-stroke',
+				'expected' => 'vector-effect: non-scaling-stroke',
+			),
+			array(
+				'css'      => 'clip-rule: evenodd',
+				'expected' => 'clip-rule: evenodd',
+			),
+			array(
+				'css'      => 'text-anchor: middle',
+				'expected' => 'text-anchor: middle',
+			),
 		);
 	}
 
@@ -1580,6 +1618,52 @@ EOF;
 			// Multiple wildcards.
 			array( 'd*ta-*', false ),
 			array( 'data**', false ),
+		);
+	}
+
+	/**
+	 * Tests that style attribute values are decoded before CSS filtering.
+	 *
+	 * @ticket 65270
+	 *
+	 * @dataProvider data_wp_kses_style_attr_decodes_entities_before_css_filtering
+	 *
+	 * @param string $content  A string of HTML to test.
+	 * @param string $expected Expected result after passing through KSES.
+	 */
+	public function test_wp_kses_style_attr_decodes_entities_before_css_filtering( $content, $expected ) {
+		$allowed_html = array(
+			'div' => array(
+				'style' => true,
+			),
+		);
+
+		$this->assertEqualHTML( $expected, wp_kses( $content, $allowed_html ) );
+	}
+
+	/**
+	 * Data provider for test_wp_kses_style_attr_decodes_entities_before_css_filtering().
+	 *
+	 * @return array[]
+	 */
+	public function data_wp_kses_style_attr_decodes_entities_before_css_filtering() {
+		return array(
+			'background image URL with single quotes' => array(
+				'<div style="background-image: url(\'https://localhost/image.jpg\');"></div>',
+				'<div style="background-image: url(&#039;https://localhost/image.jpg&#039;)"></div>',
+			),
+			'background image URL with entity-encoded double quotes' => array(
+				'<div style="background-image: url(&quot;https://localhost/image.jpg&quot;);"></div>',
+				'<div style="background-image: url(&quot;https://localhost/image.jpg&quot;)"></div>',
+			),
+			'background image URL with query string ampersand' => array(
+				'<div style="background-image: url(https://localhost/image.jpg?a=1&b=2);"></div>',
+				'<div style="background-image: url(https://localhost/image.jpg?a=1&amp;b=2)"></div>',
+			),
+			'background image URL followed by another declaration' => array(
+				'<div style="background-image:url(\'https://localhost/image.jpg\');background-size:cover;"></div>',
+				'<div style="background-image:url(&#039;https://localhost/image.jpg&#039;);background-size:cover"></div>',
+			),
 		);
 	}
 
@@ -1840,6 +1924,17 @@ EOF;
 		);
 
 		$html = implode( ' ', $test );
+
+		$this->assertEqualHTML( $html, wp_kses_post( $html ) );
+	}
+
+	/**
+	 * Test that Invoker Commands API attributes are preserved on buttons in post content.
+	 *
+	 * @ticket 64576
+	 */
+	public function test_wp_kses_button_invoker_command_attributes() {
+		$html = '<button type="button" commandfor="my-popover" command="toggle-popover">Toggle</button><div id="my-popover" popover>Content</div>';
 
 		$this->assertEqualHTML( $html, wp_kses_post( $html ) );
 	}

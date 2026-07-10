@@ -7,7 +7,7 @@
 
 // Don't load directly.
 if ( ! defined( 'ABSPATH' ) ) {
-	die( '-1' );
+	exit;
 }
 
 require ABSPATH . WPINC . '/option.php';
@@ -586,16 +586,16 @@ function human_readable_duration( $duration = '' ) {
  */
 function get_weekstartend( $mysqlstring, $start_of_week = '' ) {
 	// MySQL string year.
-	$my = substr( $mysqlstring, 0, 4 );
+	$mysql_year = substr( $mysqlstring, 0, 4 );
 
 	// MySQL string month.
-	$mm = substr( $mysqlstring, 8, 2 );
+	$mysql_month = substr( $mysqlstring, 5, 2 );
 
 	// MySQL string day.
-	$md = substr( $mysqlstring, 5, 2 );
+	$mysql_day = substr( $mysqlstring, 8, 2 );
 
 	// The timestamp for MySQL string day.
-	$day = mktime( 0, 0, 0, $md, $mm, $my );
+	$day = mktime( 0, 0, 0, $mysql_month, $mysql_day, $mysql_year );
 
 	// The day of the week from the timestamp.
 	$weekday = (int) gmdate( 'w', $day );
@@ -1031,14 +1031,19 @@ function is_new_day() {
  * This is a convenient function for easily building URL queries.
  * It sets the separator to '&' and uses the _http_build_query() function.
  *
+ * Unlike PHP's native http_build_query(), this function does NOT URL-encode
+ * the keys or values. Callers are responsible for encoding values beforehand
+ * with urlencode() or rawurlencode(), or late-escaping the output with
+ * esc_url() before use.
+ *
  * @since 2.3.0
  *
- * @see _http_build_query() Used to build the query
+ * @see _http_build_query() Used to build the query.
  * @link https://www.php.net/manual/en/function.http-build-query.php for more on what
  *       http_build_query() does.
  *
- * @param array $data URL-encode key/value pairs.
- * @return string URL-encoded string.
+ * @param array $data Array of key/value pairs to build the query from.
+ * @return string Query string, without URL encoding applied.
  */
 function build_query( $data ) {
 	return _http_build_query( $data, null, '&', '', false );
@@ -1284,6 +1289,10 @@ function wp_removable_query_args() {
  *
  * @param array $input_array Array to walk while sanitizing contents.
  * @return array Sanitized $input_array.
+ *
+ * @phpstan-template T of array
+ * @phpstan-param T $input_array
+ * @phpstan-return array<key-of<T>, ( value-of<T> is string ? string : value-of<T> )>
  */
 function add_magic_quotes( $input_array ) {
 	foreach ( (array) $input_array as $k => $v ) {
@@ -1706,7 +1715,9 @@ function do_feed_atom( $for_comments ) {
  *              filter callback.
  */
 function do_robots() {
-	header( 'Content-Type: text/plain; charset=utf-8' );
+	if ( ! headers_sent() ) {
+		header( 'Content-Type: text/plain; charset=utf-8' );
+	}
 
 	/**
 	 * Fires when displaying the robots.txt file.
@@ -1718,10 +1729,8 @@ function do_robots() {
 	$output = "User-agent: *\n";
 	$public = (bool) get_option( 'blog_public' );
 
-	$site_url = parse_url( site_url() );
-	$path     = ( ! empty( $site_url['path'] ) ) ? $site_url['path'] : '';
-	$output  .= "Disallow: $path/wp-admin/\n";
-	$output  .= "Allow: $path/wp-admin/admin-ajax.php\n";
+	$output .= 'Disallow: ' . wp_parse_url( admin_url(), PHP_URL_PATH ) . "\n";
+	$output .= 'Allow: ' . wp_parse_url( admin_url( 'admin-ajax.php' ), PHP_URL_PATH ) . "\n";
 
 	/**
 	 * Filters the robots.txt output.
@@ -1747,7 +1756,7 @@ function do_favicon() {
 	 */
 	do_action( 'do_faviconico' );
 
-	wp_redirect( get_site_icon_url( 32, includes_url( 'images/w-logo-blue-white-bg.png' ) ) );
+	wp_redirect( get_site_icon_url( 32, includes_url( 'images/w-logo-gray-white-bg.png' ) ) );
 	exit;
 }
 
@@ -2336,6 +2345,14 @@ function win_is_writable( $path ) {
  * @see wp_upload_dir()
  *
  * @return array See wp_upload_dir() for description.
+ * @phpstan-return array{
+ *                     path: non-empty-string,
+ *                     url: non-empty-string,
+ *                     subdir: non-empty-string,
+ *                     basedir: non-empty-string,
+ *                     baseurl: non-empty-string,
+ *                 }
+ *                |array{ error: non-empty-string }
  */
 function wp_get_upload_dir() {
 	return wp_upload_dir( null, false );
@@ -2377,6 +2394,14 @@ function wp_get_upload_dir() {
  *     @type string       $baseurl URL path without subdir.
  *     @type string|false $error   False or error message.
  * }
+ * @phpstan-return array{
+ *                     path: non-empty-string,
+ *                     url: non-empty-string,
+ *                     subdir: non-empty-string,
+ *                     basedir: non-empty-string,
+ *                     baseurl: non-empty-string,
+ *                 }
+ *                |array{ error: non-empty-string }
  */
 function wp_upload_dir( $time = null, $create_dir = true, $refresh_cache = false ) {
 	static $cache = array(), $tested_paths = array();
@@ -5285,20 +5310,35 @@ function _wp_to_kebab_case( $input_string ) {
 /**
  * Determines if the variable is a numeric-indexed array.
  *
+ * Note! This answers a different question than {@see array_is_list()} and is
+ *       more flexible to handle situations where some numeric array indices
+ *       have been removed. A numeric-indexed array is only a “list” when the
+ *       array keys form a contiguous range from zero to the highest key.
+ *
+ * Example:
+ *
+ *     true  === wp_is_numeric_array( array( 1, 2, 3, 4 ) );
+ *     false === wp_is_numeric_array( array( 'name' => 'WordPress' ) );
+ *
+ *     // All-numeric keys vs. list.
+ *     $above_two   = array_filter( array( 1, 2, 8, 9 ), fn ( $v ) => $v > 2 );
+ *     $above_two === array( '2' => 8, '3' => 9 );
+ *     true       === wp_is_numeric_array( $above_two );
+ *     false      === array_is_list( $above_two );
+ *
  * @since 4.4.0
  *
  * @param mixed $data Variable to check.
  * @return bool Whether the variable is a list.
+ *
+ * @phpstan-assert-if-true array<int, mixed> $data
  */
-function wp_is_numeric_array( $data ) {
+function wp_is_numeric_array( $data ): bool {
 	if ( ! is_array( $data ) ) {
 		return false;
 	}
 
-	$keys        = array_keys( $data );
-	$string_keys = array_filter( $keys, 'is_string' );
-
-	return count( $string_keys ) === 0;
+	return array_all( $data, fn( $value, $key ) => ! is_string( $key ) );
 }
 
 /**
@@ -8472,6 +8512,38 @@ function wp_schedule_delete_old_privacy_export_files() {
 }
 
 /**
+ * Schedules a WP-Cron job to clean up personal data requests.
+ *
+ * @since 7.1.0
+ *
+ * @see wp_privacy_personal_data_cleanup_requests()
+ */
+function wp_schedule_personal_data_cleanup_requests(): void {
+	if ( wp_installing() ) {
+		return;
+	}
+
+	if ( ! wp_next_scheduled( 'wp_privacy_personal_data_cleanup_requests' ) ) {
+		wp_schedule_event( time(), 'daily', 'wp_privacy_personal_data_cleanup_requests' );
+	}
+}
+
+/**
+ * Fires the personal data cleanup requests handler during cron.
+ *
+ * Loads the admin privacy tools file if needed (e.g. during cron, where
+ * wp-admin/includes/privacy-tools.php is not loaded automatically).
+ *
+ * @since 7.1.0
+ */
+function wp_privacy_personal_data_cleanup_requests(): void {
+	if ( ! function_exists( '_wp_personal_data_cleanup_requests' ) ) {
+		require_once ABSPATH . 'wp-admin/includes/privacy-tools.php';
+	}
+	_wp_personal_data_cleanup_requests();
+}
+
+/**
  * Cleans up export files older than three days old.
  *
  * The export files are stored in `wp-content/uploads`, and are therefore publicly
@@ -8842,12 +8914,7 @@ function recurse_dirsize( $directory, $exclude = null, $max_execution_time = nul
 
 	if ( null === $max_execution_time ) {
 		// Keep the previous behavior but attempt to prevent fatal errors from timeout if possible.
-		if ( function_exists( 'ini_get' ) ) {
-			$max_execution_time = ini_get( 'max_execution_time' );
-		} else {
-			// Disable...
-			$max_execution_time = 0;
-		}
+		$max_execution_time = ini_get( 'max_execution_time' );
 
 		// Leave 1 second "buffer" for other operations if $max_execution_time has reasonable value.
 		if ( $max_execution_time > 10 ) {
