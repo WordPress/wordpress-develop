@@ -485,6 +485,38 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 62407
+	 *
+	 * @covers ::wp_get_post_content_block_attributes
+	 */
+	public function test_wp_get_post_content_block_attributes_with_registered_block_template() {
+		global $post, $post_ID;
+
+		switch_theme( 'block-theme' );
+		$post_ID = $post->ID;
+
+		$template_name = 'test-plugin//custom-template';
+		register_block_template(
+			$template_name,
+			array(
+				'content' => '<!-- wp:post-content {"foo":"bar"} /-->',
+			)
+		);
+		update_post_meta( $post_ID, '_wp_page_template', 'custom-template' );
+
+		$attributes = wp_get_post_content_block_attributes();
+
+		unregister_block_template( $template_name );
+
+		$this->assertSame(
+			array(
+				'foo' => 'bar',
+			),
+			$attributes
+		);
+	}
+
+	/**
 	 * @ticket 53458
 	 */
 	public function test_get_block_editor_settings_theme_json_settings() {
