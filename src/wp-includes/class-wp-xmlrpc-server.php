@@ -6450,6 +6450,10 @@ class wp_xmlrpc_server extends IXR_Server {
 		$password = $this->escape( $args[2] );
 		$data     = $args[3];
 
+		if ( ! is_array( $data ) ) {
+			return new IXR_Error( 400, __( 'Invalid attachment data.' ) );
+		}
+
 		$name = sanitize_file_name( $data['name'] );
 		$type = $data['type'];
 		$bits = $data['bits'];
