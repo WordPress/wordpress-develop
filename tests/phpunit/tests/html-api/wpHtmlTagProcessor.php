@@ -465,6 +465,148 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensures that an attribute enqueued via set_attribute() is reported before
+	 * the updates are flushed through get_updated_html().
+	 *
+	 * @ticket 64567
+	 *
+	 * @covers WP_HTML_Tag_Processor::get_attribute_names_with_prefix
+	 */
+	public function test_get_attribute_names_with_prefix_reflects_set_attribute_without_flushing() {
+		$processor = new WP_HTML_Tag_Processor( '<div>Test</div>' );
+		$processor->next_tag();
+		$processor->set_attribute( 'id', 'test' );
+
+		$this->assertSame(
+			array( 'id' ),
+			$processor->get_attribute_names_with_prefix( '' ),
+			'Did not report an attribute enqueued via set_attribute() before flushing the updates.'
+		);
+	}
+
+	/**
+	 * Ensures that an attribute enqueued for removal via remove_attribute() is no
+	 * longer reported before the updates are flushed through get_updated_html().
+	 *
+	 * @ticket 64567
+	 *
+	 * @covers WP_HTML_Tag_Processor::get_attribute_names_with_prefix
+	 */
+	public function test_get_attribute_names_with_prefix_reflects_remove_attribute_without_flushing() {
+		$processor = new WP_HTML_Tag_Processor( '<div id="main" data-foo="bar">Test</div>' );
+		$processor->next_tag();
+		$processor->remove_attribute( 'data-foo' );
+
+		$this->assertSame(
+			array(),
+			$processor->get_attribute_names_with_prefix( 'data-' ),
+			'Reported an attribute enqueued for removal before flushing the updates.'
+		);
+		$this->assertSame(
+			array( 'id' ),
+			$processor->get_attribute_names_with_prefix( '' ),
+			'Did not omit a removed attribute from the full list before flushing the updates.'
+		);
+	}
+
+	/**
+	 * Ensures that a class enqueued via add_class() surfaces the `class` attribute
+	 * before the updates are flushed through get_updated_html().
+	 *
+	 * @ticket 64567
+	 *
+	 * @covers WP_HTML_Tag_Processor::get_attribute_names_with_prefix
+	 */
+	public function test_get_attribute_names_with_prefix_reflects_add_class_without_flushing() {
+		$processor = new WP_HTML_Tag_Processor( '<div>Test</div>' );
+		$processor->next_tag();
+		$processor->add_class( 'highlight' );
+
+		$this->assertSame(
+			array( 'class' ),
+			$processor->get_attribute_names_with_prefix( 'class' ),
+			'Did not report the class attribute enqueued via add_class() before flushing the updates.'
+		);
+	}
+
+	/**
+	 * Ensures that a newly-added attribute is reported in the same order it appears
+	 * in get_updated_html(), that is, ahead of the original attributes.
+	 *
+	 * @ticket 64567
+	 *
+	 * @covers WP_HTML_Tag_Processor::get_attribute_names_with_prefix
+	 */
+	public function test_get_attribute_names_with_prefix_orders_added_attribute_like_updated_html() {
+		$processor = new WP_HTML_Tag_Processor( '<div data-foo="bar">Test</div>' );
+		$processor->next_tag();
+		$processor->set_attribute( 'id', 'test' );
+
+		$this->assertSame(
+			array( 'id', 'data-foo' ),
+			$processor->get_attribute_names_with_prefix( '' ),
+			'Did not order an enqueued attribute ahead of the original attributes as get_updated_html() does.'
+		);
+	}
+
+	/**
+	 * Ensures that an attribute whose set_attribute() call was rejected is not
+	 * reported by get_attribute_names_with_prefix().
+	 *
+	 * @ticket 64567
+	 *
+	 * @covers WP_HTML_Tag_Processor::get_attribute_names_with_prefix
+	 *
+	 * @expectedIncorrectUsage WP_HTML_Tag_Processor::set_attribute
+	 */
+	public function test_get_attribute_names_with_prefix_omits_rejected_set_attribute() {
+		$processor = new WP_HTML_Tag_Processor( '<div>Test</div>' );
+		$processor->next_tag();
+
+		$this->assertFalse(
+			$processor->set_attribute( 'data->bad', 'x' ),
+			'set_attribute() should reject an invalid attribute name.'
+		);
+		$this->assertSame(
+			array(),
+			$processor->get_attribute_names_with_prefix( 'data-' ),
+			'Reported an attribute whose set_attribute() call was rejected.'
+		);
+	}
+
+	/**
+	 * Ensures that get_attribute_names_with_prefix() agrees with get_attribute()
+	 * after enqueued additions, updates, and removals, reporting each name once.
+	 *
+	 * @ticket 64567
+	 *
+	 * @covers WP_HTML_Tag_Processor::get_attribute_names_with_prefix
+	 */
+	public function test_get_attribute_names_with_prefix_agrees_with_get_attribute_after_updates() {
+		$processor = new WP_HTML_Tag_Processor( '<div data-keep="1" data-drop="2">Test</div>' );
+		$processor->next_tag();
+		$processor->set_attribute( 'data-keep', 'updated' );
+		$processor->set_attribute( 'data-add', 'new' );
+		$processor->remove_attribute( 'data-drop' );
+
+		$names = $processor->get_attribute_names_with_prefix( 'data-' );
+		sort( $names );
+
+		$this->assertSame(
+			array( 'data-add', 'data-keep' ),
+			$names,
+			'Did not reflect enqueued additions, updates, and removals without duplicating a name.'
+		);
+
+		foreach ( $names as $name ) {
+			$this->assertNotNull(
+				$processor->get_attribute( $name ),
+				"get_attribute_names_with_prefix() reported {$name}, but get_attribute() disagreed."
+			);
+		}
+	}
+
+	/**
 	 * @ticket 56299
 	 *
 	 * @covers WP_HTML_Tag_Processor::__toString

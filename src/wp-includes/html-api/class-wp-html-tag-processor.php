@@ -2952,6 +2952,7 @@ class WP_HTML_Tag_Processor {
 	 *     $p->get_attribute_names_with_prefix( 'data-' ) === null;
 	 *
 	 * @since 6.2.0
+	 * @since 7.1.0 Reflects attributes enqueued via `set_attribute()`, `remove_attribute()`, `add_class()`, and `remove_class()`.
 	 *
 	 * @see https://html.spec.whatwg.org/multipage/syntax.html#attributes-2:ascii-case-insensitive
 	 *
@@ -2966,14 +2967,49 @@ class WP_HTML_Tag_Processor {
 			return null;
 		}
 
+		/*
+		 * Enqueued changes from `add_class()` and `remove_class()` are held apart until
+		 * they're flushed into a `class` attribute update, so flush them here to ensure a
+		 * pending `class` change is reflected below, just as `get_attribute()` does.
+		 */
+		$this->class_name_updates_to_attributes_updates();
+
 		$comparable = strtolower( $prefix );
 
+		/*
+		 * Attributes enqueued via `set_attribute()` and `remove_attribute()` take
+		 * precedence over those parsed from the input HTML, matching `get_attribute()`.
+		 *
+		 * A newly-added attribute is written immediately after the tag name in
+		 * `get_updated_html()`, ahead of the original attributes, so it's reported first
+		 * here to keep both methods in agreement. Attributes present in the input HTML are
+		 * reported afterwards unless they've been enqueued for removal.
+		 */
 		$matches = array();
+		foreach ( $this->lexical_updates as $name => $update ) {
+			if (
+				is_string( $name ) &&
+				// `modifiable text` is a reserved key for content updates, not an attribute.
+				'modifiable text' !== $name &&
+				// An empty replacement is an enqueued removal, handled below.
+				'' !== $update->text &&
+				// Modifications of existing attributes are reported in source order below.
+				! isset( $this->attributes[ $name ] ) &&
+				str_starts_with( $name, $comparable )
+			) {
+				$matches[] = $name;
+			}
+		}
+
 		foreach ( array_keys( $this->attributes ) as $attr_name ) {
-			if ( str_starts_with( $attr_name, $comparable ) ) {
+			if (
+				str_starts_with( $attr_name, $comparable ) &&
+				! ( isset( $this->lexical_updates[ $attr_name ] ) && '' === $this->lexical_updates[ $attr_name ]->text )
+			) {
 				$matches[] = $attr_name;
 			}
 		}
+
 		return $matches;
 	}
 
