@@ -20,18 +20,6 @@ class Tests_Comment_CommentType extends WP_UnitTestCase {
 		self::$post_id = $factory->post->create();
 	}
 
-	public function tear_down() {
-		global $wp_comment_types;
-
-		foreach ( array_keys( $wp_comment_types ) as $comment_type ) {
-			if ( ! $wp_comment_types[ $comment_type ]->_builtin ) {
-				unset( $wp_comment_types[ $comment_type ] );
-			}
-		}
-
-		parent::tear_down();
-	}
-
 	/**
 	 * Returns the output of comment_type() for a comment of the given type.
 	 *

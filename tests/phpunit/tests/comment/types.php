@@ -10,28 +10,6 @@
 class Tests_Comment_Types extends WP_UnitTestCase {
 
 	/**
-	 * Comment type slug used across tests.
-	 *
-	 * @var string
-	 */
-	public $comment_type = 'foo';
-
-	/**
-	 * Ensures any comment type registered during a test is cleaned up.
-	 */
-	public function tear_down() {
-		global $wp_comment_types;
-
-		foreach ( array_keys( $wp_comment_types ) as $comment_type ) {
-			if ( ! $wp_comment_types[ $comment_type ]->_builtin ) {
-				unset( $wp_comment_types[ $comment_type ] );
-			}
-		}
-
-		parent::tear_down();
-	}
-
-	/**
 	 * @ticket 35214
 	 */
 	public function test_register_comment_type() {
