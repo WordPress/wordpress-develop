@@ -152,6 +152,29 @@ class Tests_Comment_wpUpdateCommentCountNow extends WP_UnitTestCase {
 		$this->assertSame( '1', get_comments_number( $post_id ) );
 	}
 
+	/**
+	 * A filter callback returning a non-array degrades gracefully to no exclusions.
+	 *
+	 * @ticket 65537
+	 */
+	public function test_non_array_filter_return_counts_all_types() {
+		$post_id = self::factory()->post->create();
+
+		self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_type'     => 'note',
+				'comment_approved' => 1,
+			)
+		);
+
+		add_filter( 'default_excluded_comment_types', '__return_false' );
+		$this->assertTrue( wp_update_comment_count_now( $post_id ) );
+		remove_filter( 'default_excluded_comment_types', '__return_false' );
+
+		$this->assertSame( '1', get_comments_number( $post_id ) );
+	}
+
 	public function _return_100() {
 		return 100;
 	}

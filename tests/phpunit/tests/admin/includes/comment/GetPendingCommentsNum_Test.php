@@ -95,6 +95,22 @@ class Admin_Includes_Comment_GetPendingCommentsNum_Test extends WP_UnitTestCase 
 	}
 
 	/**
+	 * A filter callback returning a non-array degrades gracefully to no exclusions.
+	 *
+	 * @ticket 65537
+	 */
+	public function test_non_array_filter_return_counts_all_types() {
+		$post_id = self::factory()->post->create();
+		$this->make_pending( $post_id, 'note' );
+
+		add_filter( 'default_excluded_comment_types', '__return_false' );
+		$num = get_pending_comments_num( $post_id );
+		remove_filter( 'default_excluded_comment_types', '__return_false' );
+
+		$this->assertSame( 1, $num );
+	}
+
+	/**
 	 * @ticket 65537
 	 */
 	public function test_array_input_returns_counts_keyed_by_post() {

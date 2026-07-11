@@ -160,9 +160,7 @@ function get_pending_comments_num( $post_id ) {
 	$post_id_array = array_map( 'intval', $post_id_array );
 	$post_id_in    = "'" . implode( "', '", $post_id_array ) . "'";
 
-	/** This filter is documented in wp-includes/class-wp-comment-query.php */
-	$excluded_types = apply_filters( 'default_excluded_comment_types', array( 'note' ), null );
-	$excluded_types = array_unique( array_filter( array_map( 'strval', (array) $excluded_types ) ) );
+	$excluded_types = wp_get_default_excluded_comment_types();
 
 	$type_not_in = '';
 	if ( $excluded_types ) {

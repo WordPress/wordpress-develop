@@ -2835,9 +2835,76 @@ function wp_update_comment_count( $post_id, $do_deferred = false ) {
 }
 
 /**
+ * Retrieves the comment types that are excluded from queries and counts by default.
+ *
+ * Applies the {@see 'default_excluded_comment_types'} filter and normalizes the
+ * result: values are cast to strings, empties and duplicates are removed, and
+ * the special type tokens understood by WP_Comment_Query ('all', 'comment',
+ * 'comments', 'pings') are stripped - the filter deals in literal
+ * `comment_type` values only.
+ *
+ * @since 7.1.0
+ *
+ * @param WP_Comment_Query|null $query Optional. The current query instance when called
+ *                                     from WP_Comment_Query, or null in counting
+ *                                     contexts. Default null.
+ * @return string[] Comment types excluded by default.
+ */
+function wp_get_default_excluded_comment_types( $query = null ) {
+	/**
+	 * Filters the comment types that are excluded from query results by default.
+	 *
+	 * Comment types in this list are omitted from `WP_Comment_Query` results
+	 * unless the query explicitly requests the 'all' type, or requests the
+	 * specific type via the 'type', 'type__in', or 'type__not_in' query
+	 * variables.
+	 *
+	 * This allows plugins to keep comment types out of standard comment
+	 * listings, counts, or feeds by default, without having to filter every
+	 * query individually. The 'note' comment type, used by the editor, is
+	 * excluded by default. The same set is applied when recalculating a
+	 * post's stored comment count in wp_update_comment_count_now() and when
+	 * counting pending comments, so an excluded type does not inflate
+	 * get_comments_number().
+	 *
+	 * Values must be literal `comment_type` values as stored in the database;
+	 * the special type tokens understood by WP_Comment_Query ('all', 'comment',
+	 * 'comments', 'pings') are ignored.
+	 *
+	 * Register callbacks for this filter unconditionally (for example on
+	 * 'plugins_loaded' or 'init') rather than toggling them per call: query
+	 * results are cached against the comment `last_changed` key, which does not
+	 * account for this filter's output, so per-call toggling can serve stale
+	 * results from the cache.
+	 *
+	 * This exclusion is a default-visibility convenience, not an access-control
+	 * mechanism: callers can still retrieve excluded types explicitly (for
+	 * example with 'type' => 'all'), so do not rely on this filter to keep
+	 * comment data private. Enforce capability checks wherever the data is
+	 * displayed or exposed (for example over REST).
+	 *
+	 * @since 7.1.0
+	 *
+	 * @param string[]              $excluded_types Comment types excluded from query results by default.
+	 *                                              Default array contains the 'note' type.
+	 * @param WP_Comment_Query|null $query          The WP_Comment_Query instance, or null in counting
+	 *                                              contexts (recalculating a post's stored comment
+	 *                                              count, counting pending comments).
+	 */
+	$excluded_types = apply_filters( 'default_excluded_comment_types', array( 'note' ), $query );
+
+	$excluded_types = array_unique( array_filter( array_map( 'strval', (array) $excluded_types ) ) );
+
+	// Strip the special type tokens so an alias cannot poison explicit-type queries.
+	return array_values( array_diff( $excluded_types, array( 'all', 'comment', 'comments', 'pings' ) ) );
+}
+
+/**
  * Updates the comment count for the post.
  *
  * @since 2.5.0
+ * @since 7.1.0 The excluded comment types are derived from the
+ *              {@see 'default_excluded_comment_types'} filter.
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
@@ -2876,9 +2943,7 @@ function wp_update_comment_count_now( $post_id ) {
 	$new = apply_filters( 'pre_wp_update_comment_count_now', null, $old, $post_id );
 
 	if ( is_null( $new ) ) {
-		/** This filter is documented in wp-includes/class-wp-comment-query.php */
-		$excluded_types = apply_filters( 'default_excluded_comment_types', array( 'note' ), null );
-		$excluded_types = array_unique( array_filter( array_map( 'strval', (array) $excluded_types ) ) );
+		$excluded_types = wp_get_default_excluded_comment_types();
 
 		if ( $excluded_types ) {
 			$new = (int) $wpdb->get_var(

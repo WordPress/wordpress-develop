@@ -5724,8 +5724,6 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 	 * @covers WP_Comment_Query::get_comment_ids
 	 */
 	public function test_default_excluded_comment_types_filter_not_duplicated_in_query() {
-		global $wpdb;
-
 		$this->create_excluded_type_test_comments();
 
 		add_filter(
@@ -5733,6 +5731,15 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 			static function ( array $types ): array {
 				$types[] = 'private';
 				return $types;
+			}
+		);
+
+		$captured_where = '';
+		add_filter(
+			'comments_clauses',
+			static function ( array $clauses ) use ( &$captured_where ): array {
+				$captured_where = $clauses['where'];
+				return $clauses;
 			}
 		);
 
@@ -5744,7 +5751,62 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$private_count = substr_count( $wpdb->last_query, "'private'" );
-		$this->assertSame( 1, $private_count, 'The private type should only appear once in the query.' );
+		$private_count = substr_count( $captured_where, "'private'" );
+		$this->assertSame( 1, $private_count, 'The private type should only appear once in the WHERE clause.' );
+	}
+
+	/**
+	 * A filter callback returning a non-array degrades gracefully to no exclusions.
+	 *
+	 * @ticket 65537
+	 * @covers WP_Comment_Query::get_comment_ids
+	 */
+	public function test_default_excluded_comment_types_filter_non_array_return_is_tolerated() {
+		$comments = $this->create_note_type_test_comments();
+
+		add_filter( 'default_excluded_comment_types', '__return_false' );
+
+		$query = new WP_Comment_Query();
+		$found = $query->query( array( 'fields' => 'ids' ) );
+
+		// With no exclusions, the note comment is included.
+		$this->assertContains( $comments['note'], $found );
+	}
+
+	/**
+	 * The special type tokens understood by WP_Comment_Query are stripped from the
+	 * filter output, so an alias cannot poison an explicit-type query.
+	 *
+	 * @ticket 65537
+	 * @covers ::wp_get_default_excluded_comment_types
+	 */
+	public function test_default_excluded_comment_types_filter_strips_special_tokens() {
+		$comments = $this->create_note_type_test_comments();
+
+		add_filter(
+			'default_excluded_comment_types',
+			static function ( array $types ): array {
+				// 'pings' is a WP_Comment_Query alias, not a literal comment type.
+				$types[] = 'pings';
+				return $types;
+			}
+		);
+
+		// An explicit request for pingbacks must still find them.
+		$query = new WP_Comment_Query();
+		$found = $query->query(
+			array(
+				'type'   => 'pingback',
+				'fields' => 'ids',
+			)
+		);
+
+		$this->assertSame( array( $comments['pingback'] ), array_map( 'intval', $found ) );
+
+		// The alias excludes nothing from a default query either.
+		$query = new WP_Comment_Query();
+		$found = $query->query( array( 'fields' => 'ids' ) );
+
+		$this->assertContains( $comments['pingback'], $found );
 	}
 }

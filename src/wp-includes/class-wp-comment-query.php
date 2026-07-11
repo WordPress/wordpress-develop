@@ -772,44 +772,18 @@ class WP_Comment_Query {
 			'NOT IN' => (array) $this->query_vars['type__not_in'],
 		);
 
-		/**
-		 * Filters the comment types that are excluded from query results by default.
-		 *
-		 * Comment types in this list are omitted from `WP_Comment_Query` results
-		 * unless the query explicitly requests the 'all' type, or requests the
-		 * specific type via the 'type', 'type__in', or 'type__not_in' query
-		 * variables.
-		 *
-		 * This allows plugins to keep comment types out of standard comment
-		 * listings, counts, or feeds by default, without having to filter every
-		 * query individually. The 'note' comment type, used by the editor, is
-		 * excluded by default. The same set is applied when recalculating a
-		 * post's stored comment count in wp_update_comment_count_now(), so an
-		 * excluded type does not inflate get_comments_number().
-		 *
-		 * This exclusion is a default-visibility convenience, not an access-control
-		 * mechanism: callers can still retrieve excluded types explicitly (for
-		 * example with 'type' => 'all'), so do not rely on this filter to keep
-		 * comment data private. Enforce capability checks wherever the data is
-		 * displayed or exposed (for example over REST).
-		 *
-		 * @since 7.1.0
-		 *
-		 * @param string[]              $excluded_types Comment types excluded from query results by default.
-		 *                                               Default array contains the 'note' type.
-		 * @param WP_Comment_Query|null $query          The WP_Comment_Query instance (passed by reference),
-		 *                                               or null when recalculating a post's comment count.
-		 */
-		$excluded_types = apply_filters_ref_array( 'default_excluded_comment_types', array( array( 'note' ), &$this ) );
+		$excluded_types = wp_get_default_excluded_comment_types( $this );
 
-		// Exclude the default-excluded comment types, unless 'all' types or that type explicitly are requested.
-		foreach ( array_unique( (array) $excluded_types ) as $excluded_type ) {
-			if (
-				! in_array( 'all', $raw_types['IN'], true ) &&
-				! in_array( $excluded_type, $raw_types['IN'], true ) &&
-				! in_array( $excluded_type, $raw_types['NOT IN'], true )
-			) {
-				$raw_types['NOT IN'][] = $excluded_type;
+		// Unless all types are requested, exclude each default-excluded type
+		// that the query does not explicitly request.
+		if ( ! in_array( 'all', $raw_types['IN'], true ) ) {
+			foreach ( $excluded_types as $excluded_type ) {
+				if (
+					! in_array( $excluded_type, $raw_types['IN'], true ) &&
+					! in_array( $excluded_type, $raw_types['NOT IN'], true )
+				) {
+					$raw_types['NOT IN'][] = $excluded_type;
+				}
 			}
 		}
 
