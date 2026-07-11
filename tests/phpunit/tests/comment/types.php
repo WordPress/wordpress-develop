@@ -193,6 +193,51 @@ class Tests_Comment_Types extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 35214
+	 *
+	 * @covers ::register_comment_type
+	 *
+	 * @expectedIncorrectUsage register_comment_type
+	 *
+	 * @dataProvider data_built_in_comment_types
+	 */
+	public function test_register_built_in_comment_type_is_rejected( $comment_type ) {
+		$original_label = get_comment_type_object( $comment_type )->label;
+
+		$result = register_comment_type( $comment_type, array( 'label' => 'Hijacked' ) );
+
+		$this->assertWPError( $result );
+		$this->assertSame( 'comment_type_builtin', $result->get_error_code() );
+		$this->assertSame( $original_label, get_comment_type_object( $comment_type )->label );
+	}
+
+	/**
+	 * @ticket 35214
+	 *
+	 * @covers ::register_comment_type
+	 */
+	public function test_register_comment_type_twice_overwrites_previous_registration() {
+		register_comment_type( 'foo', array( 'label' => 'First' ) );
+		register_comment_type( 'foo', array( 'label' => 'Second' ) );
+
+		$this->assertSame( 'Second', get_comment_type_object( 'foo' )->label );
+	}
+
+	/**
+	 * @ticket 35214
+	 *
+	 * @covers ::register_comment_type
+	 * @covers ::unregister_comment_type
+	 */
+	public function test_register_after_unregister_succeeds() {
+		register_comment_type( 'foo' );
+		unregister_comment_type( 'foo' );
+
+		$this->assertInstanceOf( 'WP_Comment_Type', register_comment_type( 'foo' ) );
+		$this->assertTrue( comment_type_exists( 'foo' ) );
+	}
+
+	/**
+	 * @ticket 35214
 	 */
 	public function test_registered_comment_type_actions_fire() {
 		$action         = new MockAction();

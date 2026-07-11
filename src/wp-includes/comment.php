@@ -344,6 +344,8 @@ function create_initial_comment_types() {
  * Registration provides labels and metadata for a type; it does not constrain which values
  * may be stored.
  *
+ * Cannot be used to re-register built-in comment types.
+ *
  * @since 7.1.0
  *
  * @global WP_Comment_Type[] $wp_comment_types List of comment types.
@@ -376,12 +378,35 @@ function register_comment_type( $comment_type, $args = array() ) {
 		$wp_comment_types = array();
 	}
 
+	$args = wp_parse_args( $args );
+
 	// Sanitize comment type name.
 	$comment_type = sanitize_key( $comment_type );
 
 	if ( empty( $comment_type ) || strlen( $comment_type ) > 20 ) {
 		_doing_it_wrong( __FUNCTION__, __( 'Comment type names must be between 1 and 20 characters in length.' ), '7.1.0' );
 		return new WP_Error( 'comment_type_length_invalid', __( 'Comment type names must be between 1 and 20 characters in length.' ) );
+	}
+
+	/*
+	 * Re-registering a built-in comment type could strip flags that core relies on
+	 * for rendering and query behavior, so it is not allowed. Core's own repeated
+	 * registrations (on 'init' and 'change_locale') pass '_builtin' and are exempt.
+	 */
+	if ( isset( $wp_comment_types[ $comment_type ] )
+		&& $wp_comment_types[ $comment_type ]->_builtin
+		&& empty( $args['_builtin'] )
+	) {
+		_doing_it_wrong(
+			__FUNCTION__,
+			sprintf(
+				/* translators: %s: Comment type key. */
+				__( 'The "%s" comment type is a built-in type and cannot be re-registered.' ),
+				$comment_type
+			),
+			'7.1.0'
+		);
+		return new WP_Error( 'comment_type_builtin', __( 'Built-in comment types cannot be re-registered.' ) );
 	}
 
 	$comment_type_object = new WP_Comment_Type( $comment_type, $args );
