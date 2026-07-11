@@ -3,7 +3,7 @@
 		'dependencies' => array(
 			
 		),
-		'version' => '1c371cb517a97cdbcb9f'
+		'version' => 'f62f48906198ea8abc60'
 	),
 	'abilities/index.js' => array(
 		'dependencies' => array(
@@ -22,7 +22,7 @@
 				'import' => 'static'
 			)
 		),
-		'version' => '383c7a8bd24a1f2fd9b9'
+		'version' => 'f465b12ad4eba72e96bb'
 	),
 	'block-library/accordion/view.js' => array(
 		'dependencies' => array(
@@ -128,7 +128,7 @@
 				'import' => 'static'
 			)
 		),
-		'version' => '1f60dd5e3fa56c6b2e2e'
+		'version' => '581cf5c9168a7665f2dd'
 	),
 	'boot/index.js' => array(
 		'dependencies' => array(
@@ -166,7 +166,7 @@
 				'import' => 'static'
 			)
 		),
-		'version' => 'ee45059f83b6c49290ed'
+		'version' => 'c6634581241bc443d56e'
 	),
 	'connectors/index.js' => array(
 		'dependencies' => array(
@@ -177,7 +177,7 @@
 			'wp-i18n',
 			'wp-private-apis'
 		),
-		'version' => '753a649aa400199df0fd'
+		'version' => '926e925ff16c07ab7719'
 	),
 	'content-types/index.js' => array(
 		'dependencies' => array(
@@ -212,7 +212,7 @@
 				'import' => 'static'
 			)
 		),
-		'version' => 'b022ce0e97e0c8c91ce3'
+		'version' => '40b1a1f29a8660911fcd'
 	),
 	'core-abilities/index.js' => array(
 		'dependencies' => array(
@@ -227,6 +227,14 @@
 		),
 		'version' => 'ed8d088084da397754c1'
 	),
+	'dashboard-init/index.js' => array(
+		'dependencies' => array(
+			'wp-core-data',
+			'wp-data',
+			'wp-i18n'
+		),
+		'version' => 'dfe923ac4bd0bd01b9aa'
+	),
 	'edit-site-init/index.js' => array(
 		'dependencies' => array(
 			'react-jsx-runtime',
@@ -240,7 +248,7 @@
 				'import' => 'static'
 			)
 		),
-		'version' => '03b5e26742d2806990c6'
+		'version' => '95c8e950f9c99feb5d09'
 	),
 	'interactivity/index.js' => array(
 		'dependencies' => array(
@@ -280,7 +288,7 @@
 		'dependencies' => array(
 			
 		),
-		'version' => 'e5fd3ae6d2c3b6e669da'
+		'version' => '662cb0e7f68d2a21cd68'
 	),
 	'latex-to-mathml/loader.js' => array(
 		'dependencies' => array(
@@ -308,7 +316,7 @@
 			'wp-private-apis',
 			'wp-style-engine'
 		),
-		'version' => 'e9a1d3da960d762c5954'
+		'version' => '20ca41c3076613678aa6'
 	),
 	'route/index.js' => array(
 		'dependencies' => array(
@@ -317,7 +325,7 @@
 			'react-jsx-runtime',
 			'wp-private-apis'
 		),
-		'version' => '48a77bfa70722b4254e4'
+		'version' => 'ef851c0f4dda0d1dd359'
 	),
 	'vips/loader.js' => array(
 		'dependencies' => array(
@@ -335,7 +343,7 @@
 		'dependencies' => array(
 			
 		),
-		'version' => '4972ce7ba840491f17bb'
+		'version' => 'bef00f6d1e2a86eb1050'
 	),
 	'workflow/index.js' => array(
 		'dependencies' => array(
@@ -360,6 +368,6 @@
 				'import' => 'static'
 			)
 		),
-		'version' => 'c5983b82ce036952b349'
+		'version' => '3f33e12236a7f59f00ae'
 	)
 );
