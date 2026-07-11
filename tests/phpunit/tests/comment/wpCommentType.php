@@ -22,7 +22,6 @@ class Tests_Comment_WpCommentType extends WP_UnitTestCase {
 		$this->assertTrue( $comment_type->public );
 		$this->assertFalse( $comment_type->internal );
 		$this->assertFalse( $comment_type->_builtin );
-		$this->assertTrue( $comment_type->show_ui );
 		$this->assertFalse( $comment_type->hierarchical );
 	}
 
@@ -44,8 +43,6 @@ class Tests_Comment_WpCommentType extends WP_UnitTestCase {
 		$this->assertFalse( $comment_type->public );
 		$this->assertTrue( $comment_type->internal );
 		$this->assertSame( 'A test comment type.', $comment_type->description );
-		// show_ui follows public when not explicitly set.
-		$this->assertFalse( $comment_type->show_ui );
 	}
 
 	/**

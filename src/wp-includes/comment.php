@@ -365,8 +365,6 @@ function create_initial_comment_types() {
  *                                   the admin interface or by front-end users. Default true.
  *     @type bool       $internal    Whether the comment type is for internal use only and should be
  *                                   excluded from default public-facing contexts. Default false.
- *     @type bool       $show_ui     Whether to generate and allow a UI for managing this comment type
- *                                   in the admin. Default is value of $public.
  * }
  * @return WP_Comment_Type|WP_Error The registered comment type object on success,
  *                                  WP_Error object on failure.

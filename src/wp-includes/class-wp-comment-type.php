@@ -85,16 +85,6 @@ final class WP_Comment_Type {
 	public $internal = false;
 
 	/**
-	 * Whether to generate and allow a UI for managing this comment type in the admin.
-	 *
-	 * Default is the value of $public.
-	 *
-	 * @since 7.1.0
-	 * @var bool
-	 */
-	public $show_ui;
-
-	/**
 	 * Whether this comment type is a native or "built-in" comment type.
 	 *
 	 * Default false.
@@ -191,16 +181,10 @@ final class WP_Comment_Type {
 			'description' => '',
 			'public'      => true,
 			'internal'    => false,
-			'show_ui'     => null,
 			'_builtin'    => false,
 		);
 
 		$args = array_merge( $defaults, $args );
-
-		// If not set, default to the setting for 'public'.
-		if ( null === $args['show_ui'] ) {
-			$args['show_ui'] = $args['public'];
-		}
 
 		$args['name'] = $this->name;
 

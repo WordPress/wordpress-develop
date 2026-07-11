@@ -68,17 +68,6 @@ class Tests_Comment_Types extends WP_UnitTestCase {
 	/**
 	 * @ticket 35214
 	 */
-	public function test_register_comment_type_show_ui_should_default_to_value_of_public() {
-		register_comment_type( 'public_type', array( 'public' => true ) );
-		$this->assertTrue( get_comment_type_object( 'public_type' )->show_ui );
-
-		register_comment_type( 'private_type', array( 'public' => false ) );
-		$this->assertFalse( get_comment_type_object( 'private_type' )->show_ui );
-	}
-
-	/**
-	 * @ticket 35214
-	 */
 	public function test_built_in_comment_types_are_registered() {
 		$this->assertTrue( comment_type_exists( 'comment' ) );
 		$this->assertTrue( comment_type_exists( 'pingback' ) );
