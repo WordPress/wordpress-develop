@@ -566,7 +566,19 @@ function get_comment_type_labels( $comment_type_object ) {
 
 	$nohier_vs_hier_defaults['menu_name'] = $nohier_vs_hier_defaults['name'];
 
+	$provided_labels = (array) $comment_type_object->labels;
+
 	$labels = _get_custom_object_labels( $comment_type_object, $nohier_vs_hier_defaults );
+
+	/*
+	 * _get_custom_object_labels() derives labels that only apply to post types.
+	 * Remove them unless they were explicitly provided at registration.
+	 */
+	foreach ( array( 'name_admin_bar', 'all_items', 'archives' ) as $post_type_only_label ) {
+		if ( ! array_key_exists( $post_type_only_label, $provided_labels ) ) {
+			unset( $labels->$post_type_only_label );
+		}
+	}
 
 	$comment_type = $comment_type_object->name;
 
