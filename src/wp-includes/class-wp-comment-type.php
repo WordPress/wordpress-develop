@@ -25,7 +25,7 @@ final class WP_Comment_Type {
 	public $name;
 
 	/**
-	 * Name of the comment type shown in the menu. Usually plural.
+	 * Name of the comment type. Usually plural.
 	 *
 	 * @since 7.1.0
 	 * @var string
@@ -35,7 +35,7 @@ final class WP_Comment_Type {
 	/**
 	 * Labels object for this comment type.
 	 *
-	 * If not set, comment labels are inherited.
+	 * If not set, the default comment labels are used.
 	 *
 	 * @see get_comment_type_labels()
 	 *
@@ -63,6 +63,11 @@ final class WP_Comment_Type {
 	/**
 	 * Whether a comment type is intended for use publicly either via the admin interface or by front-end users.
 	 *
+	 * Core does not currently act on this property, but it is the intended default
+	 * for future visibility-related arguments. It defaults to true so that
+	 * registering a type in order to provide labels never hides comments that are
+	 * already publicly visible.
+	 *
 	 * Default true.
 	 *
 	 * @since 7.1.0
@@ -73,9 +78,10 @@ final class WP_Comment_Type {
 	/**
 	 * Whether the comment type is for internal use only.
 	 *
-	 * Internal comment types (such as `note`) are excluded from default comment listings, counts,
-	 * and other public-facing contexts. This is advisory metadata; the query layer is not affected
-	 * by this property in this release.
+	 * Analogous to the `internal` argument of register_post_status(). Core does not
+	 * currently consult this property: the exclusion of the built-in `note` type
+	 * from default comment queries is hard-coded. The property is intended to drive
+	 * that exclusion for registered types in the future.
 	 *
 	 * Default false.
 	 *
