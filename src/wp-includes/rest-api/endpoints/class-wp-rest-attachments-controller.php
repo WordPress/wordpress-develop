@@ -248,6 +248,38 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 				'default'     => true,
 				'description' => __( 'Whether to convert image formats.' ),
 			);
+			$args['url']                = array(
+				'type'              => 'string',
+				'format'            => 'uri',
+				'description'       => __( 'URL of an external image to sideload into the media library, instead of uploading a file.' ),
+				'sanitize_callback' => 'sanitize_url',
+				'validate_callback' => static function ( $url, $request, $param ) {
+					/*
+					 * A custom validate_callback replaces the default
+					 * rest_validate_request_arg(), so re-apply it first to keep
+					 * the schema checks (string type, uri format) enforced.
+					 */
+					$valid = rest_validate_request_arg( $url, $request, $param );
+					if ( is_wp_error( $valid ) ) {
+						return $valid;
+					}
+
+					/*
+					 * Reject URLs that are not safe to request server-side. wp_http_validate_url()
+					 * enforces an HTTP(S) scheme and blocks private, local, and otherwise
+					 * disallowed hosts, guarding the sideload against SSRF.
+					 */
+					if ( false === wp_http_validate_url( $url ) ) {
+						return new WP_Error(
+							'rest_invalid_url',
+							__( 'Invalid URL. Provide a valid, publicly reachable HTTP or HTTPS image URL.' ),
+							array( 'status' => 400 )
+						);
+					}
+
+					return true;
+				},
+			);
 		}
 
 		return $args;
@@ -406,7 +438,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	 * Creates a single attachment.
 	 *
 	 * @since 4.7.0
-	 * @since 7.1.0 Added `generate_sub_sizes` and `convert_format` parameters.
+	 * @since 7.1.0 Added the `generate_sub_sizes`, `convert_format`, and `url` parameters.
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response|WP_Error Response object on success, WP_Error object on failure.
@@ -432,6 +464,18 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		// Handle convert_format parameter.
 		if ( false === $request['convert_format'] ) {
 			add_filter( 'image_editor_output_format', '__return_empty_array', 100 );
+		}
+
+		/*
+		 * When a URL is supplied instead of an uploaded file, sideload the
+		 * remote image on the server. This avoids a cross-origin browser fetch,
+		 * which fails under cross-origin isolation. The sub-size and scaling
+		 * filters applied above still govern whether derivatives are generated.
+		 */
+		if ( ! empty( $request['url'] ) ) {
+			$response = $this->create_item_from_url( $request );
+			$this->remove_client_side_media_processing_filters();
+			return $response;
 		}
 
 		$insert = $this->insert_attachment( $request );
@@ -523,6 +567,108 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		$response = rest_ensure_response( $response );
 		$response->set_status( 201 );
 		$response->header( 'Location', rest_url( sprintf( '%s/%s/%d', $this->namespace, $this->rest_base, $attachment_id ) ) );
+
+		return $response;
+	}
+
+	/**
+	 * Sideloads an external image from a URL into the media library.
+	 *
+	 * Downloads the remote file on the server, avoiding a cross-origin browser
+	 * fetch that fails under cross-origin isolation. Whether sub-sizes are
+	 * generated is governed by the filters applied in create_item().
+	 *
+	 * @since 7.1.0
+	 *
+	 * @param WP_REST_Request $request Full details about the request.
+	 * @return WP_REST_Response|WP_Error Response object on success, WP_Error object on failure.
+	 */
+	protected function create_item_from_url( $request ) {
+		// Sideloading downloads and stores a file, so require the upload capability.
+		if ( ! current_user_can( 'upload_files' ) ) {
+			return new WP_Error(
+				'rest_cannot_create',
+				__( 'Sorry, you are not allowed to upload media on this site.' ),
+				array( 'status' => rest_authorization_required_code() )
+			);
+		}
+
+		require_once ABSPATH . 'wp-admin/includes/file.php';
+		require_once ABSPATH . 'wp-admin/includes/media.php';
+		require_once ABSPATH . 'wp-admin/includes/image.php';
+
+		$url     = $request['url'];
+		$post_id = ! empty( $request['post'] ) ? (int) $request['post'] : 0;
+
+		// Derive the filename from the URL path before downloading anything.
+		$url_path = wp_parse_url( $url, PHP_URL_PATH );
+		$filename = $url_path ? wp_basename( $url_path ) : '';
+		if ( '' === $filename ) {
+			return new WP_Error(
+				'rest_invalid_url',
+				__( 'Could not determine a filename from the provided URL.' ),
+				array( 'status' => 400 )
+			);
+		}
+
+		/*
+		 * Only download URLs whose extension maps to an allowed image MIME type.
+		 * The sideload handler would reject other types anyway (via
+		 * wp_check_filetype_and_ext()), but checking first avoids downloading
+		 * files that can never be accepted, such as PHP scripts.
+		 */
+		$filetype = wp_check_filetype( $filename );
+		if ( ! $filetype['type'] || ! str_starts_with( $filetype['type'], 'image/' ) ) {
+			return new WP_Error(
+				'rest_invalid_url',
+				__( 'The provided URL does not point to a supported image file.' ),
+				array( 'status' => 400 )
+			);
+		}
+
+		/*
+		 * Download the remote file with WordPress's HTTP API, which validates
+		 * the host and blocks requests to private or local addresses. This is
+		 * the same primitive core's media_sideload_image() relies on.
+		 */
+		$tmp_file = download_url( $url );
+		if ( is_wp_error( $tmp_file ) ) {
+			return $tmp_file;
+		}
+
+		$file_array = array(
+			'name'     => $filename,
+			'tmp_name' => $tmp_file,
+		);
+
+		$attachment_id = media_handle_sideload( $file_array, $post_id );
+
+		if ( is_wp_error( $attachment_id ) ) {
+			/*
+			 * media_handle_sideload() deletes the temp file on success; remove
+			 * it explicitly when the sideload fails.
+			 */
+			if ( file_exists( $tmp_file ) ) {
+				wp_delete_file( $tmp_file );
+			}
+			return $attachment_id;
+		}
+
+		$attachment = get_post( $attachment_id );
+
+		$request->set_param( 'context', 'edit' );
+
+		/*
+		 * media_handle_sideload() fires the standard insert hooks (including
+		 * wp_after_insert_post), but not the REST-specific action, so fire it
+		 * here for parity with the uploaded-file path in create_item().
+		 */
+		/** This action is documented in wp-includes/rest-api/endpoints/class-wp-rest-attachments-controller.php */
+		do_action( 'rest_after_insert_attachment', $attachment, $request, true );
+
+		$response = $this->prepare_item_for_response( $attachment, $request );
+		$response->set_status( 201 );
+		$response->header( 'Location', rest_url( rest_get_route_for_post( $attachment_id ) ) );
 
 		return $response;
 	}
@@ -1218,6 +1364,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 
 					$size_data['source_url'] = $image_src[0];
 				}
+				unset( $size_data );
 
 				$full_src = wp_get_attachment_image_src( $post->ID, 'full' );
 
@@ -1302,7 +1449,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		}
 
 		if ( wp_attachment_is_image( $post ) ) {
-			$mime_type = get_post_mime_type( $post );
+			$mime_type = (string) get_post_mime_type( $post );
 
 			/*
 			 * Per-file output format for images, evaluated with the real filename
@@ -1332,6 +1479,53 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			if ( in_array( 'image_save_progressive', $fields, true ) ) {
 				/** This filter is documented in wp-includes/class-wp-image-editor-gd.php */
 				$data['image_save_progressive'] = (bool) apply_filters( 'image_save_progressive', false, $mime_type );
+			}
+
+			if ( in_array( 'image_quality', $fields, true ) ) {
+				$filename = get_attached_file( $post->ID );
+
+				/** This filter is documented in wp-includes/media.php */
+				$output_formats = apply_filters(
+					'image_editor_output_format',
+					array( $mime_type => $mime_type ),
+					$filename ? $filename : '',
+					$mime_type
+				);
+				$output_mime    = $output_formats[ $mime_type ] ?? $mime_type;
+
+				$metadata    = wp_get_attachment_metadata( $post->ID, true );
+				$full_width  = max( 0, ( is_array( $metadata ) && isset( $metadata['width'] ) ) ? (int) $metadata['width'] : 0 );
+				$full_height = max( 0, ( is_array( $metadata ) && isset( $metadata['height'] ) ) ? (int) $metadata['height'] : 0 );
+
+				$full_quality = wp_get_image_encode_quality(
+					$output_mime,
+					array(
+						'width'  => $full_width,
+						'height' => $full_height,
+					)
+				);
+
+				$size_quality = array();
+
+				foreach ( wp_get_registered_image_subsizes() as $size_name => $size_data ) {
+					$quality = wp_get_image_encode_quality(
+						$output_mime,
+						array(
+							'width'  => (int) $size_data['width'],
+							'height' => (int) $size_data['height'],
+						)
+					);
+
+					// Only report sizes whose quality diverges from the full-size value.
+					if ( $quality !== $full_quality ) {
+						$size_quality[ $size_name ] = $quality;
+					}
+				}
+
+				$data['image_quality'] = array(
+					'default' => $full_quality,
+					'sizes'   => $size_quality,
+				);
 			}
 		}
 
@@ -1523,6 +1717,35 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			'type'        => 'integer',
 			'context'     => array( 'edit' ),
 			'readonly'    => true,
+		);
+
+		// Enumerate the registered sub-sizes so the schema documents exactly which
+		// keys may appear under "sizes".
+		$size_quality_properties = array();
+		foreach ( array_keys( wp_get_registered_image_subsizes() ) as $size_name ) {
+			$size_quality_properties[ $size_name ] = array(
+				'type'    => 'integer',
+				'minimum' => 1,
+				'maximum' => 100,
+			);
+		}
+
+		$schema['properties']['image_quality'] = array(
+			'description' => __( 'Encode quality (1-100) from the wp_editor_set_quality filter, resolved against the output MIME type. The "default" value applies to the full-size image; "sizes" lists per-registered-size overrides where the filtered value differs from "default".' ),
+			'type'        => 'object',
+			'context'     => array( 'edit' ),
+			'readonly'    => true,
+			'properties'  => array(
+				'default' => array(
+					'type'    => 'integer',
+					'minimum' => 1,
+					'maximum' => 100,
+				),
+				'sizes'   => array(
+					'type'       => 'object',
+					'properties' => $size_quality_properties,
+				),
+			),
 		);
 
 		$schema['properties']['image_output_format'] = array(
@@ -2220,6 +2443,15 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			return true;
 		}
 
+		/*
+		 * 'animated_video_poster' companion: a static poster image for the
+		 * converted video. It is a real image (so it has positive dimensions)
+		 * but is not a registered sub-size, so it has no dimension constraint.
+		 */
+		if ( 'animated_video_poster' === $image_size ) {
+			return true;
+		}
+
 		// Regular image sizes: validate against registered size constraints.
 		$registered_sizes = wp_get_registered_image_subsizes();
 
@@ -2367,12 +2599,19 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		$image_size = $request['image_size'];
 
 		/*
-		 * Validate raster sub-sizes before storing them. Source-format companion
-		 * originals (e.g. a HEIC or JXL kept next to its JPEG derivative) are
-		 * exempt: their dimensions are neither validated nor recorded, and the
-		 * source format may not be readable by wp_getimagesize() at all.
+		 * Validate raster sub-sizes before storing them. Two companion sizes
+		 * are exempt because wp_getimagesize() may not be able to read the
+		 * file at all: the 'animated_video' companion of an animated GIF is a
+		 * video (MP4/WebM), and a source-format original (e.g. a HEIC or JXL
+		 * kept next to its JPEG derivative) may be an unreadable format. Their
+		 * dimensions are neither validated nor recorded. The
+		 * 'animated_video_poster' companion is a real image, so it is still
+		 * read and rejected if unreadable; validate_image_dimensions() skips
+		 * only the registered-size constraint for it.
 		 */
-		if ( self::IMAGE_SIZE_SOURCE_ORIGINAL !== $image_size ) {
+		$skip_dimension_read = in_array( $image_size, array( self::IMAGE_SIZE_SOURCE_ORIGINAL, 'animated_video' ), true );
+
+		if ( ! $skip_dimension_read ) {
 			/*
 			 * Read the dimensions up front. A file whose dimensions cannot be
 			 * read is corrupted or an unsupported format and must be rejected

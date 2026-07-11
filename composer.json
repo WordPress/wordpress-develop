@@ -17,7 +17,9 @@
 	},
 	"suggest": {
 		"ext-dom": "*",
-		"ext-mysqli": "*"
+		"ext-ftp": "*",
+		"ext-mysqli": "*",
+		"ext-ssh2": "*"
 	},
 	"require-dev": {
 		"composer/ca-bundle": "1.5.12",
