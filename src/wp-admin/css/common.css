@@ -934,6 +934,7 @@ a#remove-post-thumbnail:hover,
 	border-top: 1px solid #dcdcde;
 	background: #f6f7f7;
 	display: flex;
+	flex-wrap: wrap;
 	align-items: center;
 	justify-content: space-between;
 }
@@ -1416,6 +1417,17 @@ th.action-links {
 	.filter-group li {
 		padding: 0;
 		width: 50%;
+	}
+
+	.wp-filter .search-form input[type="search"] {
+		min-height: 40px;
+		padding: 0 12px;
+	}
+
+	.wp-filter .search-form select,
+	.wp-filter .filter-items select {
+		min-height: 40px;
+		padding: 0 24px 0 12px;
 	}
 }
 
@@ -2593,6 +2605,23 @@ body.iframe {
 	display: block;
 }
 
+.delete-and-reassign-users-form legend {
+	margin: 1em 0;
+	line-height: 1.5;
+	float: inline-start;
+}
+
+.delete-and-reassign-users-form fieldset > fieldset,
+.delete-and-reassign-users-form fieldset > ul {
+	clear: both;
+}
+
+.delete-and-reassign-users-form fieldset:has(select[aria-invalid="true"]):not(fieldset:has(fieldset)) {
+	border-left: 4px solid #cc1818;
+	background: #fcf0f0;
+	padding-left: 12px;
+}
+
 .importers {
 	font-size: 16px;
 	width: auto;
@@ -2775,7 +2804,7 @@ div.action-links {
 #plugin-information-scrollable {
 	overflow: auto;
 	-webkit-overflow-scrolling: touch;
-	height: 100%;
+	height: calc(100% - 67px);
 }
 
 #plugin-information-title {
@@ -3174,11 +3203,6 @@ div.action-links {
 	#plugin-information .fyi h3,
 	#plugin-information .fyi small {
 		display: none;
-	}
-
-	#plugin-information-footer {
-		padding: 12px 16px 0;
-		height: 46px;
 	}
 }
 
