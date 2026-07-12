@@ -501,6 +501,8 @@ class WP_Block_Type {
 			return $attributes;
 		}
 
+		$attribute_schemas = $this->get_attributes_for_rest_schema();
+
 		foreach ( $attributes as $attribute_name => $value ) {
 			// If the attribute is not defined by the block type, it cannot be
 			// validated.
@@ -508,7 +510,7 @@ class WP_Block_Type {
 				continue;
 			}
 
-			$schema = $this->attributes[ $attribute_name ];
+			$schema = $attribute_schemas[ $attribute_name ];
 
 			// Validate value by JSON schema. An invalid value should revert to
 			// its default, if one exists. This occurs by virtue of the missing
@@ -588,6 +590,25 @@ class WP_Block_Type {
 		return is_array( $this->attributes ) ?
 			$this->attributes :
 			array();
+	}
+
+	/**
+	 * Gets block attributes normalized for REST schema validation.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @return array Block attributes with REST-compatible types.
+	 */
+	public function get_attributes_for_rest_schema() {
+		$attributes = $this->get_attributes();
+
+		foreach ( $attributes as $attribute_name => $attribute_schema ) {
+			if ( isset( $attribute_schema['type'] ) && 'rich-text' === $attribute_schema['type'] ) {
+				$attributes[ $attribute_name ]['type'] = 'string';
+			}
+		}
+
+		return $attributes;
 	}
 
 	/**

@@ -171,6 +171,9 @@ class REST_Block_Renderer_Controller_Test extends WP_Test_REST_Controller_Testca
 							'type' => 'integer',
 						),
 					),
+					'rich_text'   => array(
+						'type' => 'rich-text',
+					),
 				),
 				'render_callback' => array( $this, 'render_test_block' ),
 			)
@@ -418,6 +421,35 @@ class REST_Block_Renderer_Controller_Test extends WP_Test_REST_Controller_Testca
 		$this->assertEqualSetsWithIndex(
 			json_decode( $block_type->render( $attributes ), true ),
 			json_decode( $data['rendered'], true )
+		);
+	}
+
+	/**
+	 * Tests rendering a block with a rich text attribute.
+	 *
+	 * @covers WP_REST_Block_Renderer_Controller::register_routes
+	 */
+	public function test_get_item_with_rich_text_attribute() {
+		wp_set_current_user( self::$user_id );
+
+		$request = new WP_REST_Request( 'GET', self::$rest_api_route . self::$block_name );
+		$request->set_param( 'context', 'edit' );
+		$request->set_param(
+			'attributes',
+			array(
+				'some_string' => 'some_value',
+				'rich_text' => '<strong>Example</strong>',
+			)
+		);
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame(
+			array(
+				'some_string' => 'some_value',
+				'rich_text' => '<strong>Example</strong>',
+			),
+			json_decode( $response->get_data()['rendered'], true )
 		);
 	}
 
