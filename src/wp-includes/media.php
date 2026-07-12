@@ -8,7 +8,7 @@
 
 // Don't load directly.
 if ( ! defined( 'ABSPATH' ) ) {
-	die( '-1' );
+	exit;
 }
 
 /**
@@ -16,9 +16,17 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * @since 4.7.0
  *
+ * @see add_image_size()
+ *
  * @global array $_wp_additional_image_sizes
  *
  * @return array Additional images size data.
+ *
+ * @phpstan-return array<string, array{
+ *                     width: non-negative-int,
+ *                     height: non-negative-int,
+ *                     crop: array{ 'left'|'center'|'right', 'top'|'center'|'bottom' }|bool,
+ *                 }>
  */
 function wp_get_additional_image_sizes() {
 	global $_wp_additional_image_sizes;
@@ -296,6 +304,10 @@ function image_downsize( $id, $size = 'medium' ) {
  *     @type string $0 The x crop position. Accepts 'left', 'center', or 'right'.
  *     @type string $1 The y crop position. Accepts 'top', 'center', or 'bottom'.
  * }
+ *
+ * @phpstan-param non-negative-int $width
+ * @phpstan-param non-negative-int $height
+ * @phpstan-param array{ 'left'|'center'|'right', 'top'|'center'|'bottom' }|bool $crop
  */
 function add_image_size( $name, $width = 0, $height = 0, $crop = false ) {
 	global $_wp_additional_image_sizes;
@@ -908,8 +920,14 @@ function get_intermediate_image_sizes() {
  *
  * @return array[] Associative array of arrays of image sub-size information,
  *                 keyed by image size name.
+ *
+ * @phpstan-return array<string, array{
+ *                     width: non-negative-int,
+ *                     height: non-negative-int,
+ *                     crop: array{ 'left'|'center'|'right', 'top'|'center'|'bottom' }|bool,
+ *                 }>
  */
-function wp_get_registered_image_subsizes() {
+function wp_get_registered_image_subsizes(): array {
 	$additional_sizes = wp_get_additional_image_sizes();
 	$all_sizes        = array();
 
@@ -953,6 +971,69 @@ function wp_get_registered_image_subsizes() {
 	}
 
 	return $all_sizes;
+}
+
+/**
+ * Determines the encode quality WordPress would use for an image.
+ *
+ * Resolves the quality the same way WP_Image_Editor::set_quality() does when no
+ * explicit quality is supplied: it starts from the per-format default, applies the
+ * 'wp_editor_set_quality' filter, then the 'jpeg_quality' filter for JPEG output,
+ * resets out-of-range values to the per-format default, and squashes 0 to 1.
+ *
+ * This lets code outside of an image editor instance - such as the REST API, which
+ * reports the quality client-side processing should use - resolve the same value the
+ * server would apply, without loading the image into an editor.
+ *
+ * @since 7.1.0
+ *
+ * @param string   $mime_type       The output image MIME type, e.g. 'image/jpeg'.
+ * @param array    $size            {
+ *     Optional. Dimensions of the image, passed to the 'wp_editor_set_quality' filter.
+ *
+ *     @type int $width  The image width in pixels.
+ *     @type int $height The image height in pixels.
+ * }
+ * @param int|null $default_quality Optional. Starting quality before filters are applied.
+ *                                  Defaults to the per-format default (86 for WebP, 82 otherwise).
+ * @return int Encode quality between 1 and 100.
+ *
+ * @phpstan-param non-empty-string $mime_type
+ * @phpstan-param array{ width?: non-negative-int, height?: non-negative-int } $size
+ * @phpstan-param int<0, 100>|null $default_quality
+ * @phpstan-return int<1, 100>
+ */
+function wp_get_image_encode_quality( string $mime_type, array $size = array(), ?int $default_quality = null ): int {
+	if ( null === $default_quality ) {
+		// Mirror WP_Image_Editor::get_default_quality(): WebP defaults to 86, everything else to 82.
+		$default_quality = ( 'image/webp' === $mime_type ) ? 86 : 82;
+	}
+
+	/** This filter is documented in wp-includes/class-wp-image-editor.php */
+	$quality = apply_filters( 'wp_editor_set_quality', $default_quality, $mime_type, $size );
+
+	if ( 'image/jpeg' === $mime_type ) {
+		/** This filter is documented in wp-includes/class-wp-image-editor.php */
+		$quality = apply_filters( 'jpeg_quality', $quality, 'image_resize' );
+	}
+
+	if ( ! is_numeric( $quality ) ) {
+		$quality = $default_quality;
+	} else {
+		$quality = (int) $quality;
+	}
+
+	// Reset out-of-range values to the default, matching WP_Image_Editor::set_quality().
+	if ( $quality < 0 || $quality > 100 ) {
+		$quality = $default_quality;
+	}
+
+	// Allow 0, but squash to 1, matching WP_Image_Editor::set_quality().
+	if ( 0 === $quality ) {
+		$quality = 1;
+	}
+
+	return $quality;
 }
 
 /**
@@ -2575,6 +2656,16 @@ function img_caption_shortcode( $attr, $content = '' ) {
 		return $output;
 	}
 
+	/**
+	 * @var array{
+	 *     id: string,
+	 *     caption_id: string,
+	 *     align: string,
+	 *     width: string,
+	 *     caption: string,
+	 *     class: string,
+	 * } $atts
+	 */
 	$atts = shortcode_atts(
 		array(
 			'id'         => '',
@@ -2594,24 +2685,25 @@ function img_caption_shortcode( $attr, $content = '' ) {
 		return $content;
 	}
 
-	$id          = '';
-	$caption_id  = '';
-	$describedby = '';
+	$id               = '';
+	$caption_id       = '';
+	$describedby      = '';
+	$unique_id_value  = '';
+	$caption_id_value = '';
 
 	if ( $atts['id'] ) {
-		$unique_id_value = wp_unique_id( sanitize_html_class( $atts['id'] ) );
+		$atts['id']      = sanitize_html_class( $atts['id'] );
+		$unique_id_value = (string) preg_replace( '/-1$/', '', wp_unique_prefixed_id( $atts['id'] . '-' ) );
 		$id              = 'id="' . esc_attr( $unique_id_value ) . '" ';
 	}
 
 	if ( $atts['caption_id'] ) {
 		// User explicitly provided a caption_id - make it unique.
 		$atts['caption_id'] = sanitize_html_class( $atts['caption_id'] );
-		$caption_id_value   = wp_unique_id( $atts['caption_id'] );
-	} elseif ( $atts['id'] ) {
+		$caption_id_value   = preg_replace( '/-1$/', '', wp_unique_prefixed_id( $atts['caption_id'] . '-' ) );
+	} elseif ( $unique_id_value ) {
 		// Derive from the already-unique figure ID - guaranteed unique, no need for second call.
 		$caption_id_value = 'caption-' . str_replace( '_', '-', $unique_id_value );
-	} else {
-		$caption_id_value = '';
 	}
 
 	if ( $caption_id_value ) {
@@ -4964,14 +5056,25 @@ function wp_enqueue_media( $args = array() ) {
 		);
 	}
 
+	$infinite_scrolling = true;
+
+	// A user can opt out of infinite scrolling via their profile's personal options.
+	if ( 'false' === get_user_option( 'infinite_scrolling' ) ) {
+		$infinite_scrolling = false;
+	}
+
 	/**
-	 * Filters whether the Media Library grid has infinite scrolling. Default `false`.
+	 * Filters whether the Media Library grid has infinite scrolling. Default `true`.
+	 *
+	 * This setting respects the current user's "Infinite Scrolling" personal
+	 * option, but a filter callback takes precedence over that preference.
 	 *
 	 * @since 5.8.0
+	 * @since 7.1.0 Changed default to `true` and introduced per-user opt-out of infinite scrolling.
 	 *
-	 * @param bool $infinite Whether the Media Library grid has infinite scrolling.
+	 * @param bool $infinite_scrolling Whether the Media Library grid has infinite scrolling.
 	 */
-	$infinite_scrolling = apply_filters( 'media_library_infinite_scrolling', false );
+	$infinite_scrolling = apply_filters( 'media_library_infinite_scrolling', $infinite_scrolling );
 
 	$settings = array(
 		'tabs'              => $tabs,
@@ -6562,6 +6665,22 @@ function wp_set_up_cross_origin_isolation(): void {
 	}
 
 	if ( ! $screen->is_block_editor() && 'site-editor' !== $screen->id && ! ( 'widgets' === $screen->id && wp_use_widgets_block_editor() ) ) {
+		return;
+	}
+
+	/*
+	 * Skip when rendering the classic-theme home route, which shows the site
+	 * preview in an iframe and must reach its `contentDocument` to neutralize
+	 * interactive elements. DIP would block that same-origin access.
+	 *
+	 * Keyed off $pagenow rather than the current screen so the guard keeps
+	 * working if the header set-up is ever moved to an earlier hook (such as
+	 * admin_init) where the screen is not yet available.
+	 */
+	global $pagenow;
+
+	// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+	if ( 'site-editor.php' === $pagenow && ! wp_is_block_theme() && ( ! isset( $_GET['p'] ) || '/' === $_GET['p'] ) ) {
 		return;
 	}
 
