@@ -7,7 +7,11 @@
  */
 class Tests_Query_CommentFeed extends WP_UnitTestCase {
 	public static $post_type   = 'post';
-	protected static $post_ids = array();
+
+	/**
+	 * @var int[]
+	 */
+	protected static array $post_ids = array();
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$post_ids = $factory->post->create_many(
@@ -85,7 +89,7 @@ class Tests_Query_CommentFeed extends WP_UnitTestCase {
 	/**
 	 * @ticket 65613
 	 */
-	public function test_main_comment_feed_should_exclude_notes() {
+	public function test_main_comment_feed_should_exclude_notes(): void {
 		$note_id = self::factory()->comment->create(
 			array(
 				'comment_post_ID'  => self::$post_ids[0],
@@ -113,7 +117,7 @@ class Tests_Query_CommentFeed extends WP_UnitTestCase {
 	/**
 	 * @ticket 65613
 	 */
-	public function test_archive_comment_feed_should_exclude_notes() {
+	public function test_archive_comment_feed_should_exclude_notes(): void {
 		$note_id = self::factory()->comment->create(
 			array(
 				'comment_post_ID'  => self::$post_ids[0],
@@ -142,8 +146,9 @@ class Tests_Query_CommentFeed extends WP_UnitTestCase {
 	/**
 	 * @ticket 65613
 	 */
-	public function test_single_comment_feed_should_exclude_notes() {
+	public function test_single_comment_feed_should_exclude_notes(): void {
 		$post = get_post( self::$post_ids[0] );
+		$this->assertInstanceOf( WP_Post::class, $post );
 
 		$note_id = self::factory()->comment->create(
 			array(
@@ -174,7 +179,7 @@ class Tests_Query_CommentFeed extends WP_UnitTestCase {
 	/**
 	 * @ticket 36904
 	 */
-	public function test_single_comment_feed() {
+	public function test_single_comment_feed(): void {
 		$post = get_post( self::$post_ids[0] );
 
 		$q1   = new WP_Query();
