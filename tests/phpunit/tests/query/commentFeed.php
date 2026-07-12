@@ -179,7 +179,7 @@ class Tests_Query_CommentFeed extends WP_UnitTestCase {
 	/**
 	 * @ticket 36904
 	 */
-	public function test_single_comment_feed(): void {
+	public function test_single_comment_feed() {
 		$post = get_post( self::$post_ids[0] );
 
 		$q1   = new WP_Query();
