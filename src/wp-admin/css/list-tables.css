@@ -363,6 +363,10 @@ td.plugin-title p {
 	margin: 6px 0;
 }
 
+.trimmed-post-excerpt {
+	font-weight: 400;
+}
+
 /* Media file column */
 table.media .column-title .media-icon {
 	float: left;
@@ -1535,13 +1539,6 @@ ul.cat-checklist input[name="post_category[]"]:indeterminate::before {
 div.action-links,
 .plugin-action-buttons {
 	margin: 0; /* Override existing margins */
-}
-
-/* Use compact size for space-constrained plugin cards */
-.plugin-action-buttons li .button {
-	min-height: 32px;
-	line-height: 2.30769231; /* 30px for 32px min-height */
-	padding: 0 12px;
 }
 
 .plugin-card h3 {
