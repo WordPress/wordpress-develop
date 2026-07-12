@@ -6,7 +6,7 @@
  * @group feeds
  */
 class Tests_Query_CommentFeed extends WP_UnitTestCase {
-	public static $post_type   = 'post';
+	public static string $post_type = 'post';
 
 	/**
 	 * @var int[]
