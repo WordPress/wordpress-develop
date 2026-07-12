@@ -596,7 +596,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 
 			if ( ! empty( $output ) ) {
 				echo $output;
-				submit_button( __( 'Filter' ), '', 'filter_action', false, array( 'id' => 'post-query-submit' ) );
+				submit_button( __( 'Filter' ), 'button-compact', 'filter_action', false, array( 'id' => 'post-query-submit' ) );
 			}
 		}
 
@@ -1013,10 +1013,44 @@ class WP_Posts_List_Table extends WP_List_Table {
 	}
 
 	/**
+	 * Gets a trimmed excerpt to display in place of a missing post title.
+	 *
+	 * Only returns text in the Compact list view for posts that have no title,
+	 * do not require a password, and that the current user is allowed to read.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @global string $mode List table view mode.
+	 *
+	 * @param WP_Post $post The current WP_Post object.
+	 * @return string The escaped, trimmed excerpt, or an empty string.
+	 */
+	protected function get_no_title_excerpt( $post ) {
+		global $mode;
+
+		if ( 'excerpt' === $mode
+			|| '' !== get_the_title( $post )
+			|| post_password_required( $post )
+			|| ! current_user_can( 'read_post', $post->ID )
+		) {
+			return '';
+		}
+
+		$excerpt = get_the_excerpt( $post );
+
+		if ( '' === $excerpt || ! is_string( $excerpt ) ) {
+			return '';
+		}
+
+		return esc_html( wp_trim_words( $excerpt, 15 ) );
+	}
+
+	/**
 	 * Handles the checkbox column output.
 	 *
 	 * @since 4.3.0
 	 * @since 5.9.0 Renamed `$post` to `$item` to match parent class for PHP 8 named parameter support.
+	 * @since 7.1.0 Includes a trimmed excerpt for untitled posts in Compact view.
 	 *
 	 * @param WP_Post $item The current WP_Post object.
 	 */
@@ -1037,13 +1071,21 @@ class WP_Posts_List_Table extends WP_List_Table {
 		 * @param WP_Post $post The current WP_Post object.
 		 */
 		if ( apply_filters( 'wp_list_table_show_post_checkbox', $show, $post ) ) :
+
+			$post_title = _draft_or_post_title();
+
+			// If the post has no title, try adding part of the excerpt.
+			$no_title_excerpt = $this->get_no_title_excerpt( $post );
+			if ( '' !== $no_title_excerpt ) {
+				$post_title .= ' ' . $no_title_excerpt;
+			}
 			?>
 			<input id="cb-select-<?php the_ID(); ?>" type="checkbox" name="post[]" value="<?php the_ID(); ?>" />
 			<label for="cb-select-<?php the_ID(); ?>">
 				<span class="screen-reader-text">
 				<?php
 					/* translators: %s: Post title. */
-					printf( __( 'Select %s' ), _draft_or_post_title() );
+					printf( __( 'Select %s' ), $post_title );
 				?>
 				</span>
 			</label>
@@ -1054,7 +1096,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 				printf(
 					/* translators: Hidden accessibility text. %s: Post title. */
 					__( '&#8220;%s&#8221; is locked' ),
-					_draft_or_post_title()
+					$post_title
 				);
 				?>
 				</span>
@@ -1082,6 +1124,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 	 * Handles the title column output.
 	 *
 	 * @since 4.3.0
+	 * @since 7.1.0 Includes a trimmed excerpt for untitled posts in Compact view.
 	 *
 	 * @global string $mode List table view mode.
 	 *
@@ -1119,16 +1162,10 @@ class WP_Posts_List_Table extends WP_List_Table {
 			$lock_holder = wp_check_post_lock( $post->ID );
 
 			if ( $lock_holder ) {
-				if ( get_option( 'wp_collaboration_enabled' ) ) {
-					$locked_avatar = '';
-					/* translators: Collaboration status message for a singular post in the post list. Can be any type of post. */
-					$locked_text   = esc_html_x( 'Currently being edited', 'post list' );
-				} else {
-					$lock_holder   = get_userdata( $lock_holder );
-					$locked_avatar = get_avatar( $lock_holder->ID, 18 );
-					/* translators: %s: User's display name. */
-					$locked_text = esc_html( sprintf( __( '%s is currently editing' ), $lock_holder->display_name ) );
-				}
+				$lock_holder   = get_userdata( $lock_holder );
+				$locked_avatar = get_avatar( $lock_holder->ID, 18 );
+				/* translators: %s: User's display name. */
+				$locked_text = esc_html( sprintf( __( '%s is currently editing' ), $lock_holder->display_name ) );
 			} else {
 				$locked_avatar = '';
 				$locked_text   = '';
@@ -1141,6 +1178,12 @@ class WP_Posts_List_Table extends WP_List_Table {
 		echo '<strong>';
 
 		$title = _draft_or_post_title();
+
+		// If the post has no title, try adding part of the excerpt.
+		$no_title_excerpt = $this->get_no_title_excerpt( $post );
+		if ( '' !== $no_title_excerpt ) {
+			$title .= ' <span class="trimmed-post-excerpt">' . $no_title_excerpt . '</span>';
+		}
 
 		if ( $can_edit_post && 'trash' !== $post->post_status ) {
 			printf(
@@ -1433,11 +1476,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 		$lock_holder = wp_check_post_lock( $post->ID );
 
 		if ( $lock_holder ) {
-			if ( get_option( 'wp_collaboration_enabled' ) ) {
-				$classes .= ' wp-collaborative-editing';
-			} else {
-				$classes .= ' wp-locked';
-			}
+			$classes .= ' wp-locked';
 		}
 
 		if ( $post->post_parent ) {
@@ -1491,44 +1530,13 @@ class WP_Posts_List_Table extends WP_List_Table {
 		$title            = _draft_or_post_title();
 
 		if ( $can_edit_post && 'trash' !== $post->post_status ) {
-			$is_rtc_enabled = (bool) get_option( 'wp_collaboration_enabled' );
-
-			/*
-			 * When RTC is enabled, both "Edit" and "Join" labels are rendered.
-			 * The visible label is toggled by CSS based on the row's
-			 * `wp-collaborative-editing` class, which is added or removed by
-			 * inline-edit-post.js in response to heartbeat ticks.
-			 */
-			if ( $is_rtc_enabled ) {
-				$actions['edit'] = sprintf(
-					'<a href="%1$s">'
-					. '<span class="edit-action-text">'
-					. '<span aria-hidden="true">%2$s</span>'
-					. '<span class="screen-reader-text">%3$s</span>'
-					. '</span>'
-					. '<span class="join-action-text">'
-					. '<span aria-hidden="true">%4$s</span>'
-					. '<span class="screen-reader-text">%5$s</span>'
-					. '</span>'
-					. '</a>',
-					get_edit_post_link( $post->ID ),
-					__( 'Edit' ),
-					/* translators: %s: Post title. */
-					sprintf( __( 'Edit &#8220;%s&#8221;' ), $title ),
-					/* translators: Action link text for a singular post in the post list. Can be any type of post. */
-					_x( 'Join', 'post list' ),
-					/* translators: %s: Post title. */
-					sprintf( __( 'Join editing &#8220;%s&#8221;', 'post list' ), $title )
-				);
-			} else {
-				$actions['edit'] = sprintf(
-					'<a href="%s" aria-label="%s">%s</a>',
-					get_edit_post_link( $post->ID ),
-					/* translators: %s: Post title. */
-					esc_attr( sprintf( __( 'Edit &#8220;%s&#8221;' ), $title ) ),
-					__( 'Edit' )
-				);
-			}
+			$actions['edit'] = sprintf(
+				'<a href="%s" aria-label="%s">%s</a>',
+				get_edit_post_link( $post->ID ),
+				/* translators: %s: Post title. */
+				esc_attr( sprintf( __( 'Edit &#8220;%s&#8221;' ), $title ) ),
+				__( 'Edit' )
+			);
 
 			/**
 			 * Filters whether Quick Edit should be enabled for the given post type.
@@ -1589,7 +1597,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 						esc_url( $preview_link ),
 						/* translators: %s: Post title. */
 						esc_attr( sprintf( __( 'Preview &#8220;%s&#8221;' ), $title ) ),
-						__( 'Preview' )
+						_x( 'Preview', 'verb' )
 					);
 				}
 			} elseif ( 'trash' !== $post->post_status ) {
