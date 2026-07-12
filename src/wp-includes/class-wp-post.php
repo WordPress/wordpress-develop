@@ -17,6 +17,38 @@
  * @property-read int[]    $ancestors
  * @property-read int[]    $post_category
  * @property-read string[] $tags_input
+ *
+ * @phpstan-type Data_Array array{
+ *     ID: non-negative-int,
+ *     post_author: numeric-string,
+ *     post_date: non-empty-string,
+ *     post_date_gmt: non-empty-string,
+ *     post_content: string,
+ *     post_title: string,
+ *     post_excerpt: string,
+ *     post_status: string,
+ *     comment_status: string,
+ *     ping_status: string,
+ *     post_password: string,
+ *     post_name: string,
+ *     to_ping: string,
+ *     pinged: string,
+ *     post_modified: non-empty-string,
+ *     post_modified_gmt: non-empty-string,
+ *     post_content_filtered: string,
+ *     post_parent: non-negative-int,
+ *     guid: string,
+ *     menu_order: int,
+ *     post_type: string,
+ *     post_mime_type: string,
+ *     comment_count: numeric-string,
+ *     filter: string,
+ *     ancestors: int[],
+ *     page_template: string,
+ *     post_category: int[],
+ *     tags_input: string[],
+ *     ...
+ * }
  */
 #[AllowDynamicProperties]
 final class WP_Post {
@@ -26,6 +58,7 @@ final class WP_Post {
 	 *
 	 * @since 3.5.0
 	 * @var int
+	 * @phpstan-var non-negative-int
 	 */
 	public $ID;
 
@@ -45,6 +78,7 @@ final class WP_Post {
 	 *
 	 * @since 3.5.0
 	 * @var string
+	 * @phpstan-var non-empty-string
 	 */
 	public $post_date = '0000-00-00 00:00:00';
 
@@ -53,6 +87,7 @@ final class WP_Post {
 	 *
 	 * @since 3.5.0
 	 * @var string
+	 * @phpstan-var non-empty-string
 	 */
 	public $post_date_gmt = '0000-00-00 00:00:00';
 
@@ -141,6 +176,7 @@ final class WP_Post {
 	 *
 	 * @since 3.5.0
 	 * @var string
+	 * @phpstan-var non-empty-string
 	 */
 	public $post_modified = '0000-00-00 00:00:00';
 
@@ -149,6 +185,7 @@ final class WP_Post {
 	 *
 	 * @since 3.5.0
 	 * @var string
+	 * @phpstan-var non-empty-string
 	 */
 	public $post_modified_gmt = '0000-00-00 00:00:00';
 
@@ -165,6 +202,7 @@ final class WP_Post {
 	 *
 	 * @since 3.5.0
 	 * @var int
+	 * @phpstan-var non-negative-int
 	 */
 	public $post_parent = 0;
 
@@ -218,7 +256,6 @@ final class WP_Post {
 	 *
 	 * @since 3.5.0
 	 * @var string
-	 * @phpstan-var 'raw'|'edit'|'db'|'display'|'attribute'|'js'
 	 */
 	public $filter;
 
@@ -389,10 +426,9 @@ final class WP_Post {
 	 *
 	 * @return array<string, mixed> Object as array.
 	 *
-	 * @phpstan-return non-empty-array<string, mixed>
+	 * @phpstan-return Data_Array
 	 */
 	public function to_array() {
-		/** @var non-empty-array<string, mixed> $post */
 		$post = get_object_vars( $this );
 
 		foreach ( array( 'ancestors', 'page_template', 'post_category', 'tags_input' ) as $key ) {
@@ -401,6 +437,7 @@ final class WP_Post {
 			}
 		}
 
+		/** @var Data_Array $post */
 		return $post;
 	}
 }

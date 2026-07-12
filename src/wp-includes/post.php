@@ -1185,6 +1185,7 @@ function get_post( $post = null, $output = OBJECT, $filter = 'raw' ) {
  *
  * @param int|WP_Post $post Post ID or post object.
  * @return int[] Array of ancestor IDs or empty array if there are none.
+ * @phpstan-return list<non-negative-int>
  */
 function get_post_ancestors( $post ) {
 	$post = get_post( $post );
@@ -6149,11 +6150,11 @@ function get_to_ping( $post ) {
 function trackback_url_list( $tb_list, $post_id ) {
 	if ( ! empty( $tb_list ) ) {
 		// Get post data.
-		$postdata = get_post( $post_id, ARRAY_A );
-
-		if ( ! $postdata ) {
+		$post = get_post( $post_id );
+		if ( ! $post ) {
 			return;
 		}
+		$postdata = $post->to_array();
 
 		// Form an excerpt.
 		$excerpt = strip_tags( $postdata['post_excerpt'] ? $postdata['post_excerpt'] : $postdata['post_content'] );
