@@ -539,6 +539,8 @@ EOF;
 	/**
 	 * Tests that the 'pre_comment_content' context allows the note mention attributes on links.
 	 *
+	 * @ticket 65622
+	 *
 	 * @covers ::wp_kses_allowed_html
 	 */
 	public function test_wp_kses_allowed_html_pre_comment_content_allows_mention_attributes() {
@@ -555,6 +557,8 @@ EOF;
 
 	/**
 	 * Tests that a note mention link survives comment content sanitization.
+	 *
+	 * @ticket 65622
 	 *
 	 * @covers ::wp_kses
 	 */
