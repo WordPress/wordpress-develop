@@ -965,6 +965,48 @@ class Tests_Block_Supports_States extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that responsive text alignment generates media-query scoped CSS.
+	 *
+	 * @covers ::wp_render_block_states_support
+	 *
+	 * @ticket 65615
+	 */
+	public function test_responsive_text_alignment_generates_media_query_scoped_css() {
+		$this->ensure_block_registered( 'core/paragraph' );
+
+		$block_content = '<p class="wp-block-paragraph has-text-align-left">Hello</p>';
+		$block         = array(
+			'blockName' => 'core/paragraph',
+			'attrs'     => array(
+				'style' => array(
+					'typography' => array(
+						'textAlign' => 'left',
+					),
+					'@mobile'    => array(
+						'typography' => array(
+							'textAlign' => 'right',
+						),
+					),
+				),
+			),
+		);
+
+		$actual = wp_render_block_states_support( $block_content, $block );
+
+		$this->assertMatchesRegularExpression(
+			'/^<p class="wp-block-paragraph has-text-align-left (wp-states-[a-f0-9]{8})">Hello<\/p>$/',
+			$actual
+		);
+		preg_match( '/wp-states-[a-f0-9]{8}/', $actual, $matches );
+		$actual_stylesheet = wp_style_engine_get_stylesheet_from_context( 'block-supports', array( 'prettify' => false ) );
+
+		$this->assertStringContainsString(
+			'@media (width <= 480px){.' . $matches[0] . '{text-align:right !important;}}',
+			$actual_stylesheet
+		);
+	}
+
+	/**
 	 * Tests that a responsive element color generates media-query scoped CSS.
 	 *
 	 * @covers ::wp_render_block_states_support
