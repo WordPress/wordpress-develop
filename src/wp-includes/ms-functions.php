@@ -833,7 +833,8 @@ function _wp_generate_signup_key( $user_email ) {
 
 /**
  * Resolves an activation key from an email link into a database lookup value.
- *
+ * Note! This does not indicate if a valid signup key exists in the database;
+ *       it only returns the lookup key to use when querying for such a key.
  * Handles two key formats:
  *
  * - `hmac_sha256` (introduced in 7.1.0): a URL-safe base64-encoded triplet
