@@ -3287,7 +3287,8 @@ function sanitize_post_field( $field, $value, $post_id, $context = 'display' ) {
 			 * @param int    $post_id Post ID.
 			 * @param string $context Context for how to sanitize the field.
 			 *                        Accepts 'raw', 'edit', 'db', 'display',
-			 *                        'attribute', or 'js'. Default 'display'.
+			 *                        'attribute', or 'js'. The 'sample' value is
+			 *                        used for permalink previewing. Default 'display'.
 			 */
 			$value = apply_filters( "{$field}", $value, $post_id, $context );
 		} else {
@@ -3314,7 +3315,8 @@ function sanitize_post_field( $field, $value, $post_id, $context = 'display' ) {
 			 * @param int    $post_id Post ID
 			 * @param string $context Context for how to sanitize the field.
 			 *                        Accepts 'raw', 'edit', 'db', 'display',
-			 *                        'attribute', or 'js'. Default 'display'.
+			 *                        'attribute', or 'js'. The 'sample' value is
+			 *                        used for permalink previewing. Default 'display'.
 			 */
 			$value = apply_filters( "post_{$field}", $value, $post_id, $context );
 		}
