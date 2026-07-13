@@ -298,7 +298,7 @@
  *    closing the SCRIPT from inside a JavaScript string. E.g. `console.log( '</script>' )`.
  *  - `TITLE` and `TEXTAREA` whose contents are treated as plaintext and then any
  *    character references are decoded. E.g. `1 &lt; 2 < 3` becomes `1 < 2 < 3`.
- *  - `IFRAME`, `NOEMBED`, `NOFRAMES`, `STYLE` whose contents are treated as
+ *  - `IFRAME`, `NOEMBED`, `NOFRAMES`, `STYLE`, `XMP` whose contents are treated as
  *    raw plaintext and left as-is. E.g. `1 &lt; 2 < 3` remains `1 &lt; 2 < 3`.
  *
  * #### Other tokens with modifiable text.
@@ -4078,6 +4078,7 @@ class WP_HTML_Tag_Processor {
 			case 'IFRAME':
 			case 'NOEMBED':
 			case 'NOFRAMES':
+			case 'XMP':
 				$tag_name = $this->get_tag();
 				if ( false !== stripos( $plaintext_content, "</{$tag_name}" ) ) {
 					_doing_it_wrong(
