@@ -761,7 +761,7 @@ class Tests_HtmlApi_WpHtmlProcessor_Serialize extends WP_UnitTestCase {
 		return array(
 			'Decimal character reference' => array( 'a&#13;b', 'a&#xD;b' ),
 			'Hex character reference'     => array( 'a&#x0D;b', 'a&#xD;b' ),
-			'RCDATA title'                => array( '<title>a&#13;b', '<title>a&#xD;b</title>' ),
+			'RCDATA title'                => array( '<title>a&#13;b</title>', '<title>a&#xD;b</title>' ),
 			'Attribute value'             => array( '<p attr="a&#13;b"></p>', '<p attr="a&#xD;b"></p>' ),
 			'Table text'                  => array( '<table><td>x&#13;', '<table><tbody><tr><td>x&#xD;</td></tr></tbody></table>' ),
 			'Template text'               => array( '<template>a&#13;b</template>', '<template>a&#xD;b</template>' ),
