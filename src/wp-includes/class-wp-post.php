@@ -258,6 +258,8 @@ final class WP_Post {
 	 *
 	 * Does not correspond to a DB field.
 	 *
+	 * The 'sample' value is set exclusively by {@see get_sample_permalink()} and is read during permalink previewing.
+	 *
 	 * @since 3.5.0
 	 * @var string|null
 	 * @phpstan-var 'raw'|'edit'|'db'|'display'|'attribute'|'js'|'sample'|null
