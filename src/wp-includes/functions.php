@@ -1747,6 +1747,8 @@ function do_robots() {
  * Displays the favicon.ico file content.
  *
  * @since 5.4.0
+ *
+ * @return never
  */
 function do_favicon() {
 	/**
@@ -3712,6 +3714,7 @@ function get_allowed_mime_types( $user = null ) {
  * @since 2.0.4
  *
  * @param string $action The nonce action.
+ * @return never
  */
 function wp_nonce_ays( $action ) {
 	// Default title and response code.
@@ -3775,13 +3778,15 @@ function wp_nonce_ays( $action ) {
  *
  * @global WP_Query $wp_query WordPress Query object.
  *
- * @param string|WP_Error  $message Optional. Error message. If this is a WP_Error object,
- *                                  and not an Ajax or XML-RPC request, the error's messages are used.
- *                                  Default empty string.
- * @param string|int       $title   Optional. Error title. If `$message` is a `WP_Error` object,
- *                                  error data with the key 'title' may be used to specify the title.
- *                                  If `$title` is an integer, then it is treated as the response code.
- *                                  Default empty string.
+ * @param string|WP_Error|int $message Optional. Error message. If this is a WP_Error object,
+ *                                     and not an Ajax or XML-RPC request, the error's messages are used.
+ *                                     An integer is echoed as the entire response body by legacy Ajax
+ *                                     handlers, which use -1 for a failed nonce or capability check,
+ *                                     0 for failure, and 1 for success. Default empty string.
+ * @param string|int          $title   Optional. Error title. If `$message` is a `WP_Error` object,
+ *                                     error data with the key 'title' may be used to specify the title.
+ *                                     If `$title` is an integer, then it is treated as the response code.
+ *                                     Default empty string.
  * @param string|array|int $args {
  *     Optional. Arguments to control behavior. If `$args` is an integer, then it is treated
  *     as the response code. Default empty array.
@@ -3801,7 +3806,7 @@ function wp_nonce_ays( $action ) {
  *     @type bool   $exit           Whether to exit the process after completion. Default true.
  * }
  * @return void Never returns if `$args['exit']` is true (the default), otherwise returns void.
- *
+ * @phpstan-param string|WP_Error|int<-1, max> $message
  * @phpstan-return ( $args is array{exit: false} ? void : never )
  */
 function wp_die( $message = '', $title = '', $args = array() ) {
@@ -3889,6 +3894,7 @@ function wp_die( $message = '', $title = '', $args = array() ) {
  * @param string|WP_Error $message Error message or WP_Error object.
  * @param string          $title   Optional. Error title. Default empty string.
  * @param string|array    $args    Optional. Arguments to control behavior. Default empty array.
+ * @phpstan-return ( $args is array{exit: false} ? void : never )
  */
 function _default_wp_die_handler( $message, $title = '', $args = array() ) {
 	list( $message, $title, $parsed_args ) = _wp_die_process_input( $message, $title, $args );
@@ -4091,6 +4097,7 @@ function _default_wp_die_handler( $message, $title = '', $args = array() ) {
  * @param string       $message Error message.
  * @param string       $title   Optional. Error title (unused). Default empty string.
  * @param string|array $args    Optional. Arguments to control behavior. Default empty array.
+ * @phpstan-return ( $args is array{exit: false} ? void : never )
  */
 function _ajax_wp_die_handler( $message, $title = '', $args = array() ) {
 	// Set default 'response' to 200 for Ajax requests.
@@ -4133,6 +4140,7 @@ function _ajax_wp_die_handler( $message, $title = '', $args = array() ) {
  * @param string       $message Error message.
  * @param string       $title   Optional. Error title. Default empty string.
  * @param string|array $args    Optional. Arguments to control behavior. Default empty array.
+ * @phpstan-return ( $args is array{exit: false} ? void : never )
  */
 function _json_wp_die_handler( $message, $title = '', $args = array() ) {
 	list( $message, $title, $parsed_args ) = _wp_die_process_input( $message, $title, $args );
@@ -4175,6 +4183,7 @@ function _json_wp_die_handler( $message, $title = '', $args = array() ) {
  * @param string       $message Error message.
  * @param string       $title   Optional. Error title. Default empty string.
  * @param string|array $args    Optional. Arguments to control behavior. Default empty array.
+ * @phpstan-return ( $args is array{exit: false} ? void : never )
  */
 function _jsonp_wp_die_handler( $message, $title = '', $args = array() ) {
 	list( $message, $title, $parsed_args ) = _wp_die_process_input( $message, $title, $args );
@@ -4223,6 +4232,7 @@ function _jsonp_wp_die_handler( $message, $title = '', $args = array() ) {
  * @param string       $message Error message.
  * @param string       $title   Optional. Error title. Default empty string.
  * @param string|array $args    Optional. Arguments to control behavior. Default empty array.
+ * @phpstan-return ( $args is array{exit: false} ? void : never )
  */
 function _xmlrpc_wp_die_handler( $message, $title = '', $args = array() ) {
 	global $wp_xmlrpc_server;
@@ -4253,6 +4263,7 @@ function _xmlrpc_wp_die_handler( $message, $title = '', $args = array() ) {
  * @param string       $message Error message.
  * @param string       $title   Optional. Error title. Default empty string.
  * @param string|array $args    Optional. Arguments to control behavior. Default empty array.
+ * @phpstan-return ( $args is array{exit: false} ? void : never )
  */
 function _xml_wp_die_handler( $message, $title = '', $args = array() ) {
 	list( $message, $title, $parsed_args ) = _wp_die_process_input( $message, $title, $args );
@@ -4298,6 +4309,7 @@ EOD;
  * @param string       $message Optional. Response to print. Default empty string.
  * @param string       $title   Optional. Error title (unused). Default empty string.
  * @param string|array $args    Optional. Arguments to control behavior. Default empty array.
+ * @phpstan-return ( $args is array{exit: false} ? void : never )
  */
 function _scalar_wp_die_handler( $message = '', $title = '', $args = array() ) {
 	list( $message, $title, $parsed_args ) = _wp_die_process_input( $message, $title, $args );
@@ -4562,6 +4574,7 @@ function _wp_json_prepare_data( $value ) {
  *                           then print and die.
  * @param int   $status_code Optional. The HTTP status code to output. Default null.
  * @param int   $flags       Optional. Options to be passed to json_encode(). Default 0.
+ * @return never
  */
 function wp_send_json( $response, $status_code = null, $flags = 0 ) {
 	if ( wp_is_serving_rest_request() ) {
@@ -4609,6 +4622,7 @@ function wp_send_json( $response, $status_code = null, $flags = 0 ) {
  * @param mixed $value       Optional. Data to encode as JSON, then print and die. Default null.
  * @param int   $status_code Optional. The HTTP status code to output. Default null.
  * @param int   $flags       Optional. Options to be passed to json_encode(). Default 0.
+ * @return never
  */
 function wp_send_json_success( $value = null, $status_code = null, $flags = 0 ) {
 	$response = array( 'success' => true );
@@ -4636,6 +4650,7 @@ function wp_send_json_success( $value = null, $status_code = null, $flags = 0 ) 
  * @param mixed $value       Optional. Data to encode as JSON, then print and die. Default null.
  * @param int   $status_code Optional. The HTTP status code to output. Default null.
  * @param int   $flags       Optional. Options to be passed to json_encode(). Default 0.
+ * @return never
  */
 function wp_send_json_error( $value = null, $status_code = null, $flags = 0 ) {
 	$response = array( 'success' => false );
