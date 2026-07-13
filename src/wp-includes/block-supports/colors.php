@@ -73,6 +73,7 @@ function wp_register_colors_support( $block_type ) {
  *
  * @since 5.6.0
  * @since 6.1.0 Implemented the style engine to generate CSS and classnames.
+ * @since 7.1.0 Suppresses color.gradient when background.gradient is supported and set.
  * @access private
  *
  * @param  WP_Block_Type $block_type       Block type.
