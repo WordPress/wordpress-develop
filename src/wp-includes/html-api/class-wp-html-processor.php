@@ -1548,6 +1548,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @link https://html.spec.whatwg.org/multipage/parsing.html#escapingString
 	 *
 	 * @since 7.1.0
+	 * @ignore
 	 *
 	 * @param string $text Decoded text to escape.
 	 * @return string Escaped text.
