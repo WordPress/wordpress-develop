@@ -3010,8 +3010,8 @@ function sanitize_post( $post, $context = 'display' ) {
  * @param string $field   The Post Object field name.
  * @param mixed  $value   The Post Object value.
  * @param int    $post_id Post ID.
- * @param string $context Optional. How to sanitize the field. Possible values are 'raw', 'edit',
- *                        'db', 'display', 'attribute' and 'js'. Default 'display'.
+ * @param string $context Optional. How to sanitize the field. Possible values are 'raw', 'edit', 'db', 'display',
+ *                        'attribute' and 'js'. The 'sample' value is used for permalink previewing. Default 'display'.
  * @return mixed Sanitized value.
  *
  * @phpstan-param 'raw'|'edit'|'db'|'display'|'attribute'|'js'|'sample' $context
