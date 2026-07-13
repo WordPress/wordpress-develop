@@ -17,11 +17,9 @@ class Tests_Knowledge_Types extends WP_UnitTestCase {
 		$types = wp_knowledge_types();
 
 		$this->assertArrayHasKey( 'guideline', $types );
-		$this->assertArrayHasKey( 'memory', $types );
 		$this->assertArrayHasKey( 'note', $types );
 
 		$this->assertSame( 'Guideline', $types['guideline']['title'] );
-		$this->assertSame( 'Memory', $types['memory']['title'] );
 		$this->assertSame( 'Note', $types['note']['title'] );
 	}
 
@@ -79,7 +77,7 @@ class Tests_Knowledge_Types extends WP_UnitTestCase {
 		$this->assertIsInt( $post_id );
 
 		// Assign a non-default term, replacing the `note` fallback from creation.
-		$term = wp_insert_term( 'memory', 'wp_knowledge_type' );
+		$term = wp_insert_term( 'guideline', 'wp_knowledge_type' );
 		$this->assertIsArray( $term );
 		wp_set_object_terms( $post_id, (int) $term['term_id'], 'wp_knowledge_type' );
 
@@ -93,7 +91,7 @@ class Tests_Knowledge_Types extends WP_UnitTestCase {
 
 		$terms = wp_get_object_terms( $post_id, 'wp_knowledge_type', array( 'fields' => 'slugs' ) );
 
-		$this->assertSame( array( 'memory' ), $terms );
+		$this->assertSame( array( 'guideline' ), $terms );
 	}
 
 	/**

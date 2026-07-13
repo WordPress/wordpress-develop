@@ -4,7 +4,7 @@
  *
  * The Knowledge post type is a private-by-default storage primitive. Individual
  * rows are classified by one or more terms in the `wp_knowledge_type` taxonomy
- * (for example "guideline", "memory", or "note"). This file holds the type
+ * (for example "guideline" or "note"). This file holds the type
  * registry, the default-term fallback applied on save, and the helper that
  * gives lazily created type terms a human-readable label.
  *
@@ -53,9 +53,6 @@ function wp_knowledge_types(): array {
 		array(
 			'guideline' => array(
 				'title' => _x( 'Guideline', 'knowledge type' ),
-			),
-			'memory'    => array(
-				'title' => _x( 'Memory', 'knowledge type' ),
 			),
 			'note'      => array(
 				'title' => _x( 'Note', 'knowledge type' ),
