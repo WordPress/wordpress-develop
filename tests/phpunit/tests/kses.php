@@ -564,34 +564,42 @@ EOF;
 	public function test_note_mention_markup_survives_note_content_sanitization() {
 		add_filter( 'pre_comment_content', 'wp_filter_kses' );
 
-		$content  = 'Hello <span class="wp-note-mention user-2">@admin</span>!';
+		/*
+		 * The mention href is external to the test site so that wp_rel_ugc()
+		 * - which applies to notes like any other comment - deterministically
+		 * appends `rel="nofollow ugc"`.
+		 */
+		$content  = 'Hello <a class="wp-note-mention user-2" href="https://example.com/author/admin/">@admin</a>!';
 		$filtered = wp_filter_comment( wp_slash( $this->get_mention_commentdata( 'note', $content ) ) );
 
 		remove_filter( 'pre_comment_content', 'wp_filter_kses' );
 
-		$this->assertSame( $content, wp_unslash( $filtered['comment_content'] ) );
+		$this->assertSame(
+			'Hello <a class="wp-note-mention user-2" href="https://example.com/author/admin/" rel="nofollow ugc">@admin</a>!',
+			wp_unslash( $filtered['comment_content'] )
+		);
 	}
 
 	/**
-	 * Tests that only the `class` attribute is allowed on note spans.
+	 * Tests that only the `class` attribute is allowed on note links beyond the defaults.
 	 *
 	 * @ticket 65622
 	 *
 	 * @covers ::wp_filter_comment
 	 * @covers ::_wp_kses_allow_note_mention_attributes
 	 */
-	public function test_note_mention_allows_only_class_on_note_spans() {
+	public function test_note_mention_allows_only_class_on_note_links() {
 		add_filter( 'pre_comment_content', 'wp_filter_kses' );
 
-		$content  = 'Hello <span class="wp-note-mention user-2" data-user-id="2" onclick="alert(1)" style="color:red">@admin</span>!';
+		$content  = 'Hello <a class="wp-note-mention user-2" href="https://example.com/author/admin/" data-user-id="2" onclick="alert(1)" style="color:red">@admin</a>!';
 		$filtered = wp_filter_comment( wp_slash( $this->get_mention_commentdata( 'note', $content ) ) );
 
 		remove_filter( 'pre_comment_content', 'wp_filter_kses' );
 
 		$this->assertSame(
-			'Hello <span class="wp-note-mention user-2">@admin</span>!',
+			'Hello <a class="wp-note-mention user-2" href="https://example.com/author/admin/" rel="nofollow ugc">@admin</a>!',
 			wp_unslash( $filtered['comment_content'] ),
-			'Attributes beyond `class` should be stripped from note spans.'
+			'Attributes beyond `class` and the default link attributes should be stripped from note links.'
 		);
 	}
 
@@ -605,12 +613,15 @@ EOF;
 	public function test_note_mention_markup_stripped_from_regular_comment_content() {
 		add_filter( 'pre_comment_content', 'wp_filter_kses' );
 
-		$content  = 'Hello <span class="wp-note-mention user-2">@admin</span>!';
+		$content  = 'Hello <a class="wp-note-mention user-2" href="https://example.com/author/admin/">@admin</a>!';
 		$filtered = wp_filter_comment( wp_slash( $this->get_mention_commentdata( 'comment', $content ) ) );
 
 		remove_filter( 'pre_comment_content', 'wp_filter_kses' );
 
-		$this->assertSame( 'Hello @admin!', wp_unslash( $filtered['comment_content'] ) );
+		$this->assertSame(
+			'Hello <a href="https://example.com/author/admin/" rel="nofollow ugc">@admin</a>!',
+			wp_unslash( $filtered['comment_content'] )
+		);
 	}
 
 	/**
@@ -625,7 +636,7 @@ EOF;
 
 		add_filter( 'pre_comment_content', 'wp_filter_kses' );
 
-		$content = 'Hello <span class="wp-note-mention user-2">@admin</span>!';
+		$content = 'Hello <a class="wp-note-mention user-2" href="https://example.com/author/admin/">@admin</a>!';
 		wp_filter_comment( wp_slash( $this->get_mention_commentdata( 'note', $content ) ) );
 
 		// A regular comment filtered after a note still gets the default rules.
@@ -634,9 +645,9 @@ EOF;
 		remove_filter( 'pre_comment_content', 'wp_filter_kses' );
 
 		$this->assertSame(
-			'Hello @admin!',
+			'Hello <a href="https://example.com/author/admin/" rel="nofollow ugc">@admin</a>!',
 			wp_unslash( $filtered['comment_content'] ),
-			'The mention markup should be stripped from a regular comment filtered after a note.'
+			'The mention classes should be stripped from a regular comment filtered after a note.'
 		);
 		$this->assertSame(
 			$allowedtags,
