@@ -42,7 +42,7 @@
  *     post_type: string,
  *     post_mime_type: string,
  *     comment_count: numeric-string,
- *     filter: string,
+ *     filter: 'raw'|'edit'|'db'|'display'|'attribute'|'js'|'sample'|null,
  *     ancestors: int[],
  *     page_template: string,
  *     post_category: int[],
@@ -255,7 +255,8 @@ final class WP_Post {
 	 * Does not correspond to a DB field.
 	 *
 	 * @since 3.5.0
-	 * @var string
+	 * @var string|null
+	 * @phpstan-var 'raw'|'edit'|'db'|'display'|'attribute'|'js'|'sample'|null
 	 */
 	public $filter;
 

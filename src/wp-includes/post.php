@@ -3014,7 +3014,7 @@ function sanitize_post( $post, $context = 'display' ) {
  *                        'db', 'display', 'attribute' and 'js'. Default 'display'.
  * @return mixed Sanitized value.
  *
- * @phpstan-param 'raw'|'edit'|'db'|'display'|'attribute'|'js' $context
+ * @phpstan-param 'raw'|'edit'|'db'|'display'|'attribute'|'js'|'sample' $context
  * @phpstan-return (
  *     $field is 'ID'|'post_parent'|'menu_order' ? int : (
  *         $field is 'ancestors' ? non-negative-int[] : string
