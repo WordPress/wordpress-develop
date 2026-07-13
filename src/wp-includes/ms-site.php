@@ -859,14 +859,17 @@ function wp_uninitialize_site( $site_id ) {
 	 * @param string $basedir Uploads path without subdirectory. See {@see wp_upload_dir()}.
 	 * @param int    $site_id The site ID.
 	 */
-	$dir   = apply_filters( 'wpmu_delete_blog_upload_dir', $uploads['basedir'], $site->id );
-	$dir   = rtrim( $dir, DIRECTORY_SEPARATOR );
-	$stack = array( $dir );
-	$index = 0;
+	$dir     = apply_filters( 'wpmu_delete_blog_upload_dir', $uploads['basedir'], $site->id );
+	$dir     = rtrim( $dir, DIRECTORY_SEPARATOR );
+	$top_dir = $dir;
+	$stack   = array( $dir );
+	$index   = 0;
 
 	// phpcs:disable WordPress.PHP.NoSilencedErrors.Discouraged
 	if ( @is_link( $dir ) ) {
-		@unlink( $dir );
+		if ( $site_prefix !== $wpdb->base_prefix ) {
+			@unlink( $dir );
+		}
 		$stack = array();
 	}
 
@@ -901,7 +904,9 @@ function wp_uninitialize_site( $site_id ) {
 
 	$stack = array_reverse( $stack ); // Last added directories are deepest.
 	foreach ( (array) $stack as $dir ) {
-		@rmdir( $dir );
+		if ( $dir !== $top_dir || $site_prefix !== $wpdb->base_prefix ) {
+			@rmdir( $dir );
+		}
 	}
 
 	// phpcs:enable WordPress.PHP.NoSilencedErrors.Discouraged

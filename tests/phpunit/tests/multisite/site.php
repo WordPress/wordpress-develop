@@ -2117,6 +2117,7 @@ class Tests_Multisite_Site extends WP_UnitTestCase {
 				)
 			);
 		} finally {
+			wp_delete_site( $site_id );
 			$wpdb->query( $wpdb->prepare( 'DROP TABLE IF EXISTS %i, %i', $table_name, $other_table_name ) );
 		}
 	}
@@ -2142,11 +2143,16 @@ class Tests_Multisite_Site extends WP_UnitTestCase {
 		add_filter( 'wpmu_delete_blog_upload_dir', $filter_upload_dir );
 
 		try {
+			$this->assertTrue( wp_mkdir_p( $empty_upload_dir ) );
 			$result = wp_uninitialize_site( 1 );
+			$this->assertDirectoryExists( $empty_upload_dir );
 		} finally {
 			remove_filter( 'users_pre_query', '__return_empty_array' );
 			remove_filter( 'wpmu_drop_tables', $capture_tables );
 			remove_filter( 'wpmu_delete_blog_upload_dir', $filter_upload_dir );
+			if ( is_dir( $empty_upload_dir ) ) {
+				rmdir( $empty_upload_dir );
+			}
 		}
 
 		$this->assertTrue( $result );
@@ -2200,6 +2206,7 @@ class Tests_Multisite_Site extends WP_UnitTestCase {
 			);
 		} finally {
 			remove_filter( 'wpmu_drop_tables', $filter_drop_tables );
+			wp_delete_site( $site_id );
 			$wpdb->query( $wpdb->prepare( 'DROP TABLE IF EXISTS %i, %i', $table_name, $filter_table_name ) );
 		}
 	}
