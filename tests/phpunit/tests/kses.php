@@ -1002,6 +1002,7 @@ EOF;
 	 * @ticket 60132
 	 * @ticket 64414
 	 * @ticket 65457
+	 * @ticket 64974
 	 *
 	 * @dataProvider data_safecss_filter_attr
 	 *
