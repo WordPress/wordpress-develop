@@ -26,7 +26,7 @@ class Tests_General_wpGetTooltip extends WP_UnitTestCase {
 	 * @ticket 55343
 	 */
 	public function test_wp_get_tooltip_returns_accessible_markup() {
-		$html = wp_get_tooltip( 'Helpful text.', array( 'id' => 'my-tip' ) );
+		$tooltip = wp_get_tooltip( 'Helpful text.', array( 'id' => 'my-tip' ) );
 
 		// Toggle is a button that controls the popover and describes it.
 		$this->assertStringContainsString( '<button type="button" class="wp-tooltip__toggle"', $html );
@@ -34,26 +34,23 @@ class Tests_General_wpGetTooltip extends WP_UnitTestCase {
 		$this->assertStringContainsString( 'aria-describedby="my-tip-text"', $html );
 
 		// The bubble is a popover holding a text-only described element.
-		$this->assertStringContainsString( '<span popover="auto" id="my-tip" class="wp-tooltip__bubble">', $html );
+		$this->assertStringContainsString( '<span popover="hint" id="my-tip" class="wp-tooltip__bubble" role="tooltip">', $html );
 		$this->assertStringContainsString( '<span id="my-tip-text" class="wp-tooltip__text">Helpful text.</span>', $html );
 
-		// A native close button that hides the popover.
-		$this->assertStringContainsString( 'class="wp-tooltip__close"', $html );
-		$this->assertStringContainsString( 'popovertargetaction="hide"', $html );
-	}
+		// Ensure the tooltip model does not include a close button.
+		$this->assertStringNotContainsString( 'class="wp-tooltip__close"', $toggletip );
+		$this->assertStringNotContainsString( 'popovertargetaction="hide"', $toggletip );
 
-	/**
-	 * Tests that disallowed roles and attributes are omitted.
-	 *
-	 * @ticket 55343
-	 */
-	public function test_wp_get_tooltip_omits_disallowed_attributes() {
-		$html = wp_get_tooltip( 'Helpful text.' );
-
-		$this->assertStringNotContainsString( 'role="tooltip"', $html );
-		$this->assertStringNotContainsString( 'aria-haspopup', $html );
-		$this->assertStringNotContainsString( 'aria-live', $html );
-		$this->assertStringNotContainsString( 'title=', $html );
+		$toggletip = wp_get_tooltip(
+			'Helpful text.',
+			array(
+				'id'   => 'my-tip',
+				'type' => 'toggletip'
+			)
+		);
+		// Ensure the toggle tip does contain a close button.
+		$this->assertStringContainsString( 'class="wp-tooltip__close"', $toggletip );
+		$this->assertStringContainsString( 'popovertargetaction="hide"', $toggletip );
 	}
 
 	/**
@@ -79,6 +76,7 @@ class Tests_General_wpGetTooltip extends WP_UnitTestCase {
 			array(
 				'label'       => 'About this field',
 				'close_label' => 'Dismiss',
+				'type'        => 'toggletip', // Only toggle tip contains both labels.
 			)
 		);
 
