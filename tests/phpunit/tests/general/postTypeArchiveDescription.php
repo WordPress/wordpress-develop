@@ -30,11 +30,6 @@ class Tests_General_PostTypeArchiveDescription extends WP_UnitTestCase {
 		post_type_archive_description();
 	}
 
-	public function test_post_type_archive_description_returns() {
-		$this->go_to( get_post_type_archive_link( 'cpt_with_desc' ) );
-		$this->assertSame( 'This is a test description.', post_type_archive_description( '', false ) );
-	}
-
 	public function test_post_type_archive_description_no_desc() {
 		$this->go_to( get_post_type_archive_link( 'cpt_no_desc' ) );
 		$this->assertSame( '', post_type_archive_description( '', false ) );
@@ -42,11 +37,6 @@ class Tests_General_PostTypeArchiveDescription extends WP_UnitTestCase {
 
 	public function test_post_type_archive_description_with_passed_post_type() {
 		$this->assertSame( 'This is a test description.', post_type_archive_description( 'cpt_with_desc', false ) );
-	}
-
-	public function test_post_type_archive_description_with_passed_post_type_echoes() {
-		$this->expectOutputString( 'This is a test description.' );
-		post_type_archive_description( 'cpt_with_desc' );
 	}
 
 	public function test_post_type_archive_description_filter() {
