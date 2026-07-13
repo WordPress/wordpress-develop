@@ -1064,6 +1064,9 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			);
 		}
 
+		// Apply any unapplied EXIF orientation so edits run in the upright frame the client previewed.
+		$image_editor->maybe_exif_rotate();
+
 		foreach ( $modifiers as $modifier ) {
 			$args = $modifier['args'];
 			switch ( $modifier['type'] ) {
