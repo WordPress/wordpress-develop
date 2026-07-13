@@ -3712,6 +3712,8 @@ function get_allowed_mime_types( $user = null ) {
  * @since 2.0.4
  *
  * @param string $action The nonce action.
+ *
+ * @return never
  */
 function wp_nonce_ays( $action ) {
 	// Default title and response code.
