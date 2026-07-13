@@ -5056,12 +5056,7 @@ function wp_enqueue_media( $args = array() ) {
 		);
 	}
 
-	$infinite_scrolling = true;
-
-	// A user can opt out of infinite scrolling via their profile's personal options.
-	if ( 'false' === get_user_option( 'infinite_scrolling' ) ) {
-		$infinite_scrolling = false;
-	}
+	$infinite_scrolling = 'false' !== get_user_option( 'infinite_scrolling' );
 
 	/**
 	 * Filters whether the Media Library grid has infinite scrolling. Default `true`.
@@ -5083,8 +5078,9 @@ function wp_enqueue_media( $args = array() ) {
 		/** This filter is documented in wp-admin/includes/media.php */
 		'captions'          => ! apply_filters( 'disable_captions', '' ),
 		'nonce'             => array(
-			'sendToEditor'           => wp_create_nonce( 'media-send-to-editor' ),
-			'setAttachmentThumbnail' => wp_create_nonce( 'set-attachment-thumbnail' ),
+			'sendToEditor'                 => wp_create_nonce( 'media-send-to-editor' ),
+			'setAttachmentThumbnail'       => wp_create_nonce( 'set-attachment-thumbnail' ),
+			'saveInfiniteScrollingSetting' => current_user_can( 'upload_files' ) ? wp_create_nonce( 'save-media-library-infinite-scrolling' ) : false,
 		),
 		'post'              => array(
 			'id' => 0,
@@ -5182,6 +5178,11 @@ function wp_enqueue_media( $args = array() ) {
 		'apply'                       => __( 'Apply' ),
 		'filterByDate'                => __( 'Filter by date' ),
 		'filterByType'                => __( 'Filter by type' ),
+		'infiniteScrollingLabel'      => __( 'Infinite scrolling' ),
+		'infiniteScrollingEnabled'    => __( 'Infinite scrolling enabled' ),
+		'infiniteScrollingDisabled'   => __( 'Infinite scrolling disabled' ),
+		'infiniteScrollingOverridden' => __( 'Infinite scrolling is controlled by a site setting.' ),
+		'infiniteScrollingError'      => __( 'The infinite scrolling setting could not be saved.' ),
 		'searchLabel'                 => __( 'Search media' ),
 		'searchMediaLabel'            => __( 'Search media' ),          // Backward compatibility pre-5.3.
 		'searchMediaPlaceholder'      => __( 'Search media items...' ), // Placeholder (no ellipsis), backward compatibility pre-5.3.
@@ -6798,4 +6799,3 @@ function wp_add_crossorigin_attributes( string $html ): string {
 
 	return $processor->get_updated_html();
 }
-

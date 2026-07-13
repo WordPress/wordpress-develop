@@ -3,7 +3,6 @@ var View = wp.media.View,
 	l10n = wp.media.view.l10n,
 	$ = jQuery,
 	AttachmentsBrowser,
-	infiniteScrolling = wp.media.view.settings.infiniteScrolling,
 	__ = wp.i18n.__,
 	sprintf = wp.i18n.sprintf;
 
@@ -34,6 +33,8 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 	className: 'attachments-browser',
 
 	initialize: function() {
+		this.infiniteScrolling = !! wp.media.view.settings.infiniteScrolling;
+
 		_.defaults( this.options, {
 			filters: false,
 			search:  true,
@@ -45,6 +46,7 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 
 		this.controller.on( 'toggle:upload:attachment', this.toggleUploader, this );
 		this.controller.on( 'edit:selection', this.editSelection );
+		this.listenTo( wp.media.events, 'infinite-scrolling:change', this.setInfiniteScrolling );
 
 		// In the Media Library, the sidebar is used to display errors before the attachments grid.
 		if ( this.options.sidebar && 'errors' === this.options.sidebar ) {
@@ -76,11 +78,7 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 
 		// Create the attachments wrapper view.
 		this.createAttachmentsWrapperView();
-
-		if ( ! infiniteScrolling ) {
-			this.$el.addClass( 'has-load-more' );
-			this.createLoadMoreView();
-		}
+		this.createLoadMoreView();
 
 		// For accessibility reasons, place the normal sidebar after the attachments, see ticket #36909.
 		if ( this.options.sidebar && 'errors' !== this.options.sidebar ) {
@@ -88,10 +86,6 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 		}
 
 		this.updateContent();
-
-		if ( ! infiniteScrolling ) {
-			this.updateLoadMoreView();
-		}
 
 		if ( ! this.options.sidebar || 'errors' === this.options.sidebar ) {
 			this.$el.addClass( 'hide-sidebar' );
@@ -102,10 +96,7 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 		}
 
 		this.collection.on( 'add remove reset', this.updateContent, this );
-
-		if ( ! infiniteScrolling ) {
-			this.collection.on( 'add remove reset', this.updateLoadMoreView, this );
-		}
+		this.setInfiniteScrolling( this.infiniteScrolling );
 
 		// The non-cached or cached attachments query has completed.
 		this.collection.on( 'attachments:received', this.announceSearchResults, this );
@@ -125,7 +116,7 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 			/* translators: Accessibility text. %d: Number of attachments found in a search. */
 			mediaFoundHasMoreResultsMessage = __( 'Number of media items displayed: %d. Click load more for more results.' );
 
-		if ( infiniteScrolling ) {
+		if ( this.infiniteScrolling ) {
 			/* translators: Accessibility text. %d: Number of attachments found in a search. */
 			mediaFoundHasMoreResultsMessage = __( 'Number of media items displayed: %d. Scroll the page for more results.' );
 		}
@@ -157,6 +148,7 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 	 */
 	dispose: function() {
 		this.options.selection.off( null, null, this );
+		this.collection.off( 'add remove reset', this.updateLoadMoreView, this );
 		View.prototype.dispose.apply( this, arguments );
 		return this;
 	},
@@ -377,6 +369,20 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 			}).render() );
 		}
 
+		if ( wp.media.view.settings.nonce.saveInfiniteScrollingSetting ) {
+			this.toolbar.set( 'paginationLabel', new wp.media.view.Label({
+				value: l10n.infiniteScrollingLabel,
+				attributes: {
+					'for': 'media-library-pagination'
+				},
+				priority: -72
+			}).render() );
+			this.toolbar.set( 'pagination', new wp.media.view.MediaLibraryPagination({
+				controller: this.controller,
+				priority: -72
+			}).render() );
+		}
+
 		if ( this.options.search ) {
 			// Search is an input, a label element needs to be rendered before.
 			this.toolbar.set( 'searchLabel', new wp.media.view.Label({
@@ -486,6 +492,7 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 			sortable:             this.options.sortable,
 			scrollElement:        this.options.scrollElement,
 			idealColumnWidth:     this.options.idealColumnWidth,
+			infiniteScrolling:    this.infiniteScrolling,
 
 			// The single `Attachment` view to be used in the `Attachments` view.
 			AttachmentView: this.options.AttachmentView
@@ -522,7 +529,7 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 
 		this.loadMoreWrapper = new View( {
 			controller: this.controller,
-			className: 'load-more-wrapper'
+			className: 'load-more-wrapper hidden'
 		} );
 
 		this.loadMoreCount = new View( {
@@ -557,6 +564,35 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 		this.views.add( '.load-more-wrapper', this.loadMoreCount );
 		this.views.add( '.load-more-wrapper', this.loadMoreButton );
 		this.views.add( '.load-more-wrapper', this.loadMoreJumpToFirst );
+	},
+
+	/**
+	 * Switches the attachment browser's loading behavior.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @param {boolean|number} infiniteScrolling Whether infinite scrolling is enabled.
+	 * @return {void}
+	 */
+	setInfiniteScrolling: function( infiniteScrolling ) {
+		this.infiniteScrolling = !! infiniteScrolling;
+		wp.media.view.settings.infiniteScrolling = this.infiniteScrolling ? 1 : 0;
+
+		this.attachments.setInfiniteScrolling( this.infiniteScrolling );
+		this.collection.off( 'add remove reset', this.updateLoadMoreView, this );
+
+		if ( this.infiniteScrolling ) {
+			this.$el.removeClass( 'has-load-more' );
+			this.loadMoreWrapper.$el.addClass( 'hidden' );
+			this.loadMoreSpinner.hide();
+			this.attachments.scroll();
+			return;
+		}
+
+		this.$el.addClass( 'has-load-more' );
+		this.loadMoreWrapper.$el.removeClass( 'hidden' );
+		this.collection.on( 'add remove reset', this.updateLoadMoreView, this );
+		this.updateLoadMoreView();
 	},
 
 	/**

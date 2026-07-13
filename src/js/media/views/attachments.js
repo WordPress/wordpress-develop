@@ -1,7 +1,6 @@
 var View = wp.media.View,
 	$ = jQuery,
-	Attachments,
-	infiniteScrolling = wp.media.view.settings.infiniteScrolling;
+	Attachments;
 
 Attachments = View.extend(/** @lends wp.media.view.Attachments.prototype */{
 	tagName:   'ul',
@@ -54,7 +53,7 @@ Attachments = View.extend(/** @lends wp.media.view.Attachments.prototype */{
 		 *                           calculating the total number of columns.
 		 */
 		_.defaults( this.options, {
-			infiniteScrolling:  infiniteScrolling || false,
+			infiniteScrolling:  wp.media.view.settings.infiniteScrolling || false,
 			refreshSensitivity: wp.media.isTouchDevice ? 300 : 200,
 			refreshThreshold:   3,
 			AttachmentView:     wp.media.view.Attachment,
@@ -90,13 +89,11 @@ Attachments = View.extend(/** @lends wp.media.view.Attachments.prototype */{
 
 		this.controller.on( 'library:selection:add', this.attachmentFocus, this );
 
-		if ( this.options.infiniteScrolling ) {
-			// Throttle the scroll handler and bind this.
-			this.scroll = _.chain( this.scroll ).bind( this ).throttle( this.options.refreshSensitivity ).value();
+		// Throttle the scroll handler and bind this.
+		this.scroll = _.chain( this.scroll ).bind( this ).throttle( this.options.refreshSensitivity ).value();
 
-			this.options.scrollElement = this.options.scrollElement || this.el;
-			$( this.options.scrollElement ).on( 'scroll', this.scroll );
-		}
+		this.options.scrollElement = this.options.scrollElement || this.el;
+		this.setInfiniteScrolling( this.options.infiniteScrolling );
 
 		this.initSortable();
 
@@ -231,12 +228,32 @@ Attachments = View.extend(/** @lends wp.media.view.Attachments.prototype */{
 	 */
 	dispose: function() {
 		this.collection.props.off( null, null, this );
+		$( this.options.scrollElement ).off( 'scroll', this.scroll );
 		if ( this.options.resize ) {
 			this.$window.off( this.resizeEvent );
 		}
 
 		// Call 'dispose' directly on the parent class.
 		View.prototype.dispose.apply( this, arguments );
+	},
+
+	/**
+	 * Switches between infinite scrolling and manual loading.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @param {boolean|number} infiniteScrolling Whether infinite scrolling is enabled.
+	 * @return {void}
+	 */
+	setInfiniteScrolling: function( infiniteScrolling ) {
+		var scrollElement = $( this.options.scrollElement );
+
+		this.options.infiniteScrolling = !! infiniteScrolling;
+		scrollElement.off( 'scroll', this.scroll );
+
+		if ( this.options.infiniteScrolling ) {
+			scrollElement.on( 'scroll', this.scroll );
+		}
 	},
 
 	/**

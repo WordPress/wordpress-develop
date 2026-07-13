@@ -110,6 +110,7 @@ $core_actions_post = array(
 	'heartbeat',
 	'get-revision-diffs',
 	'save-user-color-scheme',
+	'save-media-library-infinite-scrolling',
 	'update-widget',
 	'query-themes',
 	'parse-embed',

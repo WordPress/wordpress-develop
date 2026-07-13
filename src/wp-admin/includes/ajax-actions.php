@@ -3622,6 +3622,41 @@ function wp_ajax_save_user_color_scheme() {
 }
 
 /**
+ * Handles saving the current user's Media Library infinite scrolling preference.
+ *
+ * @since 7.1.0
+ */
+function wp_ajax_save_media_library_infinite_scrolling() {
+	check_ajax_referer( 'save-media-library-infinite-scrolling', 'nonce' );
+
+	if ( ! current_user_can( 'upload_files' ) ) {
+		wp_send_json_error( null, 403 );
+	}
+
+	if ( ! isset( $_POST['infinite_scrolling'] ) || ! is_string( $_POST['infinite_scrolling'] ) ) {
+		wp_send_json_error( null, 400 );
+	}
+
+	$infinite_scrolling = sanitize_key( wp_unslash( $_POST['infinite_scrolling'] ) );
+	if ( ! in_array( $infinite_scrolling, array( 'true', 'false' ), true ) ) {
+		wp_send_json_error( null, 400 );
+	}
+
+	$infinite_scrolling = 'true' === $infinite_scrolling;
+	update_user_meta( get_current_user_id(), 'infinite_scrolling', $infinite_scrolling ? 'true' : 'false' );
+
+	/** This filter is documented in wp-includes/media.php. */
+	$effective_setting = (bool) apply_filters( 'media_library_infinite_scrolling', $infinite_scrolling );
+
+	wp_send_json_success(
+		array(
+			'infiniteScrolling' => $effective_setting,
+			'overridden'        => $effective_setting !== $infinite_scrolling,
+		)
+	);
+}
+
+/**
  * Handles getting themes from themes_api() via AJAX.
  *
  * @since 3.9.0

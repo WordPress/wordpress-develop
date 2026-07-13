@@ -90,6 +90,7 @@ abstract class WP_Ajax_UnitTestCase extends WP_UnitTestCase {
 		'nopriv_heartbeat',
 		'get-revision-diffs',
 		'save-user-color-scheme',
+		'save-media-library-infinite-scrolling',
 		'update-widget',
 		'query-themes',
 		'parse-embed',
