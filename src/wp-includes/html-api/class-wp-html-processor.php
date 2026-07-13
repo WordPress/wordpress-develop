@@ -1529,8 +1529,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	/**
 	 * Escapes decoded text for HTML serialization.
 	 *
-	 * Already-escaped text will be double-escaped.
-	 *
 	 * Use for:
 	 * - Attribute values.
 	 * - Text in normal content and in the RCDATA elements TITLE and TEXTAREA.
