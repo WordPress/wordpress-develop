@@ -36,6 +36,7 @@ final class WP_Post {
 	 *
 	 * @since 3.5.0
 	 * @var string
+	 * @phpstan-var numeric-string
 	 */
 	public $post_author = '0';
 
@@ -206,6 +207,7 @@ final class WP_Post {
 	 *
 	 * @since 3.5.0
 	 * @var string
+	 * @phpstan-var numeric-string
 	 */
 	public $comment_count = '0';
 
@@ -216,6 +218,7 @@ final class WP_Post {
 	 *
 	 * @since 3.5.0
 	 * @var string
+	 * @phpstan-var 'raw'|'edit'|'db'|'display'|'attribute'|'js'
 	 */
 	public $filter;
 
@@ -228,6 +231,8 @@ final class WP_Post {
 	 *
 	 * @param int $post_id Post ID.
 	 * @return WP_Post|false Post object, false otherwise.
+	 *
+	 * @phpstan-param int|numeric-string $post_id
 	 */
 	public static function get_instance( $post_id ) {
 		global $wpdb;
@@ -239,7 +244,7 @@ final class WP_Post {
 
 		$_post = wp_cache_get( $post_id, 'posts' );
 
-		if ( ! $_post ) {
+		if ( ! ( $_post instanceof stdClass ) && ! ( $_post instanceof WP_Post ) ) {
 			$_post = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $wpdb->posts WHERE ID = %d LIMIT 1", $post_id ) );
 
 			if ( ! $_post ) {
@@ -247,7 +252,7 @@ final class WP_Post {
 			}
 
 			$_post = sanitize_post( $_post, 'raw' );
-			wp_cache_add( $_post->ID, $_post, 'posts' );
+			wp_cache_add( (int) $_post->ID, $_post, 'posts' );
 		} elseif ( empty( $_post->filter ) || 'raw' !== $_post->filter ) {
 			$_post = sanitize_post( $_post, 'raw' );
 		}
@@ -260,7 +265,7 @@ final class WP_Post {
 	 *
 	 * @since 3.5.0
 	 *
-	 * @param WP_Post|object $post Post object.
+	 * @param object $post Post object.
 	 */
 	public function __construct( $post ) {
 		foreach ( get_object_vars( $post ) as $key => $value ) {
@@ -314,7 +319,7 @@ final class WP_Post {
 				$terms = get_the_terms( $this, 'category' );
 			}
 
-			if ( empty( $terms ) ) {
+			if ( empty( $terms ) || $terms instanceof WP_Error ) {
 				return array();
 			}
 
@@ -326,7 +331,7 @@ final class WP_Post {
 				$terms = get_the_terms( $this, 'post_tag' );
 			}
 
-			if ( empty( $terms ) ) {
+			if ( empty( $terms ) || $terms instanceof WP_Error ) {
 				return array();
 			}
 
@@ -348,12 +353,22 @@ final class WP_Post {
 	}
 
 	/**
-	 * {@Missing Summary}
+	 * Applies the provided context filter for the current post.
+	 *
+	 * If the requested filter was already applied, then it returns without any changes.
+	 *
+	 * If the 'raw' filter is supplied, then a new instance of the post is obtained and this method _may_ return false
+	 * in case the underlying post was deleted.
 	 *
 	 * @since 3.5.0
 	 *
 	 * @param string $filter Filter.
-	 * @return WP_Post
+	 * @return WP_Post|false
+	 *
+	 * @phpstan-param 'raw'|'edit'|'db'|'display'|'attribute'|'js' $filter
+	 * @phpstan-return (
+	 *     $filter is 'raw' ? WP_Post|false : WP_Post
+	 * )
 	 */
 	public function filter( $filter ) {
 		if ( $this->filter === $filter ) {
@@ -372,9 +387,12 @@ final class WP_Post {
 	 *
 	 * @since 3.5.0
 	 *
-	 * @return array Object as array.
+	 * @return array<string, mixed> Object as array.
+	 *
+	 * @phpstan-return non-empty-array<string, mixed>
 	 */
 	public function to_array() {
+		/** @var non-empty-array<string, mixed> $post */
 		$post = get_object_vars( $this );
 
 		foreach ( array( 'ancestors', 'page_template', 'post_category', 'tags_input' ) as $key ) {

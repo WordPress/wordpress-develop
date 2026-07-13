@@ -103,7 +103,7 @@ function get_allowed_block_template_part_areas() {
 			'area'        => WP_TEMPLATE_PART_AREA_NAVIGATION_OVERLAY,
 			'label'       => _x( 'Navigation Overlay', 'template part area' ),
 			'description' => __(
-				'The Navigation Overlay template defines a full-screen overlay area that typically contains navigation links and can be toggled on and off.'
+				'The Navigation Overlay template defines an overlay area that typically contains navigation links and can be toggled open and closed.'
 			),
 			'icon'        => 'navigation-overlay',
 			'area_tag'    => 'div',
@@ -595,6 +595,7 @@ function _remove_theme_attribute_from_template_part_block( &$block ) {
  *
  * @since 5.9.0
  * @since 6.3.0 Added `modified` property to template objects.
+ * @since 7.1.0 Added `date` property to template objects.
  * @access private
  *
  * @param array  $template_file Theme file.
@@ -617,6 +618,7 @@ function _build_block_template_result_from_file( $template_file, $template_type 
 	$template->has_theme_file = true;
 	$template->is_custom      = true;
 	$template->modified       = null;
+	$template->date           = null;
 
 	if ( 'wp_template' === $template_type ) {
 		$registered_template = WP_Block_Templates_Registry::get_instance()->get_by_slug( $template_file['slug'] );
@@ -867,6 +869,7 @@ function _build_block_template_object_from_post_object( $post, $terms = array(),
 	$template->is_custom      = empty( $meta['is_wp_suggestion'] );
 	$template->author         = $post->post_author;
 	$template->modified       = $post->post_modified;
+	$template->date           = $post->post_date;
 
 	if ( 'wp_template' === $post->post_type && $has_theme_file && isset( $template_file['postTypes'] ) ) {
 		$template->post_types = $template_file['postTypes'];
@@ -1461,13 +1464,7 @@ function block_footer_area() {
 function wp_is_theme_directory_ignored( $path ) {
 	$directories_to_ignore = array( '.DS_Store', '.svn', '.git', '.hg', '.bzr', 'node_modules', 'vendor' );
 
-	foreach ( $directories_to_ignore as $directory ) {
-		if ( str_starts_with( $path, $directory ) ) {
-			return true;
-		}
-	}
-
-	return false;
+	return array_any( $directories_to_ignore, fn( $directory ) => str_starts_with( $path, $directory ) );
 }
 
 /**

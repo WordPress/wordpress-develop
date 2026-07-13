@@ -19,7 +19,7 @@ on:
         description: 'The version being used for baseline measurements.'
         required: false
         type: 'string'
-        default: '6.7.0'
+        default: '7.0.0'
       TARGET_SHA:
         description: 'SHA hash of the target commit used for "before" measurements.'
         required: true
@@ -49,7 +49,7 @@ on:
         required: false
 
 env:
-  PUPPETEER_SKIP_DOWNLOAD: ${{ true }}
+  PUPPETEER_SKIP_DOWNLOAD: true
 
   # Prevent wp-scripts from downloading extra Playwright browsers,
   # since Chromium will be installed in its dedicated step already.
@@ -78,6 +78,7 @@ jobs:
   # - Configure environment variables.
   # - Checkout repository.
   # - Set up Node.js.
+  # - Set up PHP.
   # - Log debug information.
   # - Install npm dependencies.
   # - Install Playwright browsers.
@@ -122,10 +123,18 @@ jobs:
           persist-credentials: false
 
       - name: Set up Node.js
-        uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6.2.0
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
         with:
           node-version-file: '.nvmrc'
           cache: npm
+
+      - name: Set up PHP
+        if: ${{ inputs.subject == 'base' }}
+        uses: shivammathur/setup-php@7c071dfe9dc99bdf297fa79cb49ea005b9fcadbc # 2.37.1
+        with:
+          php-version: ${{ inputs.php-version }}
+          tools: wp-cli
+          coverage: none
 
       - name: Log debug information
         run: |
@@ -183,7 +192,7 @@ jobs:
         if: ${{ inputs.subject == 'base' }}
         run: |
           VERSION="${BASE_TAG%.0}"
-          npm run env:cli -- core download --version="$VERSION" --force --path="/var/www/${LOCAL_DIR}"
+          wp core download --version="$VERSION" --force --path="${LOCAL_DIR}"
 
       - name: Install object cache drop-in
         if: ${{ inputs.memcached }}
@@ -227,9 +236,6 @@ jobs:
       - name: Deactivate WordPress Importer plugin
         run: npm run env:cli -- plugin deactivate wordpress-importer --path="/var/www/${LOCAL_DIR}"
 
-      - name: Update permalink structure
-        run: npm run env:cli -- rewrite structure '/%year%/%monthnum%/%postname%/' --path="/var/www/${LOCAL_DIR}"
-
       - name: Install additional languages
         run: |
           npm run env:cli -- language core install de_DE --path="/var/www/${LOCAL_DIR}"
@@ -258,7 +264,7 @@ jobs:
           TEST_RESULTS_PREFIX: ${{ inputs.subject != 'current' && inputs.subject || '' }}
 
       - name: Archive artifacts
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: always()
         with:
           name: performance-${{ inputs.multisite && 'multisite' || 'single' }}-${{ inputs.memcached && 'memcached' || 'default' }}-${{ inputs.subject }}

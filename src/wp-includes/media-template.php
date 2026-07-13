@@ -269,7 +269,7 @@ function wp_print_media_templates() {
 			<div class="upload-ui">
 				<h2 class="upload-instructions drop-instructions"><?php _e( 'Drop files to upload' ); ?></h2>
 				<p class="upload-instructions drop-instructions"><?php _ex( 'or', 'Uploader: Drop files here - or - Select Files' ); ?></p>
-				<button type="button" class="browser button button-hero" aria-labelledby="post-upload-info"><?php _e( 'Select Files' ); ?></button>
+				<button type="button" class="browser button button-hero" aria-describedby="post-upload-info"><?php _e( 'Select Files' ); ?></button>
 			</div>
 
 			<div class="upload-inline-status"></div>
@@ -544,7 +544,11 @@ function wp_print_media_templates() {
 				<?php endforeach; ?>
 				<# } #>
 				<span class="setting" data-setting="caption">
-					<label for="attachment-details-two-column-caption" class="name"><?php _e( 'Caption' ); ?></label>
+					<# if ( 'image' === data.type ) { #>
+					<label for="attachment-details-two-column-caption" class="name"><?php esc_html_e( 'Image Caption' ); ?></label>
+					<# } else { #>
+					<label for="attachment-details-two-column-caption" class="name"><?php esc_html_e( 'Short Description' ); ?></label>
+					<# } #>
 					<textarea id="attachment-details-two-column-caption" {{ maybeReadOnly }}>{{ data.caption }}</textarea>
 				</span>
 				<span class="setting" data-setting="description">
@@ -796,7 +800,11 @@ function wp_print_media_templates() {
 		<?php endforeach; ?>
 		<# } #>
 		<span class="setting" data-setting="caption">
-			<label for="attachment-details-caption" class="name"><?php _e( 'Caption' ); ?></label>
+			<# if ( 'image' === data.type ) { #>
+			<label for="attachment-details-caption" class="name"><?php esc_html_e( 'Image Caption' ); ?></label>
+			<# } else { #>
+			<label for="attachment-details-caption" class="name"><?php esc_html_e( 'Short Description' ); ?></label>
+			<# } #>
 			<textarea id="attachment-details-caption" {{ maybeReadOnly }}>{{ data.caption }}</textarea>
 		</span>
 		<span class="setting" data-setting="description">
