@@ -797,6 +797,99 @@ figcaption,
     padding: 0;
   }
 }
+.wp-block-cover h2:lang(ar) {
+  font-family: Tahoma, Arial, sans-serif;
+}
+.wp-block-cover h2:lang(ary) {
+  font-family: Tahoma, Arial, sans-serif;
+}
+.wp-block-cover h2:lang(azb) {
+  font-family: Tahoma, Arial, sans-serif;
+}
+.wp-block-cover h2:lang(ckb) {
+  font-family: Tahoma, Arial, sans-serif;
+}
+.wp-block-cover h2:lang(fa-IR) {
+  font-family: Tahoma, Arial, sans-serif;
+}
+.wp-block-cover h2:lang(haz) {
+  font-family: Tahoma, Arial, sans-serif;
+}
+.wp-block-cover h2:lang(ps) {
+  font-family: Tahoma, Arial, sans-serif;
+}
+.wp-block-cover h2:lang(be) {
+  font-family: "Helvetica Neue", Helvetica, "Segoe UI", Arial, sans-serif;
+}
+.wp-block-cover h2:lang(bg-BG) {
+  font-family: "Helvetica Neue", Helvetica, "Segoe UI", Arial, sans-serif;
+}
+.wp-block-cover h2:lang(kk) {
+  font-family: "Helvetica Neue", Helvetica, "Segoe UI", Arial, sans-serif;
+}
+.wp-block-cover h2:lang(mk-MK) {
+  font-family: "Helvetica Neue", Helvetica, "Segoe UI", Arial, sans-serif;
+}
+.wp-block-cover h2:lang(mn) {
+  font-family: "Helvetica Neue", Helvetica, "Segoe UI", Arial, sans-serif;
+}
+.wp-block-cover h2:lang(ru-RU) {
+  font-family: "Helvetica Neue", Helvetica, "Segoe UI", Arial, sans-serif;
+}
+.wp-block-cover h2:lang(sah) {
+  font-family: "Helvetica Neue", Helvetica, "Segoe UI", Arial, sans-serif;
+}
+.wp-block-cover h2:lang(sr-RS) {
+  font-family: "Helvetica Neue", Helvetica, "Segoe UI", Arial, sans-serif;
+}
+.wp-block-cover h2:lang(tt-RU) {
+  font-family: "Helvetica Neue", Helvetica, "Segoe UI", Arial, sans-serif;
+}
+.wp-block-cover h2:lang(uk) {
+  font-family: "Helvetica Neue", Helvetica, "Segoe UI", Arial, sans-serif;
+}
+.wp-block-cover h2:lang(zh-HK) {
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang HK", "Helvetica Neue", "Microsoft YaHei New", STHeiti Light, sans-serif;
+}
+.wp-block-cover h2:lang(zh-TW) {
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang TC", "Helvetica Neue", "Microsoft YaHei New", STHeiti Light, sans-serif;
+}
+.wp-block-cover h2:lang(zh-CN) {
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", "Microsoft YaHei New", STHeiti Light, sans-serif;
+}
+.wp-block-cover h2:lang(bn-BD) {
+  font-family: Arial, sans-serif;
+}
+.wp-block-cover h2:lang(hi-IN) {
+  font-family: Arial, sans-serif;
+}
+.wp-block-cover h2:lang(mr) {
+  font-family: Arial, sans-serif;
+}
+.wp-block-cover h2:lang(ne-NP) {
+  font-family: Arial, sans-serif;
+}
+.wp-block-cover h2:lang(el) {
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+.wp-block-cover h2:lang(gu) {
+  font-family: Arial, sans-serif;
+}
+.wp-block-cover h2:lang(he-IL) {
+  font-family: "Arial Hebrew", Arial, sans-serif;
+}
+.wp-block-cover h2:lang(ja) {
+  font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", Meiryo, "Helvetica Neue", sans-serif;
+}
+.wp-block-cover h2:lang(ko-KR) {
+  font-family: "Apple SD Gothic Neo", "Malgun Gothic", "Nanum Gothic", Dotum, sans-serif;
+}
+.wp-block-cover h2:lang(th) {
+  font-family: "Sukhumvit Set", "Helvetica Neue", helvetica, arial, sans-serif;
+}
+.wp-block-cover h2:lang(vi) {
+  font-family: "Libre Franklin", sans-serif;
+}
 @media only screen and (min-width: 768px) {
   .wp-block-cover {
     padding-left: 10%;
@@ -1029,6 +1122,131 @@ figcaption,
 .wp-block[data-type="core/pullquote"][data-align=left] em,
 .wp-block[data-type="core/pullquote"][data-align=right] em {
   font-style: normal;
+}
+
+.wp-block[data-type="core/pullquote"][data-align=left] .wp-block-pullquote__citation:lang(ar),
+.wp-block[data-type="core/pullquote"][data-align=right] .wp-block-pullquote__citation:lang(ar) {
+  font-family: Tahoma, Arial, sans-serif;
+}
+.wp-block[data-type="core/pullquote"][data-align=left] .wp-block-pullquote__citation:lang(ary),
+.wp-block[data-type="core/pullquote"][data-align=right] .wp-block-pullquote__citation:lang(ary) {
+  font-family: Tahoma, Arial, sans-serif;
+}
+.wp-block[data-type="core/pullquote"][data-align=left] .wp-block-pullquote__citation:lang(azb),
+.wp-block[data-type="core/pullquote"][data-align=right] .wp-block-pullquote__citation:lang(azb) {
+  font-family: Tahoma, Arial, sans-serif;
+}
+.wp-block[data-type="core/pullquote"][data-align=left] .wp-block-pullquote__citation:lang(ckb),
+.wp-block[data-type="core/pullquote"][data-align=right] .wp-block-pullquote__citation:lang(ckb) {
+  font-family: Tahoma, Arial, sans-serif;
+}
+.wp-block[data-type="core/pullquote"][data-align=left] .wp-block-pullquote__citation:lang(fa-IR),
+.wp-block[data-type="core/pullquote"][data-align=right] .wp-block-pullquote__citation:lang(fa-IR) {
+  font-family: Tahoma, Arial, sans-serif;
+}
+.wp-block[data-type="core/pullquote"][data-align=left] .wp-block-pullquote__citation:lang(haz),
+.wp-block[data-type="core/pullquote"][data-align=right] .wp-block-pullquote__citation:lang(haz) {
+  font-family: Tahoma, Arial, sans-serif;
+}
+.wp-block[data-type="core/pullquote"][data-align=left] .wp-block-pullquote__citation:lang(ps),
+.wp-block[data-type="core/pullquote"][data-align=right] .wp-block-pullquote__citation:lang(ps) {
+  font-family: Tahoma, Arial, sans-serif;
+}
+.wp-block[data-type="core/pullquote"][data-align=left] .wp-block-pullquote__citation:lang(be),
+.wp-block[data-type="core/pullquote"][data-align=right] .wp-block-pullquote__citation:lang(be) {
+  font-family: "Helvetica Neue", Helvetica, "Segoe UI", Arial, sans-serif;
+}
+.wp-block[data-type="core/pullquote"][data-align=left] .wp-block-pullquote__citation:lang(bg-BG),
+.wp-block[data-type="core/pullquote"][data-align=right] .wp-block-pullquote__citation:lang(bg-BG) {
+  font-family: "Helvetica Neue", Helvetica, "Segoe UI", Arial, sans-serif;
+}
+.wp-block[data-type="core/pullquote"][data-align=left] .wp-block-pullquote__citation:lang(kk),
+.wp-block[data-type="core/pullquote"][data-align=right] .wp-block-pullquote__citation:lang(kk) {
+  font-family: "Helvetica Neue", Helvetica, "Segoe UI", Arial, sans-serif;
+}
+.wp-block[data-type="core/pullquote"][data-align=left] .wp-block-pullquote__citation:lang(mk-MK),
+.wp-block[data-type="core/pullquote"][data-align=right] .wp-block-pullquote__citation:lang(mk-MK) {
+  font-family: "Helvetica Neue", Helvetica, "Segoe UI", Arial, sans-serif;
+}
+.wp-block[data-type="core/pullquote"][data-align=left] .wp-block-pullquote__citation:lang(mn),
+.wp-block[data-type="core/pullquote"][data-align=right] .wp-block-pullquote__citation:lang(mn) {
+  font-family: "Helvetica Neue", Helvetica, "Segoe UI", Arial, sans-serif;
+}
+.wp-block[data-type="core/pullquote"][data-align=left] .wp-block-pullquote__citation:lang(ru-RU),
+.wp-block[data-type="core/pullquote"][data-align=right] .wp-block-pullquote__citation:lang(ru-RU) {
+  font-family: "Helvetica Neue", Helvetica, "Segoe UI", Arial, sans-serif;
+}
+.wp-block[data-type="core/pullquote"][data-align=left] .wp-block-pullquote__citation:lang(sah),
+.wp-block[data-type="core/pullquote"][data-align=right] .wp-block-pullquote__citation:lang(sah) {
+  font-family: "Helvetica Neue", Helvetica, "Segoe UI", Arial, sans-serif;
+}
+.wp-block[data-type="core/pullquote"][data-align=left] .wp-block-pullquote__citation:lang(sr-RS),
+.wp-block[data-type="core/pullquote"][data-align=right] .wp-block-pullquote__citation:lang(sr-RS) {
+  font-family: "Helvetica Neue", Helvetica, "Segoe UI", Arial, sans-serif;
+}
+.wp-block[data-type="core/pullquote"][data-align=left] .wp-block-pullquote__citation:lang(tt-RU),
+.wp-block[data-type="core/pullquote"][data-align=right] .wp-block-pullquote__citation:lang(tt-RU) {
+  font-family: "Helvetica Neue", Helvetica, "Segoe UI", Arial, sans-serif;
+}
+.wp-block[data-type="core/pullquote"][data-align=left] .wp-block-pullquote__citation:lang(uk),
+.wp-block[data-type="core/pullquote"][data-align=right] .wp-block-pullquote__citation:lang(uk) {
+  font-family: "Helvetica Neue", Helvetica, "Segoe UI", Arial, sans-serif;
+}
+.wp-block[data-type="core/pullquote"][data-align=left] .wp-block-pullquote__citation:lang(zh-HK),
+.wp-block[data-type="core/pullquote"][data-align=right] .wp-block-pullquote__citation:lang(zh-HK) {
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang HK", "Helvetica Neue", "Microsoft YaHei New", STHeiti Light, sans-serif;
+}
+.wp-block[data-type="core/pullquote"][data-align=left] .wp-block-pullquote__citation:lang(zh-TW),
+.wp-block[data-type="core/pullquote"][data-align=right] .wp-block-pullquote__citation:lang(zh-TW) {
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang TC", "Helvetica Neue", "Microsoft YaHei New", STHeiti Light, sans-serif;
+}
+.wp-block[data-type="core/pullquote"][data-align=left] .wp-block-pullquote__citation:lang(zh-CN),
+.wp-block[data-type="core/pullquote"][data-align=right] .wp-block-pullquote__citation:lang(zh-CN) {
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", "Microsoft YaHei New", STHeiti Light, sans-serif;
+}
+.wp-block[data-type="core/pullquote"][data-align=left] .wp-block-pullquote__citation:lang(bn-BD),
+.wp-block[data-type="core/pullquote"][data-align=right] .wp-block-pullquote__citation:lang(bn-BD) {
+  font-family: Arial, sans-serif;
+}
+.wp-block[data-type="core/pullquote"][data-align=left] .wp-block-pullquote__citation:lang(hi-IN),
+.wp-block[data-type="core/pullquote"][data-align=right] .wp-block-pullquote__citation:lang(hi-IN) {
+  font-family: Arial, sans-serif;
+}
+.wp-block[data-type="core/pullquote"][data-align=left] .wp-block-pullquote__citation:lang(mr),
+.wp-block[data-type="core/pullquote"][data-align=right] .wp-block-pullquote__citation:lang(mr) {
+  font-family: Arial, sans-serif;
+}
+.wp-block[data-type="core/pullquote"][data-align=left] .wp-block-pullquote__citation:lang(ne-NP),
+.wp-block[data-type="core/pullquote"][data-align=right] .wp-block-pullquote__citation:lang(ne-NP) {
+  font-family: Arial, sans-serif;
+}
+.wp-block[data-type="core/pullquote"][data-align=left] .wp-block-pullquote__citation:lang(el),
+.wp-block[data-type="core/pullquote"][data-align=right] .wp-block-pullquote__citation:lang(el) {
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+.wp-block[data-type="core/pullquote"][data-align=left] .wp-block-pullquote__citation:lang(gu),
+.wp-block[data-type="core/pullquote"][data-align=right] .wp-block-pullquote__citation:lang(gu) {
+  font-family: Arial, sans-serif;
+}
+.wp-block[data-type="core/pullquote"][data-align=left] .wp-block-pullquote__citation:lang(he-IL),
+.wp-block[data-type="core/pullquote"][data-align=right] .wp-block-pullquote__citation:lang(he-IL) {
+  font-family: "Arial Hebrew", Arial, sans-serif;
+}
+.wp-block[data-type="core/pullquote"][data-align=left] .wp-block-pullquote__citation:lang(ja),
+.wp-block[data-type="core/pullquote"][data-align=right] .wp-block-pullquote__citation:lang(ja) {
+  font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", Meiryo, "Helvetica Neue", sans-serif;
+}
+.wp-block[data-type="core/pullquote"][data-align=left] .wp-block-pullquote__citation:lang(ko-KR),
+.wp-block[data-type="core/pullquote"][data-align=right] .wp-block-pullquote__citation:lang(ko-KR) {
+  font-family: "Apple SD Gothic Neo", "Malgun Gothic", "Nanum Gothic", Dotum, sans-serif;
+}
+.wp-block[data-type="core/pullquote"][data-align=left] .wp-block-pullquote__citation:lang(th),
+.wp-block[data-type="core/pullquote"][data-align=right] .wp-block-pullquote__citation:lang(th) {
+  font-family: "Sukhumvit Set", "Helvetica Neue", helvetica, arial, sans-serif;
+}
+.wp-block[data-type="core/pullquote"][data-align=left] .wp-block-pullquote__citation:lang(vi),
+.wp-block[data-type="core/pullquote"][data-align=right] .wp-block-pullquote__citation:lang(vi) {
+  font-family: "Libre Franklin", sans-serif;
 }
 
 .wp-block[data-align=left] > .wp-block-pullquote,
