@@ -58,6 +58,8 @@ class Tests_Functions_WpSetCookie extends WP_UnitTestCase {
 	/**
 	 * Tests that the `wp_set_cookie_options` filter can modify the options that
 	 * are ultimately passed to setcookie().
+	 *
+	 * @ticket 37000
 	 */
 	public function test_wp_set_cookie_options_filter_can_modify_options() {
 		add_filter( 'wp_set_cookie_options', array( $this, 'filter_force_strict_samesite' ) );
