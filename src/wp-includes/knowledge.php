@@ -65,19 +65,23 @@ function wp_knowledge_types(): array {
 }
 
 /**
- * Assigns the `note` fallback term when a knowledge post is saved without a type.
+ * Ensures every knowledge row carries at least one type term.
  *
- * Hooked to the `save_post_wp_knowledge` action so that every knowledge row has
- * at least one `wp_knowledge_type` term. Uses get_the_terms() so the check is
- * served by the object term cache.
+ * Knowledge rows are classified by their `wp_knowledge_type` terms, so a row
+ * saved without one would belong to no type at all. This assigns the `note`
+ * fallback in that case, keeping every row classified.
+ *
+ * Hooked to `wp_after_insert_post` so it runs after the row's terms are saved,
+ * when the final set of terms is known.
  *
  * @since 7.1.0
  * @access private
  *
- * @param int $post_id Saved post ID.
+ * @param int     $post_id Saved post ID.
+ * @param WP_Post $post    Saved post object.
  */
-function wp_knowledge_ensure_default_type_term( int $post_id ): void {
-	if ( wp_is_post_revision( $post_id ) ) {
+function wp_knowledge_ensure_default_type_term( int $post_id, WP_Post $post ): void {
+	if ( 'wp_knowledge' !== $post->post_type ) {
 		return;
 	}
 

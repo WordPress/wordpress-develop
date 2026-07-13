@@ -198,6 +198,57 @@ class Tests_REST_WpRestKnowledgeController extends WP_Test_REST_Controller_Testc
 	}
 
 	/**
+	 * An empty `wp_knowledge_type` array on create must not leave the row without a type.
+	 *
+	 * The controller assigns terms in handle_terms() after the post row is
+	 * inserted, so an empty array clears any terms. The `note` fallback is
+	 * re-applied on `wp_after_insert_post`, which runs after that write.
+	 *
+	 * @ticket 65476
+	 */
+	public function test_create_item_with_empty_type_falls_back_to_note(): void {
+		wp_set_current_user( self::$admin_id );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/knowledge' );
+		$request->set_body_params(
+			array(
+				'title'             => 'Created without a type',
+				'wp_knowledge_type' => array(),
+			)
+		);
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 201, $response->get_status() );
+
+		$data = $response->get_data();
+		$this->assertIsArray( $data );
+		$this->assertArrayHasKey( 'id', $data );
+
+		$terms = wp_get_object_terms( (int) $data['id'], 'wp_knowledge_type', array( 'fields' => 'slugs' ) );
+		$this->assertSame( array( 'note' ), $terms );
+	}
+
+	/**
+	 * An empty `wp_knowledge_type` array on update must restore the `note` fallback.
+	 *
+	 * @ticket 65476
+	 */
+	public function test_update_item_with_empty_type_restores_note(): void {
+		wp_set_current_user( self::$admin_id );
+
+		$post_id = $this->create_knowledge_post( self::$admin_id );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/knowledge/' . $post_id );
+		$request->set_body_params( array( 'wp_knowledge_type' => array() ) );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+
+		$terms = wp_get_object_terms( $post_id, 'wp_knowledge_type', array( 'fields' => 'slugs' ) );
+		$this->assertSame( array( 'note' ), $terms );
+	}
+
+	/**
 	 * @ticket 65476
 	 */
 	public function test_contributor_create_defaults_to_private(): void {
