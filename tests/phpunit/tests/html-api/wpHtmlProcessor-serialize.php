@@ -270,22 +270,6 @@ class Tests_HtmlApi_WpHtmlProcessor_Serialize extends WP_UnitTestCase {
 		);
 	}
 
-	/**
-	 * XMP contents are parsed using the generic raw text element parsing algorithm.
-	 * Their contents should not be escaped with HTML character references on normalization.
-	 *
-	 * @ticket 65372
-	 */
-	public function test_xmp_contents_are_not_escaped() {
-		$normalized = WP_HTML_Processor::normalize( "<xmp> < > & \" ' \x00 </xmp>" );
-
-		$this->assertSame(
-			"<xmp> < > & \" ' \u{FFFD} </xmp>",
-			$normalized,
-			'Should have preserved text inside an XMP element, except for replacing NULL bytes.'
-		);
-	}
-
 	public function test_unexpected_closing_tags_are_removed() {
 		$this->assertSame(
 			WP_HTML_Processor::normalize( 'one</div>two</span>three' ),
@@ -481,9 +465,9 @@ class Tests_HtmlApi_WpHtmlProcessor_Serialize extends WP_UnitTestCase {
 	/**
 	 * Data provider.
 	 *
-	 * @return array[]
+	 * @return array<string, array{string, string}>
 	 */
-	public static function data_tokens_with_null_bytes() {
+	public static function data_tokens_with_null_bytes(): array {
 		return array(
 			'Tag name'             => array( "<img\x00id=5>", "<img\u{FFFD}id=5></img\u{FFFD}id=5>" ),
 			'Attribute name'       => array( "<img/\x00id=5>", "<img \u{FFFD}id=\"5\">" ),
@@ -492,8 +476,42 @@ class Tests_HtmlApi_WpHtmlProcessor_Serialize extends WP_UnitTestCase {
 			'Foreign content text' => array( "<svg>one\x00two</svg>", "<svg>one\u{FFFD}two</svg>" ),
 			'SCRIPT content'       => array( "<script>alert(\x00)</script>", "<script>alert(\u{FFFD})</script>" ),
 			'STYLE content'        => array( "<style>\x00 {}</style>", "<style>\u{FFFD} {}</style>" ),
+			'IFRAME content'       => array( "<iframe>a\x00b</iframe>", "<iframe>a\u{FFFD}b</iframe>" ),
+			'NOEMBED content'      => array( "<noembed>a\x00b</noembed>", "<noembed>a\u{FFFD}b</noembed>" ),
+			'NOFRAMES content'     => array( "<noframes>a\x00b</noframes>", "<noframes>a\u{FFFD}b</noframes>" ),
 			'XMP content'          => array( "<xmp>a\x00b</xmp>", "<xmp>a\u{FFFD}b</xmp>" ),
 			'Comment text'         => array( "<!-- \x00 -->", "<!-- \u{FFFD} -->" ),
+		);
+	}
+
+	/**
+	 * Ensures that contents of rawtext elements are preserved when serializing.
+	 *
+	 * @ticket 65372
+	 *
+	 * @dataProvider data_rawtext_elements_with_html_syntax_character_contents
+	 *
+	 * @param string $html Normalized HTML containing a rawtext element with contents.
+	 */
+	public function test_rawtext_element_contents_are_preserved_when_normalizing( string $html ): void {
+		$this->assertSame(
+			$html,
+			WP_HTML_Processor::normalize( $html ),
+			'Should have preserved the rawtext element contents.'
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{string}>
+	 */
+	public static function data_rawtext_elements_with_html_syntax_character_contents(): array {
+		return array(
+			'IFRAME'   => array( 'before<iframe> < > &amp; " \' </iframe>after' ),
+			'NOEMBED'  => array( 'before<noembed> < > &amp; " \' </noembed>after' ),
+			'NOFRAMES' => array( 'before<noframes> < > &amp; " \' </noframes>after' ),
+			'XMP'      => array( 'before<xmp> < > &amp; " \' </xmp>after' ),
 		);
 	}
 
