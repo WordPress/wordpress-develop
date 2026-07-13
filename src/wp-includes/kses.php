@@ -1049,6 +1049,8 @@ function wp_kses_one_attr( $attr, $element ) {
  *
  * @since 3.5.0
  * @since 5.0.1 `form` removed as allowable HTML tag.
+ * @since 7.1.0 Added the 'pre_comment_content' context, which allows the note
+ *              mention attributes `class` and `data-user-id` on `a` elements.
  *
  * @global array $allowedposttags
  * @global array $allowedtags
@@ -1113,6 +1115,22 @@ function wp_kses_allowed_html( $context = '' ) {
 			$tags                = $allowedtags;
 			$tags['a']['rel']    = true;
 			$tags['a']['target'] = true;
+			/** This filter is documented in wp-includes/kses.php */
+			return apply_filters( 'wp_kses_allowed_html', $tags, $context );
+
+		case 'pre_comment_content':
+			/*
+			 * The notes `@` mention completer stores a mention as
+			 * `<a class="wp-note-mention" data-user-id="N" href="…">@Name</a>`.
+			 * Allow the attributes that make a mention a mention (the chip class
+			 * and the mentioned user's ID) so that saved mentions survive
+			 * sanitization for users without `unfiltered_html`; both attributes
+			 * are inert markup (`data-*` carries data only and `class` has no
+			 * behavior of its own).
+			 */
+			$tags                      = $allowedtags;
+			$tags['a']['class']        = true;
+			$tags['a']['data-user-id'] = true;
 			/** This filter is documented in wp-includes/kses.php */
 			return apply_filters( 'wp_kses_allowed_html', $tags, $context );
 

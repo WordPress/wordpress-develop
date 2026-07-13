@@ -536,6 +536,34 @@ EOF;
 		$this->assertSame( $allowedtags, wp_kses_allowed_html( 'data' ) );
 	}
 
+	/**
+	 * Tests that the 'pre_comment_content' context allows the note mention attributes on links.
+	 *
+	 * @covers ::wp_kses_allowed_html
+	 */
+	public function test_wp_kses_allowed_html_pre_comment_content_allows_mention_attributes() {
+		$tags = wp_kses_allowed_html( 'pre_comment_content' );
+
+		$this->assertTrue( $tags['a']['class'], "The 'class' attribute should be allowed on links in comment content." );
+		$this->assertTrue( $tags['a']['data-user-id'], "The 'data-user-id' attribute should be allowed on links in comment content." );
+
+		// The default context should remain unchanged.
+		$tags = wp_kses_allowed_html( 'data' );
+		$this->assertArrayNotHasKey( 'class', $tags['a'], "The 'class' attribute should not be allowed on links in the default context." );
+		$this->assertArrayNotHasKey( 'data-user-id', $tags['a'], "The 'data-user-id' attribute should not be allowed on links in the default context." );
+	}
+
+	/**
+	 * Tests that a note mention link survives comment content sanitization.
+	 *
+	 * @covers ::wp_kses
+	 */
+	public function test_note_mention_markup_survives_comment_content_sanitization() {
+		$content = 'Hello <a class="wp-note-mention" data-user-id="2" href="http://example.org/?author=2">@admin</a>!';
+
+		$this->assertSame( $content, wp_kses( $content, 'pre_comment_content' ) );
+	}
+
 	public function test_hyphenated_tag() {
 		$content     = '<hyphenated-tag attribute="value" otherattribute="value2">Alot of hyphens.</hyphenated-tag>';
 		$custom_tags = array(
