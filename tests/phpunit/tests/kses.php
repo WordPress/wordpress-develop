@@ -1205,15 +1205,30 @@ EOF;
 				'css'      => 'height: expression( body.scrollTop + 50 + "px" )',
 				'expected' => '',
 			),
-			// RGB color values are not allowed.
+			// RGBA background colors are allowed.
 			array(
-				'css'      => 'color: rgb( 100, 100, 100 )',
-				'expected' => '',
+				'css'      => 'background-color: rgba(0,0,0,0)',
+				'expected' => 'background-color: rgba(0,0,0,0)',
 			),
-			// RGBA color values are not allowed.
 			array(
-				'css'      => 'color: rgb( 100, 100, 100, .4 )',
-				'expected' => '',
+				'css'      => 'background-color: rgba(0, 0, 0, 0)',
+				'expected' => 'background-color: rgba(0, 0, 0, 0)',
+			),
+			array(
+				'css'      => 'background-color: rgba(100, 100, 100, 0)',
+				'expected' => 'background-color: rgba(100, 100, 100, 0)',
+			),
+			array(
+				'css'      => 'background-color: rgba(10%, 10%, 10%, 0)',
+				'expected' => 'background-color: rgba(10%, 10%, 10%, 0)',
+			),
+			array(
+				'css'      => 'background-color: rgba(0, 0, 0, 0.1)',
+				'expected' => 'background-color: rgba(0, 0, 0, 0.1)',
+			),
+			array(
+				'css'      => 'background-color: rgba(0, 0, 0, .1)',
+				'expected' => 'background-color: rgba(0, 0, 0, .1)',
 			),
 			// Allow min().
 			array(
@@ -1335,6 +1350,117 @@ EOF;
 				'css'      => 'gap: 10px;column-gap: 5px;row-gap: 20px',
 				'expected' => 'gap: 10px;column-gap: 5px;row-gap: 20px',
 			),
+			// RGB color.
+			array(
+				'css'      => 'color: rgb(255, 0, 0)',
+				'expected' => 'color: rgb(255, 0, 0)',
+			),
+			array(
+				'css'      => 'color: rgb(255 0 0)',
+				'expected' => 'color: rgb(255 0 0)',
+			),
+			array(
+				'css'      => 'color: rgb(100%, 0%, 50%)',
+				'expected' => 'color: rgb(100%, 0%, 50%)',
+			),
+			array(
+				'css'      => 'color: rgb(255 50% 0)',
+				'expected' => 'color: rgb(255 50% 0)',
+			),
+			// RGBA color.
+			array(
+				'css'      => 'color: rgba(255, 128, 0, 0.5)',
+				'expected' => 'color: rgba(255, 128, 0, 0.5)',
+			),
+			array(
+				'css'      => 'color: rgb(255 128 0 / 50%)',
+				'expected' => 'color: rgb(255 128 0 / 50%)',
+			),
+			// RGB color with extra whitespace.
+			array(
+				'css'      => 'color: rgb( 255 , 128 , 0 )',
+				'expected' => 'color: rgb( 255 , 128 , 0 )',
+			),
+			// RGB background color.
+			array(
+				'css'      => 'background-color: rgb(200, 100, 50)',
+				'expected' => 'background-color: rgb(200, 100, 50)',
+			),
+			// RGBA border color.
+			array(
+				'css'      => 'border-color: rgba(100, 200, 250, 0.8)',
+				'expected' => 'border-color: rgba(100, 200, 250, 0.8)',
+			),
+			// RGB color in `border` shorthand.
+			array(
+				'css'      => 'border: 1px solid rgb(0, 0, 0)',
+				'expected' => 'border: 1px solid rgb(0, 0, 0)',
+			),
+			// RGBA color in `border` shorthand.
+			array(
+				'css'      => 'border: 1px solid rgba(0, 0, 0, 0.5)',
+				'expected' => 'border: 1px solid rgba(0, 0, 0, 0.5)',
+			),
+			// RGB color in `background` shorthand.
+			array(
+				'css'      => 'background: rgb(0, 0, 0) center',
+				'expected' => 'background: rgb(0, 0, 0) center',
+			),
+			// RGB color in `box-shadow` shorthand.
+			array(
+				'css'      => 'box-shadow: 0 0 5px rgb(0, 0, 0)',
+				'expected' => 'box-shadow: 0 0 5px rgb(0, 0, 0)',
+			),
+			// RGB color with `none` keyword in modern syntax.
+			array(
+				'css'      => 'color: rgb(none none none)',
+				'expected' => 'color: rgb(none none none)',
+			),
+			array(
+				'css'      => 'color: rgb(255 none 0)',
+				'expected' => 'color: rgb(255 none 0)',
+			),
+			array(
+				'css'      => 'color: rgb(255 0 0 / none)',
+				'expected' => 'color: rgb(255 0 0 / none)',
+			),
+			array(
+				'css'      => 'color: rgb(none 50% none / 0.5)',
+				'expected' => 'color: rgb(none 50% none / 0.5)',
+			),
+			// RGB color with `none` keyword is not allowed in legacy syntax.
+			array(
+				'css'      => 'color: rgb(none, none, none)',
+				'expected' => '',
+			),
+			array(
+				'css'      => 'color: rgba(255, 0, 0, none)',
+				'expected' => '',
+			),
+			// Malformed RGB color, invalid number of values.
+			array(
+				'css'      => 'color: rgb(255, 128, 0, 0.5, 100)',
+				'expected' => '',
+			),
+			array(
+				'css'      => 'color: rgb(255, 128)',
+				'expected' => '',
+			),
+			// Malformed RGB color, non-numeric values.
+			array(
+				'css'      => 'color: rgb(red, green, blue)',
+				'expected' => '',
+			),
+			// Malformed RGB color, unmatched parentheses.
+			array(
+				'css'      => 'color: rgb(255, 128, 0',
+				'expected' => '',
+			),
+			// Malformed RGB color, empty values.
+			array(
+				'css'      => 'color: rgb(, , )',
+				'expected' => '',
+			),
 			// Margin and padding logical properties introduced in 6.1.
 			array(
 				'css'      => 'margin-block-start: 1px;margin-block-end: 2px;margin-inline-start: 3px;margin-inline-end: 4px;',
@@ -1356,6 +1482,22 @@ EOF;
 			array(
 				'css'      => '--with-gradient: repeating-linear-gradient(135deg,rgba(6,147,227,1) 0%,rgb(155,81,224) 100%);',
 				'expected' => '--with-gradient: repeating-linear-gradient(135deg,rgba(6,147,227,1) 0%,rgb(155,81,224) 100%)',
+			),
+			array(
+				'css'      => '--with-rgb: rgb(255, 0, 0);',
+				'expected' => '--with-rgb: rgb(255, 0, 0)',
+			),
+			array(
+				'css'      => '--with-rgba: rgba(255, 0, 0, 0.5);',
+				'expected' => '--with-rgba: rgba(255, 0, 0, 0.5)',
+			),
+			array(
+				'css'      => '--with-rgb-modern: rgb(255 0 0 / 50%);',
+				'expected' => '--with-rgb-modern: rgb(255 0 0 / 50%)',
+			),
+			array(
+				'css'      => '--with-invalid-rgb: rgb(foo, bar, baz);',
+				'expected' => '',
 			),
 			array(
 				'css'      => '--?><.%-not-allowed: red;',

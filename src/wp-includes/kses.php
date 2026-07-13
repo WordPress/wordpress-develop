@@ -2553,6 +2553,7 @@ function kses_init() {
  * @since 6.5.0 Added support for `background-repeat`.
  * @since 6.6.0 Added support for `grid-column`, `grid-row`, and `container-type`.
  * @since 6.9.0 Added support for `white-space`.
+ * @since 7.1.0 Added support for `rgb()`/`rgba()`.
  *
  * @param string $css        A string of CSS rules, decoded from an HTML `style` attribute.
  * @param string $deprecated Not used.
@@ -2824,6 +2825,31 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 	);
 
 	/*
+	 * CSS attributes that accept rgb(a) color data types.
+	 *
+	 * See https://developer.mozilla.org/en-US/docs/Web/CSS/color_value/rgb
+	 */
+	$css_color_data_types = array(
+		'background',
+		'background-color',
+
+		'box-shadow',
+
+		'border',
+		'border-color',
+		'border-right',
+		'border-right-color',
+		'border-bottom',
+		'border-bottom-color',
+		'border-left',
+		'border-left-color',
+		'border-top',
+		'border-top-color',
+
+		'color',
+	);
+
+	/*
 	 * CSS attributes that accept gradient data types.
 	 *
 	 */
@@ -2846,6 +2872,7 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 		$css_test_string = $css_item;
 		$found           = false;
 		$url_attr        = false;
+		$color_attr      = false;
 		$gradient_attr   = false;
 		$is_custom_var   = false;
 
@@ -2865,12 +2892,14 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 				$found         = true;
 				$url_attr      = in_array( $css_selector, $css_url_data_types, true );
 				$gradient_attr = in_array( $css_selector, $css_gradient_data_types, true );
+				$color_attr    = in_array( $css_selector, $css_color_data_types, true );
 			}
 
 			if ( $is_custom_var ) {
 				$css_value     = trim( $parts[1] );
 				$url_attr      = str_starts_with( $css_value, 'url(' );
 				$gradient_attr = str_contains( $css_value, '-gradient(' );
+				$color_attr    = (bool) preg_match( '/\brgba?\(/i', $css_value );
 			}
 		}
 
@@ -2904,6 +2933,23 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 			if ( preg_match( '/^(repeating-)?(linear|radial|conic)-gradient\(([^()]|rgb[a]?\([^()]*\))*\)$/', $css_value ) ) {
 				// Remove the whole `gradient` bit that was matched above from the CSS.
 				$css_test_string = str_replace( $css_value, '', $css_test_string );
+			}
+		}
+
+		if ( $found && $color_attr ) {
+			// Simplified: matches the sequence `rgb(*)` or `rgba(*)`.
+			$number_term         = '(?:[+-]?\d*\.?\d+)%?';
+			$comma_syntax        = '/rgba?\(\s*' . implode( '\s*,\s*', array_fill( 0, 3, $number_term ) ) . '\s*(?:,\s*' . $number_term . '\s*)?\)/i';
+			// The `none` keyword is only allowed in modern (space-separated) syntax.
+			$number_or_none_term = '(?:(?:[+-]?\d*\.?\d+)%?|none)';
+			$space_syntax        = '/rgba?\(\s*' . implode( '\s+', array_fill( 0, 3, $number_or_none_term ) ) . '\s*(?:\/\s*' . $number_or_none_term . '\s*)?\)/i';
+
+			preg_match_all( $comma_syntax, $parts[1], $color_matches_comma );
+			preg_match_all( $space_syntax, $parts[1], $color_matches_space );
+
+			foreach ( array_merge( $color_matches_comma[0], $color_matches_space[0] ) as $color_match ) {
+				// Remove the whole `rgb(*)` or `rgba(*)` bit that was matched above from the CSS.
+				$css_test_string = str_replace( $color_match, '', $css_test_string );
 			}
 		}
 
