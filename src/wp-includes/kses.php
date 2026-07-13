@@ -1135,14 +1135,15 @@ function wp_kses_allowed_html( $context = '' ) {
  * Allows the note mention markup in comment content.
  *
  * The notes `@` mention completer stores a mention as
- * `<span class="wp-note-mention" data-user-id="N">@Name</span>`. The default
- * comment allowlist does not include `span` at all, so for users without
- * `unfiltered_html` the mention markup would be stripped on save.
+ * `<span class="wp-note-mention user-N">@Name</span>`, the `user-N` class
+ * carrying the mentioned user's ID. The default comment allowlist does not
+ * include `span` at all, so for users without `unfiltered_html` the mention
+ * markup would be stripped on save.
  *
- * This callback is deliberately not attached globally: `class` and `data-*`
- * attributes are CSS and JavaScript selector hooks, so allowing them in every
- * comment would extend what anonymous commenters can publish (for example,
- * text disguised by theme classes). Instead, wp_filter_comment() attaches it
+ * This callback is deliberately not attached globally: `class` attributes are
+ * CSS and JavaScript selector hooks, so allowing them in every comment would
+ * extend what anonymous commenters can publish (for example, text disguised
+ * by theme classes). Instead, wp_filter_comment() attaches it
  * around the 'pre_comment_content' filter only while a `note` comment is
  * being filtered. Notes can only be written by logged-in users who can edit
  * the post, and are never rendered on the front end, so the sanitization of
@@ -1164,8 +1165,7 @@ function _wp_kses_allow_note_mention_attributes( $allowed, $context ) {
 		$allowed['span'] = array();
 	}
 
-	$allowed['span']['class']        = true;
-	$allowed['span']['data-user-id'] = true;
+	$allowed['span']['class'] = true;
 
 	return $allowed;
 }

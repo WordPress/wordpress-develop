@@ -564,12 +564,35 @@ EOF;
 	public function test_note_mention_markup_survives_note_content_sanitization() {
 		add_filter( 'pre_comment_content', 'wp_filter_kses' );
 
-		$content  = 'Hello <span class="wp-note-mention" data-user-id="2">@admin</span>!';
+		$content  = 'Hello <span class="wp-note-mention user-2">@admin</span>!';
 		$filtered = wp_filter_comment( wp_slash( $this->get_mention_commentdata( 'note', $content ) ) );
 
 		remove_filter( 'pre_comment_content', 'wp_filter_kses' );
 
 		$this->assertSame( $content, wp_unslash( $filtered['comment_content'] ) );
+	}
+
+	/**
+	 * Tests that only the `class` attribute is allowed on note spans.
+	 *
+	 * @ticket 65622
+	 *
+	 * @covers ::wp_filter_comment
+	 * @covers ::_wp_kses_allow_note_mention_attributes
+	 */
+	public function test_note_mention_allows_only_class_on_note_spans() {
+		add_filter( 'pre_comment_content', 'wp_filter_kses' );
+
+		$content  = 'Hello <span class="wp-note-mention user-2" data-user-id="2" onclick="alert(1)" style="color:red">@admin</span>!';
+		$filtered = wp_filter_comment( wp_slash( $this->get_mention_commentdata( 'note', $content ) ) );
+
+		remove_filter( 'pre_comment_content', 'wp_filter_kses' );
+
+		$this->assertSame(
+			'Hello <span class="wp-note-mention user-2">@admin</span>!',
+			wp_unslash( $filtered['comment_content'] ),
+			'Attributes beyond `class` should be stripped from note spans.'
+		);
 	}
 
 	/**
@@ -582,7 +605,7 @@ EOF;
 	public function test_note_mention_markup_stripped_from_regular_comment_content() {
 		add_filter( 'pre_comment_content', 'wp_filter_kses' );
 
-		$content  = 'Hello <span class="wp-note-mention" data-user-id="2">@admin</span>!';
+		$content  = 'Hello <span class="wp-note-mention user-2">@admin</span>!';
 		$filtered = wp_filter_comment( wp_slash( $this->get_mention_commentdata( 'comment', $content ) ) );
 
 		remove_filter( 'pre_comment_content', 'wp_filter_kses' );
@@ -602,7 +625,7 @@ EOF;
 
 		add_filter( 'pre_comment_content', 'wp_filter_kses' );
 
-		$content = 'Hello <span class="wp-note-mention" data-user-id="2">@admin</span>!';
+		$content = 'Hello <span class="wp-note-mention user-2">@admin</span>!';
 		wp_filter_comment( wp_slash( $this->get_mention_commentdata( 'note', $content ) ) );
 
 		// A regular comment filtered after a note still gets the default rules.
