@@ -819,7 +819,23 @@ function wp_uninitialize_site( $site_id ) {
 
 	$uploads = wp_get_upload_dir();
 
-	$tables = $wpdb->tables( 'blog' );
+	$tables      = $wpdb->tables( 'blog' );
+	$site_prefix = $wpdb->get_blog_prefix( $site->id );
+
+	// A base-prefix wildcard would match global tables and tables for every site.
+	if ( $site_prefix !== $wpdb->base_prefix ) {
+		$tables = array_unique(
+			array_merge(
+				$tables,
+				$wpdb->get_col(
+					$wpdb->prepare(
+						'SHOW TABLES LIKE %s',
+						$wpdb->esc_like( $site_prefix ) . '%'
+					)
+				)
+			)
+		);
+	}
 
 	/**
 	 * Filters the tables to drop when the site is deleted.
@@ -832,7 +848,7 @@ function wp_uninitialize_site( $site_id ) {
 	$drop_tables = apply_filters( 'wpmu_drop_tables', $tables, $site->id );
 
 	foreach ( (array) $drop_tables as $table ) {
-		$wpdb->query( "DROP TABLE IF EXISTS `$table`" ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$wpdb->query( $wpdb->prepare( 'DROP TABLE IF EXISTS %i', $table ) );
 	}
 
 	/**
@@ -843,17 +859,21 @@ function wp_uninitialize_site( $site_id ) {
 	 * @param string $basedir Uploads path without subdirectory. See {@see wp_upload_dir()}.
 	 * @param int    $site_id The site ID.
 	 */
-	$dir     = apply_filters( 'wpmu_delete_blog_upload_dir', $uploads['basedir'], $site->id );
-	$dir     = rtrim( $dir, DIRECTORY_SEPARATOR );
-	$top_dir = $dir;
-	$stack   = array( $dir );
-	$index   = 0;
+	$dir   = apply_filters( 'wpmu_delete_blog_upload_dir', $uploads['basedir'], $site->id );
+	$dir   = rtrim( $dir, DIRECTORY_SEPARATOR );
+	$stack = array( $dir );
+	$index = 0;
+
+	// phpcs:disable WordPress.PHP.NoSilencedErrors.Discouraged
+	if ( @is_link( $dir ) ) {
+		@unlink( $dir );
+		$stack = array();
+	}
 
 	while ( $index < count( $stack ) ) {
 		// Get indexed directory from stack.
 		$dir = $stack[ $index ];
 
-		// phpcs:disable WordPress.PHP.NoSilencedErrors.Discouraged
 		$dh = @opendir( $dir );
 		if ( $dh ) {
 			$file = @readdir( $dh );
@@ -863,10 +883,13 @@ function wp_uninitialize_site( $site_id ) {
 					continue;
 				}
 
-				if ( @is_dir( $dir . DIRECTORY_SEPARATOR . $file ) ) {
-					$stack[] = $dir . DIRECTORY_SEPARATOR . $file;
-				} elseif ( @is_file( $dir . DIRECTORY_SEPARATOR . $file ) ) {
-					@unlink( $dir . DIRECTORY_SEPARATOR . $file );
+				$path = $dir . DIRECTORY_SEPARATOR . $file;
+				if ( @is_link( $path ) ) {
+					@unlink( $path );
+				} elseif ( @is_dir( $path ) ) {
+					$stack[] = $path;
+				} elseif ( @is_file( $path ) ) {
+					@unlink( $path );
 				}
 
 				$file = @readdir( $dh );
@@ -878,9 +901,7 @@ function wp_uninitialize_site( $site_id ) {
 
 	$stack = array_reverse( $stack ); // Last added directories are deepest.
 	foreach ( (array) $stack as $dir ) {
-		if ( $dir !== $top_dir ) {
-			@rmdir( $dir );
-		}
+		@rmdir( $dir );
 	}
 
 	// phpcs:enable WordPress.PHP.NoSilencedErrors.Discouraged
