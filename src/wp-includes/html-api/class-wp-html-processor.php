@@ -1511,9 +1511,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				case 'IFRAME':
 				case 'NOEMBED':
 				case 'NOFRAMES':
-					$text = '';
-					break;
-
 				case 'SCRIPT':
 				case 'STYLE':
 				case 'XMP':
@@ -2090,13 +2087,14 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 
 			/*
 			 * > A comment token
-			 * >
+			 * > A processing instruction token
 			 * > A start tag whose tag name is one of: "basefont", "bgsound",
 			 * > "link", "meta", "noframes", "style"
 			 */
 			case '#comment':
 			case '#funky-comment':
 			case '#presumptuous-tag':
+			case '#processing-instruction':
 			case '+BASEFONT':
 			case '+BGSOUND':
 			case '+LINK':
