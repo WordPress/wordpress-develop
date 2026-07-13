@@ -2220,10 +2220,10 @@ function wp_filter_comment( $commentdata ) {
 	/** This filter is documented in wp-includes/comment.php */
 	$commentdata['comment_author'] = apply_filters( 'pre_comment_author_name', $commentdata['comment_author'] );
 	/*
-	 * Notes may contain `@` mention markup whose attributes the default comment
-	 * kses allowlist would strip. The extended allowlist is attached only while
-	 * this note's content is filtered - never for other comment types - so that
-	 * the attributes are not writable from regular (including anonymous)
+	 * Notes may contain `@` mention markup that the default comment kses
+	 * allowlist would strip. The extended allowlist is attached only while
+	 * this note's content is filtered - never for other comment types - so
+	 * that the markup is not writable from regular (including anonymous)
 	 * comments. See _wp_kses_allow_note_mention_attributes().
 	 */
 	$is_note = isset( $commentdata['comment_type'] ) && 'note' === $commentdata['comment_type'];

@@ -1132,19 +1132,18 @@ function wp_kses_allowed_html( $context = '' ) {
 }
 
 /**
- * Allows the note mention attributes on links in comment content.
+ * Allows the note mention markup in comment content.
  *
  * The notes `@` mention completer stores a mention as
- * `<a class="wp-note-mention" data-user-id="N" href="…">@Name</a>`. The default
- * comment allowlist only keeps `href` and `title` on links, so for users
- * without `unfiltered_html` the attributes that make a mention a mention (the
- * chip class and the mentioned user's ID) would be stripped on save.
+ * `<span class="wp-note-mention" data-user-id="N">@Name</span>`. The default
+ * comment allowlist does not include `span` at all, so for users without
+ * `unfiltered_html` the mention markup would be stripped on save.
  *
  * This callback is deliberately not attached globally: `class` and `data-*`
  * attributes are CSS and JavaScript selector hooks, so allowing them in every
  * comment would extend what anonymous commenters can publish (for example,
- * disguising a link as a themed button). Instead, wp_filter_comment() attaches
- * it around the 'pre_comment_content' filter only while a `note` comment is
+ * text disguised by theme classes). Instead, wp_filter_comment() attaches it
+ * around the 'pre_comment_content' filter only while a `note` comment is
  * being filtered. Notes can only be written by logged-in users who can edit
  * the post, and are never rendered on the front end, so the sanitization of
  * regular comments is unchanged.
@@ -1161,12 +1160,12 @@ function _wp_kses_allow_note_mention_attributes( $allowed, $context ) {
 		return $allowed;
 	}
 
-	if ( ! isset( $allowed['a'] ) || ! is_array( $allowed['a'] ) ) {
-		$allowed['a'] = array();
+	if ( ! isset( $allowed['span'] ) || ! is_array( $allowed['span'] ) ) {
+		$allowed['span'] = array();
 	}
 
-	$allowed['a']['class']        = true;
-	$allowed['a']['data-user-id'] = true;
+	$allowed['span']['class']        = true;
+	$allowed['span']['data-user-id'] = true;
 
 	return $allowed;
 }

@@ -554,7 +554,7 @@ EOF;
 	}
 
 	/**
-	 * Tests that a note mention link survives content sanitization of a `note` comment.
+	 * Tests that a note mention survives content sanitization of a `note` comment.
 	 *
 	 * @ticket 65622
 	 *
@@ -564,20 +564,16 @@ EOF;
 	public function test_note_mention_markup_survives_note_content_sanitization() {
 		add_filter( 'pre_comment_content', 'wp_filter_kses' );
 
-		$content  = 'Hello <a class="wp-note-mention" data-user-id="2" href="http://example.org/?author=2">@admin</a>!';
+		$content  = 'Hello <span class="wp-note-mention" data-user-id="2">@admin</span>!';
 		$filtered = wp_filter_comment( wp_slash( $this->get_mention_commentdata( 'note', $content ) ) );
 
 		remove_filter( 'pre_comment_content', 'wp_filter_kses' );
 
-		// `rel="ugc"` is added to all comment links by wp_rel_ugc(), unrelated to kses.
-		$this->assertSame(
-			'Hello <a class="wp-note-mention" data-user-id="2" href="http://example.org/?author=2" rel="ugc">@admin</a>!',
-			wp_unslash( $filtered['comment_content'] )
-		);
+		$this->assertSame( $content, wp_unslash( $filtered['comment_content'] ) );
 	}
 
 	/**
-	 * Tests that the note mention attributes are stripped from regular comment content.
+	 * Tests that the note mention markup is stripped from regular comment content.
 	 *
 	 * @ticket 65622
 	 *
@@ -586,15 +582,12 @@ EOF;
 	public function test_note_mention_markup_stripped_from_regular_comment_content() {
 		add_filter( 'pre_comment_content', 'wp_filter_kses' );
 
-		$content  = 'Hello <a class="wp-note-mention" data-user-id="2" href="http://example.org/?author=2">@admin</a>!';
+		$content  = 'Hello <span class="wp-note-mention" data-user-id="2">@admin</span>!';
 		$filtered = wp_filter_comment( wp_slash( $this->get_mention_commentdata( 'comment', $content ) ) );
 
 		remove_filter( 'pre_comment_content', 'wp_filter_kses' );
 
-		$this->assertSame(
-			'Hello <a href="http://example.org/?author=2" rel="ugc">@admin</a>!',
-			wp_unslash( $filtered['comment_content'] )
-		);
+		$this->assertSame( 'Hello @admin!', wp_unslash( $filtered['comment_content'] ) );
 	}
 
 	/**
@@ -609,7 +602,7 @@ EOF;
 
 		add_filter( 'pre_comment_content', 'wp_filter_kses' );
 
-		$content = 'Hello <a class="wp-note-mention" data-user-id="2" href="http://example.org/?author=2">@admin</a>!';
+		$content = 'Hello <span class="wp-note-mention" data-user-id="2">@admin</span>!';
 		wp_filter_comment( wp_slash( $this->get_mention_commentdata( 'note', $content ) ) );
 
 		// A regular comment filtered after a note still gets the default rules.
@@ -618,9 +611,9 @@ EOF;
 		remove_filter( 'pre_comment_content', 'wp_filter_kses' );
 
 		$this->assertSame(
-			'Hello <a href="http://example.org/?author=2" rel="ugc">@admin</a>!',
+			'Hello @admin!',
 			wp_unslash( $filtered['comment_content'] ),
-			'The mention attributes should be stripped from a regular comment filtered after a note.'
+			'The mention markup should be stripped from a regular comment filtered after a note.'
 		);
 		$this->assertSame(
 			$allowedtags,
