@@ -978,7 +978,10 @@ function get_site_icon_url( $size = 512, $url = '', $blog_id = 0 ) {
 		} else {
 			$size_data = array( $size, $size );
 		}
-		$url = wp_get_attachment_image_url( $site_icon_id, $size_data );
+		$attachment_url = wp_get_attachment_image_url( $site_icon_id, $size_data );
+		if ( $attachment_url ) {
+			$url = $attachment_url;
+		}
 	}
 
 	if ( $switched_blog ) {
@@ -4543,13 +4546,16 @@ function get_language_attributes( $doctype = 'html' ) {
 		$attributes[] = 'dir="rtl"';
 	}
 
-	$lang = get_bloginfo( 'language' );
+	$lang      = get_bloginfo( 'language' );
+	$html_type = get_option( 'html_type' );
+
 	if ( $lang ) {
-		if ( 'text/html' === get_option( 'html_type' ) || 'html' === $doctype ) {
+		if ( 'text/html' === $html_type || 'html' === $doctype ) {
 			$attributes[] = 'lang="' . esc_attr( $lang ) . '"';
 		}
 
-		if ( 'text/html' !== get_option( 'html_type' ) || 'xhtml' === $doctype ) {
+		// The $html_type option may be false on a new install on the setup-config.php page.
+		if ( ( $html_type && 'text/html' !== $html_type ) || 'xhtml' === $doctype ) {
 			$attributes[] = 'xml:lang="' . esc_attr( $lang ) . '"';
 		}
 	}
