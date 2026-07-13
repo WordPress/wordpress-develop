@@ -14,9 +14,9 @@
  *
  * @property string $page_template
  *
- * @property-read int[]    $ancestors
- * @property-read int[]    $post_category
- * @property-read string[] $tags_input
+ * @property-read list<non-negative-int> $ancestors
+ * @property-read list<non-negative-int> $post_category
+ * @property-read list<non-empty-string> $tags_input
  *
  * @phpstan-type Data_Array array{
  *     ID: non-negative-int,
@@ -26,9 +26,9 @@
  *     post_content: string,
  *     post_title: string,
  *     post_excerpt: string,
- *     post_status: string,
- *     comment_status: string,
- *     ping_status: string,
+ *     post_status: non-empty-string,
+ *     comment_status: non-empty-string,
+ *     ping_status: non-empty-string,
  *     post_password: string,
  *     post_name: string,
  *     to_ping: string,
@@ -39,14 +39,14 @@
  *     post_parent: non-negative-int,
  *     guid: string,
  *     menu_order: int,
- *     post_type: string,
+ *     post_type: non-empty-string,
  *     post_mime_type: string,
  *     comment_count: numeric-string,
  *     filter: 'raw'|'edit'|'db'|'display'|'attribute'|'js'|'sample'|null,
- *     ancestors: int[],
+ *     ancestors: list<non-negative-int>,
  *     page_template: string,
- *     post_category: int[],
- *     tags_input: string[],
+ *     post_category: list<non-negative-int>,
+ *     tags_input: list<non-empty-string>,
  *     ...
  * }
  */
@@ -120,6 +120,7 @@ final class WP_Post {
 	 *
 	 * @since 3.5.0
 	 * @var string
+	 * @phpstan-var non-empty-string
 	 */
 	public $post_status = 'publish';
 
@@ -128,6 +129,7 @@ final class WP_Post {
 	 *
 	 * @since 3.5.0
 	 * @var string
+	 * @phpstan-var non-empty-string
 	 */
 	public $comment_status = 'open';
 
@@ -136,6 +138,7 @@ final class WP_Post {
 	 *
 	 * @since 3.5.0
 	 * @var string
+	 * @phpstan-var non-empty-string
 	 */
 	public $ping_status = 'open';
 
@@ -227,6 +230,7 @@ final class WP_Post {
 	 *
 	 * @since 3.5.0
 	 * @var string
+	 * @phpstan-var non-empty-string
 	 */
 	public $post_type = 'post';
 
