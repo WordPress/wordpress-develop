@@ -119,9 +119,6 @@ body.js .theme-browser.search-loading {
 .theme-browser .theme .theme-actions .button {
 	float: none;
 	margin-left: 3px;
-	min-height: 32px;
-	line-height: 2.30769231; /* 30px for 32px min-height */
-	padding: 0 12px;
 }
 
 .theme-browser .theme .theme-actions .button.updated-message::before,
@@ -1967,7 +1964,9 @@ body.full-overlay-active {
 
 .theme-install-overlay .wp-full-overlay-header .button {
 	float: right;
-	margin: 3px 10px 0 0; /* Vertically center 40px button in 45px header */
+	margin: 7px 10px 0 0; /* Vertically center 32px button in 45px header */
+	min-height: 32px;
+	line-height: 2.30769231; /* 30px for 32px height with 13px font */
 }
 
 .theme-install-overlay .wp-full-overlay-sidebar {
@@ -2053,8 +2052,6 @@ body.full-overlay-active {
 
 	.theme-install-overlay .wp-full-overlay-header .button {
 		font-size: 13px;
-		line-height: 2.15384615;
-		min-height: 30px;
 	}
 
 	.theme-browser .theme .theme-actions .button {
