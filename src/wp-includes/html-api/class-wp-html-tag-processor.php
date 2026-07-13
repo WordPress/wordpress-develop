@@ -4158,7 +4158,7 @@ class WP_HTML_Tag_Processor {
 
 		_doing_it_wrong(
 			__METHOD__,
-			__( 'Only the SCRIPT, STYLE, TEXTAREA, and TITLE tags support setting modifiable text.' ),
+			__( 'This tag does not support setting modifiable text.' ),
 			'7.1.0'
 		);
 		return false;
