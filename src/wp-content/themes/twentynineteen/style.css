@@ -5656,6 +5656,10 @@ body.page .main-navigation {
 }
 .entry .entry-content .wp-block-separator.is-style-dots,
 .entry .entry-content hr.is-style-dots {
+  background-color: inherit;
+  border: inherit;
+  height: inherit;
+  text-align: center;
   max-width: 100%;
 }
 @media only screen and (min-width: 768px) {
@@ -5669,13 +5673,6 @@ body.page .main-navigation {
   .entry .entry-content hr.is-style-dots {
     max-width: calc(50vw - 28px);
   }
-}
-.entry .entry-content .wp-block-separator.is-style-dots,
-.entry .entry-content hr.is-style-dots {
-  background-color: inherit;
-  border: inherit;
-  height: inherit;
-  text-align: center;
 }
 .entry .entry-content .wp-block-separator.is-style-dots:not(.has-text-color):not(.has-background),
 .entry .entry-content hr.is-style-dots:not(.has-text-color):not(.has-background) {
