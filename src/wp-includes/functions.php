@@ -3891,6 +3891,8 @@ function wp_die( $message = '', $title = '', $args = array() ) {
  * @param string|WP_Error $message Error message or WP_Error object.
  * @param string          $title   Optional. Error title. Default empty string.
  * @param string|array    $args    Optional. Arguments to control behavior. Default empty array.
+ *
+ * @phpstan-return ( $args is array{exit: false} ? void : never )
  */
 function _default_wp_die_handler( $message, $title = '', $args = array() ) {
 	list( $message, $title, $parsed_args ) = _wp_die_process_input( $message, $title, $args );
@@ -4093,6 +4095,8 @@ function _default_wp_die_handler( $message, $title = '', $args = array() ) {
  * @param string       $message Error message.
  * @param string       $title   Optional. Error title (unused). Default empty string.
  * @param string|array $args    Optional. Arguments to control behavior. Default empty array.
+ *
+ * @phpstan-return ( $args is array{exit: false} ? void : never )
  */
 function _ajax_wp_die_handler( $message, $title = '', $args = array() ) {
 	// Set default 'response' to 200 for Ajax requests.
@@ -4135,6 +4139,8 @@ function _ajax_wp_die_handler( $message, $title = '', $args = array() ) {
  * @param string       $message Error message.
  * @param string       $title   Optional. Error title. Default empty string.
  * @param string|array $args    Optional. Arguments to control behavior. Default empty array.
+ *
+ * @phpstan-return ( $args is array{exit: false} ? void : never )
  */
 function _json_wp_die_handler( $message, $title = '', $args = array() ) {
 	list( $message, $title, $parsed_args ) = _wp_die_process_input( $message, $title, $args );
@@ -4177,6 +4183,8 @@ function _json_wp_die_handler( $message, $title = '', $args = array() ) {
  * @param string       $message Error message.
  * @param string       $title   Optional. Error title. Default empty string.
  * @param string|array $args    Optional. Arguments to control behavior. Default empty array.
+ *
+ * @phpstan-return ( $args is array{exit: false} ? void : never )
  */
 function _jsonp_wp_die_handler( $message, $title = '', $args = array() ) {
 	list( $message, $title, $parsed_args ) = _wp_die_process_input( $message, $title, $args );
@@ -4225,6 +4233,8 @@ function _jsonp_wp_die_handler( $message, $title = '', $args = array() ) {
  * @param string       $message Error message.
  * @param string       $title   Optional. Error title. Default empty string.
  * @param string|array $args    Optional. Arguments to control behavior. Default empty array.
+ *
+ * @phpstan-return ( $args is array{exit: false} ? void : never )
  */
 function _xmlrpc_wp_die_handler( $message, $title = '', $args = array() ) {
 	global $wp_xmlrpc_server;
@@ -4255,6 +4265,8 @@ function _xmlrpc_wp_die_handler( $message, $title = '', $args = array() ) {
  * @param string       $message Error message.
  * @param string       $title   Optional. Error title. Default empty string.
  * @param string|array $args    Optional. Arguments to control behavior. Default empty array.
+ *
+ * @phpstan-return ( $args is array{exit: false} ? void : never )
  */
 function _xml_wp_die_handler( $message, $title = '', $args = array() ) {
 	list( $message, $title, $parsed_args ) = _wp_die_process_input( $message, $title, $args );
@@ -4300,6 +4312,8 @@ EOD;
  * @param string       $message Optional. Response to print. Default empty string.
  * @param string       $title   Optional. Error title (unused). Default empty string.
  * @param string|array $args    Optional. Arguments to control behavior. Default empty array.
+ *
+ * @phpstan-return ( $args is array{exit: false} ? void : never )
  */
 function _scalar_wp_die_handler( $message = '', $title = '', $args = array() ) {
 	list( $message, $title, $parsed_args ) = _wp_die_process_input( $message, $title, $args );
