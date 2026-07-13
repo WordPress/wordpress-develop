@@ -1709,6 +1709,48 @@ class Tests_User extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensures no email change notification is triggered when the account had no previous address.
+	 *
+	 * The notification is addressed to the old email, so an account that never had
+	 * an address (for example one created during a content import) has no recipient,
+	 * and the notification would otherwise be sent to an empty address.
+	 *
+	 * @ticket 47618
+	 *
+	 * @covers ::wp_update_user
+	 */
+	public function test_email_change_email_not_triggered_when_old_email_is_empty() {
+		global $wpdb;
+
+		$user_id = self::factory()->user->create();
+
+		// Blank the address to reproduce an account imported without an email.
+		$wpdb->update( $wpdb->users, array( 'user_email' => '' ), array( 'ID' => $user_id ) );
+		clean_user_cache( $user_id );
+
+		$this->assertSame( '', get_userdata( $user_id )->user_email, 'The account should start with no email address.' );
+
+		$change_email_triggered = false;
+		add_filter(
+			'send_email_change_email',
+			static function ( $send ) use ( &$change_email_triggered ) {
+				$change_email_triggered = true;
+				return $send;
+			}
+		);
+
+		$update = wp_update_user(
+			array(
+				'ID'         => $user_id,
+				'user_email' => 'new@example.com',
+			)
+		);
+
+		$this->assertSame( $user_id, $update, 'The email address should have been updated.' );
+		$this->assertFalse( $change_email_triggered, 'The email change notification should not be triggered when there is no previous address.' );
+	}
+
+	/**
 	 * Testing wp_new_user_notification email statuses.
 	 *
 	 * @dataProvider data_wp_new_user_notifications

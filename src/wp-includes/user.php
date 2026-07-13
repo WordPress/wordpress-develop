@@ -2782,7 +2782,15 @@ function wp_update_user( $userdata ) {
 		$send_password_change_email = apply_filters( 'send_password_change_email', true, $user, $userdata );
 	}
 
-	if ( isset( $userdata['user_email'] ) && $user['user_email'] !== $userdata['user_email'] ) {
+	/*
+	 * Only notify of an email change when there is a previous address to notify.
+	 * The change notification is sent to the old address, so when a user had no
+	 * email set (for example an account created during an import), there is no
+	 * recipient and the notification would be sent to an empty address.
+	 */
+	if ( isset( $userdata['user_email'] ) && '' !== $user['user_email']
+		&& $user['user_email'] !== $userdata['user_email']
+	) {
 		/**
 		 * Filters whether to send the email change email.
 		 *
