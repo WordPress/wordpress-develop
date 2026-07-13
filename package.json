@@ -40,7 +40,7 @@
 		"@wordpress/e2e-test-utils-playwright": "1.42.0",
 		"@wordpress/prettier-config": "4.42.0",
 		"@wordpress/scripts": "31.7.0",
-		"autoprefixer": "10.4.27",
+		"autoprefixer": "10.5.2",
 		"chalk": "5.6.2",
 		"check-node-version": "4.2.1",
 		"cssnano": "7.1.3",
