@@ -537,35 +537,115 @@ EOF;
 	}
 
 	/**
-	 * Tests that the 'pre_comment_content' context allows the note mention attributes on links.
+	 * Tests that the 'pre_comment_content' context is not loosened by the note mention support.
+	 *
+	 * The note mention attributes must only be allowed while a `note` comment is
+	 * being filtered (see wp_filter_comment()), never in the comment content
+	 * context itself, which also sanitizes regular (including anonymous) comments.
 	 *
 	 * @ticket 65622
 	 *
 	 * @covers ::wp_kses_allowed_html
 	 */
-	public function test_wp_kses_allowed_html_pre_comment_content_allows_mention_attributes() {
-		$tags = wp_kses_allowed_html( 'pre_comment_content' );
+	public function test_wp_kses_allowed_html_pre_comment_content_disallows_mention_attributes() {
+		global $allowedtags;
 
-		$this->assertTrue( $tags['a']['class'], "The 'class' attribute should be allowed on links in comment content." );
-		$this->assertTrue( $tags['a']['data-user-id'], "The 'data-user-id' attribute should be allowed on links in comment content." );
-
-		// The default context should remain unchanged.
-		$tags = wp_kses_allowed_html( 'data' );
-		$this->assertArrayNotHasKey( 'class', $tags['a'], "The 'class' attribute should not be allowed on links in the default context." );
-		$this->assertArrayNotHasKey( 'data-user-id', $tags['a'], "The 'data-user-id' attribute should not be allowed on links in the default context." );
+		$this->assertSame( $allowedtags, wp_kses_allowed_html( 'pre_comment_content' ) );
 	}
 
 	/**
-	 * Tests that a note mention link survives comment content sanitization.
+	 * Tests that a note mention link survives content sanitization of a `note` comment.
 	 *
 	 * @ticket 65622
 	 *
-	 * @covers ::wp_kses
+	 * @covers ::wp_filter_comment
+	 * @covers ::_wp_kses_allow_note_mention_attributes
 	 */
-	public function test_note_mention_markup_survives_comment_content_sanitization() {
-		$content = 'Hello <a class="wp-note-mention" data-user-id="2" href="http://example.org/?author=2">@admin</a>!';
+	public function test_note_mention_markup_survives_note_content_sanitization() {
+		add_filter( 'pre_comment_content', 'wp_filter_kses' );
 
-		$this->assertSame( $content, wp_kses( $content, 'pre_comment_content' ) );
+		$content  = 'Hello <a class="wp-note-mention" data-user-id="2" href="http://example.org/?author=2">@admin</a>!';
+		$filtered = wp_filter_comment( wp_slash( $this->get_mention_commentdata( 'note', $content ) ) );
+
+		remove_filter( 'pre_comment_content', 'wp_filter_kses' );
+
+		// `rel="ugc"` is added to all comment links by wp_rel_ugc(), unrelated to kses.
+		$this->assertSame(
+			'Hello <a class="wp-note-mention" data-user-id="2" href="http://example.org/?author=2" rel="ugc">@admin</a>!',
+			wp_unslash( $filtered['comment_content'] )
+		);
+	}
+
+	/**
+	 * Tests that the note mention attributes are stripped from regular comment content.
+	 *
+	 * @ticket 65622
+	 *
+	 * @covers ::wp_filter_comment
+	 */
+	public function test_note_mention_markup_stripped_from_regular_comment_content() {
+		add_filter( 'pre_comment_content', 'wp_filter_kses' );
+
+		$content  = 'Hello <a class="wp-note-mention" data-user-id="2" href="http://example.org/?author=2">@admin</a>!';
+		$filtered = wp_filter_comment( wp_slash( $this->get_mention_commentdata( 'comment', $content ) ) );
+
+		remove_filter( 'pre_comment_content', 'wp_filter_kses' );
+
+		$this->assertSame(
+			'Hello <a href="http://example.org/?author=2" rel="ugc">@admin</a>!',
+			wp_unslash( $filtered['comment_content'] )
+		);
+	}
+
+	/**
+	 * Tests that the note mention allowance does not leak beyond the note being filtered.
+	 *
+	 * @ticket 65622
+	 *
+	 * @covers ::wp_filter_comment
+	 */
+	public function test_note_mention_allowance_does_not_leak_after_note_filtering() {
+		global $allowedtags;
+
+		add_filter( 'pre_comment_content', 'wp_filter_kses' );
+
+		$content = 'Hello <a class="wp-note-mention" data-user-id="2" href="http://example.org/?author=2">@admin</a>!';
+		wp_filter_comment( wp_slash( $this->get_mention_commentdata( 'note', $content ) ) );
+
+		// A regular comment filtered after a note still gets the default rules.
+		$filtered = wp_filter_comment( wp_slash( $this->get_mention_commentdata( 'comment', $content ) ) );
+
+		remove_filter( 'pre_comment_content', 'wp_filter_kses' );
+
+		$this->assertSame(
+			'Hello <a href="http://example.org/?author=2" rel="ugc">@admin</a>!',
+			wp_unslash( $filtered['comment_content'] ),
+			'The mention attributes should be stripped from a regular comment filtered after a note.'
+		);
+		$this->assertSame(
+			$allowedtags,
+			wp_kses_allowed_html( 'pre_comment_content' ),
+			'The comment content allowlist should be back to its default after a note is filtered.'
+		);
+	}
+
+	/**
+	 * Builds a complete commentdata array for wp_filter_comment().
+	 *
+	 * @param string $comment_type The comment type.
+	 * @param string $content      The comment content.
+	 * @return array Commentdata containing every field wp_filter_comment() reads.
+	 */
+	private function get_mention_commentdata( $comment_type, $content ) {
+		return array(
+			'comment_content'      => $content,
+			'comment_type'         => $comment_type,
+			'comment_author'       => 'admin',
+			'comment_author_IP'    => '127.0.0.1',
+			'comment_author_url'   => 'http://example.org',
+			'comment_author_email' => 'admin@example.org',
+			'comment_agent'        => '',
+		);
 	}
 
 	public function test_hyphenated_tag() {

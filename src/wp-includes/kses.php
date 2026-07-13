@@ -1049,8 +1049,6 @@ function wp_kses_one_attr( $attr, $element ) {
  *
  * @since 3.5.0
  * @since 5.0.1 `form` removed as allowable HTML tag.
- * @since 7.1.0 Added the 'pre_comment_content' context, which allows the note
- *              mention attributes `class` and `data-user-id` on `a` elements.
  *
  * @global array $allowedposttags
  * @global array $allowedtags
@@ -1118,22 +1116,6 @@ function wp_kses_allowed_html( $context = '' ) {
 			/** This filter is documented in wp-includes/kses.php */
 			return apply_filters( 'wp_kses_allowed_html', $tags, $context );
 
-		case 'pre_comment_content':
-			/*
-			 * The notes `@` mention completer stores a mention as
-			 * `<a class="wp-note-mention" data-user-id="N" href="…">@Name</a>`.
-			 * Allow the attributes that make a mention a mention (the chip class
-			 * and the mentioned user's ID) so that saved mentions survive
-			 * sanitization for users without `unfiltered_html`; both attributes
-			 * are inert markup (`data-*` carries data only and `class` has no
-			 * behavior of its own).
-			 */
-			$tags                      = $allowedtags;
-			$tags['a']['class']        = true;
-			$tags['a']['data-user-id'] = true;
-			/** This filter is documented in wp-includes/kses.php */
-			return apply_filters( 'wp_kses_allowed_html', $tags, $context );
-
 		case 'strip':
 			/** This filter is documented in wp-includes/kses.php */
 			return apply_filters( 'wp_kses_allowed_html', array(), $context );
@@ -1147,6 +1129,46 @@ function wp_kses_allowed_html( $context = '' ) {
 			/** This filter is documented in wp-includes/kses.php */
 			return apply_filters( 'wp_kses_allowed_html', $allowedtags, $context );
 	}
+}
+
+/**
+ * Allows the note mention attributes on links in comment content.
+ *
+ * The notes `@` mention completer stores a mention as
+ * `<a class="wp-note-mention" data-user-id="N" href="…">@Name</a>`. The default
+ * comment allowlist only keeps `href` and `title` on links, so for users
+ * without `unfiltered_html` the attributes that make a mention a mention (the
+ * chip class and the mentioned user's ID) would be stripped on save.
+ *
+ * This callback is deliberately not attached globally: `class` and `data-*`
+ * attributes are CSS and JavaScript selector hooks, so allowing them in every
+ * comment would extend what anonymous commenters can publish (for example,
+ * disguising a link as a themed button). Instead, wp_filter_comment() attaches
+ * it around the 'pre_comment_content' filter only while a `note` comment is
+ * being filtered. Notes can only be written by logged-in users who can edit
+ * the post, and are never rendered on the front end, so the sanitization of
+ * regular comments is unchanged.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param array|string $allowed The allowed tags structure for the context.
+ * @param string       $context The kses context.
+ * @return array|string Modified allowed tags structure.
+ */
+function _wp_kses_allow_note_mention_attributes( $allowed, $context ) {
+	if ( 'pre_comment_content' !== $context || ! is_array( $allowed ) ) {
+		return $allowed;
+	}
+
+	if ( ! isset( $allowed['a'] ) || ! is_array( $allowed['a'] ) ) {
+		$allowed['a'] = array();
+	}
+
+	$allowed['a']['class']        = true;
+	$allowed['a']['data-user-id'] = true;
+
+	return $allowed;
 }
 
 /**
