@@ -6368,3 +6368,32 @@ function maybe_hash_hex_color( $color ) {
 
 	return $color;
 }
+
+/**
+ * Global variable containing the characters to trim from the beginning and end of a string.
+ *
+ * This variable is used by the `js_trim()` function to define which characters
+ * should be trimmed from a string. It includes common whitespace characters
+ * as well as some Unicode whitespace characters supported by JavaScript.
+ *
+ * @since 6.9.0
+ *
+ * @var string
+ */
+$js_trimmables = "\u{0009}\u{000A}\u{000B}\u{000C}\u{000D}\u{0020}\u{00A0}\u{1680}\u{2000}\u{2001}\u{2002}\u{2003}\u{2004}\u{2005}\u{2006}\u{2007}\u{2008}\u{2009}\u{200A}\u{2028}\u{2029}\u{202F}\u{205F}\u{3000}\u{FEFF}";
+
+/**
+ * Trims whitespace from the beginning and end of a string.
+ *
+ * This function is similar to `trim()`, but it uses a custom set of characters
+ * defined in the global `$js_trimmables` variable.
+ *
+ * @since 6.9.0
+ *
+ * @param string $string The string to trim.
+ * @return string The trimmed string.
+ */
+function js_trim( $string ) {
+		global $js_trimmables;
+		return mb_trim( $string, $js_trimmables, 'UTF-8' );
+}

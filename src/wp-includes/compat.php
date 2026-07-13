@@ -685,6 +685,81 @@ if ( ! function_exists( 'array_last' ) ) {
 	}
 }
 
+if ( ! function_exists( 'mb_trim' ) ) {
+	/**
+	 * Polyfill for `mb_trim()` function added in PHP 8.4.
+	 *
+	 * Trims whitespace from the beginning and end of a string.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @param string      $string     The string to trim.
+	 * @param string|null $characters Optional. The characters to trim from the string.
+	 *                                Without the second parameter, mb_trim() will strip these characters:
+	 *                                - " " (Unicode U+0020), an ordinary space.
+	 *                                - "\t" (Unicode U+0009), a tab.
+	 *                                - "\n" (Unicode U+000A), a new line (line feed).
+	 *                                - "\r" (Unicode U+000D), a carriage return.
+	 *                                - "\0" (Unicode U+0000), the NUL-byte.
+	 *                                - "\v" (Unicode U+000B), a vertical tab.
+	 *                                - "\f" (Unicode U+000C), a form feed.
+	 *                                - "\u00A0" (Unicode U+00A0), a NO-BREAK SPACE.
+	 *                                - "\u1680" (Unicode U+1680), an OGHAM SPACE MARK.
+	 *                                - "\u2000" (Unicode U+2000), an EN QUAD.
+	 *                                - "\u2001" (Unicode U+2001), an EM QUAD.
+	 *                                - "\u2002" (Unicode U+2002), an EN SPACE.
+	 *                                - "\u2003" (Unicode U+2003), an EM SPACE.
+	 *                                - "\u2004" (Unicode U+2004), a THREE-PER-EM SPACE.
+	 *                                - "\u2005" (Unicode U+2005), a FOUR-PER-EM SPACE.
+	 *                                - "\u2006" (Unicode U+2006), a SIX-PER-EM SPACE.
+	 *                                - "\u2007" (Unicode U+2007), a FIGURE SPACE.
+	 *                                - "\u2008" (Unicode U+2008), a PUNCTUATION SPACE.
+	 *                                - "\u2009" (Unicode U+2009), a THIN SPACE.
+	 *                                - "\u200A" (Unicode U+200A), a HAIR SPACE.
+	 *                                - "\u2028" (Unicode U+2028), a LINE SEPARATOR.
+	 *                                - "\u2029" (Unicode U+2029), a PARAGRAPH SEPARATOR.
+	 *                                - "\u202F" (Unicode U+202F), a NARROW NO-BREAK SPACE.
+	 *                                - "\u205F" (Unicode U+205F), a MEDIUM MATHEMATICAL SPACE.
+	 *                                - "\u3000" (Unicode U+3000), an IDEOGRAPHIC SPACE.
+	 *                                - "\u0085" (Unicode U+0085), a NEXT LINE (NEL).
+	 *                                - "\u180E" (Unicode U+180E), a MONGOLIAN VOWEL SEPARATOR.
+	 * @param string|null $encoding  Optional. The encoding parameter is the character encoding. If it is omitted or null, the internal character encoding value will be used.
+	 * @return string The trimmed string.
+	 */
+	function mb_trim( string $str, ?string $characters = null, ?string $encoding = null ) {
+		if ( is_null( $characters ) ) {
+			$characters = " \t\n\r\0\v\f\u{00A0}\u{1680}\u{2000}\u{2001}\u{2002}\u{2003}\u{2004}\u{2005}\u{2006}\u{2007}\u{2008}\u{2009}\u{200A}\u{2028}\u{2029}\u{202F}\u{205F}\u{3000}\u{0085}\u{180E}";
+		}
+
+		if ( '' === $characters ) {
+			return $str;
+		}
+
+		/*
+		 * Keep this polyfill UTF-8-only: if a non-UTF-8 encoding is explicitly
+		 * requested, bail out unchanged instead of attempting lossy conversions.
+		 */
+		if ( ! is_null( $encoding ) && ! _is_utf8_charset( $encoding ) ) {
+			wp_trigger_error(
+				__FUNCTION__,
+				'mb_trim() polyfill only supports UTF-8 encoding. The provided encoding "' . $encoding . '" is not supported.',
+				E_USER_WARNING
+			);
+			return $str;
+		}
+
+		// Use preg_replace to trim the characters from both ends of the string.
+		$pattern        = '/^[' . preg_quote( $characters, '/' ) . ']+|[' . preg_quote( $characters, '/' ) . ']+$/uD';
+		$trimmed_string = preg_replace( $pattern, '', $str );
+
+		if ( false === $trimmed_string || null === $trimmed_string ) {
+			return $str; // If preg_replace fails, return the original string.
+		}
+
+		return $trimmed_string;
+	}
+}
+
 // IMAGETYPE_AVIF constant is only defined in PHP 8.x or later.
 if ( ! defined( 'IMAGETYPE_AVIF' ) ) {
 	define( 'IMAGETYPE_AVIF', 19 );
