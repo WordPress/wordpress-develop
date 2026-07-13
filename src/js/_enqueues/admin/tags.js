@@ -106,29 +106,44 @@ jQuery( function($) {
 	}
 
 	/**
-	 * Update the row count for table navigation..
+	 * Updates the item count and table navigation after a tag is added or removed.
+	 *
+	 * Tags are added and removed client-side, but the item count, the `.tablenav`
+	 * regions, the search box, and the empty-state row are otherwise only
+	 * reconciled by PHP on a full page reload. This keeps them in sync.
+	 *
+	 * @param {string} [action] Pass 'add' when a tag was added. Any other value,
+	 *                          including none, is treated as a removal.
 	 *
 	 * @return {void}
 	 */
-	function updateTableNavCount( action = 'remove' ) {
-		var currentCount = parseInt( $('.tablenav-pages .displaying-num').first().text().match(/\d+/) ) || 0;
-		var itemCount = ( 'remove' === action ) ? currentCount - 1 || 0 : currentCount + 1;
-		var itemText = wp.i18n.sprintf( wp.i18n._n( '%d item', '%d items', itemCount ), itemCount );
-		$('.tablenav-pages .displaying-num').text( itemText );
-		// Show the tablenav if row count positive.
-		if ( itemCount === 1 ) {
-			$('.tablenav').show();
-			$('p.search-box').show();
-		}
-		if ( $('#the-list tr').length === 0 ) {
-			$('#the-list').append(
-				'<tr class="no-items"><td class="colspanchange" colspan="5">' +
+	function updateTableNavCount( action ) {
+		var $displayingNum = $( '.tablenav-pages .displaying-num' ),
+			currentCount   = parseInt( $displayingNum.first().text().replace( /[^0-9]/g, '' ), 10 ) || 0,
+			itemCount      = ( 'add' === action ) ? currentCount + 1 : Math.max( currentCount - 1, 0 );
+
+		$displayingNum.text(
+			wp.i18n.sprintf(
+				/* translators: %s: Number of items. */
+				wp.i18n._n( '%s item', '%s items', itemCount ),
+				itemCount
+			)
+		);
+
+		if ( itemCount < 1 ) {
+			// No tags remain: show the empty-state row and hide the navigation.
+			var colspan = $( '#the-list' ).closest( 'table' ).find( 'thead > tr' ).first().children( ':not(.hidden)' ).length;
+
+			$( '#the-list' ).append(
+				'<tr class="no-items"><td class="colspanchange" colspan="' + colspan + '">' +
 				wp.i18n.__( 'No tags found.' ) +
 				'</td></tr>'
 			);
-
-			$('.tablenav').hide();
-			$('p.search-box').hide();
+			$( '.tablenav' ).hide();
+			$( 'p.search-box' ).hide();
+		} else {
+			$( '.tablenav' ).show();
+			$( 'p.search-box' ).show();
 		}
 	}
 
