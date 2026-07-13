@@ -1741,7 +1741,7 @@ function inject_ignored_hooked_blocks_metadata_attributes( $changes, $deprecated
 
 	// If the post_author is empty, set it to the current user.
 	if ( empty( $post->post_author ) ) {
-		$post->post_author = get_current_user_id();
+		$post->post_author = (string) get_current_user_id();
 	}
 
 	if ( 'wp_template_part' === $post->post_type && ! isset( $terms['wp_template_part_area'] ) ) {
