@@ -6448,7 +6448,7 @@ class wp_xmlrpc_server extends IXR_Server {
 	public function mw_newMediaObject( $args ) {
 		$username = $this->escape( $args[1] );
 		$password = $this->escape( $args[2] );
-		$data     = $args[3];
+		$data     = $args[3] ?? null;
 
 		if ( ! is_array( $data ) ) {
 			return new IXR_Error( 400, __( 'Invalid attachment data.' ) );
