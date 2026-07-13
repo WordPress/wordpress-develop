@@ -3777,13 +3777,13 @@ function wp_nonce_ays( $action ) {
  *
  * @global WP_Query $wp_query WordPress Query object.
  *
- * @param string|WP_Error  $message Optional. Error message. If this is a WP_Error object,
- *                                  and not an Ajax or XML-RPC request, the error's messages are used.
- *                                  Default empty string.
- * @param string|int       $title   Optional. Error title. If `$message` is a `WP_Error` object,
- *                                  error data with the key 'title' may be used to specify the title.
- *                                  If `$title` is an integer, then it is treated as the response code.
- *                                  Default empty string.
+ * @param string|WP_Error|int $message Optional. Error message. If this is a WP_Error object,
+ *                                     and not an Ajax or XML-RPC request, the error's messages are used.
+ *                                     Default empty string.
+ * @param string|int          $title   Optional. Error title. If `$message` is a `WP_Error` object,
+ *                                     error data with the key 'title' may be used to specify the title.
+ *                                     If `$title` is an integer, then it is treated as the response code.
+ *                                     Default empty string.
  * @param string|array|int $args {
  *     Optional. Arguments to control behavior. If `$args` is an integer, then it is treated
  *     as the response code. Default empty array.
@@ -3804,6 +3804,7 @@ function wp_nonce_ays( $action ) {
  * }
  * @return void Never returns if `$args['exit']` is true (the default), otherwise returns void.
  *
+ * @phpstan-param string|WP_Error|int<-1, 1> $message
  * @phpstan-return ( $args is array{exit: false} ? void : never )
  */
 function wp_die( $message = '', $title = '', $args = array() ) {
