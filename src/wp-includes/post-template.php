@@ -1835,7 +1835,6 @@ function get_the_password_form( $post = 0 ) {
 	 * @since 2.7.0
 	 * @since 5.8.0 Added the `$post` parameter.
 	 * @since 6.8.0 Added the `$invalid_password` parameter.
-	 * @since 7.1.0 Block button classes are added to the submit button for block themes.
 	 *
 	 * @param string  $output           The password form HTML output.
 	 * @param WP_Post $post             Post object.
