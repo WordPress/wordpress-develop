@@ -20,9 +20,9 @@
  *
  * @phpstan-type Data_Array array{
  *     ID: non-negative-int,
- *     post_author: numeric-string,
- *     post_date: non-empty-string,
- *     post_date_gmt: non-empty-string,
+ *     post_author: numeric-string|'',
+ *     post_date: string,
+ *     post_date_gmt: string,
  *     post_content: string,
  *     post_title: string,
  *     post_excerpt: string,
@@ -33,8 +33,8 @@
  *     post_name: string,
  *     to_ping: string,
  *     pinged: string,
- *     post_modified: non-empty-string,
- *     post_modified_gmt: non-empty-string,
+ *     post_modified: string,
+ *     post_modified_gmt: string,
  *     post_content_filtered: string,
  *     post_parent: non-negative-int,
  *     guid: string,
@@ -65,11 +65,12 @@ final class WP_Post {
 	/**
 	 * ID of post author.
 	 *
-	 * A numeric string, for compatibility reasons.
+	 * A numeric string, for compatibility reasons. May be an empty string for a
+	 * default post that has not yet been assigned an author.
 	 *
 	 * @since 3.5.0
 	 * @var string
-	 * @phpstan-var numeric-string
+	 * @phpstan-var numeric-string|''
 	 */
 	public $post_author = '0';
 
@@ -78,7 +79,6 @@ final class WP_Post {
 	 *
 	 * @since 3.5.0
 	 * @var string
-	 * @phpstan-var non-empty-string
 	 */
 	public $post_date = '0000-00-00 00:00:00';
 
@@ -87,7 +87,6 @@ final class WP_Post {
 	 *
 	 * @since 3.5.0
 	 * @var string
-	 * @phpstan-var non-empty-string
 	 */
 	public $post_date_gmt = '0000-00-00 00:00:00';
 
@@ -179,7 +178,6 @@ final class WP_Post {
 	 *
 	 * @since 3.5.0
 	 * @var string
-	 * @phpstan-var non-empty-string
 	 */
 	public $post_modified = '0000-00-00 00:00:00';
 
@@ -188,7 +186,6 @@ final class WP_Post {
 	 *
 	 * @since 3.5.0
 	 * @var string
-	 * @phpstan-var non-empty-string
 	 */
 	public $post_modified_gmt = '0000-00-00 00:00:00';
 
