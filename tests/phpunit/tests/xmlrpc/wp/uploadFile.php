@@ -47,8 +47,9 @@ class Tests_XMLRPC_wp_uploadFile extends WP_XMLRPC_UnitTestCase {
 	 * @ticket 65611
 	 */
 	public function test_invalid_attachment_data_should_return_error() {
-		$result = $this->myxmlrpcserver->mw_newMediaObject( array( 0, 'anyuser', 'anypass', 'not-a-struct' ) );
+		$this->make_user_by_role( 'editor' );
 
+		$result = $this->myxmlrpcserver->mw_newMediaObject( array( 0, 'editor', 'editor', 'not-a-struct' ) );
 		$this->assertIXRError( $result, 'A non-array data argument should return an IXR_Error.' );
 		$this->assertSame( 400, $result->code, 'The error code should be 400.' );
 	}
