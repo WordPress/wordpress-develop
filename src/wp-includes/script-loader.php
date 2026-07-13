@@ -803,7 +803,7 @@ function wp_default_scripts( $scripts ) {
 			'enterImageURL'         => __( 'Enter the URL of the image' ),
 			'enterImageDescription' => __( 'Enter a description of the image' ),
 			'textdirection'         => __( 'text direction' ),
-			'toggleTextdirection'   => __( 'Toggle Editor Text Direction' ),
+			'toggleTextdirection'   => __( 'Switch Editor Text Direction' ),
 			'dfw'                   => __( 'Distraction-free writing mode' ),
 			'strong'                => __( 'Bold' ),
 			'strongClose'           => __( 'Close bold tag' ),
@@ -2647,32 +2647,6 @@ function wp_enqueue_global_styles() {
 }
 
 /**
- * Declares a flag that the Classic block is necessary for the current post.
- *
- * @since 7.1.0
- * @access private
- */
-function wp_declare_classic_block_necessary(): void {
-	/**
-	 * Filters whether the Classic block should be available in the inserter.
-	 *
-	 * Defaults to false. Use this filter to opt in (globally or per post).
-	 *
-	 * @param bool         $supports_inserter Whether the Classic block is available in the inserter.
-	 * @param WP_Post|null $post              The post being edited, or null if not in the post editor.
-	 */
-	if ( ! (bool) apply_filters( 'wp_classic_block_supports_inserter', false, get_post() ) ) {
-		return;
-	}
-
-	wp_add_inline_script(
-		'wp-block-library',
-		'window.__needsClassicBlock = true;',
-		'before'
-	);
-}
-
-/**
  * Checks if the editor scripts and styles for all registered block types
  * should be enqueued on the current screen.
  *
@@ -3074,11 +3048,6 @@ function wp_get_inline_script_tag( $data, $attributes = array() ) {
 	}
 
 	if ( ! $processor->set_modifiable_text( $data ) ) {
-		_doing_it_wrong(
-			__FUNCTION__,
-			__( 'Unable to set inline script data.' ),
-			'7.0.0'
-		);
 		return '';
 	}
 

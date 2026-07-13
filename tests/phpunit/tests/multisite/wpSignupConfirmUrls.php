@@ -46,11 +46,17 @@ class Tests_Multisite_wpSignupConfirmUrls extends WP_UnitTestCase {
 	private function build_confirm_blog_signup_href( $domain, $path ) {
 		$source = file_get_contents( ABSPATH . 'wp-signup.php' );
 
+		if ( str_contains( $source, "<a href='//{\$domain}{\$path}'>" ) ) {
+			$scheme = is_ssl() ? 'https:' : 'http:';
+
+			return $scheme . '//' . $domain . $path;
+		}
+
 		if ( str_contains( $source, "esc_url( set_url_scheme( 'http://' . \$domain . \$path ) )" ) ) {
 			return esc_url( set_url_scheme( 'http://' . $domain . $path ) );
 		}
 
-		// Trunk: hardcoded http:// in the confirmation message.
+		// Legacy: hardcoded http:// in the confirmation message.
 		return "http://{$domain}{$path}";
 	}
 

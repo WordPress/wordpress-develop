@@ -865,14 +865,7 @@ function confirm_blog_signup( $domain, $path, $blog_title, $user_name = '', $use
 	<h2>
 	<?php
 	/* translators: %s: Site address. */
-	printf(
-		__( 'Congratulations! Your new site, %s, is almost ready.' ),
-		sprintf(
-			'<a href="%s">%s</a>',
-			esc_url( set_url_scheme( 'http://' . $domain . $path ) ),
-			$blog_title
-		)
-	)
+	printf( __( 'Congratulations! Your new site, %s, is almost ready.' ), "<a href='//{$domain}{$path}'>{$blog_title}</a>" )
 	?>
 	</h2>
 
