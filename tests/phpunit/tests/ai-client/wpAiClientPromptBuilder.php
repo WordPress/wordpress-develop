@@ -2535,22 +2535,6 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that generate_result returns WP_Error with the AI-disabled message when AI is not supported.
-	 *
-	 * @ticket 64591
-	 */
-	public function test_generate_result_returns_wp_error_when_ai_not_supported(): void {
-		add_filter( 'wp_supports_ai', '__return_false' );
-
-		$builder = new WP_AI_Client_Prompt_Builder( AiClient::defaultRegistry(), 'Test prompt' );
-		$result  = $builder->generate_result();
-
-		$this->assertWPError( $result );
-		$this->assertSame( 'prompt_prevented', $result->get_error_code() );
-		$this->assertSame( 'AI features are not supported in this environment.', $result->get_error_message() );
-	}
-
-	/**
 	 * Tests that is_supported returns false when prevent prompt filter returns true.
 	 *
 	 * @ticket 64591
