@@ -1529,7 +1529,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	/**
 	 * Escapes decoded text for HTML serialization.
 	 *
-	 * The input must be decoded text. Escaped text will be double-escaped.
+	 * Already-escaped text will be double-escaped.
 	 *
 	 * Use for:
 	 * - Attribute values.
@@ -1542,9 +1542,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * This loosely follows the "escape a string" rules for serializing
 	 * HTML fragments in the HTML standard, with notable differences:
 	 *
-	 * - U+000D CARRIAGE RETURN (CR) is escaped. HTML parsers replace raw CR
-	 *   with line feed. Emitting unescaped CR would change the text on the
-	 *   next parse.
+	 * - U+000D CARRIAGE RETURN (CR) is escaped; parsers replace raw CR
+	 *   with U+000A LINE FEED.
 	 * - NULL bytes and invalid UTF-8 byte sequences are replaced with
 	 *   U+FFFD REPLACEMENT CHARACTER.
 	 *
