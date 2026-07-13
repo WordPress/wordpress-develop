@@ -109,6 +109,8 @@ if ( ! CUSTOM_TAGS ) {
 		),
 		'br'         => array(),
 		'button'     => array(
+			'command'             => true,
+			'commandfor'          => true,
 			'disabled'            => true,
 			'name'                => true,
 			'type'                => true,
@@ -1861,7 +1863,7 @@ function wp_kses_check_attr_val( $value, $vless, $checkname, $checkvalue ) {
 			 * has one of the given values.
 			 */
 
-			if ( false === array_search( strtolower( $value ), $checkvalue, true ) ) {
+			if ( ! in_array( strtolower( $value ), $checkvalue, true ) ) {
 				$ok = false;
 			}
 			break;
@@ -2054,13 +2056,7 @@ function wp_kses_bad_protocol_once2( $scheme, $allowed_protocols ) {
 	$scheme = wp_kses_no_null( $scheme );
 	$scheme = strtolower( $scheme );
 
-	$allowed = false;
-	foreach ( (array) $allowed_protocols as $one_protocol ) {
-		if ( strtolower( $one_protocol ) === $scheme ) {
-			$allowed = true;
-			break;
-		}
-	}
+	$allowed = array_any( (array) $allowed_protocols, fn( $protocol ) => strtolower( $protocol ) === $scheme );
 
 	if ( $allowed ) {
 		return "$scheme:";
@@ -2579,6 +2575,7 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 	 * Filters the list of allowed CSS attributes.
 	 *
 	 * @since 2.8.1
+	 * @since 7.1.0 Added support for SVG presentation attributes.
 	 *
 	 * @param string[] $attr Array of allowed CSS attributes.
 	 */
@@ -2736,6 +2733,71 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 			'box-shadow',
 			'aspect-ratio',
 			'container-type',
+
+			'fill',
+			'fill-opacity',
+			'fill-rule',
+
+			'stroke',
+			'stroke-dasharray',
+			'stroke-dashoffset',
+			'stroke-linecap',
+			'stroke-linejoin',
+			'stroke-miterlimit',
+			'stroke-opacity',
+			'stroke-width',
+
+			'color-interpolation',
+			'color-interpolation-filters',
+			'paint-order',
+			'stop-color',
+			'stop-opacity',
+			'flood-color',
+			'flood-opacity',
+			'lighting-color',
+
+			'marker',
+			'marker-end',
+			'marker-mid',
+			'marker-start',
+
+			'clip-path',
+			'clip-rule',
+			'mask',
+			'mask-type',
+
+			'cx',
+			'cy',
+			'r',
+			'rx',
+			'ry',
+			'x',
+			'y',
+			'd',
+
+			'alignment-baseline',
+			'baseline-shift',
+			'dominant-baseline',
+			'glyph-orientation-horizontal',
+			'glyph-orientation-vertical',
+			'text-anchor',
+			'unicode-bidi',
+			'word-spacing',
+
+			'font-size-adjust',
+			'font-stretch',
+
+			'color-rendering',
+			'image-rendering',
+			'shape-rendering',
+			'text-rendering',
+			'vector-effect',
+
+			'transform',
+			'transform-origin',
+
+			'pointer-events',
+			'visibility',
 
 			// Custom CSS properties.
 			'--*',
@@ -2898,6 +2960,7 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
  * @since 6.0.0 Added `dir`, `lang`, and `xml:lang` to global attributes.
  * @since 6.3.0 Added `aria-controls`, `aria-current`, and `aria-expanded` attributes.
  * @since 6.4.0 Added `aria-live` and `hidden` attributes.
+ * @since 7.1.0 Added `tabindex` attribute.
  *
  * @access private
  * @ignore
@@ -2923,6 +2986,7 @@ function _wp_add_global_attributes( $value ) {
 		'id'               => true,
 		'lang'             => true,
 		'style'            => true,
+		'tabindex'         => true,
 		'title'            => true,
 		'role'             => true,
 		'xml:lang'         => true,

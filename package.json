@@ -7,7 +7,7 @@
 		"url": "https://develop.svn.wordpress.org/trunk"
 	},
 	"gutenberg": {
-		"sha": "a2a354cf35e5b69c3330d6c1cfd42d8dc2efb9fd",
+		"sha": "98a796c8780c480ef7bcfe03c42302d9564d785c",
 		"ghcrRepo": "WordPress/gutenberg/gutenberg-wp-develop-build"
 	},
 	"engines": {
@@ -141,6 +141,6 @@
 		"typecheck:php": "node ./tools/local-env/scripts/docker.js run --rm php composer phpstan",
 		"gutenberg:copy": "node tools/gutenberg/copy.js",
 		"gutenberg:verify": "node tools/gutenberg/utils.js",
-		"gutenberg:download": "node tools/gutenberg/download.js && grunt build:gutenberg --dev"
+		"gutenberg:download": "node tools/gutenberg/download.js && grunt build:gutenberg"
 	}
 }
