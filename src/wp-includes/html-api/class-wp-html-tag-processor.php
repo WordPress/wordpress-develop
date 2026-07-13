@@ -4078,7 +4078,17 @@ class WP_HTML_Tag_Processor {
 			case 'IFRAME':
 			case 'NOEMBED':
 			case 'NOFRAMES':
-				if ( false !== stripos( $plaintext_content, "</{$this->get_tag()}" ) ) {
+				$tag_name = $this->get_tag();
+				if ( false !== stripos( $plaintext_content, "</{$tag_name}" ) ) {
+					_doing_it_wrong(
+						__METHOD__,
+						sprintf(
+							/* translators: %s: HTML tag name. */
+							__( '%s text cannot contain its own closing tag.' ),
+							$tag_name
+						),
+						'7.1.0'
+					);
 					return false;
 				}
 
