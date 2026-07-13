@@ -3804,7 +3804,7 @@ function wp_nonce_ays( $action ) {
  *     @type bool   $exit           Whether to exit the process after completion. Default true.
  * }
  * @return void Never returns if `$args['exit']` is true (the default), otherwise returns void.
- * @phpstan-param string|WP_Error|int<-1, 1> $message
+ * @phpstan-param string|WP_Error|int<-1, max> $message
  * @phpstan-return ( $args is array{exit: false} ? void : never )
  */
 function wp_die( $message = '', $title = '', $args = array() ) {
