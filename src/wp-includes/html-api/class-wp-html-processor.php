@@ -1387,7 +1387,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				break;
 
 			case '#text':
-				$html .= self::serialize_decoded_text( $this->get_modifiable_text() );
+				$html .= self::escape_text_for_serialization( $this->get_modifiable_text() );
 				break;
 
 			// Unlike the `<>` which is interpreted as plaintext, this is ignored entirely.
@@ -1462,7 +1462,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			$value = $this->get_attribute( $attribute_name );
 
 			if ( is_string( $value ) ) {
-				$html .= '="' . self::serialize_decoded_text( $value ) . '"';
+				$html .= '="' . self::escape_text_for_serialization( $value ) . '"';
 			}
 
 			$previous_attribute_was_true = true === $value;
@@ -1517,7 +1517,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 					break;
 
 				default:
-					$text = self::serialize_decoded_text( $text );
+					$text = self::escape_text_for_serialization( $text );
 			}
 
 			$html .= "{$text}</{$qualified_name}>";
@@ -1527,24 +1527,37 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	}
 
 	/**
-	 * Serializes decoded text for use in text nodes and attribute values.
+	 * Escapes decoded text for HTML serialization.
 	 *
-	 * A decoded carriage return must serialize as a character reference:
-	 * the HTML parser's input preprocessing turns a raw CR into a line
-	 * feed, so emitting it raw would change the text on the next parse
-	 * and serialized output would never reach a fixed point.
+	 * The input must be decoded text. Escaped text will be double-escaped.
 	 *
-	 * NULL bytes, possible in API-supplied values, serialize as U+FFFD
-	 * for the same reason: the tokenizer would replace or remove a raw
-	 * NULL byte on the next parse.
+	 * Use for:
+	 * - Attribute values.
+	 * - Text in normal content and in the RCDATA elements TITLE and TEXTAREA.
+	 * - Text in foreign content (elements outside the HTML namespace).
+	 *
+	 * Do not use for text in RAWTEXT elements, HTML SCRIPT elements, or
+	 * PLAINTEXT elements, whose contents serialize without escaping.
+	 *
+	 * This loosely follows the "escape a string" rules for serializing
+	 * HTML fragments in the HTML standard, with notable differences:
+	 *
+	 * - U+000D CARRIAGE RETURN (CR) is escaped. HTML parsers replace raw CR
+	 *   with line feed. Emitting unescaped CR would change the text on the
+	 *   next parse.
+	 * - NULL bytes and invalid UTF-8 byte sequences are replaced with
+	 *   U+FFFD REPLACEMENT CHARACTER.
+	 *
+	 * @link https://html.spec.whatwg.org/multipage/parsing.html#escapingString
 	 *
 	 * @since 7.1.0
 	 *
-	 * @param string $text Decoded text to serialize.
-	 * @return string Serialized text.
+	 * @param string $text Decoded text to escape.
+	 * @return string Escaped text.
 	 */
-	private static function serialize_decoded_text( string $text ): string {
+	private static function escape_text_for_serialization( string $text ): string {
 		$text = htmlspecialchars( $text, ENT_QUOTES | ENT_SUBSTITUTE | ENT_HTML5, 'UTF-8' );
+
 		$text = str_replace( "\r", '&#xD;', $text );
 
 		return str_replace( "\x00", "\u{FFFD}", $text );
