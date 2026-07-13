@@ -4562,6 +4562,8 @@ function _wp_json_prepare_data( $value ) {
  *                           then print and die.
  * @param int   $status_code Optional. The HTTP status code to output. Default null.
  * @param int   $flags       Optional. Options to be passed to json_encode(). Default 0.
+ *
+ * @return never
  */
 function wp_send_json( $response, $status_code = null, $flags = 0 ) {
 	if ( wp_is_serving_rest_request() ) {
@@ -4609,6 +4611,8 @@ function wp_send_json( $response, $status_code = null, $flags = 0 ) {
  * @param mixed $value       Optional. Data to encode as JSON, then print and die. Default null.
  * @param int   $status_code Optional. The HTTP status code to output. Default null.
  * @param int   $flags       Optional. Options to be passed to json_encode(). Default 0.
+ *
+ * @return never
  */
 function wp_send_json_success( $value = null, $status_code = null, $flags = 0 ) {
 	$response = array( 'success' => true );
@@ -4636,6 +4640,8 @@ function wp_send_json_success( $value = null, $status_code = null, $flags = 0 ) 
  * @param mixed $value       Optional. Data to encode as JSON, then print and die. Default null.
  * @param int   $status_code Optional. The HTTP status code to output. Default null.
  * @param int   $flags       Optional. Options to be passed to json_encode(). Default 0.
+ *
+ * @return never
  */
 function wp_send_json_error( $value = null, $status_code = null, $flags = 0 ) {
 	$response = array( 'success' => false );
