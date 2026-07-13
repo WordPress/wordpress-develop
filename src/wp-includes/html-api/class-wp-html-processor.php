@@ -1531,21 +1531,13 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * Use for:
 	 * - Attribute values.
-	 * - Text in normal content and in the RCDATA elements TITLE and TEXTAREA.
-	 * - Text in foreign content (elements outside the HTML namespace).
+	 * - Text in ordinary (data-state) elements and in the RCDATA elements
+	 *   (TITLE and TEXTAREA).
+	 * - Text in foreign content (elements not in the HTML namespace).
 	 *
-	 * Do not use for text in RAWTEXT elements, HTML SCRIPT elements, or
-	 * PLAINTEXT elements, whose contents serialize without escaping.
-	 *
-	 * This loosely follows the "escape a string" rules for serializing
-	 * HTML fragments in the HTML standard, with notable differences:
-	 *
-	 * - U+000D CARRIAGE RETURN (CR) is escaped; parsers replace raw CR
-	 *   with U+000A LINE FEED.
-	 * - NULL bytes and invalid UTF-8 byte sequences are replaced with
-	 *   U+FFFD REPLACEMENT CHARACTER.
-	 *
-	 * @link https://html.spec.whatwg.org/multipage/parsing.html#escapingString
+	 * Do not use for text in the RAWTEXT elements (STYLE, XMP, IFRAME,
+	 * NOEMBED, NOFRAMES), HTML SCRIPT elements, or PLAINTEXT elements,
+	 * whose contents serialize without escaping.
 	 *
 	 * @since 7.1.0
 	 * @ignore
