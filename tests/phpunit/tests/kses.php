@@ -497,6 +497,7 @@ EOF;
 			$this->assertTrue( $tag['id'] );
 			$this->assertTrue( $tag['lang'] );
 			$this->assertTrue( $tag['style'] );
+			$this->assertTrue( $tag['tabindex'] );
 			$this->assertTrue( $tag['title'] );
 			$this->assertTrue( $tag['xml:lang'] );
 		}
