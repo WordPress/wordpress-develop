@@ -29,23 +29,23 @@ class Tests_General_wpGetTooltip extends WP_UnitTestCase {
 		$tooltip = wp_get_tooltip( 'Helpful text.', array( 'id' => 'my-tip' ) );
 
 		// Toggle is a button that controls the popover and describes it.
-		$this->assertStringContainsString( '<button type="button" class="wp-tooltip__toggle"', $html );
-		$this->assertStringContainsString( 'popovertarget="my-tip"', $html );
-		$this->assertStringContainsString( 'aria-describedby="my-tip-text"', $html );
+		$this->assertStringContainsString( '<button type="button" class="wp-tooltip__toggle"', $tooltip );
+		$this->assertStringContainsString( 'popovertarget="my-tip"', $tooltip );
+		$this->assertStringContainsString( 'aria-describedby="my-tip-text"', $tooltip );
 
 		// The bubble is a popover holding a text-only described element.
-		$this->assertStringContainsString( '<span popover="hint" id="my-tip" class="wp-tooltip__bubble" role="tooltip">', $html );
-		$this->assertStringContainsString( '<span id="my-tip-text" class="wp-tooltip__text">Helpful text.</span>', $html );
+		$this->assertStringContainsString( '<span popover="hint" id="my-tip" class="wp-tooltip__bubble" role="tooltip">', $tooltip );
+		$this->assertStringContainsString( '<span id="my-tip-text" class="wp-tooltip__text">Helpful text.</span>', $tooltip );
 
 		// Ensure the tooltip model does not include a close button.
-		$this->assertStringNotContainsString( 'class="wp-tooltip__close"', $toggletip );
-		$this->assertStringNotContainsString( 'popovertargetaction="hide"', $toggletip );
+		$this->assertStringNotContainsString( 'class="wp-tooltip__close"', $tooltip );
+		$this->assertStringNotContainsString( 'popovertargetaction="hide"', $tooltip );
 
 		$toggletip = wp_get_tooltip(
 			'Helpful text.',
 			array(
 				'id'   => 'my-tip',
-				'type' => 'toggletip'
+				'type' => 'toggletip',
 			)
 		);
 		// Ensure the toggle tip does contain a close button.
