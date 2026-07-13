@@ -2808,10 +2808,8 @@ body.page .main-navigation {
 .main-navigation > div {
   display: inline;
 }
-.main-navigation {
-  /* Un-style buttons */
-}
 .main-navigation button {
+  /* Un-style buttons */
   display: inline-block;
   border: none;
   padding: 0;
@@ -2878,7 +2876,6 @@ body.page .main-navigation {
 .main-navigation .main-menu > li.menu-item-has-children .submenu-expand {
   display: inline-block;
   margin-right: 0.25rem;
-  /* Priority+ Menu */
 }
 .main-navigation .main-menu > li.menu-item-has-children .submenu-expand.main-menu-more-toggle {
   position: relative;
@@ -2985,14 +2982,6 @@ body.page .main-navigation {
   top: 0.2rem;
   margin-right: calc(0.25 * 1rem);
 }
-.main-navigation {
-  /*
-   * Sub-menu styles
-   *
-   * :focus-within needs its own selector so other similar
-   * selectors don’t get ignored if a browser doesn’t recognize it
-   */
-}
 .main-navigation .main-menu .menu-item-has-children:not(.off-canvas)[focus-within] > .sub-menu {
   display: block;
   left: 0;
@@ -3000,7 +2989,6 @@ body.page .main-navigation {
   opacity: 1;
   width: auto;
   min-width: 100%;
-  /* Non-mobile position */
 }
 .main-navigation .main-menu .menu-item-has-children:not(.off-canvas):focus-within > .sub-menu {
   display: block;
@@ -3009,7 +2997,6 @@ body.page .main-navigation {
   opacity: 1;
   width: auto;
   min-width: 100%;
-  /* Non-mobile position */
 }
 @media only screen and (min-width: 768px) {
   .main-navigation .main-menu .menu-item-has-children:not(.off-canvas)[focus-within] > .sub-menu {
@@ -3078,7 +3065,6 @@ body.page .main-navigation {
   width: 100%;
   left: 0;
   opacity: 1;
-  /* Non-mobile position */
 }
 .main-navigation .main-menu .menu-item-has-children:not(.off-canvas):focus-within > .sub-menu .sub-menu {
   display: block;
@@ -3087,7 +3073,6 @@ body.page .main-navigation {
   width: 100%;
   left: 0;
   opacity: 1;
-  /* Non-mobile position */
 }
 @media only screen and (min-width: 768px) {
   .main-navigation .main-menu .menu-item-has-children:not(.off-canvas)[focus-within] > .sub-menu .sub-menu {
@@ -3098,12 +3083,6 @@ body.page .main-navigation {
     float: none;
     max-width: 100%;
   }
-}
-.main-navigation .main-menu .menu-item-has-children:not(.off-canvas)[focus-within] > .sub-menu {
-  /* Nested sub-menu dashes */
-}
-.main-navigation .main-menu .menu-item-has-children:not(.off-canvas):focus-within > .sub-menu {
-  /* Nested sub-menu dashes */
 }
 .main-navigation .main-menu .menu-item-has-children:not(.off-canvas)[focus-within] > .sub-menu .sub-menu {
   counter-reset: submenu;
@@ -3132,7 +3111,6 @@ body.page .main-navigation {
   opacity: 1;
   width: auto;
   min-width: 100%;
-  /* Non-mobile position */
 }
 @media only screen and (min-width: 768px) {
   .main-navigation .main-menu .menu-item-has-children:not(.off-canvas):hover > .sub-menu,
@@ -3184,7 +3162,6 @@ body.page .main-navigation {
   width: 100%;
   left: 0;
   opacity: 1;
-  /* Non-mobile position */
 }
 @media only screen and (min-width: 768px) {
   .main-navigation .main-menu .menu-item-has-children:not(.off-canvas):hover > .sub-menu .sub-menu,
@@ -3193,11 +3170,6 @@ body.page .main-navigation {
     float: none;
     max-width: 100%;
   }
-}
-.main-navigation .main-menu .menu-item-has-children:not(.off-canvas):hover > .sub-menu,
-.main-navigation .main-menu .menu-item-has-children:not(.off-canvas):focus > .sub-menu,
-.main-navigation .main-menu .menu-item-has-children.is-focused:not(.off-canvas) > .sub-menu {
-  /* Nested sub-menu dashes */
 }
 .main-navigation .main-menu .menu-item-has-children:not(.off-canvas):hover > .sub-menu .sub-menu,
 .main-navigation .main-menu .menu-item-has-children:not(.off-canvas):focus > .sub-menu .sub-menu,
@@ -3212,18 +3184,9 @@ body.page .main-navigation {
   content: "– " counters(submenu, "– ", none);
   counter-increment: submenu;
 }
-.main-navigation {
-  /**
-   * Fade-in animation for top-level submenus
-   */
-}
 .main-navigation .main-menu > .menu-item-has-children:not(.off-canvas):hover > .sub-menu {
+  /* Fade-in animation for top-level submenus */
   animation: fade_in 0.1s forwards;
-}
-.main-navigation {
-  /**
-   * Off-canvas touch device styles
-   */
 }
 .main-navigation .main-menu .menu-item-has-children.off-canvas .sub-menu .submenu-expand .svg-icon {
   transform: rotate(270deg);
@@ -3268,21 +3231,17 @@ body.page .main-navigation {
 .main-navigation .main-menu .menu-item-has-children.off-canvas .sub-menu.expanded-true > .mobile-parent-nav-menu-item {
   display: block;
 }
-.main-navigation .main-menu .menu-item-has-children.off-canvas .sub-menu.expanded-true {
-  /* Prevent menu from being blocked by admin bar */
-}
 .admin-bar .main-navigation .main-menu .menu-item-has-children.off-canvas .sub-menu.expanded-true {
+  /* Prevent menu from being blocked by admin bar */
   top: 46px;
   height: calc(100vh - 46px);
 }
 .admin-bar .main-navigation .main-menu .menu-item-has-children.off-canvas .sub-menu.expanded-true .sub-menu.expanded-true {
   top: 0;
 }
-.admin-bar .main-navigation .main-menu .menu-item-has-children.off-canvas .sub-menu.expanded-true {
-  /* WP core breakpoint */
-}
 @media only screen and (min-width: 782px) {
   .admin-bar .main-navigation .main-menu .menu-item-has-children.off-canvas .sub-menu.expanded-true {
+    /* WP core breakpoint */
     top: 32px;
     height: calc(100vh - 32px);
   }
@@ -3752,10 +3711,8 @@ body.page .main-navigation {
     display: inline-block;
   }
 }
-.site-title {
-  /* When there is no description set, make sure navigation appears below title. */
-}
 .site-title + .main-navigation {
+  /* When there is no description set, make sure navigation appears below title. */
   display: block;
 }
 @media only screen and (min-width: 768px) {
@@ -3782,7 +3739,6 @@ body.page .main-navigation {
   position: relative;
   /* Add text shadow to text, to increase readability. */
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
-  /* Set white text color when featured image is set. */
 }
 .site-header.featured-image .site-branding .site-title,
 .site-header.featured-image .site-branding .site-description,
@@ -3792,6 +3748,7 @@ body.page .main-navigation {
 .site-header.featured-image .social-navigation li,
 .site-header.featured-image .entry-meta,
 .site-header.featured-image .entry-title {
+  /* Set white text color when featured image is set. */
   color: #fff;
 }
 .site-header.featured-image .main-navigation a,
@@ -3836,9 +3793,6 @@ body.page .main-navigation {
 .site-header.featured-image .main-navigation .sub-menu a {
   opacity: inherit;
 }
-.site-header.featured-image {
-  /* add focus state to social media icons */
-}
 .site-header.featured-image .social-navigation a:focus {
   color: #fff;
   opacity: 1;
@@ -3847,9 +3801,6 @@ body.page .main-navigation {
 .site-header.featured-image .social-navigation svg,
 .site-header.featured-image .site-featured-image svg {
   filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.35));
-}
-.site-header.featured-image {
-  /* Entry header */
 }
 .site-header.featured-image .site-featured-image .post-thumbnail img {
   height: auto;
@@ -3892,9 +3843,6 @@ body.page .main-navigation {
 }
 .site-header.featured-image .site-featured-image .entry-header .entry-title:before {
   background: #fff;
-}
-.site-header.featured-image .site-featured-image .entry-header {
-  /* Entry meta */
 }
 .site-header.featured-image .site-featured-image .entry-header .entry-meta {
   font-weight: 500;
@@ -3940,9 +3888,6 @@ body.page .main-navigation {
     bottom: 100%;
   }
 }
-.site-header.featured-image {
-  /* Custom Logo Link */
-}
 .site-header.featured-image .custom-logo-link {
   background: #fff;
   box-shadow: 0 0 0 0 rgba(255, 255, 255, 0);
@@ -3950,23 +3895,19 @@ body.page .main-navigation {
 .site-header.featured-image .custom-logo-link:hover, .site-header.featured-image .custom-logo-link:active, .site-header.featured-image .custom-logo-link:focus {
   box-shadow: 0 0 0 2px white;
 }
-.site-header.featured-image {
-  /* Make sure important elements are above pseudo elements used for effects. */
-}
 .site-header.featured-image .site-branding {
   position: relative;
+  /* Make sure important elements are above pseudo elements used for effects. */
   z-index: 10;
 }
 .site-header.featured-image .site-featured-image .entry-header {
   position: relative;
   z-index: 9;
 }
-.site-header.featured-image {
-  /* Set up image filter layer positioning */
-}
 .site-header.featured-image .site-branding-container:after,
 .site-header.featured-image .site-featured-image:before,
 .site-header.featured-image .site-featured-image:after, .site-header.featured-image:after {
+  /* Set up image filter layer positioning */
   display: block;
   position: absolute;
   top: 0;
@@ -3981,54 +3922,48 @@ body.page .main-navigation {
   background-position: center;
   background-repeat: no-repeat;
   background-size: cover;
-  /* The intensity of each blend mode is controlled via layer opacity. */
-  /* Second layer: screen. */
 }
 .image-filters-enabled .site-header.featured-image .site-featured-image:before {
+  /* The intensity of each blend mode is controlled via layer opacity. */
+  /* Second layer: screen. */
   background: #0073aa;
   mix-blend-mode: screen;
   opacity: 0.1;
 }
-.site-header.featured-image {
+.site-header.featured-image .site-featured-image:after {
   /* Third layer: multiply. */
   /* When image filters are inactive, a black overlay is added. */
-}
-.site-header.featured-image .site-featured-image:after {
   background: #000;
   mix-blend-mode: multiply;
   opacity: 0.7;
-  /* When image filters are active, a blue overlay is added. */
 }
 .image-filters-enabled .site-header.featured-image .site-featured-image:after {
+  /* When image filters are active, a blue overlay is added. */
   background: #0073aa;
   opacity: 0.8;
   z-index: 3;
-  /* Browsers supporting mix-blend-mode don't need opacity < 1 */
 }
 @supports (mix-blend-mode: multiply) {
   .image-filters-enabled .site-header.featured-image .site-featured-image:after {
+    /* Browsers supporting mix-blend-mode don't need opacity < 1 */
     opacity: 1;
   }
 }
-.site-header.featured-image {
-  /* Fourth layer: overlay. */
-}
 .image-filters-enabled .site-header.featured-image .site-branding-container:after {
+  /* Fourth layer: overlay. */
   background: rgba(0, 0, 0, 0.35);
   mix-blend-mode: overlay;
   opacity: 0.5;
   z-index: 4;
-  /* Browsers supporting mix-blend-mode can have a light overlay */
 }
 @supports (mix-blend-mode: overlay) {
   .image-filters-enabled .site-header.featured-image .site-branding-container:after {
+    /* Browsers supporting mix-blend-mode can have a light overlay */
     background: rgba(255, 255, 255, 0.35);
   }
 }
-.site-header.featured-image {
-  /* Fifth layer: readability overlay */
-}
 .site-header.featured-image:after {
+  /* Fifth layer: readability overlay */
   background: #000;
   /**
    * Add a transition to the readability overlay, to add a subtle
@@ -4037,9 +3972,9 @@ body.page .main-navigation {
   transition: opacity 1200ms ease-in-out;
   opacity: 0.7;
   z-index: 5;
-  /* When image filters are active, a blue overlay is added. */
 }
 .image-filters-enabled .site-header.featured-image:after {
+  /* When image filters are active, a blue overlay is added. */
   background: rgb(0, 13.8, 20.4);
   opacity: 0.38;
 }
@@ -4413,12 +4348,10 @@ body.page .main-navigation {
     margin-bottom: calc(3 * 1rem);
   }
 }
-.comments-area {
+.entry + .comments-area {
   /* Add extra margin when the comments section is located immediately after the
    * post itself (this happens on pages).
    */
-}
-.entry + .comments-area {
   margin-top: calc(3 * 1rem);
 }
 @media only screen and (min-width: 768px) {
@@ -4877,10 +4810,8 @@ body.page .main-navigation {
 .widget .widget-title {
   font-size: 1.6875em;
 }
-.widget {
-  /* Make sure select elements fit in widgets. */
-}
 .widget select {
+  /* Make sure select elements fit in widgets. */
   max-width: 100%;
 }
 .widget a {
@@ -5756,14 +5687,10 @@ body.page .main-navigation {
   letter-spacing: 0.8888888889em;
   padding-left: 0.8888888889em;
 }
-.entry .entry-content .wp-block-separator,
-.entry .entry-content hr {
-  /* Remove duplicate rule-line when a separator
-   * is followed by an H1, or H2 */
-}
 .entry .entry-content .wp-block-separator + h1:before, .entry .entry-content .wp-block-separator + h2:before,
 .entry .entry-content hr + h1:before,
 .entry .entry-content hr + h2:before {
+  /* Remove duplicate rule-line when a separator is followed by an H1 or H2 */
   display: none;
 }
 .entry .entry-content .wp-block-embed-twitter {
