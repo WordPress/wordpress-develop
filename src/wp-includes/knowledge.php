@@ -10,7 +10,7 @@
  *
  * @package WordPress
  * @subpackage Knowledge
- * @since 7.1.0
+ * @since 7.2.0
  */
 
 /**
@@ -18,7 +18,7 @@
  *
  * Plugins can register their own types via the {@see 'wp_knowledge_types'} filter.
  *
- * @since 7.1.0
+ * @since 7.2.0
  *
  * @return array {
  *     Slug-keyed map of knowledge types.
@@ -35,7 +35,7 @@ function wp_knowledge_types(): array {
 	/**
 	 * Filters the knowledge types available on this site.
 	 *
-	 * @since 7.1.0
+	 * @since 7.2.0
 	 *
 	 * @param array $types {
 	 *     Slug-keyed map of knowledge types.
@@ -74,7 +74,7 @@ function wp_knowledge_types(): array {
  * Hooked to `wp_after_insert_post` so it runs after the row's terms are saved,
  * when the final set of terms is known.
  *
- * @since 7.1.0
+ * @since 7.2.0
  * @access private
  *
  * @param int     $post_id Saved post ID.
@@ -119,7 +119,7 @@ function wp_knowledge_ensure_default_type_term( int $post_id, WP_Post $post ): v
  * The name is written once and shared by every user, so it is resolved in the
  * site locale, not the locale of the request that happens to create the term.
  *
- * @since 7.1.0
+ * @since 7.2.0
  * @access private
  *
  * @param array  $data     Term data to be inserted (keyed by column name).

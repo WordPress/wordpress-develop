@@ -1376,7 +1376,7 @@ function wp_maybe_grant_site_health_caps( $allcaps, $caps, $args, $user ) {
  * users' rows is reserved for administrators. Subscribers receive nothing and
  * are stopped at the post-type door by the `read_knowledge_items` mapping.
  *
- * @since 7.1.0
+ * @since 7.2.0
  *
  * @param array<string, bool> $allcaps An array of all the user's capabilities.
  * @param string[]            $caps    Required primitive capabilities for the requested capability.

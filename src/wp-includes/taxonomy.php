@@ -19,7 +19,7 @@
  *
  * @since 2.8.0
  * @since 5.9.0 Added `'wp_template_part_area'` taxonomy.
- * @since 7.1.0 Added `'wp_knowledge_type'` taxonomy.
+ * @since 7.2.0 Added `'wp_knowledge_type'` taxonomy.
  *
  * @global WP_Rewrite $wp_rewrite WordPress rewrite component.
  */

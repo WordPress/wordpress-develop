@@ -16,7 +16,7 @@
  * See {@see 'init'}.
  *
  * @since 2.9.0
- * @since 7.1.0 Added the `wp_knowledge` post type.
+ * @since 7.2.0 Added the `wp_knowledge` post type.
  */
 function create_initial_post_types() {
 	WP_Post_Type::reset_default_labels();

@@ -4,7 +4,7 @@
  *
  * @package WordPress
  * @subpackage REST_API
- * @since 7.1.0
+ * @since 7.2.0
  */
 
 /**
@@ -15,7 +15,7 @@
  * rows the current user can read, callers without the publish capability may
  * only use the `private` status, and new rows default to the `private` status.
  *
- * @since 7.1.0
+ * @since 7.2.0
  *
  * @see WP_REST_Posts_Controller
  */
@@ -27,7 +27,7 @@ class WP_REST_Knowledge_Controller extends WP_REST_Posts_Controller {
 	 * Knowledge is private storage, so the collection is available only to an
 	 * authenticated user with the post type's read capability.
 	 *
-	 * @since 7.1.0
+	 * @since 7.2.0
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return true|WP_Error True if the request has read access, WP_Error object otherwise.
@@ -52,7 +52,7 @@ class WP_REST_Knowledge_Controller extends WP_REST_Posts_Controller {
 	 * Scopes the collection to rows readable by the current user so that the
 	 * total count and pagination headers reflect per-user visibility.
 	 *
-	 * @since 7.1.0
+	 * @since 7.2.0
 	 *
 	 * @param array<string, mixed> $prepared_args Optional. Prepared WP_Query arguments. Default empty array.
 	 * @param WP_REST_Request|null $request       Optional. Full details about the request.
@@ -71,7 +71,7 @@ class WP_REST_Knowledge_Controller extends WP_REST_Posts_Controller {
 	 * A row is readable only when the current user passes the `read_post`
 	 * capability check, which accounts for the row's author and status.
 	 *
-	 * @since 7.1.0
+	 * @since 7.2.0
 	 *
 	 * @param WP_Post $post Post object.
 	 * @return bool Whether the post can be read.
@@ -89,7 +89,7 @@ class WP_REST_Knowledge_Controller extends WP_REST_Posts_Controller {
 	 *
 	 * Callers without the publish capability may only set the `private` status.
 	 *
-	 * @since 7.1.0
+	 * @since 7.2.0
 	 *
 	 * @param string       $post_status The post status.
 	 * @param WP_Post_Type $post_type   The post type object.
@@ -116,7 +116,7 @@ class WP_REST_Knowledge_Controller extends WP_REST_Posts_Controller {
 	 *
 	 * New rows default to the `private` status when no status is supplied.
 	 *
-	 * @since 7.1.0
+	 * @since 7.2.0
 	 *
 	 * @param WP_REST_Request $request Request object.
 	 * @return stdClass|WP_Error Post object or WP_Error.
