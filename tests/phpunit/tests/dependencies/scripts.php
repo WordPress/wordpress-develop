@@ -4334,13 +4334,13 @@ HTML;
 		$print_scripts = get_echo( '_print_scripts' );
 
 		$expected = <<<HTML
-<script>
-var one = {"key":"val"};var two = {"key":"val"};
-//# sourceURL=js-inline-concat-one%2Ctwo
-</script>
-<script src="/wp-admin/load-scripts.php?c=0&#038;load%5Bchunk_0%5D=one,two&#038;ver={$wp_version}"></script>
+		<script>
+		var one = {"key":"val"};var two = {"key":"val"};
+		//# sourceURL=js-inline-concat-one%2Ctwo
+		</script>
+		<script src="/wp-admin/load-scripts.php?c=0&#038;load%5Bchunk_0%5D=one,two&#038;ver={$wp_version}"></script>
 
-HTML;
+		HTML;
 
 		$this->assertEqualHTML( $expected, $print_scripts );
 	}
