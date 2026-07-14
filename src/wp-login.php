@@ -1560,7 +1560,6 @@ switch ( $action ) {
 					array(
 						'id'    => 'rememberme-help-toggletip',
 						'label' => __( 'Help' ),
-						'type'  => 'toggletip',
 					)
 				);
 				?>
