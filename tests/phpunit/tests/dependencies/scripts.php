@@ -4315,6 +4315,7 @@ HTML;
 	 * @ticket 63887
 	 *
 	 * @global WP_Scripts $wp_scripts
+	 * @global bool $concatenate_scripts
 	 * @global string $wp_version
 	 */
 	public function test_source_url_with_concat() {
