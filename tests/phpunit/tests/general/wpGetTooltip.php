@@ -40,11 +40,10 @@ class Tests_General_wpGetTooltip extends WP_UnitTestCase {
 		$this->assertStringNotContainsString( 'class="wp-tooltip__close"', $tooltip );
 		$this->assertStringNotContainsString( 'popovertargetaction="hide"', $tooltip );
 
-		$toggletip = wp_get_tooltip(
+		$toggletip = wp_get_toggletip(
 			'Helpful text.',
 			array(
 				'id'   => 'my-tip',
-				'type' => 'toggletip',
 			)
 		);
 		// Ensure the toggle tip does contain a close button.
@@ -70,12 +69,11 @@ class Tests_General_wpGetTooltip extends WP_UnitTestCase {
 	 * @ticket 55343
 	 */
 	public function test_wp_get_tooltip_outputs_labels() {
-		$html = wp_get_tooltip(
+		$html = wp_get_toggletip(
 			'Helpful text.',
 			array(
 				'label'       => 'About this field',
 				'close_label' => 'Dismiss',
-				'type'        => 'toggletip', // Only toggle tip contains both labels.
 			)
 		);
 
