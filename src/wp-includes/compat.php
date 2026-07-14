@@ -714,6 +714,7 @@ if ( ! function_exists( 'clamp' ) ) {
 	 */
 	function clamp( $value, $min, $max ) {
 		$throw_value_error = static function ( string $message ) {
+			// The ValueError class was introduced in PHP 8, so in 7.4 throw InvalidArgumentException instead.
 			if ( ! class_exists( 'ValueError', false ) ) {
 				throw new InvalidArgumentException( $message );
 			}

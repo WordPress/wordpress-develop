@@ -41,9 +41,8 @@ parameters:
 			path: src/wp-includes/canonical.php
 			count: 1
 		# Level 2:
-		# ValueError is PHP 8.0+; core throws it conditionally via _wp_throw_value_error(),
-		# so the docblocks are correct for WP's 7.4+ range, but bleedingEdge's version-aware
-		# check treats the class as non-existent against the PHP 7.4 floor.
+		# ValueError is PHP 8.0+; core throws it conditionally so the docblocks are correct for WP's 7.4+ range,
+		# but bleedingEdge's version-aware check treats the class as non-existent against the PHP 7.4 floor.
 		-
 			message: '#@throws with type InvalidArgumentException\|ValueError#'
 			path: src/wp-includes/compat.php
