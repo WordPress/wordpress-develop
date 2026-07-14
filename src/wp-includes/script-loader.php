@@ -914,6 +914,7 @@ function wp_default_scripts( $scripts ) {
 	 * A notable change is that 'jquery-ui-core' now contains 'jquery-ui-position' and 'jquery-ui-widget'.
 	 */
 	$scripts->add( 'jquery-ui-core', "/wp-includes/js/jquery/ui/core$suffix.js", array( 'jquery' ), '1.14.2', 1 );
+	$scripts->add_inline_script( 'jquery-ui-core', 'jQuery.uiBackCompat = true;', 'before' );
 	$scripts->add( 'jquery-effects-core', "/wp-includes/js/jquery/ui/effect$suffix.js", array( 'jquery' ), '1.14.2', 1 );
 
 	$scripts->add( 'jquery-effects-blind', "/wp-includes/js/jquery/ui/effect-blind$suffix.js", array( 'jquery-effects-core' ), '1.14.2', 1 );
