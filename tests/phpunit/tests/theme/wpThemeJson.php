@@ -115,6 +115,13 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 				'blockVisibility' => array(
 					'allowEditing' => false,
 				),
+				'blocks'          => array(
+					'core/group' => array(
+						'blockVisibility' => array(
+							'allowEditing' => true,
+						),
+					),
+				),
 			),
 		);
 		$sanitized       = WP_Theme_JSON::remove_insecure_properties( $theme_json_data );
@@ -122,6 +129,8 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		$actual          = $theme_json->get_settings();
 
 		$this->assertFalse( $actual['blockVisibility']['allowEditing'] );
+		// The setting is global-only: block-scoped values are stripped during sanitization.
+		$this->assertArrayNotHasKey( 'blockVisibility', $actual['blocks']['core/group'] ?? array() );
 	}
 
 	/**
