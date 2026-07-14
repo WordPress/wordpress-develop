@@ -428,7 +428,7 @@ function wp_get_tooltip( $content, $args = array() ) {
  */
 function wp_get_toggletip( $content, $args ) {
 	$args['type'] = 'toggletip';
-	wp_get_tooltip_helper( $content, $args );
+	return wp_get_tooltip_helper( $content, $args );
 }
 /**
  * Retrieves the markup for an accessible tooltip or toggletip.
