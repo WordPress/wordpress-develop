@@ -1398,7 +1398,7 @@ function do_meta_boxes( $screen, $context, $data_object ) {
 						}
 
 						echo '<div class="handle-actions hide-if-no-js">';
-						
+
 						echo '<div class="wp-tooltip wp-is-tooltip">';
 						echo '<button type="button" class="handle-order-higher wp-tooltip__toggle" popovertarget="' . $box['id'] . '-handle-order-higher-description">';
 						echo '<span class="screen-reader-text">' .
