@@ -84,6 +84,7 @@ function wpmu_signup_stylesheet() {
 		.mu_register label,
 			.mu_register legend,
 			.mu_register .label-heading { font-weight: 600; font-size: 15px; display: block; margin: 10px 0; }
+		.mu_register label[for="site-language"] { display: inline-flex; align-items: center; }
 		.mu_register legend + p,
 			.mu_register input + p { margin-top: 0; }
 		.mu_register label.checkbox { display: inline; }
