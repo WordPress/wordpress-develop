@@ -1110,6 +1110,77 @@ class Tests_Comment extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 64217
+	 *
+	 * @covers ::wp_new_comment_notify_postauthor
+	 */
+	public function test_wp_new_comment_notify_postauthor_filter_should_receive_false_for_unapproved_comment() {
+		$c = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_id,
+				'comment_approved' => '0',
+			)
+		);
+
+		update_option( 'comments_notify', 1 );
+
+		$maybe_notify = null;
+		add_filter(
+			'notify_post_author',
+			static function ( $value ) use ( &$maybe_notify ) {
+				$maybe_notify = $value;
+				return $value;
+			}
+		);
+
+		$sent = wp_new_comment_notify_postauthor( $c );
+
+		$this->assertFalse( $maybe_notify, 'The filter should receive a default of false for an unapproved comment.' );
+		$this->assertFalse( $sent, 'No notification should be sent for an unapproved comment by default.' );
+	}
+
+	/**
+	 * @ticket 64217
+	 *
+	 * @covers ::wp_new_comment_notify_postauthor
+	 */
+	public function test_wp_new_comment_notify_postauthor_filter_should_override_unapproved_comment() {
+		$c = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_id,
+				'comment_approved' => '0',
+			)
+		);
+
+		add_filter( 'notify_post_author', '__return_true' );
+
+		$sent = wp_new_comment_notify_postauthor( $c );
+
+		$this->assertTrue( $sent, 'The notify_post_author filter should be able to force a notification for an unapproved comment.' );
+	}
+
+	/**
+	 * @ticket 64217
+	 *
+	 * @covers ::wp_new_comment_notify_postauthor
+	 */
+	public function test_wp_new_comment_notify_postauthor_should_not_send_email_for_invalid_comment() {
+		$filter_fired = false;
+		add_filter(
+			'notify_post_author',
+			static function ( $value ) use ( &$filter_fired ) {
+				$filter_fired = true;
+				return $value;
+			}
+		);
+
+		$sent = wp_new_comment_notify_postauthor( 0 );
+
+		$this->assertFalse( $sent, 'No notification should be sent for an invalid comment ID.' );
+		$this->assertFalse( $filter_fired, 'The notify_post_author filter should not fire for an invalid comment ID.' );
+	}
+
+	/**
 	 * @ticket 43805
 	 *
 	 * @covers ::wp_new_comment_notify_postauthor
