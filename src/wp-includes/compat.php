@@ -685,28 +685,6 @@ if ( ! function_exists( 'array_last' ) ) {
 	}
 }
 
-/**
- * Throws a ValueError (PHP 8.0+) or an InvalidArgumentException (PHP 7.x) with the given message.
- *
- * Helper for polyfills that need to throw ValueError but must also run on PHP 7.4,
- * where the class does not exist.
- *
- * @ignore
- * @since 7.1.0
- * @access private
- *
- * @param string $message The error message.
- * @throws ValueError               If the ValueError class exists (PHP 8.0+ or polyfilled).
- * @throws InvalidArgumentException If the ValueError class does not exist (PHP 7.x).
- */
-function _wp_throw_value_error( $message ) {
-	if ( ! class_exists( 'ValueError', false ) ) {
-		throw new InvalidArgumentException( $message );
-	}
-
-	throw new ValueError( $message );
-}
-
 if ( ! function_exists( 'clamp' ) ) {
 	/**
 	 * Polyfill for `clamp()` function added in PHP 8.6.
@@ -727,16 +705,23 @@ if ( ! function_exists( 'clamp' ) ) {
 	 * @throws InvalidArgumentException If `$min` is greater than `$max`, or if `$min` or `$max` is NAN, and the ValueError class does not exist (PHP 7.x).
 	 */
 	function clamp( $value, $min, $max ) {
+		$throw_value_error = static function ( string $message ) {
+			if ( ! class_exists( 'ValueError', false ) ) {
+				throw new InvalidArgumentException( $message );
+			}
+			throw new ValueError( $message );
+		};
+
 		if ( is_float( $min ) && is_nan( $min ) ) {
-			_wp_throw_value_error( 'clamp(): Argument #2 ($min) must not be NAN' );
+			$throw_value_error( 'clamp(): Argument #2 ($min) must not be NAN' );
 		}
 
 		if ( is_float( $max ) && is_nan( $max ) ) {
-			_wp_throw_value_error( 'clamp(): Argument #3 ($max) must not be NAN' );
+			$throw_value_error( 'clamp(): Argument #3 ($max) must not be NAN' );
 		}
 
 		if ( $max < $min ) {
-			_wp_throw_value_error( 'clamp(): Argument #2 ($min) must be smaller than or equal to argument #3 ($max)' );
+			$throw_value_error( 'clamp(): Argument #2 ($min) must be smaller than or equal to argument #3 ($max)' );
 		}
 
 		if ( $value < $min ) {
