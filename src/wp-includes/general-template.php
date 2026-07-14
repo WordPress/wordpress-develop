@@ -370,10 +370,11 @@ function get_search_form( $args = array() ) {
 }
 
 /**
- * Retrieves the markup for an accessible tooltip.
+ * Retrieves the markup for an accessible tooltip or toggletip.
  *
  * Returns a help button and its tooltip popover, linked with `aria-describedby`. Enqueue the
- * `wp-tooltip` style where it is used; the login styles already do.
+ * `wp-tooltip` style and script where it is used. Tooltips show the accessible name of a
+ * control. Toggletips should be used for longer supporting text.
  *
  * @since 7.1.0
  *
@@ -384,7 +385,8 @@ function get_search_form( $args = array() ) {
  *     @type string $id          Unique ID for the popover element. Default is a
  *                               generated unique ID.
  *     @type string $label       Accessible label for the toggle button.
- *                               Default 'More information'.
+ *                               Default 'Help', matching the default icon.
+ *                               Ignored for tooltips.
  *     @type string $close_label Accessible label for the close button. Default 'Close'.
  *     @type string $icon        Dashicons icon class for the toggle button.
  *                               Default 'dashicons-editor-help'.
@@ -402,7 +404,7 @@ function wp_get_tooltip( $content, $args = array() ) {
 
 	$defaults = array(
 		'id'          => '',
-		'label'       => __( 'More information' ),
+		'label'       => __( 'Help' ),
 		'close_label' => __( 'Close' ),
 		'icon'        => 'dashicons-editor-help',
 		'class'       => '',
@@ -421,6 +423,8 @@ function wp_get_tooltip( $content, $args = array() ) {
 	$icon = '' !== $args['icon'] ? ' ' . $args['icon'] : '';
 
 	if ( 'tooltip' === $args['type'] ) {
+		// Tooltips are only used to visually display labels.
+		$label  = wp_strip_all_tags( $content, true );
 		$markup = sprintf(
 			'<div class="%1$s">' .
 				'<button type="button" class="wp-tooltip__toggle" popovertarget="%2$s" aria-describedby="%2$s-text" aria-label="%3$s">' .
@@ -432,7 +436,7 @@ function wp_get_tooltip( $content, $args = array() ) {
 			'</div>',
 			esc_attr( $classes ),
 			esc_attr( $id ),
-			esc_attr( $args['label'] ),
+			esc_attr( $label ),
 			esc_attr( $icon ),
 			esc_html( $content ),
 		);
