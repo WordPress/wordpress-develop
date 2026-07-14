@@ -1174,7 +1174,8 @@ class Tests_Comment extends WP_UnitTestCase {
 			}
 		);
 
-		$sent = wp_new_comment_notify_postauthor( 0 );
+		// An empty ID such as 0 would fall back to the global comment in get_comment().
+		$sent = wp_new_comment_notify_postauthor( PHP_INT_MAX );
 
 		$this->assertFalse( $sent, 'No notification should be sent for an invalid comment ID.' );
 		$this->assertFalse( $filter_fired, 'The notify_post_author filter should not fire for an invalid comment ID.' );
