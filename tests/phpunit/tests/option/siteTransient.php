@@ -155,24 +155,4 @@ class Tests_Option_SiteTransient extends WP_UnitTestCase {
 
 		$this->assertNull( $option, 'Querying option table should not return transient on multisite.' );
 	}
-
-	/**
-	 * Ensure get_site_transient() returns false when the transient timeout option is missing (broken transient).
-	 *
-	 * @ticket 33561
-	 * @group ms-excluded
-	 *
-	 * @covers ::get_site_transient
-	 */
-	public function test_get_site_transient_returns_false_when_timeout_is_missing() {
-		$key   = 'test_site_transient_broken';
-		$value = 'test_value';
-
-		set_site_transient( $key, $value, 60 * 10 );
-		$this->assertSame( $value, get_site_transient( $key ) );
-
-		delete_option( '_site_transient_timeout_' . $key );
-
-		$this->assertFalse( get_site_transient( $key ) );
-	}
 }

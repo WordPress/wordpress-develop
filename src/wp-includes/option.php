@@ -2598,9 +2598,7 @@ function get_site_transient( $transient ) {
 			wp_prime_site_option_caches( array( $transient_option, $transient_timeout ) );
 
 			$timeout = get_site_option( $transient_timeout );
-			if ( false === $timeout ) {
-				$value = false;
-			} elseif ( $timeout < time() ) {
+			if ( false !== $timeout && $timeout < time() ) {
 				delete_site_option( $transient_option );
 				delete_site_option( $transient_timeout );
 				$value = false;
