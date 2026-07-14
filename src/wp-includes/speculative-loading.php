@@ -170,6 +170,7 @@ function wp_get_speculation_rules(): ?WP_Speculation_Rules {
 	 * @param string   $mode               Mode used to apply speculative loading. Either 'prefetch' or 'prerender'.
 	 */
 	$href_exclude_paths = (array) apply_filters( 'wp_speculation_rules_href_exclude_paths', array(), $mode );
+	$href_exclude_paths = array_filter( $href_exclude_paths, 'is_string' );
 
 	// Ensure that:
 	// 1. There are no duplicates.
