@@ -393,7 +393,7 @@ function get_search_form( $args = array() ) {
  * }
  * @return string Tooltip HTML markup, or an empty string when no content is provided.
  */
-function wp_get_tooltip( $content, $args ) {
+function wp_get_tooltip( $content, $args = array() ) {
 	$args['type'] = 'tooltip';
 	return wp_get_tooltip_helper( $content, $args );
 }
