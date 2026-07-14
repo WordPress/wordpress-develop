@@ -417,12 +417,7 @@ class WP_Theme_JSON {
 	 *              Added support for `dimensions.width` and `dimensions.height`.
 	 *              Added support for `typography.textIndent`.
 	 * @since 7.1.0 Added `viewport` property.
-<<<<<<< add/min-width-support
-	 *              Added support for `background.gradient`.
-	 *              Added support for `dimensions.minWidth`.
-=======
-	 *              Added support for `background.gradient` and `blockVisibility.allowEditing`.
->>>>>>> trunk
+	 *              Added support for `background.gradient`, `dimensions.minWidth` and `blockVisibility.allowEditing`.
 	 * @var array
 	 */
 	const VALID_SETTINGS = array(
