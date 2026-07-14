@@ -4749,10 +4749,7 @@ class WP_HTML_Tag_Processor {
 		 *    Result: <div />
 		 */
 		$attribute_token = $this->attributes[ $name ];
-		$replacement     = (
-			$attribute_token->start > 0 &&
-			'/' === $this->html[ $attribute_token->start - 1 ]
-		) ? ' ' : '';
+		$replacement     = '/' === $this->html[ $attribute_token->start - 1 ] ? ' ' : '';
 
 		$this->lexical_updates[ $name ] = new WP_HTML_Text_Replacement(
 			$attribute_token->start,
@@ -4780,10 +4777,7 @@ class WP_HTML_Tag_Processor {
 		// Removes any duplicated attributes if they were also present.
 		if ( ! $duplicates_already_removed ) {
 			foreach ( $duplicate_attributes as $attribute_token ) {
-				$replacement = (
-					$attribute_token->start > 0 &&
-					'/' === $this->html[ $attribute_token->start - 1 ]
-				) ? ' ' : '';
+				$replacement = '/' === $this->html[ $attribute_token->start - 1 ] ? ' ' : '';
 
 				$this->lexical_updates[] = new WP_HTML_Text_Replacement(
 					$attribute_token->start,
