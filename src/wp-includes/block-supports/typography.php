@@ -358,8 +358,14 @@ function wp_render_typography_support( $block_content, $block ) {
  * }
  * @return array|null An array consisting of `'value'` and `'unit'` properties on success.
  *                    `null` on failure.
+ * @phpstan-param array{
+ *     coerce_to?: string,
+ *     root_size_value?: positive-int,
+ *     acceptable_units?: list<non-empty-string>,
+ * } $options
+ * @phpstan-return array{ value: float, unit: string }|null
  */
-function wp_get_typography_value_and_unit( $raw_value, $options = array() ) {
+function wp_get_typography_value_and_unit( $raw_value, $options = array() ): ?array {
 	if ( ! is_string( $raw_value ) && ! is_int( $raw_value ) && ! is_float( $raw_value ) ) {
 		_doing_it_wrong(
 			__FUNCTION__,
@@ -384,6 +390,13 @@ function wp_get_typography_value_and_unit( $raw_value, $options = array() ) {
 		'acceptable_units' => array( 'rem', 'px', 'em' ),
 	);
 
+	/**
+	 * @var array{
+	 *     coerce_to: string,
+	 *     root_size_value: positive-int,
+	 *     acceptable_units: list<non-empty-string>,
+	 * } $options
+	 */
 	$options = wp_parse_args( $options, $defaults );
 
 	$acceptable_units_group = implode( '|', $options['acceptable_units'] );
@@ -396,7 +409,7 @@ function wp_get_typography_value_and_unit( $raw_value, $options = array() ) {
 		return null;
 	}
 
-	$value = $matches[1];
+	$value = (float) $matches[1];
 	$unit  = $matches[2];
 
 	/*
