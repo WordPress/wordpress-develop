@@ -1561,6 +1561,7 @@ switch ( $action ) {
 				<input name="rememberme" type="checkbox" id="rememberme" value="forever" <?php checked( $rememberme ); ?> />
 				<label for="rememberme"><?php esc_html_e( 'Remember Me' ); ?></label>
 				<?php
+				echo wp_get_tooltip( 'Help' );
 				echo wp_get_tooltip(
 					$rememberme_help_text,
 					array(
