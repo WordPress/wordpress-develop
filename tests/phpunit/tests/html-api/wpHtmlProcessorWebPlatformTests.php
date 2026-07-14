@@ -6,11 +6,11 @@
  * This test suite runs a set of tests on the HTML API using a third-party suite of test fixtures.
  * A third-party test suite allows the HTML API's behavior to be compared against an external
  * standard. Without a third-party, there is risk of oversight or misinterpretation of the standard
- * being implemented in application code and in tests. html5lib-tests is used by other projects like
- * browsers or other HTML parsers for the same purpose of validating behavior against an
- * external reference.
+ * being implemented in application code and in tests. The Web Platform Tests tree-construction
+ * fixtures are used by other projects like browsers or other HTML parsers for the same purpose
+ * of validating behavior against an external reference.
  *
- * See the README file at DIR_TESTDATA / html5lib-tests for details on the third-party suite.
+ * See the README file at DIR_TESTDATA / web-platform-tests for details on the third-party suite.
  *
  * @package WordPress
  * @subpackage HTML-API
@@ -18,9 +18,9 @@
  * @since 6.6.0
  *
  * @group html-api
- * @group html-api-html5lib-tests
+ * @group html-api-web-platform-tests
  */
-class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
+class Tests_HtmlApi_WebPlatformTests extends WP_UnitTestCase {
 	const TREE_INDENT = '  ';
 
 	/**
@@ -38,15 +38,18 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 		'tests2/line0697'     => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
 		'tests2/line0709'     => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
 		'webkit01/line0231'   => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
+		'webkit02/line0692'   => 'Unimplemented: The parser does not implement the "maybe clone an option into selectedcontent" algorithm.',
+		'webkit02/line0732'   => 'Unimplemented: The parser does not implement the "maybe clone an option into selectedcontent" algorithm.',
+		'webkit02/line0748'   => 'Unimplemented: The parser does not implement the "maybe clone an option into selectedcontent" algorithm.',
 	);
 
 	/**
 	 * Verify the parsing results of the HTML Processor against the
-	 * test cases in the Html5lib tests project.
+	 * test cases in the Web Platform Tests tree-construction suite.
 	 *
 	 * @ticket 60227
 	 *
-	 * @dataProvider data_external_html5lib_tests
+	 * @dataProvider data_external_web_platform_tests
 	 *
 	 * @param string|null $fragment_context Context element in which to parse HTML, such as BODY or SVG.
 	 * @param string      $html             Given test HTML.
@@ -98,12 +101,12 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 	/**
 	 * Data provider.
 	 *
-	 * Tests from https://github.com/html5lib/html5lib-tests
+	 * Tests from https://github.com/web-platform-tests/wpt/tree/master/html/syntax/parsing/resources
 	 *
 	 * @return array[]
 	 */
-	public function data_external_html5lib_tests() {
-		$test_dir = DIR_TESTDATA . '/html5lib-tests/tree-construction/';
+	public function data_external_web_platform_tests() {
+		$test_dir = DIR_TESTDATA . '/web-platform-tests/html_syntax_parsing_resources/';
 
 		$handle = opendir( $test_dir );
 		while ( false !== ( $entry = readdir( $handle ) ) ) {
@@ -111,7 +114,7 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 				continue;
 			}
 
-			foreach ( self::parse_html5_dat_testfile( $test_dir . $entry ) as $k => $test ) {
+			foreach ( self::parse_web_platform_test_file( $test_dir . $entry ) as $k => $test ) {
 				// strip .dat extension from filename
 				$test_suite = substr( $entry, 0, -4 );
 				$line       = str_pad( strval( $test[0] ), 4, '0', STR_PAD_LEFT );
@@ -150,7 +153,7 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Generates the tree-like structure represented in the Html5lib tests.
+	 * Generates the tree-like structure represented in the Web Platform Tests fixtures.
 	 *
 	 * @param string|null $fragment_context Context element in which to parse HTML, such as BODY or SVG.
 	 * @param string      $html             Given test HTML.
@@ -228,7 +231,7 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 						}
 
 						/*
-						 * Sorts attributes to match html5lib sort order.
+						 * Sorts attributes to match Web Platform Tests tree-construction order.
 						 *
 						 *  - First comes normal HTML attributes.
 						 *  - Then come adjusted foreign attributes; these have spaces in their names.
@@ -306,6 +309,15 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 					$output .= str_repeat( self::TREE_INDENT, $indent_level ) . "<!-- {$processor->get_modifiable_text()} -->\n";
 					break;
 
+				case '#processing-instruction':
+					/*
+					 * Processing instructions must be "<?" then the target then,
+					 * unless the data is empty, a space and the data, and finally "?>".
+					 */
+					$pi_data = $processor->get_modifiable_text();
+					$output .= str_repeat( self::TREE_INDENT, $indent_level ) . "<?{$processor->get_tag()} {$pi_data}?>\n";
+					break;
+
 				case '#comment':
 					// Comments must be "<" then "!-- " then the data then " -->".
 					$output .= str_repeat( self::TREE_INDENT, $indent_level ) . "<!-- {$processor->get_full_comment_text()} -->\n";
@@ -338,7 +350,7 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Convert a given Html5lib test file into a series of test cases.
+	 * Convert a given Web Platform Tests fixture file into a series of test cases.
 	 *
 	 * @param string $filename Path to `.dat` file with test cases.
 	 *
@@ -349,7 +361,7 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 	 *     string,           // DOM structure it represents.
 	 * }> Test cases.
 	 */
-	public static function parse_html5_dat_testfile( $filename ) {
+	public static function parse_web_platform_test_file( $filename ) {
 		$handle = fopen( $filename, 'r', false );
 
 		/**
@@ -436,14 +448,6 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 				 * the tree of the parsed DOM. Each node must be represented by a single line. Each line
 				 * must start with "| ", followed by two spaces per parent node that the node has before
 				 * the root document node.
-				 *
-				 * - Element nodes must be represented by a "<" then the tag name string ">", and all the attributes must be given, sorted lexicographically by UTF-16 code unit according to their attribute name string, on subsequent lines, as if they were children of the element node.
-				 * - Attribute nodes must have the attribute name string, then an "=" sign, then the attribute value in double quotes (").
-				 * - Text nodes must be the string, in double quotes. Newlines aren't escaped.
-				 * - Comments must be "<" then "!-- " then the data then " -->".
-				 * - DOCTYPEs must be "<!DOCTYPE " then the name then if either of the system id or public id is non-empty a space, public id in double-quotes, another space an the system id in double-quotes, and then in any case ">".
-				 * - Processing instructions must be "<?", then the target, then a space, then the data and then ">". (The HTML parser cannot emit processing instructions, but scripts can, and the WebVTT to DOM rules can emit them.)
-				 * - Template contents are represented by the string "content" with the children below it.
 				 */
 				case 'document':
 					if ( '|' === $line[0] ) {
@@ -459,13 +463,20 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 
 		fclose( $handle );
 
-		// Return the last result when reaching the end of the file.
-		return array(
-			$test_line_number,
-			$test_context_element,
-			// Remove the trailing newline
-			substr( $test_html, 0, -1 ),
-			$test_dom,
-		);
+		// Yield the last result when reaching the end of the file.
+		if ( $state && ! $test_script_flag ) {
+			// Other tests include the blank line separating them from the next test.
+			if ( ! str_ends_with( $test_dom, "\n\n" ) ) {
+				$test_dom .= "\n";
+			}
+
+			yield array(
+				$test_line_number,
+				$test_context_element,
+				// Remove the trailing newline
+				substr( $test_html, 0, -1 ),
+				$test_dom,
+			);
+		}
 	}
 }

@@ -803,7 +803,7 @@ function wp_default_scripts( $scripts ) {
 			'enterImageURL'         => __( 'Enter the URL of the image' ),
 			'enterImageDescription' => __( 'Enter a description of the image' ),
 			'textdirection'         => __( 'text direction' ),
-			'toggleTextdirection'   => __( 'Toggle Editor Text Direction' ),
+			'toggleTextdirection'   => __( 'Switch Editor Text Direction' ),
 			'dfw'                   => __( 'Distraction-free writing mode' ),
 			'strong'                => __( 'Bold' ),
 			'strongClose'           => __( 'Close bold tag' ),
@@ -2233,10 +2233,7 @@ function _print_scripts() {
 
 	if ( $concat ) {
 		if ( ! empty( $wp_scripts->print_code ) ) {
-			echo "\n<script>\n";
-			echo $wp_scripts->print_code;
-			echo sprintf( "\n//# sourceURL=%s\n", rawurlencode( 'js-inline-concat-' . $concat ) );
-			echo "</script>\n";
+			wp_print_inline_script_tag( $wp_scripts->print_code . "\n//# sourceURL=" . rawurlencode( 'js-inline-concat-' . $concat ) );
 		}
 
 		$concat       = str_split( $concat, 128 );
@@ -2247,7 +2244,7 @@ function _print_scripts() {
 		}
 
 		$src = $wp_scripts->base_url . "/wp-admin/load-scripts.php?c={$zip}" . $concatenated . '&ver=' . $wp_scripts->default_version;
-		echo "<script src='" . esc_attr( $src ) . "'></script>\n";
+		wp_print_script_tag( array( 'src' => $src ) );
 	}
 
 	if ( ! empty( $wp_scripts->print_html ) ) {
@@ -2647,32 +2644,6 @@ function wp_enqueue_global_styles() {
 
 	// Add each block as an inline css.
 	wp_add_global_styles_for_blocks();
-}
-
-/**
- * Declares a flag that the Classic block is necessary for the current post.
- *
- * @since 7.1.0
- * @access private
- */
-function wp_declare_classic_block_necessary(): void {
-	/**
-	 * Filters whether the Classic block should be available in the inserter.
-	 *
-	 * Defaults to false. Use this filter to opt in (globally or per post).
-	 *
-	 * @param bool         $supports_inserter Whether the Classic block is available in the inserter.
-	 * @param WP_Post|null $post              The post being edited, or null if not in the post editor.
-	 */
-	if ( ! (bool) apply_filters( 'wp_classic_block_supports_inserter', false, get_post() ) ) {
-		return;
-	}
-
-	wp_add_inline_script(
-		'wp-block-library',
-		'window.__needsClassicBlock = true;',
-		'before'
-	);
 }
 
 /**
@@ -3077,11 +3048,6 @@ function wp_get_inline_script_tag( $data, $attributes = array() ) {
 	}
 
 	if ( ! $processor->set_modifiable_text( $data ) ) {
-		_doing_it_wrong(
-			__FUNCTION__,
-			__( 'Unable to set inline script data.' ),
-			'7.0.0'
-		);
 		return '';
 	}
 
