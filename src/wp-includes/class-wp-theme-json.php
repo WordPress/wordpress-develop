@@ -415,8 +415,7 @@ class WP_Theme_JSON {
 	 *              Added support for `dimensions.width` and `dimensions.height`.
 	 *              Added support for `typography.textIndent`.
 	 * @since 7.1.0 Added `viewport` property.
-	 *              Added support for `background.gradient`.
-	 *              Added support for `blockVisibility.allowEditing`.
+	 *              Added support for `background.gradient` and `blockVisibility.allowEditing`.
 	 * @var array
 	 */
 	const VALID_SETTINGS = array(
