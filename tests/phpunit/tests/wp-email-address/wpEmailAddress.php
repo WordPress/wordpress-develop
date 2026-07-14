@@ -216,6 +216,40 @@ class Tests_WpEmailAddress extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that the local part is treated as a dot-atom, rejecting leading,
+	 * trailing, and consecutive dots.
+	 *
+	 * These addresses are invalid per the stricter RFC 5321/5322 syntax and
+	 * PHP's FILTER_VALIDATE_EMAIL, so WordPress cannot deliver mail to them.
+	 *
+	 * @ticket 55821
+	 *
+	 * @dataProvider data_invalid_local_part_dots
+	 * @covers WP_Email_Address::from_string
+	 *
+	 * @param string $address The invalid email address string.
+	 */
+	public function test_from_string_rejects_invalid_local_part_dots( $address ) {
+		$this->assertNull( WP_Email_Address::from_string( $address, 'unicode' ), 'Should reject in Unicode mode.' );
+		$this->assertNull( WP_Email_Address::from_string( $address, 'ascii' ), 'Should reject in ASCII mode.' );
+	}
+
+	/**
+	 * Data provider for local parts with invalid dot placement.
+	 *
+	 * @return array[]
+	 */
+	public function data_invalid_local_part_dots() {
+		return array(
+			'consecutive dots in local part' => array( 'abc..def@example.com' ),
+			'leading dot in local part'      => array( '.abc@example.com' ),
+			'trailing dot in local part'     => array( 'abc.@example.com' ),
+			'only dots in local part'        => array( '..@example.com' ),
+			'single dot as local part'       => array( '.@example.com' ),
+		);
+	}
+
+	/**
 	 * Data provider for several tests.
 	 *
 	 * @return array[]
