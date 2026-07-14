@@ -316,7 +316,46 @@ jQuery( function($) {
 		copyAttachmentURLSuccessTimeout,
 		__ = wp.i18n.__, _x = wp.i18n._x;
 
+	/**
+	 * Show a warning in the classic editor when the post content includes
+	 * serialized block comments, which may not be visible in the Visual tab.
+	 */
+	function maybeShowBlockMarkupWarning() {
+		var hasBlockMarkup, $warning, $editorWrapper;
+
+		if ( ! $textarea.length ) {
+			return;
+		}
+
+		hasBlockMarkup = /<!--\s*wp:[^>]*-->/.test( $textarea.val() );
+		if ( ! hasBlockMarkup ) {
+			return;
+		}
+
+		$warning = $( '#classic-editor-block-markup-notice' );
+		if ( $warning.length ) {
+			return;
+		}
+
+		$warning = $( '<div>', {
+			id: 'classic-editor-block-markup-notice',
+			'class': 'notice notice-warning inline'
+		} ).append(
+			$( '<p>' ).text(
+				__(
+					'This content includes Gutenberg block markup that may be visible in the Code editor but not in the Visual editor. The page may not be empty. Review the content carefully before overwriting or deleting it.'
+				)
+			)
+		);
+
+		$editorWrapper = $( '#wp-content-wrap' );
+		if ( $editorWrapper.length ) {
+			$editorWrapper.before( $warning );
+		}
+	}
+
 	postboxes.add_postbox_toggles(pagenow);
+	maybeShowBlockMarkupWarning();
 
 	/*
 	 * Clear the window name. Otherwise if this is a former preview window where the user navigated to edit another post,
