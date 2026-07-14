@@ -750,6 +750,45 @@ class Tests_HtmlApi_WpHtmlProcessor_Serialize extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensures that carriage returns are correctly serialized.
+	 *
+	 * @ticket 65372
+	 *
+	 * @dataProvider data_provider_carriage_returns
+	 *
+	 * @param string $input    HTML input containing a decoded carriage return.
+	 * @param string $expected Expected normalized output.
+	 */
+	public function test_normalize_serializes_decoded_carriage_returns_as_character_references( string $input, string $expected ): void {
+		$normalized = WP_HTML_Processor::normalize( $input );
+
+		$this->assertSame( $expected, $normalized, 'Should have serialized the carriage return as a character reference.' );
+		$this->assertSame(
+			$expected,
+			WP_HTML_Processor::normalize( $normalized ),
+			'Normalizing already-normalized HTML should not change the serialized carriage return.'
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{string, string}>
+	 */
+	public static function data_provider_carriage_returns(): array {
+		return array(
+			'Decimal character reference' => array( 'a&#13;b', 'a&#xD;b' ),
+			'Hex character reference'     => array( 'a&#x0D;b', 'a&#xD;b' ),
+			'RCDATA title'                => array( '<title>a&#13;b</title>', '<title>a&#xD;b</title>' ),
+			'Attribute value'             => array( '<p attr="a&#13;b"></p>', '<p attr="a&#xD;b"></p>' ),
+			'Table text'                  => array( '<table><td>x&#13;', '<table><tbody><tr><td>x&#xD;</td></tr></tbody></table>' ),
+			'Template text'               => array( '<template>a&#13;b</template>', '<template>a&#xD;b</template>' ),
+			'Raw CR'                      => array( "<p title=\"a\rb\"></p>", "<p title=\"a\nb\"></p>" ),
+			'Raw CRLF pair'               => array( "<p title=\"a\r\nb\">", "<p title=\"a\nb\"></p>" ),
+		);
+	}
+
+	/**
 	 * Data provider.
 	 *
 	 * @return array<string, array{string, string}>
