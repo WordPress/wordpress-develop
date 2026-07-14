@@ -2238,6 +2238,14 @@ function excerpt_remove_blocks( $content ) {
 	$output         = '';
 
 	foreach ( $blocks as $block ) {
+		// Hide the block whenever the value is boolean false, regardless of the
+		// block's current visibility support. This prevents blocks that previously
+		// supported visibility from unintentionally appearing on the front end
+		// after their support was disabled.
+		if ( false === ( $block['attrs']['metadata']['blockVisibility'] ?? null ) ) {
+			continue;
+		}
+
 		if ( in_array( $block['blockName'], $allowed_blocks, true ) ) {
 			if ( ! empty( $block['innerBlocks'] ) ) {
 				if ( in_array( $block['blockName'], $allowed_wrapper_blocks, true ) ) {
@@ -2299,6 +2307,14 @@ function _excerpt_render_inner_blocks( $parsed_block, $allowed_blocks ) {
 	$output = '';
 
 	foreach ( $parsed_block['innerBlocks'] as $inner_block ) {
+		// Hide the block whenever the value is boolean false, regardless of the
+		// block's current visibility support. This prevents blocks that previously
+		// supported visibility from unintentionally appearing on the front end
+		// after their support was disabled.
+		if ( false === ( $inner_block['attrs']['metadata']['blockVisibility'] ?? null ) ) {
+			continue;
+		}
+
 		if ( ! in_array( $inner_block['blockName'], $allowed_blocks, true ) ) {
 			continue;
 		}
@@ -2604,9 +2620,9 @@ function unregister_block_style( $block_name, $block_style_name ) {
  * @since 5.8.0
  * @since 6.4.0 The `$feature` parameter now supports a string.
  *
- * @param WP_Block_Type $block_type    Block type to check for support.
- * @param string|array  $feature       Feature slug, or path to a specific feature to check support for.
- * @param mixed         $default_value Optional. Fallback value for feature support. Default false.
+ * @param WP_Block_Type|null $block_type    Block type to check for support.
+ * @param string|array       $feature       Feature slug, or path to a specific feature to check support for.
+ * @param mixed              $default_value Optional. Fallback value for feature support. Default false.
  * @return bool Whether the feature is supported.
  */
 function block_has_support( $block_type, $feature, $default_value = false ) {
@@ -2688,6 +2704,7 @@ function wp_migrate_old_typography_shape( $metadata ) {
  * @since 6.1.0 Added `query_loop_block_query_vars` filter and `parents` support in query.
  * @since 6.7.0 Added support for the `format` property in query.
  * @since 7.0.0 Updated `taxQuery` structure.
+ * @since 7.1.0 Added support for the `excludeCurrent` property in query.
  *
  * @param WP_Block $block Block instance.
  * @param int      $page  Current query's page.
@@ -2732,6 +2749,12 @@ function build_query_vars_from_query_block( $block, $page ) {
 			$excluded_post_ids     = array_map( 'intval', $block->context['query']['exclude'] );
 			$excluded_post_ids     = array_filter( $excluded_post_ids );
 			$query['post__not_in'] = array_merge( $query['post__not_in'], $excluded_post_ids );
+		}
+		if ( ! empty( $block->context['query']['excludeCurrent'] ) ) {
+			$current_post_id = get_the_ID();
+			if ( $current_post_id ) {
+				$query['post__not_in'][] = $current_post_id;
+			}
 		}
 		if (
 			isset( $block->context['query']['perPage'] ) &&
