@@ -766,6 +766,18 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 			);
 		}
 
+		if ( $theme->get( 'SupportURI' ) ) {
+			/* translators: %s: Theme name. */
+			$aria_label = sprintf( __( 'Visit support site for %s' ), $theme->display( 'Name' ) );
+
+			$theme_meta[] = sprintf(
+				'<a href="%s" aria-label="%s">%s</a>',
+				$theme->display( 'SupportURI' ),
+				esc_attr( $aria_label ),
+				__( 'Visit Support Site' )
+			);
+		}
+
 		if ( $theme->parent() ) {
 			$theme_meta[] = sprintf(
 				/* translators: %s: Theme name. */

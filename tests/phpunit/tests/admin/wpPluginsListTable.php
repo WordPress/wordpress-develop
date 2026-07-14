@@ -36,6 +36,7 @@ class Tests_Admin_wpPluginsListTable extends WP_UnitTestCase {
 			'Description' => 'A fake plugin for testing.',
 			'Author'      => 'WordPress',
 			'AuthorURI'   => 'https://wordpress.org/',
+			'SupportURI'  => 'https://wordpress.org/support/plugin/fake-plugin',
 			'TextDomain'  => 'fake-plugin',
 			'DomainPath'  => '/languages',
 			'Network'     => false,

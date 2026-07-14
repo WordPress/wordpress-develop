@@ -765,6 +765,7 @@ function wp_prepare_themes_for_js( $themes = null ) {
 			'description'    => $theme->display( 'Description' ),
 			'author'         => $theme->display( 'Author', false, true ),
 			'authorAndUri'   => $theme->display( 'Author' ),
+			'supportUri'     => $theme->display( 'SupportURI' ),
 			'tags'           => $theme->display( 'Tags' ),
 			'version'        => $theme->get( 'Version' ),
 			'compatibleWP'   => is_wp_version_compatible( $theme->get( 'RequiresWP' ) ),

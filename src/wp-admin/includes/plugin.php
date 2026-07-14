@@ -56,6 +56,7 @@
  *
  *     @type string $Name            Name of the plugin. Should be unique.
  *     @type string $PluginURI       Plugin URI.
+ *     @type string $SupportURI      Plugin Support URI.
  *     @type string $Version         Plugin version.
  *     @type string $Description     Plugin description.
  *     @type string $Author          Plugin author's name.
@@ -76,6 +77,7 @@ function get_plugin_data( $plugin_file, $markup = true, $translate = true ) {
 	$default_headers = array(
 		'Name'            => 'Plugin Name',
 		'PluginURI'       => 'Plugin URI',
+		'SupportURI'      => 'Support URI',
 		'Version'         => 'Version',
 		'Description'     => 'Description',
 		'Author'          => 'Author',
@@ -157,7 +159,7 @@ function _get_plugin_data_markup_translate( $plugin_file, $plugin_data, $markup 
 			$textdomain = 'default';
 		}
 		if ( $textdomain ) {
-			foreach ( array( 'Name', 'PluginURI', 'Description', 'Author', 'AuthorURI', 'Version' ) as $field ) {
+			foreach ( array( 'Name', 'PluginURI', 'SupportURI', 'Description', 'Author', 'AuthorURI', 'Version' ) as $field ) {
 				if ( ! empty( $plugin_data[ $field ] ) ) {
 					// phpcs:ignore WordPress.WP.I18n.LowLevelTranslationFunction,WordPress.WP.I18n.NonSingularStringLiteralText,WordPress.WP.I18n.NonSingularStringLiteralDomain
 					$plugin_data[ $field ] = translate( $plugin_data[ $field ], $textdomain );
@@ -191,8 +193,9 @@ function _get_plugin_data_markup_translate( $plugin_file, $plugin_data, $markup 
 	$plugin_data['Description'] = wp_kses( $plugin_data['Description'], $allowed_tags );
 	$plugin_data['Version']     = wp_kses( $plugin_data['Version'], $allowed_tags );
 
-	$plugin_data['PluginURI'] = esc_url( $plugin_data['PluginURI'] );
-	$plugin_data['AuthorURI'] = esc_url( $plugin_data['AuthorURI'] );
+	$plugin_data['PluginURI']  = esc_url( $plugin_data['PluginURI'] );
+	$plugin_data['SupportURI'] = esc_url( $plugin_data['SupportURI'] );
+	$plugin_data['AuthorURI']  = esc_url( $plugin_data['AuthorURI'] );
 
 	$plugin_data['Title']      = $plugin_data['Name'];
 	$plugin_data['AuthorName'] = $plugin_data['Author'];

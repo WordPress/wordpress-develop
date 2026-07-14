@@ -1243,6 +1243,12 @@ function wp_theme_auto_update_setting_template() {
 					</p>
 				<# } #>
 
+				<# if ( data.supportUri) { #>
+					<p>
+						<a href="{{{ data.supportUri }}}" class="button button-secondary" target="_blank"><?php _e( 'Need help?' ); ?></a>
+					</p>
+				<# } #>
+
 				<# if ( data.tags ) { #>
 					<p class="theme-tags"><span><?php _e( 'Tags:' ); ?></span> {{{ data.tags }}}</p>
 				<# } #>

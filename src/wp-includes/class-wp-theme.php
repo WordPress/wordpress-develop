@@ -30,6 +30,7 @@ final class WP_Theme implements ArrayAccess {
 	private static $file_headers = array(
 		'Name'        => 'Theme Name',
 		'ThemeURI'    => 'Theme URI',
+		'SupportURI'  => 'Support URI',
 		'Description' => 'Description',
 		'Author'      => 'Author',
 		'AuthorURI'   => 'Author URI',
@@ -944,7 +945,7 @@ final class WP_Theme implements ArrayAccess {
 	 * @since 6.1.0 Added support for `Update URI` header.
 	 *
 	 * @param string $header Theme header. Accepts 'Name', 'Description', 'Author', 'Version',
-	 *                       'ThemeURI', 'AuthorURI', 'Status', 'Tags', 'RequiresWP', 'RequiresPHP',
+	 *                       'ThemeURI', SupportURI, 'AuthorURI', 'Status', 'Tags', 'RequiresWP', 'RequiresPHP',
 	 *                       'UpdateURI'.
 	 * @param string $value  Value to sanitize.
 	 * @return string|array An array for Tags header, string otherwise.
@@ -986,6 +987,7 @@ final class WP_Theme implements ArrayAccess {
 				$value = wp_kses( $value, $header_tags_with_a );
 				break;
 			case 'ThemeURI':
+			case 'SupportURI':
 			case 'AuthorURI':
 				$value = sanitize_url( $value );
 				break;
@@ -1008,7 +1010,7 @@ final class WP_Theme implements ArrayAccess {
 	 *
 	 * @since 3.4.0
 	 *
-	 * @param string       $header    Theme header. Name, Description, Author, Version, ThemeURI, AuthorURI, Status, Tags.
+	 * @param string       $header    Theme header. Name, Description, Author, Version, ThemeURI, SupportURI, AuthorURI, Status, Tags.
 	 * @param string|array $value     Value to mark up. An array for Tags header, string otherwise.
 	 * @param bool         $translate Whether the header has been translated.
 	 * @return string Value, marked up.
@@ -1038,6 +1040,7 @@ final class WP_Theme implements ArrayAccess {
 				$value = implode( $comma, $value );
 				break;
 			case 'ThemeURI':
+			case 'SupportURI':
 			case 'AuthorURI':
 				$value = esc_url( $value );
 				break;

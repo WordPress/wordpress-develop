@@ -280,6 +280,7 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 			'name'        => 'Name',
 			'tags'        => 'Tags',
 			'theme_uri'   => 'ThemeURI',
+			'support_uri' => 'SupportURI',
 		);
 
 		foreach ( $rich_field_mappings as $field => $header ) {

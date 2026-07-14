@@ -586,6 +586,7 @@ class WP_REST_Plugins_Controller extends WP_REST_Controller {
 			'status'       => $this->get_plugin_status( $item['_file'] ),
 			'name'         => $item['Name'],
 			'plugin_uri'   => $item['PluginURI'],
+			'support_uri'  => $item['SupportURI'],
 			'author'       => $item['Author'],
 			'author_uri'   => $item['AuthorURI'],
 			'description'  => array(

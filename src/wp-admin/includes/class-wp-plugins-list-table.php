@@ -1292,6 +1292,18 @@ class WP_Plugins_List_Table extends WP_List_Table {
 						);
 					}
 
+					if ( ! empty( $plugin_data['SupportURI'] ) ) {
+						/* translators: %s: Plugin name. */
+						$aria_label = sprintf( __( 'Visit support forums for %s' ), $plugin_name );
+
+						$plugin_meta[] = sprintf(
+							'<a href="%s" aria-label="%s">%s</a>',
+							esc_url( $plugin_data['SupportURI'] ),
+							esc_attr( $aria_label ),
+							__( 'Visit support forums' )
+						);
+					}
+
 					/**
 					 * Filters the array of row meta for each plugin in the Plugins list table.
 					 *
@@ -1319,6 +1331,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 					 *     @type bool     $update-supported Whether the plugin supports updates.
 					 *     @type string   $Name             The human-readable name of the plugin.
 					 *     @type string   $PluginURI        Plugin URI.
+					 *     @type string   $SupportURI       Plugin support URI.
 					 *     @type string   $Version          Plugin version.
 					 *     @type string   $Description      Plugin description.
 					 *     @type string   $Author           Plugin author.
