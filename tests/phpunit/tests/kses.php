@@ -1002,6 +1002,7 @@ EOF;
 	 * @ticket 60132
 	 * @ticket 64414
 	 * @ticket 65457
+	 * @ticket 64974
 	 *
 	 * @dataProvider data_safecss_filter_attr
 	 *
@@ -1172,6 +1173,38 @@ EOF;
 			array(
 				'css'      => 'background: conic-gradient(at 0% 30%, red 10%, yellow 30%, #1e90ff 50%)',
 				'expected' => 'background: conic-gradient(at 0% 30%, red 10%, yellow 30%, #1e90ff 50%)',
+			),
+			/*
+			 * Background gradient support, introduced in 7.1 (ticket 64974).
+			 * A gradient combined with a url() image is allowed, in either order.
+			 */
+			array(
+				'css'      => "background-image: linear-gradient(135deg, rgb(255,0,0) 0%, rgb(0,0,255) 100%), url('https://example.com/image.jpg')",
+				'expected' => "background-image: linear-gradient(135deg, rgb(255,0,0) 0%, rgb(0,0,255) 100%), url('https://example.com/image.jpg')",
+			),
+			array(
+				'css'      => "background-image: url('https://example.com/image.jpg'), linear-gradient(135deg, rgb(255,0,0) 0%, rgb(0,0,255) 100%)",
+				'expected' => "background-image: url('https://example.com/image.jpg'), linear-gradient(135deg, rgb(255,0,0) 0%, rgb(0,0,255) 100%)",
+			),
+			// A gradient using modern color functions is allowed.
+			array(
+				'css'      => 'background-image: linear-gradient(135deg, hsl(0,100%,50%) 0%, hsl(240,100%,50%) 100%)',
+				'expected' => 'background-image: linear-gradient(135deg, hsl(0,100%,50%) 0%, hsl(240,100%,50%) 100%)',
+			),
+			// Nesting beyond one level inside a gradient is not supported (unchanged from before).
+			array(
+				'css'      => 'background-image: linear-gradient(red 0%, blue calc(50% + var(--x)))',
+				'expected' => '',
+			),
+			/*
+			 * As of 7.1 (ticket 64974) any single-level nested function is permitted inside a
+			 * gradient, widening the previous rgb()/rgba()-only allowance. This includes the
+			 * legacy expression() form, which is inert in all supported browsers and remains
+			 * escaped when output as an attribute value.
+			 */
+			array(
+				'css'      => 'background-image: linear-gradient(red, expression(alert))',
+				'expected' => 'background-image: linear-gradient(red, expression(alert))',
 			),
 			// `object-position` introduced in 5.7.1.
 			array(
