@@ -1334,13 +1334,36 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 
 	/**
 	 * @covers WP_HTML_Tag_Processor::remove_attribute
+	 *
+	 * @dataProvider data_remove_attribute_does_not_create_a_self_closing_flag
+	 *
+	 * @param string $html          HTML containing the attribute to remove.
+	 * @param int    $removal_count Number of times to remove the attribute.
+	 * @param string $expected      Expected HTML after removing the attribute.
 	 */
-	public function test_remove_attribute_does_not_create_a_self_closing_flag() {
-		$processor = new WP_HTML_Tag_Processor( '<svg><g /attr>ok' );
+	public function test_remove_attribute_does_not_create_a_self_closing_flag( $html, $removal_count, $expected ) {
+		$processor = new WP_HTML_Tag_Processor( $html );
 		$processor->next_tag( 'g' );
-		$processor->remove_attribute( 'attr' );
 
-		$this->assertSame( '<svg><g / >ok', $processor->get_updated_html() );
+		for ( $i = 0; $i < $removal_count; $i++ ) {
+			$processor->remove_attribute( 'attr' );
+			$this->assertNull( $processor->get_attribute( 'attr' ) );
+		}
+
+		$this->assertSame( $expected, $processor->get_updated_html() );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_remove_attribute_does_not_create_a_self_closing_flag() {
+		return array(
+			'Attribute preceded by a slash'           => array( '<svg><g /attr>ok', 1, '<svg><g / >ok' ),
+			'Duplicate attribute preceded by a slash' => array( '<svg><g attr /attr>ok', 1, '<svg><g  / >ok' ),
+			'Duplicate attribute removed twice'       => array( '<svg><g attr /attr>ok', 2, '<svg><g  / >ok' ),
+		);
 	}
 
 	/**
