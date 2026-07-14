@@ -374,6 +374,7 @@ add_action( 'wp_footer', 'wp_print_speculation_rules' );
 add_action( 'wp_footer', 'wp_print_footer_scripts', 20 );
 add_action( 'template_redirect', 'wp_shortlink_header', 11, 0 );
 add_action( 'wp_print_footer_scripts', '_wp_footer_scripts' );
+add_action( 'template_redirect', 'wp_start_performance_page_cache', 0 );
 add_action( 'init', '_register_core_block_patterns_and_categories' );
 add_action( 'init', 'check_theme_switched', 99 );
 add_action( 'init', array( 'WP_Block_Supports', 'init' ), 22 );
@@ -550,6 +551,7 @@ add_action( 'edit_user_created_user', 'wp_send_new_user_notifications', 10, 2 );
 add_action( 'init', 'rest_api_init' );
 add_action( 'rest_api_init', 'rest_api_default_filters', 10, 1 );
 add_action( 'rest_api_init', 'register_initial_settings', 10 );
+add_action( 'rest_api_init', 'wp_register_performance_optimization_settings', 10 );
 add_action( 'rest_api_init', 'create_initial_rest_routes', 99 );
 add_action( 'parse_request', 'rest_api_loaded' );
 
@@ -818,6 +820,18 @@ add_action( 'deleted_post', '_wp_after_delete_font_family', 10, 2 );
 add_action( 'before_delete_post', '_wp_before_delete_font_face', 10, 2 );
 add_action( 'init', '_wp_register_default_font_collections' );
 
+// Collaboration.
+add_action( 'admin_init', 'wp_collaboration_inject_setting' );
+
+// Performance optimization.
+add_action( 'save_post', 'wp_clean_performance_page_cache' );
+add_action( 'deleted_post', 'wp_clean_performance_page_cache' );
+add_action( 'clean_post_cache', 'wp_clean_performance_page_cache' );
+add_action( 'transition_comment_status', 'wp_clean_performance_page_cache' );
+add_filter( 'wp_get_loading_optimization_attributes', 'wp_performance_filter_loading_optimization_attributes', 10, 2 );
+add_filter( 'image_editor_output_format', 'wp_performance_filter_image_editor_output_format' );
+
+// Add ignoredHookedBlocks metadata attribute to the template and template part post types.
 // Add ignoredHookedBlocks metadata attribute to the template and template part post types.
 add_filter( 'rest_pre_insert_wp_template', 'inject_ignored_hooked_blocks_metadata_attributes' );
 add_filter( 'rest_pre_insert_wp_template_part', 'inject_ignored_hooked_blocks_metadata_attributes' );
