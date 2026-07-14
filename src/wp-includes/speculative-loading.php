@@ -11,14 +11,16 @@
  * Returns the speculation rules configuration.
  *
  * @since 6.8.0
- * @since 7.1.0 Environment variables `WP_SPECULATIVE_LOADING_DEFAULT_MODE` and `WP_SPECULATIVE_LOADING_DEFAULT_EAGERNESS`
- *              now can specify the default mode and eagerness, respectively.
+ * @since 7.1.0 The `WP_SPECULATIVE_LOADING_DEFAULT_MODE` and `WP_SPECULATIVE_LOADING_DEFAULT_EAGERNESS` constants and
+ *              environment variables can now specify the default mode and eagerness, respectively.
+ *
+ * @see wp_get_speculation_rules_default_configuration()
  *
  * @return array<string, string>|null Associative array with 'mode' and 'eagerness' keys, or null if speculative
  *                                    loading is disabled.
  * @phpstan-return array{
  *     mode: 'prefetch'|'prerender',
- *     eagerness: 'conservative'|'moderate'|'eager'|'immediate',
+ *     eagerness: 'conservative'|'moderate'|'eager',
  * }|null
  */
 function wp_get_speculation_rules_configuration(): ?array {
@@ -65,22 +67,10 @@ function wp_get_speculation_rules_configuration(): ?array {
 	}
 
 	// Sanitize the configuration and replace 'auto' with current defaults.
-	if (
-		isset( $_ENV['WP_SPECULATIVE_LOADING_DEFAULT_MODE'] ) &&
-		WP_Speculation_Rules::is_valid_mode( $_ENV['WP_SPECULATIVE_LOADING_DEFAULT_MODE'] )
-	) {
-		$default_mode = $_ENV['WP_SPECULATIVE_LOADING_DEFAULT_MODE'];
-	} else {
-		$default_mode = 'prefetch';
-	}
-	if (
-		isset( $_ENV['WP_SPECULATIVE_LOADING_DEFAULT_EAGERNESS'] ) &&
-		WP_Speculation_Rules::is_valid_eagerness( $_ENV['WP_SPECULATIVE_LOADING_DEFAULT_EAGERNESS'] )
-	) {
-		$default_eagerness = $_ENV['WP_SPECULATIVE_LOADING_DEFAULT_EAGERNESS'];
-	} else {
-		$default_eagerness = 'conservative';
-	}
+	$defaults          = wp_get_speculation_rules_default_configuration();
+	$default_mode      = $defaults['mode'];
+	$default_eagerness = $defaults['eagerness'];
+
 	if ( ! is_array( $config ) ) {
 		return array(
 			'mode'      => $default_mode,
@@ -108,6 +98,83 @@ function wp_get_speculation_rules_configuration(): ?array {
 		'mode'      => $config['mode'],
 		'eagerness' => $config['eagerness'],
 	);
+}
+
+/**
+ * Returns the default speculation rules configuration that the value 'auto' resolves to.
+ *
+ * WordPress Core defaults to a mode of 'prefetch' and an eagerness of 'conservative'. Hosting providers can override
+ * either default by way of the `WP_SPECULATIVE_LOADING_DEFAULT_MODE` and `WP_SPECULATIVE_LOADING_DEFAULT_EAGERNESS`
+ * constants or environment variables. This only changes what the 'auto' value resolves to, so a plugin which supplies
+ * an explicit mode or eagerness via the {@see 'wp_speculation_rules_configuration'} filter continues to take
+ * precedence.
+ *
+ * Note that an eagerness of 'immediate' is not permitted as a default, since WordPress does not allow it for the
+ * document-level rules that it generates.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @return array<string, string> Associative array with 'mode' and 'eagerness' keys.
+ * @phpstan-return array{
+ *     mode: 'prefetch'|'prerender',
+ *     eagerness: 'conservative'|'moderate'|'eager',
+ * }
+ */
+function wp_get_speculation_rules_default_configuration(): array {
+	$default_mode = 'prefetch';
+	$mode         = wp_get_speculative_loading_override( 'WP_SPECULATIVE_LOADING_DEFAULT_MODE' );
+	if ( WP_Speculation_Rules::is_valid_mode( $mode ) ) {
+		$default_mode = $mode;
+	}
+
+	$default_eagerness = 'conservative';
+	$eagerness         = wp_get_speculative_loading_override( 'WP_SPECULATIVE_LOADING_DEFAULT_EAGERNESS' );
+	if (
+		WP_Speculation_Rules::is_valid_eagerness( $eagerness ) &&
+		// 'immediate' is a valid eagerness, but for safety WordPress does not allow it for document-level rules.
+		'immediate' !== $eagerness
+	) {
+		$default_eagerness = $eagerness;
+	}
+
+	return array(
+		'mode'      => $default_mode,
+		'eagerness' => $default_eagerness,
+	);
+}
+
+/**
+ * Returns the value of a speculative loading override, as supplied by a constant or an environment variable.
+ *
+ * The constant takes precedence over the environment variable, consistent with {@see wp_get_environment_type()}.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param string $name Name of the constant and environment variable to look up.
+ * @return string|null The override value, or null if neither is set.
+ */
+function wp_get_speculative_loading_override( string $name ): ?string {
+	$value = null;
+
+	// Check if the environment variable has been set, if `getenv` is available on the system.
+	if ( function_exists( 'getenv' ) ) {
+		$has_env = getenv( $name );
+		if ( false !== $has_env ) {
+			$value = $has_env;
+		}
+	}
+
+	// Fetch the value from a constant, which overrides the environment variable.
+	if ( defined( $name ) ) {
+		$has_constant = constant( $name );
+		if ( is_string( $has_constant ) ) {
+			$value = $has_constant;
+		}
+	}
+
+	return $value;
 }
 
 /**

@@ -18,6 +18,13 @@ class Tests_Speculative_Loading_wpGetSpeculationRulesConfiguration extends WP_Un
 		update_option( 'permalink_structure', '/%year%/%monthnum%/%day%/%postname%/' );
 	}
 
+	public function tear_down(): void {
+		putenv( 'WP_SPECULATIVE_LOADING_DEFAULT_MODE' );
+		putenv( 'WP_SPECULATIVE_LOADING_DEFAULT_EAGERNESS' );
+
+		parent::tear_down();
+	}
+
 	/**
 	 * Tests that the default configuration is the expected value.
 	 *
@@ -263,5 +270,64 @@ class Tests_Speculative_Loading_wpGetSpeculationRulesConfiguration extends WP_Un
 				),
 			),
 		);
+	}
+
+	/**
+	 * Tests that an overridden default is what the 'auto' value resolves to.
+	 *
+	 * @ticket 65624
+	 */
+	public function test_wp_get_speculation_rules_configuration_with_overridden_default(): void {
+		putenv( 'WP_SPECULATIVE_LOADING_DEFAULT_EAGERNESS=moderate' );
+
+		$this->assertSame(
+			array(
+				'mode'      => 'prefetch',
+				'eagerness' => 'moderate',
+			),
+			wp_get_speculation_rules_configuration()
+		);
+	}
+
+	/**
+	 * Tests that an explicit eagerness from the filter takes precedence over an overridden default.
+	 *
+	 * This ensures a plugin such as Speculative Loading continues to win over a hosting provider's default.
+	 *
+	 * @ticket 65624
+	 */
+	public function test_wp_get_speculation_rules_configuration_filter_beats_overridden_default(): void {
+		putenv( 'WP_SPECULATIVE_LOADING_DEFAULT_EAGERNESS=moderate' );
+
+		add_filter(
+			'wp_speculation_rules_configuration',
+			static function () {
+				return array(
+					'mode'      => 'auto',
+					'eagerness' => 'conservative',
+				);
+			}
+		);
+
+		$this->assertSame(
+			array(
+				'mode'      => 'prefetch',
+				'eagerness' => 'conservative',
+			),
+			wp_get_speculation_rules_configuration()
+		);
+	}
+
+	/**
+	 * Tests that speculative loading remains disabled when a default is overridden.
+	 *
+	 * @ticket 65624
+	 */
+	public function test_wp_get_speculation_rules_configuration_with_overridden_default_while_disabled(): void {
+		putenv( 'WP_SPECULATIVE_LOADING_DEFAULT_EAGERNESS=moderate' );
+
+		add_filter( 'wp_speculation_rules_configuration', '__return_null' );
+
+		$this->assertNull( wp_get_speculation_rules_configuration() );
 	}
 }

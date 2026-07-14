@@ -41,6 +41,13 @@ class Tests_Speculative_Loading_wpGetSpeculationRules extends WP_UnitTestCase {
 		update_option( 'permalink_structure', '/%year%/%monthnum%/%day%/%postname%/' );
 	}
 
+	public function tear_down(): void {
+		putenv( 'WP_SPECULATIVE_LOADING_DEFAULT_MODE' );
+		putenv( 'WP_SPECULATIVE_LOADING_DEFAULT_EAGERNESS' );
+
+		parent::tear_down();
+	}
+
 	/**
 	 * Tests speculation rules output with prefetch for the different eagerness levels.
 	 *
@@ -557,5 +564,44 @@ class Tests_Speculative_Loading_wpGetSpeculationRules extends WP_UnitTestCase {
 		$this->assertSame( 'conservative', $rules['prefetch'][0]['eagerness'] );
 		$this->assertSame( 'moderate', $rules['prerender'][0]['eagerness'] );
 		$this->assertSame( 'eager', $rules['prerender'][1]['eagerness'] );
+	}
+
+	/**
+	 * Tests that an overridden default eagerness is applied to the main document-level rule.
+	 *
+	 * @ticket 65624
+	 */
+	public function test_wp_get_speculation_rules_with_overridden_default_eagerness(): void {
+		putenv( 'WP_SPECULATIVE_LOADING_DEFAULT_EAGERNESS=moderate' );
+
+		$rules = wp_get_speculation_rules();
+		$this->assertInstanceOf( WP_Speculation_Rules::class, $rules );
+
+		$rules = $rules->jsonSerialize();
+
+		$this->assertArrayHasKey( 'prefetch', $rules );
+		$this->assertCount( 1, $rules['prefetch'] );
+		$this->assertSame( 'moderate', $rules['prefetch'][0]['eagerness'] );
+	}
+
+	/**
+	 * Tests that an eagerness of 'immediate' cannot be forced as the default.
+	 *
+	 * WordPress does not allow 'immediate' for the document-level rules it generates, so allowing it as a default
+	 * would cause the main rule to be rejected, leaving no speculation rules at all.
+	 *
+	 * @ticket 65624
+	 */
+	public function test_wp_get_speculation_rules_with_immediate_default_eagerness(): void {
+		putenv( 'WP_SPECULATIVE_LOADING_DEFAULT_EAGERNESS=immediate' );
+
+		$rules = wp_get_speculation_rules();
+		$this->assertInstanceOf( WP_Speculation_Rules::class, $rules );
+
+		$rules = $rules->jsonSerialize();
+
+		$this->assertArrayHasKey( 'prefetch', $rules );
+		$this->assertCount( 1, $rules['prefetch'] );
+		$this->assertSame( 'conservative', $rules['prefetch'][0]['eagerness'] );
 	}
 }
