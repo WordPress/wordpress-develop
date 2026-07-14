@@ -1863,7 +1863,7 @@ function wp_kses_check_attr_val( $value, $vless, $checkname, $checkvalue ) {
 			 * has one of the given values.
 			 */
 
-			if ( false === array_search( strtolower( $value ), $checkvalue, true ) ) {
+			if ( ! in_array( strtolower( $value ), $checkvalue, true ) ) {
 				$ok = false;
 			}
 			break;
@@ -2056,13 +2056,7 @@ function wp_kses_bad_protocol_once2( $scheme, $allowed_protocols ) {
 	$scheme = wp_kses_no_null( $scheme );
 	$scheme = strtolower( $scheme );
 
-	$allowed = false;
-	foreach ( (array) $allowed_protocols as $one_protocol ) {
-		if ( strtolower( $one_protocol ) === $scheme ) {
-			$allowed = true;
-			break;
-		}
-	}
+	$allowed = array_any( (array) $allowed_protocols, fn( $protocol ) => strtolower( $protocol ) === $scheme );
 
 	if ( $allowed ) {
 		return "$scheme:";
@@ -2559,6 +2553,7 @@ function kses_init() {
  * @since 6.5.0 Added support for `background-repeat`.
  * @since 6.6.0 Added support for `grid-column`, `grid-row`, and `container-type`.
  * @since 6.9.0 Added support for `white-space`.
+ * @since 7.1.0 Extended gradient support to allow any single-level nested function.
  *
  * @param string $css        A string of CSS rules, decoded from an HTML `style` attribute.
  * @param string $deprecated Not used.
@@ -2906,10 +2901,16 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 		}
 
 		if ( $found && $gradient_attr ) {
-			$css_value = trim( $parts[1] );
-			if ( preg_match( '/^(repeating-)?(linear|radial|conic)-gradient\(([^()]|rgb[a]?\([^()]*\))*\)$/', $css_value ) ) {
-				// Remove the whole `gradient` bit that was matched above from the CSS.
-				$css_test_string = str_replace( $css_value, '', $css_test_string );
+			/*
+			 * Match every `*-gradient()` in the value, allowing one level of nested functions
+			 * (e.g. rgb(), hsl(), var()). Matching each occurrence, rather than requiring the
+			 * whole value to be a single gradient, lets a gradient combine with a url() image.
+			 */
+			preg_match_all( '/(?:repeating-)?(?:linear|radial|conic)-gradient\((?:[^()]|\([^()]*\))*\)/', $css_test_string, $gradient_matches );
+
+			foreach ( $gradient_matches[0] as $gradient_match ) {
+				// Remove each `gradient()` bit that was matched above from the CSS.
+				$css_test_string = str_replace( $gradient_match, '', $css_test_string );
 			}
 		}
 
@@ -2966,6 +2967,7 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
  * @since 6.0.0 Added `dir`, `lang`, and `xml:lang` to global attributes.
  * @since 6.3.0 Added `aria-controls`, `aria-current`, and `aria-expanded` attributes.
  * @since 6.4.0 Added `aria-live` and `hidden` attributes.
+ * @since 7.1.0 Added `tabindex` attribute.
  *
  * @access private
  * @ignore
@@ -2991,6 +2993,7 @@ function _wp_add_global_attributes( $value ) {
 		'id'               => true,
 		'lang'             => true,
 		'style'            => true,
+		'tabindex'         => true,
 		'title'            => true,
 		'role'             => true,
 		'xml:lang'         => true,

@@ -1426,7 +1426,7 @@ function do_meta_boxes( $screen, $context, $data_object ) {
 						echo '<button type="button" class="handlediv" aria-expanded="true">';
 						echo '<span class="screen-reader-text">' . sprintf(
 							/* translators: %s: Hidden accessibility text. Meta box title. */
-							__( 'Toggle panel: %s' ),
+							__( 'Show or hide panel: %s' ),
 							$widget_title
 						) . '</span>';
 						echo '<span class="toggle-indicator" aria-hidden="true"></span>';
@@ -1780,7 +1780,8 @@ function do_settings_sections( $page ) {
 		}
 
 		if ( $section['title'] ) {
-			echo "<h2>{$section['title']}</h2>\n";
+			$unique_id = wp_unique_id( 'wp-settings-section-' . $section['id'] . '-' );
+			echo '<h2 id="' . esc_attr( $unique_id ) . '">' . $section['title'] . "</h2>\n";
 		}
 
 		if ( $section['callback'] ) {
