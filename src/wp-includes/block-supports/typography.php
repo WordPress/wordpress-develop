@@ -399,19 +399,17 @@ function wp_get_typography_value_and_unit( $raw_value, $options = array() ): ?ar
 	 */
 	$options = wp_parse_args( $options, $defaults );
 
-	$acceptable_units_group = implode( '|', $options['acceptable_units'] );
-	$pattern                = '/^(\d*\.?\d+)(' . $acceptable_units_group . '){1,1}$/';
-
-	preg_match( $pattern, $raw_value, $matches );
-
 	// Bails out if not a number value and a px or rem unit.
-	if ( ! isset( $matches[1] ) || ! isset( $matches[2] ) ) {
+	if ( ! preg_match( '/^(\d*\.?\d+)([a-zA-Z]+|%)$/', $raw_value, $matches ) ) {
 		return null;
 	}
 
 	$value = (float) $matches[1];
-	/** @var non-empty-string $unit */
-	$unit = $matches[2];
+	$unit  = $matches[2];
+
+	if ( ! in_array( $unit, $options['acceptable_units'], true ) ) {
+		return null;
+	}
 
 	/*
 	 * Default browser font size. Later, possibly could inject some JS to
