@@ -104,6 +104,36 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 65592
+	 */
+	public function test_get_block_visibility_settings() {
+		// Test that the value passes through the full sanitization pipeline,
+		// including remove_insecure_properties (called when saving global styles).
+		$theme_json_data = array(
+			'version'  => WP_Theme_JSON::LATEST_SCHEMA,
+			'settings' => array(
+				'blockVisibility' => array(
+					'allowEditing' => false,
+				),
+				'blocks'          => array(
+					'core/group' => array(
+						'blockVisibility' => array(
+							'allowEditing' => true,
+						),
+					),
+				),
+			),
+		);
+		$sanitized       = WP_Theme_JSON::remove_insecure_properties( $theme_json_data );
+		$theme_json      = new WP_Theme_JSON( $sanitized );
+		$actual          = $theme_json->get_settings();
+
+		$this->assertFalse( $actual['blockVisibility']['allowEditing'] );
+		// The setting is global-only: block-scoped values are stripped during sanitization.
+		$this->assertArrayNotHasKey( 'blockVisibility', $actual['blocks']['core/group'] ?? array() );
+	}
+
+	/**
 	 * @ticket 53397
 	 */
 	public function test_get_settings_presets_are_keyed_by_origin() {
@@ -8454,6 +8484,115 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 				'to_prepend' => '.pre ',
 				'expected'   => '.pre .a, .pre .b, .pre .c',
 			),
+		);
+	}
+
+	/**
+	 * Tests that block custom CSS uses the css feature selector when defined
+	 * in block metadata selectors config.
+	 *
+	 * @ticket 64695
+	 */
+	public function test_get_styles_for_block_custom_css_uses_css_feature_selector() {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
+				'styles'  => array(
+					'blocks' => array(
+						'core/paragraph' => array(
+							'css' => 'color:red;',
+						),
+					),
+				),
+			)
+		);
+
+		$paragraph_node = array(
+			'name'      => 'core/paragraph',
+			'path'      => array( 'styles', 'blocks', 'core/paragraph' ),
+			'selector'  => 'p',
+			'selectors' => array(
+				'root' => 'p',
+				'css'  => '.custom-p',
+			),
+		);
+
+		$this->assertSame(
+			':root :where(.custom-p){color:red;}',
+			$theme_json->get_styles_for_block( $paragraph_node )
+		);
+	}
+
+	/**
+	 * Tests that block custom CSS falls back to the root selector when no
+	 * css feature selector is defined in block metadata selectors config.
+	 *
+	 * @ticket 64695
+	 */
+	public function test_get_styles_for_block_custom_css_falls_back_to_root_selector() {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
+				'styles'  => array(
+					'blocks' => array(
+						'core/paragraph' => array(
+							'css' => 'color:red;',
+						),
+					),
+				),
+			)
+		);
+
+		$paragraph_node = array(
+			'name'      => 'core/paragraph',
+			'path'      => array( 'styles', 'blocks', 'core/paragraph' ),
+			'selector'  => 'p',
+			'selectors' => array(
+				'root' => 'p',
+			),
+		);
+
+		$this->assertSame(
+			':root :where(p){color:red;}',
+			$theme_json->get_styles_for_block( $paragraph_node )
+		);
+	}
+
+	/**
+	 * Tests that block custom CSS uses the css feature selector when defined
+	 * as an object with a root subkey in block metadata selectors config.
+	 *
+	 * @ticket 64695
+	 */
+	public function test_get_styles_for_block_custom_css_uses_css_feature_selector_object_form() {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
+				'styles'  => array(
+					'blocks' => array(
+						'core/paragraph' => array(
+							'css' => 'color:red;',
+						),
+					),
+				),
+			)
+		);
+
+		$paragraph_node = array(
+			'name'      => 'core/paragraph',
+			'path'      => array( 'styles', 'blocks', 'core/paragraph' ),
+			'selector'  => 'p',
+			'selectors' => array(
+				'root' => 'p',
+				'css'  => array(
+					'root' => '.custom-p',
+				),
+			),
+		);
+
+		$this->assertSame(
+			':root :where(.custom-p){color:red;}',
+			$theme_json->get_styles_for_block( $paragraph_node )
 		);
 	}
 }
