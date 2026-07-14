@@ -111,7 +111,7 @@ function wp_default_packages_vendor( $scripts ) {
 		'react-jsx-runtime'           => '18.3.1',
 		'regenerator-runtime'         => '0.14.1',
 		'moment'                      => '2.30.1',
-		'lodash'                      => '4.17.23',
+		'lodash'                      => '4.18.1',
 		'wp-polyfill-fetch'           => '3.6.20',
 		'wp-polyfill-formdata'        => '4.0.10',
 		'wp-polyfill-node-contains'   => '4.8.0',
@@ -281,11 +281,11 @@ function wp_default_packages_scripts( $scripts ) {
 	 *     'annotations.js' => array('dependencies' => array(...), 'version' => '...'),
 	 *     'api-fetch.js' => array(...
 	 */
-	$assets_file = ABSPATH . WPINC . "/assets/script-loader-packages{$suffix}.php";
+	$assets_file = ABSPATH . WPINC . '/assets/script-loader-packages.php';
 	$assets      = file_exists( $assets_file ) ? include $assets_file : array();
 
 	foreach ( $assets as $file_name => $package_data ) {
-		$basename = str_replace( $suffix . '.js', '', basename( $file_name ) );
+		$basename = str_replace( '.js', '', basename( $file_name ) );
 		$handle   = 'wp-' . $basename;
 		$path     = "/wp-includes/js/dist/{$basename}{$suffix}.js";
 
@@ -803,7 +803,7 @@ function wp_default_scripts( $scripts ) {
 			'enterImageURL'         => __( 'Enter the URL of the image' ),
 			'enterImageDescription' => __( 'Enter a description of the image' ),
 			'textdirection'         => __( 'text direction' ),
-			'toggleTextdirection'   => __( 'Toggle Editor Text Direction' ),
+			'toggleTextdirection'   => __( 'Switch Editor Text Direction' ),
 			'dfw'                   => __( 'Distraction-free writing mode' ),
 			'strong'                => __( 'Bold' ),
 			'strongClose'           => __( 'Close bold tag' ),
@@ -1063,7 +1063,7 @@ function wp_default_scripts( $scripts ) {
 	$scripts->add( 'json2', "/wp-includes/js/json2$suffix.js", array(), '2015-05-03' );
 	did_action( 'init' ) && $scripts->add_data( 'json2', 'conditional', '_required-conditional-dependency_' );
 
-	$scripts->add( 'underscore', "/wp-includes/js/underscore$dev_suffix.js", array(), '1.13.7', 1 );
+	$scripts->add( 'underscore', "/wp-includes/js/underscore$dev_suffix.js", array(), '1.13.8', 1 );
 	$scripts->add( 'backbone', "/wp-includes/js/backbone$dev_suffix.js", array( 'underscore', 'jquery' ), '1.6.1', 1 );
 
 	$scripts->add( 'wp-util', "/wp-includes/js/wp-util$suffix.js", array( 'underscore', 'jquery' ), false, 1 );
@@ -1200,9 +1200,8 @@ function wp_default_scripts( $scripts ) {
 	);
 
 	$scripts->add( 'wp-codemirror', '/wp-includes/js/codemirror/codemirror.min.js', array(), '5.65.20' );
-	did_action( 'init' ) && $scripts->add_data( 'wp-codemirror', 'module_dependencies', array( 'espree' ) );
 	$scripts->add( 'csslint', '/wp-includes/js/codemirror/csslint.js', array(), '1.0.5' );
-	$scripts->add( 'esprima', '/wp-includes/js/codemirror/esprima.js', array(), '4.0.1' ); // Deprecated. Use 'espree' script module.
+	$scripts->add( 'esprima', '/wp-includes/js/codemirror/esprima.js', array(), '4.0.1' ); // Deprecated.
 	$scripts->add( 'jshint', '/wp-includes/js/codemirror/fakejshint.js', array( 'esprima' ), '2.9.5' ); // Deprecated.
 	$scripts->add( 'jsonlint', '/wp-includes/js/codemirror/jsonlint.js', array(), '1.6.3' );
 	$scripts->add( 'htmlhint', '/wp-includes/js/codemirror/htmlhint.js', array(), '1.8.0' );
@@ -2020,8 +2019,8 @@ function wp_localize_jquery_ui_datepicker() {
 			'currentText'     => __( 'Today' ),
 			'monthNames'      => array_values( $wp_locale->month ),
 			'monthNamesShort' => array_values( $wp_locale->month_abbrev ),
-			'nextText'        => __( 'Next' ),
-			'prevText'        => __( 'Previous' ),
+			'nextText'        => _x( 'Next', 'datepicker: navigate to next month' ),
+			'prevText'        => _x( 'Previous', 'datepicker: navigate to previous month' ),
 			'dayNames'        => array_values( $wp_locale->weekday ),
 			'dayNamesShort'   => array_values( $wp_locale->weekday_abbrev ),
 			'dayNamesMin'     => array_values( $wp_locale->weekday_initial ),
@@ -2371,13 +2370,13 @@ function print_admin_styles() {
  * @global WP_Styles $wp_styles
  * @global bool      $concatenate_scripts
  *
- * @return string[]|void
+ * @return string[]|null
  */
 function print_late_styles() {
 	global $wp_styles, $concatenate_scripts;
 
 	if ( ! ( $wp_styles instanceof WP_Styles ) ) {
-		return;
+		return null;
 	}
 
 	script_concat_settings();
@@ -3049,11 +3048,6 @@ function wp_get_inline_script_tag( $data, $attributes = array() ) {
 	}
 
 	if ( ! $processor->set_modifiable_text( $data ) ) {
-		_doing_it_wrong(
-			__FUNCTION__,
-			__( 'Unable to set inline script data.' ),
-			'7.0.0'
-		);
 		return '';
 	}
 

@@ -374,6 +374,10 @@
 	.find-box-inside {
 		bottom: 57px;
 	}
+
+	#delete_all {
+		margin-bottom: 0;
+	}
 }
 
 @media screen and (max-width: 660px) {
@@ -555,8 +559,18 @@ border color while dragging a file over the uploader drop area */
 	height: auto;
 }
 
-.media-frame.mode-grid .media-toolbar label {
-	display: block;
+.media-frame.mode-grid .media-toolbar label:not(.media-search-input-label) {
+	border: 0;
+	clip-path: inset(50%);
+	height: 1px;
+	margin: -1px;
+	overflow: hidden;
+	padding: 0;
+	position: absolute;
+	width: 1px;
+	/* Many screen reader and browser combinations announce broken words as they would appear visually. */
+	word-wrap: normal !important;
+	word-break: normal !important;
 }
 
 .media-frame.mode-grid .media-toolbar select {
@@ -568,15 +582,14 @@ border color while dragging a file over the uploader drop area */
 
 .media-frame.mode-grid .media-toolbar input[type="search"] {
 	min-height: 32px;
-	line-height: 2.14285714; /* 30px for 32px height with 14px font */
 	padding: 0 8px;
 }
 
-.media-frame.mode-grid .media-toolbar .button {
-	min-height: 32px;
-	line-height: 2.30769231; /* 30px for 32px height with 13px font */
-	padding: 0 12px;
-	align-self: end;
+.media-frame.mode-grid .media-toolbar-secondary {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 8px;
 }
 
 .media-frame.mode-grid.mode-edit .media-toolbar-secondary > .select-mode-toggle-button {
@@ -768,7 +781,7 @@ border color while dragging a file over the uploader drop area */
 	margin: 0 auto 16px;
 	max-width: 100%;
 	max-height: 90%;
-	max-height: calc( 100% - 42px ); /* leave space for actions underneath */
+	max-height: calc( 100% - 56px ); /* leave space for actions underneath */
 	background-image: linear-gradient(45deg, #c3c4c7 25%, transparent 25%, transparent 75%, #c3c4c7 75%, #c3c4c7), linear-gradient(45deg, #c3c4c7 25%, transparent 25%, transparent 75%, #c3c4c7 75%, #c3c4c7);
 	background-position: 0 0, 10px 10px;
 	background-size: 20px 20px;
@@ -780,12 +793,6 @@ border color while dragging a file over the uploader drop area */
 
 .edit-attachment-frame .attachment-media-view .attachment-actions {
 	text-align: center;
-}
-
-.edit-attachment-frame .button {
-	min-height: 32px;
-	line-height: 2.30769231; /* 30px for 32px height with 13px font */
-	padding: 0 12px;
 }
 
 .edit-attachment-frame .wp-media-wrapper {
@@ -1178,7 +1185,7 @@ border color while dragging a file over the uploader drop area */
 	margin: -1px 0 0 -1px;
 	padding: 0;
 	background: transparent;
-	color: #2271b1;
+	color: var(--wp-admin-theme-color);
 	font-size: 20px;
 	line-height: 1;
 	cursor: pointer;
@@ -1187,9 +1194,9 @@ border color while dragging a file over the uploader drop area */
 }
 
 .image-editor .imgedit-settings .imgedit-help-toggle:focus {
-	color: #2271b1;
-	border-color: #2271b1;
-	box-shadow: 0 0 0 1px #2271b1;
+	color: var(--wp-admin-theme-color);
+	border-color: var(--wp-admin-theme-color);
+	box-shadow: 0 0 0 1px var(--wp-admin-theme-color);
 	/* Only visible in Windows High Contrast mode */
 	outline: 2px solid transparent;
 }
@@ -1387,7 +1394,6 @@ audio, video {
 	.wp-filter p.search-box {
 		float: none;
 		width: 100%;
-		margin-bottom: 20px;
 		display: flex;
 		flex-wrap: nowrap;
 		column-gap: 0;
@@ -1403,6 +1409,20 @@ audio, video {
 	.media-frame.mode-select .attachments-browser.fixed .media-toolbar {
 		top: 46px;
 		right: 10px;
+	}
+
+	.media-frame.mode-grid .media-toolbar select {
+		min-height: 40px;
+		padding: 0 24px 0 12px;
+	}
+
+	.media-frame.mode-grid .media-toolbar input[type="search"] {
+		min-height: 40px;
+		padding: 0 12px;
+	}
+
+	.wp-filter p.search-box {
+		margin-bottom: 0;
 	}
 }
 

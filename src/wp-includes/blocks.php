@@ -1196,6 +1196,7 @@ function apply_block_hooks_to_content( $content, $context = null, $callback = 'i
  * of the block that corresponds to the post type are handled correctly.
  *
  * @since 6.8.0
+ * @since 7.0.0 Added the `$ignored_hooked_blocks_at_root` parameter.
  * @access private
  *
  * @param string       $content  Serialized content.
@@ -1205,9 +1206,17 @@ function apply_block_hooks_to_content( $content, $context = null, $callback = 'i
  * @param callable     $callback A function that will be called for each block to generate
  *                               the markup for a given list of blocks that are hooked to it.
  *                               Default: 'insert_hooked_blocks'.
+ * @param array|null   $ignored_hooked_blocks_at_root A reference to an array that will be populated
+ *                               with the ignored hooked blocks at the root level.
+ *                               Default: `null`.
  * @return string The serialized markup.
  */
-function apply_block_hooks_to_content_from_post_object( $content, $post = null, $callback = 'insert_hooked_blocks' ) {
+function apply_block_hooks_to_content_from_post_object(
+	$content,
+	$post = null,
+	$callback = 'insert_hooked_blocks',
+	&$ignored_hooked_blocks_at_root = null
+) {
 	// Default to the current post if no context is provided.
 	if ( null === $post ) {
 		$post = get_post();
@@ -1286,6 +1295,16 @@ function apply_block_hooks_to_content_from_post_object( $content, $post = null, 
 	add_filter( 'hooked_block_types', $suppress_blocks_from_insertion_before_and_after_wrapper_block, PHP_INT_MAX, 3 );
 	$content = apply_block_hooks_to_content( $content, $post, $callback );
 	remove_filter( 'hooked_block_types', $suppress_blocks_from_insertion_before_and_after_wrapper_block, PHP_INT_MAX );
+
+	if ( null !== $ignored_hooked_blocks_at_root ) {
+		// Check wrapper block's metadata for ignored hooked blocks at the root level, and populate the reference parameter if needed.
+		$wrapper_block_markup = extract_serialized_parent_block( $content );
+		$wrapper_block        = parse_blocks( $wrapper_block_markup )[0];
+
+		if ( ! empty( $wrapper_block['attrs']['metadata']['ignoredHookedBlocks'] ) ) {
+			$ignored_hooked_blocks_at_root = $wrapper_block['attrs']['metadata']['ignoredHookedBlocks'];
+		}
+	}
 
 	// Finally, we need to remove the temporary wrapper block.
 	$content = remove_serialized_parent_block( $content );
@@ -1449,6 +1468,7 @@ function insert_hooked_blocks_and_set_ignored_hooked_blocks_metadata( &$parsed_a
  *
  * @since 6.6.0
  * @since 6.8.0 Support non-`wp_navigation` post types.
+ * @since 7.0.0 Set `_wp_ignored_hooked_blocks` meta in the response for blocks hooked at the root level.
  *
  * @param WP_REST_Response $response The response object.
  * @param WP_Post          $post     Post object.
@@ -1459,11 +1479,17 @@ function insert_hooked_blocks_into_rest_response( $response, $post ) {
 		return $response;
 	}
 
+	$ignored_hooked_blocks_at_root    = array();
 	$response->data['content']['raw'] = apply_block_hooks_to_content_from_post_object(
 		$response->data['content']['raw'],
 		$post,
-		'insert_hooked_blocks_and_set_ignored_hooked_blocks_metadata'
+		'insert_hooked_blocks_and_set_ignored_hooked_blocks_metadata',
+		$ignored_hooked_blocks_at_root
 	);
+
+	if ( ! empty( $ignored_hooked_blocks_at_root ) ) {
+		$response->data['meta']['_wp_ignored_hooked_blocks'] = wp_json_encode( $ignored_hooked_blocks_at_root );
+	}
 
 	// If the rendered content was previously empty, we leave it like that.
 	if ( empty( $response->data['content']['rendered'] ) ) {
@@ -2212,6 +2238,14 @@ function excerpt_remove_blocks( $content ) {
 	$output         = '';
 
 	foreach ( $blocks as $block ) {
+		// Hide the block whenever the value is boolean false, regardless of the
+		// block's current visibility support. This prevents blocks that previously
+		// supported visibility from unintentionally appearing on the front end
+		// after their support was disabled.
+		if ( false === ( $block['attrs']['metadata']['blockVisibility'] ?? null ) ) {
+			continue;
+		}
+
 		if ( in_array( $block['blockName'], $allowed_blocks, true ) ) {
 			if ( ! empty( $block['innerBlocks'] ) ) {
 				if ( in_array( $block['blockName'], $allowed_wrapper_blocks, true ) ) {
@@ -2273,6 +2307,14 @@ function _excerpt_render_inner_blocks( $parsed_block, $allowed_blocks ) {
 	$output = '';
 
 	foreach ( $parsed_block['innerBlocks'] as $inner_block ) {
+		// Hide the block whenever the value is boolean false, regardless of the
+		// block's current visibility support. This prevents blocks that previously
+		// supported visibility from unintentionally appearing on the front end
+		// after their support was disabled.
+		if ( false === ( $inner_block['attrs']['metadata']['blockVisibility'] ?? null ) ) {
+			continue;
+		}
+
 		if ( ! in_array( $inner_block['blockName'], $allowed_blocks, true ) ) {
 			continue;
 		}
@@ -2578,9 +2620,9 @@ function unregister_block_style( $block_name, $block_style_name ) {
  * @since 5.8.0
  * @since 6.4.0 The `$feature` parameter now supports a string.
  *
- * @param WP_Block_Type $block_type    Block type to check for support.
- * @param string|array  $feature       Feature slug, or path to a specific feature to check support for.
- * @param mixed         $default_value Optional. Fallback value for feature support. Default false.
+ * @param WP_Block_Type|null $block_type    Block type to check for support.
+ * @param string|array       $feature       Feature slug, or path to a specific feature to check support for.
+ * @param mixed              $default_value Optional. Fallback value for feature support. Default false.
  * @return bool Whether the feature is supported.
  */
 function block_has_support( $block_type, $feature, $default_value = false ) {
@@ -2662,6 +2704,7 @@ function wp_migrate_old_typography_shape( $metadata ) {
  * @since 6.1.0 Added `query_loop_block_query_vars` filter and `parents` support in query.
  * @since 6.7.0 Added support for the `format` property in query.
  * @since 7.0.0 Updated `taxQuery` structure.
+ * @since 7.1.0 Added support for the `excludeCurrent` property in query.
  *
  * @param WP_Block $block Block instance.
  * @param int      $page  Current query's page.
@@ -2706,6 +2749,12 @@ function build_query_vars_from_query_block( $block, $page ) {
 			$excluded_post_ids     = array_map( 'intval', $block->context['query']['exclude'] );
 			$excluded_post_ids     = array_filter( $excluded_post_ids );
 			$query['post__not_in'] = array_merge( $query['post__not_in'], $excluded_post_ids );
+		}
+		if ( ! empty( $block->context['query']['excludeCurrent'] ) ) {
+			$current_post_id = get_the_ID();
+			if ( $current_post_id ) {
+				$query['post__not_in'][] = $current_post_id;
+			}
 		}
 		if (
 			isset( $block->context['query']['perPage'] ) &&
