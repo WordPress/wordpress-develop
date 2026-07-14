@@ -361,9 +361,9 @@ function wp_render_typography_support( $block_content, $block ) {
  * @phpstan-param array{
  *     coerce_to?: string,
  *     root_size_value?: positive-int,
- *     acceptable_units?: non-empty-string[],
+ *     acceptable_units?: non-empty-array<non-empty-string>,
  * } $options
- * @phpstan-return array{ value: float, unit: string }|null
+ * @phpstan-return array{ value: float, unit: non-empty-string }|null
  */
 function wp_get_typography_value_and_unit( $raw_value, $options = array() ): ?array {
 	if ( ! is_string( $raw_value ) && ! is_int( $raw_value ) && ! is_float( $raw_value ) ) {
@@ -394,7 +394,7 @@ function wp_get_typography_value_and_unit( $raw_value, $options = array() ): ?ar
 	 * @var array{
 	 *     coerce_to: string,
 	 *     root_size_value: positive-int,
-	 *     acceptable_units: non-empty-string[],
+	 *     acceptable_units: non-empty-array<non-empty-string>,
 	 * } $options
 	 */
 	$options = wp_parse_args( $options, $defaults );
@@ -410,7 +410,8 @@ function wp_get_typography_value_and_unit( $raw_value, $options = array() ): ?ar
 	}
 
 	$value = (float) $matches[1];
-	$unit  = $matches[2];
+	/** @var non-empty-string $unit */
+	$unit = $matches[2];
 
 	/*
 	 * Default browser font size. Later, possibly could inject some JS to
