@@ -427,7 +427,7 @@ function wp_get_tooltip( $content, $args = array() ) {
 		$label  = wp_strip_all_tags( $content, true );
 		$markup = sprintf(
 			'<div class="%1$s">' .
-				'<button type="button" class="wp-tooltip__toggle" popovertarget="%2$s" aria-describedby="%2$s-text" aria-label="%3$s">' .
+				'<button type="button" class="wp-tooltip__toggle" popovertarget="%2$s" aria-label="%3$s">' .
 					'<span class="dashicons%4$s" aria-hidden="true"></span>' .
 				'</button>' .
 				'<span popover="hint" id="%2$s" class="wp-tooltip__bubble" role="tooltip">' .
