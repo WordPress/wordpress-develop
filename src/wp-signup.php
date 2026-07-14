@@ -78,13 +78,13 @@ function wpmu_signup_stylesheet() {
 		.mu_register input[type="email"],
 			.mu_register #user_name { direction: ltr; }
 		.mu_register #site-language { display: block; }
+		.mu_register label[for="site-language"] { display: inline-flex; align-items: center; }
 		.mu_register label[for="site-language"] .dashicons { margin-left: 0.5em; }
 		.mu_register .prefix_address,
 			.mu_register .suffix_address { font-size: 18px; display: inline-block; direction: ltr; }
 		.mu_register label,
 			.mu_register legend,
 			.mu_register .label-heading { font-weight: 600; font-size: 15px; display: block; margin: 10px 0; }
-		.mu_register label[for="site-language"] { display: inline-flex; align-items: center; }
 		.mu_register legend + p,
 			.mu_register input + p { margin-top: 0; }
 		.mu_register label.checkbox { display: inline; }
