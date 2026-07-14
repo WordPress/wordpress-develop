@@ -2529,7 +2529,7 @@ class WP_Theme_JSON {
 	 * object with a `root` key), that selector is returned. Otherwise,
 	 * the block's default selector is used.
 	 *
-	 * @since 7.0.0
+	 * @since 7.1.0
 	 *
 	 * @param array<string, string|array<string, string>> $feature_selectors The block's feature selectors map.
 	 * @param string                                      $feature_key       The feature to look up (e.g. 'dimensions').
