@@ -467,13 +467,13 @@ class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 
 		$controller->prepare_item_for_response( array(), $request );
 
-		$this->assertSame( 0, $listener->get_call_count( $method ) );
+		$this->assertSame( 0, $listener->get_call_count() );
 
 		$request->set_param( 'context', 'embed' );
 
 		$controller->prepare_item_for_response( array(), $request );
 
-		$this->assertGreaterThan( 0, $listener->get_call_count( $method ) );
+		$this->assertGreaterThan( 0, $listener->get_call_count() );
 	}
 
 	public function test_filtering_fields_for_response_by_context_returns_fields_with_no_context() {
@@ -501,7 +501,7 @@ class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 
 		$controller->prepare_item_for_response( array(), $request );
 
-		$this->assertGreaterThan( 0, $listener->get_call_count( $method ) );
+		$this->assertGreaterThan( 0, $listener->get_call_count() );
 	}
 
 	public function test_filtering_fields_for_response_by_context_returns_fields_with_no_schema() {
@@ -526,7 +526,7 @@ class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 
 		$controller->prepare_item_for_response( array(), $request );
 
-		$this->assertGreaterThan( 0, $listener->get_call_count( $method ) );
+		$this->assertGreaterThan( 0, $listener->get_call_count() );
 	}
 
 	/**
@@ -586,7 +586,7 @@ class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 
 		$controller->prepare_item_for_response( $item, $request );
 
-		$first_call_count = $listener->get_call_count( $method );
+		$first_call_count = $listener->get_call_count();
 
 		$this->assertGreaterThan( 0, $first_call_count );
 
@@ -594,13 +594,13 @@ class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 
 		$controller->prepare_item_for_response( $item, $request );
 
-		$this->assertSame( $first_call_count, $listener->get_call_count( $method ) );
+		$this->assertSame( $first_call_count, $listener->get_call_count() );
 
 		$request->set_param( '_fields', $field );
 
 		$controller->prepare_item_for_response( $item, $request );
 
-		$this->assertGreaterThan( $first_call_count, $listener->get_call_count( $method ) );
+		$this->assertGreaterThan( $first_call_count, $listener->get_call_count() );
 	}
 
 	/**
