@@ -1302,7 +1302,12 @@ function _wp_kses_split_callback( $matches ) {
  * @param bool   $reset      Whether to reset the tracked depth for a new pass.
  * @return bool Whether the current tag is inside an open dialog element.
  */
-function _wp_kses_track_in_dialog_context( $element = '', $attrlist = '', $is_closing = false, $reset = false ) {
+function _wp_kses_track_in_dialog_context(
+	string $element = '',
+	string $attrlist = '',
+	bool $is_closing = false,
+	bool $reset = false
+): bool {
 	static $in_dialog_depth = 0;
 
 	if ( $reset ) {
