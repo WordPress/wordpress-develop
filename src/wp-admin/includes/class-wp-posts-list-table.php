@@ -1177,7 +1177,8 @@ class WP_Posts_List_Table extends WP_List_Table {
 		$pad = str_repeat( '&#8212; ', $this->current_level );
 		echo '<strong>';
 
-		$title = _draft_or_post_title();
+		$title = $post->post_title;
+		$title = empty( $title ) ? __( '(no title)' ) : strip_tags( $title );
 
 		// If the post has no title, try adding part of the excerpt.
 		$no_title_excerpt = $this->get_no_title_excerpt( $post );
@@ -1190,13 +1191,13 @@ class WP_Posts_List_Table extends WP_List_Table {
 				'<a class="row-title" href="%s">%s%s</a>',
 				get_edit_post_link( $post->ID ),
 				$pad,
-				$title
+				esc_html( $title )
 			);
 		} else {
 			printf(
 				'<span>%s%s</span>',
 				$pad,
-				$title
+				esc_html( $title )
 			);
 		}
 		_post_states( $post );
