@@ -253,7 +253,7 @@
 		 * @return {void}
 		 */
 		add_postbox_toggles : function (page, args) {
-			var $handles = $( '.postbox .hndle, .postbox .handlediv' ),
+			var $handles = $( '.postbox .hndle, .postbox .handle, .postbox .handlediv' ),
 				$orderButtons = $( '.postbox .handle-order-higher, .postbox .handle-order-lower' );
 
 			this.page = page;
@@ -267,7 +267,7 @@
 			/**
 			 * @since 2.7.0
 			 */
-			$('.postbox .hndle a').on( 'click', function(e) {
+			$( '.postbox .hndle a, .postbox .handle a' ).on( 'click', function(e) {
 				e.stopPropagation();
 			});
 
@@ -370,7 +370,7 @@
 				placeholder: 'sortable-placeholder',
 				connectWith: '.meta-box-sortables',
 				items: '.postbox',
-				handle: '.hndle',
+				handle: '.hndle, .handle',
 				cursor: 'move',
 				delay: ( isMobile ? 200 : 0 ),
 				distance: 2,

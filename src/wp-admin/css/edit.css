@@ -673,6 +673,7 @@ form#tags-filter {
 }
 
 #poststuff h3.hndle, /* Back-compat for pre-4.4 */
+#poststuff h3.handle, /* Back-compat for pre-4.4 */
 #poststuff .stuffbox > h3, /* Back-compat for pre-4.4 */
 #poststuff h2 {
 	font-size: 14px;
@@ -1917,6 +1918,7 @@ table.links-table {
 	}
 
 	#poststuff h3.hndle, /* Back-compat for pre-4.4 */
+	#poststuff h3.handle, /* Back-compat for pre-4.4 */
 	#poststuff .stuffbox > h3, /* Back-compat for pre-4.4 */
 	#poststuff h2 {
 		padding: 12px;

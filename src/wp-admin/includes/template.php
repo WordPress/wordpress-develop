@@ -1375,7 +1375,7 @@ function do_meta_boxes( $screen, $context, $data_object ) {
 					echo '<div id="' . $box['id'] . '" class="postbox ' . postbox_classes( $box['id'], $page ) . $hidden_class . '" ' . '>' . "\n";
 
 					echo '<div class="postbox-header">';
-					echo '<h2 class="hndle">';
+					echo '<h2 class="hndle handle">';
 					if ( 'dashboard_php_nag' === $box['id'] ) {
 						echo '<span aria-hidden="true" class="dashicons dashicons-warning"></span>';
 						echo '<span class="screen-reader-text">' .
@@ -1577,7 +1577,7 @@ function do_accordion_sections( $screen, $context, $data_object ) {
 					}
 					?>
 					<li class="control-section accordion-section <?php echo $hidden_class; ?> <?php echo $open_class; ?> <?php echo esc_attr( $box['id'] ); ?>" id="<?php echo esc_attr( $box['id'] ); ?>">
-						<h3 class="accordion-section-title hndle">
+						<h3 class="accordion-section-title hndle handle">
 							<button type="button" class="accordion-trigger" aria-expanded="<?php echo $aria_expanded; ?>" aria-controls="<?php echo esc_attr( $box['id'] ); ?>-content">
 								<span class="accordion-title">
 									<?php echo esc_html( $box['title'] ); ?>

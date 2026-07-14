@@ -767,6 +767,8 @@ img.emoji {
 .widget .widget-top,
 .postbox .hndle,
 .stuffbox .hndle,
+.postbox .handle,
+.stuffbox .handle,
 .control-section .accordion-section-title,
 .sidebar-name,
 #nav-menu-header,
@@ -788,7 +790,8 @@ img.emoji {
 	color: #1d2327;
 }
 
-.stuffbox .hndle {
+.stuffbox .hndle,
+.stuffbox .handle {
 	border-bottom: 1px solid #c3c4c7;
 }
 
@@ -2205,17 +2208,20 @@ html.wp-toolbar {
 }
 
 .js .widget .widget-top,
-.js .postbox .hndle {
+.js .postbox .hndle,
+.js .postbox .handle {
 	cursor: move;
 }
 
 .js .widget .widget-top.is-non-sortable,
-.js .postbox .hndle.is-non-sortable {
+.js .postbox .hndle.is-non-sortable,
+.js .postbox .handle.is-non-sortable {
 	cursor: auto;
 }
 
 /* Configurable dashboard widgets "Configure" edit-box link. */
-.hndle a {
+.hndle a,
+.handle a {
 	font-size: 12px;
 	font-weight: 400;
 }
@@ -2227,7 +2233,8 @@ html.wp-toolbar {
 	border-bottom: 1px solid #c3c4c7;
 }
 
-.postbox-header .hndle {
+.postbox-header .hndle,
+.postbox-header .handle {
 	flex-grow: 1;
 	/* Handle the alignment for the configurable dashboard widgets "Configure" edit-box link. */
 	display: flex;
@@ -2291,7 +2298,9 @@ html.wp-toolbar {
 
 /* user-select is not a part of the CSS standard - may change behavior in the future */
 .postbox .hndle,
-.stuffbox .hndle {
+.stuffbox .hndle,
+.postbox .handle,
+.stuffbox .handle {
 	-webkit-user-select: none;
 	user-select: none;
 }
@@ -2490,7 +2499,9 @@ h1.nav-tab-wrapper, /* Back-compat for pre-4.4 */
 .metabox-holder .stuffbox > h3, /* Back-compat for pre-4.4 */
 .metabox-holder .postbox > h3, /* Back-compat for pre-4.4 */
 .metabox-holder h3.hndle, /* Back-compat for pre-4.4 */
-.metabox-holder h2.hndle {
+.metabox-holder h3.handle, /* Back-compat for pre-4.4 */
+.metabox-holder h2.hndle,
+.metabox-holder h2.handle {
 	font-size: 14px;
 	padding: 8px 12px;
 	margin: 0;
@@ -4096,13 +4107,13 @@ img {
 		word-wrap: anywhere; /* Firefox. Allow breaking long words anywhere */
 		word-break: break-word; /* Webkit: Treated similarly to word-wrap: break-word */
 	}
-
 	/* General Metabox */
 	.postbox {
 		font-size: 14px;
 	}
 
 	.metabox-holder h3.hndle, /* Back-compat for pre-4.4 */
+	.metabox-holder h3.handle, /* Back-compat for pre-4.4 */
 	.metabox-holder .stuffbox > h3, /* Back-compat for pre-4.4 */
 	.metabox-holder .postbox > h3, /* Back-compat for pre-4.4 */
 	.metabox-holder h2 {
