@@ -402,7 +402,7 @@ function wp_get_tooltip( $content, $args ) {
  * Retrieves the markup for an accessible tooltip or toggletip.
  *
  * Returns a button and either a hover/focus triggered tooltip popover or an action
- * triggered toggle tip. Enqueue the `wp-tooltip` style and script where it is used. 
+ * triggered toggle tip. Enqueue the `wp-tooltip` style and script where it is used.
  * Tooltips are used to show the accessible name of a control.
  * Toggletips are be used for longer supporting text explaining context.
  *
@@ -434,7 +434,7 @@ function wp_get_toggletip( $content, $args ) {
  * Retrieves the markup for an accessible tooltip or toggletip.
  *
  * Returns a button and either a hover/focus triggered tooltip popover or an action
- * triggered toggle tip. Enqueue the `wp-tooltip` style and script where it is used. 
+ * triggered toggle tip. Enqueue the `wp-tooltip` style and script where it is used.
  * Tooltips are used to show the accessible name of a control.
  * Toggletips are be used for longer supporting text explaining context.
  *
@@ -455,7 +455,7 @@ function wp_get_toggletip( $content, $args ) {
  *                               visible label.
  *     @type string $class       Additional class(es) for the wrapping element.
  *                               Default empty.
- *     @type string $type        Type of tooltip: either `tooltip` or `toggletip`. 
+ *     @type string $type        Type of tooltip: either `tooltip` or `toggletip`.
  *                               Default 'tooltip'.
  * }
  * @return string Tooltip HTML markup, or an empty string when no content is provided.
