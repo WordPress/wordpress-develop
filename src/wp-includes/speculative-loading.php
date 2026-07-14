@@ -14,6 +14,10 @@
  *
  * @return array<string, string>|null Associative array with 'mode' and 'eagerness' keys, or null if speculative
  *                                    loading is disabled.
+ * @phpstan-return array{
+ *     mode: 'prefetch'|'prerender',
+ *     eagerness: 'conservative'|'moderate'|'eager'|'immediate',
+ * }|null
  */
 function wp_get_speculation_rules_configuration(): ?array {
 	// By default, speculative loading is only enabled for sites with pretty permalinks when no user is logged in.
