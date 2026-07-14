@@ -1024,7 +1024,7 @@ class Tests_Block_Supports_States extends WP_UnitTestCase {
 				'style' => array(
 					'@tablet' => array(
 						'background' => array(
-							'backgroundImage' => 'linear-gradient(135deg,rgb(119,255,112) 0%,rgb(253,254,215) 99%)',
+							'gradient' => 'linear-gradient(135deg,rgb(119,255,112) 0%,rgb(253,254,215) 99%)',
 						),
 					),
 				),
