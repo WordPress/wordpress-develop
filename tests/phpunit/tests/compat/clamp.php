@@ -285,8 +285,7 @@ class Tests_Compat_clamp extends WP_UnitTestCase {
 	/**
 	 * Returns the expected exception class for ValueError-equivalent errors.
 	 *
-	 * Mirrors the check in {@see _wp_throw_value_error()}: ValueError is thrown whenever
-	 * the class exists (PHP 8.0+ or provided by a polyfill), with
+	 * ValueError is thrown whenever the class exists (PHP 8.0+ or provided by a polyfill), with
 	 * InvalidArgumentException as the fallback on PHP 7.x.
 	 *
 	 * @return class-string<Throwable> The fully qualified exception class name.
