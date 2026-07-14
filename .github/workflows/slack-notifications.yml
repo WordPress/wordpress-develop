@@ -218,7 +218,7 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     needs: [ prepare ]
-    if: ${{ inputs.calling_status == 'cancelled' || cancelled() }}
+    if: ${{ inputs.calling_status == 'cancelled' && github.run_attempt == 2 || cancelled() }}
 
     steps:
       - name: Post cancelled notifications to Slack
