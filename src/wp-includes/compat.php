@@ -699,10 +699,18 @@ if ( ! function_exists( 'clamp' ) ) {
 	 * @param mixed $value The value to clamp.
 	 * @param mixed $min   The minimum bound. Must be less than or equal to `$max`.
 	 * @param mixed $max   The maximum bound. Must be greater than or equal to `$min`.
-	 * @return mixed The clamped value.
+	 * @return mixed The clamped value. Either `$value`, `$min`, or `$max`.
 	 *
 	 * @throws ValueError               If `$min` is greater than `$max`, or if `$min` or `$max` is NAN, and the ValueError class exists (PHP 8.0+ or polyfilled).
 	 * @throws InvalidArgumentException If `$min` is greater than `$max`, or if `$min` or `$max` is NAN, and the ValueError class does not exist (PHP 7.x).
+	 *
+	 * @phpstan-template TValue
+	 * @phpstan-template TMin
+	 * @phpstan-template TMax
+	 * @phpstan-param TValue $value
+	 * @phpstan-param TMin   $min
+	 * @phpstan-param TMax   $max
+	 * @phpstan-return TValue|TMin|TMax
 	 */
 	function clamp( $value, $min, $max ) {
 		$throw_value_error = static function ( string $message ) {
