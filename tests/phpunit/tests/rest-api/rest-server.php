@@ -1212,14 +1212,17 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 	 *
 	 * @covers WP_REST_Server::get_index
 	 */
-	public function test_get_index_should_include_media_processing_settings() {
-		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+	public function test_get_index_should_include_media_processing_settings(): void {
+		$user_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		$this->assertIsInt( $user_id );
+		wp_set_current_user( $user_id );
 		add_filter( 'wp_client_side_media_processing_enabled', '__return_true' );
 
 		$server  = new WP_REST_Server();
 		$request = new WP_REST_Request( 'GET', '/' );
 		$index   = $server->dispatch( $request );
 		$data    = $index->get_data();
+		$this->assertIsArray( $data );
 
 		$this->assertArrayHasKey( 'image_sizes', $data );
 		$this->assertArrayHasKey( 'image_size_threshold', $data );
@@ -1234,13 +1237,14 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 	 *
 	 * @covers WP_REST_Server::get_index
 	 */
-	public function test_get_index_should_not_include_media_processing_settings_without_caps() {
+	public function test_get_index_should_not_include_media_processing_settings_without_caps(): void {
 		add_filter( 'wp_client_side_media_processing_enabled', '__return_true' );
 
 		$server  = new WP_REST_Server();
 		$request = new WP_REST_Request( 'GET', '/' );
 		$index   = $server->dispatch( $request );
 		$data    = $index->get_data();
+		$this->assertIsArray( $data );
 
 		$this->assertArrayNotHasKey( 'image_sizes', $data );
 		$this->assertArrayNotHasKey( 'image_size_threshold', $data );
@@ -1253,8 +1257,10 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 	 *
 	 * @covers WP_REST_Server::get_index
 	 */
-	public function test_get_index_should_honor_media_processing_filters() {
-		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+	public function test_get_index_should_honor_media_processing_filters(): void {
+		$user_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		$this->assertIsInt( $user_id );
+		wp_set_current_user( $user_id );
 		add_filter( 'wp_client_side_media_processing_enabled', '__return_true' );
 		add_filter( 'image_strip_meta', '__return_false' );
 		add_filter(
