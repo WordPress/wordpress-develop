@@ -225,6 +225,119 @@ class Tests_Compat_clamp extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests clamp() when a bound is not comparable by the usual ordering rules.
+	 *
+	 * Comparison in PHP is not transitive when operands of different types are mixed. For
+	 * example, comparing an int against null coerces both operands to bool, so `-1 < null`
+	 * is false while `null < 0` is also false. Both bounds can therefore compare as exceeded
+	 * at the same time, in which case PHP returns `$max`, since it checks the upper bound
+	 * first. These expectations are taken from PHP's own clamp() tests.
+	 *
+	 * @ticket 65143
+	 *
+	 * @dataProvider data_clamp_with_null_bound
+	 *
+	 * @param mixed $expected The expected clamped value.
+	 * @param mixed $value    The value to clamp.
+	 * @param mixed $min      The minimum bound.
+	 * @param mixed $max      The maximum bound.
+	 */
+	public function test_clamp_with_null_bound( $expected, $value, $min, $max ): void {
+		$this->assertSame( $expected, clamp( $value, $min, $max ) );
+	}
+
+	/**
+	 * Provides data for {@see self::test_clamp_with_null_bound()}.
+	 *
+	 * @return array<string, array{ expected: mixed, value: mixed, min: mixed, max: mixed }>
+	 */
+	public function data_clamp_with_null_bound(): array {
+		return array(
+			// The upper bound is checked before the lower bound, so $max wins when both compare as exceeded.
+			'null max, both bounds exceeded'  => array(
+				'expected' => null,
+				'value'    => -1,
+				'min'      => 0,
+				'max'      => null,
+			),
+			'null value, negative min'        => array(
+				'expected' => -1,
+				'value'    => null,
+				'min'      => -1,
+				'max'      => 1,
+			),
+			'null value, positive min'        => array(
+				'expected' => 1,
+				'value'    => null,
+				'min'      => 1,
+				'max'      => 3,
+			),
+			'null value, above negative max'  => array(
+				'expected' => -3,
+				'value'    => null,
+				'min'      => -3,
+				'max'      => -1,
+			),
+			'null min, value within range'    => array(
+				'expected' => -9999,
+				'value'    => -9999,
+				'min'      => null,
+				'max'      => 10,
+			),
+			'null min, value above max'       => array(
+				'expected' => 10,
+				'value'    => 12,
+				'min'      => null,
+				'max'      => 10,
+			),
+			'false max, both bounds exceeded' => array(
+				'expected' => false,
+				'value'    => -1,
+				'min'      => 0,
+				'max'      => false,
+			),
+		);
+	}
+
+	/**
+	 * Tests that clamp() throws when a null $max compares as smaller than $min.
+	 *
+	 * A null $max is coerced to bool for the comparison, so it is smaller than any truthy
+	 * $min. These expectations are taken from PHP's own clamp() tests.
+	 *
+	 * @ticket 65143
+	 *
+	 * @dataProvider data_clamp_throws_for_null_max
+	 *
+	 * @param mixed $value The value to clamp.
+	 * @param mixed $min   The minimum bound.
+	 */
+	public function test_clamp_throws_for_null_max( $value, $min ): void {
+		$this->expectException( $this->value_error_class() );
+		$this->expectExceptionMessage( 'clamp(): Argument #2 ($min) must be smaller than or equal to argument #3 ($max)' );
+
+		clamp( $value, $min, null );
+	}
+
+	/**
+	 * Provides data for {@see self::test_clamp_throws_for_null_max()}.
+	 *
+	 * @return array<string, array{ value: mixed, min: mixed }>
+	 */
+	public function data_clamp_throws_for_null_max(): array {
+		return array(
+			'value below min' => array(
+				'value' => -9999,
+				'min'   => 5,
+			),
+			'value above min' => array(
+				'value' => 12,
+				'min'   => -5,
+			),
+		);
+	}
+
+	/**
 	 * Tests that clamp() throws when $min is NAN.
 	 *
 	 * @ticket 65143

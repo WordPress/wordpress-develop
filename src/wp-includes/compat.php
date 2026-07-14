@@ -733,12 +733,18 @@ if ( ! function_exists( 'clamp' ) ) {
 			$throw_value_error( 'clamp(): Argument #2 ($min) must be smaller than or equal to argument #3 ($max)' );
 		}
 
-		if ( $value < $min ) {
-			return $min;
-		}
-
+		/*
+		 * The upper bound is checked before the lower bound to match the order in PHP's
+		 * implementation. Comparison in PHP is not transitive when operands of different
+		 * types are mixed (for example, comparing against a bool coerces both operands to
+		 * bool), so both bounds can compare as exceeded at once, and the first check wins.
+		 */
 		if ( $value > $max ) {
 			return $max;
+		}
+
+		if ( $value < $min ) {
+			return $min;
 		}
 
 		return $value;
