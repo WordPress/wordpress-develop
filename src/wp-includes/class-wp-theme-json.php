@@ -330,6 +330,7 @@ class WP_Theme_JSON {
 	 *
 	 * @since 6.2.0
 	 * @since 6.6.0 Added background-image properties.
+	 * @since 7.1.0 Added `background.gradient` to `background-image` paths.
 	 * @var array
 	 */
 	const INDIRECT_PROPERTIES_METADATA = array(
@@ -348,6 +349,7 @@ class WP_Theme_JSON {
 		),
 		'background-image' => array(
 			array( 'background', 'backgroundImage', 'url' ),
+			array( 'background', 'gradient' ),
 		),
 	);
 
@@ -412,6 +414,8 @@ class WP_Theme_JSON {
 	 * @since 7.0.0 Added type markers to the schema for boolean values.
 	 *              Added support for `dimensions.width` and `dimensions.height`.
 	 *              Added support for `typography.textIndent`.
+	 * @since 7.1.0 Added `viewport` property.
+	 *              Added support for `background.gradient` and `blockVisibility.allowEditing`.
 	 * @var array
 	 */
 	const VALID_SETTINGS = array(
@@ -420,6 +424,7 @@ class WP_Theme_JSON {
 		'background'                    => array(
 			'backgroundImage' => null,
 			'backgroundSize'  => null,
+			'gradient'        => null,
 		),
 		'border'                        => array(
 			'color'       => null,
@@ -469,6 +474,9 @@ class WP_Theme_JSON {
 			'fixed'  => null,
 			'sticky' => null,
 		),
+		'blockVisibility'               => array(
+			'allowEditing' => true,
+		),
 		'spacing'                       => array(
 			'customSpacingSize'   => null,
 			'defaultSpacingSizes' => null,
@@ -500,6 +508,10 @@ class WP_Theme_JSON {
 			'textIndent'       => null,
 			'textTransform'    => null,
 			'writingMode'      => null,
+		),
+		'viewport'                      => array(
+			'mobile' => null,
+			'tablet' => null,
 		),
 	);
 
@@ -549,6 +561,7 @@ class WP_Theme_JSON {
 	 * @since 6.5.0 Added support for `dimensions.aspectRatio`.
 	 * @since 6.6.0 Added `background` sub properties to top-level only.
 	 * @since 7.0.0 Added support for `dimensions.width` and `dimensions.height`.
+	 * @since 7.1.0 Added `background.gradient`.
 	 * @var array
 	 */
 	const VALID_STYLES = array(
@@ -558,6 +571,7 @@ class WP_Theme_JSON {
 			'backgroundRepeat'     => null,
 			'backgroundSize'       => null,
 			'backgroundAttachment' => null,
+			'gradient'             => null,
 		),
 		'border'     => array(
 			'color'  => null,
@@ -668,17 +682,174 @@ class WP_Theme_JSON {
 	);
 
 	/**
-	 * Responsive breakpoint state keys and their corresponding CSS media queries.
-	 * These are available for all blocks and wrap their styles in the given media query.
-	 * Keep in sync with RESPONSIVE_BREAKPOINTS in packages/global-styles-engine/src/core/render.tsx.
+	 * Default viewport breakpoint sizes.
 	 *
 	 * @since 7.1.0
 	 * @var array
 	 */
-	const RESPONSIVE_BREAKPOINTS = array(
-		'@mobile' => '@media (width <= 480px)',
-		'@tablet' => '@media (480px < width <= 782px)',
+	const DEFAULT_VIEWPORT_BREAKPOINTS = array(
+		'mobile' => '480px',
+		'tablet' => '782px',
 	);
+
+	/**
+	 * Returns CSS media queries for responsive viewport style states.
+	 *
+	 * Breakpoint values are read from `settings.viewport`, sanitized, and
+	 * normalized before the media query strings are generated. By default, the
+	 * returned keys are the theme.json style-state names (`@mobile`, `@tablet`).
+	 * When `$options['include_desktop']` is truthy, `@desktop` is included.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @param mixed $viewport_settings Viewport settings from theme.json.
+	 * @param array $options           {
+	 *     Optional. Options for generating media queries.
+	 *
+	 *     @type bool $include_desktop Whether to include the desktop media query. Default false.
+	 * }
+	 * @return array Responsive media queries.
+	 */
+	public static function get_viewport_media_queries( $viewport_settings = null, $options = array() ) {
+		$breakpoints = static::sanitize_viewport_settings( $viewport_settings );
+
+		$responsive_media_queries = array();
+
+		if ( isset( $breakpoints['mobile'] ) ) {
+			$responsive_media_queries['@mobile'] = "@media (width <= {$breakpoints['mobile']})";
+		}
+
+		if ( isset( $breakpoints['tablet'] ) ) {
+			$responsive_media_queries['@tablet'] = isset( $breakpoints['mobile'] )
+				? sprintf(
+					'@media (%s < width <= %s)',
+					$breakpoints['mobile'],
+					$breakpoints['tablet']
+				)
+				: "@media (width <= {$breakpoints['tablet']})";
+		}
+
+		if ( ! empty( $options['include_desktop'] ) ) {
+			if ( isset( $breakpoints['tablet'] ) ) {
+				$desktop_breakpoint = $breakpoints['tablet'];
+			} else {
+				$desktop_breakpoint = $breakpoints['mobile'];
+			}
+
+			$responsive_media_queries['@desktop'] =
+				"@media (width > {$desktop_breakpoint})";
+		}
+
+		return $responsive_media_queries;
+	}
+
+	/**
+	 * Checks whether a viewport breakpoint value is a safe CSS length.
+	 *
+	 * Viewport breakpoints are limited to numeric `px`, `em`, and `rem` lengths.
+	 * CSS functions, percentages, and other units are rejected because breakpoint
+	 * values are interpolated into generated media queries.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @param mixed $value Value to check.
+	 * @return bool Whether the value is valid.
+	 */
+	private static function is_valid_viewport_breakpoint_size( $value ) {
+		if ( ! is_string( $value ) ) {
+			return false;
+		}
+
+		$value = trim( $value );
+		if ( '' === $value ) {
+			return false;
+		}
+
+		return 1 === preg_match( '/^(?:\d+|\d*\.\d+)(?:px|em|rem)$/', $value );
+	}
+
+	/**
+	 * Converts a valid viewport breakpoint size to pixels for ordering checks.
+	 *
+	 * Generated media queries keep the original units. This method only
+	 * normalizes values so `mobile` and `tablet` can be compared safely. `em`
+	 * and `rem` lengths use a 16px base for comparison.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @param mixed $value Viewport breakpoint size.
+	 * @return float|null Viewport breakpoint size in pixels, or null when invalid.
+	 */
+	private static function get_viewport_breakpoint_value_in_pixels( $value ) {
+		if ( ! static::is_valid_viewport_breakpoint_size( $value ) ) {
+			return null;
+		}
+
+		$value = trim( $value );
+		$unit  = substr( $value, -3 );
+		if ( 'rem' === $unit ) {
+			$number = (float) substr( $value, 0, -3 );
+		} else {
+			$unit   = substr( $value, -2 );
+			$number = (float) substr( $value, 0, -2 );
+		}
+
+		/*
+		 * Use the most common browser default font size as the base for em/rem
+		 * media query conversions. This pixel value is only used to compare
+		 * breakpoint order; generated media queries keep the original units.
+		 */
+		return 'px' === $unit ? $number : $number * 16;
+	}
+
+	/**
+	 * Sanitizes and normalizes viewport breakpoint settings.
+	 *
+	 * Keeps only supported breakpoint keys, trims valid CSS lengths, and returns
+	 * the default breakpoints when no valid custom breakpoint is provided. When
+	 * only one breakpoint is valid, it remains keyed by its configured state and
+	 * uses a single max-width media query. When `tablet` is not larger than
+	 * `mobile`, it is removed.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @param mixed $viewport_settings Viewport settings from theme.json.
+	 * @return array Sanitized viewport breakpoint settings.
+	 */
+	private static function sanitize_viewport_settings( $viewport_settings ) {
+		if ( ! is_array( $viewport_settings ) ) {
+			return static::DEFAULT_VIEWPORT_BREAKPOINTS;
+		}
+
+		$breakpoints = array();
+		foreach ( array_keys( static::DEFAULT_VIEWPORT_BREAKPOINTS ) as $breakpoint ) {
+			$value = $viewport_settings[ $breakpoint ] ?? null;
+			$px    = static::get_viewport_breakpoint_value_in_pixels( $value );
+			if ( null !== $px ) {
+				$breakpoints[ $breakpoint ] = array(
+					'value' => trim( $value ),
+					'px'    => $px,
+				);
+			}
+		}
+
+		if ( empty( $breakpoints ) ) {
+			return static::DEFAULT_VIEWPORT_BREAKPOINTS;
+		}
+
+		if ( 1 === count( $breakpoints ) ) {
+			$breakpoint = key( $breakpoints );
+			return array( $breakpoint => $breakpoints[ $breakpoint ]['value'] );
+		}
+
+		$sanitized = array( 'mobile' => $breakpoints['mobile']['value'] );
+
+		if ( isset( $breakpoints['tablet'] ) && $breakpoints['mobile']['px'] < $breakpoints['tablet']['px'] ) {
+			$sanitized['tablet'] = $breakpoints['tablet']['value'];
+		}
+
+		return $sanitized;
+	}
 
 	/**
 	 * The valid elements that can be found under styles.
@@ -859,11 +1030,13 @@ class WP_Theme_JSON {
 	 * @since 6.4.0 Added `background.backgroundImage`.
 	 * @since 6.5.0 Added `background.backgroundSize` and `dimensions.aspectRatio`.
 	 * @since 7.0.0 Added `dimensions.width` and `dimensions.height`.
+	 * @since 7.1.0 Added `background.gradient`.
 	 * @var array
 	 */
 	const APPEARANCE_TOOLS_OPT_INS = array(
 		array( 'background', 'backgroundImage' ),
 		array( 'background', 'backgroundSize' ),
+		array( 'background', 'gradient' ),
 		array( 'border', 'color' ),
 		array( 'border', 'radius' ),
 		array( 'border', 'style' ),
@@ -1118,8 +1291,9 @@ class WP_Theme_JSON {
 		}
 
 		// Build the schema based on valid block & element names.
-		$schema                 = array();
-		$schema_styles_elements = array();
+		$schema                   = array();
+		$schema_styles_elements   = array();
+		$responsive_media_queries = static::get_viewport_media_queries( $input['settings']['viewport'] ?? null );
 
 		/*
 		 * Set allowed element pseudo selectors and responsive breakpoint states.
@@ -1139,7 +1313,7 @@ class WP_Theme_JSON {
 			}
 
 			// Add responsive breakpoint states for elements.
-			foreach ( array_keys( static::RESPONSIVE_BREAKPOINTS ) as $breakpoint_state ) {
+			foreach ( array_keys( $responsive_media_queries ) as $breakpoint_state ) {
 				$schema_styles_elements[ $element ][ $breakpoint_state ] = $styles_non_top_level;
 			}
 		}
@@ -1158,12 +1332,15 @@ class WP_Theme_JSON {
 		 * for further nested inner `blocks`, the overall schema is generated in multiple passes.
 		 */
 		foreach ( $valid_block_names as $block ) {
-			$schema_settings_blocks[ $block ]           = static::VALID_SETTINGS;
+			$schema_settings_blocks[ $block ] = static::VALID_SETTINGS;
+			// `viewport` and `blockVisibility` are global-only settings and cannot be set per block for now.
+			unset( $schema_settings_blocks[ $block ]['viewport'] );
+			unset( $schema_settings_blocks[ $block ]['blockVisibility'] );
 			$schema_styles_blocks[ $block ]             = $styles_non_top_level;
 			$schema_styles_blocks[ $block ]['elements'] = $schema_styles_elements;
 
 			// Add responsive breakpoint states for all blocks.
-			foreach ( array_keys( static::RESPONSIVE_BREAKPOINTS ) as $breakpoint_state ) {
+			foreach ( array_keys( $responsive_media_queries ) as $breakpoint_state ) {
 				$schema_styles_blocks[ $block ][ $breakpoint_state ]             = $styles_non_top_level;
 				$schema_styles_blocks[ $block ][ $breakpoint_state ]['elements'] = $schema_styles_elements;
 
@@ -1223,7 +1400,7 @@ class WP_Theme_JSON {
 					$variation_schema = $block_style_variation_styles;
 
 					// Add responsive breakpoint states to block style variations.
-					foreach ( array_keys( static::RESPONSIVE_BREAKPOINTS ) as $breakpoint_state ) {
+					foreach ( array_keys( $responsive_media_queries ) as $breakpoint_state ) {
 						$variation_schema[ $breakpoint_state ]             = $styles_non_top_level;
 						$variation_schema[ $breakpoint_state ]['elements'] = $schema_styles_elements;
 						$variation_schema[ $breakpoint_state ]['blocks']   = $schema_styles_blocks;
@@ -1268,6 +1445,10 @@ class WP_Theme_JSON {
 			}
 
 			$result = static::remove_keys_not_in_schema( $input[ $subtree ], $schema[ $subtree ] );
+
+			if ( 'settings' === $subtree && array_key_exists( 'viewport', $input[ $subtree ] ) ) {
+				$result['viewport'] = static::sanitize_viewport_settings( $input[ $subtree ]['viewport'] );
+			}
 
 			if ( empty( $result ) ) {
 				unset( $output[ $subtree ] );
@@ -2777,11 +2958,21 @@ class WP_Theme_JSON {
 			 * For uploaded image (images with a database ID), apply size and position defaults,
 			 * equal to those applied in block supports in lib/background.php.
 			 */
-			if ( 'background-image' === $css_property && ! empty( $value ) ) {
-				$background_styles = wp_style_engine_get_styles(
-					array( 'background' => array( 'backgroundImage' => $value ) )
-				);
-				$value             = $background_styles['declarations'][ $css_property ];
+			if ( 'background-image' === $css_property ) {
+				$background_image_input = array();
+				if ( ! empty( $value ) ) {
+					$background_image_input['backgroundImage'] = $value;
+				}
+				$gradient_value = $styles['background']['gradient'] ?? null;
+				if ( ! empty( $gradient_value ) ) {
+					$background_image_input['gradient'] = $gradient_value;
+				}
+				if ( ! empty( $background_image_input ) ) {
+					$background_styles = wp_style_engine_get_styles(
+						array( 'background' => $background_image_input )
+					);
+					$value             = $background_styles['declarations'][ $css_property ] ?? null;
+				}
 			}
 			if ( empty( $value ) && static::ROOT_BLOCK_SELECTOR !== $selector && ! empty( $styles['background']['backgroundImage']['id'] ) ) {
 				if ( 'background-size' === $css_property ) {
@@ -3162,8 +3353,9 @@ class WP_Theme_JSON {
 			return $nodes;
 		}
 
-		$include_variations      = $options['include_block_style_variations'] ?? false;
-		$include_node_paths_only = $options['include_node_paths_only'] ?? false;
+		$include_variations       = $options['include_block_style_variations'] ?? false;
+		$include_node_paths_only  = $options['include_node_paths_only'] ?? false;
+		$responsive_media_queries = static::get_viewport_media_queries( $theme_json['settings']['viewport'] ?? null );
 
 		// If only node paths are to be returned, skip selector assignment.
 		if ( ! $include_node_paths_only ) {
@@ -3230,12 +3422,12 @@ class WP_Theme_JSON {
 				// Responsive block nodes: emit one node per breakpoint that has styles.
 				// These are rendered immediately after the base block node so that
 				// the cascade order is: .block{} → @media{.block{}}
-				foreach ( array_keys( static::RESPONSIVE_BREAKPOINTS ) as $breakpoint ) {
+				foreach ( array_keys( $responsive_media_queries ) as $breakpoint ) {
 					if ( isset( $theme_json['styles']['blocks'][ $name ][ $breakpoint ] ) ) {
 						$nodes[] = array(
 							'name'        => $name,
 							'path'        => array( 'styles', 'blocks', $name, $breakpoint ),
-							'media_query' => static::RESPONSIVE_BREAKPOINTS[ $breakpoint ],
+							'media_query' => $responsive_media_queries[ $breakpoint ],
 							'selector'    => $selector,
 							'selectors'   => $feature_selectors,
 							'elements'    => $selectors[ $name ]['elements'] ?? array(),
@@ -3250,7 +3442,7 @@ class WP_Theme_JSON {
 					foreach ( static::VALID_BLOCK_PSEUDO_SELECTORS[ $name ] as $pseudo_selector ) {
 						$has_pseudo            = isset( $theme_json['styles']['blocks'][ $name ][ $pseudo_selector ] );
 						$has_responsive_pseudo = false;
-						foreach ( array_keys( static::RESPONSIVE_BREAKPOINTS ) as $breakpoint ) {
+						foreach ( array_keys( $responsive_media_queries ) as $breakpoint ) {
 							if ( isset( $theme_json['styles']['blocks'][ $name ][ $breakpoint ][ $pseudo_selector ] ) ) {
 								$has_responsive_pseudo = true;
 								break;
@@ -3295,12 +3487,12 @@ class WP_Theme_JSON {
 						// Responsive pseudo nodes: emit one node per breakpoint that has
 						// this pseudo state, immediately after the default pseudo node.
 						// Cascade order: .block:hover{} → @media{.block:hover{}}
-						foreach ( array_keys( static::RESPONSIVE_BREAKPOINTS ) as $breakpoint ) {
+						foreach ( array_keys( $responsive_media_queries ) as $breakpoint ) {
 							if ( isset( $theme_json['styles']['blocks'][ $name ][ $breakpoint ][ $pseudo_selector ] ) ) {
 								$nodes[] = array(
 									'name'        => $name,
 									'path'        => array( 'styles', 'blocks', $name, $breakpoint, $pseudo_selector ),
-									'media_query' => static::RESPONSIVE_BREAKPOINTS[ $breakpoint ],
+									'media_query' => $responsive_media_queries[ $breakpoint ],
 									'selector'    => static::append_to_selector( $selector, $pseudo_selector ),
 									'selectors'   => $pseudo_feature_selectors,
 									'elements'    => $selectors[ $name ]['elements'] ?? array(),
@@ -3372,12 +3564,12 @@ class WP_Theme_JSON {
 
 					// Responsive element nodes: one node per breakpoint that has
 					// styles for this element. Cascade: a{} → @media{a{}}
-					foreach ( array_keys( static::RESPONSIVE_BREAKPOINTS ) as $breakpoint ) {
+					foreach ( array_keys( $responsive_media_queries ) as $breakpoint ) {
 						if ( isset( $theme_json['styles']['blocks'][ $name ][ $breakpoint ]['elements'][ $element ] ) ) {
 							$nodes[] = array(
 								'path'        => array( 'styles', 'blocks', $name, $breakpoint, 'elements', $element ),
 								'selector'    => $element_selector,
-								'media_query' => static::RESPONSIVE_BREAKPOINTS[ $breakpoint ],
+								'media_query' => $responsive_media_queries[ $breakpoint ],
 							);
 						}
 					}
@@ -3388,7 +3580,7 @@ class WP_Theme_JSON {
 							// Create element pseudo node if default or any responsive breakpoint has the pseudo.
 							$has_element_pseudo = isset( $theme_json['styles']['blocks'][ $name ]['elements'][ $element ][ $pseudo_selector ] );
 							if ( ! $has_element_pseudo ) {
-								foreach ( array_keys( static::RESPONSIVE_BREAKPOINTS ) as $bp ) {
+								foreach ( array_keys( $responsive_media_queries ) as $bp ) {
 									if ( isset( $theme_json['styles']['blocks'][ $name ][ $bp ]['elements'][ $element ][ $pseudo_selector ] ) ) {
 										$has_element_pseudo = true;
 										break;
@@ -3413,12 +3605,12 @@ class WP_Theme_JSON {
 								// Responsive element pseudo nodes: one node per breakpoint
 								// that has this pseudo state for this element.
 								// Cascade: a:hover{} → @media{a:hover{}}
-								foreach ( array_keys( static::RESPONSIVE_BREAKPOINTS ) as $breakpoint ) {
+								foreach ( array_keys( $responsive_media_queries ) as $breakpoint ) {
 									if ( isset( $theme_json['styles']['blocks'][ $name ][ $breakpoint ]['elements'][ $element ][ $pseudo_selector ] ) ) {
 										$nodes[] = array(
 											'path'        => array( 'styles', 'blocks', $name, $breakpoint, 'elements', $element ),
 											'selector'    => static::append_to_selector( $element_selector, $pseudo_selector ),
-											'media_query' => static::RESPONSIVE_BREAKPOINTS[ $breakpoint ],
+											'media_query' => $responsive_media_queries[ $breakpoint ],
 										);
 									}
 								}
@@ -3444,13 +3636,14 @@ class WP_Theme_JSON {
 	 * @return string Styles for the block.
 	 */
 	public function get_styles_for_block( $block_metadata ) {
-		$node                 = _wp_array_get( $this->theme_json, $block_metadata['path'], array() );
-		$use_root_padding     = isset( $this->theme_json['settings']['useRootPaddingAwareAlignments'] ) && true === $this->theme_json['settings']['useRootPaddingAwareAlignments'];
-		$selector             = $block_metadata['selector'];
-		$settings             = $this->theme_json['settings'] ?? array();
-		$feature_declarations = static::get_feature_declarations_for_node( $block_metadata, $node );
-		$is_root_selector     = static::ROOT_BLOCK_SELECTOR === $selector;
-		$media_query          = $block_metadata['media_query'] ?? null;
+		$node                     = _wp_array_get( $this->theme_json, $block_metadata['path'], array() );
+		$use_root_padding         = isset( $this->theme_json['settings']['useRootPaddingAwareAlignments'] ) && true === $this->theme_json['settings']['useRootPaddingAwareAlignments'];
+		$selector                 = $block_metadata['selector'];
+		$settings                 = $this->theme_json['settings'] ?? array();
+		$feature_declarations     = static::get_feature_declarations_for_node( $block_metadata, $node );
+		$is_root_selector         = static::ROOT_BLOCK_SELECTOR === $selector;
+		$media_query              = $block_metadata['media_query'] ?? null;
+		$responsive_media_queries = static::get_viewport_media_queries( $settings['viewport'] ?? null );
 
 		// Update text indent selector for paragraph blocks based on the textIndent setting.
 		$block_name           = $block_metadata['name'] ?? null;
@@ -3517,13 +3710,13 @@ class WP_Theme_JSON {
 				$variation_responsive_css        = '';
 				$variation_responsive_pseudo_css = '';
 
-				foreach ( array_keys( static::RESPONSIVE_BREAKPOINTS ) as $breakpoint ) {
+				foreach ( array_keys( $responsive_media_queries ) as $breakpoint ) {
 					if ( ! isset( $style_variation_node[ $breakpoint ] ) ) {
 						continue;
 					}
 
 					$breakpoint_node  = $style_variation_node[ $breakpoint ];
-					$breakpoint_media = static::RESPONSIVE_BREAKPOINTS[ $breakpoint ];
+					$breakpoint_media = $responsive_media_queries[ $breakpoint ];
 					// Process feature-level declarations for this breakpoint.
 					$breakpoint_feature_declarations = static::get_feature_declarations_for_node( $block_metadata, $breakpoint_node );
 					$breakpoint_feature_declarations = static::update_paragraph_text_indent_selector( $breakpoint_feature_declarations, $settings, $block_name );
@@ -3792,7 +3985,12 @@ class WP_Theme_JSON {
 
 		// 7. Generate and append any custom CSS rules.
 		if ( isset( $node['css'] ) && ! $is_root_selector ) {
-			$block_rules .= $this->process_blocks_custom_css( $node['css'], $selector );
+			$css_feature_selector = $block_metadata['selectors']['css'] ?? null;
+			if ( is_array( $css_feature_selector ) ) {
+				$css_feature_selector = $css_feature_selector['root'] ?? null;
+			}
+			$css_selector = is_string( $css_feature_selector ) ? $css_feature_selector : $selector;
+			$block_rules .= $this->process_blocks_custom_css( $node['css'], $css_selector );
 		}
 
 		// 8. Wrap the entire block output in a media query if this is a responsive node.
@@ -4287,9 +4485,10 @@ class WP_Theme_JSON {
 
 		$theme_json = static::sanitize( $theme_json, $valid_block_names, $valid_element_names, $valid_variations );
 
-		$blocks_metadata = static::get_blocks_metadata();
-		$style_options   = array( 'include_block_style_variations' => true ); // Allow variations data.
-		$style_nodes     = static::get_style_nodes( $theme_json, $blocks_metadata, $style_options );
+		$blocks_metadata          = static::get_blocks_metadata();
+		$style_options            = array( 'include_block_style_variations' => true ); // Allow variations data.
+		$style_nodes              = static::get_style_nodes( $theme_json, $blocks_metadata, $style_options );
+		$responsive_media_queries = static::get_viewport_media_queries( $theme_json['settings']['viewport'] ?? null );
 
 		foreach ( $style_nodes as $metadata ) {
 			$input = _wp_array_get( $theme_json, $metadata['path'], array() );
@@ -4327,16 +4526,16 @@ class WP_Theme_JSON {
 			}
 
 			// Re-add and process responsive breakpoint styles.
-			foreach ( array_keys( static::RESPONSIVE_BREAKPOINTS ) as $breakpoint ) {
+			foreach ( array_keys( $responsive_media_queries ) as $breakpoint ) {
 				if ( isset( $input[ $breakpoint ] ) ) {
 					$output[ $breakpoint ] = static::remove_insecure_styles( $input[ $breakpoint ] );
 
 					if ( isset( $input[ $breakpoint ]['elements'] ) ) {
-						$output[ $breakpoint ]['elements'] = static::remove_insecure_element_styles( $input[ $breakpoint ]['elements'] );
+						$output[ $breakpoint ]['elements'] = static::remove_insecure_element_styles( $input[ $breakpoint ]['elements'], $responsive_media_queries );
 					}
 
 					if ( isset( $input[ $breakpoint ]['blocks'] ) ) {
-						$output[ $breakpoint ]['blocks'] = static::remove_insecure_inner_block_styles( $input[ $breakpoint ]['blocks'] );
+						$output[ $breakpoint ]['blocks'] = static::remove_insecure_inner_block_styles( $input[ $breakpoint ]['blocks'], $responsive_media_queries );
 					}
 
 					if ( $block_name && isset( static::VALID_BLOCK_PSEUDO_SELECTORS[ $block_name ] ) ) {
@@ -4368,24 +4567,24 @@ class WP_Theme_JSON {
 					$variation_output = static::remove_insecure_styles( $variation_input );
 
 					if ( isset( $variation_input['blocks'] ) ) {
-						$variation_output['blocks'] = static::remove_insecure_inner_block_styles( $variation_input['blocks'] );
+						$variation_output['blocks'] = static::remove_insecure_inner_block_styles( $variation_input['blocks'], $responsive_media_queries );
 					}
 
 					if ( isset( $variation_input['elements'] ) ) {
-						$variation_output['elements'] = static::remove_insecure_element_styles( $variation_input['elements'] );
+						$variation_output['elements'] = static::remove_insecure_element_styles( $variation_input['elements'], $responsive_media_queries );
 					}
 
 					// Re-add and process responsive breakpoint styles for variations.
-					foreach ( array_keys( static::RESPONSIVE_BREAKPOINTS ) as $breakpoint ) {
+					foreach ( array_keys( $responsive_media_queries ) as $breakpoint ) {
 						if ( isset( $variation_input[ $breakpoint ] ) ) {
 							$variation_output[ $breakpoint ] = static::remove_insecure_styles( $variation_input[ $breakpoint ] );
 
 							if ( isset( $variation_input[ $breakpoint ]['elements'] ) ) {
-								$variation_output[ $breakpoint ]['elements'] = static::remove_insecure_element_styles( $variation_input[ $breakpoint ]['elements'] );
+								$variation_output[ $breakpoint ]['elements'] = static::remove_insecure_element_styles( $variation_input[ $breakpoint ]['elements'], $responsive_media_queries );
 							}
 
 							if ( isset( $variation_input[ $breakpoint ]['blocks'] ) ) {
-								$variation_output[ $breakpoint ]['blocks'] = static::remove_insecure_inner_block_styles( $variation_input[ $breakpoint ]['blocks'] );
+								$variation_output[ $breakpoint ]['blocks'] = static::remove_insecure_inner_block_styles( $variation_input[ $breakpoint ]['blocks'], $responsive_media_queries );
 							}
 
 							if ( $block_name && isset( static::VALID_BLOCK_PSEUDO_SELECTORS[ $block_name ] ) ) {
@@ -4417,7 +4616,7 @@ class WP_Theme_JSON {
 				continue;
 			}
 
-			$output = static::remove_insecure_settings( $input );
+			$output = static::remove_insecure_settings( $input, array( 'settings' ) === $metadata['path'] );
 			if ( ! empty( $output ) ) {
 				_wp_array_set( $sanitized, $metadata['path'], $output );
 			}
@@ -4441,12 +4640,18 @@ class WP_Theme_JSON {
 	/**
 	 * Remove insecure element styles within a variation or block.
 	 *
-	 * @since 6.8.0
+	 *  * When responsive media queries are provided, nested responsive state styles
+	 * matching those viewport state keys are re-added after the base sanitization pass.
 	 *
-	 * @param array $elements The elements to process.
+	 * @since 6.8.0
+	 * @since 7.1.0 Added the `$responsive_media_queries` parameter.
+	 *
+	 * @param array      $elements                 The elements to process.
+	 * @param array|null $responsive_media_queries Optional. Media queries whose keys define allowed
+	 *                                             viewport states. Default null.
 	 * @return array The sanitized elements styles.
 	 */
-	protected static function remove_insecure_element_styles( $elements ) {
+	protected static function remove_insecure_element_styles( $elements, $responsive_media_queries = null ) {
 		$sanitized           = array();
 		$valid_element_names = array_keys( static::ELEMENTS );
 
@@ -4463,15 +4668,17 @@ class WP_Theme_JSON {
 					}
 				}
 
-				// Re-add and process responsive breakpoint styles for elements.
-				foreach ( array_keys( static::RESPONSIVE_BREAKPOINTS ) as $breakpoint ) {
-					if ( isset( $element_input[ $breakpoint ] ) ) {
-						$element_output[ $breakpoint ] = static::remove_insecure_styles( $element_input[ $breakpoint ] );
+				if ( null !== $responsive_media_queries ) {
+					// Re-add and process responsive breakpoint styles for elements.
+					foreach ( array_keys( $responsive_media_queries ) as $breakpoint ) {
+						if ( isset( $element_input[ $breakpoint ] ) ) {
+							$element_output[ $breakpoint ] = static::remove_insecure_styles( $element_input[ $breakpoint ] );
 
-						if ( isset( static::VALID_ELEMENT_PSEUDO_SELECTORS[ $element_name ] ) ) {
-							foreach ( static::VALID_ELEMENT_PSEUDO_SELECTORS[ $element_name ] as $pseudo_selector ) {
-								if ( isset( $element_input[ $breakpoint ][ $pseudo_selector ] ) ) {
-									$element_output[ $breakpoint ][ $pseudo_selector ] = static::remove_insecure_styles( $element_input[ $breakpoint ][ $pseudo_selector ] );
+							if ( isset( static::VALID_ELEMENT_PSEUDO_SELECTORS[ $element_name ] ) ) {
+								foreach ( static::VALID_ELEMENT_PSEUDO_SELECTORS[ $element_name ] as $pseudo_selector ) {
+									if ( isset( $element_input[ $breakpoint ][ $pseudo_selector ] ) ) {
+										$element_output[ $breakpoint ][ $pseudo_selector ] = static::remove_insecure_styles( $element_input[ $breakpoint ][ $pseudo_selector ] );
+									}
 								}
 							}
 						}
@@ -4487,29 +4694,37 @@ class WP_Theme_JSON {
 	/**
 	 * Remove insecure styles from inner blocks and their elements.
 	 *
-	 * @since 6.8.0
+	 * When responsive media queries are provided, nested responsive state styles
+	 * for those media-query keys are re-added after the base sanitization pass.
 	 *
-	 * @param array $blocks The block styles to process.
+	 * @since 6.8.0
+	 * @since 7.1.0 Added the `$responsive_media_queries` parameter.
+	 *
+	 * @param array      $blocks                   The block styles to process.
+	 * @param array|null $responsive_media_queries Optional. Media queries whose keys define allowed
+	 *                                             viewport states. Default null.
 	 * @return array Sanitized block type styles.
 	 */
-	protected static function remove_insecure_inner_block_styles( $blocks ) {
+	protected static function remove_insecure_inner_block_styles( $blocks, $responsive_media_queries = null ) {
 		$sanitized = array();
 		foreach ( $blocks as $block_type => $block_input ) {
 			$block_output = static::remove_insecure_styles( $block_input );
 
 			if ( isset( $block_input['elements'] ) ) {
-				$block_output['elements'] = static::remove_insecure_element_styles( $block_input['elements'] );
+				$block_output['elements'] = static::remove_insecure_element_styles( $block_input['elements'], $responsive_media_queries );
 			}
 
-			// Re-add and process responsive breakpoint styles for inner blocks.
-			foreach ( array_keys( static::RESPONSIVE_BREAKPOINTS ) as $breakpoint ) {
-				if ( isset( $block_input[ $breakpoint ] ) ) {
-					$block_output[ $breakpoint ] = static::remove_insecure_styles( $block_input[ $breakpoint ] );
+			if ( null !== $responsive_media_queries ) {
+				// Re-add and process responsive breakpoint styles for inner blocks.
+				foreach ( array_keys( $responsive_media_queries ) as $breakpoint ) {
+					if ( isset( $block_input[ $breakpoint ] ) ) {
+						$block_output[ $breakpoint ] = static::remove_insecure_styles( $block_input[ $breakpoint ] );
 
-					if ( isset( static::VALID_BLOCK_PSEUDO_SELECTORS[ $block_type ] ) ) {
-						foreach ( static::VALID_BLOCK_PSEUDO_SELECTORS[ $block_type ] as $pseudo_selector ) {
-							if ( isset( $block_input[ $breakpoint ][ $pseudo_selector ] ) ) {
-								$block_output[ $breakpoint ][ $pseudo_selector ] = static::remove_insecure_styles( $block_input[ $breakpoint ][ $pseudo_selector ] );
+						if ( isset( static::VALID_BLOCK_PSEUDO_SELECTORS[ $block_type ] ) ) {
+							foreach ( static::VALID_BLOCK_PSEUDO_SELECTORS[ $block_type ] as $pseudo_selector ) {
+								if ( isset( $block_input[ $breakpoint ][ $pseudo_selector ] ) ) {
+									$block_output[ $breakpoint ][ $pseudo_selector ] = static::remove_insecure_styles( $block_input[ $breakpoint ][ $pseudo_selector ] );
+								}
 							}
 						}
 					}
@@ -4555,11 +4770,13 @@ class WP_Theme_JSON {
 	 * without the insecure settings.
 	 *
 	 * @since 5.9.0
+	 * @since 7.1.0 Added the `$is_root` parameter.
 	 *
-	 * @param array $input Node to process.
+	 * @param array $input   Node to process.
+	 * @param bool  $is_root Optional. Whether the node is the root settings node. Default false.
 	 * @return array
 	 */
-	protected static function remove_insecure_settings( $input ) {
+	protected static function remove_insecure_settings( $input, $is_root = false ) {
 		$output = array();
 		foreach ( static::PRESETS_METADATA as $preset_metadata ) {
 			foreach ( static::VALID_ORIGINS as $origin ) {
@@ -4611,6 +4828,10 @@ class WP_Theme_JSON {
 
 		// Preserve all valid settings that have type markers in VALID_SETTINGS.
 		self::preserve_valid_typed_settings( $input, $output, static::VALID_SETTINGS );
+
+		if ( $is_root && array_key_exists( 'viewport', $input ) ) {
+			$output['viewport'] = static::sanitize_viewport_settings( $input['viewport'] );
+		}
 
 		return $output;
 	}
@@ -5283,10 +5504,10 @@ class WP_Theme_JSON {
 
 		foreach ( $metadata['selectors'] as $feature => $feature_selectors ) {
 			/*
-			 * Skip if this is the block's root selector or the block doesn't
-			 * have any styles for the feature.
+			 * Skip if this is the block's root selector, the custom CSS
+			 * selector, or the block doesn't have any styles for the feature.
 			 */
-			if ( 'root' === $feature || empty( $node[ $feature ] ) ) {
+			if ( 'root' === $feature || 'css' === $feature || empty( $node[ $feature ] ) ) {
 				continue;
 			}
 
@@ -5469,11 +5690,22 @@ class WP_Theme_JSON {
 		$selector_parts = static::split_selector_list( $block_selector );
 		$result         = array();
 
+		/*
+		 * Append the variation class to each selector's ancestor: the first
+		 * run of characters before any combinator (whitespace) or pseudo-class
+		 * (`:`). Only the first match is replaced.
+		 *
+		 * Examples ("custom" variation):
+		 * - `.wp-block`              => `.wp-block.is-style-custom`
+		 * - `.wp-block .inner`       => `.wp-block.is-style-custom .inner`
+		 * - `.wp-block:where(.a .b)` => `.wp-block.is-style-custom:where(.a .b)`
+		 * - `:where(.outer .inner)`  => `:where(.outer.is-style-custom .inner)`
+		 */
 		foreach ( $selector_parts as $part ) {
 			$result[] = preg_replace_callback(
-				'/((?::\([^)]+\))?\s*)([^\s:]+)/',
+				'/[^\s:]+/',
 				function ( $matches ) use ( $variation_class ) {
-					return $matches[1] . $matches[2] . $variation_class;
+					return $matches[0] . $variation_class;
 				},
 				$part,
 				$limit
