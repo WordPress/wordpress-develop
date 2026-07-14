@@ -64,6 +64,10 @@
 		if ( 'mailserver_pass' !== $pass1.prop('id' ) && ! $('#weblog_title').length ) {
 			$( $pass1 ).trigger( 'focus' );
 		}
+
+		if ( $form && $form.length ) {
+			originalFormContent = $form.serialize();
+		}
 	}
 
 	function bindPass1() {
