@@ -43,7 +43,7 @@ class Tests_General_wpGetTooltip extends WP_UnitTestCase {
 		$toggletip = wp_get_toggletip(
 			'Helpful text.',
 			array(
-				'id'   => 'my-tip',
+				'id' => 'my-tip',
 			)
 		);
 		// Ensure the toggle tip does contain a close button.
