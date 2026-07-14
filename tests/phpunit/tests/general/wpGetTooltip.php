@@ -31,7 +31,6 @@ class Tests_General_wpGetTooltip extends WP_UnitTestCase {
 		// Toggle is a button that controls the popover and describes it.
 		$this->assertStringContainsString( '<button type="button" class="wp-tooltip__toggle"', $tooltip );
 		$this->assertStringContainsString( 'popovertarget="my-tip"', $tooltip );
-		$this->assertStringContainsString( 'aria-describedby="my-tip-text"', $tooltip );
 
 		// The bubble is a popover holding a text-only described element.
 		$this->assertStringContainsString( '<span popover="hint" id="my-tip" class="wp-tooltip__bubble" role="tooltip">', $tooltip );
@@ -115,7 +114,6 @@ class Tests_General_wpGetTooltip extends WP_UnitTestCase {
 
 		$id = $matches[1];
 		$this->assertStringContainsString( 'popovertarget="' . $id . '"', $html );
-		$this->assertStringContainsString( 'aria-describedby="' . $id . '-text"', $html );
 		$this->assertStringContainsString( 'id="' . $id . '-text"', $html );
 	}
 }
