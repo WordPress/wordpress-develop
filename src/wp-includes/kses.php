@@ -1300,7 +1300,7 @@ function _wp_kses_split_callback( $matches ) {
  * @param string $attrlist   The current tag's attribute string.
  * @param bool   $is_closing Whether the current token is a closing tag.
  * @param bool   $reset      Whether to reset the tracked depth for a new pass.
- * @return bool Whether the current tag is inside an open dialog element.
+ * @return bool Whether the current tag being processed is inside an open <dialog> element or false when reset.
  */
 function _wp_kses_track_in_dialog_context(
 	string $element = '',
