@@ -12,10 +12,8 @@ class Tests_Block_Supports_Auto_Register extends WP_UnitTestCase {
 
 	const DYNAMIC_CHILD_BLOCK_NAME = 'tests/pattern-block-dynamic-child';
 
-	const PATTERN = '<!-- wp:group {"layout":{"type":"constrained"}} --><div class="wp-block-group">'
-		. '<!-- wp:heading {"metadata":{"name":"Title","bindings":{"__default":{"source":"core/pattern-overrides"}}}} --><h2 class="wp-block-heading">Default title</h2><!-- /wp:heading -->'
-		. '<!-- wp:paragraph --><p>Plugin-owned paragraph.</p><!-- /wp:paragraph -->'
-		. '</div><!-- /wp:group -->';
+	const PATTERN = '<!-- wp:heading {"metadata":{"name":"Title","bindings":{"__default":{"source":"core/pattern-overrides"}}}} --><h2 class="wp-block-heading">Default title</h2><!-- /wp:heading -->'
+		. '<!-- wp:paragraph --><p>Plugin-owned paragraph.</p><!-- /wp:paragraph -->';
 
 	/**
 	 * Original scripts instance.
@@ -49,6 +47,8 @@ class Tests_Block_Supports_Auto_Register extends WP_UnitTestCase {
 
 		global $wp_scripts;
 		$wp_scripts = $this->original_wp_scripts;
+
+		WP_Theme_JSON_Resolver::clean_cached_data();
 
 		parent::tear_down();
 	}
@@ -419,7 +419,7 @@ class Tests_Block_Supports_Auto_Register extends WP_UnitTestCase {
 		do_blocks( '<!-- wp:' . self::BLOCK_NAME . ' /-->' );
 		remove_filter( 'pre_render_block', $collect );
 
-		$this->assertSame( array( 'core/group' ), $roots_seen );
+		$this->assertSame( array( 'core/heading', 'core/paragraph' ), $roots_seen );
 	}
 
 	/**
