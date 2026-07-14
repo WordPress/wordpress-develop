@@ -1053,4 +1053,29 @@ class Tests_Block_Supports_Layout extends WP_UnitTestCase {
 			),
 		);
 	}
+
+	/**
+	 * Tests that a non-string `className` attribute does not cause a fatal
+	 * when checking for style variation layout styles.
+	 *
+	 * @covers ::wp_render_layout_support_flag
+	 */
+	public function test_layout_support_flag_with_non_string_class_name() {
+		$block_content = '<div class="wp-block-group 0 1"></div>';
+		$block         = array(
+			'blockName' => 'core/group',
+			'attrs'     => array(
+				'className' => array( '0', '1' ),
+				'layout'    => array(
+					'type' => 'constrained',
+				),
+			),
+		);
+
+		$this->assertSame(
+			'<div class="wp-block-group 0 1 is-layout-constrained wp-block-group-is-layout-constrained"></div>',
+			wp_render_layout_support_flag( $block_content, $block ),
+			'Layout support should render the expected markup when className is not a string'
+		);
+	}
 }
