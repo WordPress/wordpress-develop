@@ -263,6 +263,95 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that `public` metadata seeds `show_in_rest` to true when it is not set explicitly.
+	 *
+	 * @ticket 65568
+	 */
+	public function test_meta_public_true_defaults_show_in_rest_to_true() {
+		$args    = array_merge(
+			self::$test_ability_properties,
+			array(
+				'meta' => array(
+					'public' => true,
+				),
+			)
+		);
+		$ability = new WP_Ability( self::$test_ability_name, $args );
+
+		$this->assertTrue(
+			$ability->get_meta_item( 'show_in_rest' ),
+			'`show_in_rest` metadata should default to the `public` value.'
+		);
+		$this->assertTrue(
+			$ability->get_meta_item( 'public' ),
+			'`public` metadata should be stored as provided.'
+		);
+	}
+
+	/**
+	 * Tests that an explicit `show_in_rest` value of false wins over `public` set to true.
+	 *
+	 * @ticket 65568
+	 */
+	public function test_meta_explicit_show_in_rest_false_wins_over_public_true() {
+		$args    = array_merge(
+			self::$test_ability_properties,
+			array(
+				'meta' => array(
+					'public'       => true,
+					'show_in_rest' => false,
+				),
+			)
+		);
+		$ability = new WP_Ability( self::$test_ability_name, $args );
+
+		$this->assertFalse(
+			$ability->get_meta_item( 'show_in_rest' ),
+			'An explicit `show_in_rest` value of false should win over `public` set to true.'
+		);
+	}
+
+	/**
+	 * Tests that `public` metadata is not added to the stored meta when not provided.
+	 *
+	 * @ticket 65568
+	 */
+	public function test_meta_public_is_not_defaulted_when_unset() {
+		$ability = new WP_Ability( self::$test_ability_name, self::$test_ability_properties );
+
+		$this->assertArrayNotHasKey(
+			'public',
+			$ability->get_meta(),
+			'`public` metadata should only be present when provided during registration.'
+		);
+		$this->assertFalse(
+			$ability->get_meta_item( 'show_in_rest' ),
+			'`show_in_rest` metadata should still default to false.'
+		);
+	}
+
+	/**
+	 * Tests that invalid `public` value throws an exception.
+	 *
+	 * @ticket 65568
+	 */
+	public function test_meta_public_throws_exception_for_non_boolean() {
+		$args = array_merge(
+			self::$test_ability_properties,
+			array(
+				'meta' => array(
+					'public' => 5,
+				),
+			)
+		);
+
+		$this->expectException( InvalidArgumentException::class );
+		$this->expectExceptionMessage( 'The ability meta should provide a valid `public` boolean.' );
+
+		new WP_Ability( self::$test_ability_name, $args );
+	}
+
+	/**
 	 * Data provider for testing the execution of the ability.
 	 *
 	 * @return array<string, array{0: array, 1: callable, 2: mixed, 3: mixed}> Data sets with different configurations.

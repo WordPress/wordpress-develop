@@ -248,6 +248,7 @@ class WP_Theme_JSON {
 	 * @since 6.7.0 Added `background-attachment` property.
 	 * @since 7.0.0 Added `dimensions.width` and `dimensions.height`.
 	 *              Added `text-indent` property.
+	 * @since 7.1.0 Added `min-width` and `text-shadow`.
 	 * @var array
 	 */
 	const PROPERTIES_METADATA = array(
@@ -294,6 +295,7 @@ class WP_Theme_JSON {
 		'margin-bottom'                     => array( 'spacing', 'margin', 'bottom' ),
 		'margin-left'                       => array( 'spacing', 'margin', 'left' ),
 		'min-height'                        => array( 'dimensions', 'minHeight' ),
+		'min-width'                         => array( 'dimensions', 'minWidth' ),
 		'outline-color'                     => array( 'outline', 'color' ),
 		'outline-offset'                    => array( 'outline', 'offset' ),
 		'outline-style'                     => array( 'outline', 'style' ),
@@ -309,6 +311,7 @@ class WP_Theme_JSON {
 		'--wp--style--root--padding-bottom' => array( 'spacing', 'padding', 'bottom' ),
 		'--wp--style--root--padding-left'   => array( 'spacing', 'padding', 'left' ),
 		'text-decoration'                   => array( 'typography', 'textDecoration' ),
+		'text-shadow'                       => array( 'typography', 'textShadow' ),
 		'text-transform'                    => array( 'typography', 'textTransform' ),
 		'text-indent'                       => array( 'typography', 'textIndent' ),
 		'filter'                            => array( 'filter', 'duotone' ),
@@ -415,7 +418,7 @@ class WP_Theme_JSON {
 	 *              Added support for `dimensions.width` and `dimensions.height`.
 	 *              Added support for `typography.textIndent`.
 	 * @since 7.1.0 Added `viewport` property.
-	 *              Added support for `background.gradient` and `blockVisibility.allowEditing`.
+	 *              Added support for `background.gradient`, `dimensions.minWidth` and `blockVisibility.allowEditing`.
 	 * @var array
 	 */
 	const VALID_SETTINGS = array(
@@ -458,6 +461,7 @@ class WP_Theme_JSON {
 			'dimensionSizes'      => null,
 			'height'              => null,
 			'minHeight'           => null,
+			'minWidth'            => null,
 			'width'               => null,
 		),
 		'layout'                        => array(
@@ -561,7 +565,8 @@ class WP_Theme_JSON {
 	 * @since 6.5.0 Added support for `dimensions.aspectRatio`.
 	 * @since 6.6.0 Added `background` sub properties to top-level only.
 	 * @since 7.0.0 Added support for `dimensions.width` and `dimensions.height`.
-	 * @since 7.1.0 Added `background.gradient`.
+	 * @since 7.1.0 Added support for `background.gradient`,`dimensions.minWidth`,
+	 *              and `typography.textShadow`.
 	 * @var array
 	 */
 	const VALID_STYLES = array(
@@ -592,6 +597,7 @@ class WP_Theme_JSON {
 			'aspectRatio' => null,
 			'height'      => null,
 			'minHeight'   => null,
+			'minWidth'    => null,
 			'width'       => null,
 		),
 		'filter'     => array(
@@ -620,6 +626,7 @@ class WP_Theme_JSON {
 			'textColumns'    => null,
 			'textDecoration' => null,
 			'textIndent'     => null,
+			'textShadow'     => null,
 			'textTransform'  => null,
 			'writingMode'    => null,
 		),
@@ -1031,6 +1038,7 @@ class WP_Theme_JSON {
 	 * @since 6.5.0 Added `background.backgroundSize` and `dimensions.aspectRatio`.
 	 * @since 7.0.0 Added `dimensions.width` and `dimensions.height`.
 	 * @since 7.1.0 Added `background.gradient`.
+	 *              Added `dimensions.minWidth`.
 	 * @var array
 	 */
 	const APPEARANCE_TOOLS_OPT_INS = array(
@@ -1048,6 +1056,7 @@ class WP_Theme_JSON {
 		array( 'dimensions', 'aspectRatio' ),
 		array( 'dimensions', 'height' ),
 		array( 'dimensions', 'minHeight' ),
+		array( 'dimensions', 'minWidth' ),
 		array( 'dimensions', 'width' ),
 		array( 'position', 'sticky' ),
 		array( 'spacing', 'blockGap' ),
@@ -2476,19 +2485,87 @@ class WP_Theme_JSON {
 				continue;
 			}
 
-			$selector = $metadata['selector'];
+			$selector          = $metadata['selector'];
+			$feature_selectors = $metadata['selectors'] ?? array();
+			$node              = _wp_array_get( $this->theme_json, $metadata['path'], array() );
 
-			$node                    = _wp_array_get( $this->theme_json, $metadata['path'], array() );
-			$declarations            = static::compute_preset_vars( $node, $origins );
-			$theme_vars_declarations = static::compute_theme_vars( $node );
-			foreach ( $theme_vars_declarations as $theme_vars_declaration ) {
-				$declarations[] = $theme_vars_declaration;
+			/*
+			 * Group preset declarations by selector. Blocks that define
+			 * feature-level selectors need their preset CSS variables
+			 * output under that feature selector instead of the block's
+			 * root selector.
+			 */
+			$vars_by_selector              = array();
+			$vars_by_selector[ $selector ] = array();
+
+			foreach ( static::PRESETS_METADATA as $preset_metadata ) {
+				if ( empty( $preset_metadata['css_vars'] ) ) {
+					continue;
+				}
+
+				$values_by_slug = static::get_settings_values_by_slug( $node, $preset_metadata, $origins );
+				if ( empty( $values_by_slug ) ) {
+					continue;
+				}
+
+				$target = static::get_feature_selector( $feature_selectors, $preset_metadata['path'][0], $selector );
+
+				if ( ! isset( $vars_by_selector[ $target ] ) ) {
+					$vars_by_selector[ $target ] = array();
+				}
+
+				foreach ( $values_by_slug as $slug => $value ) {
+					$vars_by_selector[ $target ][] = array(
+						'name'  => static::replace_slug_in_string( $preset_metadata['css_vars'], $slug ),
+						'value' => $value,
+					);
+				}
 			}
 
-			$stylesheet .= static::to_ruleset( $selector, $declarations );
+			// Theme vars always use the block's default selector.
+			foreach ( static::compute_theme_vars( $node ) as $theme_var ) {
+				$vars_by_selector[ $selector ][] = $theme_var;
+			}
+
+			foreach ( $vars_by_selector as $rule_selector => $declarations ) {
+				$stylesheet .= static::to_ruleset( $rule_selector, $declarations );
+			}
 		}
 
 		return $stylesheet;
+	}
+
+	/**
+	 * Returns the appropriate selector for a block support feature's
+	 * preset CSS variables.
+	 *
+	 * If the block defines a feature-level selector (as a string or an
+	 * object with a `root` key), that selector is returned. Otherwise,
+	 * the block's default selector is used.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @param array<string, string|array<string, string>> $feature_selectors The block's feature selectors map.
+	 * @param string                                      $feature_key       The feature to look up (e.g. 'dimensions').
+	 * @param string                                      $default_selector  Fallback selector.
+	 * @return string The resolved selector.
+	 */
+	private static function get_feature_selector( array $feature_selectors, string $feature_key, string $default_selector ): string {
+		if ( ! isset( $feature_selectors[ $feature_key ] ) ) {
+			return $default_selector;
+		}
+
+		$feature = $feature_selectors[ $feature_key ];
+
+		if ( is_string( $feature ) ) {
+			return $feature;
+		}
+
+		if ( isset( $feature['root'] ) && is_string( $feature['root'] ) ) {
+			return $feature['root'];
+		}
+
+		return $default_selector;
 	}
 
 	/**
@@ -3141,8 +3218,9 @@ class WP_Theme_JSON {
 			}
 
 			$nodes[] = array(
-				'path'     => array( 'settings', 'blocks', $name ),
-				'selector' => $selector,
+				'path'      => array( 'settings', 'blocks', $name ),
+				'selector'  => $selector,
+				'selectors' => $selectors[ $name ]['selectors'] ?? array(),
 			);
 		}
 
