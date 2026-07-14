@@ -369,12 +369,42 @@ function get_search_form( $args = array() ) {
 	}
 }
 
+
+/**
+ * Retrieves the markup for an accessible tooltip.
+ *
+ * Returns a button with an accessible name popover.
+ *
+ * @since 7.1.0
+ *
+ * @param string $content Plain-text tooltip content. An empty value returns an empty string.
+ * @param array  $args {
+ *     Optional. Arguments for building the tooltip.
+ *
+ *     @type string $id          Unique ID for the popover element. Default is a
+ *                               generated unique ID.
+ *     @type string $label       Not used for tooltips.
+ *     @type string $close_label Not used for tooltips.
+ *     @type string $icon        Dashicons icon class for the toggle button.
+ *                               Default 'dashicons-editor-help'. Should match the control's
+ *                               visible label.
+ *     @type string $class       Additional class(es) for the wrapping element.
+ *                               Default empty.
+ * }
+ * @return string Tooltip HTML markup, or an empty string when no content is provided.
+ */
+function wp_get_tooltip( $content, $args ) {
+	$args['type'] = 'tooltip';
+	return wp_get_tooltip_helper( $content, $args );
+}
+
 /**
  * Retrieves the markup for an accessible tooltip or toggletip.
  *
- * Returns a help button and its tooltip popover, linked with `aria-describedby`. Enqueue the
- * `wp-tooltip` style and script where it is used. Tooltips show the accessible name of a
- * control. Toggletips should be used for longer supporting text.
+ * Returns a button and either a hover/focus triggered tooltip popover or an action
+ * triggered toggle tip. Enqueue the `wp-tooltip` style and script where it is used. 
+ * Tooltips are used to show the accessible name of a control.
+ * Toggletips are be used for longer supporting text explaining context.
  *
  * @since 7.1.0
  *
@@ -396,7 +426,41 @@ function get_search_form( $args = array() ) {
  * }
  * @return string Tooltip HTML markup, or an empty string when no content is provided.
  */
-function wp_get_tooltip( $content, $args = array() ) {
+function wp_get_toggletip( $content, $args ) {
+	$args['type'] = 'toggletip';
+	wp_get_tooltip_helper( $content, $args );
+}
+/**
+ * Retrieves the markup for an accessible tooltip or toggletip.
+ *
+ * Returns a button and either a hover/focus triggered tooltip popover or an action
+ * triggered toggle tip. Enqueue the `wp-tooltip` style and script where it is used. 
+ * Tooltips are used to show the accessible name of a control.
+ * Toggletips are be used for longer supporting text explaining context.
+ *
+ * @since 7.1.0
+ *
+ * @param string $content Plain-text tooltip content. An empty value returns an empty string.
+ * @param array  $args {
+ *     Optional. Arguments for building the tooltip.
+ *
+ *     @type string $id          Unique ID for the popover element. Default is a
+ *                               generated unique ID.
+ *     @type string $label       Accessible label for the toggle button.
+ *                               Default 'Help', matching the default icon.
+ *                               Ignored for tooltips.
+ *     @type string $close_label Accessible label for the close button. Default 'Close'.
+ *     @type string $icon        Dashicons icon class for the toggle button.
+ *                               Default 'dashicons-editor-help'. Should match the control's
+ *                               visible label.
+ *     @type string $class       Additional class(es) for the wrapping element.
+ *                               Default empty.
+ *     @type string $type        Type of tooltip: either `tooltip` or `toggletip`. 
+ *                               Default 'tooltip'.
+ * }
+ * @return string Tooltip HTML markup, or an empty string when no content is provided.
+ */
+function wp_get_tooltip_helper( $content, $args = array() ) {
 	$content = trim( (string) $content );
 
 	if ( '' === $content ) {
@@ -410,6 +474,7 @@ function wp_get_tooltip( $content, $args = array() ) {
 		'icon'        => 'dashicons-editor-help',
 		'class'       => '',
 		'type'        => 'tooltip',
+		'attributes'  => array(),
 	);
 
 	$args = wp_parse_args( $args, $defaults );
@@ -459,7 +524,7 @@ function wp_get_tooltip( $content, $args = array() ) {
 			esc_attr( $args['label'] ),
 			esc_attr( $icon ),
 			esc_html( $content ),
-			esc_attr( $args['close_label'] )
+			esc_attr( $args['close_label'] ),
 		);
 	}
 
