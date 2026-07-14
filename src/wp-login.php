@@ -1514,9 +1514,24 @@ switch ( $action ) {
 		}
 
 		wp_enqueue_script( 'user-profile' );
+
+		/**
+		 * Fires before the login form.
+		 *
+		 * @since 6.9.0
+		 */
+		do_action( 'login_form_before' );
 		?>
 
 		<form name="loginform" id="loginform" action="<?php echo esc_url( site_url( 'wp-login.php', 'login_post' ) ); ?>" method="post">
+		<?php
+		/**
+		 * Fires at the top of the login form.
+		 *
+		 * @since 6.9.0
+		 */
+		do_action( 'login_form_top' );
+		?>
 			<p>
 				<label for="user_login"><?php _e( 'Username or Email Address' ); ?></label>
 				<input type="text" name="log" id="user_login"<?php echo $aria_describedby; ?> class="input ltr" value="<?php echo esc_attr( $user_login ); ?>" size="20" autocapitalize="off" autocomplete="username" required="required" />
@@ -1537,6 +1552,9 @@ switch ( $action ) {
 			 * Fires following the 'Password' field in the login form.
 			 *
 			 * @since 2.1.0
+			 *
+			 * @see 'login_form_top' Fires at the top of the login form.
+			 * @see 'login_form_before' Fires before the login form.
 			 */
 			do_action( 'login_form' );
 
