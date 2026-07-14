@@ -59,8 +59,24 @@ function wp_get_speculation_rules_configuration(): ?array {
 	}
 
 	// Sanitize the configuration and replace 'auto' with current defaults.
-	$default_mode      = 'prefetch';
-	$default_eagerness = 'conservative';
+	if (
+		isset( $_ENV['WP_SPECULATIVE_LOADING_DEFAULT_MODE'] ) &&
+		is_string( $_ENV['WP_SPECULATIVE_LOADING_DEFAULT_MODE'] ) &&
+		WP_Speculation_Rules::is_valid_mode( $_ENV['WP_SPECULATIVE_LOADING_DEFAULT_MODE'] )
+	) {
+		$default_mode = $_ENV['WP_SPECULATIVE_LOADING_DEFAULT_MODE'];
+	} else {
+		$default_mode = 'prefetch';
+	}
+	if (
+		isset( $_ENV['WP_SPECULATIVE_LOADING_DEFAULT_EAGERNESS'] ) &&
+		is_string( $_ENV['WP_SPECULATIVE_LOADING_DEFAULT_EAGERNESS'] ) &&
+		WP_Speculation_Rules::is_valid_eagerness( $_ENV['WP_SPECULATIVE_LOADING_DEFAULT_EAGERNESS'] )
+	) {
+		$default_eagerness = $_ENV['WP_SPECULATIVE_LOADING_DEFAULT_EAGERNESS'];
+	} else {
+		$default_eagerness = 'conservative';
+	}
 	if ( ! is_array( $config ) ) {
 		return array(
 			'mode'      => $default_mode,
