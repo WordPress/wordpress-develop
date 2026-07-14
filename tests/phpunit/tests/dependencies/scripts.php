@@ -2275,6 +2275,9 @@ HTML;
 
 	/**
 	 * Test script concatenation.
+	 *
+	 * @global WP_Scripts $wp_scripts
+	 * @global string $wp_version
 	 */
 	public function test_script_concatenation() {
 		global $wp_scripts, $wp_version;
@@ -4310,6 +4313,9 @@ HTML;
 
 	/**
 	 * @ticket 63887
+	 *
+	 * @global WP_Scripts $wp_scripts
+	 * @global string $wp_version
 	 */
 	public function test_source_url_with_concat() {
 		global $wp_scripts, $concatenate_scripts, $wp_version;
