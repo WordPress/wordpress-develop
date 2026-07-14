@@ -98,7 +98,7 @@ class Tests_General_wpGetTooltip extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertStringContainsString( 'class="wp-tooltip my-wrap"', $html );
+		$this->assertStringContainsString( 'class="wp-tooltip wp-is-tooltip my-wrap"', $html );
 		$this->assertStringContainsString( 'class="dashicons dashicons-info"', $html );
 	}
 
