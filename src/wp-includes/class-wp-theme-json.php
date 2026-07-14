@@ -990,6 +990,7 @@ class WP_Theme_JSON {
 				if ( is_array( $block_metadata ) ) {
 					$feature_declarations = $this->get_feature_declarations_for_node( $block_metadata, $pseudo_node );
 					$feature_declarations = static::update_paragraph_text_indent_selector( $feature_declarations, $settings, $block_name );
+					$feature_declarations = static::update_button_width_declarations( $feature_declarations, $settings );
 
 					foreach ( $feature_declarations as $feature_selector => $declarations ) {
 						$target_selector   = is_array( $style_variation )
@@ -3886,6 +3887,7 @@ class WP_Theme_JSON {
 					// Process feature-level declarations for this breakpoint.
 					$breakpoint_feature_declarations = static::get_feature_declarations_for_node( $block_metadata, $breakpoint_node );
 					$breakpoint_feature_declarations = static::update_paragraph_text_indent_selector( $breakpoint_feature_declarations, $settings, $block_name );
+					$breakpoint_feature_declarations = static::update_button_width_declarations( $breakpoint_feature_declarations, $settings );
 					foreach ( $breakpoint_feature_declarations as $feature_selector => $feature_decl ) {
 						$combined_selectors = static::get_block_style_variation_feature_selector( $style_variation, $feature_selector );
 
