@@ -44,6 +44,16 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		static::$user_id = self::factory()->user->create();
 	}
 
+	public function tear_down() {
+		$registry = WP_Block_Type_Registry::get_instance();
+
+		if ( $registry->is_registered( 'test/feature-selector' ) ) {
+			unregister_block_type( 'test/feature-selector' );
+		}
+
+		parent::tear_down();
+	}
+
 	/**
 	 * @ticket 52991
 	 * @ticket 54336
@@ -820,6 +830,61 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		$this->assertSame(
 			'.wp-block-heading.has-white-color{color: var(--wp--preset--color--white) !important;}.wp-block-heading.has-white-background-color{background-color: var(--wp--preset--color--white) !important;}.wp-block-heading.has-white-border-color{border-color: var(--wp--preset--color--white) !important;}',
 			$theme_json->get_stylesheet( array( 'presets' ) )
+		);
+	}
+
+	/**
+	 * @ticket 64598
+	 */
+	public function test_get_stylesheet_preset_css_vars_use_feature_selector() {
+		register_block_type(
+			'test/feature-selector',
+			array(
+				'api_version' => 3,
+				'selectors'   => array(
+					'root'       => '.wp-block-test-feature-selector .wp-block-test-feature-selector__inner',
+					'dimensions' => array(
+						'root' => '.wp-block-test-feature-selector',
+					),
+				),
+			)
+		);
+
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version'  => WP_Theme_JSON::LATEST_SCHEMA,
+				'settings' => array(
+					'blocks' => array(
+						'test/feature-selector' => array(
+							'dimensions' => array(
+								'dimensionSizes' => array(
+									array(
+										'slug' => '25',
+										'size' => '25%',
+									),
+									array(
+										'slug' => '50',
+										'size' => '50%',
+									),
+								),
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$variables = $theme_json->get_stylesheet( array( 'variables' ) );
+
+		// Dimension preset CSS vars should be on the feature selector,
+		// not the block's root selector.
+		$this->assertStringContainsString(
+			'.wp-block-test-feature-selector{--wp--preset--dimension--25: 25%;--wp--preset--dimension--50: 50%;}',
+			$variables
+		);
+		$this->assertStringNotContainsString(
+			'.wp-block-test-feature-selector .wp-block-test-feature-selector__inner{--wp--preset--dimension',
+			$variables
 		);
 	}
 
