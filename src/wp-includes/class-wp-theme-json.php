@@ -330,6 +330,7 @@ class WP_Theme_JSON {
 	 *
 	 * @since 6.2.0
 	 * @since 6.6.0 Added background-image properties.
+	 * @since 7.1.0 Added `background.gradient` to `background-image` paths.
 	 * @var array
 	 */
 	const INDIRECT_PROPERTIES_METADATA = array(
@@ -348,6 +349,7 @@ class WP_Theme_JSON {
 		),
 		'background-image' => array(
 			array( 'background', 'backgroundImage', 'url' ),
+			array( 'background', 'gradient' ),
 		),
 	);
 
@@ -413,6 +415,7 @@ class WP_Theme_JSON {
 	 *              Added support for `dimensions.width` and `dimensions.height`.
 	 *              Added support for `typography.textIndent`.
 	 * @since 7.1.0 Added `viewport` property.
+	 *              Added support for `background.gradient`.
 	 * @var array
 	 */
 	const VALID_SETTINGS = array(
@@ -421,6 +424,7 @@ class WP_Theme_JSON {
 		'background'                    => array(
 			'backgroundImage' => null,
 			'backgroundSize'  => null,
+			'gradient'        => null,
 		),
 		'border'                        => array(
 			'color'       => null,
@@ -554,6 +558,7 @@ class WP_Theme_JSON {
 	 * @since 6.5.0 Added support for `dimensions.aspectRatio`.
 	 * @since 6.6.0 Added `background` sub properties to top-level only.
 	 * @since 7.0.0 Added support for `dimensions.width` and `dimensions.height`.
+	 * @since 7.1.0 Added `background.gradient`.
 	 * @var array
 	 */
 	const VALID_STYLES = array(
@@ -563,6 +568,7 @@ class WP_Theme_JSON {
 			'backgroundRepeat'     => null,
 			'backgroundSize'       => null,
 			'backgroundAttachment' => null,
+			'gradient'             => null,
 		),
 		'border'     => array(
 			'color'  => null,
@@ -1021,11 +1027,13 @@ class WP_Theme_JSON {
 	 * @since 6.4.0 Added `background.backgroundImage`.
 	 * @since 6.5.0 Added `background.backgroundSize` and `dimensions.aspectRatio`.
 	 * @since 7.0.0 Added `dimensions.width` and `dimensions.height`.
+	 * @since 7.1.0 Added `background.gradient`.
 	 * @var array
 	 */
 	const APPEARANCE_TOOLS_OPT_INS = array(
 		array( 'background', 'backgroundImage' ),
 		array( 'background', 'backgroundSize' ),
+		array( 'background', 'gradient' ),
 		array( 'border', 'color' ),
 		array( 'border', 'radius' ),
 		array( 'border', 'style' ),
@@ -2945,11 +2953,21 @@ class WP_Theme_JSON {
 			 * For uploaded image (images with a database ID), apply size and position defaults,
 			 * equal to those applied in block supports in lib/background.php.
 			 */
-			if ( 'background-image' === $css_property && ! empty( $value ) ) {
-				$background_styles = wp_style_engine_get_styles(
-					array( 'background' => array( 'backgroundImage' => $value ) )
-				);
-				$value             = $background_styles['declarations'][ $css_property ];
+			if ( 'background-image' === $css_property ) {
+				$background_image_input = array();
+				if ( ! empty( $value ) ) {
+					$background_image_input['backgroundImage'] = $value;
+				}
+				$gradient_value = $styles['background']['gradient'] ?? null;
+				if ( ! empty( $gradient_value ) ) {
+					$background_image_input['gradient'] = $gradient_value;
+				}
+				if ( ! empty( $background_image_input ) ) {
+					$background_styles = wp_style_engine_get_styles(
+						array( 'background' => $background_image_input )
+					);
+					$value             = $background_styles['declarations'][ $css_property ] ?? null;
+				}
 			}
 			if ( empty( $value ) && static::ROOT_BLOCK_SELECTOR !== $selector && ! empty( $styles['background']['backgroundImage']['id'] ) ) {
 				if ( 'background-size' === $css_property ) {
@@ -3962,7 +3980,12 @@ class WP_Theme_JSON {
 
 		// 7. Generate and append any custom CSS rules.
 		if ( isset( $node['css'] ) && ! $is_root_selector ) {
-			$block_rules .= $this->process_blocks_custom_css( $node['css'], $selector );
+			$css_feature_selector = $block_metadata['selectors']['css'] ?? null;
+			if ( is_array( $css_feature_selector ) ) {
+				$css_feature_selector = $css_feature_selector['root'] ?? null;
+			}
+			$css_selector = is_string( $css_feature_selector ) ? $css_feature_selector : $selector;
+			$block_rules .= $this->process_blocks_custom_css( $node['css'], $css_selector );
 		}
 
 		// 8. Wrap the entire block output in a media query if this is a responsive node.
@@ -5476,10 +5499,10 @@ class WP_Theme_JSON {
 
 		foreach ( $metadata['selectors'] as $feature => $feature_selectors ) {
 			/*
-			 * Skip if this is the block's root selector or the block doesn't
-			 * have any styles for the feature.
+			 * Skip if this is the block's root selector, the custom CSS
+			 * selector, or the block doesn't have any styles for the feature.
 			 */
-			if ( 'root' === $feature || empty( $node[ $feature ] ) ) {
+			if ( 'root' === $feature || 'css' === $feature || empty( $node[ $feature ] ) ) {
 				continue;
 			}
 
