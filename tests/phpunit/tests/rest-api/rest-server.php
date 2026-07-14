@@ -1265,9 +1265,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		add_filter( 'image_strip_meta', '__return_false' );
 		add_filter(
 			'image_max_bit_depth',
-			static function ( $max_depth ) {
-				return min( 8, $max_depth );
-			}
+			static fn ( int $max_depth ) => min( 8, $max_depth )
 		);
 
 		$server  = new WP_REST_Server();
