@@ -389,7 +389,8 @@ function get_search_form( $args = array() ) {
  *                               Ignored for tooltips.
  *     @type string $close_label Accessible label for the close button. Default 'Close'.
  *     @type string $icon        Dashicons icon class for the toggle button.
- *                               Default 'dashicons-editor-help'.
+ *                               Default 'dashicons-editor-help'. Should match the control's
+ *                               visible label.
  *     @type string $class       Additional class(es) for the wrapping element.
  *                               Default empty.
  * }
