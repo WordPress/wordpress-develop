@@ -3,7 +3,6 @@
 .wp-tooltip {
 	display: inline-flex;
 	align-items: center;
-	vertical-align: middle;
 }
 
 /* Toggle and close buttons. */

@@ -1338,6 +1338,8 @@ function do_meta_boxes( $screen, $context, $data_object ) {
 	$i = 0;
 
 	if ( isset( $wp_meta_boxes[ $page ][ $context ] ) ) {
+		wp_enqueue_script( 'wp-tooltip' );
+		wp_enqueue_style( 'wp-tooltip' );
 		foreach ( array( 'high', 'sorted', 'core', 'default', 'low' ) as $priority ) {
 			if ( isset( $wp_meta_boxes[ $page ][ $context ][ $priority ] ) ) {
 				foreach ( (array) $wp_meta_boxes[ $page ][ $context ][ $priority ] as $box ) {
@@ -1396,41 +1398,53 @@ function do_meta_boxes( $screen, $context, $data_object ) {
 						}
 
 						echo '<div class="handle-actions hide-if-no-js">';
-
-						echo '<button type="button" class="handle-order-higher" aria-disabled="false" aria-describedby="' . $box['id'] . '-handle-order-higher-description">';
+						
+						echo '<div class="wp-tooltip wp-is-tooltip">';
+						echo '<button type="button" class="handle-order-higher wp-tooltip__toggle" popovertarget="' . $box['id'] . '-handle-order-higher-description">';
 						echo '<span class="screen-reader-text">' .
 							/* translators: Hidden accessibility text. */
 							__( 'Move up' ) .
 						'</span>';
 						echo '<span class="order-higher-indicator" aria-hidden="true"></span>';
 						echo '</button>';
-						echo '<span class="hidden" id="' . $box['id'] . '-handle-order-higher-description">' . sprintf(
+						echo '<span popover="hint" class="wp-tooltip__bubble" role="tooltip" id="' . $box['id'] . '-handle-order-higher-description">
+							<span id="' . $box['id'] . '-handle-order-higher-description-text" class="wp-tooltip__text">' . sprintf(
 							/* translators: %s: Meta box title. */
 							__( 'Move %s box up' ),
 							$widget_title
-						) . '</span>';
+						) . '</span></span>';
+						echo '</div>';
 
-						echo '<button type="button" class="handle-order-lower" aria-disabled="false" aria-describedby="' . $box['id'] . '-handle-order-lower-description">';
+						echo '<div class="wp-tooltip wp-is-tooltip">';
+						echo '<button type="button" class="handle-order-lower wp-tooltip__toggle" popovertarget="' . $box['id'] . '-handle-order-lower-description" aria-disabled="false">';
 						echo '<span class="screen-reader-text">' .
 							/* translators: Hidden accessibility text. */
 							__( 'Move down' ) .
 						'</span>';
 						echo '<span class="order-lower-indicator" aria-hidden="true"></span>';
 						echo '</button>';
-						echo '<span class="hidden" id="' . $box['id'] . '-handle-order-lower-description">' . sprintf(
+						echo '<span popover="hint" class="wp-tooltip__bubble" role="tooltip" id="' . $box['id'] . '-handle-order-lower-description">
+							<span id="' . $box['id'] . '-handle-order-lower-description-text" class="wp-tooltip__text">' . sprintf(
 							/* translators: %s: Meta box title. */
 							__( 'Move %s box down' ),
 							$widget_title
-						) . '</span>';
+						) . '</span></span>';
+						echo '</div>';
 
-						echo '<button type="button" class="handlediv" aria-expanded="true">';
-						echo '<span class="screen-reader-text">' . sprintf(
+						$show_hide_text = sprintf(
 							/* translators: %s: Hidden accessibility text. Meta box title. */
 							__( 'Show or hide panel: %s' ),
 							$widget_title
-						) . '</span>';
+						);
+						echo '<div class="wp-tooltip wp-is-tooltip">';
+						echo '<button type="button" class="handlediv wp-tooltip__toggle" popovertarget="' . $box['id'] . '-handlediv" aria-expanded="true">';
+						echo '<span class="screen-reader-text">' . $show_hide_text . '</span>';
 						echo '<span class="toggle-indicator" aria-hidden="true"></span>';
 						echo '</button>';
+						echo '<span popover="hint" id="' . $box['id'] . '-handlediv" class="wp-tooltip__bubble" role="tooltip">';
+						echo '<span id="' . $box['id'] . '-handlediv-text" class="wp-tooltip__text">' . $show_hide_text . '</span>';
+						echo '</span>';
+						echo '</div>';
 
 						echo '</div>';
 					}
