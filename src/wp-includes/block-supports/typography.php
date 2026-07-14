@@ -399,7 +399,7 @@ function wp_get_typography_value_and_unit( $raw_value, $options = array() ): ?ar
 	 */
 	$options = wp_parse_args( $options, $defaults );
 
-	// Bails out if not a number value and a px or rem unit.
+	// Bails out if the raw value can't be parsed.
 	if ( ! preg_match( '/^(\d*\.?\d+)([a-zA-Z]+|%)$/', $raw_value, $matches ) ) {
 		return null;
 	}
