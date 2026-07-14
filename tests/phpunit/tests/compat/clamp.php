@@ -8,15 +8,17 @@
 class Tests_Compat_clamp extends WP_UnitTestCase {
 
 	/**
-	 * @ticket 65143
+	 * Tests that clamp() is always available (either from PHP or WP).
 	 *
-	 * Test that clamp() is always available (either from PHP or WP).
+	 * @ticket 65143
 	 */
 	public function test_clamp_availability(): void {
 		$this->assertTrue( function_exists( 'clamp' ) );
 	}
 
 	/**
+	 * Tests clamp().
+	 *
 	 * @ticket 65143
 	 *
 	 * @dataProvider data_clamp
@@ -31,9 +33,9 @@ class Tests_Compat_clamp extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Data provider for clamp().
+	 * Provides data for {@see self::test_clamp()}.
 	 *
-	 * @return array[]
+	 * @return array<string, array{ expected: mixed, value: mixed, min: mixed, max: mixed }>
 	 */
 	public function data_clamp(): array {
 		return array(
@@ -179,6 +181,8 @@ class Tests_Compat_clamp extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests clamp() with DateTimeImmutable.
+	 *
 	 * @ticket 65143
 	 *
 	 * @dataProvider data_clamp_datetime
@@ -188,14 +192,14 @@ class Tests_Compat_clamp extends WP_UnitTestCase {
 	 * @param DateTimeImmutable $min      The minimum bound.
 	 * @param DateTimeImmutable $max      The maximum bound.
 	 */
-	public function test_clamp_with_datetime( $expected, $value, $min, $max ): void {
+	public function test_clamp_with_datetime( DateTimeImmutable $expected, DateTimeImmutable $value, DateTimeImmutable $min, DateTimeImmutable $max ): void {
 		$this->assertEquals( $expected, clamp( $value, $min, $max ) );
 	}
 
 	/**
-	 * Data provider for DateTimeImmutable cases.
+	 * Provides data for {@see self::test_clamp_with_datetime()}.
 	 *
-	 * @return array[]
+	 * @return array<string, array{ expected: DateTimeImmutable, value: DateTimeImmutable, min: DateTimeImmutable, max: DateTimeImmutable }>
 	 */
 	public function data_clamp_datetime(): array {
 		return array(
@@ -221,9 +225,9 @@ class Tests_Compat_clamp extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 65143
+	 * Tests that clamp() throws when $min is NAN.
 	 *
-	 * Test that clamp() throws when $min is NAN.
+	 * @ticket 65143
 	 */
 	public function test_clamp_throws_for_nan_min(): void {
 		$this->expectException( $this->value_error_class() );
@@ -233,9 +237,9 @@ class Tests_Compat_clamp extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 65143
+	 * Tests that clamp() throws when $max is NAN.
 	 *
-	 * Test that clamp() throws when $max is NAN.
+	 * @ticket 65143
 	 */
 	public function test_clamp_throws_for_nan_max(): void {
 		$this->expectException( $this->value_error_class() );
@@ -245,9 +249,9 @@ class Tests_Compat_clamp extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 65143
+	 * Tests that clamp() throws when $min is greater than $max.
 	 *
-	 * Test that clamp() throws when $min is greater than $max.
+	 * @ticket 65143
 	 */
 	public function test_clamp_throws_when_min_greater_than_max(): void {
 		$this->expectException( $this->value_error_class() );
@@ -257,9 +261,9 @@ class Tests_Compat_clamp extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 65143
+	 * Tests that clamp() throws when $min is INF and $max is finite.
 	 *
-	 * Test that clamp() throws when $min is INF and $max is finite.
+	 * @ticket 65143
 	 */
 	public function test_clamp_throws_when_inf_min_greater_than_max(): void {
 		$this->expectException( $this->value_error_class() );
@@ -269,9 +273,9 @@ class Tests_Compat_clamp extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 65143
+	 * Tests that clamp() with a NAN value returns NAN (no exception).
 	 *
-	 * Test that clamp() with a NAN value returns NAN (no exception).
+	 * @ticket 65143
 	 */
 	public function test_clamp_with_nan_value_returns_nan(): void {
 		$result = clamp( NAN, 0, 10 );
@@ -281,11 +285,11 @@ class Tests_Compat_clamp extends WP_UnitTestCase {
 	/**
 	 * Returns the expected exception class for ValueError-equivalent errors.
 	 *
-	 * Mirrors the check in _wp_throw_value_error(): ValueError is thrown whenever
+	 * Mirrors the check in {@see _wp_throw_value_error()}: ValueError is thrown whenever
 	 * the class exists (PHP 8.0+ or provided by a polyfill), with
 	 * InvalidArgumentException as the fallback on PHP 7.x.
 	 *
-	 * @return string The fully qualified exception class name.
+	 * @return class-string<Throwable> The fully qualified exception class name.
 	 */
 	private function value_error_class(): string {
 		return class_exists( 'ValueError', false ) ? ValueError::class : InvalidArgumentException::class;
