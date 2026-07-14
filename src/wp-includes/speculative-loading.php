@@ -11,6 +11,8 @@
  * Returns the speculation rules configuration.
  *
  * @since 6.8.0
+ * @since 7.1.0 Environment variables `WP_SPECULATIVE_LOADING_DEFAULT_MODE` and `WP_SPECULATIVE_LOADING_DEFAULT_EAGERNESS`
+ *              now can specify the default mode and eagerness, respectively.
  *
  * @return array<string, string>|null Associative array with 'mode' and 'eagerness' keys, or null if speculative
  *                                    loading is disabled.
