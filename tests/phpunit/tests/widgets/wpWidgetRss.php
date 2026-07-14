@@ -58,6 +58,7 @@ class Tests_Widgets_wpWidgetRss extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 53278
+	 * @ticket 63611
 	 * @covers WP_Widget_RSS::widget
 	 * @dataProvider data_url_happy_path
 	 *
@@ -92,9 +93,13 @@ class Tests_Widgets_wpWidgetRss extends WP_UnitTestCase {
 
 	public function data_url_happy_path() {
 		return array(
-			'when url is given' => array(
+			'when url is given'                    => array(
 				'url' => 'https://wordpress.org/news/feed/',
 				'<section id="widget_rss-5" class="widget widget_rss"><h2><a class="rsswidget rss-widget-feed" href="https://wordpress.org/news/feed/">',
+			),
+			'when title has special HTML Entities' => array(
+				'url' => 'https://wordpress.org/news/feed/',
+				'Title with HTML entities',
 			),
 		);
 	}
