@@ -243,7 +243,7 @@ class Tests_DB extends WP_UnitTestCase {
 		$this->assertNotEmpty( $dbh );
 		$this->assertTrue( isset( $wpdb->dbh ) ); // Test __isset().
 		unset( $wpdb->dbh );
-		$this->assertEmpty( $wpdb->dbh );
+		$this->assertTrue( empty( $wpdb->dbh ) );
 		$wpdb->dbh = $dbh;
 		$this->assertNotEmpty( $wpdb->dbh );
 	}
@@ -269,12 +269,12 @@ class Tests_DB extends WP_UnitTestCase {
 	public function test_wpdb_nonexistent_properties() {
 		global $wpdb;
 
-		$this->assertEmpty( $wpdb->nonexistent_property );
+		$this->assertTrue( empty( $wpdb->nonexistent_property ) );
 		$wpdb->nonexistent_property = true;
 		$this->assertTrue( $wpdb->nonexistent_property );
 		$this->assertTrue( isset( $wpdb->nonexistent_property ) );
 		unset( $wpdb->nonexistent_property );
-		$this->assertEmpty( $wpdb->nonexistent_property );
+		$this->assertTrue( empty( $wpdb->nonexistent_property ) );
 	}
 
 	/**
