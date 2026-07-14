@@ -1150,17 +1150,17 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	 */
 	public static function data_remove_attribute_preserves_self_closing_flag_state() {
 		return array(
-			'Boolean attribute after slash separator'             => array( '<div /b>', 'b', '<div >', false ),
-			'Unquoted attribute after slash separator'            => array( '<div /b=c>', 'b', '<div >', false ),
-			'Double-quoted attribute after slash separator'       => array( '<div /b="c">', 'b', '<div >', false ),
-			'Single-quoted attribute after slash separator'       => array( "<div /b='c'>", 'b', '<div >', false ),
-			'Equals-sign attribute after slash separator'         => array( '<div /=>', '=', '<div >', false ),
-			'Duplicate attribute after slash separator'           => array( '<div b /b>', 'b', '<div  >', false ),
-			'Attribute after multiple slash separators'           => array( '<div //b>', 'b', '<div >', false ),
-			'Boolean attribute before self-closing flag'          => array( '<div b/>', 'b', '<div />', true ),
-			'Equals-sign attribute before self-closing flag'      => array( '<div =/>', '=', '<div />', true ),
-			'Slash-separated attribute before self-closing flag'  => array( '<div /b/>', 'b', '<div />', true ),
-			'Spaced boolean attribute before self-closing flag'   => array( '<div b />', 'b', '<div  />', true ),
+			'Boolean attribute after slash separator'     => array( '<div /b>', 'b', '<div >', false ),
+			'Unquoted attribute after slash separator'    => array( '<div /b=c>', 'b', '<div >', false ),
+			'Double-quoted attribute after slash separator' => array( '<div /b="c">', 'b', '<div >', false ),
+			'Single-quoted attribute after slash separator' => array( "<div /b='c'>", 'b', '<div >', false ),
+			'Equals-sign attribute after slash separator' => array( '<div /=>', '=', '<div >', false ),
+			'Duplicate attribute after slash separator'   => array( '<div b /b>', 'b', '<div  >', false ),
+			'Attribute after multiple slash separators'   => array( '<div //b>', 'b', '<div >', false ),
+			'Boolean attribute before self-closing flag'  => array( '<div b/>', 'b', '<div />', true ),
+			'Equals-sign attribute before self-closing flag' => array( '<div =/>', '=', '<div />', true ),
+			'Slash-separated attribute before self-closing flag' => array( '<div /b/>', 'b', '<div />', true ),
+			'Spaced boolean attribute before self-closing flag' => array( '<div b />', 'b', '<div  />', true ),
 			'Spaced equals-sign attribute before self-closing flag' => array( '<div = />', '=', '<div  />', true ),
 		);
 	}
@@ -1204,10 +1204,10 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	 */
 	public static function data_can_add_attribute_while_removing_slash_separated_attribute() {
 		return array(
-			'Set attribute, no self-closing flag'     => array( '<div/b>', 'set_attribute', '<div a="x">' ),
-			'Add class, no self-closing flag'         => array( '<div/b>', 'add_class', '<div class="x">' ),
-			'Set attribute, self-closing flag'        => array( '<div/b/>', 'set_attribute', '<div a="x"/>' ),
-			'Add class, self-closing flag'            => array( '<div/b/>', 'add_class', '<div class="x"/>' ),
+			'Set attribute, no self-closing flag' => array( '<div/b>', 'set_attribute', '<div a="x">' ),
+			'Add class, no self-closing flag'     => array( '<div/b>', 'add_class', '<div class="x">' ),
+			'Set attribute, self-closing flag'    => array( '<div/b/>', 'set_attribute', '<div a="x"/>' ),
+			'Add class, self-closing flag'        => array( '<div/b/>', 'add_class', '<div class="x"/>' ),
 		);
 	}
 

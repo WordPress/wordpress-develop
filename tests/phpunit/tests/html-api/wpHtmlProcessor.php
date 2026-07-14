@@ -669,10 +669,10 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 	 */
 	public static function data_remove_attribute_preserves_foreign_content_self_closing_semantics() {
 		return array(
-			'SVG G without self-closing flag'      => array( '<svg><g /b></g></svg>', 'G', 'b', '<svg><g ></g></svg>', '<svg><g></g></svg>', false, true ),
-			'MathML MI without self-closing flag'  => array( '<math><mi /b></mi></math>', 'MI', 'b', '<math><mi ></mi></math>', '<math><mi></mi></math>', false, true ),
-			'SVG G with self-closing flag'         => array( '<svg><g =/>text</svg>', 'G', '=', '<svg><g />text</svg>', '<svg><g />text</svg>', true, false ),
-			'MathML MI with self-closing flag'     => array( '<math><mi =/>text</math>', 'MI', '=', '<math><mi />text</math>', '<math><mi />text</math>', true, false ),
+			'SVG G without self-closing flag'     => array( '<svg><g /b></g></svg>', 'G', 'b', '<svg><g ></g></svg>', '<svg><g></g></svg>', false, true ),
+			'MathML MI without self-closing flag' => array( '<math><mi /b></mi></math>', 'MI', 'b', '<math><mi ></mi></math>', '<math><mi></mi></math>', false, true ),
+			'SVG G with self-closing flag'        => array( '<svg><g =/>text</svg>', 'G', '=', '<svg><g />text</svg>', '<svg><g />text</svg>', true, false ),
+			'MathML MI with self-closing flag'    => array( '<math><mi =/>text</math>', 'MI', '=', '<math><mi />text</math>', '<math><mi />text</math>', true, false ),
 		);
 	}
 
