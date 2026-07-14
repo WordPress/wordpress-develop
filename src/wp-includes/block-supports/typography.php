@@ -361,7 +361,7 @@ function wp_render_typography_support( $block_content, $block ) {
  * @phpstan-param array{
  *     coerce_to?: string,
  *     root_size_value?: positive-int,
- *     acceptable_units?: list<non-empty-string>,
+ *     acceptable_units?: non-empty-string[],
  * } $options
  * @phpstan-return array{ value: float, unit: string }|null
  */
@@ -394,7 +394,7 @@ function wp_get_typography_value_and_unit( $raw_value, $options = array() ): ?ar
 	 * @var array{
 	 *     coerce_to: string,
 	 *     root_size_value: positive-int,
-	 *     acceptable_units: list<non-empty-string>,
+	 *     acceptable_units: non-empty-string[],
 	 * } $options
 	 */
 	$options = wp_parse_args( $options, $defaults );
