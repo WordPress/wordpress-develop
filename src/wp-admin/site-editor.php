@@ -279,6 +279,18 @@ if ( wp_is_block_theme() ) {
 	$template_part_ids = array();
 	$has_query         = false;
 	$walk_blocks       = static function ( array $blocks ) use ( &$walk_blocks, &$template_part_ids, &$has_query ) {
+		/**
+		 * @var array<array{
+		 *     blockName?: non-empty-string|null,
+		 *     attrs: array{
+		 *         slug?: string,
+		 *         theme?: string,
+		 *         ...
+		 *     },
+		 *     innerBlocks: array<string, mixed>, // Recursive type.
+		 *     ...
+		 * }> $blocks
+		 */
 		foreach ( $blocks as $block ) {
 			if ( 'core/template-part' === ( $block['blockName'] ?? '' ) && ! empty( $block['attrs']['slug'] ) ) {
 				$theme               = ! empty( $block['attrs']['theme'] ) ? $block['attrs']['theme'] : get_stylesheet();
