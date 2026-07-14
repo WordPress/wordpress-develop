@@ -76,6 +76,7 @@ class WP_Network_Query {
 	 *
 	 * @since 4.6.0
 	 * @var int
+	 * @phpstan-var non-negative-int
 	 */
 	public $found_networks = 0;
 
@@ -84,6 +85,7 @@ class WP_Network_Query {
 	 *
 	 * @since 4.6.0
 	 * @var int
+	 * @phpstan-var non-negative-int
 	 */
 	public $max_num_pages = 0;
 
