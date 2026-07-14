@@ -1333,6 +1333,17 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @covers WP_HTML_Tag_Processor::remove_attribute
+	 */
+	public function test_remove_attribute_does_not_create_a_self_closing_flag() {
+		$processor = new WP_HTML_Tag_Processor( '<svg><g /attr>ok' );
+		$processor->next_tag( 'g' );
+		$processor->remove_attribute( 'attr' );
+
+		$this->assertSame( '<svg><g / >ok', $processor->get_updated_html() );
+	}
+
+	/**
 	 * @ticket 58119
 	 *
 	 * @since 6.3.2 Removes all duplicated attributes as expected.
