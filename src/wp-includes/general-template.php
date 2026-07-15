@@ -512,6 +512,9 @@ function wp_get_tooltip_helper( $content, $args = array() ) {
 				'<button type="button" class="wp-tooltip__toggle" popovertarget="%2$s" aria-label="%3$s" aria-haspopup="dialog">' .
 					'<span class="dashicons%4$s" aria-hidden="true"></span>' .
 				'</button>' .
+				'<span popover="hint" id="%2$s-hint" class="wp-tooltip__bubble wp-tooltip__hint" aria-hidden="true">' .
+					'<span class="wp-tooltip__text">%7$s</span>' .
+				'</span>' .
 				'<dialog popover="auto" id="%2$s" class="wp-tooltip__bubble" autofocus>' .
 					'<span id="%2$s-text" class="wp-tooltip__text">%5$s</span>' .
 					'<button type="button" class="wp-tooltip__close" popovertarget="%2$s" popovertargetaction="hide" aria-label="%6$s">' .
@@ -525,6 +528,7 @@ function wp_get_tooltip_helper( $content, $args = array() ) {
 			esc_attr( $icon ),
 			esc_html( $content ),
 			esc_attr( $args['close_label'] ),
+			esc_html( $args['label'] ),
 		);
 	}
 
