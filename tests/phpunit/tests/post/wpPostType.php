@@ -9,9 +9,7 @@ class Tests_Post_WP_Post_Type extends WP_UnitTestCase {
 
 		$this->assertNotEmpty( $wp_post_types );
 
-		foreach ( $wp_post_types as $post_type ) {
-			$this->assertInstanceOf( 'WP_Post_Type', $post_type );
-		}
+		$this->assertContainsOnlyInstancesOf( 'WP_Post_Type', $wp_post_types );
 	}
 
 	public function test_add_supports_defaults() {
