@@ -2478,7 +2478,7 @@ function wp_new_comment_notify_postauthor( $comment_id ) {
 	if ( ! ( $comment instanceof WP_Comment ) ) {
 		return false;
 	}
-	$comment_id = $comment->comment_ID;
+	$comment_id = (int) $comment->comment_ID;
 	$is_note    = ( 'note' === $comment->comment_type );
 
 	// By default, only notify for approved comments and notes.
@@ -4099,7 +4099,7 @@ function wp_comments_personal_data_eraser( $email_address, $page = 1 ) {
 		$anonymized_comment['comment_author_url']   = '';
 		$anonymized_comment['user_id']              = 0;
 
-		$comment_id = $comment->comment_ID;
+		$comment_id = (int) $comment->comment_ID;
 
 		/**
 		 * Filters whether to anonymize the comment.
