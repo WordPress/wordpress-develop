@@ -76,7 +76,11 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 
 		$this->assertTrue( $result );
 
-		$save_to_file = tempnam( get_temp_dir(), '' ) . '.png';
+		// Reuse a unique temp path with a `.png` extension without leaving the
+		// extension-less file created by tempnam() behind.
+		$save_to_file = tempnam( get_temp_dir(), '' );
+		unlink( $save_to_file );
+		$save_to_file .= '.png';
 		$imagick_image_editor->save( $save_to_file, 'image/png' );
 
 		$image        = new Imagick( $save_to_file );
