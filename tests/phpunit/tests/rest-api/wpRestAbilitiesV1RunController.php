@@ -651,6 +651,35 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test running an ability exposed in REST via the `public` meta flag.
+	 *
+	 * @ticket 65568
+	 */
+	public function test_run_public_meta_ability_is_executable(): void {
+		$this->register_test_ability(
+			'test/public-ability',
+			array(
+				'label'               => 'Public Ability',
+				'description'         => 'Exposed in REST via the public meta flag.',
+				'category'            => 'general',
+				'execute_callback'    => '__return_true',
+				'permission_callback' => '__return_true',
+				'meta'                => array(
+					'public' => true,
+				),
+			)
+		);
+
+		$request = new WP_REST_Request( 'POST', '/wp-abilities/v1/abilities/test/public-ability/run' );
+		$request->set_header( 'Content-Type', 'application/json' );
+
+		$response = $this->server->dispatch( $request );
+
+		$this->assertEquals( 200, $response->get_status() );
+		$this->assertTrue( $response->get_data() );
+	}
+
+	/**
 	 * Test handling of null is a valid return value.
 	 *
 	 * @ticket 64098
