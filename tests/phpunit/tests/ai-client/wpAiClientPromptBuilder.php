@@ -96,6 +96,10 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	/**
 	 * Gets the value of a protected or private property from the wrapped prompt builder.
 	 *
+	 * Since PHP AI Client 1.4.0, model selection state (e.g. `model`, `registry`,
+	 * `providerIdOrClassName`, `requestOptions`) lives on the builder's ModelResolver,
+	 * so properties not found on the wrapped builder are looked up there.
+	 *
 	 * @param WP_AI_Client_Prompt_Builder $builder  The WordPress prompt builder instance.
 	 * @param string                      $property Property to get value for.
 	 * @return mixed The property value.
@@ -107,7 +111,15 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 		$wrapped_builder = $builder_property->getValue( $builder );
 
 		$reflection_class2 = new ReflectionClass( get_class( $wrapped_builder ) );
-		$the_property      = $reflection_class2->getProperty( $property );
+		if ( ! $reflection_class2->hasProperty( $property ) ) {
+			$resolver_property = $reflection_class2->getProperty( 'modelResolver' );
+			self::set_accessible( $resolver_property );
+			$wrapped_builder = $resolver_property->getValue( $wrapped_builder );
+
+			$reflection_class2 = new ReflectionClass( get_class( $wrapped_builder ) );
+		}
+
+		$the_property = $reflection_class2->getProperty( $property );
 		self::set_accessible( $the_property );
 
 		return $the_property->getValue( $wrapped_builder );
@@ -376,15 +388,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 		$registry       = AiClient::defaultRegistry();
 		$prompt_builder = new WP_AI_Client_Prompt_Builder( $registry );
 
-		$reflection_class = new ReflectionClass( WP_AI_Client_Prompt_Builder::class );
-		$builder_property = $reflection_class->getProperty( 'builder' );
-		self::set_accessible( $builder_property );
-		$wrapped_builder = $builder_property->getValue( $prompt_builder );
-
-		$wrapped_builder_reflection = new ReflectionClass( get_class( $wrapped_builder ) );
-		$registry_property          = $wrapped_builder_reflection->getProperty( 'registry' );
-		self::set_accessible( $registry_property );
-		$this->assertSame( $registry, $registry_property->getValue( $wrapped_builder ), 'Wrapped builder should have the same registry' );
+		$this->assertSame( $registry, $this->get_wrapped_prompt_builder_property_value( $prompt_builder, 'registry' ), 'Wrapped builder should have the same registry' );
 	}
 
 	/**
