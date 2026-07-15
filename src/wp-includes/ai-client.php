@@ -8,6 +8,7 @@
  */
 
 use WordPress\AiClient\AiClient;
+use WordPress\AiClient\Files\DTO\File;
 use WordPress\AiClient\Messages\DTO\Message;
 use WordPress\AiClient\Messages\DTO\MessagePart;
 
@@ -59,4 +60,27 @@ function wp_supports_ai(): bool {
  */
 function wp_ai_client_prompt( $prompt = null ): WP_AI_Client_Prompt_Builder {
 	return new WP_AI_Client_Prompt_Builder( AiClient::defaultRegistry(), $prompt );
+}
+
+/**
+ * Creates a new AI embedding builder using the default provider registry.
+ *
+ * This is the main entry point for generating embeddings in WordPress. It returns
+ * a fluent builder that can be used to configure and generate embedding vectors.
+ *
+ * Each input can be provided as a simple string for basic text inputs, or as more
+ * complex types. Pass multiple arguments to embed multiple inputs at once, each
+ * producing its own embedding vector.
+ *
+ * @since 7.1.0
+ *
+ * @param string|MessagePart|File|array ...$input Optional. Initial input(s) to embed.
+ *                                                A string for simple text inputs,
+ *                                                a MessagePart or File object for
+ *                                                structured content, or an array for
+ *                                                a message part array shape.
+ * @return WP_AI_Client_Embedding_Builder The embedding builder instance.
+ */
+function wp_ai_client_embedding( ...$input ): WP_AI_Client_Embedding_Builder {
+	return new WP_AI_Client_Embedding_Builder( AiClient::defaultRegistry(), array() === $input ? null : $input );
 }
