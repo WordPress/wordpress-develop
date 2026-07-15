@@ -932,4 +932,82 @@ class Tests_AdminBar extends WP_UnitTestCase {
 		$this->assertTrue( isset( $admin_bar->menu ), 'WP_Admin_Bar::$menu should be set.' );
 		$this->assertSame( array(), $admin_bar->menu, 'WP_Admin_Bar::$menu should be equal to an empty array.' );
 	}
+
+	/**
+	 * Ensures disabling the admin bar after it has been initialized unhooks the
+	 * toolbar's rendering actions and dequeues its assets.
+	 *
+	 * @ticket 28569
+	 *
+	 * @covers ::show_admin_bar
+	 */
+	public function test_show_admin_bar_false_after_init_unhooks_toolbar() {
+		wp_set_current_user( self::$admin_id );
+
+		// Enable and initialize the admin bar, as happens on 'template_redirect'.
+		show_admin_bar( true );
+		_wp_admin_bar_init();
+
+		// The toolbar's rendering actions are hooked and its assets are enqueued.
+		$this->assertSame( 10, has_action( 'wp_head', 'wp_admin_bar_header' ), 'wp_admin_bar_header should be hooked to wp_head after init.' );
+		$this->assertSame( 10, has_action( 'wp_head', '_admin_bar_bump_cb' ), '_admin_bar_bump_cb should be hooked to wp_head after init.' );
+		$this->assertTrue( wp_style_is( 'admin-bar', 'enqueued' ), 'The admin-bar stylesheet should be enqueued after init.' );
+		$this->assertTrue( wp_script_is( 'admin-bar', 'enqueued' ), 'The admin-bar script should be enqueued after init.' );
+
+		// Disabling the admin bar should remove the actions and dequeue the assets.
+		show_admin_bar( false );
+
+		$this->assertFalse( has_action( 'wp_head', 'wp_admin_bar_header' ), 'wp_admin_bar_header should be unhooked from wp_head.' );
+		$this->assertFalse( has_action( 'admin_head', 'wp_admin_bar_header' ), 'wp_admin_bar_header should be unhooked from admin_head.' );
+		$this->assertFalse( has_action( 'wp_head', '_admin_bar_bump_cb' ), '_admin_bar_bump_cb should be unhooked from wp_head.' );
+		$this->assertFalse( has_action( 'wp_enqueue_scripts', 'wp_enqueue_admin_bar_bump_styles' ), 'wp_enqueue_admin_bar_bump_styles should be unhooked from wp_enqueue_scripts.' );
+		$this->assertFalse( has_action( 'wp_enqueue_scripts', 'wp_enqueue_admin_bar_header_styles' ), 'wp_enqueue_admin_bar_header_styles should be unhooked from wp_enqueue_scripts.' );
+		$this->assertFalse( has_action( 'admin_enqueue_scripts', 'wp_enqueue_admin_bar_header_styles' ), 'wp_enqueue_admin_bar_header_styles should be unhooked from admin_enqueue_scripts.' );
+		$this->assertFalse( wp_style_is( 'admin-bar', 'enqueued' ), 'The admin-bar stylesheet should be dequeued.' );
+		$this->assertFalse( wp_script_is( 'admin-bar', 'enqueued' ), 'The admin-bar script should be dequeued.' );
+	}
+
+	/**
+	 * Ensures re-enabling the admin bar after it was disabled restores the
+	 * toolbar's rendering actions and re-enqueues its assets.
+	 *
+	 * @ticket 28569
+	 *
+	 * @covers ::show_admin_bar
+	 */
+	public function test_show_admin_bar_true_after_init_restores_toolbar() {
+		wp_set_current_user( self::$admin_id );
+
+		show_admin_bar( true );
+		_wp_admin_bar_init();
+
+		show_admin_bar( false );
+		show_admin_bar( true );
+
+		$this->assertSame( 10, has_action( 'wp_head', 'wp_admin_bar_header' ), 'wp_admin_bar_header should be re-hooked to wp_head.' );
+		$this->assertSame( 10, has_action( 'admin_head', 'wp_admin_bar_header' ), 'wp_admin_bar_header should be re-hooked to admin_head.' );
+		$this->assertSame( 10, has_action( 'wp_head', '_admin_bar_bump_cb' ), '_admin_bar_bump_cb should be re-hooked to wp_head.' );
+		$this->assertSame( 10, has_action( 'wp_enqueue_scripts', 'wp_enqueue_admin_bar_bump_styles' ), 'wp_enqueue_admin_bar_bump_styles should be re-hooked to wp_enqueue_scripts.' );
+		$this->assertSame( 10, has_action( 'wp_enqueue_scripts', 'wp_enqueue_admin_bar_header_styles' ), 'wp_enqueue_admin_bar_header_styles should be re-hooked to wp_enqueue_scripts.' );
+		$this->assertSame( 10, has_action( 'admin_enqueue_scripts', 'wp_enqueue_admin_bar_header_styles' ), 'wp_enqueue_admin_bar_header_styles should be re-hooked to admin_enqueue_scripts.' );
+		$this->assertTrue( wp_style_is( 'admin-bar', 'enqueued' ), 'The admin-bar stylesheet should be re-enqueued.' );
+		$this->assertTrue( wp_script_is( 'admin-bar', 'enqueued' ), 'The admin-bar script should be re-enqueued.' );
+	}
+
+	/**
+	 * Ensures toggling the admin bar before it is initialized does not prematurely
+	 * hook the toolbar's rendering actions.
+	 *
+	 * @ticket 28569
+	 *
+	 * @covers ::show_admin_bar
+	 */
+	public function test_show_admin_bar_true_before_init_does_not_add_actions() {
+		unset( $GLOBALS['show_admin_bar'] );
+
+		show_admin_bar( true );
+
+		$this->assertFalse( has_action( 'wp_head', 'wp_admin_bar_header' ), 'wp_admin_bar_header should not be hooked before the admin bar is initialized.' );
+		$this->assertFalse( has_action( 'wp_head', '_admin_bar_bump_cb' ), '_admin_bar_bump_cb should not be hooked before the admin bar is initialized.' );
+	}
 }
