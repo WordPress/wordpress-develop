@@ -354,6 +354,54 @@ class Tests_Block_Supports_Auto_Register extends WP_UnitTestCase {
 	/**
 	 * @ticket 65628
 	 */
+	public function test_embeds_urls_in_the_pattern() {
+		$this->register_pattern_block(
+			array(
+				'pattern' => '<!-- wp:embed {"url":"https://example.com/video"} -->'
+					. '<figure class="wp-block-embed"><div class="wp-block-embed__wrapper">' . "\n"
+					. 'https://example.com/video' . "\n"
+					. '</div></figure>'
+					. '<!-- /wp:embed -->',
+			)
+		);
+
+		$expected_embed = '<iframe src="https://example.com/embedded-video"></iframe>';
+		$pre_oembed     = static function () use ( $expected_embed ) {
+			return $expected_embed;
+		};
+		add_filter( 'pre_oembed_result', $pre_oembed );
+
+		$output = do_blocks( '<!-- wp:' . self::BLOCK_NAME . ' /-->' );
+		remove_filter( 'pre_oembed_result', $pre_oembed );
+
+		$this->assertStringContainsString( $expected_embed, $output );
+	}
+
+	/**
+	 * @ticket 65628
+	 */
+	public function test_processes_embed_shortcodes_in_the_pattern() {
+		$this->register_pattern_block(
+			array(
+				'pattern' => '[embed]https://example.com/shortcode-video[/embed]',
+			)
+		);
+
+		$expected_embed = '<iframe src="https://example.com/embedded-shortcode-video"></iframe>';
+		$pre_oembed     = static function () use ( $expected_embed ) {
+			return $expected_embed;
+		};
+		add_filter( 'pre_oembed_result', $pre_oembed );
+
+		$output = do_blocks( '<!-- wp:' . self::BLOCK_NAME . ' /-->' );
+		remove_filter( 'pre_oembed_result', $pre_oembed );
+
+		$this->assertStringContainsString( $expected_embed, $output );
+	}
+
+	/**
+	 * @ticket 65628
+	 */
 	public function test_does_not_render_saved_inner_content_when_current_pattern_is_empty() {
 		$render_calls = 0;
 		$this->register_test_block(

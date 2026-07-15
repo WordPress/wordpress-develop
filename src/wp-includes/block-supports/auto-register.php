@@ -121,6 +121,13 @@ function wp_apply_pattern_block_rendering( array $args, string $block_name ): ar
 			$pattern = '';
 		}
 
+		// `WP_Embed` processes embeds on `the_content` before `do_blocks()` runs,
+		// so the pattern, injected during `do_blocks()`, never goes through those
+		// filters and its embed URLs would render as plain links.
+		global $wp_embed;
+		$pattern = $wp_embed->run_shortcode( $pattern );
+		$pattern = $wp_embed->autoembed( $pattern );
+
 		$block->parsed_block['innerBlocks']  = parse_blocks( $pattern );
 		$block->parsed_block['innerContent'] = array_fill(
 			0,
