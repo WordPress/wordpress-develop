@@ -2048,7 +2048,17 @@ class WP_Theme_JSON {
 	public static function process_blocks_custom_css( $css, $selector ) {
 		$processed_css = '';
 
-		if ( empty( $css ) || ! is_string( $css ) ) {
+		if ( empty( $css ) ) {
+			return $processed_css;
+		}
+
+		if ( ! is_string( $css ) ) {
+			_doing_it_wrong(
+				__METHOD__,
+			    __( 'The $css parameter must be a string.' ),
+				'7.1.0'
+			);
+
 			return $processed_css;
 		}
 
