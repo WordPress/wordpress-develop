@@ -45,6 +45,7 @@ class Test_Lazy_Load_Term_Meta extends WP_UnitTestCase {
 	 * @covers ::wp_queue_posts_for_term_meta_lazyload
 	 */
 	public function test_wp_queue_posts_for_term_meta_lazyload() {
+		$this->reset_lazyload_queue();
 		$filter = new MockAction();
 		add_filter( 'update_term_metadata_cache', array( $filter, 'filter' ), 10, 2 );
 		new WP_Query(
@@ -108,6 +109,36 @@ class Test_Lazy_Load_Term_Meta extends WP_UnitTestCase {
 		$this->assertSameSets( $term_ids, array( $term_id ) );
 	}
 
+
+	/**
+	 * @ticket 57901
+	 *
+	 * @covers ::wp_queue_posts_for_term_meta_lazyload
+	 */
+	public function test_wp_queue_posts_for_term_meta_lazyload_insert_term() {
+		$filter = new MockAction();
+		add_filter( 'update_term_metadata_cache', array( $filter, 'filter' ), 10, 2 );
+
+		register_taxonomy( 'wptests_tax', 'post' );
+
+		$t1      = wp_insert_term( 'Foo', 'wptests_tax' );
+		$term_id = $t1['term_id'];
+
+		new WP_Query(
+			array(
+				'post__in'            => self::$post_ids,
+				'lazy_load_term_meta' => true,
+			)
+		);
+
+		get_term_meta( $term_id );
+
+		$args     = $filter->get_args();
+		$first    = reset( $args );
+		$term_ids = end( $first );
+		$this->assertContains( $term_id, $term_ids );
+	}
+
 	/**
 	 * @ticket 57150
 	 * @covers ::wp_queue_posts_for_term_meta_lazyload
@@ -133,6 +164,6 @@ class Test_Lazy_Load_Term_Meta extends WP_UnitTestCase {
 		$args     = $filter->get_args();
 		$first    = reset( $args );
 		$term_ids = end( $first );
-		$this->assertNotContains( $remove_term_id, $term_ids );
+		$this->assertContains( $remove_term_id, $term_ids );
 	}
 }

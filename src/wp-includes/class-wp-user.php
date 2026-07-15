@@ -11,30 +11,35 @@
  * Core class used to implement the WP_User object.
  *
  * @since 2.0.0
+ * @since 6.8.0 The `user_pass` property is now hashed using bcrypt by default instead of phpass.
+ *              Existing passwords may still be hashed using phpass.
  *
- * @property string $nickname
- * @property string $description
- * @property string $user_description
- * @property string $first_name
- * @property string $user_firstname
- * @property string $last_name
- * @property string $user_lastname
- * @property string $user_login
- * @property string $user_pass
- * @property string $user_nicename
- * @property string $user_email
- * @property string $user_url
- * @property string $user_registered
- * @property string $user_activation_key
- * @property string $user_status
- * @property int    $user_level
- * @property string $display_name
- * @property string $spam
- * @property string $deleted
- * @property string $locale
- * @property string $rich_editing
- * @property string $syntax_highlighting
- * @property string $use_ssl
+ * @property string     $nickname
+ * @property string     $description
+ * @property string     $user_description
+ * @property string     $first_name
+ * @property string     $user_firstname
+ * @property string     $last_name
+ * @property string     $user_lastname
+ * @property string     $user_login
+ * @property string     $user_pass
+ * @property string     $user_nicename
+ * @property string     $user_email
+ * @property string     $user_url
+ * @property string     $user_registered
+ * @property string     $user_activation_key
+ * @property string     $user_status
+ * @property int|string $user_level
+ * @property string     $display_name
+ * @property string     $spam
+ * @property string     $deleted
+ * @property string     $locale
+ * @property string     $rich_editing
+ * @property string     $syntax_highlighting
+ * @property string     $use_ssl
+ *
+ * @phpstan-property numeric-string        $user_status
+ * @phpstan-property int|numeric-string|'' $user_level
  */
 #[AllowDynamicProperties]
 class WP_User {
@@ -117,13 +122,18 @@ class WP_User {
 	 *
 	 * @since 2.0.0
 	 *
-	 * @param int|string|stdClass|WP_User $id      User's ID, a WP_User object, or a user object from the DB.
-	 * @param string                      $name    Optional. User's username
-	 * @param int                         $site_id Optional Site ID, defaults to current site.
+	 * @global wpdb $wpdb WordPress database abstraction object.
+	 *
+	 * @param int|string|object $id      User's ID, a WP_User object, or a user object from the DB.
+	 * @param string            $name    Optional. User's username
+	 * @param int               $site_id Optional Site ID, defaults to current site.
 	 */
-	public function __construct( $id = 0, $name = '', $site_id = '' ) {
+	public function __construct( $id = 0, $name = '', $site_id = 0 ) {
+		global $wpdb;
+
 		if ( ! isset( self::$back_compat_keys ) ) {
-			$prefix                 = $GLOBALS['wpdb']->prefix;
+			$prefix = $wpdb->prefix;
+
 			self::$back_compat_keys = array(
 				'user_firstname'             => 'first_name',
 				'user_lastname'              => 'last_name',
@@ -168,7 +178,7 @@ class WP_User {
 	 * @param object $data    User DB row object.
 	 * @param int    $site_id Optional. The site ID to initialize for.
 	 */
-	public function init( $data, $site_id = '' ) {
+	public function init( $data, $site_id = 0 ) {
 		if ( ! isset( $data->ID ) ) {
 			$data->ID = 0;
 		}
@@ -186,7 +196,7 @@ class WP_User {
 	 *
 	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *
-	 * @param string     $field The field to query against: 'id', 'ID', 'slug', 'email' or 'login'.
+	 * @param string     $field The field to query against: Accepts 'id', 'ID', 'slug', 'email' or 'login'.
 	 * @param string|int $value The field value.
 	 * @return object|false Raw user object.
 	 */
@@ -199,8 +209,7 @@ class WP_User {
 		}
 
 		if ( 'id' === $field ) {
-			// Make sure the value is numeric to avoid casting objects, for example,
-			// to int 1.
+			// Make sure the value is numeric to avoid casting objects, for example, to int 1.
 			if ( ! is_numeric( $value ) ) {
 				return false;
 			}
@@ -501,7 +510,7 @@ class WP_User {
 	 */
 	public function get_role_caps() {
 		$switch_site = false;
-		if ( is_multisite() && get_current_blog_id() != $this->site_id ) {
+		if ( is_multisite() && get_current_blog_id() !== $this->site_id ) {
 			$switch_site = true;
 
 			switch_to_blog( $this->site_id );
@@ -509,9 +518,15 @@ class WP_User {
 
 		$wp_roles = wp_roles();
 
-		// Filter out caps that are not role names and assign to $this->roles.
+		// Select caps that are role names and assign to $this->roles.
 		if ( is_array( $this->caps ) ) {
-			$this->roles = array_filter( array_keys( $this->caps ), array( $wp_roles, 'is_role' ) );
+			$this->roles = array();
+
+			foreach ( $this->caps as $key => $value ) {
+				if ( $wp_roles->is_role( $key ) ) {
+					$this->roles[] = $key;
+				}
+			}
 		}
 
 		// Build $allcaps from role caps, overlay user's $caps.
@@ -603,7 +618,7 @@ class WP_User {
 	 * @param string $role Role name.
 	 */
 	public function set_role( $role ) {
-		if ( 1 === count( $this->roles ) && current( $this->roles ) == $role ) {
+		if ( 1 === count( $this->roles ) && current( $this->roles ) === $role ) {
 			return;
 		}
 
@@ -642,7 +657,7 @@ class WP_User {
 		 * Fires after the user's role has changed.
 		 *
 		 * @since 2.9.0
-		 * @since 3.6.0 Added $old_roles to include an array of the user's previous roles.
+		 * @since 3.6.0 Added `$old_roles` to include an array of the user's previous roles.
 		 *
 		 * @param int      $user_id   The user ID.
 		 * @param string   $role      The new role.
@@ -815,13 +830,7 @@ class WP_User {
 		unset( $capabilities['do_not_allow'] );
 
 		// Must have ALL requested caps.
-		foreach ( (array) $caps as $cap ) {
-			if ( empty( $capabilities[ $cap ] ) ) {
-				return false;
-			}
-		}
-
-		return true;
+		return array_all( (array) $caps, fn( $cap, $key ) => ! empty( $capabilities[ $cap ] ) );
 	}
 
 	/**
@@ -846,7 +855,7 @@ class WP_User {
 	 *
 	 * @param int $blog_id Optional. Site ID, defaults to current site.
 	 */
-	public function for_blog( $blog_id = '' ) {
+	public function for_blog( $blog_id = 0 ) {
 		_deprecated_function( __METHOD__, '4.9.0', 'WP_User::for_site()' );
 
 		$this->for_site( $blog_id );
@@ -861,7 +870,7 @@ class WP_User {
 	 *
 	 * @param int $site_id Site ID to initialize user capabilities for. Default is the current site.
 	 */
-	public function for_site( $site_id = '' ) {
+	public function for_site( $site_id = 0 ) {
 		global $wpdb;
 
 		if ( ! empty( $site_id ) ) {
@@ -894,7 +903,7 @@ class WP_User {
 	 * @since 4.9.0
 	 *
 	 * @return bool[] List of capabilities keyed by the capability name,
-	 *                e.g. array( 'edit_posts' => true, 'delete_posts' => false ).
+	 *                e.g. `array( 'edit_posts' => true, 'delete_posts' => false )`.
 	 */
 	private function get_caps_data() {
 		$caps = get_user_meta( $this->ID, $this->cap_key, true );

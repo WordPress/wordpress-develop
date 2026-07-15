@@ -14,7 +14,6 @@ class Tests_Post_Filtering extends WP_UnitTestCase {
 		parent::set_up();
 		update_option( 'use_balanceTags', 1 );
 		kses_init_filters();
-
 	}
 
 	public function tear_down() {
@@ -36,7 +35,7 @@ EOF;
 		$id   = self::factory()->post->create( array( 'post_content' => $content ) );
 		$post = get_post( $id );
 
-		$this->assertSame( $expected, $post->post_content );
+		$this->assertEqualHTML( $expected, $post->post_content );
 	}
 
 	// A simple test to make sure unbalanced tags are fixed.
@@ -53,7 +52,7 @@ EOF;
 		$id   = self::factory()->post->create( array( 'post_content' => $content ) );
 		$post = get_post( $id );
 
-		$this->assertSame( $expected, $post->post_content );
+		$this->assertEqualHTML( $expected, $post->post_content );
 	}
 
 	// Test KSES filtering of disallowed attribute.
@@ -70,7 +69,7 @@ EOF;
 		$id   = self::factory()->post->create( array( 'post_content' => $content ) );
 		$post = get_post( $id );
 
-		$this->assertSame( $expected, $post->post_content );
+		$this->assertEqualHTML( $expected, $post->post_content );
 	}
 
 	/**
@@ -90,7 +89,7 @@ EOF;
 		$id   = self::factory()->post->create( array( 'post_content' => $content ) );
 		$post = get_post( $id );
 
-		$this->assertSame( $expected, $post->post_content );
+		$this->assertEqualHTML( $expected, $post->post_content );
 	}
 
 	// Make sure unbalanced tags are untouched when the balance option is off.
@@ -110,6 +109,6 @@ EOF;
 		$id   = self::factory()->post->create( array( 'post_content' => $content ) );
 		$post = get_post( $id );
 
-		$this->assertSame( $content, $post->post_content );
+		$this->assertEqualHTML( $content, $post->post_content );
 	}
 }

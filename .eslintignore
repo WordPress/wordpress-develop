@@ -1,15 +1,26 @@
-# Files and folders related to build/test tools
+# Files and folders related to build/test tools including generated files
 /build
 /node_modules
 /tests
 /vendor
 /tools
+/jsdoc
+/artifacts
+/coverage
+.cache/*
+/src/wp-includes/blocks/**/*.js
+/src/wp-includes/blocks/**/*.js.map
+/src/wp-admin/js
+/src/wp-includes/js
 
 # Excluded files and folders based on `jsdoc.conf.json` exclusions
 /src/js/_enqueues/vendor
 
-# Webpack built files
-/src/wp-includes/js/media-*
-
 # Themes
-src/wp-content/themes/
+src/wp-content/themes
+
+# Files and folders that get created in wp-content
+/src/wp-content/plugins
+/src/wp-content/mu-plugins
+/src/wp-content/upgrade
+/src/wp-content/uploads

@@ -1,6 +1,6 @@
 {
 	"$schema": "https://schemas.wp.org/trunk/block.json",
-	"apiVersion": 2,
+	"apiVersion": 3,
 	"name": "core/home-link",
 	"category": "design",
 	"parent": [ "core/navigation" ],
@@ -9,6 +9,14 @@
 	"textdomain": "default",
 	"attributes": {
 		"label": {
+			"type": "string",
+			"role": "content"
+		},
+		"opensInNewTab": {
+			"type": "boolean",
+			"default": false
+		},
+		"description": {
 			"type": "string"
 		}
 	},
@@ -37,6 +45,9 @@
 			"__experimentalDefaultControls": {
 				"fontSize": true
 			}
+		},
+		"interactivity": {
+			"clientNavigation": true
 		}
 	},
 	"editorStyle": "wp-block-home-link-editor",

@@ -7,9 +7,9 @@ class Tests_WP_Taxonomy extends WP_UnitTestCase {
 	public function test_instances() {
 		global $wp_taxonomies;
 
-		foreach ( $wp_taxonomies as $taxonomy ) {
-			$this->assertInstanceOf( 'WP_Taxonomy', $taxonomy );
-		}
+		$this->assertNotEmpty( $wp_taxonomies );
+
+		$this->assertContainsOnlyInstancesOf( 'WP_Taxonomy', $wp_taxonomies );
 	}
 
 	public function test_does_not_add_query_var_if_not_public() {
@@ -97,7 +97,6 @@ class Tests_WP_Taxonomy extends WP_UnitTestCase {
 
 		$this->assertSame( 10, $has_action );
 		$this->assertFalse( $has_action_after );
-
 	}
 
 	public function test_applies_registration_args_filters() {

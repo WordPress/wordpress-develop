@@ -55,15 +55,15 @@ get_current_screen()->add_help_tab(
 		'title'   => __( 'Plugin Data' ),
 		'content' =>
 					'<p>' . __( 'Many plugins may collect or store personal data either in the WordPress database or remotely. Any Export Personal Data request should include data from plugins as well.' ) . '</p>' .
-					'<p>' . __( 'Plugin authors can <a href="https://developer.wordpress.org/plugins/privacy/adding-the-personal-data-exporter-to-your-plugin/" target="_blank">learn more about how to add the Personal Data Exporter to a plugin here</a>.' ) . '</p>' .
-					$privacy_policy_guide,
+					$privacy_policy_guide .
+					'<p>' . __( 'If you are a plugin author, you can learn more about <a href="https://developer.wordpress.org/plugins/privacy/adding-the-personal-data-exporter-to-your-plugin/">how to add the Personal Data Exporter to a plugin</a>.' ) . '</p>',
 	)
 );
 
 get_current_screen()->set_help_sidebar(
 	'<p><strong>' . __( 'For more information:' ) . '</strong></p>' .
-	'<p>' . __( '<a href="https://wordpress.org/support/article/tools-export-personal-data-screen/">Documentation on Export Personal Data</a>' ) . '</p>' .
-	'<p>' . __( '<a href="https://wordpress.org/support/">Support</a>' ) . '</p>'
+	'<p>' . __( '<a href="https://wordpress.org/documentation/article/tools-export-personal-data-screen/">Documentation on Export Personal Data</a>' ) . '</p>' .
+	'<p>' . __( '<a href="https://wordpress.org/support/forums/">Support forums</a>' ) . '</p>'
 );
 
 // Handle list table actions.

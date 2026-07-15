@@ -1,20 +1,14 @@
 <?php
 /**
- * Define a class to test the `get_the_privacy_policy_link()` function.
+ * Test cases for the `get_the_privacy_policy_link()` function.
  *
  * @package WordPress
  * @subpackage UnitTests
  * @since 4.9.6
- */
-
-/**
- * Test cases for the `get_the_privacy_policy_link()` function.
  *
  * @group link
  * @group privacy
  * @covers ::get_the_privacy_policy_link
- *
- * @since 4.9.6
  */
 class Tests_Link_GetThePrivacyPolicyLink extends WP_UnitTestCase {
 	/**

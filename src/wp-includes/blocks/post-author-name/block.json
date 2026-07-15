@@ -1,25 +1,27 @@
 {
 	"$schema": "https://schemas.wp.org/trunk/block.json",
-	"apiVersion": 2,
+	"apiVersion": 3,
 	"name": "core/post-author-name",
-	"title": "Post Author Name",
+	"title": "Author Name",
 	"category": "theme",
 	"description": "The author name.",
 	"textdomain": "default",
 	"attributes": {
-		"textAlign": {
-			"type": "string"
-		},
 		"isLink": {
 			"type": "boolean",
-			"default": false
+			"default": false,
+			"role": "content"
 		},
 		"linkTarget": {
 			"type": "string",
-			"default": "_self"
+			"default": "_self",
+			"role": "content"
 		}
 	},
 	"usesContext": [ "postType", "postId" ],
+	"example": {
+		"viewportWidth": 350
+	},
 	"supports": {
 		"anchor": true,
 		"html": false,
@@ -39,6 +41,7 @@
 		"typography": {
 			"fontSize": true,
 			"lineHeight": true,
+			"textAlign": true,
 			"__experimentalFontFamily": true,
 			"__experimentalFontWeight": true,
 			"__experimentalFontStyle": true,
@@ -48,6 +51,22 @@
 			"__experimentalDefaultControls": {
 				"fontSize": true
 			}
+		},
+		"interactivity": {
+			"clientNavigation": true
+		},
+		"__experimentalBorder": {
+			"radius": true,
+			"color": true,
+			"width": true,
+			"style": true,
+			"__experimentalDefaultControls": {
+				"radius": true,
+				"color": true,
+				"width": true,
+				"style": true
+			}
 		}
-	}
+	},
+	"style": "wp-block-post-author-name"
 }

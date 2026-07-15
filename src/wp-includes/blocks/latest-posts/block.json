@@ -1,6 +1,6 @@
 {
 	"$schema": "https://schemas.wp.org/trunk/block.json",
-	"apiVersion": 2,
+	"apiVersion": 3,
 	"name": "core/latest-posts",
 	"title": "Latest Posts",
 	"category": "widgets",
@@ -41,14 +41,6 @@
 			"type": "boolean",
 			"default": false
 		},
-		"postLayout": {
-			"type": "string",
-			"default": "list"
-		},
-		"columns": {
-			"type": "number",
-			"default": 3
-		},
 		"order": {
 			"type": "string",
 			"default": "desc"
@@ -83,9 +75,10 @@
 		}
 	},
 	"supports": {
-		"align": true,
 		"anchor": true,
+		"align": true,
 		"html": false,
+		"layout": true,
 		"color": {
 			"gradients": true,
 			"link": true,
@@ -97,7 +90,13 @@
 		},
 		"spacing": {
 			"margin": true,
-			"padding": true
+			"padding": true,
+			"blockGap": {
+				"__experimentalDefault": "1.25em"
+			},
+			"__experimentalDefaultControls": {
+				"blockGap": true
+			}
 		},
 		"typography": {
 			"fontSize": true,
@@ -111,6 +110,21 @@
 			"__experimentalDefaultControls": {
 				"fontSize": true
 			}
+		},
+		"__experimentalBorder": {
+			"radius": true,
+			"color": true,
+			"width": true,
+			"style": true,
+			"__experimentalDefaultControls": {
+				"radius": true,
+				"color": true,
+				"width": true,
+				"style": true
+			}
+		},
+		"interactivity": {
+			"clientNavigation": true
 		}
 	},
 	"editorStyle": "wp-block-latest-posts-editor",

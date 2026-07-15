@@ -1,5 +1,5 @@
 <?php
-/**
+
 /**
  * Test WP_Theme class.
  *
@@ -110,6 +110,20 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 		// Important.
 		$this->assertSame( 'subdir/theme2', $theme->get_stylesheet() );
 		$this->assertSame( 'subdir/theme2', $theme->get_template() );
+	}
+
+	/**
+	 * Tests that WP_Theme::__construct() handles a numeric theme directory as a string.
+	 *
+	 * @ticket 54645
+	 *
+	 * @covers WP_Theme::__construct
+	 */
+	public function test_new_WP_Theme_numeric_theme_directory() {
+		$theme = new WP_Theme( 1234, $this->theme_root );
+
+		$this->assertSame( '1234', $theme->get_stylesheet(), 'The stylesheet property should be a string.' );
+		$this->assertSame( '1234', $theme->get_template(), 'The template property should be a string.' );
 	}
 
 	/**
@@ -287,7 +301,9 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 		$theme->is_block_theme();
 		$reflection          = new ReflectionClass( $theme );
 		$reflection_property = $reflection->getProperty( 'block_theme' );
-		$reflection_property->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$reflection_property->setAccessible( true );
+		}
 
 		$this->assertSame( $expected, $reflection_property->getValue( $theme ) );
 	}
@@ -359,6 +375,101 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 
 		$this->assertIsArray( $files );
 		$this->assertEmpty( $files );
+	}
+
+	/**
+	 * Test wp_customize_url with no $stylesheet argument.
+	 *
+	 * @ticket 63632
+	 *
+	 * @covers ::wp_customize_url
+	 */
+	public function test_wp_customize_url_no_stylesheet() {
+		$this->assertSame( esc_url( admin_url( 'customize.php' ) ), wp_customize_url() );
+	}
+
+	/**
+	 * Test wp_customize_url with no query args.
+	 *
+	 * @ticket 63632
+	 *
+	 * @covers ::wp_customize_url
+	 */
+	public function test_wp_customize_url_without_query_args() {
+		$this->assertSame( esc_url( admin_url( 'customize.php?theme=foo' ) ), wp_customize_url( 'foo' ) );
+	}
+
+	/**
+	 * Test wp_customize_url with existing query args.
+	 *
+	 * @ticket 63632
+	 *
+	 * @covers ::wp_customize_url
+	 */
+	public function test_wp_customize_url_with_existing_query_args() {
+		$clean_admin_url = admin_url( 'customize.php' );
+
+		// Ensure the existing query arg is present in the URL.
+		add_filter(
+			'admin_url',
+			static function ( $url ) {
+				return add_query_arg( 'existing_arg', 'value', $url );
+			}
+		);
+		$this->assertSame( esc_url( $clean_admin_url . '?existing_arg=value&theme=foo' ), wp_customize_url( 'foo' ) );
+	}
+
+	/**
+	 * Test wp_customize_url with existing theme query arg.
+	 *
+	 * @ticket 63632
+	 *
+	 * @covers ::wp_customize_url
+	 */
+	public function test_wp_customize_url_with_existing_theme_query_arg() {
+		$clean_admin_url = admin_url( 'customize.php' );
+
+		// Ensure the theme query arg is replaced with the new value.
+		add_filter(
+			'admin_url',
+			static function ( $url ) {
+				return add_query_arg( 'theme', 'to-be-replaced', $url );
+			}
+		);
+		$this->assertSame( esc_url( $clean_admin_url . '?theme=foo' ), wp_customize_url( 'foo' ) );
+	}
+
+	/**
+	 * Test wp_customize_url with multiple theme query args in array syntax.
+	 *
+	 * @ticket 63632
+	 *
+	 * @covers ::wp_customize_url
+	 */
+	public function test_wp_customize_url_with_multiple_theme_query_args() {
+		$clean_admin_url = admin_url( 'customize.php' );
+
+		// Ensure the theme query arg is replaced with the new value.
+		add_filter(
+			'admin_url',
+			static function ( $url ) {
+				return add_query_arg( array( 'theme' => array( 'to-be-replaced-1', 'to-be-replaced-2' ) ), $url );
+			}
+		);
+		$this->assertSame( esc_url( $clean_admin_url . '?theme=foo' ), wp_customize_url( 'foo' ) );
+	}
+
+	/**
+	 * Test wp_customize_url with special characters in the theme name.
+	 *
+	 * @ticket 63632
+	 *
+	 * @covers ::wp_customize_url
+	 */
+	public function test_wp_customize_url_with_special_chars() {
+		$stylesheet = 'foo!@-_ +';
+		$expected   = admin_url( 'customize.php?theme=' . urlencode( $stylesheet ) );
+		$this->assertSame( esc_url( $expected ), wp_customize_url( $stylesheet ) );
 	}
 
 	/**
@@ -502,7 +613,9 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 	public function test_should_strip_tags_from_update_uri_header() {
 		$theme           = new WP_Theme( 'twentytwentytwo', $this->theme_root );
 		$sanitize_header = new ReflectionMethod( $theme, 'sanitize_header' );
-		$sanitize_header->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$sanitize_header->setAccessible( true );
+		}
 
 		$actual = $sanitize_header->invoke( $theme, 'UpdateURI', '<?php?><a href="http://example.org">http://example.org</a>' );
 

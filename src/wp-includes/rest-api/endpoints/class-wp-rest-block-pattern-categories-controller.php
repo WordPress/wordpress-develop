@@ -1,6 +1,6 @@
 <?php
 /**
- * REST API: WP_REST_Block_Pattern_Catergories_Controller class
+ * REST API: WP_REST_Block_Pattern_Categories_Controller class
  *
  * @package    WordPress
  * @subpackage REST_API
@@ -78,9 +78,14 @@ class WP_REST_Block_Pattern_Categories_Controller extends WP_REST_Controller {
 	 * @since 6.0.0
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
-	 * @return WP_Error|WP_REST_Response Response object on success, or WP_Error object on failure.
+	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
 	public function get_items( $request ) {
+		if ( $request->is_method( 'HEAD' ) ) {
+			// Return early as this handler doesn't add any response headers.
+			return new WP_REST_Response( array() );
+		}
+
 		$response   = array();
 		$categories = WP_Block_Pattern_Categories_Registry::get_instance()->get_all_registered();
 		foreach ( $categories as $category ) {
@@ -125,6 +130,10 @@ class WP_REST_Block_Pattern_Categories_Controller extends WP_REST_Controller {
 	 * @return array Item schema data.
 	 */
 	public function get_item_schema() {
+		if ( $this->schema ) {
+			return $this->add_additional_fields_schema( $this->schema );
+		}
+
 		$schema = array(
 			'$schema'    => 'http://json-schema.org/draft-04/schema#',
 			'title'      => 'block-pattern-category',
@@ -151,6 +160,8 @@ class WP_REST_Block_Pattern_Categories_Controller extends WP_REST_Controller {
 			),
 		);
 
-		return $this->add_additional_fields_schema( $schema );
+		$this->schema = $schema;
+
+		return $this->add_additional_fields_schema( $this->schema );
 	}
 }

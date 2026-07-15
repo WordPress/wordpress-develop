@@ -162,10 +162,22 @@ class WP_REST_Request implements ArrayAccess {
 	}
 
 	/**
+	 * Determines if the request is the given method.
+	 *
+	 * @since 6.8.0
+	 *
+	 * @param string $method HTTP method.
+	 * @return bool Whether the request is of the given method.
+	 */
+	public function is_method( $method ) {
+		return $this->get_method() === strtoupper( $method );
+	}
+
+	/**
 	 * Canonicalizes the header name.
 	 *
 	 * Ensures that header names are always treated the same regardless of
-	 * source. Header names are always case insensitive.
+	 * source. Header names are always case-insensitive.
 	 *
 	 * Note that we treat `-` (dashes) and `_` (underscores) as the same
 	 * character, as per header parsing rules in both Apache and nginx.
@@ -311,7 +323,7 @@ class WP_REST_Request implements ArrayAccess {
 		}
 
 		$value = strtolower( $value );
-		if ( false === strpos( $value, '/' ) ) {
+		if ( ! str_contains( $value, '/' ) ) {
 			return null;
 		}
 
@@ -473,11 +485,18 @@ class WP_REST_Request implements ArrayAccess {
 
 		$params = array();
 		foreach ( $order as $type ) {
-			// array_merge() / the "+" operator will mess up
-			// numeric keys, so instead do a manual foreach.
+			/*
+			 * array_merge() / the "+" operator will mess up
+			 * numeric keys, so instead do a manual foreach.
+			 */
 			foreach ( (array) $this->params[ $type ] as $key => $value ) {
 				$params[ $key ] = $value;
 			}
+		}
+
+		// Exclude rest_route if pretty permalinks are not enabled.
+		if ( ! get_option( 'permalink_structure' ) ) {
+			unset( $params['rest_route'] );
 		}
 
 		return $params;
@@ -516,7 +535,7 @@ class WP_REST_Request implements ArrayAccess {
 	 *
 	 * @since 4.4.0
 	 *
-	 * @return array Parameter map of key to value
+	 * @return array Parameter map of key to value.
 	 */
 	public function get_query_params() {
 		return $this->params['GET'];
@@ -568,7 +587,16 @@ class WP_REST_Request implements ArrayAccess {
 	 *
 	 * @since 4.4.0
 	 *
-	 * @return array Parameter map of key to value
+	 * @return array Parameter map of key to value.
+	 *
+	 * @phpstan-return array<string, array{
+	 *                                   name: non-empty-string,
+	 *                                   type: non-empty-string,
+	 *                                   size: non-negative-int,
+	 *                                   tmp_name: non-empty-string,
+	 *                                   error: int<0, 8>,
+	 *                                   full_path?: non-empty-string,
+	 *                               }>
 	 */
 	public function get_file_params() {
 		return $this->params['FILES'];
@@ -582,6 +610,15 @@ class WP_REST_Request implements ArrayAccess {
 	 * @since 4.4.0
 	 *
 	 * @param array $params Parameter map of key to value.
+	 *
+	 * @phpstan-param array<string, array{
+	 *                                  name: non-empty-string,
+	 *                                  type: non-empty-string,
+	 *                                  size: non-negative-int,
+	 *                                  tmp_name: non-empty-string,
+	 *                                  error: int<0, 8>,
+	 *                                  full_path?: non-empty-string,
+	 *                              }> $params
 	 */
 	public function set_file_params( $params ) {
 		$this->params['FILES'] = $params;
@@ -594,7 +631,7 @@ class WP_REST_Request implements ArrayAccess {
 	 *
 	 * @since 4.4.0
 	 *
-	 * @return array Parameter map of key to value
+	 * @return array Parameter map of key to value.
 	 */
 	public function get_default_params() {
 		return $this->params['defaults'];
@@ -707,7 +744,7 @@ class WP_REST_Request implements ArrayAccess {
 	 * Parses the request body parameters.
 	 *
 	 * Parses out URL-encoded bodies for request methods that aren't supported
-	 * natively by PHP. In PHP 5.x, only POST has these parsed automatically.
+	 * natively by PHP.
 	 *
 	 * @since 4.4.0
 	 */
@@ -1031,7 +1068,7 @@ class WP_REST_Request implements ArrayAccess {
 		}
 
 		$api_root = rest_url();
-		if ( get_option( 'permalink_structure' ) && 0 === strpos( $url, $api_root ) ) {
+		if ( get_option( 'permalink_structure' ) && str_starts_with( $url, $api_root ) ) {
 			// Pretty permalinks on, and URL is under the API root.
 			$api_url_part = substr( $url, strlen( untrailingslashit( $api_root ) ) );
 			$route        = parse_url( $api_url_part, PHP_URL_PATH );

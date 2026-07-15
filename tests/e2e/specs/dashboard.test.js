@@ -1,76 +1,169 @@
-import {
-	pressKeyTimes,
-	trashAllPosts,
-	visitAdminPage,
-} from '@wordpress/e2e-test-utils';
+/**
+ * WordPress dependencies
+ */
+import { test, expect } from '@wordpress/e2e-test-utils-playwright';
 
-describe( 'Quick Draft', () => {
-	beforeEach( async () => {
-		await trashAllPosts();
+test.describe( 'Quick Draft', () => {
+	test.beforeEach( async ({ requestUtils }) => {
+		await requestUtils.deleteAllPosts();
 	} );
 
-	it( 'Allows draft to be created with Title and Content', async () => {
-		await visitAdminPage( '/' );
+	test( 'should allow Quick Draft to be created with Title and Content', async ( {
+	   admin,
+	   page
+	} ) => {
+		await admin.visitAdminPage( '/' );
 
-		// Wait for Quick Draft title field to appear and focus it
-		const draftTitleField = await page.waitForSelector(
-			'#quick-press #title'
-		);
-		await draftTitleField.focus();
+		// Wait for the Quick Draft title field to appear.
+		const draftTitleField = page.locator(
+			'#quick-press'
+		).getByRole( 'textbox', { name: 'Title' } );
 
-		// Type in a title.
-		await page.keyboard.type( 'Test Draft Title' );
+		await expect( draftTitleField ).toBeVisible();
 
-		// Navigate to content field and type in some content
-		await page.keyboard.press( 'Tab' );
-		await page.keyboard.type( 'Test Draft Content' );
+		// Focus and fill in a title.
+		await draftTitleField.fill( 'Quick Draft test title' );
 
-		// Navigate to Save Draft button and press it.
-		await page.keyboard.press( 'Tab' );
-		await page.keyboard.press( 'Enter' );
+		// Wait for the Quick Draft content textarea to appear.
+		const quickDraftContentTextarea = page.locator(
+			'#quick-press'
+		).getByRole( 'textbox', { name: 'Content' } );
 
-		// Check that new draft appears in Your Recent Drafts section
-		const newDraft = await page.waitForSelector( '.drafts .draft-title' );
+		await expect( quickDraftContentTextarea ).toBeVisible();
 
-		expect(
-			await newDraft.evaluate( ( element ) => element.innerText )
-		).toContain( 'Test Draft Title' );
+		// Focus and fill in some content.
+		await quickDraftContentTextarea.fill( 'Quick Draft test content' );
 
-		// Check that new draft appears in Posts page
-		await visitAdminPage( '/edit.php' );
-		const postsListDraft = await page.waitForSelector(
-			'.type-post.status-draft .title'
-		);
+		// Wait for the Save Draft button to appear and click it.
+		const saveDraftButton = page.locator(
+			'#quick-press'
+		).getByRole( 'button', { name: 'Save Draft' } );
 
-		expect(
-			await postsListDraft.evaluate( ( element ) => element.innerText )
-		).toContain( 'Test Draft Title' );
-	} );
-
-	it( 'Allows draft to be created without Title or Content', async () => {
-		await visitAdminPage( '/' );
-
-		// Wait for Save Draft button to appear and click it
-		const saveDraftButton = await page.waitForSelector(
-			'#quick-press #save-post'
-		);
+		await expect( saveDraftButton ).toBeVisible();
 		await saveDraftButton.click();
 
-		// Check that new draft appears in Your Recent Drafts section
-		const newDraft = await page.waitForSelector( '.drafts .draft-title a' );
+		// Check that the new draft title appears in the 'Your Recent Drafts' section.
+		await expect(
+			page.locator( '.drafts .draft-title' ).first().getByRole( 'link' )
+		).toHaveText( 'Quick Draft test title' );
 
-		expect(
-			await newDraft.evaluate( ( element ) => element.innerText )
-		).toContain( '(no title)' );
+		// Check that the new draft content appears in the 'Your Recent Drafts' section.
+		await expect(
+			page.locator( '.drafts .draft-content' ).first()
+		).toHaveText( 'Quick Draft test content' );
 
-		// Check that new draft appears in Posts page
-		await visitAdminPage( '/edit.php' );
-		const postsListDraft = await page.waitForSelector(
-			'.type-post.status-draft .title a'
-		);
+		// Check that the new draft appears in the Posts page.
+		await admin.visitAdminPage( '/edit.php' );
 
-		expect(
-			await postsListDraft.evaluate( ( element ) => element.innerText )
-		).toContain( '(no title)' );
+		await expect(
+			page.locator( '.type-post.status-draft .title' ).first()
+		).toContainText( 'Quick Draft test title' );
+	} );
+
+	test( 'should prevent Quick Draft from being created without Title and Content', async ( {
+		 admin,
+		 page
+	} ) => {
+		await admin.visitAdminPage( '/' );
+
+		// Wait for the Save Draft button to appear and click it.
+		const saveDraftButton = page.locator(
+			'#quick-press'
+		).getByRole( 'button', { name: 'Save Draft' } );
+
+		await expect( saveDraftButton ).toBeVisible();
+		await saveDraftButton.click();
+
+		// Check that an admin notice with ARIA role 'alert' appears.
+		await expect(
+			page.locator( '#quick-press' ).getByRole( 'alert' )
+		).toHaveText( 'Cannot create a draft post with empty title and content.' );
+
+		// Check that no new draft appears in the Posts page.
+		await admin.visitAdminPage( '/edit.php' );
+
+		await expect(
+			page.locator( '#the-list .no-items .colspanchange' )
+		).toContainText( 'No posts found.' );
+	} );
+
+	test( 'should allow Quick Draft to be created with only the Title', async ( {
+		 admin,
+		 page
+	} ) => {
+		await admin.visitAdminPage( '/' );
+
+		// Wait for the Quick Draft title field to appear.
+		const quickDraftTitleField = page.locator(
+			'#quick-press'
+		).getByRole( 'textbox', { name: 'Title' } );
+
+		await expect( quickDraftTitleField ).toBeVisible();
+
+		// Focus and fill in a title.
+		await quickDraftTitleField.fill( 'Quick Draft test title' );
+
+		// Wait for the Save Draft button to appear and click it.
+		const saveDraftButton = page.locator(
+			'#quick-press'
+		).getByRole( 'button', { name: 'Save Draft' } );
+
+		await expect( saveDraftButton ).toBeVisible();
+		await saveDraftButton.click();
+
+		// Check that the new draft title appears in the 'Your Recent Drafts' section.
+		await expect(
+			page.locator( '.drafts .draft-title' ).first().getByRole( 'link' )
+		).toHaveText( 'Quick Draft test title' );
+
+		// Check that the new draft appears in the Posts page.
+		await admin.visitAdminPage( '/edit.php' );
+
+		await expect(
+			page.locator( '.type-post.status-draft .title' ).first()
+		).toContainText( 'Quick Draft test title' );
+	} );
+
+	test( 'should allow Quick Draft to be created with only the Content', async ( {
+		 admin,
+		 page
+	} ) => {
+		await admin.visitAdminPage( '/' );
+
+		// Wait for the Quick Draft content textarea to appear.
+		const quickDraftContentTextarea = page.locator(
+			'#quick-press'
+		).getByRole( 'textbox', { name: 'Content' } );
+
+		await expect( quickDraftContentTextarea ).toBeVisible();
+
+		// Focus and fill in some content.
+		await quickDraftContentTextarea.fill( 'Quick Draft test content' );
+
+		// Wait for the Save Draft button to appear and click it.
+		const saveDraftButton = page.locator(
+			'#quick-press'
+		).getByRole( 'button', { name: 'Save Draft' } );
+
+		await expect( saveDraftButton ).toBeVisible();
+		await saveDraftButton.click();
+
+		// Check that the new draft title appears in the 'Your Recent Drafts' section.
+		// This test relies on Twenty Twenty-One being the active theme.
+		// Twenty Twenty-One alters the default post title from "(no title)" to "Untitled".
+		await expect(
+			page.locator( '.drafts .draft-title' ).first().getByRole( 'link' )
+		).toHaveText( 'Untitled' );
+
+		await expect(
+			page.locator( '.drafts .draft-content' ).first()
+		).toHaveText( 'Quick Draft test content' );
+
+		// Check that the new draft appears in the Posts page.
+		await admin.visitAdminPage( '/edit.php' );
+
+		await expect(
+			page.locator( '.type-post.status-draft .title' ).first()
+		).toContainText( 'Untitled' );
 	} );
 } );

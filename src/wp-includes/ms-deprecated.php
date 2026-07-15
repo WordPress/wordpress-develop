@@ -85,6 +85,8 @@ if ( !function_exists( 'graceful_fail' ) ) :
  * @since MU (3.0.0)
  * @deprecated 3.0.0 Use wp_die()
  * @see wp_die()
+ *
+ * @return never
  */
 function graceful_fail( $message ) {
 	_deprecated_function( __FUNCTION__, '3.0.0', 'wp_die()' );
@@ -94,7 +96,7 @@ function graceful_fail( $message ) {
 <html><head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <title>Error!</title>
-<style type="text/css">
+<style>
 img {
 	border: 0;
 }
@@ -145,7 +147,7 @@ function clear_global_post_cache( $post_id ) {
 }
 
 /**
- * Deprecated functionality to determin if the current site is the main site.
+ * Deprecated functionality to determine if the current site is the main site.
  *
  * @since MU (3.0.0)
  * @deprecated 3.0.0 Use is_main_site()
@@ -268,6 +270,7 @@ function get_most_active_blogs( $num = 10, $display = true ) {
  * @see wp_redirect()
  *
  * @param string $url Optional. Redirect URL. Default empty.
+ * @return never
  */
 function wpmu_admin_do_redirect( $url = '' ) {
 	_deprecated_function( __FUNCTION__, '3.3.0', 'wp_redirect()' );
@@ -295,7 +298,7 @@ function wpmu_admin_do_redirect( $url = '' ) {
 	if ( isset( $_GET['redirect'] ) && isset( $_POST['redirect'] ) && $_GET['redirect'] !== $_POST['redirect'] ) {
 		wp_die( __( 'A variable mismatch has been detected.' ), __( 'Sorry, you are not allowed to view this item.' ), 400 );
 	} elseif ( isset( $_GET['redirect'] ) ) {
-		if ( 's_' === substr( $_GET['redirect'], 0, 2 ) )
+		if ( str_starts_with( $_GET['redirect'], 's_' ) )
 			$url .= '&action=blogs&s='. esc_html( substr( $_GET['redirect'], 2 ) );
 	} elseif ( isset( $_POST['redirect'] ) ) {
 		$url = wpmu_admin_redirect_add_updated_param( $_POST['redirect'] );
@@ -317,8 +320,8 @@ function wpmu_admin_do_redirect( $url = '' ) {
 function wpmu_admin_redirect_add_updated_param( $url = '' ) {
 	_deprecated_function( __FUNCTION__, '3.3.0', 'add_query_arg()' );
 
-	if ( strpos( $url, 'updated=true' ) === false ) {
-		if ( strpos( $url, '?' ) === false )
+	if ( ! str_contains( $url, 'updated=true' ) ) {
+		if ( ! str_contains( $url, '?' ) )
 			return $url . '?updated=true';
 		else
 			return $url . '&updated=true';
@@ -355,7 +358,7 @@ function get_user_id_from_string( $email_or_login ) {
 }
 
 /**
- * Get a full blog URL, given a domain and a path.
+ * Get a full site URL, given a domain and a path.
  *
  * @since MU (3.0.0)
  * @deprecated 3.7.0
@@ -694,6 +697,7 @@ function install_blog_defaults( $blog_id, $user_id ) {
  * Previously used in core to mark a user as spam or "ham" (not spam) in Multisite.
  *
  * @since 3.0.0
+ * @since 3.0.2 Deprecated fourth argument.
  * @deprecated 5.3.0 Use wp_update_user()
  * @see wp_update_user()
  *
@@ -703,7 +707,7 @@ function install_blog_defaults( $blog_id, $user_id ) {
  * @param string $pref       The column in the wp_users table to update the user's status
  *                           in (presumably user_status, spam, or deleted).
  * @param int    $value      The new status for the user.
- * @param null   $deprecated Deprecated as of 3.0.2 and should not be used.
+ * @param mixed  $deprecated Not used.
  * @return int   The initially passed $value.
  */
 function update_user_status( $id, $pref, $value, $deprecated = null ) {

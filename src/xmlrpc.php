@@ -6,7 +6,7 @@
  */
 
 /**
- * Whether this is an XML-RPC Request
+ * Whether this is an XML-RPC Request.
  *
  * @var bool
  */
@@ -22,15 +22,13 @@ if ( ! isset( $HTTP_RAW_POST_DATA ) ) {
 }
 
 // Fix for mozBlog and other cases where '<?xml' isn't on the very first line.
-if ( isset( $HTTP_RAW_POST_DATA ) ) {
-	$HTTP_RAW_POST_DATA = trim( $HTTP_RAW_POST_DATA );
-}
+$HTTP_RAW_POST_DATA = trim( $HTTP_RAW_POST_DATA );
 // phpcs:enable
 
 /** Include the bootstrap for setting up WordPress environment */
 require_once __DIR__ . '/wp-load.php';
 
-if ( isset( $_GET['rsd'] ) ) { // http://cyber.law.harvard.edu/blogs/gems/tech/rsd.html
+if ( isset( $_GET['rsd'] ) ) { // https://cyber.harvard.edu/blogs/gems/tech/rsd.html
 	header( 'Content-Type: text/xml; charset=' . get_option( 'blog_charset' ), true );
 	echo '<?xml version="1.0" encoding="' . get_option( 'blog_charset' ) . '"?' . '>';
 	?>
@@ -46,9 +44,9 @@ if ( isset( $_GET['rsd'] ) ) { // http://cyber.law.harvard.edu/blogs/gems/tech/r
 			<api name="Blogger" blogID="1" preferred="false" apiLink="<?php echo site_url( 'xmlrpc.php', 'rpc' ); ?>" />
 			<?php
 			/**
-			 * Add additional APIs to the Really Simple Discovery (RSD) endpoint.
+			 * Fires when adding APIs to the Really Simple Discovery (RSD) endpoint.
 			 *
-			 * @link http://cyber.law.harvard.edu/blogs/gems/tech/rsd.html
+			 * @link https://cyber.harvard.edu/blogs/gems/tech/rsd.html
 			 *
 			 * @since 3.5.0
 			 */
@@ -91,13 +89,16 @@ exit;
 /**
  * logIO() - Writes logging info to a file.
  *
+ * @since 1.2.0
  * @deprecated 3.4.0 Use error_log()
  * @see error_log()
  *
- * @param string $io Whether input or output
+ * @global int|bool $xmlrpc_logging Whether to enable XML-RPC logging.
+ *
+ * @param string $io  Whether input or output.
  * @param string $msg Information describing logging reason.
  */
-function logIO( $io, $msg ) { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.FunctionNameInvalid
+function logIO( $io, $msg ) {
 	_deprecated_function( __FUNCTION__, '3.4.0', 'error_log()' );
 	if ( ! empty( $GLOBALS['xmlrpc_logging'] ) ) {
 		error_log( $io . ' - ' . $msg );

@@ -1,0 +1,366 @@
+<?php
+/**
+ * Test the block style variations block support.
+ *
+ * @package WordPress
+ * @subpackage Block Supports
+ * @since 6.6.0
+ *
+ * @group block-supports
+ */
+class Tests_Block_Supports_BlockStyleVariations extends WP_UnitTestCase {
+	/**
+	 * Theme root directory.
+	 *
+	 * @var string|null
+	 */
+	private $theme_root;
+
+	/**
+	 * Original theme directory.
+	 *
+	 * @var array|null
+	 */
+	private $orig_theme_dir;
+
+	public function set_up() {
+		parent::set_up();
+		$this->theme_root = realpath( DIR_TESTDATA . '/themedir1' );
+
+		$this->orig_theme_dir = $GLOBALS['wp_theme_directories'];
+
+		// /themes is necessary as theme.php functions assume /themes is the root if there is only one root.
+		$GLOBALS['wp_theme_directories'] = array( WP_CONTENT_DIR . '/themes', $this->theme_root );
+
+		add_filter( 'theme_root', array( $this, 'filter_set_theme_root' ) );
+		add_filter( 'stylesheet_root', array( $this, 'filter_set_theme_root' ) );
+		add_filter( 'template_root', array( $this, 'filter_set_theme_root' ) );
+
+		// Clear caches.
+		wp_clean_themes_cache();
+		unset( $GLOBALS['wp_themes'] );
+	}
+
+	public function tear_down() {
+		$GLOBALS['wp_theme_directories'] = $this->orig_theme_dir;
+		wp_clean_themes_cache();
+		unset( $GLOBALS['wp_themes'] );
+
+		// Reset data between tests.
+		wp_clean_theme_json_cache();
+		parent::tear_down();
+	}
+
+	public function filter_set_theme_root() {
+		return $this->theme_root;
+	}
+
+	/**
+	 * Tests that block style variations registered via either
+	 * `register_block_style` with a style object, or a standalone block style
+	 * variation file within `/styles`, are added to the theme data.
+	 *
+	 * @ticket 61312
+	 * @ticket 61440
+	 * @ticket 61451
+	 */
+	public function test_add_registered_block_styles_to_theme_data() {
+		switch_theme( 'block-theme' );
+
+		$variation_styles_data = array(
+			'color'    => array(
+				'background' => 'darkslateblue',
+				'text'       => 'lavender',
+			),
+			'blocks'   => array(
+				'core/heading' => array(
+					'color' => array(
+						'text' => 'violet',
+					),
+				),
+			),
+			'elements' => array(
+				'link' => array(
+					'color'  => array(
+						'text' => 'fuchsia',
+					),
+					':hover' => array(
+						'color' => array(
+							'text' => 'deeppink',
+						),
+					),
+				),
+			),
+		);
+
+		/*
+		 * This style is to be deliberately overwritten by the theme.json partial
+		 * See `tests/phpunit/data/themedir1/block-theme/styles/block-style-variation-with-slug.json`.
+		 */
+		register_block_style(
+			'core/group',
+			array(
+				'name'       => 'WithSlug',
+				'style_data' => array(
+					'color' => array(
+						'background' => 'whitesmoke',
+						'text'       => 'black',
+					),
+				),
+			)
+		);
+		register_block_style(
+			'core/group',
+			array(
+				'name'       => 'my-variation',
+				'style_data' => $variation_styles_data,
+			)
+		);
+
+		$theme_json   = WP_Theme_JSON_Resolver::get_theme_data()->get_raw_data();
+		$group_styles = $theme_json['styles']['blocks']['core/group'] ?? array();
+		$expected     = array(
+			'variations' => array(
+
+				/*
+				 * The following block style variations are registered
+				 * automatically from their respective JSON files within the
+				 * theme's `/styles` directory.
+				 */
+				'block-style-variation-a' => array(
+					'color' => array(
+						'background' => 'indigo',
+						'text'       => 'plum',
+					),
+				),
+				'block-style-variation-b' => array(
+					'color' => array(
+						'background' => 'midnightblue',
+						'text'       => 'lightblue',
+					),
+				),
+
+				/*
+				 * Manually registered variations.
+				 * @ticket 61440
+				 */
+				'WithSlug'                => array(
+					'color' => array(
+						'background' => 'aliceblue',
+						'text'       => 'midnightblue',
+					),
+				),
+				'my-variation'            => $variation_styles_data,
+			),
+		);
+
+		unregister_block_style( 'core/group', 'my-variation' );
+		unregister_block_style( 'core/group', 'WithSlug' );
+
+		$this->assertSameSetsWithIndex( $expected, $group_styles, 'Variation data does not match' );
+	}
+
+	/**
+	 * Tests that state styles in block style variations use custom viewport breakpoints.
+	 *
+	 * @ticket 65596
+	 */
+	public function test_block_style_variation_state_styles_use_custom_viewport_breakpoints() {
+		switch_theme( 'block-theme' );
+
+		register_block_style(
+			'core/group',
+			array(
+				'name'       => 'custom-breakpoint-variation',
+				'style_data' => array(
+					'color'   => array(
+						'text' => 'blue',
+					),
+					'@mobile' => array(
+						'color' => array(
+							'text' => 'red',
+						),
+					),
+					'@tablet' => array(
+						'color' => array(
+							'text' => 'green',
+						),
+					),
+				),
+			)
+		);
+
+		$filter = static function ( $theme_json ) {
+			return $theme_json->update_with(
+				array(
+					'version'  => WP_Theme_JSON::LATEST_SCHEMA,
+					'settings' => array(
+						'viewport' => array(
+							'mobile' => '640px',
+							'tablet' => '960px',
+						),
+					),
+				)
+			);
+		};
+
+		add_filter( 'wp_theme_json_data_theme', $filter );
+		WP_Theme_JSON_Resolver::clean_cached_data();
+
+		try {
+			$parsed_block = array(
+				'blockName' => 'core/group',
+				'attrs'     => array(
+					'className' => 'wp-block-group is-style-custom-breakpoint-variation',
+				),
+			);
+
+			wp_render_block_style_variation_support_styles( $parsed_block );
+			$inline_styles     = wp_styles()->get_data( 'block-style-variation-styles', 'after' );
+			$actual_stylesheet = is_array( $inline_styles ) ? implode( '', $inline_styles ) : '';
+
+			$this->assertStringContainsString(
+				'@media (width <= 640px)',
+				$actual_stylesheet,
+				'CSS should contain the custom mobile viewport media query.'
+			);
+			$this->assertStringContainsString(
+				'@media (640px < width <= 960px)',
+				$actual_stylesheet,
+				'CSS should contain the custom tablet viewport media query.'
+			);
+			$this->assertStringNotContainsString(
+				'@media (width <= 480px)',
+				$actual_stylesheet,
+				'CSS should not use the default mobile viewport media query.'
+			);
+			$this->assertStringNotContainsString(
+				'@media (480px < width <= 782px)',
+				$actual_stylesheet,
+				'CSS should not use the default tablet viewport media query.'
+			);
+		} finally {
+			remove_filter( 'wp_theme_json_data_theme', $filter );
+			unregister_block_style( 'core/group', 'custom-breakpoint-variation' );
+			wp_deregister_style( 'block-style-variation-styles' );
+			WP_Theme_JSON_Resolver::clean_cached_data();
+		}
+	}
+
+	/**
+	 * Tests that block style variations resolve any `ref` values when generating styles.
+	 *
+	 * @ticket 61589
+	 */
+	public function test_block_style_variation_ref_values() {
+		switch_theme( 'block-theme' );
+
+		$variation_data = array(
+			'color'    => array(
+				'text'       => array(
+					'ref' => 'styles.does-not-exist',
+				),
+				'background' => array(
+					'ref' => 'styles.blocks.core/group.variations.block-style-variation-a.color.text',
+				),
+			),
+			'blocks'   => array(
+				'core/heading' => array(
+					'color' => array(
+						'text'       => array(
+							'ref' => 'styles.blocks.core/group.variations.block-style-variation-a.color.background',
+						),
+						'background' => array(
+							'ref' => '',
+						),
+					),
+				),
+			),
+			'elements' => array(
+				'link' => array(
+					'color'  => array(
+						'text'       => array(
+							'ref' => 'styles.blocks.core/group.variations.block-style-variation-b.color.text',
+						),
+						'background' => array(
+							'ref' => null,
+						),
+					),
+					':hover' => array(
+						'color' => array(
+							'text' => array(
+								'ref' => 'styles.blocks.core/group.variations.block-style-variation-b.color.background',
+							),
+						),
+					),
+				),
+			),
+		);
+
+		$theme_json = WP_Theme_JSON_Resolver::get_theme_data()->get_raw_data();
+
+		wp_resolve_block_style_variation_ref_values( $variation_data, $theme_json );
+
+		$expected = array(
+			'color'    => array( 'background' => 'plum' ),
+			'blocks'   => array(
+				'core/heading' => array(
+					'color' => array( 'text' => 'indigo' ),
+				),
+			),
+			'elements' => array(
+				'link' => array(
+					'color'  => array( 'text' => 'lightblue' ),
+					':hover' => array(
+						'color' => array( 'text' => 'midnightblue' ),
+					),
+				),
+			),
+		);
+
+		$this->assertSameSetsWithIndex( $expected, $variation_data, 'Variation data with resolved ref values does not match' );
+	}
+
+	/**
+	 * Tests that a non-string `className` attribute does not cause a fatal
+	 * error and the block content is returned unmodified.
+	 *
+	 * @covers ::wp_render_block_style_variation_class_name
+	 */
+	public function test_block_style_variation_class_name_with_non_string_class_name() {
+		$block = array(
+			'blockName' => 'core/paragraph',
+			'attrs'     => array(
+				'className' => array( '0', '1' ),
+			),
+		);
+
+		$block_content = "<p class=\"0 1\">Test</p>\n";
+
+		$this->assertSame(
+			$block_content,
+			wp_render_block_style_variation_class_name( $block_content, $block ),
+			'Block content should be returned unchanged when className is not a string'
+		);
+	}
+
+	/**
+	 * Tests to ensure that there are no references to an undefined array key
+	 * if `className` is not assigned.
+	 *
+	 * @covers ::wp_render_block_style_variation_class_name
+	 */
+	public function test_block_style_variation_class_name_with_missing_class_name() {
+		$block = array(
+			'blockName' => 'core/paragraph',
+			'attrs'     => array(),
+		);
+
+		$block_content = "<p>Test</p>\n";
+
+		$this->assertSame(
+			$block_content,
+			wp_render_block_style_variation_class_name( $block_content, $block )
+		);
+	}
+}

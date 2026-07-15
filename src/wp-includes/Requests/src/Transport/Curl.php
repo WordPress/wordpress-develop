@@ -126,6 +126,7 @@ final class Curl implements Transport {
 	 */
 	public function __destruct() {
 		if (is_resource($this->handle)) {
+			// phpcs:ignore PHPCompatibility.FunctionUse.RemovedFunctions.curl_closeDeprecated,Generic.PHP.DeprecatedFunctions.Deprecated
 			curl_close($this->handle);
 		}
 	}
@@ -306,7 +307,10 @@ final class Curl implements Transport {
 				}
 
 				curl_multi_remove_handle($multihandle, $done['handle']);
-				curl_close($done['handle']);
+				if (is_resource($done['handle'])) {
+					// phpcs:ignore PHPCompatibility.FunctionUse.RemovedFunctions.curl_closeDeprecated,Generic.PHP.DeprecatedFunctions.Deprecated
+					curl_close($done['handle']);
+				}
 
 				if (!is_string($responses[$key])) {
 					$options['hooks']->dispatch('multiple.request.complete', [&$responses[$key], $key]);
@@ -465,7 +469,7 @@ final class Curl implements Transport {
 	 * @param string $response Response data from the body
 	 * @param array $options Request options
 	 * @return string|false HTTP response data including headers. False if non-blocking.
-	 * @throws \WpOrg\Requests\Exception
+	 * @throws \WpOrg\Requests\Exception If the request resulted in a cURL error.
 	 */
 	public function process_response($response, $options) {
 		if ($options['blocking'] === false) {
@@ -561,7 +565,7 @@ final class Curl implements Transport {
 	/**
 	 * Format a URL given GET data
 	 *
-	 * @param string $url
+	 * @param string       $url  Original URL.
 	 * @param array|object $data Data to build query using, see {@link https://www.php.net/http_build_query}
 	 * @return string URL with data
 	 */

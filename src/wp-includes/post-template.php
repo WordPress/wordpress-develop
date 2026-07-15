@@ -37,12 +37,13 @@ function get_the_ID() { // phpcs:ignore WordPress.NamingConventions.ValidFunctio
  * @param string $before  Optional. Markup to prepend to the title. Default empty.
  * @param string $after   Optional. Markup to append to the title. Default empty.
  * @param bool   $display Optional. Whether to echo or return the title. Default true for echo.
- * @return void|string Void if `$display` argument is true, current post title if `$display` is false.
+ * @return void|string Void if `$display` argument is true or the title is empty,
+ *                     current post title if `$display` is false.
  */
 function the_title( $before = '', $after = '', $display = true ) {
 	$title = get_the_title();
 
-	if ( strlen( $title ) == 0 ) {
+	if ( strlen( $title ) === 0 ) {
 		return;
 	}
 
@@ -88,7 +89,7 @@ function the_title_attribute( $args = '' ) {
 
 	$title = get_the_title( $parsed_args['post'] );
 
-	if ( strlen( $title ) == 0 ) {
+	if ( strlen( $title ) === 0 ) {
 		return;
 	}
 
@@ -117,8 +118,8 @@ function the_title_attribute( $args = '' ) {
 function get_the_title( $post = 0 ) {
 	$post = get_post( $post );
 
-	$post_title = isset( $post->post_title ) ? $post->post_title : '';
-	$post_id    = isset( $post->ID ) ? $post->ID : 0;
+	$post_title = $post->post_title ?? '';
+	$post_id    = $post->ID ?? 0;
 
 	if ( ! is_admin() ) {
 		if ( ! empty( $post->post_password ) ) {
@@ -190,7 +191,7 @@ function the_guid( $post = 0 ) {
 	$post = get_post( $post );
 
 	$post_guid = isset( $post->guid ) ? get_the_guid( $post ) : '';
-	$post_id   = isset( $post->ID ) ? $post->ID : 0;
+	$post_id   = $post->ID ?? 0;
 
 	/**
 	 * Filters the escaped Global Unique Identifier (guid) of the post.
@@ -220,8 +221,8 @@ function the_guid( $post = 0 ) {
 function get_the_guid( $post = 0 ) {
 	$post = get_post( $post );
 
-	$post_guid = isset( $post->guid ) ? $post->guid : '';
-	$post_id   = isset( $post->ID ) ? $post->ID : 0;
+	$post_guid = $post->guid ?? '';
+	$post_id   = $post->ID ?? 0;
 
 	/**
 	 * Filters the Global Unique Identifier (guid) of the post.
@@ -284,8 +285,10 @@ function get_the_content( $more_link_text = null, $strip_teaser = false, $post =
 		return '';
 	}
 
-	// Use the globals if the $post parameter was not specified,
-	// but only after they have been set up in setup_postdata().
+	/*
+	 * Use the globals if the $post parameter was not specified,
+	 * but only after they have been set up in setup_postdata().
+	 */
 	if ( null === $post && did_action( 'the_post' ) ) {
 		$elements = compact( 'page', 'more', 'preview', 'pages', 'multipage' );
 	} else {
@@ -342,7 +345,9 @@ function get_the_content( $more_link_text = null, $strip_teaser = false, $post =
 		$content = array( $content );
 	}
 
-	if ( false !== strpos( $_post->post_content, '<!--noteaser-->' ) && ( ! $elements['multipage'] || 1 == $elements['page'] ) ) {
+	if ( str_contains( $_post->post_content, '<!--noteaser-->' )
+		&& ( ! $elements['multipage'] || 1 === $elements['page'] )
+	) {
 		$strip_teaser = true;
 	}
 
@@ -402,7 +407,7 @@ function the_excerpt() {
  * @since 0.71
  * @since 4.5.0 Introduced the `$post` parameter.
  *
- * @param int|WP_Post $post Optional. Post ID or WP_Post object. Default is global $post.
+ * @param int|WP_Post|null $post Optional. Post ID or WP_Post object. Default is global $post.
  * @return string Post excerpt.
  */
 function get_the_excerpt( $post = null ) {
@@ -453,9 +458,9 @@ function has_excerpt( $post = 0 ) {
  *
  * @since 2.7.0
  *
- * @param string|string[] $css_class Optional. One or more classes to add to the class list.
- *                                   Default empty.
- * @param int|WP_Post     $post      Optional. Post ID or post object. Defaults to the global `$post`.
+ * @param string|string[]  $css_class Optional. One or more classes to add to the class list.
+ *                                    Default empty.
+ * @param int|WP_Post|null $post      Optional. Post ID or post object. Defaults to the global `$post`.
  */
 function post_class( $css_class = '', $post = null ) {
 	// Separates classes with a single space, collates classes for post DIV.
@@ -481,9 +486,9 @@ function post_class( $css_class = '', $post = null ) {
  * @since 2.7.0
  * @since 4.2.0 Custom taxonomy class names were added.
  *
- * @param string|string[] $css_class Optional. Space-separated string or array of class names
- *                                   to add to the class list. Default empty.
- * @param int|WP_Post     $post      Optional. Post ID or post object.
+ * @param string|string[]  $css_class Optional. Space-separated string or array of class names
+ *                                    to add to the class list. Default empty.
+ * @param int|WP_Post|null $post      Optional. Post ID or post object.
  * @return string[] Array of class names.
  */
 function get_post_class( $css_class = '', $post = null ) {
@@ -601,7 +606,10 @@ function get_post_class( $css_class = '', $post = null ) {
 	 */
 	$classes = apply_filters( 'post_class', $classes, $css_class, $post->ID );
 
-	return array_unique( $classes );
+	$classes = array_unique( $classes );
+	$classes = array_values( $classes );
+
+	return $classes;
 }
 
 /**
@@ -667,9 +675,11 @@ function get_body_class( $css_class = '' ) {
 	}
 
 	if ( is_singular() ) {
-		$post_id   = $wp_query->get_queried_object_id();
 		$post      = $wp_query->get_queried_object();
+		$post_id   = $post->ID;
 		$post_type = $post->post_type;
+
+		$classes[] = 'wp-singular';
 
 		if ( is_page_template() ) {
 			$classes[] = "{$post_type}-template";
@@ -711,16 +721,11 @@ function get_body_class( $css_class = '' ) {
 			$classes[]   = 'attachment-' . str_replace( $mime_prefix, '', $mime_type );
 		} elseif ( is_page() ) {
 			$classes[] = 'page';
-
-			$page_id = $wp_query->get_queried_object_id();
-
-			$post = get_post( $page_id );
-
-			$classes[] = 'page-id-' . $page_id;
+			$classes[] = 'page-id-' . $post_id;
 
 			if ( get_pages(
 				array(
-					'parent' => $page_id,
+					'parent' => $post_id,
 					'number' => 1,
 				)
 			) ) {
@@ -836,6 +841,11 @@ function get_body_class( $css_class = '' ) {
 		}
 	}
 
+	$classes[] = 'wp-theme-' . sanitize_html_class( get_template() );
+	if ( is_child_theme() ) {
+		$classes[] = 'wp-child-theme-' . sanitize_html_class( get_stylesheet() );
+	}
+
 	if ( ! empty( $css_class ) ) {
 		if ( ! is_array( $css_class ) ) {
 			$css_class = preg_split( '#\s+#', $css_class );
@@ -886,7 +896,7 @@ function post_password_required( $post = null ) {
 	$hasher = new PasswordHash( 8, true );
 
 	$hash = wp_unslash( $_COOKIE[ 'wp-postpass_' . COOKIEHASH ] );
-	if ( 0 !== strpos( $hash, '$P$B' ) ) {
+	if ( ! str_starts_with( $hash, '$P$B' ) ) {
 		$required = true;
 	} else {
 		$required = ! $hasher->CheckPassword( $post->post_password, $hash );
@@ -980,11 +990,13 @@ function wp_link_pages( $args = '' ) {
 			$output .= $parsed_args['before'];
 			for ( $i = 1; $i <= $numpages; $i++ ) {
 				$link = $parsed_args['link_before'] . str_replace( '%', $i, $parsed_args['pagelink'] ) . $parsed_args['link_after'];
-				if ( $i != $page || ! $more && 1 == $page ) {
+
+				if ( $i !== $page || ! $more && 1 === $page ) {
 					$link = _wp_link_page( $i ) . $link . '</a>';
 				} elseif ( $i === $page ) {
 					$link = '<span class="post-page-numbers current" aria-current="' . esc_attr( $parsed_args['aria_current'] ) . '">' . $link . '</span>';
 				}
+
 				/**
 				 * Filters the HTML output of individual page number links.
 				 *
@@ -1056,12 +1068,12 @@ function _wp_link_page( $i ) {
 	$post       = get_post();
 	$query_args = array();
 
-	if ( 1 == $i ) {
+	if ( 1 === $i ) {
 		$url = get_permalink();
 	} else {
 		if ( ! get_option( 'permalink_structure' ) || in_array( $post->post_status, array( 'draft', 'pending' ), true ) ) {
 			$url = add_query_arg( 'page', $i, get_permalink() );
-		} elseif ( 'page' === get_option( 'show_on_front' ) && get_option( 'page_on_front' ) == $post->ID ) {
+		} elseif ( 'page' === get_option( 'show_on_front' ) && (int) get_option( 'page_on_front' ) === $post->ID ) {
 			$url = trailingslashit( get_permalink() ) . user_trailingslashit( "$wp_rewrite->pagination_base/" . $i, 'single_paged' );
 		} else {
 			$url = trailingslashit( get_permalink() ) . user_trailingslashit( $i, 'single_paged' );
@@ -1762,30 +1774,77 @@ function prepend_attachment( $content ) {
  * @since 1.0.0
  *
  * @param int|WP_Post $post Optional. Post ID or WP_Post object. Default is global $post.
- * @return string HTML content for password form for password protected post.
+ * @return string HTML content for password form for password-protected post.
  */
 function get_the_password_form( $post = 0 ) {
-	$post   = get_post( $post );
-	$label  = 'pwbox-' . ( empty( $post->ID ) ? rand() : $post->ID );
-	$output = '<form action="' . esc_url( site_url( 'wp-login.php?action=postpass', 'login_post' ) ) . '" class="post-password-form" method="post">
-	<p>' . __( 'This content is password protected. To view it please enter your password below:' ) . '</p>
-	<p><label for="' . $label . '">' . __( 'Password:' ) . ' <input name="post_password" id="' . $label . '" type="password" spellcheck="false" size="20" /></label> <input type="submit" name="Submit" value="' . esc_attr_x( 'Enter', 'post password form' ) . '" /></p></form>
+	$post                  = get_post( $post );
+	$field_id              = 'pwbox-' . ( empty( $post->ID ) ? wp_rand() : $post->ID );
+	$invalid_password      = '';
+	$invalid_password_html = '';
+	$aria                  = '';
+	$class                 = '';
+	$redirect_field        = '';
+
+	// If the referrer is the same as the current request, the user has entered an invalid password.
+	if ( ! empty( $post->ID ) && wp_get_raw_referer() === get_permalink( $post->ID ) && isset( $_COOKIE[ 'wp-postpass_' . COOKIEHASH ] ) ) {
+		/**
+		 * Filters the invalid password message shown on password-protected posts.
+		 * The filter is only applied if the post is password-protected.
+		 *
+		 * @since 6.8.0
+		 *
+		 * @param string  $text The message shown to users when entering an invalid password.
+		 * @param WP_Post $post Post object.
+		 */
+		$invalid_password      = apply_filters( 'the_password_form_incorrect_password', __( 'Invalid password.' ), $post );
+		$invalid_password_html = '<div class="post-password-form-invalid-password" role="alert"><p id="error-' . $field_id . '">' . $invalid_password . '</p></div>';
+		$aria                  = ' aria-describedby="error-' . $field_id . '"';
+		$class                 = ' password-form-error';
+	}
+
+	if ( ! empty( $post->ID ) ) {
+		$redirect_field = sprintf(
+			'<input type="hidden" name="redirect_to" value="%s" />',
+			esc_attr( get_permalink( $post->ID ) )
+		);
+	}
+
+	$button_class         = '';
+	$button_wrapper_open  = '';
+	$button_wrapper_close = '';
+
+	if ( wp_is_block_theme() ) {
+		$button_class         = ' class="wp-block-button__link ' . wp_theme_get_element_class_name( 'button' ) . '"';
+		$button_wrapper_open  = '<span class="wp-block-button">';
+		$button_wrapper_close = '</span>';
+
+		if ( wp_style_is( 'wp-block-button', 'registered' ) ) {
+			wp_enqueue_style( 'wp-block-button' );
+		}
+	}
+
+	$output = '<form action="' . esc_url( site_url( 'wp-login.php?action=postpass', 'login_post' ) ) . '" class="post-password-form' . $class . '" method="post">' . $redirect_field . $invalid_password_html . '
+	<p>' . __( 'This content is password-protected. To view it, please enter the password below.' ) . '</p>
+	<p><label for="' . $field_id . '">' . __( 'Password:' ) . ' <input name="post_password" id="' . $field_id . '" type="password" spellcheck="false" required size="20"' . $aria . ' /></label> ' . $button_wrapper_open . '<input type="submit" name="Submit"' . $button_class . ' value="' . esc_attr_x( 'Enter', 'post password form' ) . '" />' . $button_wrapper_close . '</p></form>
 	';
 
 	/**
 	 * Filters the HTML output for the protected post password form.
 	 *
-	 * If modifying the password field, please note that the core database schema
-	 * limits the password field to 20 characters regardless of the value of the
-	 * size attribute in the form input.
+	 * If modifying the password field, please note that the WordPress database schema
+	 * limits the password field to 255 characters regardless of the value of the
+	 * `minlength` or `maxlength` attributes or other validation that may be added to
+	 * the input.
 	 *
 	 * @since 2.7.0
 	 * @since 5.8.0 Added the `$post` parameter.
+	 * @since 6.8.0 Added the `$invalid_password` parameter.
 	 *
-	 * @param string  $output The password form HTML output.
-	 * @param WP_Post $post   Post object.
+	 * @param string  $output           The password form HTML output.
+	 * @param WP_Post $post             Post object.
+	 * @param string  $invalid_password The invalid password message.
 	 */
-	return apply_filters( 'the_password_form', $output, $post );
+	return apply_filters( 'the_password_form', $output, $post, $invalid_password );
 }
 
 /**
@@ -1817,7 +1876,7 @@ function is_page_template( $template = '' ) {
 		return (bool) $page_template;
 	}
 
-	if ( $template == $page_template ) {
+	if ( $template === $page_template ) {
 		return true;
 	}
 
@@ -1838,7 +1897,7 @@ function is_page_template( $template = '' ) {
  * @since 3.4.0
  * @since 4.7.0 Now works with any post type, not just pages.
  *
- * @param int|WP_Post $post Optional. Post ID or WP_Post object. Default is global $post.
+ * @param int|WP_Post|null $post Optional. Post ID or WP_Post object. Default is global $post.
  * @return string|false Page template filename. Returns an empty string when the default page template
  *                      is in use. Returns false if the post does not exist.
  */
@@ -1863,8 +1922,8 @@ function get_page_template_slug( $post = null ) {
  *
  * @since 2.6.0
  *
- * @param int|object $revision Revision ID or revision object.
- * @param bool       $link     Optional. Whether to link to revision's page. Default true.
+ * @param int|WP_Post $revision Revision ID or revision object.
+ * @param bool        $link     Optional. Whether to link to revision's page. Default true.
  * @return string|false i18n formatted datetimestamp or localized 'Current Revision'.
  */
 function wp_post_revision_title( $revision, $link = true ) {
@@ -1905,8 +1964,8 @@ function wp_post_revision_title( $revision, $link = true ) {
  *
  * @since 3.6.0
  *
- * @param int|object $revision Revision ID or revision object.
- * @param bool       $link     Optional. Whether to link to revision's page. Default true.
+ * @param int|WP_Post $revision Revision ID or revision object.
+ * @param bool        $link     Optional. Whether to link to revision's page. Default true.
  * @return string|false gravatar, user, i18n formatted datetimestamp or localized 'Current Revision'.
  */
 function wp_post_revision_title_expanded( $revision, $link = true ) {

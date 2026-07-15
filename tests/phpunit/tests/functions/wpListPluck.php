@@ -3,7 +3,8 @@
 /**
  * Test wp_list_pluck().
  *
- * @group functions.php
+ * @group functions
+ *
  * @covers ::wp_list_pluck
  */
 class Tests_Functions_wpListPluck extends WP_UnitTestCase {
@@ -204,7 +205,7 @@ class Tests_Functions_wpListPluck extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @dataProvider data_test_wp_list_pluck
+	 * @dataProvider data_wp_list_pluck
 	 *
 	 * @param array      $input_list List of objects or arrays.
 	 * @param int|string $field      Field from the object to place instead of the entire object
@@ -215,7 +216,12 @@ class Tests_Functions_wpListPluck extends WP_UnitTestCase {
 		$this->assertSameSetsWithIndex( $expected, wp_list_pluck( $input_list, $field, $index_key ) );
 	}
 
-	public function data_test_wp_list_pluck() {
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_wp_list_pluck() {
 		return array(
 			'arrays'                         => array(
 				array(

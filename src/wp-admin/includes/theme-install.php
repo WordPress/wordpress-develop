@@ -204,7 +204,7 @@ function install_themes_upload() {
 		?>
 	</label>
 	<input type="file" id="themezip" name="themezip" accept=".zip" />
-	<?php submit_button( __( 'Install Now' ), '', 'install-theme-submit', false ); ?>
+	<?php submit_button( _x( 'Install Now', 'theme' ), '', 'install-theme-submit', false ); ?>
 </form>
 	<?php
 }
@@ -243,7 +243,6 @@ function display_themes() {
 	}
 	$wp_list_table->prepare_items();
 	$wp_list_table->display();
-
 }
 
 /**
@@ -252,6 +251,8 @@ function display_themes() {
  * @since 2.8.0
  *
  * @global WP_Theme_Install_List_Table $wp_list_table
+ *
+ * @return never
  */
 function install_theme_information() {
 	global $wp_list_table;

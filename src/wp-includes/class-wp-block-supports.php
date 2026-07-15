@@ -13,6 +13,9 @@
  * @since 5.6.0
  *
  * @access private
+ *
+ * @phpstan-type ApplyCallback callable( WP_Block_Type, array<string, mixed> ): array<string, mixed>
+ * @phpstan-type RegisterCallback callable( WP_Block_Type ): void
  */
 #[AllowDynamicProperties]
 class WP_Block_Supports {
@@ -22,6 +25,11 @@ class WP_Block_Supports {
 	 *
 	 * @since 5.6.0
 	 * @var array
+	 * @phpstan-var array<string, array{
+	 *     name: string,
+	 *     apply?: ApplyCallback,
+	 *     register_attribute?: RegisterCallback,
+	 * }>
 	 */
 	private $block_supports = array();
 
@@ -29,7 +37,8 @@ class WP_Block_Supports {
 	 * Tracks the current block to be rendered.
 	 *
 	 * @since 5.6.0
-	 * @var array
+	 * @var array|null
+	 * @phpstan-var array<string, mixed>|null
 	 */
 	public static $block_to_render = null;
 
@@ -62,6 +71,8 @@ class WP_Block_Supports {
 	 * Initializes the block supports. It registers the block supports block attributes.
 	 *
 	 * @since 5.6.0
+	 *
+	 * @return void
 	 */
 	public static function init() {
 		$instance = self::get_instance();
@@ -77,6 +88,13 @@ class WP_Block_Supports {
 	 *
 	 * @param string $block_support_name   Block support name.
 	 * @param array  $block_support_config Array containing the properties of the block support.
+	 *
+	 * @phpstan-param array{
+	 *     apply?: ApplyCallback,
+	 *     register_attribute?: RegisterCallback,
+	 * } $block_support_config
+	 *
+	 * @return void
 	 */
 	public function register( $block_support_name, $block_support_config ) {
 		$this->block_supports[ $block_support_name ] = array_merge(
@@ -91,20 +109,24 @@ class WP_Block_Supports {
 	 *
 	 * @since 5.6.0
 	 *
-	 * @return string[] Array of HTML attributes.
+	 * @return string[] Array of HTML attribute values keyed by their name.
 	 */
 	public function apply_block_supports() {
+		if ( ! is_array( self::$block_to_render ) ) {
+			return array();
+		}
+
 		$block_type = WP_Block_Type_Registry::get_instance()->get_registered(
 			self::$block_to_render['blockName']
 		);
 
 		// If no render_callback, assume styles have been previously handled.
-		if ( ! $block_type || empty( $block_type ) ) {
+		if ( ! $block_type ) {
 			return array();
 		}
 
-		$block_attributes = array_key_exists( 'attrs', self::$block_to_render )
-			? self::$block_to_render['attrs']
+		$block_attributes = array_key_exists( 'attrs', self::$block_to_render ) && is_array( self::$block_to_render['attrs'] )
+			? $block_type->prepare_attributes_for_render( self::$block_to_render['attrs'] )
 			: array();
 
 		$output = array();
@@ -121,7 +143,11 @@ class WP_Block_Supports {
 
 			if ( ! empty( $new_attributes ) ) {
 				foreach ( $new_attributes as $attribute_name => $attribute_value ) {
-					if ( empty( $output[ $attribute_name ] ) ) {
+					if ( ! is_scalar( $attribute_value ) || is_bool( $attribute_value ) ) {
+						continue;
+					}
+					$attribute_value = (string) $attribute_value;
+					if ( ! array_key_exists( $attribute_name, $output ) || '' === $output[ $attribute_name ] ) {
 						$output[ $attribute_name ] = $attribute_value;
 					} else {
 						$output[ $attribute_name ] .= " $attribute_value";
@@ -137,12 +163,14 @@ class WP_Block_Supports {
 	 * Registers the block attributes required by the different block supports.
 	 *
 	 * @since 5.6.0
+	 *
+	 * @return void
 	 */
 	private function register_attributes() {
 		$block_registry         = WP_Block_Type_Registry::get_instance();
 		$registered_block_types = $block_registry->get_all_registered();
 		foreach ( $registered_block_types as $block_type ) {
-			if ( ! property_exists( $block_type, 'supports' ) ) {
+			if ( ! ( $block_type instanceof WP_Block_Type ) ) {
 				continue;
 			}
 			if ( ! $block_type->attributes ) {
@@ -179,31 +207,52 @@ function get_block_wrapper_attributes( $extra_attributes = array() ) {
 		return '';
 	}
 
-	// This is hardcoded on purpose.
-	// We only support a fixed list of attributes.
-	$attributes_to_merge = array( 'style', 'class', 'id' );
-	$attributes          = array();
-	foreach ( $attributes_to_merge as $attribute_name ) {
-		if ( empty( $new_attributes[ $attribute_name ] ) && empty( $extra_attributes[ $attribute_name ] ) ) {
+	// Attribute values are concatenated or overridden depending on the attribute type.
+	// This is hardcoded on purpose, as we only support a fixed list of attributes.
+	$attribute_merge_callbacks = array(
+		'style'      => static function ( $new_attribute, $extra_attribute ) {
+			$styles = array_filter(
+				array(
+					rtrim( trim( $new_attribute ), ';' ),
+					rtrim( trim( $extra_attribute ), ';' ),
+				)
+			);
+			return safecss_filter_attr( implode( ';', array_filter( $styles ) ) );
+		},
+		'class'      => static function ( $new_attribute, $extra_attribute ) {
+			$classes = array_merge(
+				(array) preg_split( '/\s+/', $extra_attribute, -1, PREG_SPLIT_NO_EMPTY ),
+				(array) preg_split( '/\s+/', $new_attribute, -1, PREG_SPLIT_NO_EMPTY )
+			);
+			$classes = array_unique( $classes );
+			return implode( ' ', $classes );
+		},
+		'id'         => static function ( $new_attribute, $extra_attribute ) {
+			return '' !== $extra_attribute ? $extra_attribute : $new_attribute;
+		},
+		'aria-label' => static function ( $new_attribute, $extra_attribute ) {
+			return '' !== $extra_attribute ? $extra_attribute : $new_attribute;
+		},
+	);
+
+	// Accept strings and numbers (cast to string); reject other types (bool, null, array, object).
+	$attributes = array();
+	foreach ( $attribute_merge_callbacks as $attribute_name => $merge_callback ) {
+		$new_attribute   = $new_attributes[ $attribute_name ] ?? '';
+		$extra_attribute = $extra_attributes[ $attribute_name ] ?? '';
+		$new_attribute   = is_scalar( $new_attribute ) && ! is_bool( $new_attribute ) ? (string) $new_attribute : '';
+		$extra_attribute = is_scalar( $extra_attribute ) && ! is_bool( $extra_attribute ) ? (string) $extra_attribute : '';
+
+		if ( '' === $new_attribute && '' === $extra_attribute ) {
 			continue;
 		}
 
-		if ( empty( $new_attributes[ $attribute_name ] ) ) {
-			$attributes[ $attribute_name ] = $extra_attributes[ $attribute_name ];
-			continue;
-		}
-
-		if ( empty( $extra_attributes[ $attribute_name ] ) ) {
-			$attributes[ $attribute_name ] = $new_attributes[ $attribute_name ];
-			continue;
-		}
-
-		$attributes[ $attribute_name ] = $extra_attributes[ $attribute_name ] . ' ' . $new_attributes[ $attribute_name ];
+		$attributes[ $attribute_name ] = $merge_callback( $new_attribute, $extra_attribute );
 	}
 
 	foreach ( $extra_attributes as $attribute_name => $value ) {
-		if ( ! in_array( $attribute_name, $attributes_to_merge, true ) ) {
-			$attributes[ $attribute_name ] = $value;
+		if ( ! isset( $attribute_merge_callbacks[ $attribute_name ] ) && is_scalar( $value ) && ! is_bool( $value ) ) {
+			$attributes[ $attribute_name ] = (string) $value;
 		}
 	}
 

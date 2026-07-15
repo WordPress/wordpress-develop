@@ -100,7 +100,7 @@ final class WP_Customize_Manager {
 	 * @since 4.5.0
 	 * @var array
 	 */
-	protected $components = array( 'widgets', 'nav_menus' );
+	protected $components = array( 'nav_menus' );
 
 	/**
 	 * Registered instances of WP_Customize_Section.
@@ -271,8 +271,10 @@ final class WP_Customize_Manager {
 			$args['changeset_uuid'] = wp_generate_uuid4();
 		}
 
-		// The theme and messenger_channel should be supplied via $args,
-		// but they are also looked at in the $_REQUEST global here for back-compat.
+		/*
+		 * The theme and messenger_channel should be supplied via $args,
+		 * but they are also looked at in the $_REQUEST global here for back-compat.
+		 */
 		if ( ! isset( $args['theme'] ) ) {
 			if ( isset( $_REQUEST['customize_theme'] ) ) {
 				$args['theme'] = wp_unslash( $_REQUEST['customize_theme'] );
@@ -282,6 +284,11 @@ final class WP_Customize_Manager {
 		}
 		if ( ! isset( $args['messenger_channel'] ) && isset( $_REQUEST['customize_messenger_channel'] ) ) {
 			$args['messenger_channel'] = sanitize_key( wp_unslash( $_REQUEST['customize_messenger_channel'] ) );
+		}
+
+		// Do not load 'widgets' component if a block theme is activated.
+		if ( ! wp_is_block_theme() ) {
+			$this->components[] = 'widgets';
 		}
 
 		$this->original_stylesheet = get_stylesheet();
@@ -440,6 +447,7 @@ final class WP_Customize_Manager {
 	 *
 	 * @param string|WP_Error $ajax_message Ajax return.
 	 * @param string          $message      Optional. UI message.
+	 * @return never
 	 */
 	protected function wp_die( $ajax_message, $message = null ) {
 		if ( $this->doing_ajax() ) {
@@ -447,7 +455,7 @@ final class WP_Customize_Manager {
 		}
 
 		if ( ! $message ) {
-			$message = __( 'Something went wrong.' );
+			$message = __( 'An error occurred while customizing. Please refresh the page and try again.' );
 		}
 
 		if ( $this->messenger_channel ) {
@@ -462,15 +470,17 @@ final class WP_Customize_Manager {
 				),
 				'error'         => $ajax_message,
 			);
+			$message .= ob_get_clean();
+			ob_start();
 			?>
 			<script>
 			( function( api, settings ) {
 				var preview = new api.Messenger( settings.messengerArgs );
 				preview.send( 'iframe-loading-error', settings.error );
-			} )( wp.customize, <?php echo wp_json_encode( $settings ); ?> );
+			} )( wp.customize, <?php echo wp_json_encode( $settings, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ); ?> );
 			</script>
 			<?php
-			$message .= ob_get_clean();
+			$message .= wp_get_inline_script_tag( wp_remove_surrounding_empty_script_tags( ob_get_clean() ) . "\n//# sourceURL=" . rawurlencode( __METHOD__ ) );
 		}
 
 		wp_die( $message );
@@ -565,8 +575,10 @@ final class WP_Customize_Manager {
 			// Once the theme is loaded, we'll validate it.
 			add_action( 'after_setup_theme', array( $this, 'after_setup_theme' ) );
 		} else {
-			// If the requested theme is not the active theme and the user doesn't have
-			// the switch_themes cap, bail.
+			/*
+			 * If the requested theme is not the active theme and the user doesn't have
+			 * the switch_themes cap, bail.
+			 */
 			if ( ! current_user_can( 'switch_themes' ) ) {
 				$this->wp_die( -1, __( 'Sorry, you are not allowed to edit theme options on this site.' ) );
 			}
@@ -905,8 +917,10 @@ final class WP_Customize_Manager {
 	 */
 	public function wp_loaded() {
 
-		// Unconditionally register core types for panels, sections, and controls
-		// in case plugin unhooks all customize_register actions.
+		/*
+		 * Unconditionally register core types for panels, sections, and controls
+		 * in case plugin unhooks all customize_register actions.
+		 */
 		$this->register_panel_type( 'WP_Customize_Panel' );
 		$this->register_panel_type( 'WP_Customize_Themes_Panel' );
 		$this->register_section_type( 'WP_Customize_Section' );
@@ -1071,7 +1085,7 @@ final class WP_Customize_Manager {
 				continue;
 			}
 			if ( update_post_meta( $autosave_autodraft_post->ID, '_customize_restore_dismissed', true ) ) {
-				$dismissed++;
+				++$dismissed;
 			}
 		}
 		return $dismissed;
@@ -1213,9 +1227,9 @@ final class WP_Customize_Manager {
 		$sidebars_widgets = isset( $starter_content['widgets'] ) && ! empty( $this->widgets ) ? $starter_content['widgets'] : array();
 		$attachments      = isset( $starter_content['attachments'] ) && ! empty( $this->nav_menus ) ? $starter_content['attachments'] : array();
 		$posts            = isset( $starter_content['posts'] ) && ! empty( $this->nav_menus ) ? $starter_content['posts'] : array();
-		$options          = isset( $starter_content['options'] ) ? $starter_content['options'] : array();
+		$options          = $starter_content['options'] ?? array();
 		$nav_menus        = isset( $starter_content['nav_menus'] ) && ! empty( $this->nav_menus ) ? $starter_content['nav_menus'] : array();
-		$theme_mods       = isset( $starter_content['theme_mods'] ) ? $starter_content['theme_mods'] : array();
+		$theme_mods       = $starter_content['theme_mods'] ?? array();
 
 		// Widgets.
 		$max_widget_numbers = array();
@@ -1473,7 +1487,7 @@ final class WP_Customize_Manager {
 
 			if ( ! $nav_menu_term_id ) {
 				while ( isset( $changeset_data[ sprintf( 'nav_menu[%d]', $placeholder_id ) ] ) ) {
-					$placeholder_id--;
+					--$placeholder_id;
 				}
 				$nav_menu_term_id    = $placeholder_id;
 				$nav_menu_setting_id = sprintf( 'nav_menu[%d]', $placeholder_id );
@@ -1482,7 +1496,7 @@ final class WP_Customize_Manager {
 			$this->set_post_value(
 				$nav_menu_setting_id,
 				array(
-					'name' => isset( $nav_menu['name'] ) ? $nav_menu['name'] : $nav_menu_location,
+					'name' => $nav_menu['name'] ?? $nav_menu_location,
 				)
 			);
 			$this->pending_starter_content_settings_ids[] = $nav_menu_setting_id;
@@ -1903,6 +1917,7 @@ final class WP_Customize_Manager {
 		if ( ! headers_sent() ) {
 			nocache_headers();
 			header( 'X-Robots: noindex, nofollow, noarchive' );
+			header( 'X-Robots-Tag: noindex, nofollow, noarchive' );
 		}
 		add_filter( 'wp_robots', 'wp_robots_no_robots' );
 		add_filter( 'wp_headers', array( $this, 'filter_iframe_security_headers' ) );
@@ -1918,7 +1933,7 @@ final class WP_Customize_Manager {
 				sprintf(
 					/* translators: %s: customize_messenger_channel */
 					__( 'Unauthorized. You may remove the %s param to preview as frontend.' ),
-					'<code>customize_messenger_channel<code>'
+					'<code>customize_messenger_channel</code>'
 				)
 			);
 			return;
@@ -1981,7 +1996,7 @@ final class WP_Customize_Manager {
 				&&
 				$parsed_allowed_url['host'] === $parsed_original_url['host']
 				&&
-				0 === strpos( $parsed_original_url['path'], $parsed_allowed_url['path'] )
+				str_starts_with( $parsed_original_url['path'], $parsed_allowed_url['path'] )
 			);
 			if ( $is_allowed ) {
 				break;
@@ -2076,29 +2091,22 @@ final class WP_Customize_Manager {
 		if ( ! $this->messenger_channel ) {
 			return;
 		}
+		ob_start();
 		?>
 		<script>
 		( function() {
-			var urlParser, oldQueryParams, newQueryParams, i;
 			if ( parent !== window ) {
 				return;
 			}
-			urlParser = document.createElement( 'a' );
-			urlParser.href = location.href;
-			oldQueryParams = urlParser.search.substr( 1 ).split( /&/ );
-			newQueryParams = [];
-			for ( i = 0; i < oldQueryParams.length; i += 1 ) {
-				if ( ! /^customize_messenger_channel=/.test( oldQueryParams[ i ] ) ) {
-					newQueryParams.push( oldQueryParams[ i ] );
-				}
-			}
-			urlParser.search = newQueryParams.join( '&' );
-			if ( urlParser.search !== location.search ) {
-				location.replace( urlParser.href );
+			const url = new URL( location.href );
+			if ( url.searchParams.has( 'customize_messenger_channel' ) ) {
+				url.searchParams.delete( 'customize_messenger_channel' );
+				location.replace( url );
 			}
 		} )();
 		</script>
 		<?php
+		wp_print_inline_script_tag( wp_remove_surrounding_empty_script_tags( ob_get_clean() ) . "\n//# sourceURL=" . rawurlencode( __METHOD__ ) );
 	}
 
 	/**
@@ -2154,8 +2162,9 @@ final class WP_Customize_Manager {
 				'keepAliveSend'    => 1000,
 			),
 			'theme'             => array(
-				'stylesheet' => $this->get_stylesheet(),
-				'active'     => $this->is_theme_active(),
+				'stylesheet'   => $this->get_stylesheet(),
+				'active'       => $this->is_theme_active(),
+				'isBlockTheme' => wp_is_block_theme(),
 			),
 			'url'               => array(
 				'self'          => $self_url,
@@ -2194,9 +2203,10 @@ final class WP_Customize_Manager {
 			}
 		}
 
+		ob_start();
 		?>
-		<script type="text/javascript">
-			var _wpCustomizeSettings = <?php echo wp_json_encode( $settings ); ?>;
+		<script>
+			var _wpCustomizeSettings = <?php echo wp_json_encode( $settings, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ); ?>;
 			_wpCustomizeSettings.values = {};
 			(function( v ) {
 				<?php
@@ -2209,8 +2219,8 @@ final class WP_Customize_Manager {
 					if ( $setting->check_capabilities() ) {
 						printf(
 							"v[%s] = %s;\n",
-							wp_json_encode( $id ),
-							wp_json_encode( $setting->js_value() )
+							wp_json_encode( $id, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ),
+							wp_json_encode( $setting->js_value(), JSON_HEX_TAG | JSON_UNESCAPED_SLASHES )
 						);
 					}
 				}
@@ -2218,6 +2228,7 @@ final class WP_Customize_Manager {
 			})( _wpCustomizeSettings.values );
 		</script>
 		<?php
+		wp_print_inline_script_tag( wp_remove_surrounding_empty_script_tags( ob_get_clean() ) . "\n//# sourceURL=" . rawurlencode( __METHOD__ ) );
 	}
 
 	/**
@@ -2417,6 +2428,8 @@ final class WP_Customize_Manager {
 	 *
 	 * @since 3.4.0
 	 * @since 4.7.0 The semantics of this method have changed to update a changeset, optionally to also change the status and other attributes.
+	 *
+	 * @return never
 	 */
 	public function save() {
 		if ( ! is_user_logged_in() ) {
@@ -3046,7 +3059,7 @@ final class WP_Customize_Manager {
 	 *
 	 * The following re-formulates the logic from `wp_trash_post()` as done in
 	 * `wp_publish_post()`. The reason for bypassing `wp_trash_post()` is that it
-	 * will mutate the the `post_content` and the `post_name` when they should be
+	 * will mutate the `post_content` and the `post_name` when they should be
 	 * untouched.
 	 *
 	 * @since 4.9.0
@@ -3075,25 +3088,26 @@ final class WP_Customize_Manager {
 			return false;
 		}
 
+		$previous_status = $post->post_status;
+
 		/** This filter is documented in wp-includes/post.php */
-		$check = apply_filters( 'pre_trash_post', null, $post );
+		$check = apply_filters( 'pre_trash_post', null, $post, $previous_status );
 		if ( null !== $check ) {
 			return $check;
 		}
 
 		/** This action is documented in wp-includes/post.php */
-		do_action( 'wp_trash_post', $post_id );
+		do_action( 'wp_trash_post', $post_id, $previous_status );
 
-		add_post_meta( $post_id, '_wp_trash_meta_status', $post->post_status );
+		add_post_meta( $post_id, '_wp_trash_meta_status', $previous_status );
 		add_post_meta( $post_id, '_wp_trash_meta_time', time() );
 
-		$old_status = $post->post_status;
 		$new_status = 'trash';
 		$wpdb->update( $wpdb->posts, array( 'post_status' => $new_status ), array( 'ID' => $post->ID ) );
 		clean_post_cache( $post->ID );
 
 		$post->post_status = $new_status;
-		wp_transition_post_status( $new_status, $old_status, $post );
+		wp_transition_post_status( $new_status, $previous_status, $post );
 
 		/** This action is documented in wp-includes/post.php */
 		do_action( "edit_post_{$post->post_type}", $post->ID, $post );
@@ -3115,7 +3129,7 @@ final class WP_Customize_Manager {
 		wp_trash_post_comments( $post_id );
 
 		/** This action is documented in wp-includes/post.php */
-		do_action( 'trashed_post', $post_id );
+		do_action( 'trashed_post', $post_id, $previous_status );
 
 		return $post;
 	}
@@ -3155,27 +3169,25 @@ final class WP_Customize_Manager {
 			return;
 		}
 
-		if ( $changeset_post_id ) {
-			if ( ! current_user_can( get_post_type_object( 'customize_changeset' )->cap->delete_post, $changeset_post_id ) ) {
-				wp_send_json_error(
-					array(
-						'code'    => 'changeset_trash_unauthorized',
-						'message' => __( 'Unable to trash changes.' ),
-					)
-				);
-			}
+		if ( ! current_user_can( get_post_type_object( 'customize_changeset' )->cap->delete_post, $changeset_post_id ) ) {
+			wp_send_json_error(
+				array(
+					'code'    => 'changeset_trash_unauthorized',
+					'message' => __( 'Unable to trash changes.' ),
+				)
+			);
+		}
 
-			$lock_user = (int) wp_check_post_lock( $changeset_post_id );
+		$lock_user = (int) wp_check_post_lock( $changeset_post_id );
 
-			if ( $lock_user && get_current_user_id() !== $lock_user ) {
-				wp_send_json_error(
-					array(
-						'code'     => 'changeset_locked',
-						'message'  => __( 'Changeset is being edited by other user.' ),
-						'lockUser' => $this->get_lock_user_data( $lock_user ),
-					)
-				);
-			}
+		if ( $lock_user && get_current_user_id() !== $lock_user ) {
+			wp_send_json_error(
+				array(
+					'code'     => 'changeset_locked',
+					'message'  => __( 'Changeset is being edited by other user.' ),
+					'lockUser' => $this->get_lock_user_data( $lock_user ),
+				)
+			);
 		}
 
 		if ( 'trash' === get_post_status( $changeset_post_id ) ) {
@@ -3324,11 +3336,16 @@ final class WP_Customize_Manager {
 			return null;
 		}
 
-		return array(
-			'id'     => $lock_user->ID,
-			'name'   => $lock_user->display_name,
-			'avatar' => get_avatar_url( $lock_user->ID, array( 'size' => 128 ) ),
+		$user_details = array(
+			'id'   => $lock_user->ID,
+			'name' => $lock_user->display_name,
 		);
+
+		if ( get_option( 'show_avatars' ) ) {
+			$user_details['avatar'] = get_avatar_url( $lock_user->ID, array( 'size' => 128 ) );
+		}
+
+		return $user_details;
 	}
 
 	/**
@@ -3372,6 +3389,8 @@ final class WP_Customize_Manager {
 	 * Removes changeset lock when take over request is sent via Ajax.
 	 *
 	 * @since 4.9.0
+	 *
+	 * @return never
 	 */
 	public function handle_override_changeset_lock_request() {
 		if ( ! $this->is_preview() ) {
@@ -3610,7 +3629,7 @@ final class WP_Customize_Manager {
 		 */
 		$revisions = wp_get_post_revisions( $changeset_post_id, array( 'check_enabled' => false ) );
 		foreach ( $revisions as $revision ) {
-			if ( false !== strpos( $revision->post_name, "{$changeset_post_id}-autosave" ) ) {
+			if ( str_contains( $revision->post_name, "{$changeset_post_id}-autosave" ) ) {
 				$wpdb->update(
 					$wpdb->posts,
 					array(
@@ -3671,6 +3690,8 @@ final class WP_Customize_Manager {
 	 * Refreshes nonces for the current preview.
 	 *
 	 * @since 4.2.0
+	 *
+	 * @return never
 	 */
 	public function refresh_nonces() {
 		if ( ! $this->is_preview() ) {
@@ -3684,6 +3705,8 @@ final class WP_Customize_Manager {
 	 * Deletes a given auto-draft changeset or the autosave revision for a given changeset or delete changeset lock.
 	 *
 	 * @since 4.9.0
+	 *
+	 * @return never
 	 */
 	public function handle_dismiss_autosave_or_lock_request() {
 		// Calls to dismiss_user_auto_draft_changesets() and wp_get_post_autosave() require non-zero get_current_user_id().
@@ -3849,7 +3872,7 @@ final class WP_Customize_Manager {
 	 * @since 3.4.0
 	 *
 	 * @param string $id Customize Setting ID.
-	 * @return WP_Customize_Setting|void The setting, if set.
+	 * @return WP_Customize_Setting|null The setting, if set.
 	 */
 	public function get_setting( $id ) {
 		if ( isset( $this->settings[ $id ] ) ) {
@@ -3901,7 +3924,7 @@ final class WP_Customize_Manager {
 	 * @since 4.0.0
 	 *
 	 * @param string $id Panel ID to get.
-	 * @return WP_Customize_Panel|void Requested panel instance, if set.
+	 * @return WP_Customize_Panel|null Requested panel instance, if set.
 	 */
 	public function get_panel( $id ) {
 		if ( isset( $this->panels[ $id ] ) ) {
@@ -3997,7 +4020,7 @@ final class WP_Customize_Manager {
 	 * @since 3.4.0
 	 *
 	 * @param string $id Section ID.
-	 * @return WP_Customize_Section|void The section, if set.
+	 * @return WP_Customize_Section|null The section, if set.
 	 */
 	public function get_section( $id ) {
 		if ( isset( $this->sections[ $id ] ) ) {
@@ -4076,7 +4099,7 @@ final class WP_Customize_Manager {
 	 * @since 3.4.0
 	 *
 	 * @param string $id ID of the control.
-	 * @return WP_Customize_Control|void The control object, if set.
+	 * @return WP_Customize_Control|null The control object, if set.
 	 */
 	public function get_control( $id ) {
 		if ( isset( $this->controls[ $id ] ) ) {
@@ -4297,8 +4320,10 @@ final class WP_Customize_Manager {
 
 		<script type="text/html" id="tmpl-customize-changeset-locked-notification">
 			<li class="notice notice-{{ data.type || 'info' }} {{ data.containerClasses || '' }}" data-code="{{ data.code }}" data-type="{{ data.type }}">
-				<div class="notification-message customize-changeset-locked-message">
-					<img class="customize-changeset-locked-avatar" src="{{ data.lockUser.avatar }}" alt="{{ data.lockUser.name }}" />
+				<div class="notification-message customize-changeset-locked-message {{ data.lockUser.avatar ? 'has-avatar' : '' }}">
+					<# if ( data.lockUser.avatar ) { #>
+						<img class="customize-changeset-locked-avatar" src="{{ data.lockUser.avatar }}" alt="{{ data.lockUser.name }}" />
+					<# } #>
 					<p class="currently-editing">
 						<# if ( data.message ) { #>
 							{{{ data.message }}}
@@ -4317,7 +4342,7 @@ final class WP_Customize_Manager {
 						<# if ( data.returnUrl !== data.previewUrl ) { #>
 							<a class="button customize-notice-go-back-button" href="{{ data.returnUrl }}"><?php _e( 'Go back' ); ?></a>
 						<# } #>
-						<a class="button customize-notice-preview-button" href="{{ data.frontendPreviewUrl }}"><?php _e( 'Preview' ); ?></a>
+						<a class="button customize-notice-preview-button" href="{{ data.frontendPreviewUrl }}"><?php echo esc_html_x( 'Preview', 'verb' ); ?></a>
 						<# if ( data.allowOverride ) { #>
 							<button class="button button-primary wp-tab-last customize-notice-take-over-button"><?php _e( 'Take over' ); ?></button>
 						<# } #>
@@ -4969,9 +4994,10 @@ final class WP_Customize_Manager {
 			}
 		}
 
+		ob_start();
 		?>
-		<script type="text/javascript">
-			var _wpCustomizeSettings = <?php echo wp_json_encode( $settings ); ?>;
+		<script>
+			var _wpCustomizeSettings = <?php echo wp_json_encode( $settings, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ); ?>;
 			_wpCustomizeSettings.initialClientTimestamp = _.now();
 			_wpCustomizeSettings.controls = {};
 			_wpCustomizeSettings.settings = {};
@@ -4983,8 +5009,8 @@ final class WP_Customize_Manager {
 				if ( $setting->check_capabilities() ) {
 					printf(
 						"s[%s] = %s;\n",
-						wp_json_encode( $setting->id ),
-						wp_json_encode( $setting->json() )
+						wp_json_encode( $setting->id, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ),
+						wp_json_encode( $setting->json(), JSON_HEX_TAG | JSON_UNESCAPED_SLASHES )
 					);
 				}
 			}
@@ -4996,8 +5022,8 @@ final class WP_Customize_Manager {
 				if ( $control->check_capabilities() ) {
 					printf(
 						"c[%s] = %s;\n",
-						wp_json_encode( $control->id ),
-						wp_json_encode( $control->json() )
+						wp_json_encode( $control->id, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ),
+						wp_json_encode( $control->json(), JSON_HEX_TAG | JSON_UNESCAPED_SLASHES )
 					);
 				}
 			}
@@ -5005,6 +5031,7 @@ final class WP_Customize_Manager {
 			?>
 		</script>
 		<?php
+		wp_print_inline_script_tag( wp_remove_surrounding_empty_script_tags( ob_get_clean() ) . "\n//# sourceURL=" . rawurlencode( __METHOD__ ) );
 	}
 
 	/**
@@ -5017,14 +5044,14 @@ final class WP_Customize_Manager {
 	public function get_previewable_devices() {
 		$devices = array(
 			'desktop' => array(
-				'label'   => __( 'Enter desktop preview mode' ),
+				'label'   => __( 'Desktop' ),
 				'default' => true,
 			),
 			'tablet'  => array(
-				'label' => __( 'Enter tablet preview mode' ),
+				'label' => __( 'Tablet' ),
 			),
 			'mobile'  => array(
-				'label' => __( 'Enter mobile preview mode' ),
+				'label' => __( 'Mobile' ),
 			),
 		);
 
@@ -5191,10 +5218,10 @@ final class WP_Customize_Manager {
 				array(
 					'label'       => __( 'Site Icon' ),
 					'description' => sprintf(
-						'<p>' . __( 'Site Icons are what you see in browser tabs, bookmark bars, and within the WordPress mobile apps. Upload one here!' ) . '</p>' .
-						/* translators: %s: Site icon size in pixels. */
-						'<p>' . __( 'Site Icons should be square and at least %s pixels.' ) . '</p>',
-						'<strong>512 &times; 512</strong>'
+						/* translators: 1: pixel value for icon size. 2: pixel value for icon size. */
+						'<p>' . __( 'The Site Icon is what you see in browser tabs, bookmark bars, and within the WordPress mobile apps. It should be square and at least <strong>%1$s by %2$s</strong> pixels.' ) . '</p>',
+						512,
+						512
 					),
 					'section'     => 'title_tagline',
 					'priority'    => 60,
@@ -5221,10 +5248,10 @@ final class WP_Customize_Manager {
 					'label'         => __( 'Logo' ),
 					'section'       => 'title_tagline',
 					'priority'      => 8,
-					'height'        => isset( $custom_logo_args[0]['height'] ) ? $custom_logo_args[0]['height'] : null,
-					'width'         => isset( $custom_logo_args[0]['width'] ) ? $custom_logo_args[0]['width'] : null,
-					'flex_height'   => isset( $custom_logo_args[0]['flex-height'] ) ? $custom_logo_args[0]['flex-height'] : null,
-					'flex_width'    => isset( $custom_logo_args[0]['flex-width'] ) ? $custom_logo_args[0]['flex-width'] : null,
+					'height'        => $custom_logo_args[0]['height'] ?? null,
+					'width'         => $custom_logo_args[0]['width'] ?? null,
+					'flex_height'   => $custom_logo_args[0]['flex-height'] ?? null,
+					'flex_width'    => $custom_logo_args[0]['flex-width'] ?? null,
 					'button_labels' => array(
 						'select'       => __( 'Select logo' ),
 						'change'       => __( 'Change logo' ),
@@ -5269,8 +5296,7 @@ final class WP_Customize_Manager {
 			)
 		);
 
-		// Input type: checkbox.
-		// With custom value.
+		// Input type: checkbox, with custom value.
 		$this->add_control(
 			'display_header_text',
 			array(
@@ -5293,8 +5319,7 @@ final class WP_Customize_Manager {
 			)
 		);
 
-		// Input type: color.
-		// With sanitize_callback.
+		// Input type: color, with sanitize_callback.
 		$this->add_setting(
 			'background_color',
 			array(
@@ -5602,8 +5627,10 @@ final class WP_Customize_Manager {
 			)
 		);
 
-		// If the theme is using the default background callback, we can update
-		// the background CSS using postMessage.
+		/*
+		 * If the theme is using the default background callback, we can update
+		 * the background CSS using postMessage.
+		 */
 		if ( get_theme_support( 'custom-background', 'wp-head-callback' ) === '_custom_background_cb' ) {
 			foreach ( array( 'color', 'image', 'preset', 'position_x', 'position_y', 'size', 'repeat', 'attachment' ) as $prop ) {
 				$this->get_setting( 'background_' . $prop )->transport = 'postMessage';
@@ -5689,7 +5716,7 @@ final class WP_Customize_Manager {
 		$section_description .= __( 'Add your own CSS code here to customize the appearance and layout of your site.' );
 		$section_description .= sprintf(
 			' <a href="%1$s" class="external-link" target="_blank">%2$s<span class="screen-reader-text"> %3$s</span></a>',
-			esc_url( __( 'https://wordpress.org/support/article/css/' ) ),
+			esc_url( __( 'https://developer.wordpress.org/advanced-administration/wordpress/css/' ) ),
 			__( 'Learn more about CSS' ),
 			/* translators: Hidden accessibility text. */
 			__( '(opens in a new tab)' )
@@ -5806,6 +5833,8 @@ final class WP_Customize_Manager {
 	 * Loads themes into the theme browsing/installation UI.
 	 *
 	 * @since 4.9.0
+	 *
+	 * @return never
 	 */
 	public function handle_load_themes_request() {
 		check_ajax_referer( 'switch_themes', 'nonce' );
@@ -6076,7 +6105,7 @@ final class WP_Customize_Manager {
 					__( 'This video file is too large to use as a header video. Try a shorter video or optimize the compression settings and re-upload a file that is less than 8MB. Or, upload your video to YouTube and link it with the option below.' )
 				);
 			}
-			if ( '.mp4' !== substr( $video, -4 ) && '.mov' !== substr( $video, -4 ) ) { // Check for .mp4 or .mov format, which (assuming h.264 encoding) are the only cross-browser-supported formats.
+			if ( ! str_ends_with( $video, '.mp4' ) && ! str_ends_with( $video, '.mov' ) ) { // Check for .mp4 or .mov format, which (assuming h.264 encoding) are the only cross-browser-supported formats.
 				$validity->add(
 					'invalid_file_type',
 					sprintf(
@@ -6130,8 +6159,7 @@ final class WP_Customize_Manager {
 	 * This method exists because the partial object and context data are passed
 	 * into a partial's render_callback so we cannot use get_custom_logo() as
 	 * the render_callback directly since it expects a blog ID as the first
-	 * argument. When WP no longer supports PHP 5.3, this method can be removed
-	 * in favor of an anonymous function.
+	 * argument.
 	 *
 	 * @see WP_Customize_Manager::register_controls()
 	 *

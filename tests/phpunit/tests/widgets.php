@@ -135,7 +135,6 @@ class Tests_Widgets extends WP_UnitTestCase {
 		register_sidebars( 1, array( 'id' => 'wp-unit-test' ) );
 
 		$this->assertArrayHasKey( 'wp-unit-test', $wp_registered_sidebars );
-
 	}
 
 	/**
@@ -157,7 +156,6 @@ class Tests_Widgets extends WP_UnitTestCase {
 		}
 
 		$this->assertCount( $num, $result );
-
 	}
 
 	/**
@@ -266,7 +264,6 @@ class Tests_Widgets extends WP_UnitTestCase {
 		$this->assertArrayHasKey( $sidebar_id, $wp_registered_sidebars );
 		$this->assertStringContainsString( '<div id="%1$s" class="before-sidebar %2$s">', $wp_registered_sidebars[ $sidebar_id ]['before_sidebar'] );
 		$this->assertStringContainsString( '</div> <!-- .before-sidebar -->', $wp_registered_sidebars[ $sidebar_id ]['after_sidebar'] );
-
 	}
 
 	/**
@@ -286,7 +283,6 @@ class Tests_Widgets extends WP_UnitTestCase {
 		$this->assertArrayHasKey( $sidebar_id, $wp_registered_sidebars );
 		$this->assertEmpty( $wp_registered_sidebars[ $sidebar_id ]['before_sidebar'] );
 		$this->assertEmpty( $wp_registered_sidebars[ $sidebar_id ]['after_sidebar'] );
-
 	}
 
 	/**
@@ -600,7 +596,7 @@ class Tests_Widgets extends WP_UnitTestCase {
 
 		add_filter(
 			"pre_option_{$widget->option_name}",
-			static function() {
+			static function () {
 				return new ArrayObject(
 					array(
 						2              => array( 'title' => 'Test Title' ),
@@ -890,7 +886,6 @@ class Tests_Widgets extends WP_UnitTestCase {
 		unregister_widget( 'WP_Widget_Text' );
 
 		$this->assertMatchesRegularExpression( '/<span class="special widget_text">/', $actual );
-
 	}
 
 	/**
@@ -1363,5 +1358,99 @@ class Tests_Widgets extends WP_UnitTestCase {
 			'wp_inactive_widgets' => array(),
 		);
 		$this->assertSameSetsWithIndex( $expected_sidebars, $new_next_theme_sidebars );
+	}
+
+	/**
+	 * Ensures null sidebar values are converted to empty arrays in retrieve_widgets().
+	 *
+	 * @covers ::retrieve_widgets
+	 * @ticket 57469
+	 */
+	public function test_retrieve_widgets_converts_null_sidebar_to_empty_array() {
+		global $sidebars_widgets;
+		wp_widgets_init();
+		$this->register_sidebars( array( 'primary', 'secondary', 'wp_inactive_widgets' ) );
+
+		$sidebars_widgets = array(
+			'primary'             => null,
+			'secondary'           => array( 'text-1' ),
+			'extra_sidebar'       => array( 'unregistered_widget-1' ),
+			'wp_inactive_widgets' => array(),
+		);
+
+		$result = retrieve_widgets( true );
+		$this->assertArrayHasKey( 'primary', $result );
+		$this->assertSame( array(), $result['primary'], 'Primary sidebar should be an empty array after normalization.' );
+		$this->assertArrayNotHasKey( 'extra_sidebar', $result, 'Unregistered sidebar should be removed.' );
+	}
+
+	/**
+	 * Ensures wp_map_sidebars_widgets() normalizes null sidebar widget arrays.
+	 *
+	 * @covers ::wp_map_sidebars_widgets
+	 * @ticket 57469
+	 */
+	public function test_wp_map_sidebars_widgets_converts_null_sidebar_to_empty_array() {
+		$this->register_sidebars( array( 'primary', 'wp_inactive_widgets' ) );
+		// Theme data containing a null so the normalization loop runs.
+		set_theme_mod(
+			'sidebars_widgets',
+			array(
+				'time' => time(),
+				'data' => array(
+					'primary' => null,
+				),
+			)
+		);
+
+		$prev_theme_sidebars = array(
+			'primary'             => null,
+			'wp_inactive_widgets' => array(),
+		);
+
+		$new_sidebars = wp_map_sidebars_widgets( $prev_theme_sidebars );
+		$this->assertArrayHasKey( 'primary', $new_sidebars );
+		$this->assertSame( array(), $new_sidebars['primary'], 'Primary sidebar should be an empty array after normalization.' );
+	}
+
+	/**
+	 * Tests that is_active_widget() does not generate a PHP warning when
+	 * a widget ID exists in sidebars_widgets but is not in $wp_registered_widgets,
+	 * and the function is called with id_base and widget_id parameters.
+	 *
+	 * This can happen when a widget is saved to a sidebar but the widget class
+	 * has not yet been registered (e.g., during early plugin/theme loading).
+	 *
+	 * @ticket 57518
+	 * @covers ::is_active_widget
+	 */
+	public function test_is_active_widget_with_unregistered_widget_and_id_base_match() {
+		global $wp_registered_widgets;
+
+		// Set up a sidebar with a widget that is NOT registered in $wp_registered_widgets.
+		update_option(
+			'sidebars_widgets',
+			array(
+				'wp_inactive_widgets' => array(),
+				'sidebar-1'           => array( 'search-2' ),
+				'array_version'       => 3,
+			)
+		);
+
+		// Ensure the widget is NOT in $wp_registered_widgets.
+		unset( $wp_registered_widgets['search-2'] );
+
+		/*
+		 * Call is_active_widget() with id_base and widget_id parameters.
+		 * This should NOT generate a PHP warning about accessing array offset on null.
+		 *
+		 * The bug occurs because when matching by id_base, the code checks
+		 * _get_widget_id_base( $widget ) === $id_base without verifying
+		 * $wp_registered_widgets[ $widget ] exists, then tries to access
+		 * $wp_registered_widgets[ $widget ]['id'] on the next line.
+		 */
+		$result = is_active_widget( false, 'search-2', 'search', true );
+
+		$this->assertFalse( $result, 'The widget is not registered, so the function should return false.' );
 	}
 }

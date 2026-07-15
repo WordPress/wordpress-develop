@@ -19,9 +19,10 @@
 				"name": "core/image",
 				"isValid": true,
 				"attributes": {
-					"url": "https://cldup.com/uuUqE_dXzy.jpg",
+					"url": "https://sergioestevaofolio.files.wordpress.com/2016/09/cropped-img_9054-1.jpg?w=190",
 					"alt": "Image gallery image",
 					"caption": "",
+					"id": 1421,
 					"sizeSlug": "large",
 					"linkDestination": "none"
 				},
@@ -31,9 +32,10 @@
 				"name": "core/image",
 				"isValid": true,
 				"attributes": {
-					"url": "http://google.com/hi.png",
+					"url": "https://sergioestevaofolio.files.wordpress.com/2017/09/cropped-l1001498-1.jpg?w=580",
 					"alt": "Image gallery image",
 					"caption": "",
+					"id": 1440,
 					"sizeSlug": "large",
 					"linkDestination": "none"
 				},
