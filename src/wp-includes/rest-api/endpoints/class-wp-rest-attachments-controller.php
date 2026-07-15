@@ -959,6 +959,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	 *
 	 * @since 5.5.0
 	 * @since 6.9.0 Adds flips capability and editable fields for the newly-created attachment post.
+	 * @since 7.2.0 Adds support for the mask modifier.
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response|WP_Error Response object on success, WP_Error object on failure.
@@ -2241,6 +2242,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	 *
 	 * @since 5.5.0
 	 * @since 6.9.0 Adds flips capability and editable fields for the newly-created attachment post.
+	 * @since 7.2.0 Adds the mask modifier.
 	 *
 	 * @return array
 	 */

@@ -34,6 +34,7 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 	 * Checks to see if current environment supports GD.
 	 *
 	 * @since 3.5.0
+	 * @since 7.2.0 Added support for testing the 'mask' method capability via the 'methods' argument.
 	 *
 	 * @param array $args
 	 * @return bool
@@ -489,7 +490,7 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 	 * only and leaves the output format to the caller, like the other editor
 	 * transforms.
 	 *
-	 * @since 7.1.0
+	 * @since 7.2.0
 	 *
 	 * @param array $args {
 	 *     Mask arguments.

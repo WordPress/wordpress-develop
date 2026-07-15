@@ -4344,6 +4344,7 @@ function wp_max_upload_size() {
  * Returns a WP_Image_Editor instance and loads file into it.
  *
  * @since 3.5.0
+ * @since 7.2.0 A specified 'output_mime_type' argument is no longer overridden by the image_editor_output_format mapping.
  *
  * @param string $path Path to the file to load.
  * @param array  $args Optional. Additional arguments for retrieving the image editor.
