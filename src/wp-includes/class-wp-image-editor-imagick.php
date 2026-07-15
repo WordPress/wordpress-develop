@@ -95,8 +95,7 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 				method_exists( 'Imagick', 'drawImage' ) &&
 				method_exists( 'Imagick', 'getImageGeometry' ) &&
 				method_exists( 'Imagick', 'newImage' ) &&
-				method_exists( 'Imagick', 'setImageAlphaChannel' ) &&
-				method_exists( 'Imagick', 'setImageFormat' )
+				method_exists( 'Imagick', 'setImageAlphaChannel' )
 			);
 		}
 
@@ -845,6 +844,11 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 	/**
 	 * Applies a mask to the current image.
 	 *
+	 * The mask introduces transparency, so the caller must save the result in an
+	 * alpha-capable format (PNG, WebP, or AVIF). This method mutates the pixels
+	 * only and leaves the output format to the caller, like the other editor
+	 * transforms.
+	 *
 	 * @since 7.1.0
 	 *
 	 * @param array $args {
@@ -890,8 +894,6 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 			$mask->drawImage( $draw );
 
 			$this->image->compositeImage( $mask, Imagick::COMPOSITE_DSTIN, 0, 0 );
-			$this->image->setImageFormat( 'PNG' );
-			$this->mime_type = 'image/png';
 
 			$mask->clear();
 			$mask->destroy();

@@ -1044,12 +1044,26 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			}
 		}
 
-		$has_mask_modifier = false;
+		$has_mask_modifier  = false;
+		$geometry_modifiers = array();
+		$mask_modifiers     = array();
 		foreach ( $modifiers as $modifier ) {
 			if ( 'mask' === ( $modifier['type'] ?? null ) ) {
 				$has_mask_modifier = true;
-				break;
+				$mask_modifiers[]  = $modifier;
+			} else {
+				$geometry_modifiers[] = $modifier;
 			}
+		}
+
+		/*
+		 * A mask operates on the final pixels, so it must run after any geometry
+		 * modifiers (flip, rotate, crop). Reorder so masks are applied last
+		 * regardless of their position in the request, matching the schema's
+		 * documented contract.
+		 */
+		if ( $has_mask_modifier ) {
+			$modifiers = array_merge( $geometry_modifiers, $mask_modifiers );
 		}
 
 		/*
@@ -1179,9 +1193,43 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			$image_name .= '-edited';
 		}
 
-		$output_mime_type = $has_mask_modifier ? 'image/png' : null;
-		$output_ext       = $has_mask_modifier ? 'png' : $image_ext;
-		$filename         = "{$image_name}.{$output_ext}";
+		if ( $has_mask_modifier ) {
+			/*
+			 * Masking introduces transparency, so the saved image must use an
+			 * alpha-capable format. Honor the site's `image_editor_output_format`
+			 * choice when it can hold an alpha channel (e.g. WebP or AVIF), and
+			 * fall back to PNG otherwise (e.g. for JPEG, GIF, or the default
+			 * HEIC/HEIF -> JPEG mapping). The chosen format is forced for the save
+			 * below so a site filter cannot remap it back to an opaque format.
+			 */
+			$alpha_capable_mime_types = array( 'image/png', 'image/webp', 'image/avif' );
+			$output_format            = wp_get_image_editor_output_format( $image_file, $mime_type );
+			$output_mime_type         = $output_format[ $mime_type ] ?? $mime_type;
+
+			// Honor the negotiated format only when it can hold an alpha channel;
+			// otherwise fall back to PNG so the mask's transparency survives.
+			if ( ! in_array( $output_mime_type, $alpha_capable_mime_types, true ) ) {
+				$output_mime_type = 'image/png';
+			}
+
+			/*
+			 * The chosen format must be writable by this editor. A mask-capable
+			 * editor always supports PNG (guaranteed by its `test()` capability
+			 * check), so PNG stays a safe fallback when a site negotiated an
+			 * alpha-capable format the editor cannot output (e.g. WebP on a build
+			 * without WebP support).
+			 */
+			if ( ! $image_editor->supports_mime_type( $output_mime_type ) ) {
+				$output_mime_type = 'image/png';
+			}
+
+			$output_ext = wp_get_default_extension_for_mime_type( $output_mime_type );
+		} else {
+			$output_mime_type = null;
+			$output_ext       = $image_ext;
+		}
+
+		$filename = "{$image_name}.{$output_ext}";
 
 		// Create the uploads subdirectory if needed.
 		$uploads = wp_upload_dir();
@@ -1189,19 +1237,20 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		// Make the file name unique in the (new) upload directory.
 		$filename = wp_unique_filename( $uploads['path'], $filename );
 
-		// Save to disk.
+		/*
+		 * Save to disk. For masked images, suppress the output-format filter
+		 * during the save so a site filter cannot remap the negotiated
+		 * alpha-capable format back to an opaque one, which would discard the
+		 * mask's transparency.
+		 */
 		if ( $has_mask_modifier ) {
-			$disable_png_output_mapping = static function ( $output_format ) {
-				unset( $output_format['image/png'] );
-				return $output_format;
-			};
-			add_filter( 'image_editor_output_format', $disable_png_output_mapping, PHP_INT_MAX );
+			add_filter( 'image_editor_output_format', '__return_empty_array', 100 );
 		}
 
 		$saved = $image_editor->save( $uploads['path'] . "/$filename", $output_mime_type );
 
 		if ( $has_mask_modifier ) {
-			remove_filter( 'image_editor_output_format', $disable_png_output_mapping, PHP_INT_MAX );
+			remove_filter( 'image_editor_output_format', '__return_empty_array', 100 );
 		}
 
 		if ( is_wp_error( $saved ) ) {
@@ -2319,7 +2368,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 							'type'       => 'object',
 							'properties' => array(
 								'type' => array(
-									'description' => __( 'Mask type.' ),
+									'description' => __( 'Mask type. Masks are applied after flip, rotate, and crop modifiers, regardless of position.' ),
 									'type'        => 'string',
 									'enum'        => array( 'mask' ),
 								),

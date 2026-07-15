@@ -56,8 +56,7 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 			method_exists( 'Imagick', 'drawImage' ) &&
 			method_exists( 'Imagick', 'getImageGeometry' ) &&
 			method_exists( 'Imagick', 'newImage' ) &&
-			method_exists( 'Imagick', 'setImageAlphaChannel' ) &&
-			method_exists( 'Imagick', 'setImageFormat' )
+			method_exists( 'Imagick', 'setImageAlphaChannel' )
 		);
 
 		$this->assertSame( $expected, WP_Image_Editor_Imagick::test( array( 'methods' => array( 'mask' ) ) ) );

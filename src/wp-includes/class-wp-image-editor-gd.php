@@ -484,6 +484,11 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 	/**
 	 * Applies a mask to the current image.
 	 *
+	 * The mask introduces transparency, so the caller must save the result in an
+	 * alpha-capable format (PNG, WebP, or AVIF). This method mutates the pixels
+	 * only and leaves the output format to the caller, like the other editor
+	 * transforms.
+	 *
 	 * @since 7.1.0
 	 *
 	 * @param array $args {
@@ -537,8 +542,6 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 				imagefilledrectangle( $this->image, $right + 1, $y, $width - 1, $y, $transparent );
 			}
 		}
-
-		$this->mime_type = 'image/png';
 
 		return true;
 	}
