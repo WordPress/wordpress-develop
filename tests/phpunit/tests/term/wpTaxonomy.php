@@ -9,9 +9,7 @@ class Tests_WP_Taxonomy extends WP_UnitTestCase {
 
 		$this->assertNotEmpty( $wp_taxonomies );
 
-		foreach ( $wp_taxonomies as $taxonomy ) {
-			$this->assertInstanceOf( 'WP_Taxonomy', $taxonomy );
-		}
+		$this->assertContainsOnlyInstancesOf( 'WP_Taxonomy', $wp_taxonomies );
 	}
 
 	public function test_does_not_add_query_var_if_not_public() {
