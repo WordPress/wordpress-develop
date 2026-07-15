@@ -18,7 +18,10 @@ class Tests_Admin_IncludesMedia extends WP_UnitTestCase {
 				'post_title'     => 'Test attachment',
 				'post_status'    => 'inherit',
 				'post_type'      => 'attachment',
-				'post_mime_type' => 'image/jpeg',
+				'post_mime_type' => 'application/pdf',
+				'meta_input'     => array(
+					'_wp_attached_file' => 'test.pdf',
+				),
 			)
 		);
 	}
