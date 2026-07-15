@@ -60,8 +60,8 @@
 		// Once zxcvbn loads, passwords strength is known.
 		$( '#pw-weak-text-label' ).text( __( 'Confirm use of weak password' ) );
 
-		// Focus the password field if not the install screen.
-		if ( 'mailserver_pass' !== $pass1.prop('id' ) && ! $('#weblog_title').length ) {
+		// Only focus the password field on the reset password form.
+		if ( $pass1.closest( '#resetpassform' ).length ) {
 			$( $pass1 ).trigger( 'focus' );
 		}
 	}
