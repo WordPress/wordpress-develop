@@ -369,6 +369,168 @@ function get_search_form( $args = array() ) {
 	}
 }
 
+
+/**
+ * Retrieves the markup for an accessible tooltip.
+ *
+ * Returns a button with an accessible name popover.
+ *
+ * @since 7.1.0
+ *
+ * @param string $content Plain-text tooltip content. An empty value returns an empty string.
+ * @param array  $args {
+ *     Optional. Arguments for building the tooltip.
+ *
+ *     @type string $id          Unique ID for the popover element. Default is a
+ *                               generated unique ID.
+ *     @type string $label       Not used for tooltips.
+ *     @type string $close_label Not used for tooltips.
+ *     @type string $icon        Dashicons icon class for the toggle button.
+ *                               Default 'dashicons-editor-help'. Should match the control's
+ *                               visible label.
+ *     @type string $class       Additional class(es) for the wrapping element.
+ *                               Default empty.
+ * }
+ * @return string Tooltip HTML markup, or an empty string when no content is provided.
+ */
+function wp_get_tooltip( $content, $args = array() ) {
+	$args['type'] = 'tooltip';
+	return wp_get_tooltip_helper( $content, $args );
+}
+
+/**
+ * Retrieves the markup for an accessible tooltip or toggletip.
+ *
+ * Returns a button and either a hover/focus triggered tooltip popover or an action
+ * triggered toggle tip. Enqueue the `wp-tooltip` style and script where it is used.
+ * Tooltips are used to show the accessible name of a control.
+ * Toggletips are be used for longer supporting text explaining context.
+ *
+ * @since 7.1.0
+ *
+ * @param string $content Plain-text tooltip content. An empty value returns an empty string.
+ * @param array  $args {
+ *     Optional. Arguments for building the tooltip.
+ *
+ *     @type string $id          Unique ID for the popover element. Default is a
+ *                               generated unique ID.
+ *     @type string $label       Accessible label for the toggle button.
+ *                               Default 'Help', matching the default icon.
+ *                               Ignored for tooltips.
+ *     @type string $close_label Accessible label for the close button. Default 'Close'.
+ *     @type string $icon        Dashicons icon class for the toggle button.
+ *                               Default 'dashicons-editor-help'. Should match the control's
+ *                               visible label.
+ *     @type string $class       Additional class(es) for the wrapping element.
+ *                               Default empty.
+ * }
+ * @return string Tooltip HTML markup, or an empty string when no content is provided.
+ */
+function wp_get_toggletip( $content, $args ) {
+	$args['type'] = 'toggletip';
+	return wp_get_tooltip_helper( $content, $args );
+}
+/**
+ * Retrieves the markup for an accessible tooltip or toggletip.
+ *
+ * Returns a button and either a hover/focus triggered tooltip popover or an action
+ * triggered toggle tip. Enqueue the `wp-tooltip` style and script where it is used.
+ * Tooltips are used to show the accessible name of a control.
+ * Toggletips are be used for longer supporting text explaining context.
+ *
+ * @since 7.1.0
+ *
+ * @param string $content Plain-text tooltip content. An empty value returns an empty string.
+ * @param array  $args {
+ *     Optional. Arguments for building the tooltip.
+ *
+ *     @type string $id          Unique ID for the popover element. Default is a
+ *                               generated unique ID.
+ *     @type string $label       Accessible label for the toggle button.
+ *                               Default 'Help', matching the default icon.
+ *                               Ignored for tooltips.
+ *     @type string $close_label Accessible label for the close button. Default 'Close'.
+ *     @type string $icon        Dashicons icon class for the toggle button.
+ *                               Default 'dashicons-editor-help'. Should match the control's
+ *                               visible label.
+ *     @type string $class       Additional class(es) for the wrapping element.
+ *                               Default empty.
+ *     @type string $type        Type of tooltip: either `tooltip` or `toggletip`.
+ *                               Default 'tooltip'.
+ * }
+ * @return string Tooltip HTML markup, or an empty string when no content is provided.
+ */
+function wp_get_tooltip_helper( $content, $args = array() ) {
+	$content = trim( (string) $content );
+
+	if ( '' === $content ) {
+		return '';
+	}
+
+	$defaults = array(
+		'id'          => '',
+		'label'       => __( 'Help' ),
+		'close_label' => __( 'Close' ),
+		'icon'        => 'dashicons-editor-help',
+		'class'       => '',
+		'type'        => 'tooltip',
+		'attributes'  => array(),
+	);
+
+	$args = wp_parse_args( $args, $defaults );
+
+	$id = '' !== $args['id'] ? $args['id'] : wp_unique_id( 'wp-tooltip-' );
+
+	$classes = ( 'tooltip' === $args['type'] ) ? 'wp-tooltip wp-is-tooltip' : 'wp-tooltip wp-is-toggletip';
+	if ( '' !== $args['class'] ) {
+		$classes .= ' ' . $args['class'];
+	}
+
+	$icon = '' !== $args['icon'] ? ' ' . $args['icon'] : '';
+
+	if ( 'tooltip' === $args['type'] ) {
+		// Tooltips are only used to visually display labels.
+		$label  = wp_strip_all_tags( $content, true );
+		$markup = sprintf(
+			'<div class="%1$s">' .
+				'<button type="button" class="wp-tooltip__toggle" popovertarget="%2$s" aria-label="%3$s">' .
+					'<span class="dashicons%4$s" aria-hidden="true"></span>' .
+				'</button>' .
+				'<span popover="hint" id="%2$s" class="wp-tooltip__bubble" role="tooltip">' .
+					'<span id="%2$s-text" class="wp-tooltip__text">%5$s</span>' .
+				'</span>' .
+			'</div>',
+			esc_attr( $classes ),
+			esc_attr( $id ),
+			esc_attr( $label ),
+			esc_attr( $icon ),
+			esc_html( $content ),
+		);
+	} else {
+		$markup = sprintf(
+			'<div class="%1$s">' .
+				'<button type="button" class="wp-tooltip__toggle" popovertarget="%2$s" aria-label="%3$s" aria-haspopup="dialog">' .
+					'<span class="dashicons%4$s" aria-hidden="true"></span>' .
+				'</button>' .
+				'<dialog popover="auto" id="%2$s" class="wp-tooltip__bubble" autofocus>' .
+					'<span id="%2$s-text" class="wp-tooltip__text">%5$s</span>' .
+					'<button type="button" class="wp-tooltip__close" popovertarget="%2$s" popovertargetaction="hide" aria-label="%6$s">' .
+						'<span class="dashicons dashicons-no-alt" aria-hidden="true"></span>' .
+					'</button>' .
+				'</dialog>' .
+			'</div>',
+			esc_attr( $classes ),
+			esc_attr( $id ),
+			esc_attr( $args['label'] ),
+			esc_attr( $icon ),
+			esc_html( $content ),
+			esc_attr( $args['close_label'] ),
+		);
+	}
+
+	return $markup;
+}
+
 /**
  * Displays the Log In/Out link.
  *
@@ -978,7 +1140,10 @@ function get_site_icon_url( $size = 512, $url = '', $blog_id = 0 ) {
 		} else {
 			$size_data = array( $size, $size );
 		}
-		$url = wp_get_attachment_image_url( $site_icon_id, $size_data );
+		$attachment_url = wp_get_attachment_image_url( $site_icon_id, $size_data );
+		if ( $attachment_url ) {
+			$url = $attachment_url;
+		}
 	}
 
 	if ( $switched_blog ) {
@@ -4543,13 +4708,16 @@ function get_language_attributes( $doctype = 'html' ) {
 		$attributes[] = 'dir="rtl"';
 	}
 
-	$lang = get_bloginfo( 'language' );
+	$lang      = get_bloginfo( 'language' );
+	$html_type = get_option( 'html_type' );
+
 	if ( $lang ) {
-		if ( 'text/html' === get_option( 'html_type' ) || 'html' === $doctype ) {
+		if ( 'text/html' === $html_type || 'html' === $doctype ) {
 			$attributes[] = 'lang="' . esc_attr( $lang ) . '"';
 		}
 
-		if ( 'text/html' !== get_option( 'html_type' ) || 'xhtml' === $doctype ) {
+		// The $html_type option may be false on a new install on the setup-config.php page.
+		if ( ( $html_type && 'text/html' !== $html_type ) || 'xhtml' === $doctype ) {
 			$attributes[] = 'xml:lang="' . esc_attr( $lang ) . '"';
 		}
 	}
@@ -4941,7 +5109,7 @@ function register_admin_color_schemes() {
 		'light',
 		_x( 'Light', 'admin color scheme' ),
 		admin_url( "css/colors/light/colors$suffix.css" ),
-		array( '#e5e5e5', '#999', '#d64e07', '#04a4cc' ),
+		array( '#e5e5e5', '#6a6a6a', '#c64606', '#007cba' ),
 		array(
 			'base'    => '#999',
 			'focus'   => '#ccc',
@@ -4953,7 +5121,7 @@ function register_admin_color_schemes() {
 		'blue',
 		_x( 'Blue', 'admin color scheme' ),
 		admin_url( "css/colors/blue/colors$suffix.css" ),
-		array( '#096484', '#4796b3', '#52accc', '#74B6CE' ),
+		array( '#183751', '#245278', '#437aa8', '#e1a948' ),
 		array(
 			'base'    => '#e5f8ff',
 			'focus'   => '#fff',
@@ -4965,7 +5133,7 @@ function register_admin_color_schemes() {
 		'midnight',
 		_x( 'Midnight', 'admin color scheme' ),
 		admin_url( "css/colors/midnight/colors$suffix.css" ),
-		array( '#25282b', '#363b3f', '#69a8bb', '#e14d43' ),
+		array( '#232a2e', '#333c42', '#69a8bb', '#cf4339' ),
 		array(
 			'base'    => '#f1f2f3',
 			'focus'   => '#fff',
@@ -4977,7 +5145,7 @@ function register_admin_color_schemes() {
 		'sunrise',
 		_x( 'Sunrise', 'admin color scheme' ),
 		admin_url( "css/colors/sunrise/colors$suffix.css" ),
-		array( '#b43c38', '#cf4944', '#dd823b', '#ccaf0b' ),
+		array( '#6f2724', '#8a312d', '#ad631e', '#ccaf0b' ),
 		array(
 			'base'    => '#f3f1f1',
 			'focus'   => '#fff',
@@ -4989,7 +5157,7 @@ function register_admin_color_schemes() {
 		'ectoplasm',
 		_x( 'Ectoplasm', 'admin color scheme' ),
 		admin_url( "css/colors/ectoplasm/colors$suffix.css" ),
-		array( '#413256', '#523f6d', '#a3b745', '#d46f15' ),
+		array( '#392751', '#4a3369', '#646c3e', '#d46f15' ),
 		array(
 			'base'    => '#ece6f6',
 			'focus'   => '#fff',
@@ -5001,7 +5169,7 @@ function register_admin_color_schemes() {
 		'ocean',
 		_x( 'Ocean', 'admin color scheme' ),
 		admin_url( "css/colors/ocean/colors$suffix.css" ),
-		array( '#627c83', '#738e96', '#9ebaa0', '#aa9d88' ),
+		array( '#2b3f44', '#39535a', '#567958', '#aa9d88' ),
 		array(
 			'base'    => '#f2fcff',
 			'focus'   => '#fff',
@@ -5013,7 +5181,7 @@ function register_admin_color_schemes() {
 		'coffee',
 		_x( 'Coffee', 'admin color scheme' ),
 		admin_url( "css/colors/coffee/colors$suffix.css" ),
-		array( '#46403c', '#59524c', '#c7a589', '#9ea476' ),
+		array( '#382e27', '#5c4c40', '#916745', '#9ea476' ),
 		array(
 			'base'    => '#f3f2f1',
 			'focus'   => '#fff',
