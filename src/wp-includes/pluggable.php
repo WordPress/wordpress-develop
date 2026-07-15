@@ -1107,7 +1107,7 @@ if ( ! function_exists( 'wp_set_auth_cookie' ) ) :
 		 * @param bool $secure  Whether the cookie should only be sent over HTTPS.
 		 * @param int  $user_id User ID.
 		 */
-		$secure = apply_filters( 'secure_auth_cookie', $secure, $user_id );
+		$secure = (bool) apply_filters( 'secure_auth_cookie', $secure, $user_id );
 
 		/**
 		 * Filters whether the logged in cookie should only be sent over HTTPS.
@@ -1118,7 +1118,7 @@ if ( ! function_exists( 'wp_set_auth_cookie' ) ) :
 		 * @param int  $user_id                 User ID.
 		 * @param bool $secure                  Whether the auth cookie should only be sent over HTTPS.
 		 */
-		$secure_logged_in_cookie = apply_filters( 'secure_logged_in_cookie', $secure_logged_in_cookie, $user_id, $secure );
+		$secure_logged_in_cookie = (bool) apply_filters( 'secure_logged_in_cookie', $secure_logged_in_cookie, $user_id, $secure );
 
 		if ( $secure ) {
 			$auth_cookie_name = SECURE_AUTH_COOKIE;

@@ -819,13 +819,14 @@ switch ( $action ) {
 			$secure = false;
 		}
 
+		/** @var string $value */
 		$value = $hasher->HashPassword( wp_unslash( $_POST['post_password'] ) );
 
 		wp_set_cookie(
 			'wp-postpass_' . COOKIEHASH,
 			$value,
 			array(
-				'expires'  => $expire,
+				'expires'  => (int) $expire,
 				'path'     => COOKIEPATH,
 				'domain'   => COOKIE_DOMAIN,
 				'secure'   => $secure,

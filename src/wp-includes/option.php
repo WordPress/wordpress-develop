@@ -1751,7 +1751,7 @@ function wp_user_settings() {
 	);
 	wp_set_cookie(
 		'wp-settings-time-' . $user_id,
-		time(),
+		(string) time(),
 		array(
 			'expires'  => time() + YEAR_IN_SECONDS,
 			'path'     => SITECOOKIEPATH,
