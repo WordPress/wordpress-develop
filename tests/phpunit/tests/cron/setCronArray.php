@@ -85,15 +85,21 @@ class Tests_Cron_setCronArray extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that `_set_cron_array()` returns `false` when the cron option was not updated.
+	 * Tests that `_set_cron_array()` returns true when the cron option already holds the desired value.
 	 *
-	 * @dataProvider data_set_cron_array_returns_false_when_not_updated
+	 * @ticket 38903
+	 * @ticket 57271
+	 *
+	 * @dataProvider data_set_cron_array_returns_true_when_option_already_holds_intended_value
 	 *
 	 * @param array $input    Cron array.
 	 * @param mixed $wp_error Value to use for $wp_error.
 	 */
-	public function test_set_cron_array_returns_false_when_not_updated( $input, $wp_error ) {
-		$this->assertFalse( _set_cron_array( $input ) );
+	public function test_set_cron_array_returns_true_when_option_already_holds_intended_value( $input, $wp_error ) {
+		// Store the cron array so that the next call to `_set_cron_array()` will not update it.
+		_set_cron_array( $input, $wp_error );
+
+		$this->assertTrue( _set_cron_array( $input, $wp_error ) );
 	}
 
 	/**
@@ -101,7 +107,7 @@ class Tests_Cron_setCronArray extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_set_cron_array_returns_false_when_not_updated() {
+	public function data_set_cron_array_returns_true_when_option_already_holds_intended_value() {
 		return array(
 			'empty array' => array(
 				'input'    => array(),
@@ -117,6 +123,22 @@ class Tests_Cron_setCronArray extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that `_set_cron_array()` returns false when the cron option was not updated and `$wp_error` is truthy.
+	 *
+	 * @ticket 38903
+	 * @ticket 57271
+	 *
+	 * @dataProvider data_set_cron_array_returns_WP_Error_when_not_updated
+	 *
+	 * @param array $input Cron array.
+	 */
+	public function test_set_cron_array_returns_false_when_not_updated( $input ) {
+		$this->force_update_option_cron_failure();
+
+		$this->assertFalse( _set_cron_array( $input ) );
+	}
+
+	/**
 	 * Tests that `_set_cron_array()` returns a WP_Error object when the cron option was not updated and `$wp_error` is truthy.
 	 *
 	 * @dataProvider data_set_cron_array_returns_WP_Error_when_not_updated
@@ -125,6 +147,8 @@ class Tests_Cron_setCronArray extends WP_UnitTestCase {
 	 * @param mixed $wp_error Value to use for $wp_error.
 	 */
 	public function test_set_cron_array_returns_WP_Error_when_not_updated( $input, $wp_error ) {
+		$this->force_update_option_cron_failure();
+
 		$result = _set_cron_array( $input, $wp_error );
 		$this->assertWPError( $result, 'Return value is not an instance of WP_Error.' );
 		$this->assertSame( 'could_not_set', $result->get_error_code(), 'WP_Error error code does not match expected code.' );
@@ -147,6 +171,39 @@ class Tests_Cron_setCronArray extends WP_UnitTestCase {
 				),
 				'wp_error' => 1,
 			),
+		);
+	}
+
+	/**
+	 * Forces `update_option( 'cron', ... )` to report no change by keeping the
+	 * existing value, simulating a failure to persist a genuinely new value.
+	 */
+	private function force_update_option_cron_failure() {
+		// Store a cron array that differs from the value under test, so the
+		// "already stored the identical value" short-circuit does not fire.
+		update_option(
+			'cron',
+			array(
+				'version' => 2,
+				time()    => array(
+					'hookname' => array(
+						'event key' => array(
+							'schedule' => 'schedule',
+							'args'     => 'args',
+							'interval' => 'interval',
+						),
+					),
+				),
+			)
+		);
+
+		// Force update_option() to report no change by keeping the existing
+		// value, simulating a failure to persist a genuinely new value.
+		add_filter(
+			'pre_update_option_cron',
+			static fn ( $value, $old_value ) => $old_value,
+			10,
+			2
 		);
 	}
 

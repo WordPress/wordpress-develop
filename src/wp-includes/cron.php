@@ -1282,6 +1282,7 @@ function _get_cron_array() {
  * @since 2.1.0
  * @since 5.1.0 Return value modified to outcome of update_option().
  * @since 5.7.0 The `$wp_error` parameter was added.
+ * @since x.y.z Now returns true when the existing stored cron array value already matches the new value.
  *
  * @access private
  *
@@ -1300,6 +1301,15 @@ function _set_cron_array( $cron, $wp_error = false ) {
 	$cron['version'] = 2;
 
 	$result = update_option( 'cron', $cron, true );
+
+	if ( ! $result ) {
+		// If the cron array already matches the new value, then treat it as a success.
+		$stored = get_option( 'cron' );
+
+		if ( maybe_serialize( $stored ) === maybe_serialize( $cron ) ) {
+			$result = true;
+		}
+	}
 
 	if ( $wp_error && ! $result ) {
 		return new WP_Error(
