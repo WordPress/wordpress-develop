@@ -29,7 +29,7 @@ class Tests_General_wpGetTooltip extends WP_UnitTestCase {
 		$tooltip = wp_get_tooltip( 'Helpful text.', array( 'id' => 'my-tip' ) );
 
 		// Toggle is a button that controls the popover and describes it.
-		$this->assertStringContainsString( '<button type="button" class="wp-tooltip__toggle"', $tooltip );
+		$this->assertStringContainsString( '<button class="wp-tooltip__toggle" popovertarget="my-tip" type="button"', $tooltip );
 		$this->assertStringContainsString( 'popovertarget="my-tip"', $tooltip );
 
 		// The bubble is a popover holding a text-only described element.
