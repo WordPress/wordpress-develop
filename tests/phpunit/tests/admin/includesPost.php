@@ -1467,13 +1467,13 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 
 		// Set post_author to another user to trigger edit_others_posts failure in _wp_translate_postdata().
 		$post_data = array(
-			'post_title'   => 'Test',
-			'content'      => 'Test content',
-			'post_type'    => 'post',
-			'post_status'  => 'draft',
-			'post_author'  => self::$editor_id,
-			'post_ID'      => $post->ID,
-			'saveasdraft'  => true,
+			'post_title'  => 'Test',
+			'content'     => 'Test content',
+			'post_type'   => 'post',
+			'post_status' => 'draft',
+			'post_author' => self::$editor_id,
+			'post_ID'     => $post->ID,
+			'saveasdraft' => true,
 		);
 
 		$result = edit_post( $post_data, true );
