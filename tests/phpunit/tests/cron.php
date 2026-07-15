@@ -863,6 +863,41 @@ class Tests_Cron extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensures that a schedule with a fractional interval that truncates to zero
+	 * does not cause a fatal `DivisionByZeroError` when rescheduling an event.
+	 *
+	 * A fractional interval such as `0.5` is greater than zero, but PHP's modulo
+	 * operator casts it to the integer `0`, which previously reached the modulo
+	 * in wp_reschedule_event() and triggered a `DivisionByZeroError`.
+	 *
+	 * @ticket 64404
+	 *
+	 * @covers ::wp_reschedule_event
+	 */
+	public function test_fractional_schedule_interval_does_not_throw() {
+		add_filter(
+			'cron_schedules',
+			static function ( $schedules ) {
+				$schedules['fractional_interval'] = array(
+					'interval' => 0.5,
+					'display'  => 'Fractional interval',
+				);
+				return $schedules;
+			}
+		);
+
+		// A timestamp in the past forces the modulo branch in wp_reschedule_event().
+		$past = time() - HOUR_IN_SECONDS;
+
+		// With $wp_error set, a WP_Error is returned instead of a fatal error.
+		$rescheduled_event = wp_reschedule_event( $past, 'fractional_interval', 'hook', array(), true );
+		$this->assertWPError( $rescheduled_event );
+
+		// With the default $wp_error, false is returned instead of a fatal error.
+		$this->assertFalse( wp_reschedule_event( $past, 'fractional_interval', 'hook' ) );
+	}
+
+	/**
 	 * @ticket 49961
 	 *
 	 * @covers ::wp_schedule_single_event
