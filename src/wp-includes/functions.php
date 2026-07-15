@@ -1570,7 +1570,7 @@ function nocache_headers() {
  * The options are passed to setcookie() unchanged, so its native defaults apply
  * to any that are omitted.
  *
- * @since x.y.z
+ * @since 7.1.0
  *
  * @param string $name    The name of the cookie.
  * @param string $value   The value of the cookie.
@@ -1599,7 +1599,7 @@ function wp_set_cookie( string $name, string $value, array $options = array() ):
 	/**
 	 * Filters the options used when a cookie is sent to the browser.
 	 *
-	 * @since x.y.z
+	 * @since 7.1.0
 	 *
 	 * @param array  $options The options to pass to setcookie().
 	 * @param string $name    The name of the cookie.
@@ -1612,7 +1612,7 @@ function wp_set_cookie( string $name, string $value, array $options = array() ):
 	 *
 	 * Returning false prevents the cookie from being sent.
 	 *
-	 * @since x.y.z
+	 * @since 7.1.0
 	 *
 	 * @param bool   $send    Whether to send the cookie. Default true.
 	 * @param string $name    The name of the cookie.
@@ -1633,7 +1633,7 @@ function wp_set_cookie( string $name, string $value, array $options = array() ):
  * instructs the browser to delete it. The path and domain must match those
  * used when the cookie was originally set for the removal to take effect.
  *
- * @since x.y.z
+ * @since 7.1.0
  *
  * @param string $name    The name of the cookie.
  * @param array  $options Optional. Options to pass to setcookie(). See {@see wp_set_cookie()} for the full list.
