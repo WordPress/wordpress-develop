@@ -409,7 +409,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				$provenance            = ( ! $same_node || $is_virtual ) ? 'virtual' : 'real';
 				$this->element_queue[] = new WP_HTML_Stack_Event( $token, WP_HTML_Stack_Event::PUSH, $provenance );
 
-				$this->change_parsing_namespace( $token->integration_node_type ? 'html' : $token->namespace );
+				$this->change_parsing_namespace_for_node( $token );
 			}
 		);
 
@@ -422,11 +422,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 
 				$adjusted_current_node = $this->get_adjusted_current_node();
 
-				if ( $adjusted_current_node ) {
-					$this->change_parsing_namespace( $adjusted_current_node->integration_node_type ? 'html' : $adjusted_current_node->namespace );
-				} else {
-					$this->change_parsing_namespace( 'html' );
-				}
+				$this->change_parsing_namespace_for_node( $adjusted_current_node );
 			}
 		);
 
@@ -438,6 +434,28 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		$this->release_internal_bookmark_on_destruct = function ( string $name ): void {
 			parent::release_bookmark( $name );
 		};
+	}
+
+	/**
+	 * Switches tokenizer namespace state for the next token.
+	 *
+	 * HTML integration points parse start tags and character tokens according to
+	 * HTML rules, but CDATA detection follows the adjusted current node's actual
+	 * namespace.
+	 *
+	 * @since 7.1.0
+	 * @ignore
+	 *
+	 * @param WP_HTML_Token|null $node Node controlling the next token's parsing context.
+	 */
+	private function change_parsing_namespace_for_node( ?WP_HTML_Token $node ): void {
+		if ( null === $node ) {
+			$this->change_parsing_namespace( 'html' );
+			return;
+		}
+
+		$this->change_parsing_namespace( $node->integration_node_type ? 'html' : $node->namespace );
+		$this->change_cdata_parsing_namespace( $node->namespace );
 	}
 
 	/**
@@ -575,9 +593,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		 * This is important so that any push/pop from the stack of open
 		 * elements does not change the parsing namespace.
 		 */
-		$fragment_processor->change_parsing_namespace(
-			$this->current_element->token->integration_node_type ? 'html' : $namespace
-		);
+		$fragment_processor->change_parsing_namespace_for_node( $this->current_element->token );
 
 		return $fragment_processor;
 	}
@@ -5619,11 +5635,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 					)
 				);
 
-				$this->change_parsing_namespace(
-					$this->context_node->integration_node_type
-						? 'html'
-						: $this->context_node->namespace
-				);
+				$this->change_parsing_namespace_for_node( $this->context_node );
 
 				if ( 'TEMPLATE' === $this->context_node->node_name ) {
 					$this->state->stack_of_template_insertion_modes[] = WP_HTML_Processor_State::INSERTION_MODE_IN_TEMPLATE;

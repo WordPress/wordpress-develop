@@ -546,15 +546,27 @@ class WP_HTML_Tag_Processor {
 	 * One of 'html', 'svg', or 'math'.
 	 *
 	 * Several parsing rules change based on whether the parser
-	 * is inside foreign content, including whether CDATA sections
-	 * are allowed and whether a self-closing flag indicates that
-	 * an element has no content.
+	 * is inside foreign content, including whether a self-closing
+	 * flag indicates that an element has no content.
 	 *
 	 * @since 6.7.0
 	 *
 	 * @var string
 	 */
 	private $parsing_namespace = 'html';
+
+	/**
+	 * Indicates the current node's namespace for CDATA section detection.
+	 *
+	 * HTML integration points follow HTML tokenization for start tags and
+	 * character tokens, but CDATA sections are allowed based on the adjusted
+	 * current node's actual namespace.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @var string
+	 */
+	private $cdata_parsing_namespace = 'html';
 
 	/**
 	 * What kind of syntax token became an HTML comment.
@@ -871,7 +883,26 @@ class WP_HTML_Tag_Processor {
 			return false;
 		}
 
-		$this->parsing_namespace = $new_namespace;
+		$this->parsing_namespace       = $new_namespace;
+		$this->cdata_parsing_namespace = $new_namespace;
+		return true;
+	}
+
+	/**
+	 * Switches the namespace context used for detecting CDATA sections.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @param string $new_namespace One of 'html', 'svg', or 'math' indicating whether
+	 *                              the adjusted current node can contain CDATA sections.
+	 * @return bool Whether the namespace was valid and changed.
+	 */
+	protected function change_cdata_parsing_namespace( string $new_namespace ): bool {
+		if ( ! in_array( $new_namespace, array( 'html', 'math', 'svg' ), true ) ) {
+			return false;
+		}
+
+		$this->cdata_parsing_namespace = $new_namespace;
 		return true;
 	}
 
@@ -1928,7 +1959,7 @@ class WP_HTML_Tag_Processor {
 				}
 
 				if (
-					'html' !== $this->parsing_namespace &&
+					'html' !== $this->cdata_parsing_namespace &&
 					strlen( $html ) > $at + 8 &&
 					'[' === $html[ $at + 2 ] &&
 					'C' === $html[ $at + 3 ] &&
