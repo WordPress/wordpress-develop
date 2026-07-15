@@ -76,10 +76,13 @@ abstract class WP_AI_Client_Builder {
 		 * Filters the default request timeout in seconds for AI Client HTTP requests.
 		 *
 		 * @since 7.0.0
+		 * @since 7.1.0 Added the `$builder_type` parameter.
 		 *
-		 * @param float $default_timeout The default timeout in seconds.
+		 * @param float  $default_timeout The default timeout in seconds.
+		 * @param string $builder_type    The class name of the builder the timeout applies to,
+		 *                                e.g. 'WP_AI_Client_Prompt_Builder' or 'WP_AI_Client_Embedding_Builder'.
 		 */
-		$filtered_default_timeout = apply_filters( 'wp_ai_client_default_request_timeout', $default_timeout );
+		$filtered_default_timeout = apply_filters( 'wp_ai_client_default_request_timeout', $default_timeout, get_class( $this ) );
 		if ( is_numeric( $filtered_default_timeout ) && (float) $filtered_default_timeout >= 0.0 ) {
 			$default_timeout = (float) $filtered_default_timeout;
 		} else {
