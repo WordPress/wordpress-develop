@@ -299,7 +299,9 @@ require ABSPATH . WPINC . '/ai-client/class-wp-ai-client-prompt-builder.php';
 require ABSPATH . WPINC . '/ai-client.php';
 require ABSPATH . WPINC . '/class-wp-connector-registry.php';
 require ABSPATH . WPINC . '/connectors.php';
+require ABSPATH . WPINC . '/class-wp-icon-collections-registry.php';
 require ABSPATH . WPINC . '/class-wp-icons-registry.php';
+require ABSPATH . WPINC . '/icons.php';
 require ABSPATH . WPINC . '/widgets.php';
 require ABSPATH . WPINC . '/class-wp-widget.php';
 require ABSPATH . WPINC . '/class-wp-widget-factory.php';
@@ -360,6 +362,7 @@ require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-font-families-contr
 require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-font-faces-controller.php';
 require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-font-collections-controller.php';
 require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-icons-controller.php';
+require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-icon-collections-controller.php';
 require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-view-config-controller.php';
 require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-abilities-v1-categories-controller.php';
 require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-abilities-v1-list-controller.php';

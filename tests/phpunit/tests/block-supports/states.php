@@ -141,6 +141,7 @@ class Tests_Block_Supports_States extends WP_UnitTestCase {
 	 *
 	 * @covers ::wp_get_state_declarations_with_background_resets
 	 *
+	 * @ticket 65561
 	 * @ticket 65239
 	 */
 	public function test_adds_background_image_reset_for_solid_background_color() {
@@ -153,7 +154,7 @@ class Tests_Block_Supports_States extends WP_UnitTestCase {
 		$this->assertSame(
 			array(
 				'background-color' => '#ff0000 !important',
-				'background-image' => 'unset !important',
+				'background-image' => 'unset',
 			),
 			$actual
 		);
@@ -960,6 +961,87 @@ class Tests_Block_Supports_States extends WP_UnitTestCase {
 
 		$this->assertStringContainsString(
 			'@media (width <= 480px){.' . $matches[0] . '{color:#ff0000 !important;}}',
+			$actual_stylesheet
+		);
+	}
+
+	/**
+	 * Tests that responsive text alignment generates media-query scoped CSS.
+	 *
+	 * @covers ::wp_render_block_states_support
+	 *
+	 * @ticket 65615
+	 */
+	public function test_responsive_text_alignment_generates_media_query_scoped_css() {
+		$this->ensure_block_registered( 'core/paragraph' );
+
+		$block_content = '<p class="wp-block-paragraph has-text-align-left">Hello</p>';
+		$block         = array(
+			'blockName' => 'core/paragraph',
+			'attrs'     => array(
+				'style' => array(
+					'typography' => array(
+						'textAlign' => 'left',
+					),
+					'@mobile'    => array(
+						'typography' => array(
+							'textAlign' => 'right',
+						),
+					),
+				),
+			),
+		);
+
+		$actual = wp_render_block_states_support( $block_content, $block );
+
+		$this->assertMatchesRegularExpression(
+			'/^<p class="wp-block-paragraph has-text-align-left (wp-states-[a-f0-9]{8})">Hello<\/p>$/',
+			$actual
+		);
+		preg_match( '/wp-states-[a-f0-9]{8}/', $actual, $matches );
+		$actual_stylesheet = wp_style_engine_get_stylesheet_from_context( 'block-supports', array( 'prettify' => false ) );
+
+		$this->assertStringContainsString(
+			'@media (width <= 480px){.' . $matches[0] . '{text-align:right !important;}}',
+			$actual_stylesheet
+		);
+	}
+
+	/**
+	 * Tests that a responsive background gradient generates media-query scoped CSS.
+	 *
+	 * @covers ::wp_render_block_states_support
+	 *
+	 * @ticket 65561
+	 */
+	public function test_responsive_background_gradient_generates_media_query_scoped_css() {
+		$this->ensure_block_registered( 'core/group' );
+
+		$block_content = '<div class="wp-block-group">Hello</div>';
+		$block         = array(
+			'blockName' => 'core/group',
+			'attrs'     => array(
+				'style' => array(
+					'@tablet' => array(
+						'background' => array(
+							'gradient' => 'linear-gradient(135deg,rgb(119,255,112) 0%,rgb(253,254,215) 99%)',
+						),
+					),
+				),
+			),
+		);
+
+		$actual = wp_render_block_states_support( $block_content, $block );
+
+		$this->assertMatchesRegularExpression(
+			'/^<div class="wp-block-group (wp-states-[a-f0-9]{8})">Hello<\/div>$/',
+			$actual
+		);
+		preg_match( '/wp-states-[a-f0-9]{8}/', $actual, $matches );
+		$actual_stylesheet = wp_style_engine_get_stylesheet_from_context( 'block-supports', array( 'prettify' => false ) );
+
+		$this->assertStringContainsString(
+			'@media (480px < width <= 782px){.' . $matches[0] . '{background-image:linear-gradient(135deg,rgb(119,255,112) 0%,rgb(253,254,215) 99%) !important;}}',
 			$actual_stylesheet
 		);
 	}
