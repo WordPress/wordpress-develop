@@ -463,13 +463,20 @@ class Tests_HtmlApi_WebPlatformTests extends WP_UnitTestCase {
 
 		fclose( $handle );
 
-		// Return the last result when reaching the end of the file.
-		return array(
-			$test_line_number,
-			$test_context_element,
-			// Remove the trailing newline
-			substr( $test_html, 0, -1 ),
-			$test_dom,
-		);
+		// Yield the last result when reaching the end of the file.
+		if ( $state && ! $test_script_flag ) {
+			// Other tests include the blank line separating them from the next test.
+			if ( ! str_ends_with( $test_dom, "\n\n" ) ) {
+				$test_dom .= "\n";
+			}
+
+			yield array(
+				$test_line_number,
+				$test_context_element,
+				// Remove the trailing newline
+				substr( $test_html, 0, -1 ),
+				$test_dom,
+			);
+		}
 	}
 }
