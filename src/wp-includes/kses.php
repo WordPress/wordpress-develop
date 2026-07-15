@@ -1273,6 +1273,42 @@ function wp_kses_uri_attributes() {
 }
 
 /**
+ * Returns an array of HTML attribute names whose value contains a list of URLs.
+ *
+ * Unlike single-URL attributes such as `href` or `src`, these attributes hold a
+ * comma-separated list of URLs, each optionally followed by a descriptor, for
+ * example `srcset="small.jpg 480w, large.jpg 1024w"`. Their values must be split
+ * into individual candidates so each URL can be sanitized on its own, and must
+ * not be passed through `esc_url()` as a whole.
+ *
+ * An attribute in this list is only sanitized as a URI if it is also present
+ * in {@see wp_kses_uri_attributes()}.
+ *
+ * @since 7.1.0
+ *
+ * @return string[] HTML attribute names whose value contains a list of URLs.
+ */
+function wp_kses_multi_uri_attributes() {
+	$multi_uri_attributes = array(
+		'srcset',
+	);
+
+	/**
+	 * Filters the list of attributes whose value contains a list of URLs.
+	 *
+	 * Use this filter to add attributes that, like `srcset`, contain multiple
+	 * comma-separated URLs with optional descriptors. Attributes added here
+	 * must also be added to the `wp_kses_uri_attributes` filter to be
+	 * sanitized as URIs.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @param string[] $multi_uri_attributes HTML attribute names whose value contains a list of URLs.
+	 */
+	return apply_filters( 'wp_kses_multi_uri_attributes', $multi_uri_attributes );
+}
+
+/**
  * Callback for `wp_kses_split()`.
  *
  * @since 3.1.0
@@ -1681,15 +1717,20 @@ function wp_kses_hair( $attr, $allowed_protocols ) {
  *
  * @since 7.1.0
  *
- * @param string   $attr_name         The attribute name to test.
- * @param string   $attr_value        The attribute value to sanitize.
- * @param string[] $allowed_protocols Array of allowed URL protocols.
- * @param string[] $multi_uri_attrs   Optional. Attributes that can contain multiple URIs. Default is array( 'srcset' ).
+ * @param string        $attr_name         The attribute name to test.
+ * @param string        $attr_value        The attribute value to sanitize.
+ * @param string[]      $allowed_protocols Array of allowed URL protocols.
+ * @param string[]|null $multi_uri_attrs   Optional. Attributes that can contain multiple URIs.
+ *                                         Default null, meaning the {@see wp_kses_multi_uri_attributes()} list.
  * @return string Sanitized attribute value.
  */
-function wp_kses_sanitize_uris( string $attr_name, string $attr_value, array $allowed_protocols, array $multi_uri_attrs = array( 'srcset' ) ): string {
+function wp_kses_sanitize_uris( string $attr_name, string $attr_value, array $allowed_protocols, ?array $multi_uri_attrs = null ): string {
 	$attr_name = strtolower( $attr_name );
 	$uri_attrs = wp_kses_uri_attributes();
+
+	if ( null === $multi_uri_attrs ) {
+		$multi_uri_attrs = wp_kses_multi_uri_attributes();
+	}
 
 	if ( ! in_array( $attr_name, $uri_attrs, true ) ) {
 		return $attr_value;

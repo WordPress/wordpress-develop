@@ -985,6 +985,52 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that set_attribute() consults wp_kses_multi_uri_attributes() rather
+	 * than hardcoding srcset.
+	 *
+	 * A URI attribute normally passes through esc_url(), which would corrupt a
+	 * srcset-style list by encoding the descriptor spaces. An attribute added to
+	 * both the `wp_kses_uri_attributes` and `wp_kses_multi_uri_attributes`
+	 * filters must skip esc_url() and keep its list value intact.
+	 *
+	 * @ticket 29807
+	 *
+	 * @covers WP_HTML_Tag_Processor::set_attribute
+	 */
+	public function test_set_attribute_respects_multi_uri_attributes_filter() {
+		$srcset_list = 'a.jpg 1x, b.jpg 2x';
+		$add_custom  = static function ( $attrs ) {
+			$attrs[] = 'data-srcset';
+			return $attrs;
+		};
+
+		// Registered only as a URI attribute, the value is passed through esc_url() and corrupted.
+		add_filter( 'wp_kses_uri_attributes', $add_custom );
+		$processor = new WP_HTML_Tag_Processor( '<img src="a.jpg">' );
+		$processor->next_tag();
+		$processor->set_attribute( 'data-srcset', $srcset_list );
+		$this->assertSame(
+			'http://a.jpg%201x,%20b.jpg%202x',
+			$processor->get_attribute( 'data-srcset' ),
+			'A single-URI attribute should receive esc_url() escaping'
+		);
+
+		// Also registered as a multi-URI attribute, the list value is preserved.
+		add_filter( 'wp_kses_multi_uri_attributes', $add_custom );
+		$processor = new WP_HTML_Tag_Processor( '<img src="a.jpg">' );
+		$processor->next_tag();
+		$processor->set_attribute( 'data-srcset', $srcset_list );
+		$this->assertSame(
+			$srcset_list,
+			$processor->get_attribute( 'data-srcset' ),
+			'A multi-URI attribute must not be passed through esc_url()'
+		);
+
+		remove_filter( 'wp_kses_uri_attributes', $add_custom );
+		remove_filter( 'wp_kses_multi_uri_attributes', $add_custom );
+	}
+
+	/**
 	 * @ticket 56299
 	 *
 	 * @covers WP_HTML_Tag_Processor::set_attribute

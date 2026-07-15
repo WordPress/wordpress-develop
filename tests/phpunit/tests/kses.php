@@ -3276,4 +3276,46 @@ HTML;
 			),
 		);
 	}
+
+	/**
+	 * Test that wp_kses_multi_uri_attributes() includes srcset by default.
+	 *
+	 * @ticket 29807
+	 * @covers ::wp_kses_multi_uri_attributes
+	 */
+	public function test_wp_kses_multi_uri_attributes_includes_srcset() {
+		$this->assertContains( 'srcset', wp_kses_multi_uri_attributes(), 'srcset should be a multi-URI attribute by default.' );
+	}
+
+	/**
+	 * Test that the wp_kses_multi_uri_attributes filter feeds the default
+	 * $multi_uri_attrs list of wp_kses_sanitize_uris().
+	 *
+	 * An attribute added to both the `wp_kses_uri_attributes` and
+	 * `wp_kses_multi_uri_attributes` filters receives per-entry sanitization
+	 * without callers having to pass an explicit $multi_uri_attrs argument.
+	 *
+	 * @ticket 29807
+	 * @covers ::wp_kses_multi_uri_attributes
+	 * @covers ::wp_kses_sanitize_uris
+	 */
+	public function test_wp_kses_multi_uri_attributes_filter_applies_by_default() {
+		$add_custom = static function ( $attrs ) {
+			$attrs[] = 'data-srcset';
+			return $attrs;
+		};
+		add_filter( 'wp_kses_uri_attributes', $add_custom );
+		add_filter( 'wp_kses_multi_uri_attributes', $add_custom );
+
+		$result = wp_kses_sanitize_uris(
+			'data-srcset',
+			'javascript:alert(1) 1x, https://example.com/img.jpg 2x',
+			wp_allowed_protocols()
+		);
+
+		remove_filter( 'wp_kses_uri_attributes', $add_custom );
+		remove_filter( 'wp_kses_multi_uri_attributes', $add_custom );
+
+		$this->assertSame( 'alert(1) 1x, https://example.com/img.jpg 2x', $result );
+	}
 }

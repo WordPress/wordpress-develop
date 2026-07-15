@@ -4605,13 +4605,13 @@ class WP_HTML_Tag_Processor {
 			 * @see https://html.spec.whatwg.org/#attributes-3
 			 */
 			/*
-			 * The srcset attribute contains a comma-separated list of URLs with
-			 * optional width/density descriptors, not a single URL. Passing the
-			 * whole value through esc_url() would encode the descriptor spaces
-			 * and corrupt the list, so it receives the standard attribute
-			 * escaping instead.
+			 * Multi-URI attributes such as srcset contain a comma-separated list
+			 * of URLs with optional width/density descriptors, not a single URL.
+			 * Passing the whole value through esc_url() would encode the
+			 * descriptor spaces and corrupt the list, so those attributes receive
+			 * the standard attribute escaping instead.
 			 */
-			$escaped_new_value = 'srcset' !== $comparable_name && in_array( $comparable_name, wp_kses_uri_attributes(), true )
+			$escaped_new_value = ! in_array( $comparable_name, wp_kses_multi_uri_attributes(), true ) && in_array( $comparable_name, wp_kses_uri_attributes(), true )
 				? esc_url( $value )
 				: strtr(
 					$value,
