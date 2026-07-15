@@ -126,16 +126,16 @@ class Tests_Blocks_WpApplyBlockContentFilters extends WP_UnitTestCase {
 		);
 
 		$content = sprintf(
-			"This shouldn't stay straight, and this should become a smilie: :mrgreen:\n\n<p>[%s]</p>\n\n<!-- wp:tests/apply-block-content-filters {\"label\":\"Direct block output\"} /-->\n\n<img src=\"https://example.org/image.jpg\" alt=\"\" class=\"content-image\" />\n\nhttps://example.com/apply-block-content-filters",
+			"This shouldn't use a straight apostrophe, and this should become a smilie: :mrgreen:\n\n<p>[%s]</p>\n\n<!-- wp:tests/apply-block-content-filters {\"label\":\"Direct block output\"} /-->\n\n<img src=\"https://example.org/image.jpg\" alt=\"\" class=\"content-image\" />\n\nhttps://example.com/apply-block-content-filters",
 			self::TEST_SHORTCODE
 		);
 
 		$output = _wp_apply_block_content_filters( $content, 'test-context' );
 
 		$this->assertStringContainsString(
-			'This shouldn&#8217;t stay straight',
+			'This shouldn&#8217;t use a straight apostrophe',
 			$output,
-			'wptexturize() should process the filtered content.'
+			'wptexturize() should convert straight apostrophes to curly apostrophe entities.'
 		);
 		$this->assertStringContainsString(
 			'class="wp-smiley"',
@@ -200,7 +200,7 @@ class Tests_Blocks_WpApplyBlockContentFilters extends WP_UnitTestCase {
 				'render_callback' => static function () use ( &$seen_ids, &$seen_ids_during_render ) {
 					$seen_ids_during_render = $seen_ids;
 
-					return '<div class="apply-block-content-filters-block">Seen ID checked</div>';
+					return '<div class="apply-block-content-filters-block">Nested block rendered while recursion guard was active</div>';
 				},
 			)
 		);
@@ -213,7 +213,7 @@ class Tests_Blocks_WpApplyBlockContentFilters extends WP_UnitTestCase {
 		);
 
 		$this->assertStringContainsString(
-			'Seen ID checked',
+			'Nested block rendered while recursion guard was active',
 			$output,
 			'The test block should render while the ID is marked as seen.'
 		);
