@@ -376,6 +376,18 @@ function _unhook_font_registration() {
 tests_add_filter( 'init', '_unhook_font_registration', 1000 );
 
 /**
+ * After the init action has been run once, trying to re-register icon collections and icons
+ * can cause errors. To avoid this, unhook the icon registration functions.
+ *
+ * @since 7.1.0
+ */
+function _unhook_icon_registration() {
+	remove_action( 'init', '_wp_register_default_icon_collections', 0 );
+	remove_action( 'init', '_wp_register_default_icons' );
+}
+tests_add_filter( 'init', '_unhook_icon_registration', 1000 );
+
+/**
  * After the init action has been run once, trying to re-register connector settings can cause
  * duplicate registrations. To avoid this, unhook the connector registration functions.
  *
