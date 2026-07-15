@@ -50,6 +50,7 @@ jobs:
   #
   # Performs the following steps:
   # - Checks out the repository.
+  # - Installs Composer dependencies.
   # - Sets up Node.js.
   # - Logs debug information about the GitHub Action runner.
   # - Installs npm dependencies.
@@ -75,20 +76,9 @@ jobs:
           show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
           persist-credentials: false
 
-      # This date is used to ensure that the PHPCS cache is cleared at least once every week.
-      # http://man7.org/linux/man-pages/man1/date.1.html
-      - name: "Get last Monday's date"
-        id: get-date
-        if: ${{ inputs.test-certificates }}
-        run: echo "date=$(/bin/date -u --date='last Mon' "+%F")" >> "$GITHUB_OUTPUT"
-
-      # Since Composer dependencies are installed using `composer update` and no lock file is in version control,
-      # passing a custom cache suffix ensures that the cache is flushed at least once per week.
       - name: Install Composer dependencies
         if: ${{ inputs.test-certificates }}
         uses: ramsey/composer-install@65e4f84970763564f46a70b8a54b90d033b3bdda # 4.0.0
-        with:
-          custom-cache-suffix: ${{ steps.get-date.outputs.date }}
 
       - name: Set up Node.js
         uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0

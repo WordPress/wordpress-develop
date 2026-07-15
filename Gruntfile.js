@@ -1946,9 +1946,9 @@ module.exports = function(grunt) {
 		var spawn = require( 'child_process' ).spawnSync;
 		var fs = require( 'fs' );
 
-		// Ensure that `composer update` has been run and the dependency is installed.
+		// Ensure that `composer install` has been run and the dependency is installed.
 		if ( ! fs.existsSync( 'vendor' ) || ! fs.existsSync( 'vendor/composer' ) || ! fs.existsSync( 'vendor/composer/ca-bundle' ) ) {
-			grunt.log.error( 'composer/ca-bundle dependency is missing. Please run `composer update` before attempting to upgrade the certificate bundle.' );
+			grunt.log.error( 'composer/ca-bundle dependency is missing. Please run `composer install` before attempting to upgrade the certificate bundle.' );
 			done( false );
 			return;
 		}
