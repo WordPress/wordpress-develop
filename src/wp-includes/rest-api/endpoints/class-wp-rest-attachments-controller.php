@@ -1244,13 +1244,13 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		 * mask's transparency.
 		 */
 		if ( $has_mask_modifier ) {
-			add_filter( 'image_editor_output_format', '__return_empty_array', 100 );
+			add_filter( 'image_editor_output_format', '__return_empty_array', PHP_INT_MAX );
 		}
 
 		$saved = $image_editor->save( $uploads['path'] . "/$filename", $output_mime_type );
 
 		if ( $has_mask_modifier ) {
-			remove_filter( 'image_editor_output_format', '__return_empty_array', 100 );
+			remove_filter( 'image_editor_output_format', '__return_empty_array', PHP_INT_MAX );
 		}
 
 		if ( is_wp_error( $saved ) ) {
