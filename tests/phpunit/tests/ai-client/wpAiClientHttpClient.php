@@ -332,7 +332,7 @@ class Tests_AI_Client_HTTP_Client extends WP_UnitTestCase {
 	/**
 	 * Test that sendRequestWithOptions includes the HTTP method in the NetworkException message.
 	 *
-	 * @ticket 64591
+	 * @ticket 65421
 	 */
 	public function test_send_request_with_options_wp_error_message_includes_method() {
 		add_filter(
