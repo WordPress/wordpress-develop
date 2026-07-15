@@ -957,6 +957,83 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensures that CDATA sections remain available inside MathML HTML integration points.
+	 *
+	 * @ticket 61576
+	 */
+	public function test_cdata_sections_in_mathml_html_integration_points() {
+		$processor = WP_HTML_Processor::create_fragment(
+			'<math><annotation-xml encoding="text/html"><![CDATA[x]]></annotation-xml></math>'
+		);
+
+		$this->assertTrue(
+			$processor->next_tag( 'ANNOTATION-XML' ),
+			'Failed to find the ANNOTATION-XML element under test.'
+		);
+		$this->assertTrue( $processor->next_token(), 'Failed to find the expected CDATA section.' );
+		$this->assertSame(
+			'#cdata-section',
+			$processor->get_token_name(),
+			'CDATA should remain available at a MathML HTML integration point.'
+		);
+		$this->assertSame( 'math', $processor->get_namespace(), 'Found the wrong namespace for the CDATA section.' );
+		$this->assertSame( 'x', $processor->get_modifiable_text(), 'Found incorrect CDATA content.' );
+	}
+
+	/**
+	 * Ensures that CDATA parsing context is restored after leaving an HTML child.
+	 *
+	 * @ticket 61576
+	 */
+	public function test_cdata_context_restored_after_html_child_of_integration_point() {
+		$processor = WP_HTML_Processor::create_fragment(
+			'<svg><foreignObject><p>HTML</p><![CDATA[SVG]]></foreignObject></svg>'
+		);
+
+		$this->assertTrue( $processor->next_tag( 'P' ), 'Failed to find the P element under test.' );
+		$this->assertTrue(
+			$processor->next_tag(
+				array(
+					'tag_name'    => 'P',
+					'tag_closers' => 'visit',
+				)
+			),
+			'Failed to find the P element closer under test.'
+		);
+		$this->assertTrue( $processor->is_tag_closer(), 'Expected to stop on the P element closer.' );
+		$this->assertTrue( $processor->next_token(), 'Failed to find the expected CDATA section.' );
+		$this->assertSame(
+			'#cdata-section',
+			$processor->get_token_name(),
+			'CDATA should be available again after leaving an HTML child of an integration point.'
+		);
+		$this->assertSame( 'SVG', $processor->get_modifiable_text(), 'Found incorrect CDATA content.' );
+	}
+
+	/**
+	 * Ensures that seeking restores the CDATA parsing context.
+	 *
+	 * @ticket 61576
+	 */
+	public function test_seek_restores_cdata_context() {
+		$processor = WP_HTML_Processor::create_fragment(
+			'<svg><title><![CDATA[title]]></title><path></path></svg>'
+		);
+
+		$this->assertTrue( $processor->next_tag( 'TITLE' ), 'Failed to find the TITLE element under test.' );
+		$this->assertTrue( $processor->set_bookmark( 'title' ), 'Failed to bookmark the TITLE element.' );
+		$this->assertTrue( $processor->next_tag( 'PATH' ), 'Failed to advance beyond the bookmarked TITLE element.' );
+		$this->assertTrue( $processor->seek( 'title' ), 'Failed to seek back to the bookmarked TITLE element.' );
+		$this->assertTrue( $processor->next_token(), 'Failed to find the expected CDATA section after seeking.' );
+		$this->assertSame(
+			'#cdata-section',
+			$processor->get_token_name(),
+			'Seeking should restore the CDATA parsing context at an integration point.'
+		);
+		$this->assertSame( 'title', $processor->get_modifiable_text(), 'Found incorrect CDATA content after seeking.' );
+	}
+
+	/**
 	 * Ensures that the processor stops correctly on a FORM tag closer token.
 	 *
 	 * Form tag closers have complicated conditions. There was a bug where the processor
