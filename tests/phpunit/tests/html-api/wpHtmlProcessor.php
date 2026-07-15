@@ -897,6 +897,31 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensures that CDATA sections remain available inside SVG HTML integration points.
+	 *
+	 * @ticket 61576
+	 */
+	public function test_cdata_sections_in_svg_html_integration_points() {
+		$processor = WP_HTML_Processor::create_fragment(
+			'<svg><foreignObject><![CDATA[foo]]></foreignObject></svg>'
+		);
+
+		$this->assertTrue(
+			$processor->next_tag( 'foreignObject' ),
+			'Failed to find the foreignObject element under test.'
+		);
+		$this->assertSame( 'svg', $processor->get_namespace(), 'Found the wrong namespace for the foreignObject element.' );
+		$this->assertTrue( $processor->next_token(), 'Failed to find the expected CDATA section.' );
+		$this->assertSame(
+			'#cdata-section',
+			$processor->get_token_name(),
+			'CDATA should remain available at an SVG HTML integration point.'
+		);
+		$this->assertSame( 'svg', $processor->get_namespace(), 'Found the wrong namespace for the CDATA section.' );
+		$this->assertSame( 'foo', $processor->get_modifiable_text(), 'Found incorrect CDATA content.' );
+	}
+
+	/**
 	 * Ensures that the processor correctly adjusts the namespace
 	 * for elements inside MathML integration points.
 	 *
