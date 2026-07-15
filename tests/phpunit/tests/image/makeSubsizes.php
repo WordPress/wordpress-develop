@@ -63,12 +63,12 @@ class Tests_Image_MakeSubsizes extends WP_UnitTestCase {
 
 		// Two size names requesting an identical file, plus one distinct size.
 		$new_sizes = array(
-			'test_dedup_a' => array(
+			'test_dedup_a'  => array(
 				'width'  => 40,
 				'height' => 40,
 				'crop'   => true,
 			),
-			'test_dedup_b' => array(
+			'test_dedup_b'  => array(
 				'width'  => 40,
 				'height' => 40,
 				'crop'   => true,
