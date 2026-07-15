@@ -1182,6 +1182,65 @@ class Tests_Comment extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 64217
+	 *
+	 * @covers ::wp_new_comment_notify_postauthor
+	 */
+	public function test_wp_new_comment_notify_postauthor_filter_should_receive_truthy_default_for_unapproved_note() {
+		$c = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_id,
+				'comment_type'     => 'note',
+				'comment_approved' => '0',
+			)
+		);
+
+		update_option( 'wp_notes_notify', 1 );
+
+		$maybe_notify = null;
+		add_filter(
+			'notify_post_author',
+			static function ( $value ) use ( &$maybe_notify ) {
+				$maybe_notify = $value;
+				return false;
+			}
+		);
+
+		wp_new_comment_notify_postauthor( $c );
+
+		$this->assertTrue( (bool) $maybe_notify, 'The filter should receive a truthy default for an unapproved note.' );
+	}
+
+	/**
+	 * @ticket 64217
+	 *
+	 * @covers ::wp_new_comment_notify_postauthor
+	 */
+	public function test_wp_new_comment_notify_postauthor_filter_should_receive_option_value_for_approved_comment() {
+		$c = self::factory()->comment->create(
+			array(
+				'comment_post_ID' => self::$post_id,
+			)
+		);
+
+		update_option( 'comments_notify', 0 );
+
+		$maybe_notify = null;
+		add_filter(
+			'notify_post_author',
+			static function ( $value ) use ( &$maybe_notify ) {
+				$maybe_notify = $value;
+				return $value;
+			}
+		);
+
+		$sent = wp_new_comment_notify_postauthor( $c );
+
+		$this->assertFalse( (bool) $maybe_notify, 'The filter should receive the comments_notify option value as the default for an approved comment.' );
+		$this->assertFalse( $sent, 'No notification should be sent for an approved comment when comments_notify is disabled.' );
+	}
+
+	/**
 	 * @ticket 43805
 	 *
 	 * @covers ::wp_new_comment_notify_postauthor
