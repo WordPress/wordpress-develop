@@ -476,6 +476,12 @@ function edit_post( $post_data = null, $wp_error = false ) {
 		return $success;
 	}
 
+	if ( 0 === $success ) {
+		if ( $wp_error ) {
+			return new WP_Error( 'edit_post_failed', __( 'Could not update post.' ) );
+		}
+	}
+
 	// Now that we have an ID we can fix any attachment anchor hrefs.
 	_fix_attachment_links( $post_id );
 
@@ -2147,8 +2153,8 @@ function post_preview() {
  * @since 3.9.0
  *
  * @param array $post_data Associative array of the submitted post data.
- * @return mixed The value 0 or WP_Error on failure. The saved post ID on success.
- *               The ID can be the draft post_id or the autosave revision post_id.
+ * @return int|WP_Error The saved post ID on success, WP_Error on failure.
+ *                      The ID can be the draft post_id or the autosave revision post_id.
  */
 function wp_autosave( $post_data ) {
 	// Back-compat.
