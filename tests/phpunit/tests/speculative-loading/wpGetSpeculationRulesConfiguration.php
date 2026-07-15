@@ -12,15 +12,31 @@
  */
 class Tests_Speculative_Loading_wpGetSpeculationRulesConfiguration extends WP_UnitTestCase {
 
-	public function set_up() {
+	/**
+	 * Stores the original speculative loading env values for cleanup.
+	 *
+	 * @var array<string, string|false>
+	 */
+	private array $original_env = array();
+
+	public function set_up(): void {
 		parent::set_up();
+
+		foreach ( array( 'WP_SPECULATIVE_LOADING_DEFAULT_MODE', 'WP_SPECULATIVE_LOADING_DEFAULT_EAGERNESS' ) as $name ) {
+			$this->original_env[ $name ] = getenv( $name );
+		}
 
 		update_option( 'permalink_structure', '/%year%/%monthnum%/%day%/%postname%/' );
 	}
 
 	public function tear_down(): void {
-		putenv( 'WP_SPECULATIVE_LOADING_DEFAULT_MODE' );
-		putenv( 'WP_SPECULATIVE_LOADING_DEFAULT_EAGERNESS' );
+		foreach ( $this->original_env as $name => $value ) {
+			if ( false === $value ) {
+				putenv( $name );
+			} else {
+				putenv( "{$name}={$value}" );
+			}
+		}
 
 		parent::tear_down();
 	}
