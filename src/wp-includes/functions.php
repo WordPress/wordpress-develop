@@ -1585,6 +1585,15 @@ function nocache_headers() {
  *     @type string $samesite Whether the cookie should be available for cross-site requests. Accepts 'Lax', 'Strict', or 'None'.
  * }
  * @return bool Whether the cookie was sent successfully.
+ * @phpstan-param non-empty-string $name
+ * @phpstan-param array{
+ *     expires?: int,
+ *     path?: non-empty-string,
+ *     domain?: non-empty-string,
+ *     secure?: bool,
+ *     httponly?: bool,
+ *     samesite?: 'Lax'|'Strict'|'None',
+ * } $options
  */
 function wp_set_cookie( string $name, string $value, array $options = array() ): bool {
 	/**
@@ -1627,9 +1636,18 @@ function wp_set_cookie( string $name, string $value, array $options = array() ):
  * @since x.y.z
  *
  * @param string $name    The name of the cookie.
- * @param array  $options Optional. Options to pass to setcookie(). See wp_set_cookie() for the full list.
+ * @param array  $options Optional. Options to pass to setcookie(). See {@see wp_set_cookie()} for the full list.
  *                        Default empty array.
  * @return bool True if the cookie was removed successfully, false otherwise.
+ * @phpstan-param non-empty-string $name
+ * @phpstan-param array{
+ *     expires?: int,
+ *     path?: non-empty-string,
+ *     domain?: non-empty-string,
+ *     secure?: bool,
+ *     httponly?: bool,
+ *     samesite?: 'Lax'|'Strict'|'None',
+ * } $options
  */
 function wp_unset_cookie( string $name, array $options = array() ): bool {
 	$options['expires'] = time() - YEAR_IN_SECONDS;
