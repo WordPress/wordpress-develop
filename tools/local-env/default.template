@@ -15,7 +15,7 @@ server {
 
 	absolute_redirect off;
 
-	gzip on;
+	gzip ${LOCAL_NGINX_COMPRESSION};
 	gzip_vary on;
 	gzip_proxied any;
 	gzip_comp_level 5;
