@@ -1585,11 +1585,10 @@ function nocache_headers() {
  *     @type string $samesite Whether the cookie should be available for cross-site requests. Accepts 'Lax', 'Strict', or 'None'.
  * }
  * @return bool Whether the cookie was sent successfully.
- * @phpstan-param non-empty-string $name
  * @phpstan-param array{
  *     expires?: int,
- *     path?: non-empty-string,
- *     domain?: non-empty-string,
+ *     path?: string,
+ *     domain?: string,
  *     secure?: bool,
  *     httponly?: bool,
  *     samesite?: 'Lax'|'Strict'|'None',
@@ -1639,11 +1638,10 @@ function wp_set_cookie( string $name, string $value, array $options = array() ):
  * @param array  $options Optional. Options to pass to setcookie(). See {@see wp_set_cookie()} for the full list.
  *                        Default empty array.
  * @return bool True if the cookie was removed successfully, false otherwise.
- * @phpstan-param non-empty-string $name
  * @phpstan-param array{
  *     expires?: int,
- *     path?: non-empty-string,
- *     domain?: non-empty-string,
+ *     path?: string,
+ *     domain?: string,
  *     secure?: bool,
  *     httponly?: bool,
  *     samesite?: 'Lax'|'Strict'|'None',
