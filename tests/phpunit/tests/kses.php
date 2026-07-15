@@ -3318,4 +3318,40 @@ HTML;
 
 		$this->assertSame( 'alert(1) 1x, https://example.com/img.jpg 2x', $result );
 	}
+
+	/**
+	 * Document the accepted limitation for commas attached to invalid descriptors.
+	 *
+	 * In "a.jpg 2q,javascript:alert(1)" the token "2q" is not a valid width or
+	 * density descriptor and the comma is not adjacent to whitespace, so KSES
+	 * treats the whole value as a single URL and protocol-checks it as one
+	 * string. A browser parsing this invalid srcset may instead drop the
+	 * malformed candidate and read "javascript:alert(1)" as a candidate URL of
+	 * its own.
+	 *
+	 * The asymmetry is accepted because srcset candidates are only ever fetched
+	 * as images: a disallowed scheme that survives this way is never navigated
+	 * to or executed. These assertions pin the current behavior so any change
+	 * to the entry splitter is made consciously.
+	 *
+	 * @ticket 29807
+	 * @covers ::wp_kses_sanitize_uris
+	 * @dataProvider data_wp_kses_srcset_invalid_descriptor_comma
+	 */
+	public function test_wp_kses_srcset_invalid_descriptor_comma( $input, $expected ) {
+		$this->assertSame( $expected, wp_kses_sanitize_uris( 'srcset', $input, wp_allowed_protocols() ) );
+	}
+
+	public function data_wp_kses_srcset_invalid_descriptor_comma() {
+		return array(
+			'invalid descriptor: single-URL protocol check strips through the colon' => array(
+				'a.jpg 2q,javascript:alert(1)',
+				'alert(1)',
+			),
+			'invalid descriptor after path query: value survives as one inert URL' => array(
+				'a.jpg/?v=1 2q,javascript:alert(1)',
+				'a.jpg/?v=1 2q,javascript:alert(1)',
+			),
+		);
+	}
 }

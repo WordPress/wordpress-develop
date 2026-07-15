@@ -1751,6 +1751,14 @@ function wp_kses_sanitize_uris( string $attr_name, string $attr_value, array $al
 		 * - follows a width or pixel density descriptor (e.g. "img.jpg 2x, next.jpg"), or
 		 * - is adjacent to whitespace (URLs in srcset must encode whitespace as %20,
 		 *   so a comma next to whitespace always separates two entries).
+		 *
+		 * Known limitation: a comma attached to an *invalid* descriptor (e.g.
+		 * "img.jpg 2q,next.jpg") does not match either rule, so the surrounding
+		 * text is protocol-checked as a single URL. Browsers may parse such an
+		 * invalid srcset into more candidates than KSES does. This asymmetry is
+		 * accepted because srcset candidates are only ever fetched as images;
+		 * a disallowed scheme that rides through this way is never navigated
+		 * to or executed.
 		 */
 		$descriptor     = '\d+(?:\.\d+)?[wx]';
 		$delimiter      = '\s+' . $descriptor . '\s*,\s*|\s*,\s+|\s+,\s*';
