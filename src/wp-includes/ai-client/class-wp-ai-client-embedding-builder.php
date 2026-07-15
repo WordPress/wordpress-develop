@@ -9,12 +9,7 @@
 
 use WordPress\AiClient\AiClient;
 use WordPress\AiClient\Builders\EmbeddingBuilder;
-use WordPress\AiClient\Common\Exception\InvalidArgumentException;
-use WordPress\AiClient\Common\Exception\TokenLimitReachedException;
 use WordPress\AiClient\Providers\Http\DTO\RequestOptions;
-use WordPress\AiClient\Providers\Http\Exception\ClientException;
-use WordPress\AiClient\Providers\Http\Exception\NetworkException;
-use WordPress\AiClient\Providers\Http\Exception\ServerException;
 use WordPress\AiClient\Providers\Models\Contracts\ModelInterface;
 use WordPress\AiClient\Providers\Models\DTO\ModelConfig;
 use WordPress\AiClient\Providers\ProviderRegistry;
@@ -37,6 +32,8 @@ use WordPress\AiClient\Results\DTO\EmbeddingResult;
  *
  * @since 7.1.0
  *
+ * @see WP_AI_Client_Builder
+ *
  * @phpstan-import-type EmbeddingInput from EmbeddingBuilder
  *
  * @method self with_input(...$input) Adds one or more inputs to embed.
@@ -51,23 +48,7 @@ use WordPress\AiClient\Results\DTO\EmbeddingResult;
  * @method Embedding|WP_Error generate_embedding() Generates a single embedding from the configured input.
  * @method list<Embedding>|WP_Error generate_embeddings() Generates embeddings from the configured inputs.
  */
-class WP_AI_Client_Embedding_Builder {
-
-	/**
-	 * Wrapped embedding builder instance from the PHP AI Client SDK.
-	 *
-	 * @since 7.1.0
-	 * @var EmbeddingBuilder
-	 */
-	private EmbeddingBuilder $builder;
-
-	/**
-	 * WordPress error instance, if any error occurred during method calls.
-	 *
-	 * @since 7.1.0
-	 * @var WP_Error|null
-	 */
-	private ?WP_Error $error = null;
+class WP_AI_Client_Embedding_Builder extends WP_AI_Client_Builder {
 
 	/**
 	 * List of methods that generate embeddings from the inputs.
@@ -96,259 +77,84 @@ class WP_AI_Client_Embedding_Builder {
 	);
 
 	/**
-	 * Constructor.
+	 * Creates the wrapped embedding builder instance from the PHP AI Client SDK.
 	 *
 	 * @since 7.1.0
 	 *
 	 * @param ProviderRegistry                         $registry The provider registry for finding suitable models.
-	 * @param EmbeddingInput|list<EmbeddingInput>|null $input    Optional. Initial input(s) to embed.
+	 * @param EmbeddingInput|list<EmbeddingInput>|null $input    Initial input(s) to embed, or null.
 	 *                                                           A string for simple text inputs,
 	 *                                                           a MessagePart or File object for
 	 *                                                           structured content, an array for a
 	 *                                                           message part array shape, or a list
 	 *                                                           of any of these to embed multiple
-	 *                                                           inputs. Default null.
+	 *                                                           inputs.
+	 * @return EmbeddingBuilder The SDK embedding builder instance.
 	 */
-	public function __construct( ProviderRegistry $registry, $input = null ) {
-		try {
-			$this->builder = new EmbeddingBuilder( $registry, $input, AiClient::getEventDispatcher() );
-		} catch ( Exception $e ) {
-			$this->builder = new EmbeddingBuilder( $registry, null, AiClient::getEventDispatcher() );
-			$this->error   = $this->exception_to_wp_error( $e );
-		}
-
-		$default_timeout = 30.0;
-
-		/** This filter is documented in wp-includes/ai-client/class-wp-ai-client-prompt-builder.php */
-		$filtered_default_timeout = apply_filters( 'wp_ai_client_default_request_timeout', $default_timeout );
-		if ( is_numeric( $filtered_default_timeout ) && (float) $filtered_default_timeout >= 0.0 ) {
-			$default_timeout = (float) $filtered_default_timeout;
-		} else {
-			_doing_it_wrong(
-				__METHOD__,
-				sprintf(
-					/* translators: %s: wp_ai_client_default_request_timeout */
-					__( 'The %s filter must return a non-negative number.' ),
-					'<code>wp_ai_client_default_request_timeout</code>'
-				),
-				'7.1.0'
-			);
-		}
-
-		$this->builder->usingRequestOptions(
-			RequestOptions::fromArray(
-				array(
-					RequestOptions::KEY_TIMEOUT => $default_timeout,
-				)
-			)
-		);
+	protected function create_sdk_builder( ProviderRegistry $registry, $input ): object {
+		return new EmbeddingBuilder( $registry, $input, AiClient::getEventDispatcher() );
 	}
 
 	/**
-	 * Magic method to proxy snake_case method calls to their PHP AI Client camelCase counterparts.
-	 *
-	 * This allows WordPress developers to use snake_case naming conventions. It catches
-	 * any exceptions thrown, stores them, and returns a WP_Error when a terminate method
-	 * is called.
+	 * Retrieves the prefix used for WP_Error codes created by this builder.
 	 *
 	 * @since 7.1.0
 	 *
-	 * @param string            $name      The method name in snake_case.
-	 * @param array<int, mixed> $arguments The method arguments.
-	 * @return mixed The result of the method call.
+	 * @return string The error code prefix.
 	 */
-	public function __call( string $name, array $arguments ) {
-		/*
-		 * If an error occurred in a previous method call, either return the error for terminate methods,
-		 * or return the same instance for other methods to maintain the fluent interface.
+	protected function get_error_code_prefix(): string {
+		return 'embedding';
+	}
+
+	/**
+	 * Retrieves the error message to use when the embedding generation is prevented by a filter.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @return string The translated error message.
+	 */
+	protected function get_prevented_error_message(): string {
+		return __( 'Embedding generation was prevented by a filter.' );
+	}
+
+	/**
+	 * Checks whether the embedding generation is prevented by the `wp_ai_client_prevent_embedding` filter.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @return bool Whether the embedding generation is prevented.
+	 */
+	protected function is_prevented_by_filter(): bool {
+		/**
+		 * Filters whether to prevent the embedding generation from being executed.
+		 *
+		 * @since 7.1.0
+		 *
+		 * @param bool                           $prevent Whether to prevent the embedding generation. Default false.
+		 * @param WP_AI_Client_Embedding_Builder $builder A clone of the embedding builder instance (read-only).
 		 */
-		if ( null !== $this->error ) {
-			if ( self::is_generating_method( $name ) ) {
-				return $this->error;
-			}
-			if ( self::is_support_check_method( $name ) ) {
-				return false;
-			}
-			return $this;
-		}
-
-		// Check if the embedding generation should be prevented for is_supported and generate_* methods.
-		if ( self::is_support_check_method( $name ) || self::is_generating_method( $name ) ) {
-			// If AI is not supported, then there's no need to apply the filter as the embedding will be prevented anyway.
-			$is_ai_disabled = ! wp_supports_ai();
-			$prevent        = $is_ai_disabled;
-			if ( ! $prevent ) {
-				/**
-				 * Filters whether to prevent the embedding generation from being executed.
-				 *
-				 * @since 7.1.0
-				 *
-				 * @param bool                           $prevent Whether to prevent the embedding generation. Default false.
-				 * @param WP_AI_Client_Embedding_Builder $builder A clone of the embedding builder instance (read-only).
-				 */
-				$prevent = (bool) apply_filters( 'wp_ai_client_prevent_embedding', false, clone $this );
-			}
-
-			if ( $prevent ) {
-				// For the is_supported method, return false.
-				if ( self::is_support_check_method( $name ) ) {
-					return false;
-				}
-
-				$error_message = $is_ai_disabled
-					? __( 'AI features are not supported in this environment.' )
-					: __( 'Embedding generation was prevented by a filter.' );
-
-				// For generate_* methods, create a WP_Error.
-				$this->error = new WP_Error(
-					'embedding_prevented',
-					$error_message,
-					array(
-						'status' => 503,
-					)
-				);
-
-				if ( self::is_generating_method( $name ) ) {
-					return $this->error;
-				}
-				return $this;
-			}
-		}
-
-		try {
-			$callable = $this->get_builder_callable( $name );
-			$result   = $callable( ...$arguments );
-
-			// If the result is an EmbeddingBuilder, return the current instance to allow method chaining.
-			if ( $result instanceof EmbeddingBuilder ) {
-				return $this;
-			}
-
-			return $result;
-		} catch ( Exception $e ) {
-			$this->error = $this->exception_to_wp_error( $e );
-
-			if ( self::is_generating_method( $name ) ) {
-				return $this->error;
-			}
-			return $this;
-		}
+		return (bool) apply_filters( 'wp_ai_client_prevent_embedding', false, clone $this );
 	}
 
 	/**
-	 * Converts an exception into a WP_Error with a structured error code and message.
-	 *
-	 * This method maps different exception types to specific WP_Error codes and HTTP status codes.
-	 * The presence of the status codes means these WP_Error objects can be easily used in REST API responses
-	 * or other contexts where HTTP semantics are relevant.
+	 * Retrieves the methods that generate embeddings from the inputs.
 	 *
 	 * @since 7.1.0
 	 *
-	 * @param Exception $e The exception to convert.
-	 * @return WP_Error The resulting WP_Error object.
+	 * @return array<string, bool> The generating methods map.
 	 */
-	private function exception_to_wp_error( Exception $e ): WP_Error {
-		if ( $e instanceof NetworkException ) {
-			$error_code  = 'embedding_network_error';
-			$status_code = 503;
-		} elseif ( $e instanceof ClientException ) {
-			// `ClientException` uses HTTP status codes as exception codes, so we can rely on them.
-			$error_code  = 'embedding_client_error';
-			$status_code = $e->getCode() ? $e->getCode() : 400;
-		} elseif ( $e instanceof ServerException ) {
-			// `ServerException` uses HTTP status codes as exception codes, so we can rely on them.
-			$error_code  = 'embedding_upstream_server_error';
-			$status_code = $e->getCode() ? $e->getCode() : 500;
-		} elseif ( $e instanceof TokenLimitReachedException ) {
-			$error_code  = 'embedding_token_limit_reached';
-			$status_code = 400;
-		} elseif ( $e instanceof InvalidArgumentException ) {
-			$error_code  = 'embedding_invalid_argument';
-			$status_code = 400;
-		} else {
-			$error_code  = 'embedding_builder_error';
-			$status_code = 500;
-		}
-
-		return new WP_Error(
-			$error_code,
-			$e->getMessage(),
-			array(
-				'status'          => $status_code,
-				'exception_class' => get_class( $e ),
-			)
-		);
+	protected function get_generating_methods(): array {
+		return self::$generating_methods;
 	}
 
 	/**
-	 * Checks if a method name is a support check method (is_supported).
+	 * Retrieves the methods that check whether the embedding generation is supported.
 	 *
 	 * @since 7.1.0
 	 *
-	 * @param string $name The method name.
-	 * @return bool True if the method is a support check method, false otherwise.
+	 * @return array<string, bool> The support check methods map.
 	 */
-	private static function is_support_check_method( string $name ): bool {
-		return isset( self::$support_check_methods[ $name ] );
-	}
-
-	/**
-	 * Checks if a method name is a generating method (generate_*).
-	 *
-	 * @since 7.1.0
-	 *
-	 * @param string $name The method name.
-	 * @return bool True if the method is a generating method, false otherwise.
-	 */
-	private static function is_generating_method( string $name ): bool {
-		return isset( self::$generating_methods[ $name ] );
-	}
-
-	/**
-	 * Retrieves a callable for a given PHP AI Client SDK embedding builder method name.
-	 *
-	 * @since 7.1.0
-	 *
-	 * @param string $name The method name in snake_case.
-	 * @return callable The callable for the specified method.
-	 *
-	 * @throws BadMethodCallException If the method does not exist.
-	 */
-	protected function get_builder_callable( string $name ): callable {
-		$camel_case_name = $this->snake_to_camel_case( $name );
-
-		$method = array( $this->builder, $camel_case_name );
-		if ( ! is_callable( $method ) ) {
-			throw new BadMethodCallException(
-				sprintf(
-					/* translators: 1: Method name. 2: Class name. */
-					__( 'Method %1$s does not exist on %2$s.' ),
-					$name, // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped
-					get_class( $this->builder ) // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped
-				)
-			);
-		}
-
-		return $method;
-	}
-
-	/**
-	 * Converts snake_case to camelCase.
-	 *
-	 * @since 7.1.0
-	 *
-	 * @param string $snake_case The snake_case string.
-	 * @return string The camelCase string.
-	 */
-	private function snake_to_camel_case( string $snake_case ): string {
-		$parts = explode( '_', $snake_case );
-
-		$camel_case  = $parts[0];
-		$parts_count = count( $parts );
-		for ( $i = 1; $i < $parts_count; $i++ ) {
-			$camel_case .= ucfirst( $parts[ $i ] );
-		}
-
-		return $camel_case;
+	protected function get_support_check_methods(): array {
+		return self::$support_check_methods;
 	}
 }
