@@ -494,17 +494,17 @@ function wp_get_tooltip_helper( $content, $args = array() ) {
 	$button = '<button type="button" aria-label="%3$s">' .
 		'<span class="dashicons%4$s" aria-hidden="true"></span>' .
 	'</button>';
-	if ( ! empty( $args['button'] ) ) {
-		$processor = new WP_HTML_Tag_Processor( $args['button'] );
-		if ( $processor->next_tag( 'button' ) ) {
-			$processor->set_attribute( 'popovertarget', '%2$s' );
-			$processor->add_class( 'wp-tooltip__toggle' );
-			if ( 'tooltip' !== $args['type'] ) {
-				$processor->set_attribute( 'aria-haspopup', 'dialog' );
-			}
 
-			$button = $processor->get_updated_html();
+	$button    = ( ! empty( $args['button'] ) ) ? $args['button'] : $button;
+	$processor = new WP_HTML_Tag_Processor( $button );
+	if ( $processor->next_tag( 'button' ) ) {
+		$processor->set_attribute( 'popovertarget', '%2$s' );
+		$processor->add_class( 'wp-tooltip__toggle' );
+		if ( 'tooltip' !== $args['type'] ) {
+			$processor->set_attribute( 'aria-haspopup', 'dialog' );
 		}
+
+		$button = $processor->get_updated_html();
 	}
 
 	if ( 'tooltip' === $args['type'] ) {
