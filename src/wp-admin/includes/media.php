@@ -1678,6 +1678,18 @@ function get_media_item( $attachment_id, $args = null ) {
 		}
 	}
 
+	$has_required_field = false;
+
+	foreach ( $form_fields as $id => $field ) {
+		if ( '_' === $id[0] || ! empty( $field['tr'] ) || 'hidden' === ( $field['input'] ?? 'text' ) ) {
+			continue;
+		}
+
+		if ( ! empty( $field['required'] ) ) {
+			$has_required_field = true;
+			break;
+		}
+	}
 	$media_dims = '';
 	$meta       = wp_get_attachment_metadata( $post->ID );
 
@@ -1732,11 +1744,13 @@ function get_media_item( $attachment_id, $args = null ) {
 		</thead>
 		<tbody>
 		<tr><td colspan='2' class='imgedit-response' id='imgedit-response-$post->ID'></td></tr>\n
-		<tr><td style='display:none' colspan='2' class='image-editor' id='image-editor-$post->ID'></td></tr>\n
-		<tr><td colspan='2'><p class='media-types media-types-required-info'>" .
-			wp_required_field_message() .
-		"</p></td></tr>\n";
+		<tr><td style='display:none' colspan='2' class='image-editor' id='image-editor-$post->ID'></td></tr>\n";
 
+	if ( $has_required_field ) {
+		$item .= "		<tr><td colspan='2'><p class='media-types media-types-required-info'>" .
+			wp_required_field_message() .
+			"</p></td></tr>\n";
+	}
 	$defaults = array(
 		'input'      => 'text',
 		'required'   => false,
@@ -1978,10 +1992,10 @@ function get_compat_media_markup( $attachment_id, $args = null ) {
 		'show_in_modal' => true,
 	);
 
-	$hidden_fields = array();
+	$hidden_fields      = array();
+	$has_required_field = false;
 
 	$item = '';
-
 	foreach ( $form_fields as $id => $field ) {
 		if ( '_' === $id[0] ) {
 			continue;
@@ -2006,6 +2020,9 @@ function get_compat_media_markup( $attachment_id, $args = null ) {
 			continue;
 		}
 
+		if ( $field['required'] ) {
+			$has_required_field = true;
+		}
 		$readonly      = ! $user_can_edit && ! empty( $field['taxonomy'] ) ? " readonly='readonly' " : '';
 		$required      = $field['required'] ? ' ' . wp_required_field_indicator() : '';
 		$required_attr = $field['required'] ? ' required' : '';
@@ -2062,12 +2079,16 @@ function get_compat_media_markup( $attachment_id, $args = null ) {
 	}
 
 	if ( $item ) {
-		$item = '<p class="media-types media-types-required-info">' .
-			wp_required_field_message() .
-			'</p>' .
-			'<table class="compat-attachment-fields">' . $item . '</table>';
-	}
+		$required_fields_message = '';
 
+		if ( $has_required_field ) {
+			$required_fields_message = '<p class="media-types media-types-required-info">' .
+				wp_required_field_message() .
+				'</p>';
+		}
+
+		$item = $required_fields_message . '<table class="compat-attachment-fields">' . $item . '</table>';
+	}
 	foreach ( $hidden_fields as $hidden_field => $value ) {
 		$item .= '<input type="hidden" name="' . esc_attr( $hidden_field ) . '" value="' . esc_attr( $value ) . '" />' . "\n";
 	}
