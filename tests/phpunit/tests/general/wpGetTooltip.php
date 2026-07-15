@@ -64,6 +64,24 @@ class Tests_General_wpGetTooltip extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that custom button markup is retained, and has required attributes.
+	 *
+	 * @ticket 55343
+	 */
+	public function test_wp_get_tooltip_has_custom_button_markup() {
+		$html = wp_get_tooltip(
+			'Helpful text.',
+			array(
+				'button' => '<button type="button" aria-expanded="false">Contains text</button>',
+			)
+		);
+
+		$this->assertStringContainsString( 'aria-expanded="false"', $html, 'String contains attribute not supported in function.' );
+		$this->assertStringContainsString( 'popovertarget', $html, 'String contains required attribute added by function.' );
+		$this->assertStringNotContainsString( 'dashicons', $html, 'String does not contain content of default button.' );
+	}
+
+	/**
 	 * Tests that the accessible labels are output and escaped in attributes.
 	 *
 	 * @ticket 55343

@@ -1399,48 +1399,50 @@ function do_meta_boxes( $screen, $context, $data_object ) {
 
 						echo '<div class="handle-actions hide-if-no-js">';
 
-						$move_up_text = sprintf(
+						$move_up_text   = sprintf(
 							/* translators: %s: Meta box title. */
 							__( 'Move %s box up' ),
 							$widget_title
 						);
-						echo '<div class="wp-tooltip wp-is-tooltip">';
-						echo '<button type="button" class="handle-order-higher wp-tooltip__toggle" popovertarget="' . $box['id'] . '-handle-order-higher-description">';
-						echo '<span class="screen-reader-text">' . $move_up_text . '</span>';
-						echo '<span class="order-higher-indicator" aria-hidden="true"></span>';
-						echo '</button>';
-						echo '<span popover="hint" class="wp-tooltip__bubble" role="tooltip" id="' . $box['id'] . '-handle-order-higher-description">
-							<span id="' . $box['id'] . '-handle-order-higher-description-text" class="wp-tooltip__text">' . $move_up_text . '</span></span>';
-						echo '</div>';
+						$move_up_button = '<button type="button" class="handle-order-higher">
+							<span class="screen-reader-text">' . $move_up_text . '</span>
+							<span class="order-higher-indicator" aria-hidden="true"></span>
+						</button>';
+						$move_up_args   = array(
+							'id'     => $box['id'] . '-handle-order-higher-description',
+							'button' => $move_up_button,
+						);
+						echo wp_get_tooltip( $move_up_text, $move_up_args );
 
-						$move_down_text = sprintf(
+						$move_down_text   = sprintf(
 							/* translators: %s: Meta box title. */
 							__( 'Move %s box down' ),
 							$widget_title
 						);
-						echo '<div class="wp-tooltip wp-is-tooltip">';
-						echo '<button type="button" class="handle-order-lower wp-tooltip__toggle" popovertarget="' . $box['id'] . '-handle-order-lower-description" aria-disabled="false">';
-						echo '<span class="screen-reader-text">' . $move_down_text . '</span>';
-						echo '<span class="order-lower-indicator" aria-hidden="true"></span>';
-						echo '</button>';
-						echo '<span popover="hint" class="wp-tooltip__bubble" role="tooltip" id="' . $box['id'] . '-handle-order-lower-description">
-							<span id="' . $box['id'] . '-handle-order-lower-description-text" class="wp-tooltip__text">' . $move_down_text . '</span></span>';
-						echo '</div>';
+						$move_down_button = '<button type="button" class="handle-order-lower">
+							<span class="screen-reader-text">' . $move_down_text . '</span>
+							<span class="order-lower-indicator" aria-hidden="true"></span>
+						</button>';
+						$move_down_args   = array(
+							'id'     => $box['id'] . '-handle-order-lower-description',
+							'button' => $move_down_button,
+						);
+						echo wp_get_tooltip( $move_down_text, $move_down_args );
 
-						$show_hide_text = sprintf(
+						$show_hide_text   = sprintf(
 							/* translators: %s: Hidden accessibility text. Meta box title. */
 							__( 'Show or hide panel: %s' ),
 							$widget_title
 						);
-						echo '<div class="wp-tooltip wp-is-tooltip">';
-						echo '<button type="button" class="handlediv wp-tooltip__toggle" popovertarget="' . $box['id'] . '-handlediv" aria-expanded="true">';
-						echo '<span class="screen-reader-text">' . $show_hide_text . '</span>';
-						echo '<span class="toggle-indicator" aria-hidden="true"></span>';
-						echo '</button>';
-						echo '<span popover="hint" id="' . $box['id'] . '-handlediv" class="wp-tooltip__bubble" role="tooltip">';
-						echo '<span id="' . $box['id'] . '-handlediv-text" class="wp-tooltip__text">' . $show_hide_text . '</span>';
-						echo '</span>';
-						echo '</div>';
+						$show_hide_button = '<button type="button" class="handlediv" aria-expanded="true">
+							<span class="screen-reader-text">' . $show_hide_text . '</span>
+							<span class="toggle-indicator" aria-hidden="true"></span>
+						</button>';
+						$show_hide_args   = array(
+							'id'     => $box['id'] . '-handlediv',
+							'button' => $show_hide_button,
+						);
+						echo wp_get_tooltip( $show_hide_text, $show_hide_args );
 
 						echo '</div>';
 					}
