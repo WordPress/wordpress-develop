@@ -204,6 +204,29 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test that the request timeout filter receives the builder type.
+	 *
+	 * @ticket 64591
+	 */
+	public function test_request_timeout_filter_receives_builder_type() {
+		$received_builder_type = null;
+
+		add_filter(
+			'wp_ai_client_default_request_timeout',
+			static function ( $default_timeout, $builder_type ) use ( &$received_builder_type ) {
+				$received_builder_type = $builder_type;
+				return $default_timeout;
+			},
+			10,
+			2
+		);
+
+		new WP_AI_Client_Prompt_Builder( AiClient::defaultRegistry() );
+
+		$this->assertSame( WP_AI_Client_Prompt_Builder::class, $received_builder_type );
+	}
+
+	/**
 	 * Test that the constructor allows overriding the default request timeout with a valid value.
 	 *
 	 * @ticket 64591
