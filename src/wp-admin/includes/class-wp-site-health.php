@@ -2447,6 +2447,7 @@ class WP_Site_Health {
 		$description  = '<p>' . __( 'Page cache enhances the speed and performance of your site by saving and serving static pages instead of calling for a page every time a user visits.' ) . '</p>';
 		$description .= '<p>' . __( 'Page cache is detected by looking for an active page cache plugin as well as making three requests to the homepage and looking for one or more of the following HTTP client caching response headers:' ) . '</p>';
 		$description .= '<code>' . implode( '</code>, <code>', array_keys( $this->get_page_cache_headers() ) ) . '.</code>';
+		$description .= '<p>' . $this->get_speculative_loading_cache_description() . '</p>';
 
 		$result = array(
 			'badge'       => array(
@@ -2580,8 +2581,9 @@ class WP_Site_Health {
 			),
 			'label'       => __( 'A persistent object cache is being used' ),
 			'description' => sprintf(
-				'<p>%s</p>',
-				__( 'A persistent object cache makes your site&#8217;s database more efficient, resulting in faster load times because WordPress can retrieve your site&#8217;s content and settings much more quickly.' )
+				'<p>%s</p><p>%s</p>',
+				__( 'A persistent object cache makes your site&#8217;s database more efficient, resulting in faster load times because WordPress can retrieve your site&#8217;s content and settings much more quickly.' ),
+				$this->get_speculative_loading_cache_description()
 			),
 			'actions'     => sprintf(
 				'<p><a href="%s" target="_blank">%s<span class="screen-reader-text"> %s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a></p>',
@@ -2645,6 +2647,32 @@ class WP_Site_Health {
 		);
 
 		return $result;
+	}
+
+	/**
+	 * Gets the description of speculative loading used in the page cache and persistent object cache tests.
+	 *
+	 * @since n.e.x.t
+	 *
+	 * @see self::get_test_persistent_object_cache()
+	 * @see self::get_test_page_cache()
+	 * @see wp_get_speculation_rules_configuration()
+	 *
+	 * @return string Description.
+	 */
+	private function get_speculative_loading_cache_description() {
+		return sprintf(
+			/* translators: 1: Link to the Speculative Loading dev note. 2: Additional link attributes. 3: Accessibility text. */
+			__( 'When a page cache is detected and a persistent object cache is enabled, <a href="%1$s" %2$s>Speculative Loading%3$s</a> will accelerate cross-site navigations by using a default <code>eagerness</code> of <code>moderate</code> instead of <code>conservative</code>.' ),
+			/* translators: Localized Speculative Loading dev note, if one exists. */
+			esc_url( __( 'https://make.wordpress.org/core/2025/03/06/speculative-loading-in-6-8/' ) ),
+			'target="_blank"',
+			sprintf(
+				'<span class="screen-reader-text"> %s</span><span aria-hidden="true" class="dashicons dashicons-external"></span>',
+				/* translators: Hidden accessibility text. */
+				__( '(opens in a new tab)' )
+			)
+		);
 	}
 
 	/**
@@ -3603,9 +3631,10 @@ class WP_Site_Health {
 	 * @return WP_Error|array {
 	 *     Page cache detection details or else error information.
 	 *
-	 *     @type bool    $advanced_cache_present        Whether a page cache plugin is present.
-	 *     @type array[] $page_caching_response_headers Sets of client caching headers for the responses.
-	 *     @type float[] $response_timing               Response timings.
+	 *     @type bool     $advanced_cache_present        Whether a page cache plugin is present.
+	 *     @type array[]  $page_caching_response_headers Sets of client caching headers for the responses.
+	 *     @type float[]  $response_timing               Response timings.
+	 *     @type string[] $caching_response_headers      List of response headers detected which indicate page caching.
 	 * }
 	 */
 	private function check_for_page_caching() {
@@ -3628,6 +3657,7 @@ class WP_Site_Health {
 		$page_caching_response_headers = array();
 		$response_timing               = array();
 
+		$all_seen_headers = array();
 		for ( $i = 1; $i <= 3; $i++ ) {
 			$start_time    = microtime( true );
 			$http_response = wp_remote_get( home_url( '/' ), compact( 'sslverify', 'headers' ) );
@@ -3653,6 +3683,7 @@ class WP_Site_Health {
 				$header_values = (array) $header_values;
 				if ( empty( $callback ) || ( is_callable( $callback ) && count( array_filter( $header_values, $callback ) ) > 0 ) ) {
 					$response_headers[ $header ] = $header_values;
+					$all_seen_headers[]          = $header;
 				}
 			}
 
@@ -3660,7 +3691,7 @@ class WP_Site_Health {
 			$response_timing[]               = ( $end_time - $start_time ) * 1000;
 		}
 
-		return array(
+		$result = array(
 			'advanced_cache_present'        => (
 				file_exists( WP_CONTENT_DIR . '/advanced-cache.php' )
 				&&
@@ -3671,7 +3702,17 @@ class WP_Site_Health {
 			),
 			'page_caching_response_headers' => $page_caching_response_headers,
 			'response_timing'               => $response_timing,
+			'caching_response_headers'      => array_unique( $all_seen_headers ),
 		);
+
+		/*
+		 * Store the results in a non-expiring (autoloaded) transient so that Speculative Loading can use this to change
+		 * the default mode from conservative to moderate when page caching is enabled.
+		 * See wp_get_speculation_rules_configuration().
+		 */
+		set_transient( 'health_check_page_cache_detail', $result );
+
+		return $result;
 	}
 
 	/**
