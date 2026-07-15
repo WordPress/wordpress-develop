@@ -526,7 +526,7 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 		/*
 		 * Clear the pixels outside the inscribed circle one scanline at a time.
 		 * For each row the circle spans the horizontal range
-		 * [center_x - half, center_x + half]; everything outside that span is
+		 * [center_x - span, center_x + span]; everything outside that span is
 		 * filled transparent with at most two rectangle fills. This keeps the
 		 * cost at O(height) rectangle fills rather than O(width * height)
 		 * per-pixel writes. `ceil()`/`floor()` preserve the same boundary as the
