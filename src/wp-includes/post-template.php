@@ -1817,6 +1817,10 @@ function get_the_password_form( $post = 0 ) {
 		$button_class         = ' class="wp-block-button__link ' . wp_theme_get_element_class_name( 'button' ) . '"';
 		$button_wrapper_open  = '<span class="wp-block-button">';
 		$button_wrapper_close = '</span>';
+
+		if ( wp_style_is( 'wp-block-button', 'registered' ) ) {
+			wp_enqueue_style( 'wp-block-button' );
+		}
 	}
 
 	$output = '<form action="' . esc_url( site_url( 'wp-login.php?action=postpass', 'login_post' ) ) . '" class="post-password-form' . $class . '" method="post">' . $redirect_field . $invalid_password_html . '
