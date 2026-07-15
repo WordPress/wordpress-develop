@@ -540,14 +540,13 @@ class WP_HTML_Tag_Processor {
 	protected $compat_mode = self::NO_QUIRKS_MODE;
 
 	/**
-	 * Indicates whether the parser is inside foreign content,
-	 * e.g. inside an SVG or MathML element.
+	 * Indicates which namespace rules the tokenizer applies to the next token.
 	 *
 	 * One of 'html', 'svg', or 'math'.
 	 *
-	 * Several parsing rules change based on whether the parser
-	 * is inside foreign content, including whether a self-closing
-	 * flag indicates that an element has no content.
+	 * Integration points use HTML tokenizer rules despite belonging to a foreign
+	 * namespace. CDATA availability is tracked separately because it depends on
+	 * the adjusted current node's actual namespace.
 	 *
 	 * @since 6.7.0
 	 *
@@ -556,17 +555,17 @@ class WP_HTML_Tag_Processor {
 	private $parsing_namespace = 'html';
 
 	/**
-	 * Indicates the current node's namespace for CDATA section detection.
+	 * Indicates whether CDATA sections are allowed at the adjusted current node.
 	 *
-	 * HTML integration points follow HTML tokenization for start tags and
-	 * character tokens, but CDATA sections are allowed based on the adjusted
-	 * current node's actual namespace.
+	 * Integration points follow HTML tokenization for start tags and character
+	 * tokens, but CDATA sections remain available because the adjusted current
+	 * node is still in a foreign namespace.
 	 *
 	 * @since 7.1.0
 	 *
-	 * @var string
+	 * @var bool
 	 */
-	private $cdata_parsing_namespace = 'html';
+	private $should_allow_cdata = false;
 
 	/**
 	 * What kind of syntax token became an HTML comment.
@@ -879,30 +878,28 @@ class WP_HTML_Tag_Processor {
 	 * @return bool Whether the namespace was valid and changed.
 	 */
 	public function change_parsing_namespace( string $new_namespace ): bool {
-		if ( ! in_array( $new_namespace, array( 'html', 'math', 'svg' ), true ) ) {
-			return false;
-		}
-
-		$this->parsing_namespace       = $new_namespace;
-		$this->cdata_parsing_namespace = $new_namespace;
-		return true;
+		return $this->set_tokenizer_context( $new_namespace, false );
 	}
 
 	/**
-	 * Switches the namespace context used for detecting CDATA sections.
+	 * Sets tokenizer context from an adjusted current node.
+	 *
+	 * Integration points follow HTML tokenizer rules while retaining their actual
+	 * namespace for determining whether CDATA sections are allowed.
 	 *
 	 * @since 7.1.0
 	 *
-	 * @param string $new_namespace One of 'html', 'svg', or 'math' indicating whether
-	 *                              the adjusted current node can contain CDATA sections.
+	 * @param string $node_namespace       Actual namespace of the adjusted current node.
+	 * @param bool   $is_integration_point Whether the adjusted current node is an integration point.
 	 * @return bool Whether the namespace was valid and changed.
 	 */
-	protected function change_cdata_parsing_namespace( string $new_namespace ): bool {
-		if ( ! in_array( $new_namespace, array( 'html', 'math', 'svg' ), true ) ) {
+	final protected function set_tokenizer_context( string $node_namespace, bool $is_integration_point ): bool {
+		if ( ! in_array( $node_namespace, array( 'html', 'math', 'svg' ), true ) ) {
 			return false;
 		}
 
-		$this->cdata_parsing_namespace = $new_namespace;
+		$this->parsing_namespace  = $is_integration_point ? 'html' : $node_namespace;
+		$this->should_allow_cdata = 'html' !== $node_namespace;
 		return true;
 	}
 
@@ -1959,7 +1956,7 @@ class WP_HTML_Tag_Processor {
 				}
 
 				if (
-					'html' !== $this->cdata_parsing_namespace &&
+					$this->should_allow_cdata &&
 					strlen( $html ) > $at + 8 &&
 					'[' === $html[ $at + 2 ] &&
 					'C' === $html[ $at + 3 ] &&
