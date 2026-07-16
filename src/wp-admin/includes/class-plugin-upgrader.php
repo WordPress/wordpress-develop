@@ -541,12 +541,25 @@ class Plugin_Upgrader extends WP_Upgrader {
 			return false;
 		}
 
-		// Assume the requested plugin is the first in the list.
-		$plugin_files = array_keys( $plugin );
+		$plugin_files         = array_keys( $plugin );
+		$plugin_file          = $plugin_files[0];
+		$expected_plugin_file = $this->result['destination_name'] . '.php';
 
-		return $this->result['destination_name'] . '/' . $plugin_files[0];
+		// Prefer a root-level plugin file that matches the plugin directory name.
+		if ( in_array( $expected_plugin_file, $plugin_files, true ) ) {
+			$plugin_file = $expected_plugin_file;
+		} else {
+			// Otherwise, use the first root-level plugin file.
+			foreach ( $plugin_files as $candidate_plugin_file ) {
+				if ( ! str_contains( $candidate_plugin_file, '/' ) ) {
+					$plugin_file = $candidate_plugin_file;
+					break;
+				}
+			}
+		}
+
+		return $this->result['destination_name'] . '/' . $plugin_file;
 	}
-
 	/**
 	 * Deactivates a plugin before it is upgraded.
 	 *
