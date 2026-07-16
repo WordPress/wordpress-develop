@@ -42,9 +42,11 @@ class Tests_Functions_WpGetUpdatePhpUrl extends WP_UnitTestCase {
 	 */
 	public function test_wp_get_update_php_url_filter() {
 		$custom_url = 'https://example.org/custom-php-update/';
-		add_filter( 'wp_update_php_url', function() use ( $custom_url ) {
-			return $custom_url;
-		} );
+		add_filter( 'wp_update_php_url', 
+				   function () use ( $custom_url ) {
+						return $custom_url;
+					} 
+				  );
 
 		$url = wp_get_update_php_url();
 
@@ -61,9 +63,11 @@ class Tests_Functions_WpGetUpdatePhpUrl extends WP_UnitTestCase {
 	 * @param string $empty_value The empty value to test.
 	 */
 	public function test_wp_get_update_php_url_empty_fallbacks( $empty_value ) {
-		add_filter( 'wp_update_php_url', function() use ( $empty_value ) {
-			return $empty_value;
-		} );
+		add_filter( 'wp_update_php_url', 
+					function () use ( $empty_value ) {
+						return $empty_value;
+					} 
+				  );
 
 		$this->assertSame( 'https://wordpress.org/support/update-php/', wp_get_update_php_url() );
 	}
