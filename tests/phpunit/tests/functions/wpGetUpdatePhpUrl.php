@@ -46,7 +46,7 @@ class Tests_Functions_WpGetUpdatePhpUrl extends WP_UnitTestCase {
 			'wp_update_php_url',
 			function () use ( $custom_url ) {
 				return $custom_url;
-			} 
+			}
 		);
 
 		$url = wp_get_update_php_url();
@@ -68,7 +68,7 @@ class Tests_Functions_WpGetUpdatePhpUrl extends WP_UnitTestCase {
 			'wp_update_php_url',
 			function () use ( $empty_value ) {
 				return $empty_value;
-			} 
+			}
 		);
 
 		$this->assertSame( 'https://wordpress.org/support/update-php/', wp_get_update_php_url() );
