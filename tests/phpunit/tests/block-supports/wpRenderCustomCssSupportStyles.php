@@ -11,12 +11,22 @@ class Tests_Block_Supports_WpRenderCustomCssSupportStyles extends WP_UnitTestCas
 	 */
 	private $test_block_name;
 
+	/**
+	 * @var WP_Styles|null
+	 */
+	private $old_wp_styles;
+
 	public function set_up() {
 		parent::set_up();
 		$this->test_block_name = null;
 
-		global $wp_styles;
-		$wp_styles = null;
+		// Use a clean styles queue so tests don't leak registered handles
+		// or inline styles into each other. The default-styles callbacks are
+		// removed because they expect a fully set up instance.
+		$this->old_wp_styles = $GLOBALS['wp_styles'] ?? null;
+		remove_action( 'wp_default_styles', 'wp_default_styles' );
+		remove_action( 'wp_print_styles', 'print_emoji_styles' );
+		$GLOBALS['wp_styles'] = new WP_Styles();
 	}
 
 	public function tear_down() {
@@ -25,8 +35,9 @@ class Tests_Block_Supports_WpRenderCustomCssSupportStyles extends WP_UnitTestCas
 		}
 		$this->test_block_name = null;
 
-		global $wp_styles;
-		$wp_styles = null;
+		$GLOBALS['wp_styles'] = $this->old_wp_styles;
+		add_action( 'wp_default_styles', 'wp_default_styles' );
+		add_action( 'wp_print_styles', 'print_emoji_styles' );
 
 		parent::tear_down();
 	}
@@ -326,5 +337,108 @@ class Tests_Block_Supports_WpRenderCustomCssSupportStyles extends WP_UnitTestCas
 			$occurrences,
 			'CSS should be enqueued exactly once even when the same block renders multiple times.'
 		);
+	}
+
+	/**
+	 * Tests that custom CSS styles print after block style variation styles,
+	 * regardless of enqueue order, so that custom CSS wins the cascade at
+	 * equal specificity.
+	 *
+	 * @ticket 65641
+	 *
+	 * @covers ::wp_render_custom_css_support_styles
+	 */
+	public function test_custom_css_prints_after_block_style_variation_styles() {
+		wp_register_style( 'wp-block-library', false );
+		wp_register_style( 'global-styles', false );
+
+		$this->test_block_name = 'test/custom-css-print-order';
+		register_block_type(
+			$this->test_block_name,
+			array(
+				'api_version' => 3,
+				'attributes'  => array(
+					'style' => array(
+						'type' => 'object',
+					),
+				),
+				'supports'    => array( 'customCSS' => true ),
+			)
+		);
+
+		$parsed_block = array(
+			'blockName' => 'test/custom-css-print-order',
+			'attrs'     => array(
+				'style' => array(
+					'css' => 'border-style: double;',
+				),
+			),
+		);
+
+		wp_render_custom_css_support_styles( $parsed_block );
+
+		// Mimic the block style variation support registering its per-instance
+		// styles, as done in wp_render_block_style_variation_support_styles().
+		wp_register_style( 'block-style-variation-styles', false, array( 'wp-block-library', 'global-styles' ) );
+		wp_add_inline_style( 'block-style-variation-styles', ':root :where(.is-style-test-variation){border-style: dotted;}' );
+
+		// Enqueue custom CSS first to prove the declared dependency decides
+		// the print order, not the enqueue order.
+		wp_enqueue_style( 'wp-block-custom-css' );
+		wp_enqueue_style( 'block-style-variation-styles' );
+
+		$output = get_echo( 'wp_print_styles' );
+
+		$variation_position  = strpos( $output, 'border-style: dotted' );
+		$custom_css_position = strpos( $output, 'border-style: double' );
+
+		$this->assertNotFalse( $variation_position, 'Block style variation styles should be printed.' );
+		$this->assertNotFalse( $custom_css_position, 'Custom CSS should be printed.' );
+		$this->assertLessThan( $custom_css_position, $variation_position, 'Block style variation styles should print before custom CSS so custom CSS wins ties at equal specificity.' );
+	}
+
+	/**
+	 * Tests that custom CSS still prints when no block style variation styles
+	 * were registered on the page. The `block-style-variation-styles` handle
+	 * is normally registered lazily while rendering a block with a variation,
+	 * and a style with an unregistered dependency is never printed.
+	 *
+	 * @ticket 65641
+	 *
+	 * @covers ::wp_render_custom_css_support_styles
+	 */
+	public function test_custom_css_prints_without_block_style_variation_styles() {
+		wp_register_style( 'wp-block-library', false );
+		wp_register_style( 'global-styles', false );
+
+		$this->test_block_name = 'test/custom-css-no-variations';
+		register_block_type(
+			$this->test_block_name,
+			array(
+				'api_version' => 3,
+				'attributes'  => array(
+					'style' => array(
+						'type' => 'object',
+					),
+				),
+				'supports'    => array( 'customCSS' => true ),
+			)
+		);
+
+		$parsed_block = array(
+			'blockName' => 'test/custom-css-no-variations',
+			'attrs'     => array(
+				'style' => array(
+					'css' => 'color: teal;',
+				),
+			),
+		);
+
+		wp_render_custom_css_support_styles( $parsed_block );
+		wp_enqueue_style( 'wp-block-custom-css' );
+
+		$output = get_echo( 'wp_print_styles' );
+
+		$this->assertStringContainsString( 'color: teal', $output, 'Custom CSS should print even when no block style variation styles exist on the page.' );
 	}
 }
