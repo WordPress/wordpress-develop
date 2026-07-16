@@ -169,6 +169,7 @@ function add_filter( $hook_name, $callback, $priority = 10, $accepted_args = 1 )
  * @param string $hook_name The name of the filter hook.
  * @param mixed  $value     The value to filter.
  * @param mixed  ...$args   Optional. Additional parameters to pass to the callback functions.
+ * @no-named-arguments
  * @return mixed The filtered value after all hooked functions are applied to it.
  */
 function apply_filters( $hook_name, $value, ...$args ) {
@@ -484,6 +485,7 @@ function add_action( $hook_name, $callback, $priority = 10, $accepted_args = 1 )
  * @param string $hook_name The name of the action to be executed.
  * @param mixed  ...$arg    Optional. Additional arguments which are passed on to the
  *                          functions hooked to the action. Default empty.
+ * @no-named-arguments
  */
 function do_action( $hook_name, ...$arg ) {
 	global $wp_filter, $wp_actions, $wp_current_filter;
