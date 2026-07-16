@@ -1660,7 +1660,9 @@ function wp_ajax_add_meta() {
 
 				$meta_id = add_meta( $post_id );
 
-				if ( ! $meta_id ) {
+				if ( is_wp_error( $meta_id ) ) {
+					wp_die( $meta_id->get_error_message() );
+				} elseif ( ! $meta_id ) {
 					wp_die( __( 'Please provide a custom field value.' ) );
 				}
 			} else {
@@ -1669,7 +1671,9 @@ function wp_ajax_add_meta() {
 		} else {
 			$meta_id = add_meta( $post_id );
 
-			if ( ! $meta_id ) {
+			if ( is_wp_error( $meta_id ) ) {
+				wp_die( $meta_id->get_error_message() );
+			} elseif ( ! $meta_id ) {
 				wp_die( __( 'Please provide a custom field value.' ) );
 			}
 		}
@@ -1707,7 +1711,7 @@ function wp_ajax_add_meta() {
 			! current_user_can( 'edit_post_meta', $meta->post_id, $meta->meta_key ) ||
 			! current_user_can( 'edit_post_meta', $meta->post_id, $key )
 		) {
-			wp_die( -1 );
+			wp_die( __( 'Sorry, you are not allowed to edit this custom field.' ) );
 		}
 
 		if ( $meta->meta_value !== $value || $meta->meta_key !== $key ) {
