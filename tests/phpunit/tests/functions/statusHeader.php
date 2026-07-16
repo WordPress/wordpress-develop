@@ -113,7 +113,7 @@ class Tests_Functions_StatusHeader extends WP_UnitTestCase {
 	 * @ticket 65650
 	 */
 	public function test_status_header_respects_protocol() {
-		$old_protocol = $_SERVER['SERVER_PROTOCOL'] ?? null;
+		$old_protocol               = $_SERVER['SERVER_PROTOCOL'] ?? null;
 		$_SERVER['SERVER_PROTOCOL'] = 'HTTP/1.1';
 
 		$filter = new MockAction();
