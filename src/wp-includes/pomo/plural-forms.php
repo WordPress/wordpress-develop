@@ -30,7 +30,7 @@ if ( ! class_exists( 'Plural_Forms', false ) ) :
 		 * Operator precedence from highest to lowest. Higher numbers indicate
 		 * higher precedence, and are executed first.
 		 *
-		 * @link https://en.wikipedia.org/wiki/Operators_in_C_and_C%2B%2B#Operator_precedence
+		 * @see https://en.wikipedia.org/wiki/Operators_in_C_and_C%2B%2B#Operator_precedence
 		 *
 		 * @since 4.9.0
 		 * @var array $op_precedence Operator precedence from highest to lowest.
