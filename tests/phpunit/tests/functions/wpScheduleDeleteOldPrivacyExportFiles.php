@@ -43,5 +43,6 @@ class Tests_Functions_wpScheduleDeleteOldPrivacyExportFiles extends WP_UnitTestC
 		$this->assertFalse( wp_next_scheduled( 'wp_privacy_delete_old_export_files' ) );
 		wp_schedule_delete_old_privacy_export_files();
 		$this->assertFalse( wp_next_scheduled( 'wp_privacy_delete_old_export_files' ) );
+		parent::tear_down();
 	}
 }
