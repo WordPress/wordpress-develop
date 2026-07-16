@@ -46,16 +46,16 @@ class Tests_Functions_wpScheduleDeleteOldPrivacyExportFiles extends WP_UnitTestC
 		parent::tear_down();
 	}
 
-  /**
-   * Check that calling the function when already scheduled does not create a duplicate.
-   *
-   * @ticket 59707
-   */
-  public function test_wp_schedule_delete_old_privacy_export_files_already_scheduled() {
-      wp_schedule_delete_old_privacy_export_files();
-      $first = wp_next_scheduled( 'wp_privacy_delete_old_export_files' );
+	/**
+	* Check that calling the function when already scheduled does not create a duplicate.
+	*
+	* @ticket 59707
+	*/
+	public function test_wp_schedule_delete_old_privacy_export_files_already_scheduled() {
+		wp_schedule_delete_old_privacy_export_files();
+		$first = wp_next_scheduled( 'wp_privacy_delete_old_export_files' );
 
-      wp_schedule_delete_old_privacy_export_files();
-      $this->assertSame( $first, wp_next_scheduled( 'wp_privacy_delete_old_export_files' ) );
-  }
+		wp_schedule_delete_old_privacy_export_files();
+		$this->assertSame( $first, wp_next_scheduled( 'wp_privacy_delete_old_export_files' ) );
+	}
 }
