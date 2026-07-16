@@ -68,9 +68,12 @@ class Tests_Functions_RecurseDirsize extends WP_UnitTestCase {
 	 * @ticket 65654
 	 */
 	public function test_pre_recurse_dirsize_filter() {
-		add_filter( 'pre_recurse_dirsize', function() {
-			return 1234;
-		} );
+		add_filter(
+			'pre_recurse_dirsize',
+			function() {
+				return 1234;
+			}
+		);
 		$this->assertSame( 1234, recurse_dirsize( $this->test_dir ) );
 	}
 
