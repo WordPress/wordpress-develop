@@ -10,6 +10,7 @@ class Tests_Functions_wpScheduleDeleteOldPrivacyExportFiles extends WP_UnitTestC
 	 * Setup test
 	 */
 	public function set_up() {
+		parent::set_up();
 		wp_unschedule_event( wp_next_scheduled( 'wp_privacy_delete_old_export_files' ), 'wp_privacy_delete_old_export_files' );
 	}
 
