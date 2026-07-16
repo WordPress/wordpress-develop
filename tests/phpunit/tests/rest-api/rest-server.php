@@ -1208,6 +1208,64 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 	}
 
 	/**
+	 * @ticket 28474
+	 *
+	 * @covers WP_REST_Server::get_index
+	 */
+	public function test_get_index_should_include_animated_image_subsizes(): void {
+		$user_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		$this->assertIsInt( $user_id );
+		wp_set_current_user( $user_id );
+		add_filter( 'wp_client_side_media_processing_enabled', '__return_true' );
+
+		$server  = new WP_REST_Server();
+		$request = new WP_REST_Request( 'GET', '/' );
+		$index   = $server->dispatch( $request );
+		$data    = $index->get_data();
+		$this->assertIsArray( $data );
+
+		$this->assertArrayHasKey( 'animated_image_subsizes', $data );
+		$this->assertFalse( $data['animated_image_subsizes'] );
+	}
+
+	/**
+	 * @ticket 28474
+	 *
+	 * @covers WP_REST_Server::get_index
+	 */
+	public function test_get_index_should_not_include_animated_image_subsizes_without_caps(): void {
+		add_filter( 'wp_client_side_media_processing_enabled', '__return_true' );
+
+		$server  = new WP_REST_Server();
+		$request = new WP_REST_Request( 'GET', '/' );
+		$index   = $server->dispatch( $request );
+		$data    = $index->get_data();
+		$this->assertIsArray( $data );
+
+		$this->assertArrayNotHasKey( 'animated_image_subsizes', $data );
+	}
+
+	/**
+	 * @ticket 28474
+	 *
+	 * @covers WP_REST_Server::get_index
+	 */
+	public function test_get_index_should_honor_animated_image_subsizes_filter(): void {
+		$user_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		$this->assertIsInt( $user_id );
+		wp_set_current_user( $user_id );
+		add_filter( 'wp_client_side_media_processing_enabled', '__return_true' );
+		add_filter( 'wp_generate_animated_image_subsizes', '__return_true' );
+
+		$server  = new WP_REST_Server();
+		$request = new WP_REST_Request( 'GET', '/' );
+		$index   = $server->dispatch( $request );
+		$data    = $index->get_data();
+
+		$this->assertTrue( $data['animated_image_subsizes'] );
+	}
+
+	/**
 	 * @ticket 57902
 	 *
 	 * @covers WP_REST_Server::get_index

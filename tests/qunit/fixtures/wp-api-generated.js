@@ -13061,6 +13061,7 @@ mockedApiResponse.Schema = {
         }
     },
     "image_size_threshold": 2560,
+    "animated_image_subsizes": false,
     "site_logo": 0,
     "site_icon": 0,
     "site_icon_url": ""

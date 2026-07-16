@@ -215,6 +215,7 @@ $preload_paths = array(
 	'/?_fields=' . implode(
 		',',
 		array(
+			'animated_image_subsizes',
 			'description',
 			'gmt_offset',
 			'home',
