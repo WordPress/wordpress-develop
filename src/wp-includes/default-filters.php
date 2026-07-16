@@ -87,17 +87,6 @@ foreach ( array(
 	add_filter( $filter, 'wp_filter_kses' );
 }
 
-// Email addresses: Allow unicode if and only if as the database can
-// store them. This affects all addresses, including those entered
-// into contact forms.
-if ( 'utf8mb4' === $wpdb->charset ) {
-	add_filter( 'is_email', 'wp_is_unicode_email', 10, 3 );
-	add_filter( 'sanitize_email', 'wp_sanitize_unicode_email', 10, 3 );
-} else {
-	add_filter( 'is_email', 'wp_is_ascii_email', 10, 3 );
-	add_filter( 'sanitize_email', 'wp_sanitize_ascii_email', 10, 3 );
-}
-
 // Display URL.
 foreach ( array( 'user_url', 'link_url', 'link_image', 'link_rss', 'comment_url', 'post_guid' ) as $filter ) {
 	if ( is_admin() ) {
@@ -282,6 +271,7 @@ add_filter( 'the_author', 'ent2ncr', 8 );
 add_filter( 'the_guid', 'esc_url' );
 
 // Email filters.
+add_action( 'plugins_loaded', 'wp_select_email_address_support' );
 add_filter( 'wp_mail', 'wp_staticize_emoji_for_email' );
 
 // Robots filters.
