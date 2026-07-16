@@ -1761,7 +1761,7 @@ function wp_default_styles( $styles ) {
 	$package_styles = array(
 		'block-editor'         => array( 'wp-components', 'wp-preferences' ),
 		'block-library'        => array(),
-		'block-directory'      => array( 'wp-theme' ),
+		'block-directory'      => array(),
 		'theme'                => array(),
 		'base-styles'          => array(),
 		'components'           => array( 'wp-theme' ),

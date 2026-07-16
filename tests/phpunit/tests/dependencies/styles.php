@@ -587,20 +587,6 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that wp-block-directory depends on wp-theme for design token CSS.
-	 *
-	 * @covers ::wp_default_styles
-	 */
-	public function test_wp_block_directory_depends_on_wp_theme() {
-		wp_default_styles( $GLOBALS['wp_styles'] );
-
-		$this->assertContains(
-			'wp-theme',
-			$GLOBALS['wp_styles']->registered['wp-block-directory']->deps
-		);
-	}
-
-	/**
 	 * Tests that wp-edit-blocks loads design tokens before other editor styles.
 	 *
 	 * @covers ::wp_default_styles
