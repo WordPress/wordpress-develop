@@ -150,6 +150,7 @@ function previous_post($format='%', $previous='previous post: ', $title='yes', $
 
 	$string = '<a href="'.get_permalink($post->ID).'">'.$previous;
 	if ( 'yes' == $title )
+		/** This filter is documented in wp-includes/post-template.php */
 		$string .= apply_filters('the_title', $post->post_title, $post->ID);
 	$string .= '</a>';
 	$format = str_replace('%', $string, $format);
@@ -185,6 +186,7 @@ function next_post($format='%', $next='next post: ', $title='yes', $in_same_cat=
 
 	$string = '<a href="'.get_permalink($post->ID).'">'.$next;
 	if ( 'yes' == $title )
+		/** This filter is documented in wp-includes/post-template.php */
 		$string .= apply_filters('the_title', $post->post_title, $post->ID);
 	$string .= '</a>';
 	$format = str_replace('%', $string, $format);
@@ -1060,6 +1062,7 @@ function get_links_list($order = 'name') {
 			// Handle each category.
 
 			// Display the category name.
+			/** This filter is documented in wp-includes/bookmark-template.php */
 			echo '  <li id="linkcat-' . $cat->term_id . '" class="linkcat"><h2>' . apply_filters('link_category', $cat->name ) . "</h2>\n\t<ul>\n";
 			// Call get_links() with all the appropriate params.
 			get_links($cat->term_id, '<li>', "</li>", "\n", true, 'name', false);
@@ -1820,7 +1823,7 @@ function _nc( $single, $plural, $number, $domain = 'default' ) {
  * @deprecated 2.8.0 Use _n()
  * @see _n()
  */
-function __ngettext( ...$args ) { // phpcs:ignore PHPCompatibility.FunctionNameRestrictions.ReservedFunctionNames.FunctionDoubleUnderscore
+function __ngettext( ...$args ) {
 	_deprecated_function( __FUNCTION__, '2.8.0', '_n()' );
 	return _n( ...$args );
 }
@@ -1832,7 +1835,7 @@ function __ngettext( ...$args ) { // phpcs:ignore PHPCompatibility.FunctionNameR
  * @deprecated 2.8.0 Use _n_noop()
  * @see _n_noop()
  */
-function __ngettext_noop( ...$args ) { // phpcs:ignore PHPCompatibility.FunctionNameRestrictions.ReservedFunctionNames.FunctionDoubleUnderscore
+function __ngettext_noop( ...$args ) {
 	_deprecated_function( __FUNCTION__, '2.8.0', '_n_noop()' );
 	return _n_noop( ...$args );
 
@@ -2702,6 +2705,7 @@ function get_boundary_post_rel_link($title = '%title', $in_same_cat = false, $ex
 
 	$title = str_replace('%title', $post->post_title, $title);
 	$title = str_replace('%date', $date, $title);
+	/** This filter is documented in wp-includes/post-template.php */
 	$title = apply_filters('the_title', $title, $post->ID);
 
 	$link = $start ? "<link rel='start' title='" : "<link rel='end' title='";
@@ -2779,6 +2783,7 @@ function get_parent_post_rel_link( $title = '%title' ) {
 
 	$title = str_replace('%title', $post->post_title, $title);
 	$title = str_replace('%date', $date, $title);
+	/** This filter is documented in wp-includes/post-template.php */
 	$title = apply_filters('the_title', $title, $post->ID);
 
 	$link = "<link rel='up' title='";
@@ -4790,7 +4795,7 @@ function wp_img_tag_add_loading_attr( $image, $context ) {
 		return $image;
 	}
 
-	/** This filter is documented in wp-admin/includes/media.php */
+	/** This filter is documented in wp-includes/media.php */
 	$value = apply_filters( 'wp_img_tag_add_loading_attr', $value, $image, $context );
 
 	if ( $value ) {
@@ -6166,7 +6171,9 @@ function the_block_template_skip_link() {
 			padding: 0;
 			position: absolute !important;
 			width: 1px;
+			/* Many screen reader and browser combinations announce broken words as they would appear visually. */
 			word-wrap: normal !important;
+			word-break: normal !important;
 		}
 
 		.skip-link.screen-reader-text:focus {
