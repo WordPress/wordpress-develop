@@ -456,8 +456,8 @@ class WP_HTML_Decoder {
 		 * `/?random&amp;degree&amp;gt=0&amp;lt=360&amp;not=90` produces the intended
 		 * value regardless of the following character.)
 		 *
-		 * @see https://html.spec.whatwg.org/multipage/parsing.html#named-character-reference-state
-		 * @see https://html.spec.whatwg.org/multipage/named-characters.html#named-character-references
+		 * @link https://html.spec.whatwg.org/multipage/parsing.html#named-character-reference-state
+		 * @link https://html.spec.whatwg.org/multipage/named-characters.html#named-character-references
 		 */
 		if ( 'attribute' !== $context || ';' === $text[ $after_name - 1 ] || $after_name >= $length ) {
 			$match_byte_length = $after_name - $at;

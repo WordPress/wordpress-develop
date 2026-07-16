@@ -29,7 +29,7 @@ if ( extension_loaded( 'mbstring' ) ) :
 	 *  byte sequence required by UTF-8, and that no sequence encodes a UTF-16 surrogate
 	 *  code point or any character above the representable range.
 	 *
-	 * @see https://www.unicode.org/versions/Unicode16.0.0/core-spec/chapter-3/#G32860
+	 * @link https://www.unicode.org/versions/Unicode16.0.0/core-spec/chapter-3/#G32860
 	 *
 	 * @since 6.9.0
 	 *
@@ -101,7 +101,7 @@ if (
 	 *
 	 * @since 6.9.0
 	 *
-	 * @see https://www.unicode.org/versions/Unicode16.0.0/core-spec/chapter-5/#G40630
+	 * @link https://www.unicode.org/versions/Unicode16.0.0/core-spec/chapter-5/#G40630
 	 *
 	 * @param string $text String which is assumed to be UTF-8 but may contain invalid sequences of bytes.
 	 * @return string Input text with invalid sequences of bytes replaced with the Unicode replacement character.
