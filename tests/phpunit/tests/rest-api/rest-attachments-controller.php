@@ -4339,7 +4339,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	 * _wp_image_meta_replace_original() performs when the server rotates an
 	 * image on upload.
 	 *
-	 * @ticket 64798
+	 * @ticket 65643
 	 * @covers WP_REST_Attachments_Controller::sideload_item
 	 * @covers WP_REST_Attachments_Controller::finalize_item
 	 * @requires function imagejpeg
@@ -4407,7 +4407,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	 * A strict equality check would reject quarter-turn rotations with
 	 * rest_upload_dimension_mismatch.
 	 *
-	 * @ticket 64798
+	 * @ticket 65643
 	 * @covers WP_REST_Attachments_Controller::sideload_item
 	 * @covers WP_REST_Attachments_Controller::validate_image_dimensions
 	 * @covers WP_REST_Attachments_Controller::finalize_item
@@ -4483,7 +4483,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	 * rotates and strips the EXIF orientation; wp_get_image_editor() does the
 	 * same here, so no JavaScript is required.
 	 *
-	 * @ticket 64798
+	 * @ticket 65643
 	 * @covers WP_REST_Attachments_Controller::sideload_item
 	 * @covers WP_REST_Attachments_Controller::finalize_item
 	 * @covers WP_REST_Attachments_Controller::validate_image_dimensions
@@ -4587,7 +4587,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	 * stored orientation must be reset to 1 as wp_create_image_subsizes()
 	 * does, or exif_orientation would keep reporting the pre-rotation value.
 	 *
-	 * @ticket 64798
+	 * @ticket 65643
 	 * @covers WP_REST_Attachments_Controller::finalize_item
 	 * @requires function imagejpeg
 	 */
@@ -4639,7 +4639,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	 * the file name, so a malformed payload cannot blank out the main file
 	 * metadata.
 	 *
-	 * @ticket 64798
+	 * @ticket 65643
 	 * @covers WP_REST_Attachments_Controller::finalize_item
 	 * @requires function imagejpeg
 	 */
