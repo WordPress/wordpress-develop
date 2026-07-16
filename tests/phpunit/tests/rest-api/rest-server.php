@@ -1208,7 +1208,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 	}
 
 	/**
-	 * @ticket 28474
+	 * @ticket 65656
 	 *
 	 * @covers WP_REST_Server::get_index
 	 */
@@ -1229,7 +1229,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 	}
 
 	/**
-	 * @ticket 28474
+	 * @ticket 65656
 	 *
 	 * @covers WP_REST_Server::get_index
 	 */
@@ -1246,7 +1246,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 	}
 
 	/**
-	 * @ticket 28474
+	 * @ticket 65656
 	 *
 	 * @covers WP_REST_Server::get_index
 	 */
