@@ -34,7 +34,10 @@ class Tests_Functions_WpJsonEncode extends WP_UnitTestCase {
 	public function data_wp_json_encode(): array {
 		return array(
 			'simple array'  => array(
-				array( 'a' => 1, 'b' => 2 ),
+				array(
+					'a' => 1,
+					'b' => 2
+				),
 				'{"a":1,"b":2}',
 			),
 			'nested object' => array(
