@@ -59,11 +59,6 @@
 
 		// Once zxcvbn loads, passwords strength is known.
 		$( '#pw-weak-text-label' ).text( __( 'Confirm use of weak password' ) );
-
-		// Only focus the password field on the reset password form.
-		if ( $pass1.closest( '#resetpassform' ).length ) {
-			$( $pass1 ).trigger( 'focus' );
-		}
 	}
 
 	function bindPass1() {
