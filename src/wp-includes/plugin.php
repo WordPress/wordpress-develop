@@ -223,8 +223,8 @@ function apply_filters( $hook_name, $value, ...$args ) {
  * @global int[]     $wp_filters        Stores the number of times each filter was triggered.
  * @global string[]  $wp_current_filter Stores the list of current filters with the current one last.
  *
- * @param string $hook_name The name of the filter hook.
- * @param array  $args      The arguments supplied to the functions hooked to `$hook_name`.
+ * @param string      $hook_name The name of the filter hook.
+ * @param list<mixed> $args      The arguments supplied to the functions hooked to `$hook_name`.
  * @return mixed The filtered value after all hooked functions are applied to it.
  */
 function apply_filters_ref_array( $hook_name, $args ) {
@@ -539,8 +539,8 @@ function do_action( $hook_name, ...$arg ) {
  * @global int[]     $wp_actions        Stores the number of times each action was triggered.
  * @global string[]  $wp_current_filter Stores the list of current filters with the current one last.
  *
- * @param string $hook_name The name of the action to be executed.
- * @param array  $args      The arguments supplied to the functions hooked to `$hook_name`.
+ * @param string      $hook_name The name of the action to be executed.
+ * @param list<mixed> $args      The arguments supplied to the functions hooked to `$hook_name`.
  */
 function do_action_ref_array( $hook_name, $args ) {
 	global $wp_filter, $wp_actions, $wp_current_filter;
@@ -715,11 +715,11 @@ function did_action( $hook_name ) {
  *
  * @see _deprecated_hook()
  *
- * @param string $hook_name   The name of the filter hook.
- * @param array  $args        Array of additional function arguments to be passed to apply_filters().
- * @param string $version     The version of WordPress that deprecated the hook.
- * @param string $replacement Optional. The hook that should have been used. Default empty.
- * @param string $message     Optional. A message regarding the change. Default empty.
+ * @param string      $hook_name   The name of the filter hook.
+ * @param list<mixed> $args        Array of additional function arguments to be passed to apply_filters().
+ * @param string      $version     The version of WordPress that deprecated the hook.
+ * @param string      $replacement Optional. The hook that should have been used. Default empty.
+ * @param string      $message     Optional. A message regarding the change. Default empty.
  * @return mixed The filtered value after all hooked functions are applied to it.
  */
 function apply_filters_deprecated( $hook_name, $args, $version, $replacement = '', $message = '' ) {
@@ -743,11 +743,11 @@ function apply_filters_deprecated( $hook_name, $args, $version, $replacement = '
  *
  * @see _deprecated_hook()
  *
- * @param string $hook_name   The name of the action hook.
- * @param array  $args        Array of additional function arguments to be passed to do_action().
- * @param string $version     The version of WordPress that deprecated the hook.
- * @param string $replacement Optional. The hook that should have been used. Default empty.
- * @param string $message     Optional. A message regarding the change. Default empty.
+ * @param string      $hook_name   The name of the action hook.
+ * @param list<mixed> $args        Array of additional function arguments to be passed to do_action().
+ * @param string      $version     The version of WordPress that deprecated the hook.
+ * @param string      $replacement Optional. The hook that should have been used. Default empty.
+ * @param string      $message     Optional. A message regarding the change. Default empty.
  */
 function do_action_deprecated( $hook_name, $args, $version, $replacement = '', $message = '' ) {
 	if ( ! has_action( $hook_name ) ) {
@@ -969,7 +969,7 @@ function register_uninstall_hook( $file, $callback ) {
  *
  * @global WP_Hook[] $wp_filter Stores all of the filters and actions.
  *
- * @param array $args The collected parameters from the hook that was called.
+ * @param list<mixed> $args The collected parameters from the hook that was called.
  */
 function _wp_call_all_hook( $args ) {
 	global $wp_filter;
