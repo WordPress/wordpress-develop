@@ -34,6 +34,7 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 	 * Checks to see if current environment supports GD.
 	 *
 	 * @since 3.5.0
+	 * @since 7.2.0 Added support for testing the 'mask' method capability via the 'methods' argument.
 	 *
 	 * @param array $args
 	 * @return bool
@@ -49,6 +50,17 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 			! function_exists( 'imagerotate' ) ) {
 
 				return false;
+		}
+
+		if ( isset( $args['methods'] ) && in_array( 'mask', $args['methods'], true ) ) {
+			return (
+				self::supports_mime_type( 'image/png' ) &&
+				function_exists( 'imagealphablending' ) &&
+				function_exists( 'imagecolorallocatealpha' ) &&
+				function_exists( 'imagefilledrectangle' ) &&
+				function_exists( 'imagepng' ) &&
+				function_exists( 'imagesavealpha' )
+			);
 		}
 
 		return true;
@@ -468,6 +480,81 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 		}
 
 		return new WP_Error( 'image_flip_error', __( 'Image flip failed.' ), $this->file );
+	}
+
+	/**
+	 * Applies a mask to the current image.
+	 *
+	 * The mask introduces transparency, so the caller must save the result in an
+	 * alpha-capable format (PNG, WebP, or AVIF). This method mutates the pixels
+	 * only and leaves the output format to the caller, like the other editor
+	 * transforms.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param array $args {
+	 *     Mask arguments.
+	 *
+	 *     @type string $shape Mask shape. Accepts 'circle'.
+	 * }
+	 * @return true|WP_Error True on success, WP_Error object on failure.
+	 */
+	public function mask( $args ) {
+		if ( ! is_array( $args ) || 'circle' !== ( $args['shape'] ?? null ) ) {
+			return new WP_Error(
+				'image_mask_unsupported',
+				__( 'Unsupported image mask.' ),
+				$this->file
+			);
+		}
+
+		if ( function_exists( 'imagepalettetotruecolor' ) ) {
+			imagepalettetotruecolor( $this->image );
+		}
+
+		imagealphablending( $this->image, false );
+		imagesavealpha( $this->image, true );
+
+		$width          = imagesx( $this->image );
+		$height         = imagesy( $this->image );
+		$transparent    = imagecolorallocatealpha( $this->image, 0, 0, 0, 127 );
+		$center_x       = ( $width - 1 ) / 2;
+		$center_y       = ( $height - 1 ) / 2;
+		$radius         = min( $width, $height ) / 2;
+		$radius_squared = $radius * $radius;
+
+		/*
+		 * Clear the pixels outside the inscribed circle one scanline at a time.
+		 * For each row the circle spans the horizontal range
+		 * [center_x - span, center_x + span]; everything outside that span is
+		 * filled transparent with at most two rectangle fills. This keeps the
+		 * cost at O(height) rectangle fills rather than O(width * height)
+		 * per-pixel writes. `ceil()`/`floor()` preserve the same boundary as the
+		 * `dx^2 + dy^2 <= radius^2` test, so a pixel exactly on the radius stays
+		 * opaque and no seam appears at the rim.
+		 */
+		for ( $y = 0; $y < $height; $y++ ) {
+			$dy = $y - $center_y;
+
+			if ( ( $dy * $dy ) > $radius_squared ) {
+				imagefilledrectangle( $this->image, 0, $y, $width - 1, $y, $transparent );
+				continue;
+			}
+
+			$span  = sqrt( $radius_squared - ( $dy * $dy ) );
+			$left  = max( 0, (int) ceil( $center_x - $span ) );
+			$right = min( $width - 1, (int) floor( $center_x + $span ) );
+
+			if ( $left > 0 ) {
+				imagefilledrectangle( $this->image, 0, $y, $left - 1, $y, $transparent );
+			}
+
+			if ( $right < $width - 1 ) {
+				imagefilledrectangle( $this->image, $right + 1, $y, $width - 1, $y, $transparent );
+			}
+		}
+
+		return true;
 	}
 
 	/**

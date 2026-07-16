@@ -4344,6 +4344,7 @@ function wp_max_upload_size() {
  * Returns a WP_Image_Editor instance and loads file into it.
  *
  * @since 3.5.0
+ * @since 7.2.0 A specified 'output_mime_type' argument is no longer overridden by the image_editor_output_format mapping.
  *
  * @param string $path Path to the file to load.
  * @param array  $args Optional. Additional arguments for retrieving the image editor.
@@ -4367,8 +4368,8 @@ function wp_get_image_editor( $path, $args = array() ) {
 		}
 	}
 
-	// Check and set the output mime type mapped to the input type.
-	if ( isset( $args['mime_type'] ) ) {
+	// Check and set the output mime type mapped to the input type unless a specific output mime type was requested.
+	if ( isset( $args['mime_type'] ) && ! isset( $args['output_mime_type'] ) ) {
 		$output_format = wp_get_image_editor_output_format( $path, $args['mime_type'] );
 		if ( isset( $output_format[ $args['mime_type'] ] ) ) {
 			$args['output_mime_type'] = $output_format[ $args['mime_type'] ];
@@ -6798,4 +6799,3 @@ function wp_add_crossorigin_attributes( string $html ): string {
 
 	return $processor->get_updated_html();
 }
-

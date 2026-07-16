@@ -45,6 +45,66 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 		$this->assertTrue( $imagick_image_editor->supports_mime_type( 'image/gif' ), 'Does not support image/gif' );
 	}
 
+	public function test_supports_mask() {
+		$expected = (
+			class_exists( 'ImagickDraw', false ) &&
+			( defined( 'Imagick::ALPHACHANNEL_SET' ) || defined( 'Imagick::ALPHACHANNEL_ACTIVATE' ) ) &&
+			defined( 'Imagick::COMPOSITE_DSTIN' ) &&
+			method_exists( 'ImagickDraw', 'ellipse' ) &&
+			method_exists( 'ImagickDraw', 'setFillColor' ) &&
+			method_exists( 'Imagick', 'compositeImage' ) &&
+			method_exists( 'Imagick', 'drawImage' ) &&
+			method_exists( 'Imagick', 'getImageGeometry' ) &&
+			method_exists( 'Imagick', 'newImage' ) &&
+			method_exists( 'Imagick', 'setImageAlphaChannel' )
+		);
+
+		$this->assertSame( $expected, WP_Image_Editor_Imagick::test( array( 'methods' => array( 'mask' ) ) ) );
+	}
+
+	public function test_mask_circle() {
+		if ( ! WP_Image_Editor_Imagick::test( array( 'methods' => array( 'mask' ) ) ) ) {
+			$this->markTestSkipped( 'This test requires Imagick mask support.' );
+		}
+
+		$file = DIR_TESTDATA . '/images/canola.jpg';
+
+		$imagick_image_editor = new WP_Image_Editor_Imagick( $file );
+		$imagick_image_editor->load();
+		$imagick_image_editor->crop( 0, 0, 100, 100 );
+		$result = $imagick_image_editor->mask( array( 'shape' => 'circle' ) );
+
+		$this->assertTrue( $result );
+
+		// Reuse a unique temp path with a `.png` extension without leaving the
+		// extension-less file created by tempnam() behind.
+		$save_to_file = tempnam( get_temp_dir(), '' );
+		unlink( $save_to_file );
+		$save_to_file .= '.png';
+		$imagick_image_editor->save( $save_to_file, 'image/png' );
+
+		$image        = new Imagick( $save_to_file );
+		$corner_alpha = $image->getImagePixelColor( 0, 0 )->getColorValue( imagick::COLOR_ALPHA );
+		$center_alpha = $image->getImagePixelColor( 50, 50 )->getColorValue( imagick::COLOR_ALPHA );
+
+		$this->assertLessThan( 0.5, $corner_alpha );
+		$this->assertGreaterThan( 0.5, $center_alpha );
+
+		$image->destroy();
+		unlink( $save_to_file );
+	}
+
+	public function test_mask_returns_error_for_unsupported_shape() {
+		$file = DIR_TESTDATA . '/images/canola.jpg';
+
+		$imagick_image_editor = new WP_Image_Editor_Imagick( $file );
+		$imagick_image_editor->load();
+		$result = $imagick_image_editor->mask( array( 'shape' => 'square' ) );
+
+		$this->assertWPError( $result );
+		$this->assertSame( 'image_mask_unsupported', $result->get_error_code() );
+	}
+
 	/**
 	 * Tests resizing an image, not using crop.
 	 */

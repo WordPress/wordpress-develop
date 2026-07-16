@@ -56,6 +56,8 @@ if ( class_exists( 'WP_Image_Editor' ) ) :
 			}
 		}
 		public function save( $destfilename = null, $mime_type = null ) {
+			self::$spy[ __FUNCTION__ ][] = func_get_args();
+
 			// Set new mime-type and quality if converting the image.
 			$this->get_output_format( $destfilename, $mime_type );
 			return self::$save_return;
@@ -69,6 +71,17 @@ if ( class_exists( 'WP_Image_Editor' ) ) :
 			}
 
 			return parent::get_size();
+		}
+	}
+
+	class WP_Image_Editor_Mock_With_Mask extends WP_Image_Editor_Mock {
+		public function mask( $args ) {
+			self::$spy[ __FUNCTION__ ][] = func_get_args();
+			if ( isset( self::$edit_return[ __FUNCTION__ ] ) ) {
+				return self::$edit_return[ __FUNCTION__ ];
+			}
+
+			return true;
 		}
 	}
 

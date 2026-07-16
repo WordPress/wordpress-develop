@@ -50,6 +50,37 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 	}
 
 	/**
+	 * Tests that implementations without a mask method are not selected for mask requests.
+	 *
+	 * @ticket 44405
+	 */
+	public function test_get_editor_does_not_select_implementation_without_mask_method() {
+		$editor = wp_get_image_editor( DIR_TESTDATA . '/images/canola.jpg', array( 'methods' => array( 'mask' ) ) );
+
+		$this->assertWPError( $editor );
+		$this->assertSame( 'image_no_editor', $editor->get_error_code() );
+	}
+
+	/**
+	 * Tests that implementations with a mask method are selected for mask requests.
+	 *
+	 * @ticket 44405
+	 */
+	public function test_get_editor_selects_implementation_with_mask_method() {
+		add_filter(
+			'wp_image_editors',
+			static function () {
+				return array( 'WP_Image_Editor_Mock_With_Mask' );
+			},
+			11
+		);
+
+		$editor = wp_get_image_editor( DIR_TESTDATA . '/images/canola.jpg', array( 'methods' => array( 'mask' ) ) );
+
+		$this->assertInstanceOf( 'WP_Image_Editor_Mock_With_Mask', $editor );
+	}
+
+	/**
 	 * Return integer of 95 for testing.
 	 */
 	public function return_integer_95() {

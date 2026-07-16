@@ -51,6 +51,65 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 		$this->assertSame( $expected, $gd_image_editor->supports_mime_type( 'image/gif' ) );
 	}
 
+	public function test_supports_mask() {
+		$expected = (
+			( imagetypes() & IMG_PNG ) !== 0 &&
+			function_exists( 'imagealphablending' ) &&
+			function_exists( 'imagecolorallocatealpha' ) &&
+			function_exists( 'imagefilledrectangle' ) &&
+			function_exists( 'imagepng' ) &&
+			function_exists( 'imagesavealpha' )
+		);
+
+		$this->assertSame( $expected, WP_Image_Editor_GD::test( array( 'methods' => array( 'mask' ) ) ) );
+	}
+
+	/**
+	 * @requires function imagepng
+	 * @requires function imagecreatefrompng
+	 */
+	public function test_mask_circle() {
+		if ( ! WP_Image_Editor_GD::test( array( 'methods' => array( 'mask' ) ) ) ) {
+			$this->markTestSkipped( 'This test requires GD mask support.' );
+		}
+
+		$file = DIR_TESTDATA . '/images/canola.jpg';
+
+		$gd_image_editor = new WP_Image_Editor_GD( $file );
+		$gd_image_editor->load();
+		$gd_image_editor->crop( 0, 0, 100, 100 );
+		$result = $gd_image_editor->mask( array( 'shape' => 'circle' ) );
+
+		$this->assertTrue( $result );
+
+		// Reuse a unique temp path with a `.png` extension without leaving the
+		// extension-less file created by tempnam() behind.
+		$save_to_file = tempnam( get_temp_dir(), '' );
+		unlink( $save_to_file );
+		$save_to_file .= '.png';
+		$gd_image_editor->save( $save_to_file, 'image/png' );
+
+		$this->assertImageAlphaAtPointGD( $save_to_file, array( 0, 0 ), 127 );
+
+		$image        = imagecreatefrompng( $save_to_file );
+		$center_color = imagecolorsforindex( $image, imagecolorat( $image, 50, 50 ) );
+
+		$this->assertLessThan( 127, $center_color['alpha'] );
+
+		unlink( $save_to_file );
+	}
+
+	public function test_mask_returns_error_for_unsupported_shape() {
+		$file = DIR_TESTDATA . '/images/canola.jpg';
+
+		$gd_image_editor = new WP_Image_Editor_GD( $file );
+		$gd_image_editor->load();
+		$result = $gd_image_editor->mask( array( 'shape' => 'square' ) );
+
+		$this->assertWPError( $result );
+		$this->assertSame( 'image_mask_unsupported', $result->get_error_code() );
+	}
+
 	/**
 	 * Tests resizing an image, not using crop.
 	 *

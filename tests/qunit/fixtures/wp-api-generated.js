@@ -3555,6 +3555,35 @@ mockedApiResponse.Schema = {
                                                 }
                                             }
                                         }
+                                    },
+                                    {
+                                        "title": "Mask",
+                                        "type": "object",
+                                        "properties": {
+                                            "type": {
+                                                "description": "Mask type. Masks are applied after flip, rotate, and crop modifiers, regardless of position.",
+                                                "type": "string",
+                                                "enum": [
+                                                    "mask"
+                                                ]
+                                            },
+                                            "args": {
+                                                "description": "Mask arguments.",
+                                                "type": "object",
+                                                "required": [
+                                                    "shape"
+                                                ],
+                                                "properties": {
+                                                    "shape": {
+                                                        "description": "Mask shape.",
+                                                        "type": "string",
+                                                        "enum": [
+                                                            "circle"
+                                                        ]
+                                                    }
+                                                }
+                                            }
+                                        }
                                     }
                                 ]
                             },
