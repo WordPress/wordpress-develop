@@ -111,10 +111,14 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 			'No self-closing flag on a foreign element'  => array( '<circle>', false ),
 			// These involve syntax peculiarities.
 			'Self-closing flag after extra spaces'       => array( '<div      />', true ),
-			'Self-closing flag after attribute'          => array( '<div id=test/>', true ),
+			'Self-closing flag after attribute'          => array( '<div id=test />', true ),
+			'Slash inside unquoted attribute value'      => array( '<div id=test/>', false ),
+			'Slash only unquoted attribute value'        => array( '<div attr=/>', false ),
+			'Attribute "=" with value ""'                => array( '<div =/>', true ),
+			'Attribute "=" with value "/"'               => array( '<div ==/>', false ),
 			'Self-closing flag after quoted attribute'   => array( '<div id="test"/>', true ),
 			'Self-closing flag after boolean attribute'  => array( '<div enabled/>', true ),
-			'Boolean attribute that looks like a self-closer' => array( '<div / >', false ),
+			'Ignored "/" and whitespace'                 => array( '<div / >', false ),
 		);
 	}
 
@@ -653,7 +657,8 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 			'Abruptly closed comment'       => array( '<!-->', 1, '<!-->' ),
 			'Empty comment'                 => array( '<!---->', 1, '<!---->' ),
 			'Funky comment'                 => array( '</_ funk >', 1, '</_ funk >' ),
-			'PI lookalike comment'          => array( '<?processing instruction?>', 1, '<?processing instruction?>' ),
+			'Processing instruction'        => array( '<?processing instruction?>', 1, '<?processing instruction?>' ),
+			'PI lookalike comment'          => array( '<?xml version="1.0"?>', 1, '<?xml version="1.0"?>' ),
 			'CDATA lookalike comment'       => array( '<![CDATA[ see? data ]]>', 1, '<![CDATA[ see? data ]]>' ),
 		);
 	}
