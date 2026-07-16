@@ -558,6 +558,67 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that the wp-theme design tokens stylesheet is registered.
+	 *
+	 * @ticket 65646
+	 *
+	 * @covers ::wp_default_styles
+	 */
+	public function test_wp_theme_design_tokens_style_is_registered() {
+		wp_default_styles( $GLOBALS['wp_styles'] );
+
+		$this->assertArrayHasKey(
+			'wp-theme',
+			$GLOBALS['wp_styles']->registered,
+			'The wp-theme style handle should be registered.'
+		);
+		$this->assertSame(
+			'/' . WPINC . '/css/dist/theme/design-tokens.css',
+			$GLOBALS['wp_styles']->registered['wp-theme']->src,
+			'The wp-theme style should point to the design tokens stylesheet.'
+		);
+	}
+
+	/**
+	 * Tests that token-consuming package styles depend on wp-theme.
+	 *
+	 * Design tokens must be registered as a dependency so their values are
+	 * defined before the consuming styles that reference them.
+	 *
+	 * @ticket 65646
+	 *
+	 * @covers ::wp_default_styles
+	 */
+	public function test_wp_components_depends_on_wp_theme() {
+		wp_default_styles( $GLOBALS['wp_styles'] );
+
+		$this->assertContains(
+			'wp-theme',
+			$GLOBALS['wp_styles']->registered['wp-components']->deps,
+			'The wp-components style should depend on wp-theme.'
+		);
+	}
+
+	/**
+	 * Tests that wp-theme is the first editor style dependency.
+	 *
+	 * Design tokens must load before any other editor styles so that
+	 * token-consuming rules resolve to their intended values.
+	 *
+	 * @ticket 65646
+	 *
+	 * @covers ::wp_default_styles
+	 */
+	public function test_wp_edit_blocks_loads_wp_theme_first() {
+		wp_default_styles( $GLOBALS['wp_styles'] );
+
+		$deps = $GLOBALS['wp_styles']->registered['wp-edit-blocks']->deps;
+
+		$this->assertContains( 'wp-theme', $deps, 'The wp-edit-blocks style should depend on wp-theme.' );
+		$this->assertSame( 'wp-theme', reset( $deps ), 'wp-theme should be the first wp-edit-blocks dependency.' );
+	}
+
+	/**
 	 * @ticket 58394
 	 * @ticket 63887
 	 *
