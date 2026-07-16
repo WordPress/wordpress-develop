@@ -54,10 +54,10 @@ class Tests_Abilities_API_WpRegisterAbilityCategory extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test registering an ability category outside the `wp_abilities_api_categories_init` hook.
+	 * Tests registering an ability category after the `wp_abilities_api_categories_init` action.
 	 *
-	 * Late registration is supported: once the `init` action has fired, an
-	 * ability category can be registered at any point in the request.
+	 * Registration after `init` is supported. Callers registering afterward are
+	 * responsible for doing so before relevant discovery, snapshot, or use.
 	 *
 	 * @ticket 65583
 	 */

@@ -129,11 +129,10 @@ class Test_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests registering an ability outside the `wp_abilities_api_init` action.
+	 * Tests registering an ability after the `wp_abilities_api_init` action.
 	 *
-	 * Late registration is supported: once the `init` action has fired, an
-	 * ability can be registered at any point in the request, and it must be
-	 * discoverable through the regular retrieval functions.
+	 * Registration after `init` is supported. Callers registering afterward are
+	 * responsible for doing so before relevant discovery, snapshot, or use.
 	 *
 	 * @ticket 65583
 	 */

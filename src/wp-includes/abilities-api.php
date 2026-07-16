@@ -19,12 +19,10 @@
  *
  * ## Working with Abilities
  *
- * Register abilities on the `wp_abilities_api_init` action hook. The hook fires
- * once, when the abilities registry is first initialized (on or after the `init`
- * action), which guarantees the ability is available to every discovery surface
- * from the start. Registration is also supported at any later point in the
- * request - for example from code that initializes on `rest_api_init`, or in
- * long-running runtimes that load plugin code after WordPress has booted.
+ * Register abilities on the `wp_abilities_api_init` action hook, the recommended
+ * deterministic registration point. Registration after the `init` action has
+ * fired is also supported. Callers registering afterward are responsible for
+ * doing so before relevant discovery, snapshot, or use.
  * Attempting to register an ability before the `init` action has fired will
  * fail and trigger a `_doing_it_wrong()` notice.
 
@@ -77,9 +75,8 @@
  *
  * ## Best Practices
  *
- *  - Prefer registering abilities on the `wp_abilities_api_init` hook, so they
- *    are available to all discovery surfaces from the moment the registry
- *    initializes.
+ *  - Register abilities on the `wp_abilities_api_init` hook, the recommended
+ *    deterministic registration point.
  *  - Use namespaced ability names to prevent conflicts.
  *  - Implement robust permission checks in permission callbacks.
  *  - Provide an `input_schema` to ensure data integrity and document expected inputs.
@@ -97,8 +94,9 @@ declare( strict_types = 1 );
 /**
  * Registers a new ability using the Abilities API. It requires three steps:
  *
- *  1. Hook into the `wp_abilities_api_init` action (recommended), or call at
- *     any later point after the `init` action has fired.
+ *  1. Hook into the `wp_abilities_api_init` action, the recommended deterministic
+ *     registration point. Callers registering after `init` must do so before
+ *     relevant discovery, snapshot, or use.
  *  2. Call `wp_register_ability()` with a namespaced name and configuration.
  *  3. Provide execute and permission callbacks.
  *
@@ -228,9 +226,9 @@ declare( strict_types = 1 );
  * This allows abilities to be invoked via HTTP requests to the WordPress REST API.
  *
  * @since 6.9.0
- * @since 7.1.0 Registration is supported at any point after the `init` action has
- *              fired; the `wp_abilities_api_init` action is no longer the only
- *              registration window.
+ * @since 7.1.0 Registration after the `init` action has fired is supported.
+ *              Callers registering afterward must do so before relevant discovery,
+ *              snapshot, or use.
  *
  * @see WP_Abilities_Registry::register()
  * @see wp_register_ability_category()
@@ -610,7 +608,9 @@ function _wp_get_abilities_match_meta( array $meta, array $conditions ): bool {
  * that reference them.
  *
  * Register ability categories on the `wp_abilities_api_categories_init` action
- * hook (recommended), or at any later point after the `init` action has fired.
+ * hook, the recommended deterministic registration point. Registration after
+ * the `init` action has fired is also supported. Callers registering afterward
+ * are responsible for doing so before relevant discovery, snapshot, or use.
  * Attempting to register an ability category before `init` will fail and
  * trigger a `_doing_it_wrong()` notice.
  *
@@ -628,9 +628,9 @@ function _wp_get_abilities_match_meta( array $meta, array $conditions ): bool {
  *     add_action( 'wp_abilities_api_categories_init', 'my_plugin_register_categories' );
  *
  * @since 6.9.0
- * @since 7.1.0 Registration is supported at any point after the `init` action has
- *              fired; the `wp_abilities_api_categories_init` action is no longer
- *              the only registration window.
+ * @since 7.1.0 Registration after the `init` action has fired is supported.
+ *              Callers registering afterward must do so before relevant discovery,
+ *              snapshot, or use.
  *
  * @see WP_Ability_Categories_Registry::register()
  * @see wp_register_ability()
