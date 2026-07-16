@@ -87,7 +87,6 @@ final class WP_Hook implements Iterator, ArrayAccess {
 	 *                                and functions with the same priority are executed in the order
 	 *                                in which they were added to the filter.
 	 * @param int      $accepted_args The number of arguments the function accepts.
-	 * @return void
 	 */
 	public function add_filter( $hook_name, $callback, $priority, $accepted_args ) {
 		if ( null === $priority ) {
@@ -127,7 +126,6 @@ final class WP_Hook implements Iterator, ArrayAccess {
 	 *                                    for no priority being added.
 	 * @param bool      $priority_existed Optional. Flag for whether the priority already existed before the new
 	 *                                    filter was added. Default false.
-	 * @return void
 	 */
 	private function resort_active_iterations( $new_priority = false, $priority_existed = false ) {
 		$new_priorities = $this->priorities;
@@ -300,7 +298,6 @@ final class WP_Hook implements Iterator, ArrayAccess {
 	 * @since 4.7.0
 	 *
 	 * @param int|false $priority Optional. The priority number to remove. Default false.
-	 * @return void
 	 */
 	public function remove_all_filters( $priority = false ) {
 		if ( ! $this->callbacks ) {
@@ -381,7 +378,6 @@ final class WP_Hook implements Iterator, ArrayAccess {
 	 * @since 4.7.0
 	 *
 	 * @param list<mixed> $args Parameters to pass to the callback functions.
-	 * @return void
 	 */
 	public function do_action( $args ) {
 		$this->doing_action = true;
@@ -399,7 +395,6 @@ final class WP_Hook implements Iterator, ArrayAccess {
 	 * @since 4.7.0
 	 *
 	 * @param list<mixed> $args Arguments to pass to the hook callbacks. Passed by reference.
-	 * @return void
 	 */
 	public function do_all_hook( &$args ) {
 		$nesting_level                      = $this->nesting_level++;
