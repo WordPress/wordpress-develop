@@ -75,7 +75,7 @@ class Tests_Media_wpSetClientSideMediaProcessingFlag extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 64906
+	 * @ticket 65648
 	 */
 	public function test_sets_heic_upload_support_flag_for_non_chromium_browsers() {
 		// Safari 26 on macOS.
@@ -91,7 +91,7 @@ class Tests_Media_wpSetClientSideMediaProcessingFlag extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 64906
+	 * @ticket 65648
 	 */
 	public function test_sets_heic_upload_support_flag_for_chromium_browsers() {
 		$_SERVER['HTTP_USER_AGENT'] = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36';
@@ -106,7 +106,7 @@ class Tests_Media_wpSetClientSideMediaProcessingFlag extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 64906
+	 * @ticket 65648
 	 */
 	public function test_does_not_set_flags_when_client_side_media_processing_is_disabled() {
 		$_SERVER['HTTP_USER_AGENT'] = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.0 Safari/605.1.15';
