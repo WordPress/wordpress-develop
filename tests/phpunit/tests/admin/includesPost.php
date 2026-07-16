@@ -1163,6 +1163,11 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 		$this->assertSame( '', get_post_meta( $p, 'testkey', true ) );
 	}
 
+	/**
+	 * Data provider for test_add_meta_authorization.
+	 *
+	 * @return array[]
+	 */
 	public function data_add_meta_authorization() {
 		return array(
 			'has capability, unprotected metakey'     => array(
@@ -1188,6 +1193,13 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * @ticket 32565
+	 *
+	 * @covers ::add_meta
+	 *
+	 * @dataProvider data_add_meta_authorization
+	 */
 	public function test_add_meta_authorization( string $metakey, string $role, bool $expected_error ) {
 		$post_id = self::factory()->post->create();
 		$user_id = 'administrator' === $role ? self::$admin_id : self::factory()->user->create( array( 'role' => $role ) );
