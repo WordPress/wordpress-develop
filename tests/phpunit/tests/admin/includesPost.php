@@ -1170,22 +1170,22 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 	 */
 	public function data_add_meta_authorization() {
 		return array(
-			'has capability, unprotected metakey'     => array(
+			'has capability, unprotected metakey' => array(
 				'metakey'        => 'ordinary_key',
 				'role'           => 'administrator',
 				'expected_error' => false,
 			),
-			'no capability, unprotected metakey'      => array(
+			'no capability, unprotected metakey'  => array(
 				'metakey'        => 'ordinary_key',
 				'role'           => 'subscriber',
 				'expected_error' => true,
 			),
-			'has capability, protected metakey'       => array(
+			'has capability, protected metakey'   => array(
 				'metakey'        => '_protected_testkey',
 				'role'           => 'administrator',
 				'expected_error' => true,
 			),
-			'no capability, protected metakey'        => array(
+			'no capability, protected metakey'    => array(
 				'metakey'        => '_protected_testkey',
 				'role'           => 'subscriber',
 				'expected_error' => true,
