@@ -184,6 +184,20 @@ jQuery( function( $ ) {
 		tbWindow.find( '#TB_iframeContent' ).attr( 'title', title );
 	});
 
+	/*
+	 * On the Add Plugins screen, the plugin icon is decorative markup living
+	 * outside the details link (see #64686 and class-wp-plugin-install-list-
+	 * table.php). Forward mouse/touch clicks on the icon to the existing
+	 * title link so clicking the icon still opens the details modal, the same
+	 * as before. Keyboard users are unaffected: they tab directly to the link,
+	 * which the icon (marked aria-hidden) is skipped over.
+	 */
+	$( '.wrap' ).on( 'click', '.plugin-card .plugin-icon', function() {
+		$( this ).closest( '.plugin-card-top' )
+			.find( '.name a.open-plugin-details-modal' )
+			.trigger( 'click' );
+	});
+
 	/* Plugin install related JS */
 	$( '#plugin-information-tabs a' ).on( 'click', function( event ) {
 		var tab = $( this ).attr( 'name' );
