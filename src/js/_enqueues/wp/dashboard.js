@@ -166,12 +166,6 @@ jQuery( function($) {
  			 */
 			function highlightLatestPost () {
 				var latestPost = $('.drafts ul li').first();
-				errorNotice = $( '#quick-press .notice-error' );
-
-				if ( errorNotice.length ) {
-					return;
-				}
-				
 				latestPost.addClass('is-highlighted');
 				setTimeout(function () {
 					latestPost.removeClass('is-highlighted');
