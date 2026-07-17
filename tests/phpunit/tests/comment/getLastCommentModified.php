@@ -11,6 +11,37 @@ class Tests_Comment_GetLastCommentModified extends WP_UnitTestCase {
 		$this->assertFalse( get_lastcommentmodified() );
 	}
 
+	/**
+	 * Ensures internal 'note' comments are excluded from the last modified time.
+	 *
+	 * The value feeds the comments feed Last-Modified/ETag headers, so a note --
+	 * which is never part of the public feed -- must not bump it.
+	 *
+	 * @ticket 65657
+	 */
+	public function test_notes_are_excluded() {
+		// A regular approved comment.
+		self::factory()->comment->create(
+			array(
+				'comment_approved' => '1',
+				'comment_date'     => '2000-01-01 11:00:00',
+				'comment_date_gmt' => '2000-01-01 10:00:00',
+			)
+		);
+
+		// A later internal note, which must be ignored.
+		self::factory()->comment->create(
+			array(
+				'comment_approved' => '1',
+				'comment_type'     => 'note',
+				'comment_date'     => '2000-01-02 11:00:00',
+				'comment_date_gmt' => '2000-01-02 10:00:00',
+			)
+		);
+
+		$this->assertSame( strtotime( '2000-01-01 10:00:00' ), strtotime( get_lastcommentmodified( 'GMT' ) ) );
+	}
+
 	public function test_default_timezone() {
 		self::factory()->comment->create_and_get(
 			array(
