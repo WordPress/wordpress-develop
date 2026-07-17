@@ -6753,6 +6753,72 @@ function wp_set_up_media_library_cross_origin_isolation(): void {
 }
 
 /**
+ * Returns the settings for the client-side media processing pipeline
+ * in the Media Library.
+ *
+ * These mirror the values the block editor consumes for the same
+ * pipeline: the REST index (image sizes and the big-image threshold)
+ * and get_block_editor_settings() (max upload size and allowed mime
+ * types), plus the image encoding filters.
+ *
+ * @since 7.2.0
+ *
+ * @return array {
+ *     Settings for the client-side media processing pipeline.
+ *
+ *     @type int   $maxUploadFileSize     Maximum upload file size in bytes.
+ *     @type array $allowedMimeTypes      Allowed mime types keyed by file extension.
+ *     @type array $allImageSizes         All registered image sub-sizes.
+ *     @type int   $bigImageSizeThreshold Threshold above which originals are scaled down.
+ *     @type bool  $imageStripMeta        Whether metadata is stripped from generated images.
+ *     @type int   $imageMaxBitDepth      Maximum bit depth for generated images.
+ * }
+ */
+function wp_get_media_library_upload_settings(): array {
+	/** This filter is documented in wp-admin/includes/image.php */
+	$big_image_size_threshold = (int) apply_filters( 'big_image_size_threshold', 2560, array( 0, 0 ), '', 0 );
+
+	/** This filter is documented in wp-includes/class-wp-image-editor-imagick.php */
+	$image_strip_meta = (bool) apply_filters( 'image_strip_meta', true );
+
+	/** This filter is documented in wp-includes/class-wp-image-editor-imagick.php */
+	$image_max_bit_depth = (int) apply_filters( 'image_max_bit_depth', 16, 16 );
+
+	return array(
+		'maxUploadFileSize'     => (int) wp_max_upload_size(),
+		'allowedMimeTypes'      => get_allowed_mime_types(),
+		'allImageSizes'         => wp_get_registered_image_subsizes(),
+		'bigImageSizeThreshold' => $big_image_size_threshold,
+		'imageStripMeta'        => $image_strip_meta,
+		'imageMaxBitDepth'      => $image_max_bit_depth,
+	);
+}
+
+/**
+ * Enqueues the script that routes Media Library grid uploads through
+ * the client-side media processing pipeline.
+ *
+ * The script self-guards: when the browser is not cross-origin isolated
+ * or lacks client-side media support, it no-ops and the classic plupload
+ * flow keeps handling uploads.
+ *
+ * @since 7.2.0
+ */
+function wp_enqueue_media_library_upload(): void {
+	if ( ! wp_is_client_side_media_processing_enabled() ) {
+		return;
+	}
+
+	wp_enqueue_script( 'media-library-upload' );
+
+	wp_add_inline_script(
+		'media-library-upload',
+		'window._wpMediaLibraryUploadSettings = ' . wp_json_encode( wp_get_media_library_upload_settings() ) . ';',
+		'before'
+	);
+}
+
+/**
  * Sends the Document-Isolation-Policy header for cross-origin isolation.
  *
  * Uses an output buffer to add crossorigin="anonymous" where needed.
