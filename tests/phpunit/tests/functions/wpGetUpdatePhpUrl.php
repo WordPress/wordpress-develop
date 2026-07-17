@@ -42,7 +42,7 @@ class Tests_Functions_WpGetUpdatePhpUrl extends WP_UnitTestCase {
 	 */
 	public function test_wp_get_update_php_url_filter() {
 		$custom_url = 'https://example.org/custom-php-update/';
-		$callback = static function () use ( $custom_url ) {
+		$callback   = static function () use ( $custom_url ) {
 			return $custom_url;
 		};
 
