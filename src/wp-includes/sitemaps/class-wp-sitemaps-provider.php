@@ -100,40 +100,32 @@ abstract class WP_Sitemaps_Provider {
 	 * The returned data is used to populate the sitemap entries of the index.
 	 *
 	 * @since 5.5.0
-	 * @since 7.1.0 Added $format parameter.
 	 *
-	 * @param string $format The format for the sitemap index.  Accepts 'xml', 'html'.
 	 * @return array[] Array of sitemap entries.
 	 */
-	public function get_sitemap_entries( $format ) {
+	public function get_sitemap_entries() {
 		$sitemaps = array();
-
-		if ( ! in_array( $format, array( 'xml', 'html' ), true ) ) {
-			$format = 'xml';
-		}
 
 		$sitemap_types = $this->get_sitemap_type_data();
 
 		foreach ( $sitemap_types as $type ) {
 			for ( $page = 1; $page <= $type['pages']; $page++ ) {
 				$sitemap_entry = array(
-					'loc' => $this->get_sitemap_url( $type['name'], $page, $format ),
+					'loc' => $this->get_sitemap_url( $type['name'], $page ),
 				);
 
 				/**
 				 * Filters the sitemap entry for the sitemap index.
 				 *
 				 * @since 5.5.0
-				 * @since 7.1.0 Added $format parameter.
 				 *
 				 * @param array  $sitemap_entry  Sitemap entry for the post.
 				 * @param string $object_type    Object empty name.
 				 * @param string $object_subtype Object subtype name.
 				 *                               Empty string if the object type does not support subtypes.
 				 * @param int    $page           Page number of results.
-				 * @param string $format         The format for the sitemap index.  Accepts 'xml', 'html'.
 				 */
-				$sitemap_entry = apply_filters( 'wp_sitemaps_index_entry', $sitemap_entry, $this->object_type, $type['name'], $page, $format );
+				$sitemap_entry = apply_filters( 'wp_sitemaps_index_entry', $sitemap_entry, $this->object_type, $type['name'], $page );
 
 				$sitemaps[] = $sitemap_entry;
 			}
@@ -146,16 +138,14 @@ abstract class WP_Sitemaps_Provider {
 	 * Gets the URL of a sitemap entry.
 	 *
 	 * @since 5.5.0
-	 * @since 7.1.0 Added $format parameter.
 	 *
 	 * @global WP_Rewrite $wp_rewrite WordPress rewrite component.
 	 *
-	 * @param string $name   The name of the sitemap.
-	 * @param int    $page   The page of the sitemap.
-	 * @param string $format The format for the sitemap index.  Accepts 'xml', 'html'.
+	 * @param string $name The name of the sitemap.
+	 * @param int    $page The page of the sitemap.
 	 * @return string The composed URL for a sitemap entry.
 	 */
-	public function get_sitemap_url( $name, $page, $format ) {
+	public function get_sitemap_url( $name, $page ) {
 		global $wp_rewrite;
 
 		// Accounts for cases where name is not included, ex: sitemaps-users-1.xml.
@@ -167,19 +157,12 @@ abstract class WP_Sitemaps_Provider {
 			)
 		);
 
-		if ( ! in_array( $format, array( 'xml', 'html' ), true ) ) {
-			$format = 'xml';
-		}
-
 		$basename = sprintf(
-			'/wp-sitemap-%1$s.%2$s',
-			implode( '-', $params ),
-			$format
+			'/wp-sitemap-%1$s.xml',
+			implode( '-', $params )
 		);
 
 		if ( ! $wp_rewrite->using_permalinks() ) {
-			$params['sitemap-format'] = $format;
-
 			$basename = '/?' . http_build_query( $params, '', '&' );
 		}
 

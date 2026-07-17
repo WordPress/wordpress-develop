@@ -49,22 +49,16 @@ class WP_Sitemaps_Index {
 	 * Gets a sitemap list for the index.
 	 *
 	 * @since 5.5.0
-	 * @since 7.1.0 Added $format parameter.
 	 *
-	 * @param string $format The format for the sitemap index.  Accepts 'xml', 'html'.
 	 * @return array[] Array of all sitemaps.
 	 */
-	public function get_sitemap_list( $format ) {
+	public function get_sitemap_list() {
 		$sitemaps = array();
-
-		if ( ! in_array( $format, array( 'xml', 'html' ), true ) ) {
-			$format = 'xml';
-		}
 
 		$providers = $this->registry->get_providers();
 		/* @var WP_Sitemaps_Provider $provider */
 		foreach ( $providers as $name => $provider ) {
-			$sitemap_entries = $provider->get_sitemap_entries( $format );
+			$sitemap_entries = $provider->get_sitemap_entries();
 
 			// Prevent issues with array_push and empty arrays on PHP < 7.3.
 			if ( ! $sitemap_entries ) {
@@ -85,24 +79,18 @@ class WP_Sitemaps_Index {
 	 * Builds the URL for the sitemap index.
 	 *
 	 * @since 5.5.0
-	 * @since 7.1.0 Added $format parameter.
 	 *
 	 * @global WP_Rewrite $wp_rewrite WordPress rewrite component.
 	 *
-	 * @param string $format   The format for the sitemap index.  Accepts 'xml', 'html'.
 	 * @return string The sitemap index URL.
 	 */
-	public function get_index_url( $format ) {
+	public function get_index_url() {
 		global $wp_rewrite;
 
-		if ( ! in_array( $format, array( 'xml', 'html' ), true ) ) {
-			$format = 'xml';
-		}
-
 		if ( ! $wp_rewrite->using_permalinks() ) {
-			return home_url( '/?sitemap=index&sitemap-format=' . $format );
+			return home_url( '/?sitemap=index' );
 		}
 
-		return home_url( "/wp-sitemap.{$format}" );
+		return home_url( '/wp-sitemap.xml' );
 	}
 }

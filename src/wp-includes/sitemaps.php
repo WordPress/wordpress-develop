@@ -87,34 +87,28 @@ function wp_sitemaps_get_max_urls( $object_type ) {
 	 * @param int    $max_urls    The maximum number of URLs included in a sitemap. Default 2000.
 	 * @param string $object_type Object type for sitemap to be filtered (e.g. 'post', 'term', 'user').
 	 */
-	return apply_filters( 'wp_sitemaps_max_urls', 100,/*2000,*/ $object_type );
+	return apply_filters( 'wp_sitemaps_max_urls', 2000, $object_type );
 }
 
 /**
  * Retrieves the full URL for a sitemap.
  *
  * @since 5.5.1
- * @since 7.1.0 Added $format parameter.
  *
  * @param string $name         The sitemap name.
  * @param string $subtype_name The sitemap subtype name. Default empty string.
  * @param int    $page         The page of the sitemap. Default 1.
- * @param string $format       The format for the sitemap index.  Accepts 'xml', 'html'.  Default 'xml'.
  * @return string|false The sitemap URL or false if the sitemap doesn't exist.
  */
-function get_sitemap_url( $name, $subtype_name = '', $page = 1, $format = 'xml' ) {
+function get_sitemap_url( $name, $subtype_name = '', $page = 1 ) {
 	$sitemaps = wp_sitemaps_get_server();
 
 	if ( ! $sitemaps ) {
 		return false;
 	}
 
-	if ( ! in_array( $format, array( 'xml', 'html' ), true ) ) {
-		$format = 'xml';
-	}
-
 	if ( 'index' === $name ) {
-		return $sitemaps->index->get_index_url( $format );
+		return $sitemaps->index->get_index_url();
 	}
 
 	$provider = $sitemaps->registry->get_provider( $name );
@@ -131,5 +125,5 @@ function get_sitemap_url( $name, $subtype_name = '', $page = 1, $format = 'xml' 
 		$page = 1;
 	}
 
-	return $provider->get_sitemap_url( $subtype_name, $page, $format );
+	return $provider->get_sitemap_url( $subtype_name, $page );
 }
