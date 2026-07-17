@@ -560,6 +560,8 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 	/**
 	 * Tests that the design tokens stylesheet is registered in core.
 	 *
+	 * @ticket 65646
+	 *
 	 * @covers ::wp_default_styles
 	 */
 	public function test_wp_theme_style_is_registered() {
@@ -575,6 +577,8 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 	/**
 	 * Tests that wp-components depends on wp-theme so tokens load before component styles.
 	 *
+	 * @ticket 65646
+	 *
 	 * @covers ::wp_default_styles
 	 */
 	public function test_wp_components_depends_on_wp_theme() {
@@ -588,6 +592,8 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 
 	/**
 	 * Tests that wp-edit-blocks loads design tokens before other editor styles.
+	 *
+	 * @ticket 65646
 	 *
 	 * @covers ::wp_default_styles
 	 */
