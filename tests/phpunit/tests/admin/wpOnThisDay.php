@@ -35,23 +35,28 @@ class Tests_Admin_wpOnThisDay extends WP_UnitTestCase {
 	 * @param string $title     Post title.
 	 * @param int    $years_ago Number of years before today.
 	 * @param string $time      Post time.
+	 * @param array  $post_args Additional post arguments.
 	 * @return int Post ID.
 	 */
 	private function create_matching_post(
 		$author_id,
 		$title = 'A memory from last year',
 		$years_ago = 1,
-		$time = '12:00:00'
+		$time = '12:00:00',
+		$post_args = array()
 	) {
 		$post_date = current_datetime()->modify( '-' . $years_ago . ' years' )->format( 'Y-m-d' ) . ' ' . $time;
 
 		return self::factory()->post->create(
-			array(
-				'post_author'   => $author_id,
-				'post_date'     => $post_date,
-				'post_date_gmt' => get_gmt_from_date( $post_date ),
-				'post_status'   => 'publish',
-				'post_title'    => $title,
+			array_merge(
+				array(
+					'post_author'   => $author_id,
+					'post_date'     => $post_date,
+					'post_date_gmt' => get_gmt_from_date( $post_date ),
+					'post_status'   => 'publish',
+					'post_title'    => $title,
+				),
+				$post_args
 			)
 		);
 	}
@@ -307,6 +312,67 @@ class Tests_Admin_wpOnThisDay extends WP_UnitTestCase {
 		$this->assertStringContainsString( 'Pretending to meditate', $output );
 		$this->assertStringContainsString( 'Slow internet and good books', $output );
 		$this->assertStringContainsString( 'Late-night shipping log', $output );
+	}
+
+	/**
+	 * @covers ::wp_dashboard_on_this_day
+	 * @covers ::_wp_dashboard_on_this_day_get_no_title_excerpt
+	 */
+	public function test_widget_includes_trimmed_excerpt_for_untitled_posts() {
+		$user_id = self::factory()->user->create( array( 'role' => 'author' ) );
+		wp_set_current_user( $user_id );
+
+		$words = array();
+		for ( $n = 1; $n <= 20; $n++ ) {
+			$words[] = 'word' . $n;
+		}
+
+		$this->create_matching_post(
+			$user_id,
+			'',
+			1,
+			'12:00:00',
+			array(
+				'post_excerpt' => implode( ' ', $words ),
+			)
+		);
+
+		ob_start();
+		wp_dashboard_on_this_day();
+		$output = ob_get_clean();
+
+		$this->assertStringContainsString( '(no title)', $output );
+		$this->assertStringContainsString( 'class="trimmed-post-excerpt"', $output );
+		$this->assertStringContainsString( 'word15', $output, 'The 15th word should be present.' );
+		$this->assertStringNotContainsString( 'word16', $output, 'The 16th word should be trimmed.' );
+		$this->assertStringContainsString( '&hellip;', $output, 'The excerpt should end with an ellipsis.' );
+	}
+
+	/**
+	 * @covers ::wp_dashboard_on_this_day
+	 * @covers ::_wp_dashboard_on_this_day_get_no_title_excerpt
+	 */
+	public function test_widget_hides_untitled_post_excerpt_for_password_protected_posts() {
+		$user_id = self::factory()->user->create( array( 'role' => 'author' ) );
+		wp_set_current_user( $user_id );
+
+		$this->create_matching_post(
+			$user_id,
+			'',
+			1,
+			'12:00:00',
+			array(
+				'post_excerpt'  => 'Private anniversary memory.',
+				'post_password' => 'secret',
+			)
+		);
+
+		ob_start();
+		wp_dashboard_on_this_day();
+		$output = ob_get_clean();
+
+		$this->assertStringNotContainsString( 'Private anniversary memory.', $output );
+		$this->assertStringNotContainsString( 'class="trimmed-post-excerpt"', $output );
 	}
 
 	/**

@@ -50,6 +50,33 @@ function wp_dashboard_on_this_day_postbox_classes( $classes ) {
 }
 
 /**
+ * Gets a trimmed excerpt to display in place of a missing post title.
+ *
+ * Only returns text for posts that have no title and do not require a password.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param WP_Post $post The current WP_Post object.
+ * @return string The trimmed excerpt, or an empty string.
+ */
+function _wp_dashboard_on_this_day_get_no_title_excerpt( $post ) {
+	if ( '' !== get_the_title( $post )
+		|| post_password_required( $post )
+	) {
+		return '';
+	}
+
+	$excerpt = get_the_excerpt( $post );
+
+	if ( '' === $excerpt || ! is_string( $excerpt ) ) {
+		return '';
+	}
+
+	return wp_trim_words( $excerpt, 15 );
+}
+
+/**
  * Renders the On This Day dashboard widget.
  *
  * Outputs the matching posts grouped by publication year, newest year first.
@@ -114,10 +141,12 @@ function wp_dashboard_on_this_day() {
 					<ul>
 						<?php foreach ( $year_posts as $year_post ) : ?>
 							<?php
-							$title = get_the_title( $year_post );
+							$title            = get_the_title( $year_post );
+							$no_title_excerpt = '';
 
 							if ( '' === trim( $title ) ) {
-								$title = __( '(no title)' );
+								$title            = __( '(no title)' );
+								$no_title_excerpt = _wp_dashboard_on_this_day_get_no_title_excerpt( $year_post );
 							}
 
 							$author_id   = (int) $year_post->post_author;
@@ -125,7 +154,9 @@ function wp_dashboard_on_this_day() {
 							$show_author = '' !== trim( $author_name ) && get_current_user_id() !== $author_id;
 							?>
 							<li>
-								<a href="<?php echo esc_url( get_permalink( $year_post ) ); ?>"><?php echo esc_html( $title ); ?></a>
+								<a href="<?php echo esc_url( get_permalink( $year_post ) ); ?>"><?php echo esc_html( $title ); ?><?php if ( '' !== $no_title_excerpt ) : ?>
+									<span class="trimmed-post-excerpt"><?php echo esc_html( $no_title_excerpt ); ?></span>
+								<?php endif; ?></a>
 								<?php if ( $show_author ) : ?>
 									<?php
 									echo '<span class="wp-on-this-day-post-author">' . esc_html(
