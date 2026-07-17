@@ -1576,6 +1576,24 @@ class WP_Query {
 				continue;
 			}
 
+			/**
+			 * Filters a search term after it has passed the length and stopwords checks.
+			 *
+			 * Can be used to normalize or remove a term. Returning an empty string
+			 * will cause the term to be skipped. This is particularly useful for
+			 * languages such as Arabic that require stripping diacritics, Hamza
+			 * variants, or other decorative characters before meaningful comparison.
+			 *
+			 * @since 6.9.0
+			 *
+			 * @param string $term The search term.
+			 */
+			$term = apply_filters( 'wp_search_term', $term );
+
+			if ( ! $term ) {
+				continue;
+			}
+
 			$checked[] = $term;
 		}
 
