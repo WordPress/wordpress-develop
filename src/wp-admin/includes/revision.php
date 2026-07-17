@@ -370,11 +370,11 @@ function wp_print_revision_templates() {
 
 	<script id="tmpl-revisions-buttons" type="text/html">
 		<div class="revisions-previous">
-			<input class="button button-compact" type="button" value="<?php echo esc_attr_x( 'Previous', 'Button label for a previous revision' ); ?>" />
+			<input class="button button-compact" type="button" value="<?php echo esc_attr_x( 'Earlier', 'Button label for an earlier revision' ); ?>" />
 		</div>
 
 		<div class="revisions-next">
-			<input class="button button-compact" type="button" value="<?php echo esc_attr_x( 'Next', 'Button label for a next revision' ); ?>" />
+			<input class="button button-compact" type="button" value="<?php echo esc_attr_x( 'Later', 'Button label for a later revision' ); ?>" />
 		</div>
 	</script>
 
@@ -409,7 +409,7 @@ function wp_print_revision_templates() {
 				<div class="author-card<# if ( data.attributes.autosave ) { #> autosave<# } #>">
 					<div>
 						{{{ data.attributes.author.avatar }}}
-						<div class="author-info" id="diff-title-author">
+						<div class="author-info" id="diff-title-author-{{ data.type }}">
 						<# if ( data.attributes.autosave ) { #>
 							<span class="byline">
 							<?php
@@ -445,18 +445,18 @@ function wp_print_revision_templates() {
 							<span class="date">({{ data.attributes.dateShort }})</span>
 						</div>
 					</div>
-				<# if ( 'to' === data.type && data.attributes.restoreUrl ) { #>
-					<input  <?php if ( wp_check_post_lock( $post->ID ) ) { ?>
-						disabled="disabled"
-					<?php } else { ?>
-						<# if ( data.attributes.current ) { #>
+				<# if ( 'to' === data.type ) { #>
+					<# if ( data.attributes.current ) { #>
+						<span class="current-revision"><?php esc_html_e( 'This is the current version.' ); ?></span>
+					<# } else if ( data.attributes.restoreUrl ) { #>
+						<input <?php if ( wp_check_post_lock( $post->ID ) ) { ?>
 							disabled="disabled"
+						<?php } ?>
+						<# if ( data.attributes.autosave ) { #>
+							type="button" class="restore-revision button button-primary button-compact" value="<?php esc_attr_e( 'Restore This Autosave' ); ?>" />
+						<# } else { #>
+							type="button" class="restore-revision button button-primary button-compact" value="<?php esc_attr_e( 'Restore This Revision' ); ?>" />
 						<# } #>
-					<?php } ?>
-					<# if ( data.attributes.autosave ) { #>
-						type="button" class="restore-revision button button-primary button-compact" value="<?php esc_attr_e( 'Restore This Autosave' ); ?>" />
-					<# } else { #>
-						type="button" class="restore-revision button button-primary button-compact" value="<?php esc_attr_e( 'Restore This Revision' ); ?>" />
 					<# } #>
 				<# } #>
 			</div>
