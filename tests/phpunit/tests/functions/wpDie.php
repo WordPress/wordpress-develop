@@ -63,12 +63,15 @@ class Tests_Functions_WpDie extends WP_UnitTestCase {
 
 		// Use a simple variable to capture the first argument.
 		$captured_message = null;
-		add_filter( 'wp_die_handler', function( $callback ) use ( &$captured_message ) {
-			return function( $message ) use ( &$captured_message ) {
-				$captured_message = $message;
-				throw new WPDieException( 'Intercepted' );
-			};
-		} );
+		add_filter(
+			'wp_die_handler',
+			function ( $callback ) use ( &$captured_message ) {
+				return function ( $message ) use ( &$captured_message ) {
+					$captured_message = $message;
+					throw new WPDieException( 'Intercepted' );
+				};
+			}
+		);
 
 		try {
 			wp_die( $error, '', array( 'exit' => false ) );
