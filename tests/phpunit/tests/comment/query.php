@@ -5846,4 +5846,23 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 
 		$this->assertNotContains( $comments['pingback'], $found );
 	}
+
+	/**
+	 * A comment type named '0' is preserved by the normalization rather than
+	 * being dropped as an empty value.
+	 *
+	 * @ticket 65537
+	 * @covers ::wp_get_default_excluded_comment_types
+	 */
+	public function test_default_excluded_comment_types_filter_preserves_zero_string_type() {
+		add_filter(
+			'default_excluded_comment_types',
+			static function ( array $types ): array {
+				$types[] = '0';
+				return $types;
+			}
+		);
+
+		$this->assertContains( '0', wp_get_default_excluded_comment_types() );
+	}
 }

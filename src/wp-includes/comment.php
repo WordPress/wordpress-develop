@@ -2893,7 +2893,7 @@ function wp_get_default_excluded_comment_types( $query = null ) {
 	 */
 	$excluded_types = apply_filters( 'default_excluded_comment_types', array( 'note' ), $query );
 
-	$excluded_types = array_unique( array_filter( array_map( 'strval', (array) $excluded_types ) ) );
+	$excluded_types = array_unique( array_filter( array_map( 'strval', (array) $excluded_types ), 'strlen' ) );
 
 	// Strip the special type tokens so an alias cannot poison explicit-type queries.
 	return array_values( array_diff( $excluded_types, array( 'all', 'comment', 'comments', 'pings' ) ) );
