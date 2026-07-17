@@ -11,42 +11,19 @@
  * Registers the On This Day dashboard widget.
  *
  * Designed to be the single entry point called from the dashboard setup
- * routine. The widget is always registered so that it remains available in
- * Screen Options and keeps its user-customized position. When there are no
- * matching posts, a marker class is added to the postbox so the widget can be
- * hidden with CSS.
+ * routine. The widget is always registered and always visible, keeping its
+ * Screen Options entry consistent with what is shown on screen. When there are
+ * no matching posts, a placeholder message is displayed. Users who do not want
+ * the widget can hide it via Screen Options, and that preference is preserved.
  *
  * @since 7.1.0
  */
 function wp_dashboard_on_this_day_setup() {
-	add_filter( 'postbox_classes_dashboard_wp_dashboard_on_this_day', 'wp_dashboard_on_this_day_postbox_classes' );
-
 	wp_add_dashboard_widget(
 		'wp_dashboard_on_this_day',
 		__( 'On This Day' ),
 		'wp_dashboard_on_this_day'
 	);
-}
-
-/**
- * Hides the On This Day postbox when there are no posts to show.
- *
- * Adds the core `hidden` class so the widget stays registered — preserving its
- * Screen Options entry and user-customized position — while being hidden when
- * empty. A user can still reveal it via Screen Options, in which case the
- * placeholder message is shown.
- *
- * @since 7.1.0
- *
- * @param string[] $classes An array of postbox classes.
- * @return string[] Filtered postbox classes.
- */
-function wp_dashboard_on_this_day_postbox_classes( $classes ) {
-	if ( empty( wp_dashboard_on_this_day_get_posts() ) ) {
-		$classes[] = 'hidden';
-	}
-
-	return $classes;
 }
 
 /**
@@ -60,8 +37,7 @@ function wp_dashboard_on_this_day() {
 	$posts = wp_dashboard_on_this_day_get_posts();
 
 	if ( empty( $posts ) ) {
-		// Placeholder shown when a user reveals the hidden widget via Screen
-		// Options on a day with no matching posts.
+		// Placeholder shown on a day with no matching posts in previous years.
 		echo '<p>' . esc_html__( 'No posts were published on this day in previous years.' ) . '</p>';
 		return;
 	}

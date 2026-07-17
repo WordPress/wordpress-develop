@@ -94,7 +94,7 @@ class Tests_Admin_wpOnThisDay extends WP_UnitTestCase {
 	/**
 	 * @covers ::wp_dashboard_on_this_day_setup
 	 */
-	public function test_setup_always_registers_widget_and_postbox_class_filter() {
+	public function test_setup_always_registers_widget() {
 		$this->set_up_dashboard_screen();
 
 		$user_id = self::factory()->user->create( array( 'role' => 'author' ) );
@@ -106,33 +106,6 @@ class Tests_Admin_wpOnThisDay extends WP_UnitTestCase {
 
 		$this->assertArrayHasKey( 'wp_dashboard_on_this_day', $dashboard_widgets );
 		$this->assertSame( 'On This Day', $dashboard_widgets['wp_dashboard_on_this_day']['title'] );
-		$this->assertNotFalse(
-			has_filter(
-				'postbox_classes_dashboard_wp_dashboard_on_this_day',
-				'wp_dashboard_on_this_day_postbox_classes'
-			)
-		);
-	}
-
-	/**
-	 * @covers ::wp_dashboard_on_this_day_postbox_classes
-	 */
-	public function test_postbox_classes_hides_widget_without_matching_posts() {
-		$user_id = self::factory()->user->create( array( 'role' => 'author' ) );
-		wp_set_current_user( $user_id );
-
-		$this->assertContains( 'hidden', wp_dashboard_on_this_day_postbox_classes( array( '' ) ) );
-	}
-
-	/**
-	 * @covers ::wp_dashboard_on_this_day_postbox_classes
-	 */
-	public function test_postbox_classes_does_not_hide_widget_with_matching_posts() {
-		$user_id = self::factory()->user->create( array( 'role' => 'author' ) );
-		wp_set_current_user( $user_id );
-		$this->create_matching_post( $user_id );
-
-		$this->assertNotContains( 'hidden', wp_dashboard_on_this_day_postbox_classes( array( '' ) ) );
 	}
 
 	/**
