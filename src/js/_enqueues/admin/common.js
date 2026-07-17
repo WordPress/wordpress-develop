@@ -695,7 +695,7 @@ $('.contextual-help-tabs').on( 'click', 'a', function(e) {
 	$('.contextual-help-tabs .active').removeClass('active');
 	link.parent('li').addClass('active');
 
-	panel = $( link.attr('href') );
+	panel = $( '#' + link.attr( 'aria-controls' ) );
 
 	// Panels.
 	$('.help-tab-content').not( panel ).removeClass('active').hide();
