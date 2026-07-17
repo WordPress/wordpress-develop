@@ -2860,7 +2860,7 @@ function wp_get_default_excluded_comment_types( $query = null ) {
 	 * variables.
 	 *
 	 * This allows plugins to keep comment types out of standard comment
-	 * listings, counts, or feeds by default, without having to filter every
+	 * listings and counts by default, without having to filter every
 	 * query individually. The 'note' comment type, used by the editor, is
 	 * excluded by default. The same set is applied when recalculating a
 	 * post's stored comment count in wp_update_comment_count_now() and when
