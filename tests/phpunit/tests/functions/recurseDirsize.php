@@ -70,7 +70,7 @@ class Tests_Functions_RecurseDirsize extends WP_UnitTestCase {
 	public function test_pre_recurse_dirsize_filter() {
 		add_filter(
 			'pre_recurse_dirsize',
-			function() {
+			static function () {
 				return 1234;
 			}
 		);
