@@ -6702,6 +6702,57 @@ function wp_set_up_cross_origin_isolation(): void {
 }
 
 /**
+ * Returns the current Media Library mode (grid or list).
+ *
+ * Replicates the mode resolution in wp-admin/upload.php, which runs after
+ * the `load-upload.php` hook, without updating the saved user option.
+ *
+ * @since 7.2.0
+ *
+ * @return string Either 'grid' or 'list'.
+ */
+function wp_get_media_library_mode(): string {
+	$modes = array( 'grid', 'list' );
+
+	// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+	if ( isset( $_GET['mode'] ) && in_array( $_GET['mode'], $modes, true ) ) {
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		return $_GET['mode'];
+	}
+
+	$mode = get_user_option( 'media_library_mode', get_current_user_id() );
+
+	return in_array( $mode, $modes, true ) ? $mode : 'grid';
+}
+
+/**
+ * Enables cross-origin isolation in the Media Library grid.
+ *
+ * Required for enabling SharedArrayBuffer for WebAssembly-based
+ * media processing when uploading via the Media Library grid.
+ * List mode has no client-side pipeline integration and is not
+ * isolated.
+ *
+ * @since 7.2.0
+ */
+function wp_set_up_media_library_cross_origin_isolation(): void {
+	if ( ! wp_is_client_side_media_processing_enabled() ) {
+		return;
+	}
+
+	if ( 'grid' !== wp_get_media_library_mode() ) {
+		return;
+	}
+
+	// Cross-origin isolation is not needed if users can't upload files anyway.
+	if ( ! current_user_can( 'upload_files' ) ) {
+		return;
+	}
+
+	wp_start_cross_origin_isolation_output_buffer();
+}
+
+/**
  * Sends the Document-Isolation-Policy header for cross-origin isolation.
  *
  * Uses an output buffer to add crossorigin="anonymous" where needed.
