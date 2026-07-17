@@ -373,8 +373,8 @@ class WP_Debug_Data {
 		);
 		$fields['httpd_software']      = array(
 			'label' => __( 'Web server' ),
-			'value' => $_SERVER['SERVER_SOFTWARE'] ?? __( 'Unable to determine what web server software is used' ),
-			'debug' => $_SERVER['SERVER_SOFTWARE'] ?? 'unknown',
+			'value' => ! empty( $_SERVER['SERVER_SOFTWARE'] ) ? wp_unslash( $_SERVER['SERVER_SOFTWARE'] ) : __( 'Unable to determine what web server software is used' ),
+			'debug' => ! empty( $_SERVER['SERVER_SOFTWARE'] ) ? wp_unslash( $_SERVER['SERVER_SOFTWARE'] ) : 'unknown',
 		);
 		$fields['php_version']         = array(
 			'label' => __( 'PHP version' ),
@@ -387,56 +387,43 @@ class WP_Debug_Data {
 			'debug' => PHP_SAPI,
 		);
 
-		// Some servers disable `ini_set()` and `ini_get()`, we check this before trying to get configuration values.
-		if ( ! function_exists( 'ini_get' ) ) {
-			$fields['ini_get'] = array(
-				'label' => __( 'Server settings' ),
-				'value' => sprintf(
-				/* translators: %s: ini_get() */
-					__( 'Unable to determine some settings, as the %s function has been disabled.' ),
-					'ini_get()'
-				),
-				'debug' => 'ini_get() is disabled',
+		$fields['max_input_variables'] = array(
+			'label' => __( 'PHP max input variables' ),
+			'value' => ini_get( 'max_input_vars' ),
+		);
+		$fields['time_limit']          = array(
+			'label' => __( 'PHP time limit' ),
+			'value' => ini_get( 'max_execution_time' ),
+		);
+
+		if ( WP_Site_Health::get_instance()->php_memory_limit !== ini_get( 'memory_limit' ) ) {
+			$fields['memory_limit']       = array(
+				'label' => __( 'PHP memory limit' ),
+				'value' => WP_Site_Health::get_instance()->php_memory_limit,
+			);
+			$fields['admin_memory_limit'] = array(
+				'label' => __( 'PHP memory limit (only for admin screens)' ),
+				'value' => ini_get( 'memory_limit' ),
 			);
 		} else {
-			$fields['max_input_variables'] = array(
-				'label' => __( 'PHP max input variables' ),
-				'value' => ini_get( 'max_input_vars' ),
-			);
-			$fields['time_limit']          = array(
-				'label' => __( 'PHP time limit' ),
-				'value' => ini_get( 'max_execution_time' ),
-			);
-
-			if ( WP_Site_Health::get_instance()->php_memory_limit !== ini_get( 'memory_limit' ) ) {
-				$fields['memory_limit']       = array(
-					'label' => __( 'PHP memory limit' ),
-					'value' => WP_Site_Health::get_instance()->php_memory_limit,
-				);
-				$fields['admin_memory_limit'] = array(
-					'label' => __( 'PHP memory limit (only for admin screens)' ),
-					'value' => ini_get( 'memory_limit' ),
-				);
-			} else {
-				$fields['memory_limit'] = array(
-					'label' => __( 'PHP memory limit' ),
-					'value' => ini_get( 'memory_limit' ),
-				);
-			}
-
-			$fields['max_input_time']      = array(
-				'label' => __( 'Max input time' ),
-				'value' => ini_get( 'max_input_time' ),
-			);
-			$fields['upload_max_filesize'] = array(
-				'label' => __( 'Upload max filesize' ),
-				'value' => ini_get( 'upload_max_filesize' ),
-			);
-			$fields['php_post_max_size']   = array(
-				'label' => __( 'PHP post max size' ),
-				'value' => ini_get( 'post_max_size' ),
+			$fields['memory_limit'] = array(
+				'label' => __( 'PHP memory limit' ),
+				'value' => ini_get( 'memory_limit' ),
 			);
 		}
+
+		$fields['max_input_time']      = array(
+			'label' => __( 'Max input time' ),
+			'value' => ini_get( 'max_input_time' ),
+		);
+		$fields['upload_max_filesize'] = array(
+			'label' => __( 'Upload max filesize' ),
+			'value' => ini_get( 'upload_max_filesize' ),
+		);
+		$fields['php_post_max_size']   = array(
+			'label' => __( 'PHP post max size' ),
+			'value' => ini_get( 'post_max_size' ),
+		);
 
 		if ( function_exists( 'curl_version' ) ) {
 			$curl = curl_version();
@@ -470,6 +457,83 @@ class WP_Debug_Data {
 			'value' => ( $imagick_loaded ? __( 'Yes' ) : __( 'No' ) ),
 			'debug' => $imagick_loaded,
 		);
+
+		// Opcode Cache.
+		if ( function_exists( 'opcache_get_status' ) ) {
+			$opcache_status = @opcache_get_status( false ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- Warning emitted in failure case.
+
+			if ( false === $opcache_status ) {
+				$fields['opcode_cache'] = array(
+					'label' => __( 'Opcode cache' ),
+					'value' => __( 'Disabled by configuration' ),
+					'debug' => 'not available',
+				);
+			} else {
+				$fields['opcode_cache'] = array(
+					'label' => __( 'Opcode cache' ),
+					'value' => $opcache_status['opcache_enabled'] ? __( 'Enabled' ) : __( 'Disabled' ),
+					'debug' => $opcache_status['opcache_enabled'],
+				);
+
+				if ( true === $opcache_status['opcache_enabled'] ) {
+					$fields['opcode_cache_memory_usage'] = array(
+						'label' => __( 'Opcode cache memory usage' ),
+						'value' => sprintf(
+							/* translators: 1: Used memory, 2: Total memory */
+							__( '%1$s of %2$s' ),
+							size_format( $opcache_status['memory_usage']['used_memory'] ),
+							size_format( $opcache_status['memory_usage']['free_memory'] + $opcache_status['memory_usage']['used_memory'] )
+						),
+						'debug' => sprintf(
+							'%s of %s',
+							$opcache_status['memory_usage']['used_memory'],
+							$opcache_status['memory_usage']['free_memory'] + $opcache_status['memory_usage']['used_memory']
+						),
+					);
+
+					if ( 0 !== $opcache_status['interned_strings_usage']['buffer_size'] ) {
+						$fields['opcode_cache_interned_strings_usage'] = array(
+							'label' => __( 'Opcode cache interned strings usage' ),
+							'value' => sprintf(
+								/* translators: 1: Percentage used, 2: Total memory, 3: Free memory */
+								__( '%1$s%% of %2$s (%3$s free)' ),
+								number_format_i18n( ( $opcache_status['interned_strings_usage']['used_memory'] / $opcache_status['interned_strings_usage']['buffer_size'] ) * 100, 2 ),
+								size_format( $opcache_status['interned_strings_usage']['buffer_size'] ),
+								size_format( $opcache_status['interned_strings_usage']['free_memory'] )
+							),
+							'debug' => sprintf(
+								'%s%% of %s (%s free)',
+								round( ( $opcache_status['interned_strings_usage']['used_memory'] / $opcache_status['interned_strings_usage']['buffer_size'] ) * 100, 2 ),
+								$opcache_status['interned_strings_usage']['buffer_size'],
+								$opcache_status['interned_strings_usage']['free_memory']
+							),
+						);
+					}
+
+					$fields['opcode_cache_hit_rate'] = array(
+						'label' => __( 'Opcode cache hit rate' ),
+						'value' => sprintf(
+							/* translators: %s: Hit rate percentage */
+							__( '%s%%' ),
+							number_format_i18n( $opcache_status['opcache_statistics']['opcache_hit_rate'], 2 )
+						),
+						'debug' => round( $opcache_status['opcache_statistics']['opcache_hit_rate'], 2 ),
+					);
+
+					$fields['opcode_cache_full'] = array(
+						'label' => __( 'Is the Opcode cache full?' ),
+						'value' => $opcache_status['cache_full'] ? __( 'Yes' ) : __( 'No' ),
+						'debug' => $opcache_status['cache_full'],
+					);
+				}
+			}
+		} else {
+			$fields['opcode_cache'] = array(
+				'label' => __( 'Opcode cache' ),
+				'value' => __( 'Disabled' ),
+				'debug' => 'not available',
+			);
+		}
 
 		// Pretty permalinks.
 		$pretty_permalinks_supported = got_url_rewrite();
@@ -545,7 +609,7 @@ class WP_Debug_Data {
 		);
 		$fields['server-time'] = array(
 			'label' => __( 'Current Server time' ),
-			'value' => wp_date( 'c', $_SERVER['REQUEST_TIME'] ),
+			'value' => isset( $_SERVER['REQUEST_TIME'] ) ? wp_date( 'c', (int) $_SERVER['REQUEST_TIME'] ) : __( 'Unable to determine server time' ),
 		);
 
 		return array(
@@ -599,47 +663,35 @@ class WP_Debug_Data {
 			'value' => ( $imagick_version ) ? $imagick_version : __( 'Not available' ),
 		);
 
-		if ( ! function_exists( 'ini_get' ) ) {
-			$fields['ini_get'] = array(
-				'label' => __( 'File upload settings' ),
-				'value' => sprintf(
-				/* translators: %s: ini_get() */
-					__( 'Unable to determine some settings, as the %s function has been disabled.' ),
-					'ini_get()'
-				),
-				'debug' => 'ini_get() is disabled',
-			);
-		} else {
-			// Get the PHP ini directive values.
-			$file_uploads        = ini_get( 'file_uploads' );
-			$post_max_size       = ini_get( 'post_max_size' );
-			$upload_max_filesize = ini_get( 'upload_max_filesize' );
-			$max_file_uploads    = ini_get( 'max_file_uploads' );
-			$effective           = min( wp_convert_hr_to_bytes( $post_max_size ), wp_convert_hr_to_bytes( $upload_max_filesize ) );
+		// Get the PHP ini directive values.
+		$file_uploads        = ini_get( 'file_uploads' );
+		$post_max_size       = ini_get( 'post_max_size' );
+		$upload_max_filesize = ini_get( 'upload_max_filesize' );
+		$max_file_uploads    = ini_get( 'max_file_uploads' );
+		$effective           = min( wp_convert_hr_to_bytes( $post_max_size ), wp_convert_hr_to_bytes( $upload_max_filesize ) );
 
-			// Add info in Media section.
-			$fields['file_uploads']        = array(
-				'label' => __( 'File uploads' ),
-				'value' => $file_uploads ? __( 'Enabled' ) : __( 'Disabled' ),
-				'debug' => $file_uploads,
-			);
-			$fields['post_max_size']       = array(
-				'label' => __( 'Max size of post data allowed' ),
-				'value' => $post_max_size,
-			);
-			$fields['upload_max_filesize'] = array(
-				'label' => __( 'Max size of an uploaded file' ),
-				'value' => $upload_max_filesize,
-			);
-			$fields['max_effective_size']  = array(
-				'label' => __( 'Max effective file size' ),
-				'value' => size_format( $effective ),
-			);
-			$fields['max_file_uploads']    = array(
-				'label' => __( 'Max simultaneous file uploads' ),
-				'value' => $max_file_uploads,
-			);
-		}
+		// Add info in Media section.
+		$fields['file_uploads']        = array(
+			'label' => __( 'File uploads' ),
+			'value' => $file_uploads ? __( 'Enabled' ) : __( 'Disabled' ),
+			'debug' => $file_uploads,
+		);
+		$fields['post_max_size']       = array(
+			'label' => __( 'Max size of post data allowed' ),
+			'value' => $post_max_size,
+		);
+		$fields['upload_max_filesize'] = array(
+			'label' => __( 'Max size of an uploaded file' ),
+			'value' => $upload_max_filesize,
+		);
+		$fields['max_effective_size']  = array(
+			'label' => __( 'Max effective file size' ),
+			'value' => size_format( $effective ),
+		);
+		$fields['max_file_uploads']    = array(
+			'label' => __( 'Max simultaneous file uploads' ),
+			'value' => $max_file_uploads,
+		);
 
 		// If Imagick is used as our editor, provide some more information about its limitations.
 		if ( 'WP_Image_Editor_Imagick' === _wp_image_editor_choose() && isset( $imagick ) && $imagick instanceof Imagick ) {
@@ -1055,7 +1107,7 @@ class WP_Debug_Data {
 	 *
 	 * @since 6.7.0
 	 *
-	 * @global array $_wp_theme_features
+	 * @global array<string, bool|array> $_wp_theme_features The theme features for the active theme.
 	 *
 	 * @return array<string, string|array> The active theme debug data.
 	 */
@@ -1900,9 +1952,7 @@ class WP_Debug_Data {
 		 * from causing a timeout. The default value is 30 seconds, and some
 		 * hosts do not allow you to read configuration values.
 		 */
-		if ( function_exists( 'ini_get' ) ) {
-			$max_execution_time = ini_get( 'max_execution_time' );
-		}
+		$max_execution_time = ini_get( 'max_execution_time' );
 
 		/*
 		 * The max_execution_time defaults to 0 when PHP runs from cli.

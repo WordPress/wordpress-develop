@@ -583,7 +583,8 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 
 		$this->assertSameSets(
 			array(
-				'filter' => 'deprecated',
+				'canEditCSS' => false,
+				'filter'     => 'deprecated',
 			),
 			$settings
 		);

@@ -22,6 +22,7 @@ final class WP_Comment {
 	 *
 	 * @since 4.4.0
 	 * @var string
+	 * @phpstan-var numeric-string
 	 */
 	public $comment_ID;
 
@@ -32,6 +33,7 @@ final class WP_Comment {
 	 *
 	 * @since 4.4.0
 	 * @var string
+	 * @phpstan-var numeric-string
 	 */
 	public $comment_post_ID = '0';
 
@@ -98,6 +100,7 @@ final class WP_Comment {
 	 *
 	 * @since 4.4.0
 	 * @var string
+	 * @phpstan-var numeric-string
 	 */
 	public $comment_karma = '0';
 
@@ -133,6 +136,7 @@ final class WP_Comment {
 	 *
 	 * @since 4.4.0
 	 * @var string
+	 * @phpstan-var numeric-string
 	 */
 	public $comment_parent = '0';
 
@@ -143,6 +147,7 @@ final class WP_Comment {
 	 *
 	 * @since 4.4.0
 	 * @var string
+	 * @phpstan-var numeric-string
 	 */
 	public $user_id = '0';
 
@@ -210,7 +215,7 @@ final class WP_Comment {
 	 *
 	 * @since 4.4.0
 	 *
-	 * @param WP_Comment $comment Comment object.
+	 * @param object $comment Comment object.
 	 */
 	public function __construct( $comment ) {
 		foreach ( get_object_vars( $comment ) as $key => $value ) {
