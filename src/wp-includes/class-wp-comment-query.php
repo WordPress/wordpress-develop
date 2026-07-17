@@ -775,13 +775,34 @@ class WP_Comment_Query {
 		$excluded_types = wp_get_default_excluded_comment_types( $this );
 
 		// Unless all types are requested, exclude each default-excluded type
-		// that the query does not explicitly request.
+		// that the query does not explicitly request. The special type tokens
+		// in the request ('comment', 'comments', 'pings') are first expanded to
+		// the literal comment_type values they represent, so a type requested
+		// via an alias (for example 'pings' for 'pingback' and 'trackback') is
+		// still treated as explicitly requested and is not excluded.
 		if ( ! in_array( 'all', $raw_types['IN'], true ) ) {
+			$requested_types = array();
+			foreach ( $raw_types['IN'] as $requested_type ) {
+				switch ( $requested_type ) {
+					case 'comment':
+					case 'comments':
+						$requested_types[] = '';
+						$requested_types[] = 'comment';
+						break;
+
+					case 'pings':
+						$requested_types[] = 'pingback';
+						$requested_types[] = 'trackback';
+						break;
+
+					default:
+						$requested_types[] = $requested_type;
+						break;
+				}
+			}
+
 			foreach ( $excluded_types as $excluded_type ) {
-				if (
-					! in_array( $excluded_type, $raw_types['IN'], true ) &&
-					! in_array( $excluded_type, $raw_types['NOT IN'], true )
-				) {
+				if ( ! in_array( $excluded_type, $requested_types, true ) ) {
 					$raw_types['NOT IN'][] = $excluded_type;
 				}
 			}

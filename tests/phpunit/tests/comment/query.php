@@ -5809,4 +5809,41 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 
 		$this->assertContains( $comments['pingback'], $found );
 	}
+
+	/**
+	 * A type requested via a query alias counts as an explicit request, so an
+	 * excluded literal type is still returned when its alias is requested.
+	 *
+	 * @ticket 65537
+	 * @covers WP_Comment_Query::get_comment_ids
+	 */
+	public function test_default_excluded_comment_types_filter_respects_alias_request() {
+		$comments = $this->create_note_type_test_comments();
+
+		add_filter(
+			'default_excluded_comment_types',
+			static function ( array $types ): array {
+				$types[] = 'pingback';
+				return $types;
+			}
+		);
+
+		// 'pings' is a query alias for the 'pingback' and 'trackback' types, so
+		// an explicit request for it must still return pingbacks.
+		$query = new WP_Comment_Query();
+		$found = $query->query(
+			array(
+				'type'   => 'pings',
+				'fields' => 'ids',
+			)
+		);
+
+		$this->assertContains( $comments['pingback'], $found );
+
+		// A default query, which does not request the type, still excludes it.
+		$query = new WP_Comment_Query();
+		$found = $query->query( array( 'fields' => 'ids' ) );
+
+		$this->assertNotContains( $comments['pingback'], $found );
+	}
 }
