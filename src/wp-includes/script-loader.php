@@ -1518,6 +1518,9 @@ function wp_default_scripts( $scripts ) {
 		$scripts->add( 'media-library-upload', "/wp-admin/js/media-library-upload$suffix.js", array( 'media-views', 'wp-upload-media', 'wp-media-utils', 'wp-api-fetch', 'wp-data', 'wp-element', 'wp-i18n' ), false, 1 );
 		$scripts->set_translations( 'media-library-upload' );
 
+		$scripts->add( 'media-new-upload', "/wp-admin/js/media-new-upload$suffix.js", array( 'plupload-handlers', 'wp-upload-media', 'wp-media-utils', 'wp-api-fetch', 'wp-data', 'wp-element', 'wp-i18n' ), false, 1 );
+		$scripts->set_translations( 'media-new-upload' );
+
 		$scripts->add( 'image-edit', "/wp-admin/js/image-edit$suffix.js", array( 'jquery', 'jquery-ui-core', 'imgareaselect', 'wp-a11y' ), false, 1 );
 		$scripts->set_translations( 'image-edit' );
 

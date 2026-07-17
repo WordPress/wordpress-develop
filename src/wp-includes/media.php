@@ -6753,6 +6753,27 @@ function wp_set_up_media_library_cross_origin_isolation(): void {
 }
 
 /**
+ * Enables cross-origin isolation on the "Add New Media File" screen.
+ *
+ * Required for enabling SharedArrayBuffer for WebAssembly-based
+ * media processing when uploading via wp-admin/media-new.php.
+ *
+ * @since 7.2.0
+ */
+function wp_set_up_media_new_cross_origin_isolation(): void {
+	if ( ! wp_is_client_side_media_processing_enabled() ) {
+		return;
+	}
+
+	// Cross-origin isolation is not needed if users can't upload files anyway.
+	if ( ! current_user_can( 'upload_files' ) ) {
+		return;
+	}
+
+	wp_start_cross_origin_isolation_output_buffer();
+}
+
+/**
  * Returns the settings for the client-side media processing pipeline
  * in the Media Library.
  *
@@ -6814,6 +6835,30 @@ function wp_enqueue_media_library_upload(): void {
 	wp_add_inline_script(
 		'media-library-upload',
 		'window._wpMediaLibraryUploadSettings = ' . wp_json_encode( wp_get_media_library_upload_settings() ) . ';',
+		'before'
+	);
+}
+
+/**
+ * Enqueues the script that routes "Add New Media File" screen uploads
+ * through the client-side media processing pipeline.
+ *
+ * The script self-guards: when the browser is not cross-origin isolated
+ * or lacks client-side media support, it no-ops and the classic plupload
+ * flow keeps handling uploads.
+ *
+ * @since 7.2.0
+ */
+function wp_enqueue_media_new_upload(): void {
+	if ( ! wp_is_client_side_media_processing_enabled() ) {
+		return;
+	}
+
+	wp_enqueue_script( 'media-new-upload' );
+
+	wp_add_inline_script(
+		'media-new-upload',
+		'window._wpMediaNewUploadSettings = ' . wp_json_encode( wp_get_media_library_upload_settings() ) . ';',
 		'before'
 	);
 }
