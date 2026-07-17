@@ -52,12 +52,18 @@ class Tests_Media_wpEnqueueMediaLibraryUpload extends WP_UnitTestCase {
 		parent::tear_down();
 	}
 
+	/**
+	 * @ticket 65661
+	 */
 	public function test_script_enqueued() {
 		wp_enqueue_media_library_upload();
 
 		$this->assertTrue( wp_script_is( 'media-library-upload', 'enqueued' ) );
 	}
 
+	/**
+	 * @ticket 65661
+	 */
 	public function test_script_not_enqueued_when_client_side_processing_disabled() {
 		add_filter( 'wp_client_side_media_processing_enabled', '__return_false' );
 
@@ -70,6 +76,8 @@ class Tests_Media_wpEnqueueMediaLibraryUpload extends WP_UnitTestCase {
 	 * The script depends on media-views and wp-upload-media, not
 	 * wp-block-editor, so block editor bundles are not dragged onto
 	 * the Media Library page.
+	 *
+	 * @ticket 65661
 	 */
 	public function test_dependencies() {
 		wp_enqueue_media_library_upload();
@@ -80,6 +88,9 @@ class Tests_Media_wpEnqueueMediaLibraryUpload extends WP_UnitTestCase {
 		$this->assertNotContains( 'wp-block-editor', $script->deps );
 	}
 
+	/**
+	 * @ticket 65661
+	 */
 	public function test_inline_settings_expose_all_keys() {
 		wp_enqueue_media_library_upload();
 
@@ -100,6 +111,9 @@ class Tests_Media_wpEnqueueMediaLibraryUpload extends WP_UnitTestCase {
 		}
 	}
 
+	/**
+	 * @ticket 65661
+	 */
 	public function test_big_image_size_threshold_filter() {
 		add_filter(
 			'big_image_size_threshold',
@@ -113,6 +127,9 @@ class Tests_Media_wpEnqueueMediaLibraryUpload extends WP_UnitTestCase {
 		$this->assertSame( 4096, $settings['bigImageSizeThreshold'] );
 	}
 
+	/**
+	 * @ticket 65661
+	 */
 	public function test_settings_value_types() {
 		$settings = wp_get_media_library_upload_settings();
 

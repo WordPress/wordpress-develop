@@ -70,18 +70,27 @@ class Tests_Media_wpMediaLibraryCrossOriginIsolation extends WP_UnitTestCase {
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'editor' ) ) );
 	}
 
+	/**
+	 * @ticket 65661
+	 */
 	public function test_mode_defaults_to_grid() {
 		unset( $_GET['mode'] );
 
 		$this->assertSame( 'grid', wp_get_media_library_mode() );
 	}
 
+	/**
+	 * @ticket 65661
+	 */
 	public function test_mode_from_query_string() {
 		$_GET['mode'] = 'list';
 
 		$this->assertSame( 'list', wp_get_media_library_mode() );
 	}
 
+	/**
+	 * @ticket 65661
+	 */
 	public function test_invalid_query_string_mode_falls_back_to_grid() {
 		$_GET['mode'] = 'bogus';
 
@@ -93,6 +102,8 @@ class Tests_Media_wpMediaLibraryCrossOriginIsolation extends WP_UnitTestCase {
 	 *
 	 * upload.php compares the raw value strictly, so `?mode=GRID` falls
 	 * back to the user option rather than being normalized to `grid`.
+	 *
+	 * @ticket 65661
 	 */
 	public function test_non_canonical_query_string_mode_falls_back_to_user_option() {
 		$user_id = self::factory()->user->create( array( 'role' => 'editor' ) );
@@ -104,6 +115,9 @@ class Tests_Media_wpMediaLibraryCrossOriginIsolation extends WP_UnitTestCase {
 		$this->assertSame( 'list', wp_get_media_library_mode() );
 	}
 
+	/**
+	 * @ticket 65661
+	 */
 	public function test_mode_from_user_option() {
 		unset( $_GET['mode'] );
 
@@ -114,6 +128,9 @@ class Tests_Media_wpMediaLibraryCrossOriginIsolation extends WP_UnitTestCase {
 		$this->assertSame( 'list', wp_get_media_library_mode() );
 	}
 
+	/**
+	 * @ticket 65661
+	 */
 	public function test_no_buffer_when_client_side_processing_disabled() {
 		$this->set_up_grid_isolation_environment();
 		$_GET['mode'] = 'grid';
@@ -127,6 +144,9 @@ class Tests_Media_wpMediaLibraryCrossOriginIsolation extends WP_UnitTestCase {
 		$this->assertSame( $level_before, $level_after );
 	}
 
+	/**
+	 * @ticket 65661
+	 */
 	public function test_no_buffer_in_list_mode() {
 		$this->set_up_grid_isolation_environment();
 		$_GET['mode'] = 'list';
@@ -138,6 +158,9 @@ class Tests_Media_wpMediaLibraryCrossOriginIsolation extends WP_UnitTestCase {
 		$this->assertSame( $level_before, $level_after );
 	}
 
+	/**
+	 * @ticket 65661
+	 */
 	public function test_no_buffer_when_logged_out() {
 		$this->set_up_grid_isolation_environment();
 		$_GET['mode'] = 'grid';
@@ -151,6 +174,9 @@ class Tests_Media_wpMediaLibraryCrossOriginIsolation extends WP_UnitTestCase {
 		$this->assertSame( $level_before, $level_after );
 	}
 
+	/**
+	 * @ticket 65661
+	 */
 	public function test_no_buffer_when_user_cannot_upload() {
 		$this->set_up_grid_isolation_environment();
 		$_GET['mode'] = 'grid';
@@ -171,6 +197,8 @@ class Tests_Media_wpMediaLibraryCrossOriginIsolation extends WP_UnitTestCase {
 	 *
 	 * @runInSeparateProcess
 	 * @preserveGlobalState disabled
+	 *
+	 * @ticket 65661
 	 */
 	public function test_starts_output_buffer_in_grid_mode_for_chromium() {
 		$this->set_up_grid_isolation_environment();
@@ -185,6 +213,9 @@ class Tests_Media_wpMediaLibraryCrossOriginIsolation extends WP_UnitTestCase {
 		ob_end_clean();
 	}
 
+	/**
+	 * @ticket 65661
+	 */
 	public function test_no_buffer_for_firefox() {
 		$this->set_up_grid_isolation_environment();
 		$_SERVER['HTTP_USER_AGENT'] = 'Mozilla/5.0 (Windows NT 10.0; rv:128.0) Gecko/20100101 Firefox/128.0';
