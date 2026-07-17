@@ -1995,7 +1995,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$new_data = $response->get_data();
 
 		$this->assertSame( 'editor', $new_data['roles'][0] );
-		$this->assertNotEquals( 'administrator', $new_data['roles'][0] );
+		$this->assertNotSame( 'administrator', $new_data['roles'][0] );
 
 		$user = get_userdata( $user_id );
 		$this->assertArrayHasKey( 'editor', $user->caps );
@@ -2090,7 +2090,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 
 		$new_data = $response->get_data();
 		$this->assertSame( 'editor', $new_data['roles'][0] );
-		$this->assertNotEquals( 'administrator', $new_data['roles'][0] );
+		$this->assertNotSame( 'administrator', $new_data['roles'][0] );
 
 		$user_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
 
@@ -2104,7 +2104,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 
 		$new_data = $response->get_data();
 		$this->assertSame( 'editor', $new_data['roles'][0] );
-		$this->assertNotEquals( 'administrator', $new_data['roles'][0] );
+		$this->assertNotSame( 'administrator', $new_data['roles'][0] );
 	}
 
 
