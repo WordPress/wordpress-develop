@@ -262,7 +262,7 @@ class WP_Sitemaps {
 	 */
 	public function add_robots( $output, $is_public ) {
 		if ( $is_public ) {
-			$output .= "\nSitemap: " . esc_url( $this->index->get_index_url() ) . "\n";
+			$output .= "\nSitemap: " . esc_url( $this->index->get_index_url( 'xml' ) ) . "\n";
 		}
 
 		return $output;
