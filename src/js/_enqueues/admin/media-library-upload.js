@@ -406,6 +406,19 @@
 		);
 	};
 
+	// Warn before leaving while pipeline uploads are in flight: thumbnails
+	// that have not been sideloaded yet are lost and the attachment is left
+	// unfinalized, unlike classic uploads that complete server-side once
+	// the bytes arrive. Models stay in the progress map from interception
+	// until success or error, so the map doubles as the in-flight signal.
+	window.addEventListener( 'beforeunload', function ( event ) {
+		if ( progressModels.size > 0 ) {
+			event.preventDefault();
+			// Some Chromium versions only show the prompt for returnValue.
+			event.returnValue = '';
+		}
+	} );
+
 	// Reflect pipeline progress onto the placeholder tiles. Progress is
 	// reported 0-100; hold at 99 until the model is marked done so the tile
 	// does not appear finished before the sync completes.
