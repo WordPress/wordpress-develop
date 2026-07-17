@@ -65,7 +65,8 @@ span.wp-media-buttons-icon:before {
 .media-modal .delete-attachment,
 .media-modal .trash-attachment,
 .media-modal .untrash-attachment,
-.wp-core-ui .button-link-delete {
+.wp-core-ui .button-link-delete,
+.wp-core-ui .delete-link {
 	color: tokens.$alert-red;
 }
 
@@ -76,7 +77,9 @@ span.wp-media-buttons-icon:before {
 .media-modal .trash-attachment:focus,
 .media-modal .untrash-attachment:focus,
 .wp-core-ui .button-link-delete:hover,
-.wp-core-ui .button-link-delete:focus {
+.wp-core-ui .button-link-delete:focus,
+.wp-core-ui .delete-link:hover,
+.wp-core-ui .delete-link:focus {
 	color: color.adjust(tokens.$alert-red, $lightness: 10%);
 }
 
