@@ -43,7 +43,7 @@ class WP_Sitemaps_Large_Test_Provider extends WP_Sitemaps_Provider {
 	 *
 	 * @return array[] Array of sitemap entries.
 	 */
-	public function get_sitemap_entries() {
+	public function get_sitemap_entries( $format ) {
 		return array_fill( 0, $this->num_entries, array( 'loc' => home_url( '/' ) ) );
 	}
 

@@ -104,7 +104,7 @@ class Tests_Sitemaps_Sitemaps extends WP_UnitTestCase {
 
 		foreach ( $providers as $provider ) {
 			// Using `array_push` is more efficient than `array_merge` in the loop.
-			array_push( $entries, ...$provider->get_sitemap_entries() );
+			array_push( $entries, ...$provider->get_sitemap_entries( 'xml' ) );
 		}
 
 		return $entries;
@@ -118,19 +118,19 @@ class Tests_Sitemaps_Sitemaps extends WP_UnitTestCase {
 
 		$expected = array(
 			array(
-				'loc' => 'http://' . WP_TESTS_DOMAIN . '/?sitemap=posts&sitemap-subtype=post&paged=1',
+				'loc' => 'http://' . WP_TESTS_DOMAIN . '/?sitemap=posts&sitemap-subtype=post&paged=1&sitemap-format=xml',
 			),
 			array(
-				'loc' => 'http://' . WP_TESTS_DOMAIN . '/?sitemap=posts&sitemap-subtype=page&paged=1',
+				'loc' => 'http://' . WP_TESTS_DOMAIN . '/?sitemap=posts&sitemap-subtype=page&paged=1&sitemap-format=xml',
 			),
 			array(
-				'loc' => 'http://' . WP_TESTS_DOMAIN . '/?sitemap=taxonomies&sitemap-subtype=category&paged=1',
+				'loc' => 'http://' . WP_TESTS_DOMAIN . '/?sitemap=taxonomies&sitemap-subtype=category&paged=1&sitemap-format=xml',
 			),
 			array(
-				'loc' => 'http://' . WP_TESTS_DOMAIN . '/?sitemap=taxonomies&sitemap-subtype=post_tag&paged=1',
+				'loc' => 'http://' . WP_TESTS_DOMAIN . '/?sitemap=taxonomies&sitemap-subtype=post_tag&paged=1&sitemap-format=xml',
 			),
 			array(
-				'loc' => 'http://' . WP_TESTS_DOMAIN . '/?sitemap=users&paged=1',
+				'loc' => 'http://' . WP_TESTS_DOMAIN . '/?sitemap=users&paged=1&sitemap-format=xml',
 			),
 		);
 
@@ -187,8 +187,8 @@ class Tests_Sitemaps_Sitemaps extends WP_UnitTestCase {
 		unregister_post_type( 'public_cpt' );
 		unregister_post_type( 'private_cpt' );
 
-		$this->assertContains( 'http://' . WP_TESTS_DOMAIN . '/?sitemap=posts&sitemap-subtype=public_cpt&paged=1', $entries, 'Public CPTs are not in the index.' );
-		$this->assertNotContains( 'http://' . WP_TESTS_DOMAIN . '/?sitemap=posts&sitemap-subtype=private_cpt&paged=1', $entries, 'Private CPTs are visible in the index.' );
+		$this->assertContains( 'http://' . WP_TESTS_DOMAIN . '/?sitemap=posts&sitemap-subtype=public_cpt&paged=1&sitemap-format=xml', $entries, 'Public CPTs are not in the index.' );
+		$this->assertNotContains( 'http://' . WP_TESTS_DOMAIN . '/?sitemap=posts&sitemap-subtype=private_cpt&paged=1&sitemap-format=xml', $entries, 'Private CPTs are visible in the index.' );
 	}
 
 	/**

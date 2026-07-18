@@ -18,7 +18,7 @@ class Tests_Sitemaps_wpSitemapsIndex extends WP_UnitTestCase {
 		$registry->add_provider( 'bar', new WP_Sitemaps_Test_Provider( 'bar' ) );
 
 		$sitemap_index = new WP_Sitemaps_Index( $registry );
-		$this->assertCount( 24, $sitemap_index->get_sitemap_list() );
+		$this->assertCount( 24, $sitemap_index->get_sitemap_list( 'xml' ) );
 	}
 
 	/**
@@ -41,7 +41,7 @@ class Tests_Sitemaps_wpSitemapsIndex extends WP_UnitTestCase {
 		$this->assertGreaterThan( 50000, $count );
 
 		$sitemap_index = new WP_Sitemaps_Index( $registry );
-		$this->assertCount( 50000, $sitemap_index->get_sitemap_list() );
+		$this->assertCount( 50000, $sitemap_index->get_sitemap_list( 'xml' ) );
 	}
 
 	public function test_get_sitemap_list_no_entries() {
@@ -50,14 +50,14 @@ class Tests_Sitemaps_wpSitemapsIndex extends WP_UnitTestCase {
 		$registry->add_provider( 'foo', new WP_Sitemaps_Empty_Test_Provider( 'foo' ) );
 
 		$sitemap_index = new WP_Sitemaps_Index( $registry );
-		$this->assertCount( 0, $sitemap_index->get_sitemap_list() );
+		$this->assertCount( 0, $sitemap_index->get_sitemap_list( 'xml' ) );
 	}
 
 	public function test_get_index_url() {
 		$sitemap_index = new WP_Sitemaps_Index( new WP_Sitemaps_Registry() );
-		$index_url     = $sitemap_index->get_index_url();
+		$index_url     = $sitemap_index->get_index_url( 'xml' );
 
-		$this->assertStringEndsWith( '/?sitemap=index', $index_url );
+		$this->assertStringEndsWith( '/?sitemap=index&sitemap-format=xml', $index_url );
 	}
 
 	public function test_get_index_url_pretty_permalinks() {
@@ -65,7 +65,7 @@ class Tests_Sitemaps_wpSitemapsIndex extends WP_UnitTestCase {
 		$this->set_permalink_structure( '/%year%/%postname%/' );
 
 		$sitemap_index = new WP_Sitemaps_Index( new WP_Sitemaps_Registry() );
-		$index_url     = $sitemap_index->get_index_url();
+		$index_url     = $sitemap_index->get_index_url( 'xml' );
 
 		// Clean up permalinks.
 		$this->set_permalink_structure();

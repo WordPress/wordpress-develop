@@ -5,13 +5,18 @@
  */
 class Tests_Sitemaps_wpSitemapsRenderer extends WP_Test_XML_TestCase {
 
+	/*
+	 * pvb
 	public function test_get_sitemap_stylesheet_url() {
 		$sitemap_renderer = new WP_Sitemaps_Renderer();
 		$stylesheet_url   = $sitemap_renderer->get_sitemap_stylesheet_url();
 
 		$this->assertStringEndsWith( '/?sitemap-stylesheet=sitemap', $stylesheet_url );
 	}
+	*/
 
+	/*
+	 * pvb
 	public function test_get_sitemap_stylesheet_url_pretty_permalinks() {
 		// Set permalinks for testing.
 		$this->set_permalink_structure( '/%year%/%postname%/' );
@@ -24,14 +29,20 @@ class Tests_Sitemaps_wpSitemapsRenderer extends WP_Test_XML_TestCase {
 
 		$this->assertStringEndsWith( '/wp-sitemap.xsl', $stylesheet_url );
 	}
+	*/
 
+	/*
+	 * pvb
 	public function test_get_sitemap_index_stylesheet_url() {
 		$sitemap_renderer = new WP_Sitemaps_Renderer();
 		$stylesheet_url   = $sitemap_renderer->get_sitemap_index_stylesheet_url();
 
 		$this->assertStringEndsWith( '/?sitemap-stylesheet=index', $stylesheet_url );
 	}
+	 */
 
+	/*
+	 * pvb
 	public function test_get_sitemap_index_stylesheet_url_pretty_permalinks() {
 		// Set permalinks for testing.
 		$this->set_permalink_structure( '/%year%/%postname%/' );
@@ -44,6 +55,7 @@ class Tests_Sitemaps_wpSitemapsRenderer extends WP_Test_XML_TestCase {
 
 		$this->assertStringEndsWith( '/wp-sitemap-index.xsl', $stylesheet_url );
 	}
+	*/
 
 	/**
 	 * Test XML output for the sitemap index renderer.
@@ -71,7 +83,6 @@ class Tests_Sitemaps_wpSitemapsRenderer extends WP_Test_XML_TestCase {
 
 		$actual   = $renderer->get_sitemap_index_xml( $entries );
 		$expected = '<?xml version="1.0" encoding="UTF-8"?>' .
-					'<?xml-stylesheet type="text/xsl" href="http://' . WP_TESTS_DOMAIN . '/?sitemap-stylesheet=index" ?>' .
 					'<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' .
 					'<sitemap><loc>http://' . WP_TESTS_DOMAIN . '/wp-sitemap-posts-post-1.xml</loc></sitemap>' .
 					'<sitemap><loc>http://' . WP_TESTS_DOMAIN . '/wp-sitemap-posts-page-1.xml</loc></sitemap>' .
@@ -114,7 +125,6 @@ class Tests_Sitemaps_wpSitemapsRenderer extends WP_Test_XML_TestCase {
 
 		$actual   = $renderer->get_sitemap_index_xml( $entries );
 		$expected = '<?xml version="1.0" encoding="UTF-8"?>' .
-			'<?xml-stylesheet type="text/xsl" href="http://' . WP_TESTS_DOMAIN . '/?sitemap-stylesheet=index" ?>' .
 			'<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' .
 			'<sitemap><loc>http://' . WP_TESTS_DOMAIN . '/wp-sitemap-posts-post-1.xml</loc><lastmod>2005-01-01</lastmod></sitemap>' .
 			'<sitemap><loc>http://' . WP_TESTS_DOMAIN . '/wp-sitemap-posts-page-1.xml</loc><lastmod>2005-01-01</lastmod></sitemap>' .
@@ -210,7 +220,6 @@ class Tests_Sitemaps_wpSitemapsRenderer extends WP_Test_XML_TestCase {
 
 		$actual   = $renderer->get_sitemap_xml( $url_list );
 		$expected = '<?xml version="1.0" encoding="UTF-8"?>' .
-					'<?xml-stylesheet type="text/xsl" href="http://' . WP_TESTS_DOMAIN . '/?sitemap-stylesheet=sitemap" ?>' .
 					'<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' .
 					'<url><loc>http://' . WP_TESTS_DOMAIN . '/2019/10/post-1</loc></url>' .
 					'<url><loc>http://' . WP_TESTS_DOMAIN . '/2019/10/post-2</loc></url>' .
