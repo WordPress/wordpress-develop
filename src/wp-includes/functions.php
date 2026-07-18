@@ -5044,6 +5044,7 @@ function wp_parse_list( $input_list ) {
  *
  * @param array|string $input_list List of IDs.
  * @return int[] Sanitized array of IDs.
+ * @phpstan-return list<non-negative-int>
  */
 function wp_parse_id_list( $input_list ) {
 	$input_list = wp_parse_list( $input_list );
