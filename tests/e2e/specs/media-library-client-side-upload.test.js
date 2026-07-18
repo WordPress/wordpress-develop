@@ -8,6 +8,8 @@ import { test, expect } from '@wordpress/e2e-test-utils-playwright';
  */
 import path from 'path';
 
+// A 640x480 image: it must be larger than at least one registered sub-size
+// (thumbnail, medium) so the pipeline generates and sideloads thumbnails.
 const TEST_IMAGE_PATH = path.join( __dirname, '../assets/test-image.jpg' );
 
 // The plupload HTML5 runtime creates this hidden file input over the
@@ -64,10 +66,9 @@ test.describe( 'Media Library grid client-side uploads', () => {
 		const isolated = await page.evaluate( () =>
 			Boolean( window.crossOriginIsolated )
 		);
-		// Playwright's Chromium build lacks Document-Isolation-Policy
-		// support, so isolation is legitimately unavailable there and the
-		// pipeline falls back to classic uploads. Only assert where
-		// isolation is real.
+		// In Chromium builds without Document-Isolation-Policy support,
+		// isolation is legitimately unavailable and the pipeline falls back
+		// to classic uploads. Only assert where isolation is real.
 		test.skip(
 			! isolated,
 			'The client-side pipeline requires a cross-origin isolated context'
