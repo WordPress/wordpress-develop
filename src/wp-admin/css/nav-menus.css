@@ -1009,7 +1009,7 @@ body.menu-max-depth-11 { min-width: 1280px !important; }
 @media only screen and (min-width: 783px) {
     @supports (position: sticky) and (scroll-margin-bottom: 130px) {
 
-		#nav-menu-footer {
+		.menu-edit:has(#menu-to-edit:not(.bulk-selection)) #nav-menu-footer {
                 position: sticky;
 				bottom: 0;
 				z-index: 10;
