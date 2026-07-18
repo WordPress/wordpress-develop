@@ -5023,6 +5023,7 @@ function wp_parse_args( $args, $defaults = array() ) {
  *
  * @param array|string $input_list List of values.
  * @return array Array of values.
+ * @phpstan-return list<scalar>
  */
 function wp_parse_list( $input_list ) {
 	if ( ! is_array( $input_list ) ) {
@@ -5030,7 +5031,7 @@ function wp_parse_list( $input_list ) {
 	}
 
 	// Validate all entries of the list are scalar.
-	$input_list = array_filter( $input_list, 'is_scalar' );
+	$input_list = array_values( array_filter( $input_list, 'is_scalar' ) );
 
 	return $input_list;
 }
