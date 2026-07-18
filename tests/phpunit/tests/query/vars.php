@@ -73,7 +73,7 @@ class Tests_Query_Vars extends WP_UnitTestCase {
 				'rest_route',
 				'sitemap',
 				'sitemap-subtype',
-				'sitemap-stylesheet',
+				'sitemap-format',
 
 			),
 			$wp->public_query_vars,
