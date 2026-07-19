@@ -180,8 +180,8 @@ class WP_Sitemaps {
 			$format = 'xml';
 		}
 
-		// Bail early if this isn't a sitemap or stylesheet route.
-		if ( ! ( $sitemap || $stylesheet_type ) ) {
+		// Bail early if this isn't a sitemap route.
+		if ( ! $sitemap ) {
 			return;
 		}
 
