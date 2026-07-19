@@ -139,6 +139,10 @@ class Tests_Update_WpUpdatePlugins extends WP_UnitTestCase {
 	 * @covers ::wp_update_plugins
 	 */
 	public function test_failed_write_resets_the_lock() {
+		if ( wp_using_ext_object_cache() ) {
+			$this->markTestSkipped( 'This test requires that an external object cache is not in use.' );
+		}
+
 		add_filter( 'pre_update_site_option__site_transient_update_plugins', array( $this, 'reject_update_result' ), 10, 2 );
 
 		// Note: $this->expectWarning() is deprecated and will be removed in PHPUnit 10.
@@ -177,6 +181,10 @@ class Tests_Update_WpUpdatePlugins extends WP_UnitTestCase {
 	 * @covers ::wp_update_plugins
 	 */
 	public function test_failed_write_allows_the_next_check_to_run() {
+		if ( wp_using_ext_object_cache() ) {
+			$this->markTestSkipped( 'This test requires that an external object cache is not in use.' );
+		}
+
 		add_filter( 'pre_update_site_option__site_transient_update_plugins', array( $this, 'reject_update_result' ), 10, 2 );
 
 		// Note: $this->expectWarning() is deprecated and will be removed in PHPUnit 10.
