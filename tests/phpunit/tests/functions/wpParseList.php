@@ -82,6 +82,14 @@ class Tests_Functions_wpParseList extends WP_UnitTestCase {
 				'input_list' => array( null, 'foo', array(), true, new stdClass(), false, 1, 3.14 ),
 				'expected'   => array( 'foo', true, false, 1, 3.14 ),
 			),
+			'passed assoc array'  => array(
+				'input_list' => array(
+					'foo' => 1,
+					'bar' => true,
+					'baz' => 3.14,
+				),
+				'expected'   => array( 1, true, 3.14 ),
+			),
 		);
 	}
 }

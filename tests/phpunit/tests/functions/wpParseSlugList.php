@@ -116,6 +116,14 @@ class Tests_Functions_WpParseSlugList extends WP_UnitTestCase {
 				'input_list' => array( 1, '<br>', 2 ),
 				'expected'   => array( '1', '', '2' ),
 			),
+			'passed assoc array' => array(
+				'input_list' => array(
+					'one'   => 'foo',
+					'two'   => 'bar',
+					'three' => 'baz',
+				),
+				'expected'   => array( 'foo', 'bar', 'baz' ),
+			),
 		);
 	}
 }

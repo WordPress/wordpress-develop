@@ -116,6 +116,14 @@ class Tests_Functions_wpParseIdList extends WP_UnitTestCase {
 				'input_list' => array( 1, array(), 2 ),
 				'expected'   => array( 1, 2 ),
 			),
+			'passed assoc array' => array(
+				'input_list' => array(
+					'one'   => 1,
+					'two'   => '2',
+					'three' => '3 is company',
+				),
+				'expected'   => array( 1, 2, 3 ),
+			),
 		);
 	}
 }
