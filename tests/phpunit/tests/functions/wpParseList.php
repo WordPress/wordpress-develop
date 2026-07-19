@@ -15,18 +15,17 @@ class Tests_Functions_wpParseList extends WP_UnitTestCase {
 	 * @dataProvider data_wp_parse_list
 	 *
 	 * @param mixed[]|string $input_list
-	 * @param list<scalar> $expected
+	 * @param array<scalar> $expected
 	 */
 	public function test_wp_parse_list( $input_list, array $expected ): void {
 		$parsed_list = wp_parse_list( $input_list );
-		$this->assertTrue( array_is_list( $parsed_list ), 'Expected value to be a list.' );
 		$this->assertSame( $expected, $parsed_list );
 	}
 
 	/**
 	 * Data provider.
 	 *
-	 * @return array<string, array{ input_list: mixed[]|string, expected: list<scalar> }>
+	 * @return array<string, array{ input_list: mixed[]|string, expected: array<scalar> }>
 	 */
 	public function data_wp_parse_list(): array {
 		return array(
@@ -80,7 +79,13 @@ class Tests_Functions_wpParseList extends WP_UnitTestCase {
 			),
 			'passed mixed array'  => array(
 				'input_list' => array( null, 'foo', array(), true, new stdClass(), false, 1, 3.14 ),
-				'expected'   => array( 'foo', true, false, 1, 3.14 ),
+				'expected'   => array(
+					1 => 'foo',
+					3 => true,
+					5 => false,
+					6 => 1,
+					7 => 3.14,
+				),
 			),
 			'passed assoc array'  => array(
 				'input_list' => array(
@@ -88,7 +93,11 @@ class Tests_Functions_wpParseList extends WP_UnitTestCase {
 					'bar' => true,
 					'baz' => 3.14,
 				),
-				'expected'   => array( 1, true, 3.14 ),
+				'expected'   => array(
+					'foo' => 1,
+					'bar' => true,
+					'baz' => 3.14,
+				),
 			),
 		);
 	}

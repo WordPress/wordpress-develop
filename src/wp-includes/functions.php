@@ -5022,8 +5022,8 @@ function wp_parse_args( $args, $defaults = array() ) {
  * @since 5.1.0
  *
  * @param mixed[]|string $input_list List of values.
- * @return array Array of values.
- * @phpstan-return list<scalar>
+ * @return array Array of values. Not guaranteed to be a PHP list.
+ * @phpstan-return array<scalar>
  */
 function wp_parse_list( $input_list ) {
 	if ( ! is_array( $input_list ) ) {
@@ -5031,7 +5031,7 @@ function wp_parse_list( $input_list ) {
 	}
 
 	// Validate all entries of the list are scalar.
-	$input_list = array_values( array_filter( $input_list, 'is_scalar' ) );
+	$input_list = array_filter( $input_list, 'is_scalar' );
 
 	return $input_list;
 }
@@ -5043,13 +5043,13 @@ function wp_parse_list( $input_list ) {
  * @since 5.1.0 Refactored to use wp_parse_list().
  *
  * @param mixed[]|string $input_list List of IDs.
- * @return int[] Sanitized array of IDs. May include zero.
- * @phpstan-return list<non-negative-int>
+ * @return int[] Sanitized array of IDs. May include zero. Not guaranteed to be a PHP list.
+ * @phpstan-return array<non-negative-int>
  */
 function wp_parse_id_list( $input_list ) {
 	$input_list = wp_parse_list( $input_list );
 
-	return array_values( array_unique( array_map( 'absint', $input_list ) ) );
+	return array_unique( array_map( 'absint', $input_list ) );
 }
 
 /**
@@ -5059,24 +5059,21 @@ function wp_parse_id_list( $input_list ) {
  * @since 5.1.0 Refactored to use wp_parse_list().
  *
  * @param mixed[]|string $input_list List of slugs.
- * @return string[] Sanitized array of slugs. May include an empty string.
- * @phpstan-return list<string>
+ * @return string[] Sanitized array of slugs. May include an empty string. Not guaranteed to be a PHP list.
  */
 function wp_parse_slug_list( $input_list ) {
 	$input_list = wp_parse_list( $input_list );
 
-	return array_values(
-		array_unique(
+	return array_unique(
+		array_map(
+			'sanitize_title',
 			array_map(
-				'sanitize_title',
-				array_map(
-					/*
-					 * Cast booleans, integers, and floats to strings. Non-scalar types (including null) have already
-					 * been filtered out by wp_parse_list().
-					 */
-					'strval',
-					$input_list
-				)
+				/*
+				 * Cast booleans, integers, and floats to strings. Non-scalar types (including null) have already
+				 * been filtered out by wp_parse_list().
+				 */
+				'strval',
+				$input_list
 			)
 		)
 	);

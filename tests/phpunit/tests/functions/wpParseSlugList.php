@@ -17,11 +17,10 @@ class Tests_Functions_WpParseSlugList extends WP_UnitTestCase {
 	 * @dataProvider data_unexpected_input
 	 *
 	 * @param mixed[]|string $input_list
-	 * @param list<string> $expected
+	 * @param array<string> $expected
 	 */
 	public function test_wp_parse_slug_list( $input_list, array $expected ): void {
 		$parsed_list = wp_parse_slug_list( $input_list );
-		$this->assertTrue( array_is_list( $parsed_list ), 'Expected value to be a list.' );
 		$this->assertThat(
 			$parsed_list,
 			$this->callback(
@@ -38,7 +37,7 @@ class Tests_Functions_WpParseSlugList extends WP_UnitTestCase {
 	/**
 	 * Data provider.
 	 *
-	 * @return array<string, array{ input_list: mixed[]|string, expected: list<string> }>
+	 * @return array<string, array{ input_list: mixed[]|string, expected: array<string> }>
 	 */
 	public function data_wp_parse_slug_list(): array {
 		return array(
@@ -52,11 +51,21 @@ class Tests_Functions_WpParseSlugList extends WP_UnitTestCase {
 			),
 			'duplicate slug in a string' => array(
 				'input_list' => 'apple,banana,carrot,carrot,dog',
-				'expected'   => array( 'apple', 'banana', 'carrot', 'dog' ),
+				'expected'   => array(
+					0 => 'apple',
+					1 => 'banana',
+					2 => 'carrot',
+					4 => 'dog',
+				),
 			),
 			'duplicate slug in an array' => array(
 				'input_list' => array( 'apple', 'banana', 'carrot', 'carrot', 'dog' ),
-				'expected'   => array( 'apple', 'banana', 'carrot', 'dog' ),
+				'expected'   => array(
+					0 => 'apple',
+					1 => 'banana',
+					2 => 'carrot',
+					4 => 'dog',
+				),
 			),
 			'string with spaces'         => array(
 				'input_list' => 'apple banana carrot dog',
@@ -66,13 +75,25 @@ class Tests_Functions_WpParseSlugList extends WP_UnitTestCase {
 				'input_list' => array( 'apple ', 'banana carrot', 'd o g' ),
 				'expected'   => array( 'apple', 'banana-carrot', 'd-o-g' ),
 			),
+			'passed assoc array'         => array(
+				'input_list' => array(
+					'one'   => 'foo',
+					'two'   => 'bar',
+					'three' => 'baz',
+				),
+				'expected'   => array(
+					'one'   => 'foo',
+					'two'   => 'bar',
+					'three' => 'baz',
+				),
+			),
 		);
 	}
 
 	/**
 	 * Data provider.
 	 *
-	 * @return array<string, array{ input_list: mixed[]|string, expected: list<string> }>
+	 * @return array<string, array{ input_list: mixed[]|string, expected: array<string> }>
 	 */
 	public function data_unexpected_input(): array {
 		return array(
@@ -110,19 +131,14 @@ class Tests_Functions_WpParseSlugList extends WP_UnitTestCase {
 			),
 			'array with array'   => array(
 				'input_list' => array( 1, array(), 2 ),
-				'expected'   => array( '1', '2' ),
+				'expected'   => array(
+					0 => '1',
+					2 => '2',
+				),
 			),
 			'array with tag'     => array(
 				'input_list' => array( 1, '<br>', 2 ),
 				'expected'   => array( '1', '', '2' ),
-			),
-			'passed assoc array' => array(
-				'input_list' => array(
-					'one'   => 'foo',
-					'two'   => 'bar',
-					'three' => 'baz',
-				),
-				'expected'   => array( 'foo', 'bar', 'baz' ),
 			),
 		);
 	}
