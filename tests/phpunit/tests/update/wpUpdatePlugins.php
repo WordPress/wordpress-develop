@@ -141,9 +141,23 @@ class Tests_Update_WpUpdatePlugins extends WP_UnitTestCase {
 	public function test_failed_write_resets_the_lock() {
 		add_filter( 'pre_update_site_option__site_transient_update_plugins', array( $this, 'reject_update_result' ), 10, 2 );
 
+		// Note: $this->expectWarning() is deprecated and will be removed in PHPUnit 10.
+		$warnings = array();
+		set_error_handler(
+			static function ( int $errno, string $errstr ) use ( &$warnings ) {
+				$warnings[] = compact( 'errno', 'errstr' );
+				return true;
+			},
+			E_USER_WARNING
+		);
+
 		wp_update_plugins();
 
+		restore_error_handler();
+
 		remove_filter( 'pre_update_site_option__site_transient_update_plugins', array( $this, 'reject_update_result' ), 10 );
+
+		$this->assertCount( 1, $warnings, 'A warning should be triggered when the result could not be stored.' );
 
 		$transient = get_site_transient( 'update_plugins' );
 
@@ -165,9 +179,23 @@ class Tests_Update_WpUpdatePlugins extends WP_UnitTestCase {
 	public function test_failed_write_allows_the_next_check_to_run() {
 		add_filter( 'pre_update_site_option__site_transient_update_plugins', array( $this, 'reject_update_result' ), 10, 2 );
 
+		// Note: $this->expectWarning() is deprecated and will be removed in PHPUnit 10.
+		$warnings = array();
+		set_error_handler(
+			static function ( int $errno, string $errstr ) use ( &$warnings ) {
+				$warnings[] = compact( 'errno', 'errstr' );
+				return true;
+			},
+			E_USER_WARNING
+		);
+
 		wp_update_plugins();
 
+		restore_error_handler();
+
 		remove_filter( 'pre_update_site_option__site_transient_update_plugins', array( $this, 'reject_update_result' ), 10 );
+
+		$this->assertCount( 1, $warnings, 'A warning should be triggered when the result could not be stored.' );
 
 		// The second check is the one that would never happen while the lock stayed armed.
 		wp_update_plugins();
