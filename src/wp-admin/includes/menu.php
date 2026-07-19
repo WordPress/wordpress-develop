@@ -372,7 +372,17 @@ if ( ! empty( $menu ) && 'wp-menu-separator' === $menu[ $last_menu_key ][4] ) {
 }
 unset( $last_menu_key );
 
-if ( ! user_can_access_admin_page() ) {
+if ( ! admin_page_exists() ) {
+
+	/**
+	 * Fires when an attempt is made to access an admin page that does not exist.
+	 *
+	 * @since 7.1.0
+	 */
+	do_action( 'admin_page_not_found' );
+
+	wp_die( __( 'The requested page does not exist.' ), 404 );
+} elseif ( ! user_can_access_admin_page() ) {
 
 	/**
 	 * Fires when access to an admin page is denied.

@@ -75,6 +75,79 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensures a request with no plugin page is treated as an existing page.
+	 *
+	 * Core admin screens (those without a `page` query argument) always exist,
+	 * so the function must not report them as missing.
+	 *
+	 * @ticket 14060
+	 *
+	 * @covers ::admin_page_exists
+	 */
+	public function test_admin_page_exists_returns_true_when_no_plugin_page() {
+		global $plugin_page;
+
+		$previous_plugin_page = $plugin_page;
+		unset( $plugin_page );
+
+		$this->assertTrue( admin_page_exists() );
+
+		$plugin_page = $previous_plugin_page;
+	}
+
+	/**
+	 * Ensures a registered plugin page is reported as existing.
+	 *
+	 * @ticket 14060
+	 *
+	 * @covers ::admin_page_exists
+	 */
+	public function test_admin_page_exists_returns_true_for_registered_page() {
+		global $plugin_page, $pagenow;
+
+		$current_user         = get_current_user_id();
+		$previous_plugin_page = $plugin_page;
+		$previous_pagenow     = $pagenow;
+		wp_set_current_user( self::$admin_id );
+
+		add_options_page( 'Existing Page', 'Existing Page', 'manage_options', 'existing-page-14060', '__return_null' );
+
+		$pagenow     = 'options-general.php';
+		$plugin_page = 'existing-page-14060';
+
+		$this->assertTrue( admin_page_exists() );
+
+		$plugin_page = $previous_plugin_page;
+		$pagenow     = $previous_pagenow;
+		wp_set_current_user( $current_user );
+	}
+
+	/**
+	 * Ensures a plugin page that was never registered is reported as missing.
+	 *
+	 * This is the scenario the fix targets: accessing the URL of a plugin page
+	 * that no longer exists should be distinguishable from an access denial.
+	 *
+	 * @ticket 14060
+	 *
+	 * @covers ::admin_page_exists
+	 */
+	public function test_admin_page_exists_returns_false_for_unregistered_page() {
+		global $plugin_page, $pagenow;
+
+		$previous_plugin_page = $plugin_page;
+		$previous_pagenow     = $pagenow;
+
+		$pagenow     = 'options-general.php';
+		$plugin_page = 'nonexistent-page-14060';
+
+		$this->assertFalse( admin_page_exists() );
+
+		$plugin_page = $previous_plugin_page;
+		$pagenow     = $previous_pagenow;
+	}
+
+	/**
 	 * Tests the position parameter.
 	 *
 	 * @ticket 39776
