@@ -5049,7 +5049,7 @@ function wp_parse_list( $input_list ) {
 function wp_parse_id_list( $input_list ) {
 	$input_list = wp_parse_list( $input_list );
 
-	return array_unique( array_map( 'absint', $input_list ) );
+	return array_values( array_unique( array_map( 'absint', $input_list ) ) );
 }
 
 /**
