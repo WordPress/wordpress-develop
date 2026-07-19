@@ -29,7 +29,7 @@ class Tests_Functions_WpParseSlugList extends WP_UnitTestCase {
 					static fn ( $v ) => is_string( $v )
 				)
 			),
-			'Array should contain only non-negative ints.'
+			'Array should contain only strings.'
 		);
 		$this->assertSame( $expected, $parsed_list );
 	}
