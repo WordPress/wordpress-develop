@@ -5021,13 +5021,13 @@ function wp_parse_args( $args, $defaults = array() ) {
  *
  * @since 5.1.0
  *
- * @param array|string $input_list List of values.
+ * @param mixed[]|string $input_list List of values.
  * @return array Array of values.
  * @phpstan-return list<scalar>
  */
 function wp_parse_list( $input_list ) {
 	if ( ! is_array( $input_list ) ) {
-		return preg_split( '/[\s,]+/', $input_list, -1, PREG_SPLIT_NO_EMPTY );
+		return (array) preg_split( '/[\s,]+/', $input_list, -1, PREG_SPLIT_NO_EMPTY );
 	}
 
 	// Validate all entries of the list are scalar.
