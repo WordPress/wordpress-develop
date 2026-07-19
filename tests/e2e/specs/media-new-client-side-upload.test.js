@@ -43,6 +43,7 @@ test.describe( 'Add New Media File client-side uploads', () => {
 	test( 'uploads an image through the client-side pipeline', async ( {
 		page,
 		admin,
+		requestUtils,
 	} ) => {
 		await admin.visitAdminPage( 'media-new.php' );
 
@@ -107,6 +108,89 @@ test.describe( 'Add New Media File client-side uploads', () => {
 
 		// No file upload goes through the classic async-upload.php endpoint.
 		expect( asyncUploads ).toEqual( [] );
+
+		// The finalized attachment carries the browser-generated sub-sizes
+		// in its metadata (the 640x480 source is larger than thumbnail and
+		// medium), and the sideloaded thumbnail file really exists.
+		const [ attachment ] = await requestUtils.rest( {
+			path: '/wp/v2/media',
+			params: { per_page: 1 },
+		} );
+		const sizes = attachment.media_details.sizes || {};
+		expect( Object.keys( sizes ) ).toEqual(
+			expect.arrayContaining( [ 'thumbnail', 'medium' ] )
+		);
+
+		const thumbnailResponse = await page.request.get(
+			sizes.thumbnail.source_url
+		);
+		expect( thumbnailResponse.status() ).toBe( 200 );
+	} );
+
+	test( 'warns before leaving while a pipeline upload is in flight', async ( {
+		page,
+		admin,
+	} ) => {
+		await admin.visitAdminPage( 'media-new.php' );
+
+		const isolated = await page.evaluate( () =>
+			Boolean( window.crossOriginIsolated )
+		);
+		test.skip(
+			! isolated,
+			'The client-side pipeline requires a cross-origin isolated context'
+		);
+
+		// Hold sideload requests so the upload stays in flight at a
+		// deterministic point.
+		const heldRoutes = [];
+		let holding = true;
+		await page.route(
+			( url ) => decodeURIComponent( url.href ).includes( '/sideload' ),
+			async ( route ) => {
+				if ( holding ) {
+					heldRoutes.push( route );
+					return;
+				}
+				await route.continue();
+			}
+		);
+		const sideloadRequested = page.waitForRequest(
+			( request ) =>
+				decodeURIComponent( request.url() ).includes( '/sideload' ),
+			{ timeout: 60_000 }
+		);
+
+		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
+		await fileInput.waitFor( { state: 'attached', timeout: 30_000 } );
+		await fileInput.setInputFiles( TEST_IMAGE_PATH );
+		await sideloadRequested;
+
+		// A synthetic cancelable event exercises the guard's listener
+		// without triggering the real (untestable) browser prompt.
+		const preventedWhileUploading = await page.evaluate( () => {
+			const event = new Event( 'beforeunload', { cancelable: true } );
+			window.dispatchEvent( event );
+			return event.defaultPrevented;
+		} );
+		expect( preventedWhileUploading ).toBe( true );
+
+		// Release the held requests, let the upload finish, and verify the
+		// guard disengages once nothing is in flight anymore.
+		holding = false;
+		for ( const route of heldRoutes ) {
+			await route.continue();
+		}
+		await expect(
+			page.locator( '#media-items .media-item .edit-attachment' ).first()
+		).toBeVisible( { timeout: 60_000 } );
+
+		const preventedAfterUpload = await page.evaluate( () => {
+			const event = new Event( 'beforeunload', { cancelable: true } );
+			window.dispatchEvent( event );
+			return event.defaultPrevented;
+		} );
+		expect( preventedAfterUpload ).toBe( false );
 	} );
 
 	test( 'shows an error for a disallowed file type', async ( {

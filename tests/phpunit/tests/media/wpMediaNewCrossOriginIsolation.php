@@ -58,6 +58,18 @@ class Tests_Media_wpMediaNewCrossOriginIsolation extends WP_UnitTestCase {
 	}
 
 	/**
+	 * The isolation callback must be wired to the screen's load hook in
+	 * default-filters.php: the buffer has to start before media-new.php
+	 * produces any output, and none of the gating below runs at all if
+	 * the hook is missing.
+	 *
+	 * @ticket 65662
+	 */
+	public function test_hooked_to_load_media_new() {
+		$this->assertSame( 10, has_action( 'load-media-new.php', 'wp_set_up_media_new_cross_origin_isolation' ) );
+	}
+
+	/**
 	 * @ticket 65662
 	 */
 	public function test_no_buffer_when_client_side_processing_disabled() {

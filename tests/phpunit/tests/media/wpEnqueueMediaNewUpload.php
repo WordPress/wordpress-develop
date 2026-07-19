@@ -111,4 +111,23 @@ class Tests_Media_wpEnqueueMediaNewUpload extends WP_UnitTestCase {
 			$this->assertStringContainsString( $key, $inline );
 		}
 	}
+
+	/**
+	 * The inline settings must be exactly the JSON encoding of
+	 * wp_get_media_library_upload_settings(), the same settings source
+	 * the grid integration uses.
+	 *
+	 * @ticket 65662
+	 */
+	public function test_inline_settings_match_upload_settings() {
+		wp_enqueue_media_new_upload();
+
+		$before = wp_scripts()->get_data( 'media-new-upload', 'before' );
+		$inline = implode( "\n", (array) $before );
+
+		$this->assertStringContainsString(
+			wp_json_encode( wp_get_media_library_upload_settings() ),
+			$inline
+		);
+	}
 }
