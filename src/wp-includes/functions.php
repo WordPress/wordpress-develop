@@ -5058,13 +5058,28 @@ function wp_parse_id_list( $input_list ) {
  * @since 4.7.0
  * @since 5.1.0 Refactored to use wp_parse_list().
  *
- * @param array|string $input_list List of slugs.
+ * @param mixed[]|string $input_list List of slugs.
  * @return string[] Sanitized array of slugs.
+ * @phpstan-return list<string>
  */
 function wp_parse_slug_list( $input_list ) {
 	$input_list = wp_parse_list( $input_list );
 
-	return array_unique( array_map( 'sanitize_title', $input_list ) );
+	return array_values(
+		array_unique(
+			array_map(
+				'sanitize_title',
+				array_map(
+					/*
+					 * Cast booleans, integers, and floats to strings. Non-scalar types (including null) have already
+					 * been filtered out by wp_parse_list().
+					 */
+					'strval',
+					$input_list
+				)
+			)
+		)
+	);
 }
 
 /**
