@@ -19,6 +19,16 @@ class Tests_Functions_wpParseList extends WP_UnitTestCase {
 	 */
 	public function test_wp_parse_list( $input_list, array $expected ): void {
 		$parsed_list = wp_parse_list( $input_list );
+		$this->assertThat(
+			$parsed_list,
+			$this->callback(
+				static fn ( array $arr ) => array_all(
+					$arr,
+					static fn ( $v ) => is_scalar( $v )
+				)
+			),
+			'Array should contain only scalars.'
+		);
 		$this->assertSame( $expected, $parsed_list );
 	}
 
