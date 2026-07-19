@@ -437,7 +437,7 @@ function wp_get_toggletip( $content, $args ) {
  * Returns a button and either a hover/focus triggered tooltip popover or an action
  * triggered toggle tip. Enqueue the `wp-tooltip` style and script where it is used.
  * Tooltips are used to show the accessible name of a control.
- * Toggletips are be used for longer supporting text explaining context.
+ * Toggletips are used for longer supporting text explaining context.
  *
  * @since 7.1.0
  *
@@ -489,10 +489,10 @@ function wp_get_tooltip_helper( $content, $args = array() ) {
 	$icon = '' !== $args['icon'] ? ' ' . $args['icon'] : '';
 
 	/*
-	 * The markup is built from phrasing content only (`span` and `button`) so it stays
-	 * valid when nested inside a paragraph or other phrasing context. A `div` wrapper or
-	 * `dialog` element would force the parser to close an open `p`, leaving an empty
-	 * paragraph behind and breaking the layout. See #65660.
+	 * The markup only uses phrasing content so it is valid when nested
+	 * in a phrasing context. Sectioning content (e.g. `div`, `dialog`) will
+	 * cause the parser to close an open `p`, creating an empty and breaking
+	 * the layout. See #65660.
 	 */
 	if ( 'tooltip' === $args['type'] ) {
 		// Tooltips are only used to visually display labels.
