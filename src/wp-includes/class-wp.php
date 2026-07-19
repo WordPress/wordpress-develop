@@ -794,6 +794,11 @@ class WP {
 			}
 		}
 
+		if ( $set_404 && $this->heal_overdue_scheduled_post() ) {
+			$this->query_posts();
+			$set_404 = empty( $wp_query->posts );
+		}
+
 		if ( $set_404 ) {
 			// Guess it's time to 404.
 			$wp_query->set_404();
@@ -802,6 +807,105 @@ class WP {
 		} else {
 			status_header( 200 );
 		}
+	}
+
+	/**
+	 * Publishes a scheduled post whose publish time has passed if its permalink was
+	 * just requested and the main query otherwise found nothing.
+	 *
+	 * WP-Cron only runs on incoming traffic, so a scheduled post can sit past its
+	 * publish time in `future` status until some request happens to trigger cron -
+	 * and the very request that would trigger it is served a 404 in the meantime.
+	 * This closes that gap for the one request shape it actually affects: a singular
+	 * permalink lookup that matched nothing because the matching post is still
+	 * `future`.
+	 *
+	 * See https://core.trac.wordpress.org/ticket/65663.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @global WP_Query $wp_query WordPress Query object.
+	 *
+	 * @return bool Whether an overdue post was found and published.
+	 */
+	private function heal_overdue_scheduled_post() {
+		global $wp_query;
+
+		if ( $wp_query->posts ) {
+			return false;
+		}
+
+		if ( ! empty( $this->query_vars['name'] ) ) {
+			$slug         = $this->query_vars['name'];
+			$post_type    = ! empty( $this->query_vars['post_type'] ) ? $this->query_vars['post_type'] : 'post';
+			$hierarchical = false;
+		} elseif ( ! empty( $this->query_vars['pagename'] ) ) {
+			$slug         = $this->query_vars['pagename'];
+			$post_type    = get_post_types( array( 'hierarchical' => true ) );
+			$hierarchical = true;
+		} else {
+			return false;
+		}
+
+		// Cheap short-circuit so 404 scans and normal traffic never reach the lookup below.
+		if ( ! wp_next_scheduled_post_is_due() ) {
+			return false;
+		}
+
+		if ( $hierarchical ) {
+			// get_page_by_path() walks the full ancestor path, not just the leaf slug,
+			// and doesn't filter by status, so the `future` check happens after.
+			$post = get_page_by_path( $slug, OBJECT, $post_type );
+
+			if ( ! $post || 'future' !== $post->post_status ) {
+				return false;
+			}
+		} else {
+			$candidates = get_posts(
+				array(
+					'name'                   => $slug,
+					'post_type'              => $post_type,
+					'post_status'            => 'future',
+					'posts_per_page'         => 1,
+					'orderby'                => 'none',
+					'no_found_rows'          => true,
+					'update_post_meta_cache' => false,
+					'update_post_term_cache' => false,
+				)
+			);
+
+			if ( ! $candidates ) {
+				return false;
+			}
+
+			$post = $candidates[0];
+		}
+
+		if ( strtotime( $post->post_date_gmt . ' GMT' ) > time() ) {
+			return false;
+		}
+
+		/*
+		 * Best-effort lock: narrows, but does not eliminate, the window where two
+		 * simultaneous first-visitors both try to publish the same post. If it's
+		 * already held, this request just falls through to its normal 404 - the
+		 * request holding the lock finishes publishing within milliseconds, so the
+		 * next request (or a reload of this one) will find it.
+		 */
+		$lock_key = 'heal_sched_post_' . $post->ID;
+
+		if ( false !== get_transient( $lock_key ) ) {
+			return false;
+		}
+
+		set_transient( $lock_key, 1, 30 );
+		check_and_publish_future_post( $post->ID );
+		delete_transient( $lock_key );
+
+		// Flushes any other overdue events the normal way, not just this post.
+		spawn_cron();
+
+		return 'publish' === get_post_status( $post->ID );
 	}
 
 	/**
