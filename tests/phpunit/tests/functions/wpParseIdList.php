@@ -17,7 +17,7 @@ class Tests_Functions_wpParseIdList extends WP_UnitTestCase {
 	 * @dataProvider data_unexpected_input
 	 *
 	 * @param mixed[]|string $input_list
-	 * @param list<string> $expected
+	 * @param list<non-negative-int> $expected
 	 */
 	public function test_wp_parse_id_list( $input_list, $expected ): void {
 		$parsed_list = wp_parse_id_list( $input_list );
