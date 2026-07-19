@@ -5075,8 +5075,8 @@ function wp_parse_slug_list( $input_list ) {
 			'sanitize_title',
 			array_map(
 				/*
-				 * Cast booleans, integers, and floats to strings. Non-scalar types (including null) have already
-				 * been filtered out by wp_parse_list().
+				 * Cast booleans, integers, and floats to strings. Non-scalar types
+				 * (including null) have already been filtered out by wp_parse_list().
 				 */
 				'strval',
 				$input_list
