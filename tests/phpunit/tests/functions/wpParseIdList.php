@@ -19,15 +19,15 @@ class Tests_Functions_wpParseIdList extends WP_UnitTestCase {
 	 * @param mixed[]|string $input_list
 	 * @param list<non-negative-int> $expected
 	 */
-	public function test_wp_parse_id_list( $input_list, $expected ): void {
+	public function test_wp_parse_id_list( $input_list, array $expected ): void {
 		$parsed_list = wp_parse_id_list( $input_list );
 		$this->assertTrue( array_is_list( $parsed_list ), 'Expected value to be a list.' );
 		$this->assertThat(
 			$parsed_list,
 			$this->callback(
-				static fn ( array $arr ): bool => array_all(
+				static fn ( array $arr ) => array_all(
 					$arr,
-					static fn( $v ) => is_int( $v ) && $v >= 0
+					static fn ( $v ) => is_int( $v ) && $v >= 0
 				)
 			),
 			'Array should contain only non-negative ints.'
