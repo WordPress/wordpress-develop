@@ -5022,7 +5022,8 @@ function wp_parse_args( $args, $defaults = array() ) {
  * @since 5.1.0
  *
  * @param mixed[]|string $input_list List of values.
- * @return array Array of values. Not guaranteed to be a PHP list.
+ * @return array Array of values. Keys are preserved when an array is passed,
+ *               so the result is not necessarily a list.
  * @phpstan-return array<scalar>
  */
 function wp_parse_list( $input_list ) {
@@ -5044,7 +5045,9 @@ function wp_parse_list( $input_list ) {
  * @since 5.1.0 Refactored to use wp_parse_list().
  *
  * @param mixed[]|string $input_list List of IDs.
- * @return int[] Sanitized array of IDs. May include zero. Not guaranteed to be a PHP list.
+ * @return int[] Sanitized array of IDs. May include zero. Keys are preserved
+ *               from the input and `array_unique()` may leave gaps, so the
+ *               result is not necessarily a list.
  * @phpstan-return array<non-negative-int>
  */
 function wp_parse_id_list( $input_list ) {
@@ -5060,7 +5063,9 @@ function wp_parse_id_list( $input_list ) {
  * @since 5.1.0 Refactored to use wp_parse_list().
  *
  * @param mixed[]|string $input_list List of slugs.
- * @return string[] Sanitized array of slugs. May include an empty string. Not guaranteed to be a PHP list.
+ * @return string[] Sanitized array of slugs. May include an empty string. Keys
+ *                  are preserved from the input and `array_unique()` may leave
+ *                  gaps, so the result is not necessarily a list.
  */
 function wp_parse_slug_list( $input_list ) {
 	$input_list = wp_parse_list( $input_list );
