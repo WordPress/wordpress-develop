@@ -17,7 +17,7 @@ class Tests_Functions_WpParseSlugList extends WP_UnitTestCase {
 	 * @dataProvider data_unexpected_input
 	 */
 	public function test_wp_parse_slug_list( $input_list, $expected ) {
-		$this->assertSameSets( $expected, wp_parse_slug_list( $input_list ) );
+		$this->assertSame( $expected, wp_parse_slug_list( $input_list ) );
 	}
 
 	/**

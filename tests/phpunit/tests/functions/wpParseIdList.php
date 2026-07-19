@@ -32,7 +32,7 @@ class Tests_Functions_wpParseIdList extends WP_UnitTestCase {
 			),
 			'Array should contain only non-negative ints.'
 		);
-		$this->assertSameSets( $expected, $parsed_list );
+		$this->assertSame( $expected, $parsed_list );
 	}
 
 	/**

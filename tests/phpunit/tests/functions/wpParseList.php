@@ -20,7 +20,7 @@ class Tests_Functions_wpParseList extends WP_UnitTestCase {
 	public function test_wp_parse_list( $input_list, array $expected ): void {
 		$parsed_list = wp_parse_list( $input_list );
 		$this->assertTrue( array_is_list( $parsed_list ), 'Expected value to be a list.' );
-		$this->assertSameSets( $expected, $parsed_list );
+		$this->assertSame( $expected, $parsed_list );
 	}
 
 	/**
