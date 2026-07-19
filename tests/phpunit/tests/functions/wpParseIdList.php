@@ -15,17 +15,32 @@ class Tests_Functions_wpParseIdList extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_wp_parse_id_list
 	 * @dataProvider data_unexpected_input
+	 *
+	 * @param mixed[]|string $input_list
+	 * @param list<string> $expected
 	 */
-	public function test_wp_parse_id_list( $input_list, $expected ) {
-		$this->assertSameSets( $expected, wp_parse_id_list( $input_list ) );
+	public function test_wp_parse_id_list( $input_list, $expected ): void {
+		$parsed_list = wp_parse_id_list( $input_list );
+		$this->assertTrue( array_is_list( $parsed_list ), 'Expected value to be a list.' );
+		$this->assertThat(
+			$parsed_list,
+			$this->callback(
+				static fn ( array $arr ): bool => array_all(
+					$arr,
+					static fn( $v ) => is_int( $v ) && $v >= 0
+				)
+			),
+			'Array should contain only non-negative ints.'
+		);
+		$this->assertSameSets( $expected, $parsed_list );
 	}
 
 	/**
 	 * Data provider.
 	 *
-	 * @return array[]
+	 * @return array<string, array{ input_list: mixed[]|string, expected: list<non-negative-int> }>
 	 */
-	public function data_wp_parse_id_list() {
+	public function data_wp_parse_id_list(): array {
 		return array(
 			'regular'                  => array(
 				'input_list' => '1,2,3,4',
@@ -61,9 +76,9 @@ class Tests_Functions_wpParseIdList extends WP_UnitTestCase {
 	/**
 	 * Data provider.
 	 *
-	 * @return array[]
+	 * @return array<string, array{ input_list: mixed[]|string, expected: list<non-negative-int> }>
 	 */
-	public function data_unexpected_input() {
+	public function data_unexpected_input(): array {
 		return array(
 			'string with commas' => array(
 				'input_list' => '1,2,string with spaces',
@@ -96,6 +111,10 @@ class Tests_Functions_wpParseIdList extends WP_UnitTestCase {
 			'array with false'   => array(
 				'input_list' => array( 1, 2, false ),
 				'expected'   => array( 1, 2, 0 ),
+			),
+			'array with array'   => array(
+				'input_list' => array( 1, array(), 2 ),
+				'expected'   => array( 1, 2 ),
 			),
 		);
 	}
