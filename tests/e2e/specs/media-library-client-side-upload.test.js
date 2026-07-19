@@ -60,6 +60,7 @@ test.describe( 'Media Library grid client-side uploads', () => {
 	test( 'uploads an image through the client-side pipeline', async ( {
 		page,
 		admin,
+		requestUtils,
 	} ) => {
 		await admin.visitAdminPage( 'upload.php', 'mode=grid' );
 
@@ -117,6 +118,23 @@ test.describe( 'Media Library grid client-side uploads', () => {
 
 		// Nothing goes through the classic async-upload.php endpoint.
 		expect( asyncUploads ).toEqual( [] );
+
+		// The finalized attachment carries the browser-generated sub-sizes
+		// in its metadata (the 640x480 source is larger than thumbnail and
+		// medium), and the sideloaded thumbnail file really exists.
+		const [ attachment ] = await requestUtils.rest( {
+			path: '/wp/v2/media',
+			params: { per_page: 1 },
+		} );
+		const sizes = attachment.media_details.sizes || {};
+		expect( Object.keys( sizes ) ).toEqual(
+			expect.arrayContaining( [ 'thumbnail', 'medium' ] )
+		);
+
+		const thumbnailResponse = await page.request.get(
+			sizes.thumbnail.source_url
+		);
+		expect( thumbnailResponse.status() ).toBe( 200 );
 	} );
 
 	test( 'shows an error for a disallowed file type', async ( {

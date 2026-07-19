@@ -112,6 +112,69 @@ class Tests_Media_wpEnqueueMediaLibraryUpload extends WP_UnitTestCase {
 	}
 
 	/**
+	 * The inline settings must be exactly the JSON encoding of
+	 * wp_get_media_library_upload_settings(), so the script consumes the
+	 * same values the server computes.
+	 *
+	 * @ticket 65661
+	 */
+	public function test_inline_settings_match_upload_settings() {
+		wp_enqueue_media_library_upload();
+
+		$before = wp_scripts()->get_data( 'media-library-upload', 'before' );
+		$inline = implode( "\n", (array) $before );
+
+		$this->assertStringContainsString(
+			wp_json_encode( wp_get_media_library_upload_settings() ),
+			$inline
+		);
+	}
+
+	/**
+	 * @ticket 65661
+	 */
+	public function test_allowed_mime_types_respect_upload_mimes_filter() {
+		add_filter(
+			'upload_mimes',
+			static function ( $mimes ) {
+				unset( $mimes['gif'] );
+				return $mimes;
+			}
+		);
+
+		$settings = wp_get_media_library_upload_settings();
+
+		$this->assertArrayNotHasKey( 'gif', $settings['allowedMimeTypes'] );
+	}
+
+	/**
+	 * @ticket 65661
+	 */
+	public function test_image_strip_meta_filter() {
+		add_filter( 'image_strip_meta', '__return_false' );
+
+		$settings = wp_get_media_library_upload_settings();
+
+		$this->assertFalse( $settings['imageStripMeta'] );
+	}
+
+	/**
+	 * @ticket 65661
+	 */
+	public function test_image_max_bit_depth_filter() {
+		add_filter(
+			'image_max_bit_depth',
+			static function () {
+				return 8;
+			}
+		);
+
+		$settings = wp_get_media_library_upload_settings();
+
+		$this->assertSame( 8, $settings['imageMaxBitDepth'] );
+	}
+
+	/**
 	 * @ticket 65661
 	 */
 	public function test_big_image_size_threshold_filter() {

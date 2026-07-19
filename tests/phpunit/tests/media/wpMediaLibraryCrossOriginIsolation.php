@@ -71,6 +71,18 @@ class Tests_Media_wpMediaLibraryCrossOriginIsolation extends WP_UnitTestCase {
 	}
 
 	/**
+	 * The isolation callback must be wired to the screen's load hook in
+	 * default-filters.php: the buffer has to start before upload.php
+	 * produces any output, and none of the gating below runs at all if
+	 * the hook is missing.
+	 *
+	 * @ticket 65661
+	 */
+	public function test_hooked_to_load_upload() {
+		$this->assertSame( 10, has_action( 'load-upload.php', 'wp_set_up_media_library_cross_origin_isolation' ) );
+	}
+
+	/**
 	 * @ticket 65661
 	 */
 	public function test_mode_defaults_to_grid() {
