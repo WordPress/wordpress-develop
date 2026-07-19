@@ -475,7 +475,6 @@ function wp_get_tooltip_helper( $content, $args = array() ) {
 		'icon'        => 'dashicons-editor-help',
 		'class'       => '',
 		'type'        => 'tooltip',
-		'attributes'  => array(),
 	);
 
 	$args = wp_parse_args( $args, $defaults );
