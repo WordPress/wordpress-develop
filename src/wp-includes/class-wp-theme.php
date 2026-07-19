@@ -1345,6 +1345,11 @@ final class WP_Theme implements ArrayAccess {
 				$types = array( 'page' );
 				if ( preg_match( '|Template Post Type:(.*)$|mi', file_get_contents( $full_path ), $type ) ) {
 					$types = explode( ',', _cleanup_header_comment( $type[1] ) );
+
+					// If 'any' is specified, apply the template to all public post types
+					if ( in_array( 'any', $types, true ) ) {
+						$types = get_post_types( array( 'public' => true ) ); // Get all public post types
+					}
 				}
 
 				foreach ( $types as $type ) {
