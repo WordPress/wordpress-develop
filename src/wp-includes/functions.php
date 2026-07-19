@@ -5027,7 +5027,8 @@ function wp_parse_args( $args, $defaults = array() ) {
  */
 function wp_parse_list( $input_list ) {
 	if ( ! is_array( $input_list ) ) {
-		return (array) preg_split( '/[\s,]+/', $input_list, -1, PREG_SPLIT_NO_EMPTY );
+		$parsed_list = preg_split( '/[\s,]+/', $input_list, -1, PREG_SPLIT_NO_EMPTY );
+		return is_array( $parsed_list ) ? $parsed_list : array();
 	}
 
 	// Validate all entries of the list are scalar.
