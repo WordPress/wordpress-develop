@@ -5043,7 +5043,7 @@ function wp_parse_list( $input_list ) {
  * @since 5.1.0 Refactored to use wp_parse_list().
  *
  * @param mixed[]|string $input_list List of IDs.
- * @return int[] Sanitized array of IDs.
+ * @return int[] Sanitized array of IDs. May include zero.
  * @phpstan-return list<non-negative-int>
  */
 function wp_parse_id_list( $input_list ) {
@@ -5059,7 +5059,7 @@ function wp_parse_id_list( $input_list ) {
  * @since 5.1.0 Refactored to use wp_parse_list().
  *
  * @param mixed[]|string $input_list List of slugs.
- * @return string[] Sanitized array of slugs.
+ * @return string[] Sanitized array of slugs. May include an empty string.
  * @phpstan-return list<string>
  */
 function wp_parse_slug_list( $input_list ) {
