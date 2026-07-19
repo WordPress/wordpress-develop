@@ -5026,7 +5026,7 @@ function wp_parse_args( $args, $defaults = array() ) {
  *               keeps its keys, so the result is not necessarily a list.
  * @phpstan-return ($input_list is string ? list<string> : array<scalar>)
  */
-function wp_parse_list( $input_list ) {
+function wp_parse_list( $input_list ): array {
 	if ( ! is_array( $input_list ) ) {
 		$parsed_list = preg_split( '/[\s,]+/', $input_list, -1, PREG_SPLIT_NO_EMPTY );
 		return is_array( $parsed_list ) ? $parsed_list : array();
@@ -5050,7 +5050,7 @@ function wp_parse_list( $input_list ) {
  *               result is not necessarily a list.
  * @phpstan-return array<non-negative-int>
  */
-function wp_parse_id_list( $input_list ) {
+function wp_parse_id_list( $input_list ): array {
 	$input_list = wp_parse_list( $input_list );
 
 	return array_unique( array_map( 'absint', $input_list ) );
@@ -5067,7 +5067,7 @@ function wp_parse_id_list( $input_list ) {
  *                  are preserved from the input and `array_unique()` may leave
  *                  gaps, so the result is not necessarily a list.
  */
-function wp_parse_slug_list( $input_list ) {
+function wp_parse_slug_list( $input_list ): array {
 	$input_list = wp_parse_list( $input_list );
 
 	return array_unique(
