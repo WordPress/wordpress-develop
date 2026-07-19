@@ -5024,7 +5024,7 @@ function wp_parse_args( $args, $defaults = array() ) {
  * @param mixed[]|string $input_list List of values.
  * @return array Array of values. Keys are preserved when an array is passed,
  *               so the result is not necessarily a list.
- * @phpstan-return array<scalar>
+ * @phpstan-return ($input_list is string ? list<string> : array<scalar>)
  */
 function wp_parse_list( $input_list ) {
 	if ( ! is_array( $input_list ) ) {
