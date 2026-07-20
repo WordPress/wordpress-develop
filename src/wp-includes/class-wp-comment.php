@@ -436,6 +436,9 @@ final class WP_Comment {
 	public function __get( $name ) {
 		if ( in_array( $name, $this->post_fields, true ) ) {
 			$post = get_post( (int) $this->comment_post_ID );
+			if ( ! $post ) {
+				return null;
+			}
 			return $post->$name;
 		}
 		return null;
