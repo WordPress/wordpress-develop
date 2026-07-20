@@ -16,7 +16,7 @@ abstract class WP_Ajax_UnitTestCase extends WP_UnitTestCase {
 	protected $_last_response = '';
 
 	/**
-	 * User IDs created by self::_setRole().
+	 * User IDs created by shared fixtures.
 	 *
 	 * This stores the user IDs of various roles to allow for reuse.
 	 */
