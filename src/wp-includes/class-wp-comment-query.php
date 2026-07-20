@@ -93,9 +93,11 @@ class WP_Comment_Query {
 	/**
 	 * List of comments located by the query.
 	 *
+	 * Null until a query has been run.
+	 *
 	 * @since 4.0.0
-	 * @var int[]|WP_Comment[]
-	 * @phpstan-var non-negative-int[]|WP_Comment[]
+	 * @var int[]|WP_Comment[]|null
+	 * @phpstan-var non-negative-int[]|array<int, WP_Comment>|null
 	 */
 	public $comments;
 
@@ -104,6 +106,7 @@ class WP_Comment_Query {
 	 *
 	 * @since 4.4.0
 	 * @var int
+	 * @phpstan-var non-negative-int
 	 */
 	public $found_comments = 0;
 
@@ -112,6 +115,7 @@ class WP_Comment_Query {
 	 *
 	 * @since 4.4.0
 	 * @var int
+	 * @phpstan-var non-negative-int
 	 */
 	public $max_num_pages = 0;
 
