@@ -2364,9 +2364,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		$meta = wp_get_attachment_metadata( $attachment_id );
 
 		/*
-		 * Attachment metadata is untyped, so the stored file size may be a
-		 * string (for example, plugins that populate it from a remote storage
-		 * API response). Only trust numeric values, and fall through to
+		 * Only trust numeric values, and fall through to
 		 * recompute the size from the file otherwise.
 		 */
 		if ( isset( $meta['filesize'] ) && is_numeric( $meta['filesize'] ) ) {
