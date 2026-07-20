@@ -28,9 +28,9 @@ class Tests_General_wpGetTooltip extends WP_UnitTestCase {
 	public function test_wp_get_tooltip_returns_accessible_markup() {
 		$tooltip = wp_get_tooltip( 'Helpful text.', array( 'id' => 'my-tip' ) );
 
-		// Toggle is a button that controls the popover and describes it.
-		$this->assertStringContainsString( '<button class="wp-tooltip__toggle" popovertarget="my-tip" type="button"', $tooltip );
-		$this->assertStringContainsString( 'popovertarget="my-tip"', $tooltip );
+		// Tooltip is a button that controls the popover but does not connect description.
+		$this->assertStringContainsString( '<button class="wp-tooltip__toggle" type="button"', $tooltip );
+		$this->assertStringNotContainsString( 'popovertarget="my-tip"', $tooltip );
 
 		// The bubble is a popover holding a text-only described element.
 		$this->assertStringContainsString( '<span popover="hint" id="my-tip" class="wp-tooltip__bubble" role="tooltip">', $tooltip );
@@ -47,6 +47,7 @@ class Tests_General_wpGetTooltip extends WP_UnitTestCase {
 			)
 		);
 		// Ensure the toggle tip does contain a close button.
+		$this->assertStringContainsString( 'popovertarget="my-tip"', $tooltip );
 		$this->assertStringContainsString( 'class="wp-tooltip__close"', $toggletip );
 		$this->assertStringContainsString( 'popovertargetaction="hide"', $toggletip );
 	}

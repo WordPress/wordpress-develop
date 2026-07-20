@@ -491,9 +491,9 @@ function wp_get_tooltip_helper( $content, $args = array() ) {
 	$button    = ( ! empty( $args['button'] ) ) ? $args['button'] : $button;
 	$processor = new WP_HTML_Tag_Processor( $button );
 	if ( $processor->next_tag( 'button' ) ) {
-		$processor->set_attribute( 'popovertarget', '%2$s' );
 		$processor->add_class( 'wp-tooltip__toggle' );
 		if ( 'tooltip' !== $args['type'] ) {
+			$processor->set_attribute( 'popovertarget', '%2$s' );
 			$processor->set_attribute( 'aria-haspopup', 'dialog' );
 		}
 		$button = $processor->get_updated_html();
