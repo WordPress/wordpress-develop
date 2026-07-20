@@ -961,6 +961,50 @@ class Tests_Query_Conditionals extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensures a post path with a leading slash is matched.
+	 *
+	 * get_page_by_path() trims leading and trailing slashes, so '/foo/bar' is a
+	 * path it accepts. The guard in WP_Query::is_single() used strpos(), which
+	 * returns 0 when the slash is the first character, so `! strpos()` evaluated
+	 * to true and the path was skipped without ever being checked.
+	 *
+	 * @ticket 65671
+	 */
+	public function test_is_single_with_leading_slash_in_path() {
+		$post_type = 'test_hierarchical';
+
+		register_post_type(
+			$post_type,
+			array(
+				'hierarchical' => true,
+				'rewrite'      => true,
+				'has_archive'  => true,
+				'public'       => true,
+			)
+		);
+
+		$parent_id = self::factory()->post->create(
+			array(
+				'post_type' => $post_type,
+				'post_name' => 'foo',
+			)
+		);
+
+		$post_id = self::factory()->post->create(
+			array(
+				'post_type'   => $post_type,
+				'post_name'   => 'bar',
+				'post_parent' => $parent_id,
+			)
+		);
+
+		$this->go_to( "/?p=$post_id&post_type=$post_type" );
+
+		$this->assertTrue( is_single( 'foo/bar' ), 'A path without a leading slash should match.' );
+		$this->assertTrue( is_single( '/foo/bar' ), 'A path with a leading slash should match.' );
+	}
+
+	/**
 	 * @ticket 24674
 	 */
 	public function test_is_single_with_slug_that_begins_with_a_number_that_clashes_with_another_post_id() {
@@ -1088,6 +1132,36 @@ class Tests_Query_Conditionals extends WP_UnitTestCase {
 		$this->assertFalse( is_page( 'foo/bar/baz' ) );
 		$this->assertFalse( is_page( 'bar/bar' ) );
 		$this->assertFalse( is_page( 'foo' ) );
+	}
+
+	/**
+	 * Ensures a page path with a leading slash is matched.
+	 *
+	 * get_page_by_path() trims leading and trailing slashes, so '/foo/bar' is a
+	 * path it accepts. The guard in WP_Query::is_page() used strpos(), which
+	 * returns 0 when the slash is the first character, so `! strpos()` evaluated
+	 * to true and the path was skipped without ever being checked.
+	 *
+	 * @ticket 65671
+	 */
+	public function test_is_page_with_leading_slash_in_path() {
+		$parent_id = self::factory()->post->create(
+			array(
+				'post_type' => 'page',
+				'post_name' => 'foo',
+			)
+		);
+		$post_id   = self::factory()->post->create(
+			array(
+				'post_type'   => 'page',
+				'post_name'   => 'bar',
+				'post_parent' => $parent_id,
+			)
+		);
+		$this->go_to( "/?page_id=$post_id" );
+
+		$this->assertTrue( is_page( 'foo/bar' ), 'A path without a leading slash should match.' );
+		$this->assertTrue( is_page( '/foo/bar' ), 'A path with a leading slash should match.' );
 	}
 
 	public function test_is_attachment() {
