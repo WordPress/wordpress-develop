@@ -274,7 +274,7 @@ final class WP_Comment {
 	 * @return array<string, mixed> Object as array.
 	 * @phpstan-return Data_Array
 	 */
-	public function to_array() {
+	public function to_array(): array {
 		/** @var Data_Array $comment */
 		$comment = get_object_vars( $this );
 		return $comment;
@@ -325,7 +325,7 @@ final class WP_Comment {
 	 *                } $args
 	 * @phpstan-return ($args is array{ format: 'flat', ... } ? list<WP_Comment> : array<int, WP_Comment>)
 	 */
-	public function get_children( $args = array() ) {
+	public function get_children( $args = array() ): array {
 		$defaults = array(
 			'format'       => 'tree',
 			'status'       => 'all',
@@ -400,7 +400,7 @@ final class WP_Comment {
 	 *
 	 * @param bool $set Whether the comment's children have already been populated.
 	 */
-	public function populated_children( $set ) {
+	public function populated_children( $set ): void {
 		$this->populated_children = (bool) $set;
 	}
 
