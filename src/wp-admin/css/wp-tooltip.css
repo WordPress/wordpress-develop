@@ -71,11 +71,6 @@
 	line-height: 1.4;
 }
 
-.wp-tooltip:has(button[aria-disabled="true"],button[disabled="true"]) .wp-tooltip__bubble {
-	background: #50575e;
-	color: #c3c4c7;
-}
-
 .wp-tooltip:not(.wp-is-tooltip) .wp-tooltip__text {
 	display: block;
 	padding-inline-end: 24px;
