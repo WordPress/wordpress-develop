@@ -396,11 +396,13 @@ final class WP_Comment {
 		 * WP_Comment objects. Neither may be written to the children cache, which holds
 		 * WP_Comment objects and is read back by add_child(), get_child(), and the 'flat'
 		 * format below. Return the result directly and leave the cache untouched.
+		 * The two return statements are used for the sake of static analysis with conditional
+		 * return types.
 		 */
-		if ( ! empty( $_args['count'] ) || ( isset( $_args['fields'] ) && 'ids' === $_args['fields'] ) ) {
-			/** @var non-negative-int|non-negative-int[] $child_result */
-			$child_result = get_comments( $_args );
-			return $child_result;
+		if ( ! empty( $_args['count'] ) ) {
+			return get_comments( $_args );
+		} elseif ( isset( $_args['fields'] ) && 'ids' === $_args['fields'] ) {
+			return get_comments( $_args );
 		}
 
 		if ( is_null( $this->children ) ) {
