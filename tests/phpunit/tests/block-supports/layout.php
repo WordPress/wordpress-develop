@@ -83,6 +83,26 @@ class Tests_Block_Supports_Layout extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 65667
+	 *
+	 * @covers ::wp_sanitize_block_gap_value
+	 */
+	public function test_sanitize_block_gap_value_rejects_nested_array_values() {
+		$this->assertSame(
+			array(
+				'top'  => null,
+				'left' => '2rem',
+			),
+			wp_sanitize_block_gap_value(
+				array(
+					'top'  => array( '1rem' ),
+					'left' => '2rem',
+				)
+			)
+		);
+	}
+
+	/**
 	 * @ticket 55505
 	 */
 	public function test_outer_container_not_restored_for_non_aligned_image_block_with_non_themejson_theme() {
@@ -224,6 +244,32 @@ class Tests_Block_Supports_Layout extends WP_UnitTestCase {
 						'attrs'        => array(
 							'layout' => array(
 								'type' => 'default',
+							),
+						),
+						'innerBlocks'  => array(),
+						'innerHTML'    => '<div class="wp-block-group"></div>',
+						'innerContent' => array(
+							'<div class="wp-block-group"></div>',
+						),
+					),
+				),
+				'expected_output' => '<div class="wp-block-group is-layout-flow wp-block-group-is-layout-flow"></div>',
+			),
+			'single wrapper block layout with malformed axial block gap' => array(
+				'args'            => array(
+					'block_content' => '<div class="wp-block-group"></div>',
+					'block'         => array(
+						'blockName'    => 'core/group',
+						'attrs'        => array(
+							'layout' => array(
+								'type' => 'default',
+							),
+							'style'  => array(
+								'spacing' => array(
+									'blockGap' => array(
+										'top' => array( '1rem' ),
+									),
+								),
 							),
 						),
 						'innerBlocks'  => array(),
