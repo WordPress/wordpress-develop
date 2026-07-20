@@ -311,7 +311,11 @@ final class WP_Comment {
 	 * @since 4.4.0
 	 *
 	 * @param array $args {
-	 *     Array of arguments used to pass to get_comments() and determine format.
+	 *     Array of arguments used to pass to {@see get_comments()} and determine format.
+	 *     Any other argument accepted by {@see WP_Comment_Query::__construct()} may also be passed, and is
+	 *     forwarded to `get_comments()`. Note that `parent` is always overridden with this comment's ID.
+	 *     A `$count` or `$fields` query returns the direct children only, and does not populate the
+	 *     comment's cached children, since that cache holds `WP_Comment` objects.
 	 *
 	 *     @type string $format        Return value format. 'tree' for a hierarchical tree, 'flat' for a flattened array.
 	 *                                 Default 'tree'.
@@ -338,19 +342,44 @@ final class WP_Comment {
 	 *                                 the value of $meta_key, and the array keys of
 	 *                                 `$meta_query`. Also accepts false, an empty array, or
 	 *                                 'none' to disable `ORDER BY` clause.
+	 *     @type string $fields        Which fields to return. Accepts 'ids' for comment IDs, or an
+	 *                                 empty string for full `WP_Comment` objects. Default empty.
+	 *     @type bool   $count         Whether to return a comment count rather than comments.
+	 *                                 Default false.
+	 *     @type string $type          Limit results to comments of a given type, such as 'comment',
+	 *                                 'pingback', 'trackback', or 'note'. Accepts 'all' for every
+	 *                                 type. Default empty.
+	 *     @type int    $number        Maximum number of comments to retrieve. Default empty (no limit).
+	 *     @type int    $post_id       Limit results to comments on a given post. Default 0.
+	 *     @type string $order         How to order retrieved comments. Accepts 'ASC' or 'DESC'.
+	 *                                 Default 'DESC'.
 	 * }
-	 * @return WP_Comment[] Array of `WP_Comment` objects.
+	 * @return WP_Comment[]|int[]|int Array of `WP_Comment` objects, an array of comment IDs when
+	 *                                `$fields` is 'ids', or the number of children when `$count`
+	 *                                is true.
 	 *
 	 * @phpstan-param array{
 	 *                    format?: 'tree'|'flat',
 	 *                    status?: 'hold'|'approve'|'all'|string,
 	 *                    hierarchical?: 'threaded'|'flat'|false,
 	 *                    orderby?: string|string[]|false,
+	 *                    fields?: 'ids'|'',
+	 *                    count?: bool,
+	 *                    type?: string,
+	 *                    number?: int,
+	 *                    post_id?: int,
+	 *                    order?: 'ASC'|'DESC',
 	 *                    ...
 	 *                } $args
-	 * @phpstan-return ($args is array{ format: 'flat', ... } ? list<WP_Comment> : array<int, WP_Comment>)
+	 * @phpstan-return (
+	 *     $args is array{ count: true, ... } ? non-negative-int : (
+	 *         $args is array{ fields: 'ids', ... } ? non-negative-int[] : (
+	 *             $args is array{ format: 'flat', ... } ? list<WP_Comment> : array<int, WP_Comment>
+	 *         )
+	 *     )
+	 * )
 	 */
-	public function get_children( $args = array() ): array {
+	public function get_children( $args = array() ) {
 		$defaults = array(
 			'format'       => 'tree',
 			'status'       => 'all',
@@ -358,15 +387,26 @@ final class WP_Comment {
 			'orderby'      => '',
 		);
 
-		/** @var array{ format: 'tree'|'flat', status: string, hierarchical: 'threaded'|'flat'|false, orderby: string|string[]|false, ... } $_args */
+		/** @var array{ format: 'tree'|'flat', status: string, hierarchical: 'threaded'|'flat'|false, orderby: string|string[]|false, fields?: 'ids'|'', count?: bool, type?: string, number?: int, post_id?: int, order?: 'ASC'|'DESC', ... } $_args */
 		$_args           = wp_parse_args( $args, $defaults );
 		$_args['parent'] = $this->comment_ID;
+
+		/*
+		 * A 'count' or 'ids' query returns an integer or a list of comment IDs rather than
+		 * WP_Comment objects. Neither may be written to the children cache, which holds
+		 * WP_Comment objects and is read back by add_child(), get_child(), and the 'flat'
+		 * format below. Return the result directly and leave the cache untouched.
+		 */
+		if ( ! empty( $_args['count'] ) || ( isset( $_args['fields'] ) && 'ids' === $_args['fields'] ) ) {
+			/** @var non-negative-int|non-negative-int[] $child_result */
+			$child_result = get_comments( $_args );
+			return $child_result;
+		}
 
 		if ( is_null( $this->children ) ) {
 			if ( $this->populated_children ) {
 				$this->children = array();
 			} else {
-				// TODO: If $args contains `fields => 'ids'` or `count => true` then this breaks.
 				/** @var array<int, WP_Comment> $child_comments */
 				$child_comments = get_comments( $_args );
 				$this->children = $child_comments;
@@ -378,6 +418,9 @@ final class WP_Comment {
 			foreach ( $this->children as $child ) {
 				$child_args           = $_args;
 				$child_args['format'] = 'flat';
+				// Descendants are merged in as objects, so never as a count or as IDs. These are provided for typing.
+				$child_args['count']  = false;
+				$child_args['fields'] = '';
 				// get_children() resets this value automatically.
 				unset( $child_args['parent'] );
 
