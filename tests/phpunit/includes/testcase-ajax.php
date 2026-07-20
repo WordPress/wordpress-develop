@@ -247,11 +247,13 @@ abstract class WP_Ajax_UnitTestCase extends WP_UnitTestCase {
 	 *
 	 * E.g. administrator, editor, author, contributor, subscriber.
 	 *
-	 * @param string $role The role to set.
+	 * @param string $role              The role to set.
+	 * @param bool   $force_new_account Optional. Whether to force a new account to be created even if an account
+	 *                                  with the role already exists in the shared fixtures. Default false.
 	 */
-	protected function _setRole( $role ) {
+	protected function _setRole( $role, $force_new_account = false ) {
 		$post = $_POST;
-		if ( isset( self::$_user_ids[ $role ] ) ) {
+		if ( isset( self::$_user_ids[ $role ] ) && ! $force_new_account ) {
 			$user_id = self::$_user_ids[ $role ];
 		} else {
 			$user_id = self::factory()->user->create( array( 'role' => $role ) );
