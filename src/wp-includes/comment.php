@@ -227,6 +227,7 @@ function get_approved_comments( $post_id, $args = array() ) {
  *                                       correspond to a WP_Comment object, an associative array, or a numeric array,
  *                                       respectively. Default OBJECT.
  * @return WP_Comment|array|null Depends on $output value.
+ * @phpstan-param 'OBJECT'|'ARRAY_A'|'ARRAY_N' $output
  * @phpstan-return (
  *     $output is 'ARRAY_A' ? non-empty-array<string, mixed>|null
  *                          : ( $output is 'ARRAY_N' ? non-empty-array<int, mixed>|null
