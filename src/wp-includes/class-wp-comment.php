@@ -181,8 +181,10 @@ final class WP_Comment {
 	 * get_children(), a sequentially-keyed array of WP_Comment objects (also
 	 * including all descendants, in the 'flat' case) is stored here instead.
 	 *
+	 * Null until populated by {@see WP_Comment::get_children()}.
+	 *
 	 * @since 4.4.0
-	 * @var array<int|numeric-string, WP_Comment>
+	 * @var array<int, WP_Comment>|null
 	 */
 	protected $children;
 
@@ -309,7 +311,7 @@ final class WP_Comment {
 	 *                    orderby?: string|string[]|false,
 	 *                    ...
 	 *                } $args
-	 * @phpstan-return ($args is array{ format: 'flat', ... } ? list<WP_Comment> : array<int|numeric-string, WP_Comment>)
+	 * @phpstan-return ($args is array{ format: 'flat', ... } ? list<WP_Comment> : array<int, WP_Comment>)
 	 */
 	public function get_children( $args = array() ) {
 		$defaults = array(
@@ -328,7 +330,7 @@ final class WP_Comment {
 				$this->children = array();
 			} else {
 				// TODO: If $args contains `fields => 'ids'` or `count => true` then this breaks.
-				/** @var array<int|numeric-string, WP_Comment> $child_comments */
+				/** @var array<int, WP_Comment> $child_comments */
 				$child_comments = get_comments( $_args );
 				$this->children = $child_comments;
 			}
@@ -360,8 +362,8 @@ final class WP_Comment {
 	 *
 	 * @param WP_Comment $child Child comment.
 	 */
-	public function add_child( WP_Comment $child ) {
-		$this->children[ $child->comment_ID ] = $child;
+	public function add_child( WP_Comment $child ): void {
+		$this->children[ (int) $child->comment_ID ] = $child;
 	}
 
 	/**
