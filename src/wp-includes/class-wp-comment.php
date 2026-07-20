@@ -271,7 +271,7 @@ final class WP_Comment {
 	 *
 	 * @since 4.4.0
 	 *
-	 * @return array Object as array.
+	 * @return array<string, mixed> Object as array.
 	 * @phpstan-return Data_Array
 	 */
 	public function to_array() {
@@ -314,7 +314,7 @@ final class WP_Comment {
 	 *                                 `$meta_query`. Also accepts false, an empty array, or
 	 *                                 'none' to disable `ORDER BY` clause.
 	 * }
-	 * @return array Array of `WP_Comment` objects.
+	 * @return WP_Comment[] Array of `WP_Comment` objects.
 	 *
 	 * @phpstan-param array{
 	 *                    format?: 'tree'|'flat',
