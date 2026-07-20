@@ -12,7 +12,7 @@
  *
  * @since 4.4.0
  *
- * @phpstan-type CommentArray array{
+ * @phpstan-type Data_Array array{
  *     comment_ID: numeric-string,
  *     comment_post_ID: numeric-string,
  *     comment_author: string,
@@ -258,10 +258,10 @@ final class WP_Comment {
 	 * @since 4.4.0
 	 *
 	 * @return array Object as array.
-	 * @phpstan-return CommentArray
+	 * @phpstan-return Data_Array
 	 */
 	public function to_array() {
-		/** @var CommentArray $comment */
+		/** @var Data_Array $comment */
 		$comment = get_object_vars( $this );
 		return $comment;
 	}
