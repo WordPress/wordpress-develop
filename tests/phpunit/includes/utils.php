@@ -62,8 +62,8 @@ function strip_ws( $txt ) {
  * @phpstan-type Hook_Event array{
  *     action?: non-empty-string,
  *     filter?: non-empty-string,
- *     hook_name: string,
- *     tag: string,
+ *     hook_name: string|false,
+ *     tag: string|false,
  *     args: list<mixed>,
  * }
  */
@@ -102,19 +102,20 @@ class MockAction {
 	 * @since UT (3.7.0)
 	 *
 	 * @global array<non-empty-string, non-negative-int> $wp_actions
+	 * @return string|false
 	 */
-	public function current_filter(): string {
+	public function current_filter() {
 		global $wp_actions;
 
 		if ( is_callable( 'current_filter' ) ) {
 			$current_filter = current_filter();
 		} else {
 			$current_filter = array_key_last( $wp_actions );
+			if ( null === $current_filter ) {
+				$current_filter = false;
+			}
 		}
 
-		if ( ! is_string( $current_filter ) ) {
-			throw new Exception( 'The MockAction::current_filter() method was called without a current filter.' );
-		}
 		return $current_filter;
 	}
 
@@ -305,7 +306,7 @@ class MockAction {
 	 *
 	 * @since 6.1.0
 	 *
-	 * @return list<string>
+	 * @return list<string|false>
 	 */
 	public function get_hook_names(): array {
 		$out = array();
@@ -323,7 +324,7 @@ class MockAction {
 	 * @since UT (3.7.0)
 	 * @since 6.1.0 Turned into an alias for ::get_hook_names().
 	 *
-	 * @return list<string>
+	 * @return list<string|false>
 	 */
 	public function get_tags(): array {
 		return $this->get_hook_names();
