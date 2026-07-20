@@ -188,9 +188,7 @@ function check_comment( $author, $email, $url, $comment, $user_ip, $user_agent, 
  * @phpstan-return (
  *     $post_id is 0 ? array{} : (
  *         $args is array{ count: true, ... } ? non-negative-int : (
- *             $args is array{ fields: 'ids', ... } ? non-negative-int[] : (
- *                 $args is array{ hierarchical: 'threaded', ... } ? array<int, WP_Comment> : WP_Comment[]
- *             )
+ *             $args is array{ fields: 'ids', ... } ? non-negative-int[] : array<int, WP_Comment>
  *         )
  *     )
  * )
@@ -286,9 +284,7 @@ function get_comment( $comment = null, $output = OBJECT ) {
  * @return WP_Comment[]|int[]|int List of comments or number of found comments if `$count` argument is true.
  * @phpstan-return (
  *     $args is array{ count: true, ... } ? non-negative-int : (
- *         $args is array{ fields: 'ids', ... } ? non-negative-int[] : (
- *             $args is array{ hierarchical: 'threaded', ... } ? array<int, WP_Comment> : WP_Comment[]
- *         )
+ *         $args is array{ fields: 'ids', ... } ? non-negative-int[] : array<int, WP_Comment>
  *     )
  * )
  */

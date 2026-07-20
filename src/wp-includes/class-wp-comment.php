@@ -406,13 +406,15 @@ final class WP_Comment {
 			return get_comments( $_args );
 		}
 
+		// Only WP_Comment objects are returned past this point. Stated positively for static analysis.
+		$_args['count']  = false;
+		$_args['fields'] = '';
+
 		if ( is_null( $this->children ) ) {
 			if ( $this->populated_children ) {
 				$this->children = array();
 			} else {
-				/** @var array<int, WP_Comment> $child_comments */
-				$child_comments = get_comments( $_args );
-				$this->children = $child_comments;
+				$this->children = get_comments( $_args );
 			}
 		}
 
@@ -421,9 +423,6 @@ final class WP_Comment {
 			foreach ( $this->children as $child ) {
 				$child_args           = $_args;
 				$child_args['format'] = 'flat';
-				// Descendants are merged in as objects, so never as a count or as IDs. These are provided for typing.
-				$child_args['count']  = false;
-				$child_args['fields'] = '';
 				// get_children() resets this value automatically.
 				unset( $child_args['parent'] );
 
