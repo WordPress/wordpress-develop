@@ -227,9 +227,10 @@ function get_approved_comments( $post_id, $args = array() ) {
  * @return WP_Comment|array|null Depends on $output value.
  * @phpstan-param 'OBJECT'|'ARRAY_A'|'ARRAY_N' $output
  * @phpstan-return (
- *     $output is 'ARRAY_A' ? non-empty-array<string, mixed>|null
- *                          : ( $output is 'ARRAY_N' ? non-empty-array<int, mixed>|null
- *                                                   : WP_Comment|null ) )
+ *     $output is 'ARRAY_A' ? non-empty-array<string, mixed>|null : (
+ *         $output is 'ARRAY_N' ? non-empty-array<int, mixed>|null : WP_Comment|null
+ *     )
+ * )
  */
 function get_comment( $comment = null, $output = OBJECT ) {
 	if ( empty( $comment ) && isset( $GLOBALS['comment'] ) ) {
