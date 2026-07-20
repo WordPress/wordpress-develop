@@ -114,4 +114,56 @@ class Tests_General_wpGetTooltip extends WP_UnitTestCase {
 		$this->assertStringContainsString( 'popovertarget="' . $id . '"', $html );
 		$this->assertStringContainsString( 'id="' . $id . '-text"', $html );
 	}
+
+	/**
+	 * Tests that the markup consists only of phrasing content so it can be nested
+	 * inside a paragraph (or other phrasing context) without the parser closing
+	 * the enclosing element and leaving a stray empty paragraph behind.
+	 *
+	 * @ticket 65660
+	 *
+	 * @dataProvider data_tooltip_types
+	 *
+	 * @param string $type The tooltip type, 'tooltip' or 'toggletip'.
+	 */
+	public function test_wp_get_tooltip_markup_is_phrasing_content( $type ) {
+		$html = ( 'toggletip' === $type )
+			? wp_get_toggletip( 'Helpful text.', array( 'id' => 'my-tip' ) )
+			: wp_get_tooltip( 'Helpful text.', array( 'id' => 'my-tip' ) );
+
+		// The wrapper and popover must not use flow-content elements.
+		$this->assertStringNotContainsString( '<div', $html, 'The markup should not contain a div element.' );
+		$this->assertStringNotContainsString( '<dialog', $html, 'The markup should not contain a dialog element.' );
+
+		// The wrapper is an inline span.
+		$this->assertStringContainsString( '<span class="wp-tooltip ', $html );
+	}
+
+	/**
+	 * Tests that the toggletip popover preserves dialog semantics and focus
+	 * handling after moving away from the native dialog element.
+	 *
+	 * @ticket 65660
+	 */
+	public function test_wp_get_toggletip_bubble_uses_dialog_role_and_autofocus() {
+		$html = wp_get_toggletip( 'Helpful text.', array( 'id' => 'my-tip' ) );
+
+		// The bubble is a span popover exposing a dialog role.
+		$this->assertStringContainsString( '<span popover="auto" id="my-tip" class="wp-tooltip__bubble" role="dialog"', $html );
+
+		// Focus is moved into the popover when opened, matching the native dialog behavior.
+		$this->assertStringContainsString( 'tabindex="-1" autofocus>', $html );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_tooltip_types() {
+		return array(
+			'tooltip'   => array( 'tooltip' ),
+			'toggletip' => array( 'toggletip' ),
+		);
+	}
 }
