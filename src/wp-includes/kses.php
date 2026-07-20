@@ -1157,7 +1157,7 @@ function wp_kses_allowed_html( $context = '' ) {
  * @param string       $context The kses context.
  * @return array|string Modified allowed tags structure.
  */
-function _wp_kses_allow_note_mention_attributes( $allowed, $context ) {
+function _wp_kses_allow_notes_attributes( $allowed, $context ) {
 	if ( 'pre_comment_content' !== $context || ! is_array( $allowed ) ) {
 		return $allowed;
 	}
