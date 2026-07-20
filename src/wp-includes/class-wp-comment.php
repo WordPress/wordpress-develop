@@ -23,7 +23,7 @@
  *     comment_date_gmt: non-empty-string,
  *     comment_content: string,
  *     comment_karma: numeric-string,
- *     comment_approved: string,
+ *     comment_approved: non-empty-string,
  *     comment_agent: string,
  *     comment_type: string,
  *     comment_parent: numeric-string,
@@ -128,8 +128,12 @@ final class WP_Comment {
 	/**
 	 * Comment approval status.
 	 *
+	 * The values used in core are '0' (unapproved), '1' (approved), 'spam', 'trash',
+	 * and 'post-trashed' (set for every comment on a post that is moved to the trash).
+	 *
 	 * @since 4.4.0
 	 * @var string
+	 * @phpstan-var non-empty-string
 	 */
 	public $comment_approved = '1';
 
@@ -143,6 +147,13 @@ final class WP_Comment {
 
 	/**
 	 * Comment type.
+	 *
+	 * The values used in core are 'comment', 'pingback', 'trackback', and 'note'. Custom
+	 * comment types are possible.
+	 *
+	 * Comments created before 5.5.0 may store an empty string rather than 'comment', so this
+	 * cannot be relied upon to be non-empty. {@see get_comment_type()} normalizes that case
+	 * when reading.
 	 *
 	 * @since 4.4.0
 	 * @since 5.5.0 Default value changed to `comment`.
