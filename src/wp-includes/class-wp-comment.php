@@ -10,7 +10,32 @@
 /**
  * Core class used to organize comments as instantiated objects with defined members.
  *
+ * The `@property-read` fields below are not stored on the comment. They are proxied to the
+ * comment's post by {@see WP_Comment::__get()}, and are null when that post no longer exists.
+ *
  * @since 4.4.0
+ *
+ * @property-read numeric-string|''|null $post_author
+ * @property-read string|null            $post_date
+ * @property-read string|null            $post_date_gmt
+ * @property-read string|null            $post_content
+ * @property-read string|null            $post_title
+ * @property-read string|null            $post_excerpt
+ * @property-read non-empty-string|null  $post_status
+ * @property-read non-empty-string|null  $comment_status
+ * @property-read non-empty-string|null  $ping_status
+ * @property-read string|null            $post_name
+ * @property-read string|null            $to_ping
+ * @property-read string|null            $pinged
+ * @property-read string|null            $post_modified
+ * @property-read string|null            $post_modified_gmt
+ * @property-read string|null            $post_content_filtered
+ * @property-read non-negative-int|null  $post_parent
+ * @property-read string|null            $guid
+ * @property-read int|null               $menu_order
+ * @property-read non-empty-string|null  $post_type
+ * @property-read string|null            $post_mime_type
+ * @property-read numeric-string|null    $comment_count
  *
  * @phpstan-type Data_Array array{
  *     comment_ID: numeric-string,
