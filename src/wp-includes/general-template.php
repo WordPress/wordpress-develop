@@ -515,7 +515,7 @@ function wp_get_tooltip_helper( $content, $args = array() ) {
 				'</span>' .
 			'</span>',
 			esc_attr( $classes ),
-			esc_attr( $id ),
+			esc_attr( $args['id'] ),
 			esc_attr( $label ),
 			esc_attr( $icon ),
 			esc_html( $content ),
@@ -537,7 +537,7 @@ function wp_get_tooltip_helper( $content, $args = array() ) {
 				'</span>' .
 			'</span>',
 			esc_attr( $classes ),
-			esc_attr( $id ),
+			esc_attr( $args['id'] ),
 			esc_attr( $args['label'] ),
 			esc_attr( $icon ),
 			esc_html( $content ),
