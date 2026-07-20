@@ -16,14 +16,15 @@ class Tests_Functions_GetFileData extends WP_UnitTestCase {
 	 * Tests get_file_data().
 	 *
 	 * @ticket 19854
+	 * @ticket 42517
 	 * @ticket 47186
 	 *
 	 * @dataProvider data_test_get_data_file
 	 *
-	 * @param string $file     File path, relative to the test data directory.
-	 * @param array  $headers  Default headers.
-	 * @param string $context  Context.
-	 * @param array  $expected Expected headers.
+	 * @param string                $file     File path, relative to the test data directory.
+	 * @param array<string, string> $headers  Default headers.
+	 * @param string                $context  Context.
+	 * @param array<string, string> $expected Expected headers.
 	 */
 	public function test_get_file_data( $file, $headers, $context, $expected ) {
 		$actual = get_file_data( DIR_TESTDATA . $file, $headers, $context );
@@ -47,7 +48,7 @@ class Tests_Functions_GetFileData extends WP_UnitTestCase {
 	 */
 	public function data_test_get_data_file() {
 		return array(
-			'theme headers'       => array(
+			'theme headers'             => array(
 				'file'     => '/themedir1/default/style.css',
 				'headers'  => array(
 					'Name'        => 'Theme Name',
@@ -67,7 +68,7 @@ class Tests_Functions_GetFileData extends WP_UnitTestCase {
 					'AuthorURI'   => 'http://binarybonsai.com/',
 				),
 			),
-			'cr line endings'     => array(
+			'cr line endings'           => array(
 				'file'     => '/formatting/file-header-cr-line-endings.php',
 				'headers'  => array(
 					'SomeHeader'  => 'Some Header',
@@ -81,8 +82,18 @@ class Tests_Functions_GetFileData extends WP_UnitTestCase {
 					'Author'      => 'A Very Old Mac',
 				),
 			),
-			'php open tag prefix' => array(
+			'php open tag prefix'       => array(
 				'file'     => '/formatting/file-header-php-open-tag-prefix.php',
+				'headers'  => array(
+					'TemplateName' => 'Template Name',
+				),
+				'context'  => '',
+				'expected' => array(
+					'TemplateName' => 'Something',
+				),
+			),
+			'php short open tag prefix' => array(
+				'file'     => '/formatting/file-header-php-short-open-tag-prefix.php',
 				'headers'  => array(
 					'TemplateName' => 'Template Name',
 				),
