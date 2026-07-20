@@ -1834,6 +1834,19 @@ function get_object_subtype( $object_type, $object_id ) {
 
 			$object_subtype = 'user';
 			break;
+
+		case 'blog':
+			if ( ! is_multisite() ) {
+				break;
+			}
+
+			$site = get_site( $object_id );
+			if ( ! $site ) {
+				break;
+			}
+
+			$object_subtype = 'blog';
+			break;
 	}
 
 	/**
