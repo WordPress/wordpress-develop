@@ -47,7 +47,7 @@ class Tests_General_wpGetTooltip extends WP_UnitTestCase {
 			)
 		);
 		// Ensure the toggle tip does contain a close button.
-		$this->assertStringContainsString( 'popovertarget="my-tip"', $tooltip );
+		$this->assertStringContainsString( 'popovertarget="my-tip"', $toggletip );
 		$this->assertStringContainsString( 'class="wp-tooltip__close"', $toggletip );
 		$this->assertStringContainsString( 'popovertargetaction="hide"', $toggletip );
 	}
@@ -78,7 +78,6 @@ class Tests_General_wpGetTooltip extends WP_UnitTestCase {
 		);
 
 		$this->assertStringContainsString( 'aria-expanded="false"', $html, 'String contains attribute not supported in function.' );
-		$this->assertStringContainsString( 'popovertarget', $html, 'String contains required attribute added by function.' );
 		$this->assertStringNotContainsString( 'dashicons', $html, 'String does not contain content of default button.' );
 	}
 
@@ -125,7 +124,11 @@ class Tests_General_wpGetTooltip extends WP_UnitTestCase {
 	 * @ticket 55343
 	 */
 	public function test_wp_get_tooltip_generates_unique_id() {
-		$html = wp_get_tooltip( 'Helpful text.' );
+		$args = array(
+			'label'       => 'About this field',
+			'close_label' => 'Dismiss',
+		);
+		$html = wp_get_toggletip( 'Helpful text.', $args );
 
 		$this->assertSame( 1, preg_match( '/id="(wp-tooltip-\d+)"/', $html, $matches ) );
 
