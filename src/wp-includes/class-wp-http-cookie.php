@@ -190,8 +190,8 @@ class WP_Http_Cookie {
 
 		// Get details on the URL we're thinking about sending to.
 		$url         = parse_url( $url );
-		$url['port'] = $url['port'] ?? ( 'https' === $url['scheme'] ? 443 : 80 );
-		$url['path'] = $url['path'] ?? '/';
+		$url['port'] ??= 'https' === $url['scheme'] ? 443 : 80;
+		$url['path'] ??= '/';
 
 		// Values to use for comparison against the URL.
 		$path   = $this->path ?? '/';

@@ -720,7 +720,7 @@ final class WP_Interactivity_API {
 					 *
 					 * @since 6.9.0
 					 */
-					$this->derived_state_closures[ $ns ] = $this->derived_state_closures[ $ns ] ?? array();
+					$this->derived_state_closures[ $ns ] ??= array();
 
 					// Builds path for the current property and add it to tracking if not already present.
 					$current_path = implode( '.', array_slice( $path_segments, 0, $index + 1 ) );

@@ -367,8 +367,8 @@ class WP_Ability {
 		 * `show_in_rest` value wins, then the high-level `public` flag seeds the
 		 * default, then the built-in default applies.
 		 */
-		$args['meta']['show_in_rest'] = $args['meta']['show_in_rest'] ?? $args['meta']['public'] ?? self::DEFAULT_SHOW_IN_REST;
-		$args['meta']['public']       = $args['meta']['public'] ?? self::DEFAULT_PUBLIC;
+		$args['meta']['show_in_rest'] ??= $args['meta']['public'] ?? self::DEFAULT_SHOW_IN_REST;
+		$args['meta']['public'] ??= self::DEFAULT_PUBLIC;
 
 		return $args;
 	}

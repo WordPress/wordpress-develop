@@ -1168,16 +1168,16 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		unset( $new_attachment_post->ID );
 
 		// Set new attachment post title with fallbacks.
-		$new_attachment_post->post_title = $new_attachment_post->post_title ?? $original_attachment_post->post_title ?? $image_name;
+		$new_attachment_post->post_title ??= $original_attachment_post->post_title ?? $image_name;
 
 		// Set new attachment post caption (post_excerpt).
-		$new_attachment_post->post_excerpt = $new_attachment_post->post_excerpt ?? $original_attachment_post->post_excerpt ?? '';
+		$new_attachment_post->post_excerpt ??= $original_attachment_post->post_excerpt ?? '';
 
 		// Set new attachment post description (post_content) with fallbacks.
-		$new_attachment_post->post_content = $new_attachment_post->post_content ?? $original_attachment_post->post_content ?? '';
+		$new_attachment_post->post_content ??= $original_attachment_post->post_content ?? '';
 
 		// Set post parent if set in request, else the default of `0` (no parent).
-		$new_attachment_post->post_parent = $new_attachment_post->post_parent ?? 0;
+		$new_attachment_post->post_parent ??= 0;
 
 		// Insert the new attachment post.
 		$new_attachment_id = wp_insert_attachment( wp_slash( (array) $new_attachment_post ), $saved['path'], 0, true );
@@ -1402,7 +1402,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 					$metadata = array();
 				}
 
-				$metadata['sizes'] = $metadata['sizes'] ?? array();
+				$metadata['sizes'] ??= array();
 
 				$fallback_sizes = array(
 					'thumbnail',
@@ -2820,7 +2820,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			// sends a single sub-size entry with an array of names. Register the
 			// same file under each name. Arrays only contain regular sizes.
 			if ( is_array( $image_size ) ) {
-				$metadata['sizes'] = $metadata['sizes'] ?? array();
+				$metadata['sizes'] ??= array();
 
 				foreach ( $image_size as $name ) {
 					$metadata['sizes'][ $name ] = array(
@@ -2864,7 +2864,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 				$metadata['filesize'] = $sub_size['filesize'] ?? 0;
 				$metadata['file']     = $sub_size['file'] ?? '';
 			} else {
-				$metadata['sizes'] = $metadata['sizes'] ?? array();
+				$metadata['sizes'] ??= array();
 
 				$metadata['sizes'][ $image_size ] = array(
 					'width'     => $sub_size['width'] ?? 0,
