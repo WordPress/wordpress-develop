@@ -1374,7 +1374,7 @@ function do_meta_boxes( $screen, $context, $data_object ) {
 					++$i;
 					// get_hidden_meta_boxes() doesn't apply in the block editor.
 					$hidden_class = ( ! $screen->is_block_editor() && in_array( $box['id'], $hidden, true ) ) ? ' hide-if-js' : '';
-					echo '<div id="' . $box['id'] . '" class="postbox ' . postbox_classes( $box['id'], $page ) . $hidden_class . '" ' . '>' . "\n";
+					echo '<div id="' . $box['id'] . '" class="postbox ' . postbox_classes( $box['id'], $page ) . $hidden_class . '" ' . ' role="region" aria-label="' . esc_attr( $box['title'] ) .'">' . "\n";
 
 					echo '<div class="postbox-header">';
 					echo '<h2 class="hndle">';
@@ -1399,50 +1399,35 @@ function do_meta_boxes( $screen, $context, $data_object ) {
 
 						echo '<div class="handle-actions hide-if-no-js">';
 
-						$move_up_text   = sprintf(
-							/* translators: %s: Meta box title. */
-							__( 'Move %s box up' ),
-							$widget_title
-						);
 						$move_up_button = '<button type="button" class="handle-order-higher">
-							<span class="screen-reader-text">' . $move_up_text . '</span>
+							<span class="screen-reader-text">' . __( 'Move up' ) . '</span>
 							<span class="order-higher-indicator" aria-hidden="true"></span>
 						</button>';
 						$move_up_args   = array(
 							'id'     => $box['id'] . '-handle-order-higher-description',
 							'button' => $move_up_button,
 						);
-						echo wp_get_tooltip( $move_up_text, $move_up_args );
+						echo wp_get_tooltip( __( 'Move up' ), $move_up_args );
 
-						$move_down_text   = sprintf(
-							/* translators: %s: Meta box title. */
-							__( 'Move %s box down' ),
-							$widget_title
-						);
 						$move_down_button = '<button type="button" class="handle-order-lower">
-							<span class="screen-reader-text">' . $move_down_text . '</span>
+							<span class="screen-reader-text">' . __( 'Move down' ) . '</span>
 							<span class="order-lower-indicator" aria-hidden="true"></span>
 						</button>';
 						$move_down_args   = array(
 							'id'     => $box['id'] . '-handle-order-lower-description',
 							'button' => $move_down_button,
 						);
-						echo wp_get_tooltip( $move_down_text, $move_down_args );
+						echo wp_get_tooltip( __( 'Move down' ), $move_down_args );
 
-						$show_hide_text   = sprintf(
-							/* translators: %s: Hidden accessibility text. Meta box title. */
-							__( 'Show or hide panel: %s' ),
-							$widget_title
-						);
 						$show_hide_button = '<button type="button" class="handlediv" aria-expanded="true">
-							<span class="screen-reader-text">' . $show_hide_text . '</span>
+							<span class="screen-reader-text">' . __( 'Show or hide panel' ) . '</span>
 							<span class="toggle-indicator" aria-hidden="true"></span>
 						</button>';
 						$show_hide_args   = array(
 							'id'     => $box['id'] . '-handlediv',
 							'button' => $show_hide_button,
 						);
-						echo wp_get_tooltip( $show_hide_text, $show_hide_args );
+						echo wp_get_tooltip( __( 'Show or hide panel' ), $show_hide_args );
 
 						echo '</div>';
 					}
