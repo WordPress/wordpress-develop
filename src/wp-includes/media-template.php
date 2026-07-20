@@ -1619,11 +1619,15 @@ function wp_print_media_templates() {
 			 * The crossorigin attribute is added unconditionally to all relevant
 			 * media tags to ensure cross-origin isolation works regardless of
 			 * the final URL value at render time.
+			 *
+			 * IMG is excluded because credentialless mode already handles
+			 * cross-origin images; adding crossorigin would break previews for
+			 * media served without CORS headers (e.g. offloaded/CDN media).
 			 */
 			$template_processor = new WP_HTML_Tag_Processor( $script_processor->get_modifiable_text() );
 			while ( $template_processor->next_tag() ) {
 				if (
-					in_array( $template_processor->get_tag(), array( 'AUDIO', 'IMG', 'VIDEO' ), true )
+					in_array( $template_processor->get_tag(), array( 'AUDIO', 'VIDEO' ), true )
 					&& ! is_string( $template_processor->get_attribute( 'crossorigin' ) )
 				) {
 					$template_processor->set_attribute( 'crossorigin', 'anonymous' );

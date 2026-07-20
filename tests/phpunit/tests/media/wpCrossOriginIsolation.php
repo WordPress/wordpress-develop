@@ -7,6 +7,7 @@
  * @covers ::wp_set_up_cross_origin_isolation
  * @covers ::wp_start_cross_origin_isolation_output_buffer
  * @covers ::wp_is_client_side_media_processing_enabled
+ * @covers ::wp_print_media_templates
  */
 class Tests_Media_wpCrossOriginIsolation extends WP_UnitTestCase {
 
@@ -491,5 +492,63 @@ class Tests_Media_wpCrossOriginIsolation extends WP_UnitTestCase {
 
 		// Script and audio should have crossorigin.
 		$this->assertSame( 2, substr_count( $output, 'crossorigin="anonymous"' ), 'Script and audio should both get crossorigin, but not img.' );
+	}
+
+	/**
+	 * IMG tags in the Backbone media templates must not receive crossorigin.
+	 *
+	 * Media templates power the media library picker. Under
+	 * Document-Isolation-Policy: isolate-and-credentialless the browser already
+	 * loads cross-origin images in credentialless mode, so adding
+	 * crossorigin="anonymous" would force a CORS request and break previews for
+	 * offloaded/CDN media served without Access-Control-Allow-Origin headers.
+	 *
+	 * @ticket 65673
+	 */
+	public function test_media_templates_do_not_add_crossorigin_to_img() {
+		$_SERVER['HTTP_HOST'] = 'localhost';
+
+		$this->assertTrue(
+			wp_is_client_side_media_processing_enabled(),
+			'Client-side media processing should be enabled on localhost.'
+		);
+
+		require_once ABSPATH . WPINC . '/media-template.php';
+
+		ob_start();
+		wp_print_media_templates();
+		$output = ob_get_clean();
+
+		$this->assertDoesNotMatchRegularExpression(
+			'/<img\b[^>]*\bcrossorigin=/i',
+			$output,
+			'IMG tags in media templates should not receive a crossorigin attribute.'
+		);
+	}
+
+	/**
+	 * AUDIO and VIDEO tags in the media templates should still receive crossorigin.
+	 *
+	 * @ticket 65673
+	 */
+	public function test_media_templates_add_crossorigin_to_audio_and_video() {
+		$_SERVER['HTTP_HOST'] = 'localhost';
+
+		require_once ABSPATH . WPINC . '/media-template.php';
+
+		ob_start();
+		wp_print_media_templates();
+		$output = ob_get_clean();
+
+		$this->assertMatchesRegularExpression(
+			'/<audio\b[^>]*\bcrossorigin="anonymous"/i',
+			$output,
+			'AUDIO tags in media templates should receive crossorigin="anonymous".'
+		);
+		$this->assertMatchesRegularExpression(
+			'/<video\b[^>]*\bcrossorigin="anonymous"/i',
+			$output,
+			'VIDEO tags in media templates should receive crossorigin="anonymous".'
+		);
 	}
 }
