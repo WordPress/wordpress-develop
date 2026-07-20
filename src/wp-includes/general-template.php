@@ -471,8 +471,8 @@ function wp_get_tooltip_helper( $content, $args = array() ) {
 	}
 
 	$defaults = array(
-		'id'          => '',
-		'button'      => '',
+		'id'          => wp_unique_id( 'wp-tooltip-' ),
+		'button'      => '<button type="button" aria-label="%3$s"><span class="dashicons%4$s" aria-hidden="true"></span></button>',
 		'label'       => __( 'Help' ),
 		'close_label' => __( 'Close' ),
 		'icon'        => 'dashicons-editor-help',
@@ -482,18 +482,12 @@ function wp_get_tooltip_helper( $content, $args = array() ) {
 
 	$args = wp_parse_args( $args, $defaults );
 
-	$id = '' !== $args['id'] ? $args['id'] : wp_unique_id( 'wp-tooltip-' );
-
 	$classes = ( 'tooltip' === $args['type'] ) ? 'wp-tooltip wp-is-tooltip' : 'wp-tooltip wp-is-toggletip';
 	if ( '' !== $args['class'] ) {
 		$classes .= ' ' . $args['class'];
 	}
 
-	$icon   = '' !== $args['icon'] ? ' ' . $args['icon'] : '';
-	$button = '<button type="button" aria-label="%3$s">' .
-		'<span class="dashicons%4$s" aria-hidden="true"></span>' . 
-	'</button>';
-
+	$icon      = '' !== $args['icon'] ? ' ' . $args['icon'] : '';
 	$button    = ( ! empty( $args['button'] ) ) ? $args['button'] : $button;
 	$processor = new WP_HTML_Tag_Processor( $button );
 	if ( $processor->next_tag( 'button' ) ) {
