@@ -809,6 +809,9 @@ class WP_List_Table {
 		<input type="hidden" name="mode" value="<?php echo esc_attr( $current_mode ); ?>" />
 		<div class="view-switch">
 		<?php
+		wp_enqueue_style( 'wp-tooltip' );
+		wp_enqueue_script( 'wp-tooltip' );
+
 		foreach ( $this->modes as $mode => $title ) {
 			$classes      = array( 'view-' . $mode );
 			$aria_current = '';
@@ -818,14 +821,18 @@ class WP_List_Table {
 				$aria_current = ' aria-current="page"';
 			}
 
-			printf(
-				"<a href='%s' class='%s' id='view-switch-$mode'$aria_current>" .
-					"<span class='screen-reader-text'>%s</span>" .
-				"</a>\n",
+			$switcher_link = sprintf(
+				"<a href='%s' aria-label='%s' class='%s wp-tooltip__toggle' id='view-switch-$mode'$aria_current></a>\n",
 				esc_url( remove_query_arg( 'attachment-filter', add_query_arg( 'mode', $mode ) ) ),
-				implode( ' ', $classes ),
-				$title
+				esc_attr( $title ),
+				implode( ' ', $classes )
 			);
+
+			$switcher_link_args = array(
+				'id'     => "view-switch-$mode-tooltip",
+				'button' => $switcher_link,
+			);
+			echo wp_get_tooltip( $title, $switcher_link_args );
 		}
 		?>
 		</div>

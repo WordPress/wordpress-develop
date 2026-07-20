@@ -487,9 +487,10 @@ function wp_get_tooltip_helper( $content, $args = array() ) {
 		$classes .= ' ' . $args['class'];
 	}
 
-	$icon      = '' !== $args['icon'] ? ' ' . $args['icon'] : '';
-	$button    = ( ! empty( $args['button'] ) ) ? $args['button'] : $button;
+	$icon      = $args['icon'];
+	$button    = $args['button'];
 	$processor = new WP_HTML_Tag_Processor( $button );
+
 	if ( $processor->next_tag( 'button' ) ) {
 		$processor->set_attribute( 'popovertarget', '%2$s' );
 		$processor->add_class( 'wp-tooltip__toggle' );
@@ -498,6 +499,12 @@ function wp_get_tooltip_helper( $content, $args = array() ) {
 		}
 		$button = $processor->get_updated_html();
 	}
+
+	if ( $processor->next_tag( 'a' ) && 'tooltip' === $args['type'] ) {
+		$processor->add_class( 'wp-tooltip__toggle' );
+		$button = $processor->get_updated_html();
+	}
+
 	/*
 	 * The markup only uses phrasing content so it is valid when nested
 	 * in a phrasing context. Sectioning content (e.g. `div`, `dialog`) will
