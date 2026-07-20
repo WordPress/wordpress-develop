@@ -20,7 +20,7 @@ abstract class WP_Ajax_UnitTestCase extends WP_UnitTestCase {
 	 *
 	 * This stores the user IDs of various roles to allow for reuse.
 	 */
-	protected $_user_ids = array();
+	protected static $_user_ids = array();
 
 	/**
 	 * List of Ajax actions called via GET.
@@ -124,6 +124,14 @@ abstract class WP_Ajax_UnitTestCase extends WP_UnitTestCase {
 
 	public static function set_up_before_class() {
 		parent::set_up_before_class();
+
+		self::$_user_ids = array(
+			'administrator' => self::factory()->user->create( array( 'role' => 'administrator' ) ),
+			'editor'        => self::factory()->user->create( array( 'role' => 'editor' ) ),
+			'author'        => self::factory()->user->create( array( 'role' => 'author' ) ),
+			'contributor'   => self::factory()->user->create( array( 'role' => 'contributor' ) ),
+			'subscriber'    => self::factory()->user->create( array( 'role' => 'subscriber' ) ),
+		);
 
 		remove_action( 'admin_init', '_maybe_update_core' );
 		remove_action( 'admin_init', '_maybe_update_plugins' );
@@ -243,11 +251,10 @@ abstract class WP_Ajax_UnitTestCase extends WP_UnitTestCase {
 	 */
 	protected function _setRole( $role ) {
 		$post = $_POST;
-		if ( isset( $this->_user_ids[ $role ] ) ) {
-			$user_id = $this->_user_ids[ $role ];
+		if ( isset( self::$_user_ids[ $role ] ) ) {
+			$user_id = self::$_user_ids[ $role ];
 		} else {
-			$user_id                  = self::factory()->user->create( array( 'role' => $role ) );
-			$this->_user_ids[ $role ] = $user_id;
+			$user_id = self::factory()->user->create( array( 'role' => $role ) );
 		}
 		wp_set_current_user( $user_id );
 		$_POST = array_merge( $_POST, $post );
