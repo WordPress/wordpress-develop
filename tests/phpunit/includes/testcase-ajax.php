@@ -16,6 +16,13 @@ abstract class WP_Ajax_UnitTestCase extends WP_UnitTestCase {
 	protected $_last_response = '';
 
 	/**
+	 * User IDs created by self::_setRole().
+	 *
+	 * This stores the user IDs of various roles to allow for reuse.
+	 */
+	protected $_user_ids = array();
+
+	/**
 	 * List of Ajax actions called via GET.
 	 *
 	 * @var array
@@ -235,8 +242,13 @@ abstract class WP_Ajax_UnitTestCase extends WP_UnitTestCase {
 	 * @param string $role The role to set.
 	 */
 	protected function _setRole( $role ) {
-		$post    = $_POST;
-		$user_id = self::factory()->user->create( array( 'role' => $role ) );
+		$post = $_POST;
+		if ( isset( $this->_user_ids[ $role ] ) ) {
+			$user_id = $this->_user_ids[ $role ];
+		} else {
+			$user_id                  = self::factory()->user->create( array( 'role' => $role ) );
+			$this->_user_ids[ $role ] = $user_id;
+		}
 		wp_set_current_user( $user_id );
 		$_POST = array_merge( $_POST, $post );
 	}
