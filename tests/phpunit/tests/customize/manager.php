@@ -3683,6 +3683,39 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 			$this->assertSame( $video_url, $sanitized );
 		}
 	}
+
+	/**
+	 * @ticket 46128
+	 *
+	 * @dataProvider data_header_image_setting_default
+	 *
+	 * @param bool   $random_default   Whether to randomize default headers.
+	 * @param string $expected_default Expected setting default.
+	 */
+	public function test_header_image_setting_default( $random_default, $expected_default ) {
+		global $_wp_theme_features;
+
+		$_wp_theme_features['custom-header'][0] = array(
+			'default-image'  => 'https://example.org/header.jpg',
+			'random-default' => $random_default,
+		);
+
+		$this->manager->register_controls();
+
+		$this->assertSame( $expected_default, $this->manager->get_setting( 'header_image' )->default );
+	}
+
+	/**
+	 * Data provider for test_header_image_setting_default().
+	 *
+	 * @return array[] Test parameters.
+	 */
+	public function data_header_image_setting_default() {
+		return array(
+			'random default headers' => array( true, 'random-default-image' ),
+			'fixed default header'   => array( false, 'https://example.org/header.jpg' ),
+		);
+	}
 }
 
 require_once ABSPATH . WPINC . '/class-wp-customize-setting.php';
