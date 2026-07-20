@@ -1374,7 +1374,7 @@ function do_meta_boxes( $screen, $context, $data_object ) {
 					++$i;
 					// get_hidden_meta_boxes() doesn't apply in the block editor.
 					$hidden_class = ( ! $screen->is_block_editor() && in_array( $box['id'], $hidden, true ) ) ? ' hide-if-js' : '';
-					echo '<div id="' . $box['id'] . '" class="postbox ' . postbox_classes( $box['id'], $page ) . $hidden_class . '" ' . ' role="region" aria-label="' . esc_attr( $box['title'] ) .'">' . "\n";
+					echo '<div id="' . $box['id'] . '" class="postbox ' . postbox_classes( $box['id'], $page ) . $hidden_class . '" ' . ' role="region" aria-label="' . esc_attr( $box['title'] ) . '">' . "\n";
 
 					echo '<div class="postbox-header">';
 					echo '<h2 class="hndle">';
