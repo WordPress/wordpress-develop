@@ -2481,11 +2481,15 @@ function wp_new_comment_notify_postauthor( $comment_id ) {
 	$comment_id = (int) $comment->comment_ID;
 	$is_note    = ( 'note' === $comment->comment_type );
 
-	// By default, only notify for approved comments and notes.
-	if ( '1' !== $comment->comment_approved && ! $is_note ) {
-		$maybe_notify = false;
-	} elseif ( $is_note ) {
+	/*
+	 * Determine the default notification behavior. Notes are eligible regardless
+	 * of approval status, based on the 'wp_notes_notify' option. Other comments
+	 * are only eligible once approved, based on the 'comments_notify' option.
+	 */
+	if ( $is_note ) {
 		$maybe_notify = (bool) get_option( 'wp_notes_notify', 1 );
+	} elseif ( '1' !== $comment->comment_approved ) {
+		$maybe_notify = false;
 	} else {
 		$maybe_notify = (bool) get_option( 'comments_notify' );
 	}
