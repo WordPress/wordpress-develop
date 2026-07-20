@@ -2363,8 +2363,14 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	protected function get_attachment_filesize( int $attachment_id ): ?int {
 		$meta = wp_get_attachment_metadata( $attachment_id );
 
-		if ( isset( $meta['filesize'] ) ) {
-			return $meta['filesize'];
+		/*
+		 * Attachment metadata is untyped, so the stored file size may be a
+		 * string (for example, plugins that populate it from a remote storage
+		 * API response). Only trust numeric values, and fall through to
+		 * recompute the size from the file otherwise.
+		 */
+		if ( isset( $meta['filesize'] ) && is_numeric( $meta['filesize'] ) ) {
+			return (int) $meta['filesize'];
 		}
 
 		$original_path = wp_get_original_image_path( $attachment_id );

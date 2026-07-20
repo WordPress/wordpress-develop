@@ -1006,6 +1006,60 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	}
 
 	/**
+	 * Ensures a numeric-string `filesize` in attachment metadata is normalized
+	 * to an integer in the response.
+	 *
+	 * Attachment metadata is untyped, so plugins that populate `filesize` from
+	 * a remote storage API may store it as a string.
+	 *
+	 * @ticket 65670
+	 */
+	public function test_get_item_normalizes_numeric_string_filesize_meta() {
+		$attachment_id = self::factory()->attachment->create_object(
+			self::$test_file,
+			0,
+			array(
+				'post_mime_type' => 'image/jpeg',
+			)
+		);
+
+		wp_update_attachment_metadata( $attachment_id, array( 'filesize' => '123456' ) );
+
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/media/' . $attachment_id );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( 123456, $data['filesize'] );
+	}
+
+	/**
+	 * Ensures a non-numeric `filesize` in attachment metadata does not cause a
+	 * fatal TypeError, falling back to the actual file size.
+	 *
+	 * @ticket 65670
+	 */
+	public function test_get_item_recovers_from_non_numeric_filesize_meta() {
+		$attachment_id = self::factory()->attachment->create_object(
+			self::$test_file,
+			0,
+			array(
+				'post_mime_type' => 'image/jpeg',
+			)
+		);
+
+		wp_update_attachment_metadata( $attachment_id, array( 'filesize' => 'corrupt' ) );
+
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/media/' . $attachment_id );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertIsInt( $data['filesize'] );
+		$this->assertSame( filesize( self::$test_file ), $data['filesize'] );
+	}
+
+	/**
 	 * @requires function imagejpeg
 	 */
 	public function test_get_item_sizes() {
