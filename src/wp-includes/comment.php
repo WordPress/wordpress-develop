@@ -2485,9 +2485,9 @@ function wp_new_comment_notify_postauthor( $comment_id ) {
 	if ( '1' !== $comment->comment_approved && ! $is_note ) {
 		$maybe_notify = false;
 	} elseif ( $is_note ) {
-		$maybe_notify = get_option( 'wp_notes_notify', 1 );
+		$maybe_notify = (bool) get_option( 'wp_notes_notify', 1 );
 	} else {
-		$maybe_notify = get_option( 'comments_notify' );
+		$maybe_notify = (bool) get_option( 'comments_notify' );
 	}
 
 	/**
