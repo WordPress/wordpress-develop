@@ -58,43 +58,72 @@ function strip_ws( $txt ) {
  *     add_action( 'foo', array( &$ma, 'action' ) );
  *
  * @since UT (3.7.0)
+ *
+ * @phpstan-type Hook_Event array{
+ *     action?: non-empty-string,
+ *     filter?: non-empty-string,
+ *     hook_name: string,
+ *     tag: string,
+ *     args: list<mixed>,
+ * }
  */
 class MockAction {
+
+	/**
+	 * @var list<Hook_Event>
+	 */
 	public $events;
+
+	/**
+	 * @var bool
+	 */
 	public $debug;
 
 	/**
 	 * PHP5 constructor.
 	 *
 	 * @since UT (3.7.0)
+	 *
+	 * @param bool|int $debug
 	 */
 	public function __construct( $debug = 0 ) {
 		$this->reset();
-		$this->debug = $debug;
+		$this->debug = (bool) $debug;
 	}
 
 	/**
 	 * @since UT (3.7.0)
 	 */
-	public function reset() {
+	public function reset(): void {
 		$this->events = array();
 	}
 
 	/**
 	 * @since UT (3.7.0)
+	 *
+	 * @global array<non-empty-string, non-negative-int> $wp_actions
 	 */
-	public function current_filter() {
+	public function current_filter(): string {
 		global $wp_actions;
 
 		if ( is_callable( 'current_filter' ) ) {
-			return current_filter();
+			$current_filter = current_filter();
+		} else {
+			$current_filter = array_key_last( $wp_actions );
 		}
 
-		return end( $wp_actions );
+		if ( ! is_string( $current_filter ) ) {
+			throw new Exception( 'The MockAction::current_filter() method was called without a current filter.' );
+		}
+		return $current_filter;
 	}
 
 	/**
 	 * @since UT (3.7.0)
+	 *
+	 * @template T
+	 * @param T $arg
+	 * @return T
 	 */
 	public function action( $arg ) {
 		$current_filter = $this->current_filter();
@@ -115,6 +144,10 @@ class MockAction {
 
 	/**
 	 * @since UT (3.7.0)
+	 *
+	 * @template T
+	 * @param T $arg
+	 * @return T
 	 */
 	public function action2( $arg ) {
 		$current_filter = $this->current_filter();
@@ -135,6 +168,10 @@ class MockAction {
 
 	/**
 	 * @since UT (3.7.0)
+	 *
+	 * @template T
+	 * @param T $arg
+	 * @return T
 	 */
 	public function filter( $arg ) {
 		$current_filter = $this->current_filter();
@@ -155,6 +192,10 @@ class MockAction {
 
 	/**
 	 * @since UT (3.7.0)
+	 *
+	 * @template T
+	 * @param T $arg
+	 * @return T
 	 */
 	public function filter2( $arg ) {
 		$current_filter = $this->current_filter();
@@ -175,8 +216,12 @@ class MockAction {
 
 	/**
 	 * @since UT (3.7.0)
+	 *
+	 * @no-named-arguments
+	 * @param string $arg
+	 * @return non-empty-string
 	 */
-	public function filter_append( $arg ) {
+	public function filter_append( $arg ): string {
 		$current_filter = $this->current_filter();
 
 		if ( $this->debug ) {
@@ -197,8 +242,12 @@ class MockAction {
 	 * Does not return the result, so it's safe to use with the 'all' filter.
 	 *
 	 * @since UT (3.7.0)
+	 *
+	 * @no-named-arguments
+	 * @param string $hook_name
+	 * @param mixed ...$args
 	 */
-	public function filterall( $hook_name, ...$args ) {
+	public function filterall( string $hook_name, ...$args ): void {
 		$current_filter = $this->current_filter();
 
 		if ( $this->debug ) {
@@ -217,8 +266,10 @@ class MockAction {
 	 * Returns a list of all the actions, hook names and args.
 	 *
 	 * @since UT (3.7.0)
+	 *
+	 * @return list<Hook_Event>
 	 */
-	public function get_events() {
+	public function get_events(): array {
 		return $this->events;
 	}
 
@@ -226,13 +277,19 @@ class MockAction {
 	 * Returns a count of the number of times the action was called since the last reset.
 	 *
 	 * @since UT (3.7.0)
+	 *
+	 * @param string $hook_name Hook name.
+	 * @return non-negative-int
 	 */
-	public function get_call_count( $hook_name = '' ) {
+	public function get_call_count( $hook_name = '' ): int {
 		if ( $hook_name ) {
 			$count = 0;
 
 			foreach ( $this->events as $e ) {
-				if ( $e['action'] === $hook_name ) {
+				if (
+					( isset( $e['action'] ) && $e['action'] === $hook_name ) ||
+					( isset( $e['filter'] ) && $e['filter'] === $hook_name )
+				) {
 					++$count;
 				}
 			}
@@ -247,8 +304,10 @@ class MockAction {
 	 * Returns an array of the hook names that triggered calls to this action.
 	 *
 	 * @since 6.1.0
+	 *
+	 * @return list<string>
 	 */
-	public function get_hook_names() {
+	public function get_hook_names(): array {
 		$out = array();
 
 		foreach ( $this->events as $e ) {
@@ -263,8 +322,10 @@ class MockAction {
 	 *
 	 * @since UT (3.7.0)
 	 * @since 6.1.0 Turned into an alias for ::get_hook_names().
+	 *
+	 * @return list<string>
 	 */
-	public function get_tags() {
+	public function get_tags(): array {
 		return $this->get_hook_names();
 	}
 
@@ -272,8 +333,10 @@ class MockAction {
 	 * Returns an array of args passed in calls to this action.
 	 *
 	 * @since UT (3.7.0)
+	 *
+	 * @return list<list<mixed>>
 	 */
-	public function get_args() {
+	public function get_args(): array {
 		$out = array();
 
 		foreach ( $this->events as $e ) {
