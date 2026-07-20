@@ -1114,28 +1114,25 @@ class Tests_Comment extends WP_UnitTestCase {
 	 *
 	 * @covers ::wp_new_comment_notify_postauthor
 	 */
-	public function test_wp_new_comment_notify_postauthor_filter_should_receive_false_for_unapproved_comment() {
+	public function test_wp_new_comment_notify_postauthor_filter_should_receive_false_for_unapproved_comment(): void {
 		$c = self::factory()->comment->create(
 			array(
 				'comment_post_ID'  => self::$post_id,
 				'comment_approved' => '0',
 			)
 		);
+		$this->assertIsInt( $c );
 
 		update_option( 'comments_notify', 1 );
 
-		$maybe_notify = null;
-		add_filter(
-			'notify_post_author',
-			static function ( $value ) use ( &$maybe_notify ) {
-				$maybe_notify = $value;
-				return $value;
-			}
-		);
+		$filter = new MockAction();
+		add_filter( 'notify_post_author', array( $filter, 'filter' ) );
 
 		$sent = wp_new_comment_notify_postauthor( $c );
 
-		$this->assertFalse( $maybe_notify, 'The filter should receive a default of false for an unapproved comment.' );
+		$this->assertSame( 1, $filter->get_call_count() );
+		$args = array_first( $filter->get_args() );
+		$this->assertFalse( $args[0] ?? null, 'The filter should receive a default of false for an unapproved comment.' );
 		$this->assertFalse( $sent, 'No notification should be sent for an unapproved comment by default.' );
 	}
 
@@ -1144,13 +1141,14 @@ class Tests_Comment extends WP_UnitTestCase {
 	 *
 	 * @covers ::wp_new_comment_notify_postauthor
 	 */
-	public function test_wp_new_comment_notify_postauthor_filter_should_override_unapproved_comment() {
+	public function test_wp_new_comment_notify_postauthor_filter_should_override_unapproved_comment(): void {
 		$c = self::factory()->comment->create(
 			array(
 				'comment_post_ID'  => self::$post_id,
 				'comment_approved' => '0',
 			)
 		);
+		$this->assertIsInt( $c );
 
 		add_filter( 'notify_post_author', '__return_true' );
 
@@ -1164,21 +1162,15 @@ class Tests_Comment extends WP_UnitTestCase {
 	 *
 	 * @covers ::wp_new_comment_notify_postauthor
 	 */
-	public function test_wp_new_comment_notify_postauthor_should_not_send_email_for_invalid_comment() {
-		$filter_fired = false;
-		add_filter(
-			'notify_post_author',
-			static function ( $value ) use ( &$filter_fired ) {
-				$filter_fired = true;
-				return $value;
-			}
-		);
+	public function test_wp_new_comment_notify_postauthor_should_not_send_email_for_invalid_comment(): void {
+		$filter = new MockAction();
+		add_filter( 'notify_post_author', array( $filter, 'filter' ) );
 
 		// An empty ID such as 0 would fall back to the global comment in get_comment().
 		$sent = wp_new_comment_notify_postauthor( PHP_INT_MAX );
 
 		$this->assertFalse( $sent, 'No notification should be sent for an invalid comment ID.' );
-		$this->assertFalse( $filter_fired, 'The notify_post_author filter should not fire for an invalid comment ID.' );
+		$this->assertSame( array(), $filter->get_events(), 'The notify_post_author filter should not fire for an invalid comment ID.' );
 	}
 
 	/**
@@ -1186,7 +1178,7 @@ class Tests_Comment extends WP_UnitTestCase {
 	 *
 	 * @covers ::wp_new_comment_notify_postauthor
 	 */
-	public function test_wp_new_comment_notify_postauthor_filter_should_receive_truthy_default_for_unapproved_note() {
+	public function test_wp_new_comment_notify_postauthor_filter_should_receive_truthy_default_for_unapproved_note(): void {
 		$c = self::factory()->comment->create(
 			array(
 				'comment_post_ID'  => self::$post_id,
@@ -1194,21 +1186,18 @@ class Tests_Comment extends WP_UnitTestCase {
 				'comment_approved' => '0',
 			)
 		);
+		$this->assertIsInt( $c );
 
 		update_option( 'wp_notes_notify', 1 );
 
-		$maybe_notify = null;
-		add_filter(
-			'notify_post_author',
-			static function ( $value ) use ( &$maybe_notify ) {
-				$maybe_notify = $value;
-				return false;
-			}
-		);
+		$filter = new MockAction();
+		add_filter( 'notify_post_author', array( $filter, 'filter' ) );
 
-		wp_new_comment_notify_postauthor( $c );
+		$sent = wp_new_comment_notify_postauthor( $c );
 
-		$this->assertTrue( (bool) $maybe_notify, 'The filter should receive a truthy default for an unapproved note.' );
+		$this->assertTrue( $sent, 'The notification comment should have been sent.' );
+		$args = array_first( $filter->get_args() );
+		$this->assertTrue( (bool) ( $args[0] ?? null ), 'The filter should receive a truthy default for an unapproved note.' );
 	}
 
 	/**
@@ -1216,27 +1205,23 @@ class Tests_Comment extends WP_UnitTestCase {
 	 *
 	 * @covers ::wp_new_comment_notify_postauthor
 	 */
-	public function test_wp_new_comment_notify_postauthor_filter_should_receive_option_value_for_approved_comment() {
+	public function test_wp_new_comment_notify_postauthor_filter_should_receive_option_value_for_approved_comment(): void {
 		$c = self::factory()->comment->create(
 			array(
 				'comment_post_ID' => self::$post_id,
 			)
 		);
+		$this->assertIsInt( $c );
 
 		update_option( 'comments_notify', 0 );
 
-		$maybe_notify = null;
-		add_filter(
-			'notify_post_author',
-			static function ( $value ) use ( &$maybe_notify ) {
-				$maybe_notify = $value;
-				return $value;
-			}
-		);
+		$filter = new MockAction();
+		add_filter( 'notify_post_author', array( $filter, 'filter' ) );
 
 		$sent = wp_new_comment_notify_postauthor( $c );
 
-		$this->assertFalse( (bool) $maybe_notify, 'The filter should receive the comments_notify option value as the default for an approved comment.' );
+		$args = array_first( $filter->get_args() );
+		$this->assertFalse( (bool) ( $args[0] ?? null ), 'The filter should receive the comments_notify option value as the default for an approved comment.' );
 		$this->assertFalse( $sent, 'No notification should be sent for an approved comment when comments_notify is disabled.' );
 	}
 
