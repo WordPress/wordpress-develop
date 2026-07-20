@@ -395,13 +395,14 @@ final class WP_Comment {
 		 * A 'count' or 'ids' query returns an integer or a list of comment IDs rather than
 		 * WP_Comment objects. Neither may be written to the children cache, which holds
 		 * WP_Comment objects and is read back by add_child(), get_child(), and the 'flat'
-		 * format below. Return the result directly and leave the cache untouched.
-		 * The two return statements are used for the sake of static analysis with conditional
-		 * return types.
+		 * format below. Return the result directly and leave the cache untouched. The two
+		 * branches must stay separate: each is narrowed independently, and `count` is only
+		 * safe to overwrite in the 'ids' branch.
 		 */
 		if ( ! empty( $_args['count'] ) ) {
 			return get_comments( $_args );
 		} elseif ( isset( $_args['fields'] ) && 'ids' === $_args['fields'] ) {
+			$_args['count'] = false; // For static analysis of the conditional return type.
 			return get_comments( $_args );
 		}
 
