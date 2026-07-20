@@ -183,7 +183,17 @@ function check_comment( $author, $email, $url, $comment, $user_ip, $user_agent, 
  *     @type string $order   How to order retrieved comments. Default 'ASC'.
  * }
  * @return WP_Comment[]|int[]|int The approved comments, or number of comments if `$count`
- *                                argument is true.
+ *                                argument is true. An empty array is returned when `$post_id`
+ *                                is falsey, even when `$count` is true.
+ * @phpstan-return (
+ *     $post_id is 0 ? array{} : (
+ *         $args is array{ count: true, ... } ? non-negative-int : (
+ *             $args is array{ fields: 'ids', ... } ? non-negative-int[] : (
+ *                 $args is array{ hierarchical: 'threaded', ... } ? array<int, WP_Comment> : WP_Comment[]
+ *             )
+ *         )
+ *     )
+ * )
  */
 function get_approved_comments( $post_id, $args = array() ) {
 	if ( ! $post_id ) {
