@@ -11,6 +11,25 @@
  * Core class used to organize comments as instantiated objects with defined members.
  *
  * @since 4.4.0
+ *
+ * @phpstan-type CommentArray array{
+ *     comment_ID: numeric-string,
+ *     comment_post_ID: numeric-string,
+ *     comment_author: string,
+ *     comment_author_email: string,
+ *     comment_author_url: string,
+ *     comment_author_IP: string,
+ *     comment_date: non-empty-string,
+ *     comment_date_gmt: non-empty-string,
+ *     comment_content: string,
+ *     comment_karma: numeric-string,
+ *     comment_approved: string,
+ *     comment_agent: string,
+ *     comment_type: string,
+ *     comment_parent: numeric-string,
+ *     user_id: numeric-string,
+ *     ...
+ * }
  */
 #[AllowDynamicProperties]
 final class WP_Comment {
@@ -74,6 +93,7 @@ final class WP_Comment {
 	 *
 	 * @since 4.4.0
 	 * @var string
+	 * @phpstan-var non-empty-string
 	 */
 	public $comment_date = '0000-00-00 00:00:00';
 
@@ -82,6 +102,7 @@ final class WP_Comment {
 	 *
 	 * @since 4.4.0
 	 * @var string
+	 * @phpstan-var non-empty-string
 	 */
 	public $comment_date_gmt = '0000-00-00 00:00:00';
 
@@ -154,8 +175,14 @@ final class WP_Comment {
 	/**
 	 * Comment children.
 	 *
+	 * Mapping of comment ID to WP_Comment object, as populated by the default
+	 * `hierarchical => 'threaded'` argument of get_children(). Note that if a
+	 * caller passes a `hierarchical` value of 'flat' or `false` to
+	 * get_children(), a sequentially-keyed array of WP_Comment objects (also
+	 * including all descendants, in the 'flat' case) is stored here instead.
+	 *
 	 * @since 4.4.0
-	 * @var array
+	 * @var array<int|numeric-string, WP_Comment>
 	 */
 	protected $children;
 
@@ -171,7 +198,7 @@ final class WP_Comment {
 	 * Post fields.
 	 *
 	 * @since 4.4.0
-	 * @var array
+	 * @var string[]
 	 */
 	protected $post_fields = array( 'post_author', 'post_date', 'post_date_gmt', 'post_content', 'post_title', 'post_excerpt', 'post_status', 'comment_status', 'ping_status', 'post_name', 'to_ping', 'pinged', 'post_modified', 'post_modified_gmt', 'post_content_filtered', 'post_parent', 'guid', 'menu_order', 'post_type', 'post_mime_type', 'comment_count' );
 
@@ -183,6 +210,7 @@ final class WP_Comment {
 	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *
 	 * @param int $id Comment ID.
+	 * @phpstan-param int|numeric-string $id
 	 * @return WP_Comment|false Comment object, otherwise false.
 	 */
 	public static function get_instance( $id ) {
@@ -195,7 +223,8 @@ final class WP_Comment {
 
 		$_comment = wp_cache_get( $comment_id, 'comment' );
 
-		if ( ! $_comment ) {
+		if ( ! is_object( $_comment ) ) {
+			/** @var object{ comment_ID: string, comment_post_ID: string, comment_author: string, comment_author_email: string, comment_author_url: string, comment_author_IP: string, comment_date: string, comment_date_gmt: string, comment_content: string, comment_karma: string, comment_approved: string, comment_agent: string, comment_type: string, comment_parent: string, user_id: string }|null $_comment */
 			$_comment = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $wpdb->comments WHERE comment_ID = %d LIMIT 1", $comment_id ) );
 
 			if ( ! $_comment ) {
@@ -229,9 +258,12 @@ final class WP_Comment {
 	 * @since 4.4.0
 	 *
 	 * @return array Object as array.
+	 * @phpstan-return CommentArray
 	 */
 	public function to_array() {
-		return get_object_vars( $this );
+		/** @var CommentArray $comment */
+		$comment = get_object_vars( $this );
+		return $comment;
 	}
 
 	/**
@@ -268,7 +300,16 @@ final class WP_Comment {
 	 *                                 `$meta_query`. Also accepts false, an empty array, or
 	 *                                 'none' to disable `ORDER BY` clause.
 	 * }
-	 * @return WP_Comment[] Array of `WP_Comment` objects.
+	 * @return array Array of `WP_Comment` objects.
+	 *
+	 * @phpstan-param array{
+	 *                    format?: 'tree'|'flat',
+	 *                    status?: 'hold'|'approve'|'all'|string,
+	 *                    hierarchical?: 'threaded'|'flat'|false,
+	 *                    orderby?: string|string[]|false,
+	 *                    ...
+	 *                } $args
+	 * @phpstan-return ($args is array{ format: 'flat', ... } ? list<WP_Comment> : array<int|numeric-string, WP_Comment>)
 	 */
 	public function get_children( $args = array() ) {
 		$defaults = array(
@@ -278,6 +319,7 @@ final class WP_Comment {
 			'orderby'      => '',
 		);
 
+		/** @var array{ format: 'tree'|'flat', status: string, hierarchical: 'threaded'|'flat'|false, orderby: string|string[]|false, ... } $_args */
 		$_args           = wp_parse_args( $args, $defaults );
 		$_args['parent'] = $this->comment_ID;
 
@@ -285,7 +327,10 @@ final class WP_Comment {
 			if ( $this->populated_children ) {
 				$this->children = array();
 			} else {
-				$this->children = get_comments( $_args );
+				// TODO: If $args contains `fields => 'ids'` or `count => true` then this breaks.
+				/** @var array<int|numeric-string, WP_Comment> $child_comments */
+				$child_comments = get_comments( $_args );
+				$this->children = $child_comments;
 			}
 		}
 
@@ -357,8 +402,8 @@ final class WP_Comment {
 	 */
 	public function __isset( $name ) {
 		if ( in_array( $name, $this->post_fields, true ) && 0 !== (int) $this->comment_post_ID ) {
-			$post = get_post( $this->comment_post_ID );
-			return property_exists( $post, $name );
+			$post = get_post( (int) $this->comment_post_ID );
+			return $post && property_exists( $post, $name );
 		}
 
 		return false;
@@ -376,8 +421,9 @@ final class WP_Comment {
 	 */
 	public function __get( $name ) {
 		if ( in_array( $name, $this->post_fields, true ) ) {
-			$post = get_post( $this->comment_post_ID );
+			$post = get_post( (int) $this->comment_post_ID );
 			return $post->$name;
 		}
+		return null;
 	}
 }
