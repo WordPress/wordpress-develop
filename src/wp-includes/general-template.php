@@ -489,8 +489,21 @@ function wp_get_tooltip_helper( $content, $args = array() ) {
 		$classes .= ' ' . $args['class'];
 	}
 
-	$icon = '' !== $args['icon'] ? ' ' . $args['icon'] : '';
+	$icon   = '' !== $args['icon'] ? ' ' . $args['icon'] : '';
+	$button = '<button type="button" aria-label="%3$s">' .
+		'<span class="dashicons%4$s" aria-hidden="true"></span>' . 
+	'</button>';
 
+	$button    = ( ! empty( $args['button'] ) ) ? $args['button'] : $button;
+	$processor = new WP_HTML_Tag_Processor( $button );
+	if ( $processor->next_tag( 'button' ) ) {
+		$processor->set_attribute( 'popovertarget', '%2$s' );
+		$processor->add_class( 'wp-tooltip__toggle' );
+		if ( 'tooltip' !== $args['type'] ) {
+			$processor->set_attribute( 'aria-haspopup', 'dialog' );
+		}
+		$button = $processor->get_updated_html();
+	}
 	/*
 	 * The markup only uses phrasing content so it is valid when nested
 	 * in a phrasing context. Sectioning content (e.g. `div`, `dialog`) will
@@ -501,11 +514,9 @@ function wp_get_tooltip_helper( $content, $args = array() ) {
 		// Tooltips are only used to visually display labels.
 		$label  = wp_strip_all_tags( $content, true );
 		$markup = sprintf(
-			'<span class="%1$s">' .
-				'<button type="button" class="wp-tooltip__toggle" popovertarget="%2$s" aria-label="%3$s">' .
-					'<span class="dashicons%4$s" aria-hidden="true"></span>' .
-				'</button>' .
-				'<span popover="hint" id="%2$s" class="wp-tooltip__bubble" role="tooltip">' .
+			'<span class="%1$s">
+				' . $button . '
+				<span popover="hint" id="%2$s" class="wp-tooltip__bubble" role="tooltip">' .
 					'<span id="%2$s-text" class="wp-tooltip__text">%5$s</span>' .
 				'</span>' .
 			'</span>',
@@ -522,11 +533,9 @@ function wp_get_tooltip_helper( $content, $args = array() ) {
 		 * attributes reproduce the accessible name and focus handling of the native element.
 		 */
 		$markup = sprintf(
-			'<span class="%1$s">' .
-				'<button type="button" class="wp-tooltip__toggle" popovertarget="%2$s" aria-label="%3$s" aria-haspopup="dialog">' .
-					'<span class="dashicons%4$s" aria-hidden="true"></span>' .
-				'</button>' .
-				'<span popover="auto" id="%2$s" class="wp-tooltip__bubble" role="dialog" aria-label="%3$s" tabindex="-1" autofocus>' .
+			'<span class="%1$s">
+				' . $button . '
+				<span popover="auto" id="%2$s" class="wp-tooltip__bubble" role="dialog" aria-label="%3$s" tabindex="-1" autofocus>' .
 					'<span id="%2$s-text" class="wp-tooltip__text">%5$s</span>' .
 					'<button type="button" class="wp-tooltip__close" popovertarget="%2$s" popovertargetaction="hide" aria-label="%6$s">' .
 						'<span class="dashicons dashicons-no-alt" aria-hidden="true"></span>' .
