@@ -1399,7 +1399,7 @@ function do_meta_boxes( $screen, $context, $data_object ) {
 
 						echo '<div class="handle-actions hide-if-no-js">';
 
-						$move_up_button = '<button type="button" class="handle-order-higher">
+						$move_up_button = '<button type="button" class="handle-order-higher" aria-describedby="' . $box['id'] . '">
 							<span class="screen-reader-text">' . __( 'Move up' ) . '</span>
 							<span class="order-higher-indicator" aria-hidden="true"></span>
 						</button>';
@@ -1409,7 +1409,7 @@ function do_meta_boxes( $screen, $context, $data_object ) {
 						);
 						echo wp_get_tooltip( __( 'Move up' ), $move_up_args );
 
-						$move_down_button = '<button type="button" class="handle-order-lower">
+						$move_down_button = '<button type="button" class="handle-order-lower" aria-describedby="' . $box['id'] . '">
 							<span class="screen-reader-text">' . __( 'Move down' ) . '</span>
 							<span class="order-lower-indicator" aria-hidden="true"></span>
 						</button>';
@@ -1419,7 +1419,7 @@ function do_meta_boxes( $screen, $context, $data_object ) {
 						);
 						echo wp_get_tooltip( __( 'Move down' ), $move_down_args );
 
-						$show_hide_button = '<button type="button" class="handlediv" aria-expanded="true">
+						$show_hide_button = '<button type="button" class="handlediv" aria-expanded="true" aria-describedby="' . $box['id'] . '">
 							<span class="screen-reader-text">' . __( 'Show or hide panel' ) . '</span>
 							<span class="toggle-indicator" aria-hidden="true"></span>
 						</button>';
