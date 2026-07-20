@@ -310,6 +310,88 @@ class Tests_Admin_wpPostsListTable extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that the default em-dash separator is output for child pages.
+	 *
+	 * @ticket 39106
+	 *
+	 * @covers WP_Posts_List_Table::column_title
+	 */
+	public function test_column_title_uses_default_separator_for_child_pages() {
+		// A child page has post_parent > 0, so column_title() will auto-calculate current_level.
+		$child = self::$children[1][1];
+
+		$this->table->set_hierarchical_display( true );
+
+		ob_start();
+		$this->table->column_title( $child );
+		$output = ob_get_clean();
+
+		$this->assertStringContainsString( '&#8212; ', $output );
+	}
+
+	/**
+	 * Tests that the post_title_child_separator filter replaces the separator.
+	 *
+	 * @ticket 39106
+	 *
+	 * @covers WP_Posts_List_Table::column_title
+	 */
+	public function test_post_title_child_separator_filter_changes_separator() {
+		$child = self::$children[1][1];
+
+		$this->table->set_hierarchical_display( true );
+
+		add_filter(
+			'post_title_child_separator',
+			static function () {
+				return '> ';
+			}
+		);
+
+		ob_start();
+		$this->table->column_title( $child );
+		$output = ob_get_clean();
+
+		remove_all_filters( 'post_title_child_separator' );
+
+		$this->assertStringContainsString( '> ', $output );
+		$this->assertStringNotContainsString( '&#8212; ', $output );
+	}
+
+	/**
+	 * Tests that the post_title_child_separator filter receives the current WP_Post object.
+	 *
+	 * @ticket 39106
+	 *
+	 * @covers WP_Posts_List_Table::column_title
+	 */
+	public function test_post_title_child_separator_filter_receives_post_object() {
+		$child = self::$children[1][1];
+
+		$this->table->set_hierarchical_display( true );
+
+		$received_post = null;
+		add_filter(
+			'post_title_child_separator',
+			static function ( $separator, $post ) use ( &$received_post ) {
+				$received_post = $post;
+				return $separator;
+			},
+			10,
+			2
+		);
+
+		ob_start();
+		$this->table->column_title( $child );
+		ob_get_clean();
+
+		remove_all_filters( 'post_title_child_separator' );
+
+		$this->assertInstanceOf( WP_Post::class, $received_post );
+		$this->assertSame( $child->ID, $received_post->ID );
+	}
+
+	/**
 	 * @ticket 42066
 	 *
 	 * @covers WP_Posts_List_Table::get_views
