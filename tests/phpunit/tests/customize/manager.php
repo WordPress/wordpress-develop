@@ -3695,14 +3695,24 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 	public function test_header_image_setting_default( $random_default, $expected_default ) {
 		global $_wp_theme_features;
 
-		$_wp_theme_features['custom-header'][0] = array(
-			'default-image'  => 'https://example.org/header.jpg',
-			'random-default' => $random_default,
-		);
+		$custom_header_support = isset( $_wp_theme_features['custom-header'] ) ? $_wp_theme_features['custom-header'] : null;
 
-		$this->manager->register_controls();
+		try {
+			$_wp_theme_features['custom-header'][0] = array(
+				'default-image'  => 'https://example.org/header.jpg',
+				'random-default' => $random_default,
+			);
 
-		$this->assertSame( $expected_default, $this->manager->get_setting( 'header_image' )->default );
+			$this->manager->register_controls();
+
+			$this->assertSame( $expected_default, $this->manager->get_setting( 'header_image' )->default );
+		} finally {
+			if ( null === $custom_header_support ) {
+				unset( $_wp_theme_features['custom-header'] );
+			} else {
+				$_wp_theme_features['custom-header'] = $custom_header_support;
+			}
+		}
 	}
 
 	/**
