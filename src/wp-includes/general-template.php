@@ -447,7 +447,7 @@ function wp_get_toggletip( $content, $args ) {
  *
  *     @type string $id          Unique ID for the popover element. Default is a
  *                               generated unique ID.
- *     @type string $button      Existing `button` markup. Used instead of generated button.
+ *     @type string $button      Existing `button` or `a` markup. Used instead of generated button.
  *                               Default standard button HTML.
  *     @type string $label       Accessible label for the toggle button.
  *                               Default 'Help', matching the default icon.
@@ -487,22 +487,24 @@ function wp_get_tooltip_helper( $content, $args = array() ) {
 		$classes .= ' ' . $args['class'];
 	}
 
-	$icon      = ' ' . trim( $args['icon'] );
-	$button    = $args['button'];
+	$icon      = ( $args['icon'] ) ? ' ' . trim( $args['icon'] ) : $defaults['icon'];
+	$id        = ( $args['id'] ) ? $args['id'] : $defaults['id'];
+	$button    = ( $args['button'] ) ? $args['button'] : $defaults['button'];
 	$processor = new WP_HTML_Tag_Processor( $button );
-	if ( $processor->next_tag( 'button' ) ) {
+	if ( true === $processor->next_tag( 'button' ) ) {
 		$processor->add_class( 'wp-tooltip__toggle' );
 		if ( 'tooltip' !== $args['type'] ) {
 			$processor->set_attribute( 'popovertarget', '%2$s' );
 			$processor->set_attribute( 'aria-haspopup', 'dialog' );
 		}
 		$button = $processor->get_updated_html();
-	} elseif ( $processor->next_tag( 'a' ) && 'tooltip' === $args['type'] ) {
-		$processor->add_class( 'wp-tooltip__toggle' );
-		$button = $processor->get_updated_html();
 	} else {
-		// If the passed content does not contain a button, use default.
-		$button = $defaults['button'];
+		// Reset processor.
+		$processor = new WP_HTML_Tag_Processor( $button );
+		if ( true === $processor->next_tag( 'a' ) && 'tooltip' === $args['type'] ) {
+			$processor->add_class( 'wp-tooltip__toggle' );
+			$button = $processor->get_updated_html();
+		}
 	}
 	/*
 	 * The markup only uses phrasing content so it is valid when nested
@@ -521,7 +523,7 @@ function wp_get_tooltip_helper( $content, $args = array() ) {
 				'</span>' .
 			'</span>',
 			esc_attr( $classes ),
-			esc_attr( $args['id'] ),
+			esc_attr( $id ),
 			esc_attr( $label ),
 			esc_attr( $icon ),
 			esc_html( $content ),
@@ -543,7 +545,7 @@ function wp_get_tooltip_helper( $content, $args = array() ) {
 				'</span>' .
 			'</span>',
 			esc_attr( $classes ),
-			esc_attr( $args['id'] ),
+			esc_attr( $id ),
 			esc_attr( $args['label'] ),
 			esc_attr( $icon ),
 			esc_html( $content ),
