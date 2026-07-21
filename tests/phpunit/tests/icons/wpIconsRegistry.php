@@ -82,6 +82,7 @@ class Tests_Icons_WpIconsRegistry extends WP_UnitTestCase {
 	 */
 	public function data_valid_icon_names() {
 		return array(
+			'single character'                => array( 'test-collection/a' ),
 			'simple name'                     => array( 'test-collection/icon' ),
 			'digit at the start'              => array( 'test-collection/1icon' ),
 			'digit in the name'               => array( 'test-collection/my1icon' ),
