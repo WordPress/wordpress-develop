@@ -485,7 +485,7 @@ window.setCommentsList = function() {
 			targetParent = $( settings.target ).parent(),
 			commentRow = $('#' + settings.element),
 
-			spamDiff, trashDiff, pendingDiff, approvedDiff,
+			spamDiff, trashDiff, pendingDiff, approvedDiff, mineDiff,
 
 			/*
 			 * As `wpList` toggles only the `unapproved` class, the approved comment
@@ -623,8 +623,9 @@ window.setCommentsList = function() {
 			}
 		}
 
-		if ( response.supplemental && 1 === parseInt( response.supplemental.is_current_user, 10 ) ) {
-			updateCountText( 'span.mine-count', ( pendingDiff || 0 ) + ( approvedDiff || 0 ) );
+		mineDiff = ( pendingDiff || 0 ) + ( approvedDiff || 0 );
+		if ( mineDiff && response.supplemental && 1 === parseInt( response.supplemental.is_current_user, 10 ) ) {
+			updateCountText( 'span.mine-count', mineDiff );
 		}
 
 		if ( pendingDiff ) {
