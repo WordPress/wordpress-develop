@@ -661,9 +661,9 @@ EOF;
 	 *
 	 * @param string $comment_type The comment type.
 	 * @param string $content      The comment content.
-	 * @return array Commentdata containing every field wp_filter_comment() reads.
+	 * @return array<string, mixed> Commentdata containing every field wp_filter_comment() reads.
 	 */
-	private function get_mention_commentdata( $comment_type, $content ) {
+	private function get_mention_commentdata( $comment_type, $content ): array {
 		return array(
 			'comment_content'      => $content,
 			'comment_type'         => $comment_type,
