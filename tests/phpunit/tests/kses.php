@@ -613,11 +613,8 @@ EOF;
 	 */
 	public function test_note_mention_span_classes_are_reduced_to_the_mention_tokens() {
 		add_filter( 'pre_comment_content', 'wp_filter_kses' );
-
 		$content  = 'Hello <span class="wp-note-mention user-2 is-destructive components-button">@admin</span>!';
 		$filtered = wp_filter_comment( wp_slash( $this->get_mention_commentdata( 'note', $content ) ) );
-
-		remove_filter( 'pre_comment_content', 'wp_filter_kses' );
 
 		$this->assertSame(
 			'Hello <span class="wp-note-mention user-2">@admin</span>!',
@@ -638,11 +635,8 @@ EOF;
 	 */
 	public function test_note_mention_class_tokens_are_reduced_on_uppercase_span_tags() {
 		add_filter( 'pre_comment_content', 'wp_filter_kses' );
-
 		$content  = 'Hello <SPAN class="wp-note-mention user-2 is-destructive">@admin</SPAN>!';
 		$filtered = wp_filter_comment( wp_slash( $this->get_mention_commentdata( 'note', $content ) ) );
-
-		remove_filter( 'pre_comment_content', 'wp_filter_kses' );
 
 		$this->assertEqualHTML(
 			'Hello <span class="wp-note-mention user-2">@admin</span>!',
@@ -661,11 +655,8 @@ EOF;
 	 */
 	public function test_note_mention_class_attribute_removed_when_no_tokens_remain() {
 		add_filter( 'pre_comment_content', 'wp_filter_kses' );
-
 		$content  = 'Hello <span class="is-destructive user-0 user-x wp-note-mention-foo">there</span>!';
 		$filtered = wp_filter_comment( wp_slash( $this->get_mention_commentdata( 'comment', $content ) ) );
-
-		remove_filter( 'pre_comment_content', 'wp_filter_kses' );
 
 		// Markup-equivalence assertion: the HTML API's whitespace handling
 		// when removing the final attribute is not part of its contract.
@@ -686,11 +677,8 @@ EOF;
 	 */
 	public function test_note_mention_allows_only_class_on_mention_spans() {
 		add_filter( 'pre_comment_content', 'wp_filter_kses' );
-
 		$content  = 'Hello <span class="wp-note-mention user-2" data-user-id="2" onclick="alert(1)" style="color:red" id="mention">@admin</span>!';
 		$filtered = wp_filter_comment( wp_slash( $this->get_mention_commentdata( 'note', $content ) ) );
-
-		remove_filter( 'pre_comment_content', 'wp_filter_kses' );
 
 		$this->assertSame(
 			'Hello <span class="wp-note-mention user-2">@admin</span>!',
@@ -716,8 +704,6 @@ EOF;
 		 */
 		$content  = 'Hello <a class="wp-note-mention user-2" href="https://example.com/author/admin/">@admin</a>!';
 		$filtered = wp_filter_comment( wp_slash( $this->get_mention_commentdata( 'note', $content ) ) );
-
-		remove_filter( 'pre_comment_content', 'wp_filter_kses' );
 
 		$this->assertSame(
 			'Hello <a href="https://example.com/author/admin/" rel="nofollow ugc">@admin</a>!',
