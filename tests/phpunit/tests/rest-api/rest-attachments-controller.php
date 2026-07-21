@@ -1019,7 +1019,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	 * @param mixed $stored_filesize Valid `filesize` metadata value.
 	 * @param int   $actual_filesize Actual filesize.
 	 */
-	public function test_get_item_normalizes_numeric_string_filesize_meta( $stored_filesize, int $actual_filesize ) {
+	public function test_get_item_normalizes_int_castable_filesize_meta( $stored_filesize, int $actual_filesize ) {
 		$attachment_id = self::factory()->attachment->create_object(
 			array(
 				'file'           => self::$test_file,
