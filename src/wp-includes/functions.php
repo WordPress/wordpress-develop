@@ -3669,7 +3669,7 @@ function wp_filesize( $path ): int {
 	 * Filters the size of the file.
 	 *
 	 * @since 6.0.0
-	 * @since 7.1.0 Negative numbers are discarded in favor of zero.
+	 * @since 7.1.0 The return value is now always zero or greater.
 	 *
 	 * @param int    $size The result of PHP filesize on the file.
 	 * @param string $path Path to the file.
