@@ -2359,7 +2359,6 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	 *
 	 * @param int $attachment_id Attachment ID.
 	 * @return int|null Attachment file size in bytes, or null if not available.
-	 *
 	 * @phpstan-return non-negative-int|null
 	 */
 	protected function get_attachment_filesize( int $attachment_id ): ?int {
