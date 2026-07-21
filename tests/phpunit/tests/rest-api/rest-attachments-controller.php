@@ -1069,9 +1069,9 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	/**
 	 * Data provider.
 	 *
-	 * @return array[]
+	 * @return array<string, array{ 0: mixed }>
 	 */
-	public function data_invalid_filesize_meta() {
+	public function data_invalid_filesize_meta(): array {
 		return array(
 			'non-numeric string'      => array( 'corrupt' ),
 			'float string'            => array( '123.4' ),
