@@ -1130,7 +1130,6 @@ class Tests_Meta_Register_Meta extends WP_UnitTestCase {
 		$this->assertSame( '', get_object_subtype( 'blog', 999999 ) );
 	}
 
-
 	/**
 	 * @ticket 44387
 	 * @group ms-required
@@ -1140,12 +1139,21 @@ class Tests_Meta_Register_Meta extends WP_UnitTestCase {
 			$this->markTestSkipped( 'Test only runs with the blogmeta database table installed.' );
 		}
 
-		register_meta( 'blog', 'site_rating', array( 'single' => true ) );
+		$this->assertSame( 'blog', get_object_subtype( 'blog', self::$blog_id ) );
+
+		register_meta(
+			'blog',
+			'site_rating',
+			array(
+				'single'         => true,
+				'object_subtype' => 'blog',
+			)
+		);
 		add_site_meta( self::$blog_id, 'site_rating', '5' );
 
 		$meta = get_registered_metadata( 'blog', self::$blog_id, 'site_rating' );
 
-		unregister_meta_key( 'blog', 'site_rating' );
+		unregister_meta_key( 'blog', 'site_rating', 'blog' );
 		delete_site_meta( self::$blog_id, 'site_rating' );
 
 		$this->assertSame( '5', $meta );
