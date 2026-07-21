@@ -3652,7 +3652,7 @@ function wp_filesize( $path ): int {
 	 * Filters the result of wp_filesize() before the file_exists() PHP function is run.
 	 *
 	 * @since 6.0.0
-	 * @since 7.1.0 Negative values are now ignored, being treated the same as null. Numeric strings are cast to integers.
+	 * @since 7.1.0 Negative values are now ignored, being treated the same as null. Numeric values are cast to integers.
 	 *
 	 * @param null|int $size The unfiltered value. Returning a non-negative int from the callback bypasses the filesize call.
 	 * @param string   $path Path to the file.
@@ -3671,7 +3671,7 @@ function wp_filesize( $path ): int {
 	 * Filters the size of the file.
 	 *
 	 * @since 6.0.0
-	 * @since 7.1.0 The return value is now always zero or greater. Numeric strings are cast to integers.
+	 * @since 7.1.0 The return value is now always zero or greater. Numeric values are cast to integers.
 	 *
 	 * @param int    $size The result of PHP filesize on the file.
 	 * @param string $path Path to the file.
