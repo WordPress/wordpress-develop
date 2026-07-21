@@ -1179,7 +1179,8 @@ class WP_Posts_List_Table extends WP_List_Table {
 			$this->current_level
 		);
 		$described_by_attr = '';
-		$hierarchy         = '';
+		$hierarchy_linked  = '';
+		$hierarchy_nolink  = '';
 
 		if ( $post->post_parent ) {
 			$parent = get_post( $post->post_parent );
@@ -1190,8 +1191,14 @@ class WP_Posts_List_Table extends WP_List_Table {
 
 				$hierarchy_id      = 'post-hierarchy-' . $post->ID;
 				$described_by_attr = sprintf( ' aria-describedby="%s"', esc_attr( $hierarchy_id ) );
-				$hierarchy         = sprintf(
-					'<span id="%1$s" class="hidden"> %2$s</span>',
+				$hierarchy_linked  = sprintf(
+					'<span id="%1$s" class="hidden">%2$s</span>',
+					esc_attr( $hierarchy_id ),
+					/* translators: %s: Parent post title. */
+					esc_html( sprintf( __( 'Child of %s' ), wp_strip_all_tags( $parent_title ) ) )
+				);
+				$hierarchy_nolink = sprintf(
+					'<span id="%1$s" class="screen-reader-text"> (%2$s)</span>',
 					esc_attr( $hierarchy_id ),
 					/* translators: %s: Parent post title. */
 					esc_html( sprintf( __( 'Child of %s' ), wp_strip_all_tags( $parent_title ) ) )
@@ -1216,23 +1223,14 @@ class WP_Posts_List_Table extends WP_List_Table {
 				get_edit_post_link( $post->ID ),
 				$described_by_attr,
 				$title,
-				$hierarchy
+				$hierarchy_linked
 			);
 		} else {
-			if ( '' !== $hierarchy ) {
-				$processor = new WP_HTML_Tag_Processor( $hierarchy );
-				if ( true === $processor->next_tag( 'span' ) ) {
-					$processor->remove_class( 'hidden' );
-					$processor->add_class( 'screen-reader-text' );
-					$hierarchy = $processor->get_updated_html();
-				}
-			}
-
 			printf(
 				'%1$s<span>%2$s%3$s</span>',
 				$pad,
 				$title,
-				$hierarchy
+				$hierarchy_nolink
 			);
 		}
 		_post_states( $post );
