@@ -623,6 +623,10 @@ window.setCommentsList = function() {
 			}
 		}
 
+		if ( response.supplemental && 1 === parseInt( response.supplemental.is_current_user, 10 ) ) {
+			updateCountText( 'span.mine-count', ( pendingDiff || 0 ) + ( approvedDiff || 0 ) );
+		}
+
 		if ( pendingDiff ) {
 			updatePending( pendingDiff, commentPostId );
 			updateCountText( 'span.all-count', pendingDiff );
@@ -1155,6 +1159,7 @@ window.commentReply = {
 			updateInModerationText( r.supplemental );
 			updateApproved( 1, r.supplemental.parent_post_id );
 			updateCountText( 'span.all-count', 1 );
+			updateCountText( 'span.mine-count', 1 );
 		}
 
 		r.data = r.data || '';
