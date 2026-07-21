@@ -650,8 +650,8 @@ EOF;
 	/**
 	 * Builds a complete commentdata array for wp_filter_comment().
 	 *
-	 * @param string $comment_type The comment type.
-	 * @param string $content      The comment content.
+	 * @param 'note'|'comment' $comment_type The comment type.
+	 * @param string           $content      The comment content.
 	 * @return array<string, mixed> Commentdata containing every field wp_filter_comment() reads.
 	 */
 	private function get_mention_commentdata( $comment_type, $content ): array {
