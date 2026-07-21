@@ -45,16 +45,18 @@ class Tests_Canonical_ChangePassword extends WP_UnitTestCase {
 
 		$capture = static function ( $location ) use ( &$captured ) {
 			$captured = $location;
-			// Return empty string so wp_redirect() sends no Location header
-			// and doesn't exit; execution returns to our caller.
-			return '';
+			throw new RuntimeException( 'Redirect intercepted.' );
 		};
 
 		add_filter( 'wp_redirect', $capture );
-		wp_redirect_admin_locations();
-		remove_filter( 'wp_redirect', $capture );
-
-		$wp_query->is_404 = false;
+		try {
+			wp_redirect_admin_locations();
+		} catch ( RuntimeException $e ) {
+			// Redirect was intercepted; $captured holds the URL.
+		} finally {
+			remove_filter( 'wp_redirect', $capture );
+			$wp_query->is_404 = false;
+		}
 
 		return $captured;
 	}
@@ -70,9 +72,9 @@ class Tests_Canonical_ChangePassword extends WP_UnitTestCase {
 	/**
 	 * @covers ::wp_redirect_admin_locations
 	 */
-	public function test_well_known_change_password_with_trailing_slash_does_not_redirect() {
+	public function test_well_known_change_password_with_trailing_slash_redirects_to_profile() {
 		$redirect = $this->get_redirect_for( '/.well-known/change-password/' );
-		$this->assertNull( $redirect, 'Trailing slash variant should not redirect (untrailingslashit handles exact match only).' );
+		$this->assertStringContainsString( 'profile.php', $redirect, 'Trailing slash variant should also redirect to the profile page.' );
 	}
 
 	/**
@@ -81,24 +83,9 @@ class Tests_Canonical_ChangePassword extends WP_UnitTestCase {
 	public function test_well_known_change_password_no_redirect_without_pretty_permalinks() {
 		$this->set_permalink_structure( '' );
 
-		$_SERVER['REQUEST_URI'] = '/.well-known/change-password';
+		$redirect = $this->get_redirect_for( '/.well-known/change-password' );
 
-		global $wp_query;
-		$wp_query->is_404 = true;
-
-		$captured = null;
-		$capture  = static function ( $location ) use ( &$captured ) {
-			$captured = $location;
-			return '';
-		};
-
-		add_filter( 'wp_redirect', $capture );
-		wp_redirect_admin_locations();
-		remove_filter( 'wp_redirect', $capture );
-
-		$wp_query->is_404 = false;
-
-		$this->assertNull( $captured, 'Should not redirect when pretty permalinks are disabled.' );
+		$this->assertNull( $redirect, 'Should not redirect when pretty permalinks are disabled.' );
 	}
 
 	/**
@@ -107,9 +94,10 @@ class Tests_Canonical_ChangePassword extends WP_UnitTestCase {
 	public function test_wp_change_password_url_filter() {
 		$custom_url = 'https://example.com/my-account/change-password/';
 
-		add_filter( 'wp_change_password_url', static fn() => $custom_url );
+		$filter = static fn() => $custom_url;
+		add_filter( 'wp_change_password_url', $filter );
 		$redirect = $this->get_redirect_for( '/.well-known/change-password' );
-		remove_all_filters( 'wp_change_password_url' );
+		remove_filter( 'wp_change_password_url', $filter );
 
 		$this->assertSame( $custom_url, $redirect );
 	}

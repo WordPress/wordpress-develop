@@ -1069,6 +1069,7 @@ function wp_redirect_admin_locations() {
 	}
 
 	$password_change_urls = array(
+		'/.well-known/change-password',
 		home_url( '.well-known/change-password', 'relative' ),
 		site_url( '.well-known/change-password', 'relative' ),
 	);
