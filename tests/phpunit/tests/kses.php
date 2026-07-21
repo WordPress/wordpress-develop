@@ -714,21 +714,16 @@ EOF;
 	public function test_note_mention_class_reduction_skipped_when_restrictive_kses_is_inactive() {
 		// kses_init() hooks wp_filter_kses by default in the test
 		// environment, so detach it to simulate the unfiltered_html setup.
-		$had_filter = remove_filter( 'pre_comment_content', 'wp_filter_kses' );
+		// The test framework restores filters after each test.
+		remove_filter( 'pre_comment_content', 'wp_filter_kses' );
 
 		$content = 'Hello <span class="components-button is-destructive">there</span>!';
 
-		try {
-			$this->assertSame(
-				wp_slash( $content ),
-				_wp_kses_sanitize_note_mention_classes( wp_slash( $content ) ),
-				'Span classes should be left untouched when wp_filter_kses is not active.'
-			);
-		} finally {
-			if ( $had_filter ) {
-				add_filter( 'pre_comment_content', 'wp_filter_kses' );
-			}
-		}
+		$this->assertSame(
+			wp_slash( $content ),
+			_wp_kses_sanitize_note_mention_classes( wp_slash( $content ) ),
+			'Span classes should be left untouched when wp_filter_kses is not active.'
+		);
 	}
 
 	/**

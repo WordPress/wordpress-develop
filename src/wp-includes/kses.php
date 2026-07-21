@@ -1153,7 +1153,7 @@ function wp_kses_allowed_html( $context = '' ) {
  * @param string                             $context The kses context.
  * @return array<string, array<string, bool>> Modified allowed tags structure.
  */
-function _wp_kses_allow_note_mention_span( $allowed, $context ): array {
+function _wp_kses_allow_note_mention_span( $allowed, string $context ): array {
 	if ( ! is_array( $allowed ) ) {
 		$allowed = array();
 	}
@@ -1192,8 +1192,11 @@ function _wp_kses_allow_note_mention_span( $allowed, $context ): array {
  * @param string $content Slashed comment content, already filtered by kses.
  * @return string Slashed comment content with span classes reduced.
  */
-function _wp_kses_sanitize_note_mention_classes( $content ) {
-	if ( ! is_string( $content ) || false === has_filter( 'pre_comment_content', 'wp_filter_kses' ) ) {
+function _wp_kses_sanitize_note_mention_classes( $content ): string {
+	if ( ! is_string( $content ) ) {
+		$content = '';
+	}
+	if ( false === has_filter( 'pre_comment_content', 'wp_filter_kses' ) ) {
 		return $content;
 	}
 
