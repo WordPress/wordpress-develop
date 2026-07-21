@@ -65,6 +65,23 @@ class Tests_General_wpGetTooltip extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that custom markup that does not contain valid control markup is ignored.
+	 *
+	 * @ticket 55343
+	 */
+	public function test_wp_get_tooltip_ignores_invalid_markup() {
+		$html = wp_get_tooltip(
+			'Helpful text.',
+			array(
+				'button' => '<div role="button" aria-expanded="false">Contains text</div>',
+			)
+		);
+
+		$this->assertStringNotContainsString( 'div role="button"', $html, 'String does not contain element from custom HTML.' );
+		$this->assertStringContainsString( '<button', $html, 'String does contain a button element.' );
+	}
+
+	/**
 	 * Tests that custom button markup is retained, and has required attributes.
 	 *
 	 * @ticket 55343
