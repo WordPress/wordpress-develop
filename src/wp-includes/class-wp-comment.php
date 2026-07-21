@@ -11,7 +11,8 @@
  * Core class used to organize comments as instantiated objects with defined members.
  *
  * The `@property-read` fields below are not stored on the comment. They are proxied to the
- * comment's post by {@see WP_Comment::__get()}, and are null when that post no longer exists.
+ * comment's post by {@see WP_Comment::__get()}, and are null when the comment is not attached
+ * to a post or when that post no longer exists.
  *
  * @since 4.4.0
  *
@@ -480,6 +481,7 @@ final class WP_Comment {
 	 * If `$name` matches a post field, the comment post will be loaded and the post's value checked.
 	 *
 	 * @since 4.4.0
+	 * @since 7.1.0 Returns false instead of causing a fatal error when the comment's post cannot be found.
 	 *
 	 * @param string $name Property to check if set.
 	 * @return bool Whether the property is set.
@@ -499,12 +501,14 @@ final class WP_Comment {
 	 * If `$name` matches a post field, the comment post will be loaded and the post's value returned.
 	 *
 	 * @since 4.4.0
+	 * @since 7.1.0 Returns null instead of the global post's field when the comment is not attached to
+	 *              a post, and no longer raises a warning when the comment's post cannot be found.
 	 *
 	 * @param string $name Property name.
 	 * @return mixed
 	 */
 	public function __get( $name ) {
-		if ( in_array( $name, $this->post_fields, true ) ) {
+		if ( in_array( $name, $this->post_fields, true ) && 0 !== (int) $this->comment_post_ID ) {
 			$post = get_post( (int) $this->comment_post_ID );
 			if ( ! $post ) {
 				return null;
