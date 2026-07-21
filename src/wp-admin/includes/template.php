@@ -1338,8 +1338,6 @@ function do_meta_boxes( $screen, $context, $data_object ) {
 	$i = 0;
 
 	if ( isset( $wp_meta_boxes[ $page ][ $context ] ) ) {
-		wp_enqueue_script( 'wp-tooltip' );
-		wp_enqueue_style( 'wp-tooltip' );
 		foreach ( array( 'high', 'sorted', 'core', 'default', 'low' ) as $priority ) {
 			if ( isset( $wp_meta_boxes[ $page ][ $context ][ $priority ] ) ) {
 				foreach ( (array) $wp_meta_boxes[ $page ][ $context ][ $priority ] as $box ) {
