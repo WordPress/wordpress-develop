@@ -4333,10 +4333,14 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	}
 
 	/**
-	 * Tests that the finalize endpoint records original_image from an
-	 * 'original' sub-size collected from a sideload response.
+	 * Tests that sideloading the 'original' size makes the supplied (rotated)
+	 * file the attachment's main file and that finalize records the previous
+	 * attached file as original_image, mirroring the swap
+	 * _wp_image_meta_replace_original() performs when the server rotates an
+	 * image on upload.
 	 *
-	 * @ticket 65329
+	 * @ticket 65643
+	 * @covers WP_REST_Attachments_Controller::sideload_item
 	 * @covers WP_REST_Attachments_Controller::finalize_item
 	 * @requires function imagejpeg
 	 */
@@ -4356,8 +4360,11 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 
 		$this->assertSame( 201, $response->get_status() );
 
-		// Sideload the 'original' version (simulating a rotated image), which
-		// returns the basename without writing metadata.
+		$attached_file_before = get_attached_file( $attachment_id, true );
+
+		// Sideload the 'original' version (simulating a rotated image).
+		// canola.jpg is 640x480, matching the stored dimensions, so
+		// validation passes.
 		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment_id}/sideload" );
 		$request->set_header( 'Content-Type', 'image/jpeg' );
 		$request->set_header( 'Content-Disposition', 'attachment; filename=canola-original.jpg' );
@@ -4368,11 +4375,15 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 
 		$this->assertSame( 200, $response->get_status(), 'Sideloading the original should succeed.' );
 		$this->assertSame( 'original', $original_data['image_size'], 'Response should echo the image_size.' );
-		$this->assertSame( 'canola-original.jpg', $original_data['file'], 'Response should return the file basename.' );
+		$this->assertSame( wp_basename( $attached_file_before ), $original_data['original_image'], 'Response original_image should be the basename of the previous attached file.' );
+		$this->assertSame( 640, $original_data['width'], 'Response width should be the sideloaded image width.' );
+		$this->assertSame( 480, $original_data['height'], 'Response height should be the sideloaded image height.' );
+		$this->assertGreaterThan( 0, $original_data['filesize'], 'Response filesize should be positive.' );
 
-		// Sideload must not write metadata; that happens in finalize.
-		$metadata = wp_get_attachment_metadata( $attachment_id, true );
-		$this->assertArrayNotHasKey( 'original_image', $metadata, 'Sideload should not write original_image metadata.' );
+		// The attached file is repointed to the sideloaded original.
+		$attached_file_after = get_attached_file( $attachment_id, true );
+		$this->assertSame( wp_basename( $original_data['file'] ), wp_basename( $attached_file_after ), 'Attached file should be the sideloaded original.' );
+		$this->assertNotSame( $attached_file_before, $attached_file_after, 'Attached file should be replaced by the sideloaded original.' );
 
 		// Finalize with the collected original sub-size.
 		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment_id}/finalize" );
@@ -4382,7 +4393,293 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$this->assertSame( 200, $response->get_status(), 'Finalize should succeed.' );
 
 		$metadata = wp_get_attachment_metadata( $attachment_id );
-		$this->assertSame( 'canola-original.jpg', $metadata['original_image'], 'Finalize should record original_image from the sub-size.' );
+		$this->assertSame( wp_basename( $attached_file_before ), $metadata['original_image'], 'Finalize should record the previous attached file as original_image.' );
+		$this->assertSame( 640, $metadata['width'], 'Finalize should record the sideloaded image width.' );
+		$this->assertSame( 480, $metadata['height'], 'Finalize should record the sideloaded image height.' );
+		$this->assertSame( $original_data['file'], $metadata['file'], 'Finalize should record the sideloaded original as the main file.' );
+	}
+
+	/**
+	 * Tests that sideloading the 'original' size accepts a rotated file whose
+	 * dimensions are the transpose of the stored dimensions (EXIF orientations
+	 * 5/6/7/8 swap width and height) and makes it the main file.
+	 *
+	 * A strict equality check would reject quarter-turn rotations with
+	 * rest_upload_dimension_mismatch.
+	 *
+	 * @ticket 65643
+	 * @covers WP_REST_Attachments_Controller::sideload_item
+	 * @covers WP_REST_Attachments_Controller::validate_image_dimensions
+	 * @covers WP_REST_Attachments_Controller::finalize_item
+	 * @requires function imagejpeg
+	 */
+	public function test_sideload_item_accepts_transposed_original_dimensions(): void {
+		if ( ! wp_image_editor_supports( array( 'methods' => array( 'rotate' ) ) ) ) {
+			$this->markTestSkipped( 'This test requires an image editor with rotation support.' );
+		}
+
+		$this->enable_client_side_media_processing();
+
+		wp_set_current_user( self::$author_id );
+
+		// Create a 640x480 attachment without generating sub-sizes server-side.
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
+		$request->set_header( 'Content-Type', 'image/jpeg' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=canola.jpg' );
+		$request->set_param( 'generate_sub_sizes', false );
+		$request->set_body( (string) file_get_contents( self::$test_file ) );
+		$response      = rest_get_server()->dispatch( $request );
+		$attachment_id = $response->get_data()['id'];
+
+		$this->assertSame( 201, $response->get_status() );
+
+		$uploaded_basename = wp_basename( get_attached_file( $attachment_id, true ) );
+
+		// Build a rotated (transposed) version of the source: 640x480 -> 480x640.
+		$editor = wp_get_image_editor( self::$test_file );
+		$this->assertNotWPError( $editor );
+		$editor->rotate( 90 );
+		$saved = $editor->save( wp_tempnam( 'rotated.jpg' ), 'image/jpeg' );
+		$this->assertNotWPError( $saved );
+		$rotated_path = $saved['path'];
+
+		// Sideload the rotated file as the original.
+		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment_id}/sideload" );
+		$request->set_header( 'Content-Type', 'image/jpeg' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=canola-rotated.jpg' );
+		$request->set_param( 'image_size', 'original' );
+		$request->set_body( (string) file_get_contents( $rotated_path ) );
+		$response      = rest_get_server()->dispatch( $request );
+		$original_data = $response->get_data();
+
+		unlink( $rotated_path );
+
+		// The transposed dimensions must be accepted, not rejected with a 400.
+		$this->assertSame( 200, $response->get_status(), 'Transposed original sideload should succeed.' );
+		$this->assertSame( 480, $original_data['width'], 'Response width should be the transposed width.' );
+		$this->assertSame( 640, $original_data['height'], 'Response height should be the transposed height.' );
+		$this->assertSame( $uploaded_basename, $original_data['original_image'], 'Response original_image should be the basename of the uploaded file.' );
+
+		// Finalize and confirm the rotated dimensions replace the stored ones.
+		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment_id}/finalize" );
+		$request->set_param( 'sub_sizes', array( $original_data ) );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status(), 'Finalize should succeed.' );
+
+		$metadata = wp_get_attachment_metadata( $attachment_id, true );
+		$this->assertSame( 480, $metadata['width'], 'Finalize should record the transposed width.' );
+		$this->assertSame( 640, $metadata['height'], 'Finalize should record the transposed height.' );
+		$this->assertSame( $uploaded_basename, $metadata['original_image'], 'Finalize should keep the uploaded file as original_image.' );
+		$this->assertSame( $original_data['file'], $metadata['file'], 'Finalize should record the rotated file as the main file.' );
+	}
+
+	/**
+	 * Tests that the client-side 'original' sideload of an EXIF-rotated image
+	 * produces the same attachment metadata as a normal server-side upload of
+	 * the same file.
+	 *
+	 * Uses test-image-rotated-90ccw.jpg (1200x1800, EXIF orientation 6), a
+	 * quarter turn that swaps width and height to 1800x1200. The browser
+	 * rotates and strips the EXIF orientation; wp_get_image_editor() does the
+	 * same here, so no JavaScript is required.
+	 *
+	 * @ticket 65643
+	 * @covers WP_REST_Attachments_Controller::sideload_item
+	 * @covers WP_REST_Attachments_Controller::finalize_item
+	 * @covers WP_REST_Attachments_Controller::validate_image_dimensions
+	 * @requires function imagejpeg
+	 * @requires extension exif
+	 */
+	public function test_original_sideload_matches_server_side_rotation(): void {
+		if ( ! wp_image_editor_supports( array( 'methods' => array( 'rotate' ) ) ) ) {
+			$this->markTestSkipped( 'This test requires an image editor with rotation support.' );
+		}
+
+		$this->enable_client_side_media_processing();
+
+		wp_set_current_user( self::$author_id );
+
+		$fixture = DIR_TESTDATA . '/images/test-image-rotated-90ccw.jpg';
+
+		/*
+		 * Reference: a normal upload with server-side processing (the classic
+		 * path). generate_sub_sizes defaults to true, so
+		 * wp_create_image_subsizes() applies the EXIF rotation.
+		 */
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
+		$request->set_header( 'Content-Type', 'image/jpeg' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=reference.jpg' );
+		$request->set_body( (string) file_get_contents( $fixture ) );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 201, $response->get_status() );
+		$reference_meta = wp_get_attachment_metadata( $response->get_data()['id'], true );
+
+		// Sanity check that the reference actually rotated.
+		$this->assertSame( 1800, $reference_meta['width'], 'Server-side rotation should swap the dimensions.' );
+		$this->assertSame( 1200, $reference_meta['height'], 'Server-side rotation should swap the dimensions.' );
+		$this->assertNotEmpty( $reference_meta['original_image'], 'Server-side rotation should keep the original file.' );
+		$this->assertSame( 1, (int) $reference_meta['image_meta']['orientation'], 'Server-side rotation should reset the stored orientation.' );
+
+		/*
+		 * Client-side path: upload without server-side processing, so the
+		 * stored dimensions stay at the un-rotated 1200x1800 and orientation
+		 * stays 6.
+		 */
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
+		$request->set_header( 'Content-Type', 'image/jpeg' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=client.jpg' );
+		$request->set_param( 'generate_sub_sizes', false );
+		$request->set_body( (string) file_get_contents( $fixture ) );
+		$response      = rest_get_server()->dispatch( $request );
+		$attachment_id = $response->get_data()['id'];
+		$this->assertSame( 201, $response->get_status() );
+
+		// Simulate the browser: apply the EXIF orientation and strip the tag.
+		$editor = wp_get_image_editor( $fixture );
+		$this->assertNotWPError( $editor );
+		$editor->maybe_exif_rotate();
+		$saved = $editor->save( wp_tempnam( 'client-rotated.jpg' ), 'image/jpeg' );
+		$this->assertNotWPError( $saved );
+
+		// Sideload the rotated file as the original, then finalize.
+		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment_id}/sideload" );
+		$request->set_header( 'Content-Type', 'image/jpeg' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=client-rotated.jpg' );
+		$request->set_param( 'image_size', 'original' );
+		$request->set_body( (string) file_get_contents( $saved['path'] ) );
+		$response      = rest_get_server()->dispatch( $request );
+		$original_data = $response->get_data();
+
+		unlink( $saved['path'] );
+
+		$this->assertSame( 200, $response->get_status(), 'Sideloading the rotated original should succeed.' );
+
+		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment_id}/finalize" );
+		$request->set_param( 'sub_sizes', array( $original_data ) );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status(), 'Finalize should succeed.' );
+
+		$client_meta = wp_get_attachment_metadata( $attachment_id, true );
+
+		/*
+		 * The two paths should produce the same metadata. The filenames differ,
+		 * so compare dimensions, orientation, and original_image instead of
+		 * exact filenames.
+		 */
+		$this->assertSame( $reference_meta['width'], $client_meta['width'], 'Client-side rotation should record the same width as server-side rotation.' );
+		$this->assertSame( $reference_meta['height'], $client_meta['height'], 'Client-side rotation should record the same height as server-side rotation.' );
+		$this->assertSame(
+			(int) $reference_meta['image_meta']['orientation'],
+			(int) $client_meta['image_meta']['orientation'],
+			'Client-side rotation should reset the stored orientation like server-side rotation.'
+		);
+		$this->assertNotEmpty( $client_meta['original_image'], 'The original file must be preserved as original_image.' );
+
+		// original_image must resolve to the un-rotated 1200x1800 source.
+		$client_original = getimagesize( wp_get_original_image_path( $attachment_id ) );
+		$this->assertSame( 1200, $client_original[0], 'original_image should be the un-rotated source width.' );
+		$this->assertSame( 1800, $client_original[1], 'original_image should be the un-rotated source height.' );
+	}
+
+	/**
+	 * Tests that finalize resets the stored EXIF orientation for 'scaled'
+	 * sub-sizes. The client applies the EXIF rotation when scaling, so the
+	 * stored orientation must be reset to 1 as wp_create_image_subsizes()
+	 * does, or exif_orientation would keep reporting the pre-rotation value.
+	 *
+	 * @ticket 65643
+	 * @covers WP_REST_Attachments_Controller::finalize_item
+	 * @requires function imagejpeg
+	 */
+	public function test_finalize_scaled_resets_orientation(): void {
+		$this->enable_client_side_media_processing();
+
+		wp_set_current_user( self::$author_id );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
+		$request->set_header( 'Content-Type', 'image/jpeg' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=big-rotated-photo.jpg' );
+		$request->set_param( 'generate_sub_sizes', false );
+		$request->set_body( (string) file_get_contents( self::$test_file ) );
+		$response      = rest_get_server()->dispatch( $request );
+		$attachment_id = $response->get_data()['id'];
+
+		$this->assertSame( 201, $response->get_status() );
+
+		// Simulate an EXIF-rotated upload: canola.jpg carries no orientation
+		// tag, so store the pre-rotation value directly.
+		$metadata                              = wp_get_attachment_metadata( $attachment_id, true );
+		$metadata['image_meta']['orientation'] = 6;
+		wp_update_attachment_metadata( $attachment_id, $metadata );
+
+		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment_id}/finalize" );
+		$request->set_param(
+			'sub_sizes',
+			array(
+				array(
+					'image_size'     => 'scaled',
+					'width'          => 1920,
+					'height'         => 2560,
+					'file'           => '2026/07/big-rotated-photo-scaled.jpg',
+					'filesize'       => 500000,
+					'original_image' => 'big-rotated-photo.jpg',
+				),
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status(), 'Finalize should succeed.' );
+
+		$metadata = wp_get_attachment_metadata( $attachment_id, true );
+		$this->assertSame( 1, (int) $metadata['image_meta']['orientation'], 'Finalizing a scaled sub-size should reset the stored EXIF orientation.' );
+	}
+
+	/**
+	 * Tests that finalize ignores an 'original'/'scaled' entry that is missing
+	 * the file name, so a malformed payload cannot blank out the main file
+	 * metadata.
+	 *
+	 * @ticket 65643
+	 * @covers WP_REST_Attachments_Controller::finalize_item
+	 * @requires function imagejpeg
+	 */
+	public function test_finalize_ignores_main_file_entry_without_file(): void {
+		$this->enable_client_side_media_processing();
+
+		wp_set_current_user( self::$author_id );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
+		$request->set_header( 'Content-Type', 'image/jpeg' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=guarded.jpg' );
+		$request->set_param( 'generate_sub_sizes', false );
+		$request->set_body( (string) file_get_contents( self::$test_file ) );
+		$response      = rest_get_server()->dispatch( $request );
+		$attachment_id = $response->get_data()['id'];
+
+		$this->assertSame( 201, $response->get_status() );
+
+		$metadata_before = wp_get_attachment_metadata( $attachment_id, true );
+
+		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment_id}/finalize" );
+		$request->set_param(
+			'sub_sizes',
+			array(
+				array(
+					'image_size' => 'original',
+					'width'      => 9999,
+					'height'     => 9999,
+				),
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status(), 'Finalize should succeed.' );
+
+		$metadata = wp_get_attachment_metadata( $attachment_id, true );
+		$this->assertSame( $metadata_before['file'], $metadata['file'], 'The main file must not be blanked by an entry without a file.' );
+		$this->assertSame( $metadata_before['width'], $metadata['width'], 'The width must not be changed by an entry without a file.' );
+		$this->assertSame( $metadata_before['height'], $metadata['height'], 'The height must not be changed by an entry without a file.' );
+		$this->assertArrayNotHasKey( 'original_image', $metadata, 'No original_image should be recorded from an entry without a file.' );
 	}
 
 	/**

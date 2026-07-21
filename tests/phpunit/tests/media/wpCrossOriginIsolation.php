@@ -316,6 +316,52 @@ class Tests_Media_wpCrossOriginIsolation extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Verifies that setting the client-side media processing flag does not
+	 * clobber the script module dependencies of the upload-media script.
+	 *
+	 * Re-registering `@wordpress/vips/worker` via WP_Scripts::add_data(),
+	 * which overwrites rather than merges, dropped the module dependencies
+	 * declared in the packages asset file. This removed
+	 * `@wordpress/video-conversion/worker` from the import map and broke
+	 * animated GIF to video conversion.
+	 *
+	 * @ticket 65664
+	 *
+	 * @covers ::wp_set_client_side_media_processing_flag
+	 */
+	public function test_set_flag_preserves_upload_media_module_dependencies() {
+		add_filter( 'wp_client_side_media_processing_enabled', '__return_true' );
+
+		$before = wp_scripts()->get_data( 'wp-upload-media', 'module_dependencies' );
+
+		wp_set_client_side_media_processing_flag();
+
+		$after = wp_scripts()->get_data( 'wp-upload-media', 'module_dependencies' );
+
+		$this->assertSame(
+			$before,
+			$after,
+			'The module dependencies of the upload-media script should not be modified.'
+		);
+
+		$ids = array();
+		foreach ( (array) $after as $module ) {
+			$ids[] = is_array( $module ) ? $module['id'] : $module;
+		}
+
+		$this->assertContains(
+			'@wordpress/vips/worker',
+			$ids,
+			'The vips worker should be a module dependency of the upload-media script.'
+		);
+		$this->assertContains(
+			'@wordpress/video-conversion/worker',
+			$ids,
+			'The video-conversion worker should be a module dependency of the upload-media script.'
+		);
+	}
+
+	/**
 	 * Verifies that cross-origin elements get crossorigin="anonymous" added.
 	 *
 	 * @ticket 64766
