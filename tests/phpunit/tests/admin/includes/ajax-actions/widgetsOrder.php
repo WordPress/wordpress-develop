@@ -35,7 +35,7 @@ class Tests_Ajax_widgetsOrder extends WP_Ajax_UnitTestCase {
 	/**
 	 * Tests successful widgets order saving.
 	 *
-	 * @ticket 65252
+	 * @ticket 65341
 	 */
 	public function test_widgets_order_success(): void {
 		wp_set_current_user( self::$admin_id );
@@ -74,7 +74,7 @@ class Tests_Ajax_widgetsOrder extends WP_Ajax_UnitTestCase {
 	/**
 	 * Tests failure due to invalid nonce.
 	 *
-	 * @ticket 65252
+	 * @ticket 65341
 	 */
 	public function test_widgets_order_invalid_nonce(): void {
 		wp_set_current_user( self::$admin_id );
@@ -95,7 +95,7 @@ class Tests_Ajax_widgetsOrder extends WP_Ajax_UnitTestCase {
 	/**
 	 * Tests failure due to insufficient permissions.
 	 *
-	 * @ticket 65252
+	 * @ticket 65341
 	 */
 	public function test_widgets_order_insufficient_permissions(): void {
 		$user_id = self::factory()->user->create( array( 'role' => 'subscriber' ) );
@@ -115,7 +115,7 @@ class Tests_Ajax_widgetsOrder extends WP_Ajax_UnitTestCase {
 	/**
 	 * Tests behavior when sidebars parameter is missing.
 	 *
-	 * @ticket 65252
+	 * @ticket 65341
 	 */
 	public function test_widgets_order_missing_sidebars(): void {
 		wp_set_current_user( self::$admin_id );
