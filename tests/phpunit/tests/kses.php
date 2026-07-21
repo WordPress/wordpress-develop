@@ -497,6 +497,7 @@ EOF;
 			$this->assertTrue( $tag['id'] );
 			$this->assertTrue( $tag['lang'] );
 			$this->assertTrue( $tag['style'] );
+			$this->assertTrue( $tag['tabindex'] );
 			$this->assertTrue( $tag['title'] );
 			$this->assertTrue( $tag['xml:lang'] );
 		}
@@ -1000,6 +1001,8 @@ EOF;
 	 * @ticket 58551
 	 * @ticket 60132
 	 * @ticket 64414
+	 * @ticket 65457
+	 * @ticket 64974
 	 *
 	 * @dataProvider data_safecss_filter_attr
 	 *
@@ -1170,6 +1173,38 @@ EOF;
 			array(
 				'css'      => 'background: conic-gradient(at 0% 30%, red 10%, yellow 30%, #1e90ff 50%)',
 				'expected' => 'background: conic-gradient(at 0% 30%, red 10%, yellow 30%, #1e90ff 50%)',
+			),
+			/*
+			 * Background gradient support, introduced in 7.1 (ticket 64974).
+			 * A gradient combined with a url() image is allowed, in either order.
+			 */
+			array(
+				'css'      => "background-image: linear-gradient(135deg, rgb(255,0,0) 0%, rgb(0,0,255) 100%), url('https://example.com/image.jpg')",
+				'expected' => "background-image: linear-gradient(135deg, rgb(255,0,0) 0%, rgb(0,0,255) 100%), url('https://example.com/image.jpg')",
+			),
+			array(
+				'css'      => "background-image: url('https://example.com/image.jpg'), linear-gradient(135deg, rgb(255,0,0) 0%, rgb(0,0,255) 100%)",
+				'expected' => "background-image: url('https://example.com/image.jpg'), linear-gradient(135deg, rgb(255,0,0) 0%, rgb(0,0,255) 100%)",
+			),
+			// A gradient using modern color functions is allowed.
+			array(
+				'css'      => 'background-image: linear-gradient(135deg, hsl(0,100%,50%) 0%, hsl(240,100%,50%) 100%)',
+				'expected' => 'background-image: linear-gradient(135deg, hsl(0,100%,50%) 0%, hsl(240,100%,50%) 100%)',
+			),
+			// Nesting beyond one level inside a gradient is not supported (unchanged from before).
+			array(
+				'css'      => 'background-image: linear-gradient(red 0%, blue calc(50% + var(--x)))',
+				'expected' => '',
+			),
+			/*
+			 * As of 7.1 (ticket 64974) any single-level nested function is permitted inside a
+			 * gradient, widening the previous rgb()/rgba()-only allowance. This includes the
+			 * legacy expression() form, which is inert in all supported browsers and remains
+			 * escaped when output as an attribute value.
+			 */
+			array(
+				'css'      => 'background-image: linear-gradient(red, expression(alert))',
+				'expected' => 'background-image: linear-gradient(red, expression(alert))',
 			),
 			// `object-position` introduced in 5.7.1.
 			array(
@@ -1472,6 +1507,43 @@ EOF;
 			array(
 				'css'      => 'display: grid',
 				'expected' => 'display: grid',
+			),
+			// SVG presentation attributes introduced in 7.1.0.
+			array(
+				'css'      => 'fill: none',
+				'expected' => 'fill: none',
+			),
+			array(
+				'css'      => 'fill-rule: evenodd',
+				'expected' => 'fill-rule: evenodd',
+			),
+			array(
+				'css'      => 'stroke: red',
+				'expected' => 'stroke: red',
+			),
+			array(
+				'css'      => 'stroke-width: 2',
+				'expected' => 'stroke-width: 2',
+			),
+			array(
+				'css'      => 'stroke-linecap: round',
+				'expected' => 'stroke-linecap: round',
+			),
+			array(
+				'css'      => 'paint-order: stroke',
+				'expected' => 'paint-order: stroke',
+			),
+			array(
+				'css'      => 'vector-effect: non-scaling-stroke',
+				'expected' => 'vector-effect: non-scaling-stroke',
+			),
+			array(
+				'css'      => 'clip-rule: evenodd',
+				'expected' => 'clip-rule: evenodd',
+			),
+			array(
+				'css'      => 'text-anchor: middle',
+				'expected' => 'text-anchor: middle',
 			),
 		);
 	}
@@ -1886,6 +1958,17 @@ EOF;
 		);
 
 		$html = implode( ' ', $test );
+
+		$this->assertEqualHTML( $html, wp_kses_post( $html ) );
+	}
+
+	/**
+	 * Test that Invoker Commands API attributes are preserved on buttons in post content.
+	 *
+	 * @ticket 64576
+	 */
+	public function test_wp_kses_button_invoker_command_attributes() {
+		$html = '<button type="button" commandfor="my-popover" command="toggle-popover">Toggle</button><div id="my-popover" popover>Content</div>';
 
 		$this->assertEqualHTML( $html, wp_kses_post( $html ) );
 	}
