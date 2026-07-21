@@ -59,7 +59,7 @@ class Tests_Functions_wpFilesize extends WP_UnitTestCase {
 	/**
 	 * @ticket 65670
 	 *
-	 * @dataProvider data_provider_test_wp_filesize_filter_invalid_value
+	 * @dataProvider data_wp_filesize_filter_invalid_value
 	 *
 	 * @param mixed $value
 	 */
@@ -73,7 +73,7 @@ class Tests_Functions_wpFilesize extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{ 0: mixed }>
 	 */
-	public function data_provider_test_wp_filesize_filter_invalid_value(): array {
+	public function data_wp_filesize_filter_invalid_value(): array {
 		return array(
 			'negative' => array( -1 ),
 			'null'     => array( null ),
