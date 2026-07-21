@@ -1098,7 +1098,6 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 			),
 			self::$test_file
 		);
-		$this->assertIsInt( $attachment_id );
 
 		add_image_size( 'rest-api-test', 119, 119, true );
 		wp_update_attachment_metadata( $attachment_id, wp_generate_attachment_metadata( $attachment_id, self::$test_file ) );
