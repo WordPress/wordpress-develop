@@ -2214,7 +2214,7 @@ class wp_xmlrpc_server extends IXR_Server {
 		do_action( 'xmlrpc_call', 'wp.editTerm', $args, $this );
 
 		if (
-			! is_array ( $content_struct )
+			! is_array( $content_struct )
 			|| ! taxonomy_exists( $content_struct['taxonomy'] )
 		) {
 			return new IXR_Error( 403, __( 'Invalid taxonomy.' ) );
