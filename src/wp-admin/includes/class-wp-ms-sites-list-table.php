@@ -37,20 +37,24 @@ class WP_MS_Sites_List_Table extends WP_List_Table {
 		$this->status_list = array(
 			'archived' => array( 'site-archived', __( 'Archived' ) ),
 			'spam'     => array( 'site-spammed', _x( 'Spam', 'site' ) ),
-			'deleted'  => array( 'site-deleted', __( 'Deleted' ) ),
+			'deleted'  => array( 'site-deleted', __( 'Flagged for Deletion' ) ),
 			'mature'   => array( 'site-mature', __( 'Mature' ) ),
 		);
 
 		parent::__construct(
 			array(
 				'plural' => 'sites',
-				'screen' => isset( $args['screen'] ) ? $args['screen'] : null,
+				'screen' => $args['screen'] ?? null,
 			)
 		);
 	}
 
 	/**
-	 * @return bool
+	 * Checks if the current user has permissions to manage sites.
+	 *
+	 * @since 3.1.0
+	 *
+	 * @return bool Whether the user can manage sites.
 	 */
 	public function ajax_user_can() {
 		return current_user_can( 'manage_sites' );
@@ -62,7 +66,7 @@ class WP_MS_Sites_List_Table extends WP_List_Table {
 	 * @since 3.1.0
 	 *
 	 * @global string $mode List table view mode.
-	 * @global string $s
+	 * @global string $s    Search string.
 	 * @global wpdb   $wpdb WordPress database abstraction object.
 	 */
 	public function prepare_items() {
@@ -135,7 +139,7 @@ class WP_MS_Sites_List_Table extends WP_List_Table {
 			}
 		}
 
-		$order_by = isset( $_REQUEST['orderby'] ) ? $_REQUEST['orderby'] : '';
+		$order_by = $_REQUEST['orderby'] ?? '';
 		if ( 'registered' === $order_by ) {
 			// 'registered' is a valid field name.
 		} elseif ( 'lastupdated' === $order_by ) {
@@ -206,6 +210,9 @@ class WP_MS_Sites_List_Table extends WP_List_Table {
 	}
 
 	/**
+	 * Displays a message when no sites are found.
+	 *
+	 * @since 3.1.0
 	 */
 	public function no_items() {
 		_e( 'No sites found.' );
@@ -256,8 +263,8 @@ class WP_MS_Sites_List_Table extends WP_List_Table {
 
 			/* translators: %s: Number of sites. */
 			'deleted'  => _n_noop(
-				'Deleted <span class="count">(%s)</span>',
-				'Deleted <span class="count">(%s)</span>'
+				'Flagged for Deletion <span class="count">(%s)</span>',
+				'Flagged for Deletion <span class="count">(%s)</span>'
 			),
 		);
 
@@ -286,7 +293,11 @@ class WP_MS_Sites_List_Table extends WP_List_Table {
 	}
 
 	/**
-	 * @return array
+	 * Gets an associative array of bulk actions for this table.
+	 *
+	 * @since 3.1.0
+	 *
+	 * @return array<string, string> An associative array of bulk actions.
 	 */
 	protected function get_bulk_actions() {
 		$actions = array();
@@ -300,6 +311,10 @@ class WP_MS_Sites_List_Table extends WP_List_Table {
 	}
 
 	/**
+	 * Displays the pagination.
+	 *
+	 * @since 3.1.0
+	 *
 	 * @global string $mode List table view mode.
 	 *
 	 * @param string $which The location of the pagination nav markup: Either 'top' or 'bottom'.
@@ -359,6 +374,10 @@ class WP_MS_Sites_List_Table extends WP_List_Table {
 	}
 
 	/**
+	 * Gets an array of column titles keyed by their column name.
+	 *
+	 * @since 3.1.0
+	 *
 	 * @return string[] Array of column titles keyed by their column name.
 	 */
 	public function get_columns() {
@@ -386,7 +405,11 @@ class WP_MS_Sites_List_Table extends WP_List_Table {
 	}
 
 	/**
-	 * @return array
+	 * Gets an array of sortable columns.
+	 *
+	 * @since 3.1.0
+	 *
+	 * @return array<string, mixed> An array of sortable columns.
 	 */
 	protected function get_sortable_columns() {
 
@@ -640,7 +663,7 @@ class WP_MS_Sites_List_Table extends WP_List_Table {
 	 *
 	 * @since 5.3.0
 	 *
-	 * @param array $site
+	 * @param array<string, mixed> $site An array of site data.
 	 */
 	protected function site_states( $site ) {
 		$site_states = array();
@@ -667,13 +690,14 @@ class WP_MS_Sites_List_Table extends WP_List_Table {
 		 * @since 5.3.0
 		 *
 		 * @param string[] $site_states An array of site states. Default 'Main',
-		 *                              'Archived', 'Mature', 'Spam', 'Deleted'.
+		 *                              'Archived', 'Mature', 'Spam', 'Flagged for Deletion'.
 		 * @param WP_Site  $site        The current site object.
 		 */
 		$site_states = apply_filters( 'display_site_states', $site_states, $_site );
 
 		if ( ! empty( $site_states ) ) {
 			$state_count = count( $site_states );
+			$separator   = wp_get_list_item_separator();
 
 			$i = 0;
 
@@ -682,9 +706,9 @@ class WP_MS_Sites_List_Table extends WP_List_Table {
 			foreach ( $site_states as $state ) {
 				++$i;
 
-				$separator = ( $i < $state_count ) ? ', ' : '';
+				$suffix = ( $i < $state_count ) ? $separator : '';
 
-				echo "<span class='post-state'>{$state}{$separator}</span>";
+				echo "<span class='post-state'>{$state}{$suffix}</span>";
 			}
 		}
 	}
@@ -758,7 +782,7 @@ class WP_MS_Sites_List_Table extends WP_List_Table {
 							'activateblog_' . $blog['blog_id']
 						)
 					),
-					_x( 'Activate', 'site' )
+					_x( 'Remove Deletion Flag', 'site' )
 				);
 			} else {
 				$actions['deactivate'] = sprintf(
@@ -769,7 +793,7 @@ class WP_MS_Sites_List_Table extends WP_List_Table {
 							'deactivateblog_' . $blog['blog_id']
 						)
 					),
-					__( 'Deactivate' )
+					__( 'Flag for Deletion' )
 				);
 			}
 
@@ -830,7 +854,7 @@ class WP_MS_Sites_List_Table extends WP_List_Table {
 							'deleteblog_' . $blog['blog_id']
 						)
 					),
-					__( 'Delete' )
+					__( 'Delete Permanently' )
 				);
 			}
 		}
@@ -844,9 +868,9 @@ class WP_MS_Sites_List_Table extends WP_List_Table {
 		/**
 		 * Filters the action links displayed for each site in the Sites list table.
 		 *
-		 * The 'Edit', 'Dashboard', 'Delete', and 'Visit' links are displayed by
+		 * The 'Edit', 'Dashboard', 'Delete Permanently', and 'Visit' links are displayed by
 		 * default for each site. The site's status determines whether to show the
-		 * 'Activate' or 'Deactivate' link, 'Unarchive' or 'Archive' links, and
+		 * 'Remove Deletion Flag' or 'Flag for Deletion' link, 'Unarchive' or 'Archive' links, and
 		 * 'Not Spam' or 'Spam' link for each site.
 		 *
 		 * @since 3.1.0

@@ -240,9 +240,12 @@ function get_comment( $comment = null, $output = OBJECT ) {
 	 *
 	 * @since 2.3.0
 	 *
-	 * @param WP_Comment $_comment Comment data.
+	 * @param WP_Comment|null $_comment Comment data.
 	 */
 	$_comment = apply_filters( 'get_comment', $_comment );
+	if ( ! ( $_comment instanceof WP_Comment ) ) {
+		return null;
+	}
 
 	if ( OBJECT === $output ) {
 		return $_comment;
@@ -446,6 +449,8 @@ function get_comment_count( $post_id = 0 ) {
 /**
  * Adds meta data field to a comment.
  *
+ * For historical reasons both the meta key and the meta value are expected to be "slashed" (slashes escaped) on input.
+ *
  * @since 2.9.0
  *
  * @link https://developer.wordpress.org/reference/functions/add_comment_meta/
@@ -473,6 +478,8 @@ function add_comment_meta( $comment_id, $meta_key, $meta_value, $unique = false 
  * You can match based on the key, or key and value. Removing based on key and
  * value, will keep from removing duplicate metadata with the same key. It also
  * allows removing all metadata matching key, if needed.
+ *
+ * For historical reasons both the meta key and the meta value are expected to be "slashed" (slashes escaped) on input.
  *
  * @since 2.9.0
  *
@@ -540,6 +547,8 @@ function wp_lazyload_comment_meta( array $comment_ids ) {
  *
  * If the meta field for the comment does not exist, it will be added.
  *
+ * For historical reasons both the meta key and the meta value are expected to be "slashed" (slashes escaped) on input.
+ *
  * @since 2.9.0
  *
  * @link https://developer.wordpress.org/reference/functions/update_comment_meta/
@@ -589,7 +598,7 @@ function wp_set_comment_cookies( $comment, $user, $cookies_consent = true ) {
 	 * Filters the lifetime of the comment cookie in seconds.
 	 *
 	 * @since 2.8.0
-	 * @since 6.6.0 The default $seconds value changed from 30000000 to YEAR_IN_SECONDS.
+	 * @since 6.6.0 The default `$seconds` value changed from 30000000 to YEAR_IN_SECONDS.
 	 *
 	 * @param int $seconds Comment cookie lifetime. Default YEAR_IN_SECONDS.
 	 */
@@ -798,7 +807,7 @@ function wp_allow_comment( $commentdata, $wp_error = false ) {
 	);
 
 	if ( $is_flood ) {
-		/** This filter is documented in wp-includes/comment-template.php */
+		/** This filter is documented in wp-includes/comment.php */
 		$comment_flood_message = apply_filters( 'comment_flood_message', __( 'You are posting comments too quickly. Slow down.' ) );
 
 		return new WP_Error( 'comment_flood', $comment_flood_message, 429 );
@@ -926,8 +935,8 @@ function wp_check_comment_flood( $is_flood, $ip, $email, $date, $avoid_die = fal
  *
  * @since 2.7.0
  *
- * @param WP_Comment[] $comments Array of comments
- * @return WP_Comment[] Array of comments keyed by comment_type.
+ * @param WP_Comment[] $comments Array of comments.
+ * @return array<string, WP_Comment[]> Array of comments keyed by comment type.
  */
 function separate_comments( &$comments ) {
 	$comments_by_type = array(
@@ -1044,7 +1053,7 @@ function get_page_of_comment( $comment_id, $args = array() ) {
 
 	$comment = get_comment( $comment_id );
 	if ( ! $comment ) {
-		return;
+		return null;
 	}
 
 	$defaults      = array(
@@ -1568,13 +1577,38 @@ function wp_delete_comment( $comment_id, $force_delete = false ) {
  * If Trash is disabled, comment is permanently deleted.
  *
  * @since 2.9.0
+ * @since 6.9.0 Any child notes are deleted when deleting a note.
  *
  * @param int|WP_Comment $comment_id Comment ID or WP_Comment object.
  * @return bool True on success, false on failure.
  */
 function wp_trash_comment( $comment_id ) {
 	if ( ! EMPTY_TRASH_DAYS ) {
-		return wp_delete_comment( $comment_id, true );
+		$comment = get_comment( $comment_id );
+		$success = wp_delete_comment( $comment_id, true );
+
+		if ( ! $success ) {
+			return false;
+		}
+
+		// Also delete children of top level 'note' type comments.
+		if ( $comment && 'note' === $comment->comment_type && 0 === (int) $comment->comment_parent ) {
+			$children = $comment->get_children(
+				array(
+					'fields' => 'ids',
+					'status' => 'all',
+					'type'   => 'note',
+				)
+			);
+
+			foreach ( $children as $child_id ) {
+				if ( ! wp_delete_comment( $child_id, true ) ) {
+					$success = false;
+				}
+			}
+		}
+
+		return $success;
 	}
 
 	$comment = get_comment( $comment_id );
@@ -1609,6 +1643,25 @@ function wp_trash_comment( $comment_id ) {
 		 * @param WP_Comment $comment    The trashed comment.
 		 */
 		do_action( 'trashed_comment', $comment->comment_ID, $comment );
+
+		// For top level 'note' type comments, also trash children.
+		if ( 'note' === $comment->comment_type && 0 === (int) $comment->comment_parent ) {
+			$children = $comment->get_children(
+				array(
+					'fields' => 'ids',
+					'status' => 'all',
+					'type'   => 'note',
+				)
+			);
+
+			$success = true;
+			foreach ( $children as $child_id ) {
+				if ( ! wp_trash_comment( $child_id ) ) {
+					$success = false;
+				}
+			}
+			return $success;
+		}
 
 		return true;
 	}
@@ -2162,7 +2215,7 @@ function wp_filter_comment( $commentdata ) {
 	 *
 	 * @param string $comment_agent The comment author's browser user agent.
 	 */
-	$commentdata['comment_agent'] = apply_filters( 'pre_comment_user_agent', ( isset( $commentdata['comment_agent'] ) ? $commentdata['comment_agent'] : '' ) );
+	$commentdata['comment_agent'] = apply_filters( 'pre_comment_user_agent', ( $commentdata['comment_agent'] ?? '' ) );
 	/** This filter is documented in wp-includes/comment.php */
 	$commentdata['comment_author'] = apply_filters( 'pre_comment_author_name', $commentdata['comment_author'] );
 	/**
@@ -2280,7 +2333,7 @@ function wp_new_comment( $commentdata, $wp_error = false ) {
 	}
 
 	if ( ! isset( $commentdata['comment_agent'] ) ) {
-		$commentdata['comment_agent'] = isset( $_SERVER['HTTP_USER_AGENT'] ) ? $_SERVER['HTTP_USER_AGENT'] : '';
+		$commentdata['comment_agent'] = $_SERVER['HTTP_USER_AGENT'] ?? '';
 	}
 
 	/**
@@ -2419,8 +2472,9 @@ function wp_new_comment_notify_moderator( $comment_id ) {
  */
 function wp_new_comment_notify_postauthor( $comment_id ) {
 	$comment = get_comment( $comment_id );
+	$is_note = ( $comment && 'note' === $comment->comment_type );
 
-	$maybe_notify = get_option( 'comments_notify' );
+	$maybe_notify = $is_note ? get_option( 'wp_notes_notify', 1 ) : get_option( 'comments_notify' );
 
 	/**
 	 * Filters whether to send the post author new comment notification emails,
@@ -2441,12 +2495,27 @@ function wp_new_comment_notify_postauthor( $comment_id ) {
 		return false;
 	}
 
-	// Only send notifications for approved comments.
-	if ( ! isset( $comment->comment_approved ) || '1' !== $comment->comment_approved ) {
-		return false;
+	// Send notifications for approved comments and all notes.
+	if (
+		! isset( $comment->comment_approved ) ||
+		( '1' !== $comment->comment_approved && ! $is_note ) ) {
+			return false;
 	}
 
 	return wp_notify_postauthor( $comment_id );
+}
+
+/**
+ * Send a notification to the post author when a new note is added via the REST API.
+ *
+ * @since 6.9.0
+ *
+ * @param WP_Comment $comment The comment object.
+ */
+function wp_new_comment_via_rest_notify_postauthor( $comment ) {
+	if ( $comment instanceof WP_Comment && 'note' === $comment->comment_type ) {
+		wp_new_comment_notify_postauthor( (int) $comment->comment_ID );
+	}
 }
 
 /**
@@ -2563,7 +2632,7 @@ function wp_update_comment( $commentarr, $wp_error = false ) {
 
 	$filter_comment = false;
 	if ( ! has_filter( 'pre_comment_content', 'wp_filter_kses' ) ) {
-		$filter_comment = ! user_can( isset( $comment['user_id'] ) ? $comment['user_id'] : 0, 'unfiltered_html' );
+		$filter_comment = ! user_can( $comment['user_id'] ?? 0, 'unfiltered_html' );
 	}
 
 	if ( $filter_comment ) {
@@ -2624,7 +2693,7 @@ function wp_update_comment( $commentarr, $wp_error = false ) {
 	 */
 	$data = apply_filters( 'wp_update_comment_data', $data, $comment, $commentarr );
 
-	// Do not carry on on failure.
+	// Do not continue on failure.
 	if ( is_wp_error( $data ) ) {
 		if ( $wp_error ) {
 			return $data;
@@ -2703,7 +2772,7 @@ function wp_update_comment( $commentarr, $wp_error = false ) {
  * @since 2.5.0
  *
  * @param bool $defer
- * @return bool
+ * @return bool Whether comment counting is deferred.
  */
 function wp_defer_comment_counting( $defer = null ) {
 	static $_defer = false;
@@ -2737,7 +2806,7 @@ function wp_defer_comment_counting( $defer = null ) {
  * @param int|null $post_id     Post ID.
  * @param bool     $do_deferred Optional. Whether to process previously deferred
  *                              post comment counts. Default false.
- * @return bool|void True on success, false on failure or if post with ID does
+ * @return bool|null True on success, false on failure or if post with ID does
  *                   not exist.
  */
 function wp_update_comment_count( $post_id, $do_deferred = false ) {
@@ -2762,6 +2831,7 @@ function wp_update_comment_count( $post_id, $do_deferred = false ) {
 	} elseif ( $post_id ) {
 		return wp_update_comment_count_now( $post_id );
 	}
+	return null;
 }
 
 /**
@@ -2806,7 +2876,7 @@ function wp_update_comment_count_now( $post_id ) {
 	$new = apply_filters( 'pre_wp_update_comment_count_now', null, $old, $post_id );
 
 	if ( is_null( $new ) ) {
-		$new = (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM $wpdb->comments WHERE comment_post_ID = %d AND comment_approved = '1'", $post_id ) );
+		$new = (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM $wpdb->comments WHERE comment_post_ID = %d AND comment_approved = '1' AND comment_type != 'note'", $post_id ) );
 	} else {
 		$new = (int) $new;
 	}
@@ -3054,22 +3124,19 @@ function do_trackbacks( $post ) {
 	$post_title = apply_filters( 'the_title', $post->post_title, $post->ID );
 	$post_title = strip_tags( $post_title );
 
-	if ( $to_ping ) {
-		foreach ( (array) $to_ping as $tb_ping ) {
-			$tb_ping = trim( $tb_ping );
-			if ( ! in_array( $tb_ping, $pinged, true ) ) {
-				trackback( $tb_ping, $post_title, $excerpt, $post->ID );
-				$pinged[] = $tb_ping;
-			} else {
-				$wpdb->query(
-					$wpdb->prepare(
-						"UPDATE $wpdb->posts SET to_ping = TRIM(REPLACE(to_ping, %s,
-					'')) WHERE ID = %d",
-						$tb_ping,
-						$post->ID
-					)
-				);
-			}
+	foreach ( (array) $to_ping as $tb_ping ) {
+		$tb_ping = trim( $tb_ping );
+		if ( ! in_array( $tb_ping, $pinged, true ) ) {
+			trackback( $tb_ping, $post_title, $excerpt, $post->ID );
+			$pinged[] = $tb_ping;
+		} else {
+			$wpdb->query(
+				$wpdb->prepare(
+					"UPDATE $wpdb->posts SET to_ping = TRIM(REPLACE(to_ping, %s, '')) WHERE ID = %d",
+					$tb_ping,
+					$post->ID
+				)
+			);
 		}
 	}
 }
@@ -3094,6 +3161,84 @@ function generic_ping( $post_id = 0 ) {
 	}
 
 	return $post_id;
+}
+
+/**
+ * Determines whether pings should be disabled for the current environment.
+ *
+ * By default, all pings (outgoing pingbacks, trackbacks, and ping service
+ * notifications, as well as incoming pingbacks and trackbacks) are disabled
+ * for non-production environments ('local', 'development', 'staging').
+ *
+ * @since 7.1.0
+ *
+ * @return bool True if pings should be disabled, false otherwise.
+ */
+function wp_should_disable_pings_for_environment() {
+	$environment_type = wp_get_environment_type();
+	$should_disable   = 'production' !== $environment_type;
+
+	/**
+	 * Filters whether pings should be disabled for the current environment.
+	 *
+	 * Returning false re-enables pings in non-production environments.
+	 * Returning true disables pings even in production.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @param bool   $should_disable  Whether pings should be disabled. Default true
+	 *                                for non-production environments, false for production.
+	 * @param string $environment_type The current environment type as returned by
+	 *                                 wp_get_environment_type().
+	 */
+	return apply_filters( 'wp_should_disable_pings_for_environment', $should_disable, $environment_type );
+}
+
+/**
+ * Removes outgoing ping callbacks in non-production environments.
+ *
+ * Hooked to `do_all_pings` at priority 1 so it runs before the default
+ * priority 10 callbacks. Does not remove `do_all_enclosures`.
+ *
+ * @since 7.1.0
+ */
+function wp_maybe_disable_outgoing_pings_for_environment() {
+	if ( wp_should_disable_pings_for_environment() ) {
+		remove_action( 'do_all_pings', 'do_all_pingbacks' );
+		remove_action( 'do_all_pings', 'do_all_trackbacks' );
+		remove_action( 'do_all_pings', 'generic_ping' );
+	}
+}
+
+/**
+ * Rejects incoming trackbacks in non-production environments.
+ *
+ * Hooked to `pre_trackback_post` which fires in `wp-trackback.php` before the
+ * trackback is processed. Calls `trackback_response()` which sends an XML error
+ * response and terminates the request.
+ *
+ * @since 7.1.0
+ */
+function wp_maybe_disable_trackback_for_environment() {
+	if ( wp_should_disable_pings_for_environment() ) {
+		trackback_response( 1, __( 'Trackbacks are disabled in non-production environments.' ) );
+	}
+}
+
+/**
+ * Removes the pingback XML-RPC method in non-production environments.
+ *
+ * @since 7.1.0
+ *
+ * @param string[] $methods An array of XML-RPC methods, keyed by their methodName.
+ * @return string[] Modified array of XML-RPC methods.
+ */
+function wp_maybe_disable_xmlrpc_pingback_for_environment( $methods ) {
+	if ( wp_should_disable_pings_for_environment() ) {
+		unset( $methods['pingback.ping'] );
+	}
+
+	return $methods;
 }
 
 /**
@@ -3247,13 +3392,13 @@ function privacy_ping_filter( $sites ) {
  * @param string $title         Title of post.
  * @param string $excerpt       Excerpt of post.
  * @param int    $post_id       Post ID.
- * @return int|false|void Database query from update.
+ * @return int|false|null Database query from update.
  */
 function trackback( $trackback_url, $title, $excerpt, $post_id ) {
 	global $wpdb;
 
 	if ( empty( $trackback_url ) ) {
-		return;
+		return null;
 	}
 
 	$options            = array();
@@ -3268,7 +3413,7 @@ function trackback( $trackback_url, $title, $excerpt, $post_id ) {
 	$response = wp_safe_remote_post( $trackback_url, $options );
 
 	if ( is_wp_error( $response ) ) {
-		return;
+		return null;
 	}
 
 	$wpdb->query( $wpdb->prepare( "UPDATE $wpdb->posts SET pinged = CONCAT(pinged, '\n', %s) WHERE ID = %d", $trackback_url, $post_id ) );
@@ -3308,7 +3453,7 @@ function weblog_ping( $server = '', $path = '' ) {
  * @see wp_http_validate_url()
  *
  * @param string $source_uri
- * @return string
+ * @return string Validated source URI.
  */
 function pingback_ping_source_uri( $source_uri ) {
 	return (string) wp_http_validate_url( $source_uri );
@@ -3430,9 +3575,9 @@ function _prime_comment_caches( $comment_ids, $update_meta_cache = true ) {
  * @since 2.7.0
  * @access private
  *
- * @param WP_Post  $posts Post data object.
- * @param WP_Query $query Query object.
- * @return array
+ * @param WP_Post[] $posts Array of post objects.
+ * @param WP_Query  $query Query object.
+ * @return WP_Post[]
  */
 function _close_comments_for_old_posts( $posts, $query ) {
 	if ( empty( $posts ) || ! $query->is_singular() || ! get_option( 'close_comments_for_old_posts' ) ) {
@@ -4099,4 +4244,120 @@ function _wp_check_for_scheduled_update_comment_type() {
 	if ( ! get_option( 'finished_updating_comment_type' ) && ! wp_next_scheduled( 'wp_update_comment_type_batch' ) ) {
 		wp_schedule_single_event( time() + MINUTE_IN_SECONDS, 'wp_update_comment_type_batch' );
 	}
+}
+
+/**
+ * Register initial note status meta.
+ *
+ * @since 6.9.0
+ */
+function wp_create_initial_comment_meta() {
+	register_meta(
+		'comment',
+		'_wp_note_status',
+		array(
+			'type'          => 'string',
+			'description'   => __( 'Note resolution status' ),
+			'single'        => true,
+			'show_in_rest'  => array(
+				'schema' => array(
+					'type' => 'string',
+					'enum' => array( 'resolved', 'reopen' ),
+				),
+			),
+			'auth_callback' => function ( $allowed, $meta_key, $object_id ) {
+				return current_user_can( 'edit_comment', $object_id );
+			},
+		)
+	);
+}
+
+/**
+ * Strips inline note markers from rendered block output.
+ *
+ * Inline notes - notes anchored to a text selection within a block rather than
+ * the whole block - are anchored in raw block content with
+ * `<mark class="wp-note" data-id="N">...</mark>` so the marker survives edits,
+ * but the public HTML should not expose note metadata. This filter unwraps the
+ * marker entirely - dropping the `<mark>` open tag and its matching closer while
+ * keeping the marked text - so nothing leaks to the front end. The raw
+ * `post_content` (and the REST `raw` view, revisions, exports) keeps the marker
+ * so the editor can re-attach it on reload.
+ *
+ * Only note markers are unwrapped: {@see WP_HTML_Tag_Processor::has_class()}
+ * matches the `wp-note` class by exact token, so a `<mark>` a user or plugin
+ * added (e.g. a `core/text-color` highlight, or an unrelated `wp-note-foo`
+ * class) is never flagged and survives byte-for-byte with all of its attributes
+ * intact. A naive regex would be wrong here: a `\bwp-note\b` word boundary also
+ * matches `wp-note-foo`, which is why the class check goes through the HTML API
+ * instead.
+ *
+ * The HTML API has no public token-removal method yet, so an anonymous
+ * {@see WP_HTML_Tag_Processor} subclass unwraps each note `<mark>` and its
+ * matching closer directly on the parsed token stream. Walking tokens - rather
+ * than matching `<mark>` with a regex - means a `</mark>`-looking sequence inside
+ * a comment or attribute value can never be mistaken for a real tag, and a
+ * nesting stack keeps each note opener paired with its own closer so overlapping
+ * notes and any user highlight `<mark>` left intact still resolve correctly.
+ *
+ * The low-level {@see WP_HTML_Tag_Processor} is used deliberately, rather than
+ * the tree-building {@see WP_HTML_Processor}. Note markers live in user-editable
+ * content, so the markup is not guaranteed to be well formed. On certain
+ * ill-formed nesting the tree builder aborts, which would leave note markers -
+ * and their metadata - in the rendered output. Scanning tokens instead removes
+ * every `wp-note` marker it encounters and degrades gracefully: an unbalanced or
+ * stray tag is left exactly as it was rather than corrupting surrounding markup.
+ *
+ * @since 7.1.0
+ *
+ * @param string $block_content Rendered block HTML.
+ * @return string Block HTML with `wp-note` markers unwrapped.
+ */
+function wp_strip_inline_note_markers( $block_content ) {
+	if ( ! str_contains( $block_content, 'wp-note' ) ) {
+		return $block_content;
+	}
+
+	/*
+	 * Anonymous subclass exposing token removal, which WP_HTML_Tag_Processor
+	 * does not provide publicly yet. Removing the current token via its bookmark
+	 * span unwraps the `<mark>` (opener or closer) while keeping the text it
+	 * wraps.
+	 */
+	$processor = new class( $block_content ) extends WP_HTML_Tag_Processor {
+		/**
+		 * Removes the current token, keeping any text it wraps.
+		 */
+		public function remove_token(): void {
+			// Always called after next_tag() returned true, so the bookmark is set.
+			$this->set_bookmark( 'here' );
+			$span = $this->bookmarks['here'];
+
+			$this->lexical_updates[] = new WP_HTML_Text_Replacement( $span->start, $span->length, '' );
+		}
+	};
+
+	/*
+	 * Walk every `<mark>`, tracking note nesting on a stack so each note opener
+	 * pairs with its own closer, and unwrap only the note markers.
+	 */
+	$mark_stack = array();
+	$query      = array(
+		'tag_name'    => 'MARK',
+		'tag_closers' => 'visit',
+	);
+	while ( $processor->next_tag( $query ) ) {
+		if ( $processor->is_tag_closer() ) {
+			$is_note = array_pop( $mark_stack );
+		} else {
+			$is_note      = $processor->has_class( 'wp-note' );
+			$mark_stack[] = $is_note;
+		}
+
+		if ( true === $is_note ) {
+			$processor->remove_token();
+		}
+	}
+
+	return $processor->get_updated_html();
 }
