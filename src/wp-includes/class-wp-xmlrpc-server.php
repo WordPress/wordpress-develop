@@ -2203,7 +2203,7 @@ class wp_xmlrpc_server extends IXR_Server {
 		$username       = $args[1];
 		$password       = $args[2];
 		$term_id        = (int) $args[3];
-		$content_struct = $args[4] ?? null;
+		$content_struct = $args[4];
 
 		$user = $this->login( $username, $password );
 		if ( ! $user ) {
