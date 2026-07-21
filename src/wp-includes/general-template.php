@@ -472,7 +472,7 @@ function wp_get_tooltip_helper( $content, $args = array() ) {
 
 	$defaults = array(
 		'id'          => wp_unique_id( 'wp-tooltip-' ),
-		'button'      => '<button type="button" aria-label="%3$s"><span class="dashicons%4$s" aria-hidden="true"></span></button>',
+		'button'      => '<button type="button" aria-label="%3$s"><span class="dashicons %4$s" aria-hidden="true"></span></button>',
 		'label'       => __( 'Help' ),
 		'close_label' => __( 'Close' ),
 		'icon'        => 'dashicons-editor-help',
@@ -487,7 +487,7 @@ function wp_get_tooltip_helper( $content, $args = array() ) {
 		$classes .= ' ' . $args['class'];
 	}
 
-	$icon      = ( $args['icon'] ) ? ' ' . trim( $args['icon'] ) : $defaults['icon'];
+	$icon      = ( $args['icon'] ) ? trim( $args['icon'] ) : $defaults['icon'];
 	$id        = ( $args['id'] ) ? $args['id'] : $defaults['id'];
 	$button    = ( $args['button'] ) ? $args['button'] : $defaults['button'];
 	$processed = false;
