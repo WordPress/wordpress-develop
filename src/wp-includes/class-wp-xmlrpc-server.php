@@ -2203,7 +2203,7 @@ class wp_xmlrpc_server extends IXR_Server {
 		$username       = $args[1];
 		$password       = $args[2];
 		$term_id        = (int) $args[3];
-		$content_struct = $args[4];
+		$content_struct = $args[4] ?? null;
 
 		$user = $this->login( $username, $password );
 		if ( ! $user ) {
@@ -2213,7 +2213,10 @@ class wp_xmlrpc_server extends IXR_Server {
 		/** This action is documented in wp-includes/class-wp-xmlrpc-server.php */
 		do_action( 'xmlrpc_call', 'wp.editTerm', $args, $this );
 
-		if ( ! taxonomy_exists( $content_struct['taxonomy'] ) ) {
+		if (
+			! is_array ( $content_struct )
+			|| ! taxonomy_exists( $content_struct['taxonomy'] )
+		) {
 			return new IXR_Error( 403, __( 'Invalid taxonomy.' ) );
 		}
 
