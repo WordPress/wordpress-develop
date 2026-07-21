@@ -69,7 +69,7 @@ class Tests_XMLRPC_wp_editTerm extends WP_XMLRPC_UnitTestCase {
 	}
 
 	/**
-	 * Ensures a missing content struct is rejected rather than causing a fatal error.
+	 * Ensures a missing content struct is rejected with an insufficient arguments error.
 	 *
 	 * @ticket 65682
 	 */
