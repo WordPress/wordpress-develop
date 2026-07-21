@@ -51,7 +51,7 @@ class Tests_Functions_wpFilesize extends WP_UnitTestCase {
 	 * @ticket 65670
 	 */
 	public function test_wp_filesize_pre_wp_filesize_filter_negative(): void {
-		add_filter( 'pre_wp_filesize', static fn() => -1 );
+		add_filter( 'pre_wp_filesize', static fn () => -1 );
 
 		$this->assertSame( filesize( self::TEST_FILE ), wp_filesize( self::TEST_FILE ) );
 	}
@@ -64,7 +64,7 @@ class Tests_Functions_wpFilesize extends WP_UnitTestCase {
 	 * @param mixed $value
 	 */
 	public function test_wp_filesize_wp_filesize_filter_invalid_value( $value ): void {
-		add_filter( 'wp_filesize', static fn() => $value );
+		add_filter( 'wp_filesize', static fn () => $value );
 		$this->assertSame( 0, wp_filesize( self::TEST_FILE ) );
 	}
 
