@@ -120,21 +120,6 @@ jQuery( function($) {
 	function updateTableNavCount( action ) {
 		var $displayingNum = $( '.tablenav-pages .displaying-num' ),
 			currentCount   = parseInt( $displayingNum.first().text().replace( /[^0-9]/g, '' ), 10 ) || 0,
-	/**
-	 * Updates the item count and table navigation after a tag is added or removed.
-	 *
-	 * Tags are added and removed client-side, but the item count, the `.tablenav`
-	 * regions, the search box, and the empty-state row are otherwise only
-	 * reconciled by PHP on a full page reload. This keeps them in sync.
-	 *
-	 * @param {string} [action] Pass 'add' when a tag was added. Any other value,
-	 *                          including none, is treated as a removal.
-	 *
-	 * @return {void}
-	 */
-	function updateTableNavCount( action ) {
-		var $displayingNum = $( '.tablenav-pages .displaying-num' ),
-			currentCount   = parseInt( $displayingNum.first().text().replace( /[^0-9]/g, '' ), 10 ) || 0,
 			itemCount      = ( 'add' === action ) ? currentCount + 1 : Math.max( currentCount - 1, 0 );
 
 		$displayingNum.text(
