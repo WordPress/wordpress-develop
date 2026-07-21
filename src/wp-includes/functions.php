@@ -3644,8 +3644,9 @@ function wp_get_ext_types() {
  *
  * @param string $path Path to the file.
  * @return int The size of the file in bytes, or 0 in the event of an error.
+ * @phpstan-return non-negative-int
  */
-function wp_filesize( $path ) {
+function wp_filesize( $path ): int {
 	/**
 	 * Filters the result of wp_filesize() before the file_exists() PHP function is run.
 	 *
@@ -3656,7 +3657,7 @@ function wp_filesize( $path ) {
 	 */
 	$size = apply_filters( 'pre_wp_filesize', null, $path );
 
-	if ( is_int( $size ) ) {
+	if ( is_int( $size ) && $size >= 0 ) {
 		return $size;
 	}
 
@@ -3670,7 +3671,8 @@ function wp_filesize( $path ) {
 	 * @param int    $size The result of PHP filesize on the file.
 	 * @param string $path Path to the file.
 	 */
-	return (int) apply_filters( 'wp_filesize', $size, $path );
+	$size = (int) apply_filters( 'wp_filesize', $size, $path );
+	return max( 0, $size );
 }
 
 /**
