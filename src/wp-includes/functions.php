@@ -3652,7 +3652,7 @@ function wp_filesize( $path ): int {
 	 *
 	 * @since 6.0.0
 	 *
-	 * @param null|int $size The unfiltered value. Returning an int from the callback bypasses the filesize call.
+	 * @param null|int $size The unfiltered value. Returning a non-negative int from the callback bypasses the filesize call.
 	 * @param string   $path Path to the file.
 	 */
 	$size = apply_filters( 'pre_wp_filesize', null, $path );
