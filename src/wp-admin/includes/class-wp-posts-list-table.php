@@ -1219,10 +1219,18 @@ class WP_Posts_List_Table extends WP_List_Table {
 				$hierarchy
 			);
 		} else {
+			$processor = new WP_HTML_Tag_Processor( $hierarchy );
+			if ( true === $processor->next_tag( 'span' ) ) {
+				$processor->remove_class( 'hidden' );
+				$processor->add_class( 'screen-reader-text' );
+				$hierarchy = $processor->get_updated_html();
+			}
+
 			printf(
-				'<span>%s%s</span>',
+				'%1$s<span>%2$s%3$s</span>',
 				$pad,
-				$title
+				$title,
+				$hierarchy,
 			);
 		}
 		_post_states( $post );
