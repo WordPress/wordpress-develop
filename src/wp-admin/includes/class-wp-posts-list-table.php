@@ -1194,7 +1194,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 					'<span id="%1$s" class="hidden">%2$s</span>',
 					esc_attr( $hierarchy_id ),
 					/* translators: %s: Parent post title. */
-					esc_html( sprintf( __( 'Child of %s' ), $parent_title ) )
+					esc_html( sprintf( __( 'Child of %s' ), wp_strip_all_tags( $parent_title ) ) )
 				);
 			}
 		}
