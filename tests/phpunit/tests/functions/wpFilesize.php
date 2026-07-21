@@ -57,11 +57,28 @@ class Tests_Functions_wpFilesize extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 65670
+	 *
+	 * @dataProvider data_wp_filesize_pre_wp_filesize_filter_negative
+	 *
+	 * @param float|int|string $value Negative value returned by the filter.
 	 */
-	public function test_wp_filesize_pre_wp_filesize_filter_negative(): void {
-		add_filter( 'pre_wp_filesize', static fn () => -1 );
+	public function test_wp_filesize_pre_wp_filesize_filter_negative( $value ): void {
+		add_filter( 'pre_wp_filesize', static fn () => $value );
 
 		$this->assertSame( filesize( self::TEST_FILE ), wp_filesize( self::TEST_FILE ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{ 0: float|int|string }>
+	 */
+	public function data_wp_filesize_pre_wp_filesize_filter_negative(): array {
+		return array(
+			'negative int'            => array( -1 ),
+			'negative numeric string' => array( '-1' ),
+			'negative float'          => array( -1.5 ),
+		);
 	}
 
 	/**
