@@ -559,7 +559,7 @@ EOF;
 	 * @ticket 65622
 	 *
 	 * @covers ::wp_filter_comment
-	 * @covers ::_wp_kses_allow_note_mention_attributes
+	 * @covers ::_wp_kses_allow_notes_attributes
 	 */
 	public function test_note_mention_markup_survives_note_content_sanitization() {
 		add_filter( 'pre_comment_content', 'wp_filter_kses' );
@@ -586,7 +586,7 @@ EOF;
 	 * @ticket 65622
 	 *
 	 * @covers ::wp_filter_comment
-	 * @covers ::_wp_kses_allow_note_mention_attributes
+	 * @covers ::_wp_kses_allow_notes_attributes
 	 */
 	public function test_note_mention_allows_only_class_on_note_links() {
 		add_filter( 'pre_comment_content', 'wp_filter_kses' );

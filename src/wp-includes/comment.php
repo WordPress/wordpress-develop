@@ -2224,12 +2224,12 @@ function wp_filter_comment( $commentdata ) {
 	 * allowlist would strip. The extended allowlist is attached only while
 	 * this note's content is filtered - never for other comment types - so
 	 * that the markup is not writable from regular (including anonymous)
-	 * comments. See _wp_kses_allow_note_mention_attributes().
+	 * comments. See _wp_kses_allow_notes_attributes().
 	 */
 	$is_note = isset( $commentdata['comment_type'] ) && 'note' === $commentdata['comment_type'];
 
 	if ( $is_note ) {
-		add_filter( 'wp_kses_allowed_html', '_wp_kses_allow_note_mention_attributes', 10, 2 );
+		add_filter( 'wp_kses_allowed_html', '_wp_kses_allow_notes_attributes', 10, 2 );
 	}
 
 	/**
@@ -2242,7 +2242,7 @@ function wp_filter_comment( $commentdata ) {
 	$commentdata['comment_content'] = apply_filters( 'pre_comment_content', $commentdata['comment_content'] );
 
 	if ( $is_note ) {
-		remove_filter( 'wp_kses_allowed_html', '_wp_kses_allow_note_mention_attributes' );
+		remove_filter( 'wp_kses_allowed_html', '_wp_kses_allow_notes_attributes' );
 	}
 	/**
 	 * Filters the comment author's IP address before it is set.

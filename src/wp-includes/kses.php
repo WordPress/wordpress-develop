@@ -1153,12 +1153,15 @@ function wp_kses_allowed_html( $context = '' ) {
  * @since 7.1.0
  * @access private
  *
- * @param array|string $allowed The allowed tags structure for the context.
- * @param string       $context The kses context.
- * @return array|string Modified allowed tags structure.
+ * @param array<string, array<string, bool>> $allowed The allowed tags structure for the context.
+ * @param string                             $context The kses context.
+ * @return array<string, array<string, bool>> Modified allowed tags structure.
  */
-function _wp_kses_allow_notes_attributes( $allowed, $context ) {
-	if ( 'pre_comment_content' !== $context || ! is_array( $allowed ) ) {
+function _wp_kses_allow_notes_attributes( $allowed, $context ): array {
+	if ( ! is_array( $allowed ) ) {
+		$allowed = array();
+	}
+	if ( 'pre_comment_content' !== $context ) {
 		return $allowed;
 	}
 
