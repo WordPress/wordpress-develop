@@ -1864,13 +1864,8 @@ function wp_ajax_hidden_columns() {
 function wp_ajax_meta_box_reordering() {
 	check_ajax_referer( 'screen-options-nonce', 'screenoptionnonce' );
 
-	$user = wp_get_current_user();
-	if ( ! $user ) {
-		wp_die( -1 );
-	}
-
 	$enabled = isset( $_POST['enabled'] ) && '1' === (string) $_POST['enabled'];
-	update_user_meta( $user->ID, 'meta_box_reordering', $enabled ? 'enabled' : 'disabled' );
+	update_user_option( get_current_user_id(), 'meta_box_reordering', $enabled ? 'enabled' : 'disabled' );
 
 	wp_die( 1 );
 }

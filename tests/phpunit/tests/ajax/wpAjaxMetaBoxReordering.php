@@ -35,7 +35,7 @@ class Tests_Ajax_wpAjaxMetaBoxReordering extends WP_Ajax_UnitTestCase {
 			unset( $e );
 		}
 
-		$this->assertSame( $expected, get_user_meta( get_current_user_id(), 'meta_box_reordering', true ) );
+		$this->assertSame( $expected, get_user_option( 'meta_box_reordering', get_current_user_id() ) );
 	}
 
 	/**

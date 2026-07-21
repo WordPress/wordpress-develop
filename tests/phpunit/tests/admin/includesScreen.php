@@ -269,7 +269,7 @@ class Tests_Admin_IncludesScreen extends WP_UnitTestCase {
 	public function test_meta_box_reordering_enabled_respects_user_option() {
 		$user_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
 		wp_set_current_user( $user_id );
-		update_user_meta( $user_id, 'meta_box_reordering', 'disabled' );
+		update_user_option( $user_id, 'meta_box_reordering', 'disabled' );
 
 		$this->assertFalse( wp_is_meta_box_reordering_enabled() );
 	}
@@ -278,13 +278,16 @@ class Tests_Admin_IncludesScreen extends WP_UnitTestCase {
 		global $wp_meta_boxes;
 
 		$old_wp_meta_boxes = $wp_meta_boxes;
-		$screen            = convert_to_screen( 'dashboard' );
+		set_current_screen( 'index.php' );
+		$screen = get_current_screen();
 
 		add_meta_box( 'testbox1', 'Test Metabox', '__return_false', $screen );
 
 		try {
+			$screen->show_screen_options();
+
 			ob_start();
-			$screen->render_meta_box_reordering_options();
+			$screen->render_screen_options();
 			$output = ob_get_clean();
 		} finally {
 			$wp_meta_boxes = $old_wp_meta_boxes;
@@ -293,6 +296,33 @@ class Tests_Admin_IncludesScreen extends WP_UnitTestCase {
 		$this->assertStringContainsString( 'id="meta-box-reordering"', $output );
 		$this->assertStringContainsString( 'Additional settings', $output );
 		$this->assertStringContainsString( 'Enable box reordering', $output );
+		$this->assertStringContainsString( 'Some screen elements can be shown or hidden by using the checkboxes.', $output );
+		$this->assertStringContainsString( 'Expand or collapse the elements by clicking on their headings, and arrange them by dragging their headings or by clicking on the up and down arrows.', $output );
+		$this->assertStringContainsString( 'Use the setting below to enable or disable box reordering.', $output );
+	}
+
+	public function test_meta_box_reordering_option_does_not_render_empty_additional_settings() {
+		global $wp_meta_boxes;
+
+		$old_wp_meta_boxes = $wp_meta_boxes;
+		set_current_screen( 'post.php' );
+		$screen = get_current_screen();
+
+		unset( $wp_meta_boxes[ $screen->id ] );
+
+		try {
+			$screen->show_screen_options();
+
+			ob_start();
+			$screen->render_screen_options();
+			$output = ob_get_clean();
+		} finally {
+			$wp_meta_boxes = $old_wp_meta_boxes;
+		}
+
+		$this->assertStringNotContainsString( 'additional-settings-prefs', $output );
+		$this->assertStringContainsString( '<fieldset class="editor-expand hidden">', $output );
+		$this->assertStringContainsString( 'Enable full-height editor and distraction-free functionality.', $output );
 	}
 
 	public function test_post_type_with_edit_prefix() {

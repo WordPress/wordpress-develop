@@ -1845,7 +1845,7 @@ $( function() {
 			$document.on( 'postbox-toggled', this.maybeDisableSortables );
 
 			// When the screen columns are changed, potentially disable sortables.
-			$( '#screen-options-wrap input' ).on( 'click', this.maybeDisableSortables );
+			$( '#screen-options-wrap input:not(.meta-box-reordering-toggle)' ).on( 'click', this.maybeDisableSortables );
 		},
 
 		/**

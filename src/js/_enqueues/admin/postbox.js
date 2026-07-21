@@ -476,40 +476,23 @@
 		 * @return {void}
 		 */
 		setMetaBoxReordering: function( enabled ) {
-			var $body = $( document.body ),
-				$orderButtons = $( '.postbox .handle-order-higher, .postbox .handle-order-lower' );
+			var $sortables = $( '.meta-box-sortables' );
 
 			this.metaBoxReorderingEnabled = !! enabled;
 
-			$body
-				.toggleClass( 'meta-box-reordering-enabled', this.metaBoxReorderingEnabled )
-				.toggleClass( 'meta-box-reordering-disabled', ! this.metaBoxReorderingEnabled );
-
-			if ( this.metaBoxReorderingEnabled ) {
-				$orderButtons
-					.prop( 'disabled', false )
-					.removeAttr( 'tabindex aria-hidden' );
-				this.updateOrderButtonsProperties();
-			} else {
-				$orderButtons
-					.prop( 'disabled', true )
-					.attr( {
-						'aria-hidden': 'true',
-						tabindex: '-1'
-					} );
-			}
+			$( document.body ).toggleClass( 'meta-box-reordering-disabled', ! this.metaBoxReorderingEnabled );
 
 			if ( window.wpResponsive && window.wpResponsive.maybeDisableSortables ) {
 				window.wpResponsive.maybeDisableSortables();
 				return;
 			}
 
-			try {
-				$( '.meta-box-sortables' )
+			if ( $sortables.hasClass( 'ui-sortable' ) ) {
+				$sortables
 					.sortable( this.metaBoxReorderingEnabled ? 'enable' : 'disable' )
 					.find( '.ui-sortable-handle' )
 						.toggleClass( 'is-non-sortable', ! this.metaBoxReorderingEnabled );
-			} catch ( e ) {}
+			}
 		},
 
 		/**
