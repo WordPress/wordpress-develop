@@ -465,6 +465,114 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 64567
+	 *
+	 * @covers WP_HTML_Tag_Processor::get_attribute_names_with_prefix
+	 */
+	public function test_get_attribute_names_with_prefix_finds_attribute_added_by_set_attribute_before_get_updated_html() {
+		$processor = new WP_HTML_Tag_Processor( '<div data-foo="bar">Test</div>' );
+		$processor->next_tag();
+		$processor->set_attribute( 'data-test-id', '14' );
+
+		$this->assertSame(
+			array( 'data-test-id', 'data-foo' ),
+			$processor->get_attribute_names_with_prefix( 'data-' ),
+			"Accessing attribute names doesn't find attribute added via set_attribute before get_updated_html() is called"
+		);
+	}
+
+	/**
+	 * @ticket 64567
+	 *
+	 * @covers WP_HTML_Tag_Processor::get_attribute_names_with_prefix
+	 */
+	public function test_get_attribute_names_with_prefix_finds_attribute_set_on_tag_with_no_original_attributes() {
+		$processor = new WP_HTML_Tag_Processor( '<div>' );
+		$processor->next_tag();
+		$processor->set_attribute( 'id', 'test' );
+
+		$this->assertSame(
+			array( 'id' ),
+			$processor->get_attribute_names_with_prefix( '' ),
+			"Accessing attribute names doesn't find an attribute added via set_attribute() on a tag with no original attributes, before get_updated_html() is called"
+		);
+	}
+
+	/**
+	 * @ticket 64567
+	 *
+	 * @covers WP_HTML_Tag_Processor::get_attribute_names_with_prefix
+	 */
+	public function test_get_attribute_names_with_prefix_excludes_attribute_removed_by_remove_attribute() {
+		$processor = new WP_HTML_Tag_Processor( '<div data-foo="bar" data-baz="quux">Test</div>' );
+		$processor->next_tag();
+		$processor->remove_attribute( 'data-foo' );
+
+		$this->assertSame(
+			array( 'data-baz' ),
+			$processor->get_attribute_names_with_prefix( 'data-' ),
+			"Accessing attribute names shouldn't find an attribute removed via remove_attribute(), before get_updated_html() is called"
+		);
+	}
+
+	/**
+	 * @ticket 64567
+	 *
+	 * @covers WP_HTML_Tag_Processor::get_attribute_names_with_prefix
+	 */
+	public function test_get_attribute_names_with_prefix_finds_class_attribute_created_by_add_class() {
+		$processor = new WP_HTML_Tag_Processor( '<div>Test</div>' );
+		$processor->next_tag();
+		$processor->add_class( 'main' );
+
+		$this->assertSame(
+			array( 'class' ),
+			$processor->get_attribute_names_with_prefix( 'c' ),
+			"Accessing attribute names doesn't find the class attribute created by add_class(), before get_updated_html() is called"
+		);
+	}
+
+	/**
+	 * @ticket 64567
+	 *
+	 * @covers WP_HTML_Tag_Processor::get_attribute_names_with_prefix
+	 */
+	public function test_get_attribute_names_with_prefix_excludes_class_attribute_emptied_by_remove_class() {
+		$processor = new WP_HTML_Tag_Processor( '<div class="main">Test</div>' );
+		$processor->next_tag();
+		$processor->remove_class( 'main' );
+
+		$this->assertSame(
+			array(),
+			$processor->get_attribute_names_with_prefix( 'c' ),
+			"Accessing attribute names shouldn't find the class attribute after remove_class() empties it, before get_updated_html() is called"
+		);
+	}
+
+	/**
+	 * @ticket 64567
+	 *
+	 * @covers WP_HTML_Tag_Processor::get_attribute_names_with_prefix
+	 */
+	public function test_get_attribute_names_with_prefix_orders_newly_added_attributes_to_match_get_updated_html() {
+		$processor = new WP_HTML_Tag_Processor( '<div>' );
+		$processor->next_tag();
+		$processor->set_attribute( 'zebra', '1' );
+		$processor->set_attribute( 'apple', '2' );
+
+		$this->assertSame(
+			array( 'apple', 'zebra' ),
+			$processor->get_attribute_names_with_prefix( '' ),
+			'Newly-added attribute names should be ordered as they will appear in the serialized output, not in call order'
+		);
+		$this->assertSame(
+			'<div apple="2" zebra="1">',
+			$processor->get_updated_html(),
+			'Sanity check: serialized attribute order should match the order asserted above'
+		);
+	}
+
+	/**
 	 * @ticket 56299
 	 *
 	 * @covers WP_HTML_Tag_Processor::__toString

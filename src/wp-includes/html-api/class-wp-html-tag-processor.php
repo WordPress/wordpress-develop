@@ -2966,15 +2966,44 @@ class WP_HTML_Tag_Processor {
 			return null;
 		}
 
-		$comparable = strtolower( $prefix );
+		$this->class_name_updates_to_attributes_updates();
+
+		$comparable      = strtolower( $prefix );
+		$candidate_names = array_merge( $this->newly_added_attribute_names(), array_keys( $this->attributes ) );
 
 		$matches = array();
-		foreach ( array_keys( $this->attributes ) as $attr_name ) {
-			if ( str_starts_with( $attr_name, $comparable ) ) {
+		foreach ( $candidate_names as $attr_name ) {
+			if (
+				str_starts_with( $attr_name, $comparable ) &&
+				null !== $this->get_enqueued_attribute_value( $attr_name )
+			) {
 				$matches[] = $attr_name;
 			}
 		}
 		return $matches;
+	}
+
+	/**
+	 * Returns the comparable names of attributes enqueued by `set_attribute()`
+	 * that were not present in the original input document.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @return string[] Comparable names of newly-added attributes.
+	 */
+	private function newly_added_attribute_names(): array {
+		$new_updates = array();
+		foreach ( $this->lexical_updates as $name => $update ) {
+			// The `modifiable text` key is reserved for enqueued text content updates, not an attribute name.
+			if ( is_string( $name ) && 'modifiable text' !== $name && ! isset( $this->attributes[ $name ] ) ) {
+				$new_updates[ $name ] = $update;
+			}
+		}
+
+		// Matches the order these attributes would appear in after `get_updated_html()`.
+		uasort( $new_updates, array( self::class, 'sort_start_ascending' ) );
+
+		return array_keys( $new_updates );
 	}
 
 	/**
