@@ -286,6 +286,28 @@ class Tests_Term_Query extends WP_UnitTestCase {
 	}
 
 	/**
+	 * The absence of a deprecation notice on PHP 8.1+ also shows that the issue is resolved.
+	 *
+	 * @ticket 65679
+	 */
+	public function test_orderby_null_should_not_throw_deprecation() {
+		register_taxonomy( 'wptests_tax_1', 'post' );
+
+		$terms = self::factory()->term->create_many( 2, array( 'taxonomy' => 'wptests_tax_1' ) );
+
+		$q = new WP_Term_Query(
+			array(
+				'taxonomy'   => 'wptests_tax_1',
+				'orderby'    => null,
+				'hide_empty' => false,
+				'fields'     => 'ids',
+			)
+		);
+
+		$this->assertSame( $terms, $q->terms );
+	}
+
+	/**
 	 * @ticket 37198
 	 */
 	public function test_object_ids_single() {
