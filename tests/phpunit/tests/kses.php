@@ -537,20 +537,29 @@ EOF;
 	}
 
 	/**
-	 * Tests that the 'pre_comment_content' context is not loosened by the note mention support.
-	 *
-	 * The note mention attributes must only be allowed while a `note` comment is
-	 * being filtered (see wp_filter_comment()), never in the comment content
-	 * context itself, which also sanitizes regular (including anonymous) comments.
+	 * Tests that the comment content context allows only the mention span beyond the defaults.
 	 *
 	 * @ticket 65622
 	 *
-	 * @covers ::wp_kses_allowed_html
+	 * @covers ::_wp_kses_allow_note_mention_span
 	 */
-	public function test_wp_kses_allowed_html_pre_comment_content_disallows_mention_attributes() {
+	public function test_wp_kses_allowed_html_pre_comment_content_allows_only_the_mention_span() {
 		global $allowedtags;
 
-		$this->assertSame( $allowedtags, wp_kses_allowed_html( 'pre_comment_content' ) );
+		$allowed = wp_kses_allowed_html( 'pre_comment_content' );
+
+		$this->assertSame(
+			array( 'class' => true ),
+			$allowed['span'],
+			'The mention span should be allowed in comment content.'
+		);
+
+		unset( $allowed['span'] );
+		$this->assertSame(
+			$allowedtags,
+			$allowed,
+			'Nothing beyond the mention span should be allowed on top of the default comment tags.'
+		);
 	}
 
 	/**
@@ -558,16 +567,125 @@ EOF;
 	 *
 	 * @ticket 65622
 	 *
-	 * @covers ::wp_filter_comment
-	 * @covers ::_wp_kses_allow_notes_attributes
+	 * @covers ::_wp_kses_allow_note_mention_span
+	 * @covers ::_wp_kses_sanitize_note_mention_classes
 	 */
 	public function test_note_mention_markup_survives_note_content_sanitization() {
 		add_filter( 'pre_comment_content', 'wp_filter_kses' );
 
+		$content  = 'Hello <span class="wp-note-mention user-2">@admin</span>!';
+		$filtered = wp_filter_comment( wp_slash( $this->get_mention_commentdata( 'note', $content ) ) );
+
+		remove_filter( 'pre_comment_content', 'wp_filter_kses' );
+
+		$this->assertSame( $content, wp_unslash( $filtered['comment_content'] ) );
+	}
+
+	/**
+	 * Tests that the mention markup also survives in regular comment content.
+	 *
+	 * The allowance is always on rather than scoped per comment type: the
+	 * mention markup is inert, so uniform sanitization avoids stateful
+	 * arming and disarming of kses filters around each note write.
+	 *
+	 * @ticket 65622
+	 *
+	 * @covers ::_wp_kses_allow_note_mention_span
+	 * @covers ::_wp_kses_sanitize_note_mention_classes
+	 */
+	public function test_note_mention_markup_survives_regular_comment_content_sanitization() {
+		add_filter( 'pre_comment_content', 'wp_filter_kses' );
+
+		$content  = 'Hello <span class="wp-note-mention user-2">@admin</span>!';
+		$filtered = wp_filter_comment( wp_slash( $this->get_mention_commentdata( 'comment', $content ) ) );
+
+		remove_filter( 'pre_comment_content', 'wp_filter_kses' );
+
+		$this->assertSame( $content, wp_unslash( $filtered['comment_content'] ) );
+	}
+
+	/**
+	 * Tests that span classes are reduced to the two mention tokens.
+	 *
+	 * @ticket 65622
+	 *
+	 * @covers ::_wp_kses_sanitize_note_mention_classes
+	 */
+	public function test_note_mention_span_classes_are_reduced_to_the_mention_tokens() {
+		add_filter( 'pre_comment_content', 'wp_filter_kses' );
+
+		$content  = 'Hello <span class="wp-note-mention user-2 is-destructive components-button">@admin</span>!';
+		$filtered = wp_filter_comment( wp_slash( $this->get_mention_commentdata( 'note', $content ) ) );
+
+		remove_filter( 'pre_comment_content', 'wp_filter_kses' );
+
+		$this->assertSame(
+			'Hello <span class="wp-note-mention user-2">@admin</span>!',
+			wp_unslash( $filtered['comment_content'] ),
+			'Class tokens beyond `wp-note-mention` and `user-N` should be stripped from spans.'
+		);
+	}
+
+	/**
+	 * Tests that the class attribute is removed when no mention tokens remain.
+	 *
+	 * @ticket 65622
+	 *
+	 * @covers ::_wp_kses_sanitize_note_mention_classes
+	 */
+	public function test_note_mention_class_attribute_removed_when_no_tokens_remain() {
+		add_filter( 'pre_comment_content', 'wp_filter_kses' );
+
+		$content  = 'Hello <span class="is-destructive user-0 user-x wp-note-mention-foo">there</span>!';
+		$filtered = wp_filter_comment( wp_slash( $this->get_mention_commentdata( 'comment', $content ) ) );
+
+		remove_filter( 'pre_comment_content', 'wp_filter_kses' );
+
+		// The HTML API leaves the removed attribute's surrounding whitespace
+		// in place, hence `<span >`.
+		$this->assertSame(
+			'Hello <span >there</span>!',
+			wp_unslash( $filtered['comment_content'] ),
+			'A span with no valid mention tokens should lose its class attribute entirely.'
+		);
+	}
+
+	/**
+	 * Tests that only the `class` attribute is allowed on mention spans.
+	 *
+	 * @ticket 65622
+	 *
+	 * @covers ::_wp_kses_allow_note_mention_span
+	 */
+	public function test_note_mention_allows_only_class_on_mention_spans() {
+		add_filter( 'pre_comment_content', 'wp_filter_kses' );
+
+		$content  = 'Hello <span class="wp-note-mention user-2" data-user-id="2" onclick="alert(1)" style="color:red" id="mention">@admin</span>!';
+		$filtered = wp_filter_comment( wp_slash( $this->get_mention_commentdata( 'note', $content ) ) );
+
+		remove_filter( 'pre_comment_content', 'wp_filter_kses' );
+
+		$this->assertSame(
+			'Hello <span class="wp-note-mention user-2">@admin</span>!',
+			wp_unslash( $filtered['comment_content'] ),
+			'Attributes beyond `class` should be stripped from spans.'
+		);
+	}
+
+	/**
+	 * Tests that `class` is still stripped from links in comment content.
+	 *
+	 * @ticket 65622
+	 *
+	 * @covers ::_wp_kses_allow_note_mention_span
+	 */
+	public function test_class_is_still_stripped_from_links_in_comment_content() {
+		add_filter( 'pre_comment_content', 'wp_filter_kses' );
+
 		/*
-		 * The mention href is external to the test site so that wp_rel_ugc()
-		 * - which applies to notes like any other comment - deterministically
-		 * appends `rel="nofollow ugc"`.
+		 * The href is external to the test site so that wp_rel_ugc() - which
+		 * applies to notes like any other comment - deterministically appends
+		 * `rel="nofollow ugc"`.
 		 */
 		$content  = 'Hello <a class="wp-note-mention user-2" href="https://example.com/author/admin/">@admin</a>!';
 		$filtered = wp_filter_comment( wp_slash( $this->get_mention_commentdata( 'note', $content ) ) );
@@ -575,76 +693,41 @@ EOF;
 		remove_filter( 'pre_comment_content', 'wp_filter_kses' );
 
 		$this->assertSame(
-			'Hello <a class="wp-note-mention user-2" href="https://example.com/author/admin/" rel="nofollow ugc">@admin</a>!',
-			wp_unslash( $filtered['comment_content'] )
-		);
-	}
-
-	/**
-	 * Tests that only the `class` attribute is allowed on note links beyond the defaults.
-	 *
-	 * @ticket 65622
-	 *
-	 * @covers ::wp_filter_comment
-	 * @covers ::_wp_kses_allow_notes_attributes
-	 */
-	public function test_note_mention_allows_only_class_on_note_links() {
-		$content = 'Hello <a class="wp-note-mention user-2" href="https://example.com/author/admin/" data-user-id="2" onclick="alert(1)" style="color:red">@admin</a>!';
-		add_filter( 'pre_comment_content', 'wp_filter_kses' );
-		$filtered = wp_filter_comment( wp_slash( $this->get_mention_commentdata( 'note', $content ) ) );
-
-		$this->assertSame(
-			'Hello <a class="wp-note-mention user-2" href="https://example.com/author/admin/" rel="nofollow ugc">@admin</a>!',
-			wp_unslash( $filtered['comment_content'] ),
-			'Attributes beyond `class` and the default link attributes should be stripped from note links.'
-		);
-	}
-
-	/**
-	 * Tests that the note mention markup is stripped from regular comment content.
-	 *
-	 * @ticket 65622
-	 *
-	 * @covers ::wp_filter_comment
-	 */
-	public function test_note_mention_markup_stripped_from_regular_comment_content() {
-		$content = 'Hello <a class="wp-note-mention user-2" href="https://example.com/author/admin/">@admin</a>!';
-		add_filter( 'pre_comment_content', 'wp_filter_kses' );
-		$filtered = wp_filter_comment( wp_slash( $this->get_mention_commentdata( 'comment', $content ) ) );
-
-		$this->assertSame(
-			'Hello <a href="https://example.com/author/admin/" rel="nofollow ugc">@admin</a>!',
-			wp_unslash( $filtered['comment_content'] )
-		);
-	}
-
-	/**
-	 * Tests that the note mention allowance does not leak beyond the note being filtered.
-	 *
-	 * @ticket 65622
-	 *
-	 * @covers ::wp_filter_comment
-	 */
-	public function test_note_mention_allowance_does_not_leak_after_note_filtering() {
-		global $allowedtags;
-
-		$content = 'Hello <a class="wp-note-mention user-2" href="https://example.com/author/admin/">@admin</a>!';
-		add_filter( 'pre_comment_content', 'wp_filter_kses' );
-		wp_filter_comment( wp_slash( $this->get_mention_commentdata( 'note', $content ) ) );
-
-		// A regular comment filtered after a note still gets the default rules.
-		$filtered = wp_filter_comment( wp_slash( $this->get_mention_commentdata( 'comment', $content ) ) );
-
-		$this->assertSame(
 			'Hello <a href="https://example.com/author/admin/" rel="nofollow ugc">@admin</a>!',
 			wp_unslash( $filtered['comment_content'] ),
-			'The mention classes should be stripped from a regular comment filtered after a note.'
+			'The class allowance is scoped to spans; links keep the default sanitization.'
 		);
-		$this->assertSame(
-			$allowedtags,
-			wp_kses_allowed_html( 'pre_comment_content' ),
-			'The comment content allowlist should be back to its default after a note is filtered.'
-		);
+	}
+
+	/**
+	 * Tests that the class reduction is skipped while the restrictive comment kses is inactive.
+	 *
+	 * Users with `unfiltered_html` are filtered through `wp_filter_post_kses`
+	 * (or not at all), where arbitrary classes are permitted; the mention
+	 * class reduction must not narrow what they can post.
+	 *
+	 * @ticket 65622
+	 *
+	 * @covers ::_wp_kses_sanitize_note_mention_classes
+	 */
+	public function test_note_mention_class_reduction_skipped_when_restrictive_kses_is_inactive() {
+		// kses_init() hooks wp_filter_kses by default in the test
+		// environment, so detach it to simulate the unfiltered_html setup.
+		$had_filter = remove_filter( 'pre_comment_content', 'wp_filter_kses' );
+
+		$content = 'Hello <span class="components-button is-destructive">there</span>!';
+
+		try {
+			$this->assertSame(
+				wp_slash( $content ),
+				_wp_kses_sanitize_note_mention_classes( wp_slash( $content ) ),
+				'Span classes should be left untouched when wp_filter_kses is not active.'
+			);
+		} finally {
+			if ( $had_filter ) {
+				add_filter( 'pre_comment_content', 'wp_filter_kses' );
+			}
+		}
 	}
 
 	/**

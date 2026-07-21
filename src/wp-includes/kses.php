@@ -1132,23 +1132,19 @@ function wp_kses_allowed_html( $context = '' ) {
 }
 
 /**
- * Allows the note mention markup in comment content.
+ * Allows the note mention chip markup in comment content.
  *
- * The notes `@` mention completer stores a mention as a link to the
- * mentioned user's author page, the `user-N` class carrying the mentioned
- * user's ID: `<a class="wp-note-mention user-N" href="…">@Name</a>`. The
- * default comment allowlist includes `a` but only its `href` and `title`
- * attributes, so for users without `unfiltered_html` the mention classes
- * would be stripped on save.
+ * The notes `@` mention completer stores a mention as a chip carrying the
+ * mentioned user's ID in a class token:
+ * `<span class="wp-note-mention user-N">@Name</span>`. The default comment
+ * allowlist does not allow `span` at all, so for users without
+ * `unfiltered_html` the mention would be stripped on save.
  *
- * This callback is deliberately not attached globally: `class` attributes are
- * CSS and JavaScript selector hooks, so allowing them in every comment would
- * extend what anonymous commenters can publish (for example, text disguised
- * by theme classes). Instead, wp_filter_comment() attaches it
- * around the 'pre_comment_content' filter only while a `note` comment is
- * being filtered. Notes can only be written by logged-in users who can edit
- * the post, and are never rendered on the front end, so the sanitization of
- * regular comments is unchanged.
+ * The allowance is deliberately narrow and always on: `span` is a
+ * semantics-free element and _wp_kses_sanitize_note_mention_classes()
+ * reduces its `class` to the two mention tokens right after kses runs, so
+ * regular (including anonymous) commenters gain nothing beyond the inert
+ * mention markup itself.
  *
  * @since 7.1.0
  * @access private
@@ -1157,7 +1153,7 @@ function wp_kses_allowed_html( $context = '' ) {
  * @param string                             $context The kses context.
  * @return array<string, array<string, bool>> Modified allowed tags structure.
  */
-function _wp_kses_allow_notes_attributes( $allowed, $context ): array {
+function _wp_kses_allow_note_mention_span( $allowed, $context ): array {
 	if ( ! is_array( $allowed ) ) {
 		$allowed = array();
 	}
@@ -1165,13 +1161,60 @@ function _wp_kses_allow_notes_attributes( $allowed, $context ): array {
 		return $allowed;
 	}
 
-	if ( ! isset( $allowed['a'] ) || ! is_array( $allowed['a'] ) ) {
-		$allowed['a'] = array();
+	if ( ! isset( $allowed['span'] ) || ! is_array( $allowed['span'] ) ) {
+		$allowed['span'] = array();
 	}
 
-	$allowed['a']['class'] = true;
+	$allowed['span']['class'] = true;
 
 	return $allowed;
+}
+
+/**
+ * Reduces `span` classes in comment content to the note mention tokens.
+ *
+ * _wp_kses_allow_note_mention_span() lets `class` through kses on `span` so
+ * the mention chip survives, but `class` is an open-ended styling and
+ * scripting hook, so this companion pass - running right after
+ * `wp_filter_kses` at priority 10 - strips every class token except the two
+ * the mention markup uses: `wp-note-mention` and `user-N`. `span` is the only
+ * comment tag allowed to carry `class` at all, so walking `span` tags covers
+ * the entire allowance.
+ *
+ * The pass only applies while the restrictive comment allowlist is active:
+ * users with `unfiltered_html` are filtered through `wp_filter_post_kses`
+ * (or not at all), where arbitrary classes are already permitted, and
+ * narrowing their markup here would restrict what core allows them to post.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param string $content Slashed comment content, already filtered by kses.
+ * @return string Slashed comment content with span classes reduced.
+ */
+function _wp_kses_sanitize_note_mention_classes( $content ) {
+	if ( ! is_string( $content ) || false === has_filter( 'pre_comment_content', 'wp_filter_kses' ) ) {
+		return $content;
+	}
+
+	$unslashed = wp_unslash( $content );
+
+	if ( ! str_contains( $unslashed, '<span' ) ) {
+		return $content;
+	}
+
+	$processor = new WP_HTML_Tag_Processor( $unslashed );
+
+	while ( $processor->next_tag( 'SPAN' ) ) {
+		foreach ( $processor->class_list() as $token ) {
+			if ( 'wp-note-mention' !== $token && ! preg_match( '/^user-[1-9][0-9]*$/', $token ) ) {
+				// Removing the last class also removes the attribute itself.
+				$processor->remove_class( $token );
+			}
+		}
+	}
+
+	return wp_slash( $processor->get_updated_html() );
 }
 
 /**

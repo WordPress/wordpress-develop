@@ -2186,7 +2186,6 @@ function wp_insert_comment( $commentdata ) {
  * filtering the same comment more than once.
  *
  * @since 2.0.0
- * @since 7.1.0 The note mention attributes are allowed in the content of `note` comments.
  *
  * @param array $commentdata Contains information on the comment.
  * @return array Parsed comment information.
@@ -2219,19 +2218,6 @@ function wp_filter_comment( $commentdata ) {
 	$commentdata['comment_agent'] = apply_filters( 'pre_comment_user_agent', ( $commentdata['comment_agent'] ?? '' ) );
 	/** This filter is documented in wp-includes/comment.php */
 	$commentdata['comment_author'] = apply_filters( 'pre_comment_author_name', $commentdata['comment_author'] );
-	/*
-	 * Notes may contain `@` mention markup that the default comment kses
-	 * allowlist would strip. The extended allowlist is attached only while
-	 * this note's content is filtered - never for other comment types - so
-	 * that the markup is not writable from regular (including anonymous)
-	 * comments. See _wp_kses_allow_notes_attributes().
-	 */
-	$is_note = isset( $commentdata['comment_type'] ) && 'note' === $commentdata['comment_type'];
-
-	if ( $is_note ) {
-		add_filter( 'wp_kses_allowed_html', '_wp_kses_allow_notes_attributes', 10, 2 );
-	}
-
 	/**
 	 * Filters the comment content before it is set.
 	 *
@@ -2240,10 +2226,6 @@ function wp_filter_comment( $commentdata ) {
 	 * @param string $comment_content The comment content.
 	 */
 	$commentdata['comment_content'] = apply_filters( 'pre_comment_content', $commentdata['comment_content'] );
-
-	if ( $is_note ) {
-		remove_filter( 'wp_kses_allowed_html', '_wp_kses_allow_notes_attributes' );
-	}
 	/**
 	 * Filters the comment author's IP address before it is set.
 	 *
