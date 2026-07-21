@@ -98,6 +98,17 @@ class Tests_General_wpGetTooltip extends WP_UnitTestCase {
 
 		$this->assertStringContainsString( 'aria-expanded="false"', $html, 'String contains attribute not supported in function.' );
 		$this->assertStringNotContainsString( 'dashicons', $html, 'String does not contain content of default button.' );
+
+		$html2 = wp_get_tooltip(
+			'Helpful text.',
+			array(
+				'button' => '<a href="#">Contains text</a>',
+			)
+		);
+
+		$this->assertStringContainsString( '<a ', $html2, 'String contains anchor element.' );
+		$this->assertStringNotContainsString( '<button', $html2, 'String does not contain button element.' );
+	
 	}
 
 	/**

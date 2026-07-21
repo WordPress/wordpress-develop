@@ -497,6 +497,9 @@ function wp_get_tooltip_helper( $content, $args = array() ) {
 			$processor->set_attribute( 'aria-haspopup', 'dialog' );
 		}
 		$button = $processor->get_updated_html();
+	} elseif ( $processor->next_tag( 'a' ) && 'tooltip' === $args['type'] ) {
+		$processor->add_class( 'wp-tooltip__toggle' );
+		$button = $processor->get_updated_html();
 	} else {
 		// If the passed content does not contain a button, use default.
 		$button = $defaults['button'];
