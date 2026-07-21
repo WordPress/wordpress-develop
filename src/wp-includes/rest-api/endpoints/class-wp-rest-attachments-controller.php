@@ -1707,7 +1707,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 
 		$schema['properties']['filesize'] = array(
 			'description' => __( 'Attachment file size in bytes.' ),
-			'type'        => 'integer',
+			'type'        => array( 'integer', 'null' ),
 			'context'     => array( 'view', 'edit' ),
 			'readonly'    => true,
 		);
