@@ -1023,7 +1023,10 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		);
 		$this->assertIsInt( $attachment_id );
 
-		wp_update_attachment_metadata( $attachment_id, array( 'filesize' => '123456' ) );
+		$meta             = wp_get_attachment_metadata( $attachment_id );
+		$meta             = is_array( $meta ) ? $meta : array();
+		$meta['filesize'] = '123456';
+		$this->assertNotFalse( wp_update_attachment_metadata( $attachment_id, $meta ) );
 
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/media/' . $attachment_id );
 		$response = rest_get_server()->dispatch( $request );
@@ -1054,7 +1057,10 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		);
 		$this->assertIsInt( $attachment_id );
 
-		wp_update_attachment_metadata( $attachment_id, array( 'filesize' => $filesize ) );
+		$meta             = wp_get_attachment_metadata( $attachment_id );
+		$meta             = is_array( $meta ) ? $meta : array();
+		$meta['filesize'] = $filesize;
+		$this->assertNotFalse( wp_update_attachment_metadata( $attachment_id, $meta ) );
 
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/media/' . $attachment_id );
 		$response = rest_get_server()->dispatch( $request );
