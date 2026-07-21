@@ -1375,7 +1375,7 @@ function do_meta_boxes( $screen, $context, $data_object ) {
 					echo '<div id="' . $box['id'] . '" class="postbox ' . postbox_classes( $box['id'], $page ) . $hidden_class . '" ' . ' role="region" aria-label="' . esc_attr( wp_strip_all_tags( $box['title'] ) ) . '">' . "\n";
 
 					echo '<div class="postbox-header">';
-					echo '<h2 class="hndle">';
+					echo '<h2 class="hndle" id="' . $box['id'] . '-title">';
 					if ( 'dashboard_php_nag' === $box['id'] ) {
 						echo '<span aria-hidden="true" class="dashicons dashicons-warning"></span>';
 						echo '<span class="screen-reader-text">' .
@@ -1397,7 +1397,7 @@ function do_meta_boxes( $screen, $context, $data_object ) {
 
 						echo '<div class="handle-actions hide-if-no-js">';
 
-						$move_up_button = '<button type="button" class="handle-order-higher" aria-describedby="' . $box['id'] . '">
+						$move_up_button = '<button type="button" class="handle-order-higher" aria-describedby="' . $box['id'] . '-title">
 							<span class="screen-reader-text">' . __( 'Move up' ) . '</span>
 							<span class="order-higher-indicator" aria-hidden="true"></span>
 						</button>';
@@ -1407,7 +1407,7 @@ function do_meta_boxes( $screen, $context, $data_object ) {
 						);
 						echo wp_get_tooltip( __( 'Move up' ), $move_up_args );
 
-						$move_down_button = '<button type="button" class="handle-order-lower" aria-describedby="' . $box['id'] . '">
+						$move_down_button = '<button type="button" class="handle-order-lower" aria-describedby="' . $box['id'] . '-title">
 							<span class="screen-reader-text">' . __( 'Move down' ) . '</span>
 							<span class="order-lower-indicator" aria-hidden="true"></span>
 						</button>';
@@ -1417,7 +1417,7 @@ function do_meta_boxes( $screen, $context, $data_object ) {
 						);
 						echo wp_get_tooltip( __( 'Move down' ), $move_down_args );
 
-						$show_hide_button = '<button type="button" class="handlediv" aria-expanded="true" aria-describedby="' . $box['id'] . '">
+						$show_hide_button = '<button type="button" class="handlediv" aria-expanded="true" aria-describedby="' . $box['id'] . '-title">
 							<span class="screen-reader-text">' . __( 'Show or hide panel' ) . '</span>
 							<span class="toggle-indicator" aria-hidden="true"></span>
 						</button>';
