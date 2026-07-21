@@ -3639,6 +3639,7 @@ function wp_get_ext_types() {
  * Wrapper for PHP filesize with filters and casting the result as an integer.
  *
  * @since 6.0.0
+ * @since 7.1.0 The minimum integer now returnable is zero.
  *
  * @link https://www.php.net/manual/en/function.filesize.php
  *
@@ -3651,6 +3652,7 @@ function wp_filesize( $path ): int {
 	 * Filters the result of wp_filesize() before the file_exists() PHP function is run.
 	 *
 	 * @since 6.0.0
+	 * @since 7.1.0 Negative values are now ignored, being treated the same as null.
 	 *
 	 * @param null|int $size The unfiltered value. Returning a non-negative int from the callback bypasses the filesize call.
 	 * @param string   $path Path to the file.
@@ -3667,11 +3669,17 @@ function wp_filesize( $path ): int {
 	 * Filters the size of the file.
 	 *
 	 * @since 6.0.0
+	 * @since 7.1.0 Negative numbers are discarded in favor of zero.
 	 *
 	 * @param int    $size The result of PHP filesize on the file.
 	 * @param string $path Path to the file.
 	 */
-	$size = (int) apply_filters( 'wp_filesize', $size, $path );
+	$size = apply_filters( 'wp_filesize', $size, $path );
+	if ( is_numeric( $size ) ) {
+		$size = (int) $size;
+	} else {
+		$size = 0;
+	}
 	return max( 0, $size );
 }
 
