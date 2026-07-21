@@ -2369,9 +2369,13 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		 * value (including a digit-only string, as stored by some plugins).
 		 * Fall through to recompute the size from the file otherwise.
 		 */
-		if ( isset( $meta['filesize'] )
-			&& ( is_int( $meta['filesize'] ) || ( is_string( $meta['filesize'] ) && ctype_digit( $meta['filesize'] ) ) )
-			&& $meta['filesize'] > 0
+		if (
+			isset( $meta['filesize'] ) &&
+			(
+				is_int( $meta['filesize'] ) ||
+				( is_string( $meta['filesize'] ) && ctype_digit( $meta['filesize'] ) )
+			) &&
+			$meta['filesize'] > 0
 		) {
 			return (int) $meta['filesize'];
 		}
