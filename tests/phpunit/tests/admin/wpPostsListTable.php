@@ -216,7 +216,7 @@ class Tests_Admin_wpPostsListTable extends WP_UnitTestCase {
 		$expected = sprintf(
 			'<span aria-hidden="true">&#8212;</span> ' .
 			'<a class="row-title" href="%1$s" aria-describedby="post-hierarchy-%2$d">Child 1</a>' .
-			'<span id="post-hierarchy-%2$d" class="hidden">Child of Top Level Page 1</span>',
+			'<span id="post-hierarchy-%2$d" class="hidden"> Child of Top Level Page 1</span>',
 			get_edit_post_link( self::$children[1][1]->ID ),
 			self::$children[1][1]->ID
 		);
@@ -248,7 +248,7 @@ class Tests_Admin_wpPostsListTable extends WP_UnitTestCase {
 			$output
 		);
 		$this->assertStringNotContainsString( 'aria-describedby="post-hierarchy-', $output );
-		$this->assertStringNotContainsString( 'class="hidden">Child of ', $output );
+		$this->assertStringNotContainsString( 'class="hidden"> Child of ', $output );
 	}
 
 	/**
