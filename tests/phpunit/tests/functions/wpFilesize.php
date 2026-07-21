@@ -20,15 +20,20 @@ class Tests_Functions_wpFilesize extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 49412
+	 * @ticket 65670
 	 */
 	public function test_wp_filesize_filters(): void {
 		add_filter( 'wp_filesize', static fn () => 999 );
-
 		$this->assertSame( 999, wp_filesize( self::TEST_FILE ) );
 
-		add_filter( 'pre_wp_filesize', static fn () => 111 );
+		add_filter( 'wp_filesize', static fn () => '9991', 100 );
+		$this->assertSame( 9991, wp_filesize( self::TEST_FILE ) );
 
+		add_filter( 'pre_wp_filesize', static fn () => 111 );
 		$this->assertSame( 111, wp_filesize( self::TEST_FILE ) );
+
+		add_filter( 'pre_wp_filesize', static fn () => '2222', 100 );
+		$this->assertSame( 2222, wp_filesize( self::TEST_FILE ) );
 	}
 
 	/**
