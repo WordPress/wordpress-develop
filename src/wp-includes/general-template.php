@@ -426,7 +426,7 @@ function wp_get_tooltip( $content, $args = array() ) {
  * }
  * @return string Tooltip HTML markup, or an empty string when no content is provided.
  */
-function wp_get_toggletip( $content, $args ) {
+function wp_get_toggletip( $content, $args = array() ) {
 	$args['type'] = 'toggletip';
 	return wp_get_tooltip_helper( $content, $args );
 }
