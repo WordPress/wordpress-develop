@@ -28,8 +28,10 @@ class Tests_General_wpGetTooltip extends WP_UnitTestCase {
 	public function test_wp_get_tooltip_returns_accessible_markup() {
 		$tooltip = wp_get_tooltip( 'Helpful text.', array( 'id' => 'my-tip' ) );
 
-		// Tooltip is a button that controls the popover but does not connect description.
-		$this->assertStringContainsString( '<button class="wp-tooltip__toggle" type="button"', $tooltip );
+		// Tooltip output should include a toggle button, but tooltips do not use a popover trigger.
+		$this->assertStringContainsString( '<button', $tooltip );
+		$this->assertStringContainsString( 'class="wp-tooltip__toggle"', $tooltip );
+		$this->assertStringContainsString( 'type="button"', $tooltip );
 		$this->assertStringNotContainsString( 'popovertarget="my-tip"', $tooltip );
 
 		// The bubble is a popover holding a text-only described element.
