@@ -63,9 +63,10 @@ class Tests_Ajax_widgetsOrder extends WP_Ajax_UnitTestCase {
 
 		try {
 			$updated_sidebars = wp_get_sidebars_widgets();
-			$this->assertContains( 'text-1', $updated_sidebars['sidebar-1'] );
-			$this->assertContains( 'text-2', $updated_sidebars['sidebar-1'] );
-			$this->assertContains( 'search-1', $updated_sidebars['sidebar-2'] );
+			$this->assertArrayHasKey( 'sidebar-1', $updated_sidebars );
+			$this->assertArrayHasKey( 'sidebar-2', $updated_sidebars );
+			$this->assertSame( array( 'text-1', 'text-2' ), array_values( $updated_sidebars['sidebar-1'] ) );
+			$this->assertSame( array( 'search-1' ), array_values( $updated_sidebars['sidebar-2'] ) );
 		} finally {
 			wp_set_sidebars_widgets( $original_sidebars );
 		}
