@@ -2359,15 +2359,21 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	 *
 	 * @param int $attachment_id Attachment ID.
 	 * @return int|null Attachment file size in bytes, or null if not available.
+	 *
+	 * @phpstan-return non-negative-int|null
 	 */
 	protected function get_attachment_filesize( int $attachment_id ): ?int {
 		$meta = wp_get_attachment_metadata( $attachment_id );
 
 		/*
-		 * Only trust numeric values, and fall through to
-		 * recompute the size from the file otherwise.
+		 * Attachment metadata is untyped, so only trust a positive integer
+		 * value (including a digit-only string, as stored by some plugins).
+		 * Fall through to recompute the size from the file otherwise.
 		 */
-		if ( isset( $meta['filesize'] ) && is_numeric( $meta['filesize'] ) ) {
+		if ( isset( $meta['filesize'] )
+			&& ( is_int( $meta['filesize'] ) || ctype_digit( $meta['filesize'] ) )
+			&& $meta['filesize'] > 0
+		) {
 			return (int) $meta['filesize'];
 		}
 

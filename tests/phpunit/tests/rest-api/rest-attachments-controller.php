@@ -1035,12 +1035,17 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	}
 
 	/**
-	 * Ensures a non-numeric `filesize` in attachment metadata does not cause a
-	 * fatal TypeError, falling back to the actual file size.
+	 * Ensures a `filesize` metadata value that is not a positive integer does
+	 * not cause a fatal TypeError or a silently truncated size, falling back to
+	 * the actual file size instead.
 	 *
 	 * @ticket 65670
+	 *
+	 * @dataProvider data_invalid_filesize_meta
+	 *
+	 * @param mixed $filesize Invalid `filesize` metadata value.
 	 */
-	public function test_get_item_recovers_from_non_numeric_filesize_meta() {
+	public function test_get_item_recovers_from_invalid_filesize_meta( $filesize ) {
 		$attachment_id = self::factory()->attachment->create_object(
 			array(
 				'file'           => self::$test_file,
@@ -1049,7 +1054,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		);
 		$this->assertIsInt( $attachment_id );
 
-		wp_update_attachment_metadata( $attachment_id, array( 'filesize' => 'corrupt' ) );
+		wp_update_attachment_metadata( $attachment_id, array( 'filesize' => $filesize ) );
 
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/media/' . $attachment_id );
 		$response = rest_get_server()->dispatch( $request );
@@ -1059,6 +1064,23 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$this->assertSame( 200, $response->get_status() );
 		$this->assertIsInt( $data['filesize'] );
 		$this->assertSame( filesize( self::$test_file ), $data['filesize'] );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_invalid_filesize_meta() {
+		return array(
+			'non-numeric string'      => array( 'corrupt' ),
+			'float string'            => array( '123.4' ),
+			'scientific notation'     => array( '1e3' ),
+			'zero'                    => array( 0 ),
+			'zero string'             => array( '0' ),
+			'negative integer'        => array( -5 ),
+			'negative integer string' => array( '-5' ),
+		);
 	}
 
 	/**
