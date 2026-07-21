@@ -93,8 +93,8 @@ class Tests_Canonical_ChangePassword extends WP_UnitTestCase {
 	 */
 	public function test_wp_change_password_url_filter() {
 		$custom_url = 'https://example.com/my-account/change-password/';
+		$filter     = static fn() => $custom_url;
 
-		$filter = static fn() => $custom_url;
 		add_filter( 'wp_change_password_url', $filter );
 		$redirect = $this->get_redirect_for( '/.well-known/change-password' );
 		remove_filter( 'wp_change_password_url', $filter );
