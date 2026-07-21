@@ -217,6 +217,8 @@ function get_approved_comments( $post_id, $args = array() ) {
  * comment variable will be used, if it is set.
  *
  * @since 2.0.0
+ * @since 7.1.0 Only numeric values are now treated as comment IDs; other unrecognized values
+ *              return null instead of being cast to an integer ID.
  *
  * @global WP_Comment $comment Global comment object.
  *

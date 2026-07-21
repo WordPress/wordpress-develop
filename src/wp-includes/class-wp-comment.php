@@ -310,6 +310,8 @@ final class WP_Comment {
 	 * Gets the children of a comment.
 	 *
 	 * @since 4.4.0
+	 * @since 7.1.0 A `count` or `fields` query now returns its result directly rather than
+	 *              erroneously storing it in the comment's children cache.
 	 *
 	 * @param array $args {
 	 *     Array of arguments used to pass to {@see get_comments()} and determine format.
