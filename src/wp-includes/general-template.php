@@ -490,6 +490,7 @@ function wp_get_tooltip_helper( $content, $args = array() ) {
 	$icon      = ( $args['icon'] ) ? ' ' . trim( $args['icon'] ) : $defaults['icon'];
 	$id        = ( $args['id'] ) ? $args['id'] : $defaults['id'];
 	$button    = ( $args['button'] ) ? $args['button'] : $defaults['button'];
+	$processed = false;
 	$processor = new WP_HTML_Tag_Processor( $button );
 	if ( true === $processor->next_tag( 'button' ) ) {
 		$processor->add_class( 'wp-tooltip__toggle' );
@@ -497,15 +498,28 @@ function wp_get_tooltip_helper( $content, $args = array() ) {
 			$processor->set_attribute( 'popovertarget', '%2$s' );
 			$processor->set_attribute( 'aria-haspopup', 'dialog' );
 		}
-		$button = $processor->get_updated_html();
+		$button    = $processor->get_updated_html();
+		$processed = true;
 	} else {
 		// Reset processor.
 		$processor = new WP_HTML_Tag_Processor( $button );
 		if ( true === $processor->next_tag( 'a' ) && 'tooltip' === $args['type'] ) {
 			$processor->add_class( 'wp-tooltip__toggle' );
-			$button = $processor->get_updated_html();
+			$button    = $processor->get_updated_html();
+			$processed = true;
 		}
 	}
+	if ( ! $processed ) {
+		// Button HTML passed was not valid.
+		$processor = new WP_HTML_Tag_Processor( $defaults['button'] );
+		$processor->add_class( 'wp-tooltip__toggle' );
+		if ( 'tooltip' !== $args['type'] ) {
+			$processor->set_attribute( 'popovertarget', '%2$s' );
+			$processor->set_attribute( 'aria-haspopup', 'dialog' );
+		}
+		$button = $processor->get_updated_html();
+	}
+
 	/*
 	 * The markup only uses phrasing content so it is valid when nested
 	 * in a phrasing context. Sectioning content (e.g. `div`, `dialog`) will
