@@ -1191,7 +1191,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 				$hierarchy_id      = 'post-hierarchy-' . $post->ID;
 				$described_by_attr = sprintf( ' aria-describedby="%s"', esc_attr( $hierarchy_id ) );
 				$hierarchy         = sprintf(
-					'<span id="%1$s" class="hidden">%2$s</span>',
+					'<span id="%1$s" class="hidden"> %2$s</span>',
 					esc_attr( $hierarchy_id ),
 					/* translators: %s: Parent post title. */
 					esc_html( sprintf( __( 'Child of %s' ), wp_strip_all_tags( $parent_title ) ) )
