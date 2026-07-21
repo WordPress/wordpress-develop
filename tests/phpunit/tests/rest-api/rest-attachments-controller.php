@@ -1016,12 +1016,12 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	 */
 	public function test_get_item_normalizes_numeric_string_filesize_meta() {
 		$attachment_id = self::factory()->attachment->create_object(
-			self::$test_file,
-			0,
 			array(
+				'file'           => self::$test_file,
 				'post_mime_type' => 'image/jpeg',
 			)
 		);
+		$this->assertIsInt( $attachment_id );
 
 		wp_update_attachment_metadata( $attachment_id, array( 'filesize' => '123456' ) );
 
@@ -1029,6 +1029,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 
+		$this->assertIsArray( $data );
 		$this->assertSame( 200, $response->get_status() );
 		$this->assertSame( 123456, $data['filesize'] );
 	}
@@ -1041,12 +1042,12 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	 */
 	public function test_get_item_recovers_from_non_numeric_filesize_meta() {
 		$attachment_id = self::factory()->attachment->create_object(
-			self::$test_file,
-			0,
 			array(
+				'file'           => self::$test_file,
 				'post_mime_type' => 'image/jpeg',
 			)
 		);
+		$this->assertIsInt( $attachment_id );
 
 		wp_update_attachment_metadata( $attachment_id, array( 'filesize' => 'corrupt' ) );
 
@@ -1054,6 +1055,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 
+		$this->assertIsArray( $data );
 		$this->assertSame( 200, $response->get_status() );
 		$this->assertIsInt( $data['filesize'] );
 		$this->assertSame( filesize( self::$test_file ), $data['filesize'] );
@@ -1072,6 +1074,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 			),
 			self::$test_file
 		);
+		$this->assertIsInt( $attachment_id );
 
 		add_image_size( 'rest-api-test', 119, 119, true );
 		wp_update_attachment_metadata( $attachment_id, wp_generate_attachment_metadata( $attachment_id, self::$test_file ) );
