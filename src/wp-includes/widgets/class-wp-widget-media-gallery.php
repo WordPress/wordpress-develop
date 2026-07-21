@@ -255,7 +255,7 @@ class WP_Widget_Media_Gallery extends WP_Widget_Media {
 
 		return array_all(
 			$attachments,
-			fn( $attachment ) =>  'attachment' === get_post_type( $attachment )
+			fn( $attachment ) => 'attachment' === get_post_type( $attachment )
 		);
 	}
 }
