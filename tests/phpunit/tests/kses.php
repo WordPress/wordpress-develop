@@ -641,11 +641,12 @@ EOF;
 
 		remove_filter( 'pre_comment_content', 'wp_filter_kses' );
 
-		// The HTML API leaves the removed attribute's surrounding whitespace
-		// in place, hence `<span >`.
-		$this->assertSame(
-			'Hello <span >there</span>!',
+		// Markup-equivalence assertion: the HTML API's whitespace handling
+		// when removing the final attribute is not part of its contract.
+		$this->assertEqualHTML(
+			'Hello <span>there</span>!',
 			wp_unslash( $filtered['comment_content'] ),
+			'<body>',
 			'A span with no valid mention tokens should lose its class attribute entirely.'
 		);
 	}
