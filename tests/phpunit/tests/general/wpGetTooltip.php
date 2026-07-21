@@ -138,11 +138,11 @@ class Tests_General_wpGetTooltip extends WP_UnitTestCase {
 
 	/**
 	 * Tests that a generated ID is used when none is supplied, and that the
-	 * describedby target matches the bubble ID.
+	 * popovertarget matches the bubble ID.
 	 *
 	 * @ticket 55343
 	 */
-	public function test_wp_get_tooltip_generates_unique_id() {
+	public function test_wp_get_toggletip_generates_unique_id() {
 		$args = array(
 			'label'       => 'About this field',
 			'close_label' => 'Dismiss',
