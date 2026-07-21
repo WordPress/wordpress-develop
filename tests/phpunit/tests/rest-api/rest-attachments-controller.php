@@ -1076,6 +1076,8 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 			'non-numeric string'      => array( 'corrupt' ),
 			'float string'            => array( '123.4' ),
 			'scientific notation'     => array( '1e3' ),
+			'float'                   => array( 123.0 ),
+			'boolean'                 => array( true ),
 			'zero'                    => array( 0 ),
 			'zero string'             => array( '0' ),
 			'negative integer'        => array( -5 ),
