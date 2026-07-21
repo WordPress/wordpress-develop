@@ -16,7 +16,7 @@ require_once ABSPATH . 'wp-admin/includes/ajax-actions.php';
  *
  * @covers ::wp_ajax_widgets_order
  */
-class Tests_wp_ajax_widgets_order extends WP_Ajax_UnitTestCase {
+class Tests_Ajax_widgetsOrder extends WP_Ajax_UnitTestCase {
 
 	/**
 	 * Administrator user ID.
