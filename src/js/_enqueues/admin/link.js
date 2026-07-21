@@ -30,7 +30,7 @@ jQuery( function($) {
 			$(this).attr( 'aria-selected', 'true' ).removeAttr( 'tabindex' );
 			$(this).parent().addClass('tabs').siblings('li').removeClass('tabs');
 			$('.tabs-panel').hide();
-			$( '#' + t ).show();
+			$( document.getElementById( t ) ).show();
 			if ( 'categories-all' === t ) {
 				deleteUserSetting('cats');
 			} else {
