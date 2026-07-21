@@ -34,6 +34,9 @@ class Tests_Functions_wpFilesize extends WP_UnitTestCase {
 
 		add_filter( 'pre_wp_filesize', static fn () => '2222', 100 );
 		$this->assertSame( 2222, wp_filesize( self::TEST_FILE ) );
+
+		add_filter( 'pre_wp_filesize', static fn () => -100, 200 );
+		$this->assertSame( 9991, wp_filesize( self::TEST_FILE ) );
 	}
 
 	/**
