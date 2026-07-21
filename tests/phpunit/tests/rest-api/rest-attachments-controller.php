@@ -1069,7 +1069,10 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$this->assertIsArray( $data );
 		$this->assertSame( 200, $response->get_status() );
 		$this->assertIsInt( $data['filesize'] );
-		$this->assertSame( filesize( self::$test_file ), $data['filesize'] );
+		$attached_file = wp_get_original_image_path( $attachment_id );
+		$attached_file = $attached_file ? $attached_file : get_attached_file( $attachment_id );
+		$this->assertIsString( $attached_file );
+		$this->assertSame( filesize( $attached_file ), $data['filesize'] );
 	}
 
 	/**
