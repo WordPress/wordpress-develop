@@ -108,7 +108,6 @@ class Tests_General_wpGetTooltip extends WP_UnitTestCase {
 
 		$this->assertStringContainsString( '<a ', $html2, 'String contains anchor element.' );
 		$this->assertStringNotContainsString( '<button', $html2, 'String does not contain button element.' );
-	
 	}
 
 	/**
