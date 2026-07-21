@@ -11,6 +11,13 @@
 class Tests_Canonical_ChangePassword extends WP_UnitTestCase {
 
 	/**
+	 * Whether REQUEST_URI was set before the test.
+	 *
+	 * @var bool
+	 */
+	private $request_uri_was_set;
+
+	/**
 	 * Original REQUEST_URI value.
 	 *
 	 * @var string
@@ -19,12 +26,17 @@ class Tests_Canonical_ChangePassword extends WP_UnitTestCase {
 
 	public function set_up() {
 		parent::set_up();
+		$this->request_uri_was_set  = isset( $_SERVER['REQUEST_URI'] );
 		$this->original_request_uri = $_SERVER['REQUEST_URI'] ?? '';
 		$this->set_permalink_structure( '/%postname%/' );
 	}
 
 	public function tear_down() {
-		$_SERVER['REQUEST_URI'] = $this->original_request_uri;
+		if ( $this->request_uri_was_set ) {
+			$_SERVER['REQUEST_URI'] = $this->original_request_uri;
+		} else {
+			unset( $_SERVER['REQUEST_URI'] );
+		}
 		parent::tear_down();
 	}
 
@@ -39,6 +51,7 @@ class Tests_Canonical_ChangePassword extends WP_UnitTestCase {
 		$_SERVER['REQUEST_URI'] = $request_uri;
 
 		global $wp_query;
+		$original_is_404  = $wp_query->is_404;
 		$wp_query->is_404 = true;
 
 		$captured = null;
@@ -55,7 +68,7 @@ class Tests_Canonical_ChangePassword extends WP_UnitTestCase {
 			// Redirect was intercepted; $captured holds the URL.
 		} finally {
 			remove_filter( 'wp_redirect', $capture );
-			$wp_query->is_404 = false;
+			$wp_query->is_404 = $original_is_404;
 		}
 
 		return $captured;
@@ -66,6 +79,7 @@ class Tests_Canonical_ChangePassword extends WP_UnitTestCase {
 	 */
 	public function test_well_known_change_password_redirects_to_profile() {
 		$redirect = $this->get_redirect_for( '/.well-known/change-password' );
+		$this->assertNotNull( $redirect, 'A redirect should fire for the well-known change-password URL.' );
 		$this->assertStringContainsString( 'profile.php', $redirect, 'Should redirect to the profile page.' );
 	}
 
@@ -74,6 +88,7 @@ class Tests_Canonical_ChangePassword extends WP_UnitTestCase {
 	 */
 	public function test_well_known_change_password_with_trailing_slash_redirects_to_profile() {
 		$redirect = $this->get_redirect_for( '/.well-known/change-password/' );
+		$this->assertNotNull( $redirect, 'A redirect should fire for the trailing-slash variant.' );
 		$this->assertStringContainsString( 'profile.php', $redirect, 'Trailing slash variant should also redirect to the profile page.' );
 	}
 
