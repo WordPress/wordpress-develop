@@ -589,7 +589,7 @@ EOF;
 	 * @covers ::_wp_kses_allow_notes_attributes
 	 */
 	public function test_note_mention_allows_only_class_on_note_links() {
-		$content  = 'Hello <a class="wp-note-mention user-2" href="https://example.com/author/admin/" data-user-id="2" onclick="alert(1)" style="color:red">@admin</a>!';
+		$content = 'Hello <a class="wp-note-mention user-2" href="https://example.com/author/admin/" data-user-id="2" onclick="alert(1)" style="color:red">@admin</a>!';
 		add_filter( 'pre_comment_content', 'wp_filter_kses' );
 		$filtered = wp_filter_comment( wp_slash( $this->get_mention_commentdata( 'note', $content ) ) );
 
@@ -608,7 +608,7 @@ EOF;
 	 * @covers ::wp_filter_comment
 	 */
 	public function test_note_mention_markup_stripped_from_regular_comment_content() {
-		$content  = 'Hello <a class="wp-note-mention user-2" href="https://example.com/author/admin/">@admin</a>!';
+		$content = 'Hello <a class="wp-note-mention user-2" href="https://example.com/author/admin/">@admin</a>!';
 		add_filter( 'pre_comment_content', 'wp_filter_kses' );
 		$filtered = wp_filter_comment( wp_slash( $this->get_mention_commentdata( 'comment', $content ) ) );
 
