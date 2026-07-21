@@ -1197,7 +1197,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 					/* translators: %s: Parent post title. */
 					esc_html( sprintf( __( 'Child of %s' ), wp_strip_all_tags( $parent_title ) ) )
 				);
-				$hierarchy_nolink = sprintf(
+				$hierarchy_nolink  = sprintf(
 					'<span id="%1$s" class="screen-reader-text"> (%2$s)</span>',
 					esc_attr( $hierarchy_id ),
 					/* translators: %s: Parent post title. */
