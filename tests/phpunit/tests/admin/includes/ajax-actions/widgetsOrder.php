@@ -52,17 +52,23 @@ class Tests_Ajax_widgetsOrder extends WP_Ajax_UnitTestCase {
 			'sidebars'    => $sidebars,
 		);
 
-		$this->expectException( WPAjaxDieStopException::class );
-		$this->expectExceptionMessage( '1' );
+		$original_sidebars = wp_get_sidebars_widgets();
 
-		$this->_handleAjax( 'widgets-order' );
+		try {
+			$this->_handleAjax( 'widgets-order' );
+			$this->fail( 'Expected WPAjaxDieStopException was not thrown.' );
+		} catch ( WPAjaxDieStopException $e ) {
+			$this->assertSame( '1', $e->getMessage() );
+		}
 
-		$this->assertSame( '1', $this->_last_response );
-
-		$updated_sidebars = wp_get_sidebars_widgets();
-		$this->assertContains( 'text-1', $updated_sidebars['sidebar-1'] );
-		$this->assertContains( 'text-2', $updated_sidebars['sidebar-1'] );
-		$this->assertContains( 'search-1', $updated_sidebars['sidebar-2'] );
+		try {
+			$updated_sidebars = wp_get_sidebars_widgets();
+			$this->assertContains( 'text-1', $updated_sidebars['sidebar-1'] );
+			$this->assertContains( 'text-2', $updated_sidebars['sidebar-1'] );
+			$this->assertContains( 'search-1', $updated_sidebars['sidebar-2'] );
+		} finally {
+			wp_set_sidebars_widgets( $original_sidebars );
+		}
 	}
 
 	/**
