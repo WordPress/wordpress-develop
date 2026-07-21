@@ -401,7 +401,7 @@ function wp_get_tooltip( $content, $args = array() ) {
 /**
  * Retrieves the markup for an accessible toggle tip.
  *
- * Returns a button and an action triggered toggle tip with `$content`. 
+ * Returns a button and an action triggered toggle tip with `$content`.
  *
  * @since 7.1.0
  *
