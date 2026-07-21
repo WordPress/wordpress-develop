@@ -1006,15 +1006,20 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	}
 
 	/**
-	 * Ensures a numeric-string `filesize` in attachment metadata is normalized
+	 * Ensures int-castable `filesize` values in attachment metadata are normalized
 	 * to an integer in the response.
 	 *
 	 * Attachment metadata is untyped, so plugins that populate `filesize` from
 	 * a remote storage API may store it as a string.
 	 *
 	 * @ticket 65670
+	 *
+	 * @dataProvider data_valid_filesize_meta
+	 *
+	 * @param mixed $stored_filesize Valid `filesize` metadata value.
+	 * @param int   $actual_filesize Actual filesize.
 	 */
-	public function test_get_item_normalizes_numeric_string_filesize_meta() {
+	public function test_get_item_normalizes_numeric_string_filesize_meta( $stored_filesize, int $actual_filesize ) {
 		$attachment_id = self::factory()->attachment->create_object(
 			array(
 				'file'           => self::$test_file,
@@ -1025,7 +1030,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 
 		$meta             = wp_get_attachment_metadata( $attachment_id );
 		$meta             = is_array( $meta ) ? $meta : array();
-		$meta['filesize'] = '123456';
+		$meta['filesize'] = $stored_filesize;
 		$this->assertNotFalse( wp_update_attachment_metadata( $attachment_id, $meta ) );
 
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/media/' . $attachment_id );
@@ -1034,7 +1039,21 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 
 		$this->assertIsArray( $data );
 		$this->assertSame( 200, $response->get_status() );
-		$this->assertSame( 123456, $data['filesize'] );
+		$this->assertSame( $actual_filesize, $data['filesize'] );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{ 0: mixed, 1: int }>
+	 */
+	public function data_valid_filesize_meta(): array {
+		return array(
+			'integer string'      => array( '123456', 123456 ),
+			'float string'        => array( '123.4', 123 ),
+			'scientific notation' => array( '1e3', 1000 ),
+			'float'               => array( 123.0, 123 ),
+		);
 	}
 
 	/**
@@ -1083,9 +1102,6 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	public function data_invalid_filesize_meta(): array {
 		return array(
 			'non-numeric string'      => array( 'corrupt' ),
-			'float string'            => array( '123.4' ),
-			'scientific notation'     => array( '1e3' ),
-			'float'                   => array( 123.0 ),
 			'boolean'                 => array( true ),
 			'zero'                    => array( 0 ),
 			'zero string'             => array( '0' ),
