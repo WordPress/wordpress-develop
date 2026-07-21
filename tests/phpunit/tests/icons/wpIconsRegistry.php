@@ -82,12 +82,14 @@ class Tests_Icons_WpIconsRegistry extends WP_UnitTestCase {
 	 */
 	public function data_valid_icon_names() {
 		return array(
-			'simple name'            => array( 'test-collection/icon' ),
-			'digit at the start'     => array( 'test-collection/1icon' ),
-			'digit in the name'      => array( 'test-collection/my1icon' ),
-			'digit at the end'       => array( 'test-collection/icon1' ),
-			'underscore in the name' => array( 'test-collection/my_icon' ),
-			'hyphen in the name'     => array( 'test-collection/my-icon' ),
+			'simple name'                     => array( 'test-collection/icon' ),
+			'digit at the start'              => array( 'test-collection/1icon' ),
+			'digit in the name'               => array( 'test-collection/my1icon' ),
+			'digit at the end'                => array( 'test-collection/icon1' ),
+			'underscore in the name'          => array( 'test-collection/my_icon' ),
+			'hyphen in the name'              => array( 'test-collection/my-icon' ),
+			'digit adjacent to a hyphen'      => array( 'test-collection/my-1-icon' ),
+			'digit adjacent to an underscore' => array( 'test-collection/my_1_icon' ),
 		);
 	}
 
