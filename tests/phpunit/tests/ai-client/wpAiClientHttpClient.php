@@ -330,6 +330,32 @@ class Tests_AI_Client_HTTP_Client extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test that sendRequestWithOptions includes the HTTP method in the NetworkException message.
+	 *
+	 * @ticket 65421
+	 */
+	public function test_send_request_with_options_wp_error_message_includes_method() {
+		add_filter(
+			'pre_http_request',
+			static function () {
+				return new WP_Error( 'http_request_failed', 'Connection refused' );
+			}
+		);
+
+		$options = new WordPress\AiClient\Providers\Http\DTO\RequestOptions();
+		$request = $this->psr17_factory->createRequest( 'POST', 'https://api.example.com/generate' );
+
+		try {
+			$this->client->sendRequestWithOptions( $request, $options );
+			$this->fail( 'Expected NetworkException was not thrown.' );
+		} catch ( WordPress\AiClient\Providers\Http\Exception\NetworkException $e ) {
+			$this->assertStringContainsString( 'POST', $e->getMessage() );
+			$this->assertStringContainsString( 'https://api.example.com/generate', $e->getMessage() );
+			$this->assertStringContainsString( 'Connection refused', $e->getMessage() );
+		}
+	}
+
+	/**
 	 * Test seekable body is rewound before sending.
 	 *
 	 * @ticket 64591

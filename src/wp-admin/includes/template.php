@@ -1426,7 +1426,7 @@ function do_meta_boxes( $screen, $context, $data_object ) {
 						echo '<button type="button" class="handlediv" aria-expanded="true">';
 						echo '<span class="screen-reader-text">' . sprintf(
 							/* translators: %s: Hidden accessibility text. Meta box title. */
-							__( 'Toggle panel: %s' ),
+							__( 'Show or hide panel: %s' ),
 							$widget_title
 						) . '</span>';
 						echo '<span class="toggle-indicator" aria-hidden="true"></span>';
@@ -1780,7 +1780,8 @@ function do_settings_sections( $page ) {
 		}
 
 		if ( $section['title'] ) {
-			echo "<h2>{$section['title']}</h2>\n";
+			$unique_id = wp_unique_id( 'wp-settings-section-' . $section['id'] . '-' );
+			echo '<h2 id="' . esc_attr( $unique_id ) . '">' . $section['title'] . "</h2>\n";
 		}
 
 		if ( $section['callback'] ) {
@@ -2561,7 +2562,7 @@ function compression_test() {
  *
  * @param string       $text             Optional. The text of the button. Defaults to 'Save Changes'.
  * @param string       $type             Optional. The type and CSS class(es) of the button. Core values
- *                                       include 'primary', 'small', and 'large'. Default 'primary'.
+ *                                       include 'primary', 'small', 'compact' and 'large'. Default 'primary'.
  * @param string       $name             Optional. The HTML name of the submit button. If no `id` attribute
  *                                       is given in the `$other_attributes` parameter, `$name` will be used
  *                                       as the button's `id`. Default 'submit'.
@@ -2585,7 +2586,7 @@ function submit_button( $text = '', $type = 'primary', $name = 'submit', $wrap =
  *
  * @param string       $text             Optional. The text of the button. Defaults to 'Save Changes'.
  * @param string       $type             Optional. The type and CSS class(es) of the button. Core values
- *                                       include 'primary', 'small', and 'large'. Default 'primary large'.
+ *                                       include 'primary', 'small', 'compact' and 'large'. Default 'primary large'.
  * @param string       $name             Optional. The HTML name of the submit button. If no `id` attribute
  *                                       is given in the `$other_attributes` parameter, `$name` will be used
  *                                       as the button's `id`. Default 'submit'.
@@ -2604,7 +2605,7 @@ function get_submit_button( $text = '', $type = 'primary large', $name = 'submit
 		$type = explode( ' ', $type );
 	}
 
-	$button_shorthand = array( 'primary', 'small', 'large' );
+	$button_shorthand = array( 'primary', 'small', 'large', 'compact' );
 	$classes          = array( 'button' );
 
 	foreach ( $type as $t ) {
