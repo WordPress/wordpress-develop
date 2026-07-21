@@ -448,7 +448,7 @@ function wp_get_toggletip( $content, $args ) {
  *     @type string $id          Unique ID for the popover element. Default is a
  *                               generated unique ID.
  *     @type string $button      Existing `button` markup. Used instead of generated button.
- *                               Default empty.
+ *                               Default standard button HTML.
  *     @type string $label       Accessible label for the toggle button.
  *                               Default 'Help', matching the default icon.
  *                               Ignored for tooltips.
@@ -487,8 +487,8 @@ function wp_get_tooltip_helper( $content, $args = array() ) {
 		$classes .= ' ' . $args['class'];
 	}
 
-	$icon      = '' !== $args['icon'] ? ' ' . $args['icon'] : '';
-	$button    = ( ! empty( $args['button'] ) ) ? $args['button'] : $button;
+	$icon      = ' ' . trim( $args['icon'] );
+	$button    = $args['button'];
 	$processor = new WP_HTML_Tag_Processor( $button );
 	if ( $processor->next_tag( 'button' ) ) {
 		$processor->add_class( 'wp-tooltip__toggle' );
