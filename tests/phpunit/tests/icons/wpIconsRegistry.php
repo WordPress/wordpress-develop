@@ -75,8 +75,8 @@ class Tests_Icons_WpIconsRegistry extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Provides valid namespaced icon names, including names that contain or
-	 * start with digits, as well as underscores.
+	 * Provides valid namespaced icon names, including names that contain,
+	 * start or end with digits, as well as underscores.
 	 *
 	 * @return array<string, array{0: string}>
 	 */
@@ -87,8 +87,7 @@ class Tests_Icons_WpIconsRegistry extends WP_UnitTestCase {
 			'digit in the name'      => array( 'test-collection/my-1-icon' ),
 			'digit at the end'       => array( 'test-collection/icon1' ),
 			'underscore in the name' => array( 'test-collection/my_icon' ),
-			'underscore at the end'  => array( 'test-collection/my-icon_' ),
-			'hyphen at the end'      => array( 'test-collection/my-icon-' ),
+			'hyphen in the name'     => array( 'test-collection/my-icon' ),
 		);
 	}
 
@@ -125,7 +124,9 @@ class Tests_Icons_WpIconsRegistry extends WP_UnitTestCase {
 			'uppercase in the name'   => array( 'test-collection/my-Icon' ),
 			'uppercase at the end'    => array( 'test-collection/my-iconX' ),
 			'underscore at the start' => array( 'test-collection/_my-icon' ),
+			'underscore at the end'   => array( 'test-collection/my-icon_' ),
 			'hyphen at the start'     => array( 'test-collection/-my-icon' ),
+			'hyphen at the end'       => array( 'test-collection/my-icon-' ),
 		);
 	}
 
