@@ -293,7 +293,18 @@ class Tests_Term_Query extends WP_UnitTestCase {
 	public function test_orderby_null_should_not_throw_deprecation() {
 		register_taxonomy( 'wptests_tax_1', 'post' );
 
-		$terms = self::factory()->term->create_many( 2, array( 'taxonomy' => 'wptests_tax_1' ) );
+		$t1 = self::factory()->term->create(
+			array(
+				'taxonomy' => 'wptests_tax_1',
+				'name'     => 'b',
+			)
+		);
+		$t2 = self::factory()->term->create(
+			array(
+				'taxonomy' => 'wptests_tax_1',
+				'name'     => 'a',
+			)
+		);
 
 		$q = new WP_Term_Query(
 			array(
@@ -304,7 +315,7 @@ class Tests_Term_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertSame( $terms, $q->terms );
+		$this->assertSame( array( $t1, $t2 ), $q->terms );
 	}
 
 	/**
