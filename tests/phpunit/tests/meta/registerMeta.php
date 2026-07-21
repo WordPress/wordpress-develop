@@ -29,6 +29,7 @@ class Tests_Meta_Register_Meta extends WP_UnitTestCase {
 
 		if ( is_multisite() ) {
 			wp_delete_site( self::$blog_id );
+			wp_update_network_site_counts();
 		}
 	}
 
@@ -1127,6 +1128,7 @@ class Tests_Meta_Register_Meta extends WP_UnitTestCase {
 	 * @group ms-required
 	 */
 	public function test_get_object_subtype_for_blog_returns_empty_string_for_invalid_site() {
+		$this->assertSame( '', get_object_subtype( 'blog', 0 ) );
 		$this->assertSame( '', get_object_subtype( 'blog', 999999 ) );
 	}
 

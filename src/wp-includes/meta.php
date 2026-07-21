@@ -1789,6 +1789,7 @@ function _wp_register_meta_args_allowed_list( $args, $default_args ) {
  * Returns the object subtype for a given object ID of a specific type.
  *
  * @since 4.9.8
+ * @since 6.X.0 Added support for 'blog' object type in multisite.
  *
  * @param string $object_type Type of object metadata is for. Accepts 'blog', 'post', 'comment', 'term',
  *                            'user', or any other object type with an associated meta table.
@@ -1836,7 +1837,7 @@ function get_object_subtype( $object_type, $object_id ) {
 			break;
 
 		case 'blog':
-			if ( ! is_multisite() ) {
+			if ( ! is_multisite() || $object_id <= 0 ) {
 				break;
 			}
 
