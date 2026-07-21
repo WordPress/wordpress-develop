@@ -373,7 +373,7 @@ function get_search_form( $args = array() ) {
 /**
  * Retrieves the markup for an accessible tooltip.
  *
- * Returns a button with an accessible name popover.
+ * Returns a button with an accessible name popover hint.
  *
  * @since 7.1.0
  *
@@ -399,12 +399,9 @@ function wp_get_tooltip( $content, $args = array() ) {
 }
 
 /**
- * Retrieves the markup for an accessible tooltip or toggletip.
+ * Retrieves the markup for an accessible toggle tip.
  *
- * Returns a button and either a hover/focus triggered tooltip popover or an action
- * triggered toggle tip. Enqueue the `wp-tooltip` style and script where it is used.
- * Tooltips are used to show the accessible name of a control.
- * Toggletips are be used for longer supporting text explaining context.
+ * Returns a button and an action triggered toggle tip with `$content`. 
  *
  * @since 7.1.0
  *
@@ -424,9 +421,9 @@ function wp_get_tooltip( $content, $args = array() ) {
  *     @type string $class       Additional class(es) for the wrapping element.
  *                               Default empty.
  * }
- * @return string Tooltip HTML markup, or an empty string when no content is provided.
+ * @return string Toggletip HTML markup, or an empty string when no content is provided.
  */
-function wp_get_toggletip( $content, $args ) {
+function wp_get_toggletip( $content, $args = array() ) {
 	$args['type'] = 'toggletip';
 	return wp_get_tooltip_helper( $content, $args );
 }
