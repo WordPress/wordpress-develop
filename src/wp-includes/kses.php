@@ -1200,13 +1200,7 @@ function _wp_kses_sanitize_note_mention_classes( $content ): string {
 		return $content;
 	}
 
-	$unslashed = wp_unslash( $content );
-
-	if ( ! str_contains( $unslashed, '<span' ) ) {
-		return $content;
-	}
-
-	$processor = new WP_HTML_Tag_Processor( $unslashed );
+	$processor = new WP_HTML_Tag_Processor( wp_unslash( $content ) );
 
 	while ( $processor->next_tag( 'SPAN' ) ) {
 		foreach ( $processor->class_list() as $token ) {

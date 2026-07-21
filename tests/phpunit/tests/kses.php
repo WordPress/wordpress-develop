@@ -627,6 +627,32 @@ EOF;
 	}
 
 	/**
+	 * Tests that class tokens are reduced on spans regardless of tag-name casing.
+	 *
+	 * kses preserves tag-name casing, so the class reduction must match `SPAN`
+	 * case-insensitively rather than bail on a `<span` substring check.
+	 *
+	 * @ticket 65622
+	 *
+	 * @covers ::_wp_kses_sanitize_note_mention_classes
+	 */
+	public function test_note_mention_class_tokens_are_reduced_on_uppercase_span_tags() {
+		add_filter( 'pre_comment_content', 'wp_filter_kses' );
+
+		$content  = 'Hello <SPAN class="wp-note-mention user-2 is-destructive">@admin</SPAN>!';
+		$filtered = wp_filter_comment( wp_slash( $this->get_mention_commentdata( 'note', $content ) ) );
+
+		remove_filter( 'pre_comment_content', 'wp_filter_kses' );
+
+		$this->assertEqualHTML(
+			'Hello <span class="wp-note-mention user-2">@admin</span>!',
+			wp_unslash( $filtered['comment_content'] ),
+			'<body>',
+			'Class tokens should be reduced on spans regardless of tag-name casing.'
+		);
+	}
+
+	/**
 	 * Tests that the class attribute is removed when no mention tokens remain.
 	 *
 	 * @ticket 65622
