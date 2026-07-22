@@ -670,7 +670,8 @@ class WP_Navigation_Block_Renderer {
 	 *
 	 * @since 7.0.0
 	 *
-	 * @param array $colors The colors array.
+	 * @param bool  $has_custom_overlay Whether a custom overlay is used.
+	 * @param array $colors             The colors array.
 	 * @return string Returns the overlay inline styles.
 	 */
 	private static function get_overlay_inline_styles( $has_custom_overlay, $colors ) {
