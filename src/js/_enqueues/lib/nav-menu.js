@@ -1869,6 +1869,12 @@
 
 		// Prevent focused element from being hidden by the sticky footer.
 		$( '.menu-edit a, .menu-edit button, .menu-edit input, .menu-edit textarea, .menu-edit select' ).on('focus', function() {
+			// The sticky footer's own controls are always in view, so scrolling
+			// to reveal them would shift the footer out from under the pointer
+			// mid-click and drop the Save or Delete activation. See #65684.
+			if ( $( this ).closest( '#nav-menu-footer' ).length ) {
+				return;
+			}
 			if ( window.innerWidth >= 783 ) {
 				var navMenuHeight = $( '#nav-menu-footer' ).height() + 20;
 				var bottomOffset = $(this).offset().top - ( $(window).scrollTop() + $(window).height() - $(this).height() );
