@@ -7161,6 +7161,37 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that when a block with a custom feature selector (e.g. core/button's writingMode
+	 * uses '.wp-block-button' rather than the root '.wp-block-button .wp-block-button__link')
+	 * has pseudo-state styles, the feature selector CSS is scoped to the pseudo-state and not
+	 * output under the block's default-state selector.
+	 */
+	public function test_get_stylesheet_pseudo_selector_scopes_feature_selector_css() {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
+				'styles'  => array(
+					'blocks' => array(
+						'core/button' => array(
+							':hover' => array(
+								'typography' => array(
+									'writingMode' => 'vertical-rl',
+								),
+							),
+						),
+					),
+				),
+			),
+			'default'
+		);
+
+		$css = $theme_json->get_stylesheet( array( 'styles' ), null, array( 'skip_root_layout_styles' => true ) );
+
+		// writing-mode should be scoped to :hover, not the root block selector.
+		$this->assertSame( ':root :where(.wp-block-button:hover){writing-mode: vertical-rl;}', $css );
+	}
+
+	/**
 	 * Test that block pseudo selectors are processed correctly.
 	 */
 	public function test_block_pseudo_selectors_are_processed() {
