@@ -595,11 +595,8 @@ EOF;
 	 */
 	public function test_note_mention_markup_survives_regular_comment_content_sanitization() {
 		add_filter( 'pre_comment_content', 'wp_filter_kses' );
-
 		$content  = 'Hello <span class="wp-note-mention user-2">@admin</span>!';
 		$filtered = wp_filter_comment( wp_slash( $this->get_mention_commentdata( 'comment', $content ) ) );
-
-		remove_filter( 'pre_comment_content', 'wp_filter_kses' );
 
 		$this->assertSame( $content, wp_unslash( $filtered['comment_content'] ) );
 	}
