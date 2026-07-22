@@ -151,7 +151,7 @@ function wp_image_editor( $post_id, $msg = false ) {
 							<label for="imgedit-scale-width-<?php echo $post_id; ?>" class="screen-reader-text">
 							<?php
 							/* translators: Hidden accessibility text. */
-							_e( 'scale height' );
+							_e( 'scale width' );
 							?>
 							</label>
 							<input type="number" step="1" min="0" max="<?php echo $meta['width'] ?? ''; ?>" aria-describedby="imgedit-scale-warn-<?php echo $post_id; ?>"  id="imgedit-scale-width-<?php echo $post_id; ?>" onkeyup="imageEdit.scaleChanged(<?php echo $post_id; ?>, 1, this)" onblur="imageEdit.scaleChanged(<?php echo $post_id; ?>, 1, this)" value="<?php echo $meta['width'] ?? 0; ?>" />
