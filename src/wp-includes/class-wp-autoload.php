@@ -320,6 +320,7 @@ final class WP_Autoload {
 		'wp_rest_themes_controller'                   => 'wp-includes/rest-api/endpoints/class-wp-rest-themes-controller.php',
 		'wp_rest_url_details_controller'              => 'wp-includes/rest-api/endpoints/class-wp-rest-url-details-controller.php',
 		'wp_rest_users_controller'                    => 'wp-includes/rest-api/endpoints/class-wp-rest-users-controller.php',
+		'wp_rest_view_config_controller'              => 'wp-includes/rest-api/endpoints/class-wp-rest-view-config-controller.php',
 		'wp_rest_widget_types_controller'             => 'wp-includes/rest-api/endpoints/class-wp-rest-widget-types-controller.php',
 		'wp_rest_widgets_controller'                  => 'wp-includes/rest-api/endpoints/class-wp-rest-widgets-controller.php',
 		'wp_rest_comment_meta_fields'                 => 'wp-includes/rest-api/fields/class-wp-rest-comment-meta-fields.php',
