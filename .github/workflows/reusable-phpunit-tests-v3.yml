@@ -225,6 +225,11 @@ jobs:
             php -m | grep -i pcov
           '
 
+      - name: Run external HTTP tests
+        if: ${{ ! inputs.multisite && ! inputs.phpunit-test-groups && ! inputs.coverage-report }}
+        continue-on-error: ${{ inputs.allow-errors }}
+        run: node ./tools/local-env/scripts/docker.js run php ./vendor/bin/phpunit --verbose -c "${PHPUNIT_CONFIG}" --group external-http
+
       - name: Run PHPUnit tests${{ inputs.phpunit-test-groups && format( ' ({0} groups)', inputs.phpunit-test-groups ) || '' }}${{ inputs.coverage-report && ' with coverage report' || '' }}
         continue-on-error: ${{ inputs.allow-errors }}
         run: |
@@ -247,11 +252,6 @@ jobs:
         if: ${{ inputs.multisite && ! inputs.phpunit-test-groups && ! inputs.coverage-report }}
         continue-on-error: ${{ inputs.allow-errors }}
         run: node ./tools/local-env/scripts/docker.js run php ./vendor/bin/phpunit --verbose -c "${PHPUNIT_CONFIG}" --group ms-files
-
-      - name: Run external HTTP tests
-        if: ${{ ! inputs.multisite && ! inputs.phpunit-test-groups && ! inputs.coverage-report }}
-        continue-on-error: ${{ inputs.allow-errors }}
-        run: node ./tools/local-env/scripts/docker.js run php ./vendor/bin/phpunit --verbose -c "${PHPUNIT_CONFIG}" --group external-http
 
       # __fakegroup__ is excluded to force PHPUnit to ignore the <exclude> settings in phpunit.xml.dist.
       - name: Run (Xdebug) tests
