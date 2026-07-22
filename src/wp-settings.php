@@ -217,6 +217,7 @@ require ABSPATH . WPINC . '/admin-bar.php';
 require ABSPATH . WPINC . '/abilities-api.php';
 require ABSPATH . WPINC . '/abilities.php';
 require ABSPATH . WPINC . '/rest-api.php';
+require ABSPATH . WPINC . '/json-schema.php';
 require ABSPATH . WPINC . '/sitemaps.php';
 require ABSPATH . WPINC . '/block-bindings.php';
 require ABSPATH . WPINC . '/block-bindings/pattern-overrides.php';
