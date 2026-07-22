@@ -440,6 +440,26 @@ class WP_Embed {
 	 * @return string Potentially modified $content.
 	 */
 	public function autoembed( $content ) {
+		// Protect URLs inside <pre> and <code> tags from being converted to embeds.
+		// This must run before wp_replace_in_html_tags() so that newlines inside
+		// opening tag attributes (e.g. <pre\nclass="...">) don't break the regex match.
+		$protected_tags   = array();
+		$protect_callback = static function ( $matches ) use ( &$protected_tags ) {
+			$placeholder                    = sprintf( '<!-- wp-embed-protected-%d -->', count( $protected_tags ) );
+			$protected_tags[ $placeholder ] = $matches[0];
+			return $placeholder;
+		};
+
+		foreach ( array( 'pre', 'code' ) as $tag ) {
+			if ( false !== stripos( $content, "<$tag" ) ) {
+				$content = preg_replace_callback(
+					'#<' . $tag . '[\s>].*?</' . $tag . '>#is',
+					$protect_callback,
+					$content
+				);
+			}
+		}
+
 		// Replace line breaks from all HTML elements with placeholders.
 		$content = wp_replace_in_html_tags( $content, array( "\n" => '<!-- wp-line-break -->' ) );
 
@@ -448,6 +468,11 @@ class WP_Embed {
 			$content = preg_replace_callback( '|^(\s*)(https?://[^\s<>"]+)(\s*)$|im', array( $this, 'autoembed_callback' ), $content );
 			// Find URLs in their own paragraph.
 			$content = preg_replace_callback( '|(<p(?: [^>]*)?>\s*)(https?://[^\s<>"]+)(\s*<\/p>)|i', array( $this, 'autoembed_callback' ), $content );
+		}
+
+		// Restore protected content.
+		if ( ! empty( $protected_tags ) ) {
+			$content = str_replace( array_keys( $protected_tags ), array_values( $protected_tags ), $content );
 		}
 
 		// Put the line breaks back.
