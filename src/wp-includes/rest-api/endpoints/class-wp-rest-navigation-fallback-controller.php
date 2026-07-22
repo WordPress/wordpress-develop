@@ -71,8 +71,12 @@ class WP_REST_Navigation_Fallback_Controller extends WP_REST_Controller {
 
 		$post_type = get_post_type_object( $this->post_type );
 
-		// Getting fallbacks requires creating and reading `wp_navigation` posts.
-		if ( ! current_user_can( $post_type->cap->create_posts ) || ! current_user_can( 'edit_theme_options' ) || ! current_user_can( 'edit_posts' ) ) {
+		// Getting fallbacks may require creating a published `wp_navigation` post.
+		if (
+			! $post_type ||
+			! current_user_can( $post_type->cap->create_posts ) ||
+			! current_user_can( $post_type->cap->publish_posts )
+		) {
 			return new WP_Error(
 				'rest_cannot_create',
 				__( 'Sorry, you are not allowed to create Navigation Menus as this user.' ),
