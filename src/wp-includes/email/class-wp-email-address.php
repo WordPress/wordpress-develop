@@ -102,6 +102,14 @@ final class WP_Email_Address {
 	const DOMAIN_UNICODE_REGEX = '/^' . self::DOMAIN_LABEL_UNICODE . '(?:\.' . self::DOMAIN_LABEL_UNICODE . ')*$/u';
 
 	/**
+	 * The last email address parsing error, if any.
+	 *
+	 * @since 7.1.0
+	 * @var ?string
+	 */
+	private static $last_error = null;
+
+	/**
 	 * The local part of the email address (the portion before the '@').
 	 *
 	 * @since 7.1.0
@@ -198,6 +206,8 @@ final class WP_Email_Address {
 	 * Note! If an address contains punycode encodings but the required {@see idn_to_utf8()}
 	 * function is missing (from the `intl` extension), this will reject that email address.
 	 *
+	 * @see self::get_last_error() for why a provided address was rejected.
+	 *
 	 * @since 7.1.0
 	 *
 	 * @param string            $input         The email address string to parse.
@@ -205,9 +215,12 @@ final class WP_Email_Address {
 	 * @return WP_Email_Address|null A WP_Email_Address instance, or null if the input fails to validate.
 	 */
 	public static function from_string( string $input, string $character_set = 'unicode' ): ?WP_Email_Address {
+		self::$last_error = null;
+
 		// There must be exactly one '@' sign.
 		$at_pos = strpos( $input, '@' );
 		if ( false === $at_pos || strrpos( $input, '@' ) !== $at_pos ) {
+			self::$last_error = 'email_no_at';
 			return null;
 		}
 
@@ -221,6 +234,7 @@ final class WP_Email_Address {
 		foreach ( $domain_labels as $label ) {
 			// DNS limits each label to 63 octets.
 			if ( strlen( $label ) > 63 ) {
+				self::$last_error = 'domain_label_too_long';
 				return null;
 			}
 		}
@@ -233,6 +247,7 @@ final class WP_Email_Address {
 		 */
 		$needs_decoding = 1 === preg_match( '/(?:^|\.)..--/', $ascii_domain );
 		if ( $needs_decoding && ! function_exists( 'idn_to_utf8' ) ) {
+			self::$last_error = 'wp_unsupported';
 			return null;
 		}
 
@@ -247,10 +262,12 @@ final class WP_Email_Address {
 				if ( str_starts_with( $label, 'xn--' ) ) {
 					$label = idn_to_utf8( $label, IDNA_DEFAULT, INTL_IDNA_VARIANT_UTS46 );
 					if ( false === $label ) {
+						self::$last_error = 'domain_invalid_idn';
 						return null;
 					}
 				} elseif ( 1 === preg_match( '/^..--/', $label ) ) {
 					// Reject labels with a reserved ACE-like prefix (two chars followed by '--').
+					self::$last_error = 'domain_invalid_chars';
 					return null;
 				}
 				$decoded_labels[] = $label;
@@ -298,7 +315,22 @@ final class WP_Email_Address {
 
 		// Validate the domain against the allowed structure.
 		if ( 1 !== preg_match( $domain_pattern, $decoded_domain ) ) {
+			self::$last_error = 'domaind_invalid_sequence';
 			return null;
+		}
+
+		// Renormalize the ASCII domain when non-ASCII characters exist
+		if ( 1 === preg_match( '~[^\x00-\x7F]~', $ascii_domain ) ) {
+			if ( ! function_exists( 'idn_to_ascii' ) ) {
+				self::$last_error = 'wp_unsupported';
+				return null;
+			}
+
+			$labels = explode( '.', $ascii_domain );
+			foreach ( $labels as &$label ) {
+				$label = idn_to_ascii( $label, IDNA_DEFAULT, INTL_IDNA_VARIANT_UTS46 );
+			}
+			$ascii_domain = implode( '.', $labels );
 		}
 
 		return new self( $localpart, $ascii_domain, $decoded_domain );
@@ -401,5 +433,19 @@ final class WP_Email_Address {
 	 */
 	public function get_unicode_address(): string {
 		return $this->localpart . '@' . $this->decoded_domain;
+	}
+
+	/**
+	 * Returns the error code for the last attempt to parse an email address,
+	 * if any error prevented recognizing the address.
+	 *
+	 * @see self::from_string()
+	 *
+	 * @since 7.1.0
+	 *
+	 * @return string|null
+	 */
+	public static function get_last_error(): ?string {
+		return self::$last_error;
 	}
 }
