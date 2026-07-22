@@ -7570,4 +7570,165 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		$this->assertStringNotContainsString( 'padding', $result, 'Boolean value should be skipped' );
 		$this->assertStringNotContainsString( 'gap', $result, 'Array value should be skipped' );
 	}
+
+	/**
+	 * Test that block custom states (e.g. -current) are processed correctly.
+	 *
+	 * @covers WP_Theme_JSON::get_styles_for_block
+	 *
+	 * @ticket 64806
+	 */
+	public function test_block_custom_states_are_processed() {
+		// Only -current styles, no base block styles, so we can assert the
+		// output uses the current-menu-item selector and not the block selector.
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
+				'styles'  => array(
+					'blocks' => array(
+						'core/navigation-link' => array(
+							'-current' => array(
+								'color' => array(
+									'text'       => 'red',
+									'background' => 'blue',
+								),
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$current_node = array(
+			'path'     => array( 'styles', 'blocks', 'core/navigation-link', '-current' ),
+			'selector' => '.wp-block-navigation .current-menu-item',
+		);
+		$expected     = ':root :where(.wp-block-navigation .current-menu-item){background-color: blue;color: red;}';
+
+		$this->assertSame( $expected, $theme_json->get_styles_for_block( $current_node ) );
+	}
+
+	/**
+	 * Test that block custom states compound correctly with pseudo-selectors (e.g. -current + :hover).
+	 *
+	 * @covers WP_Theme_JSON::get_styles_for_block
+	 *
+	 * @ticket 64806
+	 */
+	public function test_block_custom_states_compound_with_pseudo_selectors() {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
+				'styles'  => array(
+					'blocks' => array(
+						'core/navigation-link' => array(
+							'-current' => array(
+								'color'  => array(
+									'text'       => 'red',
+									'background' => 'blue',
+								),
+								':hover' => array(
+									'color' => array(
+										'text'       => 'blue',
+										'background' => 'white',
+									),
+								),
+								':focus' => array(
+									'color' => array(
+										'text'       => 'green',
+										'background' => 'yellow',
+									),
+								),
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$current_node = array(
+			'path'     => array( 'styles', 'blocks', 'core/navigation-link', '-current' ),
+			'selector' => '.wp-block-navigation .current-menu-item',
+		);
+		$hover_node   = array(
+			'path'     => array( 'styles', 'blocks', 'core/navigation-link', '-current', ':hover' ),
+			'selector' => '.wp-block-navigation .current-menu-item:hover',
+		);
+		$focus_node   = array(
+			'path'     => array( 'styles', 'blocks', 'core/navigation-link', '-current', ':focus' ),
+			'selector' => '.wp-block-navigation .current-menu-item:focus',
+		);
+
+		$expected  = ':root :where(.wp-block-navigation .current-menu-item){background-color: blue;color: red;}';
+		$expected .= ':root :where(.wp-block-navigation .current-menu-item:hover){background-color: white;color: blue;}';
+		$expected .= ':root :where(.wp-block-navigation .current-menu-item:focus){background-color: yellow;color: green;}';
+
+		$actual  = $theme_json->get_styles_for_block( $current_node );
+		$actual .= $theme_json->get_styles_for_block( $hover_node );
+		$actual .= $theme_json->get_styles_for_block( $focus_node );
+
+		$this->assertSame( $expected, $actual );
+	}
+
+	/**
+	 * Test that non-whitelisted custom states are ignored, and that custom states
+	 * are ignored on blocks that do not declare support for them.
+	 *
+	 * @covers WP_Theme_JSON::get_stylesheet
+	 *
+	 * @ticket 64806
+	 */
+	public function test_block_custom_states_ignores_non_whitelisted() {
+		// A non-whitelisted state key on a block that supports custom states.
+		$theme_json_bogus_state = new WP_Theme_JSON(
+			array(
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
+				'styles'  => array(
+					'blocks' => array(
+						'core/navigation-link' => array(
+							'color'  => array(
+								'text' => 'black',
+							),
+							'-bogus' => array(
+								'color' => array(
+									'text' => 'yellow',
+								),
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$stylesheet_bogus = $theme_json_bogus_state->get_stylesheet( array( 'styles' ), null, array( 'skip_root_layout_styles' => true ) );
+		$this->assertStringNotContainsString( '-bogus', $stylesheet_bogus );
+		$this->assertStringNotContainsString( 'yellow', $stylesheet_bogus );
+
+		// A valid custom state key on a block that does not support custom states.
+		$theme_json_unsupported_block = new WP_Theme_JSON(
+			array(
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
+				'styles'  => array(
+					'blocks' => array(
+						'core/paragraph' => array(
+							'color'    => array(
+								'text' => 'black',
+							),
+							'-current' => array(
+								'color' => array(
+									'text' => 'red',
+								),
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$stylesheet_unsupported = $theme_json_unsupported_block->get_stylesheet( array( 'styles' ), null, array( 'skip_root_layout_styles' => true ) );
+		$expected               = ':root :where(p){color: black;}';
+		$this->assertSame( $expected, $stylesheet_unsupported );
+		$this->assertStringNotContainsString( '-current', $stylesheet_unsupported );
+		$this->assertStringNotContainsString( 'current-menu-item', $stylesheet_unsupported );
+	}
 }
