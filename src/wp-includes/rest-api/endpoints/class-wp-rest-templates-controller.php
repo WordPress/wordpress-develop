@@ -1177,7 +1177,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 						'user',
 					),
 				),
-				'date'        => array(
+				'date'            => array(
 					'description' => __( "The date the template was published, in the site's timezone." ),
 					'type'        => array( 'string', 'null' ),
 					'format'      => 'date-time',

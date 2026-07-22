@@ -18,7 +18,7 @@
  * Example:
  *
  *     $email = WP_Email_Address::from_string( 'wordpress@wordpress.org' );
- *     'wordpress'     === $email->get_local_part();
+ *     'WordPress'     === $email->get_local_part();
  *     'wordpress.org' === $email->get_domain();
  *
  * @see self::from_string()        to parse and validate a provided email address.
