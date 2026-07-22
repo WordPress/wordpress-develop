@@ -111,24 +111,43 @@ function wp_register_options_connectors_wp_admin_page_routes() {
 }
 add_action( 'options-connectors-wp-admin_init', 'wp_register_options_connectors_wp_admin_page_routes' );
 
-// Page-specific route registration functions for guidelines
+// Page-specific route registration functions for dashboard
 /**
- * Register routes for guidelines page (full-page mode).
+ * Register routes for dashboard page (full-page mode).
  */
-function wp_register_guidelines_page_routes() {
-	global $wp_guidelines_routes_data;
-	wp_register_page_routes( $wp_guidelines_routes_data, 'wp_register_guidelines_route' );
+function wp_register_dashboard_page_routes() {
+	global $wp_dashboard_routes_data;
+	wp_register_page_routes( $wp_dashboard_routes_data, 'wp_register_dashboard_route' );
 }
-add_action( 'guidelines_init', 'wp_register_guidelines_page_routes' );
+add_action( 'dashboard_init', 'wp_register_dashboard_page_routes' );
 
 /**
- * Register routes for guidelines page (wp-admin mode).
+ * Register routes for dashboard page (wp-admin mode).
  */
-function wp_register_guidelines_wp_admin_page_routes() {
-	global $wp_guidelines_routes_data;
-	wp_register_page_routes( $wp_guidelines_routes_data, 'wp_register_guidelines_wp_admin_route' );
+function wp_register_dashboard_wp_admin_page_routes() {
+	global $wp_dashboard_routes_data;
+	wp_register_page_routes( $wp_dashboard_routes_data, 'wp_register_dashboard_wp_admin_route' );
 }
-add_action( 'guidelines-wp-admin_init', 'wp_register_guidelines_wp_admin_page_routes' );
+add_action( 'dashboard-wp-admin_init', 'wp_register_dashboard_wp_admin_page_routes' );
+
+// Page-specific route registration functions for experiments
+/**
+ * Register routes for experiments page (full-page mode).
+ */
+function wp_register_experiments_page_routes() {
+	global $wp_experiments_routes_data;
+	wp_register_page_routes( $wp_experiments_routes_data, 'wp_register_experiments_route' );
+}
+add_action( 'experiments_init', 'wp_register_experiments_page_routes' );
+
+/**
+ * Register routes for experiments page (wp-admin mode).
+ */
+function wp_register_experiments_wp_admin_page_routes() {
+	global $wp_experiments_routes_data;
+	wp_register_page_routes( $wp_experiments_routes_data, 'wp_register_experiments_wp_admin_route' );
+}
+add_action( 'experiments-wp-admin_init', 'wp_register_experiments_wp_admin_page_routes' );
 
 // Page-specific route registration functions for font-library
 /**
@@ -148,4 +167,42 @@ function wp_register_font_library_wp_admin_page_routes() {
 	wp_register_page_routes( $wp_font_library_routes_data, 'wp_register_font_library_wp_admin_route' );
 }
 add_action( 'font-library-wp-admin_init', 'wp_register_font_library_wp_admin_page_routes' );
+
+// Page-specific route registration functions for guidelines
+/**
+ * Register routes for guidelines page (full-page mode).
+ */
+function wp_register_guidelines_page_routes() {
+	global $wp_guidelines_routes_data;
+	wp_register_page_routes( $wp_guidelines_routes_data, 'wp_register_guidelines_route' );
+}
+add_action( 'guidelines_init', 'wp_register_guidelines_page_routes' );
+
+/**
+ * Register routes for guidelines page (wp-admin mode).
+ */
+function wp_register_guidelines_wp_admin_page_routes() {
+	global $wp_guidelines_routes_data;
+	wp_register_page_routes( $wp_guidelines_routes_data, 'wp_register_guidelines_wp_admin_route' );
+}
+add_action( 'guidelines-wp-admin_init', 'wp_register_guidelines_wp_admin_page_routes' );
+
+// Page-specific route registration functions for taxonomies
+/**
+ * Register routes for taxonomies page (full-page mode).
+ */
+function wp_register_taxonomies_page_routes() {
+	global $wp_taxonomies_routes_data;
+	wp_register_page_routes( $wp_taxonomies_routes_data, 'wp_register_taxonomies_route' );
+}
+add_action( 'taxonomies_init', 'wp_register_taxonomies_page_routes' );
+
+/**
+ * Register routes for taxonomies page (wp-admin mode).
+ */
+function wp_register_taxonomies_wp_admin_page_routes() {
+	global $wp_taxonomies_routes_data;
+	wp_register_page_routes( $wp_taxonomies_routes_data, 'wp_register_taxonomies_wp_admin_route' );
+}
+add_action( 'taxonomies-wp-admin_init', 'wp_register_taxonomies_wp_admin_page_routes' );
 
