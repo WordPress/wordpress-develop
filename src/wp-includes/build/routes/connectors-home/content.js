@@ -72,7 +72,7 @@ var require_use_sync_external_store_shim_development = __commonJS({
         return x === y && (0 !== x || 1 / x === 1 / y) || x !== x && y !== y;
       }
       function useSyncExternalStore$2(subscribe, getSnapshot) {
-        didWarnOld18Alpha || void 0 === React53.startTransition || (didWarnOld18Alpha = true, console.error(
+        didWarnOld18Alpha || void 0 === React52.startTransition || (didWarnOld18Alpha = true, console.error(
           "You are using an outdated, pre-release alpha of React 18 that does not support useSyncExternalStore. The use-sync-external-store shim will not work correctly. Upgrade to a newer pre-release."
         ));
         var value = getSnapshot();
@@ -86,7 +86,7 @@ var require_use_sync_external_store_shim_development = __commonJS({
           inst: { value, getSnapshot }
         });
         var inst = cachedValue[0].inst, forceUpdate = cachedValue[1];
-        useLayoutEffect4(
+        useLayoutEffect3(
           function() {
             inst.value = value;
             inst.getSnapshot = getSnapshot;
@@ -120,8 +120,8 @@ var require_use_sync_external_store_shim_development = __commonJS({
         return getSnapshot();
       }
       "undefined" !== typeof __REACT_DEVTOOLS_GLOBAL_HOOK__ && "function" === typeof __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart && __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart(Error());
-      var React53 = require_react(), objectIs = "function" === typeof Object.is ? Object.is : is, useState14 = React53.useState, useEffect15 = React53.useEffect, useLayoutEffect4 = React53.useLayoutEffect, useDebugValue2 = React53.useDebugValue, didWarnOld18Alpha = false, didWarnUncachedGetSnapshot = false, shim = "undefined" === typeof window || "undefined" === typeof window.document || "undefined" === typeof window.document.createElement ? useSyncExternalStore$1 : useSyncExternalStore$2;
-      exports.useSyncExternalStore = void 0 !== React53.useSyncExternalStore ? React53.useSyncExternalStore : shim;
+      var React52 = require_react(), objectIs = "function" === typeof Object.is ? Object.is : is, useState14 = React52.useState, useEffect15 = React52.useEffect, useLayoutEffect3 = React52.useLayoutEffect, useDebugValue2 = React52.useDebugValue, didWarnOld18Alpha = false, didWarnUncachedGetSnapshot = false, shim = "undefined" === typeof window || "undefined" === typeof window.document || "undefined" === typeof window.document.createElement ? useSyncExternalStore$1 : useSyncExternalStore$2;
+      exports.useSyncExternalStore = void 0 !== React52.useSyncExternalStore ? React52.useSyncExternalStore : shim;
       "undefined" !== typeof __REACT_DEVTOOLS_GLOBAL_HOOK__ && "function" === typeof __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStop && __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStop(Error());
     })();
   }
@@ -148,14 +148,14 @@ var require_with_selector_development = __commonJS({
         return x === y && (0 !== x || 1 / x === 1 / y) || x !== x && y !== y;
       }
       "undefined" !== typeof __REACT_DEVTOOLS_GLOBAL_HOOK__ && "function" === typeof __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart && __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart(Error());
-      var React53 = require_react(), shim = require_shim(), objectIs = "function" === typeof Object.is ? Object.is : is, useSyncExternalStore2 = shim.useSyncExternalStore, useRef21 = React53.useRef, useEffect15 = React53.useEffect, useMemo17 = React53.useMemo, useDebugValue2 = React53.useDebugValue;
+      var React52 = require_react(), shim = require_shim(), objectIs = "function" === typeof Object.is ? Object.is : is, useSyncExternalStore2 = shim.useSyncExternalStore, useRef22 = React52.useRef, useEffect15 = React52.useEffect, useMemo16 = React52.useMemo, useDebugValue2 = React52.useDebugValue;
       exports.useSyncExternalStoreWithSelector = function(subscribe, getSnapshot, getServerSnapshot, selector, isEqual) {
-        var instRef = useRef21(null);
+        var instRef = useRef22(null);
         if (null === instRef.current) {
           var inst = { hasValue: false, value: null };
           instRef.current = inst;
         } else inst = instRef.current;
-        instRef = useMemo17(
+        instRef = useMemo16(
           function() {
             function memoizedSelector(nextSnapshot) {
               if (!hasMemo) {
@@ -291,7 +291,7 @@ function clsx() {
 var clsx_default = clsx;
 
 // packages/ui/build-module/badge/badge.mjs
-var import_element9 = __toESM(require_element(), 1);
+var import_element11 = __toESM(require_element(), 1);
 
 // node_modules/@base-ui/utils/esm/error.js
 var set;
@@ -308,14 +308,17 @@ function error(...messages) {
   }
 }
 
-// node_modules/@base-ui/utils/esm/useStableCallback.js
-var React3 = __toESM(require_react(), 1);
+// node_modules/@base-ui/utils/esm/safeReact.js
+var React2 = __toESM(require_react(), 1);
+var SafeReact = {
+  ...React2
+};
 
 // node_modules/@base-ui/utils/esm/useRefWithInit.js
-var React2 = __toESM(require_react(), 1);
+var React3 = __toESM(require_react(), 1);
 var UNINITIALIZED = {};
 function useRefWithInit(init, initArg) {
-  const ref = React2.useRef(UNINITIALIZED);
+  const ref = React3.useRef(UNINITIALIZED);
   if (ref.current === UNINITIALIZED) {
     ref.current = init(initArg);
   }
@@ -323,11 +326,11 @@ function useRefWithInit(init, initArg) {
 }
 
 // node_modules/@base-ui/utils/esm/useStableCallback.js
-var useInsertionEffect = React3[`useInsertionEffect${Math.random().toFixed(1)}`.slice(0, -3)];
+var useInsertionEffect = SafeReact.useInsertionEffect;
 var useSafeInsertionEffect = (
   // React 17 doesn't have useInsertionEffect.
   useInsertionEffect && // Preact replaces useInsertionEffect with useLayoutEffect and fires too late.
-  useInsertionEffect !== React3.useLayoutEffect ? useInsertionEffect : (fn) => fn()
+  useInsertionEffect !== SafeReact.useLayoutEffect ? useInsertionEffect : (fn) => fn()
 );
 function useStableCallback(callback) {
   const stable = useRefWithInit(createStableCallback).current;
@@ -839,6 +842,7 @@ __export(reason_parts_exports, {
   focusOut: () => focusOut,
   imperativeAction: () => imperativeAction,
   incrementPress: () => incrementPress,
+  initial: () => initial,
   inputBlur: () => inputBlur,
   inputChange: () => inputChange,
   inputClear: () => inputClear,
@@ -848,6 +852,7 @@ __export(reason_parts_exports, {
   keyboard: () => keyboard,
   linkPress: () => linkPress,
   listNavigation: () => listNavigation,
+  missing: () => missing,
   none: () => none,
   outsidePress: () => outsidePress,
   pointer: () => pointer,
@@ -891,6 +896,8 @@ var scrub = "scrub";
 var cancelOpen = "cancel-open";
 var siblingOpen = "sibling-open";
 var disabled = "disabled";
+var missing = "missing";
+var initial = "initial";
 var imperativeAction = "imperative-action";
 var swipe = "swipe";
 var windowResize = "window-resize";
@@ -922,20 +929,12 @@ function createChangeEventDetails(reason, event, trigger, customProperties) {
 }
 
 // node_modules/@base-ui/utils/esm/useId.js
-var React10 = __toESM(require_react(), 1);
-
-// node_modules/@base-ui/utils/esm/safeReact.js
 var React9 = __toESM(require_react(), 1);
-var SafeReact = {
-  ...React9
-};
-
-// node_modules/@base-ui/utils/esm/useId.js
 var globalId = 0;
 function useGlobalId(idOverride, prefix = "mui") {
-  const [defaultId, setDefaultId] = React10.useState(idOverride);
+  const [defaultId, setDefaultId] = React9.useState(idOverride);
   const id = idOverride || defaultId;
-  React10.useEffect(() => {
+  React9.useEffect(() => {
     if (defaultId == null) {
       globalId += 1;
       setDefaultId(`${prefix}-${globalId}`);
@@ -957,14 +956,14 @@ function useBaseUiId(idOverride) {
   return useId(idOverride, "base-ui");
 }
 
-// node_modules/@base-ui/react/esm/internals/useAnimationsFinished.js
-var ReactDOM = __toESM(require_react_dom(), 1);
+// node_modules/@base-ui/react/esm/internals/useTransitionStatus.js
+var React11 = __toESM(require_react(), 1);
 
 // node_modules/@base-ui/utils/esm/useOnMount.js
-var React11 = __toESM(require_react(), 1);
+var React10 = __toESM(require_react(), 1);
 var EMPTY = [];
 function useOnMount(fn) {
-  React11.useEffect(fn, EMPTY);
+  React10.useEffect(fn, EMPTY);
 }
 
 // node_modules/@base-ui/utils/esm/useAnimationFrame.js
@@ -1055,103 +1054,10 @@ function useAnimationFrame() {
   return timeout;
 }
 
-// node_modules/@base-ui/react/esm/utils/resolveRef.js
-function resolveRef(maybeRef) {
-  if (maybeRef == null) {
-    return maybeRef;
-  }
-  return "current" in maybeRef ? maybeRef.current : maybeRef;
-}
-
-// node_modules/@base-ui/react/esm/internals/stateAttributesMapping.js
-var TransitionStatusDataAttributes = /* @__PURE__ */ (function(TransitionStatusDataAttributes2) {
-  TransitionStatusDataAttributes2["startingStyle"] = "data-starting-style";
-  TransitionStatusDataAttributes2["endingStyle"] = "data-ending-style";
-  return TransitionStatusDataAttributes2;
-})({});
-var STARTING_HOOK = {
-  [TransitionStatusDataAttributes.startingStyle]: ""
-};
-var ENDING_HOOK = {
-  [TransitionStatusDataAttributes.endingStyle]: ""
-};
-var transitionStatusMapping = {
-  transitionStatus(value) {
-    if (value === "starting") {
-      return STARTING_HOOK;
-    }
-    if (value === "ending") {
-      return ENDING_HOOK;
-    }
-    return null;
-  }
-};
-
-// node_modules/@base-ui/react/esm/internals/useAnimationsFinished.js
-function useAnimationsFinished(elementOrRef, waitForStartingStyleRemoved = false, treatAbortedAsFinished = true) {
-  const frame = useAnimationFrame();
-  return useStableCallback((fnToExecute, signal = null) => {
-    frame.cancel();
-    const element = resolveRef(elementOrRef);
-    if (element == null) {
-      return;
-    }
-    const resolvedElement = element;
-    const done = () => {
-      ReactDOM.flushSync(fnToExecute);
-    };
-    if (typeof resolvedElement.getAnimations !== "function" || globalThis.BASE_UI_ANIMATIONS_DISABLED) {
-      fnToExecute();
-      return;
-    }
-    function exec() {
-      Promise.all(resolvedElement.getAnimations().map((animation) => animation.finished)).then(() => {
-        if (!signal?.aborted) {
-          done();
-        }
-      }).catch(() => {
-        if (treatAbortedAsFinished) {
-          if (!signal?.aborted) {
-            done();
-          }
-          return;
-        }
-        const currentAnimations = resolvedElement.getAnimations();
-        if (!signal?.aborted && currentAnimations.length > 0 && currentAnimations.some((animation) => animation.pending || animation.playState !== "finished")) {
-          exec();
-        }
-      });
-    }
-    if (waitForStartingStyleRemoved) {
-      const startingStyleAttribute = TransitionStatusDataAttributes.startingStyle;
-      if (!resolvedElement.hasAttribute(startingStyleAttribute)) {
-        frame.request(exec);
-        return;
-      }
-      const attributeObserver = new MutationObserver(() => {
-        if (!resolvedElement.hasAttribute(startingStyleAttribute)) {
-          attributeObserver.disconnect();
-          exec();
-        }
-      });
-      attributeObserver.observe(resolvedElement, {
-        attributes: true,
-        attributeFilter: [startingStyleAttribute]
-      });
-      signal?.addEventListener("abort", () => attributeObserver.disconnect(), {
-        once: true
-      });
-      return;
-    }
-    frame.request(exec);
-  });
-}
-
 // node_modules/@base-ui/react/esm/internals/useTransitionStatus.js
-var React12 = __toESM(require_react(), 1);
 function useTransitionStatus(open, enableIdleState = false, deferEndingState = false) {
-  const [transitionStatus, setTransitionStatus] = React12.useState(open && enableIdleState ? "idle" : void 0);
-  const [mounted, setMounted] = React12.useState(open);
+  const [transitionStatus, setTransitionStatus] = React11.useState(open && enableIdleState ? "idle" : void 0);
+  const [mounted, setMounted] = React11.useState(open);
   if (open && !mounted) {
     setMounted(true);
     setTransitionStatus("starting");
@@ -1205,8 +1111,32 @@ function useTransitionStatus(open, enableIdleState = false, deferEndingState = f
   };
 }
 
+// node_modules/@base-ui/react/esm/internals/stateAttributesMapping.js
+var TransitionStatusDataAttributes = /* @__PURE__ */ (function(TransitionStatusDataAttributes2) {
+  TransitionStatusDataAttributes2["startingStyle"] = "data-starting-style";
+  TransitionStatusDataAttributes2["endingStyle"] = "data-ending-style";
+  return TransitionStatusDataAttributes2;
+})({});
+var STARTING_HOOK = {
+  [TransitionStatusDataAttributes.startingStyle]: ""
+};
+var ENDING_HOOK = {
+  [TransitionStatusDataAttributes.endingStyle]: ""
+};
+var transitionStatusMapping = {
+  transitionStatus(value) {
+    if (value === "starting") {
+      return STARTING_HOOK;
+    }
+    if (value === "ending") {
+      return ENDING_HOOK;
+    }
+    return null;
+  }
+};
+
 // node_modules/@base-ui/react/esm/internals/use-button/useButton.js
-var React15 = __toESM(require_react(), 1);
+var React14 = __toESM(require_react(), 1);
 
 // node_modules/@floating-ui/utils/dist/floating-ui.utils.dom.mjs
 function hasWindow() {
@@ -1365,11 +1295,11 @@ function getFrameElement(win) {
 }
 
 // node_modules/@base-ui/react/esm/internals/composite/root/CompositeRootContext.js
-var React13 = __toESM(require_react(), 1);
-var CompositeRootContext = /* @__PURE__ */ React13.createContext(void 0);
+var React12 = __toESM(require_react(), 1);
+var CompositeRootContext = /* @__PURE__ */ React12.createContext(void 0);
 if (true) CompositeRootContext.displayName = "CompositeRootContext";
 function useCompositeRootContext(optional = false) {
-  const context = React13.useContext(CompositeRootContext);
+  const context = React12.useContext(CompositeRootContext);
   if (context === void 0 && !optional) {
     throw new Error(true ? "Base UI: CompositeRootContext is missing. Composite parts must be placed within <Composite.Root>." : formatErrorMessage_default(16));
   }
@@ -1377,7 +1307,7 @@ function useCompositeRootContext(optional = false) {
 }
 
 // node_modules/@base-ui/react/esm/utils/useFocusableWhenDisabled.js
-var React14 = __toESM(require_react(), 1);
+var React13 = __toESM(require_react(), 1);
 function useFocusableWhenDisabled(parameters) {
   const {
     focusableWhenDisabled,
@@ -1388,7 +1318,7 @@ function useFocusableWhenDisabled(parameters) {
   } = parameters;
   const isFocusableComposite = composite && focusableWhenDisabled !== false;
   const isNonFocusableComposite = composite && focusableWhenDisabled === false;
-  const props = React14.useMemo(() => {
+  const props = React13.useMemo(() => {
     const additionalProps = {
       // allow Tabbing away from focusableWhenDisabled elements
       onKeyDown(event) {
@@ -1425,7 +1355,7 @@ function useButton(parameters = {}) {
     native: isNativeButton = true,
     composite: compositeProp
   } = parameters;
-  const elementRef = React15.useRef(null);
+  const elementRef = React14.useRef(null);
   const compositeRootContext = useCompositeRootContext(true);
   const isCompositeItem = compositeProp ?? compositeRootContext !== void 0;
   const {
@@ -1438,7 +1368,7 @@ function useButton(parameters = {}) {
     isNativeButton
   });
   if (true) {
-    React15.useEffect(() => {
+    React14.useEffect(() => {
       if (!elementRef.current) {
         return;
       }
@@ -1456,7 +1386,7 @@ function useButton(parameters = {}) {
       }
     }, [isNativeButton]);
   }
-  const updateDisabled = React15.useCallback(() => {
+  const updateDisabled = React14.useCallback(() => {
     const element = elementRef.current;
     if (!isButtonElement(element)) {
       return;
@@ -1466,7 +1396,7 @@ function useButton(parameters = {}) {
     }
   }, [disabled2, focusableWhenDisabledProps.disabled, isCompositeItem]);
   useIsoLayoutEffect(updateDisabled, [updateDisabled]);
-  const getButtonProps = React15.useCallback((externalProps = {}) => {
+  const getButtonProps = React14.useCallback((externalProps = {}) => {
     const {
       onClick: externalOnClick,
       onMouseDown: externalOnMouseDown,
@@ -1475,9 +1405,7 @@ function useButton(parameters = {}) {
       onPointerDown: externalOnPointerDown,
       ...otherExternalProps
     } = externalProps;
-    const type = isNativeButton ? "button" : void 0;
     return mergeProps({
-      type,
       onClick(event) {
         if (disabled2) {
           event.preventDefault();
@@ -1555,9 +1483,11 @@ function useButton(parameters = {}) {
         }
         externalOnPointerDown?.(event);
       }
-    }, !isNativeButton ? {
+    }, isNativeButton ? {
+      type: "button"
+    } : {
       role: "button"
-    } : void 0, focusableWhenDisabledProps, otherExternalProps);
+    }, focusableWhenDisabledProps, otherExternalProps);
   }, [disabled2, focusableWhenDisabledProps, isCompositeItem, isNativeButton]);
   const buttonRef = useStableCallback((element) => {
     elementRef.current = element;
@@ -1636,8 +1566,6 @@ function getPlatform() {
 
 // node_modules/@base-ui/react/esm/floating-ui-react/utils/constants.js
 var FOCUSABLE_ATTRIBUTE = "data-base-ui-focusable";
-var ACTIVE_KEY = "active";
-var SELECTED_KEY = "selected";
 var TYPEABLE_SELECTOR = "input:not([type='hidden']):not([disabled]),[contenteditable]:not([contenteditable='false']),textarea:not([disabled])";
 
 // node_modules/@base-ui/react/esm/internals/shadowDom.js
@@ -2066,8 +1994,99 @@ function addEventListener(target, type, listener, options) {
   };
 }
 
+// node_modules/@base-ui/utils/esm/useValueAsRef.js
+function useValueAsRef(value) {
+  const latest = useRefWithInit(createLatestRef, value).current;
+  latest.next = value;
+  useIsoLayoutEffect(latest.effect);
+  return latest;
+}
+function createLatestRef(value) {
+  const latest = {
+    current: value,
+    next: value,
+    effect: () => {
+      latest.current = latest.next;
+    }
+  };
+  return latest;
+}
+
 // node_modules/@base-ui/react/esm/internals/useOpenChangeComplete.js
-var React16 = __toESM(require_react(), 1);
+var React15 = __toESM(require_react(), 1);
+
+// node_modules/@base-ui/react/esm/internals/useAnimationsFinished.js
+var ReactDOM = __toESM(require_react_dom(), 1);
+
+// node_modules/@base-ui/react/esm/utils/resolveRef.js
+function resolveRef(maybeRef) {
+  if (maybeRef == null) {
+    return maybeRef;
+  }
+  return "current" in maybeRef ? maybeRef.current : maybeRef;
+}
+
+// node_modules/@base-ui/react/esm/internals/useAnimationsFinished.js
+function useAnimationsFinished(elementOrRef, waitForStartingStyleRemoved = false, treatAbortedAsFinished = true) {
+  const frame = useAnimationFrame();
+  return useStableCallback((fnToExecute, signal = null) => {
+    frame.cancel();
+    const element = resolveRef(elementOrRef);
+    if (element == null) {
+      return;
+    }
+    const resolvedElement = element;
+    const done = () => {
+      ReactDOM.flushSync(fnToExecute);
+    };
+    if (typeof resolvedElement.getAnimations !== "function" || globalThis.BASE_UI_ANIMATIONS_DISABLED) {
+      fnToExecute();
+      return;
+    }
+    function exec() {
+      Promise.all(resolvedElement.getAnimations().map((animation) => animation.finished)).then(() => {
+        if (!signal?.aborted) {
+          done();
+        }
+      }).catch(() => {
+        if (treatAbortedAsFinished) {
+          if (!signal?.aborted) {
+            done();
+          }
+          return;
+        }
+        const currentAnimations = resolvedElement.getAnimations();
+        if (!signal?.aborted && currentAnimations.length > 0 && currentAnimations.some((animation) => animation.pending || animation.playState !== "finished")) {
+          exec();
+        }
+      });
+    }
+    if (waitForStartingStyleRemoved) {
+      const startingStyleAttribute = TransitionStatusDataAttributes.startingStyle;
+      if (!resolvedElement.hasAttribute(startingStyleAttribute)) {
+        frame.request(exec);
+        return;
+      }
+      const attributeObserver = new MutationObserver(() => {
+        if (!resolvedElement.hasAttribute(startingStyleAttribute)) {
+          attributeObserver.disconnect();
+          exec();
+        }
+      });
+      attributeObserver.observe(resolvedElement, {
+        attributes: true,
+        attributeFilter: [startingStyleAttribute]
+      });
+      signal?.addEventListener("abort", () => attributeObserver.disconnect(), {
+        once: true
+      });
+      return;
+    }
+    frame.request(exec);
+  });
+}
+
+// node_modules/@base-ui/react/esm/internals/useOpenChangeComplete.js
 function useOpenChangeComplete(parameters) {
   const {
     enabled = true,
@@ -2077,7 +2096,7 @@ function useOpenChangeComplete(parameters) {
   } = parameters;
   const onComplete = useStableCallback(onCompleteParam);
   const runOnceAnimationsFinish = useAnimationsFinished(ref, open, false);
-  React16.useEffect(() => {
+  React15.useEffect(() => {
     if (!enabled) {
       return void 0;
     }
@@ -2090,9 +2109,9 @@ function useOpenChangeComplete(parameters) {
 }
 
 // node_modules/@base-ui/utils/esm/useOnFirstRender.js
-var React17 = __toESM(require_react(), 1);
+var React16 = __toESM(require_react(), 1);
 function useOnFirstRender(fn) {
-  const ref = React17.useRef(true);
+  const ref = React16.useRef(true);
   if (ref.current) {
     ref.current = false;
     fn();
@@ -2136,7 +2155,7 @@ function useTimeout() {
 }
 
 // node_modules/@base-ui/react/esm/floating-ui-react/components/FloatingDelayGroup.js
-var React18 = __toESM(require_react(), 1);
+var React17 = __toESM(require_react(), 1);
 
 // node_modules/@base-ui/react/esm/floating-ui-react/hooks/useHoverShared.js
 function resolveValue(value, pointerType) {
@@ -2164,10 +2183,13 @@ function getRestMs(value) {
 function isClickLikeOpenEvent(openEventType, interactedInside) {
   return interactedInside || openEventType === "click" || openEventType === "mousedown";
 }
+function isHoverOpenEvent(openEventType) {
+  return openEventType?.includes("mouse") && openEventType !== "mousedown";
+}
 
 // node_modules/@base-ui/react/esm/floating-ui-react/components/FloatingDelayGroup.js
 var import_jsx_runtime = __toESM(require_jsx_runtime(), 1);
-var FloatingDelayGroupContext = /* @__PURE__ */ React18.createContext({
+var FloatingDelayGroupContext = /* @__PURE__ */ React17.createContext({
   hasProvider: false,
   timeoutMs: 0,
   delayRef: {
@@ -2191,13 +2213,13 @@ function FloatingDelayGroup(props) {
     delay,
     timeoutMs = 0
   } = props;
-  const delayRef = React18.useRef(delay);
-  const initialDelayRef = React18.useRef(delay);
-  const currentIdRef = React18.useRef(null);
-  const currentContextRef = React18.useRef(null);
+  const delayRef = React17.useRef(delay);
+  const initialDelayRef = React17.useRef(delay);
+  const currentIdRef = React17.useRef(null);
+  const currentContextRef = React17.useRef(null);
   const timeout = useTimeout();
   return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(FloatingDelayGroupContext.Provider, {
-    value: React18.useMemo(() => ({
+    value: React17.useMemo(() => ({
       hasProvider: true,
       delayRef,
       initialDelayRef,
@@ -2212,12 +2234,12 @@ function FloatingDelayGroup(props) {
 function useDelayGroup(context, options = {
   open: false
 }) {
-  const store2 = "rootStore" in context ? context.rootStore : context;
-  const floatingId = store2.useState("floatingId");
   const {
     open
   } = options;
-  const groupContext = React18.useContext(FloatingDelayGroupContext);
+  const store2 = "rootStore" in context ? context.rootStore : context;
+  const floatingId = store2.useState("floatingId");
+  const groupContext = React17.useContext(FloatingDelayGroupContext);
   const {
     currentIdRef,
     delayRef,
@@ -2227,7 +2249,7 @@ function useDelayGroup(context, options = {
     hasProvider,
     timeout
   } = groupContext;
-  const [isInstantPhase, setIsInstantPhase] = React18.useState(false);
+  const [isInstantPhase, setIsInstantPhase] = React17.useState(false);
   useIsoLayoutEffect(() => {
     function unset() {
       setIsInstantPhase(false);
@@ -2281,13 +2303,13 @@ function useDelayGroup(context, options = {
       setIsInstantPhase(false);
       prevContext?.setIsInstantPhase(false);
     }
-  }, [open, floatingId, store2, currentIdRef, delayRef, timeoutMs, initialDelayRef, currentContextRef, timeout]);
+  }, [open, floatingId, store2, currentIdRef, delayRef, initialDelayRef, currentContextRef, timeout]);
   useIsoLayoutEffect(() => {
     return () => {
       currentContextRef.current = null;
     };
   }, [currentContextRef]);
-  return React18.useMemo(() => ({
+  return React17.useMemo(() => ({
     hasProvider,
     delayRef,
     isInstantPhase
@@ -2306,26 +2328,8 @@ function mergeCleanups(...cleanups) {
   };
 }
 
-// node_modules/@base-ui/utils/esm/useValueAsRef.js
-function useValueAsRef(value) {
-  const latest = useRefWithInit(createLatestRef, value).current;
-  latest.next = value;
-  useIsoLayoutEffect(latest.effect);
-  return latest;
-}
-function createLatestRef(value) {
-  const latest = {
-    current: value,
-    next: value,
-    effect: () => {
-      latest.current = latest.next;
-    }
-  };
-  return latest;
-}
-
 // node_modules/@base-ui/react/esm/utils/FocusGuard.js
-var React19 = __toESM(require_react(), 1);
+var React18 = __toESM(require_react(), 1);
 
 // node_modules/@base-ui/utils/esm/visuallyHidden.js
 var visuallyHiddenBase = {
@@ -2351,8 +2355,8 @@ var visuallyHiddenInput = {
 
 // node_modules/@base-ui/react/esm/utils/FocusGuard.js
 var import_jsx_runtime2 = __toESM(require_jsx_runtime(), 1);
-var FocusGuard = /* @__PURE__ */ React19.forwardRef(function FocusGuard2(props, ref) {
-  const [role, setRole] = React19.useState();
+var FocusGuard = /* @__PURE__ */ React18.forwardRef(function FocusGuard2(props, ref) {
+  const [role, setRole] = React18.useState();
   useIsoLayoutEffect(() => {
     if (isSafari) {
       setRole("button");
@@ -2380,7 +2384,7 @@ function createAttribute(name) {
 }
 
 // node_modules/@base-ui/react/esm/floating-ui-react/components/FloatingPortal.js
-var React20 = __toESM(require_react(), 1);
+var React19 = __toESM(require_react(), 1);
 var ReactDOM2 = __toESM(require_react_dom(), 1);
 
 // node_modules/@base-ui/react/esm/internals/constants.js
@@ -2405,9 +2409,9 @@ var ownerVisuallyHidden = {
 
 // node_modules/@base-ui/react/esm/floating-ui-react/components/FloatingPortal.js
 var import_jsx_runtime3 = __toESM(require_jsx_runtime(), 1);
-var PortalContext = /* @__PURE__ */ React20.createContext(null);
+var PortalContext = /* @__PURE__ */ React19.createContext(null);
 if (true) PortalContext.displayName = "PortalContext";
-var usePortalContext = () => React20.useContext(PortalContext);
+var usePortalContext = () => React19.useContext(PortalContext);
 var attr = createAttribute("portal");
 function useFloatingPortalNode(props = {}) {
   const {
@@ -2419,14 +2423,14 @@ function useFloatingPortalNode(props = {}) {
   const uniqueId = useId();
   const portalContext = usePortalContext();
   const parentPortalNode = portalContext?.portalNode;
-  const [containerElement, setContainerElement] = React20.useState(null);
-  const [portalNode, setPortalNode] = React20.useState(null);
+  const [containerElement, setContainerElement] = React19.useState(null);
+  const [portalNode, setPortalNode] = React19.useState(null);
   const setPortalNodeRef = useStableCallback((node) => {
     if (node !== null) {
       setPortalNode(node);
     }
   });
-  const containerRef = React20.useRef(null);
+  const containerRef = React19.useRef(null);
   useIsoLayoutEffect(() => {
     if (containerProp === null) {
       if (containerRef.current) {
@@ -2467,14 +2471,14 @@ function useFloatingPortalNode(props = {}) {
     portalSubtree
   };
 }
-var FloatingPortal = /* @__PURE__ */ React20.forwardRef(function FloatingPortal2(componentProps, forwardedRef) {
+var FloatingPortal = /* @__PURE__ */ React19.forwardRef(function FloatingPortal2(componentProps, forwardedRef) {
   const {
+    render,
+    className,
+    style,
     children,
     container,
-    className,
-    render,
     renderGuards,
-    style,
     ...elementProps
   } = componentProps;
   const {
@@ -2486,16 +2490,16 @@ var FloatingPortal = /* @__PURE__ */ React20.forwardRef(function FloatingPortal2
     componentProps,
     elementProps
   });
-  const beforeOutsideRef = React20.useRef(null);
-  const afterOutsideRef = React20.useRef(null);
-  const beforeInsideRef = React20.useRef(null);
-  const afterInsideRef = React20.useRef(null);
-  const [focusManagerState, setFocusManagerState] = React20.useState(null);
-  const focusInsideDisabledRef = React20.useRef(false);
+  const beforeOutsideRef = React19.useRef(null);
+  const afterOutsideRef = React19.useRef(null);
+  const beforeInsideRef = React19.useRef(null);
+  const afterInsideRef = React19.useRef(null);
+  const [focusManagerState, setFocusManagerState] = React19.useState(null);
+  const focusInsideDisabledRef = React19.useRef(false);
   const modal = focusManagerState?.modal;
   const open = focusManagerState?.open;
   const shouldRenderGuards = typeof renderGuards === "boolean" ? renderGuards : !!focusManagerState && !focusManagerState.modal && focusManagerState.open && !!portalNode;
-  React20.useEffect(() => {
+  React19.useEffect(() => {
     if (!portalNode || modal) {
       return void 0;
     }
@@ -2514,14 +2518,14 @@ var FloatingPortal = /* @__PURE__ */ React20.forwardRef(function FloatingPortal2
     }
     return mergeCleanups(addEventListener(portalNode, "focusin", onFocus, true), addEventListener(portalNode, "focusout", onFocus, true));
   }, [portalNode, modal]);
-  React20.useEffect(() => {
+  React19.useEffect(() => {
     if (!portalNode || open !== false) {
       return;
     }
     enableFocusInside(portalNode);
     focusInsideDisabledRef.current = false;
   }, [open, portalNode]);
-  const portalContextValue = React20.useMemo(() => ({
+  const portalContextValue = React19.useMemo(() => ({
     beforeOutsideRef,
     afterOutsideRef,
     beforeInsideRef,
@@ -2529,7 +2533,7 @@ var FloatingPortal = /* @__PURE__ */ React20.forwardRef(function FloatingPortal2
     portalNode,
     setFocusManagerState
   }), [portalNode]);
-  return /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)(React20.Fragment, {
+  return /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)(React19.Fragment, {
     children: [portalSubtree, /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)(PortalContext.Provider, {
       value: portalContextValue,
       children: [shouldRenderGuards && portalNode && /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(FocusGuard, {
@@ -2569,7 +2573,7 @@ var FloatingPortal = /* @__PURE__ */ React20.forwardRef(function FloatingPortal2
 if (true) FloatingPortal.displayName = "FloatingPortal";
 
 // node_modules/@base-ui/react/esm/floating-ui-react/components/FloatingTree.js
-var React21 = __toESM(require_react(), 1);
+var React20 = __toESM(require_react(), 1);
 
 // node_modules/@base-ui/react/esm/floating-ui-react/utils/createEventEmitter.js
 function createEventEmitter() {
@@ -2592,18 +2596,18 @@ function createEventEmitter() {
 
 // node_modules/@base-ui/react/esm/floating-ui-react/components/FloatingTree.js
 var import_jsx_runtime4 = __toESM(require_jsx_runtime(), 1);
-var FloatingNodeContext = /* @__PURE__ */ React21.createContext(null);
+var FloatingNodeContext = /* @__PURE__ */ React20.createContext(null);
 if (true) FloatingNodeContext.displayName = "FloatingNodeContext";
-var FloatingTreeContext = /* @__PURE__ */ React21.createContext(null);
+var FloatingTreeContext = /* @__PURE__ */ React20.createContext(null);
 if (true) FloatingTreeContext.displayName = "FloatingTreeContext";
-var useFloatingParentNodeId = () => React21.useContext(FloatingNodeContext)?.id || null;
+var useFloatingParentNodeId = () => React20.useContext(FloatingNodeContext)?.id || null;
 var useFloatingTree = (externalTree) => {
-  const contextTree = React21.useContext(FloatingTreeContext);
+  const contextTree = React20.useContext(FloatingTreeContext);
   return externalTree ?? contextTree;
 };
 
 // node_modules/@base-ui/react/esm/floating-ui-react/hooks/useClientPoint.js
-var React22 = __toESM(require_react(), 1);
+var React21 = __toESM(require_react(), 1);
 function createVirtualElement(domElement, data) {
   let offsetX = null;
   let offsetY = null;
@@ -2661,19 +2665,22 @@ function isMouseBasedEvent(event) {
   return event != null && event.clientX != null;
 }
 function useClientPoint(context, props = {}) {
+  const {
+    enabled = true,
+    axis = "both"
+  } = props;
   const store2 = "rootStore" in context ? context.rootStore : context;
   const open = store2.useState("open");
   const floating = store2.useState("floatingElement");
   const domReference = store2.useState("domReferenceElement");
   const dataRef = store2.context.dataRef;
-  const {
-    enabled = true,
-    axis = "both"
-  } = props;
-  const initialRef = React22.useRef(false);
-  const cleanupListenerRef = React22.useRef(null);
-  const [pointerType, setPointerType] = React22.useState();
-  const [reactive, setReactive] = React22.useState([]);
+  const initialRef = React21.useRef(false);
+  const cleanupListenerRef = React21.useRef(null);
+  const [pointerType, setPointerType] = React21.useState();
+  const [reactive, setReactive] = React21.useState([]);
+  const resetReference = useStableCallback((reference2) => {
+    store2.set("positionReference", reference2);
+  });
   const setReference = useStableCallback((newX, newY, referenceElement) => {
     if (initialRef.current) {
       return;
@@ -2693,13 +2700,22 @@ function useClientPoint(context, props = {}) {
     if (!open) {
       setReference(event.clientX, event.clientY, event.currentTarget);
     } else if (!cleanupListenerRef.current) {
+      setReference(event.clientX, event.clientY, event.currentTarget);
       setReactive([]);
     }
   });
   const openCheck = isMouseLikePointerType(pointerType) ? floating : open;
-  const addListener = React22.useCallback(() => {
-    if (!openCheck || !enabled) {
+  React21.useEffect(() => {
+    if (!enabled) {
+      resetReference(domReference);
       return void 0;
+    }
+    if (!openCheck) {
+      return void 0;
+    }
+    function cleanupListener() {
+      cleanupListenerRef.current?.();
+      cleanupListenerRef.current = null;
     }
     const win = getWindow(floating);
     function handleMouseMove(event) {
@@ -2707,35 +2723,30 @@ function useClientPoint(context, props = {}) {
       if (!contains(floating, target)) {
         setReference(event.clientX, event.clientY);
       } else {
-        cleanupListenerRef.current?.();
-        cleanupListenerRef.current = null;
+        cleanupListener();
       }
     }
     if (!dataRef.current.openEvent || isMouseBasedEvent(dataRef.current.openEvent)) {
-      const cleanup = () => {
-        cleanupListenerRef.current?.();
-        cleanupListenerRef.current = null;
-      };
       cleanupListenerRef.current = addEventListener(win, "mousemove", handleMouseMove);
-      return cleanup;
+    } else {
+      resetReference(domReference);
     }
-    store2.set("positionReference", domReference);
-    return void 0;
-  }, [openCheck, enabled, floating, dataRef, domReference, store2, setReference]);
-  React22.useEffect(() => {
-    return addListener();
-  }, [addListener, reactive]);
-  React22.useEffect(() => {
+    return cleanupListener;
+  }, [openCheck, enabled, floating, dataRef, domReference, store2, setReference, resetReference, reactive]);
+  React21.useEffect(() => () => {
+    store2.set("positionReference", null);
+  }, [store2]);
+  React21.useEffect(() => {
     if (enabled && !floating) {
       initialRef.current = false;
     }
   }, [enabled, floating]);
-  React22.useEffect(() => {
+  React21.useEffect(() => {
     if (!enabled && open) {
       initialRef.current = true;
     }
   }, [enabled, open]);
-  const reference = React22.useMemo(() => {
+  const reference = React21.useMemo(() => {
     function setPointerTypeRef(event) {
       setPointerType(event.pointerType);
     }
@@ -2746,14 +2757,14 @@ function useClientPoint(context, props = {}) {
       onMouseEnter: handleReferenceEnterOrMove
     };
   }, [handleReferenceEnterOrMove]);
-  return React22.useMemo(() => enabled ? {
+  return React21.useMemo(() => enabled ? {
     reference,
     trigger: reference
   } : {}, [enabled, reference]);
 }
 
 // node_modules/@base-ui/react/esm/floating-ui-react/hooks/useDismiss.js
-var React23 = __toESM(require_react(), 1);
+var React22 = __toESM(require_react(), 1);
 var bubbleHandlerKeys = {
   intentional: "onClick",
   sloppy: "onPointerDown"
@@ -2768,12 +2779,6 @@ function normalizeProp(normalizable) {
   };
 }
 function useDismiss(context, props = {}) {
-  const store2 = "rootStore" in context ? context.rootStore : context;
-  const open = store2.useState("open");
-  const floatingElement = store2.useState("floatingElement");
-  const {
-    dataRef
-  } = store2.context;
   const {
     enabled = true,
     escapeKey: escapeKey2 = true,
@@ -2784,28 +2789,47 @@ function useDismiss(context, props = {}) {
     bubbles,
     externalTree
   } = props;
+  const store2 = "rootStore" in context ? context.rootStore : context;
+  const open = store2.useState("open");
+  const floatingElement = store2.useState("floatingElement");
+  const {
+    dataRef
+  } = store2.context;
   const tree = useFloatingTree(externalTree);
   const outsidePressFn = useStableCallback(typeof outsidePressProp === "function" ? outsidePressProp : () => false);
   const outsidePress2 = typeof outsidePressProp === "function" ? outsidePressFn : outsidePressProp;
   const outsidePressEnabled = outsidePress2 !== false;
   const getOutsidePressEventProp = useStableCallback(() => outsidePressEvent);
-  const pressStartedInsideRef = React23.useRef(false);
-  const pressStartPreventedRef = React23.useRef(false);
-  const suppressNextOutsideClickRef = React23.useRef(false);
   const {
     escapeKey: escapeKeyBubbles,
     outsidePress: outsidePressBubbles
   } = normalizeProp(bubbles);
-  const touchStateRef = React23.useRef(null);
+  const pressStartedInsideRef = React22.useRef(false);
+  const pressStartPreventedRef = React22.useRef(false);
+  const suppressNextOutsideClickRef = React22.useRef(false);
+  const isComposingRef = React22.useRef(false);
+  const currentPointerTypeRef = React22.useRef("");
+  const touchStateRef = React22.useRef(null);
   const cancelDismissOnEndTimeout = useTimeout();
   const clearInsideReactTreeTimeout = useTimeout();
   const clearInsideReactTree = useStableCallback(() => {
     clearInsideReactTreeTimeout.clear();
     dataRef.current.insideReactTree = false;
   });
-  const isComposingRef = React23.useRef(false);
-  const currentPointerTypeRef = React23.useRef("");
-  const isReferencePressEnabled = useStableCallback(referencePress);
+  const hasBlockingChild = useStableCallback((bubbleKey) => {
+    const nodeId = dataRef.current.floatingContext?.nodeId;
+    const children = tree ? getNodeChildren(tree.nodesRef.current, nodeId) : [];
+    return children.some((child) => child.context?.open && !child.context.dataRef.current[bubbleKey]);
+  });
+  const isEventWithinOwnElements = useStableCallback((event) => {
+    return isEventTargetWithin(event, store2.select("floatingElement")) || isEventTargetWithin(event, store2.select("domReferenceElement"));
+  });
+  const closeOnReferencePress = useStableCallback((event) => {
+    if (!referencePress()) {
+      return;
+    }
+    store2.setOpen(false, createChangeEventDetails(reason_parts_exports.triggerPress, event.nativeEvent));
+  });
   const closeOnEscapeKeyDown = useStableCallback((event) => {
     if (!open || !enabled || !escapeKey2 || event.key !== "Escape") {
       return;
@@ -2813,24 +2837,15 @@ function useDismiss(context, props = {}) {
     if (isComposingRef.current) {
       return;
     }
-    const nodeId = dataRef.current.floatingContext?.nodeId;
-    const children = tree ? getNodeChildren(tree.nodesRef.current, nodeId) : [];
-    if (!escapeKeyBubbles) {
-      if (children.length > 0) {
-        let shouldDismiss = true;
-        children.forEach((child) => {
-          if (child.context?.open && !child.context.dataRef.current.__escapeKeyBubbles) {
-            shouldDismiss = false;
-          }
-        });
-        if (!shouldDismiss) {
-          return;
-        }
-      }
+    if (!escapeKeyBubbles && hasBlockingChild("__escapeKeyBubbles")) {
+      return;
     }
     const native = isReactEvent(event) ? event.nativeEvent : event;
     const eventDetails = createChangeEventDetails(reason_parts_exports.escapeKey, native);
     store2.setOpen(false, eventDetails);
+    if (!eventDetails.isCanceled) {
+      event.preventDefault();
+    }
     if (!escapeKeyBubbles && !eventDetails.isPropagationAllowed) {
       event.stopPropagation();
     }
@@ -2839,7 +2854,31 @@ function useDismiss(context, props = {}) {
     dataRef.current.insideReactTree = true;
     clearInsideReactTreeTimeout.start(0, clearInsideReactTree);
   });
-  React23.useEffect(() => {
+  const markPressStartedInsideReactTree = useStableCallback((event) => {
+    if (!open || !enabled || event.button !== 0) {
+      return;
+    }
+    const target = getTarget(event.nativeEvent);
+    if (!contains(store2.select("floatingElement"), target)) {
+      return;
+    }
+    if (!pressStartedInsideRef.current) {
+      pressStartedInsideRef.current = true;
+      pressStartPreventedRef.current = false;
+    }
+  });
+  const markInsidePressStartPrevented = useStableCallback((event) => {
+    if (!open || !enabled) {
+      return;
+    }
+    if (!(event.defaultPrevented || event.nativeEvent.defaultPrevented)) {
+      return;
+    }
+    if (pressStartedInsideRef.current) {
+      pressStartPreventedRef.current = true;
+    }
+  });
+  React22.useEffect(() => {
     if (!open || !enabled) {
       return void 0;
     }
@@ -2888,10 +2927,14 @@ function useDismiss(context, props = {}) {
     function isEventWithinFloatingTree(event) {
       const nodeId = dataRef.current.floatingContext?.nodeId;
       const targetIsInsideChildren = tree && getNodeChildren(tree.nodesRef.current, nodeId).some((node) => isEventTargetWithin(event, node.context?.elements.floating));
-      return isEventTargetWithin(event, store2.select("floatingElement")) || isEventTargetWithin(event, store2.select("domReferenceElement")) || targetIsInsideChildren;
+      return isEventWithinOwnElements(event) || targetIsInsideChildren;
     }
     function closeOnPressOutside(event) {
       if (shouldIgnoreEvent(event)) {
+        if (event.type !== "click" && !isEventWithinOwnElements(event)) {
+          preventedPressSuppressionTimeout.clear();
+          suppressNextOutsideClickRef.current = false;
+        }
         clearInsideReactTree();
         return;
       }
@@ -2947,30 +2990,20 @@ function useDismiss(context, props = {}) {
       if (typeof outsidePress2 === "function" && !outsidePress2(event)) {
         return;
       }
-      const nodeId = dataRef.current.floatingContext?.nodeId;
-      const children = tree ? getNodeChildren(tree.nodesRef.current, nodeId) : [];
-      if (children.length > 0) {
-        let shouldDismiss = true;
-        children.forEach((child) => {
-          if (child.context?.open && !child.context.dataRef.current.__outsidePressBubbles) {
-            shouldDismiss = false;
-          }
-        });
-        if (!shouldDismiss) {
-          return;
-        }
+      if (hasBlockingChild("__outsidePressBubbles")) {
+        return;
       }
       store2.setOpen(false, createChangeEventDetails(reason_parts_exports.outsidePress, event));
       clearInsideReactTree();
     }
     function handlePointerDown(event) {
-      if (getOutsidePressEvent() !== "sloppy" || event.pointerType === "touch" || !store2.select("open") || !enabled || isEventTargetWithin(event, store2.select("floatingElement")) || isEventTargetWithin(event, store2.select("domReferenceElement"))) {
+      if (getOutsidePressEvent() !== "sloppy" || event.pointerType === "touch" || !store2.select("open") || !enabled || isEventWithinOwnElements(event)) {
         return;
       }
       closeOnPressOutside(event);
     }
     function handleTouchStart(event) {
-      if (getOutsidePressEvent() !== "sloppy" || !store2.select("open") || !enabled || isEventTargetWithin(event, store2.select("floatingElement")) || isEventTargetWithin(event, store2.select("domReferenceElement"))) {
+      if (getOutsidePressEvent() !== "sloppy" || !store2.select("open") || !enabled || isEventWithinOwnElements(event)) {
         return;
       }
       const touch = event.touches[0];
@@ -3050,7 +3083,7 @@ function useDismiss(context, props = {}) {
       clearInsideReactTree();
     }
     function handleTouchMove(event) {
-      if (getOutsidePressEvent() !== "sloppy" || !touchStateRef.current || isEventTargetWithin(event, store2.select("floatingElement")) || isEventTargetWithin(event, store2.select("domReferenceElement"))) {
+      if (getOutsidePressEvent() !== "sloppy" || !touchStateRef.current || isEventWithinOwnElements(event)) {
         return;
       }
       const touch = event.touches[0];
@@ -3073,7 +3106,7 @@ function useDismiss(context, props = {}) {
       addTargetEventListenerOnce(event, handleTouchMove);
     }
     function handleTouchEnd(event) {
-      if (getOutsidePressEvent() !== "sloppy" || !touchStateRef.current || isEventTargetWithin(event, store2.select("floatingElement")) || isEventTargetWithin(event, store2.select("domReferenceElement"))) {
+      if (getOutsidePressEvent() !== "sloppy" || !touchStateRef.current || isEventWithinOwnElements(event)) {
         return;
       }
       if (touchStateRef.current.dismissOnTouchEnd) {
@@ -3094,50 +3127,16 @@ function useDismiss(context, props = {}) {
       resetPressStartState();
       suppressNextOutsideClickRef.current = false;
     };
-  }, [dataRef, floatingElement, escapeKey2, outsidePressEnabled, outsidePress2, open, enabled, escapeKeyBubbles, outsidePressBubbles, closeOnEscapeKeyDown, clearInsideReactTree, getOutsidePressEventProp, tree, store2, cancelDismissOnEndTimeout]);
-  React23.useEffect(clearInsideReactTree, [outsidePress2, clearInsideReactTree]);
-  const reference = React23.useMemo(() => ({
+  }, [dataRef, floatingElement, escapeKey2, outsidePressEnabled, outsidePress2, open, enabled, escapeKeyBubbles, outsidePressBubbles, closeOnEscapeKeyDown, clearInsideReactTree, getOutsidePressEventProp, hasBlockingChild, isEventWithinOwnElements, tree, store2, cancelDismissOnEndTimeout]);
+  React22.useEffect(clearInsideReactTree, [outsidePress2, clearInsideReactTree]);
+  const reference = React22.useMemo(() => ({
     onKeyDown: closeOnEscapeKeyDown,
-    [bubbleHandlerKeys[referencePressEvent]]: (event) => {
-      if (!isReferencePressEnabled()) {
-        return;
-      }
-      store2.setOpen(false, createChangeEventDetails(reason_parts_exports.triggerPress, event.nativeEvent));
-    },
+    [bubbleHandlerKeys[referencePressEvent]]: closeOnReferencePress,
     ...referencePressEvent !== "intentional" && {
-      onClick(event) {
-        if (!isReferencePressEnabled()) {
-          return;
-        }
-        store2.setOpen(false, createChangeEventDetails(reason_parts_exports.triggerPress, event.nativeEvent));
-      }
+      onClick: closeOnReferencePress
     }
-  }), [closeOnEscapeKeyDown, store2, referencePressEvent, isReferencePressEnabled]);
-  const markPressStartedInsideReactTree = useStableCallback((event) => {
-    if (!open || !enabled || event.button !== 0) {
-      return;
-    }
-    const target = getTarget(event.nativeEvent);
-    if (!contains(store2.select("floatingElement"), target)) {
-      return;
-    }
-    if (!pressStartedInsideRef.current) {
-      pressStartedInsideRef.current = true;
-      pressStartPreventedRef.current = false;
-    }
-  });
-  const markInsidePressStartPrevented = useStableCallback((event) => {
-    if (!open || !enabled) {
-      return;
-    }
-    if (!(event.defaultPrevented || event.nativeEvent.defaultPrevented)) {
-      return;
-    }
-    if (pressStartedInsideRef.current) {
-      pressStartPreventedRef.current = true;
-    }
-  });
-  const floating = React23.useMemo(() => ({
+  }), [closeOnEscapeKeyDown, closeOnReferencePress, referencePressEvent]);
+  const floating = React22.useMemo(() => ({
     onKeyDown: closeOnEscapeKeyDown,
     // `onMouseDown` may be blocked if `event.preventDefault()` is called in
     // `onPointerDown`, such as with <NumberField.ScrubArea>.
@@ -3157,7 +3156,7 @@ function useDismiss(context, props = {}) {
     onTouchEndCapture: markInsideReactTree,
     onTouchMoveCapture: markInsideReactTree
   }), [closeOnEscapeKeyDown, markInsideReactTree, markPressStartedInsideReactTree, markInsidePressStartPrevented]);
-  return React23.useMemo(() => enabled ? {
+  return React22.useMemo(() => enabled ? {
     reference,
     floating,
     trigger: reference
@@ -4437,7 +4436,7 @@ var computePosition2 = (reference, floating, options) => {
 };
 
 // node_modules/@base-ui/react/node_modules/@floating-ui/react-dom/dist/floating-ui.react-dom.mjs
-var React24 = __toESM(require_react(), 1);
+var React23 = __toESM(require_react(), 1);
 var import_react2 = __toESM(require_react(), 1);
 var ReactDOM3 = __toESM(require_react_dom(), 1);
 var isClient = typeof document !== "undefined";
@@ -4503,7 +4502,7 @@ function roundByDPR(element, value) {
   return Math.round(value * dpr) / dpr;
 }
 function useLatestRef(value) {
-  const ref = React24.useRef(value);
+  const ref = React23.useRef(value);
   index(() => {
     ref.current = value;
   });
@@ -4526,7 +4525,7 @@ function useFloating(options) {
     whileElementsMounted,
     open
   } = options;
-  const [data, setData] = React24.useState({
+  const [data, setData] = React23.useState({
     x: 0,
     y: 0,
     strategy,
@@ -4534,19 +4533,19 @@ function useFloating(options) {
     middlewareData: {},
     isPositioned: false
   });
-  const [latestMiddleware, setLatestMiddleware] = React24.useState(middleware);
+  const [latestMiddleware, setLatestMiddleware] = React23.useState(middleware);
   if (!deepEqual(latestMiddleware, middleware)) {
     setLatestMiddleware(middleware);
   }
-  const [_reference, _setReference] = React24.useState(null);
-  const [_floating, _setFloating] = React24.useState(null);
-  const setReference = React24.useCallback((node) => {
+  const [_reference, _setReference] = React23.useState(null);
+  const [_floating, _setFloating] = React23.useState(null);
+  const setReference = React23.useCallback((node) => {
     if (node !== referenceRef.current) {
       referenceRef.current = node;
       _setReference(node);
     }
   }, []);
-  const setFloating = React24.useCallback((node) => {
+  const setFloating = React23.useCallback((node) => {
     if (node !== floatingRef.current) {
       floatingRef.current = node;
       _setFloating(node);
@@ -4554,14 +4553,14 @@ function useFloating(options) {
   }, []);
   const referenceEl = externalReference || _reference;
   const floatingEl = externalFloating || _floating;
-  const referenceRef = React24.useRef(null);
-  const floatingRef = React24.useRef(null);
-  const dataRef = React24.useRef(data);
+  const referenceRef = React23.useRef(null);
+  const floatingRef = React23.useRef(null);
+  const dataRef = React23.useRef(data);
   const hasWhileElementsMounted = whileElementsMounted != null;
   const whileElementsMountedRef = useLatestRef(whileElementsMounted);
   const platformRef = useLatestRef(platform3);
   const openRef = useLatestRef(open);
-  const update2 = React24.useCallback(() => {
+  const update2 = React23.useCallback(() => {
     if (!referenceRef.current || !floatingRef.current) {
       return;
     }
@@ -4599,7 +4598,7 @@ function useFloating(options) {
       }));
     }
   }, [open]);
-  const isMountedRef = React24.useRef(false);
+  const isMountedRef = React23.useRef(false);
   index(() => {
     isMountedRef.current = true;
     return () => {
@@ -4616,17 +4615,17 @@ function useFloating(options) {
       update2();
     }
   }, [referenceEl, floatingEl, update2, whileElementsMountedRef, hasWhileElementsMounted]);
-  const refs = React24.useMemo(() => ({
+  const refs = React23.useMemo(() => ({
     reference: referenceRef,
     floating: floatingRef,
     setReference,
     setFloating
   }), [setReference, setFloating]);
-  const elements = React24.useMemo(() => ({
+  const elements = React23.useMemo(() => ({
     reference: referenceEl,
     floating: floatingEl
   }), [referenceEl, floatingEl]);
-  const floatingStyles = React24.useMemo(() => {
+  const floatingStyles = React23.useMemo(() => {
     const initialStyles = {
       position: strategy,
       left: 0,
@@ -4652,7 +4651,7 @@ function useFloating(options) {
       top: y
     };
   }, [strategy, transform, elements.floating, data.x, data.y]);
-  return React24.useMemo(() => ({
+  return React23.useMemo(() => ({
     ...data,
     update: update2,
     refs,
@@ -4708,6 +4707,12 @@ var hide3 = (options, deps) => {
   };
 };
 
+// node_modules/@base-ui/react/esm/utils/popups/popupStoreUtils.js
+var React28 = __toESM(require_react(), 1);
+
+// node_modules/@base-ui/react/esm/floating-ui-react/hooks/useSyncedFloatingRootContext.js
+var React27 = __toESM(require_react(), 1);
+
 // node_modules/@base-ui/utils/esm/store/createSelector.js
 var createSelector = (a, b, c, d, e, f, ...other) => {
   if (other.length > 0) {
@@ -4761,12 +4766,12 @@ var createSelector = (a, b, c, d, e, f, ...other) => {
 };
 
 // node_modules/@base-ui/utils/esm/store/useStore.js
-var React26 = __toESM(require_react(), 1);
+var React25 = __toESM(require_react(), 1);
 var import_shim = __toESM(require_shim(), 1);
 var import_with_selector = __toESM(require_with_selector(), 1);
 
 // node_modules/@base-ui/utils/esm/fastHooks.js
-var React25 = __toESM(require_react(), 1);
+var React24 = __toESM(require_react(), 1);
 var hooks = [];
 var currentInstance = void 0;
 function getInstance() {
@@ -4798,7 +4803,7 @@ function fastComponent(fn) {
   return FastComponent;
 }
 function fastComponentRef(fn) {
-  return /* @__PURE__ */ React25.forwardRef(fastComponent(fn));
+  return /* @__PURE__ */ React24.forwardRef(fastComponent(fn));
 }
 function createInstance() {
   return {
@@ -4813,7 +4818,7 @@ function useStore(store2, selector, a1, a2, a3) {
   return useStoreImplementation(store2, selector, a1, a2, a3);
 }
 function useStoreR19(store2, selector, a1, a2, a3) {
-  const getSelection = React26.useCallback(() => selector(store2.getSnapshot(), a1, a2, a3), [store2, selector, a1, a2, a3]);
+  const getSelection = React25.useCallback(() => selector(store2.getSnapshot(), a1, a2, a3), [store2, selector, a1, a2, a3]);
   return (0, import_shim.useSyncExternalStore)(store2.subscribe, getSelection, getSelection);
 }
 register({
@@ -5002,7 +5007,7 @@ var Store = class {
 };
 
 // node_modules/@base-ui/utils/esm/store/ReactStore.js
-var React27 = __toESM(require_react(), 1);
+var React26 = __toESM(require_react(), 1);
 var ReactStore = class extends Store {
   /**
    * Creates a new ReactStore instance.
@@ -5026,12 +5031,13 @@ var ReactStore = class extends Store {
    * by `useState` is updated before the next render (similarly to React's `useState`).
    */
   useSyncedValue(key, value) {
-    React27.useDebugValue(key);
+    React26.useDebugValue(key);
+    const store2 = this;
     useIsoLayoutEffect(() => {
-      if (this.state[key] !== value) {
-        this.set(key, value);
+      if (store2.state[key] !== value) {
+        store2.set(key, value);
       }
-    }, [key, value]);
+    }, [store2, key, value]);
   }
   /**
    * Synchronizes a single external value into the store and
@@ -5060,8 +5066,8 @@ var ReactStore = class extends Store {
   useSyncedValues(statePart) {
     const store2 = this;
     if (true) {
-      React27.useDebugValue(statePart, (p) => Object.keys(p));
-      const keys = React27.useRef(Object.keys(statePart)).current;
+      React26.useDebugValue(statePart, (p) => Object.keys(p));
+      const keys = React26.useRef(Object.keys(statePart)).current;
       const nextKeys = Object.keys(statePart);
       if (keys.length !== nextKeys.length || keys.some((key, index2) => key !== nextKeys[index2])) {
         console.error("ReactStore.useSyncedValues expects the same prop keys on every render. Keys should be stable.");
@@ -5077,16 +5083,17 @@ var ReactStore = class extends Store {
    * is non-undefined, the store's state at `key` is updated to match `controlled`.
    */
   useControlledProp(key, controlled) {
-    React27.useDebugValue(key);
+    React26.useDebugValue(key);
+    const store2 = this;
     const isControlled = controlled !== void 0;
     useIsoLayoutEffect(() => {
-      if (isControlled && !Object.is(this.state[key], controlled)) {
-        super.setState({
-          ...this.state,
+      if (isControlled && !Object.is(store2.state[key], controlled)) {
+        store2.setState({
+          ...store2.state,
           [key]: controlled
         });
       }
-    }, [key, controlled, isControlled]);
+    }, [store2, key, controlled, isControlled]);
     if (true) {
       const cache = this.controlledValues ??= /* @__PURE__ */ new Map();
       if (!cache.has(key)) {
@@ -5114,7 +5121,7 @@ var ReactStore = class extends Store {
    * @param key Key of the selector to use.
    */
   useState(key, a1, a2, a3) {
-    React27.useDebugValue(key);
+    React26.useDebugValue(key);
     return useStore(this, this.selectors[key], a1, a2, a3);
   }
   /**
@@ -5125,7 +5132,7 @@ var ReactStore = class extends Store {
    * @param fn Function to assign.
    */
   useContextCallback(key, fn) {
-    React27.useDebugValue(key);
+    React26.useDebugValue(key);
     const stableFunction = useStableCallback(fn ?? NOOP);
     this.context[key] = stableFunction;
   }
@@ -5136,7 +5143,7 @@ var ReactStore = class extends Store {
    * @param key Key of the state to set.
    */
   useStateSetter(key) {
-    const ref = React27.useRef(void 0);
+    const ref = React26.useRef(void 0);
     if (ref.current === void 0) {
       ref.current = (value) => {
         this.set(key, value);
@@ -5243,8 +5250,83 @@ var FloatingRootStore = class extends ReactStore {
   };
 };
 
+// node_modules/@base-ui/react/esm/floating-ui-react/hooks/useSyncedFloatingRootContext.js
+function useSyncedFloatingRootContext(options) {
+  const {
+    popupStore,
+    treatPopupAsFloatingElement = false,
+    floatingRootContext: floatingRootContextProp,
+    floatingId,
+    nested,
+    onOpenChange
+  } = options;
+  const open = popupStore.useState("open");
+  const referenceElement = popupStore.useState("activeTriggerElement");
+  const floatingElement = popupStore.useState(treatPopupAsFloatingElement ? "popupElement" : "positionerElement");
+  const triggerElements = popupStore.context.triggerElements;
+  const handleOpenChange = onOpenChange;
+  const internalStoreRef = React27.useRef(null);
+  if (floatingRootContextProp === void 0 && internalStoreRef.current === null) {
+    internalStoreRef.current = new FloatingRootStore({
+      open,
+      transitionStatus: void 0,
+      referenceElement,
+      floatingElement,
+      triggerElements,
+      onOpenChange: handleOpenChange,
+      floatingId,
+      syncOnly: true,
+      nested
+    });
+  }
+  const store2 = floatingRootContextProp ?? internalStoreRef.current;
+  popupStore.useSyncedValue("floatingId", floatingId);
+  useIsoLayoutEffect(() => {
+    const valuesToSync = {
+      open,
+      floatingId,
+      referenceElement,
+      floatingElement
+    };
+    if (isElement(referenceElement)) {
+      valuesToSync.domReferenceElement = referenceElement;
+    }
+    if (store2.state.positionReference === store2.state.referenceElement) {
+      valuesToSync.positionReference = referenceElement;
+    }
+    store2.update(valuesToSync);
+  }, [open, floatingId, referenceElement, floatingElement, store2]);
+  store2.context.onOpenChange = handleOpenChange;
+  store2.context.nested = nested;
+  return store2;
+}
+
 // node_modules/@base-ui/react/esm/utils/popups/popupStoreUtils.js
-var React28 = __toESM(require_react(), 1);
+var FOCUSABLE_POPUP_PROPS = {
+  tabIndex: -1,
+  [FOCUSABLE_ATTRIBUTE]: ""
+};
+function usePopupStore(externalStore, createStore, treatPopupAsFloatingElement = false) {
+  const floatingId = useId();
+  const nested = useFloatingParentNodeId() != null;
+  const internalStoreRef = React28.useRef(null);
+  if (externalStore === void 0 && internalStoreRef.current === null) {
+    internalStoreRef.current = createStore(floatingId, nested);
+  }
+  const store2 = externalStore ?? internalStoreRef.current;
+  useSyncedFloatingRootContext({
+    popupStore: store2,
+    treatPopupAsFloatingElement,
+    floatingRootContext: store2.state.floatingRootContext,
+    floatingId,
+    nested,
+    onOpenChange: store2.setOpen
+  });
+  return {
+    store: store2,
+    internalStore: internalStoreRef.current
+  };
+}
 function useTriggerRegistration(id, store2) {
   const registeredElementIdRef = React28.useRef(null);
   const registeredElementRef = React28.useRef(null);
@@ -5252,12 +5334,14 @@ function useTriggerRegistration(id, store2) {
     if (id === void 0) {
       return;
     }
+    let shouldSyncTriggerCount = false;
     if (registeredElementIdRef.current !== null) {
       const registeredId = registeredElementIdRef.current;
       const registeredElement = registeredElementRef.current;
       const currentElement = store2.context.triggerElements.getById(registeredId);
       if (registeredElement && currentElement === registeredElement) {
         store2.context.triggerElements.delete(registeredId);
+        shouldSyncTriggerCount = true;
       }
       registeredElementIdRef.current = null;
       registeredElementRef.current = null;
@@ -5266,26 +5350,41 @@ function useTriggerRegistration(id, store2) {
       registeredElementIdRef.current = id;
       registeredElementRef.current = element;
       store2.context.triggerElements.add(id, element);
+      shouldSyncTriggerCount = true;
+    }
+    if (shouldSyncTriggerCount) {
+      const triggerCount = store2.context.triggerElements.size;
+      if (store2.select("open") && store2.state.triggerCount !== triggerCount) {
+        store2.set("triggerCount", triggerCount);
+      }
     }
   }, [store2, id]);
+}
+function setOpenTriggerState(state, open, trigger) {
+  const triggerId = trigger?.id ?? null;
+  if (triggerId || open) {
+    state.activeTriggerId = triggerId;
+    state.activeTriggerElement = trigger ?? null;
+  }
 }
 function useTriggerDataForwarding(triggerId, triggerElementRef, store2, stateUpdates) {
   const isMountedByThisTrigger = store2.useState("isMountedByTrigger", triggerId);
   const baseRegisterTrigger = useTriggerRegistration(triggerId, store2);
   const registerTrigger = useStableCallback((element) => {
     baseRegisterTrigger(element);
-    if (!element || !store2.select("open")) {
+    if (!element) {
       return;
     }
+    const open = store2.select("open");
     const activeTriggerId = store2.select("activeTriggerId");
     if (activeTriggerId === triggerId) {
       store2.update({
         activeTriggerElement: element,
-        ...stateUpdates
+        ...open ? stateUpdates : null
       });
       return;
     }
-    if (activeTriggerId == null) {
+    if (activeTriggerId == null && open) {
       store2.update({
         activeTriggerId: triggerId,
         activeTriggerElement: element,
@@ -5308,18 +5407,31 @@ function useTriggerDataForwarding(triggerId, triggerElementRef, store2, stateUpd
 }
 function useImplicitActiveTrigger(store2) {
   const open = store2.useState("open");
+  const reactiveTriggerCount = store2.useState("triggerCount");
   useIsoLayoutEffect(() => {
-    if (open && !store2.select("activeTriggerId") && store2.context.triggerElements.size === 1) {
+    if (!open) {
+      if (store2.state.triggerCount !== 0) {
+        store2.set("triggerCount", 0);
+      }
+      return;
+    }
+    const triggerCount = store2.context.triggerElements.size;
+    const stateUpdates = {};
+    if (store2.state.triggerCount !== triggerCount) {
+      stateUpdates.triggerCount = triggerCount;
+    }
+    if (!store2.select("activeTriggerId") && triggerCount === 1) {
       const iteratorResult = store2.context.triggerElements.entries().next();
       if (!iteratorResult.done) {
         const [implicitTriggerId, implicitTriggerElement] = iteratorResult.value;
-        store2.update({
-          activeTriggerId: implicitTriggerId,
-          activeTriggerElement: implicitTriggerElement
-        });
+        stateUpdates.activeTriggerId = implicitTriggerId;
+        stateUpdates.activeTriggerElement = implicitTriggerElement;
       }
     }
-  }, [open, store2]);
+    if (stateUpdates.triggerCount !== void 0 || stateUpdates.activeTriggerId !== void 0) {
+      store2.update(stateUpdates);
+    }
+  }, [open, store2, reactiveTriggerCount]);
 }
 function useOpenStateTransitions(open, store2, onUnmount) {
   const {
@@ -5336,14 +5448,15 @@ function useOpenStateTransitions(open, store2, onUnmount) {
     store2.update({
       activeTriggerId: null,
       activeTriggerElement: null,
-      mounted: false
+      mounted: false,
+      preventUnmountingOnClose: false
     });
     onUnmount?.();
     store2.context.onOpenChangeComplete?.(false);
   });
   const preventUnmountingOnClose = store2.useState("preventUnmountingOnClose");
   useOpenChangeComplete({
-    enabled: !preventUnmountingOnClose,
+    enabled: mounted && !open && !preventUnmountingOnClose,
     open,
     ref: store2.context.popupRef,
     onComplete() {
@@ -5356,6 +5469,16 @@ function useOpenStateTransitions(open, store2, onUnmount) {
     forceUnmount,
     transitionStatus
   };
+}
+function usePopupInteractionProps(store2, statePart) {
+  store2.useSyncedValues(statePart);
+  useIsoLayoutEffect(() => () => {
+    store2.update({
+      activeTriggerProps: EMPTY_OBJECT,
+      inactiveTriggerProps: EMPTY_OBJECT,
+      popupProps: EMPTY_OBJECT
+    });
+  }, [store2]);
 }
 
 // node_modules/@base-ui/react/esm/utils/popups/popupTriggerMap.js
@@ -5446,7 +5569,7 @@ function getEmptyRootContext() {
     floatingElement: null,
     referenceElement: null,
     triggerElements: new PopupTriggerMap(),
-    floatingId: "",
+    floatingId: void 0,
     syncOnly: false,
     nested: false,
     onOpenChange: void 0
@@ -5461,6 +5584,8 @@ function createInitialPopupStoreState() {
     mounted: false,
     transitionStatus: void 0,
     floatingRootContext: getEmptyRootContext(),
+    floatingId: void 0,
+    triggerCount: 0,
     preventUnmountingOnClose: false,
     payload: void 0,
     activeTriggerId: null,
@@ -5473,16 +5598,45 @@ function createInitialPopupStoreState() {
     popupProps: EMPTY_OBJECT
   };
 }
+function createPopupFloatingRootContext(triggerElements, floatingId, nested = false) {
+  return new FloatingRootStore({
+    open: false,
+    transitionStatus: void 0,
+    floatingElement: null,
+    referenceElement: null,
+    triggerElements,
+    floatingId,
+    syncOnly: true,
+    nested,
+    onOpenChange: void 0
+  });
+}
 var activeTriggerIdSelector = createSelector((state) => state.triggerIdProp ?? state.activeTriggerId);
+var openSelector = createSelector((state) => state.openProp ?? state.open);
+var popupIdSelector = createSelector((state) => {
+  const popupId = state.popupElement?.id ?? state.floatingId;
+  return popupId || void 0;
+});
+function triggerOwnsOpenPopup(state, triggerId) {
+  return triggerId !== void 0 && openSelector(state) && activeTriggerIdSelector(state) === triggerId;
+}
+function triggerOwnsOpenPopupOrIsOnlyTrigger(state, triggerId) {
+  if (triggerOwnsOpenPopup(state, triggerId)) {
+    return true;
+  }
+  return triggerId !== void 0 && openSelector(state) && activeTriggerIdSelector(state) == null && state.triggerCount === 1;
+}
 var popupStoreSelectors = {
-  open: createSelector((state) => state.openProp ?? state.open),
+  open: openSelector,
   mounted: createSelector((state) => state.mounted),
   transitionStatus: createSelector((state) => state.transitionStatus),
   floatingRootContext: createSelector((state) => state.floatingRootContext),
+  triggerCount: createSelector((state) => state.triggerCount),
   preventUnmountingOnClose: createSelector((state) => state.preventUnmountingOnClose),
   payload: createSelector((state) => state.payload),
   activeTriggerId: activeTriggerIdSelector,
   activeTriggerElement: createSelector((state) => state.mounted ? state.activeTriggerElement : null),
+  popupId: popupIdSelector,
   /**
    * Whether the trigger with the given ID was used to open the popup.
    */
@@ -5490,12 +5644,16 @@ var popupStoreSelectors = {
   /**
    * Whether the popup is open and was activated by a trigger with the given ID.
    */
-  isOpenedByTrigger: createSelector((state, triggerId) => triggerId !== void 0 && activeTriggerIdSelector(state) === triggerId && state.open),
+  isOpenedByTrigger: createSelector((state, triggerId) => triggerOwnsOpenPopup(state, triggerId)),
   /**
    * Whether the popup is mounted and was activated by a trigger with the given ID.
    */
   isMountedByTrigger: createSelector((state, triggerId) => triggerId !== void 0 && activeTriggerIdSelector(state) === triggerId && state.mounted),
   triggerProps: createSelector((state, isActive) => isActive ? state.activeTriggerProps : state.inactiveTriggerProps),
+  /**
+   * Popup id for the trigger that currently owns the open popup.
+   */
+  triggerPopupId: createSelector((state, triggerId) => triggerOwnsOpenPopupOrIsOnlyTrigger(state, triggerId) ? popupIdSelector(state) : void 0),
   popupProps: createSelector((state) => state.popupProps),
   popupElement: createSelector((state) => state.popupElement),
   positionerElement: createSelector((state) => state.positionerElement)
@@ -5552,30 +5710,37 @@ function useFloating2(options = {}) {
     nodeId,
     externalTree
   } = options;
-  const internalRootStore = useFloatingRootContext(options);
-  const rootContext = options.rootContext || internalRootStore;
-  const rootContextElements = {
-    reference: rootContext.useState("referenceElement"),
-    floating: rootContext.useState("floatingElement"),
-    domReference: rootContext.useState("domReferenceElement")
-  };
+  const internalStore = useFloatingRootContext(options);
+  const store2 = options.rootContext || internalStore;
+  const referenceElement = store2.useState("referenceElement");
+  const floatingElement = store2.useState("floatingElement");
+  const domReferenceElement = store2.useState("domReferenceElement");
+  const open = store2.useState("open");
+  const floatingId = store2.useState("floatingId");
   const [positionReference, setPositionReferenceRaw] = React29.useState(null);
+  const [localDomReference, setLocalDomReference] = React29.useState(void 0);
+  const [localFloatingElement, setLocalFloatingElement] = React29.useState(void 0);
   const domReferenceRef = React29.useRef(null);
   const tree = useFloatingTree(externalTree);
-  useIsoLayoutEffect(() => {
-    if (rootContextElements.domReference) {
-      domReferenceRef.current = rootContextElements.domReference;
-    }
-  }, [rootContextElements.domReference]);
+  const storeElements = React29.useMemo(() => ({
+    reference: referenceElement,
+    floating: floatingElement,
+    domReference: domReferenceElement
+  }), [referenceElement, floatingElement, domReferenceElement]);
   const position = useFloating({
     ...options,
     elements: {
-      ...rootContextElements,
+      ...storeElements,
       ...positionReference && {
         reference: positionReference
       }
     }
   });
+  const localDomReferenceElement = isElement(localDomReference) ? localDomReference : null;
+  const syncedFloatingElement = localFloatingElement === void 0 ? store2.state.floatingElement : localFloatingElement;
+  store2.useSyncedValue("referenceElement", localDomReference ?? null);
+  store2.useSyncedValue("domReferenceElement", localDomReference === void 0 ? domReferenceElement : localDomReferenceElement);
+  store2.useSyncedValue("floatingElement", syncedFloatingElement);
   const setPositionReference = React29.useCallback((node) => {
     const computedPositionReference = isElement(node) ? {
       getBoundingClientRect: () => node.getBoundingClientRect(),
@@ -5585,12 +5750,6 @@ function useFloating2(options = {}) {
     setPositionReferenceRaw(computedPositionReference);
     position.refs.setReference(computedPositionReference);
   }, [position.refs]);
-  const [localDomReference, setLocalDomReference] = React29.useState(void 0);
-  const [localFloatingElement, setLocalFloatingElement] = React29.useState(null);
-  rootContext.useSyncedValue("referenceElement", localDomReference ?? null);
-  const localDomReferenceElement = isElement(localDomReference) ? localDomReference : null;
-  rootContext.useSyncedValue("domReferenceElement", localDomReference === void 0 ? rootContextElements.domReference : localDomReferenceElement);
-  rootContext.useSyncedValue("floatingElement", localFloatingElement);
   const setReference = React29.useCallback((node) => {
     if (isElement(node) || node === null) {
       domReferenceRef.current = node;
@@ -5616,24 +5775,27 @@ function useFloating2(options = {}) {
   }), [position.refs, setReference, setFloating, setPositionReference]);
   const elements = React29.useMemo(() => ({
     ...position.elements,
-    domReference: rootContextElements.domReference
-  }), [position.elements, rootContextElements.domReference]);
-  const open = rootContext.useState("open");
-  const floatingId = rootContext.useState("floatingId");
+    domReference: domReferenceElement
+  }), [position.elements, domReferenceElement]);
   const context = React29.useMemo(() => ({
     ...position,
-    dataRef: rootContext.context.dataRef,
+    dataRef: store2.context.dataRef,
     open,
-    onOpenChange: rootContext.setOpen,
-    events: rootContext.context.events,
+    onOpenChange: store2.setOpen,
+    events: store2.context.events,
     floatingId,
     refs,
     elements,
     nodeId,
-    rootStore: rootContext
-  }), [position, refs, elements, nodeId, rootContext, open, floatingId]);
+    rootStore: store2
+  }), [position, refs, elements, nodeId, store2, open, floatingId]);
   useIsoLayoutEffect(() => {
-    rootContext.context.dataRef.current.floatingContext = context;
+    if (domReferenceElement) {
+      domReferenceRef.current = domReferenceElement;
+    }
+  }, [domReferenceElement]);
+  useIsoLayoutEffect(() => {
+    store2.context.dataRef.current.floatingContext = context;
     const node = tree?.nodesRef.current.find((n) => n.id === nodeId);
     if (node) {
       node.context = context;
@@ -5644,71 +5806,27 @@ function useFloating2(options = {}) {
     context,
     refs,
     elements,
-    rootStore: rootContext
-  }), [position, refs, elements, context, rootContext]);
-}
-
-// node_modules/@base-ui/react/esm/floating-ui-react/hooks/useSyncedFloatingRootContext.js
-function useSyncedFloatingRootContext(options) {
-  const {
-    popupStore,
-    treatPopupAsFloatingElement = false,
-    onOpenChange
-  } = options;
-  const floatingId = useId();
-  const nested = useFloatingParentNodeId() != null;
-  const open = popupStore.useState("open");
-  const referenceElement = popupStore.useState("activeTriggerElement");
-  const floatingElement = popupStore.useState(treatPopupAsFloatingElement ? "popupElement" : "positionerElement");
-  const triggerElements = popupStore.context.triggerElements;
-  const store2 = useRefWithInit(() => new FloatingRootStore({
-    open,
-    transitionStatus: void 0,
-    referenceElement,
-    floatingElement,
-    triggerElements,
-    onOpenChange,
-    floatingId,
-    syncOnly: true,
-    nested
-  })).current;
-  useIsoLayoutEffect(() => {
-    const valuesToSync = {
-      open,
-      floatingId,
-      referenceElement,
-      floatingElement
-    };
-    if (isElement(referenceElement)) {
-      valuesToSync.domReferenceElement = referenceElement;
-    }
-    if (store2.state.positionReference === store2.state.referenceElement) {
-      valuesToSync.positionReference = referenceElement;
-    }
-    store2.update(valuesToSync);
-  }, [open, floatingId, referenceElement, floatingElement, store2]);
-  store2.context.onOpenChange = onOpenChange;
-  store2.context.nested = nested;
-  return store2;
+    rootStore: store2
+  }), [position, refs, elements, context, store2]);
 }
 
 // node_modules/@base-ui/react/esm/floating-ui-react/hooks/useFocus.js
 var React30 = __toESM(require_react(), 1);
 var isMacSafari = isMac && isSafari;
 function useFocus(context, props = {}) {
+  const {
+    enabled = true,
+    delay
+  } = props;
   const store2 = "rootStore" in context ? context.rootStore : context;
   const {
     events,
     dataRef
   } = store2.context;
-  const {
-    enabled = true,
-    delay
-  } = props;
   const blockFocusRef = React30.useRef(false);
   const blockedReferenceRef = React30.useRef(null);
-  const timeout = useTimeout();
   const keyboardModalityRef = React30.useRef(true);
+  const timeout = useTimeout();
   React30.useEffect(() => {
     const domReference = store2.select("domReferenceElement");
     if (!enabled) {
@@ -5747,70 +5865,73 @@ function useFocus(context, props = {}) {
       events.off("openchange", onOpenChangeLocal);
     };
   }, [events, enabled, store2]);
-  const reference = React30.useMemo(() => ({
-    onMouseLeave() {
+  const reference = React30.useMemo(() => {
+    function resetBlockedFocus() {
       blockFocusRef.current = false;
       blockedReferenceRef.current = null;
-    },
-    onFocus(event) {
-      const focusTarget = event.currentTarget;
-      if (blockFocusRef.current) {
-        if (blockedReferenceRef.current === focusTarget) {
-          return;
-        }
-        blockFocusRef.current = false;
-        blockedReferenceRef.current = null;
-      }
-      const target = getTarget(event.nativeEvent);
-      if (isElement(target)) {
-        if (isMacSafari && !event.relatedTarget) {
-          if (!keyboardModalityRef.current && !isTypeableElement(target)) {
+    }
+    return {
+      onMouseLeave() {
+        resetBlockedFocus();
+      },
+      onFocus(event) {
+        const focusTarget = event.currentTarget;
+        if (blockFocusRef.current) {
+          if (blockedReferenceRef.current === focusTarget) {
             return;
           }
-        } else if (!matchesFocusVisible(target)) {
+          resetBlockedFocus();
+        }
+        const target = getTarget(event.nativeEvent);
+        if (isElement(target)) {
+          if (isMacSafari && !event.relatedTarget) {
+            if (!keyboardModalityRef.current && !isTypeableElement(target)) {
+              return;
+            }
+          } else if (!matchesFocusVisible(target)) {
+            return;
+          }
+        }
+        const movedFromOtherEnabledTrigger = isTargetInsideEnabledTrigger(event.relatedTarget, store2.context.triggerElements);
+        const {
+          nativeEvent,
+          currentTarget
+        } = event;
+        const delayValue = typeof delay === "function" ? delay() : delay;
+        if (store2.select("open") && movedFromOtherEnabledTrigger || delayValue === 0 || delayValue === void 0) {
+          store2.setOpen(true, createChangeEventDetails(reason_parts_exports.triggerFocus, nativeEvent, currentTarget));
           return;
         }
+        timeout.start(delayValue, () => {
+          if (blockFocusRef.current) {
+            return;
+          }
+          store2.setOpen(true, createChangeEventDetails(reason_parts_exports.triggerFocus, nativeEvent, currentTarget));
+        });
+      },
+      onBlur(event) {
+        resetBlockedFocus();
+        const relatedTarget = event.relatedTarget;
+        const nativeEvent = event.nativeEvent;
+        const movedToFocusGuard = isElement(relatedTarget) && relatedTarget.hasAttribute(createAttribute("focus-guard")) && relatedTarget.getAttribute("data-type") === "outside";
+        timeout.start(0, () => {
+          const domReference = store2.select("domReferenceElement");
+          const activeEl = activeElement(ownerDocument(domReference));
+          if (!relatedTarget && activeEl === domReference) {
+            return;
+          }
+          if (contains(dataRef.current.floatingContext?.refs.floating.current, activeEl) || contains(domReference, activeEl) || movedToFocusGuard) {
+            return;
+          }
+          const nextFocusedElement = relatedTarget ?? activeEl;
+          if (isTargetInsideEnabledTrigger(nextFocusedElement, store2.context.triggerElements)) {
+            return;
+          }
+          store2.setOpen(false, createChangeEventDetails(reason_parts_exports.triggerFocus, nativeEvent));
+        });
       }
-      const movedFromOtherEnabledTrigger = isTargetInsideEnabledTrigger(event.relatedTarget, store2.context.triggerElements);
-      const {
-        nativeEvent,
-        currentTarget
-      } = event;
-      const delayValue = typeof delay === "function" ? delay() : delay;
-      if (store2.select("open") && movedFromOtherEnabledTrigger || delayValue === 0 || delayValue === void 0) {
-        store2.setOpen(true, createChangeEventDetails(reason_parts_exports.triggerFocus, nativeEvent, currentTarget));
-        return;
-      }
-      timeout.start(delayValue, () => {
-        if (blockFocusRef.current) {
-          return;
-        }
-        store2.setOpen(true, createChangeEventDetails(reason_parts_exports.triggerFocus, nativeEvent, currentTarget));
-      });
-    },
-    onBlur(event) {
-      blockFocusRef.current = false;
-      blockedReferenceRef.current = null;
-      const relatedTarget = event.relatedTarget;
-      const nativeEvent = event.nativeEvent;
-      const movedToFocusGuard = isElement(relatedTarget) && relatedTarget.hasAttribute(createAttribute("focus-guard")) && relatedTarget.getAttribute("data-type") === "outside";
-      timeout.start(0, () => {
-        const domReference = store2.select("domReferenceElement");
-        const activeEl = activeElement(ownerDocument(domReference));
-        if (!relatedTarget && activeEl === domReference) {
-          return;
-        }
-        if (contains(dataRef.current.floatingContext?.refs.floating.current, activeEl) || contains(domReference, activeEl) || movedToFocusGuard) {
-          return;
-        }
-        const nextFocusedElement = relatedTarget ?? activeEl;
-        if (isTargetInsideEnabledTrigger(nextFocusedElement, store2.context.triggerElements)) {
-          return;
-        }
-        store2.setOpen(false, createChangeEventDetails(reason_parts_exports.triggerFocus, nativeEvent));
-      });
-    }
-  }), [dataRef, store2, timeout, delay]);
+    };
+  }, [dataRef, delay, store2, timeout]);
   return React30.useMemo(() => enabled ? {
     reference,
     trigger: reference
@@ -5885,8 +6006,8 @@ function applySafePolygonPointerEventsMutation(instance, options) {
   floatingElement.style.pointerEvents = "auto";
 }
 function useHoverInteractionSharedState(store2) {
-  const instance = useRefWithInit(HoverInteraction.create).current;
   const data = store2.context.dataRef.current;
+  const instance = useRefWithInit(() => data.hoverInteractionState ?? HoverInteraction.create()).current;
   if (!data.hoverInteractionState) {
     data.hoverInteractionState = instance;
   }
@@ -5896,6 +6017,11 @@ function useHoverInteractionSharedState(store2) {
 
 // node_modules/@base-ui/react/esm/floating-ui-react/hooks/useHoverFloatingInteraction.js
 function useHoverFloatingInteraction(context, parameters = {}) {
+  const {
+    enabled = true,
+    closeDelay: closeDelayProp = 0,
+    nodeId: nodeIdProp
+  } = parameters;
   const store2 = "rootStore" in context ? context.rootStore : context;
   const open = store2.useState("open");
   const floatingElement = store2.useState("floatingElement");
@@ -5903,47 +6029,18 @@ function useHoverFloatingInteraction(context, parameters = {}) {
   const {
     dataRef
   } = store2.context;
-  const {
-    enabled = true,
-    closeDelay: closeDelayProp = 0,
-    nodeId: nodeIdProp
-  } = parameters;
-  const instance = useHoverInteractionSharedState(store2);
   const tree = useFloatingTree();
   const parentId = useFloatingParentNodeId();
+  const instance = useHoverInteractionSharedState(store2);
+  const childClosedTimeout = useTimeout();
   const isClickLikeOpenEvent2 = useStableCallback(() => {
     return isClickLikeOpenEvent(dataRef.current.openEvent?.type, instance.interactedInside);
   });
   const isHoverOpen = useStableCallback(() => {
-    const type = dataRef.current.openEvent?.type;
-    return type?.includes("mouse") && type !== "mousedown";
+    return isHoverOpenEvent(dataRef.current.openEvent?.type);
   });
-  const isRelatedTargetInsideEnabledTrigger = useStableCallback((target) => {
-    return isTargetInsideEnabledTrigger(target, store2.context.triggerElements);
-  });
-  const closeWithDelay = React31.useCallback((event) => {
-    const closeDelay = getDelay(closeDelayProp, "close", instance.pointerType);
-    const close = () => {
-      store2.setOpen(false, createChangeEventDetails(reason_parts_exports.triggerHover, event));
-      tree?.events.emit("floating.closed", event);
-    };
-    if (closeDelay) {
-      instance.openChangeTimeout.start(closeDelay, close);
-    } else {
-      instance.openChangeTimeout.clear();
-      close();
-    }
-  }, [closeDelayProp, store2, instance, tree]);
   const clearPointerEvents = useStableCallback(() => {
     clearSafePolygonPointerEventsMutation(instance);
-  });
-  const handleInteractInside = useStableCallback((event) => {
-    const target = getTarget(event);
-    if (!isInteractiveElement(target)) {
-      instance.interactedInside = false;
-      return;
-    }
-    instance.interactedInside = target?.closest("[aria-haspopup]") != null;
   });
   useIsoLayoutEffect(() => {
     if (!open) {
@@ -5968,7 +6065,9 @@ function useHoverFloatingInteraction(context, parameters = {}) {
       if (parentFloating) {
         parentFloating.style.pointerEvents = "";
       }
-      const scopeElement = instance.handleCloseOptions?.getScope?.() ?? instance.pointerEventsScopeElement ?? parentFloating ?? ref.closest("[data-rootownerid]") ?? doc.body;
+      const cachedScopeElement = instance.pointerEventsScopeElement !== floatingEl ? instance.pointerEventsScopeElement : null;
+      const parentScopeElement = parentFloating !== floatingEl ? parentFloating : null;
+      const scopeElement = instance.handleCloseOptions?.getScope?.() ?? cachedScopeElement ?? parentScopeElement ?? ref.closest("[data-rootownerid]") ?? doc.body;
       applySafePolygonPointerEventsMutation(instance, {
         scopeElement,
         referenceElement: ref,
@@ -5980,10 +6079,33 @@ function useHoverFloatingInteraction(context, parameters = {}) {
     }
     return void 0;
   }, [enabled, open, domReferenceElement, floatingElement, instance, isHoverOpen, tree, parentId, clearPointerEvents]);
-  const childClosedTimeout = useTimeout();
   React31.useEffect(() => {
     if (!enabled) {
       return void 0;
+    }
+    function hasParentChildren() {
+      return !!(tree && parentId && getNodeChildren(tree.nodesRef.current, parentId).length > 0);
+    }
+    function closeWithDelay(event) {
+      const closeDelay = getDelay(closeDelayProp, "close", instance.pointerType);
+      const close = () => {
+        store2.setOpen(false, createChangeEventDetails(reason_parts_exports.triggerHover, event));
+        tree?.events.emit("floating.closed", event);
+      };
+      if (closeDelay) {
+        instance.openChangeTimeout.start(closeDelay, close);
+      } else {
+        instance.openChangeTimeout.clear();
+        close();
+      }
+    }
+    function handleInteractInside(event) {
+      const target = getTarget(event);
+      if (!isInteractiveElement(target)) {
+        instance.interactedInside = false;
+        return;
+      }
+      instance.interactedInside = target?.closest("[aria-haspopup]") != null;
     }
     function onFloatingMouseEnter() {
       instance.openChangeTimeout.clear();
@@ -5992,11 +6114,11 @@ function useHoverFloatingInteraction(context, parameters = {}) {
       clearPointerEvents();
     }
     function onFloatingMouseLeave(event) {
-      if (tree && parentId && getNodeChildren(tree.nodesRef.current, parentId).length > 0) {
+      if (hasParentChildren() && tree) {
         tree.events.on("floating.closed", onNodeClosed);
         return;
       }
-      if (isRelatedTargetInsideEnabledTrigger(event.relatedTarget)) {
+      if (isTargetInsideEnabledTrigger(event.relatedTarget, store2.context.triggerElements)) {
         return;
       }
       const currentNodeId = dataRef.current.floatingContext?.nodeId ?? nodeIdProp;
@@ -6015,7 +6137,7 @@ function useHoverFloatingInteraction(context, parameters = {}) {
       }
     }
     function onNodeClosed(event) {
-      if (!tree || !parentId || getNodeChildren(tree.nodesRef.current, parentId).length > 0) {
+      if (!tree || !parentId || hasParentChildren()) {
         return;
       }
       childClosedTimeout.start(0, () => {
@@ -6028,7 +6150,7 @@ function useHoverFloatingInteraction(context, parameters = {}) {
     return mergeCleanups(floating && addEventListener(floating, "mouseenter", onFloatingMouseEnter), floating && addEventListener(floating, "mouseleave", onFloatingMouseLeave), floating && addEventListener(floating, "pointerdown", handleInteractInside, true), () => {
       tree?.events.off("floating.closed", onNodeClosed);
     });
-  }, [enabled, floatingElement, store2, dataRef, nodeIdProp, isClickLikeOpenEvent2, isRelatedTargetInsideEnabledTrigger, closeWithDelay, clearPointerEvents, handleInteractInside, instance, tree, parentId, childClosedTimeout]);
+  }, [enabled, floatingElement, store2, dataRef, closeDelayProp, nodeIdProp, isClickLikeOpenEvent2, clearPointerEvents, instance, tree, parentId, childClosedTimeout]);
 }
 
 // node_modules/@base-ui/react/esm/floating-ui-react/hooks/useHoverReferenceInteraction.js
@@ -6038,11 +6160,6 @@ var EMPTY_REF = {
   current: null
 };
 function useHoverReferenceInteraction(context, props = {}) {
-  const store2 = "rootStore" in context ? context.rootStore : context;
-  const {
-    dataRef,
-    events
-  } = store2.context;
   const {
     enabled = true,
     delay = 0,
@@ -6054,8 +6171,14 @@ function useHoverReferenceInteraction(context, props = {}) {
     externalTree,
     isActiveTrigger = true,
     getHandleCloseContext,
-    isClosing
+    isClosing,
+    shouldOpen: shouldOpenProp
   } = props;
+  const store2 = "rootStore" in context ? context.rootStore : context;
+  const {
+    dataRef,
+    events
+  } = store2.context;
   const tree = useFloatingTree(externalTree);
   const instance = useHoverInteractionSharedState(store2);
   const isHoverCloseActiveRef = React32.useRef(false);
@@ -6063,15 +6186,13 @@ function useHoverReferenceInteraction(context, props = {}) {
   const delayRef = useValueAsRef(delay);
   const restMsRef = useValueAsRef(restMs);
   const enabledRef = useValueAsRef(enabled);
+  const shouldOpenRef = useValueAsRef(shouldOpenProp);
   const isClosingRef = useValueAsRef(isClosing);
-  if (isActiveTrigger) {
-    instance.handleCloseOptions = handleCloseRef.current?.__options;
-  }
   const isClickLikeOpenEvent2 = useStableCallback(() => {
     return isClickLikeOpenEvent(dataRef.current.openEvent?.type, instance.interactedInside);
   });
-  const isRelatedTargetInsideEnabledTrigger = useStableCallback((target) => {
-    return isTargetInsideEnabledTrigger(target, store2.context.triggerElements);
+  const checkShouldOpen = useStableCallback(() => {
+    return shouldOpenRef.current?.() !== false;
   });
   const isOverInactiveTrigger = useStableCallback((currentDomReference, currentTarget, target) => {
     const allTriggers = store2.context.triggerElements;
@@ -6084,19 +6205,6 @@ function useHoverReferenceInteraction(context, props = {}) {
     const targetElement = target;
     return allTriggers.hasMatchingElement((trigger) => contains(trigger, targetElement)) && (!currentDomReference || !contains(currentDomReference, targetElement));
   });
-  const closeWithDelay = useStableCallback((event, runElseBranch = true) => {
-    const closeDelay = getDelay(delayRef.current, "close", instance.pointerType);
-    if (closeDelay) {
-      instance.openChangeTimeout.start(closeDelay, () => {
-        store2.setOpen(false, createChangeEventDetails(reason_parts_exports.triggerHover, event));
-        tree?.events.emit("floating.closed", event);
-      });
-    } else if (runElseBranch) {
-      instance.openChangeTimeout.clear();
-      store2.setOpen(false, createChangeEventDetails(reason_parts_exports.triggerHover, event));
-      tree?.events.emit("floating.closed", event);
-    }
-  });
   const cleanupMouseMoveHandler = useStableCallback(() => {
     if (!instance.handler) {
       return;
@@ -6108,6 +6216,9 @@ function useHoverReferenceInteraction(context, props = {}) {
   const clearPointerEvents = useStableCallback(() => {
     clearSafePolygonPointerEventsMutation(instance);
   });
+  if (isActiveTrigger) {
+    instance.handleCloseOptions = handleCloseRef.current?.__options;
+  }
   React32.useEffect(() => cleanupMouseMoveHandler, [cleanupMouseMoveHandler]);
   React32.useEffect(() => {
     if (!enabled) {
@@ -6133,6 +6244,19 @@ function useHoverReferenceInteraction(context, props = {}) {
   React32.useEffect(() => {
     if (!enabled) {
       return void 0;
+    }
+    function closeWithDelay(event, runElseBranch = true) {
+      const closeDelay = getDelay(delayRef.current, "close", instance.pointerType);
+      if (closeDelay) {
+        instance.openChangeTimeout.start(closeDelay, () => {
+          store2.setOpen(false, createChangeEventDetails(reason_parts_exports.triggerHover, event));
+          tree?.events.emit("floating.closed", event);
+        });
+      } else if (runElseBranch) {
+        instance.openChangeTimeout.clear();
+        store2.setOpen(false, createChangeEventDetails(reason_parts_exports.triggerHover, event));
+        tree?.events.emit("floating.closed", event);
+      }
     }
     const trigger = triggerElementRef.current ?? (isActiveTrigger ? store2.select("domReferenceElement") : null);
     if (!isElement(trigger)) {
@@ -6170,7 +6294,9 @@ function useHoverReferenceInteraction(context, props = {}) {
       const shouldOpenImmediately = isOverInactive && (isOpen || isHoverCloseTransition) || isReenteringSameTriggerDuringCloseTransition;
       const shouldOpen = !isOpen || isOverInactive;
       if (shouldOpenImmediately) {
-        store2.setOpen(true, createChangeEventDetails(reason_parts_exports.triggerHover, event, triggerNode));
+        if (checkShouldOpen()) {
+          store2.setOpen(true, createChangeEventDetails(reason_parts_exports.triggerHover, event, triggerNode));
+        }
         return;
       }
       if (isRestOnlyDelay) {
@@ -6178,12 +6304,14 @@ function useHoverReferenceInteraction(context, props = {}) {
       }
       if (openDelay) {
         instance.openChangeTimeout.start(openDelay, () => {
-          if (shouldOpen) {
+          if (shouldOpen && checkShouldOpen()) {
             store2.setOpen(true, createChangeEventDetails(reason_parts_exports.triggerHover, event, triggerNode));
           }
         });
       } else if (shouldOpen) {
-        store2.setOpen(true, createChangeEventDetails(reason_parts_exports.triggerHover, event, triggerNode));
+        if (checkShouldOpen()) {
+          store2.setOpen(true, createChangeEventDetails(reason_parts_exports.triggerHover, event, triggerNode));
+        }
       }
     }
     function onMouseLeave(event) {
@@ -6197,8 +6325,7 @@ function useHoverReferenceInteraction(context, props = {}) {
       instance.restTimeout.clear();
       instance.restTimeoutPending = false;
       const handleCloseContextBase = dataRef.current.floatingContext ?? getHandleCloseContext?.();
-      const ignoreRelatedTargetTrigger = isRelatedTargetInsideEnabledTrigger(event.relatedTarget);
-      if (ignoreRelatedTargetTrigger) {
+      if (isTargetInsideEnabledTrigger(event.relatedTarget, store2.context.triggerElements)) {
         return;
       }
       if (handleCloseRef.current && handleCloseContextBase) {
@@ -6234,7 +6361,7 @@ function useHoverReferenceInteraction(context, props = {}) {
       }), addEventListener(trigger, "mouseenter", onMouseEnter), addEventListener(trigger, "mouseleave", onMouseLeave));
     }
     return mergeCleanups(addEventListener(trigger, "mouseenter", onMouseEnter), addEventListener(trigger, "mouseleave", onMouseLeave));
-  }, [cleanupMouseMoveHandler, clearPointerEvents, dataRef, delayRef, closeWithDelay, store2, enabled, handleCloseRef, instance, isActiveTrigger, isOverInactiveTrigger, isClickLikeOpenEvent2, isRelatedTargetInsideEnabledTrigger, mouseOnly, move, restMsRef, triggerElementRef, tree, enabledRef, getHandleCloseContext, isClosingRef]);
+  }, [cleanupMouseMoveHandler, clearPointerEvents, dataRef, delayRef, store2, enabled, handleCloseRef, instance, isActiveTrigger, isOverInactiveTrigger, isClickLikeOpenEvent2, mouseOnly, move, restMsRef, triggerElementRef, tree, enabledRef, getHandleCloseContext, isClosingRef, checkShouldOpen]);
   return React32.useMemo(() => {
     if (!enabled) {
       return void 0;
@@ -6281,7 +6408,7 @@ function useHoverReferenceInteraction(context, props = {}) {
             return;
           }
           const latestOpen = store2.select("open");
-          if (!instance.blockMouseMove && (!latestOpen || isOverInactive)) {
+          if (!instance.blockMouseMove && (!latestOpen || isOverInactive) && checkShouldOpen()) {
             store2.setOpen(true, createChangeEventDetails(reason_parts_exports.triggerHover, nativeEvent, trigger));
           }
         }
@@ -6297,95 +6424,7 @@ function useHoverReferenceInteraction(context, props = {}) {
         }
       }
     };
-  }, [enabled, instance, isClickLikeOpenEvent2, isOverInactiveTrigger, mouseOnly, store2, restMsRef]);
-}
-
-// node_modules/@base-ui/react/esm/floating-ui-react/hooks/useInteractions.js
-var React33 = __toESM(require_react(), 1);
-function useInteractions(propsList = []) {
-  const referenceDeps = propsList.map((key) => key?.reference);
-  const floatingDeps = propsList.map((key) => key?.floating);
-  const itemDeps = propsList.map((key) => key?.item);
-  const triggerDeps = propsList.map((key) => key?.trigger);
-  const getReferenceProps = React33.useCallback(
-    (userProps) => mergeProps2(userProps, propsList, "reference"),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    referenceDeps
-  );
-  const getFloatingProps = React33.useCallback(
-    (userProps) => mergeProps2(userProps, propsList, "floating"),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    floatingDeps
-  );
-  const getItemProps = React33.useCallback(
-    (userProps) => mergeProps2(userProps, propsList, "item"),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    itemDeps
-  );
-  const getTriggerProps = React33.useCallback(
-    (userProps) => mergeProps2(userProps, propsList, "trigger"),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    triggerDeps
-  );
-  return React33.useMemo(() => ({
-    getReferenceProps,
-    getFloatingProps,
-    getItemProps,
-    getTriggerProps
-  }), [getReferenceProps, getFloatingProps, getItemProps, getTriggerProps]);
-}
-function mergeProps2(userProps, propsList, elementKey) {
-  const eventHandlers = /* @__PURE__ */ new Map();
-  const isItem = elementKey === "item";
-  const outputProps = {};
-  if (elementKey === "floating") {
-    outputProps.tabIndex = -1;
-    outputProps[FOCUSABLE_ATTRIBUTE] = "";
-  }
-  for (const key in userProps) {
-    if (isItem && userProps) {
-      if (key === ACTIVE_KEY || key === SELECTED_KEY) {
-        continue;
-      }
-    }
-    outputProps[key] = userProps[key];
-  }
-  for (let i = 0; i < propsList.length; i += 1) {
-    let props;
-    const propsOrGetProps = propsList[i]?.[elementKey];
-    if (typeof propsOrGetProps === "function") {
-      props = userProps ? propsOrGetProps(userProps) : null;
-    } else {
-      props = propsOrGetProps;
-    }
-    if (!props) {
-      continue;
-    }
-    mutablyMergeProps(outputProps, props, isItem, eventHandlers);
-  }
-  mutablyMergeProps(outputProps, userProps, isItem, eventHandlers);
-  return outputProps;
-}
-function mutablyMergeProps(outputProps, props, isItem, eventHandlers) {
-  for (const key in props) {
-    const value = props[key];
-    if (isItem && (key === ACTIVE_KEY || key === SELECTED_KEY)) {
-      continue;
-    }
-    if (!key.startsWith("on")) {
-      outputProps[key] = value;
-    } else {
-      if (!eventHandlers.has(key)) {
-        eventHandlers.set(key, []);
-      }
-      if (typeof value === "function") {
-        eventHandlers.get(key)?.push(value);
-        outputProps[key] = (...args) => {
-          return eventHandlers.get(key)?.map((fn) => fn(...args)).find((val) => val !== void 0);
-        };
-      }
-    }
-  }
+  }, [enabled, instance, isClickLikeOpenEvent2, isOverInactiveTrigger, mouseOnly, store2, restMsRef, checkShouldOpen]);
 }
 
 // node_modules/@base-ui/react/esm/floating-ui-react/safePolygon.js
@@ -6668,7 +6707,7 @@ function inertValue(value) {
 }
 
 // node_modules/@base-ui/react/esm/utils/useAnchorPositioning.js
-var React34 = __toESM(require_react(), 1);
+var React33 = __toESM(require_react(), 1);
 
 // node_modules/@base-ui/react/esm/floating-ui-react/middleware/arrow.js
 var baseArrow = (options) => ({
@@ -6876,6 +6915,7 @@ function useAnchorPositioning(params) {
     sticky = false,
     arrowPadding = 5,
     disableAnchorTracking = false,
+    inline: inlineMiddleware,
     // Private parameters
     keepMounted = false,
     floatingRootContext,
@@ -6887,7 +6927,7 @@ function useAnchorPositioning(params) {
     lazyFlip = false,
     externalTree
   } = params;
-  const [mountSide, setMountSide] = React34.useState(null);
+  const [mountSide, setMountSide] = React33.useState(null);
   if (!mounted && mountSide !== null) {
     setMountSide(null);
   }
@@ -6935,12 +6975,16 @@ function useAnchorPositioning(params) {
     boundary: collisionBoundary === "clipping-ancestors" ? "clippingAncestors" : collisionBoundary,
     padding: collisionPadding
   };
-  const arrowRef = React34.useRef(null);
+  const arrowRef = React33.useRef(null);
   const sideOffsetRef = useValueAsRef(sideOffset);
   const alignOffsetRef = useValueAsRef(alignOffset);
   const sideOffsetDep = typeof sideOffset !== "function" ? sideOffset : 0;
   const alignOffsetDep = typeof alignOffset !== "function" ? alignOffset : 0;
-  const middleware = [offset3((state) => {
+  const middleware = [];
+  if (inlineMiddleware) {
+    middleware.push(inlineMiddleware);
+  }
+  middleware.push(offset3((state) => {
     const data = getOffsetData(state, sideParam, isRtl);
     const sideAxis = typeof sideOffsetRef.current === "function" ? sideOffsetRef.current(data) : sideOffsetRef.current;
     const alignAxis = typeof alignOffsetRef.current === "function" ? alignOffsetRef.current(data) : alignOffsetRef.current;
@@ -6949,7 +6993,7 @@ function useAnchorPositioning(params) {
       crossAxis: alignAxis,
       alignmentAxis: alignAxis
     };
-  }, [sideOffsetDep, alignOffsetDep, isRtl, sideParam])];
+  }, [sideOffsetDep, alignOffsetDep, isRtl, sideParam]));
   const shiftDisabled = collisionAvoidanceAlign === "none" && collisionAvoidanceSide !== "shift";
   const crossAxisShiftEnabled = !shiftDisabled && (sticky || shiftCrossAxis || collisionAvoidanceSide === "shift");
   const flipMiddleware = collisionAvoidanceSide === "none" ? null : flip3({
@@ -7030,10 +7074,10 @@ function useAnchorPositioning(params) {
       floatingStyle.setProperty("--anchor-width", `${anchorWidth}px`);
       floatingStyle.setProperty("--anchor-height", `${anchorHeight}px`);
     }
-  }), arrow4(() => ({
+  }), arrow4((state) => ({
     // `transform-origin` calculations rely on an element existing. If the arrow hasn't been set,
     // we'll create a fake element.
-    element: arrowRef.current || ownerDocument(arrowRef.current).createElement("div"),
+    element: arrowRef.current || ownerDocument(state.elements.floating).createElement("div"),
     padding: arrowPadding,
     offsetParent: "floating"
   }), [arrowPadding]), {
@@ -7080,7 +7124,7 @@ function useAnchorPositioning(params) {
       });
     }
   }, [mounted, floatingRootContext]);
-  const autoUpdateOptions = React34.useMemo(() => ({
+  const autoUpdateOptions = React33.useMemo(() => ({
     elementResize: !disableAnchorTracking && typeof ResizeObserver !== "undefined",
     layoutShift: !disableAnchorTracking && typeof IntersectionObserver !== "undefined"
   }), [disableAnchorTracking]);
@@ -7110,7 +7154,7 @@ function useAnchorPositioning(params) {
     sideY
   } = middlewareData.adaptiveOrigin || DEFAULT_SIDES;
   const resolvedPosition = isPositioned ? positionMethod : "fixed";
-  const floatingStyles = React34.useMemo(() => {
+  const floatingStyles = React33.useMemo(() => {
     const base = adaptiveOrigin2 ? {
       position: resolvedPosition,
       [sideX]: x,
@@ -7124,7 +7168,7 @@ function useAnchorPositioning(params) {
     }
     return base;
   }, [adaptiveOrigin2, resolvedPosition, sideX, x, sideY, y, originalFloatingStyles, isPositioned]);
-  const registeredPositionReferenceRef = React34.useRef(null);
+  const registeredPositionReferenceRef = React33.useRef(null);
   useIsoLayoutEffect(() => {
     if (!mounted) {
       return;
@@ -7138,7 +7182,7 @@ function useAnchorPositioning(params) {
       registeredPositionReferenceRef.current = finalAnchor;
     }
   }, [mounted, refs, anchorDep, anchorValueRef]);
-  React34.useEffect(() => {
+  React33.useEffect(() => {
     if (!mounted) {
       return;
     }
@@ -7151,7 +7195,7 @@ function useAnchorPositioning(params) {
       registeredPositionReferenceRef.current = anchorValue.current;
     }
   }, [mounted, refs, anchorDep, anchorValueRef]);
-  React34.useEffect(() => {
+  React33.useEffect(() => {
     if (keepMounted && mounted && elements.domReference && elements.floating) {
       return autoUpdate(elements.domReference, elements.floating, update2, autoUpdateOptions);
     }
@@ -7166,13 +7210,13 @@ function useAnchorPositioning(params) {
       setMountSide(renderedSide);
     }
   }, [lazyFlip, mounted, isPositioned, renderedSide]);
-  const arrowStyles = React34.useMemo(() => ({
+  const arrowStyles = React33.useMemo(() => ({
     position: "absolute",
     top: middlewareData.arrow?.y,
     left: middlewareData.arrow?.x
   }), [middlewareData.arrow]);
   const arrowUncentered = middlewareData.arrow?.centerOffset !== 0;
-  return React34.useMemo(() => ({
+  return React33.useMemo(() => ({
     positionerStyles: floatingStyles,
     arrowStyles,
     arrowRef,
@@ -7224,8 +7268,8 @@ function usePositioner(componentProps, state, {
 }
 
 // node_modules/@base-ui/react/esm/button/Button.js
-var React35 = __toESM(require_react(), 1);
-var Button = /* @__PURE__ */ React35.forwardRef(function Button2(componentProps, forwardedRef) {
+var React34 = __toESM(require_react(), 1);
+var Button = /* @__PURE__ */ React34.forwardRef(function Button2(componentProps, forwardedRef) {
   const {
     render,
     className,
@@ -7255,13 +7299,13 @@ var Button = /* @__PURE__ */ React35.forwardRef(function Button2(componentProps,
 if (true) Button.displayName = "Button";
 
 // node_modules/@base-ui/react/esm/utils/usePopupViewport.js
-var React38 = __toESM(require_react(), 1);
+var React37 = __toESM(require_react(), 1);
 var ReactDOM5 = __toESM(require_react_dom(), 1);
 
 // node_modules/@base-ui/utils/esm/usePreviousValue.js
-var React36 = __toESM(require_react(), 1);
+var React35 = __toESM(require_react(), 1);
 function usePreviousValue(value) {
-  const [state, setState] = React36.useState({
+  const [state, setState] = React35.useState({
     current: value,
     previous: null
   });
@@ -7275,7 +7319,7 @@ function usePreviousValue(value) {
 }
 
 // node_modules/@base-ui/react/esm/utils/usePopupAutoResize.js
-var React37 = __toESM(require_react(), 1);
+var React36 = __toESM(require_react(), 1);
 
 // node_modules/@base-ui/react/esm/utils/getCssDimensions.js
 function getCssDimensions2(element) {
@@ -7312,13 +7356,13 @@ function usePopupAutoResize(parameters) {
   } = parameters;
   const runOnceAnimationsFinish = useAnimationsFinished(popupElement, true, false);
   const animationFrame = useAnimationFrame();
-  const committedDimensionsRef = React37.useRef(null);
-  const liveDimensionsRef = React37.useRef(null);
-  const isInitialRenderRef = React37.useRef(true);
-  const restoreAnchoringStylesRef = React37.useRef(NOOP);
+  const committedDimensionsRef = React36.useRef(null);
+  const liveDimensionsRef = React36.useRef(null);
+  const isInitialRenderRef = React36.useRef(true);
+  const restoreAnchoringStylesRef = React36.useRef(NOOP);
   const onMeasureLayout = useStableCallback(onMeasureLayoutParam);
   const onMeasureLayoutComplete = useStableCallback(onMeasureLayoutCompleteParam);
-  const anchoringStyles = React37.useMemo(() => {
+  const anchoringStyles = React36.useMemo(() => {
     let isOriginSide = side === "top";
     let isPhysicalLeft = side === "left";
     if (direction === "rtl") {
@@ -7473,15 +7517,15 @@ function usePopupViewport(parameters) {
   const positionerElement = store2.useState("positionerElement");
   const previousActiveTrigger = usePreviousValue(open ? activeTrigger : null);
   const currentContentKey = usePopupContentKey(activeTriggerId, payload);
-  const capturedNodeRef = React38.useRef(null);
-  const [previousContentNode, setPreviousContentNode] = React38.useState(null);
-  const [newTriggerOffset, setNewTriggerOffset] = React38.useState(null);
-  const currentContainerRef = React38.useRef(null);
-  const previousContainerRef = React38.useRef(null);
+  const capturedNodeRef = React37.useRef(null);
+  const [previousContentNode, setPreviousContentNode] = React37.useState(null);
+  const [newTriggerOffset, setNewTriggerOffset] = React37.useState(null);
+  const currentContainerRef = React37.useRef(null);
+  const previousContainerRef = React37.useRef(null);
   const onAnimationsFinished = useAnimationsFinished(currentContainerRef, true, false);
   const cleanupFrame = useAnimationFrame();
-  const [previousContentDimensions, setPreviousContentDimensions] = React38.useState(null);
-  const [showStartingStyleAttribute, setShowStartingStyleAttribute] = React38.useState(false);
+  const [previousContentDimensions, setPreviousContentDimensions] = React37.useState(null);
+  const [showStartingStyleAttribute, setShowStartingStyleAttribute] = React37.useState(false);
   useIsoLayoutEffect(() => {
     store2.set("hasViewport", true);
     return () => {
@@ -7501,7 +7545,7 @@ function usePopupViewport(parameters) {
       setPreviousContentDimensions(previousDimensions);
     }
   });
-  const lastHandledTriggerRef = React38.useRef(null);
+  const lastHandledTriggerRef = React37.useRef(null);
   useIsoLayoutEffect(() => {
     if (activeTrigger && previousActiveTrigger && activeTrigger !== previousActiveTrigger && lastHandledTriggerRef.current !== activeTrigger && capturedNodeRef.current) {
       setPreviousContentNode(capturedNodeRef.current);
@@ -7541,7 +7585,7 @@ function usePopupViewport(parameters) {
       children
     }, currentContentKey);
   } else {
-    childrenToRender = /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)(React38.Fragment, {
+    childrenToRender = /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)(React37.Fragment, {
       children: [/* @__PURE__ */ (0, import_jsx_runtime5.jsx)("div", {
         "data-previous": true,
         inert: inertValue(true),
@@ -7620,10 +7664,10 @@ function calculateRelativePosition(from, to) {
   };
 }
 function usePopupContentKey(activeTriggerId, payload) {
-  const [contentKey, setContentKey] = React38.useState(0);
-  const previousActiveTriggerIdRef = React38.useRef(activeTriggerId);
-  const previousPayloadRef = React38.useRef(payload);
-  const pendingPayloadUpdateRef = React38.useRef(false);
+  const [contentKey, setContentKey] = React37.useState(0);
+  const previousActiveTriggerIdRef = React37.useRef(activeTriggerId);
+  const previousPayloadRef = React37.useRef(payload);
+  const pendingPayloadUpdateRef = React37.useRef(false);
   useIsoLayoutEffect(() => {
     const previousActiveTriggerId = previousActiveTriggerIdRef.current;
     const previousPayload = previousPayloadRef.current;
@@ -7643,10 +7687,10 @@ function usePopupContentKey(activeTriggerId, payload) {
 }
 
 // node_modules/@base-ui/react/esm/utils/FloatingPortalLite.js
-var React39 = __toESM(require_react(), 1);
+var React38 = __toESM(require_react(), 1);
 var ReactDOM6 = __toESM(require_react_dom(), 1);
 var import_jsx_runtime6 = __toESM(require_jsx_runtime(), 1);
-var FloatingPortalLite = /* @__PURE__ */ React39.forwardRef(function FloatingPortalLite2(componentProps, forwardedRef) {
+var FloatingPortalLite = /* @__PURE__ */ React38.forwardRef(function FloatingPortalLite2(componentProps, forwardedRef) {
   const {
     children,
     container,
@@ -7667,7 +7711,7 @@ var FloatingPortalLite = /* @__PURE__ */ React39.forwardRef(function FloatingPor
   if (!portalSubtree && !portalNode) {
     return null;
   }
-  return /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)(React39.Fragment, {
+  return /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)(React38.Fragment, {
     children: [portalSubtree, portalNode && /* @__PURE__ */ ReactDOM6.createPortal(children, portalNode)]
   });
 });
@@ -7689,14 +7733,14 @@ __export(index_parts_exports, {
 });
 
 // node_modules/@base-ui/react/esm/tooltip/root/TooltipRoot.js
-var React42 = __toESM(require_react(), 1);
+var React41 = __toESM(require_react(), 1);
 
 // node_modules/@base-ui/react/esm/tooltip/root/TooltipRootContext.js
-var React40 = __toESM(require_react(), 1);
-var TooltipRootContext = /* @__PURE__ */ React40.createContext(void 0);
+var React39 = __toESM(require_react(), 1);
+var TooltipRootContext = /* @__PURE__ */ React39.createContext(void 0);
 if (true) TooltipRootContext.displayName = "TooltipRootContext";
 function useTooltipRootContext(optional) {
-  const context = React40.useContext(TooltipRootContext);
+  const context = React39.useContext(TooltipRootContext);
   if (context === void 0 && !optional) {
     throw new Error(true ? "Base UI: TooltipRootContext is missing. Tooltip parts must be placed within <Tooltip.Root>." : formatErrorMessage_default(72));
   }
@@ -7704,7 +7748,7 @@ function useTooltipRootContext(optional) {
 }
 
 // node_modules/@base-ui/react/esm/tooltip/store/TooltipStore.js
-var React41 = __toESM(require_react(), 1);
+var React40 = __toESM(require_react(), 1);
 var ReactDOM7 = __toESM(require_react_dom(), 1);
 var selectors2 = {
   ...popupStoreSelectors,
@@ -7719,15 +7763,18 @@ var selectors2 = {
   hasViewport: createSelector((state) => state.hasViewport)
 };
 var TooltipStore = class _TooltipStore extends ReactStore {
-  constructor(initialState) {
-    super({
+  constructor(initialState, floatingId, nested = false) {
+    const triggerElements = new PopupTriggerMap();
+    const state = {
       ...createInitialState(),
       ...initialState
-    }, {
-      popupRef: /* @__PURE__ */ React41.createRef(),
+    };
+    state.floatingRootContext = createPopupFloatingRootContext(triggerElements, floatingId, nested);
+    super(state, {
+      popupRef: /* @__PURE__ */ React40.createRef(),
       onOpenChange: void 0,
       onOpenChangeComplete: void 0,
-      triggerElements: new PopupTriggerMap()
+      triggerElements
     }, selectors2);
   }
   setOpen = (nextOpen, eventDetails) => {
@@ -7755,11 +7802,7 @@ var TooltipStore = class _TooltipStore extends ReactStore {
       } else if (reason === reason_parts_exports.triggerHover) {
         updatedState.instantType = void 0;
       }
-      const newTriggerId = eventDetails.trigger?.id ?? null;
-      if (newTriggerId || nextOpen) {
-        updatedState.activeTriggerId = newTriggerId;
-        updatedState.activeTriggerElement = eventDetails.trigger ?? null;
-      }
+      setOpenTriggerState(updatedState, nextOpen, eventDetails.trigger);
       this.update(updatedState);
     };
     if (isHover) {
@@ -7768,16 +7811,12 @@ var TooltipStore = class _TooltipStore extends ReactStore {
       changeState();
     }
   };
+  // Used by trigger clicks to clear a delayed hover open without reporting a public open-state change.
+  cancelPendingOpen(event) {
+    this.state.floatingRootContext.dispatchOpenChange(false, createChangeEventDetails(reason_parts_exports.triggerPress, event));
+  }
   static useStore(externalStore, initialState) {
-    const internalStore = useRefWithInit(() => {
-      return new _TooltipStore(initialState);
-    }).current;
-    const store2 = externalStore ?? internalStore;
-    const floatingRootContext = useSyncedFloatingRootContext({
-      popupStore: store2,
-      onOpenChange: store2.setOpen
-    });
-    store2.state.floatingRootContext = floatingRootContext;
+    const store2 = usePopupStore(externalStore, (floatingId, nested) => new _TooltipStore(initialState, floatingId, nested)).store;
     return store2;
   }
 };
@@ -7834,27 +7873,27 @@ var TooltipRoot = fastComponent(function TooltipRoot2(props) {
   const openState = store2.useState("open");
   const open = !disabled2 && openState;
   const activeTriggerId = store2.useState("activeTriggerId");
+  const mounted = store2.useState("mounted");
   const payload = store2.useState("payload");
   store2.useSyncedValues({
     trackCursorAxis,
     disableHoverablePopup
   });
-  useIsoLayoutEffect(() => {
-    if (openState && disabled2) {
-      store2.setOpen(false, createChangeEventDetails(reason_parts_exports.disabled));
-    }
-  }, [openState, disabled2, store2]);
   store2.useSyncedValue("disabled", disabled2);
   useImplicitActiveTrigger(store2);
   const {
     forceUnmount,
     transitionStatus
   } = useOpenStateTransitions(open, store2);
-  const floatingRootContext = store2.select("floatingRootContext");
   const isInstantPhase = store2.useState("isInstantPhase");
   const instantType = store2.useState("instantType");
   const lastOpenChangeReason = store2.useState("lastOpenChangeReason");
-  const previousInstantTypeRef = React42.useRef(null);
+  const previousInstantTypeRef = React41.useRef(null);
+  useIsoLayoutEffect(() => {
+    if (openState && disabled2) {
+      store2.setOpen(false, createChangeEventDetails(reason_parts_exports.disabled));
+    }
+  }, [openState, disabled2, store2]);
   useIsoLayoutEffect(() => {
     if (transitionStatus === "ending" && lastOpenChangeReason === reason_parts_exports.none || transitionStatus !== "ending" && isInstantPhase) {
       if (instantType !== "delay") {
@@ -7873,13 +7912,32 @@ var TooltipRoot = fastComponent(function TooltipRoot2(props) {
       }
     }
   }, [store2, activeTriggerId, open]);
-  const handleImperativeClose = React42.useCallback(() => {
+  const handleImperativeClose = React41.useCallback(() => {
     store2.setOpen(false, createChangeEventDetails(reason_parts_exports.imperativeAction));
   }, [store2]);
-  React42.useImperativeHandle(actionsRef, () => ({
+  React41.useImperativeHandle(actionsRef, () => ({
     unmount: forceUnmount,
     close: handleImperativeClose
   }), [forceUnmount, handleImperativeClose]);
+  const shouldRenderInteractions = open || mounted || !disabled2 && trackCursorAxis !== "none";
+  return /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)(TooltipRootContext.Provider, {
+    value: store2,
+    children: [shouldRenderInteractions && /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(TooltipInteractions, {
+      store: store2,
+      disabled: disabled2,
+      trackCursorAxis
+    }), typeof children === "function" ? children({
+      payload
+    }) : children]
+  });
+});
+if (true) TooltipRoot.displayName = "TooltipRoot";
+function TooltipInteractions({
+  store: store2,
+  disabled: disabled2,
+  trackCursorAxis
+}) {
+  const floatingRootContext = store2.useState("floatingRootContext");
   const dismiss = useDismiss(floatingRootContext, {
     enabled: !disabled2,
     referencePress: () => store2.select("closeOnClick")
@@ -7888,37 +7946,26 @@ var TooltipRoot = fastComponent(function TooltipRoot2(props) {
     enabled: !disabled2 && trackCursorAxis !== "none",
     axis: trackCursorAxis === "none" ? void 0 : trackCursorAxis
   });
-  const {
-    getReferenceProps,
-    getFloatingProps,
-    getTriggerProps
-  } = useInteractions([dismiss, clientPoint]);
-  const activeTriggerProps = React42.useMemo(() => getReferenceProps(), [getReferenceProps]);
-  const inactiveTriggerProps = React42.useMemo(() => getTriggerProps(), [getTriggerProps]);
-  const popupProps = React42.useMemo(() => getFloatingProps(), [getFloatingProps]);
-  store2.useSyncedValues({
+  const activeTriggerProps = React41.useMemo(() => mergeProps(clientPoint.reference, dismiss.reference), [clientPoint.reference, dismiss.reference]);
+  const inactiveTriggerProps = React41.useMemo(() => mergeProps(clientPoint.trigger, dismiss.trigger), [clientPoint.trigger, dismiss.trigger]);
+  const popupProps = React41.useMemo(() => mergeProps(FOCUSABLE_POPUP_PROPS, clientPoint.floating, dismiss.floating), [clientPoint.floating, dismiss.floating]);
+  usePopupInteractionProps(store2, {
     activeTriggerProps,
     inactiveTriggerProps,
     popupProps
   });
-  return /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(TooltipRootContext.Provider, {
-    value: store2,
-    children: typeof children === "function" ? children({
-      payload
-    }) : children
-  });
-});
-if (true) TooltipRoot.displayName = "TooltipRoot";
+  return null;
+}
 
 // node_modules/@base-ui/react/esm/tooltip/trigger/TooltipTrigger.js
-var React44 = __toESM(require_react(), 1);
+var React43 = __toESM(require_react(), 1);
 
 // node_modules/@base-ui/react/esm/tooltip/provider/TooltipProviderContext.js
-var React43 = __toESM(require_react(), 1);
-var TooltipProviderContext = /* @__PURE__ */ React43.createContext(void 0);
+var React42 = __toESM(require_react(), 1);
+var TooltipProviderContext = /* @__PURE__ */ React42.createContext(void 0);
 if (true) TooltipProviderContext.displayName = "TooltipProviderContext";
 function useTooltipProviderContext() {
-  return React43.useContext(TooltipProviderContext);
+  return React42.useContext(TooltipProviderContext);
 }
 
 // node_modules/@base-ui/react/esm/tooltip/trigger/TooltipTriggerDataAttributes.js
@@ -7932,10 +7979,44 @@ var TooltipTriggerDataAttributes = (function(TooltipTriggerDataAttributes2) {
 var OPEN_DELAY = 600;
 
 // node_modules/@base-ui/react/esm/tooltip/trigger/TooltipTrigger.js
+var TOOLTIP_TRIGGER_IDENTIFIER = "data-base-ui-tooltip-trigger";
+function getTargetElement(event) {
+  if ("composedPath" in event) {
+    const path = event.composedPath();
+    for (let i = 0; i < path.length; i += 1) {
+      const element = path[i];
+      if (isElement(element)) {
+        return element;
+      }
+    }
+  }
+  const target = event.target;
+  if (isElement(target)) {
+    return target;
+  }
+  return null;
+}
+function closestEnabledTooltipTrigger(element) {
+  let current = element;
+  while (current) {
+    if (current.hasAttribute(TOOLTIP_TRIGGER_IDENTIFIER)) {
+      return current;
+    }
+    const parentElement = current.parentElement;
+    if (parentElement) {
+      current = parentElement;
+      continue;
+    }
+    const root = current.getRootNode();
+    current = "host" in root && isElement(root.host) ? root.host : null;
+  }
+  return null;
+}
 var TooltipTrigger = fastComponentRef(function TooltipTrigger2(componentProps, forwardedRef) {
   const {
-    className,
     render,
+    className,
+    style,
     handle,
     payload,
     disabled: disabledProp,
@@ -7943,7 +8024,6 @@ var TooltipTrigger = fastComponentRef(function TooltipTrigger2(componentProps, f
     closeOnClick = true,
     closeDelay,
     id: idProp,
-    style,
     ...elementProps
   } = componentProps;
   const rootContext = useTooltipRootContext(true);
@@ -7955,7 +8035,7 @@ var TooltipTrigger = fastComponentRef(function TooltipTrigger2(componentProps, f
   const isTriggerActive = store2.useState("isTriggerActive", thisTriggerId);
   const isOpenedByThisTrigger = store2.useState("isOpenedByTrigger", thisTriggerId);
   const floatingRootContext = store2.useState("floatingRootContext");
-  const triggerElementRef = React44.useRef(null);
+  const triggerElementRef = React43.useRef(null);
   const delayWithDefault = delay ?? OPEN_DELAY;
   const closeDelayWithDefault = closeDelay ?? 0;
   const {
@@ -7974,29 +8054,54 @@ var TooltipTrigger = fastComponentRef(function TooltipTrigger2(componentProps, f
   } = useDelayGroup(floatingRootContext, {
     open: isOpenedByThisTrigger
   });
+  const hoverInteraction = useHoverInteractionSharedState(floatingRootContext);
   store2.useSyncedValue("isInstantPhase", isInstantPhase);
   const rootDisabled = store2.useState("disabled");
   const disabled2 = disabledProp ?? rootDisabled;
+  const disabledRef = useValueAsRef(disabled2);
   const trackCursorAxis = store2.useState("trackCursorAxis");
   const disableHoverablePopup = store2.useState("disableHoverablePopup");
+  const isNestedTriggerHoveredRef = React43.useRef(false);
+  const nestedTriggerOpenTimeout = useTimeout();
+  const pointerTypeRef = React43.useRef(void 0);
+  function getOpenDelay() {
+    const providerDelay = providerContext?.delay;
+    const groupOpenValue = typeof delayRef.current === "object" ? delayRef.current.open : void 0;
+    let computedOpenDelay = delayWithDefault;
+    if (hasProvider) {
+      if (groupOpenValue !== 0) {
+        computedOpenDelay = delay ?? providerDelay ?? delayWithDefault;
+      } else {
+        computedOpenDelay = 0;
+      }
+    }
+    return computedOpenDelay;
+  }
+  function isEnabledNestedTriggerTarget(target) {
+    const triggerEl = triggerElementRef.current;
+    if (!triggerEl || !target) {
+      return false;
+    }
+    const nearestTrigger = closestEnabledTooltipTrigger(target);
+    return nearestTrigger !== null && nearestTrigger !== triggerEl && contains(triggerEl, nearestTrigger);
+  }
+  function detectNestedTriggerHover(target) {
+    const nestedTriggerHovered = isEnabledNestedTriggerTarget(target);
+    isNestedTriggerHoveredRef.current = nestedTriggerHovered;
+    if (nestedTriggerHovered) {
+      hoverInteraction.openChangeTimeout.clear();
+      hoverInteraction.restTimeout.clear();
+      hoverInteraction.restTimeoutPending = false;
+      nestedTriggerOpenTimeout.clear();
+    }
+    return nestedTriggerHovered;
+  }
   const hoverProps = useHoverReferenceInteraction(floatingRootContext, {
     enabled: !disabled2,
     mouseOnly: true,
     move: false,
     handleClose: !disableHoverablePopup && trackCursorAxis !== "both" ? safePolygon() : null,
-    restMs() {
-      const providerDelay = providerContext?.delay;
-      const groupOpenValue = typeof delayRef.current === "object" ? delayRef.current.open : void 0;
-      let computedRestMs = delayWithDefault;
-      if (hasProvider) {
-        if (groupOpenValue !== 0) {
-          computedRestMs = delay ?? providerDelay ?? delayWithDefault;
-        } else {
-          computedRestMs = 0;
-        }
-      }
-      return computedRestMs;
-    },
+    restMs: getOpenDelay,
     delay() {
       const closeValue = typeof delayRef.current === "object" ? delayRef.current.close : void 0;
       let computedCloseDelay = closeDelayWithDefault;
@@ -8009,24 +8114,80 @@ var TooltipTrigger = fastComponentRef(function TooltipTrigger2(componentProps, f
     },
     triggerElementRef,
     isActiveTrigger: isTriggerActive,
-    isClosing: () => store2.select("transitionStatus") === "ending"
+    isClosing: () => store2.select("transitionStatus") === "ending",
+    shouldOpen() {
+      return !isNestedTriggerHoveredRef.current;
+    }
   });
   const focusProps = useFocus(floatingRootContext, {
     enabled: !disabled2
   }).reference;
+  const handleNestedTriggerHover = (event) => {
+    const wasNestedTriggerHovered = isNestedTriggerHoveredRef.current;
+    const target = getTargetElement(event);
+    const nestedTriggerHovered = detectNestedTriggerHover(target);
+    const triggerEl = triggerElementRef.current;
+    const targetInsideTrigger = triggerEl && target && contains(triggerEl, target);
+    if (nestedTriggerHovered && store2.select("open") && store2.select("lastOpenChangeReason") === reason_parts_exports.triggerHover) {
+      store2.setOpen(false, createChangeEventDetails(reason_parts_exports.triggerHover, event));
+      return;
+    }
+    if (wasNestedTriggerHovered && !nestedTriggerHovered && targetInsideTrigger && !disabledRef.current && !store2.select("open") && triggerEl && // Match the hover hook's non-strict mouse fallback for mouse-only event sequences.
+    isMouseLikePointerType(pointerTypeRef.current)) {
+      const open = () => {
+        if (!isNestedTriggerHoveredRef.current && !disabledRef.current && !store2.select("open")) {
+          store2.setOpen(true, createChangeEventDetails(reason_parts_exports.triggerHover, event, triggerEl));
+        }
+      };
+      const openDelay = getOpenDelay();
+      if (openDelay === 0) {
+        nestedTriggerOpenTimeout.clear();
+        open();
+      } else {
+        nestedTriggerOpenTimeout.start(openDelay, open);
+      }
+    }
+  };
+  const rootTriggerProps = store2.useState("triggerProps", isMountedByThisTrigger);
+  const shouldApplyRootTriggerProps = isMountedByThisTrigger || trackCursorAxis !== "none";
   const state = {
     open: isOpenedByThisTrigger
   };
-  const rootTriggerProps = store2.useState("triggerProps", isMountedByThisTrigger);
   const element = useRenderElement("button", componentProps, {
     state,
     ref: [forwardedRef, registerTrigger, triggerElementRef],
-    props: [hoverProps, focusProps, rootTriggerProps, {
-      onPointerDown() {
+    props: [hoverProps, focusProps, shouldApplyRootTriggerProps ? rootTriggerProps : void 0, {
+      onMouseOver(event) {
+        handleNestedTriggerHover(event.nativeEvent);
+      },
+      onFocus(event) {
+        if (isEnabledNestedTriggerTarget(getTargetElement(event.nativeEvent))) {
+          event.preventBaseUIHandler();
+        }
+      },
+      onMouseLeave() {
+        isNestedTriggerHoveredRef.current = false;
+        nestedTriggerOpenTimeout.clear();
+        pointerTypeRef.current = void 0;
+      },
+      onPointerEnter(event) {
+        pointerTypeRef.current = event.pointerType;
+      },
+      onPointerDown(event) {
+        pointerTypeRef.current = event.pointerType;
         store2.set("closeOnClick", closeOnClick);
+        if (closeOnClick && !store2.select("open")) {
+          store2.cancelPendingOpen(event.nativeEvent);
+        }
+      },
+      onClick(event) {
+        if (closeOnClick && !store2.select("open")) {
+          store2.cancelPendingOpen(event.nativeEvent);
+        }
       },
       id: thisTriggerId,
-      [TooltipTriggerDataAttributes.triggerDisabled]: disabled2 ? "" : void 0
+      [TooltipTriggerDataAttributes.triggerDisabled]: disabled2 ? "" : void 0,
+      [TOOLTIP_TRIGGER_IDENTIFIER]: disabled2 ? void 0 : ""
     }, elementProps],
     stateAttributesMapping: triggerOpenStateMapping
   });
@@ -8035,14 +8196,14 @@ var TooltipTrigger = fastComponentRef(function TooltipTrigger2(componentProps, f
 if (true) TooltipTrigger.displayName = "TooltipTrigger";
 
 // node_modules/@base-ui/react/esm/tooltip/portal/TooltipPortal.js
-var React46 = __toESM(require_react(), 1);
+var React45 = __toESM(require_react(), 1);
 
 // node_modules/@base-ui/react/esm/tooltip/portal/TooltipPortalContext.js
-var React45 = __toESM(require_react(), 1);
-var TooltipPortalContext = /* @__PURE__ */ React45.createContext(void 0);
+var React44 = __toESM(require_react(), 1);
+var TooltipPortalContext = /* @__PURE__ */ React44.createContext(void 0);
 if (true) TooltipPortalContext.displayName = "TooltipPortalContext";
 function useTooltipPortalContext() {
-  const value = React45.useContext(TooltipPortalContext);
+  const value = React44.useContext(TooltipPortalContext);
   if (value === void 0) {
     throw new Error(true ? "Base UI: <Tooltip.Portal> is missing." : formatErrorMessage_default(70));
   }
@@ -8051,7 +8212,7 @@ function useTooltipPortalContext() {
 
 // node_modules/@base-ui/react/esm/tooltip/portal/TooltipPortal.js
 var import_jsx_runtime8 = __toESM(require_jsx_runtime(), 1);
-var TooltipPortal = /* @__PURE__ */ React46.forwardRef(function TooltipPortal2(props, forwardedRef) {
+var TooltipPortal = /* @__PURE__ */ React45.forwardRef(function TooltipPortal2(props, forwardedRef) {
   const {
     keepMounted = false,
     ...portalProps
@@ -8073,14 +8234,14 @@ var TooltipPortal = /* @__PURE__ */ React46.forwardRef(function TooltipPortal2(p
 if (true) TooltipPortal.displayName = "TooltipPortal";
 
 // node_modules/@base-ui/react/esm/tooltip/positioner/TooltipPositioner.js
-var React48 = __toESM(require_react(), 1);
+var React47 = __toESM(require_react(), 1);
 
 // node_modules/@base-ui/react/esm/tooltip/positioner/TooltipPositionerContext.js
-var React47 = __toESM(require_react(), 1);
-var TooltipPositionerContext = /* @__PURE__ */ React47.createContext(void 0);
+var React46 = __toESM(require_react(), 1);
+var TooltipPositionerContext = /* @__PURE__ */ React46.createContext(void 0);
 if (true) TooltipPositionerContext.displayName = "TooltipPositionerContext";
 function useTooltipPositionerContext() {
-  const context = React47.useContext(TooltipPositionerContext);
+  const context = React46.useContext(TooltipPositionerContext);
   if (context === void 0) {
     throw new Error(true ? "Base UI: TooltipPositionerContext is missing. TooltipPositioner parts must be placed within <Tooltip.Positioner>." : formatErrorMessage_default(71));
   }
@@ -8089,7 +8250,7 @@ function useTooltipPositionerContext() {
 
 // node_modules/@base-ui/react/esm/tooltip/positioner/TooltipPositioner.js
 var import_jsx_runtime9 = __toESM(require_jsx_runtime(), 1);
-var TooltipPositioner = /* @__PURE__ */ React48.forwardRef(function TooltipPositioner2(componentProps, forwardedRef) {
+var TooltipPositioner = /* @__PURE__ */ React47.forwardRef(function TooltipPositioner2(componentProps, forwardedRef) {
   const {
     render,
     className,
@@ -8136,7 +8297,7 @@ var TooltipPositioner = /* @__PURE__ */ React48.forwardRef(function TooltipPosit
     collisionAvoidance,
     adaptiveOrigin: hasViewport ? adaptiveOrigin : void 0
   });
-  const state = React48.useMemo(() => ({
+  const state = React47.useMemo(() => ({
     open,
     side: positioning.side,
     align: positioning.align,
@@ -8159,15 +8320,15 @@ var TooltipPositioner = /* @__PURE__ */ React48.forwardRef(function TooltipPosit
 if (true) TooltipPositioner.displayName = "TooltipPositioner";
 
 // node_modules/@base-ui/react/esm/tooltip/popup/TooltipPopup.js
-var React49 = __toESM(require_react(), 1);
+var React48 = __toESM(require_react(), 1);
 var stateAttributesMapping = {
   ...popupStateMapping,
   ...transitionStatusMapping
 };
-var TooltipPopup = /* @__PURE__ */ React49.forwardRef(function TooltipPopup2(componentProps, forwardedRef) {
+var TooltipPopup = /* @__PURE__ */ React48.forwardRef(function TooltipPopup2(componentProps, forwardedRef) {
   const {
-    className,
     render,
+    className,
     style,
     ...elementProps
   } = componentProps;
@@ -8181,6 +8342,8 @@ var TooltipPopup = /* @__PURE__ */ React49.forwardRef(function TooltipPopup2(com
   const transitionStatus = store2.useState("transitionStatus");
   const popupProps = store2.useState("popupProps");
   const floatingContext = store2.useState("floatingRootContext");
+  const disabled2 = store2.useState("disabled");
+  const closeDelay = store2.useState("closeDelay");
   useOpenChangeComplete({
     open,
     ref: store2.context.popupRef,
@@ -8190,12 +8353,11 @@ var TooltipPopup = /* @__PURE__ */ React49.forwardRef(function TooltipPopup2(com
       }
     }
   });
-  const disabled2 = store2.useState("disabled");
-  const closeDelay = store2.useState("closeDelay");
   useHoverFloatingInteraction(floatingContext, {
     enabled: !disabled2,
     closeDelay
   });
+  const setPopupElement = store2.useStateSetter("popupElement");
   const state = {
     open,
     side,
@@ -8205,7 +8367,7 @@ var TooltipPopup = /* @__PURE__ */ React49.forwardRef(function TooltipPopup2(com
   };
   const element = useRenderElement("div", componentProps, {
     state,
-    ref: [forwardedRef, store2.context.popupRef, store2.useStateSetter("popupElement")],
+    ref: [forwardedRef, store2.context.popupRef, setPopupElement],
     props: [popupProps, getDisabledMountTransitionStyles(transitionStatus), elementProps],
     stateAttributesMapping
   });
@@ -8214,17 +8376,15 @@ var TooltipPopup = /* @__PURE__ */ React49.forwardRef(function TooltipPopup2(com
 if (true) TooltipPopup.displayName = "TooltipPopup";
 
 // node_modules/@base-ui/react/esm/tooltip/arrow/TooltipArrow.js
-var React50 = __toESM(require_react(), 1);
-var TooltipArrow = /* @__PURE__ */ React50.forwardRef(function TooltipArrow2(componentProps, forwardedRef) {
+var React49 = __toESM(require_react(), 1);
+var TooltipArrow = /* @__PURE__ */ React49.forwardRef(function TooltipArrow2(componentProps, forwardedRef) {
   const {
-    className,
     render,
+    className,
     style,
     ...elementProps
   } = componentProps;
   const store2 = useTooltipRootContext();
-  const open = store2.useState("open");
-  const instantType = store2.useState("instantType");
   const {
     arrowRef,
     side,
@@ -8232,6 +8392,8 @@ var TooltipArrow = /* @__PURE__ */ React50.forwardRef(function TooltipArrow2(com
     arrowUncentered,
     arrowStyles
   } = useTooltipPositionerContext();
+  const open = store2.useState("open");
+  const instantType = store2.useState("instantType");
   const state = {
     open,
     side,
@@ -8253,7 +8415,7 @@ var TooltipArrow = /* @__PURE__ */ React50.forwardRef(function TooltipArrow2(com
 if (true) TooltipArrow.displayName = "TooltipArrow";
 
 // node_modules/@base-ui/react/esm/tooltip/provider/TooltipProvider.js
-var React51 = __toESM(require_react(), 1);
+var React50 = __toESM(require_react(), 1);
 var import_jsx_runtime10 = __toESM(require_jsx_runtime(), 1);
 var TooltipProvider = function TooltipProvider2(props) {
   const {
@@ -8261,11 +8423,11 @@ var TooltipProvider = function TooltipProvider2(props) {
     closeDelay,
     timeout = 400
   } = props;
-  const contextValue = React51.useMemo(() => ({
+  const contextValue = React50.useMemo(() => ({
     delay,
     closeDelay
   }), [delay, closeDelay]);
-  const delayValue = React51.useMemo(() => ({
+  const delayValue = React50.useMemo(() => ({
     open: delay,
     close: closeDelay
   }), [delay, closeDelay]);
@@ -8281,7 +8443,7 @@ var TooltipProvider = function TooltipProvider2(props) {
 if (true) TooltipProvider.displayName = "TooltipProvider";
 
 // node_modules/@base-ui/react/esm/tooltip/viewport/TooltipViewport.js
-var React52 = __toESM(require_react(), 1);
+var React51 = __toESM(require_react(), 1);
 
 // node_modules/@base-ui/react/esm/tooltip/viewport/TooltipViewportCssVars.js
 var TooltipViewportCssVars = /* @__PURE__ */ (function(TooltipViewportCssVars2) {
@@ -8296,7 +8458,7 @@ var stateAttributesMapping2 = {
     "data-activation-direction": value
   } : null
 };
-var TooltipViewport = /* @__PURE__ */ React52.forwardRef(function TooltipViewport2(componentProps, forwardedRef) {
+var TooltipViewport = /* @__PURE__ */ React51.forwardRef(function TooltipViewport2(componentProps, forwardedRef) {
   const {
     render,
     className,
@@ -8366,7 +8528,7 @@ var TooltipHandle = class {
    * Indicates whether the tooltip is currently open.
    */
   get isOpen() {
-    return this.store.state.open;
+    return this.store.select("open");
   }
 };
 function createTooltipHandle() {
@@ -8379,7 +8541,7 @@ function useRender(params) {
 }
 
 // packages/ui/build-module/text/text.mjs
-var import_element8 = __toESM(require_element(), 1);
+var import_element10 = __toESM(require_element(), 1);
 var STYLE_HASH_ATTRIBUTE = "data-wp-hash";
 function getRuntime() {
   const globalScope = globalThis;
@@ -8461,14 +8623,14 @@ function registerStyle(hash, css) {
   }
 }
 if (typeof process === "undefined" || true) {
-  registerStyle("0c8601dd83", '@layer wp-ui-utilities, wp-ui-components, wp-ui-compositions, wp-ui-overrides;@layer wp-ui-components{._83ed8a8da5dd50ea__text{margin:0}._14437cfb77831647__heading-2xl{--_gcd-heading-font-size:var(--wpds-typography-font-size-2xl,32px);--_gcd-heading-font-weight:var(--wpds-typography-font-weight-medium,499);--_gcd-p-font-size:var(--wpds-typography-font-size-2xl,32px);--_gcd-p-line-height:var(--wpds-typography-line-height-2xl,40px);font-size:var(--wpds-typography-font-size-2xl,32px);line-height:var(--wpds-typography-line-height-2xl,40px)}._14437cfb77831647__heading-2xl,._3c78b7fa9b4072dd__heading-xl{font-family:var(--wpds-typography-font-family-heading,-apple-system,system-ui,"Segoe UI","Roboto","Oxygen-Sans","Ubuntu","Cantarell","Helvetica Neue",sans-serif);font-weight:var(--wpds-typography-font-weight-medium,499)}._3c78b7fa9b4072dd__heading-xl{--_gcd-heading-font-size:var(--wpds-typography-font-size-xl,20px);--_gcd-heading-font-weight:var(--wpds-typography-font-weight-medium,499);--_gcd-p-font-size:var(--wpds-typography-font-size-xl,20px);--_gcd-p-line-height:var(--wpds-typography-line-height-md,24px);font-size:var(--wpds-typography-font-size-xl,20px);line-height:var(--wpds-typography-line-height-md,24px)}.aa58f227716bcde2__heading-lg{--_gcd-heading-font-size:var(--wpds-typography-font-size-lg,15px);--_gcd-heading-font-weight:var(--wpds-typography-font-weight-medium,499);--_gcd-p-font-size:var(--wpds-typography-font-size-lg,15px);--_gcd-p-line-height:var(--wpds-typography-line-height-sm,20px);font-size:var(--wpds-typography-font-size-lg,15px)}.aa58f227716bcde2__heading-lg,.fc4da56d8dfe52c4__heading-md{font-family:var(--wpds-typography-font-family-heading,-apple-system,system-ui,"Segoe UI","Roboto","Oxygen-Sans","Ubuntu","Cantarell","Helvetica Neue",sans-serif);font-weight:var(--wpds-typography-font-weight-medium,499);line-height:var(--wpds-typography-line-height-sm,20px)}.fc4da56d8dfe52c4__heading-md{--_gcd-heading-font-size:var(--wpds-typography-font-size-md,13px);--_gcd-heading-font-weight:var(--wpds-typography-font-weight-medium,499);--_gcd-p-font-size:var(--wpds-typography-font-size-md,13px);--_gcd-p-line-height:var(--wpds-typography-line-height-sm,20px);font-size:var(--wpds-typography-font-size-md,13px)}.a9b78c7c82e8dff7__heading-sm{--_gcd-heading-font-size:var(--wpds-typography-font-size-xs,11px);--_gcd-heading-font-weight:var(--wpds-typography-font-weight-medium,499);--_gcd-p-font-size:var(--wpds-typography-font-size-xs,11px);--_gcd-p-line-height:var(--wpds-typography-line-height-xs,16px);font-family:var(--wpds-typography-font-family-heading,-apple-system,system-ui,"Segoe UI","Roboto","Oxygen-Sans","Ubuntu","Cantarell","Helvetica Neue",sans-serif);font-size:var(--wpds-typography-font-size-xs,11px);font-weight:var(--wpds-typography-font-weight-medium,499);line-height:var(--wpds-typography-line-height-xs,16px);text-transform:uppercase}._305ff559e52180d5__body-xl{--_gcd-heading-font-size:var(--wpds-typography-font-size-xl,20px);--_gcd-heading-font-weight:var(--wpds-typography-font-weight-regular,400);--_gcd-p-font-size:var(--wpds-typography-font-size-xl,20px);--_gcd-p-line-height:var(--wpds-typography-line-height-xl,32px);font-size:var(--wpds-typography-font-size-xl,20px);line-height:var(--wpds-typography-line-height-xl,32px)}._305ff559e52180d5__body-xl,.ca1aa3fc2029e958__body-lg{font-family:var(--wpds-typography-font-family-body,-apple-system,system-ui,"Segoe UI","Roboto","Oxygen-Sans","Ubuntu","Cantarell","Helvetica Neue",sans-serif);font-weight:var(--wpds-typography-font-weight-regular,400)}.ca1aa3fc2029e958__body-lg{--_gcd-heading-font-size:var(--wpds-typography-font-size-lg,15px);--_gcd-heading-font-weight:var(--wpds-typography-font-weight-regular,400);--_gcd-p-font-size:var(--wpds-typography-font-size-lg,15px);--_gcd-p-line-height:var(--wpds-typography-line-height-md,24px);font-size:var(--wpds-typography-font-size-lg,15px);line-height:var(--wpds-typography-line-height-md,24px)}._131101940be12424__body-md{--_gcd-heading-font-size:var(--wpds-typography-font-size-md,13px);--_gcd-heading-font-weight:var(--wpds-typography-font-weight-regular,400);--_gcd-p-font-size:var(--wpds-typography-font-size-md,13px);--_gcd-p-line-height:var(--wpds-typography-line-height-sm,20px);font-size:var(--wpds-typography-font-size-md,13px);line-height:var(--wpds-typography-line-height-sm,20px)}._0e8d87a42c1f75fa__body-sm,._131101940be12424__body-md{font-family:var(--wpds-typography-font-family-body,-apple-system,system-ui,"Segoe UI","Roboto","Oxygen-Sans","Ubuntu","Cantarell","Helvetica Neue",sans-serif);font-weight:var(--wpds-typography-font-weight-regular,400)}._0e8d87a42c1f75fa__body-sm{--_gcd-heading-font-size:var(--wpds-typography-font-size-sm,12px);--_gcd-heading-font-weight:var(--wpds-typography-font-weight-regular,400);--_gcd-p-font-size:var(--wpds-typography-font-size-sm,12px);--_gcd-p-line-height:var(--wpds-typography-line-height-xs,16px);font-size:var(--wpds-typography-font-size-sm,12px);line-height:var(--wpds-typography-line-height-xs,16px)}}');
+  registerStyle("0c5702ddca", '@layer wp-ui{@layer utilities, components, compositions, overrides;@layer components{._83ed8a8da5dd50ea__text{margin:0}._14437cfb77831647__heading-2xl{--_gcd-heading-font-size:var(--wpds-typography-font-size-2xl,32px);--_gcd-heading-font-weight:var(--wpds-typography-font-weight-medium,499);--_gcd-p-font-size:var(--wpds-typography-font-size-2xl,32px);--_gcd-p-line-height:var(--wpds-typography-line-height-2xl,40px);font-size:var(--wpds-typography-font-size-2xl,32px);line-height:var(--wpds-typography-line-height-2xl,40px)}._14437cfb77831647__heading-2xl,._3c78b7fa9b4072dd__heading-xl{font-family:var(--wpds-typography-font-family-heading,-apple-system,system-ui,"Segoe UI","Roboto","Oxygen-Sans","Ubuntu","Cantarell","Helvetica Neue",sans-serif);font-weight:var(--wpds-typography-font-weight-medium,499)}._3c78b7fa9b4072dd__heading-xl{--_gcd-heading-font-size:var(--wpds-typography-font-size-xl,20px);--_gcd-heading-font-weight:var(--wpds-typography-font-weight-medium,499);--_gcd-p-font-size:var(--wpds-typography-font-size-xl,20px);--_gcd-p-line-height:var(--wpds-typography-line-height-md,24px);font-size:var(--wpds-typography-font-size-xl,20px);line-height:var(--wpds-typography-line-height-md,24px)}.aa58f227716bcde2__heading-lg{--_gcd-heading-font-size:var(--wpds-typography-font-size-lg,15px);--_gcd-heading-font-weight:var(--wpds-typography-font-weight-medium,499);--_gcd-p-font-size:var(--wpds-typography-font-size-lg,15px);--_gcd-p-line-height:var(--wpds-typography-line-height-sm,20px);font-size:var(--wpds-typography-font-size-lg,15px)}.aa58f227716bcde2__heading-lg,.fc4da56d8dfe52c4__heading-md{font-family:var(--wpds-typography-font-family-heading,-apple-system,system-ui,"Segoe UI","Roboto","Oxygen-Sans","Ubuntu","Cantarell","Helvetica Neue",sans-serif);font-weight:var(--wpds-typography-font-weight-medium,499);line-height:var(--wpds-typography-line-height-sm,20px)}.fc4da56d8dfe52c4__heading-md{--_gcd-heading-font-size:var(--wpds-typography-font-size-md,13px);--_gcd-heading-font-weight:var(--wpds-typography-font-weight-medium,499);--_gcd-p-font-size:var(--wpds-typography-font-size-md,13px);--_gcd-p-line-height:var(--wpds-typography-line-height-sm,20px);font-size:var(--wpds-typography-font-size-md,13px)}.a9b78c7c82e8dff7__heading-sm{--_gcd-heading-font-size:var(--wpds-typography-font-size-xs,11px);--_gcd-heading-font-weight:var(--wpds-typography-font-weight-medium,499);--_gcd-p-font-size:var(--wpds-typography-font-size-xs,11px);--_gcd-p-line-height:var(--wpds-typography-line-height-xs,16px);font-family:var(--wpds-typography-font-family-heading,-apple-system,system-ui,"Segoe UI","Roboto","Oxygen-Sans","Ubuntu","Cantarell","Helvetica Neue",sans-serif);font-size:var(--wpds-typography-font-size-xs,11px);font-weight:var(--wpds-typography-font-weight-medium,499);line-height:var(--wpds-typography-line-height-xs,16px);text-transform:uppercase}._305ff559e52180d5__body-xl{--_gcd-heading-font-size:var(--wpds-typography-font-size-xl,20px);--_gcd-heading-font-weight:var(--wpds-typography-font-weight-regular,400);--_gcd-p-font-size:var(--wpds-typography-font-size-xl,20px);--_gcd-p-line-height:var(--wpds-typography-line-height-xl,32px);font-size:var(--wpds-typography-font-size-xl,20px);line-height:var(--wpds-typography-line-height-xl,32px)}._305ff559e52180d5__body-xl,.ca1aa3fc2029e958__body-lg{font-family:var(--wpds-typography-font-family-body,-apple-system,system-ui,"Segoe UI","Roboto","Oxygen-Sans","Ubuntu","Cantarell","Helvetica Neue",sans-serif);font-weight:var(--wpds-typography-font-weight-regular,400)}.ca1aa3fc2029e958__body-lg{--_gcd-heading-font-size:var(--wpds-typography-font-size-lg,15px);--_gcd-heading-font-weight:var(--wpds-typography-font-weight-regular,400);--_gcd-p-font-size:var(--wpds-typography-font-size-lg,15px);--_gcd-p-line-height:var(--wpds-typography-line-height-md,24px);font-size:var(--wpds-typography-font-size-lg,15px);line-height:var(--wpds-typography-line-height-md,24px)}._131101940be12424__body-md{--_gcd-heading-font-size:var(--wpds-typography-font-size-md,13px);--_gcd-heading-font-weight:var(--wpds-typography-font-weight-regular,400);--_gcd-p-font-size:var(--wpds-typography-font-size-md,13px);--_gcd-p-line-height:var(--wpds-typography-line-height-sm,20px);font-size:var(--wpds-typography-font-size-md,13px);line-height:var(--wpds-typography-line-height-sm,20px)}._0e8d87a42c1f75fa__body-sm,._131101940be12424__body-md{font-family:var(--wpds-typography-font-family-body,-apple-system,system-ui,"Segoe UI","Roboto","Oxygen-Sans","Ubuntu","Cantarell","Helvetica Neue",sans-serif);font-weight:var(--wpds-typography-font-weight-regular,400)}._0e8d87a42c1f75fa__body-sm{--_gcd-heading-font-size:var(--wpds-typography-font-size-sm,12px);--_gcd-heading-font-weight:var(--wpds-typography-font-weight-regular,400);--_gcd-p-font-size:var(--wpds-typography-font-size-sm,12px);--_gcd-p-line-height:var(--wpds-typography-line-height-xs,16px);font-size:var(--wpds-typography-font-size-sm,12px);line-height:var(--wpds-typography-line-height-xs,16px)}}}');
 }
 var style_default = { "text": "_83ed8a8da5dd50ea__text", "heading-2xl": "_14437cfb77831647__heading-2xl", "heading-xl": "_3c78b7fa9b4072dd__heading-xl", "heading-lg": "aa58f227716bcde2__heading-lg", "heading-md": "fc4da56d8dfe52c4__heading-md", "heading-sm": "a9b78c7c82e8dff7__heading-sm", "body-xl": "_305ff559e52180d5__body-xl", "body-lg": "ca1aa3fc2029e958__body-lg", "body-md": "_131101940be12424__body-md", "body-sm": "_0e8d87a42c1f75fa__body-sm" };
 if (typeof process === "undefined" || true) {
-  registerStyle("1fb29d3a3c", "._6defc79820e382c6__button{box-sizing:var(--_gcd-button-box-sizing,border-box);font-family:var(--_gcd-button-font-family,inherit);font-size:var(--_gcd-button-font-size,inherit);font-weight:var(--_gcd-button-font-weight,inherit)}.d2cff2e5dea83bd1__input{box-sizing:var(--_gcd-input-box-sizing,border-box);font-family:var(--_gcd-input-font-family,inherit);font-size:var(--_gcd-input-font-size,inherit);font-weight:var(--_gcd-input-font-weight,inherit);margin:var(--_gcd-input-margin,0);&:is(textarea,[type=text],[type=password],[type=color],[type=date],[type=datetime],[type=datetime-local],[type=email],[type=month],[type=number],[type=search],[type=tel],[type=time],[type=url],[type=week]){background-color:var(--_gcd-input-background-color,#0000);border:var(--_gcd-input-border,none);border-radius:var(--_gcd-input-border-radius,0);box-shadow:var(--_gcd-input-box-shadow,0 0 0 #0000);color:var(--_gcd-input-color,var(--wpds-color-fg-interactive-neutral,#1e1e1e));&:focus{border-color:var(--_gcd-input-border-color-focus,var(--wp-admin-theme-color));box-shadow:var(--_gcd-input-box-shadow-focus,none);outline:var(--_gcd-input-outline-focus,none)}&:disabled{background:var(--_gcd-input-background-disabled,#0000);border-color:var(--_gcd-input-border-color-disabled,#0000);box-shadow:var(--_gcd-input-box-shadow-disabled,none);color:var(--_gcd-input-color-disabled,var(--wpds-color-fg-interactive-neutral-disabled,#8d8d8d))}&::placeholder{color:var(--_gcd-input-placeholder-color,var(--wpds-color-fg-interactive-neutral-disabled,#8d8d8d))}}&:is(textarea,[type=text],[type=password],[type=date],[type=datetime],[type=datetime-local],[type=email],[type=month],[type=number],[type=search],[type=tel],[type=time],[type=url],[type=week]){line-height:var(--_gcd-input-line-height,inherit);min-height:var(--_gcd-input-min-height,auto);padding:var(--_gcd-input-padding,0)}}._547d86373d02e108__textarea{box-sizing:var(--_gcd-textarea-box-sizing,border-box);overflow:var(--_gcd-textarea-overflow,auto);resize:var(--_gcd-textarea-resize,block)}._8c15fd0ed9f28ba4__div{outline:var(--_gcd-div-outline,0 solid #0000)}p._43cec3e1eec1066d__p{font-size:var(--_gcd-p-font-size,13px);line-height:var(--_gcd-p-line-height,1.5);margin:var(--_gcd-p-margin,0)}:is(h1,h2,h3,h4,h5,h6).e97669c6d9a38497__heading{color:var(--_gcd-heading-color,var(--wpds-color-fg-content-neutral,#1e1e1e));font-size:var(--_gcd-heading-font-size,inherit);font-weight:var(--_gcd-heading-font-weight,var(--wpds-typography-font-weight-medium,499));margin:var(--_gcd-heading-margin,0)}._2c0831b0499dbd6e__a,._2c0831b0499dbd6e__a:is(:hover,:focus,:active){border-radius:var(--_gcd-a-border-radius,0);box-shadow:var(--_gcd-a-box-shadow,none);color:var(--_gcd-a-color,inherit);outline:var(--_gcd-a-outline,0 solid #0000);transition:var(--_gcd-a-transition,none)}");
+  registerStyle("d5c1b736fd", "._6defc79820e382c6__button{box-sizing:var(--_gcd-button-box-sizing,border-box);font-family:var(--_gcd-button-font-family,inherit);font-size:var(--_gcd-button-font-size,inherit);font-weight:var(--_gcd-button-font-weight,inherit)}.d2cff2e5dea83bd1__input{box-sizing:var(--_gcd-input-box-sizing,border-box);font-family:var(--_gcd-input-font-family,inherit);font-size:var(--_gcd-input-font-size,inherit);font-weight:var(--_gcd-input-font-weight,inherit);margin:var(--_gcd-input-margin,0);&:is(textarea,[type=text],[type=password],[type=color],[type=date],[type=datetime],[type=datetime-local],[type=email],[type=month],[type=number],[type=search],[type=tel],[type=time],[type=url],[type=week]){background-color:var(--_gcd-input-background-color,transparent);border:var(--_gcd-input-border,none);border-radius:var(--_gcd-input-border-radius,0);box-shadow:var(--_gcd-input-box-shadow,0 0 0 transparent);color:var(--_gcd-input-color,var(--wpds-color-fg-interactive-neutral,#1e1e1e));&:focus{border-color:var(--_gcd-input-border-color-focus,var(--wp-admin-theme-color));box-shadow:var(--_gcd-input-box-shadow-focus,none);outline:var(--_gcd-input-outline-focus,none)}&:disabled{background:var(--_gcd-input-background-disabled,transparent);border-color:var(--_gcd-input-border-color-disabled,transparent);box-shadow:var(--_gcd-input-box-shadow-disabled,none);color:var(--_gcd-input-color-disabled,var(--wpds-color-fg-interactive-neutral-disabled,#8d8d8d))}&::placeholder{color:var(--_gcd-input-placeholder-color,var(--wpds-color-fg-interactive-neutral-disabled,#8d8d8d))}}&:is(textarea,[type=text],[type=password],[type=date],[type=datetime],[type=datetime-local],[type=email],[type=month],[type=number],[type=search],[type=tel],[type=time],[type=url],[type=week]){line-height:var(--_gcd-input-line-height,inherit);min-height:var(--_gcd-input-min-height,auto);padding:var(--_gcd-input-padding,0)}}._547d86373d02e108__textarea{box-sizing:var(--_gcd-textarea-box-sizing,border-box);overflow:var(--_gcd-textarea-overflow,auto);resize:var(--_gcd-textarea-resize,block)}._8c15fd0ed9f28ba4__div{outline:var(--_gcd-div-outline,0 solid transparent)}p._43cec3e1eec1066d__p{font-size:var(--_gcd-p-font-size,13px);line-height:var(--_gcd-p-line-height,1.5);margin:var(--_gcd-p-margin,0)}:is(h1,h2,h3,h4,h5,h6).e97669c6d9a38497__heading{color:var(--_gcd-heading-color,var(--wpds-color-fg-content-neutral,#1e1e1e));font-size:var(--_gcd-heading-font-size,inherit);font-weight:var(--_gcd-heading-font-weight,var(--wpds-typography-font-weight-medium,499));margin:var(--_gcd-heading-margin,0)}._2c0831b0499dbd6e__a,._2c0831b0499dbd6e__a:is(:hover,:focus,:active){border-radius:var(--_gcd-a-border-radius,0);box-shadow:var(--_gcd-a-box-shadow,none);color:var(--_gcd-a-color,inherit);outline:var(--_gcd-a-outline,0 solid transparent);transition:var(--_gcd-a-transition,none)}");
 }
 var global_css_defense_default = { "button": "_6defc79820e382c6__button", "input": "d2cff2e5dea83bd1__input", "textarea": "_547d86373d02e108__textarea", "div": "_8c15fd0ed9f28ba4__div", "p": "_43cec3e1eec1066d__p", "heading": "e97669c6d9a38497__heading", "a": "_2c0831b0499dbd6e__a" };
-var Text = (0, import_element8.forwardRef)(function Text2({ variant = "body-md", render, className, ...props }, ref) {
+var Text = (0, import_element10.forwardRef)(function Text2({ variant = "body-md", render, className, ...props }, ref) {
   const element = useRender({
     render,
     defaultTagName: "span",
@@ -8569,10 +8731,10 @@ function registerStyle2(hash, css) {
   }
 }
 if (typeof process === "undefined" || true) {
-  registerStyle2("d6a685e1aa", "@layer wp-ui-utilities, wp-ui-components, wp-ui-compositions, wp-ui-overrides;@layer wp-ui-components{._96e6251aad1a6136__badge{border-radius:var(--wpds-border-radius-lg,8px);padding-block:var(--wpds-dimension-padding-xs,4px);padding-inline:var(--wpds-dimension-padding-sm,8px)}._99f7158cb520f750__is-high-intent{background-color:var(--wpds-color-bg-surface-error,#f6e6e3);color:var(--wpds-color-fg-content-error,#470000)}.c20ebef2365bc8b7__is-medium-intent{background-color:var(--wpds-color-bg-surface-warning,#fde6be);color:var(--wpds-color-fg-content-warning,#2e1900)}._365e1626c6202e52__is-low-intent{background-color:var(--wpds-color-bg-surface-caution,#fee995);color:var(--wpds-color-fg-content-caution,#281d00)}._33f8198127ddf4ef__is-stable-intent{background-color:var(--wpds-color-bg-surface-success,#c6f7cd);color:var(--wpds-color-fg-content-success,#002900)}._04c1aca8fc449412__is-informational-intent{background-color:var(--wpds-color-bg-surface-info,#deebfa);color:var(--wpds-color-fg-content-info,#001b4f)}._90726e69d495ec19__is-draft-intent{background-color:var(--wpds-color-bg-surface-neutral-weak,#f4f4f4);color:var(--wpds-color-fg-content-neutral,#1e1e1e)}._898f4a544993bd39__is-none-intent{background-color:var(--wpds-color-bg-surface-neutral-strong,#fff);border:var(--wpds-border-width-xs,1px) solid var(--wpds-color-stroke-surface-neutral,#dbdbdb);color:var(--wpds-color-fg-content-neutral,#1e1e1e);padding-block:calc(var(--wpds-dimension-padding-xs, 4px) - var(--wpds-border-width-xs, 1px));padding-inline:calc(var(--wpds-dimension-padding-sm, 8px) - var(--wpds-border-width-xs, 1px))}}");
+  registerStyle2("9d817a6077", "@layer wp-ui{@layer utilities, components, compositions, overrides;@layer components{._96e6251aad1a6136__badge{border-radius:var(--wpds-border-radius-lg,8px);padding-block:var(--wpds-dimension-padding-xs,4px);padding-inline:var(--wpds-dimension-padding-sm,8px)}._99f7158cb520f750__is-high-intent{background-color:var(--wpds-color-bg-surface-error,#f6e6e3);color:var(--wpds-color-fg-content-error,#470000)}.c20ebef2365bc8b7__is-medium-intent{background-color:var(--wpds-color-bg-surface-warning,#fde6be);color:var(--wpds-color-fg-content-warning,#2e1900)}._365e1626c6202e52__is-low-intent{background-color:var(--wpds-color-bg-surface-caution,#fee995);color:var(--wpds-color-fg-content-caution,#281d00)}._33f8198127ddf4ef__is-stable-intent{background-color:var(--wpds-color-bg-surface-success,#c6f7cd);color:var(--wpds-color-fg-content-success,#002900)}._04c1aca8fc449412__is-informational-intent{background-color:var(--wpds-color-bg-surface-info,#deebfa);color:var(--wpds-color-fg-content-info,#001b4f)}._90726e69d495ec19__is-draft-intent{background-color:var(--wpds-color-bg-surface-neutral-weak,#f4f4f4);color:var(--wpds-color-fg-content-neutral,#1e1e1e)}._898f4a544993bd39__is-none-intent{background-color:var(--wpds-color-bg-surface-neutral-strong,#fff);border:var(--wpds-border-width-xs,1px) solid var(--wpds-color-stroke-surface-neutral,#dbdbdb);color:var(--wpds-color-fg-content-neutral,#1e1e1e);padding-block:calc(var(--wpds-dimension-padding-xs, 4px) - var(--wpds-border-width-xs, 1px));padding-inline:calc(var(--wpds-dimension-padding-sm, 8px) - var(--wpds-border-width-xs, 1px))}}}");
 }
 var style_default2 = { "badge": "_96e6251aad1a6136__badge", "is-high-intent": "_99f7158cb520f750__is-high-intent", "is-medium-intent": "c20ebef2365bc8b7__is-medium-intent", "is-low-intent": "_365e1626c6202e52__is-low-intent", "is-stable-intent": "_33f8198127ddf4ef__is-stable-intent", "is-informational-intent": "_04c1aca8fc449412__is-informational-intent", "is-draft-intent": "_90726e69d495ec19__is-draft-intent", "is-none-intent": "_898f4a544993bd39__is-none-intent" };
-var Badge = (0, import_element9.forwardRef)(function Badge2({ intent = "none", className, ...props }, ref) {
+var Badge = (0, import_element11.forwardRef)(function Badge2({ intent = "none", className, ...props }, ref) {
   return /* @__PURE__ */ (0, import_jsx_runtime11.jsx)(
     Text,
     {
@@ -8589,7 +8751,7 @@ var Badge = (0, import_element9.forwardRef)(function Badge2({ intent = "none", c
 });
 
 // packages/ui/build-module/button/button.mjs
-var import_element10 = __toESM(require_element(), 1);
+var import_element12 = __toESM(require_element(), 1);
 var import_i18n = __toESM(require_i18n(), 1);
 var import_jsx_runtime12 = __toESM(require_jsx_runtime(), 1);
 import { speak } from "@wordpress/a11y";
@@ -8674,22 +8836,22 @@ function registerStyle3(hash, css) {
   }
 }
 if (typeof process === "undefined" || true) {
-  registerStyle3("26d90ece4e", '@layer wp-ui-utilities, wp-ui-components, wp-ui-compositions, wp-ui-overrides;@layer wp-ui-components{._97b0fc33c028be1a__button,.abbb272e2ce49bd6__is-unstyled{appearance:none;padding:0}._97b0fc33c028be1a__button{--wp-ui-button-font-weight:499;--wp-ui-button-background-color:var(--wpds-color-bg-interactive-brand-strong,var(--wp-admin-theme-color,#3858e9));--wp-ui-button-background-color-active:var(--wpds-color-bg-interactive-brand-strong-active,color-mix(in oklch,var(--wp-admin-theme-color,#3858e9) 93%,#000));--wp-ui-button-background-color-disabled:var(--wpds-color-bg-interactive-neutral-strong-disabled,#e6e6e6);--wp-ui-button-foreground-color:var(--wpds-color-fg-interactive-brand-strong,#fff);--wp-ui-button-foreground-color-active:var(--wpds-color-fg-interactive-brand-strong-active,#fff);--wp-ui-button-foreground-color-disabled:var(--wpds-color-fg-interactive-neutral-strong-disabled,#8d8d8d);--wp-ui-button-padding-inline:var(--wpds-dimension-padding-md,12px);--wp-ui-button-height:40px;--wp-ui-button-aspect-ratio:auto;--wp-ui-button-font-size:var(--wpds-typography-font-size-md,13px);--wp-ui-button-min-width:calc(4ch + var(--wp-ui-button-padding-inline)*2);--wp-ui-button-border-color:var(--wp-ui-button-background-color);--wp-ui-button-border-color-active:var(--wp-ui-button-background-color-active);--wp-ui-button-border-color-disabled:var(--wp-ui-button-background-color-disabled);--_gcd-button-font-family:var(--wpds-typography-font-family-body,-apple-system,system-ui,"Segoe UI","Roboto","Oxygen-Sans","Ubuntu","Cantarell","Helvetica Neue",sans-serif);--_gcd-button-font-size:var(--wp-ui-button-font-size);--_gcd-button-font-weight:var(--wp-ui-button-font-weight);align-items:center;aspect-ratio:var(--wp-ui-button-aspect-ratio);background-clip:padding-box;background-color:var(--wp-ui-button-background-color);border-color:var(--wp-ui-button-border-color);border-radius:var(--wpds-border-radius-sm,2px);border-style:solid;border-width:1px;color:var(--wp-ui-button-foreground-color);cursor:var(--wpds-cursor-control,pointer);display:inline-flex;font-family:var(--wpds-typography-font-family-body,-apple-system,system-ui,"Segoe UI","Roboto","Oxygen-Sans","Ubuntu","Cantarell","Helvetica Neue",sans-serif);font-size:var(--wp-ui-button-font-size);font-weight:var(--wp-ui-button-font-weight);gap:var(--wpds-dimension-gap-sm,8px);height:var(--wp-ui-button-height);justify-content:center;line-height:var(--wpds-typography-line-height-sm,20px);min-width:var(--wp-ui-button-min-width);padding-inline:var(--wp-ui-button-padding-inline);position:relative;text-decoration:none;@media not (prefers-reduced-motion){transition:color .1s ease-out;*{transition:opacity .1s ease-out}}&[href]{cursor:pointer}[href]{color:inherit;text-decoration:inherit}&:not([data-disabled]):is(:hover,:active,:focus){background-color:var(--wp-ui-button-background-color-active);border-color:var(--wp-ui-button-border-color-active);color:var(--wp-ui-button-foreground-color-active)}&[data-disabled]:not(._914b42f315c0e580__is-loading){background-color:var(--wp-ui-button-background-color-disabled);border-color:var(--wp-ui-button-border-color-disabled);color:var(--wp-ui-button-foreground-color-disabled);@media (forced-colors:active){border-bottom-color:GrayText;border-left-color:GrayText;border-right-color:GrayText;border-top-color:GrayText;color:GrayText}}&:before{aspect-ratio:1;border:var(--wpds-border-width-focus,var(--wp-admin-border-width-focus,2px)) solid;border-block-end-color:#0000;border-block-start-color:var(--wp-ui-button-foreground-color);border-inline-end-color:var(--wp-ui-button-foreground-color);border-inline-start-color:#0000;border-radius:50%;box-sizing:border-box;content:"";display:block;height:var(--wp-ui-button-font-size);inset-inline-start:50%;opacity:0;pointer-events:none;position:absolute;top:50%;transform:translate(-50%,-50%);@media not (prefers-reduced-motion){transition:opacity .1s ease-out}}}._908205475f9f2a92__is-small{--wp-ui-button-padding-inline:var(--wpds-dimension-padding-sm,8px);--wp-ui-button-height:24px}.dd460c965226cc77__is-brand{&._62d5a778b7b258ee__is-outline,&.ad0619a3217c6a5b__is-minimal{--wp-ui-button-foreground-color:var(--wpds-color-fg-interactive-brand,var(--wp-admin-theme-color,#3858e9));--wp-ui-button-foreground-color-active:var(--wpds-color-fg-interactive-brand-active,var(--wp-admin-theme-color,#3858e9));--wp-ui-button-foreground-color-disabled:var(--wpds-color-fg-interactive-neutral-disabled,#8d8d8d)}&._62d5a778b7b258ee__is-outline{--wp-ui-button-background-color:var(--wpds-color-bg-interactive-brand-weak,#0000);--wp-ui-button-background-color-active:var(--wpds-color-bg-interactive-brand-weak-active,color-mix(in oklch,var(--wp-admin-theme-color,#3858e9) 12%,#fff));--wp-ui-button-background-color-disabled:var(--wpds-color-bg-interactive-neutral-weak-disabled,#0000);--wp-ui-button-border-color:var(--wpds-color-stroke-interactive-brand,var(--wp-admin-theme-color,#3858e9));--wp-ui-button-border-color-active:var(--wpds-color-stroke-interactive-brand-active,color-mix(in oklch,var(--wp-admin-theme-color,#3858e9) 85%,#000));--wp-ui-button-border-color-disabled:var(--wpds-color-stroke-interactive-neutral-disabled,#dbdbdb)}&.ad0619a3217c6a5b__is-minimal{--wp-ui-button-background-color:var(--wpds-color-bg-interactive-brand-weak,#0000);--wp-ui-button-background-color-active:var(--wpds-color-bg-interactive-brand-weak-active,color-mix(in oklch,var(--wp-admin-theme-color,#3858e9) 12%,#fff));--wp-ui-button-background-color-disabled:var(--wpds-color-bg-interactive-neutral-weak-disabled,#0000)}}.e722a8f96726aa99__is-neutral{&.b50b3358c5fb4d0b__is-solid{--wp-ui-button-background-color:var(--wpds-color-bg-interactive-neutral-strong,#2d2d2d);--wp-ui-button-background-color-active:var(--wpds-color-bg-interactive-neutral-strong-active,#1e1e1e);--wp-ui-button-background-color-disabled:var(--wpds-color-bg-interactive-neutral-strong-disabled,#e6e6e6);--wp-ui-button-foreground-color:var(--wpds-color-fg-interactive-neutral-strong,#f0f0f0);--wp-ui-button-foreground-color-active:var(--wpds-color-fg-interactive-neutral-strong-active,#f0f0f0);--wp-ui-button-foreground-color-disabled:var(--wpds-color-fg-interactive-neutral-strong-disabled,#8d8d8d)}&._62d5a778b7b258ee__is-outline,&.ad0619a3217c6a5b__is-minimal{--wp-ui-button-foreground-color:var(--wpds-color-fg-interactive-neutral,#1e1e1e);--wp-ui-button-foreground-color-active:var(--wpds-color-fg-interactive-neutral-active,#1e1e1e);--wp-ui-button-foreground-color-disabled:var(--wpds-color-fg-interactive-neutral-disabled,#8d8d8d)}&._62d5a778b7b258ee__is-outline{--wp-ui-button-background-color:var(--wpds-color-bg-interactive-neutral-weak,#0000);--wp-ui-button-background-color-active:var(--wpds-color-bg-interactive-neutral-weak-active,#ededed);--wp-ui-button-background-color-disabled:var(--wpds-color-bg-interactive-neutral-weak-disabled,#0000);--wp-ui-button-border-color:var(--wpds-color-stroke-interactive-neutral,#8d8d8d);--wp-ui-button-border-color-active:var(--wpds-color-stroke-interactive-neutral-active,#6e6e6e);--wp-ui-button-border-color-disabled:var(--wpds-color-stroke-interactive-neutral-disabled,#dbdbdb)}&.ad0619a3217c6a5b__is-minimal{--wp-ui-button-background-color:var(--wpds-color-bg-interactive-neutral-weak,#0000);--wp-ui-button-background-color-active:var(--wpds-color-bg-interactive-neutral-weak-active,#ededed);--wp-ui-button-background-color-disabled:var(--wpds-color-bg-interactive-neutral-weak-disabled,#0000)}}.abbb272e2ce49bd6__is-unstyled{background:none;border:none;min-width:unset}.cf59cf1b69629838__is-compact{--wp-ui-button-height:32px}._914b42f315c0e580__is-loading{color:#0000;&:not([data-disabled]):is(:hover,:active,:focus){color:#0000}*{opacity:0}&:before{opacity:1;transition-delay:.05s;@media not (prefers-reduced-motion){animation:_5a1d53da6f830c8d__loading-animation 1s linear infinite}}}[aria-pressed=true].ad0619a3217c6a5b__is-minimal.e722a8f96726aa99__is-neutral{--wp-ui-button-background-color:var(--wpds-color-bg-interactive-neutral-strong,#2d2d2d);--wp-ui-button-background-color-active:var(--wpds-color-bg-interactive-neutral-strong,#2d2d2d);--wp-ui-button-foreground-color:var(--wpds-color-fg-interactive-neutral-strong,#f0f0f0);--wp-ui-button-foreground-color-active:var(--wpds-color-fg-interactive-neutral-strong,#f0f0f0)}}@keyframes _5a1d53da6f830c8d__loading-animation{0%{transform:translate(-50%,-50%) rotate(0deg)}to{transform:translate(-50%,-50%) rotate(1turn)}}');
+  registerStyle3("459f56a7b7", '@layer wp-ui{@layer utilities, components, compositions, overrides;@layer components{._97b0fc33c028be1a__button,.abbb272e2ce49bd6__is-unstyled{appearance:none;padding:0}._97b0fc33c028be1a__button{--wp-ui-button-font-weight:499;--wp-ui-button-background-color:var(--wpds-color-bg-interactive-brand-strong,var(--wp-admin-theme-color,#3858e9));--wp-ui-button-background-color-active:var(--wpds-color-bg-interactive-brand-strong-active,color-mix(in oklch,var(--wp-admin-theme-color,#3858e9) 93%,#000));--wp-ui-button-background-color-disabled:var(--wpds-color-bg-interactive-neutral-strong-disabled,#e6e6e6);--wp-ui-button-foreground-color:var(--wpds-color-fg-interactive-brand-strong,#fff);--wp-ui-button-foreground-color-active:var(--wpds-color-fg-interactive-brand-strong-active,#fff);--wp-ui-button-foreground-color-disabled:var(--wpds-color-fg-interactive-neutral-strong-disabled,#8d8d8d);--wp-ui-button-padding-block:var(--wpds-dimension-padding-xs,4px);--wp-ui-button-padding-inline:var(--wpds-dimension-padding-md,12px);--wp-ui-button-height:40px;--wp-ui-button-aspect-ratio:auto;--wp-ui-button-font-size:var(--wpds-typography-font-size-md,13px);--wp-ui-button-min-width:calc(4ch + var(--wp-ui-button-padding-inline)*2);--wp-ui-button-icon-margin:-4px;--wp-ui-button-border-color:var(--wp-ui-button-background-color);--wp-ui-button-border-color-active:var(--wp-ui-button-background-color-active);--wp-ui-button-border-color-disabled:var(--wp-ui-button-background-color-disabled);--_gcd-button-font-family:var(--wpds-typography-font-family-body,-apple-system,system-ui,"Segoe UI","Roboto","Oxygen-Sans","Ubuntu","Cantarell","Helvetica Neue",sans-serif);--_gcd-button-font-size:var(--wp-ui-button-font-size);--_gcd-button-font-weight:var(--wp-ui-button-font-weight);align-items:center;aspect-ratio:var(--wp-ui-button-aspect-ratio);background-clip:padding-box;background-color:var(--wp-ui-button-background-color);border-color:var(--wp-ui-button-border-color);border-radius:var(--wpds-border-radius-sm,2px);border-style:solid;border-width:1px;color:var(--wp-ui-button-foreground-color);display:inline-flex;font-family:var(--wpds-typography-font-family-body,-apple-system,system-ui,"Segoe UI","Roboto","Oxygen-Sans","Ubuntu","Cantarell","Helvetica Neue",sans-serif);font-size:var(--wp-ui-button-font-size);font-weight:var(--wp-ui-button-font-weight);gap:var(--wpds-dimension-gap-sm,8px);justify-content:center;line-height:var(--wpds-typography-line-height-sm,20px);max-width:100%;min-height:var(--wp-ui-button-height);min-width:var(--wp-ui-button-min-width);overflow-wrap:anywhere;padding-block:var(--wp-ui-button-padding-block);padding-inline:var(--wp-ui-button-padding-inline);position:relative;text-align:center;text-decoration:none;&:not([data-disabled]){cursor:var(--wpds-cursor-control,pointer)}@media not (prefers-reduced-motion){transition:color .1s ease-out;*{transition:opacity .1s ease-out}}&[href]{cursor:pointer}[href]{color:inherit;text-decoration:inherit}&:not([data-disabled]):is(:hover,:active,:focus){background-color:var(--wp-ui-button-background-color-active);border-color:var(--wp-ui-button-border-color-active);color:var(--wp-ui-button-foreground-color-active)}&[data-disabled]:not(._914b42f315c0e580__is-loading){background-color:var(--wp-ui-button-background-color-disabled);border-color:var(--wp-ui-button-border-color-disabled);color:var(--wp-ui-button-foreground-color-disabled);@media (forced-colors:active){border-bottom-color:GrayText;border-left-color:GrayText;border-right-color:GrayText;border-top-color:GrayText;color:GrayText}}&:before{aspect-ratio:1;border:var(--wpds-border-width-focus,var(--wp-admin-border-width-focus,2px)) solid;border-block-end-color:transparent;border-block-start-color:var(--wp-ui-button-foreground-color);border-inline-end-color:var(--wp-ui-button-foreground-color);border-inline-start-color:transparent;border-radius:50%;box-sizing:border-box;content:"";display:block;height:var(--wp-ui-button-font-size);inset-inline-start:50%;opacity:0;pointer-events:none;position:absolute;top:50%;transform:translate(-50%,-50%);@media not (prefers-reduced-motion){transition:opacity .1s ease-out}}}._908205475f9f2a92__is-small{--wp-ui-button-padding-block:0;--wp-ui-button-padding-inline:var(--wpds-dimension-padding-sm,8px);--wp-ui-button-height:24px}._9f6fc6553aeb36fe__icon{margin:var(--wp-ui-button-icon-margin)}.dd460c965226cc77__is-brand{&._62d5a778b7b258ee__is-outline,&.ad0619a3217c6a5b__is-minimal{--wp-ui-button-foreground-color:var(--wpds-color-fg-interactive-brand,var(--wp-admin-theme-color,#3858e9));--wp-ui-button-foreground-color-active:var(--wpds-color-fg-interactive-brand-active,var(--wp-admin-theme-color,#3858e9));--wp-ui-button-foreground-color-disabled:var(--wpds-color-fg-interactive-neutral-disabled,#8d8d8d)}&._62d5a778b7b258ee__is-outline{--wp-ui-button-background-color:var(--wpds-color-bg-interactive-brand-weak,#0000);--wp-ui-button-background-color-active:var(--wpds-color-bg-interactive-brand-weak-active,color-mix(in oklch,var(--wp-admin-theme-color,#3858e9) 12%,#fff));--wp-ui-button-background-color-disabled:var(--wpds-color-bg-interactive-neutral-weak-disabled,#0000);--wp-ui-button-border-color:var(--wpds-color-stroke-interactive-brand,var(--wp-admin-theme-color,#3858e9));--wp-ui-button-border-color-active:var(--wpds-color-stroke-interactive-brand-active,color-mix(in oklch,var(--wp-admin-theme-color,#3858e9) 85%,#000));--wp-ui-button-border-color-disabled:var(--wpds-color-stroke-interactive-neutral-disabled,#dbdbdb)}&.ad0619a3217c6a5b__is-minimal{--wp-ui-button-background-color:var(--wpds-color-bg-interactive-brand-weak,#0000);--wp-ui-button-background-color-active:var(--wpds-color-bg-interactive-brand-weak-active,color-mix(in oklch,var(--wp-admin-theme-color,#3858e9) 12%,#fff));--wp-ui-button-background-color-disabled:var(--wpds-color-bg-interactive-neutral-weak-disabled,#0000)}}.e722a8f96726aa99__is-neutral{&.ad0619a3217c6a5b__is-minimal[aria-pressed=true],&.b50b3358c5fb4d0b__is-solid{--wp-ui-button-background-color:var(--wpds-color-bg-interactive-neutral-strong,#2d2d2d);--wp-ui-button-background-color-active:var(--wpds-color-bg-interactive-neutral-strong-active,#1e1e1e);--wp-ui-button-background-color-disabled:var(--wpds-color-bg-interactive-neutral-strong-disabled,#e6e6e6);--wp-ui-button-foreground-color:var(--wpds-color-fg-interactive-neutral-strong,#f0f0f0);--wp-ui-button-foreground-color-active:var(--wpds-color-fg-interactive-neutral-strong-active,#f0f0f0);--wp-ui-button-foreground-color-disabled:var(--wpds-color-fg-interactive-neutral-strong-disabled,#8d8d8d)}&._62d5a778b7b258ee__is-outline,&.ad0619a3217c6a5b__is-minimal:not([aria-pressed=true]){--wp-ui-button-foreground-color:var(--wpds-color-fg-interactive-neutral,#1e1e1e);--wp-ui-button-foreground-color-active:var(--wpds-color-fg-interactive-neutral-active,#1e1e1e);--wp-ui-button-foreground-color-disabled:var(--wpds-color-fg-interactive-neutral-disabled,#8d8d8d)}&._62d5a778b7b258ee__is-outline{--wp-ui-button-background-color:var(--wpds-color-bg-interactive-neutral-weak,#0000);--wp-ui-button-background-color-active:var(--wpds-color-bg-interactive-neutral-weak-active,#ededed);--wp-ui-button-background-color-disabled:var(--wpds-color-bg-interactive-neutral-weak-disabled,#0000);--wp-ui-button-border-color:var(--wpds-color-stroke-interactive-neutral,#8d8d8d);--wp-ui-button-border-color-active:var(--wpds-color-stroke-interactive-neutral-active,#6e6e6e);--wp-ui-button-border-color-disabled:var(--wpds-color-stroke-interactive-neutral-disabled,#dbdbdb)}&.ad0619a3217c6a5b__is-minimal:not([aria-pressed=true]){--wp-ui-button-background-color:var(--wpds-color-bg-interactive-neutral-weak,#0000);--wp-ui-button-background-color-active:var(--wpds-color-bg-interactive-neutral-weak-active,#ededed);--wp-ui-button-background-color-disabled:var(--wpds-color-bg-interactive-neutral-weak-disabled,#0000)}}.abbb272e2ce49bd6__is-unstyled{background:none;border:none;min-width:unset}.cf59cf1b69629838__is-compact{--wp-ui-button-height:32px}._914b42f315c0e580__is-loading{color:transparent;&:not([data-disabled]):is(:hover,:active,:focus){color:transparent}*{opacity:0}&:before{opacity:1;transition-delay:.05s;@media not (prefers-reduced-motion){animation:_5a1d53da6f830c8d__loading-animation 1s linear infinite}}}}@keyframes _5a1d53da6f830c8d__loading-animation{0%{transform:translate(-50%,-50%) rotate(0deg)}to{transform:translate(-50%,-50%) rotate(1turn)}}}');
 }
-var style_default3 = { "button": "_97b0fc33c028be1a__button", "is-unstyled": "abbb272e2ce49bd6__is-unstyled", "is-loading": "_914b42f315c0e580__is-loading", "is-small": "_908205475f9f2a92__is-small", "is-brand": "dd460c965226cc77__is-brand", "is-outline": "_62d5a778b7b258ee__is-outline", "is-minimal": "ad0619a3217c6a5b__is-minimal", "is-neutral": "e722a8f96726aa99__is-neutral", "is-solid": "b50b3358c5fb4d0b__is-solid", "is-compact": "cf59cf1b69629838__is-compact", "loading-animation": "_5a1d53da6f830c8d__loading-animation" };
+var style_default3 = { "button": "_97b0fc33c028be1a__button", "is-unstyled": "abbb272e2ce49bd6__is-unstyled", "is-loading": "_914b42f315c0e580__is-loading", "is-small": "_908205475f9f2a92__is-small", "icon": "_9f6fc6553aeb36fe__icon", "is-brand": "dd460c965226cc77__is-brand", "is-outline": "_62d5a778b7b258ee__is-outline", "is-minimal": "ad0619a3217c6a5b__is-minimal", "is-neutral": "e722a8f96726aa99__is-neutral", "is-solid": "b50b3358c5fb4d0b__is-solid", "is-compact": "cf59cf1b69629838__is-compact", "loading-animation": "_5a1d53da6f830c8d__loading-animation" };
 if (typeof process === "undefined" || true) {
-  registerStyle3("e3ae230cea", "@layer wp-ui-utilities, wp-ui-components, wp-ui-compositions, wp-ui-overrides;@layer wp-ui-utilities{._336cd3e4e743482f__box-sizing{box-sizing:border-box;*,:after,:before{box-sizing:inherit}}}");
+  registerStyle3("10f3806643", "@layer wp-ui{@layer utilities, components, compositions, overrides;@layer utilities{._336cd3e4e743482f__box-sizing{box-sizing:border-box;*,:after,:before{box-sizing:inherit}}}}");
 }
 var resets_default = { "box-sizing": "_336cd3e4e743482f__box-sizing" };
 if (typeof process === "undefined" || true) {
-  registerStyle3("2a5ab8f3a7", "@layer wp-ui-utilities, wp-ui-components, wp-ui-compositions, wp-ui-overrides;@layer wp-ui-utilities{._08e8a2e44959f892__outset-ring--focus,._970d04df7376df67__outset-ring--focus-within-except-active,.c5cb3ee4bddaa8e4__outset-ring--focus-within-visible,.cd83dfc2126a0846__outset-ring--focus-within,.d0541bc9dd9dc7b6__outset-ring--focus-visible,.e25b2bdd7aa21721__outset-ring--focus-except-active,.ecadb9e080e2dfa5__outset-ring--focus-parent-visible{@media not (prefers-reduced-motion){--_gcd-a-transition:outline 0.1s ease-out;transition:outline .1s ease-out}outline:0 solid #0000;outline-offset:1px}._08e8a2e44959f892__outset-ring--focus:focus,._970d04df7376df67__outset-ring--focus-within-except-active:focus-within:not(:has(:active)),.c5cb3ee4bddaa8e4__outset-ring--focus-within-visible:focus-within:has(:focus-visible),.cd83dfc2126a0846__outset-ring--focus-within:focus-within,.d0541bc9dd9dc7b6__outset-ring--focus-visible:focus-visible,.e25b2bdd7aa21721__outset-ring--focus-except-active:focus:not(:active),:focus-visible .ecadb9e080e2dfa5__outset-ring--focus-parent-visible{--_gcd-a-outline:var(--wpds-border-width-focus,var(--wp-admin-border-width-focus,2px)) solid var(--wpds-color-stroke-focus-brand,var(--wp-admin-theme-color,#3858e9));--_gcd-div-outline:var(--wpds-border-width-focus,var(--wp-admin-border-width-focus,2px)) solid var(--wpds-color-stroke-focus-brand,var(--wp-admin-theme-color,#3858e9));outline:var(--wpds-border-width-focus,var(--wp-admin-border-width-focus,2px)) solid var(--wpds-color-stroke-focus-brand,var(--wp-admin-theme-color,#3858e9))}}");
+  registerStyle3("693cd16544", "@layer wp-ui{@layer utilities, components, compositions, overrides;@layer utilities{._08e8a2e44959f892__outset-ring--focus,._970d04df7376df67__outset-ring--focus-within-except-active,.c5cb3ee4bddaa8e4__outset-ring--focus-within-visible,.cd83dfc2126a0846__outset-ring--focus-within,.d0541bc9dd9dc7b6__outset-ring--focus-visible,.e25b2bdd7aa21721__outset-ring--focus-except-active,.ecadb9e080e2dfa5__outset-ring--focus-parent-visible{@media not (prefers-reduced-motion){--_gcd-a-transition:outline 0.1s ease-out;transition:outline .1s ease-out}outline:0 solid transparent;outline-offset:1px}._08e8a2e44959f892__outset-ring--focus:focus,._970d04df7376df67__outset-ring--focus-within-except-active:focus-within:not(:has(:active)),.c5cb3ee4bddaa8e4__outset-ring--focus-within-visible:focus-within:has(:focus-visible),.cd83dfc2126a0846__outset-ring--focus-within:focus-within,.d0541bc9dd9dc7b6__outset-ring--focus-visible:focus-visible,.e25b2bdd7aa21721__outset-ring--focus-except-active:focus:not(:active),:focus-visible .ecadb9e080e2dfa5__outset-ring--focus-parent-visible{--_gcd-a-outline:var(--wpds-border-width-focus,var(--wp-admin-border-width-focus,2px)) solid var(--wpds-color-stroke-focus-brand,var(--wp-admin-theme-color,#3858e9));--_gcd-div-outline:var(--wpds-border-width-focus,var(--wp-admin-border-width-focus,2px)) solid var(--wpds-color-stroke-focus-brand,var(--wp-admin-theme-color,#3858e9));outline:var(--wpds-border-width-focus,var(--wp-admin-border-width-focus,2px)) solid var(--wpds-color-stroke-focus-brand,var(--wp-admin-theme-color,#3858e9))}}}");
 }
 var focus_default = { "outset-ring--focus": "_08e8a2e44959f892__outset-ring--focus", "outset-ring--focus-except-active": "e25b2bdd7aa21721__outset-ring--focus-except-active", "outset-ring--focus-visible": "d0541bc9dd9dc7b6__outset-ring--focus-visible", "outset-ring--focus-within": "cd83dfc2126a0846__outset-ring--focus-within", "outset-ring--focus-within-except-active": "_970d04df7376df67__outset-ring--focus-within-except-active", "outset-ring--focus-within-visible": "c5cb3ee4bddaa8e4__outset-ring--focus-within-visible", "outset-ring--focus-parent-visible": "ecadb9e080e2dfa5__outset-ring--focus-parent-visible" };
 if (typeof process === "undefined" || true) {
-  registerStyle3("1fb29d3a3c", "._6defc79820e382c6__button{box-sizing:var(--_gcd-button-box-sizing,border-box);font-family:var(--_gcd-button-font-family,inherit);font-size:var(--_gcd-button-font-size,inherit);font-weight:var(--_gcd-button-font-weight,inherit)}.d2cff2e5dea83bd1__input{box-sizing:var(--_gcd-input-box-sizing,border-box);font-family:var(--_gcd-input-font-family,inherit);font-size:var(--_gcd-input-font-size,inherit);font-weight:var(--_gcd-input-font-weight,inherit);margin:var(--_gcd-input-margin,0);&:is(textarea,[type=text],[type=password],[type=color],[type=date],[type=datetime],[type=datetime-local],[type=email],[type=month],[type=number],[type=search],[type=tel],[type=time],[type=url],[type=week]){background-color:var(--_gcd-input-background-color,#0000);border:var(--_gcd-input-border,none);border-radius:var(--_gcd-input-border-radius,0);box-shadow:var(--_gcd-input-box-shadow,0 0 0 #0000);color:var(--_gcd-input-color,var(--wpds-color-fg-interactive-neutral,#1e1e1e));&:focus{border-color:var(--_gcd-input-border-color-focus,var(--wp-admin-theme-color));box-shadow:var(--_gcd-input-box-shadow-focus,none);outline:var(--_gcd-input-outline-focus,none)}&:disabled{background:var(--_gcd-input-background-disabled,#0000);border-color:var(--_gcd-input-border-color-disabled,#0000);box-shadow:var(--_gcd-input-box-shadow-disabled,none);color:var(--_gcd-input-color-disabled,var(--wpds-color-fg-interactive-neutral-disabled,#8d8d8d))}&::placeholder{color:var(--_gcd-input-placeholder-color,var(--wpds-color-fg-interactive-neutral-disabled,#8d8d8d))}}&:is(textarea,[type=text],[type=password],[type=date],[type=datetime],[type=datetime-local],[type=email],[type=month],[type=number],[type=search],[type=tel],[type=time],[type=url],[type=week]){line-height:var(--_gcd-input-line-height,inherit);min-height:var(--_gcd-input-min-height,auto);padding:var(--_gcd-input-padding,0)}}._547d86373d02e108__textarea{box-sizing:var(--_gcd-textarea-box-sizing,border-box);overflow:var(--_gcd-textarea-overflow,auto);resize:var(--_gcd-textarea-resize,block)}._8c15fd0ed9f28ba4__div{outline:var(--_gcd-div-outline,0 solid #0000)}p._43cec3e1eec1066d__p{font-size:var(--_gcd-p-font-size,13px);line-height:var(--_gcd-p-line-height,1.5);margin:var(--_gcd-p-margin,0)}:is(h1,h2,h3,h4,h5,h6).e97669c6d9a38497__heading{color:var(--_gcd-heading-color,var(--wpds-color-fg-content-neutral,#1e1e1e));font-size:var(--_gcd-heading-font-size,inherit);font-weight:var(--_gcd-heading-font-weight,var(--wpds-typography-font-weight-medium,499));margin:var(--_gcd-heading-margin,0)}._2c0831b0499dbd6e__a,._2c0831b0499dbd6e__a:is(:hover,:focus,:active){border-radius:var(--_gcd-a-border-radius,0);box-shadow:var(--_gcd-a-box-shadow,none);color:var(--_gcd-a-color,inherit);outline:var(--_gcd-a-outline,0 solid #0000);transition:var(--_gcd-a-transition,none)}");
+  registerStyle3("d5c1b736fd", "._6defc79820e382c6__button{box-sizing:var(--_gcd-button-box-sizing,border-box);font-family:var(--_gcd-button-font-family,inherit);font-size:var(--_gcd-button-font-size,inherit);font-weight:var(--_gcd-button-font-weight,inherit)}.d2cff2e5dea83bd1__input{box-sizing:var(--_gcd-input-box-sizing,border-box);font-family:var(--_gcd-input-font-family,inherit);font-size:var(--_gcd-input-font-size,inherit);font-weight:var(--_gcd-input-font-weight,inherit);margin:var(--_gcd-input-margin,0);&:is(textarea,[type=text],[type=password],[type=color],[type=date],[type=datetime],[type=datetime-local],[type=email],[type=month],[type=number],[type=search],[type=tel],[type=time],[type=url],[type=week]){background-color:var(--_gcd-input-background-color,transparent);border:var(--_gcd-input-border,none);border-radius:var(--_gcd-input-border-radius,0);box-shadow:var(--_gcd-input-box-shadow,0 0 0 transparent);color:var(--_gcd-input-color,var(--wpds-color-fg-interactive-neutral,#1e1e1e));&:focus{border-color:var(--_gcd-input-border-color-focus,var(--wp-admin-theme-color));box-shadow:var(--_gcd-input-box-shadow-focus,none);outline:var(--_gcd-input-outline-focus,none)}&:disabled{background:var(--_gcd-input-background-disabled,transparent);border-color:var(--_gcd-input-border-color-disabled,transparent);box-shadow:var(--_gcd-input-box-shadow-disabled,none);color:var(--_gcd-input-color-disabled,var(--wpds-color-fg-interactive-neutral-disabled,#8d8d8d))}&::placeholder{color:var(--_gcd-input-placeholder-color,var(--wpds-color-fg-interactive-neutral-disabled,#8d8d8d))}}&:is(textarea,[type=text],[type=password],[type=date],[type=datetime],[type=datetime-local],[type=email],[type=month],[type=number],[type=search],[type=tel],[type=time],[type=url],[type=week]){line-height:var(--_gcd-input-line-height,inherit);min-height:var(--_gcd-input-min-height,auto);padding:var(--_gcd-input-padding,0)}}._547d86373d02e108__textarea{box-sizing:var(--_gcd-textarea-box-sizing,border-box);overflow:var(--_gcd-textarea-overflow,auto);resize:var(--_gcd-textarea-resize,block)}._8c15fd0ed9f28ba4__div{outline:var(--_gcd-div-outline,0 solid transparent)}p._43cec3e1eec1066d__p{font-size:var(--_gcd-p-font-size,13px);line-height:var(--_gcd-p-line-height,1.5);margin:var(--_gcd-p-margin,0)}:is(h1,h2,h3,h4,h5,h6).e97669c6d9a38497__heading{color:var(--_gcd-heading-color,var(--wpds-color-fg-content-neutral,#1e1e1e));font-size:var(--_gcd-heading-font-size,inherit);font-weight:var(--_gcd-heading-font-weight,var(--wpds-typography-font-weight-medium,499));margin:var(--_gcd-heading-margin,0)}._2c0831b0499dbd6e__a,._2c0831b0499dbd6e__a:is(:hover,:focus,:active){border-radius:var(--_gcd-a-border-radius,0);box-shadow:var(--_gcd-a-box-shadow,none);color:var(--_gcd-a-color,inherit);outline:var(--_gcd-a-outline,0 solid transparent);transition:var(--_gcd-a-transition,none)}");
 }
 var global_css_defense_default2 = { "button": "_6defc79820e382c6__button", "input": "d2cff2e5dea83bd1__input", "textarea": "_547d86373d02e108__textarea", "div": "_8c15fd0ed9f28ba4__div", "p": "_43cec3e1eec1066d__p", "heading": "e97669c6d9a38497__heading", "a": "_2c0831b0499dbd6e__a" };
-var Button3 = (0, import_element10.forwardRef)(
+var Button3 = (0, import_element12.forwardRef)(
   function Button22({
     tone = "brand",
     variant = "solid",
@@ -8713,7 +8875,7 @@ var Button3 = (0, import_element10.forwardRef)(
       loading && style_default3["is-loading"],
       className
     );
-    (0, import_element10.useEffect)(() => {
+    (0, import_element12.useEffect)(() => {
       if (loading && loadingAnnouncement) {
         speak(loadingAnnouncement);
       }
@@ -8733,13 +8895,13 @@ var Button3 = (0, import_element10.forwardRef)(
 );
 
 // packages/ui/build-module/button/icon.mjs
-var import_element12 = __toESM(require_element(), 1);
+var import_element14 = __toESM(require_element(), 1);
 
 // packages/ui/build-module/icon/icon.mjs
-var import_element11 = __toESM(require_element(), 1);
+var import_element13 = __toESM(require_element(), 1);
 var import_primitives = __toESM(require_primitives(), 1);
 var import_jsx_runtime13 = __toESM(require_jsx_runtime(), 1);
-var Icon = (0, import_element11.forwardRef)(function Icon2({ icon, size: size4 = 24, ...restProps }, ref) {
+var Icon = (0, import_element13.forwardRef)(function Icon2({ icon, size: size4 = 24, ...restProps }, ref) {
   return /* @__PURE__ */ (0, import_jsx_runtime13.jsx)(
     import_primitives.SVG,
     {
@@ -8755,71 +8917,6 @@ var Icon = (0, import_element11.forwardRef)(function Icon2({ icon, size: size4 =
 
 // packages/ui/build-module/button/icon.mjs
 var import_jsx_runtime14 = __toESM(require_jsx_runtime(), 1);
-var ButtonIcon = (0, import_element12.forwardRef)(
-  function ButtonIcon2({ icon, ...props }, ref) {
-    return /* @__PURE__ */ (0, import_jsx_runtime14.jsx)(
-      Icon,
-      {
-        ref,
-        icon,
-        viewBox: "4 4 16 16",
-        size: 16,
-        ...props
-      }
-    );
-  }
-);
-
-// packages/ui/build-module/button/index.mjs
-ButtonIcon.displayName = "Button.Icon";
-var Button4 = Object.assign(Button3, {
-  /**
-   * An icon component specifically designed to work well when rendered inside
-   * a `Button` component.
-   */
-  Icon: ButtonIcon
-});
-
-// packages/icons/build-module/library/caution.mjs
-var import_primitives2 = __toESM(require_primitives(), 1);
-var import_jsx_runtime15 = __toESM(require_jsx_runtime(), 1);
-var caution_default = /* @__PURE__ */ (0, import_jsx_runtime15.jsx)(import_primitives2.SVG, { xmlns: "http://www.w3.org/2000/svg", viewBox: "0 0 24 24", children: /* @__PURE__ */ (0, import_jsx_runtime15.jsx)(import_primitives2.Path, { fillRule: "evenodd", clipRule: "evenodd", d: "M5.5 12a6.5 6.5 0 1 0 13 0 6.5 6.5 0 0 0-13 0ZM12 4a8 8 0 1 0 0 16 8 8 0 0 0 0-16Zm-.75 12v-1.5h1.5V16h-1.5Zm0-8v5h1.5V8h-1.5Z" }) });
-
-// packages/icons/build-module/library/close-small.mjs
-var import_primitives3 = __toESM(require_primitives(), 1);
-var import_jsx_runtime16 = __toESM(require_jsx_runtime(), 1);
-var close_small_default = /* @__PURE__ */ (0, import_jsx_runtime16.jsx)(import_primitives3.SVG, { xmlns: "http://www.w3.org/2000/svg", viewBox: "0 0 24 24", children: /* @__PURE__ */ (0, import_jsx_runtime16.jsx)(import_primitives3.Path, { d: "M12 13.06l3.712 3.713 1.061-1.06L13.061 12l3.712-3.712-1.06-1.06L12 10.938 8.288 7.227l-1.061 1.06L10.939 12l-3.712 3.712 1.06 1.061L12 13.061z" }) });
-
-// packages/icons/build-module/library/error.mjs
-var import_primitives4 = __toESM(require_primitives(), 1);
-var import_jsx_runtime17 = __toESM(require_jsx_runtime(), 1);
-var error_default = /* @__PURE__ */ (0, import_jsx_runtime17.jsx)(import_primitives4.SVG, { xmlns: "http://www.w3.org/2000/svg", viewBox: "0 0 24 24", children: /* @__PURE__ */ (0, import_jsx_runtime17.jsx)(import_primitives4.Path, { fillRule: "evenodd", clipRule: "evenodd", d: "M12.218 5.377a.25.25 0 0 0-.436 0l-7.29 12.96a.25.25 0 0 0 .218.373h14.58a.25.25 0 0 0 .218-.372l-7.29-12.96Zm-1.743-.735c.669-1.19 2.381-1.19 3.05 0l7.29 12.96a1.75 1.75 0 0 1-1.525 2.608H4.71a1.75 1.75 0 0 1-1.525-2.608l7.29-12.96ZM12.75 17.46h-1.5v-1.5h1.5v1.5Zm-1.5-3h1.5v-5h-1.5v5Z" }) });
-
-// packages/icons/build-module/library/info.mjs
-var import_primitives5 = __toESM(require_primitives(), 1);
-var import_jsx_runtime18 = __toESM(require_jsx_runtime(), 1);
-var info_default = /* @__PURE__ */ (0, import_jsx_runtime18.jsx)(import_primitives5.SVG, { xmlns: "http://www.w3.org/2000/svg", viewBox: "0 0 24 24", children: /* @__PURE__ */ (0, import_jsx_runtime18.jsx)(import_primitives5.Path, { fillRule: "evenodd", clipRule: "evenodd", d: "M5.5 12a6.5 6.5 0 1 0 13 0 6.5 6.5 0 0 0-13 0ZM12 4a8 8 0 1 0 0 16 8 8 0 0 0 0-16Zm.75 4v1.5h-1.5V8h1.5Zm0 8v-5h-1.5v5h1.5Z" }) });
-
-// packages/icons/build-module/library/published.mjs
-var import_primitives6 = __toESM(require_primitives(), 1);
-var import_jsx_runtime19 = __toESM(require_jsx_runtime(), 1);
-var published_default = /* @__PURE__ */ (0, import_jsx_runtime19.jsx)(import_primitives6.SVG, { xmlns: "http://www.w3.org/2000/svg", viewBox: "0 0 24 24", children: /* @__PURE__ */ (0, import_jsx_runtime19.jsx)(import_primitives6.Path, { fillRule: "evenodd", clipRule: "evenodd", d: "M12 18.5a6.5 6.5 0 1 1 0-13 6.5 6.5 0 0 1 0 13ZM4 12a8 8 0 1 1 16 0 8 8 0 0 1-16 0Zm11.53-1.47-1.06-1.06L11 12.94l-1.47-1.47-1.06 1.06L11 15.06l4.53-4.53Z" }) });
-
-// packages/ui/build-module/utils/render-slot-with-children.mjs
-var import_element13 = __toESM(require_element(), 1);
-function renderSlotWithChildren(slot, defaultSlot, children) {
-  return (0, import_element13.cloneElement)(slot ?? defaultSlot, { children });
-}
-
-// packages/ui/build-module/lock-unlock.mjs
-var import_private_apis = __toESM(require_private_apis(), 1);
-var { lock, unlock } = (0, import_private_apis.__dangerousOptInToUnstableAPIsOnlyForCoreModules)(
-  "I acknowledge private features are not for use in themes or plugins and doing so will break in the next version of WordPress.",
-  "@wordpress/ui"
-);
-
-// packages/ui/build-module/stack/stack.mjs
-var import_element14 = __toESM(require_element(), 1);
 var STYLE_HASH_ATTRIBUTE4 = "data-wp-hash";
 function getRuntime4() {
   const globalScope = globalThis;
@@ -8901,53 +8998,74 @@ function registerStyle4(hash, css) {
   }
 }
 if (typeof process === "undefined" || true) {
-  registerStyle4("b51ff41489", "@layer wp-ui-utilities, wp-ui-components, wp-ui-compositions, wp-ui-overrides;@layer wp-ui-components{._19ce0419607e1896__stack{display:flex}}");
+  registerStyle4("459f56a7b7", '@layer wp-ui{@layer utilities, components, compositions, overrides;@layer components{._97b0fc33c028be1a__button,.abbb272e2ce49bd6__is-unstyled{appearance:none;padding:0}._97b0fc33c028be1a__button{--wp-ui-button-font-weight:499;--wp-ui-button-background-color:var(--wpds-color-bg-interactive-brand-strong,var(--wp-admin-theme-color,#3858e9));--wp-ui-button-background-color-active:var(--wpds-color-bg-interactive-brand-strong-active,color-mix(in oklch,var(--wp-admin-theme-color,#3858e9) 93%,#000));--wp-ui-button-background-color-disabled:var(--wpds-color-bg-interactive-neutral-strong-disabled,#e6e6e6);--wp-ui-button-foreground-color:var(--wpds-color-fg-interactive-brand-strong,#fff);--wp-ui-button-foreground-color-active:var(--wpds-color-fg-interactive-brand-strong-active,#fff);--wp-ui-button-foreground-color-disabled:var(--wpds-color-fg-interactive-neutral-strong-disabled,#8d8d8d);--wp-ui-button-padding-block:var(--wpds-dimension-padding-xs,4px);--wp-ui-button-padding-inline:var(--wpds-dimension-padding-md,12px);--wp-ui-button-height:40px;--wp-ui-button-aspect-ratio:auto;--wp-ui-button-font-size:var(--wpds-typography-font-size-md,13px);--wp-ui-button-min-width:calc(4ch + var(--wp-ui-button-padding-inline)*2);--wp-ui-button-icon-margin:-4px;--wp-ui-button-border-color:var(--wp-ui-button-background-color);--wp-ui-button-border-color-active:var(--wp-ui-button-background-color-active);--wp-ui-button-border-color-disabled:var(--wp-ui-button-background-color-disabled);--_gcd-button-font-family:var(--wpds-typography-font-family-body,-apple-system,system-ui,"Segoe UI","Roboto","Oxygen-Sans","Ubuntu","Cantarell","Helvetica Neue",sans-serif);--_gcd-button-font-size:var(--wp-ui-button-font-size);--_gcd-button-font-weight:var(--wp-ui-button-font-weight);align-items:center;aspect-ratio:var(--wp-ui-button-aspect-ratio);background-clip:padding-box;background-color:var(--wp-ui-button-background-color);border-color:var(--wp-ui-button-border-color);border-radius:var(--wpds-border-radius-sm,2px);border-style:solid;border-width:1px;color:var(--wp-ui-button-foreground-color);display:inline-flex;font-family:var(--wpds-typography-font-family-body,-apple-system,system-ui,"Segoe UI","Roboto","Oxygen-Sans","Ubuntu","Cantarell","Helvetica Neue",sans-serif);font-size:var(--wp-ui-button-font-size);font-weight:var(--wp-ui-button-font-weight);gap:var(--wpds-dimension-gap-sm,8px);justify-content:center;line-height:var(--wpds-typography-line-height-sm,20px);max-width:100%;min-height:var(--wp-ui-button-height);min-width:var(--wp-ui-button-min-width);overflow-wrap:anywhere;padding-block:var(--wp-ui-button-padding-block);padding-inline:var(--wp-ui-button-padding-inline);position:relative;text-align:center;text-decoration:none;&:not([data-disabled]){cursor:var(--wpds-cursor-control,pointer)}@media not (prefers-reduced-motion){transition:color .1s ease-out;*{transition:opacity .1s ease-out}}&[href]{cursor:pointer}[href]{color:inherit;text-decoration:inherit}&:not([data-disabled]):is(:hover,:active,:focus){background-color:var(--wp-ui-button-background-color-active);border-color:var(--wp-ui-button-border-color-active);color:var(--wp-ui-button-foreground-color-active)}&[data-disabled]:not(._914b42f315c0e580__is-loading){background-color:var(--wp-ui-button-background-color-disabled);border-color:var(--wp-ui-button-border-color-disabled);color:var(--wp-ui-button-foreground-color-disabled);@media (forced-colors:active){border-bottom-color:GrayText;border-left-color:GrayText;border-right-color:GrayText;border-top-color:GrayText;color:GrayText}}&:before{aspect-ratio:1;border:var(--wpds-border-width-focus,var(--wp-admin-border-width-focus,2px)) solid;border-block-end-color:transparent;border-block-start-color:var(--wp-ui-button-foreground-color);border-inline-end-color:var(--wp-ui-button-foreground-color);border-inline-start-color:transparent;border-radius:50%;box-sizing:border-box;content:"";display:block;height:var(--wp-ui-button-font-size);inset-inline-start:50%;opacity:0;pointer-events:none;position:absolute;top:50%;transform:translate(-50%,-50%);@media not (prefers-reduced-motion){transition:opacity .1s ease-out}}}._908205475f9f2a92__is-small{--wp-ui-button-padding-block:0;--wp-ui-button-padding-inline:var(--wpds-dimension-padding-sm,8px);--wp-ui-button-height:24px}._9f6fc6553aeb36fe__icon{margin:var(--wp-ui-button-icon-margin)}.dd460c965226cc77__is-brand{&._62d5a778b7b258ee__is-outline,&.ad0619a3217c6a5b__is-minimal{--wp-ui-button-foreground-color:var(--wpds-color-fg-interactive-brand,var(--wp-admin-theme-color,#3858e9));--wp-ui-button-foreground-color-active:var(--wpds-color-fg-interactive-brand-active,var(--wp-admin-theme-color,#3858e9));--wp-ui-button-foreground-color-disabled:var(--wpds-color-fg-interactive-neutral-disabled,#8d8d8d)}&._62d5a778b7b258ee__is-outline{--wp-ui-button-background-color:var(--wpds-color-bg-interactive-brand-weak,#0000);--wp-ui-button-background-color-active:var(--wpds-color-bg-interactive-brand-weak-active,color-mix(in oklch,var(--wp-admin-theme-color,#3858e9) 12%,#fff));--wp-ui-button-background-color-disabled:var(--wpds-color-bg-interactive-neutral-weak-disabled,#0000);--wp-ui-button-border-color:var(--wpds-color-stroke-interactive-brand,var(--wp-admin-theme-color,#3858e9));--wp-ui-button-border-color-active:var(--wpds-color-stroke-interactive-brand-active,color-mix(in oklch,var(--wp-admin-theme-color,#3858e9) 85%,#000));--wp-ui-button-border-color-disabled:var(--wpds-color-stroke-interactive-neutral-disabled,#dbdbdb)}&.ad0619a3217c6a5b__is-minimal{--wp-ui-button-background-color:var(--wpds-color-bg-interactive-brand-weak,#0000);--wp-ui-button-background-color-active:var(--wpds-color-bg-interactive-brand-weak-active,color-mix(in oklch,var(--wp-admin-theme-color,#3858e9) 12%,#fff));--wp-ui-button-background-color-disabled:var(--wpds-color-bg-interactive-neutral-weak-disabled,#0000)}}.e722a8f96726aa99__is-neutral{&.ad0619a3217c6a5b__is-minimal[aria-pressed=true],&.b50b3358c5fb4d0b__is-solid{--wp-ui-button-background-color:var(--wpds-color-bg-interactive-neutral-strong,#2d2d2d);--wp-ui-button-background-color-active:var(--wpds-color-bg-interactive-neutral-strong-active,#1e1e1e);--wp-ui-button-background-color-disabled:var(--wpds-color-bg-interactive-neutral-strong-disabled,#e6e6e6);--wp-ui-button-foreground-color:var(--wpds-color-fg-interactive-neutral-strong,#f0f0f0);--wp-ui-button-foreground-color-active:var(--wpds-color-fg-interactive-neutral-strong-active,#f0f0f0);--wp-ui-button-foreground-color-disabled:var(--wpds-color-fg-interactive-neutral-strong-disabled,#8d8d8d)}&._62d5a778b7b258ee__is-outline,&.ad0619a3217c6a5b__is-minimal:not([aria-pressed=true]){--wp-ui-button-foreground-color:var(--wpds-color-fg-interactive-neutral,#1e1e1e);--wp-ui-button-foreground-color-active:var(--wpds-color-fg-interactive-neutral-active,#1e1e1e);--wp-ui-button-foreground-color-disabled:var(--wpds-color-fg-interactive-neutral-disabled,#8d8d8d)}&._62d5a778b7b258ee__is-outline{--wp-ui-button-background-color:var(--wpds-color-bg-interactive-neutral-weak,#0000);--wp-ui-button-background-color-active:var(--wpds-color-bg-interactive-neutral-weak-active,#ededed);--wp-ui-button-background-color-disabled:var(--wpds-color-bg-interactive-neutral-weak-disabled,#0000);--wp-ui-button-border-color:var(--wpds-color-stroke-interactive-neutral,#8d8d8d);--wp-ui-button-border-color-active:var(--wpds-color-stroke-interactive-neutral-active,#6e6e6e);--wp-ui-button-border-color-disabled:var(--wpds-color-stroke-interactive-neutral-disabled,#dbdbdb)}&.ad0619a3217c6a5b__is-minimal:not([aria-pressed=true]){--wp-ui-button-background-color:var(--wpds-color-bg-interactive-neutral-weak,#0000);--wp-ui-button-background-color-active:var(--wpds-color-bg-interactive-neutral-weak-active,#ededed);--wp-ui-button-background-color-disabled:var(--wpds-color-bg-interactive-neutral-weak-disabled,#0000)}}.abbb272e2ce49bd6__is-unstyled{background:none;border:none;min-width:unset}.cf59cf1b69629838__is-compact{--wp-ui-button-height:32px}._914b42f315c0e580__is-loading{color:transparent;&:not([data-disabled]):is(:hover,:active,:focus){color:transparent}*{opacity:0}&:before{opacity:1;transition-delay:.05s;@media not (prefers-reduced-motion){animation:_5a1d53da6f830c8d__loading-animation 1s linear infinite}}}}@keyframes _5a1d53da6f830c8d__loading-animation{0%{transform:translate(-50%,-50%) rotate(0deg)}to{transform:translate(-50%,-50%) rotate(1turn)}}}');
 }
-var style_default4 = { "stack": "_19ce0419607e1896__stack" };
-var gapTokens = {
-  xs: "var(--wpds-dimension-gap-xs, 4px)",
-  sm: "var(--wpds-dimension-gap-sm, 8px)",
-  md: "var(--wpds-dimension-gap-md, 12px)",
-  lg: "var(--wpds-dimension-gap-lg, 16px)",
-  xl: "var(--wpds-dimension-gap-xl, 24px)",
-  "2xl": "var(--wpds-dimension-gap-2xl, 32px)",
-  "3xl": "var(--wpds-dimension-gap-3xl, 40px)"
-};
-var Stack = (0, import_element14.forwardRef)(function Stack2({ direction, gap, align, justify, wrap, render, ...props }, ref) {
-  const style = {
-    gap: gap && gapTokens[gap],
-    alignItems: align,
-    justifyContent: justify,
-    flexDirection: direction,
-    flexWrap: wrap
-  };
-  const element = useRender({
-    render,
-    ref,
-    props: mergeProps(props, { style, className: style_default4.stack })
-  });
-  return element;
-});
-
-// packages/ui/build-module/icon-button/icon-button.mjs
-var import_element19 = __toESM(require_element(), 1);
-
-// packages/ui/build-module/tooltip/popup.mjs
-var import_element17 = __toESM(require_element(), 1);
-var import_theme = __toESM(require_theme(), 1);
-
-// packages/ui/build-module/tooltip/portal.mjs
-var import_element15 = __toESM(require_element(), 1);
-var import_jsx_runtime20 = __toESM(require_jsx_runtime(), 1);
-var Portal = (0, import_element15.forwardRef)(
-  function TooltipPortal3(props, ref) {
-    return /* @__PURE__ */ (0, import_jsx_runtime20.jsx)(index_parts_exports.Portal, { ref, ...props });
+var style_default4 = { "button": "_97b0fc33c028be1a__button", "is-unstyled": "abbb272e2ce49bd6__is-unstyled", "is-loading": "_914b42f315c0e580__is-loading", "is-small": "_908205475f9f2a92__is-small", "icon": "_9f6fc6553aeb36fe__icon", "is-brand": "dd460c965226cc77__is-brand", "is-outline": "_62d5a778b7b258ee__is-outline", "is-minimal": "ad0619a3217c6a5b__is-minimal", "is-neutral": "e722a8f96726aa99__is-neutral", "is-solid": "b50b3358c5fb4d0b__is-solid", "is-compact": "cf59cf1b69629838__is-compact", "loading-animation": "_5a1d53da6f830c8d__loading-animation" };
+var ButtonIcon = (0, import_element14.forwardRef)(
+  function ButtonIcon2({ className, icon, ...props }, ref) {
+    return /* @__PURE__ */ (0, import_jsx_runtime14.jsx)(
+      Icon,
+      {
+        ref,
+        icon,
+        className: clsx_default(style_default4.icon, className),
+        size: 24,
+        ...props
+      }
+    );
   }
 );
 
-// packages/ui/build-module/tooltip/positioner.mjs
+// packages/ui/build-module/button/index.mjs
+ButtonIcon.displayName = "Button.Icon";
+var Button4 = Object.assign(Button3, {
+  /**
+   * An icon component specifically designed to work well when rendered inside
+   * a `Button` component.
+   */
+  Icon: ButtonIcon
+});
+
+// packages/icons/build-module/library/caution.mjs
+var import_primitives2 = __toESM(require_primitives(), 1);
+var import_jsx_runtime15 = __toESM(require_jsx_runtime(), 1);
+var caution_default = /* @__PURE__ */ (0, import_jsx_runtime15.jsx)(import_primitives2.SVG, { xmlns: "http://www.w3.org/2000/svg", viewBox: "0 0 24 24", children: /* @__PURE__ */ (0, import_jsx_runtime15.jsx)(import_primitives2.Path, { fillRule: "evenodd", clipRule: "evenodd", d: "M5.5 12a6.5 6.5 0 1 0 13 0 6.5 6.5 0 0 0-13 0ZM12 4a8 8 0 1 0 0 16 8 8 0 0 0 0-16Zm-.75 12v-1.5h1.5V16h-1.5Zm0-8v5h1.5V8h-1.5Z" }) });
+
+// packages/icons/build-module/library/close-small.mjs
+var import_primitives3 = __toESM(require_primitives(), 1);
+var import_jsx_runtime16 = __toESM(require_jsx_runtime(), 1);
+var close_small_default = /* @__PURE__ */ (0, import_jsx_runtime16.jsx)(import_primitives3.SVG, { xmlns: "http://www.w3.org/2000/svg", viewBox: "0 0 24 24", children: /* @__PURE__ */ (0, import_jsx_runtime16.jsx)(import_primitives3.Path, { d: "M12 13.06l3.712 3.713 1.061-1.06L13.061 12l3.712-3.712-1.06-1.06L12 10.938 8.288 7.227l-1.061 1.06L10.939 12l-3.712 3.712 1.06 1.061L12 13.061z" }) });
+
+// packages/icons/build-module/library/error.mjs
+var import_primitives4 = __toESM(require_primitives(), 1);
+var import_jsx_runtime17 = __toESM(require_jsx_runtime(), 1);
+var error_default = /* @__PURE__ */ (0, import_jsx_runtime17.jsx)(import_primitives4.SVG, { xmlns: "http://www.w3.org/2000/svg", viewBox: "0 0 24 24", children: /* @__PURE__ */ (0, import_jsx_runtime17.jsx)(import_primitives4.Path, { fillRule: "evenodd", clipRule: "evenodd", d: "M12.218 5.377a.25.25 0 0 0-.436 0l-7.29 12.96a.25.25 0 0 0 .218.373h14.58a.25.25 0 0 0 .218-.372l-7.29-12.96Zm-1.743-.735c.669-1.19 2.381-1.19 3.05 0l7.29 12.96a1.75 1.75 0 0 1-1.525 2.608H4.71a1.75 1.75 0 0 1-1.525-2.608l7.29-12.96ZM12.75 17.46h-1.5v-1.5h1.5v1.5Zm-1.5-3h1.5v-5h-1.5v5Z" }) });
+
+// packages/icons/build-module/library/info.mjs
+var import_primitives5 = __toESM(require_primitives(), 1);
+var import_jsx_runtime18 = __toESM(require_jsx_runtime(), 1);
+var info_default = /* @__PURE__ */ (0, import_jsx_runtime18.jsx)(import_primitives5.SVG, { xmlns: "http://www.w3.org/2000/svg", viewBox: "0 0 24 24", children: /* @__PURE__ */ (0, import_jsx_runtime18.jsx)(import_primitives5.Path, { fillRule: "evenodd", clipRule: "evenodd", d: "M5.5 12a6.5 6.5 0 1 0 13 0 6.5 6.5 0 0 0-13 0ZM12 4a8 8 0 1 0 0 16 8 8 0 0 0 0-16Zm.75 4v1.5h-1.5V8h1.5Zm0 8v-5h-1.5v5h1.5Z" }) });
+
+// packages/icons/build-module/library/published.mjs
+var import_primitives6 = __toESM(require_primitives(), 1);
+var import_jsx_runtime19 = __toESM(require_jsx_runtime(), 1);
+var published_default = /* @__PURE__ */ (0, import_jsx_runtime19.jsx)(import_primitives6.SVG, { xmlns: "http://www.w3.org/2000/svg", viewBox: "0 0 24 24", children: /* @__PURE__ */ (0, import_jsx_runtime19.jsx)(import_primitives6.Path, { fillRule: "evenodd", clipRule: "evenodd", d: "M12 18.5a6.5 6.5 0 1 1 0-13 6.5 6.5 0 0 1 0 13ZM4 12a8 8 0 1 1 16 0 8 8 0 0 1-16 0Zm11.53-1.47-1.06-1.06L11 12.94l-1.47-1.47-1.06 1.06L11 15.06l4.53-4.53Z" }) });
+
+// packages/ui/build-module/utils/render-slot-with-children.mjs
+var import_element15 = __toESM(require_element(), 1);
+function renderSlotWithChildren(slot, defaultSlot, children) {
+  return (0, import_element15.cloneElement)(slot ?? defaultSlot, { children });
+}
+
+// packages/ui/build-module/lock-unlock.mjs
+var import_private_apis = __toESM(require_private_apis(), 1);
+var { lock, unlock } = (0, import_private_apis.__dangerousOptInToUnstableAPIsOnlyForCoreModules)(
+  "I acknowledge private features are not for use in themes or plugins and doing so will break in the next version of WordPress.",
+  "@wordpress/ui"
+);
+
+// packages/ui/build-module/stack/stack.mjs
 var import_element16 = __toESM(require_element(), 1);
-var import_jsx_runtime21 = __toESM(require_jsx_runtime(), 1);
 var STYLE_HASH_ATTRIBUTE5 = "data-wp-hash";
 function getRuntime5() {
   const globalScope = globalThis;
@@ -9029,35 +9147,45 @@ function registerStyle5(hash, css) {
   }
 }
 if (typeof process === "undefined" || true) {
-  registerStyle5("e3ae230cea", "@layer wp-ui-utilities, wp-ui-components, wp-ui-compositions, wp-ui-overrides;@layer wp-ui-utilities{._336cd3e4e743482f__box-sizing{box-sizing:border-box;*,:after,:before{box-sizing:inherit}}}");
+  registerStyle5("32aba35fe1", "@layer wp-ui{@layer utilities, components, compositions, overrides;@layer components{._19ce0419607e1896__stack{display:flex}}}");
 }
-var resets_default2 = { "box-sizing": "_336cd3e4e743482f__box-sizing" };
-if (typeof process === "undefined" || true) {
-  registerStyle5("8293efbb49", '@layer wp-ui-utilities, wp-ui-components, wp-ui-compositions, wp-ui-overrides;@layer wp-ui-components{._480b748dd3510e64__positioner{z-index:var(--wp-ui-tooltip-z-index,initial)}._50096b232db7709d__popup{background-color:var(--wpds-color-bg-surface-neutral-strong,#fff);border-radius:var(--wpds-border-radius-sm,2px);box-shadow:var(--wpds-elevation-sm,0 1px 2px 0 #0000000d,0 2px 3px 0 #0000000a,0 6px 6px 0 #00000008,0 8px 8px 0 #00000005);color:var(--wpds-color-fg-content-neutral,#1e1e1e);font-family:var(--wpds-typography-font-family-body,-apple-system,system-ui,"Segoe UI","Roboto","Oxygen-Sans","Ubuntu","Cantarell","Helvetica Neue",sans-serif);font-size:var(--wpds-typography-font-size-sm,12px);line-height:1.4;padding:var(--wpds-dimension-padding-xs,4px) var(--wpds-dimension-padding-sm,8px);@media (forced-colors:active){border-bottom-color:CanvasText;border-bottom-style:solid;border-bottom-width:1px;border-left-color:CanvasText;border-left-style:solid;border-left-width:1px;border-right-color:CanvasText;border-right-style:solid;border-right-width:1px;border-top-color:CanvasText;border-top-style:solid;border-top-width:1px}}}');
-}
-var style_default5 = { "positioner": "_480b748dd3510e64__positioner", "popup": "_50096b232db7709d__popup" };
-var Positioner = (0, import_element16.forwardRef)(
-  function TooltipPositioner3({ align = "center", className, side = "top", sideOffset = 4, ...props }, ref) {
-    return /* @__PURE__ */ (0, import_jsx_runtime21.jsx)(
-      index_parts_exports.Positioner,
-      {
-        ref,
-        align,
-        side,
-        sideOffset,
-        ...props,
-        className: clsx_default(
-          resets_default2["box-sizing"],
-          style_default5.positioner,
-          className
-        )
-      }
-    );
-  }
-);
+var style_default5 = { "stack": "_19ce0419607e1896__stack" };
+var gapTokens = {
+  xs: "var(--wpds-dimension-gap-xs, 4px)",
+  sm: "var(--wpds-dimension-gap-sm, 8px)",
+  md: "var(--wpds-dimension-gap-md, 12px)",
+  lg: "var(--wpds-dimension-gap-lg, 16px)",
+  xl: "var(--wpds-dimension-gap-xl, 24px)",
+  "2xl": "var(--wpds-dimension-gap-2xl, 32px)",
+  "3xl": "var(--wpds-dimension-gap-3xl, 40px)"
+};
+var Stack = (0, import_element16.forwardRef)(function Stack2({ direction, gap, align, justify, wrap, render, ...props }, ref) {
+  const style = {
+    gap: gap && gapTokens[gap],
+    alignItems: align,
+    justifyContent: justify,
+    flexDirection: direction,
+    flexWrap: wrap
+  };
+  const element = useRender({
+    render,
+    ref,
+    props: mergeProps(props, { style, className: style_default5.stack })
+  });
+  return element;
+});
+
+// packages/ui/build-module/icon-button/icon-button.mjs
+var import_element21 = __toESM(require_element(), 1);
 
 // packages/ui/build-module/tooltip/popup.mjs
-var import_jsx_runtime22 = __toESM(require_jsx_runtime(), 1);
+var import_element19 = __toESM(require_element(), 1);
+var import_theme = __toESM(require_theme(), 1);
+
+// packages/ui/build-module/tooltip/portal.mjs
+var import_element17 = __toESM(require_element(), 1);
+
+// packages/ui/build-module/utils/wp-compat-overlay-slot.mjs
 var STYLE_HASH_ATTRIBUTE6 = "data-wp-hash";
 function getRuntime6() {
   const globalScope = globalThis;
@@ -9139,63 +9267,78 @@ function registerStyle6(hash, css) {
   }
 }
 if (typeof process === "undefined" || true) {
-  registerStyle6("8293efbb49", '@layer wp-ui-utilities, wp-ui-components, wp-ui-compositions, wp-ui-overrides;@layer wp-ui-components{._480b748dd3510e64__positioner{z-index:var(--wp-ui-tooltip-z-index,initial)}._50096b232db7709d__popup{background-color:var(--wpds-color-bg-surface-neutral-strong,#fff);border-radius:var(--wpds-border-radius-sm,2px);box-shadow:var(--wpds-elevation-sm,0 1px 2px 0 #0000000d,0 2px 3px 0 #0000000a,0 6px 6px 0 #00000008,0 8px 8px 0 #00000005);color:var(--wpds-color-fg-content-neutral,#1e1e1e);font-family:var(--wpds-typography-font-family-body,-apple-system,system-ui,"Segoe UI","Roboto","Oxygen-Sans","Ubuntu","Cantarell","Helvetica Neue",sans-serif);font-size:var(--wpds-typography-font-size-sm,12px);line-height:1.4;padding:var(--wpds-dimension-padding-xs,4px) var(--wpds-dimension-padding-sm,8px);@media (forced-colors:active){border-bottom-color:CanvasText;border-bottom-style:solid;border-bottom-width:1px;border-left-color:CanvasText;border-left-style:solid;border-left-width:1px;border-right-color:CanvasText;border-right-style:solid;border-right-width:1px;border-top-color:CanvasText;border-top-style:solid;border-top-width:1px}}}');
+  registerStyle6("be37f31c1e", "._11fc52b637ff8a7e__slot{inset:0;isolation:isolate;pointer-events:none;position:fixed;z-index:1000000003}@layer wp-ui{@layer utilities, components, compositions, overrides;@layer utilities{._11fc52b637ff8a7e__slot>*{pointer-events:auto}}}");
 }
-var style_default6 = { "positioner": "_480b748dd3510e64__positioner", "popup": "_50096b232db7709d__popup" };
-var ThemeProvider = unlock(import_theme.privateApis).ThemeProvider;
-var Popup = (0, import_element17.forwardRef)(function TooltipPopup3({ portal, positioner, children, className, ...props }, ref) {
-  const popupContent = (
-    /* This should ideally use whatever dark color makes sense,
-     * and not be hardcoded to #1e1e1e. The solutions would be to:
-     *   - review the design of the tooltip, in case we want to stop
-     *     hardcoding it to a dark background
-     *   - create new semantic tokens as needed (aliasing either the
-     *     "inverted bg" or "perma-dark bg" private tokens) and have
-     *     Tooltip.Popup use them;
-     *   - remove the hardcoded `bg` setting from the `ThemeProvider`
-     *     below
-     */
-    /* @__PURE__ */ (0, import_jsx_runtime22.jsx)(ThemeProvider, { color: { bg: "#1e1e1e" }, children: /* @__PURE__ */ (0, import_jsx_runtime22.jsx)(
-      index_parts_exports.Popup,
-      {
-        ref,
-        className: clsx_default(style_default6.popup, className),
-        ...props,
-        children
-      }
-    ) })
+var wp_compat_overlay_slot_default = { "slot": "_11fc52b637ff8a7e__slot" };
+var WP_COMPAT_OVERLAY_SLOT_ATTRIBUTE = "data-wp-compat-overlay-slot";
+function resolveOwnerDocument() {
+  return typeof document === "undefined" ? null : document;
+}
+function isInWordPressEnvironment() {
+  let topWp;
+  try {
+    topWp = window.top?.wp;
+  } catch {
+  }
+  const wp = topWp ?? window.wp;
+  return typeof wp?.components === "object" && wp.components !== null;
+}
+var cachedSlot = null;
+function createSlot(ownerDocument2) {
+  const element = ownerDocument2.createElement("div");
+  element.setAttribute(WP_COMPAT_OVERLAY_SLOT_ATTRIBUTE, "");
+  if (wp_compat_overlay_slot_default.slot) {
+    element.classList.add(wp_compat_overlay_slot_default.slot);
+  }
+  ownerDocument2.body.appendChild(element);
+  return element;
+}
+function getWpCompatOverlaySlot() {
+  if (typeof window === "undefined") {
+    return void 0;
+  }
+  if (!isInWordPressEnvironment() && window.__wpUiCompatOverlaySlotEnabled !== true) {
+    return void 0;
+  }
+  const ownerDocument2 = resolveOwnerDocument();
+  if (!ownerDocument2 || !ownerDocument2.body) {
+    return void 0;
+  }
+  if (cachedSlot && cachedSlot.ownerDocument === ownerDocument2 && cachedSlot.isConnected) {
+    return cachedSlot;
+  }
+  const existing = ownerDocument2.querySelector(
+    `[${WP_COMPAT_OVERLAY_SLOT_ATTRIBUTE}]`
   );
-  const positionedPopup = renderSlotWithChildren(
-    positioner,
-    /* @__PURE__ */ (0, import_jsx_runtime22.jsx)(Positioner, {}),
-    popupContent
-  );
-  return renderSlotWithChildren(portal, /* @__PURE__ */ (0, import_jsx_runtime22.jsx)(Portal, {}), positionedPopup);
-});
+  if (existing instanceof HTMLDivElement) {
+    cachedSlot = existing;
+    return existing;
+  }
+  if (cachedSlot?.isConnected) {
+    cachedSlot.remove();
+  }
+  cachedSlot = createSlot(ownerDocument2);
+  return cachedSlot;
+}
 
-// packages/ui/build-module/tooltip/trigger.mjs
-var import_element18 = __toESM(require_element(), 1);
-var import_jsx_runtime23 = __toESM(require_jsx_runtime(), 1);
-var Trigger = (0, import_element18.forwardRef)(
-  function TooltipTrigger3(props, ref) {
-    return /* @__PURE__ */ (0, import_jsx_runtime23.jsx)(index_parts_exports.Trigger, { ref, ...props });
+// packages/ui/build-module/tooltip/portal.mjs
+var import_jsx_runtime20 = __toESM(require_jsx_runtime(), 1);
+var Portal = (0, import_element17.forwardRef)(
+  function TooltipPortal3({ container, ...restProps }, ref) {
+    return /* @__PURE__ */ (0, import_jsx_runtime20.jsx)(
+      index_parts_exports.Portal,
+      {
+        container: container ?? getWpCompatOverlaySlot(),
+        ...restProps,
+        ref
+      }
+    );
   }
 );
 
-// packages/ui/build-module/tooltip/root.mjs
-var import_jsx_runtime24 = __toESM(require_jsx_runtime(), 1);
-function Root(props) {
-  return /* @__PURE__ */ (0, import_jsx_runtime24.jsx)(index_parts_exports.Root, { ...props });
-}
-
-// packages/ui/build-module/tooltip/provider.mjs
-var import_jsx_runtime25 = __toESM(require_jsx_runtime(), 1);
-function Provider({ ...props }) {
-  return /* @__PURE__ */ (0, import_jsx_runtime25.jsx)(index_parts_exports.Provider, { ...props });
-}
-
-// packages/ui/build-module/icon-button/icon-button.mjs
-var import_jsx_runtime26 = __toESM(require_jsx_runtime(), 1);
+// packages/ui/build-module/tooltip/positioner.mjs
+var import_element18 = __toESM(require_element(), 1);
+var import_jsx_runtime21 = __toESM(require_jsx_runtime(), 1);
 var STYLE_HASH_ATTRIBUTE7 = "data-wp-hash";
 function getRuntime7() {
   const globalScope = globalThis;
@@ -9277,67 +9420,35 @@ function registerStyle7(hash, css) {
   }
 }
 if (typeof process === "undefined" || true) {
-  registerStyle7("358a2a646a", "@layer wp-ui-utilities, wp-ui-components, wp-ui-compositions, wp-ui-overrides;@layer wp-ui-compositions{._28cfdc260e755391__icon-button{--wp-ui-button-aspect-ratio:1;--wp-ui-button-padding-inline:0;--wp-ui-button-min-width:unset}.f1c70d719989a85a__icon{margin:-1px}}");
+  registerStyle7("10f3806643", "@layer wp-ui{@layer utilities, components, compositions, overrides;@layer utilities{._336cd3e4e743482f__box-sizing{box-sizing:border-box;*,:after,:before{box-sizing:inherit}}}}");
 }
-var style_default7 = { "icon-button": "_28cfdc260e755391__icon-button", "icon": "f1c70d719989a85a__icon" };
-var IconButton = (0, import_element19.forwardRef)(
-  function IconButton2({
-    label,
-    className,
-    // Prevent accidental forwarding of `children`
-    children: _children,
-    disabled: disabled2,
-    focusableWhenDisabled,
-    icon,
-    size: size4,
-    shortcut,
-    positioner,
-    ...restProps
-  }, ref) {
-    const classes = clsx_default(style_default7["icon-button"], className);
-    return /* @__PURE__ */ (0, import_jsx_runtime26.jsx)(Provider, { delay: 0, children: /* @__PURE__ */ (0, import_jsx_runtime26.jsxs)(Root, { children: [
-      /* @__PURE__ */ (0, import_jsx_runtime26.jsx)(
-        Trigger,
-        {
-          ref,
-          disabled: disabled2 && !focusableWhenDisabled,
-          render: /* @__PURE__ */ (0, import_jsx_runtime26.jsx)(
-            Button4,
-            {
-              ...restProps,
-              size: size4,
-              "aria-label": label,
-              "aria-keyshortcuts": shortcut?.ariaKeyShortcut,
-              disabled: disabled2,
-              focusableWhenDisabled
-            }
-          ),
-          className: classes,
-          children: /* @__PURE__ */ (0, import_jsx_runtime26.jsx)(
-            Icon,
-            {
-              icon,
-              size: 24,
-              className: style_default7.icon
-            }
-          )
-        }
-      ),
-      /* @__PURE__ */ (0, import_jsx_runtime26.jsxs)(Popup, { positioner, children: [
-        label,
-        shortcut && /* @__PURE__ */ (0, import_jsx_runtime26.jsxs)(import_jsx_runtime26.Fragment, { children: [
-          " ",
-          /* @__PURE__ */ (0, import_jsx_runtime26.jsx)("span", { "aria-hidden": "true", children: shortcut.displayShortcut })
-        ] })
-      ] })
-    ] }) });
+var resets_default2 = { "box-sizing": "_336cd3e4e743482f__box-sizing" };
+if (typeof process === "undefined" || true) {
+  registerStyle7("4811d023d1", '@layer wp-ui{@layer utilities, components, compositions, overrides;@layer components{._480b748dd3510e64__positioner{z-index:var(--wp-ui-tooltip-z-index,initial)}._50096b232db7709d__popup{background-color:var(--wpds-color-bg-surface-neutral-strong,#fff);border-radius:var(--wpds-border-radius-md,4px);box-shadow:var(--wpds-elevation-sm,0 1px 2px 0 #0000000d,0 2px 3px 0 #0000000a,0 6px 6px 0 #00000008,0 8px 8px 0 #00000005);color:var(--wpds-color-fg-content-neutral,#1e1e1e);font-family:var(--wpds-typography-font-family-body,-apple-system,system-ui,"Segoe UI","Roboto","Oxygen-Sans","Ubuntu","Cantarell","Helvetica Neue",sans-serif);font-size:var(--wpds-typography-font-size-sm,12px);line-height:1.4;padding:var(--wpds-dimension-padding-xs,4px) var(--wpds-dimension-padding-sm,8px);@media (forced-colors:active){border-bottom-color:CanvasText;border-bottom-style:solid;border-bottom-width:1px;border-left-color:CanvasText;border-left-style:solid;border-left-width:1px;border-right-color:CanvasText;border-right-style:solid;border-right-width:1px;border-top-color:CanvasText;border-top-style:solid;border-top-width:1px}}}}');
+}
+var style_default6 = { "positioner": "_480b748dd3510e64__positioner", "popup": "_50096b232db7709d__popup" };
+var Positioner = (0, import_element18.forwardRef)(
+  function TooltipPositioner3({ align = "center", className, side = "top", sideOffset = 4, ...props }, ref) {
+    return /* @__PURE__ */ (0, import_jsx_runtime21.jsx)(
+      index_parts_exports.Positioner,
+      {
+        ref,
+        align,
+        side,
+        sideOffset,
+        ...props,
+        className: clsx_default(
+          resets_default2["box-sizing"],
+          style_default6.positioner,
+          className
+        )
+      }
+    );
   }
 );
 
-// packages/ui/build-module/link/link.mjs
-var import_element20 = __toESM(require_element(), 1);
-var import_i18n2 = __toESM(require_i18n(), 1);
-var import_jsx_runtime27 = __toESM(require_jsx_runtime(), 1);
+// packages/ui/build-module/tooltip/popup.mjs
+var import_jsx_runtime22 = __toESM(require_jsx_runtime(), 1);
 var STYLE_HASH_ATTRIBUTE8 = "data-wp-hash";
 function getRuntime8() {
   const globalScope = globalThis;
@@ -9419,80 +9530,52 @@ function registerStyle8(hash, css) {
   }
 }
 if (typeof process === "undefined" || true) {
-  registerStyle8("e3ae230cea", "@layer wp-ui-utilities, wp-ui-components, wp-ui-compositions, wp-ui-overrides;@layer wp-ui-utilities{._336cd3e4e743482f__box-sizing{box-sizing:border-box;*,:after,:before{box-sizing:inherit}}}");
+  registerStyle8("4811d023d1", '@layer wp-ui{@layer utilities, components, compositions, overrides;@layer components{._480b748dd3510e64__positioner{z-index:var(--wp-ui-tooltip-z-index,initial)}._50096b232db7709d__popup{background-color:var(--wpds-color-bg-surface-neutral-strong,#fff);border-radius:var(--wpds-border-radius-md,4px);box-shadow:var(--wpds-elevation-sm,0 1px 2px 0 #0000000d,0 2px 3px 0 #0000000a,0 6px 6px 0 #00000008,0 8px 8px 0 #00000005);color:var(--wpds-color-fg-content-neutral,#1e1e1e);font-family:var(--wpds-typography-font-family-body,-apple-system,system-ui,"Segoe UI","Roboto","Oxygen-Sans","Ubuntu","Cantarell","Helvetica Neue",sans-serif);font-size:var(--wpds-typography-font-size-sm,12px);line-height:1.4;padding:var(--wpds-dimension-padding-xs,4px) var(--wpds-dimension-padding-sm,8px);@media (forced-colors:active){border-bottom-color:CanvasText;border-bottom-style:solid;border-bottom-width:1px;border-left-color:CanvasText;border-left-style:solid;border-left-width:1px;border-right-color:CanvasText;border-right-style:solid;border-right-width:1px;border-top-color:CanvasText;border-top-style:solid;border-top-width:1px}}}}');
 }
-var resets_default3 = { "box-sizing": "_336cd3e4e743482f__box-sizing" };
-if (typeof process === "undefined" || true) {
-  registerStyle8("2a5ab8f3a7", "@layer wp-ui-utilities, wp-ui-components, wp-ui-compositions, wp-ui-overrides;@layer wp-ui-utilities{._08e8a2e44959f892__outset-ring--focus,._970d04df7376df67__outset-ring--focus-within-except-active,.c5cb3ee4bddaa8e4__outset-ring--focus-within-visible,.cd83dfc2126a0846__outset-ring--focus-within,.d0541bc9dd9dc7b6__outset-ring--focus-visible,.e25b2bdd7aa21721__outset-ring--focus-except-active,.ecadb9e080e2dfa5__outset-ring--focus-parent-visible{@media not (prefers-reduced-motion){--_gcd-a-transition:outline 0.1s ease-out;transition:outline .1s ease-out}outline:0 solid #0000;outline-offset:1px}._08e8a2e44959f892__outset-ring--focus:focus,._970d04df7376df67__outset-ring--focus-within-except-active:focus-within:not(:has(:active)),.c5cb3ee4bddaa8e4__outset-ring--focus-within-visible:focus-within:has(:focus-visible),.cd83dfc2126a0846__outset-ring--focus-within:focus-within,.d0541bc9dd9dc7b6__outset-ring--focus-visible:focus-visible,.e25b2bdd7aa21721__outset-ring--focus-except-active:focus:not(:active),:focus-visible .ecadb9e080e2dfa5__outset-ring--focus-parent-visible{--_gcd-a-outline:var(--wpds-border-width-focus,var(--wp-admin-border-width-focus,2px)) solid var(--wpds-color-stroke-focus-brand,var(--wp-admin-theme-color,#3858e9));--_gcd-div-outline:var(--wpds-border-width-focus,var(--wp-admin-border-width-focus,2px)) solid var(--wpds-color-stroke-focus-brand,var(--wp-admin-theme-color,#3858e9));outline:var(--wpds-border-width-focus,var(--wp-admin-border-width-focus,2px)) solid var(--wpds-color-stroke-focus-brand,var(--wp-admin-theme-color,#3858e9))}}");
-}
-var focus_default2 = { "outset-ring--focus": "_08e8a2e44959f892__outset-ring--focus", "outset-ring--focus-except-active": "e25b2bdd7aa21721__outset-ring--focus-except-active", "outset-ring--focus-visible": "d0541bc9dd9dc7b6__outset-ring--focus-visible", "outset-ring--focus-within": "cd83dfc2126a0846__outset-ring--focus-within", "outset-ring--focus-within-except-active": "_970d04df7376df67__outset-ring--focus-within-except-active", "outset-ring--focus-within-visible": "c5cb3ee4bddaa8e4__outset-ring--focus-within-visible", "outset-ring--focus-parent-visible": "ecadb9e080e2dfa5__outset-ring--focus-parent-visible" };
-if (typeof process === "undefined" || true) {
-  registerStyle8("90a23568f8", '@layer wp-ui-utilities, wp-ui-components, wp-ui-compositions, wp-ui-overrides;@layer wp-ui-components{.d4250949359b05ce__link{text-decoration-thickness:from-font;text-underline-offset:.2em}.c6055659b8e2cd2c__is-brand,.c6055659b8e2cd2c__is-brand:visited{--_gcd-a-color:var(--wpds-color-fg-interactive-brand,var(--wp-admin-theme-color,#3858e9));color:var(--wpds-color-fg-interactive-brand,var(--wp-admin-theme-color,#3858e9))}.c6055659b8e2cd2c__is-brand:active,.c6055659b8e2cd2c__is-brand:hover{--_gcd-a-color:var(--wpds-color-fg-interactive-brand-active,var(--wp-admin-theme-color,#3858e9));color:var(--wpds-color-fg-interactive-brand-active,var(--wp-admin-theme-color,#3858e9))}._92e0dfcaeee15b88__is-neutral,._92e0dfcaeee15b88__is-neutral:visited{--_gcd-a-color:var(--wpds-color-fg-interactive-neutral,#1e1e1e);color:var(--wpds-color-fg-interactive-neutral,#1e1e1e);text-decoration-color:var(--wpds-color-stroke-interactive-neutral,#8d8d8d)}._92e0dfcaeee15b88__is-neutral:active,._92e0dfcaeee15b88__is-neutral:hover{--_gcd-a-color:var(--wpds-color-fg-interactive-neutral-active,#1e1e1e);color:var(--wpds-color-fg-interactive-neutral-active,#1e1e1e)}.cf122a9bf1035d42__is-unstyled{--_gcd-a-color:inherit;color:inherit;text-decoration:none}._0cb411afac4c86c7__link-icon{display:inline-block;font-weight:var(--wpds-typography-font-weight-regular,400);line-height:1;margin-inline-start:var(--wpds-dimension-padding-xs,4px);text-decoration:none}._0cb411afac4c86c7__link-icon:after{content:"\\2197"}._0cb411afac4c86c7__link-icon:dir(rtl):after{content:"\\2196"}}');
-}
-var style_default8 = { "link": "d4250949359b05ce__link", "is-brand": "c6055659b8e2cd2c__is-brand", "is-neutral": "_92e0dfcaeee15b88__is-neutral", "is-unstyled": "cf122a9bf1035d42__is-unstyled", "link-icon": "_0cb411afac4c86c7__link-icon" };
-if (typeof process === "undefined" || true) {
-  registerStyle8("1fb29d3a3c", "._6defc79820e382c6__button{box-sizing:var(--_gcd-button-box-sizing,border-box);font-family:var(--_gcd-button-font-family,inherit);font-size:var(--_gcd-button-font-size,inherit);font-weight:var(--_gcd-button-font-weight,inherit)}.d2cff2e5dea83bd1__input{box-sizing:var(--_gcd-input-box-sizing,border-box);font-family:var(--_gcd-input-font-family,inherit);font-size:var(--_gcd-input-font-size,inherit);font-weight:var(--_gcd-input-font-weight,inherit);margin:var(--_gcd-input-margin,0);&:is(textarea,[type=text],[type=password],[type=color],[type=date],[type=datetime],[type=datetime-local],[type=email],[type=month],[type=number],[type=search],[type=tel],[type=time],[type=url],[type=week]){background-color:var(--_gcd-input-background-color,#0000);border:var(--_gcd-input-border,none);border-radius:var(--_gcd-input-border-radius,0);box-shadow:var(--_gcd-input-box-shadow,0 0 0 #0000);color:var(--_gcd-input-color,var(--wpds-color-fg-interactive-neutral,#1e1e1e));&:focus{border-color:var(--_gcd-input-border-color-focus,var(--wp-admin-theme-color));box-shadow:var(--_gcd-input-box-shadow-focus,none);outline:var(--_gcd-input-outline-focus,none)}&:disabled{background:var(--_gcd-input-background-disabled,#0000);border-color:var(--_gcd-input-border-color-disabled,#0000);box-shadow:var(--_gcd-input-box-shadow-disabled,none);color:var(--_gcd-input-color-disabled,var(--wpds-color-fg-interactive-neutral-disabled,#8d8d8d))}&::placeholder{color:var(--_gcd-input-placeholder-color,var(--wpds-color-fg-interactive-neutral-disabled,#8d8d8d))}}&:is(textarea,[type=text],[type=password],[type=date],[type=datetime],[type=datetime-local],[type=email],[type=month],[type=number],[type=search],[type=tel],[type=time],[type=url],[type=week]){line-height:var(--_gcd-input-line-height,inherit);min-height:var(--_gcd-input-min-height,auto);padding:var(--_gcd-input-padding,0)}}._547d86373d02e108__textarea{box-sizing:var(--_gcd-textarea-box-sizing,border-box);overflow:var(--_gcd-textarea-overflow,auto);resize:var(--_gcd-textarea-resize,block)}._8c15fd0ed9f28ba4__div{outline:var(--_gcd-div-outline,0 solid #0000)}p._43cec3e1eec1066d__p{font-size:var(--_gcd-p-font-size,13px);line-height:var(--_gcd-p-line-height,1.5);margin:var(--_gcd-p-margin,0)}:is(h1,h2,h3,h4,h5,h6).e97669c6d9a38497__heading{color:var(--_gcd-heading-color,var(--wpds-color-fg-content-neutral,#1e1e1e));font-size:var(--_gcd-heading-font-size,inherit);font-weight:var(--_gcd-heading-font-weight,var(--wpds-typography-font-weight-medium,499));margin:var(--_gcd-heading-margin,0)}._2c0831b0499dbd6e__a,._2c0831b0499dbd6e__a:is(:hover,:focus,:active){border-radius:var(--_gcd-a-border-radius,0);box-shadow:var(--_gcd-a-box-shadow,none);color:var(--_gcd-a-color,inherit);outline:var(--_gcd-a-outline,0 solid #0000);transition:var(--_gcd-a-transition,none)}");
-}
-var global_css_defense_default3 = { "button": "_6defc79820e382c6__button", "input": "d2cff2e5dea83bd1__input", "textarea": "_547d86373d02e108__textarea", "div": "_8c15fd0ed9f28ba4__div", "p": "_43cec3e1eec1066d__p", "heading": "e97669c6d9a38497__heading", "a": "_2c0831b0499dbd6e__a" };
-var Link = (0, import_element20.forwardRef)(function Link2({
-  children,
-  variant = "default",
-  tone = "brand",
-  openInNewTab = false,
-  render,
-  className,
-  ...props
-}, ref) {
-  const element = useRender({
-    render,
-    defaultTagName: "a",
-    ref,
-    props: mergeProps(props, {
-      className: clsx_default(
-        global_css_defense_default3.a,
-        resets_default3["box-sizing"],
-        focus_default2["outset-ring--focus"],
-        variant !== "unstyled" && style_default8.link,
-        variant !== "unstyled" && style_default8[`is-${tone}`],
-        variant === "unstyled" && style_default8["is-unstyled"],
-        className
-      ),
-      target: openInNewTab ? "_blank" : void 0,
-      children: /* @__PURE__ */ (0, import_jsx_runtime27.jsxs)(import_jsx_runtime27.Fragment, { children: [
-        children,
-        openInNewTab && /* @__PURE__ */ (0, import_jsx_runtime27.jsx)(
-          "span",
-          {
-            className: style_default8["link-icon"],
-            role: "img",
-            "aria-label": (
-              /* translators: accessibility text appended to link text */
-              (0, import_i18n2.__)("(opens in a new tab)")
-            )
-          }
-        )
-      ] })
-    })
-  });
-  return element;
+var style_default7 = { "positioner": "_480b748dd3510e64__positioner", "popup": "_50096b232db7709d__popup" };
+var ThemeProvider = unlock(import_theme.privateApis).ThemeProvider;
+var POPUP_COLOR = { background: "#1e1e1e" };
+var Popup = (0, import_element19.forwardRef)(function TooltipPopup3({ portal, positioner, children, className, ...props }, ref) {
+  const popupContent = /* @__PURE__ */ (0, import_jsx_runtime22.jsx)(ThemeProvider, { color: POPUP_COLOR, children: /* @__PURE__ */ (0, import_jsx_runtime22.jsx)(
+    index_parts_exports.Popup,
+    {
+      ref,
+      className: clsx_default(style_default7.popup, className),
+      ...props,
+      children
+    }
+  ) });
+  const positionedPopup = renderSlotWithChildren(
+    positioner,
+    /* @__PURE__ */ (0, import_jsx_runtime22.jsx)(Positioner, {}),
+    popupContent
+  );
+  return renderSlotWithChildren(portal, /* @__PURE__ */ (0, import_jsx_runtime22.jsx)(Portal, {}), positionedPopup);
 });
 
-// packages/ui/build-module/notice/index.mjs
-var notice_exports = {};
-__export(notice_exports, {
-  ActionButton: () => ActionButton,
-  ActionLink: () => ActionLink,
-  Actions: () => Actions,
-  CloseIcon: () => CloseIcon,
-  Description: () => Description,
-  Root: () => Root2,
-  Title: () => Title
-});
+// packages/ui/build-module/tooltip/trigger.mjs
+var import_element20 = __toESM(require_element(), 1);
+var import_jsx_runtime23 = __toESM(require_jsx_runtime(), 1);
+var Trigger = (0, import_element20.forwardRef)(
+  function TooltipTrigger3(props, ref) {
+    return /* @__PURE__ */ (0, import_jsx_runtime23.jsx)(index_parts_exports.Trigger, { ref, ...props });
+  }
+);
 
-// packages/ui/build-module/notice/root.mjs
-var import_element21 = __toESM(require_element(), 1);
-import { speak as speak2 } from "@wordpress/a11y";
-var import_jsx_runtime28 = __toESM(require_jsx_runtime(), 1);
+// packages/ui/build-module/tooltip/root.mjs
+var import_jsx_runtime24 = __toESM(require_jsx_runtime(), 1);
+function Root(props) {
+  return /* @__PURE__ */ (0, import_jsx_runtime24.jsx)(index_parts_exports.Root, { ...props });
+}
+
+// packages/ui/build-module/tooltip/provider.mjs
+var import_jsx_runtime25 = __toESM(require_jsx_runtime(), 1);
+function Provider({ ...props }) {
+  return /* @__PURE__ */ (0, import_jsx_runtime25.jsx)(index_parts_exports.Provider, { ...props });
+}
+
+// packages/ui/build-module/icon-button/icon-button.mjs
+var import_jsx_runtime26 = __toESM(require_jsx_runtime(), 1);
 var STYLE_HASH_ATTRIBUTE9 = "data-wp-hash";
 function getRuntime9() {
   const globalScope = globalThis;
@@ -9574,87 +9657,67 @@ function registerStyle9(hash, css) {
   }
 }
 if (typeof process === "undefined" || true) {
-  registerStyle9("e3ae230cea", "@layer wp-ui-utilities, wp-ui-components, wp-ui-compositions, wp-ui-overrides;@layer wp-ui-utilities{._336cd3e4e743482f__box-sizing{box-sizing:border-box;*,:after,:before{box-sizing:inherit}}}");
+  registerStyle9("65cec4cf71", "@layer wp-ui{@layer utilities, components, compositions, overrides;@layer compositions{._28cfdc260e755391__icon-button{--wp-ui-button-aspect-ratio:1;--wp-ui-button-padding-inline:0;--wp-ui-button-min-width:unset}.f1c70d719989a85a__icon{margin:-1px}}}");
 }
-var resets_default4 = { "box-sizing": "_336cd3e4e743482f__box-sizing" };
-if (typeof process === "undefined" || true) {
-  registerStyle9("60dd1d4d42", "@layer wp-ui-utilities, wp-ui-components, wp-ui-compositions, wp-ui-overrides;@layer wp-ui-components{._4145abab73d17514__notice{--icon-height:24px;--text-vertical-padding:calc((var(--icon-height) - var(--wpds-typography-line-height-sm, 20px))/2);--wp-ui-notice-background-color:var(--wpds-color-bg-surface-neutral-weak,#f4f4f4);--wp-ui-notice-border-color:var(--wpds-color-stroke-surface-neutral,#dbdbdb);--wp-ui-notice-text-color:var(--wpds-color-fg-content-neutral,#1e1e1e);--wp-ui-notice-decorative-icon-color:var(--wpds-color-fg-content-neutral,#1e1e1e);align-items:start;background-color:var(--wp-ui-notice-background-color);border:1px solid var(--wp-ui-notice-border-color);border-radius:var(--wpds-border-radius-lg,8px);container-type:inline-size;display:grid;grid-template-columns:auto 1fr auto;padding:var(--wpds-dimension-padding-md,12px)}.d0a25570cb528528__icon{color:var(--wp-ui-notice-decorative-icon-color);grid-column:1;grid-row:1;margin-inline-end:var(--wpds-dimension-gap-xs,4px)}._1904b570a89bb815__description,.b5397fb9d05389e3__title{color:var(--wp-ui-notice-text-color);grid-column:2;padding-block:var(--text-vertical-padding)}._1904b570a89bb815__description{text-wrap:pretty}._0a1270dcdd79c031__actions{display:flex;flex-wrap:wrap;gap:var(--wpds-dimension-gap-md,12px);grid-column:2}._4145abab73d17514__notice:has(._1904b570a89bb815__description) ._0a1270dcdd79c031__actions,._4145abab73d17514__notice:has(.b5397fb9d05389e3__title) ._0a1270dcdd79c031__actions{margin-block-start:var(--wpds-dimension-gap-sm,8px)}._983740ab855c4e09__action-button{flex-shrink:0}.d329e7416d368d31__action-link{flex-shrink:0;&:not(:first-child){margin-inline-start:var(--wpds-dimension-gap-xs,4px)}&:not(:last-child){margin-inline-end:var(--wpds-dimension-gap-xs,4px)}}._487e6a5c1375f7dc__close-icon{grid-column:3;grid-row:1;margin-inline-start:var(--wpds-dimension-gap-xs,4px)}._531c140826094795__is-info{--wp-ui-notice-background-color:var(--wpds-color-bg-surface-info-weak,#f3f9ff);--wp-ui-notice-border-color:var(--wpds-color-stroke-surface-info,#9fbcdc);--wp-ui-notice-text-color:var(--wpds-color-fg-content-info,#001b4f);--wp-ui-notice-decorative-icon-color:var(--wpds-color-fg-content-info-weak,#006bd7)}.ae2e1004697cce95__is-warning{--wp-ui-notice-background-color:var(--wpds-color-bg-surface-warning-weak,#fff7e1);--wp-ui-notice-border-color:var(--wpds-color-stroke-surface-warning,#d0b481);--wp-ui-notice-text-color:var(--wpds-color-fg-content-warning,#2e1900);--wp-ui-notice-decorative-icon-color:var(--wpds-color-fg-content-warning-weak,#926300)}._2e614a76af494837__is-success{--wp-ui-notice-background-color:var(--wpds-color-bg-surface-success-weak,#ebffed);--wp-ui-notice-border-color:var(--wpds-color-stroke-surface-success,#8ac894);--wp-ui-notice-text-color:var(--wpds-color-fg-content-success,#002900);--wp-ui-notice-decorative-icon-color:var(--wpds-color-fg-content-success-weak,#008030)}.af00331ae17a0065__is-error{--wp-ui-notice-background-color:var(--wpds-color-bg-surface-error-weak,#fff6f5);--wp-ui-notice-border-color:var(--wpds-color-stroke-surface-error,#daa39b);--wp-ui-notice-text-color:var(--wpds-color-fg-content-error,#470000);--wp-ui-notice-decorative-icon-color:var(--wpds-color-fg-content-error-weak,#cc1818)}@container (max-width: 320px){._4145abab73d17514__notice:has(.b5397fb9d05389e3__title) ._0a1270dcdd79c031__actions,._4145abab73d17514__notice:has(.b5397fb9d05389e3__title) ._1904b570a89bb815__description{grid-column:1/3}}}@layer wp-ui-compositions{.d329e7416d368d31__action-link{margin-block:auto}._487e6a5c1375f7dc__close-icon,._983740ab855c4e09__action-button:is(._8ddb8fb33fbf3d38__is-action-button-outline,._77bbde495a8a0af3__is-action-button-minimal){--wp-ui-button-background-color-active:color-mix(in srgb,#0000 50%,var(--wpds-color-bg-interactive-neutral-weak-active,#ededed))}}");
-}
-var style_default9 = { "notice": "_4145abab73d17514__notice", "icon": "d0a25570cb528528__icon", "title": "b5397fb9d05389e3__title", "description": "_1904b570a89bb815__description", "actions": "_0a1270dcdd79c031__actions", "action-button": "_983740ab855c4e09__action-button", "action-link": "d329e7416d368d31__action-link", "close-icon": "_487e6a5c1375f7dc__close-icon", "is-info": "_531c140826094795__is-info", "is-warning": "ae2e1004697cce95__is-warning", "is-success": "_2e614a76af494837__is-success", "is-error": "af00331ae17a0065__is-error", "is-action-button-outline": "_8ddb8fb33fbf3d38__is-action-button-outline", "is-action-button-minimal": "_77bbde495a8a0af3__is-action-button-minimal" };
-var icons = {
-  neutral: null,
-  info: info_default,
-  warning: caution_default,
-  success: published_default,
-  error: error_default
-};
-function getDefaultPoliteness(intent) {
-  return intent === "error" ? "assertive" : "polite";
-}
-function safeRenderToString(message) {
-  if (!message) {
-    return void 0;
-  }
-  if (typeof message === "string") {
-    return message;
-  }
-  try {
-    return (0, import_element21.renderToString)(message);
-  } catch {
-    return void 0;
-  }
-}
-function useSpokenMessage(message, politeness) {
-  const spokenMessage = safeRenderToString(message);
-  (0, import_element21.useEffect)(() => {
-    if (spokenMessage) {
-      speak2(spokenMessage, politeness);
-    }
-  }, [spokenMessage, politeness]);
-}
-var Root2 = (0, import_element21.forwardRef)(function Notice({
-  intent = "neutral",
-  children,
-  icon,
-  spokenMessage = children,
-  politeness = getDefaultPoliteness(intent),
-  render,
-  ...restProps
-}, ref) {
-  useSpokenMessage(spokenMessage, politeness);
-  const iconElement = icon === null ? null : icon ?? icons[intent];
-  const mergedClassName = clsx_default(
-    style_default9.notice,
-    style_default9[`is-${intent}`],
-    resets_default4["box-sizing"]
-  );
-  const element = useRender({
-    defaultTagName: "div",
-    render,
-    ref,
-    props: mergeProps(
-      {
-        className: mergedClassName,
-        children: /* @__PURE__ */ (0, import_jsx_runtime28.jsxs)(import_jsx_runtime28.Fragment, { children: [
-          children,
-          iconElement && /* @__PURE__ */ (0, import_jsx_runtime28.jsx)(
+var style_default8 = { "icon-button": "_28cfdc260e755391__icon-button", "icon": "f1c70d719989a85a__icon" };
+var IconButton = (0, import_element21.forwardRef)(
+  function IconButton2({
+    label,
+    className,
+    // Prevent accidental forwarding of `children`
+    children: _children,
+    disabled: disabled2,
+    focusableWhenDisabled = true,
+    icon,
+    size: size4,
+    shortcut,
+    positioner,
+    ...restProps
+  }, ref) {
+    const classes = clsx_default(style_default8["icon-button"], className);
+    return /* @__PURE__ */ (0, import_jsx_runtime26.jsx)(Provider, { delay: 0, children: /* @__PURE__ */ (0, import_jsx_runtime26.jsxs)(Root, { children: [
+      /* @__PURE__ */ (0, import_jsx_runtime26.jsx)(
+        Trigger,
+        {
+          ref,
+          disabled: disabled2 && !focusableWhenDisabled,
+          render: /* @__PURE__ */ (0, import_jsx_runtime26.jsx)(
+            Button4,
+            {
+              ...restProps,
+              size: size4,
+              "aria-label": label,
+              "aria-keyshortcuts": shortcut?.ariaKeyShortcut,
+              disabled: disabled2,
+              focusableWhenDisabled
+            }
+          ),
+          className: classes,
+          children: /* @__PURE__ */ (0, import_jsx_runtime26.jsx)(
             Icon,
             {
-              className: style_default9.icon,
-              icon: iconElement
+              icon,
+              size: 24,
+              className: style_default8.icon
             }
           )
+        }
+      ),
+      /* @__PURE__ */ (0, import_jsx_runtime26.jsxs)(Popup, { positioner, children: [
+        label,
+        shortcut && /* @__PURE__ */ (0, import_jsx_runtime26.jsxs)(import_jsx_runtime26.Fragment, { children: [
+          " ",
+          /* @__PURE__ */ (0, import_jsx_runtime26.jsx)("span", { "aria-hidden": "true", children: shortcut.displayShortcut })
         ] })
-      },
-      restProps
-    )
-  });
-  return element;
-});
+      ] })
+    ] }) });
+  }
+);
 
-// packages/ui/build-module/notice/title.mjs
+// packages/ui/build-module/link/link.mjs
 var import_element22 = __toESM(require_element(), 1);
-var import_jsx_runtime29 = __toESM(require_jsx_runtime(), 1);
+var import_i18n2 = __toESM(require_i18n(), 1);
+var import_jsx_runtime27 = __toESM(require_jsx_runtime(), 1);
 var STYLE_HASH_ATTRIBUTE10 = "data-wp-hash";
 function getRuntime10() {
   const globalScope = globalThis;
@@ -9736,26 +9799,80 @@ function registerStyle10(hash, css) {
   }
 }
 if (typeof process === "undefined" || true) {
-  registerStyle10("60dd1d4d42", "@layer wp-ui-utilities, wp-ui-components, wp-ui-compositions, wp-ui-overrides;@layer wp-ui-components{._4145abab73d17514__notice{--icon-height:24px;--text-vertical-padding:calc((var(--icon-height) - var(--wpds-typography-line-height-sm, 20px))/2);--wp-ui-notice-background-color:var(--wpds-color-bg-surface-neutral-weak,#f4f4f4);--wp-ui-notice-border-color:var(--wpds-color-stroke-surface-neutral,#dbdbdb);--wp-ui-notice-text-color:var(--wpds-color-fg-content-neutral,#1e1e1e);--wp-ui-notice-decorative-icon-color:var(--wpds-color-fg-content-neutral,#1e1e1e);align-items:start;background-color:var(--wp-ui-notice-background-color);border:1px solid var(--wp-ui-notice-border-color);border-radius:var(--wpds-border-radius-lg,8px);container-type:inline-size;display:grid;grid-template-columns:auto 1fr auto;padding:var(--wpds-dimension-padding-md,12px)}.d0a25570cb528528__icon{color:var(--wp-ui-notice-decorative-icon-color);grid-column:1;grid-row:1;margin-inline-end:var(--wpds-dimension-gap-xs,4px)}._1904b570a89bb815__description,.b5397fb9d05389e3__title{color:var(--wp-ui-notice-text-color);grid-column:2;padding-block:var(--text-vertical-padding)}._1904b570a89bb815__description{text-wrap:pretty}._0a1270dcdd79c031__actions{display:flex;flex-wrap:wrap;gap:var(--wpds-dimension-gap-md,12px);grid-column:2}._4145abab73d17514__notice:has(._1904b570a89bb815__description) ._0a1270dcdd79c031__actions,._4145abab73d17514__notice:has(.b5397fb9d05389e3__title) ._0a1270dcdd79c031__actions{margin-block-start:var(--wpds-dimension-gap-sm,8px)}._983740ab855c4e09__action-button{flex-shrink:0}.d329e7416d368d31__action-link{flex-shrink:0;&:not(:first-child){margin-inline-start:var(--wpds-dimension-gap-xs,4px)}&:not(:last-child){margin-inline-end:var(--wpds-dimension-gap-xs,4px)}}._487e6a5c1375f7dc__close-icon{grid-column:3;grid-row:1;margin-inline-start:var(--wpds-dimension-gap-xs,4px)}._531c140826094795__is-info{--wp-ui-notice-background-color:var(--wpds-color-bg-surface-info-weak,#f3f9ff);--wp-ui-notice-border-color:var(--wpds-color-stroke-surface-info,#9fbcdc);--wp-ui-notice-text-color:var(--wpds-color-fg-content-info,#001b4f);--wp-ui-notice-decorative-icon-color:var(--wpds-color-fg-content-info-weak,#006bd7)}.ae2e1004697cce95__is-warning{--wp-ui-notice-background-color:var(--wpds-color-bg-surface-warning-weak,#fff7e1);--wp-ui-notice-border-color:var(--wpds-color-stroke-surface-warning,#d0b481);--wp-ui-notice-text-color:var(--wpds-color-fg-content-warning,#2e1900);--wp-ui-notice-decorative-icon-color:var(--wpds-color-fg-content-warning-weak,#926300)}._2e614a76af494837__is-success{--wp-ui-notice-background-color:var(--wpds-color-bg-surface-success-weak,#ebffed);--wp-ui-notice-border-color:var(--wpds-color-stroke-surface-success,#8ac894);--wp-ui-notice-text-color:var(--wpds-color-fg-content-success,#002900);--wp-ui-notice-decorative-icon-color:var(--wpds-color-fg-content-success-weak,#008030)}.af00331ae17a0065__is-error{--wp-ui-notice-background-color:var(--wpds-color-bg-surface-error-weak,#fff6f5);--wp-ui-notice-border-color:var(--wpds-color-stroke-surface-error,#daa39b);--wp-ui-notice-text-color:var(--wpds-color-fg-content-error,#470000);--wp-ui-notice-decorative-icon-color:var(--wpds-color-fg-content-error-weak,#cc1818)}@container (max-width: 320px){._4145abab73d17514__notice:has(.b5397fb9d05389e3__title) ._0a1270dcdd79c031__actions,._4145abab73d17514__notice:has(.b5397fb9d05389e3__title) ._1904b570a89bb815__description{grid-column:1/3}}}@layer wp-ui-compositions{.d329e7416d368d31__action-link{margin-block:auto}._487e6a5c1375f7dc__close-icon,._983740ab855c4e09__action-button:is(._8ddb8fb33fbf3d38__is-action-button-outline,._77bbde495a8a0af3__is-action-button-minimal){--wp-ui-button-background-color-active:color-mix(in srgb,#0000 50%,var(--wpds-color-bg-interactive-neutral-weak-active,#ededed))}}");
+  registerStyle10("10f3806643", "@layer wp-ui{@layer utilities, components, compositions, overrides;@layer utilities{._336cd3e4e743482f__box-sizing{box-sizing:border-box;*,:after,:before{box-sizing:inherit}}}}");
 }
-var style_default10 = { "notice": "_4145abab73d17514__notice", "icon": "d0a25570cb528528__icon", "title": "b5397fb9d05389e3__title", "description": "_1904b570a89bb815__description", "actions": "_0a1270dcdd79c031__actions", "action-button": "_983740ab855c4e09__action-button", "action-link": "d329e7416d368d31__action-link", "close-icon": "_487e6a5c1375f7dc__close-icon", "is-info": "_531c140826094795__is-info", "is-warning": "ae2e1004697cce95__is-warning", "is-success": "_2e614a76af494837__is-success", "is-error": "af00331ae17a0065__is-error", "is-action-button-outline": "_8ddb8fb33fbf3d38__is-action-button-outline", "is-action-button-minimal": "_77bbde495a8a0af3__is-action-button-minimal" };
-var Title = (0, import_element22.forwardRef)(
-  function NoticeTitle({ className, ...props }, ref) {
-    return /* @__PURE__ */ (0, import_jsx_runtime29.jsx)(
-      Text,
-      {
-        ref,
-        variant: "heading-md",
-        className: clsx_default(style_default10.title, className),
-        ...props
-      }
-    );
-  }
-);
+var resets_default3 = { "box-sizing": "_336cd3e4e743482f__box-sizing" };
+if (typeof process === "undefined" || true) {
+  registerStyle10("693cd16544", "@layer wp-ui{@layer utilities, components, compositions, overrides;@layer utilities{._08e8a2e44959f892__outset-ring--focus,._970d04df7376df67__outset-ring--focus-within-except-active,.c5cb3ee4bddaa8e4__outset-ring--focus-within-visible,.cd83dfc2126a0846__outset-ring--focus-within,.d0541bc9dd9dc7b6__outset-ring--focus-visible,.e25b2bdd7aa21721__outset-ring--focus-except-active,.ecadb9e080e2dfa5__outset-ring--focus-parent-visible{@media not (prefers-reduced-motion){--_gcd-a-transition:outline 0.1s ease-out;transition:outline .1s ease-out}outline:0 solid transparent;outline-offset:1px}._08e8a2e44959f892__outset-ring--focus:focus,._970d04df7376df67__outset-ring--focus-within-except-active:focus-within:not(:has(:active)),.c5cb3ee4bddaa8e4__outset-ring--focus-within-visible:focus-within:has(:focus-visible),.cd83dfc2126a0846__outset-ring--focus-within:focus-within,.d0541bc9dd9dc7b6__outset-ring--focus-visible:focus-visible,.e25b2bdd7aa21721__outset-ring--focus-except-active:focus:not(:active),:focus-visible .ecadb9e080e2dfa5__outset-ring--focus-parent-visible{--_gcd-a-outline:var(--wpds-border-width-focus,var(--wp-admin-border-width-focus,2px)) solid var(--wpds-color-stroke-focus-brand,var(--wp-admin-theme-color,#3858e9));--_gcd-div-outline:var(--wpds-border-width-focus,var(--wp-admin-border-width-focus,2px)) solid var(--wpds-color-stroke-focus-brand,var(--wp-admin-theme-color,#3858e9));outline:var(--wpds-border-width-focus,var(--wp-admin-border-width-focus,2px)) solid var(--wpds-color-stroke-focus-brand,var(--wp-admin-theme-color,#3858e9))}}}");
+}
+var focus_default2 = { "outset-ring--focus": "_08e8a2e44959f892__outset-ring--focus", "outset-ring--focus-except-active": "e25b2bdd7aa21721__outset-ring--focus-except-active", "outset-ring--focus-visible": "d0541bc9dd9dc7b6__outset-ring--focus-visible", "outset-ring--focus-within": "cd83dfc2126a0846__outset-ring--focus-within", "outset-ring--focus-within-except-active": "_970d04df7376df67__outset-ring--focus-within-except-active", "outset-ring--focus-within-visible": "c5cb3ee4bddaa8e4__outset-ring--focus-within-visible", "outset-ring--focus-parent-visible": "ecadb9e080e2dfa5__outset-ring--focus-parent-visible" };
+if (typeof process === "undefined" || true) {
+  registerStyle10("9f01019e30", '@layer wp-ui{@layer utilities, components, compositions, overrides;@layer components{.d4250949359b05ce__link{text-decoration-thickness:from-font;text-underline-offset:.2em}.c6055659b8e2cd2c__is-brand,.c6055659b8e2cd2c__is-brand:visited{--_gcd-a-color:var(--wpds-color-fg-interactive-brand,var(--wp-admin-theme-color,#3858e9));color:var(--wpds-color-fg-interactive-brand,var(--wp-admin-theme-color,#3858e9))}.c6055659b8e2cd2c__is-brand:active,.c6055659b8e2cd2c__is-brand:hover{--_gcd-a-color:var(--wpds-color-fg-interactive-brand-active,var(--wp-admin-theme-color,#3858e9));color:var(--wpds-color-fg-interactive-brand-active,var(--wp-admin-theme-color,#3858e9))}._92e0dfcaeee15b88__is-neutral,._92e0dfcaeee15b88__is-neutral:visited{--_gcd-a-color:var(--wpds-color-fg-interactive-neutral,#1e1e1e);color:var(--wpds-color-fg-interactive-neutral,#1e1e1e);text-decoration-color:var(--wpds-color-stroke-interactive-neutral,#8d8d8d)}._92e0dfcaeee15b88__is-neutral:active,._92e0dfcaeee15b88__is-neutral:hover{--_gcd-a-color:var(--wpds-color-fg-interactive-neutral-active,#1e1e1e);color:var(--wpds-color-fg-interactive-neutral-active,#1e1e1e)}.cf122a9bf1035d42__is-unstyled{--_gcd-a-color:inherit;color:inherit;text-decoration:none}._0cb411afac4c86c7__link-icon{display:inline-block;font-weight:var(--wpds-typography-font-weight-regular,400);line-height:1;margin-inline-start:var(--wpds-dimension-padding-xs,4px);text-decoration:none}._0cb411afac4c86c7__link-icon:after{content:"\\2197"}._0cb411afac4c86c7__link-icon:dir(rtl):after{content:"\\2196"}}}');
+}
+var style_default9 = { "link": "d4250949359b05ce__link", "is-brand": "c6055659b8e2cd2c__is-brand", "is-neutral": "_92e0dfcaeee15b88__is-neutral", "is-unstyled": "cf122a9bf1035d42__is-unstyled", "link-icon": "_0cb411afac4c86c7__link-icon" };
+if (typeof process === "undefined" || true) {
+  registerStyle10("d5c1b736fd", "._6defc79820e382c6__button{box-sizing:var(--_gcd-button-box-sizing,border-box);font-family:var(--_gcd-button-font-family,inherit);font-size:var(--_gcd-button-font-size,inherit);font-weight:var(--_gcd-button-font-weight,inherit)}.d2cff2e5dea83bd1__input{box-sizing:var(--_gcd-input-box-sizing,border-box);font-family:var(--_gcd-input-font-family,inherit);font-size:var(--_gcd-input-font-size,inherit);font-weight:var(--_gcd-input-font-weight,inherit);margin:var(--_gcd-input-margin,0);&:is(textarea,[type=text],[type=password],[type=color],[type=date],[type=datetime],[type=datetime-local],[type=email],[type=month],[type=number],[type=search],[type=tel],[type=time],[type=url],[type=week]){background-color:var(--_gcd-input-background-color,transparent);border:var(--_gcd-input-border,none);border-radius:var(--_gcd-input-border-radius,0);box-shadow:var(--_gcd-input-box-shadow,0 0 0 transparent);color:var(--_gcd-input-color,var(--wpds-color-fg-interactive-neutral,#1e1e1e));&:focus{border-color:var(--_gcd-input-border-color-focus,var(--wp-admin-theme-color));box-shadow:var(--_gcd-input-box-shadow-focus,none);outline:var(--_gcd-input-outline-focus,none)}&:disabled{background:var(--_gcd-input-background-disabled,transparent);border-color:var(--_gcd-input-border-color-disabled,transparent);box-shadow:var(--_gcd-input-box-shadow-disabled,none);color:var(--_gcd-input-color-disabled,var(--wpds-color-fg-interactive-neutral-disabled,#8d8d8d))}&::placeholder{color:var(--_gcd-input-placeholder-color,var(--wpds-color-fg-interactive-neutral-disabled,#8d8d8d))}}&:is(textarea,[type=text],[type=password],[type=date],[type=datetime],[type=datetime-local],[type=email],[type=month],[type=number],[type=search],[type=tel],[type=time],[type=url],[type=week]){line-height:var(--_gcd-input-line-height,inherit);min-height:var(--_gcd-input-min-height,auto);padding:var(--_gcd-input-padding,0)}}._547d86373d02e108__textarea{box-sizing:var(--_gcd-textarea-box-sizing,border-box);overflow:var(--_gcd-textarea-overflow,auto);resize:var(--_gcd-textarea-resize,block)}._8c15fd0ed9f28ba4__div{outline:var(--_gcd-div-outline,0 solid transparent)}p._43cec3e1eec1066d__p{font-size:var(--_gcd-p-font-size,13px);line-height:var(--_gcd-p-line-height,1.5);margin:var(--_gcd-p-margin,0)}:is(h1,h2,h3,h4,h5,h6).e97669c6d9a38497__heading{color:var(--_gcd-heading-color,var(--wpds-color-fg-content-neutral,#1e1e1e));font-size:var(--_gcd-heading-font-size,inherit);font-weight:var(--_gcd-heading-font-weight,var(--wpds-typography-font-weight-medium,499));margin:var(--_gcd-heading-margin,0)}._2c0831b0499dbd6e__a,._2c0831b0499dbd6e__a:is(:hover,:focus,:active){border-radius:var(--_gcd-a-border-radius,0);box-shadow:var(--_gcd-a-box-shadow,none);color:var(--_gcd-a-color,inherit);outline:var(--_gcd-a-outline,0 solid transparent);transition:var(--_gcd-a-transition,none)}");
+}
+var global_css_defense_default3 = { "button": "_6defc79820e382c6__button", "input": "d2cff2e5dea83bd1__input", "textarea": "_547d86373d02e108__textarea", "div": "_8c15fd0ed9f28ba4__div", "p": "_43cec3e1eec1066d__p", "heading": "e97669c6d9a38497__heading", "a": "_2c0831b0499dbd6e__a" };
+var Link = (0, import_element22.forwardRef)(function Link2({
+  children,
+  variant = "default",
+  tone = "brand",
+  openInNewTab = false,
+  render,
+  className,
+  ...props
+}, ref) {
+  const element = useRender({
+    render,
+    defaultTagName: "a",
+    ref,
+    props: mergeProps(props, {
+      className: clsx_default(
+        global_css_defense_default3.a,
+        resets_default3["box-sizing"],
+        focus_default2["outset-ring--focus"],
+        variant !== "unstyled" && style_default9.link,
+        variant !== "unstyled" && style_default9[`is-${tone}`],
+        variant === "unstyled" && style_default9["is-unstyled"],
+        className
+      ),
+      target: openInNewTab ? "_blank" : void 0,
+      children: /* @__PURE__ */ (0, import_jsx_runtime27.jsxs)(import_jsx_runtime27.Fragment, { children: [
+        children,
+        openInNewTab && /* @__PURE__ */ (0, import_jsx_runtime27.jsx)(
+          "span",
+          {
+            className: style_default9["link-icon"],
+            role: "img",
+            "aria-label": (
+              /* translators: accessibility text appended to link text */
+              (0, import_i18n2.__)("(opens in a new tab)")
+            )
+          }
+        )
+      ] })
+    })
+  });
+  return element;
+});
 
-// packages/ui/build-module/notice/description.mjs
+// packages/ui/build-module/notice/index.mjs
+var notice_exports = {};
+__export(notice_exports, {
+  ActionButton: () => ActionButton,
+  ActionLink: () => ActionLink,
+  Actions: () => Actions,
+  CloseIcon: () => CloseIcon,
+  Description: () => Description,
+  Root: () => Root2,
+  Title: () => Title
+});
+
+// packages/ui/build-module/notice/root.mjs
 var import_element23 = __toESM(require_element(), 1);
-var import_jsx_runtime30 = __toESM(require_jsx_runtime(), 1);
+import { speak as speak2 } from "@wordpress/a11y";
+var import_jsx_runtime28 = __toESM(require_jsx_runtime(), 1);
 var STYLE_HASH_ATTRIBUTE11 = "data-wp-hash";
 function getRuntime11() {
   const globalScope = globalThis;
@@ -9837,25 +9954,87 @@ function registerStyle11(hash, css) {
   }
 }
 if (typeof process === "undefined" || true) {
-  registerStyle11("60dd1d4d42", "@layer wp-ui-utilities, wp-ui-components, wp-ui-compositions, wp-ui-overrides;@layer wp-ui-components{._4145abab73d17514__notice{--icon-height:24px;--text-vertical-padding:calc((var(--icon-height) - var(--wpds-typography-line-height-sm, 20px))/2);--wp-ui-notice-background-color:var(--wpds-color-bg-surface-neutral-weak,#f4f4f4);--wp-ui-notice-border-color:var(--wpds-color-stroke-surface-neutral,#dbdbdb);--wp-ui-notice-text-color:var(--wpds-color-fg-content-neutral,#1e1e1e);--wp-ui-notice-decorative-icon-color:var(--wpds-color-fg-content-neutral,#1e1e1e);align-items:start;background-color:var(--wp-ui-notice-background-color);border:1px solid var(--wp-ui-notice-border-color);border-radius:var(--wpds-border-radius-lg,8px);container-type:inline-size;display:grid;grid-template-columns:auto 1fr auto;padding:var(--wpds-dimension-padding-md,12px)}.d0a25570cb528528__icon{color:var(--wp-ui-notice-decorative-icon-color);grid-column:1;grid-row:1;margin-inline-end:var(--wpds-dimension-gap-xs,4px)}._1904b570a89bb815__description,.b5397fb9d05389e3__title{color:var(--wp-ui-notice-text-color);grid-column:2;padding-block:var(--text-vertical-padding)}._1904b570a89bb815__description{text-wrap:pretty}._0a1270dcdd79c031__actions{display:flex;flex-wrap:wrap;gap:var(--wpds-dimension-gap-md,12px);grid-column:2}._4145abab73d17514__notice:has(._1904b570a89bb815__description) ._0a1270dcdd79c031__actions,._4145abab73d17514__notice:has(.b5397fb9d05389e3__title) ._0a1270dcdd79c031__actions{margin-block-start:var(--wpds-dimension-gap-sm,8px)}._983740ab855c4e09__action-button{flex-shrink:0}.d329e7416d368d31__action-link{flex-shrink:0;&:not(:first-child){margin-inline-start:var(--wpds-dimension-gap-xs,4px)}&:not(:last-child){margin-inline-end:var(--wpds-dimension-gap-xs,4px)}}._487e6a5c1375f7dc__close-icon{grid-column:3;grid-row:1;margin-inline-start:var(--wpds-dimension-gap-xs,4px)}._531c140826094795__is-info{--wp-ui-notice-background-color:var(--wpds-color-bg-surface-info-weak,#f3f9ff);--wp-ui-notice-border-color:var(--wpds-color-stroke-surface-info,#9fbcdc);--wp-ui-notice-text-color:var(--wpds-color-fg-content-info,#001b4f);--wp-ui-notice-decorative-icon-color:var(--wpds-color-fg-content-info-weak,#006bd7)}.ae2e1004697cce95__is-warning{--wp-ui-notice-background-color:var(--wpds-color-bg-surface-warning-weak,#fff7e1);--wp-ui-notice-border-color:var(--wpds-color-stroke-surface-warning,#d0b481);--wp-ui-notice-text-color:var(--wpds-color-fg-content-warning,#2e1900);--wp-ui-notice-decorative-icon-color:var(--wpds-color-fg-content-warning-weak,#926300)}._2e614a76af494837__is-success{--wp-ui-notice-background-color:var(--wpds-color-bg-surface-success-weak,#ebffed);--wp-ui-notice-border-color:var(--wpds-color-stroke-surface-success,#8ac894);--wp-ui-notice-text-color:var(--wpds-color-fg-content-success,#002900);--wp-ui-notice-decorative-icon-color:var(--wpds-color-fg-content-success-weak,#008030)}.af00331ae17a0065__is-error{--wp-ui-notice-background-color:var(--wpds-color-bg-surface-error-weak,#fff6f5);--wp-ui-notice-border-color:var(--wpds-color-stroke-surface-error,#daa39b);--wp-ui-notice-text-color:var(--wpds-color-fg-content-error,#470000);--wp-ui-notice-decorative-icon-color:var(--wpds-color-fg-content-error-weak,#cc1818)}@container (max-width: 320px){._4145abab73d17514__notice:has(.b5397fb9d05389e3__title) ._0a1270dcdd79c031__actions,._4145abab73d17514__notice:has(.b5397fb9d05389e3__title) ._1904b570a89bb815__description{grid-column:1/3}}}@layer wp-ui-compositions{.d329e7416d368d31__action-link{margin-block:auto}._487e6a5c1375f7dc__close-icon,._983740ab855c4e09__action-button:is(._8ddb8fb33fbf3d38__is-action-button-outline,._77bbde495a8a0af3__is-action-button-minimal){--wp-ui-button-background-color-active:color-mix(in srgb,#0000 50%,var(--wpds-color-bg-interactive-neutral-weak-active,#ededed))}}");
+  registerStyle11("10f3806643", "@layer wp-ui{@layer utilities, components, compositions, overrides;@layer utilities{._336cd3e4e743482f__box-sizing{box-sizing:border-box;*,:after,:before{box-sizing:inherit}}}}");
 }
-var style_default11 = { "notice": "_4145abab73d17514__notice", "icon": "d0a25570cb528528__icon", "title": "b5397fb9d05389e3__title", "description": "_1904b570a89bb815__description", "actions": "_0a1270dcdd79c031__actions", "action-button": "_983740ab855c4e09__action-button", "action-link": "d329e7416d368d31__action-link", "close-icon": "_487e6a5c1375f7dc__close-icon", "is-info": "_531c140826094795__is-info", "is-warning": "ae2e1004697cce95__is-warning", "is-success": "_2e614a76af494837__is-success", "is-error": "af00331ae17a0065__is-error", "is-action-button-outline": "_8ddb8fb33fbf3d38__is-action-button-outline", "is-action-button-minimal": "_77bbde495a8a0af3__is-action-button-minimal" };
-var Description = (0, import_element23.forwardRef)(
-  function NoticeDescription({ className, ...props }, ref) {
-    return /* @__PURE__ */ (0, import_jsx_runtime30.jsx)(
-      Text,
-      {
-        ref,
-        variant: "body-md",
-        className: clsx_default(style_default11.description, className),
-        ...props
-      }
-    );
+var resets_default4 = { "box-sizing": "_336cd3e4e743482f__box-sizing" };
+if (typeof process === "undefined" || true) {
+  registerStyle11("80d31bc171", "@layer wp-ui{@layer utilities, components, compositions, overrides;@layer components{._4145abab73d17514__notice{--icon-height:24px;--text-vertical-padding:calc((var(--icon-height) - var(--wpds-typography-line-height-sm, 20px))/2);--wp-ui-notice-background-color:var(--wpds-color-bg-surface-neutral-weak,#f4f4f4);--wp-ui-notice-border-color:var(--wpds-color-stroke-surface-neutral,#dbdbdb);--wp-ui-notice-text-color:var(--wpds-color-fg-content-neutral,#1e1e1e);--wp-ui-notice-decorative-icon-color:var(--wpds-color-fg-content-neutral,#1e1e1e);align-items:start;background-color:var(--wp-ui-notice-background-color);border:1px solid var(--wp-ui-notice-border-color);border-radius:var(--wpds-border-radius-lg,8px);container-type:inline-size;display:grid;grid-template-columns:auto 1fr auto;padding:var(--wpds-dimension-padding-md,12px)}.d0a25570cb528528__icon{color:var(--wp-ui-notice-decorative-icon-color);grid-column:1;grid-row:1;margin-inline-end:var(--wpds-dimension-gap-xs,4px)}._1904b570a89bb815__description,.b5397fb9d05389e3__title{color:var(--wp-ui-notice-text-color);grid-column:2;padding-block:var(--text-vertical-padding)}._1904b570a89bb815__description{text-wrap:pretty}._0a1270dcdd79c031__actions{display:flex;flex-wrap:wrap;gap:var(--wpds-dimension-gap-md,12px);grid-column:2}._4145abab73d17514__notice:has(._1904b570a89bb815__description) ._0a1270dcdd79c031__actions,._4145abab73d17514__notice:has(.b5397fb9d05389e3__title) ._0a1270dcdd79c031__actions{margin-block-start:var(--wpds-dimension-gap-sm,8px)}._983740ab855c4e09__action-button{flex-shrink:0}.d329e7416d368d31__action-link{flex-shrink:0;&:not(:first-child){margin-inline-start:var(--wpds-dimension-gap-xs,4px)}&:not(:last-child){margin-inline-end:var(--wpds-dimension-gap-xs,4px)}}._487e6a5c1375f7dc__close-icon{grid-column:3;grid-row:1;margin-inline-start:var(--wpds-dimension-gap-xs,4px)}._531c140826094795__is-info{--wp-ui-notice-background-color:var(--wpds-color-bg-surface-info-weak,#f3f9ff);--wp-ui-notice-border-color:var(--wpds-color-stroke-surface-info,#a9c6e7);--wp-ui-notice-text-color:var(--wpds-color-fg-content-info,#001b4f);--wp-ui-notice-decorative-icon-color:var(--wpds-color-fg-content-info-weak,#006bd7)}.ae2e1004697cce95__is-warning{--wp-ui-notice-background-color:var(--wpds-color-bg-surface-warning-weak,#fff7e1);--wp-ui-notice-border-color:var(--wpds-color-stroke-surface-warning,#e1bc7c);--wp-ui-notice-text-color:var(--wpds-color-fg-content-warning,#2e1900);--wp-ui-notice-decorative-icon-color:var(--wpds-color-fg-content-warning-weak,#926300)}._2e614a76af494837__is-success{--wp-ui-notice-background-color:var(--wpds-color-bg-surface-success-weak,#ebffed);--wp-ui-notice-border-color:var(--wpds-color-stroke-surface-success,#94d29e);--wp-ui-notice-text-color:var(--wpds-color-fg-content-success,#002900);--wp-ui-notice-decorative-icon-color:var(--wpds-color-fg-content-success-weak,#008030)}.af00331ae17a0065__is-error{--wp-ui-notice-background-color:var(--wpds-color-bg-surface-error-weak,#fff6f5);--wp-ui-notice-border-color:var(--wpds-color-stroke-surface-error,#dab1aa);--wp-ui-notice-text-color:var(--wpds-color-fg-content-error,#470000);--wp-ui-notice-decorative-icon-color:var(--wpds-color-fg-content-error-weak,#cc1818)}@container (max-width: 320px){._4145abab73d17514__notice:has(.b5397fb9d05389e3__title) ._0a1270dcdd79c031__actions,._4145abab73d17514__notice:has(.b5397fb9d05389e3__title) ._1904b570a89bb815__description{grid-column:1/3}}}@layer compositions{.d329e7416d368d31__action-link{margin-block:auto}._487e6a5c1375f7dc__close-icon,._983740ab855c4e09__action-button:is(._8ddb8fb33fbf3d38__is-action-button-outline,._77bbde495a8a0af3__is-action-button-minimal){--wp-ui-button-background-color-active:color-mix(in srgb,transparent 50%,var(--wpds-color-bg-interactive-neutral-weak-active,#ededed))}}}");
+}
+var style_default10 = { "notice": "_4145abab73d17514__notice", "icon": "d0a25570cb528528__icon", "title": "b5397fb9d05389e3__title", "description": "_1904b570a89bb815__description", "actions": "_0a1270dcdd79c031__actions", "action-button": "_983740ab855c4e09__action-button", "action-link": "d329e7416d368d31__action-link", "close-icon": "_487e6a5c1375f7dc__close-icon", "is-info": "_531c140826094795__is-info", "is-warning": "ae2e1004697cce95__is-warning", "is-success": "_2e614a76af494837__is-success", "is-error": "af00331ae17a0065__is-error", "is-action-button-outline": "_8ddb8fb33fbf3d38__is-action-button-outline", "is-action-button-minimal": "_77bbde495a8a0af3__is-action-button-minimal" };
+var icons = {
+  neutral: null,
+  info: info_default,
+  warning: caution_default,
+  success: published_default,
+  error: error_default
+};
+function getDefaultPoliteness(intent) {
+  return intent === "error" ? "assertive" : "polite";
+}
+function safeRenderToString(message) {
+  if (!message) {
+    return void 0;
   }
-);
+  if (typeof message === "string") {
+    return message;
+  }
+  try {
+    return (0, import_element23.renderToString)(message);
+  } catch {
+    return void 0;
+  }
+}
+function useSpokenMessage(message, politeness) {
+  const spokenMessage = safeRenderToString(message);
+  (0, import_element23.useEffect)(() => {
+    if (spokenMessage) {
+      speak2(spokenMessage, politeness);
+    }
+  }, [spokenMessage, politeness]);
+}
+var Root2 = (0, import_element23.forwardRef)(function Notice({
+  intent = "neutral",
+  children,
+  icon,
+  spokenMessage = children,
+  politeness = getDefaultPoliteness(intent),
+  render,
+  ...restProps
+}, ref) {
+  useSpokenMessage(spokenMessage, politeness);
+  const iconElement = icon === null ? null : icon ?? icons[intent];
+  const mergedClassName = clsx_default(
+    style_default10.notice,
+    style_default10[`is-${intent}`],
+    resets_default4["box-sizing"]
+  );
+  const element = useRender({
+    defaultTagName: "div",
+    render,
+    ref,
+    props: mergeProps(
+      {
+        className: mergedClassName,
+        children: /* @__PURE__ */ (0, import_jsx_runtime28.jsxs)(import_jsx_runtime28.Fragment, { children: [
+          children,
+          iconElement && /* @__PURE__ */ (0, import_jsx_runtime28.jsx)(
+            Icon,
+            {
+              className: style_default10.icon,
+              icon: iconElement
+            }
+          )
+        ] })
+      },
+      restProps
+    )
+  });
+  return element;
+});
 
-// packages/ui/build-module/notice/actions.mjs
+// packages/ui/build-module/notice/title.mjs
 var import_element24 = __toESM(require_element(), 1);
+var import_jsx_runtime29 = __toESM(require_jsx_runtime(), 1);
 var STYLE_HASH_ATTRIBUTE12 = "data-wp-hash";
 function getRuntime12() {
   const globalScope = globalThis;
@@ -9937,30 +10116,26 @@ function registerStyle12(hash, css) {
   }
 }
 if (typeof process === "undefined" || true) {
-  registerStyle12("60dd1d4d42", "@layer wp-ui-utilities, wp-ui-components, wp-ui-compositions, wp-ui-overrides;@layer wp-ui-components{._4145abab73d17514__notice{--icon-height:24px;--text-vertical-padding:calc((var(--icon-height) - var(--wpds-typography-line-height-sm, 20px))/2);--wp-ui-notice-background-color:var(--wpds-color-bg-surface-neutral-weak,#f4f4f4);--wp-ui-notice-border-color:var(--wpds-color-stroke-surface-neutral,#dbdbdb);--wp-ui-notice-text-color:var(--wpds-color-fg-content-neutral,#1e1e1e);--wp-ui-notice-decorative-icon-color:var(--wpds-color-fg-content-neutral,#1e1e1e);align-items:start;background-color:var(--wp-ui-notice-background-color);border:1px solid var(--wp-ui-notice-border-color);border-radius:var(--wpds-border-radius-lg,8px);container-type:inline-size;display:grid;grid-template-columns:auto 1fr auto;padding:var(--wpds-dimension-padding-md,12px)}.d0a25570cb528528__icon{color:var(--wp-ui-notice-decorative-icon-color);grid-column:1;grid-row:1;margin-inline-end:var(--wpds-dimension-gap-xs,4px)}._1904b570a89bb815__description,.b5397fb9d05389e3__title{color:var(--wp-ui-notice-text-color);grid-column:2;padding-block:var(--text-vertical-padding)}._1904b570a89bb815__description{text-wrap:pretty}._0a1270dcdd79c031__actions{display:flex;flex-wrap:wrap;gap:var(--wpds-dimension-gap-md,12px);grid-column:2}._4145abab73d17514__notice:has(._1904b570a89bb815__description) ._0a1270dcdd79c031__actions,._4145abab73d17514__notice:has(.b5397fb9d05389e3__title) ._0a1270dcdd79c031__actions{margin-block-start:var(--wpds-dimension-gap-sm,8px)}._983740ab855c4e09__action-button{flex-shrink:0}.d329e7416d368d31__action-link{flex-shrink:0;&:not(:first-child){margin-inline-start:var(--wpds-dimension-gap-xs,4px)}&:not(:last-child){margin-inline-end:var(--wpds-dimension-gap-xs,4px)}}._487e6a5c1375f7dc__close-icon{grid-column:3;grid-row:1;margin-inline-start:var(--wpds-dimension-gap-xs,4px)}._531c140826094795__is-info{--wp-ui-notice-background-color:var(--wpds-color-bg-surface-info-weak,#f3f9ff);--wp-ui-notice-border-color:var(--wpds-color-stroke-surface-info,#9fbcdc);--wp-ui-notice-text-color:var(--wpds-color-fg-content-info,#001b4f);--wp-ui-notice-decorative-icon-color:var(--wpds-color-fg-content-info-weak,#006bd7)}.ae2e1004697cce95__is-warning{--wp-ui-notice-background-color:var(--wpds-color-bg-surface-warning-weak,#fff7e1);--wp-ui-notice-border-color:var(--wpds-color-stroke-surface-warning,#d0b481);--wp-ui-notice-text-color:var(--wpds-color-fg-content-warning,#2e1900);--wp-ui-notice-decorative-icon-color:var(--wpds-color-fg-content-warning-weak,#926300)}._2e614a76af494837__is-success{--wp-ui-notice-background-color:var(--wpds-color-bg-surface-success-weak,#ebffed);--wp-ui-notice-border-color:var(--wpds-color-stroke-surface-success,#8ac894);--wp-ui-notice-text-color:var(--wpds-color-fg-content-success,#002900);--wp-ui-notice-decorative-icon-color:var(--wpds-color-fg-content-success-weak,#008030)}.af00331ae17a0065__is-error{--wp-ui-notice-background-color:var(--wpds-color-bg-surface-error-weak,#fff6f5);--wp-ui-notice-border-color:var(--wpds-color-stroke-surface-error,#daa39b);--wp-ui-notice-text-color:var(--wpds-color-fg-content-error,#470000);--wp-ui-notice-decorative-icon-color:var(--wpds-color-fg-content-error-weak,#cc1818)}@container (max-width: 320px){._4145abab73d17514__notice:has(.b5397fb9d05389e3__title) ._0a1270dcdd79c031__actions,._4145abab73d17514__notice:has(.b5397fb9d05389e3__title) ._1904b570a89bb815__description{grid-column:1/3}}}@layer wp-ui-compositions{.d329e7416d368d31__action-link{margin-block:auto}._487e6a5c1375f7dc__close-icon,._983740ab855c4e09__action-button:is(._8ddb8fb33fbf3d38__is-action-button-outline,._77bbde495a8a0af3__is-action-button-minimal){--wp-ui-button-background-color-active:color-mix(in srgb,#0000 50%,var(--wpds-color-bg-interactive-neutral-weak-active,#ededed))}}");
+  registerStyle12("80d31bc171", "@layer wp-ui{@layer utilities, components, compositions, overrides;@layer components{._4145abab73d17514__notice{--icon-height:24px;--text-vertical-padding:calc((var(--icon-height) - var(--wpds-typography-line-height-sm, 20px))/2);--wp-ui-notice-background-color:var(--wpds-color-bg-surface-neutral-weak,#f4f4f4);--wp-ui-notice-border-color:var(--wpds-color-stroke-surface-neutral,#dbdbdb);--wp-ui-notice-text-color:var(--wpds-color-fg-content-neutral,#1e1e1e);--wp-ui-notice-decorative-icon-color:var(--wpds-color-fg-content-neutral,#1e1e1e);align-items:start;background-color:var(--wp-ui-notice-background-color);border:1px solid var(--wp-ui-notice-border-color);border-radius:var(--wpds-border-radius-lg,8px);container-type:inline-size;display:grid;grid-template-columns:auto 1fr auto;padding:var(--wpds-dimension-padding-md,12px)}.d0a25570cb528528__icon{color:var(--wp-ui-notice-decorative-icon-color);grid-column:1;grid-row:1;margin-inline-end:var(--wpds-dimension-gap-xs,4px)}._1904b570a89bb815__description,.b5397fb9d05389e3__title{color:var(--wp-ui-notice-text-color);grid-column:2;padding-block:var(--text-vertical-padding)}._1904b570a89bb815__description{text-wrap:pretty}._0a1270dcdd79c031__actions{display:flex;flex-wrap:wrap;gap:var(--wpds-dimension-gap-md,12px);grid-column:2}._4145abab73d17514__notice:has(._1904b570a89bb815__description) ._0a1270dcdd79c031__actions,._4145abab73d17514__notice:has(.b5397fb9d05389e3__title) ._0a1270dcdd79c031__actions{margin-block-start:var(--wpds-dimension-gap-sm,8px)}._983740ab855c4e09__action-button{flex-shrink:0}.d329e7416d368d31__action-link{flex-shrink:0;&:not(:first-child){margin-inline-start:var(--wpds-dimension-gap-xs,4px)}&:not(:last-child){margin-inline-end:var(--wpds-dimension-gap-xs,4px)}}._487e6a5c1375f7dc__close-icon{grid-column:3;grid-row:1;margin-inline-start:var(--wpds-dimension-gap-xs,4px)}._531c140826094795__is-info{--wp-ui-notice-background-color:var(--wpds-color-bg-surface-info-weak,#f3f9ff);--wp-ui-notice-border-color:var(--wpds-color-stroke-surface-info,#a9c6e7);--wp-ui-notice-text-color:var(--wpds-color-fg-content-info,#001b4f);--wp-ui-notice-decorative-icon-color:var(--wpds-color-fg-content-info-weak,#006bd7)}.ae2e1004697cce95__is-warning{--wp-ui-notice-background-color:var(--wpds-color-bg-surface-warning-weak,#fff7e1);--wp-ui-notice-border-color:var(--wpds-color-stroke-surface-warning,#e1bc7c);--wp-ui-notice-text-color:var(--wpds-color-fg-content-warning,#2e1900);--wp-ui-notice-decorative-icon-color:var(--wpds-color-fg-content-warning-weak,#926300)}._2e614a76af494837__is-success{--wp-ui-notice-background-color:var(--wpds-color-bg-surface-success-weak,#ebffed);--wp-ui-notice-border-color:var(--wpds-color-stroke-surface-success,#94d29e);--wp-ui-notice-text-color:var(--wpds-color-fg-content-success,#002900);--wp-ui-notice-decorative-icon-color:var(--wpds-color-fg-content-success-weak,#008030)}.af00331ae17a0065__is-error{--wp-ui-notice-background-color:var(--wpds-color-bg-surface-error-weak,#fff6f5);--wp-ui-notice-border-color:var(--wpds-color-stroke-surface-error,#dab1aa);--wp-ui-notice-text-color:var(--wpds-color-fg-content-error,#470000);--wp-ui-notice-decorative-icon-color:var(--wpds-color-fg-content-error-weak,#cc1818)}@container (max-width: 320px){._4145abab73d17514__notice:has(.b5397fb9d05389e3__title) ._0a1270dcdd79c031__actions,._4145abab73d17514__notice:has(.b5397fb9d05389e3__title) ._1904b570a89bb815__description{grid-column:1/3}}}@layer compositions{.d329e7416d368d31__action-link{margin-block:auto}._487e6a5c1375f7dc__close-icon,._983740ab855c4e09__action-button:is(._8ddb8fb33fbf3d38__is-action-button-outline,._77bbde495a8a0af3__is-action-button-minimal){--wp-ui-button-background-color-active:color-mix(in srgb,transparent 50%,var(--wpds-color-bg-interactive-neutral-weak-active,#ededed))}}}");
 }
-var style_default12 = { "notice": "_4145abab73d17514__notice", "icon": "d0a25570cb528528__icon", "title": "b5397fb9d05389e3__title", "description": "_1904b570a89bb815__description", "actions": "_0a1270dcdd79c031__actions", "action-button": "_983740ab855c4e09__action-button", "action-link": "d329e7416d368d31__action-link", "close-icon": "_487e6a5c1375f7dc__close-icon", "is-info": "_531c140826094795__is-info", "is-warning": "ae2e1004697cce95__is-warning", "is-success": "_2e614a76af494837__is-success", "is-error": "af00331ae17a0065__is-error", "is-action-button-outline": "_8ddb8fb33fbf3d38__is-action-button-outline", "is-action-button-minimal": "_77bbde495a8a0af3__is-action-button-minimal" };
-var Actions = (0, import_element24.forwardRef)(
-  function NoticeActions({ render, ...props }, ref) {
-    const element = useRender({
-      defaultTagName: "div",
-      render,
-      ref,
-      props: mergeProps(
-        {
-          className: style_default12.actions
-        },
-        props
-      )
-    });
-    return element;
+var style_default11 = { "notice": "_4145abab73d17514__notice", "icon": "d0a25570cb528528__icon", "title": "b5397fb9d05389e3__title", "description": "_1904b570a89bb815__description", "actions": "_0a1270dcdd79c031__actions", "action-button": "_983740ab855c4e09__action-button", "action-link": "d329e7416d368d31__action-link", "close-icon": "_487e6a5c1375f7dc__close-icon", "is-info": "_531c140826094795__is-info", "is-warning": "ae2e1004697cce95__is-warning", "is-success": "_2e614a76af494837__is-success", "is-error": "af00331ae17a0065__is-error", "is-action-button-outline": "_8ddb8fb33fbf3d38__is-action-button-outline", "is-action-button-minimal": "_77bbde495a8a0af3__is-action-button-minimal" };
+var Title = (0, import_element24.forwardRef)(
+  function NoticeTitle({ className, ...props }, ref) {
+    return /* @__PURE__ */ (0, import_jsx_runtime29.jsx)(
+      Text,
+      {
+        ref,
+        variant: "heading-md",
+        className: clsx_default(style_default11.title, className),
+        ...props
+      }
+    );
   }
 );
 
-// packages/ui/build-module/notice/close-icon.mjs
+// packages/ui/build-module/notice/description.mjs
 var import_element25 = __toESM(require_element(), 1);
-var import_i18n3 = __toESM(require_i18n(), 1);
-var import_jsx_runtime31 = __toESM(require_jsx_runtime(), 1);
+var import_jsx_runtime30 = __toESM(require_jsx_runtime(), 1);
 var STYLE_HASH_ATTRIBUTE13 = "data-wp-hash";
 function getRuntime13() {
   const globalScope = globalThis;
@@ -10042,30 +10217,25 @@ function registerStyle13(hash, css) {
   }
 }
 if (typeof process === "undefined" || true) {
-  registerStyle13("60dd1d4d42", "@layer wp-ui-utilities, wp-ui-components, wp-ui-compositions, wp-ui-overrides;@layer wp-ui-components{._4145abab73d17514__notice{--icon-height:24px;--text-vertical-padding:calc((var(--icon-height) - var(--wpds-typography-line-height-sm, 20px))/2);--wp-ui-notice-background-color:var(--wpds-color-bg-surface-neutral-weak,#f4f4f4);--wp-ui-notice-border-color:var(--wpds-color-stroke-surface-neutral,#dbdbdb);--wp-ui-notice-text-color:var(--wpds-color-fg-content-neutral,#1e1e1e);--wp-ui-notice-decorative-icon-color:var(--wpds-color-fg-content-neutral,#1e1e1e);align-items:start;background-color:var(--wp-ui-notice-background-color);border:1px solid var(--wp-ui-notice-border-color);border-radius:var(--wpds-border-radius-lg,8px);container-type:inline-size;display:grid;grid-template-columns:auto 1fr auto;padding:var(--wpds-dimension-padding-md,12px)}.d0a25570cb528528__icon{color:var(--wp-ui-notice-decorative-icon-color);grid-column:1;grid-row:1;margin-inline-end:var(--wpds-dimension-gap-xs,4px)}._1904b570a89bb815__description,.b5397fb9d05389e3__title{color:var(--wp-ui-notice-text-color);grid-column:2;padding-block:var(--text-vertical-padding)}._1904b570a89bb815__description{text-wrap:pretty}._0a1270dcdd79c031__actions{display:flex;flex-wrap:wrap;gap:var(--wpds-dimension-gap-md,12px);grid-column:2}._4145abab73d17514__notice:has(._1904b570a89bb815__description) ._0a1270dcdd79c031__actions,._4145abab73d17514__notice:has(.b5397fb9d05389e3__title) ._0a1270dcdd79c031__actions{margin-block-start:var(--wpds-dimension-gap-sm,8px)}._983740ab855c4e09__action-button{flex-shrink:0}.d329e7416d368d31__action-link{flex-shrink:0;&:not(:first-child){margin-inline-start:var(--wpds-dimension-gap-xs,4px)}&:not(:last-child){margin-inline-end:var(--wpds-dimension-gap-xs,4px)}}._487e6a5c1375f7dc__close-icon{grid-column:3;grid-row:1;margin-inline-start:var(--wpds-dimension-gap-xs,4px)}._531c140826094795__is-info{--wp-ui-notice-background-color:var(--wpds-color-bg-surface-info-weak,#f3f9ff);--wp-ui-notice-border-color:var(--wpds-color-stroke-surface-info,#9fbcdc);--wp-ui-notice-text-color:var(--wpds-color-fg-content-info,#001b4f);--wp-ui-notice-decorative-icon-color:var(--wpds-color-fg-content-info-weak,#006bd7)}.ae2e1004697cce95__is-warning{--wp-ui-notice-background-color:var(--wpds-color-bg-surface-warning-weak,#fff7e1);--wp-ui-notice-border-color:var(--wpds-color-stroke-surface-warning,#d0b481);--wp-ui-notice-text-color:var(--wpds-color-fg-content-warning,#2e1900);--wp-ui-notice-decorative-icon-color:var(--wpds-color-fg-content-warning-weak,#926300)}._2e614a76af494837__is-success{--wp-ui-notice-background-color:var(--wpds-color-bg-surface-success-weak,#ebffed);--wp-ui-notice-border-color:var(--wpds-color-stroke-surface-success,#8ac894);--wp-ui-notice-text-color:var(--wpds-color-fg-content-success,#002900);--wp-ui-notice-decorative-icon-color:var(--wpds-color-fg-content-success-weak,#008030)}.af00331ae17a0065__is-error{--wp-ui-notice-background-color:var(--wpds-color-bg-surface-error-weak,#fff6f5);--wp-ui-notice-border-color:var(--wpds-color-stroke-surface-error,#daa39b);--wp-ui-notice-text-color:var(--wpds-color-fg-content-error,#470000);--wp-ui-notice-decorative-icon-color:var(--wpds-color-fg-content-error-weak,#cc1818)}@container (max-width: 320px){._4145abab73d17514__notice:has(.b5397fb9d05389e3__title) ._0a1270dcdd79c031__actions,._4145abab73d17514__notice:has(.b5397fb9d05389e3__title) ._1904b570a89bb815__description{grid-column:1/3}}}@layer wp-ui-compositions{.d329e7416d368d31__action-link{margin-block:auto}._487e6a5c1375f7dc__close-icon,._983740ab855c4e09__action-button:is(._8ddb8fb33fbf3d38__is-action-button-outline,._77bbde495a8a0af3__is-action-button-minimal){--wp-ui-button-background-color-active:color-mix(in srgb,#0000 50%,var(--wpds-color-bg-interactive-neutral-weak-active,#ededed))}}");
+  registerStyle13("80d31bc171", "@layer wp-ui{@layer utilities, components, compositions, overrides;@layer components{._4145abab73d17514__notice{--icon-height:24px;--text-vertical-padding:calc((var(--icon-height) - var(--wpds-typography-line-height-sm, 20px))/2);--wp-ui-notice-background-color:var(--wpds-color-bg-surface-neutral-weak,#f4f4f4);--wp-ui-notice-border-color:var(--wpds-color-stroke-surface-neutral,#dbdbdb);--wp-ui-notice-text-color:var(--wpds-color-fg-content-neutral,#1e1e1e);--wp-ui-notice-decorative-icon-color:var(--wpds-color-fg-content-neutral,#1e1e1e);align-items:start;background-color:var(--wp-ui-notice-background-color);border:1px solid var(--wp-ui-notice-border-color);border-radius:var(--wpds-border-radius-lg,8px);container-type:inline-size;display:grid;grid-template-columns:auto 1fr auto;padding:var(--wpds-dimension-padding-md,12px)}.d0a25570cb528528__icon{color:var(--wp-ui-notice-decorative-icon-color);grid-column:1;grid-row:1;margin-inline-end:var(--wpds-dimension-gap-xs,4px)}._1904b570a89bb815__description,.b5397fb9d05389e3__title{color:var(--wp-ui-notice-text-color);grid-column:2;padding-block:var(--text-vertical-padding)}._1904b570a89bb815__description{text-wrap:pretty}._0a1270dcdd79c031__actions{display:flex;flex-wrap:wrap;gap:var(--wpds-dimension-gap-md,12px);grid-column:2}._4145abab73d17514__notice:has(._1904b570a89bb815__description) ._0a1270dcdd79c031__actions,._4145abab73d17514__notice:has(.b5397fb9d05389e3__title) ._0a1270dcdd79c031__actions{margin-block-start:var(--wpds-dimension-gap-sm,8px)}._983740ab855c4e09__action-button{flex-shrink:0}.d329e7416d368d31__action-link{flex-shrink:0;&:not(:first-child){margin-inline-start:var(--wpds-dimension-gap-xs,4px)}&:not(:last-child){margin-inline-end:var(--wpds-dimension-gap-xs,4px)}}._487e6a5c1375f7dc__close-icon{grid-column:3;grid-row:1;margin-inline-start:var(--wpds-dimension-gap-xs,4px)}._531c140826094795__is-info{--wp-ui-notice-background-color:var(--wpds-color-bg-surface-info-weak,#f3f9ff);--wp-ui-notice-border-color:var(--wpds-color-stroke-surface-info,#a9c6e7);--wp-ui-notice-text-color:var(--wpds-color-fg-content-info,#001b4f);--wp-ui-notice-decorative-icon-color:var(--wpds-color-fg-content-info-weak,#006bd7)}.ae2e1004697cce95__is-warning{--wp-ui-notice-background-color:var(--wpds-color-bg-surface-warning-weak,#fff7e1);--wp-ui-notice-border-color:var(--wpds-color-stroke-surface-warning,#e1bc7c);--wp-ui-notice-text-color:var(--wpds-color-fg-content-warning,#2e1900);--wp-ui-notice-decorative-icon-color:var(--wpds-color-fg-content-warning-weak,#926300)}._2e614a76af494837__is-success{--wp-ui-notice-background-color:var(--wpds-color-bg-surface-success-weak,#ebffed);--wp-ui-notice-border-color:var(--wpds-color-stroke-surface-success,#94d29e);--wp-ui-notice-text-color:var(--wpds-color-fg-content-success,#002900);--wp-ui-notice-decorative-icon-color:var(--wpds-color-fg-content-success-weak,#008030)}.af00331ae17a0065__is-error{--wp-ui-notice-background-color:var(--wpds-color-bg-surface-error-weak,#fff6f5);--wp-ui-notice-border-color:var(--wpds-color-stroke-surface-error,#dab1aa);--wp-ui-notice-text-color:var(--wpds-color-fg-content-error,#470000);--wp-ui-notice-decorative-icon-color:var(--wpds-color-fg-content-error-weak,#cc1818)}@container (max-width: 320px){._4145abab73d17514__notice:has(.b5397fb9d05389e3__title) ._0a1270dcdd79c031__actions,._4145abab73d17514__notice:has(.b5397fb9d05389e3__title) ._1904b570a89bb815__description{grid-column:1/3}}}@layer compositions{.d329e7416d368d31__action-link{margin-block:auto}._487e6a5c1375f7dc__close-icon,._983740ab855c4e09__action-button:is(._8ddb8fb33fbf3d38__is-action-button-outline,._77bbde495a8a0af3__is-action-button-minimal){--wp-ui-button-background-color-active:color-mix(in srgb,transparent 50%,var(--wpds-color-bg-interactive-neutral-weak-active,#ededed))}}}");
 }
-var style_default13 = { "notice": "_4145abab73d17514__notice", "icon": "d0a25570cb528528__icon", "title": "b5397fb9d05389e3__title", "description": "_1904b570a89bb815__description", "actions": "_0a1270dcdd79c031__actions", "action-button": "_983740ab855c4e09__action-button", "action-link": "d329e7416d368d31__action-link", "close-icon": "_487e6a5c1375f7dc__close-icon", "is-info": "_531c140826094795__is-info", "is-warning": "ae2e1004697cce95__is-warning", "is-success": "_2e614a76af494837__is-success", "is-error": "af00331ae17a0065__is-error", "is-action-button-outline": "_8ddb8fb33fbf3d38__is-action-button-outline", "is-action-button-minimal": "_77bbde495a8a0af3__is-action-button-minimal" };
-var CloseIcon = (0, import_element25.forwardRef)(
-  function NoticeCloseIcon({ className, icon = close_small_default, label = (0, import_i18n3.__)("Dismiss"), ...props }, ref) {
-    return /* @__PURE__ */ (0, import_jsx_runtime31.jsx)(
-      IconButton,
+var style_default12 = { "notice": "_4145abab73d17514__notice", "icon": "d0a25570cb528528__icon", "title": "b5397fb9d05389e3__title", "description": "_1904b570a89bb815__description", "actions": "_0a1270dcdd79c031__actions", "action-button": "_983740ab855c4e09__action-button", "action-link": "d329e7416d368d31__action-link", "close-icon": "_487e6a5c1375f7dc__close-icon", "is-info": "_531c140826094795__is-info", "is-warning": "ae2e1004697cce95__is-warning", "is-success": "_2e614a76af494837__is-success", "is-error": "af00331ae17a0065__is-error", "is-action-button-outline": "_8ddb8fb33fbf3d38__is-action-button-outline", "is-action-button-minimal": "_77bbde495a8a0af3__is-action-button-minimal" };
+var Description = (0, import_element25.forwardRef)(
+  function NoticeDescription({ className, ...props }, ref) {
+    return /* @__PURE__ */ (0, import_jsx_runtime30.jsx)(
+      Text,
       {
-        ...props,
         ref,
-        className: clsx_default(style_default13["close-icon"], className),
-        variant: "minimal",
-        size: "small",
-        tone: "neutral",
-        icon,
-        label
+        variant: "body-md",
+        className: clsx_default(style_default12.description, className),
+        ...props
       }
     );
   }
 );
 
-// packages/ui/build-module/notice/action-button.mjs
+// packages/ui/build-module/notice/actions.mjs
 var import_element26 = __toESM(require_element(), 1);
-var import_jsx_runtime32 = __toESM(require_jsx_runtime(), 1);
 var STYLE_HASH_ATTRIBUTE14 = "data-wp-hash";
 function getRuntime14() {
   const globalScope = globalThis;
@@ -10147,34 +10317,30 @@ function registerStyle14(hash, css) {
   }
 }
 if (typeof process === "undefined" || true) {
-  registerStyle14("60dd1d4d42", "@layer wp-ui-utilities, wp-ui-components, wp-ui-compositions, wp-ui-overrides;@layer wp-ui-components{._4145abab73d17514__notice{--icon-height:24px;--text-vertical-padding:calc((var(--icon-height) - var(--wpds-typography-line-height-sm, 20px))/2);--wp-ui-notice-background-color:var(--wpds-color-bg-surface-neutral-weak,#f4f4f4);--wp-ui-notice-border-color:var(--wpds-color-stroke-surface-neutral,#dbdbdb);--wp-ui-notice-text-color:var(--wpds-color-fg-content-neutral,#1e1e1e);--wp-ui-notice-decorative-icon-color:var(--wpds-color-fg-content-neutral,#1e1e1e);align-items:start;background-color:var(--wp-ui-notice-background-color);border:1px solid var(--wp-ui-notice-border-color);border-radius:var(--wpds-border-radius-lg,8px);container-type:inline-size;display:grid;grid-template-columns:auto 1fr auto;padding:var(--wpds-dimension-padding-md,12px)}.d0a25570cb528528__icon{color:var(--wp-ui-notice-decorative-icon-color);grid-column:1;grid-row:1;margin-inline-end:var(--wpds-dimension-gap-xs,4px)}._1904b570a89bb815__description,.b5397fb9d05389e3__title{color:var(--wp-ui-notice-text-color);grid-column:2;padding-block:var(--text-vertical-padding)}._1904b570a89bb815__description{text-wrap:pretty}._0a1270dcdd79c031__actions{display:flex;flex-wrap:wrap;gap:var(--wpds-dimension-gap-md,12px);grid-column:2}._4145abab73d17514__notice:has(._1904b570a89bb815__description) ._0a1270dcdd79c031__actions,._4145abab73d17514__notice:has(.b5397fb9d05389e3__title) ._0a1270dcdd79c031__actions{margin-block-start:var(--wpds-dimension-gap-sm,8px)}._983740ab855c4e09__action-button{flex-shrink:0}.d329e7416d368d31__action-link{flex-shrink:0;&:not(:first-child){margin-inline-start:var(--wpds-dimension-gap-xs,4px)}&:not(:last-child){margin-inline-end:var(--wpds-dimension-gap-xs,4px)}}._487e6a5c1375f7dc__close-icon{grid-column:3;grid-row:1;margin-inline-start:var(--wpds-dimension-gap-xs,4px)}._531c140826094795__is-info{--wp-ui-notice-background-color:var(--wpds-color-bg-surface-info-weak,#f3f9ff);--wp-ui-notice-border-color:var(--wpds-color-stroke-surface-info,#9fbcdc);--wp-ui-notice-text-color:var(--wpds-color-fg-content-info,#001b4f);--wp-ui-notice-decorative-icon-color:var(--wpds-color-fg-content-info-weak,#006bd7)}.ae2e1004697cce95__is-warning{--wp-ui-notice-background-color:var(--wpds-color-bg-surface-warning-weak,#fff7e1);--wp-ui-notice-border-color:var(--wpds-color-stroke-surface-warning,#d0b481);--wp-ui-notice-text-color:var(--wpds-color-fg-content-warning,#2e1900);--wp-ui-notice-decorative-icon-color:var(--wpds-color-fg-content-warning-weak,#926300)}._2e614a76af494837__is-success{--wp-ui-notice-background-color:var(--wpds-color-bg-surface-success-weak,#ebffed);--wp-ui-notice-border-color:var(--wpds-color-stroke-surface-success,#8ac894);--wp-ui-notice-text-color:var(--wpds-color-fg-content-success,#002900);--wp-ui-notice-decorative-icon-color:var(--wpds-color-fg-content-success-weak,#008030)}.af00331ae17a0065__is-error{--wp-ui-notice-background-color:var(--wpds-color-bg-surface-error-weak,#fff6f5);--wp-ui-notice-border-color:var(--wpds-color-stroke-surface-error,#daa39b);--wp-ui-notice-text-color:var(--wpds-color-fg-content-error,#470000);--wp-ui-notice-decorative-icon-color:var(--wpds-color-fg-content-error-weak,#cc1818)}@container (max-width: 320px){._4145abab73d17514__notice:has(.b5397fb9d05389e3__title) ._0a1270dcdd79c031__actions,._4145abab73d17514__notice:has(.b5397fb9d05389e3__title) ._1904b570a89bb815__description{grid-column:1/3}}}@layer wp-ui-compositions{.d329e7416d368d31__action-link{margin-block:auto}._487e6a5c1375f7dc__close-icon,._983740ab855c4e09__action-button:is(._8ddb8fb33fbf3d38__is-action-button-outline,._77bbde495a8a0af3__is-action-button-minimal){--wp-ui-button-background-color-active:color-mix(in srgb,#0000 50%,var(--wpds-color-bg-interactive-neutral-weak-active,#ededed))}}");
+  registerStyle14("80d31bc171", "@layer wp-ui{@layer utilities, components, compositions, overrides;@layer components{._4145abab73d17514__notice{--icon-height:24px;--text-vertical-padding:calc((var(--icon-height) - var(--wpds-typography-line-height-sm, 20px))/2);--wp-ui-notice-background-color:var(--wpds-color-bg-surface-neutral-weak,#f4f4f4);--wp-ui-notice-border-color:var(--wpds-color-stroke-surface-neutral,#dbdbdb);--wp-ui-notice-text-color:var(--wpds-color-fg-content-neutral,#1e1e1e);--wp-ui-notice-decorative-icon-color:var(--wpds-color-fg-content-neutral,#1e1e1e);align-items:start;background-color:var(--wp-ui-notice-background-color);border:1px solid var(--wp-ui-notice-border-color);border-radius:var(--wpds-border-radius-lg,8px);container-type:inline-size;display:grid;grid-template-columns:auto 1fr auto;padding:var(--wpds-dimension-padding-md,12px)}.d0a25570cb528528__icon{color:var(--wp-ui-notice-decorative-icon-color);grid-column:1;grid-row:1;margin-inline-end:var(--wpds-dimension-gap-xs,4px)}._1904b570a89bb815__description,.b5397fb9d05389e3__title{color:var(--wp-ui-notice-text-color);grid-column:2;padding-block:var(--text-vertical-padding)}._1904b570a89bb815__description{text-wrap:pretty}._0a1270dcdd79c031__actions{display:flex;flex-wrap:wrap;gap:var(--wpds-dimension-gap-md,12px);grid-column:2}._4145abab73d17514__notice:has(._1904b570a89bb815__description) ._0a1270dcdd79c031__actions,._4145abab73d17514__notice:has(.b5397fb9d05389e3__title) ._0a1270dcdd79c031__actions{margin-block-start:var(--wpds-dimension-gap-sm,8px)}._983740ab855c4e09__action-button{flex-shrink:0}.d329e7416d368d31__action-link{flex-shrink:0;&:not(:first-child){margin-inline-start:var(--wpds-dimension-gap-xs,4px)}&:not(:last-child){margin-inline-end:var(--wpds-dimension-gap-xs,4px)}}._487e6a5c1375f7dc__close-icon{grid-column:3;grid-row:1;margin-inline-start:var(--wpds-dimension-gap-xs,4px)}._531c140826094795__is-info{--wp-ui-notice-background-color:var(--wpds-color-bg-surface-info-weak,#f3f9ff);--wp-ui-notice-border-color:var(--wpds-color-stroke-surface-info,#a9c6e7);--wp-ui-notice-text-color:var(--wpds-color-fg-content-info,#001b4f);--wp-ui-notice-decorative-icon-color:var(--wpds-color-fg-content-info-weak,#006bd7)}.ae2e1004697cce95__is-warning{--wp-ui-notice-background-color:var(--wpds-color-bg-surface-warning-weak,#fff7e1);--wp-ui-notice-border-color:var(--wpds-color-stroke-surface-warning,#e1bc7c);--wp-ui-notice-text-color:var(--wpds-color-fg-content-warning,#2e1900);--wp-ui-notice-decorative-icon-color:var(--wpds-color-fg-content-warning-weak,#926300)}._2e614a76af494837__is-success{--wp-ui-notice-background-color:var(--wpds-color-bg-surface-success-weak,#ebffed);--wp-ui-notice-border-color:var(--wpds-color-stroke-surface-success,#94d29e);--wp-ui-notice-text-color:var(--wpds-color-fg-content-success,#002900);--wp-ui-notice-decorative-icon-color:var(--wpds-color-fg-content-success-weak,#008030)}.af00331ae17a0065__is-error{--wp-ui-notice-background-color:var(--wpds-color-bg-surface-error-weak,#fff6f5);--wp-ui-notice-border-color:var(--wpds-color-stroke-surface-error,#dab1aa);--wp-ui-notice-text-color:var(--wpds-color-fg-content-error,#470000);--wp-ui-notice-decorative-icon-color:var(--wpds-color-fg-content-error-weak,#cc1818)}@container (max-width: 320px){._4145abab73d17514__notice:has(.b5397fb9d05389e3__title) ._0a1270dcdd79c031__actions,._4145abab73d17514__notice:has(.b5397fb9d05389e3__title) ._1904b570a89bb815__description{grid-column:1/3}}}@layer compositions{.d329e7416d368d31__action-link{margin-block:auto}._487e6a5c1375f7dc__close-icon,._983740ab855c4e09__action-button:is(._8ddb8fb33fbf3d38__is-action-button-outline,._77bbde495a8a0af3__is-action-button-minimal){--wp-ui-button-background-color-active:color-mix(in srgb,transparent 50%,var(--wpds-color-bg-interactive-neutral-weak-active,#ededed))}}}");
 }
-var style_default14 = { "notice": "_4145abab73d17514__notice", "icon": "d0a25570cb528528__icon", "title": "b5397fb9d05389e3__title", "description": "_1904b570a89bb815__description", "actions": "_0a1270dcdd79c031__actions", "action-button": "_983740ab855c4e09__action-button", "action-link": "d329e7416d368d31__action-link", "close-icon": "_487e6a5c1375f7dc__close-icon", "is-info": "_531c140826094795__is-info", "is-warning": "ae2e1004697cce95__is-warning", "is-success": "_2e614a76af494837__is-success", "is-error": "af00331ae17a0065__is-error", "is-action-button-outline": "_8ddb8fb33fbf3d38__is-action-button-outline", "is-action-button-minimal": "_77bbde495a8a0af3__is-action-button-minimal" };
-var ActionButton = (0, import_element26.forwardRef)(
-  function NoticeActionButton({ className, loading, loadingAnnouncement, variant, ...props }, ref) {
-    const loadingProps = loading !== void 0 ? { loading, loadingAnnouncement: loadingAnnouncement ?? "" } : {};
-    return /* @__PURE__ */ (0, import_jsx_runtime32.jsx)(
-      Button4,
-      {
-        ...props,
-        ...loadingProps,
-        ref,
-        size: "compact",
-        tone: "neutral",
-        variant,
-        className: clsx_default(
-          style_default14["action-button"],
-          style_default14[`is-action-button-${variant}`],
-          className
-        )
-      }
-    );
+var style_default13 = { "notice": "_4145abab73d17514__notice", "icon": "d0a25570cb528528__icon", "title": "b5397fb9d05389e3__title", "description": "_1904b570a89bb815__description", "actions": "_0a1270dcdd79c031__actions", "action-button": "_983740ab855c4e09__action-button", "action-link": "d329e7416d368d31__action-link", "close-icon": "_487e6a5c1375f7dc__close-icon", "is-info": "_531c140826094795__is-info", "is-warning": "ae2e1004697cce95__is-warning", "is-success": "_2e614a76af494837__is-success", "is-error": "af00331ae17a0065__is-error", "is-action-button-outline": "_8ddb8fb33fbf3d38__is-action-button-outline", "is-action-button-minimal": "_77bbde495a8a0af3__is-action-button-minimal" };
+var Actions = (0, import_element26.forwardRef)(
+  function NoticeActions({ render, ...props }, ref) {
+    const element = useRender({
+      defaultTagName: "div",
+      render,
+      ref,
+      props: mergeProps(
+        {
+          className: style_default13.actions
+        },
+        props
+      )
+    });
+    return element;
   }
 );
 
-// packages/ui/build-module/notice/action-link.mjs
+// packages/ui/build-module/notice/close-icon.mjs
 var import_element27 = __toESM(require_element(), 1);
-var import_jsx_runtime33 = __toESM(require_jsx_runtime(), 1);
+var import_i18n3 = __toESM(require_i18n(), 1);
+var import_jsx_runtime31 = __toESM(require_jsx_runtime(), 1);
 var STYLE_HASH_ATTRIBUTE15 = "data-wp-hash";
 function getRuntime15() {
   const globalScope = globalThis;
@@ -10256,52 +10422,30 @@ function registerStyle15(hash, css) {
   }
 }
 if (typeof process === "undefined" || true) {
-  registerStyle15("60dd1d4d42", "@layer wp-ui-utilities, wp-ui-components, wp-ui-compositions, wp-ui-overrides;@layer wp-ui-components{._4145abab73d17514__notice{--icon-height:24px;--text-vertical-padding:calc((var(--icon-height) - var(--wpds-typography-line-height-sm, 20px))/2);--wp-ui-notice-background-color:var(--wpds-color-bg-surface-neutral-weak,#f4f4f4);--wp-ui-notice-border-color:var(--wpds-color-stroke-surface-neutral,#dbdbdb);--wp-ui-notice-text-color:var(--wpds-color-fg-content-neutral,#1e1e1e);--wp-ui-notice-decorative-icon-color:var(--wpds-color-fg-content-neutral,#1e1e1e);align-items:start;background-color:var(--wp-ui-notice-background-color);border:1px solid var(--wp-ui-notice-border-color);border-radius:var(--wpds-border-radius-lg,8px);container-type:inline-size;display:grid;grid-template-columns:auto 1fr auto;padding:var(--wpds-dimension-padding-md,12px)}.d0a25570cb528528__icon{color:var(--wp-ui-notice-decorative-icon-color);grid-column:1;grid-row:1;margin-inline-end:var(--wpds-dimension-gap-xs,4px)}._1904b570a89bb815__description,.b5397fb9d05389e3__title{color:var(--wp-ui-notice-text-color);grid-column:2;padding-block:var(--text-vertical-padding)}._1904b570a89bb815__description{text-wrap:pretty}._0a1270dcdd79c031__actions{display:flex;flex-wrap:wrap;gap:var(--wpds-dimension-gap-md,12px);grid-column:2}._4145abab73d17514__notice:has(._1904b570a89bb815__description) ._0a1270dcdd79c031__actions,._4145abab73d17514__notice:has(.b5397fb9d05389e3__title) ._0a1270dcdd79c031__actions{margin-block-start:var(--wpds-dimension-gap-sm,8px)}._983740ab855c4e09__action-button{flex-shrink:0}.d329e7416d368d31__action-link{flex-shrink:0;&:not(:first-child){margin-inline-start:var(--wpds-dimension-gap-xs,4px)}&:not(:last-child){margin-inline-end:var(--wpds-dimension-gap-xs,4px)}}._487e6a5c1375f7dc__close-icon{grid-column:3;grid-row:1;margin-inline-start:var(--wpds-dimension-gap-xs,4px)}._531c140826094795__is-info{--wp-ui-notice-background-color:var(--wpds-color-bg-surface-info-weak,#f3f9ff);--wp-ui-notice-border-color:var(--wpds-color-stroke-surface-info,#9fbcdc);--wp-ui-notice-text-color:var(--wpds-color-fg-content-info,#001b4f);--wp-ui-notice-decorative-icon-color:var(--wpds-color-fg-content-info-weak,#006bd7)}.ae2e1004697cce95__is-warning{--wp-ui-notice-background-color:var(--wpds-color-bg-surface-warning-weak,#fff7e1);--wp-ui-notice-border-color:var(--wpds-color-stroke-surface-warning,#d0b481);--wp-ui-notice-text-color:var(--wpds-color-fg-content-warning,#2e1900);--wp-ui-notice-decorative-icon-color:var(--wpds-color-fg-content-warning-weak,#926300)}._2e614a76af494837__is-success{--wp-ui-notice-background-color:var(--wpds-color-bg-surface-success-weak,#ebffed);--wp-ui-notice-border-color:var(--wpds-color-stroke-surface-success,#8ac894);--wp-ui-notice-text-color:var(--wpds-color-fg-content-success,#002900);--wp-ui-notice-decorative-icon-color:var(--wpds-color-fg-content-success-weak,#008030)}.af00331ae17a0065__is-error{--wp-ui-notice-background-color:var(--wpds-color-bg-surface-error-weak,#fff6f5);--wp-ui-notice-border-color:var(--wpds-color-stroke-surface-error,#daa39b);--wp-ui-notice-text-color:var(--wpds-color-fg-content-error,#470000);--wp-ui-notice-decorative-icon-color:var(--wpds-color-fg-content-error-weak,#cc1818)}@container (max-width: 320px){._4145abab73d17514__notice:has(.b5397fb9d05389e3__title) ._0a1270dcdd79c031__actions,._4145abab73d17514__notice:has(.b5397fb9d05389e3__title) ._1904b570a89bb815__description{grid-column:1/3}}}@layer wp-ui-compositions{.d329e7416d368d31__action-link{margin-block:auto}._487e6a5c1375f7dc__close-icon,._983740ab855c4e09__action-button:is(._8ddb8fb33fbf3d38__is-action-button-outline,._77bbde495a8a0af3__is-action-button-minimal){--wp-ui-button-background-color-active:color-mix(in srgb,#0000 50%,var(--wpds-color-bg-interactive-neutral-weak-active,#ededed))}}");
+  registerStyle15("80d31bc171", "@layer wp-ui{@layer utilities, components, compositions, overrides;@layer components{._4145abab73d17514__notice{--icon-height:24px;--text-vertical-padding:calc((var(--icon-height) - var(--wpds-typography-line-height-sm, 20px))/2);--wp-ui-notice-background-color:var(--wpds-color-bg-surface-neutral-weak,#f4f4f4);--wp-ui-notice-border-color:var(--wpds-color-stroke-surface-neutral,#dbdbdb);--wp-ui-notice-text-color:var(--wpds-color-fg-content-neutral,#1e1e1e);--wp-ui-notice-decorative-icon-color:var(--wpds-color-fg-content-neutral,#1e1e1e);align-items:start;background-color:var(--wp-ui-notice-background-color);border:1px solid var(--wp-ui-notice-border-color);border-radius:var(--wpds-border-radius-lg,8px);container-type:inline-size;display:grid;grid-template-columns:auto 1fr auto;padding:var(--wpds-dimension-padding-md,12px)}.d0a25570cb528528__icon{color:var(--wp-ui-notice-decorative-icon-color);grid-column:1;grid-row:1;margin-inline-end:var(--wpds-dimension-gap-xs,4px)}._1904b570a89bb815__description,.b5397fb9d05389e3__title{color:var(--wp-ui-notice-text-color);grid-column:2;padding-block:var(--text-vertical-padding)}._1904b570a89bb815__description{text-wrap:pretty}._0a1270dcdd79c031__actions{display:flex;flex-wrap:wrap;gap:var(--wpds-dimension-gap-md,12px);grid-column:2}._4145abab73d17514__notice:has(._1904b570a89bb815__description) ._0a1270dcdd79c031__actions,._4145abab73d17514__notice:has(.b5397fb9d05389e3__title) ._0a1270dcdd79c031__actions{margin-block-start:var(--wpds-dimension-gap-sm,8px)}._983740ab855c4e09__action-button{flex-shrink:0}.d329e7416d368d31__action-link{flex-shrink:0;&:not(:first-child){margin-inline-start:var(--wpds-dimension-gap-xs,4px)}&:not(:last-child){margin-inline-end:var(--wpds-dimension-gap-xs,4px)}}._487e6a5c1375f7dc__close-icon{grid-column:3;grid-row:1;margin-inline-start:var(--wpds-dimension-gap-xs,4px)}._531c140826094795__is-info{--wp-ui-notice-background-color:var(--wpds-color-bg-surface-info-weak,#f3f9ff);--wp-ui-notice-border-color:var(--wpds-color-stroke-surface-info,#a9c6e7);--wp-ui-notice-text-color:var(--wpds-color-fg-content-info,#001b4f);--wp-ui-notice-decorative-icon-color:var(--wpds-color-fg-content-info-weak,#006bd7)}.ae2e1004697cce95__is-warning{--wp-ui-notice-background-color:var(--wpds-color-bg-surface-warning-weak,#fff7e1);--wp-ui-notice-border-color:var(--wpds-color-stroke-surface-warning,#e1bc7c);--wp-ui-notice-text-color:var(--wpds-color-fg-content-warning,#2e1900);--wp-ui-notice-decorative-icon-color:var(--wpds-color-fg-content-warning-weak,#926300)}._2e614a76af494837__is-success{--wp-ui-notice-background-color:var(--wpds-color-bg-surface-success-weak,#ebffed);--wp-ui-notice-border-color:var(--wpds-color-stroke-surface-success,#94d29e);--wp-ui-notice-text-color:var(--wpds-color-fg-content-success,#002900);--wp-ui-notice-decorative-icon-color:var(--wpds-color-fg-content-success-weak,#008030)}.af00331ae17a0065__is-error{--wp-ui-notice-background-color:var(--wpds-color-bg-surface-error-weak,#fff6f5);--wp-ui-notice-border-color:var(--wpds-color-stroke-surface-error,#dab1aa);--wp-ui-notice-text-color:var(--wpds-color-fg-content-error,#470000);--wp-ui-notice-decorative-icon-color:var(--wpds-color-fg-content-error-weak,#cc1818)}@container (max-width: 320px){._4145abab73d17514__notice:has(.b5397fb9d05389e3__title) ._0a1270dcdd79c031__actions,._4145abab73d17514__notice:has(.b5397fb9d05389e3__title) ._1904b570a89bb815__description{grid-column:1/3}}}@layer compositions{.d329e7416d368d31__action-link{margin-block:auto}._487e6a5c1375f7dc__close-icon,._983740ab855c4e09__action-button:is(._8ddb8fb33fbf3d38__is-action-button-outline,._77bbde495a8a0af3__is-action-button-minimal){--wp-ui-button-background-color-active:color-mix(in srgb,transparent 50%,var(--wpds-color-bg-interactive-neutral-weak-active,#ededed))}}}");
 }
-var style_default15 = { "notice": "_4145abab73d17514__notice", "icon": "d0a25570cb528528__icon", "title": "b5397fb9d05389e3__title", "description": "_1904b570a89bb815__description", "actions": "_0a1270dcdd79c031__actions", "action-button": "_983740ab855c4e09__action-button", "action-link": "d329e7416d368d31__action-link", "close-icon": "_487e6a5c1375f7dc__close-icon", "is-info": "_531c140826094795__is-info", "is-warning": "ae2e1004697cce95__is-warning", "is-success": "_2e614a76af494837__is-success", "is-error": "af00331ae17a0065__is-error", "is-action-button-outline": "_8ddb8fb33fbf3d38__is-action-button-outline", "is-action-button-minimal": "_77bbde495a8a0af3__is-action-button-minimal" };
-var ActionLink = (0, import_element27.forwardRef)(
-  function NoticeActionLink({ className, render, ...props }, ref) {
-    return /* @__PURE__ */ (0, import_jsx_runtime33.jsx)(
-      Text,
+var style_default14 = { "notice": "_4145abab73d17514__notice", "icon": "d0a25570cb528528__icon", "title": "b5397fb9d05389e3__title", "description": "_1904b570a89bb815__description", "actions": "_0a1270dcdd79c031__actions", "action-button": "_983740ab855c4e09__action-button", "action-link": "d329e7416d368d31__action-link", "close-icon": "_487e6a5c1375f7dc__close-icon", "is-info": "_531c140826094795__is-info", "is-warning": "ae2e1004697cce95__is-warning", "is-success": "_2e614a76af494837__is-success", "is-error": "af00331ae17a0065__is-error", "is-action-button-outline": "_8ddb8fb33fbf3d38__is-action-button-outline", "is-action-button-minimal": "_77bbde495a8a0af3__is-action-button-minimal" };
+var CloseIcon = (0, import_element27.forwardRef)(
+  function NoticeCloseIcon({ className, icon = close_small_default, label = (0, import_i18n3.__)("Dismiss"), ...props }, ref) {
+    return /* @__PURE__ */ (0, import_jsx_runtime31.jsx)(
+      IconButton,
       {
-        ref,
-        className: clsx_default(style_default15["action-link"], className),
         ...props,
-        variant: "body-md",
-        render: /* @__PURE__ */ (0, import_jsx_runtime33.jsx)(Link, { tone: "neutral", variant: "default", render })
+        ref,
+        className: clsx_default(style_default14["close-icon"], className),
+        variant: "minimal",
+        size: "small",
+        tone: "neutral",
+        icon,
+        label
       }
     );
   }
 );
 
-// packages/admin-ui/build-module/navigable-region/index.mjs
+// packages/ui/build-module/notice/action-button.mjs
 var import_element28 = __toESM(require_element(), 1);
-var import_jsx_runtime34 = __toESM(require_jsx_runtime(), 1);
-var NavigableRegion = (0, import_element28.forwardRef)(
-  ({ children, className, ariaLabel, as: Tag = "div", ...props }, ref) => {
-    return /* @__PURE__ */ (0, import_jsx_runtime34.jsx)(
-      Tag,
-      {
-        ref,
-        className: clsx_default("admin-ui-navigable-region", className),
-        "aria-label": ariaLabel,
-        role: "region",
-        tabIndex: "-1",
-        ...props,
-        children
-      }
-    );
-  }
-);
-NavigableRegion.displayName = "NavigableRegion";
-var navigable_region_default = NavigableRegion;
-
-// packages/admin-ui/build-module/page/sidebar-toggle-slot.mjs
-var import_components = __toESM(require_components(), 1);
-var { Fill: SidebarToggleFill, Slot: SidebarToggleSlot } = (0, import_components.createSlotFill)("SidebarToggle");
-
-// packages/admin-ui/build-module/page/header.mjs
-var import_jsx_runtime35 = __toESM(require_jsx_runtime(), 1);
+var import_jsx_runtime32 = __toESM(require_jsx_runtime(), 1);
 var STYLE_HASH_ATTRIBUTE16 = "data-wp-hash";
 function getRuntime16() {
   const globalScope = globalThis;
@@ -10383,84 +10527,34 @@ function registerStyle16(hash, css) {
   }
 }
 if (typeof process === "undefined" || true) {
-  registerStyle16("aa9c241ccc", "._956b6df0898efed0__page{text-wrap:pretty;background-color:var(--wpds-color-bg-surface-neutral,#fcfcfc);color:var(--wpds-color-fg-content-neutral,#1e1e1e);display:flex;flex-flow:column;height:100%;position:relative;z-index:1}._0625b55e82a0d93d__header{background:var(--wpds-color-bg-surface-neutral-strong,#fff);border-block-end:var(--wpds-border-width-xs,1px) solid var(--wpds-color-stroke-surface-neutral-weak,#e4e4e4);inset-block-start:0;padding:var(--wpds-dimension-padding-lg,16px) var(--wpds-dimension-padding-2xl,24px);position:sticky;z-index:1}.a43c44d5ae28b2e8__header-content{min-height:calc(var(--wpds-dimension-base, 4px)*8)}.b7cb5b9daf3a3b25__header-actions{flex-shrink:0}._8113be94e7caf73c__header-title{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}._9a776c7f70996f61__header-visual{display:grid;flex-shrink:0;grid-template-columns:1fr;grid-template-rows:1fr;height:calc(var(--wpds-dimension-base, 4px)*6);width:calc(var(--wpds-dimension-base, 4px)*6);>*{grid-column:1/-1;grid-row:1/-1;max-height:100%;max-width:100%}}.d5e0920cd15d35bc__sidebar-toggle-slot:empty{display:none}._60fea2f6bf5319cd__header-subtitle{color:var(--wpds-color-fg-content-neutral-weak,#707070);padding-block-end:var(--wpds-dimension-padding-xs,4px)}.be5e57d029ec4036__content{display:flex;flex-direction:column;flex-grow:1;overflow:auto;&._128806d0b26e3a50__has-padding{padding:var(--wpds-dimension-padding-lg,16px) var(--wpds-dimension-padding-2xl,24px)}}");
+  registerStyle16("80d31bc171", "@layer wp-ui{@layer utilities, components, compositions, overrides;@layer components{._4145abab73d17514__notice{--icon-height:24px;--text-vertical-padding:calc((var(--icon-height) - var(--wpds-typography-line-height-sm, 20px))/2);--wp-ui-notice-background-color:var(--wpds-color-bg-surface-neutral-weak,#f4f4f4);--wp-ui-notice-border-color:var(--wpds-color-stroke-surface-neutral,#dbdbdb);--wp-ui-notice-text-color:var(--wpds-color-fg-content-neutral,#1e1e1e);--wp-ui-notice-decorative-icon-color:var(--wpds-color-fg-content-neutral,#1e1e1e);align-items:start;background-color:var(--wp-ui-notice-background-color);border:1px solid var(--wp-ui-notice-border-color);border-radius:var(--wpds-border-radius-lg,8px);container-type:inline-size;display:grid;grid-template-columns:auto 1fr auto;padding:var(--wpds-dimension-padding-md,12px)}.d0a25570cb528528__icon{color:var(--wp-ui-notice-decorative-icon-color);grid-column:1;grid-row:1;margin-inline-end:var(--wpds-dimension-gap-xs,4px)}._1904b570a89bb815__description,.b5397fb9d05389e3__title{color:var(--wp-ui-notice-text-color);grid-column:2;padding-block:var(--text-vertical-padding)}._1904b570a89bb815__description{text-wrap:pretty}._0a1270dcdd79c031__actions{display:flex;flex-wrap:wrap;gap:var(--wpds-dimension-gap-md,12px);grid-column:2}._4145abab73d17514__notice:has(._1904b570a89bb815__description) ._0a1270dcdd79c031__actions,._4145abab73d17514__notice:has(.b5397fb9d05389e3__title) ._0a1270dcdd79c031__actions{margin-block-start:var(--wpds-dimension-gap-sm,8px)}._983740ab855c4e09__action-button{flex-shrink:0}.d329e7416d368d31__action-link{flex-shrink:0;&:not(:first-child){margin-inline-start:var(--wpds-dimension-gap-xs,4px)}&:not(:last-child){margin-inline-end:var(--wpds-dimension-gap-xs,4px)}}._487e6a5c1375f7dc__close-icon{grid-column:3;grid-row:1;margin-inline-start:var(--wpds-dimension-gap-xs,4px)}._531c140826094795__is-info{--wp-ui-notice-background-color:var(--wpds-color-bg-surface-info-weak,#f3f9ff);--wp-ui-notice-border-color:var(--wpds-color-stroke-surface-info,#a9c6e7);--wp-ui-notice-text-color:var(--wpds-color-fg-content-info,#001b4f);--wp-ui-notice-decorative-icon-color:var(--wpds-color-fg-content-info-weak,#006bd7)}.ae2e1004697cce95__is-warning{--wp-ui-notice-background-color:var(--wpds-color-bg-surface-warning-weak,#fff7e1);--wp-ui-notice-border-color:var(--wpds-color-stroke-surface-warning,#e1bc7c);--wp-ui-notice-text-color:var(--wpds-color-fg-content-warning,#2e1900);--wp-ui-notice-decorative-icon-color:var(--wpds-color-fg-content-warning-weak,#926300)}._2e614a76af494837__is-success{--wp-ui-notice-background-color:var(--wpds-color-bg-surface-success-weak,#ebffed);--wp-ui-notice-border-color:var(--wpds-color-stroke-surface-success,#94d29e);--wp-ui-notice-text-color:var(--wpds-color-fg-content-success,#002900);--wp-ui-notice-decorative-icon-color:var(--wpds-color-fg-content-success-weak,#008030)}.af00331ae17a0065__is-error{--wp-ui-notice-background-color:var(--wpds-color-bg-surface-error-weak,#fff6f5);--wp-ui-notice-border-color:var(--wpds-color-stroke-surface-error,#dab1aa);--wp-ui-notice-text-color:var(--wpds-color-fg-content-error,#470000);--wp-ui-notice-decorative-icon-color:var(--wpds-color-fg-content-error-weak,#cc1818)}@container (max-width: 320px){._4145abab73d17514__notice:has(.b5397fb9d05389e3__title) ._0a1270dcdd79c031__actions,._4145abab73d17514__notice:has(.b5397fb9d05389e3__title) ._1904b570a89bb815__description{grid-column:1/3}}}@layer compositions{.d329e7416d368d31__action-link{margin-block:auto}._487e6a5c1375f7dc__close-icon,._983740ab855c4e09__action-button:is(._8ddb8fb33fbf3d38__is-action-button-outline,._77bbde495a8a0af3__is-action-button-minimal){--wp-ui-button-background-color-active:color-mix(in srgb,transparent 50%,var(--wpds-color-bg-interactive-neutral-weak-active,#ededed))}}}");
 }
-var style_default16 = { "page": "_956b6df0898efed0__page", "header": "_0625b55e82a0d93d__header", "header-content": "a43c44d5ae28b2e8__header-content", "header-actions": "b7cb5b9daf3a3b25__header-actions", "header-title": "_8113be94e7caf73c__header-title", "header-visual": "_9a776c7f70996f61__header-visual", "sidebar-toggle-slot": "d5e0920cd15d35bc__sidebar-toggle-slot", "header-subtitle": "_60fea2f6bf5319cd__header-subtitle", "content": "be5e57d029ec4036__content", "has-padding": "_128806d0b26e3a50__has-padding" };
-function Header({
-  headingLevel = 1,
-  breadcrumbs,
-  badges,
-  visual,
-  title,
-  subTitle,
-  actions,
-  showSidebarToggle = true
-}) {
-  const HeadingTag = `h${headingLevel}`;
-  return /* @__PURE__ */ (0, import_jsx_runtime35.jsxs)(Stack, { direction: "column", className: style_default16.header, children: [
-    /* @__PURE__ */ (0, import_jsx_runtime35.jsxs)(
-      Stack,
+var style_default15 = { "notice": "_4145abab73d17514__notice", "icon": "d0a25570cb528528__icon", "title": "b5397fb9d05389e3__title", "description": "_1904b570a89bb815__description", "actions": "_0a1270dcdd79c031__actions", "action-button": "_983740ab855c4e09__action-button", "action-link": "d329e7416d368d31__action-link", "close-icon": "_487e6a5c1375f7dc__close-icon", "is-info": "_531c140826094795__is-info", "is-warning": "ae2e1004697cce95__is-warning", "is-success": "_2e614a76af494837__is-success", "is-error": "af00331ae17a0065__is-error", "is-action-button-outline": "_8ddb8fb33fbf3d38__is-action-button-outline", "is-action-button-minimal": "_77bbde495a8a0af3__is-action-button-minimal" };
+var ActionButton = (0, import_element28.forwardRef)(
+  function NoticeActionButton({ className, loading, loadingAnnouncement, variant, ...props }, ref) {
+    const loadingProps = loading !== void 0 ? { loading, loadingAnnouncement: loadingAnnouncement ?? "" } : {};
+    return /* @__PURE__ */ (0, import_jsx_runtime32.jsx)(
+      Button4,
       {
-        className: style_default16["header-content"],
-        direction: "row",
-        gap: "sm",
-        justify: "space-between",
-        children: [
-          /* @__PURE__ */ (0, import_jsx_runtime35.jsxs)(Stack, { direction: "row", gap: "sm", align: "center", justify: "start", children: [
-            showSidebarToggle && /* @__PURE__ */ (0, import_jsx_runtime35.jsx)(
-              SidebarToggleSlot,
-              {
-                bubblesVirtually: true,
-                className: style_default16["sidebar-toggle-slot"]
-              }
-            ),
-            visual && /* @__PURE__ */ (0, import_jsx_runtime35.jsx)(
-              "div",
-              {
-                className: style_default16["header-visual"],
-                "aria-hidden": "true",
-                children: visual
-              }
-            ),
-            title && /* @__PURE__ */ (0, import_jsx_runtime35.jsx)(
-              Text,
-              {
-                className: style_default16["header-title"],
-                render: /* @__PURE__ */ (0, import_jsx_runtime35.jsx)(HeadingTag, {}),
-                variant: "heading-lg",
-                children: title
-              }
-            ),
-            breadcrumbs,
-            badges
-          ] }),
-          actions && /* @__PURE__ */ (0, import_jsx_runtime35.jsx)(
-            Stack,
-            {
-              align: "center",
-              className: style_default16["header-actions"],
-              direction: "row",
-              gap: "sm",
-              children: actions
-            }
-          )
-        ]
+        ...props,
+        ...loadingProps,
+        ref,
+        size: "compact",
+        tone: "neutral",
+        variant,
+        className: clsx_default(
+          style_default15["action-button"],
+          style_default15[`is-action-button-${variant}`],
+          className
+        )
       }
-    ),
-    subTitle && /* @__PURE__ */ (0, import_jsx_runtime35.jsx)(
-      Text,
-      {
-        render: /* @__PURE__ */ (0, import_jsx_runtime35.jsx)("p", {}),
-        variant: "body-md",
-        className: style_default16["header-subtitle"],
-        children: subTitle
-      }
-    )
-  ] });
-}
+    );
+  }
+);
 
-// packages/admin-ui/build-module/page/index.mjs
-var import_jsx_runtime36 = __toESM(require_jsx_runtime(), 1);
+// packages/ui/build-module/notice/action-link.mjs
+var import_element29 = __toESM(require_element(), 1);
+var import_jsx_runtime33 = __toESM(require_jsx_runtime(), 1);
 var STYLE_HASH_ATTRIBUTE17 = "data-wp-hash";
 function getRuntime17() {
   const globalScope = globalThis;
@@ -10542,9 +10636,295 @@ function registerStyle17(hash, css) {
   }
 }
 if (typeof process === "undefined" || true) {
-  registerStyle17("aa9c241ccc", "._956b6df0898efed0__page{text-wrap:pretty;background-color:var(--wpds-color-bg-surface-neutral,#fcfcfc);color:var(--wpds-color-fg-content-neutral,#1e1e1e);display:flex;flex-flow:column;height:100%;position:relative;z-index:1}._0625b55e82a0d93d__header{background:var(--wpds-color-bg-surface-neutral-strong,#fff);border-block-end:var(--wpds-border-width-xs,1px) solid var(--wpds-color-stroke-surface-neutral-weak,#e4e4e4);inset-block-start:0;padding:var(--wpds-dimension-padding-lg,16px) var(--wpds-dimension-padding-2xl,24px);position:sticky;z-index:1}.a43c44d5ae28b2e8__header-content{min-height:calc(var(--wpds-dimension-base, 4px)*8)}.b7cb5b9daf3a3b25__header-actions{flex-shrink:0}._8113be94e7caf73c__header-title{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}._9a776c7f70996f61__header-visual{display:grid;flex-shrink:0;grid-template-columns:1fr;grid-template-rows:1fr;height:calc(var(--wpds-dimension-base, 4px)*6);width:calc(var(--wpds-dimension-base, 4px)*6);>*{grid-column:1/-1;grid-row:1/-1;max-height:100%;max-width:100%}}.d5e0920cd15d35bc__sidebar-toggle-slot:empty{display:none}._60fea2f6bf5319cd__header-subtitle{color:var(--wpds-color-fg-content-neutral-weak,#707070);padding-block-end:var(--wpds-dimension-padding-xs,4px)}.be5e57d029ec4036__content{display:flex;flex-direction:column;flex-grow:1;overflow:auto;&._128806d0b26e3a50__has-padding{padding:var(--wpds-dimension-padding-lg,16px) var(--wpds-dimension-padding-2xl,24px)}}");
+  registerStyle17("80d31bc171", "@layer wp-ui{@layer utilities, components, compositions, overrides;@layer components{._4145abab73d17514__notice{--icon-height:24px;--text-vertical-padding:calc((var(--icon-height) - var(--wpds-typography-line-height-sm, 20px))/2);--wp-ui-notice-background-color:var(--wpds-color-bg-surface-neutral-weak,#f4f4f4);--wp-ui-notice-border-color:var(--wpds-color-stroke-surface-neutral,#dbdbdb);--wp-ui-notice-text-color:var(--wpds-color-fg-content-neutral,#1e1e1e);--wp-ui-notice-decorative-icon-color:var(--wpds-color-fg-content-neutral,#1e1e1e);align-items:start;background-color:var(--wp-ui-notice-background-color);border:1px solid var(--wp-ui-notice-border-color);border-radius:var(--wpds-border-radius-lg,8px);container-type:inline-size;display:grid;grid-template-columns:auto 1fr auto;padding:var(--wpds-dimension-padding-md,12px)}.d0a25570cb528528__icon{color:var(--wp-ui-notice-decorative-icon-color);grid-column:1;grid-row:1;margin-inline-end:var(--wpds-dimension-gap-xs,4px)}._1904b570a89bb815__description,.b5397fb9d05389e3__title{color:var(--wp-ui-notice-text-color);grid-column:2;padding-block:var(--text-vertical-padding)}._1904b570a89bb815__description{text-wrap:pretty}._0a1270dcdd79c031__actions{display:flex;flex-wrap:wrap;gap:var(--wpds-dimension-gap-md,12px);grid-column:2}._4145abab73d17514__notice:has(._1904b570a89bb815__description) ._0a1270dcdd79c031__actions,._4145abab73d17514__notice:has(.b5397fb9d05389e3__title) ._0a1270dcdd79c031__actions{margin-block-start:var(--wpds-dimension-gap-sm,8px)}._983740ab855c4e09__action-button{flex-shrink:0}.d329e7416d368d31__action-link{flex-shrink:0;&:not(:first-child){margin-inline-start:var(--wpds-dimension-gap-xs,4px)}&:not(:last-child){margin-inline-end:var(--wpds-dimension-gap-xs,4px)}}._487e6a5c1375f7dc__close-icon{grid-column:3;grid-row:1;margin-inline-start:var(--wpds-dimension-gap-xs,4px)}._531c140826094795__is-info{--wp-ui-notice-background-color:var(--wpds-color-bg-surface-info-weak,#f3f9ff);--wp-ui-notice-border-color:var(--wpds-color-stroke-surface-info,#a9c6e7);--wp-ui-notice-text-color:var(--wpds-color-fg-content-info,#001b4f);--wp-ui-notice-decorative-icon-color:var(--wpds-color-fg-content-info-weak,#006bd7)}.ae2e1004697cce95__is-warning{--wp-ui-notice-background-color:var(--wpds-color-bg-surface-warning-weak,#fff7e1);--wp-ui-notice-border-color:var(--wpds-color-stroke-surface-warning,#e1bc7c);--wp-ui-notice-text-color:var(--wpds-color-fg-content-warning,#2e1900);--wp-ui-notice-decorative-icon-color:var(--wpds-color-fg-content-warning-weak,#926300)}._2e614a76af494837__is-success{--wp-ui-notice-background-color:var(--wpds-color-bg-surface-success-weak,#ebffed);--wp-ui-notice-border-color:var(--wpds-color-stroke-surface-success,#94d29e);--wp-ui-notice-text-color:var(--wpds-color-fg-content-success,#002900);--wp-ui-notice-decorative-icon-color:var(--wpds-color-fg-content-success-weak,#008030)}.af00331ae17a0065__is-error{--wp-ui-notice-background-color:var(--wpds-color-bg-surface-error-weak,#fff6f5);--wp-ui-notice-border-color:var(--wpds-color-stroke-surface-error,#dab1aa);--wp-ui-notice-text-color:var(--wpds-color-fg-content-error,#470000);--wp-ui-notice-decorative-icon-color:var(--wpds-color-fg-content-error-weak,#cc1818)}@container (max-width: 320px){._4145abab73d17514__notice:has(.b5397fb9d05389e3__title) ._0a1270dcdd79c031__actions,._4145abab73d17514__notice:has(.b5397fb9d05389e3__title) ._1904b570a89bb815__description{grid-column:1/3}}}@layer compositions{.d329e7416d368d31__action-link{margin-block:auto}._487e6a5c1375f7dc__close-icon,._983740ab855c4e09__action-button:is(._8ddb8fb33fbf3d38__is-action-button-outline,._77bbde495a8a0af3__is-action-button-minimal){--wp-ui-button-background-color-active:color-mix(in srgb,transparent 50%,var(--wpds-color-bg-interactive-neutral-weak-active,#ededed))}}}");
+}
+var style_default16 = { "notice": "_4145abab73d17514__notice", "icon": "d0a25570cb528528__icon", "title": "b5397fb9d05389e3__title", "description": "_1904b570a89bb815__description", "actions": "_0a1270dcdd79c031__actions", "action-button": "_983740ab855c4e09__action-button", "action-link": "d329e7416d368d31__action-link", "close-icon": "_487e6a5c1375f7dc__close-icon", "is-info": "_531c140826094795__is-info", "is-warning": "ae2e1004697cce95__is-warning", "is-success": "_2e614a76af494837__is-success", "is-error": "af00331ae17a0065__is-error", "is-action-button-outline": "_8ddb8fb33fbf3d38__is-action-button-outline", "is-action-button-minimal": "_77bbde495a8a0af3__is-action-button-minimal" };
+var ActionLink = (0, import_element29.forwardRef)(
+  function NoticeActionLink({ className, render, ...props }, ref) {
+    return /* @__PURE__ */ (0, import_jsx_runtime33.jsx)(
+      Text,
+      {
+        ref,
+        className: clsx_default(style_default16["action-link"], className),
+        ...props,
+        variant: "body-md",
+        render: /* @__PURE__ */ (0, import_jsx_runtime33.jsx)(Link, { tone: "neutral", variant: "default", render })
+      }
+    );
+  }
+);
+
+// packages/admin-ui/build-module/navigable-region/index.mjs
+var import_element30 = __toESM(require_element(), 1);
+var import_jsx_runtime34 = __toESM(require_jsx_runtime(), 1);
+var NavigableRegion = (0, import_element30.forwardRef)(
+  ({ children, className, ariaLabel, as: Tag = "div", ...props }, ref) => {
+    return /* @__PURE__ */ (0, import_jsx_runtime34.jsx)(
+      Tag,
+      {
+        ref,
+        className: clsx_default("admin-ui-navigable-region", className),
+        "aria-label": ariaLabel,
+        role: "region",
+        tabIndex: "-1",
+        ...props,
+        children
+      }
+    );
+  }
+);
+NavigableRegion.displayName = "NavigableRegion";
+var navigable_region_default = NavigableRegion;
+
+// packages/admin-ui/build-module/page/sidebar-toggle-slot.mjs
+var import_components = __toESM(require_components(), 1);
+var { Fill: SidebarToggleFill, Slot: SidebarToggleSlot } = (0, import_components.createSlotFill)("SidebarToggle");
+
+// packages/admin-ui/build-module/page/header.mjs
+var import_jsx_runtime35 = __toESM(require_jsx_runtime(), 1);
+var STYLE_HASH_ATTRIBUTE18 = "data-wp-hash";
+function getRuntime18() {
+  const globalScope = globalThis;
+  if (globalScope.__wpStyleRuntime) {
+    return globalScope.__wpStyleRuntime;
+  }
+  globalScope.__wpStyleRuntime = {
+    documents: /* @__PURE__ */ new Map(),
+    styles: /* @__PURE__ */ new Map(),
+    injectedStyles: /* @__PURE__ */ new WeakMap()
+  };
+  if (typeof document !== "undefined") {
+    registerDocument18(document);
+  }
+  return globalScope.__wpStyleRuntime;
+}
+function documentContainsStyleHash18(targetDocument, hash) {
+  if (!targetDocument.head) {
+    return false;
+  }
+  for (const style of targetDocument.head.querySelectorAll(
+    `style[${STYLE_HASH_ATTRIBUTE18}]`
+  )) {
+    if (style.getAttribute(STYLE_HASH_ATTRIBUTE18) === hash) {
+      return true;
+    }
+  }
+  return false;
+}
+function injectStyle18(targetDocument, hash, css) {
+  if (!targetDocument.head) {
+    return;
+  }
+  const runtime = getRuntime18();
+  let injectedStyles = runtime.injectedStyles.get(targetDocument);
+  if (!injectedStyles) {
+    injectedStyles = /* @__PURE__ */ new Set();
+    runtime.injectedStyles.set(targetDocument, injectedStyles);
+  }
+  if (injectedStyles.has(hash)) {
+    return;
+  }
+  if (documentContainsStyleHash18(targetDocument, hash)) {
+    injectedStyles.add(hash);
+    return;
+  }
+  const style = targetDocument.createElement("style");
+  style.setAttribute(STYLE_HASH_ATTRIBUTE18, hash);
+  style.appendChild(targetDocument.createTextNode(css));
+  targetDocument.head.appendChild(style);
+  injectedStyles.add(hash);
+}
+function registerDocument18(targetDocument) {
+  const runtime = getRuntime18();
+  runtime.documents.set(
+    targetDocument,
+    (runtime.documents.get(targetDocument) ?? 0) + 1
+  );
+  for (const [hash, css] of runtime.styles) {
+    injectStyle18(targetDocument, hash, css);
+  }
+  return () => {
+    const count = runtime.documents.get(targetDocument);
+    if (count === void 0) {
+      return;
+    }
+    if (count <= 1) {
+      runtime.documents.delete(targetDocument);
+      return;
+    }
+    runtime.documents.set(targetDocument, count - 1);
+  };
+}
+function registerStyle18(hash, css) {
+  const runtime = getRuntime18();
+  runtime.styles.set(hash, css);
+  for (const targetDocument of runtime.documents.keys()) {
+    injectStyle18(targetDocument, hash, css);
+  }
+}
+if (typeof process === "undefined" || true) {
+  registerStyle18("683dd16f2c", "._956b6df0898efed0__page{text-wrap:pretty;background-color:var(--wpds-color-bg-surface-neutral,#fcfcfc);color:var(--wpds-color-fg-content-neutral,#1e1e1e);display:flex;flex-flow:column;height:100%;position:relative;z-index:1}._0625b55e82a0d93d__header{background:var(--wpds-color-bg-surface-neutral-strong,#fff);border-block-end:var(--wpds-border-width-xs,1px) solid var(--wpds-color-stroke-surface-neutral-weak,#f0f0f0);inset-block-start:0;padding:var(--wpds-dimension-padding-lg,16px) var(--wpds-dimension-padding-2xl,24px);position:sticky;z-index:1}.a43c44d5ae28b2e8__header-content{min-height:calc(var(--wpds-dimension-base, 4px)*8)}.b7cb5b9daf3a3b25__header-actions{flex-shrink:0}._8113be94e7caf73c__header-title{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}._9a776c7f70996f61__header-visual{display:grid;flex-shrink:0;grid-template-columns:1fr;grid-template-rows:1fr;height:calc(var(--wpds-dimension-base, 4px)*6);width:calc(var(--wpds-dimension-base, 4px)*6);>*{grid-column:1/-1;grid-row:1/-1;max-height:100%;max-width:100%}}.d5e0920cd15d35bc__sidebar-toggle-slot:empty{display:none}._60fea2f6bf5319cd__header-subtitle{color:var(--wpds-color-fg-content-neutral-weak,#707070);padding-block-end:var(--wpds-dimension-padding-xs,4px)}.be5e57d029ec4036__content{display:flex;flex-direction:column;flex-grow:1;overflow:auto;&._128806d0b26e3a50__has-padding{padding:var(--wpds-dimension-padding-lg,16px) var(--wpds-dimension-padding-2xl,24px)}}");
 }
 var style_default17 = { "page": "_956b6df0898efed0__page", "header": "_0625b55e82a0d93d__header", "header-content": "a43c44d5ae28b2e8__header-content", "header-actions": "b7cb5b9daf3a3b25__header-actions", "header-title": "_8113be94e7caf73c__header-title", "header-visual": "_9a776c7f70996f61__header-visual", "sidebar-toggle-slot": "d5e0920cd15d35bc__sidebar-toggle-slot", "header-subtitle": "_60fea2f6bf5319cd__header-subtitle", "content": "be5e57d029ec4036__content", "has-padding": "_128806d0b26e3a50__has-padding" };
+function Header({
+  headingLevel = 1,
+  breadcrumbs,
+  badges,
+  visual,
+  title,
+  subTitle,
+  actions,
+  showSidebarToggle = true
+}) {
+  const HeadingTag = `h${headingLevel}`;
+  return /* @__PURE__ */ (0, import_jsx_runtime35.jsxs)(Stack, { direction: "column", className: style_default17.header, children: [
+    /* @__PURE__ */ (0, import_jsx_runtime35.jsxs)(
+      Stack,
+      {
+        className: style_default17["header-content"],
+        direction: "row",
+        gap: "sm",
+        justify: "space-between",
+        children: [
+          /* @__PURE__ */ (0, import_jsx_runtime35.jsxs)(Stack, { direction: "row", gap: "sm", align: "center", justify: "start", children: [
+            showSidebarToggle && /* @__PURE__ */ (0, import_jsx_runtime35.jsx)(
+              SidebarToggleSlot,
+              {
+                bubblesVirtually: true,
+                className: style_default17["sidebar-toggle-slot"]
+              }
+            ),
+            visual && /* @__PURE__ */ (0, import_jsx_runtime35.jsx)(
+              "div",
+              {
+                className: style_default17["header-visual"],
+                "aria-hidden": "true",
+                children: visual
+              }
+            ),
+            title && /* @__PURE__ */ (0, import_jsx_runtime35.jsx)(
+              Text,
+              {
+                className: style_default17["header-title"],
+                render: /* @__PURE__ */ (0, import_jsx_runtime35.jsx)(HeadingTag, {}),
+                variant: "heading-lg",
+                children: title
+              }
+            ),
+            breadcrumbs,
+            badges
+          ] }),
+          actions && /* @__PURE__ */ (0, import_jsx_runtime35.jsx)(
+            Stack,
+            {
+              align: "center",
+              className: style_default17["header-actions"],
+              direction: "row",
+              gap: "sm",
+              children: actions
+            }
+          )
+        ]
+      }
+    ),
+    subTitle && /* @__PURE__ */ (0, import_jsx_runtime35.jsx)(
+      Text,
+      {
+        render: /* @__PURE__ */ (0, import_jsx_runtime35.jsx)("p", {}),
+        variant: "body-md",
+        className: style_default17["header-subtitle"],
+        children: subTitle
+      }
+    )
+  ] });
+}
+
+// packages/admin-ui/build-module/page/index.mjs
+var import_jsx_runtime36 = __toESM(require_jsx_runtime(), 1);
+var STYLE_HASH_ATTRIBUTE19 = "data-wp-hash";
+function getRuntime19() {
+  const globalScope = globalThis;
+  if (globalScope.__wpStyleRuntime) {
+    return globalScope.__wpStyleRuntime;
+  }
+  globalScope.__wpStyleRuntime = {
+    documents: /* @__PURE__ */ new Map(),
+    styles: /* @__PURE__ */ new Map(),
+    injectedStyles: /* @__PURE__ */ new WeakMap()
+  };
+  if (typeof document !== "undefined") {
+    registerDocument19(document);
+  }
+  return globalScope.__wpStyleRuntime;
+}
+function documentContainsStyleHash19(targetDocument, hash) {
+  if (!targetDocument.head) {
+    return false;
+  }
+  for (const style of targetDocument.head.querySelectorAll(
+    `style[${STYLE_HASH_ATTRIBUTE19}]`
+  )) {
+    if (style.getAttribute(STYLE_HASH_ATTRIBUTE19) === hash) {
+      return true;
+    }
+  }
+  return false;
+}
+function injectStyle19(targetDocument, hash, css) {
+  if (!targetDocument.head) {
+    return;
+  }
+  const runtime = getRuntime19();
+  let injectedStyles = runtime.injectedStyles.get(targetDocument);
+  if (!injectedStyles) {
+    injectedStyles = /* @__PURE__ */ new Set();
+    runtime.injectedStyles.set(targetDocument, injectedStyles);
+  }
+  if (injectedStyles.has(hash)) {
+    return;
+  }
+  if (documentContainsStyleHash19(targetDocument, hash)) {
+    injectedStyles.add(hash);
+    return;
+  }
+  const style = targetDocument.createElement("style");
+  style.setAttribute(STYLE_HASH_ATTRIBUTE19, hash);
+  style.appendChild(targetDocument.createTextNode(css));
+  targetDocument.head.appendChild(style);
+  injectedStyles.add(hash);
+}
+function registerDocument19(targetDocument) {
+  const runtime = getRuntime19();
+  runtime.documents.set(
+    targetDocument,
+    (runtime.documents.get(targetDocument) ?? 0) + 1
+  );
+  for (const [hash, css] of runtime.styles) {
+    injectStyle19(targetDocument, hash, css);
+  }
+  return () => {
+    const count = runtime.documents.get(targetDocument);
+    if (count === void 0) {
+      return;
+    }
+    if (count <= 1) {
+      runtime.documents.delete(targetDocument);
+      return;
+    }
+    runtime.documents.set(targetDocument, count - 1);
+  };
+}
+function registerStyle19(hash, css) {
+  const runtime = getRuntime19();
+  runtime.styles.set(hash, css);
+  for (const targetDocument of runtime.documents.keys()) {
+    injectStyle19(targetDocument, hash, css);
+  }
+}
+if (typeof process === "undefined" || true) {
+  registerStyle19("683dd16f2c", "._956b6df0898efed0__page{text-wrap:pretty;background-color:var(--wpds-color-bg-surface-neutral,#fcfcfc);color:var(--wpds-color-fg-content-neutral,#1e1e1e);display:flex;flex-flow:column;height:100%;position:relative;z-index:1}._0625b55e82a0d93d__header{background:var(--wpds-color-bg-surface-neutral-strong,#fff);border-block-end:var(--wpds-border-width-xs,1px) solid var(--wpds-color-stroke-surface-neutral-weak,#f0f0f0);inset-block-start:0;padding:var(--wpds-dimension-padding-lg,16px) var(--wpds-dimension-padding-2xl,24px);position:sticky;z-index:1}.a43c44d5ae28b2e8__header-content{min-height:calc(var(--wpds-dimension-base, 4px)*8)}.b7cb5b9daf3a3b25__header-actions{flex-shrink:0}._8113be94e7caf73c__header-title{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}._9a776c7f70996f61__header-visual{display:grid;flex-shrink:0;grid-template-columns:1fr;grid-template-rows:1fr;height:calc(var(--wpds-dimension-base, 4px)*6);width:calc(var(--wpds-dimension-base, 4px)*6);>*{grid-column:1/-1;grid-row:1/-1;max-height:100%;max-width:100%}}.d5e0920cd15d35bc__sidebar-toggle-slot:empty{display:none}._60fea2f6bf5319cd__header-subtitle{color:var(--wpds-color-fg-content-neutral-weak,#707070);padding-block-end:var(--wpds-dimension-padding-xs,4px)}.be5e57d029ec4036__content{display:flex;flex-direction:column;flex-grow:1;overflow:auto;&._128806d0b26e3a50__has-padding{padding:var(--wpds-dimension-padding-lg,16px) var(--wpds-dimension-padding-2xl,24px)}}");
+}
+var style_default18 = { "page": "_956b6df0898efed0__page", "header": "_0625b55e82a0d93d__header", "header-content": "a43c44d5ae28b2e8__header-content", "header-actions": "b7cb5b9daf3a3b25__header-actions", "header-title": "_8113be94e7caf73c__header-title", "header-visual": "_9a776c7f70996f61__header-visual", "sidebar-toggle-slot": "d5e0920cd15d35bc__sidebar-toggle-slot", "header-subtitle": "_60fea2f6bf5319cd__header-subtitle", "content": "be5e57d029ec4036__content", "has-padding": "_128806d0b26e3a50__has-padding" };
 function Page({
   headingLevel,
   breadcrumbs,
@@ -10559,7 +10939,7 @@ function Page({
   hasPadding = false,
   showSidebarToggle = true
 }) {
-  const classes = clsx_default(style_default17.page, className);
+  const classes = clsx_default(style_default18.page, className);
   const effectiveAriaLabel = ariaLabel ?? (typeof title === "string" ? title : "");
   return /* @__PURE__ */ (0, import_jsx_runtime36.jsxs)(navigable_region_default, { className: classes, ariaLabel: effectiveAriaLabel, children: [
     (title || breadcrumbs || badges || actions || visual) && /* @__PURE__ */ (0, import_jsx_runtime36.jsx)(
@@ -10579,8 +10959,8 @@ function Page({
       "div",
       {
         className: clsx_default(
-          style_default17.content,
-          style_default17["has-padding"]
+          style_default18.content,
+          style_default18["has-padding"]
         ),
         children
       }
@@ -10593,7 +10973,7 @@ var page_default = Page;
 // routes/connectors-home/stage.tsx
 var import_components4 = __toESM(require_components());
 var import_data4 = __toESM(require_data());
-var import_element32 = __toESM(require_element());
+var import_element34 = __toESM(require_element());
 var import_i18n7 = __toESM(require_i18n());
 var import_core_data3 = __toESM(require_core_data());
 import {
@@ -10601,10 +10981,10 @@ import {
 } from "@wordpress/connectors";
 
 // routes/connectors-home/style.scss
-if (typeof document !== "undefined" && true && !document.head.querySelector("style[data-wp-hash='f2df357a8c']")) {
+if (typeof document !== "undefined" && true && !document.head.querySelector("style[data-wp-hash='09e9b056ea']")) {
   const style = document.createElement("style");
-  style.setAttribute("data-wp-hash", "f2df357a8c");
-  style.appendChild(document.createTextNode(".connectors-page{box-sizing:border-box;margin:0 auto;max-width:680px;padding:24px;width:100%}.connectors-page .components-item{background:#fff;border:1px solid #ddd;border-radius:8px;overflow:hidden;padding:20px;scroll-margin-top:120px}.connectors-page .connector-settings__error{color:#cc1818}.connectors-page .connector-settings .components-text-control__input{font-family:monospace;scroll-margin-top:120px}.connectors-page__file-mods-notice{margin-bottom:16px}.connectors-page--empty{align-items:center;display:flex;flex-direction:column;flex-grow:1;gap:32px;justify-content:center;text-align:center}.connectors-page .ai-plugin-callout{background:linear-gradient(90deg,#fff9,#fff9),linear-gradient(90deg,#89dcdc,#c7eb5c 46.15%,#a920c1);border-radius:8px;overflow:hidden;padding:24px;padding-inline-end:220px;position:relative}[dir=rtl] .connectors-page .ai-plugin-callout{background:linear-gradient(270deg,#fff9,#fff9),linear-gradient(270deg,#89dcdc,#c7eb5c 46.15%,#a920c1)}.connectors-page .ai-plugin-callout__content{align-items:flex-start;display:flex;flex-direction:column;gap:12px;padding-top:2px}.connectors-page .ai-plugin-callout__content p{font-size:13px;line-height:20px;margin:0}.connectors-page .ai-plugin-callout__decoration{height:248px;inset-inline-end:8px;position:absolute;top:-15px;width:248px}.connectors-page>p{color:#949494}@media (max-width:680px){.connectors-page .ai-plugin-callout{padding:12px;padding-inline-end:145px}.connectors-page .ai-plugin-callout__decoration{height:134px;inset-inline-end:4px;top:-8px;width:134px}}@media (max-width:480px){.connectors-page{padding:8px}.connectors-page .ai-plugin-callout{padding-inline-end:130px}.connectors-page .components-item{padding:12px}.connectors-page .components-item>.components-v-stack>.components-h-stack:first-child svg{height:32px;width:32px}.connectors-page .components-item>.components-v-stack>.components-h-stack:first-child>.components-h-stack:last-child{align-items:flex-end;flex-direction:column}}"));
+  style.setAttribute("data-wp-hash", "09e9b056ea");
+  style.appendChild(document.createTextNode(".connectors-page{box-sizing:border-box;margin:0 auto;max-width:680px;padding:24px;width:100%}.connectors-page .components-item{background:#fff;border:1px solid #ddd;border-radius:8px;overflow:hidden;padding:20px;scroll-margin-top:120px}.connectors-page .connector-settings__error{color:#cc1818}.connectors-page .connector-settings .components-text-control__input{font-family:monospace;scroll-margin-top:120px}.connectors-page__file-mods-notice{margin-bottom:16px}.connectors-page--empty{align-items:center;display:flex;flex-direction:column;flex-grow:1;gap:32px;justify-content:center;text-align:center}.connectors-page .ai-plugin-callout{background-color:#e7d4e4;background-image:radial-gradient(ellipse 70% 120% at 18% 115%,rgba(202,158,198,.75) 0,rgba(202,158,198,0) 60%),radial-gradient(ellipse 55% 110% at 92% -15%,rgba(208,175,217,.7) 0,rgba(208,175,217,0) 65%),radial-gradient(ellipse 40% 85% at 58% -10%,rgba(170,130,184,.45) 0,rgba(170,130,184,0) 70%);border-radius:8px;overflow:hidden;padding:24px;padding-inline-end:150px;position:relative}[dir=rtl] .connectors-page .ai-plugin-callout{background-image:radial-gradient(ellipse 70% 120% at 82% 115%,rgba(202,158,198,.75) 0,rgba(202,158,198,0) 60%),radial-gradient(ellipse 55% 110% at 8% -15%,rgba(208,175,217,.7) 0,rgba(208,175,217,0) 65%),radial-gradient(ellipse 40% 85% at 42% -10%,rgba(170,130,184,.45) 0,rgba(170,130,184,0) 70%)}.connectors-page .ai-plugin-callout__content{align-items:flex-start;display:flex;flex-direction:column;gap:12px;padding-top:2px}.connectors-page .ai-plugin-callout__content p{font-size:13px;line-height:20px;margin:0}.connectors-page .ai-plugin-callout__decoration{height:110px;inset-inline-end:16px;position:absolute;top:12px;width:110px}.connectors-page>p{color:#949494}@media (max-width:680px){.connectors-page .ai-plugin-callout{padding:12px;padding-inline-end:100px}.connectors-page .ai-plugin-callout__decoration{height:75px;inset-inline-end:8px;top:8px;width:75px}}@media (max-width:480px){.connectors-page{padding:8px}.connectors-page .ai-plugin-callout{padding-inline-end:130px}.connectors-page .components-item{padding:12px}.connectors-page .components-item>.components-v-stack>.components-h-stack:first-child svg{height:32px;width:32px}.connectors-page .components-item>.components-v-stack>.components-h-stack:first-child>.components-h-stack:last-child{align-items:flex-end;flex-direction:column}}"));
   document.head.appendChild(style);
 }
 
@@ -10612,14 +10992,14 @@ if (typeof document !== "undefined" && true && !document.head.querySelector("sty
 var import_components3 = __toESM(require_components());
 var import_core_data2 = __toESM(require_core_data());
 var import_data3 = __toESM(require_data());
-var import_element31 = __toESM(require_element());
+var import_element33 = __toESM(require_element());
 var import_i18n6 = __toESM(require_i18n());
 var import_notices2 = __toESM(require_notices());
 var import_url = __toESM(require_url());
 
 // routes/connectors-home/default-connectors.tsx
 var import_components2 = __toESM(require_components());
-var import_element30 = __toESM(require_element());
+var import_element32 = __toESM(require_element());
 var import_data2 = __toESM(require_data());
 var import_i18n5 = __toESM(require_i18n());
 import {
@@ -10639,7 +11019,7 @@ var { lock: lock2, unlock: unlock2 } = (0, import_private_apis2.__dangerousOptIn
 // routes/connectors-home/use-connector-plugin.ts
 var import_core_data = __toESM(require_core_data());
 var import_data = __toESM(require_data());
-var import_element29 = __toESM(require_element());
+var import_element31 = __toESM(require_element());
 var import_i18n4 = __toESM(require_i18n());
 var import_notices = __toESM(require_notices());
 function useConnectorPlugin({
@@ -10651,10 +11031,10 @@ function useConnectorPlugin({
   keySource = "none",
   initialIsConnected = false
 }) {
-  const [isExpanded, setIsExpanded] = (0, import_element29.useState)(false);
-  const [isBusy, setIsBusy] = (0, import_element29.useState)(false);
-  const [connectedState, setConnectedState] = (0, import_element29.useState)(initialIsConnected);
-  const [pluginStatusOverride, setPluginStatusOverride] = (0, import_element29.useState)(null);
+  const [isExpanded, setIsExpanded] = (0, import_element31.useState)(false);
+  const [isBusy, setIsBusy] = (0, import_element31.useState)(false);
+  const [connectedState, setConnectedState] = (0, import_element31.useState)(initialIsConnected);
+  const [pluginStatusOverride, setPluginStatusOverride] = (0, import_element31.useState)(null);
   const pluginBasename = pluginFileFromServer?.replace(/\.php$/, "");
   const pluginSlug = pluginBasename?.includes("/") ? pluginBasename.split("/")[0] : pluginBasename;
   const {
@@ -11208,7 +11588,7 @@ function ApiKeyConnector({
   const isExternallyConfigured = keySource === "env" || keySource === "constant";
   const showUnavailableBadge = pluginStatus === "not-installed" && canInstallPlugins === false || pluginStatus === "inactive" && canActivatePlugins === false;
   const showActionButton = !showUnavailableBadge;
-  const actionButtonRef = (0, import_element30.useRef)(null);
+  const actionButtonRef = (0, import_element32.useRef)(null);
   return /* @__PURE__ */ React.createElement(
     ConnectorItem,
     {
@@ -11293,30 +11673,12 @@ function WpLogoDecoration() {
     /* @__PURE__ */ React.createElement(
       "image",
       {
-        href: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAPgAAAD4CAYAAADB0SsLAACAAElEQVR4XuzdB7hlRZEH8D73zRBniJLDzBAEVFQMKCaCWXENa1oTYM45hwXEtOa0ZgVzWnPOBHPWVcxgzjnrGvb/O91n5s5lZnjAe4Bw6vvqO3XPPed0rO6q6urqUkYYYYQRRhhhhBFGGGGEEUYYYYQRRhhhhBFGGGGEEUYYYYQRRhhhhBFGGGGEEUYYYYQRRhhhhBFGGGGEEUYYYYQRRhhhhBFGGGGEEUYYYYQRRhhhhBFGGGGEEUYYYYQRRhhhhBFGGGGEEUYYYYQRRhhhhBFGGGGEEUYYYYQRRhhhhBFGGGGEEUYYYYQRRhhhhBFGGGGEEUaYD3RdtxY9/XuEEUb4F4aBoWdxhBFG+BeHxsxg0+BmwSXBrYPbBTfOI3Dz4NKZV0cYYYTFhMlkskGcm5tbC6f/m5mtlwavGLxacKt8+k7BY4N7B/cLHhbceTrtaRi+A2bTX7JkSY9Lly4tG220UY8jjDDCmcAsM8/iLHOfCYObtS8bPCi4ZfCIJPHw4J6lMvlVgzuslYEpmP7WbPoDc08z+MYbEwpGGGGEdcIUo24V3CG4WXB5o103R4fBtgpuFkRvm3ubBrcPXiTMuElw+66K4uhdgrt3VUx33Se4PMltF1wRREOMTmTfrNHL2/s7BLfMtzdq+dgmaW4UBt8+zH2RYHh7o+2C24fBl45MPsKFGsx8U4w8O+MO918U/FnwLsGH5f5Pcz0ueJT7YbAXB68f/HnwncGr5pmfBD/Z1Rn79OA3ggcEP5N3fpzrFYLvDqKvkaycEPxx8BbBxwd/Erxv8F6NflKeu0lL+1W5HtzS/lDKcLlcfxLm/lLw0mHq0zbZZJOf5rqPmVwZlWWEES5UQJwddNdp0RozTGPuvTb4z+B9MXbu/SPXpwbv6n7efV3wxo3+SPDQPPPP4Le6ysi/C/46ePk8813Phb5K8FPtuesnO28K/jNIbH9Wox8RfEijn5fnbtWef2fwmi1Pn096Vwz+I+X4Ucp0uTD1bzbddNN/ht5vGMC6kcFHuDCBma3prBuHCTYJg4QPJht1VQyeBKfp/YJmZeL1KnSe3TO4W967Wt6/WK475nrl4KVCbx28XJ7bv6u6tpkbbtHumdXd913PbVOqHn75UkX13RvN4LYjOs+sCBL56e/7JO1tglcJXiq4ZdK7StK+fHDLlOmg4JVCL8/9jfO/ciwp1VK/SamWela4gR5hhH9tMEPDaWNUcJsw+qeDX8l/FwsjvC2McGoQc704+OXQ1w4eG/x88NbBu6Pz7IOCN897X8w3n5ZvHZDvvCLX/8zvTlrDzDkfPDNoz+2bb94r12sEr9TyQbowaHw2ab4vaNY+JfhJ94Nme2U6KJ95WfDLwesGn9ToO86kMe88jTDC+QKGDovh4MDowR2iqxJ/idaXy3+no/Psobme0uj/yPWVjX5g8AnoPPtszIbOd94ZvFrE4q9E7315mHzO9+fL5GcGU8/K49OCBprrlZqnrwWv1OhfJs0Dg3/xO1ez/XfRQXr+xxp9y+DrG82KP8II/5owy0wzDM76fI3gdXOPZZoYfr2uOqBcIa/TjYnIl87vfwvuEbxYoy+e5/fMezcMQxONt8v1KpnFLxWcLOQ69FT+ifX7BnfuqjX9Bl1VF1juD09erhFkVb9O8Lru5//Duqrjs8QbCAwMuwUvU2r5LjqV1AgjnH9hihFW/27XywQ/GDw+nX6fMOP7g28JE+yR6+uC7wi9V/573qSKtEReDLRvXqc3n2GggNODxSD2L5aTyWzasygv68Lh/wZPDb6j1PX2Bzf634J3Dn6wXW/caA44PQzvD+mMMML5Da5Vqgj7veAV0WFCIuwBYc5eRE/HZeH+YXuOjnux0Ga/nWaZaejomHuawReLuQeYzcNsfoY8zTJ4A5z5pVLF8lsF39zoBwSf0eint9/o99TXRhjhfA6YNJfb5nqjdPrtgrcOI9wiuG3wdsE7BTmi3Cx4Z88Ht+qqKMx3fPaT/4qAwc3OdwnuFbx68K7BSwYvGzyyVMs9l1m0/0cY4XwFNwy+vNROzGqMfmhwn+DzgkeHWVeEwZ87qcaqLaZnu2HGm8WzA9Oz5/R31kcPvwfw/rruLxIwuj0/eJMgAyP69qUyvDq0Hq8O0U8pdbltLVhMyWWEEQZ4bKni5f+U6jCC/mTw2o3+QddEdBgm2nl9DA7OBcY6v8BLSq2TZwYf1GgiPFEe/flSZ3T0r4LLvDSoJwNSU0YYYTHhysFHBm8QvHipS0A6KSeSxwTvE6bdNddjgo/oquPJWoys016QYT2D1+Glusdep1TJB81llpFRHd62VOebhwXvHrRpZrXOf27ZIEa48IClK3qkjRjEcmvTDGkHBh9VqmWYkQx9ZH1l3TDfWXp9IvN63t++VAeSm5Wa12NKzQtbgBmSpIFhMMvjSl2qunWjDyiV4dCHBA8uleGIzxcpVRrxzFowSCDrgvXdnwdcotR8367U/KI5+rBNPC7fPSYMbpPL7cLYd2uOQz3DjzDCOQEd3Hout84TShUd6YZ0xVkR/Yv1lTUwzNrrYc6FgP2Dny1VzLXe3KsEwcsFf9doS1XfCP6j1AHJ0pT79ogTmf8ePK7UwcH915VqACNGW85aLyxg2ejhsyL6T7vq6deXKcy8f5j6pE033fSrYfCLmskHS/4II5xdGLZW8qUmSjIKEcuJmK8olUno2oOBqIeh029otlsgMIPfo1T1gD/5k4P/Fdyl1PVlTLqy1CWp/y6Vce8QfG6pUsi/l2oUNFsLAoE2w29bahkNGgsK6xkQBkMlMZ2R7YTgf3V1m+szU4dPCYPvFLxjGPu+uVqVWMueMcII8wE9Rae3rLOqVLdLsxjGMCuarV0XC8xe0iOyWlIygPB00+mJ4oeWyryYlHcYRqS33jCdfMtcbx68aegt3CuV8bcO8nO/TakDAi+62wQNXNJwn5pBD3bfrOm/I0stP3FfntSLAU+euLDauOKZO4R23wBoVcHz5xiadGD14XbB/5irnnP/Eea+Q64XsfyY+3fLM7u1Z2c/McIIZxAzWb6+XqpYiFne1ej7lDq7oc1+iwU8vqTB+8tMTHx+TqmztPtvK1XMJm5/IXi1dv/npTJrL86mPGbe37bf3Ea/1u7Tud/X7hOLbXRBm+3/s9FmUrow+pRSZ3fpnV6qtOL+H/MtA92QnkHoR+05g9Q5htYuBp4+jTD0AWHovzVaOKre9z3X6w9tODL5CGvBdMeY6hyDm6XObI80mrhqVqe/mqV6GN5xXSBRnGHs7aXq/WbEt5bKbGZutIGG3v2WUq31DID2dxt0VgRfXarqwAf8Bf5L3jxjR5fBgbOJMtnNZnAgCbjPsGbGRyufVQK0lQLSBPppeWfP4JuDx3d1nf9Vwf9xv9SBSB4x5VmGaVF7qk12Db43/705TL1H8JXBtwf3zr1nd3W/uu2x62rHES7MMHSorsYvu2ZXN3YQec1GGMymiUuXKgqvnHp1IQDD0uUFRJSeWVl6VAGDCesxhmWxX1mqVZuOjJHAwaUyHkeQQ4IHdjViKoOaAA8bdzXo4qHBTXOPjzy3WKK7TSzKy6Nuj/y+VlfFXGkS5cVss3nEzM1X3juet1dc+KerT+r+cOGiRHs5LLh5V7eV+haVgE6tTMR1hsobBQ0O82bA4VntBMPUS+fqJhcbXOxLt/nlepO60UVZb9xVnX3eaYxwAQVLLHPNvzsdxM6pX5Qq7mE8Vmli4U1LnbnQROaFAmrAD0r9rln0w6WKtjdP+sN20fsHe2eaXPlv03s9/4ZSBwD3P93Vvdfu/zC0wQj9f6EvGSS29+JzcPANx8CD2kEyMPN7hnhu7RnNsv4f7ZkPlDVWbdtFe7E8dfbb1N2l+dn7PVe3wH6/vW8g+kR7h5pjpQH98K4xrHqfdlxZH3h+aKfgdhtvvHGfXt65Qn6fjs73rpPnTkbnehfvDOmMcCEEwQEHRwmdKx3FTETU+2yudNeXlbrkpaNaEvvfUg1ZPeg8CwBvDH66VJH52UEhlQ4OPjJ5+EyuDGW37yoT37OreqZnHt3VKC1ooZVEakG/MbgyeFLwg/nGykkNKuG/iwZPaGl4l3X60/nfrHz/dp//PMOZ9B7c1YHuU8Gnhr6U+6FfkXeIxp9Knb07uGrp0qUnpQ4/HnqvoDzIuy2vVht865Cg0FPu3xbTDQw+MPlArw+mvNe2Tpt9IvjV/L543nlTvvXloNmbuP7ZIGPj6ll/ZPILGWDuhkvSUQ5Ip7l0OstmwUunMxwYXJYOQty0AYQ/pB6i982bq3WwBt4jRhO7fcsVQ6PttSY2C9dEdL3spEZS3SV4mUn1Xb9IkGHJdVlQHncKinluhqYDA9FULhrsgqLFQExz0eAlQ4sRtYf352pYpV2DB4QWqdWGGOltHbRP/TK5L4KqjS/S3j3oHXqu0FG+JVSUaC6CTeyfOrxUrsRn4aSUw7sGgsvP1b3vK3O9Yq7b57rLXA0UsWve2d5MHNx72AK7Phj+D05auiLZTFp+klx38eCVJrWuVoW+wmTKPXiECwFMMTfcWbDAXP8RRr9sOk5vkU2nob/qLFfv6tLPmcLQiQbs1uiAK0oVTX2bB9mPct9vrq1f9p+OGHw/Ou/eMOkfj04HvmfwGHTuPSn/sXh7nlGr35Ka6ylBa9nob+W5SwT/lPd+h9ly7UXmSWVgszH66vmvD7o4qUtP/fbNXB8SNJujbZCxJCa9t4em16OFbbpUe/dHZtHU3e9Fqgl9qdTht9r7dOOTGn2T4Ksafc/ctzKA/q+800epyXtvxbwkqpk2KtMwMPmSNqPPrb0OztovX7cJUjHQx3rGs6Nb6wUc0glncdugkL/fTuPrqJ9KRxAa2F5tgQb76CVTzLpOGDrb0OFcW4dzNUDQrz8QevdcPx78elcNW+/r6p5xMyzR93t59xrpwE9Mxxax9DbB+yRfGOlhwZtOapTUZ4QW9PAHwf9JmvsHvx8UG22vvPP14FeCewQ/EfTcfvn/rZ4LfcXg8/PdH+a/64d+VO5/L/Sdg3d0P/eOC17LfcyS62W9G/pdue4T/G5Qfe2Z508Nnp539wmenHveF1r5da1M1879ZylHrrcLPlTeXYNHpKw/zn8vnmXu6baaBv8tmWHw1kbE9Z/k3k1yNSCqk/svnRk4RrgAwtDIraH7WVnHCb1f8OIbV3F9WToNy2wv902q6LdB2c7frZP1hwFMqhjtN9GXWKsjEkUxt2fpyHu1DrnbpIrV7u8U3DfPTZbWAwX2TX42ynULdHB5/tskKELMRZZUERW9k7LlundwBTqI6aDyuuc/z+y8tDJhF9wGnf/ncl2WK3rTliYXUOl2eeeiwe2UsTH2zgOd+6vad/du70jboEJ0ByuCF8/vTYPySZQXhVX5hJraMbhVkKFuRXAT17TFTsFNguhdg5MNMab6a4OpqK4izCrDnsHLJf0dllafdfVxEd9RLyNcgGBgQh0wjXuJzTff/J9m7jT2PhHRf77ZZpv9tnWm1eJfY9rZT60Fw8zeGPrf8x0i4at0/txnpPO/JTdWbzMf77PPBL9vBs+zH096f8x9NoA3h/5T8ned5OM5y5Ytk8c7Bh8W/L/cPy7/39ozwRcHD8tzf87994W+TPAPob8Y3DfP/yz44/x/0eBXQ/vuJfPMibmir5r7r5RGrjfJ/0+QRvDewbu3tJ+a566f//+a914XPDB5/EOuH871Yrn/x/z/jSV1ADBL/8z93Pt8/pPHKwTfpXy5d3juvaR9987BY6WXe653bvePz2/qyZ/znfekXa6inVJHn8h12RZbbNFtvfXW6xWjWhtMt/NLg38J3j/4qKaKvSB0/7/nRrgAAUbUqDphGvivaejTghj81+lg/5frqnSyszW6N0bnIPL7XF+dNPbG7KEFecDg7w5y1LDTi+eZ00VW5ven2qDAQEUH/XPwOsnDfyc/f0+HxOAP1dFz7zHBW+e5v+SZ4zG4d3PvA43BlYmovE/K83sDV+i98v63vJ//L5HfH27PXTnffk1L40Z55om+FRqD38P9XJ+W567nft55w5IaA13+PpZ63BdThj5trsaWI8b/Iv/vl3tf8E7oA0O/W37znesHj2/fvVPwuDbIPjpp3jmI2V+c3zfwbr75pm233dZ6Ouv4u8PYy5YvXz4JkjzWqvtpwOD+14bBl+d76udBwUdKI9cX+n8YvOEIFxBIZ7EMVk2uc3MXx4StI+yajrAinW8uOPvafIA12/c5yoiCyvKuE7EWO99LpyO6C6roOYcZENPRLLx763Bz9ZwxIrrnic/EcqLm8iDG2WJJtfQTf1meged3XVqtymhLVsq0dzr0UL6VS9eIz7vkmYHe1v383wU3a7SDxojsewc395x6WrJmU4e8DiK6mXsQ0VnqIXrPuWZdD+yeq7omolMPpkV0EsX2GzURXRtsWeEyO+6448X33nvvXXbdddfL7rDDDpcIbp4ZfKuUact8S/vNtsFqaGWGxH9l3Trv7L60ShS84Bw6YbVgUKVmPzHCvwJgoCngcnla8I1pUC6bX83/p6ShN9IZzNzzZe6Z73Lx/Gap2yyl4bvWpVeG/mKuzvTipfaRUoMK8u5iWf7frsZh4275rUk16L1kUq3gTi55XDrjd4O3SP7uGSQCPyj//XueOT30U5dUI9u3g68JMrJ9K9cPYrA8/6XgF/P+qlw/vFE1gBkA3pDnTltSZ+Nn5t53gtcKPiTPSO+I3Bc/ThoPDx7imfx+TtK9RPL7zeAbQhvIHNIgWuyqXD8e/EJotgXl/HresZzHcCi9w4JPaWW6VfABrUwPDDoe6bQ894S0wWG5vi//PWqPPfa4Yhj6HsH7hcF53X0k+Ml81+DWq1Hrg4HJl9aBzGD08HxXOVjUbx36By1v40x+AYHBC+ujpe7I+nPwO2lY67Z9Jzib4LA+37UFUxo2hfDDlsZfSnUeMXN7hpcZ495PvdPVo4GGZTLM8F50rg4VfBE617sG+YGjn5j/jmjPvDp4zUZ/ODh4lp0+V2dPevMfl1T9+IftfZb6YZmMiym7wLCExZEHfb9gv2yV/5/Z1fjmaM4ydpcpx6fy23KfTSynRqTm0vqtMNQ/w6DW+DkH/WVSl+747Hv/8CDfeGncJSi4hPuPDfLtVwf0496RJ3k/ZtWqVZblMOq9d9llF8clSfunKQ9j5Jnq0NrUIOC5vMsHX3qW/npvwK76tq9mcDjCvy5QrK3d2nwBdMqViG4Dy1/zALHCbK8cwNKXGbunG3PrPOhBLEdzcEG7x88bzQ+cUwk1giOLdWuWeGeCcRzhjMLxhTsoxxMqh3PGOJMs9cxcXQNnXefMgil6m8Nc3YHV52NSHV04w+wYxPREXtZnNKu/b3Ga6QNE5vtm7kG96B1r0PnuJTF0ROdNw+QXD+6PjjRk7Z1PgeOGe0eXSRWHV0yqE5FDE5SPEwqVwYrAQXnvotG7t4u+fdUVK1Zc/sADD7xYmPzKwcuvXLlyh4juB3kuuJH8tzJMVf0Zwf8NV03qkicnHSsXh6YM6kddL2l4pt8b4TwGHW8KbBSx/nx0qQz9mlJFaWAP87xh5rtmbSK3/dP2SfPTFgrJrM1Z5dhS90vbjvncvOsc7/el81APeHdx5Xx/V0X3F3XVrdQSGtfRU7p6OCAf9A8Hr593uHYST4VXvm67/6iubvrw/LPyP1fVk7vqALMy+J7gu4J2YTlL7ORJ9ez67/YckfdRk+okc1Dwjo3m4umklZO66s9tgwiV4phSB68PBZ9tFu3qmvMTdtppJ3r4HYP32X777TGQ3WZcWA18T/N+VzeBiEkn7zbz3LGrIvedgjbbeOZhGTCunPffmm89EpNnkHgk9SHfNSC+Jfi2fJc9g5eeQcsgVzYE/p/GfOMWwY+F/q/gYcHPTep5awakM5UMRjj/AP2YWPfaUiOSfC5oEwfgXXZ2AxI8s9TvCo98VKkbRGyRPLjdJ2oTYYmBHFrsDvtns6qbrf7a/jNjswt4xwaRE9t9Hb73ZAt9j+Ax6EllnKFMNm70m02CzgS3E83zorhyi3X/r6ENOj9r//ElJz6jr1LqVlO0M8AdQIA2sNiKiqZ2GCR9y8YU+8ypIP+bvBgwPfMmBrHQGOOe2223HWmEDt5b0UvdR/73rpbJAOsdwRl6T7bg40MbHOX1FfmGlQhlfUukAd6EnIPevPnmm5O+nIVOxCcJOAPt0EmVcCS/QZhibni/UvNhABS3XXrfwOCYm2i/8QbW3Ec4/4CoJWZYMw/QSUQ4PaewMohBlpfqT07/ZTwDBhJr3QBD2OChUxFT+ZzraDZ6XBldKmMbGID901xjHb3LWGXLpeN7DQR2f60Kbh/E2NxoSQC2ctKNqQqeF6WFlMAecGhXfdylZYsoK78Z2ekp6D1DH9KesWXUu3zwWRsx1+CiSxde2Wi73pyRRkQ/eKuttrrirrvuuv0222xzYKN3yEB2UBjl6mESPvXqw2YWZ6/Jsx1fVhGkTRqxxEbKYHe4VN7hQ3696N1XiEi+XdK4dvCq+eZWuX+Dhr5LbfEs0bplbcPQ1XaADJo8Aq/SBot/z/VaSWcJ5macw+AMryOc/wCT2OLI2GNWMxPesVSR/DFTz50p6AxTIAADSWDYI/7CUju+2UtABfuczdTuC2uESRjKHtlVeGHwGa2DMV4dH9SDqAwvL1Wk5wNOwpD3I7tqgcf8RFoBHGwjxYRokUZtWEH/Z1cZhq83kdggJkKLvOyY/54efEVX93nbDopemSsRXNrEezPny7o6GCjjS4M36qo7LVrwB3vR0UR74Z9Z/Y+L+CxG2n3CJA/IDG4ftjK/IPekQcp5ZX4bXH1DHg8tdQuuvDvZ5TDPBO/aBgT5eGTe78JokzAazz4edWutXw84X+jq4Opqw8vjg06aoZ5YWXhivu845ncnvdfmuiUmPwfG1xEWCXQWFlOd6IhSLb3TkUZfPzyowc8CiK7iffuaHx0kZhNlndDhPnHWMhkRlh6OMdwngpMkiIH2Z1tPdh+amb/XaDM5ewFagASMh753njEIoA0QgwWYPjqIz1SPIYQSC/0gokN68K8bjclObbTB6R2NFiCh32xSqn3hno2mdgxqALXD7I+mdhhQerUjaBecaK2nRpQ2ONlS+tOUl2QxlImILkor+m7BJzaaqC4MlRUHzE9k/k2QjrxaHx6WuzD5wNRnhbl9Z4rBDZREcqsS/WaaXG091Xf+2ZyCth2W2UY4fwFmYg3eps0g9m/r/ERYoY/6pRdwFhkc8+oMgDRgABmsMVfrqp4NMMQQqggDCsQAHLtLPJWupSczGKBCkDj0VnkT7JDoTbwXiGFFVw1iZnQMujLXo4KeZUM4MnjdUoMuouVxy1IjovquLa83KfWctM1yvWapARjdl4Y6Qa9o70qb6uEdhj+VhCYtAPk+WDnaDHh46jnkhJRxo2XLlhGfGeluGeYQQIOqwBipfujNR5Qa0UVZlMmecX4Jt/fd4KpSDZb/Lg2I0RYCWp4hEd1aOBHdPoC7B29OXE9Z7h48Knnn+LPBtfYRziXQcFOgsxNTWYOJz2Y/nX1eMPOtB5b6LQYlIuwjShWlGdDMQnaZYZojg/ZGG+69Iw8APaT9kOC9G83I86hGE+dJBAYgDh+P7apF/fBSDyIws9N7Hx+kR5tFn5ArxpQvMyDR1/LfE0pVJTDTMaWuHmB8+fBd+SUBPKarujy1wnMs4gxi8oTBfEtZ3ROmyTq8QQmn+SbGnAseE8a4X5iAzeBBwYeEKTyPQY9OfcjHkaWmh6kNFMpEmjJb9mUq1YahHAaCRYXG4NNoKfLpwQckv/sGn57yHJfrMrP+IEGMcP4BDEn0E0nE7E3cIzKfHRjEWYYsVmtiOaagV7oPzOSnlLo01u/JLtVjbWWpZ2qJAmNQcJ8YiuGI8X5jpO+jG+N+tNEGk94ppFQ1gO0AzXpvQEC/tauRUdF820kK6J93dXZEQ4OcOkAbLL7aaBLAOxttMBxEdOKyAQMtwowZGE1E37/RvNkGFeSPYY6VpZVpUh1gqB2s4kR0W2P/VuoAQT3qreilMrTVB6L6oBJQGRYdZhjcQClPXw0z9yJ66D9N6lr97IA/wvkAdEgzIlGZWPnYUkXdHs5igzHOmckcJIDJ6afE85WlDh6ilJi1b1aqYQxgjkMafUSp+QB3KFUMBZjUt4DvPLjUI5EsVwn4L71rlTWRTDEvQ9ohpZaJocxAQ7Q9OnhE/jNYuM8LjZpCYvBdAwqmVQ4zuPSk4b68eYbxTDoGE0BMx3QGB7O2+4e0/xgC6bCcQh4UvEuQRf5ewfuFVg5lFe5JXbFRGBDlj2QjbQOFEM6McaQTA5K8q8cezmI7nWUYGLyrjkXDDE5cf0zwYZMaPHLR8zHCemCm4hlwdBy6Nr0S82D0swo6M2bAHJgME5ltzMCYDHNoeLqvNC1HyQidk1gN6LFmStAvYbWOQgc3Mw/P+BYwC2N8yp48c2bBfNK7a6lMjKmJvWZEM6Q80qUxDUYk+hKH0b7rfYMIcZw+TvS19oxmwDMIodkVjipV515Zms5eaoRWxsRhSRGNCUHv3KNMYYKjgjdvjMJ2QHQ34MnPHUJTO9QBpxZ1KD15Mvv7Hiu+pUNlUr5BtZlt30WBgcmnmF0Iqwd01flG3VJ39AX1OcK5CTMdgPhMxHtUqbP3/5VqkT2rQH8cxFnr3KKqEj110t5vu5zRio4p3Gdx9s6fgu9O/uiy7ltP3SUXQQn91lmIpmidiDiLNih8pNEGDyK65+jt7AjuP6tMieilDg5oIjrmQf+srLF2QzOzMvmWwe8r7f7BZY2IznL99EYbJAYR3T2iPNqz+6BTtm91TUS3xzr0yvYMml3gh42WHhFd2qQFji5oZaB/e8fVIGpvwFtKg3ODwcEMg/d1mOtvuqkjn0u1dYxwbsJMByASnlBqJzILHF+qcaeHs9BZrEvbdMF9dM9SR+8XdHWGOSL4nK46a9DVdH4xyHX6pwZtkiAae/+2G220kW8RZ2+y2Wabmel9ywAE6NR0XrMd8dUS29aldnS2A7O2gcP6OlGWNd6aOkY0iLy41FnRLIj2be94BsOQJujP1tvNwu69sN0fysQf3uz9vFIZ1yBmADHQWAVQPmlt2t4nfbA4yff98i5ruR1mNovwY39qrpbxOLQcXeqApz4MGGgDgjI9t1SjGhVE2sqGmZTbwNLDWWizcwzSaihIhzX7Z3V1oJJX9UZiG+HchJkOoMPQ3zCljo52bz5AjLRsBOmMOpylIDT9kJhufze90TIX0Zb4fmhQZ6Zzes4sDdDyAGymsMRlhhC8QEcGmNYgAYjdOjvAsAYoTGX92gytc2EODEbPN+sTgZWPWE7cP6RUyQBtkKNDe97SFakE8xoclNWM7D6a6E+94L0m/yza7lNVzGbyMYD6AMpnw4k24F1niRBNbOdJ5xnlmy4TT7Y+amypaVg+k961Uy+WAQ0EpBZ10UP7zrkCbfZ2pX5x+uFFuE1QP2BvUIfnap5GWBuIfkQps6HZA/3K4c8zaZhBlCY6YpoflSqWY4RPt/8wGjWAGGkmZwF2n95P3PxdqbMR5hrEWaIxUfUTpTKl+57DlKzpfptdv91ozHZSo6V3QqnWZ0azYxttVh3E5zeXqk/L62fKmrPJ5J9o7D5VxYz88/bfFUq16ruP0d7e7rMk+/YfSl3CM+u6Txrx3Z+W6qSiTO6fWuoAJI3fpn4FhHCfeMs1d1A7MPegdhjQXl5qPd+u1OU5ao6ykcA888bS4EzabEFhSky3Q4/ziyW/YcWgVzvkZ8ARzn0gCr+v1NlWZz2lVFG0B423ATAbv7ehGfK1pW76wHBEZ0zH4EW8lobZkFHM0huR04yPoTGiAeLdperoBg6DwtNKnV3tp35tV4/84SpqmcvsT+TFaBj/P0vd1CFthsIPlbq8hCFOLJW5zXTK51ki9MmliuMYWV7ZHpTDdyw7Eb+HMmFQ4rLvmi2PafQhpRq/5F0dKhP6iPaO5a0HlFqm95Sa3opS6+M1XZ2Nlcc7JA6DnbTV7TGllo/IK/9vK1UkNzjRuUkdBlP3V7fZuclIUwxul5pddQyHewTfFnxXV89FW83g52beLsyACQ4uVXQ0Ew7i7/kWdIzWkfadNNG9q9Z3TAQwBEZlUf+XgNmO3zq/2d0MCHYsdZABBjRi+gCCUWwa/V15Ob9QRc4TmGLyAW3xPSRoxxoVjYplI1Afjmtk8kUAFT8FJ5YqQtGdzRjoo6cfOD+BDjF4RrE85xanEBtBvoYulSnMjsTnYTntfA+zzN06/ndKLRNj3QcbTQoa2kn5qAK/L21dPfiLUo2j5xkMzK2NchX62dbUv01qUI1hZaDfBTgy+CLATKWyMH+5VHHSYXZiod11eOasNIBGnX5vQ/R80TftRtpss836WG/Q7xYr7KPBL3KHzLOvC34haKajB3+uqwcJzhtm056+tz76nKLyDT7itlUOO68wR/5/e1fLZDMNcf7zpRoeqR10clKKdvtoWSOif7hMDdDSOC9gGISDu0W6EGPui5Ma9ea9ydNXurpuf57l78IEq4I2KnDSoL9a++Vffb6qfIyNAYLLgg5WwBiCBoqgilEweZ/vUh1MhiUZS1KcQ87X4vqwbzrX3cLgO7fdXkJBDXor67nVhtlXZ4EeP1jqz1NoDA4uAic1jJWVA3v6+yi58yjPCOcQGGX+mIo2AzyTFberYYxWzzDnNgxpD2hGa8y91bJly07OldENM/wyKOKJ0L1OwvxbV9erxR5XDgYwFnqzmqWa8wXMlg8zY/Dg1inbH9o2S2GbvxzG+EfKJpjD21uZ2EweF/x2K5/3iesMlgyJPy7VqNnDedF+AzQGd4KM3WYOMjRgCdD596C95KvrYITFA8tg9CLW2Cemsi3XPHSo+POig0x3funrKJg8M/ZyzJ3ri8IMjub5etApIAIRfiDP/zR4kVIdVZxTRh/njspbTec/38B0GYfy2UGW8n03+KOUy0z+0fwnvJI1bo4jPwuy7Bu0hItmUKOHf6vU3XbXDH6j1COKpw1daxI+F2Fg8MbcfBkwOFH9l5MaNHKtehhhAaBVJM+vqvhVcY5ex0tsYwzS1SWo86zSk64DEIij/UaFdAR7ih0kgMmdibWs6eEOL9i8ibPDe7Of8x+/8NU/p2j3h3rgAUdNWRToasaoCa7O5+UAQq3o1YuUwYClTLsGd0KnyLZakk4GJrCddObLZwBqSv/d4MZ5v4+Pdh4yuait8iAQow3v+wVFYTUoa2NRZvW786y/XSBgpoE/UKooZ1mJRfbbpXp1nWcj6kz+eND9Knl4Q1fPpf51GOCjwZXp+L8Ic38jV4f8OfnTDE63s54uXjoPMiLqV0p18aR6KCOD2y1LjQxjLdo69Q9KXYs+tFQnFmv4PSwCQ5AseKZZwuL08stSI6CKy/bLMMCpKcuKzN6nB50QuuPSenaZGZwebs1fm5FKrN0rh+/cttTjlInovPe+k+eenG8K+ywC7RMGBjcQnhcg7YZ2DX4p+ItJndGdCPvrrm4gOtf73AUKZjrsJyc1+D14RanLLBxbejgfVLSADfRN0TqJd/TsLwb3oHOn8/88nd8xPc4MswRD4uAtZ2mMOyRxVvkYDQGnFc4smMH9h5XK+H8q1Qfduqz7LNM9LEIdGGwwpPXrPj15Doqb/reUwekkznRzvpvy7tJ0cMuAq/IcBx95ZDnns8+LjwWdY5D7LOvsDPaPvzDvXHKzzTb7bN5/xsBgGP28gCkGF/DRUcnKLhjlR1s92N67GHV+4YEZBmdhZowCNnPodNP+0uc18FNn2bc8ZL+0s7oEJCS27hymdhYYevPc78/Fap1jPtNu7w/dgHOMGR+YGVcMfyxCZ5M31n1Xde4QBIEVtc2eKccuGDBlNHM7iw1D2ojSW85bfqbzPk2TDgbwzUFER+8wVT+LCUO5BpVnzR9rGNzhCMptiUwebUqxDXi6jCOcHZipPP7QXyy1Uz+50fMyQg0NsdCNMTMAyQs/7edP6trpV4Jv1Pkzg38p6GRPZ4ifmPufbe++LPip9j4jFPdPHl82h/A3HzagmOm5rFoz/kKpPtx8zr9Uqo93Dwtdvhk4MGgt2Nr9ykk1PL0/DL1tyqRsnzZw5b/Xd3UdnH2Aq652Mhg/sNQAkcrAzVc5SCeMbF/M84JaOCCBTwNpZlHabAakTW1g0GTjWQ1T6Ysg+6GWL3X+6uDXQnt3sfN3wYaZysM8xNmDy5qIoEcNf84w27kCM/nDgP8I6gx2YxHDvxmkv/6TCBt6qyARm4hnZtTJlYMkgtmtDKws1Yfbfb7ndy11YwYdlojuPvH9sFLrA/OfG3D1Ust3alfj3SnPr1LvnEL6DTShxVf/JrrUTTZsDGiDwwsbTa0ymPnWI0qtN/dfWupg5v4w6C02DPXJ9rHWLD7F4GZqnnbajLpikPLO+WYJ818WZhjIbMbohBn4N9NPOYOcX2AwSBHhWMadJ2YtmNi6D2Nbo1lgual6x6i0PjVj+v6glwMbN8yOgIPPRaf+W2wgmgptZEAlpfTlm9Rzx3rRvatbageHHRaygQaYfgCrIIMFzT57bUnhvlxZEwJrsUGbHVKqNHSGGaKVR0gqvugOjKBiqHOTzLSKMcLZgSkGV/ncU80IGuNMYWZwMBh8vNRZcrFkKjPqB0s9jocawbrtbDJLRoxNg9h5QqnqBniQ5xvN+PSkUvN3eKm70TCvvL+91DV/xio7xe5d1vivP7FU24TtnWbEM+iTCwQGWPXvLDS2hfdmsHr5pJ40QmwlmnuO+vSG9o7yEX9tpLl9qTvvMDDJZNi9pnzqiuFNGtSUJ5TK5CeVKhIvVpmk/aFS+1Y/2Mz0m9Uz+RRY3fAOKU25rOtvO/3ACPMABhuzwzCKljWbGOald88Anda73y7rGKnPLsjfFFAXpMGqTc/s0+vaIQG5/qWrMc+J1f5j3MGg1I1hJnOfSI/Rib1ESMzs/nGlLsURYQ0Qh7b7ny2V2T9W6qCwPongnMK1Si2HkE29iM57LXWw86SubviP8Y9O+7dSZ7gT3S91LzoRHH2bskYFObZUxkdTOwxyaIMxaUhdUVsWrEwzbaY+padMvT+CfscYOg1TDO5lTjnagIhOCqG6cLUdYb7QrLFrMXmpBhGVOi2uzheIiRpTJ10sWFHq7raDS3U+MQsL9i//hwSv0MphFjbqA5tMVjYamBEGmBZTzXpDJ6cHSktnE0WF2Ey0pef6dg9TnXKhwCzlQAJlSbNMRGQZyid//UaMsrZITpUY8sQ5ybZeDxF11ZNvMipeo1TVQxlFmVEW93m8abMFL0wD56SJ2qIsfX9rqx4bOnABQ+uH4sl7yKC93odHmIGhonPdMtcXB1ltHR97bNC5VcS4+XRgnYaoSEw045hBHj38OY/3zwmYhRmVGMbMagI7PK79d0ypUWGA2cv6NtBxHtpo4p9ZHLPw4/a+GQ0TiA3HUEWffX5oMdJ2L9XV9Uk6nbItdPm6qovq1Dz1xA2XtkMN3H9sWaNq3L2sOQeOtZzqQC8nlj+rVGnDIEV9odZoz+eX6rZqRlRvnHqUT5l8d5BwFgSGusnVQZD61H+mPM4151L84lyXYfJ1ONl48ehS+5KBi3RFhVjMieOCBVMMbm11EP0cunc6urT90uvqwDP3BtH2Q6WKfsSq73rMn+t6fwHB7CRt6WFKFme/zWLyQYTlcsof232zgAgnPMUES8DQ7mMQe6bRBgiMjSaKYw60LaZmRrSIoMN6clkoaN8jldgPbbC111u7/KmrEV36diqVkb9TqmhtcDq51NBOBqdXtGdYzakbaNc7Nvo1papfaCsDDKpo3npWHBYE1iWipwxfy/1D0fbrp60cfbUuJxuVOrSZfsgeoqz3W/3AAtb7BRKmGJzxRmD9+3b1ZMxbB9Gr5tmBzdqYHHMTfRlxMEwP83j/nAAPsLuU6korIZ2aPg3MZAOtExPlgdnrOo1mUfacdzGNUzgxEiYTg5xIbIC4fWgi7Rapp7vnesSkOmbMduRzDF3VUfmM2zJpFhc//KatLZRzKNPBpdo8AIPocN+gwNvPILey1DoR78xAQJKxBu6/O5XaZspNGqCzLxawjzjg8Rapr53S7+4bxr7zXN1Nti4GB1yHvUNqunap/cqgPMJ8YOicweWTesrEcZPq9qixH9vV2WM+DErPNUOY9TTGsaWuKZ8bwKr9yFI7K2OaWXhIW2dWFsAybiAAmN1sBujfdytVvF8RvE8rN2Z4YFfDBxlEHpbrrVI/26UzOg/s/sElg+1ioaExM7Q2/IiuBdlwLTW/wKw4lA8DGGTp09QOore2IJY/pNQBAJMJ2mEN3ECs3jC1Qe5RpQaBZHchqhP9DXILBeqZ2mawstR3bPAhkxqyaTWDz/Q17XVcV0MrG7z0MTaDEeYDUwxurZgoOzgYsM4SjSytzFZ6DzP37lGq+GRph4HOu0TmcwPMYn8Onl7qUpe0B8vyIM4Sy4mzRHbGtg+2+wam5zaa0Y4HGFoHN3ug2RZ6ET1l5lHWi+icaUJzhV3NjAsJwze7JqJvsskm0jeYDWUyw7N6ozHuRxutPl7Z6KPKmvPW6O53bvRry5rDHIjoyqRuflzqgOC+39NGvHMK+pJ24byjj/VqR+pw62kGnxksv9nekVciunyNIvp8YYrBzeBmb/uEdRYd/Wmlit7zqcjLl2rMYrwh3j6xTDXEIsPKUhnynmaDUo1tZi9gg8VgWDNTmckAQ83wDMMamhWa6M7zi5Wa4enoru5k4jBDohEJVISYJ0esfNSkwmIzuBn8cUHShN/aZigHBn5Eo81wZmTitkFWPSiPZbNjuxqeyiyK4ZXJ7K7eSDlmcOvh6oG1He05Us1CwT6lHYCYtHdLvT0l9XhMroJBnoHBW1nl5+ldPRCDdCi/4ww+X1CZTcTcfFLPv7pb0AYOot89usrs8+m8OtIdSnVmoK8eWapuR88jNupEay94LhwQKY8MHr506VJWZstLh7cOQmwlmgOz1LCur8P4b4CBxuQ37upMib5F6AO66jF2m9TNNUPb8XT7oCUfsyhxWV2REuZTV/OCln9IB7/dVJnMZkM5zITsB4AITj9Xz2Z9ARYx7qpS7SHKbEY20GESbXNEqYMBUfyorkbtwdRHNqTyLBRoJ2lcP3UnPNOd0veOCG48q4NPld2pMLa1Wq1Q1iPLeLzR/GGKwW3S6EU/FRnsrZddO8RPZc/CzD16ofd5SbHievfrpXY69/9Q6syyGHBoqWmcmrJYFvqlFYHQ9GaiOxFPR/92e87MNYjoJI9BRNfxLfOhzWCYAv0/Kcs1Gs2KbkZUPtFTGOD6eguuap2yLARMfUuZfP93pUpHvSpVqnGR2sFyrtN/uN1XH4OIbmClt6JJIOwU6Gkr+ifKmuOYifyMWEOZqDM9LEC5BjXny12VJnrnnbTTVtMM3vrjgPdIv3QiqXK/vtT9+UcOH/TMCBuAQTRSyXNtHXxS44hbOnpLVx075tO4vMl0qsH4Y5nmmFINOa8q9RCABVt+mQFqhEMBjt5ss82sHT84ZXhIaNFNnhx8Ycs/8dW6r56ko1sPNuiYEblPEl8tTb2ktCORu+rqiklIMi/vqrFrZfBVQaLjitw/IdeXBm3+mE9dzQumvmNwUofPKnWN+smlLu0BZZJ3UhNJ6cWlDmAGq+ODwhCz/MufM91IMS8rVbQnMr+8VH8ADKT9iNBmWvd9ay0j2wKUTdrUnj31tTD2C3IVdWetGXyKwRk4SUrKJ8/PLvN0nx6hrMXgLJmHB28yqadOWJ4RMqh35JgHGOmJuYP4ZLRmwOJ1RFS/eqneYAsKA0PpIBnpl2y77bYGqkuFuS+lXJtssgld2pKQx3VoMzYw8AwdBZObiYGOxGNM2enzB3dVTBQwwplgwz5lZ6cdPKmB+q/bVbFzwdfEwfC94dtBA/DgeUfsHjz19ih1+csL1Cz+DLZfsh8c0tXlT2eVYRrtpEzEcyqIdnb+mQGOiI/muacODBACLpytKKfD8111rVWHIqaK3KLOrpN2sq13LQYHA5MPaQZXtb+00QjzgSkGt+mfGM0yLFSORqdvir82+1oPM/dZZ1ld31GaiF7q2Vw8kNz/dWmzwfq+d3YhnaMLQ0+22GKLTXLtO0Hy/+Ctttpqd5bnUsVCuieLrN869/sbTa8bRPQjgw9uNGMOqzqaxdkA5Tsi3Qwi+g9TbxhencGVQ6dcSGj1ZVcZBu2aQxL1h41AHfuN0U9q9KF5zAzclyn0o9G5EtXv0GjhnSyVeeYjXVM1cv1OVwcP9/nzo6kG/ttfXlp+5gXD8+0dhk3qhP35vYie+7+eayL6rE86GBi8Aeck+TrCD/cXuq4vcDDF4NsE3xn8SCpNDDAdykjbHx8zDzBLnxJ8tE4RPDnIvRLDnRx8U9cCAi5Go4S5J8uWLVtKRM/3bx285zbbbLNtV10jxfUyuDjKl+5t+Uyn/0CpjEGtcN9sbaY6satGrYNzD80/QPSYk3K1u4t32Sm5vjb15UigD6RzfiDXHdc1E50TUF8Nt5vUIITD/WcG/SC2s3vQxw1KIseKiPKAVg6zNaelk9rVoK1tWOQN4gaFp3RVSnFffRlIPpi03pkr//G3hjYIrOzOAoMPz04h9eCUXJ+fOhKG6iOpr7cGxc5bHfd9Gmb6yrGlthnpYjWDL0Z/usCAztg6pdC1YlMfGrQuaYdDj7PvTAFdz95de5OHM6V0FOIeURGjs2oTeXtxeFKdGkRA3dB3zzKEubt0ELO4b18sHWWfVrZ9kqb9zzqEfBJve4Zp+UMTY9HKu2nwEkHeagI1XnpSd3ChL5dv+q5lnSvk25cJLk/nvFLSvEpw0/X4VJ8jGDrxFJK2iN3yzn9BnQ+0iKSeMSBgIuUhDotSus2keiweMKll4oVHAhnet6f+Yt5P+S6Xcvgt4unlcr1ycBP/wTOD9j3PGiy0/96h+dT7zqXn6qx91dTXQblulbY7aNNNN71K2m3TWSaf+h5PPCoE9Ul7KEM/6M0nTxdKGESjXLfL9Ve5JZjfZdc3E6lIld2ApZmY9exgL87mf4Y5M5/7RDEiOvrHrYGvkO9eKUyx8QZ2EJ1lcKpJKws9lBj31XQaA9APuhq0j+fUqf4LrRO/u9FEbwZAtGVC68vK8bigNX30K4O9FT15N+v0Inqu3056l046f2MNTnlWmIXgQkPr4JAc+ykrHl31rvtSqXk3QL0PnbxePXg8Ovk9MvTR7f7RwSPb/eNDE5nd/1De7dspND/xvfK/gxV+nzLumSuffe/sp0+sq19Mg/8nrZ8Eecb1/SJIylNvnw7ytPtnyvGj4OVb/XHm2Ws4fgpo06Hspe7T/3tX3XYPzn9PzTevOZ88XSgBY0/hNqnozwe/m4ref7g/C0PDNeBwYW8vhw9r0N9JpT8v9OVT4afl+qagGdQzAvRvlWcuke9fMrhkIRnBYNHytqLUuGTEaYa0jwRPDb1j0n9H8ndarnvk9wtz/WauJA0dX7inm+T/OyWP3871fsEbyHuuT85/B+X+6cHX5jcD3mmhT0y6pIWvpUN+LeXZxewz4ELC0Mm7GnqKmPqJSZ2l39HKIdoLpv1G8mdWfELydnquNw7ewzO53jPXGyuH/0NfKfitvPPSSW0ndfDu/LdL3hV2+vNLawDLTwYNZntiOLghwGyTNdLGEUF1/ry8d1i+89185y25Xj74ndTZx1JXjKJfDZ6Welw5zeD64NS3XhQ8Pd+6ZZA09aD8Pkh6cIQp0EiNibeAqWxB9S+TCr9Crn6vd4/uwOBd1dXo6TunggXgPyC4a3BpEBPsMVcBvV/SWaKTJI29gwvK4FMMINM80+jJfu8V1Hl1AlFJ924dgqMFsVHH2aLdnyypR+zuvaQelsABY9+g882S9aUXD64Mkj4MUvumDETKSwcPCG4eXBlUvk0XsnwDtLpXplUt78TUla1MPOz2SF67oB1aewVZqB2awFbgCtCCN3qnj0bb3ldup6XoF3ulfHu2fnDR/L5UrnPtv9lsnQGmmHKX4IHSaWleTj3mW0JaX67V25Zh6MsGD9y0wmoGB/LW8kqyIAGyF4kqe8lW5pHBp0FlwUY/JBV9P42ZSv1+dNl/pMIx+joZXKMNzFTqOvfvU7lPyndu3sSs1y+p50z9KXhKkBfSH3PPEUL75du/zHN/zvdXSmMRmIBH3U+DXyt12ei0oGCFjqj9TAvGeInk5y1BftDE2ae3PB6RZx7YynFs6FsG/xx8SX4f5n7y+0EdM/iX0KemPPvnm79L3f3cTJTrt4Oeu/z66vAcAss5C7pjlwygn25lInW9I/in4NWT7vPb+WW3CT5cWXN9WO7ftpWvn1GDyk0KMHj9Kfc/l+suy5cv/2vK8ZP83jHX70nDwKw8Z1YmzDbF4HcNSuO1+e5123c+HLxy8K/Bb2DuzN6/Sr7+EHqPaQaXlr5qUAn9llam2+XeE5POn4OPHxh86NMXelARDY3oD0iF3TuVt8cm9cSMP2Fwz62rIWcYnK/zb1K5T8x3/j2NhRleHfrKuffb4Id0nPz+XfArG9UZ78dpvF8vIoNbAvtJqQyO2b+evDolgy75yaT3R8yQ/Lyx5fEawacF5bFn8JRfOY4O/kfu/T7XFwYPUzd5/70Y3HeC/4vBMTdmCH3JIFEdo1x2PswwX2j1DawAYPDv5p7Z91NJ4w/J56WCb1PXSyuDP7eV47YYu5XjYcHbtPvPyb1DPZ9vvCUoAMPv8t6n8t+Oeea3wR/k93atX/wxtFn9TGdwzDbD4Or2VcHrSjv1c3K+ww7zh9Bfyz2z90/D5L8+EwZ/kz6W37cNYmyTy2OlBz03QlmzNJYKyWVul1x3TgWyPhPD6EbzFdFZbS8zqfot0RbjONbWd1mid5+r505h8r3y/Um+2evgaailmHt9aZwD0Mr8yKkPk+C+ycfFWplXzK0xFDnkbt+WP8Y/1nHnYy2fq5byLZZUcX0Q0Ym61Izdk+eNcr1Y8n/R4EbpoBcPXiL0ZsqX/y4b7KOUnBkznE1wTJHlQAy0x6Qe+qAc2pIoDIjD6E2DVBC0MimH57dt9UB3H8TcVcEdllSG6l1UG0MT2/fVfsrj/zODgcHlaVJtMlSg1SJ6kD3GIMhIuWXq74Aw9eWCm2HuTaZsGC0/rr2InqujhqmCxHUbgkYRfRpaY/adPGhkfclcDTX82aDjcTDqOjunRpsCftvf6aqR6nDv5jtcD+nljoB961zV8b6b/z6R7+2RBmXdPj1Xhpx1prEQ0KQMy1+2dzL47Zl8vF8eJ3UZ7GUtj4dOqsUc/R/Buzf6wXPVq+87uT5jSVU7HKnz+uT5UsHvJ/8fCe6TzvgtM3dos+An8ox6oB8ueMczaOXCYg55op3Y8msZ7FUtv4cE7dRC3zx430bfJ3izRhNxlUn7vWJS/R6+HXxf7l0k5WCU+8JcXTJ1yIKyGwDmVaZW//DI4Hfz3RflvWvmm98Pvi31d0V0rh9PvV0q9ffNMPa3c3X22mrJTv+Q3qQOGIyB3w/eIvf0OfQj23/zyteFAoYKCdqy994gEU2n/1Eagz53WZWFyWdBo03BY0tdouGTbSuf5RAOLXaUuf+p/L4EujXsvmnMP6QB/d7d9+VjoUEeW/ms+/5qrp7dZRb/Sql55F//HnRXd2jxT0eLaMO3G/34SVtSmtRlsmFJ6eTku9+YsbRa1englnfomZj6e0Ma82WGswJdDfhIheJXYPfaN0pNz2pAv4Em1+vl90sbfYfQgyfbMaFv3+iXBPsy5co5pt8Dnv+tOOyWfDsL7deTuo5tj7jnhhjtNTNnAl1lcBFY+n4RtOtN//pkkAehfsCqzl7x54jo9PO9MPfA4EMfgflWvx8819vn99Pbd58y/L/Qdf0vC0OFTNY4dej8xDjnMRvVBWCcT4XZoMA7SSfwLUH1iI+Al9Rg6WVFHxxP6IqXCT3xX3t29rvnCIa8tzQ4a7DiOpbW+jfpAr1n0rURw7G08izvZnwOMO7bBspBxPvEQQ461JG9llTr+mWaqOnI4gNy4fRCpOcY4zBEjjLzZob5groKkl9xgIq7VMuvo505gsij7aV80dG2tiqT9nDlGILmocYJyfsr2ne5oqoXtLoaHIE4Cqmf+QaYNDPQvXyfc5Hdibwj7XG4qvTnqopwFYNlkEX9oOBVgpvPSnZDmvIUPLirquGqRrvOJ08XHhg63qT6Tn882BvDgu+eq+LYeh0aZiryLqXGB7eLSWV/vKuBCexFdv9FXe1I0nhzvseV84NBbp4a5m155vNlgWNsDeWbq3r0iUGSBG8tO84+KX9ddfX8RFc9o4RismXyRrkeWWqccGGQ+Gork5nPJhXums9J59PxnXr5+sw0LNknJQ11uEee49b5qW6Nl9xUzhYcMNEbS82jOvzvVg57AYRfUg6z5h3bM3fIlcSCFrbpQHTuqQv1g7ZLjpfch0O/B13q/gL/8TFYJ6jvKRDogy/Cw0uN4vKpUiPQYvRPT6qobfDR196u76VOnbf2sdTjrpjbzA1mvmvWVrf29wvL5bvCa/V/zjx74YWBAYJ9KKBUkCUts9xv/M51veLlUJkNeLLZm2wLn+ACvvX2rp0VlqtD7vq9zEnr55OqB9ts4D+i+w/QpcZHWzCYKt9FMhv4vvTNVKej5S94cqMFOHgZutSBqhdngyLbYAy0UNK2j/4peHJ0xWGzCecMjPVX6aRsjhf6WfsP88zW10KDnV7q0GYe23U/Wmp+MdVrGn235KH3OCw1Uuxd0V3d7tqHbMrVe8O+dnVkJQJtL72VCP1Cu+kv64SZcooE5H3bcfv0gvza5WvoF4eg1VeQ4axvp7k1fgr9h2aYdtjDf+dSz3dHP3P4c2TwBipPZeRKjLxerteeq6FrrxFkLOtjZA2j6AZgVanx0HtLZqk7s9zT4M52ZsGWFo+pfvvmpAbvPyjXuVzNNN5fyMB+0wy+tKubLWxOYJDiK48mwtJj0daV7ZiyNdLMtbLUCCcrSo15do18hwWZ2nJYmPvS22+//dZbbbXVlYOX22abbZYHrpq64jpJTDZ4+K5tmbMdf6EBFxxcat6lRy+nV/PVxow2lhBnlcU2TaK4Zbarl3qmm+2th5W6711j+1a/nbar7sZsKdIweKiTNd4nGwaDt1nWVX9As3tQ5UgQ+gZ1ga2AHwJbybVSv/qi0GGrmbVbu/7kzbe4IGszwUhcR5iGYYQM9tFB0zEfnqvln5enI789v/dcH4PPVDjDmigbfLb5Mr+21BC3lqmIw49OQ1lrf32+99+hbWg5IVeBE4QLErTA+3us/uICgDw2tH/5lcE3dlUXNNoTac1Q1vDdN3OZZQRWxBBm9P8pNeSwTi5/95rUM6sZ2x6w00477Zcy3S14ux133JGdgS/+CSmbYBPPa2ksaJnWA/RwW12lR1IifSgHRmfcUg7MTLpCCwd9aKnnmtlBR/pQPuI8pkGbfQWY0JYnlLpL7UWlfpfNZZ2gvqfgiFKPYzbTGhhs8xQXj3HSfeK6IB1vzpUax3agv8iXOlwfg2sz75sUqBu+e9Tw58yzF16YYnBul58M0lP5A/diUmjri7Ov9TBTiU8qVUzSyXorev63iaOPOppG+lpXZ8QhAinf8D4NjVpqBM//KzUo4IKBPDakP/bpBRmJBpWApMFGgNb5X43uaoA/Yqz7z8pvNgbi75snbaOETpiZm0Ryp/wumcEPaM//1SCQa79hp6wJILGYIIDCz0tND+PSSdE3LZXp5Zfa8ZR2X3v1mz9KPW/NDIj2Xt9mpYZs6lW3hgYOqgkRfb22kpl+YSD1rogwbBloW1pv3GibfuQX/atuzUES8nvRof3AzHdPac8ZnIj/aBuFeph59sILUwzOqeM6RPO5KqJbXzwyVzP7OnXwGdChzd5GY5E/b1ZqyF01/W9dtbwaja8zqZZljWBE7/fzlipOYrA+WOFCwdBBumptNsLfJfS2pRqc7PNGE92PKPXMKzaA23YtwB86yKK8Mld7qA/MIGhjxy0zCB6y5557rsjva2XQOni33XbbKWL7DfPfjVNfRFhBD32X6L/YwNR8y1KNaAYzM5u8E4Utm/VlKpVhlYM1fEWpgSyIu+pB3LmDuxoSySBtICMZaEvBK+n5yqSdtyjzAzO1PGFcA4TZliog7duXGiJLAA71RKogMciT/PZx+7p1M7jy+e5FS80/eojQM8IAUwwuprftdocFeQc9bq6K0tbH18ngMxXO8PTkUkP6qPQnlhqFVCNZI7+954OCQNyr0US1o0tdSrEbzayisc8NIIqaXeiiZhYqAobWsVlo2QQMQNb1r1+qqEtkvVXqwgYPPvd32nbbbYnlDwzeMTM4Zjom+Jj8tuRG18c4a4GyD2LnAgMRWh7U531LLROGxjDKRDq6dqnlMKCSLJ5a6sDKgIY2APJcQz+41MFJu2pDqtRxpX7XILJOUL4pIBkwvBok1CmaxKOu0dp9z0ZTK6gH+oH02QhWw8x3zdzeMSBTpdCkghGmYYrBrUta1jo6tN1Xf83fRGnr4evskDMVrlFYWolLZoJBFOsdQYJEdKMz2jleZgYir98alc/4X8oijcIzebWk1IuzXdVDe3E29H8Eiatonnn/hS5V9BvES0tfjDtEVb7fOq373+OFVWodeJ8KQppR/gV3sl8HaCCd3exICvpSqfnCvHRV9H1KZRw0UZ3Ijn5D8juIzJ8pa0R0baIMaGiwoEahL1nmB6LMeP74Ug/EQNviShJA2ycgz+jfljVpQxPF+uAjpT6jXXrnpFLPD+9hpr0v3NBmaLHQDwteLSi8kbPIHhF68HOefW0WLIeZkem0HCuMzMQonVvDsu6qeAargdb5btfeF/nTmqlZYrGBOGIG4KnGWGSGe2RXbQHEUjQHEFZwM70ymXFEUb1+6sqs/9DgLcLULMBCIh0VGmMxaEEiM1CX50Zvk4ayrCi1zonnymdmJoE8olSm1E7WpK0iYF5tZla3+vHQUgcEbWD2Jk4TxdkjDA5D+Ty31uy6AdAHjilVwrNagTabY16GMmK6PMurbxsYDa4PKRvuC9SRY0v9pvyTLEglI6wLBiaGXfWEIkY/pKteXPMZEc1kxEKziI6GqQ8ulZk04mHtO8Sp/ntdXQvFXEDHYvQhEg6dc5/230KD0YqYqBPLqw6nU/Hc0lkMTpiBSCtemYiklmB0dFFTrQwYjG6a+tLR0UeEpo4oN+yXHdZTb0eUxT9XS70q06quBlSUdzOwGfL+XV2bVyZ5Z4NQD9pPm2Bk9w2+jHeYW5kwu4HRd9dSPWbKybCnfJbW9AsDAnWHhIM2ext40NIYBhffph5IW343ZI/RZt65dKnfVafoEdYHjbmhHUW9mNRtIBb6zL1B9CMu6VzE72kR3VZNzNsfE9veHUQxnesXjcZUnytV1MX0iwFmOOnJI/GwF9FLzffr0cmfGYQdwX0rA4N4+Y6uOWkE/7ervvasyr/o6nq6+75rJloffKLU5+4/3JiHhHRW4dRS88WmMIjopDK6OFp79SJ67ln2Gso0LaL/tKwtopNiqG6+i6lWw0xfeGupzx9d1qg5J5Q1VnsiuoEefXZFdA45nlEGA8J3y+LW578+DIzcVecP65PP66of82wDrguIgf9dqvOBmYHuxdpqFKbv3bF957hujZGN2MiwAjDUM7q6nKXR6L3z1fPOKphdzTAvSHpmEjPUC0qdAUgP7rMmKxObgs6v46GP6urMR9+7X1fP9FJundnsg3GU12y3PpCe9eRDZu6fI5hpI9KJ/HJcOaLRZlMHHsg7kdlgqp7ZTKgnaAOZcjBaaR8zNaPak9p97frSMrMOPpM20V75iMys5Ohbljqjo/kaaFu0WVja8mdZckWp6UmHzWZ9QJz3/lVLXd9nBKQOjLA+aEyHZITSqTXKfEMlE/8872qmZrQx4gOdyUzg+8RdrqJo4rwGAhrfIXiWs9BmnrU60QKC4d0y2W1K7URmEGd/22ii06Mx/rCkpDOuzNWARSLZvtSyHtLVM8ictkEMXl5quYmgyrE+kB6m29AMdZZhpp2IxCQSkoQ8o9kODE7yTv2xN4CUpD2Uw6xqILMCIGQ0hmFLUCb9oVc75gH0fOVTf/s3msVenaLZNKg5BlMqkfqUP2kYUIjf2l99rg8OKfVblt5GOIug07MSE4GIneuEmQ5FFPtDqeKsxvLuu8sakYvIqFHRvym1IQdRzKhNHETrjER09GKK6EN6mO3jjZbv16JTNjPgait6fg8i+tu6NRbnL5RqZ0D7nk48XabVMFNXg3hJtOxh5v+zBTPfGKzoGOVNjbYZY1ClzMirHV26umlDuakrfTm6ehyxAcEz1A6MuE6YSXtQCRgoH9/oF5e1HV0GK7p+cWijf1XmL6IPji7sASOcRdis1POo3lbqEtY6YaZRjyh1p9GdS20knYqhxPt0PCLUpqW6SdrpxPj2slJ3LDHkcPEUZhljENWkbTZdDDATKd8HSxUV5U3ezTz3bbQZHsOjGQlZ/tEP7qpL69tLHQDMIGi2B+u59M+3lBlmmKmrxwTfWdacCrogMJUGgohL1yUN0U3lkVMRKUTdWhIk2srrPbq6PRR9TKlr6eheTA6NYV/bbeC4opl7mE75SATqEM2AZrZGP7LUgRz9tFKlO/QJpTK1vJocNmTHoNp5x8A0wtkA4jNRClNqDI0z36URyxs6FmYFGGKg6YQcRXQKPt3DEThoHleYj2hvVDfLnxswlE9n1tnQxNc9SmVs1nWdnthre6mlL+Jrf5RwVzdpWHaSd4Pj5sOH1wOkIiL9UCeLDeoTM7NvsKmoW+WhSvXt1NUY6wZmYjRgZdcmvSrV1SVDYa9mmXldYNBUvpWlfg9tIGQtp66xdRgA1bNBXH9RtweX9Rwr3dK1SqEPesY3zs06vEAB3YeVmbVURQ7ingqdD5jx/lyqqGag8O7nu3q++LBd1F7fXhSb1DjeP0DnGcz2iVJFwpsOHWqRraKfLjWPjE2vRHf1OJ9evMyVL/ogXpJMBoszcVanRP+kVCMUKYCdgRqwGmYY48RS32FMnP1vMcCMLT0i+aB2KBtjl/KtPpssV6JvbzkPfXpXBzl7ErST8NLrbIuZ/L++1DQeXqq0gmZE69MrVSoa6vDzperTaH3uDIN6qx+gbzDcYXRivndGy/nZACMk8QejGXWJ0pZP1isyz1Qu0ZNeS9Q2cvvOi7u6BfPTwbfNzc1tnU4joubH52o8a5s4Phdk/GEd/WyeO7Q17oIzwcz3Tih1ADKLHNtoDjn2T6OtGzM6of+rq8EK0Md31SEG/a6uHs5oQDwg2Ec8mU5rwFLtFDo249zsfwsCM9+ib3+2VJGZqIy+c1f17s/kyrHHsUUGOgEfzK6CKbwm7SHayqeCH56rkX7O4La8jjJod+U7otRAIGiOQWwXaPvrSYdouwlJNGhMi3nXgvZdYFurfJKSnlnqO1SNmTdGWCfMNNSq4V6p1mzrnhuyavbQ3qVT78/91W9M29W9yP5zwICwR31kzKVrTsjYc65GkhFbiUgsPJKwSSs16qSe3DE7kJxt8J2pshJFiaH2TlMf0PJOnL3ipPrjG5zQ8rb1pJ66KlILvZQ7L0a3r32os9XpBHOrj+piw42NOHZJEel9UxpCR1EJFqx8M0BMvnype8OVy+GJ1AwOTTad9KfGdlUVWb1qos4bQ4s4K358v214msHbe1AbCxclDVs+lY8aYGsuelVX+wBa+T2nnqlo0rxCV+vHvv216rD9BuqQX4Y6HNLot5ROPz/CemBgoK42/A+JZSo1f32yVJHZDLfOytxss8364HjtfcswxKeXdlWs+l3wpNYoInWI5CkW+h9sHQ2TXzQzuWin/hNN5sOeCx6ee724F/q+Q/50snMKOulUeT+cW0RQM+rx6Fzvnd/Wyvtgfl3dLuq+We2G8pfrh4MHy3d+i2Yqbtvq+nFtaei0X2zvKxPVBX1kaGvo6CcM+VmI8k3no1TDpvZQhr5M+e/YroZtUg7SFW829wXeNMgRy7+aeto97TScTSbC6ur8zdThye27JB8GR/SDgkc32kmsd2zpvTFoSdR9IaNIRP8Ifr+rA8/qvA/fn9SgIP3qSq7e7cuU+2IO9M9MDzwjrAPaaK0BnTr5+dBC0RqZiesqX0Osk8G32GKL1Yf+5R3WWiLrcekYDC5fDv5PVy3k35urkTT7M6822WST7+SZlUT14E+W1LO+3hT80Vzd3eZ4WfSdpvI3k/pZh+nOGdoGkh+1Tve0rp71fcf8flCuDko8Jmht/Ie5Pm+uRr358Vw9JMCsLn+fmdRjj/pvDmk0dHyTI3g91x8G2NK72aSGaUY/3HtwIcrnO1Nt9cJcHbxoC+aD81u7PmBSQw4r65NDO6DiB7m+KteVyYMBXmyA3dM+P871tCXtiKN1MfikMq1y3LirTlLq6m7B+7f7j8nzQlGjhea+ZqPfEezrsKsHVPYSxNDHpr5PsjP4eEdknRc2WqTY1XU+wgZgaDw4VyOfiqYp6uiqVDjrN5F5nQwOnMsdhp3bdtttt86MvtfOO++8Q0b/OSdU5JuOufXunrnu2tJxhNBw5hXawQJOSli1pMZjt0d9ZVDk1T4Iv061EDB8q6GyOhZX1NGVk3o0MPHU+WVoV+dfocUDdx6WU1f7QxHmav6ESZb31Xmcqk/nnIlW630hsPacq7HupCEsMbpXW4Z3FwK0U6tze9s5s1AtGMpENd0qaW08V+OeKY9nbX0dDkHQBn046+Bm2sI3/R5gyG/Dvg7navmGOhRrf6hD5VReYbj39NykRqkl/pN8qGHiuS+VZziThsMcPNun0fJKten71fD8CBsAESwbCl37zeCv52p44BPTOX4dFMtrnQy+1VZbdWHsuS233HLjvO/MZ0f93G7rrbc2g5+ed96Z7+xdqs+2IPo6kNNLf9xE9C9kMHDUjtMu3hP8bfC6wZdtVI/jufvAMBr8nMIU88H3LqnH9two+Jzgb1t6j5R28vD40Hdo908IHp77jv/x3lVz/ze5fnluJsT01PedVvixVo5rB82SvnXr4JOXVvH3WM961/Wcgu8MHT/4cunlqgwOBxDj/GGhb6McSe/ZoQ8Oam8Rby/W6v/zU2U4Q76GvDZ8l3LM1cMUiOOOsbp37jsDTR0+OfTtWrlfGdS2jjH6YO45J9yZcV+Z1Jhsqxl26vsOOxRtVX6vm3de1tIQv75/Xn5G2AAsXcPgjg/+sbBNqUyzCz3pT92abZ6zr2LwyTbbbDMXht4k73NP1Ci3yu9Lt80lJ06qhfwPuX59rp58+bM8+5vgPhvXc6noemJjfyj4f6GvH3y193PVWVaP6OcUlHPoPKFPSSdU1psFnbrxl1zvlfvHtLR1zju2+05/uYH7ecfBB1cL/j3oGF6z4hkYPO8vybOf805+Xye/39C+5VytZ7TDHx7jWe+6nlPwjaHTB1+vfGmDO+feMdoy10fm/hEtbWrQocG/hn5Xrpdo5aaDmznPkKfh20MZg+9v5btF8LnSyPV++cYj2reent9HtjQcSnm9lvZHcu8q+d5fgqevj8Hz/lzK8On2joCMbCHecfrMOIPPF3R8lRkkchGJ6OOcOzg+sF6uk8FBmHlu2bJlG+24447bZybfd7fddtt9+fLlm6SBBSbsI8P41qSGTNZBnO8FibCOS7pkcBN0/nN4AIZhZWd4cyzxJLjRpKoNs8mfZRg6T3A4p4xK4MyrK87VpTtipZh0RFXH6qKJtIxNjtthWV6+pB4r7LhdsK7vO8KXyuG7RNghDSKrM9uca+26IIPXAMP3JvVYYasXLP4s2ftjpPy3yaSeBT6I6J4Z9v+rj/70kvbf6u+2/913fpuDH5xTZta/QgbqbcOEjoVG7xSm3C14hfy3Ms8R2dXhcB6a1QeHbRC50UR27XsGBm91qL7VlfzynaC7O1duZPD5whSDq0w6Ef1IfHPbPQ9dH4MT0cPMvQ6e5z3HCPLg/Kb7fa6rsbct1xDDPhTU4J9NOl/Mde9cPxh0BpaTLozO35irp30+K/e+taSKd2K5PXRSLdfrzMdZhaED6cStI1sH/mauZpv7J0+n5/qI4K1z75u5PjN47dw/LejYYYPT6u9Mgzz65pIK71COuTpTPrd969/naiTb03Jl0OvfWYhyDTB8c/hu0O6tr+Z6z9y7Yf7/Wq7HTeoRTtrmJZPK6J5h1OqG98FA5z3tfJugWdrgLSKqE1b/LeV5TGgnq94pzM3KTWJ7VPAWee4bQaHArq4+cn1D0BKZ/uUwibUmkVZ/cC74VnUVZKjkfKSdbjedvxHOBDB4KpDV1xoljyzLFl8pdZnlerPPDxDmLptvvnn/fiqbvzOR8BWh7Rb7ffAToenj7rN+mvX+THScq2us3/PfXGXij6FzFcCQH7v7lq0Om9TzpwRuXDBG0IGGTtK15ZdcWX/5qMvHM4McRNA6ZL/ZJO99UUcfOuE0DJ3UN+eq8a2vw9wTs673LMt/R4V+TrvPgWbByjQNQ121bw+bTY7u6sktaMx5SKM/0NXdc5ZFT+uae6pvDN9qaNmKD/txTnTpqp/+LyLB3Sp10S/9RXJ7QP6z4USUWXp+v0zW1T0HfP3RHG0Obmn/pGvLZFPprB5QAr1HZa7/Nlmz1NifZtKe6fM4wplAGoje5SAEaOsgD7bDSvUf1ku09hmGTBXcOhPHCaMyi3l/yMCkWm6tB6MZ7nR6YipkzWUddVYVMZIjhlmaUwZx0qmfK1rjW6PlM77gzNC+yfGCMXH3SV0PtiRDjJW+mcOJJUReNHEzl7U715CvroL/PUQEFdCSw44yWXcmLqsjNCcTr6nXhS3Y2rCy1IMHOJrYFszRpZ81G23LLPqypW4j7V8arkB5g/qIo4T3zMC+LAP8ZSPFHbbffvvtue+++15uxYoV17xEYPfdd7/YFltscViecWAENeSwSbWWUwWUWz/RXw7uquNK7wEojVz7ypvU+sPgVDXtoQ6pjfpFn9/p/I0wD2gVDLmtvjR4Uql+5WYArqdmsTPAUNlTlW6jiV1NdpDpxMTz1wZXBN+RBnvPpJ5r/Wr/dZXBnp3nT+yqBHFc8OSuujkarYlxIpP035fPcwoz3zg2KD1OL3cKntLVABXSd//Y4CHuT6pY6lC91d+YGuSs51JtPjapXm7PD548qae5PKZUxx/+Asp0cqnBMexP5+L7n0NmFqF8dwq+q9RtpDaa2LXFR3xVqT7iHGHs4uI2qt17UEbQyuZqsObDflLE8stnUjgmZX9VGPqaYeZbZva+3W677Xbj7bff/lZ59v1h7vvkGa6xyv3YIMlOnzq+a3U4ja0eLcvankv6OyBIteFchLGn++iQzRHmC1OVZpQ/vVRxSHQOzEqcIrL2MNsJZyrdO57/cle3WRJNLbldYm5NWCgz9o8areH5vfsPU/Xhf7q6H9v2RTT9a8EYfKaDDOGGOIQMGzOInMPe6bd2Na7cUKYzMHjrnKQNIYiIlMpEvPxH7qsPDPb3/H/7UiPJ9CJzqdso/1bqWWI9zOTtbMFMHT251H37RGeba6RNTTBj/zX4obImTNP3S5MmhnxM1bt+8W3PRQy/Vn7/T/CzO+2000223HLLm3s2s/otwuh9vaUOnhcG50lnA5OzyW7Y0qB797P2kIb8tnokWfy6vX9I17wB8z9dvn9uIdr/wg6USzuNNJqNJzqr0Z/BbD5ArLe5nxfcFqWe2mm5TRTXG8Cubrm0dZAXFHHt0FID7fPTtjvrZqWen6UTyofrgsHQsRpcqdTyWdKji6JtHvEbLT8rS82HGbhXvodvNIOQzulophsEb5rfnGSI5zfNTLZzfjuP7ab5TYrhQCTgv33Q6lRZF7R8M2DzD5fjYeuvPQbDzjebPvZstPY4uNFnYPCuAo++m0bv3jni+aHbbLPNzQ466KADg9ddtWrVTa5xjWtce//997/q1ltvfYswvXO/rY7cPGV2HhmVZ4iEc4Y6bLYgqps6vPlcXdWgFt1y0mL1j8y9MGCkthvp1aV2ADMb+urTD20AdCBbMB14sDJXYp3Ya3QnLpT8oDU20f8VpTLSMfn9qlI3SNw3iLZN8IhGi8TZw9ApzgnMfEO8NOVjUMTQaOlJHy0/9k2jH1/W3zmX5WrWso5vuZGl+hURX3m9UTFelv90dGL5K7vqXy1NdXXn/mNT3z0nMPMNAwhf8cNKjYVGXQC4RfAF22KBwRiuBb7VkJHticFXRETfP2V9UMrzor322uuwHXfc8dZh+nvsscceN95hhx04vrx4o402OjLPsG1YTXlAUNtqyyeW2sdWw2wdBl+Xb+w3qdZ+Kyw2+owMvkBgdO8t3KVGOTmp0UTm+QAxm1j2ja6dO5Xr77u6rXIQ0c1YP2+0WUMoJDRRmF6IvlepouQgMi8YzDBAn16pwQANbOjnlTWHBPj/po0WEXQ1g+twc2uWdbYZzndLZ2dL+F90xFaMzLf/j5NqRSeiE8uPKVVs9g5L/oLBDCM8o9Q06PmkkG+VWk5BIdzXvsDAbLA9AyhrV20z+sXfwoDXye++X2yxxRa3DTNzDHp3GP8+ocWSt2rynOCwH/w9pe4HZ6mX/voYfGubkbyTeqV39ysRufJpny3XCGcTNOQdSo16SoxkKDHLEV/nA3uUGsLHZg2np1h/dSYYjyVGLPuStyv1LCqzh22TZhm6mxnG3nK0AQHzYzQi/GKBjoe5zTDEdWW1d5mYjjbLXqzU+jiyzDA4bB10k3TuO2T2vsfOO++8avvtt79hOutt995770tGZL1e/rt7GIDDB6Pb3bvqK47J2Dakt1jAsIbRMDD1SXuuaP8Rl5UbbNpwndBVEJDyHikrZ5YbBu+57bbbXiyi+jVD3yn6+EH57Tjle6Ssh+Y5thbr4uwQVAXSoL6lj62GKQbfNHiH4H1ST8RyBjubZHoHnJHBFwcYSohVB5YaPVVDnSEKxzTo/I0BbDx4YvBhk7pJ4JiunlXGamsQeHzoVaV2cuKvDk+EZezCCDojWtifa5RqdNNBepDGAoP0lNUVs6MZxs4ArYzCTdsBx4nDzquHp6M+OmLrxdPBbxZmv+VlLnOZq2y33XY3z3+PJtrmWbPfY1MXGI+EY+0dAwC6MkZcLGBMu1/Qcp+B6ohSRff1gWf8Tz8XmEHYaNtc9wgeFXxCpJYDUi4OPMdmQDs0ZWaAe2zq4UYpszZ8QqkHBa4XSEENbXLhUvukSd1cYoCghy9obIAR1oZPlypmmQWM/Eb9DRrcGnND6+n/JLqGps/34ldXAwX8sv0+JNhbS0sVhYmznjFzi4TiPpHyYY0mMvewCAxONJeGcENmb/SJ0w+AxtxQbDED1qPSMUkuvRU9M9nBZnPP7rrrrofnv170T6cnydCHWdQNdqzo0qCbrix1SfJI7y0SULOkR/XRHoJQPn2tJ9YGMzrRHpMyuH6/1LbB8KcE/x5mPCK/2RGI1Ta2GLDsY2Bv0Wf+L3hy+946Yaq/sKL/sdRvHTKpfuecjri3jgy+UDDDONZRzaKYVegcxrIzGGOmYWiMSY3k8l9tBucscmxX15V9Q7RSszbGILI+IWjTyuoZvFQbAI8vgwox1v3FNLhZysGM0jXDmsGPmn4AeKehQBmCE14xzLttyvfglPWYPfbY42KZyW5qBj/ggAOunBncppZj2wzOEm9dmJMHf//HlaqWbFJqmvutndqCAumAqmGFQ3q3nfl/FnjzkDIYBzkkDTM4/4bbo1MeOwnF0kPbiKN8nuGVqA0NDmcqdbnf8vSwrnr5SUNQTisvfRSXkcEXCGYagdGMwYtoTkx+YKlLR+uFKQang98reGRXl8Po33fpmg5e6oxCXGdco3djdsx8z64yuyU6aRP1zDho//ewvs5yVmDmGwYRkoMrZkAT19cHW5Wa77vO1dNaGZzusssuu+wepr7B5ptvfuvo4PtFB7+W+xtvvLG95bzK1AEvMsxMBcJEpCPfMsj0sBDlmwE2FQ42Qlb5ONVAva4PGFzvmketJFhmE7mHu6rQTIyH7Cv82A9r7cxjkaca+pDWhtpMmfrCrKNM1D5qA9QXqA0cjaQxPZiu9dII5wBmKvMTpVrF6aIvK1XEM7P1sK6KHxi8a1b0ICs6y/kgojPs9Fb0Uk8LmRbRB6u2zj5Y0aXHEMYKy6+7h3WlfVZh5huDSjBtRf/Q8Ofw7NQ7GMYzRFWMokx/CmMbkPqVgeXLlzu8UJn+mGeI6MR/77Cgi0KKPr6scUJR3z0sQvkw6m9KDTp5SKnpfWDq/1ng3tq3Wakeit9Gd2tEdPQRpS71oR/VVYnE8y8u1bai76wW0ddRJuvwQxrsPL9qtMF9ZO7FgJkKpYNZxjmkVHHVerDllvXC0Chdjcn2xuALgjYoiJ4KzdTWYF/e1cB6x5S6NozxMRadlLRAXEezspu50XTjHhai4We+obPyKiNd6MTKSmLpYXh26p0dSu3Iz8+AtjL3nxx8ie2T+f2o4AkR03nwUUFOyJVIru5eXur3+RagzaoGCAMo42MPC1G+GZAeGwA1x4qFtmDZXh9QyQx6L+vqmWyPy1U7WVXwnjVuYrh1fPThXV0R0U7qUhnfWOpg1sM6yjTUIZQn/cL7JMYRzgXYvNTzyihAZmGzLKYkvtkcQjdb6wXg3gzqLIIXQsYU1mTea0S/Q0r1fiOWmfWJ7KuC/NTRNhpofDRbwGKBpTkdlHg+eJnRi3sYyjlVJlb0fws64G9ZGJpjxw2W1NBTopagRX2x2eLwXIVPsqHF8+wQRFK09WcrE9QB5V8rvQWElaWmZ7UCiJ67oRURVnTLhJYStfNhpapsZnY2BO1nmdPgpG1ET8X8+ogZfz6wrNTvQ3kxkHt/8LwbYZFBZ9ew9E0zGpGLN5Q1VbuDuJSuszMO9xti2F4U6+pM/ZP2++CuRc8slcmJ4OjVvuilLqGZ2dBvKosH/11qGlQDuiP6/cOf1A4wVaZevJzUKKvq6Rel+p8r3+CLjumHlYFblaZ2hCaemwWlYSY1mLA4f1gaCwUz7cLAJr3XlXrE1KPLhg1t2py/uvyKT/6tRl+za44uuXqfFOK7jyi1b6CJ7fOBWRH9Z41ePbCOsLhAnNa4y0vtIHSvo/zu6k6w3hiyPvBfQ9sFBRR4T+h9g68JnthVxsBYJ3X17O1jStXZWLLpcOijSh3Vdaqj65cXBgambXD/Uk8voatKD/3k4c+hLIONISjqi91xdpEZwHRq+6vN/ganD7XyWQ5TVh5unH1OLHUwM2OjOfwQdenDVgoWDGbKx0j20VLrmGhMVLf2vj7YtNTTaj6YPOsHxGjlsD5NHbHzziD/kEb7vrYySK0W/dXZBoAU866GZv83lGqHUG8jnJvQ1QD2ZlziJdRhN+hlNMUMwgWJxUV0Jc7aL321Sd0iyKvLt4h+mB/tkICVQe/Yq22ppE/Pc6Va8i85m945BD1x6I3TdL1RmdtOqF0n1XFHuCHlEKGVr7YBj5Vc0AT2B4H90b0YG7TX3q4z20kNmPbOo+13591FBVpZqiun2YwV+twGDSltebFMJt+Wq5RbO1kWXBakNtnPb3lQm1h6M9hrs4PLhk8KtcxqpYK6hdaWjGrUOHCGuh/h3IHBWvrw4LHoNK4oLj0Tz60jwsZwf66GH/7bknrmlVhcvdNErgYMI7bv2nlmBEdbPuL4gT62q0s1f8n1JV01VBHjzBqrZ9XFhCGNrg5sjw59j6CgBpwy/jypAQl+VGp+zT6fabSObxaUX3oqIxL6/rnPYIh+dqkSC/rtpc7mROMvlwaLXb4p2LXUfPyuVPGZ2qEcBhv5QR+W/FBderUj9PHoXB1X1PeLXF86fHBoI9hgOL/uh6W6yv6pVPVkgw5UIywCtE49/HxK8LuT6mF093Tsb89VV9Rpd8Opt9dyQ9wtzP0VmHc5fAifK16X2Y+4bnOKjmPn2Te7uqWS3m0PtvRYmtGPznuss5ahjh86zmIzgO83NNveNVfbIFcmL0JCf3pSY8m/P3hqV2dvu6DsfSbOPqWrMciIs9QANL9u2yKV1YkgZrGvljoAEFVPLVP2hoUon3oacPr3DJCO1O1H89+OuZ48qfHaGAeFXvr6pEotL07exZa7fvBxadfTc8/hEQat73RTIamGuptKnzHTxh2edKQw6Rk8VrY8jHBeQBpm4zTU8kkNVk//FNReWB6HAdj7u85g/n6nA4jBs1lw07kas8y5ZKJ2iOLKWQIjEN2J40472WrjjTfecaONNrrk8uXLd7jIRS6y3bJlyy651VZb7bbNNtts6f6kelStq5MuOAydNKgO+pBO7be8WxaTD7O75UA0x56VjSbSOrMLLWCE54bOTqzt46CVelopUR3sFuw9uIb0z2Xoz07r6tZeIjiafzi3Ufu2SWS82LS9gy1si+Xso29YXSDSTzO4OmCQVQ8s5yzvpALqCNHcas25XsgRGgyNNTRYGvTxAijm+qw0rAio/wi+DzO3zr7W++5P4f+3dy/AmhTVHcB77iLC3c2yBhZQF3YvPsDoSpnSKJa6gEpekkppLOOrQFETX4SKEo1GBY2SxKI0vlIqiQjxDRrK4Ks0IBQqiRqVSolGixXEoAZ8RTSJ0ZzfnOm9w8e9y33iZe1/1ak533zz6Jnp033O6dOnpR7eOai3bOyPB/0kyDpe77A/zj8xiJf363HMs4OeMBz/grivoRs937vdq153NTFUUiSPu3LITirvnAT+355KIVcmCQfNB5e0n9rKJjcn/n+7HB4z0eR/YitC7GneYZfzrI9xbsnx5Ls7t6Sav+v+txKMjlDPv9Glr+Ga4Tmkv7Zc00/W5aIJ/2h/vIvHxDO8GR/04r2GhJbdqL4MJKOrZ6UZcKZ61p0lI9ka1gJ8KB+PMImtDrox6Mx1uQaVVS4u8H/9wJOoghi0Mc67MsiiCJIy8qx/L7aivtjY3w8y3ZT3WTrlp8SxvM7u+9Tp6enj4r8vBJ07uubE3VYW9dm7XAXVSiHW1dKTXxO0cyp79M/F/zdM5frnH44yeQ5ONIE+eMNLJmTgxXI/MY4R5XdakHhvUWYCUeCGMjtXe9UF3POhkt51vgSNlSmbX4oyet4jpjI/mhVTHhT7zvf9gh4VAv4GE4pC43rhMO1zV3nrdYN+e3huZoyZep6PWt4EfC2hCtNUJqCnYpsSKpE9/rCpXDpXgr4+d9kkfPy9Mrc4L7ShM55oqjaVm4qu17BowH7r168/ONTzIw899NCZ7du3HzEzM3PUEUcc8Stbt269Y6jr26NibVORamVaTYwqqmejskov5bdtjZvmIa/LJvOQGwnAa330jPUadfleNM4LzrNeoeJLbdX/qNvVwqg8yPfYNvAaLg2W94yntTBTmGZMqf3iW2mwLS65Ye9cd26u69bREtemklPPxeILpmlYCxgEu5K44/+MrVlgHE7XB1GZ2Vo8x3oumLzMTXrc4RgZP77dZYyzWG35sh8XJHCCI+dpUYF+z71i+8yNGzceF/u/FP9b82vVBdwzjIiH/Lqgy7q0tzkHOaEI+eVBVs0URMIh9a0uI7skjRTYY2iIQ83z9U62Yb+gF0NGris01Pl60Y/0BSi3qoB7jmu7fCZCfkXQdV0OX1ox1XeidcmK6/tbk65P2ECwoxef77rm9DvXeHd91s+V1oOvHVRhGj6YgAy22RuCFzDBvvpIlwEwx3Y55xsmL9NjdB3SWeecC/wQCy5a7qQukwW4x3Pj3ifG7w/FlmlQh5QEzqx65Z+A8WH35gnnLf9B0A1BhpcsHOA9zARdNhynQfj7gdcwvWzgTcN98sB7TsKPF2WmZ8OL8LtVMHwLtDXesXf+nS57W4LomcxA6yfQdOkv+NDAP9k3UDcI+W7g23qmT5aMUjNxyFApr33DWsGoIvRrXnXZ4lNNOZNUeKq537vUy/lQr1VyvFV8NO/qtiAedTHcB4Yw3ztU9QP3339/XvQjN23atCV68A2xnzd3ZjifOrC6Rvgs3NBEiOoJt+293V0G6rBhQRTYOJ56HPM9rtRj3vH1OcSJ12vdGujq9wiS8JB/Ac/z7V0L5GGa+Da85Lzhpryap7C7Rtbz+JP5cZ+SATBUdN9bDP6t9d0aFopRRagfVuCJcVuqqGgzvZt84irFYlXo1wRRCznVBLd8Pnjjq0JHBbY8PwR/R8neTYir4Rb3Fu99U/1w5fDQoC+WXBhA7/rZkmPUbGxluqjLJBj2/XNJoWVq8IIb7jIjT3mN/+q1nS/JgzBRvKAe6ZQcI5bbOc51v60lx4kvKhn5VlYByuX5Lozrs60/E3TZVPpDqOW+gXFwQUhXBIlsm6wDPSZ++2YcaQKWjPN7Pqp9E+q1jokPae52rzJ3mQqY6mahOUvQ7Eqqt0Cwx12rRrKJcDqtyyyr9p8VvJlH9guUqKrtzrKCAj6utCVnULnHp0qq6D+N/6+JLSefZ/3vMut9dhx1XRw7Xk/1roE3BfYVA+/5TnKtkvHuRw/7LxjO+UnJVFZ6PPu/U3JG12TZVgK82p5jZ5ez9njE/bayqiEzvJ77y/iS00An68Bc6E23klNGzRL7cclnWnBlaFgb0OP46Bxr1HMzqCz1WofUdjlhFgC9CUG4Y0l1XYwyj72ZTbKFCMBwITzHD6F2jJDH1YJ7E4IaX03V7MMqu1zA4LBhvzJX3jnbBp6nWE9cwYlWMd7PVGGmAE2hBsfwZ4gJ7wVqkRrRQkBl9nxUbvcQQ9/fL+5lDjunKZODc8y3XZBjLL654/T23pX3cUzJOPfdtgoNaxRD5ZDN5KNRMV4XdM/4yJcFWQZWUvte2BcBs6w4cx5T0kHFA6vnE954YdDpXc6lxhs/Xq2eQaUUI0591juLLWdKqPTnlszIAq8u6SSjghrDp9JS3fXUeMJMw5FAwzU1ZvbTSNjceNNkqfh6vZfHO9Ngnh909lRGia3GmL9GyjRdJo+IMkk6qNLm+5t/wPzx3HPCdx+hzgNn1jCfzgl6zuzfDbdJDMKN2M68sFT0XvXbd999/d6kYk5UhluC6YlUPIJVVXR2KfsVf0lJjyx1lsq8Wio6DzA1nH2tcXFv3mVqOR4R5OtLqtzGvNmbeA0QgXbM0WVWRX9KyamV+DNLPgez4/1Do2X/Z6enp2diewOVOUiYb79s8wrDdzJywasN7q3sBP/G4XdNEnFL0AA7/k9K5mJj2y90bnjDWsVIwKmVhrhk1dw/KuTjgx4ZfB9vvUgBpxI+oaS6SmiMpVaw6fSCajtnjt+rBR5wQ3Psb6i9EzAN6n7lrD0Ys6Xy+5WbJjek4lfYX9Uaz1MDZR4YDeM9Q6jXhZAfFZrP/aI372hAGzZULX7FoHGiRTB1wHtG+5RMRMGWdsxCQEvxfrbFMzBZCLkGpOG2jpGQV/KRzwrZNrPIpAVq9FllaWOfR5dUITm8VKI3lFRn8ZIknl5ysoae44/LrC27EjAsJoHDH5Yc7nllySygQBX/04HnbHzpwGuYXj7wvOV4Kr2e8GUlEx1sHngCz7xwzG/ts88+JmqcEu/t+EMOOeTgEOrfDOF+2KZNm9YLJNm4caGytmBsK/k+PYsG81UltQoCPicmGmqmFM2KYB9b8nzfqWFPw4SA64Gpaz8MXiWm9vk9djItFKLanCtopHq1P1FyeSM89VIPenlJ7/pSGpH50I8MlBy6Iuye45slG5GqzqrxNwy/NQKGtqi9HGfvKWlGGCoi0I6R6kgGFPv/sqQmYP/b9t57bwEm7w0BP3XLli3UdXb3joMOOugAfgwq+oSALRd1JMIogHdYvxOtaSGoJojG9UUls8saJmzYEzEScCrai0tmQiVwTx9oKW5gSQKkTqY66rX/qMsEEXptvekJJVVhPgA284rZ4yV7WpFnvPvwuBGvPHpoIMBUeaC2116MZ12ZQC9ejwfOw2pUU5MFmfBeHx8q+v03b958h+jBH0hFp65T0asvYwWFvL5DjY53+LySjjFlXQiYRxJYmI8gaeRzulwyevK4hj0YejuVhrBT/U4uqVbzHi8W4rv16NRg3l2qJfVZg4LXEKyEiv7ckgJIwJWbcw84yB4x8AS6+gaOKenxB3Yn2xX0+hoFMFxUGwHQCNgHBMxQI+G1iMKxoa7fLgTaVMvjqO4hQGbZ8XH06vMyhIhG9VclnWL8Bd4bk2deTNzL+3a+kQDP8+IuM63yIUjrNLPCjVDDWsPExyWIVZ2Fbw2/tfiLxYklz/1USbvPNanonFT2I8K+KOg5Rzix5HXeVdIMMH+Z+q83tv/a4bjvDb/hGyWDOQgfL7r9MyWz0QoYoYbzD3yuzDoFHcNu52xzrghA59j/+RBynvofhHALNqEFyYTymW4Yi16MAM3zfJ8t2TAxFb5d5rG75xDW+nw0J15y5sjphDu0jL/pMqXy5DkNezCofpwvotPYqKeWjODSeywW1HUOO8LCRsUTEtd6VZcTYZYb9WU4jL2sd9KDu/7jh//M/tLbQt3Co8rswgzUbaou6M3rWPDWksNj1XPOZCHQwIZ96FBmPare2jNYc/vpA/+0kmu59Scs4/k0rIYhfQeBKG8qOYR3s0CF+h4n7uU5OR6ZIoRchKGEFvwHZv6JfJs8p+EXCFRTKrYeimBQD4VJLhldzq2mvloiqI/bXkYFI3SGiEyo0auxoetQF0/x9oHXwFQBJbw1ok5PX4edNBCVV6A6rAaG0mohjy6zDZ7IQPOnPQN7VgARvtd46nNN9MorDtcf7muYU4NjvW9lpIHwS/ROQKjvu9Jql61h7YIDjBda8IiKT02k7vEqLxldZv4UVEOdrUkYJg+bFxMVUuX9bkn1k/NM+ajohBhPHQf8DwfePr/Z/zzuTAe9Iy+6/Q8qmZPc8Rq3x5ZU/f+iZI/qGBFzAkyovIJEmBr2f7fLVMt94AleeXnVFxHnf4uo74wjr9Lg9JPoon++Lld7vRRf0ha/2fmLee8Nex72LjkefkHJWVQi1Qy1LDggovYsMKpUxto/EHRel1M3l1PRDB29taQ6bVjvnJJON57lvytpb7p+bxIM/EtKjskDFdYzelYONuqwnnxHySEkw1EEmWrMqy6Y5i0lZ5uJDT+7pCORynx2l5lZ3cOMvbNC8G7Ho14zqEwmWlgIxu+n8oMw7xLu6rWfSrw+6B/iOOaLMfsPlWHiyRirEErbcBsHYeKh5lHnKKMOU3sFhdivEdgtagWdpGXA3GzeYM5BoErX8XvJD2R/VfGlMer5LueC67GBwPKeg2EwAl0x5o0IVImggdTxe+bAzPAc8sBJeuh+spc+gOAFHR7Cfd+g6clUSYvF6J0Jsjkq7vFrQesF2cT2d4P2i3sfHfQ7QWLUl/t+G35BoJbwyFJV2eXvK6n6cSYZhvlO0J+rTCr47tTRUSVdicp3Ysly6MVpFuLELynDWlpRlquDNgX9LATLbyu3XDecI0BE3DqeAPPEU9cNuXFk2W946qSSqjhn4zEDT6vRsDnGvPit+BAw2Vu38Kb7He/h7sG/a/369VfE/e9FuHf3bm4Jo/cmwu7SdZkh9/ANGzb09zMOH7+/io9jJMdciXfcsKdiVDkw55acP62S81xfVtJ7zb77WMm10Ppzhp6ynnszVNVyBUCVNmvslC4nf1xcMnzTOO/Hg86NsuwbFf/DQRfGPTmhpEeW/IGKbcTg4yVDUnnTL+4y4b+xcfuptob4XJdaTkuxn5rPicXGfWOXyxpdEtd/X9DmEOKPhDBfGttDYvvCUM3fGPzMcm3x+n67HIpjdpwR99vifkGfDl4q6PPiWa+I5z5q0CYmL9PQMCfYmYjkqujmEG+OCtWv6RXbg6KnkgKKjd2ngkKrAKo0gawgODUIhYe/TgS5S5TpThqSqPCHxDF3HmzVzVHpa7ZVHv2ZgTdkx94mFFTgnh+Ar2PPVPqqonsPdT64lWAOH9Tye8f97nO7BP6ooP2WIuCj9+j+Gh9RdMp3v9jeN+5JK6GqS5NsgYq9ggTeTDXhblgqONt4ik8o6Xyr6qx48NOi8j1c5VLZOZZQqKo9LQUTFfWUkvcDfgE96tjDbeVQKjeV+StRhjtHw/OzuLf84AfGvq/F/9R1DREthDrLln77wNNKziiprhsWpKG4Ls3gN0oGm5xf0t7H/0ucIx+5+32DkEev/X3Tb0OYjwy+V5nj3g9ZiIBrkMbk2QcBF9WmHJ+O3/wD1wddG//jr/XfVK5osssJ19CwVAha+feSIZ8CPwwVGdeWqfVFDlA5VeaxcKOo+KPLLAwTlZWq/E8lc8wJpmE7KwPHnwgySRDuEXRVCNXFBDzu+6Wgf4vyUJ8vjbJdFaQXf09c+6rY3jvIemtXTeVa4a5n/wldpk7eGb8FsjBPvlIybbJG4aogyxLLWnN1nEtNPjzucWUI9s649/bgPxHb/1g363Qr88H7qsdUqkIexDHoud8W+4zfG+KTAprW8umgq4P6deCbcDcsF8aQRb31avtUOq+6DRs2bJzKZPsbh97qgBDwO4Rw7RW0NWhLCHi3FCGfD50aPQvjwN0gEIdEOQ5UjhC2rVGOQzU28dvUTmmHHXPAVC4EgeeBtoYZO11GUsKyb5ceawLMWedeHHiG0oAdX9f3Wh/XnB4EU2acXwqyeIQloCTSsNbbbEkn4L9BoJ1roQrneRYLFljEwP/MESMC9v/yVC4LrLzmpjI36vppDQ0rh9prBJ0YvOWCXhKV8TiqcQjzB0OwHjw9Pf3ToCtDyPcZBG2XKokGIanq6JIxXIP6fUGU4fVxn21RhhuCriPkcfsrY3tj7L9rCNHHgn4Q939AbM+JfZZpMvuN2SFo5VlBT4/r/FfsPzNIdNuHS86+u8k963NUQR0auDl74/GzVhqde4r3Fr//OniLFwjA6RuskuP0r43y8xfIzbZ9KlMlL/u9NTTMi1HlfeaQ+um1se8R0XP+OCrjB0OoHmwoJ/77YvzeR8Wvlb3SZIWfD5PHTQrJQGKtec3fFPcyjPTDuPf1ce+7RVm+Yo2uKJ+VUy2o+KPY7ojf7xjKbgUYQ383xjVMrzw5zrH/NVM5zdKIwUsny+O+VbgnBXzy+ebC6Bonxzk/Cv71se3fW/CnB22Lw/42jjszrmuJoSrg/fJT8123oWHZqJV7KpctpqKbH03F5GS6a9D6oF8NYpOaL02VR2ArMb+eSM+En3PNtIVAWaYyFfQBcZ9Ncb8uBPvgENKDBj9An2plaJQsq2uJZeozNVrZmRtGAbZ1uVQydX1bbKnAyiXPevXaLwhVALtU+V2PaWPrPlT82w/3YmJI4MhZdtBeuT7cYVEma8T1Jk/wUmxJC8VT3id4bGhYdRDwCZLvjTPr3KiYDwjhtsTtR6NiWrTw6tj/hfifM0ygyNe6XIHF+PTXu5yrvOReSaVXBj2o4JLq6GP742vAySDku7ZoaCAmNYKb7J+rXHX/XDT8D0JH318ynbT0S9eUDNaRTuqa2Pe8Lp16X+1yjNscgH8N/o2T5ajP2NBwq2FCEJ5Ycqjq4iDBItRiywwbv+3X1Qo6Moit67c837zghqqOnbj0olEFFxFmgl0FnYCPhXpMk0JEQOt2TItFl+B9Fz0nh/m7Sz7rs6fSJMCLlzc0Zzjs7JIJK6SYslhFXw7lbmj4uWEkHAJKOInutS7VXymNBMRswAfdHx//3z/oQVO54ikhV/l56OmeuijSNBe/1nRT5amSX8tZ99f/DGmZXkrdp708ZCqXHpoJevCwZQIIIuJHYAqY2urYJTUsDVWRoScAAAP6SURBVA0rjtrbjGnUS1qw8ElBjw26Uwj9R2P7yTjGsNQ7u1zeV1CHGV/i383iOn3gzfh6xsCbxbXrfnVb+Xrfyrs31F568ph67lKo5Piz6bRmbgmZvahkskmRbu8tOdXWyieeyfNJGPHSoMvj/o+JMh0fWsY5sX208oyu29CwNjGPcCOrkZ4R9GfBc8D1EyXiOCufCtbwm4pOQPCE+p0DLwBFJpiqwv7cMQij4TNlYm4IgDGH3m/BN+xs/MPKMLkljjHHnOAzYU6Nd/GM6enpr4WQn1oboDkakYaGtY1BwG8fdI+gu69Ldf34oEdNpZdab22BBIEkZodJqSTunADhDys58wtvvvPPFSMB5A2XCumYIKbGw4N+3f6SGWDY0qa27oh9jw4SRcfRZkjOexDA8tAQ9LvxF3hPDQ23SdSefD7P9Qg8zjXBxLMG3rxzGWXwJ5SMff9AyZlgxqgvLDl91VRO+wWGmCgidlzACBv47OE4DcWrh+PYuUJs8XpaOdjwQnE1OI5Xhh0Dz2SQz0ziitd1ObHlvKA3x3PcKejsoLfH/pk4Tgis8vbzyz1jpardjJ2BqKHhNo0q2Lcg4FeUVG2lTSKc+OeXnJeNl3FFRhY8YSSIeOf1XvuSyf3rJBRkkYfvD/zRQV8eeBqBABa8Oe5vGXgRbacN/Lklh7RMQrm0ZL4z6vbOKLuY+Lq+25HD8f7TS39z+K1MNxPwsQnTPOQNezQmBNxkEon+9bqSMMjOarqkHh1vjFh2FceY5bUtSGipRRUOLjkppar75ndrKPB6Zf85Rlaap5bMAqPnNiNOj69RIOicfe6BJ8TK8uySmoPQUQs7/H4I6YFBzwxyH88hqeQfBLmf4cKTy9Jyyzc0NAzYu6S9zu7dVjL18wtKCqLppK8YeHHkEj1QnzUUeOr6SfgQSur6I2NrP6HX87oWxxjjWHooqZ56TPbG4x56osFqaGhYBgidnp7zbUdJtVgqqV59HoiKLltqVdH7udolVfSLBl4v/taB5wdgb/9fmV1HnNDr2XuMhXkuAW+C3tAwByZt8vn4CeiVqcVbS9rqbHbqN0F9Wcke3Pj5K4dj2fB6ag6wJw28HlzeObze+5iSyR6o9tKi3qWket9DOeu2er9rbz7+v6GhoaGhoaGhoeEXHGMVf2wHL4SHsWq9G5OgoaGhoaGhoaGhoaGhoaGhoaGhoaGhoaGhoaGhoaGhoaGhoaGhoaGhoaGhoaGhoaGhoaGhoaGhoaGhoaGhoaGhoaGhoaGhoaGhoaGhoaGhoaGhoaGhoaGhoaGhoaGhoaGhoaGhoaGhoaGhoaGhoaGhoaGhoaGhoaGhoaGhoaGhoaGhoaFhDeL/AbL/6dpoj+OHAAAAAElFTkSuQmCC",
+        href: "data:image/png;base64,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",
         width: "248",
         height: "248",
         style: { mixBlendMode: "multiply" }
       }
-    ),
-    /* @__PURE__ */ React.createElement("rect", { x: "184.055", y: "54.995", width: "2.187", height: "2.187" }),
-    /* @__PURE__ */ React.createElement("rect", { x: "170.059", y: "44.06", width: "2.187", height: "2.187" }),
-    /* @__PURE__ */ React.createElement("rect", { x: "200.238", y: "77.302", width: "2.187", height: "2.187" }),
-    /* @__PURE__ */ React.createElement("rect", { x: "212.048", y: "87.8", width: "2.187", height: "2.187" }),
-    /* @__PURE__ */ React.createElement("rect", { x: "206.799", y: "83.425", width: "2.187", height: "2.187" }),
-    /* @__PURE__ */ React.createElement("rect", { x: "204.175", y: "85.612", width: "2.187", height: "2.187" }),
-    /* @__PURE__ */ React.createElement("rect", { x: "219.046", y: "103.108", width: "2.187", height: "2.187" }),
-    /* @__PURE__ */ React.createElement("rect", { x: "154.751", y: "30.064", width: "2.187", height: "2.187" }),
-    /* @__PURE__ */ React.createElement("rect", { x: "188.866", y: "63.742", width: "2.187", height: "2.187" }),
-    /* @__PURE__ */ React.createElement("rect", { x: "148.189", y: "34", width: "2.187", height: "2.187" }),
-    /* @__PURE__ */ React.createElement("rect", { x: "134.051", y: "31.707", width: "2.187", height: "2.187" }),
-    /* @__PURE__ */ React.createElement("rect", { x: "126.124", y: "24.771", width: "2.187", height: "2.187" }),
-    /* @__PURE__ */ React.createElement("rect", { x: "115.385", y: "29.19", width: "2.187", height: "2.187" }),
-    /* @__PURE__ */ React.createElement("rect", { x: "95.702", y: "31.376", width: "2.187", height: "2.187" }),
-    /* @__PURE__ */ React.createElement("rect", { x: "91.766", y: "27.002", width: "2.187", height: "2.187" }),
-    /* @__PURE__ */ React.createElement("rect", { x: "90.454", y: "32.688", width: "2.187", height: "2.187" }),
-    /* @__PURE__ */ React.createElement("rect", { x: "184.389", y: "45.58", width: "2.187", height: "2.187" }),
-    /* @__PURE__ */ React.createElement("rect", { x: "162.185", y: "41.873", width: "2.187", height: "2.187" })
+    )
   ));
 }
 
@@ -11336,15 +11698,15 @@ for (const c of connectorDataValues) {
   }
 }
 function AiPluginCallout() {
-  const [isBusy, setIsBusy] = (0, import_element31.useState)(false);
-  const [justActivated, setJustActivated] = (0, import_element31.useState)(false);
-  const actionButtonRef = (0, import_element31.useRef)(null);
-  (0, import_element31.useEffect)(() => {
+  const [isBusy, setIsBusy] = (0, import_element33.useState)(false);
+  const [justActivated, setJustActivated] = (0, import_element33.useState)(false);
+  const actionButtonRef = (0, import_element33.useRef)(null);
+  (0, import_element33.useEffect)(() => {
     if (justActivated) {
       actionButtonRef.current?.focus();
     }
   }, [justActivated]);
-  const initialHasConnectedProvider = (0, import_element31.useRef)(
+  const initialHasConnectedProvider = (0, import_element33.useRef)(
     connectorDataValues.some(
       (c) => c.type === "ai_provider" && c.authentication.method === "api_key" && c.authentication.isConnected
     )
@@ -11493,7 +11855,7 @@ function AiPluginCallout() {
       onClick: isBusy ? void 0 : activatePlugin
     };
   };
-  return /* @__PURE__ */ React.createElement("div", { className: "ai-plugin-callout" }, /* @__PURE__ */ React.createElement("div", { className: "ai-plugin-callout__content" }, /* @__PURE__ */ React.createElement("p", null, (0, import_element31.createInterpolateElement)(getMessage(), {
+  return /* @__PURE__ */ React.createElement("div", { className: "ai-plugin-callout" }, /* @__PURE__ */ React.createElement("div", { className: "ai-plugin-callout__content" }, /* @__PURE__ */ React.createElement("p", null, (0, import_element33.createInterpolateElement)(getMessage(), {
     strong: /* @__PURE__ */ React.createElement("strong", null),
     // @ts-ignore children are injected by createInterpolateElement at runtime.
     a: /* @__PURE__ */ React.createElement(import_components3.ExternalLink, { href: AI_PLUGIN_URL })
@@ -11607,7 +11969,15 @@ function ConnectorsPage() {
         /* @__PURE__ */ React.createElement(import_components4.__experimentalVStack, { alignment: "center", spacing: 2 }, /* @__PURE__ */ React.createElement(import_components4.__experimentalHeading, { level: 2, size: 15, weight: 600 }, (0, import_i18n7.__)("No connectors yet")), /* @__PURE__ */ React.createElement(import_components4.__experimentalText, { size: 12 }, (0, import_i18n7.__)(
           "Connectors appear here when you install plugins that use external services. Each plugin registers the API keys it needs, and you manage them all in one place."
         ))),
-        /* @__PURE__ */ React.createElement(import_components4.Button, { variant: "secondary", href: "plugin-install.php" }, (0, import_i18n7.__)("Learn more"))
+        /* @__PURE__ */ React.createElement(
+          import_components4.Button,
+          {
+            variant: "secondary",
+            href: "plugin-install.php",
+            __next40pxDefaultSize: true
+          },
+          (0, import_i18n7.__)("Learn more")
+        )
       ) : /* @__PURE__ */ React.createElement(import_components4.__experimentalVStack, { spacing: 3 }, /* @__PURE__ */ React.createElement(AiPluginCallout, null), /* @__PURE__ */ React.createElement(import_components4.__experimentalVStack, { spacing: 3, role: "list" }, connectors.map(
         (connector) => {
           if (connector.render) {
@@ -11628,7 +11998,7 @@ function ConnectorsPage() {
           return null;
         }
       ))),
-      canInstallPlugins && !isFileModDisabled && /* @__PURE__ */ React.createElement("p", null, (0, import_element32.createInterpolateElement)(
+      canInstallPlugins && !isFileModDisabled && /* @__PURE__ */ React.createElement("p", null, (0, import_element34.createInterpolateElement)(
         (0, import_i18n7.__)(
           "If the connector you need is not listed, <a>search the plugin directory</a> to see if a connector is available."
         ),
