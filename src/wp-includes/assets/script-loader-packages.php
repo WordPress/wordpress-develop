@@ -66,7 +66,7 @@
 			'wp-theme',
 			'wp-url'
 		),
-		'version' => '2be95e1c69e795bfc7c1'
+		'version' => 'e534a0f04643c4175bf3'
 	),
 	'block-editor.js' => array(
 		'dependencies' => array(
@@ -104,7 +104,7 @@
 			'wp-url',
 			'wp-warning'
 		),
-		'version' => '99803447584b3d7644e9'
+		'version' => '8d19584dddf1bef36f06'
 	),
 	'block-library.js' => array(
 		'dependencies' => array(
@@ -150,7 +150,7 @@
 				'import' => 'dynamic'
 			)
 		),
-		'version' => 'c9f222767e6c1a5ce0f0'
+		'version' => '0bb63d5bad642ae08472'
 	),
 	'block-serialization-default-parser.js' => array(
 		'dependencies' => array(
@@ -224,7 +224,7 @@
 			'wp-theme',
 			'wp-warning'
 		),
-		'version' => 'a5dafa2d4b6524d691ee'
+		'version' => 'd54375c07776a218ee99'
 	),
 	'compose.js' => array(
 		'dependencies' => array(
@@ -277,7 +277,7 @@
 			'wp-url',
 			'wp-warning'
 		),
-		'version' => 'f8cc2c428aaee6d1cb92'
+		'version' => 'c7a571126b75599516cf'
 	),
 	'customize-widgets.js' => array(
 		'dependencies' => array(
@@ -396,7 +396,7 @@
 				'import' => 'static'
 			)
 		),
-		'version' => '8473319428dab1c48631'
+		'version' => '7c76ce87552bf3eb2cac'
 	),
 	'edit-site.js' => array(
 		'dependencies' => array(
@@ -446,7 +446,7 @@
 				'import' => 'static'
 			)
 		),
-		'version' => 'a37c6fdd10740408f19d'
+		'version' => '0574f4387390e8120baf'
 	),
 	'edit-widgets.js' => array(
 		'dependencies' => array(
@@ -537,7 +537,7 @@
 				'import' => 'static'
 			)
 		),
-		'version' => '0a609157ffb795abc542'
+		'version' => 'efa8d1d1c7352c2ae5b7'
 	),
 	'element.js' => array(
 		'dependencies' => array(
@@ -657,7 +657,7 @@
 			'wp-url',
 			'wp-warning'
 		),
-		'version' => 'cdee5bad0dbdf854a8de'
+		'version' => '8addf2ae46aa60243073'
 	),
 	'notices.js' => array(
 		'dependencies' => array(
@@ -794,7 +794,7 @@
 			'wp-keycodes',
 			'wp-private-apis'
 		),
-		'version' => '1a9947b38c18a34e1d2e'
+		'version' => '1c4b61567c93d486f1dc'
 	),
 	'router.js' => array(
 		'dependencies' => array(
@@ -883,7 +883,7 @@
 				'import' => 'dynamic'
 			)
 		),
-		'version' => '8f0937232c8009396479'
+		'version' => 'a16fcecc49ab54f868c2'
 	),
 	'url.js' => array(
 		'dependencies' => array(
