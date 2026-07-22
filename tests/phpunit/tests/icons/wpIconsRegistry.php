@@ -259,6 +259,28 @@ class Tests_Icons_WpIconsRegistry extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Should register an icon with its `content` sanitized.
+	 *
+	 * @ticket 64847
+	 *
+	 * @covers ::register
+	 */
+	public function test_register_icon_sanitizes_content() {
+		$result = $this->registry->register(
+			'test-collection/unsafe-content',
+			array(
+				'label'   => 'Icon',
+				'content' => '<svg viewbox="0 0 24 24" onload="alert(1)"><path d="M0 0" /></svg>',
+			)
+		);
+
+		$this->assertTrue( $result );
+
+		$icon = $this->registry->get_registered_icon( 'test-collection/unsafe-content' );
+		$this->assertSame( '<svg viewbox="0 0 24 24"><path d="M0 0" /></svg>', $icon['content'] );
+	}
+
+	/**
 	 * Should fail to register an icon that provides both `content` and `file_path`.
 	 *
 	 * @ticket 64847
