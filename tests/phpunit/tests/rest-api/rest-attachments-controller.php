@@ -1006,6 +1006,114 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	}
 
 	/**
+	 * Ensures int-castable `filesize` values in attachment metadata are normalized
+	 * to an integer in the response.
+	 *
+	 * Attachment metadata is untyped, so plugins that populate `filesize` from
+	 * a remote storage API may store it as a string.
+	 *
+	 * @ticket 65670
+	 *
+	 * @dataProvider data_valid_filesize_meta
+	 *
+	 * @param mixed $stored_filesize   Valid `filesize` metadata value.
+	 * @param int   $expected_filesize Expected `filesize` value in the REST response after normalization.
+	 */
+	public function test_get_item_normalizes_int_castable_filesize_meta( $stored_filesize, int $expected_filesize ) {
+		$attachment_id = self::factory()->attachment->create_object(
+			array(
+				'file'           => self::$test_file,
+				'post_mime_type' => 'image/jpeg',
+			)
+		);
+		$this->assertIsInt( $attachment_id );
+
+		$meta             = wp_get_attachment_metadata( $attachment_id );
+		$meta             = is_array( $meta ) ? $meta : array();
+		$meta['filesize'] = $stored_filesize;
+		$this->assertNotFalse( wp_update_attachment_metadata( $attachment_id, $meta ) );
+
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/media/' . $attachment_id );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertIsArray( $data );
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( $expected_filesize, $data['filesize'] );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{ 0: mixed, 1: int }>
+	 */
+	public function data_valid_filesize_meta(): array {
+		return array(
+			'integer string'      => array( '123456', 123456 ),
+			'float string'        => array( '123.4', 123 ),
+			'scientific notation' => array( '1e3', 1000 ),
+			'float'               => array( 123.0, 123 ),
+		);
+	}
+
+	/**
+	 * Ensures a `filesize` metadata value that is not a positive number does not
+	 * cause a fatal TypeError or a bogus size cast from a non-numeric value,
+	 * falling back to the actual file size instead.
+	 *
+	 * Numeric values are trusted and cast to an integer instead, per
+	 * {@see self::test_get_item_normalizes_int_castable_filesize_meta()}.
+	 *
+	 * @ticket 65670
+	 *
+	 * @dataProvider data_invalid_filesize_meta
+	 *
+	 * @param mixed $filesize Invalid `filesize` metadata value.
+	 */
+	public function test_get_item_recovers_from_invalid_filesize_meta( $filesize ) {
+		$attachment_id = self::factory()->attachment->create_object(
+			array(
+				'file'           => self::$test_file,
+				'post_mime_type' => 'image/jpeg',
+			)
+		);
+		$this->assertIsInt( $attachment_id );
+
+		$meta             = wp_get_attachment_metadata( $attachment_id );
+		$meta             = is_array( $meta ) ? $meta : array();
+		$meta['filesize'] = $filesize;
+		$this->assertNotFalse( wp_update_attachment_metadata( $attachment_id, $meta ) );
+
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/media/' . $attachment_id );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertIsArray( $data );
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertIsInt( $data['filesize'] );
+		$attached_file = wp_get_original_image_path( $attachment_id );
+		$attached_file = $attached_file ? $attached_file : get_attached_file( $attachment_id );
+		$this->assertIsString( $attached_file );
+		$this->assertSame( filesize( $attached_file ), $data['filesize'] );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{ 0: mixed }>
+	 */
+	public function data_invalid_filesize_meta(): array {
+		return array(
+			'non-numeric string'      => array( 'corrupt' ),
+			'boolean'                 => array( true ),
+			'zero'                    => array( 0 ),
+			'zero string'             => array( '0' ),
+			'negative integer'        => array( -5 ),
+			'negative integer string' => array( '-5' ),
+		);
+	}
+
+	/**
 	 * @requires function imagejpeg
 	 */
 	public function test_get_item_sizes() {
