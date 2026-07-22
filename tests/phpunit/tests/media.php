@@ -7283,6 +7283,81 @@ EOF;
 			'height' => 100,
 		);
 	}
+
+	/**
+	 * @ticket 65262
+	 * @covers ::wp_get_image_encode_quality
+	 */
+	public function test_wp_get_image_encode_quality_defaults() {
+		// JPEG (and any non-WebP) defaults to 82, WebP to 86.
+		$this->assertSame( 82, wp_get_image_encode_quality( 'image/jpeg' ) );
+		$this->assertSame( 82, wp_get_image_encode_quality( 'image/png' ) );
+		$this->assertSame( 86, wp_get_image_encode_quality( 'image/webp' ) );
+	}
+
+	/**
+	 * @ticket 65262
+	 * @covers ::wp_get_image_encode_quality
+	 */
+	public function test_wp_get_image_encode_quality_applies_wp_editor_set_quality() {
+		$filter = static function ( $quality, $mime_type, $size ) {
+			return ( ! empty( $size['width'] ) && $size['width'] <= 300 ) ? 55 : $quality;
+		};
+		add_filter( 'wp_editor_set_quality', $filter, 10, 3 );
+
+		$small = wp_get_image_encode_quality( 'image/webp', array( 'width' => 150 ) );
+		$large = wp_get_image_encode_quality( 'image/webp', array( 'width' => 1200 ) );
+
+		remove_filter( 'wp_editor_set_quality', $filter, 10 );
+
+		$this->assertSame( 55, $small );
+		$this->assertSame( 86, $large );
+	}
+
+	/**
+	 * The legacy jpeg_quality filter must apply for JPEG output only, matching
+	 * WP_Image_Editor::set_quality().
+	 *
+	 * @ticket 65262
+	 * @covers ::wp_get_image_encode_quality
+	 */
+	public function test_wp_get_image_encode_quality_applies_jpeg_quality() {
+		$filter = static function () {
+			return 70;
+		};
+		add_filter( 'jpeg_quality', $filter );
+
+		$jpeg = wp_get_image_encode_quality( 'image/jpeg' );
+		$webp = wp_get_image_encode_quality( 'image/webp' );
+
+		remove_filter( 'jpeg_quality', $filter );
+
+		$this->assertSame( 70, $jpeg );
+		// Non-JPEG output ignores jpeg_quality.
+		$this->assertSame( 86, $webp );
+	}
+
+	/**
+	 * Out-of-range filtered values fall back to the default; 0 squashes to 1.
+	 *
+	 * @ticket 65262
+	 * @covers ::wp_get_image_encode_quality
+	 */
+	public function test_wp_get_image_encode_quality_clamps_out_of_range() {
+		$too_high = static function () {
+			return 150;
+		};
+		add_filter( 'wp_editor_set_quality', $too_high );
+		$this->assertSame( 82, wp_get_image_encode_quality( 'image/jpeg' ) );
+		remove_filter( 'wp_editor_set_quality', $too_high );
+
+		$zero = static function () {
+			return 0;
+		};
+		add_filter( 'wp_editor_set_quality', $zero );
+		$this->assertSame( 1, wp_get_image_encode_quality( 'image/png' ) );
+		remove_filter( 'wp_editor_set_quality', $zero );
+	}
 }
 
 /**
