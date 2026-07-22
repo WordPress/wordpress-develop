@@ -38,3 +38,8 @@
  * @link       http://scripts.incutio.com/xmlrpc/ Site/manual
  * @license    http://www.opensource.org/licenses/bsd-license.php BSD
  */
+
+// Don't load directly.
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}

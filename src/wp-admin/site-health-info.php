@@ -6,8 +6,9 @@
  * @subpackage Administration
  */
 
+// Don't load directly.
 if ( ! defined( 'ABSPATH' ) ) {
-	die();
+	exit;
 }
 
 $health_check_site_status = WP_Site_Health::get_instance();

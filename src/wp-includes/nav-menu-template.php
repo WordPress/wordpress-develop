@@ -7,6 +7,10 @@
  * @since 3.0.0
  */
 
+// Don't load directly.
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
 /**
  * Displays a navigation menu.
  *

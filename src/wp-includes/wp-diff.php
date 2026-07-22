@@ -7,3 +7,8 @@
  * @package WordPress
  * @subpackage Diff
  */
+
+// Don't load directly.
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
