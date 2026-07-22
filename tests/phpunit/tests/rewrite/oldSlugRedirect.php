@@ -207,6 +207,37 @@ class Tests_Rewrite_OldSlugRedirect extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 40032
+	 */
+	public function test_old_slug_redirect_paged_query_argument() {
+		$old_permalink = add_query_arg(
+			array(
+				'paged'      => 2,
+				'utm_source' => 'test',
+			),
+			user_trailingslashit( get_permalink( self::$post_id ) )
+		);
+
+		wp_update_post(
+			array(
+				'ID'           => self::$post_id,
+				'post_name'    => 'bar-baz',
+				'post_content' => 'Test<!--nextpage-->Test',
+			)
+		);
+
+		$permalink = add_query_arg(
+			'utm_source',
+			'test',
+			user_trailingslashit( trailingslashit( get_permalink( self::$post_id ) ) . 'page/2' )
+		);
+
+		$this->go_to( $old_permalink );
+		wp_old_slug_redirect();
+		$this->assertSame( $permalink, $this->old_slug_redirect_url );
+	}
+
+	/**
 	 * @ticket 35031
 	 */
 	public function test_old_slug_doesnt_redirect_when_reused() {
