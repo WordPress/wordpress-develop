@@ -382,9 +382,68 @@ class Tests_HtmlApi_WpHtmlProcessor_Serialize extends WP_UnitTestCase {
 			'CDATA look-alike'                      => array( '<!', '[CDATA[inside]]', '>' ),
 			'Immediately-closed markup instruction' => array( '<!', '?', '>' ),
 			'Warning Symbol'                        => array( '<!', '', '>' ),
-			'PHP block look-alike'                  => array( '<', '?php foo(); ?', '>' ),
+			'PHP short echo tag'                    => array( '<', '?= "Hello" ?', '>' ),
 			'Funky comment'                         => array( '</', '%display-name', '>' ),
 			'XML Processing Instruction look-alike' => array( '<', '?xml foo ', '>' ),
+		);
+	}
+
+	/**
+	 * Ensures that processing instructions are serialized in their normative form.
+	 *
+	 * Note that the serialized form separates the target from the data with a
+	 * single space and always terminates with `?>`, regardless of the original
+	 * syntax. The closer's `?` is dropped on parse, so this form represents any
+	 * data, including data ending in `?`.
+	 *
+	 * @ticket 61530
+	 *
+	 * @dataProvider data_processing_instructions
+	 *
+	 * @param string $html     Input containing a processing instruction.
+	 * @param string $expected Normative serialization of the input.
+	 */
+	public function test_serializes_processing_instructions( string $html, string $expected ): void {
+		$this->assertSame(
+			WP_HTML_Processor::normalize( $html ),
+			$expected,
+			'Should have serialized the processing instruction in its normative form.'
+		);
+	}
+
+	/**
+	 * Ensures that normalizing an already-normalized processing instruction does not change it.
+	 *
+	 * @ticket 61530
+	 *
+	 * @dataProvider data_processing_instructions
+	 *
+	 * @param string $html     Input containing a processing instruction.
+	 * @param string $expected Normative serialization of the input.
+	 */
+	public function test_processing_instruction_normalization_is_idempotent( string $html, string $expected ): void {
+		$this->assertSame(
+			$expected,
+			WP_HTML_Processor::normalize( $expected ),
+			'Normalizing an already-normalized processing instruction should not change it.'
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{0: string, 1: string}>
+	 */
+	public function data_processing_instructions(): array {
+		return array(
+			'PHP block'                     => array( '<?php foo(); ?>', '<?php foo(); ?>' ),
+			'Unclosed PHP block'            => array( '<?php foo(); >', '<?php foo(); ?>' ),
+			'Empty data'                    => array( '<?wp-bit?>', '<?wp-bit ?>' ),
+			'Whitespace-only data'          => array( '<?wp-bit   ?>', '<?wp-bit ?>' ),
+			'Data ending in question mark'  => array( '<?target data??>', '<?target data??>' ),
+			'Data of a lone question mark'  => array( '<?wp-bit ??>', '<?wp-bit ??>' ),
+			'Data with question mark runs'  => array( '<?wp-bit what?? news??>', '<?wp-bit what?? news??>' ),
+			'Question mark then whitespace' => array( '<?wp-bit sure? >', '<?wp-bit sure? ?>' ),
 		);
 	}
 

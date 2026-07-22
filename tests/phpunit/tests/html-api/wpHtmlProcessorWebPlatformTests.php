@@ -37,9 +37,6 @@ class Tests_HtmlApi_WebPlatformTests extends WP_UnitTestCase {
 		'tests2/line0686'           => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
 		'tests2/line0697'           => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
 		'tests2/line0709'           => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
-		'tests1/line0601'           => 'Unimplemented: This parser treats processing instructions as comments.',
-		'tests1/line0640'           => 'Unimplemented: This parser treats processing instructions as comments.',
-		'html5test-com/line0129'    => 'Unimplemented: This parser treats processing instructions as comments.',
 		'menuitem-element/line0161' => 'Unimplemented: This parser does not support customizable SELECT element content.',
 		'tests9/line0048'           => 'Unimplemented: This parser does not support customizable SELECT element content.',
 		'tests9/line0059'           => 'Unimplemented: This parser does not support customizable SELECT element content.',
@@ -60,16 +57,6 @@ class Tests_HtmlApi_WebPlatformTests extends WP_UnitTestCase {
 		'webkit02/line0706'         => 'Unimplemented: This parser does not support customizable SELECT element content.',
 		'webkit02/line0732'         => 'Unimplemented: This parser does not support customizable SELECT element content.',
 		'webkit02/line0748'         => 'Unimplemented: This parser does not support customizable SELECT element content.',
-
-		'tests1/line0602'           => 'Unimplemented: Updated Processing Instruction parsing.',
-		'tests1/line0641'           => 'Unimplemented: Updated Processing Instruction parsing.',
-	);
-
-	/**
-	 * Skip test files that exercise parser behavior unsupported by the HTML API.
-	 */
-	const SKIP_TEST_PREFIXES = array(
-		'processing-instructions/' => 'Unimplemented: Updated Processing Instruction parsing.',
 	);
 
 	/**
@@ -176,12 +163,6 @@ class Tests_HtmlApi_WebPlatformTests extends WP_UnitTestCase {
 
 		if ( array_key_exists( $test_name, self::SKIP_TESTS ) ) {
 			return true;
-		}
-
-		foreach ( array_keys( self::SKIP_TEST_PREFIXES ) as $test_prefix ) {
-			if ( str_starts_with( $test_name, $test_prefix ) ) {
-				return true;
-			}
 		}
 
 		return false;
@@ -344,6 +325,15 @@ class Tests_HtmlApi_WebPlatformTests extends WP_UnitTestCase {
 					$output .= str_repeat( self::TREE_INDENT, $indent_level ) . "<!-- {$processor->get_modifiable_text()} -->\n";
 					break;
 
+				case '#processing-instruction':
+					/*
+					 * Processing instructions must be "<?" then the target then,
+					 * unless the data is empty, a space and the data, and finally "?>".
+					 */
+					$pi_data = $processor->get_modifiable_text();
+					$output .= str_repeat( self::TREE_INDENT, $indent_level ) . "<?{$processor->get_tag()} {$pi_data}?>\n";
+					break;
+
 				case '#comment':
 					// Comments must be "<" then "!-- " then the data then " -->".
 					$output .= str_repeat( self::TREE_INDENT, $indent_level ) . "<!-- {$processor->get_full_comment_text()} -->\n";
@@ -474,14 +464,6 @@ class Tests_HtmlApi_WebPlatformTests extends WP_UnitTestCase {
 				 * the tree of the parsed DOM. Each node must be represented by a single line. Each line
 				 * must start with "| ", followed by two spaces per parent node that the node has before
 				 * the root document node.
-				 *
-				 * - Element nodes must be represented by a "<" then the tag name string ">", and all the attributes must be given, sorted lexicographically by UTF-16 code unit according to their attribute name string, on subsequent lines, as if they were children of the element node.
-				 * - Attribute nodes must have the attribute name string, then an "=" sign, then the attribute value in double quotes (").
-				 * - Text nodes must be the string, in double quotes. Newlines aren't escaped.
-				 * - Comments must be "<" then "!-- " then the data then " -->".
-				 * - DOCTYPEs must be "<!DOCTYPE " then the name then if either of the system id or public id is non-empty a space, public id in double-quotes, another space an the system id in double-quotes, and then in any case ">".
-				 * - Processing instructions must be "<?", then the target, then a space, then the data and then ">". (The HTML parser cannot emit processing instructions, but scripts can, and the WebVTT to DOM rules can emit them.)
-				 * - Template contents are represented by the string "content" with the children below it.
 				 */
 				case 'document':
 					if ( '|' === $line[0] ) {
