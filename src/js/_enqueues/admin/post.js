@@ -567,7 +567,7 @@ jQuery( function($) {
 
 		// @todo Move to jQuery 1.3+, support for multiple hierarchical taxonomies, see wp-lists.js.
 		$('a', '#' + taxonomy + '-tabs').on( 'click keyup keydown', function( event ) {
-			var t = $(this).attr('href');
+			var t = $(this).attr( 'aria-controls' );
 			if ( event.type === 'keydown' && event.key === ' ' ) {
 				event.preventDefault();
 			}
@@ -577,8 +577,8 @@ jQuery( function($) {
 				$(this).attr( 'aria-selected', 'true' ).removeAttr( 'tabindex' );
 				$(this).parent().addClass('tabs').siblings('li').removeClass('tabs');
 				$('#' + taxonomy + '-tabs').siblings('.tabs-panel').hide();
-				$(t).show();
-				if ( '#' + taxonomy + '-all' == t ) {
+				$( document.getElementById( t || '' ) ).show();
+				if ( taxonomy + '-all' === t ) {
 					deleteUserSetting( settingName );
 				} else {
 					setUserSetting( settingName, 'pop' );
