@@ -95,7 +95,7 @@ class WP_Widget_RSS extends WP_Widget {
 				esc_url( $feed_url ),
 				esc_url( $feed_icon ),
 				/* translators: %s: RSS feed title. */
-				esc_attr( sprintf( __( 'RSS feed: %s' ), $title ) ),
+				esc_attr( sprintf( __( 'RSS feed: %s' ), wp_strip_all_tags( $title ) ) ),
 				( wp_lazy_loading_enabled( 'img', 'rss_widget_feed_icon' ) ? ' loading="lazy"' : '' )
 			);
 
