@@ -295,10 +295,10 @@ class Tests_Admin_IncludesScreen extends WP_UnitTestCase {
 
 		$this->assertStringContainsString( 'id="meta-box-reordering"', $output );
 		$this->assertStringContainsString( 'Additional settings', $output );
-		$this->assertStringContainsString( 'Enable box reordering', $output );
+		$this->assertStringContainsString( 'Allow boxes to be rearranged', $output );
 		$this->assertStringContainsString( 'Some screen elements can be shown or hidden by using the checkboxes.', $output );
 		$this->assertStringContainsString( 'Expand or collapse the elements by clicking on their headings, and arrange them by dragging their headings or by clicking on the up and down arrows.', $output );
-		$this->assertStringContainsString( 'Use the setting below to enable or disable box reordering.', $output );
+		$this->assertStringContainsString( 'Use the setting below to control whether boxes can be rearranged.', $output );
 	}
 
 	public function test_meta_box_reordering_option_does_not_render_empty_additional_settings() {

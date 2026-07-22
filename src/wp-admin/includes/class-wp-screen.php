@@ -1143,7 +1143,7 @@ final class WP_Screen {
 			<?php _e( 'Some screen elements can be shown or hidden by using the checkboxes.' ); ?>
 			<?php _e( 'Expand or collapse the elements by clicking on their headings, and arrange them by dragging their headings or by clicking on the up and down arrows.' ); ?>
 			<?php if ( $this->show_meta_box_reordering_options() ) : ?>
-				<?php _e( 'Use the setting below to enable or disable box reordering.' ); ?>
+				<?php _e( 'Use the setting below to control whether boxes can be rearranged.' ); ?>
 			<?php endif; ?>
 		</p>
 		<div class="metabox-prefs-container">
@@ -1181,7 +1181,7 @@ final class WP_Screen {
 	private function get_meta_box_reordering_option() {
 		return '<label for="meta-box-reordering">'
 			. '<input class="meta-box-reordering-toggle" name="meta-box-reordering" type="checkbox" id="meta-box-reordering" value="enabled" ' . checked( wp_is_meta_box_reordering_enabled(), true, false ) . ' /> '
-			. __( 'Enable box reordering' )
+			. __( 'Allow boxes to be rearranged' )
 			. '</label>';
 	}
 
