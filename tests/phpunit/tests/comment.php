@@ -2028,4 +2028,21 @@ class Tests_Comment extends WP_UnitTestCase {
 		add_filter( 'get_comment', '__return_null' );
 		$this->assertNull( get_comment( $comment_id ), 'Expected get_comment() to return null when get_comment filter returns null.' );
 	}
+
+	/**
+	 * @ticket 64898
+	 *
+	 * @covers ::get_comment
+	 */
+	public function test_get_comment_should_only_treat_numeric_values_as_comment_ids(): void {
+		$comment_id = self::factory()->comment->create( array( 'comment_post_ID' => self::$post_id ) );
+		$this->assertIsInt( $comment_id );
+
+		$comment = get_comment( (string) $comment_id );
+		$this->assertInstanceOf( WP_Comment::class, $comment, 'Expected a numeric string to be treated as a comment ID.' );
+		$this->assertSame( (string) $comment_id, $comment->comment_ID, 'Expected the same comment.' );
+
+		$this->assertNull( get_comment( $comment_id . 'abc' ), 'Expected a malformed numeric string not to be cast to a comment ID.' );
+		$this->assertNull( get_comment( true ), 'Expected true not to be cast to comment ID 1.' ); // @phpstan-ignore argument.type (Intentionally passing an invalid value.)
+	}
 }
