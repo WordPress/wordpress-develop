@@ -695,7 +695,11 @@ $('.contextual-help-tabs').on( 'click', 'a', function(e) {
 	$('.contextual-help-tabs .active').removeClass('active');
 	link.parent('li').addClass('active');
 
-	panel = $( document.getElementById( link.attr( 'aria-controls' ) ) );
+	panel = $( document.getElementById( link.attr( 'aria-controls' ) || '' ) );
+
+	if ( ! panel.length ) {
+		return;
+	}
 
 	// Panels.
 	$('.help-tab-content').not( panel ).removeClass('active').hide();
