@@ -13,13 +13,13 @@ class Tests_Admin_wpOnThisDay extends WP_UnitTestCase {
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		require_once ABSPATH . 'wp-admin/includes/dashboard-on-this-day.php';
 
-		self::$user_id       = self::factory()->user->create(
+		self::$user_id       = $factory->user->create(
 			array(
 				'display_name' => 'Current Writer',
 				'role'         => 'author',
 			)
 		);
-		self::$other_user_id = self::factory()->user->create(
+		self::$other_user_id = $factory->user->create(
 			array(
 				'display_name' => 'Guest Writer',
 				'role'         => 'author',
