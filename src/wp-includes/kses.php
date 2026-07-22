@@ -1149,8 +1149,8 @@ function wp_kses_allowed_html( $context = '' ) {
  * @since 7.1.0
  * @access private
  *
- * @param array<string, array<string, bool>>        $allowed The allowed tags structure for the context.
- * @param string|array<string, array<string, bool>> $context The kses context.
+ * @param array<string, array<string, bool>> $allowed The allowed tags structure for the context.
+ * @param string                             $context The kses context.
  * @return array<string, array<string, bool>> Modified allowed tags structure.
  */
 function _wp_kses_allow_note_mention_span( $allowed, $context ): array {
