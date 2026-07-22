@@ -150,6 +150,7 @@ final class WP_Autoload {
 		'wp_user_query'                               => 'wp-includes/class-wp-user-query.php',
 		'wp_user_request'                             => 'wp-includes/class-wp-user-request.php',
 		'wp_user'                                     => 'wp-includes/class-wp-user.php',
+		'wp_view_config_data'                         => 'wp-includes/class-wp-view-config-data.php',
 		'walker'                                      => 'wp-includes/class-wp-walker.php',
 		'wp_widget_factory'                           => 'wp-includes/class-wp-widget-factory.php',
 		'wp_widget'                                   => 'wp-includes/class-wp-widget.php',
