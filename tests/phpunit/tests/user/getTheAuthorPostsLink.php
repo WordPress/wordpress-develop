@@ -112,14 +112,12 @@ class Tests_User_GetTheAuthorPostsLink extends WP_UnitTestCase {
 
 		$GLOBALS['authordata'] = $author;
 
-		add_filter(
-			'author_link',
-			static function () {
-				return 'http://';
-			}
-		);
+		$author_link_filter = static function () {
+			return 'http://';
+		};
+		add_filter( 'author_link', $author_link_filter );
 		$link = get_the_author_posts_link();
-		remove_all_filters( 'author_link' );
+		remove_filter( 'author_link', $author_link_filter );
 
 		unset( $GLOBALS['authordata'] );
 

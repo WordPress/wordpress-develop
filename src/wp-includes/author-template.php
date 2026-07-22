@@ -323,7 +323,7 @@ function the_author_posts() {
  *
  * @global WP_User $authordata The current author's data.
  *
- * @return string An HTML link to the author page, or just the author's display name if the URL is empty, or an empty string if $authordata is not set.
+ * @return string An HTML link to the author page, or just the author's display name if the URL is empty or invalid, or an empty string if $authordata is not set.
  */
 function get_the_author_posts_link() {
 	global $authordata;
@@ -336,14 +336,14 @@ function get_the_author_posts_link() {
 	/* translators: %s: Author's display name. */
 	$title = sprintf( __( 'Posts by %s' ), $author );
 
-	$url = get_author_posts_url( $authordata->ID, $authordata->user_nicename );
+	$url = esc_url( get_author_posts_url( $authordata->ID, $authordata->user_nicename ) );
 
-	if ( empty( $url ) || 'http://' === $url ) {
+	if ( '' === $url || 'http://' === $url ) {
 		$link = $author;
 	} else {
 		$link = sprintf(
 			'<a href="%1$s" rel="author">%2$s</a>',
-			esc_url( $url ),
+			$url,
 			$author
 		);
 	}
