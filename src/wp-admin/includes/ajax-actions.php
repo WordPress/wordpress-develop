@@ -1619,7 +1619,7 @@ function wp_ajax_add_meta() {
 	$post    = get_post( $post_id );
 
 	if ( isset( $_POST['metakeyselect'] ) || isset( $_POST['metakeyinput'] ) ) {
-		if ( ! current_user_can( 'edit_post', $post_id ) ) {
+		if ( ! $post || ! current_user_can( 'edit_post', $post_id ) ) {
 			wp_die( -1 );
 		}
 
@@ -2100,6 +2100,9 @@ function wp_ajax_inline_save() {
 	$data = &$_POST;
 
 	$post = get_post( $post_id, ARRAY_A );
+	if ( ! $post ) {
+		wp_die();
+	}
 
 	// Since it's coming from the database.
 	$post = wp_slash( $post );
@@ -3128,6 +3131,9 @@ function wp_ajax_save_attachment() {
 
 	$changes = $_REQUEST['changes'];
 	$post    = get_post( $id, ARRAY_A );
+	if ( ! $post ) {
+		wp_send_json_error();
+	}
 
 	if ( 'attachment' !== $post['post_type'] ) {
 		wp_send_json_error();
@@ -3219,6 +3225,9 @@ function wp_ajax_save_attachment_compat() {
 	}
 
 	$post = get_post( $id, ARRAY_A );
+	if ( ! $post ) {
+		wp_send_json_error();
+	}
 
 	if ( 'attachment' !== $post['post_type'] ) {
 		wp_send_json_error();
