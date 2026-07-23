@@ -194,29 +194,101 @@ class Tests_General_GetCalendar extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test that clean_post_cache invalidates the calendar cache.
+	 * Test that publishing a post invalidates the calendar cache.
 	 *
 	 * @ticket 61343
 	 */
-	public function test_clean_post_cache_invalidates_calendar_cache() {
+	public function test_publishing_post_invalidates_calendar_cache() {
 		// Populate the cache.
 		get_echo( 'get_calendar' );
 
 		$num_queries_start = get_num_queries();
 		get_echo( 'get_calendar' );
-		$queries_cached = get_num_queries() - $num_queries_start;
+		$this->assertSame( 0, get_num_queries() - $num_queries_start, 'Second call should be served from cache with zero queries.' );
 
-		$this->assertSame( 0, $queries_cached, 'Second call should be cached with zero queries.' );
-
-		// Firing clean_post_cache() should invalidate the calendar cache via the
-		// hook registered in default-filters.php.
-		clean_post_cache( self::$post_ids[0] );
+		// Publishing a post transitions into the 'publish' status, which should invalidate the cache.
+		self::factory()->post->create( array( 'post_date' => '2025-02-10 12:00:00' ) );
 
 		$num_queries_start = get_num_queries();
 		get_echo( 'get_calendar' );
-		$queries_after_flush = get_num_queries() - $num_queries_start;
+		$this->assertGreaterThan( 0, get_num_queries() - $num_queries_start, 'Publishing a post should invalidate the calendar cache.' );
+	}
 
-		$this->assertGreaterThan( 0, $queries_after_flush, 'After cache flush, queries should run again.' );
+	/**
+	 * Test that comment activity does not invalidate the calendar cache.
+	 *
+	 * The calendar only reflects published posts, so changing a comment's status
+	 * (which updates the post comment count and calls clean_post_cache()) must not
+	 * flush the calendar cache.
+	 *
+	 * @ticket 61343
+	 */
+	public function test_comment_activity_does_not_invalidate_calendar_cache() {
+		$comment_id = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_ids[0],
+				'comment_approved' => '0',
+			)
+		);
+
+		// Populate the cache.
+		get_echo( 'get_calendar' );
+
+		// Approving, holding, and spamming the comment each update the post comment
+		// count and fire clean_post_cache(), but none change a post's published state.
+		wp_set_comment_status( $comment_id, 'approve' );
+		wp_set_comment_status( $comment_id, 'hold' );
+		wp_set_comment_status( $comment_id, 'spam' );
+
+		$num_queries_start = get_num_queries();
+		get_echo( 'get_calendar' );
+		$this->assertSame( 0, get_num_queries() - $num_queries_start, 'Comment activity should not invalidate the calendar cache.' );
+	}
+
+	/**
+	 * Test that saving a draft does not invalidate the calendar cache.
+	 *
+	 * @ticket 61343
+	 */
+	public function test_draft_save_does_not_invalidate_calendar_cache() {
+		// Populate the cache.
+		get_echo( 'get_calendar' );
+
+		// Creating and updating a draft never touches the 'publish' status.
+		$draft_id = self::factory()->post->create( array( 'post_status' => 'draft' ) );
+		wp_update_post(
+			array(
+				'ID'         => $draft_id,
+				'post_title' => 'Updated draft title',
+			)
+		);
+
+		$num_queries_start = get_num_queries();
+		get_echo( 'get_calendar' );
+		$this->assertSame( 0, get_num_queries() - $num_queries_start, 'Saving a draft should not invalidate the calendar cache.' );
+	}
+
+	/**
+	 * Test that deleting a published post invalidates the calendar cache.
+	 *
+	 * @ticket 61343
+	 */
+	public function test_deleting_published_post_invalidates_calendar_cache() {
+		$post_id = self::factory()->post->create( array( 'post_date' => '2025-02-12 12:00:00' ) );
+
+		// Populate the cache.
+		get_echo( 'get_calendar' );
+
+		$num_queries_start = get_num_queries();
+		get_echo( 'get_calendar' );
+		$this->assertSame( 0, get_num_queries() - $num_queries_start, 'Second call should be served from cache with zero queries.' );
+
+		// Permanently deleting a published post should invalidate the cache.
+		wp_delete_post( $post_id, true );
+
+		$num_queries_start = get_num_queries();
+		get_echo( 'get_calendar' );
+		$this->assertGreaterThan( 0, get_num_queries() - $num_queries_start, 'Deleting a published post should invalidate the calendar cache.' );
 	}
 
 	/**
