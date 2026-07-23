@@ -1079,8 +1079,8 @@ function wp_kses_allowed_html( $context = '' ) {
 		 *
 		 * @since 3.5.0
 		 *
-		 * @param array[] $html    Allowed HTML tags.
-		 * @param string  $context Context name.
+		 * @param array<string, bool|array<string, bool>> $html    Allowed HTML tags.
+		 * @param string                                  $context Context name.
 		 */
 		return apply_filters( 'wp_kses_allowed_html', $html, $context );
 	}
