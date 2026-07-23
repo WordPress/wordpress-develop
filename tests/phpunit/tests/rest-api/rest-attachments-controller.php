@@ -1006,6 +1006,114 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	}
 
 	/**
+	 * Ensures int-castable `filesize` values in attachment metadata are normalized
+	 * to an integer in the response.
+	 *
+	 * Attachment metadata is untyped, so plugins that populate `filesize` from
+	 * a remote storage API may store it as a string.
+	 *
+	 * @ticket 65670
+	 *
+	 * @dataProvider data_valid_filesize_meta
+	 *
+	 * @param mixed $stored_filesize   Valid `filesize` metadata value.
+	 * @param int   $expected_filesize Expected `filesize` value in the REST response after normalization.
+	 */
+	public function test_get_item_normalizes_int_castable_filesize_meta( $stored_filesize, int $expected_filesize ) {
+		$attachment_id = self::factory()->attachment->create_object(
+			array(
+				'file'           => self::$test_file,
+				'post_mime_type' => 'image/jpeg',
+			)
+		);
+		$this->assertIsInt( $attachment_id );
+
+		$meta             = wp_get_attachment_metadata( $attachment_id );
+		$meta             = is_array( $meta ) ? $meta : array();
+		$meta['filesize'] = $stored_filesize;
+		$this->assertNotFalse( wp_update_attachment_metadata( $attachment_id, $meta ) );
+
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/media/' . $attachment_id );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertIsArray( $data );
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( $expected_filesize, $data['filesize'] );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{ 0: mixed, 1: int }>
+	 */
+	public function data_valid_filesize_meta(): array {
+		return array(
+			'integer string'      => array( '123456', 123456 ),
+			'float string'        => array( '123.4', 123 ),
+			'scientific notation' => array( '1e3', 1000 ),
+			'float'               => array( 123.0, 123 ),
+		);
+	}
+
+	/**
+	 * Ensures a `filesize` metadata value that is not a positive number does not
+	 * cause a fatal TypeError or a bogus size cast from a non-numeric value,
+	 * falling back to the actual file size instead.
+	 *
+	 * Numeric values are trusted and cast to an integer instead, per
+	 * {@see self::test_get_item_normalizes_int_castable_filesize_meta()}.
+	 *
+	 * @ticket 65670
+	 *
+	 * @dataProvider data_invalid_filesize_meta
+	 *
+	 * @param mixed $filesize Invalid `filesize` metadata value.
+	 */
+	public function test_get_item_recovers_from_invalid_filesize_meta( $filesize ) {
+		$attachment_id = self::factory()->attachment->create_object(
+			array(
+				'file'           => self::$test_file,
+				'post_mime_type' => 'image/jpeg',
+			)
+		);
+		$this->assertIsInt( $attachment_id );
+
+		$meta             = wp_get_attachment_metadata( $attachment_id );
+		$meta             = is_array( $meta ) ? $meta : array();
+		$meta['filesize'] = $filesize;
+		$this->assertNotFalse( wp_update_attachment_metadata( $attachment_id, $meta ) );
+
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/media/' . $attachment_id );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertIsArray( $data );
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertIsInt( $data['filesize'] );
+		$attached_file = wp_get_original_image_path( $attachment_id );
+		$attached_file = $attached_file ? $attached_file : get_attached_file( $attachment_id );
+		$this->assertIsString( $attached_file );
+		$this->assertSame( filesize( $attached_file ), $data['filesize'] );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{ 0: mixed }>
+	 */
+	public function data_invalid_filesize_meta(): array {
+		return array(
+			'non-numeric string'      => array( 'corrupt' ),
+			'boolean'                 => array( true ),
+			'zero'                    => array( 0 ),
+			'zero string'             => array( '0' ),
+			'negative integer'        => array( -5 ),
+			'negative integer string' => array( '-5' ),
+		);
+	}
+
+	/**
 	 * @requires function imagejpeg
 	 */
 	public function test_get_item_sizes() {
@@ -3039,6 +3147,89 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 			array( 320, 0, 64, 480 ),
 			WP_Image_Editor_Mock::$spy['crop'][0]
 		);
+	}
+
+	/**
+	 * @ticket 65618
+	 * @requires function imagejpeg
+	 */
+	public function test_edit_image_returns_error_if_no_image_editor() {
+		wp_set_current_user( self::$superadmin_id );
+		$attachment = self::factory()->attachment->create_upload_object( self::$test_file );
+
+		add_filter( 'wp_image_editors', '__return_empty_array' );
+
+		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment}/edit" );
+		$request->set_body_params(
+			array(
+				'rotation' => 60,
+				'src'      => wp_get_attachment_image_url( $attachment, 'full' ),
+			)
+		);
+		$response = rest_do_request( $request );
+		$this->assertErrorResponse( 'rest_unknown_image_file_type', $response, 500 );
+	}
+
+	/**
+	 * @ticket 65618
+	 * @requires function imagejpeg
+	 */
+	public function test_edit_image_applies_unbaked_exif_orientation_before_edits() {
+		wp_set_current_user( self::$superadmin_id );
+		$attachment = self::factory()->attachment->create_upload_object( self::$test_file );
+
+		$this->setup_mock_editor();
+		add_filter(
+			'wp_image_maybe_exif_rotate',
+			static function () {
+				return 6;
+			}
+		);
+		WP_Image_Editor_Mock::$edit_return['rotate'] = new WP_Error();
+
+		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment}/edit" );
+		$request->set_body_params(
+			array(
+				'rotation' => 60,
+				'src'      => wp_get_attachment_image_url( $attachment, 'full' ),
+			)
+		);
+		$response = rest_do_request( $request );
+		$this->assertErrorResponse( 'rest_image_rotation_failed', $response, 500 );
+
+		// The EXIF orientation correction (orientation 6 => rotate 270) must run before the requested edit.
+		$this->assertSame( array( array( 270 ), array( -60 ) ), WP_Image_Editor_Mock::$spy['rotate'] );
+	}
+
+	/**
+	 * @ticket 65618
+	 * @requires extension exif
+	 * @requires function imagejpeg
+	 */
+	public function test_edit_image_rotate_with_unbaked_exif_orientation() {
+		wp_set_current_user( self::$superadmin_id );
+		$attachment = self::factory()->attachment->create_upload_object( DIR_TESTDATA . '/images/test-image-rotated-90ccw.jpg' );
+
+		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment}/edit" );
+		$request->set_body_params(
+			array(
+				'rotation' => 90,
+				'src'      => wp_get_attachment_image_url( $attachment, 'full' ),
+			)
+		);
+		$response = rest_do_request( $request );
+		$item     = $response->get_data();
+
+		$this->assertSame( 201, $response->get_status() );
+
+		/*
+		 * The original file is 1200x1800 raw pixels with an unapplied EXIF orientation of 6,
+		 * so clients preview it upright as 1800x1200. Rotating that upright frame 90 degrees
+		 * must produce 1200x1800. Without the orientation correction the edit rotates the raw
+		 * pixels instead and produces 1800x1200.
+		 */
+		$this->assertSame( 1200, $item['media_details']['width'] );
+		$this->assertSame( 1800, $item['media_details']['height'] );
 	}
 
 	/**
