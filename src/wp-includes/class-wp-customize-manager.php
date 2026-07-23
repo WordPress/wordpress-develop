@@ -1933,10 +1933,9 @@ final class WP_Customize_Manager {
 				sprintf(
 					/* translators: %s: customize_messenger_channel */
 					__( 'Unauthorized. You may remove the %s param to preview as frontend.' ),
-					'<code>customize_messenger_channel<code>'
+					'<code>customize_messenger_channel</code>'
 				)
 			);
-			return;
 		}
 
 		$this->prepare_controls();
@@ -3166,7 +3165,6 @@ final class WP_Customize_Manager {
 					'code'    => 'non_existent_changeset',
 				)
 			);
-			return;
 		}
 
 		if ( ! current_user_can( get_post_type_object( 'customize_changeset' )->cap->delete_post, $changeset_post_id ) ) {
@@ -3197,7 +3195,6 @@ final class WP_Customize_Manager {
 					'code'    => 'changeset_already_trashed',
 				)
 			);
-			return;
 		}
 
 		$r = $this->trash_changeset_post( $changeset_post_id );
@@ -5044,14 +5041,14 @@ final class WP_Customize_Manager {
 	public function get_previewable_devices() {
 		$devices = array(
 			'desktop' => array(
-				'label'   => __( 'Enter desktop preview mode' ),
+				'label'   => __( 'Desktop' ),
 				'default' => true,
 			),
 			'tablet'  => array(
-				'label' => __( 'Enter tablet preview mode' ),
+				'label' => __( 'Tablet' ),
 			),
 			'mobile'  => array(
-				'label' => __( 'Enter mobile preview mode' ),
+				'label' => __( 'Mobile' ),
 			),
 		);
 

@@ -27,21 +27,20 @@ class Tests_HtmlApi_WebPlatformTests extends WP_UnitTestCase {
 	 * Skip specific tests that may not be supported or have known issues.
 	 */
 	const SKIP_TESTS = array(
-		'noscript01/line0014'              => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
-		'tests14/line0022'                 => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
-		'tests14/line0055'                 => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
-		'tests19/line0488'                 => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
-		'tests19/line0500'                 => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
-		'tests19/line1079'                 => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
-		'tests2/line0207'                  => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
-		'tests2/line0686'                  => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
-		'tests2/line0697'                  => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
-		'tests2/line0709'                  => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
-		'webkit01/line0231'                => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
-		'webkit02/line0692'                => 'Unimplemented: The parser does not implement the "maybe clone an option into selectedcontent" algorithm.',
-		'webkit02/line0732'                => 'Unimplemented: The parser does not implement the "maybe clone an option into selectedcontent" algorithm.',
-		'webkit02/line0748'                => 'Unimplemented: The parser does not implement the "maybe clone an option into selectedcontent" algorithm.',
-		'processing-instructions/line0999' => 'Temporarily disabled invalid test.',
+		'noscript01/line0014' => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
+		'tests14/line0022'    => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
+		'tests14/line0055'    => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
+		'tests19/line0488'    => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
+		'tests19/line0500'    => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
+		'tests19/line1079'    => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
+		'tests2/line0207'     => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
+		'tests2/line0686'     => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
+		'tests2/line0697'     => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
+		'tests2/line0709'     => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
+		'webkit01/line0231'   => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
+		'webkit02/line0692'   => 'Unimplemented: The parser does not implement the "maybe clone an option into selectedcontent" algorithm.',
+		'webkit02/line0732'   => 'Unimplemented: The parser does not implement the "maybe clone an option into selectedcontent" algorithm.',
+		'webkit02/line0748'   => 'Unimplemented: The parser does not implement the "maybe clone an option into selectedcontent" algorithm.',
 	);
 
 	/**

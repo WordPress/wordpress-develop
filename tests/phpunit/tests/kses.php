@@ -536,6 +536,227 @@ EOF;
 		$this->assertSame( $allowedtags, wp_kses_allowed_html( 'data' ) );
 	}
 
+	/**
+	 * Tests that the comment content context allows only the mention span beyond the defaults.
+	 *
+	 * @ticket 65622
+	 *
+	 * @covers ::_wp_kses_allow_note_mention_span
+	 */
+	public function test_wp_kses_allowed_html_pre_comment_content_allows_only_the_mention_span() {
+		global $allowedtags;
+
+		$allowed = wp_kses_allowed_html( 'pre_comment_content' );
+
+		$this->assertSame(
+			array( 'class' => true ),
+			$allowed['span'],
+			'The mention span should be allowed in comment content.'
+		);
+
+		unset( $allowed['span'] );
+		$this->assertSame(
+			$allowedtags,
+			$allowed,
+			'Nothing beyond the mention span should be allowed on top of the default comment tags.'
+		);
+	}
+
+	/**
+	 * Tests that a note mention survives content sanitization of a `note` comment.
+	 *
+	 * @ticket 65622
+	 *
+	 * @covers ::_wp_kses_allow_note_mention_span
+	 * @covers ::_wp_kses_sanitize_note_mention_classes
+	 */
+	public function test_note_mention_markup_survives_note_content_sanitization() {
+		add_filter( 'pre_comment_content', 'wp_filter_kses' );
+
+		$content  = 'Hello <span class="wp-note-mention user-2">@admin</span>!';
+		$filtered = wp_filter_comment( wp_slash( $this->get_mention_commentdata( 'note', $content ) ) );
+
+		remove_filter( 'pre_comment_content', 'wp_filter_kses' );
+
+		$this->assertSame( $content, wp_unslash( $filtered['comment_content'] ) );
+	}
+
+	/**
+	 * Tests that the mention markup also survives in regular comment content.
+	 *
+	 * The allowance is always on rather than scoped per comment type: the
+	 * mention markup is inert, so uniform sanitization avoids stateful
+	 * arming and disarming of kses filters around each note write.
+	 *
+	 * @ticket 65622
+	 *
+	 * @covers ::_wp_kses_allow_note_mention_span
+	 * @covers ::_wp_kses_sanitize_note_mention_classes
+	 */
+	public function test_note_mention_markup_survives_regular_comment_content_sanitization() {
+		add_filter( 'pre_comment_content', 'wp_filter_kses' );
+		$content  = 'Hello <span class="wp-note-mention user-2">@admin</span>!';
+		$filtered = wp_filter_comment( wp_slash( $this->get_mention_commentdata( 'comment', $content ) ) );
+
+		$this->assertSame( $content, wp_unslash( $filtered['comment_content'] ) );
+	}
+
+	/**
+	 * Tests that span classes are reduced to the two mention tokens.
+	 *
+	 * @ticket 65622
+	 *
+	 * @covers ::_wp_kses_sanitize_note_mention_classes
+	 */
+	public function test_note_mention_span_classes_are_reduced_to_the_mention_tokens() {
+		add_filter( 'pre_comment_content', 'wp_filter_kses' );
+		$content  = 'Hello <span class="wp-note-mention user-2 is-destructive components-button">@admin</span>!';
+		$filtered = wp_filter_comment( wp_slash( $this->get_mention_commentdata( 'note', $content ) ) );
+
+		$this->assertSame(
+			'Hello <span class="wp-note-mention user-2">@admin</span>!',
+			wp_unslash( $filtered['comment_content'] ),
+			'Class tokens beyond `wp-note-mention` and `user-N` should be stripped from spans.'
+		);
+	}
+
+	/**
+	 * Tests that class tokens are reduced on spans regardless of tag-name casing.
+	 *
+	 * kses preserves tag-name casing, so the class reduction must match `SPAN`
+	 * case-insensitively rather than bail on a `<span` substring check.
+	 *
+	 * @ticket 65622
+	 *
+	 * @covers ::_wp_kses_sanitize_note_mention_classes
+	 */
+	public function test_note_mention_class_tokens_are_reduced_on_uppercase_span_tags() {
+		add_filter( 'pre_comment_content', 'wp_filter_kses' );
+		$content  = 'Hello <SPAN class="wp-note-mention user-2 is-destructive">@admin</SPAN>!';
+		$filtered = wp_filter_comment( wp_slash( $this->get_mention_commentdata( 'note', $content ) ) );
+
+		$this->assertEqualHTML(
+			'Hello <span class="wp-note-mention user-2">@admin</span>!',
+			wp_unslash( $filtered['comment_content'] ),
+			'<body>',
+			'Class tokens should be reduced on spans regardless of tag-name casing.'
+		);
+	}
+
+	/**
+	 * Tests that the class attribute is removed when no mention tokens remain.
+	 *
+	 * @ticket 65622
+	 *
+	 * @covers ::_wp_kses_sanitize_note_mention_classes
+	 */
+	public function test_note_mention_class_attribute_removed_when_no_tokens_remain() {
+		add_filter( 'pre_comment_content', 'wp_filter_kses' );
+		$content  = 'Hello <span class="is-destructive user-0 user-x wp-note-mention-foo">there</span>!';
+		$filtered = wp_filter_comment( wp_slash( $this->get_mention_commentdata( 'comment', $content ) ) );
+
+		// Markup-equivalence assertion: the HTML API's whitespace handling
+		// when removing the final attribute is not part of its contract.
+		$this->assertEqualHTML(
+			'Hello <span>there</span>!',
+			wp_unslash( $filtered['comment_content'] ),
+			'<body>',
+			'A span with no valid mention tokens should lose its class attribute entirely.'
+		);
+	}
+
+	/**
+	 * Tests that only the `class` attribute is allowed on mention spans.
+	 *
+	 * @ticket 65622
+	 *
+	 * @covers ::_wp_kses_allow_note_mention_span
+	 */
+	public function test_note_mention_allows_only_class_on_mention_spans() {
+		add_filter( 'pre_comment_content', 'wp_filter_kses' );
+		$content  = 'Hello <span class="wp-note-mention user-2" data-user-id="2" onclick="alert(1)" style="color:red" id="mention">@admin</span>!';
+		$filtered = wp_filter_comment( wp_slash( $this->get_mention_commentdata( 'note', $content ) ) );
+
+		$this->assertSame(
+			'Hello <span class="wp-note-mention user-2">@admin</span>!',
+			wp_unslash( $filtered['comment_content'] ),
+			'Attributes beyond `class` should be stripped from spans.'
+		);
+	}
+
+	/**
+	 * Tests that `class` is still stripped from links in comment content.
+	 *
+	 * @ticket 65622
+	 *
+	 * @covers ::_wp_kses_allow_note_mention_span
+	 */
+	public function test_class_is_still_stripped_from_links_in_comment_content() {
+		add_filter( 'pre_comment_content', 'wp_filter_kses' );
+
+		/*
+		 * The href is external to the test site so that wp_rel_ugc() - which
+		 * applies to notes like any other comment - deterministically appends
+		 * `rel="nofollow ugc"`.
+		 */
+		$content  = 'Hello <a class="wp-note-mention user-2" href="https://example.com/author/admin/">@admin</a>!';
+		$filtered = wp_filter_comment( wp_slash( $this->get_mention_commentdata( 'note', $content ) ) );
+
+		$this->assertSame(
+			'Hello <a href="https://example.com/author/admin/" rel="nofollow ugc">@admin</a>!',
+			wp_unslash( $filtered['comment_content'] ),
+			'The class allowance is scoped to spans; links keep the default sanitization.'
+		);
+	}
+
+	/**
+	 * Tests that the class reduction is skipped while the restrictive comment kses is inactive.
+	 *
+	 * Users with `unfiltered_html` are filtered through `wp_filter_post_kses`
+	 * (or not at all), where arbitrary classes are permitted; the mention
+	 * class reduction must not narrow what they can post.
+	 *
+	 * @ticket 65622
+	 *
+	 * @covers ::_wp_kses_sanitize_note_mention_classes
+	 */
+	public function test_note_mention_class_reduction_skipped_when_restrictive_kses_is_inactive() {
+		// kses_init() hooks wp_filter_kses by default in the test
+		// environment, so detach it to simulate the unfiltered_html setup.
+		// The test framework restores filters after each test.
+		remove_filter( 'pre_comment_content', 'wp_filter_kses' );
+
+		$content = 'Hello <span class="components-button is-destructive">there</span>!';
+
+		$this->assertSame(
+			wp_slash( $content ),
+			_wp_kses_sanitize_note_mention_classes( wp_slash( $content ) ),
+			'Span classes should be left untouched when wp_filter_kses is not active.'
+		);
+	}
+
+	/**
+	 * Builds a complete commentdata array for wp_filter_comment().
+	 *
+	 * @param 'note'|'comment' $comment_type The comment type.
+	 * @param string           $content      The comment content.
+	 * @return array{
+	 *     comment_content: string,
+	 *     ...
+	 * }
+	 */
+	private function get_mention_commentdata( string $comment_type, string $content ): array {
+		return array(
+			'comment_content'      => $content,
+			'comment_type'         => $comment_type,
+			'comment_author'       => 'admin',
+			'comment_author_IP'    => '127.0.0.1',
+			'comment_author_url'   => 'http://example.org',
+			'comment_author_email' => 'admin@example.org',
+			'comment_agent'        => '',
+		);
+	}
+
 	public function test_hyphenated_tag() {
 		$content     = '<hyphenated-tag attribute="value" otherattribute="value2">Alot of hyphens.</hyphenated-tag>';
 		$custom_tags = array(
