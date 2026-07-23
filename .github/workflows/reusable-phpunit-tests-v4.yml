@@ -238,6 +238,11 @@ jobs:
         continue-on-error: ${{ inputs.allow-errors }}
         run: node ./tools/local-env/scripts/docker.js run php ./vendor/bin/phpunit --verbose -c "${PHPUNIT_CONFIG}" --group ms-files
 
+      - name: Run GitHub Actions environment variable tests (do not include this in any merge)
+        if: ${{ ! inputs.phpunit-test-groups && ! inputs.coverage-report }}
+        continue-on-error: ${{ inputs.allow-errors }}
+        run: node ./tools/local-env/scripts/docker.js run php ./vendor/bin/phpunit --verbose -c "${PHPUNIT_CONFIG}" --group this-should-never-be-committed-to-trunk-but-some-of-it-might-be-helpful
+
       # __fakegroup__ is excluded to force PHPUnit to ignore the <exclude> settings in phpunit.xml.dist.
       - name: Run (Xdebug) tests
         if: ${{ ! inputs.phpunit-test-groups && ! inputs.coverage-report }}

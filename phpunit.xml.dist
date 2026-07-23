@@ -30,6 +30,7 @@
 			<group>ms-required</group>
 			<group>external-http</group>
 			<group>html-api-web-platform-tests</group>
+			<group>this-should-never-be-committed-to-trunk-but-some-of-it-might-be-helpful</group>
 		</exclude>
 	</groups>
 	<logging>
