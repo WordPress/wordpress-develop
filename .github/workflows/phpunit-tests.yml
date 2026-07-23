@@ -170,7 +170,6 @@ jobs:
       phpunit-config: ${{ matrix.multisite && 'tests/phpunit/multisite.xml' || 'phpunit.xml.dist' }}
       tests-domain: ${{ matrix.tests-domain }}
       report: ${{ matrix.report || false }}
-      wordpress-build-artifact-available: true
 
   #
   # Creates a PHPUnit test job for each PHP/MariaDB combination.
@@ -271,7 +270,6 @@ jobs:
       memcached: ${{ matrix.memcached }}
       phpunit-config: ${{ matrix.multisite && 'tests/phpunit/multisite.xml' || 'phpunit.xml.dist' }}
       report: false
-      wordpress-build-artifact-available: true
 
   #
   # Runs the HTML API test group.
@@ -305,7 +303,6 @@ jobs:
       db-type: ${{ matrix.db-type }}
       db-version: ${{ matrix.db-version }}
       phpunit-test-groups: ${{ matrix.phpunit-test-groups }}
-      wordpress-build-artifact-available: true
 
   #
   # Runs unit tests for forks.
@@ -367,7 +364,6 @@ jobs:
       db-type: ${{ matrix.db-type }}
       memcached: ${{ matrix.memcached || false }}
       phpunit-test-groups: ${{ matrix.phpunit-test-groups || '' }}
-      wordpress-build-artifact-available: true
 
   slack-notifications:
     name: Slack Notifications
