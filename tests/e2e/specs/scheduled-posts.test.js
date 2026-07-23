@@ -42,6 +42,12 @@ test.describe( 'Scheduled Posts', () => {
 	test( 'publishes a scheduled post when its time arrives', async ( {
 		requestUtils,
 	} ) => {
+		// The test spans real time by design (a 65-second quiet wait,
+		// then up to 60 seconds of polling), so triple the per-test
+		// budget: a genuine failure should surface as the poll's
+		// message, not as a generic test timeout.
+		test.slow();
+
 		// Schedule the post shortly into the future, by the server's clock.
 		const serverNow = await getServerNow( requestUtils );
 		const post = await requestUtils.createPost( {
