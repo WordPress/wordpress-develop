@@ -57,11 +57,6 @@ on:
         required: false
         type: 'string'
         default: 'example.org'
-      wordpress-build-artifact-available:
-        description: 'Whether a WordPress build artifact is available for download.'
-        required: false
-        type: boolean
-        default: false
       coverage-report:
         description: 'Whether to generate a code coverage report.'
         required: false
@@ -135,11 +130,16 @@ jobs:
           echo "PHP_FPM_GID=$(id -g)" >> "$GITHUB_ENV"
 
       - name: Checkout repository
-        if: ${{ ! inputs.wordpress-build-artifact-available }}
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
           persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+        with:
+          node-version-file: '.nvmrc'
+          cache: npm
 
       ##
       # This allows Composer dependencies to be installed using a single step.
@@ -149,7 +149,6 @@ jobs:
       # dependency versions are installed and cached.
       ##
       - name: Set up PHP
-        if: ${{ ! inputs.wordpress-build-artifact-available }}
         uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
         with:
           php-version: '${{ inputs.php }}'
@@ -158,33 +157,14 @@ jobs:
       # Since Composer dependencies are installed using `composer update` and no lock file is in version control,
       # passing a custom cache suffix ensures that the cache is flushed at least once per week.
       - name: Install Composer dependencies
-        if: ${{ ! inputs.wordpress-build-artifact-available }}
         uses: ramsey/composer-install@65e4f84970763564f46a70b8a54b90d033b3bdda # 4.0.0
         with:
           custom-cache-suffix: $(/bin/date -u --date='last Mon' "+%F")
 
-      - name: Download WordPress build artifact
-        if: ${{ inputs.wordpress-build-artifact-available }}
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
-        with:
-          name: wordpress-build
-
-      - name: Unzip WordPress build artifact
-        if: ${{ inputs.wordpress-build-artifact-available }}
-        run: unzip -q wordpress-build.zip
-
-      - name: Set up Node.js
-        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
-        with:
-          node-version-file: '.nvmrc'
-          cache: npm
-
       - name: Install npm dependencies
-        if: ${{ ! inputs.wordpress-build-artifact-available }}
         run: npm ci
 
       - name: Build WordPress
-        if: ${{ ! inputs.wordpress-build-artifact-available }}
         run: npm run build:dev
 
       - name: General debug information
