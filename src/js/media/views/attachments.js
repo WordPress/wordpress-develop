@@ -189,32 +189,28 @@ Attachments = View.extend(/** @lends wp.media.view.Attachments.prototype */{
 			return;
 		}
 
-		// Left arrow = 37.
-		if ( 37 === event.keyCode ) {
+		if ( 'ArrowLeft' === event.key ) {
 			if ( 0 === index ) {
 				return;
 			}
 			attachments.eq( index - 1 ).focus();
 		}
 
-		// Up arrow = 38.
-		if ( 38 === event.keyCode ) {
+		if ( 'ArrowUp' === event.key ) {
 			if ( 1 === row ) {
 				return;
 			}
 			attachments.eq( index - perRow ).focus();
 		}
 
-		// Right arrow = 39.
-		if ( 39 === event.keyCode ) {
+		if ( 'ArrowRight' === event.key ) {
 			if ( attachments.length === index ) {
 				return;
 			}
 			attachments.eq( index + 1 ).focus();
 		}
 
-		// Down arrow = 40.
-		if ( 40 === event.keyCode ) {
+		if ( 'ArrowDown' === event.key ) {
 			if ( Math.ceil( attachments.length / perRow ) === row ) {
 				return;
 			}
