@@ -99,7 +99,7 @@ jobs:
   #
   test-with-mysql:
     name: PHP ${{ matrix.php }}
-    uses: ./.github/workflows/reusable-phpunit-tests-v3.yml
+    uses: ./.github/workflows/reusable-phpunit-tests-v4.yml
     needs: [ build-wordpress ]
     permissions:
       contents: read
@@ -180,7 +180,7 @@ jobs:
   #
   test-with-mariadb:
     name: PHP ${{ matrix.php }}
-    uses: ./.github/workflows/reusable-phpunit-tests-v3.yml
+    uses: ./.github/workflows/reusable-phpunit-tests-v4.yml
     needs: [ build-wordpress ]
     permissions:
       contents: read
@@ -235,7 +235,7 @@ jobs:
   #
   test-innovation-releases:
     name: PHP ${{ matrix.php }}
-    uses: ./.github/workflows/reusable-phpunit-tests-v3.yml
+    uses: ./.github/workflows/reusable-phpunit-tests-v4.yml
     needs: [ build-wordpress ]
     permissions:
       contents: read
@@ -280,7 +280,7 @@ jobs:
   #
   html-api-test-groups:
     name: ${{ matrix.label }}
-    uses: ./.github/workflows/reusable-phpunit-tests-v3.yml
+    uses: ./.github/workflows/reusable-phpunit-tests-v4.yml
     needs: [ build-wordpress ]
     permissions:
       contents: read
@@ -313,7 +313,7 @@ jobs:
   #
   limited-matrix-for-forks:
     name: PHP ${{ matrix.php }}
-    uses: ./.github/workflows/reusable-phpunit-tests-v3.yml
+    uses: ./.github/workflows/reusable-phpunit-tests-v4.yml
     needs: [ build-wordpress ]
     permissions:
       contents: read
