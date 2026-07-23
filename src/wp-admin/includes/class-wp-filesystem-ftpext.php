@@ -273,22 +273,23 @@ class WP_Filesystem_FTPext extends WP_Filesystem_Base {
 				break;
 			}
 
-			// On failure, try to reconnect before the next attempt.
 			if ( $tries < $max_tries ) {
-				$cwd = $this->cwd();
-
-				if ( $this->link ) {
-					ftp_close( $this->link );
-					$this->link = false;
-				}
+				$cwd      = $this->cwd();
+				$old_link = $this->link;
 
 				if ( ! $this->connect() ) {
+					$this->link = $old_link;
 					break;
 				}
 
-				// Restore the working directory, as a new connection resets it.
 				if ( $cwd && ! $this->chdir( $cwd ) ) {
+					ftp_close( $this->link );
+					$this->link = $old_link;
 					break;
+				}
+
+				if ( $old_link ) {
+					ftp_close( $old_link );
 				}
 
 				fseek( $temphandle, 0 );
