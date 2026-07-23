@@ -3957,8 +3957,38 @@ All at ###SITENAME###
 		$content = str_replace( '###SITENAME###', $sitename, $content );
 		$content = str_replace( '###SITEURL###', home_url(), $content );
 
-		/* translators: New email address notification email subject. %s: Site title. */
-		wp_mail( $_POST['email'], sprintf( __( '[%s] Email Change Request' ), $sitename ), $content );
+		$new_user_email_notification = array(
+			'to' => $_POST['email'],
+			/* translators: New email address notification email subject. %s: Site title. */
+			'subject' => __( '[%s] Email Change Request' ),
+			'message' => $content,
+			'headers' => '',
+		);
+
+		/**
+		 * Filters the contents of the new user email notification sent to the user upon email change.
+		 *
+		 * @since 6.9.0
+		 *
+		 * @param array   $new_user_email_notification {
+		 *     Used to build wp_mail().
+		 *
+		 *     @type string $to         The intended recipient - New user email address.
+		 *     @type string $subject    The subject of the email.
+		 *     @type string $message    The body of the email.
+		 *     @type string $headers    The headers of the email.
+		 * }
+		 * @param WP_User $current_user User object for new user.
+		 * @param string  $sitename     The site title.
+		 */
+		$new_user_email_notification = apply_filters( 'wp_new_user_notification_email', $new_user_email_notification, $current_user, $sitename );
+
+		wp_mail(
+			$new_user_email_notification['to'],
+			wp_specialchars_decode( sprintf( $new_user_email_notification['subject'], $sitename ) ),
+			$new_user_email_notification['message'],
+			$new_user_email_notification['headers']
+		);
 
 		$_POST['email'] = $current_user->user_email;
 	}
