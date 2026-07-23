@@ -263,7 +263,23 @@ class WP_Filesystem_FTPext extends WP_Filesystem_Base {
 
 		fseek( $temphandle, 0 ); // Skip back to the start of the file being written to.
 
-		$ret = ftp_fput( $this->link, $file, $temphandle, FTP_BINARY );
+		$ret = false;
+
+		for ( $tries = 1; $tries <= 3; $tries++ ) {
+			$ret = ftp_fput( $this->link, $file, $temphandle, FTP_BINARY );
+
+			if ( $ret ) {
+				break;
+			}
+
+			if ( $tries < 3 ) {
+				if ( ! $this->connect() ) {
+					break;
+				}
+
+				fseek( $temphandle, 0 );
+			}
+		}
 
 		fclose( $temphandle );
 		unlink( $tempfile );
