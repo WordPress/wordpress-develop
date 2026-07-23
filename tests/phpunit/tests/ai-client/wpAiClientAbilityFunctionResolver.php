@@ -880,4 +880,121 @@ class Tests_AI_Client_AbilityFunctionResolver extends WP_UnitTestCase {
 		$response2 = $resolver->execute_ability( $call2 );
 		$this->assertArrayHasKey( 'success', $response2->getResponse() );
 	}
+
+	/**
+	 * Test that the pre-resolve filter can short-circuit the ability execution.
+	 *
+	 * @ticket 64865
+	 */
+	public function test_pre_resolve_filter_short_circuits_execution() {
+		$injected = new FunctionResponse(
+			'test-id',
+			'wpab__wpaiclienttests__returns-error',
+			array( 'mocked' => true )
+		);
+
+		add_filter(
+			'wp_ai_client_pre_resolve_ability_call',
+			static function ( $pre ) use ( $injected ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter
+				return $injected;
+			}
+		);
+
+		$resolver = new WP_AI_Client_Ability_Function_Resolver( 'wpaiclienttests/returns-error' );
+		$call     = new FunctionCall(
+			'test-id',
+			'wpab__wpaiclienttests__returns-error',
+			array()
+		);
+
+		$response = $resolver->execute_ability( $call );
+
+		$this->assertSame( $injected, $response, 'The injected response should be returned instead of executing the ability.' );
+	}
+
+	/**
+	 * Test that a WP_Error from the pre-resolve filter becomes an error response.
+	 *
+	 * @ticket 64865
+	 */
+	public function test_pre_resolve_filter_error_becomes_error_response() {
+		add_filter(
+			'wp_ai_client_pre_resolve_ability_call',
+			static function ( $pre ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter
+				return new WP_Error( 'vetoed', 'This call is not allowed.' );
+			}
+		);
+
+		$resolver = new WP_AI_Client_Ability_Function_Resolver( 'wpaiclienttests/simple' );
+		$call     = new FunctionCall(
+			'test-id',
+			'wpab__wpaiclienttests__simple',
+			array()
+		);
+
+		$response = $resolver->execute_ability( $call );
+
+		$data = $response->getResponse();
+		$this->assertSame( 'vetoed', $data['code'] );
+		$this->assertSame( 'This call is not allowed.', $data['error'] );
+	}
+
+	/**
+	 * Test that the resolved action fires with the call and the response.
+	 *
+	 * @ticket 64865
+	 */
+	public function test_resolved_action_fires_with_call_and_response() {
+		$captured = array();
+		add_action(
+			'wp_ai_client_ability_call_resolved',
+			static function ( $call, $response ) use ( &$captured ) {
+				$captured[] = array( $call, $response );
+			},
+			10,
+			2
+		);
+
+		$resolver = new WP_AI_Client_Ability_Function_Resolver( 'wpaiclienttests/simple' );
+		$call     = new FunctionCall(
+			'test-id',
+			'wpab__wpaiclienttests__simple',
+			array()
+		);
+
+		$response = $resolver->execute_ability( $call );
+
+		$this->assertCount( 1, $captured );
+		$this->assertSame( $call, $captured[0][0] );
+		$this->assertSame( $response, $captured[0][1] );
+	}
+
+	/**
+	 * Test that the resolved action also fires for error responses.
+	 *
+	 * @ticket 64865
+	 */
+	public function test_resolved_action_fires_for_error_responses() {
+		$captured = array();
+		add_action(
+			'wp_ai_client_ability_call_resolved',
+			static function ( $call, $response ) use ( &$captured ) {
+				$captured[] = $response;
+			},
+			10,
+			2
+		);
+
+		$resolver = new WP_AI_Client_Ability_Function_Resolver( 'wpaiclienttests/simple' );
+		$call     = new FunctionCall(
+			'test-id',
+			'wpab__wpaiclienttests__with-params',
+			array( 'title' => 'Test' )
+		);
+
+		$response = $resolver->execute_ability( $call );
+
+		$this->assertCount( 1, $captured );
+		$this->assertSame( 'ability_not_allowed', $captured[0]->getResponse()['code'] );
+	}
 }
