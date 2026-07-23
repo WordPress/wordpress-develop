@@ -124,6 +124,7 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 			'disabled' => array(),
 			'upgrade'  => array(),
 			'broken'   => $this->is_site_themes ? array() : wp_get_themes( array( 'errors' => true ) ),
+			'default'  => array( wp_get_theme( WP_Theme::network_get_default_theme() ) ),
 		);
 
 		if ( $this->show_autoupdates ) {
@@ -449,6 +450,9 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 						$count
 					);
 					break;
+				case 'default':
+					$text = __( 'Default' ) . ' <span class="count">(1)</span>';
+					break;
 			}
 
 			if ( $this->is_site_themes ) {
@@ -577,6 +581,7 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 			'enable'  => '',
 			'disable' => '',
 			'delete'  => '',
+			'default' => '',
 		);
 
 		$stylesheet = $theme->get_stylesheet();
@@ -964,9 +969,19 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 						if ( $stylesheet !== $template && $item->get_stylesheet() === $stylesheet ) {
 							$active_theme_label = ' &mdash; ' . __( 'Active Child Theme' );
 						}
+
+						/* In case this is the network default theme */
+						if ( $item->get_stylesheet() === $item->network_get_default_theme() ) {
+							$active_theme_label = ' &mdash; ' . __( 'Default Theme' );
+						}
 					}
 
-					echo "<td class='theme-title column-primary{$extra_classes}'><strong>" . $item->display( 'Name' ) . $active_theme_label . '</strong>';
+					printf(
+						"<td class='theme-title column-primary%s'><strong>%s%s</strong>",
+						$extra_classes,
+						$item->display( 'Name' ),
+						$active_theme_label
+					);
 
 					$this->column_name( $item );
 

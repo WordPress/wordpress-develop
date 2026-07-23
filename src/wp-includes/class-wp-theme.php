@@ -2125,6 +2125,39 @@ final class WP_Theme implements ArrayAccess {
 	}
 
 	/**
+	 * Set the network default theme.
+	 *
+	 * @since 5.0.0
+	 * @access public
+	 * @static
+	 *
+	 * @param string $stylesheet name.
+	 */
+	public static function network_set_default_theme( $stylesheet ) {
+		if ( ! is_multisite() ) {
+			return;
+		}
+
+		$theme = wp_get_theme( $stylesheet );
+		if ( ! $theme->exists() || ! $theme->is_allowed() ) {
+			return;
+		}
+
+		update_network_option( null, 'default_theme', $stylesheet );
+	}
+
+	/**
+	 * Get the network default theme.
+	 *
+	 * @since 5.0.0
+	 * @access public
+	 * @static
+	 */
+	public static function network_get_default_theme() {
+		return get_network_option( null, 'default_theme', WP_DEFAULT_THEME );
+	}
+
+	/**
 	 * Sorts themes by name.
 	 *
 	 * @since 3.4.0

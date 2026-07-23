@@ -50,6 +50,11 @@ if ( $action ) {
 			WP_Theme::network_disable_theme( $_GET['theme'] );
 			wp_safe_redirect( add_query_arg( 'disabled', '1', $referer ) );
 			exit;
+		case 'default':
+			check_admin_referer( 'default-theme_' . $_GET['theme'] );
+			WP_Theme::network_set_default_theme( $_GET['theme'] );
+			wp_safe_redirect( add_query_arg( 'default', '1', $referer ) );
+			exit;
 		case 'enable-selected':
 			check_admin_referer( 'bulk-themes' );
 			$themes = isset( $_POST['checked'] ) ? (array) $_POST['checked'] : array();
