@@ -1341,7 +1341,7 @@
 		errorCallback = args.error;
 		if ( errorCallback ) {
 			args.error = function() {
-				$link.text( $link.data( 'originaltext' ) );
+				$link.html( $link.data( 'originaltext' ) );
 
 				errorCallback.apply( this, arguments );
 			};
