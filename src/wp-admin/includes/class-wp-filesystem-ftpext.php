@@ -263,17 +263,31 @@ class WP_Filesystem_FTPext extends WP_Filesystem_Base {
 
 		fseek( $temphandle, 0 ); // Skip back to the start of the file being written to.
 
-		$ret = false;
+		$ret       = false;
+		$max_tries = 3;
 
-		for ( $tries = 1; $tries <= 3; $tries++ ) {
+		for ( $tries = 1; $tries <= $max_tries; $tries++ ) {
 			$ret = ftp_fput( $this->link, $file, $temphandle, FTP_BINARY );
 
 			if ( $ret ) {
 				break;
 			}
 
-			if ( $tries < 3 ) {
+			// On failure, try to reconnect before the next attempt.
+			if ( $tries < $max_tries ) {
+				$cwd = $this->cwd();
+
+				if ( $this->link ) {
+					ftp_close( $this->link );
+					$this->link = false;
+				}
+
 				if ( ! $this->connect() ) {
+					break;
+				}
+
+				// Restore the working directory, as a new connection resets it.
+				if ( $cwd && ! $this->chdir( $cwd ) ) {
 					break;
 				}
 
