@@ -6,9 +6,9 @@
  */
 class Tests_Admin_wpOnThisDay extends WP_UnitTestCase {
 
-	protected static $user_id;
+	protected static int $user_id;
 
-	protected static $other_user_id;
+	protected static int $other_user_id;
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		require_once ABSPATH . 'wp-admin/includes/dashboard-on-this-day.php';
@@ -56,11 +56,11 @@ class Tests_Admin_wpOnThisDay extends WP_UnitTestCase {
 	 * @return int Post ID.
 	 */
 	private function create_matching_post(
-		$author_id,
-		$title = 'A memory from last year',
-		$years_ago = 1,
-		$time = '12:00:00'
-	) {
+		int $author_id,
+		string $title = 'A memory from last year',
+		int $years_ago = 1,
+		string $time = '12:00:00'
+	): int {
 		$post_date = current_datetime()->modify( '-' . $years_ago . ' years' )->format( 'Y-m-d' ) . ' ' . $time;
 
 		return self::factory()->post->create(
@@ -82,7 +82,7 @@ class Tests_Admin_wpOnThisDay extends WP_UnitTestCase {
 	 * @param int    $day_offset Number of days from today's prior-year calendar day.
 	 * @return int Post ID.
 	 */
-	private function create_nearby_post( $author_id, $title = 'Almost a memory', $day_offset = 1 ) {
+	private function create_nearby_post( int $author_id, string $title = 'Almost a memory', int $day_offset = 1 ): int {
 		$post_date = current_datetime()
 			->modify( '-1 year' )
 			->modify( ( $day_offset >= 0 ? '+' : '' ) . $day_offset . ' days' )
@@ -105,7 +105,7 @@ class Tests_Admin_wpOnThisDay extends WP_UnitTestCase {
 	 * @param string $date Date string.
 	 * @return array Date query clause.
 	 */
-	private static function get_date_query_clause( $date ) {
+	private static function get_date_query_clause( string $date ): array {
 		return _wp_dashboard_on_this_day_date_query_clause( new DateTimeImmutable( $date, wp_timezone() ) );
 	}
 
