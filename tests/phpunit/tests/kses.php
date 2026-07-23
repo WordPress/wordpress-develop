@@ -1224,7 +1224,7 @@ EOF;
 		);
 
 		$content  = '<dialog open autofocus><button autofocus>Open</button><div><button autofocus>Inside</button></div><input type="text" autofocus /></dialog>';
-		$expected = '<dialog open autofocus><button autofocus>Open</button><div><button autofocus>Inside</button></div><input type="text" autofocus /></dialog>';
+		$expected = $content; // Unchanged.
 
 		$this->assertEqualHTML( $expected, wp_kses( $content, $allowed_html ) );
 	}
