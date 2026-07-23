@@ -137,7 +137,6 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 				array(
 					'comment_content' => "Comment {$i}",
 					'comment_post_ID' => self::$post_id,
-					'status'          => ( 0 === $i % 2 ) ? 'approve' : 'hold',
 				)
 			);
 		}
@@ -247,149 +246,110 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	}
 
 	/**
-	 * Test getting items of a specific status.
+	 * Test getting comments filtered by one or more statuses.
+	 *
+	 * @ticket 63982
+	 *
+	 * @dataProvider data_get_items_by_status
+	 *
+	 * @param string|array $status Status value(s) to filter by.
+	 */
+	public function test_get_items_by_status( $status ) {
+		wp_set_current_user( self::$admin_id );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/comments' );
+		$request->set_param( 'status', $status );
+		$request->set_param( 'per_page', self::$per_page );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+
+		$query = new WP_Comment_Query();
+		$found = $query->query(
+			array(
+				'status' => $status,
+				'count'  => true,
+			)
+		);
+
+		$this->assertCount( $found, $response->get_data() );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_get_items_by_status() {
+		return array(
+			'a single status'        => array( 'approve' ),
+			'the hold status'        => array( 'hold' ),
+			'the all status'         => array( 'all' ),
+			'an array of statuses'   => array( array( 'approve', 'hold' ) ),
+			'a comma-separated list' => array( 'approve,hold' ),
+		);
+	}
+
+	/**
+	 * Test that filtering by the default status does not require authorization.
 	 *
 	 * @ticket 63982
 	 */
-	public function test_get_items_by_status() {
-		wp_set_current_user( self::$admin_id );
-
+	public function test_get_items_by_default_status_without_permission() {
 		$request = new WP_REST_Request( 'GET', '/wp/v2/comments' );
 		$request->set_param( 'status', 'approve' );
 		$request->set_param( 'per_page', self::$per_page );
 		$response = rest_get_server()->dispatch( $request );
 
 		$this->assertSame( 200, $response->get_status() );
-
-		$q     = new WP_Comment_Query();
-		$found = $q->query(
-			array(
-				'status' => 'approve',
-				'count'  => true,
-			)
-		);
-
-		$comments = $response->get_data();
-
-		$this->assertCount( $found, $comments );
+		$this->assertCount( self::$total_comments, $response->get_data() );
 	}
 
 	/**
-	 * Test getting comments of all statuses.
+	 * Test that filtering by multiple statuses requires authorization.
 	 *
 	 * @ticket 63982
 	 */
-	public function test_get_items_by_all_status() {
-		wp_set_current_user( self::$admin_id );
-
-		$request = new WP_REST_Request( 'GET', '/wp/v2/comments' );
-		$request->set_param( 'status', 'all' );
-		$request->set_param( 'per_page', self::$per_page );
-		$response = rest_get_server()->dispatch( $request );
-
-		$this->assertSame( 200, $response->get_status() );
-
-		$q     = new WP_Comment_Query();
-		$found = $q->query(
-			array(
-				'status' => 'all',
-				'count'  => true,
-			)
-		);
-
-		$comments = $response->get_data();
-		$this->assertCount( $found, $comments );
-	}
-
-	/**
-	 * Test getting items of multiple statuses.
-	 *
-	 * @ticket 63982
-	 */
-	public function test_get_items_by_multiple_status() {
-		wp_set_current_user( self::$admin_id );
-
+	public function test_get_items_by_multiple_statuses_without_permission() {
 		$request = new WP_REST_Request( 'GET', '/wp/v2/comments' );
 		$request->set_param( 'status', array( 'approve', 'hold' ) );
-		$request->set_param( 'per_page', self::$per_page );
-
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertSame( 200, $response->get_status() );
 
-		$q     = new WP_Comment_Query();
-		$found = $q->query(
-			array(
-				'status' => array( 'approve', 'hold' ),
-				'count'  => true,
-			)
-		);
-
-		$comments = $response->get_data();
-		$this->assertCount( $found, $comments );
+		$this->assertErrorResponse( 'rest_forbidden_param', $response, 401 );
 	}
 
 	/**
-	 * Test sanization of the status parameter.
+	 * Test sanitization of the status parameter.
 	 *
 	 * @ticket 63982
 	 *
-	 * @dataProvider data_get_items_by_status_sanitize
+	 * @dataProvider data_sanitize_comment_statuses
+	 *
+	 * @param string|array $statuses Raw status value.
+	 * @param array        $expected Expected sanitized statuses.
 	 */
-	public function test_get_items_by_status_sanitize( $key, $expected ) {
-		wp_set_current_user( self::$admin_id );
+	public function test_sanitize_comment_statuses( $statuses, $expected ) {
+		$controller = new WP_REST_Comments_Controller();
 
-		// Create a post with the test status.
-		$params = array(
-			'post'         => self::$post_id,
-			'author_name'  => 'Comic Book Guy',
-			'author_email' => 'cbg@androidsdungeon.com',
-			'author_url'   => 'http://androidsdungeon.com',
-			'content'      => 'Worst Comment Ever!',
-			'status'       => $key,
-		);
-
-		$request = new WP_REST_Request( 'POST', '/wp/v2/comments' );
-		$request->add_header( 'Content-Type', 'application/json' );
-		$request->set_body( wp_json_encode( $params ) );
-
-		$response = rest_get_server()->dispatch( $request );
-		$this->assertSame( 201, $response->get_status() );
-
-		$comment = $response->get_data();
-
-		$this->assertEquals( $expected, $comment['status'] );
+		$this->assertSame( $expected, $controller->sanitize_comment_statuses( $statuses ) );
 	}
 
 	/**
 	 * Data provider.
 	 *
-	 * @return array
+	 * @return array[]
 	 */
-	public function data_get_items_by_status_sanitize() {
+	public function data_sanitize_comment_statuses() {
 		return array(
-			'an empty string key'            => array(
-				'key'      => '',
-				'expected' => 'hold',
-			),
-			'a lowercase key with commas'    => array(
-				'key'      => 'howdy,admin',
-				'expected' => 'hold',
-			),
-			'a lowercase key with commas'    => array(
-				'key'      => 'HOWDY,ADMIN',
-				'expected' => 'hold',
-			),
-			'a mixed case key with commas'   => array(
-				'key'      => 'HoWdY,aDmIn',
-				'expected' => 'hold',
-			),
-			'a string with unicode'   => array(
-				'key'      => array( 'howdy&nbsp;admin', 'another-value' ),
-				'expected' => 'hold',
-			),
+			'a single status'        => array( 'approve', array( 'approve' ) ),
+			'a comma-separated list' => array( 'approve,hold', array( 'approve', 'hold' ) ),
+			'an array of statuses'   => array( array( 'approve', 'hold' ), array( 'approve', 'hold' ) ),
+			'mixed case statuses'    => array( 'APPROVE,Hold', array( 'approve', 'hold' ) ),
+			'duplicate statuses'     => array( array( 'approve', 'approve', 'hold' ), array( 'approve', 'hold' ) ),
+			'invalid characters'     => array( 'howdy&nbsp;admin', array( 'howdynbspadmin' ) ),
+			'an empty string'        => array( '', array() ),
 		);
 	}
-
 
 	/**
 	 * @ticket 38692
