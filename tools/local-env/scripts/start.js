@@ -32,6 +32,10 @@ if ( process.env.LOCAL_PHP_MEMCACHED === 'true' ) {
 	containers.push( 'memcached' );
 }
 
+if ( process.env.LOCAL_MAIL === 'true' ) {
+	containers.push( 'mailpit' );
+}
+
 spawnSync(
 	'docker',
 	[

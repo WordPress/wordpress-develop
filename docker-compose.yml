@@ -124,6 +124,22 @@ services:
         condition: service_healthy
 
   ##
+  # The MailHog container.
+  ##
+  mailpit:
+    container_name: mailpit
+    image:  axllent/mailpit
+    ports:
+      - 1025:1025  # smtp server
+      - 8025:8025  # web ui
+    environment:
+            MP_MAX_MESSAGES: 5000
+            MP_SMTP_AUTH_ACCEPT_ANY: 1
+            MP_SMTP_AUTH_ALLOW_INSECURE: 1
+    networks:
+      - wpdevnet
+
+  ##
   # The Memcached container.
   ##
   memcached:
