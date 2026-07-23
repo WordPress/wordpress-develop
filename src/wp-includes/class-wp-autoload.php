@@ -78,7 +78,6 @@ final class WP_Autoload {
 		'wp_duotone'                                  => 'wp-includes/class-wp-duotone.php',
 		'_wp_editors'                                 => 'wp-includes/class-wp-editor.php',
 		'wp_embed'                                    => 'wp-includes/class-wp-embed.php',
-		'wp_email_address'                            => 'wp-includes/class-wp-email-address.php',
 		'wp_error'                                    => 'wp-includes/class-wp-error.php',
 		'wp_exception'                                => 'wp-includes/class-wp-exception.php',
 		'wp_fatal_error_handler'                      => 'wp-includes/class-wp-fatal-error-handler.php',
