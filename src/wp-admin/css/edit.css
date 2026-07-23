@@ -2155,3 +2155,71 @@ table.links-table {
 		margin: 2em 0 0;
 	}
 }
+
+/* Hierarchical Category Select Styling */
+
+.wp-core-ui select.category-parent-hierarchical-select {
+	&, &::picker(select) {
+		appearance: base-select;
+	}
+	&::picker-icon {
+		display: none;
+	}
+}
+
+.category-parent-hierarchical-select option {
+	position: relative;
+	padding-left: 10px;
+}
+
+.category-parent-hierarchical-select option.level-1  { padding-left: 30px; }
+.category-parent-hierarchical-select option.level-2  { padding-left: 50px; }
+.category-parent-hierarchical-select option.level-3  { padding-left: 70px; }
+.category-parent-hierarchical-select option.level-4  { padding-left: 90px; }
+.category-parent-hierarchical-select option.level-5  { padding-left: 110px; }
+
+
+/* Vertical line segment */
+.category-parent-hierarchical-select option:not(.level-0)::before {
+	content: '';
+	position: absolute;
+	top: -1em;
+	bottom: 1em;
+	width: 1px;
+	background-color: #ccc;
+	z-index: 0;
+}
+
+/* Horizontal line segment */
+.category-parent-hierarchical-select option:not(.level-0)::after {
+	content: '';
+	position: absolute;
+	top: 1em;
+	width: 18px;
+	height: 1px;
+	background-color: #ccc;
+	z-index: 0;
+}
+
+/* Apply left offset to both pseudo-elements */
+.category-parent-hierarchical-select option.level-1::before,
+.category-parent-hierarchical-select option.level-1::after { left: 20px; }
+
+.category-parent-hierarchical-select option.level-2::before,
+.category-parent-hierarchical-select option.level-2::after { left: 40px; }
+
+.category-parent-hierarchical-select option.level-3::before,
+.category-parent-hierarchical-select option.level-3::after { left: 60px; }
+
+.category-parent-hierarchical-select option.level-4::before,
+.category-parent-hierarchical-select option.level-4::after { left: 80px; }
+
+.category-parent-hierarchical-select option.level-5::before,
+.category-parent-hierarchical-select option.level-5::after { left: 100px; }
+
+
+.category-parent-hierarchical-select option.level-1::after { width: 38px; }
+.category-parent-hierarchical-select option.level-2::after { width: 48px; }
+.category-parent-hierarchical-select option.level-3::after { width: 60px; }
+.category-parent-hierarchical-select option.level-4::after { width: 70px; }
+.category-parent-hierarchical-select option.level-5::after { width: 83px; }
