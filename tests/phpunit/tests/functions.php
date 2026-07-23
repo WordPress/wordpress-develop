@@ -2287,13 +2287,13 @@ class Tests_Functions extends WP_UnitTestCase {
 		return array(
 			'installing: falls back to the dir attribute' => array(
 				'installing'      => true,
-				'expected_attr'   => "<html dir='ltr'>",
+				'expected_attr'   => "<html dir='",
 				'unexpected_attr' => 'lang=',
 			),
 			'not installing: uses get_language_attributes()' => array(
 				'installing'      => false,
 				'expected_attr'   => 'lang="',
-				'unexpected_attr' => "dir='ltr'",
+				'unexpected_attr' => "dir='",
 			),
 		);
 	}
