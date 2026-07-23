@@ -1533,7 +1533,7 @@ function wp_kses_split2( $content, $allowed_html, $allowed_protocols ) {
 	}
 
 	// They are using a not allowed HTML element.
-	if ( ! isset( $allowed_html[ strtolower( $elem ) ] ) ) {
+	if ( ! isset( $allowed_html[ $elem_low ] ) ) {
 		return '';
 	}
 
