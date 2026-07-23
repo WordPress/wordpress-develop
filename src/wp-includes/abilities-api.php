@@ -15,7 +15,7 @@
  *  - Define permission checks and execution callbacks.
  *  - Organize abilities into logical categories.
  *  - Validate inputs and outputs using JSON Schema.
- *  - Expose abilities through the REST API.
+ *  - Expose abilities to clients such as the REST API.
  *
  * ## Working with Abilities
  *
@@ -48,7 +48,7 @@
  *                     'required'    => true,
  *                 ),
  *                 'meta'                => array(
- *                     'show_in_rest' => true,
+ *                     'public' => true,
  *                 ),
  *             )
  *         );
@@ -118,10 +118,10 @@ declare( strict_types = 1 );
  *                 'execute_callback'    => 'my_plugin_analyze_text',
  *                 'permission_callback' => 'my_plugin_can_analyze_text',
  *                 'meta'                => array(
- *                     'annotations'   => array(
+ *                     'annotations' => array(
  *                         'readonly' => true,
  *                     ),
- *                     'show_in_rest' => true,
+ *                     'public'      => true,
  *                 ),
  *             )
  *         );
@@ -208,16 +208,24 @@ declare( strict_types = 1 );
  *         return current_user_can( 'edit_posts' );
  *     }
  *
- * ### REST API Integration
+ * ### Client Exposure
  *
- * Abilities can be exposed through the REST API by setting `show_in_rest`
- * to `true` in the meta configuration:
+ * Set the high-level `public` flag to make an ability available to clients
+ * such as the REST API, MCP, or AI agents:
  *
  *     'meta' => array(
- *         'show_in_rest' => true,
+ *         'public' => true,
  *     ),
  *
- * This allows abilities to be invoked via HTTP requests to the WordPress REST API.
+ * The `public` flag seeds the default for each per-channel flag. For the REST
+ * API it seeds `show_in_rest`, which lets the ability be invoked via HTTP
+ * requests. Set a per-channel flag directly to override that default. For
+ * example, keep a public ability out of the REST API:
+ *
+ *     'meta' => array(
+ *         'public'       => true,
+ *         'show_in_rest' => false,
+ *     ),
  *
  * @since 6.9.0
  *
@@ -264,9 +272,13 @@ declare( strict_types = 1 );
  *             @type bool|null $idempotent  Optional. If true, calling the ability repeatedly with the same arguments
  *                                          will have no additional effect on its environment.
  *         }
+ *         @type bool                     $public       Optional. Whether the ability is meant to be available to
+ *                                                      clients such as the REST API, MCP, or AI agents. Seeds
+ *                                                      the default for per-channel flags like `$show_in_rest`.
+ *                                                      Defaults to false.
  *         @type bool                     $show_in_rest Optional. Whether to expose this ability in the REST API.
  *                                                      When true, the ability can be invoked via HTTP requests.
- *                                                      Default false.
+ *                                                      Default is the value of `$public` when set, false otherwise.
  *     }
  *     @type string               $ability_class       Optional. Fully-qualified custom class name to instantiate
  *                                                     instead of the default `WP_Ability` class. The custom class
@@ -404,7 +416,7 @@ function wp_get_ability( string $name ): ?WP_Ability {
  * Filtering pipeline (executed in order):
  *
  * 1. Declarative filters (`category`, `namespace`, `meta`) — per-item, AND logic between
- *    arg types, OR logic within multi-value `category` arrays.
+ *    arg types.
  * 2. `item_include_callback` — per-item, caller-scoped. Return true to include, false to exclude.
  * 3. `wp_get_abilities_item_include` filter — per-item, ecosystem-scoped. Plugins can enforce
  *    universal inclusion rules regardless of what the caller passed.
@@ -420,9 +432,6 @@ function wp_get_ability( string $name ): ?WP_Ability {
  *
  *     // Filter by category.
  *     $abilities = wp_get_abilities( array( 'category' => 'content' ) );
- *
- *     // Filter by multiple categories (OR logic).
- *     $abilities = wp_get_abilities( array( 'category' => array( 'content', 'settings' ) ) );
  *
  *     // Filter by namespace.
  *     $abilities = wp_get_abilities( array( 'namespace' => 'woocommerce' ) );
@@ -466,9 +475,8 @@ function wp_get_ability( string $name ): ?WP_Ability {
  * @param array $args {
  *     Optional. Arguments to filter the returned abilities. Default empty array (returns all).
  *
- *     @type string|string[] $category              Filter by category slug. A single string or an array of
- *                                                  slugs — abilities matching any of the given slugs are
- *                                                  included (OR logic within this arg type).
+ *     @type string          $category              Filter by category slug. Only abilities whose category
+ *                                                  exactly matches the given slug are included.
  *     @type string          $namespace             Filter by ability namespace prefix. Pass the namespace
  *                                                  without a trailing slash, e.g. `'woocommerce'` matches
  *                                                  `'woocommerce/create-order'`.
@@ -495,7 +503,7 @@ function wp_get_abilities( array $args = array() ): array {
 
 	$abilities = $registry->get_all_registered();
 
-	$category              = isset( $args['category'] ) ? (array) $args['category'] : array();
+	$category              = isset( $args['category'] ) && is_string( $args['category'] ) ? $args['category'] : '';
 	$namespace             = isset( $args['namespace'] ) && is_string( $args['namespace'] ) ? rtrim( $args['namespace'], '/' ) . '/' : '';
 	$meta                  = isset( $args['meta'] ) && is_array( $args['meta'] ) ? $args['meta'] : array();
 	$item_include_callback = isset( $args['item_include_callback'] ) && is_callable( $args['item_include_callback'] ) ? $args['item_include_callback'] : null;
@@ -504,8 +512,8 @@ function wp_get_abilities( array $args = array() ): array {
 	$matched = array();
 
 	foreach ( $abilities as $name => $ability ) {
-		// Step 1a: Filter by category (OR logic within the arg).
-		if ( ! empty( $category ) && ! in_array( $ability->get_category(), $category, true ) ) {
+		// Step 1a: Filter by category.
+		if ( '' !== $category && $ability->get_category() !== $category ) {
 			continue;
 		}
 

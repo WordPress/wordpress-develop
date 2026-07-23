@@ -139,7 +139,7 @@ async function resolveExpectedSha( { ref, ghcrRepo, isMutable } ) {
 
 /**
  * Trigger a fresh download of the Gutenberg artifact by spawning download.js,
- * then run `grunt build:gutenberg --dev` to copy the build to src/.
+ * then run `grunt build:gutenberg` to copy the build into src/.
  * Exits the process if either step fails.
  */
 function downloadGutenberg() {
@@ -148,7 +148,7 @@ function downloadGutenberg() {
 		process.exit( downloadResult.status ?? 1 );
 	}
 
-	const buildResult = spawnSync( 'grunt', [ 'build:gutenberg', '--dev' ], { stdio: 'inherit', shell: true } );
+	const buildResult = spawnSync( 'grunt', [ 'build:gutenberg' ], { stdio: 'inherit', shell: true } );
 	if ( buildResult.status !== 0 ) {
 		process.exit( buildResult.status ?? 1 );
 	}

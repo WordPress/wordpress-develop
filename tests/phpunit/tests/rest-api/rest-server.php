@@ -1208,6 +1208,76 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 	}
 
 	/**
+	 * @ticket 64804
+	 *
+	 * @covers WP_REST_Server::get_index
+	 */
+	public function test_get_index_should_include_media_processing_settings(): void {
+		$user_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		$this->assertIsInt( $user_id );
+		wp_set_current_user( $user_id );
+		add_filter( 'wp_client_side_media_processing_enabled', '__return_true' );
+
+		$server  = new WP_REST_Server();
+		$request = new WP_REST_Request( 'GET', '/' );
+		$index   = $server->dispatch( $request );
+		$data    = $index->get_data();
+		$this->assertIsArray( $data );
+
+		$this->assertArrayHasKey( 'image_sizes', $data );
+		$this->assertArrayHasKey( 'image_size_threshold', $data );
+		$this->assertArrayHasKey( 'image_strip_meta', $data );
+		$this->assertTrue( $data['image_strip_meta'] );
+		$this->assertArrayHasKey( 'image_max_bit_depth', $data );
+		$this->assertSame( 16, $data['image_max_bit_depth'] );
+	}
+
+	/**
+	 * @ticket 64804
+	 *
+	 * @covers WP_REST_Server::get_index
+	 */
+	public function test_get_index_should_not_include_media_processing_settings_without_caps(): void {
+		add_filter( 'wp_client_side_media_processing_enabled', '__return_true' );
+
+		$server  = new WP_REST_Server();
+		$request = new WP_REST_Request( 'GET', '/' );
+		$index   = $server->dispatch( $request );
+		$data    = $index->get_data();
+		$this->assertIsArray( $data );
+
+		$this->assertArrayNotHasKey( 'image_sizes', $data );
+		$this->assertArrayNotHasKey( 'image_size_threshold', $data );
+		$this->assertArrayNotHasKey( 'image_strip_meta', $data );
+		$this->assertArrayNotHasKey( 'image_max_bit_depth', $data );
+	}
+
+	/**
+	 * @ticket 64804
+	 *
+	 * @covers WP_REST_Server::get_index
+	 */
+	public function test_get_index_should_honor_media_processing_filters(): void {
+		$user_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		$this->assertIsInt( $user_id );
+		wp_set_current_user( $user_id );
+		add_filter( 'wp_client_side_media_processing_enabled', '__return_true' );
+		add_filter( 'image_strip_meta', '__return_false' );
+		add_filter(
+			'image_max_bit_depth',
+			static fn ( int $max_depth ) => min( 8, $max_depth )
+		);
+
+		$server  = new WP_REST_Server();
+		$request = new WP_REST_Request( 'GET', '/' );
+		$index   = $server->dispatch( $request );
+		$data    = $index->get_data();
+
+		$this->assertFalse( $data['image_strip_meta'] );
+		$this->assertSame( 8, $data['image_max_bit_depth'] );
+	}
+
+	/**
 	 * @ticket 57902
 	 *
 	 * @covers WP_REST_Server::get_index
@@ -2517,6 +2587,47 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		$args     = $response->get_data()['endpoints'][0]['args'];
 
 		$this->assertSameSetsWithIndex( $expected, $args['param'] );
+	}
+
+	/**
+	 * @ticket 64955
+	 */
+	public function test_get_data_for_route_includes_filtered_json_schema_keywords() {
+		$filter = static function ( $keywords, $schema_profile ) {
+			if ( 'rest-api' === $schema_profile ) {
+				$keywords[] = 'xRestApiKeyword';
+			}
+
+			return $keywords;
+		};
+
+		add_filter( 'wp_json_schema_allowed_keywords', $filter, 10, 2 );
+
+		register_rest_route(
+			'test-ns/v1',
+			'/test',
+			array(
+				'methods'             => 'POST',
+				'callback'            => static function () {
+					return new WP_REST_Response( 'test' );
+				},
+				'permission_callback' => '__return_true',
+				'args'                => array(
+					'param' => array(
+						'type'            => 'string',
+						'xRestApiKeyword' => true,
+						'invalid'         => true,
+					),
+				),
+			)
+		);
+
+		$response = rest_do_request( new WP_REST_Request( 'OPTIONS', '/test-ns/v1/test' ) );
+
+		$args = $response->get_data()['endpoints'][0]['args'];
+
+		$this->assertArrayHasKey( 'xRestApiKeyword', $args['param'] );
+		$this->assertArrayNotHasKey( 'invalid', $args['param'] );
 	}
 
 	/**
