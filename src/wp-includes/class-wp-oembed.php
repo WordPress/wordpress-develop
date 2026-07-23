@@ -651,7 +651,7 @@ class WP_oEmbed {
 		 * failed, try parsing the same response body as XML before giving up,
 		 * since XML parsing predictably fails on non-XML content.
 		 */
-		if ( false === $data && 'json' === $format ) {
+		if ( false === $data && 'json' === $format && false !== stripos( $body, '<oembed' ) ) {
 			$data = $this->_parse_xml( $body );
 		}
 
