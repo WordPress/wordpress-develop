@@ -28,7 +28,7 @@
 #adminmenu {
 	clear: left;
 	margin: 12px 0;
-	padding: 0;
+	padding-bottom: 2rem;
 	list-style: none;
 }
 
@@ -463,15 +463,41 @@ ul#adminmenu > li.current > a.current:after {
 	margin: 0;
 	border: none;
 	padding: 0;
-	position: relative;
+	position: fixed;
+	bottom: 0;
+	left: 0;
+	width: 160px;
 	overflow: visible;
 	background: none;
 	color: #a7aaad;
+	background-color: #1d2327;
 	cursor: pointer;
+}
+
+.folded #collapse-button {
+	width: 36px;
+}
+
+.collapse-button-icon::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  z-index: -1;
 }
 
 #collapse-button:hover {
 	color: #72aee6;
+}
+
+#collapse-button:hover .collapse-button-icon:before,
+#collapse-button:focus .collapse-button-icon:before {
+  box-shadow: 0 0 0 2px #72aee6;
+  outline: 2px solid transparent;
 }
 
 #collapse-button:focus {
