@@ -4,24 +4,30 @@ services:
   # The web server container.
   ##
   wordpress-develop:
-    image: nginx:alpine
-
+    image: httpd:alpine
     networks:
       - wpdevnet
-
     ports:
       - ${LOCAL_PORT-8889}:80
-
     environment:
       LOCAL_DIR: ${LOCAL_DIR-src}
-
     volumes:
-      - ./tools/local-env/default.template:/etc/nginx/conf.d/default.template
+      - ./tools/local-env/apache-vhost.conf:/usr/local/apache2/conf/extra/httpd-vhosts.conf
       - ./:/var/www
-
-    # Load our config file, substituting environment variables into the config.
-    command: /bin/sh -c "envsubst '$$LOCAL_DIR' < /etc/nginx/conf.d/default.template > /etc/nginx/conf.d/default.conf && exec nginx -g 'daemon off;'"
-
+    command: >
+      /bin/sh -c "
+        sed -e '/Include conf\\/extra\\/httpd-vhosts.conf/s/^#//' /usr/local/apache2/conf/httpd.conf > /tmp/httpd.conf &&
+        cat /tmp/httpd.conf > /usr/local/apache2/conf/httpd.conf &&
+        rm /tmp/httpd.conf &&
+        echo 'LoadModule rewrite_module modules/mod_rewrite.so' >> /usr/local/apache2/conf/httpd.conf &&
+        echo 'LoadModule proxy_module modules/mod_proxy.so' >> /usr/local/apache2/conf/httpd.conf &&
+        echo 'LoadModule proxy_fcgi_module modules/mod_proxy_fcgi.so' >> /usr/local/apache2/conf/httpd.conf &&
+        echo 'LoadModule proxy_http_module modules/mod_proxy_http.so' >> /usr/local/apache2/conf/httpd.conf &&
+        sed -e 's/\$$LOCAL_DIR/$${LOCAL_DIR}/g' /usr/local/apache2/conf/extra/httpd-vhosts.conf > /tmp/httpd-vhosts.conf &&
+        cat /tmp/httpd-vhosts.conf > /usr/local/apache2/conf/extra/httpd-vhosts.conf &&
+        rm /tmp/httpd-vhosts.conf &&
+        exec httpd-foreground
+      "
     depends_on:
       php:
         condition: service_started
