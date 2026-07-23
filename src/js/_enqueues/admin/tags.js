@@ -14,6 +14,24 @@ jQuery( function($) {
 	var addingTerm = false;
 
 	/**
+	 * Updates the displaying-num span with the new total item count.
+	 *
+	 * @since 6.8.0
+	 *
+	 * @param {number} total The new total number of items.
+	 * @return {void}
+	 */
+	function updateDisplayingNum( total ) {
+		$( '.displaying-num' ).text(
+			wp.i18n.sprintf(
+				/* translators: %s: Number of items. */
+				wp.i18n._n( '%s item', '%s items', total ),
+				total.toLocaleString()
+			)
+		);
+	}
+
+	/**
 	 * Adds an event handler to the delete term link on the term overview page.
 	 *
 	 * Cancels default event handling and event bubbling.
@@ -45,10 +63,11 @@ jQuery( function($) {
 			 *
 			 * @return {void}
 			 */
-			$.post(ajaxurl, data, function(r){
+			$.post( ajaxurl, data, function( r ) {
 				var message;
-				if ( '1' == r ) {
-					$('#ajax-response').empty();
+
+				if ( r && r.success ) {
+					$( '#ajax-response' ).empty();
 					let nextFocus = tr.next( 'tr' ).find( 'a.row-title' );
 					let prevFocus = tr.prev( 'tr' ).find( 'a.row-title' );
 					// If there is neither a next row or a previous row, focus the tag input field.
@@ -60,7 +79,7 @@ jQuery( function($) {
 						}
 					}
 
-					tr.fadeOut('normal', function(){ tr.remove(); });
+					tr.fadeOut( 'normal', function() { tr.remove(); } );
 
 					/**
 					 * Removes the term from the parent box and the tag cloud.
@@ -69,23 +88,25 @@ jQuery( function($) {
 					 * This term ID is then used to select the relevant HTML elements:
 					 * The parent box and the tag cloud.
 					 */
-					$('select#parent option[value="' + data.match(/tag_ID=(\d+)/)[1] + '"]').remove();
-					$('a.tag-link-' + data.match(/tag_ID=(\d+)/)[1]).remove();
+					$( 'select#parent option[value="' + data.match( /tag_ID=(\d+)/ )[1] + '"]' ).remove();
+					$( 'a.tag-link-' + data.match( /tag_ID=(\d+)/ )[1] ).remove();
 					nextFocus.trigger( 'focus' );
+					updateDisplayingNum( r.data.total );
 					message = wp.i18n.__( 'The selected tag has been deleted.' );
-			
-				} else if ( '-1' == r ) {
+
+				} else if ( '-1' === r ) {
 					message = wp.i18n.__( 'Sorry, you are not allowed to do that.' );
-					$('#ajax-response').empty().append('<div class="notice notice-error"><p>' + message + '</p></div>');
+					$( '#ajax-response' ).empty().append( '<div class="notice notice-error"><p>' + message + '</p></div>' );
 					resetRowAfterFailure( tr );
 
 				} else {
 					message = wp.i18n.__( 'An error occurred while processing your request. Please try again later.' );
-					$('#ajax-response').empty().append('<div class="notice notice-error"><p>' + message + '</p></div>');
+					$( '#ajax-response' ).empty().append( '<div class="notice notice-error"><p>' + message + '</p></div>' );
 					resetRowAfterFailure( tr );
 				}
+
 				wp.a11y.speak( message, 'assertive' );
-			});
+			} );
 		}
 
 		return false;
@@ -179,19 +200,22 @@ jQuery( function($) {
 
 			$('.tags .no-items').remove();
 
-			if ( form.find('select#parent') ) {
+			if ( form.find( 'select#parent' ) ) {
 				// Parents field exists, Add new term to the list.
 				term = res.responses[1].supplemental;
 
 				// Create an indent for the Parent field.
 				indent = '';
-				for ( i = 0; i < res.responses[1].position; i++ )
+				for ( i = 0; i < res.responses[1].position; i++ ) {
 					indent += '&nbsp;&nbsp;&nbsp;';
+				}
 
 				form.find( 'select#parent option:selected' ).after( '<option value="' + term.term_id + '">' + indent + term.name + '</option>' );
 			}
 
-			$('input:not([type="checkbox"]):not([type="radio"]):not([type="button"]):not([type="submit"]):not([type="reset"]):visible, textarea:visible', form).val('');
+			updateDisplayingNum( res.responses[0].supplemental.total );
+
+			$( 'input:not([type="checkbox"]):not([type="radio"]):not([type="button"]):not([type="submit"]):not([type="reset"]):visible, textarea:visible', form ).val( '' );
 		});
 
 		return false;
