@@ -148,8 +148,11 @@ class Tests_General_Template extends WP_UnitTestCase {
 	 * over HTTPS to avoid a broken, mixed-content image.
 	 *
 	 * @ticket 65696
+	 *
 	 * @group site_icon
+	 *
 	 * @covers ::get_site_icon_url
+	 *
 	 * @requires function imagejpeg
 	 */
 	public function test_get_site_icon_url_uses_https_scheme_on_ssl_admin_request() {
