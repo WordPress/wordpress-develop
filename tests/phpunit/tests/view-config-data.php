@@ -1726,6 +1726,8 @@ class Tests_View_Config_Data extends WP_UnitTestCase {
 	 * do not line up, so merging would have to guess what the string keys mean.
 	 * The current list survives untouched instead of being discarded.
 	 *
+	 * @ticket 65577
+	 *
 	 * @covers ::merge
 	 */
 	public function test_merge_rejects_associative_patch_over_a_list() {
@@ -1761,6 +1763,8 @@ class Tests_View_Config_Data extends WP_UnitTestCase {
 	 * lives, the mirror of the associative-over-list mismatch: the current map
 	 * survives untouched instead of being discarded.
 	 *
+	 * @ticket 65577
+	 *
 	 * @covers ::merge
 	 */
 	public function test_merge_rejects_list_patch_over_an_associative_value() {
@@ -1795,6 +1799,8 @@ class Tests_View_Config_Data extends WP_UnitTestCase {
 	 * members to merge, and being shape-ambiguous it must not reset the
 	 * current value either. Clearing a list is spelled replace() with an
 	 * empty list; resetting a key is spelled null.
+	 *
+	 * @ticket 65577
 	 *
 	 * @covers ::merge
 	 */
@@ -1835,6 +1841,8 @@ class Tests_View_Config_Data extends WP_UnitTestCase {
 	 * inside a list member that did not exist yet: an appended member has no
 	 * existing leaf to delete, so its nulls are dropped rather than stored
 	 * (the same rationale as set() and the lists replace() swaps in).
+	 *
+	 * @ticket 65577
 	 *
 	 * @covers ::merge
 	 */
