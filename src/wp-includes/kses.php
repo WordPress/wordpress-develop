@@ -1058,9 +1058,11 @@ function wp_kses_one_attr( $attr, $element ) {
  * @param string|array $context The context for which to retrieve tags. Allowed values are 'post',
  *                              'strip', 'data', 'entities', or the name of a field filter such as
  *                              'pre_user_description', or an array of allowed HTML elements and attributes.
- * @return array Array of allowed HTML tags and their allowed attributes.
+ * @return array Array of allowed HTML tags and their allowed attributes, or the list of allowed entities depending on context.
  * @phpstan-param array<string, bool|array<string, bool>>|string $context
- * @phpstan-return array<string, bool|array<string, bool>>
+ * @phpstan-return (
+ *     $context is 'entities' ? string[] : array<string, bool|array<string, bool>>
+ * )
  */
 function wp_kses_allowed_html( $context = '' ) {
 	global $allowedposttags, $allowedtags, $allowedentitynames;
