@@ -897,6 +897,15 @@ $_old_files = array(
 	'wp-includes/js/dist/script-modules/interactivity/debug.js',
 	'wp-includes/js/dist/script-modules/interactivity/debug.min.js',
 	'wp-includes/js/dist/vendor/react-jsx-runtime.min.js.LICENSE.txt',
+	// 7.0.2
+	'wp-includes/collaboration',
+	'wp-includes/collaboration.php',
+	/*
+	 * Added back in 7.1.
+	 *
+	 * 'wp-includes/js/dist/sync.js',
+	 * 'wp-includes/js/dist/sync.min.js',
+	 */
 );
 
 /**
