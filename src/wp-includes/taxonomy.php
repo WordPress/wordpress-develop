@@ -4954,7 +4954,7 @@ function is_object_in_term( $object_id, $taxonomy, $terms = null ) {
 			return $object_terms;
 		}
 
-		wp_cache_set( $object_id, wp_list_pluck( $object_terms, 'term_id' ), "{$taxonomy}_relationships" );
+		wp_cache_add( $object_id, wp_list_pluck( $object_terms, 'term_id' ), "{$taxonomy}_relationships" );
 	}
 
 	if ( is_wp_error( $object_terms ) ) {
