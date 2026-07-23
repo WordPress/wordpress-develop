@@ -1132,10 +1132,10 @@ class WP_Posts_List_Table extends WP_List_Table {
 	 * @since 6.9.0
 	 *
 	 * @param WP_Post $item The current post object.
-	 * @return string The post title, or an empty string if unavailable.
+	 * @return string The post title, or 'no title' if no title.
 	 */
 	protected function get_primary_column_aria_label( $item ) {
-		return isset( $item->post_title ) ? $item->post_title : '';
+		return isset( $item->post_title ) && ! empty( $item->post_title ) ? $item->post_title : __( 'no title' );
 	}
 
 	/**
