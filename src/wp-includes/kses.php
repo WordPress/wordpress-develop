@@ -1051,14 +1051,16 @@ function wp_kses_one_attr( $attr, $element ) {
  * @since 3.5.0
  * @since 5.0.1 `form` removed as allowable HTML tag.
  *
- * @global array $allowedposttags
- * @global array $allowedtags
- * @global array $allowedentitynames
+ * @global array<string, array<string, bool>> $allowedposttags
+ * @global array<string, array<string, bool>> $allowedtags
+ * @global array<string, array<string, bool>> $allowedentitynames
  *
  * @param string|array $context The context for which to retrieve tags. Allowed values are 'post',
  *                              'strip', 'data', 'entities', or the name of a field filter such as
  *                              'pre_user_description', or an array of allowed HTML elements and attributes.
  * @return array Array of allowed HTML tags and their allowed attributes.
+ * @phpstan-param array<string, array<string, bool>>|string $context
+ * @phpstan-return array<string, array<string, bool>>
  */
 function wp_kses_allowed_html( $context = '' ) {
 	global $allowedposttags, $allowedtags, $allowedentitynames;
@@ -1391,6 +1393,7 @@ function _wp_kses_track_in_dialog_context(
 	bool $is_closing = false,
 	bool $reset = false
 ): bool {
+	/** @var non-negative-int $in_dialog_depth */
 	static $in_dialog_depth = 0;
 
 	if ( $reset ) {
@@ -1441,6 +1444,7 @@ function _wp_kses_track_in_dialog_context(
  * @param string[]       $allowed_protocols Array of allowed URL protocols.
  *
  * @return string Fixed HTML element
+ * @phpstan-param array<string, array<string, bool>>|string $allowed_html
  */
 function wp_kses_split2( $content, $allowed_html, $allowed_protocols ) {
 	$content = wp_kses_stripslashes( $content );
@@ -1575,6 +1579,7 @@ function wp_kses_split2( $content, $allowed_html, $allowed_protocols ) {
  * @param string[]                  $allowed_protocols Array of allowed URL protocols.
  * @param array{ in_dialog?: bool } $context           Optional context data for attribute checks.
  * @return string Sanitized HTML element.
+ * @phpstan-param array<string, array<string, bool>>|string $allowed_html
  */
 function wp_kses_attr( $element, $attr, $allowed_html, $allowed_protocols, $context = array() ) {
 	if ( ! is_array( $allowed_html ) ) {
@@ -1651,14 +1656,16 @@ function wp_kses_attr( $element, $attr, $allowed_html, $allowed_protocols, $cont
  * @since 5.0.0 Added support for `data-*` wildcard attributes.
  * @since 7.1.0 Added parameter `$context` for context-aware attribute checks.
  *
- * @param string                    $name         The attribute name. Passed by reference. Returns empty string when not allowed.
- * @param string                    $value        The attribute value. Passed by reference. Returns a filtered value.
- * @param string                    $whole        The `name=value` input. Passed by reference. Returns filtered input.
- * @param string                    $vless        Whether the attribute is valueless. Use 'y' or 'n'.
- * @param string                    $element      The name of the element to which this attribute belongs.
- * @param array                     $allowed_html The full list of allowed elements and attributes.
- * @param array{ in_dialog?: bool } $context      Optional context data for attribute checks.
+ * @param string $name         The attribute name. Passed by reference. Returns empty string when not allowed.
+ * @param string $value        The attribute value. Passed by reference. Returns a filtered value.
+ * @param string $whole        The `name=value` input. Passed by reference. Returns filtered input.
+ * @param string $vless        Whether the attribute is valueless. Use 'y' or 'n'.
+ * @param string $element      The name of the element to which this attribute belongs.
+ * @param array  $allowed_html The full list of allowed elements and attributes.
+ * @param array  $context      Optional context data for attribute checks.
  * @return bool Whether or not the attribute is allowed.
+ * @phpstan-param array<string, array<string, bool>> $allowed_html
+ * @phpstan-param array{ in_dialog?: bool } $context
  */
 function wp_kses_attr_check( &$name, &$value, &$whole, $vless, $element, $allowed_html, $context = array() ) {
 	$name_low    = strtolower( $name );
