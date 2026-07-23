@@ -2049,10 +2049,10 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	 *
 	 * @since 7.1.0
 	 *
-	 * @param string|array $statuses Comment status or array of comment statuses.
-	 * @return array Sanitized array of comment statuses.
+	 * @param string[]|string $statuses Comment status or array of comment statuses.
+	 * @return list<string> Sanitized array of comment statuses.
 	 */
-	public function sanitize_comment_statuses( $statuses ) {
+	public function sanitize_comment_statuses( $statuses ): array {
 		$statuses = wp_parse_list( $statuses );
 		return array_values( array_unique( array_map( 'sanitize_key', $statuses ) ) );
 	}
