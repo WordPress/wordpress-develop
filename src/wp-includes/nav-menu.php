@@ -159,7 +159,7 @@ function get_registered_nav_menus() {
 	 * @param string[] $menus Associative array of registered navigation menu descriptions
 	 *                        keyed by their location. If none are registered, an empty array.
 	 */
-	return apply_filters( 'wp_nav_menus_registered', $menus );
+	return (array) apply_filters( 'wp_nav_menus_registered', $menus );
 }
 
 /**

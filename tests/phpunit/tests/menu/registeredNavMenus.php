@@ -9,10 +9,53 @@
 class Tests_Menu_RegisteredNavMenus extends WP_UnitTestCase {
 
 	/**
+	 * Original set of registered menu locations (location => description).
+	 *
+	 * @var string[]
+	 */
+	private $original_registered_nav_menus = array();
+
+	/**
+	 * Whether the theme supported menus before the test ran (relevant
+	 * when no menus were registered).
+	 *
+	 * @var bool
+	 */
+	private $original_menus_theme_support = false;
+
+	/**
+	 * Set up before each test.
+	 */
+	public function set_up() {
+		parent::set_up();
+
+		global $_wp_registered_nav_menus;
+		$this->original_registered_nav_menus = $_wp_registered_nav_menus ?? array();
+		$this->original_menus_theme_support  = current_theme_supports( 'menus' );
+	}
+
+	/**
 	 * Tear down after each test.
 	 */
 	public function tear_down() {
 		remove_all_filters( 'wp_nav_menus_registered' );
+
+		// Unregister any locations added during the test run.
+		foreach ( array_keys( get_registered_nav_menus() ) as $location ) {
+			if ( ! isset( $this->original_registered_nav_menus[ $location ] ) ) {
+				unregister_nav_menu( $location );
+			}
+		}
+
+		// Restore the original set of registered locations (and their descriptions).
+		if ( ! empty( $this->original_registered_nav_menus ) ) {
+			register_nav_menus( $this->original_registered_nav_menus );
+		} elseif ( $this->original_menus_theme_support ) {
+			add_theme_support( 'menus' );
+		} else {
+			_remove_theme_support( 'menus' );
+		}
+
 		parent::tear_down();
 	}
 
