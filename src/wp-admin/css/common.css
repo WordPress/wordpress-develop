@@ -514,6 +514,7 @@ code {
 }
 
 .widefat th,
+.widefat tbody td.check-column,
 .widefat thead td,
 .widefat tfoot td {
 	text-align: left;
@@ -521,6 +522,7 @@ code {
 	font-size: 14px;
 }
 
+.widefat td.check-column input,
 .widefat th input,
 .updates-table td input,
 .widefat thead td input,
