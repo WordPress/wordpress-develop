@@ -120,29 +120,34 @@ jQuery( function($) {
 	function updateTableNavCount( action ) {
 		var $displayingNum = $( '.tablenav-pages .displaying-num' ),
 			currentCount   = parseInt( $displayingNum.first().text().replace( /[^0-9]/g, '' ), 10 ) || 0,
-			itemCount      = ( 'add' === action ) ? currentCount + 1 : Math.max( currentCount - 1, 0 );
+			itemCount      = ( 'add' === action ) ? currentCount + 1 : Math.max( currentCount - 1, 0 ),
+			formattedCount = itemCount.toLocaleString();
 
 		$displayingNum.text(
 			wp.i18n.sprintf(
 				/* translators: %s: Number of items. */
 				wp.i18n._n( '%s item', '%s items', itemCount ),
-				itemCount
+				formattedCount
 			)
 		);
 
 		if ( itemCount < 1 ) {
 			// No tags remain: show the empty-state row and hide the navigation.
-			var colspan = $( '#the-list' ).closest( 'table' ).find( 'thead > tr' ).first().children( ':not(.hidden)' ).length;
+			var $list = $( '#the-list' );
 
-			$( '#the-list' ).append(
-				'<tr class="no-items"><td class="colspanchange" colspan="' + colspan + '">' +
-				wp.i18n.__( 'No tags found.' ) +
-				'</td></tr>'
-			);
-			$( '.tablenav' ).hide();
+ 			if ( ! $list.find( 'tr.no-items' ).length ) {
+ 				var colspan = $list.closest( 'table' ).find( 'thead > tr' ).first().children( ':not(.hidden)' ).length;
+ 				$list.append(
+ 					'<tr class="no-items"><td class="colspanchange" colspan="' + colspan + '">' +
+ 					wp.i18n.__( 'No tags found.' ) +
+ 					'</td></tr>'
+ 				);
+ 			}
+			$( '.tablenav > *' ).hide();
 			$( 'p.search-box' ).hide();
 		} else {
-			$( '.tablenav' ).show();
+			$( '#the-list' ).find( 'tr.no-items' ).remove();
+			$( '.tablenav > *' ).show();
 			$( 'p.search-box' ).show();
 		}
 	}
