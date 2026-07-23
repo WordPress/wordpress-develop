@@ -1567,17 +1567,21 @@
 			$notice = $notice.addClass( 'updating-message' ).find( 'p' );
 
 		} else {
-			$notice = $( '#update-theme' ).closest( '.notice' ).removeClass( 'notice-large' );
+			$notice = $( '[data-slug="' + args.slug + '"]' ).find( '.update-message' ).removeClass( 'notice-large' );
 
 			$notice.find( 'h3' ).remove();
 
-			$notice = $notice.add( $( '[data-slug="' + args.slug + '"]' ).find( '.update-message' ) );
 			$notice = $notice.addClass( 'updating-message' ).find( 'p' );
 		}
 
-		if ( $notice.html() !== __( 'Updating...' ) ) {
-			$notice.data( 'originaltext', $notice.html() );
-		}
+		// Store each notice's own original text; $notice can match more than one notice (e.g. the theme details overlay and its grid card).
+		$notice.each( function() {
+			var $text = $( this );
+
+			if ( $text.html() !== __( 'Updating...' ) ) {
+				$text.data( 'originaltext', $text.html() );
+			}
+		} );
 
 		wp.a11y.speak( __( 'Updating... please wait.' ) );
 		$notice.text( __( 'Updating...' ) );
@@ -2502,7 +2506,7 @@
 		 */
 		$document.on( 'credential-modal-cancel', function( event, job ) {
 			var $updatingMessage = $( '.updating-message' ),
-				$message, originalText;
+				$message;
 
 			if ( 'import' === pagenow ) {
 				$updatingMessage.removeClass( 'updating-message' );
@@ -2524,38 +2528,49 @@
 				$message = $updatingMessage;
 			}
 
-			if ( $message && $message.hasClass( 'updating-message' ) ) {
-				originalText = $message.data( 'originaltext' );
+			if ( $message && $message.length ) {
 
-				if ( 'undefined' === typeof originalText ) {
-					originalText = $( '<p>' ).html( $message.find( 'p' ).data( 'originaltext' ) );
-				}
+				// Reset each matched notice with its own original content; $message can match more than one notice (e.g. the theme details overlay and its grid card).
+				$message.each( function() {
+					var $notice = $( this ),
+						originalText;
 
-				$message
-					.removeClass( 'updating-message' )
-					.html( originalText );
-
-				if ( 'plugin-install' === pagenow || 'plugin-install-network' === pagenow ) {
-					if ( 'update-plugin' === job.action ) {
-						$message.attr(
-							'aria-label',
-							sprintf(
-								/* translators: %s: Plugin name and version. */
-								_x( 'Update %s now', 'plugin' ),
-								$message.data( 'name' )
-							)
-						);
-					} else if ( 'install-plugin' === job.action ) {
-						$message.attr(
-							'aria-label',
-							sprintf(
-								/* translators: %s: Plugin name. */
-								_x( 'Install %s now', 'plugin' ),
-								$message.data( 'name' )
-							)
-						);
+					if ( ! $notice.hasClass( 'updating-message' ) ) {
+						return;
 					}
-				}
+
+					originalText = $notice.data( 'originaltext' );
+
+					if ( 'undefined' === typeof originalText ) {
+						originalText = $( '<p>' ).html( $notice.find( 'p' ).data( 'originaltext' ) );
+					}
+
+					$notice
+						.removeClass( 'updating-message' )
+						.html( originalText );
+
+					if ( 'plugin-install' === pagenow || 'plugin-install-network' === pagenow ) {
+						if ( 'update-plugin' === job.action ) {
+							$notice.attr(
+								'aria-label',
+								sprintf(
+									/* translators: %s: Plugin name and version. */
+									_x( 'Update %s now', 'plugin' ),
+									$notice.data( 'name' )
+								)
+							);
+						} else if ( 'install-plugin' === job.action ) {
+							$notice.attr(
+								'aria-label',
+								sprintf(
+									/* translators: %s: Plugin name. */
+									_x( 'Install %s now', 'plugin' ),
+									$notice.data( 'name' )
+								)
+							);
+						}
+					}
+				} );
 			}
 
 			wp.a11y.speak( __( 'Update canceled.' ) );
