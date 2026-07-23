@@ -1570,15 +1570,16 @@ function wp_kses_split2( $content, $allowed_html, $allowed_protocols ) {
  *              Added support for required attributes.
  * @since 7.1.0 Added parameter `$context` for context-aware attribute checks.
  *
- * @param string                    $element           HTML element/tag.
- * @param string                    $attr              HTML attributes from HTML element to closing HTML element tag.
- * @param array[]|string            $allowed_html      An array of allowed HTML elements and attributes,
- *                                                     or a context name such as 'post'. See wp_kses_allowed_html()
- *                                                     for the list of accepted context names.
- * @param string[]                  $allowed_protocols Array of allowed URL protocols.
- * @param array{ in_dialog?: bool } $context           Optional context data for attribute checks.
+ * @param string         $element           HTML element/tag.
+ * @param string         $attr              HTML attributes from HTML element to closing HTML element tag.
+ * @param array[]|string $allowed_html      An array of allowed HTML elements and attributes,
+ *                                          or a context name such as 'post'. See wp_kses_allowed_html()
+ *                                          for the list of accepted context names.
+ * @param string[]       $allowed_protocols Array of allowed URL protocols.
+ * @param array          $context           Optional context data for attribute checks.
  * @return string Sanitized HTML element.
  * @phpstan-param array<string, array<string, bool>>|string $allowed_html
+ * @phpstan-param array{ in_dialog?: bool } $context
  */
 function wp_kses_attr( $element, $attr, $allowed_html, $allowed_protocols, $context = array() ) {
 	if ( ! is_array( $allowed_html ) ) {
