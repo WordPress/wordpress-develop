@@ -6,6 +6,8 @@
  * @covers WP_AI_Client_Prompt_Builder
  */
 
+use WordPress\AiClient\Events\AfterGenerateResultEvent;
+use WordPress\AiClient\Events\BeforeGenerateResultEvent;
 use WordPress\AiClient\Messages\DTO\MessagePart;
 use WordPress\AiClient\Messages\DTO\ModelMessage;
 use WordPress\AiClient\Providers\DTO\ProviderMetadata;
@@ -87,9 +89,9 @@ class Tests_AI_Client_AbilityResolution extends WP_UnitTestCase {
 	/**
 	 * Creates a prompt builder backed by a scripted model with resolution enabled.
 	 *
-	 * @param GenerativeAiResult[] $results          The results the model returns, in order.
-	 * @param array                $captured_prompts Reference that receives the message list of each model call.
-	 * @param string               ...$abilities     Ability names to register on the builder.
+	 * @param array<int, GenerativeAiResult|Exception> $results          Scripted results or exceptions, in order.
+	 * @param array                                    $captured_prompts Receives each model call's message list.
+	 * @param string                                   ...$abilities     Ability names to register on the builder.
 	 * @return WP_AI_Client_Prompt_Builder The prompt builder.
 	 */
 	private function create_resolution_builder( array $results, array &$captured_prompts, string ...$abilities ): WP_AI_Client_Prompt_Builder {
@@ -124,6 +126,20 @@ class Tests_AI_Client_AbilityResolution extends WP_UnitTestCase {
 		$builder = new WP_AI_Client_Prompt_Builder( $this->registry, 'Test prompt' );
 
 		$this->assertSame( $builder, $builder->using_ability_resolution() );
+	}
+
+	/**
+	 * Test that the scripted model requires at least one result.
+	 *
+	 * @ticket 64865
+	 */
+	public function test_scripted_model_requires_at_least_one_result() {
+		$captured = array();
+
+		$this->expectException( InvalidArgumentException::class );
+		$this->expectExceptionMessage( 'At least one scripted result is required.' );
+
+		$this->create_scripted_text_generation_model( array(), $captured );
 	}
 
 	/**
@@ -487,12 +503,19 @@ class Tests_AI_Client_AbilityResolution extends WP_UnitTestCase {
 	 * @ticket 64865
 	 */
 	public function test_prevent_filter_stops_the_loop_between_rounds() {
-		$evaluations = 0;
+		$evaluations       = 0;
+		$invoked_abilities = array();
 		add_filter(
 			'wp_ai_client_prevent_prompt',
 			static function ( $prevent ) use ( &$evaluations ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter
 				++$evaluations;
 				return $evaluations > 1;
+			}
+		);
+		add_action(
+			'wp_ability_invoked',
+			static function ( $ability_name ) use ( &$invoked_abilities ) {
+				$invoked_abilities[] = $ability_name;
 			}
 		);
 
@@ -513,6 +536,7 @@ class Tests_AI_Client_AbilityResolution extends WP_UnitTestCase {
 		$this->assertWPError( $result );
 		$this->assertSame( 'prompt_prevented', $result->get_error_code() );
 		$this->assertCount( 1, $captured, 'The follow-up request should be prevented.' );
+		$this->assertSame( array(), $invoked_abilities, 'No ability should be executed after prompt execution is prevented.' );
 	}
 
 	/**
@@ -549,11 +573,18 @@ class Tests_AI_Client_AbilityResolution extends WP_UnitTestCase {
 	 * @ticket 64865
 	 */
 	public function test_lifecycle_events_fire_for_each_round() {
-		$before_fired = 0;
+		$before_events = array();
+		$after_events  = array();
 		add_action(
 			'wp_ai_client_before_generate_result',
-			static function ( $event ) use ( &$before_fired ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter
-				++$before_fired;
+			static function ( $event ) use ( &$before_events ) {
+				$before_events[] = $event;
+			}
+		);
+		add_action(
+			'wp_ai_client_after_generate_result',
+			static function ( $event ) use ( &$after_events ) {
+				$after_events[] = $event;
 			}
 		);
 
@@ -569,9 +600,70 @@ class Tests_AI_Client_AbilityResolution extends WP_UnitTestCase {
 			'wpaiclienttests/simple'
 		);
 
-		$builder->using_ability_resolution()->generate_text_result();
+		$result = $builder->using_ability_resolution()->generate_text_result();
 
-		$this->assertSame( 2, $before_fired, 'The before event should fire for the initial request and each round.' );
+		$this->assertSame( 'Final answer', $result->toText() );
+		$this->assertCount( 2, $before_events, 'The before event should fire for the initial request and each round.' );
+		$this->assertCount( 2, $after_events, 'The after event should fire after the initial request and each successful round.' );
+
+		$this->assertInstanceOf( BeforeGenerateResultEvent::class, $before_events[0] );
+		$this->assertInstanceOf( BeforeGenerateResultEvent::class, $before_events[1] );
+		$this->assertCount( 1, $before_events[0]->getMessages() );
+		$this->assertCount( 3, $before_events[1]->getMessages() );
+		$this->assertEquals( $captured[0], $before_events[0]->getMessages() );
+		$this->assertEquals( $captured[1], $before_events[1]->getMessages() );
+
+		$this->assertInstanceOf( AfterGenerateResultEvent::class, $after_events[0] );
+		$this->assertInstanceOf( AfterGenerateResultEvent::class, $after_events[1] );
+		$this->assertCount( 1, $after_events[0]->getMessages() );
+		$this->assertCount( 3, $after_events[1]->getMessages() );
+		$this->assertCount( 1, $after_events[0]->getResult()->toMessage()->getParts() );
+		$this->assertSame( 'call-1', $after_events[0]->getResult()->toMessage()->getParts()[0]->getFunctionCall()->getId() );
+		$this->assertSame( 'Final answer', $after_events[1]->getResult()->toText() );
+	}
+
+	/**
+	 * Test that a failed follow-up request does not dispatch an after event.
+	 *
+	 * @ticket 64865
+	 */
+	public function test_failed_follow_up_request_does_not_fire_after_event() {
+		$before_events = array();
+		$after_events  = array();
+		add_action(
+			'wp_ai_client_before_generate_result',
+			static function ( $event ) use ( &$before_events ) {
+				$before_events[] = $event;
+			}
+		);
+		add_action(
+			'wp_ai_client_after_generate_result',
+			static function ( $event ) use ( &$after_events ) {
+				$after_events[] = $event;
+			}
+		);
+
+		$captured = array();
+		$builder  = $this->create_resolution_builder(
+			array(
+				$this->create_function_call_result(
+					array( array( 'call-1', $this->function_name( 'wpaiclienttests/simple' ), array() ) )
+				),
+				new RuntimeException( 'Follow-up failed.' ),
+			),
+			$captured,
+			'wpaiclienttests/simple'
+		);
+
+		$result = $builder->using_ability_resolution()->generate_text_result();
+
+		$this->assertWPError( $result );
+		$this->assertSame( 'prompt_builder_error', $result->get_error_code() );
+		$this->assertSame( 'Follow-up failed.', $result->get_error_message() );
+		$this->assertCount( 2, $captured );
+		$this->assertCount( 2, $before_events, 'The before event should fire before the failed follow-up request.' );
+		$this->assertCount( 1, $after_events, 'The after event should only fire for the successful initial request.' );
+		$this->assertInstanceOf( AfterGenerateResultEvent::class, $after_events[0] );
 	}
 
 	/**

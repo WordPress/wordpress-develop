@@ -230,16 +230,21 @@ trait WP_AI_Client_Mock_Model_Creation_Trait {
 	 * records the message list it received in the referenced capture array.
 	 * When the results run out, the last result is returned again.
 	 *
-	 * @param GenerativeAiResult[] $results          The results to return, in order.
-	 * @param array                $captured_prompts Reference that receives the message list of each call.
-	 * @param ModelMetadata|null   $metadata         Optional metadata.
+	 * @param array<int, GenerativeAiResult|Exception> $results          Scripted results or exceptions, in order.
+	 * @param array                                    $captured_prompts Receives the message list of each call.
+	 * @param ModelMetadata|null                       $metadata         Optional metadata.
 	 * @return ModelInterface&TextGenerationModelInterface The mock model.
+	 * @throws InvalidArgumentException If no results are provided.
 	 */
 	protected function create_scripted_text_generation_model(
 		array $results,
 		array &$captured_prompts,
 		?ModelMetadata $metadata = null
 	): ModelInterface {
+		if ( empty( $results ) ) {
+			throw new InvalidArgumentException( 'At least one scripted result is required.' );
+		}
+
 		$metadata = $metadata ?? $this->create_test_text_model_metadata();
 
 		$provider_metadata = new ProviderMetadata(
@@ -289,10 +294,16 @@ trait WP_AI_Client_Mock_Model_Creation_Trait {
 				$this->captured_prompts[] = $prompt;
 
 				if ( count( $this->results ) > 1 ) {
-					return array_shift( $this->results );
+					$result = array_shift( $this->results );
+				} else {
+					$result = $this->results[0];
 				}
 
-				return $this->results[0];
+				if ( $result instanceof Exception ) {
+					throw $result;
+				}
+
+				return $result;
 			}
 
 			public function streamGenerateTextResult( array $prompt ): Generator {

@@ -592,6 +592,12 @@ class WP_AI_Client_Prompt_Builder {
 				break;
 			}
 
+			$prevented = $this->get_prompt_prevented_error();
+			if ( null !== $prevented ) {
+				$this->error = $prevented;
+				return $this->error;
+			}
+
 			$responses = $resolver->execute_abilities( $message );
 
 			foreach ( $ability_calls as $call ) {
@@ -604,12 +610,6 @@ class WP_AI_Client_Prompt_Builder {
 			$transcript[] = $message;
 			$transcript[] = $responses;
 			++$rounds;
-
-			$prevented = $this->get_prompt_prevented_error();
-			if ( null !== $prevented ) {
-				$this->error = $prevented;
-				return $this->error;
-			}
 
 			if ( null !== $dispatcher ) {
 				$dispatcher->dispatch( new BeforeGenerateResultEvent( $transcript, $model, $capability ) );
