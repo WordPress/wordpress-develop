@@ -368,6 +368,8 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 			'duplicate statuses'     => array( array( 'approve', 'approve', 'hold' ), array( 'approve', 'hold' ) ),
 			'invalid characters'     => array( 'howdy&nbsp;admin', array( 'howdynbspadmin' ) ),
 			'an empty string'        => array( '', array() ),
+			'a literal 0 status'     => array( '0', array( '0' ) ),
+			'0 mixed with a status'  => array( '0,approve', array( '0', 'approve' ) ),
 		);
 	}
 
