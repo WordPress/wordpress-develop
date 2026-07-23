@@ -14,17 +14,24 @@ async function getServerNow( requestUtils ) {
 	const response = await requestUtils.request.get(
 		new URL( '/', requestUtils.baseURL ).toString()
 	);
-	return new Date( response.headers().date );
+	const dateHeader = response.headers().date;
+	if ( ! dateHeader ) {
+		throw new Error(
+			'The response had no Date header to read the server clock from.'
+		);
+	}
+	return new Date( dateHeader );
 }
 
 /**
- * Formats a date the way the REST API expects (Y-m-d\TH:i:s, UTC).
+ * Formats a date for the REST API with an explicit UTC designator, so
+ * the value cannot be reinterpreted against another timezone.
  *
  * @param {Date} date The date to format.
  * @return {string} The formatted GMT date string.
  */
 function toRestDateGmt( date ) {
-	return date.toISOString().slice( 0, 19 );
+	return date.toISOString().slice( 0, 19 ) + 'Z';
 }
 
 test.describe( 'Scheduled Posts', () => {
@@ -58,18 +65,18 @@ test.describe( 'Scheduled Posts', () => {
 			setTimeout( resolve, 65_000 );
 		} );
 
+		// Drive cron explicitly, once: the request runs due events
+		// synchronously after claiming the lock, with no dependency on
+		// loopback self-spawning. It stays outside the poll below so
+		// polling cannot itself observe a due event, spawn_cron(), and
+		// re-arm the doing_cron lock against a later explicit drive.
+		await requestUtils.request.get(
+			new URL( '/wp-cron.php', requestUtils.baseURL ).toString()
+		);
+
 		await expect
 			.poll(
 				async () => {
-					// Drive cron explicitly: the request runs due events
-					// synchronously when it can claim the lock, with no
-					// dependency on loopback self-spawning.
-					await requestUtils.request.get(
-						new URL(
-							'/wp-cron.php',
-							requestUtils.baseURL
-						).toString()
-					);
 					const updated = await requestUtils.rest( {
 						path: `/wp/v2/posts/${ post.id }`,
 						params: { context: 'edit' },
