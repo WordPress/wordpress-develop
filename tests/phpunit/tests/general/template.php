@@ -142,7 +142,7 @@ class Tests_General_Template extends WP_UnitTestCase {
 	 * Ensures the site icon URL scheme is aligned with the current request.
 	 *
 	 * The site icon is display chrome that also renders in wp-admin and on the
-	 * login screen, where wp_get_attachment_url() does not correct the scheme.
+	 * login screen, where wp_get_attachment_image_url() does not correct the scheme.
 	 *
 	 * On an HTTPS request with an http:// siteurl the icon must still be served
 	 * over HTTPS to avoid a broken, mixed-content image.
@@ -158,16 +158,36 @@ class Tests_General_Template extends WP_UnitTestCase {
 	public function test_get_site_icon_url_uses_https_scheme_on_ssl_admin_request() {
 		$this->set_site_icon();
 
+		$https_backup = isset( $_SERVER['HTTPS'] ) ? $_SERVER['HTTPS'] : null;
+		$port_backup  = isset( $_SERVER['SERVER_PORT'] ) ? $_SERVER['SERVER_PORT'] : null;
+
 		set_current_screen( 'dashboard' );
 		$this->assertTrue( is_admin(), 'Test should run in the admin context.' );
 
-		$url_http = get_site_icon_url();
-
-		// Simulate the same admin request served over HTTPS.
-		$_SERVER['HTTPS'] = 'on';
-		$url_https        = get_site_icon_url();
-
 		unset( $_SERVER['HTTPS'] );
+		$_SERVER['SERVER_PORT'] = '80';
+
+		$this->assertFalse( is_ssl(), 'Baseline request should not be detected as SSL.' );
+
+		$url_http = get_site_icon_url();
+		$this->assertStringStartsWith( 'http://', $url_http, 'Baseline icon URL should use the HTTP scheme.' );
+
+		$_SERVER['HTTPS'] = 'on';
+		$this->assertTrue( is_ssl(), 'Request should now be detected as SSL.' );
+
+		$url_https = get_site_icon_url();
+
+		if ( null === $https_backup ) {
+			unset( $_SERVER['HTTPS'] );
+		} else {
+			$_SERVER['HTTPS'] = $https_backup;
+		}
+
+		if ( null === $port_backup ) {
+			unset( $_SERVER['SERVER_PORT'] );
+		} else {
+			$_SERVER['SERVER_PORT'] = $port_backup;
+		}
 
 		set_current_screen( 'front' );
 
