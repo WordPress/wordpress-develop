@@ -2285,12 +2285,12 @@ class Tests_Functions extends WP_UnitTestCase {
 	 */
 	public function data_default_wp_die_handler_language_attributes() {
 		return array(
-			'installing: falls back to the dir attribute'          => array(
+			'installing: falls back to the dir attribute' => array(
 				'installing'      => true,
 				'expected_attr'   => "<html dir='ltr'>",
 				'unexpected_attr' => 'lang=',
 			),
-			'not installing: uses get_language_attributes()'       => array(
+			'not installing: uses get_language_attributes()' => array(
 				'installing'      => false,
 				'expected_attr'   => 'lang="',
 				'unexpected_attr' => "dir='ltr'",
