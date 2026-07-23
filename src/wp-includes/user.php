@@ -2495,6 +2495,10 @@ function wp_insert_user( $userdata ) {
 	 */
 	$display_name = apply_filters( 'pre_user_display_name', $display_name );
 
+	if ( mb_strlen( $display_name ) > 250 ) {
+		return new WP_Error( 'user_display_name_too_long', __( 'Display name may not be longer than 250 characters.' ) );
+	}
+
 	$description = empty( $userdata['description'] ) ? '' : $userdata['description'];
 
 	/**
