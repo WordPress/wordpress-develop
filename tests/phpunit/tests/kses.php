@@ -1251,6 +1251,117 @@ EOF;
 	}
 
 	/**
+	 * Positive control that actually exercises the contextual rule.
+	 *
+	 * Unlike test_wp_kses_allows_autofocus_for_dialog_and_descendants(), the button's
+	 * allowlist here deliberately does NOT list `autofocus`, so retention can only come
+	 * from the dialog-context rule and not from an explicit allowlist entry. The same
+	 * button outside a dialog must have `autofocus` stripped.
+	 *
+	 * @ticket 65491
+	 */
+	public function test_wp_kses_contextual_autofocus_applies_to_descendant_without_explicit_allowance() {
+		$allowed_html = array(
+			'dialog' => array( 'open' => true ),
+			'button' => array( 'type' => true ), // Note: no `autofocus` here.
+		);
+
+		$inside_dialog  = wp_kses( '<dialog open><button type="button" autofocus>x</button></dialog>', $allowed_html );
+		$outside_dialog = wp_kses( '<button type="button" autofocus>x</button>', $allowed_html );
+
+		$this->assertStringContainsString(
+			'autofocus',
+			$inside_dialog,
+			'A genuine dialog descendant should retain autofocus even when the allowlist omits it.'
+		);
+		$this->assertStringNotContainsString(
+			'autofocus',
+			$outside_dialog,
+			'The same element outside a dialog must have autofocus stripped.'
+		);
+	}
+
+	/**
+	 * A `<dialog>` hidden inside an HTML comment must not grant autofocus to real
+	 * elements that follow it.
+	 *
+	 * The comment is not a rendered element, so nothing after it is inside a dialog
+	 * in the browser DOM. Because kses re-sanitizes comment bodies through a recursive
+	 * wp_kses() call, the `<dialog>` token inside the comment bumps the shared dialog-depth
+	 * counter and the state leaks to the following tag, allowing autofocus where the
+	 * browser would place the element outside any dialog.
+	 *
+	 * @ticket 65491
+	 */
+	public function test_wp_kses_autofocus_is_not_leaked_by_commented_dialog() {
+		$allowed_html = array(
+			'dialog' => array( 'open' => true ),
+			'button' => array( 'type' => true ),
+		);
+
+		$content = '<!-- <dialog> --><button type="button" autofocus>Fake</button>';
+		$output  = wp_kses( $content, $allowed_html );
+
+		$this->assertStringNotContainsString(
+			'autofocus',
+			$output,
+			'A <dialog> inside an HTML comment must not grant autofocus to elements outside any real dialog.'
+		);
+	}
+
+	/**
+	 * A `<dialog>` appearing in raw-text content (e.g. inside `<textarea>`) is literal
+	 * text in the browser, not an element, so it must not grant autofocus to following tags.
+	 *
+	 * kses has no raw-text/RCDATA model and treats the `<dialog>` token as an opening tag,
+	 * bumping the dialog-depth counter and leaking the context past the closing `</textarea>`.
+	 *
+	 * @ticket 65491
+	 */
+	public function test_wp_kses_autofocus_is_not_leaked_by_rawtext_dialog() {
+		$allowed_html = array(
+			'dialog'   => array( 'open' => true ),
+			'textarea' => array(),
+			'button'   => array( 'type' => true ),
+		);
+
+		$content = '<textarea><dialog></textarea><button type="button" autofocus>Fake</button>';
+		$output  = wp_kses( $content, $allowed_html );
+
+		$this->assertStringNotContainsString(
+			'autofocus',
+			$output,
+			'A <dialog> inside raw-text content must not grant autofocus to elements outside any real dialog.'
+		);
+	}
+
+	/**
+	 * autofocus on a genuine dialog descendant must survive an intervening HTML comment.
+	 *
+	 * kses re-sanitizes comment bodies via a recursive wp_kses() call, which resets the
+	 * shared dialog-depth counter to zero. As a result, any element placed after a comment
+	 * inside a real dialog is incorrectly treated as being outside the dialog and loses its
+	 * autofocus.
+	 *
+	 * @ticket 65491
+	 */
+	public function test_wp_kses_autofocus_retained_after_comment_inside_dialog() {
+		$allowed_html = array(
+			'dialog' => array( 'open' => true ),
+			'button' => array( 'type' => true ),
+		);
+
+		$content = '<dialog open><!-- note --><button type="button" autofocus>Real</button></dialog>';
+		$output  = wp_kses( $content, $allowed_html );
+
+		$this->assertStringContainsString(
+			'autofocus',
+			$output,
+			'autofocus on a genuine dialog descendant must survive an intervening HTML comment.'
+		);
+	}
+
+	/**
 	 * @ticket 43312
 	 */
 	public function test_wp_kses_attr_no_attributes_allowed_with_false() {
