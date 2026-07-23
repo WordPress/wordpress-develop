@@ -1642,9 +1642,9 @@
 		 * Refreshes advanced accessibility buttons for one menu item.
 		 * Shows or hides buttons based on the location of the menu item.
 		 *
-		 * @param {Object} itemToRefresh The menu item that might need its advanced accessibility buttons refreshed
-		 * 
 		 * @since 6.6.0
+		 *
+		 * @param {Object} itemToRefresh The menu item that might need its advanced accessibility buttons refreshed
 		 */
 		refreshAdvancedAccessibilityOfItem: function( itemToRefresh ) {
 			// Only refresh accessibility when necessary.
@@ -1723,7 +1723,7 @@
 			}
 			control.renderContent();
 			control.deferred.embedded.resolve(); // This triggers control.ready().
-			
+
 			// Mark all menu items as unprocessed.
 			$( 'button.item-edit' ).data( 'needs_accessibility_refresh', true );
 		},
@@ -1802,7 +1802,7 @@
 					control.moveRight();
 					control.params.depth += 1;
 				}
-				
+
 				moveBtn.focus(); // Re-focus after the container was moved.
 
 				// Mark all menu items as unprocessed.
@@ -2433,6 +2433,14 @@
 				}
 
 				parentControl = api.control( 'nav_menu_item[' + settingValue.menu_item_parent + ']' );
+				if ( ! parentControl ) {
+					control.setting.set(
+						$.extend({}, control.setting(), {
+							menu_item_parent: 0,
+						})
+					);
+					return;
+				}
 
 				// Make this control the parent of all the following siblings.
 				_( siblingControls ).chain().slice( realPosition ).each(function( siblingControl, i ) {
