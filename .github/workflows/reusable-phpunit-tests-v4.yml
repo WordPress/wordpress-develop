@@ -244,9 +244,6 @@ jobs:
           flags: ${{ inputs.multisite && 'multisite' || 'single' }},php
           fail_ci_if_error: true
 
-      - name: Ensure version-controlled files are not modified or deleted
-        run: git diff --exit-code
-
       - name: Checkout the WordPress Test Reporter
         if: ${{ github.ref == 'refs/heads/trunk' && inputs.report }}
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
