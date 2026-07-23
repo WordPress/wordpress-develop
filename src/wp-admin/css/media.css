@@ -448,7 +448,11 @@ border color while dragging a file over the uploader drop area */
 }
 
 .post-type-attachment .wp-filter select {
-	margin: 0 6px 0 0;
+	margin: 0 10px 0 0;
+}
+
+.post-type-attachment .wp-filter .actions select {
+	margin: 0 14px 0 0;
 }
 
 /**
@@ -585,6 +589,7 @@ border color while dragging a file over the uploader drop area */
 	padding: 0 8px;
 }
 
+.media-toolbar .filter-items,
 .media-frame.mode-grid .media-toolbar-secondary {
 	display: flex;
 	flex-wrap: wrap;

@@ -52,8 +52,10 @@ class WP_Media_List_Table extends WP_List_Table {
 		$this->detached = ( isset( $_REQUEST['attachment-filter'] ) && 'detached' === $_REQUEST['attachment-filter'] );
 
 		$this->modes = array(
-			'list' => __( 'List view' ),
-			'grid' => __( 'Grid view' ),
+			/* translators: Media Library view mode. */
+			'list' => __( 'List' ),
+			/* translators: Media Library view mode. */
+			'grid' => __( 'Grid' ),
 		);
 
 		parent::__construct(
@@ -305,7 +307,7 @@ class WP_Media_List_Table extends WP_List_Table {
 
 		$this->screen->render_screen_reader_content( 'heading_views' );
 		?>
-		<div class="wp-filter">
+		<div class="wp-filter media-toolbar">
 			<div class="filter-items">
 				<?php $this->view_switcher( $mode ); ?>
 

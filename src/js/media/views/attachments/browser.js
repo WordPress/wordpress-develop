@@ -223,7 +223,7 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 				this.toolbar.set( 'filters', Filters.render() );
 			}
 		}
-		
+
 		/*
 		 * Feels odd to bring the global media library switcher into the Attachment browser view.
 		 * Is this a use case for doAction( 'add:toolbar-items:attachments-browser', this.toolbar );
@@ -231,8 +231,12 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 		 */
 		if ( this.controller.isModeActive( 'grid' ) ) {
 			LibraryViewSwitcher = View.extend({
-				className: 'view-switch media-grid-view-switch',
-				template: wp.template( 'media-library-view-switcher')
+				className: 'view-switch media-grid-view-switch view-switcher-group',
+				template: wp.template( 'media-library-view-switcher'),
+				attributes: {
+					'role': 'group',
+					'aria-label': l10n.viewSwitcherAriaLabel
+				}
 			});
 
 			this.toolbar.set( 'libraryViewSwitcher', new LibraryViewSwitcher({

@@ -752,20 +752,28 @@ th.sorted a span {
 }
 
 .wp-filter .view-switch {
-	display: inline-block;
+	display: inline-grid;
+	grid-auto-flow: column;
 	vertical-align: middle;
-	padding: 12px 0;
+	padding: 0;
 	margin: 0 8px 0 2px;
+	gap: 12px;
+}
+
+.media-toolbar.wp-filter {
+	padding: 12px 16px;
 }
 
 .media-toolbar.wp-filter .view-switch {
 	margin: 0 12px 0 2px;
 }
 
+.view-switch .view-switch-label {
+	display: block;
+}
+
 .view-switch a {
-	float: left;
-	width: 28px;
-	height: 28px;
+	min-width: 40px;
 	text-align: center;
 	line-height: 1.84615384;
 	text-decoration: none;
@@ -802,6 +810,10 @@ th.sorted a span {
 .view-switch .view-grid:before {
 	content: "\f509";
 	content: "\f509" / '';
+}
+
+.view-switch-label {
+	font-size: 11px;
 }
 
 .filter {

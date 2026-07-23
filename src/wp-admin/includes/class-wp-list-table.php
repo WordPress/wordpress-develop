@@ -807,7 +807,7 @@ class WP_List_Table {
 	protected function view_switcher( $current_mode ) {
 		?>
 		<input type="hidden" name="mode" value="<?php echo esc_attr( $current_mode ); ?>" />
-		<div class="view-switch">
+		<div class="view-switch" role="group" aria-label="<?php esc_attr_e( 'View mode' ); ?>'">
 		<?php
 		foreach ( $this->modes as $mode => $title ) {
 			$classes      = array( 'view-' . $mode );
@@ -820,7 +820,7 @@ class WP_List_Table {
 
 			printf(
 				"<a href='%s' class='%s' id='view-switch-$mode'$aria_current>" .
-					"<span class='screen-reader-text'>%s</span>" .
+					'<span class="view-switch-label">%s</span>' .
 				"</a>\n",
 				esc_url( remove_query_arg( 'attachment-filter', add_query_arg( 'mode', $mode ) ) ),
 				implode( ' ', $classes ),
