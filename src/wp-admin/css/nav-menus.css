@@ -525,6 +525,10 @@ input.bulk-select-switcher:focus + .bulk-select-button-label {
 	font-weight: 600;
 }
 
+.menu-item-title.in-use {
+	font-weight: normal;
+}
+
 /* Nav Menu */
 #menu-container .inside {
 	padding-bottom: 10px;

@@ -292,12 +292,45 @@
 			this.doSearch( 1 );
 		},
 
+		isMenuItemAlreadyAdded: function(menuItem) {
+			if ( ! this.currentMenuControl ) return false;
+			var objectId = parseInt(menuItem.get('object_id'), 10);
+			var object = menuItem.get('object');
+			var type = menuItem.get('type');
+
+			return this.currentMenuControl.getMenuItemControls().some(function(control) {
+				var setting = control.setting();
+				return parseInt(setting.object_id, 10) === objectId &&
+					setting.object === object &&
+					setting.type === type;
+			});
+		},
+
+		renderMenuItem: function(menuItem) {
+			var $item = $(wp.template('available-menu-item')(menuItem.attributes));
+			var $title = $item.find('.menu-item-title');
+			var $button = $item.find('.item-add');
+			var $srtext = $button.find('.screen-reader-text');
+			var isInUse = this.isMenuItemAlreadyAdded(menuItem);
+
+			$title.toggleClass('in-use', isInUse);
+
+			// Append screen reader text if already in menu
+			if (isInUse) {
+				var markerText = wp.i18n.__('(in current menu)');
+				if (!$srtext.text().includes(markerText)) {
+					$srtext.append(' ' + markerText);
+				}
+			}
+
+			return $item;
+		},
+
 		// Get search results.
 		doSearch: function( page ) {
 			var self = this, params,
 				$section = $( '#available-menu-items-search' ),
-				$content = $section.find( '.accordion-section-content' ),
-				itemTemplate = wp.template( 'available-menu-item' );
+				$content = $section.find( '.accordion-section-content' );
 
 			if ( self.currentRequest ) {
 				self.currentRequest.abort();
@@ -340,9 +373,11 @@
 				self.loading = false;
 				items = new api.Menus.AvailableItemCollection( data.items );
 				self.collection.add( items.models );
-				items.each( function( menuItem ) {
-					$content.append( itemTemplate( menuItem.attributes ) );
-				} );
+				items.each(function(menuItem) {
+					var $item = self.renderMenuItem(menuItem);
+					$content.append($item);
+				});
+
 				if ( 20 > items.length ) {
 					self.pages.search = -1; // Up to 20 posts and 20 terms in results, if <20, no more results for either.
 				} else {
@@ -395,8 +430,7 @@
 		 * @return {void}
 		 */
 		loadItems: function( itemTypes, deprecated ) {
-			var self = this, _itemTypes, requestItemTypes = [], params, request, itemTemplate, availableMenuItemContainers = {};
-			itemTemplate = wp.template( 'available-menu-item' );
+			var self = this, _itemTypes, requestItemTypes = [], params, request, availableMenuItemContainers = {};
 
 			if ( _.isString( itemTypes ) && _.isString( deprecated ) ) {
 				_itemTypes = [ { type: itemTypes, object: deprecated } ];
@@ -453,10 +487,11 @@
 					}
 					typeItems = new api.Menus.AvailableItemCollection( typeItems ); // @todo Why is this collection created and then thrown away?
 					self.collection.add( typeItems.models );
-					typeInner = availableMenuItemContainers[ name ].find( '.available-menu-items-list' );
-					typeItems.each( function( menuItem ) {
-						typeInner.append( itemTemplate( menuItem.attributes ) );
-					} );
+					typeInner = availableMenuItemContainers[name].find('.available-menu-items-list').empty();
+					typeItems.each(function(menuItem) {
+						var $item = self.renderMenuItem(menuItem);
+						typeInner.append($item);
+					});
 					self.pages[ name ] += 1;
 				});
 			});
@@ -735,6 +770,11 @@
 
 			this.currentMenuControl = menuControl;
 
+			// Reset pagination tracking
+			_.each( api.Menus.data.itemTypes, function( itemType ) {
+				panel.pages[ itemType.type + ':' + itemType.object ] = 0;
+			});
+
 			this.itemSectionHeight();
 
 			if ( api.section.has( 'publish_settings' ) ) {
@@ -757,6 +797,7 @@
 			this.$el.find( '.selected' ).removeClass( 'selected' );
 
 			this.$search.trigger( 'focus' );
+			this.loadItems( api.Menus.data.itemTypes );
 		},
 
 		// Closes the panel.
