@@ -313,13 +313,29 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	 * Test that filtering by multiple statuses requires authorization.
 	 *
 	 * @ticket 63982
+	 *
+	 * @dataProvider data_get_items_by_multiple_statuses_without_permission
+	 *
+	 * @param string|list<string> $status Status value(s) to filter by.
 	 */
-	public function test_get_items_by_multiple_statuses_without_permission() {
+	public function test_get_items_by_multiple_statuses_without_permission( $status ) {
 		$request = new WP_REST_Request( 'GET', '/wp/v2/comments' );
-		$request->set_param( 'status', array( 'approve', 'hold' ) );
+		$request->set_param( 'status', $status );
 		$response = rest_get_server()->dispatch( $request );
 
 		$this->assertErrorResponse( 'rest_forbidden_param', $response, 401 );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{ 0: string|list<string> }>
+	 */
+	public function data_get_items_by_multiple_statuses_without_permission(): array {
+		return array(
+			'an array of statuses'   => array( array( 'approve', 'hold' ) ),
+			'a comma-separated list' => array( 'approve,hold' ),
+		);
 	}
 
 	/**
