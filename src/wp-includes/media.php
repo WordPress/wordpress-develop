@@ -2656,6 +2656,16 @@ function img_caption_shortcode( $attr, $content = '' ) {
 		return $output;
 	}
 
+	/**
+	 * @var array{
+	 *     id: string,
+	 *     caption_id: string,
+	 *     align: string,
+	 *     width: string,
+	 *     caption: string,
+	 *     class: string,
+	 * } $atts
+	 */
 	$atts = shortcode_atts(
 		array(
 			'id'         => '',
@@ -2675,24 +2685,30 @@ function img_caption_shortcode( $attr, $content = '' ) {
 		return $content;
 	}
 
-	$id          = '';
-	$caption_id  = '';
-	$describedby = '';
+	$id               = '';
+	$caption_id       = '';
+	$describedby      = '';
+	$unique_id_value  = '';
+	$caption_id_value = '';
 
 	if ( $atts['id'] ) {
-		$atts['id'] = sanitize_html_class( $atts['id'] );
-		$id         = 'id="' . esc_attr( $atts['id'] ) . '" ';
+		$atts['id']      = sanitize_html_class( $atts['id'] );
+		$unique_id_value = (string) preg_replace( '/-1$/', '', wp_unique_prefixed_id( $atts['id'] . '-' ) );
+		$id              = 'id="' . esc_attr( $unique_id_value ) . '" ';
 	}
 
 	if ( $atts['caption_id'] ) {
+		// User explicitly provided a caption_id - make it unique.
 		$atts['caption_id'] = sanitize_html_class( $atts['caption_id'] );
-	} elseif ( $atts['id'] ) {
-		$atts['caption_id'] = 'caption-' . str_replace( '_', '-', $atts['id'] );
+		$caption_id_value   = preg_replace( '/-1$/', '', wp_unique_prefixed_id( $atts['caption_id'] . '-' ) );
+	} elseif ( $unique_id_value ) {
+		// Derive from the already-unique figure ID - guaranteed unique, no need for second call.
+		$caption_id_value = 'caption-' . str_replace( '_', '-', $unique_id_value );
 	}
 
-	if ( $atts['caption_id'] ) {
-		$caption_id  = 'id="' . esc_attr( $atts['caption_id'] ) . '" ';
-		$describedby = 'aria-describedby="' . esc_attr( $atts['caption_id'] ) . '" ';
+	if ( $caption_id_value ) {
+		$caption_id  = 'id="' . esc_attr( $caption_id_value ) . '" ';
+		$describedby = 'aria-describedby="' . esc_attr( $caption_id_value ) . '" ';
 	}
 
 	$class = trim( 'wp-caption ' . $atts['align'] . ' ' . $atts['class'] );
@@ -6592,17 +6608,6 @@ function wp_set_client_side_media_processing_flag(): void {
 	if ( null !== $chromium_version && $chromium_version >= 137 ) {
 		wp_add_inline_script( 'wp-block-editor', 'window.__documentIsolationPolicy = true;', 'before' );
 	}
-
-	/*
-	 * Register the @wordpress/vips/worker script module as a dynamic dependency
-	 * of the wp-upload-media classic script. This ensures it is included in the
-	 * import map so that the dynamic import() in upload-media.js can resolve it.
-	 */
-	wp_scripts()->add_data(
-		'wp-upload-media',
-		'module_dependencies',
-		array( '@wordpress/vips/worker' )
-	);
 }
 
 /**
