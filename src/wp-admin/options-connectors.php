@@ -27,7 +27,9 @@ if ( ! class_exists( '\WordPress\AiClient\AiClient' ) || ! function_exists( 'wp_
 }
 
 // Set the page title.
-$title = __( 'Connectors' );
+$title       = __( 'Connectors' );
+$description = __( 'The Connectors screen requires JavaScript. Please enable JavaScript in your browser to manage your service integrations.' );
+
 
 // Set parent file for menu highlighting.
 $parent_file = 'options-general.php';

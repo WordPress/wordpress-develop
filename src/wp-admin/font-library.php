@@ -28,7 +28,8 @@ if ( ! function_exists( 'wp_font_library_wp_admin_render_page' ) ) {
 }
 
 // Set the page title
-$title = _x( 'Fonts', 'Font Library admin page title' );
+$title       = _x( 'Fonts', 'Font Library admin page title' );
+$description = __( 'The Fonts screen requires JavaScript. Please enable JavaScript in your browser to install and manage fonts.' );
 
 require_once ABSPATH . 'wp-admin/admin-header.php';
 
