@@ -157,7 +157,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 
 					foreach ( $protected_params as $param ) {
 						if ( 'status' === $param ) {
-							if ( 'approve' !== $request[ $param ] ) {
+							if ( array( 'approve' ) !== wp_parse_list( $request[ $param ] ) ) {
 								$forbidden_params[] = $param;
 							}
 						} elseif ( 'type' === $param ) {
@@ -200,7 +200,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		if ( ! current_user_can( 'edit_posts' ) ) {
 			foreach ( $protected_params as $param ) {
 				if ( 'status' === $param ) {
-					if ( 'approve' !== $request[ $param ] ) {
+					if ( array( 'approve' ) !== wp_parse_list( $request[ $param ] ) ) {
 						$forbidden_params[] = $param;
 					}
 				} elseif ( 'type' === $param ) {
@@ -1777,9 +1777,12 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 
 		$query_params['status'] = array(
 			'default'           => 'approve',
-			'description'       => __( 'Limit result set to comments assigned a specific status. Requires authorization.' ),
-			'sanitize_callback' => array( $this, 'sanitize_comment_statuses' ),
+			'description'       => __( 'Limit result set to comments assigned one or more statuses. Requires authorization.' ),
 			'type'              => 'array',
+			'items'             => array(
+				'type' => 'string',
+			),
+			'sanitize_callback' => array( $this, 'sanitize_comment_statuses' ),
 			'validate_callback' => 'rest_validate_request_arg',
 		);
 
@@ -2051,7 +2054,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	 */
 	public function sanitize_comment_statuses( $statuses ) {
 		$statuses = wp_parse_list( $statuses );
-		return array_unique( array_map( 'sanitize_key', $statuses ) );
+		return array_values( array_unique( array_map( 'sanitize_key', $statuses ) ) );
 	}
 
 	/**
