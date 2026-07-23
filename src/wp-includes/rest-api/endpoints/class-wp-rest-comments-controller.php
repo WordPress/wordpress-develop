@@ -157,7 +157,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 
 					foreach ( $protected_params as $param ) {
 						if ( 'status' === $param ) {
-							if ( array( 'approve' ) !== wp_parse_list( $request[ $param ] ) ) {
+							if ( array( 'approve' ) !== $request[ $param ] ) {
 								$forbidden_params[] = $param;
 							}
 						} elseif ( 'type' === $param ) {
@@ -200,7 +200,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		if ( ! current_user_can( 'edit_posts' ) ) {
 			foreach ( $protected_params as $param ) {
 				if ( 'status' === $param ) {
-					if ( array( 'approve' ) !== wp_parse_list( $request[ $param ] ) ) {
+					if ( array( 'approve' ) !== $request[ $param ] ) {
 						$forbidden_params[] = $param;
 					}
 				} elseif ( 'type' === $param ) {
