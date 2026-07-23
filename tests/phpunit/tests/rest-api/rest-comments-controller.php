@@ -252,7 +252,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	 *
 	 * @dataProvider data_get_items_by_status
 	 *
-	 * @param string|array $status Status value(s) to filter by.
+	 * @param string|list<string> $status Status value(s) to filter by.
 	 */
 	public function test_get_items_by_status( $status ) {
 		wp_set_current_user( self::$admin_id );
@@ -272,15 +272,17 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 			)
 		);
 
-		$this->assertCount( $found, $response->get_data() );
+		$data = $response->get_data();
+		$this->assertIsArray( $data );
+		$this->assertCount( $found, $data );
 	}
 
 	/**
 	 * Data provider.
 	 *
-	 * @return array[]
+	 * @return array<string, array{ 0: string|list<string> }>
 	 */
-	public function data_get_items_by_status() {
+	public function data_get_items_by_status(): array {
 		return array(
 			'a single status'        => array( 'approve' ),
 			'the hold status'        => array( 'hold' ),
@@ -302,7 +304,9 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$response = rest_get_server()->dispatch( $request );
 
 		$this->assertSame( 200, $response->get_status() );
-		$this->assertCount( self::$total_comments, $response->get_data() );
+		$data = $response->get_data();
+		$this->assertIsArray( $data );
+		$this->assertCount( self::$total_comments, $data );
 	}
 
 	/**
