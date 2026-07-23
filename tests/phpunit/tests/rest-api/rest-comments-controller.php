@@ -325,10 +325,10 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	 *
 	 * @dataProvider data_sanitize_comment_statuses
 	 *
-	 * @param string|array $statuses Raw status value.
-	 * @param array        $expected Expected sanitized statuses.
+	 * @param string|string[]                  $statuses Raw status value.
+	 * @param list<non-empty-lowercase-string> $expected Expected sanitized statuses.
 	 */
-	public function test_sanitize_comment_statuses( $statuses, $expected ) {
+	public function test_sanitize_comment_statuses( $statuses, array $expected ) {
 		$controller = new WP_REST_Comments_Controller();
 
 		$this->assertSame( $expected, $controller->sanitize_comment_statuses( $statuses ) );
@@ -337,9 +337,9 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	/**
 	 * Data provider.
 	 *
-	 * @return array[]
+	 * @return array<string, array{ 0: mixed, 1: list<non-empty-lowercase-string> }>
 	 */
-	public function data_sanitize_comment_statuses() {
+	public function data_sanitize_comment_statuses(): array {
 		return array(
 			'a single status'        => array( 'approve', array( 'approve' ) ),
 			'a comma-separated list' => array( 'approve,hold', array( 'approve', 'hold' ) ),
