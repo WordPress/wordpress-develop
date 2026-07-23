@@ -2635,6 +2635,48 @@ function delete_get_calendar_cache() {
 }
 
 /**
+ * Invalidates the get_calendar() cache when a post's published state changes.
+ *
+ * get_calendar() only reflects published posts, so the cache only needs to be
+ * cleared when a post enters or leaves the 'publish' status, such as publishing,
+ * unpublishing, trashing, or editing the date of a published post. Limiting
+ * invalidation to these transitions avoids clearing the cache on unrelated
+ * events such as autosaves, draft saves, or comment count updates.
+ *
+ * @since 7.2.0
+ *
+ * @see delete_get_calendar_cache()
+ *
+ * @param string $new_status The post's new status.
+ * @param string $old_status The post's old status.
+ */
+function delete_get_calendar_cache_on_transition( $new_status, $old_status ) {
+	if ( 'publish' === $new_status || 'publish' === $old_status ) {
+		delete_get_calendar_cache();
+	}
+}
+
+/**
+ * Invalidates the get_calendar() cache when a published post is deleted.
+ *
+ * Trashing a published post is already handled by the status transition; this
+ * covers permanently deleting a post that is still published, for example a
+ * forced delete that bypasses the trash.
+ *
+ * @since 7.2.0
+ *
+ * @see delete_get_calendar_cache()
+ *
+ * @param int     $post_id Post ID.
+ * @param WP_Post $post    The post being deleted.
+ */
+function delete_get_calendar_cache_on_delete( $post_id, $post ) {
+	if ( isset( $post->post_status ) && 'publish' === $post->post_status ) {
+		delete_get_calendar_cache();
+	}
+}
+
+/**
  * Displays all of the allowed tags in HTML format with attributes.
  *
  * This is useful for displaying in the comment area, which elements and
