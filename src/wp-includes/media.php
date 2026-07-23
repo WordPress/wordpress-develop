@@ -6819,6 +6819,11 @@ function wp_enqueue_media_library_upload(): void {
 		return;
 	}
 
+	$chromium_version = wp_get_chromium_major_version();
+	if ( null === $chromium_version || $chromium_version < 137 ) {
+		return;
+	}
+
 	wp_enqueue_script( 'media-library-upload' );
 
 	wp_add_inline_script(
