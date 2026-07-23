@@ -54,6 +54,42 @@ concurrency:
 permissions: {}
 
 jobs:
+  build-wordpress:
+    name: Build WordPress
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+        with:
+          node-version-file: '.nvmrc'
+          cache: npm
+
+      - name: Install npm dependencies
+        run: npm ci
+
+      - name: Build WordPress
+        run: npm run build:dev
+
+      - name: Create ZIP of built files
+        run: zip -q -r wordpress-build.zip . -x '.git/*' 'wordpress-build.zip'
+
+      - name: Upload ZIP as a GitHub Actions artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: wordpress-build
+          path: wordpress-build.zip
+          if-no-files-found: error
+
   #
   # Creates a PHPUnit test job for each PHP/MySQL combination.
   #
@@ -64,6 +100,7 @@ jobs:
   test-with-mysql:
     name: PHP ${{ matrix.php }}
     uses: ./.github/workflows/reusable-phpunit-tests-v3.yml
+    needs: [ build-wordpress ]
     permissions:
       contents: read
     secrets:
@@ -130,6 +167,7 @@ jobs:
       phpunit-config: ${{ matrix.multisite && 'tests/phpunit/multisite.xml' || 'phpunit.xml.dist' }}
       tests-domain: ${{ matrix.tests-domain }}
       report: ${{ matrix.report || false }}
+      wordpress-build-artifact-available: true
 
   #
   # Creates a PHPUnit test job for each PHP/MariaDB combination.
@@ -143,6 +181,7 @@ jobs:
   test-with-mariadb:
     name: PHP ${{ matrix.php }}
     uses: ./.github/workflows/reusable-phpunit-tests-v3.yml
+    needs: [ build-wordpress ]
     permissions:
       contents: read
     secrets:
@@ -197,6 +236,7 @@ jobs:
   test-innovation-releases:
     name: PHP ${{ matrix.php }}
     uses: ./.github/workflows/reusable-phpunit-tests-v3.yml
+    needs: [ build-wordpress ]
     permissions:
       contents: read
     secrets:
@@ -228,6 +268,7 @@ jobs:
       memcached: ${{ matrix.memcached }}
       phpunit-config: ${{ matrix.multisite && 'tests/phpunit/multisite.xml' || 'phpunit.xml.dist' }}
       report: false
+      wordpress-build-artifact-available: true
 
   #
   # Runs the HTML API test group.
@@ -240,6 +281,7 @@ jobs:
   html-api-test-groups:
     name: ${{ matrix.label }}
     uses: ./.github/workflows/reusable-phpunit-tests-v3.yml
+    needs: [ build-wordpress ]
     permissions:
       contents: read
     secrets:
@@ -260,6 +302,7 @@ jobs:
       db-type: ${{ matrix.db-type }}
       db-version: ${{ matrix.db-version }}
       phpunit-test-groups: ${{ matrix.phpunit-test-groups }}
+      wordpress-build-artifact-available: true
 
   #
   # Runs unit tests for forks.
@@ -271,6 +314,7 @@ jobs:
   limited-matrix-for-forks:
     name: PHP ${{ matrix.php }}
     uses: ./.github/workflows/reusable-phpunit-tests-v3.yml
+    needs: [ build-wordpress ]
     permissions:
       contents: read
     secrets:
@@ -320,6 +364,7 @@ jobs:
       db-type: ${{ matrix.db-type }}
       memcached: ${{ matrix.memcached || false }}
       phpunit-test-groups: ${{ matrix.phpunit-test-groups || '' }}
+      wordpress-build-artifact-available: true
 
   slack-notifications:
     name: Slack Notifications
@@ -327,7 +372,7 @@ jobs:
     permissions:
       actions: read
       contents: read
-    needs: [ test-with-mysql, test-with-mariadb, test-innovation-releases, html-api-test-groups, limited-matrix-for-forks ]
+    needs: [ build-wordpress, test-with-mysql, test-with-mariadb, test-innovation-releases, html-api-test-groups, limited-matrix-for-forks ]
     if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name != 'pull_request' && always() }}
     with:
       calling_status: ${{ contains( needs.*.result, 'cancelled' ) && 'cancelled' || contains( needs.*.result, 'failure' ) && 'failure' || 'success' }}
