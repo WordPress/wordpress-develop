@@ -186,7 +186,7 @@ final class WP_Screen {
 	 * Stores the 'screen_settings' section of screen options.
 	 *
 	 * @since 3.3.0
-	 * @var string
+	 * @var string|null
 	 */
 	private $_screen_settings;
 
