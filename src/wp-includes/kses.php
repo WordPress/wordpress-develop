@@ -1053,7 +1053,7 @@ function wp_kses_one_attr( $attr, $element ) {
  *
  * @global array<string, bool|array<string, bool>> $allowedposttags
  * @global array<string, bool|array<string, bool>> $allowedtags
- * @global array<string, bool|array<string, bool>> $allowedentitynames
+ * @global string[] $allowedentitynames
  *
  * @param string|array $context The context for which to retrieve tags. Allowed values are 'post',
  *                              'strip', 'data', 'entities', or the name of a field filter such as
