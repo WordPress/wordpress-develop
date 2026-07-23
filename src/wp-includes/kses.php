@@ -1051,16 +1051,16 @@ function wp_kses_one_attr( $attr, $element ) {
  * @since 3.5.0
  * @since 5.0.1 `form` removed as allowable HTML tag.
  *
- * @global array<string, array<string, bool>> $allowedposttags
- * @global array<string, array<string, bool>> $allowedtags
- * @global array<string, array<string, bool>> $allowedentitynames
+ * @global array<string, bool|array<string, bool>> $allowedposttags
+ * @global array<string, bool|array<string, bool>> $allowedtags
+ * @global array<string, bool|array<string, bool>> $allowedentitynames
  *
  * @param string|array $context The context for which to retrieve tags. Allowed values are 'post',
  *                              'strip', 'data', 'entities', or the name of a field filter such as
  *                              'pre_user_description', or an array of allowed HTML elements and attributes.
  * @return array Array of allowed HTML tags and their allowed attributes.
- * @phpstan-param array<string, array<string, bool>>|string $context
- * @phpstan-return array<string, array<string, bool>>
+ * @phpstan-param array<string, bool|array<string, bool>>|string $context
+ * @phpstan-return array<string, bool|array<string, bool>>
  */
 function wp_kses_allowed_html( $context = '' ) {
 	global $allowedposttags, $allowedtags, $allowedentitynames;
@@ -1152,9 +1152,9 @@ function wp_kses_allowed_html( $context = '' ) {
  * @since 7.1.0
  * @access private
  *
- * @param array<string, array<string, bool>> $allowed The allowed tags structure for the context.
- * @param string                             $context The kses context.
- * @return array<string, array<string, bool>> Modified allowed tags structure.
+ * @param array<string, bool|array<string, bool>> $allowed The allowed tags structure for the context.
+ * @param string                                  $context The kses context.
+ * @return array<string, bool|array<string, bool>> Modified allowed tags structure.
  */
 function _wp_kses_allow_note_mention_span( $allowed, $context ): array {
 	if ( ! is_array( $allowed ) ) {
@@ -1444,7 +1444,7 @@ function _wp_kses_track_in_dialog_context(
  * @param string[]       $allowed_protocols Array of allowed URL protocols.
  *
  * @return string Fixed HTML element
- * @phpstan-param array<string, array<string, bool>>|string $allowed_html
+ * @phpstan-param array<string, bool|array<string, bool>>|string $allowed_html
  */
 function wp_kses_split2( $content, $allowed_html, $allowed_protocols ) {
 	$content = wp_kses_stripslashes( $content );
@@ -1578,7 +1578,7 @@ function wp_kses_split2( $content, $allowed_html, $allowed_protocols ) {
  * @param string[]       $allowed_protocols Array of allowed URL protocols.
  * @param array          $context           Optional context data for attribute checks.
  * @return string Sanitized HTML element.
- * @phpstan-param array<string, array<string, bool>>|string $allowed_html
+ * @phpstan-param array<string, bool|array<string, bool>>|string $allowed_html
  * @phpstan-param array{ in_dialog?: bool } $context
  */
 function wp_kses_attr( $element, $attr, $allowed_html, $allowed_protocols, $context = array() ) {
@@ -1664,7 +1664,7 @@ function wp_kses_attr( $element, $attr, $allowed_html, $allowed_protocols, $cont
  * @param array  $allowed_html The full list of allowed elements and attributes.
  * @param array  $context      Optional context data for attribute checks.
  * @return bool Whether or not the attribute is allowed.
- * @phpstan-param array<string, array<string, bool>> $allowed_html
+ * @phpstan-param array<string, bool|array<string, bool>> $allowed_html
  * @phpstan-param array{ in_dialog?: bool } $context
  */
 function wp_kses_attr_check( &$name, &$value, &$whole, $vless, $element, $allowed_html, $context = array() ) {
