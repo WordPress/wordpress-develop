@@ -3150,6 +3150,89 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	}
 
 	/**
+	 * @ticket 65618
+	 * @requires function imagejpeg
+	 */
+	public function test_edit_image_returns_error_if_no_image_editor() {
+		wp_set_current_user( self::$superadmin_id );
+		$attachment = self::factory()->attachment->create_upload_object( self::$test_file );
+
+		add_filter( 'wp_image_editors', '__return_empty_array' );
+
+		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment}/edit" );
+		$request->set_body_params(
+			array(
+				'rotation' => 60,
+				'src'      => wp_get_attachment_image_url( $attachment, 'full' ),
+			)
+		);
+		$response = rest_do_request( $request );
+		$this->assertErrorResponse( 'rest_unknown_image_file_type', $response, 500 );
+	}
+
+	/**
+	 * @ticket 65618
+	 * @requires function imagejpeg
+	 */
+	public function test_edit_image_applies_unbaked_exif_orientation_before_edits() {
+		wp_set_current_user( self::$superadmin_id );
+		$attachment = self::factory()->attachment->create_upload_object( self::$test_file );
+
+		$this->setup_mock_editor();
+		add_filter(
+			'wp_image_maybe_exif_rotate',
+			static function () {
+				return 6;
+			}
+		);
+		WP_Image_Editor_Mock::$edit_return['rotate'] = new WP_Error();
+
+		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment}/edit" );
+		$request->set_body_params(
+			array(
+				'rotation' => 60,
+				'src'      => wp_get_attachment_image_url( $attachment, 'full' ),
+			)
+		);
+		$response = rest_do_request( $request );
+		$this->assertErrorResponse( 'rest_image_rotation_failed', $response, 500 );
+
+		// The EXIF orientation correction (orientation 6 => rotate 270) must run before the requested edit.
+		$this->assertSame( array( array( 270 ), array( -60 ) ), WP_Image_Editor_Mock::$spy['rotate'] );
+	}
+
+	/**
+	 * @ticket 65618
+	 * @requires extension exif
+	 * @requires function imagejpeg
+	 */
+	public function test_edit_image_rotate_with_unbaked_exif_orientation() {
+		wp_set_current_user( self::$superadmin_id );
+		$attachment = self::factory()->attachment->create_upload_object( DIR_TESTDATA . '/images/test-image-rotated-90ccw.jpg' );
+
+		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment}/edit" );
+		$request->set_body_params(
+			array(
+				'rotation' => 90,
+				'src'      => wp_get_attachment_image_url( $attachment, 'full' ),
+			)
+		);
+		$response = rest_do_request( $request );
+		$item     = $response->get_data();
+
+		$this->assertSame( 201, $response->get_status() );
+
+		/*
+		 * The original file is 1200x1800 raw pixels with an unapplied EXIF orientation of 6,
+		 * so clients preview it upright as 1800x1200. Rotating that upright frame 90 degrees
+		 * must produce 1200x1800. Without the orientation correction the edit rotates the raw
+		 * pixels instead and produces 1800x1200.
+		 */
+		$this->assertSame( 1200, $item['media_details']['width'] );
+		$this->assertSame( 1800, $item['media_details']['height'] );
+	}
+
+	/**
 	 * @ticket 44405
 	 * @requires function imagejpeg
 	 */
