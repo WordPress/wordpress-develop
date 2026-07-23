@@ -200,12 +200,14 @@ jQuery( function( $ ) {
 				.appendTo( '#qunit-fixture' )
 				.find( '.delete-theme' );
 
-		sinon.stub( wp.ajax, 'send' ).returns( jQuery.Deferred().promise() );
+		var sendStub = sinon.stub( wp.ajax, 'send' ).returns( jQuery.Deferred().promise() );
 
 		wp.updates.deleteTheme( { slug: 'twentyeleven' } );
 		wp.ajax.send.firstCall.args[ 0 ].error( 'Briefly unavailable for scheduled maintenance.' );
 
 		assert.strictEqual( $button.text(), 'Delete', 'The delete button text is restored.' );
+
+		sendStub.restore();
 	} );
 
 	// QUnit.test( 'A successful update changes the message?', function( assert ) {} );
