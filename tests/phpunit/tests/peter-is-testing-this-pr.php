@@ -2,6 +2,8 @@
 
 /**
  * Peter is testing this PR.
+ *
+ * @group this-should-never-be-committed-to-trunk-but-some-of-it-might-be-helpful
  */
 class Tests_Peter_Is_Testing_This_PR extends WP_UnitTestCase {
 
