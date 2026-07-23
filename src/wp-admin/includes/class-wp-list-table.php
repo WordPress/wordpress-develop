@@ -1029,7 +1029,8 @@ class WP_List_Table {
 	 */
 	protected function pagination( $which ) {
 		if ( empty( $this->_pagination_args['total_items'] ) ) {
-			echo '<div class="tablenav-pages no-pages"><span class="displaying-num">0 items</span></div>';
+			// translators: Number is a fixed value. This is default text when no items are found.
+			echo '<div class="tablenav-pages no-pages"><span class="displaying-num">' . __( '0 items' ) . '</span></div>';
 			return;
 		}
 
