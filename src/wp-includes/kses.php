@@ -1526,14 +1526,13 @@ function wp_kses_split2( $content, $allowed_html, $allowed_protocols ) {
 	$slash    = trim( $matches[1] );
 	$elem     = $matches[2];
 	$attrlist = $matches[3];
-	$elem_low = strtolower( $elem );
 
 	if ( ! is_array( $allowed_html ) ) {
 		$allowed_html = wp_kses_allowed_html( $allowed_html );
 	}
 
 	// They are using a not allowed HTML element.
-	if ( ! isset( $allowed_html[ $elem_low ] ) ) {
+	if ( ! isset( $allowed_html[ strtolower( $elem ) ] ) ) {
 		return '';
 	}
 
