@@ -8,27 +8,27 @@
  * @group restapi
  */
 class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase {
-	protected static $superadmin_id;
-	protected static $admin_id;
-	protected static $editor_id;
-	protected static $moderator_id;
-	protected static $contributor_id;
-	protected static $subscriber_id;
-	protected static $author_id;
-	protected static $user_ids = array();
+	protected static int $superadmin_id;
+	protected static int $admin_id;
+	protected static int $editor_id;
+	protected static int $moderator_id;
+	protected static int $contributor_id;
+	protected static int $subscriber_id;
+	protected static int $author_id;
+	protected static array $user_ids = array();
 
-	protected static $post_id;
-	protected static $password_id;
-	protected static $private_id;
-	protected static $draft_id;
-	protected static $trash_id;
-	protected static $approved_id;
-	protected static $hold_id;
+	protected static int $post_id;
+	protected static int $password_id;
+	protected static int $private_id;
+	protected static int $draft_id;
+	protected static int $trash_id;
+	protected static int $approved_id;
+	protected static int $hold_id;
 
-	protected static $comment_ids    = array();
-	protected static $total_comments = 30;
-	protected static $per_page       = 50;
-	protected static $num_notes      = 10;
+	protected static array $comment_ids  = array();
+	protected static int $total_comments = 30;
+	protected static int $per_page       = 50;
+	protected static int $num_notes      = 10;
 
 	protected $endpoint;
 
