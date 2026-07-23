@@ -1915,39 +1915,43 @@ class WP_Posts_List_Table extends WP_List_Table {
 
 					<?php if ( $post_type_object->hierarchical ) : ?>
 
+						<?php
+						$dropdown_args = array(
+							'post_type'         => $post_type_object->name,
+							'selected'          => $post->post_parent,
+							'name'              => 'post_parent',
+							'show_option_none'  => __( 'Main Page (no parent)' ),
+							'option_none_value' => 0,
+							'sort_column'       => 'menu_order, post_title',
+						);
+
+						if ( $bulk ) {
+							$dropdown_args['show_option_no_change'] = __( '&mdash; No Change &mdash;' );
+							$dropdown_args['id']                    = 'bulk_edit_post_parent';
+						}
+
+						/**
+						 * Filters the arguments used to generate the Quick Edit page-parent drop-down.
+						 *
+						 * @since 2.7.0
+						 * @since 5.6.0 The `$bulk` parameter was added.
+						 *
+						 * @see wp_dropdown_pages()
+						 *
+						 * @param array $dropdown_args An array of arguments passed to wp_dropdown_pages().
+						 * @param bool  $bulk          A flag to denote if it's a bulk action.
+						 */
+						$dropdown_args = apply_filters( 'quick_edit_dropdown_pages_args', $dropdown_args, $bulk );
+
+						$dropdown = wp_dropdown_pages( array_merge( $dropdown_args, array( 'echo' => 0 ) ) );
+
+						if ( ! empty( $dropdown ) ) :
+							?>
 						<label>
 							<span class="title"><?php _e( 'Parent' ); ?></span>
-							<?php
-							$dropdown_args = array(
-								'post_type'         => $post_type_object->name,
-								'selected'          => $post->post_parent,
-								'name'              => 'post_parent',
-								'show_option_none'  => __( 'Main Page (no parent)' ),
-								'option_none_value' => 0,
-								'sort_column'       => 'menu_order, post_title',
-							);
-
-							if ( $bulk ) {
-								$dropdown_args['show_option_no_change'] = __( '&mdash; No Change &mdash;' );
-								$dropdown_args['id']                    = 'bulk_edit_post_parent';
-							}
-
-							/**
-							 * Filters the arguments used to generate the Quick Edit page-parent drop-down.
-							 *
-							 * @since 2.7.0
-							 * @since 5.6.0 The `$bulk` parameter was added.
-							 *
-							 * @see wp_dropdown_pages()
-							 *
-							 * @param array $dropdown_args An array of arguments passed to wp_dropdown_pages().
-							 * @param bool  $bulk          A flag to denote if it's a bulk action.
-							 */
-							$dropdown_args = apply_filters( 'quick_edit_dropdown_pages_args', $dropdown_args, $bulk );
-
-							wp_dropdown_pages( $dropdown_args );
-							?>
+							<?php echo $dropdown; ?>
 						</label>
+						<?php endif; // ! empty( $dropdown ) ?>
 
 					<?php endif; // hierarchical ?>
 
