@@ -23,19 +23,15 @@ class WP_MS_Users_List_Table extends WP_List_Table {
 	}
 
 	/**
-	 * @global string $mode       List table view mode.
+	 * Prepares the list of sites for display.
+	 *
+	 * @since 3.1.0
+	 *
 	 * @global string $usersearch
 	 * @global string $role
 	 */
 	public function prepare_items() {
-		global $mode, $usersearch, $role;
-
-		if ( ! empty( $_REQUEST['mode'] ) ) {
-			$mode = 'excerpt' === $_REQUEST['mode'] ? 'excerpt' : 'list';
-			set_user_setting( 'network_users_list_mode', $mode );
-		} else {
-			$mode = get_user_setting( 'network_users_list_mode', 'list' );
-		}
+		global $usersearch, $role;
 
 		$usersearch = isset( $_REQUEST['s'] ) ? wp_unslash( trim( $_REQUEST['s'] ) ) : '';
 
@@ -170,18 +166,14 @@ class WP_MS_Users_List_Table extends WP_List_Table {
 	}
 
 	/**
-	 * @global string $mode List table view mode.
+	 * Displays the pagination.
 	 *
-	 * @param string $which
+	 * @since 3.1.0
+	 *
+	 * @param string $which The location of the pagination nav markup: Either 'top' or 'bottom'.
 	 */
 	protected function pagination( $which ) {
-		global $mode;
-
 		parent::pagination( $which );
-
-		if ( 'top' === $which ) {
-			$this->view_switcher( $mode );
-		}
 	}
 
 	/**
@@ -334,17 +326,10 @@ class WP_MS_Users_List_Table extends WP_List_Table {
 	 *
 	 * @since 4.3.0
 	 *
-	 * @global string $mode List table view mode.
-	 *
 	 * @param WP_User $user The current WP_User object.
 	 */
 	public function column_registered( $user ) {
-		global $mode;
-		if ( 'list' === $mode ) {
-			$date = __( 'Y/m/d' );
-		} else {
-			$date = __( 'Y/m/d g:i:s a' );
-		}
+		$date = __( 'Y/m/d g:i:s a' );
 		echo mysql2date( $date, $user->user_registered );
 	}
 
