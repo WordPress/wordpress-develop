@@ -47,6 +47,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	/**
 	 * @ticket 52991
 	 * @ticket 54336
+	 * @ticket 65037
 	 */
 	public function test_get_settings() {
 		$theme_json = new WP_Theme_JSON(
@@ -261,6 +262,9 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		$this->assertEqualSetsWithIndex( $expected_no_origin, $actual_no_origin );
 	}
 
+	/**
+	 * @ticket 65037
+	 */
 	public function test_get_settings_appearance_true_opts_in() {
 		$theme_json = new WP_Theme_JSON(
 			array(
@@ -313,6 +317,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 				'aspectRatio' => true,
 				'height'      => true,
 				'minHeight'   => true,
+				'minWidth'    => true,
 				'width'       => true,
 			),
 			'position'   => array(
@@ -355,6 +360,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 						'aspectRatio' => true,
 						'height'      => true,
 						'minHeight'   => true,
+						'minWidth'    => true,
 						'width'       => true,
 					),
 					'position'   => array(
