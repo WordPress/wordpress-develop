@@ -1022,7 +1022,11 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 			}
 
 			try {
-				return $image->writeImage( $filename );
+				$image_data = $image->getImageBlob();
+				if ( file_put_contents( $filename, $image_data ) === false ) {
+					return new WP_Error( 'image_save_error', 'Failed to write image data to file', $filename );
+				}
+				return true;
 			} catch ( Exception $e ) {
 				return new WP_Error( 'image_save_error', $e->getMessage(), $filename );
 			}
