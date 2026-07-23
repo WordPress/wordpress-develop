@@ -2252,17 +2252,8 @@ class Tests_Functions extends WP_UnitTestCase {
 	 * Tests that _default_wp_die_handler() only queries the database for language
 	 * attributes when WordPress is not installing.
 	 *
-	 * get_language_attributes() queries the database. During install (for example,
-	 * mid-way through Multisite site creation, before the new site's tables exist),
-	 * that query can re-trigger the database error that led to wp_die() in the first
-	 * place, looping wp_die() until PHP's function nesting limit is reached. While
-	 * installing, the handler must fall back to the already-computed `dir` attribute
-	 * instead.
-	 *
 	 * @ticket 50228
-	 *
 	 * @covers ::_default_wp_die_handler
-	 *
 	 * @dataProvider data_default_wp_die_handler_language_attributes
 	 *
 	 * @param bool   $installing      Whether WordPress is installing.
