@@ -1511,9 +1511,9 @@ function wp_kses_split2( $content, $allowed_html, $allowed_protocols ) {
 		}
 
 		// Prevent multiple dashes in comments.
-		$content = preg_replace( '/--+/', '-', $content );
+		$content = (string) preg_replace( '/--+/', '-', $content );
 		// Prevent three dashes closing a comment.
-		$content = preg_replace( '/-$/', '', $content );
+		$content = (string) preg_replace( '/-$/', '', $content );
 
 		return "<!--{$content}-->";
 	}
