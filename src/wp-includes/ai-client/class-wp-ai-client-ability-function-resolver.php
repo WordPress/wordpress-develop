@@ -103,34 +103,6 @@ class WP_AI_Client_Ability_Function_Resolver {
 	 * @return FunctionResponse The response from executing the ability.
 	 */
 	public function execute_ability( FunctionCall $call ): FunctionResponse {
-		$response = $this->resolve_ability_call( $call );
-
-		/**
-		 * Fires after an ability function call has been resolved.
-		 *
-		 * The response may represent a successful execution or an error, for
-		 * example when the ability is not allowed or its execution failed.
-		 * Useful for logging and auditing ability usage by AI models.
-		 *
-		 * @since 7.2.0
-		 *
-		 * @param FunctionCall     $call     The function call requested by the model.
-		 * @param FunctionResponse $response The response that will be sent back to the model.
-		 */
-		do_action( 'wp_ai_client_ability_call_resolved', $call, $response );
-
-		return $response;
-	}
-
-	/**
-	 * Resolves a function call into a function response.
-	 *
-	 * @since 7.2.0
-	 *
-	 * @param FunctionCall $call The function call to resolve.
-	 * @return FunctionResponse The response from resolving the call.
-	 */
-	private function resolve_ability_call( FunctionCall $call ): FunctionResponse {
 		$function_name = $call->getName() ?? 'unknown';
 		$function_id   = $call->getId() ?? 'unknown';
 
@@ -169,36 +141,6 @@ class WP_AI_Client_Ability_Function_Resolver {
 					/* translators: %s: ability name */
 					'error' => sprintf( __( 'Ability "%s" not found' ), $ability_name ),
 					'code'  => 'ability_not_found',
-				)
-			);
-		}
-
-		/**
-		 * Filters whether to short-circuit the execution of an ability function call.
-		 *
-		 * Returning a FunctionResponse skips the ability execution and sends that
-		 * response back to the model instead. Returning a WP_Error skips the
-		 * execution and sends an error response back to the model. This allows
-		 * vetoing individual calls, for example based on ability annotations.
-		 *
-		 * @since 7.2.0
-		 *
-		 * @param FunctionResponse|WP_Error|null $pre     A response to short-circuit with, or null to execute the ability. Default null.
-		 * @param FunctionCall                   $call    The function call requested by the model.
-		 * @param WP_Ability                     $ability The ability that is about to be executed.
-		 */
-		$pre = apply_filters( 'wp_ai_client_pre_resolve_ability_call', null, $call, $ability );
-		if ( $pre instanceof FunctionResponse ) {
-			return $pre;
-		}
-		if ( is_wp_error( $pre ) ) {
-			return new FunctionResponse(
-				$function_id,
-				$function_name,
-				array(
-					'error' => $pre->get_error_message(),
-					'code'  => $pre->get_error_code(),
-					'data'  => $pre->get_error_data(),
 				)
 			);
 		}

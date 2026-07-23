@@ -139,20 +139,12 @@ class Tests_AI_Client_AbilityResolution extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test that an invalid option falls back to the filtered default.
+	 * Test that an invalid option falls back to the default.
 	 *
 	 * @ticket 64865
 	 * @expectedIncorrectUsage WP_AI_Client_Prompt_Builder::using_ability_resolution
 	 */
-	public function test_invalid_max_iterations_falls_back_to_filtered_default() {
-		add_filter(
-			'wp_ai_client_ability_resolution_defaults',
-			static function ( $defaults ) {
-				$defaults['max_iterations'] = 2;
-				return $defaults;
-			}
-		);
-
+	public function test_invalid_max_iterations_falls_back_to_default() {
 		$captured    = array();
 		$call_result = $this->create_function_call_result(
 			array( array( 'call-1', $this->function_name( 'wpaiclienttests/simple' ), array() ) )
@@ -164,38 +156,7 @@ class Tests_AI_Client_AbilityResolution extends WP_UnitTestCase {
 			->using_ability_resolution( array( 'max_iterations' => 0 ) )
 			->generate_text_result();
 
-		$this->assertSame( 2, $result->getAdditionalData()['ability_resolution']['rounds'] );
-	}
-
-	/**
-	 * Test that the defaults filter can change the maximum number of rounds.
-	 *
-	 * @ticket 64865
-	 */
-	public function test_resolution_defaults_can_be_filtered() {
-		add_filter(
-			'wp_ai_client_ability_resolution_defaults',
-			static function ( $defaults ) {
-				$defaults['max_iterations'] = 1;
-				return $defaults;
-			}
-		);
-
-		$captured    = array();
-		$call_result = $this->create_function_call_result(
-			array( array( 'call-1', $this->function_name( 'wpaiclienttests/simple' ), array() ) )
-		);
-
-		// The scripted model keeps returning the function call result.
-		$builder = $this->create_resolution_builder( array( $call_result ), $captured, 'wpaiclienttests/simple' );
-		$result  = $builder->using_ability_resolution()->generate_text_result();
-
-		$this->assertInstanceOf( GenerativeAiResult::class, $result );
-		$this->assertCount( 2, $captured, 'The model should be called once initially and once for the single allowed round.' );
-
-		$resolution = $result->getAdditionalData()['ability_resolution'];
-		$this->assertSame( 'max_iterations', $resolution['stop_reason'] );
-		$this->assertSame( 1, $resolution['rounds'] );
+		$this->assertSame( 5, $result->getAdditionalData()['ability_resolution']['rounds'] );
 	}
 
 	/**
@@ -434,11 +395,11 @@ class Tests_AI_Client_AbilityResolution extends WP_UnitTestCase {
 	 * @ticket 64865
 	 */
 	public function test_stops_when_response_contains_unknown_function_calls() {
-		$resolved_fired = 0;
+		$invoked_abilities = array();
 		add_action(
-			'wp_ai_client_ability_call_resolved',
-			static function () use ( &$resolved_fired ) {
-				++$resolved_fired;
+			'wp_ability_invoked',
+			static function ( $ability_name ) use ( &$invoked_abilities ) {
+				$invoked_abilities[] = $ability_name;
 			}
 		);
 
@@ -461,7 +422,7 @@ class Tests_AI_Client_AbilityResolution extends WP_UnitTestCase {
 
 		$this->assertInstanceOf( GenerativeAiResult::class, $result );
 		$this->assertCount( 1, $captured, 'The loop should not request a follow-up response.' );
-		$this->assertSame( 0, $resolved_fired, 'No ability should be executed when unknown functions are requested.' );
+		$this->assertSame( array(), $invoked_abilities, 'No ability should be executed when unknown functions are requested.' );
 
 		$resolution = $result->getAdditionalData()['ability_resolution'];
 		$this->assertSame( 'unresolved_function_calls', $resolution['stop_reason'] );

@@ -319,29 +319,12 @@ class WP_AI_Client_Prompt_Builder {
 	 * @return self The current instance for method chaining.
 	 */
 	public function using_ability_resolution( array $options = array() ): self {
-		$defaults = array(
-			'max_iterations' => 5,
+		$options = wp_parse_args(
+			$options,
+			array(
+				'max_iterations' => 5,
+			)
 		);
-
-		/**
-		 * Filters the default options for automatic ability resolution.
-		 *
-		 * @since 7.2.0
-		 *
-		 * @param array $defaults Default options. See {@see WP_AI_Client_Prompt_Builder::using_ability_resolution()}
-		 *                        for the supported keys.
-		 */
-		$filtered_defaults = apply_filters( 'wp_ai_client_ability_resolution_defaults', $defaults );
-		if ( is_array( $filtered_defaults ) ) {
-			$defaults = wp_parse_args( $filtered_defaults, $defaults );
-		}
-
-		// Guard against invalid filtered defaults.
-		if ( ! is_int( $defaults['max_iterations'] ) || $defaults['max_iterations'] < 1 ) {
-			$defaults['max_iterations'] = 5;
-		}
-
-		$options = wp_parse_args( $options, $defaults );
 
 		if ( ! is_int( $options['max_iterations'] ) || $options['max_iterations'] < 1 ) {
 			_doing_it_wrong(
@@ -353,7 +336,7 @@ class WP_AI_Client_Prompt_Builder {
 				),
 				'7.2.0'
 			);
-			$options['max_iterations'] = $defaults['max_iterations'];
+			$options['max_iterations'] = 5;
 		}
 
 		$this->ability_resolution_options = array(
