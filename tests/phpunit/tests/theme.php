@@ -457,7 +457,7 @@ class Tests_Theme extends WP_UnitTestCase {
 				$this->assertSame( $theme['Stylesheet'], get_stylesheet() );
 
 				$root_fs = $theme->get_theme_root();
-				$this->assertTrue( is_dir( $root_fs ) );
+				$this->assertDirectoryExists( $root_fs );
 
 				$root_uri = $theme->get_theme_root_uri();
 				$this->assertNotEmpty( $root_uri );
