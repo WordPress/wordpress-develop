@@ -1193,7 +1193,7 @@ function wp_dashboard_cached_rss_widget( $widget_id, $callback, $check_urls = ar
 	$doing_ajax = wp_doing_ajax();
 	$loading    = '<p class="widget-loading hide-if-no-js">' . __( 'Loading&hellip;' ) . '</p>';
 	$loading   .= wp_get_admin_notice(
-		__( 'The WordPress Events and News feeds require Javascript.' ),
+		__( 'The WordPress Events and News feeds require JavaScript.' ),
 		array(
 			'type'               => 'error',
 			'additional_classes' => array( 'inline', 'hide-if-js' ),
@@ -1380,7 +1380,7 @@ function wp_dashboard_events_news() {
  * @since 4.8.0
  */
 function wp_print_community_events_markup() {
-	$community_events_notice  = '<p class="hide-if-js">' . ( 'The WordPress Events and News feeds require Javascript.' ) . '</p>';
+	$community_events_notice  = '<p class="hide-if-js">' . ( 'The WordPress Events and News feeds require JavaScript.' ) . '</p>';
 	$community_events_notice .= '<p class="community-events-error-occurred" aria-hidden="true">' . __( 'An error occurred. Please try again.' ) . '</p>';
 	$community_events_notice .= '<p class="community-events-could-not-locate" aria-hidden="true"></p>';
 
