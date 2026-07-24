@@ -3460,12 +3460,6 @@ class WP_Site_Health {
 
 		$results = array();
 
-		$site_status = array(
-			'good'        => 0,
-			'recommended' => 0,
-			'critical'    => 0,
-		);
-
 		// Don't run https test on development environments.
 		if ( $this->is_development_environment() ) {
 			unset( $tests['async']['https_status'] );
@@ -3547,23 +3541,29 @@ class WP_Site_Health {
 			}
 		}
 
+		$results_to_count = array();
+		$results_to_store = array();
 		foreach ( $results as $result ) {
+			// Filters may return unexpected values, so require the fields used by both caches.
 			if ( ! is_array( $result ) ) {
 				continue;
 			}
 
-			$status = $result['status'] ?? '';
-
-			if ( 'critical' === $status ) {
-				++$site_status['critical'];
-			} elseif ( 'recommended' === $status ) {
-				++$site_status['recommended'];
-			} else {
-				++$site_status['good'];
+			$test   = $result['test'] ?? null;
+			$status = $result['status'] ?? null;
+			if (
+				! is_string( $test )
+				|| '' === sanitize_text_field( $test )
+				|| ! in_array( $status, self::VALID_STATUS_VALUES, true )
+			) {
+				continue;
 			}
+
+			$results_to_count[]        = array( 'status' => $status );
+			$results_to_store[ $test ] = array( 'status' => $status );
 		}
 
-		self::set_site_status_counts( $site_status );
+		self::set_site_status_counts( self::count_site_status_results( $results_to_count ) );
 
 		/*
 		 * Cache the full results separately, keyed by test, so consumers can read the
@@ -3573,14 +3573,6 @@ class WP_Site_Health {
 		 * entries so it does not discard fresher results collected from the Site Health
 		 * screen, which also include the asynchronous tests that require JavaScript to run.
 		 */
-		$results_to_store = array();
-		foreach ( $results as $result ) {
-			$test = $result['test'] ?? null;
-			if ( is_string( $test ) ) {
-				unset( $result['test'] );
-				$results_to_store[ $test ] = wp_array_slice_assoc( $result, array( 'status', 'timestamp' ) );
-			}
-		}
 		self::update_site_status_detail( $results_to_store, false );
 	}
 
