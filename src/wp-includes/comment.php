@@ -2876,10 +2876,10 @@ function wp_update_comment_count( $post_id, $do_deferred = false ) {
  * Retrieves the comment types that are excluded from queries and counts by default.
  *
  * Applies the {@see 'default_excluded_comment_types'} filter and normalizes the
- * result: values are cast to strings, empties and duplicates are removed, and
- * the special type tokens understood by WP_Comment_Query ('all', 'comment',
- * 'comments', 'pings') are stripped - the filter deals in literal
- * `comment_type` values only.
+ * result: non-scalar values are discarded, the rest are cast to strings, empties
+ * and duplicates are removed, and the special type tokens understood by
+ * WP_Comment_Query ('all', 'comment', 'comments', 'pings') are stripped - the
+ * filter deals in literal `comment_type` values only.
  *
  * @since 7.1.0
  *
@@ -2907,7 +2907,7 @@ function wp_get_default_excluded_comment_types( $query = null ) {
 	 *
 	 * Values must be literal `comment_type` values as stored in the database;
 	 * the special type tokens understood by WP_Comment_Query ('all', 'comment',
-	 * 'comments', 'pings') are ignored.
+	 * 'comments', 'pings') are ignored, as are values that are not scalar.
 	 *
 	 * Register callbacks for this filter unconditionally (for example on
 	 * 'plugins_loaded' or 'init') rather than toggling them per call: query
@@ -2931,7 +2931,10 @@ function wp_get_default_excluded_comment_types( $query = null ) {
 	 */
 	$excluded_types = apply_filters( 'default_excluded_comment_types', array( 'note' ), $query );
 
-	$excluded_types = array_unique( array_filter( array_map( 'strval', (array) $excluded_types ), 'strlen' ) );
+	// Drop values that cannot be cast to a string, so a stray object or array cannot error out.
+	$excluded_types = array_filter( (array) $excluded_types, 'is_scalar' );
+
+	$excluded_types = array_unique( array_filter( array_map( 'strval', $excluded_types ), 'strlen' ) );
 
 	// Strip the special type tokens so an alias cannot poison explicit-type queries.
 	return array_values( array_diff( $excluded_types, array( 'all', 'comment', 'comments', 'pings' ) ) );

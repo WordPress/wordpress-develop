@@ -5865,4 +5865,30 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 
 		$this->assertContains( '0', wp_get_default_excluded_comment_types() );
 	}
+
+	/**
+	 * Non-scalar values in the filter output are dropped rather than cast, so a
+	 * stray object or array does not error out.
+	 *
+	 * @ticket 65537
+	 * @covers ::wp_get_default_excluded_comment_types
+	 */
+	public function test_default_excluded_comment_types_filter_drops_non_scalar_values() {
+		add_filter(
+			'default_excluded_comment_types',
+			static function ( array $types ): array {
+				$types[] = new stdClass();
+				$types[] = array( 'nested' );
+				$types[] = null;
+				$types[] = 'private';
+				return $types;
+			}
+		);
+
+		$this->assertSame(
+			array( 'note', 'private' ),
+			wp_get_default_excluded_comment_types(),
+			'Only the scalar comment types should survive normalization.'
+		);
+	}
 }
