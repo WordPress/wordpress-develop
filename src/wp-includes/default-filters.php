@@ -87,17 +87,6 @@ foreach ( array(
 	add_filter( $filter, 'wp_filter_kses' );
 }
 
-// Email addresses: Allow unicode if and only if as the database can
-// store them. This affects all addresses, including those entered
-// into contact forms.
-if ( 'utf8mb4' === $wpdb->charset ) {
-	add_filter( 'is_email', 'wp_is_unicode_email', 10, 3 );
-	add_filter( 'sanitize_email', 'wp_sanitize_unicode_email', 10, 3 );
-} else {
-	add_filter( 'is_email', 'wp_is_ascii_email', 10, 3 );
-	add_filter( 'sanitize_email', 'wp_sanitize_ascii_email', 10, 3 );
-}
-
 // Display URL.
 foreach ( array( 'user_url', 'link_url', 'link_image', 'link_rss', 'comment_url', 'post_guid' ) as $filter ) {
 	if ( is_admin() ) {
@@ -321,6 +310,11 @@ add_filter( 'sanitize_title', 'sanitize_title_with_dashes', 10, 3 );
 add_action( 'check_comment_flood', 'check_comment_flood_db', 10, 4 );
 add_filter( 'comment_flood_filter', 'wp_throttle_comment_flood', 10, 3 );
 add_filter( 'pre_comment_content', 'wp_rel_ugc', 15 );
+
+// Note mention chips in comment content: allow `span` through comment kses,
+// then reduce its classes to the mention tokens right after `wp_filter_kses`.
+add_filter( 'wp_kses_allowed_html', '_wp_kses_allow_note_mention_span', 10, 2 );
+add_filter( 'pre_comment_content', '_wp_kses_sanitize_note_mention_classes', 11 );
 add_filter( 'comment_email', 'antispambot' );
 add_filter( 'option_tag_base', '_wp_filter_taxonomy_base' );
 add_filter( 'option_category_base', '_wp_filter_taxonomy_base' );
