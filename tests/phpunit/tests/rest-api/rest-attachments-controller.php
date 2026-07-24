@@ -5331,6 +5331,70 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	}
 
 	/**
+	 * Verifies that the URL sideload path enforces the multisite maximum file
+	 * size, for parity with the multipart and raw-body upload paths.
+	 *
+	 * @ticket 65517
+	 * @group multisite
+	 * @group ms-required
+	 *
+	 * @covers WP_REST_Attachments_Controller::create_item_from_url
+	 * @covers WP_REST_Attachments_Controller::check_upload_size
+	 */
+	public function test_create_item_from_url_exceeds_multisite_max_filesize() {
+		$this->enable_client_side_media_processing();
+
+		wp_set_current_user( self::$superadmin_id );
+		update_site_option( 'fileupload_maxk', 1 );
+		update_site_option( 'upload_space_check_disabled', false );
+
+		// Ensure ample space is available so the file-size limit is what rejects it.
+		add_filter( 'pre_get_space_used', '__return_zero' );
+		add_filter( 'pre_http_request', array( $this, 'mock_image_download' ), 10, 3 );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
+		$request->set_param( 'url', 'https://example.com/too-big.jpg' );
+		$request->set_param( 'generate_sub_sizes', false );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		remove_filter( 'pre_http_request', array( $this, 'mock_image_download' ), 10 );
+
+		$this->assertErrorResponse( 'rest_upload_file_too_big', $response, 400 );
+	}
+
+	/**
+	 * Verifies that the URL sideload path enforces the multisite site upload
+	 * space quota, for parity with the multipart and raw-body upload paths.
+	 *
+	 * @ticket 65517
+	 * @group multisite
+	 * @group ms-required
+	 *
+	 * @covers WP_REST_Attachments_Controller::create_item_from_url
+	 * @covers WP_REST_Attachments_Controller::check_upload_size
+	 */
+	public function test_create_item_from_url_exceeds_multisite_site_upload_space() {
+		$this->enable_client_side_media_processing();
+
+		wp_set_current_user( self::$superadmin_id );
+		add_filter( 'get_space_allowed', '__return_zero' );
+		update_site_option( 'upload_space_check_disabled', false );
+
+		add_filter( 'pre_http_request', array( $this, 'mock_image_download' ), 10, 3 );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
+		$request->set_param( 'url', 'https://example.com/no-space.jpg' );
+		$request->set_param( 'generate_sub_sizes', false );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		remove_filter( 'pre_http_request', array( $this, 'mock_image_download' ), 10 );
+
+		$this->assertErrorResponse( 'rest_upload_limited_space', $response, 400 );
+	}
+
+	/**
 	 * Verifies that a URL with no usable path bails with a 400 before any
 	 * download is attempted, rather than handing an empty filename to the
 	 * sideload handler.
