@@ -12,6 +12,10 @@
 	padding-left: 20px;
 }
 
+#wpcontent section.wrap.hide-if-js {
+	padding-inline-start: 20px;
+}
+
 #wpcontent,
 #wpfooter {
 	margin-left: 160px;
@@ -4021,6 +4025,10 @@ img {
 		position: relative;
 		margin-left: 0;
 		padding-left: 10px;
+	}
+
+	#wpcontent section.wrap.hide-if-js {
+		padding-inline-start: 10px;
 	}
 
 	#wpbody-content {

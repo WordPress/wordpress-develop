@@ -27,14 +27,27 @@ if ( ! class_exists( '\WordPress\AiClient\AiClient' ) || ! function_exists( 'wp_
 }
 
 // Set the page title.
-$title       = __( 'Connectors' );
-$description = __( 'The Connectors screen requires JavaScript. Please enable JavaScript in your browser to manage your service integrations.' );
-
+$title               = __( 'Connectors' );
+$js_required_message = __( 'The Connectors screen requires JavaScript. Please enable JavaScript in your browser to manage your AI connectors.' );
 
 // Set parent file for menu highlighting.
 $parent_file = 'options-general.php';
 
 require_once ABSPATH . 'wp-admin/admin-header.php';
+
+?>
+<section class="wrap hide-if-js">
+	<h1><?php echo esc_html( $title )?></h1>
+	<?php
+		wp_admin_notice(
+			$js_required_message,
+			array(
+				'additional_classes' => array( 'error', 'hide-if-js' ),
+			)
+		);
+	?>
+</section>
+<?php
 
 // Render the Connectors page.
 wp_options_connectors_wp_admin_render_page();

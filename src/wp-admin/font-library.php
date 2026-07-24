@@ -28,10 +28,24 @@ if ( ! function_exists( 'wp_font_library_wp_admin_render_page' ) ) {
 }
 
 // Set the page title
-$title       = _x( 'Fonts', 'Font Library admin page title' );
-$description = __( 'The Fonts screen requires JavaScript. Please enable JavaScript in your browser to install and manage fonts.' );
+$title               = _x( 'Fonts', 'Font Library admin page title' );
+$js_required_message = __( 'The Fonts screen requires JavaScript. Please enable JavaScript in your browser to install and manage fonts.' );
 
 require_once ABSPATH . 'wp-admin/admin-header.php';
+
+?>
+<section class="wrap hide-if-js">
+	<h1><?php echo esc_html( $title )?></h1>
+	<?php
+		wp_admin_notice(
+			$js_required_message,
+			array(
+				'additional_classes' => array( 'error', 'hide-if-js' ),
+			)
+		);
+	?>
+</section>
+<?php
 
 // Render the Font Library page
 wp_font_library_wp_admin_render_page();
