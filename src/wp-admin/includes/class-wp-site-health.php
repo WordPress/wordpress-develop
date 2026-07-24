@@ -3680,9 +3680,8 @@ class WP_Site_Health {
 				return new WP_Error( 'invalid_test' );
 			}
 
-			// TODO: Return as error.
 			$validity = rest_validate_value_from_schema( $result, self::STORED_STATUS_SCHEMA['properties']['results']['additionalProperties'] );
-			if ( true !== $validity ) {
+			if ( is_wp_error( $validity ) ) {
 				return $validity;
 			}
 			/** @var Stored_Test_Result $result */
