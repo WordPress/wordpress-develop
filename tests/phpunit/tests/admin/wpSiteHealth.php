@@ -811,16 +811,29 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 		remove_filter( 'site_status_tests', $filter );
 
 		// The counts transient holds only the aggregate counts, so it stays small enough to autoload.
-		$transient = get_transient( WP_Site_Health::STATUS_RESULT_TRANSIENT );
-		$this->assertIsString( $transient );
+		$counts_transient = get_transient( WP_Site_Health::STATUS_RESULT_TRANSIENT );
+		$this->assertIsString( $counts_transient );
+		$stored_counts = json_decode( $counts_transient, true );
+		$this->assertIsArray( $stored_counts );
 		$this->assertSame(
 			array(
 				'good'        => 1,
 				'recommended' => 1,
 				'critical'    => 1,
 			),
-			json_decode( $transient, true ),
+			$stored_counts,
 			'The counts transient should contain only the aggregate counts.'
+		);
+
+		// The detail transient stores only results and a timestamp; counts are derived when it is read.
+		$detail_transient = get_transient( WP_Site_Health::STATUS_DETAIL_TRANSIENT );
+		$this->assertIsString( $detail_transient );
+		$stored_detail = json_decode( $detail_transient, true );
+		$this->assertIsArray( $stored_detail );
+		$this->assertSameSets(
+			array( 'results', 'timestamp' ),
+			array_keys( $stored_detail ),
+			'The detail transient should contain only the results and timestamp.'
 		);
 
 		// The detailed cache holds every result, including the passing one.
@@ -1034,6 +1047,24 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 			),
 			WP_Site_Health::get_site_status_counts()
 		);
+	}
+
+	/**
+	 * The counts accessor returns the cached aggregate counts.
+	 *
+	 * @ticket 65232
+	 *
+	 * @covers ::get_site_status_counts
+	 */
+	public function test_get_site_status_counts_returns_cached_counts(): void {
+		$counts = array(
+			'good'        => 3,
+			'recommended' => 2,
+			'critical'    => 1,
+		);
+		set_transient( WP_Site_Health::STATUS_RESULT_TRANSIENT, wp_json_encode( $counts ) );
+
+		$this->assertSame( $counts, WP_Site_Health::get_site_status_counts() );
 	}
 
 	/**

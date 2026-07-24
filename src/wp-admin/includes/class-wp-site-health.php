@@ -19,7 +19,11 @@
  * }
  * @phpstan-type Stored_Test_Results array{
  *     results: array<non-empty-string, Stored_Test_Result>,
- *     counts: Test_Status_Counts, // TODO: This is redundant.
+ *     timestamp: non-negative-int,
+ * }
+ * @phpstan-type Site_Status_Detail array{
+ *     results: array<non-empty-string, Stored_Test_Result>,
+ *     counts: Test_Status_Counts,
  *     timestamp: non-negative-int,
  * }
  */
@@ -47,6 +51,24 @@ class WP_Site_Health {
 
 	private const VALID_STATUS_VALUES = array( 'good', 'recommended', 'critical' );
 
+	private const STATUS_COUNTS_SCHEMA = array(
+		'type'       => 'object',
+		'properties' => array(
+			'good'        => array(
+				'type'    => 'integer',
+				'minimum' => 0,
+			),
+			'recommended' => array(
+				'type'    => 'integer',
+				'minimum' => 0,
+			),
+			'critical'    => array(
+				'type'    => 'integer',
+				'minimum' => 0,
+			),
+		),
+	);
+
 	private const STORED_STATUS_SCHEMA = array(
 		'type'       => 'object',
 		'properties' => array(
@@ -68,30 +90,12 @@ class WP_Site_Health {
 					'additionalProperties' => false,
 				),
 			),
-			// TODO: This counts is redundant. Why store it? It can be computed at runtime from the results.
-			'counts'    => array(
-				'type'       => 'object',
-				'properties' => array(
-					'good'        => array(
-						'type'    => 'integer',
-						'minimum' => 0,
-					),
-					'recommended' => array(
-						'type'    => 'integer',
-						'minimum' => 0,
-					),
-					'critical'    => array(
-						'type'    => 'integer',
-						'minimum' => 0,
-					),
-				),
-			),
 			'timestamp' => array(
 				'type'    => 'integer',
 				'minimum' => 1,
 			),
 		),
-		'required'   => array( 'results', 'counts' ),
+		'required'   => array( 'results' ),
 	);
 
 	/**
@@ -3588,7 +3592,16 @@ class WP_Site_Health {
 	 * @return Test_Status_Counts Aggregate counts. Each value is `0` when no result has been cached.
 	 */
 	public static function get_site_status_counts(): array {
-		return self::read_status_cache( self::STATUS_RESULT_TRANSIENT )['counts'];
+		$counts = get_transient( self::STATUS_RESULT_TRANSIENT );
+		if ( is_string( $counts ) ) {
+			$counts = json_decode( $counts, true );
+		}
+
+		if ( ! is_array( $counts ) || is_wp_error( rest_validate_value_from_schema( $counts, self::STATUS_COUNTS_SCHEMA ) ) ) {
+			$counts = array();
+		}
+
+		return self::normalize_status_counts( $counts );
 	}
 
 	/**
@@ -3600,7 +3613,7 @@ class WP_Site_Health {
 	 * @return true|WP_Error True when the counts were saved, or WP_Error on failure.
 	 */
 	public static function set_site_status_counts( array $counts ) {
-		$validity = rest_validate_value_from_schema( $counts, self::STORED_STATUS_SCHEMA['properties']['counts'] );
+		$validity = rest_validate_value_from_schema( $counts, self::STATUS_COUNTS_SCHEMA );
 		if ( is_wp_error( $validity ) ) {
 			return $validity;
 		}
@@ -3631,10 +3644,16 @@ class WP_Site_Health {
 	 * @return array The cached results as a list, aggregate counts derived from those same results, and
 	 *   the time of the most recent update. `results` is empty, all counts are `0`, and
 	 *   `timestamp` is `0` when none are cached.
-	 * @phpstan-return Stored_Test_Results
+	 * @phpstan-return Site_Status_Detail
 	 */
 	public static function get_site_status_detail(): array {
-		return self::read_status_cache( self::STATUS_DETAIL_TRANSIENT );
+		$cached = self::read_status_cache( self::STATUS_DETAIL_TRANSIENT );
+
+		return array(
+			'results'   => $cached['results'],
+			'counts'    => self::count_site_status_results( array_values( $cached['results'] ) ),
+			'timestamp' => $cached['timestamp'],
+		);
 	}
 
 	/**
@@ -3707,8 +3726,6 @@ class WP_Site_Health {
 		$stored_value = wp_json_encode(
 			array(
 				'results'   => $cached['results'],
-				// A counts snapshot derived from the same results, kept for self-describing cache reads.
-				'counts'    => self::count_site_status_results( array_values( $cached['results'] ) ),
 				'timestamp' => $now,
 			)
 		);
@@ -3746,16 +3763,8 @@ class WP_Site_Health {
 		if ( true !== $validity ) {
 			$cached = array(
 				'results'   => array(),
-				'counts'    => array(),
 				'timestamp' => 0,
 			);
-		}
-
-		foreach ( array_keys( self::STORED_STATUS_SCHEMA['properties']['counts']['properties'] ) as $key ) {
-			/** @var array{ counts: array<string, int>, ... } $cached */
-			if ( ! isset( $cached['counts'][ $key ] ) ) {
-				$cached['counts'][ $key ] = 0;
-			}
 		}
 
 		/** @var Stored_Test_Results $cached */

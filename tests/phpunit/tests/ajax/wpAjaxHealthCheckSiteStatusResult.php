@@ -231,7 +231,6 @@ class Tests_Ajax_wpAjaxHealthCheckSiteStatusResult extends WP_Ajax_UnitTestCase 
 							'timestamp' => $now,
 						),
 					),
-					'counts'    => array(),
 					'timestamp' => $now,
 				)
 			),
