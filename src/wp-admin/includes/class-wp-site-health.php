@@ -3458,7 +3458,8 @@ class WP_Site_Health {
 
 		$tests = WP_Site_Health::get_tests();
 
-		$results = array();
+		$results           = array();
+		$unavailable_tests = array();
 
 		// Don't run https test on development environments.
 		if ( $this->is_development_environment() ) {
@@ -3531,8 +3532,9 @@ class WP_Site_Health {
 				if ( is_array( $result ) ) {
 					$results[] = $result;
 				} else {
-					// Include the test identifier so the result is counted and cached consistently.
-					$results[] = array(
+					// Include the test identifier so the unavailable result is counted consistently.
+					$unavailable_tests[ $test_name ] = true;
+					$results[]                       = array(
 						'test'   => $test_name,
 						'status' => 'recommended',
 						'label'  => __( 'A test is unavailable' ),
@@ -3559,8 +3561,10 @@ class WP_Site_Health {
 				continue;
 			}
 
-			$results_to_count[]        = array( 'status' => $status );
-			$results_to_store[ $test ] = array( 'status' => $status );
+			$results_to_count[] = array( 'status' => $status );
+			if ( ! isset( $unavailable_tests[ $test ] ) ) {
+				$results_to_store[ $test ] = array( 'status' => $status );
+			}
 		}
 
 		self::set_site_status_counts( self::count_site_status_results( $results_to_count ) );
@@ -3569,11 +3573,11 @@ class WP_Site_Health {
 		 * Cache the full results separately, keyed by test, so consumers can read the
 		 * detailed Site Health status without re-running the tests.
 		 *
-		 * The scheduled check is not authoritative: it refreshes only missing or stale
-		 * entries so it does not discard fresher results collected from the Site Health
-		 * screen, which also include the asynchronous tests that require JavaScript to run.
+		 * Only verified results are included. An unavailable asynchronous test is still
+		 * reflected in the aggregate counts, but does not replace a previously verified
+		 * detailed result.
 		 */
-		self::update_site_status_detail( $results_to_store, false );
+		self::update_site_status_detail( $results_to_store );
 	}
 
 	/**
@@ -3657,19 +3661,11 @@ class WP_Site_Health {
 	 *
 	 * @since 7.1.0
 	 *
-	 * @param array<string, mixed[]> $results        Map of raw Site Health test result arrays,
-	 *                                               keyed by test name.
-	 * @param bool                   $includes_async Whether the results include the JavaScript-only
-	 *                                               asynchronous tests. The Site Health screen passes
-	 *                                               `true` because it collects those tests in the browser,
-	 *                                               so its entries take precedence over existing cached
-	 *                                               ones. The scheduled check passes `false` since it cannot
-	 *                                               run the asynchronous tests, so it only fills in missing
-	 *                                               or stale entries without discarding fresher results from
-	 *                                               the screen.
+	 * @param array<string, mixed[]> $results Map of raw Site Health test result arrays,
+	 *                                        keyed by test name.
 	 * @return true|WP_Error True on success, WP_Error on failure.
 	 */
-	public static function update_site_status_detail( array $results, bool $includes_async ) {
+	public static function update_site_status_detail( array $results ) {
 		$now = time();
 
 		$cached = self::read_site_status_detail_cache();
@@ -3689,20 +3685,6 @@ class WP_Site_Health {
 				return $validity;
 			}
 			/** @var Stored_Test_Result $result */
-
-			/*
-			 * When the results omit the asynchronous tests, keep a recent existing entry
-			 * rather than overwriting it. This preserves results collected from the Site
-			 * Health screen (including the asynchronous tests) when the scheduled check
-			 * runs afterwards.
-			 */
-			if (
-				! $includes_async
-				&& isset( $cached['results'][ $test ] )
-				&& ( $now - $cached['results'][ $test ]['timestamp'] ) < WEEK_IN_SECONDS
-			) {
-				continue;
-			}
 
 			$cached['results'][ $test ] = $result;
 		}

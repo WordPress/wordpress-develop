@@ -5494,7 +5494,7 @@ function wp_ajax_health_check_site_status_result() {
 		$results = json_decode( wp_unslash( $_POST['results'] ), true );
 
 		if ( is_array( $results ) ) {
-			$save_results[] = WP_Site_Health::update_site_status_detail( $results, true );
+			$save_results[] = WP_Site_Health::update_site_status_detail( $results );
 		}
 	}
 
