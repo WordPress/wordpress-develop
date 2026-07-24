@@ -166,7 +166,7 @@ jQuery( function( $ ) {
 		 * include the asynchronous tests that only run in the browser. Labels are left
 		 * out on purpose, as they are translated and the cache is shared across locales.
 		 */
-		SiteHealth.site_status[ issue.test ] = {
+		SiteHealth.site_status.results[ issue.test ] = {
 			status: issue.status
 		};
 
