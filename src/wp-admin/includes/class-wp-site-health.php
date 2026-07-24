@@ -3620,7 +3620,7 @@ class WP_Site_Health {
 		}
 
 		if ( ! set_transient( self::STATUS_RESULT_TRANSIENT, wp_json_encode( $counts ) ) ) {
-			return new WP_Error( 'set_transient_error' );
+			return new WP_Error( 'set_transient_error', __( 'The Site Health status counts could not be saved.' ) );
 		}
 
 		return true;
@@ -3673,7 +3673,7 @@ class WP_Site_Health {
 		foreach ( $results as $test => $result ) {
 			$test = sanitize_text_field( $test );
 			if ( '' === $test ) {
-				return new WP_Error( 'invalid_test' );
+				return new WP_Error( 'invalid_test', __( 'The Site Health test identifier is invalid.' ) );
 			}
 
 			if ( is_array( $result ) ) {
@@ -3707,7 +3707,7 @@ class WP_Site_Health {
 		}
 
 		if ( ! set_transient( self::STATUS_DETAIL_TRANSIENT, $stored_value, MONTH_IN_SECONDS ) ) {
-			return new WP_Error( 'set_transient_error' );
+			return new WP_Error( 'set_transient_error', __( 'The detailed Site Health status could not be saved.' ) );
 		}
 		return true;
 	}
