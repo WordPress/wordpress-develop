@@ -225,9 +225,9 @@ if ( 'grid' === $mode ) {
 			wp_admin_notice(
 				$message,
 				array(
-					'id'                 => 'message',
-					'additional_classes' => array( 'updated' ),
-					'dismissible'        => true,
+					'id'          => 'message',
+					'type'        => 'success',
+					'dismissible' => true,
 				)
 			);
 		}
@@ -240,7 +240,8 @@ if ( 'grid' === $mode ) {
 		wp_admin_notice(
 			$js_required_message,
 			array(
-				'additional_classes' => array( 'error', 'hide-if-js' ),
+				'type'               => 'error',
+				'additional_classes' => array( 'hide-if-js' ),
 			)
 		);
 		?>
@@ -442,9 +443,9 @@ if ( ! empty( $message ) ) {
 	wp_admin_notice(
 		$message,
 		array(
-			'id'                 => 'message',
-			'additional_classes' => array( 'updated' ),
-			'dismissible'        => true,
+			'id'          => 'message',
+			'type'        => 'success',
+			'dismissible' => true,
 		)
 	);
 }

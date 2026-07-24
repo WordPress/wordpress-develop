@@ -325,7 +325,7 @@ switch ( $wp_list_table->current_action() ) {
 			wp_admin_notice(
 				'<strong>' . __( 'Error:' ) . '</strong> ' . __( 'Please select an option.' ),
 				array(
-					'additional_classes' => array( 'error' ),
+					'type' => 'error',
 				)
 			);
 		endif;
@@ -652,9 +652,9 @@ switch ( $wp_list_table->current_action() ) {
 					$messages[] = wp_get_admin_notice(
 						$message,
 						array(
-							'id'                 => 'message',
-							'additional_classes' => array( 'updated' ),
-							'dismissible'        => true,
+							'id'          => 'message',
+							'type'        => 'success',
+							'dismissible' => true,
 						)
 					);
 					break;
@@ -678,9 +678,9 @@ switch ( $wp_list_table->current_action() ) {
 					$messages[] = wp_get_admin_notice(
 						$message,
 						array(
-							'id'                 => 'message',
-							'additional_classes' => array( 'updated' ),
-							'dismissible'        => true,
+							'id'          => 'message',
+							'type'        => 'success',
+							'dismissible' => true,
 						)
 					);
 					break;
@@ -696,9 +696,9 @@ switch ( $wp_list_table->current_action() ) {
 					$messages[] = wp_get_admin_notice(
 						$message,
 						array(
-							'id'                 => 'message',
-							'additional_classes' => array( 'updated' ),
-							'dismissible'        => true,
+							'id'          => 'message',
+							'type'        => 'success',
+							'dismissible' => true,
 						)
 					);
 					break;
@@ -706,9 +706,9 @@ switch ( $wp_list_table->current_action() ) {
 					$messages[] = wp_get_admin_notice(
 						__( 'Changed roles.' ),
 						array(
-							'id'                 => 'message',
-							'additional_classes' => array( 'updated' ),
-							'dismissible'        => true,
+							'id'          => 'message',
+							'type'        => 'success',
+							'dismissible' => true,
 						)
 					);
 					break;
@@ -716,18 +716,18 @@ switch ( $wp_list_table->current_action() ) {
 					$messages[] = wp_get_admin_notice(
 						__( 'You cannot change your own role to one that does not allow managing other users. Your role was not changed.' ),
 						array(
-							'id'                 => 'message',
-							'additional_classes' => array( 'error' ),
-							'dismissible'        => true,
+							'id'          => 'message',
+							'type'        => 'error',
+							'dismissible' => true,
 						)
 					);
 					if ( $delete_count > 0 ) {
 						$messages[] = wp_get_admin_notice(
 							__( 'Other user roles have been changed.' ),
 							array(
-								'id'                 => 'message',
-								'additional_classes' => array( 'updated' ),
-								'dismissible'        => true,
+								'id'          => 'message',
+								'type'        => 'success',
+								'dismissible' => true,
 							)
 						);
 					}
@@ -736,18 +736,18 @@ switch ( $wp_list_table->current_action() ) {
 					$messages[] = wp_get_admin_notice(
 						__( 'You cannot delete the current user.' ),
 						array(
-							'id'                 => 'message',
-							'additional_classes' => array( 'error' ),
-							'dismissible'        => true,
+							'id'          => 'message',
+							'type'        => 'error',
+							'dismissible' => true,
 						)
 					);
 					if ( $delete_count > 0 ) {
 						$messages[] = wp_get_admin_notice(
 							__( 'Other users have been deleted.' ),
 							array(
-								'id'                 => 'message',
-								'additional_classes' => array( 'updated' ),
-								'dismissible'        => true,
+								'id'          => 'message',
+								'type'        => 'success',
+								'dismissible' => true,
 							)
 						);
 					}
@@ -756,18 +756,18 @@ switch ( $wp_list_table->current_action() ) {
 					$messages[] = wp_get_admin_notice(
 						__( 'Users could not be deleted because no user was selected for content reassignment.' ),
 						array(
-							'id'                 => 'message',
-							'additional_classes' => array( 'error' ),
-							'dismissible'        => true,
+							'id'          => 'message',
+							'type'        => 'error',
+							'dismissible' => true,
 						)
 					);
 					if ( $delete_count > 0 ) {
 						$messages[] = wp_get_admin_notice(
 							__( 'Other users have been deleted.' ),
 							array(
-								'id'                 => 'message',
-								'additional_classes' => array( 'updated' ),
-								'dismissible'        => true,
+								'id'          => 'message',
+								'type'        => 'success',
+								'dismissible' => true,
 							)
 						);
 					}
@@ -777,7 +777,8 @@ switch ( $wp_list_table->current_action() ) {
 						__( 'User removed from this site.' ),
 						array(
 							'id'                 => 'message',
-							'additional_classes' => array( 'updated', 'fade' ),
+							'type'               => 'success',
+							'additional_classes' => array( 'fade' ),
 							'dismissible'        => true,
 						)
 					);
@@ -786,16 +787,17 @@ switch ( $wp_list_table->current_action() ) {
 					$messages[] = wp_get_admin_notice(
 						__( 'You cannot remove the current user.' ),
 						array(
-							'id'                 => 'message',
-							'additional_classes' => array( 'error' ),
-							'dismissible'        => true,
+							'id'          => 'message',
+							'type'        => 'error',
+							'dismissible' => true,
 						)
 					);
 					$messages[] = wp_get_admin_notice(
 						__( 'Other users have been removed.' ),
 						array(
 							'id'                 => 'message',
-							'additional_classes' => array( 'updated', 'fade' ),
+							'type'               => 'success',
+							'additional_classes' => array( 'fade' ),
 							'dismissible'        => true,
 						)
 					);
@@ -813,7 +815,7 @@ switch ( $wp_list_table->current_action() ) {
 			wp_admin_notice(
 				'<ul>' . $error_message . '</ul>',
 				array(
-					'additional_classes' => array( 'error' ),
+					'type' => 'error',
 				)
 			);
 		endif;

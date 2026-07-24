@@ -1075,7 +1075,7 @@ if ( 'upgrade-core' === $action ) {
 				wp_admin_notice(
 					__( 'Please select one or more themes to update.' ),
 					array(
-						'additional_classes' => array( 'error' ),
+						'type' => 'error',
 					)
 				);
 			}
@@ -1085,7 +1085,7 @@ if ( 'upgrade-core' === $action ) {
 				wp_admin_notice(
 					__( 'Please select one or more plugins to update.' ),
 					array(
-						'additional_classes' => array( 'error' ),
+						'type' => 'error',
 					)
 				);
 			}

@@ -448,10 +448,9 @@ if ( $message ) :
 	wp_admin_notice(
 		$message,
 		array(
-			'type'               => 'success',
-			'dismissible'        => true,
-			'id'                 => 'message',
-			'additional_classes' => array( 'updated' ),
+			'type'        => 'success',
+			'dismissible' => true,
+			'id'          => 'message',
 		)
 	);
 endif;
@@ -466,7 +465,8 @@ wp_admin_notice(
 	$connection_lost_message,
 	array(
 		'id'                 => 'lost-connection-notice',
-		'additional_classes' => array( 'error', 'hidden' ),
+		'type'               => 'error',
+		'additional_classes' => array( 'hidden' ),
 	)
 );
 ?>

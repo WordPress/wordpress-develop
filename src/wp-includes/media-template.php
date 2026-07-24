@@ -385,8 +385,8 @@ function wp_print_media_templates() {
 				wp_admin_notice(
 					__( 'The Edit Media screen is deprecated as of WordPress 6.3. Please use the Media Library instead.' ),
 					array(
-						'id'                 => 'message',
-						'additional_classes' => array( 'error' ),
+						'id'   => 'message',
+						'type' => 'error',
 					)
 				);
 			}

@@ -347,7 +347,7 @@ if ( $action ) {
 						wp_admin_notice(
 							$maybe_active_plugin,
 							array(
-								'additional_classes' => array( 'error' ),
+								'type' => 'error',
 							)
 						);
 					endif;
@@ -361,7 +361,7 @@ if ( $action ) {
 						wp_admin_notice(
 							$maybe_active_plugins,
 							array(
-								'additional_classes' => array( 'error' ),
+								'type' => 'error',
 							)
 						);
 					endif;
@@ -648,8 +648,8 @@ if ( ! empty( $invalid ) ) {
 		wp_admin_notice(
 			$deactivated_message,
 			array(
-				'id'                 => 'message',
-				'additional_classes' => array( 'error' ),
+				'id'   => 'message',
+				'type' => 'error',
 			)
 		);
 	}
@@ -657,9 +657,9 @@ if ( ! empty( $invalid ) ) {
 
 // Used by wp_admin_notice() updated notices.
 $updated_notice_args = array(
-	'id'                 => 'message',
-	'additional_classes' => array( 'updated' ),
-	'dismissible'        => true,
+	'id'          => 'message',
+	'type'        => 'success',
+	'dismissible' => true,
 );
 if ( isset( $_GET['error'] ) ) {
 
@@ -700,8 +700,8 @@ if ( isset( $_GET['error'] ) ) {
 	wp_admin_notice(
 		$errmsg,
 		array(
-			'id'                 => 'message',
-			'additional_classes' => array( 'error' ),
+			'id'   => 'message',
+			'type' => 'error',
 		)
 	);
 
@@ -719,9 +719,9 @@ if ( isset( $_GET['error'] ) ) {
 		wp_admin_notice(
 			$plugin_not_deleted_message,
 			array(
-				'id'                 => 'message',
-				'additional_classes' => array( 'error' ),
-				'dismissible'        => true,
+				'id'          => 'message',
+				'type'        => 'error',
+				'dismissible' => true,
 			)
 		);
 	} else {

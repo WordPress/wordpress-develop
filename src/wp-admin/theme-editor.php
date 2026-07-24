@@ -194,9 +194,9 @@ if ( isset( $_GET['a'] ) ) {
 	wp_admin_notice(
 		__( 'File edited successfully.' ),
 		array(
-			'id'                 => 'message',
-			'dismissible'        => true,
-			'additional_classes' => array( 'updated' ),
+			'id'          => 'message',
+			'dismissible' => true,
+			'type'        => 'success',
 		)
 	);
 } elseif ( is_wp_error( $edit_error ) ) {
@@ -313,7 +313,7 @@ if ( $theme->errors() ) {
 	wp_admin_notice(
 		'<strong>' . __( 'This theme is broken.' ) . '</strong> ' . $theme->errors()->get_error_message(),
 		array(
-			'additional_classes' => array( 'error' ),
+			'type' => 'error',
 		)
 	);
 }
@@ -350,7 +350,7 @@ if ( $error ) :
 	wp_admin_notice(
 		__( 'File does not exist! Please double check the name and try again.' ),
 		array(
-			'additional_classes' => array( 'error' ),
+			'type' => 'error',
 		)
 	);
 else :
