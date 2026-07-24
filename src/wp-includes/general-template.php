@@ -871,8 +871,16 @@ function wp_lostpassword_url( $redirect = '' ) {
 	}
 
 	if ( is_multisite() ) {
-		$blog_details  = get_site();
-		$wp_login_path = $blog_details->path . 'wp-login.php';
+		$blog_details    = get_site();
+		$current_network = get_network();
+		$site_path       = $blog_details->path;
+
+		// Strip the network's base path, as network_site_url() below adds it back.
+		if ( $current_network && str_starts_with( $site_path, $current_network->path ) ) {
+			$site_path = substr( $site_path, strlen( $current_network->path ) );
+		}
+
+		$wp_login_path = $site_path . 'wp-login.php';
 	} else {
 		$wp_login_path = 'wp-login.php';
 	}
