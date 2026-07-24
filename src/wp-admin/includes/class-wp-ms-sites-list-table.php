@@ -884,4 +884,23 @@ class WP_MS_Sites_List_Table extends WP_List_Table {
 
 		return $this->row_actions( $actions );
 	}
+
+	/**
+	 * Returns a clean label for the primary (URL) column's row header `aria-label`.
+	 *
+	 * Provides screen readers with just the Site Title as the row header name,
+	 * preventing them from computing the name from the full cell content.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @param array $blog The current site properties array.
+	 * @return string The Site title.
+	 */
+	protected function get_primary_column_aria_label( $blog ) {
+		switch_to_blog( $blog['blog_id'] );
+		$site_title = get_option( 'blogname' );
+		restore_current_blog();
+
+		return $site_title;
+	}
 }
