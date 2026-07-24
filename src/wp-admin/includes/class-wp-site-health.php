@@ -3641,9 +3641,9 @@ class WP_Site_Health {
 	 * @since 7.1.0
 	 * @todo This method is now not used.
 	 *
-	 * @return array The cached results as a list, aggregate counts derived from those same results, and
-	 *   the time of the most recent update. `results` is empty, all counts are `0`, and
-	 *   `timestamp` is `0` when none are cached.
+	 * @return array The cached results as a map keyed by test name, aggregate counts derived
+	 *               from those same results, and the time of the most recent update. `results`
+	 *               is empty, all counts are `0`, and `timestamp` is `0` when none are cached.
 	 * @phpstan-return Site_Status_Detail
 	 */
 	public static function get_site_status_detail(): array {
@@ -3665,14 +3665,16 @@ class WP_Site_Health {
 	 *
 	 * @since 7.1.0
 	 *
-	 * @param mixed[] $results        List of raw Site Health test result arrays.
-	 * @param bool    $includes_async Whether the results include the JavaScript-only
-	 *                                asynchronous tests. The Site Health screen passes `true`
-	 *                                because it collects those tests in the browser, so its
-	 *                                entries take precedence over existing cached ones. The
-	 *                                scheduled check passes `false` since it cannot run the
-	 *                                asynchronous tests, so it only fills in missing or stale
-	 *                                entries without discarding fresher results from the screen.
+	 * @param array<string, mixed[]> $results        Map of raw Site Health test result arrays,
+	 *                                               keyed by test name.
+	 * @param bool                   $includes_async Whether the results include the JavaScript-only
+	 *                                               asynchronous tests. The Site Health screen passes
+	 *                                               `true` because it collects those tests in the browser,
+	 *                                               so its entries take precedence over existing cached
+	 *                                               ones. The scheduled check passes `false` since it cannot
+	 *                                               run the asynchronous tests, so it only fills in missing
+	 *                                               or stale entries without discarding fresher results from
+	 *                                               the screen.
 	 * @return true|WP_Error True on success, WP_Error on failure.
 	 */
 	public static function update_site_status_detail( array $results, bool $includes_async ) {
