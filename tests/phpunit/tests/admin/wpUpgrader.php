@@ -1473,7 +1473,7 @@ class Tests_Admin_WpUpgrader extends WP_UnitTestCase {
 	 * @covers WP_Upgrader::run
 	 */
 	public function test_run_should_clear_working_directory_after_installation_failure() {
-		$working_directory = '/wp-content/upgrade/test-package/';
+		$working_directory = '/wp-content/upgrade/test-package';
 		$expected          = new WP_Error( 'incompatible_archive' );
 
 		self::$wp_filesystem_mock
