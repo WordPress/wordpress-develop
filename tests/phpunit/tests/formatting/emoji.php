@@ -441,7 +441,13 @@ class Tests_Formatting_Emoji extends WP_UnitTestCase {
 	public function test_wp_encode_emoji_in_fields_ignores_fields_missing_from_data(): void {
 		$data = array( 'present_field' => '🙂' );
 
+		// Short-circuits wpdb::get_col_charset() so this doesn't hit a real,
+		// nonexistent 'some_table' table in the test database.
+		add_filter( 'pre_get_col_charset', array( $this, 'filter_pre_get_col_charset_utf8mb4_for_encode_emoji_in_fields_test' ) );
+
 		$result = _wp_encode_emoji_in_fields( $data, 'some_table', array( 'present_field', 'absent_field' ) );
+
+		remove_filter( 'pre_get_col_charset', array( $this, 'filter_pre_get_col_charset_utf8mb4_for_encode_emoji_in_fields_test' ) );
 
 		$this->assertArrayNotHasKey(
 			'absent_field',
@@ -456,5 +462,9 @@ class Tests_Formatting_Emoji extends WP_UnitTestCase {
 
 	public function filter_pre_get_col_charset_utf8_alias_for_encode_emoji_in_fields_test() {
 		return 'utf8';
+	}
+
+	public function filter_pre_get_col_charset_utf8mb4_for_encode_emoji_in_fields_test() {
+		return 'utf8mb4';
 	}
 }
