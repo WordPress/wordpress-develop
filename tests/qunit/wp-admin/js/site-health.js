@@ -1,7 +1,7 @@
 /* global SiteHealth */
 
 QUnit.module( 'Site Health', function() {
-	QUnit.test( 'updates state after running direct tests', function( assert ) {
+	QUnit.test( 'updates state only for valid direct tests', function( assert ) {
 		assert.deepEqual(
 			SiteHealth.site_status.results,
 			{
