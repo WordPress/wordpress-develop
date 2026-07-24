@@ -2893,9 +2893,8 @@ function wp_get_default_excluded_comment_types( $query = null ) {
 	 * Filters the comment types that are excluded from query results by default.
 	 *
 	 * Comment types in this list are omitted from `WP_Comment_Query` results
-	 * unless the query explicitly requests the 'all' type, or requests the
-	 * specific type via the 'type', 'type__in', or 'type__not_in' query
-	 * variables.
+	 * unless the query explicitly requests the 'all' type, or explicitly
+	 * includes the specific type via the 'type' or 'type__in' query variables.
 	 *
 	 * This allows plugins to keep comment types out of standard comment
 	 * listings and counts by default, without having to filter every
