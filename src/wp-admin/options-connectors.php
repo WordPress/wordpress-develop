@@ -42,7 +42,8 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 		wp_admin_notice(
 			$js_required_message,
 			array(
-				'additional_classes' => array( 'error', 'hide-if-js' ),
+				'type'               => 'error',
+				'additional_classes' => array( 'hide-if-js' ),
 			)
 		);
 		?>
