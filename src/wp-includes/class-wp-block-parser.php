@@ -342,7 +342,10 @@ class WP_Block_Parser {
 	 * @param int|null              $last_offset  Last byte offset into document if continuing form earlier output.
 	 */
 	public function add_inner_block( WP_Block_Parser_Block $block, $token_start, $token_length, $last_offset = null ) {
-		$parent                       = array_last( $this->stack );
+		$parent = array_last( $this->stack );
+		if ( ! $parent ) {
+			throw new LogicException( 'The parser stack must not be empty when adding an inner block.' );
+		}
 		$parent->block->innerBlocks[] = (array) $block;
 		$html                         = substr( $this->document, $parent->prev_offset, $token_start - $parent->prev_offset );
 
