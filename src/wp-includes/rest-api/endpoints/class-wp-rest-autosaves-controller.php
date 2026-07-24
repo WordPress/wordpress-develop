@@ -414,8 +414,12 @@ class WP_REST_Autosaves_Controller extends WP_REST_Revisions_Controller {
 
 			if ( ! $autosave_is_different && ! empty( $meta ) ) {
 				foreach ( $revisioned_meta_keys as $meta_key ) {
+					if ( ! array_key_exists( $meta_key, $meta ) ) {
+						continue;
+					}
+
 					$old_meta_value = get_metadata_raw( 'post', $old_autosave->ID, $meta_key, true );
-					$new_meta_value = $meta[ $meta_key ] ?? '';
+					$new_meta_value = $meta[ $meta_key ];
 
 					if ( $new_meta_value !== $old_meta_value ) {
 						$autosave_is_different = true;
