@@ -352,6 +352,42 @@ class Tests_Admin_wpOnThisDay extends WP_UnitTestCase {
 	 * @covers ::wp_dashboard_on_this_day
 	 * @covers ::_wp_dashboard_on_this_day_get_no_title_excerpt
 	 */
+	public function test_widget_includes_trimmed_excerpt_for_untitled_private_posts_authored_by_current_user() {
+		$this->set_up_dashboard_screen();
+
+		$user_id = self::factory()->user->create( array( 'role' => 'author' ) );
+		wp_set_current_user( $user_id );
+
+		$this->create_matching_post(
+			$user_id,
+			'',
+			1,
+			'12:00:00',
+			array(
+				'post_excerpt' => 'Readable private anniversary memory.',
+				'post_status'  => 'private',
+			)
+		);
+
+		add_filter( 'wp_dashboard_on_this_day_query_args', array( $this, 'filter_on_this_day_query_private_posts' ) );
+
+		ob_start();
+		try {
+			wp_dashboard_on_this_day();
+			$output = ob_get_clean();
+		} finally {
+			remove_filter( 'wp_dashboard_on_this_day_query_args', array( $this, 'filter_on_this_day_query_private_posts' ) );
+		}
+
+		$this->assertStringContainsString( '(no title)', $output );
+		$this->assertStringContainsString( 'class="trimmed-post-excerpt"', $output );
+		$this->assertStringContainsString( 'Readable private anniversary memory.', $output );
+	}
+
+	/**
+	 * @covers ::wp_dashboard_on_this_day
+	 * @covers ::_wp_dashboard_on_this_day_get_no_title_excerpt
+	 */
 	public function test_widget_hides_untitled_post_excerpt_for_password_protected_posts() {
 		$user_id = self::factory()->user->create( array( 'role' => 'author' ) );
 		wp_set_current_user( $user_id );
@@ -395,5 +431,17 @@ class Tests_Admin_wpOnThisDay extends WP_UnitTestCase {
 		$this->assertStringContainsString( 'Anniversary post 1<', $output );
 		$this->assertStringContainsString( 'Anniversary post 10<', $output );
 		$this->assertStringNotContainsString( 'Anniversary post 11', $output );
+	}
+
+	/**
+	 * Filters the On This Day query to include private posts.
+	 *
+	 * @param array $args WP_Query arguments.
+	 * @return array Filtered query arguments.
+	 */
+	public function filter_on_this_day_query_private_posts( $args ) {
+		$args['post_status'] = array( 'private' );
+
+		return $args;
 	}
 }
