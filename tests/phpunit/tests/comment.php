@@ -2045,4 +2045,112 @@ class Tests_Comment extends WP_UnitTestCase {
 		$this->assertNull( get_comment( $comment_id . 'abc' ), 'Expected a malformed numeric string not to be cast to a comment ID.' );
 		$this->assertNull( get_comment( true ), 'Expected true not to be cast to comment ID 1.' ); // @phpstan-ignore argument.type (Intentionally passing an invalid value.)
 	}
+
+	/**
+	 * `wp_insert_post()` already encodes emoji as HTML entities before saving to a
+	 * utf8/utf8mb3 column (see #31242). This forces the same code path for comments
+	 * via the `pre_get_col_charset` filter, so it runs deterministically regardless
+	 * of the test database's actual charset.
+	 *
+	 * @ticket 65700
+	 *
+	 * @covers ::wp_insert_comment
+	 * @covers ::_wp_encode_emoji_in_fields
+	 */
+	public function test_wp_insert_comment_encodes_emoji_for_utf8mb3_columns(): void {
+		add_filter( 'pre_get_col_charset', array( $this, 'filter_pre_get_col_charset_utf8mb3_for_comment_fields' ), 10, 3 );
+
+		$comment_id = wp_insert_comment(
+			array(
+				'comment_post_ID' => self::$post_id,
+				'comment_author'  => "foo\xf0\x9f\x98\x88bar",
+				'comment_content' => "foo\xf0\x9f\x98\x8ebaz",
+			)
+		);
+
+		remove_filter( 'pre_get_col_charset', array( $this, 'filter_pre_get_col_charset_utf8mb3_for_comment_fields' ), 10 );
+
+		$this->assertIsInt( $comment_id, 'Expected wp_insert_comment() to return the new comment ID.' );
+
+		$comment = get_comment( $comment_id );
+
+		$this->assertSame( 'foo&#x1f608;bar', $comment->comment_author );
+		$this->assertSame( 'foo&#x1f60e;baz', $comment->comment_content );
+	}
+
+	/**
+	 * Control for test_wp_insert_comment_encodes_emoji_for_utf8mb3_columns(): on a
+	 * utf8mb4 column, emoji should be stored as-is rather than as HTML entities.
+	 *
+	 * @ticket 65700
+	 *
+	 * @covers ::wp_insert_comment
+	 */
+	public function test_wp_insert_comment_does_not_encode_emoji_for_utf8mb4_columns(): void {
+		add_filter( 'pre_get_col_charset', array( $this, 'filter_pre_get_col_charset_utf8mb4_for_comment_fields' ), 10, 3 );
+
+		$comment_id = wp_insert_comment(
+			array(
+				'comment_post_ID' => self::$post_id,
+				'comment_author'  => "foo\xf0\x9f\x98\x88bar",
+				'comment_content' => "foo\xf0\x9f\x98\x8ebaz",
+			)
+		);
+
+		remove_filter( 'pre_get_col_charset', array( $this, 'filter_pre_get_col_charset_utf8mb4_for_comment_fields' ), 10 );
+
+		$comment = get_comment( $comment_id );
+
+		$this->assertSame( "foo\xf0\x9f\x98\x88bar", $comment->comment_author );
+		$this->assertSame( "foo\xf0\x9f\x98\x8ebaz", $comment->comment_content );
+	}
+
+	/**
+	 * @ticket 65700
+	 *
+	 * @covers ::wp_update_comment
+	 * @covers ::_wp_encode_emoji_in_fields
+	 */
+	public function test_wp_update_comment_encodes_emoji_for_utf8mb3_columns(): void {
+		$comment_id = self::factory()->comment->create( array( 'comment_post_ID' => self::$post_id ) );
+
+		add_filter( 'pre_get_col_charset', array( $this, 'filter_pre_get_col_charset_utf8mb3_for_comment_fields' ), 10, 3 );
+
+		$result = wp_update_comment(
+			array(
+				'comment_ID'      => $comment_id,
+				'comment_author'  => "foo\xf0\x9f\x98\x88bar",
+				'comment_content' => "foo\xf0\x9f\x98\x8ebaz",
+			)
+		);
+
+		remove_filter( 'pre_get_col_charset', array( $this, 'filter_pre_get_col_charset_utf8mb3_for_comment_fields' ), 10 );
+
+		$this->assertSame( 1, $result );
+
+		$comment = get_comment( $comment_id );
+
+		$this->assertSame( 'foo&#x1f608;bar', $comment->comment_author );
+		$this->assertSame( 'foo&#x1f60e;baz', $comment->comment_content );
+	}
+
+	public function filter_pre_get_col_charset_utf8mb3_for_comment_fields( $charset, $table, $column ) {
+		global $wpdb;
+
+		if ( $wpdb->comments === $table && in_array( $column, array( 'comment_author', 'comment_content' ), true ) ) {
+			return 'utf8mb3';
+		}
+
+		return $charset;
+	}
+
+	public function filter_pre_get_col_charset_utf8mb4_for_comment_fields( $charset, $table, $column ) {
+		global $wpdb;
+
+		if ( $wpdb->comments === $table && in_array( $column, array( 'comment_author', 'comment_content' ), true ) ) {
+			return 'utf8mb4';
+		}
+
+		return $charset;
+	}
 }

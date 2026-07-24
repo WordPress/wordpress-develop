@@ -396,6 +396,46 @@ class Tests_Post extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Forces the utf8mb3 code path via the `pre_get_col_charset` filter, rather
+	 * than relying on the test database actually using that character set, so
+	 * this runs deterministically regardless of the environment's DB charset.
+	 *
+	 * @ticket 65700
+	 *
+	 * @covers ::wp_insert_post
+	 * @covers ::_wp_encode_emoji_in_fields
+	 */
+	public function test_wp_insert_post_encodes_emoji_for_utf8mb3_columns_via_filter(): void {
+		add_filter( 'pre_get_col_charset', array( $this, 'filter_pre_get_col_charset_utf8mb3_for_post_fields' ), 10, 3 );
+
+		$post_id = self::factory()->post->create(
+			array(
+				'post_title'   => "foo\xf0\x9f\x98\x88bar",
+				'post_content' => "foo\xf0\x9f\x98\x8ebaz",
+				'post_excerpt' => "foo\xf0\x9f\x98\x90bat",
+			)
+		);
+
+		remove_filter( 'pre_get_col_charset', array( $this, 'filter_pre_get_col_charset_utf8mb3_for_post_fields' ), 10 );
+
+		$post = get_post( $post_id );
+
+		$this->assertSame( 'foo&#x1f608;bar', $post->post_title );
+		$this->assertSame( 'foo&#x1f60e;baz', $post->post_content );
+		$this->assertSame( 'foo&#x1f610;bat', $post->post_excerpt );
+	}
+
+	public function filter_pre_get_col_charset_utf8mb3_for_post_fields( $charset, $table, $column ) {
+		global $wpdb;
+
+		if ( $wpdb->posts === $table && in_array( $column, array( 'post_title', 'post_content', 'post_excerpt' ), true ) ) {
+			return 'utf8mb3';
+		}
+
+		return $charset;
+	}
+
+	/**
 	 * If a sticky post is updated via `wp_update_post()` by a user
 	 * without the `publish_posts` capability, it should stay sticky.
 	 *
