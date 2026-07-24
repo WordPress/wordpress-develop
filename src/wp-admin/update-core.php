@@ -1158,7 +1158,14 @@ if ( 'upgrade-core' === $action ) {
 		}
 	}
 
-	if ( isset( $_GET['translation_updates'] ) && 'deferred' === $_GET['translation_updates'] ) {
+	$translation_updates_status = isset( $_GET['translation_updates'] ) ? wp_unslash( $_GET['translation_updates'] ) : '';
+	if ( is_string( $translation_updates_status ) ) {
+		$translation_updates_status = sanitize_key( $translation_updates_status );
+	} else {
+		$translation_updates_status = '';
+	}
+
+	if ( 'deferred' === $translation_updates_status ) {
 		wp_admin_notice(
 			__( 'The unchecked translation updates will remain available until you select them.' ),
 			array(

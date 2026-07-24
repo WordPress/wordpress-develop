@@ -9,6 +9,7 @@
  * @covers ::wp_get_translation_update_id
  * @covers ::wp_get_translation_update_language
  * @covers ::wp_get_translation_update_name
+ * @covers ::wp_get_translation_update_plugin_names
  * @covers ::wp_get_translation_updates_by_id
  * @covers ::wp_is_translation_update_deferred
  * @covers ::wp_set_deferred_translation_updates
@@ -28,8 +29,59 @@ class Tests_Admin_IncludesUpdate extends WP_UnitTestCase {
 		delete_site_transient( 'update_plugins' );
 		delete_site_transient( 'update_themes' );
 		remove_all_filters( 'all_plugins' );
+		remove_all_filters( 'pre_site_transient_update_plugins' );
 
 		parent::tear_down();
+	}
+
+	/**
+	 * @ticket 42281
+	 */
+	public function test_wp_get_translation_update_data_loads_plugin_names_once() {
+		$plugin_updates = array(
+			array(
+				'type'     => 'plugin',
+				'slug'     => 'custom-internationalized-plugin',
+				'language' => 'de_DE',
+				'version'  => '1.0.0',
+			),
+			array(
+				'type'     => 'plugin',
+				'slug'     => 'hello-dolly',
+				'language' => 'de_DE',
+				'version'  => '1.7.2',
+			),
+		);
+
+		set_site_transient(
+			'update_plugins',
+			(object) array(
+				'translations' => $plugin_updates,
+				'no_update'    => array(
+					'hello.php' => (object) array(
+						'slug' => 'hello-dolly',
+					),
+				),
+			)
+		);
+
+		$transient_reads = 0;
+
+		add_filter(
+			'pre_site_transient_update_plugins',
+			static function ( $value ) use ( &$transient_reads ) {
+				++$transient_reads;
+				return $value;
+			}
+		);
+
+		wp_get_translation_update_data();
+
+		$this->assertSame(
+			2,
+			$transient_reads,
+			'The plugin update transient should be read once for available updates and once for plugin names.'
+		);
 	}
 
 	/**

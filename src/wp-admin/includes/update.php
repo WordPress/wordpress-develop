@@ -642,14 +642,66 @@ function get_theme_updates() {
 }
 
 /**
+ * Gets plugin names for translation updates.
+ *
+ * @since 7.1.0
+ *
+ * @return string[] Plugin names keyed by plugin file, directory, basename, and slug.
+ */
+function wp_get_translation_update_plugin_names() {
+	require_once ABSPATH . 'wp-admin/includes/plugin.php';
+
+	$plugin_names  = array();
+	$all_plugins   = get_plugins();
+	$plugin_update = get_site_transient( 'update_plugins' );
+
+	if ( is_object( $plugin_update ) ) {
+		$plugin_updates = array();
+
+		if ( ! empty( $plugin_update->response ) && is_array( $plugin_update->response ) ) {
+			$plugin_updates = array_merge( $plugin_updates, $plugin_update->response );
+		}
+
+		if ( ! empty( $plugin_update->no_update ) && is_array( $plugin_update->no_update ) ) {
+			$plugin_updates = array_merge( $plugin_updates, $plugin_update->no_update );
+		}
+
+		foreach ( $plugin_updates as $plugin_file => $plugin_data ) {
+			$plugin_data = (object) $plugin_data;
+
+			if ( ! empty( $plugin_data->slug ) && ! empty( $all_plugins[ $plugin_file ]['Name'] ) ) {
+				$plugin_names[ $plugin_data->slug ] = $all_plugins[ $plugin_file ]['Name'];
+			}
+		}
+	}
+
+	foreach ( $all_plugins as $plugin_file => $plugin_data ) {
+		$plugin_basename = dirname( $plugin_file );
+
+		if ( isset( $plugin_data['Name'] ) ) {
+			$plugin_names[ $plugin_file ]                     = $plugin_data['Name'];
+			$plugin_names[ basename( $plugin_file, '.php' ) ] = $plugin_data['Name'];
+
+			if ( '.' !== $plugin_basename ) {
+				$plugin_names[ $plugin_basename ] = $plugin_data['Name'];
+			}
+		}
+	}
+
+	return $plugin_names;
+}
+
+/**
  * Gets the display name for a translation update.
  *
  * @since 7.1.0
  *
- * @param object $update Translation update object.
+ * @param object        $update       Translation update object.
+ * @param string[]|null $plugin_names Optional. Plugin names keyed by plugin file, directory,
+ *                                    basename, and slug. Default null.
  * @return string The translation update name.
  */
-function wp_get_translation_update_name( $update ) {
+function wp_get_translation_update_name( $update, $plugin_names = null ) {
 	$type = isset( $update->type ) ? $update->type : '';
 	$slug = isset( $update->slug ) ? $update->slug : '';
 
@@ -665,43 +717,8 @@ function wp_get_translation_update_name( $update ) {
 			break;
 
 		case 'plugin':
-			require_once ABSPATH . 'wp-admin/includes/plugin.php';
-
-			$plugin_names  = array();
-			$all_plugins   = get_plugins();
-			$plugin_update = get_site_transient( 'update_plugins' );
-
-			if ( is_object( $plugin_update ) ) {
-				$plugin_updates = array();
-
-				if ( ! empty( $plugin_update->response ) && is_array( $plugin_update->response ) ) {
-					$plugin_updates = array_merge( $plugin_updates, $plugin_update->response );
-				}
-
-				if ( ! empty( $plugin_update->no_update ) && is_array( $plugin_update->no_update ) ) {
-					$plugin_updates = array_merge( $plugin_updates, $plugin_update->no_update );
-				}
-
-				foreach ( $plugin_updates as $plugin_file => $plugin_data ) {
-					$plugin_data = (object) $plugin_data;
-
-					if ( ! empty( $plugin_data->slug ) && ! empty( $all_plugins[ $plugin_file ]['Name'] ) ) {
-						$plugin_names[ $plugin_data->slug ] = $all_plugins[ $plugin_file ]['Name'];
-					}
-				}
-			}
-
-			foreach ( $all_plugins as $plugin_file => $plugin_data ) {
-				$plugin_basename = dirname( $plugin_file );
-
-				if ( isset( $plugin_data['Name'] ) ) {
-					$plugin_names[ $plugin_file ]                     = $plugin_data['Name'];
-					$plugin_names[ basename( $plugin_file, '.php' ) ] = $plugin_data['Name'];
-
-					if ( '.' !== $plugin_basename ) {
-						$plugin_names[ $plugin_basename ] = $plugin_data['Name'];
-					}
-				}
+			if ( null === $plugin_names ) {
+				$plugin_names = wp_get_translation_update_plugin_names();
 			}
 
 			if ( ! empty( $plugin_names[ $slug ] ) ) {
@@ -758,12 +775,18 @@ function wp_get_translation_update_language( $locale ) {
 function wp_get_translation_update_data() {
 	$available_updates            = wp_get_translation_updates();
 	$deferred_translation_updates = wp_get_deferred_translation_updates( $available_updates );
+	$plugin_names                 = null;
 	$translation_updates          = array();
 
 	foreach ( $available_updates as $update ) {
 		$translation_update_id = wp_get_translation_update_id( $update );
 		$language              = isset( $update->language ) ? $update->language : '';
+		$type                  = isset( $update->type ) ? $update->type : '';
 		$deferred              = isset( $deferred_translation_updates[ $translation_update_id ] );
+
+		if ( 'plugin' === $type && null === $plugin_names ) {
+			$plugin_names = wp_get_translation_update_plugin_names();
+		}
 
 		$translation_updates[] = array(
 			'checked'       => ! $deferred,
@@ -771,9 +794,9 @@ function wp_get_translation_update_data() {
 			'id'            => $translation_update_id,
 			'language'      => wp_get_translation_update_language( $language ),
 			'language_code' => $language,
-			'name'          => wp_get_translation_update_name( $update ),
+			'name'          => wp_get_translation_update_name( $update, $plugin_names ),
 			'slug'          => isset( $update->slug ) ? $update->slug : '',
-			'type'          => isset( $update->type ) ? $update->type : '',
+			'type'          => $type,
 			'version'       => isset( $update->version ) ? $update->version : '',
 		);
 	}
