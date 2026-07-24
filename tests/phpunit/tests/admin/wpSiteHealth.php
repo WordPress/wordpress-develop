@@ -887,14 +887,15 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 	}
 
 	/**
-	 * The scheduled check ignores invalid results returned by the result filter,
-	 * allowing valid results from other tests to be counted and cached.
+	 * Only valid results are cached. The scheduled check ignores invalid results
+	 * returned by the result filter, while direct updates return a validation error.
 	 *
 	 * @ticket 65232
 	 *
 	 * @covers ::wp_cron_scheduled_check
+	 * @covers ::update_site_status_detail
 	 */
-	public function test_scheduled_check_uses_only_valid_filtered_results(): void {
+	public function test_only_valid_results_are_cached(): void {
 		$invalid_results = array(
 			'non_array_result' => new WP_Error( 'invalid_result' ),
 			'missing_test'     => array( 'status' => 'good' ),
@@ -951,6 +952,18 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 			$detail['counts']
 		);
 		$this->assertSame( $detail['counts'], WP_Site_Health::get_site_status_counts() );
+
+		$result = WP_Site_Health::update_site_status_detail(
+			array(
+				'invalid_status' => array(
+					'status' => 'invalid',
+				),
+			),
+			true
+		);
+
+		$this->assertWPError( $result );
+		$this->assertSame( array( 'valid_result' ), array_keys( WP_Site_Health::get_site_status_detail()['results'] ) );
 	}
 
 	/**
