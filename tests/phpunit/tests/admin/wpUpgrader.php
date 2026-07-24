@@ -1510,9 +1510,10 @@ class Tests_Admin_WpUpgrader extends WP_UnitTestCase {
 
 		$actual = $instance->run(
 			array(
-				'package'     => '/tmp/test-package.zip',
-				'destination' => WP_PLUGIN_DIR,
-				'is_multi'    => true,
+				'package'       => '/tmp/test-package.zip',
+				'destination'   => WP_PLUGIN_DIR,
+				'clear_working' => true,
+				'is_multi'      => true,
 			)
 		);
 
