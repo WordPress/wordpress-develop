@@ -5504,7 +5504,7 @@ function wp_ajax_health_check_site_status_result() {
 
 	$errors = array_filter( $save_results, 'is_wp_error' );
 	if ( count( $errors ) > 0 ) {
-		wp_send_json_error( $errors );
+		wp_send_json_error( reset( $errors ) );
 	}
 
 	wp_send_json_success();
