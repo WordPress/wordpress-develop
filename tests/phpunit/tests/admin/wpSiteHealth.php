@@ -804,11 +804,25 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 		delete_transient( WP_Site_Health::STATUS_RESULT_TRANSIENT );
 		delete_transient( WP_Site_Health::STATUS_DETAIL_TRANSIENT );
 
+		$counts_reads_before = did_filter( 'pre_transient_' . WP_Site_Health::STATUS_RESULT_TRANSIENT );
+		$detail_reads_before = did_filter( 'pre_transient_' . WP_Site_Health::STATUS_DETAIL_TRANSIENT );
+
 		$before = time();
 		$this->instance->wp_cron_scheduled_check();
 		$after = time();
 
 		remove_filter( 'site_status_tests', $filter );
+
+		$this->assertSame(
+			1,
+			did_filter( 'pre_transient_' . WP_Site_Health::STATUS_RESULT_TRANSIENT ) - $counts_reads_before,
+			'The counts transient should be read once during the scheduled check.'
+		);
+		$this->assertSame(
+			2,
+			did_filter( 'pre_transient_' . WP_Site_Health::STATUS_DETAIL_TRANSIENT ) - $detail_reads_before,
+			'The detail transient should be read twice during the scheduled check.'
+		);
 
 		// The counts transient holds only the aggregate counts, so it stays small enough to autoload.
 		$counts_transient = get_transient( WP_Site_Health::STATUS_RESULT_TRANSIENT );

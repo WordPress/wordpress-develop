@@ -3723,7 +3723,7 @@ class WP_Site_Health {
 				'timestamp' => $now,
 			)
 		);
-		if ( get_transient( self::STATUS_RESULT_TRANSIENT ) === $stored_value ) {
+		if ( get_transient( self::STATUS_DETAIL_TRANSIENT ) === $stored_value ) {
 			return true;
 		}
 
