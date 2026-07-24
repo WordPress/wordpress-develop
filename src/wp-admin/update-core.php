@@ -828,7 +828,7 @@ function list_translation_updates() {
 	<h2>
 	<?php
 	printf(
-		'%s <span class="count">(%d)</span>',
+		'%s <span class="count">(%s)</span>',
 		__( 'Translations' ),
 		number_format_i18n( $updates_count )
 	);
