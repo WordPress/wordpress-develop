@@ -873,6 +873,73 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 	}
 
 	/**
+	 * The scheduled check ignores invalid results returned by the result filter,
+	 * allowing valid results from other tests to be counted and cached.
+	 *
+	 * @ticket 65232
+	 *
+	 * @covers ::wp_cron_scheduled_check
+	 */
+	public function test_scheduled_check_uses_only_valid_filtered_results(): void {
+		$invalid_results = array(
+			'non_array_result' => new WP_Error( 'invalid_result' ),
+			'missing_test'     => array( 'status' => 'good' ),
+			'empty_test'       => array(
+				'test'   => '',
+				'status' => 'good',
+			),
+			'invalid_test'     => array(
+				'test'   => array(),
+				'status' => 'good',
+			),
+			'missing_status'   => array( 'test' => 'missing_status' ),
+			'invalid_status'   => array(
+				'test'   => 'invalid_status',
+				'status' => 'invalid',
+			),
+		);
+		$test_results    = array();
+		foreach ( array_merge( array_keys( $invalid_results ), array( 'valid_result' ) ) as $test ) {
+			$test_results[ $test ] = array(
+				'test'   => $test,
+				'status' => 'good',
+			);
+		}
+
+		$tests_filter  = $this->use_fake_site_status_tests( $test_results );
+		$result_filter = static function ( $result ) use ( $invalid_results ) {
+			if ( is_array( $result ) && isset( $invalid_results[ $result['test'] ] ) ) {
+				return $invalid_results[ $result['test'] ];
+			}
+
+			return $result;
+		};
+		add_filter( 'site_status_test_result', $result_filter );
+
+		delete_transient( WP_Site_Health::STATUS_RESULT_TRANSIENT );
+		delete_transient( WP_Site_Health::STATUS_DETAIL_TRANSIENT );
+
+		try {
+			$this->instance->wp_cron_scheduled_check();
+		} finally {
+			remove_filter( 'site_status_test_result', $result_filter );
+			remove_filter( 'site_status_tests', $tests_filter );
+		}
+
+		$detail = WP_Site_Health::get_site_status_detail();
+		$this->assertSame( array( 'valid_result' ), array_keys( $detail['results'] ) );
+		$this->assertSame(
+			array(
+				'good'        => 1,
+				'recommended' => 0,
+				'critical'    => 0,
+			),
+			$detail['counts']
+		);
+		$this->assertSame( $detail['counts'], WP_Site_Health::get_site_status_counts() );
+	}
+
+	/**
 	 * An asynchronous test that is unavailable during the scheduled check is cached under
 	 * its own identifier, so the counts and the detailed results stay consistent.
 	 *
