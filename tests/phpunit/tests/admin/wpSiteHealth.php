@@ -958,8 +958,7 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 				'invalid_status' => array(
 					'status' => 'invalid',
 				),
-			),
-			true
+			)
 		);
 
 		$this->assertWPError( $result );
@@ -967,14 +966,24 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 	}
 
 	/**
-	 * An asynchronous test that is unavailable during the scheduled check is cached under
-	 * its own identifier, so the counts and the detailed results stay consistent.
+	 * An unavailable asynchronous test is counted but does not replace a previously
+	 * verified detailed result.
 	 *
 	 * @ticket 65232
 	 *
 	 * @covers ::wp_cron_scheduled_check
 	 */
-	public function test_scheduled_check_caches_unavailable_async_test_with_identifier(): void {
+	public function test_scheduled_check_preserves_verified_result_when_async_test_is_unavailable(): void {
+		$cached_at = time() - 2 * WEEK_IN_SECONDS;
+		$this->seed_site_status_detail(
+			array(
+				'my_async' => array(
+					'status' => 'good',
+				),
+			),
+			$cached_at
+		);
+
 		// Force the asynchronous remote request to fail so the fallback path runs.
 		$http = static function () {
 			return new WP_Error( 'unavailable', 'Service unavailable.' );
@@ -995,8 +1004,6 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 		};
 		add_filter( 'site_status_tests', $filter );
 
-		delete_transient( WP_Site_Health::STATUS_DETAIL_TRANSIENT );
-
 		$this->instance->wp_cron_scheduled_check();
 
 		remove_filter( 'site_status_tests', $filter );
@@ -1005,21 +1012,21 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 		$detail        = WP_Site_Health::get_site_status_detail();
 		$results_by_id = $detail['results'];
 
-		$this->assertArrayHasKey( 'my_async', $results_by_id, 'The unavailable async test should be cached under its identifier.' );
-		$this->assertSame( 'recommended', $results_by_id['my_async']['status'] );
-		$this->assertSame( 1, $detail['counts']['recommended'], 'The unavailable async test should also be reflected in the detail counts.' );
+		$this->assertArrayHasKey( 'my_async', $results_by_id );
+		$this->assertSame( 'good', $results_by_id['my_async']['status'] );
+		$this->assertSame( $cached_at, $results_by_id['my_async']['timestamp'] );
+		$this->assertSame( 1, WP_Site_Health::get_site_status_counts()['recommended'] );
 	}
 
 	/**
-	 * The scheduled check does not overwrite recently cached results, preserving the
-	 * authoritative results collected from the Site Health screen (including async tests).
+	 * The scheduled check overwrites an existing result when it collects a newer verified result.
 	 *
 	 * @ticket 65232
 	 *
 	 * @covers ::wp_cron_scheduled_check
 	 * @covers ::update_site_status_detail
 	 */
-	public function test_scheduled_check_preserves_fresh_results(): void {
+	public function test_scheduled_check_stores_freshest_verified_result(): void {
 		$this->seed_site_status_detail(
 			array(
 				'fake_async' => array(
@@ -1045,44 +1052,7 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 
 		$detail = WP_Site_Health::get_site_status_detail();
 		$this->assertCount( 1, $detail['results'] );
-		$this->assertSame( 'good', array_first( $detail['results'] )['status'], 'The fresh browser result should be preserved, not overwritten by cron.' );
-	}
-
-	/**
-	 * The scheduled check refreshes results that are older than the cron cadence.
-	 *
-	 * @ticket 65232
-	 *
-	 * @covers ::wp_cron_scheduled_check
-	 * @covers ::update_site_status_detail
-	 */
-	public function test_scheduled_check_refreshes_stale_results(): void {
-		$this->seed_site_status_detail(
-			array(
-				'fake_test' => array(
-					'test'   => 'fake_test',
-					'status' => 'good',
-				),
-			),
-			time() - 2 * WEEK_IN_SECONDS
-		);
-
-		$filter = $this->use_fake_site_status_tests(
-			array(
-				'fake_test' => array(
-					'test'   => 'fake_test',
-					'status' => 'critical',
-				),
-			)
-		);
-
-		$this->instance->wp_cron_scheduled_check();
-
-		remove_filter( 'site_status_tests', $filter );
-
-		$detail = WP_Site_Health::get_site_status_detail();
-		$this->assertCount( 1, $detail['results'] );
-		$this->assertSame( 'critical', array_first( $detail['results'] )['status'], 'A stale result should be refreshed by cron.' );
+		$this->assertSame( 'critical', array_first( $detail['results'] )['status'] );
 	}
 
 	/**
@@ -1116,7 +1086,7 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 		);
 
 		// Update with nothing new; the stale-entry pruning still runs.
-		WP_Site_Health::update_site_status_detail( array(), true );
+		WP_Site_Health::update_site_status_detail( array() );
 
 		$detail = WP_Site_Health::get_site_status_detail();
 		$this->assertCount( 1, $detail['results'] );
@@ -1177,7 +1147,7 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 		$this->assertSame( 0, $detail['timestamp'] );
 
 		$before = time();
-		$this->assertTrue( WP_Site_Health::update_site_status_detail( array(), true ) );
+		$this->assertTrue( WP_Site_Health::update_site_status_detail( array() ) );
 		$after = time();
 
 		$detail = WP_Site_Health::get_site_status_detail();
