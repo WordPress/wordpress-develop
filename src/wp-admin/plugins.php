@@ -655,7 +655,7 @@ if ( ! empty( $invalid ) ) {
 	}
 }
 
-// Used by wp_admin_notice() updated notices.
+// Used by wp_admin_notice() success notices.
 $updated_notice_args = array(
 	'id'          => 'message',
 	'type'        => 'success',
