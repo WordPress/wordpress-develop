@@ -60,7 +60,6 @@
 	/* Required min-height to make the jQuery UI Sortable drop zone work. */
 	min-height: 0;
 	margin: 0 8px 20px;
-	padding: 0;
 }
 
 #dashboard-widgets .meta-box-sortables:not(:empty) {
@@ -72,6 +71,7 @@
 	outline-offset: -2px;
 	border-radius: 8px;
 	height: 250px;
+	margin: 4px;
 }
 
 /* Only highlight drop zones when dragging. */
@@ -82,7 +82,6 @@
 }
 
 .is-dragging-metaboxes #dashboard-widgets .postbox-container .empty-container {
-	outline: 2px dashed rgb(0, 0, 0, 0.15);
 	background: rgb(0, 0, 0, 0.01);
 }
 
@@ -140,8 +139,6 @@
 	position: relative;
 	overflow: auto;
 	margin: 16px 0;
-	background-color: #c3c4c7;
-	border: 1px solid rgb(0, 0, 0, 0.1);
 	border-radius: 8px;
 	font-size: 14px;
 	line-height: 1.3;
@@ -265,6 +262,10 @@
 	justify-content: space-between;
 }
 
+.welcome-panel-header-wrap {
+	background-color: #151515;
+}
+
 .welcome-panel-header {
 	box-sizing: border-box;
 	margin-left: auto;
@@ -285,6 +286,9 @@
 	gap: 32px;
 	align-self: flex-end;
 	background: #ffffff;
+	border: 1px solid #c3c4c7;
+	border-top: 0;
+	border-radius: 0 0 8px 8px;
 }
 
 [class*="welcome-panel-icon"] {
@@ -527,10 +531,18 @@
 .community-events-form .regular-text {
 	width: 40%;
 	margin: 0;
+	min-height: 32px;
+	padding: 0 8px;
+}
+
+#dashboard-widgets .community-events-form .button {
+	min-height: 32px;
+	line-height: 2.30769231;
+	padding: 0 12px;
 }
 
 .community-events li.event-none {
-	border-left: 4px solid #72aee6;
+	border-left: 4px solid var(--wp-admin-theme-color, #3858e9);
 }
 
 #dashboard-widgets .community-events li.event-none a {
@@ -538,7 +550,7 @@
 }
 
 .community-events-form label {
-	line-height: 2.15384615;
+	line-height: 2.14285714;
 }
 
 .community-events .activity-block > p {
@@ -556,7 +568,7 @@
 }
 
 .community-events ul {
-	background-color: #f6f7f7;
+	background-color: rgba(var(--wp-admin-theme-color--rgb),.08);
 	padding-left: 0;
 	padding-right: 0;
 	padding-bottom: 0;
@@ -568,15 +580,15 @@
 	color: #2c3338;
 }
 .community-events li:first-child {
-	border-top: 1px solid #f0f0f1;
+	border-top: 1px solid #e9e9ed;
 }
 
 .community-events li ~ li {
-	border-top: 1px solid #f0f0f1;
+	border-top: 1px solid #e9e9ed;
 }
 
 .community-events .activity-block.last {
-	border-bottom: 1px solid #f0f0f1;
+	border-bottom: 1px solid #e9e9ed;
 	padding-top: 0;
 	margin-top: -1px;
 }
@@ -768,12 +780,6 @@ body #dashboard-widgets .postbox form .submit {
 	padding: 0;
 }
 
-#dashboard_quick_press div.updated {
-	margin-bottom: 10px;
-	border: 1px solid #f0f0f1;
-	border-width: 1px 1px 1px 0;
-}
-
 #dashboard_quick_press form {
 	margin: 12px;
 }
@@ -791,7 +797,6 @@ body #dashboard-widgets .postbox form .submit {
 
 #dashboard_quick_press input,
 #dashboard_quick_press textarea {
-	box-sizing: border-box;
 	margin: 0;
 }
 
@@ -838,11 +843,12 @@ body #dashboard-widgets .postbox form .submit {
 #dashboard_quick_press .drafts li {
 	margin-bottom: 1em;
 }
+
 #dashboard_quick_press .drafts li time {
 	color: #646970;
 }
 
-#dashboard_quick_press .drafts p {
+#dashboard_quick_press .drafts .draft-content {
 	margin: 0;
 	word-wrap: break-word;
 }
@@ -1009,6 +1015,35 @@ body #dashboard-widgets .postbox form .submit {
 #activity-widget #the-comment-list .trash-undo-inside .avatar {
 	position: relative;
 	top: 0;
+}
+
+/* On This Day dashboard widget */
+
+#wp_dashboard_on_this_day h3 {
+	font-weight: 600;
+}
+
+#wp_dashboard_on_this_day li {
+	margin: 0;
+	padding: 0;
+}
+
+#wp_dashboard_on_this_day ul ul {
+	margin: 0 0 0 18px;
+	padding: 0;
+	list-style: disc;
+}
+
+#wp_dashboard_on_this_day ul ul li + li {
+	margin-top: 6px;
+}
+
+#wp_dashboard_on_this_day .wp-on-this-day-widget > ul > li + li {
+	margin-top: 16px;
+}
+
+#wp_dashboard_on_this_day .wp-on-this-day-post-author {
+	color: #646970;
 }
 
 /* Browse happy box */
@@ -1423,6 +1458,7 @@ a.rsswidget {
 	}
 
 	.welcome-panel .welcome-panel-close::before {
+		position: absolute;
 		top: 5px;
 		left: -35px;
 	}
