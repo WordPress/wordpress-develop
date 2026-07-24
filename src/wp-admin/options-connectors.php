@@ -45,7 +45,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 				'additional_classes' => array( 'error', 'hide-if-js' ),
 			)
 		);
-	?>
+		?>
 </section>
 <?php
 
