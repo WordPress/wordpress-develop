@@ -962,6 +962,18 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 		);
 
 		$this->assertWPError( $result );
+
+		$result = WP_Site_Health::update_site_status_detail(
+			array(
+				'' => array(
+					'status' => 'good',
+				),
+			)
+		);
+
+		$this->assertWPError( $result );
+		$this->assertSame( 'invalid_test', $result->get_error_code() );
+		$this->assertNotSame( '', $result->get_error_message() );
 		$this->assertSame( array( 'valid_result' ), array_keys( WP_Site_Health::get_site_status_detail()['results'] ) );
 	}
 
