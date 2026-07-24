@@ -3647,7 +3647,7 @@ class WP_Site_Health {
 	 * @phpstan-return Site_Status_Detail
 	 */
 	public static function get_site_status_detail(): array {
-		$cached = self::read_status_cache( self::STATUS_DETAIL_TRANSIENT );
+		$cached = self::read_site_status_detail_cache();
 
 		return array(
 			'results'   => $cached['results'],
@@ -3678,7 +3678,7 @@ class WP_Site_Health {
 	public static function update_site_status_detail( array $results, bool $includes_async ) {
 		$now = time();
 
-		$cached = self::read_status_cache( self::STATUS_DETAIL_TRANSIENT );
+		$cached = self::read_site_status_detail_cache();
 
 		foreach ( $results as $test => $result ) {
 			$test = sanitize_text_field( $test );
@@ -3740,17 +3740,15 @@ class WP_Site_Health {
 	}
 
 	/**
-	 * Reads and decodes a cached Site Health transient.
+	 * Reads and decodes the cached detailed Site Health test results.
 	 *
 	 * @since 7.1.0
-	 * @todo Why is the $transient a parameter for this function? It can read the constant directly.
 	 *
-	 * @param string $transient Transient name.
 	 * @return array The stored status.
 	 * @phpstan-return Stored_Test_Results
 	 */
-	private static function read_status_cache( string $transient ): array {
-		$cached = get_transient( $transient );
+	private static function read_site_status_detail_cache(): array {
+		$cached = get_transient( self::STATUS_DETAIL_TRANSIENT );
 		if ( is_string( $cached ) ) {
 			$cached = json_decode( $cached, true );
 		}
