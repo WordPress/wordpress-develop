@@ -1337,6 +1337,35 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that a user who can edit but not publish a post sees the status edit
+	 * control in the Publish meta box.
+	 *
+	 * @ticket 43071
+	 */
+	public function test_post_submit_meta_box_shows_status_edit_for_non_publisher() {
+		require_once ABSPATH . 'wp-admin/includes/meta-boxes.php';
+
+		wp_set_current_user( self::$contributor_id );
+
+		$post = self::factory()->post->create_and_get(
+			array(
+				'post_status' => 'draft',
+				'post_author' => self::$contributor_id,
+			)
+		);
+
+		ob_start();
+		post_submit_meta_box( $post );
+		$output = ob_get_clean();
+
+		$this->assertStringContainsString(
+			'edit-post-status',
+			$output,
+			'A user who can edit but not publish should see the status edit control.'
+		);
+	}
+
+	/**
 	 * Test refreshed nonce for metabox loader.
 	 */
 	public function test_user_get_refreshed_metabox_nonce() {
