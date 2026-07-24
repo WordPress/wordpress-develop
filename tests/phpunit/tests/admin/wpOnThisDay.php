@@ -428,8 +428,8 @@ class Tests_Admin_wpOnThisDay extends WP_UnitTestCase {
 		$output = ob_get_clean();
 
 		$this->assertStringContainsString( '10 posts have been published on <strong>' . wp_date( 'F jS' ) . '</strong>:', $output );
-		$this->assertStringContainsString( 'Anniversary post 1<', $output );
-		$this->assertStringContainsString( 'Anniversary post 10<', $output );
+		$this->assertMatchesRegularExpression( '/>\s*Anniversary post 1\s*<\/a>/', $output );
+		$this->assertMatchesRegularExpression( '/>\s*Anniversary post 10\s*<\/a>/', $output );
 		$this->assertStringNotContainsString( 'Anniversary post 11', $output );
 	}
 
