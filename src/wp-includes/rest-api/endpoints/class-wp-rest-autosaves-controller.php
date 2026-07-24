@@ -385,26 +385,8 @@ class WP_REST_Autosaves_Controller extends WP_REST_Revisions_Controller {
 
 		$new_autosave = _wp_post_revision_data( $post_data, true );
 
-		foreach ( array_intersect( array_keys( $new_autosave ), array_keys( _wp_post_revision_fields( $post ) ) ) as $field ) {
-			if ( normalize_whitespace( $new_autosave[ $field ] ) !== normalize_whitespace( $post->$field ) ) {
-				$autosave_is_different = true;
-				break;
-			}
-		}
-
-		// Check if meta values have changed.
 		if ( ! empty( $meta ) ) {
 			$revisioned_meta_keys = wp_post_revision_meta_keys( $post->post_type );
-			foreach ( $revisioned_meta_keys as $meta_key ) {
-				// get_metadata_raw is used to avoid retrieving the default value.
-				$old_meta = get_metadata_raw( 'post', $post_id, $meta_key, true );
-				$new_meta = $meta[ $meta_key ] ?? '';
-
-				if ( $new_meta !== $old_meta ) {
-					$autosave_is_different = true;
-					break;
-				}
-			}
 		}
 
 		$user_id = get_current_user_id();
