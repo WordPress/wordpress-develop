@@ -1162,26 +1162,65 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 	}
 
 	/**
-	 * The detail accessor returns an empty array when nothing is cached.
+	 * The detail accessor distinguishes a valid empty cache from a missing or malformed cache.
 	 *
 	 * @ticket 65232
 	 *
 	 * @covers ::get_site_status_detail
+	 * @covers ::update_site_status_detail
 	 */
-	public function test_get_site_status_detail_empty_when_uncached(): void {
+	public function test_get_site_status_detail_distinguishes_empty_from_missing_or_malformed_cache(): void {
 		delete_transient( WP_Site_Health::STATUS_DETAIL_TRANSIENT );
 
-		$this->assertSame(
-			array(
-				'results'   => array(),
-				'counts'    => array(
-					'good'        => 0,
-					'recommended' => 0,
-					'critical'    => 0,
-				),
-				'timestamp' => 0,
+		$detail = WP_Site_Health::get_site_status_detail();
+		$this->assertSame( array(), $detail['results'] );
+		$this->assertSame( 0, $detail['timestamp'] );
+
+		$before = time();
+		$this->assertTrue( WP_Site_Health::update_site_status_detail( array(), true ) );
+		$after = time();
+
+		$detail = WP_Site_Health::get_site_status_detail();
+		$this->assertSame( array(), $detail['results'] );
+		$this->assertGreaterThanOrEqual( $before, $detail['timestamp'] );
+		$this->assertLessThanOrEqual( $after, $detail['timestamp'] );
+		$this->assertIsString( get_transient( WP_Site_Health::STATUS_DETAIL_TRANSIENT ) );
+
+		$now = time();
+		set_transient(
+			WP_Site_Health::STATUS_DETAIL_TRANSIENT,
+			wp_json_encode(
+				array(
+					'results'   => array(
+						'missing_timestamp' => array( 'status' => 'good' ),
+					),
+					'timestamp' => $now,
+				)
 			),
-			WP_Site_Health::get_site_status_detail()
+			MONTH_IN_SECONDS
 		);
+
+		$detail = WP_Site_Health::get_site_status_detail();
+		$this->assertSame( array(), $detail['results'] );
+		$this->assertSame( 0, $detail['timestamp'] );
+
+		set_transient(
+			WP_Site_Health::STATUS_DETAIL_TRANSIENT,
+			wp_json_encode(
+				array(
+					'results' => array(
+						'missing_cache_timestamp' => array(
+							'status'    => 'good',
+							'timestamp' => $now,
+						),
+					),
+				),
+			),
+			MONTH_IN_SECONDS
+		);
+
+		$detail = WP_Site_Health::get_site_status_detail();
+		$this->assertSame( array(), $detail['results'] );
+		$this->assertSame( 0, $detail['timestamp'] );
 	}
 }
