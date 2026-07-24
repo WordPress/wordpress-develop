@@ -661,6 +661,9 @@ function wp_dashboard_recent_drafts( $drafts = false ) {
 
 		$drafts = get_posts( $query_args );
 		if ( ! $drafts ) {
+			echo '<div class="drafts hide-if-js">';
+			echo '<h2>' . __( 'There are no recent drafts.' ) . "</h2>";
+			echo '</div>';
 			return;
 		}
 	}
@@ -1190,7 +1193,7 @@ function wp_dashboard_cached_rss_widget( $widget_id, $callback, $check_urls = ar
 	$doing_ajax = wp_doing_ajax();
 	$loading    = '<p class="widget-loading hide-if-no-js">' . __( 'Loading&hellip;' ) . '</p>';
 	$loading   .= wp_get_admin_notice(
-		__( 'This widget requires JavaScript.' ),
+		__( 'The WordPress Events and News feeds require Javascript. Please enable it from browser settings.' ),
 		array(
 			'type'               => 'error',
 			'additional_classes' => array( 'inline', 'hide-if-js' ),
@@ -1377,7 +1380,7 @@ function wp_dashboard_events_news() {
  * @since 4.8.0
  */
 function wp_print_community_events_markup() {
-	$community_events_notice  = '<p class="hide-if-js">' . ( 'This widget requires JavaScript.' ) . '</p>';
+	$community_events_notice  = '<p class="hide-if-js">' . ( 'The WordPress Events and News feeds require Javascript.' ) . '</p>';
 	$community_events_notice .= '<p class="community-events-error-occurred" aria-hidden="true">' . __( 'An error occurred. Please try again.' ) . '</p>';
 	$community_events_notice .= '<p class="community-events-could-not-locate" aria-hidden="true"></p>';
 
@@ -2003,7 +2006,7 @@ function wp_dashboard_site_health() {
 	$issues_total = $issue_counts['recommended'] + $issue_counts['critical'];
 	?>
 	<div class="health-check-widget">
-		<div class="health-check-widget-title-section site-health-progress-wrapper loading hide-if-no-js">
+		<div class="health-check-widget-title-section site-health-progress-wrapper loading">
 			<div class="site-health-progress">
 				<svg aria-hidden="true" focusable="false" width="100%" height="100%" viewBox="0 0 200 200" version="1.1" xmlns="http://www.w3.org/2000/svg">
 					<circle r="90" cx="100" cy="100" fill="transparent" stroke-dasharray="565.48" stroke-dashoffset="0"></circle>
