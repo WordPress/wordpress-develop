@@ -376,7 +376,6 @@ class WP_REST_Autosaves_Controller extends WP_REST_Revisions_Controller {
 	 * @return mixed The autosave revision ID or WP_Error.
 	 */
 	public function create_post_autosave( $post_data, array $meta = array() ) {
-
 		$post_id = (int) $post_data['ID'];
 		$post    = get_post( $post_id );
 
