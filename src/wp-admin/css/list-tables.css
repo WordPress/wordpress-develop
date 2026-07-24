@@ -1450,7 +1450,6 @@ ul.cat-checklist input[name="post_category[]"]:indeterminate::before {
 	margin: 0 5px 0 -2px;
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
-	vertical-align: top;
 }
 
 .plugin-card .updating-message:before {
@@ -1474,6 +1473,7 @@ ul.cat-checklist input[name="post_category[]"]:indeterminate::before {
 	content: "\f147" / '';
 }
 
+.plugin-card .update-now:before,
 .plugin-card .updated-message:before,
 .plugin-card .updating-message:before {
 	line-height: 1;
@@ -1541,10 +1541,9 @@ ul.cat-checklist input[name="post_category[]"]:indeterminate::before {
 .plugin-card-top {
 	display: grid;
 	grid-template-columns: 128px minmax(0, 1fr);
-	grid-template-rows: auto 1fr auto;
+	grid-template-rows: 1fr auto;
 	grid-template-areas:
-		"icon name"
-		"icon desc"
+		"icon info"
 		"actions actions";
 	column-gap: 20px;
 	row-gap: 4px;
@@ -1563,26 +1562,21 @@ div.action-links,
 	line-height: 1.3;
 }
 
-/*
- * Option A layout (ticket #64686): the icon spans the height of the
- * title and description via CSS Grid, with the action buttons in a
- * full-width row underneath. Applied unconditionally (no width
- * threshold) since the layout doesn't depend on there being room for
- * buttons beside the title, unlike the previous flex-based design.
- */
+/* ticket #64686: icon spans info group via grid; DOM order matches focus order */
 .plugin-card .plugin-icon {
 	grid-area: icon;
 	align-self: start;
 }
 
-.plugin-card .name {
-	grid-area: name;
+.plugin-card-info {
+	grid-area: info;
+	display: flex;
+	flex-direction: column;
 	min-width: 0;
 }
 
 .plugin-card .desc {
 	margin-inline: 0;
-	grid-area: desc;
 }
 
 .plugin-card .action-links {
