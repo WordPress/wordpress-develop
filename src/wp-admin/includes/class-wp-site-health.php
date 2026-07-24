@@ -86,7 +86,7 @@ class WP_Site_Health {
 							'minimum' => 1,
 						),
 					),
-					'required'             => array( 'status' ),
+					'required'             => array( 'status', 'timestamp' ),
 					'additionalProperties' => false,
 				),
 			),
@@ -95,7 +95,7 @@ class WP_Site_Health {
 				'minimum' => 1,
 			),
 		),
-		'required'   => array( 'results' ),
+		'required'   => array( 'results', 'timestamp' ),
 	);
 
 	/**
@@ -3680,6 +3680,10 @@ class WP_Site_Health {
 				return new WP_Error( 'invalid_test' );
 			}
 
+			if ( is_array( $result ) ) {
+				$result['timestamp'] = $now;
+			}
+
 			$validity = rest_validate_value_from_schema( $result, self::STORED_STATUS_SCHEMA['properties']['results']['additionalProperties'] );
 			if ( is_wp_error( $validity ) ) {
 				return $validity;
@@ -3700,7 +3704,6 @@ class WP_Site_Health {
 				continue;
 			}
 
-			$result['timestamp']        = $now;
 			$cached['results'][ $test ] = $result;
 		}
 
@@ -3709,11 +3712,6 @@ class WP_Site_Health {
 			if ( ! isset( $result['timestamp'] ) || ( $now - (int) $result['timestamp'] ) > MONTH_IN_SECONDS ) {
 				unset( $cached['results'][ $test ] );
 			}
-		}
-
-		if ( empty( $cached['results'] ) ) {
-			delete_transient( self::STATUS_DETAIL_TRANSIENT );
-			return true;
 		}
 
 		$stored_value = wp_json_encode(
