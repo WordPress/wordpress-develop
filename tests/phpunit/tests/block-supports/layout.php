@@ -1188,4 +1188,111 @@ class Tests_Block_Supports_Layout extends WP_UnitTestCase {
 			'Global settings should still be resolved for a block that supports layout.'
 		);
 	}
+
+	/**
+	 * Tests that a constrained layout with non-string contentSize/wideSize/justifyContent
+	 * values (e.g. from hand-edited, imported, or AI-generated content) does not cause a
+	 * fatal error in the explode() calls.
+	 *
+	 * @covers ::wp_get_layout_style
+	 */
+	public function test_wp_get_layout_style_with_non_string_constrained_sizes() {
+		$layout_styles = wp_get_layout_style(
+			'.wp-layout',
+			array(
+				'type'           => 'constrained',
+				'contentSize'    => array( '800px' ),
+				'wideSize'       => array( '1200px' ),
+				'justifyContent' => array( 'center' ),
+			)
+		);
+
+		$this->assertIsString( $layout_styles, 'Constrained layout should not fatal when sizes are not strings.' );
+		$this->assertStringNotContainsString( 'Array', $layout_styles, 'A non-string size value should not leak into the output.' );
+	}
+
+	/**
+	 * Tests that a flex layout with non-string justifyContent/verticalAlignment values
+	 * does not cause a fatal error in the array_key_exists() calls.
+	 *
+	 * @covers ::wp_get_layout_style
+	 */
+	public function test_wp_get_layout_style_with_non_string_flex_alignment() {
+		$layout_styles = wp_get_layout_style(
+			'.wp-layout',
+			array(
+				'type'              => 'flex',
+				'orientation'       => 'horizontal',
+				'justifyContent'    => array( 'right' ),
+				'verticalAlignment' => array( 'center' ),
+			)
+		);
+
+		$this->assertIsString( $layout_styles, 'Flex layout should not fatal when alignment values are not strings.' );
+	}
+
+	/**
+	 * Tests that a responsive grid child with a non-string parent minimumColumnWidth
+	 * does not cause a fatal error in the explode() call.
+	 *
+	 * @covers ::wp_get_child_layout_style_rules
+	 */
+	public function test_wp_get_child_layout_style_rules_with_non_string_minimum_column_width() {
+		$actual_output = wp_get_child_layout_style_rules(
+			'.wp-container-content-test',
+			array( 'columnSpan' => '2' ),
+			array( 'minimumColumnWidth' => array( '12rem' ) ),
+			null
+		);
+
+		$this->assertIsArray( $actual_output, 'Child layout rules should not fatal when minimumColumnWidth is not a string.' );
+	}
+
+	/**
+	 * Tests that layout classname generation does not fatal when the layout type,
+	 * orientation, or justifyContent attributes are not strings.
+	 *
+	 * @covers ::wp_render_layout_support_flag
+	 */
+	public function test_layout_support_flag_with_non_string_layout_values() {
+		$block_content = '<div class="wp-block-group"></div>';
+		$block         = array(
+			'blockName' => 'core/group',
+			'attrs'     => array(
+				'layout' => array(
+					'type'           => array( 'constrained' ),
+					'orientation'    => array( 'horizontal' ),
+					'justifyContent' => array( 'center' ),
+				),
+			),
+		);
+
+		$this->assertIsString(
+			wp_render_layout_support_flag( $block_content, $block ),
+			'Layout support should not fatal when layout values are not strings.'
+		);
+	}
+
+	/**
+	 * Tests that restoring the group inner container does not fatal when the tagName
+	 * attribute is not a string (which would break the preg_quote() calls).
+	 *
+	 * @covers ::wp_restore_group_inner_container
+	 */
+	public function test_restore_group_inner_container_with_non_string_tag_name() {
+		// The "default" theme doesn't have theme.json support, so the preg_quote() path runs.
+		switch_theme( 'default' );
+		$block_content = '<div class="wp-block-group"><p>Test</p></div>';
+		$block         = array(
+			'blockName' => 'core/group',
+			'attrs'     => array(
+				'tagName' => array( 'div' ),
+			),
+		);
+
+		$this->assertIsString(
+			wp_restore_group_inner_container( $block_content, $block ),
+			'Group inner container restore should not fatal when tagName is not a string.'
+		);
+	}
 }

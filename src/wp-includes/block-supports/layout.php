@@ -190,8 +190,9 @@ function wp_get_child_layout_style_rules( $selector, $child_layout, $parent_layo
 		);
 	}
 
-	$minimum_column_width = $parent_layout['minimumColumnWidth'] ?? null;
-	$column_count         = $parent_layout['columnCount'] ?? null;
+	$minimum_column_width_attr = $parent_layout['minimumColumnWidth'] ?? null;
+	$minimum_column_width      = is_string( $minimum_column_width_attr ) ? $minimum_column_width_attr : null;
+	$column_count              = $parent_layout['columnCount'] ?? null;
 
 	/*
 	 * If columnSpan or columnStart is set, and the parent grid is responsive, i.e. if it has a minimumColumnWidth set,
@@ -548,9 +549,14 @@ function wp_get_layout_style( $selector, $layout, $has_block_gap_support = false
 			}
 		}
 	} elseif ( 'constrained' === $layout_type ) {
-		$content_size    = $layout_for_styles['contentSize'] ?? '';
-		$wide_size       = $layout_for_styles['wideSize'] ?? '';
-		$justify_content = $layout_for_styles['justifyContent'] ?? 'center';
+		// The schemas and editor UI only produce strings here, so treat a non-string
+		// value as absent rather than casting it — it couldn't render as valid CSS anyway.
+		$content_size_attr    = $layout_for_styles['contentSize'] ?? null;
+		$content_size         = is_string( $content_size_attr ) ? $content_size_attr : '';
+		$wide_size_attr       = $layout_for_styles['wideSize'] ?? null;
+		$wide_size            = is_string( $wide_size_attr ) ? $wide_size_attr : '';
+		$justify_content_attr = $layout_for_styles['justifyContent'] ?? null;
+		$justify_content      = is_string( $justify_content_attr ) ? $justify_content_attr : 'center';
 
 		// Check if viewport-specific ("override") values exist. Null values are valid and mean the user cleared a value inherited from the default viewport.
 		$has_justify_content_override = null !== $viewport_overrides && $has_viewport_property_override( 'justifyContent' );
@@ -771,23 +777,26 @@ function wp_get_layout_style( $selector, $layout, $has_block_gap_support = false
 			}
 		}
 
+		$flex_justify_content    = $layout_for_styles['justifyContent'] ?? null;
+		$flex_vertical_alignment = $layout_for_styles['verticalAlignment'] ?? null;
+
 		if ( 'horizontal' === $layout_orientation ) {
 			/*
 			 * Add this style only if is not empty for backwards compatibility,
 			 * since we intend to convert blocks that had flex layout implemented
 			 * by custom css.
 			 */
-			if ( $should_output_flex_justification && ! empty( $layout_for_styles['justifyContent'] ) && array_key_exists( $layout_for_styles['justifyContent'], $justify_content_options ) ) {
+			if ( $should_output_flex_justification && ! empty( $flex_justify_content ) && is_string( $flex_justify_content ) && array_key_exists( $flex_justify_content, $justify_content_options ) ) {
 				$layout_styles[] = array(
 					'selector'     => $selector,
-					'declarations' => array( 'justify-content' => $justify_content_options[ $layout_for_styles['justifyContent'] ] ),
+					'declarations' => array( 'justify-content' => $justify_content_options[ $flex_justify_content ] ),
 				);
 			}
 
-			if ( $should_output_flex_alignment && ! empty( $layout_for_styles['verticalAlignment'] ) && array_key_exists( $layout_for_styles['verticalAlignment'], $vertical_alignment_options ) ) {
+			if ( $should_output_flex_alignment && ! empty( $flex_vertical_alignment ) && is_string( $flex_vertical_alignment ) && array_key_exists( $flex_vertical_alignment, $vertical_alignment_options ) ) {
 				$layout_styles[] = array(
 					'selector'     => $selector,
-					'declarations' => array( 'align-items' => $vertical_alignment_options[ $layout_for_styles['verticalAlignment'] ] ),
+					'declarations' => array( 'align-items' => $vertical_alignment_options[ $flex_vertical_alignment ] ),
 				);
 			}
 		} else {
@@ -797,10 +806,10 @@ function wp_get_layout_style( $selector, $layout, $has_block_gap_support = false
 					'declarations' => array( 'flex-direction' => 'column' ),
 				);
 			}
-			if ( $should_output_flex_justification && ! empty( $layout_for_styles['justifyContent'] ) && array_key_exists( $layout_for_styles['justifyContent'], $justify_content_options ) ) {
+			if ( $should_output_flex_justification && ! empty( $flex_justify_content ) && is_string( $flex_justify_content ) && array_key_exists( $flex_justify_content, $justify_content_options ) ) {
 				$layout_styles[] = array(
 					'selector'     => $selector,
-					'declarations' => array( 'align-items' => $justify_content_options[ $layout_for_styles['justifyContent'] ] ),
+					'declarations' => array( 'align-items' => $justify_content_options[ $flex_justify_content ] ),
 				);
 			} elseif ( $should_output_flex_justification ) {
 				$layout_styles[] = array(
@@ -808,10 +817,10 @@ function wp_get_layout_style( $selector, $layout, $has_block_gap_support = false
 					'declarations' => array( 'align-items' => 'flex-start' ),
 				);
 			}
-			if ( $should_output_flex_alignment && ! empty( $layout_for_styles['verticalAlignment'] ) && array_key_exists( $layout_for_styles['verticalAlignment'], $vertical_alignment_options ) ) {
+			if ( $should_output_flex_alignment && ! empty( $flex_vertical_alignment ) && is_string( $flex_vertical_alignment ) && array_key_exists( $flex_vertical_alignment, $vertical_alignment_options ) ) {
 				$layout_styles[] = array(
 					'selector'     => $selector,
-					'declarations' => array( 'justify-content' => $vertical_alignment_options[ $layout_for_styles['verticalAlignment'] ] ),
+					'declarations' => array( 'justify-content' => $vertical_alignment_options[ $flex_vertical_alignment ] ),
 				);
 			}
 		}
@@ -1123,20 +1132,23 @@ function wp_render_layout_support_flag( $block_content, $block ) {
 	 * not intended to provide an extended set of classes to match all block layout attributes
 	 * here.
 	 */
-	if ( ! empty( $block['attrs']['layout']['orientation'] ) ) {
-		$class_names[] = 'is-' . sanitize_title( $block['attrs']['layout']['orientation'] );
+	$orientation = $block['attrs']['layout']['orientation'] ?? null;
+	if ( ! empty( $orientation ) && is_string( $orientation ) ) {
+		$class_names[] = 'is-' . sanitize_title( $orientation );
 	}
 
-	if ( ! empty( $block['attrs']['layout']['justifyContent'] ) ) {
-		$class_names[] = 'is-content-justification-' . sanitize_title( $block['attrs']['layout']['justifyContent'] );
+	$justify_content = $block['attrs']['layout']['justifyContent'] ?? null;
+	if ( ! empty( $justify_content ) && is_string( $justify_content ) ) {
+		$class_names[] = 'is-content-justification-' . sanitize_title( $justify_content );
 	}
 
-	if ( ! empty( $block['attrs']['layout']['flexWrap'] ) && 'nowrap' === $block['attrs']['layout']['flexWrap'] ) {
+	$flex_wrap = $block['attrs']['layout']['flexWrap'] ?? null;
+	if ( ! empty( $flex_wrap ) && 'nowrap' === $flex_wrap ) {
 		$class_names[] = 'is-nowrap';
 	}
 
 	// Get classname for layout type.
-	if ( isset( $used_layout['type'] ) ) {
+	if ( isset( $used_layout['type'] ) && is_string( $used_layout['type'] ) ) {
 		$layout_classname = $layout_definitions[ $used_layout['type'] ]['className'] ?? '';
 	} else {
 		$layout_classname = $layout_definitions['default']['className'] ?? '';
@@ -1463,7 +1475,8 @@ add_filter( 'render_block', 'wp_render_layout_support_flag', 10, 2 );
  * @return string Filtered block content.
  */
 function wp_restore_group_inner_container( $block_content, $block ) {
-	$tag_name                         = $block['attrs']['tagName'] ?? 'div';
+	$tag_name_attr                    = $block['attrs']['tagName'] ?? null;
+	$tag_name                         = is_string( $tag_name_attr ) ? $tag_name_attr : 'div';
 	$group_with_inner_container_regex = sprintf(
 		'/(^\s*<%1$s\b[^>]*wp-block-group(\s|")[^>]*>)(\s*<div\b[^>]*wp-block-group__inner-container(\s|")[^>]*>)((.|\S|\s)*)/U',
 		preg_quote( $tag_name, '/' )
