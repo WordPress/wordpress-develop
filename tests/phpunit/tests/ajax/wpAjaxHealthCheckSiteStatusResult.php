@@ -122,6 +122,7 @@ class Tests_Ajax_wpAjaxHealthCheckSiteStatusResult extends WP_Ajax_UnitTestCase 
 
 		$response = $this->dispatch_result_request();
 		$this->assertFalse( $response['success'] );
+		$this->assertSame( 'rest_not_in_enum', $response['data'][0]['code'] );
 
 		$_POST['results'] = wp_slash(
 			wp_json_encode(
