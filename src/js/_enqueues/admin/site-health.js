@@ -156,11 +156,6 @@ jQuery( function( $ ) {
 
 		count = SiteHealth.site_status.issues[ issue.status ];
 
-		// If no test name is supplied, append a placeholder for markup references.
-		if ( typeof issue.test === 'undefined' ) {
-			issue.test = issue.status + count;
-		}
-
 		/*
 		 * Collect the test name and status so they can be cached server-side. These
 		 * include the asynchronous tests that only run in the browser. Labels are left
