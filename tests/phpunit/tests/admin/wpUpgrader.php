@@ -1478,9 +1478,14 @@ class Tests_Admin_WpUpgrader extends WP_UnitTestCase {
 
 		self::$wp_filesystem_mock
 				->expects( $this->once() )
+				->method( 'exists' )
+				->with( $working_directory )
+				->willReturn( true );
+
+		self::$wp_filesystem_mock
+				->expects( $this->once() )
 				->method( 'delete' )
 				->with( $working_directory, true );
-
 		// Note: setMethods() is deprecated in PHPUnit 9, but still supported.
 		$instance = $this->getMockBuilder( 'WP_Upgrader' )
 				->setConstructorArgs( array( self::$upgrader_skin_mock ) )
