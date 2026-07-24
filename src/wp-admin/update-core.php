@@ -1362,7 +1362,7 @@ if ( 'upgrade-core' === $action ) {
 		exit;
 	}
 
-	$translation_updates = wp_get_translation_updates_by_id();
+	$current_translation_updates = wp_get_translation_updates_by_id();
 
 	$translation_update_ids = array_unique(
 		array_map(
@@ -1371,7 +1371,7 @@ if ( 'upgrade-core' === $action ) {
 		)
 	);
 
-	$translation_updates = array_intersect_key( $translation_updates, array_flip( $translation_update_ids ) );
+	$translation_updates = array_intersect_key( $current_translation_updates, array_flip( $translation_update_ids ) );
 
 	if ( empty( $translation_updates ) ) {
 		wp_redirect( self_admin_url( 'update-core.php' ) );
@@ -1391,7 +1391,6 @@ if ( 'upgrade-core' === $action ) {
 		$selected_translation_updates = array_intersect_key( $translation_updates, array_flip( $selected_translation_update_ids ) );
 	}
 
-	$current_translation_updates   = wp_get_translation_updates_by_id();
 	$deferred_translation_updates  = array_intersect_key(
 		$current_translation_updates,
 		wp_get_deferred_translation_updates( $current_translation_updates )
