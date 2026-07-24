@@ -1551,9 +1551,13 @@ div.action-links,
 }
 
 .plugin-card h3 {
-	margin: 0 0 16px;
+	margin: 0;
 	font-size: 18px;
 	line-height: 1.3;
+}
+
+.plugin-card .authors {
+	margin: 8px 0;
 }
 
 /*
@@ -1580,7 +1584,6 @@ div.action-links,
 
 .plugin-card .action-links {
 	grid-area: actions;
-	margin-top: 8px;
 	padding-top: 12px;
 	border-top: 1px solid rgb(0, 0, 0, 0.1);
 }

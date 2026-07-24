@@ -672,6 +672,7 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 						<?php echo $title; ?>
 						</a>
 					</h3>
+					<p class="authors"><?php echo $author; ?></p>
 				</div>
 				<div class="action-links">
 					<?php
@@ -682,7 +683,6 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 				</div>
 				<div class="desc column-description">
 					<p><?php echo $description; ?></p>
-					<p class="authors"><?php echo $author; ?></p>
 				</div>
 				<?php
 				/*
