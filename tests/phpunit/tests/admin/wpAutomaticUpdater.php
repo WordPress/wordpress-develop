@@ -40,6 +40,41 @@ class Tests_Admin_WpAutomaticUpdater extends WP_UnitTestCase {
 		add_filter( 'pre_wp_mail', '__return_false' );
 	}
 
+	public function tear_down() {
+		delete_site_option( 'deferred_translation_updates' );
+
+		parent::tear_down();
+	}
+
+	/**
+	 * Tests that deferred translation updates are not automatically updated.
+	 *
+	 * @ticket 42281
+	 *
+	 * @covers WP_Automatic_Updater::should_update
+	 */
+	public function test_should_update_should_skip_deferred_translation_updates() {
+		$deferred_update = (object) array(
+			'type'       => 'plugin',
+			'slug'       => 'deferred-plugin',
+			'language'   => 'de_DE',
+			'version'    => '1.0.0',
+			'autoupdate' => true,
+		);
+
+		$available_update       = clone $deferred_update;
+		$available_update->slug = 'available-plugin';
+
+		wp_set_deferred_translation_updates( array( $deferred_update ) );
+
+		add_filter( 'request_filesystem_credentials', '__return_true' );
+		add_filter( 'automatic_updates_is_vcs_checkout', '__return_false' );
+		add_filter( 'automatic_updater_disabled', '__return_false' );
+
+		$this->assertFalse( self::$updater->should_update( 'translation', $deferred_update, WP_LANG_DIR ) );
+		$this->assertTrue( self::$updater->should_update( 'translation', $available_update, WP_LANG_DIR ) );
+	}
+
 	/**
 	 * Tests that `WP_Automatic_Updater::send_plugin_theme_email()` appends
 	 * plugin URLs.
