@@ -1777,6 +1777,11 @@
 					return;
 				}
 
+				// Require the alt key for arrow events.
+				if ( 27 !== event.keyCode && ( ! event.altKey || ( event.originalEvent && event.originalEvent.repeat ) ) ) {
+					return;
+				}
+
 				// Pressing the right arrow key fires a theme:next event.
 				if ( 39 === event.keyCode ) {
 					section.nextTheme();
