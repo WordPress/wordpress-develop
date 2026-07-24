@@ -370,6 +370,8 @@ class WP_REST_Autosaves_Controller extends WP_REST_Revisions_Controller {
 	 *
 	 * @since 5.0.0
 	 * @since 6.4.0 The `$meta` parameter was added.
+	 * @since 7.1.0 Compares incoming data against the existing autosave instead
+	 *              of the published post.
 	 *
 	 * @param array $post_data Associative array containing the post data.
 	 * @param array $meta      Associative array containing the post meta data.
@@ -423,9 +425,9 @@ class WP_REST_Autosaves_Controller extends WP_REST_Revisions_Controller {
 			}
 
 			if ( ! $autosave_is_different ) {
-			// Nothing to save, return the existing autosave.
-			return $old_autosave->ID;
-		}
+				// Nothing to save, return the existing autosave.
+				return $old_autosave->ID;
+			}
 
 			$new_autosave['ID']          = $old_autosave->ID;
 			$new_autosave['post_author'] = $user_id;
