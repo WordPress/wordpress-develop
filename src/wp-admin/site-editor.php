@@ -214,7 +214,7 @@ $preload_paths = array(
 	/**
 	 * The preloaded URL must exactly match the request the client makes,
 	 * including the field order.
-	 * @link https://github.com/WordPress/gutenberg/blob/4eba946a8adced338b1f23eb3016fbbd399c2e83/packages/core-data/src/entities.js
+	 * @link https://github.com/WordPress/gutenberg/blob/trunk/packages/core-data/src/entities.js
 	 */
 	'/?_fields=' . implode(
 		',',
