@@ -8,6 +8,12 @@ includes:
 	# The base configuration file for using PHPStan with the WordPress core codebase.
 	- tests/phpstan/base.neon
 
+	# Type-specifying extension so PHPUnit assertions (e.g. assertArrayHasKey(),
+	# assertInstanceOf(), assertNotNull()) narrow types in the analysis. Only the
+	# extension is included, not phpstan-phpunit's rules.neon, to avoid introducing
+	# new strict rules.
+	- vendor/phpstan/phpstan-phpunit/extension.neon
+
 	# The baseline file includes preexisting errors in the codebase that should be ignored.
 	# https://phpstan.org/user-guide/baseline
 	- tests/phpstan/baseline.php
@@ -34,3 +40,10 @@ parameters:
 			identifier: function.inner
 			path: src/wp-includes/canonical.php
 			count: 1
+		# Level 2:
+		# ValueError is PHP 8.0+; core throws it conditionally so the docblocks are correct for WP's 7.4+ range,
+		# but bleedingEdge's version-aware check treats the class as non-existent against the PHP 7.4 floor.
+		-
+			message: '#^PHPDoc tag @throws with type InvalidArgumentException\|ValueError is not subtype of Throwable$#'
+			path: src/wp-includes/compat.php
+			reportUnmatched: false

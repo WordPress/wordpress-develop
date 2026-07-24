@@ -187,7 +187,7 @@ class Tests_Post_wpAfterInsertPost extends WP_UnitTestCase {
 	public function test_new_post_via_rest_controller() {
 		wp_set_current_user( self::$admin_id );
 
-		$request = new WP_REST_Request( 'POST', sprintf( '/wp/v2/posts' ) );
+		$request = new WP_REST_Request( 'POST', '/wp/v2/posts' );
 		$request->add_header( 'Content-Type', 'application/x-www-form-urlencoded' );
 		$request->set_body_params(
 			array(
