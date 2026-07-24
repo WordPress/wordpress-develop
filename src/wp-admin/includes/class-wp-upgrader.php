@@ -909,7 +909,10 @@ class WP_Upgrader {
 			)
 		);
 
-		if ( is_wp_error( $result ) && $options['clear_working'] ) {
+		if ( is_wp_error( $result ) && $options['clear_working']
+			&& $wp_filesystem instanceof WP_Filesystem_Base
+			&& $wp_filesystem->exists( $working_dir )
+		) {
 			$wp_filesystem->delete( $working_dir, true );
 		}
 
