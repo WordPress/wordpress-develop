@@ -27,6 +27,7 @@ const zlib = require( 'zlib' );
 const {
 	gutenbergDir,
 	readGutenbergConfig,
+	fetchWithRetry,
 	fetchGhcrToken,
 	fetchManifest,
 } = require( './utils' );
@@ -151,11 +152,15 @@ async function main() {
 	 */
 	console.log( `\n📥 Downloading and extracting artifact...` );
 	try {
-		const response = await fetch( `https://ghcr.io/v2/${ config.ghcrRepo }/blobs/${ digest }`, {
-			headers: {
-				Authorization: `Bearer ${ token }`,
+		const response = await fetchWithRetry(
+			`https://ghcr.io/v2/${ config.ghcrRepo }/blobs/${ digest }`,
+			{
+				headers: {
+					Authorization: `Bearer ${ token }`,
+				},
 			},
-		} );
+			`blob ${ digest }`
+		);
 		if ( ! response.ok ) {
 			throw new Error( `Failed to download blob: ${ response.status } ${ response.statusText }` );
 		}

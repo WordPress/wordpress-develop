@@ -25,6 +25,82 @@ const hashFilePath = path.join( gutenbergDir, '.gutenberg-hash' );
 const SHA_PATTERN = /^[a-f0-9]{40}$/i;
 
 const MANIFEST_ACCEPT = 'application/vnd.oci.image.manifest.v1+json';
+const RETRYABLE_HTTP_STATUSES = new Set( [ 429, 500, 502, 503, 504 ] );
+const MAX_FETCH_RETRIES = 3;
+const RETRY_DELAY_MS = 1000;
+
+/**
+ * Pause execution for a short duration between transient fetch retries.
+ *
+ * @param {number} delayMs Delay in milliseconds.
+ * @return {Promise<void>}
+ */
+function sleep( delayMs ) {
+	return new Promise( ( resolve ) => {
+		setTimeout( resolve, delayMs );
+	} );
+}
+
+/**
+ * Determine whether a fetch failure should be retried.
+ *
+ * @param {Response | undefined} response Fetch response when available.
+ * @param {unknown} error Fetch error when the request failed before a response.
+ * @return {boolean} Whether the failure appears transient.
+ */
+function shouldRetryFetch( response, error ) {
+	if ( response ) {
+		return RETRYABLE_HTTP_STATUSES.has( response.status );
+	}
+
+	return error instanceof TypeError;
+}
+
+/**
+ * Fetch a URL with retries for transient GHCR and network failures.
+ *
+ * @param {string} url Request URL.
+ * @param {RequestInit} options Fetch options.
+ * @param {string} resourceLabel Human-readable resource name for logs.
+ * @return {Promise<Response>} The successful or final response.
+ */
+async function fetchWithRetry( url, options, resourceLabel ) {
+	let lastError;
+
+	for ( let attempt = 1; attempt <= MAX_FETCH_RETRIES; attempt++ ) {
+		let response;
+
+		try {
+			response = await fetch( url, options );
+		} catch ( error ) {
+			lastError = error;
+
+			if ( attempt === MAX_FETCH_RETRIES || ! shouldRetryFetch( undefined, error ) ) {
+				throw error;
+			}
+
+			console.warn(
+				`Retrying ${ resourceLabel } after network failure (${ attempt }/${ MAX_FETCH_RETRIES })...`
+			);
+			await sleep( RETRY_DELAY_MS * attempt );
+			continue;
+		}
+
+		if ( response.ok || ! shouldRetryFetch( response, undefined ) || attempt === MAX_FETCH_RETRIES ) {
+			return response;
+		}
+
+		lastError = new Error(
+			`Failed to fetch ${ resourceLabel }: ${ response.status } ${ response.statusText }`
+		);
+		console.warn(
+			`Retrying ${ resourceLabel } after ${ response.status } ${ response.statusText } (${ attempt }/${ MAX_FETCH_RETRIES })...`
+		);
+		await sleep( RETRY_DELAY_MS * attempt );
+	}
+
+	throw lastError;
+}
 
 /**
  * Read Gutenberg configuration from package.json.
@@ -64,8 +140,10 @@ function readGutenbergConfig() {
  * @return {Promise<string>} The bearer token.
  */
 async function fetchGhcrToken( ghcrRepo ) {
-	const response = await fetch(
-		`https://ghcr.io/token?scope=repository:${ ghcrRepo }:pull&service=ghcr.io`
+	const response = await fetchWithRetry(
+		`https://ghcr.io/token?scope=repository:${ ghcrRepo }:pull&service=ghcr.io`,
+		{},
+		'GHCR token'
 	);
 	if ( ! response.ok ) {
 		throw new Error(
@@ -88,14 +166,15 @@ async function fetchGhcrToken( ghcrRepo ) {
  * @return {Promise<Record<string, any>>} Parsed manifest JSON.
  */
 async function fetchManifest( ref, ghcrRepo, token ) {
-	const response = await fetch(
+	const response = await fetchWithRetry(
 		`https://ghcr.io/v2/${ ghcrRepo }/manifests/${ ref }`,
 		{
 			headers: {
 				Authorization: `Bearer ${ token }`,
 				Accept: MANIFEST_ACCEPT,
 			},
-		}
+		},
+		`manifest for "${ ref }"`
 	);
 	if ( ! response.ok ) {
 		const error = /** @type {Error & { status?: number }} */ (
@@ -241,6 +320,7 @@ module.exports = {
 	gutenbergDir,
 	readGutenbergConfig,
 	verifyGutenbergVersion,
+	fetchWithRetry,
 	fetchGhcrToken,
 	fetchManifest,
 	resolveExpectedSha,

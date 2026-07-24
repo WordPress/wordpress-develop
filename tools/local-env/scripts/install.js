@@ -9,8 +9,8 @@ const local_env_utils = require( './utils' );
 
 dotenvExpand.expand( dotenv.config() );
 
-// Create wp-config.php.
-wp_cli( `config create --dbname=wordpress_develop --dbuser=root --dbpass=password --dbhost=mysql --force --config-file="wp-config.php"` );
+// Create wp-config.php without waiting on the database to accept connections.
+wp_cli( `config create --dbname=wordpress_develop --dbuser=root --dbpass=password --dbhost=mysql --skip-check --force --config-file="wp-config.php"` );
 
 // Add the debug settings to wp-config.php.
 // Windows requires this to be done as an additional step, rather than using the --extra-php option in the previous step.

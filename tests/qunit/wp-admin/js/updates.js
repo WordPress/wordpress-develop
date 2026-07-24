@@ -158,6 +158,46 @@ jQuery( function( $ ) {
 		assert.equal( jQuery.ajax.getCall( 0 ).args[0].data.slug, 'twentyeleven' );
 	} );
 
+	QUnit.test( 'Canceling the credentials modal restores the theme details notice', function( assert ) {
+		var overlayNotice = $(
+				'<div class="notice notice-warning notice-alt notice-large" data-slug="twentyeleven">' +
+					'<h3 class="notice-title">Update Available</h3>' +
+					'<p><strong>There is a new version of Twenty Eleven available. <a id="update-theme" data-slug="twentyeleven" href="#">update now</a>.</strong></p>' +
+				'</div>'
+			).appendTo( '#qunit-fixture' ),
+			eventTarget = overlayNotice.find( '#update-theme' ),
+			rowNotice = $(
+				'<div class="theme" data-slug="twentyeleven">' +
+					'<div class="update-message notice inline notice-warning notice-alt">' +
+						'<p><strong>There is a new version of Twenty Eleven available. <a href="#">update now</a>.</strong></p>' +
+					'</div>' +
+				'</div>'
+			).appendTo( '#qunit-fixture' );
+
+		$( '<div id="request-filesystem-credentials-dialog"><form id="request-filesystem-credentials-form"></form></div>' )
+			.appendTo( '#qunit-fixture' );
+
+		wp.updates.shouldRequestFilesystemCredentials = true;
+		wp.updates.filesystemCredentials.available = false;
+
+		wp.updates.maybeRequestFilesystemCredentials( $.Event( 'click', {
+			target: eventTarget[0]
+		} ) );
+
+		wp.updates.updateTheme( { slug: 'twentyeleven' } );
+
+		assert.strictEqual( wp.updates.queue.length, 1, 'Theme update waits for credentials.' );
+		assert.true( overlayNotice.hasClass( 'updating-message' ), 'Overlay notice is marked as updating.' );
+		assert.true( rowNotice.find( '.update-message' ).hasClass( 'updating-message' ), 'Theme row notice is marked as updating.' );
+
+		wp.updates.requestForCredentialsModalCancel();
+
+		assert.false( overlayNotice.hasClass( 'updating-message' ), 'Overlay notice resets after cancel.' );
+		assert.false( rowNotice.find( '.update-message' ).hasClass( 'updating-message' ), 'Theme row notice resets after cancel.' );
+		assert.notStrictEqual( overlayNotice.text().indexOf( 'Updating...' ), 0, 'Overlay notice no longer shows the updating text.' );
+		assert.notStrictEqual( rowNotice.text().indexOf( 'Updating...' ), 0, 'Theme row notice no longer shows the updating text.' );
+	} );
+
 	QUnit.test( 'Installing a theme should call the API', function( assert ) {
 		wp.updates.installTheme( { slug: 'twentyeleven' } );
 		assert.ok( jQuery.ajax.calledOnce );
