@@ -820,7 +820,7 @@ function wp_exif_datetime( $str, $timezone = null ) {
  * Converts the exif date format to an unix timestamp.
  *
  * @since 2.5.0
- * @since 6.9.0 Function uses wp_exif_datetime to generate timestamp
+ * @since 7.2.0 Uses wp_exif_datetime() to generate the timestamp.
  *
  * @param string $str A date string expected to be in Exif format (Y:m:d H:i:s).
  * @return int|false The unix timestamp, or false on failure.
