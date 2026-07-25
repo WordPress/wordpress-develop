@@ -66,7 +66,9 @@ while ( have_posts() ) {
 							'em'     => array(),
 							'b'      => array(),
 							'i'      => array(),
-							'span'   => array(),
+							'span'   => array(
+								'class' => true,
+							),
 						)
 					) . '</a>'
 				);

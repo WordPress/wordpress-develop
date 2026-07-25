@@ -134,7 +134,9 @@ function wp_dashboard_on_this_day() {
 											'em'     => array(),
 											'b'      => array(),
 											'i'      => array(),
-											'span'   => array(),
+											'span'   => array(
+												'class' => true,
+											),
 										)
 									);
 									?>

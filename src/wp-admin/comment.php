@@ -210,7 +210,9 @@ switch ( $action ) {
 				'em'     => array(),
 				'b'      => array(),
 				'i'      => array(),
-				'span'   => array(),
+				'span'   => array(
+					'class' => true,
+				),
 
 			)
 		);

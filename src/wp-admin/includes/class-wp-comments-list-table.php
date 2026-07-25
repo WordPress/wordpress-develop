@@ -1126,7 +1126,9 @@ class WP_Comments_List_Table extends WP_List_Table {
 				'em'     => array(),
 				'b'      => array(),
 				'i'      => array(),
-				'span'   => array(),
+				'span'   => array(
+					'class' => true,
+				),
 			)
 		);
 

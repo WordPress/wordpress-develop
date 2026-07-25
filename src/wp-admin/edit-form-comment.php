@@ -189,7 +189,9 @@ $post_title = wp_kses(
 		'em'     => array(),
 		'b'      => array(),
 		'i'      => array(),
-		'span'   => array(),
+		'span'   => array(
+			'class' => true,
+		),
 	)
 );
 if ( current_user_can( 'edit_post', $post_id ) ) {

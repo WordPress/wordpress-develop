@@ -301,7 +301,9 @@ class Walker_Nav_Menu_Edit extends Walker_Nav_Menu {
 										'em'     => array(),
 										'b'      => array(),
 										'i'      => array(),
-										'span'   => array(),
+										'span'   => array(
+											'class' => true,
+										),
 									)
 								);
 							} else {

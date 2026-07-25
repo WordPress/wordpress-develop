@@ -87,7 +87,7 @@ class Tests_Link_GetThePrivacyPolicyLink extends WP_UnitTestCase {
 		wp_update_post(
 			array(
 				'ID'         => self::$privacy_policy_page_id,
-				'post_title' => '<strong>Privacy</strong> <em>Policy</em> <b>Bold</b> <i>Italic</i> <span>Page</span> <script>alert("test")</script>',
+				'post_title' => '<strong>Privacy</strong> <em>Policy</em> <b>Bold</b> <i>Italic</i> <span class="page-title">Page</span> <script>alert("test")</script>',
 			)
 		);
 		update_option( 'wp_page_for_privacy_policy', self::$privacy_policy_page_id );
@@ -95,7 +95,7 @@ class Tests_Link_GetThePrivacyPolicyLink extends WP_UnitTestCase {
 		$actual_link = get_the_privacy_policy_link();
 
 		$this->assertStringEndsWith(
-			'><strong>Privacy</strong> <em>Policy</em> <b>Bold</b> <i>Italic</i> <span>Page</span> alert("test")</a>',
+			'><strong>Privacy</strong> <em>Policy</em> <b>Bold</b> <i>Italic</i> <span class="page-title">Page</span> alert("test")</a>',
 			$actual_link
 		);
 	}

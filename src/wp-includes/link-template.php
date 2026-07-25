@@ -4827,7 +4827,9 @@ function get_the_privacy_policy_link( $before = '', $after = '' ) {
 					'em'     => array(),
 					'b'      => array(),
 					'i'      => array(),
-					'span'   => array(),
+					'span'   => array(
+						'class' => true,
+					),
 				)
 			)
 		);
