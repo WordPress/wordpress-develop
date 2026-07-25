@@ -442,8 +442,6 @@ function edit_post( $post_data = null ) {
 		}
 	}
 
-	add_meta( $post_id );
-
 	update_post_meta( $post_id, '_edit_last', get_current_user_id() );
 
 	$success = wp_update_post( $translated );
