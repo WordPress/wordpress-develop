@@ -280,7 +280,6 @@ tr th {
 	text-transform: uppercase;
 }
 td {
-	border-top: 1px solid #ededed !important;
 	color: inherit;
 	font-size: inherit;
 	font-weight: normal;
