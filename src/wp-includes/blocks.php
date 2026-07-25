@@ -2818,6 +2818,7 @@ function build_query_vars_from_query_block( $block, $page ) {
 
 			$query['offset']         = ( $per_page * ( $page - 1 ) ) + $offset;
 			$query['posts_per_page'] = $per_page;
+			$query['paged']          = $page;
 		}
 		// Migrate `categoryIds` and `tagIds` to `tax_query` for backwards compatibility.
 		if ( ! empty( $block->context['query']['categoryIds'] ) || ! empty( $block->context['query']['tagIds'] ) ) {
