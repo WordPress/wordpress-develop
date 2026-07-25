@@ -1491,7 +1491,7 @@ class WP_Rewrite {
 	 * @return string[] Array of rewrite rules keyed by their regex pattern.
 	 */
 	public function wp_rewrite_rules() {
-		$this->rules = get_option( 'rewrite_rules' );
+		$this->rules = get_option( 'rewrite_rules', array() );
 		if ( empty( $this->rules ) ) {
 			$this->refresh_rewrite_rules();
 		}
@@ -1920,7 +1920,7 @@ class WP_Rewrite {
 		$this->extra_rules         = array();
 		$this->non_wp_rules        = array();
 		$this->endpoints           = array();
-		$this->permalink_structure = get_option( 'permalink_structure' );
+		$this->permalink_structure = get_option( 'permalink_structure', '' );
 		$this->front               = substr( $this->permalink_structure, 0, strpos( $this->permalink_structure, '%' ) );
 		$this->root                = '';
 
