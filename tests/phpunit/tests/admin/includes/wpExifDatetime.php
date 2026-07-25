@@ -58,6 +58,14 @@ class Tests_Admin_wpExifDatetime extends WP_UnitTestCase {
 				'2024:03:15 14:30:00',
 				'2024:03:15 14:30:00',
 			),
+			'slash separated' => array(
+				'2024/03/15 14:30:00',
+				'2024:03:15 14:30:00',
+			),
+			'no separators'   => array(
+				'20240315 143000',
+				'2024:03:15 14:30:00',
+			),
 			'mysql date only' => array(
 				'2024-03-15',
 				'2024:03:15 00:00:00',
@@ -107,22 +115,6 @@ class Tests_Admin_wpExifDatetime extends WP_UnitTestCase {
 
 		// Test with milliseconds
 		$datetime = wp_exif_datetime( '2024-03-15 14:30:00.123' );
-		$this->assertEquals( '2024:03:15 14:30:00', $datetime->format( 'Y:m:d H:i:s' ) );
-	}
-
-	/**
-	 * @ticket 56887
-	 *
-	 * Tests the functionality of parsing dates with different separators and ensures the output format is consistent.
-	 *
-	 * @return void
-	 */
-	public function test_different_separators() {
-
-		$datetime = wp_exif_datetime( '2024/03/15 14:30:00' );
-		$this->assertEquals( '2024:03:15 14:30:00', $datetime->format( 'Y:m:d H:i:s' ) );
-
-		$datetime = wp_exif_datetime( '2024/03/15 14:30:00' );
 		$this->assertEquals( '2024:03:15 14:30:00', $datetime->format( 'Y:m:d H:i:s' ) );
 	}
 
