@@ -449,6 +449,22 @@ border color while dragging a file over the uploader drop area */
 
 .post-type-attachment .wp-filter select {
 	margin: 0 6px 0 0;
+	appearance: base-select;
+}
+
+.post-type-attachment .wp-filter select::picker(select) {
+	appearance: base-select;
+}
+
+.post-type-attachment .wp-filter select selectedcontent,
+.media-modal-content .media-frame select.attachment-filters selectedcontent {
+	display: flex;
+	align-items: center;
+	gap: .5ch;
+}
+
+.post-type-attachment .wp-filter select::picker-icon {
+  display: none;
 }
 
 /**

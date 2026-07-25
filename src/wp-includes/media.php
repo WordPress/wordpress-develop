@@ -5080,6 +5080,7 @@ function wp_enqueue_media( $args = array() ) {
 		'tabs'              => $tabs,
 		'tabUrl'            => add_query_arg( array( 'chromeless' => true ), admin_url( 'media-upload.php' ) ),
 		'mimeTypes'         => wp_list_pluck( get_post_mime_types(), 0 ),
+		'mimeIcons'         => wp_list_pluck( get_post_mime_types(), 3, 0 ),
 		/** This filter is documented in wp-admin/includes/media.php */
 		'captions'          => ! apply_filters( 'disable_captions', '' ),
 		'nonce'             => array(
