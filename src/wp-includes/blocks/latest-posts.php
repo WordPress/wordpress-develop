@@ -171,16 +171,7 @@ function render_block_core_latest_posts( $attributes ) {
 						/* translators: 1: A URL to a post, 2: Hidden accessibility text: Post title */
 						__( '… <a class="wp-block-latest-posts__read-more" href="%1$s" rel="noopener">Read more<span class="screen-reader-text">: %2$s</span></a>' ),
 						esc_url( $post_link ),
-						wp_kses(
-							$title,
-							array(
-								'strong' => array(),
-								'em'     => array(),
-								'b'      => array(),
-								'i'      => array(),
-								'span'   => array(),
-							)
-						)
+						esc_html( $title )
 					);
 				}
 			}
