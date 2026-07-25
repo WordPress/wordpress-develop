@@ -1,8 +1,10 @@
 <?php
 /**
- * Defines default WordPress constants for discovery.
+ * Defines default WordPress constants for PHPStan discovery.
  *
  * Mocks the constant initiation that would normally happen in wp-includes/wp-settings.php.
+ *
+ * Loaded as a `bootstrapFile` by PHPStan; see `base.neon`.
  */
 
 // wp_initial_constants()
