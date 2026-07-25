@@ -2544,7 +2544,7 @@ function upgrade_network() {
 		while ( $rows = $wpdb->get_results( "SELECT meta_key, meta_value FROM {$wpdb->sitemeta} ORDER BY meta_id LIMIT $start, 20" ) ) {
 			foreach ( $rows as $row ) {
 				$value = $row->meta_value;
-				if ( ! @unserialize( $value ) ) {
+				if ( ! maybe_unserialize( $value ) ) {
 					$value = stripslashes( $value );
 				}
 				if ( $value !== $row->meta_value ) {

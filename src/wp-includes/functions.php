@@ -652,7 +652,26 @@ function maybe_serialize( $data ) {
  */
 function maybe_unserialize( $data ) {
 	if ( is_serialized( $data ) ) { // Don't attempt to unserialize data that wasn't serialized going in.
-		return @unserialize( trim( $data ) );
+		$previous_error_handler = set_error_handler(
+			function ( $errno, $errstr ) {
+				if ( str_starts_with( $errstr, 'unserialize():' ) ) {
+					if ( wp_is_development_mode() ) {
+						return false;
+					}
+					return true;
+				}
+				return false;
+			},
+			E_WARNING | E_NOTICE
+		);
+
+		try {
+			return unserialize( trim( $data ) );
+		} catch ( \Throwable $e ) {
+			return false;
+		} finally {
+			restore_error_handler();
+		}
 	}
 
 	return $data;
