@@ -198,7 +198,17 @@ class WP_REST_Template_Autosaves_Controller extends WP_REST_Autosaves_Controller
 			$response->add_links( $links );
 		}
 
-		return $response;
+		/**
+		 * Filters the template autosave post revision data for a REST API response.
+		 * Allows modification of the template autosave revision right before it is returned.
+		 *
+		 * @since 6.7.2
+		 *
+		 * @param WP_REST_Response  $response The response object.
+		 * @param WP_Post           $item     The original post revision object
+		 * @param WP_REST_Request   $request  Request used to generate the response.
+		 */
+		return apply_filters( 'rest_prepare_template_autosave', $response, $item, $request );
 	}
 
 	/**

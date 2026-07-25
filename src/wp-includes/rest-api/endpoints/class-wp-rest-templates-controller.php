@@ -817,7 +817,17 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 			}
 		}
 
-		return $response;
+		/**
+		 * Filters the template data for a response.
+		 * Allows modification of the template data right before it is returned.
+		 *
+		 * @since 6.7.2
+		 *
+		 * @param WP_REST_Response  $response The response object.
+		 * @param WP_Block_Template $item     The original template object.
+		 * @param WP_REST_Request   $request  Request used to generate the response.
+		 */
+		return apply_filters( 'rest_prepare_template', $response, $item, $request );
 	}
 
 	/**

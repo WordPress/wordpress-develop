@@ -377,7 +377,17 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Posts_Controller {
 			}
 		}
 
-		return $response;
+		/**
+		 * Filters the global styles data for a REST API response.
+		 * Allows modification of the global styles right before it is returned.
+		 *
+		 * @since 6.7.2
+		 *
+		 * @param WP_REST_Response $response The response object.
+		 * @param WP_Post          $post     The original post object.
+		 * @param WP_REST_Request  $request  Request used to generate the response.
+		 */
+		return apply_filters( 'rest_prepare_global_style', $response, $post, $request );
 	}
 
 	/**
