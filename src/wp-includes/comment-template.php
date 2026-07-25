@@ -1746,6 +1746,7 @@ function comments_popup_link( $zero = false, $one = false, $more = false, $css_c
  *                                      of the 'thread_comments_depth' option set in Settings > Discussion. Default 0.
  *     @type string $before             The text or HTML to add before the reply link. Default empty.
  *     @type string $after              The text or HTML to add after the reply link. Default empty.
+  *    @type string $class_name         Additional CSS class(es) to add to the reply link. Default empty.
  * }
  * @param int|WP_Comment $comment Optional. Comment being replied to. Default current comment.
  * @param int|WP_Post    $post    Optional. Post ID or WP_Post object the comment is going to be displayed on.
@@ -1765,6 +1766,7 @@ function get_comment_reply_link( $args = array(), $comment = null, $post = null 
 		'depth'              => 0,
 		'before'             => '',
 		'after'              => '',
+		'class_name'         => '',
 		'show_reply_to_text' => false,
 	);
 
@@ -1812,8 +1814,14 @@ function get_comment_reply_link( $args = array(), $comment = null, $post = null 
 	$args = apply_filters( 'comment_reply_link_args', $args, $comment, $post );
 
 	if ( get_option( 'comment_registration' ) && ! is_user_logged_in() ) {
+		$class = 'comment-reply-login';
+		if ( ! empty( $args['class_name'] ) ) {
+			$class .= ' ' . esc_attr( $args['class_name'] );
+		}
+
 		$link = sprintf(
-			'<a rel="nofollow" class="comment-reply-login" href="%s">%s</a>',
+			'<a rel="nofollow" class="%s" href="%s">%s</a>',
+			$class,
 			esc_url( wp_login_url( get_permalink() ) ),
 			$args['login_text']
 		);
@@ -1840,8 +1848,14 @@ function get_comment_reply_link( $args = array(), $comment = null, $post = null 
 
 		$aria_label = $args['show_reply_to_text'] ? '' : sprintf( $args['reply_to_text'], get_comment_author( $comment ) );
 
+		$class = 'comment-reply-link';
+		if ( ! empty( $args['class_name'] ) ) {
+			$class .= ' ' . esc_attr( $args['class_name'] );
+		}
+
 		$link = sprintf(
-			'<a rel="nofollow" class="comment-reply-link" href="%s" %s%s>%s</a>',
+			'<a rel="nofollow" class="%s" href="%s" %s%s>%s</a>',
+			$class,
 			esc_url(
 				add_query_arg(
 					array(
