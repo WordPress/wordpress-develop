@@ -95,11 +95,14 @@ class Admin_Includes_Comment_GetPendingCommentsNum_Test extends WP_UnitTestCase 
 	}
 
 	/**
-	 * A filter callback returning a non-array degrades gracefully to no exclusions.
+	 * A filter callback returning false degrades gracefully to no exclusions.
+	 *
+	 * Scalar returns are cast to an array and treated as a single excluded type;
+	 * only values that normalize to an empty set disable the exclusions.
 	 *
 	 * @ticket 65537
 	 */
-	public function test_non_array_filter_return_counts_all_types() {
+	public function test_false_filter_return_counts_all_types() {
 		$post_id = self::factory()->post->create();
 		$this->make_pending( $post_id, 'note' );
 

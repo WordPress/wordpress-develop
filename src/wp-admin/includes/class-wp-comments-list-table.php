@@ -103,11 +103,39 @@ class WP_Comments_List_Table extends WP_List_Table {
 			$comment_status = 'all';
 		}
 
+		// The 'note' type is never listed here, so it is dropped from the request.
 		$comment_type = '';
 
 		if ( ! empty( $_REQUEST['comment_type'] ) && 'note' !== $_REQUEST['comment_type'] ) {
 			$comment_type = $_REQUEST['comment_type'];
 		}
+
+		/*
+		 * WP_Comment_Query drops the default exclusions when 'all' types are
+		 * requested, so they are also passed as 'type__not_in' to keep excluded
+		 * types out of the list table in that case.
+		 *
+		 * The requested type is removed from that list, so a plugin that adds
+		 * its own default-excluded type to the type dropdown via
+		 * 'admin_comment_types_dropdown' can still list it. Type aliases are
+		 * expanded first, matching how WP_Comment_Query resolves them.
+		 */
+		switch ( $comment_type ) {
+			case 'comment':
+			case 'comments':
+				$requested_types = array( '', 'comment' );
+				break;
+
+			case 'pings':
+				$requested_types = array( 'pingback', 'trackback' );
+				break;
+
+			default:
+				$requested_types = array( $comment_type );
+				break;
+		}
+
+		$excluded_types = array_values( array_diff( wp_get_default_excluded_comment_types(), $requested_types ) );
 
 		$search = $_REQUEST['s'] ?? '';
 
@@ -155,7 +183,7 @@ class WP_Comments_List_Table extends WP_List_Table {
 			'number'                    => $number,
 			'post_id'                   => $post_id,
 			'type'                      => $comment_type,
-			'type__not_in'              => wp_get_default_excluded_comment_types(),
+			'type__not_in'              => $excluded_types,
 			'orderby'                   => $orderby,
 			'order'                     => $order,
 			'post_type'                 => $post_type,

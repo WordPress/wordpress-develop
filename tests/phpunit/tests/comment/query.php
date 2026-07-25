@@ -5756,12 +5756,15 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 	}
 
 	/**
-	 * A filter callback returning a non-array degrades gracefully to no exclusions.
+	 * A filter callback returning false degrades gracefully to no exclusions.
+	 *
+	 * Scalar returns are cast to an array and treated as a single excluded type;
+	 * only values that normalize to an empty set disable the exclusions.
 	 *
 	 * @ticket 65537
 	 * @covers WP_Comment_Query::get_comment_ids
 	 */
-	public function test_default_excluded_comment_types_filter_non_array_return_is_tolerated() {
+	public function test_default_excluded_comment_types_filter_false_return_is_tolerated() {
 		$comments = $this->create_note_type_test_comments();
 
 		add_filter( 'default_excluded_comment_types', '__return_false' );
