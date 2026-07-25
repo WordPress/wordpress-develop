@@ -1,68 +1,101 @@
 <?php
 
 /**
+ * Class Tests_Admin_wpExifDate2ts
+ *
+ * Contains unit tests for wp_exif_date2ts(), which converts an Exif date
+ * string to a unix timestamp. Coverage for the underlying parsing lives in
+ * Tests_Admin_wpExifDatetime.
+ *
  * @group admin
  * @group image
+ *
+ * @covers ::wp_exif_date2ts
  */
 class Tests_Admin_wpExifDate2ts extends WP_UnitTestCase {
 
+	public function set_up() {
+		parent::set_up();
+
+		// Pin the site timezone so the expected timestamps are deterministic.
+		update_option( 'timezone_string', 'UTC' );
+	}
+
 	/**
-	 * Test conversion of various date formats to EXIF format
+	 * @ticket 56887
 	 *
-	 * @dataProvider provideValidDates
+	 * Test that valid date strings are converted to the expected timestamp.
+	 *
+	 * @dataProvider data_valid_dates
+	 *
+	 * @param string $input_date The date string to convert.
+	 * @param int    $expected   The expected unix timestamp.
+	 *
+	 * @return void
 	 */
 	public function test_valid_dates( $input_date, $expected ) {
-		$result = wp_exif_datetime( $input_date );
-		$this->assertSame( $expected, $result->format( 'Y:m:d H:i:s' ) );
+		$this->assertSame( $expected, wp_exif_date2ts( $input_date ) );
 	}
 
 	/**
-	 * Test that invalid inputs return false
+	 * @ticket 56887
 	 *
-	 * @dataProvider provideInvalidDates
+	 * Test that invalid input returns false rather than throwing.
+	 *
+	 * @dataProvider data_invalid_dates
+	 *
+	 * @param mixed $input_date The value to convert.
+	 *
+	 * @return void
 	 */
-	public function test_returns_false_for_invalid_input( $input ) {
-		$result = wp_exif_datetime( $input );
-		$this->assertFalse( $result );
+	public function test_returns_false_for_invalid_input( $input_date ) {
+		$this->assertFalse( wp_exif_date2ts( $input_date ) );
 	}
 
 	/**
-	 * Data provider for valid dates
+	 * Data provider for valid dates.
+	 *
+	 * @return array[]
 	 */
-	public function provideValidDates() {
+	public function data_valid_dates() {
 		return array(
+			'exif format'               => array(
+				'2024:03:15 14:30:00',
+				1710513000,
+			),
 			'mysql format'              => array(
 				'2024-03-15 14:30:00',
-				'2024:03:15 14:30:00',
+				1710513000,
 			),
 			'mysql format with seconds' => array(
 				'2024-03-15 14:30:45',
-				'2024:03:15 14:30:45',
+				1710513045,
 			),
 			'date only'                 => array(
 				'2024-03-15',
-				'2024:03:15 00:00:00',
+				1710460800,
 			),
 			'incomplete date'           => array(
 				'2024-03',
-				'2024:03:01 00:00:00',
+				1709251200,
 			),
 		);
 	}
 
 	/**
-	 * Data provider for invalid dates
+	 * Data provider for invalid dates.
+	 *
+	 * @return array[]
 	 */
-	public function provideInvalidDates() {
+	public function data_invalid_dates() {
 		return array(
 			'empty string'        => array( '' ),
 			'null'                => array( null ),
-			'invalid date string' => array( 'not a date' ),
-			'malformed date'      => array( '2024-13-45' ),
 			'boolean true'        => array( true ),
 			'boolean false'       => array( false ),
 			'array'               => array( array() ),
 			'object'              => array( new stdClass() ),
+			'invalid date string' => array( 'not a date' ),
 			'invalid month'       => array( '2024-13-15' ),
 			'invalid day'         => array( '2024-03-32' ),
 			'invalid hour'        => array( '2024-03-15 25:00:00' ),
