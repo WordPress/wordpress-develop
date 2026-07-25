@@ -640,7 +640,7 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 						$incompatible_notice_message .= sprintf(
 							/* translators: %s: Minimum required WordPress version. */
 							__( 'This plugin requires WordPress %s or higher.' ),
-							$requires_wp
+							esc_html( $requires_wp )
 						);
 					} else {
 						$incompatible_notice_message .= __( 'This plugin does not work with your version of WordPress.' );

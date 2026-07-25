@@ -840,7 +840,7 @@ function install_plugin_information() {
 			$compatible_wp_notice_message = sprintf(
 				/* translators: %s: Minimum required WordPress version. */
 				__( '<strong>Error:</strong> This plugin <strong>requires WordPress %s or higher</strong>.' ),
-				$requires_wp
+				esc_html( $requires_wp )
 			);
 		} else {
 			$compatible_wp_notice_message = __( '<strong>Error:</strong> This plugin <strong>requires a newer version of WordPress</strong>.' );
