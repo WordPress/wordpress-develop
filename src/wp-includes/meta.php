@@ -1310,6 +1310,10 @@ function _get_meta_table( $type ) {
  * @return bool Whether the meta key is considered protected.
  */
 function is_protected_meta( $meta_key, $meta_type = '' ) {
+	if ( ! $meta_key ) {
+		return false;
+	}
+
 	$sanitized_key = preg_replace( "/[^\x20-\x7E\p{L}]/", '', $meta_key );
 	$protected     = strlen( $sanitized_key ) > 0 && ( '_' === $sanitized_key[0] );
 
