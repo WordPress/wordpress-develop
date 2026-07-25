@@ -9400,3 +9400,30 @@ function wp_verify_fast_hash(
 
 	return hash_equals( $hash, wp_fast_hash( $message ) );
 }
+
+/**
+ * Given a path, returns the complete URL for a WP API request.
+ *
+ * @since 7.0.0
+ *
+ * @param string $path     The API endpoint to request.
+ * @param string $scheme   Optional. Scheme for request. Defaults to https.
+ * @return string          Complete URL for this request.
+ *
+ */
+function wp_get_api_request_url( $path = '/', $scheme = 'https' ) {
+	$domain = WP_UPDATE_API_DEFAULT;
+	if ( false !== getenv( 'WP_UPDATE_API_BASE' ) ) {
+		$domain = getenv( 'WP_UPDATE_API_BASE' );
+	}
+
+	$url = $scheme . '://' . $domain . $path;
+	/**
+	 * Filters the URL for a WP API request.
+	 *
+	 * @since 7.0.0
+	 *
+	 * @param string $url URL for this WP API request.
+	 */
+	return apply_filters( 'wp_api_request', $url );
+}
