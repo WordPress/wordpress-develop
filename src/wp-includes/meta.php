@@ -282,6 +282,8 @@ function update_metadata( $meta_type, $object_id, $meta_key, $meta_value, $prev_
 	}
 
 	foreach ( $meta_ids as $meta_id ) {
+		$meta_id = (int) $meta_id;
+
 		/**
 		 * Fires immediately before updating metadata of a specific type.
 		 *
@@ -329,6 +331,8 @@ function update_metadata( $meta_type, $object_id, $meta_key, $meta_value, $prev_
 	wp_cache_delete( $object_id, $meta_type . '_meta' );
 
 	foreach ( $meta_ids as $meta_id ) {
+		$meta_id = (int) $meta_id;
+
 		/**
 		 * Fires immediately after updating metadata of a specific type.
 		 *
@@ -937,7 +941,7 @@ function update_metadata_by_mid( $meta_type, $meta_id, $meta_value, $meta_key = 
 	$meta = get_metadata_by_mid( $meta_type, $meta_id );
 	if ( $meta ) {
 		$original_key = $meta->meta_key;
-		$object_id    = $meta->{$column};
+		$object_id    = (int) $meta->{$column};
 
 		/*
 		 * If a new meta_key (last parameter) was specified, change the meta key,
