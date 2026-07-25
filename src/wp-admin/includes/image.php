@@ -792,15 +792,13 @@ function wp_exif_frac2dec( $str ) {
 }
 
 /**
- * @ticket 56887
+ * Converts the exif date format to DateTime object
  *
- * Convert the exif date format to DateTime object
- *
- * @since 6.9.0
+ * @since 7.2.0
  *
  * @param string $str
  * @param string $timezone Timezone or offset string.
- * @return DateTimeImmutable|false Return false if not valid date
+ * @return DateTimeImmutable|false Return false if not valid date.
  */
 function wp_exif_datetime( $str, $timezone = null ) {
 	if ( ! is_string( $str ) || empty( $str ) ) {
