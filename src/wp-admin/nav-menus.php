@@ -549,9 +549,9 @@ $nav_menus  = wp_get_nav_menus();
 $menu_count = count( $nav_menus );
 
 // Are we on the add new screen?
-$add_new_screen = ( isset( $_GET['menu'] ) && 0 === (int) $_GET['menu'] ) ? true : false;
+$add_new_screen = isset( $_GET['menu'] ) && 0 === (int) $_GET['menu'];
 
-$locations_screen = ( isset( $_GET['action'] ) && 'locations' === $_GET['action'] ) ? true : false;
+$locations_screen = isset( $_GET['action'] ) && 'locations' === $_GET['action'];
 
 $page_count = wp_count_posts( 'page' );
 
@@ -1179,7 +1179,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 
 									if ( ! isset( $auto_add['auto_add'] ) ) {
 										$auto_add = false;
-									} elseif ( false !== array_search( $nav_menu_selected_id, $auto_add['auto_add'], true ) ) {
+									} elseif ( in_array( $nav_menu_selected_id, $auto_add['auto_add'], true ) ) {
 										$auto_add = true;
 									} else {
 										$auto_add = false;

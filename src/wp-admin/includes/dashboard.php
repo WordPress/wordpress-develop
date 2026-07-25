@@ -88,6 +88,13 @@ function wp_dashboard_setup() {
 		wp_add_dashboard_widget( 'dashboard_quick_press', $quick_draft_title, 'wp_dashboard_quick_press' );
 	}
 
+	// On This Day.
+	if ( ! function_exists( 'wp_dashboard_on_this_day_setup' ) ) {
+		require_once ABSPATH . 'wp-admin/includes/dashboard-on-this-day.php';
+	}
+
+	wp_dashboard_on_this_day_setup();
+
 	// WordPress Events and News.
 	wp_add_dashboard_widget( 'dashboard_primary', __( 'WordPress Events and News' ), 'wp_dashboard_events_news' );
 
@@ -326,7 +333,7 @@ function wp_dashboard_right_now() {
 					),
 					admin_url( 'edit.php' )
 				);
-				printf( '<li class="%1$s-count"><a href="%1$s">%2$s</a></li>', esc_url( $url ), esc_html( $text ) );
+				printf( '<li class="%1$s-count"><a href="%2$s">%3$s</a></li>', $post_type, esc_url( $url ), esc_html( $text ) );
 			} else {
 				printf( '<li class="%1$s-count"><span>%2$s</span></li>', $post_type, $text );
 			}
@@ -541,12 +548,14 @@ function wp_network_dashboard_right_now() {
  * Displays the Quick Draft widget.
  *
  * @since 3.8.0
+ * @since 7.1.0 Added $notice_type parameter.
  *
  * @global int $post_ID
  *
- * @param string|false $error_msg Optional. Error message. Default false.
+ * @param string|false $message     Optional. Error or success message. Default false.
+ * @param string       $notice_type Optional. Admin notice type. Default 'error'.
  */
-function wp_dashboard_quick_press( $error_msg = false ) {
+function wp_dashboard_quick_press( $message = false, $notice_type = 'error' ) {
 	global $post_ID;
 
 	if ( ! current_user_can( 'edit_posts' ) ) {
@@ -578,14 +587,17 @@ function wp_dashboard_quick_press( $error_msg = false ) {
 	$post_ID = (int) $post->ID;
 	?>
 
-	<form name="post" action="<?php echo esc_url( admin_url( 'post.php' ) ); ?>" method="post" id="quick-press" class="initial-form hide-if-no-js">
+	<form name="post" action="<?php echo esc_url( admin_url( 'post.php' ) ); ?>" method="post" id="quick-press" class="hide-if-no-js">
 
 		<?php
-		if ( $error_msg ) {
+		if ( $message ) {
 			wp_admin_notice(
-				$error_msg,
+				$message,
 				array(
-					'additional_classes' => array( 'error' ),
+					'type'       => $notice_type,
+					'attributes' => array(
+						'role' => 'alert',
+					),
 				)
 			);
 		}
@@ -688,7 +700,7 @@ function wp_dashboard_recent_drafts( $drafts = false ) {
 		$the_content = wp_trim_words( $draft->post_content, $draft_length );
 
 		if ( $the_content ) {
-			echo '<p>' . $the_content . '</p>';
+			echo '<p class="draft-content">' . $the_content . '</p>';
 		}
 		echo "</li>\n";
 	}
@@ -772,7 +784,8 @@ function _wp_dashboard_recent_comments_row( &$comment, $show_date = true ) {
 			$comment->comment_ID,
 			$comment->comment_post_ID,
 			esc_attr__( 'Reply to this comment' ),
-			__( 'Reply' )
+			/* translators: Comment reply button text. */
+			_x( 'Reply', 'verb' )
 		);
 
 		$actions['spam'] = sprintf(
@@ -1364,7 +1377,7 @@ function wp_dashboard_events_news() {
  * @since 4.8.0
  */
 function wp_print_community_events_markup() {
-	$community_events_notice  = '<p class="hide-if-js">' . ( 'This widget requires JavaScript.' ) . '</p>';
+	$community_events_notice  = '<p class="hide-if-js">' . __( 'This widget requires JavaScript.' ) . '</p>';
 	$community_events_notice .= '<p class="community-events-error-occurred" aria-hidden="true">' . __( 'An error occurred. Please try again.' ) . '</p>';
 	$community_events_notice .= '<p class="community-events-could-not-locate" aria-hidden="true"></p>';
 
@@ -1648,7 +1661,7 @@ function wp_dashboard_primary_output( $widget_id, $feeds ) {
  *
  * @since 3.0.0
  *
- * @return true|void True if not multisite, user can't upload files, or the space check option is disabled.
+ * @return true|null True if not multisite, user can't upload files, or the space check option is disabled.
  */
 function wp_dashboard_quota() {
 	if ( ! is_multisite() || ! current_user_can( 'upload_files' )
@@ -1709,6 +1722,7 @@ function wp_dashboard_quota() {
 	</ul>
 	</div>
 	<?php
+	return null;
 }
 
 /**
@@ -2075,19 +2089,21 @@ function wp_welcome_panel() {
 	$is_block_theme          = wp_is_block_theme();
 	?>
 	<div class="welcome-panel-content">
-	<div class="welcome-panel-header">
-		<div class="welcome-panel-header-image">
-			<?php echo file_get_contents( dirname( __DIR__ ) . '/images/dashboard-background.svg' ); ?>
+	<div class="welcome-panel-header-wrap">
+		<div class="welcome-panel-header">
+			<div class="welcome-panel-header-image">
+				<?php echo file_get_contents( dirname( __DIR__ ) . '/images/dashboard-background.svg' ); ?>
+			</div>
+			<h2><?php _e( 'Welcome to WordPress!' ); ?></h2>
+			<p>
+				<a href="<?php echo esc_url( admin_url( 'about.php' ) ); ?>">
+				<?php
+					/* translators: %s: Current WordPress version. */
+					printf( __( 'Learn more about the %s version.' ), esc_html( $display_version ) );
+				?>
+				</a>
+			</p>
 		</div>
-		<h2><?php _e( 'Welcome to WordPress!' ); ?></h2>
-		<p>
-			<a href="<?php echo esc_url( admin_url( 'about.php' ) ); ?>">
-			<?php
-				/* translators: %s: Current WordPress version. */
-				printf( __( 'Learn more about the %s version.' ), esc_html( $display_version ) );
-			?>
-			</a>
-		</p>
 	</div>
 	<div class="welcome-panel-column-container">
 		<div class="welcome-panel-column">
