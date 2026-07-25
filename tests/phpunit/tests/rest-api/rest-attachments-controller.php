@@ -3876,6 +3876,71 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	}
 
 	/**
+	 * When the client generates sub-sizes (generate_sub_sizes is false), the
+	 * server must not perform its own "big image" downscaling on upload.
+	 *
+	 * Otherwise the server creates a `-scaled` file and records the upload as
+	 * `original_image`. The client's subsequent scaled sideload then collides
+	 * with that `-scaled` file and is renamed `-scaled-1`, the thumbnails
+	 * inherit the numbered name, and the server-generated full-size file is
+	 * left orphaned on disk.
+	 *
+	 * @ticket 65708
+	 * @requires function imagejpeg
+	 */
+	public function test_create_item_skips_big_image_scaling_when_client_generates_sub_sizes() {
+		$this->enable_client_side_media_processing();
+
+		wp_set_current_user( self::$author_id );
+
+		// Force the threshold below the image's dimensions so scaling would be
+		// triggered were it not suppressed for client-side processing.
+		add_filter(
+			'big_image_size_threshold',
+			static function () {
+				return 1000;
+			}
+		);
+
+		// Upload a large image with the client handling sub-size generation.
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
+		$request->set_header( 'Content-Type', 'image/jpeg' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=33772.jpg' );
+		$request->set_param( 'generate_sub_sizes', false );
+		$request->set_body( file_get_contents( DIR_TESTDATA . '/images/33772.jpg' ) );
+		$response      = rest_get_server()->dispatch( $request );
+		$data          = $response->get_data();
+		$attachment_id = $data['id'];
+
+		$this->assertSame( 201, $response->get_status(), 'Uploading the image should succeed.' );
+
+		// The uploaded full-size image should be stored untouched: no
+		// server-side "-scaled" file and no original_image swap.
+		$original_file      = get_attached_file( $attachment_id, true );
+		$original_basename  = wp_basename( $original_file );
+		$original_name_stem = pathinfo( $original_basename, PATHINFO_FILENAME );
+		$this->assertStringNotContainsString( '-scaled', $original_basename, 'The server should not create a -scaled file when the client generates sub-sizes.' );
+
+		$metadata = wp_get_attachment_metadata( $attachment_id );
+		$this->assertArrayNotHasKey( 'original_image', $metadata, 'The server should not record an original_image when it does not scale the upload.' );
+
+		// The client's scaled sideload should now record the untouched upload as
+		// original_image and keep the -scaled name without a numeric suffix.
+		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment_id}/sideload" );
+		$request->set_header( 'Content-Type', 'image/jpeg' );
+		$request->set_header( 'Content-Disposition', "attachment; filename={$original_name_stem}-scaled.jpg" );
+		$request->set_param( 'image_size', 'scaled' );
+		$request->set_body( file_get_contents( DIR_TESTDATA . '/images/33772.jpg' ) );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status(), 'Sideloading the scaled image should succeed.' );
+
+		$sub_size = $response->get_data();
+		$this->assertSame( $original_basename, $sub_size['original_image'], 'The untouched upload should be recorded as original_image.' );
+		$this->assertSame( "{$original_name_stem}-scaled.jpg", wp_basename( $sub_size['file'] ), 'The scaled sideload should keep the -scaled name without a numeric collision suffix.' );
+	}
+
+	/**
 	 * Tests that sideloading scaled image requires authentication.
 	 *
 	 * @ticket 64737
