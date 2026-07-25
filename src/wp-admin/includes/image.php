@@ -797,7 +797,8 @@ function wp_exif_frac2dec( $str ) {
  * @since 7.2.0
  *
  * @param string $str
- * @param string $timezone Timezone or offset string.
+ * @param string $timezone Optional. Timezone or offset string. Anything that is not a
+ *                         non-empty string falls back to the site timezone. Default null.
  * @return DateTimeImmutable|false Return false if not valid date.
  */
 function wp_exif_datetime( $str, $timezone = null ) {
@@ -806,10 +807,21 @@ function wp_exif_datetime( $str, $timezone = null ) {
 		return false;
 	}
 	try {
-		$timezone = ( $timezone ) ? new DateTimeZone( $timezone ) : wp_timezone();
+		$timezone = ( is_string( $timezone ) && '' !== $timezone ) ? new DateTimeZone( $timezone ) : wp_timezone();
 		$datetime = new DateTimeImmutable( $str, $timezone );
 	} catch ( Exception $e ) {
 
+		return false;
+	}
+
+	/*
+	 * Out of range components are rolled over rather than rejected, so the '0000:00:00 00:00:00'
+	 * cameras write for an unset field parses as a year -1 date. Every correction the parser
+	 * had to make is reported as a warning.
+	 */
+	$parse_errors = DateTimeImmutable::getLastErrors();
+
+	if ( $parse_errors && ( $parse_errors['error_count'] || $parse_errors['warning_count'] ) ) {
 		return false;
 	}
 

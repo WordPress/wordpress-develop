@@ -82,6 +82,8 @@ class Tests_Admin_wpExifDatetime extends WP_UnitTestCase {
 			'invalid month'           => array( '2024-13-15' ),
 			'invalid day'             => array( '2024-03-32' ),
 			'invalid time'            => array( '2024-03-15 25:00:00' ),
+			'day rolled into a month' => array( '2024:02:30 00:00:00' ),
+			'unset exif field'        => array( '0000:00:00 00:00:00' ),
 			'garbage with numbers'    => array( '2024abc15' ),
 			'array input'             => array( array() ),
 			'object input'            => array( new stdClass() ),
@@ -122,5 +124,65 @@ class Tests_Admin_wpExifDatetime extends WP_UnitTestCase {
 
 		$datetime = wp_exif_datetime( '2024/03/15 14:30:00' );
 		$this->assertEquals( '2024:03:15 14:30:00', $datetime->format( 'Y:m:d H:i:s' ) );
+	}
+
+	/**
+	 * @ticket 56887
+	 *
+	 * Test that an offset from the Exif OffsetTime tags is applied.
+	 *
+	 * @return void
+	 */
+	public function test_timezone_argument_is_applied() {
+		$datetime = wp_exif_datetime( '2024:03:15 14:30:00', '+09:00' );
+
+		$this->assertSame( '+09:00', $datetime->format( 'P' ) );
+		$this->assertSame( '2024:03:15 14:30:00', $datetime->format( 'Y:m:d H:i:s' ) );
+	}
+
+	/**
+	 * @ticket 56887
+	 *
+	 * Test that an unusable timezone argument falls back to the site timezone instead of
+	 * erroring out. Exif data is untrusted, so the tags can hold anything.
+	 *
+	 * @dataProvider data_unusable_timezones
+	 *
+	 * @param mixed $timezone The timezone argument to pass.
+	 *
+	 * @return void
+	 */
+	public function test_unusable_timezone_falls_back_to_site_timezone( $timezone ) {
+		$datetime = wp_exif_datetime( '2024:03:15 14:30:00', $timezone );
+
+		$this->assertInstanceOf( 'DateTimeImmutable', $datetime );
+		$this->assertSame( wp_timezone()->getName(), $datetime->getTimezone()->getName() );
+	}
+
+	/**
+	 * Data provider for timezone arguments that cannot be used.
+	 *
+	 * @return array[]
+	 */
+	public function data_unusable_timezones() {
+		return array(
+			'null'          => array( null ),
+			'empty string'  => array( '' ),
+			'array'         => array( array() ),
+			'object'        => array( new stdClass() ),
+			'boolean true'  => array( true ),
+			'boolean false' => array( false ),
+		);
+	}
+
+	/**
+	 * @ticket 56887
+	 *
+	 * Test that an unrecognized timezone string returns false rather than throwing.
+	 *
+	 * @return void
+	 */
+	public function test_invalid_timezone_string_returns_false() {
+		$this->assertFalse( wp_exif_datetime( '2024:03:15 14:30:00', 'Not/AZone' ) );
 	}
 }
