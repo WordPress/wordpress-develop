@@ -272,7 +272,7 @@ class Twenty_Fourteen_Ephemera_Widget extends WP_Widget {
 	 * @return array Updated widget instance.
 	 */
 	public function update( $new_instance, $old_instance ) {
-		$old_instance['title']  = strip_tags( $new_instance['title'] );
+		$old_instance['title']  = wp_strip_all_tags( $new_instance['title'] );
 		$old_instance['number'] = empty( $new_instance['number'] ) ? 2 : absint( $new_instance['number'] );
 
 		if ( in_array( $new_instance['format'], $this->formats, true ) ) {
