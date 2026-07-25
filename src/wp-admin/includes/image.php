@@ -942,11 +942,14 @@ function wp_read_image_metadata( $file ) {
 			}
 
 			if ( ! empty( $iptc['2#055'][0] ) && ! empty( $iptc['2#060'][0] ) ) { // Created date and time.
-				$datetime = new DateTimeImmutable( $iptc['2#055'][0] . ' ' . $iptc['2#060'][0] );
-				// Store as a RFC3339 formatted timestring as this includes both date, time, and timezone.
-				$meta['created'] = $datetime->format( DATE_RFC3339 );
-				// Retain the original created timestamp for backcompat.
-				$meta['created_timestamp'] = $datetime->getTimestamp();
+				$datetime = wp_exif_datetime( $iptc['2#055'][0] . ' ' . $iptc['2#060'][0] );
+
+				if ( $datetime instanceof DateTimeImmutable ) {
+					// Store as a RFC3339 formatted timestring as this includes both date, time, and timezone.
+					$meta['created'] = $datetime->format( DATE_RFC3339 );
+					// Retain the original created timestamp for backcompat.
+					$meta['created_timestamp'] = $datetime->getTimestamp();
+				}
 			}
 
 			if ( ! empty( $iptc['2#116'][0] ) ) { // Copyright.
@@ -1063,10 +1066,12 @@ function wp_read_image_metadata( $file ) {
 
 			$datetime = wp_exif_datetime( $exif['DateTimeDigitized'], $timezone );
 
-			// Store as a RFC3339 formatted timestring as this includes both date, time, and timezone.
-			$meta['created'] = $datetime->format( DATE_RFC3339 );
-			// Retain the original created timestamp for backcompat.
-			$meta['created_timestamp'] = $datetime->getTimestamp();
+			if ( $datetime instanceof DateTimeImmutable ) {
+				// Store as a RFC3339 formatted timestring as this includes both date, time, and timezone.
+				$meta['created'] = $datetime->format( DATE_RFC3339 );
+				// Retain the original created timestamp for backcompat.
+				$meta['created_timestamp'] = $datetime->getTimestamp();
+			}
 		}
 		if ( ! empty( $exif['FocalLength'] ) ) {
 			$meta['focal_length'] = (string) $exif['FocalLength'];
