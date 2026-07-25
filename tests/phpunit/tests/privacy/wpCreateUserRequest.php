@@ -152,15 +152,14 @@ class Tests_Privacy_wpCreateUserRequest extends WP_UnitTestCase {
 	 * @ticket 44707
 	 */
 	public function test_sanitized_email() {
-		// Address supplied in "Display Name <address>" format should be extracted and accepted.
-		$actual = wp_create_user_request( 'Some User <sanitized@local.test>', 'export_personal_data' );
+		$actual = wp_create_user_request( 'some(email<withinvalid\characters@local.test', 'export_personal_data' );
 
 		$this->assertNotWPError( $actual );
 
 		$post = get_post( $actual );
 
 		$this->assertSame( 'export_personal_data', $post->post_name );
-		$this->assertSame( 'sanitized@local.test', $post->post_title );
+		$this->assertSame( 'someemailwithinvalidcharacters@local.test', $post->post_title );
 	}
 
 	/**
