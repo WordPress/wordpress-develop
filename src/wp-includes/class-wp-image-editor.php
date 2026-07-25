@@ -201,8 +201,8 @@ abstract class WP_Image_Editor {
 	 *
 	 * @since 3.5.0
 	 *
-	 * @param int $width
-	 * @param int $height
+	 * @param int|null $width  Image width.
+	 * @param int|null $height Image height.
 	 * @return true
 	 */
 	protected function update_size( $width = null, $height = null ) {
@@ -255,7 +255,7 @@ abstract class WP_Image_Editor {
 			 * The WP_Image_Editor::set_quality() method has priority over the filter.
 			 *
 			 * @since 3.5.0
-			 * @since 6.8.0 Added the size parameter.
+			 * @since 6.8.0 Added the `$size` parameter.
 			 *
 			 * @param int    $quality   Quality level between 1 (low) and 100 (high).
 			 * @param string $mime_type Image mime type.

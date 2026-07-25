@@ -39,25 +39,26 @@ class PluralFormsTest extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 41562
-	 * @dataProvider data_locales
 	 * @group external-http
 	 */
-	public function test_regression( $lang, $nplurals, $expression ) {
+	public function test_regression(): void {
 		require_once dirname( __DIR__, 2 ) . '/includes/plural-form-function.php';
 
-		$parenthesized = self::parenthesize_plural_expression( $expression );
-		$old_style     = tests_make_plural_form_function( $nplurals, $parenthesized );
-		$plural_forms  = new Plural_Forms( $expression );
+		foreach ( self::data_locales() as list( $lang, $nplurals, $expression ) ) {
+			$parenthesized = self::parenthesize_plural_expression( $expression );
+			$old_style     = tests_make_plural_form_function( $nplurals, $parenthesized );
+			$plural_forms  = new Plural_Forms( $expression );
 
-		$generated_old = array();
-		$generated_new = array();
+			$generated_old = array();
+			$generated_new = array();
 
-		foreach ( range( 0, 200 ) as $i ) {
-			$generated_old[] = $old_style( $i );
-			$generated_new[] = $plural_forms->get( $i );
+			foreach ( range( 0, 200 ) as $i ) {
+				$generated_old[] = $old_style( $i );
+				$generated_new[] = $plural_forms->get( $i );
+			}
+
+			$this->assertSame( $generated_old, $generated_new );
 		}
-
-		$this->assertSame( $generated_old, $generated_new );
 	}
 
 	/**
@@ -70,7 +71,15 @@ class PluralFormsTest extends WP_UnitTestCase {
 		$this->assertNotEmpty( $locales, 'Unable to retrieve GP_Locales file' );
 	}
 
-	public static function data_locales() {
+	/**
+	 * Gets locale data.
+	 *
+	 * Note: Do not use this method directly as a data provider, or else it may cause an unconditional HTTP request
+	 * during PHPUnit initialization. See <https://core.trac.wordpress.org/ticket/64963>.
+	 *
+	 * @return array<int, array{ 0: string, 1: int, 2: string }>
+	 */
+	public static function data_locales(): array {
 		if ( ! class_exists( 'GP_Locales' ) ) {
 			$filename = download_url( 'https://raw.githubusercontent.com/GlotPress/GlotPress-WP/develop/locales/locales.php' );
 			if ( is_wp_error( $filename ) ) {
