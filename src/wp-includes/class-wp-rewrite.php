@@ -1558,6 +1558,18 @@ class WP_Rewrite {
 		$rules .= "RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]\n";
 		$rules .= "RewriteBase $home_root\n";
 
+		// Short-circuit static file requests that don't exist to avoid unnecessary processing.
+		$static_files_rule = "RewriteRule ([^.]+\\.(jpe?g|gif|bmp|png|css|js|webp|svg|ico))$ - [END,NC]\n";
+
+		/**
+		 * Filters the static files rewrite rule.
+		 *
+		 * @since 6.8.0
+		 *
+		 * @param string $static_files_rule The rule that short-circuits processing for static files.
+		 */
+		$rules .= apply_filters( 'wp_static_files_rewrite_rule', $static_files_rule );
+
 		// Prevent -f checks on index.php.
 		$rules .= "RewriteRule ^index\.php$ - [L]\n";
 
