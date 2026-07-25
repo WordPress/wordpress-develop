@@ -1050,7 +1050,17 @@ tr.inline-edit-row td {
 	display: block;
 	float: left;
 	width: 6em;
-	line-height: 2.5;
+	line-height: 2.3;
+}
+
+@media screen and (min-width: 782px) {
+	fieldset.inline-edit-date .timestamp-wrap label {
+		margin-bottom: 0.2em;
+	}
+}
+
+.inline-edit-row fieldset .inline-edit-author {
+	width: max-content;
 }
 
 #posts-filter fieldset.inline-edit-date legend {
