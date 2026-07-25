@@ -1304,6 +1304,7 @@ a.rsswidget {
 
 	#dashboard-widgets .meta-box-sortables {
 		min-height: 0;
+		margin-bottom: 0;
 	}
 
 	.is-dragging-metaboxes #dashboard-widgets .meta-box-sortables {
