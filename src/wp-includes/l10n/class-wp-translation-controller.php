@@ -103,6 +103,10 @@ final class WP_Translation_Controller {
 			$locale = $this->current_locale;
 		}
 
+		if ( empty( $translation_file ) ) {
+			return false;
+		}
+
 		$translation_file = realpath( $translation_file );
 
 		if ( false === $translation_file ) {
