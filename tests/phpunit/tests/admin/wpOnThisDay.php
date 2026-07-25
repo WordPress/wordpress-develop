@@ -28,9 +28,9 @@ class Tests_Admin_wpOnThisDay extends WP_UnitTestCase {
 	}
 
 	public static function wpTearDownAfterClass() {
- 		self::delete_user( self::$user_id );
- 		self::delete_user( self::$other_user_id );
- 	}
+		self::delete_user( self::$user_id );
+		self::delete_user( self::$other_user_id );
+	}
 
 	public function tear_down() {
 		unset( $GLOBALS['wp_meta_boxes']['dashboard'] );
