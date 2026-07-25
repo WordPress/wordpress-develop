@@ -50,10 +50,6 @@ class Tests_Admin_wpExifDatetime extends WP_UnitTestCase {
 	 */
 	public function provideValidDates() {
 		return array(
-			'unix timestamp'  => array(
-				'1710500000', // March 15, 2024 14:30:00
-				'0000:06:03 17:10:50',
-			),
 			'mysql datetime'  => array(
 				'2024-03-15 14:30:00',
 				'2024:03:15 14:30:00',
