@@ -125,7 +125,16 @@ function wp_dashboard_on_this_day() {
 							$show_author = '' !== trim( $author_name ) && get_current_user_id() !== $author_id;
 							?>
 							<li>
-								<a href="<?php echo esc_url( get_permalink( $year_post ) ); ?>"><?php echo esc_html( $title ); ?></a>
+								<a href="<?php echo esc_url( get_permalink( $year_post ) ); ?>"><?php echo wp_kses(
+									$title,
+									array(
+										'strong' => array(),
+										'em'     => array(),
+										'b'      => array(),
+										'i'      => array(),
+										'span'   => array(),
+									)
+								); ?></a>
 								<?php if ( $show_author ) : ?>
 									<?php
 									echo '<span class="wp-on-this-day-post-author">' . esc_html(

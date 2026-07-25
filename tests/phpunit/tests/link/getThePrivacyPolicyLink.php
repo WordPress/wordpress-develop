@@ -79,6 +79,28 @@ class Tests_Link_GetThePrivacyPolicyLink extends WP_UnitTestCase {
 	}
 
 	/**
+	 * The function should allow only supported formatting in the privacy policy page title.
+	 *
+	 * @ticket 64748
+	 */
+	public function test_get_the_privacy_policy_link_should_allow_supported_title_markup() {
+		wp_update_post(
+			array(
+				'ID'         => self::$privacy_policy_page_id,
+				'post_title' => '<strong>Privacy</strong> <em>Policy</em> <b>Bold</b> <i>Italic</i> <span>Page</span> <script>alert("test")</script>',
+			)
+		);
+		update_option( 'wp_page_for_privacy_policy', self::$privacy_policy_page_id );
+
+		$actual_link = get_the_privacy_policy_link();
+
+		$this->assertStringEndsWith(
+			'><strong>Privacy</strong> <em>Policy</em> <b>Bold</b> <i>Italic</i> <span>Page</span> alert("test")</a>',
+			$actual_link
+		);
+	}
+
+	/**
 	 * The function should prepend the supplied `$before` markup and append the
 	 * supplied `$after` markup when the `wp_page_for_privacy_policy` is configured.
 	 */
