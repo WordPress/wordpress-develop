@@ -805,8 +805,8 @@ function wp_exif_datetime( $str, $timezone = null ) {
 
 		return false;
 	}
-	$timezone = ( $timezone ) ? new DateTimeZone( $timezone ) : wp_timezone();
 	try {
+		$timezone = ( $timezone ) ? new DateTimeZone( $timezone ) : wp_timezone();
 		$datetime = new DateTimeImmutable( $str, $timezone );
 	} catch ( Exception $e ) {
 
