@@ -2870,12 +2870,11 @@ function media_upload_library_form( $errors ) {
 
 	<div class="alignleft actions">
 		<?php
-		$months = $wpdb->get_results(
-			"SELECT DISTINCT YEAR( post_date ) AS year, MONTH( post_date ) AS month
-			FROM $wpdb->posts
-			WHERE post_type = 'attachment'
-			ORDER BY post_date DESC"
-		);
+		/** This filter is documented in wp-includes/media.php */
+		$months = apply_filters( 'media_library_months_with_files', null );
+		if ( ! is_array( $months ) ) {
+			$months = wp_get_media_library_attachment_months();
+		}
 
 		$month_count    = count( $months );
 		$selected_month = isset( $_GET['m'] ) ? (int) $_GET['m'] : 0;

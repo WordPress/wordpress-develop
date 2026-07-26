@@ -5037,16 +5037,9 @@ function wp_enqueue_media( $args = array() ) {
 	 */
 	$months = apply_filters( 'media_library_months_with_files', null );
 	if ( ! is_array( $months ) ) {
-		$months = $wpdb->get_results(
-			$wpdb->prepare(
-				"SELECT DISTINCT YEAR( post_date ) AS year, MONTH( post_date ) AS month
-				FROM $wpdb->posts
-				WHERE post_type = %s
-				ORDER BY post_date DESC",
-				'attachment'
-			)
-		);
+		$months = wp_get_media_library_attachment_months();
 	}
+
 	foreach ( $months as $month_year ) {
 		$month_year->text = sprintf(
 			/* translators: 1: Month, 2: Year. */
@@ -5315,6 +5308,37 @@ function wp_enqueue_media( $args = array() ) {
 	 * @since 3.5.0
 	 */
 	do_action( 'wp_enqueue_media' );
+}
+
+/**
+ * Retrieves the months that have media library attachments.
+ *
+ * Example:
+ *
+ *     $months = wp_get_media_library_attachment_months();
+ *     $months === array(
+ *         (object) array( 'year' => '2025', 'month' => '2' ),
+ *         (object) array( 'year' => '2024', 'month' => '11' ),
+ *     );
+ *
+ * @since tbd
+ *
+ * @global wpdb $wpdb WordPress database abstraction object.
+ *
+ * @return array<int, object{year: string, month: string}> Months with associated attachment post dates.
+ */
+function wp_get_media_library_attachment_months(): array {
+	global $wpdb;
+
+	return $wpdb->get_results(
+		$wpdb->prepare(
+			"SELECT DISTINCT YEAR( post_date ) AS year, MONTH( post_date ) AS month
+				FROM $wpdb->posts
+				WHERE post_type = %s
+				ORDER BY post_date DESC",
+			'attachment'
+		)
+	);
 }
 
 /**
