@@ -4,12 +4,14 @@ const dotenv       = require( 'dotenv' );
 const dotenvExpand = require( 'dotenv-expand' );
 const { execSync, spawnSync } = require( 'child_process' );
 const local_env_utils = require( './utils' );
-const { constants, copyFile } = require( 'node:fs' );
+const { constants, copyFileSync } = require( 'node:fs' );
 
 // Copy the default .env file when one is not present.
-copyFile( '.env.example', '.env', constants.COPYFILE_EXCL, () => {
+try {
+	copyFileSync( '.env.example', '.env', constants.COPYFILE_EXCL );
+} catch ( e ) {
 	console.log( '.env file already exists. .env.example was not copied.' );
-});
+}
 
 dotenvExpand.expand( dotenv.config() );
 
