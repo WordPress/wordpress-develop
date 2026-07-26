@@ -1024,7 +1024,7 @@ themes.view.Preview = themes.view.Details.extend({
 		}
 
 		// Arrow key navigation requires Alt key to avoid interfering with screen reader navigation.
-		if ( ! event.altKey || ( event.originalEvent && event.originalEvent.repeat ) ) {
+		if ( ! event.altKey ) {
 			return;
 		}
 
@@ -1140,7 +1140,7 @@ themes.view.Themes = wp.Backbone.View.extend({
 			}
 
 			// Arrow key navigation requires Alt key to avoid interfering with screen reader navigation.
-			if ( ! event.altKey || ( event.originalEvent && event.originalEvent.repeat ) ) {
+			if ( ! event.altKey ) {
 				return;
 			}
 

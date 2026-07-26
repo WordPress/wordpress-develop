@@ -1778,7 +1778,7 @@
 				}
 
 				// Require the alt key for arrow events.
-				if ( 27 !== event.keyCode && ( ! event.altKey || ( event.originalEvent && event.originalEvent.repeat ) ) ) {
+				if ( 27 !== event.keyCode && ! event.altKey ) {
 					return;
 				}
 

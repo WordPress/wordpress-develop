@@ -274,7 +274,7 @@ EditAttachments = MediaFrame.extend(/** @lends wp.media.view.MediaFrame.EditAtta
 		}
 
 		// Arrow key navigation requires Alt key to avoid interfering with screen reader navigation.
-		if ( ! event.altKey || ( event.originalEvent && event.originalEvent.repeat ) ) {
+		if ( ! event.altKey ) {
 			return;
 		}
 
