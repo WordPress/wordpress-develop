@@ -103,6 +103,11 @@ jobs:
     services:
       database:
         image: ${{ inputs.db-type }}:${{ inputs.db-version }}
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: wordpress_develop_tests
+          MARIADB_ROOT_PASSWORD: root
+          MARIADB_DATABASE: wordpress_develop_tests
         ports:
           - 3306
         options: >-
@@ -110,10 +115,6 @@ jobs:
           --health-interval="30s"
           --health-timeout="10s"
           --health-retries="5"
-          -e MYSQL_ROOT_PASSWORD="root"
-          -e MYSQL_DATABASE="wordpress_develop_tests"
-          --entrypoint sh ${{ inputs.db-type }}:${{ inputs.db-version }}
-          -c "if [ '${{ inputs.db-type }}' = 'mariadb' ]; then if command -v mariadbd >/dev/null 2>&1; then exec docker-entrypoint.sh mariadbd; else exec docker-entrypoint.sh mysqld; fi; else exec docker-entrypoint.sh mysqld${{ contains( fromJSON('["5.4", "5.5", "5.6", "7.0", "7.1", "7.2", "7.3"]'), inputs.php ) && ( inputs.db-version == '8.4' && ' --mysql-native-password=ON --authentication-policy=mysql_native_password' || ' --default-authentication-plugin=mysql_native_password' ) || '' }}; fi"
       memcached:
         image: memcached:1.6
         ports:
