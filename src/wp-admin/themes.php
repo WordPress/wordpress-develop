@@ -237,7 +237,7 @@ wp_localize_script(
 			'themesFound'   => __( 'Number of Themes found: %d' ),
 			'noThemesFound' => __( 'No themes found. Try a different search.' ),
 			/* translators: %s: Theme name. */
-			'themeViewed'   => __( 'Viewing theme: %s' ),
+			'themeViewed'   => __( 'Theme details: %s' ),
 		),
 	)
 );
