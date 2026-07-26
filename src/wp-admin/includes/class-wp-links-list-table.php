@@ -377,6 +377,9 @@ class WP_Links_List_Table extends WP_List_Table {
 	 * @return string The link name.
 	 */
 	protected function get_primary_column_aria_label( $link ) {
-		return $link->link_name;
+		$link_name = html_entity_decode( $link->link_name, ENT_QUOTES, get_bloginfo( 'charset' ) );
+		$link_name = wp_strip_all_tags( $link_name );
+
+		return $link_name;
 	}
 }
