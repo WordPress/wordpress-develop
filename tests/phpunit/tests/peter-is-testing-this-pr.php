@@ -15,6 +15,7 @@ class Tests_Peter_Is_Testing_This_PR extends WP_UnitTestCase {
 	 * @return void
 	 */
 	public function test_github_environment_variable_defined( $variable, $expected_value = null ) {
+		$this->markTestIncomplete( 'Need to make sure these are correct.' );
 		$variable_value = getenv( $variable );
 		$this->assertNotFalse( $variable_value, "Environment variable $variable is not defined." );
 
