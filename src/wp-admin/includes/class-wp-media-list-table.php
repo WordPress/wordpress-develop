@@ -945,12 +945,9 @@ class WP_Media_List_Table extends WP_List_Table {
 	 * @return string The attachment title.
 	 */
 	protected function get_primary_column_aria_label( $post ) {
-		$attachment_title = $post->post_title ?? '';
-
-		if ( ! empty( $attachment_title ) ) {
-			// The title may contain HTML. The printed aria-label uses esc_attr() later.
-			$attachment_title = wp_strip_all_tags( $attachment_title );
-		}
+		// The title may contain HTML. The printed aria-label uses esc_attr() later.
+		$attachment_title = html_entity_decode( _draft_or_post_title( $post ), ENT_QUOTES, get_bloginfo( 'charset' ) );
+		$attachment_title = wp_strip_all_tags( $attachment_title );
 
 		return $attachment_title;
 	}
