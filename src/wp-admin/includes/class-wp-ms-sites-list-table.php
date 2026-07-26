@@ -897,6 +897,9 @@ class WP_MS_Sites_List_Table extends WP_List_Table {
 	 * @return string The Site title.
 	 */
 	protected function get_primary_column_aria_label( $blog ) {
-		return get_blog_option( $blog['blog_id'], 'blogname' );
+		$blog_name = html_entity_decode( get_blog_option( $blog['blog_id'], 'blogname' ), ENT_QUOTES, get_bloginfo( 'charset' ) );
+		$blog_name = wp_strip_all_tags( $blog_name );
+
+		return $blog_name;
 	}
 }
