@@ -22,14 +22,115 @@
 const { spawn } = require( 'child_process' );
 const fs = require( 'fs' );
 const { Readable } = require( 'stream' );
+const { Transform } = require( 'stream' );
 const { pipeline } = require( 'stream/promises' );
-const zlib = require( 'zlib' );
+const os = require( 'os' );
 const {
 	gutenbergDir,
 	readGutenbergConfig,
 	fetchGhcrToken,
 	fetchManifest,
 } = require( './utils' );
+
+const MAX_DOWNLOAD_ATTEMPTS = 3;
+
+/**
+ * Determine whether a download error might succeed on a later attempt.
+ *
+ * @param {Error & { status?: number }} error Download error.
+ * @return {boolean} Whether the error is retryable.
+ */
+function isRetryableDownloadError( error ) {
+	return ! error.status ||
+		error.status === 408 ||
+		error.status >= 500;
+}
+
+/**
+ * Download a Gutenberg archive to disk with bounded retries.
+ *
+ * @param {string} url Blob URL.
+ * @param {string} token Bearer token for GHCR.
+ * @param {number} expectedSize Expected layer size from the manifest.
+ * @return {Promise<string>} Path to the completed archive.
+ */
+async function downloadArchive( url, token, expectedSize ) {
+	const archivePath = `${ os.tmpdir() }/wordpress-gutenberg-${ process.pid }.tar.gz`;
+	const host = new URL( url ).host;
+
+	for ( let attempt = 1; attempt <= MAX_DOWNLOAD_ATTEMPTS; attempt++ ) {
+		let receivedSize = 0;
+		let status = 'no response';
+		const startTime = Date.now();
+
+		fs.rmSync( archivePath, { force: true } );
+		console.log( `\n📥 Download attempt ${ attempt }/${ MAX_DOWNLOAD_ATTEMPTS }...` );
+
+		try {
+			const response = await fetch( url, {
+				headers: {
+					Authorization: `Bearer ${ token }`,
+				},
+			} );
+			status = `${ response.status } ${ response.statusText }`;
+
+			if ( ! response.ok ) {
+				const error = /** @type {Error & { status?: number }} */ (
+					new Error( `Failed to download blob: ${ status }` )
+				);
+				error.status = response.status;
+				throw error;
+			}
+			if ( ! response.body ) {
+				throw new Error( 'Blob response has no body' );
+			}
+
+			const meter = new Transform( {
+				transform( chunk, _encoding, callback ) {
+					receivedSize += chunk.length;
+					callback( null, chunk );
+				},
+			} );
+			await pipeline(
+				Readable.fromWeb(
+					/** @type {import('stream/web').ReadableStream} */ ( response.body )
+				),
+				meter,
+				fs.createWriteStream( archivePath )
+			);
+
+			if ( receivedSize !== expectedSize ) {
+				throw new Error(
+					`Received ${ receivedSize } bytes, expected ${ expectedSize } bytes from the manifest`
+				);
+			}
+
+			console.log(
+				`   ${ status } from ${ host }; expected ${ expectedSize } bytes, received ${ receivedSize } bytes in ${ Date.now() - startTime }ms.`
+			);
+			return archivePath;
+		} catch ( error ) {
+			const downloadError = /** @type {Error & { status?: number }} */ ( error );
+			console.error(
+				`❌ Attempt ${ attempt }/${ MAX_DOWNLOAD_ATTEMPTS }: ${ status } from ${ host }; expected ${ expectedSize } bytes, received ${ receivedSize } bytes in ${ Date.now() - startTime }ms; ${ downloadError.message }`
+			);
+			fs.rmSync( archivePath, { force: true } );
+
+			if (
+				attempt === MAX_DOWNLOAD_ATTEMPTS ||
+				! isRetryableDownloadError( downloadError )
+			) {
+				throw downloadError;
+			}
+
+			const retryDelay = attempt * 1000 + Math.floor( Math.random() * 250 );
+			console.log( `⏳ Waiting ${ retryDelay }ms before retrying...` );
+			await new Promise( ( resolve ) => setTimeout( resolve, retryDelay ) );
+		}
+	}
+
+	throw new Error( 'Download failed without an error' );
+}
 
 /**
  * Resolve the manifest to use for downloading.
@@ -130,85 +231,76 @@ async function main() {
 		process.exit( 1 );
 	}
 
-	const digest = manifest?.layers?.[ 0 ]?.digest;
-	if ( ! digest ) {
-		console.error( '❌ No layer digest found in manifest' );
+	const layer = manifest?.layers?.[ 0 ];
+	const digest = layer?.digest;
+	const expectedSize = layer?.size;
+	if ( ! digest || ! Number.isInteger( expectedSize ) || expectedSize < 0 ) {
+		console.error( '❌ No valid layer digest and size found in manifest' );
 		process.exit( 1 );
 	}
-	console.log( `✅ Blob digest: ${ digest }` );
-
-	// Remove existing gutenberg directory so the extraction is clean.
-	if ( fs.existsSync( gutenbergDir ) ) {
-		console.log( '\n🗑️  Removing existing gutenberg directory...' );
-		fs.rmSync( gutenbergDir, { recursive: true, force: true } );
-	}
-
-	fs.mkdirSync( gutenbergDir, { recursive: true } );
+	console.log( `✅ Blob digest: ${ digest } (${ expectedSize } bytes)` );
 
 	/*
-	 * Step 3: Stream the blob directly through gunzip into tar, writing
-	 * into ./gutenberg with no temporary file on disk.
+	 * Step 3: Download the complete blob to a temporary archive before
+	 * extracting it into ./gutenberg.
 	 */
-	console.log( `\n📥 Downloading and extracting artifact...` );
+	let archivePath;
 	try {
-		const response = await fetch( `https://ghcr.io/v2/${ config.ghcrRepo }/blobs/${ digest }`, {
-			headers: {
-				Authorization: `Bearer ${ token }`,
-			},
-		} );
-		if ( ! response.ok ) {
-			throw new Error( `Failed to download blob: ${ response.status } ${ response.statusText }` );
+		archivePath = await downloadArchive(
+			`https://ghcr.io/v2/${ config.ghcrRepo }/blobs/${ digest }`,
+			token,
+			expectedSize
+		);
+
+		// Remove existing gutenberg directory so the extraction is clean.
+		if ( fs.existsSync( gutenbergDir ) ) {
+			console.log( '\n🗑️  Removing existing gutenberg directory...' );
+			fs.rmSync( gutenbergDir, { recursive: true, force: true } );
 		}
-		if ( ! response.body ) {
-			throw new Error( 'Blob response has no body' );
-		}
+		fs.mkdirSync( gutenbergDir, { recursive: true } );
+
+		console.log( '\n📦 Extracting artifact...' );
 
 		/*
-		 * Spawn tar to read from stdin and extract into gutenbergDir.
 		 * `tar` is available on macOS, Linux, and Windows 10+.
 		 */
-		const tar = spawn( 'tar', [ '-x', '-C', gutenbergDir ], {
-			stdio: [ 'pipe', 'inherit', 'inherit' ],
+		const tar = spawn( 'tar', [ '-xzf', archivePath, '-C', gutenbergDir ], {
+			stdio: 'inherit',
 		} );
 
-		/** @type {Promise<void>} */
-		const tarDone = new Promise( ( resolve, reject ) => {
+		await new Promise( ( resolve, reject ) => {
 			tar.on( 'close', ( code ) => {
 				if ( code !== 0 ) {
 					reject( new Error( `tar exited with code ${ code }` ) );
 				} else {
-					resolve();
+					resolve( undefined );
 				}
 			} );
 			tar.on( 'error', reject );
 		} );
 
-		/*
-		 * Pipe: fetch body → gunzip → tar stdin.
-		 * Decompressing in Node keeps the pipeline error handling
-		 * consistent and means tar only sees plain tar data on stdin.
-		 */
-		await pipeline(
-			Readable.fromWeb(
-				/** @type {import('stream/web').ReadableStream} */ ( response.body )
-			),
-			zlib.createGunzip(),
-			tar.stdin,
-		);
-
-		await tarDone;
-
 		console.log( '✅ Download and extraction complete' );
 	} catch ( error ) {
 		console.error( '❌ Download/extraction failed:', /** @type {Error} */ ( error ).message );
-		process.exit( 1 );
+		process.exitCode = 1;
+		return;
+	} finally {
+		if ( archivePath ) {
+			fs.rmSync( archivePath, { force: true } );
+		}
 	}
 
 	console.log( '\n✅ Gutenberg download complete!' );
 }
 
+module.exports = {
+	downloadArchive,
+};
+
 // Run main function.
-main().catch( ( error ) => {
-	console.error( '❌ Unexpected error:', error );
-	process.exit( 1 );
-} );
+if ( require.main === module ) {
+	main().catch( ( error ) => {
+		console.error( '❌ Unexpected error:', error );
+		process.exit( 1 );
+	} );
+}
