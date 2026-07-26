@@ -121,6 +121,17 @@ async function fetchManifest( ref, ghcrRepo, token ) {
  * @return {Promise<string>} The expected SHA.
  */
 async function resolveExpectedSha( { ref, ghcrRepo, isMutable } ) {
+	const workflowSha = process.env.GUTENBERG_EXPECTED_SHA;
+	if ( workflowSha ) {
+		if ( ! SHA_PATTERN.test( workflowSha ) ) {
+			throw new Error(
+				`GUTENBERG_EXPECTED_SHA must be a 40-character Git SHA, received "${ workflowSha }"`
+			);
+		}
+
+		return workflowSha;
+	}
+
 	if ( ! isMutable ) {
 		return ref;
 	}
@@ -157,11 +168,11 @@ function downloadGutenberg() {
 /**
  * Verify that the installed Gutenberg version matches the expected SHA.
  *
- * For SHA refs, the expected SHA is the configured value. For mutable refs,
- * the expected SHA is whatever the mutable tag currently points to in GHCR
- * (read from the manifest's image.revision annotation). The installed
- * `.gutenberg-hash` is compared against the expected SHA; on mismatch, a
- * fresh download is triggered.
+ * A calling workflow may supply GUTENBERG_EXPECTED_SHA after resolving a build
+ * once. This avoids re-resolving a mutable tag in every matrix job. Otherwise,
+ * SHA refs use the configured value and mutable refs resolve their current
+ * image.revision annotation. The installed `.gutenberg-hash` is compared
+ * against the expected SHA; on mismatch, a fresh download is triggered.
  */
 async function verifyGutenbergVersion() {
 	console.log( '\n🔍 Verifying Gutenberg version...' );
