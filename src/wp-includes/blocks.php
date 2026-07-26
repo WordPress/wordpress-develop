@@ -92,6 +92,8 @@ function get_block_asset_url( $path ) {
 		return false;
 	}
 
+	$path = realpath( $path );
+
 	// Path needs to be normalized to work in Windows env.
 	static $wpinc_path_norm = '';
 	if ( ! $wpinc_path_norm ) {
