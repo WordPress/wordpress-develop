@@ -213,7 +213,7 @@ EditAttachments = MediaFrame.extend(/** @lends wp.media.view.MediaFrame.EditAtta
 		this.trigger( 'refresh', model );
 		// Move focus to the Previous button. When there are no more items, to the Next button.
 		this.focusNavButton( this.hasPrevious() ? '.left' : '.right' );
-		this.announceMediaItem( model );
+		_.debounce( this.announceMediaItem( model ), 500 );
 	},
 
 	/**
@@ -230,7 +230,7 @@ EditAttachments = MediaFrame.extend(/** @lends wp.media.view.MediaFrame.EditAtta
 		this.trigger( 'refresh', model );
 		// Move focus to the Next button. When there are no more items, to the Previous button.
 		this.focusNavButton( this.hasNext() ? '.right' : '.left' );
-		this.announceMediaItem( model );
+		_.debounce( this.announceMediaItem( model ), 500 );
 	},
 
 	/**

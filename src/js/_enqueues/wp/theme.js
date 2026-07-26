@@ -558,7 +558,7 @@ themes.view.Theme = wp.Backbone.View.extend({
 			preview.render();
 			this.setNavButtonsState();
 			$( '.next-theme' ).trigger( 'focus' );
-			themes.announceTheme( self.current );
+			_.debounce( themes.announceTheme( self.current ), 500 );
 		})
 		.listenTo( preview, 'theme:previous', function() {
 
@@ -589,7 +589,7 @@ themes.view.Theme = wp.Backbone.View.extend({
 			preview.render();
 			this.setNavButtonsState();
 			$( '.previous-theme' ).trigger( 'focus' );
-			themes.announceTheme( self.current );
+			_.debounce( themes.announceTheme( self.current ), 500 );
 		});
 
 		this.listenTo( preview, 'preview:close', function() {
@@ -1337,7 +1337,7 @@ themes.view.Themes = wp.Backbone.View.extend({
 
 			// Trigger a route update for the current model.
 			self.theme.trigger( 'theme:expand', nextModel.cid );
-			themes.announceTheme( nextModel );
+			_.debounce( themes.announceTheme( nextModel ), 500 );
 
 		}
 	},
@@ -1365,7 +1365,7 @@ themes.view.Themes = wp.Backbone.View.extend({
 
 			// Trigger a route update for the current model.
 			self.theme.trigger( 'theme:expand', previousModel.cid );
-			themes.announceTheme( previousModel );
+			_.debounce( themes.announceTheme( previousModel ), 500 );
 
 		}
 	},
