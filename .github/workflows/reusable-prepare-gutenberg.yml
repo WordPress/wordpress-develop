@@ -39,16 +39,43 @@ jobs:
         with:
           node-version-file: '.nvmrc'
 
-      - name: Download and verify Gutenberg build
+      - name: Resolve Gutenberg metadata
+        id: metadata
+        run: node tools/gutenberg/download.js --metadata
+
+      - name: Restore verified Gutenberg archive
+        id: restore
+        uses: actions/cache/restore@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+        with:
+          path: .ci/gutenberg/archive.tar.gz
+          key: gutenberg-oci-archive-v1-${{ steps.metadata.outputs.source-sha }}-sha256-${{ steps.metadata.outputs.blob-sha256 }}
+
+      - name: Download verified Gutenberg archive
+        if: ${{ steps.restore.outputs.cache-hit != 'true' }}
+        run: |
+          rm -f .ci/gutenberg/archive.tar.gz
+          node tools/gutenberg/download.js \
+            --archive .ci/gutenberg/archive.tar.gz \
+            --source-sha "${{ steps.metadata.outputs.source-sha }}" \
+            --blob-sha256 "${{ steps.metadata.outputs.blob-sha256 }}" \
+            --blob-size "${{ steps.metadata.outputs.blob-size }}"
+
+      - name: Verify and extract Gutenberg build
         id: download
         run: |
-          node tools/gutenberg/download.js
-          gutenberg_sha="$(tr -d '\n' < gutenberg/.gutenberg-hash)"
-          if [[ ! "$gutenberg_sha" =~ ^[a-f0-9]{40}$ ]]; then
-            echo "Expected a 40-character Gutenberg SHA, received: $gutenberg_sha" >&2
-            exit 1
-          fi
-          echo "gutenberg-sha=$gutenberg_sha" >> "$GITHUB_OUTPUT"
+          node tools/gutenberg/download.js \
+            --archive .ci/gutenberg/archive.tar.gz \
+            --source-sha "${{ steps.metadata.outputs.source-sha }}" \
+            --blob-sha256 "${{ steps.metadata.outputs.blob-sha256 }}" \
+            --blob-size "${{ steps.metadata.outputs.blob-size }}"
+          echo "gutenberg-sha=${{ steps.metadata.outputs.source-sha }}" >> "$GITHUB_OUTPUT"
+
+      - name: Save verified Gutenberg archive
+        if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name == 'push' && startsWith(github.ref, 'refs/heads/') && github.ref_protected == true && steps.restore.outputs.cache-hit != 'true' }}
+        uses: actions/cache/save@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+        with:
+          path: .ci/gutenberg/archive.tar.gz
+          key: gutenberg-oci-archive-v1-${{ steps.metadata.outputs.source-sha }}-sha256-${{ steps.metadata.outputs.blob-sha256 }}
 
       - name: Upload Gutenberg build
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1

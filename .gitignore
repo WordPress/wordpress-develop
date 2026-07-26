@@ -46,6 +46,7 @@ wp-tests-config.php
 /packagehash.txt
 /.gutenberg-hash
 /artifacts
+/.ci/gutenberg/archive.tar.gz
 /setup.log
 /coverage
 
