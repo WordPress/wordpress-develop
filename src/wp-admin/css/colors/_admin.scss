@@ -65,7 +65,8 @@ span.wp-media-buttons-icon:before {
 .media-modal .delete-attachment,
 .media-modal .trash-attachment,
 .media-modal .untrash-attachment,
-.wp-core-ui .button-link-delete {
+/* Needs higher specificity to override the default button-link. */
+.wp-core-ui .button-link-delete.button-link-delete {
 	color: tokens.$alert-red;
 }
 
@@ -75,8 +76,9 @@ span.wp-media-buttons-icon:before {
 .media-modal .delete-attachment:focus,
 .media-modal .trash-attachment:focus,
 .media-modal .untrash-attachment:focus,
-.wp-core-ui .button-link-delete:hover,
-.wp-core-ui .button-link-delete:focus {
+/* Need higher specificity to override the default button-link. */
+.wp-core-ui .button-link-delete.button-link-delete:hover,
+.wp-core-ui .button-link-delete.button-link-delete:focus {
 	color: color.adjust(tokens.$alert-red, $lightness: 10%);
 }
 
@@ -158,7 +160,7 @@ input[type="radio"]:focus {
 .wp-core-ui {
 
 	/* Default button - theme color border and text (matches secondary) */
-	.button {
+	.button:not(.button-link) {
 		@include mixins.button-secondary();
 	}
 
