@@ -668,6 +668,8 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 	 * @since 5.9.0 Renamed `$template` to `$item` to match parent class for PHP 8 named parameter support.
 	 * @since 6.3.0 Added `modified` property to the response.
 	 * @since 7.1.0 Added `date` property to the response.
+	 * @since 7.2.0 The `modified` property is `null` for templates that have no
+	 *              modification date.
 	 *
 	 * @param WP_Block_Template $item    Template instance.
 	 * @param WP_REST_Request   $request Request object.
@@ -776,7 +778,12 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 		}
 
 		if ( rest_is_field_included( 'modified', $fields ) ) {
-			$data['modified'] = mysql_to_rfc3339( $template->modified );
+			/*
+			 * File-backed templates have no modification date. Return `null` in that
+			 * case, as `mysql_to_rfc3339()` would return `false` for an empty value,
+			 * which the schema does not allow.
+			 */
+			$data['modified'] = empty( $template->modified ) ? null : mysql_to_rfc3339( $template->modified );
 		}
 
 		if ( rest_is_field_included( 'date', $fields ) ) {
@@ -1154,7 +1161,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 				),
 				'modified'        => array(
 					'description' => __( "The date the template was last modified, in the site's timezone." ),
-					'type'        => 'string',
+					'type'        => array( 'string', 'null' ),
 					'format'      => 'date-time',
 					'context'     => array( 'view', 'edit' ),
 					'readonly'    => true,
