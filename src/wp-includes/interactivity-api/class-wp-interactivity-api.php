@@ -775,20 +775,25 @@ final class WP_Interactivity_API {
 	 *
 	 * @param string $directive_name The directive attribute name.
 	 * @return array An array containing the directive prefix, optional suffix, and optional unique ID.
+	 * @phpstan-return array{
+	 *     prefix: non-empty-string,
+	 *     suffix: string|null,
+	 *     unique_id: string|null,
+	 * }|null
 	 */
 	private function parse_directive_name( string $directive_name ): ?array {
 		// Remove the first 8 characters (assumes "data-wp-" prefix)
-		$name = substr( $directive_name, 8 );
+		$name = (string) substr( $directive_name, 8 );
 
 		// Check for invalid characters (anything not a-z, 0-9, -, or _)
-		if ( preg_match( '/[^a-z0-9\-_]/i', $name ) ) {
+		if ( '' === $name || preg_match( '/[^a-z0-9\-_]/i', $name ) ) {
 			return null;
 		}
 
-		// Find the first occurrence of '--' to separate the prefix
+		// Find the first occurrence of '--' to separate the prefix, as long as it is not at the beginning of the string.
 		$suffix_index = strpos( $name, '--' );
 
-		if ( false === $suffix_index ) {
+		if ( false === $suffix_index || 0 === $suffix_index ) {
 			return array(
 				'prefix'    => $name,
 				'suffix'    => null,
@@ -804,7 +809,7 @@ final class WP_Interactivity_API {
 			return array(
 				'prefix'    => $prefix,
 				'suffix'    => null,
-				'unique_id' => '---' !== $remaining ? substr( $remaining, 3 ) : null,
+				'unique_id' => '---' !== $remaining ? (string) substr( $remaining, 3 ) : null,
 			);
 		}
 
