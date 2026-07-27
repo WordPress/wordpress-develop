@@ -10,7 +10,7 @@
 
 // Don't load directly.
 if ( ! defined( 'ABSPATH' ) ) {
-	die( '-1' );
+	exit;
 }
 
 require_once ABSPATH . WPINC . '/ms-site.php';
@@ -755,7 +755,7 @@ function update_archived( $id, $archived ) {
  * @param int    $blog_id    Blog ID.
  * @param string $pref       Field name.
  * @param string $value      Field value.
- * @param null   $deprecated Not used.
+ * @param mixed  $deprecated Not used.
  * @return string|false $value
  */
 function update_blog_status( $blog_id, $pref, $value, $deprecated = null ) {
