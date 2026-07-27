@@ -27,7 +27,8 @@ class Tests_Admin_wpExifDatetime extends WP_UnitTestCase {
 	 */
 	public function test_valid_dates( $input_date, $expected ) {
 		$datetime = wp_exif_datetime( $input_date );
-		$this->assertEquals( $expected, $datetime->format( 'Y:m:d H:i:s' ) );
+		$this->assertInstanceOf( 'DateTimeImmutable', $datetime );
+		$this->assertSame( $expected, $datetime->format( 'Y:m:d H:i:s' ) );
 	}
 
 	/**
@@ -37,7 +38,7 @@ class Tests_Admin_wpExifDatetime extends WP_UnitTestCase {
 	 *
 	 * @dataProvider provideInvalidDates
 	 *
-	 * @param string $input_date The date string to be tested for validation.
+	 * @param mixed $input_date The value to be tested for validation.
 	 *
 	 * @return void
 	 */
@@ -78,7 +79,7 @@ class Tests_Admin_wpExifDatetime extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Data provider for invalid dates that should trigger exceptions
+	 * Data provider for invalid date inputs.
 	 */
 	public function provideInvalidDates() {
 		return array(
@@ -96,7 +97,7 @@ class Tests_Admin_wpExifDatetime extends WP_UnitTestCase {
 			'array input'             => array( array() ),
 			'object input'            => array( new stdClass() ),
 			'out of bounds timestamp' => array( 253402300800 ), // Year 9999
-			'negative timestamp'      => array( - 62167219200 ), // Year 0
+			'negative timestamp'      => array( -62167219200 ), // Year 0
 		);
 	}
 

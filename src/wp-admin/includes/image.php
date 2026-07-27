@@ -838,7 +838,7 @@ function wp_exif_datetime( $str, $timezone = null ) {
  * @return int|false The unix timestamp, or false on failure.
  */
 function wp_exif_date2ts( $str ) {
-	$datetime = wp_exif_datetime( $str );
+	$datetime = wp_exif_datetime( $str, 'UTC' );
 
 	if ( $datetime instanceof DateTimeImmutable ) {
 		return $datetime->getTimestamp();
