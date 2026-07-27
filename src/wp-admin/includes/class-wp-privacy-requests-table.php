@@ -102,43 +102,10 @@ abstract class WP_Privacy_Requests_Table extends WP_List_Table {
 	 *
 	 * @since 4.9.6
 	 *
-	 * @global wpdb $wpdb WordPress database abstraction object.
-	 *
 	 * @return object Number of posts for each status.
 	 */
 	protected function get_request_counts() {
-		global $wpdb;
-
-		$cache_key = $this->post_type . '-' . $this->request_type;
-		$counts    = wp_cache_get( $cache_key, 'counts' );
-
-		if ( false !== $counts ) {
-			return $counts;
-		}
-
-		$results = (array) $wpdb->get_results(
-			$wpdb->prepare(
-				"SELECT post_status, COUNT( * ) AS num_posts
-				FROM {$wpdb->posts}
-				WHERE post_type = %s
-				AND post_name = %s
-				GROUP BY post_status",
-				$this->post_type,
-				$this->request_type
-			),
-			ARRAY_A
-		);
-
-		$counts = array_fill_keys( get_post_stati(), 0 );
-
-		foreach ( $results as $row ) {
-			$counts[ $row['post_status'] ] = $row['num_posts'];
-		}
-
-		$counts = (object) $counts;
-		wp_cache_set( $cache_key, $counts, 'counts' );
-
-		return $counts;
+		return wp_count_user_requests( $this->request_type );
 	}
 
 	/**

@@ -4846,6 +4846,65 @@ function wp_create_user_request( $email_address = '', $action_name = '', $reques
 }
 
 /**
+ * Counts the number of user requests for a given request type, grouped by status.
+ *
+ * @since 6.8.0
+ *
+ * @global wpdb $wpdb WordPress database abstraction object.
+ *
+ * @param string $type Request type. Accepted values are `'export_personal_data'`
+ *                     and `'remove_personal_data'`.
+ * @return object Number of requests for each status, or an empty object for an invalid type.
+ */
+function wp_count_user_requests( $type = '' ) {
+	global $wpdb;
+
+	if ( ! in_array( $type, _wp_privacy_action_request_types(), true ) ) {
+		return new stdClass();
+	}
+
+	$cache_key = 'user-request-' . $type;
+	$counts    = wp_cache_get( $cache_key, 'counts' );
+
+	if ( false !== $counts ) {
+		/** This filter is documented in wp-includes/user.php */
+		return apply_filters( 'wp_count_user_requests', $counts, $type );
+	}
+
+	$results = (array) $wpdb->get_results(
+		$wpdb->prepare(
+			"SELECT post_status, COUNT( * ) AS num_posts
+			FROM {$wpdb->posts}
+			WHERE post_type = %s
+			AND post_name = %s
+			GROUP BY post_status",
+			'user_request',
+			$type
+		),
+		ARRAY_A
+	);
+
+	$counts = array_fill_keys( get_post_stati(), 0 );
+
+	foreach ( $results as $row ) {
+		$counts[ $row['post_status'] ] = $row['num_posts'];
+	}
+
+	$counts = (object) $counts;
+	wp_cache_set( $cache_key, $counts, 'counts' );
+
+	/**
+	 * Filters the number of user requests for a given type, by status.
+	 *
+	 * @since 6.8.0
+	 *
+	 * @param object $counts Number of requests for each status.
+	 * @param string $type   Request type.
+	 */
+	return apply_filters( 'wp_count_user_requests', $counts, $type );
+}
+
+/**
  * Gets action description from the name and return a string.
  *
  * @since 4.9.6
