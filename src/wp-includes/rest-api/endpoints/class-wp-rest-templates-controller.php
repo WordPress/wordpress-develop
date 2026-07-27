@@ -780,7 +780,12 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 		}
 
 		if ( rest_is_field_included( 'date', $fields ) ) {
-			$data['date'] = mysql_to_rfc3339( $template->date );
+			/*
+			 * File-backed templates have no date. Return `null` in that case, as
+			 * `mysql_to_rfc3339()` would return `false` for an empty value, which
+			 * the schema does not allow.
+			 */
+			$data['date'] = empty( $template->date ) ? null : mysql_to_rfc3339( $template->date );
 		}
 
 		if ( rest_is_field_included( 'author_text', $fields ) ) {
@@ -1177,7 +1182,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 						'user',
 					),
 				),
-				'date'        => array(
+				'date'            => array(
 					'description' => __( "The date the template was published, in the site's timezone." ),
 					'type'        => array( 'string', 'null' ),
 					'format'      => 'date-time',
