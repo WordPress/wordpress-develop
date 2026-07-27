@@ -211,13 +211,21 @@ $preload_paths = array(
 	array( '/wp/v2/settings', 'OPTIONS' ),
 	// Used by getBlockPatternCategories in useBlockEditorSettings.
 	'/wp/v2/block-patterns/categories',
-	// @see packages/core-data/src/entities.js
+	/**
+	 * The preloaded URL must exactly match the request the client makes,
+	 * including the field order.
+	 * @link https://github.com/WordPress/gutenberg/blob/trunk/packages/core-data/src/entities.js
+	 */
 	'/?_fields=' . implode(
 		',',
 		array(
 			'description',
 			'gmt_offset',
 			'home',
+			'image_max_bit_depth',
+			'image_sizes',
+			'image_size_threshold',
+			'image_strip_meta',
 			'name',
 			'site_icon',
 			'site_icon_url',
@@ -238,7 +246,7 @@ if ( $block_editor_context->post ) {
 		if ( 'page' === $block_editor_context->post->post_type ) {
 			$preload_paths[] = add_query_arg(
 				'slug',
-				// @see https://github.com/WordPress/gutenberg/blob/e093fefd041eb6cc4a4e7f67b92ab54fd75c8858/packages/core-data/src/private-selectors.ts#L244-L254
+				// @link https://github.com/WordPress/gutenberg/blob/e093fefd041eb6cc4a4e7f67b92ab54fd75c8858/packages/core-data/src/private-selectors.ts#L244-L254
 				empty( $block_editor_context->post->post_name ) ? 'page' : 'page-' . $block_editor_context->post->post_name,
 				'/wp/v2/templates/lookup'
 			);
@@ -287,7 +295,7 @@ if ( ! empty( $registered_sources ) ) {
 
 wp_add_inline_script(
 	'wp-blocks',
-	sprintf( 'wp.blocks.setCategories( %s );', wp_json_encode( isset( $editor_settings['blockCategories'] ) ? $editor_settings['blockCategories'] : array(), JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ) ),
+	sprintf( 'wp.blocks.setCategories( %s );', wp_json_encode( $editor_settings['blockCategories'] ?? array(), JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ) ),
 	'after'
 );
 

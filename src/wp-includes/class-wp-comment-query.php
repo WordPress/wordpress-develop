@@ -93,8 +93,11 @@ class WP_Comment_Query {
 	/**
 	 * List of comments located by the query.
 	 *
+	 * Null until a query has been run.
+	 *
 	 * @since 4.0.0
-	 * @var int[]|WP_Comment[]
+	 * @var int[]|WP_Comment[]|null
+	 * @phpstan-var non-negative-int[]|array<int, WP_Comment>|null
 	 */
 	public $comments;
 
@@ -103,6 +106,7 @@ class WP_Comment_Query {
 	 *
 	 * @since 4.4.0
 	 * @var int
+	 * @phpstan-var non-negative-int
 	 */
 	public $found_comments = 0;
 
@@ -111,6 +115,7 @@ class WP_Comment_Query {
 	 *
 	 * @since 4.4.0
 	 * @var int
+	 * @phpstan-var non-negative-int
 	 */
 	public $max_num_pages = 0;
 
@@ -359,7 +364,8 @@ class WP_Comment_Query {
 	 * @since 4.2.0 Moved parsing to WP_Comment_Query::parse_query().
 	 *
 	 * @param string|array $query Array or URL query string of parameters.
-	 * @return array|int List of comments, or number of comments when 'count' is passed as a query var.
+	 * @return WP_Comment[]|int[]|int List of comments, or number of comments when 'count' is passed as a query var.
+	 * @phpstan-return array<int, WP_Comment>|non-negative-int[]|non-negative-int
 	 */
 	public function query( $query ) {
 		$this->query_vars = wp_parse_args( $query );
@@ -374,6 +380,7 @@ class WP_Comment_Query {
 	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *
 	 * @return int|int[]|WP_Comment[] List of comments or number of found comments if `$count` argument is true.
+	 * @phpstan-return array<int, WP_Comment>|non-negative-int[]|non-negative-int
 	 */
 	public function get_comments() {
 		global $wpdb;
@@ -536,10 +543,12 @@ class WP_Comment_Query {
 	 * Used internally to get a list of comment IDs matching the query vars.
 	 *
 	 * @since 4.4.0
+	 * @since 6.9.0 Excludes the 'note' comment type, unless 'all' or the 'note' types are requested.
 	 *
 	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *
 	 * @return int|array A single count of comment IDs if a count query. An array of comment IDs if a full query.
+	 * @phpstan-return non-negative-int|list<non-negative-int>
 	 */
 	protected function get_comment_ids() {
 		global $wpdb;
@@ -770,6 +779,15 @@ class WP_Comment_Query {
 			'NOT IN' => (array) $this->query_vars['type__not_in'],
 		);
 
+		// Exclude the 'note' comment type, unless 'all' types or the 'note' type explicitly are requested.
+		if (
+			! in_array( 'all', $raw_types['IN'], true ) &&
+			! in_array( 'note', $raw_types['IN'], true ) &&
+			! in_array( 'note', $raw_types['NOT IN'], true )
+		) {
+			$raw_types['NOT IN'][] = 'note';
+		}
+
 		$comment_types = array();
 		foreach ( $raw_types as $operator => $_raw_types ) {
 			$_raw_types = array_unique( $_raw_types );
@@ -939,12 +957,12 @@ class WP_Comment_Query {
 		 */
 		$clauses = apply_filters_ref_array( 'comments_clauses', array( compact( $pieces ), &$this ) );
 
-		$fields  = isset( $clauses['fields'] ) ? $clauses['fields'] : '';
-		$join    = isset( $clauses['join'] ) ? $clauses['join'] : '';
-		$where   = isset( $clauses['where'] ) ? $clauses['where'] : '';
-		$orderby = isset( $clauses['orderby'] ) ? $clauses['orderby'] : '';
-		$limits  = isset( $clauses['limits'] ) ? $clauses['limits'] : '';
-		$groupby = isset( $clauses['groupby'] ) ? $clauses['groupby'] : '';
+		$fields  = $clauses['fields'] ?? '';
+		$join    = $clauses['join'] ?? '';
+		$where   = $clauses['where'] ?? '';
+		$orderby = $clauses['orderby'] ?? '';
+		$limits  = $clauses['limits'] ?? '';
+		$groupby = $clauses['groupby'] ?? '';
 
 		$this->filtered_where_clause = $where;
 

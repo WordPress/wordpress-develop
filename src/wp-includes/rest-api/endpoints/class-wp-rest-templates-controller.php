@@ -208,7 +208,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 	 * slugs cannot contain slashes.
 	 *
 	 * @since 5.9.0
-	 * @see https://core.trac.wordpress.org/ticket/54507
+	 * @link https://core.trac.wordpress.org/ticket/54507
 	 *
 	 * @param string $id Template ID.
 	 * @return string Sanitized template ID.
@@ -579,7 +579,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 			$changes->post_type   = $this->post_type;
 			$changes->post_status = 'publish';
 			$changes->tax_input   = array(
-				'wp_theme' => isset( $request['theme'] ) ? $request['theme'] : get_stylesheet(),
+				'wp_theme' => $request['theme'] ?? get_stylesheet(),
 			);
 		} elseif ( 'custom' !== $template->source ) {
 			$changes->post_name   = $template->slug;
@@ -667,6 +667,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 	 * @since 5.8.0
 	 * @since 5.9.0 Renamed `$template` to `$item` to match parent class for PHP 8 named parameter support.
 	 * @since 6.3.0 Added `modified` property to the response.
+	 * @since 7.1.0 Added `date` property to the response.
 	 *
 	 * @param WP_Block_Template $item    Template instance.
 	 * @param WP_REST_Request   $request Request object.
@@ -776,6 +777,10 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 
 		if ( rest_is_field_included( 'modified', $fields ) ) {
 			$data['modified'] = mysql_to_rfc3339( $template->modified );
+		}
+
+		if ( rest_is_field_included( 'date', $fields ) ) {
+			$data['date'] = mysql_to_rfc3339( $template->date );
 		}
 
 		if ( rest_is_field_included( 'author_text', $fields ) ) {
@@ -914,8 +919,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 				if ( isset( $plugins[ $plugin_basename ] ) && isset( $plugins[ $plugin_basename ]['Name'] ) ) {
 					return $plugins[ $plugin_basename ]['Name'];
 				}
-				return isset( $template_object->plugin ) ?
-					$template_object->plugin :
+				return $template_object->plugin ??
 					$template_object->theme;
 			case 'site':
 				return get_bloginfo( 'name' );
@@ -1172,6 +1176,13 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 						'site',
 						'user',
 					),
+				),
+				'date'        => array(
+					'description' => __( "The date the template was published, in the site's timezone." ),
+					'type'        => array( 'string', 'null' ),
+					'format'      => 'date-time',
+					'context'     => array( 'view', 'edit' ),
+					'readonly'    => true,
 				),
 			),
 		);

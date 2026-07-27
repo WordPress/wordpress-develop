@@ -1013,7 +1013,7 @@ function get_term( $term, $taxonomy = '', $output = OBJECT, $filter = 'raw' ) {
 	 * taxonomy.
 	 *
 	 * @since 2.3.0
-	 * @since 4.4.0 `$_term` is now a `WP_Term` object.
+	 * @since 4.4.0 `$_term` is now a WP_Term object.
 	 *
 	 * @param WP_Term $_term    Term object.
 	 * @param string  $taxonomy The taxonomy slug.
@@ -1032,7 +1032,7 @@ function get_term( $term, $taxonomy = '', $output = OBJECT, $filter = 'raw' ) {
 	 *  - `get_post_tag`
 	 *
 	 * @since 2.3.0
-	 * @since 4.4.0 `$_term` is now a `WP_Term` object.
+	 * @since 4.4.0 `$_term` is now a WP_Term object.
 	 *
 	 * @param WP_Term $_term    Term object.
 	 * @param string  $taxonomy The taxonomy slug.
@@ -1581,13 +1581,26 @@ function unregister_term_meta( $taxonomy, $meta_key ) {
  *
  * @global bool $_wp_suspend_cache_invalidation
  *
- * @param int|string $term        The term to check. Accepts term ID, slug, or name.
- * @param string     $taxonomy    Optional. The taxonomy name to use.
- * @param int        $parent_term Optional. ID of parent term under which to confine the exists search.
+ * @param int|string|null $term        The term to check. Accepts term ID, slug, or name.
+ * @param string          $taxonomy    Optional. The taxonomy name to use.
+ * @param int             $parent_term Optional. ID of parent term under which to confine the exists search.
  * @return mixed Returns null if the term does not exist.
  *               Returns the term ID if no taxonomy is specified and the term ID exists.
  *               Returns an array of the term ID and the term taxonomy ID if the taxonomy is specified and the pairing exists.
  *               Returns 0 if term ID 0 is passed to the function.
+ *
+ * @phpstan-return (
+ *     $term is null ? null : (
+ *         $term is 0 ? 0 : (
+ *             $taxonomy is '' ? int|null : (
+ *                 array{
+ *                     term_id: numeric-string,
+ *                     term_taxonomy_id: numeric-string,
+ *                 }|null
+ *             )
+ *         )
+ *     )
+ * )
  */
 function term_exists( $term, $taxonomy = '', $parent_term = null ) {
 	global $_wp_suspend_cache_invalidation;
@@ -1723,7 +1736,7 @@ function sanitize_term( $term, $taxonomy, $context = 'display' ) {
 
 	$do_object = is_object( $term );
 
-	$term_id = $do_object ? $term->term_id : ( isset( $term['term_id'] ) ? $term['term_id'] : 0 );
+	$term_id = $do_object ? ( $term->term_id ?? 0 ) : ( $term['term_id'] ?? 0 );
 
 	foreach ( (array) $fields as $field ) {
 		if ( $do_object ) {
@@ -1767,7 +1780,7 @@ function sanitize_term( $term, $taxonomy, $context = 'display' ) {
  * @param string $taxonomy Taxonomy name.
  * @param string $context  Context in which to sanitize the term field.
  *                         Accepts 'raw', 'edit', 'db', 'display', 'rss',
- *                         'attribute', or 'js'. Default 'display'.
+ *                         'attribute', or 'js'.
  * @return mixed Sanitized field.
  */
 function sanitize_term_field( $field, $value, $term_id, $taxonomy, $context ) {
@@ -1999,6 +2012,10 @@ function wp_delete_object_term_relationships( $object_id, $taxonomies ) {
 
 	foreach ( (array) $taxonomies as $taxonomy ) {
 		$term_ids = wp_get_object_terms( $object_id, $taxonomy, array( 'fields' => 'ids' ) );
+		if ( ! is_array( $term_ids ) ) {
+			// Skip return value in the case of an error or the 'wp_get_object_terms' filter returning an invalid value.
+			continue;
+		}
 		$term_ids = array_map( 'intval', $term_ids );
 		wp_remove_object_terms( $object_id, $term_ids, $taxonomy );
 	}
@@ -2030,6 +2047,12 @@ function wp_delete_object_term_relationships( $object_id, $taxonomies ) {
  * }
  * @return bool|int|WP_Error True on success, false if term does not exist. Zero on attempted
  *                           deletion of default Category. WP_Error if the taxonomy does not exist.
+ * @phpstan-param non-empty-string $taxonomy
+ * @phpstan-param string|array{
+ *     default?: positive-int,
+ *     force_default?: bool,
+ * } $args
+ * @phpstan-return bool|WP_Error|0
  */
 function wp_delete_term( $term, $taxonomy, $args = array() ) {
 	global $wpdb;
@@ -2420,6 +2443,17 @@ function wp_get_object_terms( $object_ids, $taxonomies, $args = array() ) {
  *     @type int        $term_id          The new term ID.
  *     @type int|string $term_taxonomy_id The new term taxonomy ID. Can be a numeric string.
  * }
+ * @phpstan-param string|array{
+ *     alias_of?: string,
+ *     description?: string|null,
+ *     parent?: non-negative-int,
+ *     slug?: string|null,
+ *     ...
+ * } $args
+ * @phpstan-return array{
+ *     term_id: int,
+ *     term_taxonomy_id: int|numeric-string,
+ * }|WP_Error
  */
 function wp_insert_term( $term, $taxonomy, $args = array() ) {
 	global $wpdb;
@@ -2605,6 +2639,7 @@ function wp_insert_term( $term, $taxonomy, $args = array() ) {
 		do_action( 'edited_terms', $term_id, $taxonomy );
 	}
 
+	/** @var numeric-string|null $tt_id */
 	$tt_id = $wpdb->get_var( $wpdb->prepare( "SELECT tt.term_taxonomy_id FROM $wpdb->term_taxonomy AS tt INNER JOIN $wpdb->terms AS t ON tt.term_id = t.term_id WHERE tt.taxonomy = %s AND t.term_id = %d", $taxonomy, $term_id ) );
 
 	if ( ! empty( $tt_id ) ) {
@@ -3212,6 +3247,17 @@ function wp_unique_term_slug( $slug, $term ) {
  * }
  * @return array|WP_Error An array containing the `term_id` and `term_taxonomy_id`,
  *                        WP_Error otherwise.
+ * @phpstan-param array{
+ *     alias_of?: string,
+ *     description?: string,
+ *     parent?: non-negative-int,
+ *     slug?: string|null,
+ *     ...
+ * } $args
+ * @phpstan-return array{
+ *     term_id: int,
+ *     term_taxonomy_id: int,
+ * }|WP_Error
  */
 function wp_update_term( $term_id, $taxonomy, $args = array() ) {
 	global $wpdb;
@@ -3276,7 +3322,7 @@ function wp_update_term( $term_id, $taxonomy, $args = array() ) {
 
 	$parsed_args['slug'] = $slug;
 
-	$term_group = isset( $parsed_args['term_group'] ) ? $parsed_args['term_group'] : 0;
+	$term_group = $parsed_args['term_group'] ?? 0;
 	if ( $args['alias_of'] ) {
 		$alias = get_term_by( 'slug', $args['alias_of'], $taxonomy );
 		if ( ! empty( $alias->term_group ) ) {
@@ -3732,8 +3778,10 @@ function clean_taxonomy_cache( $taxonomy ) {
 	wp_cache_set_terms_last_changed();
 
 	// Regenerate cached hierarchy.
-	delete_option( "{$taxonomy}_children" );
-	_get_term_hierarchy( $taxonomy );
+	if ( is_taxonomy_hierarchical( $taxonomy ) ) {
+		delete_option( "{$taxonomy}_children" );
+		_get_term_hierarchy( $taxonomy );
+	}
 
 	/**
 	 * Fires after a taxonomy's caches have been cleaned.
