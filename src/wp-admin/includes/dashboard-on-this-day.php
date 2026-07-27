@@ -52,7 +52,9 @@ function wp_dashboard_on_this_day_postbox_classes( $classes ) {
 /**
  * Gets a trimmed excerpt to display in place of a missing post title.
  *
- * Only returns text for posts that have no title and do not require a password.
+ * The post is expected to be readable by the current user, as enforced by the
+ * widget query. Only returns text for posts that have no title and do not
+ * require a password.
  *
  * @since 7.1.0
  * @access private
