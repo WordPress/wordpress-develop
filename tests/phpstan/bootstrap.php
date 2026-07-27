@@ -22,11 +22,14 @@ define( 'WP_MAX_MEMORY_LIMIT', '' );
 define( 'WP_DEVELOPMENT_MODE', '' );
 define( 'WP_DEBUG', false );
 define( 'WP_DEBUG_DISPLAY', false );
-if ( isset( $_ ) ) {
-	define( 'WP_DEBUG_LOG', false );
-} else {
-	define( 'WP_DEBUG_LOG', '' );
-}
+/*
+ * WP_DEBUG_LOG can be either boolean or a string path. Use a union-typed variable so
+ * PHPStan understands both possibilities when analysing core.
+ *
+ * @var bool|string $wp_debug_log
+ */
+$wp_debug_log = false;
+define( 'WP_DEBUG_LOG', $wp_debug_log );
 define( 'WP_CACHE', false );
 define( 'SCRIPT_DEBUG', false );
 define( 'MEDIA_TRASH', false );
