@@ -361,11 +361,16 @@ HTML;
 	 */
 	public function test_update_icon_block_with_value_from_source() {
 		$get_value_callback = function () {
-			return 'core/test-icon';
+			return 'test-icons/test-icon';
 		};
 
+		wp_register_icon_collection(
+			'test-icons',
+			array( 'label' => 'Test Icons' )
+		);
+
 		wp_register_icon(
-			'core/test-icon',
+			'test-icons/test-icon',
 			array(
 				'label'   => 'Test Icon',
 				'content' => '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M0 0h24v24H0z" fill="currentColor"/></svg>',
@@ -390,7 +395,7 @@ HTML;
 		$result        = $block->render();
 
 		$this->assertSame(
-			'core/test-icon',
+			'test-icons/test-icon',
 			$block->attributes['icon'],
 			"The 'icon' attribute should be updated with the value returned by the source."
 		);
@@ -405,7 +410,8 @@ HTML;
 			'The rendered output should contain the wp-block-icon class.'
 		);
 
-		wp_unregister_icon( 'core/test-icon' );
+		wp_unregister_icon( 'test-icons/test-icon' );
+		wp_unregister_icon_collection( 'test-icons' );
 	}
 
 	/**
