@@ -385,33 +385,35 @@ HTML;
 			)
 		);
 
-		$block_content = <<<HTML
+		try {
+			$block_content = <<<HTML
 <!-- wp:icon {"metadata":{"bindings":{"icon":{"source":"test/source"}}}} -->
 <div class="wp-block-icon"></div>
 <!-- /wp:icon -->
 HTML;
-		$parsed_blocks = parse_blocks( $block_content );
-		$block         = new WP_Block( $parsed_blocks[0] );
-		$result        = $block->render();
+			$parsed_blocks = parse_blocks( $block_content );
+			$block         = new WP_Block( $parsed_blocks[0] );
+			$result        = $block->render();
 
-		$this->assertSame(
-			'test-icons/test-icon',
-			$block->attributes['icon'],
-			"The 'icon' attribute should be updated with the value returned by the source."
-		);
-		$this->assertStringContainsString(
-			'<svg',
-			$result,
-			'The rendered output should contain an SVG element.'
-		);
-		$this->assertStringContainsString(
-			'wp-block-icon',
-			$result,
-			'The rendered output should contain the wp-block-icon class.'
-		);
-
-		wp_unregister_icon( 'test-icons/test-icon' );
-		wp_unregister_icon_collection( 'test-icons' );
+			$this->assertSame(
+				'test-icons/test-icon',
+				$block->attributes['icon'],
+				"The 'icon' attribute should be updated with the value returned by the source."
+			);
+			$this->assertStringContainsString(
+				'<svg',
+				$result,
+				'The rendered output should contain an SVG element.'
+			);
+			$this->assertStringContainsString(
+				'wp-block-icon',
+				$result,
+				'The rendered output should contain the wp-block-icon class.'
+			);
+		} finally {
+			wp_unregister_icon( 'test-icons/test-icon' );
+			wp_unregister_icon_collection( 'test-icons' );
+		}
 	}
 
 	/**
