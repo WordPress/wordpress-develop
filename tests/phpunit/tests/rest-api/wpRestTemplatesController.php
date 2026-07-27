@@ -639,13 +639,13 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 	}
 
 	/**
-	 * A file-backed template has no date, which should be exposed as `null`
-	 * rather than the `false` returned by `mysql_to_rfc3339()`.
+	 * A file-backed template has no publication or modification date, which should
+	 * be exposed as `null` rather than the `false` returned by `mysql_to_rfc3339()`.
 	 *
 	 * @ticket 65728
 	 * @covers WP_REST_Templates_Controller::prepare_item_for_response
 	 */
-	public function test_get_item_date_is_null_for_file_backed_template() {
+	public function test_get_item_dates_are_null_for_file_backed_template() {
 		wp_set_current_user( self::$admin_id );
 		switch_theme( 'block-theme' );
 
@@ -655,6 +655,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 
 		$this->assertSame( 200, $response->get_status(), 'Fetching a file-backed template should return 200.' );
 		$this->assertNull( $data['date'], 'The date should be null for a file-backed template.' );
+		$this->assertNull( $data['modified'], 'The modified date should be null for a file-backed template.' );
 	}
 
 	/**
