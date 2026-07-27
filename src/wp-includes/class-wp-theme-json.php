@@ -2613,7 +2613,6 @@ class WP_Theme_JSON {
 	 * @since 5.8.0
 	 * @since 5.9.0 Added the `$origins` parameter.
 	 * @since 6.6.0 Added check for root CSS properties selector.
-	 * @since 7.1.0 Block-level preset classes are wrapped in `:where()` to keep
 	 * @since 7.1.0 Wraps block-level preset classes in `:where()` to match root-level specificity.
 	 *
 	 * @param array    $settings Settings to process.
