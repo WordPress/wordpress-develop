@@ -105,7 +105,7 @@ npm run grunt qunit:compiled
 
 `qunit:compiled` builds first, then runs the suite. The QUnit runner loads
 scripts from the built `build/` directory, so a plain `npm run grunt qunit`
-requires a completed `npm run build` first—without a build, every test fails
+requires a completed `npm run build` first without a build, every test fails
 with a `jQuery is not defined` error.
 
 #### To lint the workflow files
