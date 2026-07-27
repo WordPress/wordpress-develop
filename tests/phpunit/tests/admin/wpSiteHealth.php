@@ -768,10 +768,10 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 	private function get_debug_mode_disabled_result(): array {
 		return array(
 			'status' => 'good',
-			'label'  => 'Your site is not set to output debug information',
+			'label'  => __( 'Your site is not set to output debug information' ),
 			'test'   => 'is_in_debug_mode',
 			'badge'  => array(
-				'label' => 'Security',
+				'label' => __( 'Security' ),
 				'color' => 'blue',
 			),
 		);
@@ -787,13 +787,13 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 
 		$result = array(
 			'status'      => 'critical',
-			'label'       => 'Your site is set to log errors to a potentially public file',
-			'description' => 'The constant, <code>WP_DEBUG_LOG</code>, has been added to this website&#8217;s configuration file. This means any errors on the site will be written to a file which is likely publicly accessible.',
+			'label'       => __( 'Your site is set to log errors to a potentially public file' ),
+			'description' => __( 'The constant, <code>WP_DEBUG_LOG</code>, has been added to this website&#8217;s configuration file. This means any errors on the site will be written to a file which is likely publicly accessible.' ),
 			'test'        => 'is_in_debug_mode',
 		);
 
 		if ( ! $wp_debug_log_defined ) {
-			$result['description'] = 'The error log path has been configured to a file within the WordPress directory. This means any errors on the site will be written to a file which is likely publicly accessible.';
+			$result['description'] = __( 'The error log path has been configured to a file within the WordPress directory. This means any errors on the site will be written to a file which is likely publicly accessible.' );
 		}
 
 		return $result;
@@ -809,13 +809,13 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 
 		$result = array(
 			'status'      => 'good',
-			'label'       => 'Your site is set to log errors to a file outside the document root',
-			'description' => 'The configuration constant, <code>WP_DEBUG_LOG</code>, is enabled. In addition, your site is set to write errors to a file outside the WordPress directory, which is a good practice as the log file should not be publicly accessible.',
+			'label'       => __( 'Your site is set to log errors to a file outside the document root' ),
+			'description' => __( 'The configuration constant, <code>WP_DEBUG_LOG</code>, is enabled. In addition, your site is set to write errors to a file outside the WordPress directory, which is a good practice as the log file should not be publicly accessible.' ),
 			'test'        => 'is_in_debug_mode',
 		);
 
 		if ( ! $wp_debug_log_defined ) {
-			$result['description'] = 'The error log path has been configured to a file outside the WordPress directory. This is a good practice as the log file should not be publicly accessible.';
+			$result['description'] = __( 'The error log path has been configured to a file outside the WordPress directory. This is a good practice as the log file should not be publicly accessible.' );
 		}
 
 		return $result;
@@ -831,13 +831,13 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 
 		$result = array(
 			'status'      => 'critical',
-			'label'       => 'Unable to determine error log file location',
-			'description' => 'The configuration constant, <code>WP_DEBUG_LOG</code>, is enabled, but the log file location could not be determined.',
+			'label'       => __( 'Unable to determine error log file location' ),
+			'description' => __( 'The configuration constant, <code>WP_DEBUG_LOG</code>, is enabled, but the log file location could not be determined.' ),
 			'test'        => 'is_in_debug_mode',
 		);
 
 		if ( ! $wp_debug_log_defined ) {
-			$result['description'] = 'The error log path could not be determined. Please check your PHP configuration.';
+			$result['description'] = __( 'The error log path could not be determined. Please check your PHP configuration.' );
 		}
 
 		return $result;
@@ -1058,7 +1058,7 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 		$actual_result = $site_health_mock->get_test_is_in_debug_mode();
 
 		$this->assertSame( 'critical', $actual_result['status'], 'Status should be "critical" when WP_DEBUG_DISPLAY is enabled in production.' );
-		$this->assertSame( 'Your site is set to display errors to site visitors', $actual_result['label'], 'Label should indicate that errors are displayed to visitors.' );
+		$this->assertSame( __( 'Your site is set to display errors to site visitors' ), $actual_result['label'], 'Label should indicate that errors are displayed to visitors.' );
 		$this->assertStringContainsString( 'WP_DEBUG_DISPLAY', $actual_result['description'], 'Description should contain WP_DEBUG_DISPLAY.' );
 	}
 
@@ -1094,7 +1094,7 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 		$actual_result = $site_health_mock->get_test_is_in_debug_mode();
 
 		$this->assertSame( 'recommended', $actual_result['status'], 'Status should be "recommended" when WP_DEBUG_DISPLAY is enabled in development.' );
-		$this->assertSame( 'Your site is set to display errors to site visitors', $actual_result['label'], 'Label should indicate that errors are displayed to visitors.' );
+		$this->assertSame( __( 'Your site is set to display errors to site visitors' ), $actual_result['label'], 'Label should indicate that errors are displayed to visitors.' );
 		$this->assertStringContainsString( 'WP_DEBUG_DISPLAY', $actual_result['description'], 'Description should contain WP_DEBUG_DISPLAY.' );
 	}
 
