@@ -40,6 +40,13 @@ if ( isset( $_REQUEST['action'] ) && 'update-site' === $_REQUEST['action'] && is
 	switch_to_blog( $id );
 
 	$skip_options = array( 'allowedthemes' ); // Don't update these options since they are handled elsewhere in the form.
+
+	// Ensure the site title (blogname) is not left empty.
+	if ( isset( $_POST['option']['blogname'] ) && '' === trim( $_POST['option']['blogname'] ) ) {
+		$skip_options[] = 'blogname';
+		$update_error   = __( 'The site title cannot be empty.' );
+	}
+
 	foreach ( (array) $_POST['option'] as $key => $val ) {
 		$key = wp_unslash( $key );
 		$val = wp_unslash( $val );
@@ -60,12 +67,15 @@ if ( isset( $_REQUEST['action'] ) && 'update-site' === $_REQUEST['action'] && is
 	do_action( 'wpmu_update_blog_options', $id );
 
 	restore_current_blog();
+
+	$redirect_args = array(
+		'update' => isset( $update_error ) ? 'error' : 'updated',
+		'id'     => $id,
+	);
+
 	wp_redirect(
 		add_query_arg(
-			array(
-				'update' => 'updated',
-				'id'     => $id,
-			),
+			$redirect_args,
 			'site-settings.php'
 		)
 	);
@@ -75,7 +85,15 @@ if ( isset( $_REQUEST['action'] ) && 'update-site' === $_REQUEST['action'] && is
 if ( isset( $_GET['update'] ) ) {
 	$messages = array();
 	if ( 'updated' === $_GET['update'] ) {
-		$messages[] = __( 'Site options updated.' );
+		$messages[] = array(
+			'text' => __( 'Site options updated.' ),
+			'type' => 'success',
+		);
+	} elseif ( 'error' === $_GET['update'] ) {
+		$messages[] = array(
+			'text' => __( 'The site title cannot be empty.' ),
+			'type' => 'error',
+		);
 	}
 }
 
@@ -104,14 +122,15 @@ network_edit_site_nav(
 );
 
 if ( ! empty( $messages ) ) {
-	$notice_args = array(
-		'type'        => 'success',
-		'dismissible' => true,
-		'id'          => 'message',
-	);
-
 	foreach ( $messages as $msg ) {
-		wp_admin_notice( $msg, $notice_args );
+		wp_admin_notice(
+			$msg['text'],
+			array(
+				'type'        => $msg['type'],
+				'dismissible' => true,
+				'id'          => 'message',
+			)
+		);
 	}
 }
 ?>

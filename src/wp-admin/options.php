@@ -303,6 +303,18 @@ if ( 'update' === $action ) { // We are saving settings sent from a settings pag
 			);
 		}
 
+		// Ensure the site title is not left empty.
+		if ( isset( $_POST['blogname'] ) && '' === trim( $_POST['blogname'] ) ) {
+			$_POST['blogname'] = get_option( 'blogname' );
+
+			add_settings_error(
+				'general',
+				'blogname',
+				__( 'The site title cannot be empty.' ),
+				'error'
+			);
+		}
+
 		// Handle translation installation.
 		if ( ! empty( $_POST['WPLANG'] ) && current_user_can( 'install_languages' ) ) {
 			require_once ABSPATH . 'wp-admin/includes/translation-install.php';
