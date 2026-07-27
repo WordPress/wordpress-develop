@@ -3273,3 +3273,15 @@ function wp_autoload_values_to_autoload() {
 
 	return array_intersect( $filtered_values, $autoload_values );
 }
+
+/**
+ * Ensures blog_charset has a value by defaulting to UTF-8 when empty.
+ *
+ * @since 6.8.0
+ *
+ * @param string|null $charset The character set from the option.
+ * @return string The character set, defaulting to UTF-8 when empty.
+ */
+function _wp_ensure_blog_charset( $charset ) {
+	return empty( $charset ) ? 'UTF-8' : $charset;
+}
