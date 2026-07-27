@@ -102,6 +102,83 @@ class WP_Ajax_Upgrader_Skin extends Automatic_Upgrader_Skin {
 	}
 
 	/**
+	 * Checks if the theme can be overwritten and returns an array of changes for overwriting a theme on upload.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @return bool|array Whether the theme can be overwritten and an array of changes returned.
+	 */
+	public function can_overwrite_theme() {
+		if ( ! is_wp_error( $this->result ) || 'folder_exists' !== $this->result->get_error_code() ) {
+			return false;
+		}
+
+		$folder = $this->result->get_error_data( 'folder_exists' );
+		$folder = rtrim( $folder, '/' );
+
+		$current_theme_data = false;
+		$all_themes         = wp_get_themes( array( 'errors' => null ) );
+
+		foreach ( $all_themes as $theme ) {
+			$stylesheet_dir = wp_normalize_path( $theme->get_stylesheet_directory() );
+
+			if ( rtrim( $stylesheet_dir, '/' ) !== $folder ) {
+				continue;
+			}
+
+			$current_theme_data = $theme;
+		}
+
+		$new_theme_data = $this->upgrader->new_theme_data;
+
+		if ( ! $current_theme_data || ! $new_theme_data ) {
+			return false;
+		}
+
+		$rows = array(
+			'Downgrade' => version_compare( $current_theme_data['Version'], $new_theme_data['Version'], '>' ),
+		);
+
+		$is_invalid_parent = false;
+		if ( ! empty( $new_theme_data['Template'] ) ) {
+			$is_invalid_parent = ! in_array( $new_theme_data['Template'], array_keys( $all_themes ), true );
+		}
+
+		$fields = array(
+			'Name',
+			'Version',
+			'Author',
+			'RequiresWP',
+			'RequiresPHP',
+			'Template',
+		);
+
+		$is_same_theme = true; // Let's consider only these rows.
+
+		foreach ( $fields as $field ) {
+			$old_value = $current_theme_data->display( $field, false );
+			$old_value = $old_value ? (string) $old_value : '-';
+
+			$new_value = ! empty( $new_theme_data[ $field ] ) ? (string) $new_theme_data[ $field ] : '-';
+
+			if ( $old_value === $new_value && '-' === $new_value && 'Template' === $field ) {
+				continue;
+			}
+
+			$is_same_theme = $is_same_theme && ( $old_value === $new_value );
+
+			if ( 'Template' === $field && $is_invalid_parent ) {
+				$new_value .= ' ' . __( '(not found)' );
+			}
+
+			$rows[ $field ] = array( wp_strip_all_tags( $old_value ), wp_strip_all_tags( $new_value ) );
+
+		}
+
+		return $rows;
+	}
+
+	/**
 	 * Stores an error message about the upgrade.
 	 *
 	 * @since 4.6.0
