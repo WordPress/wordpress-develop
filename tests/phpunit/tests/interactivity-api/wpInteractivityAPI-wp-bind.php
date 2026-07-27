@@ -45,9 +45,9 @@ class Tests_WP_Interactivity_API_WP_Bind extends WP_UnitTestCase {
 	 * Invokes the `process_directives` method of WP_Interactivity_API class.
 	 *
 	 * @param string $html The HTML that needs to be processed.
-	 * @return array An array containing an instance of the WP_HTML_Tag_Processor and the processed HTML.
+	 * @return array{ 0: WP_HTML_Tag_Processor, 1: string } An array containing an instance of the WP_HTML_Tag_Processor and the processed HTML.
 	 */
-	private function process_directives( $html ) {
+	private function process_directives( string $html ) {
 		$new_html = $this->interactivity->process_directives( $html );
 		$p        = new WP_HTML_Tag_Processor( $new_html );
 		$p->next_tag();
@@ -91,6 +91,21 @@ class Tests_WP_Interactivity_API_WP_Bind extends WP_UnitTestCase {
 		$html    = '<img data-wp-bind--width="myPlugin::state.width">';
 		list($p) = $this->process_directives( $html );
 		$this->assertSame( '100', $p->get_attribute( 'width' ) );
+	}
+
+	/**
+	 * Tests that a float value is cast to a string when set as an attribute via
+	 * `data-wp-bind`.
+	 *
+	 * @covers ::process_directives
+	 */
+	public function test_wp_bind_sets_float_value() {
+		$this->interactivity->state( 'myPlugin', array( 'ratio' => 1.5 ) );
+
+		$html               = '<div data-wp-bind--data-ratio="myPlugin::state.ratio">Text</div>';
+		list($p, $new_html) = $this->process_directives( $html );
+		$this->assertSame( '1.5', $p->get_attribute( 'data-ratio' ) );
+		$this->assertSame( '<div data-ratio="1.5" data-wp-bind--data-ratio="myPlugin::state.ratio">Text</div>', $new_html );
 	}
 
 	/**
@@ -443,5 +458,73 @@ class Tests_WP_Interactivity_API_WP_Bind extends WP_UnitTestCase {
 		$html    = '<div data-wp-bind--id---unique-id="myPlugin::state.id" data-wp-bind--id="myPlugin::state.id">Text</div>';
 		list($p) = $this->process_directives( $html );
 		$this->assertSame( 'some-id', $p->get_attribute( 'id' ) );
+	}
+
+	/**
+	 * Data provider for values which cannot be stored in an attribute value.
+	 *
+	 * @return array<non-empty-string, array{ value: mixed }> Data provider.
+	 */
+	public function data_non_scalar_values(): array {
+		return array(
+			'list'              => array( 'value' => array( 'a', 'b' ) ),
+			'associative array' => array( 'value' => array( 'a' => 'b' ) ),
+			'empty array'       => array( 'value' => array() ),
+			'object'            => array( 'value' => new stdClass() ),
+			'stringable object' => array(
+				'value' => new class() {
+					/**
+					 * Returns the string representation.
+					 *
+					 * @return string String representation.
+					 */
+					public function __toString() {
+						return 'stringified';
+					}
+				},
+			),
+		);
+	}
+
+	/**
+	 * Tests that `data-wp-bind` rejects non-scalar values instead of passing
+	 * them along to WP_HTML_Tag_Processor::set_attribute().
+	 *
+	 * @covers ::process_directives
+	 *
+	 * @dataProvider data_non_scalar_values
+	 *
+	 * @expectedIncorrectUsage WP_Interactivity_API::data_wp_bind_processor
+	 *
+	 * @param mixed $value Non-scalar value to bind.
+	 */
+	public function test_wp_bind_rejects_non_scalar_value( $value ) {
+		$this->interactivity->state( 'myPlugin', array( 'nonScalar' => $value ) );
+
+		$html               = '<div data-wp-bind--id="myPlugin::state.nonScalar">Text</div>';
+		list($p, $new_html) = $this->process_directives( $html );
+		$this->assertNull( $p->get_attribute( 'id' ), 'Expected no attribute to have been set for a non-scalar value.' );
+		$this->assertSame( $html, $new_html, 'Expected the markup to be left unchanged.' );
+	}
+
+	/**
+	 * Tests that `data-wp-bind` removes a pre-existing attribute when the
+	 * evaluated value is non-scalar.
+	 *
+	 * @covers ::process_directives
+	 *
+	 * @dataProvider data_non_scalar_values
+	 *
+	 * @expectedIncorrectUsage WP_Interactivity_API::data_wp_bind_processor
+	 *
+	 * @param mixed $value Non-scalar value to bind.
+	 */
+	public function test_wp_bind_removes_existing_attribute_for_non_scalar_value( $value ) {
+		$this->interactivity->state( 'myPlugin', array( 'nonScalar' => $value ) );
+
+		$html               = '<div id="other-id" data-wp-bind--id="myPlugin::state.nonScalar">Text</div>';
+		list($p, $new_html) = $this->process_directives( $html );
+		$this->assertNull( $p->get_attribute( 'id' ), 'Expected the pre-existing attribute to have been removed.' );
+		$this->assertEqualHTML( '<div data-wp-bind--id="myPlugin::state.nonScalar">Text</div>', $new_html );
 	}
 }
