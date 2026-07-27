@@ -41,6 +41,9 @@ DeleteSelected = Button.extend(/** @lends wp.media.view.DeleteSelectedButton.pro
 
 	render: function() {
 		Button.prototype.render.apply( this, arguments );
+		this.model.set( {
+			size: ''
+		} );
 		if ( this.controller.isModeActive( 'select' ) ) {
 			this.$el.addClass( 'delete-selected-button' );
 		} else {
