@@ -16,7 +16,14 @@ themes = wp.themes = wp.themes || {};
 themes.data = _wpThemeSettings;
 l10n = themes.data.l10n;
 
-// Announce the theme shown after previous/next navigation.
+/**
+ * Announces to screen readers the theme shown after previous/next navigation.
+ *
+ * @since 7.1.0
+ *
+ * @param {Object} model The theme model.
+ * @return {void}
+ */
 themes.announceTheme = function( model ) {
 	var name = model.get( 'name' ) || model.get( 'id' );
 
@@ -409,6 +416,10 @@ themes.view.Theme = wp.Backbone.View.extend({
 
 	initialize: function() {
 		this.model.on( 'change', this.render, this );
+
+		this.announceThemeDebounced = _.debounce( function( model ) {
+			themes.announceTheme( model );
+		}, 500 );
 	},
 
 	render: function() {
@@ -558,7 +569,7 @@ themes.view.Theme = wp.Backbone.View.extend({
 			preview.render();
 			this.setNavButtonsState();
 			$( '.next-theme' ).trigger( 'focus' );
-			_.debounce( themes.announceTheme( self.current ), 500 );
+			self.announceThemeDebounced( self.current );
 		})
 		.listenTo( preview, 'theme:previous', function() {
 
@@ -589,7 +600,7 @@ themes.view.Theme = wp.Backbone.View.extend({
 			preview.render();
 			this.setNavButtonsState();
 			$( '.previous-theme' ).trigger( 'focus' );
-			_.debounce( themes.announceTheme( self.current ), 500 );
+			self.announceThemeDebounced( self.current );
 		});
 
 		this.listenTo( preview, 'preview:close', function() {
@@ -1091,6 +1102,10 @@ themes.view.Themes = wp.Backbone.View.extend({
 		// Move the active theme to the beginning of the collection.
 		self.currentTheme();
 
+		this.announceThemeDebounced = _.debounce( function( model ) {
+			themes.announceTheme( model );
+		}, 500 );
+
 		// When the collection is updated by user input...
 		this.listenTo( self.collection, 'themes:update', function() {
 			self.parent.page = 0;
@@ -1337,8 +1352,7 @@ themes.view.Themes = wp.Backbone.View.extend({
 
 			// Trigger a route update for the current model.
 			self.theme.trigger( 'theme:expand', nextModel.cid );
-			_.debounce( themes.announceTheme( nextModel ), 500 );
-
+			self.announceThemeDebounced( nextModel );
 		}
 	},
 
@@ -1365,8 +1379,7 @@ themes.view.Themes = wp.Backbone.View.extend({
 
 			// Trigger a route update for the current model.
 			self.theme.trigger( 'theme:expand', previousModel.cid );
-			_.debounce( themes.announceTheme( previousModel ), 500 );
-
+			self.announceThemeDebounced( previousModel );
 		}
 	},
 

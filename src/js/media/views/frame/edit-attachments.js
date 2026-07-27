@@ -34,7 +34,25 @@ EditAttachments = MediaFrame.extend(/** @lends wp.media.view.MediaFrame.EditAtta
 		'click .right': 'nextMediaItem'
 	},
 
+	/**
+	 * Announces to screen readers the attachment shown after previous/next navigation.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @param {Object} model The attachment model.
+	 * @return {void}
+	 */
+	announceMediaItem: function( model ) {
+		var title = model.get( 'title' ) || model.get( 'filename' ) || model.get( 'id' );
+
+		wp.a11y.speak( l10n.mediaItemViewed.replace( '%s', function() {
+			return title;
+		} ) );
+	},
+
 	initialize: function() {
+		var self = this;
+
 		Frame.prototype.initialize.apply( this, arguments );
 
 		_.defaults( this.options, {
@@ -56,6 +74,10 @@ EditAttachments = MediaFrame.extend(/** @lends wp.media.view.MediaFrame.EditAtta
 
 		this.title.mode( 'default' );
 		this.toggleNav();
+
+		this.announceMediaItemDebounced = _.debounce( function( model ) {
+			self.announceMediaItem( model );
+		}, 500 );
 	},
 
 	bindHandlers: function() {
@@ -213,7 +235,7 @@ EditAttachments = MediaFrame.extend(/** @lends wp.media.view.MediaFrame.EditAtta
 		this.trigger( 'refresh', model );
 		// Move focus to the Previous button. When there are no more items, to the Next button.
 		this.focusNavButton( this.hasPrevious() ? '.left' : '.right' );
-		_.debounce( this.announceMediaItem( model ), 500 );
+		this.announceMediaItemDebounced( model );
 	},
 
 	/**
@@ -230,7 +252,7 @@ EditAttachments = MediaFrame.extend(/** @lends wp.media.view.MediaFrame.EditAtta
 		this.trigger( 'refresh', model );
 		// Move focus to the Next button. When there are no more items, to the Previous button.
 		this.focusNavButton( this.hasNext() ? '.right' : '.left' );
-		_.debounce( this.announceMediaItem( model ), 500 );
+		this.announceMediaItemDebounced( model );
 	},
 
 	/**
@@ -242,14 +264,6 @@ EditAttachments = MediaFrame.extend(/** @lends wp.media.view.MediaFrame.EditAtta
 	 */
 	focusNavButton: function( which ) {
 		$( which ).trigger( 'focus' );
-	},
-
-	announceMediaItem: function( model ) {
-		var title = model.get( 'title' ) || model.get( 'filename' ) || model.get( 'id' );
-
-		wp.a11y.speak( l10n.mediaItemViewed.replace( '%s', function() {
-			return title;
-		} ) );
 	},
 
 	getCurrentIndex: function() {
