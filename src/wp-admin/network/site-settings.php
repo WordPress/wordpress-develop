@@ -140,7 +140,6 @@ if ( ! empty( $error_messages ) ) {
 			array(
 				'type'        => 'error',
 				'dismissible' => true,
-				'id'          => 'message',
 			)
 		);
 	}
