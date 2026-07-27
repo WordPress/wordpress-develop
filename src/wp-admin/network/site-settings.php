@@ -40,13 +40,6 @@ if ( isset( $_REQUEST['action'] ) && 'update-site' === $_REQUEST['action'] && is
 	switch_to_blog( $id );
 
 	$skip_options = array( 'allowedthemes' ); // Don't update these options since they are handled elsewhere in the form.
-
-	// Ensure the site title (blogname) is not left empty.
-	if ( isset( $_POST['option']['blogname'] ) && '' === trim( $_POST['option']['blogname'] ) ) {
-		$skip_options[] = 'blogname';
-		$update_error   = __( 'The site title cannot be empty.' );
-	}
-
 	foreach ( (array) $_POST['option'] as $key => $val ) {
 		$key = wp_unslash( $key );
 		$val = wp_unslash( $val );
@@ -68,32 +61,51 @@ if ( isset( $_REQUEST['action'] ) && 'update-site' === $_REQUEST['action'] && is
 
 	restore_current_blog();
 
-	$redirect_args = array(
-		'update' => isset( $update_error ) ? 'error' : 'updated',
-		'id'     => $id,
-	);
+	$update = 'updated';
+
+	/*
+	 * sanitize_option() rejects invalid values (such as an empty, required
+	 * Site Title) by registering a settings error and keeping the stored value.
+	 * Carry those errors across the redirect so an error notice can be shown
+	 * instead of a success message.
+	 */
+	$settings_errors = get_settings_errors();
+	if ( ! empty( $settings_errors ) ) {
+		set_transient( 'settings_errors', $settings_errors, 30 );
+		$update = 'not-updated';
+	}
 
 	wp_redirect(
 		add_query_arg(
-			$redirect_args,
+			array(
+				'update' => $update,
+				'id'     => $id,
+			),
 			'site-settings.php'
 		)
 	);
 	exit;
 }
 
+$messages       = array();
+$error_messages = array();
+
 if ( isset( $_GET['update'] ) ) {
-	$messages = array();
 	if ( 'updated' === $_GET['update'] ) {
-		$messages[] = array(
-			'text' => __( 'Site options updated.' ),
-			'type' => 'success',
-		);
-	} elseif ( 'error' === $_GET['update'] ) {
-		$messages[] = array(
-			'text' => __( 'The site title cannot be empty.' ),
-			'type' => 'error',
-		);
+		$messages[] = __( 'Site options updated.' );
+	} elseif ( 'not-updated' === $_GET['update'] ) {
+		$settings_errors = get_transient( 'settings_errors' );
+		delete_transient( 'settings_errors' );
+
+		if ( is_array( $settings_errors ) ) {
+			foreach ( $settings_errors as $settings_error ) {
+				$error_messages[] = $settings_error['message'];
+			}
+		}
+
+		if ( empty( $error_messages ) ) {
+			$error_messages[] = __( 'Some settings could not be saved.' );
+		}
 	}
 }
 
@@ -121,17 +133,28 @@ network_edit_site_nav(
 	)
 );
 
-if ( ! empty( $messages ) ) {
-	foreach ( $messages as $msg ) {
+if ( ! empty( $error_messages ) ) {
+	foreach ( $error_messages as $msg ) {
 		wp_admin_notice(
-			$msg['text'],
+			$msg,
 			array(
-				'type'        => $msg['type'],
+				'type'        => 'error',
 				'dismissible' => true,
 				'id'          => 'message',
 			)
 		);
 	}
+}
+
+if ( ! empty( $messages ) ) {
+	wp_admin_notice(
+		$messages[0],
+		array(
+			'type'        => 'success',
+			'dismissible' => true,
+			'id'          => 'message',
+		)
+	);
 }
 ?>
 <form method="post" action="site-settings.php?action=update-site">

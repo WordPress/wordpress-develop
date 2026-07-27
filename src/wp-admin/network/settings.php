@@ -116,6 +116,13 @@ if ( $_POST ) {
 		}
 	}
 
+	// Ensure the network title (site_name) is not left empty.
+	$network_title_error = '';
+	if ( isset( $_POST['site_name'] ) && '' === trim( wp_unslash( $_POST['site_name'] ) ) ) {
+		unset( $_POST['site_name'] );
+		$network_title_error = __( 'The network title cannot be empty. Please enter a title for your network.' );
+	}
+
 	foreach ( $options as $option_name ) {
 		if ( ! isset( $_POST[ $option_name ] ) ) {
 			continue;
@@ -131,21 +138,43 @@ if ( $_POST ) {
 	 */
 	do_action( 'update_wpmu_options' );
 
-	wp_redirect( add_query_arg( 'updated', 'true', network_admin_url( 'settings.php' ) ) );
+	if ( $network_title_error ) {
+		set_transient( 'network_settings_errors', array( $network_title_error ), 30 );
+		wp_redirect( add_query_arg( 'updated', 'error', network_admin_url( 'settings.php' ) ) );
+	} else {
+		wp_redirect( add_query_arg( 'updated', 'true', network_admin_url( 'settings.php' ) ) );
+	}
 	exit;
 }
 
 require_once ABSPATH . 'wp-admin/admin-header.php';
 
 if ( isset( $_GET['updated'] ) ) {
-	wp_admin_notice(
-		__( 'Settings saved.' ),
-		array(
-			'type'        => 'success',
-			'dismissible' => true,
-			'id'          => 'message',
-		)
-	);
+	if ( 'true' === $_GET['updated'] ) {
+		wp_admin_notice(
+			__( 'Settings saved.' ),
+			array(
+				'type'        => 'success',
+				'dismissible' => true,
+				'id'          => 'message',
+			)
+		);
+	} elseif ( 'error' === $_GET['updated'] ) {
+		$network_settings_errors = get_transient( 'network_settings_errors' );
+		delete_transient( 'network_settings_errors' );
+
+		$error_messages = is_array( $network_settings_errors ) ? $network_settings_errors : array( __( 'Some settings could not be saved.' ) );
+		foreach ( $error_messages as $error_message ) {
+			wp_admin_notice(
+				$error_message,
+				array(
+					'type'        => 'error',
+					'dismissible' => true,
+					'id'          => 'message',
+				)
+			);
+		}
+	}
 }
 ?>
 
@@ -155,10 +184,10 @@ if ( isset( $_GET['updated'] ) ) {
 		<?php wp_nonce_field( 'siteoptions' ); ?>
 		<h2 id="wp-settings-section-operational-settings"><?php _e( 'Operational Settings' ); ?></h2>
 		<table class="form-table" role="presentation">
-			<tr>
+			<tr class="form-field form-required">
 				<th scope="row"><label for="site_name"><?php _e( 'Network Title' ); ?></label></th>
 				<td>
-					<input name="site_name" type="text" id="site_name" class="regular-text" value="<?php echo esc_attr( get_network()->site_name ); ?>" />
+					<input name="site_name" type="text" id="site_name" class="regular-text" value="<?php echo esc_attr( get_network()->site_name ); ?>" required aria-required="true" />
 				</td>
 			</tr>
 
