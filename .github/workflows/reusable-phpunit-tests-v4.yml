@@ -153,7 +153,12 @@ jobs:
         with:
           php-version: '${{ inputs.php }}'
           coverage: xdebug
-          extensions: gd, mysqli, memcached
+          extensions: gd, mysqli, memcached, imagick
+
+      - name: Verify Imagick extension is available
+        run: |
+          php -m | grep -i '^imagick$'
+          php -r "if ( ! extension_loaded( 'imagick' ) ) { fwrite( STDERR, 'Imagick extension is not loaded.' . PHP_EOL ); exit(1); }"
 
       - name: Install npm dependencies
         run: npm install
