@@ -188,19 +188,25 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 		$request_options = $this->get_wrapped_prompt_builder_property_value( $builder, 'requestOptions' );
 
 		$this->assertInstanceOf( RequestOptions::class, $request_options );
-		$this->assertEquals( 30, $request_options->getTimeout() );
+		$this->assertSame( 30.0, $request_options->getTimeout() );
 	}
 
 	/**
-	 * Test that the constructor allows overriding the default request timeout.
+	 * Test that the constructor allows overriding the default request timeout with a valid value.
 	 *
 	 * @ticket 64591
+	 * @ticket 65094
+	 *
+	 * @dataProvider data_valid_request_timeout_overrides
+	 *
+	 * @param mixed $input    The timeout value returned by the filter.
+	 * @param float $expected The expected timeout stored on the request options.
 	 */
-	public function test_constructor_allows_overriding_request_timeout() {
+	public function test_constructor_allows_overriding_request_timeout_with_valid_timeout( $input, float $expected ) {
 		add_filter(
 			'wp_ai_client_default_request_timeout',
-			static function () {
-				return 45;
+			static function () use ( $input ) {
+				return $input;
 			}
 		);
 
@@ -210,7 +216,63 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 		$request_options = $this->get_wrapped_prompt_builder_property_value( $builder, 'requestOptions' );
 
 		$this->assertInstanceOf( RequestOptions::class, $request_options );
-		$this->assertEquals( 45, $request_options->getTimeout() );
+		$this->assertSame( $expected, $request_options->getTimeout() );
+	}
+
+	/**
+	 * Data provider for {@see self::test_constructor_allows_overriding_request_timeout_with_valid_timeout()}.
+	 *
+	 * @return array<string, array{0: mixed, 1: float}>
+	 */
+	public function data_valid_request_timeout_overrides(): array {
+		return array(
+			'float'    => array( 45.5, 45.5 ),
+			'integer'  => array( 67, 67.0 ),
+			'string'   => array( '20', 20.0 ),
+			'infinity' => array( INF, INF ),
+			'zero'     => array( 0.0, 0.0 ),
+		);
+	}
+
+	/**
+	 * Test that the constructor disallows overriding the default request timeout with an invalid value.
+	 *
+	 * @ticket 65094
+	 *
+	 * @dataProvider data_invalid_request_timeouts
+	 *
+	 * @expectedIncorrectUsage WP_AI_Client_Prompt_Builder::__construct
+	 *
+	 * @param mixed $timeout The invalid timeout value returned by the filter.
+	 */
+	public function test_constructor_disallows_overriding_with_invalid_request_timeout( $timeout ) {
+		add_filter(
+			'wp_ai_client_default_request_timeout',
+			static function () use ( $timeout ) {
+				return $timeout;
+			}
+		);
+
+		$builder = new WP_AI_Client_Prompt_Builder( AiClient::defaultRegistry() );
+
+		/** @var RequestOptions $request_options */
+		$request_options = $this->get_wrapped_prompt_builder_property_value( $builder, 'requestOptions' );
+
+		$this->assertInstanceOf( RequestOptions::class, $request_options );
+		$this->assertSame( 30.0, $request_options->getTimeout() );
+	}
+
+	/**
+	 * Data provider for {@see self::test_constructor_disallows_overriding_with_invalid_request_timeout()}.
+	 *
+	 * @return array<string, array{0: mixed}>
+	 */
+	public function data_invalid_request_timeouts(): array {
+		return array(
+			'negative number' => array( -1 ),
+			'array'           => array( array() ),
+			'null'            => array( null ),
+		);
 	}
 
 	/**
@@ -401,7 +463,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 
 		$this->assertCount( 1, $messages );
 		$this->assertInstanceOf( Message::class, $messages[0] );
-		$this->assertEquals( 'Hello, world!', $messages[0]->getParts()[0]->getText() );
+		$this->assertSame( 'Hello, world!', $messages[0]->getParts()[0]->getText() );
 	}
 
 	/**
@@ -418,7 +480,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 
 		$this->assertCount( 1, $messages );
 		$this->assertInstanceOf( Message::class, $messages[0] );
-		$this->assertEquals( 'Test message', $messages[0]->getParts()[0]->getText() );
+		$this->assertSame( 'Test message', $messages[0]->getParts()[0]->getText() );
 	}
 
 	/**
@@ -479,7 +541,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 
 		$this->assertCount( 1, $messages );
 		$this->assertInstanceOf( Message::class, $messages[0] );
-		$this->assertEquals( 'Hello from array', $messages[0]->getParts()[0]->getText() );
+		$this->assertSame( 'Hello from array', $messages[0]->getParts()[0]->getText() );
 	}
 
 	/**
@@ -497,7 +559,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 		$messages = $this->get_wrapped_prompt_builder_property_value( $builder, 'messages' );
 
 		$this->assertCount( 1, $messages );
-		$this->assertEquals( 'Some text', $messages[0]->getParts()[0]->getText() );
+		$this->assertSame( 'Some text', $messages[0]->getParts()[0]->getText() );
 	}
 
 	/**
@@ -515,8 +577,8 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 		$this->assertCount( 1, $messages );
 		$parts = $messages[0]->getParts();
 		$this->assertCount( 2, $parts );
-		$this->assertEquals( 'Initial text', $parts[0]->getText() );
-		$this->assertEquals( ' Additional text', $parts[1]->getText() );
+		$this->assertSame( 'Initial text', $parts[0]->getText() );
+		$this->assertSame( ' Additional text', $parts[1]->getText() );
 	}
 
 	/**
@@ -537,8 +599,8 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 		$this->assertCount( 1, $messages );
 		$file = $messages[0]->getParts()[0]->getFile();
 		$this->assertInstanceOf( File::class, $file );
-		$this->assertEquals( 'data:image/png;base64,' . $base64, $file->getDataUri() );
-		$this->assertEquals( 'image/png', $file->getMimeType() );
+		$this->assertSame( 'data:image/png;base64,' . $base64, $file->getDataUri() );
+		$this->assertSame( 'image/png', $file->getMimeType() );
 	}
 
 	/**
@@ -558,8 +620,8 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 		$this->assertCount( 1, $messages );
 		$file = $messages[0]->getParts()[0]->getFile();
 		$this->assertInstanceOf( File::class, $file );
-		$this->assertEquals( 'https://example.com/image.jpg', $file->getUrl() );
-		$this->assertEquals( 'image/jpeg', $file->getMimeType() );
+		$this->assertSame( 'https://example.com/image.jpg', $file->getUrl() );
+		$this->assertSame( 'image/jpeg', $file->getMimeType() );
 	}
 
 	/**
@@ -580,7 +642,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 		$this->assertCount( 1, $messages );
 		$file = $messages[0]->getParts()[0]->getFile();
 		$this->assertInstanceOf( File::class, $file );
-		$this->assertEquals( 'image/jpeg', $file->getMimeType() );
+		$this->assertSame( 'image/jpeg', $file->getMimeType() );
 	}
 
 	/**
@@ -600,8 +662,8 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 		$this->assertCount( 1, $messages );
 		$file = $messages[0]->getParts()[0]->getFile();
 		$this->assertInstanceOf( File::class, $file );
-		$this->assertEquals( 'https://example.com/audio.mp3', $file->getUrl() );
-		$this->assertEquals( 'audio/mpeg', $file->getMimeType() );
+		$this->assertSame( 'https://example.com/audio.mp3', $file->getUrl() );
+		$this->assertSame( 'audio/mpeg', $file->getMimeType() );
 	}
 
 	/**
@@ -644,9 +706,9 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 		$this->assertCount( 1, $messages );
 		$parts = $messages[0]->getParts();
 		$this->assertCount( 3, $parts );
-		$this->assertEquals( 'Part 1', $parts[0]->getText() );
-		$this->assertEquals( 'Part 2', $parts[1]->getText() );
-		$this->assertEquals( 'Part 3', $parts[2]->getText() );
+		$this->assertSame( 'Part 1', $parts[0]->getText() );
+		$this->assertSame( 'Part 2', $parts[1]->getText() );
+		$this->assertSame( 'Part 3', $parts[2]->getText() );
 	}
 
 	/**
@@ -670,9 +732,9 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 		$messages = $this->get_wrapped_prompt_builder_property_value( $builder, 'messages' );
 
 		$this->assertCount( 3, $messages );
-		$this->assertEquals( 'User 1', $messages[0]->getParts()[0]->getText() );
-		$this->assertEquals( 'Model 1', $messages[1]->getParts()[0]->getText() );
-		$this->assertEquals( 'User 2', $messages[2]->getParts()[0]->getText() );
+		$this->assertSame( 'User 1', $messages[0]->getParts()[0]->getText() );
+		$this->assertSame( 'Model 1', $messages[1]->getParts()[0]->getText() );
+		$this->assertSame( 'User 2', $messages[2]->getParts()[0]->getText() );
 	}
 
 	/**
@@ -710,9 +772,9 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 		$this->assertInstanceOf( Message::class, $messages[0] );
 		$parts = $messages[0]->getParts();
 		$this->assertCount( 3, $parts );
-		$this->assertEquals( 'Part 1', $parts[0]->getText() );
-		$this->assertEquals( 'Part 2', $parts[1]->getText() );
-		$this->assertEquals( 'Part 3', $parts[2]->getText() );
+		$this->assertSame( 'Part 1', $parts[0]->getText() );
+		$this->assertSame( 'Part 2', $parts[1]->getText() );
+		$this->assertSame( 'Part 3', $parts[2]->getText() );
 	}
 
 	/**
@@ -735,9 +797,9 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 		$this->assertCount( 1, $messages );
 		$parts = $messages[0]->getParts();
 		$this->assertCount( 3, $parts );
-		$this->assertEquals( 'String part', $parts[0]->getText() );
-		$this->assertEquals( 'Part 1', $parts[1]->getText() );
-		$this->assertEquals( 'Part 2', $parts[2]->getText() );
+		$this->assertSame( 'String part', $parts[0]->getText() );
+		$this->assertSame( 'Part 1', $parts[1]->getText() );
+		$this->assertSame( 'Part 2', $parts[2]->getText() );
 	}
 
 	/**
@@ -775,13 +837,13 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 		/** @var ModelConfig $config */
 		$config = $this->get_wrapped_prompt_builder_property_value( $builder, 'modelConfig' );
 
-		$this->assertEquals( 'Be helpful', $config->getSystemInstruction() );
-		$this->assertEquals( 500, $config->getMaxTokens() );
-		$this->assertEquals( 0.8, $config->getTemperature() );
-		$this->assertEquals( 0.95, $config->getTopP() );
-		$this->assertEquals( 50, $config->getTopK() );
-		$this->assertEquals( 2, $config->getCandidateCount() );
-		$this->assertEquals( 'application/json', $config->getOutputMimeType() );
+		$this->assertSame( 'Be helpful', $config->getSystemInstruction() );
+		$this->assertSame( 500, $config->getMaxTokens() );
+		$this->assertSame( 0.8, $config->getTemperature() );
+		$this->assertSame( 0.95, $config->getTopP() );
+		$this->assertSame( 50, $config->getTopK() );
+		$this->assertSame( 2, $config->getCandidateCount() );
+		$this->assertSame( 'application/json', $config->getOutputMimeType() );
 	}
 
 	/**
@@ -1001,11 +1063,11 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 		/** @var ModelConfig $merged_config */
 		$merged_config = $this->get_wrapped_prompt_builder_property_value( $builder, 'modelConfig' );
 
-		$this->assertEquals( 'Builder instruction', $merged_config->getSystemInstruction() );
-		$this->assertEquals( 500, $merged_config->getMaxTokens() );
-		$this->assertEquals( 0.5, $merged_config->getTemperature() );
-		$this->assertEquals( 0.9, $merged_config->getTopP() );
-		$this->assertEquals( 40, $merged_config->getTopK() );
+		$this->assertSame( 'Builder instruction', $merged_config->getSystemInstruction() );
+		$this->assertSame( 500, $merged_config->getMaxTokens() );
+		$this->assertSame( 0.5, $merged_config->getTemperature() );
+		$this->assertSame( 0.9, $merged_config->getTopP() );
+		$this->assertSame( 40, $merged_config->getTopK() );
 	}
 
 	/**
@@ -1028,22 +1090,22 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 
 		$this->assertArrayHasKey( 'stopSequences', $custom_options );
 		$this->assertIsArray( $custom_options['stopSequences'] );
-		$this->assertEquals( array( 'CONFIG_STOP' ), $custom_options['stopSequences'] );
+		$this->assertSame( array( 'CONFIG_STOP' ), $custom_options['stopSequences'] );
 		$this->assertArrayHasKey( 'otherOption', $custom_options );
-		$this->assertEquals( 'value', $custom_options['otherOption'] );
+		$this->assertSame( 'value', $custom_options['otherOption'] );
 
 		$builder->using_stop_sequences( 'STOP' );
 
 		/** @var ModelConfig $merged_config */
 		$merged_config = $this->get_wrapped_prompt_builder_property_value( $builder, 'modelConfig' );
 
-		$this->assertEquals( array( 'STOP' ), $merged_config->getStopSequences() );
+		$this->assertSame( array( 'STOP' ), $merged_config->getStopSequences() );
 
 		$custom_options = $merged_config->getCustomOptions();
 		$this->assertArrayHasKey( 'stopSequences', $custom_options );
-		$this->assertEquals( array( 'CONFIG_STOP' ), $custom_options['stopSequences'] );
+		$this->assertSame( array( 'CONFIG_STOP' ), $custom_options['stopSequences'] );
 		$this->assertArrayHasKey( 'otherOption', $custom_options );
-		$this->assertEquals( 'value', $custom_options['otherOption'] );
+		$this->assertSame( 'value', $custom_options['otherOption'] );
 	}
 
 	/**
@@ -1058,7 +1120,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 		$this->assertSame( $builder, $result );
 
 		$actual_provider = $this->get_wrapped_prompt_builder_property_value( $builder, 'providerIdOrClassName' );
-		$this->assertEquals( 'test-provider', $actual_provider );
+		$this->assertSame( 'test-provider', $actual_provider );
 	}
 
 	/**
@@ -1075,7 +1137,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 		/** @var ModelConfig $config */
 		$config = $this->get_wrapped_prompt_builder_property_value( $builder, 'modelConfig' );
 
-		$this->assertEquals( 'You are a helpful assistant.', $config->getSystemInstruction() );
+		$this->assertSame( 'You are a helpful assistant.', $config->getSystemInstruction() );
 	}
 
 	/**
@@ -1092,7 +1154,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 		/** @var ModelConfig $config */
 		$config = $this->get_wrapped_prompt_builder_property_value( $builder, 'modelConfig' );
 
-		$this->assertEquals( 1000, $config->getMaxTokens() );
+		$this->assertSame( 1000, $config->getMaxTokens() );
 	}
 
 	/**
@@ -1109,7 +1171,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 		/** @var ModelConfig $config */
 		$config = $this->get_wrapped_prompt_builder_property_value( $builder, 'modelConfig' );
 
-		$this->assertEquals( 0.7, $config->getTemperature() );
+		$this->assertSame( 0.7, $config->getTemperature() );
 	}
 
 	/**
@@ -1126,7 +1188,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 		/** @var ModelConfig $config */
 		$config = $this->get_wrapped_prompt_builder_property_value( $builder, 'modelConfig' );
 
-		$this->assertEquals( 0.9, $config->getTopP() );
+		$this->assertSame( 0.9, $config->getTopP() );
 	}
 
 	/**
@@ -1143,7 +1205,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 		/** @var ModelConfig $config */
 		$config = $this->get_wrapped_prompt_builder_property_value( $builder, 'modelConfig' );
 
-		$this->assertEquals( 40, $config->getTopK() );
+		$this->assertSame( 40, $config->getTopK() );
 	}
 
 	/**
@@ -1160,7 +1222,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 		/** @var ModelConfig $config */
 		$config = $this->get_wrapped_prompt_builder_property_value( $builder, 'modelConfig' );
 
-		$this->assertEquals( array( 'STOP', 'END', '###' ), $config->getStopSequences() );
+		$this->assertSame( array( 'STOP', 'END', '###' ), $config->getStopSequences() );
 	}
 
 	/**
@@ -1177,7 +1239,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 		/** @var ModelConfig $config */
 		$config = $this->get_wrapped_prompt_builder_property_value( $builder, 'modelConfig' );
 
-		$this->assertEquals( 3, $config->getCandidateCount() );
+		$this->assertSame( 3, $config->getCandidateCount() );
 	}
 
 	/**
@@ -1194,7 +1256,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 		/** @var ModelConfig $config */
 		$config = $this->get_wrapped_prompt_builder_property_value( $builder, 'modelConfig' );
 
-		$this->assertEquals( 'application/json', $config->getOutputMimeType() );
+		$this->assertSame( 'application/json', $config->getOutputMimeType() );
 	}
 
 	/**
@@ -1218,7 +1280,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 		/** @var ModelConfig $config */
 		$config = $this->get_wrapped_prompt_builder_property_value( $builder, 'modelConfig' );
 
-		$this->assertEquals( $schema, $config->getOutputSchema() );
+		$this->assertSame( $schema, $config->getOutputSchema() );
 	}
 
 	/**
@@ -1258,7 +1320,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 		/** @var ModelConfig $config */
 		$config = $this->get_wrapped_prompt_builder_property_value( $builder, 'modelConfig' );
 
-		$this->assertEquals( 'application/json', $config->getOutputMimeType() );
+		$this->assertSame( 'application/json', $config->getOutputMimeType() );
 	}
 
 	/**
@@ -1276,8 +1338,8 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 		/** @var ModelConfig $config */
 		$config = $this->get_wrapped_prompt_builder_property_value( $builder, 'modelConfig' );
 
-		$this->assertEquals( 'application/json', $config->getOutputMimeType() );
-		$this->assertEquals( $schema, $config->getOutputSchema() );
+		$this->assertSame( 'application/json', $config->getOutputMimeType() );
+		$this->assertSame( $schema, $config->getOutputSchema() );
 	}
 
 	/**
@@ -1600,6 +1662,63 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that the wrapped PromptBuilder receives the same event dispatcher as AiClient.
+	 *
+	 * @ticket 64935
+	 */
+	public function test_prompt_builder_passes_ai_client_event_dispatcher_to_wrapped_builder() {
+		$builder = new WP_AI_Client_Prompt_Builder( AiClient::defaultRegistry(), 'Test prompt' );
+
+		$wrapped_dispatcher = $this->get_wrapped_prompt_builder_property_value( $builder, 'eventDispatcher' );
+
+		$this->assertSame( AiClient::getEventDispatcher(), $wrapped_dispatcher );
+		$this->assertInstanceOf( WP_AI_Client_Event_Dispatcher::class, $wrapped_dispatcher );
+	}
+
+	/**
+	 * Tests that generate_text_result fires wp_ai_client_before_generate_result and wp_ai_client_after_generate_result in order.
+	 *
+	 * @ticket 64935
+	 */
+	public function test_generate_text_result_fires_lifecycle_action_hooks() {
+		$result = new GenerativeAiResult(
+			'test-result',
+			array( new Candidate( new ModelMessage( array( new MessagePart( 'Generated text' ) ) ), FinishReasonEnum::stop() ) ),
+			new TokenUsage( 100, 50, 150 ),
+			$this->create_test_provider_metadata(),
+			$this->create_test_text_model_metadata()
+		);
+
+		$metadata = $this->createMock( ModelMetadata::class );
+		$metadata->method( 'getId' )->willReturn( 'test-model' );
+
+		$model = $this->create_mock_text_generation_model( $result, $metadata );
+
+		$hook_order = array();
+
+		add_action(
+			'wp_ai_client_before_generate_result',
+			static function () use ( &$hook_order ) {
+				$hook_order[] = 'before';
+			}
+		);
+		add_action(
+			'wp_ai_client_after_generate_result',
+			static function () use ( &$hook_order ) {
+				$hook_order[] = 'after';
+			}
+		);
+
+		$builder = new WP_AI_Client_Prompt_Builder( $this->registry, 'Test prompt' );
+		$builder->using_model( $model );
+
+		$actual_result = $builder->generate_text_result();
+
+		$this->assertSame( $result, $actual_result );
+		$this->assertSame( array( 'before', 'after' ), $hook_order );
+	}
+
+	/**
 	 * Tests generateImageResult method.
 	 *
 	 * @ticket 64591
@@ -1767,14 +1886,14 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 		$texts = $builder->generate_texts( 3 );
 
 		$this->assertCount( 3, $texts );
-		$this->assertEquals( 'Text 1', $texts[0] );
-		$this->assertEquals( 'Text 2', $texts[1] );
-		$this->assertEquals( 'Text 3', $texts[2] );
+		$this->assertSame( 'Text 1', $texts[0] );
+		$this->assertSame( 'Text 2', $texts[1] );
+		$this->assertSame( 'Text 3', $texts[2] );
 
 		/** @var ModelConfig $config */
 		$config = $this->get_wrapped_prompt_builder_property_value( $builder, 'modelConfig' );
 
-		$this->assertEquals( 3, $config->getCandidateCount() );
+		$this->assertSame( 3, $config->getCandidateCount() );
 	}
 
 	/**
@@ -2198,7 +2317,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 		/** @var ModelConfig $config */
 		$config = $this->get_wrapped_prompt_builder_property_value( $builder, 'modelConfig' );
 
-		$this->assertEquals( '16:9', $config->getOutputMediaAspectRatio() );
+		$this->assertSame( '16:9', $config->getOutputMediaAspectRatio() );
 	}
 
 	/**
@@ -2215,7 +2334,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 		/** @var ModelConfig $config */
 		$config = $this->get_wrapped_prompt_builder_property_value( $builder, 'modelConfig' );
 
-		$this->assertEquals( 'alloy', $config->getOutputSpeechVoice() );
+		$this->assertSame( 'alloy', $config->getOutputSpeechVoice() );
 	}
 
 	/**
@@ -2233,8 +2352,8 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 
 		$this->assertNotNull( $declarations );
 		$this->assertCount( 1, $declarations );
-		$this->assertEquals( 'wpab__wpaiclienttests__simple', $declarations[0]->getName() );
-		$this->assertEquals( 'A simple test ability with no parameters.', $declarations[0]->getDescription() );
+		$this->assertSame( 'wpab__wpaiclienttests__simple', $declarations[0]->getName() );
+		$this->assertSame( 'A simple test ability with no parameters.', $declarations[0]->getDescription() );
 	}
 
 	/**
@@ -2254,13 +2373,15 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 
 		$this->assertNotNull( $declarations );
 		$this->assertCount( 1, $declarations );
-		$this->assertEquals( 'wpab__wpaiclienttests__with-params', $declarations[0]->getName() );
-		$this->assertEquals( 'A test ability that accepts parameters.', $declarations[0]->getDescription() );
+		$this->assertSame( 'wpab__wpaiclienttests__with-params', $declarations[0]->getName() );
+		$this->assertSame( 'A test ability that accepts parameters.', $declarations[0]->getDescription() );
 
 		$params = $declarations[0]->getParameters();
 		$this->assertNotNull( $params );
 		$this->assertArrayHasKey( 'properties', $params );
 		$this->assertArrayHasKey( 'title', $params['properties'] );
+		$this->assertSame( array( 'title' ), $params['required'] );
+		$this->assertArrayNotHasKey( 'required', $params['properties']['title'] );
 	}
 
 	/**
@@ -2282,9 +2403,9 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 
 		$this->assertNotNull( $declarations );
 		$this->assertCount( 3, $declarations );
-		$this->assertEquals( 'wpab__wpaiclienttests__simple', $declarations[0]->getName() );
-		$this->assertEquals( 'wpab__wpaiclienttests__with-params', $declarations[1]->getName() );
-		$this->assertEquals( 'wpab__wpaiclienttests__returns-error', $declarations[2]->getName() );
+		$this->assertSame( 'wpab__wpaiclienttests__simple', $declarations[0]->getName() );
+		$this->assertSame( 'wpab__wpaiclienttests__with-params', $declarations[1]->getName() );
+		$this->assertSame( 'wpab__wpaiclienttests__returns-error', $declarations[2]->getName() );
 	}
 
 	/**
@@ -2310,8 +2431,8 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 
 		$this->assertNotNull( $declarations );
 		$this->assertCount( 2, $declarations );
-		$this->assertEquals( 'wpab__wpaiclienttests__simple', $declarations[0]->getName() );
-		$this->assertEquals( 'wpab__wpaiclienttests__with-params', $declarations[1]->getName() );
+		$this->assertSame( 'wpab__wpaiclienttests__simple', $declarations[0]->getName() );
+		$this->assertSame( 'wpab__wpaiclienttests__with-params', $declarations[1]->getName() );
 	}
 
 	/**
@@ -2350,8 +2471,8 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 
 		$this->assertNotNull( $declarations );
 		$this->assertCount( 2, $declarations );
-		$this->assertEquals( 'wpab__wpaiclienttests__simple', $declarations[0]->getName() );
-		$this->assertEquals( 'wpab__wpaiclienttests__with-params', $declarations[1]->getName() );
+		$this->assertSame( 'wpab__wpaiclienttests__simple', $declarations[0]->getName() );
+		$this->assertSame( 'wpab__wpaiclienttests__with-params', $declarations[1]->getName() );
 	}
 
 	/**
@@ -2369,7 +2490,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 
 		$this->assertNotNull( $declarations );
 		$this->assertCount( 1, $declarations );
-		$this->assertEquals( 'wpab__wpaiclienttests__hyphen-test', $declarations[0]->getName() );
+		$this->assertSame( 'wpab__wpaiclienttests__hyphen-test', $declarations[0]->getName() );
 	}
 
 	/**
@@ -2391,13 +2512,13 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 
 		$this->assertNotNull( $declarations );
 		$this->assertCount( 1, $declarations );
-		$this->assertEquals( 'wpab__wpaiclienttests__simple', $declarations[0]->getName() );
+		$this->assertSame( 'wpab__wpaiclienttests__simple', $declarations[0]->getName() );
 
 		/** @var ModelConfig $config */
 		$config = $this->get_wrapped_prompt_builder_property_value( $builder, 'modelConfig' );
 
-		$this->assertEquals( 'You are a helpful assistant', $config->getSystemInstruction() );
-		$this->assertEquals( 500, $config->getMaxTokens() );
+		$this->assertSame( 'You are a helpful assistant', $config->getSystemInstruction() );
+		$this->assertSame( 500, $config->getMaxTokens() );
 	}
 
 	/**
@@ -2440,6 +2561,23 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 		$this->assertWPError( $result );
 		$this->assertSame( 'prompt_prevented', $result->get_error_code() );
 		$this->assertSame( 'Prompt execution was prevented by a filter.', $result->get_error_message() );
+	}
+
+	/**
+	 * Tests that generate_result returns WP_Error when AI is not supported.
+	 *
+	 * @ticket 65422
+	 */
+	public function test_generate_result_returns_wp_error_when_ai_not_supported() {
+		add_filter( 'wp_supports_ai', '__return_false' );
+
+		$builder = new WP_AI_Client_Prompt_Builder( AiClient::defaultRegistry(), 'Test prompt' );
+
+		$result = $builder->generate_result();
+
+		$this->assertWPError( $result );
+		$this->assertSame( 'prompt_prevented', $result->get_error_code() );
+		$this->assertSame( 'AI features are not supported in this environment.', $result->get_error_message() );
 	}
 
 	/**
