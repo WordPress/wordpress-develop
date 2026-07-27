@@ -894,17 +894,36 @@ final class WP_Interactivity_API {
 	 * @param WP_Interactivity_API_Directives_Processor $p      The directives processor instance.
 	 * @param string                                    $prefix The directive prefix to filter by.
 	 * @return array An array of entries containing the directive namespace, value, suffix, and unique ID.
+	 * @phpstan-return list<array{
+	 *     namespace: string|null,
+	 *     value: mixed,
+	 *     suffix: string|null,
+	 *     unique_id: string|null,
+	 * }>
 	 */
-	private function get_directive_entries( WP_Interactivity_API_Directives_Processor $p, string $prefix ) {
+	private function get_directive_entries( WP_Interactivity_API_Directives_Processor $p, string $prefix ): array {
 		$directive_attributes = $p->get_attribute_names_with_prefix( 'data-wp-' . $prefix );
-		$entries              = array();
+		if ( null === $directive_attributes ) {
+			return array();
+		}
+
+		$entries = array();
 		foreach ( $directive_attributes as $attribute_name ) {
-			[ 'prefix' => $attr_prefix, 'suffix' => $suffix, 'unique_id' => $unique_id] = $this->parse_directive_name( $attribute_name );
+			$parsed_directive = $this->parse_directive_name( $attribute_name );
+			if ( null === $parsed_directive ) {
+				continue;
+			}
+
+			[ 'prefix' => $attr_prefix, 'suffix' => $suffix, 'unique_id' => $unique_id] = $parsed_directive;
 			// Ensure it is the desired directive.
 			if ( $prefix !== $attr_prefix ) {
 				continue;
 			}
-			list( $namespace, $value ) = $this->extract_directive_value( $p->get_attribute( $attribute_name ), end( $this->namespace_stack ) );
+			$attribute_value = $p->get_attribute( $attribute_name );
+			if ( null === $attribute_value ) {
+				continue;
+			}
+			list( $namespace, $value ) = $this->extract_directive_value( $attribute_value, array_last( $this->namespace_stack ?? array() ) );
 			$entries[]                 = array(
 				'namespace' => $namespace,
 				'value'     => $value,
