@@ -894,10 +894,10 @@ class WP_MS_Sites_List_Table extends WP_List_Table {
 	 * @since 7.1.0
 	 *
 	 * @param array $blog The current site properties array.
-	 * @return string The site title.
+	 * @return string The site title, or the site URL (domain + path) if the title is empty.
 	 */
 	protected function get_primary_column_aria_label( $blog ) {
-		$blog_name = html_entity_decode( get_blog_option( $blog['blog_id'], 'blogname' ), ENT_QUOTES, get_bloginfo( 'charset' ) );
+		$blog_name = html_entity_decode( (string) get_blog_option( $blog['blog_id'], 'blogname', '' ), ENT_QUOTES, get_bloginfo( 'charset' ) );
 		$blog_name = wp_strip_all_tags( $blog_name );
 
 		// Fall back to the blog URL and path if the blog name is empty.
