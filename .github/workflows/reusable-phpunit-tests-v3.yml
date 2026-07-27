@@ -182,22 +182,17 @@ jobs:
 
       - name: Pull Docker images (with retry)
         run: |
-          services=(wordpress-develop php mysql cli)
-          if [ "$LOCAL_PHP_MEMCACHED" = "true" ]; then
-            services+=(memcached)
-          fi
-
           for attempt in 1 2 3; do
-            if docker compose pull --quiet "${services[@]}"; then
+            if npm run env:pull; then
               break
             fi
 
             if [ "$attempt" -eq 3 ]; then
-              echo "docker compose pull failed after $attempt attempts."
+              echo "npm run env:pull failed after $attempt attempts."
               exit 1
             fi
 
-            echo "docker compose pull failed (attempt $attempt); retrying..."
+            echo "npm run env:pull failed (attempt $attempt); retrying..."
             sleep $(( attempt * 10 ))
           done
 
