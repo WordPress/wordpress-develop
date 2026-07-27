@@ -36,7 +36,7 @@ $parent_file = 'options-general.php';
 require_once ABSPATH . 'wp-admin/admin-header.php';
 
 ?>
-<section class="wrap hide-if-js">
+<div class="wrap hide-if-js">
 	<h1><?php echo esc_html( $title ); ?></h1>
 	<?php
 		wp_admin_notice(
@@ -47,7 +47,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 			)
 		);
 		?>
-</section>
+</div>
 <?php
 
 // Render the Connectors page.
