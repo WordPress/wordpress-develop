@@ -1080,6 +1080,27 @@ final class WP_Interactivity_API {
 
 				$result = $this->evaluate( $entry );
 
+				/*
+				 * Only scalar values can be stored in an attribute value. Strings and booleans are passed in as-is.
+				 * Numbers are cast to strings. Everything else is rejected as a usage error.
+				 */
+				if ( null !== $result ) {
+					if ( ! is_scalar( $result ) ) {
+						_doing_it_wrong(
+							__METHOD__,
+							sprintf(
+								/* translators: %s: The attribute name. */
+								__( 'Attempted to store non-scalar value the "%s" attribute.' ),
+								esc_html( $entry['suffix'] )
+							),
+							'7.1.0'
+						);
+						$result = null;
+					} elseif ( is_int( $result ) || is_float( $result ) ) {
+						$result = (string) $result;
+					}
+				}
+
 				if (
 					null !== $result &&
 					(
