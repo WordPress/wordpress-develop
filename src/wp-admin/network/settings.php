@@ -122,8 +122,9 @@ if ( $_POST ) {
 		$site_name = wp_unslash( $_POST['site_name'] );
 
 		if ( ! is_scalar( $site_name ) || '' === trim( (string) $site_name ) ) {
-		unset( $_POST['site_name'] );
-		$network_title_error = __( 'The network title cannot be empty. Please enter a title for your network.' );
+			unset( $_POST['site_name'] );
+			$network_title_error = __( 'The network title cannot be empty. Please enter a title for your network.' );
+		}
 	}
 
 	foreach ( $options as $option_name ) {
@@ -173,7 +174,6 @@ if ( isset( $_GET['updated'] ) ) {
 				array(
 					'type'        => 'error',
 					'dismissible' => true,
-					'id'          => 'message',
 				)
 			);
 		}
