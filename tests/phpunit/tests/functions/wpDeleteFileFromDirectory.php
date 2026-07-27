@@ -5,7 +5,7 @@
  * @group functions.php
  *
  * @covers ::wp_delete_file_from_directory
- */#
+ */
 class Tests_functions_wpDeleteFileFromDirectory extends WP_UnitTestCase {
 
 	/**
@@ -36,11 +36,11 @@ class Tests_functions_wpDeleteFileFromDirectory extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Call with steamed file.
+	 * Call with streamed file.
 	 *
 	 * @ticket 59781
 	 */
-	public function test_wp_delete_file_from_directory_file_steam() {
+	public function test_wp_delete_file_from_directory_file_stream() {
 		$file      = realpath( DIR_TESTDATA ) . '/temp_file.txt';
 		$directory = realpath( DIR_TESTDATA );
 		touch( $file );
@@ -54,7 +54,7 @@ class Tests_functions_wpDeleteFileFromDirectory extends WP_UnitTestCase {
 	 *
 	 * @ticket 59781
 	 */
-	public function test_wp_delete_file_from_directory_non_file_steam() {
+	public function test_wp_delete_file_from_directory_non_file_stream() {
 		$file      = realpath( DIR_TESTDATA ) . '/temp_file.txt';
 		$directory = realpath( DIR_TESTDATA );
 		touch( $file );
