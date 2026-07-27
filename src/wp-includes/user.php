@@ -4863,8 +4863,9 @@ function wp_count_user_requests( $type = '' ) {
 		return new stdClass();
 	}
 
-	$cache_key = 'user-request-' . $type;
-	$counts    = wp_cache_get( $cache_key, 'counts' );
+	$cache_key    = 'user-request-' . $type;
+	$last_changed = wp_cache_get_last_changed( 'posts' );
+	$counts       = wp_cache_get_salted( $cache_key, 'counts', $last_changed );
 
 	if ( false !== $counts ) {
 		/** This filter is documented in wp-includes/user.php */
@@ -4891,7 +4892,7 @@ function wp_count_user_requests( $type = '' ) {
 	}
 
 	$counts = (object) $counts;
-	wp_cache_set( $cache_key, $counts, 'counts' );
+	wp_cache_set_salted( $cache_key, $counts, 'counts', $last_changed );
 
 	/**
 	 * Filters the number of user requests for a given type, by status.
