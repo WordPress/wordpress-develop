@@ -118,7 +118,10 @@ if ( $_POST ) {
 
 	// Ensure the network title (site_name) is not left empty.
 	$network_title_error = '';
-	if ( isset( $_POST['site_name'] ) && '' === trim( wp_unslash( $_POST['site_name'] ) ) ) {
+	if ( isset( $_POST['site_name'] ) ) {
+		$site_name = wp_unslash( $_POST['site_name'] );
+
+		if ( ! is_scalar( $site_name ) || '' === trim( (string) $site_name ) ) {
 		unset( $_POST['site_name'] );
 		$network_title_error = __( 'The network title cannot be empty. Please enter a title for your network.' );
 	}
