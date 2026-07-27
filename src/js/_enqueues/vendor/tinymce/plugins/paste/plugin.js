@@ -715,7 +715,7 @@ var paste = (function (domGlobals) {
       return /^https?:\/\/[\w\?\-\/+=.&%@~#]+$/i.test(url);
     };
     var isImageUrl = function (url) {
-      return isAbsoluteUrl(url) && /.(gif|jpe?g|png)$/.test(url);
+      return isAbsoluteUrl(url) && /\.(gif|jpe?g|png|webp)$/i.test(url);
     };
     var createImage = function (editor, url, pasteHtmlFn) {
       editor.undoManager.extra(function () {
