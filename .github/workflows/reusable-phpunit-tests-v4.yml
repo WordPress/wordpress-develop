@@ -178,25 +178,6 @@ jobs:
           echo "WP_TESTS_HOST=${TESTS_HOST}" >> "$GITHUB_ENV"
           echo "WP_TESTS_PORT=${TESTS_PORT}" >> "$GITHUB_ENV"
 
-      - name: Configure Apache webserver
-        run: |
-          echo "127.0.0.1 ${WP_TESTS_HOST}" | sudo tee -a /etc/hosts > /dev/null
-          sudo a2enmod rewrite
-          sudo sed -i "s|Listen 80|Listen ${WP_TESTS_PORT}|" /etc/apache2/ports.conf
-
-          sudo tee /etc/apache2/sites-available/000-default.conf > /dev/null <<EOF
-          <VirtualHost *:${WP_TESTS_PORT}>
-            ServerName ${WP_TESTS_HOST}
-            DocumentRoot ${GITHUB_WORKSPACE}/src
-            <Directory ${GITHUB_WORKSPACE}/src>
-              AllowOverride All
-              Require all granted
-            </Directory>
-          </VirtualHost>
-          EOF
-
-          sudo systemctl restart apache2
-
       - name: Prepare wp-tests-config.php
         run: |
           cp wp-tests-config-sample.php wp-tests-config.php
