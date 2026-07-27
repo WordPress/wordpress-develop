@@ -148,6 +148,11 @@ jobs:
             npm-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-
             npm-${{ runner.os }}-
 
+      - name: Install ImageMagick system packages
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y imagemagick
+
       - name: Set up PHP
         uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
         with:
@@ -159,6 +164,7 @@ jobs:
         run: |
           php -m | grep -i '^imagick$'
           php -r "if ( ! extension_loaded( 'imagick' ) ) { fwrite( STDERR, 'Imagick extension is not loaded.' . PHP_EOL ); exit(1); }"
+          php -r '$required = array( "JPEG", "PNG", "GIF" ); foreach ( $required as $format ) { if ( ! (bool) Imagick::queryFormats( $format ) ) { fwrite( STDERR, "Imagick missing required format: {$format}" . PHP_EOL ); exit(1); } }'
 
       - name: Install npm dependencies
         run: npm install
