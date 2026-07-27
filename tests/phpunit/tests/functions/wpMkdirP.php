@@ -11,12 +11,12 @@ class Tests_Functions_wpMkdirP extends WP_UnitTestCase {
 	public function test_folder_is_made() {
 
 		$upload_dir = wp_upload_dir();
-		$target     = $upload_dir['basedir'] . 'test';
+		$target     = $upload_dir['basedir'] . '/test';
 		$this->assertTrue( wp_mkdir_p( $target ) );
 		$this->assertDirectoryExists( $target );
 	}
 
-	public function test_if_file_with_name_extists() {
+	public function test_if_file_with_name_exists() {
 
 		$this->assertFalse( wp_mkdir_p( ABSPATH . 'wp-admin/index.php' ) );
 	}
