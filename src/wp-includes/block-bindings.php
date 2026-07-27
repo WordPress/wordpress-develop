@@ -135,6 +135,7 @@ function get_block_bindings_source( string $source_name ) {
  *
  * @since 6.9.0
  * @since 7.1.0 Added support for the List Item block.
+ * @since 7.1.0 Added support for Icon block.
  *
  * @param string $block_type The block type whose supported attributes are being retrieved.
  * @return array The list of block attributes that are supported by block bindings.
