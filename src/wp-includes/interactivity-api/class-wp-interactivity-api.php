@@ -17,9 +17,19 @@ final class WP_Interactivity_API {
 	 * Holds the mapping of directive attribute names to their processor methods.
 	 *
 	 * @since 6.5.0
-	 * @var array
+	 * @var array<string, string>
+	 * @phpstan-var array{
+	 *     'data-wp-interactive': 'data_wp_interactive_processor',
+	 *     'data-wp-router-region': 'data_wp_router_region_processor',
+	 *     'data-wp-context': 'data_wp_context_processor',
+	 *     'data-wp-bind': 'data_wp_bind_processor',
+	 *     'data-wp-class': 'data_wp_class_processor',
+	 *     'data-wp-style': 'data_wp_style_processor',
+	 *     'data-wp-text': 'data_wp_text_processor',
+	 *     'data-wp-each': 'data_wp_each_processor',
+	 * }
 	 */
-	private static $directive_processors = array(
+	private static array $directive_processors = array(
 		'data-wp-interactive'   => 'data_wp_interactive_processor',
 		'data-wp-router-region' => 'data_wp_router_region_processor',
 		'data-wp-context'       => 'data_wp_context_processor',
