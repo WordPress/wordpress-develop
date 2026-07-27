@@ -7489,6 +7489,7 @@ function wp_mime_type_icon( $mime = 0, $preferred_ext = '.png' ) {
 		$matches            = wp_match_mime_types( array_keys( $types ), $post_mimes );
 		$matches['default'] = array( 'default' );
 
+		$icon = false;
 		foreach ( $matches as $match => $wilds ) {
 			foreach ( $wilds as $wild ) {
 				if ( ! isset( $types[ $wild ] ) ) {
