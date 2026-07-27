@@ -180,6 +180,22 @@ jobs:
         run: |
           docker -v
 
+      - name: Pull Docker images (with retry)
+        run: |
+          for attempt in 1 2 3; do
+            if npm run env:pull; then
+              break
+            fi
+
+            if [ "$attempt" -eq 3 ]; then
+              echo "npm run env:pull failed after $attempt attempts."
+              exit 1
+            fi
+
+            echo "npm run env:pull failed (attempt $attempt); retrying..."
+            sleep $(( attempt * 10 ))
+          done
+
       - name: Start Docker environment
         run: |
           npm run env:start
