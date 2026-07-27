@@ -4,7 +4,7 @@
  *
  * @group admin
  */
-class Tests_Admin_wpOnThisDay extends WP_UnitTestCase {
+class Tests_Admin_wpDashboardOnThisDay extends WP_UnitTestCase {
 
 	protected static int $user_id;
 
