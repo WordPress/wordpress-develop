@@ -123,7 +123,7 @@ class Tests_Admin_IncludesSchema extends WP_UnitTestCase {
 					'rss_use_excerpt'  => '0',
 					'mailserver_url'   => 'mail.example.com',
 					'mailserver_login' => 'login@example.com',
-					'mailserver_pass'  => 'password',
+					'mailserver_pass'  => '',
 				),
 			),
 			array(
@@ -137,7 +137,7 @@ class Tests_Admin_IncludesSchema extends WP_UnitTestCase {
 					'rss_use_excerpt'  => '1',
 					'mailserver_url'   => 'mail.example.com',
 					'mailserver_login' => 'login@example.com',
-					'mailserver_pass'  => 'password',
+					'mailserver_pass'  => '',
 				),
 			),
 			array(
@@ -151,7 +151,7 @@ class Tests_Admin_IncludesSchema extends WP_UnitTestCase {
 					'rss_use_excerpt'  => '0',
 					'mailserver_url'   => 'mail.example.com',
 					'mailserver_login' => 'login@example.com',
-					'mailserver_pass'  => 'password',
+					'mailserver_pass'  => '',
 				),
 			),
 			array(

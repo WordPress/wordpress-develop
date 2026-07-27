@@ -193,12 +193,12 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 				priority:   -100,
 				text:       l10n.filterAttachments,
 				level:      'h2',
-				className:  'media-attachments-filter-heading'
+				className:  'media-attachments-filter-heading screen-reader-text'
 			}).render() );
 		}
 
 		if ( showFilterByType ) {
-			// "Filters" is a <select>, a visually hidden label element needs to be rendered before.
+			// "Filters" is a <select>, a label element needs to be rendered before.
 			this.toolbar.set( 'filtersLabel', new wp.media.view.Label({
 				value: l10n.filterByType,
 				attributes: {
@@ -240,7 +240,7 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 				priority: -90
 			}).render() );
 
-			// DateFilter is a <select>, a visually hidden label element needs to be rendered before.
+			// DateFilter is a <select>, a label element needs to be rendered before.
 			this.toolbar.set( 'dateFilterLabel', new wp.media.view.Label({
 				value: l10n.filterByDate,
 				attributes: {
@@ -251,7 +251,7 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 			this.toolbar.set( 'dateFilter', new wp.media.view.DateFilter({
 				controller: this.controller,
 				model:      this.collection.props,
-				priority: -75
+				priority:   -75,
 			}).render() );
 
 			// BulkSelection is a <div> with subviews, including screen reader text.
@@ -362,7 +362,7 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 			}
 
 		} else if ( this.options.date ) {
-			// DateFilter is a <select>, a visually hidden label element needs to be rendered before.
+			// DateFilter is a <select>, a label element needs to be rendered before.
 			this.toolbar.set( 'dateFilterLabel', new wp.media.view.Label({
 				value: l10n.filterByDate,
 				attributes: {
@@ -373,12 +373,12 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 			this.toolbar.set( 'dateFilter', new wp.media.view.DateFilter({
 				controller: this.controller,
 				model:      this.collection.props,
-				priority: -75
+				priority:   -75
 			}).render() );
 		}
 
 		if ( this.options.search ) {
-			// Search is an input, a visually hidden label element needs to be rendered before.
+			// Search is an input, a label element needs to be rendered before.
 			this.toolbar.set( 'searchLabel', new wp.media.view.Label({
 				value: l10n.searchLabel,
 				className: 'media-search-input-label',
@@ -423,6 +423,7 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 
 		if ( ! this.collection.length ) {
 			this.toolbar.get( 'spinner' ).show();
+			this.toolbar.$( '.media-bg-overlay' ).show();
 			this.dfd = this.collection.more().done( function() {
 				if ( ! view.collection.length ) {
 					noItemsView.$el.removeClass( 'hidden' );
@@ -430,10 +431,12 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 					noItemsView.$el.addClass( 'hidden' );
 				}
 				view.toolbar.get( 'spinner' ).hide();
+				view.toolbar.$( '.media-bg-overlay' ).hide();
 			} );
 		} else {
 			noItemsView.$el.addClass( 'hidden' );
 			view.toolbar.get( 'spinner' ).hide();
+			this.toolbar.$( '.media-bg-overlay' ).hide();
 		}
 	},
 

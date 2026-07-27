@@ -58,6 +58,7 @@ class WP_Style_Engine_Processor {
 	 * Adds rules to be processed.
 	 *
 	 * @since 6.1.0
+	 * @since 6.6.0 Added support for rules_group.
 	 *
 	 * @param WP_Style_Engine_CSS_Rule|WP_Style_Engine_CSS_Rule[] $css_rules A single, or an array of,
 	 *                                                                       WP_Style_Engine_CSS_Rule objects
@@ -70,7 +71,24 @@ class WP_Style_Engine_Processor {
 		}
 
 		foreach ( $css_rules as $rule ) {
-			$selector = $rule->get_selector();
+			$selector    = $rule->get_selector();
+			$rules_group = $rule->get_rules_group();
+
+			/**
+			 * If there is a rules_group and it already exists in the css_rules array,
+			 * add the rule to it.
+			 * Otherwise, create a new entry for the rules_group.
+			 */
+			if ( ! empty( $rules_group ) ) {
+				if ( isset( $this->css_rules[ "$rules_group $selector" ] ) ) {
+					$this->css_rules[ "$rules_group $selector" ]->add_declarations( $rule->get_declarations() );
+					continue;
+				}
+				$this->css_rules[ "$rules_group $selector" ] = $rule;
+				continue;
+			}
+
+			// If the selector already exists, add the declarations to it.
 			if ( isset( $this->css_rules[ $selector ] ) ) {
 				$this->css_rules[ $selector ]->add_declarations( $rule->get_declarations() );
 				continue;
@@ -117,6 +135,7 @@ class WP_Style_Engine_Processor {
 		// Build the CSS.
 		$css = '';
 		foreach ( $this->css_rules as $rule ) {
+			// See class WP_Style_Engine_CSS_Rule for the get_css method.
 			$css .= $rule->get_css( $options['prettify'] );
 			$css .= $options['prettify'] ? "\n" : '';
 		}
@@ -132,9 +151,23 @@ class WP_Style_Engine_Processor {
 		// Build an array of selectors along with the JSON-ified styles to make comparisons easier.
 		$selectors_json = array();
 		foreach ( $this->css_rules as $rule ) {
-			$declarations = $rule->get_declarations()->get_declarations();
+			$declarations        = $rule->get_declarations()->get_declarations();
+			$declaration_options = $rule->get_declarations()->get_declaration_options();
 			ksort( $declarations );
-			$selectors_json[ $rule->get_selector() ] = wp_json_encode( $declarations );
+			// Declaration options are keyed by property and are part of the rule identity.
+			ksort( $declaration_options );
+			foreach ( $declaration_options as $property => $options ) {
+				if ( is_array( $options ) ) {
+					ksort( $options );
+					$declaration_options[ $property ] = $options;
+				}
+			}
+			$selectors_json[ $rule->get_selector() ] = wp_json_encode(
+				array(
+					'declarations'        => $declarations,
+					'declaration_options' => $declaration_options,
+				)
+			);
 		}
 
 		// Combine selectors that have the same styles.

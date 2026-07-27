@@ -227,8 +227,13 @@ function _wp_die_handler_filter_exit() {
 function _wp_die_handler_txt( $message, $title, $args ) {
 	list( $message, $title, $args ) = _wp_die_process_input( $message, $title, $args );
 
+	$message = html_entity_decode( strip_tags( $message ) );
+	$title   = html_entity_decode( strip_tags( $title ) );
+
+	echo "\033[0;31m";
 	echo "\nwp_die() called\n";
 	echo "Message: $message\n";
+	echo "\033[0m";
 
 	if ( ! empty( $title ) ) {
 		echo "Title: $title\n";
@@ -259,8 +264,13 @@ function _wp_die_handler_txt( $message, $title, $args ) {
 function _wp_die_handler_exit( $message, $title, $args ) {
 	list( $message, $title, $args ) = _wp_die_process_input( $message, $title, $args );
 
+	$message = html_entity_decode( strip_tags( $message ) );
+	$title   = html_entity_decode( strip_tags( $title ) );
+
+	echo "\033[0;31m";
 	echo "\nwp_die() called\n";
 	echo "Message: $message\n";
+	echo "\033[0m";
 
 	if ( ! empty( $title ) ) {
 		echo "Title: $title\n";
@@ -339,10 +349,75 @@ tests_add_filter( 'send_auth_cookies', '__return_false' );
  * @since 5.0.0
  */
 function _unhook_block_registration() {
+	// Block types.
 	require __DIR__ . '/unregister-blocks-hooks.php';
 	remove_action( 'init', 'register_core_block_types_from_metadata' );
 	remove_action( 'init', 'register_block_core_legacy_widget' );
 	remove_action( 'init', 'register_block_core_widget_group' );
 	remove_action( 'init', 'register_core_block_types_from_metadata' );
+
+	// Block binding sources.
+	remove_action( 'init', '_register_block_bindings_pattern_overrides_source' );
+	remove_action( 'init', '_register_block_bindings_post_data_source' );
+	remove_action( 'init', '_register_block_bindings_post_meta_source' );
+	remove_action( 'init', '_register_block_bindings_term_data_source' );
 }
 tests_add_filter( 'init', '_unhook_block_registration', 1000 );
+
+/**
+ * After the init action has been run once, trying to re-register font collections can cause
+ * errors. To avoid this, unhook the font registration functions.
+ *
+ * @since 6.5.0
+ */
+function _unhook_font_registration() {
+	remove_action( 'init', '_wp_register_default_font_collections' );
+}
+tests_add_filter( 'init', '_unhook_font_registration', 1000 );
+
+/**
+ * After the init action has been run once, trying to re-register icon collections and icons
+ * can cause errors. To avoid this, unhook the icon registration functions.
+ *
+ * @since 7.1.0
+ */
+function _unhook_icon_registration() {
+	remove_action( 'init', '_wp_register_default_icon_collections', 0 );
+	remove_action( 'init', '_wp_register_default_icons' );
+}
+tests_add_filter( 'init', '_unhook_icon_registration', 1000 );
+
+/**
+ * After the init action has been run once, trying to re-register connector settings can cause
+ * duplicate registrations. To avoid this, unhook the connector registration functions.
+ *
+ * @since 7.0.0
+ */
+function _unhook_connector_registration() {
+	remove_action( 'init', '_wp_register_default_connector_settings', 20 );
+	remove_action( 'init', '_wp_connectors_pass_default_keys_to_ai_client', 20 );
+}
+tests_add_filter( 'init', '_unhook_connector_registration', 1000 );
+
+/**
+ * Before the abilities API categories init action runs, unhook the core ability
+ * categories registration function to prevent core categories from being registered
+ * during tests.
+ *
+ * @since 6.9.0
+ */
+function _unhook_core_ability_categories_registration() {
+	remove_action( 'wp_abilities_api_categories_init', 'wp_register_core_ability_categories' );
+}
+tests_add_filter( 'wp_abilities_api_categories_init', '_unhook_core_ability_categories_registration', 1 );
+
+/**
+ * Before the abilities API init action runs, unhook the core abilities
+ * registration function to prevent core abilities from being registered during tests.
+ *
+ * @since 6.9.0
+ */
+function _unhook_core_abilities_registration() {
+	remove_action( 'wp_abilities_api_init', 'wp_register_core_abilities' );
+}
+tests_add_filter( 'wp_abilities_api_init', '_unhook_core_abilities_registration', 1 );

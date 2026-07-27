@@ -29,6 +29,11 @@ CAP;
 	protected static $large_filename = 'test-image-large.jpg';
 	protected static $post_ids;
 
+	/**
+	 * @var WP_Styles|null
+	 */
+	protected static $original_wp_styles;
+
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$_sizes                          = wp_get_additional_image_sizes();
 		$GLOBALS['_wp_additional_image_sizes'] = array();
@@ -66,6 +71,13 @@ CAP;
 		wp_trash_post( self::$post_ids['trash'] );
 	}
 
+	public function set_up(): void {
+		global $wp_styles;
+		self::$original_wp_styles = $wp_styles;
+		$wp_styles                = null;
+		parent::set_up();
+	}
+
 	public static function wpTearDownAfterClass() {
 		$GLOBALS['_wp_additional_image_sizes'] = self::$_sizes;
 	}
@@ -79,6 +91,11 @@ CAP;
 	 * Ensures that the static content media count, fetchpriority element flag and related filter are reset between tests.
 	 */
 	public function tear_down() {
+		global $_wp_current_template_id, $_wp_current_template_content, $wp_styles;
+		unset( $_wp_current_template_id, $_wp_current_template_content );
+
+		$wp_styles = self::$original_wp_styles;
+
 		parent::tear_down();
 
 		$this->reset_content_media_count();
@@ -90,6 +107,69 @@ CAP;
 		global $shortcode_tags;
 		$this->assertSame( 'img_caption_shortcode', $shortcode_tags['caption'] );
 		$this->assertSame( 'img_caption_shortcode', $shortcode_tags['wp_caption'] );
+	}
+
+	/**
+	 * Tests the precedence rules for the Media Library infinite scrolling setting.
+	 *
+	 * Infinite scrolling is enabled by default. A user can opt out via the
+	 * `infinite_scrolling` personal option, and the
+	 * `media_library_infinite_scrolling` filter takes precedence over both.
+	 *
+	 * @ticket 65564
+	 *
+	 * @covers ::wp_enqueue_media
+	 */
+	public function test_wp_enqueue_media_infinite_scrolling_precedence() {
+		$user_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		wp_set_current_user( $user_id );
+
+		// Default: no user preference and no filter, infinite scrolling is enabled.
+		$this->assertSame(
+			1,
+			$this->get_media_infinite_scrolling_setting(),
+			'Infinite scrolling should be enabled by default.'
+		);
+
+		// User preference: disabling it via the personal option turns it off.
+		update_user_meta( $user_id, 'infinite_scrolling', 'false' );
+		$this->assertSame(
+			0,
+			$this->get_media_infinite_scrolling_setting(),
+			'The user preference should disable infinite scrolling.'
+		);
+
+		// Filter precedence: a filter overrides the user preference.
+		add_filter( 'media_library_infinite_scrolling', '__return_true' );
+		$this->assertSame(
+			1,
+			$this->get_media_infinite_scrolling_setting(),
+			'The filter should take precedence over the user preference.'
+		);
+	}
+
+	/**
+	 * Helper that runs wp_enqueue_media() and returns the computed
+	 * `infiniteScrolling` media view setting.
+	 *
+	 * @return int The infiniteScrolling setting: 1 when enabled, 0 when disabled.
+	 */
+	private function get_media_infinite_scrolling_setting() {
+		// wp_enqueue_media() only runs once per request; reset the guard so it
+		// can be invoked again for each scenario.
+		unset( $GLOBALS['wp_actions']['wp_enqueue_media'] );
+
+		$infinite_scrolling = null;
+		$capture            = static function ( $settings ) use ( &$infinite_scrolling ) {
+			$infinite_scrolling = $settings['infiniteScrolling'];
+			return $settings;
+		};
+
+		add_filter( 'media_view_settings', $capture );
+		wp_enqueue_media();
+		remove_filter( 'media_view_settings', $capture );
+
+		return $infinite_scrolling;
 	}
 
 	public function test_img_caption_shortcode_with_empty_params() {
@@ -189,7 +269,7 @@ CAP;
 			)
 		);
 		$this->assertSame( 1, substr_count( $result, 'wp-caption &amp;myAlignment' ) );
-		$this->assertSame( 1, substr_count( $result, 'id="myId"' ) );
+		$this->assertSame( 1, preg_match( '/id="myId(?:[0-9]+)?"/', $result ) );
 		$this->assertSame( 1, substr_count( $result, self::CAPTION ) );
 	}
 
@@ -205,14 +285,34 @@ CAP;
 	}
 
 	public function test_new_img_caption_shortcode_with_html_caption() {
+		$mark = "\u{203B}";
+
+		$this->assertStringNotContainsString(
+			self::HTML_CONTENT,
+			$mark,
+			'Test caption content should not contain the mark surrounding it: check test setup.'
+		);
+
 		$result = img_caption_shortcode(
 			array(
 				'width'   => 20,
-				'caption' => self::HTML_CONTENT,
+				'caption' => $mark . self::HTML_CONTENT . $mark,
 			)
 		);
 
-		$this->assertSame( 1, substr_count( $result, self::HTML_CONTENT ) );
+		$result_chunks = explode( $mark, $result );
+		$this->assertSame(
+			3,
+			count( $result_chunks ),
+			'Expected to find embedded caption inside marks, but failed to do so.'
+		);
+
+		$this->assertEqualHTML(
+			self::HTML_CONTENT,
+			$result_chunks[1],
+			'<body>',
+			'Should have embedded the caption inside the image output.'
+		);
 	}
 
 	public function test_new_img_caption_shortcode_new_format() {
@@ -265,7 +365,117 @@ CAP;
 			self::IMG_CONTENT . self::HTML_CONTENT
 		);
 
-		$this->assertSame( 1, substr_count( $result, 'aria-describedby="caption-myId"' ) );
+		$this->assertMatchesRegularExpression( '/aria-describedby="caption-myId(?:-[0-9]+)?"/', $result );
+	}
+
+	/**
+	 * Tests that both figure and figcaption IDs are unique for multiple caption instances.
+	 *
+	 * When the same image with the same or different captions appears multiple
+	 * times on a page, each figure and figcaption should receive a unique ID to
+	 * maintain HTML validity and accessibility.
+	 *
+	 * @ticket 65315
+	 *
+	 * @covers ::img_caption_shortcode
+	 */
+	public function test_img_caption_shortcode_unique_ids_per_instance(): void {
+		/*
+		 * Important: The id part of this must be unique among unit tests, or else the test will fail due to
+		 * wp_unique_prefixed_id() not returning the expected increment.
+		 */
+		$id         = 'attachment_65315';
+		$caption_id = 'caption_attachment_65315';
+
+		// First instance with caption "My caption".
+		$result_1 = img_caption_shortcode(
+			array(
+				'width'      => 20,
+				'id'         => $id,
+				'caption'    => 'My caption',
+				'caption_id' => $caption_id,
+			),
+			self::IMG_CONTENT . 'My caption'
+		);
+
+		// Second instance - identical to first.
+		$result_2 = img_caption_shortcode(
+			array(
+				'width'      => 20,
+				'id'         => $id,
+				'caption'    => 'My caption',
+				'caption_id' => $caption_id,
+			),
+			self::IMG_CONTENT . 'My caption'
+		);
+
+		// Third instance - same image, different caption.
+		$result_3 = img_caption_shortcode(
+			array(
+				'width'      => 20,
+				'id'         => $id,
+				'caption'    => 'Different caption',
+				'caption_id' => $caption_id,
+			),
+			self::IMG_CONTENT . 'Different caption'
+		);
+
+		// Extract the figure (caption wrapper) and caption text IDs from each instance.
+		$figure_id_1  = $this->get_id_of_first_tag_with_class( $result_1, 'wp-caption' );
+		$figure_id_2  = $this->get_id_of_first_tag_with_class( $result_2, 'wp-caption' );
+		$figure_id_3  = $this->get_id_of_first_tag_with_class( $result_3, 'wp-caption' );
+		$caption_id_1 = $this->get_id_of_first_tag_with_class( $result_1, 'wp-caption-text' );
+		$caption_id_2 = $this->get_id_of_first_tag_with_class( $result_2, 'wp-caption-text' );
+		$caption_id_3 = $this->get_id_of_first_tag_with_class( $result_3, 'wp-caption-text' );
+
+		// Figure IDs should all exist.
+		$this->assertNotEmpty( $figure_id_1, 'First figure should have an ID' );
+		$this->assertNotEmpty( $figure_id_2, 'Second figure should have an ID' );
+		$this->assertNotEmpty( $figure_id_3, 'Third figure should have an ID' );
+
+		// Figure IDs should all be different (each instance gets unique ID).
+		$this->assertNotSame( $figure_id_1, $figure_id_2, 'First and second figures should have different IDs even with identical content' );
+		$this->assertNotSame( $figure_id_2, $figure_id_3, 'Second and third figures should have different IDs' );
+		$this->assertNotSame( $figure_id_1, $figure_id_3, 'First and third figures should have different IDs' );
+
+		// The first Figure ID should be identical to the supplied ID, and the others should have unique suffixes.
+		$this->assertSame( $id, $figure_id_1 );
+		$this->assertSame( "$id-2", $figure_id_2 );
+		$this->assertSame( "$id-3", $figure_id_3 );
+
+		// Caption IDs should all exist.
+		$this->assertNotEmpty( $caption_id_1, 'First caption should have an ID' );
+		$this->assertNotEmpty( $caption_id_2, 'Second caption should have an ID' );
+		$this->assertNotEmpty( $caption_id_3, 'Third caption should have an ID' );
+
+		// Caption IDs should all be different (each instance gets unique ID).
+		$this->assertNotSame( $caption_id_1, $caption_id_2, 'First and second captions should have different IDs even with identical content' );
+		$this->assertNotSame( $caption_id_2, $caption_id_3, 'Second and third captions should have different IDs' );
+		$this->assertNotSame( $caption_id_1, $caption_id_3, 'First and third captions should have different IDs' );
+
+		// The first Caption ID should have no.
+		$this->assertSame( $caption_id, $caption_id_1 );
+		$this->assertSame( "$caption_id-2", $caption_id_2 );
+		$this->assertSame( "$caption_id-3", $caption_id_3 );
+	}
+
+	/**
+	 * Returns the `id` attribute of the first tag bearing the given class name.
+	 *
+	 * @param string $html       Markup to search.
+	 * @param string $class_name Class name to locate the tag by.
+	 * @return string|null The tag's `id` value, or null if no matching tag or `id` is found.
+	 */
+	private function get_id_of_first_tag_with_class( string $html, string $class_name ): ?string {
+		$processor = new WP_HTML_Tag_Processor( $html );
+
+		if ( ! $processor->next_tag( array( 'class_name' => $class_name ) ) ) {
+			return null;
+		}
+
+		$id = $processor->get_attribute( 'id' );
+
+		return is_string( $id ) ? $id : null;
 	}
 
 	public function test_add_remove_oembed_provider() {
@@ -396,7 +606,7 @@ https://w.org</a>',
 		$this->assertSame( '', $prepped['subtype'] );
 		// #21963, there will be a GUID always, so there will be a URL.
 		$this->assertNotEquals( '', $prepped['url'] );
-		$this->assertSame( site_url( 'wp-includes/images/media/default.png' ), $prepped['icon'] );
+		$this->assertSame( site_url( 'wp-includes/images/media/default.svg' ), $prepped['icon'] );
 
 		// Fake a mime.
 		$post->post_mime_type = 'image/jpeg';
@@ -431,7 +641,7 @@ https://w.org</a>',
 	 * @ticket 38965
 	 */
 	public function test_wp_prepare_attachment_for_js_without_image_sizes() {
-		// Create the attachement post.
+		// Create the attachment post.
 		$id = wp_insert_attachment(
 			array(
 				'post_title'     => 'Attachment Title',
@@ -938,6 +1148,7 @@ VIDEO;
 		$this->assertStringContainsString( 'src="https://example.com/foo.mp3', $actual );
 		$this->assertStringNotContainsString( 'loop', $actual );
 		$this->assertStringNotContainsString( 'autoplay', $actual );
+		$this->assertStringNotContainsString( 'muted', $actual );
 		$this->assertStringContainsString( 'preload="none"', $actual );
 		$this->assertStringContainsString( 'class="wp-audio-shortcode"', $actual );
 		$this->assertStringContainsString( 'style="width: 100%;"', $actual );
@@ -947,16 +1158,18 @@ VIDEO;
 				'src'      => 'https://example.com/foo.mp3',
 				'loop'     => true,
 				'autoplay' => true,
-				'preload'  => true,
+				'muted'    => true,
+				'preload'  => 'none',
 				'class'    => 'foobar',
 				'style'    => 'padding:0;',
 			)
 		);
 
 		$this->assertStringContainsString( 'src="https://example.com/foo.mp3', $actual );
-		$this->assertStringContainsString( 'loop="1"', $actual );
-		$this->assertStringContainsString( 'autoplay="1"', $actual );
-		$this->assertStringContainsString( 'preload="1"', $actual );
+		$this->assertStringContainsString( 'loop', $actual );
+		$this->assertStringContainsString( 'autoplay', $actual );
+		$this->assertStringContainsString( 'muted', $actual );
+		$this->assertStringContainsString( 'preload="none"', $actual );
 		$this->assertStringContainsString( 'class="foobar"', $actual );
 		$this->assertStringContainsString( 'style="padding:0;"', $actual );
 	}
@@ -993,7 +1206,6 @@ VIDEO;
 		$content = apply_filters( 'the_content', $video );
 
 		$expected = '<div style="width: ' . $width . 'px;" class="wp-video">' .
-			"<!--[if lt IE 9]><script>document.createElement('video');</script><![endif]-->\n" .
 			'<video class="wp-video-shortcode" id="video-' . $post_id . '-1" width="' . $width . '" height="' . $h . '" preload="metadata" controls="controls">' .
 			'<source type="video/mp4" src="http://domain.tld/wp-content/uploads/2013/12/xyz.mp4?_=1" />' .
 			'<!-- WebM/VP8 for Firefox4, Opera, and Chrome --><source type="video/webm" src="myvideo.webm" />' .
@@ -1057,7 +1269,7 @@ VIDEO;
 				'loop'     => true,
 				'autoplay' => true,
 				'muted'    => true,
-				'preload'  => true,
+				'preload'  => 'metadata',
 				'width'    => 123,
 				'height'   => 456,
 				'class'    => 'foobar',
@@ -1066,10 +1278,10 @@ VIDEO;
 
 		$this->assertStringContainsString( 'src="https://example.com/foo.mp4', $actual );
 		$this->assertStringContainsString( 'poster="https://example.com/foo.png', $actual );
-		$this->assertStringContainsString( 'loop="1"', $actual );
-		$this->assertStringContainsString( 'autoplay="1"', $actual );
+		$this->assertStringContainsString( 'loop', $actual );
+		$this->assertStringContainsString( 'autoplay', $actual );
 		$this->assertStringContainsString( 'muted', $actual );
-		$this->assertStringContainsString( 'preload="1"', $actual );
+		$this->assertStringContainsString( 'preload="metadata"', $actual );
 		$this->assertStringContainsString( 'width="123"', $actual );
 		$this->assertStringContainsString( 'height="456"', $actual );
 		$this->assertStringContainsString( 'class="foobar"', $actual );
@@ -1268,6 +1480,75 @@ VIDEO;
 		$image_url = 'http://192.168.1.20.com/wp-content/uploads/' . $image_path;
 		$this->assertSame( $attachment_id, attachment_url_to_postid( $image_url ) );
 		remove_filter( 'upload_dir', array( $this, 'upload_dir' ) );
+	}
+
+	/**
+	 * Test short-circuiting the attachment_url_to_postid filter.
+	 *
+	 * @ticket 61383
+	 */
+	public function test_attachment_url_to_postid_short_circuit_filter_prevents_db_queries() {
+		$image_path    = '2014/11/' . self::IMG_NAME;
+		$attachment_id = self::factory()->attachment->create_object(
+			$image_path,
+			0,
+			array(
+				'post_mime_type' => 'image/jpeg',
+				'post_type'      => 'attachment',
+			)
+		);
+		$image_url     = wp_get_attachment_url( $attachment_id );
+
+		add_filter(
+			'pre_attachment_url_to_postid',
+			function () use ( $attachment_id ) {
+				return $attachment_id;
+			}
+		);
+
+		$queries_before = get_num_queries();
+		$this->assertSame( $attachment_id, attachment_url_to_postid( $image_url ), 'The filter should short-circuit the function' );
+		$queries_after = get_num_queries();
+		$this->assertSame( 0, $queries_after - $queries_before, 'No database queries should be made by a short-circuited function' );
+	}
+
+	/**
+	 * Test short-circuiting the attachment_url_to_postid filter with a not found result.
+	 *
+	 * @ticket 61383
+	 */
+	public function test_attachment_url_to_postid_short_circuit_filter_when_attachment_does_not_exist() {
+		add_filter( 'pre_attachment_url_to_postid', '__return_zero' );
+
+		$queries_before = get_num_queries();
+		$this->assertSame( 0, attachment_url_to_postid( 'http://example.org/wp-content/uploads/2014/11/image.jpg' ), 'The filter should short-circuit the function' );
+		$queries_after = get_num_queries();
+		$this->assertSame( 0, $queries_after - $queries_before, 'No database queries should be made by a short-circuited function' );
+	}
+
+	/**
+	 * Test short-circuiting the attachment_url_to_postid filter with a proceed result.
+	 *
+	 * @ticket 61383
+	 */
+	public function test_attachment_url_to_postid_short_circuit_filter_should_proceed_if_filter_returns_null() {
+		$image_path    = '2014/11/' . self::IMG_NAME;
+		$attachment_id = self::factory()->attachment->create_object(
+			$image_path,
+			0,
+			array(
+				'post_mime_type' => 'image/jpeg',
+				'post_type'      => 'attachment',
+			)
+		);
+		$image_url     = wp_get_attachment_url( $attachment_id );
+
+		add_filter( 'pre_attachment_url_to_postid', '__return_null' );
+
+		$queries_before = get_num_queries();
+		$this->assertSame( $attachment_id, attachment_url_to_postid( $image_url ), 'The filter should return the attachment ID' );
+		$queries_after = get_num_queries();
+		$this->assertGreaterThan( 0, $queries_after - $queries_before, 'Database queries are expected when the filter returns null' );
 	}
 
 	public function upload_dir( $dir ) {
@@ -1511,6 +1792,73 @@ EOF;
 
 	public function filter_wp_get_attachment_image() {
 		return 'Override wp_get_attachment_image';
+	}
+
+	/**
+	 * @ticket 14110
+	 */
+	public function test_wp_get_attachment_image_filter_with_width_height() {
+		$mock_action = new MockAction();
+		add_filter( 'wp_get_attachment_image_attributes', array( $mock_action, 'filter' ) );
+		wp_get_attachment_image( self::$large_id );
+		$args = $mock_action->get_args();
+		$this->assertArrayHasKey( '0', $args, 'First argument should be an array.' );
+		$this->assertArrayHasKey( '0', $args[0], 'First argument should be an array.' );
+		$this->assertArrayHasKey( 'width', $args[0][0], 'Width should be set.' );
+		$this->assertArrayHasKey( 'height', $args[0][0], 'Height should be set.' );
+	}
+
+	/**
+	 * @ticket 14110
+	 */
+	public function test_wp_get_attachment_image_filter_change_width_height() {
+		add_filter(
+			'wp_get_attachment_image_attributes',
+			static function ( $args ) {
+				$args['width']  = '999';
+				$args['height'] = '999';
+				return $args;
+			}
+		);
+		$output = wp_get_attachment_image( self::$large_id );
+		$this->assertStringContainsString( 'width="999"', $output, 'Width should be changed.' );
+		$this->assertStringContainsString( 'height="999"', $output, 'Height should be changed.' );
+	}
+
+	/**
+	 * @ticket 14110
+	 */
+	public function test_wp_get_attachment_image_filter_unset_width_height() {
+		add_filter(
+			'wp_get_attachment_image_attributes',
+			static function ( $args ) {
+				unset( $args['width'], $args['height'] );
+				return $args;
+			}
+		);
+		$output = wp_get_attachment_image( self::$large_id );
+		$this->assertStringContainsString( 'width="150"', $output, 'Width should not be changed.' );
+		$this->assertStringContainsString( 'height="150"', $output, 'Height should not be changed.' );
+	}
+
+	/**
+	 * Test that `wp_get_attachment_image` doesn't overwrite an already valid user-provided width and height.
+	 *
+	 * @ticket 63714
+	 */
+	public function test_wp_get_attachment_image_not_overwrite_user_provided_width_height() {
+		$img = wp_get_attachment_image(
+			self::$large_id,
+			'large',
+			false,
+			array(
+				'width'  => 999,
+				'height' => 999,
+			)
+		);
+
+		$this->assertStringContainsString( 'width="999"', $img, 'User-provided width should not be changed.' );
+		$this->assertStringContainsString( 'height="999"', $img, 'User-provided height should not be changed.' );
 	}
 
 	/**
@@ -1772,6 +2120,8 @@ EOF;
 		// Calculate a srcset array.
 		$sizes = explode( ', ', wp_calculate_image_srcset( $size_array, $image_url, $image_meta ) );
 
+		$this->assertNotEmpty( $sizes );
+
 		// Test to confirm all sources in the array include the same edit hash.
 		foreach ( $sizes as $size ) {
 			$this->assertStringContainsString( $hash, $size );
@@ -1828,6 +2178,31 @@ EOF;
 			$expected_srcset = $this->src_first( $_expected, $image_url, $size_array[0] );
 			$this->assertSame( $expected_srcset, wp_calculate_image_srcset( $size_array, $image_url, $image_meta ) );
 		}
+	}
+
+	/**
+	 * @ticket 61690
+	 * @requires function imagejpeg
+	 */
+	public function test_wp_calculate_image_srcset_with_relative_content_url() {
+		$_SERVER['HTTPS'] = 'on';
+
+		add_filter(
+			'upload_dir',
+			static function ( $upload_dir ) {
+				$upload_dir['baseurl'] = '/wp-content/uploads';
+				return $upload_dir;
+			}
+		);
+
+		$image_url  = wp_get_attachment_image_url( self::$large_id, 'medium' );
+		$image_meta = wp_get_attachment_metadata( self::$large_id );
+
+		$size_array = array( 300, 225 );
+
+		$srcset = wp_calculate_image_srcset( $size_array, $image_url, $image_meta );
+
+		$this->assertStringStartsWith( '/wp-content/uploads', $srcset );
 	}
 
 	/**
@@ -2439,6 +2814,9 @@ EOF;
 	 * @requires function imagejpeg
 	 */
 	public function test_wp_filter_content_tags_schemes() {
+		// Disable lazy loading attribute to not add the 'auto' keyword to the `sizes` attribute.
+		add_filter( 'wp_img_tag_add_loading_attr', '__return_false' );
+
 		$image_meta = wp_get_attachment_metadata( self::$large_id );
 		$size_array = $this->get_image_size_array_from_meta( $image_meta, 'medium' );
 
@@ -2652,7 +3030,7 @@ EOF;
 			'src="' . $uploads_url . 'test-image-testsize-999x999.jpg" ' .
 			'class="attachment-testsize size-testsize" alt="" decoding="async" loading="lazy" ' .
 			'srcset="' . $uploads_url . 'test-image-testsize-999x999.jpg 999w, ' . $uploads_url . $basename . '-150x150.jpg 150w" ' .
-			'sizes="(max-width: 999px) 100vw, 999px" />';
+			'sizes="auto, (max-width: 999px) 100vw, 999px" />';
 
 		$actual = wp_get_attachment_image( self::$large_id, 'testsize' );
 
@@ -3254,14 +3632,15 @@ EOF;
 
 	/**
 	 * @ticket 52768
+	 * @ticket 58773
 	 */
-	public function test_wp_iframe_tag_add_loading_attr_skip_wp_embed() {
+	public function test_wp_iframe_tag_add_loading_attr_include_wp_embed() {
 		$iframe   = '<iframe src="https://www.example.com" width="640" height="360"></iframe>';
 		$fallback = '<blockquote>Fallback content.</blockquote>';
 		$iframe   = wp_filter_oembed_result( $fallback . $iframe, (object) array( 'type' => 'rich' ), 'https://www.example.com' );
 		$iframe   = wp_iframe_tag_add_loading_attr( $iframe, 'test' );
 
-		$this->assertStringNotContainsString( ' loading=', $iframe );
+		$this->assertStringContainsString( ' loading="lazy"', $iframe );
 	}
 
 	/**
@@ -3676,6 +4055,8 @@ EOF;
 
 		$query = $this->get_new_wp_query_for_published_post();
 
+		$this->assertTrue( have_posts() );
+
 		while ( have_posts() ) {
 			the_post();
 
@@ -3708,7 +4089,10 @@ EOF;
 		$this->assertFalse( wp_get_loading_attr_default( 'template_part_' . WP_TEMPLATE_PART_AREA_HEADER ), 'Images in the footer block template part should not be lazy-loaded.' );
 	}
 
-	public function data_wp_get_loading_attr_default() {
+	/**
+	 * @return array<int, array{ 0: string }>
+	 */
+	public function data_wp_get_loading_attr_default(): array {
 		return array(
 			array( 'the_content' ),
 			array( 'the_post_thumbnail' ),
@@ -3732,6 +4116,8 @@ EOF;
 
 		// Use the filter to alter the threshold for not lazy-loading to the first five elements.
 		$this->force_omit_loading_attr_threshold( 5 );
+
+		$this->assertTrue( have_posts() );
 
 		while ( have_posts() ) {
 			the_post();
@@ -3972,7 +4358,7 @@ EOF;
 	 * @covers ::wp_get_loading_optimization_attributes
 	 */
 	public function test_wp_filter_content_tags_does_not_lazy_load_first_image_in_block_theme() {
-		global $_wp_current_template_content, $wp_query, $wp_the_query, $post;
+		global $_wp_current_template_id, $_wp_current_template_content, $wp_query, $wp_the_query, $post;
 
 		// Do not add srcset, sizes, or decoding attributes as they are irrelevant for this test.
 		add_filter( 'wp_img_tag_add_srcset_and_sizes_attr', '__return_false' );
@@ -4001,6 +4387,8 @@ EOF;
 		$wp_the_query = $wp_query;
 		$post         = get_post( self::$post_ids['publish'] );
 
+		// Force a template ID that is for the current stylesheet.
+		$_wp_current_template_id      = get_stylesheet() . '//single';
 		$_wp_current_template_content = '<!-- wp:post-content /-->';
 
 		$html = get_the_block_template_html();
@@ -4020,7 +4408,7 @@ EOF;
 	 * @covers ::wp_get_loading_optimization_attributes
 	 */
 	public function test_wp_filter_content_tags_does_not_lazy_load_first_featured_image_in_block_theme() {
-		global $_wp_current_template_content, $wp_query, $wp_the_query, $post;
+		global $_wp_current_template_id, $_wp_current_template_content, $wp_query, $wp_the_query, $post;
 
 		// Do not add srcset, sizes, or decoding attributes as they are irrelevant for this test.
 		add_filter( 'wp_img_tag_add_srcset_and_sizes_attr', '__return_false' );
@@ -4069,6 +4457,8 @@ EOF;
 		$wp_the_query = $wp_query;
 		$post         = get_post( self::$post_ids['publish'] );
 
+		// Force a template ID that is for the current stylesheet.
+		$_wp_current_template_id      = get_stylesheet() . '//single';
 		$_wp_current_template_content = '<!-- wp:post-featured-image /--> <!-- wp:post-content /-->';
 
 		$html = get_the_block_template_html();
@@ -4087,7 +4477,7 @@ EOF;
 	 * @covers ::wp_get_loading_optimization_attributes
 	 */
 	public function test_wp_filter_content_tags_does_not_lazy_load_images_in_header() {
-		global $_wp_current_template_content;
+		global $_wp_current_template_id, $_wp_current_template_content;
 
 		// Do not add srcset, sizes, or decoding attributes as they are irrelevant for this test.
 		add_filter( 'wp_img_tag_add_srcset_and_sizes_attr', '__return_false' );
@@ -4122,6 +4512,8 @@ EOF;
 		wp_set_post_terms( $footer_post_id, WP_TEMPLATE_PART_AREA_FOOTER, 'wp_template_part_area' );
 		wp_set_post_terms( $footer_post_id, get_stylesheet(), 'wp_theme' );
 
+		// Force a template ID that is for the current stylesheet.
+		$_wp_current_template_id      = get_stylesheet() . '//single';
 		$_wp_current_template_content = '<!-- wp:template-part {"slug":"header","theme":"' . get_stylesheet() . '","tagName":"header"} /--><!-- wp:template-part {"slug":"footer","theme":"' . get_stylesheet() . '","tagName":"footer"} /-->';
 
 		// Header image should not be lazy-loaded, footer image should be lazy-loaded.
@@ -4265,7 +4657,7 @@ EOF;
 	}
 
 	/**
-	 * Tests that wp_get_loading_attr_default() returns the expected loading attribute value.
+	 * Tests that wp_get_loading_optimization_attributes() returns the expected loading attribute value.
 	 *
 	 * @ticket 53675
 	 * @ticket 56930
@@ -4278,7 +4670,7 @@ EOF;
 	 *
 	 * @param string $context
 	 */
-	public function test_wp_get_loading_optimization_attributes( $context ) {
+	public function test_wp_get_loading_optimization_attributes( string $context ): void {
 		$attr = $this->get_width_height_for_high_priority();
 
 		// Return 'lazy' by default.
@@ -4297,6 +4689,8 @@ EOF;
 			wp_get_loading_optimization_attributes( 'img', $attr, 'wp_get_attachment_image' )
 		);
 
+		$this->assert_fetchpriority_low_loading_attrs( $attr, 'wp_get_attachment_image' );
+
 		// Return 'lazy' if not in the loop or the main query.
 		$this->assertSameSetsWithIndex(
 			array(
@@ -4311,6 +4705,8 @@ EOF;
 		while ( have_posts() ) {
 			the_post();
 
+			$this->assert_fetchpriority_low_loading_attrs( $attr, $context );
+
 			// Return 'lazy' if in the loop but not in the main query.
 			$this->assertSameSetsWithIndex(
 				array(
@@ -4323,6 +4719,8 @@ EOF;
 			// Set as main query.
 			$this->set_main_query( $query );
 
+			$this->assert_fetchpriority_low_loading_attrs( $attr, $context );
+
 			// First three element are not lazy loaded. However, first image is loaded with fetchpriority high.
 			$this->assertSameSetsWithIndex(
 				array(
@@ -4330,8 +4728,11 @@ EOF;
 					'fetchpriority' => 'high',
 				),
 				wp_get_loading_optimization_attributes( 'img', $attr, $context ),
-				"Expected first image to not be lazy-loaded. First large image get's high fetchpriority."
+				'Expected first image to not be lazy-loaded. First large image gets high fetchpriority.'
 			);
+
+			$this->assert_fetchpriority_low_loading_attrs( $attr, $context );
+
 			$this->assertSameSetsWithIndex(
 				array(
 					'decoding' => 'async',
@@ -4339,6 +4740,9 @@ EOF;
 				wp_get_loading_optimization_attributes( 'img', $attr, $context ),
 				'Expected second image to not be lazy-loaded.'
 			);
+
+			$this->assert_fetchpriority_low_loading_attrs( $attr, $context );
+
 			$this->assertSameSetsWithIndex(
 				array(
 					'decoding' => 'async',
@@ -4346,6 +4750,8 @@ EOF;
 				wp_get_loading_optimization_attributes( 'img', $attr, $context ),
 				'Expected third image to not be lazy-loaded.'
 			);
+
+			$this->assert_fetchpriority_low_loading_attrs( $attr, $context );
 
 			// Return 'lazy' if in the loop and in the main query for any subsequent elements.
 			$this->assertSameSetsWithIndex(
@@ -4356,6 +4762,8 @@ EOF;
 				wp_get_loading_optimization_attributes( 'img', $attr, $context )
 			);
 
+			$this->assert_fetchpriority_low_loading_attrs( $attr, $context );
+
 			// Yes, for all subsequent elements.
 			$this->assertSameSetsWithIndex(
 				array(
@@ -4363,6 +4771,161 @@ EOF;
 					'loading'  => 'lazy',
 				),
 				wp_get_loading_optimization_attributes( 'img', $attr, $context )
+			);
+
+			$this->assert_fetchpriority_low_loading_attrs( $attr, $context );
+
+			$this->assertSameSetsWithIndex(
+				array(
+					'decoding'      => 'async',
+					'fetchpriority' => 'auto',
+					'loading'       => 'lazy',
+				),
+				wp_get_loading_optimization_attributes(
+					'img',
+					array_merge( $attr, array( 'fetchpriority' => 'auto' ) ),
+					$context
+				),
+				'Expected a fetchpriority=auto IMG appearing after the media count threshold to still be lazy-loaded.'
+			);
+		}
+	}
+
+	/**
+	 * Tests that wp_get_loading_optimization_attributes() returns the expected loading attribute value.
+	 *
+	 * This test is the same as {@see self::test_wp_get_loading_optimization_attributes()} except that the IMG which
+	 * previously got `fetchpriority=high` now initially has `fetchpriority=auto`. This causes the initial lazy-loaded
+	 * image to be bumped down one.
+	 *
+	 * @ticket 64823
+	 *
+	 * @covers ::wp_get_loading_optimization_attributes
+	 *
+	 * @dataProvider data_wp_get_loading_attr_default
+	 *
+	 * @param string $context
+	 */
+	public function test_wp_get_loading_optimization_attributes_with_fetchpriority_auto_for_lcp_candidate( string $context ): void {
+		$attr = $this->get_width_height_for_high_priority();
+
+		// Return 'lazy' by default.
+		$this->assertSameSetsWithIndex(
+			array(
+				'decoding' => 'async',
+				'loading'  => 'lazy',
+			),
+			wp_get_loading_optimization_attributes( 'img', $attr, 'test' )
+		);
+		$this->assertSameSetsWithIndex(
+			array(
+				'decoding' => 'async',
+				'loading'  => 'lazy',
+			),
+			wp_get_loading_optimization_attributes( 'img', $attr, 'wp_get_attachment_image' )
+		);
+
+		$this->assert_fetchpriority_low_loading_attrs( $attr, 'wp_get_attachment_image' );
+
+		// Return 'lazy' if not in the loop or the main query.
+		$this->assertSameSetsWithIndex(
+			array(
+				'decoding' => 'async',
+				'loading'  => 'lazy',
+			),
+			wp_get_loading_optimization_attributes( 'img', $attr, $context )
+		);
+
+		$query = $this->get_new_wp_query_for_published_post();
+
+		while ( have_posts() ) {
+			the_post();
+
+			$this->assert_fetchpriority_low_loading_attrs( $attr, $context );
+
+			// Return 'lazy' if in the loop but not in the main query.
+			$this->assertSameSetsWithIndex(
+				array(
+					'decoding' => 'async',
+					'loading'  => 'lazy',
+				),
+				wp_get_loading_optimization_attributes( 'img', $attr, $context )
+			);
+
+			// Set as main query.
+			$this->set_main_query( $query );
+
+			$this->assert_fetchpriority_low_loading_attrs( $attr, $context );
+
+			// First three element are not lazy loaded. However, first image initially has `fetchpriority=auto` which marks it as a possible LCP element.
+			$this->assertSameSetsWithIndex(
+				array(
+					'decoding'      => 'async',
+					'fetchpriority' => 'auto',
+				),
+				wp_get_loading_optimization_attributes(
+					'img',
+					array_merge( $attr, array( 'fetchpriority' => 'auto' ) ),
+					$context
+				),
+				'Expected first image to not be lazy-loaded.'
+			);
+
+			$this->assert_fetchpriority_low_loading_attrs( $attr, $context );
+
+			$this->assertSameSetsWithIndex(
+				array(
+					'decoding' => 'async',
+				),
+				wp_get_loading_optimization_attributes( 'img', $attr, $context ),
+				'Expected second image to not be lazy-loaded.'
+			);
+
+			$this->assert_fetchpriority_low_loading_attrs( $attr, $context );
+
+			$this->assertSameSetsWithIndex(
+				array(
+					'decoding' => 'async',
+				),
+				wp_get_loading_optimization_attributes( 'img', $attr, $context ),
+				'Expected third image to not be lazy-loaded.'
+			);
+
+			$this->assert_fetchpriority_low_loading_attrs( $attr, $context );
+
+			// This is the 4th subsequent image, and it still is not lazy-loaded because the first had fetchpriority=auto and so it may have been hidden with block visibility.
+			$this->assertSameSetsWithIndex(
+				array(
+					'decoding' => 'async',
+				),
+				wp_get_loading_optimization_attributes( 'img', $attr, $context )
+			);
+
+			$this->assert_fetchpriority_low_loading_attrs( $attr, $context );
+
+			// Yes, for all subsequent elements.
+			$this->assertSameSetsWithIndex(
+				array(
+					'decoding' => 'async',
+					'loading'  => 'lazy',
+				),
+				wp_get_loading_optimization_attributes( 'img', $attr, $context )
+			);
+
+			$this->assert_fetchpriority_low_loading_attrs( $attr, $context );
+
+			$this->assertSameSetsWithIndex(
+				array(
+					'decoding'      => 'async',
+					'fetchpriority' => 'auto',
+					'loading'       => 'lazy',
+				),
+				wp_get_loading_optimization_attributes(
+					'img',
+					array_merge( $attr, array( 'fetchpriority' => 'auto' ) ),
+					$context
+				),
+				'Expected a fetchpriority=auto IMG appearing after the media count threshold to still be lazy-loaded.'
 			);
 		}
 	}
@@ -4390,12 +4953,17 @@ EOF;
 			'The "loading" attribute should be "lazy" when not in the loop or the main query.'
 		);
 
+		$this->assert_fetchpriority_low_loading_attrs( $attr, $context );
+
 		$query = $this->get_new_wp_query_for_published_post();
 
 		// Set as main query.
 		$this->set_main_query( $query );
 
 		while ( have_posts() ) {
+
+			$this->assert_fetchpriority_low_loading_attrs( $attr, $context );
+
 			the_post();
 
 			$this->assertSameSetsWithIndex(
@@ -4440,8 +5008,12 @@ EOF;
 			'The "loading" attribute should be "lazy" before the main query loop.'
 		);
 
+		$this->assert_fetchpriority_low_loading_attrs( $attr, $context );
+
 		while ( have_posts() ) {
 			the_post();
+
+			$this->assert_fetchpriority_low_loading_attrs( $attr, $context );
 
 			$this->assertSameSetsWithIndex(
 				array(
@@ -4524,6 +5096,8 @@ EOF;
 			wp_get_loading_optimization_attributes( 'img', $attr, $context ),
 			'Images in the header context should get lazy-loaded after the wp_loading_optimization_force_header_contexts filter.'
 		);
+
+		$this->assert_fetchpriority_low_loading_attrs( $attr, $context );
 	}
 
 	/**
@@ -4548,11 +5122,13 @@ EOF;
 
 		add_filter(
 			'wp_loading_optimization_force_header_contexts',
-			function ( $context ) {
+			function ( $contexts ) {
 				$contexts['something_completely_arbitrary'] = true;
 				return $contexts;
 			}
 		);
+
+		$this->assert_fetchpriority_low_loading_attrs( $attr, 'something_completely_arbitrary' );
 
 		$this->assertSameSetsWithIndex(
 			array(
@@ -4593,6 +5169,8 @@ EOF;
 			),
 			wp_get_loading_optimization_attributes( 'img', $attr, $context )
 		);
+
+		$this->assert_fetchpriority_low_loading_attrs( $attr, $context );
 	}
 
 	/**
@@ -4624,6 +5202,8 @@ EOF;
 			),
 			wp_get_loading_optimization_attributes( 'img', $attr, $context )
 		);
+
+		$this->assert_fetchpriority_low_loading_attrs( $attr, $context );
 	}
 
 	/**
@@ -4646,6 +5226,8 @@ EOF;
 		do_action( 'get_header' );
 
 		$attr = $this->get_width_height_for_high_priority();
+
+		$this->assert_fetchpriority_low_loading_attrs( $attr, $context );
 
 		// First image is loaded with high fetchpriority.
 		$this->assertSameSetsWithIndex(
@@ -5082,6 +5664,9 @@ EOF;
 			}
 		);
 
+		// Do not calculate sizes attribute as it is irrelevant for this test.
+		add_filter( 'wp_calculate_image_sizes', '__return_false' );
+
 		// Add shortcode that prints a large image, and a block type that wraps it.
 		add_shortcode(
 			'full_image',
@@ -5242,7 +5827,7 @@ EOF;
 		copy( DIR_TESTDATA . '/images/33772.jpg', $file );
 
 		// Set JPEG output quality very low and WebP quality very high, this should force all generated WebP images to
-		// be larger than the the matching generated JPEGs.
+		// be larger than the matching generated JPEGs.
 		add_filter( 'wp_editor_set_quality', array( $this, 'image_editor_change_quality_low_jpeg' ), 10, 2 );
 
 		$editor = wp_get_image_editor( $file );
@@ -5275,9 +5860,106 @@ EOF;
 
 		// Sub-sizes: for each size, the JPEGs should be smaller than the WebP.
 		$sizes_to_compare = array_intersect_key( $jpeg_sizes['sizes'], $webp_sizes['sizes'] );
+
+		$this->assertNotEmpty( $sizes_to_compare );
+
 		foreach ( $sizes_to_compare as $size => $size_data ) {
 			$this->assertLessThan( $webp_sizes['sizes'][ $size ]['filesize'], $jpeg_sizes['sizes'][ $size ]['filesize'] );
 		}
+	}
+
+	/**
+	 * Test AVIF quality filters.
+	 *
+	 * @ticket 61614
+	 *
+	 * Temporarily disabled until we can figure out why it fails on the Trixie based PHP container.
+	 * See https://core.trac.wordpress.org/ticket/63932.
+	 * @requires PHP < 8.3
+	 */
+	public function test_quality_with_avif_conversion_file_sizes() {
+		$temp_dir = get_temp_dir();
+		$file     = $temp_dir . '/33772.jpg';
+		copy( DIR_TESTDATA . '/images/33772.jpg', $file );
+
+		$editor = wp_get_image_editor( $file );
+		// Only continue if the server supports AVIF.
+		if ( ! $editor->supports_mime_type( 'image/avif' ) ) {
+			$this->markTestSkipped( 'AVIF is not supported by the selected image editor.' );
+		}
+
+		$attachment_id = self::factory()->attachment->create_object(
+			array(
+				'post_mime_type' => 'image/jpeg',
+				'file'           => $file,
+			)
+		);
+
+		// Test sizes with AVIF images.
+		add_filter( 'image_editor_output_format', array( $this, 'image_editor_output_avif' ) );
+		$avif_sizes = wp_generate_attachment_metadata( $attachment_id, $file );
+		remove_filter( 'image_editor_output_format', array( $this, 'image_editor_output_avif' ) );
+
+		// Set the compression quality to a lower setting and test again, verifying that file sizes are all smaller.
+		add_filter( 'image_editor_output_format', array( $this, 'image_editor_output_avif' ) );
+		add_filter( 'wp_editor_set_quality', array( $this, 'image_editor_change_quality_low' ) );
+		$smaller_avif_sizes = wp_generate_attachment_metadata( $attachment_id, $file );
+		remove_filter( 'wp_editor_set_quality', array( $this, 'image_editor_change_quality_low' ) );
+		remove_filter( 'image_editor_output_format', array( $this, 'image_editor_output_avif' ) );
+
+		// Sub-sizes: for each size, the AVIF should be smaller than the JPEG.
+		$sizes_to_compare = array_intersect_key( $avif_sizes['sizes'], $smaller_avif_sizes['sizes'] );
+
+		$this->assertNotEmpty( $sizes_to_compare );
+
+		foreach ( $sizes_to_compare as $size => $size_data ) {
+			$this->assertLessThan( $avif_sizes['sizes'][ $size ]['filesize'], $smaller_avif_sizes['sizes'][ $size ]['filesize'] );
+		}
+	}
+
+	/**
+	 * Test that the `wp_editor_set_quality` filter includes the dimensions in the `$dims` parameter.
+	 *
+	 * @ticket 54648
+	 */
+	public function test_wp_editor_set_quality_includes_dimensions() {
+		// Before loading an image, set up the callback filter with the assertions.
+		add_filter( 'wp_editor_set_quality', array( $this, 'assert_dimensions_in_wp_editor_set_quality' ), 10, 3 );
+
+		$temp_dir = get_temp_dir();
+		$file     = $temp_dir . '/33772.jpg';
+		copy( DIR_TESTDATA . '/images/33772.jpg', $file );
+
+		$editor = wp_get_image_editor( $file );
+
+		$attachment_id = self::factory()->attachment->create_object(
+			array(
+				'post_mime_type' => 'image/jpeg',
+				'file'           => $file,
+			)
+		);
+
+		// Generate all sizes.
+		wp_generate_attachment_metadata( $attachment_id, $file );
+
+		// Clean up the filter.
+		remove_filter( 'wp_editor_set_quality', array( $this, 'assert_dimensions_in_wp_editor_set_quality' ), 10, 3 );
+	}
+
+	/**
+	 * Helper callback to assert that the dimensions are included in the `$dims` parameter.
+	 *
+	 * @param int   $quality The quality level.
+	 * @param array $dims    The dimensions array.
+	 */
+	public function assert_dimensions_in_wp_editor_set_quality( $quality, $mime_type, $dims ) {
+		// Assert that the array has non empty width and height values.
+		$this->assertArrayHasKey( 'width', $dims );
+		$this->assertArrayHasKey( 'height', $dims );
+		$this->assertGreaterThan( 0, $dims['width'] );
+		$this->assertGreaterThan( 0, $dims['height'] );
+
+		return $quality;
 	}
 
 	/**
@@ -5544,6 +6226,42 @@ EOF;
 	}
 
 	/**
+	 * Tests that wp_img_tag_add_loading_optimization_attrs() passes the 'src' attribute to wp_get_loading_optimization_attributes().
+	 *
+	 * @ticket 61436
+	 *
+	 * @covers ::wp_img_tag_add_loading_optimization_attrs
+	 */
+	public function test_wp_img_tag_add_loading_optimization_attrs_passes_src() {
+		add_filter(
+			'wp_get_loading_optimization_attributes',
+			static function ( $loading_attrs, $tag_name, $attr ) {
+				if (
+					'img' === $tag_name &&
+					isset( $attr['src'] ) &&
+					'https://example.org/a-specific-image.jpg' === $attr['src']
+				) {
+					$loading_attrs['fetchpriority'] = 'low';
+					$loading_attrs['loading']       = 'eager';
+				}
+				return $loading_attrs;
+			},
+			10,
+			3
+		);
+
+		$image    = '<img src="https://example.org/a-specific-image.jpg" width="1280" height="720">';
+		$expected = '<img fetchpriority="low" loading="eager" decoding="async" src="https://example.org/a-specific-image.jpg" width="1280" height="720">';
+
+		// Ensure attributes are modified because image src was matched.
+		$this->assertSame(
+			$expected,
+			wp_img_tag_add_loading_optimization_attrs( $image, 'the_content' ),
+			'fetchpriority should be low when src is matched.'
+		);
+	}
+
+	/**
 	 * @ticket 58235
 	 *
 	 * @covers ::wp_get_loading_optimization_attributes
@@ -5697,52 +6415,83 @@ EOF;
 	 *
 	 * @dataProvider data_wp_maybe_add_fetchpriority_high_attr
 	 */
-	public function test_wp_maybe_add_fetchpriority_high_attr( $loading_attrs, $tag_name, $attr, $expected_fetchpriority ) {
+	public function test_wp_maybe_add_fetchpriority_high_attr( array $loading_attrs, string $tag_name, array $attr, ?string $expected_fetchpriority, bool $expected_high_priority_element_flag ): void {
 		$loading_attrs = wp_maybe_add_fetchpriority_high_attr( $loading_attrs, $tag_name, $attr );
 
-		if ( $expected_fetchpriority ) {
+		if ( null !== $expected_fetchpriority ) {
 			$this->assertArrayHasKey( 'fetchpriority', $loading_attrs, 'fetchpriority attribute should be present' );
 			$this->assertSame( $expected_fetchpriority, $loading_attrs['fetchpriority'], 'fetchpriority attribute has incorrect value' );
 		} else {
 			$this->assertArrayNotHasKey( 'fetchpriority', $loading_attrs, 'fetchpriority attribute should not be present' );
 		}
+		$this->assertSame( $expected_high_priority_element_flag, wp_high_priority_element_flag() );
 	}
 
 	/**
 	 * Data provider.
 	 *
-	 * @return array[]
+	 * @return array<string, array{
+	 *     0: array<string, string>,
+	 *     1: string,
+	 *     2: array<string, mixed>,
+	 *     3: string|null,
+	 *     4: bool,
+	 * }>
 	 */
-	public function data_wp_maybe_add_fetchpriority_high_attr() {
+	public function data_wp_maybe_add_fetchpriority_high_attr(): array {
 		return array(
-			'small image'                   => array(
+			'small image'                         => array(
 				array(),
 				'img',
 				$this->get_insufficient_width_height_for_high_priority(),
-				false,
+				null,
+				true,
 			),
-			'large image'                   => array(
+			'small image with fetchpriority=auto' => array(
+				array(),
+				'img',
+				array_merge(
+					$this->get_insufficient_width_height_for_high_priority(),
+					array( 'fetchpriority' => 'auto' )
+				),
+				null,
+				true,
+			),
+			'large image'                         => array(
 				array(),
 				'img',
 				$this->get_width_height_for_high_priority(),
 				'high',
+				false,
 			),
-			'image with loading=lazy'       => array(
+			'large image with fetchpriority=auto' => array(
+				array(),
+				'img',
+				array_merge(
+					$this->get_width_height_for_high_priority(),
+					array( 'fetchpriority' => 'auto' )
+				),
+				null,
+				false,
+			),
+			'image with loading=lazy'             => array(
 				array(
 					'loading'  => 'lazy',
 					'decoding' => 'async',
 				),
 				'img',
 				$this->get_width_height_for_high_priority(),
-				false,
+				null,
+				true,
 			),
-			'image with loading=eager'      => array(
+			'image with loading=eager'            => array(
 				array( 'loading' => 'eager' ),
 				'img',
 				$this->get_width_height_for_high_priority(),
 				'high',
+				false,
 			),
-			'image with fetchpriority=high' => array(
+			'image with fetchpriority=high'       => array(
 				array(),
 				'img',
 				array_merge(
@@ -5750,21 +6499,24 @@ EOF;
 					array( 'fetchpriority' => 'high' )
 				),
 				'high',
+				false,
 			),
-			'image with fetchpriority=low'  => array(
+			'image with fetchpriority=low'        => array(
 				array(),
 				'img',
 				array_merge(
 					$this->get_insufficient_width_height_for_high_priority(),
 					array( 'fetchpriority' => 'low' )
 				),
-				false,
+				null,
+				true,
 			),
-			'non-image element'             => array(
+			'non-image element'                   => array(
 				array(),
 				'video',
 				$this->get_width_height_for_high_priority(),
-				false,
+				null,
+				true,
 			),
 		);
 	}
@@ -5958,6 +6710,609 @@ EOF;
 	}
 
 	/**
+	 * Asserts that loading attributes for IMG with fetchpriority=low.
+	 *
+	 * It must not get lazy-loaded or increase the counter since they may be in the Navigation Overlay.
+	 *
+	 * @param array<string, mixed> $attr
+	 * @param string               $context
+	 */
+	protected function assert_fetchpriority_low_loading_attrs( array $attr, string $context ): void {
+		$this->assertSameSetsWithIndex(
+			array(
+				'fetchpriority' => 'low',
+				'decoding'      => 'async',
+			),
+			wp_get_loading_optimization_attributes(
+				'img',
+				array_merge( $attr, array( 'fetchpriority' => 'low' ) ),
+				$context
+			)
+		);
+	}
+
+	/**
+	 * Test WebP lossless quality is handled correctly.
+	 *
+	 * @ticket 60291
+	 */
+	public function test_set_quality_webp_lossless() {
+		// Get a new editor to test that lossless WebP images are handled correctly.
+		$editor = wp_get_image_editor( DIR_TESTDATA . '/images/webp-lossless.webp' );
+
+		// If no editor is available, skip the test.
+		if ( is_wp_error( $editor ) ) {
+			$this->markTestSkipped( 'No editor available for lossless WebP images.' );
+		}
+
+		// Only test on GD when WebP lossless is supported.
+		if ( 'WP_Image_Editor_GD' === get_class( $editor ) && ! defined( 'IMG_WEBP_LOSSLESS' ) ) {
+			$this->markTestSkipped( 'No GD support available for lossless WebP images.' );
+		}
+
+		// Verify lossless quality is set correctly: IMG_WEBP_LOSSLESS for GD and 100 for Imagick.
+		if ( 'WP_Image_Editor_GD' === get_class( $editor ) ) {
+			$this->assertSame( IMG_WEBP_LOSSLESS, $editor->get_quality() );
+		} else {
+			$this->assertSame( 100, $editor->get_quality() );
+		}
+	}
+
+	/**
+	 * Test generated markup for an image with lazy loading gets auto-sizes.
+	 *
+	 * @ticket 61847
+	 */
+	public function test_image_with_lazy_loading_has_auto_sizes() {
+		$this->assertStringContainsString(
+			'sizes="auto, ',
+			wp_get_attachment_image( self::$large_id, 'large', false, array( 'loading' => 'lazy' ) ),
+			'Failed asserting that the sizes attribute for a lazy-loaded image includes "auto".'
+		);
+	}
+
+	/**
+	 * Test generated markup for an image without lazy loading does not get auto-sizes.
+	 *
+	 * @ticket 61847
+	 */
+	public function test_image_without_lazy_loading_does_not_have_auto_sizes() {
+		$this->assertStringNotContainsString(
+			'sizes="auto, ',
+			wp_get_attachment_image( self::$large_id, 'large', false, array( 'loading' => false ) ),
+			'Failed asserting that the sizes attribute for an image without lazy loading does not include "auto".'
+		);
+	}
+
+	/**
+	 * Test generated markup for an image with no width does not get auto-sizes.
+	 *
+	 * @ticket 61847
+	 * @ticket 62413
+	 */
+	public function test_image_without_width_does_not_have_auto_sizes() {
+		// Disable automatic width calculation.
+		add_filter(
+			'wp_get_attachment_image_src',
+			function ( $img_data ) {
+				return array( $img_data[0], null, null );
+			}
+		);
+
+		$markup = wp_get_attachment_image( self::$large_id, 'large', false, array( 'loading' => false ) );
+
+		$this->assertStringNotContainsString(
+			'width="',
+			$markup,
+			'Failed confirming the test markup did not include a width attribute.'
+		);
+
+		$this->assertStringNotContainsString(
+			'sizes="auto, ',
+			$markup,
+			'Failed asserting that the sizes attribute for an image without a width does not include "auto".'
+		);
+	}
+
+	/**
+	 * Test content filtered markup with lazy loading gets auto-sizes.
+	 *
+	 * @ticket 61847
+	 *
+	 * @covers ::wp_img_tag_add_auto_sizes
+	 */
+	public function test_content_image_with_lazy_loading_has_auto_sizes() {
+		// Force lazy loading attribute.
+		add_filter( 'wp_img_tag_add_loading_attr', '__return_true' );
+
+		$this->assertStringContainsString(
+			'sizes="auto, (max-width: 1024px) 100vw, 1024px"',
+			wp_filter_content_tags( get_image_tag( self::$large_id, '', '', '', 'large' ) ),
+			'Failed asserting that the sizes attribute for a content image with lazy loading includes "auto" with the expected sizes.'
+		);
+	}
+
+	/**
+	 * Test content filtered markup without lazy loading does not get auto-sizes.
+	 *
+	 * @ticket 61847
+	 *
+	 * @covers ::wp_img_tag_add_auto_sizes
+	 */
+	public function test_content_image_without_lazy_loading_does_not_have_auto_sizes() {
+		// Disable lazy loading attribute.
+		add_filter( 'wp_img_tag_add_loading_attr', '__return_false' );
+
+		$this->assertStringNotContainsString(
+			'sizes="auto, ',
+			wp_filter_content_tags( get_image_tag( self::$large_id, '', '', '', 'large' ) ),
+			'Failed asserting that the sizes attribute for a content image without lazy loading does not include "auto" with the expected sizes.'
+		);
+	}
+
+	/**
+	 * Test content filtered markup with lazy loading does not get auto-sizes when disabled.
+	 *
+	 * @ticket 61847
+	 * @ticket 62413
+	 *
+	 * @covers ::wp_img_tag_add_auto_sizes
+	 */
+	public function test_content_image_does_not_have_auto_sizes_when_disabled() {
+		// Force lazy loading attribute.
+		add_filter( 'wp_img_tag_add_loading_attr', '__return_true' );
+		// Disable auto-sizes attribute.
+		add_filter( 'wp_img_tag_add_auto_sizes', '__return_false' );
+
+		$this->assertStringNotContainsString(
+			'sizes="auto, ',
+			wp_filter_content_tags( get_image_tag( self::$large_id, '', '', '', 'large' ) ),
+			'Failed asserting that the sizes attribute for a content image with lazy loading does not include "auto" when disabled.'
+		);
+	}
+
+	/**
+	 * Test generated image markup with lazy loading does not get auto-sizes when disabled.
+	 *
+	 * @ticket 61847
+	 * @ticket 62413
+	 *
+	 * @covers ::wp_img_tag_add_auto_sizes
+	 */
+	public function test_generated_image_does_not_have_auto_sizes_when_disabled() {
+		// Disable auto-sizes attribute.
+		add_filter( 'wp_img_tag_add_auto_sizes', '__return_false' );
+
+		$this->assertStringNotContainsString(
+			'sizes="auto, ',
+			wp_get_attachment_image( self::$large_id, 'large', false, array( 'loading' => 'lazy' ) ),
+			'Failed asserting that the sizes attribute for an image with lazy loading does not include "auto" when disabled.'
+		);
+	}
+
+	/**
+	 * Test generated markup for an image with 'auto' keyword already present in sizes does not receive it again.
+	 *
+	 * @ticket 61847
+	 *
+	 * @covers ::wp_img_tag_add_auto_sizes
+	 * @covers ::wp_sizes_attribute_includes_valid_auto
+	 *
+	 * @dataProvider data_image_with_existing_auto_sizes
+	 *
+	 * @param string $initial_sizes      The initial sizes attribute to test.
+	 * @param bool   $expected_processed Whether the auto sizes should be processed or not.
+	 */
+	public function test_image_with_existing_auto_sizes_is_not_processed_again( string $initial_sizes, bool $expected_processed ) {
+		$image_tag = wp_get_attachment_image(
+			self::$large_id,
+			'large',
+			false,
+			array(
+				// Force pre-existing 'sizes' attribute and lazy-loading.
+				'sizes'   => $initial_sizes,
+				'loading' => 'lazy',
+			)
+		);
+		if ( $expected_processed ) {
+			$this->assertStringContainsString(
+				'sizes="auto, ' . $initial_sizes . '"',
+				$image_tag,
+				'Failed asserting that "auto" keyword is not added to sizes attribute when it already exists.'
+			);
+		} else {
+			$this->assertStringContainsString(
+				'sizes="' . $initial_sizes . '"',
+				$image_tag,
+				'Failed asserting that "auto" keyword is not added to sizes attribute when it already exists.'
+			);
+		}
+	}
+
+	/**
+	 * Test content filtered markup with 'auto' keyword already present in sizes does not receive it again.
+	 *
+	 * @ticket 61847
+	 *
+	 * @covers ::wp_img_tag_add_auto_sizes
+	 * @covers ::wp_sizes_attribute_includes_valid_auto
+	 *
+	 * @dataProvider data_image_with_existing_auto_sizes
+	 *
+	 * @param string $initial_sizes      The initial sizes attribute to test.
+	 * @param bool   $expected_processed Whether the auto sizes should be processed or not.
+	 */
+	public function test_content_image_with_existing_auto_sizes_is_not_processed_again( string $initial_sizes, bool $expected_processed ) {
+		// Force lazy loading attribute.
+		add_filter( 'wp_img_tag_add_loading_attr', '__return_true' );
+
+		add_filter(
+			'get_image_tag',
+			static function ( $html ) use ( $initial_sizes ) {
+				return str_replace(
+					'" />',
+					'" sizes="' . $initial_sizes . '" />',
+					$html
+				);
+			}
+		);
+
+		$image_content = wp_filter_content_tags( get_image_tag( self::$large_id, '', '', '', 'large' ) );
+		if ( $expected_processed ) {
+			$this->assertStringContainsString(
+				'sizes="auto, ' . $initial_sizes . '"',
+				$image_content,
+				'Failed asserting that "auto" keyword is not added to sizes attribute in filtered content when it already exists.'
+			);
+		} else {
+			$this->assertStringContainsString(
+				'sizes="' . $initial_sizes . '"',
+				$image_content,
+				'Failed asserting that "auto" keyword is not added to sizes attribute in filtered content when it already exists.'
+			);
+		}
+	}
+
+	/**
+	 * Returns data for the above test methods to assert correct behavior with a pre-existing sizes attribute.
+	 *
+	 * @return array<string, mixed[]> Arguments for the test scenarios.
+	 */
+	public function data_image_with_existing_auto_sizes() {
+		return array(
+			'not present'                 => array(
+				'(max-width: 1024px) 100vw, 1024px',
+				true,
+			),
+			'in beginning, without space' => array(
+				'auto,(max-width: 1024px) 100vw, 1024px',
+				false,
+			),
+			'in beginning, with space'    => array(
+				'auto, (max-width: 1024px) 100vw, 1024px',
+				false,
+			),
+			'sole keyword'                => array(
+				'auto',
+				false,
+			),
+			'with space before'           => array(
+				' auto, (max-width: 1024px) 100vw, 1024px',
+				false,
+			),
+			'with uppercase'              => array(
+				'AUTO, (max-width: 1024px) 100vw, 1024px',
+				false,
+			),
+
+			/*
+			 * The following scenarios technically include the 'auto' keyword,
+			 * but it is in the wrong place, as per the HTML spec it must be
+			 * the first entry in the list.
+			 * Therefore in these invalid cases the 'auto' keyword should still
+			 * be added to the beginning of the list.
+			 */
+			'within, without space'       => array(
+				'(max-width: 1024px) 100vw, auto,1024px',
+				true,
+			),
+			'within, with space'          => array(
+				'(max-width: 1024px) 100vw, auto, 1024px',
+				true,
+			),
+			'at the end, without space'   => array(
+				'(max-width: 1024px) 100vw,auto',
+				true,
+			),
+			'at the end, with space'      => array(
+				'(max-width: 1024px) 100vw, auto',
+				true,
+			),
+		);
+	}
+
+	/**
+	 * Provides data to test wp_enqueue_img_auto_sizes_contain_css_fix().
+	 *
+	 * @return array<string, array>
+	 */
+	public function data_provider_data_provider_to_test_wp_enqueue_img_auto_sizes_contain_css_fix(): array {
+		return array(
+			'default'                     => array(
+				'set_up'   => null,
+				'expected' => true,
+			),
+			'dequeued'                    => array(
+				'set_up'   => static function (): void {
+					add_action(
+						'wp_enqueue_scripts',
+						static function () {
+							wp_dequeue_style( 'wp-img-auto-sizes-contain' );
+						}
+					);
+				},
+				'expected' => false,
+			),
+			'filtered_off'                => array(
+				'set_up'   => static function (): void {
+					add_filter( 'wp_img_tag_add_auto_sizes', '__return_false' );
+				},
+				'expected' => false,
+			),
+			'filtered_on'                 => array(
+				'set_up'   => static function (): void {
+					add_filter( 'wp_img_tag_add_auto_sizes', '__return_false' );
+					add_filter( 'wp_img_tag_add_auto_sizes', '__return_true', 100 );
+				},
+				'expected' => true,
+			),
+			'deprecated_function_removed' => array(
+				'set_up'   => static function (): void {
+					remove_action( 'wp_head', 'wp_print_auto_sizes_contain_css_fix', 1 );
+				},
+				'expected' => false,
+			),
+			'new_function_removed'        => array(
+				'set_up'              => static function (): void {
+					remove_action( 'wp_head', 'wp_enqueue_img_auto_sizes_contain_css_fix', 0 );
+				},
+				'expected'            => false,
+				'expected_deprecated' => 'wp_print_auto_sizes_contain_css_fix',
+			),
+			'both_functions_removed'      => array(
+				'set_up'   => static function (): void {
+					remove_action( 'wp_head', 'wp_enqueue_img_auto_sizes_contain_css_fix', 0 );
+					remove_action( 'wp_head', 'wp_print_auto_sizes_contain_css_fix', 1 );
+				},
+				'expected' => false,
+			),
+		);
+	}
+
+	/**
+	 * Tests that IMG auto-sizes CSS fix is enqueued (and printed) when expected.
+	 *
+	 * @covers ::wp_enqueue_img_auto_sizes_contain_css_fix
+	 * @ticket 62731
+	 *
+	 * @dataProvider data_provider_data_provider_to_test_wp_enqueue_img_auto_sizes_contain_css_fix
+	 */
+	public function test_wp_enqueue_img_auto_sizes_contain_css_fix( ?Closure $set_up, bool $expected, ?string $expected_deprecated = null ): void {
+		// These files are created as part of the build process, but the unit tests don't run the build prior to running unit tests on GHA.
+		self::touch( ABSPATH . WPINC . '/css/dist/block-library/style.css' );
+		self::touch( ABSPATH . WPINC . '/css/dist/block-library/common.css' );
+
+		if ( $set_up ) {
+			$set_up();
+		}
+		if ( isset( $expected_deprecated ) ) {
+			$this->setExpectedDeprecated( $expected_deprecated );
+		}
+
+		$this->assertCount( 0, wp_styles()->queue );
+		wp_enqueue_style( 'very-early-enqueued', home_url( '/very-early-enqueued.css' ) );
+		add_action(
+			'wp_enqueue_scripts',
+			static function () {
+				wp_enqueue_style( 'wp-block-library' );
+			}
+		);
+
+		$wp_head_output           = get_echo( 'wp_head' );
+		$html_processor           = new WP_HTML_Tag_Processor( $wp_head_output );
+		$found_style_text_content = null;
+		while ( $html_processor->next_tag( array( 'tag_name' => 'STYLE' ) ) ) {
+			if ( $html_processor->get_attribute( 'id' ) === 'wp-img-auto-sizes-contain-inline-css' ) {
+				$found_style_text_content = $html_processor->get_modifiable_text();
+				break;
+			}
+		}
+
+		$enqueued = wp_styles()->queue;
+		if ( $expected ) {
+			$this->assertSame( 'wp-img-auto-sizes-contain', array_shift( $enqueued ) );
+			$this->assertIsString( $found_style_text_content );
+			$this->assertStringContainsString( 'contain-intrinsic-size', $found_style_text_content );
+		} else {
+			$this->assertNull( $found_style_text_content );
+		}
+		$this->assertSame( 'very-early-enqueued', array_shift( $enqueued ) );
+		$this->assertContains( 'wp-emoji-styles', $enqueued );
+		$this->assertContains( 'wp-block-library', $enqueued );
+	}
+
+	/**
+	 * Data provider for test_wp_img_tag_add_auto_sizes().
+	 *
+	 * @return array<string, mixed>
+	 */
+	public function data_provider_to_test_wp_img_tag_add_auto_sizes() {
+		return array(
+			'expected_with_single_quoted_attributes'       => array(
+				'input'    => "<img width='300' height='225' src='https://example.com/foo-300x225.jpg' srcset='https://example.com/foo-300x225.jpg 300w, https://example.com/foo-1024x768.jpg 1024w, https://example.com/foo-768x576.jpg 768w, https://example.com/foo-1536x1152.jpg 1536w, https://example.com/foo-2048x1536.jpg 2048w' sizes='(max-width: 650px) 100vw, 650px' loading='lazy'>",
+				'expected' => "<img width='300' height='225' src='https://example.com/foo-300x225.jpg' srcset='https://example.com/foo-300x225.jpg 300w, https://example.com/foo-1024x768.jpg 1024w, https://example.com/foo-768x576.jpg 768w, https://example.com/foo-1536x1152.jpg 1536w, https://example.com/foo-2048x1536.jpg 2048w' sizes=\"auto, (max-width: 650px) 100vw, 650px\" loading='lazy'>",
+			),
+			'expected_with_data_sizes_attribute'           => array(
+				'input'    => '<img width="300" height="225" data-tshirt-sizes="S M L" src="https://example.com/foo-300x225.jpg" srcset="https://example.com/foo-300x225.jpg 300w, https://example.com/foo-1024x768.jpg 1024w, https://example.com/foo-768x576.jpg 768w, https://example.com/foo-1536x1152.jpg 1536w, https://example.com/foo-2048x1536.jpg 2048w" sizes="(max-width: 650px) 100vw, 650px" loading="lazy">',
+				'expected' => '<img width="300" height="225" data-tshirt-sizes="S M L" src="https://example.com/foo-300x225.jpg" srcset="https://example.com/foo-300x225.jpg 300w, https://example.com/foo-1024x768.jpg 1024w, https://example.com/foo-768x576.jpg 768w, https://example.com/foo-1536x1152.jpg 1536w, https://example.com/foo-2048x1536.jpg 2048w" sizes="auto, (max-width: 650px) 100vw, 650px" loading="lazy">',
+			),
+			'expected_with_data_sizes_attribute_already_present' => array(
+				'input'    => '<img width="300" height="225" data-tshirt-sizes="S M L" src="https://example.com/foo-300x225.jpg" srcset="https://example.com/foo-300x225.jpg 300w, https://example.com/foo-1024x768.jpg 1024w, https://example.com/foo-768x576.jpg 768w, https://example.com/foo-1536x1152.jpg 1536w, https://example.com/foo-2048x1536.jpg 2048w" sizes="AUTO, (max-width: 650px) 100vw, 650px" loading="lazy">',
+				'expected' => '<img width="300" height="225" data-tshirt-sizes="S M L" src="https://example.com/foo-300x225.jpg" srcset="https://example.com/foo-300x225.jpg 300w, https://example.com/foo-1024x768.jpg 1024w, https://example.com/foo-768x576.jpg 768w, https://example.com/foo-1536x1152.jpg 1536w, https://example.com/foo-2048x1536.jpg 2048w" sizes="AUTO, (max-width: 650px) 100vw, 650px" loading="lazy">',
+			),
+			'not_expected_with_loading_lazy_in_attr_value' => array(
+				'input'    => '<img width="300" height="225" src="https://example.com/foo-300x225.jpg" srcset="https://example.com/foo-300x225.jpg 300w, https://example.com/foo-1024x768.jpg 1024w, https://example.com/foo-768x576.jpg 768w, https://example.com/foo-1536x1152.jpg 1536w, https://example.com/foo-2048x1536.jpg 2048w" sizes="(max-width: 650px) 100vw, 650px" alt=\'This is the LCP image and it should not get loading="lazy"!\'>',
+				'expected' => '<img width="300" height="225" src="https://example.com/foo-300x225.jpg" srcset="https://example.com/foo-300x225.jpg 300w, https://example.com/foo-1024x768.jpg 1024w, https://example.com/foo-768x576.jpg 768w, https://example.com/foo-1536x1152.jpg 1536w, https://example.com/foo-2048x1536.jpg 2048w" sizes="(max-width: 650px) 100vw, 650px" alt=\'This is the LCP image and it should not get loading="lazy"!\'>',
+			),
+			'not_expected_with_data_loading_attribute_present' => array(
+				'input'    => '<img width="300" height="225" src="https://example.com/foo-300x225.jpg" srcset="https://example.com/foo-300x225.jpg 300w, https://example.com/foo-1024x768.jpg 1024w, https://example.com/foo-768x576.jpg 768w, https://example.com/foo-1536x1152.jpg 1536w, https://example.com/foo-2048x1536.jpg 2048w" sizes="(max-width: 650px) 100vw, 650px" data-removed-loading="lazy">',
+				'expected' => '<img width="300" height="225" src="https://example.com/foo-300x225.jpg" srcset="https://example.com/foo-300x225.jpg 300w, https://example.com/foo-1024x768.jpg 1024w, https://example.com/foo-768x576.jpg 768w, https://example.com/foo-1536x1152.jpg 1536w, https://example.com/foo-2048x1536.jpg 2048w" sizes="(max-width: 650px) 100vw, 650px" data-removed-loading="lazy">',
+			),
+			'expected_when_attributes_have_spaces_after_them' => array(
+				'input'    => '<img width="300" height="225" src = "https://example.com/foo-300x225.jpg" srcset = "https://example.com/foo-300x225.jpg 300w, https://example.com/foo-1024x768.jpg 1024w, https://example.com/foo-768x576.jpg 768w, https://example.com/foo-1536x1152.jpg 1536w, https://example.com/foo-2048x1536.jpg 2048w" sizes = "(max-width: 650px) 100vw, 650px" loading = "lazy">',
+				'expected' => '<img width="300" height="225" src = "https://example.com/foo-300x225.jpg" srcset = "https://example.com/foo-300x225.jpg 300w, https://example.com/foo-1024x768.jpg 1024w, https://example.com/foo-768x576.jpg 768w, https://example.com/foo-1536x1152.jpg 1536w, https://example.com/foo-2048x1536.jpg 2048w" sizes="auto, (max-width: 650px) 100vw, 650px" loading = "lazy">',
+			),
+			'expected_when_attributes_are_upper_case'      => array(
+				'input'    => '<IMG WIDTH="300" HEIGHT="225" SRC="https://example.com/foo-300x225.jpg" SRCSET="https://example.com/foo-300x225.jpg 300w, https://example.com/foo-1024x768.jpg 1024w, https://example.com/foo-768x576.jpg 768w, https://example.com/foo-1536x1152.jpg 1536w, https://example.com/foo-2048x1536.jpg 2048w" SIZES="(max-width: 650px) 100vw, 650px" LOADING="LAZY">',
+				'expected' => '<IMG WIDTH="300" HEIGHT="225" SRC="https://example.com/foo-300x225.jpg" SRCSET="https://example.com/foo-300x225.jpg 300w, https://example.com/foo-1024x768.jpg 1024w, https://example.com/foo-768x576.jpg 768w, https://example.com/foo-1536x1152.jpg 1536w, https://example.com/foo-2048x1536.jpg 2048w" sizes="auto, (max-width: 650px) 100vw, 650px" LOADING="LAZY">',
+			),
+			'expected_when_loading_lazy_lacks_quotes'      => array(
+				'input'    => '<img width="300" height="225" src="https://example.com/foo-300x225.jpg" srcset="https://example.com/foo-300x225.jpg 300w, https://example.com/foo-1024x768.jpg 1024w, https://example.com/foo-768x576.jpg 768w, https://example.com/foo-1536x1152.jpg 1536w, https://example.com/foo-2048x1536.jpg 2048w" sizes="(max-width: 650px) 100vw, 650px" loading=lazy>',
+				'expected' => '<img width="300" height="225" src="https://example.com/foo-300x225.jpg" srcset="https://example.com/foo-300x225.jpg 300w, https://example.com/foo-1024x768.jpg 1024w, https://example.com/foo-768x576.jpg 768w, https://example.com/foo-1536x1152.jpg 1536w, https://example.com/foo-2048x1536.jpg 2048w" sizes="auto, (max-width: 650px) 100vw, 650px" loading=lazy>',
+			),
+			'expected_when_loading_lazy_has_whitespace'    => array(
+				'input'    => '<img width="300" height="225" src="https://example.com/foo-300x225.jpg" srcset="https://example.com/foo-300x225.jpg 300w, https://example.com/foo-1024x768.jpg 1024w, https://example.com/foo-768x576.jpg 768w, https://example.com/foo-1536x1152.jpg 1536w, https://example.com/foo-2048x1536.jpg 2048w" sizes="(max-width: 650px) 100vw, 650px" loading=" lazy ">',
+				'expected' => '<img width="300" height="225" src="https://example.com/foo-300x225.jpg" srcset="https://example.com/foo-300x225.jpg 300w, https://example.com/foo-1024x768.jpg 1024w, https://example.com/foo-768x576.jpg 768w, https://example.com/foo-1536x1152.jpg 1536w, https://example.com/foo-2048x1536.jpg 2048w" sizes="auto, (max-width: 650px) 100vw, 650px" loading=" lazy ">',
+			),
+			'not_expected_when_sizes_auto_lacks_quotes'    => array(
+				'input'    => '<img width="300" height="225" src="https://example.com/foo-300x225.jpg" srcset="https://example.com/foo-300x225.jpg 300w, https://example.com/foo-1024x768.jpg 1024w, https://example.com/foo-768x576.jpg 768w, https://example.com/foo-1536x1152.jpg 1536w, https://example.com/foo-2048x1536.jpg 2048w" sizes=auto loading="lazy">',
+				'expected' => '<img width="300" height="225" src="https://example.com/foo-300x225.jpg" srcset="https://example.com/foo-300x225.jpg 300w, https://example.com/foo-1024x768.jpg 1024w, https://example.com/foo-768x576.jpg 768w, https://example.com/foo-1536x1152.jpg 1536w, https://example.com/foo-2048x1536.jpg 2048w" sizes=auto loading="lazy">',
+			),
+			'not_expected_when_img_lacks_dimensions'       => array(
+				'input'    => '<img data-tshirt-sizes="S M L" src="https://example.com/foo-300x225.jpg" srcset="https://example.com/foo-300x225.jpg 300w, https://example.com/foo-1024x768.jpg 1024w, https://example.com/foo-768x576.jpg 768w, https://example.com/foo-1536x1152.jpg 1536w, https://example.com/foo-2048x1536.jpg 2048w" sizes="(max-width: 650px) 100vw, 650px" loading="lazy">',
+				'expected' => '<img data-tshirt-sizes="S M L" src="https://example.com/foo-300x225.jpg" srcset="https://example.com/foo-300x225.jpg 300w, https://example.com/foo-1024x768.jpg 1024w, https://example.com/foo-768x576.jpg 768w, https://example.com/foo-1536x1152.jpg 1536w, https://example.com/foo-2048x1536.jpg 2048w" sizes="(max-width: 650px) 100vw, 650px" loading="lazy">',
+			),
+		);
+	}
+
+	/**
+	 * @ticket 61847
+	 *
+	 * @covers ::wp_img_tag_add_auto_sizes
+	 *
+	 * @dataProvider data_provider_to_test_wp_img_tag_add_auto_sizes
+	 *
+	 * @param string $input    The input HTML string.
+	 * @param string $expected The expected output HTML string.
+	 */
+	public function test_wp_img_tag_add_auto_sizes( string $input, string $expected ) {
+		$this->assertSame(
+			$expected,
+			wp_img_tag_add_auto_sizes( $input ),
+			'Failed asserting that "auto" keyword is correctly added or not added to sizes attribute in the image tag.'
+		);
+	}
+
+	/**
+	 * Ensure an HEIC image is converted to a JPEG.
+	 *
+	 * @ticket 62305
+	 * @ticket 62359
+	 *
+	 * @dataProvider data_image_converted_to_other_format_has_correct_filename
+	 *
+	 * @param bool $apply_big_image_size_threshold True if filter needs to apply, otherwise false.
+	 */
+	public function test_heic_image_upload_is_converted_to_jpeg( bool $apply_big_image_size_threshold ) {
+		$temp_dir      = get_temp_dir();
+		$file          = $temp_dir . '/test-image.heic';
+		$scaled_suffix = $apply_big_image_size_threshold ? '-scaled' : '';
+		copy( DIR_TESTDATA . '/images/test-image.heic', $file );
+
+		$editor = wp_get_image_editor( $file );
+
+		// Skip if the editor does not support HEIC.
+		if ( is_wp_error( $editor ) || ! $editor->supports_mime_type( 'image/heic' ) ) {
+			$this->markTestSkipped( 'HEIC is not supported by the selected image editor.' );
+		}
+
+		$attachment_id = self::factory()->attachment->create_object(
+			array(
+				'post_mime_type' => 'image/heic',
+				'file'           => $file,
+			)
+		);
+
+		if ( $apply_big_image_size_threshold ) {
+			add_filter( 'big_image_size_threshold', array( $this, 'add_big_image_size_threshold' ) );
+		}
+
+		$image_meta = wp_generate_attachment_metadata( $attachment_id, $file );
+
+		$this->assertStringEndsNotWith( '.heic', $image_meta['file'], 'The file extension is expected to change.' );
+		$this->assertSame( "test-image{$scaled_suffix}.jpg", basename( $image_meta['file'] ), "The file name is expected to be test-image{$scaled_suffix}.jpg" );
+		$this->assertSame( 'test-image.heic', $image_meta['original_image'], 'The original image name is expected to be stored in the meta data.' );
+		$this->assertSame( 'image/jpeg', wp_get_image_mime( $image_meta['file'] ), 'The image mime type is expected to be image/jpeg.' );
+	}
+
+	/**
+	 * Ensure a JPEG is converted to WebP when applied via a filter.
+	 *
+	 * @ticket 62305
+	 * @ticket 62359
+	 *
+	 * @dataProvider data_image_converted_to_other_format_has_correct_filename
+	 *
+	 * @param bool $apply_big_image_size_threshold True if filter needs to apply, otherwise false.
+	 */
+	public function test_jpeg_image_converts_to_webp_when_filtered( bool $apply_big_image_size_threshold ) {
+		$temp_dir      = get_temp_dir();
+		$file          = $temp_dir . '/33772.jpg';
+		$scaled_suffix = $apply_big_image_size_threshold ? '-scaled' : '';
+		copy( DIR_TESTDATA . '/images/33772.jpg', $file );
+
+		$editor = wp_get_image_editor( $file );
+
+		// Skip if the editor does not support WebP.
+		if ( is_wp_error( $editor ) || ! $editor->supports_mime_type( 'image/webp' ) ) {
+			$this->markTestSkipped( 'WebP is not supported by the selected image editor.' );
+		}
+
+		$attachment_id = self::factory()->attachment->create_object(
+			array(
+				'post_mime_type' => 'image/jpeg',
+				'file'           => $file,
+			)
+		);
+
+		if ( $apply_big_image_size_threshold ) {
+			add_filter( 'big_image_size_threshold', array( $this, 'add_big_image_size_threshold' ) );
+		}
+
+		// Generate all sizes as WebP.
+		add_filter( 'image_editor_output_format', array( $this, 'image_editor_output_webp' ) );
+
+		$image_meta = wp_generate_attachment_metadata( $attachment_id, $file );
+
+		$this->assertStringEndsNotWith( '.jpg', $image_meta['file'], 'The file extension is expected to change.' );
+		$this->assertSame( "33772{$scaled_suffix}.webp", basename( $image_meta['file'] ), "The file name is expected to be 33772{$scaled_suffix}.webp." );
+		$this->assertSame( '33772.jpg', $image_meta['original_image'], 'The original image name is expected to be stored in the meta data.' );
+		$this->assertSame( 'image/webp', wp_get_image_mime( $image_meta['file'] ), 'The image mime type is expected to be image/webp.' );
+	}
+
+	/**
+	 * Data provider for test_image_converted_to_other_format_has_correct_filename().
+	 *
+	 * @return array[]
+	 */
+	public function data_image_converted_to_other_format_has_correct_filename() {
+		return array(
+			'do not scale image' => array( false ),
+			'scale image'        => array( true ),
+		);
+	}
+
+	/**
 	 * Helper method to keep track of the last context returned by the 'wp_get_attachment_image_context' filter.
 	 *
 	 * The method parameter is passed by reference and therefore will always contain the last context value.
@@ -5997,6 +7352,13 @@ EOF;
 	}
 
 	/**
+	 * Output AVIF images.
+	 */
+	public function image_editor_output_avif() {
+		return array( 'image/jpeg' => 'image/avif' );
+	}
+
+	/**
 	 * Changes the quality using very low quality for JPEGs and very high quality
 	 * for WebPs, used to verify the filter is applying correctly.
 	 *
@@ -6012,6 +7374,13 @@ EOF;
 		} else {
 			return 30;
 		}
+	}
+
+	/**
+	 * Output only low quality images.
+	 */
+	public function image_editor_change_quality_low( $quality ) {
+		return 15;
 	}
 
 	/**
@@ -6059,9 +7428,9 @@ EOF;
 	/**
 	 * Returns an array with dimension attribute values eligible for a high priority image.
 	 *
-	 * @return array Associative array with 'width' and 'height' keys.
+	 * @return array{ width: int, height: int } Associative array with 'width' and 'height' keys.
 	 */
-	private function get_width_height_for_high_priority() {
+	private function get_width_height_for_high_priority(): array {
 		/*
 		 * The product of width * height must be >50000 to qualify for high priority image.
 		 * 300 * 200 = 60000
@@ -6075,9 +7444,9 @@ EOF;
 	/**
 	 * Returns an array with dimension attribute values ineligible for a high priority image.
 	 *
-	 * @return array Associative array with 'width' and 'height' keys.
+	 * @return array{ width: int, height: int } Associative array with 'width' and 'height' keys.
 	 */
-	private function get_insufficient_width_height_for_high_priority() {
+	private function get_insufficient_width_height_for_high_priority(): array {
 		/*
 		 * The product of width * height must be >50000 to qualify for high priority image.
 		 * 200 * 100 = 20000
@@ -6086,6 +7455,81 @@ EOF;
 			'width'  => 200,
 			'height' => 100,
 		);
+	}
+
+	/**
+	 * @ticket 65262
+	 * @covers ::wp_get_image_encode_quality
+	 */
+	public function test_wp_get_image_encode_quality_defaults() {
+		// JPEG (and any non-WebP) defaults to 82, WebP to 86.
+		$this->assertSame( 82, wp_get_image_encode_quality( 'image/jpeg' ) );
+		$this->assertSame( 82, wp_get_image_encode_quality( 'image/png' ) );
+		$this->assertSame( 86, wp_get_image_encode_quality( 'image/webp' ) );
+	}
+
+	/**
+	 * @ticket 65262
+	 * @covers ::wp_get_image_encode_quality
+	 */
+	public function test_wp_get_image_encode_quality_applies_wp_editor_set_quality() {
+		$filter = static function ( $quality, $mime_type, $size ) {
+			return ( ! empty( $size['width'] ) && $size['width'] <= 300 ) ? 55 : $quality;
+		};
+		add_filter( 'wp_editor_set_quality', $filter, 10, 3 );
+
+		$small = wp_get_image_encode_quality( 'image/webp', array( 'width' => 150 ) );
+		$large = wp_get_image_encode_quality( 'image/webp', array( 'width' => 1200 ) );
+
+		remove_filter( 'wp_editor_set_quality', $filter, 10 );
+
+		$this->assertSame( 55, $small );
+		$this->assertSame( 86, $large );
+	}
+
+	/**
+	 * The legacy jpeg_quality filter must apply for JPEG output only, matching
+	 * WP_Image_Editor::set_quality().
+	 *
+	 * @ticket 65262
+	 * @covers ::wp_get_image_encode_quality
+	 */
+	public function test_wp_get_image_encode_quality_applies_jpeg_quality() {
+		$filter = static function () {
+			return 70;
+		};
+		add_filter( 'jpeg_quality', $filter );
+
+		$jpeg = wp_get_image_encode_quality( 'image/jpeg' );
+		$webp = wp_get_image_encode_quality( 'image/webp' );
+
+		remove_filter( 'jpeg_quality', $filter );
+
+		$this->assertSame( 70, $jpeg );
+		// Non-JPEG output ignores jpeg_quality.
+		$this->assertSame( 86, $webp );
+	}
+
+	/**
+	 * Out-of-range filtered values fall back to the default; 0 squashes to 1.
+	 *
+	 * @ticket 65262
+	 * @covers ::wp_get_image_encode_quality
+	 */
+	public function test_wp_get_image_encode_quality_clamps_out_of_range() {
+		$too_high = static function () {
+			return 150;
+		};
+		add_filter( 'wp_editor_set_quality', $too_high );
+		$this->assertSame( 82, wp_get_image_encode_quality( 'image/jpeg' ) );
+		remove_filter( 'wp_editor_set_quality', $too_high );
+
+		$zero = static function () {
+			return 0;
+		};
+		add_filter( 'wp_editor_set_quality', $zero );
+		$this->assertSame( 1, wp_get_image_encode_quality( 'image/png' ) );
+		remove_filter( 'wp_editor_set_quality', $zero );
 	}
 }
 
