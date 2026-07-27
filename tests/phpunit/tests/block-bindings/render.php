@@ -355,7 +355,7 @@ HTML;
 	 * Tests if the Icon block's icon attribute is updated with the value
 	 * returned by a block bindings source.
 	 *
-	 * @ticket 65406
+	 * @ticket 65725
 	 *
 	 * @covers ::register_block_bindings_source
 	 */
