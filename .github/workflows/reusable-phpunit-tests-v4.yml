@@ -86,6 +86,7 @@ env:
   LOCAL_PHP_MEMCACHED: ${{ inputs.memcached }}
   LOCAL_WP_TESTS_DOMAIN: ${{ inputs.tests-domain }}
   PHPUNIT_CONFIG: ${{ inputs.phpunit-config }}
+  PUPPETEER_SKIP_DOWNLOAD: true
 
 # Disable permissions for all available scopes by default.
 # Any needed permissions should be configured at the job level.
@@ -121,23 +122,31 @@ jobs:
           - 11211
 
     steps:
-      - name: Sparse checkout repository metadata
+      - name: Checkout repository
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
-          path: 'repo-metadata'
-          fetch-depth: 1
           show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
           persist-credentials: false
-          sparse-checkout: |
-            .github
 
-      - name: Download WordPress build artifact
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+      - name: Set up Node.js
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
         with:
-          name: wordpress-build
+          node-version-file: '.nvmrc'
 
-      - name: Unzip WordPress build artifact
-        run: unzip -q wordpress-build.zip
+      - name: Set weekly cache suffix
+        id: weekly-cache-suffix
+        run: echo "value=$(/bin/date -u --date='last Mon' '+%F')" >> "$GITHUB_OUTPUT"
+
+      - name: Cache npm dependencies
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.0.3
+        with:
+          path: |
+            ~/.npm
+            node_modules
+          key: npm-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-${{ steps.weekly-cache-suffix.outputs.value }}
+          restore-keys: |
+            npm-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-
+            npm-${{ runner.os }}-
 
       - name: Set up PHP
         uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
@@ -146,8 +155,16 @@ jobs:
           coverage: xdebug
           extensions: gd, mysqli, memcached
 
+      - name: Install npm dependencies
+        run: npm install
+
       - name: Install Composer dependencies
-        run: composer install --no-interaction --no-progress --prefer-dist
+        uses: ramsey/composer-install@65e4f84970763564f46a70b8a54b90d033b3bdda # 4.0.0
+        with:
+          custom-cache-suffix: ${{ steps.weekly-cache-suffix.outputs.value }}
+
+      - name: Build WordPress
+        run: npm run build:dev
 
       - name: Configure test domain
         run: |
@@ -248,6 +265,9 @@ jobs:
           files: wp-code-coverage${{ inputs.multisite && '-multisite' || '-single' }}-${{ github.sha }}.xml
           flags: ${{ inputs.multisite && 'multisite' || 'single' }},php
           fail_ci_if_error: true
+
+      - name: Ensure version-controlled files are not modified or deleted
+        run: git diff --exit-code
 
       - name: Checkout the WordPress Test Reporter
         if: ${{ github.ref == 'refs/heads/trunk' && inputs.report }}
