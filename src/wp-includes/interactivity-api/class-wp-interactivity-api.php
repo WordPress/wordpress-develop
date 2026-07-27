@@ -861,6 +861,7 @@ final class WP_Interactivity_API {
 	 * @param string|null $default_namespace Optional. The default namespace if none is explicitly defined.
 	 * @return array An array containing the namespace in the first item and the JSON, the reference path, or null on the
 	 *               second item.
+	 * @phpstan-return array{ 0: string|null, 1: mixed }
 	 */
 	private function extract_directive_value( $directive_value, $default_namespace = null ): array {
 		if ( empty( $directive_value ) || is_bool( $directive_value ) ) {
