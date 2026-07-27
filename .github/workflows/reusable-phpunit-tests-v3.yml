@@ -109,7 +109,7 @@ jobs:
   # Performs the following steps:
   # - Sets environment variables.
   # - Checks out the repository.
-  # - Downloads the prepared Gutenberg build when provided by the calling workflow.
+  # - Downloads the prepared Gutenberg build provided by the calling workflow.
   # - Sets up Node.js.
   # - Sets up PHP.
   # - Installs Composer dependencies.

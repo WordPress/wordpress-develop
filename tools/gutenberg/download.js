@@ -5,9 +5,10 @@
  * Download Gutenberg Repository Script.
  *
  * This script downloads a pre-built Gutenberg tar.gz artifact from the GitHub
- * Container Registry and extracts it into the ./gutenberg directory. An
- * existing gutenberg directory is replaced only after verification and
- * extraction succeed.
+ * Container Registry and extracts it into the ./gutenberg directory. The
+ * archive is downloaded and verified (SHA-256 and manifest size) before
+ * extraction; the existing gutenberg directory is then removed and replaced
+ * with the extracted contents.
  *
  * The artifact is identified by the "gutenberg.sha" value in the root
  * package.json, which is used as the OCI tag for the gutenberg-wp-develop-build
@@ -165,12 +166,6 @@ async function downloadAndVerifyBlob( url, token, digest, expectedSize, destinat
 		);
 	}
 
-	if ( contentLength && downloadedBytes !== contentLength ) {
-		throw new Error(
-			`Downloaded ${ formatBytes( downloadedBytes ) }, but Content-Length was ${ formatBytes( contentLength ) }`
-		);
-	}
-
 	if ( expectedSize && downloadedBytes !== expectedSize ) {
 		throw new Error(
 			`Downloaded ${ formatBytes( downloadedBytes ) }, but manifest size was ${ formatBytes( expectedSize ) }`
@@ -190,17 +185,25 @@ async function downloadAndVerifyBlob( url, token, digest, expectedSize, destinat
 /**
  * Download a blob with bounded retries and remove incomplete files between attempts.
  *
+ * The GHCR bearer token can age out during a long retry window. If a 401 is
+ * encountered, a fresh token is fetched once (via `fetchGhcrToken`) and the
+ * download is retried with it.
+ *
  * @param {string} url Blob URL.
  * @param {string} token Bearer token for GHCR.
  * @param {string} digest OCI layer digest.
  * @param {number|undefined} expectedSize Expected layer size from the manifest.
+ * @param {string} ghcrRepo The "owner/repo/package" path on ghcr.io, used to refresh an expired token.
  * @return {Promise<string>} Path to the verified compressed blob.
  */
-async function downloadBlobWithRetries( url, token, digest, expectedSize ) {
+async function downloadBlobWithRetries( url, token, digest, expectedSize, ghcrRepo ) {
 	const destination = path.join(
 		os.tmpdir(),
 		`wordpress-gutenberg-${ process.pid }.tar.gz`
 	);
+
+	let currentToken = token;
+	let hasRefetchedToken = false;
 
 	for ( let attempt = 1; attempt <= MAX_DOWNLOAD_ATTEMPTS; attempt++ ) {
 		console.log( `\n📥 Download attempt ${ attempt }/${ MAX_DOWNLOAD_ATTEMPTS }...` );
@@ -209,7 +212,7 @@ async function downloadBlobWithRetries( url, token, digest, expectedSize ) {
 		try {
 			await downloadAndVerifyBlob(
 				url,
-				token,
+				currentToken,
 				digest,
 				expectedSize,
 				destination
@@ -219,6 +222,20 @@ async function downloadBlobWithRetries( url, token, digest, expectedSize ) {
 			const downloadError = /** @type {Error & { status?: number }} */ ( error );
 			fs.rmSync( destination, { force: true } );
 			console.error( `❌ Download attempt ${ attempt } failed: ${ downloadError.message }` );
+
+			if (
+				downloadError.status === 401 &&
+				! hasRefetchedToken &&
+				attempt < MAX_DOWNLOAD_ATTEMPTS
+			) {
+				hasRefetchedToken = true;
+				console.log( '   Bearer token may have expired mid-retry; fetching a fresh token...' );
+				currentToken = await fetchGhcrToken( ghcrRepo );
+
+				console.log( `   Retrying in ${ RETRY_DELAY_MS / 1000 } seconds...` );
+				await delay( RETRY_DELAY_MS );
+				continue;
+			}
 
 			if (
 				attempt === MAX_DOWNLOAD_ATTEMPTS ||
@@ -384,7 +401,8 @@ async function main() {
 			`https://ghcr.io/v2/${ config.ghcrRepo }/blobs/${ digest }`,
 			token,
 			digest,
-			layer.size
+			layer.size,
+			config.ghcrRepo
 		);
 
 		console.log( '\n📦 Extracting verified artifact...' );

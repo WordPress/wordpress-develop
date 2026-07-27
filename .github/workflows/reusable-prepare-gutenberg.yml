@@ -44,7 +44,7 @@ jobs:
         run: |
           node tools/gutenberg/download.js
           gutenberg_sha="$(tr -d '\n' < gutenberg/.gutenberg-hash)"
-          if [[ ! "$gutenberg_sha" =~ ^[a-f0-9]{40}$ ]]; then
+          if [[ ! "$gutenberg_sha" =~ ^[a-fA-F0-9]{40}$ ]]; then
             echo "Expected a 40-character Gutenberg SHA, received: $gutenberg_sha" >&2
             exit 1
           fi
