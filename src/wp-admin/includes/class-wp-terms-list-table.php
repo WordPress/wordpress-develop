@@ -760,10 +760,11 @@ class WP_Terms_List_Table extends WP_List_Table {
 	 *
 	 * @since 7.1.0
 	 *
-	 * @param WP_Term $tag Term object.
+	 * @param WP_Term $term Term object.
 	 * @return string The term name.
 	 */
-	protected function get_primary_column_aria_label( $tag ) {
-		return $tag->name;
+	protected function get_primary_column_aria_label( $term ) {
+		// Term names are already sanitized via `sanitize_term()` on creation and update.
+		return $term->name;
 	}
 }

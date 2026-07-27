@@ -888,13 +888,13 @@ class WP_MS_Sites_List_Table extends WP_List_Table {
 	/**
 	 * Returns a clean label for the primary (URL) column's row header `aria-label`.
 	 *
-	 * Provides screen readers with just the Site Title as the row header name,
+	 * Provides screen readers with just the site title as the row header name,
 	 * preventing them from computing the name from the full cell content.
 	 *
 	 * @since 7.1.0
 	 *
 	 * @param array $blog The current site properties array.
-	 * @return string The Site title.
+	 * @return string The site title.
 	 */
 	protected function get_primary_column_aria_label( $blog ) {
 		$blog_name = html_entity_decode( get_blog_option( $blog['blog_id'], 'blogname' ), ENT_QUOTES, get_bloginfo( 'charset' ) );

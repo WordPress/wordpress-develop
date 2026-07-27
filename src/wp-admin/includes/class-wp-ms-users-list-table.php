@@ -574,7 +574,7 @@ class WP_MS_Users_List_Table extends WP_List_Table {
 	 * @since 7.1.0
 	 *
 	 * @param WP_User $user The current WP_User object.
-	 * @return string The User login.
+	 * @return string The user login.
 	 */
 	protected function get_primary_column_aria_label( $user ) {
 		return $user->user_login;
