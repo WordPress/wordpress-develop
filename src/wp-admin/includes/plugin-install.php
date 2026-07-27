@@ -340,20 +340,93 @@ function install_search_form( $deprecated = true ) {
  * @since 2.8.0
  */
 function install_plugins_upload() {
+	wp_enqueue_script( 'plupload-handlers' );
+	wp_enqueue_script( 'plugin-upload' );
+	add_thickbox();
+	$max_upload_size = wp_max_upload_size();
+	if ( ! $max_upload_size ) {
+		$max_upload_size = 0;
+	}
+	$upload_plugin_nonce    = wp_create_nonce( 'upload-plugin' );
+	$activate_plugin_nonce  = wp_create_nonce( 'updates' );
+	$cancel_overwrite_nonce = wp_create_nonce( 'plugin-upload-cancel-overwrite' );
+	$plupload_init          = array(
+		'browse_button'    => 'plupload-browse-button',
+		'container'        => 'plupload-upload-ui',
+		'drop_element'     => 'drag-drop-area',
+		'file_data_name'   => 'pluginzip',
+		'url'              => admin_url( 'admin-ajax.php' ),
+		'filters'          => array(
+			'max_file_size'      => $max_upload_size . 'b',
+			'prevent_duplicates' => true,
+			'mime_types'         => array( array( 'extensions' => 'zip' ) ),
+		),
+		'multipart_params' => array(
+			'post_id'  => 0,
+			'action'   => 'upload-plugin',
+			'_wpnonce' => $upload_plugin_nonce,
+		),
+	);
 	?>
 <div class="upload-plugin">
-	<p class="install-help"><?php _e( 'If you have a plugin in a .zip format, you may install or update it by uploading it here.' ); ?></p>
-	<form method="post" enctype="multipart/form-data" class="wp-upload-form" action="<?php echo esc_url( self_admin_url( 'update.php?action=upload-plugin' ) ); ?>">
-		<?php wp_nonce_field( 'plugin-upload' ); ?>
-		<label class="screen-reader-text" for="pluginzip">
-			<?php
-			/* translators: Hidden accessibility text. */
-			_e( 'Plugin zip file' );
-			?>
-		</label>
-		<input type="file" id="pluginzip" name="pluginzip" accept=".zip" />
-		<?php submit_button( _x( 'Install Now', 'plugin' ), '', 'install-plugin-submit', false ); ?>
-	</form>
+	<script type="text/javascript">
+		const plugin_upload_intl = {
+			activate  : '<?php _e( 'Activate' ); ?>',
+			downgrade  : '<?php _e( 'Downgrade' ); ?>',
+			upgrade  : '<?php _e( 'Upgrade' ); ?>',
+			generic_error : '<?php _e( 'An error occurred while uploading this zip' ); ?>',
+			by : '<?php _e( 'By' ); ?>',
+			current : '<?php _e( 'Current' ); ?>',
+			uploaded : '<?php _e( 'Uploaded' ); ?>',
+			plugin_name : '<?php _e( 'Plugin name' ); ?>',
+			version : '<?php _e( 'Version' ); ?>',
+			author : '<?php _e( 'Author' ); ?>',
+			required_wordpress_version : '<?php _e( 'Required WordPress version' ); ?>',
+			required_php_version : '<?php _e( 'Required PHP version' ); ?>',
+			more_details : '<?php _e( 'More Details' ); ?>',
+			processing : '<?php _e( 'Processing' ); ?>',
+			activated : '<?php _e( 'Activated' ); ?>',
+			updated : '<?php _e( 'Updated' ); ?>',
+			activation_failed : '<?php _e( 'Activation failed' ); ?>',
+			cancel_failed : '<?php _e( 'Failed to cancel' ); ?>',
+			cancel : '<?php _e( 'Cancel' ); ?>',
+		};
+		const pluginUploaderInit = <?php echo wp_json_encode( $plupload_init, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ); ?>;
+		const upload_plugin_nonce = '<?php echo $upload_plugin_nonce; ?>';
+		const cancel_overwrite_nonce = '<?php echo $cancel_overwrite_nonce; ?>';
+		const activate_plugin_nonce = '<?php echo $activate_plugin_nonce; ?>';
+	</script>
+
+	<div class="hide-if-js">
+		<p class="install-help"><?php _e( 'If you have a plugin in a .zip format, you may install or update it by uploading it here.' ); ?></p>
+		<form method="post" enctype="multipart/form-data" class="wp-upload-form" action="<?php echo esc_url( self_admin_url( 'update.php?action=upload-plugin' ) ); ?>">
+			<?php wp_nonce_field( 'plugin-upload' ); ?>
+			<label class="screen-reader-text" for="pluginzip">
+				<?php
+				/* translators: Hidden accessibility text. */
+				_e( 'Plugin zip file' );
+				?>
+			</label>
+			<input type="file" id="pluginzip" name="pluginzip" accept=".zip" />
+			<?php submit_button( _x( 'Install Now', 'plugin' ), '', 'install-plugin-submit', false ); ?>
+		</form>
+	</div>
+	<div id="plupload-upload-ui" class="hide-if-no-js">
+		<div class="drag-drop">
+			<div id="drag-drop-area">
+				<div class="drag-drop-inside">
+					<p class="drag-drop-info"><?php _e( 'Drop .zip files to upload' ); ?></p>
+					<p><?php _ex( 'or', 'Uploader: Drop files here - or - Select Files' ); ?></p>
+					<p class="drag-drop-buttons"><input id="plupload-browse-button" type="button" value="<?php esc_attr_e( 'Select Files' ); ?>" class="button" /></p>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="wp-list-table widefat plugin-install" style="margin-top: 20px">
+		<div  id="plugin-upload-list" style="display: flex;flex-wrap: wrap;"> </div>
+	</div>
+
 </div>
 	<?php
 }
