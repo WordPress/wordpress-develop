@@ -117,7 +117,7 @@ jobs:
           --health-timeout="10s"
           --health-retries="5"
       memcached:
-        image: memcached:1.6
+        image: ${{ inputs.memcached && 'memcached:1.6' || '' }}
         ports:
           - 11211
 
