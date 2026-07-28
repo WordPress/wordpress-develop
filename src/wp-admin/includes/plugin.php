@@ -2125,7 +2125,10 @@ function get_plugin_page_hook( $plugin_page, $parent_page ) {
 }
 
 /**
- * Checks if admin page exists, if the user would have the required capabilities.
+ * Determines whether the requested admin page is registered.
+ *
+ * This does not check whether the current user has the capability to access
+ * the page, only whether the page itself exists.
  *
  * @since 7.0.0
  *
@@ -2135,7 +2138,7 @@ function get_plugin_page_hook( $plugin_page, $parent_page ) {
  *
  * @return bool True if the admin page exists, false otherwise.
  */
-function admin_page_exists() {
+function wp_admin_page_exists() {
 	global $admin_page_parent, $plugin_page, $_registered_pages;
 
 	$admin_page_parent ??= get_admin_page_parent();
@@ -2216,10 +2219,6 @@ function user_can_access_admin_page() {
 		}
 
 		$hookname = get_plugin_page_hookname( $plugin_page, $parent );
-
-		if ( ! admin_page_exists() ) {
-			return false;
-		}
 
 		if ( ! isset( $_registered_pages[ $hookname ] ) ) {
 			return false;

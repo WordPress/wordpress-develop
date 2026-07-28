@@ -365,10 +365,10 @@ if ( ! empty( $menu ) && 'wp-menu-separator' === $menu[ $last_menu_key ][4] ) {
 }
 unset( $last_menu_key );
 
-if ( ! admin_page_exists() ) {
+if ( ! wp_admin_page_exists() ) {
 
 	/**
-	 * Fires when access to an admin page which does not exist.
+	 * Fires when a request is made to access an admin page that does not exist.
 	 *
 	 * @since 7.0.0
 	 */
