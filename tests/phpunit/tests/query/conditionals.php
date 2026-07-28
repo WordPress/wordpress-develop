@@ -72,6 +72,48 @@ class Tests_Query_Conditionals extends WP_UnitTestCase {
 		delete_option( 'page_for_posts' );
 	}
 
+	/**
+	 * The get_posts() backstop should set is_singular when promoting a home
+	 * query to a static front page query. Without is_singular, the SQL
+	 * defaults to post_type = 'post' and returns zero results.
+	 *
+	 * @ticket 65072
+	 *
+	 * @covers WP_Query::get_posts
+	 */
+	public function test_page_on_front_backstop_sets_is_singular_with_extra_query_vars() {
+		$page_on_front = self::factory()->post->create(
+			array(
+				'post_type'   => 'page',
+				'post_status' => 'publish',
+			)
+		);
+		update_option( 'show_on_front', 'page' );
+		update_option( 'page_on_front', $page_on_front );
+
+		// Register an extra public query var so that the parse_query() static
+		// front page detection (array_diff check) fails, forcing the
+		// get_posts() backstop to fire.
+		add_filter(
+			'query_vars',
+			static function ( $vars ) {
+				$vars[] = 'custom_extra_var';
+				return $vars;
+			}
+		);
+
+		$this->go_to( '/?custom_extra_var=1&preview=true' );
+
+		$this->assertQueryTrue( 'is_front_page', 'is_page', 'is_singular', 'is_preview' );
+
+		// The query should find the front page, not return zero results.
+		$this->assertCount( 1, $GLOBALS['wp_query']->posts );
+		$this->assertEquals( $page_on_front, $GLOBALS['wp_query']->posts[0]->ID );
+
+		update_option( 'show_on_front', 'posts' );
+		delete_option( 'page_on_front' );
+	}
+
 	public function test_404() {
 		$this->go_to( '/notapage' );
 		$this->assertQueryTrue( 'is_404' );
