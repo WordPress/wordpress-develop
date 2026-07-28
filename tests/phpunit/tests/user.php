@@ -438,6 +438,7 @@ class Tests_User extends WP_UnitTestCase {
 			'show_admin_bar_front' => 1,
 			'rich_editing'         => 1,
 			'syntax_highlighting'  => 1,
+			'infinite_scrolling'   => 'false', // See #65564.
 			'first_name'           => 'first',
 			'last_name'            => 'last',
 			'nickname'             => 'nick',
@@ -1019,30 +1020,6 @@ class Tests_User extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 27317
-	 * @dataProvider data_illegal_user_logins
-	 */
-	public function test_illegal_user_logins_single( $user_login ) {
-		$user_data = array(
-			'user_login' => $user_login,
-			'user_email' => 'testuser@example.com',
-			'user_pass'  => wp_generate_password(),
-		);
-
-		add_filter( 'illegal_user_logins', array( $this, 'illegal_user_logins' ) );
-
-		$response = wp_insert_user( $user_data );
-		$this->assertInstanceOf( 'WP_Error', $response );
-		$this->assertSame( 'invalid_username', $response->get_error_code() );
-
-		remove_filter( 'illegal_user_logins', array( $this, 'illegal_user_logins' ) );
-
-		$user_id = wp_insert_user( $user_data );
-		$user    = get_user_by( 'id', $user_id );
-		$this->assertInstanceOf( 'WP_User', $user );
-	}
-
-	/**
 	 * @ticket 61175
 	 * @covers ::wp_insert_user
 	 */
@@ -1179,6 +1156,30 @@ class Tests_User extends WP_UnitTestCase {
 		$this->assertIsInt( $user_id, 'Expected user to be created.' );
 		$user = new WP_User( $user_id );
 		$this->assertSame( $internal_data['user_login'], $user->user_login );
+	}
+
+	/**
+	 * @ticket 27317
+	 * @dataProvider data_illegal_user_logins
+	 */
+	public function test_illegal_user_logins_single( $user_login ) {
+		$user_data = array(
+			'user_login' => $user_login,
+			'user_email' => 'testuser@example.com',
+			'user_pass'  => wp_generate_password(),
+		);
+
+		add_filter( 'illegal_user_logins', array( $this, 'illegal_user_logins' ) );
+
+		$response = wp_insert_user( $user_data );
+		$this->assertInstanceOf( 'WP_Error', $response );
+		$this->assertSame( 'invalid_username', $response->get_error_code() );
+
+		remove_filter( 'illegal_user_logins', array( $this, 'illegal_user_logins' ) );
+
+		$user_id = wp_insert_user( $user_data );
+		$user    = get_user_by( 'id', $user_id );
+		$this->assertInstanceOf( 'WP_User', $user );
 	}
 
 	/**
@@ -1726,7 +1727,7 @@ class Tests_User extends WP_UnitTestCase {
 
 		/*
 		 * Check to see if a notification email was sent to the
-		 * post author `blackburn@battlefield3.com` and and site admin `admin@example.org`.
+		 * post author `blackburn@battlefield3.com` and site admin `admin@example.org`.
 		 */
 		$first_recipient = $mailer->get_recipient( 'to' );
 		if ( $first_recipient ) {
@@ -1803,7 +1804,7 @@ class Tests_User extends WP_UnitTestCase {
 
 		/*
 		 * Check to see if a notification email was sent to the
-		 * post author `blackburn@battlefield3.com` and and site admin `admin@example.org`.
+		 * post author `blackburn@battlefield3.com` and site admin `admin@example.org`.
 		 */
 		if ( ! empty( $GLOBALS['phpmailer']->mock_sent ) ) {
 			$was_admin_email_sent = ( isset( $GLOBALS['phpmailer']->mock_sent[0] ) && WP_TESTS_EMAIL === $GLOBALS['phpmailer']->mock_sent[0]['to'][0][0] );
@@ -1828,7 +1829,7 @@ class Tests_User extends WP_UnitTestCase {
 
 		/*
 		 * Check to see if a notification email was sent to the
-		 * post author `blackburn@battlefield3.com` and and site admin `admin@example.org`.
+		 * post author `blackburn@battlefield3.com` and site admin `admin@example.org`.
 		 */
 		if ( ! empty( $GLOBALS['phpmailer']->mock_sent ) ) {
 			$was_admin_email_sent = ( isset( $GLOBALS['phpmailer']->mock_sent[0] ) && WP_TESTS_EMAIL === $GLOBALS['phpmailer']->mock_sent[0]['to'][0][0] );
@@ -1976,7 +1977,7 @@ class Tests_User extends WP_UnitTestCase {
 
 		/*
 		 * Check to see if a notification email was sent to the
-		 * post author `blackburn@battlefield3.com` and and site admin `admin@example.org`.
+		 * post author `blackburn@battlefield3.com` and site admin `admin@example.org`.
 		 */
 		$first_recipient = $mailer->get_recipient( 'to' );
 		if ( $first_recipient ) {

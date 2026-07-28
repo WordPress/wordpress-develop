@@ -23,10 +23,10 @@ class WP_HTTP_IXR_Client extends IXR_Client {
 		if ( ! $path ) {
 			// Assume we have been given a URL instead.
 			$bits         = parse_url( $server );
-			$this->scheme = $bits['scheme'];
-			$this->server = $bits['host'];
+			$this->scheme = $bits['scheme'] ?? '';
+			$this->server = $bits['host'] ?? '';
 			$this->port   = $bits['port'] ?? $port;
-			$this->path   = ! empty( $bits['path'] ) ? $bits['path'] : '/';
+			$this->path   = $bits['path'] ?? '/';
 
 			// Make absolutely sure we have a path.
 			if ( ! $this->path ) {
@@ -89,7 +89,7 @@ class WP_HTTP_IXR_Client extends IXR_Client {
 			echo '<pre class="ixr_request">' . htmlspecialchars( $xml ) . "\n</pre>\n\n";
 		}
 
-		$response = wp_remote_post( $url, $args );
+		$response = wp_safe_remote_post( $url, $args );
 
 		if ( is_wp_error( $response ) ) {
 			$errno       = $response->get_error_code();

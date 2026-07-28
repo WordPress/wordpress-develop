@@ -6,9 +6,6 @@ on:
     branches:
       - trunk
       - '[7-9].[0-9]'
-    tags:
-      - '[7-9].[0-9]'
-      - '[7-9]+.[0-9].[0-9]+'
   pull_request:
     branches:
       - trunk
@@ -24,7 +21,7 @@ on:
       - 'tests/phpstan/baseline.php'
       # Confirm any changes to relevant workflow files.
       - '.github/workflows/phpstan-static-analysis.yml'
-      - '.github/workflows/reusable-phpstan-static-analysis.yml'
+      - '.github/workflows/reusable-phpstan-static-analysis-v1.yml'
   workflow_dispatch:
 
 # Cancels all previous workflow runs for pull requests that have not completed.
@@ -42,10 +39,10 @@ jobs:
   # Runs PHPStan Static Analysis.
   phpstan:
     name: PHP static analysis
-    uses: ./.github/workflows/reusable-phpstan-static-analysis.yml
+    uses: ./.github/workflows/reusable-phpstan-static-analysis-v1.yml
     permissions:
       contents: read
-    if: ${{ github.repository == 'WordPress/wordpress-develop' || ( github.event_name == 'pull_request' && github.actor != 'dependabot[bot]' ) }}
+    if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
 
   slack-notifications:
     name: Slack Notifications
@@ -81,7 +78,7 @@ jobs:
 
     steps:
       - name: Dispatch workflow run
-        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
           retries: 2
           retry-exempt-status-codes: 418
