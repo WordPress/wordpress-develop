@@ -5,6 +5,8 @@ const dotenvExpand = require( 'dotenv-expand' );
 const { spawnSync } = require( 'child_process' );
 const local_env_utils = require( './utils' );
 
+local_env_utils.ensure_env_file();
+
 dotenvExpand.expand( dotenv.config() );
 
 const composeFiles = local_env_utils.get_compose_files();
