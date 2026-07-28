@@ -1156,7 +1156,8 @@ class Tests_Block_Supports_Layout extends WP_UnitTestCase {
 			'attrs'     => array(),
 		);
 
-		$this->reset_global_settings();
+		// Start from a cold cache, as on a front-end request.
+		wp_clean_theme_json_cache();
 
 		$this->assertSame(
 			$block_content,
@@ -1171,7 +1172,7 @@ class Tests_Block_Supports_Layout extends WP_UnitTestCase {
 
 		// A block that does support layout still resolves global settings, which
 		// confirms the assertion above is not passing because of a warm cache.
-		$this->reset_global_settings();
+		wp_clean_theme_json_cache();
 
 		wp_render_layout_support_flag(
 			'<div class="wp-block-group"></div>',
@@ -1186,15 +1187,5 @@ class Tests_Block_Supports_Layout extends WP_UnitTestCase {
 			$user_data_resolutions,
 			'Global settings should still be resolved for a block that supports layout.'
 		);
-	}
-
-	/**
-	 * Drops both layers of global settings caching: the resolver's static
-	 * properties and the array cached by wp_get_global_settings().
-	 */
-	private function reset_global_settings() {
-		WP_Theme_JSON_Resolver::clean_cached_data();
-		wp_cache_delete( 'wp_get_global_settings_custom', 'theme_json' );
-		wp_cache_delete( 'wp_get_global_settings_theme', 'theme_json' );
 	}
 }
