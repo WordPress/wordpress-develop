@@ -760,6 +760,28 @@ function is_serialized_string( $data ) {
 }
 
 /**
+ * Retrieves the port suffixes considered "default" for a Multisite domain.
+ *
+ * These port suffixes are stripped from a hostname during the Multisite
+ * bootstrap process, and used to suggest a default network hostname when
+ * setting up a new network.
+ *
+ * @since 7.2.0
+ *
+ * @return string[] Array of default port suffixes, e.g. array( ':80', ':443' ).
+ */
+function ms_default_port_suffixes() {
+	/**
+	 * Filters the port suffixes considered "default" for a Multisite domain.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param string[] $port_suffixes Array of default port suffixes, e.g. array( ':80', ':443' ).
+	 */
+	return apply_filters( 'ms_default_port_suffixes', array( ':80', ':443' ) );
+}
+
+/**
  * Retrieves post title from XML-RPC XML.
  *
  * If the `title` element is not found in the XML, the default post title
