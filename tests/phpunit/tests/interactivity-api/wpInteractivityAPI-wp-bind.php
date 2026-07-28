@@ -97,6 +97,8 @@ class Tests_WP_Interactivity_API_WP_Bind extends WP_UnitTestCase {
 	 * Tests that a float value is cast to a string when set as an attribute via
 	 * `data-wp-bind`.
 	 *
+	 * @ticket 65740
+	 *
 	 * @covers ::process_directives
 	 */
 	public function test_wp_bind_sets_float_value() {
@@ -514,6 +516,8 @@ class Tests_WP_Interactivity_API_WP_Bind extends WP_UnitTestCase {
 	 * Tests that `data-wp-bind` rejects non-scalar values instead of passing
 	 * them along to WP_HTML_Tag_Processor::set_attribute().
 	 *
+	 * @ticket 65740
+	 *
 	 * @covers ::process_directives
 	 *
 	 * @dataProvider data_non_scalar_values
@@ -546,6 +550,8 @@ class Tests_WP_Interactivity_API_WP_Bind extends WP_UnitTestCase {
 	/**
 	 * Tests that `data-wp-bind` removes a pre-existing attribute when the
 	 * evaluated value is non-scalar.
+	 *
+	 * @ticket 65740
 	 *
 	 * @covers ::process_directives
 	 *
