@@ -63,7 +63,8 @@ jobs:
   # them, because a job that needs a skipped job is skipped too, and a broader one
   # downloads a build that nothing consumes.
   prepare-gutenberg:
-    uses: WordPress/wordpress-develop/.github/workflows/reusable-prepare-gutenberg.yml@trunk
+    # Keep the producer aligned with the consumer workflows that also follow trunk.
+    uses: WordPress/wordpress-develop/.github/workflows/reusable-prepare-gutenberg.yml@trunk # zizmor: ignore[unpinned-uses]
     permissions:
       contents: read
     if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
