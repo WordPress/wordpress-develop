@@ -1347,7 +1347,7 @@ themes.view.Themes = wp.Backbone.View.extend({
 		}
 
 		// Find the previous model within the collection.
-		previousModel = self.collection.at( self.collection.indexOf( model ) - 1 );
+		previousModel = self.collection.at( index - 1 );
 
 		if ( previousModel !== undefined ) {
 
