@@ -4011,7 +4011,7 @@ function _get_term_hierarchy( $taxonomy ) {
  *                          with 1 as value. Default empty array.
  * @return array|WP_Error The subset of $terms that are descendants of $term_id.
  */
-function _get_term_children( $term_id, $terms, $taxonomy, &$ancestors = array() ) {
+function _get_term_children( $term_id, $terms, $taxonomy, &$ancestors = array(), $hierarchical = true ) {
 	$empty_array = array();
 	if ( empty( $terms ) ) {
 		return $empty_array;
@@ -4030,35 +4030,54 @@ function _get_term_children( $term_id, $terms, $taxonomy, &$ancestors = array() 
 		$ancestors[ $term_id ] = 1;
 	}
 
-	foreach ( (array) $terms as $term ) {
-		$use_id = false;
-		if ( ! is_object( $term ) ) {
-			$term = get_term( $term, $taxonomy );
-			if ( is_wp_error( $term ) ) {
-				return $term;
+	if ( is_array( $terms ) && isset( $terms['_normalized_terms_by_id'] ) ) {
+		$terms_by_id = $terms['_normalized_terms_by_id'];
+	} else {
+		$terms_by_id = array();
+		foreach ( (array) $terms as $term ) {
+			$use_id = false;
+			if ( ! is_object( $term ) ) {
+				$term = get_term( $term, $taxonomy );
+				if ( is_wp_error( $term ) ) {
+					return $term;
+				}
+				$use_id = true;
 			}
-			$use_id = true;
-		}
 
+			$term_id_key                   = (int) $term->term_id;
+			$terms_by_id[ $term_id_key ][] = array(
+				'term'   => $term,
+				'use_id' => $use_id,
+			);
+		}
+	}
+
+	foreach ( (array) $has_children[ $term_id ] as $child_id ) {
 		// Don't recurse if we've already identified the term as a child - this indicates a loop.
-		if ( isset( $ancestors[ $term->term_id ] ) ) {
+		if ( isset( $ancestors[ $child_id ] ) ) {
 			continue;
 		}
 
-		if ( (int) $term->parent === $term_id ) {
-			if ( $use_id ) {
-				$term_list[] = $term->term_id;
-			} else {
-				$term_list[] = $term;
+		$ancestors[ $child_id ] = 1;
+
+		$child_in_terms = isset( $terms_by_id[ $child_id ] );
+
+		if ( $child_in_terms ) {
+			foreach ( $terms_by_id[ $child_id ] as $matched ) {
+				if ( $matched['use_id'] ) {
+					$term_list[] = $matched['term']->term_id;
+				} else {
+					$term_list[] = $matched['term'];
+				}
 			}
+		}
 
-			if ( ! isset( $has_children[ $term->term_id ] ) ) {
-				continue;
+		// Recurse if hierarchical is true, or if the child is in the terms set.
+		if ( ( $hierarchical || $child_in_terms ) && isset( $has_children[ $child_id ] ) ) {
+			$children = _get_term_children( $child_id, array( '_normalized_terms_by_id' => $terms_by_id ), $taxonomy, $ancestors, $hierarchical );
+			if ( is_wp_error( $children ) ) {
+				return $children;
 			}
-
-			$ancestors[ $term->term_id ] = 1;
-
-			$children = _get_term_children( $term->term_id, $terms, $taxonomy, $ancestors );
 			if ( $children ) {
 				$term_list = array_merge( $term_list, $children );
 			}
