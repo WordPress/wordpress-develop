@@ -2055,7 +2055,7 @@ class WP_Theme_JSON {
 		if ( ! is_string( $css ) ) {
 			_doing_it_wrong(
 				__METHOD__,
-			    __( 'The $css parameter must be a string.' ),
+				__( 'The $css parameter must be a string.' ),
 				'7.1.0'
 			);
 
