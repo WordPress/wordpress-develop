@@ -1334,13 +1334,15 @@ themes.view.Themes = wp.Backbone.View.extend({
 	 */
 	previous: function( args ) {
 		var self = this,
-			model, previousModel;
+			model, previousModel, index;
 
 		// Get the current theme.
 		model = self.collection.get( args[0] );
 
-		// Bail early if the current theme is the first one.
-		if ( self.collection.indexOf( model ) === 0 ) {
+		index = self.collection.indexOf( model );
+
+		// Bail early if the current theme is the first one or the model does not exist.
+		if ( index <= 0 ) {
 			return;
 		}
 
