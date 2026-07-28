@@ -126,8 +126,8 @@ jobs:
           key: ${{ runner.os }}-php-${{ inputs.php }}-composer-${{ hashFiles('**/composer.lock') }}
 
       # Anonymous pulls share a Docker Hub quota across the whole runner IP pool, and transient
-      # registry errors are routine. Three attempts with a 10s/20s backoff clear the blips
-      # without holding a runner for minutes when the failure is a bad tag, not the network.
+      # registry errors are routine. Three attempts with a 10s/20s backoff clear the blips. Every
+      # failure is retried, so a deterministic one such as a bad tag costs 30s before it reports.
       #
       # This runs before the Composer step below, which is the first thing to pull the PHP image.
       - name: Pull Docker images (with retry)
