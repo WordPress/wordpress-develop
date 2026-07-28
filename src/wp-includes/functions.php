@@ -2076,10 +2076,11 @@ function wp_mkdir_p( $target ) {
 		$target = '/';
 	}
 
-	if ( file_exists( $target ) ) {
-		return @is_dir( $target );
-	}
+	$stat_target = _wp_normalize_directory_stat_path( $target );
 
+	if ( file_exists( $stat_target ) ) {
+		return @is_dir( $stat_target );
+	}
 	// Do not allow path traversals.
 	if ( str_contains( $target, '../' ) || str_contains( $target, '..' . DIRECTORY_SEPARATOR ) ) {
 		return false;
@@ -2087,12 +2088,12 @@ function wp_mkdir_p( $target ) {
 
 	// We need to find the permissions of the parent folder that exists and inherit that.
 	$target_parent = dirname( $target );
-	while ( '.' !== $target_parent && ! is_dir( $target_parent ) && dirname( $target_parent ) !== $target_parent ) {
+	while ( '.' !== $target_parent && ! is_dir( _wp_normalize_directory_stat_path( $target_parent ) ) && dirname( $target_parent ) !== $target_parent ) {
 		$target_parent = dirname( $target_parent );
 	}
 
 	// Get the permission bits.
-	$stat = @stat( $target_parent );
+	$stat = @stat( _wp_normalize_directory_stat_path( $target_parent ) );
 	if ( $stat ) {
 		$dir_perms = $stat['mode'] & 0007777;
 	} else {
@@ -2999,7 +3000,7 @@ function wp_upload_bits( $name, $deprecated, $bits, $time = null ) {
 	clearstatcache();
 
 	// Set correct file permissions.
-	$stat  = @ stat( dirname( $new_file ) );
+	$stat  = @ stat( _wp_get_dir_perms_stat_path( $new_file ) );
 	$perms = $stat['mode'] & 0007777;
 	$perms = $perms & 0000666;
 	chmod( $new_file, $perms );
@@ -7479,6 +7480,7 @@ function _validate_cache_id( $object_id ) {
  * @return bool Whether the device is able to upload files.
  */
 function _device_can_upload() {
+
 	if ( ! wp_is_mobile() ) {
 		return true;
 	}
@@ -7488,7 +7490,7 @@ function _device_can_upload() {
 	if ( str_contains( $ua, 'iPhone' )
 		|| str_contains( $ua, 'iPad' )
 		|| str_contains( $ua, 'iPod' ) ) {
-			return preg_match( '#OS ([\d_]+) like Mac OS X#', $ua, $version ) && version_compare( $version[1], '6', '>=' );
+		return preg_match( '#OS ([\d_]+) like Mac OS X#', $ua, $version ) && version_compare( $version[1], '6', '>=' );
 	}
 
 	return true;
@@ -7504,7 +7506,6 @@ function _device_can_upload() {
  */
 function wp_is_stream( $path ) {
 	$scheme_separator = strpos( $path, '://' );
-
 	if ( false === $scheme_separator ) {
 		// $path isn't a stream.
 		return false;
@@ -7515,6 +7516,41 @@ function wp_is_stream( $path ) {
 	return in_array( $stream, stream_get_wrappers(), true );
 }
 
+/**
+ * Normalizes a directory path for stat-style filesystem checks.
+ *
+ * Stream wrappers that model directories as paths ending in a slash can require
+ * the trailing slash for existence and metadata checks to resolve correctly.
+ *
+ * @since 6.9.0
+ *
+ * @param string $path Directory path.
+ * @return string Directory path to use with stat-style checks.
+ */
+function _wp_normalize_directory_stat_path( $path ) {
+
+	if ( wp_is_stream( $path ) ) {
+		$path = trailingslashit( $path );
+	}
+
+	return $path;
+}
+
+/**
+ * Gets the directory path used to inherit permissions for a file path.
+ *
+ * Stream wrappers that model directories as paths ending in a slash can require
+ * the trailing slash for `stat()` to resolve the parent directory.
+ *
+ * @since 6.9.0
+ *
+ * @param string $path File path.
+ * @return string Directory path to use with `stat()`.
+ */
+function _wp_get_dir_perms_stat_path( $path ) {
+
+	return _wp_normalize_directory_stat_path( dirname( $path ) );
+}
 /**
  * Tests if the supplied date is valid for the Gregorian calendar.
  *

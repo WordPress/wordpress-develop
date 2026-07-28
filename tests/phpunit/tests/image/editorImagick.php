@@ -14,10 +14,11 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 	public $editor_engine = 'WP_Image_Editor_Imagick';
 
 	public function set_up() {
+
 		require_once ABSPATH . WPINC . '/class-wp-image-editor.php';
 		require_once ABSPATH . WPINC . '/class-wp-image-editor-imagick.php';
 		require_once DIR_TESTROOT . '/includes/class-wp-test-stream.php';
-
+		require_once DIR_TESTROOT . '/includes/class-wp-test-strict-dir-stream.php';
 		// This needs to come after the mock image editor class is loaded.
 		parent::set_up();
 	}
@@ -621,6 +622,37 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 		$this->assertSame( $temp_file, $saved['path'] );
 	}
 
+	/**
+	 * @ticket 42838
+	 */
+	public function test_nested_streams() {
+		stream_wrapper_register( 'wptestdir', 'WP_Test_Strict_Dir_Stream' );
+		WP_Test_Stream::$data = array(
+			'Tests_Image_Editor_Imagick' => array(
+				'/read.jpg'     => file_get_contents( DIR_TESTDATA . '/images/waffles.jpg' ),
+				'/nested-path/' => 'DIRECTORY',
+			),
+		);
+
+		$file                 = 'wptestdir://Tests_Image_Editor_Imagick/read.jpg';
+		$imagick_image_editor = new WP_Image_Editor_Imagick( $file );
+
+		$loaded = $imagick_image_editor->load();
+		$this->assertNotWPError( $loaded );
+
+		$temp_file = 'wptestdir://Tests_Image_Editor_Imagick/nested-path/write.jpg';
+		$saved     = $imagick_image_editor->save( $temp_file );
+
+		if ( $temp_file !== $saved['path'] ) {
+			unlink( $saved['path'] );
+		}
+
+		stream_wrapper_unregister( 'wptestdir' );
+
+		$this->assertNotWPError( $saved );
+		$this->assertSame( $temp_file, $saved['path'] );
+		$this->assertArrayHasKey( '/nested-path/write.jpg', WP_Test_Stream::$data['Tests_Image_Editor_Imagick'] );
+	}
 	/**
 	 * @ticket 51665
 	 */

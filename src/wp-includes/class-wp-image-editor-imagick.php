@@ -964,8 +964,9 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 		}
 
 		// Set correct file permissions.
-		$stat  = stat( dirname( $filename ) );
-		$perms = $stat['mode'] & 0000666; // Same permissions as parent folder, strip off the executable bits.
+		$stat  = stat( _wp_get_dir_perms_stat_path( $filename ) );
+		$perms = $stat['mode'] & 0000666;
+		// Same permissions as parent folder, strip off the executable bits.
 		chmod( $filename, $perms );
 
 		return array(

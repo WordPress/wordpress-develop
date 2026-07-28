@@ -35,7 +35,10 @@ writeFileSync( 'wp-tests-config.php', testConfig );
 // Once the site is available, install WordPress!
 wait_on( {
 	resources: [ `tcp:localhost:${process.env.LOCAL_PORT}`],
-	timeout: 3000,
+	// CI runners can take noticeably longer than local machines before the forwarded
+	// web port begins accepting connections after `env:start` returns, especially
+	// on slower DB/image combinations in the broader matrix.
+	timeout: 180000,
 } )
 	.catch( err => {
 		console.error( `Error: It appears the development environment has not been started. Message: ${ err.message }` );
@@ -59,5 +62,60 @@ wait_on( {
  * @param {string} cmd The WP-CLI command to run.
  */
 function wp_cli( cmd ) {
-	execSync( `npm --silent run env:cli -- ${cmd} --path=/var/www/${process.env.LOCAL_DIR}`, { stdio: 'inherit' } );
+	const wp_cli_command = `node ./tools/local-env/scripts/docker.js run --rm cli wp ${cmd} --path=/var/www/${process.env.LOCAL_DIR}`;
+
+	for ( let attempt = 1; attempt <= 12; attempt++ ) {
+		try {
+			const output = execSync( wp_cli_command, {
+				encoding: 'utf8',
+				stdio: [ 'ignore', 'pipe', 'pipe' ],
+			} );
+
+			if ( output ) {
+				process.stdout.write( output );
+			}
+
+			return;
+		} catch ( error ) {
+			if ( error.stdout ) {
+				process.stdout.write( error.stdout.toString() );
+			}
+
+			if ( error.stderr ) {
+				process.stderr.write( error.stderr.toString() );
+			}
+
+			if ( 12 === attempt || ! wp_cli_dependency_is_starting( error ) ) {
+				throw error;
+			}
+
+			// The Docker-backed WP-CLI container and database can lag behind on slower runners
+			// while images are still starting up, especially across the broader DB/version matrix.
+			const delay = Math.min( attempt, 5 ) * 1000;
+			console.warn( `The local environment is still starting, retrying in ${ delay / 1000 } second(s)...` );
+			sleep( delay );
+		}
+	}
+}
+
+/**
+ * Determines whether a transient local-env startup dependency is still initializing.
+ *
+ * @param {Error & {stdout?: Buffer|string, stderr?: Buffer|string}} error Error thrown by execSync().
+ * @return {boolean} Whether the local environment is still starting up.
+ */
+function wp_cli_dependency_is_starting( error ) {
+	const output = `${ error.stdout || '' }\n${ error.stderr || '' }\n${ error.message || '' }`;
+
+	return output.includes( 'service "cli" is not running' ) ||
+		output.includes( 'Database connection error (2002) Connection refused' );
+}
+
+/**
+ * Sleeps synchronously for a specified number of milliseconds.
+ *
+ * @param {number} milliseconds The number of milliseconds to sleep.
+ */
+function sleep( milliseconds ) {
+	Atomics.wait( new Int32Array( new SharedArrayBuffer( 4 ) ), 0, 0, milliseconds );
 }
