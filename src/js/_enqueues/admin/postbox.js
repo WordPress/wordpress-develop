@@ -657,4 +657,14 @@
 		pbhide : false
 	};
 
+	/*
+	 * @since 7.0.0
+	 * @see https://core.trac.wordpress.org/ticket/17704
+	 */
+	$( function() {
+		if ( typeof window.pagenow !== 'undefined' && ! postboxes.page && $( '.postbox' ).length ) {
+			postboxes.add_postbox_toggles( window.pagenow );
+		}
+	} );
+
 }(jQuery));

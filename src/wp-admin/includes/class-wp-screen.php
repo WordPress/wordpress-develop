@@ -1004,6 +1004,14 @@ final class WP_Screen {
 
 		$show_screen = ! empty( $wp_meta_boxes[ $this->id ] ) || $columns || $this->get_option( 'per_page' );
 
+		/*
+		 * @since 7.0.0
+		 * @see https://core.trac.wordpress.org/ticket/17704
+		 */
+		if ( ! empty( $wp_meta_boxes[ $this->id ] ) ) {
+			wp_enqueue_script( 'postbox' );
+		}
+
 		$this->_screen_settings = '';
 
 		if ( 'post' === $this->base ) {
