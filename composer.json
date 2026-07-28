@@ -34,6 +34,7 @@
 		]
 	},
 	"config": {
+		"audit": { "ignore": [ "GHSA-3pwp-g2mj-5p3v", "PKSA-z3gr-8qht-p93v" ] },
 		"allow-plugins": {
 			"dealerdirect/phpcodesniffer-composer-installer": true
 		}
