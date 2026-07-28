@@ -267,12 +267,28 @@ function core_update_footer( $msg = '' ) {
 	$is_development_version = preg_match( '/alpha|beta|RC/', wp_get_wp_version() );
 
 	if ( $is_development_version ) {
-		return sprintf(
+		$footer = sprintf(
 			/* translators: 1: WordPress version number, 2: URL to WordPress Updates screen. */
 			__( 'You are using a development version (%1$s). Cool! Please <a href="%2$s">stay updated</a>.' ),
 			get_bloginfo( 'version', 'display' ),
 			network_admin_url( 'update-core.php' )
 		);
+
+		global $wp_gutenberg_hash;
+
+		if ( $wp_gutenberg_hash
+			&& in_array( wp_get_environment_type(), array( 'local', 'development' ), true )
+		) {
+			$short_hash = substr( $wp_gutenberg_hash, 0, 7 );
+			$footer    .= ' | ' . sprintf(
+				/* translators: 1: Gutenberg commit URL, 2: Short commit hash. */
+				__( 'Gutenberg <a href="%1$s">%2$s</a>' ),
+				esc_url( 'https://github.com/WordPress/gutenberg/commit/' . $wp_gutenberg_hash ),
+				esc_html( $short_hash )
+			);
+		}
+
+		return $footer;
 	}
 
 	switch ( $cur->response ) {
@@ -391,7 +407,26 @@ function update_right_now_message() {
 	 */
 	$content = apply_filters( 'update_right_now_text', $content );
 
-	$msg .= sprintf( '<span id="wp-version">' . $content . '</span>', get_bloginfo( 'version', 'display' ), $theme_name );
+	global $wp_gutenberg_hash;
+
+	if ( $wp_gutenberg_hash
+		&& preg_match( '/alpha|beta|RC/', wp_get_wp_version() )
+		&& in_array( wp_get_environment_type(), array( 'local', 'development' ), true )
+	) {
+		$short_hash     = substr( $wp_gutenberg_hash, 0, 7 );
+		$version_string = sprintf(
+			/* translators: 1: WordPress version number, 2: URL to Gutenberg commit, 3: Short commit hash. */
+			__( '%1$s (built with <a href="%2$s">%3$s</a>)' ),
+			get_bloginfo( 'version', 'display' ),
+			esc_url( 'https://github.com/WordPress/gutenberg/commit/' . $wp_gutenberg_hash ),
+			esc_html( $short_hash )
+		);
+		$content = sprintf( $content, $version_string, $theme_name );
+	} else {
+		$content = sprintf( $content, get_bloginfo( 'version', 'display' ), $theme_name );
+	}
+
+	$msg .= '<span id="wp-version">' . $content . '</span>';
 
 	echo "<p id='wp-version-message'>$msg</p>";
 }

@@ -55,3 +55,14 @@ $required_php_extensions = array(
  * @global string $required_mysql_version
  */
 $required_mysql_version = '5.5.5';
+
+/**
+ * Holds the Gutenberg commit hash used to build the included assets.
+ *
+ * This value is set during the build process and corresponds to the
+ * Gutenberg repository commit from which the bundled assets were generated.
+ *
+ * @since 7.1.0
+ * @global string $wp_gutenberg_hash
+ */
+$wp_gutenberg_hash = 'a2a354cf35e5b69c3330d6c1cfd42d8dc2efb9fd';
