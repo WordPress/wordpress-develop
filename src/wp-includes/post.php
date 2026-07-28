@@ -7558,8 +7558,12 @@ function wp_check_for_changed_slugs( $post_id, $post, $post_before ) {
 		return;
 	}
 
-	// We're only concerned with published, non-hierarchical objects.
-	if ( ! ( 'publish' === $post->post_status || ( 'attachment' === $post->post_type && 'inherit' === $post->post_status ) )
+	// We're only concerned with published or scheduled non-hierarchical objects.
+	if (
+		! (
+			in_array( $post->post_status, array( 'publish', 'future' ), true ) ||
+			( 'attachment' === $post->post_type && 'inherit' === $post->post_status )
+		)
 		|| is_post_type_hierarchical( $post->post_type )
 	) {
 		return;
@@ -7606,8 +7610,12 @@ function wp_check_for_changed_dates( $post_id, $post, $post_before ) {
 		return;
 	}
 
-	// We're only concerned with published, non-hierarchical objects.
-	if ( ! ( 'publish' === $post->post_status || ( 'attachment' === $post->post_type && 'inherit' === $post->post_status ) )
+	// We're only concerned with published or scheduled non-hierarchical objects.
+	if (
+		! (
+			in_array( $post->post_status, array( 'publish', 'future' ), true ) ||
+			( 'attachment' === $post->post_type && 'inherit' === $post->post_status )
+		)
 		|| is_post_type_hierarchical( $post->post_type )
 	) {
 		return;

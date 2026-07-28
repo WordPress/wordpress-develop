@@ -128,6 +128,11 @@ function wp_force_plain_post_permalink( $post = null, $sample = null ) {
 		// Publicly viewable links never have plain permalinks.
 		is_post_status_viewable( $post_status_obj ) ||
 		(
+			// Scheduled posts use their future pretty permalink.
+			'future' === $post->post_status &&
+			is_post_type_viewable( $post_type_obj )
+		) ||
+		(
 			// Private posts don't have plain permalinks if the user can read them.
 			$post_status_obj->private &&
 			current_user_can( 'read_post', $post->ID )

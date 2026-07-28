@@ -2168,6 +2168,30 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	}
 
 	/**
+	 * @ticket 49871
+	 */
+	public function test_get_item_should_return_pretty_permalink_for_scheduled_post() {
+		$this->set_permalink_structure( '/%year%/%monthnum%/%day%/%postname%/' );
+		wp_set_current_user( self::$editor_id );
+
+		$post_id = self::factory()->post->create(
+			array(
+				'post_status' => 'future',
+				'post_name'   => 'message-from-the-past',
+				'post_date'   => '2037-12-09 20:19:00',
+			)
+		);
+
+		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d', $post_id ) );
+		$request->set_param( 'context', 'edit' );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( home_url( '/2037/12/09/message-from-the-past/' ), $data['link'] );
+	}
+
+	/**
 	 * @dataProvider data_readable_http_methods
 	 * @ticket 56481
 	 *

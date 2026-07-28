@@ -1116,6 +1116,10 @@ function wp_old_slug_redirect() {
 			return;
 		}
 
+		if ( 'future' === get_post_status( $id ) ) {
+			return;
+		}
+
 		$link = get_permalink( $id );
 
 		if ( get_query_var( 'paged' ) > 1 ) {
