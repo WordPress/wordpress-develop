@@ -1064,7 +1064,22 @@ class WP_Query {
 
 			unset( $_query['embed'] );
 
-			if ( empty( $_query ) || ! array_diff( array_keys( $_query ), array( 'preview', 'page', 'paged', 'cpage' ) ) ) {
+			$_query_keys = array_keys( $_query );
+			if ( isset( $GLOBALS['wp'], $GLOBALS['wp_the_query'] )
+				&& $GLOBALS['wp_the_query'] === $this ) {
+				$_routing_query_vars = array();
+
+				if ( ! empty( $GLOBALS['wp']->matched_query ) ) {
+					parse_str( $GLOBALS['wp']->matched_query, $_routing_query_vars );
+				}
+
+				$_query_keys = array_intersect(
+					$_query_keys,
+					array_merge( WP::CORE_PUBLIC_QUERY_VARS, array_keys( $_routing_query_vars ) )
+				);
+			}
+
+			if ( empty( $_query_keys ) || ! array_diff( $_query_keys, array( 'preview', 'page', 'paged', 'cpage' ) ) ) {
 				$this->is_page         = true;
 				$this->is_home         = false;
 				$query_vars['page_id'] = get_option( 'page_on_front' );

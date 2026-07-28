@@ -72,6 +72,148 @@ class Tests_Query_Conditionals extends WP_UnitTestCase {
 		delete_option( 'page_for_posts' );
 	}
 
+	/**
+	 * A custom query var registered via the 'query_vars' filter must not prevent
+	 * the static front page from loading.
+	 *
+	 * @ticket 40521
+	 */
+	public function test_custom_query_var_via_filter_does_not_break_static_front_page() {
+		$page_on_front = self::factory()->post->create( array( 'post_type' => 'page' ) );
+		update_option( 'show_on_front', 'page' );
+		update_option( 'page_on_front', $page_on_front );
+
+		$filter = static function ( $vars ) {
+			$vars[] = 'custom_test_var';
+			return $vars;
+		};
+		add_filter( 'query_vars', $filter );
+
+		try {
+			$this->go_to( '/?custom_test_var=yep' );
+
+			$this->assertQueryTrue( 'is_front_page', 'is_page', 'is_singular' );
+		} finally {
+			remove_filter( 'query_vars', $filter );
+			update_option( 'show_on_front', 'posts' );
+			delete_option( 'page_on_front' );
+		}
+	}
+
+	/**
+	 * A custom query var registered via WP::add_query_var() must not prevent
+	 * the static front page from loading.
+	 *
+	 * @ticket 40521
+	 */
+	public function test_custom_query_var_via_add_query_var_does_not_break_static_front_page() {
+		global $wp;
+
+		$page_on_front = self::factory()->post->create( array( 'post_type' => 'page' ) );
+		update_option( 'show_on_front', 'page' );
+		update_option( 'page_on_front', $page_on_front );
+
+		// Register the var the way a plugin would outside the query_vars filter.
+		$wp->add_query_var( 'custom_test_var' );
+
+		try {
+			$this->go_to( '/?custom_test_var=yep' );
+
+			$this->assertQueryTrue( 'is_front_page', 'is_page', 'is_singular' );
+		} finally {
+			$wp->public_query_vars = array_diff( $wp->public_query_vars, array( 'custom_test_var' ) );
+			update_option( 'show_on_front', 'posts' );
+			delete_option( 'page_on_front' );
+		}
+	}
+
+	/**
+	 * A secondary WP_Query constructed with only a custom var must not be
+	 * coerced into querying page_on_front.
+	 *
+	 * @ticket 40521
+	 */
+	public function test_secondary_query_with_custom_var_not_coerced_to_front_page() {
+		$page_on_front = self::factory()->post->create( array( 'post_type' => 'page' ) );
+		update_option( 'show_on_front', 'page' );
+		update_option( 'page_on_front', $page_on_front );
+
+		$filter = static function ( $vars ) {
+			$vars[] = 'custom_test_var';
+			return $vars;
+		};
+		add_filter( 'query_vars', $filter );
+
+		try {
+			// Establish a proper main-request context.
+			$this->go_to( '/' );
+			$secondary = new WP_Query( array( 'custom_test_var' => 'yep' ) );
+
+			$this->assertFalse( $secondary->is_page(), 'Secondary query must not be flagged as is_page().' );
+			$this->assertFalse( $secondary->is_front_page(), 'Secondary query must not be flagged as is_front_page().' );
+			$this->assertNotEquals( $page_on_front, $secondary->get_queried_object_id(), 'Secondary query must not load page_on_front.' );
+		} finally {
+			remove_filter( 'query_vars', $filter );
+			update_option( 'show_on_front', 'posts' );
+			delete_option( 'page_on_front' );
+		}
+	}
+
+	/**
+	 * A custom query var from a matched rewrite rule must still prevent the
+	 * static front page correction.
+	 *
+	 * @ticket 40521
+	 */
+	public function test_custom_query_var_from_rewrite_rule_prevents_static_front_page_correction() {
+		$page_on_front = self::factory()->post->create( array( 'post_type' => 'page' ) );
+		update_option( 'show_on_front', 'page' );
+		update_option( 'page_on_front', $page_on_front );
+
+		$filter = static function ( $vars ) {
+			$vars[] = 'custom_route';
+			return $vars;
+		};
+		add_filter( 'query_vars', $filter );
+		add_rewrite_rule( '^custom-route/([^/]+)/?$', 'index.php?custom_route=$matches[1]', 'top' );
+		flush_rewrite_rules();
+
+		try {
+			$this->go_to( '/custom-route/matched/' );
+
+			$this->assertSame( 'matched', get_query_var( 'custom_route' ) );
+			$this->assertFalse( is_page(), 'Matched custom rewrite route must not be flagged as is_page().' );
+			$this->assertFalse( is_front_page(), 'Matched custom rewrite route must not be flagged as is_front_page().' );
+			$this->assertNotEquals( $page_on_front, get_queried_object_id(), 'Matched custom rewrite route must not load page_on_front.' );
+		} finally {
+			remove_filter( 'query_vars', $filter );
+			update_option( 'show_on_front', 'posts' );
+			delete_option( 'page_on_front' );
+			flush_rewrite_rules();
+		}
+	}
+
+	/**
+	 * Core routing vars such as 's' must still prevent the static front page
+	 * correction so that a search result is not replaced by the front page.
+	 *
+	 * @ticket 40521
+	 */
+	public function test_core_routing_var_prevents_static_front_page_correction() {
+		$page_on_front = self::factory()->post->create( array( 'post_type' => 'page' ) );
+		update_option( 'show_on_front', 'page' );
+		update_option( 'page_on_front', $page_on_front );
+
+		try {
+			$this->go_to( '/?s=test' );
+
+			$this->assertQueryTrue( 'is_search' );
+		} finally {
+			update_option( 'show_on_front', 'posts' );
+			delete_option( 'page_on_front' );
+		}
+	}
+
 	public function test_404() {
 		$this->go_to( '/notapage' );
 		$this->assertQueryTrue( 'is_404' );
