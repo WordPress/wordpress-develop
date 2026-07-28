@@ -184,10 +184,17 @@ $thread_comments_depth .= '</select>';
 <td><fieldset><legend class="screen-reader-text"><span><?php echo $comment_moderation_title; ?></span></legend>
 <p><label for="comment_max_links">
 <?php
+$comment_max_links = (int) get_option( 'comment_max_links' );
 printf(
-	/* translators: %s: Number of links. */
-	__( 'Hold a comment in the queue if it contains %s or more links. (A common characteristic of comment spam is a large number of hyperlinks.)' ),
-	'<input name="comment_max_links" type="number" step="1" min="0" id="comment_max_links" value="' . esc_attr( get_option( 'comment_max_links' ) ) . '" class="small-text" />'
+	translate_nooped_plural(
+		/* translators: %s: Number field for the maximum number of links. */
+		_n_noop(
+			'Hold a comment in the queue if it contains %s or more link. (A common characteristic of comment spam is a large number of hyperlinks.)',
+			'Hold a comment in the queue if it contains %s or more links. (A common characteristic of comment spam is a large number of hyperlinks.)'
+		),
+		$comment_max_links
+	),
+	'<input name="comment_max_links" type="number" step="1" min="0" id="comment_max_links" value="' . esc_attr( $comment_max_links ) . '" class="small-text" />'
 );
 ?>
 </label></p>

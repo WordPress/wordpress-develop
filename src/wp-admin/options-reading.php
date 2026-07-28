@@ -177,12 +177,33 @@ else :
 <tr>
 <th scope="row"><label for="posts_per_page"><?php _e( 'Blog pages show at most' ); ?></label></th>
 <td>
-<input name="posts_per_page" type="number" step="1" min="1" id="posts_per_page" value="<?php form_option( 'posts_per_page' ); ?>" class="small-text" /> <?php _e( 'posts' ); ?>
+<?php $posts_per_page = (int) get_option( 'posts_per_page' ); ?>
+<input name="posts_per_page" type="number" step="1" min="1" id="posts_per_page" value="<?php echo esc_attr( $posts_per_page ); ?>" class="small-text" />
+<?php
+echo esc_html(
+	translate_nooped_plural(
+		/* translators: Number of posts, used as a label after the "Blog pages show at most" number field. */
+		_n_noop( 'post', 'posts' ),
+		$posts_per_page
+	)
+);
+?>
 </td>
 </tr>
 <tr>
 <th scope="row"><label for="posts_per_rss"><?php _e( 'Syndication feeds show the most recent' ); ?></label></th>
-<td><input name="posts_per_rss" type="number" step="1" min="1" id="posts_per_rss" value="<?php form_option( 'posts_per_rss' ); ?>" class="small-text" /> <?php _e( 'items' ); ?></td>
+<td><?php $posts_per_rss = (int) get_option( 'posts_per_rss' ); ?>
+<input name="posts_per_rss" type="number" step="1" min="1" id="posts_per_rss" value="<?php echo esc_attr( $posts_per_rss ); ?>" class="small-text" />
+<?php
+echo esc_html(
+	translate_nooped_plural(
+		/* translators: Number of items, used as a label after the "Syndication feeds show the most recent" number field. */
+		_n_noop( 'item', 'items' ),
+		$posts_per_rss
+	)
+);
+?>
+</td>
 </tr>
 
 <?php $rss_use_excerpt_title = __( 'For each post in a feed, include' ); ?>
