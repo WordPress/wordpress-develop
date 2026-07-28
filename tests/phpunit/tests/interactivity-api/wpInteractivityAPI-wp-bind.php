@@ -669,6 +669,146 @@ class Tests_WP_Interactivity_API_WP_Bind extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that an object serializing to a value JSON cannot represent is rejected.
+	 *
+	 * The encoding does not fail here the way it does for a bare INF. When
+	 * `json_encode()` rejects the value, `wp_json_encode()` retries with a plain
+	 * object rebuilt from the public properties, which discards `jsonSerialize()`
+	 * entirely and encodes to `{}`. The object therefore resolves to something
+	 * non-scalar and is reported as such, rather than with the non-finite message.
+	 *
+	 * The store is rebuilt the same way, so the client is sent `{}` for this
+	 * reference. The two still agree that there is no usable value here.
+	 *
+	 * @ticket 65740
+	 *
+	 * @covers ::process_directives
+	 *
+	 * @expectedIncorrectUsage WP_Interactivity_API::data_wp_bind_processor
+	 */
+	public function test_wp_bind_rejects_object_serializing_to_a_non_finite_value() {
+		$this->interactivity->state( 'myPlugin', array( 'nonFinite' => $this->get_json_serializable( INF ) ) );
+
+		$html    = '<div data-wp-bind--id="myPlugin::state.nonFinite">Text</div>';
+		list($p) = $this->process_directives( $html );
+		$this->assertNull( $p->get_attribute( 'id' ), 'Expected no attribute to have been set.' );
+		$this->assertSame(
+			array(
+				'WP_Interactivity_API::data_wp_bind_processor' => 'Attempted to bind a non-scalar value to the "id" attribute. Cast the value to a string before storing it in state or context so that the server and client agree. (This message was added in version 7.1.0.)',
+			),
+			$this->caught_doing_it_wrong,
+			'Expected the non-scalar message, since the object resolves to an empty object rather than failing to encode.'
+		);
+
+		$data    = $this->interactivity->filter_script_module_interactivity_data( array() );
+		$encoded = wp_json_encode( $data['state'] );
+		$this->assertIsString( $encoded, 'Expected the client state to still be encodable as JSON.' );
+		$this->assertStringContainsString(
+			'"nonFinite":{}',
+			$encoded,
+			'Expected the client to be sent the same empty object the server resolved.'
+		);
+	}
+
+	/**
+	 * Tests that an object serializing to null removes the attribute quietly.
+	 *
+	 * The object is resolved before the null check, so it reaches it as the null
+	 * the client will receive, and is treated the same as a null value would be.
+	 * There is nothing to report: null is a value the client can be sent.
+	 *
+	 * @ticket 65740
+	 *
+	 * @covers ::process_directives
+	 */
+	public function test_wp_bind_removes_attribute_for_object_serializing_to_null() {
+		$this->interactivity->state( 'myPlugin', array( 'nothing' => $this->get_json_serializable( null ) ) );
+
+		$html               = '<div id="other-id" data-wp-bind--id="myPlugin::state.nothing">Text</div>';
+		list($p, $new_html) = $this->process_directives( $html );
+		$this->assertNull( $p->get_attribute( 'id' ), 'Expected the pre-existing attribute to have been removed.' );
+		$this->assertEqualHTML( '<div data-wp-bind--id="myPlugin::state.nothing">Text</div>', $new_html );
+		$this->assertSame(
+			array(),
+			$this->caught_doing_it_wrong,
+			'Expected an object serializing to null to be treated as a null value, without reporting a usage error.'
+		);
+	}
+
+	/**
+	 * Tests that an object serializing to a boolean keeps the boolean attribute
+	 * semantics of the value it serializes to.
+	 *
+	 * Resolving the object first means the checks below it do not have to know an
+	 * object was ever involved, so the existing handling composes. This asserts
+	 * that it does.
+	 *
+	 * @ticket 65740
+	 *
+	 * @covers ::process_directives
+	 */
+	public function test_wp_bind_applies_boolean_semantics_to_object_serializing_to_a_boolean() {
+		$this->interactivity->state(
+			'myPlugin',
+			array(
+				'yes' => $this->get_json_serializable( true ),
+				'no'  => $this->get_json_serializable( false ),
+			)
+		);
+
+		// True sets a bare boolean attribute.
+		$html               = '<div data-wp-bind--hidden="myPlugin::state.yes">Text</div>';
+		list($p, $new_html) = $this->process_directives( $html );
+		$this->assertTrue( $p->get_attribute( 'hidden' ) );
+		$this->assertSame( '<div hidden data-wp-bind--hidden="myPlugin::state.yes">Text</div>', $new_html );
+
+		// False removes it.
+		$html               = '<div hidden data-wp-bind--hidden="myPlugin::state.no">Text</div>';
+		list($p, $new_html) = $this->process_directives( $html );
+		$this->assertNull( $p->get_attribute( 'hidden' ) );
+		$this->assertEqualHTML( '<div data-wp-bind--hidden="myPlugin::state.no">Text</div>', $new_html );
+
+		// On a `data-` or `aria-` attribute it becomes the string Preact would write.
+		$html    = '<div data-wp-bind--data-open="myPlugin::state.yes">Text</div>';
+		list($p) = $this->process_directives( $html );
+		$this->assertSame( 'true', $p->get_attribute( 'data-open' ) );
+
+		$html    = '<div data-wp-bind--aria-hidden="myPlugin::state.no">Text</div>';
+		list($p) = $this->process_directives( $html );
+		$this->assertSame( 'false', $p->get_attribute( 'aria-hidden' ) );
+	}
+
+	/**
+	 * Tests that a bound number is written the same way the client store writes it.
+	 *
+	 * This is the invariant the number formatting exists for. A cast would round to
+	 * `precision` where the store uses `serialize_precision`, so both are rendered
+	 * by the same encoder instead of being compared after the fact.
+	 *
+	 * @ticket 65740
+	 *
+	 * @covers ::process_directives
+	 */
+	public function test_wp_bind_number_value_matches_the_client_store() {
+		$this->interactivity->state( 'myPlugin', array( 'ratio' => 1 / 3 ) );
+
+		$html    = '<div data-wp-bind--data-ratio="myPlugin::state.ratio">Text</div>';
+		list($p) = $this->process_directives( $html );
+
+		$data    = $this->interactivity->filter_script_module_interactivity_data( array() );
+		$encoded = wp_json_encode( $data['state'] );
+		$this->assertIsString( $encoded, 'Expected the client state to be encodable as JSON.' );
+
+		$expected = wp_json_encode( 1 / 3 );
+		$this->assertSame( $expected, $p->get_attribute( 'data-ratio' ) );
+		$this->assertStringContainsString(
+			'"ratio":' . $expected,
+			$encoded,
+			'Expected the rendered attribute value to match the number sent to the client.'
+		);
+	}
+
+	/**
 	 * Creates an object which serializes to the given value for the client.
 	 *
 	 * @param mixed $value Value the object serializes to.
