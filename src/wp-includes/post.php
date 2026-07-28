@@ -4053,6 +4053,22 @@ function _reset_front_page_settings_for_post( $post_id ) {
 }
 
 /**
+ * Resets the Privacy Policy page ID option when the Privacy Policy page
+ * is permanently deleted, to prevent uncached database queries for a
+ * non-existent page.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param int $post_id The ID of the post being deleted.
+ */
+function _reset_privacy_policy_page_for_post( int $post_id ): void {
+	if ( 'page' === get_post_type( $post_id ) && ( (int) get_option( 'wp_page_for_privacy_policy' ) === $post_id ) ) {
+		update_option( 'wp_page_for_privacy_policy', 0 );
+	}
+}
+
+/**
  * Moves a post or page to the Trash
  *
  * If Trash is disabled, the post or page is permanently deleted.
@@ -7961,10 +7977,11 @@ function clean_post_cache( $post ) {
  *
  * @since 1.5.0
  *
- * @param WP_Post[] $posts             Array of post objects (passed by reference).
- * @param string    $post_type         Optional. Post type. Default 'post'.
- * @param bool      $update_term_cache Optional. Whether to update the term cache. Default true.
- * @param bool      $update_meta_cache Optional. Whether to update the meta cache. Default true.
+ * @param WP_Post[]       $posts             Array of post objects (passed by reference).
+ * @param string|string[] $post_type         Optional. Single post type, 'any', or an array of post types.
+ *                                           Default 'post'.
+ * @param bool            $update_term_cache Optional. Whether to update the term cache. Default true.
+ * @param bool            $update_meta_cache Optional. Whether to update the meta cache. Default true.
  */
 function update_post_caches( &$posts, $post_type = 'post', $update_term_cache = true, $update_meta_cache = true ) {
 	// No point in doing all this work if we didn't match any posts.
