@@ -1153,12 +1153,12 @@ function wp_theme_auto_update_setting_template() {
 
 				<# if ( data.hasUpdate ) { #>
 					<# if ( data.updateResponse.compatibleWP && data.updateResponse.compatiblePHP ) { #>
-						<div class="notice notice-warning notice-alt notice-large">
+						<div class="notice notice-warning notice-alt notice-large" data-slug="{{ data.id }}">
 							<h3 class="notice-title"><?php _e( 'Update Available' ); ?></h3>
 							{{{ data.update }}}
 						</div>
 					<# } else { #>
-						<div class="notice notice-error notice-alt notice-large">
+						<div class="notice notice-error notice-alt notice-large" data-slug="{{ data.id }}">
 							<h3 class="notice-title"><?php _e( 'Update Incompatible' ); ?></h3>
 							<p>
 								<# if ( ! data.updateResponse.compatibleWP && ! data.updateResponse.compatiblePHP ) { #>

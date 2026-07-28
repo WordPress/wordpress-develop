@@ -158,6 +158,62 @@ jQuery( function( $ ) {
 		assert.equal( jQuery.ajax.getCall( 0 ).args[0].data.slug, 'twentyeleven' );
 	} );
 
+	QUnit.test( 'Starting a theme update should not change unrelated theme details modal notices', function( assert ) {
+		var $fixture = $( '#qunit-fixture' );
+
+		$fixture.append(
+			'<div class="theme-info">' +
+				'<div class="notice notice-warning" data-slug="twentytwelve"><p>Different theme update</p></div>' +
+			'</div>' +
+			'<div class="theme" data-slug="twentyeleven">' +
+				'<div class="update-message notice"><p>Update now</p></div>' +
+			'</div>'
+		);
+
+		wp.updates.updateTheme( { slug: 'twentyeleven' } );
+
+		assert.equal( $fixture.find( '.theme-info .notice[data-slug="twentytwelve"] p' ).text(), 'Different theme update' );
+		assert.equal( $fixture.find( '.theme[data-slug="twentyeleven"] .update-message p' ).text(), 'Updating...' );
+	} );
+
+	QUnit.test( 'A successful theme update should not add notices to an unrelated theme details modal', function( assert ) {
+		var $fixture = $( '#qunit-fixture' ),
+			originalAdminNotice = wp.updates.adminNotice,
+			addAdminNotice = sinon.stub( wp.updates, 'addAdminNotice' ),
+			decrementCount = sinon.stub( wp.updates, 'decrementCount' );
+
+		wp.updates.adminNotice = sinon.stub().returns( '<div class="updated-message notice-success notice-alt"><p>Updated!</p></div>' );
+		$( 'body' ).addClass( 'modal-open' );
+
+		$fixture.append(
+			'<div class="theme-info">' +
+				'<p class="theme-author">By the WordPress team</p>' +
+				'<div class="notice notice-warning" data-slug="twentytwelve"><p>Different theme update</p></div>' +
+			'</div>' +
+			'<div class="theme" data-slug="twentyeleven">' +
+				'<div class="update-message notice"><p>Update now</p></div>' +
+				'<a class="load-customize" href="#">Live Preview</a>' +
+			'</div>'
+		);
+
+		try {
+			wp.updates.updateThemeSuccess( {
+				slug: 'twentyeleven',
+				oldVersion: '1.0',
+				newVersion: '1.1'
+			} );
+
+			assert.strictEqual( addAdminNotice.firstCall.args[0].selector.length, 1 );
+			assert.strictEqual( addAdminNotice.firstCall.args[0].selector[0], $fixture.find( '.theme[data-slug="twentyeleven"] .update-message' )[0] );
+			assert.equal( $fixture.find( '.theme-info .updated-message' ).length, 0 );
+		} finally {
+			addAdminNotice.restore();
+			decrementCount.restore();
+			wp.updates.adminNotice = originalAdminNotice;
+			$( 'body' ).removeClass( 'modal-open' );
+		}
+	} );
+
 	QUnit.test( 'Installing a theme should call the API', function( assert ) {
 		wp.updates.installTheme( { slug: 'twentyeleven' } );
 		assert.ok( jQuery.ajax.calledOnce );
