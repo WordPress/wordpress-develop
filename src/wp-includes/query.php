@@ -1128,10 +1128,12 @@ function wp_old_slug_redirect() {
 		 * Filters the old slug redirect URL.
 		 *
 		 * @since 4.4.0
+		 * @since x.x.0 Added the `$id` parameter.
 		 *
 		 * @param string $link The redirect URL.
+		 * @param int    $id   The redirect post ID.
 		 */
-		$link = apply_filters( 'old_slug_redirect_url', $link );
+		$link = apply_filters( 'old_slug_redirect_url', $link, $id );
 
 		if ( ! $link ) {
 			return;
