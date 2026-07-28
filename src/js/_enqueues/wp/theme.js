@@ -118,7 +118,7 @@ themes.view.Appearance = wp.Backbone.View.extend({
 		view.render();
 		this.searchContainer
 			.find( '.search-box' )
-			.append( $.parseHTML( '<label for="wp-filter-search-input">' + wp.i18n.__( 'Search installed themes' ) + '</label>' ) )
+			.append( $.parseHTML( '<label for="wp-filter-search-input">' + ( themes.isInstall ? wp.i18n.__( 'Search Themes' ) : wp.i18n.__( 'Search installed themes' ) ) + '</label>' ) )
 			.append( view.el );
 
 		this.searchContainer.on( 'submit', function( event ) {
