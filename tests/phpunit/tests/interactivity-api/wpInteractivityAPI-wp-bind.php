@@ -534,7 +534,7 @@ class Tests_WP_Interactivity_API_WP_Bind extends WP_UnitTestCase {
 		$this->assertSame(
 			array(
 				'WP_Interactivity_API::data_wp_bind_processor' => sprintf(
-					'Attempted to store non-scalar value the "%s" attribute. (This message was added in version 7.1.0.)',
+					'Attempted to bind a non-scalar value to the "%s" attribute. Cast the value to a string before storing it in state or context so that the server and client agree. (This message was added in version 7.1.0.)',
 					$attribute
 				),
 			),
@@ -568,7 +568,7 @@ class Tests_WP_Interactivity_API_WP_Bind extends WP_UnitTestCase {
 		$this->assertSame(
 			array(
 				'WP_Interactivity_API::data_wp_bind_processor' => sprintf(
-					'Attempted to store non-scalar value the "%s" attribute. (This message was added in version 7.1.0.)',
+					'Attempted to bind a non-scalar value to the "%s" attribute. Cast the value to a string before storing it in state or context so that the server and client agree. (This message was added in version 7.1.0.)',
 					$attribute
 				),
 			),

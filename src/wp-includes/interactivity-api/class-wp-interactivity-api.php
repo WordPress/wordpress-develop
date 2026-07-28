@@ -1083,6 +1083,11 @@ final class WP_Interactivity_API {
 				/*
 				 * Only scalar values can be stored in an attribute value. Strings and booleans are passed in as-is.
 				 * Numbers are cast to strings. Everything else is rejected as a usage error.
+				 *
+				 * Objects are rejected even when they define `__toString()`, which PHP would otherwise coerce for
+				 * the string parameters of the escaping functions. The same reference is serialized as JSON for the
+				 * client, where the string representation is not available, so the two would disagree once the
+				 * directive is evaluated during hydration.
 				 */
 				if ( null !== $result ) {
 					if ( ! is_scalar( $result ) ) {
@@ -1090,7 +1095,7 @@ final class WP_Interactivity_API {
 							__METHOD__,
 							sprintf(
 								/* translators: %s: The attribute name. */
-								__( 'Attempted to store non-scalar value the "%s" attribute.' ),
+								__( 'Attempted to bind a non-scalar value to the "%s" attribute. Cast the value to a string before storing it in state or context so that the server and client agree.' ),
 								esc_html( $entry['suffix'] )
 							),
 							'7.1.0'
