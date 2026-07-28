@@ -841,6 +841,43 @@ class WP_Plugins_List_Table extends WP_List_Table {
 		$compatible_php = is_php_version_compatible( $requires_php );
 		$compatible_wp  = is_wp_version_compatible( $requires_wp );
 
+		$tested_wp         = null;
+		$tested_compatible = true;
+
+		if ( ! empty( $plugin_data['tested'] ) ) {
+			// Data already present from the update transient (standard directory-based plugins).
+			$tested_wp         = $plugin_data['tested'];
+			$tested_compatible = is_tested_wp_version_compatible( $tested_wp );
+		} elseif ( ! empty( $plugin_slug ) ) {
+			/*
+			 * Single-file plugins (e.g. hello.php) are absent from the update transient because
+			 * WordPress.org derives the slug from the folder name, and a bare filename has none.
+			 * Fall back to a per-slug site transient so the API call happens at most once per week.
+			 */
+			$cached_tested = get_site_transient( 'plugin_tested_wp_' . $plugin_slug );
+
+			if ( false === $cached_tested ) {
+				if ( ! function_exists( 'plugins_api' ) ) {
+					require_once ABSPATH . 'wp-admin/includes/plugin-install.php';
+				}
+
+				$info          = plugins_api(
+					'plugin_information',
+					array(
+						'slug'   => $plugin_slug,
+						'fields' => array( 'tested' => true ),
+					)
+				);
+				$cached_tested = ( ! is_wp_error( $info ) && ! empty( $info->tested ) ) ? $info->tested : '';
+				set_site_transient( 'plugin_tested_wp_' . $plugin_slug, $cached_tested, WEEK_IN_SECONDS );
+			}
+
+			if ( ! empty( $cached_tested ) ) {
+				$tested_wp         = $cached_tested;
+				$tested_compatible = is_tested_wp_version_compatible( $tested_wp );
+			}
+		}
+
 		$has_dependents          = WP_Plugin_Dependencies::has_dependents( $plugin_file );
 		$has_active_dependents   = WP_Plugin_Dependencies::has_active_dependents( $plugin_file );
 		$has_unmet_dependencies  = WP_Plugin_Dependencies::has_unmet_dependencies( $plugin_file );
@@ -1361,6 +1398,71 @@ class WP_Plugins_List_Table extends WP_List_Table {
 					 * @param array  $plugin_data Refer to {@see 'plugin_row_meta'} filter.
 					 */
 					do_action( 'after_plugin_row_meta', $plugin_file, $plugin_data );
+
+					if ( ! $tested_compatible ) {
+						global $wp_version;
+						$compat_message = sprintf(
+							/* translators: 1: Current WordPress version, 2: Version the plugin was tested up to. */
+							__( 'This plugin has not been tested with your current version of WordPress (%1$s). It may still work, but consider checking for an update or contacting the plugin author. Last tested with WordPress %2$s.' ),
+							$wp_version,
+							$tested_wp
+						);
+
+						/**
+						 * Filters the compatibility warning message for a plugin.
+						 *
+						 * @since 7.0.0
+						 *
+						 * @param string $compat_message The compatibility warning message.
+						 * @param string $plugin_file    Path to the plugin file relative to the plugins directory.
+						 * @param array  $plugin_data    An array of plugin data. See get_plugin_data()
+						 *                               and the {@see 'plugin_row_meta'} filter for the list
+						 *                               of possible values.
+						 * @param string $tested_wp      The WordPress version the plugin was tested up to.
+						 * @param string $wp_version     Current WordPress version.
+						 */
+						$compat_message = apply_filters(
+							'plugin_compatibility_warning_message',
+							$compat_message,
+							$plugin_file,
+							$plugin_data,
+							$tested_wp,
+							$wp_version
+						);
+
+						if ( ! empty( $compat_message ) ) {
+							$details_link = '';
+
+							if ( current_user_can( 'install_plugins' ) ) {
+								$details_url = add_query_arg(
+									array(
+										'tab'       => 'plugin-information',
+										'plugin'    => $plugin_slug,
+										'TB_iframe' => 'true',
+										'width'     => '600',
+										'height'    => '550',
+									),
+									network_admin_url( 'plugin-install.php' )
+								);
+
+								$details_link = sprintf(
+									' <a href="%s" class="thickbox open-plugin-details-modal" aria-label="%s">%s</a>',
+									esc_url( $details_url ),
+									/* translators: %s: Plugin name. */
+									esc_attr( sprintf( __( 'More information about %s' ), $plugin_data['Name'] ) ),
+									__( 'View details' )
+								);
+							}
+
+							wp_admin_notice(
+								$compat_message . $details_link,
+								array(
+									'type'               => 'warning',
+									'additional_classes' => array( 'notice-alt', 'inline' ),
+								)
+							);
+						}
+					}
 
 					if ( $paused ) {
 						$notice_text = __( 'This plugin failed to load properly and is paused during recovery mode.' );
