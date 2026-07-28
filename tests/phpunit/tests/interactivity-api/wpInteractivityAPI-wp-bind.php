@@ -111,6 +111,33 @@ class Tests_WP_Interactivity_API_WP_Bind extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that a float value is not formatted with the locale's decimal separator.
+	 *
+	 * Casting a float to string is locale-dependent before PHP 8.0, whereas the
+	 * client receives the number from the JSON-encoded store, which never is.
+	 *
+	 * @ticket 65740
+	 *
+	 * @covers ::process_directives
+	 */
+	public function test_wp_bind_sets_float_value_independently_of_the_locale() {
+		$previous_locale = setlocale( LC_NUMERIC, '0' ); // Passing "0" queries the current setting without changing it.
+		if ( false === setlocale( LC_NUMERIC, 'de_DE.UTF-8', 'de_DE', 'de_DE@euro', 'German' ) ) {
+			$this->markTestSkipped( 'No locale with a comma decimal separator is available.' );
+		}
+
+		try {
+			$this->interactivity->state( 'myPlugin', array( 'ratio' => 1.5 ) );
+
+			$html    = '<div data-wp-bind--data-ratio="myPlugin::state.ratio">Text</div>';
+			list($p) = $this->process_directives( $html );
+			$this->assertSame( '1.5', $p->get_attribute( 'data-ratio' ) );
+		} finally {
+			setlocale( LC_NUMERIC, false === $previous_locale ? 'C' : $previous_locale );
+		}
+	}
+
+	/**
 	 * Tests that true strings are set properly as attribute values.
 	 *
 	 * @ticket 60356

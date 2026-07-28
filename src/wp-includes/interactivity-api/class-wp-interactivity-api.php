@@ -1116,7 +1116,15 @@ final class WP_Interactivity_API {
 						);
 						$result = null;
 					} elseif ( is_int( $result ) || is_float( $result ) ) {
-						$result = (string) $result;
+						/*
+						 * A number is formatted by the JSON encoder rather than cast to string, so that the
+						 * attribute value matches the number the client receives for this same reference. Casting
+						 * a float is locale-dependent before PHP 8.0, and rounds to `precision` rather than to the
+						 * encoder's `serialize_precision`. Encoding only fails for INF and NAN, which cannot be
+						 * sent to the client at all, and which fall back to the cast as before.
+						 */
+						$encoded = wp_json_encode( $result );
+						$result  = false === $encoded ? (string) $result : $encoded;
 					}
 				}
 
