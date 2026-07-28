@@ -2171,7 +2171,7 @@ class WP_Object_Cache {
 			$group = 'default';
 		}
 
-		if ( false !== array_search( $group, $this->global_groups, true ) ) {
+		if ( in_array( $group, $this->global_groups, true ) ) {
 			$prefix = $this->global_prefix;
 		} else {
 			$prefix = $this->blog_prefix;
