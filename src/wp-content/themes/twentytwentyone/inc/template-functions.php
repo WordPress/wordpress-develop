@@ -192,7 +192,7 @@ if ( ! function_exists( 'twenty_twenty_one_post_title' ) ) {
 			return $title;
 		}
 
-		return '' === $title ? esc_html_x( 'Untitled', 'Added to posts and pages that are missing titles', 'twentytwentyone' ) : $title;
+		return '' === $title ? esc_html_x( 'Untitled', 'Added on the front end to posts and pages that are missing titles', 'twentytwentyone' ) : $title;
 	}
 }
 add_filter( 'the_title', 'twenty_twenty_one_post_title' );
