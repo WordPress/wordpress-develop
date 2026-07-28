@@ -1921,7 +1921,7 @@ div.action-links,
 		display: none;
 	}
 
-	.wp-list-table thead th.column-primary {
+	.wp-list-table th.column-primary {
 		width: 100%;
 	}
 
@@ -1939,7 +1939,7 @@ div.action-links,
 		display: block;
 	}
 
-	.wp-list-table th,
+	.wp-list-table tbody th,
 	.wp-list-table tr:not(.inline-edit-row):not(.no-items) td:not(.check-column) {
 		position: relative;
 		clear: both;
@@ -1947,7 +1947,7 @@ div.action-links,
 	}
 
 	.wp-list-table td.column-primary,
-	.wp-list-table th.column-primary {
+	.wp-list-table tbody th.column-primary {
 		padding-right: 50px; /* space for toggle button */
 	}
 
