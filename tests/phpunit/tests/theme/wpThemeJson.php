@@ -7183,7 +7183,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 				),
 				'expected' => ':root :where(.foo, .bar){color: red; margin: auto;}:root :where(.foo.one, .bar.one){color: blue;}:root :where(.foo .two, .bar .two){color: green;}:root :where(.foo, .bar)::before{color: yellow;}:root :where(.foo, .bar) ::before{color: purple;}:root :where(.foo.three, .bar.three)::before{color: orange;}:root :where(.foo .four, .bar .four)::before{color: skyblue;}',
 			),
-			// Non-string CSS input should be handled gracefully.
+			// Falsy non-string CSS is handled silently by the empty() check.
 			'null css'                     => array(
 				'input'    => array(
 					'selector' => '.foo',
@@ -7198,41 +7198,45 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 				),
 				'expected' => '',
 			),
-			'true css'                     => array(
-				'input'    => array(
-					'selector' => '.foo',
-					'css'      => true,
-				),
-				'expected' => '',
-			),
-			'integer css'                  => array(
-				'input'    => array(
-					'selector' => '.foo',
-					'css'      => 123,
-				),
-				'expected' => '',
-			),
-			'float css'                    => array(
-				'input'    => array(
-					'selector' => '.foo',
-					'css'      => 1.5,
-				),
-				'expected' => '',
-			),
-			'array css'                    => array(
-				'input'    => array(
-					'selector' => '.foo',
-					'css'      => array( 'color: red;' ),
-				),
-				'expected' => '',
-			),
-			'object css'                   => array(
-				'input'    => array(
-					'selector' => '.foo',
-					'css'      => new stdClass(),
-				),
-				'expected' => '',
-			),
+		);
+	}
+
+	/**
+	 * @ticket 65608
+	 *
+	 * @dataProvider data_process_blocks_custom_css_non_string
+	 *
+	 * @param mixed $css A non-string, non-empty CSS value.
+	 */
+	public function test_process_blocks_custom_css_triggers_doing_it_wrong_for_non_string( $css ) {
+		$this->setExpectedIncorrectUsage( 'WP_Theme_JSON::process_blocks_custom_css' );
+
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
+				'styles'  => array(),
+			)
+		);
+		$reflection = new ReflectionMethod( $theme_json, 'process_blocks_custom_css' );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$reflection->setAccessible( true );
+		}
+
+		$this->assertSame( '', $reflection->invoke( $theme_json, $css, '.foo' ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_process_blocks_custom_css_non_string() {
+		return array(
+			'true'    => array( true ),
+			'integer' => array( 123 ),
+			'float'   => array( 1.5 ),
+			'array'   => array( array( 'color: red;' ) ),
+			'object'  => array( new stdClass() ),
 		);
 	}
 
