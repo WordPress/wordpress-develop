@@ -1792,11 +1792,13 @@
 
 				// Pressing the right arrow key fires a theme:next event.
 				if ( 39 === event.keyCode ) {
+					event.preventDefault(); // Prevent browser from triggering history shortcuts.
 					section.nextTheme();
 				}
 
 				// Pressing the left arrow key fires a theme:previous event.
 				if ( 37 === event.keyCode ) {
+					event.preventDefault(); // Prevent browser from triggering history shortcuts.
 					section.previousTheme();
 				}
 
