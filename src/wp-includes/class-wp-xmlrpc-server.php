@@ -2213,7 +2213,9 @@ class wp_xmlrpc_server extends IXR_Server {
 		/** This action is documented in wp-includes/class-wp-xmlrpc-server.php */
 		do_action( 'xmlrpc_call', 'wp.editTerm', $args, $this );
 
-		if ( ! taxonomy_exists( $content_struct['taxonomy'] ) ) {
+		if ( ! isset( $content_struct['taxonomy'] )
+			|| ! taxonomy_exists( $content_struct['taxonomy'] )
+		) {
 			return new IXR_Error( 403, __( 'Invalid taxonomy.' ) );
 		}
 
@@ -4892,7 +4894,7 @@ class wp_xmlrpc_server extends IXR_Server {
 		$domain = $current_blog->domain;
 		$path   = $current_blog->path . 'xmlrpc.php';
 
-		$blogs = $this->wp_getUsersBlogs( $args );
+		$blogs = $this->wp_getUsersBlogs( array( $args[1], $args[2] ) );
 		if ( $blogs instanceof IXR_Error ) {
 			return $blogs;
 		}
