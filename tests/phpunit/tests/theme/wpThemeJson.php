@@ -7211,18 +7211,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	public function test_process_blocks_custom_css_triggers_doing_it_wrong_for_non_string( $css ) {
 		$this->setExpectedIncorrectUsage( 'WP_Theme_JSON::process_blocks_custom_css' );
 
-		$theme_json = new WP_Theme_JSON(
-			array(
-				'version' => WP_Theme_JSON::LATEST_SCHEMA,
-				'styles'  => array(),
-			)
-		);
-		$reflection = new ReflectionMethod( $theme_json, 'process_blocks_custom_css' );
-		if ( PHP_VERSION_ID < 80100 ) {
-			$reflection->setAccessible( true );
-		}
-
-		$this->assertSame( '', $reflection->invoke( $theme_json, $css, '.foo' ) );
+		$this->assertSame( '', WP_Theme_JSON::process_blocks_custom_css( $css, '.foo' ) );
 	}
 
 	/**
