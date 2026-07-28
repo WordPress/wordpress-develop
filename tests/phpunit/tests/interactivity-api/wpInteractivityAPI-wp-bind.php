@@ -463,6 +463,113 @@ class Tests_WP_Interactivity_API_WP_Bind extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Data provider for values a bound object may serialize to.
+	 *
+	 * @return array<non-empty-string, array{ value: mixed, expected: string }> Data provider.
+	 */
+	public function data_json_serializable_values(): array {
+		return array(
+			'string'  => array(
+				'value'    => 'serialized-form',
+				'expected' => 'serialized-form',
+			),
+			'integer' => array(
+				'value'    => 42,
+				'expected' => '42',
+			),
+			'float'   => array(
+				'value'    => 1.5,
+				'expected' => '1.5',
+			),
+		);
+	}
+
+	/**
+	 * Tests that an object is bound as whatever it serializes to for the client.
+	 *
+	 * @ticket 65740
+	 *
+	 * @covers ::process_directives
+	 *
+	 * @dataProvider data_json_serializable_values
+	 *
+	 * @param mixed  $value    Value the object serializes to.
+	 * @param string $expected Expected attribute value.
+	 */
+	public function test_wp_bind_sets_json_serializable_value( $value, string $expected ) {
+		$this->interactivity->state( 'myPlugin', array( 'serializable' => $this->get_json_serializable( $value ) ) );
+
+		$html    = '<div data-wp-bind--id="myPlugin::state.serializable">Text</div>';
+		list($p) = $this->process_directives( $html );
+		$this->assertSame( $expected, $p->get_attribute( 'id' ) );
+	}
+
+	/**
+	 * Tests that the bound attribute value matches what the client is sent.
+	 *
+	 * This is what makes serializable objects safe to bind: the value rendered
+	 * into the attribute is the same one the client store is hydrated with, so
+	 * evaluating the directive again in the browser is a no-op.
+	 *
+	 * @ticket 65740
+	 *
+	 * @covers ::process_directives
+	 */
+	public function test_wp_bind_json_serializable_value_matches_the_client_store() {
+		$this->interactivity->state( 'myPlugin', array( 'serializable' => $this->get_json_serializable( 'serialized-form' ) ) );
+
+		$html    = '<div data-wp-bind--id="myPlugin::state.serializable">Text</div>';
+		list($p) = $this->process_directives( $html );
+
+		$data    = $this->interactivity->filter_script_module_interactivity_data( array() );
+		$encoded = wp_json_encode( $data['state'] );
+		$this->assertIsString( $encoded, 'Expected the client state to be encodable as JSON.' );
+
+		$this->assertSame( 'serialized-form', $p->get_attribute( 'id' ) );
+		$this->assertStringContainsString(
+			'"serializable":"serialized-form"',
+			$encoded,
+			'Expected the rendered attribute value to match the value sent to the client.'
+		);
+	}
+
+	/**
+	 * Creates an object which serializes to the given value for the client.
+	 *
+	 * @param mixed $value Value the object serializes to.
+	 * @return JsonSerializable Object serializing to `$value`.
+	 */
+	private function get_json_serializable( $value ): JsonSerializable {
+		return new class( $value ) implements JsonSerializable {
+			/**
+			 * Value the object serializes to.
+			 *
+			 * @var mixed
+			 */
+			private $value;
+
+			/**
+			 * Constructor.
+			 *
+			 * @param mixed $value Value the object serializes to.
+			 */
+			public function __construct( $value ) {
+				$this->value = $value;
+			}
+
+			/**
+			 * Returns the value for JSON serialization.
+			 *
+			 * @return mixed Value the client receives.
+			 */
+			#[\ReturnTypeWillChange]
+			public function jsonSerialize() {
+				return $this->value;
+			}
+		};
+	}
+
+	/**
 	 * Data provider for values which cannot be stored in an attribute value.
 	 *
 	 * Each value is paired with a single attribute so that the two escaping
@@ -474,11 +581,11 @@ class Tests_WP_Interactivity_API_WP_Bind extends WP_UnitTestCase {
 	 */
 	public function data_non_scalar_values(): array {
 		$values = array(
-			'list'              => array( 'a', 'b' ),
-			'associative array' => array( 'a' => 'b' ),
-			'empty array'       => array(),
-			'object'            => new stdClass(),
-			'stringable object' => new class() {
+			'list'                                      => array( 'a', 'b' ),
+			'associative array'                         => array( 'a' => 'b' ),
+			'empty array'                               => array(),
+			'object'                                    => new stdClass(),
+			'stringable object'                         => new class() {
 				/**
 				 * Returns the string representation.
 				 *
@@ -488,6 +595,27 @@ class Tests_WP_Interactivity_API_WP_Bind extends WP_UnitTestCase {
 					return 'stringified';
 				}
 			},
+			'stringable object serializing to an array' => new class() implements JsonSerializable {
+				/**
+				 * Returns the string representation.
+				 *
+				 * @return string String representation.
+				 */
+				public function __toString() {
+					return 'stringified';
+				}
+
+				/**
+				 * Returns the value for JSON serialization.
+				 *
+				 * @return array<string, string> Value the client receives.
+				 */
+				#[\ReturnTypeWillChange]
+				public function jsonSerialize() {
+					return array( 'not' => 'the string representation' );
+				}
+			},
+			'object serializing to an array'            => $this->get_json_serializable( array( 'a', 'b' ) ),
 		);
 
 		$attributes = array(
