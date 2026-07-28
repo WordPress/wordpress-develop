@@ -109,8 +109,17 @@ final class WP_Interactivity_API {
 	 *
 	 * This is only available during directive processing, otherwise it is `null`.
 	 *
+	 * An entry is the namespace the directive defined. It is `false` instead when
+	 * the directive did not define a usable one — the attribute was empty, or its
+	 * JSON held no `namespace`, or the namespace did not match the accepted
+	 * characters — and no enclosing `data-wp-interactive` was in effect to inherit
+	 * from. An entry is pushed either way, because one is popped for every closing
+	 * tag regardless of what the directive contained, so `false` is what stands in
+	 * for "no namespace here" and keeps the stack balanced.
+	 *
 	 * @since 6.6.0
-	 * @var array<string>|null
+	 * @var array<string|false>|null
+	 * @phpstan-var list<string|false>|null
 	 */
 	private $namespace_stack = null;
 
@@ -923,7 +932,17 @@ final class WP_Interactivity_API {
 			if ( null === $attribute_value ) {
 				continue;
 			}
-			list( $namespace, $value ) = $this->extract_directive_value( $attribute_value, array_last( $this->namespace_stack ?? array() ) );
+			/*
+			 * The namespace stack can hold false, which data_wp_interactive_processor() pushes for a
+			 * `data-wp-interactive` whose namespace is invalid and which has no enclosing one to inherit. Only a
+			 * string names a store, so anything else counts as no default namespace at all.
+			 */
+			$default_namespace = array_last( $this->namespace_stack ?? array() );
+			if ( ! is_string( $default_namespace ) ) {
+				$default_namespace = null;
+			}
+
+			list( $namespace, $value ) = $this->extract_directive_value( $attribute_value, $default_namespace );
 			$entries[]                 = array(
 				'namespace' => $namespace,
 				'value'     => $value,
