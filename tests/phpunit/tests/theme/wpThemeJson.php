@@ -805,6 +805,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	/**
 	 * @ticket 52991
 	 * @ticket 54336
+	 * @ticket 65724
 	 */
 	public function test_get_stylesheet_preset_classes_work_with_compounded_selectors() {
 		$theme_json = new WP_Theme_JSON(
@@ -828,7 +829,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		);
 
 		$this->assertSame(
-			'.wp-block-heading.has-white-color{color: var(--wp--preset--color--white) !important;}.wp-block-heading.has-white-background-color{background-color: var(--wp--preset--color--white) !important;}.wp-block-heading.has-white-border-color{border-color: var(--wp--preset--color--white) !important;}',
+			':where(.wp-block-heading).has-white-color{color: var(--wp--preset--color--white) !important;}:where(.wp-block-heading).has-white-background-color{background-color: var(--wp--preset--color--white) !important;}:where(.wp-block-heading).has-white-border-color{border-color: var(--wp--preset--color--white) !important;}',
 			$theme_json->get_stylesheet( array( 'presets' ) )
 		);
 	}
@@ -894,6 +895,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 * @ticket 58550
 	 * @ticket 60936
 	 * @ticket 61165
+	 * @ticket 65724
 	 */
 	public function test_get_stylesheet_preset_rules_come_after_block_rules() {
 		$theme_json = new WP_Theme_JSON(
@@ -926,7 +928,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		);
 
 		$styles    = ':root :where(.wp-block-group){color: red;}';
-		$presets   = '.wp-block-group.has-grey-color{color: var(--wp--preset--color--grey) !important;}.wp-block-group.has-grey-background-color{background-color: var(--wp--preset--color--grey) !important;}.wp-block-group.has-grey-border-color{border-color: var(--wp--preset--color--grey) !important;}';
+		$presets   = ':where(.wp-block-group).has-grey-color{color: var(--wp--preset--color--grey) !important;}:where(.wp-block-group).has-grey-background-color{background-color: var(--wp--preset--color--grey) !important;}:where(.wp-block-group).has-grey-border-color{border-color: var(--wp--preset--color--grey) !important;}';
 		$variables = '.wp-block-group{--wp--preset--color--grey: grey;}';
 
 		$all = $variables . $styles . $presets;
