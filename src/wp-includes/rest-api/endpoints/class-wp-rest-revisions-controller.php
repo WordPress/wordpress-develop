@@ -820,10 +820,20 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 
 		if ( ! empty( $parent_schema['properties']['content'] ) ) {
 			$schema['properties']['content'] = $parent_schema['properties']['content'];
+
+			// Revisions do not support password protection.
+			if ( isset( $schema['properties']['content']['properties']['protected'] ) ) {
+				unset( $schema['properties']['content']['properties']['protected'] );
+			}
 		}
 
 		if ( ! empty( $parent_schema['properties']['excerpt'] ) ) {
 			$schema['properties']['excerpt'] = $parent_schema['properties']['excerpt'];
+
+			// Revisions do not support password protection.
+			if ( isset( $schema['properties']['excerpt']['properties']['protected'] ) ) {
+				unset( $schema['properties']['excerpt']['properties']['protected'] );
+			}
 		}
 
 		if ( ! empty( $parent_schema['properties']['guid'] ) ) {
