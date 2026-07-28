@@ -1939,6 +1939,7 @@ div.action-links,
 		display: block;
 	}
 
+	.wp-list-table th,
 	.wp-list-table tr:not(.inline-edit-row):not(.no-items) td:not(.check-column) {
 		position: relative;
 		clear: both;
