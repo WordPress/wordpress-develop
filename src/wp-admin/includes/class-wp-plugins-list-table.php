@@ -1619,18 +1619,22 @@ class WP_Plugins_List_Table extends WP_List_Table {
 			return;
 		}
 
-		$is_active = ( is_multisite() && $this->screen->in_admin( 'network' ) )
-			? is_plugin_active_for_network( $dependency )
-			: is_plugin_active( $dependency );
+		$dependency_note = '';
 
-		if ( $is_active ) {
+		if ( is_multisite() && $this->screen->in_admin( 'network' ) ) {
+			$is_network_active = is_plugin_active_for_network( $dependency );
+
+			if ( $is_network_active && WP_Plugin_Dependencies::has_active_dependents( $dependency ) ) {
+				$dependency_note = __( 'Note: This plugin cannot be deactivated until the plugins that require it are deactivated.' );
+			} elseif ( current_user_can( 'delete_plugins' ) && ! is_plugin_active( $dependency ) ) {
+				$dependency_note = __( 'Note: This plugin cannot be deleted until the plugins that require it are deleted.' );
+			}
+		} elseif ( is_plugin_active( $dependency ) ) {
 			if ( WP_Plugin_Dependencies::has_active_dependents( $dependency ) ) {
 				$dependency_note = __( 'Note: This plugin cannot be deactivated until the plugins that require it are deactivated.' );
-			} else {
-				$dependency_note = '';
+			} elseif ( ! is_multisite() && current_user_can( 'delete_plugins' ) ) {
+				$dependency_note = __( 'Note: This plugin cannot be deleted until the plugins that require it are deleted.' );
 			}
-		} else {
-			$dependency_note = __( 'Note: This plugin cannot be deleted until the plugins that require it are deleted.' );
 		}
 
 		$dependency_notice = '';
