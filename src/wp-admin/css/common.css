@@ -1608,6 +1608,29 @@ div.error.notice-alt {
 	background-color: #fff;
 }
 
+/* Restore list styles inside admin notices. The global ul { list-style: none }
+ * and ul, ol { padding: 0 } resets remove bullets/numbers and indentation. Use
+ * margin-left instead of padding-left as padding is zeroed globally. */
+.notice ol,
+div.error ol,
+div.updated ol {
+	list-style: decimal outside;
+	margin-left: 1.8em;
+}
+
+.notice ul,
+div.error ul,
+div.updated ul {
+	list-style: disc outside;
+	margin-left: 1.8em;
+}
+
+.notice li,
+div.error li,
+div.updated li {
+	margin: 0 0 0.5em;
+}
+
 #plugin-information-footer .update-now:not(.button-disabled):before {
 	color: #d63638;
 	content: "\f463";
