@@ -481,6 +481,14 @@ class Tests_WP_Interactivity_API_WP_Bind extends WP_UnitTestCase {
 				'value'    => 1.5,
 				'expected' => '1.5',
 			),
+			/*
+			 * The JSON encoder keeps resolving a serializable object which serializes to another one, so the
+			 * value bound on the server has to follow it all the way down to match what the client receives.
+			 */
+			'nested'  => array(
+				'value'    => $this->get_json_serializable( 'serialized-form' ),
+				'expected' => 'serialized-form',
+			),
 		);
 	}
 

@@ -1081,19 +1081,25 @@ final class WP_Interactivity_API {
 				$result = $this->evaluate( $entry );
 
 				/*
-				 * A JsonSerializable object is resolved to whatever it serializes to, since that is the value the
-				 * client receives for this same reference when the store is hydrated.
+				 * An object is resolved to whatever it serializes to, since that is the value the client receives
+				 * for this same reference when the store is hydrated. Round-tripping through the JSON encoder
+				 * rather than calling JsonSerializable::jsonSerialize() directly keeps this resolution identical to
+				 * the client's, including for an object which serializes to another serializable object. When the
+				 * encoding fails the object is left in place, to be reported as a usage error below.
 				 */
-				if ( $result instanceof JsonSerializable ) {
-					$result = $result->jsonSerialize();
+				if ( is_object( $result ) ) {
+					$encoded = wp_json_encode( $result );
+					if ( false !== $encoded ) {
+						$result = json_decode( $encoded );
+					}
 				}
 
 				/*
 				 * Only scalar values can be stored in an attribute value. Strings and booleans are passed in as-is.
 				 * Numbers are cast to strings. Everything else is rejected as a usage error.
 				 *
-				 * An object which is not JsonSerializable is rejected even when it defines `__toString()`, which PHP
-				 * would otherwise coerce for the string parameters of the escaping functions. Its string
+				 * An object which does not serialize to a scalar is rejected even when it defines `__toString()`,
+				 * which PHP would otherwise coerce for the string parameters of the escaping functions. Its string
 				 * representation is not what gets serialized for the client, so the two would disagree once the
 				 * directive is evaluated during hydration.
 				 */
