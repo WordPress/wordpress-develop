@@ -55,9 +55,7 @@ EditAttachments = MediaFrame.extend(/** @lends wp.media.view.MediaFrame.EditAtta
 			return;
 		}
 
-		wp.a11y.speak( l10n.mediaItemViewed.replace( '%s', function() {
-			return title;
-		} ) );
+		wp.a11y.speak( l10n.mediaItemViewed.replace( '%s', title ) );
 	}, 500 ),
 
 	initialize: function() {

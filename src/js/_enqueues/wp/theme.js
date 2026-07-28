@@ -37,9 +37,7 @@ themes.announceThemeDebounced = _.debounce( function( model ) {
 		return;
 	}
 
-	wp.a11y.speak( l10n.themeViewed.replace( '%s', function() {
-		return name;
-	} ) );
+	wp.a11y.speak( l10n.themeViewed.replace( '%s', name ) );
 }, 500 );
 
 // Shortcut for isInstall check.
