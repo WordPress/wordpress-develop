@@ -1,6 +1,10 @@
 <?php
 /**
  * Centered header with navigation, social links, and salmon background block pattern
+ *
+ * @package WordPress
+ * @subpackage Twenty_Twenty_Two
+ * @since Twenty Twenty-Two 1.0
  */
 
 return array(

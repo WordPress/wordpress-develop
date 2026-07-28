@@ -1,10 +1,10 @@
 <?php
 /**
- * Title: Centered header
+ * Title: Centered site header
  * Slug: twentytwentyfive/header-centered
  * Categories: header
  * Block Types: core/template-part/header
- * Description: Header with centered site title and navigation.
+ * Description: Site header with centered site title and navigation.
  *
  * @package WordPress
  * @subpackage Twenty_Twenty_Five
@@ -19,7 +19,7 @@
 		<!-- wp:site-title {"level":0,"textAlign":"center","align":"wide","fontSize":"x-large"} /-->
 		<!-- wp:group {"align":"wide","layout":{"type":"constrained"}} -->
 		<div class="wp-block-group alignwide">
-			<!-- wp:navigation {"layout":{"type":"flex","justifyContent":"center"}} /-->
+			<!-- wp:navigation {"overlayBackgroundColor":"base","overlayTextColor":"contrast","layout":{"type":"flex","justifyContent":"center"}} /-->
 		</div>
 		<!-- /wp:group -->
 	</div>

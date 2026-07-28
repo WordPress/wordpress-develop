@@ -4,7 +4,7 @@
  * Slug: twentytwentyfive/header
  * Categories: header
  * Block Types: core/template-part/header
- * Description: Header with site title and navigation.
+ * Description: Site header with site title and navigation.
  *
  * @package WordPress
  * @subpackage Twenty_Twenty_Five
@@ -21,7 +21,7 @@
 			<!-- wp:site-title {"level":0} /-->
 			<!-- wp:group {"style":{"spacing":{"blockGap":"var:preset|spacing|10"}},"layout":{"type":"flex","flexWrap":"nowrap","justifyContent":"right"}} -->
 			<div class="wp-block-group">
-				<!-- wp:navigation {"layout":{"type":"flex","justifyContent":"right","flexWrap":"wrap"}} /-->
+				<!-- wp:navigation {"overlayBackgroundColor":"base","overlayTextColor":"contrast","layout":{"type":"flex","justifyContent":"right","flexWrap":"wrap"}} /-->
 			</div>
 			<!-- /wp:group -->
 		</div>

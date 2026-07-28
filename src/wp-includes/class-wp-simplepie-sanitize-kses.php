@@ -7,6 +7,11 @@
  * @since 4.7.0
  */
 
+// Don't load directly.
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 /**
  * Core class used to implement SimplePie feed sanitization.
  *

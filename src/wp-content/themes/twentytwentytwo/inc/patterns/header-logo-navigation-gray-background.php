@@ -1,6 +1,10 @@
 <?php
 /**
  * Logo and navigation header with gray background
+ *
+ * @package WordPress
+ * @subpackage Twenty_Twenty_Two
+ * @since Twenty Twenty-Two 1.0
  */
 
 return array(
