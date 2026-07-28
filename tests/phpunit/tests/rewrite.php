@@ -504,4 +504,34 @@ class Tests_Rewrite extends WP_UnitTestCase {
 		$this->assertIsArray( $rewrite_rules );
 		$this->assertNotEmpty( $rewrite_rules );
 	}
+
+	/**
+	 * @ticket 58764
+	 */
+	public function test_using_index_permalinks_returns_bool() {
+		global $wp_rewrite;
+
+		$wp_rewrite->init();
+
+		$wp_rewrite->set_permalink_structure( '/index.php/%postname%/' );
+
+		$this->assertTrue( $wp_rewrite->using_index_permalinks() );
+
+		$wp_rewrite->set_permalink_structure( '/%postname%/' );
+
+		$this->assertFalse( $wp_rewrite->using_index_permalinks() );
+	}
+
+	/**
+	 * @ticket 58764
+	 */
+	public function test_using_index_permalinks_escaped_index() {
+		global $wp_rewrite;
+
+		$wp_rewrite->index = 'index#.php';
+
+		$wp_rewrite->set_permalink_structure( '/index#.php/%postname%/' );
+
+		$this->assertTrue( $wp_rewrite->using_index_permalinks() );
+	}
 }

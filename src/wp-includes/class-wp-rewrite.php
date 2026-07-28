@@ -369,7 +369,10 @@ class WP_Rewrite {
 		}
 
 		// If the index is not in the permalink, we're using mod_rewrite.
-		return preg_match( '#^/*' . $this->index . '#', $this->permalink_structure );
+		return (bool) preg_match(
+			'#^/*' . preg_quote( $this->index, '#' ) . '#',
+			$this->permalink_structure
+		);
 	}
 
 	/**
