@@ -491,4 +491,67 @@ class Tests_Cache extends WP_UnitTestCase {
 
 		$this->assertSame( $expected, $found );
 	}
+
+	/**
+	 * Tests that stats() outputs cache group information for serializable data.
+	 *
+	 * @ticket 21650
+	 *
+	 * @covers WP_Object_Cache::stats
+	 */
+	public function test_stats_with_serializable_data() {
+		if ( wp_using_ext_object_cache() ) {
+			$this->markTestSkipped( 'This test requires that an external object cache is not in use.' );
+		}
+
+		$this->cache->set( 'key1', 'value1', 'test-group' );
+		$this->cache->set( 'key2', array( 'a', 'b', 'c' ), 'test-group' );
+
+		ob_start();
+		$this->cache->stats();
+		$output = ob_get_clean();
+
+		$this->assertStringContainsString( 'test-group', $output, 'stats() output should contain the cache group name.' );
+		$this->assertStringContainsString( '<li>', $output, 'stats() output should contain list items.' );
+	}
+
+	/**
+	 * Tests that stats() does not fatal error when a cache group contains a
+	 * non-serializable object such as SimpleXMLElement, and falls back to
+	 * print_r() for size estimation.
+	 *
+	 * @ticket 21650
+	 *
+	 * @covers WP_Object_Cache::stats
+	 */
+	public function test_stats_with_non_serializable_simplexml_data() {
+		if ( wp_using_ext_object_cache() ) {
+			$this->markTestSkipped( 'This test requires that an external object cache is not in use.' );
+		}
+
+		if ( ! class_exists( 'SimpleXMLElement' ) ) {
+			$this->markTestSkipped( 'SimpleXMLElement class is not available.' );
+		}
+
+		$xml_object = new SimpleXMLElement( '<root><item>value</item></root>' );
+
+		// Directly inject the SimpleXMLElement into the cache storage to bypass
+		// any object-clone logic in set(), simulating a real-world scenario where
+		// a non-serializable object ends up in the cache.
+		$cache_property = new ReflectionProperty( $this->cache, 'cache' );
+		if ( PHP_VERSION_ID < 80500 ) {
+			$cache_property->setAccessible( true );
+		}
+		$cache_data                       = $cache_property->getValue( $this->cache );
+		$cache_data['xml-group']['item1'] = $xml_object;
+		$cache_property->setValue( $this->cache, $cache_data );
+
+		// stats() should not throw a fatal error or exception.
+		ob_start();
+		$this->cache->stats();
+		$output = ob_get_clean();
+
+		$this->assertStringContainsString( 'xml-group', $output, 'stats() output should contain the group name even for non-serializable data.' );
+		$this->assertStringContainsString( '<li>', $output, 'stats() output should contain a list item for the non-serializable group.' );
+	}
 }
