@@ -34,6 +34,7 @@ class Tests_Rewrite_OldSlugRedirect extends WP_UnitTestCase {
 
 	public function tear_down() {
 		$this->old_slug_redirect_url = null;
+		unset( $_SERVER['QUERY_STRING'] );
 
 		parent::tear_down();
 	}
@@ -53,6 +54,59 @@ class Tests_Rewrite_OldSlugRedirect extends WP_UnitTestCase {
 		$this->go_to( $old_permalink );
 		wp_old_slug_redirect();
 		$this->assertSame( $permalink, $this->old_slug_redirect_url );
+	}
+
+	/**
+	 * @ticket 65267
+	 */
+	public function test_old_slug_redirect_preserves_query_string() {
+		$old_permalink = user_trailingslashit( get_permalink( self::$post_id ) );
+
+		wp_update_post(
+			array(
+				'ID'        => self::$post_id,
+				'post_name' => 'bar-baz',
+			)
+		);
+
+		$permalink    = user_trailingslashit( get_permalink( self::$post_id ) );
+		$query_string = 'utm_source=flyer&foo=a%2Bb&a=1&a=2';
+
+		$this->go_to( $old_permalink . '?' . $query_string );
+		$_SERVER['QUERY_STRING'] = $query_string;
+
+		wp_old_slug_redirect();
+		$this->assertSame( $permalink . '?' . $query_string, $this->old_slug_redirect_url );
+	}
+
+	/**
+	 * @ticket 65267
+	 */
+	public function test_old_slug_redirect_preserves_query_string_before_fragment() {
+		$old_permalink = user_trailingslashit( get_permalink( self::$post_id ) );
+
+		wp_update_post(
+			array(
+				'ID'        => self::$post_id,
+				'post_name' => 'bar-baz',
+			)
+		);
+
+		$permalink    = user_trailingslashit( get_permalink( self::$post_id ) ) . '?existing=1';
+		$query_string = 'utm_source=flyer';
+
+		add_filter(
+			'post_link',
+			static function ( $url ) {
+				return $url . '?existing=1#campaign-details';
+			}
+		);
+
+		$this->go_to( $old_permalink . '?' . $query_string );
+		$_SERVER['QUERY_STRING'] = $query_string;
+
+		wp_old_slug_redirect();
+		$this->assertSame( $permalink . '&' . $query_string . '#campaign-details', $this->old_slug_redirect_url );
 	}
 
 	/**

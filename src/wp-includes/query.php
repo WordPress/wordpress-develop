@@ -1124,6 +1124,21 @@ function wp_old_slug_redirect() {
 			$link = user_trailingslashit( trailingslashit( $link ) . 'embed' );
 		}
 
+		$query_string = isset( $_SERVER['QUERY_STRING'] ) ? (string) $_SERVER['QUERY_STRING'] : '';
+
+		if ( '' !== $query_string ) {
+			$fragment = strstr( $link, '#' );
+
+			if ( false !== $fragment ) {
+				$link = substr( $link, 0, -strlen( $fragment ) );
+			} else {
+				$fragment = '';
+			}
+
+			$link .= false === strpos( $link, '?' ) ? '?' : '&';
+			$link .= $query_string . $fragment;
+		}
+
 		/**
 		 * Filters the old slug redirect URL.
 		 *
