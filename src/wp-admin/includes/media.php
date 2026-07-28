@@ -3194,7 +3194,11 @@ function edit_form_image_editor( $post ) {
 
 		wp_maybe_generate_attachment_metadata( $post );
 
-		echo wp_audio_shortcode( array( 'src' => $att_url ) );
+		$preview = wp_audio_shortcode( array( 'src' => $att_url ) );
+
+		if ( ! str_contains( $preview, 'class="wp-embedded-audio"' ) ) :
+			echo $preview;
+		endif;
 
 	elseif ( $attachment_id && wp_attachment_is( 'video', $post ) ) :
 
@@ -3221,7 +3225,11 @@ function edit_form_image_editor( $post ) {
 			$attr['poster'] = wp_get_attachment_url( $thumb_id );
 		}
 
-		echo wp_video_shortcode( $attr );
+		$preview = wp_video_shortcode( $attr );
+
+		if ( ! str_contains( $preview, 'class="wp-embedded-video"' ) ) :
+			echo $preview;
+		endif;
 
 	elseif ( isset( $thumb_url[0] ) ) :
 		?>
