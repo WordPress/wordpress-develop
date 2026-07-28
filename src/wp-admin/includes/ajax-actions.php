@@ -2251,6 +2251,20 @@ function wp_ajax_find_posts() {
 	check_ajax_referer( 'find-posts' );
 
 	$post_types = get_post_types( array( 'public' => true ), 'objects' );
+
+	// Include non-public, non-built-in post types with an admin UI that the current user can access.
+	foreach ( get_post_types(
+		array(
+			'public'  => false,
+			'show_ui' => true,
+		),
+		'objects'
+	) as $slug => $post_type_obj ) {
+		if ( ! $post_type_obj->_builtin && current_user_can( $post_type_obj->cap->edit_posts ) ) {
+			$post_types[ $slug ] = $post_type_obj;
+		}
+	}
+
 	unset( $post_types['attachment'] );
 
 	$args = array(
