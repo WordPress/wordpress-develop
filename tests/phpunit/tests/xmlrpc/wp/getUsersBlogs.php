@@ -7,7 +7,7 @@
 class Tests_XMLRPC_wp_getUsersBlogs extends WP_XMLRPC_UnitTestCase {
 
 	public function test_empty_site_icon() {
-		$subscriber_id = $this->make_user_by_role( 'subscriber' );
+		$this->make_user_by_role( 'subscriber' );
 
 		// wp_getUsersBlogs
 		$result = $this->myxmlrpcserver->wp_getUsersBlogs( array( 'subscriber', 'subscriber' ) );
@@ -27,7 +27,7 @@ class Tests_XMLRPC_wp_getUsersBlogs extends WP_XMLRPC_UnitTestCase {
 	}
 
 	public function test_with_site_icon() {
-		$subscriber_id = $this->make_user_by_role( 'subscriber' );
+		$this->make_user_by_role( 'subscriber' );
 
 		// Create an attachment and set it as site_icon
 		$attachment_id = self::factory()->attachment->create_object(
