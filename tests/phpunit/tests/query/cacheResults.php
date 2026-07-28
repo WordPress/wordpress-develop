@@ -1216,7 +1216,6 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 			'cache_results'          => true,
 			'fields'                 => 'ids',
 			'suppress_filters'       => true,
-			'cache_results'          => true,
 			'update_post_meta_cache' => false,
 			'update_post_term_cache' => false,
 			'lazy_load_term_meta'    => false,
