@@ -1086,9 +1086,18 @@ final class WP_Interactivity_API {
 				 * rather than calling JsonSerializable::jsonSerialize() directly keeps this resolution identical to
 				 * the client's, including for an object which serializes to another serializable object. When the
 				 * encoding fails the object is left in place, to be reported as a usage error below.
+				 *
+				 * A throwing JsonSerializable::jsonSerialize() is caught for the same reason the value is checked
+				 * at all: a binding must not be able to abort the render. An exception escaping here would leave
+				 * `$context_stack` and `$namespace_stack` unrestored for every later `process_directives()` call
+				 * on this instance, so the object is treated as one which failed to encode.
 				 */
 				if ( is_object( $result ) ) {
-					$encoded = wp_json_encode( $result );
+					try {
+						$encoded = wp_json_encode( $result );
+					} catch ( Throwable $e ) {
+						$encoded = false;
+					}
 					if ( false !== $encoded ) {
 						$result = json_decode( $encoded );
 					}

@@ -614,6 +614,61 @@ class Tests_WP_Interactivity_API_WP_Bind extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that a bound object which cannot be serialized does not abort the render.
+	 *
+	 * `JsonSerializable::jsonSerialize()` is arbitrary code, so resolving an object
+	 * through the JSON encoder can throw. A binding must not be able to take down the
+	 * page, which is the whole point of checking the value at all. An exception
+	 * escaping the directive processor would also leave the context and namespace
+	 * stacks unrestored, breaking every later `process_directives()` call on the same
+	 * instance.
+	 *
+	 * @ticket 65740
+	 *
+	 * @covers ::process_directives
+	 *
+	 * @expectedIncorrectUsage WP_Interactivity_API::data_wp_bind_processor
+	 */
+	public function test_wp_bind_rejects_object_which_fails_to_serialize() {
+		$unserializable = new class() implements JsonSerializable {
+			/**
+			 * Fails to produce a value for the client.
+			 *
+			 * @return mixed Never returns.
+			 * @throws RuntimeException Always.
+			 */
+			#[\ReturnTypeWillChange]
+			public function jsonSerialize() {
+				throw new RuntimeException( 'This object cannot be serialized.' );
+			}
+		};
+
+		$this->interactivity->state(
+			'myPlugin',
+			array(
+				'unserializable' => $unserializable,
+				'id'             => 'some-id',
+			)
+		);
+
+		$html    = '<div data-wp-bind--id="myPlugin::state.unserializable">Text</div>';
+		list($p) = $this->process_directives( $html );
+		$this->assertNull( $p->get_attribute( 'id' ), 'Expected no attribute to have been set for an object which cannot be serialized.' );
+		$this->assertSame(
+			array(
+				'WP_Interactivity_API::data_wp_bind_processor' => 'Attempted to bind a non-scalar value to the "id" attribute. Cast the value to a string before storing it in state or context so that the server and client agree. (This message was added in version 7.1.0.)',
+			),
+			$this->caught_doing_it_wrong,
+			'Expected _doing_it_wrong() to have been called once with the non-scalar value message.'
+		);
+
+		// The stacks are restored for the next render only if no exception escaped.
+		$html    = '<div data-wp-bind--id="myPlugin::state.id">Text</div>';
+		list($p) = $this->process_directives( $html );
+		$this->assertSame( 'some-id', $p->get_attribute( 'id' ), 'Expected a later render on the same instance to be unaffected.' );
+	}
+
+	/**
 	 * Creates an object which serializes to the given value for the client.
 	 *
 	 * @param mixed $value Value the object serializes to.
