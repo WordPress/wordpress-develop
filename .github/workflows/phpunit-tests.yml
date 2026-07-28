@@ -54,6 +54,20 @@ concurrency:
 permissions: {}
 
 jobs:
+  # Downloads and verifies the Gutenberg build once for all PHPUnit jobs.
+  #
+  # This condition is the union of the conditions on the jobs that need it, reduced.
+  # The org matrices require `WordPress/wordpress-develop` or a pull request, and the
+  # fork matrix requires a pull request, so `wordpress-develop` or a pull request
+  # covers every case. Keep it in step with those jobs: a narrower condition orphans
+  # them, because a job that needs a skipped job is skipped too, and a broader one
+  # downloads a build that nothing consumes.
+  prepare-gutenberg:
+    uses: WordPress/wordpress-develop/.github/workflows/reusable-prepare-gutenberg.yml@80fb78da3153431dee7e5d66e7463e71fda31ec7
+    permissions:
+      contents: read
+    if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
+
   #
   # Creates a PHPUnit test job for each PHP/MySQL combination.
   #
@@ -64,6 +78,7 @@ jobs:
   test-with-mysql:
     name: PHP ${{ matrix.php }}
     uses: WordPress/wordpress-develop/.github/workflows/reusable-phpunit-tests-v3.yml@trunk
+    needs: prepare-gutenberg
     permissions:
       contents: read
     secrets: inherit
@@ -129,6 +144,8 @@ jobs:
       phpunit-config: ${{ matrix.multisite && 'tests/phpunit/multisite.xml' || 'phpunit.xml.dist' }}
       tests-domain: ${{ matrix.tests-domain }}
       report: ${{ matrix.report || false }}
+      gutenberg-artifact: gutenberg-build
+      gutenberg-sha: ${{ needs.prepare-gutenberg.outputs.gutenberg-sha }}
 
   #
   # Creates a PHPUnit test job for each PHP/MariaDB combination.
@@ -142,6 +159,7 @@ jobs:
   test-with-mariadb:
     name: PHP ${{ matrix.php }}
     uses: WordPress/wordpress-develop/.github/workflows/reusable-phpunit-tests-v3.yml@trunk
+    needs: prepare-gutenberg
     permissions:
       contents: read
     secrets: inherit
@@ -180,6 +198,8 @@ jobs:
       memcached: ${{ matrix.memcached }}
       phpunit-config: ${{ matrix.multisite && 'tests/phpunit/multisite.xml' || 'phpunit.xml.dist' }}
       report: ${{ false }}
+      gutenberg-artifact: gutenberg-build
+      gutenberg-sha: ${{ needs.prepare-gutenberg.outputs.gutenberg-sha }}
 
   #
   # Creates PHPUnit test jobs to test MariaDB and MySQL innovation releases.
@@ -195,6 +215,7 @@ jobs:
   test-innovation-releases:
     name: PHP ${{ matrix.php }}
     uses: WordPress/wordpress-develop/.github/workflows/reusable-phpunit-tests-v3.yml@trunk
+    needs: prepare-gutenberg
     permissions:
       contents: read
     secrets: inherit
@@ -227,6 +248,8 @@ jobs:
       memcached: ${{ matrix.memcached }}
       phpunit-config: ${{ matrix.multisite && 'tests/phpunit/multisite.xml' || 'phpunit.xml.dist' }}
       report: ${{ false }}
+      gutenberg-artifact: gutenberg-build
+      gutenberg-sha: ${{ needs.prepare-gutenberg.outputs.gutenberg-sha }}
 
   #
   # Runs the HTML API test group.
@@ -239,6 +262,7 @@ jobs:
   html-api-test-groups:
     name: ${{ matrix.label }}
     uses: WordPress/wordpress-develop/.github/workflows/reusable-phpunit-tests-v3.yml@trunk
+    needs: prepare-gutenberg
     permissions:
       contents: read
     secrets: inherit
@@ -257,6 +281,8 @@ jobs:
       db-type: ${{ matrix.db-type }}
       db-version: ${{ matrix.db-version }}
       phpunit-test-groups: ${{ matrix.phpunit-test-groups }}
+      gutenberg-artifact: gutenberg-build
+      gutenberg-sha: ${{ needs.prepare-gutenberg.outputs.gutenberg-sha }}
 
   #
   # Runs unit tests for forks.
@@ -268,6 +294,7 @@ jobs:
   limited-matrix-for-forks:
     name: PHP ${{ matrix.php }}
     uses: WordPress/wordpress-develop/.github/workflows/reusable-phpunit-tests-v3.yml@trunk
+    needs: prepare-gutenberg
     permissions:
       contents: read
     secrets: inherit
@@ -315,6 +342,8 @@ jobs:
       db-type: ${{ matrix.db-type }}
       memcached: ${{ matrix.memcached || false }}
       phpunit-test-groups: ${{ matrix.phpunit-test-groups || '' }}
+      gutenberg-artifact: gutenberg-build
+      gutenberg-sha: ${{ needs.prepare-gutenberg.outputs.gutenberg-sha }}
 
   slack-notifications:
     name: Slack Notifications
@@ -322,7 +351,7 @@ jobs:
     permissions:
       actions: read
       contents: read
-    needs: [ test-with-mysql, test-with-mariadb, test-innovation-releases, html-api-test-groups, limited-matrix-for-forks ]
+    needs: [ prepare-gutenberg, test-with-mysql, test-with-mariadb, test-innovation-releases, html-api-test-groups, limited-matrix-for-forks ]
     if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name != 'pull_request' && always() }}
     with:
       calling_status: ${{ contains( needs.*.result, 'cancelled' ) && 'cancelled' || contains( needs.*.result, 'failure' ) && 'failure' || 'success' }}
