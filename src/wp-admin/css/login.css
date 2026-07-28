@@ -19,6 +19,7 @@ a {
 	transition-property: border, background, color;
 	transition-duration: .05s;
 	transition-timing-function: ease-in-out;
+	text-underline-position: under;
 }
 
 a {
@@ -326,7 +327,6 @@ p {
 
 .login #nav a,
 .login #backtoblog a {
-	text-decoration: none;
 	color: #50575e;
 }
 
@@ -446,11 +446,18 @@ input::-ms-reveal {
 	text-align: center;
 }
 
+.language-switcher form {
+	display: inline-block;
+}
+
 .language-switcher label {
-	margin-right: 0.25em;
+	display: block;
+	margin-bottom: 0.5em;
+	text-align: left;
 }
 
 .language-switcher label .dashicons {
+	margin-left: 0.5em;
 	width: auto;
 	height: auto;
 }
