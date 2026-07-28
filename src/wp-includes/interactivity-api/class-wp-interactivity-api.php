@@ -1116,23 +1116,6 @@ final class WP_Interactivity_API {
 							'7.1.0'
 						);
 						$result = null;
-					} elseif ( is_float( $result ) && ! is_finite( $result ) ) {
-						/*
-						 * INF and NAN are scalars, but JSON can represent neither, so a store holding one fails to
-						 * encode in its entirety and the client is sent an empty script tag in place of all of its
-						 * state. The binding is rejected to draw attention to that, though only removing the value
-						 * from the state resolves it.
-						 */
-						_doing_it_wrong(
-							__METHOD__,
-							sprintf(
-								/* translators: %s: The attribute name. */
-								__( 'Attempted to bind INF or NAN to the "%s" attribute. JSON can represent neither, so the client is sent no state at all. Cast the value to a string before storing it in state or context.' ),
-								esc_html( $entry['suffix'] )
-							),
-							'7.1.0'
-						);
-						$result = null;
 					} elseif ( is_int( $result ) || is_float( $result ) ) {
 						/*
 						 * A number is formatted by the JSON encoder rather than cast to string, so that the
@@ -1141,7 +1124,24 @@ final class WP_Interactivity_API {
 						 * encoder's `serialize_precision`.
 						 */
 						$encoded = wp_json_encode( $result );
-						if ( is_string( $encoded ) ) {
+						if ( false === $encoded ) {
+							/*
+							 * The encoder only rejects INF and NAN, of which JSON can represent neither. A store
+							 * holding one fails to encode in its entirety, so the client is sent an empty script
+							 * tag in place of all of its state. The binding is rejected to draw attention to that,
+							 * though only removing the value from the state resolves it.
+							 */
+							_doing_it_wrong(
+								__METHOD__,
+								sprintf(
+									/* translators: %s: The attribute name. */
+									__( 'Attempted to bind INF or NAN to the "%s" attribute. JSON can represent neither, so the client is sent no state at all. Cast the value to a string before storing it in state or context.' ),
+									esc_html( $entry['suffix'] )
+								),
+								'7.1.0'
+							);
+							$result = null;
+						} else {
 							$result = $encoded;
 						}
 					}
