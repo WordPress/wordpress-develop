@@ -914,7 +914,7 @@ final class WP_Interactivity_API {
 				continue;
 			}
 
-			[ 'prefix' => $attr_prefix, 'suffix' => $suffix, 'unique_id' => $unique_id] = $parsed_directive;
+			[ 'prefix' => $attr_prefix, 'suffix' => $suffix, 'unique_id' => $unique_id ] = $parsed_directive;
 			// Ensure it is the desired directive.
 			if ( $prefix !== $attr_prefix ) {
 				continue;
