@@ -613,7 +613,7 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 		 * is preloaded in the block editor, where a leaked global post can cause
 		 * the editor to be initialized with the wrong post).
 		 */
-		$previous_post = isset( $GLOBALS['post'] ) ? $GLOBALS['post'] : null;
+		$previous_post = isset( $GLOBALS['post'] ) && $GLOBALS['post'] instanceof WP_Post ? $GLOBALS['post'] : null;
 
 		$GLOBALS['post'] = $post;
 
@@ -740,12 +740,12 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 	 * setup_postdata(). This restores the global post that was in place
 	 * beforehand so the change does not leak into the rest of the request.
 	 *
-	 * @since 7.0.1
+	 * @since 7.1.0
 	 *
 	 * @param WP_Post|null $previous_post The global post to restore, or null if there was none.
 	 */
-	private function reset_post_data( $previous_post ) {
-		if ( $previous_post instanceof WP_Post ) {
+	private function reset_post_data( ?WP_Post $previous_post ): void {
+		if ( null !== $previous_post ) {
 			$GLOBALS['post'] = $previous_post;
 			setup_postdata( $previous_post );
 		} else {
