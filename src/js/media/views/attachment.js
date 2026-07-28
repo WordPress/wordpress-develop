@@ -18,10 +18,22 @@ Attachment = View.extend(/** @lends wp.media.view.Attachment.prototype */{
 	template:  wp.template('attachment'),
 
 	attributes: function() {
+		var title = this.model.get( 'title' ) || wp.i18n.__( 'uploading…' ),
+			filesize = this.model.get( 'filesizeHumanReadable' );
+
+		if ( filesize ) {
+			title = wp.i18n.sprintf(
+				/* translators: 1: Attachment title, 2: File size. */
+				wp.i18n.__( '%1$s, %2$s' ),
+				title,
+				filesize
+			);
+		}
+
 		return {
 			'tabIndex':     0,
 			'role':         'checkbox',
-			'aria-label':   this.model.get( 'title' ) || wp.i18n.__( 'uploading…' ),
+			'aria-label':   title,
 			'aria-checked': false,
 			'data-id':      this.model.get( 'id' )
 		};
