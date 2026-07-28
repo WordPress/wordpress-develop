@@ -51,12 +51,21 @@ class Tests_Rewrite_AddRewriteEndpoint extends WP_UnitTestCase {
 	 * Sets up the non-core test-suite state before the test case is torn down.
 	 *
 	 * @ticket 37207
+	 *
+	 * @return array{exists: bool, value: string[]|null} Previous global state.
 	 */
 	public function test_should_preserve_query_vars_registered_during_plugin_bootstrap() {
+		$previous_state = array(
+			'exists' => isset( $GLOBALS['_wp_tests_initial_public_query_vars'] ),
+			'value'  => $GLOBALS['_wp_tests_initial_public_query_vars'] ?? null,
+		);
+
 		add_rewrite_endpoint( 'plugin-endpoint', EP_ROOT );
+		$this->assertContains( 'plugin-endpoint', $GLOBALS['wp']->public_query_vars );
+
 		$GLOBALS['_wp_tests_initial_public_query_vars'] = $GLOBALS['wp']->public_query_vars;
 
-		$this->assertContains( 'plugin-endpoint', $GLOBALS['wp']->public_query_vars );
+		return $previous_state;
 	}
 
 	/**
@@ -65,12 +74,18 @@ class Tests_Rewrite_AddRewriteEndpoint extends WP_UnitTestCase {
 	 * @ticket 37207
 	 *
 	 * @depends test_should_preserve_query_vars_registered_during_plugin_bootstrap
+	 *
+	 * @param array{exists: bool, value: string[]|null} $previous_state Previous global state.
 	 */
-	public function test_should_restore_query_vars_registered_during_plugin_bootstrap() {
+	public function test_should_restore_query_vars_registered_during_plugin_bootstrap( $previous_state ) {
 		try {
 			$this->assertContains( 'plugin-endpoint', $GLOBALS['wp']->public_query_vars );
 		} finally {
-			unset( $GLOBALS['_wp_tests_initial_public_query_vars'] );
+			if ( $previous_state['exists'] ) {
+				$GLOBALS['_wp_tests_initial_public_query_vars'] = $previous_state['value'];
+			} else {
+				unset( $GLOBALS['_wp_tests_initial_public_query_vars'] );
+			}
 		}
 	}
 
