@@ -1967,7 +1967,7 @@ div.action-links,
 		text-overflow: ellipsis;
 	}
 
-	.wp-list-table .is-expanded th:not(.hidden),
+	.wp-list-table .is-expanded th.column-primary,
 	.wp-list-table .is-expanded td:not(.hidden) {
 		display: block !important;
 		overflow: hidden; /* clearfix */
