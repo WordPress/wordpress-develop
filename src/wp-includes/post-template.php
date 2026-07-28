@@ -1803,9 +1803,20 @@ function get_the_password_form( $post = 0 ) {
 	}
 
 	if ( ! empty( $post->ID ) ) {
+
+		/**
+		 * Filters the redirect URL used in the post password form.
+		 *
+		 * @since 6.x.x
+		 *
+		 * @param string  $redirect_url The redirect URL. Default is the post permalink.
+		 * @param WP_Post $post         The post object.
+		 */
+		$redirect_url = apply_filters( 'the_password_form_redirect_url', get_permalink( $post->ID ), $post );
+
 		$redirect_field = sprintf(
 			'<input type="hidden" name="redirect_to" value="%s" />',
-			esc_attr( get_permalink( $post->ID ) )
+			esc_attr( $redirect_url )
 		);
 	}
 
