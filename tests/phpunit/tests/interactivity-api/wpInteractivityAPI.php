@@ -845,6 +845,7 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 	 * name.
 	 *
 	 * @ticket 64106
+	 * @ticket 64898
 	 *
 	 * @covers ::parse_directive_name
 	 */
@@ -919,12 +920,38 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 		$this->assertSame( 'test', $result['prefix'] );
 		$this->assertNull( $result['suffix'] );
 		$this->assertSame( 'unique-id--wrong-suffix', $result['unique_id'] );
+
+		// Should reject a name containing characters a directive name cannot contain.
+		$this->assertNull( $parse_directive_name->invoke( $this->interactivity, 'data-wp-test.suffix' ) );
+
+		/*
+		 * Should reject a name which is nothing but the prefix, rather than returning an empty
+		 * prefix. The client's `parseDirectiveName` returns `{ prefix: '' }` here instead, but
+		 * neither an empty prefix nor null matches a registered directive, so the outcome is the
+		 * same on both sides: the attribute is ignored.
+		 */
+		$this->assertNull( $parse_directive_name->invoke( $this->interactivity, 'data-wp-' ) );
+
+		/*
+		 * Should treat a leading "--" as part of the prefix rather than as a suffix separator,
+		 * which would otherwise leave the prefix empty. As above, the client splits this into
+		 * `{ prefix: '', suffix: 'foo' }`, and as above neither result names a directive.
+		 */
+		$this->assertSame(
+			array(
+				'prefix'    => '--foo',
+				'suffix'    => null,
+				'unique_id' => null,
+			),
+			$parse_directive_name->invoke( $this->interactivity, 'data-wp---foo' )
+		);
 	}
 
 	/**
 	 * Tests the ability to get the valid entries of a specific directive in an HTML element.
 	 *
 	 * @ticket 64106
+	 * @ticket 64898
 	 *
 	 * @covers ::get_directive_entries
 	 */
@@ -1138,6 +1165,26 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 				},
 				$results
 			)
+		);
+
+		/*
+		 * Should skip an attribute whose directive name cannot be parsed. Such a name is still
+		 * matched by the prefix search, so it reaches here and has to be filtered out rather than
+		 * destructured.
+		 */
+		$html = '<div data-wp-test.suffix="skipped" data-wp-test--valid="kept"></div>';
+		$p    = new WP_Interactivity_API_Directives_Processor( $html );
+		$p->next_tag();
+		$this->assertSame(
+			array(
+				array(
+					'namespace' => 'myPlugin',
+					'value'     => 'kept',
+					'suffix'    => 'valid',
+					'unique_id' => null,
+				),
+			),
+			$get_directive_entries->invoke( $this->interactivity, $p, 'test' )
 		);
 	}
 
