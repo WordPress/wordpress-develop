@@ -2746,7 +2746,11 @@ function register_initial_settings() {
 		'blogname',
 		array(
 			'show_in_rest' => array(
-				'name' => 'title',
+				'name'   => 'title',
+				'schema' => array(
+					'minLength' => 1,
+					'pattern'   => '\S',
+				),
 			),
 			'type'         => 'string',
 			'label'        => __( 'Title' ),
