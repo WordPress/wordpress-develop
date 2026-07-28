@@ -946,7 +946,6 @@ function wp_get_layout_style( $selector, $layout, $has_block_gap_support = false
  * @since 6.3.0 Adds compound class to layout wrapper for global spacing styles.
  * @since 6.3.0 Check for layout support via the `layout` key with fallback to `__experimentalLayout`.
  * @since 6.6.0 Removed duplicate container class from layout styles.
- * @since 7.1.0 Returns early before resolving global settings.
  * @access private
  *
  * @param string $block_content Rendered block content.
