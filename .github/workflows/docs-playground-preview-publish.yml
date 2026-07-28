@@ -1,0 +1,60 @@
+name: Docs Playground Preview Publish
+
+on: # zizmor: ignore[dangerous-triggers] Publishes only the v3 preview-build artifact after the pinned reusable publisher validates workflow_run event/conclusion, artifact name, PR number, and head SHA.
+  workflow_run:
+    workflows:
+      - 'Docs Playground Preview Build'
+    types:
+      - completed
+
+# Serialize publication for the same pull request commit.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.workflow_run.head_sha }}
+  cancel-in-progress: false
+
+# Disable permissions for all available scopes by default.
+# Any needed permissions should be configured at the job level.
+permissions: {}
+
+jobs:
+  publish-docs-playground-preview:
+    name: Publish docs Playground preview
+    if: ${{ github.repository == 'WordPress/wordpress-develop' || github.repository == 'dmsnell/wordpress-develop' }}
+    uses: WordPress/action-wp-playground-pr-preview/.github/workflows/preview-publish.yml@43fc435558bc6cee69f5b214d6b8ca4f9f80c31d # v3
+    permissions:
+      actions: read
+      contents: write
+      pull-requests: write
+    with:
+      release-tag: docs-playground-preview-artifacts
+      artifacts-to-keep: '2'
+      mode: comment
+      blueprint: |
+        {
+          "$schema": "https://playground.wordpress.net/blueprint-schema.json",
+          "meta": {
+            "title": "WordPress Core API Docs Preview",
+            "author": "WordPress Core",
+            "description": "Official DevHub Code Reference preview generated from a WordPress Core pull request."
+          },
+          "preferredVersions": {
+            "php": "8.4",
+            "wp": "6.9.1"
+          },
+          "landingPage": "/reference/classes/wp_html_tag_processor/",
+          "login": true,
+          "steps": [
+            {
+              "step": "unzip",
+              "zipFile": {
+                "resource": "url",
+                "url": "{{ARTIFACT_URL:docs-playground-snapshot}}"
+              },
+              "extractToPath": "/wordpress"
+            },
+            {
+              "step": "runPHP",
+              "code": "<?php\nrequire_once '/wordpress/wp-load.php';\n\n$scheme = ( ! empty( $_SERVER['HTTPS'] ) && 'off' !== $_SERVER['HTTPS'] ) ? 'https' : 'http';\n$host   = $_SERVER['HTTP_HOST'] ?? '127.0.0.1';\n$path   = dirname( $_SERVER['SCRIPT_NAME'] ?? '' );\n\nif ( '.' === $path || '/' === $path ) {\n\t$path = '';\n}\n\n$url = rtrim( $scheme . '://' . $host . $path, '/' );\nupdate_option( 'siteurl', $url );\nupdate_option( 'home', $url );\nflush_rewrite_rules( false );\n"
+            }
+          ]
+        }
