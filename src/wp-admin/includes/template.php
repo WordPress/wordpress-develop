@@ -2135,7 +2135,7 @@ function iframe_header( $title = '', $deprecated = false ) {
 	header( 'Content-Type: ' . get_option( 'html_type' ) . '; charset=' . get_option( 'blog_charset' ) );
 	_wp_admin_html_begin();
 	?>
-<title><?php bloginfo( 'name' ); ?> &rsaquo; <?php echo $title; ?> &#8212; <?php _e( 'WordPress' ); ?></title>
+<title><?php wp_html_title( bloginfo( 'name' ) . " &rsaquo; {$title} &#8212; " . __( 'WordPress' ) ); ?></title>
 	<?php
 	wp_enqueue_style( 'colors' );
 	?>

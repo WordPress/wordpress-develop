@@ -77,7 +77,7 @@ header( 'Content-Type: ' . get_option( 'html_type' ) . '; charset=' . get_option
 	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 	<meta http-equiv="Content-Type" content="<?php bloginfo( 'html_type' ); ?>; charset=<?php echo get_option( 'blog_charset' ); ?>" />
 	<meta name="robots" content="noindex,nofollow" />
-	<title><?php _e( 'WordPress &rsaquo; Update' ); ?></title>
+	<title><?php wp_html_title( __( 'WordPress &rsaquo; Update' ) ); ?></title>
 	<?php wp_admin_css( 'install', true ); ?>
 </head>
 <body class="wp-core-ui admin-color-modern">

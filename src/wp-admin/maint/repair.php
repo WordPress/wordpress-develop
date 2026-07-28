@@ -17,7 +17,7 @@ header( 'Content-Type: text/html; charset=utf-8' );
 	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 	<meta name="robots" content="noindex,nofollow" />
-	<title><?php _e( 'WordPress &rsaquo; Database Repair' ); ?></title>
+	<title><?php wp_html_title( __( 'WordPress &rsaquo; Database Repair' ) ); ?></title>
 	<?php wp_admin_css( 'install', true ); ?>
 </head>
 <body class="wp-core-ui admin-color-modern">

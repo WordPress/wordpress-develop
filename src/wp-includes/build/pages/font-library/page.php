@@ -246,7 +246,7 @@ function wp_font_library_render_page() {
 	<head>
 		<meta charset="<?php bloginfo( 'charset' ); ?>">
 		<meta name="viewport" content="width=device-width, initial-scale=1">
-		<title><?php echo esc_html( get_admin_page_title() ); ?></title>
+		<title><?php echo wp_html_title( get_admin_page_title() ); ?></title>
 		<style>
 			html {
 				background: #f1f1f1;
