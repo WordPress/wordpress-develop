@@ -1570,7 +1570,11 @@ function get_sample_permalink_html( $post, $new_title = null, $new_slug = null )
 			$preview_target = " target='wp-preview-{$post->ID}'";
 		} else {
 			if ( 'publish' === $post->post_status || 'attachment' === $post->post_type ) {
-				$view_link = get_permalink( $post );
+				if ( 'attachment' === $post->post_type && ! get_option( 'wp_attachment_pages_enabled' ) ) {
+					$view_link = wp_get_attachment_url( $post->ID );
+				} else {
+					$view_link = get_permalink( $post );
+				}
 			} else {
 				// Allow non-published (private, future) to be viewed at a pretty permalink, in case $post->post_name is set.
 				$view_link = str_replace( array( '%pagename%', '%postname%' ), $post->post_name, $permalink );

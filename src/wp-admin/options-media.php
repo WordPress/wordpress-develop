@@ -98,6 +98,23 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 <?php do_settings_fields( 'media', 'default' ); ?>
 </table>
 
+<h2 class="title"><?php _e( 'Attachment pages' ); ?></h2>
+<table class="form-table" role="presentation">
+<tr>
+<th scope="row"><?php _e( 'Attachment pages' ); ?></th>
+<td>
+	<fieldset>
+		<legend class="screen-reader-text"><span><?php _e( 'Attachment pages' ); ?></span></legend>
+		<label for="wp_attachment_pages_enabled">
+			<input name="wp_attachment_pages_enabled" type="checkbox" id="wp_attachment_pages_enabled" value="1" <?php checked( '1', (string) get_option( 'wp_attachment_pages_enabled' ) ); ?> />
+			<?php _e( 'Enable attachment pages for uploaded media files' ); ?>
+		</label>
+		<p class="description"><?php _e( 'When disabled, attachment page URLs redirect to the media file URL.' ); ?></p>
+	</fieldset>
+</td>
+</tr>
+</table>
+
 <?php
 /**
  * @global array $wp_settings

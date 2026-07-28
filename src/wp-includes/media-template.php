@@ -836,6 +836,7 @@ function wp_print_media_templates() {
 	</script>
 
 	<?php // Template for the Attachment display settings, used for example in the sidebar. ?>
+	<?php $wp_attachment_pages_enabled = (bool) get_option( 'wp_attachment_pages_enabled' ); ?>
 	<script type="text/html" id="tmpl-attachment-display-settings">
 		<h2><?php _e( 'Attachment Display Settings' ); ?></h2>
 
@@ -895,6 +896,7 @@ function wp_print_media_templates() {
 					<?php esc_html_e( 'Media File' ); ?>
 				<# } #>
 				</option>
+				<?php if ( $wp_attachment_pages_enabled ) : ?>
 				<option value="post">
 				<# if ( data.model.canEmbed ) { #>
 					<?php esc_html_e( 'Link to Attachment Page' ); ?>
@@ -902,6 +904,7 @@ function wp_print_media_templates() {
 					<?php esc_html_e( 'Attachment Page' ); ?>
 				<# } #>
 				</option>
+				<?php endif; ?>
 			<# if ( 'image' === data.type ) { #>
 				<option value="custom">
 					<?php esc_html_e( 'Custom URL' ); ?>
@@ -961,12 +964,16 @@ function wp_print_media_templates() {
 					data-user-setting="urlbutton"
 				<# } #>>
 
+				<?php if ( $wp_attachment_pages_enabled ) : ?>
 				<option value="post" <# if ( ! wp.media.galleryDefaults.link || 'post' === wp.media.galleryDefaults.link ) {
 					#>selected="selected"<# }
 				#>>
 					<?php esc_html_e( 'Attachment Page' ); ?>
 				</option>
 				<option value="file" <# if ( 'file' === wp.media.galleryDefaults.link ) { #>selected="selected"<# } #>>
+				<?php else : ?>
+				<option value="file" <# if ( ! wp.media.galleryDefaults.link || 'file' === wp.media.galleryDefaults.link || 'post' === wp.media.galleryDefaults.link ) { #>selected="selected"<# } #>>
+				<?php endif; ?>
 					<?php esc_html_e( 'Media File' ); ?>
 				</option>
 				<option value="none" <# if ( 'none' === wp.media.galleryDefaults.link ) { #>selected="selected"<# } #>>
@@ -1242,9 +1249,11 @@ function wp_print_media_templates() {
 							<option value="file">
 								<?php esc_html_e( 'Media File' ); ?>
 							</option>
+							<?php if ( $wp_attachment_pages_enabled ) : ?>
 							<option value="post">
 								<?php esc_html_e( 'Attachment Page' ); ?>
 							</option>
+							<?php endif; ?>
 						<# } else { #>
 							<option value="file">
 								<?php esc_html_e( 'Image URL' ); ?>
