@@ -959,37 +959,25 @@ function wp_render_layout_support_flag( $block_content, $block ) {
 	$block_type            = WP_Block_Type_Registry::get_instance()->get_registered( $block['blockName'] );
 	$block_supports_layout = block_has_support( $block_type, 'layout', false ) || block_has_support( $block_type, '__experimentalLayout', false );
 	$style_attr            = $block['attrs']['style'] ?? array();
-	// If there is any value in style -> layout, the block has a child layout.
-	$child_layout = $style_attr['layout'] ?? null;
-
 	/*
-	 * Responsive child layouts are nested under a style state key such as
-	 * `@mobile`. Which of those keys are active depends on the breakpoints in
-	 * global settings, but whether any of them exist at all does not, so this
-	 * can be answered without resolving settings.
+	 * A block with no layout support and no style attribute at all cannot
+	 * produce layout output, so return before resolving global settings.
+	 *
+	 * Resolving settings is not read-only: on a cold cache it queries the
+	 * user's `wp_global_styles` post, which fires `the_posts`. A callback on
+	 * that hook that renders blocks re-enters this filter, and the content it
+	 * renders at that point is the global styles post itself, which parses to a
+	 * single block with no name and no attributes. Without this return that
+	 * block resolves settings again and the recursion has no base case.
 	 */
-	$has_state_child_layout = false;
-	foreach ( (array) $style_attr as $state_styles ) {
-		if ( is_array( $state_styles ) && ! empty( $state_styles['layout'] ) ) {
-			$has_state_child_layout = true;
-			break;
-		}
-	}
-
-	/*
-	 * Bail out before resolving global settings when the block cannot produce
-	 * layout output. Resolving settings is not read-only: on a cold cache it
-	 * queries the user's `wp_global_styles` post, which fires `the_posts`. A
-	 * callback on that hook that renders blocks would re-enter this filter and,
-	 * without this early return, recurse without a base case.
-	 */
-	if ( ! $block_supports_layout && ! $child_layout && ! $has_state_child_layout ) {
+	if ( ! $block_supports_layout && empty( $style_attr ) ) {
 		return $block_content;
 	}
 
 	$global_settings          = wp_get_global_settings();
 	$viewport_settings        = $global_settings['viewport'] ?? null;
 	$responsive_media_queries = WP_Theme_JSON::get_viewport_media_queries( $viewport_settings );
+	$child_layout             = $style_attr['layout'] ?? null;
 
 	/*
 	 * Collect responsive viewport child layout overrides so that a block with
