@@ -926,7 +926,7 @@ function delete_plugins( $plugins, $deprecated = '' ) {
 			require_once ABSPATH . 'wp-admin/admin-footer.php';
 			exit;
 		}
-		return;
+		return null;
 	}
 
 	if ( ! WP_Filesystem( $credentials ) ) {
@@ -941,7 +941,7 @@ function delete_plugins( $plugins, $deprecated = '' ) {
 			require_once ABSPATH . 'wp-admin/admin-footer.php';
 			exit;
 		}
-		return;
+		return null;
 	}
 
 	if ( ! is_object( $wp_filesystem ) ) {
@@ -1296,8 +1296,8 @@ function is_uninstallable_plugin( $plugin ) {
  * @since 2.7.0
  *
  * @param string $plugin Path to the plugin file relative to the plugins directory.
- * @return true|void True if a plugin's uninstall.php file has been found and included.
- *                   Void otherwise.
+ * @return true|null True if a plugin's uninstall.php file has been found and included.
+ *                   Null otherwise.
  */
 function uninstall_plugin( $plugin ) {
 	$file = plugin_basename( $plugin );
@@ -1350,6 +1350,7 @@ function uninstall_plugin( $plugin ) {
 		 */
 		do_action( "uninstall_{$file}" );
 	}
+	return null;
 }
 
 //
@@ -2130,7 +2131,7 @@ function get_plugin_page_hook( $plugin_page, $parent_page ) {
  * This does not check whether the current user has the capability to access
  * the page, only whether the page itself exists.
  *
- * @since 7.0.0
+ * @since 7.2.0
  *
  * @global string              $admin_page_parent  The parent slug of the current admin page.
  * @global string              $plugin_page        The plugin page slug being loaded.

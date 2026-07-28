@@ -41,6 +41,13 @@ if ( is_network_admin() ) {
 	do_action( '_admin_menu' );
 }
 
+/**
+ * @global array $menu
+ * @global array $submenu
+ * @global array $compat
+ */
+global $menu, $submenu, $compat;
+
 // Create list of page plugin hook names.
 foreach ( $menu as $menu_page ) {
 	$pos = strpos( $menu_page[2], '?' );
@@ -370,7 +377,7 @@ if ( ! wp_admin_page_exists() ) {
 	/**
 	 * Fires when a request is made to access an admin page that does not exist.
 	 *
-	 * @since 7.0.0
+	 * @since 7.2.0
 	 */
 	do_action( 'admin_page_not_found' );
 
