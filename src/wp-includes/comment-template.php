@@ -1725,6 +1725,7 @@ function comments_popup_link( $zero = false, $one = false, $more = false, $css_c
  *
  * @since 2.7.0
  * @since 4.4.0 Added the ability for `$comment` to also accept a WP_Comment object.
+ * @since 4.9.0 Added the `$limit_by_depth` argument, whether to hide the link at the max depth and below.
  *
  * @param array          $args {
  *     Optional. Override default arguments.
@@ -1746,6 +1747,7 @@ function comments_popup_link( $zero = false, $one = false, $more = false, $css_c
  *                                      of the 'thread_comments_depth' option set in Settings > Discussion. Default 0.
  *     @type string $before             The text or HTML to add before the reply link. Default empty.
  *     @type string $after              The text or HTML to add after the reply link. Default empty.
+ *     @type bool   $limit_by_depth    Hide the link at the max depth and below. Default true.
  * }
  * @param int|WP_Comment $comment Optional. Comment being replied to. Default current comment.
  * @param int|WP_Post    $post    Optional. Post ID or WP_Post object the comment is going to be displayed on.
@@ -1766,6 +1768,7 @@ function get_comment_reply_link( $args = array(), $comment = null, $post = null 
 		'before'             => '',
 		'after'              => '',
 		'show_reply_to_text' => false,
+		'limit_by_depth'     => true,
 	);
 
 	$args = wp_parse_args( $args, $defaults );
@@ -1773,7 +1776,11 @@ function get_comment_reply_link( $args = array(), $comment = null, $post = null 
 	$args['max_depth'] = (int) $args['max_depth'];
 	$args['depth']     = (int) $args['depth'];
 
-	if ( 0 === $args['depth'] || $args['max_depth'] <= $args['depth'] ) {
+	if ( 0 === $args['depth'] ) {
+		return null;
+	}
+
+	if ( $args['limit_by_depth'] && $args['max_depth'] <= $args['depth'] ) {
 		return null;
 	}
 

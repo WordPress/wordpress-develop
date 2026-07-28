@@ -87,4 +87,66 @@ class Tests_Comment_GetCommentReplyLink extends WP_UnitTestCase {
 
 		$this->assertNull( $actual );
 	}
+
+	/**
+	 * @ticket 38925
+	 */
+	public function test_should_return_reply_link_when_limit_by_depth_is_false_and_max_depth_less_than_depth() {
+		$post_id    = self::factory()->post->create();
+		$comment_id = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_approved' => '1',
+			)
+		);
+
+		$args = array(
+			'depth'          => 5,
+			'max_depth'      => 4,
+			'limit_by_depth' => false,
+		);
+
+		$this->assertStringContainsString( 'replytocom', get_comment_reply_link( $args, $comment_id ) );
+	}
+
+	/**
+	 * @ticket 38925
+	 */
+	public function test_should_return_reply_link_when_limit_by_depth_is_true_and_depth_less_than_max_depth() {
+		$post_id    = self::factory()->post->create();
+		$comment_id = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_approved' => '1',
+			)
+		);
+
+		$args = array(
+			'depth'          => 4,
+			'max_depth'      => 5,
+			'limit_by_depth' => true,
+		);
+
+		$this->assertStringContainsString( 'replytocom', get_comment_reply_link( $args, $comment_id ) );
+	}
+
+	/**
+	 * @ticket 38925
+	 */
+	public function test_should_return_false_on_post_with_closed_comment_status() {
+		$post_id    = self::factory()->post->create( array( 'comment_status' => 'closed' ) );
+		$comment_id = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_approved' => '1',
+			)
+		);
+
+		$args = array(
+			'depth'     => 4,
+			'max_depth' => 5,
+		);
+
+		$this->assertFalse( get_comment_reply_link( $args, $comment_id ) );
+	}
 }
