@@ -860,7 +860,7 @@ class Tests_General_Template extends WP_UnitTestCase {
 		add_filter( 'wp_get_attachment_image_src', '__return_false' );
 		$output = get_echo( 'the_embed_site_title' );
 
-		$fallback  = includes_url( 'images/w-logo-blue.png' );
+		$fallback  = includes_url( 'images/w-logo-gray-white-bg.svg' );
 		$processor = new WP_HTML_Tag_Processor( $output );
 
 		$this->assertTrue( $processor->next_tag( 'IMG' ), 'Expected IMG tag with fallback.' );
@@ -914,7 +914,7 @@ class Tests_General_Template extends WP_UnitTestCase {
 	 */
 	public function test_the_embed_site_title_uses_fallback_without_srcset_when_no_site_icon_set(): void {
 		$output   = get_echo( 'the_embed_site_title' );
-		$fallback = includes_url( 'images/w-logo-blue.png' );
+		$fallback = includes_url( 'images/w-logo-gray-white-bg.svg' );
 
 		$processor = new WP_HTML_Tag_Processor( $output );
 
