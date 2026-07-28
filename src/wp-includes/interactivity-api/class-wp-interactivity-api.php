@@ -1095,8 +1095,9 @@ final class WP_Interactivity_API {
 				}
 
 				/*
-				 * Only scalar values can be stored in an attribute value. Strings and booleans are passed in as-is.
-				 * Numbers are cast to strings. Everything else is rejected as a usage error.
+				 * Only a value which can be sent to the client may be stored in an attribute value. Strings and
+				 * booleans are passed in as-is, numbers are formatted, and everything else is rejected as a usage
+				 * error.
 				 *
 				 * An object which does not serialize to a scalar is rejected even when it defines `__toString()`,
 				 * which PHP would otherwise coerce for the string parameters of the escaping functions. Its string
@@ -1115,16 +1116,34 @@ final class WP_Interactivity_API {
 							'7.1.0'
 						);
 						$result = null;
+					} elseif ( is_float( $result ) && ! is_finite( $result ) ) {
+						/*
+						 * INF and NAN are scalars, but JSON can represent neither, so a store holding one fails to
+						 * encode in its entirety and the client is sent an empty script tag in place of all of its
+						 * state. The binding is rejected to draw attention to that, though only removing the value
+						 * from the state resolves it.
+						 */
+						_doing_it_wrong(
+							__METHOD__,
+							sprintf(
+								/* translators: %s: The attribute name. */
+								__( 'Attempted to bind INF or NAN to the "%s" attribute. JSON can represent neither, so the client is sent no state at all. Cast the value to a string before storing it in state or context.' ),
+								esc_html( $entry['suffix'] )
+							),
+							'7.1.0'
+						);
+						$result = null;
 					} elseif ( is_int( $result ) || is_float( $result ) ) {
 						/*
 						 * A number is formatted by the JSON encoder rather than cast to string, so that the
 						 * attribute value matches the number the client receives for this same reference. Casting
 						 * a float is locale-dependent before PHP 8.0, and rounds to `precision` rather than to the
-						 * encoder's `serialize_precision`. Encoding only fails for INF and NAN, which cannot be
-						 * sent to the client at all, and which fall back to the cast as before.
+						 * encoder's `serialize_precision`.
 						 */
 						$encoded = wp_json_encode( $result );
-						$result  = false === $encoded ? (string) $result : $encoded;
+						if ( is_string( $encoded ) ) {
+							$result = $encoded;
+						}
 					}
 				}
 

@@ -490,6 +490,51 @@ class Tests_WP_Interactivity_API_WP_Bind extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Data provider for float values which JSON cannot represent.
+	 *
+	 * @return array<non-empty-string, array{ value: float }> Data provider.
+	 */
+	public function data_non_finite_values(): array {
+		return array(
+			'INF'  => array( 'value' => INF ),
+			'-INF' => array( 'value' => -INF ),
+			'NAN'  => array( 'value' => NAN ),
+		);
+	}
+
+	/**
+	 * Tests that `data-wp-bind` rejects INF and NAN.
+	 *
+	 * These are scalars, but a store holding one fails to encode in its
+	 * entirety, so the client is sent no state at all rather than a value which
+	 * merely disagrees with the server.
+	 *
+	 * @ticket 65740
+	 *
+	 * @covers ::process_directives
+	 *
+	 * @dataProvider data_non_finite_values
+	 *
+	 * @expectedIncorrectUsage WP_Interactivity_API::data_wp_bind_processor
+	 *
+	 * @param float $value Non-finite value to bind.
+	 */
+	public function test_wp_bind_rejects_non_finite_value( $value ) {
+		$this->interactivity->state( 'myPlugin', array( 'nonFinite' => $value ) );
+
+		$html    = '<div data-wp-bind--data-ratio="myPlugin::state.nonFinite">Text</div>';
+		list($p) = $this->process_directives( $html );
+		$this->assertNull( $p->get_attribute( 'data-ratio' ), 'Expected no attribute to have been set for a value JSON cannot represent.' );
+		$this->assertSame(
+			array(
+				'WP_Interactivity_API::data_wp_bind_processor' => 'Attempted to bind INF or NAN to the "data-ratio" attribute. JSON can represent neither, so the client is sent no state at all. Cast the value to a string before storing it in state or context. (This message was added in version 7.1.0.)',
+			),
+			$this->caught_doing_it_wrong,
+			'Expected _doing_it_wrong() to have been called once with the non-finite value message.'
+		);
+	}
+
+	/**
 	 * Data provider for values a bound object may serialize to.
 	 *
 	 * @return array<non-empty-string, array{ value: mixed, expected: string }> Data provider.
