@@ -463,27 +463,51 @@ class Tests_WP_Interactivity_API_WP_Bind extends WP_UnitTestCase {
 	/**
 	 * Data provider for values which cannot be stored in an attribute value.
 	 *
-	 * @return array<non-empty-string, array{ value: mixed }> Data provider.
+	 * Each value is paired with a single attribute so that the two escaping
+	 * paths in WP_HTML_Tag_Processor::set_attribute() are exercised
+	 * independently: ordinary attributes are escaped with strtr() whereas the
+	 * URI attributes listed by wp_kses_uri_attributes() go through esc_url().
+	 *
+	 * @return array<non-empty-string, array{ value: mixed, tag_name: non-empty-string, attribute: non-empty-string, existing_value: non-empty-string }> Data provider.
 	 */
 	public function data_non_scalar_values(): array {
-		return array(
-			'list'              => array( 'value' => array( 'a', 'b' ) ),
-			'associative array' => array( 'value' => array( 'a' => 'b' ) ),
-			'empty array'       => array( 'value' => array() ),
-			'object'            => array( 'value' => new stdClass() ),
-			'stringable object' => array(
-				'value' => new class() {
-					/**
-					 * Returns the string representation.
-					 *
-					 * @return string String representation.
-					 */
-					public function __toString() {
-						return 'stringified';
-					}
-				},
+		$values = array(
+			'list'              => array( 'a', 'b' ),
+			'associative array' => array( 'a' => 'b' ),
+			'empty array'       => array(),
+			'object'            => new stdClass(),
+			'stringable object' => new class() {
+				/**
+				 * Returns the string representation.
+				 *
+				 * @return string String representation.
+				 */
+				public function __toString() {
+					return 'stringified';
+				}
+			},
+		);
+
+		$attributes = array(
+			'ordinary attribute' => array(
+				'tag_name'       => 'div',
+				'attribute'      => 'id',
+				'existing_value' => 'other-id',
+			),
+			'URI attribute'      => array(
+				'tag_name'       => 'a',
+				'attribute'      => 'href',
+				'existing_value' => 'https://example.com/',
 			),
 		);
+
+		$data = array();
+		foreach ( $values as $value_label => $value ) {
+			foreach ( $attributes as $attribute_label => $attribute ) {
+				$data[ "$value_label in $attribute_label" ] = array( 'value' => $value ) + $attribute;
+			}
+		}
+		return $data;
 	}
 
 	/**
@@ -496,15 +520,27 @@ class Tests_WP_Interactivity_API_WP_Bind extends WP_UnitTestCase {
 	 *
 	 * @expectedIncorrectUsage WP_Interactivity_API::data_wp_bind_processor
 	 *
-	 * @param mixed $value Non-scalar value to bind.
+	 * @param mixed  $value     Non-scalar value to bind.
+	 * @param string $tag_name  Tag name to bind the value on.
+	 * @param string $attribute Attribute name to bind the value to.
 	 */
-	public function test_wp_bind_rejects_non_scalar_value( $value ) {
+	public function test_wp_bind_rejects_non_scalar_value( $value, string $tag_name, string $attribute ) {
 		$this->interactivity->state( 'myPlugin', array( 'nonScalar' => $value ) );
 
-		$html               = '<div data-wp-bind--id="myPlugin::state.nonScalar">Text</div>';
+		$html               = sprintf( '<%1$s data-wp-bind--%2$s="myPlugin::state.nonScalar">Text</%1$s>', $tag_name, $attribute );
 		list($p, $new_html) = $this->process_directives( $html );
-		$this->assertNull( $p->get_attribute( 'id' ), 'Expected no attribute to have been set for a non-scalar value.' );
+		$this->assertNull( $p->get_attribute( $attribute ), "Expected no $attribute attribute to have been set for a non-scalar value." );
 		$this->assertSame( $html, $new_html, 'Expected the markup to be left unchanged.' );
+		$this->assertSame(
+			array(
+				'WP_Interactivity_API::data_wp_bind_processor' => sprintf(
+					'Attempted to store non-scalar value the "%s" attribute. (This message was added in version 7.1.0.)',
+					$attribute
+				),
+			),
+			$this->caught_doing_it_wrong,
+			'Expected _doing_it_wrong() to have been called once with the non-scalar value message.'
+		);
 	}
 
 	/**
@@ -517,14 +553,27 @@ class Tests_WP_Interactivity_API_WP_Bind extends WP_UnitTestCase {
 	 *
 	 * @expectedIncorrectUsage WP_Interactivity_API::data_wp_bind_processor
 	 *
-	 * @param mixed $value Non-scalar value to bind.
+	 * @param mixed  $value          Non-scalar value to bind.
+	 * @param string $tag_name       Tag name to bind the value on.
+	 * @param string $attribute      Attribute name to bind the value to.
+	 * @param string $existing_value Pre-existing value for the bound attribute.
 	 */
-	public function test_wp_bind_removes_existing_attribute_for_non_scalar_value( $value ) {
+	public function test_wp_bind_removes_existing_attribute_for_non_scalar_value( $value, string $tag_name, string $attribute, string $existing_value ) {
 		$this->interactivity->state( 'myPlugin', array( 'nonScalar' => $value ) );
 
-		$html               = '<div id="other-id" data-wp-bind--id="myPlugin::state.nonScalar">Text</div>';
+		$html               = sprintf( '<%1$s %2$s="%3$s" data-wp-bind--%2$s="myPlugin::state.nonScalar">Text</%1$s>', $tag_name, $attribute, $existing_value );
 		list($p, $new_html) = $this->process_directives( $html );
-		$this->assertNull( $p->get_attribute( 'id' ), 'Expected the pre-existing attribute to have been removed.' );
-		$this->assertEqualHTML( '<div data-wp-bind--id="myPlugin::state.nonScalar">Text</div>', $new_html );
+		$this->assertNull( $p->get_attribute( $attribute ), "Expected the pre-existing $attribute attribute to have been removed." );
+		$this->assertEqualHTML( sprintf( '<%1$s data-wp-bind--%2$s="myPlugin::state.nonScalar">Text</%1$s>', $tag_name, $attribute ), $new_html );
+		$this->assertSame(
+			array(
+				'WP_Interactivity_API::data_wp_bind_processor' => sprintf(
+					'Attempted to store non-scalar value the "%s" attribute. (This message was added in version 7.1.0.)',
+					$attribute
+				),
+			),
+			$this->caught_doing_it_wrong,
+			'Expected _doing_it_wrong() to have been called once with the non-scalar value message.'
+		);
 	}
 }
