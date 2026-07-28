@@ -61,6 +61,9 @@ get_current_screen()->set_help_sidebar(
 	'<p>' . __( '<a href="https://wordpress.org/support/forums/">Support forums</a>' ) . '</p>'
 );
 
+wp_enqueue_script( 'clipboard' );
+wp_enqueue_script( 'wp-a11y' );
+
 require_once ABSPATH . 'wp-admin/admin-header.php';
 ?>
 
@@ -239,12 +242,15 @@ if ( ! is_multisite() ) {
 
 <tr>
 <th scope="row"><label for="siteurl"><?php _e( 'WordPress Address (URL)' ); ?></label></th>
-<td><input name="siteurl" type="url" id="siteurl" value="<?php form_option( 'siteurl' ); ?>"<?php disabled( defined( 'WP_SITEURL' ) ); ?> class="regular-text code<?php echo $wp_site_url_class; ?>" /></td>
+<td><input name="siteurl" type="url" id="siteurl" value="<?php form_option( 'siteurl' ); ?>"<?php disabled( defined( 'WP_SITEURL' ) ); ?> class="regular-text code<?php echo $wp_site_url_class; ?>" />
+	<button type="button" class="button copy-site-url" data-clipboard-target="#siteurl" aria-label="<?php esc_attr_e( 'Copy WordPress Address to clipboard' ); ?>"><?php _e( 'Copy' ); ?></button>
+</td>
 </tr>
 
 <tr>
 <th scope="row"><label for="home"><?php _e( 'Site Address (URL)' ); ?></label></th>
 <td><input name="home" type="url" id="home" aria-describedby="home-description" value="<?php form_option( 'home' ); ?>"<?php disabled( defined( 'WP_HOME' ) ); ?> class="regular-text code<?php echo $wp_home_class; ?>" />
+	<button type="button" class="button copy-site-url" data-clipboard-target="#home" aria-label="<?php esc_attr_e( 'Copy Site Address to clipboard' ); ?>"><?php _e( 'Copy' ); ?></button>
 	<?php if ( ! defined( 'WP_HOME' ) ) : ?>
 <p class="description" id="home-description">
 		<?php
