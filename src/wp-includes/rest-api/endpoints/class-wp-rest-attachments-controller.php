@@ -641,6 +641,14 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			'tmp_name' => $tmp_file,
 		);
 
+		$size_check = self::check_upload_size( $file_array );
+		if ( is_wp_error( $size_check ) ) {
+			if ( file_exists( $tmp_file ) ) {
+				wp_delete_file( $tmp_file );
+			}
+			return $size_check;
+		}
+
 		$attachment_id = media_handle_sideload( $file_array, $post_id );
 
 		if ( is_wp_error( $attachment_id ) ) {
@@ -959,6 +967,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	 *
 	 * @since 5.5.0
 	 * @since 6.9.0 Adds flips capability and editable fields for the newly-created attachment post.
+	 * @since 7.1.0 Applies EXIF orientation correction before image modifications.
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response|WP_Error Response object on success, WP_Error object on failure.
@@ -1063,6 +1072,9 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 				array( 'status' => 500 )
 			);
 		}
+
+		// Apply any unapplied EXIF orientation so edits run in the upright frame the client previewed.
+		$image_editor->maybe_exif_rotate();
 
 		foreach ( $modifiers as $modifier ) {
 			$args = $modifier['args'];
@@ -1707,7 +1719,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 
 		$schema['properties']['filesize'] = array(
 			'description' => __( 'Attachment file size in bytes.' ),
-			'type'        => 'integer',
+			'type'        => array( 'integer', 'null' ),
 			'context'     => array( 'view', 'edit' ),
 			'readonly'    => true,
 		);
@@ -2359,12 +2371,13 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	 *
 	 * @param int $attachment_id Attachment ID.
 	 * @return int|null Attachment file size in bytes, or null if not available.
+	 * @phpstan-return non-negative-int|null
 	 */
 	protected function get_attachment_filesize( int $attachment_id ): ?int {
 		$meta = wp_get_attachment_metadata( $attachment_id );
 
-		if ( isset( $meta['filesize'] ) ) {
-			return $meta['filesize'];
+		if ( isset( $meta['filesize'] ) && is_numeric( $meta['filesize'] ) && $meta['filesize'] > 0 ) {
+			return (int) $meta['filesize'];
 		}
 
 		$original_path = wp_get_original_image_path( $attachment_id );
