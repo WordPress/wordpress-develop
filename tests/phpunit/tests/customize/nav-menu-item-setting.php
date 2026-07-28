@@ -844,6 +844,131 @@ class Test_WP_Customize_Nav_Menu_Item_Setting extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that preview() fires the customize_preview_{$id} and customize_preview_{$type} action hooks.
+	 *
+	 * @ticket 55051
+	 *
+	 * @covers WP_Customize_Nav_Menu_Item_Setting::preview
+	 */
+	public function test_preview_fires_action_hooks() {
+		do_action( 'customize_register', $this->wp_customize );
+
+		$menu_id = wp_create_nav_menu( 'Primary' );
+		$post_id = self::factory()->post->create( array( 'post_title' => 'Hello World' ) );
+		$item_id = wp_update_nav_menu_item(
+			$menu_id,
+			0,
+			array(
+				'menu-item-type'      => 'post_type',
+				'menu-item-object'    => 'post',
+				'menu-item-object-id' => $post_id,
+				'menu-item-title'     => 'Hello World',
+				'menu-item-status'    => 'publish',
+			)
+		);
+
+		$setting_id = "nav_menu_item[$item_id]";
+		$setting    = new WP_Customize_Nav_Menu_Item_Setting( $this->wp_customize, $setting_id );
+		$this->wp_customize->set_post_value(
+			$setting_id,
+			array(
+				'type'             => 'post_type',
+				'object'           => 'post',
+				'object_id'        => $post_id,
+				'title'            => 'Updated Title',
+				'status'           => 'publish',
+				'nav_menu_term_id' => $menu_id,
+			)
+		);
+
+		$preview_id_action_count   = 0;
+		$preview_type_action_count = 0;
+		$preview_id_setting        = null;
+		$preview_type_setting      = null;
+
+		add_action(
+			"customize_preview_{$setting_id}",
+			function ( $s ) use ( &$preview_id_action_count, &$preview_id_setting ) {
+				++$preview_id_action_count;
+				$preview_id_setting = $s;
+			}
+		);
+
+		add_action(
+			'customize_preview_nav_menu_item',
+			function ( $s ) use ( &$preview_type_action_count, &$preview_type_setting ) {
+				++$preview_type_action_count;
+				$preview_type_setting = $s;
+			}
+		);
+
+		$setting->preview();
+
+		$this->assertSame( 1, $preview_id_action_count, 'customize_preview_{$id} action was not fired exactly once.' );
+		$this->assertSame( $setting, $preview_id_setting, 'customize_preview_{$id} action did not receive the setting instance.' );
+		$this->assertSame( 1, $preview_type_action_count, 'customize_preview_{$type} action was not fired exactly once.' );
+		$this->assertSame( $setting, $preview_type_setting, 'customize_preview_{$type} action did not receive the setting instance.' );
+	}
+
+	/**
+	 * Tests that update() fires the customize_update_{$type} action hook.
+	 *
+	 * @ticket 55051
+	 *
+	 * @covers WP_Customize_Nav_Menu_Item_Setting::update
+	 */
+	public function test_update_fires_action_hook() {
+		do_action( 'customize_register', $this->wp_customize );
+
+		$menu_id = wp_create_nav_menu( 'Primary' );
+		$post_id = self::factory()->post->create( array( 'post_title' => 'Hello World' ) );
+		$item_id = wp_update_nav_menu_item(
+			$menu_id,
+			0,
+			array(
+				'menu-item-type'      => 'post_type',
+				'menu-item-object'    => 'post',
+				'menu-item-object-id' => $post_id,
+				'menu-item-title'     => 'Hello World',
+				'menu-item-status'    => 'publish',
+			)
+		);
+
+		$post_value = array(
+			'type'             => 'post_type',
+			'object'           => 'post',
+			'object_id'        => $post_id,
+			'title'            => 'Updated Title',
+			'status'           => 'publish',
+			'nav_menu_term_id' => $menu_id,
+		);
+		$setting_id = "nav_menu_item[$item_id]";
+		$setting    = new WP_Customize_Nav_Menu_Item_Setting( $this->wp_customize, $setting_id );
+		$this->wp_customize->set_post_value( $setting_id, $post_value );
+
+		$update_action_count   = 0;
+		$update_action_value   = null;
+		$update_action_setting = null;
+
+		add_action(
+			'customize_update_nav_menu_item',
+			function ( $value, $s ) use ( &$update_action_count, &$update_action_value, &$update_action_setting ) {
+				++$update_action_count;
+				$update_action_value   = $value;
+				$update_action_setting = $s;
+			},
+			10,
+			2
+		);
+
+		$setting->save();
+
+		$this->assertSame( 1, $update_action_count, 'customize_update_{$type} action was not fired exactly once.' );
+		$this->assertSame( $setting, $update_action_setting, 'customize_update_{$type} action did not receive the setting instance.' );
+		$this->assertIsArray( $update_action_value, 'customize_update_{$type} action did not receive the value as an array.' );
+	}
+
+	/**
 	 * @ticket 33665
 	 */
 	public function test_invalid_nav_menu_item() {
