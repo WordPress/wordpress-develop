@@ -63,7 +63,7 @@ jobs:
   # them, because a job that needs a skipped job is skipped too, and a broader one
   # downloads a build that nothing consumes.
   prepare-gutenberg:
-    uses: WordPress/wordpress-develop/.github/workflows/reusable-prepare-gutenberg.yml@trunk
+    uses: WordPress/wordpress-develop/.github/workflows/reusable-prepare-gutenberg.yml@80fb78da3153431dee7e5d66e7463e71fda31ec7
     permissions:
       contents: read
     if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
