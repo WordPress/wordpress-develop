@@ -38,4 +38,10 @@ const returns = spawnSync(
 	{ stdio: 'inherit' }
 );
 
-process.exit( returns.status );
+if ( returns.error ) {
+	console.error( `Could not run Docker Compose. ${ returns.error.message }` );
+}
+
+// `status` is null when Docker could not be spawned at all, or was killed by a signal. Ctrl+C on
+// a long-running command such as `env:logs` is not a failure worth an npm error block.
+process.exit( returns.signal ? 0 : ( returns.status ?? 1 ) );

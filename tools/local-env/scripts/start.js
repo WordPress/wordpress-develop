@@ -32,7 +32,7 @@ if ( process.env.LOCAL_PHP_MEMCACHED === 'true' ) {
 	containers.push( 'memcached' );
 }
 
-spawnSync(
+const up = spawnSync(
 	'docker',
 	[
 		'compose',
@@ -44,6 +44,13 @@ spawnSync(
 	],
 	{ stdio: 'inherit' }
 );
+
+if ( up.status !== 0 ) {
+	console.error( `Could not start the Docker containers.${ up.error ? ` ${ up.error.message }` : '' }` );
+
+	// `status` is null when Docker could not be spawned at all, or was killed by a signal.
+	process.exit( up.status ?? 1 );
+}
 
 // If Docker Toolbox is being used, we need to manually forward LOCAL_PORT to the Docker VM.
 if ( process.env.DOCKER_TOOLBOX_INSTALL_PATH ) {
