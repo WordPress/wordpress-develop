@@ -267,69 +267,76 @@ class WP_HTML_Doctype_Info {
 		/*
 		 * > The public identifier starts with…
 		 *
-		 * @todo Optimize this matching. It shouldn't be a large overall performance issue,
-		 *       however, as only a single DOCTYPE declaration token should ever be parsed,
-		 *       and normative documents will have exited before reaching this condition.
+		 * @todo Maintain the list of legacy public-identifier prefixes in a single
+		 *       location and consider a more efficient matching strategy (for example
+		 *       a trie or compiled regex) only if profiling shows this to be a real
+		 *       hotspot. In normal usage this code is rarely reached because only a
+		 *       single DOCTYPE token is parsed and the common HTML5 DOCTYPE short-
+		 *       circuits earlier checks.
 		 */
-		if (
-			str_starts_with( $public_identifier, '+//silmaril//dtd html pro v0r11 19970101//' ) ||
-			str_starts_with( $public_identifier, '-//as//dtd html 3.0 aswedit + extensions//' ) ||
-			str_starts_with( $public_identifier, '-//advasoft ltd//dtd html 3.0 aswedit + extensions//' ) ||
-			str_starts_with( $public_identifier, '-//ietf//dtd html 2.0 level 1//' ) ||
-			str_starts_with( $public_identifier, '-//ietf//dtd html 2.0 level 2//' ) ||
-			str_starts_with( $public_identifier, '-//ietf//dtd html 2.0 strict level 1//' ) ||
-			str_starts_with( $public_identifier, '-//ietf//dtd html 2.0 strict level 2//' ) ||
-			str_starts_with( $public_identifier, '-//ietf//dtd html 2.0 strict//' ) ||
-			str_starts_with( $public_identifier, '-//ietf//dtd html 2.0//' ) ||
-			str_starts_with( $public_identifier, '-//ietf//dtd html 2.1e//' ) ||
-			str_starts_with( $public_identifier, '-//ietf//dtd html 3.0//' ) ||
-			str_starts_with( $public_identifier, '-//ietf//dtd html 3.2 final//' ) ||
-			str_starts_with( $public_identifier, '-//ietf//dtd html 3.2//' ) ||
-			str_starts_with( $public_identifier, '-//ietf//dtd html 3//' ) ||
-			str_starts_with( $public_identifier, '-//ietf//dtd html level 0//' ) ||
-			str_starts_with( $public_identifier, '-//ietf//dtd html level 1//' ) ||
-			str_starts_with( $public_identifier, '-//ietf//dtd html level 2//' ) ||
-			str_starts_with( $public_identifier, '-//ietf//dtd html level 3//' ) ||
-			str_starts_with( $public_identifier, '-//ietf//dtd html strict level 0//' ) ||
-			str_starts_with( $public_identifier, '-//ietf//dtd html strict level 1//' ) ||
-			str_starts_with( $public_identifier, '-//ietf//dtd html strict level 2//' ) ||
-			str_starts_with( $public_identifier, '-//ietf//dtd html strict level 3//' ) ||
-			str_starts_with( $public_identifier, '-//ietf//dtd html strict//' ) ||
-			str_starts_with( $public_identifier, '-//ietf//dtd html//' ) ||
-			str_starts_with( $public_identifier, '-//metrius//dtd metrius presentational//' ) ||
-			str_starts_with( $public_identifier, '-//microsoft//dtd internet explorer 2.0 html strict//' ) ||
-			str_starts_with( $public_identifier, '-//microsoft//dtd internet explorer 2.0 html//' ) ||
-			str_starts_with( $public_identifier, '-//microsoft//dtd internet explorer 2.0 tables//' ) ||
-			str_starts_with( $public_identifier, '-//microsoft//dtd internet explorer 3.0 html strict//' ) ||
-			str_starts_with( $public_identifier, '-//microsoft//dtd internet explorer 3.0 html//' ) ||
-			str_starts_with( $public_identifier, '-//microsoft//dtd internet explorer 3.0 tables//' ) ||
-			str_starts_with( $public_identifier, '-//netscape comm. corp.//dtd html//' ) ||
-			str_starts_with( $public_identifier, '-//netscape comm. corp.//dtd strict html//' ) ||
-			str_starts_with( $public_identifier, "-//o'reilly and associates//dtd html 2.0//" ) ||
-			str_starts_with( $public_identifier, "-//o'reilly and associates//dtd html extended 1.0//" ) ||
-			str_starts_with( $public_identifier, "-//o'reilly and associates//dtd html extended relaxed 1.0//" ) ||
-			str_starts_with( $public_identifier, '-//sq//dtd html 2.0 hotmetal + extensions//' ) ||
-			str_starts_with( $public_identifier, '-//softquad software//dtd hotmetal pro 6.0::19990601::extensions to html 4.0//' ) ||
-			str_starts_with( $public_identifier, '-//softquad//dtd hotmetal pro 4.0::19971010::extensions to html 4.0//' ) ||
-			str_starts_with( $public_identifier, '-//spyglass//dtd html 2.0 extended//' ) ||
-			str_starts_with( $public_identifier, '-//sun microsystems corp.//dtd hotjava html//' ) ||
-			str_starts_with( $public_identifier, '-//sun microsystems corp.//dtd hotjava strict html//' ) ||
-			str_starts_with( $public_identifier, '-//w3c//dtd html 3 1995-03-24//' ) ||
-			str_starts_with( $public_identifier, '-//w3c//dtd html 3.2 draft//' ) ||
-			str_starts_with( $public_identifier, '-//w3c//dtd html 3.2 final//' ) ||
-			str_starts_with( $public_identifier, '-//w3c//dtd html 3.2//' ) ||
-			str_starts_with( $public_identifier, '-//w3c//dtd html 3.2s draft//' ) ||
-			str_starts_with( $public_identifier, '-//w3c//dtd html 4.0 frameset//' ) ||
-			str_starts_with( $public_identifier, '-//w3c//dtd html 4.0 transitional//' ) ||
-			str_starts_with( $public_identifier, '-//w3c//dtd html experimental 19960712//' ) ||
-			str_starts_with( $public_identifier, '-//w3c//dtd html experimental 970421//' ) ||
-			str_starts_with( $public_identifier, '-//w3c//dtd w3 html//' ) ||
-			str_starts_with( $public_identifier, '-//w3o//dtd w3 html 3.0//' ) ||
-			str_starts_with( $public_identifier, '-//webtechs//dtd mozilla html 2.0//' ) ||
-			str_starts_with( $public_identifier, '-//webtechs//dtd mozilla html//' )
-		) {
-			$this->indicated_compatibility_mode = 'quirks';
-			return;
+		$quirks_prefixes = array(
+			'+//silmaril//dtd html pro v0r11 19970101//',
+			'-//as//dtd html 3.0 aswedit + extensions//',
+			'-//advasoft ltd//dtd html 3.0 aswedit + extensions//',
+			'-//ietf//dtd html 2.0 level 1//',
+			'-//ietf//dtd html 2.0 level 2//',
+			'-//ietf//dtd html 2.0 strict level 1//',
+			'-//ietf//dtd html 2.0 strict level 2//',
+			'-//ietf//dtd html 2.0 strict//',
+			'-//ietf//dtd html 2.0//',
+			'-//ietf//dtd html 2.1e//',
+			'-//ietf//dtd html 3.0//',
+			'-//ietf//dtd html 3.2 final//',
+			'-//ietf//dtd html 3.2//',
+			'-//ietf//dtd html 3//',
+			'-//ietf//dtd html level 0//',
+			'-//ietf//dtd html level 1//',
+			'-//ietf//dtd html level 2//',
+			'-//ietf//dtd html level 3//',
+			'-//ietf//dtd html strict level 0//',
+			'-//ietf//dtd html strict level 1//',
+			'-//ietf//dtd html strict level 2//',
+			'-//ietf//dtd html strict level 3//',
+			'-//ietf//dtd html strict//',
+			'-//ietf//dtd html//',
+			'-//metrius//dtd metrius presentational//',
+			'-//microsoft//dtd internet explorer 2.0 html strict//',
+			'-//microsoft//dtd internet explorer 2.0 html//',
+			'-//microsoft//dtd internet explorer 2.0 tables//',
+			'-//microsoft//dtd internet explorer 3.0 html strict//',
+			'-//microsoft//dtd internet explorer 3.0 html//',
+			'-//microsoft//dtd internet explorer 3.0 tables//',
+			'-//netscape comm. corp.//dtd html//',
+			'-//netscape comm. corp.//dtd strict html//',
+			"-//o'reilly and associates//dtd html 2.0//",
+			"-//o'reilly and associates//dtd html extended 1.0//",
+			"-//o'reilly and associates//dtd html extended relaxed 1.0//",
+			'-//sq//dtd html 2.0 hotmetal + extensions//',
+			'-//softquad software//dtd hotmetal pro 6.0::19990601::extensions to html 4.0//',
+			'-//softquad//dtd hotmetal pro 4.0::19971010::extensions to html 4.0//',
+			'-//spyglass//dtd html 2.0 extended//',
+			'-//sun microsystems corp.//dtd hotjava html//',
+			'-//sun microsystems corp.//dtd hotjava strict html//',
+			'-//w3c//dtd html 3 1995-03-24//',
+			'-//w3c//dtd html 3.2 draft//',
+			'-//w3c//dtd html 3.2 final//',
+			'-//w3c//dtd html 3.2//',
+			'-//w3c//dtd html 3.2s draft//',
+			'-//w3c//dtd html 4.0 frameset//',
+			'-//w3c//dtd html 4.0 transitional//',
+			'-//w3c//dtd html experimental 19960712//',
+			'-//w3c//dtd html experimental 970421//',
+			'-//w3c//dtd w3 html//',
+			'-//w3o//dtd w3 html 3.0//',
+			'-//webtechs//dtd mozilla html 2.0//',
+			'-//webtechs//dtd mozilla html//',
+		);
+
+		foreach ( $quirks_prefixes as $prefix ) {
+			if ( str_starts_with( $public_identifier, $prefix ) ) {
+				$this->indicated_compatibility_mode = 'quirks';
+				return;
+			}
 		}
 
 		/*
