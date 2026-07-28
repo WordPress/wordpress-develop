@@ -1080,6 +1080,9 @@ final class WP_Interactivity_API {
 	 * associated reference.
 	 *
 	 * @since 6.5.0
+	 * @since 7.1.0 An object is resolved to whatever it serializes to for the client, a number is formatted by the
+	 *              JSON encoder, and a value which cannot be sent to the client is rejected rather than passed to
+	 *              WP_HTML_Tag_Processor::set_attribute().
 	 *
 	 * @param WP_Interactivity_API_Directives_Processor $p               The directives processor instance.
 	 * @param string                                    $mode            Whether the processing is entering or exiting the tag.
@@ -1113,7 +1116,11 @@ final class WP_Interactivity_API {
 				 * for this same reference when the store is hydrated. Round-tripping through the JSON encoder
 				 * rather than calling JsonSerializable::jsonSerialize() directly keeps this resolution identical to
 				 * the client's, including for an object which serializes to another serializable object. When the
-				 * encoding fails the object is left in place, to be reported as a usage error below.
+				 * encoding fails the object is left in place, to be reported as a usage error below. Note that it
+				 * rarely does fail: wp_json_encode() retries through _wp_json_sanity_check(), which rebuilds the
+				 * object from its public properties and so ignores jsonSerialize() altogether. An object whose
+				 * serialized form JSON cannot represent therefore resolves to whatever that rebuild encodes to,
+				 * which is what the client is sent for it as well.
 				 *
 				 * A throwing JsonSerializable::jsonSerialize() is caught for the same reason the value is checked
 				 * at all: a binding must not be able to abort the render. An exception escaping here would leave
@@ -1159,6 +1166,12 @@ final class WP_Interactivity_API {
 						 * attribute value matches the number the client receives for this same reference. Casting
 						 * a float is locale-dependent before PHP 8.0, and rounds to `precision` rather than to the
 						 * encoder's `serialize_precision`.
+						 *
+						 * This closes the cases which differ in practice, not every one. A float written in
+						 * exponent notation still disagrees, since PHP encodes 1e25 as `1.0e+25` where JavaScript
+						 * renders it as `1e+25`, as does negative zero, and an integer above the range JavaScript
+						 * can represent exactly is rounded once it reaches the client. Casting diverged on all
+						 * three as well, so none is a regression.
 						 */
 						$encoded = wp_json_encode( $result );
 						if ( false === $encoded ) {

@@ -47,7 +47,7 @@ class Tests_WP_Interactivity_API_WP_Bind extends WP_UnitTestCase {
 	 * @param string $html The HTML that needs to be processed.
 	 * @return array{ 0: WP_HTML_Tag_Processor, 1: string } An array containing an instance of the WP_HTML_Tag_Processor and the processed HTML.
 	 */
-	private function process_directives( string $html ) {
+	private function process_directives( string $html ): array {
 		$new_html = $this->interactivity->process_directives( $html );
 		$p        = new WP_HTML_Tag_Processor( $new_html );
 		$p->next_tag();
@@ -94,8 +94,8 @@ class Tests_WP_Interactivity_API_WP_Bind extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that a float value is cast to a string when set as an attribute via
-	 * `data-wp-bind`.
+	 * Tests that a float value is formatted as a string when set as an attribute
+	 * via `data-wp-bind`.
 	 *
 	 * @ticket 65740
 	 *
