@@ -341,14 +341,17 @@ class WP_REST_View_Config_Controller_Test extends WP_Test_REST_TestCase {
 		wp_set_current_user( self::$editor_id );
 
 		$filter = static function ( $data ) {
-			return $data->update_view_list_items(
+			return $data->merge(
 				array(
-					'custom' => array(
-						'title' => 'Custom',
-						'view'  => array(
-							'type'   => 'table',
-							'layout' => array(
-								'styles' => array(),
+					'view_list' => array(
+						array(
+							'slug'  => 'custom',
+							'title' => 'Custom',
+							'view'  => array(
+								'type'   => 'table',
+								'layout' => array(
+									'styles' => array(),
+								),
 							),
 						),
 					),
