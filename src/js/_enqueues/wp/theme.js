@@ -24,13 +24,23 @@ l10n = themes.data.l10n;
  * @param {Object} model The theme model.
  * @return {void}
  */
-themes.announceTheme = function( model ) {
-	var name = model.get( 'name' ) || model.get( 'id' );
+themes.announceThemeDebounced = _.debounce( function( model ) {
+	var name;
+
+	if ( ! model ) {
+		return;
+	}
+
+	name = model.get( 'name' ) || model.get( 'id' );
+
+	if ( ! name ) {
+		return;
+	}
 
 	wp.a11y.speak( l10n.themeViewed.replace( '%s', function() {
 		return name;
 	} ) );
-};
+}, 500 );
 
 // Shortcut for isInstall check.
 themes.isInstall = !! themes.data.settings.isInstall;
@@ -416,10 +426,6 @@ themes.view.Theme = wp.Backbone.View.extend({
 
 	initialize: function() {
 		this.model.on( 'change', this.render, this );
-
-		this.announceThemeDebounced = _.debounce( function( model ) {
-			themes.announceTheme( model );
-		}, 500 );
 	},
 
 	render: function() {
@@ -569,7 +575,7 @@ themes.view.Theme = wp.Backbone.View.extend({
 			preview.render();
 			this.setNavButtonsState();
 			$( '.next-theme' ).trigger( 'focus' );
-			self.announceThemeDebounced( self.current );
+			themes.announceThemeDebounced( self.current );
 		})
 		.listenTo( preview, 'theme:previous', function() {
 
@@ -600,7 +606,7 @@ themes.view.Theme = wp.Backbone.View.extend({
 			preview.render();
 			this.setNavButtonsState();
 			$( '.previous-theme' ).trigger( 'focus' );
-			self.announceThemeDebounced( self.current );
+			themes.announceThemeDebounced( self.current );
 		});
 
 		this.listenTo( preview, 'preview:close', function() {
@@ -791,6 +797,9 @@ themes.view.Details = wp.Backbone.View.extend({
 				}
 			});
 		}
+
+		// Cancel any pending navigation announcement.
+		themes.announceThemeDebounced.cancel();
 	},
 
 	// Handles .disabled classes for next/previous buttons.
@@ -989,6 +998,9 @@ themes.view.Preview = themes.view.Details.extend({
 		this.trigger( 'preview:close' );
 		this.undelegateEvents();
 		this.unbind();
+
+		// Cancel any pending navigation announcement.
+		themes.announceThemeDebounced.cancel();
 		return false;
 	},
 
@@ -1101,10 +1113,6 @@ themes.view.Themes = wp.Backbone.View.extend({
 
 		// Move the active theme to the beginning of the collection.
 		self.currentTheme();
-
-		this.announceThemeDebounced = _.debounce( function( model ) {
-			themes.announceTheme( model );
-		}, 500 );
 
 		// When the collection is updated by user input...
 		this.listenTo( self.collection, 'themes:update', function() {
@@ -1352,7 +1360,7 @@ themes.view.Themes = wp.Backbone.View.extend({
 
 			// Trigger a route update for the current model.
 			self.theme.trigger( 'theme:expand', nextModel.cid );
-			self.announceThemeDebounced( nextModel );
+			themes.announceThemeDebounced( nextModel );
 		}
 	},
 
@@ -1379,7 +1387,7 @@ themes.view.Themes = wp.Backbone.View.extend({
 
 			// Trigger a route update for the current model.
 			self.theme.trigger( 'theme:expand', previousModel.cid );
-			self.announceThemeDebounced( previousModel );
+			themes.announceThemeDebounced( previousModel );
 		}
 	},
 
