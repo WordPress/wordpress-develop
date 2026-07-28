@@ -794,8 +794,8 @@ final class WP_Interactivity_API {
 		// Remove the first 8 characters (assumes "data-wp-" prefix)
 		$name = (string) substr( $directive_name, 8 );
 
-		// Check for invalid characters (anything not a-z, 0-9, -, or _)
-		if ( '' === $name || preg_match( '/[^a-z0-9\-_]/i', $name ) ) {
+		// Ensure the name only contains valid characters (anything a-z, 0-9, -, or _).
+		if ( 1 !== preg_match( '/^[a-z0-9\-_]+$/i', $name ) ) {
 			return null;
 		}
 
