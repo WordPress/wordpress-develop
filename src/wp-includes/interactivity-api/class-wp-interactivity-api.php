@@ -1037,6 +1037,15 @@ final class WP_Interactivity_API {
 				continue;
 			}
 
+			/*
+			 * A context with no namespace has nothing to be stored under, so the inherited context is left as it
+			 * is. Using the namespace as an array key regardless would coerce null to an empty string, which PHP
+			 * 8.5 deprecates, and would store the context where no reference can address it anyway.
+			 */
+			if ( null === $entry['namespace'] ) {
+				continue;
+			}
+
 			$context = array_replace_recursive(
 				$context,
 				array( $entry['namespace'] => is_array( $entry['value'] ) ? $entry['value'] : array() )
