@@ -58,12 +58,13 @@ function wp_create_category( $category_name, $category_parent = 0 ) {
 		return (int) $id;
 	}
 
-	return wp_insert_category(
-		array(
-			'cat_name'        => $category_name,
-			'category_parent' => $category_parent,
-		)
-	);
+	$result = wp_insert_term( $category_name, 'category', array( 'parent' => $category_parent ) );
+
+	if ( is_wp_error( $result ) ) {
+		return 0;
+	}
+
+	return (int) $result['term_id'];
 }
 
 /**
@@ -119,6 +120,8 @@ function wp_create_categories( $categories, $post_id = 0 ) {
  *                      depending on param `$wp_error`.
  */
 function wp_insert_category( $catarr, $wp_error = false ) {
+	_deprecated_function( __FUNCTION__, '7.1.0', 'wp_insert_term() or wp_update_term()' );
+
 	$cat_defaults = array(
 		'cat_ID'               => 0,
 		'taxonomy'             => 'category',
@@ -175,7 +178,7 @@ function wp_insert_category( $catarr, $wp_error = false ) {
 }
 
 /**
- * Aliases wp_insert_category() with minimal args.
+ * Updates an existing category.
  *
  * If you want to update only some fields of an existing category, call this
  * function with only the new values set inside $catarr.
@@ -202,7 +205,28 @@ function wp_update_category( $catarr ) {
 	// Merge old and new fields with new fields overwriting old ones.
 	$catarr = array_merge( $category, $catarr );
 
-	return wp_insert_category( $catarr );
+	$parent = (int) $catarr['category_parent'];
+	if ( $parent < 0 ) {
+		$parent = 0;
+	}
+	if ( $parent > 0 && ( ! term_exists( $parent, 'category' ) || term_is_ancestor_of( $cat_id, $parent, 'category' ) ) ) {
+		$parent = 0;
+	}
+
+	$args = array(
+		'name'        => $catarr['cat_name'],
+		'slug'        => $catarr['category_nicename'],
+		'parent'      => $parent,
+		'description' => $catarr['category_description'],
+	);
+
+	$result = wp_update_term( $cat_id, 'category', $args );
+
+	if ( is_wp_error( $result ) ) {
+		return 0;
+	}
+
+	return (int) $result['term_id'];
 }
 
 //
