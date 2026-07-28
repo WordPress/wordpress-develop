@@ -780,12 +780,6 @@ body #dashboard-widgets .postbox form .submit {
 	padding: 0;
 }
 
-#dashboard_quick_press div.updated {
-	margin-bottom: 10px;
-	border: 1px solid #f0f0f1;
-	border-width: 1px 1px 1px 0;
-}
-
 #dashboard_quick_press form {
 	margin: 12px;
 }
@@ -803,7 +797,6 @@ body #dashboard-widgets .postbox form .submit {
 
 #dashboard_quick_press input,
 #dashboard_quick_press textarea {
-	box-sizing: border-box;
 	margin: 0;
 }
 
@@ -850,11 +843,12 @@ body #dashboard-widgets .postbox form .submit {
 #dashboard_quick_press .drafts li {
 	margin-bottom: 1em;
 }
+
 #dashboard_quick_press .drafts li time {
 	color: #646970;
 }
 
-#dashboard_quick_press .drafts p {
+#dashboard_quick_press .drafts .draft-content {
 	margin: 0;
 	word-wrap: break-word;
 }
@@ -1021,6 +1015,35 @@ body #dashboard-widgets .postbox form .submit {
 #activity-widget #the-comment-list .trash-undo-inside .avatar {
 	position: relative;
 	top: 0;
+}
+
+/* On This Day dashboard widget */
+
+#wp_dashboard_on_this_day h3 {
+	font-weight: 600;
+}
+
+#wp_dashboard_on_this_day li {
+	margin: 0;
+	padding: 0;
+}
+
+#wp_dashboard_on_this_day ul ul {
+	margin: 0 0 0 18px;
+	padding: 0;
+	list-style: disc;
+}
+
+#wp_dashboard_on_this_day ul ul li + li {
+	margin-top: 6px;
+}
+
+#wp_dashboard_on_this_day .wp-on-this-day-widget > ul > li + li {
+	margin-top: 16px;
+}
+
+#wp_dashboard_on_this_day .wp-on-this-day-post-author {
+	color: #646970;
 }
 
 /* Browse happy box */
