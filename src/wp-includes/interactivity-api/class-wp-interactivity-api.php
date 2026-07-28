@@ -774,7 +774,7 @@ final class WP_Interactivity_API {
 	 * @since 6.9.0
 	 *
 	 * @param string $directive_name The directive attribute name.
-	 * @return array An array containing the directive prefix, optional suffix, and optional unique ID.
+	 * @return array|null An array containing the directive prefix, optional suffix, and optional unique ID, or null if the directive name cannot be parsed.
 	 * @phpstan-return array{
 	 *     prefix: non-empty-string,
 	 *     suffix: string|null,
