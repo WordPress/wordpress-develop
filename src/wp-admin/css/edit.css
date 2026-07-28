@@ -1090,6 +1090,15 @@ form#tags-filter {
 	border-left: 2px solid #787c82;
 }
 
+@media only screen and (max-width: 1004px) {
+
+	.privacy-settings-body,
+	.health-check-body {
+		margin: 0 22px;
+		width: auto;
+	}
+}
+
 /* Media queries */
 @media screen and (max-width: 782px) {
 
@@ -1125,15 +1134,6 @@ form#tags-filter {
 
 	#editable-post-name input {
 		min-height: 40px;
-	}
-}
-
-@media only screen and (max-width: 1004px) {
-
-	.privacy-settings-body,
-	.health-check-body {
-		margin: 0 22px;
-		width: auto;
 	}
 }
 
