@@ -32,9 +32,9 @@ class Tests_Connectors_WpConnectorRegistry extends WP_UnitTestCase {
 		$this->registry = new WP_Connector_Registry();
 
 		self::$default_args = array(
-			'name'           => 'Test Provider',
-			'description'    => 'A test AI provider.',
-			'type'           => 'ai_provider',
+			'name'           => 'Test Connector',
+			'description'    => 'A test connector.',
+			'type'           => 'test_type',
 			'authentication' => array(
 				'method'          => 'api_key',
 				'credentials_url' => 'https://example.com/keys',
@@ -49,12 +49,12 @@ class Tests_Connectors_WpConnectorRegistry extends WP_UnitTestCase {
 		$result = $this->registry->register( 'test-provider', self::$default_args );
 
 		$this->assertIsArray( $result );
-		$this->assertSame( 'Test Provider', $result['name'] );
-		$this->assertSame( 'A test AI provider.', $result['description'] );
-		$this->assertSame( 'ai_provider', $result['type'] );
+		$this->assertSame( 'Test Connector', $result['name'] );
+		$this->assertSame( 'A test connector.', $result['description'] );
+		$this->assertSame( 'test_type', $result['type'] );
 		$this->assertSame( 'api_key', $result['authentication']['method'] );
 		$this->assertSame( 'https://example.com/keys', $result['authentication']['credentials_url'] );
-		$this->assertSame( 'connectors_ai_test_provider_api_key', $result['authentication']['setting_name'] );
+		$this->assertSame( 'connectors_test_type_test_provider_api_key', $result['authentication']['setting_name'] );
 	}
 
 	/**
@@ -63,7 +63,7 @@ class Tests_Connectors_WpConnectorRegistry extends WP_UnitTestCase {
 	public function test_register_generates_setting_name_for_api_key() {
 		$result = $this->registry->register( 'myai', self::$default_args );
 
-		$this->assertSame( 'connectors_ai_myai_api_key', $result['authentication']['setting_name'] );
+		$this->assertSame( 'connectors_test_type_myai_api_key', $result['authentication']['setting_name'] );
 	}
 
 	/**
@@ -72,7 +72,239 @@ class Tests_Connectors_WpConnectorRegistry extends WP_UnitTestCase {
 	public function test_register_generates_setting_name_normalizes_hyphens() {
 		$result = $this->registry->register( 'my-ai', self::$default_args );
 
-		$this->assertSame( 'connectors_ai_my_ai_api_key', $result['authentication']['setting_name'] );
+		$this->assertSame( 'connectors_test_type_my_ai_api_key', $result['authentication']['setting_name'] );
+	}
+
+	/**
+	 * @ticket 64957
+	 */
+	public function test_register_generates_setting_name_using_type_and_id() {
+		$args         = self::$default_args;
+		$args['type'] = 'email_delivery';
+
+		$result = $this->registry->register( 'sendgrid', $args );
+
+		$this->assertSame( 'connectors_email_delivery_sendgrid_api_key', $result['authentication']['setting_name'] );
+	}
+
+	/**
+	 * @ticket 64957
+	 */
+	public function test_register_uses_custom_setting_name_when_provided() {
+		$args                                   = self::$default_args;
+		$args['authentication']['setting_name'] = 'wordpress_api_key';
+
+		$result = $this->registry->register( 'custom-setting', $args );
+
+		$this->assertSame( 'wordpress_api_key', $result['authentication']['setting_name'] );
+	}
+
+	/**
+	 * @ticket 64957
+	 */
+	public function test_register_rejects_empty_setting_name() {
+		$this->setExpectedIncorrectUsage( 'WP_Connector_Registry::register' );
+
+		$args                                   = self::$default_args;
+		$args['authentication']['setting_name'] = '';
+
+		$result = $this->registry->register( 'empty-setting', $args );
+
+		$this->assertNull( $result );
+	}
+
+	/**
+	 * @ticket 64957
+	 */
+	public function test_register_rejects_non_string_setting_name() {
+		$this->setExpectedIncorrectUsage( 'WP_Connector_Registry::register' );
+
+		$args                                   = self::$default_args;
+		$args['authentication']['setting_name'] = 123;
+
+		$result = $this->registry->register( 'non-string-setting', $args );
+
+		$this->assertNull( $result );
+	}
+
+	/**
+	 * @ticket 64850
+	 */
+	public function test_register_generates_credentials_setting_name() {
+		$args                   = self::$default_args;
+		$args['authentication'] = array(
+			'method'          => 'application_password',
+			'credentials_url' => 'https://example.com/profile.php',
+		);
+
+		$result = $this->registry->register( 'remote-site', $args );
+
+		$this->assertSame( 'application_password', $result['authentication']['method'] );
+		$this->assertSame( 'https://example.com/profile.php', $result['authentication']['credentials_url'] );
+		$this->assertSame( 'connectors_test_type_remote_site_application_password', $result['authentication']['setting_name'] );
+	}
+
+	/**
+	 * @ticket 64850
+	 */
+	public function test_register_uses_custom_credentials_setting_name() {
+		$args                   = self::$default_args;
+		$args['authentication'] = array(
+			'method'       => 'application_password',
+			'setting_name' => 'remote_site_credentials',
+		);
+
+		$result = $this->registry->register( 'remote-site', $args );
+
+		$this->assertSame( 'remote_site_credentials', $result['authentication']['setting_name'] );
+	}
+
+	/**
+	 * @ticket 64850
+	 */
+	public function test_register_accepts_application_password_constant_and_env_names() {
+		$args                   = self::$default_args;
+		$args['authentication'] = array(
+			'method'        => 'application_password',
+			'constant_name' => 'REMOTE_SITE_CREDENTIALS',
+			'env_var_name'  => 'REMOTE_SITE_CREDENTIALS',
+		);
+
+		$result = $this->registry->register( 'remote-site', $args );
+
+		$this->assertSame( 'REMOTE_SITE_CREDENTIALS', $result['authentication']['constant_name'] );
+		$this->assertSame( 'REMOTE_SITE_CREDENTIALS', $result['authentication']['env_var_name'] );
+	}
+
+	/**
+	 * @ticket 64850
+	 *
+	 * @dataProvider data_application_password_external_name_keys
+	 *
+	 * @param string $name_key Authentication argument key.
+	 */
+	public function test_register_rejects_empty_application_password_external_names( string $name_key ) {
+		$this->setExpectedIncorrectUsage( 'WP_Connector_Registry::register' );
+
+		$args                   = self::$default_args;
+		$args['authentication'] = array(
+			'method'  => 'application_password',
+			$name_key => '',
+		);
+
+		$result = $this->registry->register( 'remote-site', $args );
+
+		$this->assertNull( $result );
+	}
+
+	/**
+	 * Data provider for application-password constant and environment variable name keys.
+	 *
+	 * @return array<string, array{string}> Test cases.
+	 */
+	public function data_application_password_external_name_keys(): array {
+		return array(
+			'constant name'             => array( 'constant_name' ),
+			'environment variable name' => array( 'env_var_name' ),
+		);
+	}
+
+	/**
+	 * @ticket 64957
+	 */
+	public function test_register_stores_constant_name_when_provided() {
+		$args                                    = self::$default_args;
+		$args['authentication']['constant_name'] = 'MY_PROVIDER_API_KEY';
+
+		$result = $this->registry->register( 'my-provider', $args );
+
+		$this->assertSame( 'MY_PROVIDER_API_KEY', $result['authentication']['constant_name'] );
+	}
+
+	/**
+	 * @ticket 64957
+	 */
+	public function test_register_omits_constant_name_when_not_provided() {
+		$result = $this->registry->register( 'no-const', self::$default_args );
+
+		$this->assertArrayNotHasKey( 'constant_name', $result['authentication'] );
+	}
+
+	/**
+	 * @ticket 64957
+	 */
+	public function test_register_rejects_empty_constant_name() {
+		$this->setExpectedIncorrectUsage( 'WP_Connector_Registry::register' );
+
+		$args                                    = self::$default_args;
+		$args['authentication']['constant_name'] = '';
+
+		$result = $this->registry->register( 'empty-const', $args );
+
+		$this->assertNull( $result );
+	}
+
+	/**
+	 * @ticket 64957
+	 */
+	public function test_register_rejects_non_string_constant_name() {
+		$this->setExpectedIncorrectUsage( 'WP_Connector_Registry::register' );
+
+		$args                                    = self::$default_args;
+		$args['authentication']['constant_name'] = 123;
+
+		$result = $this->registry->register( 'bad-const', $args );
+
+		$this->assertNull( $result );
+	}
+
+	/**
+	 * @ticket 64957
+	 */
+	public function test_register_stores_env_var_name_when_provided() {
+		$args                                   = self::$default_args;
+		$args['authentication']['env_var_name'] = 'MY_PROVIDER_API_KEY';
+
+		$result = $this->registry->register( 'my-provider', $args );
+
+		$this->assertSame( 'MY_PROVIDER_API_KEY', $result['authentication']['env_var_name'] );
+	}
+
+	/**
+	 * @ticket 64957
+	 */
+	public function test_register_omits_env_var_name_when_not_provided() {
+		$result = $this->registry->register( 'no-env', self::$default_args );
+
+		$this->assertArrayNotHasKey( 'env_var_name', $result['authentication'] );
+	}
+
+	/**
+	 * @ticket 64957
+	 */
+	public function test_register_rejects_empty_env_var_name() {
+		$this->setExpectedIncorrectUsage( 'WP_Connector_Registry::register' );
+
+		$args                                   = self::$default_args;
+		$args['authentication']['env_var_name'] = '';
+
+		$result = $this->registry->register( 'empty-env', $args );
+
+		$this->assertNull( $result );
+	}
+
+	/**
+	 * @ticket 64957
+	 */
+	public function test_register_rejects_non_string_env_var_name() {
+		$this->setExpectedIncorrectUsage( 'WP_Connector_Registry::register' );
+
+		$args                                   = self::$default_args;
+		$args['authentication']['env_var_name'] = 123;
+
+		$result = $this->registry->register( 'bad-env', $args );
+
+		$this->assertNull( $result );
 	}
 
 	/**
@@ -80,8 +312,8 @@ class Tests_Connectors_WpConnectorRegistry extends WP_UnitTestCase {
 	 */
 	public function test_register_no_setting_name_for_none_auth() {
 		$args   = array(
-			'name'           => 'No Auth Provider',
-			'type'           => 'ai_provider',
+			'name'           => 'No Auth Connector',
+			'type'           => 'test_type',
 			'authentication' => array( 'method' => 'none' ),
 		);
 		$result = $this->registry->register( 'no-auth', $args );
@@ -96,7 +328,7 @@ class Tests_Connectors_WpConnectorRegistry extends WP_UnitTestCase {
 	public function test_register_defaults_description_to_empty_string() {
 		$args = array(
 			'name'           => 'Minimal',
-			'type'           => 'ai_provider',
+			'type'           => 'test_type',
 			'authentication' => array( 'method' => 'none' ),
 		);
 
@@ -144,21 +376,71 @@ class Tests_Connectors_WpConnectorRegistry extends WP_UnitTestCase {
 	 */
 	public function test_register_includes_plugin_data() {
 		$args           = self::$default_args;
-		$args['plugin'] = array( 'slug' => 'my-plugin' );
+		$args['plugin'] = array( 'file' => 'my-plugin/my-plugin.php' );
 
 		$result = $this->registry->register( 'with-plugin', $args );
 
 		$this->assertArrayHasKey( 'plugin', $result );
-		$this->assertSame( array( 'slug' => 'my-plugin' ), $result['plugin'] );
+		$this->assertSame( 'my-plugin/my-plugin.php', $result['plugin']['file'] );
+	}
+
+	/**
+	 * @ticket 65020
+	 */
+	public function test_register_stores_plugin_is_active_callback() {
+		$args           = self::$default_args;
+		$args['plugin'] = array(
+			'file'      => 'my-plugin/my-plugin.php',
+			'is_active' => '__return_true',
+		);
+
+		$result = $this->registry->register( 'with-callback', $args );
+
+		$this->assertIsArray( $result );
+		$this->assertArrayHasKey( 'is_active', $result['plugin'] );
+		$this->assertIsCallable( $result['plugin']['is_active'] );
+	}
+
+	/**
+	 * @ticket 65020
+	 */
+	public function test_register_rejects_non_callable_plugin_is_active() {
+		$this->setExpectedIncorrectUsage( 'WP_Connector_Registry::register' );
+
+		$args           = self::$default_args;
+		$args['plugin'] = array(
+			'file'      => 'my-plugin/my-plugin.php',
+			'is_active' => 'not_a_real_function_name',
+		);
+
+		$result = $this->registry->register( 'bad-callback', $args );
+
+		$this->assertNull( $result );
+	}
+
+	/**
+	 * @ticket 65020
+	 */
+	public function test_register_defaults_plugin_is_active_to_return_true() {
+		$args           = self::$default_args;
+		$args['plugin'] = array( 'file' => 'my-plugin/my-plugin.php' );
+
+		$result = $this->registry->register( 'default-callback', $args );
+
+		$this->assertIsArray( $result );
+		$this->assertArrayHasKey( 'is_active', $result['plugin'] );
+		$this->assertSame( '__return_true', $result['plugin']['is_active'] );
 	}
 
 	/**
 	 * @ticket 64791
 	 */
-	public function test_register_omits_plugin_when_not_provided() {
+	public function test_register_defaults_plugin_when_not_provided() {
 		$result = $this->registry->register( 'no-plugin', self::$default_args );
 
-		$this->assertArrayNotHasKey( 'plugin', $result );
+		$this->assertArrayHasKey( 'plugin', $result );
+		$this->assertArrayNotHasKey( 'file', $result['plugin'] );
+		$this->assertSame( '__return_true', $result['plugin']['is_active'] );
 	}
 
 	/**
@@ -308,7 +590,7 @@ class Tests_Connectors_WpConnectorRegistry extends WP_UnitTestCase {
 		$result = $this->registry->get_registered( 'my-connector' );
 
 		$this->assertIsArray( $result );
-		$this->assertSame( 'Test Provider', $result['name'] );
+		$this->assertSame( 'Test Connector', $result['name'] );
 	}
 
 	/**
@@ -355,7 +637,7 @@ class Tests_Connectors_WpConnectorRegistry extends WP_UnitTestCase {
 		$result = $this->registry->unregister( 'to-remove' );
 
 		$this->assertIsArray( $result );
-		$this->assertSame( 'Test Provider', $result['name'] );
+		$this->assertSame( 'Test Connector', $result['name'] );
 		$this->assertFalse( $this->registry->is_registered( 'to-remove' ) );
 	}
 
@@ -404,7 +686,9 @@ class Tests_Connectors_WpConnectorRegistry extends WP_UnitTestCase {
 	public function test_register_skips_when_ai_not_supported() {
 		add_filter( 'wp_supports_ai', '__return_false' );
 
-		$this->registry->register( 'first', self::$default_args );
+		$args         = self::$default_args;
+		$args['type'] = 'ai_provider';
+		$this->registry->register( 'first', $args );
 
 		$all = $this->registry->get_all_registered();
 		$this->assertCount( 0, $all );

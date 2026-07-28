@@ -2,6 +2,9 @@
 
 /**
  * @group rewrite
+ *
+ * @covers ::add_permastruct
+ * @covers ::remove_permastruct
  */
 class Tests_Rewrite_Permastructs extends WP_UnitTestCase {
 
