@@ -234,6 +234,50 @@ function _block_template_render_title_tag() {
 }
 
 /**
+ * Prints the opening of the document a block theme renders into.
+ *
+ * Block themes have no header.php, so the markup that opens their documents lives in the
+ * template canvas rather than in the theme. Printing it from here lets anything that has to
+ * open a document on a block theme's behalf produce exactly what the canvas produces.
+ *
+ * @since 7.1.0
+ * @access private
+ */
+function _wp_block_theme_document_start() {
+	echo '<!DOCTYPE html>' . "\n";
+	echo '<html ';
+	language_attributes();
+	echo ">\n";
+	echo "<head>\n";
+	echo "\t" . '<meta charset="';
+	bloginfo( 'charset' );
+	echo '" />' . "\n";
+	echo "\t";
+	wp_head();
+	echo "</head>\n";
+	echo "\n";
+	echo '<body ';
+	body_class();
+	echo ">\n";
+	wp_body_open();
+}
+
+/**
+ * Prints the closing of the document a block theme renders into.
+ *
+ * The counterpart to _wp_block_theme_document_start().
+ *
+ * @since 7.1.0
+ * @access private
+ */
+function _wp_block_theme_document_end() {
+	echo "\n";
+	wp_footer();
+	echo "</body>\n";
+	echo "</html>\n";
+}
+
+/**
  * Returns the markup for the current template.
  *
  * @access private
