@@ -2184,6 +2184,18 @@ EOF;
 	}
 
 	/**
+	 * Tests that the autofocus attribute is allowed on dialog elements and removed from other focusable elements.
+	 *
+	 * @ticket 65491
+	 */
+	public function test_wp_kses_dialog_autofocus_attribute() {
+		$html     = '<dialog open autofocus>Content</dialog><button type="button" autofocus>Button</button><textarea autofocus>Some content</textarea><div tabindex="0" autofocus>Some content</div>';
+		$expected = '<dialog open autofocus>Content</dialog><button type="button">Button</button><textarea>Some content</textarea><div tabindex="0">Some content</div>';
+
+		$this->assertEqualHTML( $expected, wp_kses_post( $html ) );
+	}
+
+	/**
 	 * Test that Invoker Commands API attributes are preserved on buttons in post content.
 	 *
 	 * @ticket 64576
