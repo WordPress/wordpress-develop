@@ -28,6 +28,17 @@ class WP {
 	public $private_query_vars = array( 'offset', 'posts_per_page', 'posts_per_archive_page', 'showposts', 'nopaging', 'post_type', 'post_status', 'category__in', 'category__not_in', 'category__and', 'tag__in', 'tag__not_in', 'tag__and', 'tag_slug__in', 'tag_slug__and', 'tag_id', 'post_mime_type', 'perm', 'comments_per_page', 'post__in', 'post__not_in', 'post_parent', 'post_parent__in', 'post_parent__not_in', 'title', 'fields' );
 
 	/**
+	 * Public query variables that only ever hold a single value.
+	 *
+	 * These are query variables that will hit a fatal error if they are given an
+	 * array instead of a single value.
+	 *
+	 * @since 7.1.0
+	 * @var string[]
+	 */
+	private $single_value_query_vars = array( 'feed' );
+
+	/**
 	 * Extra query variables set by the user.
 	 *
 	 * @since 2.1.0
@@ -350,6 +361,24 @@ class WP {
 					$this->query_vars['post_type'] = $post_type_query_vars[ $wpvar ];
 					$this->query_vars['name']      = $this->query_vars[ $wpvar ];
 				}
+			}
+		}
+
+		/*
+		 * Check against the list of variables that will fatal if given an array instead
+		 * of a single value.  If we hit that condition, we end processing the request
+		 * immediately.
+		 */
+		foreach ( $this->single_value_query_vars as $wpvar ) {
+			if (
+				isset( $this->query_vars[ $wpvar ] )
+				&& ! is_scalar( $this->query_vars[ $wpvar ] )
+			) {
+				wp_die(
+					__( 'Invalid value for a query variable.' ),
+					__( 'Error, this request could not be processed.' ),
+					400
+				);
 			}
 		}
 
