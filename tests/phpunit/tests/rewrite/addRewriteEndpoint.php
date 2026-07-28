@@ -48,6 +48,33 @@ class Tests_Rewrite_AddRewriteEndpoint extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Sets up the non-core test-suite state before the test case is torn down.
+	 *
+	 * @ticket 37207
+	 */
+	public function test_should_preserve_query_vars_registered_during_plugin_bootstrap() {
+		add_rewrite_endpoint( 'plugin-endpoint', EP_ROOT );
+		$GLOBALS['_wp_tests_initial_public_query_vars'] = $GLOBALS['wp']->public_query_vars;
+
+		$this->assertContains( 'plugin-endpoint', $GLOBALS['wp']->public_query_vars );
+	}
+
+	/**
+	 * Verifies the query variables after the preceding test's tear down.
+	 *
+	 * @ticket 37207
+	 *
+	 * @depends test_should_preserve_query_vars_registered_during_plugin_bootstrap
+	 */
+	public function test_should_restore_query_vars_registered_during_plugin_bootstrap() {
+		try {
+			$this->assertContains( 'plugin-endpoint', $GLOBALS['wp']->public_query_vars );
+		} finally {
+			unset( $GLOBALS['_wp_tests_initial_public_query_vars'] );
+		}
+	}
+
+	/**
 	 * @ticket 25143
 	 */
 	public function test_should_register_query_var_using_name_param_if_true_is_passed_as_query_var() {
