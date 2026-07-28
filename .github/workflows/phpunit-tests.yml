@@ -64,7 +64,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ ubuntu-24.04 ]
-        php: [ '7.2', '7.3', '7.4', '8.0', '8.1', '8.2', '8.3', '8.4' ]
+        php: [ '7.2', '7.4', '8.0', '8.4' ]
         db-type: [ 'mysql' ]
         db-version: [ '5.7', '8.0', '8.4' ]
         tests-domain: [ 'example.org' ]
@@ -135,7 +135,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ ubuntu-24.04 ]
-        php: [ '7.2', '7.3', '7.4', '8.0', '8.1', '8.2', '8.3', '8.4' ]
+        php: [ '7.2', '7.4', '8.0', '8.4' ]
         db-type: [ 'mariadb' ]
         db-version: [ '5.5', '10.3', '10.4', '10.5', '10.6', '10.11', '11.4' ]
         multisite: [ false, true ]
@@ -185,7 +185,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ ubuntu-24.04 ]
-        php: [ '7.2', '7.3', '7.4', '8.0', '8.1', '8.2', '8.3', '8.4' ]
+        php: [ '7.2', '7.4', '8.0', '8.4' ]
         db-type: [ 'mysql', 'mariadb' ]
         db-version: [ '9.1', '11.6' ]
         multisite: [ false, true ]
@@ -195,8 +195,6 @@ jobs:
         exclude:
           # MySQL 9.0+ will not work on PHP <= 7.3 because mysql_native_password was removed. See https://core.trac.wordpress.org/ticket/61218.
           - php: '7.2'
-            db-version: '9.1'
-          - php: '7.3'
             db-version: '9.1'
           # Exclude version combinations that don't exist.
           - db-type: 'mariadb'
