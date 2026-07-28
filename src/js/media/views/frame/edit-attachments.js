@@ -42,17 +42,25 @@ EditAttachments = MediaFrame.extend(/** @lends wp.media.view.MediaFrame.EditAtta
 	 * @param {Object} model The attachment model.
 	 * @return {void}
 	 */
-	announceMediaItem: function( model ) {
-		var title = model.get( 'title' ) || model.get( 'filename' ) || model.get( 'id' );
+	announceMediaItemDebounced: _.debounce( function( model ) {
+		var title;
+
+		if ( ! model ) {
+			return;
+		}
+
+		title = model.get( 'title' ) || model.get( 'filename' ) || model.get( 'id' );
+
+		if ( ! title ) {
+			return;
+		}
 
 		wp.a11y.speak( l10n.mediaItemViewed.replace( '%s', function() {
 			return title;
 		} ) );
-	},
+	}, 500 ),
 
 	initialize: function() {
-		var self = this;
-
 		Frame.prototype.initialize.apply( this, arguments );
 
 		_.defaults( this.options, {
@@ -74,10 +82,6 @@ EditAttachments = MediaFrame.extend(/** @lends wp.media.view.MediaFrame.EditAtta
 
 		this.title.mode( 'default' );
 		this.toggleNav();
-
-		this.announceMediaItemDebounced = _.debounce( function( model ) {
-			self.announceMediaItem( model );
-		}, 500 );
 	},
 
 	bindHandlers: function() {
@@ -119,6 +123,8 @@ EditAttachments = MediaFrame.extend(/** @lends wp.media.view.MediaFrame.EditAtta
 				// Move focus back to the original item in the grid if possible.
 				$( 'li.attachment[data-id="' + this.model.get( 'id' ) +'"]' ).trigger( 'focus' );
 				this.resetRoute();
+				// Cancel any pending navigation announcement.
+				this.announceMediaItemDebounced.cancel();
 			}, this ) );
 
 			// Set this frame as the modal's content.
