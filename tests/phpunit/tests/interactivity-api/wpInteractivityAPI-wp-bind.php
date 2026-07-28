@@ -572,10 +572,11 @@ class Tests_WP_Interactivity_API_WP_Bind extends WP_UnitTestCase {
 	/**
 	 * Data provider for values which cannot be stored in an attribute value.
 	 *
-	 * Each value is paired with a single attribute so that the two escaping
-	 * paths in WP_HTML_Tag_Processor::set_attribute() are exercised
-	 * independently: ordinary attributes are escaped with strtr() whereas the
-	 * URI attributes listed by wp_kses_uri_attributes() go through esc_url().
+	 * WP_HTML_Tag_Processor::set_attribute() escapes an ordinary attribute with
+	 * strtr() and one of the URI attributes listed by wp_kses_uri_attributes()
+	 * with esc_url(). Neither should be reached with a non-scalar value, so each
+	 * value is paired with one attribute at a time: a regression in one of those
+	 * paths then cannot be masked by the other failing first.
 	 *
 	 * @return array<non-empty-string, array{ value: mixed, tag_name: non-empty-string, attribute: non-empty-string, existing_value: non-empty-string }> Data provider.
 	 */
@@ -652,11 +653,14 @@ class Tests_WP_Interactivity_API_WP_Bind extends WP_UnitTestCase {
 	 *
 	 * @expectedIncorrectUsage WP_Interactivity_API::data_wp_bind_processor
 	 *
-	 * @param mixed  $value     Non-scalar value to bind.
-	 * @param string $tag_name  Tag name to bind the value on.
-	 * @param string $attribute Attribute name to bind the value to.
+	 * @param mixed  $value          Non-scalar value to bind.
+	 * @param string $tag_name       Tag name to bind the value on.
+	 * @param string $attribute      Attribute name to bind the value to.
+	 * @param string $existing_value Pre-existing value for the bound attribute. Unused, as the attribute is absent here.
 	 */
-	public function test_wp_bind_rejects_non_scalar_value( $value, string $tag_name, string $attribute ) {
+	public function test_wp_bind_rejects_non_scalar_value( $value, string $tag_name, string $attribute, string $existing_value ) {
+		unset( $existing_value ); // The bound attribute is absent here, so there is no pre-existing value to remove.
+
 		$this->interactivity->state( 'myPlugin', array( 'nonScalar' => $value ) );
 
 		$html               = sprintf( '<%1$s data-wp-bind--%2$s="myPlugin::state.nonScalar">Text</%1$s>', $tag_name, $attribute );
