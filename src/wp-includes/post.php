@@ -1360,12 +1360,7 @@ function get_post_status( $post = null ) {
 function get_post_statuses() {
 	$statuses = get_post_stati( array( 'internal' => true ), 'objects', 'NOT' );
 
-	$stati = array();
-	foreach ( $statuses as $name => $status ) {
-		$stati[ $name ] = $status->label;
-	}
-
-	return $stati;
+	return wp_list_pluck( $statuses, 'label' );
 }
 
 /**
@@ -1379,14 +1374,7 @@ function get_post_statuses() {
  * @return string[] Array of page status labels keyed by their status.
  */
 function get_page_statuses() {
-	$statuses = get_post_stati( array( 'internal' => true ), 'objects', 'NOT' );
-
-	$stati = array();
-	foreach ( $statuses as $name => $status ) {
-		$stati[ $name ] = $status->label;
-	}
-
-	return $stati;
+	return get_post_statuses();
 }
 
 /**
