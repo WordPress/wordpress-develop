@@ -12,8 +12,9 @@ class Tests_Functions_wpPrivacyExportsDir extends WP_UnitTestCase {
 	 * @ticket 59710
 	 */
 	public function test_wp_privacy_exports_dir() {
-
-		$this->assertEquals( '/var/www/src/wp-content/uploads/wp-personal-data-exports/', wp_privacy_exports_dir() );
+		$upload_dir = wp_upload_dir();
+		$expected   = trailingslashit( $upload_dir['basedir'] ) . 'wp-personal-data-exports/';
+		$this->assertSame( $expected, wp_privacy_exports_dir() );
 	}
 
 	/**
@@ -25,18 +26,18 @@ class Tests_Functions_wpPrivacyExportsDir extends WP_UnitTestCase {
 
 		$expected_dir = '/wp-personal-data-exports-dir/';
 		$actual_dir   = wp_privacy_exports_dir();
-		$this->assertEquals( $expected_dir, $actual_dir );
+		$this->assertSame( $expected_dir, $actual_dir );
 
 		remove_filter( 'wp_privacy_exports_dir', array( $this, 'filter_wp_privacy_exports_dir' ) );
 	}
 
 	/**
-	 * Filter for test
+	 * Filters the personal data exports directory for tests.
 	 *
-	 * @param string $dir
+	 * @param string $exports_dir Default exports directory.
+	 * @return string Filtered exports directory.
 	 */
-	public function filter_wp_privacy_exports_dir( $dir ) {
-
+	public function filter_wp_privacy_exports_dir( $exports_dir ) {
 		return '/wp-personal-data-exports-dir/';
 	}
 }
