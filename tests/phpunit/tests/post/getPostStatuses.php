@@ -71,4 +71,37 @@ class Tests_Post_GetPostStatuses extends WP_UnitTestCase {
 		$this->assertArrayHasKey( 'custom-page-status', $statuses );
 		$this->assertSame( 'Custom Page Status', $statuses['custom-page-status'] );
 	}
+
+	/**
+	 * Tests that get_page_statuses() does not include custom internal statuses.
+	 *
+	 * @ticket 24722
+	 *
+	 * @covers ::get_page_statuses
+	 */
+	public function test_get_page_statuses_excludes_custom_internal_status() {
+		register_post_status(
+			'custom-internal-page-status',
+			array(
+				'label'    => 'Custom Internal Page Status',
+				'internal' => true,
+			)
+		);
+
+		$statuses = get_page_statuses();
+
+		$this->assertArrayNotHasKey( 'custom-internal-page-status', $statuses );
+	}
+
+	/**
+	 * Unregisters custom post statuses to prevent state leak between tests.
+	 */
+	public function tear_down() {
+		_unregister_post_status( 'custom-status' );
+		_unregister_post_status( 'custom-internal-status' );
+		_unregister_post_status( 'custom-page-status' );
+		_unregister_post_status( 'custom-internal-page-status' );
+
+		parent::tear_down();
+	}
 }
