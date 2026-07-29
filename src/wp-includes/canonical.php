@@ -9,17 +9,19 @@
  * @since 2.3.0
  */
 
-/*
- * Avoid redirects when URLs differ only in query string space encoding ('+' vs '%20').
- * Normalizing only the query portion prevents us from collapsing semantically
- * distinct URLs that differ in how reserved characters (like '/') are encoded
- * in paths or parameter values.
+/**
+ * Normalizes space encoding in the query string portion of a URL.
  *
- * Converts '+' to '%20' only in the query string so that URLs that differ
- * solely by space encoding in their query are treated as equivalent.
+ * Converts '+' to '%20' in the query string only, so that URLs which differ
+ * solely by space encoding in their query string are treated as equivalent.
+ * Only the query portion is normalized; the path and fragment are left intact
+ * to avoid collapsing semantically distinct URLs that differ in how reserved
+ * characters (such as '/') are encoded.
+ *
+ * @since 7.1.0
+ * @access private
  *
  * @param string $url The URL to normalize.
- *
  * @return string The URL with normalized query string space encoding.
  */
 function _wp_normalize_query_space_encoding( $url ) {
