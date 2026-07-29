@@ -264,11 +264,11 @@ class Tests_Ajax_wpAjaxImageEditor extends WP_Ajax_UnitTestCase {
 	 *
 	 * @ticket 65748
 	 *
+	 * @covers ::wp_restore_image
+	 *
 	 * @dataProvider data_save_image_with_unusable_sizes_metadata
 	 *
 	 * @param array $meta Replacement `sizes` metadata to store before restoring.
-	 *
-	 * @covers ::wp_restore_image
 	 */
 	public function test_restore_image_with_unusable_sizes_metadata( array $meta ) {
 		require_once ABSPATH . 'wp-admin/includes/image-edit.php';
