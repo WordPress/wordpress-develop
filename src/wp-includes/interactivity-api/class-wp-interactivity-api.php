@@ -814,7 +814,7 @@ final class WP_Interactivity_API {
 		$remaining = substr( $name, $suffix_index );
 
 		// If remaining starts with '---' but not '----', it's a unique_id
-		if ( '---' === substr( $remaining, 0, 3 ) && '-' !== ( $remaining[3] ?? '' ) ) {
+		if ( 3 === strspn( $remaining, '-' ) ) {
 			return array(
 				'prefix'    => $prefix,
 				'suffix'    => null,
