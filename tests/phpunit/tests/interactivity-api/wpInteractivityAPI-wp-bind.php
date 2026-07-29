@@ -527,7 +527,7 @@ class Tests_WP_Interactivity_API_WP_Bind extends WP_UnitTestCase {
 		$this->assertNull( $p->get_attribute( 'data-ratio' ), 'Expected no attribute to have been set for a value JSON cannot represent.' );
 		$this->assertSame(
 			array(
-				'WP_Interactivity_API::data_wp_bind_processor' => 'Attempted to bind INF or NAN to the "data-ratio" attribute. JSON can represent neither, so the client is sent no state at all. Cast the value to a string before storing it in state or context. (This message was added in version 7.1.0.)',
+				'WP_Interactivity_API::data_wp_bind_processor' => 'Attempted to bind INF or NAN to the "data-ratio" attribute. Ensure the state/context property or the derived state closure resolves to a string. (This message was added in version 7.1.0.)',
 			),
 			$this->caught_doing_it_wrong,
 			'Expected _doing_it_wrong() to have been called once with the non-finite value message.'
@@ -656,7 +656,7 @@ class Tests_WP_Interactivity_API_WP_Bind extends WP_UnitTestCase {
 		$this->assertNull( $p->get_attribute( 'id' ), 'Expected no attribute to have been set for an object which cannot be serialized.' );
 		$this->assertSame(
 			array(
-				'WP_Interactivity_API::data_wp_bind_processor' => 'Attempted to bind a non-scalar value to the "id" attribute. Cast the value to a string before storing it in state or context so that the server and client agree. (This message was added in version 7.1.0.)',
+				'WP_Interactivity_API::data_wp_bind_processor' => 'Attempted to bind a non-scalar value to the "id" attribute. Ensure the state/context property or the derived state closure resolves to a string. (This message was added in version 7.1.0.)',
 			),
 			$this->caught_doing_it_wrong,
 			'Expected _doing_it_wrong() to have been called once with the non-scalar value message.'
@@ -694,7 +694,7 @@ class Tests_WP_Interactivity_API_WP_Bind extends WP_UnitTestCase {
 		$this->assertNull( $p->get_attribute( 'id' ), 'Expected no attribute to have been set.' );
 		$this->assertSame(
 			array(
-				'WP_Interactivity_API::data_wp_bind_processor' => 'Attempted to bind a non-scalar value to the "id" attribute. Cast the value to a string before storing it in state or context so that the server and client agree. (This message was added in version 7.1.0.)',
+				'WP_Interactivity_API::data_wp_bind_processor' => 'Attempted to bind a non-scalar value to the "id" attribute. Ensure the state/context property or the derived state closure resolves to a string. (This message was added in version 7.1.0.)',
 			),
 			$this->caught_doing_it_wrong,
 			'Expected the non-scalar message, since the object resolves to an empty object rather than failing to encode.'
@@ -945,7 +945,7 @@ class Tests_WP_Interactivity_API_WP_Bind extends WP_UnitTestCase {
 		$this->assertSame(
 			array(
 				'WP_Interactivity_API::data_wp_bind_processor' => sprintf(
-					'Attempted to bind a non-scalar value to the "%s" attribute. Cast the value to a string before storing it in state or context so that the server and client agree. (This message was added in version 7.1.0.)',
+					'Attempted to bind a non-scalar value to the "%s" attribute. Ensure the state/context property or the derived state closure resolves to a string. (This message was added in version 7.1.0.)',
 					$attribute
 				),
 			),
@@ -981,7 +981,7 @@ class Tests_WP_Interactivity_API_WP_Bind extends WP_UnitTestCase {
 		$this->assertSame(
 			array(
 				'WP_Interactivity_API::data_wp_bind_processor' => sprintf(
-					'Attempted to bind a non-scalar value to the "%s" attribute. Cast the value to a string before storing it in state or context so that the server and client agree. (This message was added in version 7.1.0.)',
+					'Attempted to bind a non-scalar value to the "%s" attribute. Ensure the state/context property or the derived state closure resolves to a string. (This message was added in version 7.1.0.)',
 					$attribute
 				),
 			),

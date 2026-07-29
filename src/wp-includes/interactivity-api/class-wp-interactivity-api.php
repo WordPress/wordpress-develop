@@ -1112,15 +1112,18 @@ final class WP_Interactivity_API {
 				$result = $this->evaluate( $entry );
 
 				/*
-				 * An object is resolved to whatever it serializes to, since that is the value the client receives
-				 * for this same reference when the store is hydrated. Round-tripping through the JSON encoder
-				 * rather than calling JsonSerializable::jsonSerialize() directly keeps this resolution identical to
-				 * the client's, including for an object which serializes to another serializable object. When the
-				 * encoding fails the object is left in place, to be reported as a usage error below. Note that it
-				 * rarely does fail: wp_json_encode() retries through _wp_json_sanity_check(), which rebuilds the
-				 * object from its public properties and so ignores jsonSerialize() altogether. An object whose
-				 * serialized form JSON cannot represent therefore resolves to whatever that rebuild encodes to,
-				 * which is what the client is sent for it as well.
+				 * An object is resolved to whatever it serializes to. When the reference points to a value stored
+				 * in state or context, that is the value the client receives for it when the store is hydrated.
+				 * A derived state closure is never serialized, so there the client value comes from the derived
+				 * state's client-side implementation instead; the resolution is still applied so that both origins
+				 * behave the same. Round-tripping through the JSON encoder rather than calling
+				 * JsonSerializable::jsonSerialize() directly keeps this resolution identical to the client's,
+				 * including for an object which serializes to another serializable object. When the encoding fails
+				 * the object is left in place, to be reported as a usage error below. Note that it rarely does
+				 * fail: wp_json_encode() retries through _wp_json_sanity_check(), which rebuilds the object from
+				 * its public properties and so ignores jsonSerialize() altogether. An object whose serialized form
+				 * JSON cannot represent therefore resolves to whatever that rebuild encodes to, which is what the
+				 * client is sent for it as well.
 				 *
 				 * A throwing JsonSerializable::jsonSerialize() is caught for the same reason the value is checked
 				 * at all: a binding must not be able to abort the render. An exception escaping here would leave
@@ -1145,8 +1148,9 @@ final class WP_Interactivity_API {
 				 *
 				 * An object which does not serialize to a scalar is rejected even when it defines `__toString()`,
 				 * which PHP would otherwise coerce for the string parameters of the escaping functions. Its string
-				 * representation is not what gets serialized for the client, so the two would disagree once the
-				 * directive is evaluated during hydration.
+				 * representation is not what the client evaluates this reference to, whether that is the form
+				 * serialized into the store or the return value of a derived state's client-side implementation,
+				 * so the two could disagree once the directive is evaluated during hydration.
 				 */
 				if ( null !== $result ) {
 					if ( ! is_scalar( $result ) ) {
@@ -1154,7 +1158,7 @@ final class WP_Interactivity_API {
 							__METHOD__,
 							sprintf(
 								/* translators: %s: The attribute name. */
-								__( 'Attempted to bind a non-scalar value to the "%s" attribute. Cast the value to a string before storing it in state or context so that the server and client agree.' ),
+								__( 'Attempted to bind a non-scalar value to the "%s" attribute. Ensure the state/context property or the derived state closure resolves to a string.' ),
 								esc_html( $entry['suffix'] )
 							),
 							'7.1.0'
@@ -1176,16 +1180,17 @@ final class WP_Interactivity_API {
 						$encoded = wp_json_encode( $result );
 						if ( false === $encoded ) {
 							/*
-							 * The encoder only rejects INF and NAN, of which JSON can represent neither. A store
-							 * holding one fails to encode in its entirety, so the client is sent an empty script
-							 * tag in place of all of its state. The binding is rejected to draw attention to that,
-							 * though only removing the value from the state resolves it.
+							 * The encoder only rejects INF and NAN, of which JSON can represent neither. When such
+							 * a value is stored in state, the store itself also fails to encode in its entirety,
+							 * and the client is sent an empty script tag in place of all of its state; only
+							 * removing the value from the state resolves that. A derived state closure returning
+							 * one never reaches the store, so there only the binding itself is affected.
 							 */
 							_doing_it_wrong(
 								__METHOD__,
 								sprintf(
 									/* translators: %s: The attribute name. */
-									__( 'Attempted to bind INF or NAN to the "%s" attribute. JSON can represent neither, so the client is sent no state at all. Cast the value to a string before storing it in state or context.' ),
+									__( 'Attempted to bind INF or NAN to the "%s" attribute. Ensure the state/context property or the derived state closure resolves to a string.' ),
 									esc_html( $entry['suffix'] )
 								),
 								'7.1.0'
