@@ -1330,7 +1330,53 @@ $( function() {
 			'bulk_action' : window.bulkActionObserverIds.bulk_action,
 			'changeit' : window.bulkActionObserverIds.changeit
 		};
-		if ( ! Object.keys( bulkFieldRelations ).includes( submitterName ) ) {
+		
+		var filterButtonNames = [
+			window.bulkActionObserverIds.filter_action,
+			window.bulkActionObserverIds['post-query-submit']
+		];
+
+		if ( ! Object.keys( bulkFieldRelations ).includes( submitterName ) && ! filterButtonNames.includes( submitterName ) ) {
+			return;
+		}
+
+		if ( filterButtonNames.includes( submitterName ) ) {
+			var filterDropdowns = form.querySelectorAll( '.actions select' );
+			var isFilterActionValid = false;
+			var urlParams = new URLSearchParams( window.location.search );
+			
+			for ( var i = 0; i < filterDropdowns.length; i++ ) {
+				var select = filterDropdowns[ i ];
+				if ( select.name === 'action' || select.name === 'action2' ) {
+					continue;
+				}
+				if ( select.value !== '0' && select.value !== '' && select.value !== '-1' ) {
+					isFilterActionValid = true;
+					break;
+				}
+				if ( urlParams.has( select.name ) ) {
+					isFilterActionValid = true;
+					break;
+				}
+			}
+			
+			if ( isFilterActionValid ) {
+				return;
+			}
+			
+			event.preventDefault();
+			event.stopPropagation();
+			$( 'html, body' ).animate( { scrollTop: 0 } );
+			
+			var filterErrorMessage = __( 'Please select a filter to apply.' );
+			addAdminNotice( {
+				id: 'no-filter-selected',
+				type: 'error',
+				message: filterErrorMessage,
+				dismissible: true,
+			} );
+			
+			wp.a11y.speak( filterErrorMessage );
 			return;
 		}
 
