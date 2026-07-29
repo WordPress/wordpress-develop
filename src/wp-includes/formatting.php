@@ -2186,6 +2186,7 @@ function sanitize_user( $username, $strict = false ) {
  *
  * @param string $key String key.
  * @return string Sanitized key.
+ * @phpstan-return lowercase-string
  */
 function sanitize_key( $key ) {
 	$sanitized_key = '';
@@ -2847,6 +2848,14 @@ function untrailingslashit( $value ) {
  *
  * @param mixed $value The value to be stripped.
  * @return mixed Stripped value.
+ *
+ * @phpstan-template T
+ * @phpstan-param T $value
+ * @phpstan-return (
+ *     T is string ? string : (
+ *         T is array ? array<key-of<T>, ( value-of<T> is string ? string : value-of<T> )> : T
+ *     )
+ * )
  */
 function stripslashes_deep( $value ) {
 	return map_deep( $value, 'stripslashes_from_strings_only' );
@@ -2859,6 +2868,10 @@ function stripslashes_deep( $value ) {
  *
  * @param mixed $value The array or string to be stripped.
  * @return mixed The stripped value.
+ *
+ * @phpstan-template T
+ * @phpstan-param T $value
+ * @phpstan-return (T is string ? string : T)
  */
 function stripslashes_from_strings_only( $value ) {
 	return is_string( $value ) ? stripslashes( $value ) : $value;
@@ -2901,30 +2914,88 @@ function urldecode_deep( $value ) {
 }
 
 /**
- * Converts email addresses characters to HTML entities to block spam bots.
+ * Obscures email addresses in HTML to prevent spam bots from harvesting them.
+ *
+ * Typically this will randomly replace characters from the email address with
+ * HTML character references; however, when the hex encoding parameter is set,
+ * some characters will also be represented in their percent-encoded form.
+ *
+ * Because this function is randomized, the outputs for any given input may
+ * differ between calls. This helps diversify the ways the email addresses
+ * are obscured.
+ *
+ * When non-UTF-8 inputs are provided, any spans of invalid UTF-8 bytes will
+ * be passed through without any obfuscation.
+ *
+ * Example:
+ *
+ *     $email      = 'noreply@example.com';
+ *     $obscured   = antispambot( $email );
+ *     $obscured === 'nore&#112;&#108;y&#64;e&#120;ample.com';
+ *
+ *     // Hex-encoding also obscures characters with percent-encoding.
+ *     $obscured   = antispambot( $email, 1 );
+ *     $obscured === '%6e&#111;&#114;e%70l%79&#64;%65x%61mp&#108;&#101;%2e%63%6f&#109;';
+ *
+ *     // Non-UTF-8 characters are not obfuscated. "\xFC" is Latin1 "ü".
+ *     $obscured   = antispambot( "b\xFCcher@library.de" );
+ *     $obscured === 'b�cher&#64;li&#98;r&#97;r&#121;.&#100;&#101;';
+ *     $obscured === "b\xFCcher&#64;li&#98;r&#97;r&#121;.&#100;&#101;"
  *
  * @since 0.71
+ * @since 7.1.0 Masquerades multibyte characters.
  *
  * @param string $email_address Email address.
  * @param int    $hex_encoding  Optional. Set to 1 to enable hex encoding.
  * @return string Converted email address.
  */
 function antispambot( $email_address, $hex_encoding = 0 ) {
-	$email_no_spam_address = '';
+	$obfuscated     = '';
+	$at             = 0;
+	$end            = strlen( $email_address );
+	$invalid_length = 0;
 
-	for ( $i = 0, $len = strlen( $email_address ); $i < $len; $i++ ) {
-		$j = rand( 0, 1 + $hex_encoding );
-
-		if ( 0 === $j ) {
-			$email_no_spam_address .= '&#' . ord( $email_address[ $i ] ) . ';';
-		} elseif ( 1 === $j ) {
-			$email_no_spam_address .= $email_address[ $i ];
-		} elseif ( 2 === $j ) {
-			$email_no_spam_address .= '%' . zeroise( dechex( ord( $email_address[ $i ] ) ), 2 );
+	while ( $at < $end ) {
+		$was_at = $at;
+		if (
+			0 === _wp_scan_utf8( $email_address, $at, $invalid_length, null, 1 ) &&
+			0 === $invalid_length
+		) {
+			break;
 		}
+
+		$character_length = $at - $was_at;
+
+		if ( $character_length > 0 ) {
+			$character = substr( $email_address, $was_at, $character_length );
+
+			switch ( rand( 0, 1 + $hex_encoding ) ) {
+				case 0:
+					$code_point  = mb_ord( $character );
+					$obfuscated .= "&#{$code_point};";
+					break;
+
+				case 1:
+					$obfuscated .= $character;
+					break;
+
+				case 2:
+					for ( $i = 0; $i < $character_length; $i++ ) {
+						$hex_value   = bin2hex( $character[ $i ] );
+						$obfuscated .= "%{$hex_value}";
+					}
+					break;
+			}
+		}
+
+		if ( 0 !== $invalid_length ) {
+			$obfuscated .= substr( $email_address, $at, $invalid_length );
+		}
+
+		$at += $invalid_length;
 	}
 
-	return str_replace( '@', '&#64;', $email_no_spam_address );
+	return str_replace( '@', '&#64;', $obfuscated );
 }
 
 /**
@@ -5136,6 +5207,10 @@ function sanitize_option( $option, $value ) {
  * @param mixed    $value    The array, object, or scalar.
  * @param callable $callback The function to map onto $value.
  * @return mixed The value with the callback applied to all non-arrays and non-objects inside it.
+ *
+ * @phpstan-template T
+ * @phpstan-param T $value
+ * @phpstan-return (T is array ? array<key-of<T>, mixed> : (T is object ? T : mixed))
  */
 function map_deep( $value, $callback ) {
 	if ( is_array( $value ) ) {
@@ -5777,6 +5852,14 @@ function sanitize_trackback_urls( $to_ping ) {
  *
  * @param string|array $value String or array of data to slash.
  * @return string|array Slashed `$value`, in the same type as supplied.
+ *
+ * @phpstan-template T
+ * @phpstan-param T $value
+ * @phpstan-return (
+ *     T is string ? string : (
+ *         T is array ? array<key-of<T>, ( value-of<T> is string ? string : value-of<T> )> : T
+ *     )
+ * )
  */
 function wp_slash( $value ) {
 	if ( is_array( $value ) ) {
@@ -5800,6 +5883,14 @@ function wp_slash( $value ) {
  *
  * @param string|array $value String or array of data to unslash.
  * @return string|array Unslashed `$value`, in the same type as supplied.
+ *
+ * @phpstan-template T
+ * @phpstan-param T $value
+ * @phpstan-return (
+ *     T is string ? string : (
+ *         T is array ? array<key-of<T>, ( value-of<T> is string ? string : value-of<T> )> : T
+ *     )
+ * )
  */
 function wp_unslash( $value ) {
 	return stripslashes_deep( $value );
@@ -5898,7 +5989,7 @@ function wp_enqueue_emoji_styles() {
  *
  * @since 4.2.0
  */
-function print_emoji_detection_script() {
+function print_emoji_detection_script(): void {
 	static $printed = false;
 
 	if ( $printed ) {
@@ -5907,10 +5998,18 @@ function print_emoji_detection_script() {
 
 	$printed = true;
 
-	if ( did_action( 'wp_print_footer_scripts' ) ) {
-		_print_emoji_detection_script();
+	if ( is_admin() ) {
+		if ( did_action( 'admin_print_footer_scripts' ) ) {
+			_print_emoji_detection_script();
+		} else {
+			add_action( 'admin_print_footer_scripts', '_print_emoji_detection_script' );
+		}
 	} else {
-		add_action( 'wp_print_footer_scripts', '_print_emoji_detection_script' );
+		if ( did_action( 'wp_print_footer_scripts' ) ) {
+			_print_emoji_detection_script();
+		} else {
+			add_action( 'wp_print_footer_scripts', '_print_emoji_detection_script' );
+		}
 	}
 }
 
@@ -6235,7 +6334,7 @@ function url_shorten( $url, $length = 35 ) {
  * @since 3.4.0
  *
  * @param string $color
- * @return string|void
+ * @return string|null The sanitized hex color, or null if invalid.
  */
 function sanitize_hex_color( $color ) {
 	if ( '' === $color ) {
@@ -6246,6 +6345,7 @@ function sanitize_hex_color( $color ) {
 	if ( preg_match( '|^#([A-Fa-f0-9]{3}){1,2}$|', $color ) ) {
 		return $color;
 	}
+	return null;
 }
 
 /**
