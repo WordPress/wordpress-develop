@@ -623,6 +623,20 @@ class WP_Interactivity_API {
 						$func = $processor;
 					}
 
+					if ( ! is_callable( $func ) ) {
+						_doing_it_wrong(
+							__METHOD__,
+							sprintf(
+								/* translators: 1: The directive prefix, e.g. "data-wp-show". 2: The processor value that is not callable. */
+								__( 'The processor for "%1$s" is not a valid callable. Got: %2$s' ),
+								$directive_prefix,
+								wp_json_encode( $processor )
+							),
+							'6.9.0'
+						);
+						continue;
+					}
+
 					call_user_func_array( $func, array( $p, $mode, &$tag_stack ) );
 				}
 			}
