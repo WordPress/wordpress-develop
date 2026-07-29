@@ -6,7 +6,7 @@
  * preceded by either:
  *
  *   - a docblock documenting the hook, or
- *   - a `/** This filter is documented in <file> *\/` reference comment.
+ *   - a `/** This filter/action is documented in <file> *\/` reference comment.
  *
  * When a reference comment is used, the referenced file must exist and must
  * actually document a hook of the same name; otherwise an error is reported.
@@ -94,7 +94,7 @@ class HookDocumentationRule implements Rule {
 			return array(
 				RuleErrorBuilder::message(
 					sprintf(
-						'%s() call is not preceded by a docblock documenting the hook, nor by a "This filter is documented in <file>" reference comment.',
+						'%s() call is not preceded by a docblock documenting the hook, nor by a "This filter/action is documented in <file>" reference comment.',
 						$function_name
 					)
 				)
