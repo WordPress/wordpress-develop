@@ -3680,10 +3680,11 @@ function wp_remove_surrounding_empty_script_tags( $contents ) {
  * the filters are added to cause {@see wp_should_load_separate_core_block_assets()} to return true.
  *
  * @since 6.9.0
- * @since 7.0.0 This is also invoked at the `wp_default_styles` action with priority 0 so that filters are present when
- *              `WP_Styles` is constructed before `init` priority 9. The `init` action at priority 8 is retained so
- *              `register_core_block_style_handles()` can opt in to separate block assets without having to construct
- *              `WP_Styles` first.
+ * @since 7.0.0 This is now invoked at the `wp_default_styles` action with priority 0 instead of at `init` with priority 8.
+ * @since 7.1.0 The `init` action with priority 8 is restored, so this is invoked at both hooks. The `wp_default_styles`
+ *              hook keeps the filters present when `WP_Styles` is constructed before `init` priority 9, while the `init`
+ *              hook lets `register_core_block_style_handles()` opt in to separate block assets without having to
+ *              construct `WP_Styles` first.
  *
  * @see _add_default_theme_supports()
  */
