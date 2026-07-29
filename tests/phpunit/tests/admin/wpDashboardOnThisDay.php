@@ -32,25 +32,6 @@ class Tests_Admin_wpDashboardOnThisDay extends WP_UnitTestCase {
 		self::delete_user( self::$other_user_id );
 	}
 
-	public function tear_down() {
-		unset( $GLOBALS['wp_meta_boxes']['dashboard'] );
-
-		parent::tear_down();
-	}
-
-	/**
-	 * Sets up the globals needed to register dashboard widgets.
-	 */
-	private function set_up_dashboard_screen() {
-		if ( ! function_exists( 'wp_add_dashboard_widget' ) ) {
-			require_once ABSPATH . 'wp-admin/includes/dashboard.php';
-		}
-
-		set_current_screen( 'dashboard' );
-
-		$GLOBALS['wp_meta_boxes']['dashboard'] = array();
-	}
-
 	/**
 	 * Creates a published post on the widget's prior-year calendar day.
 	 *
@@ -112,42 +93,6 @@ class Tests_Admin_wpDashboardOnThisDay extends WP_UnitTestCase {
 	 */
 	private static function get_date_query_clause( string $date ): array {
 		return _wp_dashboard_on_this_day_date_query_clause( new DateTimeImmutable( $date, wp_timezone() ) );
-	}
-
-	/**
-	 * @ticket 65116
-	 *
-	 * @covers ::wp_dashboard_on_this_day_setup
-	 */
-	public function test_setup_always_registers_widget() {
-		$this->set_up_dashboard_screen();
-
-		wp_set_current_user( self::$user_id );
-
-		wp_dashboard_on_this_day_setup();
-
-		$dashboard_widgets = $GLOBALS['wp_meta_boxes']['dashboard']['normal']['core'] ?? array();
-
-		$this->assertArrayHasKey( 'wp_dashboard_on_this_day', $dashboard_widgets );
-		$this->assertSame( 'On This Day', $dashboard_widgets['wp_dashboard_on_this_day']['title'] );
-	}
-
-	/**
-	 * @ticket 65116
-	 *
-	 * @covers ::wp_dashboard_on_this_day_setup
-	 */
-	public function test_setup_adds_dashboard_widget_with_matching_post_from_another_author() {
-		$this->set_up_dashboard_screen();
-
-		wp_set_current_user( self::$user_id );
-		$this->create_matching_post( self::$other_user_id );
-
-		wp_dashboard_on_this_day_setup();
-
-		$dashboard_widgets = $GLOBALS['wp_meta_boxes']['dashboard']['normal']['core'] ?? array();
-
-		$this->assertArrayHasKey( 'wp_dashboard_on_this_day', $dashboard_widgets );
 	}
 
 	/**

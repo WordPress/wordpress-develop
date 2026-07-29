@@ -8,25 +8,6 @@
  */
 
 /**
- * Registers the On This Day dashboard widget.
- *
- * Designed to be the single entry point called from the dashboard setup
- * routine. The widget is always registered and always visible, keeping its
- * Screen Options entry consistent with what is shown on screen. When there are
- * no matching posts, a placeholder message is displayed. Users who do not want
- * the widget can hide it via Screen Options, and that preference is preserved.
- *
- * @since 7.1.0
- */
-function wp_dashboard_on_this_day_setup() {
-	wp_add_dashboard_widget(
-		'wp_dashboard_on_this_day',
-		__( 'On This Day' ),
-		'wp_dashboard_on_this_day'
-	);
-}
-
-/**
  * Renders the On This Day dashboard widget.
  *
  * Outputs the matching posts grouped by publication year, newest year first.
