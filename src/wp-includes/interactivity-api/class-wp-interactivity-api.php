@@ -1084,8 +1084,8 @@ final class WP_Interactivity_API {
 	 *              JSON encoder, and a value which cannot be sent to the client is rejected rather than passed to
 	 *              WP_HTML_Tag_Processor::set_attribute().
 	 *
-	 * @param WP_Interactivity_API_Directives_Processor $p               The directives processor instance.
-	 * @param string                                    $mode            Whether the processing is entering or exiting the tag.
+	 * @param WP_Interactivity_API_Directives_Processor $p    The directives processor instance.
+	 * @param string                                    $mode Whether the processing is entering or exiting the tag.
 	 */
 	private function data_wp_bind_processor( WP_Interactivity_API_Directives_Processor $p, string $mode ): void {
 		if ( 'enter' === $mode ) {
