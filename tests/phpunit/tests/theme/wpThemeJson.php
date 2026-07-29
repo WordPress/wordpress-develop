@@ -104,6 +104,36 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 65592
+	 */
+	public function test_get_block_visibility_settings() {
+		// Test that the value passes through the full sanitization pipeline,
+		// including remove_insecure_properties (called when saving global styles).
+		$theme_json_data = array(
+			'version'  => WP_Theme_JSON::LATEST_SCHEMA,
+			'settings' => array(
+				'blockVisibility' => array(
+					'allowEditing' => false,
+				),
+				'blocks'          => array(
+					'core/group' => array(
+						'blockVisibility' => array(
+							'allowEditing' => true,
+						),
+					),
+				),
+			),
+		);
+		$sanitized       = WP_Theme_JSON::remove_insecure_properties( $theme_json_data );
+		$theme_json      = new WP_Theme_JSON( $sanitized );
+		$actual          = $theme_json->get_settings();
+
+		$this->assertFalse( $actual['blockVisibility']['allowEditing'] );
+		// The setting is global-only: block-scoped values are stripped during sanitization.
+		$this->assertArrayNotHasKey( 'blockVisibility', $actual['blocks']['core/group'] ?? array() );
+	}
+
+	/**
 	 * @ticket 53397
 	 */
 	public function test_get_settings_presets_are_keyed_by_origin() {
@@ -265,6 +295,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 			'background' => array(
 				'backgroundImage' => true,
 				'backgroundSize'  => true,
+				'gradient'        => true,
 			),
 			'border'     => array(
 				'width'  => true,
@@ -306,6 +337,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 					'background' => array(
 						'backgroundImage' => true,
 						'backgroundSize'  => true,
+						'gradient'        => true,
 					),
 					'border'     => array(
 						'width'  => true,
@@ -563,6 +595,11 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 								'textAlign' => 'center',
 							),
 						),
+						'core/paragraph'    => array(
+							'typography' => array(
+								'textShadow' => '1px 1px 2px rgba(0,0,0,0.3)',
+							),
+						),
 						'core/post-date'    => array(
 							'color'    => array(
 								'text' => '#123456',
@@ -608,7 +645,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		);
 
 		$variables = ':root{--wp--preset--color--grey: grey;--wp--preset--gradient--custom-gradient: linear-gradient(135deg,rgba(0,0,0) 0%,rgb(0,0,0) 100%);--wp--preset--font-size--small: 14px;--wp--preset--font-size--big: 41px;--wp--preset--font-family--arial: Arial, serif;--wp--preset--border-radius--small: 2px;--wp--preset--border-radius--medium: 4px;--wp--preset--dimension--small: 100px;--wp--preset--dimension--large: 200px;}.wp-block-group{--wp--custom--base-font: 16;--wp--custom--line-height--small: 1.2;--wp--custom--line-height--medium: 1.4;--wp--custom--line-height--large: 1.8;}';
-		$styles    = ':where(body) { margin: 0; }.wp-site-blocks > .alignleft { float: left; margin-right: 2em; }.wp-site-blocks > .alignright { float: right; margin-left: 2em; }.wp-site-blocks > .aligncenter { justify-content: center; margin-left: auto; margin-right: auto; }:where(.is-layout-flex){gap: 0.5em;}:where(.is-layout-grid){gap: 0.5em;}.is-layout-flow > .alignleft{float: left;margin-inline-start: 0;margin-inline-end: 2em;}.is-layout-flow > .alignright{float: right;margin-inline-start: 2em;margin-inline-end: 0;}.is-layout-flow > .aligncenter{margin-left: auto !important;margin-right: auto !important;}.is-layout-constrained > .alignleft{float: left;margin-inline-start: 0;margin-inline-end: 2em;}.is-layout-constrained > .alignright{float: right;margin-inline-start: 2em;margin-inline-end: 0;}.is-layout-constrained > .aligncenter{margin-left: auto !important;margin-right: auto !important;}.is-layout-constrained > :where(:not(.alignleft):not(.alignright):not(.alignfull)){margin-left: auto !important;margin-right: auto !important;}body .is-layout-flex{display: flex;}.is-layout-flex{flex-wrap: wrap;align-items: center;}.is-layout-flex > :is(*, div){margin: 0;}body .is-layout-grid{display: grid;}.is-layout-grid > :is(*, div){margin: 0;}body{color: var(--wp--preset--color--grey);}a:where(:not(.wp-element-button)){background-color: #333;color: #111;}:root :where(.wp-element-button, .wp-block-button__link){box-shadow: 10px 10px 5px 0px rgba(0,0,0,0.66);}:root :where(.wp-block-cover){min-height: unset;aspect-ratio: 16/9;border-radius: var(--wp--preset--border-radius--small);}:root :where(.wp-block-group){background: var(--wp--preset--gradient--custom-gradient);border-radius: 10px;min-height: 50vh;padding: 24px;height: 500px;width: var(--wp--preset--dimension--large);}:root :where(.wp-block-group a:where(:not(.wp-element-button))){color: #111;}:root :where(.wp-block-heading){color: #123456;}:root :where(.wp-block-heading a:where(:not(.wp-element-button))){background-color: #333;color: #111;font-size: 60px;}:root :where(.wp-block-media-text){text-align: center;}:root :where(.wp-block-post-date){color: #123456;}:root :where(.wp-block-post-date a:where(:not(.wp-element-button))){background-color: #777;color: #555;}:root :where(.wp-block-post-excerpt){column-count: 2;text-indent: 2em;}:root :where(.wp-block-image){margin-bottom: 30px;}:root :where(.wp-block-image img, .wp-block-image .wp-block-image__crop-area, .wp-block-image .components-placeholder){border-top-left-radius: 10px;border-bottom-right-radius: 1em;}:root :where(.wp-block-image img, .wp-block-image .components-placeholder){filter: var(--wp--preset--duotone--custom-duotone);}';
+		$styles    = ':where(body) { margin: 0; }.wp-site-blocks > .alignleft { float: left; margin-right: 2em; }.wp-site-blocks > .alignright { float: right; margin-left: 2em; }.wp-site-blocks > .aligncenter { justify-content: center; margin-left: auto; margin-right: auto; }:where(.is-layout-flex){gap: 0.5em;}:where(.is-layout-grid){gap: 0.5em;}.is-layout-flow > .alignleft{float: left;margin-inline-start: 0;margin-inline-end: 2em;}.is-layout-flow > .alignright{float: right;margin-inline-start: 2em;margin-inline-end: 0;}.is-layout-flow > .aligncenter{margin-left: auto !important;margin-right: auto !important;}.is-layout-constrained > .alignleft{float: left;margin-inline-start: 0;margin-inline-end: 2em;}.is-layout-constrained > .alignright{float: right;margin-inline-start: 2em;margin-inline-end: 0;}.is-layout-constrained > .aligncenter{margin-left: auto !important;margin-right: auto !important;}.is-layout-constrained > :where(:not(.alignleft):not(.alignright):not(.alignfull)){margin-left: auto !important;margin-right: auto !important;}body .is-layout-flex{display: flex;}.is-layout-flex{flex-wrap: wrap;align-items: center;}.is-layout-flex > :is(*, div){margin: 0;}body .is-layout-grid{display: grid;}.is-layout-grid > :is(*, div){margin: 0;}body{color: var(--wp--preset--color--grey);}a:where(:not(.wp-element-button)){background-color: #333;color: #111;}:root :where(.wp-element-button, .wp-block-button__link){box-shadow: 10px 10px 5px 0px rgba(0,0,0,0.66);}:root :where(.wp-block-cover){min-height: unset;aspect-ratio: 16/9;border-radius: var(--wp--preset--border-radius--small);}:root :where(.wp-block-group){background: var(--wp--preset--gradient--custom-gradient);border-radius: 10px;min-height: 50vh;padding: 24px;height: 500px;width: var(--wp--preset--dimension--large);}:root :where(.wp-block-group a:where(:not(.wp-element-button))){color: #111;}:root :where(.wp-block-heading){color: #123456;}:root :where(.wp-block-heading a:where(:not(.wp-element-button))){background-color: #333;color: #111;font-size: 60px;}:root :where(.wp-block-media-text){text-align: center;}:root :where(p){text-shadow: 1px 1px 2px rgba(0,0,0,0.3);}:root :where(.wp-block-post-date){color: #123456;}:root :where(.wp-block-post-date a:where(:not(.wp-element-button))){background-color: #777;color: #555;}:root :where(.wp-block-post-excerpt){column-count: 2;text-indent: 2em;}:root :where(.wp-block-image){margin-bottom: 30px;}:root :where(.wp-block-image img, .wp-block-image .wp-block-image__crop-area, .wp-block-image .components-placeholder){border-top-left-radius: 10px;border-bottom-right-radius: 1em;}:root :where(.wp-block-image img, .wp-block-image .components-placeholder){filter: var(--wp--preset--duotone--custom-duotone);}';
 		$presets   = '.has-grey-color{color: var(--wp--preset--color--grey) !important;}.has-grey-background-color{background-color: var(--wp--preset--color--grey) !important;}.has-grey-border-color{border-color: var(--wp--preset--color--grey) !important;}.has-custom-gradient-gradient-background{background: var(--wp--preset--gradient--custom-gradient) !important;}.has-small-font-size{font-size: var(--wp--preset--font-size--small) !important;}.has-big-font-size{font-size: var(--wp--preset--font-size--big) !important;}.has-arial-font-family{font-family: var(--wp--preset--font-family--arial) !important;}';
 		$all       = $variables . $styles . $presets;
 
@@ -3921,6 +3958,169 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		);
 
 		$this->assertSameSetsWithIndex( $expected, $actual );
+	}
+
+	/**
+	 * Tests that remove_insecure_properties allows combined background gradient and image.
+	 *
+	 * @ticket 64974
+	 *
+	 * @covers WP_Theme_JSON::remove_insecure_properties
+	 */
+	public function test_remove_insecure_properties_allows_combined_background_gradient_and_image() {
+		$actual = WP_Theme_JSON::remove_insecure_properties(
+			array(
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
+				'styles'  => array(
+					'background' => array(
+						'backgroundImage' => array(
+							'url' => 'https://example.com/image.jpg',
+						),
+						'gradient'        => 'linear-gradient(135deg, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 100%)',
+					),
+				),
+			),
+			true
+		);
+
+		$expected = array(
+			'version' => WP_Theme_JSON::LATEST_SCHEMA,
+			'styles'  => array(
+				'background' => array(
+					'backgroundImage' => array(
+						'url' => 'https://example.com/image.jpg',
+					),
+					'gradient'        => 'linear-gradient(135deg, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 100%)',
+				),
+			),
+		);
+		$this->assertEqualSetsWithIndex( $expected, $actual );
+	}
+
+	/**
+	 * Tests that remove_insecure_properties allows background gradient only.
+	 *
+	 * @ticket 64974
+	 *
+	 * @covers WP_Theme_JSON::remove_insecure_properties
+	 */
+	public function test_remove_insecure_properties_allows_background_gradient_only() {
+		$actual = WP_Theme_JSON::remove_insecure_properties(
+			array(
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
+				'styles'  => array(
+					'background' => array(
+						'gradient' => 'linear-gradient(135deg, #fff 0%, #000 100%)',
+					),
+				),
+			),
+			true
+		);
+
+		$expected = array(
+			'version' => WP_Theme_JSON::LATEST_SCHEMA,
+			'styles'  => array(
+				'background' => array(
+					'gradient' => 'linear-gradient(135deg, #fff 0%, #000 100%)',
+				),
+			),
+		);
+		$this->assertEqualSetsWithIndex( $expected, $actual );
+	}
+
+	/**
+	 * Tests that background gradient styles are output correctly in theme.json.
+	 *
+	 * @ticket 64974
+	 *
+	 * @covers WP_Theme_JSON::get_styles_for_block
+	 */
+	public function test_get_background_gradient_styles() {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
+				'styles'  => array(
+					'background' => array(
+						'gradient' => 'linear-gradient(135deg,rgb(255,0,0) 0%,rgb(0,0,255) 100%)',
+					),
+				),
+			)
+		);
+
+		$body_node = array(
+			'path'     => array( 'styles' ),
+			'selector' => 'body',
+		);
+
+		$expected_styles = 'html{min-height: calc(100% - var(--wp-admin--admin-bar--height, 0px));}body{background-image: linear-gradient(135deg,rgb(255,0,0) 0%,rgb(0,0,255) 100%);}';
+		$this->assertSame( $expected_styles, $theme_json->get_styles_for_block( $body_node ), 'Styles returned from "::get_styles_for_block()" with top-level background gradient do not match expectations' );
+	}
+
+	/**
+	 * Tests that background gradient preset slug styles are resolved correctly in theme.json.
+	 *
+	 * @ticket 64974
+	 *
+	 * @covers WP_Theme_JSON::get_styles_for_block
+	 */
+	public function test_get_background_gradient_preset_slug_styles() {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
+				'styles'  => array(
+					'background' => array(
+						'gradient' => 'var:preset|gradient|vivid-cyan-blue',
+					),
+				),
+			)
+		);
+
+		$body_node = array(
+			'path'     => array( 'styles' ),
+			'selector' => 'body',
+		);
+
+		$expected_styles = 'html{min-height: calc(100% - var(--wp-admin--admin-bar--height, 0px));}body{background-image: var(--wp--preset--gradient--vivid-cyan-blue);}';
+		$this->assertSame( $expected_styles, $theme_json->get_styles_for_block( $body_node ), 'Styles returned from "::get_styles_for_block()" with background gradient preset slug do not match expectations' );
+	}
+
+	/**
+	 * Tests that background gradient and image are combined correctly in theme.json.
+	 *
+	 * @ticket 64974
+	 *
+	 * @covers WP_Theme_JSON::get_styles_for_block
+	 */
+	public function test_get_background_gradient_and_image_combined_styles() {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
+				'styles'  => array(
+					'blocks' => array(
+						'core/group' => array(
+							'background' => array(
+								'gradient'        => 'linear-gradient(135deg,rgb(255,0,0) 0%,rgb(0,0,255) 100%)',
+								'backgroundImage' => array(
+									'url' => 'http://example.org/image.png',
+								),
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$group_node = array(
+			'name'      => 'core/group',
+			'path'      => array( 'styles', 'blocks', 'core/group' ),
+			'selector'  => '.wp-block-group',
+			'selectors' => array(
+				'root' => '.wp-block-group',
+			),
+		);
+
+		$expected_styles = ":root :where(.wp-block-group){background-image: linear-gradient(135deg,rgb(255,0,0) 0%,rgb(0,0,255) 100%), url('http://example.org/image.png');}";
+		$this->assertSame( $expected_styles, $theme_json->get_styles_for_block( $group_node ), 'Styles returned from "::get_styles_for_block()" with combined background gradient and image do not match expectations' );
 	}
 
 	/**
@@ -8289,6 +8489,115 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 				'to_prepend' => '.pre ',
 				'expected'   => '.pre .a, .pre .b, .pre .c',
 			),
+		);
+	}
+
+	/**
+	 * Tests that block custom CSS uses the css feature selector when defined
+	 * in block metadata selectors config.
+	 *
+	 * @ticket 64695
+	 */
+	public function test_get_styles_for_block_custom_css_uses_css_feature_selector() {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
+				'styles'  => array(
+					'blocks' => array(
+						'core/paragraph' => array(
+							'css' => 'color:red;',
+						),
+					),
+				),
+			)
+		);
+
+		$paragraph_node = array(
+			'name'      => 'core/paragraph',
+			'path'      => array( 'styles', 'blocks', 'core/paragraph' ),
+			'selector'  => 'p',
+			'selectors' => array(
+				'root' => 'p',
+				'css'  => '.custom-p',
+			),
+		);
+
+		$this->assertSame(
+			':root :where(.custom-p){color:red;}',
+			$theme_json->get_styles_for_block( $paragraph_node )
+		);
+	}
+
+	/**
+	 * Tests that block custom CSS falls back to the root selector when no
+	 * css feature selector is defined in block metadata selectors config.
+	 *
+	 * @ticket 64695
+	 */
+	public function test_get_styles_for_block_custom_css_falls_back_to_root_selector() {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
+				'styles'  => array(
+					'blocks' => array(
+						'core/paragraph' => array(
+							'css' => 'color:red;',
+						),
+					),
+				),
+			)
+		);
+
+		$paragraph_node = array(
+			'name'      => 'core/paragraph',
+			'path'      => array( 'styles', 'blocks', 'core/paragraph' ),
+			'selector'  => 'p',
+			'selectors' => array(
+				'root' => 'p',
+			),
+		);
+
+		$this->assertSame(
+			':root :where(p){color:red;}',
+			$theme_json->get_styles_for_block( $paragraph_node )
+		);
+	}
+
+	/**
+	 * Tests that block custom CSS uses the css feature selector when defined
+	 * as an object with a root subkey in block metadata selectors config.
+	 *
+	 * @ticket 64695
+	 */
+	public function test_get_styles_for_block_custom_css_uses_css_feature_selector_object_form() {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
+				'styles'  => array(
+					'blocks' => array(
+						'core/paragraph' => array(
+							'css' => 'color:red;',
+						),
+					),
+				),
+			)
+		);
+
+		$paragraph_node = array(
+			'name'      => 'core/paragraph',
+			'path'      => array( 'styles', 'blocks', 'core/paragraph' ),
+			'selector'  => 'p',
+			'selectors' => array(
+				'root' => 'p',
+				'css'  => array(
+					'root' => '.custom-p',
+				),
+			),
+		);
+
+		$this->assertSame(
+			':root :where(.custom-p){color:red;}',
+			$theme_json->get_styles_for_block( $paragraph_node )
 		);
 	}
 }
