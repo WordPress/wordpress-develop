@@ -264,9 +264,9 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 			array( '//2008////', '/2008/' ),
 
 			// Query string space encoding variants should not redirect (Ticket #64376).
-			array( '/?test=one+two', '/?test=one+two' ),     // Plus sign should stay as plus.
-			array( '/?test=one%20two', '/?test=one%20two' ), // %20 should stay as %20.
-			array( '/?utm_content=Hello+World&utm_source=test', '/?utm_content=Hello+World&utm_source=test' ), // Multiple params with plus.
+			array( '/?test=one+two', '/?test=one+two', 64376 ),     // Plus sign should stay as plus.
+			array( '/?test=one%20two', '/?test=one%20two', 64376 ), // %20 should stay as %20.
+			array( '/?utm_content=Hello+World&utm_source=test', '/?utm_content=Hello+World&utm_source=test', 64376 ), // Multiple params with plus.
 
 			// @todo Endpoints (feeds, trackbacks, etc). More fuzzed mixed query variables, comment paging, Home page (static).
 		);

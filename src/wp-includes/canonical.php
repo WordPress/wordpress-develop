@@ -827,7 +827,7 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 	$normalized_requested_url = _wp_normalize_query_space_encoding( $requested_url );
 
 	if ( $normalized_redirect_url === $normalized_requested_url ) {
-		return;
+		return null;
 	}
 
 	// Hex-encoded octets are case-insensitive.
