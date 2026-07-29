@@ -767,8 +767,10 @@ function wp_default_scripts( $scripts ) {
 	$scripts->set_translations( 'common' );
 
 	$bulk_action_observer_ids = array(
-		'bulk_action' => 'action',
-		'changeit'    => 'new_role',
+		'bulk_action'       => 'action',
+		'changeit'          => 'new_role',
+		'filter_action'     => 'filter_action',
+		'post-query-submit' => 'post-query-submit',
 	);
 	did_action( 'init' ) && $scripts->localize(
 		'common',
