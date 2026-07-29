@@ -1029,6 +1029,8 @@ class WP_List_Table {
 	 */
 	protected function pagination( $which ) {
 		if ( empty( $this->_pagination_args['total_items'] ) ) {
+			// translators: Number is a fixed value. This is default text when no items are found.
+			echo '<div class="tablenav-pages no-pages"><span class="displaying-num">' . __( '0 items' ) . '</span></div>';
 			return;
 		}
 
@@ -1685,12 +1687,16 @@ class WP_List_Table {
 		?>
 	<div class="tablenav <?php echo esc_attr( $which ); ?>">
 
-		<?php if ( $this->has_items() ) : ?>
-		<div class="alignleft actions bulkactions">
+		<?php
+		$visibility = ' hidden';
+		if ( $this->has_items() ) {
+			$visibility = '';
+		}
+		?>
+		<div class="alignleft actions bulkactions<?php echo $visibility; ?>">
 			<?php $this->bulk_actions( $which ); ?>
 		</div>
-			<?php
-		endif;
+		<?php
 		$this->extra_tablenav( $which );
 		$this->pagination( $which );
 		?>
@@ -1778,7 +1784,7 @@ class WP_List_Table {
 	 * identifier (e.g. post title, plugin name, username). Return an empty string
 	 * to omit the attribute.
 	 *
-	 * @since 6.9.0
+	 * @since 7.1.0
 	 *
 	 * @param object|array $item The current item.
 	 * @return string The aria-label value, or an empty string.
