@@ -94,12 +94,23 @@ class HookDocBlock {
 	private array $fileHookDocs = array();
 
 	/**
+	 * Absolute path to the WordPress root that reference comment paths resolve against.
+	 *
+	 * @var string
+	 */
+	private string $wordpressRoot;
+
+	/**
 	 * Constructor.
 	 *
 	 * @param FileTypeMapper $file_type_mapper File type mapper.
+	 * @param string|null    $wordpress_root   Absolute path to the WordPress root that
+	 *                                         "documented in <file>" paths are relative to.
+	 *                                         Defaults to the `src` directory of this checkout.
 	 */
-	public function __construct( FileTypeMapper $file_type_mapper ) {
+	public function __construct( FileTypeMapper $file_type_mapper, ?string $wordpress_root = null ) {
 		$this->fileTypeMapper = $file_type_mapper;
+		$this->wordpressRoot  = rtrim( $wordpress_root ?? dirname( __DIR__, 2 ) . '/src', '/' );
 	}
 
 	/**
@@ -260,7 +271,7 @@ class HookDocBlock {
 		}
 
 		$reference_path = $matches[1];
-		$target_file    = self::resolveReferencePath( $scope->getFile(), $reference_path );
+		$target_file    = $this->resolveReferencePath( $scope->getFile(), $reference_path );
 
 		// The referenced file could not be located up the directory tree.
 		if ( null === $target_file ) {
@@ -303,7 +314,7 @@ class HookDocBlock {
 			return null;
 		}
 
-		$target_file = self::resolveReferencePath( $scope->getFile(), $matches[1] );
+		$target_file = $this->resolveReferencePath( $scope->getFile(), $matches[1] );
 		if ( null === $target_file ) {
 			return null;
 		}
@@ -515,16 +526,24 @@ class HookDocBlock {
 	 * containing the reference comment.
 	 *
 	 * The reference comment names the exact file (e.g. "wp-includes/media.php"), so
-	 * resolution simply walks up from the current file's directory until that
-	 * relative path resolves to a real file. This works regardless of where the
-	 * referencing file lives (core, a bundled theme, the install root, ...) and
-	 * only ever touches the single named file — no directory is enumerated.
+	 * resolution proceeds in two steps:
+	 *
+	 * 1. Walk up from the current file's directory until the relative path resolves
+	 *    to a real file. This works regardless of where the referencing file lives
+	 *    (core, a bundled theme, the install root, ...), and also resolves the
+	 *    sibling references used by the bundled themes (e.g. "author.php").
+	 * 2. Fall back to the WordPress root. Step 1 assumes the analysed file sits in
+	 *    its real location, which does not hold when an IDE runs PHPStan against a
+	 *    temporary copy of the editor buffer. Without this fallback, every
+	 *    reference comment in such a copy is reported as naming a missing file.
+	 *
+	 * Only the single named file is ever tested; no directory is enumerated.
 	 *
 	 * @param string $current_file   Absolute path to the file with the reference comment.
 	 * @param string $reference_path Root-relative path (e.g. "wp-includes/media.php").
 	 * @return string|null Absolute path to the referenced file, or null when it cannot be located.
 	 */
-	private static function resolveReferencePath( string $current_file, string $reference_path ): ?string {
+	private function resolveReferencePath( string $current_file, string $reference_path ): ?string {
 		$reference_path = ltrim( $reference_path, '/' );
 		$dir            = dirname( $current_file );
 
@@ -536,10 +555,14 @@ class HookDocBlock {
 
 			$parent = dirname( $dir );
 			if ( $parent === $dir ) {
-				return null;
+				break;
 			}
 			$dir = $parent;
 		}
+
+		$candidate = $this->wordpressRoot . '/' . $reference_path;
+
+		return is_file( $candidate ) ? $candidate : null;
 	}
 
 	/**
