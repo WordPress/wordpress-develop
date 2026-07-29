@@ -98,7 +98,11 @@ function wp_cli_retry( cmd, { timeout, waiting, failure, hint } ) {
 			process.stdout.write( wp_cli( cmd, 'pipe' ) );
 			return;
 		} catch ( err ) {
-			const output = err.stderr ? err.stderr.toString() : err.message;
+			// `stderr` and `stdout` are buffers, which are truthy even when empty, so use the
+			// first one that actually captured something.
+			const output = [ err.stderr, err.stdout, err.message ]
+				.map( ( value ) => ( value ? value.toString().trim() : '' ) )
+				.find( ( value ) => value !== '' ) || 'No output was captured.';
 
 			// Retrying only helps while the environment is still starting up. A missing container
 			// means it was never started, so there is nothing to wait for.
