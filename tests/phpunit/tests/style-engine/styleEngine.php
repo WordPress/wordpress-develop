@@ -24,6 +24,7 @@ class Tests_wpStyleEngine extends WP_UnitTestCase {
 	 * @ticket 62189
 	 * @ticket 63799
 	 * @ticket 64974
+	 * @ticket 65037
 	 *
 	 * @covers ::wp_style_engine_get_styles
 	 *
@@ -207,7 +208,7 @@ class Tests_wpStyleEngine extends WP_UnitTestCase {
 				),
 			),
 
-			'inline_valid_dimensions_style'                => array(
+			'inline_valid_dimensions_min_height_style'     => array(
 				'block_styles'    => array(
 					'dimensions' => array(
 						'minHeight' => '50vh',
@@ -218,6 +219,21 @@ class Tests_wpStyleEngine extends WP_UnitTestCase {
 					'css'          => 'min-height:50vh;',
 					'declarations' => array(
 						'min-height' => '50vh',
+					),
+				),
+			),
+
+			'inline_valid_dimensions_min_width_style'      => array(
+				'block_styles'    => array(
+					'dimensions' => array(
+						'minWidth' => '25vw',
+					),
+				),
+				'options'         => null,
+				'expected_output' => array(
+					'css'          => 'min-width:25vw;',
+					'declarations' => array(
+						'min-width' => '25vw',
 					),
 				),
 			),
