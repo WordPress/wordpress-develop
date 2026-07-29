@@ -134,6 +134,21 @@ jobs:
     permissions:
       contents: read
 
+    services:
+      mysql:
+        image: ${{ inputs.db-type }}:${{ inputs.db-version }}
+        env:
+          MYSQL_ROOT_PASSWORD: password
+          MARIADB_ROOT_PASSWORD: password
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="${{ inputs.db-type == 'mariadb' && contains(fromJSON('["5.5", "10.0", "10.1", "10.2", "10.3"]'), inputs.db-version) && 'mysqladmin ping -h localhost' || inputs.db-type == 'mariadb' && 'mariadb-admin ping -h localhost' || 'mysqladmin ping -h localhost' }}"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=10
+          --health-start-period=60s
+
     steps:
       - name: Configure environment variables
         run: |
