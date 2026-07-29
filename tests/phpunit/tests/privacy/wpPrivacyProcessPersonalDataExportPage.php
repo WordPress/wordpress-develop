@@ -503,7 +503,7 @@ class Tests_Privacy_wpPrivacyProcessPersonalDataExportPage extends WP_UnitTestCa
 		add_filter( 'wp_mail_from', '__return_empty_string' );
 
 		// Process data, given the last exporter, on the last page and send as email.
-		$this->_setup_expected_failure( '{"success":false,"data":"Unable to send personal data export email."}' );
+		$this->_setup_expected_failure( '{"success":false,"data":"Invalid request status when sending personal data export email."}' );
 
 		wp_privacy_process_personal_data_export_page(
 			self::$response_last_page,
