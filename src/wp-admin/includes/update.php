@@ -383,7 +383,7 @@ function update_right_now_message() {
 
 		if ( isset( $cur->response ) && 'upgrade' === $cur->response ) {
 			$msg .= sprintf(
-				' <a href="%s" class="button" aria-describedby="wp-version">%s</a>',
+				'<a href="%s" class="button" aria-describedby="wp-version">%s</a>',
 				network_admin_url( 'update-core.php' ),
 				/* translators: %s: WordPress version number, or 'Latest' string. */
 				sprintf( __( 'Update to %s' ), $cur->current ? $cur->current : __( 'Latest' ) )

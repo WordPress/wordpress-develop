@@ -727,8 +727,8 @@ body #dashboard-widgets .postbox form .submit {
 #dashboard_right_now #wp-version-message {
 	display: flex;
 	flex-wrap: wrap;
-	align-items: flex-end;
-	gap: 5px;
+	align-items: center;
+	gap: 8px;
 }
 
 #dashboard_right_now #wp-version {
