@@ -9008,7 +9008,7 @@ function recurse_dirsize( $directory, $exclude = null, $max_execution_time = nul
 		: false;
 
 	/**
-	 * Filters the amount of storage space used by one directory and all its children, in megabytes.
+	 * Filters the amount of storage space used by one directory and all its children, in bytes.
 	 *
 	 * Return the actual used space to short-circuit the recursive PHP file size calculation
 	 * and use something else, like a CDN API or native operating system tools for better performance.

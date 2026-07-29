@@ -230,6 +230,7 @@ class Tests_Multisite_CleanDirsizeCache extends WP_UnitTestCase {
 		$this->assertSame( 42, get_transient( 'dirsize_cache' )[ $directory . '/subdirectory' ] );
 
 		remove_filter( 'pre_recurse_dirsize_cache', array( $this, 'filter_pre_recurse_dirsize_cache' ) );
+		delete_transient( 'dirsize_cache' );
 	}
 
 	public function filter_pre_recurse_dirsize_cache( $directory_cache, $directory ) {
@@ -255,6 +256,7 @@ class Tests_Multisite_CleanDirsizeCache extends WP_UnitTestCase {
 		$this->assertSame( 42, $directory_cache[ $cached_directory ] );
 
 		remove_filter( 'pre_recurse_dirsize_cache', '__return_false' );
+		delete_transient( 'dirsize_cache' );
 	}
 
 	private function get_mock_dirsize_cache_for_site( $site_id ) {
