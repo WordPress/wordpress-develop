@@ -1399,7 +1399,7 @@ select#media-attachment-date-filters {
 
 .attachment.new-media {
 	/* Dotted border for the first added item when Infinite scrolling is disabled. */
-	/* Contrast ratio must be at least 3:1 against the #dcdcde background. */
+	/* Contrast ratio must be at least 3:1 against the #dcdcde background for added items when Infinite scroling is disabled. */
 	outline: 2px dotted #757575;
 	/* Prevent the border from being obscured by adjacent items. */
 	outline-offset: -2px;
