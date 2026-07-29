@@ -179,12 +179,10 @@ class Tests_Ajax_wpAjaxAutocompleteUser extends WP_Ajax_UnitTestCase {
 		$this->_setRole( 'administrator' );
 
 		// Raise minimum to 5.
-		add_filter(
-			'autocomplete_term_length',
-			static function () {
-				return 5;
-			}
-		);
+		$filter = static function () {
+			return 5;
+		};
+		add_filter( 'autocomplete_term_length', $filter );
 
 		$_GET['term']              = 'auto'; // 4 chars – below new minimum.
 		$_GET['autocomplete_type'] = 'search';
@@ -195,7 +193,7 @@ class Tests_Ajax_wpAjaxAutocompleteUser extends WP_Ajax_UnitTestCase {
 		} catch ( WPAjaxDieStopException $e ) {
 			$this->assertSame( '-1', $e->getMessage() );
 		} finally {
-			remove_all_filters( 'autocomplete_term_length' );
+			remove_filter( 'autocomplete_term_length', $filter );
 		}
 	}
 
@@ -254,7 +252,16 @@ class Tests_Ajax_wpAjaxAutocompleteUser extends WP_Ajax_UnitTestCase {
 	 * @ticket 19867
 	 */
 	public function test_user_email_field_returns_email() {
-		$this->_setRole( 'administrator' );
+		/*
+		 * Returning the email as the value requires edit_users. On multisite,
+		 * map_meta_cap('edit_users') returns 'do_not_allow' for any non-super-admin,
+		 * so grant super admin to exercise the privileged path reliably.
+		 */
+		if ( is_multisite() ) {
+			grant_super_admin( self::$user_ids['administrator'] );
+		}
+
+		wp_set_current_user( self::$user_ids['administrator'] );
 
 		$_GET['term']               = 'autocomplete_editor';
 		$_GET['autocomplete_type']  = 'search';
@@ -264,6 +271,10 @@ class Tests_Ajax_wpAjaxAutocompleteUser extends WP_Ajax_UnitTestCase {
 			$this->_handleAjax( 'autocomplete-user' );
 		} catch ( WPAjaxDieContinueException $e ) {
 			unset( $e );
+		}
+
+		if ( is_multisite() ) {
+			revoke_super_admin( self::$user_ids['administrator'] );
 		}
 
 		$results = json_decode( $this->_last_response, true );

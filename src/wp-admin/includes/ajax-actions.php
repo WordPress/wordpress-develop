@@ -296,15 +296,19 @@ function wp_ajax_oembed_cache() {
  */
 function wp_ajax_autocomplete_user() {
 	/*
-	 * Validate the minimum search term length before anything else.
-	 * The same minimum is enforced in JS via the minLength option.
+	 * Validate the minimum search term length before anything else. This check is
+	 * authoritative: the JS uses a fixed minLength of 2 to avoid firing requests
+	 * for very short terms, but if the `autocomplete_term_length` filter raises the
+	 * minimum above 2, shorter terms are rejected here rather than in the browser.
 	 */
 	$term = isset( $_REQUEST['term'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['term'] ) ) : '';
 
 	/**
 	 * Filters the minimum search term length for user autocomplete.
 	 *
-	 * The same minimum should be mirrored in the JavaScript minLength option.
+	 * This is enforced server-side. The JavaScript uses a fixed minLength of 2;
+	 * raising the minimum above 2 here rejects shorter terms server-side rather
+	 * than preventing the request in the browser.
 	 *
 	 * @since 7.1.0
 	 *
@@ -386,15 +390,11 @@ function wp_ajax_autocomplete_user() {
 
 		$blog_id = get_current_blog_id();
 
-		if ( is_multisite() ) {
-			// Restrict results to users already on this site.
-			$include_blog_users = get_users(
-				array(
-					'blog_id' => $blog_id,
-					'fields'  => 'ID',
-				)
-			);
-		}
+		/*
+		 * On multisite, WP_User_Query already restricts results to members of the
+		 * given site via the 'blog_id' argument (a `{$prefix}capabilities EXISTS`
+		 * meta query), so there is no need to prefetch every member ID here.
+		 */
 
 		// Include email in search columns only for users who can edit others.
 		if ( current_user_can( 'edit_users' ) ) {
