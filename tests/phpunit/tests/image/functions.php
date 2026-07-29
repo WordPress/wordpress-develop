@@ -642,8 +642,15 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 * @requires function imagejpeg
 	 */
 	public function test_wp_crop_image_with_url() {
-		$mock_image_download = static function ( $response, $args ) {
-			copy( DIR_TESTDATA . '/images/canola.jpg', $args['filename'] );
+		$url                 = 'https://example.org/canola.jpg';
+		$mock_image_download = static function ( $response, $args, $requested_url ) use ( $url ) {
+			if ( $url !== $requested_url ) {
+				return $response;
+			}
+
+			if ( empty( $args['filename'] ) || ! copy( DIR_TESTDATA . '/images/canola.jpg', $args['filename'] ) ) {
+				return new WP_Error( 'copy_failed', 'Could not copy the image fixture.' );
+			}
 
 			return array(
 				'response' => array(
@@ -656,21 +663,21 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			);
 		};
 
-		add_filter( 'pre_http_request', $mock_image_download, 10, 2 );
+		add_filter( 'pre_http_request', $mock_image_download, 10, 3 );
 
-		$file = wp_crop_image(
-			'https://example.org/canola.jpg',
-			0,
-			0,
-			100,
-			100,
-			100,
-			100,
-			false,
-			DIR_TESTDATA . '/images/' . __FUNCTION__ . '.png'
-		);
-
-		remove_filter( 'pre_http_request', $mock_image_download, 10 );
+		try {
+			$file = wp_crop_image(
+				$url,
+				0,
+				0,
+				100,
+				100,
+				100,
+				100
+			);
+		} finally {
+			remove_filter( 'pre_http_request', $mock_image_download, 10 );
+		}
 
 		$this->assertNotWPError( $file, 'Cropping the image resulted in a WP_Error.' );
 		$this->assertFileExists( $file, "The file $file does not exist." );

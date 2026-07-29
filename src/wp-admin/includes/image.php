@@ -51,6 +51,10 @@ function wp_crop_image( $src, $src_x, $src_y, $src_w, $src_h, $dst_w, $dst_h, $s
 			return $tmp_file;
 		}
 
+		if ( wp_http_validate_url( $src_file ) ) {
+			$src_file = $tmp_file;
+		}
+
 		$src = $tmp_file;
 	}
 
