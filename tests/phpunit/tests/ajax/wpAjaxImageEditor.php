@@ -311,9 +311,9 @@ class Tests_Ajax_wpAjaxImageEditor extends WP_Ajax_UnitTestCase {
 	/**
 	 * Data provider.
 	 *
-	 * @return array[]
+	 * @return array<non-empty-string, array{ 0: array{ sizes?: mixed } }>
 	 */
-	public function data_save_image_with_unusable_sizes_metadata() {
+	public function data_save_image_with_unusable_sizes_metadata(): array {
 		return array(
 			'no sizes key'  => array( array() ),
 			'null sizes'    => array( array( 'sizes' => null ) ),
