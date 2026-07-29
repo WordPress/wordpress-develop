@@ -270,7 +270,7 @@ class Tests_Ajax_wpAjaxImageEditor extends WP_Ajax_UnitTestCase {
 	 *
 	 * @covers ::wp_restore_image
 	 */
-	public function test_restore_image_with_unusable_sizes_metadata( $meta ) {
+	public function test_restore_image_with_unusable_sizes_metadata( array $meta ) {
 		require_once ABSPATH . 'wp-admin/includes/image-edit.php';
 
 		$filename = DIR_TESTDATA . '/images/canola.jpg';
