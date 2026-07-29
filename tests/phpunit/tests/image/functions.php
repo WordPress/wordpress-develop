@@ -636,13 +636,30 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 42064
+	 *
 	 * @covers ::wp_crop_image
 	 * @requires function imagejpeg
-	 * @requires extension openssl
 	 */
 	public function test_wp_crop_image_with_url() {
+		$mock_image_download = static function ( $response, $args ) {
+			copy( DIR_TESTDATA . '/images/canola.jpg', $args['filename'] );
+
+			return array(
+				'response' => array(
+					'code'    => 200,
+					'message' => 'OK',
+				),
+				'headers'  => array(),
+				'cookies'  => array(),
+				'body'     => '',
+			);
+		};
+
+		add_filter( 'pre_http_request', $mock_image_download, 10, 2 );
+
 		$file = wp_crop_image(
-			'https://s.w.org/screenshots/3.9/dashboard.png',
+			'https://example.org/canola.jpg',
 			0,
 			0,
 			100,
@@ -653,9 +670,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			DIR_TESTDATA . '/images/' . __FUNCTION__ . '.png'
 		);
 
-		if ( is_wp_error( $file ) && $file->get_error_code() === 'invalid_image' ) {
-			$this->markTestSkipped( 'Tests_Image_Functions::test_wp_crop_image_url() cannot access remote image.' );
-		}
+		remove_filter( 'pre_http_request', $mock_image_download, 10 );
 
 		$this->assertNotWPError( $file, 'Cropping the image resulted in a WP_Error.' );
 		$this->assertFileExists( $file, "The file $file does not exist." );
