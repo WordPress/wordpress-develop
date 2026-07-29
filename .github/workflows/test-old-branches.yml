@@ -34,7 +34,7 @@ jobs:
     permissions:
       actions: write
     timeout-minutes: 20
-    if: ${{ github.repository == 'WordPress/wordpress-develop' || github.repository == 'WordPress/wordpress-develop-security' }}
+    if: ${{ github.repository == 'WordPress/wordpress-develop' || ( github.repository == 'WordPress/wordpress-develop-security' && github.event_name == 'workflow_dispatch' ) }}
     strategy:
       fail-fast: false
       matrix:
