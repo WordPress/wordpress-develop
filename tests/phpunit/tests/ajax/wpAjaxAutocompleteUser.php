@@ -271,6 +271,34 @@ class Tests_Ajax_wpAjaxAutocompleteUser extends WP_Ajax_UnitTestCase {
 		$this->assertSame( 'autocomplete_editor@example.com', $results[0]['value'] );
 	}
 
+	/**
+	 * Requesting autocomplete_field=user_email without edit_users must not
+	 * disclose the email address in the value; it falls back to user_login.
+	 *
+	 * @ticket 19867
+	 */
+	public function test_user_email_field_not_disclosed_without_edit_users() {
+		// This fixture user has list_users but not edit_users.
+		wp_set_current_user( self::$user_ids['editor'] );
+
+		$_GET['term']               = 'autocomplete_editor';
+		$_GET['autocomplete_type']  = 'search';
+		$_GET['autocomplete_field'] = 'user_email';
+
+		try {
+			$this->_handleAjax( 'autocomplete-user' );
+		} catch ( WPAjaxDieContinueException $e ) {
+			unset( $e );
+		}
+
+		$results = json_decode( $this->_last_response, true );
+		$this->assertNotEmpty( $results );
+		// The email address must not be exposed as the value.
+		$this->assertNotSame( 'autocomplete_editor@example.com', $results[0]['value'] );
+		// Falls back to the user_login instead.
+		$this->assertSame( 'autocomplete_editor', $results[0]['value'] );
+	}
+
 	// -----------------------------------------------------------------------
 	// Label template tokens
 	// -----------------------------------------------------------------------
@@ -429,17 +457,15 @@ class Tests_Ajax_wpAjaxAutocompleteUser extends WP_Ajax_UnitTestCase {
 		$_GET['term']              = 'autocomplete_editor';
 		$_GET['autocomplete_type'] = 'search';
 
-		add_filter(
-			'autocomplete_user_results',
-			static function () {
-				return array(
-					array(
-						'label' => 'Overridden',
-						'value' => 'overridden',
-					),
-				);
-			}
-		);
+		$filter = static function () {
+			return array(
+				array(
+					'label' => 'Overridden',
+					'value' => 'overridden',
+				),
+			);
+		};
+		add_filter( 'autocomplete_user_results', $filter );
 
 		try {
 			$this->_handleAjax( 'autocomplete-user' );
@@ -447,7 +473,7 @@ class Tests_Ajax_wpAjaxAutocompleteUser extends WP_Ajax_UnitTestCase {
 			unset( $e );
 		}
 
-		remove_all_filters( 'autocomplete_user_results' );
+		remove_filter( 'autocomplete_user_results', $filter );
 
 		$results = json_decode( $this->_last_response, true );
 		$this->assertCount( 1, $results );

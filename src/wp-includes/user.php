@@ -1845,6 +1845,29 @@ function wp_dropdown_users( $args = '' ) {
 	if ( $use_autocomplete ) {
 		// Users are fetched on demand via the AJAX handler; skip the bulk query.
 		$users = array();
+
+		/*
+		 * Honor 'hide_if_only_one_author' without loading every user: a bounded
+		 * query for up to two IDs is enough to tell whether more than one exists.
+		 * When there is a single author (or none), fall back to the classic
+		 * rendering, which emits nothing in that case.
+		 */
+		if ( ! empty( $parsed_args['hide_if_only_one_author'] ) ) {
+			$author_ids = get_users(
+				array_merge(
+					$query_args,
+					array(
+						'fields' => 'ID',
+						'number' => 2,
+					)
+				)
+			);
+
+			if ( count( $author_ids ) <= 1 ) {
+				$use_autocomplete = false;
+				$users            = $author_ids;
+			}
+		}
 	} else {
 		$users = get_users( $query_args );
 	}
@@ -1859,6 +1882,17 @@ function wp_dropdown_users( $args = '' ) {
 
 	if ( $use_autocomplete ) {
 		wp_enqueue_script( 'user-suggest' );
+
+		/*
+		 * The user-suggest script relies on the global `ajaxurl`, which is only
+		 * defined in wp-admin. Provide it for front-end contexts without
+		 * overwriting an existing definition.
+		 */
+		wp_add_inline_script(
+			'user-suggest',
+			'window.ajaxurl = window.ajaxurl || ' . wp_json_encode( admin_url( 'admin-ajax.php' ) ) . ';',
+			'before'
+		);
 
 		// Resolve the display value for the currently selected user.
 		$display = '';

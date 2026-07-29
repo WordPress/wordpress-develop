@@ -328,7 +328,8 @@ function wp_ajax_autocomplete_user() {
 	 * Allowed values are `user_email`, `user_login`, and `user_id`.
 	 */
 	$requested_field = isset( $_REQUEST['autocomplete_field'] ) ? $_REQUEST['autocomplete_field'] : '';
-	if ( 'user_email' === $requested_field ) {
+	if ( 'user_email' === $requested_field && current_user_can( 'edit_users' ) ) {
+		// Returning the email address as the value is limited to users who can edit others.
 		$field = 'user_email';
 	} elseif ( 'user_id' === $requested_field ) {
 		$field = 'ID';
@@ -432,7 +433,7 @@ function wp_ajax_autocomplete_user() {
 		}
 
 		$return[] = array(
-			'label' => esc_html( $label ),
+			'label' => wp_strip_all_tags( $label ),
 			'value' => ( 'ID' === $field ) ? $user->ID : $user->$field,
 		);
 	}
