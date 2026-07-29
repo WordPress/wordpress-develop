@@ -778,7 +778,7 @@ final class WP_Interactivity_API {
 	 * This function has an equivalent version for the client side.
 	 * See `parseDirectiveName` in https://github.com/WordPress/gutenberg/blob/trunk/packages/interactivity/src/vdom.ts.:
 	 *
-	 * See examples in the function unit tests `test_parse_directive_name`.
+	 * @see Tests_Interactivity_API_WpInteractivityAPI::test_parse_directive_name() for examples in the test inputs.
 	 *
 	 * @since 6.9.0
 	 *
