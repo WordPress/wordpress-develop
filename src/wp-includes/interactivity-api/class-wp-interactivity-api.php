@@ -475,7 +475,21 @@ class WP_Interactivity_API {
 		$tag_stack  = array();
 		$unbalanced = false;
 
-		$directive_processor_prefixes          = array_keys( self::$directive_processors );
+		/**
+		 * Filters the server-side directive processor map.
+		 *
+		 * Allows plugins to register custom server-side directive processors
+		 * or replace existing ones. The array maps a directive attribute prefix
+		 * (e.g. 'data-wp-show') to a callable. Each callable receives three
+		 * parameters: the directives processor, the mode ('enter'|'exit'),
+		 * and a reference to the tag stack.
+		 *
+		 * @since 6.9.0
+		 *
+		 * @param array $processors Directive attribute prefix => processor mapping.
+		 */
+		$directive_processors                  = (array) apply_filters( 'wp_interactivity_directive_processors', static::$directive_processors );
+		$directive_processor_prefixes          = array_keys( $directive_processors );
 		$directive_processor_prefixes_reversed = array_reverse( $directive_processor_prefixes );
 
 		/*
@@ -542,7 +556,7 @@ class WP_Interactivity_API {
 							continue;
 						}
 						$directive_prefix = 'data-wp-' . $parsed_directive['prefix'];
-						if ( array_key_exists( $directive_prefix, self::$directive_processors ) ) {
+						if ( array_key_exists( $directive_prefix, $directive_processors ) ) {
 							$directives_prefixes[] = $directive_prefix;
 						}
 					}
@@ -597,9 +611,17 @@ class WP_Interactivity_API {
 					$directives_prefixes
 				);
 				foreach ( $existing_directives_prefixes as $directive_prefix ) {
-					$func = is_array( self::$directive_processors[ $directive_prefix ] )
-						? self::$directive_processors[ $directive_prefix ]
-						: array( $this, self::$directive_processors[ $directive_prefix ] );
+					$processor = $directive_processors[ $directive_prefix ];
+
+					if ( $processor instanceof Closure ) {
+						$func = $processor;
+					} elseif ( is_array( $processor ) ) {
+						$func = $processor;
+					} elseif ( is_string( $processor ) && method_exists( $this, $processor ) ) {
+						$func = array( $this, $processor );
+					} else {
+						$func = $processor;
+					}
 
 					call_user_func_array( $func, array( $p, $mode, &$tag_stack ) );
 				}
