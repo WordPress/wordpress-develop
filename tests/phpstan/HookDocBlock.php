@@ -12,10 +12,14 @@
  * In that case the canonical docblock is looked up from the referenced file by
  * matching the hook name, and used as if it had been written at the call site.
  * Dynamic canonical hook names (e.g. `"{$type}_template_hierarchy"`) are matched
- * against the literal name used at the referencing site.
+ * against the literal name used at the referencing site, provided they are
+ * anchored on enough literal text to identify a hook, and the most specific match
+ * wins.
  *
  * Adapted from szepeviktor/phpstan-wordpress (HookDocBlock):
  * https://github.com/szepeviktor/phpstan-wordpress/blob/master/src/HookDocBlock.php
+ *
+ * @see HookDocBlock::isAnchorableLiteral()
  *
  * @package WordPress
  */
@@ -47,7 +51,7 @@ use PHPStan\Type\FileTypeMapper;
  *
  * @see HookDocsVisitor
  *
- * @phpstan-type HookDocs array{exact: array<string, string>, patterns: list<array{regex: string, text: string}>}
+ * @phpstan-type HookDocs array{exact: array<string, string>, patterns: list<array{regex: string, literal: string, text: string}>}
  */
 class HookDocBlock {
 
@@ -241,7 +245,7 @@ class HookDocBlock {
 			return true;
 		}
 
-		return null !== self::buildHookNameRegex( $value );
+		return null !== self::buildHookNamePattern( $value );
 	}
 
 	/**
@@ -336,8 +340,8 @@ class HookDocBlock {
 	/**
 	 * Returns the canonical docblock text for a hook documented in the given file.
 	 *
-	 * @param string                                          $file    Absolute path to the file declaring the hook.
-	 * @param array{kind: 'literal'|'pattern', value: string} $matcher Hook name matcher from getHookNameMatcher().
+	 * @param string                                                           $file    Absolute path to the file declaring the hook.
+	 * @param array{kind: 'literal'|'pattern', value: string, literal: string} $matcher Hook name matcher from getHookNameMatcher().
 	 * @return string|null Docblock text, or null when no documented invocation is found.
 	 */
 	private function findHookDoc( string $file, array $matcher ): ?string {
@@ -356,13 +360,24 @@ class HookDocBlock {
 
 			// A literal name may be an instance of a dynamic canonical hook
 			// (e.g. "index_template_hierarchy" matching "{$type}_template_hierarchy").
+			// The most specifically anchored match wins, so a name is not attributed
+			// to a loosely anchored hook that merely happens to match it as well.
+			$best       = null;
+			$anchor_len = -1;
 			foreach ( $docs['patterns'] as $pattern ) {
+				$literal_len = strlen( $pattern['literal'] );
+
+				if ( $literal_len <= $anchor_len || ! self::isAnchorableLiteral( $pattern['literal'] ) ) {
+					continue;
+				}
+
 				if ( preg_match( $pattern['regex'], $name ) ) {
-					return $pattern['text'];
+					$best       = $pattern['text'];
+					$anchor_len = $literal_len;
 				}
 			}
 
-			return null;
+			return $best;
 		}
 
 		// A dynamic referencing name matches the same dynamic canonical (identical
@@ -373,6 +388,12 @@ class HookDocBlock {
 			if ( $pattern['regex'] === $regex ) {
 				return $pattern['text'];
 			}
+		}
+
+		// Covering a literal canonical is only meaningful for a pattern anchored
+		// specifically enough to identify a hook.
+		if ( ! self::isAnchorableLiteral( $matcher['literal'] ) ) {
+			return null;
 		}
 
 		foreach ( $docs['exact'] as $name => $text ) {
@@ -391,7 +412,11 @@ class HookDocBlock {
 	 * A docblock is treated as canonical when it is not itself a "documented
 	 * elsewhere" reference, so referencing call sites do not count as the source
 	 * of documentation. Hooks with a literal name are indexed exactly; hooks with
-	 * a dynamic name that contains literal text are indexed as a regex.
+	 * a dynamic name that contains literal text are indexed as a regex, alongside
+	 * that literal text, which findHookDoc() uses to rank how specifically a pattern
+	 * identifies a hook.
+	 *
+	 * @see HookDocBlock::findHookDoc()
 	 *
 	 * @param string $file Absolute path to the file.
 	 * @return HookDocs
@@ -454,12 +479,13 @@ class HookDocBlock {
 				continue;
 			}
 
-			$regex = self::buildHookNameRegex( $name_expr );
-			if ( null !== $regex && ! isset( $seen[ $regex ] ) ) {
-				$seen[ $regex ]    = true;
-				$docs['patterns'][] = array(
-					'regex' => $regex,
-					'text'  => $doc->getText(),
+			$pattern = self::buildHookNamePattern( $name_expr );
+			if ( null !== $pattern && ! isset( $seen[ $pattern['regex'] ] ) ) {
+				$seen[ $pattern['regex'] ] = true;
+				$docs['patterns'][]        = array(
+					'regex'   => $pattern['regex'],
+					'literal' => $pattern['literal'],
+					'text'    => $doc->getText(),
 				);
 			}
 		}
@@ -468,30 +494,53 @@ class HookDocBlock {
 	}
 
 	/**
-	 * Builds an anchored regex matching a dynamic hook name expression, or null
-	 * when the expression carries no literal text to anchor on.
+	 * Builds an anchored regex matching a dynamic hook name expression, together
+	 * with the literal text it is anchored on, or null when the expression carries
+	 * no literal text at all.
 	 *
 	 * @param Expr $expr Hook name expression.
-	 * @return string|null
+	 * @return array{regex: string, literal: string}|null
 	 */
-	private static function buildHookNameRegex( Expr $expr ): ?string {
+	private static function buildHookNamePattern( Expr $expr ): ?array {
 		$parts = self::hookNameRegexParts( $expr );
-		if ( null === $parts || ! $parts[1] ) {
+		if ( null === $parts || '' === $parts[1] ) {
 			return null;
 		}
 
-		return '#^' . $parts[0] . '$#';
+		return array(
+			'regex'   => '#^' . $parts[0] . '$#',
+			'literal' => $parts[1],
+		);
 	}
 
 	/**
-	 * Recursively converts a hook name expression into a regex fragment.
+	 * Determines whether the literal text of a dynamic hook name identifies a hook
+	 * specifically enough to resolve documentation through it.
+	 *
+	 * A name whose literal text is nothing but separators — e.g. taxonomy.php's
+	 * `"{$taxonomy}_{$field}"`, which becomes `#^.+_.+$#` — matches almost any hook
+	 * name, so honoring it would attribute a call to an unrelated hook's
+	 * documentation and hide a genuinely broken reference comment. The hook is still
+	 * required to be documented at its own call site; only its use as the
+	 * documentation *source* for a differently named hook is refused.
+	 *
+	 * @param string $literal Concatenated literal text of a hook name expression.
+	 * @return bool
+	 */
+	private static function isAnchorableLiteral( string $literal ): bool {
+		return '' !== trim( $literal, "-_ \t\n\r\0\x0B" );
+	}
+
+	/**
+	 * Recursively converts a hook name expression into a regex fragment and the
+	 * literal text that fragment is anchored on.
 	 *
 	 * @param Expr $expr Hook name expression.
-	 * @return array{0: string, 1: bool}|null Fragment and whether it contains literal text, or null if unsupported.
+	 * @return array{0: string, 1: string}|null Fragment and its literal text, or null if unsupported.
 	 */
 	private static function hookNameRegexParts( Expr $expr ): ?array {
 		if ( $expr instanceof String_ ) {
-			return array( preg_quote( $expr->value, '#' ), true );
+			return array( preg_quote( $expr->value, '#' ), $expr->value );
 		}
 
 		if ( $expr instanceof Concat ) {
@@ -500,25 +549,25 @@ class HookDocBlock {
 			if ( null === $left || null === $right ) {
 				return null;
 			}
-			return array( $left[0] . $right[0], $left[1] || $right[1] );
+			return array( $left[0] . $right[0], $left[1] . $right[1] );
 		}
 
 		if ( $expr instanceof InterpolatedString ) {
-			$fragment    = '';
-			$has_literal = false;
+			$fragment = '';
+			$literal  = '';
 			foreach ( $expr->parts as $part ) {
 				if ( $part instanceof InterpolatedStringPart ) {
-					$fragment   .= preg_quote( $part->value, '#' );
-					$has_literal = true;
+					$fragment .= preg_quote( $part->value, '#' );
+					$literal  .= $part->value;
 				} else {
 					$fragment .= '.+';
 				}
 			}
-			return array( $fragment, $has_literal );
+			return array( $fragment, $literal );
 		}
 
 		// Variables, property fetches, etc.: a wildcard with no literal anchor.
-		return array( '.+', false );
+		return array( '.+', '' );
 	}
 
 	/**
@@ -570,7 +619,7 @@ class HookDocBlock {
 	 * exactly, or a regex for a dynamic name (e.g. "{$type}_template_hierarchy").
 	 *
 	 * @param FuncCall $call Hook function call node.
-	 * @return array{kind: 'literal'|'pattern', value: string}|null
+	 * @return array{kind: 'literal'|'pattern', value: string, literal: string}|null
 	 *   Null when the name carries no identifiable text (e.g. a bare variable).
 	 */
 	private static function getHookNameMatcher( FuncCall $call ): ?array {
@@ -583,16 +632,18 @@ class HookDocBlock {
 
 		if ( $expr instanceof String_ ) {
 			return array(
-				'kind'  => 'literal',
-				'value' => $expr->value,
+				'kind'    => 'literal',
+				'value'   => $expr->value,
+				'literal' => $expr->value,
 			);
 		}
 
-		$regex = self::buildHookNameRegex( $expr );
-		if ( null !== $regex ) {
+		$pattern = self::buildHookNamePattern( $expr );
+		if ( null !== $pattern ) {
 			return array(
-				'kind'  => 'pattern',
-				'value' => $regex,
+				'kind'    => 'pattern',
+				'value'   => $pattern['regex'],
+				'literal' => $pattern['literal'],
 			);
 		}
 
