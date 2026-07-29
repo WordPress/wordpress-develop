@@ -826,7 +826,8 @@ function wp_restore_image( $post_id ) {
 	}
 
 	if ( ! is_array( $meta ) ) {
-		$meta = array();
+		$msg->error = __( 'Cannot load image metadata.' );
+		return $msg;
 	}
 
 	if ( ! isset( $meta['sizes'] ) || ! is_array( $meta['sizes'] ) ) {
