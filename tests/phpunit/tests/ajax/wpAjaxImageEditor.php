@@ -206,11 +206,11 @@ class Tests_Ajax_wpAjaxImageEditor extends WP_Ajax_UnitTestCase {
 	 *
 	 * @ticket 65748
 	 *
+	 * @covers ::wp_save_image
+	 *
 	 * @dataProvider data_save_image_with_unusable_sizes_metadata
 	 *
 	 * @param array $meta Attachment metadata to store before editing, minus the file-specific keys.
-	 *
-	 * @covers ::wp_save_image
 	 */
 	public function test_save_image_with_unusable_sizes_metadata( array $meta ) {
 		require_once ABSPATH . 'wp-admin/includes/image-edit.php';
