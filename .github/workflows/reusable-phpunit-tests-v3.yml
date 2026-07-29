@@ -148,6 +148,10 @@ jobs:
           --health-timeout=5s
           --health-retries=10
           --health-start-period=60s
+      memcached:
+        image: ${{ inputs.memcached && 'memcached' || 'alpine' }}
+        ports:
+          - 11211:11211
 
     steps:
       - name: Configure environment variables
