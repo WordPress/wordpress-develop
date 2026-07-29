@@ -1401,6 +1401,9 @@ VIDEO;
 		remove_image_size( 'test-size' );
 	}
 
+	/**
+	 * @ticket 65751
+	 */
 	public function test_wp_get_registered_image_subsizes_includes_custom_size() {
 		add_image_size( 'test-size', 200, 600 );
 
@@ -1415,6 +1418,9 @@ VIDEO;
 		$this->assertFalse( $sizes['test-size']['crop'] );
 	}
 
+	/**
+	 * @ticket 65751
+	 */
 	public function test_wp_get_registered_image_subsizes_preserves_crop_position() {
 		add_image_size( 'test-size', 200, 600, array( 'center', 'top' ) );
 
@@ -1426,6 +1432,9 @@ VIDEO;
 		$this->assertSame( array( 'center', 'top' ), $sizes['test-size']['crop'] );
 	}
 
+	/**
+	 * @ticket 65751
+	 */
 	public function test_wp_get_registered_image_subsizes_omits_size_with_no_dimensions() {
 		add_image_size( 'test-size', 0, 0 );
 
@@ -1437,6 +1446,9 @@ VIDEO;
 		$this->assertArrayNotHasKey( 'test-size', $sizes );
 	}
 
+	/**
+	 * @ticket 65751
+	 */
 	public function test_wp_get_registered_image_subsizes_honors_intermediate_image_sizes_filter() {
 		add_image_size( 'test-size', 200, 600 );
 
