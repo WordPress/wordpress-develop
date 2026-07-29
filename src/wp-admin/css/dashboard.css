@@ -727,7 +727,7 @@ body #dashboard-widgets .postbox form .submit {
 #dashboard_right_now #wp-version-message {
 	display: flex;
 	flex-wrap: wrap;
-	align-items: baseline;
+	align-items: flex-end;
 	gap: 5px;
 }
 
@@ -736,8 +736,6 @@ body #dashboard-widgets .postbox form .submit {
 }
 
 #dashboard_right_now #wp-version-message .button {
-	/* The button is first in the markup, but is displayed after the version text. */
-	order: 1;
 	margin-left: auto;
 }
 
