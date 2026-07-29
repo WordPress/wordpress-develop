@@ -106,7 +106,7 @@ class Tests_Interactivity_API_WpInteractivityAPIExtensibility extends WP_UnitTes
 		$this->assertStringContainsString( 'overridden', $overridden_result );
 		$this->assertStringNotContainsString( 'original', $overridden_result );
 
-		$normal_result     = $instance->process_directives( $html_normal );
+		$normal_result = $instance->process_directives( $html_normal );
 		$this->assertStringNotContainsString( 'fallback', $normal_result );
 		$this->assertStringContainsString( 'blue', $normal_result );
 	}
