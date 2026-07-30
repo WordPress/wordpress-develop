@@ -622,7 +622,6 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 		$processor->remove_attribute( 'data-drop' );
 
 		$names = $processor->get_attribute_names_with_prefix( 'data-' );
-		sort( $names );
 
 		$this->assertSame(
 			array( 'data-add', 'data-keep' ),
