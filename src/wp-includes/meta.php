@@ -163,7 +163,7 @@ function add_metadata( $meta_type, $object_id, $meta_key, $meta_value, $unique =
 	 * @since 2.9.0
 	 * @since 7.2.0 The `$unique` parameter was added.
 	 *
-	 * @param int    $mid         The meta ID after successful update.
+	 * @param int    $mid         The meta ID after successful addition.
 	 * @param int    $object_id   ID of the object metadata is for.
 	 * @param string $meta_key    Metadata key.
 	 * @param mixed  $_meta_value Metadata value.
