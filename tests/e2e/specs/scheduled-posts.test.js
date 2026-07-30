@@ -4,6 +4,24 @@
 import { test, expect } from '@wordpress/e2e-test-utils-playwright';
 
 /**
+ * Resolves a path against the site's base URL, preserving any subdirectory
+ * the base URL carries. Root-relative URLs resolve against the origin
+ * alone — new URL( '/wp-cron.php', 'http://localhost/wp' ) addresses the
+ * server root, outside the install — so paths here are resolved relative
+ * to the base URL, normalized to end in a slash.
+ *
+ * @param {import('@wordpress/e2e-test-utils-playwright').RequestUtils} requestUtils The request utils fixture.
+ * @param {string}                                                      [path]       A path under the WordPress root, without a leading slash.
+ * @return {URL} The resolved URL.
+ */
+function siteUrl( requestUtils, path = '' ) {
+	const baseURL = requestUtils.baseURL.endsWith( '/' )
+		? requestUtils.baseURL
+		: `${ requestUtils.baseURL }/`;
+	return new URL( path, baseURL );
+}
+
+/**
  * Reads the server's clock from an HTTP Date header, so scheduling is
  * immune to clock skew between the test host and the server.
  *
@@ -13,7 +31,7 @@ import { test, expect } from '@wordpress/e2e-test-utils-playwright';
 async function getServerNow( requestUtils ) {
 	// `doing_wp_cron` makes spawn_cron() return early, so reading the clock
 	// cannot take the doing_cron lock. See driveCron() for why that matters.
-	const url = new URL( '/', requestUtils.baseURL );
+	const url = siteUrl( requestUtils );
 	url.searchParams.set( 'doing_wp_cron', '1' );
 
 	const response = await requestUtils.request.get( url.toString() );
@@ -73,7 +91,7 @@ function fromRestDateGmt( dateGmt ) {
 async function driveCron( requestUtils ) {
 	try {
 		await requestUtils.request.get(
-			new URL( '/wp-cron.php', requestUtils.baseURL ).toString(),
+			siteUrl( requestUtils, 'wp-cron.php' ).toString(),
 			{ timeout: 5_000 }
 		);
 	} catch {
