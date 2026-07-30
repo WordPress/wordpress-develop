@@ -96,6 +96,8 @@ class Tests_Menu_WpAjaxMenuQuickSearch extends WP_UnitTestCase {
 	 * @ticket 38224
 	 */
 	public function test_search_paginates_taxonomy_results() {
+		require_once ABSPATH . 'wp-admin/includes/nav-menu.php';
+
 		register_taxonomy( 'wptests_tax_38224', 'post' );
 
 		$term_ids = array();
