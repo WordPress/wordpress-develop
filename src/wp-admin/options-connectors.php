@@ -37,12 +37,13 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 
 ?>
 <div class="wrap hide-if-js">
-	<h1><?php echo esc_html( $title ); ?></h1>
+	<h1 class="wp-heading-inline"><?php echo esc_html( $title ); ?></h1>
 	<?php
 		wp_admin_notice(
 			$js_required_message,
 			array(
-				'type' => 'error',
+				'type'               => 'error',
+				'additional_classes' => array( 'hide-if-js' ),
 			)
 		);
 		?>
