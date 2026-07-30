@@ -87,7 +87,7 @@ class HookParamCountRule implements Rule {
 	/**
 	 * Processes a function call node.
 	 *
-	 * @param Node $node Function call node.
+	 * @param Node  $node  Function call node.
 	 * @param Scope $scope Analysis scope.
 	 * @return list<IdentifierRuleError>
 	 * @throws ShouldNotHappenException
