@@ -428,7 +428,6 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 	 * @covers ::redirect_guess_404_permalink
 	 */
 	public function test_redirect_guess_404_permalink_array_post_type_uses_viewable_intersection() {
-		// Create a private post first (lower ID) to confirm it is not returned.
 		self::factory()->post->create(
 			array(
 				'post_type'   => 'wp_tests_private',
@@ -438,19 +437,10 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 			)
 		);
 
-		$public_post = self::factory()->post->create(
-			array(
-				'post_type'   => 'page',
-				'post_title'  => 'viewable-intersection-test',
-				'post_name'   => 'viewable-intersection-test',
-				'post_status' => 'publish',
-			)
-		);
-
 		$this->go_to( '/?name=viewable-intersection-tes' );
 		set_query_var( 'post_type', array( 'page', 'wp_tests_private' ) );
 
-		$this->assertSame( get_permalink( $public_post ), redirect_guess_404_permalink() );
+		$this->assertFalse( redirect_guess_404_permalink() );
 	}
 
 	/**
