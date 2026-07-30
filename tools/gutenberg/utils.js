@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+/* global AbortSignal */
 
 /**
  * Gutenberg build utilities.
@@ -25,6 +26,73 @@ const hashFilePath = path.join( gutenbergDir, '.gutenberg-hash' );
 const SHA_PATTERN = /^[a-f0-9]{40}$/i;
 
 const MANIFEST_ACCEPT = 'application/vnd.oci.image.manifest.v1+json';
+
+// Retry/timeout settings for the token and manifest requests. These run
+// before the blob download and are now a single point of failure for the
+// whole build, so they share the blob download's attempt count and backoff
+// (see MAX_DOWNLOAD_ATTEMPTS and RETRY_DELAY_MS in download.js).
+const MAX_METADATA_ATTEMPTS = 3;
+const RETRY_DELAY_MS = 2000;
+const METADATA_TIMEOUT_MS = 30000;
+
+/**
+ * Wait before retrying a failed metadata request.
+ *
+ * @param {number} milliseconds Time to wait in milliseconds.
+ * @return {Promise<void>} Resolves after the requested delay.
+ */
+function delay( milliseconds ) {
+	return new Promise( ( resolve ) => setTimeout( resolve, milliseconds ) );
+}
+
+/**
+ * Create an error that retains the HTTP status code for retry decisions.
+ *
+ * @param {string} message Error message.
+ * @param {number} status HTTP status code.
+ * @return {Error & { status: number }} Error with status code.
+ */
+function createHttpError( message, status ) {
+	const error = /** @type {Error & { status: number }} */ ( new Error( message ) );
+	error.status = status;
+	return error;
+}
+
+/**
+ * Determine whether a failed metadata request might succeed on a later attempt.
+ *
+ * @param {Error & { status?: number }} error Request error.
+ * @return {boolean} Whether the error is retryable.
+ */
+function isRetryableMetadataError( error ) {
+	return ! error.status || error.status === 408 || error.status === 429 || error.status >= 500;
+}
+
+/**
+ * Run a metadata request with bounded retries, matching the blob download's
+ * retry semantics. Non-retryable errors (e.g. a 404) are thrown immediately.
+ *
+ * @param {string} description Human-readable label for retry log messages.
+ * @param {() => Promise<any>} request Function that performs one request attempt.
+ * @return {Promise<any>} Resolves with the request's result.
+ */
+async function withMetadataRetries( description, request ) {
+	for ( let attempt = 1; attempt <= MAX_METADATA_ATTEMPTS; attempt++ ) {
+		try {
+			return await request();
+		} catch ( error ) {
+			const requestError = /** @type {Error & { status?: number }} */ ( error );
+			if ( attempt === MAX_METADATA_ATTEMPTS || ! isRetryableMetadataError( requestError ) ) {
+				throw requestError;
+			}
+			console.error( `❌ ${ description } attempt ${ attempt } failed: ${ requestError.message }` );
+			console.log( `   Retrying in ${ RETRY_DELAY_MS / 1000 } seconds...` );
+			await delay( RETRY_DELAY_MS );
+		}
+	}
+
+	throw new Error( `${ description } failed without an error` );
+}
 
 /**
  * Read Gutenberg configuration from package.json.
@@ -64,19 +132,23 @@ function readGutenbergConfig() {
  * @return {Promise<string>} The bearer token.
  */
 async function fetchGhcrToken( ghcrRepo ) {
-	const response = await fetch(
-		`https://ghcr.io/token?scope=repository:${ ghcrRepo }:pull&service=ghcr.io`
-	);
-	if ( ! response.ok ) {
-		throw new Error(
-			`Failed to fetch GHCR token: ${ response.status } ${ response.statusText }`
+	return withMetadataRetries( 'Fetch GHCR token', async () => {
+		const response = await fetch(
+			`https://ghcr.io/token?scope=repository:${ ghcrRepo }:pull&service=ghcr.io`,
+			{ signal: AbortSignal.timeout( METADATA_TIMEOUT_MS ) }
 		);
-	}
-	const data = await response.json();
-	if ( ! data.token ) {
-		throw new Error( 'No token in GHCR response' );
-	}
-	return data.token;
+		if ( ! response.ok ) {
+			throw createHttpError(
+				`Failed to fetch GHCR token: ${ response.status } ${ response.statusText }`,
+				response.status
+			);
+		}
+		const data = await response.json();
+		if ( ! data.token ) {
+			throw new Error( 'No token in GHCR response' );
+		}
+		return data.token;
+	} );
 }
 
 /**
@@ -88,25 +160,25 @@ async function fetchGhcrToken( ghcrRepo ) {
  * @return {Promise<Record<string, any>>} Parsed manifest JSON.
  */
 async function fetchManifest( ref, ghcrRepo, token ) {
-	const response = await fetch(
-		`https://ghcr.io/v2/${ ghcrRepo }/manifests/${ ref }`,
-		{
-			headers: {
-				Authorization: `Bearer ${ token }`,
-				Accept: MANIFEST_ACCEPT,
-			},
-		}
-	);
-	if ( ! response.ok ) {
-		const error = /** @type {Error & { status?: number }} */ (
-			new Error(
-				`Failed to fetch manifest for "${ ref }": ${ response.status } ${ response.statusText }`
-			)
+	return withMetadataRetries( `Fetch manifest for "${ ref }"`, async () => {
+		const response = await fetch(
+			`https://ghcr.io/v2/${ ghcrRepo }/manifests/${ ref }`,
+			{
+				headers: {
+					Authorization: `Bearer ${ token }`,
+					Accept: MANIFEST_ACCEPT,
+				},
+				signal: AbortSignal.timeout( METADATA_TIMEOUT_MS ),
+			}
 		);
-		error.status = response.status;
-		throw error;
-	}
-	return response.json();
+		if ( ! response.ok ) {
+			throw createHttpError(
+				`Failed to fetch manifest for "${ ref }": ${ response.status } ${ response.statusText }`,
+				response.status
+			);
+		}
+		return response.json();
+	} );
 }
 
 /**
@@ -121,6 +193,17 @@ async function fetchManifest( ref, ghcrRepo, token ) {
  * @return {Promise<string>} The expected SHA.
  */
 async function resolveExpectedSha( { ref, ghcrRepo, isMutable } ) {
+	const workflowSha = process.env.GUTENBERG_EXPECTED_SHA;
+	if ( workflowSha ) {
+		if ( ! SHA_PATTERN.test( workflowSha ) ) {
+			throw new Error(
+				`GUTENBERG_EXPECTED_SHA must be a 40-character Git SHA, received "${ workflowSha }"`
+			);
+		}
+
+		return workflowSha;
+	}
+
 	if ( ! isMutable ) {
 		return ref;
 	}
@@ -157,11 +240,11 @@ function downloadGutenberg() {
 /**
  * Verify that the installed Gutenberg version matches the expected SHA.
  *
- * For SHA refs, the expected SHA is the configured value. For mutable refs,
- * the expected SHA is whatever the mutable tag currently points to in GHCR
- * (read from the manifest's image.revision annotation). The installed
- * `.gutenberg-hash` is compared against the expected SHA; on mismatch, a
- * fresh download is triggered.
+ * A calling workflow may supply GUTENBERG_EXPECTED_SHA after resolving a build
+ * once. This avoids re-resolving a mutable tag in every matrix job. Otherwise,
+ * SHA refs use the configured value and mutable refs resolve their current
+ * image.revision annotation. The installed `.gutenberg-hash` is compared
+ * against the expected SHA; on mismatch, a fresh download is triggered.
  */
 async function verifyGutenbergVersion() {
 	console.log( '\n🔍 Verifying Gutenberg version...' );

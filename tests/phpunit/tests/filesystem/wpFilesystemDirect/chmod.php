@@ -74,4 +74,63 @@ class Tests_Filesystem_WpFilesystemDirect_Chmod extends WP_Filesystem_Direct_Uni
 			),
 		);
 	}
+
+	/**
+	 * Tests that recursive {@see WP_Filesystem_Direct::chmod()} applies the mode to files in subdirectories.
+	 *
+	 * @ticket 65584
+	 */
+	public function test_should_change_mode_recursively(): void {
+		if ( self::is_windows() ) {
+			$this->markTestSkipped( 'chmod() does not support octal modes on Windows.' );
+		}
+
+		$directory   = untrailingslashit( self::$file_structure['test_dir']['path'] );
+		$nested_file = self::$file_structure['subfile']['path'];
+
+		$this->assertTrue(
+			self::$filesystem->chmod( $directory, 0640, true ),
+			'chmod() did not report success.'
+		);
+
+		clearstatcache();
+
+		$this->assertSame(
+			'640',
+			self::$filesystem->getchmod( $nested_file ),
+			'The mode was not applied to a file in a nested subdirectory.'
+		);
+	}
+
+	/**
+	 * Tests that `WP_Filesystem_Direct::chmod()` uses the correct mask for comparing permissions.
+	 *
+	 * The `& 0777` mask should be used to strip the filetype bits from the `fileperms( $file )` value
+	 * so that the current permission bits can be used for comparison with the requested mode.
+	 *
+	 * @ticket 65695
+	 */
+	public function test_should_use_correct_permission_mask_for_files(): void {
+		if ( self::is_windows() ) {
+			$this->markTestSkipped( 'chmod() does not support octal modes on Windows.' );
+		}
+
+		$file = self::$file_structure['visible_file']['path'];
+
+		// Set the initial permissions.
+		self::$filesystem->chmod( $file, 0600 );
+
+		$this->assertTrue(
+			self::$filesystem->chmod( $file, 0644 ),
+			'chmod() did not report success.'
+		);
+
+		clearstatcache();
+
+		$this->assertSame(
+			'644',
+			self::$filesystem->getchmod( $file ),
+			'The requested mode was not applied to the file.'
+		);
+	}
 }
