@@ -34,6 +34,17 @@ function toRestDateGmt( date ) {
 	return date.toISOString().slice( 0, 19 ) + 'Z';
 }
 
+/**
+ * Reads a GMT date string returned by the REST API, which carries no timezone
+ * designator, as the UTC instant it denotes.
+ *
+ * @param {string} dateGmt A `date_gmt` value from the REST API.
+ * @return {Date} The instant it denotes.
+ */
+function fromRestDateGmt( dateGmt ) {
+	return new Date( `${ dateGmt.replace( /Z$/, '' ) }Z` );
+}
+
 test.describe( 'Scheduled Posts', () => {
 	test.beforeEach( async ( { requestUtils } ) => {
 		await requestUtils.deleteAllPosts();
@@ -42,22 +53,40 @@ test.describe( 'Scheduled Posts', () => {
 	test( 'publishes a scheduled post when its time arrives', async ( {
 		requestUtils,
 	} ) => {
-		// The test spans real time by design (a 65-second quiet wait,
-		// then up to 60 seconds of polling), so triple the per-test
-		// budget: a genuine failure should surface as the poll's
+		// The test spans real time by design (it waits out the post's own
+		// scheduled date, then polls for the transition), so triple the
+		// per-test budget: a genuine failure should surface as the poll's
 		// message, not as a generic test timeout.
 		test.slow();
 
-		// Schedule the post shortly into the future, by the server's clock.
+		// Schedule the post far enough out to clear the coercion in
+		// wp_insert_post(): a post submitted as `future` is silently stored as
+		// `publish` unless its date is at least MINUTE_IN_SECONDS ahead of the
+		// server's clock, compared at whole-second resolution. Scheduling
+		// exactly a minute out would therefore depend on the insert landing in
+		// the same clock second as the reading it was derived from, which is
+		// not something a loaded machine guarantees.
 		const serverNow = await getServerNow( requestUtils );
 		const post = await requestUtils.createPost( {
 			title: 'Scheduled Post',
 			content: '<p>Published by WP-Cron.</p>',
 			status: 'future',
-			date_gmt: toRestDateGmt( new Date( serverNow.getTime() + 60_000 ) ),
+			date_gmt: toRestDateGmt( new Date( serverNow.getTime() + 90_000 ) ),
 		} );
 
-		expect( post.status ).toBe( 'future' );
+		expect(
+			post.status,
+			'the post should be stored as scheduled; `publish` here means its date landed under a minute ahead of the server clock'
+		).toBe( 'future' );
+
+		// Wait out the date the server actually stored, measured against the
+		// server's clock as it reads now, so the wait carries no estimate made
+		// before the post existed. The extra five seconds put the explicit
+		// drive that follows safely past the moment the event comes due.
+		const dueAt = fromRestDateGmt( post.date_gmt );
+		const clockBeforeWait = await getServerNow( requestUtils );
+		const waitMs =
+			Math.max( 0, dueAt.getTime() - clockBeforeWait.getTime() ) + 5_000;
 
 		// Let the scheduled time pass with no requests to the site. Any
 		// ordinary request that observes a due event spawns WordPress's
@@ -68,7 +97,7 @@ test.describe( 'Scheduled Posts', () => {
 		// moment the event is due, letting the explicit wp-cron.php request
 		// below claim it and run the transition deterministically.
 		await new Promise( ( resolve ) => {
-			setTimeout( resolve, 65_000 );
+			setTimeout( resolve, waitMs );
 		} );
 
 		// Drive cron explicitly, once: the request runs due events
