@@ -4,7 +4,6 @@
  * convention to PHPStan's variable type resolution.
  *
  * @package WordPress
- * @noinspection PhpUnused
  */
 
 declare(strict_types=1);
