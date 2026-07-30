@@ -134,12 +134,18 @@ jobs:
     permissions:
       contents: read
 
+    env:
+      WP_DB_PASSWORD: password
+      WP_DB_DATABASE: wordpress_develop_tests
+
     services:
       mysql:
         image: ${{ inputs.db-type }}:${{ inputs.db-version }}
         env:
-          MYSQL_ROOT_PASSWORD: password
-          MARIADB_ROOT_PASSWORD: password
+          MYSQL_ROOT_PASSWORD: ${{ env.WP_DB_PASSWORD }}
+          MYSQL_DATABASE: ${{ env.WP_DB_DATABASE }}
+          MARIADB_ROOT_PASSWORD: ${{ env.WP_DB_PASSWORD }}
+          MARIADB_DATABASE: ${{ env.WP_DB_DATABASE }}
         ports:
           - 3306:3306
         options: >-
@@ -224,9 +230,9 @@ jobs:
       - name: Set up test configuration
         run: |
           sed \
-            -e 's/youremptytestdbnamehere/wordpress_develop_tests/' \
+            -e "s/youremptytestdbnamehere/${WP_DB_DATABASE}/" \
             -e 's/yourusernamehere/root/' \
-            -e 's/yourpasswordhere/password/' \
+            -e "s/yourpasswordhere/${WP_DB_PASSWORD}/" \
             -e 's/localhost/127.0.0.1/' \
             -e "s/'WP_TESTS_DOMAIN', 'example.org'/'WP_TESTS_DOMAIN', '${LOCAL_WP_TESTS_DOMAIN}'/" \
             wp-tests-config-sample.php > wp-tests-config.php
