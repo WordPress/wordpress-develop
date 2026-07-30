@@ -8,8 +8,8 @@ test.describe( 'Navigation menu quick search', () => {
 		await requestUtils.deleteAllPosts( 'pages' );
 
 		const titles = [
-			...Array.from( { length: 10 }, ( value, index ) => `Ticket 38224 exact ten ${ index }` ),
-			...Array.from( { length: 11 }, ( value, index ) => `Ticket 38224 eleven ${ index }` ),
+			...Array.from( { length: 10 }, ( _value, index ) => `Ticket 38224 exact ten ${ index }` ),
+			...Array.from( { length: 11 }, ( _value, index ) => `Ticket 38224 eleven ${ index }` ),
 		];
 
 		await Promise.all(

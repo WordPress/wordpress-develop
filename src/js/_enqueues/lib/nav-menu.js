@@ -1512,7 +1512,10 @@
 				.addClass( 'disabled' )
 				.text( loadMore.data( 'load-more-text' ) );
 
-			request = $.post( ajaxurl, params ).done( function( menuMarkup, textStatus, response ) {
+			request = $.post( ajaxurl, params );
+			state.request = request;
+
+			request.done( function( menuMarkup, textStatus, response ) {
 				var added;
 
 				if ( panel.data( 'quick-search-state' ) !== state || state.request !== request ) {
@@ -1547,8 +1550,6 @@
 					loadMore.removeAttr( 'aria-disabled' ).removeClass( 'disabled' );
 				}
 			});
-
-			state.request = request;
 		},
 
 		addCustomLink : function( processMethod ) {
@@ -1880,7 +1881,7 @@
 			var matched, newID, message,
 				takenIDs = {},
 				form = document.getElementById( 'nav-menu-meta' ),
-				pattern = /menu-item[(\[^]\]*/,
+				pattern = /menu-item\[(-?\d+)\]/,
 				$items = $( '<div>' ).html( resp ).find( 'li' ),
 				wrapper = panel.closest( '.accordion-section-content' ),
 				checklist = $( '.categorychecklist', panel ),

@@ -170,7 +170,7 @@
 		assert.ok( requests[3].aborted, 'Changing the query aborts its request.' );
 
 		requests[4].hasMore = '1';
-		requests[4].resolve( '<li><input type="checkbox" value="1"></li>', 'success', requests[4] );
+		requests[4].resolve( '<li><input type="checkbox" name="menu-item[-1][menu-item-type]" value="1"></li>', 'success', requests[4] );
 		requests[3].resolve( '<li><input type="checkbox" value="0"></li>', 'success', requests[3] );
 
 		assert.strictEqual( checklist.find( 'input' ).val(), '1', 'A stale response is ignored.' );
@@ -190,16 +190,45 @@
 		loadMore.trigger( 'focus' );
 		wpNavMenu.updateQuickSearchResults( input, true );
 		requests[6].resolve(
-			'<li><input type="checkbox" value="2"></li><li><input type="checkbox" value="3"></li>',
+			'<li><input type="checkbox" name="menu-item[-1][menu-item-type]" value="2"></li>' +
+			'<li><input type="checkbox" name="menu-item[-2][menu-item-type]" value="3"></li>',
 			'success',
 			requests[6]
 		);
 
 		assert.strictEqual( requests[6].params.paged, 2, 'A retry requests the same page.' );
 		assert.strictEqual( checklist.children().length, 3, 'The next page is appended.' );
+		assert.deepEqual(
+			checklist.find( 'input' ).map( function() {
+				return this.name;
+			} ).get(),
+			[
+				'menu-item[-1][menu-item-type]',
+				'menu-item[-2][menu-item-type]',
+				'menu-item[-3][menu-item-type]'
+			],
+			'Appended results have unique menu item IDs.'
+		);
 		assert.ok( loadMore.prop( 'hidden' ), 'Load more is hidden after the final page.' );
 		assert.strictEqual( document.activeElement, checklist.find( 'input' ).eq( 1 ).get( 0 ), 'Focus moves to the first new result.' );
 		assert.strictEqual( messages.pop(), '2 additional search results loaded.', 'The added results are announced.' );
+
+		$.post = function() {
+			var request = $.Deferred();
+
+			request.getResponseHeader = function() {
+				return '0';
+			};
+			request.resolve( '<li><input type="checkbox" value="synchronous"></li>', 'success', request );
+			return request;
+		};
+		input.val( 'synchronous term' );
+		wpNavMenu.updateQuickSearchResults( input );
+		state = panel.data( 'quick-search-state' );
+
+		assert.strictEqual( checklist.find( 'input' ).val(), 'synchronous', 'A synchronous response is processed.' );
+		assert.notOk( state.loading, 'A synchronous response clears the loading state.' );
+		assert.strictEqual( state.request, null, 'A completed synchronous request is not retained.' );
 
 		$.post = originalPost;
 		wp.a11y.speak = originalSpeak;
