@@ -12,15 +12,20 @@ services:
 		tags:
 			- phpstan.parser.richParserNodeVisitor
 
-	# Types the return value of apply_filters() (and variants) from the `@param`
-	# type in the docblock preceding the call, including the "This filter is
-	# documented in <file>" convention. Adapted from szepeviktor/phpstan-wordpress.
+	# Attaches the docblock documenting a hook to the hook's call, so that the return
+	# type extension and the rules below can all read it.
 	-
 		class: WordPress\PHPStan\HookDocsVisitor
 		tags:
 			- phpstan.parser.richParserNodeVisitor
+
+	# Resolves a hook call's documentation, whether written at the call or inherited
+	# through the "This filter is documented in <file>" convention.
 	-
 		class: WordPress\PHPStan\HookDocBlock
+
+	# Types the return value of apply_filters() (and variants) from the `@param` type
+	# documented for the value being filtered. Adapted from szepeviktor/phpstan-wordpress.
 	-
 		class: WordPress\PHPStan\ApplyFiltersDynamicFunctionReturnTypeExtension
 		tags:
