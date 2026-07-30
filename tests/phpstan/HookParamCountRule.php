@@ -24,7 +24,6 @@ namespace WordPress\PHPStan;
 use PhpParser\Node;
 use PhpParser\Node\Expr\FuncCall;
 use PhpParser\Node\Name;
-use PhpParser\Node\Scalar\String_;
 use PHPStan\Analyser\Scope;
 use PHPStan\Rules\IdentifierRuleError;
 use PHPStan\Rules\Rule;
@@ -136,20 +135,22 @@ class HookParamCountRule implements Rule {
 			return array();
 		}
 
+		$hook_name = HookDocBlock::getHookNameDisplay( $node );
+
 		// An action documented without any `@param` tag reads better as a statement
 		// about its docblock than as a count of zero.
 		$message = 0 === $documented
 			? sprintf(
-				'%s() %sprovides %d argument%s, but its docblock documents no parameters.',
+				'%s() for hook "%s" provides %d argument%s, but its docblock documents no parameters.',
 				$function_name,
-				self::hookLabel( $node ),
+				$hook_name,
 				$provided,
 				1 === $provided ? '' : 's'
 			)
 			: sprintf(
-				'%s() %sprovides %d argument%s, but the hook is documented with %d parameter%s.',
+				'%s() for hook "%s" provides %d argument%s, but the hook is documented with %d parameter%s.',
 				$function_name,
-				self::hookLabel( $node ),
+				$hook_name,
 				$provided,
 				1 === $provided ? '' : 's',
 				$documented,
@@ -213,23 +214,5 @@ class HookParamCountRule implements Rule {
 		}
 
 		return $size->getValue();
-	}
-
-	/**
-	 * Builds a `for hook "name" ` label fragment when the hook name is a literal.
-	 *
-	 * @param FuncCall $node Hook function call node.
-	 * @return string
-	 */
-	private static function hookLabel( FuncCall $node ): string {
-		$args = $node->getArgs();
-		if ( isset( $args[0] ) ) {
-			$name = $args[0]->value;
-			if ( $name instanceof String_ ) {
-				return sprintf( 'for hook "%s" ', $name->value );
-			}
-		}
-
-		return '';
 	}
 }
