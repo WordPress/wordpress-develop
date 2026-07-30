@@ -891,6 +891,53 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 		$this->assertNull( $result['suffix'] );
 		$this->assertNull( $result['unique_id'] );
 
+		/*
+		 * Should discard a "0" suffix or unique ID the same way an empty one is discarded. The
+		 * client's `parseDirectiveName` maps both to null with `|| null`, and "0" is falsy in
+		 * JavaScript as well, so both sides agree. A "0" prefix is kept, since the prefix is
+		 * returned as-is on both sides.
+		 */
+		$this->assertSame(
+			array(
+				'prefix'    => 'test',
+				'suffix'    => null,
+				'unique_id' => null,
+			),
+			$parse_directive_name->invoke( $this->interactivity, 'data-wp-test---0' )
+		);
+		$this->assertSame(
+			array(
+				'prefix'    => 'test',
+				'suffix'    => null,
+				'unique_id' => null,
+			),
+			$parse_directive_name->invoke( $this->interactivity, 'data-wp-test--0' )
+		);
+		$this->assertSame(
+			array(
+				'prefix'    => 'test',
+				'suffix'    => null,
+				'unique_id' => 'unique-id',
+			),
+			$parse_directive_name->invoke( $this->interactivity, 'data-wp-test--0---unique-id' )
+		);
+		$this->assertSame(
+			array(
+				'prefix'    => 'test',
+				'suffix'    => 'suffix',
+				'unique_id' => null,
+			),
+			$parse_directive_name->invoke( $this->interactivity, 'data-wp-test--suffix---0' )
+		);
+		$this->assertSame(
+			array(
+				'prefix'    => '0',
+				'suffix'    => 'suffix',
+				'unique_id' => null,
+			),
+			$parse_directive_name->invoke( $this->interactivity, 'data-wp-0--suffix' )
+		);
+
 		// Should handle only dashes (4 or more dashes).
 		$result = $parse_directive_name->invoke( $this->interactivity, 'data-wp-test----' );
 		$this->assertSame( 'test', $result['prefix'] );

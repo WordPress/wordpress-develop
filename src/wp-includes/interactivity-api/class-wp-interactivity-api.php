@@ -778,6 +778,9 @@ final class WP_Interactivity_API {
 	 * This function has an equivalent version for the client side.
 	 * See `parseDirectiveName` in https://github.com/WordPress/gutenberg/blob/trunk/packages/interactivity/src/vdom.ts.:
 	 *
+	 * A falsy suffix or unique ID is normalized to null. This includes the string "0", which the
+	 * client's `|| null` likewise discards since "0" is falsy in JavaScript as well.
+	 *
 	 * @see Tests_Interactivity_API_WpInteractivityAPI::test_parse_directive_name() for examples in the test inputs.
 	 *
 	 * @since 6.9.0
@@ -786,8 +789,8 @@ final class WP_Interactivity_API {
 	 * @return array|null An array containing the directive prefix, optional suffix, and optional unique ID, or null if the directive name cannot be parsed.
 	 * @phpstan-return array{
 	 *     prefix: non-empty-string,
-	 *     suffix: string|null,
-	 *     unique_id: string|null,
+	 *     suffix: non-falsy-string|null,
+	 *     unique_id: non-falsy-string|null,
 	 * }|null
 	 */
 	private function parse_directive_name( string $directive_name ): ?array {
@@ -815,10 +818,11 @@ final class WP_Interactivity_API {
 
 		// If remaining starts with '---' but not '----', it's a unique_id
 		if ( 3 === strspn( $remaining, '-' ) ) {
+			$unique_id = substr( $remaining, 3 );
 			return array(
 				'prefix'    => $prefix,
 				'suffix'    => null,
-				'unique_id' => '---' !== $remaining ? (string) substr( $remaining, 3 ) : null,
+				'unique_id' => empty( $unique_id ) ? null : $unique_id,
 			);
 		}
 
