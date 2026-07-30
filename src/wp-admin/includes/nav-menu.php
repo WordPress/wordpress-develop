@@ -26,6 +26,8 @@ function _wp_ajax_menu_quick_search( $request = array() ) {
 	$object_type     = $request['object_type'] ?? '';
 	$query           = $request['q'] ?? '';
 	$response_format = $request['response-format'] ?? '';
+	$is_paginated    = isset( $request['paged'] );
+	$paged           = max( 1, absint( $request['paged'] ?? 1 ) );
 
 	if ( ! $response_format || ! in_array( $response_format, array( 'json', 'markup' ), true ) ) {
 		$response_format = 'json';
@@ -92,6 +94,11 @@ function _wp_ajax_menu_quick_search( $request = array() ) {
 				's'                      => $query,
 				'search_columns'         => array( 'post_title' ),
 			);
+
+			if ( $is_paginated ) {
+				$query_args['paged'] = $paged;
+			}
+
 			/**
 			 * Filter the menu quick search arguments.
 			 *
@@ -104,6 +111,7 @@ function _wp_ajax_menu_quick_search( $request = array() ) {
 			 *     @type boolean      $update_post_meta_cache Whether to update post meta cache. Default false.
 			 *     @type boolean      $update_post_term_cache Whether to update post term cache. Default false.
 			 *     @type int          $posts_per_page         Number of posts to return. Default 10.
+			 *     @type int          $paged                  Current page of results, if requested.
 			 *     @type string       $post_type              Type of post to return.
 			 *     @type string       $s                      Search query.
 			 *     @type array        $search_columns         Which post table columns to query.
@@ -116,14 +124,53 @@ function _wp_ajax_menu_quick_search( $request = array() ) {
 				$args = array_merge( $args, (array) $post_type_obj->_default_query );
 			}
 
+			if ( $is_paginated ) {
+				$posts_per_page = (int) ( $args['posts_per_page'] ?? 10 );
+
+				// Query one extra post to determine whether another page exists.
+				if ( 0 < $posts_per_page ) {
+					$args['offset']         = $posts_per_page * ( $paged - 1 );
+					$args['posts_per_page'] = $posts_per_page + 1;
+				}
+
+				$args['_wp_menu_quick_search'] = true;
+				$orderby_filter                = static function ( $orderby, $query ) {
+					global $wpdb;
+
+					if ( ! $query->get( '_wp_menu_quick_search' ) ) {
+						return $orderby;
+					}
+
+					$order = 'ASC' === strtoupper( $query->get( 'order' ) ) ? 'ASC' : 'DESC';
+
+					return $orderby ? "$orderby, {$wpdb->posts}.ID $order" : "{$wpdb->posts}.ID $order";
+				};
+				add_filter( 'posts_orderby', $orderby_filter, 10, 2 );
+			}
+
 			$search_results_query = new WP_Query( $args );
-			if ( ! $search_results_query->have_posts() ) {
+
+			if ( $is_paginated ) {
+				remove_filter( 'posts_orderby', $orderby_filter );
+			}
+
+			$posts    = $search_results_query->posts;
+			$has_more = false;
+
+			if ( $is_paginated && 0 < $posts_per_page ) {
+				$has_more = count( $posts ) > $posts_per_page;
+				$posts    = array_slice( $posts, 0, $posts_per_page );
+			}
+
+			if ( $is_paginated && ! headers_sent() ) {
+				header( 'X-WP-Menu-Quick-Search-Has-More: ' . (int) $has_more );
+			}
+
+			if ( empty( $posts ) ) {
 				return;
 			}
 
-			while ( $search_results_query->have_posts() ) {
-				$post = $search_results_query->next_post();
-
+			foreach ( $posts as $post ) {
 				if ( 'markup' === $response_format ) {
 					$var_by_ref = $post->ID;
 					echo walk_nav_menu_tree(
@@ -143,14 +190,47 @@ function _wp_ajax_menu_quick_search( $request = array() ) {
 				}
 			}
 		} elseif ( 'taxonomy' === $matches[1] ) {
-			$terms = get_terms(
-				array(
-					'taxonomy'   => $matches[2],
-					'name__like' => $query,
-					'number'     => 10,
-					'hide_empty' => false,
-				)
+			$terms_per_page  = 10;
+			$term_query_args = array(
+				'taxonomy'   => $matches[2],
+				'name__like' => $query,
+				'number'     => $terms_per_page,
+				'hide_empty' => false,
 			);
+
+			if ( $is_paginated ) {
+				// Query one extra term to determine whether another page exists.
+				$term_query_args['number']                = $terms_per_page + 1;
+				$term_query_args['offset']                = $terms_per_page * ( $paged - 1 );
+				$term_query_args['_wp_menu_quick_search'] = true;
+				$get_terms_orderby_filter                 = static function ( $orderby, $args ) {
+					if ( empty( $args['_wp_menu_quick_search'] ) ) {
+						return $orderby;
+					}
+
+					$order = 'DESC' === strtoupper( $args['order'] ) ? 'DESC' : 'ASC';
+
+					return $orderby ? "$orderby $order, t.term_id" : 't.term_id';
+				};
+				add_filter( 'get_terms_orderby', $get_terms_orderby_filter, 10, 2 );
+			}
+
+			$terms = get_terms( $term_query_args );
+
+			if ( $is_paginated ) {
+				remove_filter( 'get_terms_orderby', $get_terms_orderby_filter );
+			}
+
+			$has_more = false;
+
+			if ( $is_paginated && ! is_wp_error( $terms ) ) {
+				$has_more = count( $terms ) > $terms_per_page;
+				$terms    = array_slice( $terms, 0, $terms_per_page );
+			}
+
+			if ( $is_paginated && ! headers_sent() ) {
+				header( 'X-WP-Menu-Quick-Search-Has-More: ' . (int) $has_more );
+			}
 
 			if ( empty( $terms ) || is_wp_error( $terms ) ) {
 				return;
@@ -737,6 +817,12 @@ function wp_nav_menu_item_post_type_meta_box( $data_object, $box ) {
 				<li><?php _e( 'No results found.' ); ?></li>
 			<?php endif; ?>
 			</ul>
+			<button type="button" class="button quick-search-load-more hide-if-no-js"
+				aria-controls="<?php echo esc_attr( "{$post_type_name}-search-checklist" ); ?>"
+				data-load-more-text="<?php esc_attr_e( 'Load more results' ); ?>" hidden
+			>
+				<?php _e( 'Load more results' ); ?>
+			</button>
 		</div><!-- /.tabs-panel -->
 
 		<div id="<?php echo esc_attr( "{$post_type_name}-all" ); ?>"
@@ -1113,6 +1199,12 @@ function wp_nav_menu_item_taxonomy_meta_box( $data_object, $box ) {
 				<li><?php _e( 'No results found.' ); ?></li>
 			<?php endif; ?>
 			</ul>
+			<button type="button" class="button quick-search-load-more hide-if-no-js"
+				aria-controls="<?php echo esc_attr( "{$taxonomy_name}-search-checklist" ); ?>"
+				data-load-more-text="<?php esc_attr_e( 'Load more results' ); ?>" hidden
+			>
+				<?php _e( 'Load more results' ); ?>
+			</button>
 		</div><!-- /.tabs-panel -->
 
 		<p class="button-controls" data-items-type="<?php echo esc_attr( "taxonomy-{$taxonomy_name}" ); ?>">
