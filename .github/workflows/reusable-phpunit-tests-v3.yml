@@ -202,9 +202,11 @@ jobs:
           extensions: "gd, opcache, mysqli, zip, exif, intl, mbstring, xml, xsl, imagick, xdebug${{ inputs.memcached && ', memcached' || '' }}"
           coverage: none
 
-      - name: Configure ImageMagick
+      - name: Install system dependencies
         run: |
-          sudo apt-get install -y --no-install-recommends ghostscript libheif1 libheif-plugin-aomenc libheif-plugin-aomdec
+          sudo apt-get install -y --no-install-recommends ghostscript libheif1 libheif-plugin-aomenc libheif-plugin-aomdec libavif16 locales
+          # Generate the locales used by WordPress tests.
+          sudo locale-gen ru_RU.UTF-8 fr_FR.UTF-8 de_DE.UTF-8 es_ES.UTF-8 ja_JP.UTF-8
           # Allow PDF processing; Ubuntu disables this in the default ImageMagick policy for security.
           sudo find /etc/ImageMagick* -name policy.xml \
             -exec sed -i 's@rights="none" pattern="PDF"@rights="read|write" pattern="PDF"@' {} +
