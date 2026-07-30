@@ -3503,8 +3503,10 @@ function wp_ajax_heartbeat() {
 		$response = apply_filters( 'wp_refresh_nonces', $response, $data, $screen_id );
 
 		if ( false === $nonce_state ) {
-			// User is logged in but nonces have expired.
-			$response['nonces_expired'] = true;
+			// Nonces have expired but the user is still authenticated.
+			// Return refreshed nonces so the client can recover, but do not
+			// process heartbeat_received/heartbeat_send/heartbeat_tick to
+			// prevent state-changing callbacks without a valid nonce.
 			wp_send_json( $response );
 		}
 	}
