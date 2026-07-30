@@ -845,6 +845,7 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 	 * name.
 	 *
 	 * @ticket 64106
+	 * @ticket 64898
 	 *
 	 * @covers ::parse_directive_name
 	 */
@@ -890,6 +891,53 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 		$this->assertNull( $result['suffix'] );
 		$this->assertNull( $result['unique_id'] );
 
+		/*
+		 * Should keep a "0" prefix, suffix, and unique ID rather than discarding it as empty. The
+		 * client's `parseDirectiveName` normalizes with `|| null`, which discards only the empty
+		 * string, because a non-empty string such as "0" is truthy in JavaScript. Using empty()
+		 * here would discard "0" and diverge from the client.
+		 */
+		$this->assertSame(
+			array(
+				'prefix'    => 'test',
+				'suffix'    => null,
+				'unique_id' => '0',
+			),
+			$parse_directive_name->invoke( $this->interactivity, 'data-wp-test---0' )
+		);
+		$this->assertSame(
+			array(
+				'prefix'    => 'test',
+				'suffix'    => '0',
+				'unique_id' => null,
+			),
+			$parse_directive_name->invoke( $this->interactivity, 'data-wp-test--0' )
+		);
+		$this->assertSame(
+			array(
+				'prefix'    => 'test',
+				'suffix'    => '0',
+				'unique_id' => 'unique-id',
+			),
+			$parse_directive_name->invoke( $this->interactivity, 'data-wp-test--0---unique-id' )
+		);
+		$this->assertSame(
+			array(
+				'prefix'    => 'test',
+				'suffix'    => 'suffix',
+				'unique_id' => '0',
+			),
+			$parse_directive_name->invoke( $this->interactivity, 'data-wp-test--suffix---0' )
+		);
+		$this->assertSame(
+			array(
+				'prefix'    => '0',
+				'suffix'    => 'suffix',
+				'unique_id' => null,
+			),
+			$parse_directive_name->invoke( $this->interactivity, 'data-wp-0--suffix' )
+		);
+
 		// Should handle only dashes (4 or more dashes).
 		$result = $parse_directive_name->invoke( $this->interactivity, 'data-wp-test----' );
 		$this->assertSame( 'test', $result['prefix'] );
@@ -919,12 +967,50 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 		$this->assertSame( 'test', $result['prefix'] );
 		$this->assertNull( $result['suffix'] );
 		$this->assertSame( 'unique-id--wrong-suffix', $result['unique_id'] );
+
+		// Should reject a name containing characters a directive name cannot contain.
+		$this->assertNull( $parse_directive_name->invoke( $this->interactivity, 'data-wp-test.suffix' ) );
+
+		/*
+		 * Should reject a name which is nothing but the prefix, rather than returning an empty
+		 * prefix. The client's `parseDirectiveName` returns `{ prefix: '' }` here instead, but
+		 * neither an empty prefix nor null matches a registered directive, so the outcome is the
+		 * same on both sides: the attribute is ignored.
+		 */
+		$this->assertNull( $parse_directive_name->invoke( $this->interactivity, 'data-wp-' ) );
+
+		/*
+		 * Should reject a name whose prefix would begin with a hyphen, which the directive syntax
+		 * does not allow. Neither reading of such a name is meaningful: treating the hyphens as a
+		 * suffix separator leaves the prefix empty, and treating them as part of the prefix names
+		 * a directive which cannot be registered. The client's `parseDirectiveName` still splits
+		 * `data-wp---foo` into `{ prefix: '', suffix: 'foo' }`, but as with an empty name, no
+		 * result here matches a registered directive, so the attribute is ignored on both sides
+		 * either way.
+		 */
+		$this->assertNull( $parse_directive_name->invoke( $this->interactivity, 'data-wp--bind' ) );
+		$this->assertNull( $parse_directive_name->invoke( $this->interactivity, 'data-wp---foo' ) );
+		$this->assertNull( $parse_directive_name->invoke( $this->interactivity, 'data-wp----foo' ) );
+
+		/*
+		 * Should still accept a suffix which begins with hyphens, since only the prefix is
+		 * constrained. Here the prefix is "style" and the suffix is "--var".
+		 */
+		$this->assertSame(
+			array(
+				'prefix'    => 'style',
+				'suffix'    => '--var',
+				'unique_id' => null,
+			),
+			$parse_directive_name->invoke( $this->interactivity, 'data-wp-style----var' )
+		);
 	}
 
 	/**
 	 * Tests the ability to get the valid entries of a specific directive in an HTML element.
 	 *
 	 * @ticket 64106
+	 * @ticket 64898
 	 *
 	 * @covers ::get_directive_entries
 	 */
@@ -1138,6 +1224,26 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 				},
 				$results
 			)
+		);
+
+		/*
+		 * Should skip an attribute whose directive name cannot be parsed. Such a name is still
+		 * matched by the prefix search, so it reaches here and has to be filtered out rather than
+		 * destructured.
+		 */
+		$html = '<div data-wp-test.suffix="skipped" data-wp-test--valid="kept"></div>';
+		$p    = new WP_Interactivity_API_Directives_Processor( $html );
+		$p->next_tag();
+		$this->assertSame(
+			array(
+				array(
+					'namespace' => 'myPlugin',
+					'value'     => 'kept',
+					'suffix'    => 'valid',
+					'unique_id' => null,
+				),
+			),
+			$get_directive_entries->invoke( $this->interactivity, $p, 'test' )
 		);
 	}
 
