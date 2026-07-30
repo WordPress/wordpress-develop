@@ -178,8 +178,8 @@ function _post_format_request( $qvs ) {
 		} else {
 			$qvs['post_format'] = 'post-format-' . $slugs[ $qvs['post_format'] ];
 		}
+	}
 	$tax = get_taxonomy( 'post_format' );
-	if ( ! is_admin() ) {
 		$qvs['post_type'] = $tax->object_type;
 	}
 	return $qvs;
