@@ -1868,10 +1868,15 @@ function rest_validate_json_schema_pattern( $pattern, $value ) {
  * @return array|null      The schema of matching pattern property, or null if no patterns match.
  */
 function rest_find_matching_pattern_property_schema( $property, $args ) {
-	return array_find(
-		$args['patternProperties'] ?? array(),
-		fn( $child_schema, $pattern ) => rest_validate_json_schema_pattern( $pattern, $property )
-	);
+	if ( isset( $args['patternProperties'] ) ) {
+		foreach ( $args['patternProperties'] as $pattern => $child_schema ) {
+			if ( rest_validate_json_schema_pattern( $pattern, $property ) ) {
+				return $child_schema;
+			}
+		}
+	}
+
+	return null;
 }
 
 /**
