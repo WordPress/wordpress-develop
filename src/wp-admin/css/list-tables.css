@@ -1357,6 +1357,10 @@ ul.cat-checklist input[name="post_category[]"]:indeterminate::before {
 	.plugin-update-tr.active td {
 		border-left: 4px solid transparent;
 	}
+	.plugins .active th.check-column input,
+	.plugins .active td.check-column input {
+		margin-left: 0px;
+	}
 	.plugins tr.active,
 	.plugin-update-tr.active {
 		border-left: 4px solid var(--wp-admin-theme-color);
