@@ -388,7 +388,7 @@ class Tests_Privacy_wpPrivacyProcessPersonalDataExportPage extends WP_UnitTestCa
 	 *
 	 * @dataProvider data_send_as_email_options
 	 *
-	 * @param bool $send_as_email  Whether the final results of the export should be emailed to the user.
+	 * @param bool $send_as_email Whether the final results of the export should be emailed to the user.
 	 */
 	public function test_send_error_when_invalid_request_action_name( $send_as_email ) {
 		$response = array(
