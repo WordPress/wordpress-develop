@@ -156,6 +156,7 @@ jobs:
       report: ${{ matrix.report || false }}
       gutenberg-artifact: ${{ needs.prepare-gutenberg.result != 'skipped' }}
       gutenberg-sha: ${{ needs.prepare-gutenberg.outputs.gutenberg-sha }}
+      wordpress-build-artifact: wordpress-build
 
   #
   # Creates a PHPUnit test job for each PHP/MariaDB combination.
@@ -221,6 +222,7 @@ jobs:
       report: false
       gutenberg-artifact: ${{ needs.prepare-gutenberg.result != 'skipped' }}
       gutenberg-sha: ${{ needs.prepare-gutenberg.outputs.gutenberg-sha }}
+      wordpress-build-artifact: wordpress-build
 
   #
   # Creates PHPUnit test jobs to test MariaDB and MySQL innovation releases.
@@ -280,6 +282,7 @@ jobs:
       report: false
       gutenberg-artifact: ${{ needs.prepare-gutenberg.result != 'skipped' }}
       gutenberg-sha: ${{ needs.prepare-gutenberg.outputs.gutenberg-sha }}
+      wordpress-build-artifact: wordpress-build
 
   #
   # Runs the HTML API test group.
@@ -324,6 +327,7 @@ jobs:
       phpunit-test-groups: ${{ matrix.phpunit-test-groups }}
       gutenberg-artifact: ${{ needs.prepare-gutenberg.result != 'skipped' }}
       gutenberg-sha: ${{ needs.prepare-gutenberg.outputs.gutenberg-sha }}
+      wordpress-build-artifact: wordpress-build
 
   #
   # Runs unit tests for forks.
@@ -395,6 +399,7 @@ jobs:
       phpunit-test-groups: ${{ matrix.phpunit-test-groups || '' }}
       gutenberg-artifact: ${{ needs.prepare-gutenberg.result != 'skipped' }}
       gutenberg-sha: ${{ needs.prepare-gutenberg.outputs.gutenberg-sha }}
+      wordpress-build-artifact: wordpress-build
 
   slack-notifications:
     name: Slack Notifications
