@@ -80,8 +80,6 @@ class ApplyFiltersDynamicFunctionReturnTypeExtension implements DynamicFunctionR
 	 * @throws ShouldNotHappenException
 	 */
 	public function getTypeFromFunctionCall( FunctionReflection $functionReflection, FuncCall $functionCall, Scope $scope ): Type {
-		unset( $functionReflection );
-
 		$default          = new MixedType();
 		$resolved_php_doc = $this->hookDocBlock->getNullableHookDocBlock( $functionCall, $scope );
 

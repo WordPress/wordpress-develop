@@ -66,8 +66,6 @@ final class HookDocsVisitor extends NodeVisitorAbstract {
 	 * @return Node[]|null
 	 */
 	public function beforeTraverse( array $nodes ): ?array {
-		unset( $nodes );
-
 		$this->latestDocComment = null;
 		$this->stack            = array();
 
