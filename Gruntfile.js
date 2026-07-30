@@ -764,15 +764,21 @@ module.exports = function(grunt) {
 						 *
 						 * @ticket 65278
 						 */
+						const longestKey = 'dependencies';
+
 						return content.replace(
 							/^(\t\t)'(handle|path|dependencies)'\s*=>\s*([^\r\n]*)$/gm,
 							function( match, indentation, key, value ) {
-								const padding = ' '.repeat( 13 - key.length );
+								const padding = ' '.repeat( longestKey.length - key.length + 1 );
 
 								if ( key === 'dependencies' ) {
 									value = value.replace(
-										/^array\((.+)\),$/,
-										'array( $1 ),'
+										/^array\((.*)\),$/,
+										function( array, dependencies ) {
+											dependencies = dependencies.trim();
+
+											return dependencies ? 'array( ' + dependencies + ' ),' : 'array(),';
+										}
 									);
 								}
 
