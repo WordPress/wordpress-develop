@@ -116,6 +116,13 @@ class HookParamCountRule implements Rule {
 			return array();
 		}
 
+		// A filter whose docblock documents no parameters is not documented at all,
+		// which HookDocumentationRule reports. Comparing counts as well would report
+		// one defect twice.
+		if ( $this->hookDocBlock->isFilterMissingParamDocs( $node, $scope ) ) {
+			return array();
+		}
+
 		$provided = $is_variadic
 			? self::countVariadicArguments( $node, $scope )
 			: self::countArrayArguments( $node, $scope );
@@ -126,18 +133,28 @@ class HookParamCountRule implements Rule {
 			return array();
 		}
 
-		return array(
-			RuleErrorBuilder::message(
-				sprintf(
-					'%s() %sprovides %d argument%s, but the hook is documented with %d parameter%s.',
-					$function_name,
-					self::hookLabel( $node ),
-					$provided,
-					1 === $provided ? '' : 's',
-					$documented,
-					1 === $documented ? '' : 's'
-				)
+		// An action documented without any `@param` tag reads better as a statement
+		// about its docblock than as a count of zero.
+		$message = 0 === $documented
+			? sprintf(
+				'%s() %sprovides %d argument%s, but its docblock documents no parameters.',
+				$function_name,
+				self::hookLabel( $node ),
+				$provided,
+				1 === $provided ? '' : 's'
 			)
+			: sprintf(
+				'%s() %sprovides %d argument%s, but the hook is documented with %d parameter%s.',
+				$function_name,
+				self::hookLabel( $node ),
+				$provided,
+				1 === $provided ? '' : 's',
+				$documented,
+				1 === $documented ? '' : 's'
+			);
+
+		return array(
+			RuleErrorBuilder::message( $message )
 				->identifier( 'wordpress.hookParamCountMismatch' )
 				->line( $node->getStartLine() )
 				->build(),

@@ -104,9 +104,24 @@ class HookDocumentationRule implements Rule {
 			);
 		}
 
-		// An inline docblock documents the hook in place; nothing more to check.
+		// An inline docblock documents the hook in place, provided it describes the
+		// value being filtered.
 		if ( 'reference' !== $doc_block['type'] ) {
-			return array();
+			if ( ! $this->hookDocBlock->isFilterMissingParamDocs( $node, $scope ) ) {
+				return array();
+			}
+
+			return array(
+				RuleErrorBuilder::message(
+					sprintf(
+						'%s() call is preceded by a docblock that documents no parameters. A filter is documented with a `@param` tag for the value being filtered, plus one for each further argument passed.',
+						$function_name
+					)
+				)
+					->identifier( 'wordpress.hookDocNoParams' )
+					->line( $node->getStartLine() )
+					->build(),
+			);
 		}
 
 		// A reference comment must point at a file that documents this hook.

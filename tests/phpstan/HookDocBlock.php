@@ -72,6 +72,15 @@ class HookDocBlock {
 	);
 
 	/**
+	 * Hook functions that filter a value, and so always pass at least one argument.
+	 */
+	public const FILTER_FUNCTIONS = array(
+		'apply_filters',
+		'apply_filters_deprecated',
+		'apply_filters_ref_array',
+	);
+
+	/**
 	 * Directories, relative to the WordPress root, scanned for reference comments
 	 * when hashing the docblocks that call sites can inherit.
 	 *
@@ -340,6 +349,40 @@ class HookDocBlock {
 		);
 
 		return count( $resolved->getParamTags() );
+	}
+
+	/**
+	 * Determines whether a filter call is preceded by a docblock that documents no
+	 * parameters.
+	 *
+	 * A filter always passes at least the value being filtered, so such a docblock
+	 * does not document the hook. It is either hook documentation with its `@param`
+	 * tags missing, or an unrelated annotation — typically a `@var` block — that
+	 * happens to sit immediately above the call.
+	 *
+	 * Only inline docblocks are considered. A hook documented elsewhere is checked
+	 * where its canonical docblock lives, so that is where such a fix belongs, rather
+	 * than at every site inheriting it.
+	 *
+	 * @param FuncCall $function_call Hook function call node.
+	 * @param Scope    $scope         Analysis scope.
+	 * @return bool
+	 * @throws ShouldNotHappenException
+	 */
+	public function isFilterMissingParamDocs( FuncCall $function_call, Scope $scope ): bool {
+		if ( ! $function_call->name instanceof Name
+			|| ! in_array( $function_call->name->toString(), self::FILTER_FUNCTIONS, true )
+		) {
+			return false;
+		}
+
+		$doc_block = $this->getPrecedingDocBlock( $function_call );
+
+		if ( null === $doc_block || 'inline' !== $doc_block['type'] ) {
+			return false;
+		}
+
+		return 0 === $this->getDocumentedParamCount( $function_call, $scope );
 	}
 
 	/**

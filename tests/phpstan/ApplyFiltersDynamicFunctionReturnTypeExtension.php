@@ -63,15 +63,7 @@ class ApplyFiltersDynamicFunctionReturnTypeExtension implements DynamicFunctionR
 	 * @return bool
 	 */
 	public function isFunctionSupported( FunctionReflection $functionReflection ): bool {
-		return in_array(
-			$functionReflection->getName(),
-			array(
-				'apply_filters',
-				'apply_filters_deprecated',
-				'apply_filters_ref_array',
-			),
-			true
-		);
+		return in_array( $functionReflection->getName(), HookDocBlock::FILTER_FUNCTIONS, true );
 	}
 
 	/**
