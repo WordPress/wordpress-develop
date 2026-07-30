@@ -68,9 +68,9 @@ class ApplyFiltersDynamicFunctionReturnTypeExtension implements DynamicFunctionR
 	/**
 	 * Resolves the return type of the filter call from its preceding docblock.
 	 *
-	 * @see https://developer.wordpress.org/reference/functions/apply_filters/
-	 * @see https://developer.wordpress.org/reference/functions/apply_filters_deprecated/
-	 * @see https://developer.wordpress.org/reference/functions/apply_filters_ref_array/
+	 * @link https://developer.wordpress.org/reference/functions/apply_filters/
+	 * @link https://developer.wordpress.org/reference/functions/apply_filters_deprecated/
+	 * @link https://developer.wordpress.org/reference/functions/apply_filters_ref_array/
 	 *
 	 * @param FunctionReflection $functionReflection Function being analyzed.
 	 * @param FuncCall           $functionCall       The function call node.
