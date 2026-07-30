@@ -807,7 +807,7 @@ class WP_List_Table {
 	protected function view_switcher( $current_mode ) {
 		?>
 		<input type="hidden" name="mode" value="<?php echo esc_attr( $current_mode ); ?>" />
-		<div class="view-switch" role="group" aria-label="<?php esc_attr_e( 'View mode' ); ?>'">
+		<div class="view-switch" role="group" aria-label="<?php esc_attr_e( 'View mode' ); ?>">
 		<?php
 		foreach ( $this->modes as $mode => $title ) {
 			$classes      = array( 'view-' . $mode );
