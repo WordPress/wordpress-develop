@@ -45,6 +45,46 @@ function fromRestDateGmt( dateGmt ) {
 	return new Date( `${ dateGmt.replace( /Z$/, '' ) }Z` );
 }
 
+/**
+ * Asks WordPress to run its due cron events, without waiting for them.
+ *
+ * How long wp-cron.php holds the connection open depends on the server: under
+ * PHP-FPM it calls fastcgi_finish_request() and answers immediately, while
+ * under mod_php the response waits for every due event to finish. Since one
+ * slow event would then stall the caller for as long as it runs, the request is
+ * given a short timeout and its failure ignored — wp-cron.php sets
+ * ignore_user_abort( true ), so the run continues server-side either way, and
+ * what matters here is only that it was asked to start.
+ *
+ * @param {import('@wordpress/e2e-test-utils-playwright').RequestUtils} requestUtils The request utils fixture.
+ * @return {Promise<void>}
+ */
+async function driveCron( requestUtils ) {
+	try {
+		await requestUtils.request.get(
+			new URL( '/wp-cron.php', requestUtils.baseURL ).toString(),
+			{ timeout: 5_000 }
+		);
+	} catch {
+		// Timed out holding the connection open; the run itself is unaffected.
+	}
+}
+
+/**
+ * Reads a post's status, including statuses only visible to an editor.
+ *
+ * @param {import('@wordpress/e2e-test-utils-playwright').RequestUtils} requestUtils The request utils fixture.
+ * @param {number}                                                      postId       The post ID.
+ * @return {Promise<string>} The post status.
+ */
+async function readPostStatus( requestUtils, postId ) {
+	const post = await requestUtils.rest( {
+		path: `/wp/v2/posts/${ postId }`,
+		params: { context: 'edit' },
+	} );
+	return post.status;
+}
+
 test.describe( 'Scheduled Posts', () => {
 	test.beforeEach( async ( { requestUtils } ) => {
 		await requestUtils.deleteAllPosts();
@@ -53,10 +93,12 @@ test.describe( 'Scheduled Posts', () => {
 	test( 'publishes a scheduled post when its time arrives', async ( {
 		requestUtils,
 	} ) => {
-		// The test spans real time by design (it waits out the post's own
-		// scheduled date, then polls for the transition), so triple the
-		// per-test budget: a genuine failure should surface as the poll's
-		// message, not as a generic test timeout.
+		// The test spans real time by design: it waits out the post's own
+		// scheduled date, then allows cron long enough to run it. Ninety
+		// seconds of scheduling plus the poll's budget below puts the failure
+		// path past the inherited per-test limit, so triple it — a genuine
+		// failure should surface as the poll's message rather than as a
+		// generic test timeout.
 		test.slow();
 
 		// Schedule the post far enough out to clear the coercion in
@@ -90,38 +132,49 @@ test.describe( 'Scheduled Posts', () => {
 
 		// Let the scheduled time pass with no requests to the site. Any
 		// ordinary request that observes a due event spawns WordPress's
-		// loopback cron and takes the doing_cron lock — and in an
-		// environment that cannot perform loopback requests, the spawned
-		// run never executes, so the lock only shuts out wp-cron.php for
-		// the next minute. A quiet wait leaves the lock free (or stale) the
-		// moment the event is due, letting the explicit wp-cron.php request
-		// below claim it and run the transition deterministically.
+		// loopback cron and takes the doing_cron lock — and where loopback
+		// requests cannot be made, the spawned run never executes, so the lock
+		// only shuts wp-cron.php out for the next minute. A quiet wait leaves
+		// the lock free, or stale, at the moment the event comes due, so the
+		// first drive below can claim it straight away.
 		await new Promise( ( resolve ) => {
 			setTimeout( resolve, waitMs );
 		} );
 
-		// Drive cron explicitly, once: the request runs due events
-		// synchronously after claiming the lock, with no dependency on
-		// loopback self-spawning. It stays outside the poll below so
-		// polling cannot itself observe a due event, spawn_cron(), and
-		// re-arm the doing_cron lock against a later explicit drive.
-		await requestUtils.request.get(
-			new URL( '/wp-cron.php', requestUtils.baseURL ).toString()
-		);
+		// Drive cron explicitly rather than waiting for WordPress to spawn it:
+		// a spawned run is a loopback request to the site's own address, which
+		// not every containerised environment can make.
+		//
+		// Drive repeatedly, on a cadence just past WP_CRON_LOCK_TIMEOUT, since
+		// one drive is not guaranteed to reach this post's event. wp-cron.php
+		// runs every due event in timestamp order, and an install has a queue
+		// of unrelated core events — privacy cleanups, do_pings, transient
+		// expiry — already due ahead of anything created during a test. A slow
+		// event in that queue leaves the drive still working when its own lock
+		// expires a minute later, at which point it stops. A later drive
+		// resumes from there, because every event the previous one reached was
+		// unscheduled before it ran.
+		//
+		// This is why the budget below is well over a minute: the recovery path
+		// becomes available exactly when the lock expires, so a timeout equal
+		// to WP_CRON_LOCK_TIMEOUT is a dead heat rather than a limit.
+		const driveIntervalMs = 65_000;
+		let nextDriveAt = 0;
 
 		await expect
 			.poll(
 				async () => {
-					const updated = await requestUtils.rest( {
-						path: `/wp/v2/posts/${ post.id }`,
-						params: { context: 'edit' },
-					} );
-					return updated.status;
+					if ( Date.now() >= nextDriveAt ) {
+						nextDriveAt = Date.now() + driveIntervalMs;
+						await driveCron( requestUtils );
+					}
+					return readPostStatus( requestUtils, post.id );
 				},
 				{
 					message:
-						'the scheduled post should transition to publish once its date passes',
-					timeout: 60_000,
+						'the scheduled post should transition to publish once its date passes and cron runs',
+					intervals: [ 1_000 ],
+					timeout: 150_000,
 				}
 			)
 			.toBe( 'publish' );
