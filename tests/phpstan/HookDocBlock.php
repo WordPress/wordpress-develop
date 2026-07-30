@@ -439,7 +439,7 @@ class HookDocBlock {
 	}
 
 	/**
-	 * Determines whether a filter call is preceded by a docblock that documents no
+	 * Determines whether a filter call resolves to a docblock that documents no
 	 * parameters.
 	 *
 	 * A filter always passes at least the value being filtered, so such a docblock
@@ -447,16 +447,17 @@ class HookDocBlock {
 	 * tags missing, or an unrelated annotation — typically a `@var` block — that
 	 * happens to sit immediately above the call.
 	 *
-	 * Only inline docblocks are considered. A hook documented elsewhere is checked
-	 * where its canonical docblock lives, so that is where such a fix belongs, rather
-	 * than at every site inheriting it.
+	 * This holds wherever the docblock was found, so no argument count is worth
+	 * comparing against it. HookDocumentationRule reports it only for a docblock
+	 * written at the call itself: a hook documented elsewhere is fixed where its
+	 * canonical docblock lives, rather than once per site inheriting it.
 	 *
 	 * @param FuncCall          $function_call Hook function call node.
 	 * @param HookDocumentation $hook_doc      Documentation resolved for the call.
 	 * @return bool
 	 */
 	public static function isFilterMissingParamDocs( FuncCall $function_call, array $hook_doc ): bool {
-		if ( 'inline' !== $hook_doc['kind'] || 0 !== $hook_doc['paramCount'] ) {
+		if ( 0 !== $hook_doc['paramCount'] ) {
 			return false;
 		}
 
