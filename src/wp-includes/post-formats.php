@@ -180,6 +180,7 @@ function _post_format_request( $qvs ) {
 		}
 	}
 	$tax = get_taxonomy( 'post_format' );
+	if ( ! is_admin() ) {
 		$qvs['post_type'] = $tax->object_type;
 	}
 	return $qvs;
