@@ -1178,7 +1178,7 @@ final class WP_Interactivity_API {
 						 * three as well, so none is a regression.
 						 */
 						$encoded = wp_json_encode( $result );
-						if ( false === $encoded ) {
+						if ( JSON_ERROR_INF_OR_NAN === json_last_error() ) {
 							/*
 							 * The encoder only rejects INF and NAN, of which JSON can represent neither. When such
 							 * a value is stored in state, the store itself also fails to encode in its entirety,
