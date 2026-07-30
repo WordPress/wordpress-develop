@@ -193,6 +193,7 @@ jobs:
         uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
         with:
           php-version: '${{ inputs.php }}'
+          extensions: "gd, opcache, mysqli, zip, exif, intl, mbstring, xml, xsl, imagick, xdebug${{ inputs.memcached && ', memcached' || '' }}"
           coverage: none
 
       # Since Composer dependencies are installed using `composer update` and no lock file is in version control,
