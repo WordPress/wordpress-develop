@@ -87,13 +87,10 @@ class ApplyFiltersDynamicFunctionReturnTypeExtension implements DynamicFunctionR
 			return $default;
 		}
 
-		// Fetch the `@param` values from the docblock; the first describes the filtered value.
+		// The first `@param` describes the value being filtered.
 		$params = $resolved_php_doc->getParamTags();
+		$param  = reset( $params );
 
-		foreach ( $params as $param ) {
-			return $param->getType();
-		}
-
-		return $default;
+		return false === $param ? $default : $param->getType();
 	}
 }
