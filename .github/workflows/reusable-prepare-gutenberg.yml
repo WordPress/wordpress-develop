@@ -76,12 +76,12 @@ jobs:
             > /tmp/build-manifest.txt
           echo "Files included in build artifact:"
           cat /tmp/build-manifest.txt
-          tar -czf /tmp/wordpress-build.tar.gz --files-from=/tmp/build-manifest.txt
+          tar -czf wordpress-build.tar.gz --files-from=/tmp/build-manifest.txt
 
       - name: Upload WordPress build
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: wordpress-build
-          path: /tmp/wordpress-build.tar.gz
+          path: wordpress-build.tar.gz
           if-no-files-found: error
           retention-days: 1

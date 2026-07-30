@@ -204,7 +204,10 @@ jobs:
 
       - name: Apply WordPress build
         if: inputs.wordpress-build-artifact != ''
-        run: tar -xzf /tmp/wordpress-build/wordpress-build.tar.gz
+        run: |
+          echo "Files included in build artifact:"
+          tar -tzf /tmp/wordpress-build/wordpress-build.tar.gz
+          tar -xzf /tmp/wordpress-build/wordpress-build.tar.gz
 
       ##
       # This allows Composer dependencies to be installed using a single step.
