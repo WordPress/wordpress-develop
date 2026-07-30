@@ -59,6 +59,7 @@ class Tests_Menu_WpAjaxMenuQuickSearch extends WP_UnitTestCase {
 			)
 		);
 
+		// Request-controlled page sizes should not alter the server-defined limit.
 		$request = array(
 			'type'            => 'quick-search-posttype-page',
 			'q'               => 'Ticket 38224 post result',
@@ -74,7 +75,7 @@ class Tests_Menu_WpAjaxMenuQuickSearch extends WP_UnitTestCase {
 			$pages[ $paged ]  = wp_list_pluck( $results, 'ID' );
 		}
 
-		$this->assertCount( 10, $pages[1] );
+		$this->assertCount( 10, $pages[1], 'Request-controlled page sizes should be ignored.' );
 		$this->assertCount( 10, $pages[2] );
 		$this->assertCount( 1, $pages[3] );
 		$this->assertSame( array_reverse( $post_ids ), array_merge( $pages[1], $pages[2], $pages[3] ) );
