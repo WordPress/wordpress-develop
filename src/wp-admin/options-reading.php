@@ -175,7 +175,7 @@ else :
 </tr>
 <?php endif; ?>
 <tr>
-<th scope="row"><label for="posts_per_page"><?php _e( 'Number of recent posts shown on blog pages' ); ?></label></th>
+<th scope="row"><label for="posts_per_page"><?php _e( 'Number of recent posts shown on archive pages' ); ?></label></th>
 <td>
 <input name="posts_per_page" type="number" step="1" min="1" id="posts_per_page" value="<?php form_option( 'posts_per_page' ); ?>" class="small-text" />
 </td>
