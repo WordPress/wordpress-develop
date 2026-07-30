@@ -19,7 +19,8 @@ class WP_List_Table {
 	 * The current list of items.
 	 *
 	 * @since 3.1.0
-	 * @var array
+	 *
+	 * @var array<int|string, mixed>
 	 */
 	public $items;
 
@@ -27,7 +28,8 @@ class WP_List_Table {
 	 * Various information about the current table.
 	 *
 	 * @since 3.1.0
-	 * @var array
+	 *
+	 * @var array<string, mixed>
 	 */
 	protected $_args;
 
@@ -35,7 +37,8 @@ class WP_List_Table {
 	 * Various information needed for displaying the pagination.
 	 *
 	 * @since 3.1.0
-	 * @var array
+	 *
+	 * @var array<string, mixed>
 	 */
 	protected $_pagination_args = array();
 
@@ -43,6 +46,7 @@ class WP_List_Table {
 	 * The current screen.
 	 *
 	 * @since 3.1.0
+	 *
 	 * @var WP_Screen
 	 */
 	protected $screen;
@@ -51,7 +55,8 @@ class WP_List_Table {
 	 * Cached bulk actions.
 	 *
 	 * @since 3.1.0
-	 * @var array
+	 *
+	 * @var array<string, string|array<string, string>>|null
 	 */
 	private $_actions;
 
@@ -59,6 +64,7 @@ class WP_List_Table {
 	 * Cached pagination output.
 	 *
 	 * @since 3.1.0
+	 *
 	 * @var string
 	 */
 	private $_pagination;
@@ -67,29 +73,35 @@ class WP_List_Table {
 	 * The view switcher modes.
 	 *
 	 * @since 4.1.0
-	 * @var array
+	 *
+	 * @var array<string, string>
 	 */
 	protected $modes = array();
 
 	/**
-	 * Stores the value returned by ::get_column_info().
+	 * Stores the value returned by {@see self::get_column_info()}.
 	 *
-	 * @since 4.1.0
-	 * @var array|null
+	 * @since 4.2.0
+	 *
+	 * @var array<int, array|string>|null
 	 */
 	protected $_column_headers;
 
 	/**
 	 * List of private properties made readable for backward compatibility.
 	 *
-	 * @var array
+	 * @since 4.2.0
+	 *
+	 * @var string[]
 	 */
 	protected $compat_fields = array( '_args', '_pagination_args', 'screen', '_actions', '_pagination' );
 
 	/**
 	 * List of private/protected methods made readable for backward compatibility.
 	 *
-	 * @var array
+	 * @since 4.2.0
+	 *
+	 * @var string[]
 	 */
 	protected $compat_methods = array(
 		'set_pagination_args',
@@ -116,7 +128,7 @@ class WP_List_Table {
 	 * The child class should call this constructor from its own constructor to override
 	 * the default $args.
 	 *
-	 * @since 3.1.0
+	 * @since 3.2.0
 	 *
 	 * @param array|string $args {
 	 *     Array or string of arguments.
@@ -348,7 +360,7 @@ class WP_List_Table {
 	}
 
 	/**
-	 * Determines whether the table has items to display or not
+	 * Determines whether the table has items to display or not.
 	 *
 	 * @since 3.1.0
 	 *
@@ -359,7 +371,7 @@ class WP_List_Table {
 	}
 
 	/**
-	 * Message to be displayed when there are no items
+	 * Message to be displayed when there are no items.
 	 *
 	 * @since 3.1.0
 	 */
@@ -404,7 +416,7 @@ class WP_List_Table {
 <p class="search-box">
 	<label class="screen-reader-text" for="<?php echo esc_attr( $input_id ); ?>"><?php echo $text; ?>:</label>
 	<input type="search" id="<?php echo esc_attr( $input_id ); ?>" name="s" value="<?php _admin_search_query(); ?>" />
-		<?php submit_button( $text, 'button-compact', '', false, array( 'id' => 'search-submit' ) ); ?>
+		<?php submit_button( $text, 'compact', '', false, array( 'id' => 'search-submit' ) ); ?>
 </p>
 		<?php
 	}
@@ -620,7 +632,7 @@ class WP_List_Table {
 
 		echo "</select>\n";
 
-		submit_button( __( 'Apply' ), 'action button-compact', 'bulk_action', false, array( 'id' => "doaction$two" ) );
+		submit_button( __( 'Apply' ), 'action compact', 'bulk_action', false, array( 'id' => "doaction$two" ) );
 		echo "\n";
 	}
 
@@ -790,7 +802,7 @@ class WP_List_Table {
 	 *
 	 * @since 3.1.0
 	 *
-	 * @param string $current_mode
+	 * @param string $current_mode The current view mode slug, e.g. 'list' or 'excerpt'.
 	 */
 	protected function view_switcher( $current_mode ) {
 		?>
@@ -1017,6 +1029,8 @@ class WP_List_Table {
 	 */
 	protected function pagination( $which ) {
 		if ( empty( $this->_pagination_args['total_items'] ) ) {
+			// translators: Number is a fixed value. This is default text when no items are found.
+			echo '<div class="tablenav-pages no-pages"><span class="displaying-num">' . __( '0 items' ) . '</span></div>';
 			return;
 		}
 
@@ -1389,7 +1403,7 @@ class WP_List_Table {
 	 *
 	 * @since 3.1.0
 	 *
-	 * @param bool $with_id Whether to set the ID attribute or not
+	 * @param bool $with_id Whether to set the ID attribute or not. Default true.
 	 */
 	public function print_column_headers( $with_id = true ) {
 		list( $columns, $hidden, $sortable, $primary ) = $this->get_column_info();
@@ -1657,9 +1671,10 @@ class WP_List_Table {
 	}
 
 	/**
-	 * Generates the table navigation above or below the table
+	 * Generates the table navigation above or below the table.
 	 *
 	 * @since 3.1.0
+	 *
 	 * @param string $which The location of the navigation: Either 'top' or 'bottom'.
 	 */
 	protected function display_tablenav( $which ) {
@@ -1672,12 +1687,16 @@ class WP_List_Table {
 		?>
 	<div class="tablenav <?php echo esc_attr( $which ); ?>">
 
-		<?php if ( $this->has_items() ) : ?>
-		<div class="alignleft actions bulkactions">
+		<?php
+		$visibility = ' hidden';
+		if ( $this->has_items() ) {
+			$visibility = '';
+		}
+		?>
+		<div class="alignleft actions bulkactions<?php echo $visibility; ?>">
 			<?php $this->bulk_actions( $which ); ?>
 		</div>
-			<?php
-		endif;
+		<?php
 		$this->extra_tablenav( $which );
 		$this->pagination( $which );
 		?>
@@ -1736,15 +1755,43 @@ class WP_List_Table {
 	}
 
 	/**
-	 * @param object|array $item
-	 * @param string $column_name
+	 * Handles an unknown column.
+	 *
+	 * @since 4.2.0
+	 *
+	 * @param object|array $item        The current item.
+	 * @param string       $column_name Name of the column.
 	 */
 	protected function column_default( $item, $column_name ) {}
 
 	/**
-	 * @param object|array $item
+	 * Handles the checkbox column output.
+	 *
+	 * @since 4.2.0
+	 *
+	 * @param object|array $item The current item.
 	 */
 	protected function column_cb( $item ) {}
+
+	/**
+	 * Returns a clean, human-readable label for the primary column's row header.
+	 *
+	 * Used as the `aria-label` attribute value on the `<th scope="row">` element,
+	 * giving screen readers a concise cell name instead of computing it from
+	 * the full cell content (which may include row action links, excerpts, etc.).
+	 *
+	 * Subclasses should override this method to return the item's primary
+	 * identifier (e.g. post title, plugin name, username). Return an empty string
+	 * to omit the attribute.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @param object|array $item The current item.
+	 * @return string The aria-label value, or an empty string.
+	 */
+	protected function get_primary_column_aria_label( $item ) {
+		return '';
+	}
 
 	/**
 	 * Generates the columns for a single row of the table.
@@ -1775,9 +1822,9 @@ class WP_List_Table {
 			$attributes = "class='$classes' $data";
 
 			if ( 'cb' === $column_name ) {
-				echo '<th scope="row" class="check-column">';
+				echo '<td class="check-column">';
 				echo $this->column_cb( $item );
-				echo '</th>';
+				echo '</td>';
 			} elseif ( method_exists( $this, '_column_' . $column_name ) ) {
 				echo call_user_func(
 					array( $this, '_column_' . $column_name ),
@@ -1786,16 +1833,29 @@ class WP_List_Table {
 					$data,
 					$primary
 				);
-			} elseif ( method_exists( $this, 'column_' . $column_name ) ) {
-				echo "<td $attributes>";
-				echo call_user_func( array( $this, 'column_' . $column_name ), $item );
-				echo $this->handle_row_actions( $item, $column_name, $primary );
-				echo '</td>';
 			} else {
-				echo "<td $attributes>";
-				echo $this->column_default( $item, $column_name );
+				$is_primary = ( $primary === $column_name );
+				$tag        = $is_primary ? 'th' : 'td';
+				$scope      = $is_primary ? ' scope="row"' : '';
+
+				$aria_label = '';
+				if ( $is_primary ) {
+					$label = $this->get_primary_column_aria_label( $item );
+					if ( '' !== $label ) {
+						$aria_label = ' aria-label="' . esc_attr( $label ) . '"';
+					}
+				}
+
+				echo "<$tag $attributes$scope$aria_label>";
+
+				if ( method_exists( $this, 'column_' . $column_name ) ) {
+					echo call_user_func( array( $this, 'column_' . $column_name ), $item );
+				} else {
+					echo $this->column_default( $item, $column_name );
+				}
+
 				echo $this->handle_row_actions( $item, $column_name, $primary );
-				echo '</td>';
+				echo "</$tag>";
 			}
 		}
 	}
@@ -1822,6 +1882,8 @@ class WP_List_Table {
 	 * Handles an incoming ajax request (called from admin-ajax.php)
 	 *
 	 * @since 3.1.0
+	 *
+	 * @return never
 	 */
 	public function ajax_response() {
 		$this->prepare_items();
