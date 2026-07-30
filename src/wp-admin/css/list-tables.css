@@ -353,6 +353,8 @@ table.fixed {
 	padding-left: 3px;
 }
 
+th.column-title strong,
+th.plugin-title strong,
 td.column-title strong,
 td.plugin-title strong {
 	display: block;
@@ -360,6 +362,8 @@ td.plugin-title strong {
 	font-size: 14px;
 }
 
+th.column-title p,
+th.plugin-title p,
 td.column-title p,
 td.plugin-title p {
 	margin: 6px 0;
