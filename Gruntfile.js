@@ -751,6 +751,36 @@ module.exports = function(grunt) {
 				} ],
 			},
 			'gutenberg-styles': {
+				options: {
+					process: function( content, srcpath ) {
+						if ( path.basename( srcpath ) !== 'registry.php' ) {
+							return content;
+						}
+
+						/*
+						 * Gutenberg's generated style registry does not currently
+						 * meet Core's PHP coding standards. Format its known keys
+						 * while copying it so build jobs do not require PHP tooling.
+						 *
+						 * @ticket 65278
+						 */
+						return content.replace(
+							/^(\t\t)'(handle|path|dependencies)'\s*=>\s*([^\r\n]*)$/gm,
+							function( match, indentation, key, value ) {
+								const padding = ' '.repeat( 13 - key.length );
+
+								if ( key === 'dependencies' ) {
+									value = value.replace(
+										/^array\((.+)\),$/,
+										'array( $1 ),'
+									);
+								}
+
+								return indentation + '\'' + key + '\'' + padding + '=> ' + value;
+							}
+						);
+					}
+				},
 				files: [ {
 					expand: true,
 					cwd: 'gutenberg/build/styles',
