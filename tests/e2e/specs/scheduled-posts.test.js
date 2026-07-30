@@ -11,9 +11,12 @@ import { test, expect } from '@wordpress/e2e-test-utils-playwright';
  * @return {Promise<Date>} The server's current time.
  */
 async function getServerNow( requestUtils ) {
-	const response = await requestUtils.request.get(
-		new URL( '/', requestUtils.baseURL ).toString()
-	);
+	// `doing_wp_cron` makes spawn_cron() return early, so reading the clock
+	// cannot take the doing_cron lock. See driveCron() for why that matters.
+	const url = new URL( '/', requestUtils.baseURL );
+	url.searchParams.set( 'doing_wp_cron', '1' );
+
+	const response = await requestUtils.request.get( url.toString() );
 	const dateHeader = response.headers().date;
 	if ( ! dateHeader ) {
 		throw new Error(
@@ -48,6 +51,14 @@ function fromRestDateGmt( dateGmt ) {
 /**
  * Asks WordPress to run its due cron events, without waiting for them.
  *
+ * This is the only request in the spec that may take the doing_cron lock;
+ * every other one carries `doing_wp_cron` so that spawn_cron() returns early.
+ * Keeping the lock under these drives' sole control is what makes the retry
+ * cadence below work: an ordinary request that takes the lock holds it for
+ * WP_CRON_LOCK_TIMEOUT and then delegates the run to a loopback request, so
+ * where loopback cannot be made, a stream of polling requests would take the
+ * lock in turn, deliver nothing, and shut every later drive out of it.
+ *
  * How long wp-cron.php holds the connection open depends on the server: under
  * PHP-FPM it calls fastcgi_finish_request() and answers immediately, while
  * under mod_php the response waits for every due event to finish. Since one
@@ -80,7 +91,9 @@ async function driveCron( requestUtils ) {
 async function readPostStatus( requestUtils, postId ) {
 	const post = await requestUtils.rest( {
 		path: `/wp/v2/posts/${ postId }`,
-		params: { context: 'edit' },
+		// `doing_wp_cron` makes spawn_cron() return early, so polling cannot
+		// take the doing_cron lock. See driveCron() for why that matters.
+		params: { context: 'edit', doing_wp_cron: '1' },
 	} );
 	return post.status;
 }
@@ -130,13 +143,12 @@ test.describe( 'Scheduled Posts', () => {
 		const waitMs =
 			Math.max( 0, dueAt.getTime() - clockBeforeWait.getTime() ) + 5_000;
 
-		// Let the scheduled time pass with no requests to the site. Any
-		// ordinary request that observes a due event spawns WordPress's
-		// loopback cron and takes the doing_cron lock — and where loopback
-		// requests cannot be made, the spawned run never executes, so the lock
-		// only shuts wp-cron.php out for the next minute. A quiet wait leaves
-		// the lock free, or stale, at the moment the event comes due, so the
-		// first drive below can claim it straight away.
+		// Let the scheduled time pass with no requests to the site. Creating
+		// the post was itself an ordinary request, so it may have spawned cron
+		// and taken the doing_cron lock on the way out; a quiet wait longer
+		// than WP_CRON_LOCK_TIMEOUT leaves that lock stale by the time the
+		// event comes due, so the first drive below can claim it straight
+		// away rather than being turned away.
 		await new Promise( ( resolve ) => {
 			setTimeout( resolve, waitMs );
 		} );
