@@ -94,8 +94,9 @@ class HookDocumentationRule implements Rule {
 			return array(
 				RuleErrorBuilder::message(
 					sprintf(
-						'%s() call is not preceded by a docblock documenting the hook, nor by a "This filter/action is documented in <file>" reference comment.',
-						$function_name
+						'%s() call for hook "%s" is not preceded by a docblock documenting the hook, nor by a "This filter/action is documented in <file>" reference comment.',
+						$function_name,
+						HookDocBlock::getHookNameDisplay( $node )
 					)
 				)
 					->identifier( 'wordpress.hookDocMissing' )
@@ -114,8 +115,9 @@ class HookDocumentationRule implements Rule {
 			return array(
 				RuleErrorBuilder::message(
 					sprintf(
-						'%s() call is preceded by a docblock that documents no parameters. A filter is documented with a `@param` tag for the value being filtered, plus one for each further argument passed.',
-						$function_name
+						'%s() call for hook "%s" is preceded by a docblock that documents no parameters. A filter is documented with a `@param` tag for the value being filtered, plus one for each further argument passed.',
+						$function_name,
+						HookDocBlock::getHookNameDisplay( $node )
 					)
 				)
 					->identifier( 'wordpress.hookDocNoParams' )

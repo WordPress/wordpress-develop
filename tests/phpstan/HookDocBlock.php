@@ -887,7 +887,7 @@ class HookDocBlock {
 	 * @param FuncCall $call Hook function call node.
 	 * @return string
 	 */
-	private static function getHookNameDisplay( FuncCall $call ): string {
+	public static function getHookNameDisplay( FuncCall $call ): string {
 		$args = $call->getArgs();
 		if ( ! isset( $args[0] ) ) {
 			return '';
