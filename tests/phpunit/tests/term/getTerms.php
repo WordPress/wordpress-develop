@@ -2746,6 +2746,39 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 41867
+	 */
+	public function test_pad_counts_should_not_generate_a_query_error_when_child_of_and_exclude_empty_the_result() {
+		global $wpdb;
+
+		register_taxonomy( 'wptests_tax_padcounts', 'post', array( 'hierarchical' => true ) );
+
+		$parent = self::factory()->term->create( array( 'taxonomy' => 'wptests_tax_padcounts' ) );
+		$child  = self::factory()->term->create(
+			array(
+				'taxonomy' => 'wptests_tax_padcounts',
+				'parent'   => $parent,
+			)
+		);
+
+		$post = self::factory()->post->create();
+		wp_set_object_terms( $post, array( $child ), 'wptests_tax_padcounts' );
+
+		// $parent's only child is excluded, so the padded term list ends up empty.
+		get_terms(
+			array(
+				'taxonomy'   => 'wptests_tax_padcounts',
+				'child_of'   => $parent,
+				'exclude'    => array( $child ),
+				'pad_counts' => true,
+				'hide_empty' => false,
+			)
+		);
+
+		$this->assertEmpty( $wpdb->last_error );
+	}
+
+	/**
 	 * @ticket 10142
 	 */
 	public function test_termmeta_cache_should_be_lazy_loaded_by_default() {
