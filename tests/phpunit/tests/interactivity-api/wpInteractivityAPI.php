@@ -892,23 +892,23 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 		$this->assertNull( $result['unique_id'] );
 
 		/*
-		 * Should discard a "0" suffix or unique ID the same way an empty one is discarded. The
-		 * client's `parseDirectiveName` maps both to null with `|| null`, and "0" is falsy in
-		 * JavaScript as well, so both sides agree. A "0" prefix is kept, since the prefix is
-		 * returned as-is on both sides.
+		 * Should keep a "0" prefix, suffix, and unique ID rather than discarding it as empty. The
+		 * client's `parseDirectiveName` normalizes with `|| null`, which discards only the empty
+		 * string, because a non-empty string such as "0" is truthy in JavaScript. Using empty()
+		 * here would discard "0" and diverge from the client.
 		 */
 		$this->assertSame(
 			array(
 				'prefix'    => 'test',
 				'suffix'    => null,
-				'unique_id' => null,
+				'unique_id' => '0',
 			),
 			$parse_directive_name->invoke( $this->interactivity, 'data-wp-test---0' )
 		);
 		$this->assertSame(
 			array(
 				'prefix'    => 'test',
-				'suffix'    => null,
+				'suffix'    => '0',
 				'unique_id' => null,
 			),
 			$parse_directive_name->invoke( $this->interactivity, 'data-wp-test--0' )
@@ -916,7 +916,7 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 		$this->assertSame(
 			array(
 				'prefix'    => 'test',
-				'suffix'    => null,
+				'suffix'    => '0',
 				'unique_id' => 'unique-id',
 			),
 			$parse_directive_name->invoke( $this->interactivity, 'data-wp-test--0---unique-id' )
@@ -925,7 +925,7 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 			array(
 				'prefix'    => 'test',
 				'suffix'    => 'suffix',
-				'unique_id' => null,
+				'unique_id' => '0',
 			),
 			$parse_directive_name->invoke( $this->interactivity, 'data-wp-test--suffix---0' )
 		);

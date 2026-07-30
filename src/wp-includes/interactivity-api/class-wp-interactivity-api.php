@@ -778,8 +778,10 @@ final class WP_Interactivity_API {
 	 * This function has an equivalent version for the client side.
 	 * See `parseDirectiveName` in https://github.com/WordPress/gutenberg/blob/trunk/packages/interactivity/src/vdom.ts.:
 	 *
-	 * A falsy suffix or unique ID is normalized to null. This includes the string "0", which the
-	 * client's `|| null` likewise discards since "0" is falsy in JavaScript as well.
+	 * An empty suffix or unique ID is normalized to null, but the string "0" is preserved. The
+	 * client's `|| null` discards only the empty string, since every non-empty string is truthy in
+	 * JavaScript. Do not use empty() for these checks: it would discard "0" and diverge from the
+	 * client.
 	 *
 	 * @see Tests_Interactivity_API_WpInteractivityAPI::test_parse_directive_name() for examples in the test inputs.
 	 *
@@ -789,8 +791,8 @@ final class WP_Interactivity_API {
 	 * @return array|null An array containing the directive prefix, optional suffix, and optional unique ID, or null if the directive name cannot be parsed.
 	 * @phpstan-return array{
 	 *     prefix: non-empty-string,
-	 *     suffix: non-falsy-string|null,
-	 *     unique_id: non-falsy-string|null,
+	 *     suffix: non-empty-string|null,
+	 *     unique_id: non-empty-string|null,
 	 * }|null
 	 */
 	private function parse_directive_name( string $directive_name ): ?array {
@@ -818,33 +820,33 @@ final class WP_Interactivity_API {
 
 		// If remaining starts with '---' but not '----', it's a unique_id
 		if ( 3 === strspn( $remaining, '-' ) ) {
-			$unique_id = substr( $remaining, 3 );
+			$unique_id = (string) substr( $remaining, 3 );
 			return array(
 				'prefix'    => $prefix,
 				'suffix'    => null,
-				'unique_id' => empty( $unique_id ) ? null : $unique_id,
+				'unique_id' => '' === $unique_id ? null : $unique_id,
 			);
 		}
 
 		// Otherwise, remove the first two dashes for a potential suffix
-		$suffix = substr( $remaining, 2 );
+		$suffix = (string) substr( $remaining, 2 );
 
 		// Look for '---' in the suffix for a unique_id
 		$unique_id_index = strpos( $suffix, '---' );
 
 		if ( false !== $unique_id_index && '-' !== ( $suffix[ $unique_id_index + 3 ] ?? '' ) ) {
-			$unique_id = substr( $suffix, $unique_id_index + 3 );
-			$suffix    = substr( $suffix, 0, $unique_id_index );
+			$unique_id = (string) substr( $suffix, $unique_id_index + 3 );
+			$suffix    = (string) substr( $suffix, 0, $unique_id_index );
 			return array(
 				'prefix'    => $prefix,
-				'suffix'    => empty( $suffix ) ? null : $suffix,
-				'unique_id' => empty( $unique_id ) ? null : $unique_id,
+				'suffix'    => '' === $suffix ? null : $suffix,
+				'unique_id' => '' === $unique_id ? null : $unique_id,
 			);
 		}
 
 		return array(
 			'prefix'    => $prefix,
-			'suffix'    => empty( $suffix ) ? null : $suffix,
+			'suffix'    => '' === $suffix ? null : $suffix,
 			'unique_id' => null,
 		);
 	}
