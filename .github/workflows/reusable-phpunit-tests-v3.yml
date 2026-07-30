@@ -275,16 +275,15 @@ jobs:
       - name: Install PCOV coverage driver
         if: ${{ inputs.coverage-report }}
         run: |
-          docker compose exec -T -u 0 php sh -c '
-            pecl install --force pcov-1.0.12 &&
-            docker-php-ext-enable pcov &&
-            {
-              echo "pcov.enabled=1"
-              echo "pcov.directory=/var/www/src"
-              echo "pcov.initial.files=10000"
-            } >> /usr/local/etc/php/conf.d/docker-php-ext-pcov.ini &&
-            php -m | grep -i pcov
-          '
+          pecl install --force pcov-1.0.12
+          PHP_INI_SCAN_DIR=$(php -r 'echo PHP_CONFIG_FILE_SCAN_DIR;')
+          {
+            echo "extension=pcov"
+            echo "pcov.enabled=1"
+            echo "pcov.directory=${GITHUB_WORKSPACE}/src"
+            echo "pcov.initial.files=10000"
+          } > "$PHP_INI_SCAN_DIR/pcov.ini"
+          php -m | grep -i pcov
 
       - name: Run external HTTP tests
         if: ${{ ! inputs.multisite && ! inputs.phpunit-test-groups && ! inputs.coverage-report }}
