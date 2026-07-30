@@ -5084,6 +5084,10 @@ function wp_validate_user_request_key(
 		return new WP_Error( 'invalid_request', __( 'Invalid personal data request.' ) );
 	}
 
+	if ( in_array( $request->status, array( 'request-confirmed', 'request-completed' ), true ) ) {
+		return new WP_Error( 'confirmed_request', __( 'This personal data request has already been confirmed.' ) );
+	}
+
 	if ( ! in_array( $request->status, array( 'request-pending', 'request-failed' ), true ) ) {
 		return new WP_Error( 'expired_request', __( 'This personal data request has expired.' ) );
 	}
