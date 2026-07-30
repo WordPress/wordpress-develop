@@ -31,6 +31,7 @@ on:
       - 'tests/phpunit/**'
       - 'tests/phpunit/multisite.xml'
       - 'phpunit.xml.dist'
+      - 'docker-compose.yml'
       # Confirm any changes to relevant workflow files.
       - '.github/workflows/phpunit-tests.yml'
       - '.github/workflows/reusable-phpunit-tests-*.yml'
