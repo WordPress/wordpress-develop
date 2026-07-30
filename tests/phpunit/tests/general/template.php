@@ -139,7 +139,7 @@ class Tests_General_Template extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Ensures the site icon URL scheme is aligned with the current request.
+	 * Ensures the site icon URL scheme is upgraded for the current request, but never downgraded.
 	 *
 	 * The site icon is display chrome that also renders in wp-admin and on the
 	 * login screen, where wp_get_attachment_image_url() does not correct the scheme.
@@ -155,34 +155,32 @@ class Tests_General_Template extends WP_UnitTestCase {
 	 *
 	 * @requires function imagejpeg
 	 */
-	public function test_get_site_icon_url_uses_https_scheme_on_ssl_admin_request() {
+	public function test_get_site_icon_url_scheme() {
 		$this->set_site_icon();
 
 		set_current_screen( 'dashboard' );
 		$this->assertTrue( is_admin(), 'Test should run in the admin context.' );
 
-		unset( $_SERVER['HTTPS'] );
-
 		$this->assertFalse( is_ssl(), 'Baseline request should not be detected as SSL.' );
 
-		$url_http = get_site_icon_url();
-		$this->assertStringStartsWith( 'http://', $url_http, 'Baseline icon URL should use the HTTP scheme.' );
+		$this->assertStringStartsWith( 'http://', get_site_icon_url(), 'Baseline icon URL should use the HTTP scheme.' );
 
 		$_SERVER['HTTPS'] = 'on';
 		$this->assertTrue( is_ssl(), 'Request should now be detected as SSL.' );
+		$this->assertStringStartsWith( 'https://', get_site_icon_url(), 'Site icon URL should use the HTTPS scheme on an SSL admin request.' );
 
-		$url_https = get_site_icon_url();
+		add_filter(
+			'upload_dir',
+			static function ( $uploads ) {
+				$uploads['url']     = set_url_scheme( $uploads['url'], 'https' );
+				$uploads['baseurl'] = set_url_scheme( $uploads['baseurl'], 'https' );
+				return $uploads;
+			}
+		);
 
-		$this->assertStringStartsWith(
-			'https://',
-			$url_https,
-			'Site icon URL should use the HTTPS scheme on an SSL admin request.'
-		);
-		$this->assertSame(
-			set_url_scheme( $url_http, 'https' ),
-			$url_https,
-			'Only the URL scheme should differ between HTTP and HTTPS admin requests.'
-		);
+		unset( $_SERVER['HTTPS'] );
+		$this->assertFalse( is_ssl(), 'Request should no longer be detected as SSL.' );
+		$this->assertStringStartsWith( 'https://', get_site_icon_url(), 'Site icon URL should preserve the HTTPS scheme on a non-SSL request.' );
 	}
 
 	/**
