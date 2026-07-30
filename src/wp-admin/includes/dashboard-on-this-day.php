@@ -63,9 +63,7 @@ function wp_dashboard_on_this_day_postbox_classes( $classes ) {
  * @return string The trimmed excerpt, or an empty string.
  */
 function _wp_dashboard_on_this_day_get_no_title_excerpt( $post ) {
-	if ( '' !== get_the_title( $post )
-		|| post_password_required( $post )
-	) {
+	if ( '' !== get_the_title( $post ) || post_password_required( $post ) ) {
 		return '';
 	}
 
