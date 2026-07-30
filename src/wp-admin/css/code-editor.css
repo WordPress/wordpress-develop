@@ -71,6 +71,12 @@
 	text-align: left;
 }
 
+.CodeMirror:not(.CodeMirror-focused) .CodeMirror-searching-selected {
+	background-color: #f0c33c;
+	color: #1d2327;
+	outline: 1px solid #996800;
+}
+
 .wrap .CodeMirror .CodeMirror-linenumber {
 	color: #646970;
 }
