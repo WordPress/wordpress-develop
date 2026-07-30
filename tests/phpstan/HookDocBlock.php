@@ -56,6 +56,8 @@ use SplFileInfo;
  * @see HookDocsVisitor
  *
  * @phpstan-type HookDocs array{exact: array<string, string>, patterns: list<array{regex: string, literal: string, text: string}>}
+ * @phpstan-type HookDocumentationProblem array{path: string, hook: string, problem: self::PROBLEM_FILE_MISSING|self::PROBLEM_HOOK_MISSING}
+ * @phpstan-type HookDocumentation array{kind: 'inline'|'reference', text: string, resolved: ResolvedPhpDocBlock|null, paramCount: int<0, max>|null, problem: HookDocumentationProblem|null}
  */
 class HookDocBlock {
 
@@ -246,31 +248,124 @@ class HookDocBlock {
 	}
 
 	/**
-	 * Resolves the docblock preceding the given function call, if any.
+	 * Resolves the documentation for a hook call: the docblock written above it, or
+	 * the canonical docblock a "documented elsewhere" comment points at.
+	 *
+	 * This is the one entry point the rules and the return type extension share, so
+	 * all three necessarily agree on what documents a given call.
+	 *
+	 * A reference that cannot be resolved to a canonical docblock leaves `resolved`
+	 * and `paramCount` null rather than falling back to the reference comment itself,
+	 * so an unresolved reference is never mistaken for a hook documented with no
+	 * parameters. `problem` says why it could not be resolved, when the reason is one
+	 * worth reporting.
 	 *
 	 * @param FuncCall $function_call Hook function call node.
 	 * @param Scope    $scope         Analysis scope.
-	 * @return ResolvedPhpDocBlock|null Resolved docblock, or null when none precedes the call.
+	 * @return HookDocumentation|null Null when no docblock precedes the call.
 	 * @throws ShouldNotHappenException
 	 */
-	public function getNullableHookDocBlock( FuncCall $function_call, Scope $scope ): ?ResolvedPhpDocBlock {
+	public function getHookDoc( FuncCall $function_call, Scope $scope ): ?array {
 		$comment = self::getNullableNodeComment( $function_call );
 
 		if ( null === $comment ) {
 			return null;
 		}
 
-		// Fetch the docblock contents.
-		$code = $comment->getText();
+		$text = $comment->getText();
 
-		// Handle the "This filter/action is documented in <file>" convention by
-		// substituting the canonical docblock from the referenced file.
-		$referenced = $this->resolveDocumentedInReference( $code, $function_call, $scope );
-		if ( null !== $referenced ) {
-			return $referenced;
+		// A docblock written at the call site documents the hook in place.
+		if ( ! preg_match( self::REFERENCE_PATTERN, $text, $matches ) ) {
+			$resolved = $this->resolveInlineDocBlock( $text, $scope );
+
+			return array(
+				'kind'       => 'inline',
+				'text'       => $text,
+				'resolved'   => $resolved,
+				'paramCount' => self::countParamTags( $resolved ),
+				'problem'    => null,
+			);
 		}
 
-		// Resolve the docblock in the current scope.
+		$hook_doc = array(
+			'kind'       => 'reference',
+			'text'       => $text,
+			'resolved'   => null,
+			'paramCount' => null,
+			'problem'    => null,
+		);
+
+		// Without an identifiable hook name there is nothing to look up in the
+		// referenced file, and so nothing to report either.
+		$matcher = self::getHookNameMatcher( $function_call );
+		if ( null === $matcher ) {
+			return $hook_doc;
+		}
+
+		$reference_path = $matches[1];
+		$target_file    = $this->resolveReferencePath( $scope->getFile(), $reference_path );
+
+		// The referenced file could not be located up the directory tree.
+		if ( null === $target_file ) {
+			$hook_doc['problem'] = array(
+				'path'    => $reference_path,
+				'hook'    => self::getHookNameDisplay( $function_call ),
+				'problem' => self::PROBLEM_FILE_MISSING,
+			);
+
+			return $hook_doc;
+		}
+
+		$doc_text = $this->findHookDoc( $target_file, $matcher );
+
+		if ( null === $doc_text ) {
+			$hook_doc['problem'] = array(
+				'path'    => $reference_path,
+				'hook'    => self::getHookNameDisplay( $function_call ),
+				'problem' => self::PROBLEM_HOOK_MISSING,
+			);
+
+			return $hook_doc;
+		}
+
+		// Resolve the canonical docblock in the global namespace, with no file
+		// context. Hook docblocks describe global/plain types (e.g. string[],
+		// WP_REST_Response), so the referenced file's `use` imports are not needed.
+		// Passing the referenced file here would also re-enter PHPStan's name-scope
+		// builder while that file is itself being analyzed, which makes
+		// getResolvedPhpDoc return an empty docblock (NameScopeAlreadyBeingCreated).
+		$resolved = $this->fileTypeMapper->getResolvedPhpDoc( null, null, null, null, $doc_text );
+
+		$hook_doc['resolved']   = $resolved;
+		$hook_doc['paramCount'] = self::countParamTags( $resolved );
+
+		return $hook_doc;
+	}
+
+	/**
+	 * Resolves the docblock preceding the given function call, if any.
+	 *
+	 * @param FuncCall $function_call Hook function call node.
+	 * @param Scope    $scope         Analysis scope.
+	 * @return ResolvedPhpDocBlock|null Resolved docblock, or null when none precedes
+	 *                                  the call or a reference cannot be resolved.
+	 * @throws ShouldNotHappenException
+	 */
+	public function getNullableHookDocBlock( FuncCall $function_call, Scope $scope ): ?ResolvedPhpDocBlock {
+		$hook_doc = $this->getHookDoc( $function_call, $scope );
+
+		return null === $hook_doc ? null : $hook_doc['resolved'];
+	}
+
+	/**
+	 * Resolves a docblock written at a call site, in the scope of that site.
+	 *
+	 * @param string $text  Docblock text.
+	 * @param Scope  $scope Analysis scope.
+	 * @return ResolvedPhpDocBlock
+	 * @throws ShouldNotHappenException
+	 */
+	private function resolveInlineDocBlock( string $text, Scope $scope ): ResolvedPhpDocBlock {
 		$class_reflection = $scope->getClassReflection();
 		$trait_reflection = $scope->getTraitReflection();
 
@@ -279,76 +374,8 @@ class HookDocBlock {
 			( $scope->isInClass() && null !== $class_reflection ) ? $class_reflection->getName() : null,
 			( $scope->isInTrait() && null !== $trait_reflection ) ? $trait_reflection->getName() : null,
 			$scope->getFunctionName(),
-			$code
+			$text
 		);
-	}
-
-	/**
-	 * Returns the docblock preceding a hook call, classifying it as either an
-	 * inline docblock or a "documented elsewhere" reference.
-	 *
-	 * @param FuncCall $function_call Hook function call node.
-	 * @return array{type: 'inline'|'reference', text: string}|null
-	 *   Null when no docblock precedes the call.
-	 */
-	public function getPrecedingDocBlock( FuncCall $function_call ): ?array {
-		$comment = self::getNullableNodeComment( $function_call );
-		if ( null === $comment ) {
-			return null;
-		}
-
-		$text = $comment->getText();
-
-		return array(
-			'type' => preg_match( self::REFERENCE_PATTERN, $text ) ? 'reference' : 'inline',
-			'text' => $text,
-		);
-	}
-
-	/**
-	 * Returns the number of parameters documented for a hook call, resolving the
-	 * docblock the same way as the return-type extension (inline or via a
-	 * "documented in" reference).
-	 *
-	 * Unlike getNullableHookDocBlock(), this does NOT fall back to the reference
-	 * comment when a reference cannot be resolved to a canonical docblock; it
-	 * returns null instead, so callers do not mistake an unresolved reference
-	 * (which has no `param` tags) for a genuine zero-parameter hook.
-	 *
-	 * @param FuncCall $function_call Hook function call node.
-	 * @param Scope    $scope         Analysis scope.
-	 * @return int<0, max>|null Documented parameter count, or null when there is no
-	 *                         docblock or a reference cannot be resolved.
-	 * @throws ShouldNotHappenException
-	 */
-	public function getDocumentedParamCount( FuncCall $function_call, Scope $scope ): ?int {
-		$comment = self::getNullableNodeComment( $function_call );
-		if ( null === $comment ) {
-			return null;
-		}
-
-		$code = $comment->getText();
-
-		if ( preg_match( self::REFERENCE_PATTERN, $code ) ) {
-			$referenced = $this->resolveDocumentedInReference( $code, $function_call, $scope );
-			if ( null === $referenced ) {
-				return null;
-			}
-			return self::countParamTags( $referenced );
-		}
-
-		$class_reflection = $scope->getClassReflection();
-		$trait_reflection = $scope->getTraitReflection();
-
-		$resolved = $this->fileTypeMapper->getResolvedPhpDoc(
-			$scope->getFile(),
-			( $scope->isInClass() && null !== $class_reflection ) ? $class_reflection->getName() : null,
-			( $scope->isInTrait() && null !== $trait_reflection ) ? $trait_reflection->getName() : null,
-			$scope->getFunctionName(),
-			$code
-		);
-
-		return self::countParamTags( $resolved );
 	}
 
 	/**
@@ -390,25 +417,17 @@ class HookDocBlock {
 	 * where its canonical docblock lives, so that is where such a fix belongs, rather
 	 * than at every site inheriting it.
 	 *
-	 * @param FuncCall $function_call Hook function call node.
-	 * @param Scope    $scope         Analysis scope.
+	 * @param FuncCall          $function_call Hook function call node.
+	 * @param HookDocumentation $hook_doc      Documentation resolved for the call.
 	 * @return bool
-	 * @throws ShouldNotHappenException
 	 */
-	public function isFilterMissingParamDocs( FuncCall $function_call, Scope $scope ): bool {
-		if ( ! $function_call->name instanceof Name
-			|| ! in_array( $function_call->name->toString(), self::FILTER_FUNCTIONS, true )
-		) {
+	public static function isFilterMissingParamDocs( FuncCall $function_call, array $hook_doc ): bool {
+		if ( 'inline' !== $hook_doc['kind'] || 0 !== $hook_doc['paramCount'] ) {
 			return false;
 		}
 
-		$doc_block = $this->getPrecedingDocBlock( $function_call );
-
-		if ( null === $doc_block || 'inline' !== $doc_block['type'] ) {
-			return false;
-		}
-
-		return 0 === $this->getDocumentedParamCount( $function_call, $scope );
+		return $function_call->name instanceof Name
+			&& in_array( $function_call->name->toString(), self::FILTER_FUNCTIONS, true );
 	}
 
 	/**
@@ -434,95 +453,6 @@ class HookDocBlock {
 		}
 
 		return null !== self::buildHookNamePattern( $value );
-	}
-
-	/**
-	 * Validates a "documented elsewhere" reference comment preceding a hook call.
-	 *
-	 * Returns null when the comment is not such a reference, when the hook name is
-	 * not a literal, when the WordPress root cannot be determined, or when the
-	 * reference is valid. Otherwise, it returns the problem details.
-	 *
-	 * @param FuncCall $function_call Hook function call node.
-	 * @param Scope    $scope         Analysis scope.
-	 * @return array{path: string, hook: string, problem: self::PROBLEM_FILE_MISSING|self::PROBLEM_HOOK_MISSING}|null
-	 */
-	public function getReferenceProblem( FuncCall $function_call, Scope $scope ): ?array {
-		$comment = self::getNullableNodeComment( $function_call );
-		if ( null === $comment ) {
-			return null;
-		}
-
-		if ( ! preg_match( self::REFERENCE_PATTERN, $comment->getText(), $matches ) ) {
-			return null;
-		}
-
-		$matcher = self::getHookNameMatcher( $function_call );
-		if ( null === $matcher ) {
-			return null;
-		}
-
-		$reference_path = $matches[1];
-		$target_file    = $this->resolveReferencePath( $scope->getFile(), $reference_path );
-
-		// The referenced file could not be located up the directory tree.
-		if ( null === $target_file ) {
-			return array(
-				'path'    => $reference_path,
-				'hook'    => self::getHookNameDisplay( $function_call ),
-				'problem' => self::PROBLEM_FILE_MISSING,
-			);
-		}
-
-		if ( null === $this->findHookDoc( $target_file, $matcher ) ) {
-			return array(
-				'path'    => $reference_path,
-				'hook'    => self::getHookNameDisplay( $function_call ),
-				'problem' => self::PROBLEM_HOOK_MISSING,
-			);
-		}
-
-		return null;
-	}
-
-	/**
-	 * Resolves the canonical docblock referenced by a "This filter/action is
-	 * documented in <file>" comment.
-	 *
-	 * @param string $comment_text Raw comment text preceding the hook call.
-	 * @param FuncCall $function_call Hook function call node.
-	 * @param Scope $scope Analysis scope.
-	 *
-	 * @return ResolvedPhpDocBlock|null Resolved canonical docblock, or null when it cannot be located.
-	 * @throws ShouldNotHappenException
-	 */
-	private function resolveDocumentedInReference( string $comment_text, FuncCall $function_call, Scope $scope ): ?ResolvedPhpDocBlock {
-		if ( ! preg_match( self::REFERENCE_PATTERN, $comment_text, $matches ) ) {
-			return null;
-		}
-
-		$matcher = self::getHookNameMatcher( $function_call );
-		if ( null === $matcher ) {
-			return null;
-		}
-
-		$target_file = $this->resolveReferencePath( $scope->getFile(), $matches[1] );
-		if ( null === $target_file ) {
-			return null;
-		}
-
-		$doc_text = $this->findHookDoc( $target_file, $matcher );
-		if ( null === $doc_text ) {
-			return null;
-		}
-
-		// Resolve the canonical docblock in the global namespace, with no file
-		// context. Hook docblocks describe global/plain types (e.g. string[],
-		// WP_REST_Response), so the referenced file's `use` imports are not needed.
-		// Passing the referenced file here would also re-enter PHPStan's name-scope
-		// builder while that file is itself being analyzed, which makes
-		// getResolvedPhpDoc return an empty docblock (NameScopeAlreadyBeingCreated).
-		return $this->fileTypeMapper->getResolvedPhpDoc( null, null, null, null, $doc_text );
 	}
 
 	/**

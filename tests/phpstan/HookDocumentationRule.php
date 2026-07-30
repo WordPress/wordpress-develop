@@ -87,10 +87,10 @@ class HookDocumentationRule implements Rule {
 		}
 
 		$function_name = $node->name->toString();
-		$doc_block     = $this->hookDocBlock->getPrecedingDocBlock( $node );
+		$hook_doc      = $this->hookDocBlock->getHookDoc( $node, $scope );
 
 		// No preceding docblock at all: the hook is undocumented.
-		if ( null === $doc_block ) {
+		if ( null === $hook_doc ) {
 			return array(
 				RuleErrorBuilder::message(
 					sprintf(
@@ -106,8 +106,8 @@ class HookDocumentationRule implements Rule {
 
 		// An inline docblock documents the hook in place, provided it describes the
 		// value being filtered.
-		if ( 'reference' !== $doc_block['type'] ) {
-			if ( ! $this->hookDocBlock->isFilterMissingParamDocs( $node, $scope ) ) {
+		if ( 'reference' !== $hook_doc['kind'] ) {
+			if ( ! HookDocBlock::isFilterMissingParamDocs( $node, $hook_doc ) ) {
 				return array();
 			}
 
@@ -125,7 +125,7 @@ class HookDocumentationRule implements Rule {
 		}
 
 		// A reference comment must point at a file that documents this hook.
-		$problem = $this->hookDocBlock->getReferenceProblem( $node, $scope );
+		$problem = $hook_doc['problem'];
 		if ( null === $problem ) {
 			return array();
 		}

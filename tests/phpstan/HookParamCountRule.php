@@ -109,19 +109,22 @@ class HookParamCountRule implements Rule {
 		}
 
 		// Only compare against documentation that actually resolves. Missing docs and
-		// unresolvable/broken references (reported by HookDocumentationRule) yield
-		// null here and are skipped rather than compared against a bogus zero count.
-		$documented = $this->hookDocBlock->getDocumentedParamCount( $node, $scope );
-		if ( null === $documented ) {
+		// unresolvable/broken references (reported by HookDocumentationRule) leave the
+		// documented count unknown, and are skipped rather than compared against a
+		// bogus zero count.
+		$hook_doc = $this->hookDocBlock->getHookDoc( $node, $scope );
+		if ( null === $hook_doc || null === $hook_doc['paramCount'] ) {
 			return array();
 		}
 
 		// A filter whose docblock documents no parameters is not documented at all,
 		// which HookDocumentationRule reports. Comparing counts as well would report
 		// one defect twice.
-		if ( $this->hookDocBlock->isFilterMissingParamDocs( $node, $scope ) ) {
+		if ( HookDocBlock::isFilterMissingParamDocs( $node, $hook_doc ) ) {
 			return array();
 		}
+
+		$documented = $hook_doc['paramCount'];
 
 		$provided = $is_variadic
 			? self::countVariadicArguments( $node, $scope )
