@@ -47,6 +47,36 @@ QUnit.test( 'should prepend http:// to a bare domain without a scheme', function
 	);
 } );
 
+QUnit.test( 'should not prepend http:// to a scheme containing a hyphen', function( assert ) {
+	jQuery( '#wp-link-url' ).val( 'chrome-extension://abcdef/options.html' );
+	wpLink.correctURL();
+	assert.strictEqual(
+		jQuery( '#wp-link-url' ).val(),
+		'chrome-extension://abcdef/options.html',
+		'A scheme containing a hyphen should not be modified.'
+	);
+} );
+
+QUnit.test( 'should not prepend http:// to a scheme containing a plus sign and digits', function( assert ) {
+	jQuery( '#wp-link-url' ).val( 'web+demo2://example.com' );
+	wpLink.correctURL();
+	assert.strictEqual(
+		jQuery( '#wp-link-url' ).val(),
+		'web+demo2://example.com',
+		'A scheme containing a plus sign and digits should not be modified.'
+	);
+} );
+
+QUnit.test( 'should prepend http:// to a bare host and port', function( assert ) {
+	jQuery( '#wp-link-url' ).val( 'example.com:8080/path' );
+	wpLink.correctURL();
+	assert.strictEqual(
+		jQuery( '#wp-link-url' ).val(),
+		'http://example.com:8080/path',
+		'A bare host and port is not a scheme, so it should get http:// prepended.'
+	);
+} );
+
 QUnit.test( 'should not prepend http:// to a fragment URL', function( assert ) {
 	jQuery( '#wp-link-url' ).val( '#section' );
 	wpLink.correctURL();
