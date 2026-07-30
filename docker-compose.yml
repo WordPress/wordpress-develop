@@ -67,7 +67,7 @@ services:
     image: ${LOCAL_DB_TYPE-mysql}:${LOCAL_DB_VERSION-latest}
 
     # This database is disposable, so it does not need a durable write at every commit.
-    command: [ "--innodb-flush-log-at-trx-commit=2" ]
+    command: [ "--innodb-flush-log-at-trx-commit=0" ]
 
     networks:
       - wpdevnet
