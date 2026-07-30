@@ -202,6 +202,11 @@ function wp_update_site( $site_id, array $data ) {
 /**
  * Deletes a site from the database.
  *
+ * This function does not protect against deleting the main site of a network, or a site
+ * whose domain and path match the network's own. That guard lives in wpmu_delete_blog(),
+ * which the Network Admin's delete-site screen calls; a caller invoking wp_delete_site()
+ * directly is responsible for performing an equivalent check first.
+ *
  * @since 5.1.0
  *
  * @global wpdb $wpdb WordPress database abstraction object.
