@@ -62,7 +62,7 @@ Core documents the globals a function uses with `@global Type $varname`. `Global
 The remaining extensions read the docblock documenting a hook where the hook is fired, which is where WordPress documents its hooks. They cover `apply_filters()`, `do_action()` and their `_deprecated` and `_ref_array` variants.
 
 - **The value a filter returns is typed from its documentation.** `apply_filters()` returns the type of the first `@param` its docblock documents, rather than `mixed`. This assumes callbacks honor the documented type; one that returns something else is treated as the unusual case.
-- **Hooks documented elsewhere are resolved.** Core's `/** This filter is documented in <file> */` convention is followed, so a hook documented in another file is analyzed against its canonical docblock. A dynamic canonical name such as `"{$type}_template_hierarchy"` is matched against the literal name used at the referencing site.
+- **Hooks documented elsewhere are resolved.** Core's `/** This filter is documented in <file> */` convention is followed, in its action form as well, so a hook documented in another file is analyzed against its canonical docblock. A dynamic canonical name such as `"{$type}_template_hierarchy"` is matched against the literal name used at the referencing site.
 - **Two rules check the documentation itself**: that a hook is documented at all, and that it is fired with as many arguments as its documentation describes.
 
 Calls whose hook name contains no literal text, such as the `apply_filters_ref_array( $hook_name, $args )` re-dispatch in `plugin.php`, name no concrete hook and are skipped.
