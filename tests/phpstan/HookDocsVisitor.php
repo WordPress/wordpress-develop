@@ -18,8 +18,7 @@
  * flows into the statement's nested expressions. A statement without its own
  * docblock likewise clears the docblock for its subtree.
  *
- * Adapted from szepeviktor/phpstan-wordpress (HookDocsVisitor):
- * https://github.com/szepeviktor/phpstan-wordpress/blob/master/src/HookDocsVisitor.php
+ * @link https://github.com/szepeviktor/phpstan-wordpress/blob/20f0406fcb96f8e1b8369d8c0df6f5c525a761aa/src/HookDocsVisitor.php Adapted from szepeviktor/phpstan-wordpress, MIT license.
  *
  * @package WordPress
  */

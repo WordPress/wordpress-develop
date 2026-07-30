@@ -16,8 +16,7 @@
  * anchored on enough literal text to identify a hook, and the most specific match
  * wins.
  *
- * Adapted from szepeviktor/phpstan-wordpress (HookDocBlock):
- * https://github.com/szepeviktor/phpstan-wordpress/blob/master/src/HookDocBlock.php
+ * @link https://github.com/szepeviktor/phpstan-wordpress/blob/20f0406fcb96f8e1b8369d8c0df6f5c525a761aa/src/HookDocBlock.php Adapted from szepeviktor/phpstan-wordpress, MIT license.
  *
  * @see HookDocBlock::isAnchorableLiteral()
  *
