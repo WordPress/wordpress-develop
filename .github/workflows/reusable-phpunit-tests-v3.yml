@@ -258,8 +258,16 @@ jobs:
         env:
           LOCAL_DB_CMD: ${{ env.LOCAL_DB_TYPE == 'mariadb' && contains( fromJSON('["5.5", "10.0", "10.1", "10.2", "10.3"]'), env.LOCAL_DB_VERSION ) && 'mysql' || env.LOCAL_DB_TYPE }}
 
-      - name: Install WordPress
-        run: npm run env:install
+      - name: Set up test configuration
+        run: |
+          sed \
+            -e 's/youremptytestdbnamehere/wordpress_develop_tests/' \
+            -e 's/yourusernamehere/root/' \
+            -e 's/yourpasswordhere/password/' \
+            -e 's/localhost/127.0.0.1/' \
+            -e "s/'WP_TESTS_DOMAIN', 'example.org'/'WP_TESTS_DOMAIN', '${LOCAL_WP_TESTS_DOMAIN}'/" \
+            wp-tests-config-sample.php > wp-tests-config.php
+          echo "define( 'FS_METHOD', 'direct' );" >> wp-tests-config.php
 
       # Installs PCOV as the code coverage driver for the PHPUnit run below.
       #
