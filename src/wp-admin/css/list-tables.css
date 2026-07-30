@@ -781,7 +781,8 @@ th.sorted a span {
 }
 
 .view-switch a:focus {
-	border-color: var(--wp-admin-theme-color);
+	/* This focus style already inherits box-shadow and outline from the regular links focus style. */
+	border-color: var(--wp-admin-theme-color, #3858e9);
 }
 
 .view-switch a:hover:before,
