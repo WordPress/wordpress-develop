@@ -134,7 +134,7 @@ class HookDocumentationRule implements Rule {
 			return array(
 				RuleErrorBuilder::message(
 					sprintf(
-						'%s() call for hook "%s" references documentation in "%s", but that file does not exist.',
+						'%s() call for hook "%s" references documentation in "%s", but no such file exists in the tree being analyzed.',
 						$function_name,
 						$problem['hook'],
 						$problem['path']

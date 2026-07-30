@@ -132,6 +132,14 @@ class HookDocBlock {
 	private string $wordpressRoot;
 
 	/**
+	 * Canonical form of the WordPress root, with symlinks and dot segments resolved,
+	 * against which a candidate path is tested for being inside the tree.
+	 *
+	 * @var string
+	 */
+	private string $canonicalWordpressRoot;
+
+	/**
 	 * Constructor.
 	 *
 	 * @param FileTypeMapper $file_type_mapper File type mapper.
@@ -142,6 +150,9 @@ class HookDocBlock {
 	public function __construct( FileTypeMapper $file_type_mapper, ?string $wordpress_root = null ) {
 		$this->fileTypeMapper = $file_type_mapper;
 		$this->wordpressRoot  = rtrim( $wordpress_root ?? dirname( __DIR__, 2 ) . '/src', '/' );
+
+		$canonical_root               = realpath( $this->wordpressRoot );
+		$this->canonicalWordpressRoot = false === $canonical_root ? $this->wordpressRoot : $canonical_root;
 	}
 
 	/**
@@ -238,11 +249,14 @@ class HookDocBlock {
 	 * Expresses an absolute path relative to the WordPress root when it sits inside
 	 * it, so that hashes do not depend on the checkout location.
 	 *
+	 * Paths reached through a reference comment are canonical, so the canonical root is
+	 * what they are relative to.
+	 *
 	 * @param string $path Absolute path.
 	 * @return string
 	 */
 	private function getRootRelativePath( string $path ): string {
-		$prefix = $this->wordpressRoot . '/';
+		$prefix = $this->canonicalWordpressRoot . '/';
 
 		return str_starts_with( $path, $prefix ) ? substr( $path, strlen( $prefix ) ) : $path;
 	}
@@ -720,11 +734,11 @@ class HookDocBlock {
 	 * resolution proceeds in two steps:
 	 *
 	 * 1. Walk up from the current file's directory, as far as the WordPress root,
-	 *    until the relative path resolves to a real file. This works regardless of
-	 *    where in the tree the referencing file lives (core, a bundled theme, the
-	 *    install root, ...), and also resolves the sibling references used by the
-	 *    bundled themes (e.g. "author.php"). The walk stops at the root because a
-	 *    path that only resolves above the tree under analysis is a coincidence
+	 *    until the relative path resolves to a real file inside the tree. This works
+	 *    regardless of where in the tree the referencing file lives (core, a bundled
+	 *    theme, the install root, ...), and also resolves the sibling references used
+	 *    by the bundled themes (e.g. "author.php"). The walk stops at the root because
+	 *    a path that only resolves above the tree under analysis is a coincidence
 	 *    rather than the file the comment names.
 	 * 2. Fall back to the WordPress root. Step 1 assumes the analysed file sits in
 	 *    its real location, which does not hold when an IDE runs PHPStan against a
@@ -742,9 +756,9 @@ class HookDocBlock {
 		$dir            = dirname( $current_file );
 
 		while ( $dir === $this->wordpressRoot || str_starts_with( $dir, $this->wordpressRoot . '/' ) ) {
-			$candidate = $dir . '/' . $reference_path;
-			if ( is_file( $candidate ) ) {
-				return $candidate;
+			$target = $this->resolveWithinRoot( $dir . '/' . $reference_path );
+			if ( null !== $target ) {
+				return $target;
 			}
 
 			// The root has just been tested, so the walk is done.
@@ -756,9 +770,38 @@ class HookDocBlock {
 		}
 
 		// The file holding the comment is not in the tree, so resolve against the root.
-		$candidate = $this->wordpressRoot . '/' . $reference_path;
+		return $this->resolveWithinRoot( $this->wordpressRoot . '/' . $reference_path );
+	}
 
-		return is_file( $candidate ) ? $candidate : null;
+	/**
+	 * Canonicalizes a candidate path, accepting it only when it is a file inside the
+	 * WordPress tree.
+	 *
+	 * A reference path is usually a plain relative path, but the convention is also
+	 * written with dot segments relative to the file holding the comment: WooCommerce
+	 * references `../wc-user-functions.php` and MainWP `../widgets/…`, so those have to
+	 * keep resolving. WordPress core has never used that form, which is exactly why
+	 * rejecting dot segments outright would look harmless here and break those plugins.
+	 *
+	 * Canonicalizing the candidate and requiring the result to be inside the tree keeps
+	 * them working while ensuring a reference cannot reach a file outside it. That
+	 * matters because whatever resolution finds is then read and parsed.
+	 *
+	 * @param string $candidate Absolute candidate path, possibly containing dot segments.
+	 * @return string|null Canonical path, or null when it is not a file inside the tree.
+	 */
+	private function resolveWithinRoot( string $candidate ): ?string {
+		if ( ! is_file( $candidate ) ) {
+			return null;
+		}
+
+		$canonical = realpath( $candidate );
+
+		if ( false === $canonical ) {
+			return null;
+		}
+
+		return str_starts_with( $canonical, $this->canonicalWordpressRoot . '/' ) ? $canonical : null;
 	}
 
 	/**
