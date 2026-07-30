@@ -980,17 +980,29 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 		$this->assertNull( $parse_directive_name->invoke( $this->interactivity, 'data-wp-' ) );
 
 		/*
-		 * Should treat a leading "--" as part of the prefix rather than as a suffix separator,
-		 * which would otherwise leave the prefix empty. As above, the client splits this into
-		 * `{ prefix: '', suffix: 'foo' }`, and as above neither result names a directive.
+		 * Should reject a name whose prefix would begin with a hyphen, which the directive syntax
+		 * does not allow. Neither reading of such a name is meaningful: treating the hyphens as a
+		 * suffix separator leaves the prefix empty, and treating them as part of the prefix names
+		 * a directive which cannot be registered. The client's `parseDirectiveName` still splits
+		 * `data-wp---foo` into `{ prefix: '', suffix: 'foo' }`, but as with an empty name, no
+		 * result here matches a registered directive, so the attribute is ignored on both sides
+		 * either way.
+		 */
+		$this->assertNull( $parse_directive_name->invoke( $this->interactivity, 'data-wp--bind' ) );
+		$this->assertNull( $parse_directive_name->invoke( $this->interactivity, 'data-wp---foo' ) );
+		$this->assertNull( $parse_directive_name->invoke( $this->interactivity, 'data-wp----foo' ) );
+
+		/*
+		 * Should still accept a suffix which begins with hyphens, since only the prefix is
+		 * constrained. Here the prefix is "style" and the suffix is "--var".
 		 */
 		$this->assertSame(
 			array(
-				'prefix'    => '--foo',
-				'suffix'    => null,
+				'prefix'    => 'style',
+				'suffix'    => '--var',
 				'unique_id' => null,
 			),
-			$parse_directive_name->invoke( $this->interactivity, 'data-wp---foo' )
+			$parse_directive_name->invoke( $this->interactivity, 'data-wp-style----var' )
 		);
 	}
 

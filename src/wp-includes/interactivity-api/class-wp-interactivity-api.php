@@ -771,7 +771,7 @@ final class WP_Interactivity_API {
 
 	/**
 	 * Parse the directive name to extract the following parts:
-	 * - Prefix: The main directive name without "data-wp-".
+	 * - Prefix: The main directive name without "data-wp-". It cannot begin with a hyphen.
 	 * - Suffix: An optional suffix used during directive processing, extracted after the first double hyphen "--".
 	 * - Unique ID: An optional unique identifier, extracted after the first triple hyphen "---".
 	 *
@@ -804,10 +804,22 @@ final class WP_Interactivity_API {
 			return null;
 		}
 
-		// Find the first occurrence of '--' to separate the prefix, as long as it is not at the beginning of the string.
+		// Find the first occurrence of '--' to separate the prefix.
 		$suffix_index = strpos( $name, '--' );
 
-		if ( false === $suffix_index || 0 === $suffix_index ) {
+		/*
+		 * A prefix cannot begin with a hyphen, so a name which does is not a directive at all. This
+		 * covers both a lone leading hyphen, as in "data-wp--bind", and a leading double hyphen, as
+		 * in "data-wp---foo", where treating the hyphens as a suffix separator would instead leave
+		 * the prefix empty. It also covers "data-wp----unique-id", where only a unique ID is supplied
+		 * without any prefix or suffix.
+		 */
+		if ( 0 === $suffix_index || '-' === $name[0] ) {
+			return null;
+		}
+
+		// Without a '--' the whole name is the prefix. (This naturally also means there is no unique ID after '---'.)
+		if ( false === $suffix_index ) {
 			return array(
 				'prefix'    => $name,
 				'suffix'    => null,
