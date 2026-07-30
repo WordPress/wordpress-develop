@@ -202,6 +202,13 @@ jobs:
           extensions: "gd, opcache, mysqli, zip, exif, intl, mbstring, xml, xsl, imagick, xdebug${{ inputs.memcached && ', memcached' || '' }}"
           coverage: none
 
+      - name: Configure ImageMagick
+        run: |
+          sudo apt-get install -y --no-install-recommends ghostscript libheif1
+          # Allow PDF processing; Ubuntu disables this in the default ImageMagick policy for security.
+          sudo find /etc/ImageMagick* -name policy.xml \
+            -exec sed -i 's@rights="none" pattern="PDF"@rights="read|write" pattern="PDF"@' {} +
+
       # Since Composer dependencies are installed using `composer update` and no lock file is in version control,
       # passing a custom cache suffix ensures that the cache is flushed at least once per week.
       - name: Install Composer dependencies
