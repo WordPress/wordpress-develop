@@ -413,7 +413,44 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 				'original_url' => '/?name=private-cpt-po&post_type[]=wp_tests_private',
 				'expected'     => '/?name=private-cpt-po&post_type[]=wp_tests_private',
 			),
+			'mixed public and private post types should find public' => array(
+				'original_url' => '/?name=sample-pag&post_type[]=page&post_type[]=wp_tests_private',
+				'expected'     => '/sample-page/',
+			),
 		);
+	}
+
+	/**
+	 * Ensures redirect_guess_404_permalink() only queries publicly viewable post types from an array.
+	 *
+	 * @ticket 44964
+	 *
+	 * @covers ::redirect_guess_404_permalink
+	 */
+	public function test_redirect_guess_404_permalink_array_post_type_uses_viewable_intersection() {
+		// Create a private post first (lower ID) to confirm it is not returned.
+		self::factory()->post->create(
+			array(
+				'post_type'   => 'wp_tests_private',
+				'post_title'  => 'viewable-intersection-test',
+				'post_name'   => 'viewable-intersection-test',
+				'post_status' => 'publish',
+			)
+		);
+
+		$public_post = self::factory()->post->create(
+			array(
+				'post_type'   => 'page',
+				'post_title'  => 'viewable-intersection-test',
+				'post_name'   => 'viewable-intersection-test',
+				'post_status' => 'publish',
+			)
+		);
+
+		$this->go_to( '/?name=viewable-intersection-tes' );
+		set_query_var( 'post_type', array( 'page', 'wp_tests_private' ) );
+
+		$this->assertSame( get_permalink( $public_post ), redirect_guess_404_permalink() );
 	}
 
 	/**
