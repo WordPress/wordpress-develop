@@ -66,6 +66,8 @@ services:
   mysql:
     image: ${LOCAL_DB_TYPE-mysql}:${LOCAL_DB_VERSION-latest}
 
+    command: [ "--innodb-flush-log-at-trx-commit=2" ]
+
     networks:
       - wpdevnet
 
