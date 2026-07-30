@@ -477,7 +477,8 @@ ul#adminmenu > li.current > a.current:after {
 #wpadminbar .quicklinks .ab-sub-wrapper .menupop.hover > a .blavatar,
 #wpadminbar .menupop .menupop > .ab-item:hover:before,
 #wpadminbar.mobile .quicklinks .hover .ab-icon:before,
-#wpadminbar.mobile .quicklinks .hover .ab-item:before {
+#wpadminbar.mobile .quicklinks .hover .ab-item:before,
+#wpadminbar.mobile .quicklinks .ab-item:focus:before {
 	color: variables.$menu-submenu-focus-text;
 }
 
