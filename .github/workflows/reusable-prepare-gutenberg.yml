@@ -74,6 +74,8 @@ jobs:
         run: |
           { git diff --name-only HEAD; git ls-files --others --exclude-standard; } \
             > /tmp/build-manifest.txt
+          echo "Files included in build artifact:"
+          cat /tmp/build-manifest.txt
           tar -czf /tmp/wordpress-build.tar.gz --files-from=/tmp/build-manifest.txt
 
       - name: Upload WordPress build
