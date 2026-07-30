@@ -72,7 +72,7 @@ jobs:
 
       - name: Package WordPress build
         run: |
-          { git diff --name-only HEAD; git ls-files --others --exclude-standard; } \
+          { git diff --name-only HEAD; git ls-files --others --exclude="/vendor/*" --exclude="/node_modules/*"; } \
             > /tmp/build-manifest.txt
           echo "Files included in build artifact:"
           cat /tmp/build-manifest.txt
