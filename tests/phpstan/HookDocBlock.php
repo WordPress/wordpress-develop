@@ -55,9 +55,9 @@ use SplFileInfo;
  *
  * @see HookDocsVisitor
  *
- * @phpstan-type HookDocs array{exact: array<string, string>, patterns: list<array{regex: string, literal: string, text: string}>}
- * @phpstan-type HookDocumentationProblem array{path: string, hook: string, problem: self::PROBLEM_FILE_MISSING|self::PROBLEM_HOOK_MISSING}
- * @phpstan-type HookDocumentation array{kind: 'inline'|'reference', text: string, resolved: ResolvedPhpDocBlock|null, paramCount: int<0, max>|null, problem: HookDocumentationProblem|null}
+ * @phpstan-type HookDocs array{exact: array<string, string>, patterns: list<array{regex: non-falsy-string, literal: non-empty-string, text: string}>}
+ * @phpstan-type HookDocumentationProblem array{path: non-empty-string, hook: string, problem: self::PROBLEM_FILE_MISSING|self::PROBLEM_HOOK_MISSING}
+ * @phpstan-type HookDocumentation array{kind: 'inline'|'reference', resolved: ResolvedPhpDocBlock|null, paramCount: int<0, max>|null, problem: HookDocumentationProblem|null}
  */
 class HookDocBlock {
 
@@ -280,7 +280,6 @@ class HookDocBlock {
 
 			return array(
 				'kind'       => 'inline',
-				'text'       => $text,
 				'resolved'   => $resolved,
 				'paramCount' => self::countParamTags( $resolved ),
 				'problem'    => null,
@@ -289,7 +288,6 @@ class HookDocBlock {
 
 		$hook_doc = array(
 			'kind'       => 'reference',
-			'text'       => $text,
 			'resolved'   => null,
 			'paramCount' => null,
 			'problem'    => null,
