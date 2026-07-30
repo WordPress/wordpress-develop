@@ -752,7 +752,7 @@ class WP_HTML_Tag_Processor {
 	 *     );
 	 *
 	 * @since 6.2.0
-	 * @var bool[]
+	 * @var array<non-empty-string, self::ADD_CLASS|self::REMOVE_CLASS>
 	 */
 	private $classname_updates = array();
 
@@ -2974,7 +2974,7 @@ class WP_HTML_Tag_Processor {
 		 */
 		$has_class = isset( $this->attributes['class'] );
 		if ( '' === $comparable || str_starts_with( 'class', $comparable ) ) {
-			foreach ( $this->classname_updates as $class_name => $update ) {
+			foreach ( $this->classname_updates as $update ) {
 				if (
 					( $has_class && self::REMOVE_CLASS === $update ) ||
 					( ! $has_class && self::ADD_CLASS === $update )
