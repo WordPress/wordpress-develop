@@ -55,9 +55,30 @@ use SplFileInfo;
  *
  * @see HookDocsVisitor
  *
- * @phpstan-type HookDocs array{exact: array<string, string>, patterns: list<array{regex: non-falsy-string, literal: non-empty-string, text: string}>}
- * @phpstan-type HookDocumentationProblem array{path: non-empty-string, hook: string, problem: self::PROBLEM_FILE_MISSING|self::PROBLEM_HOOK_MISSING}
- * @phpstan-type HookDocumentation array{kind: 'inline'|'reference', resolved: ResolvedPhpDocBlock|null, paramCount: int<0, max>|null, problem: HookDocumentationProblem|null}
+ * @phpstan-type HookDocs array{
+ *     exact: array<string, string>,
+ *     patterns: list<array{
+ *         regex: non-falsy-string,
+ *         literal: non-empty-string,
+ *         text: string,
+ *     }>,
+ * }
+ * @phpstan-type HookNameMatcher array{
+ *     kind: 'literal'|'pattern',
+ *     value: string,
+ *     literal: string,
+ * }
+ * @phpstan-type HookDocumentationProblem array{
+ *     path: non-empty-string,
+ *     hook: string,
+ *     problem: self::PROBLEM_FILE_MISSING|self::PROBLEM_HOOK_MISSING,
+ * }
+ * @phpstan-type HookDocumentation array{
+ *     kind: 'inline'|'reference',
+ *     resolved: ResolvedPhpDocBlock|null,
+ *     paramCount: int<0, max>|null,
+ *     problem: HookDocumentationProblem|null,
+ * }
  */
 class HookDocBlock {
 
@@ -470,8 +491,8 @@ class HookDocBlock {
 	/**
 	 * Returns the canonical docblock text for a hook documented in the given file.
 	 *
-	 * @param string                                                           $file    Absolute path to the file declaring the hook.
-	 * @param array{kind: 'literal'|'pattern', value: string, literal: string} $matcher Hook name matcher from getHookNameMatcher().
+	 * @param string          $file    Absolute path to the file declaring the hook.
+	 * @param HookNameMatcher $matcher Hook name matcher from getHookNameMatcher().
 	 * @return string|null Docblock text, or null when no documented invocation is found.
 	 */
 	private function findHookDoc( string $file, array $matcher ): ?string {
@@ -655,7 +676,10 @@ class HookDocBlock {
 	 * no literal text at all.
 	 *
 	 * @param Expr $expr Hook name expression.
-	 * @return array{regex: non-falsy-string, literal: non-empty-string}|null
+	 * @return array{
+	 *     regex: non-falsy-string,
+	 *     literal: non-empty-string,
+	 * }|null
 	 */
 	private static function buildHookNamePattern( Expr $expr ): ?array {
 		$parts = self::hookNameRegexParts( $expr );
@@ -692,7 +716,10 @@ class HookDocBlock {
 	 * literal text that fragment is anchored on.
 	 *
 	 * @param Expr $expr Hook name expression.
-	 * @return array{0: string, 1: string}|null Fragment and its literal text, or null if unsupported.
+	 * @return array{
+	 *     0: string,
+	 *     1: string,
+	 * }|null Fragment and its literal text, or null if unsupported.
 	 */
 	private static function hookNameRegexParts( Expr $expr ): ?array {
 		if ( $expr instanceof String_ ) {
@@ -809,8 +836,8 @@ class HookDocBlock {
 	 * exactly, or a regex for a dynamic name (e.g. "{$type}_template_hierarchy").
 	 *
 	 * @param FuncCall $call Hook function call node.
-	 * @return array{kind: 'literal'|'pattern', value: string, literal: string}|null
-	 *   Null when the name carries no identifiable text (e.g. a bare variable).
+	 * @return HookNameMatcher|null Null when the name carries no identifiable text
+	 *                             (e.g. a bare variable).
 	 */
 	private static function getHookNameMatcher( FuncCall $call ): ?array {
 		$args = $call->getArgs();

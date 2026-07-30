@@ -52,7 +52,10 @@ final class HookDocsVisitor extends NodeVisitorAbstract {
 	 * applicable docblock, used to restore the previous value when the node is
 	 * left so a docblock only applies to that node's descendants.
 	 *
-	 * @var list<array{0: Node, 1: Doc|null}>
+	 * @var list<array{
+	 *     0: Node,
+	 *     1: Doc|null,
+	 * }>
 	 */
 	private array $stack = array();
 
