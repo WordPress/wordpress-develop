@@ -750,7 +750,6 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 	}
 
 	/**
-	 * @dataProvider data_readable_http_methods
 	 * @ticket 47620
 	 * @ticket 56481
 	 */
