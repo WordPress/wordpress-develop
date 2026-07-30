@@ -204,7 +204,7 @@ jobs:
 
       - name: Configure ImageMagick
         run: |
-          sudo apt-get install -y --no-install-recommends ghostscript libheif1
+          sudo apt-get install -y --no-install-recommends ghostscript libheif1 libheif-plugin-aomenc libheif-plugin-aomdec
           # Allow PDF processing; Ubuntu disables this in the default ImageMagick policy for security.
           sudo find /etc/ImageMagick* -name policy.xml \
             -exec sed -i 's@rights="none" pattern="PDF"@rights="read|write" pattern="PDF"@' {} +
