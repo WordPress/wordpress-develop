@@ -719,10 +719,13 @@ class HookDocBlock {
 	 * The reference comment names the exact file (e.g. "wp-includes/media.php"), so
 	 * resolution proceeds in two steps:
 	 *
-	 * 1. Walk up from the current file's directory until the relative path resolves
-	 *    to a real file. This works regardless of where the referencing file lives
-	 *    (core, a bundled theme, the install root, ...), and also resolves the
-	 *    sibling references used by the bundled themes (e.g. "author.php").
+	 * 1. Walk up from the current file's directory, as far as the WordPress root,
+	 *    until the relative path resolves to a real file. This works regardless of
+	 *    where in the tree the referencing file lives (core, a bundled theme, the
+	 *    install root, ...), and also resolves the sibling references used by the
+	 *    bundled themes (e.g. "author.php"). The walk stops at the root because a
+	 *    path that only resolves above the tree under analysis is a coincidence
+	 *    rather than the file the comment names.
 	 * 2. Fall back to the WordPress root. Step 1 assumes the analysed file sits in
 	 *    its real location, which does not hold when an IDE runs PHPStan against a
 	 *    temporary copy of the editor buffer. Without this fallback, every
@@ -738,19 +741,21 @@ class HookDocBlock {
 		$reference_path = ltrim( $reference_path, '/' );
 		$dir            = dirname( $current_file );
 
-		while ( true ) {
+		while ( $dir === $this->wordpressRoot || str_starts_with( $dir, $this->wordpressRoot . '/' ) ) {
 			$candidate = $dir . '/' . $reference_path;
 			if ( is_file( $candidate ) ) {
 				return $candidate;
 			}
 
-			$parent = dirname( $dir );
-			if ( $parent === $dir ) {
-				break;
+			// The root has just been tested, so the walk is done.
+			if ( $dir === $this->wordpressRoot ) {
+				return null;
 			}
-			$dir = $parent;
+
+			$dir = dirname( $dir );
 		}
 
+		// The file holding the comment is not in the tree, so resolve against the root.
 		$candidate = $this->wordpressRoot . '/' . $reference_path;
 
 		return is_file( $candidate ) ? $candidate : null;
