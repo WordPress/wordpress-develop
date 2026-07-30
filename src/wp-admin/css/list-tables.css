@@ -2277,7 +2277,7 @@ div.action-links,
 	}
 
 	/* Plugin/Theme Management */
-	#wpbody-content .wp-list-table.plugins td {
+	#wpbody-content .wp-list-table.plugins tbody td {
 		display: block;
 		width: auto;
 		padding: 10px 9px; /* reset from other list tables that have a label at this width */
