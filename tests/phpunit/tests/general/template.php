@@ -160,9 +160,7 @@ class Tests_General_Template extends WP_UnitTestCase {
 
 		set_current_screen( 'dashboard' );
 		$this->assertTrue( is_admin(), 'Test should run in the admin context.' );
-
 		$this->assertFalse( is_ssl(), 'Baseline request should not be detected as SSL.' );
-
 		$this->assertStringStartsWith( 'http://', get_site_icon_url(), 'Baseline icon URL should use the HTTP scheme.' );
 
 		$_SERVER['HTTPS'] = 'on';
