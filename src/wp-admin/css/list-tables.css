@@ -1335,38 +1335,6 @@ ul.cat-checklist input[name="post_category[]"]:indeterminate::before {
 	border-left: 4px solid var(--wp-admin-theme-color);
 }
 
-@media screen and ( width < 782px ) {
-	.plugins tr.active.plugin-update-tr + tr.inactive th,
-	.plugins tr.active.plugin-update-tr + tr.inactive td,
-	.plugins tr.active + tr.inactive th,
-	.plugins tr.active + tr.inactive td,
-	.plugins .inactive td,
-	.plugins .inactive th,
-	.plugins .active td,
-	.plugins .active th,
-	.plugin-install #the-list td,
-	.upgrade .plugins td,
-	.upgrade .plugins th {
-		box-shadow: none;
-	}
-	.plugins tr {
-		box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.1);
-	}
-	.plugins .active th.check-column,
-	.plugins .active td.check-column,
-	.plugin-update-tr.active td {
-		border-left: 4px solid transparent;
-	}
-	.plugins .active th.check-column input,
-	.plugins .active td.check-column input {
-		margin-left: 0px;
-	}
-	.plugins tr.active,
-	.plugin-update-tr.active {
-		border-left: 4px solid var(--wp-admin-theme-color);
-	}
-}
-
 .wp-list-table.plugins .plugin-title,
 .wp-list-table.plugins .theme-title {
 	padding-right: 12px;
@@ -1953,10 +1921,6 @@ div.action-links,
 		display: none;
 	}
 
-	.wp-list-table th.column-primary {
-		width: 100%;
-	}
-
 	.wp-list-table tr {
 		display: flex;
 		flex-wrap: wrap;
@@ -1979,6 +1943,40 @@ div.action-links,
 
 	.wp-list-table tr td:nth-child(n+3) {
 		flex: 0 1 100%;
+	}
+
+	.plugins tr.active.plugin-update-tr + tr.inactive th,
+	.plugins tr.active.plugin-update-tr + tr.inactive td,
+	.plugins tr.active + tr.inactive th,
+	.plugins tr.active + tr.inactive td,
+	.plugins .inactive td,
+	.plugins .inactive th,
+	.plugins .active td,
+	.plugins .active th,
+	.plugin-install #the-list td,
+	.upgrade .plugins td,
+	.upgrade .plugins th {
+		box-shadow: none;
+	}
+
+	.plugins tr {
+		box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+	}
+
+	.plugins .active th.check-column,
+	.plugins .active td.check-column,
+	.plugin-update-tr.active td {
+		border-left: 4px solid transparent;
+	}
+
+	.plugins .active th.check-column input,
+	.plugins .active td.check-column input {
+		margin-left: 0px;
+	}
+
+	.plugins tr.active,
+	.plugin-update-tr.active {
+		border-left: 4px solid var(--wp-admin-theme-color);
 	}
 
 	.wp-list-table .column-primary .toggle-row {
