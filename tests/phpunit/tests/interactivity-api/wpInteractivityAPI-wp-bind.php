@@ -527,7 +527,7 @@ class Tests_WP_Interactivity_API_WP_Bind extends WP_UnitTestCase {
 		$this->assertNull( $p->get_attribute( 'data-ratio' ), 'Expected no attribute to have been set for a value JSON cannot represent.' );
 		$this->assertSame(
 			array(
-				'WP_Interactivity_API::data_wp_bind_processor' => 'Attempted to bind INF or NAN to the "data-ratio" attribute. Ensure the state/context property or the derived state closure resolves to a finite number or a string. (This message was added in version 7.1.0.)',
+				'WP_Interactivity_API::data_wp_bind_processor' => 'Attempted to bind a non-finite number to the "data-ratio" attribute. Ensure the state/context property or the derived state closure resolves to a finite number or a string. (This message was added in version 7.1.0.)',
 			),
 			$this->caught_doing_it_wrong,
 			'Expected _doing_it_wrong() to have been called once with the non-finite value message.'

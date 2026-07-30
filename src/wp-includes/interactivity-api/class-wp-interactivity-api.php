@@ -1196,7 +1196,7 @@ final class WP_Interactivity_API {
 								__METHOD__,
 								sprintf(
 									/* translators: %s: The attribute name. */
-									__( 'Attempted to bind INF or NAN to the "%s" attribute. Ensure the state/context property or the derived state closure resolves to a finite number or a string.' ),
+									__( 'Attempted to bind a non-finite number to the "%s" attribute. Ensure the state/context property or the derived state closure resolves to a finite number or a string.' ),
 									esc_html( $entry['suffix'] )
 								),
 								'7.1.0'
