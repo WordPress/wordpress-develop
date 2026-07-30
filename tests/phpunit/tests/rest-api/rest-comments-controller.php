@@ -2024,6 +2024,31 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertErrorResponse( 'rest_comment_invalid_post_id', $response, 403 );
 	}
 
+	/**
+	 * A missing post should be reported as a missing post, even when the request
+	 * also sets `status` and the user is not allowed to set it.
+	 *
+	 * @ticket 65761
+	 */
+	public function test_create_comment_status_and_no_post_id_no_permission() {
+		wp_set_current_user( self::$author_id );
+
+		$params = array(
+			'author_name'  => 'Homer Jay Simpson',
+			'author_email' => 'chunkylover53@aol.com',
+			'author_url'   => 'http://compuglobalhypermeganet.com',
+			'content'      => 'Here\’s to alcohol: the cause of, and solution to, all of life\’s problems.',
+			'status'       => 'approved',
+		);
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/comments' );
+		$request->add_header( 'Content-Type', 'application/json' );
+		$request->set_body( wp_json_encode( $params ) );
+
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertErrorResponse( 'rest_comment_invalid_post_id', $response, 403 );
+	}
+
 	public function test_create_comment_invalid_post_id() {
 		wp_set_current_user( self::$admin_id );
 
