@@ -590,7 +590,9 @@ class WP_Term_Query {
 			);
 		}
 
-		if ( null !== $args['object_ids'] ) {
+		if ( '' === $args['object_ids'] ) {
+			$args['object_ids'] = array();
+		} elseif ( null !== $args['object_ids'] ) {
 			$args['object_ids'] = array_map( 'intval', (array) $args['object_ids'] );
 		}
 
