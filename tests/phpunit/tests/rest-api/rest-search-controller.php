@@ -355,7 +355,6 @@ class WP_Test_REST_Search_Controller extends WP_Test_REST_Controller_Testcase {
 	/**
 	 * Search through posts of an invalid post type.
 	 *
-	 * @dataProvider data_readable_http_methods
 	 * @ticket 56481
 	 */
 	public function test_get_items_search_type_post_subtype_invalid() {
