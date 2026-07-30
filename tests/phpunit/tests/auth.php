@@ -1000,6 +1000,11 @@ class Tests_Auth extends WP_UnitTestCase {
 		$check = wp_validate_user_request_key( $request_id, $key );
 		$this->assertWPError( $check );
 		$this->assertSame( 'confirmed_request', $check->get_error_code() );
+
+		// An invalid key should not disclose that the request was already confirmed.
+		$check = wp_validate_user_request_key( $request_id, 'invalid' );
+		$this->assertWPError( $check );
+		$this->assertSame( 'invalid_key', $check->get_error_code() );
 	}
 
 	/**
