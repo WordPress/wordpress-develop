@@ -334,7 +334,7 @@ class HookDocBlock {
 			if ( null === $referenced ) {
 				return null;
 			}
-			return count( $referenced->getParamTags() );
+			return self::countParamTags( $referenced );
 		}
 
 		$class_reflection = $scope->getClassReflection();
@@ -348,7 +348,33 @@ class HookDocBlock {
 			$code
 		);
 
-		return count( $resolved->getParamTags() );
+		return self::countParamTags( $resolved );
+	}
+
+	/**
+	 * Counts the `@param` tags a resolved docblock declares.
+	 *
+	 * ResolvedPhpDocBlock::getParamTags() is keyed by parameter name, so two tags
+	 * documenting the same name — a copy-and-paste slip — collapse into a single
+	 * entry. That undercounts, which both reports a hook passing the documented
+	 * number of arguments as a mismatch and hides a hook that genuinely passes too
+	 * few. The parsed docblock nodes list every tag, so they are counted instead.
+	 *
+	 * Tags PHPStan cannot parse as a `@param` — one missing its variable name, say —
+	 * are still left out, so a malformed tag continues to surface rather than passing
+	 * for documentation of a parameter.
+	 *
+	 * @param ResolvedPhpDocBlock $resolved_php_doc Resolved docblock.
+	 * @return int<0, max>
+	 */
+	private static function countParamTags( ResolvedPhpDocBlock $resolved_php_doc ): int {
+		$count = 0;
+
+		foreach ( $resolved_php_doc->getPhpDocNodes() as $php_doc_node ) {
+			$count += count( $php_doc_node->getParamTagValues() );
+		}
+
+		return $count;
 	}
 
 	/**
