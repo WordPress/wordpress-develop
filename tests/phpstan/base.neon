@@ -40,6 +40,15 @@ services:
 		tags:
 			- phpstan.rules.rule
 
+	# Docblocks inherited from another file, and the sources above that read them,
+	# are invisible to PHPStan's dependency graph, so both are folded into the result
+	# cache key. Without this, editing a canonical hook docblock leaves the cached
+	# results of every call site inheriting it in place.
+	-
+		class: WordPress\PHPStan\HookDocsResultCacheMetaExtension
+		tags:
+			- phpstan.resultCacheMetaExtension
+
 parameters:
 	# Cache is stored locally, so it's available for CI.
 	tmpDir: ../../.cache
@@ -132,6 +141,7 @@ parameters:
 		- ApplyFiltersDynamicFunctionReturnTypeExtension.php
 		- HookDocumentationRule.php
 		- HookParamCountRule.php
+		- HookDocsResultCacheMetaExtension.php
 	bootstrapFiles:
 		- bootstrap.php
 	scanFiles:

@@ -28,6 +28,7 @@ declare(strict_types=1);
 
 namespace WordPress\PHPStan;
 
+use FilesystemIterator;
 use PhpParser\Comment\Doc;
 use PhpParser\Node\Expr;
 use PhpParser\Node\Expr\BinaryOp\Concat;
@@ -44,6 +45,9 @@ use PHPStan\Analyser\Scope;
 use PHPStan\PhpDoc\ResolvedPhpDocBlock;
 use PHPStan\ShouldNotHappenException;
 use PHPStan\Type\FileTypeMapper;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
+use SplFileInfo;
 
 /**
  * Bridges the docblock attached to a hook call by HookDocsVisitor to PHPStan's
@@ -65,6 +69,18 @@ class HookDocBlock {
 		'do_action',
 		'do_action_deprecated',
 		'do_action_ref_array',
+	);
+
+	/**
+	 * Directories, relative to the WordPress root, scanned for reference comments
+	 * when hashing the docblocks that call sites can inherit.
+	 *
+	 * @see HookDocBlock::getScannedFiles()
+	 */
+	private const SCANNED_DIRECTORIES = array(
+		'wp-admin',
+		'wp-includes',
+		'wp-content/themes',
 	);
 
 	/**
@@ -91,7 +107,7 @@ class HookDocBlock {
 	protected FileTypeMapper $fileTypeMapper;
 
 	/**
-	 * Cache of parsed hook documentation, keyed by absolute file path.
+	 * In-memory cache of parsed hook documentation, keyed by absolute file path.
 	 *
 	 * @var array<string, HookDocs>
 	 */
@@ -115,6 +131,109 @@ class HookDocBlock {
 	public function __construct( FileTypeMapper $file_type_mapper, ?string $wordpress_root = null ) {
 		$this->fileTypeMapper = $file_type_mapper;
 		$this->wordpressRoot  = rtrim( $wordpress_root ?? dirname( __DIR__, 2 ) . '/src', '/' );
+	}
+
+	/**
+	 * Returns a hash of every hook docblock that a call site can inherit through a
+	 * "documented elsewhere" reference comment.
+	 *
+	 * Those docblocks are read with plain file I/O, so PHPStan's dependency graph
+	 * does not know that the referencing files depend on them: editing a canonical
+	 * docblock re-analyzes only the file it lives in, leaving the cached results of
+	 * every referencing file in place. Folding this hash into the result cache key
+	 * invalidates the cache when an inheritable docblock changes, and only then.
+	 *
+	 * @see HookDocsResultCacheMetaExtension
+	 *
+	 * @return non-falsy-string
+	 */
+	public function getReferencedHookDocsHash(): string {
+		$docs = array();
+
+		foreach ( $this->getScannedFiles() as $file ) {
+			$code = file_get_contents( $file );
+
+			if ( false === $code || ! str_contains( $code, 'is documented in' ) ) {
+				continue;
+			}
+
+			if ( ! preg_match_all( self::REFERENCE_PATTERN, $code, $matches ) ) {
+				continue;
+			}
+
+			foreach ( $matches[1] as $reference_path ) {
+				$target = $this->resolveReferencePath( $file, $reference_path );
+
+				if ( null === $target ) {
+					continue;
+				}
+
+				// Key on the path relative to the WordPress root so the hash does not
+				// depend on where the checkout lives.
+				$key = $this->getRootRelativePath( $target );
+
+				if ( ! isset( $docs[ $key ] ) ) {
+					$docs[ $key ] = $this->getHookDocs( $target );
+				}
+			}
+		}
+
+		ksort( $docs );
+
+		return md5( (string) json_encode( $docs ) );
+	}
+
+	/**
+	 * Returns the files scanned for reference comments: the WordPress directories
+	 * that can contain them, plus the PHP files at the root of the install.
+	 *
+	 * `wp-content/plugins` is deliberately not scanned. A checkout may have plugins
+	 * carrying large `vendor` and `node_modules` trees, and core's reference comments
+	 * only ever point within core.
+	 *
+	 * @return list<string> Absolute file paths.
+	 */
+	private function getScannedFiles(): array {
+		$files = array();
+
+		foreach ( self::SCANNED_DIRECTORIES as $directory ) {
+			$path = $this->wordpressRoot . '/' . $directory;
+
+			if ( ! is_dir( $path ) ) {
+				continue;
+			}
+
+			$iterator = new RecursiveIteratorIterator(
+				new RecursiveDirectoryIterator( $path, FilesystemIterator::SKIP_DOTS )
+			);
+
+			foreach ( $iterator as $file ) {
+				if ( $file instanceof SplFileInfo && $file->isFile() && 'php' === strtolower( $file->getExtension() ) ) {
+					$files[] = $file->getPathname();
+				}
+			}
+		}
+
+		$root_files = glob( $this->wordpressRoot . '/*.php' );
+
+		if ( is_array( $root_files ) ) {
+			$files = array_merge( $files, $root_files );
+		}
+
+		return $files;
+	}
+
+	/**
+	 * Expresses an absolute path relative to the WordPress root when it sits inside
+	 * it, so that hashes do not depend on the checkout location.
+	 *
+	 * @param string $path Absolute path.
+	 * @return string
+	 */
+	private function getRootRelativePath( string $path ): string {
+		$prefix = $this->wordpressRoot . '/';
+
+		return str_starts_with( $path, $prefix ) ? substr( $path, strlen( $prefix ) ) : $path;
 	}
 
 	/**
@@ -189,8 +308,8 @@ class HookDocBlock {
 	 *
 	 * @param FuncCall $function_call Hook function call node.
 	 * @param Scope    $scope         Analysis scope.
-	 * @return int|null Documented parameter count, or null when there is no
-	 *                  docblock or a reference cannot be resolved.
+	 * @return int<0, max>|null Documented parameter count, or null when there is no
+	 *                         docblock or a reference cannot be resolved.
 	 * @throws ShouldNotHappenException
 	 */
 	public function getDocumentedParamCount( FuncCall $function_call, Scope $scope ): ?int {
@@ -257,7 +376,7 @@ class HookDocBlock {
 	 *
 	 * @param FuncCall $function_call Hook function call node.
 	 * @param Scope    $scope         Analysis scope.
-	 * @return array{path: string, hook: string, problem: string}|null
+	 * @return array{path: string, hook: string, problem: self::PROBLEM_FILE_MISSING|self::PROBLEM_HOOK_MISSING}|null
 	 */
 	public function getReferenceProblem( FuncCall $function_call, Scope $scope ): ?array {
 		$comment = self::getNullableNodeComment( $function_call );
@@ -345,11 +464,7 @@ class HookDocBlock {
 	 * @return string|null Docblock text, or null when no documented invocation is found.
 	 */
 	private function findHookDoc( string $file, array $matcher ): ?string {
-		if ( ! isset( $this->fileHookDocs[ $file ] ) ) {
-			$this->fileHookDocs[ $file ] = self::parseHookDocs( $file );
-		}
-
-		$docs = $this->fileHookDocs[ $file ];
+		$docs = $this->getHookDocs( $file );
 
 		if ( 'literal' === $matcher['kind'] ) {
 			$name = $matcher['value'];
@@ -406,8 +521,47 @@ class HookDocBlock {
 	}
 
 	/**
-	 * Parses a file and collects the canonical docblock text for each hook
-	 * invocation it documents.
+	 * Returns the hook documentation declared by a file, parsing each file at most
+	 * once per process.
+	 *
+	 * @param string $file Absolute path to the file.
+	 * @return HookDocs
+	 */
+	private function getHookDocs( string $file ): array {
+		if ( ! isset( $this->fileHookDocs[ $file ] ) ) {
+			$this->fileHookDocs[ $file ] = self::loadHookDocs( $file );
+		}
+
+		return $this->fileHookDocs[ $file ];
+	}
+
+	/**
+	 * Reads and parses the hook documentation declared by a file.
+	 *
+	 * @param string $file Absolute path to the file.
+	 * @return HookDocs
+	 */
+	private static function loadHookDocs( string $file ): array {
+		$empty = array(
+			'exact'    => array(),
+			'patterns' => array(),
+		);
+
+		if ( ! is_file( $file ) || ! is_readable( $file ) ) {
+			return $empty;
+		}
+
+		$code = file_get_contents( $file );
+		if ( false === $code ) {
+			return $empty;
+		}
+
+		return self::parseHookDocs( $code );
+	}
+
+	/**
+	 * Collects the canonical docblock text for each hook invocation documented in
+	 * the given PHP source.
 	 *
 	 * A docblock is treated as canonical when it is not itself a "documented
 	 * elsewhere" reference, so referencing call sites do not count as the source
@@ -418,23 +572,14 @@ class HookDocBlock {
 	 *
 	 * @see HookDocBlock::findHookDoc()
 	 *
-	 * @param string $file Absolute path to the file.
+	 * @param string $code PHP source code.
 	 * @return HookDocs
 	 */
-	private static function parseHookDocs( string $file ): array {
+	private static function parseHookDocs( string $code ): array {
 		$docs = array(
 			'exact'    => array(),
 			'patterns' => array(),
 		);
-
-		if ( ! is_file( $file ) || ! is_readable( $file ) ) {
-			return $docs;
-		}
-
-		$code = file_get_contents( $file );
-		if ( false === $code ) {
-			return $docs;
-		}
 
 		$parser = ( new ParserFactory() )->createForHostVersion();
 		$stmts  = $parser->parse( $code );
@@ -499,7 +644,7 @@ class HookDocBlock {
 	 * no literal text at all.
 	 *
 	 * @param Expr $expr Hook name expression.
-	 * @return array{regex: string, literal: string}|null
+	 * @return array{regex: non-falsy-string, literal: non-empty-string}|null
 	 */
 	private static function buildHookNamePattern( Expr $expr ): ?array {
 		$parts = self::hookNameRegexParts( $expr );
