@@ -405,7 +405,7 @@ if ( 'undefined' === typeof window.wp.codeEditor ) {
 	}
 
 	/**
-	 * Mark the current persistent search result while it's search field has focus.
+	 * Mark the current persistent search result while its search field has focus.
 	 *
 	 * @param {CodeMirrorEditor} codemirror - Editor.
 	 */
