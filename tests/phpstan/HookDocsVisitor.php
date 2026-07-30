@@ -30,12 +30,13 @@ namespace WordPress\PHPStan;
 
 use PhpParser\Comment\Doc;
 use PhpParser\Node;
+use PhpParser\Node\Expr\FuncCall;
 use PhpParser\Node\Stmt;
 use PhpParser\NodeVisitorAbstract;
 
 /**
- * Records the docblock applying to the current node and exposes it via the
- * `latestDocComment` attribute.
+ * Records the docblock applying to the current node and exposes it to function
+ * calls via the `latestDocComment` attribute.
  */
 final class HookDocsVisitor extends NodeVisitorAbstract {
 
@@ -71,7 +72,7 @@ final class HookDocsVisitor extends NodeVisitorAbstract {
 	}
 
 	/**
-	 * Tracks the applicable docblock and attaches it to the node.
+	 * Tracks the applicable docblock and attaches it to function-call nodes.
 	 *
 	 * @param Node $node Node being entered.
 	 * @return Node|null
@@ -90,7 +91,13 @@ final class HookDocsVisitor extends NodeVisitorAbstract {
 			$this->latestDocComment = null;
 		}
 
-		$node->setAttribute( 'latestDocComment', $this->latestDocComment );
+		// Attributes are retained for as long as a parsed file is held in memory, so
+		// the docblock is recorded only where it can be read: on a function call, and
+		// only when there is one to record. Readers cannot tell an absent attribute
+		// from a null one, so skipping the write costs them nothing.
+		if ( null !== $this->latestDocComment && $node instanceof FuncCall ) {
+			$node->setAttribute( 'latestDocComment', $this->latestDocComment );
+		}
 
 		return null;
 	}
