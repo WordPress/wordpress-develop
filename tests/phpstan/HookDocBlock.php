@@ -29,6 +29,8 @@ namespace WordPress\PHPStan;
 
 use FilesystemIterator;
 use PhpParser\Comment\Doc;
+use PhpParser\Error as PhpParserError;
+use PhpParser\ErrorHandler\Collecting;
 use PhpParser\Node\Expr;
 use PhpParser\Node\Expr\BinaryOp\Concat;
 use PhpParser\Node\Expr\FuncCall;
@@ -612,8 +614,19 @@ class HookDocBlock {
 			'patterns' => array(),
 		);
 
+		// Source that cannot be parsed documents nothing this can read, and must not stop
+		// the analysis: a file is temporarily incomplete while it is being edited, and may
+		// use syntax the host PHP version does not know. Collecting the parse errors
+		// rather than throwing keeps the hooks documented ahead of the error wherever the
+		// parser can recover, and yields none where it cannot.
 		$parser = ( new ParserFactory() )->createForHostVersion();
-		$stmts  = $parser->parse( $code );
+
+		try {
+			$stmts = $parser->parse( $code, new Collecting() );
+		} catch ( PhpParserError $parse_error ) {
+			return $docs;
+		}
+
 		if ( null === $stmts ) {
 			return $docs;
 		}
