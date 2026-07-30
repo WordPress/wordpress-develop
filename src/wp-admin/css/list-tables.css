@@ -1936,6 +1936,10 @@ div.action-links,
 		width: 2.5em;
 	}
 
+	.wp-list-table .column-primary a {
+		text-wrap: wrap;
+	}
+
 	.wp-list-table td.column-primary,
 	.wp-list-table th.column-primary {
 		flex: 1 1 0;
