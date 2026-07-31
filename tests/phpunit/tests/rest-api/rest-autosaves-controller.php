@@ -739,6 +739,8 @@ class WP_Test_REST_Autosaves_Controller extends WP_Test_REST_Post_Type_Controlle
 	 * @ticket 65495
 	 *
 	 * @global int|null $id ID from the set up global post data.
+	 *
+	 * @covers WP_REST_Autosaves_Controller::prepare_item_for_response
 	 */
 	public function test_get_item_sets_up_postdata_without_leaking_global_post() {
 		global $id;

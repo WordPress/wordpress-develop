@@ -898,9 +898,11 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 	 * so rendered fields reflect the revision, without leaking into the global
 	 * post after the request completes.
 	 *
+	 * @ticket 65495
+	 *
 	 * @global int|null $id ID from the set up global post data.
 	 *
-	 * @ticket 65495
+	 * @covers WP_REST_Revisions_Controller::prepare_item_for_response
 	 */
 	public function test_get_item_sets_up_postdata_without_leaking_global_post() {
 		global $id;
