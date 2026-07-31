@@ -596,15 +596,14 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 	 * @since 4.7.0
 	 * @since 5.9.0 Renamed `$post` to `$item` to match parent class for PHP 8 named parameter support.
 	 *
-	 * @global WP_Post $post Global post object.
+	 * @global WP_Post|null $post Global post object.
 	 *
 	 * @param WP_Post         $item    Post revision object.
 	 * @param WP_REST_Request $request Request object.
 	 * @return WP_REST_Response Response object.
 	 */
 	public function prepare_item_for_response( $item, $request ) {
-		// Restores the more descriptive, specific name for use within this method.
-		$post = $item;
+		global $post;
 
 		/*
 		 * Save the previous global post so it can be restored before returning.
@@ -613,9 +612,10 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 		 * is preloaded in the block editor, where a leaked global post can cause
 		 * the editor to be initialized with the wrong post).
 		 */
-		$previous_post = isset( $GLOBALS['post'] ) && $GLOBALS['post'] instanceof WP_Post ? $GLOBALS['post'] : null;
+		$previous_post = $post instanceof WP_Post ? $post : null;
 
-		$GLOBALS['post'] = $post;
+		// Restores the more descriptive, specific name for use within this method.
+		$post = $item;
 
 		setup_postdata( $post );
 
