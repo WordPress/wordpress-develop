@@ -19,7 +19,7 @@ class Tests_User_WpDetermineCurrentUser extends WP_UnitTestCase {
 	public function test_determine_current_user_early_filter_priority_less_than_10() {
 		$user_id = self::factory()->user->create();
 
-		$callback = function( $current_user_id ) use ( $user_id ) {
+		$callback = function ( $current_user_id ) use ( $user_id ) {
 			return $user_id;
 		};
 
