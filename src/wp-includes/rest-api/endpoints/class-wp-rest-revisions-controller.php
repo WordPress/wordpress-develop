@@ -745,7 +745,7 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 	 * @param WP_Post|null $previous_post The global post to restore, or null if there was none.
 	 */
 	private function reset_post_data( ?WP_Post $previous_post ): void {
-		if ( null !== $previous_post ) {
+		if ( $previous_post ) {
 			$GLOBALS['post'] = $previous_post;
 			setup_postdata( $previous_post );
 		} else {
