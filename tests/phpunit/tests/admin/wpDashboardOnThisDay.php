@@ -344,7 +344,6 @@ class Tests_Admin_wpDashboardOnThisDay extends WP_UnitTestCase {
 	 * @ticket 65116
 	 *
 	 * @covers ::wp_dashboard_on_this_day
-	 * @covers ::_wp_dashboard_on_this_day_get_no_title_excerpt
 	 */
 	public function test_widget_includes_trimmed_excerpt_for_untitled_posts() {
 		wp_set_current_user( self::$user_id );
@@ -379,7 +378,6 @@ class Tests_Admin_wpDashboardOnThisDay extends WP_UnitTestCase {
 	 * @ticket 65116
 	 *
 	 * @covers ::wp_dashboard_on_this_day
-	 * @covers ::_wp_dashboard_on_this_day_get_no_title_excerpt
 	 */
 	public function test_widget_includes_trimmed_excerpt_for_untitled_private_posts_authored_by_current_user() {
 		$this->set_up_dashboard_screen();
@@ -416,7 +414,6 @@ class Tests_Admin_wpDashboardOnThisDay extends WP_UnitTestCase {
 	 * @ticket 65116
 	 *
 	 * @covers ::wp_dashboard_on_this_day
-	 * @covers ::_wp_dashboard_on_this_day_get_no_title_excerpt
 	 */
 	public function test_widget_hides_untitled_post_excerpt_for_password_protected_posts() {
 		wp_set_current_user( self::$user_id );

@@ -50,33 +50,6 @@ function wp_dashboard_on_this_day_postbox_classes( $classes ) {
 }
 
 /**
- * Gets a trimmed excerpt to display in place of a missing post title.
- *
- * The post is expected to be readable by the current user, as enforced by the
- * widget query. Only returns text for posts that have no title and do not
- * require a password.
- *
- * @since 7.1.0
- * @access private
- *
- * @param WP_Post $post The current WP_Post object.
- * @return string The trimmed excerpt, or an empty string.
- */
-function _wp_dashboard_on_this_day_get_no_title_excerpt( $post ) {
-	if ( '' !== get_the_title( $post ) || post_password_required( $post ) ) {
-		return '';
-	}
-
-	$excerpt = get_the_excerpt( $post );
-
-	if ( '' === $excerpt || ! is_string( $excerpt ) ) {
-		return '';
-	}
-
-	return wp_trim_words( $excerpt, 15 );
-}
-
-/**
  * Renders the On This Day dashboard widget.
  *
  * Outputs the matching posts grouped by publication year, newest year first.
@@ -145,8 +118,15 @@ function wp_dashboard_on_this_day() {
 							$no_title_excerpt = '';
 
 							if ( '' === trim( $title ) ) {
-								$title            = __( '(no title)' );
-								$no_title_excerpt = _wp_dashboard_on_this_day_get_no_title_excerpt( $year_post );
+								$title = __( '(no title)' );
+
+								if ( ! post_password_required( $year_post ) ) {
+									$excerpt = get_the_excerpt( $year_post );
+
+									if ( is_string( $excerpt ) && '' !== $excerpt ) {
+										$no_title_excerpt = wp_trim_words( $excerpt, 15 );
+									}
+								}
 							}
 
 							$author_id   = (int) $year_post->post_author;
