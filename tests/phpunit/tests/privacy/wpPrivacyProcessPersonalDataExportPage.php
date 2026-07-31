@@ -421,7 +421,6 @@ class Tests_Privacy_wpPrivacyProcessPersonalDataExportPage extends WP_UnitTestCa
 	 * @dataProvider data_send_as_email_options
 	 *
 	 * @param bool $send_as_email Whether the final results of the export should be emailed to the user.
-	 *
 	 */
 	public function test_raw_data_post_meta( $send_as_email ) {
 		$this->assertEmpty( get_post_meta( self::$request_id, '_export_data_raw', true ) );
