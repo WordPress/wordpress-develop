@@ -621,10 +621,12 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 
 		// Don't prepare the response body for HEAD requests.
 		if ( $request->is_method( 'HEAD' ) ) {
+			/** This filter is documented in wp-includes/rest-api/endpoints/class-wp-rest-revisions-controller.php */
+			$response = apply_filters( 'rest_prepare_revision', new WP_REST_Response( array() ), $post, $request );
+
 			$this->reset_post_data( $previous_post );
 
-			/** This filter is documented in wp-includes/rest-api/endpoints/class-wp-rest-revisions-controller.php */
-			return apply_filters( 'rest_prepare_revision', new WP_REST_Response( array() ), $post, $request );
+			return $response;
 		}
 
 		$fields = $this->get_fields_for_response( $request );
@@ -717,8 +719,6 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 			$response->add_link( 'parent', rest_url( rest_get_route_for_post( $data['parent'] ) ) );
 		}
 
-		$this->reset_post_data( $previous_post );
-
 		/**
 		 * Filters a revision returned from the REST API.
 		 *
@@ -730,7 +730,11 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 		 * @param WP_Post          $post     The original revision object.
 		 * @param WP_REST_Request  $request  Request used to generate the response.
 		 */
-		return apply_filters( 'rest_prepare_revision', $response, $post, $request );
+		$response = apply_filters( 'rest_prepare_revision', $response, $post, $request );
+
+		$this->reset_post_data( $previous_post );
+
+		return $response;
 	}
 
 	/**

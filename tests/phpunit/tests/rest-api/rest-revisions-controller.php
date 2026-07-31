@@ -291,12 +291,23 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 		$this->assertSame( self::$post_id, $post->ID, 'The global post should be the parent post before the request.' );
 		$this->assertSame( self::$post_id, $id, 'The global $id should be the parent post ID before the request.' );
 
+		// Capture the arguments the rest_prepare_revision filter receives.
+		$mock = new MockAction();
+		add_filter( 'rest_prepare_revision', array( $mock, 'filter' ), 10, 3 );
+
 		// Make the request to get revisions.
 		$request = new WP_REST_Request( 'GET', '/wp/v2/posts/' . self::$post_id . '/revisions' );
 		$request->set_param( 'context', 'edit' );
 		$response = rest_get_server()->dispatch( $request );
 
 		$this->assertSame( 200, $response->get_status() );
+
+		// The filter is passed each revision, not the global post restored afterwards.
+		$this->check_rest_prepare_revision_filter_args(
+			$mock,
+			array( $this->revision_id3, $this->revision_id2, $this->revision_id1 ),
+			$request
+		);
 
 		// The global post is restored to the post that was set before the request.
 		$post = get_post();
@@ -332,11 +343,18 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 		$this->assertSame( self::$post_id, $post->ID, 'The global post should be the parent post before the request.' );
 		$this->assertSame( self::$post_id, $id, 'The global $id should be the parent post ID before the request.' );
 
+		// Capture the arguments the rest_prepare_revision filter receives.
+		$mock = new MockAction();
+		add_filter( 'rest_prepare_revision', array( $mock, 'filter' ), 10, 3 );
+
 		// Make the HEAD request to get a revision.
 		$request = new WP_REST_Request( 'HEAD', '/wp/v2/posts/' . self::$post_id . '/revisions/' . $this->revision_id1 );
 		$request->set_param( 'context', 'edit' );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertSame( 200, $response->get_status() );
+
+		// The filter is passed the revision, not the global post restored afterwards.
+		$this->check_rest_prepare_revision_filter_args( $mock, array( $this->revision_id1 ), $request );
 
 		// The global post is restored to the post that was set before the request.
 		$post = get_post();
@@ -362,11 +380,22 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 		$this->assertInstanceOf( WP_Query::class, $wp_query, 'The WP_Query global must be set for wp_reset_postdata() to have anything to restore from.' );
 		$this->assertNull( get_post(), 'The global post should not have been initially set.' );
 
+		// Capture the arguments the rest_prepare_revision filter receives.
+		$mock = new MockAction();
+		add_filter( 'rest_prepare_revision', array( $mock, 'filter' ), 10, 3 );
+
 		// Make the request to get a revision.
 		$request = new WP_REST_Request( 'GET', '/wp/v2/posts/' . self::$post_id . '/revisions' );
 		$request->set_param( 'context', 'edit' );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertSame( 200, $response->get_status() );
+
+		// The filter is passed each revision, even though there is no global post to restore.
+		$this->check_rest_prepare_revision_filter_args(
+			$mock,
+			array( $this->revision_id3, $this->revision_id2, $this->revision_id1 ),
+			$request
+		);
 
 		/*
 		 * Note: At this point, the global $id is still populated because there was no $wp_query->post to begin with,
@@ -710,6 +739,33 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 		update_post_meta( $post->ID, $field_name, $value );
 	}
 
+	/**
+	 * Checks the arguments the rest_prepare_revision filter received.
+	 *
+	 * The filter must be passed the revision that was prepared. Restoring the
+	 * global post afterwards must not replace it with the previous global post.
+	 *
+	 * @param MockAction      $mock         Mock registered on the rest_prepare_revision filter.
+	 * @param int[]           $revision_ids Expected revision IDs, in the order the filter is expected to fire.
+	 * @param WP_REST_Request $request      Request the revisions were prepared for.
+	 */
+	private function check_rest_prepare_revision_filter_args( MockAction $mock, array $revision_ids, WP_REST_Request $request ): void {
+		$filter_args = $mock->get_args();
+
+		$this->assertCount( count( $revision_ids ), $filter_args, 'The rest_prepare_revision filter should fire once per prepared revision.' );
+
+		foreach ( $filter_args as $index => $args ) {
+			$call = 'Filter call ' . $index . ': ';
+
+			$this->assertCount( 3, $args, $call . 'the filter should receive three arguments.' );
+			$this->assertInstanceOf( WP_REST_Response::class, $args[0], $call . 'the first argument should be the response.' );
+			$this->assertInstanceOf( WP_Post::class, $args[1], $call . 'the second argument should be a post object.' );
+			$this->assertSame( 'revision', $args[1]->post_type, $call . 'the second argument should be a revision, not the restored global post.' );
+			$this->assertSame( $revision_ids[ $index ], $args[1]->ID, $call . 'the second argument should be the revision that was prepared.' );
+			$this->assertSame( $request, $args[2], $call . 'the third argument should be the request.' );
+		}
+	}
+
 	protected function check_get_revision_response( $response, $revision ) {
 		if ( $response instanceof WP_REST_Response ) {
 			$links    = $response->get_links();
@@ -771,10 +827,18 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 		$this->assertSame( self::$post_id, $post->ID, 'The global post should be the parent post before the request.' );
 		$this->assertSame( self::$post_id, $id, 'The global $id should be the parent post ID before the request.' );
 
+		// Capture the arguments the rest_prepare_revision filter receives.
+		$mock = new MockAction();
+		add_filter( 'rest_prepare_revision', array( $mock, 'filter' ), 10, 3 );
+
 		// Make the request to get a revision.
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/posts/' . self::$post_id . '/revisions/' . $this->revision_id1 );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertSame( 200, $response->get_status() );
+
+		// The filter is passed the revision, not the global post restored afterwards.
+		$this->check_rest_prepare_revision_filter_args( $mock, array( $this->revision_id1 ), $request );
+
 		$data = $response->get_data();
 		$this->assertIsArray( $data );
 		$this->assertArrayHasKey( 'title', $data );
