@@ -605,13 +605,13 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 			'Failed to find expected existing attributes: check test setup.'
 		);
 
-		$this->assertEquals(
+		$this->assertSame(
 			'1',
 			$processor->get_attribute( 'data-keep' ),
 			'Failed to find expected existing `data-keep` attribute value: check test setup.'
 		);
 
-		$this->assertEquals(
+		$this->assertSame(
 			'2',
 			$processor->get_attribute( 'data-drop' ),
 			'Failed to find expected existing `data-drop` attribute value: check test setup.'

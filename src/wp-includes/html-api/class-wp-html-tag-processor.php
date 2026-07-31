@@ -809,7 +809,7 @@ class WP_HTML_Tag_Processor {
 	 *     );
 	 *
 	 * @since 6.2.0
-	 * @var WP_HTML_Text_Replacement[]
+	 * @var array<int|string, WP_HTML_Text_Replacement>
 	 */
 	protected $lexical_updates = array();
 
