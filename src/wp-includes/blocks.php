@@ -43,6 +43,8 @@ function remove_block_asset_path_prefix( $asset_handle_or_path ) {
  * @param int    $index      Optional. Index of the asset when multiple items passed.
  *                           Default 0.
  * @return string Generated asset name for the block's field.
+ *
+ * @phpstan-return non-empty-string
  */
 function generate_block_asset_handle( $block_name, $field_name, $index = 0 ) {
 	if ( str_starts_with( $block_name, 'core/' ) ) {
@@ -185,6 +187,7 @@ function register_block_script_module_id( $metadata, $field_name, $index = 0 ) {
 	$module_path_norm = wp_normalize_path( realpath( $path . '/' . $module_path ) );
 	$module_uri       = get_block_asset_url( $module_path_norm );
 
+	/** @var array{ dependencies?: list<non-empty-string|array{id: non-empty-string, import?: 'static'|'dynamic'}>, version?: string|false|null, ... } $module_asset */
 	$module_asset        = ! empty( $module_asset_path ) ? require $module_asset_path : array();
 	$module_dependencies = $module_asset['dependencies'] ?? array();
 	$block_version       = $metadata['version'] ?? false;
@@ -278,6 +281,7 @@ function register_block_script_handle( $metadata, $field_name, $index = 0 ) {
 	);
 
 	// Asset file for blocks is optional. See https://core.trac.wordpress.org/ticket/60460.
+	/** @var array{ handle?: non-empty-string, dependencies?: list<non-empty-string>, version?: string|false|null, ... } $script_asset */
 	$script_asset  = ! empty( $script_asset_path ) ? require $script_asset_path : array();
 	$script_handle = $script_asset['handle'] ??
 		generate_block_asset_handle( $metadata['name'], $field_name, $index );
