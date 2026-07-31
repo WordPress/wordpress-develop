@@ -248,6 +248,7 @@ class WP_Theme_JSON {
 	 * @since 6.7.0 Added `background-attachment` property.
 	 * @since 7.0.0 Added `dimensions.width` and `dimensions.height`.
 	 *              Added `text-indent` property.
+	 * @since 7.1.0 Added `min-width` and `text-shadow`.
 	 * @var array
 	 */
 	const PROPERTIES_METADATA = array(
@@ -294,6 +295,7 @@ class WP_Theme_JSON {
 		'margin-bottom'                     => array( 'spacing', 'margin', 'bottom' ),
 		'margin-left'                       => array( 'spacing', 'margin', 'left' ),
 		'min-height'                        => array( 'dimensions', 'minHeight' ),
+		'min-width'                         => array( 'dimensions', 'minWidth' ),
 		'outline-color'                     => array( 'outline', 'color' ),
 		'outline-offset'                    => array( 'outline', 'offset' ),
 		'outline-style'                     => array( 'outline', 'style' ),
@@ -309,6 +311,7 @@ class WP_Theme_JSON {
 		'--wp--style--root--padding-bottom' => array( 'spacing', 'padding', 'bottom' ),
 		'--wp--style--root--padding-left'   => array( 'spacing', 'padding', 'left' ),
 		'text-decoration'                   => array( 'typography', 'textDecoration' ),
+		'text-shadow'                       => array( 'typography', 'textShadow' ),
 		'text-transform'                    => array( 'typography', 'textTransform' ),
 		'text-indent'                       => array( 'typography', 'textIndent' ),
 		'filter'                            => array( 'filter', 'duotone' ),
@@ -330,6 +333,7 @@ class WP_Theme_JSON {
 	 *
 	 * @since 6.2.0
 	 * @since 6.6.0 Added background-image properties.
+	 * @since 7.1.0 Added `background.gradient` to `background-image` paths.
 	 * @var array
 	 */
 	const INDIRECT_PROPERTIES_METADATA = array(
@@ -348,6 +352,7 @@ class WP_Theme_JSON {
 		),
 		'background-image' => array(
 			array( 'background', 'backgroundImage', 'url' ),
+			array( 'background', 'gradient' ),
 		),
 	);
 
@@ -413,6 +418,7 @@ class WP_Theme_JSON {
 	 *              Added support for `dimensions.width` and `dimensions.height`.
 	 *              Added support for `typography.textIndent`.
 	 * @since 7.1.0 Added `viewport` property.
+	 *              Added support for `background.gradient`, `dimensions.minWidth` and `blockVisibility.allowEditing`.
 	 * @var array
 	 */
 	const VALID_SETTINGS = array(
@@ -421,6 +427,7 @@ class WP_Theme_JSON {
 		'background'                    => array(
 			'backgroundImage' => null,
 			'backgroundSize'  => null,
+			'gradient'        => null,
 		),
 		'border'                        => array(
 			'color'       => null,
@@ -454,6 +461,7 @@ class WP_Theme_JSON {
 			'dimensionSizes'      => null,
 			'height'              => null,
 			'minHeight'           => null,
+			'minWidth'            => null,
 			'width'               => null,
 		),
 		'layout'                        => array(
@@ -469,6 +477,9 @@ class WP_Theme_JSON {
 		'position'                      => array(
 			'fixed'  => null,
 			'sticky' => null,
+		),
+		'blockVisibility'               => array(
+			'allowEditing' => true,
 		),
 		'spacing'                       => array(
 			'customSpacingSize'   => null,
@@ -554,6 +565,8 @@ class WP_Theme_JSON {
 	 * @since 6.5.0 Added support for `dimensions.aspectRatio`.
 	 * @since 6.6.0 Added `background` sub properties to top-level only.
 	 * @since 7.0.0 Added support for `dimensions.width` and `dimensions.height`.
+	 * @since 7.1.0 Added support for `background.gradient`,`dimensions.minWidth`,
+	 *              and `typography.textShadow`.
 	 * @var array
 	 */
 	const VALID_STYLES = array(
@@ -563,6 +576,7 @@ class WP_Theme_JSON {
 			'backgroundRepeat'     => null,
 			'backgroundSize'       => null,
 			'backgroundAttachment' => null,
+			'gradient'             => null,
 		),
 		'border'     => array(
 			'color'  => null,
@@ -583,6 +597,7 @@ class WP_Theme_JSON {
 			'aspectRatio' => null,
 			'height'      => null,
 			'minHeight'   => null,
+			'minWidth'    => null,
 			'width'       => null,
 		),
 		'filter'     => array(
@@ -611,6 +626,7 @@ class WP_Theme_JSON {
 			'textColumns'    => null,
 			'textDecoration' => null,
 			'textIndent'     => null,
+			'textShadow'     => null,
 			'textTransform'  => null,
 			'writingMode'    => null,
 		),
@@ -974,6 +990,7 @@ class WP_Theme_JSON {
 				if ( is_array( $block_metadata ) ) {
 					$feature_declarations = $this->get_feature_declarations_for_node( $block_metadata, $pseudo_node );
 					$feature_declarations = static::update_paragraph_text_indent_selector( $feature_declarations, $settings, $block_name );
+					$feature_declarations = static::update_button_width_declarations( $feature_declarations, $settings );
 
 					foreach ( $feature_declarations as $feature_selector => $declarations ) {
 						$target_selector   = is_array( $style_variation )
@@ -1021,11 +1038,14 @@ class WP_Theme_JSON {
 	 * @since 6.4.0 Added `background.backgroundImage`.
 	 * @since 6.5.0 Added `background.backgroundSize` and `dimensions.aspectRatio`.
 	 * @since 7.0.0 Added `dimensions.width` and `dimensions.height`.
+	 * @since 7.1.0 Added `background.gradient`.
+	 *              Added `dimensions.minWidth`.
 	 * @var array
 	 */
 	const APPEARANCE_TOOLS_OPT_INS = array(
 		array( 'background', 'backgroundImage' ),
 		array( 'background', 'backgroundSize' ),
+		array( 'background', 'gradient' ),
 		array( 'border', 'color' ),
 		array( 'border', 'radius' ),
 		array( 'border', 'style' ),
@@ -1037,6 +1057,7 @@ class WP_Theme_JSON {
 		array( 'dimensions', 'aspectRatio' ),
 		array( 'dimensions', 'height' ),
 		array( 'dimensions', 'minHeight' ),
+		array( 'dimensions', 'minWidth' ),
 		array( 'dimensions', 'width' ),
 		array( 'position', 'sticky' ),
 		array( 'spacing', 'blockGap' ),
@@ -1322,7 +1343,9 @@ class WP_Theme_JSON {
 		 */
 		foreach ( $valid_block_names as $block ) {
 			$schema_settings_blocks[ $block ] = static::VALID_SETTINGS;
+			// `viewport` and `blockVisibility` are global-only settings and cannot be set per block for now.
 			unset( $schema_settings_blocks[ $block ]['viewport'] );
+			unset( $schema_settings_blocks[ $block ]['blockVisibility'] );
 			$schema_styles_blocks[ $block ]             = $styles_non_top_level;
 			$schema_styles_blocks[ $block ]['elements'] = $schema_styles_elements;
 
@@ -2409,7 +2432,7 @@ class WP_Theme_JSON {
 	 *     background: value;
 	 *   }
 	 *
-	 *   p.has-value-gradient-background {
+	 *   :where(p).has-value-gradient-background {
 	 *     background: value;
 	 *   }
 	 *
@@ -2463,19 +2486,87 @@ class WP_Theme_JSON {
 				continue;
 			}
 
-			$selector = $metadata['selector'];
+			$selector          = $metadata['selector'];
+			$feature_selectors = $metadata['selectors'] ?? array();
+			$node              = _wp_array_get( $this->theme_json, $metadata['path'], array() );
 
-			$node                    = _wp_array_get( $this->theme_json, $metadata['path'], array() );
-			$declarations            = static::compute_preset_vars( $node, $origins );
-			$theme_vars_declarations = static::compute_theme_vars( $node );
-			foreach ( $theme_vars_declarations as $theme_vars_declaration ) {
-				$declarations[] = $theme_vars_declaration;
+			/*
+			 * Group preset declarations by selector. Blocks that define
+			 * feature-level selectors need their preset CSS variables
+			 * output under that feature selector instead of the block's
+			 * root selector.
+			 */
+			$vars_by_selector              = array();
+			$vars_by_selector[ $selector ] = array();
+
+			foreach ( static::PRESETS_METADATA as $preset_metadata ) {
+				if ( empty( $preset_metadata['css_vars'] ) ) {
+					continue;
+				}
+
+				$values_by_slug = static::get_settings_values_by_slug( $node, $preset_metadata, $origins );
+				if ( empty( $values_by_slug ) ) {
+					continue;
+				}
+
+				$target = static::get_feature_selector( $feature_selectors, $preset_metadata['path'][0], $selector );
+
+				if ( ! isset( $vars_by_selector[ $target ] ) ) {
+					$vars_by_selector[ $target ] = array();
+				}
+
+				foreach ( $values_by_slug as $slug => $value ) {
+					$vars_by_selector[ $target ][] = array(
+						'name'  => static::replace_slug_in_string( $preset_metadata['css_vars'], $slug ),
+						'value' => $value,
+					);
+				}
 			}
 
-			$stylesheet .= static::to_ruleset( $selector, $declarations );
+			// Theme vars always use the block's default selector.
+			foreach ( static::compute_theme_vars( $node ) as $theme_var ) {
+				$vars_by_selector[ $selector ][] = $theme_var;
+			}
+
+			foreach ( $vars_by_selector as $rule_selector => $declarations ) {
+				$stylesheet .= static::to_ruleset( $rule_selector, $declarations );
+			}
 		}
 
 		return $stylesheet;
+	}
+
+	/**
+	 * Returns the appropriate selector for a block support feature's
+	 * preset CSS variables.
+	 *
+	 * If the block defines a feature-level selector (as a string or an
+	 * object with a `root` key), that selector is returned. Otherwise,
+	 * the block's default selector is used.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @param array<string, string|array<string, string>> $feature_selectors The block's feature selectors map.
+	 * @param string                                      $feature_key       The feature to look up (e.g. 'dimensions').
+	 * @param string                                      $default_selector  Fallback selector.
+	 * @return string The resolved selector.
+	 */
+	private static function get_feature_selector( array $feature_selectors, string $feature_key, string $default_selector ): string {
+		if ( ! isset( $feature_selectors[ $feature_key ] ) ) {
+			return $default_selector;
+		}
+
+		$feature = $feature_selectors[ $feature_key ];
+
+		if ( is_string( $feature ) ) {
+			return $feature;
+		}
+
+		if ( isset( $feature['root'] ) && is_string( $feature['root'] ) ) {
+			return $feature['root'];
+		}
+
+		return $default_selector;
 	}
 
 	/**
@@ -2522,6 +2613,7 @@ class WP_Theme_JSON {
 	 * @since 5.8.0
 	 * @since 5.9.0 Added the `$origins` parameter.
 	 * @since 6.6.0 Added check for root CSS properties selector.
+	 * @since 7.1.0 Wraps block-level preset classes in `:where()` to match root-level specificity.
 	 *
 	 * @param array    $settings Settings to process.
 	 * @param string   $selector Selector wrapping the classes.
@@ -2548,8 +2640,16 @@ class WP_Theme_JSON {
 					$css_var    = static::replace_slug_in_string( $preset_metadata['css_vars'], $slug );
 					$class_name = static::replace_slug_in_string( $class, $slug );
 
-					// $selector is often empty, so we can save ourselves the `append_to_selector()` call then.
-					$new_selector = '' === $selector ? $class_name : static::append_to_selector( $selector, $class_name );
+					/*
+					 * $selector is often empty (root-level presets), in which case the
+					 * bare class is used. For block-level presets the block selector is
+					 * wrapped in `:where()` so the class keeps the same 0-1-0 specificity
+					 * as a root-level preset. Without this, block-level palette rules
+					 * (e.g. `p.has-x-color`) out-rank equally-important rules that also
+					 * target the same property at 0-1-0, such as per-instance responsive
+					 * state styles.
+					 */
+					$new_selector = '' === $selector ? $class_name : ':where(' . $selector . ')' . $class_name;
 					$stylesheet  .= static::to_ruleset(
 						$new_selector,
 						array(
@@ -2945,11 +3045,21 @@ class WP_Theme_JSON {
 			 * For uploaded image (images with a database ID), apply size and position defaults,
 			 * equal to those applied in block supports in lib/background.php.
 			 */
-			if ( 'background-image' === $css_property && ! empty( $value ) ) {
-				$background_styles = wp_style_engine_get_styles(
-					array( 'background' => array( 'backgroundImage' => $value ) )
-				);
-				$value             = $background_styles['declarations'][ $css_property ];
+			if ( 'background-image' === $css_property ) {
+				$background_image_input = array();
+				if ( ! empty( $value ) ) {
+					$background_image_input['backgroundImage'] = $value;
+				}
+				$gradient_value = $styles['background']['gradient'] ?? null;
+				if ( ! empty( $gradient_value ) ) {
+					$background_image_input['gradient'] = $gradient_value;
+				}
+				if ( ! empty( $background_image_input ) ) {
+					$background_styles = wp_style_engine_get_styles(
+						array( 'background' => $background_image_input )
+					);
+					$value             = $background_styles['declarations'][ $css_property ] ?? null;
+				}
 			}
 			if ( empty( $value ) && static::ROOT_BLOCK_SELECTOR !== $selector && ! empty( $styles['background']['backgroundImage']['id'] ) ) {
 				if ( 'background-size' === $css_property ) {
@@ -3118,8 +3228,9 @@ class WP_Theme_JSON {
 			}
 
 			$nodes[] = array(
-				'path'     => array( 'settings', 'blocks', $name ),
-				'selector' => $selector,
+				'path'      => array( 'settings', 'blocks', $name ),
+				'selector'  => $selector,
+				'selectors' => $selectors[ $name ]['selectors'] ?? array(),
 			);
 		}
 
@@ -3300,6 +3411,88 @@ class WP_Theme_JSON {
 			unset( $feature_declarations[ $old_selector ] );
 			$feature_declarations[ $new_selector ] = $declarations;
 		}
+
+		return $feature_declarations;
+	}
+
+	/**
+	 * Updates button width declarations to use a calc() formula for percentage values.
+	 *
+	 * When a percentage width is set on the Button block via Global Styles, the
+	 * resulting CSS needs to account for block gap spacing so that buttons tile
+	 * correctly on a row (e.g. 4 buttons at 25% width all fit on one row).
+	 *
+	 * This mirrors the dynamic calc() formula applied at the block instance level
+	 * in the button block's stylesheet (style.scss).
+	 *
+	 * @since 7.1.0
+	 *
+	 * @param array $feature_declarations The feature declarations keyed by selector.
+	 * @param array $settings             The theme.json settings.
+	 * @return array The updated feature declarations.
+	 */
+	private static function update_button_width_declarations( $feature_declarations, $settings ) {
+		if ( ! isset( $feature_declarations['.wp-block-button'] ) ) {
+			return $feature_declarations;
+		}
+
+		foreach ( $feature_declarations['.wp-block-button'] as &$declaration ) {
+			if ( 'width' !== $declaration['name'] || ! isset( $declaration['value'] ) ) {
+				continue;
+			}
+
+			$value      = $declaration['value'];
+			$percentage = null;
+
+			// Case 1: Direct percentage value e.g. "25%".
+			if ( is_string( $value ) && str_ends_with( $value, '%' ) ) {
+				$percentage = (float) $value;
+			}
+
+			// Case 2: Preset CSS var e.g. "var(--wp--preset--dimension--50)".
+			if ( null === $percentage && is_string( $value ) && str_starts_with( $value, 'var(--wp--preset--dimension--' ) ) {
+				// Extract the slug from the var name.
+				$slug = substr( $value, strlen( 'var(--wp--preset--dimension--' ), -1 );
+
+				/*
+				 * Look up the preset size across all origins.
+				 * Check block-level settings first (core/button), then top-level settings.
+				 */
+				$dimension_sizes = ( $settings['blocks']['core/button']['dimensions']['dimensionSizes'] ?? array() )
+					+ ( $settings['dimensions']['dimensionSizes'] ?? array() );
+				foreach ( $dimension_sizes as $origin_sizes ) {
+					if ( ! is_array( $origin_sizes ) ) {
+						continue;
+					}
+					foreach ( $origin_sizes as $preset ) {
+						if ( isset( $preset['slug'] ) && $slug === $preset['slug'] && isset( $preset['size'] ) ) {
+							$size = $preset['size'];
+							if ( is_string( $size ) && str_ends_with( $size, '%' ) ) {
+								$percentage = (float) $size;
+							}
+							break 2;
+						}
+					}
+				}
+			}
+
+			if ( null === $percentage ) {
+				continue;
+			}
+
+			/*
+			 * Apply the same calc() formula as the block instance level (style.scss).
+			 * The numeric percentage value is used as a unitless number:
+			 * - Multiplied by 1% to get the percentage width.
+			 * - Divided by 100 to calculate the gap adjustment proportion.
+			 */
+			$declaration['value'] = sprintf(
+				'calc(%s * 1%% - (var(--wp--style--block-gap, 0.5em) * (1 - %s / 100)))',
+				$percentage,
+				$percentage
+			);
+		}
+		unset( $declaration );
 
 		return $feature_declarations;
 	}
@@ -3627,6 +3820,9 @@ class WP_Theme_JSON {
 		$feature_declarations = static::update_paragraph_text_indent_selector( $feature_declarations, $settings, $block_name );
 		$block_elements       = $block_metadata['elements'] ?? array();
 
+		// Update button width declarations for percentage values to use calc() with block gap.
+		$feature_declarations = static::update_button_width_declarations( $feature_declarations, $settings );
+
 		// If there are style variations, generate the declarations for them, including any feature selectors the block may have.
 		$style_variation_declarations          = array();
 		$style_variation_custom_css            = array();
@@ -3642,6 +3838,9 @@ class WP_Theme_JSON {
 
 				// Update text indent selector for paragraph blocks based on the textIndent setting.
 				$variation_declarations = static::update_paragraph_text_indent_selector( $variation_declarations, $settings, $block_name );
+
+				// Update button width declarations for percentage values to use calc() with block gap.
+				$variation_declarations = static::update_button_width_declarations( $variation_declarations, $settings );
 
 				// Combine selectors with style variation's selector and add to overall style variation declarations.
 				foreach ( $variation_declarations as $current_selector => $new_declarations ) {
@@ -3697,6 +3896,7 @@ class WP_Theme_JSON {
 					// Process feature-level declarations for this breakpoint.
 					$breakpoint_feature_declarations = static::get_feature_declarations_for_node( $block_metadata, $breakpoint_node );
 					$breakpoint_feature_declarations = static::update_paragraph_text_indent_selector( $breakpoint_feature_declarations, $settings, $block_name );
+					$breakpoint_feature_declarations = static::update_button_width_declarations( $breakpoint_feature_declarations, $settings );
 					foreach ( $breakpoint_feature_declarations as $feature_selector => $feature_decl ) {
 						$combined_selectors = static::get_block_style_variation_feature_selector( $style_variation, $feature_selector );
 
@@ -3962,7 +4162,12 @@ class WP_Theme_JSON {
 
 		// 7. Generate and append any custom CSS rules.
 		if ( isset( $node['css'] ) && ! $is_root_selector ) {
-			$block_rules .= $this->process_blocks_custom_css( $node['css'], $selector );
+			$css_feature_selector = $block_metadata['selectors']['css'] ?? null;
+			if ( is_array( $css_feature_selector ) ) {
+				$css_feature_selector = $css_feature_selector['root'] ?? null;
+			}
+			$css_selector = is_string( $css_feature_selector ) ? $css_feature_selector : $selector;
+			$block_rules .= $this->process_blocks_custom_css( $node['css'], $css_selector );
 		}
 
 		// 8. Wrap the entire block output in a media query if this is a responsive node.
@@ -5476,10 +5681,10 @@ class WP_Theme_JSON {
 
 		foreach ( $metadata['selectors'] as $feature => $feature_selectors ) {
 			/*
-			 * Skip if this is the block's root selector or the block doesn't
-			 * have any styles for the feature.
+			 * Skip if this is the block's root selector, the custom CSS
+			 * selector, or the block doesn't have any styles for the feature.
 			 */
-			if ( 'root' === $feature || empty( $node[ $feature ] ) ) {
+			if ( 'root' === $feature || 'css' === $feature || empty( $node[ $feature ] ) ) {
 				continue;
 			}
 
@@ -5662,11 +5867,22 @@ class WP_Theme_JSON {
 		$selector_parts = static::split_selector_list( $block_selector );
 		$result         = array();
 
+		/*
+		 * Append the variation class to each selector's ancestor: the first
+		 * run of characters before any combinator (whitespace) or pseudo-class
+		 * (`:`). Only the first match is replaced.
+		 *
+		 * Examples ("custom" variation):
+		 * - `.wp-block`              => `.wp-block.is-style-custom`
+		 * - `.wp-block .inner`       => `.wp-block.is-style-custom .inner`
+		 * - `.wp-block:where(.a .b)` => `.wp-block.is-style-custom:where(.a .b)`
+		 * - `:where(.outer .inner)`  => `:where(.outer.is-style-custom .inner)`
+		 */
 		foreach ( $selector_parts as $part ) {
 			$result[] = preg_replace_callback(
-				'/((?::\([^)]+\))?\s*)([^\s:]+)/',
+				'/[^\s:]+/',
 				function ( $matches ) use ( $variation_class ) {
-					return $matches[1] . $matches[2] . $variation_class;
+					return $matches[0] . $variation_class;
 				},
 				$part,
 				$limit
