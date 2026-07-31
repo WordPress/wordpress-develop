@@ -1779,15 +1779,7 @@ $( function() {
 				$wpwrap.toggleClass( 'wp-responsive-open' );
 				if ( $wpwrap.hasClass( 'wp-responsive-open' ) ) {
 					$(this).find('a').attr( 'aria-expanded', 'true' );
-
-					// Move focus to the current menu item when one exists, so browsers that
-					// match :focus-visible for scripted focus do not show a stale active
-					// highlight on the first item. Fall back to the first menu link.
-					var $focusTarget = $adminmenu.find( 'li.wp-has-current-submenu > a.menu-top, li.current > a.menu-top' ).first();
-					if ( ! $focusTarget.length ) {
-						$focusTarget = $adminmenu.find( 'a' ).first();
-					}
-					$focusTarget.trigger( 'focus' );
+					$( '#adminmenu a:first' ).trigger( 'focus' );
 				} else {
 					$(this).find('a').attr( 'aria-expanded', 'false' );
 				}
