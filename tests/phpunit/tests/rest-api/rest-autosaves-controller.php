@@ -737,28 +737,38 @@ class WP_Test_REST_Autosaves_Controller extends WP_Test_REST_Post_Type_Controlle
 	 * post after the request completes.
 	 *
 	 * @ticket 65495
+	 *
+	 * @global int|null $id ID from the set up global post data.
 	 */
 	public function test_get_item_sets_up_postdata_without_leaking_global_post() {
+		global $id;
+
+		// Populate the global $wp_query with the post and set it up.
 		wp_set_current_user( self::$editor_id );
+		query_posts( array( 'p' => self::$post_id ) );
+		the_post();
 
-		$GLOBALS['post'] = get_post( self::$post_id );
-		setup_postdata( $GLOBALS['post'] );
+		// Assert initial state.
+		$post = get_post();
+		$this->assertInstanceOf( WP_Post::class, $post, 'The global post should be set up before the request.' );
+		$this->assertSame( self::$post_id, $post->ID, 'The global post should be the parent post before the request.' );
+		$this->assertSame( self::$post_id, $id, 'The global $id should be the parent post ID before the request.' );
 
+		// Make the request to get the autosave.
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/posts/' . self::$post_id . '/autosaves/' . self::$autosave_post_id );
 		$response = rest_get_server()->dispatch( $request );
-		$data     = $response->get_data();
-
-		$autosave = get_post( self::$autosave_post_id );
-
-		// The rendered title reflects the autosave, proving postdata was set up during preparation.
-		$this->assertSame( get_the_title( $autosave->ID ), $data['title']['rendered'] );
+		$this->assertSame( 200, $response->get_status() );
+		$data = $response->get_data();
+		$this->assertIsArray( $data );
+		$this->assertArrayHasKey( 'title', $data );
+		$this->assertIsArray( $data['title'] );
+		$this->assertSame( get_the_title( self::$autosave_post_id ), $data['title']['rendered'], 'Expected the rendered title to reflect the autosave, proving postdata was set up during preparation.' );
 
 		// The global post is restored to the post that was set before the request.
-		$this->assertSame(
-			self::$post_id,
-			$GLOBALS['post']->ID,
-			'The global post should not leak the autosave after the request.'
-		);
+		$post = get_post();
+		$this->assertInstanceOf( WP_Post::class, $post, 'The global post should still be set after the request.' );
+		$this->assertSame( self::$post_id, $post->ID, 'The global post should be restored to the post that was set before the request.' );
+		$this->assertSame( self::$post_id, $id, 'The global $id should be restored to the post that was set before the request.' );
 	}
 
 	public function test_update_item_draft_page_with_parent() {
