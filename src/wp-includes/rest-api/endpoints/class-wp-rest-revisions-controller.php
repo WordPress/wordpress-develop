@@ -630,7 +630,7 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 			/** This filter is documented in wp-includes/rest-api/endpoints/class-wp-rest-revisions-controller.php */
 			$response = apply_filters( 'rest_prepare_revision', new WP_REST_Response( array() ), $post, $request );
 
-			$this->reset_post_data( $previous_post );
+			$this->restore_post_data( $previous_post );
 
 			return $response;
 		}
@@ -738,7 +738,7 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 		 */
 		$response = apply_filters( 'rest_prepare_revision', $response, $post, $request );
 
-		$this->reset_post_data( $previous_post );
+		$this->restore_post_data( $previous_post );
 
 		return $response;
 	}
@@ -754,7 +754,7 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 	 *
 	 * @param WP_Post|null $previous_post The global post to restore, or null if there was none.
 	 */
-	private function reset_post_data( ?WP_Post $previous_post ): void {
+	private function restore_post_data( ?WP_Post $previous_post ): void {
 		if ( $previous_post ) {
 			$GLOBALS['post'] = $previous_post;
 			setup_postdata( $previous_post );
