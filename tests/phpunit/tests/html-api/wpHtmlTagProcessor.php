@@ -588,6 +588,41 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensures that when the `class` attribute is emptied via remove_class(), that
+	 * it’s reported by get_attribute_names_with_prefix() immediately after being added.
+	 *
+	 * @ticket 64567
+	 *
+	 * @covers WP_HTML_Tag_Processor::get_attribute_names_with_prefix
+	 */
+	public function test_get_attribute_names_with_prefix_immediately_reflects_class_after_removing_all_classes() {
+		$processor = new WP_HTML_Tag_Processor( '<div class="red green" existing class class=duplicate>' );
+		$processor->next_tag();
+
+		$this->assertSame(
+			array( 'class', 'existing' ),
+			$processor->get_attribute_names_with_prefix( '' ),
+			'Expected to find proper existing attributes: check test setup.'
+		);
+
+		$processor->remove_class( 'red' );
+
+		$this->assertSame(
+			array( 'class', 'existing' ),
+			$processor->get_attribute_names_with_prefix( '' ),
+			'Should have the same attributes after removing one of two classes.'
+		);
+
+		$processor->remove_class( 'green' );
+
+		$this->assertSame(
+			array( 'existing' ),
+			$processor->get_attribute_names_with_prefix( '' ),
+			'Should have removed the `class` attribute after removing all class names.'
+		);
+	}
+
+	/**
 	 * Ensures get_attribute_names_with_prefix() agrees with get_attribute()
 	 * after pending updates, returning each name once with no stale entries.
 	 *
