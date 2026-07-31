@@ -79,7 +79,7 @@ span.wp-media-buttons-icon:before {
 /* Need higher specificity to override the default button-link. */
 .wp-core-ui .button-link.button-link-delete:hover,
 .wp-core-ui .button-link.button-link-delete:focus {
-	color: color.adjust(tokens.$alert-red, $lightness: 10%);
+	color: color.adjust(tokens.$alert-red, $lightness: -10%);
 }
 
 /* Forms */
