@@ -271,51 +271,76 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 	 *
 	 * @ticket 65495
 	 *
+	 * @global int|null $id ID from the set up global post data.
+	 *
 	 * @covers WP_REST_Revisions_Controller::prepare_item_for_response
 	 */
 	public function test_get_items_restores_global_post() {
+		global $id;
+
+		// Populate the global $wp_query with the post and set it up.
 		wp_set_current_user( self::$editor_id );
+		query_posts( array( 'p' => self::$post_id ) );
+		the_post();
 
-		$GLOBALS['post'] = get_post( self::$post_id );
-		setup_postdata( $GLOBALS['post'] );
+		// Assert initial state.
+		$post = get_post();
+		$this->assertInstanceOf( WP_Post::class, $post, 'The global post should be set up before the request.' );
+		$this->assertSame( self::$post_id, $post->ID, 'The global post should be the parent post before the request.' );
+		$this->assertSame( self::$post_id, $id, 'The global $id should be the parent post ID before the request.' );
 
+		// Make the request to get revisions.
 		$request = new WP_REST_Request( 'GET', '/wp/v2/posts/' . self::$post_id . '/revisions' );
 		$request->set_param( 'context', 'edit' );
 		$response = rest_get_server()->dispatch( $request );
 
 		$this->assertSame( 200, $response->get_status() );
-		$this->assertInstanceOf( 'WP_Post', $GLOBALS['post'], 'The global post should still be set after the request.' );
-		$this->assertSame(
-			self::$post_id,
-			$GLOBALS['post']->ID,
-			'The global post should be restored to the post that was set before the request.'
-		);
+
+		// The global post is restored to the post that was set before the request.
+		$post = get_post();
+		$this->assertInstanceOf( WP_Post::class, $post, 'The global post should still be set after the request.' );
+		$this->assertSame( self::$post_id, $post->ID, 'The global post should be restored to the post that was set before the request.' );
+		$this->assertSame( self::$post_id, $id, 'The global $id should be restored to the post that was set before the request.' );
 	}
 
 	/**
 	 * Preparing a revision for a HEAD request must also restore the global post.
 	 *
+	 * The collection endpoint short-circuits before preparing items for HEAD
+	 * requests, so the single revision endpoint is used to reach the HEAD
+	 * branch of prepare_item_for_response().
+	 *
 	 * @ticket 65495
+	 *
+	 * @global int|null $id ID from the set up global post data.
 	 *
 	 * @covers WP_REST_Revisions_Controller::prepare_item_for_response
 	 */
-	public function test_get_items_head_request_restores_global_post() {
+	public function test_get_item_head_request_restores_global_post() {
+		global $id;
+
+		// Populate the global $wp_query with the post and set it up.
 		wp_set_current_user( self::$editor_id );
+		query_posts( array( 'p' => self::$post_id ) );
+		the_post();
 
-		$GLOBALS['post'] = get_post( self::$post_id );
-		setup_postdata( $GLOBALS['post'] );
+		// Assert initial state.
+		$post = get_post();
+		$this->assertInstanceOf( WP_Post::class, $post, 'The global post should be set up before the request.' );
+		$this->assertSame( self::$post_id, $post->ID, 'The global post should be the parent post before the request.' );
+		$this->assertSame( self::$post_id, $id, 'The global $id should be the parent post ID before the request.' );
 
-		$request = new WP_REST_Request( 'HEAD', '/wp/v2/posts/' . self::$post_id . '/revisions' );
+		// Make the HEAD request to get a revision.
+		$request = new WP_REST_Request( 'HEAD', '/wp/v2/posts/' . self::$post_id . '/revisions/' . $this->revision_id1 );
 		$request->set_param( 'context', 'edit' );
 		$response = rest_get_server()->dispatch( $request );
-
 		$this->assertSame( 200, $response->get_status() );
-		$this->assertInstanceOf( 'WP_Post', $GLOBALS['post'], 'The global post should still be set after a HEAD request.' );
-		$this->assertSame(
-			self::$post_id,
-			$GLOBALS['post']->ID,
-			'The global post should be restored after a HEAD request.'
-		);
+
+		// The global post is restored to the post that was set before the request.
+		$post = get_post();
+		$this->assertInstanceOf( WP_Post::class, $post, 'The global post should still be set after the request.' );
+		$this->assertSame( self::$post_id, $post->ID, 'The global post should be restored to the post that was set before the request.' );
+		$this->assertSame( self::$post_id, $id, 'The global $id should be restored to the post that was set before the request.' );
 	}
 
 	/**
@@ -323,19 +348,29 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 	 *
 	 * @ticket 65495
 	 *
+	 * @global WP_Query|null $wp_query The global WP_Query.
+	 *
 	 * @covers WP_REST_Revisions_Controller::prepare_item_for_response
 	 */
 	public function test_get_items_without_global_post_leaves_it_unset() {
+		global $wp_query;
+
+		// Leave the global $wp_query without a post, so there is no post data to restore.
 		wp_set_current_user( self::$editor_id );
+		$this->assertInstanceOf( WP_Query::class, $wp_query, 'The WP_Query global must be set for wp_reset_postdata() to have anything to restore from.' );
+		$this->assertNull( get_post(), 'The global post should not have been initially set.' );
 
-		unset( $GLOBALS['post'] );
-
+		// Make the request to get a revision.
 		$request = new WP_REST_Request( 'GET', '/wp/v2/posts/' . self::$post_id . '/revisions' );
 		$request->set_param( 'context', 'edit' );
 		$response = rest_get_server()->dispatch( $request );
-
 		$this->assertSame( 200, $response->get_status() );
-		$this->assertArrayNotHasKey( 'post', $GLOBALS, 'The global post should not be set when there was none before the request.' );
+
+		/*
+		 * Note: At this point, the global $id is still populated because there was no $wp_query->post to begin with,
+		 * so WP_Query::reset_postdata() has nothing to set it to. It does not null out any globals when there is no post.
+		 */
+		$this->assertNull( get_post(), 'The global post should not be set when there was none before the request.' );
 	}
 
 	/**
@@ -716,27 +751,39 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 	 * so rendered fields reflect the revision, without leaking into the global
 	 * post after the request completes.
 	 *
+	 * @global int|null $id ID from the set up global post data.
+	 *
 	 * @ticket 65495
 	 */
 	public function test_get_item_sets_up_postdata_without_leaking_global_post() {
+		global $id;
+
+		// Populate the global $wp_query with the post and set it up.
 		wp_set_current_user( self::$editor_id );
+		query_posts( array( 'p' => self::$post_id ) );
+		the_post();
 
-		$GLOBALS['post'] = get_post( self::$post_id );
-		setup_postdata( $GLOBALS['post'] );
+		// Assert initial state.
+		$post = get_post();
+		$this->assertInstanceOf( WP_Post::class, $post, 'The global post should be set up before the request.' );
+		$this->assertSame( self::$post_id, $post->ID, 'The global post should be the parent post before the request.' );
+		$this->assertSame( self::$post_id, $id, 'The global $id should be the parent post ID before the request.' );
 
+		// Make the request to get a revision.
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/posts/' . self::$post_id . '/revisions/' . $this->revision_id1 );
 		$response = rest_get_server()->dispatch( $request );
-		$data     = $response->get_data();
-
-		// The rendered title reflects the revision, proving postdata was set up during preparation.
-		$this->assertSame( get_the_title( $this->revision_id1 ), $data['title']['rendered'] );
+		$this->assertSame( 200, $response->get_status() );
+		$data = $response->get_data();
+		$this->assertIsArray( $data );
+		$this->assertArrayHasKey( 'title', $data );
+		$this->assertIsArray( $data['title'] );
+		$this->assertSame( get_the_title( $this->revision_id1 ), $data['title']['rendered'], 'Expected the rendered title to reflect the revision, proving postdata was set up during preparation.' );
 
 		// The global post is restored to the post that was set before the request.
-		$this->assertSame(
-			self::$post_id,
-			$GLOBALS['post']->ID,
-			'The global post should not leak the revision after the request.'
-		);
+		$post = get_post();
+		$this->assertInstanceOf( WP_Post::class, $post, 'The global post should still be set after the request.' );
+		$this->assertSame( self::$post_id, $post->ID, 'The global post should be restored to the post that was set before the request.' );
+		$this->assertSame( self::$post_id, $id, 'The global $id should be restored to the post that was set before the request.' );
 	}
 
 	/**
