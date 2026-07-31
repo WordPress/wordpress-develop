@@ -1288,7 +1288,7 @@ select#media-attachment-filters ~ select#media-attachment-date-filters {
 }
 
 .attachments-browser .media-infinite-scrolling {
-	padding: 12px 8px;
+	padding: 8px 16px 12px;
 }
 
 /* In the modal, the media items list scrolls: keep the toggle in view. */
@@ -2669,6 +2669,10 @@ select#media-attachment-filters ~ select#media-attachment-date-filters {
 		top: 131px;
 	}
 
+	.attachments-browser .media-infinite-scrolling {
+		padding: 14px 16px 0px;
+	}
+
 	.media-sidebar .setting,
 	.attachment-details .setting {
 		margin: 6px 0;
@@ -2773,6 +2777,7 @@ select#media-attachment-filters ~ select#media-attachment-date-filters {
 		font-size: 16px;
 		line-height: 1.625;
 		padding: 5px 24px 5px 8px;
+		margin: 0;
 	}
 
 	.image-details .column-image {
