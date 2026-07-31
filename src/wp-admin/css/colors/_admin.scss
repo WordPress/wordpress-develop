@@ -159,7 +159,7 @@ input[type="radio"]:focus {
 
 .wp-core-ui {
 	/* Default button - theme color border and text (matches secondary) */
-	/* Exclude .button-link avoiding to increase specificity. */
+	/* Exclude .button-link without increasing specificity. */
 	.button:where(:not(.button-link)) {
 		@include mixins.button-secondary();
 	}
