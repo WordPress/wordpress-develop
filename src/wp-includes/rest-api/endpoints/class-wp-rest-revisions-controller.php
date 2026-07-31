@@ -603,19 +603,24 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 	 * @return WP_REST_Response Response object.
 	 */
 	public function prepare_item_for_response( $item, $request ) {
-		global $post;
-
 		/*
 		 * Save the previous global post so it can be restored before returning.
 		 * Preparing the revision sets up the global post and post data, which
 		 * must not leak into the rest of the request (e.g. the autosaves endpoint
 		 * is preloaded in the block editor, where a leaked global post can cause
 		 * the editor to be initialized with the wrong post).
+		 *
+		 * Note that $post is intentionally not declared as a global here. It must
+		 * remain local to this method so that a filter which reassigns the global
+		 * post while the response is being prepared (for example on 'the_content')
+		 * cannot change which post the remaining fields are read from.
 		 */
-		$previous_post = $post instanceof WP_Post ? $post : null;
+		$previous_post = isset( $GLOBALS['post'] ) && $GLOBALS['post'] instanceof WP_Post ? $GLOBALS['post'] : null;
 
 		// Restores the more descriptive, specific name for use within this method.
 		$post = $item;
+
+		$GLOBALS['post'] = $post;
 
 		setup_postdata( $post );
 

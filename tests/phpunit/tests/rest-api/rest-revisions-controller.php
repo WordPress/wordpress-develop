@@ -445,6 +445,55 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 	}
 
 	/**
+	 * A filter that reassigns the global post must not change the revision being prepared.
+	 *
+	 * The revision is held in a method-local variable rather than the global post, so a
+	 * filter which swaps the global out mid-preparation (as a plugin running a secondary
+	 * loop on 'the_content' may do) cannot retarget the fields prepared after it.
+	 *
+	 * @ticket 65495
+	 *
+	 * @covers WP_REST_Revisions_Controller::prepare_item_for_response
+	 */
+	public function test_prepare_item_for_response_is_unaffected_by_a_filter_reassigning_the_global_post() {
+		wp_set_current_user( self::$editor_id );
+
+		$decoy_post = get_post( self::$post_id_2 );
+		$this->assertInstanceOf( WP_Post::class, $decoy_post );
+		$this->assertNotSame( $this->revision_1->post_excerpt, $decoy_post->post_excerpt, 'The decoy post must have a different excerpt for this test to be meaningful.' );
+
+		// Simulate a plugin that leaves a different post in the global while filtering the content.
+		add_filter(
+			'the_content',
+			static function ( $content ) use ( $decoy_post ) {
+				$GLOBALS['post'] = $decoy_post;
+				return $content;
+			}
+		);
+
+		// Capture the post the rest_prepare_revision filter receives.
+		$mock = new MockAction();
+		add_filter( 'rest_prepare_revision', array( $mock, 'filter' ), 10, 3 );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts/' . self::$post_id . '/revisions/' . $this->revision_id1 );
+		$request->set_param( 'context', 'edit' );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+
+		// Fields prepared after 'the_content' still come from the revision.
+		$data = $response->get_data();
+		$this->assertIsArray( $data );
+		$this->assertArrayHasKey( 'excerpt', $data );
+		$this->assertIsArray( $data['excerpt'] );
+		$this->assertSame( $this->revision_id1, $data['id'], 'The prepared id should be the revision, not the post left in the global by the filter.' );
+		$this->assertSame( $this->revision_1->post_excerpt, $data['excerpt']['raw'], 'The prepared excerpt should come from the revision, not the post left in the global by the filter.' );
+
+		// The filter is still passed the revision.
+		$this->check_rest_prepare_revision_filter_args( $mock, array( $this->revision_id1 ), $request );
+	}
+
+	/**
 	 * @dataProvider data_readable_http_methods
 	 * @ticket 56481
 	 *
