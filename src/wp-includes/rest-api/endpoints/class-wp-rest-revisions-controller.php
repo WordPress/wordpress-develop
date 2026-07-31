@@ -752,10 +752,16 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 		if ( $previous_post ) {
 			$GLOBALS['post'] = $previous_post;
 			setup_postdata( $previous_post );
-		} else {
-			unset( $GLOBALS['post'] );
-			wp_reset_postdata();
+			return;
 		}
+
+		/*
+		 * There was no global post to restore, so clear the revision's post data.
+		 * This runs before unsetting the global post because wp_reset_postdata()
+		 * repopulates it from the main query whenever that query has a post.
+		 */
+		wp_reset_postdata();
+		unset( $GLOBALS['post'] );
 	}
 
 	/**

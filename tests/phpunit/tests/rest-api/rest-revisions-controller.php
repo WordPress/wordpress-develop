@@ -405,6 +405,46 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 	}
 
 	/**
+	 * A main query with a post must not cause a global post to be set where there was none.
+	 *
+	 * The restore calls wp_reset_postdata() to clear the revision's post data, and that
+	 * repopulates the global post from the main query. The global post must be unset
+	 * afterwards so the request does not introduce one that was not there before.
+	 *
+	 * @ticket 65495
+	 *
+	 * @global WP_Query|null $wp_query The global WP_Query.
+	 * @global int|null      $id       ID from the set up global post data.
+	 *
+	 * @covers WP_REST_Revisions_Controller::prepare_item_for_response
+	 */
+	public function test_get_items_without_global_post_leaves_it_unset_when_main_query_has_post() {
+		global $wp_query, $id;
+
+		/*
+		 * Populate the main query with the post, but do not run the loop, so the main
+		 * query has a post to restore from while the global post remains unset.
+		 */
+		wp_set_current_user( self::$editor_id );
+		query_posts( array( 'p' => self::$post_id ) );
+
+		// Assert initial state.
+		$this->assertInstanceOf( WP_Query::class, $wp_query, 'The WP_Query global must be set for wp_reset_postdata() to have anything to restore from.' );
+		$this->assertInstanceOf( WP_Post::class, $wp_query->post, 'The main query should have a post for wp_reset_postdata() to restore from.' );
+		$this->assertSame( self::$post_id, $wp_query->post->ID, 'The main query should have the parent post before the request.' );
+		$this->assertNull( get_post(), 'The global post should not have been initially set.' );
+
+		// Make the request to get revisions.
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts/' . self::$post_id . '/revisions' );
+		$request->set_param( 'context', 'edit' );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status() );
+
+		$this->assertNull( get_post(), 'The global post should not be set when there was none before the request, even though the main query has a post.' );
+		$this->assertSame( self::$post_id, $id, 'The remaining post data should be reset to the main query post rather than left on the revision.' );
+	}
+
+	/**
 	 * @dataProvider data_readable_http_methods
 	 * @ticket 56481
 	 *
