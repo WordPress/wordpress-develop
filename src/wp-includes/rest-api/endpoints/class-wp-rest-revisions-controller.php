@@ -595,6 +595,7 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 	 *
 	 * @since 4.7.0
 	 * @since 5.9.0 Renamed `$post` to `$item` to match parent class for PHP 8 named parameter support.
+	 * @since 7.1.0 The global post is now restored to its previous value before returning.
 	 *
 	 * @global WP_Post|null $post Global post object.
 	 *
