@@ -120,7 +120,7 @@ function wp_dashboard_on_this_day() {
 							if ( '' === trim( $title ) ) {
 								$title = __( '(no title)' );
 
-								if ( ! post_password_required( $year_post ) ) {
+								if ( current_user_can( 'read_post', $year_post->ID ) && ! post_password_required( $year_post ) ) {
 									$excerpt = get_the_excerpt( $year_post );
 
 									if ( is_string( $excerpt ) && '' !== $excerpt ) {
