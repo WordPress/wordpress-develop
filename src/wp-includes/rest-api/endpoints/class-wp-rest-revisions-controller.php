@@ -750,6 +750,14 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 	 * setup_postdata(). This restores the global post that was in place
 	 * beforehand so the change does not leak into the rest of the request.
 	 *
+	 * Only the global post is guaranteed to be restored. When there was no
+	 * previous global post and the main query has no post either, which is the
+	 * usual state during a REST request, wp_reset_postdata() has nothing to
+	 * restore from, so the remaining globals set by setup_postdata() (such as
+	 * $id, $authordata and $pages) are left describing the revision. Clearing
+	 * those would mean unsetting each one by hand, which is beyond what is
+	 * needed to keep the global post from leaking.
+	 *
 	 * @since 7.1.0
 	 *
 	 * @param WP_Post|null $previous_post The global post to restore, or null if there was none.
@@ -764,7 +772,9 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 		/*
 		 * There was no global post to restore, so clear the revision's post data.
 		 * This runs before unsetting the global post because wp_reset_postdata()
-		 * repopulates it from the main query whenever that query has a post.
+		 * repopulates it from the main query whenever that query has a post. Note
+		 * that it is a no-op when the main query has no post, in which case only
+		 * the global post below is cleared.
 		 */
 		wp_reset_postdata();
 		unset( $GLOBALS['post'] );
