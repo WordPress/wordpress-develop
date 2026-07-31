@@ -79,6 +79,7 @@ jobs:
       coverage-report: ${{ matrix.coverage-report }}
       gutenberg-artifact: ${{ needs.prepare-gutenberg.result != 'skipped' }}
       gutenberg-sha: ${{ needs.prepare-gutenberg.outputs.gutenberg-sha }}
+      wordpress-build-artifact: wordpress-build
     secrets:
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
