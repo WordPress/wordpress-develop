@@ -142,6 +142,20 @@ function get_block_asset_url( $path ) {
  * @param int    $index      Optional. Index of the script module ID to register when multiple
  *                           items passed. Default 0.
  * @return string|false Script module ID or false on failure.
+ *
+ * @phpstan-param array{
+ *     name: string,
+ *     file: string,
+ *     version?: string,
+ *     supports?: array{
+ *         interactivity?: bool|array{interactive?: bool, clientNavigation?: bool},
+ *         ...
+ *     },
+ *     viewScriptModule?: string|list<string>,
+ *     ...
+ * } $metadata
+ * @phpstan-param 'viewScriptModule' $field_name
+ * @phpstan-param int<0, max> $index
  */
 function register_block_script_module_id( $metadata, $field_name, $index = 0 ) {
 	if ( empty( $metadata[ $field_name ] ) ) {
@@ -225,6 +239,19 @@ function register_block_script_module_id( $metadata, $field_name, $index = 0 ) {
  *                           Default 0.
  * @return string|false Script handle provided directly or created through
  *                      script's registration, or false on failure.
+ *
+ * @phpstan-param array{
+ *     name: string,
+ *     file: string,
+ *     version?: string,
+ *     textdomain?: string,
+ *     editorScript?: string|list<string>,
+ *     script?: string|list<string>,
+ *     viewScript?: string|list<string>,
+ *     ...
+ * } $metadata
+ * @phpstan-param 'editorScript'|'script'|'viewScript' $field_name
+ * @phpstan-param int<0, max> $index
  */
 function register_block_script_handle( $metadata, $field_name, $index = 0 ) {
 	if ( empty( $metadata[ $field_name ] ) ) {
@@ -304,6 +331,18 @@ function register_block_script_handle( $metadata, $field_name, $index = 0 ) {
  *                           Default 0.
  * @return string|false Style handle provided directly or created through
  *                      style's registration, or false on failure.
+ *
+ * @phpstan-param array{
+ *     name: string,
+ *     file: string,
+ *     version?: string,
+ *     editorStyle?: string|list<string>,
+ *     style?: string|list<string>,
+ *     viewStyle?: string|list<string>,
+ *     ...
+ * } $metadata
+ * @phpstan-param 'editorStyle'|'style'|'viewStyle' $field_name
+ * @phpstan-param int<0, max> $index
  */
 function register_block_style_handle( $metadata, $field_name, $index = 0 ) {
 	if ( empty( $metadata[ $field_name ] ) ) {
