@@ -9,21 +9,21 @@
  * @group restapi
  */
 class WP_Test_REST_Autosaves_Controller extends WP_Test_REST_Post_Type_Controller_Testcase {
-	protected static $post_id;
-	protected static $page_id;
-	protected static $draft_page_id;
+	protected static int $post_id;
+	protected static int $page_id;
+	protected static int $draft_page_id;
 
-	protected static $autosave_post_id;
-	protected static $autosave_page_id;
+	protected static int $autosave_post_id;
+	protected static int $autosave_page_id;
 
-	protected static $editor_id;
-	protected static $contributor_id;
+	protected static int $editor_id;
+	protected static int $contributor_id;
 
-	protected static $parent_page_id;
-	protected static $child_page_id;
-	protected static $child_draft_page_id;
+	protected static int $parent_page_id;
+	protected static int $child_page_id;
+	protected static int $child_draft_page_id;
 
-	private $post_autosave;
+	private WP_Post $post_autosave;
 
 	protected function set_post_data( $args = array() ) {
 		$defaults = array(

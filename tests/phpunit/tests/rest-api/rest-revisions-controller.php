@@ -8,22 +8,24 @@
  * @group restapi
  */
 class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase {
-	protected static $post_id;
-	protected static $post_id_2;
-	protected static $page_id;
+	protected static int $post_id;
+	protected static int $post_id_2;
+	protected static int $page_id;
 
-	protected static $editor_id;
-	protected static $contributor_id;
+	protected static int $editor_id;
+	protected static int $contributor_id;
 
-	private $total_revisions;
+	private int $total_revisions;
+
 	private $revisions;
-	private $revision_1;
-	private $revision_id1;
-	private $revision_2;
-	private $revision_id2;
-	private $revision_3;
-	private $revision_id3;
-	private $revision_2_1_id;
+
+	private WP_Post $revision_1;
+	private int $revision_id1;
+	private WP_Post $revision_2;
+	private int $revision_id2;
+	private WP_Post $revision_3;
+	private int $revision_id3;
+	private int $revision_2_1_id;
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$post_id   = $factory->post->create();
