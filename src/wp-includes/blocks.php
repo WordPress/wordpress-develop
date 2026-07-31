@@ -130,10 +130,10 @@ function get_block_asset_url( $path ) {
 /**
  * Finds a script module ID for the selected block metadata field.
  *
- * Detects when a path to file was provided and optionally finds a corresponding
- * asset file with details necessary to register the script module with an
- * automatically generated module ID. It returns unprocessed script module ID
- * otherwise.
+ * Detects when a path to a file was provided and optionally finds a
+ * corresponding asset file with details necessary to register the script
+ * module with an automatically generated module ID. It returns the
+ * unprocessed script module ID otherwise.
  *
  * @since 6.5.0
  *
@@ -209,10 +209,10 @@ function register_block_script_module_id( $metadata, $field_name, $index = 0 ) {
 /**
  * Finds a script handle for the selected block metadata field.
  *
- * Detects when a path to file was provided and optionally finds a
+ * Detects when a path to a file was provided and optionally finds a
  * corresponding asset file with details necessary to register the script
- * under an automatically generated handle name. It returns unprocessed script
- * handle otherwise.
+ * under an automatically generated handle name. It returns the unprocessed
+ * script handle otherwise.
  *
  * @since 5.5.0
  * @since 6.1.0 Added `$index` parameter.
@@ -288,8 +288,8 @@ function register_block_script_handle( $metadata, $field_name, $index = 0 ) {
 /**
  * Finds a style handle for the block metadata field.
  *
- * Detects when a path to file was provided and registers the style under an
- * automatically generated handle name. It returns unprocessed style handle
+ * Detects when a path to a file was provided and registers the style under an
+ * automatically generated handle name. It returns the unprocessed style handle
  * otherwise.
  *
  * @since 5.5.0
