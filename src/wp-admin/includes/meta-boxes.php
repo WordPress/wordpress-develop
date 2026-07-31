@@ -367,7 +367,7 @@ function post_submit_meta_box( $post, $args = array() ) {
 				$delete_text = __( 'Move to Trash' );
 			}
 			?>
-			<a class="submitdelete deletion" href="<?php echo get_delete_post_link( $post_id ); ?>"><?php echo $delete_text; ?></a>
+			<a class="submitdelete deletion delete-link" href="<?php echo get_delete_post_link( $post_id ); ?>"><?php echo $delete_text; ?></a>
 			<?php
 		}
 		?>
@@ -469,7 +469,7 @@ function attachment_submit_meta_box( $post ) {
 	if ( current_user_can( 'delete_post', $post->ID ) ) {
 		if ( EMPTY_TRASH_DAYS && MEDIA_TRASH ) {
 			printf(
-				'<a class="submitdelete deletion" href="%1$s">%2$s</a>',
+				'<a class="submitdelete deletion delete-link" href="%1$s">%2$s</a>',
 				get_delete_post_link( $post->ID ),
 				__( 'Move to Trash' )
 			);
@@ -477,7 +477,7 @@ function attachment_submit_meta_box( $post ) {
 			$show_confirmation = ! MEDIA_TRASH ? " onclick='return showNotice.warn();'" : '';
 
 			printf(
-				'<a class="submitdelete deletion"%1$s href="%2$s">%3$s</a>',
+				'<a class="submitdelete deletion delete-link"%1$s href="%2$s">%3$s</a>',
 				$show_confirmation,
 				get_delete_post_link( $post->ID, '', true ),
 				__( 'Delete permanently' )
@@ -1134,7 +1134,7 @@ function link_submit_meta_box( $link ) {
 	<?php
 	if ( ! empty( $_GET['action'] ) && 'edit' === $_GET['action'] && current_user_can( 'manage_links' ) ) {
 		printf(
-			'<a class="submitdelete deletion" href="%s" onclick="return confirm( \'%s\' );">%s</a>',
+			'<a class="submitdelete deletion delete-link" href="%s" onclick="return confirm( \'%s\' );">%s</a>',
 			wp_nonce_url( "link.php?action=delete&amp;link_id=$link->link_id", 'delete-bookmark_' . $link->link_id ),
 			/* translators: %s: Link name. */
 			esc_js( sprintf( __( "You are about to delete this link '%s'\n  'Cancel' to stop, 'OK' to delete." ), $link->link_name ) ),

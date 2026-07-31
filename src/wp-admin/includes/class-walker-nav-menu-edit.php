@@ -301,7 +301,7 @@ class Walker_Nav_Menu_Edit extends Walker_Nav_Menu {
 
 					<?php
 					printf(
-						'<a class="item-delete submitdelete deletion" id="delete-%s" href="%s">%s</a>',
+						'<a class="item-delete submitdelete deletion delete-link" id="delete-%s" href="%s">%s</a>',
 						$item_id,
 						wp_nonce_url(
 							add_query_arg(

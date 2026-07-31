@@ -938,6 +938,17 @@ a#remove-post-thumbnail:hover,
 	border: none;
 }
 
+/* Destructive action link. For use in custom plugin/theme admin pages. */
+.delete-link {
+	color: #b32d2e;
+}
+
+.delete-link:hover,
+.delete-link:focus {
+	color: #b32d2e;
+	border: none;
+}
+
 .application-password-display .success {
     color: #007017;
     margin-left: 0.5rem;
