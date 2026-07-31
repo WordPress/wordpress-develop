@@ -465,6 +465,200 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 63891
+	 *
+	 * @covers WP_HTML_Tag_Processor::next_tag
+	 */
+	public function test_next_attributes_stops_on_br_close() {
+		$processor = new WP_HTML_Tag_Processor( '</br>' );
+		$this->assertTrue( $processor->next_tag() );
+	}
+
+	/**
+	 * @ticket 63891
+	 *
+	 * @covers WP_HTML_Tag_Processor::get_attribute_names_with_prefix
+	 */
+	public function test_get_attribute_names_with_prefix_returns_array_br_close_tag() {
+		$processor = new WP_HTML_Tag_Processor( '</br>' );
+		$processor->next_tag();
+		$this->assertSame(
+			array(),
+			$processor->get_attribute_names_with_prefix( '' )
+		);
+
+		$processor = new WP_HTML_Tag_Processor( '</br class="example">' );
+		$processor->next_tag();
+		$this->assertSame(
+			array(),
+			$processor->get_attribute_names_with_prefix( '' )
+		);
+	}
+
+	/**
+	 * @ticket 63891
+	 *
+	 * @covers WP_HTML_Tag_Processor::set_attribute
+	 */
+	public function test_set_attribute_rewrites_br_close_tag_as_opener() {
+		$processor = new WP_HTML_Tag_Processor( '</br id="ignored">' );
+		$processor->next_tag();
+
+		$this->assertTrue(
+			$processor->set_attribute( 'data-test-id', '14' ),
+			'Failed to set an attribute on a BR end tag that should be treated as an opener.'
+		);
+		$this->assertSame(
+			'<br data-test-id="14">',
+			$processor->get_updated_html(),
+			'Updating a BR end tag should rewrite it as an opener and discard source attributes.'
+		);
+	}
+
+	/**
+	 * @ticket 63891
+	 *
+	 * @covers WP_HTML_Tag_Processor::add_class
+	 */
+	public function test_add_class_rewrites_br_close_tag_as_opener() {
+		$processor = new WP_HTML_Tag_Processor( '</br class="ignored">' );
+		$processor->next_tag();
+
+		$this->assertTrue(
+			$processor->add_class( 'new-class' ),
+			'Failed to add a class on a BR end tag that should be treated as an opener.'
+		);
+		$this->assertSame(
+			'<br class="new-class">',
+			$processor->get_updated_html(),
+			'Adding a class to a BR end tag should rewrite it as an opener and discard source attributes.'
+		);
+	}
+
+	/**
+	 * @ticket 63891
+	 *
+	 * @covers WP_HTML_Tag_Processor::remove_attribute
+	 * @covers WP_HTML_Tag_Processor::remove_class
+	 * @covers WP_HTML_Tag_Processor::set_attribute
+	 */
+	public function test_removing_attributes_from_br_close_tag_does_not_rewrite_attribute_like_text() {
+		$html      = '</br class="ignored" data-test-id="ignored">';
+		$processor = new WP_HTML_Tag_Processor( $html );
+		$processor->next_tag();
+
+		$processor->remove_attribute( 'data-test-id' );
+		$processor->remove_class( 'ignored' );
+		$processor->set_attribute( 'class', false );
+
+		$this->assertSame(
+			$html,
+			$processor->get_updated_html(),
+			'Removing attributes from a BR end tag should not rewrite attribute-like source text.'
+		);
+	}
+
+	/**
+	 * @ticket 63891
+	 *
+	 * @covers WP_HTML_Tag_Processor::add_class
+	 * @covers WP_HTML_Tag_Processor::remove_attribute
+	 * @covers WP_HTML_Tag_Processor::remove_class
+	 * @covers WP_HTML_Tag_Processor::set_attribute
+	 */
+	public function test_canceling_added_attributes_on_br_close_tag_does_not_rewrite_as_opener() {
+		$processor = new WP_HTML_Tag_Processor( '</br>' );
+		$processor->next_tag();
+		$processor->set_attribute( 'data-test-id', '14' );
+		$processor->remove_attribute( 'data-test-id' );
+
+		$this->assertSame(
+			'</br>',
+			$processor->get_updated_html(),
+			'Canceling an added attribute should not rewrite a BR end tag when no attributes appear.'
+		);
+
+		$processor = new WP_HTML_Tag_Processor( '</br>' );
+		$processor->next_tag();
+		$processor->add_class( 'new-class' );
+		$processor->remove_class( 'new-class' );
+
+		$this->assertSame(
+			'</br>',
+			$processor->get_updated_html(),
+			'Canceling an added class should not rewrite a BR end tag when no attributes appear.'
+		);
+	}
+
+	/**
+	 * @ticket 63891
+	 *
+	 * @covers WP_HTML_Tag_Processor::add_class
+	 * @covers WP_HTML_Tag_Processor::set_attribute
+	 */
+	public function test_multiple_attribute_updates_rewrite_br_close_tag_as_opener() {
+		$processor = new WP_HTML_Tag_Processor( '</bR id="ignored" class="ignored" hidden>' );
+		$processor->next_tag();
+		$processor->set_attribute( 'data-test-id', '14' );
+		$processor->set_attribute( 'hidden', true );
+		$processor->add_class( 'new-class' );
+
+		$this->assertSame(
+			'new-class',
+			$processor->get_attribute( 'class' ),
+			'Pending class updates should be visible before applying the BR end tag rewrite.'
+		);
+		$this->assertSame(
+			'14',
+			$processor->get_attribute( 'data-test-id' ),
+			'Pending attribute updates should be visible before applying the BR end tag rewrite.'
+		);
+		$this->assertSame(
+			'<bR class="new-class" data-test-id="14" hidden>',
+			$processor->get_updated_html(),
+			'Multiple updates should rewrite a BR end tag once, discard source attributes, and preserve tag-name casing.'
+		);
+	}
+
+	/**
+	 * @ticket 63891
+	 *
+	 * @covers WP_HTML_Tag_Processor::set_attribute
+	 */
+	public function test_br_close_tag_rewrite_preserves_tag_name_casing() {
+		$processor = new WP_HTML_Tag_Processor( '</BR id="ignored">' );
+		$processor->next_tag();
+		$processor->set_attribute( 'data-test-id', '14' );
+
+		$this->assertSame(
+			'<BR data-test-id="14">',
+			$processor->get_updated_html(),
+			'Updating a BR end tag should preserve the source tag-name casing.'
+		);
+	}
+
+	/**
+	 * @ticket 63891
+	 *
+	 * @covers WP_HTML_Tag_Processor::set_attribute
+	 */
+	public function test_br_close_tag_rewrite_applies_when_advancing_to_next_tag() {
+		$processor = new WP_HTML_Tag_Processor( '<p></br id="ignored"><span></span></p>' );
+		$processor->next_tag( 'BR' );
+		$processor->set_attribute( 'data-test-id', '14' );
+
+		$this->assertTrue(
+			$processor->next_tag( 'SPAN' ),
+			'Failed to advance past the modified BR end tag.'
+		);
+		$this->assertSame(
+			'<p><br data-test-id="14"><span></span></p>',
+			$processor->get_updated_html(),
+			'Advancing past a modified BR end tag should apply the opener rewrite.'
+		);
+	}
+
+	/**
 	 * @ticket 56299
 	 *
 	 * @covers WP_HTML_Tag_Processor::__toString

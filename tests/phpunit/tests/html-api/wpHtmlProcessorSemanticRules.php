@@ -422,7 +422,39 @@ class Tests_HtmlApi_WpHtmlProcessorSemanticRules extends WP_UnitTestCase {
 
 		$this->assertTrue( $processor->next_tag(), 'Failed to find the expected opening BR tag.' );
 		$this->assertFalse( $processor->is_tag_closer(), 'Should have treated the tag as an opening tag.' );
-		$this->assertNull( $processor->get_attribute_names_with_prefix( '' ), 'Should have ignored any attributes on the tag.' );
+		$this->assertSame( array(), $processor->get_attribute_names_with_prefix( '' ), 'Should have returned an empty array of attribute names.' );
+	}
+
+	/**
+	 * Ensures that closing `</br>` tags can be rewritten with added attributes
+	 * through the full HTML Processor, while ignoring source attribute-like text.
+	 *
+	 * @covers WP_HTML_Processor::step_in_body
+	 * @covers WP_HTML_Processor::set_attribute
+	 * @covers WP_HTML_Processor::add_class
+	 *
+	 * @ticket 63891
+	 */
+	public function test_can_add_attributes_to_br_end_tag() {
+		$processor = WP_HTML_Processor::create_fragment( '</br id="ignored" class="ignored"><span>' );
+
+		$this->assertTrue( $processor->next_tag( 'BR' ), 'Failed to find the expected BR tag.' );
+		$this->assertNull( $processor->get_attribute( 'id' ), 'Should not have read attribute-like text as source attributes.' );
+		$this->assertNull( $processor->get_attribute( 'class' ), 'Should not have read attribute-like text as source attributes.' );
+
+		$this->assertTrue( $processor->set_attribute( 'data-test-id', '14' ), 'Failed to set an attribute on the BR tag.' );
+		$this->assertTrue( $processor->set_attribute( 'hidden', true ), 'Failed to set a boolean attribute on the BR tag.' );
+		$this->assertTrue( $processor->add_class( 'new-class' ), 'Failed to add a class to the BR tag.' );
+
+		$this->assertSame( '14', $processor->get_attribute( 'data-test-id' ), 'Should have read the pending attribute value.' );
+		$this->assertTrue( $processor->get_attribute( 'hidden' ), 'Should have read the pending boolean attribute value.' );
+		$this->assertSame( 'new-class', $processor->get_attribute( 'class' ), 'Should have read the pending class value.' );
+
+		$this->assertSame(
+			'<br class="new-class" data-test-id="14" hidden><span>',
+			$processor->get_updated_html(),
+			'Should have rewritten the BR end tag as an opener with only the new attributes.'
+		);
 	}
 
 	/*******************************************************************
