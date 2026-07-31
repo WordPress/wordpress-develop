@@ -494,6 +494,41 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 	}
 
 	/**
+	 * Clearing the global post must not detach an existing `global $post` binding.
+	 *
+	 * `global $post` binds a caller to the global symbol table entry. Unsetting that
+	 * entry detaches the binding, so a caller which sets the post after the request
+	 * would be writing somewhere get_post() can no longer see. Note that the caller's
+	 * own `global $post` is what creates the entry as null, which is why there is no
+	 * previous global post to restore here.
+	 *
+	 * @ticket 65495
+	 *
+	 * @global WP_Post|null $post Global post object.
+	 *
+	 * @covers WP_REST_Revisions_Controller::prepare_item_for_response
+	 */
+	public function test_prepare_item_for_response_does_not_detach_an_existing_global_post_binding() {
+		// Bind to the global post the way a caller does before dispatching a request.
+		global $post;
+
+		wp_set_current_user( self::$editor_id );
+		$this->assertNull( $post, 'The global post should not be set before the request.' );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts/' . self::$post_id . '/revisions/' . $this->revision_id1 );
+		$request->set_param( 'context', 'edit' );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status() );
+
+		// The caller sets the global post, expecting template tags to pick it up.
+		$post = get_post( self::$post_id );
+
+		$global_post = get_post();
+		$this->assertInstanceOf( WP_Post::class, $global_post, 'get_post() should see the post set through the binding after the request.' );
+		$this->assertSame( self::$post_id, $global_post->ID, 'get_post() should return the post the caller set, not a stale or detached value.' );
+	}
+
+	/**
 	 * @dataProvider data_readable_http_methods
 	 * @ticket 56481
 	 *

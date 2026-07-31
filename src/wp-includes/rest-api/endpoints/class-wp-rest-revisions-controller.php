@@ -771,13 +771,20 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 
 		/*
 		 * There was no global post to restore, so clear the revision's post data.
-		 * This runs before unsetting the global post because wp_reset_postdata()
+		 * This runs before clearing the global post because wp_reset_postdata()
 		 * repopulates it from the main query whenever that query has a post. Note
 		 * that it is a no-op when the main query has no post, in which case only
 		 * the global post below is cleared.
 		 */
 		wp_reset_postdata();
-		unset( $GLOBALS['post'] );
+
+		/*
+		 * Assigned rather than unset so that any `global $post` binding made before
+		 * this request keeps pointing at the global. Unsetting removes the entry from
+		 * the symbol table, which detaches those bindings, and a later write through
+		 * one of them would no longer be visible to get_post().
+		 */
+		$GLOBALS['post'] = null;
 	}
 
 	/**
