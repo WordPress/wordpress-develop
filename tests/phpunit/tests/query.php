@@ -724,6 +724,50 @@ class Tests_Query extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 65400
+	 *
+	 * @covers ::get_queried_object
+	 * @covers WP_Query::get_queried_object
+	 */
+	public function test_get_queried_object_should_return_null_when_author_id_is_non_existent(): void {
+		add_action(
+			'wp',
+			static function () {
+				/** @var WP_Query $wp_query */
+				global $wp_query;
+				$wp_query->is_author = true;
+				$wp_query->set( 'author', 999999 );
+			}
+		);
+
+		$this->go_to( home_url( '/' ) );
+
+		$this->assertNull( get_queried_object() );
+	}
+
+	/**
+	 * @ticket 65400
+	 *
+	 * @covers ::get_queried_object
+	 * @covers WP_Query::get_queried_object
+	 */
+	public function test_get_queried_object_should_return_null_when_author_is_unset(): void {
+		// Trigger is_author without a valid author query var.
+		add_action(
+			'wp',
+			static function () {
+				/** @var WP_Query $wp_query */
+				global $wp_query;
+				$wp_query->is_author = true;
+			}
+		);
+
+		$this->go_to( home_url( '/' ) );
+
+		$this->assertNull( get_queried_object() );
+	}
+
+	/**
 	 * Tests that the `posts_clauses` filter receives an array of clauses
 	 * with the other `posts_*` filters applied, e.g. `posts_join_paged`.
 	 *

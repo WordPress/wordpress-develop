@@ -1581,13 +1581,26 @@ function unregister_term_meta( $taxonomy, $meta_key ) {
  *
  * @global bool $_wp_suspend_cache_invalidation
  *
- * @param int|string $term        The term to check. Accepts term ID, slug, or name.
- * @param string     $taxonomy    Optional. The taxonomy name to use.
- * @param int        $parent_term Optional. ID of parent term under which to confine the exists search.
+ * @param int|string|null $term        The term to check. Accepts term ID, slug, or name.
+ * @param string          $taxonomy    Optional. The taxonomy name to use.
+ * @param int             $parent_term Optional. ID of parent term under which to confine the exists search.
  * @return mixed Returns null if the term does not exist.
  *               Returns the term ID if no taxonomy is specified and the term ID exists.
  *               Returns an array of the term ID and the term taxonomy ID if the taxonomy is specified and the pairing exists.
  *               Returns 0 if term ID 0 is passed to the function.
+ *
+ * @phpstan-return (
+ *     $term is null ? null : (
+ *         $term is 0 ? 0 : (
+ *             $taxonomy is '' ? int|null : (
+ *                 array{
+ *                     term_id: numeric-string,
+ *                     term_taxonomy_id: numeric-string,
+ *                 }|null
+ *             )
+ *         )
+ *     )
+ * )
  */
 function term_exists( $term, $taxonomy = '', $parent_term = null ) {
 	global $_wp_suspend_cache_invalidation;
@@ -2034,6 +2047,12 @@ function wp_delete_object_term_relationships( $object_id, $taxonomies ) {
  * }
  * @return bool|int|WP_Error True on success, false if term does not exist. Zero on attempted
  *                           deletion of default Category. WP_Error if the taxonomy does not exist.
+ * @phpstan-param non-empty-string $taxonomy
+ * @phpstan-param string|array{
+ *     default?: positive-int,
+ *     force_default?: bool,
+ * } $args
+ * @phpstan-return bool|WP_Error|0
  */
 function wp_delete_term( $term, $taxonomy, $args = array() ) {
 	global $wpdb;
@@ -2424,6 +2443,17 @@ function wp_get_object_terms( $object_ids, $taxonomies, $args = array() ) {
  *     @type int        $term_id          The new term ID.
  *     @type int|string $term_taxonomy_id The new term taxonomy ID. Can be a numeric string.
  * }
+ * @phpstan-param string|array{
+ *     alias_of?: string,
+ *     description?: string|null,
+ *     parent?: non-negative-int,
+ *     slug?: string|null,
+ *     ...
+ * } $args
+ * @phpstan-return array{
+ *     term_id: int,
+ *     term_taxonomy_id: int|numeric-string,
+ * }|WP_Error
  */
 function wp_insert_term( $term, $taxonomy, $args = array() ) {
 	global $wpdb;
@@ -2602,13 +2632,14 @@ function wp_insert_term( $term, $taxonomy, $args = array() ) {
 		$slug = sanitize_title( $slug, $term_id );
 
 		/** This action is documented in wp-includes/taxonomy.php */
-		do_action( 'edit_terms', $term_id, $taxonomy );
+		do_action( 'edit_terms', $term_id, $taxonomy, $args );
 		$wpdb->update( $wpdb->terms, compact( 'slug' ), compact( 'term_id' ) );
 
 		/** This action is documented in wp-includes/taxonomy.php */
-		do_action( 'edited_terms', $term_id, $taxonomy );
+		do_action( 'edited_terms', $term_id, $taxonomy, $args );
 	}
 
+	/** @var numeric-string|null $tt_id */
 	$tt_id = $wpdb->get_var( $wpdb->prepare( "SELECT tt.term_taxonomy_id FROM $wpdb->term_taxonomy AS tt INNER JOIN $wpdb->terms AS t ON tt.term_id = t.term_id WHERE tt.taxonomy = %s AND t.term_id = %d", $taxonomy, $term_id ) );
 
 	if ( ! empty( $tt_id ) ) {
@@ -3216,6 +3247,17 @@ function wp_unique_term_slug( $slug, $term ) {
  * }
  * @return array|WP_Error An array containing the `term_id` and `term_taxonomy_id`,
  *                        WP_Error otherwise.
+ * @phpstan-param array{
+ *     alias_of?: string,
+ *     description?: string,
+ *     parent?: non-negative-int,
+ *     slug?: string|null,
+ *     ...
+ * } $args
+ * @phpstan-return array{
+ *     term_id: int,
+ *     term_taxonomy_id: int,
+ * }|WP_Error
  */
 function wp_update_term( $term_id, $taxonomy, $args = array() ) {
 	global $wpdb;
@@ -3452,7 +3494,7 @@ function wp_update_term( $term_id, $taxonomy, $args = array() ) {
 	do_action( "edit_{$taxonomy}", $term_id, $tt_id, $args );
 
 	/** This filter is documented in wp-includes/taxonomy.php */
-	$term_id = apply_filters( 'term_id_filter', $term_id, $tt_id );
+	$term_id = apply_filters( 'term_id_filter', $term_id, $tt_id, $args );
 
 	clean_term_cache( $term_id, $taxonomy );
 
@@ -4207,11 +4249,11 @@ function _update_post_term_count( $terms, $taxonomy ) {
 		do_action( 'update_term_count', $tt_id, $taxonomy->name, $count );
 
 		/** This action is documented in wp-includes/taxonomy.php */
-		do_action( 'edit_term_taxonomy', $tt_id, $taxonomy->name );
+		do_action( 'edit_term_taxonomy', $tt_id, $taxonomy->name, array() );
 		$wpdb->update( $wpdb->term_taxonomy, compact( 'count' ), array( 'term_taxonomy_id' => $tt_id ) );
 
 		/** This action is documented in wp-includes/taxonomy.php */
-		do_action( 'edited_term_taxonomy', $tt_id, $taxonomy->name );
+		do_action( 'edited_term_taxonomy', $tt_id, $taxonomy->name, array() );
 	}
 }
 
@@ -4237,11 +4279,11 @@ function _update_generic_term_count( $terms, $taxonomy ) {
 		do_action( 'update_term_count', $term, $taxonomy->name, $count );
 
 		/** This action is documented in wp-includes/taxonomy.php */
-		do_action( 'edit_term_taxonomy', $term, $taxonomy->name );
+		do_action( 'edit_term_taxonomy', $term, $taxonomy->name, array() );
 		$wpdb->update( $wpdb->term_taxonomy, compact( 'count' ), array( 'term_taxonomy_id' => $term ) );
 
 		/** This action is documented in wp-includes/taxonomy.php */
-		do_action( 'edited_term_taxonomy', $term, $taxonomy->name );
+		do_action( 'edited_term_taxonomy', $term, $taxonomy->name, array() );
 	}
 }
 

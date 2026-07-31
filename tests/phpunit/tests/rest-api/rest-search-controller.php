@@ -360,13 +360,14 @@ class WP_Test_REST_Search_Controller extends WP_Test_REST_Controller_Testcase {
 	 *
 	 * @param string $method HTTP method to use.
 	 */
-	public function test_get_items_search_type_post_subtype_invalid() {
+	public function test_get_items_search_type_post_subtype_invalid( $method ) {
 		$response = $this->do_request_with_params(
 			array(
 				'per_page' => 100,
 				'type'     => 'post',
 				'subtype'  => 'invalid',
-			)
+			),
+			$method
 		);
 
 		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );

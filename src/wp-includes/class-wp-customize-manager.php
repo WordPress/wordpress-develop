@@ -447,6 +447,7 @@ final class WP_Customize_Manager {
 	 *
 	 * @param string|WP_Error $ajax_message Ajax return.
 	 * @param string          $message      Optional. UI message.
+	 * @return never
 	 */
 	protected function wp_die( $ajax_message, $message = null ) {
 		if ( $this->doing_ajax() ) {
@@ -1932,10 +1933,9 @@ final class WP_Customize_Manager {
 				sprintf(
 					/* translators: %s: customize_messenger_channel */
 					__( 'Unauthorized. You may remove the %s param to preview as frontend.' ),
-					'<code>customize_messenger_channel<code>'
+					'<code>customize_messenger_channel</code>'
 				)
 			);
-			return;
 		}
 
 		$this->prepare_controls();
@@ -2427,6 +2427,8 @@ final class WP_Customize_Manager {
 	 *
 	 * @since 3.4.0
 	 * @since 4.7.0 The semantics of this method have changed to update a changeset, optionally to also change the status and other attributes.
+	 *
+	 * @return never
 	 */
 	public function save() {
 		if ( ! is_user_logged_in() ) {
@@ -3056,7 +3058,7 @@ final class WP_Customize_Manager {
 	 *
 	 * The following re-formulates the logic from `wp_trash_post()` as done in
 	 * `wp_publish_post()`. The reason for bypassing `wp_trash_post()` is that it
-	 * will mutate the the `post_content` and the `post_name` when they should be
+	 * will mutate the `post_content` and the `post_name` when they should be
 	 * untouched.
 	 *
 	 * @since 4.9.0
@@ -3163,7 +3165,6 @@ final class WP_Customize_Manager {
 					'code'    => 'non_existent_changeset',
 				)
 			);
-			return;
 		}
 
 		if ( ! current_user_can( get_post_type_object( 'customize_changeset' )->cap->delete_post, $changeset_post_id ) ) {
@@ -3194,7 +3195,6 @@ final class WP_Customize_Manager {
 					'code'    => 'changeset_already_trashed',
 				)
 			);
-			return;
 		}
 
 		$r = $this->trash_changeset_post( $changeset_post_id );
@@ -3386,6 +3386,8 @@ final class WP_Customize_Manager {
 	 * Removes changeset lock when take over request is sent via Ajax.
 	 *
 	 * @since 4.9.0
+	 *
+	 * @return never
 	 */
 	public function handle_override_changeset_lock_request() {
 		if ( ! $this->is_preview() ) {
@@ -3685,6 +3687,8 @@ final class WP_Customize_Manager {
 	 * Refreshes nonces for the current preview.
 	 *
 	 * @since 4.2.0
+	 *
+	 * @return never
 	 */
 	public function refresh_nonces() {
 		if ( ! $this->is_preview() ) {
@@ -3698,6 +3702,8 @@ final class WP_Customize_Manager {
 	 * Deletes a given auto-draft changeset or the autosave revision for a given changeset or delete changeset lock.
 	 *
 	 * @since 4.9.0
+	 *
+	 * @return never
 	 */
 	public function handle_dismiss_autosave_or_lock_request() {
 		// Calls to dismiss_user_auto_draft_changesets() and wp_get_post_autosave() require non-zero get_current_user_id().
@@ -4953,7 +4959,7 @@ final class WP_Customize_Manager {
 				/* translators: %d: Number of themes being displayed, which cannot currently consider singular vs. plural forms. */
 				'announceThemeCount'   => __( 'Displaying %d themes' ),
 				/* translators: %s: Theme name. */
-				'announceThemeDetails' => __( 'Showing details for theme: %s' ),
+				'announceThemeDetails' => __( 'Theme details: %s' ),
 			),
 		);
 
@@ -5035,14 +5041,14 @@ final class WP_Customize_Manager {
 	public function get_previewable_devices() {
 		$devices = array(
 			'desktop' => array(
-				'label'   => __( 'Enter desktop preview mode' ),
+				'label'   => __( 'Desktop' ),
 				'default' => true,
 			),
 			'tablet'  => array(
-				'label' => __( 'Enter tablet preview mode' ),
+				'label' => __( 'Tablet' ),
 			),
 			'mobile'  => array(
-				'label' => __( 'Enter mobile preview mode' ),
+				'label' => __( 'Mobile' ),
 			),
 		);
 
@@ -5210,7 +5216,7 @@ final class WP_Customize_Manager {
 					'label'       => __( 'Site Icon' ),
 					'description' => sprintf(
 						/* translators: 1: pixel value for icon size. 2: pixel value for icon size. */
-						'<p>' . __( 'The Site Icon is what you see in browser tabs, bookmark bars, and within the WordPress mobile apps. It should be square and at least <code>%1$s by %2$s</code> pixels.' ) . '</p>',
+						'<p>' . __( 'The Site Icon is what you see in browser tabs, bookmark bars, and within the WordPress mobile apps. It should be square and at least <strong>%1$s by %2$s</strong> pixels.' ) . '</p>',
 						512,
 						512
 					),
@@ -5824,6 +5830,8 @@ final class WP_Customize_Manager {
 	 * Loads themes into the theme browsing/installation UI.
 	 *
 	 * @since 4.9.0
+	 *
+	 * @return never
 	 */
 	public function handle_load_themes_request() {
 		check_ajax_referer( 'switch_themes', 'nonce' );
