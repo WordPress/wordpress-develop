@@ -210,9 +210,10 @@ function register_block_script_module_id( $metadata, $field_name, $index = 0 ) {
  * Finds a script handle for the selected block metadata field.
  *
  * Detects when a path to a file was provided and optionally finds a
- * corresponding asset file with details necessary to register the script
- * under an automatically generated handle name. It returns the unprocessed
- * script handle otherwise.
+ * corresponding asset file with details necessary to register the script. The
+ * handle is taken from the asset file when it provides one, and is otherwise
+ * generated automatically. It returns the unprocessed script handle when a
+ * handle rather than a path was given.
  *
  * @since 5.5.0
  * @since 6.1.0 Added `$index` parameter.
@@ -290,7 +291,9 @@ function register_block_script_handle( $metadata, $field_name, $index = 0 ) {
  *
  * Detects when a path to a file was provided and registers the style under an
  * automatically generated handle name. It returns the unprocessed style handle
- * otherwise.
+ * otherwise, except for the first style of a core block, which is always
+ * registered from the bundled stylesheet. Core blocks accept only handles, not
+ * paths.
  *
  * @since 5.5.0
  * @since 6.1.0 Added `$index` parameter.
