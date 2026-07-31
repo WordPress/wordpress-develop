@@ -43,6 +43,8 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 			AttachmentView: wp.media.view.Attachment.Library
 		});
 
+		this.infiniteScrolling = !! infiniteScrolling;
+
 		this.controller.on( 'toggle:upload:attachment', this.toggleUploader, this );
 		this.controller.on( 'edit:selection', this.editSelection );
 
@@ -77,7 +79,7 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 		// Create the attachments wrapper view.
 		this.createAttachmentsWrapperView();
 
-		if ( ! infiniteScrolling ) {
+		if ( ! this.infiniteScrolling ) {
 			this.$el.addClass( 'has-load-more' );
 			this.createLoadMoreView();
 		}
@@ -89,7 +91,7 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 
 		this.updateContent();
 
-		if ( ! infiniteScrolling ) {
+		if ( ! this.infiniteScrolling ) {
 			this.updateLoadMoreView();
 		}
 
@@ -102,10 +104,7 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 		}
 
 		this.collection.on( 'add remove reset', this.updateContent, this );
-
-		if ( ! infiniteScrolling ) {
-			this.collection.on( 'add remove reset', this.updateLoadMoreView, this );
-		}
+		this.collection.on( 'add remove reset', this.updateLoadMoreView, this );
 
 		// The non-cached or cached attachments query has completed.
 		this.collection.on( 'attachments:received', this.announceSearchResults, this );
@@ -125,7 +124,7 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 			/* translators: Accessibility text. %d: Number of attachments found in a search. */
 			mediaFoundHasMoreResultsMessage = __( 'Number of media items displayed: %d. Click load more for more results.' );
 
-		if ( infiniteScrolling ) {
+		if ( this.infiniteScrolling ) {
 			/* translators: Accessibility text. %d: Number of attachments found in a search. */
 			mediaFoundHasMoreResultsMessage = __( 'Number of media items displayed: %d. Scroll the page for more results.' );
 		}
@@ -472,9 +471,76 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 			className: 'attachments-wrapper'
 		} );
 
-		// Create the list of attachments.
 		this.views.add( this.attachmentsWrapper );
+
+		// Place the infinite scrolling toggle before the list of attachments.
+		this.createInfiniteScrollingToggle();
+
+		// Create the list of attachments.
 		this.createAttachments();
+	},
+
+	/**
+	 * Creates the checkbox that turns infinite scrolling on and off.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @return {void}
+	 */
+	createInfiniteScrollingToggle: function() {
+		var view = this,
+			id = _.uniqueId( 'media-infinite-scrolling-' ),
+			checkbox = $( '<input />', {
+				type:    'checkbox',
+				id:      id,
+				checked: this.infiniteScrolling
+			} ),
+			label = $( '<label />', {
+				'for': id,
+				text:  __( 'Enable infinite scrolling' )
+			} );
+
+		checkbox.on( 'change', function() {
+			view.toggleInfiniteScrolling( this.checked );
+		} );
+
+		this.infiniteScrollingToggle = new View( {
+			controller: this.controller,
+			className:  'media-infinite-scrolling'
+		} );
+
+		this.infiniteScrollingToggle.$el.append( checkbox, label );
+
+		this.views.add( '.attachments-wrapper', this.infiniteScrollingToggle );
+	},
+
+	/**
+	 * Turns infinite scrolling of the attachments list on and off.
+	 *
+	 * When infinite scrolling is off, the "Load more" button is used instead.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @param {boolean} infiniteScrolling Whether the attachments list has infinite scrolling.
+	 *
+	 * @return {void}
+	 */
+	toggleInfiniteScrolling: function( infiniteScrolling ) {
+		this.infiniteScrolling = infiniteScrolling;
+		this.attachments.options.infiniteScrolling = infiniteScrolling;
+		this.$el.toggleClass( 'has-load-more', ! infiniteScrolling );
+
+		if ( ! this.loadMoreWrapper ) {
+			this.createLoadMoreView();
+		}
+
+		this.loadMoreWrapper.$el.toggleClass( 'hidden', infiniteScrolling );
+
+		if ( infiniteScrolling ) {
+			this.attachments.scroll();
+		} else {
+			this.updateLoadMoreView();
+		}
 	},
 
 	createAttachments: function() {
@@ -484,7 +550,8 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 			selection:            this.options.selection,
 			model:                this.model,
 			sortable:             this.options.sortable,
-			scrollElement:        this.options.scrollElement,
+			infiniteScrolling:    this.infiniteScrolling,
+			scrollElement:        this.options.scrollElement || this.attachmentsWrapper.el,
 			idealColumnWidth:     this.options.idealColumnWidth,
 
 			// The single `Attachment` view to be used in the `Attachments` view.
@@ -565,10 +632,15 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 	 * We need it to run only once, after all attachments are added or removed.
 	 *
 	 * @since 5.8.0
+	 * @since 7.1.0 Bails out when infinite scrolling is enabled.
 	 *
 	 * @return {void}
 	 */
 	updateLoadMoreView: _.debounce( function() {
+		if ( this.infiniteScrolling ) {
+			return;
+		}
+
 		// Ensure the load more view elements are initially hidden at each update.
 		this.loadMoreButton.$el.addClass( 'hidden' );
 		this.loadMoreCount.$el.addClass( 'hidden' );
