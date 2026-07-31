@@ -1453,9 +1453,9 @@ class WP_Rewrite {
 
 		// Put them together.
 		if ( $this->use_verbose_page_rules ) {
-			$this->rules = $this->extra_rules_top + $permastruct_rewrite + $robots_rewrite + $favicon_rewrite + $sitemap_rewrite + $deprecated_files + $registration_pages + $root_rewrite + $comments_rewrite + $search_rewrite + $author_rewrite + $date_rewrite + $page_rewrite + $post_rewrite + $this->extra_rules;
+			$this->rules = array_merge( $this->extra_rules_top + $permastruct_rewrite, $robots_rewrite, $favicon_rewrite, $sitemap_rewrite, $deprecated_files, $registration_pages, $root_rewrite, $comments_rewrite, $search_rewrite, $author_rewrite, $date_rewrite, $page_rewrite, $post_rewrite, $this->extra_rules );
 		} else {
-			$this->rules = $this->extra_rules_top + $permastruct_rewrite + $robots_rewrite + $favicon_rewrite + $sitemap_rewrite + $deprecated_files + $registration_pages + $root_rewrite + $comments_rewrite + $search_rewrite + $author_rewrite + $date_rewrite + $post_rewrite + $page_rewrite + $this->extra_rules;
+			$this->rules = array_merge( $this->extra_rules_top + $permastruct_rewrite, $robots_rewrite, $favicon_rewrite, $sitemap_rewrite, $deprecated_files, $registration_pages, $root_rewrite, $comments_rewrite, $search_rewrite, $author_rewrite, $date_rewrite, $post_rewrite, $page_rewrite, $this->extra_rules );
 		}
 
 		/**
