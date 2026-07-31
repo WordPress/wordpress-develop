@@ -1291,6 +1291,11 @@ select#media-attachment-filters ~ select#media-attachment-date-filters {
 	padding: 8px 16px 12px;
 }
 
+.attachments-browser .media-infinite-scrolling-status {
+	margin-left: 12px;
+	color: #50575e;
+}
+
 /* In the modal, the media items list scrolls: keep the toggle in view. */
 .media-modal .attachments-browser .media-infinite-scrolling {
 	position: sticky;

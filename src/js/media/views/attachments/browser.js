@@ -4,6 +4,7 @@ var View = wp.media.View,
 	$ = jQuery,
 	AttachmentsBrowser,
 	infiniteScrolling = wp.media.view.settings.infiniteScrolling,
+	canToggleInfiniteScrolling = wp.media.view.settings.canToggleInfiniteScrolling,
 	__ = wp.i18n.__,
 	sprintf = wp.i18n.sprintf;
 
@@ -473,8 +474,14 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 
 		this.views.add( this.attachmentsWrapper );
 
-		// Place the infinite scrolling toggle before the list of attachments.
-		this.createInfiniteScrollingToggle();
+		/*
+		 * Place the infinite scrolling toggle before the list of attachments. It
+		 * saves the personal option, so it is only offered when wp_enqueue_media()
+		 * reports that saving that option takes effect.
+		 */
+		if ( canToggleInfiniteScrolling ) {
+			this.createInfiniteScrollingToggle();
+		}
 
 		// Create the list of attachments.
 		this.createAttachments();
@@ -497,11 +504,17 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 			} ),
 			label = $( '<label />', {
 				'for': id,
-				text:  __( 'Enable infinite scrolling' )
+				text:  __( 'Infinite scrolling' )
 			} );
+
+		// Not a live region: the same message is sent to `speak()` when it changes.
+		this.infiniteScrollingStatus = $( '<span />', {
+			'class': 'media-infinite-scrolling-status'
+		} );
 
 		checkbox.on( 'change', function() {
 			view.toggleInfiniteScrolling( this.checked );
+			view.saveInfiniteScrolling( this.checked );
 		} );
 
 		this.infiniteScrollingToggle = new View( {
@@ -509,9 +522,52 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 			className:  'media-infinite-scrolling'
 		} );
 
-		this.infiniteScrollingToggle.$el.append( checkbox, label );
+		this.infiniteScrollingToggle.$el.append( checkbox, label, this.infiniteScrollingStatus );
 
 		this.views.add( '.attachments-wrapper', this.infiniteScrollingToggle );
+	},
+
+	/**
+	 * Saves the infinite scrolling preference for the current user.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @param {boolean} infiniteScrolling Whether the attachments list has infinite scrolling.
+	 *
+	 * @return {void}
+	 */
+	saveInfiniteScrolling: function( infiniteScrolling ) {
+		var view = this;
+
+		wp.ajax.post( 'save-media-infinite-scrolling', {
+			nonce:             wp.media.view.settings.nonce.saveInfiniteScrolling,
+			infiniteScrolling: infiniteScrolling
+		} ).done( function() {
+			view.updateInfiniteScrollingStatus(
+				infiniteScrolling ?
+					__( 'Infinite scrolling enabled. Preference saved.' ) :
+					__( 'Infinite scrolling disabled. Load more button displayed. Preference saved.' )
+			);
+		} ).fail( function() {
+			view.updateInfiniteScrollingStatus( __( 'The infinite scrolling preference could not be saved.' ) );
+		} );
+	},
+
+	/**
+	 * Displays and announces the result of changing the infinite scrolling preference.
+	 *
+	 * The controls it affects are at the end of the list of attachments, so the
+	 * result is usually out of view when the checkbox changes.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @param {string} message The message to display and announce.
+	 *
+	 * @return {void}
+	 */
+	updateInfiniteScrollingStatus: function( message ) {
+		this.infiniteScrollingStatus.text( message );
+		wp.a11y.speak( message );
 	},
 
 	/**
