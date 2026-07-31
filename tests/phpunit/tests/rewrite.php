@@ -167,7 +167,7 @@ class Tests_Rewrite extends WP_UnitTestCase {
 	 * @param string      $url         The complete home URL including scheme and path.
 	 * @param string      $path        Path relative to the home URL. Blank string if no path is specified.
 	 * @param string|null $orig_scheme Scheme to give the home URL context.
-	 * @param int|null    $blog_id     Site ID, or null for the current site.
+	 * @param int|null    $_blog_id    Site ID, or null for the current site.
 	 * @return string                  The complete home URL including scheme and path.
 	 */
 	public function filter_http_home_url( $url, $path, $orig_scheme, $_blog_id ) {
