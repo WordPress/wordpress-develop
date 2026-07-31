@@ -178,13 +178,17 @@ jobs:
           payload: ${{ needs.prepare.outputs.payload }}
 
   # Posts notifications the first time a workflow run succeeds after previously failing.
+  #
+  # A cancelled previous run is inconclusive (e.g. superseded by a newer push), so it
+  # is not treated as a prior failure here. Otherwise a routine cancel-then-succeed
+  # sequence would post a false "fixed" notification.
   fixed:
     name: Fixed notifications
     permissions: {}
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     needs: [ prepare ]
-    if: ${{ contains( fromJson( '["failure", "cancelled", "none"]' ), needs.prepare.outputs.previous_conclusion ) && inputs.calling_status == 'success' && success() }}
+    if: ${{ contains( fromJson( '["failure", "none"]' ), needs.prepare.outputs.previous_conclusion ) && inputs.calling_status == 'success' && success() }}
 
     steps:
       - name: Post failure notifications to Slack
