@@ -1496,16 +1496,33 @@ switch ( $action ) {
 
 		$rememberme = ! empty( $_POST['rememberme'] );
 
-		$aria_describedby = '';
-		$has_errors       = $errors->has_errors();
+		/*
+		 * login_header() splits the errors into a separate notice per severity and
+		 * can display both at once, so reference every notice that is displayed.
+		 */
+		$has_error_notice   = false;
+		$has_message_notice = false;
 
-		if ( $has_errors ) {
-			$aria_describedby = ' aria-describedby="login_error"';
+		foreach ( $errors->get_error_codes() as $code ) {
+			if ( 'message' === $errors->get_error_data( $code ) ) {
+				$has_message_notice = true;
+			} else {
+				$has_error_notice = true;
+			}
 		}
 
-		if ( $has_errors && 'message' === $errors->get_error_data() ) {
-			$aria_describedby = ' aria-describedby="login-message"';
+		// Ordered to match the order login_header() displays the notices in.
+		$describedby_ids = array();
+
+		if ( $has_error_notice ) {
+			$describedby_ids[] = 'login_error';
 		}
+
+		if ( $has_message_notice ) {
+			$describedby_ids[] = 'login-message';
+		}
+
+		$aria_describedby = $describedby_ids ? ' aria-describedby="' . implode( ' ', $describedby_ids ) . '"' : '';
 
 		wp_enqueue_script( 'user-profile' );
 		wp_enqueue_script( 'wp-tooltip' );
