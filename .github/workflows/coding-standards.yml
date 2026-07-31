@@ -32,12 +32,13 @@ on:
       - '.github/workflows/reusable-coding-standards-*.yml'
   workflow_dispatch:
 
-# Cancels all previous workflow runs for pull requests that have not completed.
+# Cancels previous incomplete runs on the same branch for pull requests and pushes.
 concurrency:
-  # The concurrency group contains the workflow name and the branch name for pull requests
-  # or the commit hash for any other events.
-  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.head_ref || github.sha }}
-  cancel-in-progress: true
+  # Group by branch for pull requests and pushes, so a newer run cancels an older
+  # one on the same branch. Scheduled and manual runs get a unique group and are
+  # never cancelled.
+  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.event.number || github.event_name == 'push' && github.ref || format('{0}-{1}', github.run_id, github.run_attempt) }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' || github.event_name == 'push' }}
 
 # Disable permissions for all available scopes by default.
 # Any needed permissions should be configured at the job level.
