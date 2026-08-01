@@ -251,18 +251,18 @@ function register_block_script_module_id( $metadata, $field_name, $index = 0 ) {
  *                      script's registration, or false on failure.
  *
  * @phpstan-param array{
- *     name: non-empty-string,
- *     file: non-empty-string,
- *     version?: non-empty-string,
- *     textdomain?: non-empty-string,
- *     editorScript?: non-empty-string|list<non-empty-string>,
- *     script?: non-empty-string|list<non-empty-string>,
- *     viewScript?: non-empty-string|list<non-empty-string>,
+ *     name: non-falsy-string,
+ *     file: non-falsy-string,
+ *     version?: non-falsy-string,
+ *     textdomain?: non-falsy-string,
+ *     editorScript?: non-falsy-string|list<non-falsy-string>,
+ *     script?: non-falsy-string|list<non-falsy-string>,
+ *     viewScript?: non-falsy-string|list<non-falsy-string>,
  *     ...
  * } $metadata
  * @phpstan-param 'editorScript'|'script'|'viewScript' $field_name
  * @phpstan-param int<0, max> $index
- * @phpstan-return non-empty-string|false
+ * @phpstan-return non-falsy-string|false
  */
 function register_block_script_handle( $metadata, $field_name, $index = 0 ) {
 	if ( empty( $metadata[ $field_name ] ) ) {
