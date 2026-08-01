@@ -200,7 +200,7 @@ function get_stylesheet() {
  *
  * @return string Path to active theme's stylesheet directory.
  *
- * @return non-falsy-string
+ * @phpstan-return non-falsy-string
  */
 function get_stylesheet_directory() {
 	$stylesheet     = get_stylesheet();
