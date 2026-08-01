@@ -161,7 +161,7 @@ class WP_Icons_Registry {
 				return false;
 			}
 
-			$sanitized_icon_content = $this->sanitize_icon_content( $icon_properties['content'] );
+			$sanitized_icon_content = $this->sanitize_inline_svg( $icon_properties['content'] );
 			if ( empty( $sanitized_icon_content ) ) {
 				_doing_it_wrong(
 					__METHOD__,
@@ -238,19 +238,22 @@ class WP_Icons_Registry {
 	}
 
 	/**
-	 * Sanitizes the icon SVG content.
+	 * Sanitizes an SVG embedded in an HTML fragment.
 	 *
-	 * Uses WP_HTML_Processor to extract the SVG element in its entirety before
-	 * applying wp_kses. This avoids issues where HTML tags like <p> inside the
-	 * content would terminate the SVG element when parsed as HTML, and ensures
-	 * proper handling of SVG structure including self-closing tags.
+	 * The input SVG must have been extracted as HTML from a broader HTML
+	 * document, NOT as an entire XML document from an external file or JSON
+	 * value. Parsed as HTML, XML-only constructs (CDATA, `<foreignObject>`
+	 * integration points) are mis-parsed. WP_HTML_Processor extracts the whole
+	 * SVG element before wp_kses runs, so inner HTML tags like `<p>` do not
+	 * terminate the SVG and self-closing tags are handled correctly.
 	 *
 	 * @since 7.0.0
+	 * @since 7.1.0 Renamed from `sanitize_icon_content()`.
 	 *
-	 * @param string $icon_content The icon SVG content to sanitize.
-	 * @return string The sanitized icon SVG content.
+	 * @param string $html_containing_svg HTML fragment containing the SVG to sanitize.
+	 * @return string The sanitized SVG, or an empty string when no valid SVG is found.
 	 */
-	protected function sanitize_icon_content( $icon_content ) {
+	private function sanitize_inline_svg( $html_containing_svg ) {
 		// Core attributes applicable to most elements. `data-*` is a wildcard
 		// supported by wp_kses() and matches any data attribute.
 		$core_attributes = $this->get_allowed_attribute_list( 'class', 'data-*', 'id', 'style' );
@@ -934,30 +937,16 @@ class WP_Icons_Registry {
 			),
 		);
 
-		$processor = WP_HTML_Processor::create_fragment( $icon_content );
+		$processor = WP_HTML_Processor::create_fragment( $html_containing_svg );
 		if ( ! $processor ) {
 			return '';
 		}
 
-		// Skip leading comments, XML declarations, doctype, and whitespace to
-		// reach the root SVG element.
-		while ( $processor->next_token() ) {
-			$token_type = $processor->get_token_type();
-			if ( '#tag' === $token_type ) {
-				break;
-			}
-			if (
-				'#comment' === $token_type
-				|| '#doctype' === $token_type
-				|| ( '#text' === $token_type && '' === trim( $processor->get_modifiable_text() ) )
-			) {
-				continue;
-			}
-			// Any other leading token (e.g. non-whitespace text) is invalid.
-			return '';
-		}
-
-		if ( 'SVG' !== $processor->get_tag() ) {
+		/*
+		 * Find the first SVG root, ignoring surrounding content. The namespace
+		 * check rejects a foreign-namespaced `<svg>`, such as in `<math><svg>`.
+		 */
+		if ( ! $processor->next_tag( 'SVG' ) || 'svg' !== $processor->get_namespace() ) {
 			return '';
 		}
 
@@ -966,6 +955,12 @@ class WP_Icons_Registry {
 		while ( $processor->next_token() && $processor->get_current_depth() >= $depth ) {
 			$svg .= $processor->serialize_token();
 		}
+
+		/*
+		 * An early stop inside an SVG means truncated input, not unsupported
+		 * markup. Reject it: the parser can synthesize closing tags that were
+		 * never written, so no valid document remains to trust.
+		 */
 		if (
 			null !== $processor->get_last_error()
 			|| $processor->paused_at_incomplete_token()
@@ -973,6 +968,17 @@ class WP_Icons_Registry {
 			return '';
 		}
 		$svg .= '</svg>';
+
+		/*
+		 * Reject more than one top-level SVG. Nested SVGs were extracted above,
+		 * so only sibling roots remain to be found.
+		 */
+		while ( $processor->next_tag( 'SVG' ) ) {
+			if ( 'svg' === $processor->get_namespace() ) {
+				return '';
+			}
+		}
+
 		return wp_kses( $svg, $allowed_tags );
 	}
 
@@ -1003,7 +1009,12 @@ class WP_Icons_Registry {
 				return null;
 			}
 
-			$content = $this->sanitize_icon_content( file_get_contents( $icon_path ) );
+			/*
+			 * An external `.svg` file is XML, but sanitize_inline_svg() expects an
+			 * inline HTML fragment. A dedicated XML sanitizer should handle this
+			 * in the future.
+			 */
+			$content = $this->sanitize_inline_svg( file_get_contents( $icon_path ) );
 
 			if ( empty( $content ) ) {
 				wp_trigger_error(

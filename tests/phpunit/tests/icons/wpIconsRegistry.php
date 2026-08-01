@@ -455,46 +455,55 @@ class Tests_Icons_WpIconsRegistry extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Invokes the protected WP_Icons_Registry::sanitize_icon_content() method.
+	 * Invokes the private WP_Icons_Registry::sanitize_inline_svg() method.
 	 *
-	 * @param string $icon_content The icon SVG content to sanitize.
-	 * @return string The sanitized icon SVG content.
+	 * @param string $html_containing_svg HTML fragment containing the SVG to sanitize.
+	 * @return string The sanitized SVG content.
 	 */
-	private function sanitize_icon_content( $icon_content ) {
+	private function sanitize_inline_svg( $html_containing_svg ) {
 		$registry = WP_Icons_Registry::get_instance();
-		$method   = new ReflectionMethod( $registry, 'sanitize_icon_content' );
+		$method   = new ReflectionMethod( $registry, 'sanitize_inline_svg' );
 		if ( PHP_VERSION_ID < 80100 ) {
 			$method->setAccessible( true );
 		}
-		return $method->invoke( $registry, $icon_content );
+		return $method->invoke( $registry, $html_containing_svg );
 	}
 
 	/**
 	 * @ticket 64651
 	 *
-	 * @dataProvider data_sanitize_icon_content
-	 * @covers ::sanitize_icon_content
+	 * @dataProvider data_sanitize_inline_svg
+	 * @covers ::sanitize_inline_svg
 	 *
 	 * @param string $input    The icon content to sanitize.
 	 * @param string $expected The expected sanitized output.
 	 */
-	public function test_sanitize_icon_content( $input, $expected ) {
-		$sanitized = $this->sanitize_icon_content( $input );
+	public function test_sanitize_inline_svg( $input, $expected ) {
+		$sanitized = $this->sanitize_inline_svg( $input );
 		$this->assertSame( $expected, $sanitized );
 	}
 
 	/**
-	 * Data provider for test_sanitize_icon_content.
+	 * Data provider for test_sanitize_inline_svg.
 	 *
 	 * @return array[] Array of arrays with input and expected sanitized output.
 	 */
-	public function data_sanitize_icon_content() {
+	public function data_sanitize_inline_svg() {
 		$xlink = ' xmlns:xlink="http://www.w3.org/1999/xlink"';
 
 		return array(
-			'extracts only first svg when multiple present' => array(
+			// Root selection: exactly one SVG element in the SVG namespace.
+			'rejects multiple top-level svg elements'     => array(
 				'<svg xmlns="http://www.w3.org/2000/svg"><path d="first"/></svg><svg xmlns="http://www.w3.org/2000/svg"><path d="second"/></svg>',
-				'<svg xmlns="http://www.w3.org/2000/svg"><path d="first" /></svg>',
+				'',
+			),
+			'allows nested svg'                           => array(
+				'<svg xmlns="http://www.w3.org/2000/svg"><svg xmlns="http://www.w3.org/2000/svg"><path d="M0 0" /></svg></svg>',
+				'<svg xmlns="http://www.w3.org/2000/svg"><svg xmlns="http://www.w3.org/2000/svg"><path d="M0 0" /></svg></svg>',
+			),
+			'rejects svg in a foreign namespace'          => array(
+				'<math><svg xmlns="http://www.w3.org/2000/svg"><path d="M0 0"/></svg></math>',
+				'',
 			),
 			'returns empty svg when html-like tags present' => array(
 				'<svg xmlns="http://www.w3.org/2000/svg"><p>paragraph content</p><path d="M0 0h24v24H0z" /><div>div content</div></svg>',
@@ -546,20 +555,24 @@ class Tests_Icons_WpIconsRegistry extends WP_UnitTestCase {
 				'<div>not svg</div><p>content</p>',
 				'',
 			),
-			'returns empty when svg is not first element' => array(
+			// Content surrounding the SVG root is ignored.
+			'ignores content preceding the svg'           => array(
 				'<p>before</p><svg xmlns="http://www.w3.org/2000/svg"><path d="M0 0" /></svg>',
-				'',
+				'<svg xmlns="http://www.w3.org/2000/svg"><path d="M0 0" /></svg>',
 			),
-			// Skips leading comments, XML declarations, and whitespace.
-			'extracts svg after xml declaration'          => array(
+			'ignores content following the svg'           => array(
+				'<svg xmlns="http://www.w3.org/2000/svg"><path d="M0 0" /></svg><p>after</p>',
+				'<svg xmlns="http://www.w3.org/2000/svg"><path d="M0 0" /></svg>',
+			),
+			'ignores an xml declaration before the svg'   => array(
 				'<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg"><path d="M0 0" /></svg>',
 				'<svg xmlns="http://www.w3.org/2000/svg"><path d="M0 0" /></svg>',
 			),
-			'extracts svg after leading comment'          => array(
+			'ignores a comment before the svg'            => array(
 				'<!-- Generator: some editor --><svg xmlns="http://www.w3.org/2000/svg"><path d="M0 0" /></svg>',
 				'<svg xmlns="http://www.w3.org/2000/svg"><path d="M0 0" /></svg>',
 			),
-			'extracts svg after leading whitespace'       => array(
+			'ignores whitespace before the svg'           => array(
 				"  \n\t<svg xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M0 0\" /></svg>",
 				'<svg xmlns="http://www.w3.org/2000/svg"><path d="M0 0" /></svg>',
 			),
