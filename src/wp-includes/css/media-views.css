@@ -332,7 +332,6 @@
 .media-toolbar-secondary {
 	float: left;
 	height: 100%;
-	position: relative;
 	display: grid;
 	grid-template-columns: repeat( 2, 1fr );
 	grid-template-rows: repeat( 2, 1fr );
@@ -1309,6 +1308,7 @@ select#media-attachment-filters ~ select#media-attachment-date-filters {
 
 .attachments-browser .media-toolbar-secondary {
 	max-width: 66%;
+	position: relative;
 }
 
 .uploader-inline .close {
@@ -2635,6 +2635,7 @@ select#media-attachment-filters ~ select#media-attachment-date-filters {
 	}
 
 	.attachments-browser .attachments,
+	.attachments-browser:not(.has-load-more) .attachments,
 	.attachments-browser .uploader-inline,
 	.attachments-browser .media-toolbar,
 	.attachments-browser .attachments-wrapper,
@@ -2643,13 +2644,14 @@ select#media-attachment-filters ~ select#media-attachment-date-filters {
 	}
 
 	.attachments-browser .media-toolbar {
-		height: 74px;
+		height: 117px;
 	}
 
 	.attachments-browser .attachments,
+	.attachments-browser:not(.has-load-more) .attachments,
 	.attachments-browser .uploader-inline,
 	.media-frame-content .attachments-browser .attachments-wrapper {
-		top: 90px;
+		top: 131px;
 	}
 
 	.media-sidebar .setting,
@@ -2956,6 +2958,7 @@ select#media-attachment-filters ~ select#media-attachment-date-filters {
 	}
 
 	.attachments-browser .attachments,
+	.attachments-browser:not(.has-load-more) .attachments,
 	.attachments-browser .uploader-inline,
 	.attachments-browser .media-toolbar,
 	.media-frame-content .attachments-browser .attachments-wrapper {
