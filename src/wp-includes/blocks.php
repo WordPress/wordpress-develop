@@ -154,7 +154,7 @@ function get_block_asset_url( $path ) {
  * @phpstan-param array{
  *     name: non-falsy-string,
  *     file: non-falsy-string,
- *     version?: non-falsy-string,
+ *     version?: non-empty-string,
  *     supports?: array{
  *         interactivity?: bool|array{interactive?: bool, clientNavigation?: bool},
  *         ...
@@ -253,7 +253,7 @@ function register_block_script_module_id( $metadata, $field_name, $index = 0 ) {
  * @phpstan-param array{
  *     name: non-falsy-string,
  *     file: non-falsy-string,
- *     version?: non-falsy-string,
+ *     version?: non-empty-string,
  *     textdomain?: non-falsy-string,
  *     editorScript?: non-falsy-string|list<non-falsy-string>,
  *     script?: non-falsy-string|list<non-falsy-string>,
@@ -347,7 +347,7 @@ function register_block_script_handle( $metadata, $field_name, $index = 0 ) {
  * @phpstan-param array{
  *     name: non-falsy-string,
  *     file: non-falsy-string,
- *     version?: non-falsy-string,
+ *     version?: non-empty-string,
  *     editorStyle?: non-falsy-string|list<non-falsy-string>,
  *     style?: non-falsy-string|list<non-falsy-string>,
  *     viewStyle?: non-falsy-string|list<non-falsy-string>,
@@ -355,6 +355,7 @@ function register_block_script_handle( $metadata, $field_name, $index = 0 ) {
  * } $metadata
  * @phpstan-param 'editorStyle'|'style'|'viewStyle' $field_name
  * @phpstan-param int<0, max> $index
+ * @phpstan-return non-falsy-string|false
  */
 function register_block_style_handle( $metadata, $field_name, $index = 0 ) {
 	if ( empty( $metadata[ $field_name ] ) ) {
