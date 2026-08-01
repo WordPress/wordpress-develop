@@ -1099,18 +1099,24 @@ function get_term( $term, $taxonomy = '', $output = OBJECT, $filter = 'raw' ) {
 function get_term_by( $field, $value, $taxonomy = '', $output = OBJECT, $filter = 'raw' ) {
 
 	/**
-	 * Get all Term data from database by Term field and data.
+	 * Filters a term before it is retrieved from the database, to short-circuit get_term_by().
 	 *
 	 * This allows one to short-circuit the default logic, perhaps by
 	 * replacing it with a routine that is more optimal for your setup.
 	 *
+	 * Returning a non-null value from the filter will short-circuit retrieval
+	 * and return the given value instead. Note that this bypasses the taxonomy
+	 * existence check and any sanitization normally applied by get_term_by().
+	 *
 	 * @since TBD
 	 *
-	 * @param string     $field    Either 'slug', 'name', 'id' (term_id), or 'term_taxonomy_id'
-	 * @param string|int $value    Search for this term value
-	 * @param string     $taxonomy Taxonomy name. Optional, if `$field` is 'term_taxonomy_id'.
-	 * @param string     $output   Constant OBJECT, ARRAY_A, or ARRAY_N
-	 * @param string     $filter   Optional, default is raw or no WordPress defined filter will applied.
+	 * @param WP_Term|array|false|null $pre      The value to return instead. Default null
+	 *                                           to continue retrieving the term.
+	 * @param string                   $field    Either 'slug', 'name', 'id' (term_id), or 'term_taxonomy_id'.
+	 * @param string|int               $value    Search for this term value.
+	 * @param string                   $taxonomy Taxonomy name. Optional, if `$field` is 'term_taxonomy_id'.
+	 * @param string                   $output   Constant OBJECT, ARRAY_A, or ARRAY_N.
+	 * @param string                   $filter   Optional, default is raw or no filter will be applied.
 	 */
 	$pre = apply_filters( 'pre_get_term_by', null, $field, $value, $taxonomy, $output, $filter );
 	if ( null !== $pre ) {
