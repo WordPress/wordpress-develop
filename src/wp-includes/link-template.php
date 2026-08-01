@@ -3926,6 +3926,10 @@ function self_admin_url( $path = '', $scheme = 'admin' ) {
  * @param string|null $scheme Optional. Scheme to give $url. Currently 'http', 'https', 'login',
  *                            'login_post', 'admin', 'relative', 'rest', 'rpc', or null. Default null.
  * @return string URL with chosen scheme.
+ *
+ * @phpstan-param non-falsy-string $url
+ * @phpstan-param 'http'|'https'|'login'|'login_post'|'admin'|'relative'|'rest'|'rpc'|null $scheme
+ * @phpstan-return non-falsy-string
  */
 function set_url_scheme( $url, $scheme = null ) {
 	$orig_scheme = $scheme;
