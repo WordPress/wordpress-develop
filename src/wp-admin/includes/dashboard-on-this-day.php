@@ -19,7 +19,19 @@ function wp_dashboard_on_this_day() {
 
 	if ( empty( $posts ) ) {
 		// Placeholder shown on a day with no matching posts in previous years.
-		echo '<p>' . esc_html__( 'No posts were published on this day in previous years.' ) . '</p>';
+		echo '<p>';
+
+		if ( current_user_can( 'edit_posts' ) ) {
+			printf(
+				/* translators: %s: URL to the new post screen. */
+				__( 'Nothing here yet. <a href="%s">Write today&#8217;s post</a>.' ),
+				esc_url( admin_url( 'post-new.php' ) )
+			);
+		} else {
+			echo esc_html__( 'Nothing here yet.' );
+		}
+
+		echo '</p>';
 		return;
 	}
 

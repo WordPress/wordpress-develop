@@ -10,6 +10,8 @@ class Tests_Admin_wpDashboardOnThisDay extends WP_UnitTestCase {
 
 	protected static int $other_user_id;
 
+	protected static int $subscriber_id;
+
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		require_once ABSPATH . 'wp-admin/includes/dashboard-on-this-day.php';
 
@@ -25,11 +27,18 @@ class Tests_Admin_wpDashboardOnThisDay extends WP_UnitTestCase {
 				'role'         => 'author',
 			)
 		);
+		self::$subscriber_id = $factory->user->create(
+			array(
+				'display_name' => 'Reader',
+				'role'         => 'subscriber',
+			)
+		);
 	}
 
 	public static function wpTearDownAfterClass() {
 		self::delete_user( self::$user_id );
 		self::delete_user( self::$other_user_id );
+		self::delete_user( self::$subscriber_id );
 	}
 
 	/**
@@ -165,8 +174,27 @@ class Tests_Admin_wpDashboardOnThisDay extends WP_UnitTestCase {
 		wp_dashboard_on_this_day();
 		$output = ob_get_clean();
 
-		$this->assertStringContainsString( 'No posts were published on this day in previous years.', $output );
+		$this->assertStringContainsString( 'Nothing here yet.', $output );
+		$this->assertStringContainsString( 'Write today&#8217;s post', $output );
+		$this->assertStringContainsString( admin_url( 'post-new.php' ), $output );
 		$this->assertStringNotContainsString( '<ul>', $output );
+	}
+
+	/**
+	 * @ticket 65116
+	 *
+	 * @covers ::wp_dashboard_on_this_day
+	 */
+	public function test_widget_placeholder_omits_link_without_edit_posts_capability() {
+		wp_set_current_user( self::$subscriber_id );
+
+		ob_start();
+		wp_dashboard_on_this_day();
+		$output = ob_get_clean();
+
+		$this->assertStringContainsString( 'Nothing here yet.', $output );
+		$this->assertStringNotContainsString( 'Write today&#8217;s post', $output );
+		$this->assertStringNotContainsString( admin_url( 'post-new.php' ), $output );
 	}
 
 	/**
@@ -183,7 +211,7 @@ class Tests_Admin_wpDashboardOnThisDay extends WP_UnitTestCase {
 		$output = ob_get_clean();
 
 		$this->assertStringNotContainsString( 'Almost a memory', $output );
-		$this->assertStringContainsString( 'No posts were published on this day in previous years.', $output );
+		$this->assertStringContainsString( 'Nothing here yet.', $output );
 	}
 
 	/**
