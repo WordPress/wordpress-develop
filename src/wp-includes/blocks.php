@@ -149,18 +149,19 @@ function get_block_asset_url( $path ) {
  * @return string|false Script module ID or false on failure.
  *
  * @phpstan-param array{
- *     name: string,
- *     file: string,
- *     version?: string,
+ *     name: non-empty-string,
+ *     file: non-empty-string,
+ *     version?: non-empty-string,
  *     supports?: array{
  *         interactivity?: bool|array{interactive?: bool, clientNavigation?: bool},
  *         ...
  *     },
- *     viewScriptModule?: string|list<string>,
+ *     viewScriptModule?: non-empty-string|list<non-empty-string>,
  *     ...
  * } $metadata
  * @phpstan-param 'viewScriptModule' $field_name
  * @phpstan-param int<0, max> $index
+ * @phpstan-return non-empty-string|false
  */
 function register_block_script_module_id( $metadata, $field_name, $index = 0 ) {
 	if ( empty( $metadata[ $field_name ] ) ) {
