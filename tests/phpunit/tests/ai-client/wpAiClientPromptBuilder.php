@@ -2649,6 +2649,28 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that support check methods return false when the wrapped builder throws.
+	 *
+	 * @ticket 65781
+	 */
+	public function test_support_check_methods_return_false_when_builder_throws() {
+		$registry       = AiClient::defaultRegistry();
+		$prompt_builder = new WP_AI_Client_Prompt_Builder( $registry, 'Test text' );
+
+		/*
+		 * The document modality has no capability to infer, so the wrapped builder
+		 * throws while determining whether the prompt is supported.
+		 */
+		$result = $prompt_builder->as_output_modalities( ModalityEnum::document() )->is_supported();
+
+		$this->assertIsBool( $result, 'is_supported should return a boolean' );
+		$this->assertFalse( $result, 'is_supported should return false when the wrapped builder throws' );
+
+		// The error is still recorded, so a generating method returns it.
+		$this->assertWPError( $prompt_builder->generate_text(), 'The caught error should still be returned by generating methods' );
+	}
+
+	/**
 	 * Tests that generating methods return WP_Error when in error state.
 	 *
 	 * @ticket 64591

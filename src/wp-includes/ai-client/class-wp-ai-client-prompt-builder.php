@@ -364,6 +364,9 @@ class WP_AI_Client_Prompt_Builder {
 			if ( self::is_generating_method( $name ) ) {
 				return $this->error;
 			}
+			if ( self::is_support_check_method( $name ) ) {
+				return false;
+			}
 			return $this;
 		}
 	}
