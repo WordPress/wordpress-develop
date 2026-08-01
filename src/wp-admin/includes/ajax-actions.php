@@ -338,7 +338,9 @@ function wp_ajax_autocomplete_user() {
 			'fields'  => 'ID',
 		)
 	) : array() );
+
 	$term = isset( $_REQUEST['term'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['term'] ) ) : '';
+
 	$users = get_users(
 		array(
 			'blog_id'        => false,
