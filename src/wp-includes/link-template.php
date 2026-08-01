@@ -4652,6 +4652,8 @@ function get_avatar_data( $id_or_email, $args = null ) {
  *
  * @param string $file Optional. File to search for in the stylesheet directory.
  * @return string The URL of the file.
+ *
+ * @phpstan-return non-falsy-string
  */
 function get_theme_file_uri( $file = '' ) {
 	$file = ltrim( $file, '/' );
