@@ -293,8 +293,24 @@ class Walker_Nav_Menu_Edit extends Walker_Nav_Menu {
 					<?php if ( 'custom' !== $menu_item->type && false !== $original_title ) : ?>
 						<p class="link-to-original">
 							<?php
+							if ( 'post_type' === $menu_item->type ) {
+								$original_title = wp_kses(
+									$original_title,
+									array(
+										'strong' => array(),
+										'em'     => array(),
+										'b'      => array(),
+										'i'      => array(),
+										'span'   => array(
+											'class' => true,
+										),
+									)
+								);
+							} else {
+								$original_title = esc_html( $original_title );
+							}
 							/* translators: %s: Link to menu item's original object. */
-							printf( __( 'Original: %s' ), '<a href="' . esc_url( $menu_item->url ) . '">' . esc_html( $original_title ) . '</a>' );
+							printf( __( 'Original: %s' ), '<a href="' . esc_url( $menu_item->url ) . '">' . $original_title . '</a>' );
 							?>
 						</p>
 					<?php endif; ?>

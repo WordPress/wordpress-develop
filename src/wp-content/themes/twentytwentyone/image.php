@@ -59,7 +59,18 @@ while ( have_posts() ) {
 				printf(
 					/* translators: %s: Parent post. */
 					esc_html__( 'Published in %s', 'twentytwentyone' ),
-					'<a href="' . esc_url( get_the_permalink( wp_get_post_parent_id( $post ) ) ) . '">' . esc_html( get_the_title( wp_get_post_parent_id( $post ) ) ) . '</a>'
+					'<a href="' . esc_url( get_the_permalink( wp_get_post_parent_id( $post ) ) ) . '">' . wp_kses(
+						get_the_title( wp_get_post_parent_id( $post ) ),
+						array(
+							'strong' => array(),
+							'em'     => array(),
+							'b'      => array(),
+							'i'      => array(),
+							'span'   => array(
+								'class' => true,
+							),
+						)
+					) . '</a>'
 				);
 				echo '</span>';
 			} else {
