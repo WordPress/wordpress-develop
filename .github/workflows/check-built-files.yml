@@ -19,13 +19,18 @@ on:
       - '**.sass'
       # These files configure npm and the task runner. Changes could affect the outcome.
       - 'package*.json'
+      - '.npmrc'
+      - '.nvmrc'
       - 'Gruntfile.js'
       - 'webpack.config.js'
+      - 'tools/gutenberg/**'
+      - 'tools/vendors/**'
       - 'tools/webpack/**'
       # These files configure Composer. Changes could affect the outcome.
       - 'composer.*'
       # Confirm any changes to relevant workflow files.
       - '.github/workflows/check-built-files.yml'
+      - '.github/workflows/reusable-check-built-files.yml'
       # Changes to the default themes should be handled by the themes workflows.
       - '!src/wp-content/themes/twenty**'
 
@@ -43,6 +48,7 @@ permissions: {}
 jobs:
   check-for-built-file-changes:
     name: Check built files
-    # This prevents an unnecessary second run after changes are committed back because Dependabot always rebases and force pushes.
-    if: ${{ github.repository == 'wordpress/wordpress-develop' && ( github.actor != 'dependabot[bot]' || github.event.commits < 2 ) }}
+    if: ${{ github.repository == 'wordpress/wordpress-develop' }}
     uses: ./.github/workflows/reusable-check-built-files.yml
+    permissions:
+      contents: read
