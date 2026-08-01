@@ -44,10 +44,10 @@ function remove_block_asset_path_prefix( $asset_handle_or_path ) {
  *                           Default 0.
  * @return string Generated asset name for the block's field.
  *
- * @phpstan-param non-empty-string $block_name
+ * @phpstan-param non-falsy-string $block_name
  * @phpstan-param 'editorScript'|'editorStyle'|'script'|'style'|'viewScript'|'viewScriptModule'|'viewStyle' $field_name
  * @phpstan-param int<0, max> $index
- * @phpstan-return non-empty-string
+ * @phpstan-return non-falsy-string
  */
 function generate_block_asset_handle( $block_name, $field_name, $index = 0 ) {
 	if ( str_starts_with( $block_name, 'core/' ) ) {
