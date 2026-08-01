@@ -9,21 +9,21 @@
  * @group restapi
  */
 class WP_Test_REST_Autosaves_Controller extends WP_Test_REST_Post_Type_Controller_Testcase {
-	protected static $post_id;
-	protected static $page_id;
-	protected static $draft_page_id;
+	protected static int $post_id;
+	protected static int $page_id;
+	protected static int $draft_page_id;
 
-	protected static $autosave_post_id;
-	protected static $autosave_page_id;
+	protected static int $autosave_post_id;
+	protected static int $autosave_page_id;
 
-	protected static $editor_id;
-	protected static $contributor_id;
+	protected static int $editor_id;
+	protected static int $contributor_id;
 
-	protected static $parent_page_id;
-	protected static $child_page_id;
-	protected static $child_draft_page_id;
+	protected static int $parent_page_id;
+	protected static int $child_page_id;
+	protected static int $child_draft_page_id;
 
-	private $post_autosave;
+	private WP_Post $post_autosave;
 
 	protected function set_post_data( $args = array() ) {
 		$defaults = array(
@@ -570,8 +570,6 @@ class WP_Test_REST_Autosaves_Controller extends WP_Test_REST_Post_Type_Controlle
 	}
 
 	public function test_rest_autosave_draft_post_same_author() {
-		add_filter( 'pre_option_wp_collaboration_enabled', '__return_zero' ); // Zero as false doesn't work for pre-flight options.
-
 		wp_set_current_user( self::$editor_id );
 
 		$post_data = array(
@@ -733,21 +731,49 @@ class WP_Test_REST_Autosaves_Controller extends WP_Test_REST_Post_Type_Controlle
 		$this->assertSame( rest_url( '/wp/v2/' . $parent_base . '/' . $autosave->post_parent ), $links['parent'][0]['href'] );
 	}
 
-	public function test_get_item_sets_up_postdata() {
+	/**
+	 * The autosave's postdata should be set up while preparing the response,
+	 * so rendered fields reflect the autosave, without leaking into the global
+	 * post after the request completes.
+	 *
+	 * @ticket 65495
+	 *
+	 * @global int|null $id ID from the set up global post data.
+	 *
+	 * @covers WP_REST_Autosaves_Controller::prepare_item_for_response
+	 */
+	public function test_get_item_sets_up_postdata_without_leaking_global_post() {
+		global $id;
+
+		// Populate the global $wp_query with the post and set it up.
 		wp_set_current_user( self::$editor_id );
-		$request = new WP_REST_Request( 'GET', '/wp/v2/posts/' . self::$post_id . '/autosaves/' . self::$autosave_post_id );
-		rest_get_server()->dispatch( $request );
+		query_posts( array( 'p' => self::$post_id ) );
+		the_post();
 
-		$post           = get_post();
-		$parent_post_id = wp_is_post_revision( $post->ID );
+		// Assert initial state.
+		$post = get_post();
+		$this->assertInstanceOf( WP_Post::class, $post, 'The global post should be set up before the request.' );
+		$this->assertSame( self::$post_id, $post->ID, 'The global post should be the parent post before the request.' );
+		$this->assertSame( self::$post_id, $id, 'The global $id should be the parent post ID before the request.' );
 
-		$this->assertSame( $post->ID, self::$autosave_post_id );
-		$this->assertSame( $parent_post_id, self::$post_id );
+		// Make the request to get the autosave.
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/posts/' . self::$post_id . '/autosaves/' . self::$autosave_post_id );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status() );
+		$data = $response->get_data();
+		$this->assertIsArray( $data );
+		$this->assertArrayHasKey( 'title', $data );
+		$this->assertIsArray( $data['title'] );
+		$this->assertSame( get_the_title( self::$autosave_post_id ), $data['title']['rendered'], 'Expected the rendered title to reflect the autosave, proving postdata was set up during preparation.' );
+
+		// The global post is restored to the post that was set before the request.
+		$post = get_post();
+		$this->assertInstanceOf( WP_Post::class, $post, 'The global post should still be set after the request.' );
+		$this->assertSame( self::$post_id, $post->ID, 'The global post should be restored to the post that was set before the request.' );
+		$this->assertSame( self::$post_id, $id, 'The global $id should be restored to the post that was set before the request.' );
 	}
 
 	public function test_update_item_draft_page_with_parent() {
-		add_filter( 'pre_option_wp_collaboration_enabled', '__return_zero' ); // Zero as false doesn't work for pre-flight options.
-
 		wp_set_current_user( self::$editor_id );
 		$request = new WP_REST_Request( 'POST', '/wp/v2/pages/' . self::$child_draft_page_id . '/autosaves' );
 		$request->add_header( 'Content-Type', 'application/x-www-form-urlencoded' );
@@ -923,78 +949,5 @@ class WP_Test_REST_Autosaves_Controller extends WP_Test_REST_Post_Type_Controlle
 			'get_item request'  => array( '/wp/v2/posts/%d/autosaves/%d' ),
 			'get_items request' => array( '/wp/v2/posts/%d' ),
 		);
-	}
-
-	/**
-	 * When real-time collaboration is enabled, autosaving a draft post by the
-	 * same author should create a revision instead of updating the post directly.
-	 */
-	public function test_rest_autosave_draft_post_same_author_with_rtc() {
-		add_filter( 'pre_option_wp_collaboration_enabled', '__return_true' );
-
-		wp_set_current_user( self::$editor_id );
-
-		$post_data = array(
-			'post_content' => 'Test post content',
-			'post_title'   => 'Test post title',
-			'post_excerpt' => 'Test post excerpt',
-		);
-		$post_id   = wp_insert_post( $post_data );
-
-		$autosave_data = array(
-			'id'      => $post_id,
-			'content' => 'Updated post \ content',
-			'title'   => 'Updated post title',
-		);
-
-		$request = new WP_REST_Request( 'POST', '/wp/v2/posts/' . self::$post_id . '/autosaves' );
-		$request->add_header( 'Content-Type', 'application/json' );
-		$request->set_body( wp_json_encode( $autosave_data ) );
-
-		$response = rest_get_server()->dispatch( $request );
-		$new_data = $response->get_data();
-		$post     = get_post( $post_id );
-
-		// With RTC enabled, a revision is created instead of updating the post.
-		$this->assertNotSame( $post_id, $new_data['id'] );
-		$this->assertSame( $post_id, $new_data['parent'] );
-
-		// The autosave revision should have the updated content.
-		$this->assertSame( $autosave_data['content'], $new_data['content']['raw'] );
-		$this->assertSame( $autosave_data['title'], $new_data['title']['raw'] );
-
-		// The draft post should not be updated.
-		$this->assertSame( $post_data['post_content'], $post->post_content );
-		$this->assertSame( $post_data['post_title'], $post->post_title );
-		$this->assertSame( $post_data['post_excerpt'], $post->post_excerpt );
-
-		wp_delete_post( $post_id );
-	}
-
-	/**
-	 * When real-time collaboration is enabled, autosaving a draft page with
-	 * a parent should create a revision instead of updating the page directly.
-	 */
-	public function test_update_item_draft_page_with_parent_with_rtc() {
-		add_filter( 'pre_option_wp_collaboration_enabled', '__return_true' );
-
-		wp_set_current_user( self::$editor_id );
-		$request = new WP_REST_Request( 'POST', '/wp/v2/pages/' . self::$child_draft_page_id . '/autosaves' );
-		$request->add_header( 'Content-Type', 'application/x-www-form-urlencoded' );
-
-		$params = $this->set_post_data(
-			array(
-				'id'     => self::$child_draft_page_id,
-				'author' => self::$editor_id,
-			)
-		);
-
-		$request->set_body_params( $params );
-		$response = rest_get_server()->dispatch( $request );
-		$data     = $response->get_data();
-
-		// With RTC enabled, a revision is created instead of updating the page.
-		$this->assertNotSame( self::$child_draft_page_id, $data['id'] );
-		$this->assertSame( self::$child_draft_page_id, $data['parent'] );
 	}
 }
