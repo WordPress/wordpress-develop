@@ -817,11 +817,6 @@ function wp_using_ext_object_cache( $using = null ) {
 		$_wp_using_ext_object_cache = (bool) $using;
 	}
 
-	if ( null === $_wp_using_ext_object_cache ) {
-		// If the global is uninitialized, the value would be null, which violates the type signature.
-		return false;
-	}
-
 	return (bool) $current_using;
 }
 
