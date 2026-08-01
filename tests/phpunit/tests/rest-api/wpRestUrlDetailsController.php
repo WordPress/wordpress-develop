@@ -1020,7 +1020,7 @@ class Tests_REST_WpRestUrlDetailsController extends WP_Test_REST_Controller_Test
 			),
 
 			// Happy paths with HTML tags in the content.
-			'with other og meta'                           => array(
+			'with other og meta and HTML content'          => array(
 				'<meta property="og:image:height" content="720" />
 				<meta property="og:image:alt" content="<em>ignore this please</em>" />
 				<meta property="og:image" content="https://wordpress.org/images/myimage.jpg" />
