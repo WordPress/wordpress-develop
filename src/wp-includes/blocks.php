@@ -91,6 +91,8 @@ function generate_block_asset_handle( $block_name, $field_name, $index = 0 ) {
  *
  * @param string $path A normalized path to a block asset.
  * @return string|false The URL to the block asset or false on failure.
+ *
+ * @phpstan-return non-falsy-string|false
  */
 function get_block_asset_url( $path ) {
 	if ( empty( $path ) ) {
@@ -107,6 +109,7 @@ function get_block_asset_url( $path ) {
 		return includes_url( str_replace( $wpinc_path_norm, '', $path ) );
 	}
 
+	/** @var array<string, string> $template_paths_norm */
 	static $template_paths_norm = array();
 
 	$template = get_template();
