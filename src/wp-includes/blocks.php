@@ -259,6 +259,7 @@ function register_block_script_module_id( $metadata, $field_name, $index = 0 ) {
  * } $metadata
  * @phpstan-param 'editorScript'|'script'|'viewScript' $field_name
  * @phpstan-param int<0, max> $index
+ * @phpstan-return non-empty-string|false
  */
 function register_block_script_handle( $metadata, $field_name, $index = 0 ) {
 	if ( empty( $metadata[ $field_name ] ) ) {
