@@ -3519,14 +3519,14 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 		// The default devices list.
 		$default_devices = array(
 			'desktop' => array(
-				'label'   => __( 'Enter desktop preview mode' ),
+				'label'   => __( 'Desktop' ),
 				'default' => true,
 			),
 			'tablet'  => array(
-				'label' => __( 'Enter tablet preview mode' ),
+				'label' => __( 'Tablet' ),
 			),
 			'mobile'  => array(
-				'label' => __( 'Enter mobile preview mode' ),
+				'label' => __( 'Mobile' ),
 			),
 		);
 
@@ -3551,7 +3551,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 	private function filtered_device_list() {
 		return array(
 			'custom-device' => array(
-				'label'   => __( 'Enter custom-device preview mode' ),
+				'label'   => __( 'Custom device' ),
 				'default' => true,
 			),
 		);
