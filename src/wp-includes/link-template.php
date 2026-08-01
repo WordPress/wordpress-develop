@@ -3617,6 +3617,9 @@ function get_admin_url( $blog_id = null, $path = '', $scheme = 'admin' ) {
  * @param string|null $scheme Optional. Scheme to give the includes URL context. Accepts
  *                            'http', 'https', or 'relative'. Default null.
  * @return string Includes URL link with optional path appended.
+ *
+ * @phpstan-param 'http'|'https'|'relative'|null $scheme
+ * @phpstan-return non-falsy-string
  */
 function includes_url( $path = '', $scheme = null ) {
 	$url = site_url( '/' . WPINC . '/', $scheme );
