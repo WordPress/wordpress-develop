@@ -345,12 +345,12 @@ function register_block_script_handle( $metadata, $field_name, $index = 0 ) {
  *                      style's registration, or false on failure.
  *
  * @phpstan-param array{
- *     name: string,
- *     file: string,
- *     version?: string,
- *     editorStyle?: string|list<string>,
- *     style?: string|list<string>,
- *     viewStyle?: string|list<string>,
+ *     name: non-falsy-string,
+ *     file: non-falsy-string,
+ *     version?: non-falsy-string,
+ *     editorStyle?: non-falsy-string|list<non-falsy-string>,
+ *     style?: non-falsy-string|list<non-falsy-string>,
+ *     viewStyle?: non-falsy-string|list<non-falsy-string>,
  *     ...
  * } $metadata
  * @phpstan-param 'editorStyle'|'style'|'viewStyle' $field_name
