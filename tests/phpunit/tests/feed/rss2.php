@@ -131,6 +131,37 @@ class Tests_Feed_RSS2 extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Two plugins adding the same namespace via the `wp_feed_namespaces`
+	 * filter must not produce a duplicate attribute, which would be an XML
+	 * well-formedness error. The same goes for a plugin adding one of the
+	 * default namespaces of the feed.
+	 *
+	 * @ticket 65785
+	 */
+	public function test_wp_feed_namespaces_should_prevent_duplicate_namespaces() {
+		$add_source_ns = static function ( $namespaces ) {
+			$namespaces['source'] = 'http://source.scripting.com/';
+			$namespaces['atom']   = 'http://www.w3.org/2005/Atom';
+			return $namespaces;
+		};
+		add_filter( 'wp_feed_namespaces', $add_source_ns, 10 );
+		add_filter( 'wp_feed_namespaces', $add_source_ns, 11 );
+
+		$this->go_to( '/?feed=rss2' );
+		$feed = $this->do_rss2();
+
+		$this->assertSame( 1, substr_count( $feed, 'xmlns:source=' ) );
+		$this->assertSame( 1, substr_count( $feed, 'xmlns:atom=' ) );
+
+		// The feed must still parse: xml_to_array() returns an empty array on a parse error.
+		$xml = xml_to_array( $feed );
+		$rss = xml_find( $xml, 'rss' );
+
+		$this->assertCount( 1, $rss );
+		$this->assertSame( 'http://source.scripting.com/', $rss[0]['attributes']['xmlns:source'] );
+	}
+
+	/**
 	 * [test_channel_element description]
 	 *
 	 * @return [type] [description]
