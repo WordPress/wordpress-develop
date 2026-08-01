@@ -1642,7 +1642,8 @@ function get_media_item( $attachment_id, $args = null ) {
 	$title    = esc_attr( $post->post_title );
 
 	$post_mime_types = get_post_mime_types();
-	$type            = array_key_first( wp_match_mime_types( array_keys( $post_mime_types ), $post->post_mime_type ) );
+	$matched_types   = wp_match_mime_types( array_keys( $post_mime_types ), $post->post_mime_type );
+	$type            = array_key_first( $matched_types ) ?? '';
 	$type_html       = "<input type='hidden' id='type-of-$attachment_id' value='" . esc_attr( $type ) . "' />";
 
 	$form_fields = get_attachment_fields_to_edit( $post, $parsed_args['errors'] );
