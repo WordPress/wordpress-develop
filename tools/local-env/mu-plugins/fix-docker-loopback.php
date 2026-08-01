@@ -13,7 +13,7 @@
 
 namespace WordPress\Develop;
 
-// Only run in the local Docker dev environment.
+// Only run in the local dev environment.
 if ( ! function_exists( 'wp_get_environment_type' ) || 'local' !== wp_get_environment_type() ) {
 	return;
 }
