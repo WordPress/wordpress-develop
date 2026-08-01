@@ -3680,6 +3680,8 @@ function content_url( $path = '' ) {
  *                       The URL will be relative to its directory. Default empty.
  *                       Typically this is done by passing `__FILE__` as the argument.
  * @return string Plugins URL link with optional paths appended.
+ *
+ * @phpstan-return non-falsy-string
  */
 function plugins_url( $path = '', $plugin = '' ) {
 
