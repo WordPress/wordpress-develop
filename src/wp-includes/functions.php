@@ -2190,10 +2190,17 @@ function path_join( $base, $path ) {
  *
  * @param string $path Path to normalize.
  * @return string Normalized path.
+ *
+ * @phpstan-return (
+ *     $path is non-falsy-string ? non-falsy-string : (
+ *         $path is non-empty-string ? non-empty-string : string
+ *     )
+ * )
  */
 function wp_normalize_path( $path ): string {
 	$path = (string) $path;
 
+	/** @var array<string, string> $cache */
 	static $cache = array();
 	if ( isset( $cache[ $path ] ) ) {
 		return $cache[ $path ];
