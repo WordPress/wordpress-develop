@@ -182,15 +182,10 @@ $thread_comments_depth .= '</select>';
 <tr>
 <th scope="row"><?php echo $comment_moderation_title; ?></th>
 <td><fieldset><legend class="screen-reader-text"><span><?php echo $comment_moderation_title; ?></span></legend>
-<p><label for="comment_max_links">
-<?php
-printf(
-	/* translators: %s: Number of links. */
-	__( 'Hold a comment in the queue if it contains %s or more links. (A common characteristic of comment spam is a large number of hyperlinks.)' ),
-	'<input name="comment_max_links" type="number" step="1" min="0" id="comment_max_links" value="' . esc_attr( get_option( 'comment_max_links' ) ) . '" class="small-text" />'
-);
-?>
-</label></p>
+<p><label for="comment_max_links"><?php _e( 'Number of links to allow in a comment before holding for moderation:' ); ?></label>
+<input name="comment_max_links" type="number" step="1" min="0" id="comment_max_links" value="<?php echo esc_attr( get_option( 'comment_max_links' ) ); ?>" class="small-text" aria-describedby="comment_links_moderation_desc" />
+<span id="comment_links_moderation_desc"><?php _e( '(A common characteristic of comment spam is a large number of hyperlinks.)' ); ?></span>
+</p>
 
 <p><label for="moderation_keys"><?php _e( 'When a comment contains any of these words in its content, author name, URL, email, IP address, or browser&#8217;s user agent string, it will be held in the <a href="edit-comments.php?comment_status=moderated">moderation queue</a>. One word or IP address per line. It will match inside words, so &#8220;press&#8221; will match &#8220;WordPress&#8221;.' ); ?></label></p>
 <p>
@@ -211,7 +206,7 @@ printf(
 <?php do_settings_fields( 'discussion', 'default' ); ?>
 </table>
 
-<h2 class="title"><?php _e( 'Avatars' ); ?></h2>
+<h2 id="wp-settings-section-avatars" class="title"><?php _e( 'Avatars' ); ?></h2>
 
 <p><?php _e( 'An avatar is an image that can be associated with a user across multiple websites. In this area, you can choose to display avatars of users who interact with the site.' ); ?></p>
 
