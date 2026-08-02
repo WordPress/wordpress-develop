@@ -966,12 +966,12 @@ class Tests_REST_API extends WP_UnitTestCase {
 			array()
 		);
 
-		$this->assertSame( array_keys( $preload_data ), array( '/wp/v2/types', "/wp/v2/posts/$exiting_post_id", "/wp/v2/posts/$missing_post1_id", 'OPTIONS' ) );
+		$this->assertSame( array_keys( $preload_data ), array( '/wp/v2/types', "/wp/v2/posts/$existing_post_id", "/wp/v2/posts/$missing_post1_id", 'OPTIONS' ) );
 		$this->assertArrayHasKey( '/wp/v2/media', $preload_data['OPTIONS'] );
 
-		$existing_post_response_data = $preload_data[ "/wp/v2/posts/$exiting_post_id" ];
+		$existing_post_response_data = $preload_data[ "/wp/v2/posts/$existing_post_id" ];
 		$this->assertTrue( isset( $existing_post_response_data['body']['id'] ), 'Expected body.id to be exist.' );
-		$this->assertSame( $exiting_post_id, $existing_post_response_data['body']['id'] );
+		$this->assertSame( $existing_post_id, $existing_post_response_data['body']['id'] );
 
 		$missing_post_response_data = $preload_data[ "/wp/v2/posts/$missing_post1_id" ];
 		$this->assertTrue( isset( $missing_post_response_data['body']['code'] ), 'Expected body.code to exist.' );
