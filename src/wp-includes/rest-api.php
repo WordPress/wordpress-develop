@@ -726,7 +726,7 @@ function rest_ensure_response( $response ) {
  * identifying the plugin or theme that triggered the notice. Used by the REST API
  * debug handlers to append actionable location info to error_log() output.
  *
- * @since 7.1.0
+ * @since 7.2.0
  * @access private
  *
  * @return string Formatted string such as ' called from my_func() in /path/plugin.php on line 8',
