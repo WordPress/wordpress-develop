@@ -190,6 +190,65 @@ jQuery( function($) {
 	};
 	window.quickPressLoad();
 
+	/**
+	 * Loads the remaining posts in the On This Day dashboard widget.
+	 *
+	 * @since 7.1.0
+	 */
+	$( document ).on( 'click', '#wp_dashboard_on_this_day .wp-on-this-day-load-more button', function() {
+		var $button = $( this ),
+			$widget = $button.closest( '#wp_dashboard_on_this_day' ),
+			$posts = $widget.find( '#wp-on-this-day-posts' );
+
+		if ( $button.prop( 'disabled' ) ) {
+			return;
+		}
+
+		$button.prop( 'disabled', true );
+
+		$.post( ajaxurl, {
+			action: 'dashboard-on-this-day-load-more',
+			_ajax_nonce: $button.attr( 'data-wp-on-this-day-nonce' ),
+			offset: $button.attr( 'data-wp-on-this-day-offset' )
+		} ).done( function( response ) {
+			var $additional_years,
+				post_count;
+
+			if ( ! response.success ) {
+				$button.prop( 'disabled', false );
+				return;
+			}
+
+			$additional_years = $( response.data.html ).filter( '.wp-on-this-day-year' );
+
+			$additional_years.each( function() {
+				var $year = $( this ),
+					year = $year.attr( 'data-wp-on-this-day-year' ),
+					$existing_year = $posts.children( '[data-wp-on-this-day-year="' + year + '"]' );
+
+				if ( $existing_year.length ) {
+					$existing_year.children( '.wp-on-this-day-year-posts' ).append( $year.children( '.wp-on-this-day-year-posts' ).children() );
+				} else {
+					$posts.append( $year );
+				}
+			} );
+
+			post_count = response.data.post_count;
+			$button.closest( '.wp-on-this-day-load-more' ).remove();
+
+			if ( post_count ) {
+				wp.a11y.speak(
+					wp.i18n.sprintf(
+						wp.i18n._n( '%s additional post loaded.', '%s additional posts loaded.', post_count ),
+						post_count
+					)
+				);
+			}
+		} ).fail( function() {
+			$button.prop( 'disabled', false );
+		} );
+	} );
+
 	// Enable the dragging functionality of the widgets.
 	$( '.meta-box-sortables' ).sortable( 'option', 'containment', '#wpwrap' );
 

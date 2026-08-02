@@ -339,9 +339,9 @@ class Tests_Admin_wpDashboardOnThisDay extends WP_UnitTestCase {
 	 * @ticket 65116
 	 *
 	 * @covers ::wp_dashboard_on_this_day
-	 * @covers ::wp_dashboard_on_this_day_get_posts
+	 * @covers ::_wp_dashboard_on_this_day_get_posts_query
 	 */
-	public function test_widget_limits_posts_to_ten() {
+	public function test_widget_limits_initial_posts_to_ten_and_displays_load_more_button() {
 		wp_set_current_user( self::$user_id );
 
 		for ( $years_ago = 1; $years_ago <= 11; $years_ago++ ) {
@@ -352,9 +352,12 @@ class Tests_Admin_wpDashboardOnThisDay extends WP_UnitTestCase {
 		wp_dashboard_on_this_day();
 		$output = ob_get_clean();
 
-		$this->assertStringContainsString( '10 posts have been published on <strong>' . wp_date( 'F jS' ) . '</strong>:', $output );
-		$this->assertStringContainsString( 'Anniversary post 1<', $output );
-		$this->assertStringContainsString( 'Anniversary post 10<', $output );
+		$this->assertStringContainsString( '11 posts have been published on <strong>' . wp_date( 'F jS' ) . '</strong>:', $output );
+		$this->assertMatchesRegularExpression( '/Anniversary post 1\s*<\/a>/', $output );
+		$this->assertMatchesRegularExpression( '/Anniversary post 10\s*<\/a>/', $output );
 		$this->assertStringNotContainsString( 'Anniversary post 11', $output );
+		$this->assertStringContainsString( 'Show 1 more post', $output );
+		$this->assertStringContainsString( 'class="button-link"', $output );
+		$this->assertStringContainsString( 'data-wp-on-this-day-offset="10"', $output );
 	}
 }

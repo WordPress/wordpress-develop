@@ -57,7 +57,9 @@ function wp_dashboard_on_this_day_postbox_classes( $classes ) {
  * @since 7.1.0
  */
 function wp_dashboard_on_this_day() {
-	$posts = wp_dashboard_on_this_day_get_posts();
+	$query      = _wp_dashboard_on_this_day_get_posts_query();
+	$posts      = $query->posts;
+	$post_count = (int) $query->found_posts;
 
 	if ( empty( $posts ) ) {
 		// Placeholder shown when a user reveals the hidden widget via Screen
@@ -66,18 +68,7 @@ function wp_dashboard_on_this_day() {
 		return;
 	}
 
-	$posts_by_year = array();
-	$post_count    = count( $posts );
-
-	foreach ( $posts as $post ) {
-		$year = get_the_date( 'Y', $post );
-
-		if ( ! isset( $posts_by_year[ $year ] ) ) {
-			$posts_by_year[ $year ] = array();
-		}
-
-		$posts_by_year[ $year ][] = $post;
-	}
+	$displayed_post_count = count( $posts );
 
 	/* translators: Date format for the On This Day widget date, without year. See https://www.php.net/manual/datetime.format.php */
 	$date = '<strong>' . esc_html( wp_date( _x( 'F jS', 'on this day date format' ) ) ) . '</strong>';
@@ -107,44 +98,91 @@ function wp_dashboard_on_this_day() {
 			}
 			?>
 		</p>
-		<ul>
-			<?php foreach ( $posts_by_year as $year => $year_posts ) : ?>
-				<li>
-					<h3><?php echo esc_html( $year ); ?></h3>
-					<ul>
-						<?php foreach ( $year_posts as $year_post ) : ?>
-							<?php
-							$title = get_the_title( $year_post );
-
-							if ( '' === trim( $title ) ) {
-								$title = __( '(no title)' );
-							}
-
-							$author_id   = (int) $year_post->post_author;
-							$author_name = $author_id > 0 ? (string) get_the_author_meta( 'display_name', $author_id ) : '';
-							$show_author = '' !== trim( $author_name ) && get_current_user_id() !== $author_id;
-							?>
-							<li>
-								<a href="<?php echo esc_url( get_permalink( $year_post ) ); ?>"><?php echo esc_html( $title ); ?></a>
-								<?php if ( $show_author ) : ?>
-									<?php
-									echo '<span class="wp-on-this-day-post-author">' . esc_html(
-										sprintf(
-											/* translators: %s: Post author's display name. */
-											__( 'by %s' ),
-											$author_name
-										)
-									) . '</span>';
-									?>
-								<?php endif; ?>
-							</li>
-						<?php endforeach; ?>
-					</ul>
-				</li>
-			<?php endforeach; ?>
+		<ul id="wp-on-this-day-posts" class="wp-on-this-day-posts">
+			<?php _wp_dashboard_on_this_day_render_posts( $posts ); ?>
 		</ul>
+		<?php if ( $post_count > $displayed_post_count ) : ?>
+			<p class="wp-on-this-day-load-more">
+				<button
+					type="button"
+					class="button-link"
+					data-wp-on-this-day-nonce="<?php echo esc_attr( wp_create_nonce( 'wp_dashboard_on_this_day_load_more' ) ); ?>"
+					data-wp-on-this-day-offset="<?php echo esc_attr( $displayed_post_count ); ?>"
+					aria-controls="wp-on-this-day-posts"
+				>
+					<?php
+					printf(
+						esc_html(
+							/* translators: %s: Number of additional posts. */
+							_n( 'Show %s more post', 'Show %s more posts', $post_count - $displayed_post_count )
+						),
+						esc_html( number_format_i18n( $post_count - $displayed_post_count ) )
+					);
+					?>
+				</button>
+			</p>
+		<?php endif; ?>
 	</div>
 	<?php
+}
+
+/**
+ * Renders On This Day posts grouped by publication year.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param WP_Post[] $posts Posts to render.
+ */
+function _wp_dashboard_on_this_day_render_posts( $posts ) {
+	$posts_by_year = array();
+
+	foreach ( $posts as $post ) {
+		$year = get_the_date( 'Y', $post );
+
+		if ( ! isset( $posts_by_year[ $year ] ) ) {
+			$posts_by_year[ $year ] = array();
+		}
+
+		$posts_by_year[ $year ][] = $post;
+	}
+
+	foreach ( $posts_by_year as $year => $year_posts ) {
+		?>
+		<li class="wp-on-this-day-year" data-wp-on-this-day-year="<?php echo esc_attr( $year ); ?>">
+			<h3><?php echo esc_html( $year ); ?></h3>
+			<ul class="wp-on-this-day-year-posts">
+				<?php foreach ( $year_posts as $year_post ) : ?>
+					<?php
+					$title = get_the_title( $year_post );
+
+					if ( '' === trim( $title ) ) {
+						$title = __( '(no title)' );
+					}
+
+					$author_id   = (int) $year_post->post_author;
+					$author_name = $author_id > 0 ? (string) get_the_author_meta( 'display_name', $author_id ) : '';
+					$show_author = '' !== trim( $author_name ) && get_current_user_id() !== $author_id;
+					?>
+					<li>
+						<a href="<?php echo esc_url( get_permalink( $year_post ) ); ?>"><?php echo esc_html( $title ); ?></a>
+						<?php if ( $show_author ) : ?>
+							<?php
+							echo '<span class="wp-on-this-day-post-author">' . esc_html(
+								sprintf(
+									/* translators: %s: Post author's display name. */
+									__( 'by %s' ),
+									$author_name
+								)
+							) . '</span>';
+							?>
+						<?php endif; ?>
+					</li>
+				<?php endforeach; ?>
+			</ul>
+		</li>
+		<?php
+	}
 }
 
 /**
@@ -161,6 +199,25 @@ function wp_dashboard_on_this_day() {
  * @return WP_Post[] Array of posts ordered by newest first.
  */
 function wp_dashboard_on_this_day_get_posts() {
+	$query = _wp_dashboard_on_this_day_get_posts_query(
+		array(
+			'no_found_rows' => true,
+		)
+	);
+
+	return $query->posts;
+}
+
+/**
+ * Retrieves the WP_Query for On This Day posts.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param array $query_args Additional query arguments.
+ * @return WP_Query Query for matching posts.
+ */
+function _wp_dashboard_on_this_day_get_posts_query( $query_args = array() ) {
 	$today      = current_datetime();
 	$year       = (int) $today->format( 'Y' );
 	$date_query = array(
@@ -171,17 +228,20 @@ function wp_dashboard_on_this_day_get_posts() {
 		_wp_dashboard_on_this_day_date_query_clause( $today ),
 	);
 
-	$args = array(
-		'post_type'              => 'post',
-		'post_status'            => array( 'publish' ),
-		'posts_per_page'         => 10,
-		'ignore_sticky_posts'    => true,
-		'orderby'                => 'date',
-		'order'                  => 'DESC',
-		'no_found_rows'          => true,
-		'update_post_term_cache' => false,
-		'update_post_meta_cache' => false,
-		'date_query'             => $date_query,
+	$args = array_merge(
+		array(
+			'post_type'              => 'post',
+			'post_status'            => array( 'publish' ),
+			'posts_per_page'         => 10,
+			'ignore_sticky_posts'    => true,
+			'orderby'                => 'date',
+			'order'                  => 'DESC',
+			'no_found_rows'          => false,
+			'update_post_term_cache' => false,
+			'update_post_meta_cache' => false,
+			'date_query'             => $date_query,
+		),
+		$query_args
 	);
 
 	/**
@@ -193,9 +253,7 @@ function wp_dashboard_on_this_day_get_posts() {
 	 */
 	$args = apply_filters( 'wp_dashboard_on_this_day_query_args', $args );
 
-	$query = new WP_Query( $args );
-
-	return $query->posts;
+	return new WP_Query( $args );
 }
 
 /**
