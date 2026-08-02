@@ -440,6 +440,11 @@ switch ( $step ) {
 		if ( false === $error ) {
 			$wpdb->show_errors();
 			$result = wp_install( $weblog_title, $user_name, $admin_email, $public, '', wp_slash( $admin_password ), $loaded_language );
+
+			if ( is_wp_error( $result ) ) {
+				display_setup_form( $result->get_error_message() );
+				break;
+			}
 			?>
 
 <h1><?php _e( 'Success!' ); ?></h1>
