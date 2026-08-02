@@ -44,6 +44,8 @@ jobs:
   zizmor:
     name: Zizmor
     runs-on: ubuntu-24.04
+    # GitHub Code Security is not enabled on any of the private mirrors.
+    if: ${{ github.event.repository.private == false }}
     permissions:
       security-events: write
       actions: read
