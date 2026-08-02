@@ -23,7 +23,7 @@ define( 'PB_IN_BYTES', 1024 * TB_IN_BYTES );
 define( 'EB_IN_BYTES', 1024 * PB_IN_BYTES );
 define( 'ZB_IN_BYTES', 1024 * EB_IN_BYTES );
 define( 'YB_IN_BYTES', 1024 * ZB_IN_BYTES );
-define( 'WP_START_TIMESTAMP', microtime( true ) );
+define( 'WP_START_TIMESTAMP', 1700000000.0 ); // Fixed rather than microtime( true ), whose value would differ on every run.
 define( 'WP_MEMORY_LIMIT', '40M' );
 define( 'WP_MAX_MEMORY_LIMIT', '256M' );
 define( 'WP_CONTENT_DIR', ABSPATH . 'wp-content' );
