@@ -335,11 +335,12 @@ function wp_widgets_access_body_class( $classes ) {
 function wp_delete_inactive_widgets(): void {
 	$sidebars_widgets = wp_get_sidebars_widgets();
 
-	if ( empty( $sidebars_widgets['wp_inactive_widgets'] ) || ! is_array( $sidebars_widgets['wp_inactive_widgets'] ) ) {
+	$inactive_widgets = $sidebars_widgets['wp_inactive_widgets'] ?? array();
+	if ( count( $inactive_widgets ) === 0 ) {
 		return;
 	}
 
-	foreach ( $sidebars_widgets['wp_inactive_widgets'] as $key => $widget_id ) {
+	foreach ( $inactive_widgets as $widget_id ) {
 		$pieces       = explode( '-', $widget_id );
 		$multi_number = array_pop( $pieces );
 		$id_base      = implode( '-', $pieces );
