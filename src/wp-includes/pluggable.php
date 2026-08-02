@@ -612,19 +612,20 @@ if ( ! function_exists( 'wp_mail' ) ) :
 			}
 		}
 
-		/**
-		 * Fires after PHPMailer is initialized.
-		 *
-		 * @since 2.2.0
-		 *
-		 * @param PHPMailer $phpmailer The PHPMailer instance (passed by reference).
-		 */
-		do_action_ref_array( 'phpmailer_init', array( &$phpmailer ) );
-
-		$mail_data = compact( 'to', 'subject', 'message', 'headers', 'attachments', 'embeds' );
-
-		// Send!
 		try {
+			/**
+			 * Fires after PHPMailer is initialized.
+			 *
+			 * @since 2.2.0
+			 *
+			 * @param PHPMailer $phpmailer The PHPMailer instance (passed by reference).
+			 */
+			do_action_ref_array( 'phpmailer_init', array( &$phpmailer ) );
+
+			$mail_data = compact( 'to', 'subject', 'message', 'headers', 'attachments', 'embeds' );
+
+			// Send!
+		
 			$send = $phpmailer->send();
 
 			/**
