@@ -337,11 +337,12 @@ class Tests_Admin_wpDashboardOnThisDay extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 65116
+	 * @ticket 65783
 	 *
 	 * @covers ::wp_dashboard_on_this_day
 	 * @covers ::wp_dashboard_on_this_day_get_posts
 	 */
-	public function test_widget_limits_posts_to_ten() {
+	public function test_widget_shows_every_year_that_has_posts() {
 		wp_set_current_user( self::$user_id );
 
 		for ( $years_ago = 1; $years_ago <= 11; $years_ago++ ) {
@@ -352,9 +353,205 @@ class Tests_Admin_wpDashboardOnThisDay extends WP_UnitTestCase {
 		wp_dashboard_on_this_day();
 		$output = ob_get_clean();
 
-		$this->assertStringContainsString( '10 posts have been published on <strong>' . wp_date( 'F jS' ) . '</strong>:', $output );
-		$this->assertStringContainsString( 'Anniversary post 1<', $output );
-		$this->assertStringContainsString( 'Anniversary post 10<', $output );
-		$this->assertStringNotContainsString( 'Anniversary post 11', $output );
+		$this->assertStringContainsString( '11 posts have been published on <strong>' . wp_date( 'F jS' ) . '</strong>:', $output );
+
+		for ( $years_ago = 1; $years_ago <= 11; $years_ago++ ) {
+			$this->assertStringContainsString( 'Anniversary post ' . $years_ago . '<', $output );
+			$this->assertStringContainsString(
+				'<h3>' . current_datetime()->modify( "-$years_ago years" )->format( 'Y' ) . '</h3>',
+				$output
+			);
+		}
+	}
+
+	/**
+	 * @ticket 65783
+	 *
+	 * @covers ::wp_dashboard_on_this_day
+	 * @covers ::wp_dashboard_on_this_day_get_posts
+	 */
+	public function test_widget_limits_posts_per_year() {
+		wp_set_current_user( self::$user_id );
+
+		for ( $hour = 1; $hour <= 7; $hour++ ) {
+			$this->create_matching_post( self::$user_id, 'Busy day post ' . $hour, 1, sprintf( '%02d:00:00', $hour ) );
+		}
+
+		$this->create_matching_post( self::$user_id, 'A quiet older day', 2 );
+
+		ob_start();
+		wp_dashboard_on_this_day();
+		$output = ob_get_clean();
+
+		// The header reports every matching post, not just the displayed ones.
+		$this->assertStringContainsString( '8 posts have been published on <strong>' . wp_date( 'F jS' ) . '</strong>:', $output );
+
+		// The five newest posts of the busy year are shown, the two oldest are not.
+		foreach ( array( 7, 6, 5, 4, 3 ) as $hour ) {
+			$this->assertStringContainsString( 'Busy day post ' . $hour . '<', $output );
+		}
+		$this->assertStringNotContainsString( 'Busy day post 2<', $output );
+		$this->assertStringNotContainsString( 'Busy day post 1<', $output );
+
+		// The remainder is summarized, and the quieter year is untouched.
+		$this->assertStringContainsString( '2 more posts', $output );
+		$this->assertStringContainsString( 'A quiet older day', $output );
+	}
+
+	/**
+	 * @ticket 65783
+	 *
+	 * @covers ::wp_dashboard_on_this_day_get_posts
+	 */
+	public function test_posts_per_year_is_filterable_via_query_args() {
+		wp_set_current_user( self::$user_id );
+
+		for ( $hour = 1; $hour <= 3; $hour++ ) {
+			$this->create_matching_post( self::$user_id, 'Busy day post ' . $hour, 1, sprintf( '%02d:00:00', $hour ) );
+		}
+
+		add_filter(
+			'wp_dashboard_on_this_day_query_args',
+			static function ( $args ) {
+				$args['posts_per_year'] = 2;
+
+				return $args;
+			}
+		);
+
+		$posts_by_year = wp_dashboard_on_this_day_get_posts();
+		$year          = (int) current_datetime()->modify( '-1 year' )->format( 'Y' );
+
+		$this->assertSame( array( $year ), array_keys( $posts_by_year ) );
+		$this->assertCount( 2, $posts_by_year[ $year ]['posts'] );
+		$this->assertSame( 3, $posts_by_year[ $year ]['total'] );
+	}
+
+	/**
+	 * @ticket 65783
+	 *
+	 * @covers ::wp_dashboard_on_this_day
+	 * @covers ::wp_dashboard_on_this_day_get_posts
+	 */
+	public function test_widget_does_not_summarize_a_year_that_is_fully_shown() {
+		wp_set_current_user( self::$user_id );
+
+		$this->create_matching_post( self::$user_id, 'The only memory' );
+
+		ob_start();
+		wp_dashboard_on_this_day();
+		$output = ob_get_clean();
+
+		$this->assertStringNotContainsString( 'wp-on-this-day-more', $output );
+	}
+
+	/**
+	 * @ticket 65783
+	 *
+	 * @covers ::wp_dashboard_on_this_day_get_posts
+	 */
+	public function test_get_posts_groups_years_newest_first_with_accurate_totals() {
+		$this->create_matching_post( self::$user_id, 'Two years ago', 2 );
+		$this->create_matching_post( self::$user_id, 'Last year, morning', 1, '09:00:00' );
+		$this->create_matching_post( self::$user_id, 'Last year, evening', 1, '19:00:00' );
+		$this->create_nearby_post( self::$user_id, 'Not today' );
+
+		$today         = current_datetime();
+		$last_year     = (int) $today->modify( '-1 year' )->format( 'Y' );
+		$two_years_ago = (int) $today->modify( '-2 years' )->format( 'Y' );
+
+		$posts_by_year = wp_dashboard_on_this_day_get_posts();
+
+		$this->assertSame( array( $last_year, $two_years_ago ), array_keys( $posts_by_year ) );
+		$this->assertSame( 2, $posts_by_year[ $last_year ]['total'] );
+		$this->assertSame( 1, $posts_by_year[ $two_years_ago ]['total'] );
+		$this->assertSame(
+			'Last year, evening',
+			get_the_title( $posts_by_year[ $last_year ]['posts'][0] ),
+			'Posts within a year should be newest first.'
+		);
+	}
+
+	/**
+	 * @ticket 65783
+	 *
+	 * @covers ::wp_dashboard_on_this_day_get_posts
+	 */
+	public function test_get_posts_excludes_the_current_year() {
+		$post_date = current_datetime()->format( 'Y-m-d' ) . ' 00:00:01';
+
+		self::factory()->post->create(
+			array(
+				'post_author'   => self::$user_id,
+				'post_date'     => $post_date,
+				'post_date_gmt' => get_gmt_from_date( $post_date ),
+				'post_status'   => 'publish',
+				'post_title'    => 'Published today',
+			)
+		);
+
+		$this->assertSame( array(), wp_dashboard_on_this_day_get_posts() );
+	}
+
+	/**
+	 * @ticket 65783
+	 *
+	 * @covers ::wp_dashboard_on_this_day_get_posts
+	 */
+	public function test_get_posts_ignores_unpublished_posts() {
+		$post_date = current_datetime()->modify( '-1 year' )->format( 'Y-m-d' ) . ' 12:00:00';
+
+		foreach ( array( 'draft', 'pending', 'private' ) as $status ) {
+			self::factory()->post->create(
+				array(
+					'post_author'   => self::$user_id,
+					'post_date'     => $post_date,
+					'post_date_gmt' => get_gmt_from_date( $post_date ),
+					'post_status'   => $status,
+					'post_title'    => "A $status memory",
+				)
+			);
+		}
+
+		$this->assertSame( array(), wp_dashboard_on_this_day_get_posts() );
+	}
+
+	/**
+	 * @ticket 65783
+	 *
+	 * @covers ::wp_dashboard_on_this_day_get_posts
+	 */
+	public function test_get_posts_scans_once_regardless_of_year_count() {
+		global $wpdb;
+
+		for ( $years_ago = 1; $years_ago <= 6; $years_ago++ ) {
+			$this->create_matching_post( self::$user_id, 'Anniversary ' . $years_ago, $years_ago );
+		}
+
+		wp_cache_flush();
+
+		$post_queries = array();
+
+		add_filter(
+			'query',
+			static function ( $query ) use ( &$post_queries, $wpdb ) {
+				if ( str_contains( $query, $wpdb->posts ) ) {
+					$post_queries[] = $query;
+				}
+
+				return $query;
+			}
+		);
+
+		$posts_by_year = wp_dashboard_on_this_day_get_posts();
+
+		$this->assertCount( 6, $posts_by_year );
+		$this->assertCount(
+			2,
+			$post_queries,
+			"Gathering posts should take one scan plus one cache prime, not one query per year. Ran:\n" . implode( "\n", $post_queries )
+		);
+		$this->assertStringContainsString( 'ORDER BY', $post_queries[0] );
+		$this->assertStringNotContainsString( 'YEAR(', $post_queries[0], 'The scan must stay sargable on type_status_date.' );
 	}
 }
