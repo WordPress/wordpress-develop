@@ -26,12 +26,6 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../src/wp-includes/class-wp-block-parser.php',
 ];
 $ignoreErrors[] = [
-	'message' => '#^Variable \\$block_type in empty\\(\\) always exists and is not falsy\\.$#',
-	'identifier' => 'empty.variable',
-	'count' => 1,
-	'path' => __DIR__ . '/../../src/wp-includes/class-wp-block-supports.php',
-];
-$ignoreErrors[] = [
 	'message' => '#^Variable \\$loader in isset\\(\\) always exists and is not nullable\\.$#',
 	'identifier' => 'isset.variable',
 	'count' => 1,

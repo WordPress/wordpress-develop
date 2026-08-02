@@ -47,28 +47,16 @@ parameters:
 			message: '#Variable \$_comments might not be defined\.#'
 		-
 			identifier: variable.undefined
-			message: '#Variable \$_nav_menu_selected_id might not be defined\.#'
-		-
-			identifier: variable.undefined
 			message: '#Variable \$_object might not be defined\.#'
 		-
 			identifier: variable.undefined
 			message: '#Variable \$_wp_admin_css_colors might not be defined\.#'
 		-
 			identifier: variable.undefined
-			message: '#Variable \$all_items might not be defined\.#'
-		-
-			identifier: variable.undefined
 			message: '#Variable \$authors_dropdown might not be defined\.#'
 		-
 			identifier: variable.undefined
 			message: '#Variable \$auto_update_notice might not be defined\.#'
-		-
-			identifier: variable.undefined
-			message: '#Variable \$auto_updates might not be defined\.#'
-		-
-			identifier: variable.undefined
-			message: '#Variable \$b might not be defined\.#'
 		-
 			identifier: variable.undefined
 			message: '#Variable \$badge_class might not be defined\.#'
@@ -95,13 +83,7 @@ parameters:
 			message: '#Variable \$cat_id might not be defined\.#'
 		-
 			identifier: variable.undefined
-			message: '#Variable \$cats might not be defined\.#'
-		-
-			identifier: variable.undefined
 			message: '#Variable \$class might not be defined\.#'
-		-
-			identifier: variable.undefined
-			message: '#Variable \$closer_potentially_starts_at might not be defined\.#'
 		-
 			identifier: variable.undefined
 			message: '#Variable \$comment might not be defined\.#'
@@ -173,9 +155,6 @@ parameters:
 			message: '#Variable \$has_void_flag might not be defined\.#'
 		-
 			identifier: variable.undefined
-			message: '#Variable \$height might not be defined\.#'
-		-
-			identifier: variable.undefined
 			message: '#Variable \$html might not be defined\.#'
 		-
 			identifier: variable.undefined
@@ -183,9 +162,6 @@ parameters:
 		-
 			identifier: variable.undefined
 			message: '#Variable \$id might not be defined\.#'
-		-
-			identifier: variable.undefined
-			message: '#Variable \$image might not be defined\.#'
 		-
 			identifier: variable.undefined
 			message: '#Variable \$is_IE might not be defined\.#'
@@ -204,9 +180,6 @@ parameters:
 		-
 			identifier: variable.undefined
 			message: '#Variable \$json_length might not be defined\.#'
-		-
-			identifier: variable.undefined
-			message: '#Variable \$k might not be defined\.#'
 		-
 			identifier: variable.undefined
 			message: '#Variable \$key might not be defined\.#'
@@ -266,12 +239,6 @@ parameters:
 			message: '#Variable \$num_posts might not be defined\.#'
 		-
 			identifier: variable.undefined
-			message: '#Variable \$old_user_data might not be defined\.#'
-		-
-			identifier: variable.undefined
-			message: '#Variable \$option might not be defined\.#'
-		-
-			identifier: variable.undefined
 			message: '#Variable \$options_to_update might not be defined\.#'
 		-
 			identifier: variable.undefined
@@ -317,9 +284,6 @@ parameters:
 			message: '#Variable \$posts might not be defined\.#'
 		-
 			identifier: variable.undefined
-			message: '#Variable \$primary might not be defined\.#'
-		-
-			identifier: variable.undefined
 			message: '#Variable \$processed_response might not be defined\.#'
 		-
 			identifier: variable.undefined
@@ -341,9 +305,6 @@ parameters:
 			message: '#Variable \$response might not be defined\.#'
 		-
 			identifier: variable.undefined
-			message: '#Variable \$restore_link might not be defined\.#'
-		-
-			identifier: variable.undefined
 			message: '#Variable \$result might not be defined\.#'
 		-
 			identifier: variable.undefined
@@ -356,12 +317,6 @@ parameters:
 			message: '#Variable \$rollback_result might not be defined\.#'
 		-
 			identifier: variable.undefined
-			message: '#Variable \$rootcommentmatch might not be defined\.#'
-		-
-			identifier: variable.undefined
-			message: '#Variable \$rootcommentquery might not be defined\.#'
-		-
-			identifier: variable.undefined
 			message: '#Variable \$rp_key might not be defined\.#'
 		-
 			identifier: variable.undefined
@@ -371,16 +326,10 @@ parameters:
 			message: '#Variable \$s might not be defined\.#'
 		-
 			identifier: variable.undefined
-			message: '#Variable \$secret_keys might not be defined\.#'
-		-
-			identifier: variable.undefined
 			message: '#Variable \$section_id might not be defined\.#'
 		-
 			identifier: variable.undefined
 			message: '#Variable \$self might not be defined\.#'
-		-
-			identifier: variable.undefined
-			message: '#Variable \$show_network_active might not be defined\.#'
 		-
 			identifier: variable.undefined
 			message: '#Variable \$stat might not be defined\.#'
@@ -389,64 +338,10 @@ parameters:
 			message: '#Variable \$status might not be defined\.#'
 		-
 			identifier: variable.undefined
-			message: '#Variable \$sub1 might not be defined\.#'
-		-
-			identifier: variable.undefined
-			message: '#Variable \$sub1comment might not be defined\.#'
-		-
-			identifier: variable.undefined
-			message: '#Variable \$sub1embed might not be defined\.#'
-		-
-			identifier: variable.undefined
-			message: '#Variable \$sub1feed might not be defined\.#'
-		-
-			identifier: variable.undefined
-			message: '#Variable \$sub1feed2 might not be defined\.#'
-		-
-			identifier: variable.undefined
-			message: '#Variable \$sub1tb might not be defined\.#'
-		-
-			identifier: variable.undefined
-			message: '#Variable \$sub2 might not be defined\.#'
-		-
-			identifier: variable.undefined
-			message: '#Variable \$sub2comment might not be defined\.#'
-		-
-			identifier: variable.undefined
-			message: '#Variable \$sub2embed might not be defined\.#'
-		-
-			identifier: variable.undefined
-			message: '#Variable \$sub2feed might not be defined\.#'
-		-
-			identifier: variable.undefined
-			message: '#Variable \$sub2feed2 might not be defined\.#'
-		-
-			identifier: variable.undefined
-			message: '#Variable \$sub2tb might not be defined\.#'
-		-
-			identifier: variable.undefined
-			message: '#Variable \$subcommentquery might not be defined\.#'
-		-
-			identifier: variable.undefined
-			message: '#Variable \$subembedquery might not be defined\.#'
-		-
-			identifier: variable.undefined
-			message: '#Variable \$subfeedquery might not be defined\.#'
-		-
-			identifier: variable.undefined
 			message: '#Variable \$subject might not be defined\.#'
 		-
 			identifier: variable.undefined
 			message: '#Variable \$submenu might not be defined\.#'
-		-
-			identifier: variable.undefined
-			message: '#Variable \$subquery might not be defined\.#'
-		-
-			identifier: variable.undefined
-			message: '#Variable \$subtbquery might not be defined\.#'
-		-
-			identifier: variable.undefined
-			message: '#Variable \$tab might not be defined\.#'
 		-
 			identifier: variable.undefined
 			message: '#Variable \$table_prefix might not be defined\.#'
@@ -476,19 +371,10 @@ parameters:
 			message: '#Variable \$token_length might not be defined\.#'
 		-
 			identifier: variable.undefined
-			message: '#Variable \$trackbackmatch might not be defined\.#'
-		-
-			identifier: variable.undefined
-			message: '#Variable \$trackbackquery might not be defined\.#'
-		-
-			identifier: variable.undefined
 			message: '#Variable \$type might not be defined\.#'
 		-
 			identifier: variable.undefined
 			message: '#Variable \$typenow might not be defined\.#'
-		-
-			identifier: variable.undefined
-			message: '#Variable \$unique_id might not be defined\.#'
 		-
 			identifier: variable.undefined
 			message: '#Variable \$update might not be defined\.#'
@@ -506,9 +392,6 @@ parameters:
 			message: '#Variable \$user_email might not be defined\.#'
 		-
 			identifier: variable.undefined
-			message: '#Variable \$user_id might not be defined\.#'
-		-
-			identifier: variable.undefined
 			message: '#Variable \$user_login might not be defined\.#'
 		-
 			identifier: variable.undefined
@@ -519,9 +402,6 @@ parameters:
 		-
 			identifier: variable.undefined
 			message: '#Variable \$was_active might not be defined\.#'
-		-
-			identifier: variable.undefined
-			message: '#Variable \$width might not be defined\.#'
 		-
 			identifier: variable.undefined
 			message: '#Variable \$working_dir_local might not be defined\.#'
