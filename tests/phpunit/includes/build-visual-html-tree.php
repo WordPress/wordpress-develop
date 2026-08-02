@@ -1,7 +1,5 @@
 <?php
 
-/* phpcs:disable WordPress.Security.EscapeOutput.ExceptionNotEscaped */
-
 /**
  * Generates representation of the semantic HTML tree structure.
  *
@@ -36,7 +34,7 @@
  *         style="margin-top:50px;margin-bottom:50px;"
  *
  *
- * @see https://github.com/WordPress/wordpress-develop/blob/trunk/tests/phpunit/data/html5lib-tests/tree-construction/README.md
+ * @see https://github.com/web-platform-tests/wpt/blob/master/html/syntax/parsing/resources/README.md
  *
  * @since 6.9.0
  *
@@ -121,7 +119,7 @@ function build_visual_html_tree( string $html, ?string $fragment_context ): stri
 					}
 
 					/*
-					 * Sorts attributes to match html5lib sort order.
+					 * Sorts attributes to match Web Platform Tests tree-construction order.
 					 *
 					 *  - First comes normal HTML attributes.
 					 *  - Then come adjusted foreign attributes; these have spaces in their names.
@@ -202,7 +200,7 @@ function build_visual_html_tree( string $html, ?string $fragment_context ): stri
 			case '#cdata-section':
 			case '#text':
 				$text_content = $processor->get_modifiable_text();
-				if ( '' === trim( $text_content, " \f\t\r\n" ) ) {
+				if ( '' === $text_content ) {
 					break;
 				}
 				$was_text = true;
@@ -210,6 +208,11 @@ function build_visual_html_tree( string $html, ?string $fragment_context ): stri
 					$text_node .= str_repeat( $tree_indent, $indent_level ) . '"';
 				}
 				$text_node .= $text_content;
+				break;
+
+			case '#processing-instruction':
+				// Processing instructions must be "<?", the target, a space, the data, "?", and ">".
+				$output .= str_repeat( $tree_indent, $indent_level ) . "<?{$processor->get_tag()} {$processor->get_modifiable_text()}?>\n";
 				break;
 
 			case '#funky-comment':
@@ -237,7 +240,7 @@ function build_visual_html_tree( string $html, ?string $fragment_context ): stri
 							++$indent_level;
 						}
 
-						// If they're no attributes, we're done here.
+						// When no attributes are present, there’s nothing left to do.
 						if ( empty( $block_attrs ) ) {
 							break;
 						}
@@ -278,7 +281,6 @@ function build_visual_html_tree( string $html, ?string $fragment_context ): stri
 				}
 				break;
 			default:
-				// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_var_export
 				$serialized_token_type = var_export( $processor->get_token_type(), true );
 				throw new Exception( "Unhandled token type for tree construction: {$serialized_token_type}" );
 		}

@@ -504,7 +504,7 @@ class WP_REST_Widget_Types_Controller extends WP_REST_Controller {
 			isset( $request['form_data'][ "widget-$id" ] ) &&
 			is_array( $request['form_data'][ "widget-$id" ] )
 		) {
-			$new_instance = array_values( $request['form_data'][ "widget-$id" ] )[0];
+			$new_instance = array_first( $request['form_data'][ "widget-$id" ] );
 			$old_instance = $instance;
 
 			$instance = $widget_object->update( $new_instance, $old_instance );
@@ -611,7 +611,7 @@ class WP_REST_Widget_Types_Controller extends WP_REST_Controller {
 		return array(
 			'preview' => $this->render_legacy_widget_preview_iframe(
 				$request['id'],
-				isset( $request['instance'] ) ? $request['instance'] : null
+				$request['instance'] ?? null
 			),
 		);
 	}

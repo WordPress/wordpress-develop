@@ -886,6 +886,10 @@ function upgrade_all() {
 		upgrade_682();
 	}
 
+	if ( $wp_current_db_version < 61644 ) {
+		upgrade_700();
+	}
+
 	maybe_disable_link_manager();
 
 	maybe_disable_automattic_widgets();
@@ -2482,6 +2486,31 @@ function upgrade_682() {
 }
 
 /**
+ * Executes changes made in WordPress 7.0.
+ *
+ * @ignore
+ * @since 7.0.0
+ *
+ * @global int  $wp_current_db_version The old (current) database version.
+ * @global wpdb $wpdb                  WordPress database abstraction object.
+ */
+function upgrade_700() {
+	global $wp_current_db_version, $wpdb;
+
+	// Migrate users with 'fresh' admin color to 'modern'.
+	if ( $wp_current_db_version < 61644 ) {
+		$wpdb->update(
+			$wpdb->usermeta,
+			array( 'meta_value' => 'modern' ),
+			array(
+				'meta_key'   => 'admin_color',
+				'meta_value' => 'fresh',
+			)
+		);
+	}
+}
+
+/**
  * Executes network-level upgrade routines.
  *
  * @since 3.0.0
@@ -3253,7 +3282,7 @@ function dbDelta( $queries = '', $execute = true ) { // phpcs:ignore WordPress.N
 					'fieldname' => $tableindex->Column_name,
 					'subpart'   => $tableindex->Sub_part,
 				);
-				$index_ary[ $keyname ]['unique']     = ( '0' === (string) $tableindex->Non_unique ) ? true : false;
+				$index_ary[ $keyname ]['unique']     = '0' === (string) $tableindex->Non_unique;
 				$index_ary[ $keyname ]['index_type'] = $tableindex->Index_type;
 			}
 

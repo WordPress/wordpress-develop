@@ -90,12 +90,12 @@ else :
 <td id="front-static-pages"><fieldset>
 	<legend class="screen-reader-text"><span><?php echo $your_homepage_displays_title; ?></span></legend>
 	<p><label>
-		<input name="show_on_front" type="radio" value="posts" class="tog" <?php checked( 'posts', get_option( 'show_on_front' ) ); ?> />
+		<input name="show_on_front" type="radio" value="posts" <?php checked( 'posts', get_option( 'show_on_front' ) ); ?> />
 		<?php _e( 'Your latest posts' ); ?>
 	</label>
 	</p>
 	<p><label>
-		<input name="show_on_front" type="radio" value="page" class="tog" <?php checked( 'page', get_option( 'show_on_front' ) ); ?> />
+		<input name="show_on_front" type="radio" value="page" <?php checked( 'page', get_option( 'show_on_front' ) ); ?> />
 		<?php
 		printf(
 			/* translators: %s: URL to Pages screen. */
@@ -142,7 +142,9 @@ else :
 </label></li>
 </ul>
 	<?php
-	if ( 'page' === get_option( 'show_on_front' ) && get_option( 'page_for_posts' ) === get_option( 'page_on_front' ) ) :
+	if ( 'page' === get_option( 'show_on_front' )
+		&& get_option( 'page_for_posts' ) === get_option( 'page_on_front' )
+	) :
 		wp_admin_notice(
 			__( '<strong>Warning:</strong> these pages should not be the same!' ),
 			array(
@@ -152,7 +154,13 @@ else :
 			)
 		);
 	endif;
-	if ( get_option( 'wp_page_for_privacy_policy' ) === get_option( 'page_for_posts' ) || get_option( 'wp_page_for_privacy_policy' ) === get_option( 'page_on_front' ) ) :
+
+	$privacy_policy_page = get_option( 'wp_page_for_privacy_policy' );
+
+	if ( $privacy_policy_page
+		&& ( get_option( 'page_for_posts' ) === $privacy_policy_page
+			|| get_option( 'page_on_front' ) === $privacy_policy_page )
+	) :
 		wp_admin_notice(
 			__( '<strong>Warning:</strong> these pages should not be the same as your Privacy Policy page!' ),
 			array(
@@ -167,14 +175,14 @@ else :
 </tr>
 <?php endif; ?>
 <tr>
-<th scope="row"><label for="posts_per_page"><?php _e( 'Blog pages show at most' ); ?></label></th>
+<th scope="row"><label for="posts_per_page"><?php _e( 'Number of recent posts shown on archive pages' ); ?></label></th>
 <td>
-<input name="posts_per_page" type="number" step="1" min="1" id="posts_per_page" value="<?php form_option( 'posts_per_page' ); ?>" class="small-text" /> <?php _e( 'posts' ); ?>
+<input name="posts_per_page" type="number" step="1" min="1" id="posts_per_page" value="<?php form_option( 'posts_per_page' ); ?>" class="small-text" />
 </td>
 </tr>
 <tr>
-<th scope="row"><label for="posts_per_rss"><?php _e( 'Syndication feeds show the most recent' ); ?></label></th>
-<td><input name="posts_per_rss" type="number" step="1" min="1" id="posts_per_rss" value="<?php form_option( 'posts_per_rss' ); ?>" class="small-text" /> <?php _e( 'items' ); ?></td>
+<th scope="row"><label for="posts_per_rss"><?php _e( 'Number of recent items shown in syndication feeds' ); ?></label></th>
+<td><input name="posts_per_rss" type="number" step="1" min="1" id="posts_per_rss" value="<?php form_option( 'posts_per_rss' ); ?>" class="small-text" /></td>
 </tr>
 
 <?php $rss_use_excerpt_title = __( 'For each post in a feed, include' ); ?>
