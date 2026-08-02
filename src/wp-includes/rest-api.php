@@ -759,6 +759,10 @@ function _wp_rest_get_debug_backtrace_caller(): string {
 		 */
 		$next = $backtrace[ $i + 1 ] ?? null;
 		if ( $next ) {
+			if ( empty( $next['function'] ) ) {
+				return $location;
+			}
+
 			if ( str_starts_with( $next['function'], '{' ) ) {
 				return ' called from (anonymous function)' . $location;
 			}
@@ -810,7 +814,7 @@ function rest_handle_deprecated_function( $function_name, $replacement, $version
 	}
 
 	if ( WP_DEBUG_LOG && ( error_reporting() & E_USER_DEPRECATED ) ) {
-		error_log( 'PHP Deprecated: ' . wp_strip_all_tags( $string ) . _rest_get_debug_backtrace_caller() );
+		error_log( 'PHP Deprecated: ' . wp_strip_all_tags( $string ) . _wp_rest_get_debug_backtrace_caller() );
 	}
 }
 
@@ -840,7 +844,7 @@ function rest_handle_deprecated_argument( $function_name, $message, $version ) {
 	}
 
 	if ( WP_DEBUG_LOG && ( error_reporting() & E_USER_DEPRECATED ) ) {
-		error_log( 'PHP Deprecated: ' . wp_strip_all_tags( $string ) . _rest_get_debug_backtrace_caller() );
+		error_log( 'PHP Deprecated: ' . wp_strip_all_tags( $string ) . _wp_rest_get_debug_backtrace_caller() );
 	}
 }
 
@@ -873,7 +877,7 @@ function rest_handle_doing_it_wrong( $function_name, $message, $version ) {
 	}
 
 	if ( WP_DEBUG_LOG && ( error_reporting() & E_USER_NOTICE ) ) {
-		error_log( 'PHP Notice: ' . wp_strip_all_tags( $string ) . _rest_get_debug_backtrace_caller() );
+		error_log( 'PHP Notice: ' . wp_strip_all_tags( $string ) . _wp_rest_get_debug_backtrace_caller() );
 	}
 }
 
