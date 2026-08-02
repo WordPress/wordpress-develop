@@ -116,6 +116,23 @@ function plugins_api( $action, $args = array() ) {
 		$args->wp_version = substr( wp_get_wp_version(), 0, 3 ); // x.y
 	}
 
+	if ( 'plugin_information' === $action ) {
+		// Initialize fields array if it doesn't exist
+		if ( ! isset( $args->fields ) ) {
+			$args->fields = array();
+		}
+
+		// Convert fields to array if it's an object
+		if ( is_object( $args->fields ) ) {
+			$args->fields = (array) $args->fields;
+		}
+
+		// Set downloaded in fields array if not already set
+		if ( ! isset( $args->fields['downloaded'] ) ) {
+			$args->fields['downloaded'] = true;
+		}
+	}
+
 	/**
 	 * Filters the WordPress.org Plugin Installation API arguments.
 	 *
