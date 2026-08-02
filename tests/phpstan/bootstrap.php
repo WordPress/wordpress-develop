@@ -7,7 +7,12 @@
  * Loaded as a `bootstrapFile` by PHPStan; see `base.neon`.
  */
 
-define( 'ABSPATH', dirname( __DIR__, 2 ) . '/src/' );
+/*
+ * A fixed, fictional path rather than the real checkout location. PHPStan resolves
+ * no files through this constant, and deriving it from __DIR__ embeds the developer's
+ * own path in error messages, making output differ between machines.
+ */
+define( 'ABSPATH', '/var/www/html/' );
 
 /** @see wp_initial_constants() */
 define( 'KB_IN_BYTES', 1024 );
