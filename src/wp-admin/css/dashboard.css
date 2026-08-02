@@ -1054,6 +1054,11 @@ body #dashboard-widgets .postbox form .submit {
 	color: #646970;
 }
 
+#wp_dashboard_on_this_day .wp-on-this-day-more {
+	list-style: none;
+	color: #646970;
+}
+
 /* Browse happy box */
 
 #dashboard-widgets #dashboard_browser_nag.postbox .inside {
