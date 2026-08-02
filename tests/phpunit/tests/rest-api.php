@@ -945,8 +945,8 @@ class Tests_REST_API extends WP_UnitTestCase {
 		$rest_server               = $GLOBALS['wp_rest_server'];
 		$GLOBALS['wp_rest_server'] = null;
 
-		$exiting_post_id = self::factory()->post->create();
-		$this->assertIsInt( $exiting_post_id );
+		$existing_post_id = self::factory()->post->create();
+		$this->assertIsInt( $existing_post_id );
 		$missing_post1_id = 10001;
 		$missing_post2_id = 10002;
 		$this->assertNull( get_post( $missing_post1_id ), "Expected post with ID $missing_post1_id to not exist." );
@@ -954,7 +954,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 
 		$preload_paths = array(
 			'/wp/v2/types',
-			array( "/wp/v2/posts/$exiting_post_id", 'GET', array( 200 ) ),
+			array( "/wp/v2/posts/$existing_post_id", 'GET', array( 200 ) ),
 			array( "/wp/v2/posts/$missing_post1_id", 'GET', array( 200, 404 ) ),
 			array( "/wp/v2/posts/$missing_post2_id", 'GET' ),
 			array( '/wp/v2/media', 'OPTIONS' ),
