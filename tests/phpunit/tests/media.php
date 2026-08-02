@@ -269,7 +269,7 @@ CAP;
 			)
 		);
 		$this->assertSame( 1, substr_count( $result, 'wp-caption &amp;myAlignment' ) );
-		$this->assertSame( 1, substr_count( $result, 'id="myId"' ) );
+		$this->assertSame( 1, preg_match( '/id="myId(?:[0-9]+)?"/', $result ) );
 		$this->assertSame( 1, substr_count( $result, self::CAPTION ) );
 	}
 
@@ -365,7 +365,117 @@ CAP;
 			self::IMG_CONTENT . self::HTML_CONTENT
 		);
 
-		$this->assertSame( 1, substr_count( $result, 'aria-describedby="caption-myId"' ) );
+		$this->assertMatchesRegularExpression( '/aria-describedby="caption-myId(?:-[0-9]+)?"/', $result );
+	}
+
+	/**
+	 * Tests that both figure and figcaption IDs are unique for multiple caption instances.
+	 *
+	 * When the same image with the same or different captions appears multiple
+	 * times on a page, each figure and figcaption should receive a unique ID to
+	 * maintain HTML validity and accessibility.
+	 *
+	 * @ticket 65315
+	 *
+	 * @covers ::img_caption_shortcode
+	 */
+	public function test_img_caption_shortcode_unique_ids_per_instance(): void {
+		/*
+		 * Important: The id part of this must be unique among unit tests, or else the test will fail due to
+		 * wp_unique_prefixed_id() not returning the expected increment.
+		 */
+		$id         = 'attachment_65315';
+		$caption_id = 'caption_attachment_65315';
+
+		// First instance with caption "My caption".
+		$result_1 = img_caption_shortcode(
+			array(
+				'width'      => 20,
+				'id'         => $id,
+				'caption'    => 'My caption',
+				'caption_id' => $caption_id,
+			),
+			self::IMG_CONTENT . 'My caption'
+		);
+
+		// Second instance - identical to first.
+		$result_2 = img_caption_shortcode(
+			array(
+				'width'      => 20,
+				'id'         => $id,
+				'caption'    => 'My caption',
+				'caption_id' => $caption_id,
+			),
+			self::IMG_CONTENT . 'My caption'
+		);
+
+		// Third instance - same image, different caption.
+		$result_3 = img_caption_shortcode(
+			array(
+				'width'      => 20,
+				'id'         => $id,
+				'caption'    => 'Different caption',
+				'caption_id' => $caption_id,
+			),
+			self::IMG_CONTENT . 'Different caption'
+		);
+
+		// Extract the figure (caption wrapper) and caption text IDs from each instance.
+		$figure_id_1  = $this->get_id_of_first_tag_with_class( $result_1, 'wp-caption' );
+		$figure_id_2  = $this->get_id_of_first_tag_with_class( $result_2, 'wp-caption' );
+		$figure_id_3  = $this->get_id_of_first_tag_with_class( $result_3, 'wp-caption' );
+		$caption_id_1 = $this->get_id_of_first_tag_with_class( $result_1, 'wp-caption-text' );
+		$caption_id_2 = $this->get_id_of_first_tag_with_class( $result_2, 'wp-caption-text' );
+		$caption_id_3 = $this->get_id_of_first_tag_with_class( $result_3, 'wp-caption-text' );
+
+		// Figure IDs should all exist.
+		$this->assertNotEmpty( $figure_id_1, 'First figure should have an ID' );
+		$this->assertNotEmpty( $figure_id_2, 'Second figure should have an ID' );
+		$this->assertNotEmpty( $figure_id_3, 'Third figure should have an ID' );
+
+		// Figure IDs should all be different (each instance gets unique ID).
+		$this->assertNotSame( $figure_id_1, $figure_id_2, 'First and second figures should have different IDs even with identical content' );
+		$this->assertNotSame( $figure_id_2, $figure_id_3, 'Second and third figures should have different IDs' );
+		$this->assertNotSame( $figure_id_1, $figure_id_3, 'First and third figures should have different IDs' );
+
+		// The first Figure ID should be identical to the supplied ID, and the others should have unique suffixes.
+		$this->assertSame( $id, $figure_id_1 );
+		$this->assertSame( "$id-2", $figure_id_2 );
+		$this->assertSame( "$id-3", $figure_id_3 );
+
+		// Caption IDs should all exist.
+		$this->assertNotEmpty( $caption_id_1, 'First caption should have an ID' );
+		$this->assertNotEmpty( $caption_id_2, 'Second caption should have an ID' );
+		$this->assertNotEmpty( $caption_id_3, 'Third caption should have an ID' );
+
+		// Caption IDs should all be different (each instance gets unique ID).
+		$this->assertNotSame( $caption_id_1, $caption_id_2, 'First and second captions should have different IDs even with identical content' );
+		$this->assertNotSame( $caption_id_2, $caption_id_3, 'Second and third captions should have different IDs' );
+		$this->assertNotSame( $caption_id_1, $caption_id_3, 'First and third captions should have different IDs' );
+
+		// The first Caption ID should have no.
+		$this->assertSame( $caption_id, $caption_id_1 );
+		$this->assertSame( "$caption_id-2", $caption_id_2 );
+		$this->assertSame( "$caption_id-3", $caption_id_3 );
+	}
+
+	/**
+	 * Returns the `id` attribute of the first tag bearing the given class name.
+	 *
+	 * @param string $html       Markup to search.
+	 * @param string $class_name Class name to locate the tag by.
+	 * @return string|null The tag's `id` value, or null if no matching tag or `id` is found.
+	 */
+	private function get_id_of_first_tag_with_class( string $html, string $class_name ): ?string {
+		$processor = new WP_HTML_Tag_Processor( $html );
+
+		if ( ! $processor->next_tag( array( 'class_name' => $class_name ) ) ) {
+			return null;
+		}
+
+		$id = $processor->get_attribute( 'id' );
+
+		return is_string( $id ) ? $id : null;
 	}
 
 	public function test_add_remove_oembed_provider() {
