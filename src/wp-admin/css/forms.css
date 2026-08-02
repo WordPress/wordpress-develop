@@ -1488,11 +1488,6 @@ table.form-table td .updated p {
 	text-align: center;
 }
 
-.privacy_requests thead td:first-child,
-.privacy_requests tfoot td:first-child {
-	border-left: 4px solid #fff;
-}
-
 .privacy_requests tbody th {
 	border-left: 4px solid #fff;
 	background: #fff;
@@ -1971,11 +1966,6 @@ table.form-table td .updated p {
 	.wp-list-table.privacy_requests tr:not(.inline-edit-row):not(.no-items) td.column-primary:not(.check-column),
 	.wp-list-table.privacy_requests tr:not(.inline-edit-row):not(.no-items) th.column-primary:not(.check-column) {
 		display: table-cell;
-	}
-
-	.wp-list-table.privacy_requests.widefat th input,
-	.wp-list-table.privacy_requests.widefat thead td input {
-		margin-left: 5px;
 	}
 
 	.wp-privacy-request-form-field input[type="text"] {
