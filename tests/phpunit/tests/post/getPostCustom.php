@@ -4,6 +4,8 @@
  * @group post
  *
  * @covers ::get_post_custom
+ * @covers ::get_post_custom_keys
+ * @covers ::get_post_custom_values
  */
 class Tests_Post_GetPostCustom extends WP_UnitTestCase {
 
