@@ -488,6 +488,10 @@ ul#adminmenu > li.current > a.current:after {
 	color: variables.$menu-icon;
 }
 
+#wpadminbar.mobile .quicklinks .ab-icon:focus:before,
+#wpadminbar.mobile .quicklinks .ab-item:focus:before {
+	color: variables.$menu-submenu-focus-text;
+}
 
 /* Admin Bar: search */
 

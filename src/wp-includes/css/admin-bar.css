@@ -916,7 +916,6 @@ html:lang(he-il) .rtl #wpadminbar * {
 		overflow: hidden;
 		width: 52px;
 		padding: 0;
-		color: #a7aaad; /* @todo not needed? this text is hidden */
 		position: relative;
 	}
 
