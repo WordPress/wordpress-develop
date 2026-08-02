@@ -350,9 +350,8 @@ function wp_delete_inactive_widgets(): void {
 			unset( $widget[ $multi_number ] );
 			update_option( 'widget_' . $id_base, $widget );
 		}
-
-		unset( $sidebars_widgets['wp_inactive_widgets'][ $key ] );
 	}
 
+	$sidebars_widgets['wp_inactive_widgets'] = array();
 	wp_set_sidebars_widgets( $sidebars_widgets );
 }
