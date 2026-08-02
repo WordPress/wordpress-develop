@@ -23,6 +23,7 @@
 
 // Initialize the filter globals.
 require __DIR__ . '/class-wp-hook.php';
+require __DIR__ . '/class-wp-filter-sentinel.php';
 
 /** @var WP_Hook[] $wp_filter */
 global $wp_filter;
@@ -985,33 +986,35 @@ function _wp_call_all_hook( $args ) {
  * @since 2.2.3
  * @since 5.3.0 Removed workarounds for spl_object_hash().
  *              `$hook_name` and `$priority` are no longer used,
- *              and the function always returns a string.
+ *              and no longer returns false, but can still return void for invalid callbacks.
+ * @since 6.9.0 Returns explicit null if an invalid callback is supplied.
+ * @since 7.1.0 Uses spl_object_id() instead of spl_object_hash() for performance.
  *
  * @access private
  *
- * @param string                $hook_name Unused. The name of the filter to build ID for.
- * @param callable|string|array $callback  The callback to generate ID for. The callback may
- *                                         or may not exist.
- * @param int                   $priority  Unused. The order in which the functions
- *                                         associated with a particular action are executed.
- * @return string|null Unique function ID for usage as array key.
- *                     Null if a valid `$callback` is not passed.
+ * @param string   $hook_name Unused. The name of the filter to build ID for.
+ * @param callable $callback  The callback to generate ID for. The callback may
+ *                            or may not exist.
+ * @param int      $priority  Unused. The order in which the functions
+ *                            associated with a particular action are executed.
+ * @return string|null Unique function ID for usage as array key, or null if it couldn't be determined.
  */
-function _wp_filter_build_unique_id( $hook_name, $callback, $priority ) {
+function _wp_filter_build_unique_id( $hook_name, $callback, $priority ): ?string {
 	if ( is_string( $callback ) ) {
 		return $callback;
 	}
 
 	if ( is_object( $callback ) ) {
-		// Closures are currently implemented as objects.
-		$callback = array( $callback, '' );
-	} else {
-		$callback = (array) $callback;
+		return (string) spl_object_id( $callback );
+	}
+
+	if ( ! isset( $callback[1] ) || ! is_string( $callback[1] ) ) {
+		return null;
 	}
 
 	if ( is_object( $callback[0] ) ) {
 		// Object class calling.
-		return spl_object_hash( $callback[0] ) . $callback[1];
+		return ( (string) spl_object_id( $callback[0] ) ) . $callback[1];
 	} elseif ( is_string( $callback[0] ) ) {
 		// Static calling.
 		return $callback[0] . '::' . $callback[1];
