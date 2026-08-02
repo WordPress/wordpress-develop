@@ -1130,11 +1130,11 @@ function get_role( $role ) {
  * @param string                               $display_name Display name for role.
  * @param array<string,bool>|array<int,string> $capabilities Capabilities to be added to the role.
  *                                                           Default empty array.
- * @return WP_Role|void WP_Role object, if the role is added.
+ * @return WP_Role|null WP_Role object, if the role is added.
  */
 function add_role( $role, $display_name, $capabilities = array() ) {
 	if ( empty( $role ) ) {
-		return;
+		return null;
 	}
 
 	return wp_roles()->add_role( $role, $display_name, $capabilities );
@@ -1163,11 +1163,7 @@ function remove_role( $role ) {
 function get_super_admins() {
 	global $super_admins;
 
-	if ( isset( $super_admins ) ) {
-		return $super_admins;
-	} else {
-		return get_site_option( 'site_admins', array( 'admin' ) );
-	}
+	return $super_admins ?? get_site_option( 'site_admins', array( 'admin' ) );
 }
 
 /**

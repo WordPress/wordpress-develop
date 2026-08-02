@@ -541,9 +541,6 @@ function wp_edit_theme_plugin_file( $args ) {
 			'Cache-Control' => 'no-cache',
 		);
 
-		/** This filter is documented in wp-includes/class-wp-http-streams.php */
-		$sslverify = apply_filters( 'https_local_ssl_verify', false );
-
 		// Include Basic auth in loopback requests.
 		if ( isset( $_SERVER['PHP_AUTH_USER'] ) && isset( $_SERVER['PHP_AUTH_PW'] ) ) {
 			$headers['Authorization'] = 'Basic ' . base64_encode( wp_unslash( $_SERVER['PHP_AUTH_USER'] ) . ':' . wp_unslash( $_SERVER['PHP_AUTH_PW'] ) );
@@ -583,7 +580,11 @@ function wp_edit_theme_plugin_file( $args ) {
 			session_write_close();
 		}
 
-		$url                    = add_query_arg( $scrape_params, $url );
+		$url = add_query_arg( $scrape_params, $url );
+
+		/** This filter is documented in wp-includes/class-wp-http-streams.php */
+		$sslverify = apply_filters( 'https_local_ssl_verify', false, $url );
+
 		$r                      = wp_remote_get( $url, compact( 'cookies', 'headers', 'timeout', 'sslverify' ) );
 		$body                   = wp_remote_retrieve_body( $r );
 		$scrape_result_position = strpos( $body, $needle_start );
@@ -734,7 +735,7 @@ function wp_tempnam( $filename = '', $dir = '' ) {
  * @param string   $file          File the user is attempting to edit.
  * @param string[] $allowed_files Optional. Array of allowed files to edit.
  *                                `$file` must match an entry exactly.
- * @return string|void Returns the file name on success, dies on failure.
+ * @return string|null Returns the file name on success, null in case of absolute Windows drive paths, and dies on failure.
  */
 function validate_file_to_edit( $file, $allowed_files = array() ) {
 	$code = validate_file( $file, $allowed_files );
@@ -753,6 +754,7 @@ function validate_file_to_edit( $file, $allowed_files = array() ) {
 		case 3:
 			wp_die( __( 'Sorry, that file cannot be edited.' ) );
 	}
+	return null;
 }
 
 /**
@@ -800,6 +802,9 @@ function validate_file_to_edit( $file, $allowed_files = array() ) {
  *     @type string $url  URL of the newly-uploaded file.
  *     @type string $type Mime type of the newly-uploaded file.
  * }
+ *
+ * @phpstan-return array{ file: non-empty-string, url: non-empty-string, type: non-empty-string }
+ *                |array{ error: non-empty-string }
  */
 function _wp_handle_upload( &$file, $overrides, $time, $action ) {
 	// The default error handler.
@@ -1093,6 +1098,9 @@ function _wp_handle_upload( &$file, $overrides, $time, $action ) {
  *                               See _wp_handle_upload() for accepted values.
  * @param string|null $time      Optional. Time formatted in 'yyyy/mm'. Default null.
  * @return array See _wp_handle_upload() for return value.
+ *
+ * @phpstan-return array{ file: non-empty-string, url: non-empty-string, type: non-empty-string }
+ *                |array{ error: non-empty-string }
  */
 function wp_handle_upload( &$file, $overrides = false, $time = null ) {
 	/*
@@ -1120,6 +1128,9 @@ function wp_handle_upload( &$file, $overrides = false, $time = null ) {
  *                               See _wp_handle_upload() for accepted values.
  * @param string|null $time      Optional. Time formatted in 'yyyy/mm'. Default null.
  * @return array See _wp_handle_upload() for return value.
+ *
+ * @phpstan-return array{ file: non-empty-string, url: non-empty-string, type: non-empty-string }
+ *                |array{ error: non-empty-string }
  */
 function wp_handle_sideload( &$file, $overrides = false, $time = null ) {
 	/*

@@ -4,6 +4,8 @@
  * @group ms-required
  * @group ms-site
  * @group multisite
+ *
+ * @covers ::update_blog_details
  */
 class Tests_Multisite_UpdateBlogDetails extends WP_UnitTestCase {
 
@@ -51,7 +53,7 @@ class Tests_Multisite_UpdateBlogDetails extends WP_UnitTestCase {
 	 *
 	 * @param string $flag       The name of the flag being set or unset on a site.
 	 * @param string $flag_value '0' or '1'. The value of the flag being set.
-	 * @param string $action     The hook expected to fire for the flag name and flag combination.
+	 * @param string $hook       The hook expected to fire for the flag name and flag combination.
 	 *
 	 * @dataProvider data_flag_hooks
 	 */

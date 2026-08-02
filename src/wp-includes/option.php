@@ -559,6 +559,8 @@ function wp_set_option_autoload( $option, $autoload ) {
  * @since 2.2.0
  *
  * @param string $option Option name.
+ * @return void Never returns if `$option` is protected, as the function dies in that case.
+ * @phpstan-return ( $option is 'alloptions'|'notoptions' ? never : void )
  */
 function wp_protect_special_option( $option ) {
 	if ( 'alloptions' === $option || 'notoptions' === $option ) {
@@ -2882,18 +2884,6 @@ function register_initial_settings() {
 			'show_in_rest' => true,
 			'type'         => 'string',
 			'description'  => __( 'Default post format.' ),
-		)
-	);
-
-	register_setting(
-		'writing',
-		'wp_enable_real_time_collaboration',
-		array(
-			'type'              => 'boolean',
-			'description'       => __( 'Enable Real-Time Collaboration' ),
-			'sanitize_callback' => 'rest_sanitize_boolean',
-			'default'           => true,
-			'show_in_rest'      => true,
 		)
 	);
 
