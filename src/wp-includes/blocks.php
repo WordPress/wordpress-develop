@@ -152,7 +152,7 @@ function get_block_asset_url( $path ) {
  * @return string|false Script module ID or false on failure.
  *
  * @phpstan-param array{
- *     name: non-falsy-string,
+ *     name?: non-falsy-string,
  *     file: non-falsy-string|null,
  *     version?: non-empty-string,
  *     supports?: array{
@@ -251,7 +251,7 @@ function register_block_script_module_id( $metadata, $field_name, $index = 0 ) {
  *                      script's registration, or false on failure.
  *
  * @phpstan-param array{
- *     name: non-falsy-string,
+ *     name?: non-falsy-string,
  *     file: non-falsy-string|null,
  *     version?: non-empty-string,
  *     textdomain?: non-falsy-string,
@@ -345,7 +345,7 @@ function register_block_script_handle( $metadata, $field_name, $index = 0 ) {
  *                      style's registration, or false on failure.
  *
  * @phpstan-param array{
- *     name: non-falsy-string,
+ *     name?: non-falsy-string,
  *     file: non-falsy-string|null,
  *     version?: non-empty-string,
  *     editorStyle?: non-falsy-string|list<non-falsy-string>,
