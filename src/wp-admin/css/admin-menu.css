@@ -804,7 +804,7 @@ li#wp-admin-bar-menu-toggle {
 		text-decoration: none;
 		border: 1px solid transparent;
 		background: none;
-		height: 44px;
+		height: 45px; /* 45 + 1 border = 46px */
 		margin-left: -1px;
 	}
 
