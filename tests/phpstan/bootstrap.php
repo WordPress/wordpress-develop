@@ -7,7 +7,7 @@
  * Loaded as a `bootstrapFile` by PHPStan; see `base.neon`.
  */
 
-define( 'ABSPATH', dirname( __DIR__, 2 ) . '/src' );
+define( 'ABSPATH', dirname( __DIR__, 2 ) . '/src/' );
 
 /** @see wp_initial_constants() */
 define( 'KB_IN_BYTES', 1024 );
@@ -93,7 +93,7 @@ define( 'NOBLOGREDIRECT', '' );
 define( 'UPLOADBLOGSDIR', 'wp-content/blogs.dir' );
 define( 'BLOGUPLOADDIR', WP_CONTENT_DIR . '/blogs.dir/1/files/' );
 
-/** @see WP_Filesystem */
+/** @see WP_Filesystem() */
 define( 'FS_CONNECT_TIMEOUT', 1 );
 define( 'FS_TIMEOUT', 1 );
 define( 'FS_CHMOD_DIR', 1 );
