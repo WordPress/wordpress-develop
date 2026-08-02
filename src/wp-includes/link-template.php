@@ -3617,9 +3617,6 @@ function get_admin_url( $blog_id = null, $path = '', $scheme = 'admin' ) {
  * @param string|null $scheme Optional. Scheme to give the includes URL context. Accepts
  *                            'http', 'https', or 'relative'. Default null.
  * @return string Includes URL link with optional path appended.
- *
- * @phpstan-param 'http'|'https'|'relative'|null $scheme
- * @phpstan-return non-falsy-string
  */
 function includes_url( $path = '', $scheme = null ) {
 	$url = site_url( '/' . WPINC . '/', $scheme );
@@ -3683,8 +3680,6 @@ function content_url( $path = '' ) {
  *                       The URL will be relative to its directory. Default empty.
  *                       Typically this is done by passing `__FILE__` as the argument.
  * @return string Plugins URL link with optional paths appended.
- *
- * @phpstan-return non-falsy-string
  */
 function plugins_url( $path = '', $plugin = '' ) {
 
@@ -3931,10 +3926,6 @@ function self_admin_url( $path = '', $scheme = 'admin' ) {
  * @param string|null $scheme Optional. Scheme to give $url. Currently 'http', 'https', 'login',
  *                            'login_post', 'admin', 'relative', 'rest', 'rpc', or null. Default null.
  * @return string URL with chosen scheme.
- *
- * @phpstan-param non-falsy-string $url
- * @phpstan-param 'http'|'https'|'login'|'login_post'|'admin'|'relative'|'rest'|'rpc'|null $scheme
- * @phpstan-return non-falsy-string
  */
 function set_url_scheme( $url, $scheme = null ) {
 	$orig_scheme = $scheme;
@@ -4652,8 +4643,6 @@ function get_avatar_data( $id_or_email, $args = null ) {
  *
  * @param string $file Optional. File to search for in the stylesheet directory.
  * @return string The URL of the file.
- *
- * @phpstan-return non-falsy-string
  */
 function get_theme_file_uri( $file = '' ) {
 	$file = ltrim( $file, '/' );

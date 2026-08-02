@@ -177,8 +177,6 @@ function is_child_theme() {
  * @since 1.5.0
  *
  * @return string Stylesheet name.
- *
- * @phpstan-return non-falsy-string
  */
 function get_stylesheet() {
 	/**
@@ -199,8 +197,6 @@ function get_stylesheet() {
  * @since 6.4.2 Memoization removed.
  *
  * @return string Path to active theme's stylesheet directory.
- *
- * @phpstan-return non-falsy-string
  */
 function get_stylesheet_directory() {
 	$stylesheet     = get_stylesheet();
@@ -225,8 +221,6 @@ function get_stylesheet_directory() {
  * @since 1.5.0
  *
  * @return string URI to active theme's stylesheet directory.
- *
- * @phpstan-return non-falsy-string
  */
 function get_stylesheet_directory_uri() {
 	$stylesheet         = str_replace( '%2F', '/', rawurlencode( get_stylesheet() ) );
@@ -254,8 +248,6 @@ function get_stylesheet_directory_uri() {
  * @since 1.5.0
  *
  * @return string URI to active theme's stylesheet.
- *
- * @phpstan-return non-falsy-string
  */
 function get_stylesheet_uri() {
 	$stylesheet_dir_uri = get_stylesheet_directory_uri();
@@ -321,8 +313,6 @@ function get_locale_stylesheet_uri() {
  * @since 1.5.0
  *
  * @return string Template name.
- *
- * @phpstan-return non-empty-string
  */
 function get_template() {
 	/**
@@ -343,8 +333,6 @@ function get_template() {
  * @since 6.4.1 Memoization removed.
  *
  * @return string Path to active theme's template directory.
- *
- * @phpstan-return non-falsy-string
  */
 function get_template_directory() {
 	$template     = get_template();
@@ -369,8 +357,6 @@ function get_template_directory() {
  * @since 1.5.0
  *
  * @return string URI to active theme's template directory.
- *
- * @phpstan-return non-falsy-string
  */
 function get_template_directory_uri() {
 	$template         = str_replace( '%2F', '/', rawurlencode( get_template() ) );
@@ -398,8 +384,6 @@ function get_template_directory_uri() {
  *
  * @return array|string An array of theme roots keyed by template/stylesheet
  *                      or a single theme root if all themes have the same root.
- *
- * @phpstan-return non-falsy-string|array<non-falsy-string, non-falsy-string>
  */
 function get_theme_roots() {
 	global $wp_theme_directories;
@@ -612,8 +596,6 @@ function search_theme_directories( $force = false ) {
  * @param string $stylesheet_or_template Optional. The stylesheet or template name of the theme.
  *                                       Default is to leverage the main theme root.
  * @return string Themes directory path.
- *
- * @phpstan-return non-falsy-string
  */
 function get_theme_root( $stylesheet_or_template = '' ) {
 	global $wp_theme_directories;
