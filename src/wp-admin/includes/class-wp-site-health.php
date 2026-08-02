@@ -72,13 +72,23 @@ class WP_Site_Health {
 		add_action( 'site_health_tab_content', array( $this, 'show_site_health_tab' ) );
 
 		$this->wp_debug = defined( 'WP_DEBUG' ) && WP_DEBUG;
-		if ( defined( 'WP_DEBUG_LOG' ) && ( is_bool( WP_DEBUG_LOG ) || is_string( WP_DEBUG_LOG ) ) ) {
+
+		/*
+		 * The debug constants are evaluated the same way as in wp_debug_mode(),
+		 * so that Site Health reflects the behavior WordPress actually applies.
+		 */
+		if ( ! defined( 'WP_DEBUG_LOG' ) ) {
+			$this->wp_debug_log = false;
+		} elseif ( is_scalar( WP_DEBUG_LOG ) && in_array( strtolower( (string) WP_DEBUG_LOG ), array( 'true', '1' ), true ) ) {
+			$this->wp_debug_log = true;
+		} elseif ( is_string( WP_DEBUG_LOG ) ) {
 			$this->wp_debug_log = WP_DEBUG_LOG;
 		} else {
 			$this->wp_debug_log = false;
 		}
-		if ( defined( 'WP_DEBUG_DISPLAY' ) && is_bool( WP_DEBUG_DISPLAY ) ) {
-			$this->wp_debug_display = WP_DEBUG_DISPLAY;
+
+		if ( defined( 'WP_DEBUG_DISPLAY' ) && null !== WP_DEBUG_DISPLAY ) {
+			$this->wp_debug_display = (bool) WP_DEBUG_DISPLAY;
 		} else {
 			$this->wp_debug_display = null;
 		}
@@ -1489,7 +1499,7 @@ class WP_Site_Health {
 						);
 					}
 				} elseif ( 'private' === $log_path_status ) {
-					$result['label']  = __( 'Your site is set to log errors to a file outside the document root' );
+					$result['label']  = __( 'Your site is set to log errors to a file outside the WordPress directory' );
 					$result['status'] = 'good';
 
 					if ( $this->wp_debug_log ) {

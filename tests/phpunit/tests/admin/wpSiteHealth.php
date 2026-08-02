@@ -809,7 +809,7 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 
 		$result = array(
 			'status'      => 'good',
-			'label'       => __( 'Your site is set to log errors to a file outside the document root' ),
+			'label'       => __( 'Your site is set to log errors to a file outside the WordPress directory' ),
 			'description' => __( 'The configuration constant, <code>WP_DEBUG_LOG</code>, is enabled. In addition, your site is set to write errors to a file outside the WordPress directory, which is a good practice as the log file should not be publicly accessible.' ),
 			'test'        => 'is_in_debug_mode',
 		);
@@ -935,7 +935,7 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 	 */
 	public function test_is_in_debug_mode_error_log_private(): void {
 		$site_health      = $this->setup_site_health_with_debug_properties( true, true, null );
-		$private_log_path = '/var/log/php-error.log';
+		$private_log_path = rtrim( sys_get_temp_dir(), '/\\' ) . DIRECTORY_SEPARATOR . 'php-error.log';
 
 		ini_set( 'error_log', $private_log_path );
 
@@ -956,7 +956,7 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 	 */
 	public function test_is_in_debug_mode_error_log_private_without_wp_debug_log(): void {
 		$site_health      = $this->setup_site_health_with_debug_properties( true, false, null );
-		$private_log_path = '/var/log/php-error.log';
+		$private_log_path = rtrim( sys_get_temp_dir(), '/\\' ) . DIRECTORY_SEPARATOR . 'php-error.log';
 
 		ini_set( 'error_log', $private_log_path );
 
@@ -977,7 +977,7 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 	 */
 	public function test_is_in_debug_mode_error_log_non_existent(): void {
 		$site_health      = $this->setup_site_health_with_debug_properties( true, true, null );
-		$invalid_log_path = '/nonexistent/path/that/does/not/exist/debug.log';
+		$invalid_log_path = rtrim( sys_get_temp_dir(), '/\\' ) . DIRECTORY_SEPARATOR . 'nonexistent-64071' . DIRECTORY_SEPARATOR . 'debug.log';
 
 		ini_set( 'error_log', $invalid_log_path );
 
@@ -998,7 +998,7 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 	 */
 	public function test_is_in_debug_mode_error_log_non_existent_without_wp_debug_log(): void {
 		$site_health      = $this->setup_site_health_with_debug_properties( true, false, null );
-		$invalid_log_path = '/nonexistent/path/that/does/not/exist/debug.log';
+		$invalid_log_path = rtrim( sys_get_temp_dir(), '/\\' ) . DIRECTORY_SEPARATOR . 'nonexistent-64071' . DIRECTORY_SEPARATOR . 'debug.log';
 
 		ini_set( 'error_log', $invalid_log_path );
 
