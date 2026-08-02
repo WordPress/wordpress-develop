@@ -2089,16 +2089,14 @@ function get_admin_page_title() {
 				}
 			}
 		}
-		if ( empty( $title ) ) {
-			foreach ( $menu as $menu_array ) {
-				if ( isset( $plugin_page )
-					&& $plugin_page === $menu_array[2]
-					&& 'admin.php' === $pagenow
-					&& $parent1 === $menu_array[2]
-				) {
-						$title = $menu_array[3];
-						return $menu_array[3];
-				}
+		foreach ( $menu as $menu_array ) {
+			if ( isset( $plugin_page )
+				&& $plugin_page === $menu_array[2]
+				&& 'admin.php' === $pagenow
+				&& $parent1 === $menu_array[2]
+			) {
+					$title = $menu_array[3];
+					return $menu_array[3];
 			}
 		}
 	}
