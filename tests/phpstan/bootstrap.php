@@ -44,7 +44,7 @@ define( 'MONTH_IN_SECONDS', 30 * DAY_IN_SECONDS );
 define( 'YEAR_IN_SECONDS', 365 * DAY_IN_SECONDS );
 
 /** @see wp_set_lang_dir() */
-define( 'WP_LANG_DIR', '' );
+define( 'WP_LANG_DIR', WP_CONTENT_DIR . '/languages' );
 
 // wp_plugin_directory_constants()
 define( 'WP_CONTENT_URL', 'https://example.com/wp-content' );
@@ -99,7 +99,7 @@ define( 'UPLOADBLOGSDIR', 'wp-content/blogs.dir' );
 define( 'BLOGUPLOADDIR', WP_CONTENT_DIR . '/blogs.dir/1/files/' );
 
 /** @see WP_Filesystem() */
-define( 'FS_CONNECT_TIMEOUT', 1 );
-define( 'FS_TIMEOUT', 1 );
-define( 'FS_CHMOD_DIR', 1 );
-define( 'FS_CHMOD_FILE', 1 );
+define( 'FS_CONNECT_TIMEOUT', 30 ); // 30 seconds.
+define( 'FS_TIMEOUT', 30 ); // 30 seconds.
+define( 'FS_CHMOD_DIR', 0755 );
+define( 'FS_CHMOD_FILE', 0644 );
