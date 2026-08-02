@@ -330,9 +330,9 @@ function register_block_script_handle( $metadata, $field_name, $index = 0 ) {
  *
  * Detects when a path to a file was provided and registers the style under an
  * automatically generated handle name. It returns the unprocessed style handle
- * otherwise, except for the first style of a core block, which is always
- * registered from the bundled stylesheet. Core blocks accept only handles, not
- * paths.
+ * otherwise, except for the first style of a core block, which is instead
+ * registered from the bundled stylesheet when separate core block assets are
+ * loaded. Core blocks accept only handles, not paths.
  *
  * @since 5.5.0
  * @since 6.1.0 Added `$index` parameter.
