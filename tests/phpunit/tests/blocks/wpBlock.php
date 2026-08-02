@@ -12,10 +12,8 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 
 	/**
 	 * Fake block type registry.
-	 *
-	 * @var WP_Block_Type_Registry|null
 	 */
-	private $registry = null;
+	private ?WP_Block_Type_Registry $registry = null;
 
 	/**
 	 * Set up each test method.
@@ -368,32 +366,39 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 	 * @return array
 	 */
 	public function data_provider_test_render_enqueues_scripts_and_styles(): array {
-		$block_markup = '
-			<!-- wp:static -->
-			<div class="static">
-				<!-- wp:static-child -->
-				<div class="static-child">First child</div>
-				<!-- /wp:static-child -->
-				<!-- wp:dynamic /-->
-				<!-- wp:static-child -->
-				<div class="static-child">Last child</div>
-				<!-- /wp:static-child -->
-			</div>
-			<!-- /wp:static -->
-		';
+		$block_markup = <<<'HTML'
+<!-- wp:static -->
+<div class="static">
+<!-- wp:static-child -->
+<div class="static-child">First child</div>
+<!-- /wp:static-child -->
+<!-- wp:dynamic /-->
+<!-- wp:static-child -->
+<div class="static-child">Last child</div>
+<!-- /wp:static-child -->
+</div>
+<!-- /wp:static -->
+HTML;
 
 		// TODO: Add case where a dynamic block renders other blocks?
 		return array(
 			'all_printed'                             => array(
 				'set_up'                  => null,
 				'block_markup'            => $block_markup,
-				'expected_rendered_block' => '
-					<div class="static">
-						<div class="static-child">First child</div>
-						<p class="dynamic">Hello World!</p>
-						<div class="static-child">Last child</div>
-					</div>
-				',
+				'expected_rendered_block' => <<<'HTML'
+
+<div class="static">
+
+<div class="static-child">First child</div>
+
+<p class="dynamic">Hello World!</p>
+
+<div class="static-child">Last child</div>
+
+</div>
+
+HTML
+				,
 				'expected_styles'         => array( 'static-view-style', 'static-child-view-style', 'dynamic-view-style' ),
 				'expected_scripts'        => array( 'static-view-script', 'static-child-view-script', 'dynamic-view-script' ),
 				'expected_script_modules' => array( 'static-view-script-module', 'static-child-view-script-module', 'dynamic-view-script-module' ),
@@ -414,13 +419,20 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 					);
 				},
 				'block_markup'            => $block_markup,
-				'expected_rendered_block' => '
-					<div class="static">
-						<div class="static-child">First child</div>
-						<p class="dynamic filtered">Hello World!</p>
-						<div class="static-child">Last child</div>
-					</div>
-				',
+				'expected_rendered_block' => <<<'HTML'
+
+<div class="static">
+
+<div class="static-child">First child</div>
+
+<p class="dynamic filtered">Hello World!</p>
+
+<div class="static-child">Last child</div>
+
+</div>
+
+HTML
+				,
 				'expected_styles'         => array( 'static-view-style', 'dynamic-extra', 'static-child-view-style', 'dynamic-view-style' ),
 				'expected_scripts'        => array( 'static-view-script', 'static-child-view-script', 'dynamic-view-script' ),
 				'expected_script_modules' => array( 'static-view-script-module', 'static-child-view-script-module', 'dynamic-view-script-module' ),
@@ -430,12 +442,20 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 					add_filter( 'render_block_core/dynamic', '__return_empty_string' );
 				},
 				'block_markup'            => $block_markup,
-				'expected_rendered_block' => '
-					<div class="static">
-						<div class="static-child">First child</div>
-						<div class="static-child">Last child</div>
-					</div>
-				',
+				'expected_rendered_block' => <<<'HTML'
+
+<div class="static">
+
+<div class="static-child">First child</div>
+
+
+
+<div class="static-child">Last child</div>
+
+</div>
+
+HTML
+				,
 				'expected_styles'         => array( 'static-view-style', 'static-child-view-style' ),
 				'expected_scripts'        => array( 'static-view-script', 'static-child-view-script' ),
 				'expected_script_modules' => array( 'static-view-script-module', 'static-child-view-script-module' ),
@@ -456,12 +476,20 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 					);
 				},
 				'block_markup'            => $block_markup,
-				'expected_rendered_block' => '
-					<div class="static">
-						<div class="static-child">First child</div>
-						<div class="static-child">Last child</div>
-					</div>
-				',
+				'expected_rendered_block' => <<<'HTML'
+
+<div class="static">
+
+<div class="static-child">First child</div>
+
+
+
+<div class="static-child">Last child</div>
+
+</div>
+
+HTML
+				,
 				'expected_styles'         => array( 'static-view-style', 'static-child-view-style', 'dynamic-view-style' ),
 				'expected_scripts'        => array( 'static-view-script', 'static-child-view-script', 'dynamic-view-script' ),
 				'expected_script_modules' => array( 'static-view-script-module', 'static-child-view-script-module', 'dynamic-view-script-module' ),
@@ -488,11 +516,16 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 					add_filter( 'render_block_core/static-child', '__return_empty_string' );
 				},
 				'block_markup'            => $block_markup,
-				'expected_rendered_block' => '
-					<div class="static">
-						<p class="dynamic">Hello World!</p>
-					</div>
-				',
+				'expected_rendered_block' => <<<'HTML'
+
+<div class="static">
+
+<p class="dynamic">Hello World!</p>
+
+</div>
+
+HTML
+				,
 				'expected_styles'         => array( 'static-view-style', 'dynamic-view-style' ),
 				'expected_scripts'        => array( 'static-view-script', 'dynamic-view-script' ),
 				'expected_script_modules' => array( 'static-view-script-module', 'dynamic-view-script-module' ),
@@ -512,12 +545,18 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 					);
 				},
 				'block_markup'            => $block_markup,
-				'expected_rendered_block' => '
-					<div class="static">
-						<div class="static-child">First child</div>
-						<p class="dynamic">Hello World!</p>
-					</div>
-				',
+				'expected_rendered_block' => <<<'HTML'
+
+<div class="static">
+
+<div class="static-child">First child</div>
+
+<p class="dynamic">Hello World!</p>
+
+</div>
+
+HTML
+				,
 				'expected_styles'         => array( 'static-view-style', 'static-child-view-style', 'dynamic-view-style' ),
 				'expected_scripts'        => array( 'static-view-script', 'static-child-view-script', 'dynamic-view-script' ),
 				'expected_script_modules' => array( 'static-view-script-module', 'static-child-view-script-module', 'dynamic-view-script-module' ),
@@ -562,9 +601,8 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 					);
 				},
 				'block_markup'            => '<!-- wp:static --><div class="static"></div><!-- /wp:static -->',
-				'expected_rendered_block' => '
-					<div class="static yes-admin-bar-script-enqueued yes-admin-bar-style-enqueued"></div>
-				',
+				'expected_rendered_block' =>
+					'<div class="static yes-admin-bar-script-enqueued yes-admin-bar-style-enqueued"></div>',
 				'expected_styles'         => array( 'static-view-style', 'admin-bar' ),
 				'expected_scripts'        => array( 'static-view-script', 'admin-bar' ),
 				'expected_script_modules' => array( 'static-view-script-module' ),
@@ -668,7 +706,7 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 		);
 
 		// TODO: Why not use do_blocks() instead?
-		$parsed_blocks  = parse_blocks( trim( $block_markup ) );
+		$parsed_blocks  = parse_blocks( $block_markup );
 		$parsed_block   = $parsed_blocks[0];
 		$context        = array();
 		$block          = new WP_Block( $parsed_block, $context, $this->registry );
@@ -682,7 +720,7 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 			$expected_rendered_block,
 			$rendered_block,
 			'<body>',
-			"Rendered block does not contain expected HTML:\n$rendered_block"
+			'Rendered block does not contain expected HTML.'
 		);
 	}
 
@@ -792,6 +830,132 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 					),
 				),
 				'post_parent__in' => array( 1, 2 ),
+			),
+			$query
+		);
+	}
+
+	/**
+	 * @ticket 65373
+	 */
+	public function test_build_query_vars_from_query_block_exclude_current(): void {
+		$this->registry->register(
+			'core/example',
+			array( 'uses_context' => array( 'query' ) )
+		);
+
+		global $post;
+		$post = self::factory()->post->create_and_get();
+		$this->assertInstanceOf( WP_Post::class, $post );
+
+		$parsed_blocks = parse_blocks( '<!-- wp:example {"ok":true} -->a<!-- wp:example /-->b<!-- /wp:example -->' );
+		$parsed_block  = $parsed_blocks[0];
+		$context       = array(
+			'query' => array(
+				'excludeCurrent' => true,
+			),
+		);
+		$block         = new WP_Block( $parsed_block, $context, $this->registry );
+		$query         = build_query_vars_from_query_block( $block, 1 );
+
+		$this->assertSame(
+			array( $post->ID ),
+			$query['post__not_in'],
+			'The current post ID should be excluded via post__not_in.'
+		);
+	}
+
+	/**
+	 * @ticket 64416
+	 */
+	public function test_build_query_vars_from_query_block_tax_query_old_format() {
+		$this->registry->register(
+			'core/example',
+			array( 'uses_context' => array( 'query' ) )
+		);
+
+		$parsed_blocks = parse_blocks( '<!-- wp:example {"ok":true} -->a<!-- wp:example /-->b<!-- /wp:example -->' );
+		$parsed_block  = $parsed_blocks[0];
+		$context       = array(
+			'query' => array(
+				'taxQuery' => array(
+					'category' => array( 1, 2, 3 ),
+					'post_tag' => array( 10, 20 ),
+				),
+			),
+		);
+		$block         = new WP_Block( $parsed_block, $context, $this->registry );
+		$query         = build_query_vars_from_query_block( $block, 1 );
+
+		$this->assertSame(
+			array(
+				'post_type'    => 'post',
+				'order'        => 'DESC',
+				'orderby'      => 'date',
+				'post__not_in' => array(),
+				'tax_query'    => array(
+					array(
+						'taxonomy'         => 'category',
+						'terms'            => array( 1, 2, 3 ),
+						'include_children' => false,
+					),
+					array(
+						'taxonomy'         => 'post_tag',
+						'terms'            => array( 10, 20 ),
+						'include_children' => false,
+					),
+				),
+			),
+			$query
+		);
+	}
+
+	/**
+	 * @ticket 64416
+	 */
+	public function test_build_query_vars_from_query_block_tax_query_include_exclude() {
+		$this->registry->register(
+			'core/example',
+			array( 'uses_context' => array( 'query' ) )
+		);
+
+		$parsed_blocks = parse_blocks( '<!-- wp:example {"ok":true} -->a<!-- wp:example /-->b<!-- /wp:example -->' );
+		$parsed_block  = $parsed_blocks[0];
+		$context       = array(
+			'query' => array(
+				'taxQuery' => array(
+					'include' => array(
+						'category' => array( 1, 2, 3 ),
+					),
+					'exclude' => array(
+						'post_tag' => array( 15 ),
+					),
+				),
+			),
+		);
+		$block         = new WP_Block( $parsed_block, $context, $this->registry );
+		$query         = build_query_vars_from_query_block( $block, 1 );
+
+		$this->assertSame(
+			array(
+				'post_type'    => 'post',
+				'order'        => 'DESC',
+				'orderby'      => 'date',
+				'post__not_in' => array(),
+				'tax_query'    => array(
+					array(
+						'taxonomy'         => 'category',
+						'terms'            => array( 1, 2, 3 ),
+						'operator'         => 'IN',
+						'include_children' => false,
+					),
+					array(
+						'taxonomy'         => 'post_tag',
+						'terms'            => array( 15 ),
+						'operator'         => 'NOT IN',
+						'include_children' => false,
+					),
+				),
 			),
 			$query
 		);
@@ -1165,9 +1329,8 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 				'post_type'    => 'post',
 				'order'        => 'DESC',
 				'orderby'      => 'date',
-				'post__not_in' => array(),
-				'tax_query'    => array(),
 				'post__not_in' => array( $sticky_post_id ),
+				'tax_query'    => array(),
 			),
 			$query_args
 		);

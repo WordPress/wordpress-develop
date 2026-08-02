@@ -79,9 +79,6 @@ services:
       - ./tools/local-env/mysql-init.sql:/docker-entrypoint-initdb.d/mysql-init.sql
       - mysql:/var/lib/mysql
 
-    # For compatibility with PHP versions that don't support the caching_sha2_password auth plugin used in MySQL 8.0.
-    command: ${LOCAL_DB_AUTH_OPTION-}
-
     healthcheck:
       test: [
         'CMD-SHELL',
@@ -90,6 +87,7 @@ services:
       timeout: 5s
       interval: 5s
       retries: 10
+      start_period: 60s
 
   ##
   # The WP CLI container.

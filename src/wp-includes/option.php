@@ -547,10 +547,7 @@ function wp_set_options_autoload( array $options, $autoload ) {
  */
 function wp_set_option_autoload( $option, $autoload ) {
 	$result = wp_set_option_autoload_values( array( $option => $autoload ) );
-	if ( isset( $result[ $option ] ) ) {
-		return $result[ $option ];
-	}
-	return false;
+	return $result[ $option ] ?? false;
 }
 
 /**
@@ -562,6 +559,8 @@ function wp_set_option_autoload( $option, $autoload ) {
  * @since 2.2.0
  *
  * @param string $option Option name.
+ * @return void Never returns if `$option` is protected, as the function dies in that case.
+ * @phpstan-return ( $option is 'alloptions'|'notoptions' ? never : void )
  */
 function wp_protect_special_option( $option ) {
 	if ( 'alloptions' === $option || 'notoptions' === $option ) {
@@ -1755,7 +1754,7 @@ function wp_user_settings() {
 function get_user_setting( $name, $default_value = false ) {
 	$all_user_settings = get_all_user_settings();
 
-	return isset( $all_user_settings[ $name ] ) ? $all_user_settings[ $name ] : $default_value;
+	return $all_user_settings[ $name ] ?? $default_value;
 }
 
 /**

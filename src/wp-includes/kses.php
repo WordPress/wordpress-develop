@@ -109,6 +109,8 @@ if ( ! CUSTOM_TAGS ) {
 		),
 		'br'         => array(),
 		'button'     => array(
+			'command'             => true,
+			'commandfor'          => true,
 			'disabled'            => true,
 			'name'                => true,
 			'type'                => true,
@@ -156,9 +158,10 @@ if ( ! CUSTOM_TAGS ) {
 			'popover' => true,
 		),
 		'dialog'     => array(
-			'closedby' => true,
-			'open'     => true,
-			'popover'  => true,
+			'closedby'  => true,
+			'open'      => true,
+			'popover'   => true,
+			'autofocus' => true,
 		),
 		'dl'         => array(),
 		'dt'         => array(),
@@ -1130,6 +1133,89 @@ function wp_kses_allowed_html( $context = '' ) {
 }
 
 /**
+ * Allows the note mention chip markup in comment content.
+ *
+ * The notes `@` mention completer stores a mention as a chip carrying the
+ * mentioned user's ID in a class token:
+ * `<span class="wp-note-mention user-N">@Name</span>`. The default comment
+ * allowlist does not allow `span` at all, so for users without
+ * `unfiltered_html` the mention would be stripped on save.
+ *
+ * The allowance is deliberately narrow and always on: `span` is a
+ * semantics-free element and _wp_kses_sanitize_note_mention_classes()
+ * reduces its `class` to the two mention tokens right after kses runs, so
+ * regular (including anonymous) commenters gain nothing beyond the inert
+ * mention markup itself.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param array<string, array<string, bool>> $allowed The allowed tags structure for the context.
+ * @param string                             $context The kses context.
+ * @return array<string, array<string, bool>> Modified allowed tags structure.
+ */
+function _wp_kses_allow_note_mention_span( $allowed, $context ): array {
+	if ( ! is_array( $allowed ) ) {
+		$allowed = array();
+	}
+	if ( 'pre_comment_content' !== $context ) {
+		return $allowed;
+	}
+
+	if ( ! isset( $allowed['span'] ) || ! is_array( $allowed['span'] ) ) {
+		$allowed['span'] = array();
+	}
+
+	$allowed['span']['class'] = true;
+
+	return $allowed;
+}
+
+/**
+ * Reduces `span` classes in comment content to the note mention tokens.
+ *
+ * _wp_kses_allow_note_mention_span() lets `class` through kses on `span` so
+ * the mention chip survives, but `class` is an open-ended styling and
+ * scripting hook, so this companion pass - running right after
+ * `wp_filter_kses` at priority 10 - strips every class token except the two
+ * the mention markup uses: `wp-note-mention` and `user-N`. `span` is the only
+ * comment tag allowed to carry `class` at all, so walking `span` tags covers
+ * the entire allowance.
+ *
+ * The pass only applies while the restrictive comment allowlist is active:
+ * users with `unfiltered_html` are filtered through `wp_filter_post_kses`
+ * (or not at all), where arbitrary classes are already permitted, and
+ * narrowing their markup here would restrict what core allows them to post.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param string $content Slashed comment content, already filtered by kses.
+ * @return string Slashed comment content with span classes reduced.
+ */
+function _wp_kses_sanitize_note_mention_classes( $content ): string {
+	if ( ! is_string( $content ) ) {
+		$content = '';
+	}
+	if ( false === has_filter( 'pre_comment_content', 'wp_filter_kses' ) ) {
+		return $content;
+	}
+
+	$processor = new WP_HTML_Tag_Processor( wp_unslash( $content ) );
+
+	while ( $processor->next_tag( 'SPAN' ) ) {
+		foreach ( $processor->class_list() as $token ) {
+			if ( 'wp-note-mention' !== $token && ! preg_match( '/^user-[1-9][0-9]*$/', $token ) ) {
+				// Removing the last class also removes the attribute itself.
+				$processor->remove_class( $token );
+			}
+		}
+	}
+
+	return wp_slash( $processor->get_updated_html() );
+}
+
+/**
  * You add any KSES hooks here.
  *
  * There is currently only one KSES WordPress hook, {@see 'pre_kses'}, and it is called here.
@@ -1556,7 +1642,8 @@ function wp_kses_attr_check( &$name, &$value, &$whole, $vless, $element, $allowe
 	}
 
 	if ( 'style' === $name_low ) {
-		$new_value = safecss_filter_attr( $value );
+		$decoded_value = WP_HTML_Decoder::decode_attribute( $value );
+		$new_value     = safecss_filter_attr( $decoded_value );
 
 		if ( empty( $new_value ) ) {
 			$name  = '';
@@ -1565,8 +1652,11 @@ function wp_kses_attr_check( &$name, &$value, &$whole, $vless, $element, $allowe
 			return false;
 		}
 
-		$whole = str_replace( $value, $new_value, $whole );
-		$value = $new_value;
+		if ( $new_value !== $decoded_value ) {
+			$encoded_value = esc_attr( $new_value );
+			$whole         = str_replace( $value, $encoded_value, $whole );
+			$value         = $encoded_value;
+		}
 	}
 
 	if ( is_array( $allowed_attr[ $name_low ] ) ) {
@@ -1585,160 +1675,77 @@ function wp_kses_attr_check( &$name, &$value, &$whole, $vless, $element, $allowe
 }
 
 /**
- * Builds an attribute list from string containing attributes.
+ * Given a string of HTML attributes and values, parse into a structured attribute list.
  *
- * This function does a lot of work. It parses an attribute list into an array
- * with attribute data, and tries to do the right thing even if it gets weird
- * input. It will add quotes around attribute values that don't have any quotes
- * or apostrophes around them, to make it easier to produce HTML code that will
- * conform to W3C's HTML specification. It will also remove bad URL protocols
- * from attribute values. It also reduces duplicate attributes by using the
- * attribute defined first (`foo='bar' foo='baz'` will result in `foo='bar'`).
+ * This function performs a number of transformations while parsing attribute strings:
+ *  - It normalizes attribute values and surrounds them with double quotes.
+ *  - It normalizes HTML character references inside attribute values.
+ *  - It removes “bad” URL protocols from attribute values.
+ *
+ * Otherwise this reads the attributes as if they were part of an HTML tag. It performs
+ * these transformations to lower the risk of mis-parsing down the line and to perform
+ * URL sanitization in line with the rest of the `kses` subsystem. Importantly, it does
+ * not decode the attribute values, meaning that special HTML syntax characters will
+ * be left with character references in the `value` property.
+ *
+ * Example:
+ *
+ *     $attrs = wp_kses_hair( 'class="is-wide" inert data-lazy=\'&lt;img&#00062\' =/🐮=/' );
+ *     $attrs === array(
+ *         'class'     => array( 'name' => 'class', 'value' => 'is-wide', 'whole' => 'class="is-wide"', 'vless' => 'n' ),
+ *         'inert'     => array( 'name' => 'inert', 'value' => '', 'whole' => 'inert', 'vless' => 'y' ),
+ *         'data-lazy' => array( 'name' => 'data-lazy', 'value' => '&lt;img&gt;', 'whole' => 'data-lazy="&lt;img&gt;"', 'vless' => 'n' ),
+ *         '='         => array( 'name' => '=', 'value' => '', 'whole' => '=', 'vless' => 'y' ),
+ *         '🐮'        => array( 'name' => '🐮', 'value' => '/', 'whole' => '🐮="/"', 'vless' => 'n' ),
+ *     );
  *
  * @since 1.0.0
+ * @since 7.0.0 Reliably parses HTML via the HTML API.
  *
  * @param string   $attr              Attribute list from HTML element to closing HTML element tag.
  * @param string[] $allowed_protocols Array of allowed URL protocols.
- * @return array[] Array of attribute information after parsing.
+ * @return array<string, array{name: string, value: string, whole: string, vless: 'y'|'n'}> Array of attribute information after parsing.
  */
 function wp_kses_hair( $attr, $allowed_protocols ) {
-	$attrarr  = array();
-	$mode     = 0;
-	$attrname = '';
-	$uris     = wp_kses_uri_attributes();
+	$attributes = array();
+	$uris       = wp_kses_uri_attributes();
 
-	// Loop through the whole attribute list.
+	$processor = new WP_HTML_Tag_Processor( "<wp {$attr}>" );
+	$processor->next_token();
 
-	while ( strlen( $attr ) !== 0 ) {
-		$working = 0; // Was the last operation successful?
+	$attribute_names = $processor->get_attribute_names_with_prefix( '' );
+	if ( null === $attribute_names || 0 === count( $attribute_names ) ) {
+		return $attributes;
+	}
 
-		switch ( $mode ) {
-			case 0:
-				if ( preg_match( '/^([_a-zA-Z][-_a-zA-Z0-9:.]*)/', $attr, $match ) ) {
-					$attrname = $match[1];
-					$working  = 1;
-					$mode     = 1;
-					$attr     = preg_replace( '/^[_a-zA-Z][-_a-zA-Z0-9:.]*/', '', $attr );
-				}
+	$syntax_characters = array(
+		'&' => '&amp;',
+		'<' => '&lt;',
+		'>' => '&gt;',
+		"'" => '&apos;',
+		'"' => '&quot;',
+	);
 
-				break;
-
-			case 1:
-				if ( preg_match( '/^\s*=\s*/', $attr ) ) { // Equals sign.
-					$working = 1;
-					$mode    = 2;
-					$attr    = preg_replace( '/^\s*=\s*/', '', $attr );
-					break;
-				}
-
-				if ( preg_match( '/^\s+/', $attr ) ) { // Valueless.
-					$working = 1;
-					$mode    = 0;
-
-					if ( false === array_key_exists( $attrname, $attrarr ) ) {
-						$attrarr[ $attrname ] = array(
-							'name'  => $attrname,
-							'value' => '',
-							'whole' => $attrname,
-							'vless' => 'y',
-						);
-					}
-
-					$attr = preg_replace( '/^\s+/', '', $attr );
-				}
-
-				break;
-
-			case 2:
-				if ( preg_match( '%^"([^"]*)"(\s+|/?$)%', $attr, $match ) ) {
-					// "value"
-					$thisval = $match[1];
-					if ( in_array( strtolower( $attrname ), $uris, true ) ) {
-						$thisval = wp_kses_bad_protocol( $thisval, $allowed_protocols );
-					}
-
-					if ( false === array_key_exists( $attrname, $attrarr ) ) {
-						$attrarr[ $attrname ] = array(
-							'name'  => $attrname,
-							'value' => $thisval,
-							'whole' => "$attrname=\"$thisval\"",
-							'vless' => 'n',
-						);
-					}
-
-					$working = 1;
-					$mode    = 0;
-					$attr    = preg_replace( '/^"[^"]*"(\s+|$)/', '', $attr );
-					break;
-				}
-
-				if ( preg_match( "%^'([^']*)'(\s+|/?$)%", $attr, $match ) ) {
-					// 'value'
-					$thisval = $match[1];
-					if ( in_array( strtolower( $attrname ), $uris, true ) ) {
-						$thisval = wp_kses_bad_protocol( $thisval, $allowed_protocols );
-					}
-
-					if ( false === array_key_exists( $attrname, $attrarr ) ) {
-						$attrarr[ $attrname ] = array(
-							'name'  => $attrname,
-							'value' => $thisval,
-							'whole' => "$attrname='$thisval'",
-							'vless' => 'n',
-						);
-					}
-
-					$working = 1;
-					$mode    = 0;
-					$attr    = preg_replace( "/^'[^']*'(\s+|$)/", '', $attr );
-					break;
-				}
-
-				if ( preg_match( "%^([^\s\"']+)(\s+|/?$)%", $attr, $match ) ) {
-					// value
-					$thisval = $match[1];
-					if ( in_array( strtolower( $attrname ), $uris, true ) ) {
-						$thisval = wp_kses_bad_protocol( $thisval, $allowed_protocols );
-					}
-
-					if ( false === array_key_exists( $attrname, $attrarr ) ) {
-						$attrarr[ $attrname ] = array(
-							'name'  => $attrname,
-							'value' => $thisval,
-							'whole' => "$attrname=\"$thisval\"",
-							'vless' => 'n',
-						);
-					}
-
-					// We add quotes to conform to W3C's HTML spec.
-					$working = 1;
-					$mode    = 0;
-					$attr    = preg_replace( "%^[^\s\"']+(\s+|$)%", '', $attr );
-				}
-
-				break;
-		} // End switch.
-
-		if ( 0 === $working ) { // Not well-formed, remove and try again.
-			$attr = wp_kses_html_error( $attr );
-			$mode = 0;
+	foreach ( $attribute_names as $name ) {
+		$value   = $processor->get_attribute( $name );
+		$is_bool = true === $value;
+		if ( is_string( $value ) && in_array( $name, $uris, true ) ) {
+			$value = wp_kses_bad_protocol( $value, $allowed_protocols );
 		}
-	} // End while.
 
-	if ( 1 === $mode && false === array_key_exists( $attrname, $attrarr ) ) {
-		/*
-		 * Special case, for when the attribute list ends with a valueless
-		 * attribute like "selected".
-		 */
-		$attrarr[ $attrname ] = array(
-			'name'  => $attrname,
-			'value' => '',
-			'whole' => $attrname,
-			'vless' => 'y',
+		// Reconstruct and normalize the attribute value.
+		$recoded = $is_bool ? '' : strtr( $value, $syntax_characters );
+		$whole   = $is_bool ? $name : "{$name}=\"{$recoded}\"";
+
+		$attributes[ $name ] = array(
+			'name'  => $name,
+			'value' => $recoded,
+			'whole' => $whole,
+			'vless' => $is_bool ? 'y' : 'n',
 		);
 	}
 
-	return $attrarr;
+	return $attributes;
 }
 
 /**
@@ -1940,7 +1947,7 @@ function wp_kses_check_attr_val( $value, $vless, $checkname, $checkvalue ) {
 			 * has one of the given values.
 			 */
 
-			if ( false === array_search( strtolower( $value ), $checkvalue, true ) ) {
+			if ( ! in_array( strtolower( $value ), $checkvalue, true ) ) {
 				$ok = false;
 			}
 			break;
@@ -2133,13 +2140,7 @@ function wp_kses_bad_protocol_once2( $scheme, $allowed_protocols ) {
 	$scheme = wp_kses_no_null( $scheme );
 	$scheme = strtolower( $scheme );
 
-	$allowed = false;
-	foreach ( (array) $allowed_protocols as $one_protocol ) {
-		if ( strtolower( $one_protocol ) === $scheme ) {
-			$allowed = true;
-			break;
-		}
-	}
+	$allowed = array_any( (array) $allowed_protocols, fn( $protocol ) => strtolower( $protocol ) === $scheme );
 
 	if ( $allowed ) {
 		return "$scheme:";
@@ -2201,8 +2202,8 @@ function wp_kses_normalize_entities( $content, $context = 'html' ) {
 	 *
 	 * Here, each input is normalized to an appropriate output.
 	 */
-	$content = preg_replace_callback( '/&amp;#(0*[0-9]{1,7});/', 'wp_kses_normalize_entities2', $content );
-	$content = preg_replace_callback( '/&amp;#[Xx](0*[0-9A-Fa-f]{1,6});/', 'wp_kses_normalize_entities3', $content );
+	$content = preg_replace_callback( '/&amp;#(0*[1-9][0-9]{0,6});/', 'wp_kses_normalize_entities2', $content );
+	$content = preg_replace_callback( '/&amp;#[Xx](0*[1-9A-Fa-f][0-9A-Fa-f]{0,5});/', 'wp_kses_normalize_entities3', $content );
 	if ( 'xml' === $context ) {
 		$content = preg_replace_callback( '/&amp;([A-Za-z]{2,8}[0-9]{0,2});/', 'wp_kses_xml_named_entities', $content );
 	} else {
@@ -2474,7 +2475,13 @@ function wp_filter_global_styles_post( $data ) {
 		$data_to_encode = WP_Theme_JSON::remove_insecure_properties( $decoded_data, 'custom' );
 
 		$data_to_encode['isGlobalStylesUserThemeJSON'] = true;
-		return wp_slash( wp_json_encode( $data_to_encode ) );
+		/**
+		 * JSON encode the data stored in post content.
+		 * Escape characters that are likely to be mangled by HTML filters: "<>&".
+		 *
+		 * This matches the escaping in {@see WP_REST_Global_Styles_Controller::prepare_item_for_database()}.
+		 */
+		return wp_slash( wp_json_encode( $data_to_encode, JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP ) );
 	}
 	return $data;
 }
@@ -2630,10 +2637,11 @@ function kses_init() {
  * @since 6.5.0 Added support for `background-repeat`.
  * @since 6.6.0 Added support for `grid-column`, `grid-row`, and `container-type`.
  * @since 6.9.0 Added support for `white-space`.
+ * @since 7.1.0 Extended gradient support to allow any single-level nested function.
  *
- * @param string $css        A string of CSS rules.
+ * @param string $css        A string of CSS rules, decoded from an HTML `style` attribute.
  * @param string $deprecated Not used.
- * @return string Filtered string of CSS rules.
+ * @return string Filtered string of CSS rules, needing HTML escaping before sending back to a `style` attribute.
  */
 function safecss_filter_attr( $css, $deprecated = '' ) {
 	if ( ! empty( $deprecated ) ) {
@@ -2645,12 +2653,14 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 
 	$allowed_protocols = wp_allowed_protocols();
 
+	/** @todo Parse enough CSS to split rules without breaking on things like quoted strings. */
 	$css_array = explode( ';', trim( $css ) );
 
 	/**
 	 * Filters the list of allowed CSS attributes.
 	 *
 	 * @since 2.8.1
+	 * @since 7.1.0 Added support for SVG presentation attributes.
 	 *
 	 * @param string[] $attr Array of allowed CSS attributes.
 	 */
@@ -2707,6 +2717,8 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 			'column-rule',
 			'column-span',
 			'column-width',
+
+			'display',
 
 			'color',
 			'filter',
@@ -2806,6 +2818,71 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 			'box-shadow',
 			'aspect-ratio',
 			'container-type',
+
+			'fill',
+			'fill-opacity',
+			'fill-rule',
+
+			'stroke',
+			'stroke-dasharray',
+			'stroke-dashoffset',
+			'stroke-linecap',
+			'stroke-linejoin',
+			'stroke-miterlimit',
+			'stroke-opacity',
+			'stroke-width',
+
+			'color-interpolation',
+			'color-interpolation-filters',
+			'paint-order',
+			'stop-color',
+			'stop-opacity',
+			'flood-color',
+			'flood-opacity',
+			'lighting-color',
+
+			'marker',
+			'marker-end',
+			'marker-mid',
+			'marker-start',
+
+			'clip-path',
+			'clip-rule',
+			'mask',
+			'mask-type',
+
+			'cx',
+			'cy',
+			'r',
+			'rx',
+			'ry',
+			'x',
+			'y',
+			'd',
+
+			'alignment-baseline',
+			'baseline-shift',
+			'dominant-baseline',
+			'glyph-orientation-horizontal',
+			'glyph-orientation-vertical',
+			'text-anchor',
+			'unicode-bidi',
+			'word-spacing',
+
+			'font-size-adjust',
+			'font-stretch',
+
+			'color-rendering',
+			'image-rendering',
+			'shape-rendering',
+			'text-rendering',
+			'vector-effect',
+
+			'transform',
+			'transform-origin',
+
+			'pointer-events',
+			'visibility',
 
 			// Custom CSS properties.
 			'--*',
@@ -2908,10 +2985,16 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 		}
 
 		if ( $found && $gradient_attr ) {
-			$css_value = trim( $parts[1] );
-			if ( preg_match( '/^(repeating-)?(linear|radial|conic)-gradient\(([^()]|rgb[a]?\([^()]*\))*\)$/', $css_value ) ) {
-				// Remove the whole `gradient` bit that was matched above from the CSS.
-				$css_test_string = str_replace( $css_value, '', $css_test_string );
+			/*
+			 * Match every `*-gradient()` in the value, allowing one level of nested functions
+			 * (e.g. rgb(), hsl(), var()). Matching each occurrence, rather than requiring the
+			 * whole value to be a single gradient, lets a gradient combine with a url() image.
+			 */
+			preg_match_all( '/(?:repeating-)?(?:linear|radial|conic)-gradient\((?:[^()]|\([^()]*\))*\)/', $css_test_string, $gradient_matches );
+
+			foreach ( $gradient_matches[0] as $gradient_match ) {
+				// Remove each `gradient()` bit that was matched above from the CSS.
+				$css_test_string = str_replace( $gradient_match, '', $css_test_string );
 			}
 		}
 
@@ -2968,6 +3051,7 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
  * @since 6.0.0 Added `dir`, `lang`, and `xml:lang` to global attributes.
  * @since 6.3.0 Added `aria-controls`, `aria-current`, and `aria-expanded` attributes.
  * @since 6.4.0 Added `aria-live` and `hidden` attributes.
+ * @since 7.1.0 Added `tabindex` attribute.
  *
  * @access private
  * @ignore
@@ -2993,6 +3077,7 @@ function _wp_add_global_attributes( $value ) {
 		'id'               => true,
 		'lang'             => true,
 		'style'            => true,
+		'tabindex'         => true,
 		'title'            => true,
 		'role'             => true,
 		'xml:lang'         => true,
@@ -3033,7 +3118,7 @@ function _wp_kses_allow_pdf_objects( $url ) {
 	// If the URL host matches the current site's media URL, it's safe.
 	$upload_info = wp_upload_dir( null, false );
 	$parsed_url  = wp_parse_url( $upload_info['url'] );
-	$upload_host = isset( $parsed_url['host'] ) ? $parsed_url['host'] : '';
+	$upload_host = $parsed_url['host'] ?? '';
 	$upload_port = isset( $parsed_url['port'] ) ? ':' . $parsed_url['port'] : '';
 
 	if ( str_starts_with( $url, "http://$upload_host$upload_port/" )

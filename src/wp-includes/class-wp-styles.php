@@ -178,11 +178,7 @@ class WP_Styles extends WP_Dependencies {
 			}
 		}
 
-		if ( isset( $obj->args ) ) {
-			$media = $obj->args;
-		} else {
-			$media = 'all';
-		}
+		$media = $obj->args ?? 'all';
 
 		// A single item may alias a set of items, by having dependencies, but no source.
 		if ( ! $src ) {
@@ -203,7 +199,7 @@ class WP_Styles extends WP_Dependencies {
 		}
 
 		$rel   = isset( $obj->extra['alt'] ) && $obj->extra['alt'] ? 'alternate stylesheet' : 'stylesheet';
-		$title = isset( $obj->extra['title'] ) ? $obj->extra['title'] : '';
+		$title = $obj->extra['title'] ?? '';
 
 		$tag = sprintf(
 			"<link rel='%s' id='%s-css'%s href='%s' media='%s' />\n",
@@ -230,7 +226,7 @@ class WP_Styles extends WP_Dependencies {
 
 		if ( 'rtl' === $this->text_direction && isset( $obj->extra['rtl'] ) && $obj->extra['rtl'] ) {
 			if ( is_bool( $obj->extra['rtl'] ) || 'replace' === $obj->extra['rtl'] ) {
-				$suffix   = isset( $obj->extra['suffix'] ) ? $obj->extra['suffix'] : '';
+				$suffix   = $obj->extra['suffix'] ?? '';
 				$rtl_href = str_replace( "{$suffix}.css", "-rtl{$suffix}.css", $this->_css_href( $src, $ver, "$handle-rtl" ) );
 			} else {
 				$rtl_href = $this->_css_href( $obj->extra['rtl'], $ver, "$handle-rtl" );
@@ -411,19 +407,32 @@ class WP_Styles extends WP_Dependencies {
 			$src = $this->base_url . $src;
 		}
 
-		$query_args = array();
+		$ver_to_add = '';
 		if ( empty( $ver ) && null !== $ver && is_string( $this->default_version ) ) {
-			$query_args['ver'] = $this->default_version;
+			$ver_to_add = $this->default_version;
 		} elseif ( is_scalar( $ver ) ) {
-			$query_args['ver'] = (string) $ver;
+			$ver_to_add = (string) $ver;
 		}
-		if ( isset( $this->args[ $handle ] ) ) {
-			parse_str( $this->args[ $handle ], $parsed_args );
-			if ( $parsed_args ) {
-				$query_args = array_merge( $query_args, $parsed_args );
+
+		$added_args = (string) ( $this->args[ $handle ] ?? '' );
+
+		if ( '' !== $ver_to_add || '' !== $added_args ) {
+			$fragment = strstr( $src, '#' );
+			if ( false !== $fragment ) {
+				$src = substr( $src, 0, -strlen( $fragment ) );
+			}
+
+			if ( '' !== $ver_to_add ) {
+				$src .= ( str_contains( $src, '?' ) ? '&' : '?' ) . 'ver=' . rawurlencode( $ver_to_add );
+			}
+			if ( '' !== $added_args ) {
+				$src .= ( str_contains( $src, '?' ) ? '&' : '?' ) . $added_args;
+			}
+
+			if ( false !== $fragment ) {
+				$src .= $fragment;
 			}
 		}
-		$src = add_query_arg( rawurlencode_deep( $query_args ), $src );
 
 		/**
 		 * Filters an enqueued style's fully-qualified URL.
@@ -450,12 +459,7 @@ class WP_Styles extends WP_Dependencies {
 			return true;
 		}
 
-		foreach ( (array) $this->default_dirs as $test ) {
-			if ( str_starts_with( $src, $test ) ) {
-				return true;
-			}
-		}
-		return false;
+		return array_any( (array) $this->default_dirs, fn( $test ) => str_starts_with( $src, $test ) );
 	}
 
 	/**
@@ -497,10 +501,10 @@ class WP_Styles extends WP_Dependencies {
 	 */
 	protected function get_dependency_warning_message( $handle, $missing_dependency_handles ) {
 		return sprintf(
-			/* translators: 1: Style handle, 2: Comma-separated list of missing dependency handles. */
+			/* translators: 1: Style handle, 2: List of missing dependency handles. */
 			__( 'The style with the handle "%1$s" was enqueued with dependencies that are not registered: %2$s.' ),
 			$handle,
-			implode( ', ', $missing_dependency_handles )
+			implode( wp_get_list_item_separator(), $missing_dependency_handles )
 		);
 	}
 }
