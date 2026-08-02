@@ -174,8 +174,8 @@ class Tests_Admin_wpDashboardOnThisDay extends WP_UnitTestCase {
 		wp_dashboard_on_this_day();
 		$output = ob_get_clean();
 
-		$this->assertStringContainsString( 'Nothing here yet.', $output );
-		$this->assertStringContainsString( 'Write today&#8217;s post', $output );
+		$this->assertStringContainsString( 'No posts were published on this day in previous years.', $output );
+		$this->assertStringContainsString( 'Write one today', $output );
 		$this->assertStringContainsString( admin_url( 'post-new.php' ), $output );
 		$this->assertStringNotContainsString( '<ul>', $output );
 	}
@@ -192,8 +192,8 @@ class Tests_Admin_wpDashboardOnThisDay extends WP_UnitTestCase {
 		wp_dashboard_on_this_day();
 		$output = ob_get_clean();
 
-		$this->assertStringContainsString( 'Nothing here yet.', $output );
-		$this->assertStringNotContainsString( 'Write today&#8217;s post', $output );
+		$this->assertStringContainsString( 'No posts were published on this day in previous years.', $output );
+		$this->assertStringNotContainsString( 'Write one today', $output );
 		$this->assertStringNotContainsString( admin_url( 'post-new.php' ), $output );
 	}
 
@@ -211,7 +211,7 @@ class Tests_Admin_wpDashboardOnThisDay extends WP_UnitTestCase {
 		$output = ob_get_clean();
 
 		$this->assertStringNotContainsString( 'Almost a memory', $output );
-		$this->assertStringContainsString( 'Nothing here yet.', $output );
+		$this->assertStringContainsString( 'No posts were published on this day in previous years.', $output );
 	}
 
 	/**
