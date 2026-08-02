@@ -368,10 +368,35 @@ class Tests_Admin_wpDashboardOnThisDay extends WP_UnitTestCase {
 		$output = ob_get_clean();
 
 		$this->assertStringContainsString( '(no title)', $output );
-		$this->assertStringContainsString( 'class="trimmed-post-excerpt"', $output );
 		$this->assertStringContainsString( 'word15', $output, 'The 15th word should be present.' );
 		$this->assertStringNotContainsString( 'word16', $output, 'The 16th word should be trimmed.' );
 		$this->assertStringContainsString( '&hellip;', $output, 'The excerpt should end with an ellipsis.' );
+	}
+
+	/**
+	 * @ticket 65116
+	 *
+	 * @covers ::wp_dashboard_on_this_day
+	 */
+	public function test_widget_does_not_append_excerpt_to_titled_posts() {
+		wp_set_current_user( self::$user_id );
+
+		$this->create_matching_post(
+			self::$user_id,
+			'A titled anniversary memory',
+			1,
+			'12:00:00',
+			array(
+				'post_excerpt' => 'This excerpt should not be shown.',
+			)
+		);
+
+		ob_start();
+		wp_dashboard_on_this_day();
+		$output = ob_get_clean();
+
+		$this->assertStringContainsString( 'A titled anniversary memory', $output );
+		$this->assertStringNotContainsString( 'This excerpt should not be shown.', $output );
 	}
 
 	/**
@@ -406,7 +431,6 @@ class Tests_Admin_wpDashboardOnThisDay extends WP_UnitTestCase {
 		}
 
 		$this->assertStringContainsString( '(no title)', $output );
-		$this->assertStringContainsString( 'class="trimmed-post-excerpt"', $output );
 		$this->assertStringContainsString( 'Readable private anniversary memory.', $output );
 	}
 
@@ -415,7 +439,45 @@ class Tests_Admin_wpDashboardOnThisDay extends WP_UnitTestCase {
 	 *
 	 * @covers ::wp_dashboard_on_this_day
 	 */
+	public function test_widget_hides_untitled_post_excerpt_for_unreadable_posts() {
+		$this->set_up_dashboard_screen();
+
+		wp_set_current_user( self::$user_id );
+
+		$post_id = $this->create_matching_post(
+			self::$other_user_id,
+			'',
+			1,
+			'12:00:00',
+			array(
+				'post_excerpt' => 'Unreadable private anniversary memory.',
+				'post_status'  => 'private',
+			)
+		);
+
+		add_filter( 'wp_dashboard_on_this_day_query_args', array( $this, 'filter_on_this_day_query_private_posts' ) );
+
+		ob_start();
+		try {
+			wp_dashboard_on_this_day();
+			$output = ob_get_clean();
+		} finally {
+			remove_filter( 'wp_dashboard_on_this_day_query_args', array( $this, 'filter_on_this_day_query_private_posts' ) );
+		}
+
+		$this->assertFalse( current_user_can( 'read_post', $post_id ) );
+		$this->assertStringContainsString( '(no title)', $output );
+		$this->assertStringNotContainsString( 'Unreadable private anniversary memory.', $output );
+	}
+
+	/**
+	 * @ticket 65116
+	 *
+	 * @covers ::wp_dashboard_on_this_day
+	 */
 	public function test_widget_hides_untitled_post_excerpt_for_password_protected_posts() {
+		$this->set_up_dashboard_screen();
+
 		wp_set_current_user( self::$user_id );
 
 		$this->create_matching_post(
@@ -434,7 +496,6 @@ class Tests_Admin_wpDashboardOnThisDay extends WP_UnitTestCase {
 		$output = ob_get_clean();
 
 		$this->assertStringNotContainsString( 'Private anniversary memory.', $output );
-		$this->assertStringNotContainsString( 'class="trimmed-post-excerpt"', $output );
 	}
 
 	/**

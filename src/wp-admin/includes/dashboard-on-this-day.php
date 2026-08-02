@@ -136,9 +136,11 @@ function wp_dashboard_on_this_day() {
 							<li>
 								<a href="<?php echo esc_url( get_permalink( $year_post ) ); ?>">
 									<?php echo esc_html( $title ); ?>
-									<?php if ( '' !== $no_title_excerpt ) : ?>
-										<span class="trimmed-post-excerpt"><?php echo esc_html( $no_title_excerpt ); ?></span>
-									<?php endif; ?>
+									<?php
+									if ( '' !== $no_title_excerpt ) {
+										echo esc_html( $no_title_excerpt );
+									}
+									?>
 								</a>
 								<?php if ( $show_author ) : ?>
 									<?php
