@@ -156,7 +156,7 @@ function get_block_asset_url( $path ) {
  *     file: non-falsy-string,
  *     version?: non-empty-string,
  *     supports?: array{
- *         interactivity?: bool|array{interactive?: bool, clientNavigation?: bool},
+ *         interactivity?: bool|array{interactive?: bool, clientNavigation?: bool, ...},
  *         ...
  *     },
  *     viewScriptModule?: non-falsy-string|list<non-falsy-string>,
