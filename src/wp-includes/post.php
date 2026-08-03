@@ -7048,6 +7048,8 @@ function wp_delete_attachment_files( $post_id, $meta, $backup_sizes, $file ) {
  *
  * @since 2.1.0
  * @since 6.0.0 The `$filesize` value was added to the returned array.
+ * @since 7.1.0 When the result is filtered, `false` is now returned if the filtered value is
+ *              not an array, and the `sizes` key is always an array when present.
  *
  * @param int  $attachment_id Attachment post ID. Defaults to global $post.
  * @param bool $unfiltered    Optional. If true, filters are not run. Default false.
