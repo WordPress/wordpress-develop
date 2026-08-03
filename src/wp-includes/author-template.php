@@ -354,7 +354,7 @@ function get_the_author_posts_link() {
 	 * @since 2.9.0
 	 * @since 7.0.0 Added `$author` and `$title` parameters.
 	 *
-	 * @param string $link   HTML link.
+	 * @param string $link   An HTML link to the author page, or the author's display name if the URL is empty or invalid.
 	 * @param string $author Author's display name.
 	 * @param string $title  Text originally used for a title attribute.
 	 */
