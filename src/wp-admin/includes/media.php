@@ -3425,7 +3425,7 @@ function attachment_submitbox_metadata() {
 
 	$file_size = false;
 
-	if ( isset( $meta['filesize'] ) && is_numeric( $meta['filesize'] ) && $meta['filesize'] > 0 ) {
+	if ( isset( $meta['filesize'] ) && is_numeric( $meta['filesize'] ) && (int) $meta['filesize'] > 0 ) {
 		$file_size = (int) $meta['filesize'];
 	} elseif ( is_string( $file ) && '' !== $file && is_readable( $file ) ) {
 		$file_size = wp_filesize( $file );
