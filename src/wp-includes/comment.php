@@ -2559,11 +2559,10 @@ function wp_new_comment_via_rest_notify_postauthor( $comment ) {
 /**
  * Extracts the mentioned user IDs from note content.
  *
- * Mentions are stored as links carrying the `wp-note-mention` class plus a
+ * Mentions are stored as chips carrying the `wp-note-mention` class plus a
  * `user-N` class token holding the mentioned user's ID:
- * `<a class="wp-note-mention user-N" href="…">@Name</a>`. Only anchors that
- * carry both classes are treated as mentions so that ordinary links cannot be
- * used to address notifications.
+ * `<span class="wp-note-mention user-N">@Name</span>`. Only elements that
+ * carry both classes are treated as mentions.
  *
  * @since 7.1.0
  *
@@ -2571,7 +2570,7 @@ function wp_new_comment_via_rest_notify_postauthor( $comment ) {
  * @return int[] Unique, positive mentioned user IDs.
  */
 function wp_get_note_mentioned_user_ids( $content ) {
-	if ( ! str_contains( $content, '<a' ) ) {
+	if ( ! str_contains( $content, 'wp-note-mention' ) ) {
 		return array();
 	}
 
@@ -2580,7 +2579,7 @@ function wp_get_note_mentioned_user_ids( $content ) {
 	while (
 		$processor->next_tag(
 			array(
-				'tag_name'   => 'A',
+				'tag_name'   => 'SPAN',
 				'class_name' => 'wp-note-mention',
 			)
 		)
@@ -2597,128 +2596,29 @@ function wp_get_note_mentioned_user_ids( $content ) {
 }
 
 /**
- * Returns the ID of the top-level note that anchors a thread.
+ * Notifies mentioned users about a new note.
  *
- * Notes are a single level deep: a top-level note (`comment_parent` of 0)
- * with replies hanging directly off it. Followers are tracked on the
- * top-level note so a single list covers the whole thread.
+ * Runs on `rest_insert_comment` alongside the post author notification. The
+ * recipient set is the users mentioned in this note, minus the note's own
+ * author (a user is not notified about their own note) and the post author,
+ * who is already notified about every note by
+ * wp_new_comment_via_rest_notify_postauthor().
  *
- * @since 7.1.0
- *
- * @param WP_Comment $comment A note comment.
- * @return int The top-level note ID for the thread.
- */
-function wp_get_note_thread_root_id( $comment ) {
-	$parent = (int) $comment->comment_parent;
-	return $parent > 0 ? $parent : (int) $comment->comment_ID;
-}
-
-/**
- * Returns the user IDs following a note thread.
- *
- * Followers are stored as one meta row per user so that concurrent
- * replies can subscribe users independently, without the lost updates a
- * read-modify-write of a single array value would allow.
- *
- * @since 7.1.0
- *
- * @param int $root_id Top-level note ID.
- * @return int[] Follower user IDs.
- */
-function wp_get_note_followers( $root_id ) {
-	$root_id   = (int) $root_id;
-	$followers = get_comment_meta( $root_id, '_wp_note_followers' );
-	if ( ! is_array( $followers ) ) {
-		return array();
-	}
-
-	$user_ids = array();
-	foreach ( $followers as $user_id ) {
-		$user_id = (int) $user_id;
-		if ( $user_id > 0 ) {
-			$user_ids[] = $user_id;
-		}
-	}
-
-	return array_values( array_unique( $user_ids, SORT_NUMERIC ) );
-}
-
-/**
- * Adds user IDs to a note thread's follower list.
- *
- * @since 7.1.0
- *
- * @param int   $root_id  Top-level note ID.
- * @param int[] $user_ids User IDs to subscribe to the thread.
- * @return int[] The updated follower list.
- */
-function wp_add_note_followers( $root_id, $user_ids ) {
-	$root_id   = (int) $root_id;
-	$followers = wp_get_note_followers( $root_id );
-
-	foreach ( $user_ids as $user_id ) {
-		$user_id = (int) $user_id;
-		if ( $user_id > 0 && ! in_array( $user_id, $followers, true ) ) {
-			add_comment_meta( $root_id, '_wp_note_followers', $user_id );
-			$followers[] = $user_id;
-		}
-	}
-
-	return $followers;
-}
-
-/**
- * Removes user IDs from a note thread's follower list.
- *
- * Lets a user unfollow a thread. The thread's own followers meta is deleted
- * automatically with the note when the note is trashed or deleted (comment
- * meta is removed alongside the comment, and deleting a top-level note also
- * removes its replies), so this only needs to handle explicit unsubscribes.
- *
- * @since 7.1.0
- *
- * @param int   $root_id  Top-level note ID.
- * @param int[] $user_ids User IDs to unsubscribe from the thread.
- * @return int[] The updated follower list.
- */
-function wp_remove_note_followers( $root_id, $user_ids ) {
-	$root_id = (int) $root_id;
-	foreach ( $user_ids as $user_id ) {
-		$user_id = (int) $user_id;
-		if ( $user_id > 0 ) {
-			delete_comment_meta( $root_id, '_wp_note_followers', $user_id );
-		}
-	}
-
-	return wp_get_note_followers( $root_id );
-}
-
-/**
- * Notifies mentioned users and thread followers about a new note.
- *
- * Runs on `rest_insert_comment` alongside the post-author notification sent
- * by wp_new_comment_via_rest_notify_postauthor(). The recipient set is the
- * union of users mentioned in this note and the existing followers of its
- * thread, minus the note's own author (you are not notified about your own
- * note) and the post author (already notified of every note). Mentioned
- * users and the note author are then subscribed to the thread so they
- * receive notifications about later replies.
- *
- * Only fires when a note is created, not when an existing one is edited,
- * so correcting a note does not re-notify everyone who already received it.
+ * Only fires when a note is created, not when an existing one is edited, so
+ * correcting a note does not re-notify everyone who already received it.
  *
  * @since 7.1.0
  *
  * @param WP_Comment $comment  The note that was just inserted.
- * @param mixed      $request  The REST request (unused).
+ * @param mixed      $request  The REST request. Unused.
  * @param bool       $creating Whether this is a create (true) or update (false).
  */
 function wp_notify_note_mentions( $comment, $request = null, $creating = true ) {
-	if ( ! $creating ) {
+	if ( ! $creating || ! $comment instanceof WP_Comment ) {
 		return;
 	}
 
-	if ( ! $comment instanceof WP_Comment || 'note' !== $comment->comment_type ) {
+	if ( 'note' !== $comment->comment_type ) {
 		return;
 	}
 
@@ -2727,37 +2627,31 @@ function wp_notify_note_mentions( $comment, $request = null, $creating = true ) 
 		return;
 	}
 
-	$root_id   = wp_get_note_thread_root_id( $comment );
 	$mentioned = wp_get_note_mentioned_user_ids( $comment->comment_content );
-	$followers = wp_get_note_followers( $root_id );
 
 	$author_id      = (int) $comment->user_id;
 	$post           = get_post( (int) $comment->comment_post_ID );
 	$post_author_id = $post ? (int) $post->post_author : 0;
 
-	// Build the recipient set: mentions + current followers.
-	$recipient_ids = array_values( array_unique( array_merge( $mentioned, $followers ) ) );
-
 	/**
 	 * Filters the user IDs notified about a new note.
 	 *
-	 * Receives the union of users mentioned in the note and the thread's
-	 * existing followers. Developers can add or remove recipients, for
-	 * example to integrate a different audience or notification channel.
+	 * Receives the users mentioned in the note. Developers can add or remove
+	 * recipients, for example to integrate a different audience or
+	 * notification channel.
 	 *
 	 * @since 7.1.0
 	 *
 	 * @param int[]      $recipient_ids Candidate recipient user IDs.
 	 * @param WP_Comment $comment       The note that was inserted.
-	 * @param int        $root_id       The thread's top-level note ID.
 	 */
-	$recipient_ids = apply_filters( 'wp_note_notification_recipients', $recipient_ids, $comment, $root_id );
+	$recipient_ids = apply_filters( 'wp_note_notification_recipients', $mentioned, $comment );
 
 	/*
-	 * The recipient set is bounded and small (one note's mentions plus that
-	 * thread's followers), so emails are sent synchronously here. If
-	 * notification volume ever warrants it, the right fix is to offload
-	 * delivery to a background queue rather than throttle within the request.
+	 * The recipient set is bounded and small (one note's mentions), so emails
+	 * are sent synchronously here. If notification volume ever warrants it,
+	 * the right fix is to offload delivery to a background queue rather than
+	 * throttle within the request.
 	 */
 	foreach ( $recipient_ids as $user_id ) {
 		$user_id = (int) $user_id;
@@ -2782,64 +2676,44 @@ function wp_notify_note_mentions( $comment, $request = null, $creating = true ) 
 		 * internal: WP_REST_Comments_Controller::check_read_permission()
 		 * only exposes a note to its author or to users who can edit it, so
 		 * the email audience is held to the same bar. A plain read_post
-		 * check would leak note content to e.g. subscribers on a public
-		 * post, who cannot see the note in the editor.
+		 * check would leak note content to, for example, subscribers on a
+		 * public post, who cannot see the note in the editor.
 		 */
 		if ( ! user_can( $user_id, 'edit_comment', $comment->comment_ID ) ) {
 			continue;
 		}
 
-		$was_mentioned = in_array( $user_id, $mentioned, true );
-		wp_send_note_notification( $user, $comment, $post, $was_mentioned );
+		wp_send_note_notification( $user, $comment, $post );
 	}
-
-	/*
-	 * Subscribe the note author and everyone mentioned to the thread. To opt
-	 * out later, a user removes their ID from the thread root's
-	 * `_wp_note_followers` meta: either via wp_remove_note_followers() or by
-	 * editing that meta through the REST API (it is registered as editable
-	 * by users who can edit the note). Removing an `@` mention on a later
-	 * edit intentionally does not unfollow: once pulled into a thread a user
-	 * stays subscribed until they explicitly opt out. A follower is also
-	 * dropped automatically when the thread is trashed or deleted, since
-	 * comment meta is removed alongside the comment.
-	 */
-	$new_followers = $mentioned;
-	if ( $author_id > 0 ) {
-		$new_followers[] = $author_id;
-	}
-	wp_add_note_followers( $root_id, $new_followers );
 }
 
 /**
- * Sends a single note notification email.
+ * Sends a single note mention notification email.
+ *
+ * The email is composed in the recipient's locale, matching how other
+ * user-directed notifications are composed, and links to the post editor the
+ * same way the post author's note notification does.
  *
  * @since 7.1.0
  *
- * @param WP_User      $user          The recipient.
- * @param WP_Comment   $comment       The note that triggered the notification.
- * @param WP_Post|null $post          The post the note belongs to.
- * @param bool         $was_mentioned Whether the recipient was mentioned in this note.
+ * @param WP_User      $user    The recipient.
+ * @param WP_Comment   $comment The note that triggered the notification.
+ * @param WP_Post|null $post    The post the note belongs to.
  * @return bool Whether the email was accepted for delivery by wp_mail().
  */
-function wp_send_note_notification( $user, $comment, $post, $was_mentioned ) {
+function wp_send_note_notification( $user, $comment, $post ) {
+	$switched_locale = switch_to_user_locale( $user->ID );
+
 	$blogname    = wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES );
 	$post_title  = $post ? wp_specialchars_decode( get_the_title( $post ), ENT_QUOTES ) : '';
 	$author_name = $comment->comment_author ? $comment->comment_author : __( 'Someone' );
 	$content     = wp_strip_all_tags( wp_specialchars_decode( $comment->comment_content ) );
-	$edit_link   = $post ? get_edit_post_link( $post->ID, 'raw' ) : '';
+	$edit_link   = $post ? get_edit_post_link( $post->ID, 'url' ) : '';
 
-	if ( $was_mentioned ) {
-		/* translators: %1$s: commenter name, %2$s: post title. */
-		$message = sprintf( __( '%1$s mentioned you in a note on "%2$s".' ), $author_name, $post_title );
-		/* translators: %1$s: site name, %2$s: post title. */
-		$subject = sprintf( __( '[%1$s] You were mentioned in a note on "%2$s"' ), $blogname, $post_title );
-	} else {
-		/* translators: %1$s: commenter name, %2$s: post title. */
-		$message = sprintf( __( '%1$s added a note to a thread you follow on "%2$s".' ), $author_name, $post_title );
-		/* translators: %1$s: site name, %2$s: post title. */
-		$subject = sprintf( __( '[%1$s] New activity on a note you follow on "%2$s"' ), $blogname, $post_title );
-	}
+	/* translators: 1: Note author's name, 2: Post title. */
+	$message = sprintf( __( '%1$s mentioned you in a note on "%2$s".' ), $author_name, $post_title );
+	/* translators: Note mention notification email subject. 1: Site title, 2: Post title. */
+	$subject = sprintf( __( '[%1$s] You were mentioned in a note on "%2$s"' ), $blogname, $post_title );
 
 	$lines = array( $message, '' );
 	if ( '' !== $content ) {
@@ -2850,33 +2724,13 @@ function wp_send_note_notification( $user, $comment, $post, $was_mentioned ) {
 		$lines[] = $edit_link;
 	}
 
-	$body = implode( "\n", $lines );
+	$sent = wp_mail( $user->user_email, wp_specialchars_decode( $subject ), implode( "\n", $lines ) );
 
-	/**
-	 * Filters the note notification email subject.
-	 *
-	 * @since 7.1.0
-	 *
-	 * @param string     $subject       Email subject.
-	 * @param WP_User    $user          Recipient.
-	 * @param WP_Comment $comment       The note.
-	 * @param bool       $was_mentioned Whether the recipient was mentioned.
-	 */
-	$subject = apply_filters( 'wp_note_notification_subject', $subject, $user, $comment, $was_mentioned );
+	if ( $switched_locale ) {
+		restore_previous_locale();
+	}
 
-	/**
-	 * Filters the note notification email body.
-	 *
-	 * @since 7.1.0
-	 *
-	 * @param string     $body          Email body.
-	 * @param WP_User    $user          Recipient.
-	 * @param WP_Comment $comment       The note.
-	 * @param bool       $was_mentioned Whether the recipient was mentioned.
-	 */
-	$body = apply_filters( 'wp_note_notification_text', $body, $user, $comment, $was_mentioned );
-
-	return wp_mail( $user->user_email, wp_specialchars_decode( $subject ), $body );
+	return $sent;
 }
 
 /**
@@ -4611,7 +4465,6 @@ function _wp_check_for_scheduled_update_comment_type() {
  * Register initial note status meta.
  *
  * @since 6.9.0
- * @since 7.1.0 Registers the note followers meta.
  */
 function wp_create_initial_comment_meta() {
 	register_meta(
@@ -4625,25 +4478,6 @@ function wp_create_initial_comment_meta() {
 				'schema' => array(
 					'type' => 'string',
 					'enum' => array( 'resolved', 'reopen' ),
-				),
-			),
-			'auth_callback' => function ( $allowed, $meta_key, $object_id ) {
-				return current_user_can( 'edit_comment', $object_id );
-			},
-		)
-	);
-
-	register_meta(
-		'comment',
-		'_wp_note_followers',
-		array(
-			'type'          => 'integer',
-			'description'   => __( 'User IDs following the note thread.' ),
-			'single'        => false,
-			'show_in_rest'  => array(
-				'schema' => array(
-					'type'    => 'integer',
-					'minimum' => 1,
 				),
 			),
 			'auth_callback' => function ( $allowed, $meta_key, $object_id ) {
