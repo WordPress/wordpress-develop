@@ -374,11 +374,8 @@ class WP {
 				isset( $this->query_vars[ $wpvar ] )
 				&& ! is_scalar( $this->query_vars[ $wpvar ] )
 			) {
-				wp_die(
-					__( 'Invalid value for a query variable.' ),
-					__( 'Error, this request could not be processed.' ),
-					400
-				);
+				$this->query_vars['error'] = 404;
+				unset( $this->query_vars[ $wpvar ] );
 			}
 		}
 
