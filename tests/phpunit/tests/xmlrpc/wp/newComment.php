@@ -389,4 +389,107 @@ class Tests_XMLRPC_wp_newComment extends WP_XMLRPC_UnitTestCase {
 			),
 		);
 	}
+
+	/**
+	 * Ensure an error is returned when a comment field exceeds its maximum length.
+	 *
+	 * @ticket 38622
+	 *
+	 * @dataProvider data_new_comment_with_field_exceeding_max_length
+	 *
+	 * @param array $content_struct Content struct with one field exceeding its maximum length.
+	 */
+	public function test_new_comment_with_field_exceeding_max_length( $content_struct ) {
+		add_filter( 'xmlrpc_allow_anonymous_comments', '__return_true' );
+
+		$result = $this->myxmlrpcserver->wp_newComment(
+			array(
+				1,
+				'',
+				'',
+				self::$posts['publish']->ID,
+				$content_struct,
+			)
+		);
+
+		$this->assertIXRError( $result );
+		$this->assertSame( 413, $result->code );
+	}
+
+	/**
+	 * Data provider for test_new_comment_with_field_exceeding_max_length.
+	 *
+	 * @return array[]
+	 */
+	public function data_new_comment_with_field_exceeding_max_length() {
+		$defaults = array(
+			'author'       => 'WordPress',
+			'author_email' => 'noreply@wordpress.org',
+			'content'      => 'Test Comment',
+		);
+
+		return array(
+			'author of 246 characters'       => array(
+				array_merge( $defaults, array( 'author' => str_repeat( 'a', 246 ) ) ),
+			),
+			'author email of 101 characters' => array(
+				array_merge( $defaults, array( 'author_email' => str_repeat( 'a', 89 ) . '@example.com' ) ),
+			),
+			'author URL of 201 characters'   => array(
+				array_merge( $defaults, array( 'author_url' => 'https://example.com/' . str_repeat( 'a', 181 ) ) ),
+			),
+			'content of 65526 characters'    => array(
+				array_merge( $defaults, array( 'content' => str_repeat( 'a', 65526 ) ) ),
+			),
+		);
+	}
+
+	/**
+	 * Ensure an error is returned when a logged-in user's comment content exceeds its maximum length.
+	 *
+	 * @ticket 38622
+	 */
+	public function test_new_comment_with_content_exceeding_max_length_logged_in() {
+		$result = $this->myxmlrpcserver->wp_newComment(
+			array(
+				1,
+				'administrator',
+				'administrator',
+				self::$posts['publish']->ID,
+				array(
+					'content' => str_repeat( 'a', 65526 ),
+				),
+			)
+		);
+
+		$this->assertIXRError( $result );
+		$this->assertSame( 413, $result->code );
+	}
+
+	/**
+	 * Ensure a comment with all fields at their maximum length is accepted.
+	 *
+	 * @ticket 38622
+	 */
+	public function test_new_comment_with_fields_at_max_length() {
+		add_filter( 'xmlrpc_allow_anonymous_comments', '__return_true' );
+
+		$result = $this->myxmlrpcserver->wp_newComment(
+			array(
+				1,
+				'',
+				'',
+				self::$posts['publish']->ID,
+				array(
+					'author'       => str_repeat( 'a', 245 ),
+					'author_email' => str_repeat( 'a', 88 ) . '@example.com',
+					'author_url'   => 'https://example.com/' . str_repeat( 'a', 180 ),
+					'content'      => str_repeat( 'a', 65525 ),
+				),
+			)
+		);
+
+		$this->assertNotIXRError( $result );
+		$this->assertIsInt( $result );
+	}
 }

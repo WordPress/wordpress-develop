@@ -3902,6 +3902,7 @@ class wp_xmlrpc_server extends IXR_Server {
 	 * Creates a new comment.
 	 *
 	 * @since 2.7.0
+	 * @since 7.2.0 Returns an error if a comment field exceeds its maximum length.
 	 *
 	 * @param array $args {
 	 *     Method arguments. Note: arguments must be ordered as documented.
@@ -4026,6 +4027,12 @@ class wp_xmlrpc_server extends IXR_Server {
 
 		if ( ! $allow_empty && '' === $comment['comment_content'] ) {
 			return new IXR_Error( 403, __( 'Comment is required.' ) );
+		}
+
+		$check_max_lengths = wp_check_comment_data_max_lengths( $comment );
+
+		if ( is_wp_error( $check_max_lengths ) ) {
+			return new IXR_Error( 413, __( 'Comment field exceeds maximum length allowed.' ) );
 		}
 
 		/** This action is documented in wp-includes/class-wp-xmlrpc-server.php */
