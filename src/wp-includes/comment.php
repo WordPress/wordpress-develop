@@ -2633,27 +2633,13 @@ function wp_notify_note_mentions( $comment, $request = null, $creating = true ) 
 	$post           = get_post( (int) $comment->comment_post_ID );
 	$post_author_id = $post ? (int) $post->post_author : 0;
 
-	/**
-	 * Filters the user IDs notified about a new note.
-	 *
-	 * Receives the users mentioned in the note. Developers can add or remove
-	 * recipients, for example to integrate a different audience or
-	 * notification channel.
-	 *
-	 * @since 7.1.0
-	 *
-	 * @param int[]      $recipient_ids Candidate recipient user IDs.
-	 * @param WP_Comment $comment       The note that was inserted.
-	 */
-	$recipient_ids = apply_filters( 'wp_note_notification_recipients', $mentioned, $comment );
-
 	/*
 	 * The recipient set is bounded and small (one note's mentions), so emails
 	 * are sent synchronously here. If notification volume ever warrants it,
 	 * the right fix is to offload delivery to a background queue rather than
 	 * throttle within the request.
 	 */
-	foreach ( $recipient_ids as $user_id ) {
+	foreach ( $mentioned as $user_id ) {
 		$user_id = (int) $user_id;
 
 		// Never notify the author about their own note.

@@ -304,31 +304,6 @@ class Tests_Comment_WpNotifyNoteMentions extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 65639
-	 */
-	public function test_recipients_filter_can_add_and_remove() {
-		$extra_user = self::factory()->user->create_and_get( array( 'role' => 'editor' ) );
-
-		add_filter(
-			'wp_note_notification_recipients',
-			static function ( $ids ) use ( $extra_user ) {
-				$ids[] = $extra_user->ID;
-				return array_values( array_diff( $ids, array( self::$mentioned->ID ) ) );
-			}
-		);
-
-		$note = $this->insert_note(
-			'Ping ' . $this->get_mention_markup( self::$mentioned->ID ),
-			self::$commenter->ID
-		);
-
-		wp_notify_note_mentions( $note );
-
-		$this->assertContains( $extra_user->user_email, $this->sent_to );
-		$this->assertNotContains( self::$mentioned->user_email, $this->sent_to );
-	}
-
-	/**
 	 * Creating a note through the REST endpoint must trigger the mention email.
 	 *
 	 * This exercises the `rest_insert_comment` wiring (hook name, priority and
