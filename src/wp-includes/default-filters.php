@@ -310,6 +310,11 @@ add_filter( 'sanitize_title', 'sanitize_title_with_dashes', 10, 3 );
 add_action( 'check_comment_flood', 'check_comment_flood_db', 10, 4 );
 add_filter( 'comment_flood_filter', 'wp_throttle_comment_flood', 10, 3 );
 add_filter( 'pre_comment_content', 'wp_rel_ugc', 15 );
+
+// Note mention chips in comment content: allow `span` through comment kses,
+// then reduce its classes to the mention tokens right after `wp_filter_kses`.
+add_filter( 'wp_kses_allowed_html', '_wp_kses_allow_note_mention_span', 10, 2 );
+add_filter( 'pre_comment_content', '_wp_kses_sanitize_note_mention_classes', 11 );
 add_filter( 'comment_email', 'antispambot' );
 add_filter( 'option_tag_base', '_wp_filter_taxonomy_base' );
 add_filter( 'option_category_base', '_wp_filter_taxonomy_base' );
@@ -585,6 +590,7 @@ add_action( 'transition_post_status', '__clear_multi_author_cache' );
 add_action( 'init', 'create_initial_post_types', 0 ); // Highest priority.
 add_action( 'admin_menu', '_add_post_type_submenus' );
 add_action( 'before_delete_post', '_reset_front_page_settings_for_post' );
+add_action( 'before_delete_post', '_reset_privacy_policy_page_for_post' );
 add_action( 'wp_trash_post', '_reset_front_page_settings_for_post' );
 add_action( 'change_locale', 'create_initial_post_types' );
 
@@ -821,8 +827,8 @@ foreach ( array( 'page', 'wp_block', 'wp_template_part', 'wp_template' ) as $pos
 	// callbacks registered at the default compose on top of them
 	// regardless of registration order.
 	add_filter(
-		"get_entity_view_config_postType_{$post_type}",
-		"_wp_get_entity_view_config_post_type_{$post_type}",
+		"get_entity_view_config_posttype_{$post_type}",
+		"_wp_get_entity_view_config_posttype_{$post_type}",
 		5
 	);
 }
