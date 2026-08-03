@@ -41,6 +41,13 @@ class Tests_Admin_wpDashboardOnThisDay extends WP_UnitTestCase {
 		self::delete_user( self::$subscriber_id );
 	}
 
+	public function set_up() {
+		parent::set_up();
+
+		// The widget only ever renders on the dashboard, where titles are not prefixed by `get_the_title()`.
+		set_current_screen( 'dashboard' );
+	}
+
 	/**
 	 * Creates a published post on the widget's prior-year calendar day.
 	 *
@@ -349,8 +356,6 @@ class Tests_Admin_wpDashboardOnThisDay extends WP_UnitTestCase {
 	 * @covers ::wp_dashboard_on_this_day
 	 */
 	public function test_widget_includes_trimmed_excerpt_for_untitled_private_posts_authored_by_current_user() {
-		$this->set_up_dashboard_screen();
-
 		wp_set_current_user( self::$user_id );
 
 		$this->create_matching_post(
@@ -384,8 +389,6 @@ class Tests_Admin_wpDashboardOnThisDay extends WP_UnitTestCase {
 	 * @covers ::wp_dashboard_on_this_day
 	 */
 	public function test_widget_hides_untitled_post_excerpt_for_unreadable_posts() {
-		$this->set_up_dashboard_screen();
-
 		wp_set_current_user( self::$user_id );
 
 		$post_id = $this->create_matching_post(
@@ -420,8 +423,6 @@ class Tests_Admin_wpDashboardOnThisDay extends WP_UnitTestCase {
 	 * @covers ::wp_dashboard_on_this_day
 	 */
 	public function test_widget_hides_untitled_post_excerpt_for_password_protected_posts() {
-		$this->set_up_dashboard_screen();
-
 		wp_set_current_user( self::$user_id );
 
 		$this->create_matching_post(
