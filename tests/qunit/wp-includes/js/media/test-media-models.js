@@ -100,8 +100,12 @@
 			'Empty string order should default to DESC' );
 	});
 
-	// Test non-string type edge cases
-	QUnit.test( 'Attachments should not process null order value', function( assert ) {
+	/*
+	 * An unset order is left alone so the existing 'DESC' fallbacks in
+	 * Attachments.comparator() still apply. Any value that *is* set gets
+	 * normalized, otherwise a truthy non-string would sort ascending.
+	 */
+	QUnit.test( 'Attachments should leave a null order value unset', function( assert ) {
 		var collection = new wp.media.model.Attachments( [], {
 			props: {
 				order: null
@@ -109,10 +113,10 @@
 		});
 
 		assert.strictEqual( collection.props.get('order'), null,
-			'Null order should remain null (not processed by normalization)' );
+			'Null order should remain null' );
 	});
 
-	QUnit.test( 'Attachments should not process undefined order value', function( assert ) {
+	QUnit.test( 'Attachments should leave an undefined order value unset', function( assert ) {
 		var collection = new wp.media.model.Attachments( [], {
 			props: {
 				order: undefined
@@ -120,64 +124,62 @@
 		});
 
 		assert.strictEqual( collection.props.get('order'), undefined,
-			'Undefined order should remain undefined (not processed by normalization)' );
+			'Undefined order should remain undefined' );
 	});
 
-	QUnit.test( 'Attachments should not process numeric order value', function( assert ) {
+	QUnit.test( 'Attachments should default a numeric order to "DESC"', function( assert ) {
 		var collection = new wp.media.model.Attachments( [], {
 			props: {
 				order: 123
 			}
 		});
 
-		assert.strictEqual( collection.props.get('order'), 123,
-			'Numeric order should remain unchanged (not processed by normalization)' );
+		assert.strictEqual( collection.props.get('order'), 'DESC',
+			'Numeric order should default to DESC' );
 	});
 
-	QUnit.test( 'Attachments should not process boolean true order value', function( assert ) {
+	QUnit.test( 'Attachments should default a boolean true order to "DESC"', function( assert ) {
 		var collection = new wp.media.model.Attachments( [], {
 			props: {
 				order: true
 			}
 		});
 
-		assert.strictEqual( collection.props.get('order'), true,
-			'Boolean true order should remain unchanged (not processed by normalization)' );
+		assert.strictEqual( collection.props.get('order'), 'DESC',
+			'Boolean true order should default to DESC' );
 	});
 
-	QUnit.test( 'Attachments should not process boolean false order value', function( assert ) {
+	QUnit.test( 'Attachments should default a boolean false order to "DESC"', function( assert ) {
 		var collection = new wp.media.model.Attachments( [], {
 			props: {
 				order: false
 			}
 		});
 
-		assert.strictEqual( collection.props.get('order'), false,
-			'Boolean false order should remain unchanged (not processed by normalization)' );
+		assert.strictEqual( collection.props.get('order'), 'DESC',
+			'Boolean false order should default to DESC' );
 	});
 
-	QUnit.test( 'Attachments should not process object order value', function( assert ) {
-		var orderObj = { value: 'ASC' };
+	QUnit.test( 'Attachments should default an object order to "DESC"', function( assert ) {
 		var collection = new wp.media.model.Attachments( [], {
 			props: {
-				order: orderObj
+				order: { value: 'ASC' }
 			}
 		});
 
-		assert.strictEqual( collection.props.get('order'), orderObj,
-			'Object order should remain unchanged (not processed by normalization)' );
+		assert.strictEqual( collection.props.get('order'), 'DESC',
+			'Object order should default to DESC' );
 	});
 
-	QUnit.test( 'Attachments should not process array order value', function( assert ) {
-		var orderArray = ['ASC', 'DESC'];
+	QUnit.test( 'Attachments should default an array order to "DESC"', function( assert ) {
 		var collection = new wp.media.model.Attachments( [], {
 			props: {
-				order: orderArray
+				order: ['ASC', 'DESC']
 			}
 		});
 
-		assert.strictEqual( collection.props.get('order'), orderArray,
-			'Array order should remain unchanged (not processed by normalization)' );
+		assert.strictEqual( collection.props.get('order'), 'DESC',
+			'Array order should default to DESC' );
 	});
 
 	// Test when no order property is provided
@@ -192,13 +194,17 @@
 			'Order should be undefined when not provided' );
 	});
 
-	// Test Query model inheritance
+	/*
+	 * Query no longer normalizes the order itself, it relies on inheriting the
+	 * normalization above. Note these pass `args` rather than `props.query`:
+	 * setting `query` would kick off a server request via `_requery()`.
+	 */
 	QUnit.test( 'Query should inherit order normalization from Attachments', function( assert ) {
 		var query = new wp.media.model.Query( [], {
 			props: {
-				order: 'asc',
-				query: true
-			}
+				order: 'asc'
+			},
+			args: {}
 		});
 
 		assert.strictEqual( query.props.get('order'), 'ASC',
@@ -210,9 +216,9 @@
 	QUnit.test( 'Query should default invalid order to "DESC"', function( assert ) {
 		var query = new wp.media.model.Query( [], {
 			props: {
-				order: 'random',
-				query: true
-			}
+				order: 'random'
+			},
+			args: {}
 		});
 
 		assert.strictEqual( query.props.get('order'), 'DESC',
