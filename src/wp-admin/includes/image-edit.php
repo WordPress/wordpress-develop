@@ -830,10 +830,6 @@ function wp_restore_image( $post_id ) {
 		return $msg;
 	}
 
-	if ( ! isset( $meta['sizes'] ) || ! is_array( $meta['sizes'] ) ) {
-		$meta['sizes'] = array();
-	}
-
 	$parts         = pathinfo( $file );
 	$suffix        = time() . rand( 100, 999 );
 	$default_sizes = get_intermediate_image_sizes();
@@ -990,10 +986,6 @@ function wp_save_image( $post_id ) {
 	if ( ! is_array( $meta ) ) {
 		$return->error = esc_js( __( 'Image data does not exist. Please re-upload the image.' ) );
 		return $return;
-	}
-
-	if ( ! isset( $meta['sizes'] ) || ! is_array( $meta['sizes'] ) ) {
-		$meta['sizes'] = array();
 	}
 
 	if ( ! is_array( $backup_sizes ) ) {
