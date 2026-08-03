@@ -1488,7 +1488,12 @@ table.form-table td .updated p {
 	text-align: center;
 }
 
-.privacy_requests tbody th {
+.privacy_requests thead td:first-child,
+.privacy_requests tfoot td:first-child {
+	border-left: 4px solid #fff;
+}
+
+.privacy_requests tbody td.check-column {
 	border-left: 4px solid #fff;
 	background: #fff;
 	box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.1);
@@ -1510,7 +1515,8 @@ table.form-table td .updated p {
 	margin: 0 0 5px;
 }
 
-.privacy_requests tbody td {
+.privacy_requests tbody td:not(.check-column),
+.privacy_requests tbody th {
 	background: #fff;
 	box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.1);
 }
@@ -1524,14 +1530,12 @@ table.form-table td .updated p {
 	white-space: normal;
 }
 
-.privacy_requests .status-request-confirmed th,
-.privacy_requests .status-request-confirmed td {
+.privacy_requests tr.status-request-confirmed td.check-column {
 	background-color: #fff;
 	border-left-color: #72aee6;
 }
 
-.privacy_requests .status-request-failed th,
-.privacy_requests .status-request-failed td {
+.privacy_requests tr.status-request-failed td.check-column {
 	background-color: #f6f7f7;
 	border-left-color: #d63638;
 }
