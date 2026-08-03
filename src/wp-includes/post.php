@@ -7070,14 +7070,14 @@ function wp_delete_attachment_files( $post_id, $meta, $backup_sizes, $file ) {
  *                     filesize?: int<0, max>,
  *                     original_image?: non-empty-string,
  *                     source_image?: non-empty-string,
- *                     sizes?: array<non-empty-string, array{
- *                                                         file: non-empty-string,
- *                                                         width: int<1, max>,
- *                                                         height: int<1, max>,
- *                                                         'mime-type': non-empty-string,
- *                                                         filesize?: int<0, max>,
- *                                                         ...
- *                                                     }>,
+ *                     sizes: array<non-empty-string, array{
+ *                                                        file: non-empty-string,
+ *                                                        width: int<1, max>,
+ *                                                        height: int<1, max>,
+ *                                                        'mime-type': non-empty-string,
+ *                                                        filesize?: int<0, max>,
+ *                                                        ...
+ *                                                    }>,
  *                     image_meta?: array{
  *                                      aperture: numeric-string|int,
  *                                      credit: string,
@@ -7111,23 +7111,27 @@ function wp_get_attachment_metadata( $attachment_id = 0, $unfiltered = false ) {
 
 	$data = get_post_meta( $attachment_id, '_wp_attachment_metadata', true );
 
-	if ( ! $data ) {
+	if ( ! $data || ! is_array( $data ) ) {
 		return false;
 	}
 
-	if ( $unfiltered ) {
-		return $data;
+	if ( ! $unfiltered ) {
+		/**
+		 * Filters the attachment meta data.
+		 *
+		 * @since 2.1.0
+		 *
+		 * @param array $data          Array of meta data for the given attachment.
+		 * @param int   $attachment_id Attachment post ID.
+		 */
+		$data = apply_filters( 'wp_get_attachment_metadata', $data, $attachment_id );
 	}
 
-	/**
-	 * Filters the attachment meta data.
-	 *
-	 * @since 2.1.0
-	 *
-	 * @param array $data          Array of meta data for the given attachment.
-	 * @param int   $attachment_id Attachment post ID.
-	 */
-	return apply_filters( 'wp_get_attachment_metadata', $data, $attachment_id );
+	if ( ! isset( $data['sizes'] ) || ! is_array( $data['sizes'] ) ) {
+		$data['sizes'] = array();
+	}
+
+	return $data;
 }
 
 /**
