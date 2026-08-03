@@ -3178,6 +3178,9 @@ EOF;
 	 *
 	 * @ticket 36246
 	 * @requires function imagejpeg
+	 *
+	 * @covers ::wp_get_attachment_image
+	 * @covers ::wp_get_attachment_metadata
 	 */
 	public function test_wp_get_attachment_image_should_use_wp_get_attachment_metadata() {
 		add_filter( 'wp_get_attachment_metadata', array( $this, 'filter_36246' ), 10, 2 );
