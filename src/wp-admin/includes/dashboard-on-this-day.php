@@ -53,13 +53,28 @@ function wp_dashboard_on_this_day_postbox_classes( $classes ) {
  * Renders the On This Day dashboard widget.
  *
  * Outputs the matching posts grouped by publication year, newest year first.
+ * Posts are paginated, with the requested page read from the
+ * `on-this-day-page` query argument.
  *
  * @since 7.1.0
  */
 function wp_dashboard_on_this_day() {
-	$query      = _wp_dashboard_on_this_day_get_posts_query();
-	$posts      = $query->posts;
-	$post_count = (int) $query->found_posts;
+	$current_page = isset( $_GET['on-this-day-page'] ) ? max( 1, absint( $_GET['on-this-day-page'] ) ) : 1;
+	$query        = _wp_dashboard_on_this_day_get_posts_query(
+		array(
+			'paged' => $current_page,
+		)
+	);
+
+	// A page number past the last page falls back to the first page.
+	if ( empty( $query->posts ) && $current_page > 1 ) {
+		$current_page = 1;
+		$query        = _wp_dashboard_on_this_day_get_posts_query();
+	}
+
+	$posts       = $query->posts;
+	$post_count  = (int) $query->found_posts;
+	$total_pages = (int) $query->max_num_pages;
 
 	if ( empty( $posts ) ) {
 		// Placeholder shown when a user reveals the hidden widget via Screen
@@ -67,8 +82,6 @@ function wp_dashboard_on_this_day() {
 		echo '<p>' . esc_html__( 'No posts were published on this day in previous years.' ) . '</p>';
 		return;
 	}
-
-	$displayed_post_count = count( $posts );
 
 	/* translators: Date format for the On This Day widget date, without year. See https://www.php.net/manual/datetime.format.php */
 	$date = '<strong>' . esc_html( wp_date( _x( 'F jS', 'on this day date format' ) ) ) . '</strong>';
@@ -98,29 +111,57 @@ function wp_dashboard_on_this_day() {
 			}
 			?>
 		</p>
-		<ul id="wp-on-this-day-posts" class="wp-on-this-day-posts">
+		<ul class="wp-on-this-day-posts">
 			<?php _wp_dashboard_on_this_day_render_posts( $posts ); ?>
 		</ul>
-		<?php if ( $post_count > $displayed_post_count ) : ?>
-			<p class="wp-on-this-day-load-more">
-				<button
-					type="button"
-					class="button-link"
-					data-wp-on-this-day-nonce="<?php echo esc_attr( wp_create_nonce( 'wp_dashboard_on_this_day_load_more' ) ); ?>"
-					data-wp-on-this-day-offset="<?php echo esc_attr( $displayed_post_count ); ?>"
-					aria-controls="wp-on-this-day-posts"
-				>
-					<?php
-					printf(
-						esc_html(
-							/* translators: %s: Number of additional posts. */
-							_n( 'Show %s more post', 'Show %s more posts', $post_count - $displayed_post_count )
-						),
-						esc_html( number_format_i18n( $post_count - $displayed_post_count ) )
-					);
-					?>
-				</button>
-			</p>
+		<?php
+		if ( $total_pages > 1 ) :
+			// The fragment scrolls back to the widget once the dashboard reloads.
+			$page_url = admin_url( 'index.php' ) . '#wp_dashboard_on_this_day';
+
+			/*
+			 * The page field and total page count are combined with the same
+			 * string list tables use, so the order can be translated.
+			 */
+			$paging_text = sprintf(
+				/* translators: 1: Current page number field, 2: Total number of pages. */
+				_x( '%1$s of %2$s', 'paging' ),
+				sprintf(
+					'<input class="current-page" id="wp-on-this-day-page-selector" type="text" name="on-this-day-page" value="%1$s" size="%2$d" aria-describedby="wp-on-this-day-paging" />',
+					esc_attr( $current_page ),
+					strlen( (string) $total_pages )
+				),
+				'<span class="total-pages">' . esc_html( number_format_i18n( $total_pages ) ) . '</span>'
+			);
+			?>
+			<form class="tablenav" method="get" action="<?php echo esc_url( $page_url ); ?>">
+				<div class="tablenav-pages">
+					<span class="pagination-links">
+						<?php if ( 1 === $current_page ) : ?>
+							<span class="tablenav-pages-navspan button disabled" aria-hidden="true">&lsaquo;</span>
+						<?php else : ?>
+							<a class="prev-page button" href="<?php echo esc_url( add_query_arg( 'on-this-day-page', $current_page - 1, $page_url ) ); ?>">
+								<span class="screen-reader-text"><?php esc_html_e( 'Previous page' ); ?></span>
+								<span aria-hidden="true">&lsaquo;</span>
+							</a>
+						<?php endif; ?>
+						<span class="paging-input">
+							<label class="screen-reader-text" for="wp-on-this-day-page-selector"><?php esc_html_e( 'Current Page' ); ?></label>
+							<span class="tablenav-paging-text" id="wp-on-this-day-paging">
+								<?php echo $paging_text; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Values are escaped above. ?>
+							</span>
+						</span>
+						<?php if ( $current_page < $total_pages ) : ?>
+							<a class="next-page button" href="<?php echo esc_url( add_query_arg( 'on-this-day-page', $current_page + 1, $page_url ) ); ?>">
+								<span class="screen-reader-text"><?php esc_html_e( 'Next page' ); ?></span>
+								<span aria-hidden="true">&rsaquo;</span>
+							</a>
+						<?php else : ?>
+							<span class="tablenav-pages-navspan button disabled" aria-hidden="true">&rsaquo;</span>
+						<?php endif; ?>
+					</span>
+				</div>
+			</form>
 		<?php endif; ?>
 	</div>
 	<?php
@@ -149,7 +190,7 @@ function _wp_dashboard_on_this_day_render_posts( $posts ) {
 
 	foreach ( $posts_by_year as $year => $year_posts ) {
 		?>
-		<li class="wp-on-this-day-year" data-wp-on-this-day-year="<?php echo esc_attr( $year ); ?>">
+		<li class="wp-on-this-day-year">
 			<h3><?php echo esc_html( $year ); ?></h3>
 			<ul class="wp-on-this-day-year-posts">
 				<?php foreach ( $year_posts as $year_post ) : ?>
@@ -190,9 +231,9 @@ function _wp_dashboard_on_this_day_render_posts( $posts ) {
  * calendar day in previous years.
  *
  * The date constraint matches today's month and day, combined with a
- * `before` clause anchored to January 1 of the current year. Up to ten posts
- * are returned; use the `wp_dashboard_on_this_day_query_args` filter to change
- * the limit. Results are cached by WP_Query's native query caching.
+ * `before` clause anchored to January 1 of the current year. Ten posts are
+ * displayed per page; use the `wp_dashboard_on_this_day_query_args` filter to
+ * change the limit. Results are cached by WP_Query's native query caching.
  *
  * @since 7.1.0
  *

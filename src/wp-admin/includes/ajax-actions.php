@@ -413,52 +413,6 @@ function wp_ajax_get_community_events() {
 }
 
 /**
- * Loads the remaining posts for the On This Day dashboard widget.
- *
- * @since 7.1.0
- */
-function wp_ajax_dashboard_on_this_day_load_more() {
-	check_ajax_referer( 'wp_dashboard_on_this_day_load_more' );
-
-	if ( ! current_user_can( 'read' ) ) {
-		wp_die( -1 );
-	}
-
-	require_once ABSPATH . 'wp-admin/includes/dashboard-on-this-day.php';
-
-	$offset      = isset( $_POST['offset'] ) ? absint( $_POST['offset'] ) : 10;
-	$count_query = _wp_dashboard_on_this_day_get_posts_query(
-		array(
-			'posts_per_page' => 1,
-		)
-	);
-	$post_count  = max( 0, (int) $count_query->found_posts - $offset );
-	$posts       = array();
-
-	if ( $post_count > 0 ) {
-		$query = _wp_dashboard_on_this_day_get_posts_query(
-			array(
-				'posts_per_page' => $post_count,
-				'offset'         => $offset,
-				'no_found_rows'  => true,
-			)
-		);
-		$posts = $query->posts;
-	}
-
-	ob_start();
-	_wp_dashboard_on_this_day_render_posts( $posts );
-	$html = ob_get_clean();
-
-	wp_send_json_success(
-		array(
-			'html'       => $html,
-			'post_count' => count( $posts ),
-		)
-	);
-}
-
-/**
  * Handles dashboard widgets via AJAX.
  *
  * @since 3.4.0
