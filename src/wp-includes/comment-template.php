@@ -644,6 +644,125 @@ function comment_date( $format = '', $comment_id = 0 ) {
 }
 
 /**
+ * Retrieves the last modified date of the given comment.
+ *
+ * Returns the date the comment was last updated via wp_update_comment(),
+ * stored as comment meta under the 'comment_modified' key. Returns an empty
+ * string if the comment has never been modified.
+ *
+ * @since 6.9.0
+ *
+ * @param string         $format     Optional. PHP date format. Defaults to the 'date_format' option.
+ * @param int|WP_Comment $comment_id Optional. WP_Comment or ID of the comment for which to get the
+ *                                   last modified date. Default current comment.
+ * @return string Formatted date string, or empty string if the comment has never been modified.
+ */
+function get_comment_modified_date( $format = '', $comment_id = 0 ) {
+	$comment = get_comment( $comment_id );
+
+	if ( null === $comment ) {
+		return '';
+	}
+
+	$modified = get_comment_meta( $comment->comment_ID, 'comment_modified', true );
+
+	if ( ! $modified ) {
+		return '';
+	}
+
+	$_format = ! empty( $format ) ? $format : get_option( 'date_format' );
+
+	$comment_modified_date = mysql2date( $_format, $modified );
+
+	/**
+	 * Filters the returned comment last modified date.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @param string|int $comment_modified_date Formatted date string or Unix timestamp.
+	 * @param string     $format                PHP date format.
+	 * @param WP_Comment $comment               The comment object.
+	 */
+	return apply_filters( 'get_comment_modified_date', $comment_modified_date, $format, $comment );
+}
+
+/**
+ * Displays the last modified date of the current comment.
+ *
+ * @since 6.9.0
+ *
+ * @param string         $format     Optional. PHP date format. Defaults to the 'date_format' option.
+ * @param int|WP_Comment $comment_id Optional. WP_Comment or ID of the comment for which to print the
+ *                                   last modified date. Default current comment.
+ */
+function comment_modified_date( $format = '', $comment_id = 0 ) {
+	echo get_comment_modified_date( $format, $comment_id );
+}
+
+/**
+ * Retrieves the last modified time of the given comment.
+ *
+ * Returns the time the comment was last updated via wp_update_comment(),
+ * stored as comment meta under the 'comment_modified' (local) or
+ * 'comment_modified_gmt' (GMT) key. Returns an empty string if the comment
+ * has never been modified.
+ *
+ * @since 6.9.0
+ *
+ * @param string         $format     Optional. PHP date format. Defaults to the 'time_format' option.
+ * @param bool           $gmt        Optional. Whether to use the GMT date. Default false.
+ * @param bool           $translate  Optional. Whether to translate the time (for use in feeds).
+ *                                   Default true.
+ * @param int|WP_Comment $comment_id Optional. WP_Comment or ID of the comment for which to get the
+ *                                   last modified time. Default current comment.
+ * @return string Formatted time string, or empty string if the comment has never been modified.
+ */
+function get_comment_modified_time( $format = '', $gmt = false, $translate = true, $comment_id = 0 ) {
+	$comment = get_comment( $comment_id );
+
+	if ( null === $comment ) {
+		return '';
+	}
+
+	$meta_key = $gmt ? 'comment_modified_gmt' : 'comment_modified';
+	$modified = get_comment_meta( $comment->comment_ID, $meta_key, true );
+
+	if ( ! $modified ) {
+		return '';
+	}
+
+	$_format = ! empty( $format ) ? $format : get_option( 'time_format' );
+
+	$comment_modified_time = mysql2date( $_format, $modified, $translate );
+
+	/**
+	 * Filters the returned comment last modified time.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @param string|int $comment_modified_time The comment last modified time, formatted as a date string or Unix timestamp.
+	 * @param string     $format                PHP date format.
+	 * @param bool       $gmt                   Whether the GMT date is in use.
+	 * @param bool       $translate             Whether the time is translated.
+	 * @param WP_Comment $comment               The comment object.
+	 */
+	return apply_filters( 'get_comment_modified_time', $comment_modified_time, $format, $gmt, $translate, $comment );
+}
+
+/**
+ * Displays the last modified time of the current comment.
+ *
+ * @since 6.9.0
+ *
+ * @param string         $format     Optional. PHP time format. Defaults to the 'time_format' option.
+ * @param int|WP_Comment $comment_id Optional. WP_Comment or ID of the comment for which to print the
+ *                                   last modified time. Default current comment.
+ */
+function comment_modified_time( $format = '', $comment_id = 0 ) {
+	echo get_comment_modified_time( $format, false, true, $comment_id );
+}
+
+/**
  * Retrieves the excerpt of the given comment.
  *
  * Returns a maximum of 20 words with an ellipsis appended if necessary.
