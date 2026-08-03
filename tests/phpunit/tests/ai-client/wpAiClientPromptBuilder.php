@@ -2621,11 +2621,11 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	 */
 	private function get_prompt_text( WP_AI_Client_Prompt_Builder $builder ): string {
 		$wrapped = new ReflectionProperty( WP_AI_Client_Prompt_Builder::class, 'builder' );
-		$wrapped->setAccessible( true );
+		self::set_accessible( $wrapped );
 		$inner = $wrapped->getValue( $builder );
 
 		$messages = new ReflectionProperty( $inner, 'messages' );
-		$messages->setAccessible( true );
+		self::set_accessible( $messages );
 
 		$text = '';
 		foreach ( $messages->getValue( $inner ) as $message ) {
@@ -2647,7 +2647,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 		$clone   = clone $builder;
 
 		$wrapped = new ReflectionProperty( WP_AI_Client_Prompt_Builder::class, 'builder' );
-		$wrapped->setAccessible( true );
+		self::set_accessible( $wrapped );
 
 		$this->assertNotSame(
 			$wrapped->getValue( $builder ),
