@@ -34,6 +34,7 @@ class Tests_Admin_wpDashboardOnThisDay extends WP_UnitTestCase {
 
 	public function tear_down() {
 		unset( $GLOBALS['wp_meta_boxes']['dashboard'] );
+		unset( $_GET['on-this-day-page'] );
 
 		parent::tear_down();
 	}
@@ -499,13 +500,15 @@ class Tests_Admin_wpDashboardOnThisDay extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 65116
+	 *
 	 * @covers ::wp_dashboard_on_this_day
-	 * @covers ::wp_dashboard_on_this_day_get_posts
+	 * @covers ::_wp_dashboard_on_this_day_get_posts_query
 	 */
-	public function test_widget_limits_posts_to_ten() {
+	public function test_widget_paginates_posts() {
 		wp_set_current_user( self::$user_id );
 
-		for ( $years_ago = 1; $years_ago <= 11; $years_ago++ ) {
+		for ( $years_ago = 1; $years_ago <= 22; $years_ago++ ) {
 			$this->create_matching_post( self::$user_id, 'Anniversary post ' . $years_ago, $years_ago );
 		}
 
@@ -513,10 +516,67 @@ class Tests_Admin_wpDashboardOnThisDay extends WP_UnitTestCase {
 		wp_dashboard_on_this_day();
 		$output = ob_get_clean();
 
-		$this->assertStringContainsString( '10 posts have been published on <strong>' . wp_date( 'F jS' ) . '</strong>:', $output );
+		$this->assertStringContainsString( '22 posts have been published on <strong>' . wp_date( 'F jS' ) . '</strong>:', $output );
 		$this->assertMatchesRegularExpression( '/>\s*Anniversary post 1\s*<\/a>/', $output );
 		$this->assertMatchesRegularExpression( '/>\s*Anniversary post 10\s*<\/a>/', $output );
 		$this->assertStringNotContainsString( 'Anniversary post 11', $output );
+		$this->assertStringContainsString( '<form class="tablenav" method="get"', $output );
+		$this->assertStringContainsString( '<span class="tablenav-pages-navspan button disabled" aria-hidden="true">&lsaquo;</span>', $output );
+		$this->assertStringContainsString( '<input class="current-page" id="wp-on-this-day-page-selector" type="text" name="on-this-day-page" value="1" size="1"', $output );
+		$this->assertStringContainsString( ' of <span class="total-pages">3</span>', $output );
+		$this->assertStringContainsString( 'class="next-page button" href="' . esc_url( admin_url( 'index.php?on-this-day-page=2#wp_dashboard_on_this_day' ) ) . '"', $output );
+	}
+
+	/**
+	 * @ticket 65116
+	 *
+	 * @covers ::wp_dashboard_on_this_day
+	 * @covers ::_wp_dashboard_on_this_day_get_posts_query
+	 */
+	public function test_widget_displays_the_requested_page() {
+		wp_set_current_user( self::$user_id );
+
+		for ( $years_ago = 1; $years_ago <= 22; $years_ago++ ) {
+			$this->create_matching_post( self::$user_id, 'Anniversary post ' . $years_ago, $years_ago );
+		}
+
+		$_GET['on-this-day-page'] = 2;
+
+		ob_start();
+		wp_dashboard_on_this_day();
+		$output = ob_get_clean();
+
+		$this->assertMatchesRegularExpression( '/>\s*Anniversary post 11\s*<\/a>/', $output );
+		$this->assertMatchesRegularExpression( '/>\s*Anniversary post 20\s*<\/a>/', $output );
+		$this->assertDoesNotMatchRegularExpression( '/>\s*Anniversary post 1\s*<\/a>/', $output );
+		$this->assertStringNotContainsString( 'Anniversary post 21', $output );
+		$this->assertStringContainsString( '<input class="current-page" id="wp-on-this-day-page-selector" type="text" name="on-this-day-page" value="2" size="1"', $output );
+		$this->assertStringContainsString( 'class="prev-page button" href="' . esc_url( admin_url( 'index.php?on-this-day-page=1#wp_dashboard_on_this_day' ) ) . '"', $output );
+		$this->assertStringContainsString( 'class="next-page button" href="' . esc_url( admin_url( 'index.php?on-this-day-page=3#wp_dashboard_on_this_day' ) ) . '"', $output );
+	}
+
+	/**
+	 * @ticket 65116
+	 *
+	 * @covers ::wp_dashboard_on_this_day
+	 */
+	public function test_widget_falls_back_to_the_first_page_for_an_out_of_range_page() {
+		wp_set_current_user( self::$user_id );
+
+		for ( $years_ago = 1; $years_ago <= 22; $years_ago++ ) {
+			$this->create_matching_post( self::$user_id, 'Anniversary post ' . $years_ago, $years_ago );
+		}
+
+		$_GET['on-this-day-page'] = 99;
+
+		ob_start();
+		wp_dashboard_on_this_day();
+		$output = ob_get_clean();
+
+		$this->assertMatchesRegularExpression( '/>\s*Anniversary post 1\s*<\/a>/', $output );
+		$this->assertMatchesRegularExpression( '/>\s*Anniversary post 10\s*<\/a>/', $output );
+		$this->assertStringContainsString( '<input class="current-page" id="wp-on-this-day-page-selector" type="text" name="on-this-day-page" value="1" size="1"', $output );
+		$this->assertStringNotContainsString( 'No posts were published on this day', $output );
 	}
 
 	/**

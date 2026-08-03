@@ -1054,6 +1054,11 @@ body #dashboard-widgets .postbox form .submit {
 	color: #646970;
 }
 
+/* Align the pagination with the widget content instead of the list table default. */
+#wp_dashboard_on_this_day .tablenav-pages {
+	float: none;
+}
+
 /* Browse happy box */
 
 #dashboard-widgets #dashboard_browser_nag.postbox .inside {
