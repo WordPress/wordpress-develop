@@ -233,7 +233,7 @@ html:lang(he-il) .rtl #wpadminbar * {
 
 #wpadminbar:not(.mobile) > #wp-toolbar li:hover span.ab-label,
 #wpadminbar > #wp-toolbar li.hover span.ab-label,
-#wpadminbar:not(.mobile) > #wp-toolbar a:focus span.ab-label {
+#wpadminbar > #wp-toolbar a:focus span.ab-label {
 	color: #72aee6;
 }
 
@@ -302,7 +302,8 @@ html:lang(he-il) .rtl #wpadminbar * {
 #wpadminbar li.hover .ab-icon:before,
 #wpadminbar li.hover .ab-item:before,
 #wpadminbar li:hover #adminbarsearch:before,
-#wpadminbar li #adminbarsearch.adminbar-focused:before {
+#wpadminbar li #adminbarsearch.adminbar-focused:before,
+#wpadminbar.mobile .quicklinks .ab-item:focus:before {
 	color: #72aee6;
 }
 

@@ -416,9 +416,9 @@ ul#adminmenu > li.current > a.current:after {
 	background: variables.$menu-submenu-background;
 }
 
-#wpadminbar:not(.mobile) > #wp-toolbar li:hover span.ab-label,
-#wpadminbar:not(.mobile) > #wp-toolbar li.hover span.ab-label,
-#wpadminbar:not(.mobile) > #wp-toolbar a:focus span.ab-label {
+#wpadminbar > #wp-toolbar li:hover span.ab-label,
+#wpadminbar > #wp-toolbar li.hover span.ab-label,
+#wpadminbar > #wp-toolbar a:focus span.ab-label {
 	color: variables.$menu-submenu-focus-text;
 }
 
@@ -476,13 +476,13 @@ ul#adminmenu > li.current > a.current:after {
 	color: variables.$menu-submenu-focus-text;
 }
 
+// Note that the icon of the site-name item is not wrapped within a span with class ab-icon like other items.
 #wpadminbar .quicklinks li a:hover .blavatar,
 #wpadminbar .quicklinks li a:focus .blavatar,
 #wpadminbar .quicklinks .ab-sub-wrapper .menupop.hover > a .blavatar,
 #wpadminbar .menupop .menupop > .ab-item:hover:before,
 #wpadminbar.mobile .quicklinks .hover .ab-icon:before,
 #wpadminbar.mobile .quicklinks .hover .ab-item:before,
-#wpadminbar.mobile .quicklinks .ab-icon:focus:before,
 #wpadminbar.mobile .quicklinks .ab-item:focus:before {
 	color: variables.$menu-submenu-focus-text;
 }
