@@ -677,10 +677,10 @@ https://w.org</a>',
 	 *
 	 * @dataProvider data_wp_prepare_attachment_for_js_filesize
 	 *
-	 * @param mixed    $filesize The `filesize` value stored in the attachment metadata.
-	 * @param int|null $expected The expected `filesizeInBytes` value, or null if it should not be set.
+	 * @param mixed            $filesize The `filesize` value stored in the attachment metadata.
+	 * @param int<0, max>|null $expected The expected `filesizeInBytes` value, or null if it should not be set.
 	 */
-	public function test_wp_prepare_attachment_for_js_filesize( $filesize, $expected ) {
+	public function test_wp_prepare_attachment_for_js_filesize( $filesize, ?int $expected ) {
 		$id = self::factory()->attachment->create_object(
 			array(
 				'file'           => 'test-image.jpg',
@@ -689,6 +689,7 @@ https://w.org</a>',
 				'post_mime_type' => 'image/jpeg',
 			)
 		);
+		$this->assertIsInt( $id );
 
 		wp_update_attachment_metadata(
 			$id,
@@ -700,7 +701,10 @@ https://w.org</a>',
 			)
 		);
 
-		$prepped = wp_prepare_attachment_for_js( get_post( $id ) );
+		$post = get_post( $id );
+		$this->assertInstanceOf( WP_Post::class, $post );
+		$prepped = wp_prepare_attachment_for_js( $post );
+		$this->assertIsArray( $prepped );
 
 		if ( null === $expected ) {
 			$this->assertArrayNotHasKey( 'filesizeInBytes', $prepped, 'The filesize should not have been set.' );
@@ -714,9 +718,9 @@ https://w.org</a>',
 	/**
 	 * Data provider.
 	 *
-	 * @return array[]
+	 * @return array<non-falsy-string, array{ filesize: mixed, expected: int<0, max>|null }>
 	 */
-	public function data_wp_prepare_attachment_for_js_filesize() {
+	public function data_wp_prepare_attachment_for_js_filesize(): array {
 		return array(
 			'an integer'                  => array(
 				'filesize' => 12345,
@@ -787,14 +791,21 @@ https://w.org</a>',
 	 * @param mixed $filesize The `filesize` value stored in the attachment metadata.
 	 */
 	public function test_wp_prepare_attachment_for_js_filesize_falls_back_to_the_file( $filesize ) {
-		$id   = self::factory()->attachment->create_upload_object( DIR_TESTDATA . '/images/canola.jpg' );
+		$id = self::factory()->attachment->create_upload_object( DIR_TESTDATA . '/images/canola.jpg' );
+		$this->assertIsInt( $id );
+		$post = get_post( $id );
+		$this->assertInstanceOf( WP_Post::class, $post );
 		$file = get_attached_file( $id );
+		$this->assertIsString( $file );
 
-		$meta             = wp_get_attachment_metadata( $id );
+		$meta = wp_get_attachment_metadata( $id );
+		$this->assertIsArray( $meta );
 		$meta['filesize'] = $filesize;
 		wp_update_attachment_metadata( $id, $meta );
 
-		$prepped = wp_prepare_attachment_for_js( get_post( $id ) );
+		$prepped = wp_prepare_attachment_for_js( $post );
+		$this->assertIsArray( $prepped );
+		$this->assertArrayHasKey( 'filesizeInBytes', $prepped );
 
 		$this->assertSame( wp_filesize( $file ), $prepped['filesizeInBytes'] );
 	}
@@ -802,9 +813,9 @@ https://w.org</a>',
 	/**
 	 * Data provider.
 	 *
-	 * @return array[]
+	 * @return array<non-falsy-string, array{ filesize: mixed }>
 	 */
-	public function data_wp_prepare_attachment_for_js_filesize_falls_back_to_the_file() {
+	public function data_wp_prepare_attachment_for_js_filesize_falls_back_to_the_file(): array {
 		return array(
 			'a value smaller than a byte' => array( 'filesize' => 0.5 ),
 			'zero'                        => array( 'filesize' => 0 ),

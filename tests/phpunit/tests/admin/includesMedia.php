@@ -24,10 +24,10 @@ class Tests_Admin_IncludesMedia extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_attachment_submitbox_metadata_filesize
 	 *
-	 * @param mixed    $filesize The `filesize` value stored in the attachment metadata.
-	 * @param int|null $expected The expected file size in bytes, or null if none should be displayed.
+	 * @param mixed            $filesize The `filesize` value stored in the attachment metadata.
+	 * @param int<0, max>|null $expected The expected file size in bytes, or null if none should be displayed.
 	 */
-	public function test_attachment_submitbox_metadata_filesize( $filesize, $expected ) {
+	public function test_attachment_submitbox_metadata_filesize( $filesize, ?int $expected ) {
 		$id = self::factory()->attachment->create_object(
 			array(
 				'file'           => 'test-image.jpg',
@@ -36,6 +36,7 @@ class Tests_Admin_IncludesMedia extends WP_UnitTestCase {
 				'post_mime_type' => 'image/jpeg',
 			)
 		);
+		$this->assertIsInt( $id );
 
 		wp_update_attachment_metadata(
 			$id,
@@ -61,9 +62,9 @@ class Tests_Admin_IncludesMedia extends WP_UnitTestCase {
 	/**
 	 * Data provider.
 	 *
-	 * @return array[]
+	 * @return array<non-falsy-string, array{ filesize: mixed, expected: int<0, max>|null }>
 	 */
-	public function data_attachment_submitbox_metadata_filesize() {
+	public function data_attachment_submitbox_metadata_filesize(): array {
 		return array(
 			'an integer'                  => array(
 				'filesize' => 12345,
@@ -136,10 +137,13 @@ class Tests_Admin_IncludesMedia extends WP_UnitTestCase {
 	 * @param mixed $filesize The `filesize` value stored in the attachment metadata.
 	 */
 	public function test_attachment_submitbox_metadata_filesize_falls_back_to_the_file( $filesize ) {
-		$id   = self::factory()->attachment->create_upload_object( DIR_TESTDATA . '/images/canola.jpg' );
+		$id = self::factory()->attachment->create_upload_object( DIR_TESTDATA . '/images/canola.jpg' );
+		$this->assertIsInt( $id );
 		$file = get_attached_file( $id );
+		$this->assertIsString( $file );
 
-		$meta             = wp_get_attachment_metadata( $id );
+		$meta = wp_get_attachment_metadata( $id );
+		$this->assertIsArray( $meta );
 		$meta['filesize'] = $filesize;
 		wp_update_attachment_metadata( $id, $meta );
 
@@ -147,15 +151,17 @@ class Tests_Admin_IncludesMedia extends WP_UnitTestCase {
 
 		$output = get_echo( 'attachment_submitbox_metadata' );
 
-		$this->assertStringContainsString( size_format( wp_filesize( $file ) ), $output );
+		$filesize = wp_filesize( $file );
+		$this->assertIsInt( $filesize );
+		$this->assertStringContainsString( size_format( $filesize ), $output );
 	}
 
 	/**
 	 * Data provider.
 	 *
-	 * @return array[]
+	 * @return array<non-falsy-string, array{ filesize: mixed }>
 	 */
-	public function data_attachment_submitbox_metadata_filesize_falls_back_to_the_file() {
+	public function data_attachment_submitbox_metadata_filesize_falls_back_to_the_file(): array {
 		return array(
 			'a value smaller than a byte' => array( 'filesize' => 0.5 ),
 			'zero'                        => array( 'filesize' => 0 ),
