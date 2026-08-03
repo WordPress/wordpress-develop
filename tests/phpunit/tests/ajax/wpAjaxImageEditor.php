@@ -210,27 +210,25 @@ class Tests_Ajax_wpAjaxImageEditor extends WP_Ajax_UnitTestCase {
 	 *
 	 * @dataProvider data_save_image_with_unusable_sizes_metadata
 	 *
-	 * @param array $meta Attachment metadata to store before editing, minus the file-specific keys.
+	 * @param array{ 0: array{ sizes?: mixed } } $meta Attachment metadata to store before editing, minus the file-specific keys.
 	 */
 	public function test_save_image_with_unusable_sizes_metadata( array $meta ) {
 		require_once ABSPATH . 'wp-admin/includes/image-edit.php';
 
 		$filename = DIR_TESTDATA . '/images/canola.jpg';
 		$contents = file_get_contents( $filename );
+		$this->assertIsString( $contents );
 
 		$upload = wp_upload_bits( wp_basename( $filename ), null, $contents );
 		$id     = $this->_make_attachment( $upload );
+		$this->assertIsInt( $id );
 
 		$original_meta = wp_get_attachment_metadata( $id );
+		$this->assertIsArray( $original_meta );
 
 		// Keep the real file/dimension data, only make `sizes` unusable.
 		$meta = array_merge(
-			array(
-				'width'    => $original_meta['width'],
-				'height'   => $original_meta['height'],
-				'file'     => $original_meta['file'],
-				'filesize' => $original_meta['filesize'],
-			),
+			wp_array_slice_assoc( $original_meta, array( 'width', 'height', 'file', 'filesize' ) ),
 			$meta
 		);
 
@@ -250,6 +248,7 @@ class Tests_Ajax_wpAjaxImageEditor extends WP_Ajax_UnitTestCase {
 		$saved_meta = wp_get_attachment_metadata( $id );
 
 		$this->assertIsArray( $saved_meta, 'The saved attachment metadata should be an array.' );
+		$this->assertArrayHasKey( 'sizes', $saved_meta );
 		$this->assertIsArray( $saved_meta['sizes'], 'The saved attachment metadata should contain a `sizes` array.' );
 		$this->assertArrayHasKey( 'thumbnail', $saved_meta['sizes'], 'The edited image should have regenerated the thumbnail size.' );
 	}
@@ -268,16 +267,18 @@ class Tests_Ajax_wpAjaxImageEditor extends WP_Ajax_UnitTestCase {
 	 *
 	 * @dataProvider data_save_image_with_unusable_sizes_metadata
 	 *
-	 * @param array $meta Replacement `sizes` metadata to store before restoring.
+	 * @param array{ 0: array{ sizes?: mixed } } $meta Replacement `sizes` metadata to store before restoring.
 	 */
 	public function test_restore_image_with_unusable_sizes_metadata( array $meta ) {
 		require_once ABSPATH . 'wp-admin/includes/image-edit.php';
 
 		$filename = DIR_TESTDATA . '/images/canola.jpg';
 		$contents = file_get_contents( $filename );
+		$this->assertIsString( $contents );
 
 		$upload = wp_upload_bits( wp_basename( $filename ), null, $contents );
 		$id     = $this->_make_attachment( $upload );
+		$this->assertIsInt( $id );
 
 		$_REQUEST['action']  = 'image-editor';
 		$_REQUEST['context'] = 'edit-attachment';
@@ -296,6 +297,7 @@ class Tests_Ajax_wpAjaxImageEditor extends WP_Ajax_UnitTestCase {
 
 		// Keep the metadata written by the edit, only make `sizes` unusable.
 		$edited_meta = wp_get_attachment_metadata( $id );
+		$this->assertIsArray( $edited_meta );
 		unset( $edited_meta['sizes'] );
 
 		wp_update_attachment_metadata( $id, array_merge( $edited_meta, $meta ) );
@@ -303,7 +305,9 @@ class Tests_Ajax_wpAjaxImageEditor extends WP_Ajax_UnitTestCase {
 		wp_restore_image( $id );
 
 		$restored_meta = wp_get_attachment_metadata( $id );
+		$this->assertIsArray( $restored_meta );
 
+		$this->assertArrayHasKey( 'sizes', $restored_meta );
 		$this->assertIsArray( $restored_meta['sizes'], 'The restored attachment metadata should contain a `sizes` array.' );
 		$this->assertArrayHasKey( 'thumbnail', $restored_meta['sizes'], 'The restored image should have the thumbnail size restored from the backup sizes.' );
 	}
