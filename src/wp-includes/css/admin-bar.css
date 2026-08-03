@@ -79,7 +79,7 @@ html:lang(he-il) .rtl #wpadminbar * {
 
 #wpadminbar a:focus,
 #wpadminbar .ab-item[tabindex="0"]:focus {
-	outline-offset: -1px;
+	outline-offset: -2px;
 	/* Only visible in Windows High Contrast mode */
 	outline: 2px solid transparent;
 	box-shadow: inset 0 -4px 0 0 currentColor;
