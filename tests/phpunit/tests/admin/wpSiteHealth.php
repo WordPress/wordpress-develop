@@ -18,7 +18,7 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 	/**
 	 * Original error_log ini setting, restored after each test.
 	 *
-	 * @since 7.0.0
+	 * @since 7.1.0
 	 * @var string|false
 	 */
 	private $original_error_log;
@@ -43,7 +43,7 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 	/**
 	 * Tear down after each test.
 	 *
-	 * @since 7.0.0
+	 * @since 7.1.0
 	 */
 	public function tear_down() {
 		ini_set( 'error_log', $this->original_error_log );

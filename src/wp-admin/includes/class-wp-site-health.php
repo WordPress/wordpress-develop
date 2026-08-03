@@ -30,17 +30,17 @@ class WP_Site_Health {
 	private $timeout_late_cron   = null;
 
 	/**
-	 * @since 7.0.0
+	 * @since 7.1.0
 	 */
 	private bool $wp_debug;
 
 	/**
-	 * @since 7.0.0
+	 * @since 7.1.0
 	 */
 	private ?bool $wp_debug_display;
 
 	/**
-	 * @since 7.0.0
+	 * @since 7.1.0
 	 * @var string|bool
 	 */
 	private $wp_debug_log;
