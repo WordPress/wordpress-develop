@@ -3801,6 +3801,7 @@ function wp_nonce_ays( $action ) {
  * @since 5.3.0 The `$charset` argument was added.
  * @since 5.5.0 The `$text_direction` argument has a priority over get_language_attributes()
  *              in the default handler.
+ * @since 7.1.0 The `$heading` argument was added.
  *
  * @global WP_Query $wp_query WordPress Query object.
  *
@@ -3832,6 +3833,8 @@ function wp_nonce_ays( $action ) {
  *     @type string   $code           Error code to use. Default is 'wp_die', or the main error code if $message
  *                                    is a WP_Error.
  *     @type bool     $exit           Whether to exit the process after completion. Default true.
+ *     @type string   $heading        A heading to display above the message in the default handler.
+ *                                    The value is not escaped. Default empty string.
  * }
  * @return void Never returns if `$args['exit']` is true (the default), otherwise returns void.
  * @phpstan-param string|WP_Error|int<-1, max> $message
@@ -3917,6 +3920,8 @@ function wp_die( $message = '', $title = '', $args = array() ) {
  * you can override this using the {@see 'wp_die_handler'} filter in wp_die().
  *
  * @since 3.0.0
+ * @since 7.1.0 The `$heading` argument was added. The `lang` attribute now falls back
+ *              to `en-US` when the site's language is not available.
  * @access private
  *
  * @param string|WP_Error $message Error message or WP_Error object.
@@ -3940,6 +3945,10 @@ function _default_wp_die_handler( $message, $title = '', $args = array() ) {
 			'<div class="wp-die-message">%s</div>',
 			$message
 		);
+	}
+
+	if ( ! empty( $parsed_args['heading'] ) ) {
+		$message = '<h1>' . $parsed_args['heading'] . '</h1>' . $message;
 	}
 
 	$have_gettext = function_exists( '__' );
@@ -3968,13 +3977,17 @@ function _default_wp_die_handler( $message, $title = '', $args = array() ) {
 		$text_direction = $parsed_args['text_direction'];
 		$dir_attr       = "dir='$text_direction'";
 
-		/*
-		 * If `text_direction` was not explicitly passed,
-		 * use get_language_attributes() if available.
-		 */
-		if ( empty( $args['text_direction'] )
-			&& function_exists( 'language_attributes' ) && function_exists( 'is_rtl' )
-		) {
+		if ( ! function_exists( 'language_attributes' ) || ! function_exists( 'is_rtl' ) ) {
+			/*
+			 * Errors triggered early in the bootstrap process happen before the
+			 * site's language is known, so fall back to the default locale.
+			 */
+			$dir_attr .= " lang='en-US'";
+		} elseif ( empty( $args['text_direction'] ) ) {
+			/*
+			 * If `text_direction` was not explicitly passed,
+			 * use the site's language attributes.
+			 */
 			$dir_attr = get_language_attributes();
 		}
 		?>
@@ -4382,6 +4395,7 @@ function _wp_die_process_input( $message, $title = '', $args = array() ) {
 		'text_direction'    => '',
 		'charset'           => 'utf-8',
 		'additional_errors' => array(),
+		'heading'           => '',
 	);
 
 	$args = wp_parse_args( $args, $defaults );
