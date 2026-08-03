@@ -36,7 +36,7 @@ class WP {
 	 * @since 7.1.0
 	 * @var string[]
 	 */
-	private $single_value_query_vars = array( 'feed' );
+	public $single_value_query_vars = array( 'feed' );
 
 	/**
 	 * Extra query variables set by the user.
