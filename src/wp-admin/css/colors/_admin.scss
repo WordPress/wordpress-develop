@@ -529,14 +529,16 @@ ul#adminmenu > li.current > a.current:after {
 	color: variables.$menu-text;
 }
 
-#wpadminbar #wp-admin-bar-user-info a:hover .display-name {
-	color: variables.$menu-submenu-focus-text;
-}
-
 #wpadminbar #wp-admin-bar-user-info .username {
 	color: variables.$menu-submenu-text;
 }
 
+#wpadminbar #wp-admin-bar-user-info a:hover .display-name,
+#wpadminbar #wp-admin-bar-user-info a:focus .display-name,
+#wpadminbar #wp-admin-bar-user-info a:hover .username,
+#wpadminbar #wp-admin-bar-user-info a:focus .username {
+	color: variables.$menu-submenu-focus-text;
+}
 
 /* Pointers */
 

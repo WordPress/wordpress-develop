@@ -465,8 +465,6 @@ html:lang(he-il) .rtl #wpadminbar * {
 #wpadminbar #wp-admin-bar-user-info a {
 	background: none;
 	height: auto;
-	position: relative;
-	top: 4px;
 }
 
 #wpadminbar #wp-admin-bar-user-info span {
@@ -481,7 +479,6 @@ html:lang(he-il) .rtl #wpadminbar * {
 }
 
 #wpadminbar #wp-admin-bar-user-info .username {
-	color: #a7aaad;
 	font-size: 11px;
 }
 
@@ -1036,16 +1033,6 @@ html:lang(he-il) .rtl #wpadminbar * {
 		height: auto;
 		font-size: 16px;
 		line-height: 1.5;
-		color: #f0f0f1;
-	}
-
-	#wpadminbar #wp-admin-bar-user-info a {
-		padding-top: 4px;
-	}
-
-	#wpadminbar #wp-admin-bar-user-info .username {
-		line-height: 0.8 !important;
-		margin-bottom: -2px;
 	}
 
 	/* Show only default top level items */
