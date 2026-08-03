@@ -547,12 +547,13 @@ function wp_get_tooltip_helper( $content, $args = array() ) {
 		/*
 		 * A `span` with `role="dialog"` is used instead of a `dialog` element to keep the
 		 * markup as phrasing content. The `aria-label`, `tabindex`, and `autofocus`
-		 * attributes reproduce the accessible name and focus handling of the native element.
+		 * attributes reproduce the accessible name and focus handling of the native element,
+		 * and `aria-describedby` gives it the help text as its accessible description.
 		 */
 		$markup = sprintf(
 			'<span class="%1$s">
 				' . $button . '
-				<span popover="auto" id="%2$s" class="wp-tooltip__bubble" role="dialog" aria-label="%3$s" tabindex="-1" autofocus>' .
+				<span popover="auto" id="%2$s" class="wp-tooltip__bubble" role="dialog" aria-label="%3$s" aria-describedby="%2$s-text" tabindex="-1" autofocus>' .
 					'<span id="%2$s-text" class="wp-tooltip__text">%5$s</span>' .
 					'<button type="button" class="wp-tooltip__close" popovertarget="%2$s" popovertargetaction="hide" aria-label="%6$s">' .
 						'<span class="dashicons dashicons-no-alt" aria-hidden="true"></span>' .
