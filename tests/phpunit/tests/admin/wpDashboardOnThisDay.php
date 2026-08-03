@@ -44,7 +44,6 @@ class Tests_Admin_wpDashboardOnThisDay extends WP_UnitTestCase {
 	public function set_up() {
 		parent::set_up();
 
-		// The widget only ever renders on the dashboard, where titles are not prefixed by `get_the_title()`.
 		set_current_screen( 'dashboard' );
 	}
 
