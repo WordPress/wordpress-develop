@@ -16,6 +16,7 @@
 		"php": ">=7.4"
 	},
 	"suggest": {
+		"ext-curl": "*",
 		"ext-dom": "*",
 		"ext-ftp": "*",
 		"ext-mysqli": "*",
