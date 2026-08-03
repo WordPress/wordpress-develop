@@ -346,7 +346,9 @@ jobs:
       php: ${{ matrix.php }}
       db-version: ${{ matrix.db-version }}
       db-type: ${{ matrix.db-type }}
+      multisite: ${{ matrix.multisite }}
       memcached: ${{ matrix.memcached || false }}
+      phpunit-config: ${{ matrix.multisite && 'tests/phpunit/multisite.xml' || 'phpunit.xml.dist' }}
       phpunit-test-groups: ${{ matrix.phpunit-test-groups || '' }}
       gutenberg-artifact: gutenberg-build
       gutenberg-sha: ${{ needs.prepare-gutenberg.outputs.gutenberg-sha }}

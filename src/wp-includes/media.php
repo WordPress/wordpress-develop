@@ -4716,9 +4716,9 @@ function wp_prepare_attachment_for_js( $attachment ) {
 
 	$attached_file = get_attached_file( $attachment->ID );
 
-	if ( isset( $meta['filesize'] ) ) {
-		$bytes = $meta['filesize'];
-	} elseif ( file_exists( $attached_file ) ) {
+	if ( isset( $meta['filesize'] ) && is_numeric( $meta['filesize'] ) && (int) $meta['filesize'] > 0 ) {
+		$bytes = (int) $meta['filesize'];
+	} elseif ( is_string( $attached_file ) && '' !== $attached_file && is_readable( $attached_file ) ) {
 		$bytes = wp_filesize( $attached_file );
 	} else {
 		$bytes = '';
@@ -5189,6 +5189,8 @@ function wp_enqueue_media( $args = array() ) {
 		'mediaFound'                  => __( 'Number of media items found: %d' ),
 		'noMedia'                     => __( 'No media items found.' ),
 		'noMediaTryNewSearch'         => __( 'No media items found. Try a different search.' ),
+		/* translators: %s: Media item title or file name. */
+		'mediaItemViewed'             => __( 'Viewing media item: %s' ),
 
 		// Library Details.
 		'attachmentDetails'           => __( 'Attachment details' ),
@@ -6532,7 +6534,7 @@ function wp_high_priority_element_flag( $value = null ): bool {
  *
  * @param string $filename  Path to the image.
  * @param string $mime_type The source image mime type.
- * @return string[] An array of mime type mappings.
+ * @return array<string, string> An array of mime type mappings.
  */
 function wp_get_image_editor_output_format( $filename, $mime_type ) {
 	$output_format = array(
@@ -6554,14 +6556,10 @@ function wp_get_image_editor_output_format( $filename, $mime_type ) {
 	 * @since 6.7.0 The default was changed from an empty array to an array
 	 *              containing the HEIC/HEIF images mime types.
 	 *
-	 * @param string[] $output_format {
-	 *     An array of mime type mappings. Maps a source mime type to a new
-	 *     destination mime type. By default maps HEIC/HEIF input to JPEG output.
-	 *
-	 *     @type string ...$0 The new mime type.
-	 * }
-	 * @param string $filename  Path to the image.
-	 * @param string $mime_type The source image mime type.
+	 * @param array<string, string> $output_format An array of mime type mappings. Maps a source mime type to a new
+	 *                                             destination mime type. By default maps HEIC/HEIF input to JPEG output.
+	 * @param string                $filename      Path to the image.
+	 * @param string                $mime_type     The source image mime type.
 	 */
 	return apply_filters( 'image_editor_output_format', $output_format, $filename, $mime_type );
 }
