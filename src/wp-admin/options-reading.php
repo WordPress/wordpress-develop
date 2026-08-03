@@ -235,7 +235,7 @@ else :
 	do_action( 'blog_privacy_selector' );
 	?>
 <?php else : ?>
-	<label for="blog_public"><input name="blog_public" type="checkbox" id="blog_public" value="0" aria-describedby="privacy-desc" <?php checked( '0', get_option( 'blog_public' ) ); ?> />
+	<label for="blog_public"><input name="blog_public" type="checkbox" id="blog_public" aria-describedby="privacy-desc" value="0" <?php checked( '0', get_option( 'blog_public' ) ); ?> />
 	<?php _e( 'Discourage search engines from indexing this site' ); ?></label>
 	<p id="privacy-desc" class="description"><?php _e( 'It is up to search engines to honor this request.' ); ?></p>
 <?php endif; ?>
