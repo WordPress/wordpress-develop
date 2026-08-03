@@ -830,6 +830,8 @@ function wp_restore_image( $post_id ) {
 		return $msg;
 	}
 
+	$meta['sizes'] ??= array();
+
 	$parts         = pathinfo( $file );
 	$suffix        = time() . rand( 100, 999 );
 	$default_sizes = get_intermediate_image_sizes();
@@ -987,6 +989,8 @@ function wp_save_image( $post_id ) {
 		$return->error = esc_js( __( 'Image data does not exist. Please re-upload the image.' ) );
 		return $return;
 	}
+
+	$meta['sizes'] ??= array();
 
 	if ( ! is_array( $backup_sizes ) ) {
 		$backup_sizes = array();
