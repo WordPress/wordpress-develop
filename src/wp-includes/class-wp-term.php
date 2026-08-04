@@ -181,10 +181,12 @@ final class WP_Term {
 			}
 		}
 
-		$term_obj = new WP_Term( $_term );
-		$term_obj->filter( $term_obj->filter );
+		if ( empty( $_term->filter ) ) {
+			$_term = sanitize_term( $_term, $_term->taxonomy, 'raw' );
+			wp_cache_replace( $term_id, $_term, 'terms' );
+		}
 
-		return $term_obj;
+		return new WP_Term( $_term );
 	}
 
 	/**
@@ -206,9 +208,22 @@ final class WP_Term {
 	 * @since 4.4.0
 	 *
 	 * @param string $filter Filter context. Accepts 'edit', 'db', 'display', 'attribute', 'js', 'rss', or 'raw'.
+	 * @return WP_Term Sanitized term object.
 	 */
 	public function filter( $filter ) {
-		sanitize_term( $this, $this->taxonomy, $filter );
+		if ( $this->filter === $filter ) {
+			return $this;
+		}
+
+		if ( 'raw' === $filter ) {
+			$raw = self::get_instance( $this->term_id, $this->taxonomy );
+			if ( $raw instanceof WP_Term ) {
+				return $raw;
+			}
+			return $this;
+		}
+
+		return sanitize_term( $this, $this->taxonomy, $filter );
 	}
 
 	/**

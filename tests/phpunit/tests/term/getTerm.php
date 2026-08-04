@@ -179,6 +179,47 @@ class Tests_Term_GetTerm extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 50568
+	 */
+	public function test_raw_filter_object_should_normalize_integer_fields() {
+		$term                   = new stdClass();
+		$term->term_id          = (string) self::$term->term_id;
+		$term->term_taxonomy_id = '123';
+		$term->parent           = '0';
+		$term->count            = '7';
+		$term->term_group       = '0';
+		$term->filter           = 'raw';
+		$term->name             = 'Test Term';
+		$term->slug             = 'test-term';
+		$term->taxonomy         = 'wptests_tax';
+
+		$found = get_term( $term, 'wptests_tax' );
+
+		$this->assertInstanceOf( 'WP_Term', $found );
+		$this->assertSame( self::$term->term_id, $found->term_id );
+		$this->assertSame( 123, $found->term_taxonomy_id );
+		$this->assertSame( 0, $found->parent );
+		$this->assertSame( 7, $found->count );
+		$this->assertSame( 0, $found->term_group );
+		$this->assertSame( 'raw', $found->filter );
+	}
+
+	/**
+	 * @ticket 50568
+	 */
+	public function test_display_filtered_term_should_be_returned_raw_when_raw_filter_is_requested() {
+		$display_term = get_term( self::$term->term_id, 'wptests_tax', OBJECT, 'display' );
+
+		$this->assertInstanceOf( 'WP_Term', $display_term );
+		$this->assertSame( 'display', $display_term->filter );
+
+		$raw_term = get_term( $display_term, 'wptests_tax', OBJECT, 'raw' );
+
+		$this->assertInstanceOf( 'WP_Term', $raw_term );
+		$this->assertSame( 'raw', $raw_term->filter );
+	}
+
+	/**
 	 * @ticket 34332
 	 */
 	public function test_should_return_null_when_provided_taxonomy_does_not_match_actual_term_taxonomy() {
