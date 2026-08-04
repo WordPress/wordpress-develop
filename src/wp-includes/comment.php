@@ -2613,12 +2613,12 @@ function wp_get_note_mentioned_user_ids( string $content ): array {
  *
  * @since 7.1.0
  *
- * @param WP_Comment $comment  The note that was just inserted.
- * @param mixed      $request  The REST request. Unused.
- * @param bool       $creating Whether this is a create (true) or update (false).
+ * @param WP_Comment|null $comment  The note that was just inserted. (May only be null as an edge case.)
+ * @param mixed           $request  The REST request. Unused.
+ * @param bool            $creating Whether this is a create (true) or update (false).
  */
-function wp_notify_note_mentions( WP_Comment $comment, $request = null, bool $creating = true ): void {
-	if ( ! $creating ) {
+function wp_notify_note_mentions( ?WP_Comment $comment, $request = null, bool $creating = true ): void {
+	if ( ! $creating || ! $comment ) {
 		return;
 	}
 
