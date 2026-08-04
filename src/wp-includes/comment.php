@@ -2690,7 +2690,7 @@ function wp_notify_note_mentions( WP_Comment $comment, $request = null, bool $cr
  * @param WP_Post|null $post    The post the note belongs to.
  * @return bool Whether the email was accepted for delivery by wp_mail().
  */
-function wp_send_note_notification( $user, $comment, $post ) {
+function wp_send_note_notification( WP_User $user, WP_Comment $comment, ?WP_Post $post ): bool {
 	$switched_locale = switch_to_user_locale( $user->ID );
 
 	$blogname    = wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES );
