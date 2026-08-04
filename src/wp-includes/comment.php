@@ -2568,8 +2568,9 @@ function wp_new_comment_via_rest_notify_postauthor( $comment ) {
  *
  * @param string $content Note (comment) content, as stored.
  * @return int[] Unique, positive mentioned user IDs.
+ * @phpstan-return list<positive-int>
  */
-function wp_get_note_mentioned_user_ids( $content ) {
+function wp_get_note_mentioned_user_ids( string $content ): array {
 	if ( ! str_contains( $content, 'wp-note-mention' ) ) {
 		return array();
 	}
@@ -2585,8 +2586,11 @@ function wp_get_note_mentioned_user_ids( $content ) {
 		)
 	) {
 		foreach ( $processor->class_list() as $class_name ) {
-			if ( 1 === preg_match( '/^user-([1-9][0-9]*)$/', $class_name, $matches ) ) {
-				$user_ids[] = (int) $matches[1];
+			if ( 1 === preg_match( '/^user-(\d+)$/', $class_name, $matches ) ) {
+				$user_id = (int) $matches[1];
+				if ( $user_id > 0 ) {
+					$user_ids[] = $user_id;
+				}
 				break;
 			}
 		}
