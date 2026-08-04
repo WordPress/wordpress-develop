@@ -11,13 +11,6 @@
 class Tests_Post_WpGetAttachmentMetadata extends WP_UnitTestCase {
 
 	/**
-	 * Value for the `wp_get_attachment_metadata` filter to return.
-	 *
-	 * @var mixed
-	 */
-	private $filter_return_value;
-
-	/**
 	 * Ensure metadata that was never stored is reported as missing.
 	 */
 	public function test_should_return_false_when_no_metadata_is_stored() {
@@ -138,8 +131,15 @@ class Tests_Post_WpGetAttachmentMetadata extends WP_UnitTestCase {
 	public function test_should_return_false_when_the_filter_returns_a_non_array( $value ) {
 		$attachment_id = $this->create_attachment( array( 'file' => '2026/08/image.jpg' ) );
 
-		$this->filter_return_value = $value;
-		add_filter( 'wp_get_attachment_metadata', array( $this, 'filter_return_stored_value' ) );
+		add_filter(
+			'wp_get_attachment_metadata',
+			/**
+			 * @return mixed
+			 */
+			static function () use ( $value ) {
+				return $value;
+			}
+		);
 
 		$this->assertFalse( wp_get_attachment_metadata( $attachment_id ) );
 	}
@@ -150,14 +150,23 @@ class Tests_Post_WpGetAttachmentMetadata extends WP_UnitTestCase {
 	 * @ticket 65748
 	 */
 	public function test_should_normalize_a_sizes_value_introduced_by_the_filter() {
-		$attachment_id = $this->create_attachment(
-			array(
-				'file'  => '2026/08/image.jpg',
-				'sizes' => array(),
-			)
-		);
+		// Stored without a `sizes` key, so the key can only come from the filter.
+		$attachment_id = $this->create_attachment( array( 'file' => '2026/08/image.jpg' ) );
 
-		add_filter( 'wp_get_attachment_metadata', array( $this, 'filter_set_unusable_sizes' ) );
+		add_filter(
+			'wp_get_attachment_metadata',
+			/**
+			 * @param mixed $data Attachment metadata.
+			 * @return mixed
+			 */
+			static function ( $data ) {
+				if ( is_array( $data ) ) {
+					$data['sizes'] = 'not-an-array';
+				}
+
+				return $data;
+			}
+		);
 
 		$metadata = wp_get_attachment_metadata( $attachment_id );
 
@@ -239,28 +248,5 @@ class Tests_Post_WpGetAttachmentMetadata extends WP_UnitTestCase {
 		}
 
 		return $attachment_id;
-	}
-
-	/**
-	 * Filter callback returning the value stored in $filter_return_value.
-	 *
-	 * @return mixed
-	 */
-	public function filter_return_stored_value() {
-		return $this->filter_return_value;
-	}
-
-	/**
-	 * Filter callback replacing the `sizes` value with a string.
-	 *
-	 * @param mixed $data Attachment metadata.
-	 * @return mixed
-	 */
-	public function filter_set_unusable_sizes( $data ) {
-		if ( is_array( $data ) ) {
-			$data['sizes'] = 'not-an-array';
-		}
-
-		return $data;
 	}
 }
