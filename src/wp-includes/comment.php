@@ -2693,7 +2693,7 @@ function wp_notify_note_mentions( WP_Comment $comment, $request = null, bool $cr
 function wp_send_note_notification( WP_User $user, WP_Comment $comment, ?WP_Post $post ): bool {
 	$switched_locale = switch_to_user_locale( $user->ID );
 
-	$blogname    = wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES );
+	$blogname    = wp_specialchars_decode( get_bloginfo( 'name', 'display' ), ENT_QUOTES );
 	$post_title  = $post ? wp_specialchars_decode( get_the_title( $post ), ENT_QUOTES ) : '';
 	$author_name = $comment->comment_author ? $comment->comment_author : __( 'Someone' );
 	$content     = wp_strip_all_tags( wp_specialchars_decode( $comment->comment_content ) );
