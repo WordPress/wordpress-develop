@@ -170,6 +170,7 @@ function wp_dashboard_setup() {
  *
  * @since 2.7.0
  * @since 5.6.0 The `$context` and `$priority` parameters were added.
+ * @since 7.2.0 The `$enqueue_callback` parameter was added.
  *
  * @global callable[] $wp_dashboard_control_callbacks
  *
@@ -184,11 +185,28 @@ function wp_dashboard_setup() {
  *                                   Accepts 'normal', 'side', 'column3', or 'column4'. Default 'normal'.
  * @param string   $priority         Optional. The priority within the context where the box should show.
  *                                   Accepts 'high', 'core', 'default', or 'low'. Default 'core'.
+ * @param callable $enqueue_callback Optional. Function that enqueues the scripts and styles for the widget.
+ *                                   Only called when the widget is not hidden via Screen Options, so assets
+ *                                   for hidden widgets are not loaded. Default null.
  */
-function wp_add_dashboard_widget( $widget_id, $widget_name, $callback, $control_callback = null, $callback_args = null, $context = 'normal', $priority = 'core' ) {
+function wp_add_dashboard_widget( $widget_id, $widget_name, $callback, $control_callback = null, $callback_args = null, $context = 'normal', $priority = 'core', $enqueue_callback = null ) {
 	global $wp_dashboard_control_callbacks;
 
 	$screen = get_current_screen();
+
+	/*
+	 * Only enqueue the widget's assets when the widget is actually visible.
+	 * A widget hidden via Screen Options is removed from the DOM, so loading
+	 * its scripts and styles wastes resources. Collapsed (closed) widgets are
+	 * still present in the DOM, so they are intentionally treated as visible.
+	 */
+	if ( is_callable( $enqueue_callback ) && $screen instanceof WP_Screen ) {
+		$hidden_widgets = get_hidden_meta_boxes( $screen );
+
+		if ( ! in_array( $widget_id, $hidden_widgets, true ) ) {
+			call_user_func( $enqueue_callback );
+		}
+	}
 
 	$private_callback_args = array( '__widget_basename' => $widget_name );
 

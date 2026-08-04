@@ -496,6 +496,178 @@ class Tests_Admin_IncludesTemplate extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that the enqueue callback runs when the widget is visible.
+	 *
+	 * @ticket 55344
+	 *
+	 * @covers ::wp_add_dashboard_widget
+	 */
+	public function test_wp_add_dashboard_widget_enqueue_callback_called_when_visible() {
+		set_current_screen( 'dashboard' );
+
+		if ( ! function_exists( 'wp_add_dashboard_widget' ) ) {
+			require_once ABSPATH . 'wp-admin/includes/dashboard.php';
+		}
+
+		$called = false;
+
+		wp_add_dashboard_widget(
+			'dashboard_enqueue_visible',
+			'Visible',
+			'__return_false',
+			null,
+			null,
+			'normal',
+			'core',
+			function () use ( &$called ) {
+				$called = true;
+			}
+		);
+
+		$this->assertTrue( $called, 'The enqueue callback should run for a visible widget.' );
+
+		remove_meta_box( 'dashboard_enqueue_visible', 'dashboard', 'normal' );
+	}
+
+	/**
+	 * Tests that the enqueue callback does not run when the widget is hidden
+	 * via Screen Options.
+	 *
+	 * @ticket 55344
+	 *
+	 * @covers ::wp_add_dashboard_widget
+	 */
+	public function test_wp_add_dashboard_widget_enqueue_callback_not_called_when_hidden() {
+		set_current_screen( 'dashboard' );
+
+		if ( ! function_exists( 'wp_add_dashboard_widget' ) ) {
+			require_once ABSPATH . 'wp-admin/includes/dashboard.php';
+		}
+
+		wp_set_current_user( self::$editor_id );
+		update_user_option( get_current_user_id(), 'metaboxhidden_dashboard', array( 'dashboard_enqueue_hidden' ), true );
+
+		$called = false;
+
+		wp_add_dashboard_widget(
+			'dashboard_enqueue_hidden',
+			'Hidden',
+			'__return_false',
+			null,
+			null,
+			'normal',
+			'core',
+			function () use ( &$called ) {
+				$called = true;
+			}
+		);
+
+		$this->assertFalse( $called, 'The enqueue callback should not run for a hidden widget.' );
+
+		remove_meta_box( 'dashboard_enqueue_hidden', 'dashboard', 'normal' );
+	}
+
+	/**
+	 * Tests that the enqueue callback runs for a collapsed (closed) widget,
+	 * because a collapsed widget is still present in the DOM.
+	 *
+	 * @ticket 55344
+	 *
+	 * @covers ::wp_add_dashboard_widget
+	 */
+	public function test_wp_add_dashboard_widget_enqueue_callback_called_when_closed_but_not_hidden() {
+		set_current_screen( 'dashboard' );
+
+		if ( ! function_exists( 'wp_add_dashboard_widget' ) ) {
+			require_once ABSPATH . 'wp-admin/includes/dashboard.php';
+		}
+
+		wp_set_current_user( self::$editor_id );
+		update_user_option( get_current_user_id(), 'closedpostboxes_dashboard', array( 'dashboard_enqueue_closed' ), true );
+
+		$called = false;
+
+		wp_add_dashboard_widget(
+			'dashboard_enqueue_closed',
+			'Closed',
+			'__return_false',
+			null,
+			null,
+			'normal',
+			'core',
+			function () use ( &$called ) {
+				$called = true;
+			}
+		);
+
+		$this->assertTrue( $called, 'The enqueue callback should run for a collapsed (closed) widget.' );
+
+		remove_meta_box( 'dashboard_enqueue_closed', 'dashboard', 'normal' );
+	}
+
+	/**
+	 * Tests that a null enqueue callback is accepted without error,
+	 * preserving backward compatibility for existing callers.
+	 *
+	 * @ticket 55344
+	 *
+	 * @covers ::wp_add_dashboard_widget
+	 */
+	public function test_wp_add_dashboard_widget_null_enqueue_callback_no_error() {
+		global $wp_meta_boxes;
+
+		set_current_screen( 'dashboard' );
+
+		if ( ! function_exists( 'wp_add_dashboard_widget' ) ) {
+			require_once ABSPATH . 'wp-admin/includes/dashboard.php';
+		}
+
+		wp_add_dashboard_widget( 'dashboard_enqueue_null', 'Null', '__return_false', null, null, 'normal', 'core', null );
+
+		$this->assertArrayHasKey( 'dashboard_enqueue_null', $wp_meta_boxes['dashboard']['normal']['core'] );
+
+		remove_meta_box( 'dashboard_enqueue_null', 'dashboard', 'normal' );
+	}
+
+	/**
+	 * Tests that the enqueue callback runs on a first visit, when no user
+	 * preference for hidden meta boxes has been stored yet.
+	 *
+	 * @ticket 55344
+	 *
+	 * @covers ::wp_add_dashboard_widget
+	 */
+	public function test_wp_add_dashboard_widget_enqueue_callback_called_when_no_user_pref() {
+		set_current_screen( 'dashboard' );
+
+		if ( ! function_exists( 'wp_add_dashboard_widget' ) ) {
+			require_once ABSPATH . 'wp-admin/includes/dashboard.php';
+		}
+
+		wp_set_current_user( self::$editor_id );
+		delete_user_option( get_current_user_id(), 'metaboxhidden_dashboard', true );
+
+		$called = false;
+
+		wp_add_dashboard_widget(
+			'dashboard_enqueue_no_pref',
+			'No Pref',
+			'__return_false',
+			null,
+			null,
+			'normal',
+			'core',
+			function () use ( &$called ) {
+				$called = true;
+			}
+		);
+
+		$this->assertTrue( $called, 'The enqueue callback should run when no hidden-widget preference is stored.' );
+
+		remove_meta_box( 'dashboard_enqueue_no_pref', 'dashboard', 'normal' );
+	}
+
+	/**
 	 * Tests that get_post_states() handles a null value gracefully.
 	 *
 	 * This can happen when get_post() returns null (e.g., when a post
