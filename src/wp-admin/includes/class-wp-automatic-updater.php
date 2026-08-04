@@ -411,7 +411,7 @@ class WP_Automatic_Updater {
 			case 'theme':
 				$upgrader_item = $item->theme;
 				$theme         = wp_get_theme( $upgrader_item );
-				$item_name     = $theme->Get( 'Name' );
+				$item_name     = $theme->get( 'Name' );
 				// Add the current version so that it can be reported in the notification email.
 				$item->current_version = $theme->get( 'Version' );
 				if ( empty( $item->current_version ) ) {
@@ -936,6 +936,14 @@ class WP_Automatic_Updater {
 			return;
 		}
 
+		$admin_user = get_user_by( 'email', get_site_option( 'admin_email' ) );
+
+		if ( $admin_user ) {
+			$switched_locale = switch_to_user_locale( $admin_user->ID );
+		} else {
+			$switched_locale = switch_to_locale( get_locale() );
+		}
+
 		switch ( $type ) {
 			case 'success': // We updated.
 				/* translators: Site updated notification email subject. 1: Site title, 2: WordPress version. */
@@ -1139,8 +1147,11 @@ class WP_Automatic_Updater {
 		$email = apply_filters( 'auto_core_update_email', $email, $type, $core_update, $result );
 
 		wp_mail( $email['to'], wp_specialchars_decode( $email['subject'] ), $email['body'], $email['headers'] );
-	}
 
+		if ( $switched_locale ) {
+			restore_previous_locale();
+		}
+	}
 
 	/**
 	 * Checks whether an email should be sent after attempting plugin or theme updates.
@@ -1253,6 +1264,14 @@ class WP_Automatic_Updater {
 			if ( ! $unique_failures ) {
 				return;
 			}
+		}
+
+		$admin_user = get_user_by( 'email', get_site_option( 'admin_email' ) );
+
+		if ( $admin_user ) {
+			$switched_locale = switch_to_user_locale( $admin_user->ID );
+		} else {
+			$switched_locale = switch_to_locale( get_locale() );
 		}
 
 		$body               = array();
@@ -1526,6 +1545,10 @@ class WP_Automatic_Updater {
 		if ( $result ) {
 			update_option( 'auto_plugin_theme_update_emails', $past_failure_emails );
 		}
+
+		if ( $switched_locale ) {
+			restore_previous_locale();
+		}
 	}
 
 	/**
@@ -1534,9 +1557,12 @@ class WP_Automatic_Updater {
 	 * @since 3.7.0
 	 */
 	protected function send_debug_email() {
-		$update_count = 0;
-		foreach ( $this->update_results as $type => $updates ) {
-			$update_count += count( $updates );
+		$admin_user = get_user_by( 'email', get_site_option( 'admin_email' ) );
+
+		if ( $admin_user ) {
+			$switched_locale = switch_to_user_locale( $admin_user->ID );
+		} else {
+			$switched_locale = switch_to_locale( get_locale() );
 		}
 
 		$body     = array();
@@ -1715,6 +1741,10 @@ Thanks! -- The WordPress Team"
 		$email = apply_filters( 'automatic_updates_debug_email', $email, $failures, $this->update_results );
 
 		wp_mail( $email['to'], wp_specialchars_decode( $email['subject'] ), $email['body'], $email['headers'] );
+
+		if ( $switched_locale ) {
+			restore_previous_locale();
+		}
 	}
 
 	/**
@@ -1755,9 +1785,6 @@ Thanks! -- The WordPress Team"
 			'Cache-Control' => 'no-cache',
 		);
 
-		/** This filter is documented in wp-includes/class-wp-http-streams.php */
-		$sslverify = apply_filters( 'https_local_ssl_verify', false );
-
 		// Include Basic auth in the loopback request.
 		if ( isset( $_SERVER['PHP_AUTH_USER'] ) && isset( $_SERVER['PHP_AUTH_PW'] ) ) {
 			$headers['Authorization'] = 'Basic ' . base64_encode( wp_unslash( $_SERVER['PHP_AUTH_USER'] ) . ':' . wp_unslash( $_SERVER['PHP_AUTH_PW'] ) );
@@ -1774,7 +1801,10 @@ Thanks! -- The WordPress Team"
 		$needle_start = "###### wp_scraping_result_start:$scrape_key ######";
 		$needle_end   = "###### wp_scraping_result_end:$scrape_key ######";
 		$url          = add_query_arg( $scrape_params, home_url( '/' ) );
-		$response     = wp_remote_get( $url, compact( 'cookies', 'headers', 'timeout', 'sslverify' ) );
+
+		/** This filter is documented in wp-includes/class-wp-http-streams.php */
+		$sslverify = apply_filters( 'https_local_ssl_verify', false, $url );
+		$response  = wp_remote_get( $url, compact( 'cookies', 'headers', 'timeout', 'sslverify' ) );
 
 		if ( is_wp_error( $response ) ) {
 			if ( $is_debug ) {

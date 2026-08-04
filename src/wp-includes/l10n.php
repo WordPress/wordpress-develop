@@ -116,7 +116,8 @@ function get_user_locale( $user = 0 ) {
  *
  * @since 5.0.0
  *
- * @global string $pagenow The filename of the current screen.
+ * @global string $pagenow          The filename of the current screen.
+ * @global string $wp_local_package Locale code of the package.
  *
  * @return string The determined locale.
  */
@@ -963,7 +964,7 @@ function load_default_textdomain( $locale = null ) {
 		return $return;
 	}
 
-	if ( is_admin() || wp_installing() || ( defined( 'WP_REPAIRING' ) && WP_REPAIRING ) ) {
+	if ( is_admin() || wp_installing() || ( defined( 'WP_REPAIRING' ) && WP_REPAIRING ) || doing_action( 'wp_maybe_auto_update' ) ) {
 		load_textdomain( 'default', WP_LANG_DIR . "/admin-$locale.mo", $locale );
 	}
 
@@ -985,6 +986,9 @@ function load_default_textdomain( $locale = null ) {
  * @since 4.6.0 The function now tries to load the .mo file from the languages directory first.
  * @since 6.7.0 Translations are no longer immediately loaded, but handed off to the just-in-time loading mechanism.
  *
+ * @global WP_Textdomain_Registry $wp_textdomain_registry WordPress Textdomain Registry.
+ * @global array<string, WP_Translations|NOOP_Translations> $l10n An array of all currently loaded text domains.
+ *
  * @param string       $domain          Unique identifier for retrieving translated strings
  * @param string|false $deprecated      Optional. Deprecated. Use the $plugin_rel_path parameter instead.
  *                                      Default false.
@@ -994,7 +998,8 @@ function load_default_textdomain( $locale = null ) {
  */
 function load_plugin_textdomain( $domain, $deprecated = false, $plugin_rel_path = false ) {
 	/** @var WP_Textdomain_Registry $wp_textdomain_registry */
-	global $wp_textdomain_registry;
+	/** @var array<string, WP_Translations|NOOP_Translations> $l10n */
+	global $wp_textdomain_registry, $l10n;
 
 	if ( ! is_string( $domain ) ) {
 		return false;
@@ -1011,6 +1016,11 @@ function load_plugin_textdomain( $domain, $deprecated = false, $plugin_rel_path 
 
 	$wp_textdomain_registry->set_custom_path( $domain, $path );
 
+	// If just-in-time loading was triggered before, reset the entry so it can be tried again.
+	if ( isset( $l10n[ $domain ] ) && $l10n[ $domain ] instanceof NOOP_Translations ) {
+		unset( $l10n[ $domain ] );
+	}
+
 	return true;
 }
 
@@ -1022,6 +1032,7 @@ function load_plugin_textdomain( $domain, $deprecated = false, $plugin_rel_path 
  * @since 6.7.0 Translations are no longer immediately loaded, but handed off to the just-in-time loading mechanism.
  *
  * @global WP_Textdomain_Registry $wp_textdomain_registry WordPress Textdomain Registry.
+ * @global array<string, WP_Translations|NOOP_Translations> $l10n An array of all currently loaded text domains.
  *
  * @param string $domain             Text domain. Unique identifier for retrieving translated strings.
  * @param string $mu_plugin_rel_path Optional. Relative to `WPMU_PLUGIN_DIR` directory in which the .mo
@@ -1030,7 +1041,8 @@ function load_plugin_textdomain( $domain, $deprecated = false, $plugin_rel_path 
  */
 function load_muplugin_textdomain( $domain, $mu_plugin_rel_path = '' ) {
 	/** @var WP_Textdomain_Registry $wp_textdomain_registry */
-	global $wp_textdomain_registry;
+	/** @var array<string, WP_Translations|NOOP_Translations> $l10n */
+	global $wp_textdomain_registry, $l10n;
 
 	if ( ! is_string( $domain ) ) {
 		return false;
@@ -1039,6 +1051,11 @@ function load_muplugin_textdomain( $domain, $mu_plugin_rel_path = '' ) {
 	$path = WPMU_PLUGIN_DIR . '/' . ltrim( $mu_plugin_rel_path, '/' );
 
 	$wp_textdomain_registry->set_custom_path( $domain, $path );
+
+	// If just-in-time loading was triggered before, reset the entry so it can be tried again.
+	if ( isset( $l10n[ $domain ] ) && $l10n[ $domain ] instanceof NOOP_Translations ) {
+		unset( $l10n[ $domain ] );
+	}
 
 	return true;
 }
@@ -1056,6 +1073,7 @@ function load_muplugin_textdomain( $domain, $mu_plugin_rel_path = '' ) {
  * @since 6.7.0 Translations are no longer immediately loaded, but handed off to the just-in-time loading mechanism.
  *
  * @global WP_Textdomain_Registry $wp_textdomain_registry WordPress Textdomain Registry.
+ * @global array<string, WP_Translations|NOOP_Translations> $l10n An array of all currently loaded text domains.
  *
  * @param string       $domain Text domain. Unique identifier for retrieving translated strings.
  * @param string|false $path   Optional. Path to the directory containing the .mo file.
@@ -1064,7 +1082,8 @@ function load_muplugin_textdomain( $domain, $mu_plugin_rel_path = '' ) {
  */
 function load_theme_textdomain( $domain, $path = false ) {
 	/** @var WP_Textdomain_Registry $wp_textdomain_registry */
-	global $wp_textdomain_registry;
+	/** @var array<string, WP_Translations|NOOP_Translations> $l10n */
+	global $wp_textdomain_registry, $l10n;
 
 	if ( ! is_string( $domain ) ) {
 		return false;
@@ -1075,6 +1094,11 @@ function load_theme_textdomain( $domain, $path = false ) {
 	}
 
 	$wp_textdomain_registry->set_custom_path( $domain, $path );
+
+	// If just-in-time loading was triggered before, reset the entry so it can be tried again.
+	if ( isset( $l10n[ $domain ] ) && $l10n[ $domain ] instanceof NOOP_Translations ) {
+		unset( $l10n[ $domain ] );
+	}
 
 	return true;
 }
@@ -1123,8 +1147,77 @@ function load_script_textdomain( $handle, $domain = 'default', $path = '' ) {
 		return false;
 	}
 
-	$path   = untrailingslashit( $path );
+	$src = $wp_scripts->registered[ $handle ]->src;
+
+	if ( ! preg_match( '|^(https?:)?//|', $src ) && ! ( $wp_scripts->content_url && str_starts_with( $src, $wp_scripts->content_url ) ) ) {
+		$src = $wp_scripts->base_url . $src;
+	}
+
+	return _load_script_textdomain_from_src( $handle, $src, $domain, $path, false );
+}
+
+/**
+ * Loads the translation data for a given script module ID and text domain.
+ *
+ * Works like {@see load_script_textdomain()} but for script modules registered
+ * via {@see wp_register_script_module()}.
+ *
+ * @since 7.0.0
+ *
+ * @param string $id     The script module identifier.
+ * @param string $domain Optional. Text domain. Default 'default'.
+ * @param string $path   Optional. The full file path to the directory containing translation files.
+ * @return string|false The JSON-encoded translated strings for the given script module and text domain.
+ *                      False if there are none.
+ */
+function load_script_module_textdomain( string $id, string $domain = 'default', string $path = '' ) {
+	$module = wp_script_modules()->get_registered( $id );
+	if ( null === $module ) {
+		return false;
+	}
+	$src = $module['src'];
+
+	// Ensure src is an absolute URL for path resolution.
+	if ( ! preg_match( '|^(https?:)?//|', $src ) ) {
+		$src = site_url( $src );
+	}
+
+	return _load_script_textdomain_from_src( $id, $src, $domain, $path, true );
+}
+
+/**
+ * Resolves and loads the translation JSON file for a given script or script module source URL.
+ *
+ * This is a shared implementation used by {@see load_script_textdomain()} and
+ * {@see load_script_module_textdomain()} to avoid duplicating the path
+ * resolution and file lookup logic.
+ *
+ * @since 7.0.0
+ * @access private
+ *
+ * @global WP_Textdomain_Registry $wp_textdomain_registry WordPress Textdomain Registry.
+ *
+ * @param string $handle    Name of the script or script module identifier to register a translation domain to.
+ * @param string $src       Absolute source URL of the script or script module.
+ * @param string $domain    Text domain.
+ * @param string $path      The full file path to the directory containing translation files,
+ *                          or an empty string to use the default path from the text domain registry.
+ * @param bool   $is_module Whether the source belongs to a script module (true) or a classic script (false).
+ * @return string|false The JSON-encoded translated strings on success, false otherwise.
+ */
+function _load_script_textdomain_from_src( string $handle, string $src, string $domain, string $path, bool $is_module ) {
+	/** @var WP_Textdomain_Registry $wp_textdomain_registry */
+	global $wp_textdomain_registry;
+
 	$locale = determine_locale();
+
+	if ( ! $path ) {
+		$path = $wp_textdomain_registry->get( $domain, $locale );
+	}
+
+	if ( $path ) {
+		$path = untrailingslashit( $path );
+	}
 
 	// If a path was given and the handle file exists simply return it.
 	$file_base       = 'default' === $domain ? $locale : $domain . '-' . $locale;
@@ -1138,17 +1231,20 @@ function load_script_textdomain( $handle, $domain = 'default', $path = '' ) {
 		}
 	}
 
-	$src = $wp_scripts->registered[ $handle ]->src;
-
-	if ( ! preg_match( '|^(https?:)?//|', $src ) && ! ( $wp_scripts->content_url && str_starts_with( $src, $wp_scripts->content_url ) ) ) {
-		$src = $wp_scripts->base_url . $src;
-	}
-
 	$relative       = false;
 	$languages_path = WP_LANG_DIR;
 
-	$src_url     = wp_parse_url( $src );
+	$src_url = wp_parse_url( $src );
+	if ( ! $src_url ) {
+		return load_script_translations( false, $handle, $domain );
+	}
+	$src_url['path'] ??= '';
+
 	$content_url = wp_parse_url( content_url() );
+	if ( ! $content_url ) {
+		return load_script_translations( false, $handle, $domain );
+	}
+
 	$plugins_url = wp_parse_url( plugins_url() );
 	$site_url    = wp_parse_url( site_url() );
 	$theme_root  = get_theme_root();
@@ -1211,14 +1307,16 @@ function load_script_textdomain( $handle, $domain = 'default', $path = '' ) {
 	 * Filters the relative path of scripts used for finding translation files.
 	 *
 	 * @since 5.0.2
+	 * @since 7.0.0 The `$is_module` parameter was added.
 	 *
-	 * @param string|false $relative The relative path of the script. False if it could not be determined.
-	 * @param string       $src      The full source URL of the script.
+	 * @param string|false $relative  The relative path of the script. False if it could not be determined.
+	 * @param string       $src       The full source URL of the script.
+	 * @param bool         $is_module Whether the source belongs to a script module (true) or a classic script (false).
 	 */
-	$relative = apply_filters( 'load_script_textdomain_relative_path', $relative, $src );
+	$relative = apply_filters( 'load_script_textdomain_relative_path', $relative, $src, $is_module );
 
 	// If the source is not from WP.
-	if ( false === $relative ) {
+	if ( ! is_string( $relative ) ) {
 		return load_script_translations( false, $handle, $domain );
 	}
 
@@ -1456,7 +1554,7 @@ function get_available_languages( $dir = null ) {
 
 	$languages = array();
 
-	$path       = is_null( $dir ) ? WP_LANG_DIR : $dir;
+	$path       = $dir ?? WP_LANG_DIR;
 	$lang_files = $wp_textdomain_registry->get_language_files_from_path( $path );
 
 	if ( $lang_files ) {

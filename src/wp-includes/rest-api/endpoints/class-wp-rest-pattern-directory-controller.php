@@ -100,8 +100,8 @@ class WP_REST_Pattern_Directory_Controller extends WP_REST_Controller {
 
 		$query_args['locale']             = get_user_locale();
 		$query_args['wp-version']         = wp_get_wp_version();
-		$query_args['pattern-categories'] = isset( $request['category'] ) ? $request['category'] : false;
-		$query_args['pattern-keywords']   = isset( $request['keyword'] ) ? $request['keyword'] : false;
+		$query_args['pattern-categories'] = $request['category'] ?? false;
+		$query_args['pattern-keywords']   = $request['keyword'] ?? false;
 
 		$query_args = array_filter( $query_args );
 
@@ -159,6 +159,11 @@ class WP_REST_Pattern_Directory_Controller extends WP_REST_Controller {
 			$raw_patterns->add_data( array( 'status' => 500 ) );
 
 			return $raw_patterns;
+		}
+
+		if ( $request->is_method( 'HEAD' ) ) {
+			// Return early as this handler doesn't add any response headers.
+			return new WP_REST_Response( array() );
 		}
 
 		$response = array();

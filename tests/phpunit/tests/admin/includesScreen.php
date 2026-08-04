@@ -451,6 +451,19 @@ class Tests_Admin_IncludesScreen extends WP_UnitTestCase {
 		$this->assertSame( $screen->get_options(), array() );
 	}
 
+	/**
+	 * @ticket 62562
+	 */
+	public function test_get_current_screen_type() {
+		global $current_screen;
+
+		set_current_screen( 'edit.php' );
+		$this->assertInstanceOf( 'WP_Screen', get_current_screen() );
+
+		$current_screen = new stdClass();
+		$this->assertNull( get_current_screen() );
+	}
+
 	public function test_in_admin() {
 		set_current_screen( 'edit.php' );
 		$this->assertTrue( get_current_screen()->in_admin() );

@@ -27,10 +27,10 @@ class WP_Terms_List_Table extends WP_List_Table {
 	 *
 	 * @see WP_List_Table::__construct() for more information on default arguments.
 	 *
-	 * @global string $post_type Global post type.
-	 * @global string $taxonomy  Global taxonomy.
-	 * @global string $action
-	 * @global object $tax
+	 * @global string      $post_type Global post type.
+	 * @global string      $taxonomy  Global taxonomy.
+	 * @global string      $action
+	 * @global WP_Taxonomy $tax       Global taxonomy object.
 	 *
 	 * @param array $args An associative array of arguments.
 	 */
@@ -41,7 +41,7 @@ class WP_Terms_List_Table extends WP_List_Table {
 			array(
 				'plural'   => 'tags',
 				'singular' => 'tag',
-				'screen'   => isset( $args['screen'] ) ? $args['screen'] : null,
+				'screen'   => $args['screen'] ?? null,
 			)
 		);
 
@@ -413,10 +413,8 @@ class WP_Terms_List_Table extends WP_List_Table {
 				$edit_link
 			);
 			$name      = sprintf(
-				'<a class="row-title" href="%s" aria-label="%s">%s</a>',
+				'<a class="row-title" href="%s">%s</a>',
 				esc_url( $edit_link ),
-				/* translators: %s: Taxonomy term name. */
-				esc_attr( sprintf( __( '&#8220;%s&#8221; (Edit)' ), $tag->name ) ),
 				$name
 			);
 		}
@@ -752,5 +750,21 @@ class WP_Terms_List_Table extends WP_List_Table {
 		</tbody></table>
 		</form>
 		<?php
+	}
+
+	/**
+	 * Returns a clean label for the primary (Name) column's row header `aria-label`.
+	 *
+	 * Provides screen readers with just the term name as the row header name,
+	 * preventing them from computing the name from the full cell content.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @param WP_Term $term Term object.
+	 * @return string The term name.
+	 */
+	protected function get_primary_column_aria_label( $term ) {
+		// Term names are already sanitized via `sanitize_term()` on creation and update.
+		return $term->name;
 	}
 }

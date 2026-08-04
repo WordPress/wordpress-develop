@@ -1,5 +1,5 @@
 {
-	"$schema": "https://schemas.wp.org/trunk/theme.json",
+	"$schema": "https://schemas.wp.org/wp/6.7/theme.json",
 	"version": 3,
 	"settings": {
 		"appearanceTools": true,
@@ -428,7 +428,7 @@
 				"border": {
 					"style": "solid",
 					"width": "0 0 0 2px",
-					"color": "var:preset|color|contrast"
+					"color": "currentColor"
 				},
 				"spacing": {
 					"blockGap": "var:preset|spacing|30",
@@ -568,9 +568,6 @@
 				}
 			},
 			"core/term-description": {
-				"color":{
-					"text": "var:preset|color|accent-4"
-				},
 				"typography": {
 					"fontSize": "var:preset|font-size|medium"
 				}
@@ -697,7 +694,7 @@
 		{
 			"area": "header",
 			"name": "vertical-header",
-			"title": "Vertical Header"
+			"title": "Vertical site header"
 		},
 		{
 			"area": "header",

@@ -965,7 +965,7 @@
 		wp.a11y.speak( __( 'Plugin dependencies check completed successfully.' ) );
 		$document.trigger( 'wp-check-plugin-dependencies-success', response );
 
-		if ( 'plugins-network' === pagenow ) {
+		if ( 'plugins-network' === pagenow || 'plugin-install-network' === pagenow ) {
 			buttonText = _x( 'Network Activate', 'plugin' );
 			ariaLabel  = sprintf(
 				/* translators: %s: Plugin name. */
@@ -2333,7 +2333,7 @@
 	 *                                                'update' or 'install'.
 	 */
 	wp.updates.isValidResponse = function( response, action ) {
-		var error = __( 'Something went wrong.' ),
+		var error = __( 'An error occurred during the update process. Please try again.' ),
 			errorMessage;
 
 		// Make sure the response is a valid data object and not a Promise object.

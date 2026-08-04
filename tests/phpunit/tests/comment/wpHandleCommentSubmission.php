@@ -9,6 +9,7 @@ class Tests_Comment_wpHandleCommentSubmission extends WP_UnitTestCase {
 
 	protected static $post;
 	protected static $author_id;
+	protected static $author_id2;
 	protected static $editor_id;
 
 	protected $preprocess_comment_data = array();
@@ -19,6 +20,13 @@ class Tests_Comment_wpHandleCommentSubmission extends WP_UnitTestCase {
 		self::$author_id = $factory->user->create(
 			array(
 				'role' => 'author',
+			)
+		);
+
+		self::$author_id2 = $factory->user->create(
+			array(
+				'role'     => 'author',
+				'user_url' => 'http://user.example.org',
 			)
 		);
 
@@ -223,11 +231,7 @@ class Tests_Comment_wpHandleCommentSubmission extends WP_UnitTestCase {
 
 	public function test_submitting_valid_comment_as_logged_in_user_succeeds() {
 
-		$user = self::factory()->user->create_and_get(
-			array(
-				'user_url' => 'http://user.example.org',
-			)
-		);
+		$user = get_user_by( 'id', self::$author_id2 );
 
 		wp_set_current_user( $user->ID );
 
@@ -314,11 +318,7 @@ class Tests_Comment_wpHandleCommentSubmission extends WP_UnitTestCase {
 
 		$error = 'comment_id_not_found';
 
-		$user = self::factory()->user->create_and_get(
-			array(
-				'role' => 'author',
-			)
-		);
+		$user = get_user_by( 'id', self::$author_id2 );
 
 		wp_set_current_user( $user->ID );
 
@@ -343,11 +343,7 @@ class Tests_Comment_wpHandleCommentSubmission extends WP_UnitTestCase {
 
 		$error = 'comment_id_not_found';
 
-		$user = self::factory()->user->create_and_get(
-			array(
-				'role' => 'author',
-			)
-		);
+		$user = get_user_by( 'id', self::$author_id2 );
 
 		wp_set_current_user( $user->ID );
 
@@ -834,12 +830,8 @@ class Tests_Comment_wpHandleCommentSubmission extends WP_UnitTestCase {
 	/**
 	 * @ticket 36901
 	 */
-	public function test_comments_flood_user_is_admin() {
-		$user = self::factory()->user->create_and_get(
-			array(
-				'role' => 'administrator',
-			)
-		);
+	public function test_comments_flood_user_can_moderate_comments() {
+		$user = get_user_by( 'id', self::$editor_id );
 		wp_set_current_user( $user->ID );
 
 		$data          = array(
@@ -853,8 +845,9 @@ class Tests_Comment_wpHandleCommentSubmission extends WP_UnitTestCase {
 		$data['comment'] = 'Wow! I am quick!';
 		$second_comment  = wp_handle_comment_submission( $data );
 
-		$this->assertNotWPError( $second_comment );
-		$this->assertSame( (string) self::$post->ID, $second_comment->comment_post_ID );
+		$this->assertTrue( current_user_can( 'moderate_comments' ), 'Test user should have the moderate_comments capability' );
+		$this->assertNotWPError( $second_comment, 'Second comment should not trigger comment flooding error.' );
+		$this->assertSame( (string) self::$post->ID, $second_comment->comment_post_ID, 'Second comment should be made against initial post.' );
 	}
 
 	/**

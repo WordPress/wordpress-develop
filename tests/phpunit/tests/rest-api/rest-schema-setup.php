@@ -16,6 +16,9 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 	public function set_up() {
 		parent::set_up();
 
+		// Ensure client-side media processing is enabled so the sideload route is registered.
+		add_filter( 'wp_client_side_media_processing_enabled', '__return_true' );
+
 		/** @var WP_REST_Server $wp_rest_server */
 		global $wp_rest_server;
 		$wp_rest_server = new Spy_REST_Server();
@@ -109,6 +112,8 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 			'/wp/v2/media/(?P<id>[\\d]+)',
 			'/wp/v2/media/(?P<id>[\\d]+)/post-process',
 			'/wp/v2/media/(?P<id>[\\d]+)/edit',
+			'/wp/v2/media/(?P<id>[\\d]+)/sideload',
+			'/wp/v2/media/(?P<id>[\\d]+)/finalize',
 			'/wp/v2/blocks',
 			'/wp/v2/blocks/(?P<id>[\d]+)',
 			'/wp/v2/blocks/(?P<id>[\d]+)/autosaves',
@@ -133,7 +138,7 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 			'/wp/v2/users/(?P<user_id>(?:[\\d]+|me))/application-passwords/(?P<uuid>[\\w\\-]+)',
 			'/wp/v2/comments',
 			'/wp/v2/comments/(?P<id>[\\d]+)',
-			'/wp/v2/global-styles/(?P<id>[\/\w-]+)',
+			'/wp/v2/global-styles/(?P<id>[\/\d+]+)',
 			'/wp/v2/global-styles/(?P<parent>[\d]+)/revisions',
 			'/wp/v2/global-styles/(?P<parent>[\d]+)/revisions/(?P<id>[\d]+)',
 			'/wp/v2/global-styles/themes/(?P<stylesheet>[\/\s%\w\.\(\)\[\]\@_\-]+)/variations',
@@ -195,6 +200,18 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 			'/wp/v2/font-families/(?P<font_family_id>[\d]+)/font-faces',
 			'/wp/v2/font-families/(?P<font_family_id>[\d]+)/font-faces/(?P<id>[\d]+)',
 			'/wp/v2/font-families/(?P<id>[\d]+)',
+			'/wp/v2/icon-collections',
+			'/wp/v2/icon-collections/(?P<slug>[a-z0-9](?:[a-z0-9_-]*[a-z0-9])?)',
+			'/wp/v2/icons',
+			'/wp/v2/icons/(?P<collection>[a-z0-9](?:[a-z0-9_-]*[a-z0-9])?)',
+			'/wp/v2/icons/(?P<name>[a-z0-9](?:[a-z0-9_-]*[a-z0-9])?/[a-z0-9](?:[a-z0-9_-]*[a-z0-9])?)',
+			'/wp/v2/view-config',
+			'/wp-abilities/v1',
+			'/wp-abilities/v1/categories',
+			'/wp-abilities/v1/categories/(?P<slug>[a-z0-9]+(?:-[a-z0-9]+)*)',
+			'/wp-abilities/v1/abilities/(?P<name>[a-zA-Z0-9\-\/]+?)/run',
+			'/wp-abilities/v1/abilities/(?P<name>[a-zA-Z0-9\-\/]+)',
+			'/wp-abilities/v1/abilities',
 		);
 
 		$this->assertSameSets( $expected_routes, $routes );
@@ -205,7 +222,8 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 			'/' === $route ||
 			preg_match( '#^/oembed/1\.0(/.+)?$#', $route ) ||
 			preg_match( '#^/wp/v2(/.+)?$#', $route ) ||
-			preg_match( '#^/wp-site-health/v1(/.+)?$#', $route )
+			preg_match( '#^/wp-site-health/v1(/.+)?$#', $route ) ||
+			preg_match( '#^/wp-abilities/v1(/.+)?$#', $route )
 		);
 	}
 
@@ -729,9 +747,9 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 		'TagModel.meta.test_multi'                         => array(),
 		'TagModel.meta.test_tag_meta'                      => '',
 		'UsersCollection.0.link'                           => 'http://example.org/?author=1',
-		'UsersCollection.0.avatar_urls.24'                 => 'https://secure.gravatar.com/avatar/96614ec98aa0c0d2ee75796dced6df54?s=24&d=mm&r=g',
-		'UsersCollection.0.avatar_urls.48'                 => 'https://secure.gravatar.com/avatar/96614ec98aa0c0d2ee75796dced6df54?s=48&d=mm&r=g',
-		'UsersCollection.0.avatar_urls.96'                 => 'https://secure.gravatar.com/avatar/96614ec98aa0c0d2ee75796dced6df54?s=96&d=mm&r=g',
+		'UsersCollection.0.avatar_urls.24'                 => 'https://secure.gravatar.com/avatar/9387ed9432ec25ef93df84b8a0b9697ddef435a945e7f244670c4f79f88363e9?s=24&d=mm&r=g',
+		'UsersCollection.0.avatar_urls.48'                 => 'https://secure.gravatar.com/avatar/9387ed9432ec25ef93df84b8a0b9697ddef435a945e7f244670c4f79f88363e9?s=48&d=mm&r=g',
+		'UsersCollection.0.avatar_urls.96'                 => 'https://secure.gravatar.com/avatar/9387ed9432ec25ef93df84b8a0b9697ddef435a945e7f244670c4f79f88363e9?s=96&d=mm&r=g',
 		'UsersCollection.0._links.self.0.href'             => 'http://example.org/index.php?rest_route=/wp/v2/users/1',
 		'UsersCollection.0._links.collection.0.href'       => 'http://example.org/index.php?rest_route=/wp/v2/users',
 		'UsersCollection.1.id'                             => 2,
