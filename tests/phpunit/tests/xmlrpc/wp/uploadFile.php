@@ -79,7 +79,7 @@ class Tests_XMLRPC_wp_uploadFile extends WP_XMLRPC_UnitTestCase {
 	/**
 	 * Data provider.
 	 *
-	 * @return array<string, array{args: list<mixed>}>
+	 * @return array<non-falsy-string, array{args: list<mixed>}>
 	 */
 	public function data_insufficient_arguments(): array {
 		return array(
