@@ -454,7 +454,7 @@ class Tests_WP_Interactivity_API_WP_Bind extends WP_UnitTestCase {
 	public function test_wp_bind_handles_true_value() {
 		$html    = '<div data-wp-bind--id="myPlugin::state.trueValue"></div>';
 		list($p) = $this->process_directives( $html );
-		$this->assertSame( true, $p->get_attribute( 'id' ) );
+		$this->assertTrue( $p->get_attribute( 'id' ) );
 	}
 
 	/**
@@ -467,7 +467,7 @@ class Tests_WP_Interactivity_API_WP_Bind extends WP_UnitTestCase {
 	public function test_wp_bind_ignores_unique_ids() {
 		$html    = '<div data-wp-bind--id="myPlugin::state.trueValue"></div>';
 		list($p) = $this->process_directives( $html );
-		$this->assertSame( true, $p->get_attribute( 'id' ) );
+		$this->assertTrue( $p->get_attribute( 'id' ) );
 
 		$html    = '<div data-wp-bind--id---unique-id="myPlugin::state.trueValue"></div>';
 		list($p) = $this->process_directives( $html );
