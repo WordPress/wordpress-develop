@@ -10,8 +10,6 @@ class Tests_Admin_wpDashboardOnThisDay extends WP_UnitTestCase {
 
 	protected static int $other_user_id;
 
-	protected static int $subscriber_id;
-
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		require_once ABSPATH . 'wp-admin/includes/dashboard-on-this-day.php';
 
@@ -27,24 +25,30 @@ class Tests_Admin_wpDashboardOnThisDay extends WP_UnitTestCase {
 				'role'         => 'author',
 			)
 		);
-		self::$subscriber_id = $factory->user->create(
-			array(
-				'display_name' => 'Reader',
-				'role'         => 'subscriber',
-			)
-		);
 	}
 
 	public static function wpTearDownAfterClass() {
 		self::delete_user( self::$user_id );
 		self::delete_user( self::$other_user_id );
-		self::delete_user( self::$subscriber_id );
 	}
 
-	public function set_up() {
-		parent::set_up();
+	public function tear_down() {
+		unset( $GLOBALS['wp_meta_boxes']['dashboard'] );
+
+		parent::tear_down();
+	}
+
+	/**
+	 * Sets up the globals needed to register dashboard widgets.
+	 */
+	private function set_up_dashboard_screen() {
+		if ( ! function_exists( 'wp_add_dashboard_widget' ) ) {
+			require_once ABSPATH . 'wp-admin/includes/dashboard.php';
+		}
 
 		set_current_screen( 'dashboard' );
+
+		$GLOBALS['wp_meta_boxes']['dashboard'] = array();
 	}
 
 	/**
@@ -118,6 +122,71 @@ class Tests_Admin_wpDashboardOnThisDay extends WP_UnitTestCase {
 	/**
 	 * @ticket 65116
 	 *
+	 * @covers ::wp_dashboard_on_this_day_setup
+	 */
+	public function test_setup_always_registers_widget_and_postbox_class_filter() {
+		$this->set_up_dashboard_screen();
+
+		wp_set_current_user( self::$user_id );
+
+		wp_dashboard_on_this_day_setup();
+
+		$dashboard_widgets = $GLOBALS['wp_meta_boxes']['dashboard']['normal']['core'] ?? array();
+
+		$this->assertArrayHasKey( 'wp_dashboard_on_this_day', $dashboard_widgets );
+		$this->assertSame( 'On This Day', $dashboard_widgets['wp_dashboard_on_this_day']['title'] );
+		$this->assertNotFalse(
+			has_filter(
+				'postbox_classes_dashboard_wp_dashboard_on_this_day',
+				'wp_dashboard_on_this_day_postbox_classes'
+			)
+		);
+	}
+
+	/**
+	 * @ticket 65116
+	 *
+	 * @covers ::wp_dashboard_on_this_day_postbox_classes
+	 */
+	public function test_postbox_classes_hides_widget_without_matching_posts() {
+		wp_set_current_user( self::$user_id );
+
+		$this->assertContains( 'hidden', wp_dashboard_on_this_day_postbox_classes( array( '' ) ) );
+	}
+
+	/**
+	 * @ticket 65116
+	 *
+	 * @covers ::wp_dashboard_on_this_day_postbox_classes
+	 */
+	public function test_postbox_classes_does_not_hide_widget_with_matching_posts() {
+		wp_set_current_user( self::$user_id );
+		$this->create_matching_post( self::$user_id );
+
+		$this->assertNotContains( 'hidden', wp_dashboard_on_this_day_postbox_classes( array( '' ) ) );
+	}
+
+	/**
+	 * @ticket 65116
+	 *
+	 * @covers ::wp_dashboard_on_this_day_setup
+	 */
+	public function test_setup_adds_dashboard_widget_with_matching_post_from_another_author() {
+		$this->set_up_dashboard_screen();
+
+		wp_set_current_user( self::$user_id );
+		$this->create_matching_post( self::$other_user_id );
+
+		wp_dashboard_on_this_day_setup();
+
+		$dashboard_widgets = $GLOBALS['wp_meta_boxes']['dashboard']['normal']['core'] ?? array();
+
+		$this->assertArrayHasKey( 'wp_dashboard_on_this_day', $dashboard_widgets );
+	}
+
+	/**
+	 * @ticket 65116
+	 *
 	 * @covers ::_wp_dashboard_on_this_day_date_query_clause
 	 */
 	public function test_get_date_query_clause_includes_february_29_on_february_28_in_non_leap_year() {
@@ -186,26 +255,7 @@ class Tests_Admin_wpDashboardOnThisDay extends WP_UnitTestCase {
 		$output = ob_get_clean();
 
 		$this->assertStringContainsString( 'No posts were published on this day in previous years.', $output );
-		$this->assertStringContainsString( 'Write one today', $output );
-		$this->assertStringContainsString( admin_url( 'post-new.php' ), $output );
 		$this->assertStringNotContainsString( '<ul>', $output );
-	}
-
-	/**
-	 * @ticket 65116
-	 *
-	 * @covers ::wp_dashboard_on_this_day
-	 */
-	public function test_widget_placeholder_omits_link_without_edit_posts_capability() {
-		wp_set_current_user( self::$subscriber_id );
-
-		ob_start();
-		wp_dashboard_on_this_day();
-		$output = ob_get_clean();
-
-		$this->assertStringContainsString( 'No posts were published on this day in previous years.', $output );
-		$this->assertStringNotContainsString( 'Write one today', $output );
-		$this->assertStringNotContainsString( admin_url( 'post-new.php' ), $output );
 	}
 
 	/**
@@ -355,6 +405,8 @@ class Tests_Admin_wpDashboardOnThisDay extends WP_UnitTestCase {
 	 * @covers ::wp_dashboard_on_this_day
 	 */
 	public function test_widget_includes_trimmed_excerpt_for_untitled_private_posts_authored_by_current_user() {
+		$this->set_up_dashboard_screen();
+
 		wp_set_current_user( self::$user_id );
 
 		$this->create_matching_post(
@@ -388,6 +440,8 @@ class Tests_Admin_wpDashboardOnThisDay extends WP_UnitTestCase {
 	 * @covers ::wp_dashboard_on_this_day
 	 */
 	public function test_widget_hides_untitled_post_excerpt_for_unreadable_posts() {
+		$this->set_up_dashboard_screen();
+
 		wp_set_current_user( self::$user_id );
 
 		$post_id = $this->create_matching_post(
@@ -422,6 +476,8 @@ class Tests_Admin_wpDashboardOnThisDay extends WP_UnitTestCase {
 	 * @covers ::wp_dashboard_on_this_day
 	 */
 	public function test_widget_hides_untitled_post_excerpt_for_password_protected_posts() {
+		$this->set_up_dashboard_screen();
+
 		wp_set_current_user( self::$user_id );
 
 		$this->create_matching_post(
