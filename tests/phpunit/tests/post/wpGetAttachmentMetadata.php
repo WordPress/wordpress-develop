@@ -133,9 +133,6 @@ class Tests_Post_WpGetAttachmentMetadata extends WP_UnitTestCase {
 
 		add_filter(
 			'wp_get_attachment_metadata',
-			/**
-			 * @return mixed
-			 */
 			static function () use ( $value ) {
 				return $value;
 			}
@@ -155,15 +152,8 @@ class Tests_Post_WpGetAttachmentMetadata extends WP_UnitTestCase {
 
 		add_filter(
 			'wp_get_attachment_metadata',
-			/**
-			 * @param mixed $data Attachment metadata.
-			 * @return mixed
-			 */
-			static function ( $data ) {
-				if ( is_array( $data ) ) {
-					$data['sizes'] = 'not-an-array';
-				}
-
+			static function ( array $data ): array {
+				$data['sizes'] = 'not-an-array';
 				return $data;
 			}
 		);
