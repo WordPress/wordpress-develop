@@ -633,8 +633,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		 * `upload_max_filesize` and `post_max_size` directives bound a request
 		 * body, not a fetch the server makes itself.
 		 *
-		 * A limit of 0 means the size could not be determined, in which case
-		 * no ceiling is applied.
+		 * When `wp_max_upload_size` returns 0, no ceiling is applied.
 		 */
 		$max_size = (int) wp_max_upload_size();
 
