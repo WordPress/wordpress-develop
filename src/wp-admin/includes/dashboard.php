@@ -1287,7 +1287,7 @@ function wp_dashboard_rss_control( $widget_id, $form_inputs = array() ) {
 		$widget_options[ $widget_id ]           = wp_widget_rss_process( $_POST['widget-rss'][ $number ] );
 		$widget_options[ $widget_id ]['number'] = $number;
 
-		// Title is optional. If black, fill it if possible.
+		// Title is optional. If blank, fill it if possible.
 		if ( ! $widget_options[ $widget_id ]['title'] && isset( $_POST['widget-rss'][ $number ]['title'] ) ) {
 			$rss = fetch_feed( $widget_options[ $widget_id ]['url'] );
 			if ( is_wp_error( $rss ) ) {
@@ -1370,7 +1370,7 @@ function wp_dashboard_events_news() {
  * @since 4.8.0
  */
 function wp_print_community_events_markup() {
-	$community_events_notice  = '<p class="hide-if-js">' . ( 'This widget requires JavaScript.' ) . '</p>';
+	$community_events_notice  = '<p class="hide-if-js">' . __( 'This widget requires JavaScript.' ) . '</p>';
 	$community_events_notice .= '<p class="community-events-error-occurred" aria-hidden="true">' . __( 'An error occurred. Please try again.' ) . '</p>';
 	$community_events_notice .= '<p class="community-events-could-not-locate" aria-hidden="true"></p>';
 

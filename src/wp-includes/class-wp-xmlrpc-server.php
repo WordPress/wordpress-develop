@@ -191,9 +191,11 @@ class wp_xmlrpc_server extends IXR_Server {
 		 * Respect old get_option() filters left for back-compat when the 'enable_xmlrpc'
 		 * option was deprecated in 3.5.0. Use the {@see 'xmlrpc_enabled'} hook instead.
 		 */
-		$is_enabled = apply_filters( 'pre_option_enable_xmlrpc', false );
+		/** This filter is documented in wp-includes/option.php */
+		$is_enabled = apply_filters( 'pre_option_enable_xmlrpc', false, 'enable_xmlrpc', false );
 		if ( false === $is_enabled ) {
-			$is_enabled = apply_filters( 'option_enable_xmlrpc', true );
+			/** This filter is documented in wp-includes/option.php */
+			$is_enabled = apply_filters( 'option_enable_xmlrpc', true, 'enable_xmlrpc' );
 		}
 
 		/**
@@ -2218,7 +2220,9 @@ class wp_xmlrpc_server extends IXR_Server {
 		/** This action is documented in wp-includes/class-wp-xmlrpc-server.php */
 		do_action( 'xmlrpc_call', 'wp.editTerm', $args, $this );
 
-		if ( ! taxonomy_exists( $content_struct['taxonomy'] ) ) {
+		if ( ! isset( $content_struct['taxonomy'] )
+			|| ! taxonomy_exists( $content_struct['taxonomy'] )
+		) {
 			return new IXR_Error( 403, __( 'Invalid taxonomy.' ) );
 		}
 
