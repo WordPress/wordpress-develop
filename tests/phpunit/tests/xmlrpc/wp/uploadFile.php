@@ -57,6 +57,24 @@ class Tests_XMLRPC_wp_uploadFile extends WP_XMLRPC_UnitTestCase {
 	}
 
 	/**
+	 * Tests that the data argument is validated before the credentials are
+	 * checked.
+	 *
+	 * The arguments are read before the login is attempted, so an anonymous
+	 * request is what triggers the fatal error. The validation must therefore
+	 * happen ahead of the login for it to be prevented.
+	 *
+	 * @ticket 65611
+	 *
+	 * @covers wp_xmlrpc_server::mw_newMediaObject
+	 */
+	public function test_invalid_attachment_data_should_return_error_before_login() {
+		$result = $this->myxmlrpcserver->mw_newMediaObject( array( 0, 'not-a-user', 'not-a-password', 'not-a-struct' ) );
+		$this->assertIXRError( $result, 'A non-array data argument should return an IXR_Error.' );
+		$this->assertSame( 400, $result->code, 'The error code should be 400, not the 403 returned for a failed login.' );
+	}
+
+	/**
 	 * Tests that too few arguments return an error instead of emitting a PHP
 	 * notice for the undefined arguments.
 	 *
