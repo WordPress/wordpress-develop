@@ -2693,10 +2693,16 @@ function wp_notify_note_mentions( WP_Comment $comment, $request = null, bool $cr
 function wp_send_note_notification( WP_User $user, WP_Comment $comment, ?WP_Post $post ): bool {
 	$switched_locale = switch_to_user_locale( $user->ID );
 
+	/*
+	 * The site title and the post title are escaped on the way into the database,
+	 * and note content is stored as HTML. Both are reversed once here for the
+	 * plain text arena of emails. Decoding a second time would go too far and
+	 * resolve entities the author meant to be read literally.
+	 */
 	$blogname    = wp_specialchars_decode( get_bloginfo( 'name', 'display' ), ENT_QUOTES );
 	$post_title  = $post ? wp_specialchars_decode( get_the_title( $post ), ENT_QUOTES ) : '';
 	$author_name = $comment->comment_author ? $comment->comment_author : __( 'Someone' );
-	$content     = wp_strip_all_tags( wp_specialchars_decode( $comment->comment_content ) );
+	$content     = wp_specialchars_decode( wp_strip_all_tags( $comment->comment_content ) );
 	$edit_link   = $post ? get_edit_post_link( $post->ID, 'url' ) : '';
 
 	/* translators: 1: Note author's name, 2: Post title. */
@@ -2713,7 +2719,7 @@ function wp_send_note_notification( WP_User $user, WP_Comment $comment, ?WP_Post
 		$lines[] = __( 'Edit This' ) . ': ' . $edit_link;
 	}
 
-	$sent = wp_mail( $user->user_email, wp_specialchars_decode( $subject ), implode( "\n", $lines ) );
+	$sent = wp_mail( $user->user_email, $subject, implode( "\n", $lines ) );
 
 	if ( $switched_locale ) {
 		restore_previous_locale();

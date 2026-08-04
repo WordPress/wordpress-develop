@@ -206,6 +206,56 @@ class Tests_Comment_WpNotifyNoteMentions extends WP_UnitTestCase {
 	}
 
 	/**
+	 * The post title is escaped on the way into the database, so it is decoded
+	 * exactly once for the plain text email. Decoding twice resolves entities
+	 * the author meant to be read literally.
+	 *
+	 * @ticket 65639
+	 *
+	 * @covers ::wp_send_note_notification
+	 */
+	public function test_email_subject_decodes_the_post_title_once() {
+		// Stored form of the literal title "Tom &amp; Jerry".
+		add_filter(
+			'the_title',
+			static function () {
+				return 'Tom &amp;amp; Jerry';
+			}
+		);
+
+		$note = $this->insert_note(
+			$this->get_mention_markup( self::$mentioned->ID ),
+			self::$commenter->ID
+		);
+
+		wp_notify_note_mentions( $note );
+
+		$this->assertCount( 1, $this->sent );
+		$this->assertStringContainsString( 'Tom &amp; Jerry', $this->sent[0]['subject'] );
+		$this->assertStringNotContainsString( 'Tom & Jerry', $this->sent[0]['subject'] );
+	}
+
+	/**
+	 * Note content is stored as HTML, so markup is stripped before entities are
+	 * decoded. Decoding first would turn escaped text into tags and strip it.
+	 *
+	 * @ticket 65639
+	 *
+	 * @covers ::wp_send_note_notification
+	 */
+	public function test_email_keeps_escaped_markup_in_the_note_text() {
+		$note = $this->insert_note(
+			'<p>Use &lt;code&gt; tags ' . $this->get_mention_markup( self::$mentioned->ID ) . '</p>',
+			self::$commenter->ID
+		);
+
+		wp_notify_note_mentions( $note );
+
+		$this->assertCount( 1, $this->sent );
+		$this->assertStringContainsString( 'Use <code> tags', $this->sent[0]['message'] );
+	}
+
+	/**
 	 * @ticket 65639
 	 */
 	public function test_author_is_not_notified_about_their_own_note() {
