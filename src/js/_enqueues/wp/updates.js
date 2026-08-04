@@ -1496,10 +1496,10 @@
 			} );
 
 		if ( response.plugin ) {
-			$plugin          = $( 'tr.inactive[data-plugin="' + response.plugin + '"]' );
+			$plugin          = $( 'tr[data-plugin="' + response.plugin + '"]' );
 			$pluginUpdateRow = $plugin.siblings( '[data-plugin="' + response.plugin + '"]' );
 		} else {
-			$plugin          = $( 'tr.inactive[data-slug="' + response.slug + '"]' );
+			$plugin          = $( 'tr[data-slug="' + response.slug + '"]' );
 			$pluginUpdateRow = $plugin.siblings( '[data-slug="' + response.slug + '"]' );
 		}
 
@@ -2898,7 +2898,7 @@
 			} );
 
 			// Display bulk notification for updates of any kind.
-			$document.on( 'wp-plugin-update-success wp-plugin-update-error wp-theme-update-success wp-theme-update-error', function( event, response ) {
+			$document.on( 'wp-plugin-update-success wp-plugin-update-error wp-plugin-delete-error wp-theme-update-success wp-theme-update-error wp-theme-delete-error', function( event, response ) {
 				var $itemRow = $( '[data-slug="' + response.slug + '"]' ),
 					$bulkActionNotice, itemName;
 
@@ -2913,7 +2913,11 @@
 
 				$itemRow.find( 'input[name="checked[]"]:checked' ).prop( 'checked', false );
 
-				wp.updates.adminNotice = wp.template( 'wp-bulk-updates-admin-notice' );
+				if ( -1 !== event.type.indexOf( '-update-' ) ) {
+					wp.updates.adminNotice = wp.template( 'wp-bulk-updates-admin-notice' );
+				} else {
+					wp.updates.adminNotice = wp.template( 'wp-bulk-deletions-admin-notice' );
+				}
 
 				var successMessage = null;
 
