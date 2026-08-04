@@ -1,5 +1,8 @@
 <?php
+
 /**
+ * Tests for the wp_schedule_delete_old_privacy_export_files() function.
+ *
  * @group functions
  *
  * @covers ::wp_schedule_delete_old_privacy_export_files
@@ -11,12 +14,14 @@ class Tests_Functions_wpScheduleDeleteOldPrivacyExportFiles extends WP_UnitTestC
 	 */
 	public function set_up() {
 		parent::set_up();
-		wp_unschedule_event( wp_next_scheduled( 'wp_privacy_delete_old_export_files' ), 'wp_privacy_delete_old_export_files' );
+		wp_clear_scheduled_hook( 'wp_privacy_delete_old_export_files' );
 	}
 
 	public function tear_down() {
-		// Remove installing mode
 		wp_installing( false );
+		wp_clear_scheduled_hook( 'wp_privacy_delete_old_export_files' );
+
+		parent::tear_down();
 	}
 
 	/**
@@ -47,10 +52,10 @@ class Tests_Functions_wpScheduleDeleteOldPrivacyExportFiles extends WP_UnitTestC
 	}
 
 	/**
-	* Check that calling the function when already scheduled does not create a duplicate.
-	*
-	* @ticket 59707
-	*/
+	 * Check that calling the function when already scheduled does not create a duplicate.
+	 *
+	 * @ticket 59707
+	 */
 	public function test_wp_schedule_delete_old_privacy_export_files_already_scheduled() {
 		wp_schedule_delete_old_privacy_export_files();
 		$first = wp_next_scheduled( 'wp_privacy_delete_old_export_files' );
