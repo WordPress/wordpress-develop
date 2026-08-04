@@ -2707,10 +2707,10 @@ function wp_send_note_notification( WP_User $user, WP_Comment $comment, ?WP_Post
 	$lines = array( $message, '' );
 	if ( '' !== $content ) {
 		$lines[] = $content;
-		$lines[] = '';
 	}
 	if ( $edit_link ) {
-		$lines[] = $edit_link;
+		$lines[] = '';
+		$lines[] = __( 'Edit This' ) . ': ' . $edit_link;
 	}
 
 	$sent = wp_mail( $user->user_email, wp_specialchars_decode( $subject ), implode( "\n", $lines ) );
