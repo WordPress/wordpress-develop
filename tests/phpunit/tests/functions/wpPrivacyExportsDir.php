@@ -37,6 +37,6 @@ class Tests_Functions_wpPrivacyExportsDir extends WP_UnitTestCase {
 	 * @return string Filtered exports directory.
 	 */
 	public function filter_wp_privacy_exports_dir( $exports_dir ) {
-		return '/wp-personal-data-exports-dir/';
+		return str_replace( 'wp-personal-data-exports/', 'filtered-exports/', $exports_dir );
 	}
 }
