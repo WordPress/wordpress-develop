@@ -1668,6 +1668,7 @@ function setup_userdata( $for_user_id = 0 ) {
  * @since 4.7.0 Added the 'role', 'role__in', and 'role__not_in' parameters.
  * @since 5.9.0 Added the 'capability', 'capability__in', and 'capability__not_in' parameters.
  *              Deprecated the 'who' parameter.
+ * @since 7.1.0 Added the 'autocomplete' parameter.
  *
  * @param array|string $args {
  *     Optional. Array or string of arguments to generate a drop-down of users.
@@ -1729,6 +1730,11 @@ function setup_userdata( $for_user_id = 0 ) {
  *                                                    of these capabilities will not be included in results.
  *                                                    Does NOT work for capabilities not in the database or filtered
  *                                                    via {@see 'map_meta_cap'}. Default empty array.
+ *     @type bool            $autocomplete            Whether to replace the drop-down with a jQuery UI autocomplete
+ *                                                    text input backed by an AJAX user search. In the admin, this
+ *                                                    is automatically enabled when wp_is_large_user_count() is true
+ *                                                    and no 'include' list or 'show_option_all' is set.
+ *                                                    Default false.
  * }
  * @return string HTML dropdown list of users.
  */
@@ -1758,6 +1764,7 @@ function wp_dropdown_users( $args = '' ) {
 		'capability'              => '',
 		'capability__in'          => array(),
 		'capability__not_in'      => array(),
+		'autocomplete'            => false,
 	);
 
 	$defaults['selected'] = is_author() ? get_query_var( 'author' ) : 0;
@@ -1797,8 +1804,36 @@ function wp_dropdown_users( $args = '' ) {
 	$show_option_none  = $parsed_args['show_option_none'];
 	$option_none_value = $parsed_args['option_none_value'];
 
+	// Determine whether to use autocomplete mode before running the full user query.
+	// Auto-enable in the admin when the site has a large user count, unless the
+	// result set is already bounded by an explicit 'include' list or the caller
+	// requires a 'show_option_all' placeholder (which has no autocomplete equivalent).
+	$use_autocomplete = (bool) $parsed_args['autocomplete'];
+	if ( ! $use_autocomplete && ! $show_option_all && empty( $query_args['include'] ) && is_admin() ) {
+		$use_autocomplete = wp_is_large_user_count();
+	}
+
+	/**
+	 * Filters whether to replace the user drop-down with a jQuery UI autocomplete input.
+	 *
+	 * In the admin, this automatically enables when wp_is_large_user_count() returns
+	 * true and no bounded 'include' list or 'show_option_all' is present. Callers
+	 * may also pass `'autocomplete' => true` to force autocomplete mode explicitly.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @param bool  $use_autocomplete Whether to use autocomplete.
+	 * @param array $parsed_args      The parsed arguments passed to wp_dropdown_users().
+	 */
+	$use_autocomplete = (bool) apply_filters( 'wp_dropdown_users_autocomplete', $use_autocomplete, $parsed_args );
+
 	/**
 	 * Filters the query arguments for the list of users in the dropdown.
+	 *
+	 * Always fires so that existing hooks continue to work regardless of whether
+	 * autocomplete mode is active. In autocomplete mode the result of get_users()
+	 * is not used to render options, but plugins may still rely on this filter
+	 * to observe or modify the intended query arguments.
 	 *
 	 * @since 4.4.0
 	 *
@@ -1807,16 +1842,100 @@ function wp_dropdown_users( $args = '' ) {
 	 */
 	$query_args = apply_filters( 'wp_dropdown_users_args', $query_args, $parsed_args );
 
-	$users = get_users( $query_args );
+	if ( $use_autocomplete ) {
+		// Users are fetched on demand via the AJAX handler; skip the bulk query.
+		$users = array();
+
+		/*
+		 * Honor 'hide_if_only_one_author' without loading every user: a bounded
+		 * query for up to two IDs is enough to tell whether more than one exists.
+		 * When there is a single author (or none), fall back to the classic
+		 * rendering, which emits nothing in that case.
+		 */
+		if ( ! empty( $parsed_args['hide_if_only_one_author'] ) ) {
+			$author_ids = get_users(
+				array_merge(
+					$query_args,
+					array(
+						'fields' => 'ID',
+						'number' => 2,
+					)
+				)
+			);
+
+			if ( count( $author_ids ) <= 1 ) {
+				$use_autocomplete = false;
+				$users            = $author_ids;
+			}
+		}
+	} else {
+		$users = get_users( $query_args );
+	}
 
 	$output = '';
-	if ( ! empty( $users ) && ( empty( $parsed_args['hide_if_only_one_author'] ) || count( $users ) > 1 ) ) {
-		$name = esc_attr( $parsed_args['name'] );
-		if ( $parsed_args['multi'] && ! $parsed_args['id'] ) {
-			$id = '';
-		} else {
-			$id = $parsed_args['id'] ? " id='" . esc_attr( $parsed_args['id'] ) . "'" : " id='$name'";
+	$name   = esc_attr( $parsed_args['name'] );
+	if ( $parsed_args['multi'] && ! $parsed_args['id'] ) {
+		$id = '';
+	} else {
+		$id = $parsed_args['id'] ? " id='" . esc_attr( $parsed_args['id'] ) . "'" : " id='$name'";
+	}
+
+	if ( $use_autocomplete ) {
+		wp_enqueue_script( 'user-suggest' );
+
+		/*
+		 * The user-suggest script relies on the global `ajaxurl`, which is only
+		 * defined in wp-admin. Provide it for front-end contexts without
+		 * overwriting an existing definition.
+		 */
+		wp_add_inline_script(
+			'user-suggest',
+			'window.ajaxurl = window.ajaxurl || ' . wp_json_encode( admin_url( 'admin-ajax.php' ) ) . ';',
+			'before'
+		);
+
+		// Resolve the display value for the currently selected user.
+		$display = '';
+		if ( (int) $parsed_args['selected'] > 0 ) {
+			$selected_user = get_userdata( $parsed_args['selected'] );
+			if ( $selected_user ) {
+				if ( 'display_name_with_login' === $show ) {
+					/* translators: 1: User's display name, 2: User login. */
+					$display = sprintf( _x( '%1$s (%2$s)', 'user dropdown' ), $selected_user->display_name, $selected_user->user_login );
+				} elseif ( ! empty( $selected_user->$show ) ) {
+					$display = $selected_user->$show;
+				} else {
+					$display = '(' . $selected_user->user_login . ')';
+				}
+			}
 		}
+
+		$input_class = $parsed_args['class'] ? esc_attr( $parsed_args['class'] ) . ' ' : '';
+
+		/*
+		 * Map the 'show' arg to an autocomplete label template so that the
+		 * suggestion items match what would have appeared as <option> text
+		 * in the classic <select> drop-down.
+		 */
+		$label_tokens = array(
+			'display_name_with_login' => '{{display_name}} ({{user_login}})',
+			'user_login'              => '{{user_login}}',
+			'user_email'              => '{{user_email}}',
+			'display_name'            => '{{display_name}}',
+		);
+
+		$autocomplete_label = isset( $label_tokens[ $show ] ) ? $label_tokens[ $show ] : '{{display_name}}';
+
+		// Visible text input — triggers jQuery UI autocomplete on keyup.
+		$output  = '<input type="text"' . $id . ' class="' . $input_class . 'wp-suggest-user"';
+		$output .= ' data-autocomplete-type="search" data-autocomplete-field="user_id"';
+		$output .= ' data-autocomplete-label="' . esc_attr( $autocomplete_label ) . '"';
+		$output .= ' value="' . esc_attr( $display ) . '" />';
+
+		// Hidden input — stores the selected user ID for form submission.
+		$output .= '<input type="hidden" name="' . $name . '" class="wp-suggest-user-helper"';
+		$output .= ' value="' . esc_attr( (string) $parsed_args['selected'] ) . '" />';
+	} elseif ( ! empty( $users ) && ( empty( $parsed_args['hide_if_only_one_author'] ) || count( $users ) > 1 ) ) {
 		$output = "<select name='{$name}'{$id} class='" . $parsed_args['class'] . "'>\n";
 
 		if ( $show_option_all ) {
