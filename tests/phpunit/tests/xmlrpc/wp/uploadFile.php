@@ -57,19 +57,42 @@ class Tests_XMLRPC_wp_uploadFile extends WP_XMLRPC_UnitTestCase {
 	}
 
 	/**
-	 * Tests that a missing data argument returns an error instead of
-	 * emitting a PHP notice for the undefined argument.
+	 * Tests that too few arguments return an error instead of emitting a PHP
+	 * notice for the undefined arguments.
 	 *
 	 * @ticket 65611
 	 *
 	 * @covers wp_xmlrpc_server::mw_newMediaObject
+	 *
+	 * @dataProvider data_insufficient_arguments
+	 *
+	 * @param array<int, mixed> $args The arguments to pass to the method.
 	 */
-	public function test_missing_attachment_data_should_return_error() {
+	public function test_insufficient_arguments_should_return_error( $args ) {
 		$this->make_user_by_role( 'editor' );
 
-		$result = $this->myxmlrpcserver->mw_newMediaObject( array( 0, 'editor', 'editor' ) );
-		$this->assertIXRError( $result, 'A missing data argument should return an IXR_Error.' );
+		$result = $this->myxmlrpcserver->mw_newMediaObject( $args );
+		$this->assertIXRError( $result, 'Insufficient arguments should return an IXR_Error.' );
 		$this->assertSame( 400, $result->code, 'The error code should be 400.' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{args: array<int, mixed>}>
+	 */
+	public function data_insufficient_arguments() {
+		return array(
+			'no arguments'     => array(
+				'args' => array(),
+			),
+			'only the blog ID' => array(
+				'args' => array( 0 ),
+			),
+			'missing the data' => array(
+				'args' => array( 0, 'editor', 'editor' ),
+			),
+		);
 	}
 
 	/**

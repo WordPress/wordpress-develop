@@ -6450,9 +6450,13 @@ class wp_xmlrpc_server extends IXR_Server {
 	 * @return array|IXR_Error
 	 */
 	public function mw_newMediaObject( $args ) {
+		if ( ! $this->minimum_args( $args, 4 ) ) {
+			return $this->error;
+		}
+
 		$username = $this->escape( $args[1] );
 		$password = $this->escape( $args[2] );
-		$data     = $args[3] ?? null;
+		$data     = $args[3];
 
 		if ( ! is_array( $data ) || ! is_string( $data['name'] ?? null ) ) {
 			return new IXR_Error( 400, __( 'Invalid attachment data.' ) );
