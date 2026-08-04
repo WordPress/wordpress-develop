@@ -31,8 +31,9 @@ var Router = Backbone.Router.extend(
 		},
 
 		// Respond to the search route by filling the search field and triggering the input event.
-		search: function ( query ) {
-			query = ( query || '' ).split( '&' ).shift();
+		search: function () {
+			var params = new URLSearchParams( window.location.search );
+			var query = params.get( 'search' ) || '';
 			jQuery( '#media-search-input' ).val( query ).trigger( 'input' );
 		},
 
