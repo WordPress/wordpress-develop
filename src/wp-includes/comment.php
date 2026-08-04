@@ -2645,8 +2645,6 @@ function wp_notify_note_mentions( WP_Comment $comment, $request = null, bool $cr
 	 * throttle within the request.
 	 */
 	foreach ( $mentioned as $user_id ) {
-		$user_id = (int) $user_id;
-
 		// Never notify the author about their own note.
 		if ( $user_id === $author_id ) {
 			continue;
