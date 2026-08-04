@@ -2,7 +2,7 @@
 /**
  * Tests for the wp_privacy_exports_dir function.
  *
- * @group functions.php
+ * @group functions
  *
  * @covers ::wp_privacy_exports_dir
  */
@@ -21,7 +21,6 @@ class Tests_Functions_wpPrivacyExportsDir extends WP_UnitTestCase {
 	 * @ticket 59710
 	 */
 	public function test_wp_privacy_exports_dir_filtered() {
-
 		add_filter( 'wp_privacy_exports_dir', array( $this, 'filter_wp_privacy_exports_dir' ) );
 
 		$expected_dir = '/wp-personal-data-exports-dir/';
