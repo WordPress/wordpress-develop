@@ -210,7 +210,7 @@ class Tests_Ajax_wpAjaxImageEditor extends WP_Ajax_UnitTestCase {
 	 *
 	 * @dataProvider data_save_image_with_unusable_sizes_metadata
 	 *
-	 * @param array{ 0: array{ sizes?: mixed } } $meta Attachment metadata to store before editing, minus the file-specific keys.
+	 * @param array{ sizes?: mixed } $meta Attachment metadata to store before editing, minus the file-specific keys.
 	 */
 	public function test_save_image_with_unusable_sizes_metadata( array $meta ) {
 		require_once ABSPATH . 'wp-admin/includes/image-edit.php';
@@ -267,7 +267,7 @@ class Tests_Ajax_wpAjaxImageEditor extends WP_Ajax_UnitTestCase {
 	 *
 	 * @dataProvider data_save_image_with_unusable_sizes_metadata
 	 *
-	 * @param array{ 0: array{ sizes?: mixed } } $meta Replacement `sizes` metadata to store before restoring.
+	 * @param array{ sizes?: mixed } $meta Replacement `sizes` metadata to store before restoring.
 	 */
 	public function test_restore_image_with_unusable_sizes_metadata( array $meta ) {
 		require_once ABSPATH . 'wp-admin/includes/image-edit.php';
