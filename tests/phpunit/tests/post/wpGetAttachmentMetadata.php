@@ -184,7 +184,7 @@ class Tests_Post_WpGetAttachmentMetadata extends WP_UnitTestCase {
 	 *
 	 * @return array<non-empty-string, array{ 0: mixed }>
 	 */
-	public function data_non_array_sizes_values() {
+	public function data_non_array_sizes_values(): array {
 		return array(
 			'null'          => array( null ),
 			'empty string'  => array( '' ),
@@ -199,7 +199,7 @@ class Tests_Post_WpGetAttachmentMetadata extends WP_UnitTestCase {
 	 *
 	 * @return array<non-empty-string, array{ 0: mixed }>
 	 */
-	public function data_non_array_filter_return_values() {
+	public function data_non_array_filter_return_values(): array {
 		return array(
 			'null'          => array( null ),
 			'empty string'  => array( '' ),
@@ -222,7 +222,7 @@ class Tests_Post_WpGetAttachmentMetadata extends WP_UnitTestCase {
 	 *                        meaning no metadata is stored at all.
 	 * @return int Attachment ID.
 	 */
-	private function create_attachment( $metadata = null ) {
+	private function create_attachment( $metadata = null ): int {
 		$attachment_id = self::factory()->attachment->create_object(
 			array(
 				'file'           => '2026/08/image.jpg',
