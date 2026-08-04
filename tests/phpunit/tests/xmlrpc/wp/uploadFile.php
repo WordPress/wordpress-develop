@@ -45,6 +45,8 @@ class Tests_XMLRPC_wp_uploadFile extends WP_XMLRPC_UnitTestCase {
 	 * array offsets on a non-array value.
 	 *
 	 * @ticket 65611
+	 *
+	 * @covers wp_xmlrpc_server::mw_newMediaObject
 	 */
 	public function test_invalid_attachment_data_should_return_error() {
 		$this->make_user_by_role( 'editor' );
@@ -59,6 +61,8 @@ class Tests_XMLRPC_wp_uploadFile extends WP_XMLRPC_UnitTestCase {
 	 * emitting a PHP notice for the undefined argument.
 	 *
 	 * @ticket 65611
+	 *
+	 * @covers wp_xmlrpc_server::mw_newMediaObject
 	 */
 	public function test_missing_attachment_data_should_return_error() {
 		$this->make_user_by_role( 'editor' );
