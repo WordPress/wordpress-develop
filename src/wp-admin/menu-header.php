@@ -125,7 +125,8 @@ function _wp_menu_output( $menu, $submenu, $submenu_as_parent = true ) {
 		 * If the string 'none' (previously 'div') is passed instead of a URL, don't output
 		 * the default menu image so an icon can be added to div.wp-menu-image as background
 		 * with CSS. Dashicons and base64-encoded data:image/svg_xml URIs are also handled
-		 * as special cases.
+		 * as special cases. Any other value is looked up as a registered icon name and, if
+		 * found, rendered as inline SVG; otherwise it is treated as an image URL.
 		 */
 		if ( ! empty( $item[6] ) ) {
 			$img = '<img src="' . esc_url( $item[6] ) . '" alt="" />';
@@ -140,6 +141,12 @@ function _wp_menu_output( $menu, $submenu, $submenu_as_parent = true ) {
 			} elseif ( str_starts_with( $item[6], 'dashicons-' ) ) {
 				$img       = '<br />';
 				$img_class = ' dashicons-before ' . sanitize_html_class( $item[6] );
+			} else {
+				$icon = wp_get_icon( $item[6], array( 'size' => 22 ) );
+				if ( '' !== $icon ) {
+					$img       = $icon;
+					$img_class = ' svg-icon';
+				}
 			}
 		}
 
@@ -283,7 +290,7 @@ function _wp_menu_output( $menu, $submenu, $submenu_as_parent = true ) {
 
 	echo '<li id="collapse-menu" class="hide-if-no-js">' .
 		'<button type="button" id="collapse-button" aria-label="' . esc_attr__( 'Collapse Main Menu' ) . '" aria-expanded="true">' .
-		'<span class="collapse-button-icon" aria-hidden="true"></span>' .
+		'<span class="collapse-button-icon" aria-hidden="true">' . wp_get_icon( 'core/chevron-left', array( 'size' => 22 ) ) . '</span>' .
 		'<span class="collapse-button-label">' . __( 'Collapse Menu' ) . '</span>' .
 		'</button></li>';
 }

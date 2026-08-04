@@ -261,7 +261,8 @@ input[type="radio"]:focus {
 	color: variables.$menu-text;
 }
 
-#adminmenu div.wp-menu-image:before {
+#adminmenu div.wp-menu-image:before,
+#adminmenu div.wp-menu-image.svg-icon svg {
 	color: variables.$menu-icon;
 }
 
@@ -274,7 +275,9 @@ input[type="radio"]:focus {
 }
 
 #adminmenu li.menu-top:hover div.wp-menu-image:before,
-#adminmenu li.opensub > a.menu-top div.wp-menu-image:before {
+#adminmenu li.menu-top:hover div.wp-menu-image.svg-icon svg,
+#adminmenu li.opensub > a.menu-top div.wp-menu-image:before,
+#adminmenu li.opensub > a.menu-top div.wp-menu-image.svg-icon svg {
 	color: variables.$menu-highlight-icon;
 }
 
@@ -345,13 +348,21 @@ ul#adminmenu > li.current > a.current:after {
 }
 
 #adminmenu li.wp-has-current-submenu div.wp-menu-image:before,
+#adminmenu li.wp-has-current-submenu div.wp-menu-image.svg-icon svg,
 #adminmenu a.current:hover div.wp-menu-image:before,
+#adminmenu a.current:hover div.wp-menu-image.svg-icon svg,
 #adminmenu li.current div.wp-menu-image:before,
+#adminmenu li.current div.wp-menu-image.svg-icon svg,
 #adminmenu li.wp-has-current-submenu a:focus div.wp-menu-image:before,
+#adminmenu li.wp-has-current-submenu a:focus div.wp-menu-image.svg-icon svg,
 #adminmenu li.wp-has-current-submenu.opensub div.wp-menu-image:before,
+#adminmenu li.wp-has-current-submenu.opensub div.wp-menu-image.svg-icon svg,
 #adminmenu li:hover div.wp-menu-image:before,
+#adminmenu li:hover div.wp-menu-image.svg-icon svg,
 #adminmenu li a:focus div.wp-menu-image:before,
-#adminmenu li.opensub div.wp-menu-image:before {
+#adminmenu li a:focus div.wp-menu-image.svg-icon svg,
+#adminmenu li.opensub div.wp-menu-image:before,
+#adminmenu li.opensub div.wp-menu-image.svg-icon svg {
 	color: variables.$menu-current-icon;
 }
 
