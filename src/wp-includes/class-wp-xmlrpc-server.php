@@ -6440,12 +6440,21 @@ class wp_xmlrpc_server extends IXR_Server {
 	 * @since 1.5.0
 	 *
 	 * @param array $args {
-	 *     Method arguments. Note: arguments must be ordered as documented.
+	 *     Method arguments. Note: top-level arguments must be ordered as documented.
 	 *
 	 *     @type int    $0 Blog ID (unused).
 	 *     @type string $1 Username.
 	 *     @type string $2 Password.
-	 *     @type array  $3 Data.
+	 *     @type array  $3 {
+	 *         Data for the file to upload.
+	 *
+	 *         @type string $name    File name. Sanitized with sanitize_file_name().
+	 *         @type string $type    Optional. File MIME type, stored as the attachment's
+	 *                               post MIME type. Default empty string.
+	 *         @type string $bits    Optional. File contents. Default empty string.
+	 *         @type int    $post_id Optional. ID of the post to attach the file to.
+	 *                               Default 0.
+	 *     }
 	 * }
 	 * @return array|IXR_Error
 	 */
