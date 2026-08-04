@@ -36,7 +36,7 @@ class WP {
 	 * @since 7.1.0
 	 * @var string[]
 	 */
-	public $single_value_query_vars = array( 'feed' );
+	public $single_value_query_vars = array( 'attachment', 'author_name', 'feed', 'post_format' );
 
 	/**
 	 * Extra query variables set by the user.
