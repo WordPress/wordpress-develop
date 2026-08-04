@@ -75,6 +75,26 @@ class Tests_XMLRPC_wp_uploadFile extends WP_XMLRPC_UnitTestCase {
 	}
 
 	/**
+	 * Tests that a user who cannot upload files is rejected before the data is
+	 * read.
+	 *
+	 * The capability is checked ahead of the attachment data, so a user who is
+	 * not allowed to upload is told that rather than being told the data is
+	 * malformed. Sending unusable data must not change which error comes back.
+	 *
+	 * @ticket 65611
+	 *
+	 * @covers wp_xmlrpc_server::mw_newMediaObject
+	 */
+	public function test_incapable_user() {
+		$this->make_user_by_role( 'subscriber' );
+
+		$result = $this->myxmlrpcserver->mw_newMediaObject( array( 0, 'subscriber', 'subscriber', 'not-a-struct' ) );
+		$this->assertIXRError( $result, 'A user who cannot upload files should return an IXR_Error.' );
+		$this->assertSame( 401, $result->code, 'The error code should be the 401 returned for a missing capability.' );
+	}
+
+	/**
 	 * Tests that too few arguments return an error instead of emitting a PHP
 	 * notice for the undefined arguments.
 	 *
