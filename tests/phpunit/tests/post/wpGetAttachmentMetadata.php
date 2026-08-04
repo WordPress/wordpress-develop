@@ -216,13 +216,15 @@ class Tests_Post_WpGetAttachmentMetadata extends WP_UnitTestCase {
 	 * Creates an attachment, optionally storing metadata for it.
 	 *
 	 * The metadata is stored with update_post_meta() rather than wp_update_attachment_metadata()
-	 * so that values which are not arrays can be stored as-is.
+	 * so that it reaches the database without passing through the update filter, leaving the
+	 * stored value entirely under the control of the test.
 	 *
-	 * @param mixed $metadata Optional. Value to store as `_wp_attachment_metadata`. Default null,
-	 *                        meaning no metadata is stored at all.
+	 * @param array<string, mixed>|null $metadata Optional. Metadata to store as
+	 *                                            `_wp_attachment_metadata`. Default null, meaning
+	 *                                            no metadata is stored at all.
 	 * @return int Attachment ID.
 	 */
-	private function create_attachment( $metadata = null ): int {
+	private function create_attachment( ?array $metadata = null ): int {
 		$attachment_id = self::factory()->attachment->create_object(
 			array(
 				'file'           => '2026/08/image.jpg',
