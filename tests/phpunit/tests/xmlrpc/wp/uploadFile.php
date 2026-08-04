@@ -164,6 +164,55 @@ class Tests_XMLRPC_wp_uploadFile extends WP_XMLRPC_UnitTestCase {
 	}
 
 	/**
+	 * Tests that a data struct with a non-string type or bits member returns an
+	 * error instead of triggering a fatal error.
+	 *
+	 * A struct sent for either member arrives as an array. An array reaches
+	 * fwrite() by way of wp_upload_bits(), which throws a TypeError, and it
+	 * survives sanitize_mime_type() to reach the database as the attachment's
+	 * post MIME type. Both members must be rejected before that point.
+	 *
+	 * @ticket 65611
+	 *
+	 * @covers wp_xmlrpc_server::mw_newMediaObject
+	 *
+	 * @dataProvider data_attachment_data_with_invalid_members
+	 *
+	 * @param array<string, mixed> $data The data argument to pass to the method.
+	 */
+	public function test_attachment_data_with_invalid_members_should_return_error( array $data ) {
+		$this->make_user_by_role( 'editor' );
+
+		$result = $this->myxmlrpcserver->mw_newMediaObject( array( 0, 'editor', 'editor', $data ) );
+		$this->assertIXRError( $result, 'A data argument with a non-string member should return an IXR_Error.' );
+		$this->assertSame( 400, $result->code, 'The error code should be 400.' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<non-falsy-string, array{data: array<string, mixed>}>
+	 */
+	public function data_attachment_data_with_invalid_members(): array {
+		return array(
+			'non-string bits' => array(
+				'data' => array(
+					'name' => 'a2-small.jpg',
+					'type' => 'image/jpeg',
+					'bits' => array( 'contents' ),
+				),
+			),
+			'non-string type' => array(
+				'data' => array(
+					'name' => 'a2-small.jpg',
+					'type' => array( 'image/jpeg' ),
+					'bits' => 'contents',
+				),
+			),
+		);
+	}
+
+	/**
 	 * Tests that a data struct without the optional members is still accepted.
 	 *
 	 * Only the name is required. The type and bits members are tolerated when

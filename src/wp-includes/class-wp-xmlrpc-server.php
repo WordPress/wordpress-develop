@@ -6480,7 +6480,12 @@ class wp_xmlrpc_server extends IXR_Server {
 			return $this->error;
 		}
 
-		if ( ! is_array( $data ) || ! is_string( $data['name'] ?? null ) ) {
+		if (
+			! is_array( $data ) ||
+			! is_string( $data['name'] ?? null ) ||
+			! is_string( $data['type'] ?? '' ) ||
+			! is_string( $data['bits'] ?? '' )
+		) {
 			return new IXR_Error( 400, __( 'Invalid attachment data.' ) );
 		}
 
