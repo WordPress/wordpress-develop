@@ -820,12 +820,7 @@ function wp_restore_image( $post_id ) {
 	$restored         = false;
 	$msg              = new stdClass();
 
-	if ( ! is_array( $backup_sizes ) ) {
-		$msg->error = __( 'Cannot load image metadata.' );
-		return $msg;
-	}
-
-	if ( ! is_array( $meta ) ) {
+	if ( ! is_array( $meta ) || ! is_array( $backup_sizes ) ) {
 		$msg->error = __( 'Cannot load image metadata.' );
 		return $msg;
 	}
