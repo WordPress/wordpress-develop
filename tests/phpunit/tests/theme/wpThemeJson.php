@@ -805,6 +805,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	/**
 	 * @ticket 52991
 	 * @ticket 54336
+	 * @ticket 65724
 	 */
 	public function test_get_stylesheet_preset_classes_work_with_compounded_selectors() {
 		$theme_json = new WP_Theme_JSON(
@@ -828,7 +829,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		);
 
 		$this->assertSame(
-			'.wp-block-heading.has-white-color{color: var(--wp--preset--color--white) !important;}.wp-block-heading.has-white-background-color{background-color: var(--wp--preset--color--white) !important;}.wp-block-heading.has-white-border-color{border-color: var(--wp--preset--color--white) !important;}',
+			':where(.wp-block-heading).has-white-color{color: var(--wp--preset--color--white) !important;}:where(.wp-block-heading).has-white-background-color{background-color: var(--wp--preset--color--white) !important;}:where(.wp-block-heading).has-white-border-color{border-color: var(--wp--preset--color--white) !important;}',
 			$theme_json->get_stylesheet( array( 'presets' ) )
 		);
 	}
@@ -894,6 +895,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 * @ticket 58550
 	 * @ticket 60936
 	 * @ticket 61165
+	 * @ticket 65724
 	 */
 	public function test_get_stylesheet_preset_rules_come_after_block_rules() {
 		$theme_json = new WP_Theme_JSON(
@@ -926,7 +928,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		);
 
 		$styles    = ':root :where(.wp-block-group){color: red;}';
-		$presets   = '.wp-block-group.has-grey-color{color: var(--wp--preset--color--grey) !important;}.wp-block-group.has-grey-background-color{background-color: var(--wp--preset--color--grey) !important;}.wp-block-group.has-grey-border-color{border-color: var(--wp--preset--color--grey) !important;}';
+		$presets   = ':where(.wp-block-group).has-grey-color{color: var(--wp--preset--color--grey) !important;}:where(.wp-block-group).has-grey-background-color{background-color: var(--wp--preset--color--grey) !important;}:where(.wp-block-group).has-grey-border-color{border-color: var(--wp--preset--color--grey) !important;}';
 		$variables = '.wp-block-group{--wp--preset--color--grey: grey;}';
 
 		$all = $variables . $styles . $presets;
@@ -6538,6 +6540,178 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 					),
 				),
 				'expected_output' => ':root :where(.wp-block-separator){background-color: blue;border-color: pink;}',
+			),
+		);
+	}
+
+	/**
+	 * Tests that button block width declarations are updated for percentage values.
+	 *
+	 * @ticket 65388
+	 *
+	 * @dataProvider data_update_button_width_declarations
+	 *
+	 * @param array  $theme_json_args Theme JSON arguments including styles and optional settings.
+	 * @param string $expected_output Expected CSS output.
+	 */
+	public function test_update_button_width_declarations( $theme_json_args, $expected_output ) {
+		$theme_json = new WP_Theme_JSON(
+			array_merge(
+				array( 'version' => WP_Theme_JSON::LATEST_SCHEMA ),
+				$theme_json_args
+			),
+			'default'
+		);
+
+		$button_node = array(
+			'name'       => 'core/button',
+			'path'       => array( 'styles', 'blocks', 'core/button' ),
+			'selector'   => '.wp-block-button .wp-block-button__link',
+			'selectors'  => array(
+				'root'       => '.wp-block-button .wp-block-button__link',
+				'dimensions' => array(
+					'root'  => '.wp-block-button',
+					'width' => '.wp-block-button',
+				),
+			),
+			'duotone'    => null,
+			'variations' => array(),
+			'css'        => '.wp-block-button .wp-block-button__link',
+		);
+		$this->assertSame( $expected_output, $theme_json->get_styles_for_block( $button_node ) );
+	}
+
+	/**
+	 * Data provider for button width declaration tests.
+	 *
+	 * @return array
+	 */
+	public function data_update_button_width_declarations() {
+		return array(
+			'direct percentage value'                   => array(
+				array(
+					'styles' => array(
+						'blocks' => array(
+							'core/button' => array(
+								'dimensions' => array(
+									'width' => '25%',
+								),
+							),
+						),
+					),
+				),
+				'expected_output' => ':root :where(.wp-block-button){width: calc(25 * 1% - (var(--wp--style--block-gap, 0.5em) * (1 - 25 / 100)));}',
+			),
+			'decimal percentage value'                  => array(
+				array(
+					'styles' => array(
+						'blocks' => array(
+							'core/button' => array(
+								'dimensions' => array(
+									'width' => '33.33%',
+								),
+							),
+						),
+					),
+				),
+				'expected_output' => ':root :where(.wp-block-button){width: calc(33.33 * 1% - (var(--wp--style--block-gap, 0.5em) * (1 - 33.33 / 100)));}',
+			),
+			'non-percentage value is unchanged'         => array(
+				array(
+					'styles' => array(
+						'blocks' => array(
+							'core/button' => array(
+								'dimensions' => array(
+									'width' => '200px',
+								),
+							),
+						),
+					),
+				),
+				'expected_output' => ':root :where(.wp-block-button){width: 200px;}',
+			),
+			'preset dimension with percentage size (block-level settings)' => array(
+				array(
+					'settings' => array(
+						'blocks' => array(
+							'core/button' => array(
+								'dimensions' => array(
+									'dimensionSizes' => array(
+										array(
+											'slug' => '50',
+											'name' => '50%',
+											'size' => '50%',
+										),
+									),
+								),
+							),
+						),
+					),
+					'styles'   => array(
+						'blocks' => array(
+							'core/button' => array(
+								'dimensions' => array(
+									'width' => 'var(--wp--preset--dimension--50)',
+								),
+							),
+						),
+					),
+				),
+				'expected_output' => ':root :where(.wp-block-button){width: calc(50 * 1% - (var(--wp--style--block-gap, 0.5em) * (1 - 50 / 100)));}',
+			),
+			'preset dimension with percentage size (top-level settings)' => array(
+				array(
+					'settings' => array(
+						'dimensions' => array(
+							'dimensionSizes' => array(
+								array(
+									'slug' => '25',
+									'name' => '25%',
+									'size' => '25%',
+								),
+							),
+						),
+					),
+					'styles'   => array(
+						'blocks' => array(
+							'core/button' => array(
+								'dimensions' => array(
+									'width' => 'var(--wp--preset--dimension--25)',
+								),
+							),
+						),
+					),
+				),
+				'expected_output' => ':root :where(.wp-block-button){width: calc(25 * 1% - (var(--wp--style--block-gap, 0.5em) * (1 - 25 / 100)));}',
+			),
+			'preset dimension with non-percentage size' => array(
+				array(
+					'settings' => array(
+						'blocks' => array(
+							'core/button' => array(
+								'dimensions' => array(
+									'dimensionSizes' => array(
+										array(
+											'slug' => 'wide',
+											'name' => 'Wide',
+											'size' => '400px',
+										),
+									),
+								),
+							),
+						),
+					),
+					'styles'   => array(
+						'blocks' => array(
+							'core/button' => array(
+								'dimensions' => array(
+									'width' => 'var(--wp--preset--dimension--wide)',
+								),
+							),
+						),
+					),
+				),
+				'expected_output' => ':root :where(.wp-block-button){width: var(--wp--preset--dimension--wide);}',
 			),
 		);
 	}
