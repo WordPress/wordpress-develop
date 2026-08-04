@@ -6533,18 +6533,6 @@ class wp_xmlrpc_server extends IXR_Server {
 			return new IXR_Error( 500, $error_string );
 		}
 
-		/*
-		 * The type is optional, but an attachment stored without one is not matched by media
-		 * library queries filtered by MIME type, and is not recognized as an image, audio or
-		 * video file. Fall back to the type determined from the file name. That is false for an
-		 * extension WordPress does not recognize, which only gets this far when the user can
-		 * upload unfiltered, and the 'wp_handle_upload' filter can replace it with anything, so
-		 * only use it when it is a string.
-		 */
-		if ( '' === $type && is_string( $upload['type'] ?? null ) ) {
-			$type = $upload['type'];
-		}
-
 		// Construct the attachment array.
 		$post_id = 0;
 		if ( ! empty( $data['post_id'] ) ) {
