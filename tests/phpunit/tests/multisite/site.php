@@ -661,7 +661,7 @@ class Tests_Multisite_Site extends WP_UnitTestCase {
 	public function test_domain_filtered_to_exist() {
 		add_filter( 'domain_exists', array( $this, 'domain_exists_cb' ), 10, 4 );
 		$exists = domain_exists( 'foo', 'bar' );
-		remove_filter( 'domain_exists', array( $this, 'domain_exists_cb' ), 10, 4 );
+		remove_filter( 'domain_exists', array( $this, 'domain_exists_cb' ) );
 		$this->assertSame( 1234, $exists );
 	}
 
@@ -673,7 +673,7 @@ class Tests_Multisite_Site extends WP_UnitTestCase {
 		add_filter( 'domain_exists', array( $this, 'domain_exists_cb' ), 10, 4 );
 		$exists1 = domain_exists( 'foo', 'bar' );
 		$exists2 = domain_exists( 'foo', 'bar/' );
-		remove_filter( 'domain_exists', array( $this, 'domain_exists_cb' ), 10, 4 );
+		remove_filter( 'domain_exists', array( $this, 'domain_exists_cb' ) );
 
 		// Make sure the same result is returned with or without a trailing slash.
 		$this->assertSame( $exists1, $exists2 );

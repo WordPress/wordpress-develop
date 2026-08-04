@@ -1350,7 +1350,7 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 		wp_trash_post( $page_id );
 		wp_untrash_post( $page_id );
 
-		remove_filter( 'wp_untrash_post_status', 'wp_untrash_post_set_previous_status', 10, 3 );
+		remove_filter( 'wp_untrash_post_status', 'wp_untrash_post_set_previous_status' );
 
 		$this->assertSame( $post_status, get_post( $page_id )->post_status );
 	}

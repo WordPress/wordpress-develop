@@ -2283,7 +2283,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 
 		$response = rest_get_server()->dispatch( $request );
 
-		remove_filter( 'rest_allow_anonymous_comments', array( $this, 'anonymous_comments_callback_null' ), 10, 2 );
+		remove_filter( 'rest_allow_anonymous_comments', array( $this, 'anonymous_comments_callback_null' ) );
 
 		$this->assertErrorResponse( 'rest_comment_login_required', $response, 401 );
 	}
@@ -3024,7 +3024,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request->set_body( wp_json_encode( $params ) );
 		$response = rest_get_server()->dispatch( $request );
 
-		remove_filter( 'wp_update_comment_data', array( $this, '_wp_update_comment_data_filter' ), 10, 3 );
+		remove_filter( 'wp_update_comment_data', array( $this, '_wp_update_comment_data_filter' ) );
 
 		$this->assertErrorResponse( 'rest_comment_failed_edit', $response, 500 );
 	}
