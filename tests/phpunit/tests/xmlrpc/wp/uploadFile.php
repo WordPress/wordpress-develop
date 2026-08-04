@@ -71,4 +71,99 @@ class Tests_XMLRPC_wp_uploadFile extends WP_XMLRPC_UnitTestCase {
 		$this->assertIXRError( $result, 'A missing data argument should return an IXR_Error.' );
 		$this->assertSame( 400, $result->code, 'The error code should be 400.' );
 	}
+
+	/**
+	 * Tests that a data struct without a usable file name returns an error
+	 * instead of emitting a PHP notice for the undefined array key.
+	 *
+	 * A file name is required to write the upload, so the request cannot
+	 * succeed. It must fail with an IXR_Error rather than by reading an
+	 * undefined array offset.
+	 *
+	 * @ticket 65611
+	 *
+	 * @covers wp_xmlrpc_server::mw_newMediaObject
+	 *
+	 * @dataProvider data_attachment_data_without_name
+	 *
+	 * @param array<string, mixed> $data The data argument to pass to the method.
+	 */
+	public function test_attachment_data_without_name_should_return_error( $data ) {
+		$this->make_user_by_role( 'editor' );
+
+		$result = $this->myxmlrpcserver->mw_newMediaObject( array( 0, 'editor', 'editor', $data ) );
+		$this->assertIXRError( $result, 'A data argument without a name should return an IXR_Error.' );
+		$this->assertSame( 400, $result->code, 'The error code should be 400.' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{data: array<string, mixed>}>
+	 */
+	public function data_attachment_data_without_name() {
+		return array(
+			'empty struct'       => array(
+				'data' => array(),
+			),
+			'only type and bits' => array(
+				'data' => array(
+					'type' => 'image/jpeg',
+					'bits' => 'contents',
+				),
+			),
+			'non-string name'    => array(
+				'data' => array(
+					'name' => array( 'a2-small.jpg' ),
+					'type' => 'image/jpeg',
+					'bits' => 'contents',
+				),
+			),
+		);
+	}
+
+	/**
+	 * Tests that a data struct without the optional members is still accepted.
+	 *
+	 * Only the name is required. The type and bits members are tolerated when
+	 * absent, and must not emit a PHP notice for the undefined array keys.
+	 *
+	 * @ticket 65611
+	 *
+	 * @covers wp_xmlrpc_server::mw_newMediaObject
+	 *
+	 * @dataProvider data_attachment_data_with_optional_members_omitted
+	 *
+	 * @param array<string, mixed> $data The data argument to pass to the method.
+	 */
+	public function test_attachment_data_with_optional_members_omitted_should_be_accepted( $data ) {
+		$this->make_user_by_role( 'editor' );
+
+		$result = $this->myxmlrpcserver->mw_newMediaObject( array( 0, 'editor', 'editor', $data ) );
+		$this->assertNotIXRError( $result );
+		$this->assertIsString( $result['id'] );
+		$this->assertStringMatchesFormat( '%d', $result['id'] );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{data: array<string, mixed>}>
+	 */
+	public function data_attachment_data_with_optional_members_omitted() {
+		return array(
+			'missing type' => array(
+				'data' => array(
+					'name' => 'a2-small.jpg',
+					'bits' => file_get_contents( DIR_TESTDATA . '/images/a2-small.jpg' ),
+				),
+			),
+			'missing bits' => array(
+				'data' => array(
+					'name' => 'a2-small.jpg',
+					'type' => 'image/jpeg',
+				),
+			),
+		);
+	}
 }
