@@ -438,6 +438,7 @@ class Tests_User extends WP_UnitTestCase {
 			'show_admin_bar_front' => 1,
 			'rich_editing'         => 1,
 			'syntax_highlighting'  => 1,
+			'infinite_scrolling'   => 'false', // See #65564.
 			'first_name'           => 'first',
 			'last_name'            => 'last',
 			'nickname'             => 'nick',

@@ -183,7 +183,15 @@ function check_comment( $author, $email, $url, $comment, $user_ip, $user_agent, 
  *     @type string $order   How to order retrieved comments. Default 'ASC'.
  * }
  * @return WP_Comment[]|int[]|int The approved comments, or number of comments if `$count`
- *                                argument is true.
+ *                                argument is true. An empty array is returned when `$post_id`
+ *                                is falsey, even when `$count` is true.
+ * @phpstan-return (
+ *     $post_id is 0 ? array{} : (
+ *         $args is array{ count: true, ... } ? non-negative-int : (
+ *             $args is array{ fields: 'ids', ... } ? non-negative-int[] : array<int, WP_Comment>
+ *         )
+ *     )
+ * )
  */
 function get_approved_comments( $post_id, $args = array() ) {
 	if ( ! $post_id ) {
@@ -209,6 +217,8 @@ function get_approved_comments( $post_id, $args = array() ) {
  * comment variable will be used, if it is set.
  *
  * @since 2.0.0
+ * @since 7.1.0 Only numeric values are now treated as comment IDs; other unrecognized values
+ *              return null instead of being cast to an integer ID.
  *
  * @global WP_Comment $comment Global comment object.
  *
@@ -217,6 +227,12 @@ function get_approved_comments( $post_id, $args = array() ) {
  *                                       correspond to a WP_Comment object, an associative array, or a numeric array,
  *                                       respectively. Default OBJECT.
  * @return WP_Comment|array|null Depends on $output value.
+ * @phpstan-param 'OBJECT'|'ARRAY_A'|'ARRAY_N' $output
+ * @phpstan-return (
+ *     $output is 'ARRAY_A' ? non-empty-array<string, mixed>|null : (
+ *         $output is 'ARRAY_N' ? non-empty-list<mixed>|null : WP_Comment|null
+ *     )
+ * )
  */
 function get_comment( $comment = null, $output = OBJECT ) {
 	if ( empty( $comment ) && isset( $GLOBALS['comment'] ) ) {
@@ -227,8 +243,10 @@ function get_comment( $comment = null, $output = OBJECT ) {
 		$_comment = $comment;
 	} elseif ( is_object( $comment ) ) {
 		$_comment = new WP_Comment( $comment );
+	} elseif ( is_numeric( $comment ) ) {
+		$_comment = WP_Comment::get_instance( (int) $comment );
 	} else {
-		$_comment = WP_Comment::get_instance( $comment );
+		$_comment = null;
 	}
 
 	if ( ! $_comment ) {
@@ -267,6 +285,11 @@ function get_comment( $comment = null, $output = OBJECT ) {
  * @param string|array $args Optional. Array or string of arguments. See WP_Comment_Query::__construct()
  *                           for information on accepted arguments. Default empty string.
  * @return WP_Comment[]|int[]|int List of comments or number of found comments if `$count` argument is true.
+ * @phpstan-return (
+ *     $args is array{ count: true, ... } ? non-negative-int : (
+ *         $args is array{ fields: 'ids', ... } ? non-negative-int[] : array<int, WP_Comment>
+ *     )
+ * )
  */
 function get_comments( $args = '' ) {
 	$query = new WP_Comment_Query();
@@ -519,6 +542,7 @@ function delete_comment_meta( $comment_id, $meta_key, $meta_value = '' ) {
  *               - true values are returned as '1'
  *               - numbers are returned as strings
  *               Arrays and objects retain their original type.
+ * @phpstan-param int|numeric-string $comment_id
  */
 function get_comment_meta( $comment_id, $key = '', $single = false ) {
 	return get_metadata( 'comment', $comment_id, $key, $single );
@@ -2462,25 +2486,46 @@ function wp_new_comment_notify_moderator( $comment_id ) {
 /**
  * Sends a notification of a new comment to the post author.
  *
- * @since 4.4.0
- *
  * Uses the {@see 'notify_post_author'} filter to determine whether the post author
  * should be notified when a new comment is added, overriding site setting.
+ *
+ * @since 4.4.0
+ * @since 7.1.0 The comment approval status is now checked before the
+ *              {@see 'notify_post_author'} filter, and invalid comment IDs
+ *              return false without firing the filter.
  *
  * @param int $comment_id Comment ID.
  * @return bool True on success, false on failure.
  */
 function wp_new_comment_notify_postauthor( $comment_id ) {
 	$comment = get_comment( $comment_id );
-	$is_note = ( $comment && 'note' === $comment->comment_type );
+	if ( ! ( $comment instanceof WP_Comment ) ) {
+		return false;
+	}
+	$comment_id = (int) $comment->comment_ID;
+	$is_note    = ( 'note' === $comment->comment_type );
 
-	$maybe_notify = $is_note ? get_option( 'wp_notes_notify', 1 ) : get_option( 'comments_notify' );
+	/*
+	 * Determine the default notification behavior. Notes are eligible regardless
+	 * of approval status, based on the 'wp_notes_notify' option. Other comments
+	 * are only eligible once approved, based on the 'comments_notify' option.
+	 */
+	if ( $is_note ) {
+		$maybe_notify = (bool) get_option( 'wp_notes_notify', 1 );
+	} elseif ( '1' !== $comment->comment_approved ) {
+		$maybe_notify = false;
+	} else {
+		$maybe_notify = (bool) get_option( 'comments_notify' );
+	}
 
 	/**
-	 * Filters whether to send the post author new comment notification emails,
-	 * overriding the site setting.
+	 * Filters whether to send the post author new comment and note notification emails,
+	 * overriding the site settings and defaults. By default, notifications are sent for
+	 * all notes and for approved comments.
 	 *
 	 * @since 4.4.0
+	 * @since 7.1.0 Comment approval status is checked before this filter,
+	 *              and the filter no longer fires for invalid comment IDs.
 	 *
 	 * @param bool $maybe_notify Whether to notify the post author about the new comment.
 	 * @param int  $comment_id   The ID of the comment for the notification.
@@ -2493,13 +2538,6 @@ function wp_new_comment_notify_postauthor( $comment_id ) {
 	 */
 	if ( ! $maybe_notify ) {
 		return false;
-	}
-
-	// Send notifications for approved comments and all notes.
-	if (
-		! isset( $comment->comment_approved ) ||
-		( '1' !== $comment->comment_approved && ! $is_note ) ) {
-			return false;
 	}
 
 	return wp_notify_postauthor( $comment_id );
@@ -3111,7 +3149,7 @@ function do_trackbacks( $post ) {
 
 	if ( empty( $post->post_excerpt ) ) {
 		/** This filter is documented in wp-includes/post-template.php */
-		$excerpt = apply_filters( 'the_content', $post->post_content, $post->ID );
+		$excerpt = apply_filters( 'the_content', $post->post_content );
 	} else {
 		/** This filter is documented in wp-includes/post-template.php */
 		$excerpt = apply_filters( 'the_excerpt', $post->post_excerpt );
@@ -4270,4 +4308,94 @@ function wp_create_initial_comment_meta() {
 			},
 		)
 	);
+}
+
+/**
+ * Strips inline note markers from rendered block output.
+ *
+ * Inline notes - notes anchored to a text selection within a block rather than
+ * the whole block - are anchored in raw block content with
+ * `<mark class="wp-note" data-id="N">...</mark>` so the marker survives edits,
+ * but the public HTML should not expose note metadata. This filter unwraps the
+ * marker entirely - dropping the `<mark>` open tag and its matching closer while
+ * keeping the marked text - so nothing leaks to the front end. The raw
+ * `post_content` (and the REST `raw` view, revisions, exports) keeps the marker
+ * so the editor can re-attach it on reload.
+ *
+ * Only note markers are unwrapped: {@see WP_HTML_Tag_Processor::has_class()}
+ * matches the `wp-note` class by exact token, so a `<mark>` a user or plugin
+ * added (e.g. a `core/text-color` highlight, or an unrelated `wp-note-foo`
+ * class) is never flagged and survives byte-for-byte with all of its attributes
+ * intact. A naive regex would be wrong here: a `\bwp-note\b` word boundary also
+ * matches `wp-note-foo`, which is why the class check goes through the HTML API
+ * instead.
+ *
+ * The HTML API has no public token-removal method yet, so an anonymous
+ * {@see WP_HTML_Tag_Processor} subclass unwraps each note `<mark>` and its
+ * matching closer directly on the parsed token stream. Walking tokens - rather
+ * than matching `<mark>` with a regex - means a `</mark>`-looking sequence inside
+ * a comment or attribute value can never be mistaken for a real tag, and a
+ * nesting stack keeps each note opener paired with its own closer so overlapping
+ * notes and any user highlight `<mark>` left intact still resolve correctly.
+ *
+ * The low-level {@see WP_HTML_Tag_Processor} is used deliberately, rather than
+ * the tree-building {@see WP_HTML_Processor}. Note markers live in user-editable
+ * content, so the markup is not guaranteed to be well formed. On certain
+ * ill-formed nesting the tree builder aborts, which would leave note markers -
+ * and their metadata - in the rendered output. Scanning tokens instead removes
+ * every `wp-note` marker it encounters and degrades gracefully: an unbalanced or
+ * stray tag is left exactly as it was rather than corrupting surrounding markup.
+ *
+ * @since 7.1.0
+ *
+ * @param string $block_content Rendered block HTML.
+ * @return string Block HTML with `wp-note` markers unwrapped.
+ */
+function wp_strip_inline_note_markers( $block_content ) {
+	if ( ! str_contains( $block_content, 'wp-note' ) ) {
+		return $block_content;
+	}
+
+	/*
+	 * Anonymous subclass exposing token removal, which WP_HTML_Tag_Processor
+	 * does not provide publicly yet. Removing the current token via its bookmark
+	 * span unwraps the `<mark>` (opener or closer) while keeping the text it
+	 * wraps.
+	 */
+	$processor = new class( $block_content ) extends WP_HTML_Tag_Processor {
+		/**
+		 * Removes the current token, keeping any text it wraps.
+		 */
+		public function remove_token(): void {
+			// Always called after next_tag() returned true, so the bookmark is set.
+			$this->set_bookmark( 'here' );
+			$span = $this->bookmarks['here'];
+
+			$this->lexical_updates[] = new WP_HTML_Text_Replacement( $span->start, $span->length, '' );
+		}
+	};
+
+	/*
+	 * Walk every `<mark>`, tracking note nesting on a stack so each note opener
+	 * pairs with its own closer, and unwrap only the note markers.
+	 */
+	$mark_stack = array();
+	$query      = array(
+		'tag_name'    => 'MARK',
+		'tag_closers' => 'visit',
+	);
+	while ( $processor->next_tag( $query ) ) {
+		if ( $processor->is_tag_closer() ) {
+			$is_note = array_pop( $mark_stack );
+		} else {
+			$is_note      = $processor->has_class( 'wp-note' );
+			$mark_stack[] = $is_note;
+		}
+
+		if ( true === $is_note ) {
+			$processor->remove_token();
+		}
+	}
+
+	return $processor->get_updated_html();
 }

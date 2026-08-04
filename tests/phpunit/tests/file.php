@@ -15,7 +15,6 @@ class Tests_File extends WP_UnitTestCase {
 		$this->dir = untrailingslashit( get_temp_dir() );
 	}
 
-
 	private function is_unique_writable_file( $path, $filename ) {
 		$fullpath = $path . DIRECTORY_SEPARATOR . $filename;
 
