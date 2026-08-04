@@ -37,7 +37,7 @@ class Tests_Comment_WpNotifyNoteMentions extends WP_UnitTestCase {
 	 *     to: list<non-falsy-string>,
 	 *     subject: string,
 	 *     message: string,
-	 *     headers: string|list<string>,
+	 *     headers: list<string>,
 	 * }>
 	 */
 	private array $sent = array();
@@ -93,7 +93,7 @@ class Tests_Comment_WpNotifyNoteMentions extends WP_UnitTestCase {
 			'to'      => $to,
 			'subject' => $atts['subject'],
 			'message' => $atts['message'],
-			'headers' => $atts['headers'],
+			'headers' => (array) $atts['headers'],
 		);
 
 		foreach ( $to as $recipient ) {
@@ -257,7 +257,7 @@ class Tests_Comment_WpNotifyNoteMentions extends WP_UnitTestCase {
 		wp_notify_note_mentions( $note );
 
 		$this->assertCount( 1, $this->sent );
-		$this->assertStringContainsString( 'Content-Type: text/plain', $this->sent[0]['headers'] );
+		$this->assertStringContainsString( 'Content-Type: text/plain', implode( "\n", $this->sent[0]['headers'] ) );
 	}
 
 	/**
