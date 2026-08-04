@@ -7,6 +7,11 @@
  */
 class Admin_WpCommentsListTable_PrintColumnHeaders_Test extends WP_UnitTestCase {
 
+	public function set_up() {
+		parent::set_up();
+		require_once ABSPATH . 'wp-admin/includes/class-wp-comments-list-table.php';
+	}
+
 	/**
 	 * @ticket 45089
 	 */
