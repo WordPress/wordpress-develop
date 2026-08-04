@@ -12,45 +12,41 @@ class Tests_Comment_WpNotifyNoteMentions extends WP_UnitTestCase {
 
 	/**
 	 * Post the notes are attached to.
-	 *
-	 * @var WP_Post
 	 */
-	private static $post;
+	private static WP_Post $post;
 
 	/**
 	 * Author of the post (notified by the post-author path, not the mention path).
-	 *
-	 * @var WP_User
 	 */
-	private static $post_author;
+	private static WP_User $post_author;
 
 	/**
 	 * A user who writes notes.
-	 *
-	 * @var WP_User
 	 */
-	private static $commenter;
+	private static WP_User $commenter;
 
 	/**
 	 * A user who gets mentioned.
-	 *
-	 * @var WP_User
 	 */
-	private static $mentioned;
+	private static WP_User $mentioned;
 
 	/**
 	 * Captured wp_mail() calls for the current test.
 	 *
-	 * @var array[]
+	 * @var list<array{
+	 *     to: list<non-falsy-string>,
+	 *     subject: string,
+	 *     message: string,
+	 * }>
 	 */
-	private $sent = array();
+	private array $sent = array();
 
 	/**
 	 * Captured wp_mail() recipients for the current test.
 	 *
-	 * @var string[]
+	 * @var list<non-falsy-string>
 	 */
-	private $sent_to = array();
+	private array $sent_to = array();
 
 	/**
 	 * Sets up shared fixtures.
@@ -79,14 +75,22 @@ class Tests_Comment_WpNotifyNoteMentions extends WP_UnitTestCase {
 	 * @param null  $short_circuit Short-circuit value.
 	 * @param array $atts          wp_mail() arguments.
 	 * @return bool Always true to indicate a "sent" message.
+	 *
+	 * @phpstan-param array{
+	 *     to: non-falsy-string|list<non-falsy-string>,
+	 *     subject: string,
+	 *     message: string,
+	 *     ...
+	 * } $atts
+	 * @phpstan-return true
 	 */
-	public function capture_mail( $short_circuit, $atts ) {
+	public function capture_mail( $short_circuit, array $atts ): bool {
 		$to = (array) $atts['to'];
 
 		$this->sent[] = array(
 			'to'      => $to,
-			'subject' => (string) $atts['subject'],
-			'message' => (string) $atts['message'],
+			'subject' => $atts['subject'],
+			'message' => $atts['message'],
 		);
 
 		foreach ( $to as $recipient ) {
@@ -104,8 +108,8 @@ class Tests_Comment_WpNotifyNoteMentions extends WP_UnitTestCase {
 	 * @param int    $parent_id Parent note ID (0 for a top-level note).
 	 * @return WP_Comment The inserted note.
 	 */
-	private function insert_note( $content, $user_id, $parent_id = 0 ) {
-		$comment_id = self::factory()->comment->create(
+	private function insert_note( string $content, int $user_id, int $parent_id = 0 ): WP_Comment {
+		$comment = self::factory()->comment->create_and_get(
 			array(
 				'comment_post_ID' => self::$post->ID,
 				'comment_type'    => 'note',
@@ -114,8 +118,8 @@ class Tests_Comment_WpNotifyNoteMentions extends WP_UnitTestCase {
 				'user_id'         => $user_id,
 			)
 		);
-
-		return get_comment( $comment_id );
+		assert( $comment instanceof WP_Comment );
+		return $comment;
 	}
 
 	/**
@@ -125,7 +129,7 @@ class Tests_Comment_WpNotifyNoteMentions extends WP_UnitTestCase {
 	 * @param string $label   Optional. The mention's visible text.
 	 * @return string The mention chip markup.
 	 */
-	private function get_mention_markup( $user_id, $label = '@Mentioned' ) {
+	private function get_mention_markup( int $user_id, string $label = '@Mentioned' ): string {
 		return sprintf( '<span class="wp-note-mention user-%d">%s</span>', $user_id, $label );
 	}
 
@@ -199,8 +203,10 @@ class Tests_Comment_WpNotifyNoteMentions extends WP_UnitTestCase {
 		$this->assertStringContainsString( 'Please review @Reviewer', $email['message'] );
 		$this->assertStringNotContainsString( '<span', $email['message'] );
 		// The email links to the post editor, as the post author's note email does.
+		$edit_link = get_edit_post_link( self::$post->ID, 'url' );
+		$this->assertIsString( $edit_link );
 		$this->assertStringContainsString(
-			get_edit_post_link( self::$post->ID, 'url' ),
+			$edit_link,
 			$email['message']
 		);
 	}
@@ -293,6 +299,7 @@ class Tests_Comment_WpNotifyNoteMentions extends WP_UnitTestCase {
 	 */
 	public function test_mentioned_user_without_note_access_is_not_emailed() {
 		$subscriber = self::factory()->user->create_and_get( array( 'role' => 'subscriber' ) );
+		$this->assertInstanceOf( WP_User::class, $subscriber );
 
 		$note = $this->insert_note(
 			'Ping ' . $this->get_mention_markup( $subscriber->ID, '@Subscriber' ),
