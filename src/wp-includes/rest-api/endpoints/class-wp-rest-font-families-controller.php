@@ -298,7 +298,7 @@ class WP_REST_Font_Families_Controller extends WP_REST_Posts_Controller {
 			// Base properties for every Post.
 			'properties' => array(
 				'id'                   => array(
-					'description' => __( 'Unique identifier for the post.', 'default' ),
+					'description' => __( 'Unique identifier for the post.' ),
 					'type'        => 'integer',
 					'context'     => array( 'view', 'edit', 'embed' ),
 					'readonly'    => true,

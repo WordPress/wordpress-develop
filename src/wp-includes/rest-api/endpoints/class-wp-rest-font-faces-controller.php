@@ -95,7 +95,7 @@ class WP_REST_Font_Faces_Controller extends WP_REST_Posts_Controller {
 						'force' => array(
 							'type'        => 'boolean',
 							'default'     => false,
-							'description' => __( 'Whether to bypass Trash and force deletion.', 'default' ),
+							'description' => __( 'Whether to bypass Trash and force deletion.' ),
 						),
 					),
 				),
@@ -510,7 +510,7 @@ class WP_REST_Font_Faces_Controller extends WP_REST_Posts_Controller {
 			// Base properties for every Post.
 			'properties' => array(
 				'id'                 => array(
-					'description' => __( 'Unique identifier for the post.', 'default' ),
+					'description' => __( 'Unique identifier for the post.' ),
 					'type'        => 'integer',
 					'context'     => array( 'view', 'edit', 'embed' ),
 					'readonly'    => true,
@@ -771,7 +771,7 @@ class WP_REST_Font_Faces_Controller extends WP_REST_Posts_Controller {
 	protected function get_parent_font_family_post( $font_family_id ) {
 		$error = new WP_Error(
 			'rest_post_invalid_parent',
-			__( 'Invalid post parent ID.', 'default' ),
+			__( 'Invalid post parent ID.' ),
 			array( 'status' => 404 )
 		);
 
