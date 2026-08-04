@@ -57,21 +57,21 @@ class Tests_XMLRPC_wp_uploadFile extends WP_XMLRPC_UnitTestCase {
 	}
 
 	/**
-	 * Tests that the data argument is validated before the credentials are
-	 * checked.
+	 * Tests that an anonymous request with a non-array data argument returns
+	 * the login error rather than triggering a fatal error.
 	 *
-	 * The arguments are read before the login is attempted, so an anonymous
-	 * request is what triggers the fatal error. The validation must therefore
-	 * happen ahead of the login for it to be prevented.
+	 * The reported fatal error was reached without credentials because the
+	 * data struct was read before the login was attempted. The struct must
+	 * only be read once the request is authenticated.
 	 *
 	 * @ticket 65611
 	 *
 	 * @covers wp_xmlrpc_server::mw_newMediaObject
 	 */
-	public function test_invalid_attachment_data_should_return_error_before_login() {
+	public function test_anonymous_request_with_invalid_attachment_data_should_return_login_error() {
 		$result = $this->myxmlrpcserver->mw_newMediaObject( array( 0, 'not-a-user', 'not-a-password', 'not-a-struct' ) );
-		$this->assertIXRError( $result, 'A non-array data argument should return an IXR_Error.' );
-		$this->assertSame( 400, $result->code, 'The error code should be 400, not the 403 returned for a failed login.' );
+		$this->assertIXRError( $result, 'An anonymous request should return an IXR_Error.' );
+		$this->assertSame( 403, $result->code, 'The error code should be the 403 returned for a failed login.' );
 	}
 
 	/**
