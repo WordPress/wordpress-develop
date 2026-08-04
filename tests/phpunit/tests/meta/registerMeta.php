@@ -80,6 +80,33 @@ class Tests_Meta_Register_Meta extends WP_UnitTestCase {
 		$this->assertTrue( $result );
 	}
 
+	public function test_register_meta_with_show_in_abilities_schema() {
+		register_meta(
+			'post',
+			'flight_number',
+			array(
+				'show_in_abilities' => array(
+					'schema' => array(
+						'type' => 'string',
+						'enum' => array( 'Oceanic 815' ),
+					),
+				),
+			)
+		);
+		$meta_keys = get_registered_meta_keys( 'post' );
+		unregister_meta_key( 'post', 'flight_number' );
+
+		$this->assertSame(
+			array(
+				'schema' => array(
+					'type' => 'string',
+					'enum' => array( 'Oceanic 815' ),
+				),
+			),
+			$meta_keys['flight_number']['show_in_abilities']
+		);
+	}
+
 	public function test_register_meta_with_post_object_type_populates_wp_meta_keys() {
 		global $wp_meta_keys;
 
@@ -98,6 +125,7 @@ class Tests_Meta_Register_Meta extends WP_UnitTestCase {
 						'sanitize_callback' => null,
 						'auth_callback'     => '__return_true',
 						'show_in_rest'      => false,
+						'show_in_abilities' => false,
 						'revisions_enabled' => false,
 					),
 				),
@@ -124,6 +152,7 @@ class Tests_Meta_Register_Meta extends WP_UnitTestCase {
 						'sanitize_callback' => null,
 						'auth_callback'     => '__return_true',
 						'show_in_rest'      => false,
+						'show_in_abilities' => false,
 						'revisions_enabled' => false,
 					),
 				),
@@ -180,6 +209,7 @@ class Tests_Meta_Register_Meta extends WP_UnitTestCase {
 						'sanitize_callback' => array( $this, '_new_sanitize_meta_cb' ),
 						'auth_callback'     => '__return_true',
 						'show_in_rest'      => false,
+						'show_in_abilities' => false,
 						'revisions_enabled' => false,
 					),
 				),
@@ -362,6 +392,7 @@ class Tests_Meta_Register_Meta extends WP_UnitTestCase {
 						'sanitize_callback' => null,
 						'auth_callback'     => '__return_true',
 						'show_in_rest'      => false,
+						'show_in_abilities' => false,
 						'revisions_enabled' => false,
 					),
 				),
@@ -417,6 +448,7 @@ class Tests_Meta_Register_Meta extends WP_UnitTestCase {
 						'sanitize_callback' => null,
 						'auth_callback'     => '__return_true',
 						'show_in_rest'      => false,
+						'show_in_abilities' => false,
 						'revisions_enabled' => false,
 					),
 				),
