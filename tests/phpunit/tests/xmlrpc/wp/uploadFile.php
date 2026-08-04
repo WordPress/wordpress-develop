@@ -297,6 +297,11 @@ class Tests_XMLRPC_wp_uploadFile extends WP_XMLRPC_UnitTestCase {
 		$this->assertNotIXRError( $result );
 		$this->assertIsString( $result['id'] );
 		$this->assertStringMatchesFormat( '%d', $result['id'] );
+		$this->assertSame(
+			'image/jpeg',
+			get_post_mime_type( (int) $result['attachment_id'] ),
+			'The attachment should be stored with the MIME type of the file.'
+		);
 	}
 
 	/**
@@ -317,6 +322,71 @@ class Tests_XMLRPC_wp_uploadFile extends WP_XMLRPC_UnitTestCase {
 					'name' => 'a2-small.jpg',
 					'type' => 'image/jpeg',
 				),
+			),
+		);
+	}
+
+	/**
+	 * Tests that an omitted type is taken from the file name.
+	 *
+	 * An attachment stored without a MIME type is not matched by media library
+	 * queries filtered by type, and is not recognized as an image, audio or
+	 * video file. The type determined from the file name is a usable stand-in,
+	 * and is the same one that decided whether the upload was allowed at all.
+	 *
+	 * @ticket 65611
+	 *
+	 * @covers wp_xmlrpc_server::mw_newMediaObject
+	 *
+	 * @dataProvider data_attachment_data_without_type
+	 *
+	 * @param string $name          The file name to pass to the method.
+	 * @param string $expected_type The MIME type the attachment should be stored with.
+	 */
+	public function test_attachment_data_without_type_should_use_the_type_of_the_file_name( string $name, string $expected_type ) {
+		$this->make_user_by_role( 'editor' );
+
+		$data = array(
+			'name' => $name,
+			'bits' => 'contents',
+		);
+
+		$result = $this->myxmlrpcserver->mw_newMediaObject( array( 0, 'editor', 'editor', $data ) );
+		$this->assertNotIXRError( $result );
+		$this->assertSame(
+			$expected_type,
+			get_post_mime_type( (int) $result['attachment_id'] ),
+			'The attachment should be stored with the MIME type of the file name.'
+		);
+		$this->assertSame( $expected_type, $result['type'], 'The response should report the same MIME type.' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<non-falsy-string, array{name: string, expected_type: non-falsy-string}>
+	 */
+	public function data_attachment_data_without_type(): array {
+		return array(
+			'a PDF document' => array(
+				'name'          => 'doc.pdf',
+				'expected_type' => 'application/pdf',
+			),
+			'an audio file'  => array(
+				'name'          => 'song.mp3',
+				'expected_type' => 'audio/mpeg',
+			),
+			'a video file'   => array(
+				'name'          => 'clip.mp4',
+				'expected_type' => 'video/mp4',
+			),
+			'a text file'    => array(
+				'name'          => 'notes.txt',
+				'expected_type' => 'text/plain',
+			),
+			'an archive'     => array(
+				'name'          => 'bundle.zip',
+				'expected_type' => 'application/zip',
 			),
 		);
 	}
