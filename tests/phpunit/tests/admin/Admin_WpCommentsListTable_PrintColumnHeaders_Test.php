@@ -23,10 +23,16 @@ class Admin_WpCommentsListTable_PrintColumnHeaders_Test extends WP_UnitTestCase 
 		);
 
 		// Stub the get_sortable_columns() method.
-		$object = $this->getMockBuilder( 'WP_Comments_List_Table' )
-			->setConstructorArgs( array( array( 'screen' => 'edit-comments' ) ) )
-			->setMethods( array( 'get_sortable_columns' ) )
-			->getMock();
+		$builder = $this->getMockBuilder( 'WP_Comments_List_Table' )
+			->setConstructorArgs( array( array( 'screen' => 'edit-comments' ) ) );
+
+		if ( method_exists( $builder, 'onlyMethods' ) ) {
+			$builder->onlyMethods( array( 'get_sortable_columns' ) );
+		} else {
+			$builder->setMethods( array( 'get_sortable_columns' ) );
+		}
+
+		$object = $builder->getMock();
 
 		// Change the null return value of the stubbed get_sortable_columns() method.
 		$object->method( 'get_sortable_columns' )
@@ -59,10 +65,16 @@ class Admin_WpCommentsListTable_PrintColumnHeaders_Test extends WP_UnitTestCase 
 		$_GET['order']   = 'desc';
 
 		// Stub the get_sortable_columns() method.
-		$object = $this->getMockBuilder( 'WP_Comments_List_Table' )
-			->setConstructorArgs( array( array( 'screen' => 'edit-comments' ) ) )
-			->setMethods( array( 'get_sortable_columns' ) )
-			->getMock();
+		$builder = $this->getMockBuilder( 'WP_Comments_List_Table' )
+			->setConstructorArgs( array( array( 'screen' => 'edit-comments' ) ) );
+
+		if ( method_exists( $builder, 'onlyMethods' ) ) {
+			$builder->onlyMethods( array( 'get_sortable_columns' ) );
+		} else {
+			$builder->setMethods( array( 'get_sortable_columns' ) );
+		}
+
+		$object = $builder->getMock();
 
 		// Change the null return value of the stubbed get_sortable_columns() method.
 		$object->method( 'get_sortable_columns' )
