@@ -2633,9 +2633,10 @@ function wp_notify_note_mentions( WP_Comment $comment, $request = null, bool $cr
 
 	$mentioned = wp_get_note_mentioned_user_ids( $comment->comment_content );
 
-	$author_id      = (int) $comment->user_id;
-	$post           = get_post( (int) $comment->comment_post_ID );
-	$post_author_id = $post ? (int) $post->post_author : 0;
+	$author_id       = (int) $comment->user_id;
+	$comment_post_id = (int) $comment->comment_post_ID;
+	$post            = $comment_post_id ? get_post( $comment_post_id ) : null;
+	$post_author_id  = $post ? (int) $post->post_author : 0;
 
 	/*
 	 * The recipient set is bounded and small (one note's mentions), so emails
