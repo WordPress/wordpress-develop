@@ -6,11 +6,12 @@
  *
  * @covers ::wp_privacy_exports_url
  */
-class Tests_functions_test_wpPrivacyExportsUrl extends WP_UnitTestCase {
+class Tests_Functions_wpPrivacyExportsUrl extends WP_UnitTestCase {
 
 	public function tear_down() {
-
 		remove_filter( 'wp_privacy_exports_url', array( $this, 'filter_wp_privacy_exports_url' ) );
+
+		parent::tear_down();
 	}
 
 	/**
@@ -18,8 +19,7 @@ class Tests_functions_test_wpPrivacyExportsUrl extends WP_UnitTestCase {
 	 */
 	public function test_wp_privacy_exports_url() {
 		$upload_dir = wp_upload_dir();
-		$this->assertSame( $upload_dir['baseurl'] . '/wp-personal-data-exports/', wp_privacy_exports_url() );
-	}
+		$this->assertSame( trailingslashit( $upload_dir['baseurl'] ) . 'wp-personal-data-exports/', wp_privacy_exports_url() );
 
 	/**
 	 * @ticket 59709
@@ -34,9 +34,10 @@ class Tests_functions_test_wpPrivacyExportsUrl extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Filter for test
+	 * Filter for test.
 	 *
-	 * @param string $url
+	 * @param string $url Exports directory URL.
+	 * @return string Filtered exports directory URL.
 	 */
 	public function filter_wp_privacy_exports_url( $url ) {
 
