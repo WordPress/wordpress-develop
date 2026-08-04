@@ -20,6 +20,28 @@ class Tests_Post_WpGetAttachmentMetadata extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure stored metadata that is not an array is reported as a failure.
+	 *
+	 * The documented return of `array|false` has to hold on the `$unfiltered` path too, since
+	 * callers such as wp-admin/post.php read the metadata that way in order to modify it and
+	 * pass it back to wp_update_attachment_metadata().
+	 *
+	 * @ticket 65748
+	 *
+	 * @dataProvider data_non_array_stored_metadata_values
+	 *
+	 * @param mixed $metadata Value to store as `_wp_attachment_metadata`.
+	 */
+	public function test_should_return_false_when_the_stored_metadata_is_not_an_array( $metadata ) {
+		$attachment_id = $this->create_attachment();
+
+		update_post_meta( $attachment_id, '_wp_attachment_metadata', $metadata );
+
+		$this->assertFalse( wp_get_attachment_metadata( $attachment_id ), 'The filtered metadata should have been reported as missing.' );
+		$this->assertFalse( wp_get_attachment_metadata( $attachment_id, true ), 'The unfiltered metadata should have been reported as missing.' );
+	}
+
+	/**
 	 * Ensure the `sizes` key is not invented for attachments that have no sub-sizes.
 	 *
 	 * An attachment is not necessarily an image. Audio, video and document attachments
@@ -176,6 +198,23 @@ class Tests_Post_WpGetAttachmentMetadata extends WP_UnitTestCase {
 		add_filter( 'wp_get_attachment_metadata', '__return_empty_array' );
 
 		$this->assertSame( $metadata, wp_get_attachment_metadata( $attachment_id, true ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * Only values that survive a round trip through the meta table are listed. A value that
+	 * comes back falsy, such as an empty string, was already treated as missing metadata.
+	 *
+	 * @return array<non-empty-string, array{ 0: mixed }>
+	 */
+	public function data_non_array_stored_metadata_values(): array {
+		return array(
+			'string'  => array( 'not-an-array' ),
+			'integer' => array( 1 ),
+			'float'   => array( 1.5 ),
+			'object'  => array( new stdClass() ),
+		);
 	}
 
 	/**

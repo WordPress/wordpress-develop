@@ -7048,8 +7048,8 @@ function wp_delete_attachment_files( $post_id, $meta, $backup_sizes, $file ) {
  *
  * @since 2.1.0
  * @since 6.0.0 The `$filesize` value was added to the returned array.
- * @since 7.1.0 When the result is filtered, `false` is now returned if the filtered value is
- *              not an array, and the `sizes` key is always an array when present.
+ * @since 7.1.0 `false` is now returned if the metadata is not an array, and when the result is
+ *              filtered the `sizes` key is always an array when present.
  *
  * @param int  $attachment_id Attachment post ID. Defaults to global $post.
  * @param bool $unfiltered    Optional. If true, filters are not run. Default false.
@@ -7065,42 +7065,38 @@ function wp_delete_attachment_files( $post_id, $meta, $backup_sizes, $file ) {
  *     @type int    $filesize   File size of the attachment.
  * }
  *
- * @phpstan-return (
- *     $unfiltered is true ? mixed : (
- *         array{
- *             width?: int<1, max>,
- *             height?: int<1, max>,
- *             file?: non-empty-string,
- *             filesize?: int<0, max>,
- *             original_image?: non-empty-string,
- *             source_image?: non-empty-string,
- *             sizes?: array<non-empty-string, array{
- *                 file: non-empty-string,
- *                 width: int<1, max>,
- *                 height: int<1, max>,
- *                 'mime-type': non-empty-string,
- *                 filesize?: int<0, max>,
- *                 ...
- *             }>,
- *             image_meta?: array{
- *                 aperture: numeric-string|int,
- *                 credit: string,
- *                 camera: string,
- *                 caption: string,
- *                 created_timestamp: numeric-string|int,
- *                 copyright: string,
- *                 focal_length: numeric-string|int,
- *                 iso: numeric-string|int,
- *                 shutter_speed: numeric-string|int,
- *                 title: string,
- *                 orientation: numeric-string|int,
- *                 keywords: list<string>,
- *                 alt: string,
- *             },
- *             ...
- *         }|false
- *     )
- * )
+ * @phpstan-return array{
+ *                     width?: int<1, max>,
+ *                     height?: int<1, max>,
+ *                     file?: non-empty-string,
+ *                     filesize?: int<0, max>,
+ *                     original_image?: non-empty-string,
+ *                     source_image?: non-empty-string,
+ *                     sizes?: array<non-empty-string, array{
+ *                                                         file: non-empty-string,
+ *                                                         width: int<1, max>,
+ *                                                         height: int<1, max>,
+ *                                                         'mime-type': non-empty-string,
+ *                                                         filesize?: int<0, max>,
+ *                                                         ...
+ *                                                     }>,
+ *                     image_meta?: array{
+ *                                      aperture: numeric-string|int,
+ *                                      credit: string,
+ *                                      camera: string,
+ *                                      caption: string,
+ *                                      created_timestamp: numeric-string|int,
+ *                                      copyright: string,
+ *                                      focal_length: numeric-string|int,
+ *                                      iso: numeric-string|int,
+ *                                      shutter_speed: numeric-string|int,
+ *                                      title: string,
+ *                                      orientation: numeric-string|int,
+ *                                      keywords: list<string>,
+ *                                      alt: string,
+ *                                  },
+ *                     ...
+ *                 }|false
  */
 function wp_get_attachment_metadata( $attachment_id = 0, $unfiltered = false ) {
 	$attachment_id = (int) $attachment_id;
@@ -7117,7 +7113,7 @@ function wp_get_attachment_metadata( $attachment_id = 0, $unfiltered = false ) {
 
 	$data = get_post_meta( $attachment_id, '_wp_attachment_metadata', true );
 
-	if ( ! $data ) {
+	if ( ! is_array( $data ) || ! $data ) {
 		return false;
 	}
 
