@@ -1532,12 +1532,12 @@ table.form-table td .updated p {
 
 .privacy_requests tr.status-request-confirmed td.check-column {
 	background-color: #fff;
-	border-left-color: #72aee6;
+	border-left-color: #3858e9;
 }
 
 .privacy_requests tr.status-request-failed td.check-column {
 	background-color: #f6f7f7;
-	border-left-color: #d63638;
+	border-left-color: #cc1818;
 }
 
 .privacy_requests .export_personal_data_failed a {
