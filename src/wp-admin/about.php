@@ -14,7 +14,7 @@ require_once __DIR__ . '/admin.php';
 $title = _x( 'About', 'page title' );
 
 list( $display_version ) = explode( '-', wp_get_wp_version() );
-$display_major_version   = '7.0';
+$display_major_version   = '7.1';
 
 $release_notes_url = sprintf(
 	/* translators: %s: WordPress version number. */
@@ -62,22 +62,22 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 
 		<div class="about__section">
 			<div class="column is-left-padding-zero is-right-padding-zero">
-				<h2><?php _e( 'Welcome to WordPress 7.0' ); ?></h2>
-				<p class="is-subheading"><?php _e( 'WordPress 7.0 introduces the foundation for AI across the platform, letting you connect your preferred provider and put it to work across your site. Edit more simply by dropping in layouts and swapping content without diving into blocks. The navigation overlay now taps into the full potential of blocks, and reviewing historical changes is easier with a visual comparison.' ); ?></p>
+				<h2><?php _e( 'Welcome to WordPress 7.1' ); ?></h2>
+				<p class="is-subheading"><?php _e( "WordPress 7.1 makes it easier to style, edit, and collaborate. Style how blocks look across screen sizes and how they respond to hover, focus, and active states, all without writing custom CSS. A new media editor brings cropping, rotation, and metadata editing together in one streamlined workflow. Notes now support rich text and @mentions, and the admin bar now travels with you into the Site Editor and block editor, so the tools you rely on stay with you wherever you're working." ); ?></p>
 			</div>
 		</div>
 
 		<div class="about__section has-2-columns">
 			<div class="column is-vertically-aligned-center is-left-padding-zero">
-				<h3><?php _e( 'Design your navigation overlay' ); ?></h3>
+				<h3><?php _e( 'Apply responsive styles' ); ?></h3>
 				<p>
-					<strong><?php _e( 'A dedicated canvas for your menu.' ); ?></strong><br />
-					<?php _e( 'Build the menu overlay you want visitors to see. Go beyond a simple list of links: add columns, increase the font size, and align everything to your liking. Start from a pre-built template, or design your own from scratch.' ); ?>
+					<strong><?php _e( 'Style content your way, on every screen.' ); ?></strong><br />
+					<?php _e( 'WordPress 7.1 takes a major step toward built-in responsive design. Set how a block looks at different screen sizes directly in the editor, for both Global Styles and individual blocks, all without writing custom CSS.' ); ?>
 				</p>
 			</div>
 			<div class="column is-vertically-aligned-center is-right-padding-zero">
 				<div class="about__image">
-					<img src="https://s.w.org/images/core/7.0/about-feature-01.webp" alt="" height="436" width="436" />
+					<img src="./images/about-feature-01.webp" alt="" height="436" width="436" />
 				</div>
 			</div>
 		</div>
@@ -85,29 +85,29 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 		<div class="about__section has-2-columns">
 			<div class="column is-vertically-aligned-center is-left-padding-zero">
 				<div class="about__image">
-					<img src="https://s.w.org/images/core/7.0/about-feature-02.webp" alt="" height="436" width="436" />
+					<img src="./images/about-feature-02.webp" alt="" height="436" width="436" />
 				</div>
 			</div>
 			<div class="column is-vertically-aligned-center is-right-padding-zero">
-				<h3><?php _e( 'AI foundations' ); ?></h3>
+				<h3><?php _e( 'Admin bar, now in every editor' ); ?></h3>
 				<p>
-					<strong><?php _e( 'A centralized hub for your connections.' ); ?></strong><br />
-					<?php _e( 'The Connectors screen introduces a single hub for managing a range of external service integrations, including AI providers. Opt in by connecting your preferred AI provider, then put it to work across your site. The optional AI plugin adds a growing set of tools directly into the editor: create titles and excerpts, generate and edit images, and suggest alt text. Any plugin that needs to connect to an outside service can tap into this standardized connection management system, making it easy for users and developers alike.' ); ?>
+					<strong><?php _e( 'Consistent navigation, from dashboard to editor.' ); ?></strong><br />
+					<?php _e( 'The WordPress admin bar now stays with you as you move into the Site Editor and block editor, so you stay oriented as you move between the Site Editor and block editor. Admin bar also receives a small UI visual improvement.' ); ?>
 				</p>
 			</div>
 		</div>
 
 		<div class="about__section has-2-columns">
 			<div class="column is-vertically-aligned-center is-left-padding-zero">
-				<h3><?php _e( 'Visual revisions' ); ?></h3>
+				<h3><?php _e( 'A new way to crop' ); ?></h3>
 				<p>
-					<strong><?php _e( 'Scrub through every version of your page.' ); ?></strong><br />
-					<?php _e( 'Review your post&#8217;s revision history with a timeline slider and see exactly what changed in the document with visual markers, block by block. Find the version you want and restore it in one click.' ); ?>
+					<strong><?php _e( 'One dedicated workflow for editing your images.' ); ?></strong><br />
+					<?php _e( 'A new media editor modal replaces the old inline cropping tool, bringing freeform and aspect-ratio cropping, flip, precise rotation, and metadata editing together in a single streamlined workflow. The familiar Crop button still gets you there, now opening a dedicated space to crop, rotate, and adjust images before publishing.' ); ?>
 				</p>
 			</div>
 			<div class="column is-vertically-aligned-center is-right-padding-zero">
 				<div class="about__image">
-					<img src="https://s.w.org/images/core/7.0/about-feature-03.webp" alt="" height="436" width="436" />
+					<img src="./images/about-feature-03.webp" alt="" height="436" width="436" />
 				</div>
 			</div>
 		</div>
@@ -115,14 +115,14 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 		<div class="about__section has-2-columns">
 			<div class="column is-vertically-aligned-center is-left-padding-zero">
 				<div class="about__image">
-					<img src="https://s.w.org/images/core/7.0/about-feature-04.webp" alt="" height="436" width="436" />
+					<img src="./images/about-feature-04.webp" alt="" height="436" width="436" />
 				</div>
 			</div>
 			<div class="column is-vertically-aligned-center is-right-padding-zero">
-				<h3><?php _e( 'A simpler way to build with patterns' ); ?></h3>
+				<h3><?php _e( 'Inline notes with mentions and rich text' ); ?></h3>
 				<p>
-					<strong><?php _e( 'Patterns as single blocks.' ); ?></strong><br />
-					<?php _e( 'Drop a pattern onto your page and it behaves like one block, so you don’t have to hunt through nested blocks for the element you want to change. Swap the text and images, adjust styles from the inspector, and keep moving. For any advanced edits, a single click to "edit pattern" gives you access to all available tools.' ); ?>
+					<strong><?php _e( 'More ways to leave feedback.' ); ?></strong><br />
+					<?php _e( 'Notes now support rich text and @mentions. Add bold, italic, code, and links so feedback reads clearly. Type "@" to pull up a list of collaborators and tag the right person directly. Leave a note on a specific text selection instead of an entire block. Start more than one conversation on the same block. Collapse long notes to keep the margin tidy.' ); ?>
 				</p>
 			</div>
 		</div>
@@ -137,8 +137,8 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 						<path fill="#1e1e1e" fill-rule="evenodd" d="M4.91 27.75C4.91 17.395 13.455 9 24 9s19.091 8.395 19.091 18.75c0 3.909-1.22 7.542-3.305 10.548l-.488.702H8.702l-.488-.702A18.438 18.438 0 0 1 4.91 27.75ZM24 12.214c-8.736 0-15.818 6.956-15.818 15.536 0 2.943.832 5.692 2.277 8.036h27.082a15.25 15.25 0 0 0 2.277-8.036c0-8.58-7.082-15.536-15.818-15.536Z" clip-rule="evenodd"/>
 					</svg>
 				</div>
-				<h3><?php _e( 'Performance' ); ?></h3>
-				<p><?php _e( 'WordPress 7.0 improves the accuracy of image loading prioritization, preventing hidden images in navigation overlays or interactive blocks from degrading the loading of critical resources. On-demand block stylesheet loading in classic themes is more reliable, and the ability is added for scripts to depend on script modules to reduce render-blocking.' ); ?></p>
+				<h3><?php _e( 'Improved Media Handling' ); ?></h3>
+				<p><?php _e( 'Image compression, resizing, and thumbnail generation now happen in the browser, via a WebAssembly build of libvips, so large uploads won’t hit PHP memory limits or time out on shared hosts. This also frees up server CPU and memory, while producing smaller files for visitors  media handling includes built-in support for AVIF,  HEIC and HDR gain maps.' ); ?></p>
 			</div>
 			<div class="column is-right-padding-zero">
 				<div class="about__image">
@@ -147,7 +147,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 					</svg>
 				</div>
 				<h3><?php _e( 'Accessibility' ); ?></h3>
-				<p><?php _e( 'WordPress continues to polish accessibility across WordPress Core and Gutenberg, advancing the goals to meet accessibility standards. WordPress 7.0 includes fixes across the platform, improving media management, usability for voice control, and improvements to color contrast with the new admin color scheme. The editor ships with new blocks and improvements to editor navigation and interaction.' ); ?></p>
+				<p><?php _e( 'WordPress 7.1 adds a "mark as decorative" toggle for the Image block, so decorative images can be hidden from screen readers, and the new admin bar and media editor modal have been built and reviewed with accessibility in mind. Work also continues on the post list tables and media library, as identified priorities in previous releases.' ); ?></p>
 			</div>
 		</div>
 
@@ -177,7 +177,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 
 		<div class="about__section has-3-columns">
 			<div class="column about__image is-vertically-aligned-top is-left-padding-zero">
-				<img src="<?php echo esc_url( admin_url( 'images/about-release-badge.svg?ver=7.0' ) ); ?>" alt="" height="280" width="280" />
+				<img src="<?php echo esc_url( admin_url( 'images/about-release-badge.svg?ver=7.1' ) ); ?>" alt="" height="280" width="280" />
 			</div>
 			<div class="column is-vertically-aligned-center is-right-padding-zero" style="grid-column-end:span 2">
 				<h3>

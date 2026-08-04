@@ -24,10 +24,6 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 <div class="wrap about__container">
 
 	<div class="about__header">
-		<div class="about__header-image">
-			<img src="<?php echo esc_url( admin_url( 'images/about-release-logo.svg?ver=7.0' ) ); ?>" alt="<?php echo esc_attr( $header_alt_text ); ?>" />
-		</div>
-
 		<div class="about__header-title">
 			<h1>
 				<?php _e( 'Get Involved' ); ?>
