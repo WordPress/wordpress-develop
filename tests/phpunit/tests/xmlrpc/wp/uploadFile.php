@@ -66,9 +66,9 @@ class Tests_XMLRPC_wp_uploadFile extends WP_XMLRPC_UnitTestCase {
 	 *
 	 * @dataProvider data_insufficient_arguments
 	 *
-	 * @param array<int, mixed> $args The arguments to pass to the method.
+	 * @param list<mixed> $args The arguments to pass to the method.
 	 */
-	public function test_insufficient_arguments_should_return_error( $args ) {
+	public function test_insufficient_arguments_should_return_error( array $args ) {
 		$this->make_user_by_role( 'editor' );
 
 		$result = $this->myxmlrpcserver->mw_newMediaObject( $args );
@@ -79,9 +79,9 @@ class Tests_XMLRPC_wp_uploadFile extends WP_XMLRPC_UnitTestCase {
 	/**
 	 * Data provider.
 	 *
-	 * @return array<string, array{args: array<int, mixed>}>
+	 * @return array<string, array{args: list<mixed>}>
 	 */
-	public function data_insufficient_arguments() {
+	public function data_insufficient_arguments(): array {
 		return array(
 			'no arguments'     => array(
 				'args' => array(),
@@ -111,7 +111,7 @@ class Tests_XMLRPC_wp_uploadFile extends WP_XMLRPC_UnitTestCase {
 	 *
 	 * @param array<string, mixed> $data The data argument to pass to the method.
 	 */
-	public function test_attachment_data_without_name_should_return_error( $data ) {
+	public function test_attachment_data_without_name_should_return_error( array $data ) {
 		$this->make_user_by_role( 'editor' );
 
 		$result = $this->myxmlrpcserver->mw_newMediaObject( array( 0, 'editor', 'editor', $data ) );
@@ -122,9 +122,9 @@ class Tests_XMLRPC_wp_uploadFile extends WP_XMLRPC_UnitTestCase {
 	/**
 	 * Data provider.
 	 *
-	 * @return array<string, array{data: array<string, mixed>}>
+	 * @return array<non-falsy-string, array{data: array<string, mixed>}>
 	 */
-	public function data_attachment_data_without_name() {
+	public function data_attachment_data_without_name(): array {
 		return array(
 			'empty struct'       => array(
 				'data' => array(),
@@ -159,7 +159,7 @@ class Tests_XMLRPC_wp_uploadFile extends WP_XMLRPC_UnitTestCase {
 	 *
 	 * @param array<string, mixed> $data The data argument to pass to the method.
 	 */
-	public function test_attachment_data_with_optional_members_omitted_should_be_accepted( $data ) {
+	public function test_attachment_data_with_optional_members_omitted_should_be_accepted( array $data ) {
 		$this->make_user_by_role( 'editor' );
 
 		$result = $this->myxmlrpcserver->mw_newMediaObject( array( 0, 'editor', 'editor', $data ) );
@@ -171,9 +171,9 @@ class Tests_XMLRPC_wp_uploadFile extends WP_XMLRPC_UnitTestCase {
 	/**
 	 * Data provider.
 	 *
-	 * @return array<string, array{data: array<string, mixed>}>
+	 * @return array<non-falsy-string, array{data: array<string, mixed>}>
 	 */
-	public function data_attachment_data_with_optional_members_omitted() {
+	public function data_attachment_data_with_optional_members_omitted(): array {
 		return array(
 			'missing type' => array(
 				'data' => array(
