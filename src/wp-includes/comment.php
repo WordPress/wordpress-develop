@@ -2617,8 +2617,8 @@ function wp_get_note_mentioned_user_ids( string $content ): array {
  * @param mixed      $request  The REST request. Unused.
  * @param bool       $creating Whether this is a create (true) or update (false).
  */
-function wp_notify_note_mentions( $comment, $request = null, $creating = true ) {
-	if ( ! $creating || ! $comment instanceof WP_Comment ) {
+function wp_notify_note_mentions( WP_Comment $comment, $request = null, bool $creating = true ): void {
+	if ( ! $creating ) {
 		return;
 	}
 
