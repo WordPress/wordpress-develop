@@ -5879,7 +5879,7 @@ function _wp_add_additional_image_sizes() {
 function wp_show_heic_upload_error( $plupload_settings ) {
 	// Check if HEIC images can be edited.
 	if ( ! wp_image_editor_supports( array( 'mime_type' => 'image/heic' ) ) ) {
-		$plupload_init['heic_upload_error'] = true;
+		$plupload_settings['heic_upload_error'] = true;
 	}
 	return $plupload_settings;
 }
