@@ -164,6 +164,70 @@ class Tests_XMLRPC_wp_uploadFile extends WP_XMLRPC_UnitTestCase {
 	}
 
 	/**
+	 * Tests that a file name left empty by sanitization returns the same error
+	 * as an absent one.
+	 *
+	 * sanitize_file_name() strips special characters and then trims the
+	 * remaining leading and trailing '.', '-' and '_' characters, so a name
+	 * built only from those is reduced to an empty string. That leaves nothing
+	 * to write, which is a malformed request rather than a server failure, so
+	 * it must be reported as a 400 like any other unusable name instead of
+	 * reaching wp_upload_bits() and surfacing as a 500.
+	 *
+	 * @ticket 65611
+	 *
+	 * @covers wp_xmlrpc_server::mw_newMediaObject
+	 *
+	 * @dataProvider data_attachment_data_with_unusable_name
+	 *
+	 * @param string $name The file name to pass to the method.
+	 */
+	public function test_attachment_data_with_unusable_name_should_return_error( string $name ) {
+		$this->make_user_by_role( 'editor' );
+
+		$data = array(
+			'name' => $name,
+			'type' => 'image/jpeg',
+			'bits' => 'contents',
+		);
+
+		$result = $this->myxmlrpcserver->mw_newMediaObject( array( 0, 'editor', 'editor', $data ) );
+		$this->assertIXRError( $result, 'A name left empty by sanitization should return an IXR_Error.' );
+		$this->assertSame( 400, $result->code, 'The error code should be 400.' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<non-falsy-string, array{name: string}>
+	 */
+	public function data_attachment_data_with_unusable_name(): array {
+		return array(
+			'empty name'           => array(
+				'name' => '',
+			),
+			'only dots'            => array(
+				'name' => '...',
+			),
+			'only dashes'          => array(
+				'name' => '---',
+			),
+			'only underscores'     => array(
+				'name' => '___',
+			),
+			'only a space'         => array(
+				'name' => ' ',
+			),
+			'only special chars'   => array(
+				'name' => '///',
+			),
+			'only a question mark' => array(
+				'name' => '?',
+			),
+		);
+	}
+
+	/**
 	 * Tests that a data struct with a non-string type or bits member returns an
 	 * error instead of triggering a fatal error.
 	 *

@@ -6490,6 +6490,12 @@ class wp_xmlrpc_server extends IXR_Server {
 		}
 
 		$name = sanitize_file_name( $data['name'] );
+
+		// A name consisting only of characters the sanitizer strips leaves nothing to write to.
+		if ( '' === $name ) {
+			return new IXR_Error( 400, __( 'Invalid attachment data.' ) );
+		}
+
 		$type = $data['type'] ?? '';
 		$bits = $data['bits'] ?? '';
 
