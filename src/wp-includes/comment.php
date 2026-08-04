@@ -2703,7 +2703,19 @@ function wp_send_note_notification( WP_User $user, WP_Comment $comment, ?WP_Post
 	$post_title  = $post ? wp_specialchars_decode( get_the_title( $post ), ENT_QUOTES ) : '';
 	$author_name = $comment->comment_author ? $comment->comment_author : __( 'Someone' );
 	$content     = wp_specialchars_decode( wp_strip_all_tags( $comment->comment_content ) );
-	$edit_link   = $post ? get_edit_post_link( $post->ID, 'url' ) : '';
+
+	/*
+	 * The rest of the message is composed for the recipient, and so is the editor
+	 * link: get_edit_post_link() answers for whoever is current, which here is the
+	 * note's author over REST and nobody at all under WP-Cron.
+	 */
+	$edit_link = '';
+	if ( $post ) {
+		$previous_user_id = get_current_user_id();
+		wp_set_current_user( $user->ID );
+		$edit_link = (string) get_edit_post_link( $post->ID, 'url' );
+		wp_set_current_user( $previous_user_id );
+	}
 
 	/* translators: 1: Note author's name, 2: Post title. */
 	$message = sprintf( __( '%1$s mentioned you in a note on "%2$s".' ), $author_name, $post_title );
@@ -2719,7 +2731,10 @@ function wp_send_note_notification( WP_User $user, WP_Comment $comment, ?WP_Post
 		$lines[] = __( 'Edit This' ) . ': ' . $edit_link;
 	}
 
-	$sent = wp_mail( $user->user_email, $subject, implode( "\n", $lines ) );
+	// Declared explicitly so a filtered default cannot turn the message into HTML.
+	$headers = 'Content-Type: text/plain; charset="' . get_option( 'blog_charset' ) . '"';
+
+	$sent = wp_mail( $user->user_email, $subject, implode( "\n", $lines ), $headers );
 
 	if ( $switched_locale ) {
 		restore_previous_locale();

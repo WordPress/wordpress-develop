@@ -37,6 +37,7 @@ class Tests_Comment_WpNotifyNoteMentions extends WP_UnitTestCase {
 	 *     to: list<non-falsy-string>,
 	 *     subject: string,
 	 *     message: string,
+	 *     headers: string|list<string>,
 	 * }>
 	 */
 	private array $sent = array();
@@ -80,6 +81,7 @@ class Tests_Comment_WpNotifyNoteMentions extends WP_UnitTestCase {
 	 *     to: non-falsy-string|list<non-falsy-string>,
 	 *     subject: string,
 	 *     message: string,
+	 *     headers: string|list<string>,
 	 *     ...
 	 * } $atts
 	 * @phpstan-return true
@@ -91,6 +93,7 @@ class Tests_Comment_WpNotifyNoteMentions extends WP_UnitTestCase {
 			'to'      => $to,
 			'subject' => $atts['subject'],
 			'message' => $atts['message'],
+			'headers' => $atts['headers'],
 		);
 
 		foreach ( $to as $recipient ) {
@@ -209,6 +212,52 @@ class Tests_Comment_WpNotifyNoteMentions extends WP_UnitTestCase {
 			$edit_link,
 			$email['message']
 		);
+	}
+
+	/**
+	 * The editor link is composed for the recipient, not for whoever happens to
+	 * be current, so it survives contexts with no logged-in user such as WP-Cron.
+	 *
+	 * @ticket 65639
+	 *
+	 * @covers ::wp_send_note_notification
+	 */
+	public function test_editor_link_is_built_for_the_recipient() {
+		wp_set_current_user( 0 );
+
+		$note = $this->insert_note(
+			$this->get_mention_markup( self::$mentioned->ID ),
+			self::$commenter->ID
+		);
+
+		wp_notify_note_mentions( $note );
+
+		$this->assertCount( 1, $this->sent );
+
+		// The switch is temporary; the caller's context is left as it was found.
+		$this->assertSame( 0, get_current_user_id() );
+
+		wp_set_current_user( self::$mentioned->ID );
+		$edit_link = get_edit_post_link( self::$post->ID, 'url' );
+		$this->assertIsString( $edit_link );
+		$this->assertStringContainsString( $edit_link, $this->sent[0]['message'] );
+	}
+
+	/**
+	 * @ticket 65639
+	 *
+	 * @covers ::wp_send_note_notification
+	 */
+	public function test_email_is_sent_as_plain_text() {
+		$note = $this->insert_note(
+			$this->get_mention_markup( self::$mentioned->ID ),
+			self::$commenter->ID
+		);
+
+		wp_notify_note_mentions( $note );
+
+		$this->assertCount( 1, $this->sent );
+		$this->assertStringContainsString( 'Content-Type: text/plain', $this->sent[0]['headers'] );
 	}
 
 	/**
