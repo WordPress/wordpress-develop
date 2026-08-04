@@ -2602,11 +2602,11 @@ function wp_get_note_mentioned_user_ids( string $content ): array {
 /**
  * Notifies mentioned users about a new note.
  *
- * Runs on `rest_insert_comment` alongside the post author notification. The
- * recipient set is the users mentioned in this note, minus the note's own
+ * Runs on {@see 'rest_insert_comment'} alongside the post author notification.
+ * The recipient set is the users mentioned in this note, minus the note's own
  * author (a user is not notified about their own note) and the post author,
  * who is already notified about every note by
- * wp_new_comment_via_rest_notify_postauthor().
+ * {@see wp_new_comment_via_rest_notify_postauthor()}.
  *
  * Only fires when a note is created, not when an existing one is edited, so
  * correcting a note does not re-notify everyone who already received it.
@@ -2688,7 +2688,7 @@ function wp_notify_note_mentions( WP_Comment $comment, $request = null, bool $cr
  * @param WP_User      $user    The recipient.
  * @param WP_Comment   $comment The note that triggered the notification.
  * @param WP_Post|null $post    The post the note belongs to.
- * @return bool Whether the email was accepted for delivery by wp_mail().
+ * @return bool Whether the email was accepted for delivery by {@see wp_mail()}.
  */
 function wp_send_note_notification( WP_User $user, WP_Comment $comment, ?WP_Post $post ): bool {
 	$switched_locale = switch_to_user_locale( $user->ID );
