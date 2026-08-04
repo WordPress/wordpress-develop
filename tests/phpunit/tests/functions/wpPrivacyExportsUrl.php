@@ -20,6 +20,7 @@ class Tests_Functions_wpPrivacyExportsUrl extends WP_UnitTestCase {
 	public function test_wp_privacy_exports_url() {
 		$upload_dir = wp_upload_dir();
 		$this->assertSame( trailingslashit( $upload_dir['baseurl'] ) . 'wp-personal-data-exports/', wp_privacy_exports_url() );
+	}
 
 	/**
 	 * @ticket 59709
