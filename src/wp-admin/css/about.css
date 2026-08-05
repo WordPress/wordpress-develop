@@ -581,6 +581,10 @@
 	.about__container h3.is-larger-heading {
 		font-size: 2em;
 	}
+
+	.about__container h1 {
+		text-shadow: 0 0 2px var(--background);
+	}
 }
 
 /* 1.3 - Header */
