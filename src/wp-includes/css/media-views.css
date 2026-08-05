@@ -367,7 +367,7 @@ select#media-attachment-filters ~ select#media-attachment-date-filters {
 
 .media-modal .media-toolbar-secondary > .spinner {
 	position: absolute;
-	left: calc( 100% + 2px );
+	right: -30px;
 	top: 50%;
 	margin: 0;
 }
@@ -2901,12 +2901,8 @@ select#media-attachment-filters ~ select#media-attachment-date-filters {
 	}
 
 	.media-modal .media-frame .media-toolbar-secondary .spinner {
-		position: absolute;
-		top: 0;
 		bottom: 0;
 		margin: auto;
-		left: calc( 100% + 2px );
-		right: 0;
 		z-index: 9;
 	}
 
