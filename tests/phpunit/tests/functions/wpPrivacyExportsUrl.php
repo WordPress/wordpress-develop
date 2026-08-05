@@ -8,12 +8,6 @@
  */
 class Tests_Functions_wpPrivacyExportsUrl extends WP_UnitTestCase {
 
-	public function tear_down() {
-		remove_filter( 'wp_privacy_exports_url', array( $this, 'filter_wp_privacy_exports_url' ) );
-
-		parent::tear_down();
-	}
-
 	/**
 	 * @ticket 59709
 	 */
