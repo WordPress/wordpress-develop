@@ -210,7 +210,7 @@ if ( isset( $page_hook ) ) {
 	$hook_suffix = $page_hook;
 } elseif ( isset( $plugin_page ) ) {
 	$hook_suffix = $plugin_page;
-} elseif ( isset( $pagenow ) ) {
+} else {
 	$hook_suffix = $pagenow;
 }
 
