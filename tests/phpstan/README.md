@@ -118,21 +118,39 @@ The consequence is that **fixing a baselined error means regenerating its baseli
 The baselines are generated, and should not be edited by hand. Regenerate them with:
 
 ```bash
-# every identifier:
-composer phpstan:baselines
-
-# a single identifier:
-composer phpstan:baselines -- --identifier=variable.undefined
-
-# several, either comma separated or by repeating the option:
-composer phpstan:baselines -- --identifier=variable.undefined,isset.variable
-composer phpstan:baselines -- --identifier=isset.variable --identifier=empty.variable
-
-# print every error as one baseline, writing nothing:
-composer phpstan:baselines -- --combined
+npm run typecheck:php:baselines
 ```
 
-Run `composer phpstan:baselines -- --help` for the remaining options.
+which will run the generator in the Docker container.
+
+As with the analysis itself, flags are passed by adding `--` followed by the flags themselves:
+
+```bash
+# a single identifier:
+npm run typecheck:php:baselines -- --identifier=variable.undefined
+
+# several, either comma separated or by repeating the option:
+npm run typecheck:php:baselines -- --identifier=variable.undefined,isset.variable
+npm run typecheck:php:baselines -- --identifier=isset.variable --identifier=empty.variable
+
+# print every error as one baseline, writing nothing:
+npm run typecheck:php:baselines -- --combined
+
+# the remaining options:
+npm run typecheck:php:baselines -- --help
+```
+
+If you are not using the Docker environment, you can run the generator via Composer directly:
+
+```bash
+composer phpstan:baselines
+
+composer phpstan:baselines -- --identifier=variable.undefined
+composer phpstan:baselines -- --combined
+composer phpstan:baselines -- --help
+```
+
+Note the `--` in each of those. Composer needs it in order to pass the flags on to the script rather than reading them as its own, and without it they are discarded silently, so `composer phpstan:baselines --identifier=variable.undefined` regenerates every baseline rather than that one. The npm script supplies it, which is why only one is needed there.
 
 A run also deletes any baseline whose identifier no longer reports anything, and rewrites the list of them between the `# phpstan:baselines` markers in the `includes` of [`phpstan.neon.dist`](../../phpstan.neon.dist) to match. Adding a newly split out baseline, and retiring one that has reached zero, therefore need no edit of the configuration.
 
