@@ -468,6 +468,7 @@ class Tests_Term_Query extends WP_UnitTestCase {
 			)
 		);
 
+		$this->assertNull( $query->query_vars['object_ids'], 'When object_ids is null, it should remain null to avoid unnecessary processing.' );
 		$this->assertSameSets( $terms, $query->terms, 'When object_ids is null, all terms should be returned without filtering.' );
 	}
 
