@@ -151,14 +151,18 @@ class Tests_Ajax_wpAjaxAutocompleteUser extends WP_Ajax_UnitTestCase {
 	 * Tests that HTML tags are removed from the search term.
 	 *
 	 * @ticket 65051
+	 *
+	 * @dataProvider data_terms_containing_tags
+	 *
+	 * @param string $term Term containing HTML tags.
 	 */
-	public function test_should_strip_tags_from_the_search_term() {
+	public function test_should_strip_tags_from_the_search_term( string $term ) {
 		wp_set_current_user( self::$super_admin_id );
 
 		$_GET = wp_slash(
 			array(
 				'autocomplete_type' => 'search',
-				'term'              => 'autocompleteuser<script>alert(1)</script>',
+				'term'              => $term,
 			)
 		);
 
@@ -175,6 +179,22 @@ class Tests_Ajax_wpAjaxAutocompleteUser extends WP_Ajax_UnitTestCase {
 
 		$this->assertSame( '*autocompleteuser*', $search, 'The search term should be sanitized before it is passed to get_users().' );
 		$this->assertCount( 1, $response, 'The sanitized term should still match the user.' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * Note that `wp_strip_all_tags()` removes script and style elements along
+	 * with their contents, while for other tags only the tags themselves are
+	 * removed.
+	 *
+	 * @return array<string, array{string}>
+	 */
+	public static function data_terms_containing_tags(): array {
+		return array(
+			'script element after the term' => array( 'autocompleteuser<script>alert(1)</script>' ),
+			'tags wrapping the term'        => array( '<b>autocompleteuser</b>' ),
+		);
 	}
 
 	/**
