@@ -49,7 +49,7 @@ class Tests_Ajax_wpAjaxAutocompleteUser extends WP_Ajax_UnitTestCase {
 			array(
 				'role'       => 'subscriber',
 				'user_login' => 'autocompleteuser',
-				'user_email' => 'autocompleteuser@example.org',
+				'user_email' => 'autocompleteuser+bat\'leth@klingon.example.org',
 			)
 		);
 
@@ -84,8 +84,12 @@ class Tests_Ajax_wpAjaxAutocompleteUser extends WP_Ajax_UnitTestCase {
 	public function test_should_return_users_matching_the_search_term() {
 		wp_set_current_user( self::$super_admin_id );
 
-		$_GET['autocomplete_type'] = 'search';
-		$_GET['term']              = 'autocompleteuser';
+		$_GET = wp_slash(
+			array(
+				'autocomplete_type' => 'search',
+				'term'              => 'autocompleteuser',
+			)
+		);
 
 		$response = json_decode( $this->handle_autocomplete_user(), true );
 
@@ -95,7 +99,7 @@ class Tests_Ajax_wpAjaxAutocompleteUser extends WP_Ajax_UnitTestCase {
 		$this->assertIsArray( $result );
 		$this->assertSame( 'autocompleteuser', $result['value'], 'The user login should be returned as the value.' );
 		$this->assertIsString( $result['label'] );
-		$this->assertStringContainsString( 'autocompleteuser@example.org', $result['label'], 'The label should contain the email address.' );
+		$this->assertStringContainsString( 'autocompleteuser+bat\'leth@klingon.example.org', $result['label'], 'The label should contain the email address.' );
 	}
 
 	/**
@@ -106,9 +110,13 @@ class Tests_Ajax_wpAjaxAutocompleteUser extends WP_Ajax_UnitTestCase {
 	public function test_should_return_the_email_address_as_the_value_when_requested() {
 		wp_set_current_user( self::$super_admin_id );
 
-		$_GET['autocomplete_type']  = 'search';
-		$_GET['autocomplete_field'] = 'user_email';
-		$_GET['term']               = 'autocompleteuser';
+		$_GET = wp_slash(
+			array(
+				'autocomplete_type'  => 'search',
+				'autocomplete_field' => 'user_email',
+				'term'               => 'autocompleteuser',
+			)
+		);
 
 		$response = json_decode( $this->handle_autocomplete_user(), true );
 
@@ -116,7 +124,7 @@ class Tests_Ajax_wpAjaxAutocompleteUser extends WP_Ajax_UnitTestCase {
 		$this->assertCount( 1, $response, 'Only the matching user should be returned.' );
 		$result = array_first( $response );
 		$this->assertIsArray( $result );
-		$this->assertSame( 'autocompleteuser@example.org', $result['value'], 'The email address should be returned as the value.' );
+		$this->assertSame( 'autocompleteuser+bat\'leth@klingon.example.org', $result['value'], 'The email address should be returned as the value.' );
 	}
 
 	/**
@@ -128,7 +136,11 @@ class Tests_Ajax_wpAjaxAutocompleteUser extends WP_Ajax_UnitTestCase {
 		wp_set_current_user( self::$super_admin_id );
 
 		// The default autocomplete type is 'add', which excludes existing users of the site.
-		$_GET['term'] = 'autocompleteuser';
+		$_GET = wp_slash(
+			array(
+				'term' => 'autocompleteuser',
+			)
+		);
 
 		$response = json_decode( $this->handle_autocomplete_user(), true );
 
@@ -143,8 +155,12 @@ class Tests_Ajax_wpAjaxAutocompleteUser extends WP_Ajax_UnitTestCase {
 	public function test_should_strip_tags_from_the_search_term() {
 		wp_set_current_user( self::$super_admin_id );
 
-		$_GET['autocomplete_type'] = 'search';
-		$_GET['term']              = 'autocompleteuser<script>alert(1)</script>';
+		$_GET = wp_slash(
+			array(
+				'autocomplete_type' => 'search',
+				'term'              => 'autocompleteuser<script>alert(1)</script>',
+			)
+		);
 
 		$search = null;
 		add_action(
@@ -162,43 +178,45 @@ class Tests_Ajax_wpAjaxAutocompleteUser extends WP_Ajax_UnitTestCase {
 	}
 
 	/**
-	 * Tests that a missing search term does not trigger a PHP warning.
+	 * Tests that searching for an email address with apostrophes is successful.
 	 *
 	 * @ticket 65051
 	 */
-	public function test_should_not_warn_when_the_search_term_is_missing() {
+	public function test_search_email_address_with_apostrophe() {
 		wp_set_current_user( self::$super_admin_id );
 
-		$_GET['autocomplete_type'] = 'search';
-
-		$warnings = array();
-		set_error_handler(
-			static function ( $errno, $errstr ) use ( &$warnings ) {
-				$warnings[] = $errstr;
-				return true;
-			},
-			E_WARNING
+		$_GET = wp_slash(
+			array(
+				'autocomplete_type'  => 'search',
+				'autocomplete_field' => 'user_email',
+				'term'               => 'autocompleteuser+bat\'leth@klingon.example.org',
+			)
 		);
 
-		try {
-			$response = json_decode( $this->handle_autocomplete_user(), true );
-		} finally {
-			restore_error_handler();
-		}
+		$response = json_decode( $this->handle_autocomplete_user(), true );
 
-		$this->assertSame(
-			array(),
-			array_values(
-				array_filter(
-					$warnings,
-					static function ( $warning ) {
-						return false !== strpos( $warning, 'term' );
-					}
-				)
-			),
-			'Accessing a missing search term should not raise a PHP warning.'
-		);
 		$this->assertIsArray( $response, 'The response should be a JSON encoded array.' );
+		$this->assertCount( 1, $response, 'Only the matching user should be returned.' );
+		$result = array_first( $response );
+		$this->assertIsArray( $result );
+		$this->assertSame( 'autocompleteuser+bat\'leth@klingon.example.org', $result['value'], 'The email address should be returned as the value.' );
+	}
+
+	/**
+	 * Tests that a missing search term does not return results.
+	 *
+	 * @ticket 65051
+	 */
+	public function test_missing_term_does_not_return_results() {
+		wp_set_current_user( self::$super_admin_id );
+
+		$_GET = wp_slash(
+			array(
+				'autocomplete_type' => 'search',
+			)
+		);
+
+		$this->assertSame( '0', $this->handle_autocomplete_user() );
 	}
 
 	/**
@@ -209,8 +227,12 @@ class Tests_Ajax_wpAjaxAutocompleteUser extends WP_Ajax_UnitTestCase {
 	public function test_should_deny_users_without_the_promote_users_capability() {
 		wp_set_current_user( self::$subscriber_id );
 
-		$_GET['autocomplete_type'] = 'search';
-		$_GET['term']              = 'autocompleteuser';
+		$_GET = wp_slash(
+			array(
+				'autocomplete_type' => 'search',
+				'term'              => 'autocompleteuser',
+			)
+		);
 
 		$this->assertSame( '-1', $this->handle_autocomplete_user() );
 	}
@@ -223,8 +245,12 @@ class Tests_Ajax_wpAjaxAutocompleteUser extends WP_Ajax_UnitTestCase {
 	public function test_should_deny_site_administrators_by_default() {
 		wp_set_current_user( self::$site_admin_id );
 
-		$_GET['autocomplete_type'] = 'search';
-		$_GET['term']              = 'autocompleteuser';
+		$_GET = wp_slash(
+			array(
+				'autocomplete_type' => 'search',
+				'term'              => 'autocompleteuser',
+			)
+		);
 
 		$this->assertSame( '-1', $this->handle_autocomplete_user() );
 	}
@@ -240,8 +266,12 @@ class Tests_Ajax_wpAjaxAutocompleteUser extends WP_Ajax_UnitTestCase {
 
 		add_filter( 'autocomplete_users_for_site_admins', '__return_true' );
 
-		$_GET['autocomplete_type'] = 'search';
-		$_GET['term']              = 'autocompleteuser';
+		$_GET = wp_slash(
+			array(
+				'autocomplete_type' => 'search',
+				'term'              => 'autocompleteuser',
+			)
+		);
 
 		$response = json_decode( $this->handle_autocomplete_user(), true );
 
@@ -259,8 +289,12 @@ class Tests_Ajax_wpAjaxAutocompleteUser extends WP_Ajax_UnitTestCase {
 
 		add_filter( 'wp_is_large_network', '__return_true' );
 
-		$_GET['autocomplete_type'] = 'search';
-		$_GET['term']              = 'autocompleteuser';
+		$_GET = wp_slash(
+			array(
+				'autocomplete_type' => 'search',
+				'term'              => 'autocompleteuser',
+			)
+		);
 
 		$this->assertSame( '-1', $this->handle_autocomplete_user() );
 	}
