@@ -22,7 +22,10 @@ includes:
 	# Regenerate with `composer phpstan:baselines`, which rewrites both the files
 	# and the list between the markers. Do not edit that list by hand.
 	# phpstan:baselines start
+	- tests/phpstan/baselines/argument.type.neon
+	- tests/phpstan/baselines/argument.unresolvableType.neon
 	- tests/phpstan/baselines/arguments.count.neon
+	- tests/phpstan/baselines/arrayValues.list.neon
 	- tests/phpstan/baselines/assign.propertyType.neon
 	- tests/phpstan/baselines/binaryOp.invalid.neon
 	- tests/phpstan/baselines/booleanAnd.alwaysFalse.neon
@@ -97,7 +100,7 @@ includes:
 
 parameters:
 	# https://phpstan.org/user-guide/rule-levels
-	level: 4
+	level: 5
 	reportUnmatchedIgnoredErrors: true
 
 	# The following ignored errors are not intended to be fixed, as distinct from the baselines
