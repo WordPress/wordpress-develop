@@ -18,7 +18,6 @@ class Tests_Functions_wpScheduleDeleteOldPrivacyExportFiles extends WP_UnitTestC
 	}
 
 	public function tear_down() {
-		wp_installing( false );
 		wp_clear_scheduled_hook( 'wp_privacy_delete_old_export_files' );
 
 		parent::tear_down();
@@ -31,9 +30,9 @@ class Tests_Functions_wpScheduleDeleteOldPrivacyExportFiles extends WP_UnitTestC
 	 */
 	public function test_wp_schedule_delete_old_privacy_export_files() {
 
-		$this->assertFalse( wp_next_scheduled( 'wp_privacy_delete_old_export_files' ) );
+		$this->assertFalse( wp_next_scheduled( 'wp_privacy_delete_old_export_files' ), 'no export should be scheduled' );
 		wp_schedule_delete_old_privacy_export_files();
-		$this->assertIsInt( wp_next_scheduled( 'wp_privacy_delete_old_export_files' ) );
+		$this->assertIsInt( wp_next_scheduled( 'wp_privacy_delete_old_export_files' ), 'export should be scheduled' );
 	}
 
 	/**
@@ -43,12 +42,14 @@ class Tests_Functions_wpScheduleDeleteOldPrivacyExportFiles extends WP_UnitTestC
 	 */
 	public function test_wp_schedule_delete_old_privacy_export_files_is_installing() {
 		// set to installing mode
+		$prior = wp_installing();
 		wp_installing( true );
 
-		$this->assertFalse( wp_next_scheduled( 'wp_privacy_delete_old_export_files' ) );
+		$this->assertFalse( wp_next_scheduled( 'wp_privacy_delete_old_export_files' ), 'no export should be scheduled' );
 		wp_schedule_delete_old_privacy_export_files();
-		$this->assertFalse( wp_next_scheduled( 'wp_privacy_delete_old_export_files' ) );
-		parent::tear_down();
+		$this->assertFalse( wp_next_scheduled( 'wp_privacy_delete_old_export_files' ), 'export should be scheduled' );
+
+		wp_installing( $prior );
 	}
 
 	/**
