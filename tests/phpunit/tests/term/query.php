@@ -489,7 +489,7 @@ class Tests_Term_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertSame( array(), $query->terms, 'When object_ids is false, no terms should be returned without filtering.' );
+		$this->assertSame( array(), $query->terms, 'When object_ids is false, no terms should be returned.' );
 	}
 
 	/**
