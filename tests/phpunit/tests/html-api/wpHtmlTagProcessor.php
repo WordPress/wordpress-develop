@@ -1239,6 +1239,29 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that set_attribute() sanitizes each URL in a multi-URI attribute.
+	 *
+	 * Skipping esc_url() must not mean skipping URL sanitization entirely:
+	 * each srcset candidate URL is individually stripped of disallowed
+	 * protocols while descriptors and spacing are preserved.
+	 *
+	 * @ticket 29807
+	 *
+	 * @covers WP_HTML_Tag_Processor::set_attribute
+	 */
+	public function test_set_attribute_sanitizes_multi_uri_attribute_urls() {
+		$processor = new WP_HTML_Tag_Processor( '<img src="a.jpg">' );
+		$processor->next_tag();
+		$processor->set_attribute( 'srcset', 'javascript:alert(1) 1x, safe.jpg 2x' );
+
+		$this->assertSame(
+			'alert(1) 1x, safe.jpg 2x',
+			$processor->get_attribute( 'srcset' ),
+			'set_attribute() must strip disallowed protocols from each srcset candidate'
+		);
+	}
+
+	/**
 	 * @ticket 56299
 	 *
 	 * @covers WP_HTML_Tag_Processor::set_attribute
