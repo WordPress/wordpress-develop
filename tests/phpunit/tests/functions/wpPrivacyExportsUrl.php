@@ -2,7 +2,7 @@
 /**
  * Tests for the wp_privacy_exports_url function.
  *
- * @group functions.php
+ * @group functions
  *
  * @covers ::wp_privacy_exports_url
  */
