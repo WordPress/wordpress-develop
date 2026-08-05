@@ -1684,7 +1684,7 @@ function wp_get_l10n_php_file_data( $php_file ) {
 	unset( $data['messages'] );
 	$headers = array(
 		'POT-Creation-Date'  => 'pot-creation-date',
-		'PO-Revision-Date'   => 'po-revision-date',
+		'PO-Revision-Date'   => 'translation-revision-date',
 		'Project-Id-Version' => 'project-id-version',
 		'X-Generator'        => 'x-generator',
 	);
