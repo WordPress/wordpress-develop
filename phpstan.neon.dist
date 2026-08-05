@@ -14,13 +14,18 @@ includes:
 	# new strict rules.
 	- vendor/phpstan/phpstan-phpunit/extension.neon
 
-	# The baseline file includes preexisting errors in the codebase that should be ignored.
+	# Preexisting errors that should be ignored, one baseline per error identifier
+	# so that the remaining work on each is visible as a single shrinking file.
+	# Each is meant to reach zero and be deleted, taking its line below with it.
 	# https://phpstan.org/user-guide/baseline
-	- tests/phpstan/baseline.php
-
-	# The level 1 variable.undefined errors, kept separate so that the remaining
-	# work on them is visible as a single shrinking file. See its header.
+	#
+	# Regenerate with `composer phpstan:baselines`, which rewrites both the files
+	# and the list between the markers. Do not edit that list by hand.
+	# phpstan:baselines start
+	- tests/phpstan/baselines/empty.variable.neon
+	- tests/phpstan/baselines/isset.variable.neon
 	- tests/phpstan/baselines/variable.undefined.neon
+	# phpstan:baselines end
 
 parameters:
 	# https://phpstan.org/user-guide/rule-levels

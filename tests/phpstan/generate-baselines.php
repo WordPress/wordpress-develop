@@ -12,6 +12,12 @@
  * identifier and writes one file per kind. Each file is self-describing and is
  * meant to shrink to nothing and then be deleted.
  *
+ * Baselines whose identifier no longer reports anything are removed, and the
+ * list of them between the `# phpstan:baselines` markers in the configuration's
+ * `includes` is rewritten to match what is on disk. Adding a newly split out
+ * baseline, and retiring one that has reached zero, therefore need no manual
+ * edit of the configuration.
+ *
  * The intermediate baseline is generated in PHPStan's PHP format and read back
  * with `require`, so the entries arrive as an array. Nothing has to parse, or
  * re-escape, the message patterns.
@@ -199,25 +205,36 @@ foreach ( $grouped as $identifier => $entries ) {
 }
 
 /*
- * An identifier that was asked for but reported nothing has been driven to zero,
- * so retire its file rather than leaving an empty one behind.
+ * An identifier that reports nothing has been driven to zero, so retire its file
+ * rather than leaving a stale one behind whose entries would then be reported as
+ * unmatched ignores.
+ *
+ * A run restricted to particular identifiers only knows about those, so it may
+ * only retire those. A full run has seen everything and may retire any file that
+ * no longer corresponds to a reported identifier.
  */
-foreach ( $only_identifiers as $identifier ) {
+$retired = $only_identifiers;
+
+if ( ! $only_identifiers ) {
+	foreach ( find_baselines( $output_dir ) as $file ) {
+		$retired[] = basename( $file, '.neon' );
+	}
+}
+
+foreach ( $retired as $identifier ) {
 	if ( isset( $grouped[ $identifier ] ) ) {
 		continue;
 	}
 
 	$file = $output_dir . '/' . $identifier . '.neon';
 	if ( is_file( $file ) && unlink( $file ) ) {
-		printf(
-			"%s: no errors remain, file deleted. Remove its `includes` entry from %s.\n",
-			$output_option . '/' . $identifier . '.neon',
-			$config_option
-		);
+		printf( "%s: no errors remain, file deleted.\n", $output_option . '/' . $identifier . '.neon' );
 	} else {
 		printf( "%s: no errors reported.\n", $identifier );
 	}
 }
+
+update_config_includes( $config_path, $config_option, $output_dir );
 
 /**
  * Returns the usage message.
@@ -227,6 +244,11 @@ foreach ( $only_identifiers as $identifier ) {
 function get_usage(): string {
 	return <<<'TEXT'
 		Generates PHPStan baselines split by error identifier.
+
+		Writes one baseline per identifier, retires any whose identifier no longer
+		reports anything, and rewrites the list of them between the
+		`# phpstan:baselines` markers in the configuration's `includes`, so that
+		neither addition nor removal has to be done by hand.
 
 		Usage:
 		  composer phpstan:baselines [-- <options>]
@@ -379,6 +401,131 @@ function strip_baseline_includes( string $config_path, string $output_dir ): str
 	}
 
 	return implode( "\n", $kept );
+}
+
+/**
+ * Lists the per-identifier baselines present on disk.
+ *
+ * @param non-empty-string $output_dir Absolute path to the baseline directory.
+ * @return list<non-empty-string> Absolute paths, sorted by name.
+ */
+function find_baselines( string $output_dir ): array {
+	$found = glob( $output_dir . '/*.neon' );
+
+	if ( false === $found ) {
+		return array();
+	}
+
+	sort( $found );
+
+	$files = array();
+	foreach ( $found as $file ) {
+		if ( '' !== $file ) {
+			$files[] = $file;
+		}
+	}
+
+	return $files;
+}
+
+/**
+ * Rewrites the managed region of the configuration's `includes` list.
+ *
+ * The region is delimited by marker comments, so the hand written entries around
+ * it are never touched. Where the markers are absent they are appended to the end
+ * of the `includes` block, which is what happens the first time this is run
+ * against a configuration.
+ *
+ * @param non-falsy-string $config_path   Absolute path to the configuration file.
+ * @param non-empty-string $config_option Configuration path, as passed on the command line.
+ * @param non-empty-string $output_dir    Absolute path to the baseline directory.
+ */
+function update_config_includes( string $config_path, string $config_option, string $output_dir ): void {
+	$start_marker = '# phpstan:baselines start';
+	$end_marker   = '# phpstan:baselines end';
+
+	$before = read_file( $config_path );
+	$lines  = explode( "\n", $before );
+
+	$start = null;
+	$end   = null;
+	foreach ( $lines as $i => $line ) {
+		if ( $start_marker === trim( $line ) ) {
+			$start = $i;
+		}
+		if ( $end_marker === trim( $line ) ) {
+			$end = $i;
+		}
+	}
+
+	$region = array( "\t" . $start_marker );
+	foreach ( find_baselines( $output_dir ) as $file ) {
+		$region[] = "\t- " . get_relative_path( dirname( $config_path ), $file );
+	}
+	$region[] = "\t" . $end_marker;
+
+	if ( null !== $start && null !== $end && $start < $end ) {
+		$updated = array_merge(
+			array_slice( $lines, 0, $start ),
+			$region,
+			array_slice( $lines, $end + 1 )
+		);
+	} else {
+		$insert = find_includes_end( $lines );
+
+		if ( null === $insert ) {
+			fwrite( STDERR, "No `includes` block found in $config_option, left untouched.\n" );
+			return;
+		}
+
+		$updated = array_merge(
+			array_slice( $lines, 0, $insert ),
+			array( '' ),
+			$region,
+			array_slice( $lines, $insert )
+		);
+	}
+
+	$after = implode( "\n", $updated );
+
+	if ( $before === $after ) {
+		return;
+	}
+
+	file_put_contents( $config_path, $after );
+	printf( "%s: `includes` updated.\n", $config_option );
+}
+
+/**
+ * Finds where the `includes` block ends.
+ *
+ * @param list<string> $lines Configuration lines.
+ * @return int|null Index of the first line after the block, or null when there is none.
+ */
+function find_includes_end( array $lines ): ?int {
+	$in_block = false;
+	$last     = null;
+
+	foreach ( $lines as $i => $line ) {
+		if ( 1 === preg_match( '/^includes:/', $line ) ) {
+			$in_block = true;
+			$last     = $i;
+			continue;
+		}
+
+		if ( ! $in_block || '' === trim( $line ) ) {
+			continue;
+		}
+
+		// A non-indented line ends the block.
+		if ( 1 !== preg_match( '/^\s/', $line ) ) {
+			break;
+		}
+
+		$last = $i;
+	}
+
+	return null === $last ? null : $last + 1;
 }
 
 /**

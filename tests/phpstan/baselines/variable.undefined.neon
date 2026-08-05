@@ -24,6 +24,11 @@ parameters:
 			count: 1
 			path: ../../../src/wp-activate.php
 		-
+			message: '#^Variable \$pagenow might not be defined\.$#'
+			identifier: variable.undefined
+			count: 3
+			path: ../../../src/wp-admin/admin.php
+		-
 			message: '#^Variable \$wp_db_version might not be defined\.$#'
 			identifier: variable.undefined
 			count: 1
@@ -814,6 +819,11 @@ parameters:
 			count: 2
 			path: ../../../src/wp-includes/class-wp-walker.php
 		-
+			message: '#^Variable \$excerpt might not be defined\.$#'
+			identifier: variable.undefined
+			count: 1
+			path: ../../../src/wp-includes/class-wp-xmlrpc-server.php
+		-
 			message: '#^Variable \$matches might not be defined\.$#'
 			identifier: variable.undefined
 			count: 1
@@ -923,6 +933,11 @@ parameters:
 			identifier: variable.undefined
 			count: 2
 			path: ../../../src/wp-includes/script-loader.php
+		-
+			message: '#^Variable \$wp_template_path might not be defined\.$#'
+			identifier: variable.undefined
+			count: 2
+			path: ../../../src/wp-includes/template.php
 		-
 			message: '#^Variable \$manage_url might not be defined\.$#'
 			identifier: variable.undefined
