@@ -94,7 +94,23 @@ jobs:
 
       - name: Run PHP static analysis tests
         id: phpstan
-        run: composer run phpstan -- -vvv --error-format=checkstyle | tee "${RUNNER_TEMP}/phpstan-report.xml" | cs2pr --errors-as-warnings --graceful-warnings
+        run: |
+          # The report is written to a file as well as piped to cs2pr, so that the step below
+          # can look at it.
+          #
+          # cs2pr exits successfully so that reported errors annotate the pull request without
+          # failing the run. A pipeline reports only the status of its last command, so that
+          # also discards the status of the analysis itself. Recover it from PIPESTATUS.
+          composer run phpstan -- -vvv --error-format=checkstyle | tee "${RUNNER_TEMP}/phpstan-report.xml" | cs2pr --errors-as-warnings --graceful-warnings
+          status="${PIPESTATUS[0]}"
+
+          # PHPStan exits 1 when it has errors to report, which is the expected case here and
+          # is what the annotations are for. Anything higher means it did not finish at all,
+          # which would otherwise pass silently, since the discarded status was the only sign.
+          if [ "${status}" -gt 1 ]; then
+            echo "::error title=PHPStan did not complete::The analysis exited with status ${status}, so the code was not fully checked. This is a failure of the run itself rather than a problem found in the code."
+            exit "${status}"
+          fi
 
       # An ignored error that no longer occurs, or occurs a different number of times, is
       # reported under an `ignore.*` identifier. That is not something to fix in the code: the
@@ -113,8 +129,8 @@ jobs:
           README_URL: ${{ github.server_url }}/${{ github.repository }}/blob/${{ github.sha }}/tests/phpstan/README.md
         run: |
           # This step runs even when the analysis above it failed, in which case the report may
-          # never have been written. There is nothing to check then, and failing here would
-          # only obscure whatever actually went wrong.
+          # never have been written. That failure is reported there, so there is nothing to add
+          # here beyond staying quiet about a file that was never going to exist.
           if [ ! -f "${RUNNER_TEMP}/phpstan-report.xml" ]; then
             exit 0
           fi
