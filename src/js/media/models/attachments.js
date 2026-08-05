@@ -32,6 +32,8 @@ var Attachments = Backbone.Collection.extend(/** @lends wp.media.model.Attachmen
 	 * @param {Object} [options={}]
 	 */
 	initialize: function( models, options ) {
+		var normalizedOrder;
+
 		options = options || {};
 
 		this.props   = new Backbone.Model();
@@ -44,7 +46,19 @@ var Attachments = Backbone.Collection.extend(/** @lends wp.media.model.Attachmen
 		this.props.on( 'change:orderby', this._changeOrderby, this );
 		this.props.on( 'change:query',   this._changeQuery,   this );
 
-		this.props.set( _.defaults( options.props || {} ) );
+		options.props = options.props || {};
+
+		/*
+		 * Normalize the order, if one is set. `Attachments.comparator()` and the
+		 * `order` filter in `wp.media.model.Query` both test for the literal
+		 * strings 'ASC' and 'DESC', so anything else has to fall back to 'DESC'.
+		 */
+		if ( ! _.isUndefined( options.props.order ) && ! _.isNull( options.props.order ) ) {
+			normalizedOrder     = String( options.props.order ).toUpperCase();
+			options.props.order = ( 'ASC' === normalizedOrder || 'DESC' === normalizedOrder ) ? normalizedOrder : 'DESC';
+		}
+
+		this.props.set( options.props );
 
 		if ( options.observe ) {
 			this.observe( options.observe );
