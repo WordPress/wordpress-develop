@@ -384,21 +384,26 @@ class Tests_AdminBar extends WP_UnitTestCase {
 	public function test_admin_bar_updates_menu_associates_count_via_describedby() {
 		wp_set_current_user( self::$admin_id );
 
-		// Seed a pending plugin update so the Updates node is added with a count.
-		set_site_transient(
-			'update_plugins',
-			(object) array(
-				'response' => array(
-					'fake/fake.php' => (object) array( 'new_version' => '2.0' ),
+		// Force a pending update so the node is added regardless of environment or capabilities.
+		$force_update_data = static function () {
+			return array(
+				'counts' => array(
+					'plugins'      => 1,
+					'themes'       => 0,
+					'wordpress'    => 0,
+					'translations' => 0,
+					'total'        => 1,
 				),
-			)
-		);
+				'title'  => '',
+			);
+		};
+		add_filter( 'wp_get_update_data', $force_update_data );
 
 		$admin_bar = new WP_Admin_Bar();
 		wp_admin_bar_updates_menu( $admin_bar );
 		$html = get_echo( array( $admin_bar, 'render' ) );
 
-		delete_site_transient( 'update_plugins' );
+		remove_filter( 'wp_get_update_data', $force_update_data );
 
 		$this->assertStringContainsString( "aria-describedby='wp-admin-bar-updates-count-description'", $html );
 		$this->assertStringContainsString( '<span class="screen-reader-text">Updates</span>', $html );

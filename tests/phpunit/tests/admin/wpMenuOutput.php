@@ -44,7 +44,7 @@ class Tests_Admin_WpMenuOutput extends WP_UnitTestCase {
 		$menu = array(
 			array(
 				'Plugins <span id="wp-menu-plugins-count-description" class="wp-menu-count-description screen-reader-text" aria-hidden="true">2 plugin updates available</span>',
-				'activate_plugins',
+				'read',
 				'plugins.php',
 				'',
 				'menu-top menu-icon-plugins',
@@ -94,7 +94,7 @@ class Tests_Admin_WpMenuOutput extends WP_UnitTestCase {
 		$menu = array(
 			array(
 				'Plugins <span id="wp-menu-plugins-count-description" class="wp-menu-count-description screen-reader-text" aria-hidden="true">2 plugin updates available</span>',
-				'activate_plugins',
+				'read',
 				'plugins.php',
 				'',
 				'menu-top menu-icon-plugins',
