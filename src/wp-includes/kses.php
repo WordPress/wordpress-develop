@@ -1365,8 +1365,10 @@ function wp_kses_uri_attributes() {
  * into individual candidates so each URL can be sanitized on its own, and must
  * not be passed through `esc_url()` as a whole.
  *
- * An attribute in this list is only sanitized as a URI if it is also present
- * in {@see wp_kses_uri_attributes()}.
+ * An attribute in this list is sanitized as a URI attribute in its own right:
+ * it does not additionally need to be present in {@see wp_kses_uri_attributes()}.
+ * Attributes should still be added to both lists so that code consulting only
+ * {@see wp_kses_uri_attributes()} recognizes them as URI attributes.
  *
  * @since 7.1.0
  *
@@ -1382,8 +1384,9 @@ function wp_kses_multi_uri_attributes() {
 	 *
 	 * Use this filter to add attributes that, like `srcset`, contain multiple
 	 * comma-separated URLs with optional descriptors. Attributes added here
-	 * must also be added to the `wp_kses_uri_attributes` filter to be
-	 * sanitized as URIs.
+	 * are sanitized per URL; also add them to the `wp_kses_uri_attributes`
+	 * filter so that code consulting only that list recognizes them as URI
+	 * attributes.
 	 *
 	 * @since 7.1.0
 	 *
@@ -1810,14 +1813,9 @@ function wp_kses_hair( $attr, $allowed_protocols ) {
  */
 function wp_kses_sanitize_uris( string $attr_name, string $attr_value, array $allowed_protocols, ?array $multi_uri_attrs = null ): string {
 	$attr_name = strtolower( $attr_name );
-	$uri_attrs = wp_kses_uri_attributes();
 
 	if ( null === $multi_uri_attrs ) {
 		$multi_uri_attrs = wp_kses_multi_uri_attributes();
-	}
-
-	if ( ! in_array( $attr_name, $uri_attrs, true ) ) {
-		return $attr_value;
 	}
 
 	if ( in_array( $attr_name, $multi_uri_attrs, true ) ) {
@@ -1922,7 +1920,11 @@ function wp_kses_sanitize_uris( string $attr_name, string $attr_value, array $al
 		return $result;
 	}
 
-	return wp_kses_bad_protocol( $attr_value, $allowed_protocols );
+	if ( in_array( $attr_name, wp_kses_uri_attributes(), true ) ) {
+		return wp_kses_bad_protocol( $attr_value, $allowed_protocols );
+	}
+
+	return $attr_value;
 }
 
 /**

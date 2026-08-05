@@ -2915,8 +2915,9 @@ HTML;
 			// Test srcset with bad protocol.
 			array( 'srcset', 'javascript:alert(1) 1x, http://example.com/image.jpg 2x', 'alert(1) 1x, http://example.com/image.jpg 2x' ),
 
-			// A custom $multi_uri_attrs entry has no effect on an attribute that is not a URI attribute.
-			array( 'custom', 'javascript:alert(1), url2.jpg', 'javascript:alert(1), url2.jpg', array( 'custom' ) ),
+			// A custom $multi_uri_attrs entry is sanitized per URL even when the attribute
+			// is not registered as a URI attribute (fail-safe: one registration suffices).
+			array( 'custom', 'javascript:alert(1), url2.jpg', 'alert(1), url2.jpg', array( 'custom' ) ),
 
 			// Uppercase attribute name on a single-URI attribute is normalised.
 			array( 'SRC', 'javascript:alert(1)', 'alert(1)' ),
@@ -2933,28 +2934,20 @@ HTML;
 	/**
 	 * Test that a custom attribute can opt in to multi-URI sanitization.
 	 *
-	 * The attribute must be registered as a URI attribute (via the
-	 * `wp_kses_uri_attributes` filter) and passed in $multi_uri_attrs for
-	 * per-entry sanitization to apply.
+	 * Passing the attribute in $multi_uri_attrs is sufficient for per-URL
+	 * sanitization to apply; it does not additionally need to be registered
+	 * via the `wp_kses_uri_attributes` filter.
 	 *
 	 * @ticket 29807
 	 * @covers ::wp_kses_sanitize_uris
 	 */
 	public function test_wp_kses_sanitize_uris_custom_multi_uri_attribute() {
-		$add_custom = static function ( $uri_attrs ) {
-			$uri_attrs[] = 'data-srcset';
-			return $uri_attrs;
-		};
-		add_filter( 'wp_kses_uri_attributes', $add_custom );
-
 		$result = wp_kses_sanitize_uris(
 			'data-srcset',
 			'javascript:alert(1) 1x, https://example.com/img.jpg 2x',
 			wp_allowed_protocols(),
 			array( 'data-srcset' )
 		);
-
-		remove_filter( 'wp_kses_uri_attributes', $add_custom );
 
 		$this->assertSame( 'alert(1) 1x, https://example.com/img.jpg 2x', $result );
 	}
@@ -3235,26 +3228,36 @@ HTML;
 	}
 
 	/**
-	 * Test that the wp_kses_uri_attributes filter affects srcset sanitization.
+	 * Test that disabling srcset sanitization requires removal from both lists.
+	 *
+	 * Multi-URI attributes are sanitized in their own right, so removing srcset
+	 * from `wp_kses_uri_attributes` alone leaves per-URL sanitization in place
+	 * (fail-safe). Only removing it from `wp_kses_multi_uri_attributes` as well
+	 * disables sanitization.
 	 *
 	 * @ticket 29807
 	 */
 	public function test_wp_kses_uri_attributes_filter() {
 		$allowed_protocols = wp_allowed_protocols();
 
-		// Remove srcset from URI attributes via filter.
-		$remove_srcset = static function ( $uri_attrs ) {
-			return array_diff( $uri_attrs, array( 'srcset' ) );
+		$remove_srcset = static function ( $attrs ) {
+			return array_diff( $attrs, array( 'srcset' ) );
 		};
-		add_filter( 'wp_kses_uri_attributes', $remove_srcset );
 
-		// Bad protocol in srcset should NOT be stripped since srcset is no longer a URI attribute.
+		// Removing srcset from the URI attributes list alone does not disable sanitization.
+		add_filter( 'wp_kses_uri_attributes', $remove_srcset );
 		$result = wp_kses_sanitize_uris( 'srcset', 'javascript:alert(1) 1x', $allowed_protocols );
-		$this->assertSame( 'javascript:alert(1) 1x', $result );
+		$this->assertSame( 'alert(1) 1x', $result, 'srcset should remain sanitized while still a multi-URI attribute' );
+
+		// Removing it from the multi-URI attributes list as well disables sanitization.
+		add_filter( 'wp_kses_multi_uri_attributes', $remove_srcset );
+		$result = wp_kses_sanitize_uris( 'srcset', 'javascript:alert(1) 1x', $allowed_protocols );
+		$this->assertSame( 'javascript:alert(1) 1x', $result, 'srcset should not be sanitized once removed from both lists' );
 
 		remove_filter( 'wp_kses_uri_attributes', $remove_srcset );
+		remove_filter( 'wp_kses_multi_uri_attributes', $remove_srcset );
 
-		// After removing filter, bad protocol should be stripped again.
+		// With the filters removed, bad protocols are stripped again.
 		$result = wp_kses_sanitize_uris( 'srcset', 'javascript:alert(1) 1x', $allowed_protocols );
 		$this->assertStringNotContainsString( 'javascript:', $result );
 	}
@@ -3527,9 +3530,10 @@ HTML;
 	 * Test that the wp_kses_multi_uri_attributes filter feeds the default
 	 * $multi_uri_attrs list of wp_kses_sanitize_uris().
 	 *
-	 * An attribute added to both the `wp_kses_uri_attributes` and
-	 * `wp_kses_multi_uri_attributes` filters receives per-entry sanitization
-	 * without callers having to pass an explicit $multi_uri_attrs argument.
+	 * An attribute added to the `wp_kses_multi_uri_attributes` filter receives
+	 * per-URL sanitization without callers having to pass an explicit
+	 * $multi_uri_attrs argument, and without also being registered via the
+	 * `wp_kses_uri_attributes` filter (fail-safe: one registration suffices).
 	 *
 	 * @ticket 29807
 	 * @covers ::wp_kses_multi_uri_attributes
@@ -3540,7 +3544,6 @@ HTML;
 			$attrs[] = 'data-srcset';
 			return $attrs;
 		};
-		add_filter( 'wp_kses_uri_attributes', $add_custom );
 		add_filter( 'wp_kses_multi_uri_attributes', $add_custom );
 
 		$result = wp_kses_sanitize_uris(
@@ -3549,7 +3552,6 @@ HTML;
 			wp_allowed_protocols()
 		);
 
-		remove_filter( 'wp_kses_uri_attributes', $add_custom );
 		remove_filter( 'wp_kses_multi_uri_attributes', $add_custom );
 
 		$this->assertSame( 'alert(1) 1x, https://example.com/img.jpg 2x', $result );
