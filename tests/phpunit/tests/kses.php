@@ -3619,6 +3619,14 @@ HTML;
 				'javascript:alert(1),safe.jpg',
 				'alert(1),safe.jpg',
 			),
+			'an entity-encoded colon is still protocol-checked'     => array(
+				'javascript&#58;alert(1) 1x, safe.jpg 2x',
+				'alert(1) 1x, safe.jpg 2x',
+			),
+			'an entity-encoded comma cannot fake a scheme prefix'   => array(
+				'a.jpg&#44;https://example.com/b.jpg',
+				'a.jpg&#44;https://example.com/b.jpg',
+			),
 		);
 	}
 
