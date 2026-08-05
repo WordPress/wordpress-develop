@@ -118,7 +118,8 @@ class WP_Admin_Bar {
 	 *     @type string $href   Optional. Link for the item.
 	 *     @type bool   $group  Optional. Whether or not the node is a group. Default false.
 	 *     @type array  $meta   Meta data including the following keys: 'html', 'class', 'rel', 'lang', 'dir',
-	 *                          'onclick', 'target', 'title', 'tabindex', 'menu_title'. Default empty.
+	 *                          'onclick', 'target', 'title', 'tabindex', 'menu_title', 'aria-describedby'.
+	 *                          Default empty.
 	 * }
 	 */
 	public function add_node( $args ) {
@@ -577,10 +578,10 @@ class WP_Admin_Bar {
 		echo "<li role='group' id='" . esc_attr( 'wp-admin-bar-' . $node->id ) . "'$menuclass>";
 
 		if ( $has_link ) {
-			$attributes = array( 'onclick', 'target', 'title', 'rel', 'lang', 'dir' );
+			$attributes = array( 'onclick', 'target', 'title', 'rel', 'lang', 'dir', 'aria-describedby' );
 			echo "<a class='ab-item'$aria_attributes href='" . esc_url( $node->href ) . "'";
 		} else {
-			$attributes = array( 'onclick', 'target', 'title', 'rel', 'lang', 'dir' );
+			$attributes = array( 'onclick', 'target', 'title', 'rel', 'lang', 'dir', 'aria-describedby' );
 			echo '<div class="ab-item ab-empty-item"' . $aria_attributes;
 		}
 
