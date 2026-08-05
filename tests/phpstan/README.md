@@ -39,6 +39,8 @@ composer run phpstan -- src/wp-includes/template.php
 composer run phpstan -- -vvv --debug
 ```
 
+Note the `--` in each of those. Composer needs it in order to pass the flags on to PHPStan rather than reading them as its own, and without it they are discarded silently. The npm script supplies it, which is why only one is needed there.
+
 For available flags, see https://phpstan.org/user-guide/command-line-usage.
 
 ## The PHPStan configuration
