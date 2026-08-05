@@ -2,11 +2,10 @@
 /**
  * REST API: view-config endpoint schema.
  *
- * GENERATED FILE — DO NOT EDIT. This file mirrors the canonical JSON Schema
- * at `schemas/json/view-config.json` in the Gutenberg repository and is
- * regenerated there with:
+ * GENERATED FILE — DO NOT EDIT. Regenerate from the canonical JSON Schema
+ * at `tools/rest-api/view-config.json` with:
  *
- *     node tools/docs/gen-view-config-schema-php.mjs
+ *     node tools/rest-api/gen-view-config-schema-php.mjs
  *
  * @package    WordPress
  * @subpackage REST_API

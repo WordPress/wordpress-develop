@@ -244,8 +244,8 @@ class WP_REST_View_Config_Controller extends WP_REST_Controller {
 	 *
 	 * The schema is loaded from `wp-includes/rest-api/view-config-schema.php`,
 	 * which is generated from the canonical JSON Schema at
-	 * `schemas/json/view-config.json` in the Gutenberg repository (see
-	 * `tools/docs/gen-view-config-schema-php.mjs` there). The generated file
+	 * `tools/rest-api/view-config.json` (see
+	 * `tools/rest-api/gen-view-config-schema-php.mjs`). The generated file
 	 * wraps the JSON Schema descriptions in `__()` calls so they go through
 	 * the translation pipeline.
 	 *

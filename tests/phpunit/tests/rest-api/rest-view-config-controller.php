@@ -413,7 +413,7 @@ class WP_REST_View_Config_Controller_Test extends WP_Test_REST_TestCase {
 
 	/**
 	 * The endpoint schema is derived from the canonical JSON Schema at
-	 * `schemas/json/view-config.json` in the Gutenberg repository through the
+	 * `tools/rest-api/view-config.json` through the
 	 * generated `wp-includes/rest-api/view-config-schema.php` file, so the two
 	 * can no longer drift structurally. Here we only assert that the
 	 * descriptions attached in PHP land on the schema.
