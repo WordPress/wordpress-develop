@@ -137,7 +137,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 						<path fill="#1e1e1e" fill-rule="evenodd" d="M4.91 27.75C4.91 17.395 13.455 9 24 9s19.091 8.395 19.091 18.75c0 3.909-1.22 7.542-3.305 10.548l-.488.702H8.702l-.488-.702A18.438 18.438 0 0 1 4.91 27.75ZM24 12.214c-8.736 0-15.818 6.956-15.818 15.536 0 2.943.832 5.692 2.277 8.036h27.082a15.25 15.25 0 0 0 2.277-8.036c0-8.58-7.082-15.536-15.818-15.536Z" clip-rule="evenodd"/>
 					</svg>
 				</div>
-				<h3><?php _e( 'Improved Media Handling' ); ?></h3>
+				<h3><?php _e( 'Improved media handling' ); ?></h3>
 				<p><?php _e( 'Image compression, resizing, and thumbnail generation now happen in the browser, via a WebAssembly build of libvips, so large uploads won&#8217;t hit PHP memory limits or time out on shared hosts. This also frees up server CPU and memory, while producing smaller files for visitors. Media handling includes built-in support for AVIF,  HEIC and HDR gain maps.' ); ?></p>
 			</div>
 			<div class="column is-right-padding-zero">
