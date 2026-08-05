@@ -2120,8 +2120,6 @@ class wpdb {
 	 *
 	 * @param bool $allow_bail Optional. Allows the function to bail. Default true.
 	 * @return bool Whether the connection is up. Exits if down and $allow_bail is true.
-	 *
-	 * @phpstan-return ( $allow_bail is true ? bool|never : bool )
 	 */
 	public function check_connection( $allow_bail = true ) {
 		// Check if the connection is alive.

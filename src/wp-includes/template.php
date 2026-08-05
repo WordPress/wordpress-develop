@@ -722,10 +722,8 @@ function wp_set_template_globals() {
 function locate_template( $template_names, $load = false, $load_once = true, $args = array() ) {
 	global $wp_stylesheet_path, $wp_template_path;
 
-	/** @see wp_set_template_globals() */
 	if ( ! isset( $wp_stylesheet_path ) || ! isset( $wp_template_path ) ) {
-		$wp_stylesheet_path = get_stylesheet_directory();
-		$wp_template_path   = get_template_directory();
+		wp_set_template_globals();
 	}
 
 	$is_child_theme = is_child_theme();
