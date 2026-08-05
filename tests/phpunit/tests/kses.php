@@ -2976,8 +2976,11 @@ HTML;
 			// Test an empty srcset.
 			array( '', '' ),
 
-			// Srcset with extra whitespace (trailing whitespace trimmed, internal spacing preserved).
-			array( '  image1.jpg 1x  ,   image2.jpg 2x  ', '  image1.jpg 1x  ,   image2.jpg 2x' ),
+			// Srcset with extra whitespace is preserved byte for byte.
+			array( '  image1.jpg 1x  ,   image2.jpg 2x  ', '  image1.jpg 1x  ,   image2.jpg 2x  ' ),
+
+			// Newlines are srcset whitespace and are preserved.
+			array( "image1.jpg 1x,\nimage2.jpg 2x", "image1.jpg 1x,\nimage2.jpg 2x" ),
 
 			// Srcset with single URL and no descriptor.
 			array( 'image.jpg', 'image.jpg' ),
@@ -3553,19 +3556,13 @@ HTML;
 	}
 
 	/**
-	 * Document the accepted limitation for commas attached to invalid descriptors.
+	 * Test that candidates after invalid descriptors are still protocol-checked.
 	 *
-	 * In "a.jpg 2q,javascript:alert(1)" the token "2q" is not a valid width or
-	 * density descriptor and the comma is not adjacent to whitespace, so KSES
-	 * treats the whole value as a single URL and protocol-checks it as one
-	 * string. A browser parsing this invalid srcset may instead drop the
-	 * malformed candidate and read "javascript:alert(1)" as a candidate URL of
-	 * its own.
-	 *
-	 * The asymmetry is accepted because srcset candidates are only ever fetched
-	 * as images: a disallowed scheme that survives this way is never navigated
-	 * to or executed. These assertions pin the current behavior so any change
-	 * to the entry splitter is made consciously.
+	 * Per the HTML specification's srcset parsing algorithm, a comma inside a
+	 * descriptor terminates the candidate, even when the descriptor itself is
+	 * invalid (like "2q"). So in "a.jpg 2q,javascript:alert(1)" a browser reads
+	 * "javascript:alert(1)" as a candidate URL of its own, and KSES must
+	 * protocol-check it individually.
 	 *
 	 * @ticket 29807
 	 * @covers ::wp_kses_sanitize_uris
@@ -3577,14 +3574,76 @@ HTML;
 
 	public function data_wp_kses_srcset_invalid_descriptor_comma() {
 		return array(
-			'invalid descriptor: single-URL protocol check strips through the colon' => array(
+			'comma in invalid descriptor starts a new candidate' => array(
 				'a.jpg 2q,javascript:alert(1)',
-				'alert(1)',
+				'a.jpg 2q,alert(1)',
 			),
-			'invalid descriptor after path query: value survives as one inert URL' => array(
+			'comma in invalid descriptor after a path query starts a new candidate' => array(
 				'a.jpg/?v=1 2q,javascript:alert(1)',
-				'a.jpg/?v=1 2q,javascript:alert(1)',
+				'a.jpg/?v=1 2q,alert(1)',
 			),
+		);
+	}
+
+	/**
+	 * Test that URLs without a browser-parseable scheme are left intact.
+	 *
+	 * Per the HTML specification, a comma not terminating a run of
+	 * non-whitespace characters belongs to the URL, so `a.jpg,https://…` is a
+	 * single relative URL. Its prefix before the colon (`a.jpg,https`) is not a
+	 * valid URL scheme, so no browser parses a protocol out of it; protocol
+	 * sanitization must leave it alone rather than rewrite the same-origin
+	 * relative URL into a cross-origin one.
+	 *
+	 * @ticket 29807
+	 * @covers ::wp_kses_sanitize_uris
+	 * @dataProvider data_wp_kses_srcset_schemeless_urls_with_colons
+	 */
+	public function test_wp_kses_srcset_schemeless_urls_with_colons( $input, $expected ) {
+		$this->assertSame( $expected, wp_kses_sanitize_uris( 'srcset', $input, wp_allowed_protocols() ) );
+	}
+
+	public function data_wp_kses_srcset_schemeless_urls_with_colons() {
+		return array(
+			'tight comma with a colon later stays one relative URL' => array(
+				'a.jpg,https://example.com/b.jpg',
+				'a.jpg,https://example.com/b.jpg',
+			),
+			'relative CDN proxy URL wrapping an absolute URL'       => array(
+				'cdn-cgi/image/format=auto,quality=80/https://bucket.example/img.jpg 1x, b.jpg 2x',
+				'cdn-cgi/image/format=auto,quality=80/https://bucket.example/img.jpg 1x, b.jpg 2x',
+			),
+			'a scheme-shaped prefix is still protocol-checked'      => array(
+				'javascript:alert(1),safe.jpg',
+				'alert(1),safe.jpg',
+			),
+		);
+	}
+
+	/**
+	 * Test that data: URIs in srcset follow the allowed-protocols policy.
+	 *
+	 * `data` is not in wp_allowed_protocols(), so data: URIs are stripped from
+	 * srcset candidates just as they are from src and href. Sites that need
+	 * data: image placeholders can allow them via the `kses_allowed_protocols`
+	 * filter, which extends to each srcset candidate.
+	 *
+	 * @ticket 29807
+	 * @covers ::wp_kses_sanitize_uris
+	 */
+	public function test_wp_kses_srcset_data_uris_follow_allowed_protocols() {
+		$srcset = 'data:image/gif;base64,R0lGODlhAQABAAAAACw= 1x, real.jpg 2x';
+
+		$this->assertSame(
+			'image/gif;base64,R0lGODlhAQABAAAAACw= 1x, real.jpg 2x',
+			wp_kses_sanitize_uris( 'srcset', $srcset, wp_allowed_protocols() ),
+			'data: URIs should be stripped from srcset candidates by default, consistent with src'
+		);
+
+		$this->assertSame(
+			$srcset,
+			wp_kses_sanitize_uris( 'srcset', $srcset, array_merge( wp_allowed_protocols(), array( 'data' ) ) ),
+			'An extended protocol allowlist should apply to each srcset candidate'
 		);
 	}
 }

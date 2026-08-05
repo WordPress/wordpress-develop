@@ -1822,53 +1822,101 @@ function wp_kses_sanitize_uris( string $attr_name, string $attr_value, array $al
 
 	if ( in_array( $attr_name, $multi_uri_attrs, true ) ) {
 		/*
-		 * Parse srcset-style attributes into entries so each URL can be sanitized individually.
+		 * Split the value into image candidates the same way a browser does,
+		 * following the srcset parsing algorithm in the HTML specification:
+		 * a candidate is a run of non-whitespace characters forming a URL,
+		 * optionally followed by whitespace and descriptors. Commas terminate
+		 * a URL only when they end its run of non-whitespace characters; a
+		 * comma elsewhere in the run belongs to the URL (CDN image resizers
+		 * produce such URLs, e.g. cdn-cgi/image/format=auto,quality=80/...).
+		 * Descriptors end at the first comma outside parentheses.
 		 *
-		 * Srcset entries are: URL [descriptor], URL [descriptor], ...
-		 * Descriptors match patterns like "480w", "2x", or "1.5x", and are optional.
+		 * Only the URLs are sanitized. Whitespace, separating commas, and
+		 * descriptors are preserved byte for byte, so a value containing only
+		 * allowed URLs round-trips unchanged.
 		 *
-		 * A naive split on all commas breaks URLs that contain commas internally
-		 * (e.g. CDN image resizer URLs like cdn-cgi/image/format=auto,quality=80/...).
-		 *
-		 * Instead, treat a comma as an entry separator only when it cannot be part
-		 * of a URL, which is the case when it:
-		 * - follows a width or pixel density descriptor (e.g. "img.jpg 2x, next.jpg"), or
-		 * - is adjacent to whitespace (URLs in srcset must encode whitespace as %20,
-		 *   so a comma next to whitespace always separates two entries).
-		 *
-		 * Known limitation: a comma attached to an *invalid* descriptor (e.g.
-		 * "img.jpg 2q,next.jpg") does not match either rule, so the surrounding
-		 * text is protocol-checked as a single URL. Browsers may parse such an
-		 * invalid srcset into more candidates than KSES does. This asymmetry is
-		 * accepted because srcset candidates are only ever fetched as images;
-		 * a disallowed scheme that rides through this way is never navigated
-		 * to or executed.
+		 * @see https://html.spec.whatwg.org/multipage/images.html#parsing-a-srcset-attribute
 		 */
-		$descriptor     = '\d+(?:\.\d+)?[wx]';
-		$delimiter      = '\s+' . $descriptor . '\s*,\s*|\s*,\s+|\s+,\s*';
-		$delim_pattern  = '/(' . $delimiter . ')/i';
-		$delim_anchored = '/^(?:' . $delimiter . ')$/i';
-		$entry_pattern  = '/^(\s*)(.*?)(\s+' . $descriptor . ')?\s*$/i';
+		$whitespace = " \t\f\r\n";
+		$length     = strlen( $attr_value );
+		$at         = 0;
+		$result     = '';
 
-		$parts  = (array) preg_split( $delim_pattern, $attr_value, -1, PREG_SPLIT_DELIM_CAPTURE );
-		$result = '';
+		while ( $at < $length ) {
+			// Copy the whitespace and commas separating candidates.
+			$separator_length = strspn( $attr_value, "{$whitespace},", $at );
+			$result          .= substr( $attr_value, $at, $separator_length );
+			$at              += $separator_length;
 
-		foreach ( $parts as $part ) {
-			if ( preg_match( $delim_anchored, $part ) ) {
-				// This is a delimiter between two entries. Append it as-is to preserve spacing.
-				$result .= $part;
+			if ( $at >= $length ) {
+				break;
+			}
+
+			// The URL is the next run of non-whitespace characters…
+			$url_length = strcspn( $attr_value, $whitespace, $at );
+			$url        = substr( $attr_value, $at, $url_length );
+			$at        += $url_length;
+
+			// …except that commas ending the run terminate the URL and separate candidates.
+			$trimmed_url     = rtrim( $url, ',' );
+			$trailing_commas = strlen( $url ) - strlen( $trimmed_url );
+			$url             = $trimmed_url;
+
+			/*
+			 * Sanitize the URL's protocol only when the text before its first colon
+			 * could be parsed as a URL scheme: an ASCII letter followed by ASCII
+			 * letters, digits, "+", "-", and "." per RFC 3986. Browsers treat any
+			 * other prefix as part of a schemeless, relative URL, so there is no
+			 * protocol to check, and wp_kses_bad_protocol() would corrupt the URL
+			 * by stripping the text through the colon: it rewrites the relative,
+			 * same-origin URL `a.jpg,https://example.com/b.jpg` into the
+			 * cross-origin URL `//example.com/b.jpg`.
+			 *
+			 * The colon detection and the scheme normalization deliberately mirror
+			 * wp_kses_bad_protocol_once() and wp_kses_bad_protocol_once2() so no
+			 * colon form that wp_kses_bad_protocol() would act on is missed. The
+			 * normalization removes a superset of the characters browsers remove
+			 * from URLs (tab, line feed, and carriage return), so any prefix
+			 * rejected here is also rejected as a scheme by browsers.
+			 */
+			$prefix = preg_replace( '/(&#0*58(?![;0-9])|&#x0*3a(?![;a-f0-9]))/i', '$1;', $url );
+			$prefix = preg_split( '/:|&#0*58;|&#x0*3a;|&colon;/i', $prefix, 2 );
+
+			$scheme = null;
+			if ( isset( $prefix[1] ) ) {
+				$scheme = wp_kses_decode_entities( $prefix[0] );
+				$scheme = preg_replace( '/\s/', '', $scheme );
+				$scheme = wp_kses_no_null( $scheme );
+			}
+
+			if ( null === $scheme || '' === $scheme || preg_match( '/^[a-z][a-z0-9+.\-]*$/i', $scheme ) ) {
+				$url = wp_kses_bad_protocol( $url, $allowed_protocols );
+			}
+
+			$result .= $url . str_repeat( ',', $trailing_commas );
+
+			// A URL terminated by a comma has no descriptors.
+			if ( $trailing_commas > 0 ) {
 				continue;
 			}
 
-			// This is a URL (possibly with a trailing descriptor for the last entry).
-			if ( preg_match( $entry_pattern, $part, $matches ) ) {
-				$leading_whitespace  = $matches[1];
-				$url                 = $matches[2];
-				$trailing_descriptor = $matches[3] ?? '';
-				$result             .= $leading_whitespace . wp_kses_bad_protocol( $url, $allowed_protocols ) . $trailing_descriptor;
-			} else {
-				$result .= wp_kses_bad_protocol( $part, $allowed_protocols );
+			// Copy any descriptors verbatim: everything up to the first comma outside parentheses.
+			$descriptor_start = $at;
+			$in_parens        = false;
+			while ( $at < $length ) {
+				$char = $attr_value[ $at ];
+				if ( $in_parens ) {
+					if ( ')' === $char ) {
+						$in_parens = false;
+					}
+				} elseif ( '(' === $char ) {
+					$in_parens = true;
+				} elseif ( ',' === $char ) {
+					break;
+				}
+				++$at;
 			}
+			$result .= substr( $attr_value, $descriptor_start, $at - $descriptor_start );
 		}
 
 		return $result;
