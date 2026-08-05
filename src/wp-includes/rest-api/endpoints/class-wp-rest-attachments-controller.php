@@ -254,13 +254,6 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			);
 		}
 
-		/*
-		 * Sideloading from a URL works around a cross-origin fetch the browser
-		 * cannot make, which is a problem whether or not client side media
-		 * processing is enabled, so the argument is always registered. Leaving
-		 * it unregistered would not disable it: create_item() would still read
-		 * the parameter, but without the sanitize and validate callbacks below.
-		 */
 		$args['url'] = array(
 			'type'              => 'string',
 			'format'            => 'uri',
