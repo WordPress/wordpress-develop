@@ -463,6 +463,7 @@ window.wp = window.wp || {};
 		if ( 'private' === status ) {
 			$('input[name="keep_private"]', editRow).prop('checked', true);
 			pw.val( '' ).prop( 'disabled', true );
+			$('input[name="sticky"]', editRow).prop('checked', false).prop('disabled', true);
 		}
 
 		// Remove the current page and children from the parent dropdown.
