@@ -182,7 +182,7 @@ jobs:
 
           echo "See [tests/phpstan/README.md](${README_URL}) for details." >> "${GITHUB_STEP_SUMMARY}"
 
-          echo "::error title=PHPStan baselines are out of date::An ignored error no longer occurs, or occurs a different number of times. If you fixed it, that is expected: run \`npm run typecheck:php:baselines\` and commit the updated baselines. See ${README_URL}"
+          echo "::error title=PHPStan baselines are out of date::An ignored error no longer occurs, or occurs a different number of times. If you fixed it, that is expected: run \`npm run typecheck:php:baselines\` or \`composer phpstan:baselines\` and commit the updated baselines. See ${README_URL}"
           exit 1
 
       - name: "Save result cache"
