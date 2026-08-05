@@ -14,15 +14,35 @@ includes:
 	# new strict rules.
 	- vendor/phpstan/phpstan-phpunit/extension.neon
 
-	# The baseline file includes preexisting errors in the codebase that should be ignored.
+	# Preexisting errors that should be ignored, one baseline per error identifier
+	# so that the remaining work on each is visible as a single shrinking file.
+	# Each is meant to reach zero and be deleted, taking its line below with it.
 	# https://phpstan.org/user-guide/baseline
-	- tests/phpstan/baseline.php
+	#
+	# Regenerate with `composer phpstan:baselines`, which rewrites both the files
+	# and the list between the markers. Do not edit that list by hand.
+	# phpstan:baselines start
+	- tests/phpstan/baselines/empty.variable.neon
+	- tests/phpstan/baselines/isset.variable.neon
+	- tests/phpstan/baselines/variable.undefined.neon
+	# phpstan:baselines end
 
 parameters:
 	# https://phpstan.org/user-guide/rule-levels
-	level: 0
+	level: 1
 	reportUnmatchedIgnoredErrors: true
 
+	# The following ignored errors are not intended to be fixed, as distinct from the baselines
+	# included above.
+	#
+	# A baseline records work still to be done. Every entry in one is in scope to be fixed, and
+	# each file is meant to reach zero and then be deleted. An entry here is the opposite: a
+	# decision that the code is right as written and the report is not actionable, whether
+	# because PHPStan cannot see what makes the code safe, or because satisfying it would mean
+	# changing code that has no other reason to change.
+	#
+	# So prefer fixing an error, and baseline it when it cannot be fixed yet. Add it here only
+	# when it should never be fixed, and say why.
 	ignoreErrors:
 		# Level 0:
 		- # Inner functions aren't supported by PHPStan.
@@ -40,6 +60,7 @@ parameters:
 			identifier: function.inner
 			path: src/wp-includes/canonical.php
 			count: 1
+
 		# Level 2:
 		# ValueError is PHP 8.0+; core throws it conditionally so the docblocks are correct for WP's 7.4+ range,
 		# but bleedingEdge's version-aware check treats the class as non-existent against the PHP 7.4 floor.
