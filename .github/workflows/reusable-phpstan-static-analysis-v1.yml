@@ -112,10 +112,19 @@ jobs:
         env:
           README_URL: ${{ github.server_url }}/${{ github.repository }}/blob/${{ github.sha }}/tests/phpstan/README.md
         run: |
+          # This step runs even when the analysis above it failed, in which case the report may
+          # never have been written. There is nothing to check then, and failing here would
+          # only obscure whatever actually went wrong.
           if [ ! -f "${RUNNER_TEMP}/phpstan-report.xml" ]; then
             exit 0
           fi
 
+          # Leave the run alone unless PHPStan reported an ignore error, because everything
+          # below concerns an ignore configuration that no longer describes the code, and
+          # nothing else. Those errors are `ignore.unmatched`, where a pattern matched nothing
+          # at all, and `ignore.count`, where it matched a different number of times than the
+          # entry records. The `ignore.` prefix is matched rather than those two names so that
+          # any later addition to the group is caught as well.
           if ! grep -q 'source="ignore\.' "${RUNNER_TEMP}/phpstan-report.xml"; then
             exit 0
           fi
