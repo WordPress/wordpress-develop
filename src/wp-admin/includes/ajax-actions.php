@@ -298,6 +298,15 @@ function wp_ajax_autocomplete_user() {
 
 	$return = array();
 
+	// Obtain the search term, and short-circuit missing/invalid search term.
+	if ( ! isset( $_REQUEST['term'] ) || ! is_string( $_REQUEST['term'] ) ) {
+		wp_die( 0 );
+	}
+	$term = sanitize_text_field( wp_unslash( $_REQUEST['term'] ) );
+	if ( '' === $term ) {
+		wp_die( 0 );
+	}
+
 	/*
 	 * Check the type of request.
 	 * Current allowed values are `add` and `search`.
@@ -338,8 +347,6 @@ function wp_ajax_autocomplete_user() {
 			'fields'  => 'ID',
 		)
 	) : array() );
-
-	$term = isset( $_REQUEST['term'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['term'] ) ) : '';
 
 	$users = get_users(
 		array(
