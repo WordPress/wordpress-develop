@@ -220,6 +220,45 @@ class Tests_Ajax_wpAjaxAutocompleteUser extends WP_Ajax_UnitTestCase {
 	}
 
 	/**
+	 * Tests that a term consisting only of asterisks does not match all users.
+	 *
+	 * @ticket 65051
+	 */
+	public function test_asterisk_only_term_does_not_return_results() {
+		wp_set_current_user( self::$super_admin_id );
+
+		$_GET = wp_slash(
+			array(
+				'autocomplete_type' => 'search',
+				'term'              => '**',
+			)
+		);
+
+		$this->assertSame( '0', $this->handle_autocomplete_user() );
+	}
+
+	/**
+	 * Tests that a term wrapped in asterisks still matches.
+	 *
+	 * @ticket 65051
+	 */
+	public function test_asterisk_wrapped_term_returns_results() {
+		wp_set_current_user( self::$super_admin_id );
+
+		$_GET = wp_slash(
+			array(
+				'autocomplete_type' => 'search',
+				'term'              => '*autocompleteuser*',
+			)
+		);
+
+		$response = json_decode( $this->handle_autocomplete_user(), true );
+
+		$this->assertIsArray( $response, 'The response should be a JSON encoded array.' );
+		$this->assertCount( 1, $response, 'The matching user should be returned.' );
+	}
+
+	/**
 	 * Tests that users without the 'promote_users' capability are denied.
 	 *
 	 * @ticket 65051

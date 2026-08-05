@@ -304,7 +304,12 @@ function wp_ajax_autocomplete_user() {
 	if ( ! isset( $_REQUEST['term'] ) || ! is_string( $_REQUEST['term'] ) ) {
 		wp_die( 0 );
 	}
-	$term = sanitize_text_field( wp_unslash( $_REQUEST['term'] ) );
+	/*
+	 * Asterisks are trimmed since wildcards are appended below. Without this, a
+	 * term consisting only of asterisks would result in an empty search that
+	 * matches all users.
+	 */
+	$term = trim( sanitize_text_field( wp_unslash( $_REQUEST['term'] ) ), '*' );
 	if ( '' === $term ) {
 		wp_die( 0 );
 	}
