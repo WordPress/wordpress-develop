@@ -1194,6 +1194,7 @@ class Tests_Block_Supports_Layout extends WP_UnitTestCase {
 	 * values (e.g. from hand-edited, imported, or AI-generated content) does not cause a
 	 * fatal error in the explode() calls.
 	 *
+	 * @ticket 65774
 	 * @covers ::wp_get_layout_style
 	 */
 	public function test_wp_get_layout_style_with_non_string_constrained_sizes() {
@@ -1215,6 +1216,7 @@ class Tests_Block_Supports_Layout extends WP_UnitTestCase {
 	 * Tests that a flex layout with non-string justifyContent/verticalAlignment values
 	 * does not cause a fatal error in the array_key_exists() calls.
 	 *
+	 * @ticket 65774
 	 * @covers ::wp_get_layout_style
 	 */
 	public function test_wp_get_layout_style_with_non_string_flex_alignment() {
@@ -1235,6 +1237,7 @@ class Tests_Block_Supports_Layout extends WP_UnitTestCase {
 	 * Tests that a responsive grid child with a non-string parent minimumColumnWidth
 	 * does not cause a fatal error in the explode() call.
 	 *
+	 * @ticket 65774
 	 * @covers ::wp_get_child_layout_style_rules
 	 */
 	public function test_wp_get_child_layout_style_rules_with_non_string_minimum_column_width() {
@@ -1252,6 +1255,7 @@ class Tests_Block_Supports_Layout extends WP_UnitTestCase {
 	 * Tests that layout classname generation does not fatal when the layout type,
 	 * orientation, or justifyContent attributes are not strings.
 	 *
+	 * @ticket 65774
 	 * @covers ::wp_render_layout_support_flag
 	 */
 	public function test_layout_support_flag_with_non_string_layout_values() {
@@ -1277,6 +1281,7 @@ class Tests_Block_Supports_Layout extends WP_UnitTestCase {
 	 * Tests that restoring the group inner container does not fatal when the tagName
 	 * attribute is not a string (which would break the preg_quote() calls).
 	 *
+	 * @ticket 65774
 	 * @covers ::wp_restore_group_inner_container
 	 */
 	public function test_restore_group_inner_container_with_non_string_tag_name() {
