@@ -1772,11 +1772,15 @@ function wp_kses_hair( $attr, $allowed_protocols ) {
 		'"' => '&quot;',
 	);
 
+	// Look the attribute lists up once per call rather than once per attribute.
+	$uri_attrs       = wp_kses_uri_attributes();
+	$multi_uri_attrs = wp_kses_multi_uri_attributes();
+
 	foreach ( $attribute_names as $name ) {
 		$value   = $processor->get_attribute( $name );
 		$is_bool = true === $value;
 		if ( is_string( $value ) ) {
-			$value = wp_kses_sanitize_uris( $name, $value, $allowed_protocols );
+			$value = wp_kses_sanitize_uris( $name, $value, $allowed_protocols, $multi_uri_attrs, $uri_attrs );
 		}
 
 		// Reconstruct and normalize the attribute value.
@@ -1809,10 +1813,13 @@ function wp_kses_hair( $attr, $allowed_protocols ) {
  * @param string[]      $allowed_protocols Array of allowed URL protocols.
  * @param string[]|null $multi_uri_attrs   Optional. Attributes that can contain multiple URIs.
  *                                         Default null, meaning the {@see wp_kses_multi_uri_attributes()} list.
+ * @param string[]|null $uri_attrs         Optional. Attributes that contain a single URI.
+ *                                         Default null, meaning the {@see wp_kses_uri_attributes()} list.
  * @return string Sanitized attribute value.
  */
-function wp_kses_sanitize_uris( string $attr_name, string $attr_value, array $allowed_protocols, ?array $multi_uri_attrs = null ): string {
-	$attr_name = strtolower( $attr_name );
+function wp_kses_sanitize_uris( $attr_name, $attr_value, $allowed_protocols, $multi_uri_attrs = null, $uri_attrs = null ) {
+	$attr_name         = strtolower( $attr_name );
+	$allowed_protocols = (array) $allowed_protocols;
 
 	if ( null === $multi_uri_attrs ) {
 		$multi_uri_attrs = wp_kses_multi_uri_attributes();
@@ -1920,7 +1927,11 @@ function wp_kses_sanitize_uris( string $attr_name, string $attr_value, array $al
 		return $result;
 	}
 
-	if ( in_array( $attr_name, wp_kses_uri_attributes(), true ) ) {
+	if ( null === $uri_attrs ) {
+		$uri_attrs = wp_kses_uri_attributes();
+	}
+
+	if ( in_array( $attr_name, $uri_attrs, true ) ) {
 		return wp_kses_bad_protocol( $attr_value, $allowed_protocols );
 	}
 

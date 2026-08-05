@@ -1136,4 +1136,23 @@ class Tests_Kses_WpKsesHair extends WP_UnitTestCase {
 
 		$this->assertSame( $expected, $result );
 	}
+
+	/**
+	 * Test wp_kses_hair() with a string $allowed_protocols value.
+	 *
+	 * The parameter is documented as string[], but wp_kses_hair() has been a
+	 * public function since 1.0 and long-standing callers pass a string.
+	 * Passing one must not raise a TypeError; it is treated as a
+	 * single-protocol allowlist.
+	 *
+	 * @ticket 29807
+	 * @covers wp_kses_hair
+	 */
+	public function test_string_allowed_protocols() {
+		$result = wp_kses_hair( 'class="foo" href="https://example.com/" src="javascript:alert(1)"', 'https' );
+
+		$this->assertSame( 'foo', $result['class']['value'] );
+		$this->assertSame( 'https://example.com/', $result['href']['value'] );
+		$this->assertSame( 'alert(1)', $result['src']['value'] );
+	}
 }
