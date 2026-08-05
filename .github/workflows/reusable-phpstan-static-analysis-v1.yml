@@ -32,6 +32,7 @@ jobs:
   # - Builds WordPress.
   # - Configures caching for PHPStan static analysis scans.
   # - Runs PHPStan static analysis (with Pull Request annotations).
+  # - Checks whether the baselines need regenerating.
   # - Saves the PHPStan result cache.
   # - Ensures version-controlled files are not modified or deleted.
   phpstan:
@@ -93,7 +94,58 @@ jobs:
 
       - name: Run PHP static analysis tests
         id: phpstan
-        run: composer run phpstan -- -vvv --error-format=checkstyle | cs2pr --errors-as-warnings --graceful-warnings
+        run: composer run phpstan -- -vvv --error-format=checkstyle | tee "${RUNNER_TEMP}/phpstan-report.xml" | cs2pr --errors-as-warnings --graceful-warnings
+
+      # A baselined error that no longer occurs, or occurs a different number of times, is
+      # reported as an unmatched ignore. That is not something to fix in the code: the usual
+      # cause is that the error *was* fixed, leaving the baseline describing a state that no
+      # longer exists. PHPStan does not allow those reports to be ignored or baselined.
+      #
+      # The analysis above is reported as warnings, so this would otherwise surface as a
+      # passing run carrying an annotation that reads like a complaint about a fix. Call it
+      # out on its own, and say what to do about it.
+      - name: Check whether the baselines need regenerating
+        if: ${{ !cancelled() }}
+        run: |
+          if [ ! -f "${RUNNER_TEMP}/phpstan-report.xml" ]; then
+            exit 0
+          fi
+
+          if ! grep -qE 'was not matched in reported errors|is expected to occur' "${RUNNER_TEMP}/phpstan-report.xml"; then
+            exit 0
+          fi
+
+          {
+            echo '## PHPStan baselines are out of date'
+            echo
+            echo 'A baselined error no longer occurs, or occurs a different number of times, so'
+            echo 'PHPStan reported an `ignore.unmatched` or `ignore.count` error.'
+            echo
+            echo '**If you fixed the error, this is expected.** Each baseline entry records an exact'
+            echo 'count for a specific file, so that a new occurrence of an already baselined error is'
+            echo 'reported rather than absorbed. That same exactness means fixing one leaves the'
+            echo 'baseline describing a state that no longer exists. There is nothing to fix in the'
+            echo 'code; the baselines just need to catch up.'
+            echo
+            echo 'Regenerate them and commit the result:'
+            echo
+            echo '```bash'
+            echo 'npm run typecheck:php:baselines'
+            echo '```'
+            echo
+            echo 'or, outside the Docker environment:'
+            echo
+            echo '```bash'
+            echo 'composer phpstan:baselines'
+            echo '```'
+            echo
+            echo 'That rewrites the files under `tests/phpstan/baselines`, deletes any whose errors are'
+            echo 'now all fixed, and updates the list of them in `phpstan.neon.dist`. See'
+            echo '`tests/phpstan/README.md` for details.'
+          } >> "${GITHUB_STEP_SUMMARY}"
+
+          echo "::error title=PHPStan baselines are out of date::A baselined error no longer occurs, or occurs a different number of times. If you fixed it, that is expected: run \`npm run typecheck:php:baselines\` and commit the updated baselines. See tests/phpstan/README.md."
+          exit 1
 
       - name: "Save result cache"
         uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
