@@ -23,7 +23,8 @@ class Tests_Functions_wpPrivacyExportsDir extends WP_UnitTestCase {
 	public function test_wp_privacy_exports_dir_filtered() {
 		add_filter( 'wp_privacy_exports_dir', array( $this, 'filter_wp_privacy_exports_dir' ) );
 
-		$expected_dir = '/wp-personal-data-exports-dir/';
+		$upload_dir   = wp_upload_dir();
+		$expected_dir = trailingslashit( $upload_dir['basedir'] ) . 'filtered-exports/';
 		$actual_dir   = wp_privacy_exports_dir();
 		$this->assertSame( $expected_dir, $actual_dir );
 
