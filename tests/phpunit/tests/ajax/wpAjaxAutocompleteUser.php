@@ -220,6 +220,58 @@ class Tests_Ajax_wpAjaxAutocompleteUser extends WP_Ajax_UnitTestCase {
 	}
 
 	/**
+	 * Tests that an empty search term does not return results.
+	 *
+	 * @ticket 65051
+	 *
+	 * @dataProvider data_empty_terms
+	 *
+	 * @param string $term Empty or whitespace-only term.
+	 */
+	public function test_empty_term_does_not_return_results( string $term ) {
+		wp_set_current_user( self::$super_admin_id );
+
+		$_GET = wp_slash(
+			array(
+				'autocomplete_type' => 'search',
+				'term'              => $term,
+			)
+		);
+
+		$this->assertSame( '0', $this->handle_autocomplete_user() );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{string}>
+	 */
+	public static function data_empty_terms(): array {
+		return array(
+			'empty string'    => array( '' ),
+			'whitespace only' => array( '   ' ),
+		);
+	}
+
+	/**
+	 * Tests that a non-string search term does not return results.
+	 *
+	 * @ticket 65051
+	 */
+	public function test_non_string_term_does_not_return_results() {
+		wp_set_current_user( self::$super_admin_id );
+
+		$_GET = wp_slash(
+			array(
+				'autocomplete_type' => 'search',
+				'term'              => array( 'autocompleteuser' ),
+			)
+		);
+
+		$this->assertSame( '0', $this->handle_autocomplete_user() );
+	}
+
+	/**
 	 * Tests that a term consisting only of asterisks does not match all users.
 	 *
 	 * @ticket 65051
