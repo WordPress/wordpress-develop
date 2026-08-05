@@ -25,16 +25,45 @@ includes:
 	- tests/phpstan/baselines/arguments.count.neon
 	- tests/phpstan/baselines/assign.propertyType.neon
 	- tests/phpstan/baselines/binaryOp.invalid.neon
+	- tests/phpstan/baselines/booleanAnd.alwaysFalse.neon
+	- tests/phpstan/baselines/booleanAnd.alwaysTrue.neon
+	- tests/phpstan/baselines/booleanAnd.leftAlwaysTrue.neon
+	- tests/phpstan/baselines/booleanAnd.rightAlwaysFalse.neon
+	- tests/phpstan/baselines/booleanAnd.rightAlwaysTrue.neon
+	- tests/phpstan/baselines/booleanNot.alwaysFalse.neon
+	- tests/phpstan/baselines/booleanNot.alwaysTrue.neon
+	- tests/phpstan/baselines/booleanOr.alwaysFalse.neon
+	- tests/phpstan/baselines/booleanOr.alwaysTrue.neon
+	- tests/phpstan/baselines/booleanOr.rightAlwaysTrue.neon
+	- tests/phpstan/baselines/catch.neverThrown.neon
 	- tests/phpstan/baselines/class.nameCase.neon
 	- tests/phpstan/baselines/class.notFound.neon
+	- tests/phpstan/baselines/deadCode.unreachable.neon
+	- tests/phpstan/baselines/empty.offset.neon
+	- tests/phpstan/baselines/empty.property.neon
 	- tests/phpstan/baselines/empty.variable.neon
 	- tests/phpstan/baselines/encapsedStringPart.nonString.neon
 	- tests/phpstan/baselines/foreach.nonIterable.neon
+	- tests/phpstan/baselines/function.alreadyNarrowedType.neon
+	- tests/phpstan/baselines/function.impossibleType.neon
+	- tests/phpstan/baselines/function.resultUnused.neon
 	- tests/phpstan/baselines/greater.invalid.neon
+	- tests/phpstan/baselines/greaterOrEqual.alwaysTrue.neon
+	- tests/phpstan/baselines/identical.alwaysFalse.neon
+	- tests/phpstan/baselines/identical.alwaysTrue.neon
+	- tests/phpstan/baselines/if.alwaysFalse.neon
+	- tests/phpstan/baselines/if.alwaysTrue.neon
+	- tests/phpstan/baselines/instanceof.alwaysTrue.neon
+	- tests/phpstan/baselines/isset.offset.neon
+	- tests/phpstan/baselines/isset.property.neon
 	- tests/phpstan/baselines/isset.variable.neon
 	- tests/phpstan/baselines/method.childParameterType.neon
 	- tests/phpstan/baselines/method.nonObject.neon
 	- tests/phpstan/baselines/method.notFound.neon
+	- tests/phpstan/baselines/method.unused.neon
+	- tests/phpstan/baselines/notIdentical.alwaysTrue.neon
+	- tests/phpstan/baselines/nullCoalesce.offset.neon
+	- tests/phpstan/baselines/nullCoalesce.property.neon
 	- tests/phpstan/baselines/offsetAccess.nonOffsetAccessible.neon
 	- tests/phpstan/baselines/offsetAccess.notFound.neon
 	- tests/phpstan/baselines/offsetAssign.valueType.neon
@@ -43,23 +72,32 @@ includes:
 	- tests/phpstan/baselines/parameter.phpDocType.neon
 	- tests/phpstan/baselines/parameter.unresolvableType.neon
 	- tests/phpstan/baselines/parameterByRef.type.neon
+	- tests/phpstan/baselines/parameterByRef.unusedType.neon
 	- tests/phpstan/baselines/property.defaultValue.neon
 	- tests/phpstan/baselines/property.nonObject.neon
 	- tests/phpstan/baselines/property.notFound.neon
+	- tests/phpstan/baselines/property.onlyWritten.neon
 	- tests/phpstan/baselines/property.phpDocType.neon
 	- tests/phpstan/baselines/property.private.neon
 	- tests/phpstan/baselines/property.protected.neon
+	- tests/phpstan/baselines/property.unusedType.neon
 	- tests/phpstan/baselines/return.empty.neon
 	- tests/phpstan/baselines/return.missing.neon
 	- tests/phpstan/baselines/return.type.neon
+	- tests/phpstan/baselines/return.unusedType.neon
+	- tests/phpstan/baselines/smallerOrEqual.alwaysTrue.neon
 	- tests/phpstan/baselines/staticClassAccess.privateMethod.neon
+	- tests/phpstan/baselines/ternary.alwaysFalse.neon
+	- tests/phpstan/baselines/ternary.alwaysTrue.neon
 	- tests/phpstan/baselines/varTag.noVariable.neon
 	- tests/phpstan/baselines/variable.undefined.neon
+	- tests/phpstan/baselines/while.alwaysFalse.neon
+	- tests/phpstan/baselines/while.alwaysTrue.neon
 	# phpstan:baselines end
 
 parameters:
 	# https://phpstan.org/user-guide/rule-levels
-	level: 3
+	level: 4
 	reportUnmatchedIgnoredErrors: true
 
 	# The following ignored errors are not intended to be fixed, as distinct from the baselines
