@@ -701,6 +701,7 @@ function wp_initialize_site( $site_id, array $args = array() ) {
 	$switch = false;
 	if ( get_current_blog_id() !== $site->id ) {
 		$switch = true;
+		remove_action( 'switch_blog', 'wp_switch_roles_and_user', 1 );
 		switch_to_blog( $site->id );
 	}
 
@@ -740,8 +741,8 @@ function wp_initialize_site( $site_id, array $args = array() ) {
 	clean_blog_cache( $site );
 
 	// Populate the site's roles.
-	populate_roles();
 	$wp_roles = new WP_Roles();
+	populate_roles();
 
 	// Populate metadata for the site.
 	populate_site_meta( $site->id, $args['meta'] );
@@ -761,6 +762,7 @@ function wp_initialize_site( $site_id, array $args = array() ) {
 	}
 
 	if ( $switch ) {
+		add_action( 'switch_blog', 'wp_switch_roles_and_user', 1, 2 );
 		restore_current_blog();
 	}
 
