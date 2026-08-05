@@ -145,38 +145,42 @@ jobs:
             exit 0
           fi
 
-          {
-            echo '## PHPStan baselines are out of date'
-            echo
-            echo 'An ignored error no longer occurs, or occurs a different number of times, so'
-            echo 'PHPStan reported it under an `ignore.unmatched` or `ignore.count` identifier.'
-            echo
-            echo '**If you fixed the error, this is expected.** Each baseline entry records an exact'
-            echo 'count for a specific file, so that a new occurrence of an already baselined error is'
-            echo 'reported rather than absorbed. That same exactness means fixing one leaves the'
-            echo 'baseline describing a state that no longer exists. There is nothing to fix in the'
-            echo 'code; the baselines just need to catch up.'
-            echo
-            echo 'Regenerate them and commit the result:'
-            echo
-            echo '```bash'
-            echo 'npm run typecheck:php:baselines'
-            echo '```'
-            echo
-            echo 'or, outside the Docker environment:'
-            echo
-            echo '```bash'
-            echo 'composer phpstan:baselines'
-            echo '```'
-            echo
-            echo 'That rewrites the files under `tests/phpstan/baselines`, deletes any whose errors are'
-            echo 'now all fixed, and updates the list of them in `phpstan.neon.dist`.'
-            echo
-            echo 'Where the report names an `@phpstan-ignore` annotation in the code rather than a'
-            echo 'baseline entry, remove that annotation instead; regenerating will not clear it.'
-            echo
-            echo "See [tests/phpstan/README.md](${README_URL}) for details."
-          } >> "${GITHUB_STEP_SUMMARY}"
+          # The summary is Markdown, and its code spans and fences are written literally, so the
+          # heredoc is quoted to keep the backticks out of the shell's hands. That leaves the
+          # one line needing a variable to be appended separately.
+          cat >> "${GITHUB_STEP_SUMMARY}" <<'SUMMARY'
+          ## PHPStan baselines are out of date
+
+          An ignored error no longer occurs, or occurs a different number of times, so PHPStan
+          reported it under an `ignore.unmatched` or `ignore.count` identifier.
+
+          **If you fixed the error, this is expected.** Each baseline entry records an exact
+          count for a specific file, so that a new occurrence of an already baselined error is
+          reported rather than absorbed. That same exactness means fixing one leaves the
+          baseline describing a state that no longer exists. There is nothing to fix in the
+          code; the baselines just need to catch up.
+
+          Regenerate them and commit the result:
+
+          ```bash
+          npm run typecheck:php:baselines
+          ```
+
+          or, outside the Docker environment:
+
+          ```bash
+          composer phpstan:baselines
+          ```
+
+          That rewrites the files under `tests/phpstan/baselines`, deletes any whose errors are
+          now all fixed, and updates the list of them in `phpstan.neon.dist`.
+
+          Where the report names an `@phpstan-ignore` annotation in the code rather than a
+          baseline entry, remove that annotation instead; regenerating will not clear it.
+
+          SUMMARY
+
+          echo "See [tests/phpstan/README.md](${README_URL}) for details." >> "${GITHUB_STEP_SUMMARY}"
 
           echo "::error title=PHPStan baselines are out of date::An ignored error no longer occurs, or occurs a different number of times. If you fixed it, that is expected: run \`npm run typecheck:php:baselines\` and commit the updated baselines. See ${README_URL}"
           exit 1
