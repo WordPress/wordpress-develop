@@ -285,6 +285,8 @@ function wp_ajax_oembed_cache() {
  * Handles user autocomplete via AJAX.
  *
  * @since 3.4.0
+ * @since 7.1.0 The search term is now sanitized, and a missing, non-string,
+ *              or empty term results in a `0` response instead of an empty array.
  */
 function wp_ajax_autocomplete_user() {
 	if ( ! is_multisite() || ! current_user_can( 'promote_users' ) || wp_is_large_network( 'users' ) ) {
