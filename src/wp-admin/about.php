@@ -63,7 +63,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 		<div class="about__section">
 			<div class="column is-left-padding-zero is-right-padding-zero">
 				<h2><?php _e( 'Welcome to WordPress 7.1' ); ?></h2>
-				<p class="is-subheading"><?php _e( "WordPress 7.1 makes it easier to style, edit, and collaborate. Style how blocks look across screen sizes and how they respond to hover, focus, and active states, all without writing custom CSS. A new media editor brings cropping, rotation, and metadata editing together in one streamlined workflow. Notes now support rich text and @mentions, and the admin bar now travels with you into the Site Editor and block editor, so the tools you rely on stay with you wherever you're working." ); ?></p>
+				<p class="is-subheading"><?php _e( 'WordPress 7.1 makes it easier to style, edit, and collaborate. Style how blocks look across screen sizes and how they respond to hover, focus, and active states, all without writing custom CSS. A new media editor brings cropping, rotation, and metadata editing together in one streamlined workflow. Notes now support rich text and @mentions, and the admin bar now travels with you into the Site Editor and block editor, so the tools you rely on stay with you wherever you&#8217;re working.' ); ?></p>
 			</div>
 		</div>
 
@@ -122,7 +122,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 				<h3><?php _e( 'Inline notes with mentions and rich text' ); ?></h3>
 				<p>
 					<strong><?php _e( 'More ways to leave feedback.' ); ?></strong><br />
-					<?php _e( 'Notes now support rich text and @mentions. Add bold, italic, code, and links so feedback reads clearly. Type "@" to pull up a list of collaborators and tag the right person directly. Leave a note on a specific text selection instead of an entire block. Start more than one conversation on the same block. Collapse long notes to keep the margin tidy.' ); ?>
+					<?php _e( 'Notes now support rich text and @mentions. Add bold, italic, code, and links so feedback reads clearly. Type &#8220;@&#8221; to pull up a list of collaborators and tag the right person directly. Leave a note on a specific text selection instead of an entire block. Start more than one conversation on the same block. Collapse long notes to keep the margin tidy.' ); ?>
 				</p>
 			</div>
 		</div>
@@ -138,7 +138,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 					</svg>
 				</div>
 				<h3><?php _e( 'Improved Media Handling' ); ?></h3>
-				<p><?php _e( 'Image compression, resizing, and thumbnail generation now happen in the browser, via a WebAssembly build of libvips, so large uploads won’t hit PHP memory limits or time out on shared hosts. This also frees up server CPU and memory, while producing smaller files for visitors  media handling includes built-in support for AVIF,  HEIC and HDR gain maps.' ); ?></p>
+				<p><?php _e( 'Image compression, resizing, and thumbnail generation now happen in the browser, via a WebAssembly build of libvips, so large uploads won&#8217;t hit PHP memory limits or time out on shared hosts. This also frees up server CPU and memory, while producing smaller files for visitors. Media handling includes built-in support for AVIF,  HEIC and HDR gain maps.' ); ?></p>
 			</div>
 			<div class="column is-right-padding-zero">
 				<div class="about__image">
@@ -147,7 +147,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 					</svg>
 				</div>
 				<h3><?php _e( 'Accessibility' ); ?></h3>
-				<p><?php _e( 'WordPress 7.1 adds a "mark as decorative" toggle for the Image block, so decorative images can be hidden from screen readers, and the new admin bar and media editor modal have been built and reviewed with accessibility in mind. Work also continues on the post list tables and media library, as identified priorities in previous releases.' ); ?></p>
+				<p><?php _e( 'WordPress 7.1 adds a &#8220;mark as decorative&#8221; toggle for the Image block, so decorative images can be hidden from screen readers, and the new admin bar and media editor modal have been built and reviewed with accessibility in mind. Work also continues on the post list tables and media library, as identified priorities in previous releases.' ); ?></p>
 			</div>
 		</div>
 
