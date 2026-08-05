@@ -96,30 +96,35 @@ jobs:
         id: phpstan
         run: composer run phpstan -- -vvv --error-format=checkstyle | tee "${RUNNER_TEMP}/phpstan-report.xml" | cs2pr --errors-as-warnings --graceful-warnings
 
-      # A baselined error that no longer occurs, or occurs a different number of times, is
-      # reported as an unmatched ignore. That is not something to fix in the code: the usual
-      # cause is that the error *was* fixed, leaving the baseline describing a state that no
-      # longer exists. PHPStan does not allow those reports to be ignored or baselined.
+      # An ignored error that no longer occurs, or occurs a different number of times, is
+      # reported under an `ignore.*` identifier. That is not something to fix in the code: the
+      # usual cause is that the error *was* fixed, leaving a baseline describing a state that
+      # no longer exists. PHPStan does not allow those reports to be ignored or baselined.
       #
       # The analysis above is reported as warnings, so this would otherwise surface as a
       # passing run carrying an annotation that reads like a complaint about a fix. Call it
       # out on its own, and say what to do about it.
+      #
+      # Detection is on the identifier rather than the message, which is prose and may be
+      # reworded in any release. The checkstyle format carries it in the `source` attribute.
       - name: Check whether the baselines need regenerating
         if: ${{ !cancelled() }}
+        env:
+          README_URL: ${{ github.server_url }}/${{ github.repository }}/blob/${{ github.sha }}/tests/phpstan/README.md
         run: |
           if [ ! -f "${RUNNER_TEMP}/phpstan-report.xml" ]; then
             exit 0
           fi
 
-          if ! grep -qE 'was not matched in reported errors|is expected to occur' "${RUNNER_TEMP}/phpstan-report.xml"; then
+          if ! grep -q 'source="ignore\.' "${RUNNER_TEMP}/phpstan-report.xml"; then
             exit 0
           fi
 
           {
             echo '## PHPStan baselines are out of date'
             echo
-            echo 'A baselined error no longer occurs, or occurs a different number of times, so'
-            echo 'PHPStan reported an `ignore.unmatched` or `ignore.count` error.'
+            echo 'An ignored error no longer occurs, or occurs a different number of times, so'
+            echo 'PHPStan reported it under an `ignore.unmatched` or `ignore.count` identifier.'
             echo
             echo '**If you fixed the error, this is expected.** Each baseline entry records an exact'
             echo 'count for a specific file, so that a new occurrence of an already baselined error is'
@@ -140,11 +145,15 @@ jobs:
             echo '```'
             echo
             echo 'That rewrites the files under `tests/phpstan/baselines`, deletes any whose errors are'
-            echo 'now all fixed, and updates the list of them in `phpstan.neon.dist`. See'
-            echo '`tests/phpstan/README.md` for details.'
+            echo 'now all fixed, and updates the list of them in `phpstan.neon.dist`.'
+            echo
+            echo 'Where the report names an `@phpstan-ignore` annotation in the code rather than a'
+            echo 'baseline entry, remove that annotation instead; regenerating will not clear it.'
+            echo
+            echo "See [tests/phpstan/README.md](${README_URL}) for details."
           } >> "${GITHUB_STEP_SUMMARY}"
 
-          echo "::error title=PHPStan baselines are out of date::A baselined error no longer occurs, or occurs a different number of times. If you fixed it, that is expected: run \`npm run typecheck:php:baselines\` and commit the updated baselines. See tests/phpstan/README.md."
+          echo "::error title=PHPStan baselines are out of date::An ignored error no longer occurs, or occurs a different number of times. If you fixed it, that is expected: run \`npm run typecheck:php:baselines\` and commit the updated baselines. See ${README_URL}"
           exit 1
 
       - name: "Save result cache"
