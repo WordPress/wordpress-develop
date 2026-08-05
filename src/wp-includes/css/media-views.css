@@ -1855,6 +1855,7 @@ select#media-attachment-filters ~ select#media-attachment-date-filters {
 	text-align: right;
 	text-transform: none;
 	font-weight: 400;
+	display: flex;
 }
 
 .attachment-details .settings-save-status .spinner {
