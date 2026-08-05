@@ -241,18 +241,17 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			return $args;
 		}
 
-		if ( wp_is_client_side_media_processing_enabled() ) {
-			$args['generate_sub_sizes'] = array(
-				'type'        => 'boolean',
-				'default'     => true,
-				'description' => __( 'Whether to generate image sub sizes.' ),
-			);
-			$args['convert_format']     = array(
-				'type'        => 'boolean',
-				'default'     => true,
-				'description' => __( 'Whether to convert image formats.' ),
-			);
-		}
+		$args['generate_sub_sizes'] = array(
+			'type'        => 'boolean',
+			'default'     => true,
+			'description' => __( 'Whether to generate image sub sizes.' ),
+		);
+
+		$args['convert_format'] = array(
+			'type'        => 'boolean',
+			'default'     => true,
+			'description' => __( 'Whether to convert image formats.' ),
+		);
 
 		$args['url'] = array(
 			'type'              => 'string',
@@ -388,10 +387,11 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 
 		/*
 		 * When the client handles image processing (generate_sub_sizes is false),
-		 * skip the server-side image editor support check. The parameter is only
-		 * honored when client side media processing is enabled: it is not
-		 * registered otherwise, so a site that has not opted in should not have
-		 * this check relaxed by an unrecognized parameter.
+		 * skip the server-side image editor support check. This check exists
+		 * because the server cannot process the image, so it is only relaxed when
+		 * client side media processing is enabled and something else can. Asking
+		 * to skip sub sizes on a site without it does not make an unsupported
+		 * image type any more usable.
 		 */
 		if ( wp_is_client_side_media_processing_enabled() && false === $request['generate_sub_sizes'] ) {
 			$prevent_unsupported_uploads = false;
@@ -462,17 +462,8 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			);
 		}
 
-		/*
-		 * The generate_sub_sizes and convert_format parameters hand image
-		 * processing to the client, so they are only honored when client side
-		 * media processing is enabled. They are not registered otherwise, and
-		 * an unregistered parameter is still readable here, so the check has to
-		 * be repeated rather than left to the schema.
-		 */
-		$client_side_media_processing = wp_is_client_side_media_processing_enabled();
-
 		// Handle generate_sub_sizes parameter.
-		if ( $client_side_media_processing && false === $request['generate_sub_sizes'] ) {
+		if ( false === $request['generate_sub_sizes'] ) {
 			add_filter( 'intermediate_image_sizes_advanced', '__return_empty_array', 100 );
 			add_filter( 'fallback_intermediate_image_sizes', '__return_empty_array', 100 );
 			// Disable server-side EXIF rotation so the client can handle it.
@@ -485,7 +476,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		}
 
 		// Handle convert_format parameter.
-		if ( $client_side_media_processing && false === $request['convert_format'] ) {
+		if ( false === $request['convert_format'] ) {
 			add_filter( 'image_editor_output_format', '__return_empty_array', 100 );
 		}
 

@@ -3424,9 +3424,9 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	 * Tests the permissions check directly with file params set, since the core
 	 * check uses get_file_params() which is only populated for multipart uploads.
 	 *
-	 * The client only handles processing when client-side media processing is
-	 * enabled, which is also the only case where `generate_sub_sizes` is
-	 * registered, so the feature is enabled here.
+	 * The check is only relaxed when client-side media processing is enabled,
+	 * since that is what makes the client able to handle the image, so the
+	 * feature is enabled here.
 	 *
 	 * @ticket 64836
 	 * @ticket 65517
@@ -5758,18 +5758,18 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	}
 
 	/**
-	 * Verifies that the `url` argument is registered even when client-side media
-	 * processing is disabled, while the two arguments that hand image processing
-	 * to the client are not.
+	 * Verifies that the media creation arguments are registered even when
+	 * client-side media processing is disabled.
 	 *
-	 * Sideloading from a URL works around a cross-origin fetch the browser cannot
-	 * make, which is a problem either way, so it does not depend on the feature.
+	 * The feature is determined per request, from the scheme and host, so gating
+	 * the schema on it would advertise different arguments for the same site
+	 * depending on how it was reached.
 	 *
 	 * @ticket 65517
 	 *
 	 * @covers WP_REST_Attachments_Controller::get_endpoint_args_for_item_schema
 	 */
-	public function test_url_registered_as_creatable_arg_without_client_side_media_processing() {
+	public function test_creatable_args_registered_without_client_side_media_processing() {
 		$this->disable_client_side_media_processing();
 
 		$routes    = rest_get_server()->get_routes();
@@ -5783,8 +5783,8 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 
 		$this->assertNotNull( $creatable, 'The media route should register a CREATABLE handler.' );
 		$this->assertArrayHasKey( 'url', $creatable['args'] );
-		$this->assertArrayNotHasKey( 'generate_sub_sizes', $creatable['args'] );
-		$this->assertArrayNotHasKey( 'convert_format', $creatable['args'] );
+		$this->assertArrayHasKey( 'generate_sub_sizes', $creatable['args'] );
+		$this->assertArrayHasKey( 'convert_format', $creatable['args'] );
 	}
 
 	/**
@@ -5840,18 +5840,18 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	}
 
 	/**
-	 * Verifies that `generate_sub_sizes` is ignored when client-side media
-	 * processing is disabled, so a site that has not opted in still gets its
-	 * sub-sizes generated.
+	 * Verifies that `generate_sub_sizes` is honored when client-side media
+	 * processing is disabled.
 	 *
-	 * The argument is not registered in that case, but an unregistered parameter
-	 * is still readable from the request, so it has to be ignored explicitly.
+	 * Skipping sub-size generation is a request the server can carry out on its
+	 * own, so it does not depend on the feature. Sub-sizes can still be added
+	 * later with wp_update_image_subsizes().
 	 *
 	 * @ticket 65517
 	 *
 	 * @covers WP_REST_Attachments_Controller::create_item
 	 */
-	public function test_generate_sub_sizes_ignored_without_client_side_media_processing() {
+	public function test_generate_sub_sizes_honored_without_client_side_media_processing() {
 		$this->disable_client_side_media_processing();
 
 		wp_set_current_user( self::$superadmin_id );
@@ -5871,10 +5871,50 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$this->assertSame( 201, $response->get_status() );
 
 		$metadata = wp_get_attachment_metadata( $data['id'], true );
-		$this->assertNotEmpty(
+		$this->assertEmpty(
 			$metadata['sizes'] ?? array(),
-			'Sub-sizes should still be generated when client-side media processing is disabled.'
+			'Sub-sizes should not be generated when generate_sub_sizes is false.'
 		);
+	}
+
+	/**
+	 * Verifies that `generate_sub_sizes` does not relax the unsupported image
+	 * type check when client-side media processing is disabled.
+	 *
+	 * That check exists because the server cannot process the image, so it should
+	 * only be relaxed when the client can process it instead. Otherwise the
+	 * upload is stored unprocessable.
+	 *
+	 * @ticket 65517
+	 *
+	 * @covers WP_REST_Attachments_Controller::create_item_permissions_check
+	 */
+	public function test_unsupported_image_type_still_checked_without_client_side_media_processing() {
+		$this->disable_client_side_media_processing();
+
+		wp_set_current_user( self::$author_id );
+
+		add_filter( 'wp_image_editors', '__return_empty_array' );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
+		$request->set_file_params(
+			array(
+				'file' => array(
+					'name'     => 'avif-lossy.avif',
+					'type'     => 'image/avif',
+					'tmp_name' => self::$test_avif_file,
+					'error'    => 0,
+					'size'     => filesize( self::$test_avif_file ),
+				),
+			)
+		);
+		$request->set_param( 'generate_sub_sizes', false );
+
+		$controller = new WP_REST_Attachments_Controller( 'attachment' );
+		$result     = $controller->create_item_permissions_check( $request );
+
+		$this->assertWPError( $result );
+		$this->assertSame( 'rest_upload_image_type_not_supported', $result->get_error_code() );
 	}
 
 	/**
