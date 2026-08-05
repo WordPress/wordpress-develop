@@ -23,31 +23,23 @@ class Tests_Ajax_wpAjaxAutocompleteUser extends WP_Ajax_UnitTestCase {
 
 	/**
 	 * A user with super admin privileges.
-	 *
-	 * @var int
 	 */
-	protected static $super_admin_id;
+	protected static int $super_admin_id;
 
 	/**
 	 * An administrator of the current site.
-	 *
-	 * @var int
 	 */
-	protected static $site_admin_id;
+	protected static int $site_admin_id;
 
 	/**
 	 * A user without the 'promote_users' capability.
-	 *
-	 * @var int
 	 */
-	protected static $subscriber_id;
+	protected static int $subscriber_id;
 
 	/**
 	 * The user expected to be found by the autocomplete queries.
-	 *
-	 * @var int
 	 */
-	protected static $target_user_id;
+	protected static int $target_user_id;
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$super_admin_id = $factory->user->create( array( 'role' => 'administrator' ) );
@@ -74,7 +66,7 @@ class Tests_Ajax_wpAjaxAutocompleteUser extends WP_Ajax_UnitTestCase {
 	 *
 	 * @return string The raw response.
 	 */
-	protected function handle_autocomplete_user() {
+	protected function handle_autocomplete_user(): string {
 		try {
 			$this->_handleAjax( 'autocomplete-user' );
 		} catch ( WPAjaxDieStopException $e ) {
@@ -99,8 +91,11 @@ class Tests_Ajax_wpAjaxAutocompleteUser extends WP_Ajax_UnitTestCase {
 
 		$this->assertIsArray( $response, 'The response should be a JSON encoded array.' );
 		$this->assertCount( 1, $response, 'Only the matching user should be returned.' );
-		$this->assertSame( 'autocompleteuser', $response[0]['value'], 'The user login should be returned as the value.' );
-		$this->assertStringContainsString( 'autocompleteuser@example.org', $response[0]['label'], 'The label should contain the email address.' );
+		$result = array_first( $response );
+		$this->assertIsArray( $result );
+		$this->assertSame( 'autocompleteuser', $result['value'], 'The user login should be returned as the value.' );
+		$this->assertIsString( $result['label'] );
+		$this->assertStringContainsString( 'autocompleteuser@example.org', $result['label'], 'The label should contain the email address.' );
 	}
 
 	/**
@@ -119,7 +114,9 @@ class Tests_Ajax_wpAjaxAutocompleteUser extends WP_Ajax_UnitTestCase {
 
 		$this->assertIsArray( $response, 'The response should be a JSON encoded array.' );
 		$this->assertCount( 1, $response, 'Only the matching user should be returned.' );
-		$this->assertSame( 'autocompleteuser@example.org', $response[0]['value'], 'The email address should be returned as the value.' );
+		$result = array_first( $response );
+		$this->assertIsArray( $result );
+		$this->assertSame( 'autocompleteuser@example.org', $result['value'], 'The email address should be returned as the value.' );
 	}
 
 	/**
@@ -152,12 +149,13 @@ class Tests_Ajax_wpAjaxAutocompleteUser extends WP_Ajax_UnitTestCase {
 		$search = null;
 		add_action(
 			'pre_get_users',
-			static function ( $query ) use ( &$search ) {
+			static function ( WP_User_Query $query ) use ( &$search ) {
 				$search = $query->get( 'search' );
 			}
 		);
 
 		$response = json_decode( $this->handle_autocomplete_user(), true );
+		$this->assertIsArray( $response, 'The response should be a JSON encoded array.' );
 
 		$this->assertSame( '*autocompleteuser*', $search, 'The search term should be sanitized before it is passed to get_users().' );
 		$this->assertCount( 1, $response, 'The sanitized term should still match the user.' );
