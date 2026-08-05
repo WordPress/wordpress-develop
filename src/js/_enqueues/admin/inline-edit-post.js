@@ -149,6 +149,15 @@ window.wp = window.wp || {};
 
 		$('select[name="_status"] option[value="future"]', bulkRow).remove();
 
+		// Disable sticky option when the status is set to 'Private' in bulk edit.
+		$( '#bulk-edit' ).on( 'change', 'select[name="_status"]', function() {
+			if ( 'private' === $( this ).val() ) {
+				$( '#bulk-edit select[name="sticky"]' ).val( '-1' ).prop( 'disabled', true );
+			} else {
+				$( '#bulk-edit select[name="sticky"]' ).prop( 'disabled', false );
+			}
+		});
+
 		/**
 		 * Adds onclick events to the apply buttons.
 		 */
