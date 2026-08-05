@@ -22,14 +22,33 @@ includes:
 	# Regenerate with `composer phpstan:baselines`, which rewrites both the files
 	# and the list between the markers. Do not edit that list by hand.
 	# phpstan:baselines start
+	- tests/phpstan/baselines/arguments.count.neon
+	- tests/phpstan/baselines/binaryOp.invalid.neon
+	- tests/phpstan/baselines/class.nameCase.neon
+	- tests/phpstan/baselines/class.notFound.neon
 	- tests/phpstan/baselines/empty.variable.neon
+	- tests/phpstan/baselines/encapsedStringPart.nonString.neon
+	- tests/phpstan/baselines/greater.invalid.neon
 	- tests/phpstan/baselines/isset.variable.neon
+	- tests/phpstan/baselines/method.nonObject.neon
+	- tests/phpstan/baselines/method.notFound.neon
+	- tests/phpstan/baselines/parameter.defaultValue.neon
+	- tests/phpstan/baselines/parameter.notFound.neon
+	- tests/phpstan/baselines/parameter.phpDocType.neon
+	- tests/phpstan/baselines/parameter.unresolvableType.neon
+	- tests/phpstan/baselines/property.nonObject.neon
+	- tests/phpstan/baselines/property.notFound.neon
+	- tests/phpstan/baselines/property.private.neon
+	- tests/phpstan/baselines/property.protected.neon
+	- tests/phpstan/baselines/return.missing.neon
+	- tests/phpstan/baselines/staticClassAccess.privateMethod.neon
+	- tests/phpstan/baselines/varTag.noVariable.neon
 	- tests/phpstan/baselines/variable.undefined.neon
 	# phpstan:baselines end
 
 parameters:
 	# https://phpstan.org/user-guide/rule-levels
-	level: 1
+	level: 2
 	reportUnmatchedIgnoredErrors: true
 
 	# The following ignored errors are not intended to be fixed, as distinct from the baselines
