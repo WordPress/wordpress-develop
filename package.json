@@ -1,6 +1,6 @@
 {
 	"name": "WordPress",
-	"version": "5.9.13",
+	"version": "5.9.14",
 	"description": "WordPress is open source software you can use to create a beautiful website, blog, or app.",
 	"repository": {
 		"type": "svn",
@@ -84,7 +84,7 @@
 		"@wordpress/blob": "3.2.2",
 		"@wordpress/block-directory": "3.0.32",
 		"@wordpress/block-editor": "8.0.18",
-		"@wordpress/block-library": "6.0.31",
+		"@wordpress/block-library": "6.0.32",
 		"@wordpress/block-serialization-default-parser": "4.2.3",
 		"@wordpress/blocks": "11.1.5",
 		"@wordpress/components": "19.2.3",
