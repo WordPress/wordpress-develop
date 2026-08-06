@@ -1,3 +1,21 @@
+.new_selector_UPPER_element, #selector-2, #selectorMore {
+	box-shadow: 0 0 .5px red;
+	font-weight: bold;
+	line-height: 110%;
+	background:#FFFFFF;
+	display: BLOCK;
+	margin: 0px 0px 20px 0px;
+	padding-left: 20PX;
+}
+
+.class { /* Incorrect usage of multi-part values */
+	text-shadow: 0 1px 0 rgba(0, 0, 0, 0.5),
+				 0 1px 0 #fff;
+	box-shadow: 0 1px 0 rgba(0, 0,
+		0, 0.5),
+		0 1px 0 rgba(0,0,0,0.5);
+}
+
 /* 2 column liquid layout */
 #wpwrap {
 	height: auto;
