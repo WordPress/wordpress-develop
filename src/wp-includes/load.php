@@ -1467,7 +1467,14 @@ function is_multisite() {
  * @phpstan-return non-negative-int
  */
 function absint( $maybeint ): int {
-	return abs( (int) $maybeint );
+	$abs = abs( (int) $maybeint );
+
+	// abs() can return a float.
+	if ( is_float( $abs ) ) {
+		return PHP_INT_MAX;
+	}
+
+	return $abs;
 }
 
 /**

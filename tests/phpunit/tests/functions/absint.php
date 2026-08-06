@@ -11,6 +11,7 @@ class Tests_Functions_Absint extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 60101
+	 * @ticket 65826
 	 *
 	 * @dataProvider data_absint
 	 */
@@ -75,6 +76,18 @@ class Tests_Functions_Absint extends WP_UnitTestCase {
 			'99 string array'       => array(
 				'test_value'     => array( '99' ),
 				'expected_value' => 1,
+			),
+			'PHP_INT_MIN int'       => array(
+				'test_value'     => PHP_INT_MIN,
+				'expected_value' => PHP_INT_MAX,
+			),
+			'PHP_INT_MIN string'    => array(
+				'test_value'     => '-9223372036854775808',
+				'expected_value' => PHP_INT_MAX,
+			),
+			'out of range negative' => array(
+				'test_value'     => '-99999999999999999999',
+				'expected_value' => PHP_INT_MAX,
 			),
 		);
 	}
