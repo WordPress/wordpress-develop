@@ -18,7 +18,7 @@ on:
       # These files configure PHPStan. Changes could affect the outcome.
       - 'phpstan.neon.dist'
       - 'tests/phpstan/base.neon'
-      - 'tests/phpstan/baseline.php'
+      - 'tests/phpstan/baselines/**'
       # Confirm any changes to relevant workflow files.
       - '.github/workflows/phpstan-static-analysis.yml'
       - '.github/workflows/reusable-phpstan-static-analysis-v1.yml'

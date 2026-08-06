@@ -536,6 +536,7 @@ add_action( 'wp_update_comment_type_batch', '_wp_batch_update_comment_type' );
 add_action( 'comment_post', 'wp_new_comment_notify_moderator' );
 add_action( 'comment_post', 'wp_new_comment_notify_postauthor' );
 add_action( 'rest_insert_comment', 'wp_new_comment_via_rest_notify_postauthor' );
+add_action( 'rest_insert_comment', 'wp_notify_note_mentions', 10, 3 );
 add_action( 'after_password_reset', 'wp_password_change_notification' );
 add_action( 'register_new_user', 'wp_send_new_user_notifications' );
 add_action( 'edit_user_created_user', 'wp_send_new_user_notifications', 10, 2 );
@@ -827,8 +828,8 @@ foreach ( array( 'page', 'wp_block', 'wp_template_part', 'wp_template' ) as $pos
 	// callbacks registered at the default compose on top of them
 	// regardless of registration order.
 	add_filter(
-		"get_entity_view_config_postType_{$post_type}",
-		"_wp_get_entity_view_config_post_type_{$post_type}",
+		"get_entity_view_config_posttype_{$post_type}",
+		"_wp_get_entity_view_config_posttype_{$post_type}",
 		5
 	);
 }
