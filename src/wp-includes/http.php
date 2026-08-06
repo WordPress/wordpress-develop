@@ -548,6 +548,9 @@ function send_origin_headers() {
  *
  * - `http://192.168.0.1/caniload.php` - IP address from LAN network.
  *   This can be changed with the {@see 'http_request_host_is_external'} filter.
+ * - `http://169.254.169.254/latest/meta-data/` - Link-local address (169.254.0.0/16),
+ *   which includes cloud instance metadata endpoints.
+ *   This can be changed with the {@see 'http_request_host_is_external'} filter.
  * - `http://198.143.164.252:81/caniload.php` - By default, only ports 80, 443, and 8080 are allowed.
  *   This can be changed with the {@see 'http_allowed_safe_ports'} filter.
  *
@@ -598,6 +601,7 @@ function wp_http_validate_url( $url ) {
 			if ( 127 === $parts[0] || 10 === $parts[0] || 0 === $parts[0]
 				|| ( 172 === $parts[0] && 16 <= $parts[1] && 31 >= $parts[1] )
 				|| ( 192 === $parts[0] && 168 === $parts[1] )
+				|| ( 169 === $parts[0] && 254 === $parts[1] )
 			) {
 				// If host appears local, reject unless specifically allowed.
 				/**
