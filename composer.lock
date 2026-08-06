@@ -80,12 +80,12 @@
             "version": "3.3.2",
             "source": {
                 "type": "git",
-                "url": "https://github.com/squizlabs/PHP_CodeSniffer.git",
+                "url": "https://github.com/PHPCSStandards/PHP_CodeSniffer.git",
                 "reference": "6ad28354c04b364c3c71a34e4a18b629cc3b231e"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/squizlabs/PHP_CodeSniffer/zipball/6ad28354c04b364c3c71a34e4a18b629cc3b231e",
+                "url": "https://api.github.com/repos/PHPCSStandards/PHP_CodeSniffer/zipball/6ad28354c04b364c3c71a34e4a18b629cc3b231e",
                 "reference": "6ad28354c04b364c3c71a34e4a18b629cc3b231e",
                 "shasum": ""
             },
@@ -131,12 +131,12 @@
             "version": "1.0.0",
             "source": {
                 "type": "git",
-                "url": "https://github.com/WordPress-Coding-Standards/WordPress-Coding-Standards.git",
+                "url": "https://github.com/WordPress/WordPress-Coding-Standards.git",
                 "reference": "539c6d74e6207daa22b7ea754d6f103e9abb2755"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/WordPress-Coding-Standards/WordPress-Coding-Standards/zipball/539c6d74e6207daa22b7ea754d6f103e9abb2755",
+                "url": "https://api.github.com/repos/WordPress/WordPress-Coding-Standards/zipball/539c6d74e6207daa22b7ea754d6f103e9abb2755",
                 "reference": "539c6d74e6207daa22b7ea754d6f103e9abb2755",
                 "shasum": ""
             },
@@ -172,9 +172,10 @@
     ],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": [],
+    "stability-flags": {},
     "prefer-stable": false,
     "prefer-lowest": false,
-    "platform": [],
-    "platform-dev": []
+    "platform": {},
+    "platform-dev": {},
+    "plugin-api-version": "2.9.0"
 }
