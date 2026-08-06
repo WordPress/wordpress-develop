@@ -85,7 +85,7 @@
 		"@wordpress/blob": "3.35.2",
 		"@wordpress/block-directory": "4.12.20",
 		"@wordpress/block-editor": "12.3.15",
-		"@wordpress/block-library": "8.12.20",
+		"@wordpress/block-library": "8.12.21",
 		"@wordpress/block-serialization-default-parser": "4.35.2",
 		"@wordpress/blocks": "12.12.8",
 		"@wordpress/commands": "0.6.13",
