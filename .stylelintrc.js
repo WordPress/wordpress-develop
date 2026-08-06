@@ -19,16 +19,6 @@ module.exports = {
 					`Avoid "${ value }" value for the "${ property }" property. For accessibility reasons, visual, reading, and DOM order must match. Only use the reverse values when they do not affect reading order, meaning, and interaction.`,
 			},
 		],
-		'declaration-property-value-disallowed-list': [
-			{
-				'/.*/': [
-					'/--wp-components-color-/',
-					'/\\$font-weight-regular/',
-					'/\\$font-weight-medium/',
-				],
-				cursor: [ 'pointer' ],
-			},
-		],
 		'font-weight-notation': null,
 		'@stylistic/max-line-length': null,
 		'no-descending-specificity': null,
@@ -59,15 +49,8 @@ module.exports = {
 		'scss/at-else-empty-line-before': null,
 		'scss/at-if-closing-brace-space-after': null,
 		'no-invalid-position-at-import-rule': null,
-		'plugin-wpds/no-token-fallback-values': true,
 	},
 	reportDescriptionlessDisables: true,
-	ignoreFiles: [
-		'src/wp-content/plugins/**/*',
-		'src/wp-content/themes/**/*',
-		'**/*.min.css',
-		'**/*-rtl.min.css',
-	],
 	ignorePath: '.stylelintignore',
 };
 
