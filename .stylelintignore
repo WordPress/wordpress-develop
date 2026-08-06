@@ -4,14 +4,16 @@ src/wp-content/plugins/**/*
 # Ignore WordPress theme files
 src/wp-content/themes/**/*
 
+# Ignore WordPress block files
 src/wp-includes/blocks/**/*
 
+# Ignore WordPress included dist files
 src/wp-includes/css/dist/**/*
 
+# Ignore WordPress TinyMCE files
 src/wp-includes/js/tinymce/**/*
 
-src/js/_enqueues/vendor/tinymce/**/*
-
+# Ignore WordPress JS vendor files
 src/js/_enqueues/vendor/**/*
 
 # Ignore minified CSS files
@@ -20,6 +22,3 @@ src/js/_enqueues/vendor/**/*
 # Ignore RTL CSS files
 **/*-rtl.css
 **/*-rtl.min.css
-
-# Ignore node_modules
-node_modules/***
