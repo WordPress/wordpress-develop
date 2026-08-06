@@ -68,9 +68,15 @@ if ( ! is_multisite() ) {
 			/* translators: %s: Number of pending updates. */
 			__( 'Updates %s' ),
 			$updates_count
-		) . $updates_description,
+		),
 		$capability,
 		'update-core.php',
+	);
+
+	// Associate the hidden count description with the link. See _wp_menu_output().
+	$submenu['index.php'][10]['count_description'] = array(
+		'id'   => 'wp-menu-updates-count-description',
+		'html' => $updates_description,
 	);
 
 	unset( $capability );
@@ -117,13 +123,19 @@ if ( current_user_can( 'edit_posts' ) ) {
 			/* translators: %s: Number of comments. */
 			__( 'Comments %s' ),
 			'<span class="awaiting-mod count-' . absint( $awaiting_moderation ) . '" aria-hidden="true"><span class="pending-count">' . $awaiting_moderation_i18n . '</span></span>'
-		) . '<span id="wp-menu-comments-count-description" class="wp-menu-count-description comments-in-moderation-text screen-reader-text" aria-hidden="true">' . $awaiting_moderation_text . '</span>',
+		),
 		'edit_posts',
 		'edit-comments.php',
 		'',
 		'menu-top menu-icon-comments',
 		'menu-comments',
 		'dashicons-admin-comments',
+	);
+
+	// Associate the hidden count description with the link. See _wp_menu_output().
+	$menu[25]['count_description'] = array(
+		'id'   => 'wp-menu-comments-count-description',
+		'html' => '<span id="wp-menu-comments-count-description" class="wp-menu-count-description comments-in-moderation-text screen-reader-text" aria-hidden="true">' . $awaiting_moderation_text . '</span>',
 	);
 
 	unset( $awaiting_moderation );
@@ -244,7 +256,15 @@ if ( ! is_multisite() && current_user_can( 'update_themes' ) ) {
 }
 
 	/* translators: %s: Number of available theme updates. */
-	$submenu['themes.php'][5] = array( sprintf( __( 'Themes %s' ), $count ) . $description, $appearance_capability, 'themes.php' );
+	$submenu['themes.php'][5] = array( sprintf( __( 'Themes %s' ), $count ), $appearance_capability, 'themes.php' );
+
+	// Associate the hidden count description with the link. See _wp_menu_output().
+if ( '' !== $description ) {
+	$submenu['themes.php'][5]['count_description'] = array(
+		'id'   => 'wp-menu-themes-count-description',
+		'html' => $description,
+	);
+}
 
 if ( wp_is_block_theme() ) {
 	$submenu['themes.php'][6] = array( _x( 'Editor', 'site editor menu item' ), 'edit_theme_options', 'site-editor.php' );
@@ -351,7 +371,15 @@ if ( ! is_multisite() && current_user_can( 'update_plugins' ) ) {
 }
 
 /* translators: %s: Number of available plugin updates. */
-$menu[65] = array( sprintf( __( 'Plugins %s' ), $count ) . $description, 'activate_plugins', 'plugins.php', '', 'menu-top menu-icon-plugins', 'menu-plugins', 'dashicons-admin-plugins' );
+$menu[65] = array( sprintf( __( 'Plugins %s' ), $count ), 'activate_plugins', 'plugins.php', '', 'menu-top menu-icon-plugins', 'menu-plugins', 'dashicons-admin-plugins' );
+
+// Associate the hidden count description with the link. See _wp_menu_output().
+if ( '' !== $description ) {
+	$menu[65]['count_description'] = array(
+		'id'   => 'wp-menu-plugins-count-description',
+		'html' => $description,
+	);
+}
 
 $submenu['plugins.php'][5] = array( __( 'Installed Plugins' ), 'activate_plugins', 'plugins.php' );
 
@@ -393,7 +421,8 @@ if ( current_user_can( 'list_users' ) ) {
 	}
 }
 
-$site_health_count = '';
+$site_health_count       = '';
+$site_health_description = '';
 if ( ! is_multisite() && current_user_can( 'view_site_health_checks' ) ) {
 	$get_issues = get_transient( 'health-check-site-status-result' );
 
@@ -423,7 +452,7 @@ if ( ! is_multisite() && current_user_can( 'view_site_health_checks' ) ) {
 		number_format_i18n( $issue_counts['critical'] )
 	);
 
-	$site_health_count .= '<span id="wp-menu-site-health-count-description" class="wp-menu-count-description screen-reader-text" aria-hidden="true">' . $site_health_text . '</span>';
+	$site_health_description = '<span id="wp-menu-site-health-count-description" class="wp-menu-count-description screen-reader-text" aria-hidden="true">' . $site_health_text . '</span>';
 }
 
 $menu[75]                     = array( __( 'Tools' ), 'edit_posts', 'tools.php', '', 'menu-top menu-icon-tools', 'menu-tools', 'dashicons-admin-tools' );
@@ -432,6 +461,14 @@ $menu[75]                     = array( __( 'Tools' ), 'edit_posts', 'tools.php',
 	$submenu['tools.php'][15] = array( __( 'Export' ), 'export', 'export.php' );
 	/* translators: %s: Number of critical Site Health checks. */
 	$submenu['tools.php'][20] = array( sprintf( __( 'Site Health %s' ), $site_health_count ), 'view_site_health_checks', 'site-health.php' );
+
+	// Associate the hidden count description with the link. See _wp_menu_output().
+if ( '' !== $site_health_description ) {
+	$submenu['tools.php'][20]['count_description'] = array(
+		'id'   => 'wp-menu-site-health-count-description',
+		'html' => $site_health_description,
+	);
+}
 	$submenu['tools.php'][25] = array( __( 'Export Personal Data' ), 'export_others_personal_data', 'export-personal-data.php' );
 	$submenu['tools.php'][30] = array( __( 'Erase Personal Data' ), 'erase_others_personal_data', 'erase-personal-data.php' );
 if ( is_multisite() && ! is_main_site() && '1' !== get_site()->deleted ) {
