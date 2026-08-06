@@ -843,7 +843,7 @@ class WP_User_Query {
 	 */
 	public function __set( $name, $value ) {
 		if ( in_array( $name, $this->compat_fields, true ) ) {
-			return $this->$name = $value;
+			return $this->$name = $value; // phpcs:ignore Squiz.PHP.DisallowMultipleAssignments.Found
 		}
 	}
 
