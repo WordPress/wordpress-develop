@@ -495,9 +495,25 @@ ul#adminmenu > li.current > a.current:after {
 	color: variables.$menu-icon;
 }
 
-#wpadminbar > #wp-toolbar > #wp-admin-bar-top-secondary > #wp-admin-bar-search #adminbarsearch input.adminbar-input:focus {
+#wpadminbar > #wp-toolbar li:hover #adminbarsearch:before,
+#wpadminbar > #wp-toolbar li #adminbarsearch.adminbar-focused:before {
+	color: variables.$menu-icon;
+}
+
+#wpadminbar #adminbarsearch input.adminbar-input {
 	color: variables.$menu-text;
-	background: variables.$adminbar-input-background;
+	background: variables.$menu-submenu-background-alt;
+}
+
+#wpadminbar #adminbarsearch:hover input.adminbar-input,
+#wpadminbar #adminbarsearch:focus-within input.adminbar-input {
+	background: variables.$menu-submenu-background;
+}
+
+#wpadminbar #adminbarsearch input.adminbar-input:-webkit-autofill,
+#wpadminbar #adminbarsearch input.adminbar-input:-webkit-autofill:hover,
+#wpadminbar #adminbarsearch input.adminbar-input:-webkit-autofill:focus {
+	-webkit-text-fill-color: variables.$menu-text;
 }
 
 /* Admin Bar: recovery mode */
