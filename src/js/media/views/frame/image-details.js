@@ -41,7 +41,6 @@ ImageDetails = Select.extend(/** @lends wp.media.view.MediaFrame.ImageDetails.pr
 		Select.prototype.bindHandlers.apply( this, arguments );
 		this.on( 'menu:create:image-details', this.createMenu, this );
 		this.on( 'content:create:image-details', this.imageDetailsContent, this );
-		this.on( 'content:render:edit-image', this.editImageContent, this );
 		this.on( 'toolbar:render:image-details', this.renderImageDetailsToolbar, this );
 		// Override the select toolbar.
 		this.on( 'toolbar:render:replace', this.renderReplaceImageToolbar, this );
