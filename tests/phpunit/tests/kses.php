@@ -1224,6 +1224,7 @@ EOF;
 	 * @ticket 64414
 	 * @ticket 65457
 	 * @ticket 64974
+	 * @ticket 64972
 	 *
 	 * @dataProvider data_safecss_filter_attr
 	 *
@@ -1290,6 +1291,11 @@ EOF;
 			array(
 				'css'      => 'font: bold 15px arial, sans-serif',
 				'expected' => 'font: bold 15px arial, sans-serif',
+			),
+			// CSS anchor positioning properties are allowed.
+			array(
+				'css'      => 'anchor-name: --tooltip;anchor-scope: all;position-anchor: --tooltip;position-area: top;position-try: flip-block;position-try-fallbacks: --fallback;position-try-order: most-height;position-visibility: anchors-visible',
+				'expected' => 'anchor-name: --tooltip;anchor-scope: all;position-anchor: --tooltip;position-area: top;position-try: flip-block;position-try-fallbacks: --fallback;position-try-order: most-height;position-visibility: anchors-visible',
 			),
 			// Multiple attributes, with single values.
 			array(

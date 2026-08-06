@@ -2638,6 +2638,7 @@ function kses_init() {
  * @since 6.6.0 Added support for `grid-column`, `grid-row`, and `container-type`.
  * @since 6.9.0 Added support for `white-space`.
  * @since 7.1.0 Extended gradient support to allow any single-level nested function.
+ *              Added support for CSS anchor positioning properties.
  *
  * @param string $css        A string of CSS rules, decoded from an HTML `style` attribute.
  * @param string $deprecated Not used.
@@ -2883,6 +2884,15 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 
 			'pointer-events',
 			'visibility',
+
+			'anchor-name',
+			'anchor-scope',
+			'position-anchor',
+			'position-area',
+			'position-try',
+			'position-try-fallbacks',
+			'position-try-order',
+			'position-visibility',
 
 			// Custom CSS properties.
 			'--*',
