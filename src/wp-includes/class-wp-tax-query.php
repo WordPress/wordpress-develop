@@ -160,10 +160,8 @@ class WP_Tax_Query {
 				 * $queried_terms array, for use in WP_Query.
 				 */
 				if ( ! empty( $cleaned_clause['taxonomy'] ) && 'NOT IN' !== $cleaned_clause['operator'] ) {
-					$taxonomy = $cleaned_clause['taxonomy'];
-					if ( ! isset( $this->queried_terms[ $taxonomy ] ) ) {
-						$this->queried_terms[ $taxonomy ] = array();
-					}
+					$taxonomy                           = $cleaned_clause['taxonomy'];
+					$this->queried_terms[ $taxonomy ] ??= array();
 
 					/*
 					 * Backward compatibility: Only store the first
