@@ -99,9 +99,7 @@ final class WP_Translation_Controller {
 	 * @return bool True on success, false otherwise.
 	 */
 	public function load_file( string $translation_file, string $textdomain = 'default', ?string $locale = null ): bool {
-		if ( null === $locale ) {
-			$locale = $this->current_locale;
-		}
+		$locale ??= $this->current_locale;
 
 		$translation_file = realpath( $translation_file );
 
@@ -241,9 +239,7 @@ final class WP_Translation_Controller {
 	 * @return bool True if there are any loaded translations, false otherwise.
 	 */
 	public function is_textdomain_loaded( string $textdomain = 'default', ?string $locale = null ): bool {
-		if ( null === $locale ) {
-			$locale = $this->current_locale;
-		}
+		$locale ??= $this->current_locale;
 
 		return isset( $this->loaded_translations[ $locale ][ $textdomain ] ) &&
 			array() !== $this->loaded_translations[ $locale ][ $textdomain ];
@@ -428,9 +424,7 @@ final class WP_Translation_Controller {
 	 * @return WP_Translation_File[] List of translation files.
 	 */
 	protected function get_files( string $textdomain = 'default', ?string $locale = null ): array {
-		if ( null === $locale ) {
-			$locale = $this->current_locale;
-		}
+		$locale ??= $this->current_locale;
 
 		return $this->loaded_translations[ $locale ][ $textdomain ] ?? array();
 	}
@@ -446,9 +440,7 @@ final class WP_Translation_Controller {
 	 * @return bool  True if the translation exists, false otherwise.
 	 */
 	public function has_translation( string $singular, string $textdomain = 'default', ?string $locale = null ): bool {
-		if ( null === $locale ) {
-			$locale = $this->current_locale;
-		}
+		$locale ??= $this->current_locale;
 
 		return false !== $this->locate_translation( $singular, $textdomain, $locale );
 	}
