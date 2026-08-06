@@ -387,6 +387,21 @@
 			$dashboardNavMenuUpdateCount.remove();
 		}
 
+		/*
+		 * Keep the menu item's hidden count description in sync. The visible
+		 * count bubble is aria-hidden, so this description is what assistive
+		 * technologies announce via aria-describedby.
+		 */
+		$( '#wp-menu-updates-count-description' ).text(
+			settings.totals.counts.total > 0
+				? sprintf(
+					/* translators: %s: Number of updates available. */
+					_n( '%s update available', '%s updates available', settings.totals.counts.total ),
+					settings.totals.counts.total
+				)
+				: ''
+		);
+
 		// Update the "Plugins" menu item.
 		$pluginsNavMenuUpdateCount.each( function( index, element ) {
 			element.className = element.className.replace( /count-\d+/, 'count-' + settings.totals.counts.plugins );
@@ -397,6 +412,17 @@
 			$pluginsNavMenuUpdateCount.remove();
 		}
 
+		// Keep the menu item's hidden count description in sync. See above.
+		$( '#wp-menu-plugins-count-description' ).text(
+			settings.totals.counts.plugins > 0
+				? sprintf(
+					/* translators: %s: Number of available plugin updates. */
+					_n( '%s plugin update available', '%s plugin updates available', settings.totals.counts.plugins ),
+					settings.totals.counts.plugins
+				)
+				: ''
+		);
+
 		// Update the "Appearance" menu item.
 		$appearanceNavMenuUpdateCount.each( function( index, element ) {
 			element.className = element.className.replace( /count-\d+/, 'count-' + settings.totals.counts.themes );
@@ -406,6 +432,17 @@
 		} else {
 			$appearanceNavMenuUpdateCount.remove();
 		}
+
+		// Keep the menu item's hidden count description in sync. See above.
+		$( '#wp-menu-themes-count-description' ).text(
+			settings.totals.counts.themes > 0
+				? sprintf(
+					/* translators: %s: Number of available theme updates. */
+					_n( '%s theme update available', '%s theme updates available', settings.totals.counts.themes ),
+					settings.totals.counts.themes
+				)
+				: ''
+		);
 
 		// Update list table filter navigation.
 		if ( 'plugins' === pagenow || 'plugins-network' === pagenow ) {
