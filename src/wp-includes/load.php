@@ -1460,21 +1460,38 @@ function is_multisite() {
 /**
  * Converts a value to non-negative integer.
  *
+ * Values outside of the range of an integer are clamped to `PHP_INT_MAX`.
+ *
  * @since 2.5.0
+ * @since 7.1.0 Out of range values are clamped to `PHP_INT_MAX` instead of
+ *              being cast to an undefined value.
  *
  * @param mixed $maybeint Data you wish to have converted to a non-negative integer.
  * @return int A non-negative integer.
  * @phpstan-return non-negative-int
  */
 function absint( $maybeint ): int {
-	$abs = abs( (int) $maybeint );
+	/*
+	 * Casting an out of range float to an integer is undefined, and raises a
+	 * warning as of PHP 8.5. Numeric strings do not need this treatment, as
+	 * casting those already clamps to PHP_INT_MAX or PHP_INT_MIN.
+	 */
+	if ( is_float( $maybeint ) ) {
+		if ( is_nan( $maybeint ) ) {
+			return 0;
+		}
 
-	// abs() can return a float.
-	if ( is_float( $abs ) ) {
-		return PHP_INT_MAX;
+		if ( abs( $maybeint ) >= (float) PHP_INT_MAX ) {
+			return PHP_INT_MAX;
+		}
 	}
 
-	return $abs;
+	/*
+	 * PHP_INT_MIN is the only integer whose absolute value is larger than
+	 * PHP_INT_MAX, which would make abs() return a float. Clamping it to
+	 * -PHP_INT_MAX first keeps the result within the integer range.
+	 */
+	return abs( max( (int) $maybeint, -PHP_INT_MAX ) );
 }
 
 /**
