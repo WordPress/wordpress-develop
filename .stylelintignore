@@ -1,0 +1,25 @@
+# Ignore WordPress plugin files
+src/wp-content/plugins/**/*
+
+# Ignore WordPress theme files
+src/wp-content/themes/**/*
+
+src/wp-includes/blocks/**/*
+
+src/wp-includes/css/dist/**/*
+
+src/wp-includes/js/tinymce/**/*
+
+src/js/_enqueues/vendor/tinymce/**/*
+
+src/js/_enqueues/vendor/**/*
+
+# Ignore minified CSS files
+**/*.min.css
+
+# Ignore RTL CSS files
+**/*-rtl.css
+**/*-rtl.min.css
+
+# Ignore node_modules
+node_modules/***
