@@ -811,8 +811,9 @@ function get_feed_namespaces( string $type ): array {
  *
  * @param string $type Type of feed. Possible values include 'rss2', 'rss2-comments',
  *                     'rdf', 'atom', and 'atom-comments'.
+ * @phpstan-param non-falsy-string $type
  */
-function feed_namespaces( $type ) {
+function feed_namespaces( string $type ): void {
 	foreach ( get_feed_namespaces( $type ) as $prefix => $uri ) {
 		printf( "xmlns:%s=\"%s\"\n\t", $prefix, esc_attr( $uri ) );
 	}
