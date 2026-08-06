@@ -237,50 +237,54 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	public function get_endpoint_args_for_item_schema( $method = WP_REST_Server::CREATABLE ) {
 		$args = parent::get_endpoint_args_for_item_schema( $method );
 
-		if ( WP_REST_Server::CREATABLE === $method && wp_is_client_side_media_processing_enabled() ) {
-			$args['generate_sub_sizes'] = array(
-				'type'        => 'boolean',
-				'default'     => true,
-				'description' => __( 'Whether to generate image sub sizes.' ),
-			);
-			$args['convert_format']     = array(
-				'type'        => 'boolean',
-				'default'     => true,
-				'description' => __( 'Whether to convert image formats.' ),
-			);
-			$args['url']                = array(
-				'type'              => 'string',
-				'format'            => 'uri',
-				'description'       => __( 'URL of an external image to sideload into the media library, instead of uploading a file.' ),
-				'sanitize_callback' => 'sanitize_url',
-				'validate_callback' => static function ( $url, $request, $param ) {
-					/*
-					 * A custom validate_callback replaces the default
-					 * rest_validate_request_arg(), so re-apply it first to keep
-					 * the schema checks (string type, uri format) enforced.
-					 */
-					$valid = rest_validate_request_arg( $url, $request, $param );
-					if ( is_wp_error( $valid ) ) {
-						return $valid;
-					}
-
-					/*
-					 * Reject URLs that are not safe to request server-side. wp_http_validate_url()
-					 * enforces an HTTP(S) scheme and blocks private, local, and otherwise
-					 * disallowed hosts, guarding the sideload against SSRF.
-					 */
-					if ( false === wp_http_validate_url( $url ) ) {
-						return new WP_Error(
-							'rest_invalid_url',
-							__( 'Invalid URL. Provide a valid, publicly reachable HTTP or HTTPS image URL.' ),
-							array( 'status' => 400 )
-						);
-					}
-
-					return true;
-				},
-			);
+		if ( WP_REST_Server::CREATABLE !== $method ) {
+			return $args;
 		}
+
+		$args['generate_sub_sizes'] = array(
+			'type'        => 'boolean',
+			'default'     => true,
+			'description' => __( 'Whether to generate image sub sizes.' ),
+		);
+
+		$args['convert_format'] = array(
+			'type'        => 'boolean',
+			'default'     => true,
+			'description' => __( 'Whether to convert image formats.' ),
+		);
+
+		$args['url'] = array(
+			'type'              => 'string',
+			'format'            => 'uri',
+			'description'       => __( 'URL of an external image to sideload into the media library, instead of uploading a file.' ),
+			'sanitize_callback' => 'sanitize_url',
+			'validate_callback' => static function ( $url, $request, $param ) {
+				/*
+				 * A custom validate_callback replaces the default
+				 * rest_validate_request_arg(), so re-apply it first to keep
+				 * the schema checks (string type, uri format) enforced.
+				 */
+				$valid = rest_validate_request_arg( $url, $request, $param );
+				if ( is_wp_error( $valid ) ) {
+					return $valid;
+				}
+
+				/*
+				 * Reject URLs that are not safe to request server-side. wp_http_validate_url()
+				 * enforces an HTTP(S) scheme and blocks private, local, and otherwise
+				 * disallowed hosts, guarding the sideload against SSRF.
+				 */
+				if ( false === wp_http_validate_url( $url ) ) {
+					return new WP_Error(
+						'rest_invalid_url',
+						__( 'Invalid URL. Provide a valid, publicly reachable HTTP or HTTPS image URL.' ),
+						array( 'status' => 400 )
+					);
+				}
+
+				return true;
+			},
+		);
 
 		return $args;
 	}
@@ -381,9 +385,15 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		 */
 		$prevent_unsupported_uploads = apply_filters( 'wp_prevent_unsupported_mime_type_uploads', true, $files['file']['type'] ?? null );
 
-		// When the client handles image processing (generate_sub_sizes is false),
-		// skip the server-side image editor support check.
-		if ( false === $request['generate_sub_sizes'] ) {
+		/*
+		 * When the client handles image processing (generate_sub_sizes is false),
+		 * skip the server-side image editor support check. This check exists
+		 * because the server cannot process the image, so it is only relaxed when
+		 * client side media processing is enabled and something else can. Asking
+		 * to skip sub sizes on a site without it does not make an unsupported
+		 * image type any more usable.
+		 */
+		if ( wp_is_client_side_media_processing_enabled() && false === $request['generate_sub_sizes'] ) {
 			$prevent_unsupported_uploads = false;
 		}
 
@@ -459,6 +469,10 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			// Disable server-side EXIF rotation so the client can handle it.
 			// This preserves the original orientation value in the metadata.
 			add_filter( 'wp_image_maybe_exif_rotate', '__return_false', 100 );
+			// Disable server-side "big image" downscaling; the client supplies its
+			// own scaled version via the sideload endpoint. Scaling here would
+			// create a conflicting "-scaled" file and orphan the full-size upload.
+			add_filter( 'big_image_size_threshold', '__return_false', 100 );
 		}
 
 		// Handle convert_format parameter.
@@ -627,11 +641,40 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		}
 
 		/*
+		 * Cap the download at the same size the site would accept as a direct
+		 * upload. check_upload_size() only applies on multisite, so without a
+		 * ceiling here a single site has no limit at all on this path: the
+		 * `upload_max_filesize` and `post_max_size` directives bound a request
+		 * body, not a fetch the server makes itself.
+		 *
+		 * When `wp_max_upload_size` returns 0, no ceiling is applied.
+		 */
+		$max_size = (int) wp_max_upload_size();
+
+		/*
 		 * Download the remote file with WordPress's HTTP API, which validates
 		 * the host and blocks requests to private or local addresses. This is
 		 * the same primitive core's media_sideload_image() relies on.
+		 *
+		 * `limit_response_size` stops the transfer once the limit is passed,
+		 * so an oversized remote file is never written to disk in full. One
+		 * byte over the ceiling is enough to fail the size check below.
 		 */
+		$limit_response_size = static function ( $args ) use ( $max_size ) {
+			$args['limit_response_size'] = $max_size + 1;
+			return $args;
+		};
+
+		if ( $max_size > 0 ) {
+			add_filter( 'http_request_args', $limit_response_size );
+		}
+
 		$tmp_file = download_url( $url );
+
+		if ( $max_size > 0 ) {
+			remove_filter( 'http_request_args', $limit_response_size );
+		}
+
 		if ( is_wp_error( $tmp_file ) ) {
 			return $tmp_file;
 		}
@@ -640,6 +683,27 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			'name'     => $filename,
 			'tmp_name' => $tmp_file,
 		);
+
+		$size_check = self::check_upload_size( $file_array );
+		if ( is_wp_error( $size_check ) ) {
+			if ( file_exists( $tmp_file ) ) {
+				wp_delete_file( $tmp_file );
+			}
+			return $size_check;
+		}
+
+		if ( $max_size > 0 && wp_filesize( $tmp_file ) > $max_size ) {
+			if ( file_exists( $tmp_file ) ) {
+				wp_delete_file( $tmp_file );
+			}
+
+			return new WP_Error(
+				'rest_upload_file_too_big',
+				/* translators: %s: Maximum allowed file size in kilobytes. */
+				sprintf( __( 'This file is too big. Files must be less than %s KB in size.' ), number_format( $max_size / KB_IN_BYTES ) ),
+				array( 'status' => 400 )
+			);
+		}
 
 		$attachment_id = media_handle_sideload( $file_array, $post_id );
 
@@ -683,6 +747,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		remove_filter( 'fallback_intermediate_image_sizes', '__return_empty_array', 100 );
 		remove_filter( 'wp_image_maybe_exif_rotate', '__return_false', 100 );
 		remove_filter( 'image_editor_output_format', '__return_empty_array', 100 );
+		remove_filter( 'big_image_size_threshold', '__return_false', 100 );
 	}
 
 	/**
@@ -959,6 +1024,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	 *
 	 * @since 5.5.0
 	 * @since 6.9.0 Adds flips capability and editable fields for the newly-created attachment post.
+	 * @since 7.1.0 Applies EXIF orientation correction before image modifications.
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response|WP_Error Response object on success, WP_Error object on failure.
@@ -1063,6 +1129,9 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 				array( 'status' => 500 )
 			);
 		}
+
+		// Apply any unapplied EXIF orientation so edits run in the upright frame the client previewed.
+		$image_editor->maybe_exif_rotate();
 
 		foreach ( $modifiers as $modifier ) {
 			$args = $modifier['args'];
@@ -1707,7 +1776,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 
 		$schema['properties']['filesize'] = array(
 			'description' => __( 'Attachment file size in bytes.' ),
-			'type'        => 'integer',
+			'type'        => array( 'integer', 'null' ),
 			'context'     => array( 'view', 'edit' ),
 			'readonly'    => true,
 		);
@@ -2359,12 +2428,13 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	 *
 	 * @param int $attachment_id Attachment ID.
 	 * @return int|null Attachment file size in bytes, or null if not available.
+	 * @phpstan-return non-negative-int|null
 	 */
 	protected function get_attachment_filesize( int $attachment_id ): ?int {
 		$meta = wp_get_attachment_metadata( $attachment_id );
 
-		if ( isset( $meta['filesize'] ) ) {
-			return $meta['filesize'];
+		if ( isset( $meta['filesize'] ) && is_numeric( $meta['filesize'] ) && $meta['filesize'] > 0 ) {
+			return (int) $meta['filesize'];
 		}
 
 		$original_path = wp_get_original_image_path( $attachment_id );

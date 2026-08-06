@@ -729,6 +729,7 @@ class WP_HTML_Tag_Processor {
 	 *
 	 * @since 6.2.0
 	 * @var WP_HTML_Attribute_Token[]
+	 * @phpstan-var array<non-empty-string, WP_HTML_Attribute_Token>
 	 */
 	private $attributes = array();
 
@@ -763,7 +764,7 @@ class WP_HTML_Tag_Processor {
 	 *     );
 	 *
 	 * @since 6.2.0
-	 * @var bool[]
+	 * @var array<non-empty-string, self::ADD_CLASS|self::REMOVE_CLASS>
 	 */
 	private $classname_updates = array();
 
@@ -820,7 +821,7 @@ class WP_HTML_Tag_Processor {
 	 *     );
 	 *
 	 * @since 6.2.0
-	 * @var WP_HTML_Text_Replacement[]
+	 * @var array<int|string, WP_HTML_Text_Replacement>
 	 */
 	protected $lexical_updates = array();
 
@@ -2100,7 +2101,7 @@ class WP_HTML_Tag_Processor {
 				 */
 				$is_valid_pi = (
 					0 !== $target_length &&
-					false !== strpos( " \t\f\r\n?>", $html[ $target_at + $target_length ] ) &&
+					str_contains( " \t\f\r\n?>", $html[ $target_at + $target_length ] ) &&
 					! ( 3 === $target_length && 0 === substr_compare( $html, 'xml', $target_at, 3, true ) ) &&
 					! ( 14 === $target_length && 0 === substr_compare( $html, 'xml-stylesheet', $target_at, 14, true ) )
 				);
@@ -2985,6 +2986,7 @@ class WP_HTML_Tag_Processor {
 	 *
 	 * @param string $prefix Prefix of requested attribute names.
 	 * @return array|null List of attribute names, or `null` when no tag opener is matched.
+	 * @phpstan-return list<non-empty-string>|null
 	 */
 	public function get_attribute_names_with_prefix( $prefix ): ?array {
 		if (
@@ -2996,13 +2998,45 @@ class WP_HTML_Tag_Processor {
 
 		$comparable = strtolower( $prefix );
 
+		/*
+		 * For the `class` attribute, ensure that enqueued class changes from
+		 * `add_class` and `remove_class` are flushed into attribute updates.
+		 */
+		$has_class = isset( $this->attributes['class'] );
+		if ( '' === $comparable || str_starts_with( 'class', $comparable ) ) {
+			foreach ( $this->classname_updates as $update ) {
+				if (
+					( $has_class && self::REMOVE_CLASS === $update ) ||
+					( ! $has_class && self::ADD_CLASS === $update )
+				) {
+					$this->class_name_updates_to_attributes_updates();
+					break;
+				}
+			}
+		}
+
+		$additions = array();
+		$removals  = array();
+		foreach ( $this->lexical_updates as $update_name => $update ) {
+			if ( is_int( $update_name ) || 'modifiable text' === $update_name ) {
+				continue;
+			}
+
+			if ( '' === $update->text ) {
+				$removals[ $update_name ] = true;
+			} elseif ( ! isset( $this->attributes[ $update_name ] ) && str_starts_with( $update_name, $comparable ) ) {
+				$additions[] = $update_name;
+			}
+		}
+
 		$matches = array();
 		foreach ( array_keys( $this->attributes ) as $attr_name ) {
-			if ( str_starts_with( $attr_name, $comparable ) ) {
+			if ( str_starts_with( $attr_name, $comparable ) && ! isset( $removals[ $attr_name ] ) ) {
 				$matches[] = $attr_name;
 			}
 		}
-		return $matches;
+
+		return empty( $additions ) ? $matches : array_merge( $additions, $matches );
 	}
 
 	/**
