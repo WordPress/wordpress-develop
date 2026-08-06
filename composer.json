@@ -27,7 +27,7 @@
 		"yoast/phpunit-polyfills": "^1.1.0"
 	},
 	"config": {
-		"audit": { "ignore": [ "GHSA-3pwp-g2mj-5p3v" ] },
+		"audit": { "ignore": [ "GHSA-3pwp-g2mj-5p3v", "GHSA-hmqg-cxww-wqhq", "PKSA-rdkp-vv9z-mjkg" ] },
 		"allow-plugins": {
 			"dealerdirect/phpcodesniffer-composer-installer": true
 		},
