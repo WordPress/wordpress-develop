@@ -476,6 +476,68 @@ class Tests_Admin_ExportWp extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensures the WXR export neutralizes invalid UTF-8 instead of reinterpreting it as ISO-8859-1.
+	 *
+	 * `wxr_cdata()` previously called the deprecated `utf8_encode()`, which assumed any
+	 * string that failed UTF-8 validation was ISO-8859-1 and re-encoded the raw bytes on
+	 * that assumption. That guess is wrong for every other single-byte encoding, so the
+	 * invalid spans are now replaced with the Unicode replacement character instead.
+	 *
+	 * @ticket 65828
+	 *
+	 * @dataProvider data_invalid_utf8_strings
+	 *
+	 * @param string $input    Bytes which are not valid UTF-8.
+	 * @param string $expected Expected CDATA contents.
+	 */
+	public function test_wxr_cdata_scrubs_invalid_utf8( $input, $expected ) {
+		// Running an export defines the nested WXR helper functions.
+		$this->get_the_export( array( 'content' => 'post' ) );
+
+		$actual = wxr_cdata( $input );
+		$inner  = substr( $actual, strlen( '<![CDATA[' ), -strlen( ']]>' ) );
+
+		$this->assertTrue(
+			wp_is_valid_utf8( $inner ),
+			'The exported CDATA section should always contain valid UTF-8.'
+		);
+		$this->assertSame(
+			$expected,
+			$inner,
+			'Invalid bytes should be replaced, not reinterpreted as ISO-8859-1.'
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_invalid_utf8_strings() {
+		return array(
+			'Lone high byte'     => array( "Caf\xE9", "Caf\u{FFFD}" ),
+			'Never-valid byte'   => array( "a\xC0b", "a\u{FFFD}b" ),
+			'Truncated sequence' => array( "a\xE2\x9Cb", "a\u{FFFD}b" ),
+			'Overlong sequence'  => array( "a\xC1\xBFb", "a\u{FFFD}\u{FFFD}b" ),
+			'Surrogate half'     => array( "a\xED\xA0\x80b", "a\u{FFFD}\u{FFFD}\u{FFFD}b" ),
+		);
+	}
+
+	/**
+	 * Ensures valid UTF-8, including multibyte text, survives the export untouched.
+	 *
+	 * @ticket 65828
+	 */
+	public function test_wxr_cdata_preserves_valid_utf8() {
+		$this->get_the_export( array( 'content' => 'post' ) );
+
+		$valid = 'Это комментарий. / Βλέπετε ένα σχόλιο. / 🅰';
+		$inner = substr( wxr_cdata( $valid ), strlen( '<![CDATA[' ), -strlen( ']]>' ) );
+
+		$this->assertSame( $valid, $inner, 'Valid UTF-8 should pass through unchanged.' );
+	}
+
+	/**
 	 * Ensure that posts types with 'can_export' set to false are not included in the export.
 	 *
 	 * @ticket 64964

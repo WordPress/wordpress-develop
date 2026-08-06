@@ -150,6 +150,81 @@ class Tests_Image_Meta extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensures invalid UTF-8 in IPTC fields is neutralized rather than assumed to be ISO-8859-1.
+	 *
+	 * `wp_read_image_metadata()` previously passed any field that failed UTF-8 validation
+	 * through the deprecated `utf8_encode()`, which reinterpreted the raw bytes as
+	 * ISO-8859-1. IPTC carries no reliable encoding declaration, so the invalid spans are
+	 * now replaced with the Unicode replacement character instead of being guessed at.
+	 *
+	 * @ticket 65828
+	 */
+	public function test_iptc_invalid_utf8_is_scrubbed() {
+		if ( ! is_callable( 'iptcembed' ) || ! is_callable( 'iptcparse' ) ) {
+			$this->markTestSkipped( 'The iptcembed() and iptcparse() functions are required.' );
+		}
+
+		$block = $this->build_iptc_block(
+			array(
+				105 => "Headline \xE9",
+				120 => "Caf\xE9 by the r\xEDver",
+				110 => "Credit \xC0",
+				116 => "Copyright \xE9",
+				25  => array( 'valid keyword', "sunset\xC0" ),
+			)
+		);
+
+		$file = wp_tempnam( 'iptc-invalid-utf8.jpg' );
+		file_put_contents( $file, iptcembed( $block, DIR_TESTDATA . '/images/test-image.jpg' ) );
+
+		$out = wp_read_image_metadata( $file );
+
+		unlink( $file );
+
+		$this->assertIsArray( $out, 'Metadata should have been read from the image.' );
+
+		foreach ( array( 'title', 'caption', 'credit', 'copyright' ) as $key ) {
+			$this->assertTrue(
+				wp_is_valid_utf8( $out[ $key ] ),
+				"The '{$key}' field should always be valid UTF-8."
+			);
+		}
+
+		$this->assertSame(
+			"Caf\u{FFFD} by the r\u{FFFD}ver",
+			$out['caption'],
+			'Invalid bytes should be replaced, not reinterpreted as ISO-8859-1.'
+		);
+
+		$this->assertSame(
+			array( 'valid keyword', "sunset\u{FFFD}" ),
+			$out['keywords'],
+			'Keywords should be scrubbed individually while valid entries are left alone.'
+		);
+	}
+
+	/**
+	 * Builds a raw IPTC APP13 block for the given record 2 datasets.
+	 *
+	 * @param array $tags Map of dataset number to a string value or list of string values.
+	 * @return string Binary IPTC block suitable for iptcembed().
+	 */
+	private function build_iptc_block( array $tags ) {
+		$block = '';
+
+		foreach ( $tags as $dataset => $values ) {
+			foreach ( (array) $values as $value ) {
+				$length = strlen( $value );
+				$block .= chr( 0x1C ) . chr( 2 ) . chr( $dataset )
+					. chr( ( $length >> 8 ) & 0xFF ) . chr( $length & 0xFF )
+					. $value;
+			}
+		}
+
+		return $block;
+	}
+
+	/**
 	 * wp_read_image_metadata() should return false if the image file doesn't exist.
 	 */
 	public function test_missing_image_file() {
