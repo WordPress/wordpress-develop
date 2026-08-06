@@ -710,9 +710,11 @@ function self_link() {
  *
  * @param string $type Type of feed. Possible values include 'rss2', 'rss2-comments',
  *                     'rdf', 'atom', and 'atom-comments'.
- * @return string[] Array of namespace URIs, keyed by their prefix.
+ * @return array<string, string> Array of namespace URIs, keyed by their prefix.
+ * @phpstan-param 'rss2'|'rss2-comments'|'rdf'|'atom'|'atom-comments' $type
+ * @phpstan-return array<non-falsy-string, non-falsy-string>
  */
-function get_feed_namespaces( $type ) {
+function get_feed_namespaces( string $type ): array {
 	$defaults = array();
 
 	switch ( $type ) {
