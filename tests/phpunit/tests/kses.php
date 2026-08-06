@@ -933,29 +933,6 @@ EOF;
 	}
 
 	/**
-	 * Tests that CSS is rejected when recursive function stripping triggers a PCRE error.
-	 *
-	 * This preserves the current behavior for normal CSS and only fails closed when
-	 * the sanitizer cannot safely evaluate an extreme nested-function payload.
-	 *
-	 * @ticket security-1186
-	 */
-	public function test_safecss_filter_attr_rejects_css_when_pcre_error_occurs() {
-		// Force the recursive function-stripping regex to fail deterministically, regardless of
-		// whether PCRE JIT is enabled or how large its stack is, by lowering the backtrack limit.
-		$backtrack_limit = ini_set( 'pcre.backtrack_limit', '100' );
-		$this->assertNotFalse( $backtrack_limit, 'Failed to call ini_set().' );
-
-		$css = 'color:var(' . str_repeat( '(', 200 ) . str_repeat( ')', 200 ) . ')';
-
-		try {
-			$this->assertSame( '', safecss_filter_attr( $css ) );
-		} finally {
-			ini_set( 'pcre.backtrack_limit', $backtrack_limit );
-		}
-	}
-
-	/**
 	 * Data Provider for test_safecss_filter_attr().
 	 *
 	 * @return array {

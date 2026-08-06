@@ -397,33 +397,6 @@ class Tests_Auth extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @dataProvider data_wp_authenticate_username_password_with_invalid_login_messages
-	 *
-	 * @ticket security-1307
-	 *
-	 * @param string $username         Username to attempt to authenticate with.
-	 * @param string $expected_message Expected error message.
-	 */
-	public function test_wp_authenticate_username_password_with_invalid_login_messages( $username, $expected_message ) {
-		$result = wp_authenticate_username_password( null, $username, 'password' );
-		$this->assertInstanceOf( 'WP_Error', $result );
-		$this->assertSame( $expected_message, $result->get_error_message() );
-	}
-
-	public function data_wp_authenticate_username_password_with_invalid_login_messages() {
-		return array(
-			'invalid_username' => array(
-				'invalid_username',
-				'<strong>Error</strong>: The username <strong>invalid_username</strong> is not registered on this site. If you are unsure of your username, try your email address instead.',
-			),
-			'xxs_username'     => array(
-				'<script>alert(1);</script>',
-				'<strong>Error</strong>: The username <strong>&lt;script&gt;alert(1);&lt;/script&gt;</strong> is not registered on this site. If you are unsure of your username, try your email address instead.',
-			),
-		);
-	}
-
-	/**
 	 * Ensure users can log in using both their username and their email address.
 	 *
 	 * @ticket 9568

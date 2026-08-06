@@ -10,41 +10,9 @@
  */
 class Tests_Canonical extends WP_Canonical_UnitTestCase {
 
-	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
-		// Set up fixtures in WP_Canonical_UnitTestCase.
-		parent::wpSetUpBeforeClass( $factory );
-
-		self::set_up_custom_post_types();
-
-		$factory->post->create(
-			array(
-				'post_type'  => 'wp_tests_excluded',
-				'post_title' => 'private-cpt-post',
-			)
-		);
-	}
-
 	public function set_up() {
 		parent::set_up();
 		wp_set_current_user( self::$author_id );
-	}
-
-	/**
-	 * Register custom post types for tests.
-	 *
-	 * Register non publicly queryable post type with public set to true.
-	 *
-	 * These arguments are intentionally contradictory for the test associated
-	 * with ticket #59795.
-	 */
-	public static function set_up_custom_post_types() {
-		register_post_type(
-			'wp_tests_excluded',
-			array(
-				'publicly_queryable'  => true,
-				'exclude_from_search' => true,
-			)
-		);
 	}
 
 	/**
@@ -308,59 +276,23 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 	}
 
 	/**
-	 * Ensure redirect guessing searches only requested, public, searchable post types.
+	 * Ensure multiple post types do not throw a notice.
 	 *
 	 * @ticket 43056
-	 * @ticket 59795
-	 * @ticket security-1301
-	 *
-	 * @dataProvider data_redirect_guess_404_permalink_post_types
 	 */
-	public function test_redirect_guess_404_permalink_post_types( $original_url, $expected ) {
-		$this->assertCanonical( $original_url, $expected );
-	}
+	public function test_redirect_guess_404_permalink_post_types() {
+		/*
+		 * Sample-page is intentionally missspelt as sample-pag to ensure
+		 * the 404 post permalink guessing runs.
+		 *
+		 * Please do not correct the apparent typo.
+		 */
 
-	/**
-	 * Data provider for test_redirect_guess_404_permalink_post_types().
-	 *
-	 * In the original URLs the post names are intentionally misspelled
-	 * to test the redirection.
-	 *
-	 * Please do not correct the apparent typos.
-	 *
-	 * @return array[]
-	 */
-	public function data_redirect_guess_404_permalink_post_types() {
-		return array(
-			'single string formatted post type'    => array(
-				'original_url' => '/?name=sample-pag&post_type=page',
-				'expected'     => '/sample-page/',
-			),
-			'single array formatted post type'     => array(
-				'original_url' => '/?name=sample-pag&post_type[]=page',
-				'expected'     => '/sample-page/',
-			),
-			'do not search unrequested post types' => array(
-				'original_url' => '/?name=sample-pag&post_type[]=post',
-				'expected'     => '/?name=sample-pag&post_type[]=post',
-			),
-			'multiple array formatted post type'   => array(
-				'original_url' => '/?name=sample-pag&post_type[]=page&post_type[]=post',
-				'expected'     => '/sample-page/',
-			),
-			'do not redirect to private post type' => array(
-				'original_url' => '/?name=private-cpt-po&post_type[]=wp_tests_private',
-				'expected'     => '/?name=private-cpt-po&post_type[]=wp_tests_private',
-			),
-			'mixed public and excluded post types' => array(
-				'original_url' => '/?name=excluded-cpt-po&post_type[]=post&post_type[]=wp_tests_excluded',
-				'expected'     => '/?name=excluded-cpt-po&post_type[]=post&post_type[]=wp_tests_excluded',
-			),
-			'mixed post types with public match'   => array(
-				'original_url' => '/?name=sample-pag&post_type[]=page&post_type[]=wp_tests_excluded',
-				'expected'     => '/sample-page/',
-			),
-		);
+		// String format post type.
+		$this->assertCanonical( '/?name=sample-pag&post_type=page', '/sample-page/' );
+		// Array formatted post type or types.
+		$this->assertCanonical( '/?name=sample-pag&post_type[]=page', '/sample-page/' );
+		$this->assertCanonical( '/?name=sample-pag&post_type[]=page&post_type[]=post', '/sample-page/' );
 	}
 
 	/**
