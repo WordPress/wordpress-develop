@@ -368,7 +368,7 @@ class WP_Ability {
 		 * default, then the built-in default applies.
 		 */
 		$args['meta']['show_in_rest'] ??= $args['meta']['public'] ?? self::DEFAULT_SHOW_IN_REST;
-		$args['meta']['public'] ??= self::DEFAULT_PUBLIC;
+		$args['meta']['public']       ??= self::DEFAULT_PUBLIC;
 
 		return $args;
 	}

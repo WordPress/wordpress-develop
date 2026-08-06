@@ -974,7 +974,7 @@ function rest_filter_response_fields( $response, $server, $request ) {
 				break 2;
 			}
 			$ref[ $next ] ??= array();
-			$ref          = &$ref[ $next ];
+			$ref            = &$ref[ $next ];
 		}
 		$last         = array_shift( $parts );
 		$ref[ $last ] = true;

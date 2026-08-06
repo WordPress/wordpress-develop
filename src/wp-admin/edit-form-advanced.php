@@ -67,8 +67,8 @@ if ( wp_is_mobile() ) {
  * @name $post_ID
  * @var int
  */
-$post_ID = isset( $post_ID ) ? (int) $post_ID : 0;
-$user_ID = isset( $user_ID ) ? (int) $user_ID : 0;
+$post_ID  = isset( $post_ID ) ? (int) $post_ID : 0;
+$user_ID  = isset( $user_ID ) ? (int) $user_ID : 0;
 $action ??= '';
 
 if ( (int) get_option( 'page_for_posts' ) === $post->ID && empty( $post->post_content ) ) {

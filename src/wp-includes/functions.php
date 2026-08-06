@@ -6268,7 +6268,7 @@ function wp_trigger_error( $function_name, $message, $error_level = E_USER_NOTIC
  * @return bool Whether the server is running lighttpd < 1.5.0.
  */
 function is_lighttpd_before_150() {
-	$server_parts    = explode( '/', $_SERVER['SERVER_SOFTWARE'] ?? '' );
+	$server_parts      = explode( '/', $_SERVER['SERVER_SOFTWARE'] ?? '' );
 	$server_parts[1] ??= '';
 
 	return ( 'lighttpd' === $server_parts[0] && -1 === version_compare( $server_parts[1], '1.5.0' ) );
