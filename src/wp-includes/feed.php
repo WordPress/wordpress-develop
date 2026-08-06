@@ -764,9 +764,9 @@ function get_feed_namespaces( string $type ): array {
 	 *
 	 * @since 7.2.0
 	 *
-	 * @param string[] $namespaces Array of namespace URIs, keyed by their prefix.
-	 * @param string   $type       Type of feed. Possible values include 'rss2',
-	 *                             'rss2-comments', 'rdf', 'atom', and 'atom-comments'.
+	 * @param array<string, string> $namespaces Array of namespace URIs, keyed by their prefix.
+	 * @param string                $type       Type of feed. Possible values include 'rss2',
+	 *                                          'rss2-comments', 'rdf', 'atom', and 'atom-comments'.
 	 */
 	$namespaces = apply_filters( 'wp_feed_namespaces', $defaults, $type );
 
