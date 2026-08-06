@@ -20,7 +20,7 @@ class Basic_Object {
 	}
 
 	public function __set( $name, $value ) {
-		return $this->$name = $value;
+		return $this->$name = $value; // phpcs:ignore Squiz.PHP.DisallowMultipleAssignments.Found
 	}
 
 	public function __isset( $name ) {
