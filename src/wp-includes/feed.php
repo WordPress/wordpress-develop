@@ -815,7 +815,7 @@ function get_feed_namespaces( string $type ): array {
  */
 function feed_namespaces( string $type ): void {
 	foreach ( get_feed_namespaces( $type ) as $prefix => $uri ) {
-		printf( "xmlns:%s=\"%s\"\n\t", $prefix, esc_attr( $uri ) );
+		printf( "xmlns:%s=\"%s\"\n\t", $prefix, esc_url( $uri ) );
 	}
 }
 
