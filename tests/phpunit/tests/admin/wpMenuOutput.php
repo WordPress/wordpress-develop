@@ -43,7 +43,7 @@ class Tests_Admin_WpMenuOutput extends WP_UnitTestCase {
 	public function test_top_level_count_description_is_associated_via_aria_describedby() {
 		$menu = array(
 			array(
-				'Plugins <span id="wp-menu-plugins-count-description" class="wp-menu-count-description screen-reader-text" aria-hidden="true">2 plugin updates available</span>',
+				'Plugins <span class="update-plugins count-2" aria-hidden="true"><span class="plugin-count">2</span></span>',
 				'read',
 				'plugins.php',
 				'',
@@ -53,10 +53,16 @@ class Tests_Admin_WpMenuOutput extends WP_UnitTestCase {
 			),
 		);
 
+		$menu[0]['count_description'] = array(
+			'id'   => 'wp-menu-plugins-count-description',
+			'html' => '<span id="wp-menu-plugins-count-description" class="wp-menu-count-description screen-reader-text" aria-hidden="true">2 plugin updates available</span>',
+		);
+
 		$output = get_echo( '_wp_menu_output', array( $menu, array() ) );
 
 		$this->assertStringContainsString( 'aria-describedby="wp-menu-plugins-count-description"', $output );
 		$this->assertStringContainsString( 'id="wp-menu-plugins-count-description"', $output );
+		$this->assertStringContainsString( '2 plugin updates available', $output );
 	}
 
 	/**
@@ -72,16 +78,22 @@ class Tests_Admin_WpMenuOutput extends WP_UnitTestCase {
 		$submenu = array(
 			'index.php' => array(
 				10 => array(
-					'Updates <span id="wp-menu-updates-count-description" class="wp-menu-count-description screen-reader-text" aria-hidden="true">2 updates available</span>',
+					'Updates <span class="update-plugins count-2" aria-hidden="true"><span class="update-count">2</span></span>',
 					'read',
 					'update-core.php',
 				),
 			),
 		);
 
+		$submenu['index.php'][10]['count_description'] = array(
+			'id'   => 'wp-menu-updates-count-description',
+			'html' => '<span id="wp-menu-updates-count-description" class="wp-menu-count-description screen-reader-text" aria-hidden="true">2 updates available</span>',
+		);
+
 		$output = get_echo( '_wp_menu_output', array( $menu, $submenu ) );
 
 		$this->assertStringContainsString( 'aria-describedby="wp-menu-updates-count-description"', $output );
+		$this->assertStringContainsString( '2 updates available', $output );
 	}
 
 	/**
@@ -93,7 +105,7 @@ class Tests_Admin_WpMenuOutput extends WP_UnitTestCase {
 	public function test_count_description_id_is_not_duplicated_by_submenu_head() {
 		$menu = array(
 			array(
-				'Plugins <span id="wp-menu-plugins-count-description" class="wp-menu-count-description screen-reader-text" aria-hidden="true">2 plugin updates available</span>',
+				'Plugins <span class="update-plugins count-2" aria-hidden="true"><span class="plugin-count">2</span></span>',
 				'read',
 				'plugins.php',
 				'',
@@ -101,6 +113,11 @@ class Tests_Admin_WpMenuOutput extends WP_UnitTestCase {
 				'menu-plugins',
 				'dashicons-admin-plugins',
 			),
+		);
+
+		$menu[0]['count_description'] = array(
+			'id'   => 'wp-menu-plugins-count-description',
+			'html' => '<span id="wp-menu-plugins-count-description" class="wp-menu-count-description screen-reader-text" aria-hidden="true">2 plugin updates available</span>',
 		);
 
 		$submenu = array(
@@ -113,6 +130,37 @@ class Tests_Admin_WpMenuOutput extends WP_UnitTestCase {
 		$output = get_echo( '_wp_menu_output', array( $menu, $submenu ) );
 
 		$this->assertSame( 1, substr_count( $output, 'id="wp-menu-plugins-count-description"' ) );
+		$this->assertStringContainsString( 'aria-describedby="wp-menu-plugins-count-description"', $output );
+	}
+
+	/**
+	 * The count description association is driven by the item's explicit
+	 * 'count_description' entry, not by parsing the title HTML, so it works
+	 * regardless of the markup shape of the title.
+	 *
+	 * @ticket 65793
+	 */
+	public function test_count_description_is_independent_of_title_html_shape() {
+		$menu = array(
+			array(
+				// Title markup that would not match a fixed id-then-class regex.
+				'Plugins <span class="plugin-count" data-count="2" id="custom-bubble">2</span>',
+				'read',
+				'plugins.php',
+				'',
+				'menu-top menu-icon-plugins',
+				'menu-plugins',
+				'dashicons-admin-plugins',
+			),
+		);
+
+		$menu[0]['count_description'] = array(
+			'id'   => 'wp-menu-plugins-count-description',
+			'html' => '<span id="wp-menu-plugins-count-description" class="wp-menu-count-description screen-reader-text" aria-hidden="true">2 plugin updates available</span>',
+		);
+
+		$output = get_echo( '_wp_menu_output', array( $menu, array() ) );
+
 		$this->assertStringContainsString( 'aria-describedby="wp-menu-plugins-count-description"', $output );
 	}
 
