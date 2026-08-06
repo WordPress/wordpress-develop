@@ -6,6 +6,17 @@ name: Prepare Gutenberg build
 
 on:
   workflow_call:
+    inputs:
+      repository:
+        description: 'The repository to check out. Defaults to the repository calling this workflow.'
+        required: false
+        type: 'string'
+        default: ''
+      ref:
+        description: 'The branch, tag, or SHA to check out. Defaults to the commit that started the calling workflow run.'
+        required: false
+        type: 'string'
+        default: ''
     outputs:
       gutenberg-sha:
         description: 'The immutable Gutenberg source SHA verified by this workflow.'
@@ -29,8 +40,10 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
-          # Resolve the Gutenberg ref from the exact commit that started this workflow run.
-          ref: ${{ github.sha }}
+          repository: ${{ inputs.repository || github.repository }}
+          # Resolve the Gutenberg ref from the exact commit that started this workflow run,
+          # unless the caller is preparing a build for a repository or branch of its own.
+          ref: ${{ inputs.ref || github.sha }}
           show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
           persist-credentials: false
 
@@ -42,7 +55,17 @@ jobs:
       - name: Download and verify Gutenberg build
         id: download
         run: |
-          node tools/gutenberg/download.js
+          # Branches whose download.js predates the in-script retry stream the blob straight
+          # into tar in a single attempt, so an interrupted stream fails the run outright.
+          for attempt in 1 2 3; do
+            node tools/gutenberg/download.js && break
+            if [ "$attempt" = 3 ]; then
+              echo "Gutenberg download failed after $attempt attempts." >&2
+              exit 1
+            fi
+            echo "Gutenberg download failed; retrying in 5 seconds..."
+            sleep 5
+          done
           gutenberg_sha="$(tr -d '\n' < gutenberg/.gutenberg-hash)"
           if [[ ! "$gutenberg_sha" =~ ^[a-fA-F0-9]{40}$ ]]; then
             echo "Expected a 40-character Gutenberg SHA, received: $gutenberg_sha" >&2
@@ -53,7 +76,10 @@ jobs:
       - name: Upload Gutenberg build
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: gutenberg-build
+          # Every branch in a run shares one artifact namespace, so name the build after the
+          # ref it came from. The PHPUnit consumer composes the same name from its own `ref`,
+          # so the name is never passed between them.
+          name: gutenberg-build${{ inputs.ref && format( '-{0}', inputs.ref ) || '' }}
           path: gutenberg/
           if-no-files-found: error
           include-hidden-files: true
