@@ -458,15 +458,26 @@
 		},
 
 		getSelectedMenuItemKey : function( menuItemData, listItemDBID ) {
-			var key;
+			var key,
+				objectId = parseInt( menuItemData['menu-item-object-id'], 10 ),
 
-			if ( menuItemData['menu-item-object-id'] || menuItemData['menu-item-url'] ) {
+				/*
+				 * Rows that do not map to a real object, such as Home and post
+				 * type archives, are rendered with the negative
+				 * $_nav_menu_placeholder as their object ID. That counter
+				 * restarts on every request, so the same row comes back with a
+				 * different ID after the checklist is reloaded. Identify those
+				 * rows by URL and title instead, which stay the same.
+				 */
+				isPlaceholder = isNaN( objectId ) || objectId <= 0;
+
+			if ( ! isPlaceholder || menuItemData['menu-item-url'] ) {
 				key = [
 					menuItemData['menu-item-type'] || '',
 					menuItemData['menu-item-object'] || '',
-					menuItemData['menu-item-object-id'] || '',
-					'custom' === menuItemData['menu-item-type'] ? menuItemData['menu-item-url'] || '' : '',
-					'custom' === menuItemData['menu-item-type'] ? menuItemData['menu-item-title'] || '' : ''
+					isPlaceholder ? '' : objectId,
+					isPlaceholder ? menuItemData['menu-item-url'] || '' : '',
+					isPlaceholder ? menuItemData['menu-item-title'] || '' : ''
 				].join( ':' );
 
 				return key.replace( /[^\w-]/g, '_' );

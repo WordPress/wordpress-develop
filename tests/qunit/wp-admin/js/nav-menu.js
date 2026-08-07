@@ -158,6 +158,37 @@
 	}
 
 	/**
+	 * Builds the synthetic Home row.
+	 *
+	 * When no static front page is set, nav-menu.php gives Home the
+	 * placeholder as its object ID, so the ID changes on every render.
+	 *
+	 * @return {string} The `li` markup.
+	 */
+	function homeItem() {
+		return checklistItem( placeholder - 1, {
+			type: 'custom',
+			object: 'custom',
+			title: 'Home',
+			url: 'https://example.org/'
+		} );
+	}
+
+	/**
+	 * Builds a post type archive row, which also uses a placeholder ID.
+	 *
+	 * @return {string} The `li` markup.
+	 */
+	function archiveItem() {
+		return checklistItem( placeholder - 1, {
+			type: 'post_type_archive',
+			object: 'post',
+			title: 'Post Archives',
+			url: 'https://example.org/archive/'
+		} );
+	}
+
+	/**
 	 * Wraps items in a meta box with an active and an inactive tab panel.
 	 *
 	 * @param {string}   id            Meta box ID.
@@ -325,6 +356,40 @@
 		);
 	} );
 
+	QUnit.test( 'getSelectedMenuItemKey() identifies Home by URL, not by its placeholder.', function( assert ) {
+		var firstRender = {
+				'menu-item-type': 'custom',
+				'menu-item-object': 'custom',
+				'menu-item-object-id': '-1',
+				'menu-item-url': 'https://example.org/',
+				'menu-item-title': 'Home'
+			},
+			secondRender = $.extend( {}, firstRender, { 'menu-item-object-id': '-4' } );
+
+		assert.strictEqual(
+			api.getSelectedMenuItemKey( firstRender, -1 ),
+			api.getSelectedMenuItemKey( secondRender, -4 ),
+			'Home keeps one key across renders even though its object ID is a placeholder.'
+		);
+	} );
+
+	QUnit.test( 'getSelectedMenuItemKey() identifies a post type archive across renders.', function( assert ) {
+		var firstRender = {
+				'menu-item-type': 'post_type_archive',
+				'menu-item-object': 'post',
+				'menu-item-object-id': '-2',
+				'menu-item-url': 'https://example.org/archive/',
+				'menu-item-title': 'Post Archives'
+			},
+			secondRender = $.extend( {}, firstRender, { 'menu-item-object-id': '-9' } );
+
+		assert.strictEqual(
+			api.getSelectedMenuItemKey( firstRender, -2 ),
+			api.getSelectedMenuItemKey( secondRender, -9 ),
+			'A post type archive keeps one key across renders.'
+		);
+	} );
+
 	QUnit.test( 'getSelectedMenuItemKey() keeps two custom links apart.', function( assert ) {
 		var first = {
 				'menu-item-type': 'custom',
@@ -465,6 +530,74 @@
 		assert.strictEqual( checkboxFor( metaboxEl, 11 ).prop( 'checked' ), true, 'Item 11 is ticked again.' );
 		assert.strictEqual( checkboxFor( metaboxEl, 12 ).prop( 'checked' ), false, 'Item 12 stays unticked.' );
 		assert.strictEqual( checkboxFor( metaboxEl, 13 ).prop( 'checked' ), true, 'Item 13 is ticked again.' );
+	} );
+
+	QUnit.test( 'A ticked Home row survives pagination.', function( assert ) {
+		renderScreen( metabox( 'posttype-page', 'posttypediv', [ homeItem(), checklistItem( 12 ) ] ) );
+
+		var metaboxEl = fixture.find( '#posttype-page' ),
+			homeId = metaboxEl.find( 'input.menu-item-checkbox' ).first().val(),
+			pageOneAgain;
+
+		metaboxEl.find( 'input.menu-item-checkbox' ).first().trigger( 'click' );
+		assert.strictEqual( countSelected( metaboxEl ), 1, 'Home was cached.' );
+
+		// A later request renders Home under a different placeholder.
+		newRequest();
+		nextPlaceholder();
+		nextPlaceholder();
+		pageOneAgain = metabox( 'posttype-page', 'posttypediv', [ homeItem(), checklistItem( 12 ) ] );
+
+		$.post = function( url, data, success ) {
+			success( JSON.stringify( { 'replace-id': 'posttype-page', markup: pageOneAgain } ) );
+		};
+		fixture.find( 'a.page-numbers' ).trigger( 'click' );
+
+		metaboxEl = fixture.find( '#posttype-page' );
+		assert.notStrictEqual(
+			metaboxEl.find( 'input.menu-item-checkbox' ).first().val(),
+			homeId,
+			'Home really did come back under a different object ID.'
+		);
+		assert.strictEqual(
+			metaboxEl.find( 'input.menu-item-checkbox' ).first().prop( 'checked' ),
+			true,
+			'Home is still ticked.'
+		);
+	} );
+
+	QUnit.test( 'A ticked post type archive row survives pagination.', function( assert ) {
+		renderScreen( metabox( 'posttype-post', 'posttypediv', [ archiveItem(), checklistItem( 31 ) ] ) );
+
+		var metaboxEl = fixture.find( '#posttype-post' ),
+			archiveId = metaboxEl.find( 'input.menu-item-checkbox' ).first().val(),
+			pageOneAgain;
+
+		metaboxEl.find( 'input.menu-item-checkbox' ).first().trigger( 'click' );
+		assert.strictEqual( countSelected( metaboxEl ), 1, 'The archive row was cached.' );
+
+		// A later request renders the archive under a different placeholder.
+		newRequest();
+		nextPlaceholder();
+		nextPlaceholder();
+		pageOneAgain = metabox( 'posttype-post', 'posttypediv', [ archiveItem(), checklistItem( 31 ) ] );
+
+		$.post = function( url, data, success ) {
+			success( JSON.stringify( { 'replace-id': 'posttype-post', markup: pageOneAgain } ) );
+		};
+		fixture.find( 'a.page-numbers' ).trigger( 'click' );
+
+		metaboxEl = fixture.find( '#posttype-post' );
+		assert.notStrictEqual(
+			metaboxEl.find( 'input.menu-item-checkbox' ).first().val(),
+			archiveId,
+			'The archive row really did come back under a different object ID.'
+		);
+		assert.strictEqual(
+			metaboxEl.find( 'input.menu-item-checkbox' ).first().prop( 'checked' ),
+			true,
+			'The archive row is still ticked.'
+		);
 	} );
 
 	QUnit.test( 'Taxonomy meta boxes keep their selections across pagination.', function( assert ) {
