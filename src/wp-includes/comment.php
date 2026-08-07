@@ -26,7 +26,7 @@
  * If all checks pass, the function will return true.
  *
  * @since 1.2.0
- * @since 7.2.0 Pingbacks from this site are no longer held for moderation.
+ * @since 7.1.0 Pingbacks from this site are no longer held for moderation.
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
@@ -187,7 +187,7 @@ function check_comment( $author, $email, $url, $comment, $user_ip, $user_agent, 
 			 * site, and false for every other pingback. Trackbacks are never considered,
 			 * as they cannot be verified.
 			 *
-			 * @since 7.2.0
+			 * @since 7.1.0
 			 *
 			 * @param bool   $approve_pingback Whether to approve the pingback.
 			 * @param int    $source_id        ID of the post on this site the pingback
