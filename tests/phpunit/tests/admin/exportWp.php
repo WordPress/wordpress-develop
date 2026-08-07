@@ -476,12 +476,12 @@ class Tests_Admin_ExportWp extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Ensures the WXR export neutralizes invalid UTF-8 instead of reinterpreting it as ISO-8859-1.
+	 * Ensures the WXR export always emits valid UTF-8.
 	 *
-	 * `wxr_cdata()` previously called the deprecated `utf8_encode()`, which assumed any
-	 * string that failed UTF-8 validation was ISO-8859-1 and re-encoded the raw bytes on
-	 * that assumption. That guess is wrong for every other single-byte encoding, so the
-	 * invalid spans are now replaced with the Unicode replacement character instead.
+	 * Byte spans which cannot decode as UTF-8 are replaced with the Unicode replacement
+	 * character. This covers both malformed UTF-8 and text supplied in some other
+	 * encoding entirely; core has no way to know which, so the bytes are neutralized
+	 * rather than reinterpreted as any particular encoding.
 	 *
 	 * @ticket 65828
 	 *
@@ -504,7 +504,7 @@ class Tests_Admin_ExportWp extends WP_UnitTestCase {
 		$this->assertSame(
 			$expected,
 			$inner,
-			'Invalid bytes should be replaced, not reinterpreted as ISO-8859-1.'
+			'Byte spans which cannot decode as UTF-8 should be replaced.'
 		);
 	}
 
@@ -515,11 +515,29 @@ class Tests_Admin_ExportWp extends WP_UnitTestCase {
 	 */
 	public function data_invalid_utf8_strings() {
 		return array(
-			'Lone high byte'     => array( "Caf\xE9", "Caf\u{FFFD}" ),
-			'Never-valid byte'   => array( "a\xC0b", "a\u{FFFD}b" ),
-			'Truncated sequence' => array( "a\xE2\x9Cb", "a\u{FFFD}b" ),
-			'Overlong sequence'  => array( "a\xC1\xBFb", "a\u{FFFD}\u{FFFD}b" ),
-			'Surrogate half'     => array( "a\xED\xA0\x80b", "a\u{FFFD}\u{FFFD}\u{FFFD}b" ),
+			// Malformed UTF-8.
+			'Never-valid byte'        => array( "a\xC0b", "a\u{FFFD}b" ),
+			'Truncated sequence'      => array( "a\xE2\x9Cb", "a\u{FFFD}b" ),
+			'Overlong sequence'       => array( "a\xC1\xBFb", "a\u{FFFD}\u{FFFD}b" ),
+			'Surrogate half'          => array( "a\xED\xA0\x80b", "a\u{FFFD}\u{FFFD}\u{FFFD}b" ),
+
+			// Text which is well-formed, but in some encoding other than UTF-8.
+			'ISO-8859-1 text'         => array(
+				mb_convert_encoding( 'Café', 'ISO-8859-1', 'UTF-8' ),
+				"Caf\u{FFFD}",
+			),
+			'ISO-8859-2 text'         => array(
+				mb_convert_encoding( 'wyróżnij', 'ISO-8859-2', 'UTF-8' ),
+				"wyr\u{FFFD}nij",
+			),
+			'Windows-1251 text'       => array(
+				mb_convert_encoding( 'Привет', 'Windows-1251', 'UTF-8' ),
+				str_repeat( "\u{FFFD}", 6 ),
+			),
+			'Windows-1252 quotations' => array(
+				mb_convert_encoding( '“quoted”', 'Windows-1252', 'UTF-8' ),
+				"\u{FFFD}quoted\u{FFFD}",
+			),
 		);
 	}
 

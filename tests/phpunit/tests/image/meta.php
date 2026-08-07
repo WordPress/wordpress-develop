@@ -150,12 +150,12 @@ class Tests_Image_Meta extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Ensures invalid UTF-8 in IPTC fields is neutralized rather than assumed to be ISO-8859-1.
+	 * Ensures image metadata is always returned as valid UTF-8.
 	 *
-	 * `wp_read_image_metadata()` previously passed any field that failed UTF-8 validation
-	 * through the deprecated `utf8_encode()`, which reinterpreted the raw bytes as
-	 * ISO-8859-1. IPTC carries no reliable encoding declaration, so the invalid spans are
-	 * now replaced with the Unicode replacement character instead of being guessed at.
+	 * Core does not read the IPTC coded character set, so the encoding of these fields is
+	 * unknown. Byte spans which cannot decode as UTF-8 are replaced with the Unicode
+	 * replacement character rather than reinterpreted as any particular encoding. Both
+	 * malformed UTF-8 and text in another encoding are covered here.
 	 *
 	 * @ticket 65828
 	 */
@@ -166,8 +166,8 @@ class Tests_Image_Meta extends WP_UnitTestCase {
 
 		$block = $this->build_iptc_block(
 			array(
-				105 => "Headline \xE9",
-				120 => "Caf\xE9 by the r\xEDver",
+				105 => mb_convert_encoding( 'wyróżnij', 'ISO-8859-2', 'UTF-8' ),
+				120 => mb_convert_encoding( 'Café', 'ISO-8859-1', 'UTF-8' ),
 				110 => "Credit \xC0",
 				116 => "Copyright \xE9",
 				25  => array( 'valid keyword', "sunset\xC0" ),
@@ -191,9 +191,15 @@ class Tests_Image_Meta extends WP_UnitTestCase {
 		}
 
 		$this->assertSame(
-			"Caf\u{FFFD} by the r\u{FFFD}ver",
+			"Caf\u{FFFD}",
 			$out['caption'],
-			'Invalid bytes should be replaced, not reinterpreted as ISO-8859-1.'
+			'ISO-8859-1 text should be neutralized, not reinterpreted.'
+		);
+
+		$this->assertSame(
+			"wyr\u{FFFD}nij",
+			$out['title'],
+			'ISO-8859-2 text should be neutralized, not reinterpreted.'
 		);
 
 		$this->assertSame(
