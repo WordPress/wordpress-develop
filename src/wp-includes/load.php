@@ -1486,12 +1486,18 @@ function absint( $maybeint ): int {
 		}
 	}
 
+	$intval = (int) $maybeint;
+
 	/*
 	 * PHP_INT_MIN is the only integer whose absolute value is larger than
 	 * PHP_INT_MAX, which would make abs() return a float. Clamping it to
 	 * -PHP_INT_MAX first keeps the result within the integer range.
 	 */
-	return abs( max( (int) $maybeint, -PHP_INT_MAX ) );
+	if ( PHP_INT_MIN === $intval ) {
+		return PHP_INT_MAX;
+	}
+
+	return abs( $intval );
 }
 
 /**
