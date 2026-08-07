@@ -1508,7 +1508,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 			)
 		);
 
-		$expected = '@media (width <= 480px){:root :where(.wp-block-group a:where(:not(.wp-element-button))):hover{color: red;}}';
+		$expected = '@media (width <= 480px){:root :where(.wp-block-group a:where(:not(.wp-element-button)):hover){color: red;}}';
 
 		$this->assertSame(
 			$expected,
@@ -1596,7 +1596,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 
 		$link_selector = ':root :where(.wp-block-group a:where(:not(.wp-element-button)))';
 		$expected      = $link_selector . '{color: blue;}' .
-			'@media (width <= 480px){:root :where(.wp-block-group a:where(:not(.wp-element-button))):hover{color: darkred;}}';
+			'@media (width <= 480px){:root :where(.wp-block-group a:where(:not(.wp-element-button)):hover){color: darkred;}}';
 
 		$this->assertSame(
 			$expected,
