@@ -3379,6 +3379,20 @@ function wp_update_term( $term_id, $taxonomy, $args = array() ) {
 
 	$tt_id = (int) $wpdb->get_var( $wpdb->prepare( "SELECT tt.term_taxonomy_id FROM $wpdb->term_taxonomy AS tt INNER JOIN $wpdb->terms AS t ON tt.term_id = t.term_id WHERE tt.taxonomy = %s AND t.term_id = %d", $taxonomy, $term_id ) );
 
+	// Check for changed slugs and save the old slug.
+	$old_slug = $term['slug'];
+	if ( $old_slug !== $slug && ! empty( $old_slug ) ) {
+		$old_slugs = (array) get_term_meta( $term_id, '_wp_old_slug' );
+
+		if ( ! in_array( $old_slug, $old_slugs, true ) ) {
+			add_term_meta( $term_id, '_wp_old_slug', $old_slug );
+		}
+
+		if ( in_array( $slug, $old_slugs, true ) ) {
+			delete_term_meta( $term_id, '_wp_old_slug', $slug );
+		}
+	}
+
 	// Check whether this is a shared term that needs splitting.
 	$_term_id = _split_shared_term( $term_id, $tt_id );
 	if ( ! is_wp_error( $_term_id ) ) {

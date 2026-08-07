@@ -1275,3 +1275,129 @@ function generate_postdata( $post ) {
 
 	return false;
 }
+
+/**
+ * Redirect old term slugs to the correct term link.
+ *
+ * Attempts to find the current term slug from the past slugs.
+ *
+ * @since x.x.x
+ */
+function wp_old_slug_term_redirect() {
+	if ( ! is_404() ) {
+		return;
+	}
+
+	$taxonomy = '';
+	$slug     = '';
+
+	if ( '' !== get_query_var( 'category_name' ) ) {
+		$taxonomy = 'category';
+		$slug     = get_query_var( 'category_name' );
+	} elseif ( '' !== get_query_var( 'tag' ) ) {
+		$taxonomy = 'post_tag';
+		$slug     = get_query_var( 'tag' );
+	} elseif ( '' !== get_query_var( 'taxonomy' ) && '' !== get_query_var( 'term' ) ) {
+		$taxonomy = get_query_var( 'taxonomy' );
+		$slug     = get_query_var( 'term' );
+	}
+
+	if ( str_contains( $slug, '/' ) ) {
+		$slug = basename( $slug );
+	}
+
+	if ( '' === $taxonomy || '' === $slug ) {
+		return;
+	}
+
+	$term_id = _find_term_by_old_slug( $slug, $taxonomy );
+
+	if ( ! $term_id ) {
+		return;
+	}
+
+	/**
+	 * Filters the old slug redirect term ID.
+	 *
+	 * @since x.x.x
+	 *
+	 * @param int $term_id The redirect term ID.
+	 */
+	$term_id = apply_filters( 'old_slug_redirect_term_id', $term_id );
+
+	if ( ! $term_id ) {
+		return;
+	}
+
+	$link = get_term_link( (int) $term_id, $taxonomy );
+
+	if ( is_wp_error( $link ) ) {
+		return;
+	}
+
+	if ( get_query_var( 'paged' ) > 1 ) {
+		if ( get_option( 'permalink_structure' ) ) {
+			$link = trailingslashit( $link ) . 'page/' . get_query_var( 'paged' );
+		} else {
+			$link = add_query_arg( 'paged', get_query_var( 'paged' ), $link );
+		}
+	} elseif ( is_feed() ) {
+		if ( get_option( 'permalink_structure' ) ) {
+			$link = trailingslashit( $link ) . 'feed';
+		} else {
+			$link = add_query_arg( 'feed', get_default_feed(), $link );
+		}
+	}
+
+	/**
+	 * Filters the old slug redirect URL.
+	 *
+	 * @since 4.4.0
+	 *
+	 * @param string $link The redirect URL.
+	 */
+	$link = apply_filters( 'old_slug_redirect_url', $link );
+
+	if ( ! $link ) {
+		return;
+	}
+
+	wp_redirect( $link, 301 );
+	exit;
+}
+
+/**
+ * Find the term ID for redirecting an old slug.
+ *
+ * @since x.x.x
+ * @access private
+ *
+ * @see wp_old_slug_term_redirect()
+ * @global wpdb $wpdb WordPress database abstraction object.
+ *
+ * @param string $slug     The term slug to search for.
+ * @param string $taxonomy The taxonomy to search within.
+ * @return int The term ID.
+ */
+function _find_term_by_old_slug( $slug, $taxonomy ) {
+	global $wpdb;
+
+	$query = $wpdb->prepare(
+		"SELECT tm.term_id FROM $wpdb->termmeta AS tm INNER JOIN $wpdb->term_taxonomy AS tt ON tm.term_id = tt.term_id WHERE tm.meta_key = '_wp_old_slug' AND tm.meta_value = %s AND tt.taxonomy = %s",
+		$slug,
+		$taxonomy
+	);
+
+	$last_changed = wp_cache_get_last_changed( 'terms' );
+	$key          = md5( $query );
+	$cache_key    = "find_term_by_old_slug:$key";
+	$cache        = wp_cache_get_salted( $cache_key, 'term-queries', $last_changed );
+	if ( false !== $cache ) {
+		return (int) $cache;
+	}
+
+	$term_id = (int) $wpdb->get_var( $query );
+	wp_cache_set_salted( $cache_key, $term_id, 'term-queries', $last_changed );
+
+	return $term_id;
+}
