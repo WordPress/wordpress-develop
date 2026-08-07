@@ -1760,7 +1760,29 @@ module.exports = function(grunt) {
 		'qunit:compiled'
 	] );
 
+	grunt.registerTask( 'lint:css', 'Runs Stylelint on core CSS.', function() {
+		var done = this.async();
+
+		grunt.util.spawn( {
+			cmd: 'npx',
+			args: [
+				'wp-scripts',
+				'lint-style',
+				SOURCE_DIR + 'wp-admin/css/*.css',
+				SOURCE_DIR + 'wp-includes/css/*.css',
+				'--ignore-pattern',
+				'**/*.min.css',
+				'--ignore-pattern',
+				'**/*-rtl.css'
+			],
+			opts: { stdio: 'inherit' }
+		}, function( error ) {
+			done( ! error );
+		} );
+	} );
+
 	grunt.registerTask( 'precommit:css', [
+		'lint:css',
 		'postcss:core'
 	] );
 
@@ -1835,7 +1857,7 @@ module.exports = function(grunt) {
 				}
 
 				if ( code === 0 ) {
-					if ( [ 'package.json', 'Gruntfile.js', 'composer.json' ].some( testPath ) ) {
+					if ( [ 'package.json', 'Gruntfile.js', 'composer.json', '.stylelintrc.json' ].some( testPath ) ) {
 						grunt.log.writeln( 'Configuration files modified. Running `prerelease`.' );
 						taskList.push( 'prerelease' );
 					} else {
