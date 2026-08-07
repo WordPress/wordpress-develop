@@ -2169,6 +2169,7 @@ function excerpt_remove_blocks( $content ) {
 		'core/freeform',
 		'core/heading',
 		'core/html',
+		'core/list',
 		'core/list-item',
 		'core/media-text',
 		'core/paragraph',
