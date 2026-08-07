@@ -4165,7 +4165,7 @@ class WP_HTML_Tag_Processor {
 			case 'TEXTAREA':
 			case 'TITLE':
 				$plaintext_content = preg_replace_callback(
-					"~</(?P<TAG_NAME>{$this->get_tag()})~i",
+					'~</(?P<TAG_NAME>' . preg_quote( $this->get_tag(), '~' ) . ')~i',
 					static function ( $tag_match ) {
 						return "&lt;/{$tag_match['TAG_NAME']}";
 					},
