@@ -1054,6 +1054,9 @@ function delete_plugins( $plugins, $deprecated = '' ) {
 		return new WP_Error( 'could_not_remove_plugin', sprintf( $message, implode( ', ', $errors ) ) );
 	}
 
+	// Force refresh of plugin update information.
+	wp_clean_plugins_cache();
+
 	return true;
 }
 
