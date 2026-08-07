@@ -330,6 +330,24 @@ class Tests_Comment_CheckComment extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure pingbacks from Multisite sub-sites are not auto approved.
+	 *
+	 * @ticket 65016
+	 * @group ms-required
+	 */
+	public function test_auto_approve_pingback_should_not_approve_from_a_different_ms_site() {
+		update_option( 'comment_previously_approved', '1' );
+
+		$new_blog = self::factory()->blog->create();
+
+		switch_to_blog( $new_blog );
+		$source_url = get_permalink( self::factory()->post->create() );
+		restore_current_blog();
+
+		$this->assertFalse( check_comment( 'Site Title', '', $source_url, 'Excerpt.', '192.168.0.1', '', 'pingback' ) );
+	}
+
+	/**
 	 * @ticket 65016
 	 */
 	public function test_auto_approve_pingback_should_receive_the_source_post_id() {
