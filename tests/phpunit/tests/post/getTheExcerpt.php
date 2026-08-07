@@ -227,4 +227,47 @@ class Tests_Post_GetTheExcerpt extends WP_UnitTestCase {
 			get_the_excerpt( ( new WP_Query( array( 'p' => $post_3->ID ) ) )->posts[0] )
 		);
 	}
+
+	/**
+	 * Legacy List blocks store their items as raw HTML instead of inner blocks.
+	 * They should still contribute to the excerpt, both on their own and when
+	 * nested inside another block.
+	 *
+	 * @ticket 63909
+	 */
+	public function test_legacy_list_block_excerpt() {
+		$content_1 = '<!-- wp:list -->
+<ul class="wp-block-list"><li>Legacy list item.</li></ul>
+<!-- /wp:list -->';
+
+		$content_2 = '<!-- wp:quote -->
+<blockquote class="wp-block-quote"><!-- wp:list -->
+<ul class="wp-block-list"><li>Quoted legacy list item.</li></ul>
+<!-- /wp:list --></blockquote>
+<!-- /wp:quote -->';
+
+		$post_1 = self::factory()->post->create_and_get(
+			array(
+				'post_content' => $content_1,
+				'post_excerpt' => '',
+			)
+		);
+
+		$post_2 = self::factory()->post->create_and_get(
+			array(
+				'post_content' => $content_2,
+				'post_excerpt' => '',
+			)
+		);
+
+		$this->assertSame(
+			'Legacy list item.',
+			get_the_excerpt( ( new WP_Query( array( 'p' => $post_1->ID ) ) )->posts[0] )
+		);
+
+		$this->assertSame(
+			'Quoted legacy list item.',
+			get_the_excerpt( ( new WP_Query( array( 'p' => $post_2->ID ) ) )->posts[0] )
+		);
+	}
 }
