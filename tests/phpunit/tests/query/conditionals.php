@@ -1599,6 +1599,35 @@ class Tests_Query_Conditionals extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 23749
+	 */
+	public function test_is_post_format_archive() {
+		$post_id = self::factory()->post->create();
+		set_post_format( $post_id, 'aside' );
+
+		$this->go_to( '/?post_format=aside' );
+
+		$this->assertQueryTrue( 'is_archive', 'is_tax', 'is_post_format_archive' );
+		$this->assertTrue( is_post_format_archive() );
+		$this->assertTrue( is_post_format_archive( 'aside' ) );
+		$this->assertTrue( is_post_format_archive( array( 'gallery', 'aside' ) ) );
+		$this->assertFalse( is_post_format_archive( 'gallery' ) );
+	}
+
+	/**
+	 * @ticket 23749
+	 */
+	public function test_is_post_format_archive_false_outside_a_post_format_archive() {
+		$post_id = self::factory()->post->create();
+		set_post_format( $post_id, 'aside' );
+
+		$this->go_to( get_permalink( $post_id ) );
+
+		$this->assertFalse( is_post_format_archive() );
+		$this->assertFalse( is_post_format_archive( 'aside' ) );
+	}
+
+	/**
 	 * @ticket 44005
 	 * @group privacy
 	 */
