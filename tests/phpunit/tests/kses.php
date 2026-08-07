@@ -2144,6 +2144,69 @@ EOF;
 	}
 
 	/**
+	 * Testing the safecss_filter_attr() accepts color-mix.
+	 *
+	 * @ticket 62353
+	 *
+	 * @dataProvider data_safecss_filter_attr_color_mix
+	 *
+	 * @param string $css      A string of CSS rules.
+	 * @param string $expected Expected string of CSS rules.
+	 */
+	public function test_safecss_filter_attr_color_mix( $css, $expected ) {
+		add_filter( 'safecss_filter_attr_allow_css', '__return_true' );
+
+		$this->assertSame( 'color: ' . $expected, safecss_filter_attr( 'color: ' . $css ) );
+		$this->assertSame( 'background: ' . $expected, safecss_filter_attr( 'background: ' . $css ) );
+		$this->assertSame( 'background-color: ' . $expected, safecss_filter_attr( 'background-color: ' . $css ) );
+
+		remove_filter( 'safecss_filter_attr_allow_css', '__return_true' );
+	}
+
+	/**
+	 * Data provider for test_safecss_filter_attr_color_mix().
+	 *
+	 * @return array {
+	 *     @type array {
+	 *         @type string $css      A string of CSS rules.
+	 *         @type string $expected Expected string of CSS rules.
+	 *     }
+	 * }
+	 */
+	public function data_safecss_filter_attr_color_mix() {
+		return array(
+			array(
+				'css'      => 'color-mix(in hsl, hsl(200 50 80), coral 80%)',
+				'expected' => 'color-mix(in hsl, hsl(200 50 80), coral 80%)',
+			),
+			array(
+				'css'      => 'color-mix(in lch longer hue, hsl(200deg 50% 80%), coral)',
+				'expected' => 'color-mix(in lch longer hue, hsl(200deg 50% 80%), coral)',
+			),
+			array(
+				'css'      => 'color-mix(in srgb, plum, #f00)',
+				'expected' => 'color-mix(in srgb, plum, #f00)',
+			),
+			array(
+				'css'      => 'color-mix(in lab, plum 60%, #f00 50%)',
+				'expected' => 'color-mix(in lab, plum 60%, #f00 50%)',
+			),
+			array(
+				'css'      => 'color-mix(in --swop5c, red, blue)',
+				'expected' => 'color-mix(in --swop5c, red, blue)',
+			),
+			array(
+				'css'      => 'color-mix(in srgb, var(--base) 0%, transparent)',
+				'expected' => 'color-mix(in srgb, var(--base) 0%, transparent)',
+			),
+			array(
+				'css'      => 'color-mix(in lch var(--distance) hue, var(--base) 100%, var(--mixin))',
+				'expected' => 'color-mix(in lch var(--distance) hue, var(--base) 100%, var(--mixin))',
+			),
+		);
+	}
+
+	/**
 	 * Test filtering a standard img tag.
 	 *
 	 * @ticket 50731
