@@ -9,8 +9,10 @@
 
 define( 'WP_NETWORK_ADMIN', true );
 
-/** Load WordPress Bootstrap */
-require_once dirname( __DIR__, 2 ) . '/wp-load.php';
+if ( ! defined( 'ABSPATH' ) ) {
+	/** Load WordPress Bootstrap */
+	require_once dirname( __DIR__, 2 ) . '/wp-load.php';
+}
 // Do not remove this check. It is required by individual network admin pages.
 if ( ! is_multisite() ) {
 	wp_die( __( 'Multisite support is not enabled.' ) );
