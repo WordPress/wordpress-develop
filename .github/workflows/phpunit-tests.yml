@@ -61,6 +61,7 @@ jobs:
   # them, because a job that needs a skipped job is skipped too, and a broader one
   # downloads a build that nothing consumes.
   prepare-gutenberg:
+    name: Prepare Gutenberg Assets
     uses: ./.github/workflows/reusable-prepare-gutenberg.yml
     permissions:
       contents: read
