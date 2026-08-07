@@ -96,6 +96,20 @@ final class WP_Interactivity_API {
 	private $has_processed_router_region = false;
 
 	/**
+	 * Flag that indicates whether all the blocks rendered on the page support
+	 * client-side navigation.
+	 *
+	 * It starts as `true` and it is set to `false` as soon as a block that does
+	 * not declare support for client-side navigation is rendered. It is used to
+	 * decide whether the server-generated style assets can be marked with the
+	 * `data-wp-router-managed` attribute.
+	 *
+	 * @since 7.2.0
+	 * @var bool
+	 */
+	private $all_blocks_support_client_navigation = true;
+
+	/**
 	 * Set of script modules that can be loaded after client-side navigation.
 	 *
 	 * @since 6.9.0
@@ -399,11 +413,179 @@ final class WP_Interactivity_API {
 	 *
 	 * @since 6.5.0
 	 * @since 6.9.0 Adds support for client-side navigation in script modules.
+	 * @since 7.2.0 Tracks the page-wide client-side navigation support and adds the `data-wp-router-managed`
+	 *              attribute to server-generated style assets.
 	 */
 	public function add_hooks() {
 		add_filter( 'script_module_data_@wordpress/interactivity', array( $this, 'filter_script_module_interactivity_data' ) );
 		add_filter( 'script_module_data_@wordpress/interactivity-router', array( $this, 'filter_script_module_interactivity_router_data' ) );
 		add_filter( 'wp_script_attributes', array( $this, 'add_load_on_client_navigation_attribute_to_script_modules' ) );
+
+		if ( ! is_admin() ) {
+			/*
+			 * The tracked support is only read on the front end, so there is no
+			 * need to inspect every rendered block in admin requests.
+			 */
+			add_filter( 'render_block_data', array( $this, 'filter_render_block_data_client_navigation_support' ) );
+
+			/*
+			 * The priority is set to 20 so this filter runs after the one added by
+			 * `wp_hoist_late_printed_styles()`, which uses the default priority and
+			 * can move style tags into the HEAD. That way, every style asset present
+			 * in the final markup gets the attribute.
+			 *
+			 * Note that adding this filter is what makes core start the template
+			 * enhancement output buffer, as documented in
+			 * `wp_should_output_buffer_template_for_enhancement()`.
+			 */
+			add_filter( 'wp_template_enhancement_output_buffer', array( $this, 'filter_template_output_buffer_add_router_managed_attribute' ), 20 );
+		}
+	}
+
+	/**
+	 * Tracks whether all the blocks rendered on the page support client-side
+	 * navigation.
+	 *
+	 * This method is a `render_block_data` filter callback that only inspects the
+	 * blocks being rendered; it always returns the parsed block unmodified. As
+	 * soon as a block that does not declare support for client-side navigation is
+	 * found, client-side navigation is considered unsupported for the whole page.
+	 *
+	 * The compatibility rules mirror the ones used by
+	 * {@see block_core_query_disable_enhanced_pagination()}: blocks without a
+	 * block name, i.e. freeform classic HTML, do not break compatibility, while
+	 * named blocks require either `supports.interactivity` or
+	 * `supports.interactivity.clientNavigation` to be `true`.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param array $parsed_block The block being rendered.
+	 * @return array Returns the parsed block, unmodified.
+	 */
+	public function filter_render_block_data_client_navigation_support( $parsed_block ) {
+		if ( ! $this->all_blocks_support_client_navigation ) {
+			return $parsed_block;
+		}
+
+		if ( ! isset( $parsed_block['blockName'] ) ) {
+			return $parsed_block;
+		}
+
+		$block_type = WP_Block_Type_Registry::get_instance()->get_registered( $parsed_block['blockName'] );
+
+		/*
+		 * Client side navigation can be true in two states:
+		 *  - supports.interactivity = true;
+		 *  - supports.interactivity.clientNavigation = true;
+		 */
+		$supports_client_navigation = ( isset( $block_type->supports['interactivity']['clientNavigation'] ) && true === $block_type->supports['interactivity']['clientNavigation'] )
+			|| ( isset( $block_type->supports['interactivity'] ) && true === $block_type->supports['interactivity'] );
+
+		if ( ! $supports_client_navigation ) {
+			$this->all_blocks_support_client_navigation = false;
+		}
+
+		return $parsed_block;
+	}
+
+	/**
+	 * Adds the `data-wp-router-managed` attribute to all the style assets of the
+	 * page.
+	 *
+	 * This method is a `wp_template_enhancement_output_buffer` filter callback, so
+	 * it receives the complete server-generated markup. Working on the final
+	 * buffer is what guarantees full-page coverage: every `<style>` element and
+	 * every `<link rel="stylesheet">` element is marked regardless of how or when
+	 * it was printed. The only exceptions are the style assets contained in
+	 * `noscript` and `template` elements, which are not rendered as part of the
+	 * document.
+	 *
+	 * The attribute lets the Interactivity API router tell server-rendered style
+	 * assets apart from the ones injected later by JavaScript, so the latter can
+	 * be preserved when the head is diffed during a client-side navigation.
+	 *
+	 * The attribute is only added when all the blocks rendered on the page support
+	 * client-side navigation, at least one router region has been processed, and
+	 * client-side navigation has not been disabled.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param string|mixed $buffer The template output buffer.
+	 * @return string|mixed The template output buffer, with the attribute added to the style assets.
+	 */
+	public function filter_template_output_buffer_add_router_managed_attribute( $buffer ) {
+		if ( ! is_string( $buffer ) ) {
+			return $buffer;
+		}
+
+		if ( ! $this->has_processed_router_region || ! $this->all_blocks_support_client_navigation ) {
+			return $buffer;
+		}
+
+		/*
+		 * The configuration is read directly instead of through
+		 * `WP_Interactivity_API::config()` because that method would create an
+		 * empty `core/router` entry as a side effect of reading it.
+		 */
+		if ( ! empty( $this->config_data['core/router']['clientNavigationDisabled'] ) ) {
+			return $buffer;
+		}
+
+		$processor = new WP_HTML_Tag_Processor( $buffer );
+
+		/*
+		 * Depth of the `noscript` and `template` elements currently open. The
+		 * contents of `template` elements are inert until they are cloned by
+		 * JavaScript, and `noscript` elements are only rendered when scripting is
+		 * disabled, so the style assets inside them must not be marked as
+		 * server-generated ones.
+		 */
+		$inert_depth = 0;
+
+		while ( $processor->next_tag( array( 'tag_closers' => 'visit' ) ) ) {
+			$tag_name  = $processor->get_tag();
+			$is_closer = $processor->is_tag_closer();
+
+			if ( 'NOSCRIPT' === $tag_name || 'TEMPLATE' === $tag_name ) {
+				if ( $is_closer ) {
+					$inert_depth = max( 0, $inert_depth - 1 );
+				} elseif ( ! $processor->has_self_closing_flag() ) {
+					/*
+					 * Self-closing tags are only meaningful in foreign content,
+					 * i.e. inside SVG or MathML, where they have no closing tag.
+					 * They are skipped so they do not leave the depth counter
+					 * stuck for the rest of the document.
+					 */
+					++$inert_depth;
+				}
+				continue;
+			}
+
+			if ( $is_closer || $inert_depth > 0 ) {
+				continue;
+			}
+
+			if ( 'STYLE' === $tag_name ) {
+				$processor->set_attribute( 'data-wp-router-managed', true );
+				continue;
+			}
+
+			if ( 'LINK' !== $tag_name ) {
+				continue;
+			}
+
+			$rel = $processor->get_attribute( 'rel' );
+			if ( ! is_string( $rel ) ) {
+				continue;
+			}
+
+			$rel_tokens = preg_split( '/[\t\n\f\r ]+/', strtolower( $rel ), -1, PREG_SPLIT_NO_EMPTY );
+			if ( is_array( $rel_tokens ) && in_array( 'stylesheet', $rel_tokens, true ) ) {
+				$processor->set_attribute( 'data-wp-router-managed', true );
+			}
+		}
+
+		return $processor->get_updated_html();
 	}
 
 	/**
@@ -1483,6 +1665,17 @@ CSS;
 				data-wp-class--finish-animation="state.navigation.hasFinished"
 			></div>
 HTML;
+	}
+
+	/**
+	 * Checks whether a `data-wp-router-region` directive has been processed.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @return bool Whether a router region has been processed on the page.
+	 */
+	public function has_router_region(): bool {
+		return $this->has_processed_router_region;
 	}
 
 	/**
