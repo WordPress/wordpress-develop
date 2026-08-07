@@ -71,4 +71,47 @@ class Tests_Comment_WpAllowComment extends WP_UnitTestCase {
 
 		$result = wp_allow_comment( $comment_data );
 	}
+
+	/**
+	 * @ticket 65016
+	 *
+	 * @dataProvider data_should_approve_a_pingback_only_when_it_comes_from_this_site
+	 *
+	 * @param bool $is_self_ping Whether the pingback should come from this site.
+	 * @param int  $expected     The expected approval status.
+	 */
+	public function test_should_approve_a_pingback_only_when_it_comes_from_this_site( $is_self_ping, $expected ) {
+		update_option( 'comment_previously_approved', '1' );
+
+		$source_url = $is_self_ping
+			? get_permalink( self::factory()->post->create() )
+			: 'http://example.com/their-post/';
+
+		$comment_data = array(
+			'comment_post_ID'      => self::$post_id,
+			'comment_author'       => 'The Linking Post',
+			'comment_author_email' => '',
+			'comment_author_url'   => $source_url,
+			'comment_content'      => '[&#8230;] an earlier post of mine [&#8230;]',
+			'comment_author_IP'    => '192.168.0.1',
+			'comment_parent'       => 0,
+			'comment_date_gmt'     => gmdate( 'Y-m-d H:i:s' ),
+			'comment_agent'        => 'WordPress/6.8',
+			'comment_type'         => 'pingback',
+		);
+
+		$this->assertSame( $expected, wp_allow_comment( $comment_data ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_should_approve_a_pingback_only_when_it_comes_from_this_site() {
+		return array(
+			'a pingback from this site'    => array( true, 1 ),
+			'a pingback from another site' => array( false, 0 ),
+		);
+	}
 }

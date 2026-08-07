@@ -4716,9 +4716,9 @@ function wp_prepare_attachment_for_js( $attachment ) {
 
 	$attached_file = get_attached_file( $attachment->ID );
 
-	if ( isset( $meta['filesize'] ) ) {
-		$bytes = $meta['filesize'];
-	} elseif ( file_exists( $attached_file ) ) {
+	if ( isset( $meta['filesize'] ) && is_numeric( $meta['filesize'] ) && (int) $meta['filesize'] > 0 ) {
+		$bytes = (int) $meta['filesize'];
+	} elseif ( is_string( $attached_file ) && '' !== $attached_file && is_readable( $attached_file ) ) {
 		$bytes = wp_filesize( $attached_file );
 	} else {
 		$bytes = '';
@@ -4814,7 +4814,10 @@ function wp_prepare_attachment_for_js( $attachment ) {
 			}
 
 			$response = array_merge( $response, $sizes['full'] );
-		} elseif ( $meta['sizes']['full']['file'] ) {
+		} elseif (
+			! empty( $meta['sizes']['full']['file'] ) &&
+			isset( $meta['sizes']['full']['width'], $meta['sizes']['full']['height'] )
+		) {
 			$sizes['full'] = array(
 				'url'         => esc_url_raw( $base_url . $meta['sizes']['full']['file'] ),
 				'height'      => $meta['sizes']['full']['height'],
