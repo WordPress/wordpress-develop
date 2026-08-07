@@ -2906,6 +2906,16 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 
 		'list-style',
 		'list-style-image',
+
+		// SVG presentation properties that accept url() references.
+		'clip-path',
+		'fill',
+		'marker',
+		'marker-end',
+		'marker-mid',
+		'marker-start',
+		'mask',
+		'stroke',
 	);
 
 	/*
@@ -3004,7 +3014,7 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 			 * Nested functions and parentheses are also removed, so long as the parentheses are balanced.
 			 */
 			$css_test_string = preg_replace(
-				'/\b(?:var|calc|min|max|minmax|clamp|repeat)(\((?:[^()]|(?1))*\))/',
+				'/\b(?:var|calc|min|max|minmax|clamp|repeat|rotate|rotateX|rotateY|rotateZ|rotate3d|translate|translateX|translateY|translateZ|translate3d|scale|scaleX|scaleY|scaleZ|scale3d|skew|skewX|skewY|matrix|matrix3d|perspective|inset|circle|ellipse|polygon|path)(\((?:[^()]|(?1))*\))/',
 				'',
 				$css_test_string
 			);
