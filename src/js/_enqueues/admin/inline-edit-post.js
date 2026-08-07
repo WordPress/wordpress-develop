@@ -20,6 +20,7 @@ window.wp = window.wp || {};
  *
  * @property {string} type The type of inline editor.
  * @property {string} what The prefix before the post ID.
+ * @property {boolean} saving Whether a save request is active.
  *
  */
 ( function( $, wp ) {
