@@ -306,6 +306,8 @@ class Tests_Comment_CheckComment extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test auto approvals can be turned off via the `wp_auto_approve_pingback` filter.
+	 *
 	 * @ticket 65016
 	 */
 	public function test_auto_approve_pingback_should_be_able_to_hold_a_pingback_from_this_site() {
@@ -319,6 +321,8 @@ class Tests_Comment_CheckComment extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test auto approvals can be turned on via the `wp_auto_approve_pingback` filter.
+	 *
 	 * @ticket 65016
 	 */
 	public function test_auto_approve_pingback_should_be_able_to_approve_a_pingback_from_another_site() {
@@ -348,6 +352,8 @@ class Tests_Comment_CheckComment extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure the `wp_auto_approve_pingback` filter receives the post ID for same site pings.
+	 *
 	 * @ticket 65016
 	 */
 	public function test_auto_approve_pingback_should_receive_the_source_post_id() {
