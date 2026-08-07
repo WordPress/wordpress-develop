@@ -199,4 +199,53 @@ class Tests_Ajax_wpAjaxInlineSave extends WP_Ajax_UnitTestCase {
 
 		$this->assertSame( '2020-09-11 19:20:11', $post->post_date_gmt );
 	}
+
+	/**
+	 * Quick Edit should not reset ping_status to "closed" for a post type,
+	 * such as "page", that does not render a ping_status control because
+	 * it does not support trackbacks.
+	 *
+	 * @ticket 31977
+	 *
+	 * @covers ::edit_post
+	 */
+	public function test_quick_edit_should_not_reset_ping_status_for_post_type_without_trackback_support() {
+		$this->assertFalse( post_type_supports( 'page', 'trackbacks' ) );
+
+		// Become an administrator.
+		$this->_setRole( 'administrator' );
+
+		$page = self::factory()->post->create_and_get(
+			array(
+				'post_type'   => 'page',
+				'post_author' => get_current_user_id(),
+				'ping_status' => 'open',
+			)
+		);
+
+		$this->assertSame( 'open', $page->ping_status );
+
+		// Set up a request. The ping_status field is intentionally omitted,
+		// as the "page" post type does not render a ping_status control.
+		$_POST['_inline_edit'] = wp_create_nonce( 'inlineeditnonce' );
+		$_POST['post_ID']      = $page->ID;
+		$_POST['post_type']    = $page->post_type;
+		$_POST['content']      = $page->post_content;
+		$_POST['excerpt']      = $page->post_excerpt;
+		$_POST['_status']      = $page->post_status;
+		$_POST['post_status']  = $page->post_status;
+		$_POST['screen']       = 'page';
+		$_POST['post_view']    = 'list';
+
+		// Make the request.
+		try {
+			$this->_handleAjax( 'inline-save' );
+		} catch ( WPAjaxDieContinueException $e ) {
+			unset( $e );
+		}
+
+		$page = get_post( $page->ID );
+
+		$this->assertSame( 'open', $page->ping_status );
+	}
 }
