@@ -2370,6 +2370,35 @@ HTML;
 	}
 
 	/**
+	 * Ensures that form feed terminates tag names in RCDATA and RAWTEXT end tags.
+	 *
+	 * @dataProvider data_rcdata_and_rawtext_tag_names
+	 *
+	 * @param string $tag_name The RCDATA or RAWTEXT tag name.
+	 */
+	public function test_rcdata_and_rawtext_end_tags_accept_form_feed( string $tag_name ) {
+		$processor = new WP_HTML_Tag_Processor( "<{$tag_name}>content</{$tag_name}\f><div>" );
+
+		$this->assertTrue( $processor->next_token(), "Expected to find complete {$tag_name} tag." );
+		$this->assertSame( strtoupper( $tag_name ), $processor->get_tag() );
+		$this->assertSame( 'content', $processor->get_modifiable_text() );
+		$this->assertTrue( $processor->next_tag( 'DIV' ), 'Expected to find DIV after the special element.' );
+	}
+
+	/**
+	 * Data provider.
+	 */
+	public static function data_rcdata_and_rawtext_tag_names(): Generator {
+		yield 'IFRAME'   => array( 'iframe' );
+		yield 'NOEMBED'  => array( 'noembed' );
+		yield 'NOFRAMES' => array( 'noframes' );
+		yield 'STYLE'    => array( 'style' );
+		yield 'XMP'      => array( 'xmp' );
+		yield 'TEXTAREA' => array( 'textarea' );
+		yield 'TITLE'    => array( 'title' );
+	}
+
+	/**
 	 * Invalid tag names are comments on tag closers.
 	 *
 	 * @ticket 58007
