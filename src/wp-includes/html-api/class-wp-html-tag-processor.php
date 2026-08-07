@@ -4124,7 +4124,7 @@ class WP_HTML_Tag_Processor {
 				 *
 				 * @link https://html.spec.whatwg.org/#rawtext-end-tag-name-state
 				 */
-				if ( 1 === preg_match( "~</{$tag_name}[ \t\f\r\n/>]~i", $plaintext_content ) ) {
+				if ( 1 === preg_match( '~</' . preg_quote( $tag_name, '~' ) . '[ \t\f\r\n/>]~i', $plaintext_content ) ) {
 					_doing_it_wrong(
 						__METHOD__,
 						sprintf(
