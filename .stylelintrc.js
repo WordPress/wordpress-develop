@@ -51,6 +51,9 @@ module.exports = {
 		'no-invalid-position-at-import-rule': null,
 	},
 	reportDescriptionlessDisables: true,
+	// Using ignorePath instead of ignoreFiles helps avoiding configuration
+	// dependencies issues specifically helps ignoring some themes configurations
+	// that require the "stylelint-a11y" package.
 	ignorePath: '.stylelintignore',
 };
 

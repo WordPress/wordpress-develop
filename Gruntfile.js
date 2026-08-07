@@ -1771,8 +1771,28 @@ module.exports = function(grunt) {
 		'qunit:compiled'
 	] );
 
+	grunt.registerTask( 'lint:css', 'Runs Stylelint on core CSS.', function() {
+		var done = this.async();
+
+		grunt.util.spawn( {
+			cmd: 'npx',
+			args: [
+				'wp-scripts',
+				'lint-style',
+				SOURCE_DIR + '**/*.{css,scss}',
+				// By default, the Stylelint CLI looks for files to ignore in
+				// .stylelintignore in process.cwd(). This way, the configuration
+				// is consistent with the one for the NPM script in .stylelintrc.js.
+			],
+			opts: { stdio: 'inherit' }
+		}, function( error ) {
+			done( ! error );
+		} );
+	} );
+
 	grunt.registerTask( 'precommit:css', [
-		'postcss:core'
+		'postcss:core',
+		'lint:css',
 	] );
 
 	grunt.registerTask( 'precommit:php', [
