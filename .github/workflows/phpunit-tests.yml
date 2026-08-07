@@ -53,13 +53,6 @@ permissions: {}
 
 jobs:
   # Downloads and verifies the Gutenberg build once for all PHPUnit jobs.
-  #
-  # This condition is the union of the conditions on the jobs that need it, reduced.
-  # The org matrices require `WordPress/wordpress-develop` or a pull request, and the
-  # fork matrix requires a pull request, so `wordpress-develop` or a pull request
-  # covers every case. Keep it in step with those jobs: a narrower condition orphans
-  # them, because a job that needs a skipped job is skipped too, and a broader one
-  # downloads a build that nothing consumes.
   prepare-gutenberg:
     name: Prepare Gutenberg Assets
     uses: ./.github/workflows/reusable-prepare-gutenberg.yml
