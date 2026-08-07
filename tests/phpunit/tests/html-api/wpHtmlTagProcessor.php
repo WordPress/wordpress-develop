@@ -2370,34 +2370,49 @@ HTML;
 	}
 
 	/**
-	 * Ensures that form feed terminates tag names in RCDATA and RAWTEXT end tags.
+	 * Ensures that tag-name-terminating characters close RCDATA and RAWTEXT elements.
 	 *
-	 * @dataProvider data_rcdata_and_rawtext_tag_names
+	 * @dataProvider data_rcdata_and_rawtext_tag_name_terminators
 	 *
-	 * @param string $tag_name The RCDATA or RAWTEXT tag name.
+	 * @param string $tag_name            The RCDATA or RAWTEXT tag name.
+	 * @param string $tag_name_terminator The tag-name-terminating character.
 	 */
-	public function test_rcdata_and_rawtext_end_tags_accept_form_feed( string $tag_name ): void {
-		$processor = new WP_HTML_Tag_Processor( "<{$tag_name}>content</{$tag_name}\f><div>" );
+	public function test_rcdata_and_rawtext_end_tags_accept_tag_name_terminators( string $tag_name, string $tag_name_terminator ): void {
+		$end_tag_closer = '>' === $tag_name_terminator ? '' : '>';
+		$processor      = new WP_HTML_Tag_Processor( "<{$tag_name}>content</{$tag_name}{$tag_name_terminator}{$end_tag_closer}<div>" );
 
 		$this->assertTrue( $processor->next_token(), "Expected to find complete {$tag_name} tag." );
 		$this->assertSame( strtoupper( $tag_name ), $processor->get_tag() );
 		$this->assertSame( 'content', $processor->get_modifiable_text() );
-		$this->assertTrue( $processor->next_tag( 'DIV' ), 'Expected to find DIV after the special element.' );
+		$this->assertTrue( $processor->next_tag( 'DIV' ), "Expected to find DIV after the {$tag_name} element." );
 	}
 
 	/**
-	 * Data provider.
+	 * Provides every RCDATA and RAWTEXT tag with every tag-name-terminating character.
+	 *
+	 * @return Generator<string, array{string, string}> Test cases.
+	 */
+	public static function data_rcdata_and_rawtext_tag_name_terminators(): Generator {
+		foreach ( array( 'IFRAME', 'NOEMBED', 'NOFRAMES', 'STYLE', 'XMP', 'TEXTAREA', 'TITLE' ) as $tag_name ) {
+			foreach ( self::data_tag_name_terminators() as $terminator_name => $terminator_data ) {
+				yield "{$tag_name} + {$terminator_name}" => array( strtolower( $tag_name ), $terminator_data[0] );
+			}
+		}
+	}
+
+	/**
+	 * Provides tag-name-terminating characters.
 	 *
 	 * @return Generator<string, array{string}> Test cases.
 	 */
-	public static function data_rcdata_and_rawtext_tag_names(): Generator {
-		yield 'IFRAME'   => array( 'iframe' );
-		yield 'NOEMBED'  => array( 'noembed' );
-		yield 'NOFRAMES' => array( 'noframes' );
-		yield 'STYLE'    => array( 'style' );
-		yield 'XMP'      => array( 'xmp' );
-		yield 'TEXTAREA' => array( 'textarea' );
-		yield 'TITLE'    => array( 'title' );
+	public static function data_tag_name_terminators(): Generator {
+		yield 'SPACE'             => array( ' ' );
+		yield 'TAB'               => array( "\t" );
+		yield 'LINE FEED'         => array( "\n" );
+		yield 'FORM FEED'         => array( "\f" );
+		yield 'CARRIAGE RETURN'   => array( "\r" );
+		yield 'SOLIDUS'           => array( '/' );
+		yield 'GREATER-THAN SIGN' => array( '>' );
 	}
 
 	/**
