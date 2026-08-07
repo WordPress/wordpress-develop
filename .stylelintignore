@@ -1,24 +1,26 @@
-# Ignore WordPress plugin files
+# Ignore WordPress plugin files.
 src/wp-content/plugins/**/*
 
-# Ignore WordPress theme files
+# Ignore WordPress theme files.
+# Note that the dependencies of some themes would require the "stylelint-a11y"
+# package which is not used in Core and incompatible with latest Stylelint versions.
 src/wp-content/themes/**/*
 
-# Ignore WordPress block files
+# Ignore WordPress block files.
 src/wp-includes/blocks/**/*
 
-# Ignore WordPress included dist files
+# Ignore WordPress included dist files.
 src/wp-includes/css/dist/**/*
 
-# Ignore WordPress TinyMCE files
+# Ignore WordPress TinyMCE files.
 src/wp-includes/js/tinymce/**/*
 
-# Ignore WordPress JS vendor files
+# Ignore WordPress JS vendor files.
 src/js/_enqueues/vendor/**/*
 
-# Ignore minified CSS files
+# Ignore minified CSS files.
 **/*.min.css
 
-# Ignore RTL CSS files
+# Ignore RTL CSS files.
 **/*-rtl.css
 **/*-rtl.min.css
