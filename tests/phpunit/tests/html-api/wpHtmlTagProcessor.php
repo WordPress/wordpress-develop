@@ -2376,7 +2376,7 @@ HTML;
 	 *
 	 * @param string $tag_name The RCDATA or RAWTEXT tag name.
 	 */
-	public function test_rcdata_and_rawtext_end_tags_accept_form_feed( string $tag_name ) {
+	public function test_rcdata_and_rawtext_end_tags_accept_form_feed( string $tag_name ): void {
 		$processor = new WP_HTML_Tag_Processor( "<{$tag_name}>content</{$tag_name}\f><div>" );
 
 		$this->assertTrue( $processor->next_token(), "Expected to find complete {$tag_name} tag." );
@@ -2387,6 +2387,8 @@ HTML;
 
 	/**
 	 * Data provider.
+	 *
+	 * @return Generator<string, array{string}> Test cases.
 	 */
 	public static function data_rcdata_and_rawtext_tag_names(): Generator {
 		yield 'IFRAME'   => array( 'iframe' );
