@@ -1960,6 +1960,53 @@ class Tests_User_Query extends WP_UnitTestCase {
 	}
 
 	/**
+	 * A role stored without a 'capabilities' key (for example, left behind by a
+	 * deactivated plugin) should be skipped rather than causing a fatal error.
+	 *
+	 * @ticket 62600
+	 */
+	public function test_capability_query_with_role_missing_capabilities_key() {
+		global $wp_roles;
+
+		$wp_roles->add_role( 'role_missing_caps', 'Role Missing Caps' );
+
+		$roles = get_option( $wp_roles->role_key );
+		unset( $roles['role_missing_caps']['capabilities'] );
+		update_option( $wp_roles->role_key, $roles );
+
+		$wp_user_search = new WP_User_Query( array( 'capability' => 'read' ) );
+		$users          = $wp_user_search->get_results();
+
+		$this->assertNotEmpty( $users );
+
+		$wp_roles->remove_role( 'role_missing_caps' );
+	}
+
+	/**
+	 * A role whose 'capabilities' value isn't an array should be skipped rather
+	 * than causing a fatal error, the same as a missing key.
+	 *
+	 * @ticket 62600
+	 */
+	public function test_capability_query_with_role_capabilities_not_an_array() {
+		global $wp_roles;
+
+		$wp_roles->add_role( 'role_invalid_caps', 'Role Invalid Caps' );
+
+		$roles = get_option( $wp_roles->role_key );
+
+		$roles['role_invalid_caps']['capabilities'] = false;
+		update_option( $wp_roles->role_key, $roles );
+
+		$wp_user_search = new WP_User_Query( array( 'capability' => 'read' ) );
+		$users          = $wp_user_search->get_results();
+
+		$this->assertNotEmpty( $users );
+
+		$wp_roles->remove_role( 'role_invalid_caps' );
+	}
+
+	/**
 	 * @ticket 16841
 	 * @group ms-required
 	 */
