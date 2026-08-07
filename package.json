@@ -128,6 +128,8 @@
 		"grunt": "grunt",
 		"lint:jsdoc": "wp-scripts lint-js",
 		"lint:jsdoc:fix": "wp-scripts lint-js --fix",
+		"lint:css": "wp-scripts lint-style \"src/**/*.{css,scss}\"",
+		"lint:css:fix": "npm run lint:css -- --fix",
 		"typecheck:js": "tsc --build",
 		"env:start": "node ./tools/local-env/scripts/start.js && node ./tools/local-env/scripts/docker.js run -T --rm php composer update -W",
 		"env:stop": "node ./tools/local-env/scripts/docker.js down",
@@ -148,8 +150,6 @@
 		"typecheck:php:baselines": "node ./tools/local-env/scripts/docker.js run --rm php composer phpstan:baselines --",
 		"gutenberg:copy": "node tools/gutenberg/copy.js",
 		"gutenberg:verify": "node tools/gutenberg/utils.js",
-		"gutenberg:download": "node tools/gutenberg/download.js && grunt build:gutenberg",
-		"lint:css": "wp-scripts lint-style \"src/**/*.{css,pcss,scss}\"",
-		"lint:css:fix": "npm run lint:css -- --fix"
+		"gutenberg:download": "node tools/gutenberg/download.js && grunt build:gutenberg"
 	}
 }
