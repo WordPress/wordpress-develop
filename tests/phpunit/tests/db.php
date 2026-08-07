@@ -2486,4 +2486,35 @@ class Tests_DB extends WP_UnitTestCase {
 
 		$this->assertTrue( $wpdb->check_connection( false ) );
 	}
+
+	/**
+	 * Tests if the column charset doesn't throw errors with the `pre_get_table_charset` filter.
+	 *
+	 * @ticket 38921
+	 */
+	public function test_get_table_and_column_charset_with_pre_get_table_charset_filter() {
+		global $wpdb;
+		$expected_charset = $wpdb->get_col_charset( $wpdb->posts, 'post_content' );
+
+		self::$_wpdb->reset_cache_values();
+
+		add_filter( 'pre_get_table_charset', array( $this, 'change_table_charset_callback' ), 10, 2 );
+		$table_charset  = self::$_wpdb->get_table_charset( $wpdb->posts );
+		$column_charset = self::$_wpdb->get_col_charset( $wpdb->posts, 'post_content' );
+		remove_filter( 'pre_get_table_charset', array( $this, 'change_table_charset_callback' ), 10, 2 );
+
+		$this->assertSame( 'fake_charset', $table_charset );
+		$this->assertSame( $expected_charset, $column_charset );
+	}
+
+	/**
+	* Callback for the `pre_get_table_charset` filter.
+	*
+	* @param string $charset  The table's character set.
+	* @param string $table    The name of the table.
+	* @return string $charset The table's character set.
+	*/
+	public function change_table_charset_callback( $charset, $table ) {
+		return 'fake_charset';
+	}
 }
