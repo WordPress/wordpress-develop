@@ -5059,12 +5059,9 @@ function wp_enqueue_media( $args = array() ) {
 		);
 	}
 
-	$infinite_scrolling = true;
-
 	// A user can opt out of infinite scrolling via their profile's personal options.
-	if ( 'false' === get_user_option( 'infinite_scrolling' ) ) {
-		$infinite_scrolling = false;
-	}
+	$user_infinite_scrolling = 'false' !== get_user_option( 'infinite_scrolling' );
+	$infinite_scrolling      = $user_infinite_scrolling;
 
 	/**
 	 * Filters whether the Media Library grid has infinite scrolling. Default `true`.
@@ -5104,6 +5101,12 @@ function wp_enqueue_media( $args = array() ) {
 		'months'            => $months,
 		'mediaTrash'        => MEDIA_TRASH ? 1 : 0,
 		'infiniteScrolling' => ( $infinite_scrolling ) ? 1 : 0,
+		// Data for the settings dialog. Unlike the value above, `infiniteScrolling` here is the unfiltered personal option the dialog edits.
+		'librarySettings'   => array(
+			'nonce'             => wp_create_nonce( 'media-library-settings' ),
+			'infiniteScrolling' => ( $user_infinite_scrolling ) ? 1 : 0,
+			'isFiltered'        => ( $infinite_scrolling !== $user_infinite_scrolling ) ? 1 : 0,
+		),
 	);
 
 	$post = null;

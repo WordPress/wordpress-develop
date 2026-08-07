@@ -80,6 +80,7 @@ $core_actions_post = array(
 	'closed-postboxes',
 	'hidden-columns',
 	'update-welcome-panel',
+	'set-media-library-settings',
 	'menu-get-metabox',
 	'wp-link-ajax',
 	'menu-locations-save',

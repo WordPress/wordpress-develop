@@ -128,6 +128,7 @@ media.view.AttachmentFilters = require( '../../../media/views/attachment-filters
 media.view.DateFilter = require( '../../../media/views/attachment-filters/date.js' );
 media.view.AttachmentFilters.Uploaded = require( '../../../media/views/attachment-filters/uploaded.js' );
 media.view.AttachmentFilters.All = require( '../../../media/views/attachment-filters/all.js' );
+media.view.LibrarySettings = require( '../../../media/views/library-settings.js' );
 media.view.AttachmentsBrowser = require( '../../../media/views/attachments/browser.js' );
 media.view.Selection = require( '../../../media/views/selection.js' );
 media.view.Attachment.Selection = require( '../../../media/views/attachment/selection.js' );

@@ -985,6 +985,103 @@ select#media-attachment-filters ~ select#media-attachment-date-filters {
 }
 
 /**
+ * Media Library settings
+ */
+/* Square icon-only button, on top of the height `button-compact` gives it. */
+.wp-core-ui .button.media-library-settings__toggle {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-width: 32px;
+	padding: 0;
+}
+
+.wp-core-ui .button.media-library-settings__toggle .dashicons {
+	line-height: 1;
+}
+
+/* The grid toolbar is a flex container with a column gap of its own. */
+.wp-core-ui .media-toolbar-primary > .media-library-settings__toggle {
+	margin-left: 8px;
+}
+
+.wp-core-ui .mode-grid .media-toolbar-primary > .media-library-settings__toggle {
+	margin-left: 0;
+}
+
+/* Matches the 40px min-height buttons.css gives buttons at this width. */
+@media screen and (max-width: 782px) {
+	.wp-core-ui .button.media-library-settings__toggle {
+		min-width: 40px;
+		width: 40px;
+	}
+}
+
+.media-library-settings__dialog {
+	width: 320px;
+	max-width: calc(100vw - 32px);
+	padding: 0;
+	border: 1px solid #c3c4c7;
+	border-radius: 4px;
+	box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+	background: #fff;
+	color: #3c434a;
+	font-size: 13px;
+}
+
+.media-library-settings__dialog::backdrop {
+	background: rgba(0, 0, 0, 0.5);
+}
+
+.media-library-settings__header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 8px;
+	padding: 8px 8px 8px 16px;
+	border-bottom: 1px solid #dcdcde;
+}
+
+.media-library-settings__header h2 {
+	margin: 0;
+	font-size: 14px;
+	line-height: 1.4;
+}
+
+.media-library-settings__body {
+	padding: 16px;
+}
+
+.media-library-settings__field {
+	margin: 0;
+}
+
+/* The padding aligns the text with the label, past the checkbox. */
+.media-library-settings__body .description {
+	margin: 4px 0 0;
+	padding-left: 1.25rem;
+	color: #646970;
+}
+
+.media-library-settings__status {
+	margin: 12px 0 0;
+	min-height: 2.4em;
+	color: #3c434a;
+}
+
+.wp-core-ui .media-library-settings__close.button {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 32px;
+	border: none;
+}
+
+.wp-core-ui .media-library-settings__close.button .dashicons {
+	line-height: 1;
+}
+
+/**
  * Attachments
  */
 .wp-core-ui .attachments {
@@ -1361,6 +1458,11 @@ select#media-attachment-filters ~ select#media-attachment-date-filters {
 
 .more-loaded .attachment:not(.found-media) {
 	background: #dcdcde;
+}
+
+/* Kept in the DOM when infinite scrolling is turned back on, so it can be reused. */
+.attachments-browser:not(.has-load-more) .load-more-wrapper {
+	display: none;
 }
 
 .load-more-wrapper {
