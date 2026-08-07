@@ -194,7 +194,7 @@ function check_comment( $author, $email, $url, $comment, $user_ip, $user_agent, 
 			 *                                 originated from, or 0 if it came from elsewhere.
 			 * @param string $url              The URL the pingback was sent from.
 			 */
-			return (bool) apply_filters( 'auto_approve_pingback', $approve_pingback, $source_id, $url );
+			return (bool) apply_filters( 'wp_auto_approve_pingback', $approve_pingback, $source_id, $url );
 		} else {
 			return false;
 		}
