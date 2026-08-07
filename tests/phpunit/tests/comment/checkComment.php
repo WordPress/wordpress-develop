@@ -373,6 +373,33 @@ class Tests_Comment_CheckComment extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure the `wp_auto_approve_pingback` filter does not receive a post ID for off-site pings.
+	 *
+	 * @ticket 65016
+	 */
+	public function test_auto_approve_pingback_should_receive_the_post_id_zero_for_off_site_pings() {
+		update_option( 'comment_previously_approved', '1' );
+
+		$post_permalink = get_permalink( self::factory()->post->create() );
+		$source_url     = str_replace( home_url( '/' ), 'http://wordpress.org/', $post_permalink );
+
+		$observed = null;
+		add_filter(
+			'wp_auto_approve_pingback',
+			static function ( $approve, $source_id ) use ( &$observed ) {
+				$observed = $source_id;
+				return $approve;
+			},
+			10,
+			2
+		);
+
+		check_comment( 'Site Title', '', $source_url, 'Excerpt.', '192.168.0.1', '', 'pingback' );
+
+		$this->assertSame( 0, $observed );
+	}
+
+	/**
 	 * Data provider.
 	 *
 	 * @return array[]
