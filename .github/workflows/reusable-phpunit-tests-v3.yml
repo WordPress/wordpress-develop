@@ -82,6 +82,11 @@ on:
         required: false
         type: string
         default: ''
+      wordpress-build-artifact:
+        description: 'The name of a same-workflow artifact containing the pre-built WordPress assets. Optional: callers that omit it build per job.'
+        required: false
+        type: string
+        default: ''
     secrets:
       CODECOV_TOKEN:
         description: 'The Codecov token required for uploading reports.'
@@ -134,6 +139,31 @@ jobs:
     permissions:
       contents: read
 
+    env:
+      WP_DB_PASSWORD: password
+      WP_DB_DATABASE: wordpress_develop_tests
+
+    services:
+      mysql:
+        image: ${{ inputs.db-type }}:${{ inputs.db-version }}
+        env:
+          MYSQL_ROOT_PASSWORD: ${{ env.WP_DB_PASSWORD }}
+          MYSQL_DATABASE: ${{ env.WP_DB_DATABASE }}
+          MARIADB_ROOT_PASSWORD: ${{ env.WP_DB_PASSWORD }}
+          MARIADB_DATABASE: ${{ env.WP_DB_DATABASE }}
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="${{ inputs.db-type == 'mariadb' && contains(fromJSON('["5.5", "10.0", "10.1", "10.2", "10.3"]'), inputs.db-version) && 'mysqladmin ping -h localhost' || inputs.db-type == 'mariadb' && 'mariadb-admin ping -h localhost' || 'mysqladmin ping -h localhost' }}"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=10
+          --health-start-period=60s
+      memcached:
+        image: ${{ inputs.memcached && 'memcached' || 'alpine' }}
+        ports:
+          - 11211:11211
+
     steps:
       - name: Configure environment variables
         run: |
@@ -149,7 +179,7 @@ jobs:
       # Branches >= 5.9 call this workflow at @trunk without the producer job, so they
       # pass no artifact. They skip this step and fall back to a per-job download.
       - name: Download prepared Gutenberg build
-        if: inputs.gutenberg-artifact != ''
+        if: inputs.gutenberg-artifact != '' && inputs.wordpress-build-artifact == ''
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           # Without a run ID, this action reads only from the caller's current workflow run.
@@ -158,10 +188,26 @@ jobs:
           digest-mismatch: error
 
       - name: Set up Node.js
+        if: inputs.wordpress-build-artifact == ''
         uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
         with:
           node-version-file: '.nvmrc'
           cache: npm
+
+      - name: Download WordPress build
+        if: inputs.wordpress-build-artifact != ''
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: ${{ inputs.wordpress-build-artifact }}
+          path: /tmp/wordpress-build
+          digest-mismatch: error
+
+      - name: Apply WordPress build
+        if: inputs.wordpress-build-artifact != ''
+        run: |
+          echo "Files included in build artifact:"
+          tar -tzf /tmp/wordpress-build/wordpress-build.tar.gz
+          tar -xzf /tmp/wordpress-build/wordpress-build.tar.gz
 
       ##
       # This allows Composer dependencies to be installed using a single step.
@@ -174,7 +220,17 @@ jobs:
         uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
         with:
           php-version: '${{ inputs.php }}'
+          extensions: "gd, opcache, mysqli, zip, exif, intl, mbstring, xml, xsl, imagick, xdebug${{ inputs.memcached && ', memcached' || '' }}"
           coverage: none
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get install -y --no-install-recommends ghostscript libheif1 libheif-plugin-aomenc libheif-plugin-aomdec libavif16 locales
+          # Generate the locales used by WordPress tests.
+          sudo locale-gen ru_RU.UTF-8 fr_FR.UTF-8 de_DE.UTF-8 es_ES.UTF-8 ja_JP.UTF-8
+          # Allow PDF processing; Ubuntu disables this in the default ImageMagick policy for security.
+          sudo find /etc/ImageMagick* -name policy.xml \
+            -exec sed -i 's@rights="none" pattern="PDF"@rights="read|write" pattern="PDF"@' {} +
 
       # Since Composer dependencies are installed using `composer update` and no lock file is in version control,
       # passing a custom cache suffix ensures that the cache is flushed at least once per week.
@@ -184,9 +240,11 @@ jobs:
           custom-cache-suffix: $(/bin/date -u --date='last Mon' "+%F")
 
       - name: Install npm dependencies
+        if: inputs.wordpress-build-artifact == ''
         run: npm ci
 
       - name: Build WordPress
+        if: inputs.wordpress-build-artifact == ''
         run: npm run build:dev
         env:
           # The producer resolved this once. Matrix jobs must not re-resolve mutable GHCR tags.
@@ -201,45 +259,16 @@ jobs:
           composer --version
           locale -a
 
-      - name: Docker debug information
+      - name: Set up test configuration
         run: |
-          docker -v
-
-      - name: Pull Docker images (with retry)
-        run: |
-          for attempt in 1 2 3; do
-            if npm run env:pull; then
-              break
-            fi
-
-            if [ "$attempt" -eq 3 ]; then
-              echo "npm run env:pull failed after $attempt attempts."
-              exit 1
-            fi
-
-            echo "npm run env:pull failed (attempt $attempt); retrying..."
-            sleep $(( attempt * 10 ))
-          done
-
-      - name: Start Docker environment
-        run: |
-          npm run env:start
-
-      - name: Log running Docker containers
-        run: docker ps -a
-
-      - name: WordPress Docker container debug information
-        run: |
-          docker compose run --rm mysql "${LOCAL_DB_CMD}" --version
-          docker compose run --rm php php --version
-          docker compose run --rm php php -m
-          docker compose run --rm php php -i
-          docker compose run --rm php locale -a
-        env:
-          LOCAL_DB_CMD: ${{ env.LOCAL_DB_TYPE == 'mariadb' && contains( fromJSON('["5.5", "10.0", "10.1", "10.2", "10.3"]'), env.LOCAL_DB_VERSION ) && 'mysql' || env.LOCAL_DB_TYPE }}
-
-      - name: Install WordPress
-        run: npm run env:install
+          sed \
+            -e "s/youremptytestdbnamehere/${WP_DB_DATABASE}/" \
+            -e 's/yourusernamehere/root/' \
+            -e "s/yourpasswordhere/${WP_DB_PASSWORD}/" \
+            -e 's/localhost/127.0.0.1/' \
+            -e "s/'WP_TESTS_DOMAIN', 'example.org'/'WP_TESTS_DOMAIN', '${LOCAL_WP_TESTS_DOMAIN}'/" \
+            wp-tests-config-sample.php > wp-tests-config.php
+          echo "define( 'FS_METHOD', 'direct' );" >> wp-tests-config.php
 
       # Installs PCOV as the code coverage driver for the PHPUnit run below.
       #
@@ -255,27 +284,25 @@ jobs:
       - name: Install PCOV coverage driver
         if: ${{ inputs.coverage-report }}
         run: |
-          docker compose exec -T -u 0 php sh -c '
-            pecl install --force pcov-1.0.12 &&
-            docker-php-ext-enable pcov &&
-            {
-              echo "pcov.enabled=1"
-              echo "pcov.directory=/var/www/src"
-              echo "pcov.initial.files=10000"
-            } >> /usr/local/etc/php/conf.d/docker-php-ext-pcov.ini &&
-            php -m | grep -i pcov
-          '
+          pecl install --force pcov-1.0.12
+          PHP_INI_SCAN_DIR=$(php -r 'echo PHP_CONFIG_FILE_SCAN_DIR;')
+          {
+            echo "extension=pcov"
+            echo "pcov.enabled=1"
+            echo "pcov.directory=${GITHUB_WORKSPACE}/src"
+            echo "pcov.initial.files=10000"
+          } > "$PHP_INI_SCAN_DIR/pcov.ini"
+          php -m | grep -i pcov
 
       - name: Run external HTTP tests
         if: ${{ ! inputs.multisite && ! inputs.phpunit-test-groups && ! inputs.coverage-report }}
         continue-on-error: ${{ inputs.allow-errors }}
-        run: node ./tools/local-env/scripts/docker.js run php ./vendor/bin/phpunit --verbose -c "${PHPUNIT_CONFIG}" --group external-http
+        run: ./vendor/bin/phpunit --verbose -c "${PHPUNIT_CONFIG}" --group external-http
 
       - name: Run PHPUnit tests${{ inputs.phpunit-test-groups && format( ' ({0} groups)', inputs.phpunit-test-groups ) || '' }}${{ inputs.coverage-report && ' with coverage report' || '' }}
         continue-on-error: ${{ inputs.allow-errors }}
         run: |
-          node ./tools/local-env/scripts/docker.js ${{ inputs.coverage-report && 'exec' || 'run' }} \
-            php ./vendor/bin/phpunit \
+          ./vendor/bin/phpunit \
             --verbose \
             -c "${PHPUNIT_CONFIG}" \
             ${{ inputs.phpunit-test-groups && '--group "${TEST_GROUPS}"' || '' }} \
@@ -287,18 +314,18 @@ jobs:
       - name: Run AJAX tests
         if: ${{ ! inputs.phpunit-test-groups && ! inputs.coverage-report }}
         continue-on-error: ${{ inputs.allow-errors }}
-        run: node ./tools/local-env/scripts/docker.js run php ./vendor/bin/phpunit --verbose -c "${PHPUNIT_CONFIG}" --group ajax
+        run: ./vendor/bin/phpunit --verbose -c "${PHPUNIT_CONFIG}" --group ajax
 
       - name: Run ms-files tests as a multisite install
         if: ${{ inputs.multisite && ! inputs.phpunit-test-groups && ! inputs.coverage-report }}
         continue-on-error: ${{ inputs.allow-errors }}
-        run: node ./tools/local-env/scripts/docker.js run php ./vendor/bin/phpunit --verbose -c "${PHPUNIT_CONFIG}" --group ms-files
+        run: ./vendor/bin/phpunit --verbose -c "${PHPUNIT_CONFIG}" --group ms-files
 
       # __fakegroup__ is excluded to force PHPUnit to ignore the <exclude> settings in phpunit.xml.dist.
       - name: Run (Xdebug) tests
         if: ${{ ! inputs.phpunit-test-groups && ! inputs.coverage-report }}
         continue-on-error: ${{ inputs.allow-errors }}
-        run: LOCAL_PHP_XDEBUG=true node ./tools/local-env/scripts/docker.js run php ./vendor/bin/phpunit -v --group xdebug --exclude-group __fakegroup__
+        run: XDEBUG_MODE=develop,debug ./vendor/bin/phpunit -v --group xdebug --exclude-group __fakegroup__
 
       - name: Upload test coverage report to Codecov
         if: ${{ inputs.coverage-report }}
