@@ -77,7 +77,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 			</div>
 			<div class="column is-vertically-aligned-center is-right-padding-zero">
 				<div class="about__image">
-					<img src="./images/about-feature-01.webp" alt="" height="436" width="436" />
+					<img src="./images/about-feature-01.webp" alt="" height="900" width="900" />
 				</div>
 			</div>
 		</div>
