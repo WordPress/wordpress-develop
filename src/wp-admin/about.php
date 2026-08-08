@@ -34,6 +34,13 @@ $release_page_url = sprintf(
 	sanitize_title( $display_major_version )
 );
 
+list( $display_version ) = explode( '-', get_bloginfo( 'version' ) );
+$badge_alt_text          = sprintf(
+	/* translators: %s: Version number. */
+	__( 'WordPress %s' ),
+	$display_version
+);
+
 require_once ABSPATH . 'wp-admin/admin-header.php';
 ?>
 	<div class="wrap about__container">
@@ -77,7 +84,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 			</div>
 			<div class="column is-vertically-aligned-center is-right-padding-zero">
 				<div class="about__image">
-					<img src="./images/about-feature-01.webp" alt="" height="900" width="900" />
+					<img src="https://s.w.org/images/core/7.1/about-feature-01.webp" alt="" height="900" width="900" />
 				</div>
 			</div>
 		</div>
@@ -85,7 +92,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 		<div class="about__section has-2-columns">
 			<div class="column is-vertically-aligned-center is-left-padding-zero">
 				<div class="about__image">
-					<img src="./images/about-feature-02.webp" alt="" height="436" width="436" />
+					<img src="https://s.w.org/images/core/7.1/about-feature-02.webp" alt="" height="436" width="436" />
 				</div>
 			</div>
 			<div class="column is-vertically-aligned-center is-right-padding-zero">
@@ -102,12 +109,12 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 				<h3><?php _e( 'A new way to crop' ); ?></h3>
 				<p>
 					<strong><?php _e( 'One dedicated workflow for editing your images.' ); ?></strong><br />
-					<?php _e( 'A new media editor modal replaces the old inline cropping tool, bringing freeform and aspect-ratio cropping, flip, precise rotation, and metadata editing together in a single streamlined workflow. The familiar Crop button still gets you there, now opening a dedicated space to crop, rotate, and adjust images before publishing.' ); ?>
+					<?php _e( 'A new media editor modal replaces the previous inline cropping tool, bringing freeform and aspect-ratio cropping, flipping, precise rotation, and metadata editing together in a single streamlined workflow. The familiar Crop button still gets you there, now opening a dedicated space to crop, rotate, and adjust images before publishing.' ); ?>
 				</p>
 			</div>
 			<div class="column is-vertically-aligned-center is-right-padding-zero">
 				<div class="about__image">
-					<img src="./images/about-feature-03.webp" alt="" height="436" width="436" />
+					<img src="https://s.w.org/images/core/7.1/about-feature-03.webp" alt="" height="436" width="436" />
 				</div>
 			</div>
 		</div>
@@ -115,7 +122,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 		<div class="about__section has-2-columns">
 			<div class="column is-vertically-aligned-center is-left-padding-zero">
 				<div class="about__image">
-					<img src="./images/about-feature-04.webp" alt="" height="436" width="436" />
+					<img src="https://s.w.org/images/core/7.1/about-feature-04.webp" alt="" height="436" width="436" />
 				</div>
 			</div>
 			<div class="column is-vertically-aligned-center is-right-padding-zero">
@@ -177,7 +184,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 
 		<div class="about__section has-3-columns">
 			<div class="column about__image is-vertically-aligned-top is-left-padding-zero">
-				<img src="<?php echo esc_url( admin_url( 'images/about-release-badge.svg?ver=7.1' ) ); ?>" alt="" height="280" width="280" />
+				<img src="https://s.w.org/images/core/7.1/about-release-badge.svg?ver=7.1" alt="<?php echo esc_attr( $badge_alt_text ); ?>" height="280" width="280" />
 			</div>
 			<div class="column is-vertically-aligned-center is-right-padding-zero" style="grid-column-end:span 2">
 				<h3>
