@@ -9,6 +9,9 @@ src/wp-content/themes/**/*
 # Ignore WordPress block files.
 src/wp-includes/blocks/**/*
 
+# Ignore admin color schemes auto generated files.
+src/wp-admin/css/colors/*/*.css
+
 # Ignore WordPress included dist files.
 src/wp-includes/css/dist/**/*
 
