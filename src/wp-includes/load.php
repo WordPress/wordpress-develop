@@ -1461,12 +1461,20 @@ function is_multisite() {
  * Converts a value to non-negative integer.
  *
  * @since 2.5.0
+ * @since 7.2.0 The `int` return type was added.
  *
  * @param mixed $maybeint Data you wish to have converted to a non-negative integer.
  * @return int A non-negative integer.
  */
-function absint( $maybeint ) {
-	return abs( (int) $maybeint );
+function absint( $maybeint ): int {
+	$maybeint = (int) $maybeint;
+
+	if ( PHP_INT_MIN === $maybeint ) {
+		// `abs( PHP_INT_MIN )` overflows to a float, as `PHP_INT_MAX` is one less than `-PHP_INT_MIN`.
+		return PHP_INT_MAX;
+	}
+
+	return abs( $maybeint );
 }
 
 /**
