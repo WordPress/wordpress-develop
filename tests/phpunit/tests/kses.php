@@ -1840,6 +1840,18 @@ EOF;
 				'css'      => 'marker-end: url(#arrowEnd)',
 				'expected' => 'marker-end: url(#arrowEnd)',
 			),
+			array(
+				'css'      => 'marker-mid: url(#arrowMid)',
+				'expected' => 'marker-mid: url(#arrowMid)',
+			),
+			array(
+				'css'      => 'marker: url(#marker1)',
+				'expected' => 'marker: url(#marker1)',
+			),
+			array(
+				'css'      => 'stroke: url(#strokeGradient)',
+				'expected' => 'stroke: url(#strokeGradient)',
+			),
 			// Disallow javascript: URLs in SVG url() references (security regression).
 			array(
 				'css'      => 'fill: url(javascript:alert(1))',
