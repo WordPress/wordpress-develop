@@ -12,13 +12,6 @@ require_once __DIR__ . '/admin.php';
 // Used in the HTML title tag.
 $title = __( 'Privacy' );
 
-list( $display_version ) = explode( '-', get_bloginfo( 'version' ) );
-$header_alt_text         = sprintf(
-	/* translators: %s: Version number. */
-	__( 'WordPress %s' ),
-	$display_version
-);
-
 require_once ABSPATH . 'wp-admin/admin-header.php';
 ?>
 <div class="wrap about__container">
