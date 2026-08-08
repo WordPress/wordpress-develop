@@ -15,8 +15,8 @@ src/wp-admin/css/colors/*/*.css
 # Ignore WordPress included dist files.
 src/wp-includes/css/dist/**/*
 
-# Ignore WordPress TinyMCE files.
-src/wp-includes/js/tinymce/**/*
+# Ignore files copied to wp-includes js.
+src/wp-includes/js/**/*
 
 # Ignore WordPress JS vendor files.
 src/js/_enqueues/vendor/**/*
