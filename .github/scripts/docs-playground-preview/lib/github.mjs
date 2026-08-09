@@ -201,6 +201,20 @@ export class GitHubApi {
 		);
 	}
 
+	listActionCaches( ref ) {
+		return this.pages(
+			`/repos/${ this.repository }/actions/caches?${ query( { ref } ) }`,
+			'actions_caches'
+		);
+	}
+
+	deleteActionCache( cacheId ) {
+		return this.request(
+			`/repos/${ this.repository }/actions/caches/${ cacheId }`,
+			{ method: 'DELETE' }
+		);
+	}
+
 	async findPreviewComment( pullRequestNumber ) {
 		const comments = await this.pages(
 			`/repos/${ this.repository }/issues/${ pullRequestNumber }/comments`

@@ -168,6 +168,9 @@ test( 'release operations keep immutable names and bytes', async () => {
 			if ( options.method === 'DELETE' ) {
 				return response( null, 204 );
 			}
+			if ( url.includes( '/actions/caches?' ) ) {
+				return response( { actions_caches: [] } );
+			}
 			return response( { id: 9, name: 'snapshot.zip' } );
 		}
 	);
@@ -179,10 +182,14 @@ test( 'release operations keep immutable names and bytes', async () => {
 		'application/zip'
 	);
 	await api.deleteReleaseAsset( 10 );
+	await api.listActionCaches( 'refs/pull/123/merge' );
+	await api.deleteActionCache( 11 );
 	assert.equal( calls[ 0 ].options.json.tag_name, RELEASE_TAG );
 	assert.match( calls[ 1 ].url, /^https:\/\/uploads\.github\.com/ );
 	assert.equal( calls[ 1 ].options.body.toString(), 'snapshot' );
 	assert.equal( calls[ 2 ].options.method, 'DELETE' );
+	assert.match( calls[ 3 ].url, /ref=refs%2Fpull%2F123%2Fmerge/ );
+	assert.equal( calls[ 4 ].options.method, 'DELETE' );
 } );
 
 test( 'only the marked bot comment is updated', async () => {
