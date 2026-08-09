@@ -18,6 +18,7 @@ wp-tests-config.php
 /tests/performance/**/*.test.results.json
 /src/.wp-tests-version
 /node_modules
+/.github/docs-playground-preview/node_modules
 /npm-debug.log
 /build
 /gutenberg
