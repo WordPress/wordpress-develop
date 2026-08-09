@@ -374,11 +374,11 @@ function wp_print_media_templates() {
 			</div>
 			<div class="media-library-settings__body">
 				<p class="media-library-settings__field">
+					<input type="checkbox" class="media-library-settings__checkbox"
+						id="{{ data.infiniteScrollingId }}"
+						aria-describedby="{{ data.infiniteScrollingId }}-description" autofocus
+						<# if ( data.infiniteScrolling ) { #>checked<# } #> />
 					<label for="{{ data.infiniteScrollingId }}">
-						<input type="checkbox" class="media-library-settings__checkbox"
-							id="{{ data.infiniteScrollingId }}"
-							aria-describedby="{{ data.infiniteScrollingId }}-description" autofocus
-							<# if ( data.infiniteScrolling ) { #>checked<# } #> />
 						<?php _e( 'Infinite scrolling' ); ?>
 					</label>
 				</p>
