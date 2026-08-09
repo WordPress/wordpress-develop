@@ -281,6 +281,32 @@ export function readPreviewCommentSource( body ) {
 	return match ? { repository: match[ 1 ], sha: match[ 2 ] } : null;
 }
 
+export function readPreviewCommentSuccess( body ) {
+	if ( typeof body !== 'string' ) {
+		return null;
+	}
+	const link = body.match(
+		/\[(?:Open Code Reference preview|Latest successful docs preview)\]\((https:\/\/playground\.wordpress\.net\/[^\s)]+)\)/
+	);
+	if ( ! link ) {
+		return null;
+	}
+	const previousSource = body.match(
+		/Latest successful docs preview\]\([^)]+\) — built from \[([0-9a-f]{40})\]\(https:\/\/github\.com\/([A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+)\/commit\/\1\)/
+	);
+	const source = previousSource
+		? { repository: previousSource[ 2 ], sha: previousSource[ 1 ] }
+		: readPreviewCommentSource( body );
+	if ( ! source ) {
+		return null;
+	}
+	return {
+		sourceRepository: source.repository,
+		sourceSha: source.sha,
+		publication: { playgroundUrl: link[ 1 ] },
+	};
+}
+
 export function renderPreviewComment( state ) {
 	if ( state.status === 'ready' ) {
 		const header = commentHeader( {

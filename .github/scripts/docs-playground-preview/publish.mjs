@@ -9,6 +9,7 @@ import {
 	assertLatestAuthorized,
 	createPublishedMetadata,
 	inspectHandoff,
+	readPreviewCommentSuccess,
 	renderPreviewComment,
 	validateCandidateFile,
 	validatePublicationContext,
@@ -152,7 +153,13 @@ async function runIndependently( operations, message ) {
 }
 
 async function reportFailure( session, excluded = new Set() ) {
-	const previous = await findPreviousPreview( session, excluded );
+	let previous = await findPreviousPreview( session, excluded );
+	if ( ! previous ) {
+		const comment = await session.api.findPreviewComment(
+			session.context.pullRequestNumber
+		);
+		previous = readPreviewCommentSuccess( comment?.body );
+	}
 	const body = renderPreviewComment( {
 		status: 'failed',
 		sourceRepository: session.context.sourceRepository,

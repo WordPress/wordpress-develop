@@ -9,6 +9,7 @@ import {
 	assertLatestAuthorized,
 	createPublishedMetadata,
 	inspectHandoff,
+	readPreviewCommentSuccess,
 	readPreviewCommentSource,
 	renderPreviewComment,
 	validateCandidateFile,
@@ -261,6 +262,11 @@ test( 'the sticky comment has ready, failed, stale, and expired states', () => {
 		repository: preview.sourceRepository,
 		sha,
 	} );
+	assert.deepEqual( readPreviewCommentSuccess( ready ), {
+		sourceRepository: preview.sourceRepository,
+		sourceSha: sha,
+		publication: { playgroundUrl: preview.publication.playgroundUrl },
+	} );
 	assert.equal( ready.match( /Open Code Reference preview/g ).length, 1 );
 
 	const failed = renderPreviewComment( {
@@ -273,6 +279,11 @@ test( 'the sticky comment has ready, failed, stale, and expired states', () => {
 	} );
 	assert.match( failed, /Latest attempt failed/ );
 	assert.equal( failed.match( /Latest successful docs preview/g ).length, 1 );
+	assert.deepEqual( readPreviewCommentSuccess( failed ), {
+		sourceRepository: preview.sourceRepository,
+		sourceSha: sha,
+		publication: { playgroundUrl: preview.publication.playgroundUrl },
+	} );
 
 	const stale = renderPreviewComment( {
 		status: 'stale',

@@ -5,7 +5,10 @@ import os from 'node:os';
 import path from 'node:path';
 import { test } from 'node:test';
 
-import { createPublishedMetadata } from '../lib/publisher.mjs';
+import {
+	createPublishedMetadata,
+	renderPreviewComment,
+} from '../lib/publisher.mjs';
 import {
 	PLAYGROUND_ORIGIN,
 	createReuseHandoff,
@@ -373,6 +376,60 @@ test( 'public delivery failure keeps the previous healthy preview', async () => 
 	);
 	assert.match( api.comments[ 0 ].body, /Latest successful docs preview/ );
 	assert.match( api.comments[ 0 ].body, new RegExp( 'c'.repeat( 40 ) ) );
+} );
+
+test( 'a proxy outage cannot remove the previous comment link', async () => {
+	const api = new FakeApi();
+	const oldBytes = Buffer.from( 'old snapshot' );
+	const oldBuild = buildMetadata( {
+		sourceSha: 'c'.repeat( 40 ),
+		workflowRunId: '300',
+		runUrl: `https://github.com/${ repository }/actions/runs/300`,
+		snapshotFilename: snapshotAssetName( {
+			pullRequestNumber: 123,
+			sourceSha: 'c'.repeat( 40 ),
+			workflowRunId: 300,
+			workflowRunAttempt: 1,
+		} ),
+		snapshotBytes: oldBytes.byteLength,
+		snapshotSha256: createHash( 'sha256' )
+			.update( oldBytes )
+			.digest( 'hex' ),
+	} );
+	const oldPreview = installPublishedPreview( api, oldBuild, oldBytes );
+	api.comments = [
+		{
+			id: 1,
+			body: renderPreviewComment( {
+				status: 'ready',
+				preview: oldPreview,
+				runUrl: oldBuild.runUrl,
+			} ),
+		},
+	];
+
+	const current = buildMetadata();
+	const directory = await handoffDirectory( current );
+	await assert.rejects(
+		publishPullRequest(
+			options( api, directory, {
+				fetchImplementation: publicFetch(
+					api,
+					new Set( [
+						oldBuild.snapshotFilename,
+						current.snapshotFilename,
+					] )
+				),
+			} )
+		),
+		/digest/
+	);
+	assert.match( api.comments[ 0 ].body, /Latest attempt failed/ );
+	assert.match( api.comments[ 0 ].body, /Latest successful docs preview/ );
+	assert.match( api.comments[ 0 ].body, new RegExp( 'c'.repeat( 40 ) ) );
+	assert.ok(
+		api.comments[ 0 ].body.includes( oldPreview.publication.playgroundUrl )
+	);
 } );
 
 test( 'a retry cannot delete a same-name preview it did not upload', async () => {
