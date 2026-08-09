@@ -32,7 +32,7 @@ foreach ( $post_types as $name => $post_type ) {
 	$counts[ $name ] = (int) wp_count_posts( $post_type )->publish;
 }
 
-$marker = array(
+$marker  = array(
 	'schemaVersion' => 1,
 	'stage'         => 'complete-import',
 	'counts'        => $counts,

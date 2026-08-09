@@ -23,7 +23,7 @@ update_option( 'active_plugins', $active_plugins );
 switch_theme( 'wporg-developer-2023' );
 update_option( 'permalink_structure', '/%year%/%monthnum%/%postname%/' );
 
-$ensure_page = static function( $slug, $title ) {
+$ensure_page = static function ( $slug, $title ) {
 	$page = get_page_by_path( $slug, OBJECT, 'page' );
 	if ( $page ) {
 		return $page->ID;
@@ -75,11 +75,14 @@ $reference_types = array(
 	'wp-parser-method',
 	'wp-parser-source-file',
 );
-$placeholders = implode( ',', array_fill( 0, count( $reference_types ), '%s' ) );
-$count        = $wpdb->get_var(
+$count           = $wpdb->get_var(
 	$wpdb->prepare(
-		"SELECT COUNT(*) FROM {$wpdb->posts} WHERE post_type IN ({$placeholders})",
-		$reference_types
+		"SELECT COUNT(*) FROM {$wpdb->posts} WHERE post_type IN ( %s, %s, %s, %s, %s )",
+		$reference_types[0],
+		$reference_types[1],
+		$reference_types[2],
+		$reference_types[3],
+		$reference_types[4]
 	)
 );
 if ( 0 !== (int) $count ) {
