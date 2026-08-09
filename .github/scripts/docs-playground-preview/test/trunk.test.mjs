@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
+import { readFile } from 'node:fs/promises';
 import { test } from 'node:test';
 
 import { PLAYGROUND_ORIGIN, corsProxyUrl } from '../lib/publication.mjs';
@@ -120,6 +121,15 @@ test( 'the stable trunk entry point uses the fixed public Blueprint asset', () =
 		launch.searchParams.get( 'blueprint-url' ),
 		corsProxyUrl( blueprintUrl )
 	);
+} );
+
+test( 'the repository README links the stable trunk entry point', async () => {
+	const readme = await readFile(
+		new URL( '../../../../README.md', import.meta.url ),
+		'utf8'
+	);
+	assert.match( readme, /latest successful Core Code Reference preview/ );
+	assert.ok( readme.includes( trunkPlaygroundUrl( repository ) ) );
 } );
 
 test( 'trunk publication binds the exact terminal push and latest head', () => {

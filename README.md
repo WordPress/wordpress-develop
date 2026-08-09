@@ -2,6 +2,8 @@
 
 Welcome to the WordPress development repository! Please check out the [contributor handbook](https://make.wordpress.org/core/handbook/) for information about how to open bug reports, contribute patches, test changes, write documentation, or get involved in any way you can.
 
+[Open the latest successful Core Code Reference preview in WordPress Playground](https://playground.wordpress.net/?blueprint-url=https%3A%2F%2Fwordpress-playground-cors-proxy.net%2Fhttps%3A%2F%2Fraw.githubusercontent.com%2FWordPress%2Fwordpress-develop%2Fdocs-preview-code-reference%2Fcode-reference-trunk.json).
+
 * [Getting Started](#getting-started)
 * [Credentials](#credentials)
 
