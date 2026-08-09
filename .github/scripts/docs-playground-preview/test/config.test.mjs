@@ -42,6 +42,18 @@ test( 'the checked-in dependency manifest is valid', async () => {
 		packageManifest.dependencies[ '@wp-playground/cli' ],
 		dependencies.playground.cliVersion
 	);
+	assert.equal(
+		packageManifest.dependencies.yarn,
+		dependencies.toolchain.yarnVersion
+	);
+	assert.equal(
+		packageManifest.dependencies[ '@wordpress/scripts' ],
+		dependencies.toolchain.wpScriptsVersion
+	);
+	assert.equal(
+		packageManifest.dependencies[ '@wordpress/i18n' ],
+		dependencies.toolchain.wpI18nVersion
+	);
 } );
 
 test( 'dependency repositories and commits are fixed', async () => {
@@ -61,7 +73,14 @@ test( 'dependency repositories and commits are fixed', async () => {
 } );
 
 test( 'toolchain versions are exact and required', async () => {
-	for ( const name of [ 'nodeVersion', 'npmVersion', 'composerVersion' ] ) {
+	for ( const name of [
+		'nodeVersion',
+		'npmVersion',
+		'composerVersion',
+		'yarnVersion',
+		'wpScriptsVersion',
+		'wpI18nVersion',
+	] ) {
 		const dependencies = await manifest();
 		delete dependencies.toolchain[ name ];
 		assert.throws(

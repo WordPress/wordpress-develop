@@ -4,7 +4,10 @@
 	"toolchain": {
 		"nodeVersion": "20.20.2",
 		"npmVersion": "10.8.2",
-		"composerVersion": "2.8.12"
+		"composerVersion": "2.8.12",
+		"yarnVersion": "1.22.22",
+		"wpScriptsVersion": "32.6.0",
+		"wpI18nVersion": "6.24.0"
 	},
 	"playground": {
 		"cliVersion": "3.1.48",

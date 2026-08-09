@@ -49,7 +49,14 @@ export function validateDependencies( dependencies ) {
 	);
 	assertObject( dependencies.toolchain, 'toolchain' );
 	assertObject( dependencies.playground, 'playground' );
-	for ( const name of [ 'nodeVersion', 'npmVersion', 'composerVersion' ] ) {
+	for ( const name of [
+		'nodeVersion',
+		'npmVersion',
+		'composerVersion',
+		'yarnVersion',
+		'wpScriptsVersion',
+		'wpI18nVersion',
+	] ) {
 		if ( ! VERSION.test( dependencies.toolchain[ name ] ) ) {
 			throw new Error( `toolchain.${ name } must be an exact version.` );
 		}
