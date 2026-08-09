@@ -1,6 +1,8 @@
 /**
  * These styles should be loaded by the Block Editor only
  */
+
+ /* stylelint-disable no-duplicate-selectors -- The built file will contain duplicate selectors. */
 @import "01-settings/fonts";
 @import "01-settings/global";
 
@@ -25,3 +27,4 @@ strong {
 @import "06-components/editor";
 
 @import "07-utilities/color-palette";
+/* stylelint-enable */
