@@ -137,6 +137,7 @@ Andreas Hecht in https://www.jotform.com/blog/css-perfect-print-stylesheet-98272
 		content: "";
 	}
 
+	/* stylelint-disable-next-line selector-pseudo-class-no-unknown -- :local-link is still experimental. */
 	a:not(:local-link):after {
 		content: " < " attr(href) "> ";
 	}
