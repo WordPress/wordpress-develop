@@ -201,7 +201,9 @@ function publicFetch( api, options = {} ) {
 			const reference = parts[ 2 ];
 			const commitSha =
 				reference === 'docs-preview-code-reference'
-					? api.refSha
+					? options.staleStablePointer
+						? api.previousRefSha
+						: api.refSha
 					: reference;
 			api.events.push(
 				`fetch:${
@@ -355,6 +357,7 @@ test( 'the stable pointer moves only after every candidate is public', async () 
 	const pointerRead = api.events.lastIndexOf(
 		`git:read-ref:${ 'f'.repeat( 40 ) }`
 	);
+	const stableFetch = api.events.lastIndexOf( 'fetch:stable-pointer' );
 	const firstDelete = api.events.findIndex( ( event ) =>
 		event.startsWith( 'delete:' )
 	);
@@ -362,8 +365,29 @@ test( 'the stable pointer moves only after every candidate is public', async () 
 		candidateFetch > -1 &&
 			candidateFetch < pointerMove &&
 			pointerMove < pointerRead &&
-			pointerRead < firstDelete
+			pointerRead < stableFetch &&
+			stableFetch < firstDelete
 	);
+} );
+
+test( 'stale stable delivery retains both snapshot generations', async () => {
+	const api = new FakeApi();
+	installPrevious( api );
+	const directory = await handoffDirectory( buildMetadata() );
+	await assert.rejects(
+		publishTrunk(
+			options( api, directory, {
+				fetchImplementation: publicFetch( api, {
+					staleStablePointer: true,
+				} ),
+			} )
+		),
+		/does not identify the candidate/
+	);
+	assert.equal( api.refSha, 'f'.repeat( 40 ) );
+	assert.ok( api.assets.some( ( asset ) => asset.id === 1 ) );
+	assert.ok( api.assets.some( ( asset ) => asset.id === 10 ) );
+	assert.deepEqual( api.deleted, [] );
 } );
 
 test( 'public candidate failure leaves the previous pointer and snapshot intact', async () => {

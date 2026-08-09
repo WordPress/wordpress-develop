@@ -20,6 +20,7 @@ import {
 	createTrunkPublishedMetadata,
 	inspectTrunkHandoff,
 	trunkBlueprintCommitUrl,
+	trunkStableBlueprintUrl,
 	validatePublicBlueprint,
 	validatePublishedTrunkMetadata,
 	validateTrunkPublicationContext,
@@ -271,6 +272,11 @@ async function publishCandidate( session, metadata, uploaded, transaction ) {
 		blueprint
 	);
 	await moveStablePointer( session, previousRef, pointerCommit, transaction );
+	await validatePublicBlueprint(
+		trunkStableBlueprintUrl( session.repository ),
+		blueprint,
+		session.fetchImplementation
+	);
 	await cleanupOldTrunkAssets(
 		session,
 		release,
