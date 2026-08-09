@@ -1059,7 +1059,7 @@ select#media-attachment-filters ~ select#media-attachment-date-filters {
 /* The padding aligns the text with the label, past the checkbox. */
 .media-library-settings__body .description {
 	margin: 4px 0 0;
-	padding-left: 1.25rem;
+	padding-left: 1.5rem;
 	color: #646970;
 }
 
@@ -3021,6 +3021,12 @@ select#media-attachment-filters ~ select#media-attachment-date-filters {
 		bottom: 0;
 		opacity: 0.6;
 	}
+
+	/* The padding aligns the text with the label, past the checkbox. */
+	.media-library-settings__body .description {
+		padding-left: 2.125rem;
+	}
+
 }
 
 /* Responsive on portrait and landscape */
