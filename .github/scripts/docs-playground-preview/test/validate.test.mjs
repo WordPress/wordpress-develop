@@ -3,6 +3,7 @@ import { test } from 'node:test';
 
 import {
 	createValidationBlueprint,
+	createValidationServerArguments,
 	inspectSnapshotBehavior,
 	validateSnapshot,
 } from '../lib/validate.mjs';
@@ -116,6 +117,23 @@ test( 'validation Blueprint boots the exact snapshot without login or networking
 			zipFile: { resource: 'bundled', path: 'snapshot.zip' },
 			extractToPath: '/',
 		},
+	] );
+} );
+
+test( 'validation server uses the pinned Playground worker default', () => {
+	const args = createValidationServerArguments(
+		inputs(),
+		'/tmp/validation-blueprint.json',
+		'http://127.0.0.1:9400',
+		9400
+	);
+	assert.equal( args.includes( '--workers' ), false );
+	assert.deepEqual( args.slice( 0, 5 ), [
+		'server',
+		'--php',
+		'8.4',
+		'--wp',
+		'7.2-beta1',
 	] );
 } );
 

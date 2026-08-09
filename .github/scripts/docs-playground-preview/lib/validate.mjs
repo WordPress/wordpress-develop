@@ -62,6 +62,30 @@ function startServer( command, args ) {
 	return { child, closed, output: () => output };
 }
 
+export function createValidationServerArguments(
+	inputs,
+	blueprint,
+	baseUrl,
+	port
+) {
+	return [
+		'server',
+		'--php',
+		inputs.dependencies.playground.phpVersion,
+		'--wp',
+		inputs.wordpress.version,
+		'--blueprint',
+		blueprint,
+		'--blueprint-may-read-adjacent-files',
+		'--site-url',
+		baseUrl,
+		'--port',
+		String( port ),
+		'--verbosity',
+		'normal',
+	];
+}
+
 async function stopServer( server ) {
 	if ( server.child.exitCode !== null || server.child.signalCode !== null ) {
 		return;
@@ -119,24 +143,10 @@ async function withPlaygroundServer( inputs, options, inspect ) {
 	);
 	const port = await availablePort();
 	const baseUrl = `http://127.0.0.1:${ port }`;
-	const server = startServer( options.playgroundCli, [
-		'server',
-		'--php',
-		inputs.dependencies.playground.phpVersion,
-		'--wp',
-		inputs.wordpress.version,
-		'--blueprint',
-		blueprint,
-		'--blueprint-may-read-adjacent-files',
-		'--site-url',
-		baseUrl,
-		'--port',
-		String( port ),
-		'--workers',
-		'1',
-		'--verbosity',
-		'normal',
-	] );
+	const server = startServer(
+		options.playgroundCli,
+		createValidationServerArguments( inputs, blueprint, baseUrl, port )
+	);
 	try {
 		await waitForBoot( baseUrl, server, options.fetchImplementation );
 		return await inspect( baseUrl );
