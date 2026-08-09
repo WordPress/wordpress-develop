@@ -810,6 +810,22 @@ class WP_Theme_JSON {
 	}
 
 	/**
+	 * Returns the base a viewport breakpoint size is measured against.
+	 *
+	 * Media queries resolve `em` and `rem` against the initial font size, so both
+	 * share a base and can be compared with each other. A `px` length cannot be
+	 * compared with either.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @param string $value Valid viewport breakpoint size.
+	 * @return string Either 'px' or 'font-relative'.
+	 */
+	private static function get_viewport_breakpoint_base( $value ) {
+		return str_ends_with( trim( $value ), 'px' ) ? 'px' : 'font-relative';
+	}
+
+	/**
 	 * Sanitizes and normalizes viewport breakpoint settings.
 	 *
 	 * Keeps only supported breakpoint keys, trims valid CSS lengths, and returns
@@ -817,6 +833,9 @@ class WP_Theme_JSON {
 	 * only one breakpoint is valid, it remains keyed by its configured state and
 	 * uses a single max-width media query. When `tablet` is not larger than
 	 * `mobile`, it is removed.
+	 *
+	 * `tablet` is also removed when the two breakpoints are measured against
+	 * different bases, since their order cannot be determined.
 	 *
 	 * @since 7.1.0
 	 *
@@ -836,6 +855,7 @@ class WP_Theme_JSON {
 				$breakpoints[ $breakpoint ] = array(
 					'value' => trim( $value ),
 					'px'    => $px,
+					'base'  => self::get_viewport_breakpoint_base( $value ),
 				);
 			}
 		}
@@ -851,7 +871,11 @@ class WP_Theme_JSON {
 
 		$sanitized = array( 'mobile' => $breakpoints['mobile']['value'] );
 
-		if ( isset( $breakpoints['tablet'] ) && $breakpoints['mobile']['px'] < $breakpoints['tablet']['px'] ) {
+		if (
+			isset( $breakpoints['tablet'] )
+			&& $breakpoints['mobile']['base'] === $breakpoints['tablet']['base']
+			&& $breakpoints['mobile']['px'] < $breakpoints['tablet']['px']
+		) {
 			$sanitized['tablet'] = $breakpoints['tablet']['value'];
 		}
 
