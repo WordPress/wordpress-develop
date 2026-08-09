@@ -1,19 +1,10 @@
 import assert from 'node:assert/strict';
-import {
-	mkdir,
-	mkdtemp,
-	open,
-	readFile,
-	writeFile,
-} from 'node:fs/promises';
+import { mkdir, mkdtemp, open, readFile, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { test } from 'node:test';
 
-import {
-	createFinalBlueprint,
-	packageFinalSnapshot,
-} from '../lib/final.mjs';
+import { createFinalBlueprint, packageFinalSnapshot } from '../lib/final.mjs';
 
 function inputs( cacheDirectory, snapshotBytes = 1024 ) {
 	return {
@@ -21,7 +12,8 @@ function inputs( cacheDirectory, snapshotBytes = 1024 ) {
 		wordpress: { version: '7.2-beta1' },
 		dependencies: {
 			playground: {
-				blueprintSchema: 'https://playground.wordpress.net/blueprint-schema.json',
+				blueprintSchema:
+					'https://playground.wordpress.net/blueprint-schema.json',
 				phpVersion: '8.4',
 			},
 			limits: { snapshotBytes },
@@ -43,14 +35,19 @@ test( 'the final Blueprint restores the base before the complete import', () => 
 			'writeFile',
 			'wp-cli',
 			'rmdir',
+			'writeFile',
 			'defineWpConfigConsts',
 		]
 	);
 	assert.equal( blueprint.steps[ 0 ].extractToPath, '/' );
 	assert.match( blueprint.steps[ 2 ].command, /parser import.+--quick/ );
 	assert.equal(
-		blueprint.steps.at( -2 ).path,
+		blueprint.steps.at( -3 ).path,
 		'/wordpress/wp-content/plugins/phpdoc-parser'
+	);
+	assert.equal(
+		blueprint.steps.at( -2 ).path,
+		'/wordpress/wp-content/mu-plugins/001-docs-preview-runtime.php'
 	);
 	assert.deepEqual( blueprint.steps.at( -1 ), {
 		step: 'defineWpConfigConsts',
@@ -65,7 +62,9 @@ test( 'the final Blueprint restores the base before the complete import', () => 
 } );
 
 async function fixture( snapshotBytes = 1024 ) {
-	const root = await mkdtemp( path.join( os.tmpdir(), 'docs-preview-final-' ) );
+	const root = await mkdtemp(
+		path.join( os.tmpdir(), 'docs-preview-final-' )
+	);
 	const cache = path.join( root, 'cache' );
 	await mkdir( cache );
 	await writeFile( path.join( cache, 'base.zip' ), 'base' );
@@ -92,15 +91,27 @@ test( 'final packaging returns publisher metadata for a bounded snapshot', async
 		referenceJson: current.referenceJson,
 		stagedSource: '/source',
 		playgroundCli: '/tools/wp-playground-cli',
+		provenance: {
+			sourceRepository: 'example/wordpress-develop',
+			sourceSha: 'a'.repeat( 40 ),
+			generationTimestamp: '2026-08-09T12:34:56.000Z',
+			runUrl: 'https://github.com/example/wordpress-develop/actions/runs/123',
+		},
 		runImplementation,
 	} );
 	assert.equal( snapshot.filename, 'snapshot.zip' );
 	assert.equal( snapshot.bytes, 8 );
 	assert.match( snapshot.sha256, /^[0-9a-f]{64}$/ );
 	assert.equal( invocation.command, '/tools/wp-playground-cli' );
-	assert.equal( invocation.args[ invocation.args.indexOf( '--mount' ) + 1 ], '/source:/tmp/docs-preview-source' );
+	assert.equal(
+		invocation.args[ invocation.args.indexOf( '--mount' ) + 1 ],
+		'/source:/tmp/docs-preview-source'
+	);
 	const blueprint = JSON.parse(
-		await readFile( path.join( current.root, 'work/final-blueprint.json' ), 'utf8' )
+		await readFile(
+			path.join( current.root, 'work/final-blueprint.json' ),
+			'utf8'
+		)
 	);
 	assert.equal( blueprint.steps[ 0 ].zipFile.path, 'base.zip' );
 } );
@@ -119,6 +130,12 @@ test( 'the 100 MiB snapshot boundary always fails closed', async () => {
 			referenceJson: current.referenceJson,
 			stagedSource: '/source',
 			playgroundCli: '/tools/wp-playground-cli',
+			provenance: {
+				sourceRepository: 'example/wordpress-develop',
+				sourceSha: 'a'.repeat( 40 ),
+				generationTimestamp: '2026-08-09T12:34:56.000Z',
+				runUrl: 'https://github.com/example/wordpress-develop/actions/runs/123',
+			},
 			runImplementation,
 		} ),
 		/exceeds 100 MiB/

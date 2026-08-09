@@ -4,6 +4,7 @@ import path from 'node:path';
 
 import { sha256File } from './files.mjs';
 import { run } from './process.mjs';
+import { renderRuntimePlugin } from './runtime.mjs';
 
 const LIBRARY_ROOT = path.dirname( fileURLToPath( import.meta.url ) );
 const PHP_ROOT = path.resolve( LIBRARY_ROOT, '../php' );
@@ -18,7 +19,8 @@ export function createFinalBlueprint( inputs ) {
 		meta: {
 			title: 'WordPress Core Code Reference preview',
 			author: 'WordPress',
-			description: 'Complete Core Code Reference imported into the cached site.',
+			description:
+				'Complete Core Code Reference imported into the cached site.',
 		},
 		preferredVersions: {
 			php: inputs.dependencies.playground.phpVersion,
@@ -41,7 +43,8 @@ export function createFinalBlueprint( inputs ) {
 			},
 			{
 				step: 'wp-cli',
-				command: 'wp parser import /tmp/reference.json --quick --user=1',
+				command:
+					'wp parser import /tmp/reference.json --quick --user=1',
 			},
 			{
 				step: 'writeFile',
@@ -55,6 +58,11 @@ export function createFinalBlueprint( inputs ) {
 			{
 				step: 'rmdir',
 				path: '/wordpress/wp-content/plugins/phpdoc-parser',
+			},
+			{
+				step: 'writeFile',
+				path: '/wordpress/wp-content/mu-plugins/001-docs-preview-runtime.php',
+				data: bundled( 'runtime.php' ),
 			},
 			{
 				step: 'defineWpConfigConsts',
@@ -77,11 +85,21 @@ export async function packageFinalSnapshot( inputs, options ) {
 	await rm( work, { recursive: true, force: true } );
 	await mkdir( work, { recursive: true } );
 	await mkdir( path.dirname( output ), { recursive: true } );
-	await copyFile( path.join( inputs.cacheDirectory, 'base.zip' ), path.join( work, 'base.zip' ) );
-	await copyFile( options.referenceJson, path.join( work, 'reference.json' ) );
+	await copyFile(
+		path.join( inputs.cacheDirectory, 'base.zip' ),
+		path.join( work, 'base.zip' )
+	);
+	await copyFile(
+		options.referenceJson,
+		path.join( work, 'reference.json' )
+	);
 	await copyFile(
 		path.join( PHP_ROOT, 'complete-import.php' ),
 		path.join( work, 'complete-import.php' )
+	);
+	await writeFile(
+		path.join( work, 'runtime.php' ),
+		renderRuntimePlugin( options.provenance )
 	);
 	const blueprint = path.join( work, 'final-blueprint.json' );
 	await writeFile(
@@ -100,7 +118,9 @@ export async function packageFinalSnapshot( inputs, options ) {
 			blueprint,
 			'--blueprint-may-read-adjacent-files',
 			'--mount',
-			`${ path.resolve( options.stagedSource ) }:/tmp/docs-preview-source`,
+			`${ path.resolve(
+				options.stagedSource
+			) }:/tmp/docs-preview-source`,
 			'--outfile',
 			output,
 			'--verbosity',
