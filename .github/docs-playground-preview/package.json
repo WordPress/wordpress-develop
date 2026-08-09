@@ -8,6 +8,7 @@
 		"node": "20.20.2"
 	},
 	"scripts": {
+		"build": "node ../scripts/docs-playground-preview/build.mjs",
 		"test": "node --test ../scripts/docs-playground-preview/test/*.test.mjs"
 	},
 	"dependencies": {
