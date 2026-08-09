@@ -40,9 +40,6 @@ jobs:
       WORKFLOW_RUN_ATTEMPT: ${{ github.run_attempt }}
       RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
       HANDOFF_DIRECTORY: ${{ github.workspace }}/handoff
-      RESOLVED_INPUTS: ${{ runner.temp }}/docs-preview-resolved-inputs.json
-      CACHE_ROOT: ${{ runner.temp }}/docs-preview-cache
-      WORK_ROOT: ${{ runner.temp }}/docs-preview-work
       SNAPSHOT_NAME: code-reference-pr-${{ github.event.pull_request.number }}-${{ github.event.pull_request.head.sha }}-${{ github.run_id }}-${{ github.run_attempt }}.zip
     steps:
       - name: Check out the exact pull-request head
@@ -97,9 +94,9 @@ jobs:
           --run-attempt "$WORKFLOW_RUN_ATTEMPT"
           --run-url "$RUN_URL"
           --runner-image ubuntu-24.04
-          --cache-root "$CACHE_ROOT"
-          --work-root "$WORK_ROOT"
-          --inputs-output "$RESOLVED_INPUTS"
+          --cache-root "$RUNNER_TEMP/docs-preview-cache"
+          --work-root "$RUNNER_TEMP/docs-preview-work"
+          --inputs-output "$RUNNER_TEMP/docs-preview-resolved-inputs.json"
           --metadata "$HANDOFF_DIRECTORY/build.json"
 
       - name: Restore the exact invariant site base
@@ -125,9 +122,9 @@ jobs:
           --run-attempt "$WORKFLOW_RUN_ATTEMPT"
           --run-url "$RUN_URL"
           --runner-image ubuntu-24.04
-          --cache-root "$CACHE_ROOT"
-          --work-root "$WORK_ROOT"
-          --resolved-inputs "$RESOLVED_INPUTS"
+          --cache-root "$RUNNER_TEMP/docs-preview-cache"
+          --work-root "$RUNNER_TEMP/docs-preview-work"
+          --resolved-inputs "$RUNNER_TEMP/docs-preview-resolved-inputs.json"
           --output "$HANDOFF_DIRECTORY/$SNAPSHOT_NAME"
           --metadata "$HANDOFF_DIRECTORY/build.json"
 
@@ -161,9 +158,6 @@ jobs:
       WORKFLOW_RUN_ATTEMPT: ${{ github.run_attempt }}
       RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
       HANDOFF_DIRECTORY: ${{ github.workspace }}/handoff
-      RESOLVED_INPUTS: ${{ runner.temp }}/docs-preview-resolved-inputs.json
-      CACHE_ROOT: ${{ runner.temp }}/docs-preview-cache
-      WORK_ROOT: ${{ runner.temp }}/docs-preview-work
       SNAPSHOT_NAME: code-reference-trunk-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}.zip
     steps:
       - name: Check out the exact trunk commit
@@ -197,9 +191,9 @@ jobs:
           --run-attempt "$WORKFLOW_RUN_ATTEMPT"
           --run-url "$RUN_URL"
           --runner-image ubuntu-24.04
-          --cache-root "$CACHE_ROOT"
-          --work-root "$WORK_ROOT"
-          --inputs-output "$RESOLVED_INPUTS"
+          --cache-root "$RUNNER_TEMP/docs-preview-cache"
+          --work-root "$RUNNER_TEMP/docs-preview-work"
+          --inputs-output "$RUNNER_TEMP/docs-preview-resolved-inputs.json"
           --metadata "$HANDOFF_DIRECTORY/build.json"
 
       - name: Restore the exact invariant site base
@@ -222,9 +216,9 @@ jobs:
           --run-attempt "$WORKFLOW_RUN_ATTEMPT"
           --run-url "$RUN_URL"
           --runner-image ubuntu-24.04
-          --cache-root "$CACHE_ROOT"
-          --work-root "$WORK_ROOT"
-          --resolved-inputs "$RESOLVED_INPUTS"
+          --cache-root "$RUNNER_TEMP/docs-preview-cache"
+          --work-root "$RUNNER_TEMP/docs-preview-work"
+          --resolved-inputs "$RUNNER_TEMP/docs-preview-resolved-inputs.json"
           --output "$HANDOFF_DIRECTORY/$SNAPSHOT_NAME"
           --metadata "$HANDOFF_DIRECTORY/build.json"
 

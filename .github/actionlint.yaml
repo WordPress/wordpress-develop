@@ -1,0 +1,8 @@
+paths:
+  .github/workflows/docs-playground-preview-publish.yml:
+    ignore:
+      # actionlint 1.7.11 predates GitHub's concurrency queue property.
+      - 'unexpected key "queue" for "concurrency" section'
+  .github/workflows/docs-playground-preview-lifecycle.yml:
+    ignore:
+      - 'unexpected key "queue" for "concurrency" section'
