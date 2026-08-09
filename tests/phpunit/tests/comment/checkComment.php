@@ -315,7 +315,7 @@ class Tests_Comment_CheckComment extends WP_UnitTestCase {
 
 		$source_url = get_permalink( self::factory()->post->create() );
 
-		add_filter( 'wp_auto_approve_pingback', '__return_false' );
+		add_filter( 'wp_auto_approve_ping', '__return_false' );
 
 		$this->assertFalse( check_comment( 'Site Title', '', $source_url, 'Excerpt.', '192.168.0.1', '', 'pingback' ) );
 	}
@@ -328,7 +328,7 @@ class Tests_Comment_CheckComment extends WP_UnitTestCase {
 	public function test_auto_approve_pingback_should_be_able_to_approve_a_pingback_from_another_site() {
 		update_option( 'comment_previously_approved', '1' );
 
-		add_filter( 'wp_auto_approve_pingback', '__return_true' );
+		add_filter( 'wp_auto_approve_ping', '__return_true' );
 
 		$this->assertTrue( check_comment( 'Site Title', '', 'http://example.com/a-post/', 'Excerpt.', '192.168.0.1', '', 'pingback' ) );
 	}
@@ -364,7 +364,7 @@ class Tests_Comment_CheckComment extends WP_UnitTestCase {
 
 		$observed = null;
 		add_filter(
-			'wp_auto_approve_pingback',
+			'wp_auto_approve_ping',
 			static function ( $approve, $source_id ) use ( &$observed ) {
 				$observed = $source_id;
 				return $approve;
@@ -391,7 +391,7 @@ class Tests_Comment_CheckComment extends WP_UnitTestCase {
 
 		$observed = null;
 		add_filter(
-			'wp_auto_approve_pingback',
+			'wp_auto_approve_ping',
 			static function ( $approve, $source_id ) use ( &$observed ) {
 				$observed = $source_id;
 				return $approve;
