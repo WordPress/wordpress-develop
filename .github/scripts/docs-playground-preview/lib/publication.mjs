@@ -4,6 +4,7 @@ export const RELEASE_TAG = 'code-reference-playground-preview';
 export const COMMENT_MARKER = '<!-- code-reference-docs-preview -->';
 export const PLAYGROUND_ORIGIN = 'https://playground.wordpress.net';
 export const CORS_PROXY = 'https://wordpress-playground-cors-proxy.net/';
+export const SNAPSHOT_BYTES_LIMIT = 104857600;
 
 const FULL_COMMIT = /^[0-9a-f]{40}$/;
 const FULL_DIGEST = /^[0-9a-f]{64}$/;
@@ -156,7 +157,7 @@ export async function validatePublicSnapshot(
 	return { bytes: bytes.byteLength, sha256: digest };
 }
 
-export function validateReusableMetadata( metadata, expected ) {
+export function validatePublishedSnapshotMetadata( metadata, expected ) {
 	if (
 		! metadata ||
 		typeof metadata !== 'object' ||
@@ -174,12 +175,9 @@ export function validateReusableMetadata( metadata, expected ) {
 	if (
 		metadata.sourceRepository !== expected.sourceRepository ||
 		metadata.sourceSha !== expected.sourceSha ||
-		metadata.pullRequestNumber !==
-			positiveInteger( expected.pullRequestNumber, 'pullRequestNumber' )
+		metadata.pullRequestNumber !== expected.pullRequestNumber
 	) {
-		throw new Error(
-			'Published metadata does not match the pull request.'
-		);
+		throw new Error( 'Published metadata does not match its source.' );
 	}
 	if (
 		metadata.buildStatus !== 'success' ||
@@ -196,16 +194,6 @@ export function validateReusableMetadata( metadata, expected ) {
 		! FULL_DIGEST.test( metadata.snapshotSha256 || '' )
 	) {
 		throw new Error( 'Published snapshot identity is invalid.' );
-	}
-	const prefix = `code-reference-pr-${ metadata.pullRequestNumber }-${ metadata.sourceSha }-`;
-	if (
-		typeof metadata.snapshotFilename !== 'string' ||
-		! metadata.snapshotFilename.startsWith( prefix ) ||
-		! /^code-reference-pr-\d+-[0-9a-f]{40}-\d+-\d+\.zip$/.test(
-			metadata.snapshotFilename
-		)
-	) {
-		throw new Error( 'Published snapshot filename is invalid.' );
 	}
 	if (
 		metadata.phpVersion !== '8.4' ||
@@ -226,6 +214,27 @@ export function validateReusableMetadata( metadata, expected ) {
 		Number.isNaN( Date.parse( metadata.generationTimestamp ) )
 	) {
 		throw new Error( 'Published generation timestamp is invalid.' );
+	}
+	return metadata;
+}
+
+export function validateReusableMetadata( metadata, expected ) {
+	validatePublishedSnapshotMetadata( metadata, {
+		...expected,
+		pullRequestNumber: positiveInteger(
+			expected.pullRequestNumber,
+			'pullRequestNumber'
+		),
+	} );
+	const prefix = `code-reference-pr-${ metadata.pullRequestNumber }-${ metadata.sourceSha }-`;
+	if (
+		typeof metadata.snapshotFilename !== 'string' ||
+		! metadata.snapshotFilename.startsWith( prefix ) ||
+		! /^code-reference-pr-\d+-[0-9a-f]{40}-\d+-\d+\.zip$/.test(
+			metadata.snapshotFilename
+		)
+	) {
+		throw new Error( 'Published snapshot filename is invalid.' );
 	}
 	return metadata;
 }
