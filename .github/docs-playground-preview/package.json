@@ -1,0 +1,16 @@
+{
+	"name": "wordpress-develop-code-reference-playground-preview",
+	"version": "1.0.0",
+	"private": true,
+	"description": "Pinned tooling for the WordPress Core Code Reference Playground preview.",
+	"license": "GPL-2.0-or-later",
+	"engines": {
+		"node": "20.20.2"
+	},
+	"scripts": {
+		"test": "node --test ../scripts/docs-playground-preview/test/*.test.mjs"
+	},
+	"dependencies": {
+		"@wp-playground/cli": "3.1.48"
+	}
+}
