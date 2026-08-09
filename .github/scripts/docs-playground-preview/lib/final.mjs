@@ -37,9 +37,22 @@ export function createFinalBlueprint( inputs ) {
 				extractToPath: '/',
 			},
 			{
+				step: 'mkdir',
+				path: '/tmp/docs-preview-version',
+			},
+			{
+				step: 'mkdir',
+				path: '/tmp/docs-preview-version/wp-includes',
+			},
+			{
 				step: 'writeFile',
 				path: '/tmp/reference.json',
 				data: bundled( 'reference.json' ),
+			},
+			{
+				step: 'writeFile',
+				path: '/tmp/docs-preview-version/wp-includes/version.php',
+				data: bundled( 'safe-version.php' ),
 			},
 			{
 				step: 'wp-cli',
@@ -96,6 +109,10 @@ export async function packageFinalSnapshot( inputs, options ) {
 	await copyFile(
 		path.join( PHP_ROOT, 'complete-import.php' ),
 		path.join( work, 'complete-import.php' )
+	);
+	await copyFile(
+		path.join( PHP_ROOT, 'safe-version.php' ),
+		path.join( work, 'safe-version.php' )
 	);
 	await writeFile(
 		path.join( work, 'runtime.php' ),

@@ -61,16 +61,35 @@
 			"filters": 1000
 		},
 		"routes": {
-			"index": "/reference/",
-			"class": "/reference/classes/wp_html_tag_processor/",
-			"method": "/reference/classes/wp_html_tag_processor/next_tag/",
-			"function": "/reference/functions/wp_parse_args/",
-			"hook": "/reference/hooks/init/",
-			"filter": "/reference/hooks/the_content/"
+			"index": {
+				"path": "/reference/",
+				"expectedText": "Code Reference"
+			},
+			"class": {
+				"path": "/reference/classes/wp_html_tag_processor/",
+				"expectedText": "WP_HTML_Tag_Processor"
+			},
+			"method": {
+				"path": "/reference/classes/wp_html_tag_processor/next_tag/",
+				"expectedText": "next_tag"
+			},
+			"function": {
+				"path": "/reference/functions/wp_parse_args/",
+				"expectedText": "wp_parse_args"
+			},
+			"hook": {
+				"path": "/reference/hooks/init/",
+				"expectedText": "init"
+			},
+			"filter": {
+				"path": "/reference/hooks/the_content/",
+				"expectedText": "the_content"
+			}
 		},
 		"search": {
 			"path": "/?s=wp_parse_args&post_type=wp-parser-function",
-			"expectedText": "wp_parse_args"
+			"expectedText": "wp_parse_args",
+			"expectedPath": "/reference/functions/wp_parse_args/"
 		}
 	}
 }

@@ -30,6 +30,9 @@ test( 'the final Blueprint restores the base before the complete import', () => 
 		blueprint.steps.map( ( step ) => step.step ),
 		[
 			'unzip',
+			'mkdir',
+			'mkdir',
+			'writeFile',
 			'writeFile',
 			'wp-cli',
 			'writeFile',
@@ -40,7 +43,17 @@ test( 'the final Blueprint restores the base before the complete import', () => 
 		]
 	);
 	assert.equal( blueprint.steps[ 0 ].extractToPath, '/' );
-	assert.match( blueprint.steps[ 2 ].command, /parser import.+--quick/ );
+	assert.equal( blueprint.steps[ 1 ].path, '/tmp/docs-preview-version' );
+	assert.equal(
+		blueprint.steps[ 2 ].path,
+		'/tmp/docs-preview-version/wp-includes'
+	);
+	assert.equal(
+		blueprint.steps[ 4 ].path,
+		'/tmp/docs-preview-version/wp-includes/version.php'
+	);
+	assert.equal( blueprint.steps[ 4 ].data.path, 'safe-version.php' );
+	assert.match( blueprint.steps[ 5 ].command, /parser import.+--quick/ );
 	assert.equal(
 		blueprint.steps.at( -3 ).path,
 		'/wordpress/wp-content/plugins/phpdoc-parser'

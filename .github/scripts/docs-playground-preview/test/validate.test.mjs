@@ -25,14 +25,36 @@ function inputs() {
 			},
 			validation: {
 				routes: {
-					index: '/reference/',
-					class: '/reference/classes/example/',
-					method: '/reference/classes/example/run/',
-					function: '/reference/functions/example/',
-					hook: '/reference/hooks/example_action/',
-					filter: '/reference/hooks/example_filter/',
+					index: {
+						path: '/reference/',
+						expectedText: 'Reference index',
+					},
+					class: {
+						path: '/reference/classes/example/',
+						expectedText: 'Example_Class',
+					},
+					method: {
+						path: '/reference/classes/example/run/',
+						expectedText: 'Example_Class::run',
+					},
+					function: {
+						path: '/reference/functions/example/',
+						expectedText: 'example_function',
+					},
+					hook: {
+						path: '/reference/hooks/example_action/',
+						expectedText: 'example_action',
+					},
+					filter: {
+						path: '/reference/hooks/example_filter/',
+						expectedText: 'example_filter',
+					},
 				},
-				search: { path: '/?s=example', expectedText: 'example_result' },
+				search: {
+					path: '/?s=example',
+					expectedText: 'example_result',
+					expectedPath: '/reference/functions/example/',
+				},
 			},
 		},
 	};
@@ -67,13 +89,16 @@ function healthyFetch( url ) {
 	}
 	if ( url.includes( '?s=example' ) ) {
 		return response(
-			`<aside id="wporg-code-reference-preview-provenance">${ provenance.sourceRepository } ${ provenance.sourceSha } 2026-08-09 12:34:56 UTC <a href="${ provenance.runUrl }">Build run</a></aside> example_result`,
+			`<aside id="wporg-code-reference-preview-provenance">${ provenance.sourceRepository } ${ provenance.sourceSha } 2026-08-09 12:34:56 UTC <a href="${ provenance.runUrl }">Build run</a></aside> example_result <a href="/reference/functions/example/">example_function</a>`,
 			200,
 			url
 		);
 	}
+	const target = Object.values(
+		inputs().dependencies.validation.routes
+	).find( ( route ) => url.endsWith( route.path ) );
 	return response(
-		`<aside id="wporg-code-reference-preview-provenance">${ provenance.sourceRepository } ${ provenance.sourceSha } 2026-08-09 12:34:56 UTC <a href="${ provenance.runUrl }">Build run</a></aside>`,
+		`<aside id="wporg-code-reference-preview-provenance">${ provenance.sourceRepository } ${ provenance.sourceSha } 2026-08-09 12:34:56 UTC <a href="${ provenance.runUrl }">Build run</a></aside> ${ target.expectedText }`,
 		200,
 		url
 	);

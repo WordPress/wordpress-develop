@@ -4,10 +4,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { test } from 'node:test';
 
-import {
-	generateParserJson,
-	inspectParserRecords,
-} from '../lib/parser.mjs';
+import { generateParserJson, inspectParserRecords } from '../lib/parser.mjs';
 
 function records() {
 	return [
@@ -16,14 +13,20 @@ function records() {
 			functions: [
 				{
 					name: 'example',
-					hooks: [ { type: 'filter' }, { type: 'action_deprecated' } ],
+					hooks: [
+						{ type: 'filter' },
+						{ type: 'action_deprecated' },
+					],
 				},
 			],
 			classes: [
 				{
 					name: 'Example',
 					methods: [
-						{ name: 'first', hooks: [ { type: 'filter_reference' } ] },
+						{
+							name: 'first',
+							hooks: [ { type: 'filter_reference' } ],
+						},
 						{ name: 'second', hooks: [] },
 					],
 				},
@@ -96,8 +99,23 @@ test( 'parser inspection rejects excluded bundled extension source', () => {
 	);
 } );
 
+test( 'the importer never receives pull-request PHP as its version include', () => {
+	const parsed = records();
+	parsed.push( {
+		path: 'wp-includes/version.php',
+		functions: [],
+		classes: [],
+		hooks: [],
+	} );
+	inspectParserRecords( parsed, {} );
+	assert.equal( parsed[ 0 ].root, '/tmp/docs-preview-source' );
+	assert.equal( parsed[ 1 ].root, '/tmp/docs-preview-version' );
+} );
+
 test( 'generateParserJson stages PHP, invokes the pinned parser, and normalizes output', async () => {
-	const temporary = await mkdtemp( path.join( os.tmpdir(), 'docs-preview-parser-' ) );
+	const temporary = await mkdtemp(
+		path.join( os.tmpdir(), 'docs-preview-parser-' )
+	);
 	const source = path.join( temporary, 'wordpress/src' );
 	await mkdir( path.join( source, 'wp-includes' ), { recursive: true } );
 	await writeFile( path.join( source, 'wp-includes/version.php' ), '<?php' );

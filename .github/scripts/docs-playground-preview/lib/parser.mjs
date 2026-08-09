@@ -5,6 +5,8 @@ import { stageCorePhp } from './files.mjs';
 import { run } from './process.mjs';
 
 const HOOK_TYPE = /^(?:action|filter)(?:_(?:deprecated|reference))?$/;
+const IMPORT_SOURCE_ROOT = '/tmp/docs-preview-source';
+const SAFE_VERSION_ROOT = '/tmp/docs-preview-version';
 
 function hooksIn( value ) {
 	return Array.isArray( value?.hooks ) ? value.hooks : [];
@@ -12,8 +14,14 @@ function hooksIn( value ) {
 
 function countHooks( hooks, counts ) {
 	for ( const hook of hooks ) {
-		if ( ! hook || typeof hook !== 'object' || ! HOOK_TYPE.test( hook.type ) ) {
-			throw new Error( 'Parser JSON contains a hook with an invalid type.' );
+		if (
+			! hook ||
+			typeof hook !== 'object' ||
+			! HOOK_TYPE.test( hook.type )
+		) {
+			throw new Error(
+				'Parser JSON contains a hook with an invalid type.'
+			);
 		}
 		if ( hook.type.startsWith( 'action' ) ) {
 			counts.hooks++;
@@ -35,16 +43,24 @@ export function inspectParserRecords( records, minimumSymbols ) {
 		filters: 0,
 	};
 	for ( const record of records ) {
-		if ( ! record || typeof record !== 'object' || typeof record.path !== 'string' ) {
+		if (
+			! record ||
+			typeof record !== 'object' ||
+			typeof record.path !== 'string'
+		) {
 			throw new Error( 'Parser JSON contains an invalid file record.' );
 		}
 		if (
 			record.path.startsWith( 'wp-content/plugins/' ) ||
 			record.path.startsWith( 'wp-content/themes/' )
 		) {
-			throw new Error( `Parser JSON contains excluded source: ${ record.path }.` );
+			throw new Error(
+				`Parser JSON contains excluded source: ${ record.path }.`
+			);
 		}
-		const functions = Array.isArray( record.functions ) ? record.functions : [];
+		const functions = Array.isArray( record.functions )
+			? record.functions
+			: [];
 		const classes = Array.isArray( record.classes ) ? record.classes : [];
 		counts.functions += functions.length;
 		counts.classes += classes.length;
@@ -59,15 +75,21 @@ export function inspectParserRecords( records, minimumSymbols ) {
 			}
 		}
 		countHooks( hooksIn( record ), counts );
-		record.root = '/tmp/docs-preview-source';
+		record.root =
+			record.path === 'wp-includes/version.php'
+				? SAFE_VERSION_ROOT
+				: IMPORT_SOURCE_ROOT;
 	}
-	const failures = records.length === 0 ? [ 'Parser produced no file records.' ] : [];
-	failures.push( ...Object.entries( minimumSymbols )
-		.filter( ( [ type, minimum ] ) => counts[ type ] < minimum )
-		.map(
-			( [ type, minimum ] ) =>
-				`Parser produced ${ counts[ type ] } ${ type }; expected at least ${ minimum }.`
-		) );
+	const failures =
+		records.length === 0 ? [ 'Parser produced no file records.' ] : [];
+	failures.push(
+		...Object.entries( minimumSymbols )
+			.filter( ( [ type, minimum ] ) => counts[ type ] < minimum )
+			.map(
+				( [ type, minimum ] ) =>
+					`Parser produced ${ counts[ type ] } ${ type }; expected at least ${ minimum }.`
+			)
+	);
 	return { records: records.length, counts, failures };
 }
 

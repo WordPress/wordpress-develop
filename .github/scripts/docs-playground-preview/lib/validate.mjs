@@ -235,24 +235,29 @@ export async function inspectSnapshotBehavior( inputs, options ) {
 		}
 	}
 
-	for ( const [ name, route ] of Object.entries(
+	for ( const [ name, target ] of Object.entries(
 		inputs.dependencies.validation.routes
 	) ) {
 		try {
-			const response = await request( route );
+			const response = await request( target.path );
 			checks[ name ] = response.status;
 			if ( response.status !== 200 ) {
 				failures.push(
 					`${ name } route returned HTTP ${ response.status }.`
 				);
 			}
-			const requested = new URL( route, options.baseUrl );
+			const requested = new URL( target.path, options.baseUrl );
 			if (
 				! response.url ||
 				new URL( response.url ).pathname !== requested.pathname
 			) {
 				failures.push(
 					`${ name } route redirected away from its stable path.`
+				);
+			}
+			if ( ! response.body.includes( target.expectedText ) ) {
+				failures.push(
+					`${ name } route is missing its representative symbol.`
 				);
 			}
 			checkBanner( name, response.body, options.provenance, failures );
@@ -267,7 +272,8 @@ export async function inspectSnapshotBehavior( inputs, options ) {
 		checks.search = response.status;
 		if (
 			response.status !== 200 ||
-			! response.body.includes( search.expectedText )
+			! response.body.includes( search.expectedText ) ||
+			! response.body.includes( search.expectedPath )
 		) {
 			failures.push(
 				'Local Code Reference search did not return the expected result.'
