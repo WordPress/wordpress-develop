@@ -128,7 +128,7 @@ function wp_ajax_ajax_tag_search() {
 
 	if ( str_contains( $search, ',' ) ) {
 		$search = explode( ',', $search );
-		$search = $search[ count( $search ) - 1 ];
+		$search = array_last( $search );
 	}
 
 	$search = trim( $search );
@@ -285,6 +285,10 @@ function wp_ajax_oembed_cache() {
  * Handles user autocomplete via AJAX.
  *
  * @since 3.4.0
+ * @since 7.1.0 The search term is now sanitized, and a missing, non-string,
+ *              or empty term results in a `0` response instead of an empty array.
+ *
+ * @return never
  */
 function wp_ajax_autocomplete_user() {
 	if ( ! is_multisite() || ! current_user_can( 'promote_users' ) || wp_is_large_network( 'users' ) ) {
@@ -297,6 +301,20 @@ function wp_ajax_autocomplete_user() {
 	}
 
 	$return = array();
+
+	// Obtain the search term, and short-circuit missing/invalid search term.
+	if ( ! isset( $_REQUEST['term'] ) || ! is_string( $_REQUEST['term'] ) ) {
+		wp_die( 0 );
+	}
+	/*
+	 * Asterisks are trimmed since wildcards are appended below. Without this, a
+	 * term consisting only of asterisks would result in an empty search that
+	 * matches all users.
+	 */
+	$term = trim( sanitize_text_field( wp_unslash( $_REQUEST['term'] ) ), '*' );
+	if ( '' === $term ) {
+		wp_die( 0 );
+	}
 
 	/*
 	 * Check the type of request.
@@ -342,7 +360,7 @@ function wp_ajax_autocomplete_user() {
 	$users = get_users(
 		array(
 			'blog_id'        => false,
-			'search'         => '*' . $_REQUEST['term'] . '*',
+			'search'         => '*' . $term . '*',
 			'include'        => $include_blog_users,
 			'exclude'        => $exclude_blog_users,
 			'search_columns' => array( 'user_login', 'user_nicename', 'user_email' ),
@@ -1621,7 +1639,7 @@ function wp_ajax_add_meta() {
 	$post    = get_post( $post_id );
 
 	if ( isset( $_POST['metakeyselect'] ) || isset( $_POST['metakeyinput'] ) ) {
-		if ( ! current_user_can( 'edit_post', $post_id ) ) {
+		if ( ! $post || ! current_user_can( 'edit_post', $post_id ) ) {
 			wp_die( -1 );
 		}
 
@@ -2106,6 +2124,9 @@ function wp_ajax_inline_save() {
 	$data = &$_POST;
 
 	$post = get_post( $post_id, ARRAY_A );
+	if ( ! $post ) {
+		wp_die();
+	}
 
 	// Since it's coming from the database.
 	$post = wp_slash( $post );
@@ -2382,7 +2403,7 @@ function wp_ajax_save_widget() {
 	 */
 	do_action( 'widgets.php' ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
 
-	/** This action is documented in wp-admin/widgets.php */
+	/** This action is documented in wp-admin/widgets-form.php */
 	do_action( 'sidebar_admin_setup' );
 
 	$id_base      = wp_unslash( $_POST['id_base'] );
@@ -2410,7 +2431,7 @@ function wp_ajax_save_widget() {
 			'delete_widget'      => '1',
 		);
 
-		/** This action is documented in wp-admin/widgets.php */
+		/** This action is documented in wp-admin/widgets-form.php */
 		do_action( 'delete_widget', $widget_id, $sidebar_id, $id_base );
 
 	} elseif ( $settings && preg_match( '/__i__|%i%/', key( $settings ) ) ) {
@@ -2486,7 +2507,7 @@ function wp_ajax_delete_inactive_widgets() {
 	do_action( 'load-widgets.php' ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
 	/** This action is documented in wp-admin/includes/ajax-actions.php */
 	do_action( 'widgets.php' ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
-	/** This action is documented in wp-admin/widgets.php */
+	/** This action is documented in wp-admin/widgets-form.php */
 	do_action( 'sidebar_admin_setup' );
 
 	$sidebars_widgets = wp_get_sidebars_widgets();
@@ -3134,6 +3155,9 @@ function wp_ajax_save_attachment() {
 
 	$changes = $_REQUEST['changes'];
 	$post    = get_post( $id, ARRAY_A );
+	if ( ! $post ) {
+		wp_send_json_error();
+	}
 
 	if ( 'attachment' !== $post['post_type'] ) {
 		wp_send_json_error();
@@ -3225,6 +3249,9 @@ function wp_ajax_save_attachment_compat() {
 	}
 
 	$post = get_post( $id, ARRAY_A );
+	if ( ! $post ) {
+		wp_send_json_error();
+	}
 
 	if ( 'attachment' !== $post['post_type'] ) {
 		wp_send_json_error();

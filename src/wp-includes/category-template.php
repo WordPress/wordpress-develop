@@ -976,7 +976,7 @@ function wp_generate_tag_cloud( $tags, $args = '' ) {
 
 		$tags_data[] = array(
 			'id'              => $tag_id,
-			'url'             => ( '#' !== $tag->link ) ? $tag->link : '#',
+			'url'             => $tag->link,
 			'role'            => ( '#' !== $tag->link ) ? '' : ' role="button"',
 			'name'            => $tag->name,
 			'formatted_count' => $formatted_count,
@@ -1230,7 +1230,7 @@ function get_the_tag_list( $before = '', $sep = '', $after = '', $post_id = 0 ) 
  */
 function the_tags( $before = null, $sep = ', ', $after = '' ) {
 	if ( null === $before ) {
-		$before = __( 'Tags: ' );
+		$before = __( 'Tags:' ) . ' ';
 	}
 
 	$the_tags = get_the_tag_list( $before, $sep, $after );
@@ -1258,8 +1258,8 @@ function tag_description( $tag = 0 ) {
  * @since 2.8.0
  * @since 4.9.2 The `$taxonomy` parameter was deprecated.
  *
- * @param int  $term       Optional. Term ID. Defaults to the current term ID.
- * @param null $deprecated Deprecated. Not used.
+ * @param int   $term       Optional. Term ID. Defaults to the current term ID.
+ * @param mixed $deprecated Not used.
  * @return string Term description, if available.
  */
 function term_description( $term = 0, $deprecated = null ) {
