@@ -16,6 +16,14 @@ const CACHE_PREFIX = 'docs-preview-base-';
 
 class LifecycleSuperseded extends Error {}
 
+function isTerminalComment( body ) {
+	return (
+		typeof body === 'string' &&
+		( body.includes( '\n\n**Status:** Ready\n\n' ) ||
+			body.includes( '\n\n**Status:** Latest attempt failed\n\n' ) )
+	);
+}
+
 function positiveInteger( value, label ) {
 	const number = Number( value );
 	if ( ! Number.isSafeInteger( number ) || number < 1 ) {
@@ -143,9 +151,17 @@ async function markStale( session ) {
 	if ( ! comment ) {
 		return { status: 'ignored' };
 	}
+	const commentSource = readPreviewCommentSource( comment.body );
+	if (
+		isTerminalComment( comment.body ) &&
+		commentSource?.repository === session.context.sourceRepository &&
+		commentSource.sha === session.context.sourceSha
+	) {
+		return { status: 'ignored' };
+	}
 	const preview = await findPreviousPreview( session );
 	if ( ! preview ) {
-		const previous = readPreviewCommentSource( comment.body );
+		const previous = commentSource;
 		if ( ! previous ) {
 			return { status: 'unavailable' };
 		}

@@ -310,8 +310,8 @@ export function renderPreviewComment( state ) {
 	}
 	if ( state.status === 'stale' ) {
 		const header = commentHeader( {
-			repository: state.currentRepository,
-			sha: state.currentSha,
+			repository: state.preview.sourceRepository,
+			sha: state.preview.sourceSha,
 		} );
 		return `${ header }\n\n**Status:** Stale\n\nThe latest successful preview was built from ${ commitLink(
 			state.preview.sourceRepository,

@@ -21,13 +21,13 @@ const currentSha = 'a'.repeat( 40 );
 const previewSha = 'c'.repeat( 40 );
 const snapshotBytes = Buffer.from( 'snapshot' );
 
-function pullRequest( state = 'open', labels = [] ) {
+function pullRequest( state = 'open', labels = [], headSha = currentSha ) {
 	return {
 		number: 123,
 		state,
 		base: { ref: 'trunk' },
 		head: {
-			sha: currentSha,
+			sha: headSha,
 			ref: 'feature',
 			repo: { full_name: sourceRepository },
 		},
@@ -35,8 +35,12 @@ function pullRequest( state = 'open', labels = [] ) {
 	};
 }
 
-function event( action, state = action === 'closed' ? 'closed' : 'open' ) {
-	return { action, pull_request: pullRequest( state ) };
+function event(
+	action,
+	state = action === 'closed' ? 'closed' : 'open',
+	headSha = currentSha
+) {
+	return { action, pull_request: pullRequest( state, [], headSha ) };
 }
 
 function previewMetadata() {
@@ -238,6 +242,38 @@ test( 'a newer terminal comment supersedes an older stale event', async () => {
 		/superseded/
 	);
 	assert.equal( api.commentBodies.length, 0 );
+} );
+
+test( 'a delayed stale event ignores the current terminal comment', async () => {
+	const api = new FakeApi();
+	api.comment.body = renderPreviewComment( {
+		status: 'failed',
+		sourceRepository,
+		sourceSha: currentSha,
+		at: '2026-08-09T13:00:00.000Z',
+		runUrl: `https://github.com/${ repository }/actions/runs/456`,
+		previous: previewMetadata(),
+	} );
+	const result = await managePullRequest(
+		options( api, event( 'synchronize' ) )
+	);
+	assert.equal( result.status, 'ignored' );
+	assert.equal( api.commentBodies.length, 0 );
+} );
+
+test( 'returning to a stale preview SHA refreshes obsolete visible state', async () => {
+	const api = new FakeApi();
+	installPreview( api );
+	await managePullRequest( options( api, event( 'synchronize' ) ) );
+	assert.match( api.comment.body, new RegExp( currentSha ) );
+
+	api.currentPullRequest = pullRequest( 'open', [], previewSha );
+	const result = await managePullRequest(
+		options( api, event( 'synchronize', 'open', previewSha ) )
+	);
+	assert.equal( result.status, 'stale' );
+	assert.doesNotMatch( api.comment.body, new RegExp( currentSha ) );
+	assert.match( api.comment.body, new RegExp( previewSha ) );
 } );
 
 test( 'a stale failed attempt still tells the maintainer how to rebuild', async () => {
