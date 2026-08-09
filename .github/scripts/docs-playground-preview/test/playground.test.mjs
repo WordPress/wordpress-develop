@@ -3,10 +3,11 @@ import { test } from 'node:test';
 
 import {
 	createSnapshotArguments,
-	PLAYGROUND_WORKERS,
+	PLAYGROUND_BUILD_WORKERS,
 } from '../lib/playground.mjs';
 
-test( 'snapshot builds use six Playground workers', () => {
+test( 'snapshot builds serialize Playground filesystem access', () => {
+	assert.equal( PLAYGROUND_BUILD_WORKERS, 1 );
 	assert.deepEqual(
 		createSnapshotArguments( {
 			php: '8.4',
@@ -21,7 +22,7 @@ test( 'snapshot builds use six Playground workers', () => {
 			wp: '7.2-beta1',
 			blueprint: '/tmp/blueprint.json',
 			outfile: '/tmp/snapshot.zip',
-			workers: PLAYGROUND_WORKERS,
+			workers: PLAYGROUND_BUILD_WORKERS,
 			command: 'build-snapshot',
 		}
 	);

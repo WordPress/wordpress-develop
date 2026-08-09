@@ -3,7 +3,7 @@ import { copyFile, mkdir, rm, writeFile } from 'node:fs/promises';
 import { createServer } from 'node:net';
 import path from 'node:path';
 
-import { PLAYGROUND_WORKERS } from './playground.mjs';
+import { PLAYGROUND_SERVER_WORKERS } from './playground.mjs';
 
 const BANNER_ID = 'wporg-code-reference-preview-provenance';
 
@@ -84,7 +84,7 @@ export function createValidationServerArguments(
 		'--port',
 		String( port ),
 		'--workers',
-		String( PLAYGROUND_WORKERS ),
+		String( PLAYGROUND_SERVER_WORKERS ),
 		'--verbosity',
 		'normal',
 	];

@@ -1,13 +1,14 @@
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 
-export const PLAYGROUND_WORKERS = 6;
+export const PLAYGROUND_BUILD_WORKERS = 1;
+export const PLAYGROUND_SERVER_WORKERS = 6;
 
 export function createSnapshotArguments( options ) {
 	return {
 		...options,
 		command: 'build-snapshot',
-		workers: PLAYGROUND_WORKERS,
+		workers: PLAYGROUND_BUILD_WORKERS,
 	};
 }
 
