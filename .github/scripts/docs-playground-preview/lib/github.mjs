@@ -3,6 +3,7 @@ import { COMMENT_MARKER, RELEASE_TAG } from './publication.mjs';
 const API = 'https://api.github.com';
 const UPLOADS = 'https://uploads.github.com';
 const BUILD_WORKFLOW = 'docs-playground-preview-build.yml';
+const BUILD_JOB = 'Build Code Reference snapshot';
 
 function query( values ) {
 	const parameters = new URLSearchParams();
@@ -129,10 +130,27 @@ export class GitHubApi {
 						run.head_repository?.full_name
 			)
 			.sort( ( left, right ) => right.id - left.id );
-		if ( ! matching[ 0 ] ) {
-			throw new Error( 'No current docs preview run matches this head.' );
+		for ( const candidate of matching ) {
+			const current = await this.getRun( candidate.id );
+			if ( ! ( await this.isSkippedPreviewBuild( current ) ) ) {
+				return current;
+			}
 		}
-		return this.getRun( matching[ 0 ].id );
+		throw new Error( 'No current docs preview build matches this head.' );
+	}
+
+	async isSkippedPreviewBuild( run ) {
+		const jobs = await this.pages(
+			`/repos/${ this.repository }/actions/runs/${ run.id }/attempts/${ run.run_attempt }/jobs`,
+			'jobs'
+		);
+		const matches = jobs.filter( ( job ) => job.name === BUILD_JOB );
+		if ( matches.length !== 1 ) {
+			throw new Error(
+				`Expected one Code Reference build job; found ${ matches.length }.`
+			);
+		}
+		return matches[ 0 ].conclusion === 'skipped';
 	}
 
 	getRelease() {

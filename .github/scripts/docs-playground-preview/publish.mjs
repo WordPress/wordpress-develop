@@ -300,6 +300,9 @@ export async function publishPullRequest( options ) {
 	if ( ! session ) {
 		return { status: 'superseded' };
 	}
+	if ( await session.api.isSkippedPreviewBuild( session.context.run ) ) {
+		return { status: 'ignored' };
+	}
 	const uploadedAssets = [];
 	try {
 		await session.authorize();

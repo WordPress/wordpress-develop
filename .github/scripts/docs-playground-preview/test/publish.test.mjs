@@ -132,6 +132,10 @@ class FakeApi {
 		return this.latestRun;
 	}
 
+	async isSkippedPreviewBuild() {
+		return false;
+	}
+
 	async getRelease() {
 		return this.release;
 	}
@@ -315,6 +319,17 @@ test( 'a superseded run makes no mutation', async () => {
 	const directory = await handoffDirectory( buildMetadata() );
 	const result = await publishPullRequest( options( api, directory ) );
 	assert.equal( result.status, 'superseded' );
+	assert.equal( api.uploads.length, 0 );
+	assert.equal( api.comments.length, 0 );
+	assert.equal( api.labelRemovals, 0 );
+} );
+
+test( 'a skipped trigger run makes no mutation', async () => {
+	const api = new FakeApi();
+	api.isSkippedPreviewBuild = async () => true;
+	const directory = await handoffDirectory( buildMetadata() );
+	const result = await publishPullRequest( options( api, directory ) );
+	assert.equal( result.status, 'ignored' );
 	assert.equal( api.uploads.length, 0 );
 	assert.equal( api.comments.length, 0 );
 	assert.equal( api.labelRemovals, 0 );

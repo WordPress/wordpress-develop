@@ -107,6 +107,16 @@ test( 'latest run lookup binds SHA, branch, repository, and current attempt', as
 					],
 				} );
 			}
+			if ( url.includes( '/jobs?' ) ) {
+				return response( {
+					jobs: [
+						{
+							name: 'Build Code Reference snapshot',
+							conclusion: 'success',
+						},
+					],
+				} );
+			}
 			return response( run( { id: 456, run_attempt: 2 } ) );
 		}
 	);
@@ -114,6 +124,38 @@ test( 'latest run lookup binds SHA, branch, repository, and current attempt', as
 	assert.equal( latest.run_attempt, 2 );
 	assert.match( calls[ 0 ], /head_sha=/ );
 	assert.match( calls[ 1 ], /actions\/runs\/456$/ );
+	assert.match( calls[ 2 ], /runs\/456\/attempts\/2\/jobs/ );
+} );
+
+test( 'skipped trigger runs neither publish nor supersede a build', async () => {
+	const api = new GitHubApi(
+		'WordPress/wordpress-develop',
+		'token',
+		async ( url ) => {
+			if ( url.includes( '/actions/workflows/' ) ) {
+				return response( {
+					workflow_runs: [ run( { id: 789 } ), run() ],
+				} );
+			}
+			if ( url.includes( '/jobs?' ) ) {
+				return response( {
+					jobs: [
+						{
+							name: 'Build Code Reference snapshot',
+							conclusion: url.includes( '/789/' )
+								? 'skipped'
+								: 'success',
+						},
+					],
+				} );
+			}
+			return response(
+				url.endsWith( '/789' ) ? run( { id: 789 } ) : run()
+			);
+		}
+	);
+	assert.equal( ( await api.latestPreviewRun( run() ) ).id, 456 );
+	assert.equal( await api.isSkippedPreviewBuild( run( { id: 789 } ) ), true );
 } );
 
 test( 'release operations keep immutable names and bytes', async () => {
