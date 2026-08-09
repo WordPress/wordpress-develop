@@ -677,8 +677,7 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 			$scripts           = $metadata[ $metadata_field_name ];
 			$processed_scripts = array();
 			if ( is_array( $scripts ) ) {
-				$script_count = count( $scripts );
-				for ( $index = 0; $index < $script_count; $index++ ) {
+				for ( $index = 0, $script_count = count( $scripts ); $index < $script_count; $index++ ) {
 					$result = register_block_script_handle(
 						$metadata,
 						$metadata_field_name,
@@ -712,8 +711,7 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 			$modules           = $metadata[ $metadata_field_name ];
 			$processed_modules = array();
 			if ( is_array( $modules ) ) {
-				$module_count = count( $modules );
-				for ( $index = 0; $index < $module_count; $index++ ) {
+				for ( $index = 0, $module_count = count( $modules ); $index < $module_count; $index++ ) {
 					$result = register_block_script_module_id(
 						$metadata,
 						$metadata_field_name,
@@ -749,8 +747,7 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 			$styles           = $metadata[ $metadata_field_name ];
 			$processed_styles = array();
 			if ( is_array( $styles ) ) {
-				$style_count = count( $styles );
-				for ( $index = 0; $index < $style_count; $index++ ) {
+				for ( $index = 0, $style_count = count( $styles ); $index < $style_count; $index++ ) {
 					$result = register_block_style_handle(
 						$metadata,
 						$metadata_field_name,
