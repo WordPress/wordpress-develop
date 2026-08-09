@@ -67,7 +67,12 @@ export function releaseAssetUrl( repository, assetName ) {
 
 export function corsProxyUrl( publicUrl ) {
 	const parsed = new URL( publicUrl );
-	if ( parsed.protocol !== 'https:' || parsed.hostname !== 'github.com' ) {
+	if (
+		parsed.protocol !== 'https:' ||
+		! [ 'github.com', 'raw.githubusercontent.com' ].includes(
+			parsed.hostname
+		)
+	) {
 		throw new Error( 'Only public GitHub asset URLs may use the proxy.' );
 	}
 	return `${ CORS_PROXY }${ publicUrl }`;

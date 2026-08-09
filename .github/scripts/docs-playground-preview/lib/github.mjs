@@ -233,10 +233,58 @@ export class GitHubApi {
 		);
 	}
 
-	updateReleaseAsset( assetId, name ) {
+	getGitReference( reference ) {
 		return this.request(
-			`/repos/${ this.repository }/releases/assets/${ assetId }`,
-			{ method: 'PATCH', json: { name } }
+			`/repos/${ this.repository }/git/ref/${ reference }`,
+			{ allowNotFound: true }
+		);
+	}
+
+	createGitBlob( content ) {
+		return this.request( `/repos/${ this.repository }/git/blobs`, {
+			method: 'POST',
+			json: { content, encoding: 'utf-8' },
+		} );
+	}
+
+	createGitTree( path, blobSha ) {
+		return this.request( `/repos/${ this.repository }/git/trees`, {
+			method: 'POST',
+			json: {
+				tree: [
+					{
+						path,
+						mode: '100644',
+						type: 'blob',
+						sha: blobSha,
+					},
+				],
+			},
+		} );
+	}
+
+	createGitCommit( message, treeSha, parentSha = null ) {
+		return this.request( `/repos/${ this.repository }/git/commits`, {
+			method: 'POST',
+			json: {
+				message,
+				tree: treeSha,
+				parents: parentSha ? [ parentSha ] : [],
+			},
+		} );
+	}
+
+	createGitReference( reference, sha ) {
+		return this.request( `/repos/${ this.repository }/git/refs`, {
+			method: 'POST',
+			json: { ref: `refs/${ reference }`, sha },
+		} );
+	}
+
+	updateGitReference( reference, sha ) {
+		return this.request(
+			`/repos/${ this.repository }/git/refs/${ reference }`,
+			{ method: 'PATCH', json: { sha, force: true } }
 		);
 	}
 

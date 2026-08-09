@@ -14,6 +14,7 @@ import {
 export const TRUNK_BUILD_WORKFLOW_NAME =
 	'Code Reference Playground Preview Build';
 export const TRUNK_POINTER_ASSET = 'code-reference-trunk.json';
+export const TRUNK_POINTER_REF = 'heads/docs-preview-code-reference';
 
 const BLUEPRINT_SCHEMA =
 	'https://playground.wordpress.net/blueprint-schema.json';
@@ -51,15 +52,15 @@ export function trunkSnapshotAssetName( identity ) {
 	return `code-reference-trunk-${ identity.sourceSha }-${ runId }-${ attempt }.zip`;
 }
 
-export function trunkPointerCandidateName( identity ) {
-	return trunkSnapshotAssetName( identity ).replace(
-		/^code-reference-trunk-(.+)\.zip$/,
-		'code-reference-trunk-pointer-$1.json'
-	);
+export function trunkStableBlueprintUrl( repository ) {
+	return `https://raw.githubusercontent.com/${ repository }/docs-preview-code-reference/${ TRUNK_POINTER_ASSET }`;
 }
 
-export function trunkStableBlueprintUrl( repository ) {
-	return releaseAssetUrl( repository, TRUNK_POINTER_ASSET );
+export function trunkBlueprintCommitUrl( repository, commitSha ) {
+	if ( ! FULL_COMMIT.test( commitSha || '' ) ) {
+		throw new Error( 'commitSha must be a full lowercase commit hash.' );
+	}
+	return `https://raw.githubusercontent.com/${ repository }/${ commitSha }/${ TRUNK_POINTER_ASSET }`;
 }
 
 export function trunkPlaygroundUrl( repository ) {
@@ -262,9 +263,8 @@ export function createTrunkBlueprint( metadata ) {
 	return blueprint;
 }
 
-export async function validatePublicBlueprint(
+export async function readPublicBlueprint(
 	publicUrl,
-	expected,
 	fetchImplementation = globalThis.fetch
 ) {
 	const response = await fetchImplementation( corsProxyUrl( publicUrl ), {
@@ -292,6 +292,18 @@ export async function validatePublicBlueprint(
 	} catch {
 		throw new Error( 'Public Blueprint is not JSON.' );
 	}
+	return blueprint;
+}
+
+export async function validatePublicBlueprint(
+	publicUrl,
+	expected,
+	fetchImplementation = globalThis.fetch
+) {
+	const blueprint = await readPublicBlueprint(
+		publicUrl,
+		fetchImplementation
+	);
 	if ( ! isDeepStrictEqual( blueprint, expected ) ) {
 		throw new Error( 'Public Blueprint does not identify the candidate.' );
 	}
