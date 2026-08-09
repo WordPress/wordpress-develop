@@ -56,7 +56,7 @@
 		"minimumSymbols": {
 			"classes": 400,
 			"methods": 3000,
-			"functions": 1200,
+			"functions": 1800,
 			"hooks": 600,
 			"filters": 1000
 		},
