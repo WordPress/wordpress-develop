@@ -127,6 +127,58 @@ test( 'latest run lookup binds SHA, branch, repository, and current attempt', as
 	assert.match( calls[ 2 ], /runs\/456\/attempts\/2\/jobs/ );
 } );
 
+test( 'trunk lookup binds the workflow, branch, repository, and current attempt', async () => {
+	const calls = [];
+	const api = new GitHubApi(
+		'WordPress/wordpress-develop',
+		'token',
+		async ( url ) => {
+			calls.push( url );
+			if ( url.includes( '/git/ref/heads/trunk' ) ) {
+				return response( { object: { sha: 'a'.repeat( 40 ) } } );
+			}
+			if ( url.includes( '/actions/workflows/' ) ) {
+				return response( {
+					workflow_runs: [
+						run( {
+							id: 789,
+							event: 'push',
+							head_branch: 'trunk',
+							head_repository: {
+								full_name: 'other/wordpress-develop',
+							},
+						} ),
+						run( {
+							id: 456,
+							event: 'push',
+							head_branch: 'trunk',
+							head_repository: {
+								full_name: 'WordPress/wordpress-develop',
+							},
+						} ),
+					],
+				} );
+			}
+			return response(
+				run( {
+					id: 456,
+					run_attempt: 2,
+					event: 'push',
+					head_branch: 'trunk',
+					head_repository: {
+						full_name: 'WordPress/wordpress-develop',
+					},
+				} )
+			);
+		}
+	);
+	assert.equal( await api.getTrunkHeadSha(), 'a'.repeat( 40 ) );
+	assert.equal( ( await api.latestTrunkPreviewRun() ).run_attempt, 2 );
+	assert.match( calls[ 1 ], /event=push/ );
+	assert.match( calls[ 1 ], /branch=trunk/ );
+	assert.match( calls[ 2 ], /actions\/runs\/456$/ );
+} );
+
 test( 'skipped trigger runs neither publish nor supersede a build', async () => {
 	const api = new GitHubApi(
 		'WordPress/wordpress-develop',
@@ -181,15 +233,18 @@ test( 'release operations keep immutable names and bytes', async () => {
 		Buffer.from( 'snapshot' ),
 		'application/zip'
 	);
+	await api.updateReleaseAsset( 10, 'renamed.json' );
 	await api.deleteReleaseAsset( 10 );
 	await api.listActionCaches( 'refs/pull/123/merge' );
 	await api.deleteActionCache( 11 );
 	assert.equal( calls[ 0 ].options.json.tag_name, RELEASE_TAG );
 	assert.match( calls[ 1 ].url, /^https:\/\/uploads\.github\.com/ );
 	assert.equal( calls[ 1 ].options.body.toString(), 'snapshot' );
-	assert.equal( calls[ 2 ].options.method, 'DELETE' );
-	assert.match( calls[ 3 ].url, /ref=refs%2Fpull%2F123%2Fmerge/ );
-	assert.equal( calls[ 4 ].options.method, 'DELETE' );
+	assert.equal( calls[ 2 ].options.method, 'PATCH' );
+	assert.deepEqual( calls[ 2 ].options.json, { name: 'renamed.json' } );
+	assert.equal( calls[ 3 ].options.method, 'DELETE' );
+	assert.match( calls[ 4 ].url, /ref=refs%2Fpull%2F123%2Fmerge/ );
+	assert.equal( calls[ 5 ].options.method, 'DELETE' );
 } );
 
 test( 'only the marked bot comment is updated', async () => {

@@ -78,6 +78,13 @@ export class GitHubApi {
 		);
 	}
 
+	async getTrunkHeadSha() {
+		const reference = await this.request(
+			`/repos/${ this.repository }/git/ref/heads/trunk`
+		);
+		return reference.object?.sha || null;
+	}
+
 	getPullRequest( number ) {
 		return this.request( `/repos/${ this.repository }/pulls/${ number }` );
 	}
@@ -147,6 +154,30 @@ export class GitHubApi {
 		throw new Error( 'No current docs preview build matches this head.' );
 	}
 
+	async latestTrunkPreviewRun() {
+		const runs = await this.pages(
+			`/repos/${
+				this.repository
+			}/actions/workflows/${ BUILD_WORKFLOW }/runs?${ query( {
+				event: 'push',
+				branch: 'trunk',
+			} ) }`,
+			'workflow_runs'
+		);
+		const latest = runs
+			.filter(
+				( run ) =>
+					run.event === 'push' &&
+					run.head_branch === 'trunk' &&
+					run.head_repository?.full_name === this.repository
+			)
+			.sort( ( left, right ) => right.id - left.id )[ 0 ];
+		if ( ! latest ) {
+			throw new Error( 'No current trunk docs preview build exists.' );
+		}
+		return this.getRun( latest.id );
+	}
+
 	async isSkippedPreviewBuild( run ) {
 		const jobs = await this.pages(
 			`/repos/${ this.repository }/actions/runs/${ run.id }/attempts/${ run.run_attempt }/jobs`,
@@ -199,6 +230,13 @@ export class GitHubApi {
 				},
 				body: bytes,
 			}
+		);
+	}
+
+	updateReleaseAsset( assetId, name ) {
+		return this.request(
+			`/repos/${ this.repository }/releases/assets/${ assetId }`,
+			{ method: 'PATCH', json: { name } }
 		);
 	}
 
