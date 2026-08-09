@@ -9,6 +9,7 @@ import {
 	assertLatestAuthorized,
 	createPublishedMetadata,
 	inspectHandoff,
+	readPreviewCommentSource,
 	renderPreviewComment,
 	validateCandidateFile,
 	validatePublicationContext,
@@ -256,6 +257,10 @@ test( 'the sticky comment has ready, failed, stale, and expired states', () => {
 	assert.match( ready, new RegExp( COMMENT_MARKER ) );
 	assert.match( ready, /Status:\*\* Ready/ );
 	assert.match( ready, new RegExp( sha ) );
+	assert.deepEqual( readPreviewCommentSource( ready ), {
+		repository: preview.sourceRepository,
+		sha,
+	} );
 	assert.equal( ready.match( /Open Code Reference preview/g ).length, 1 );
 
 	const failed = renderPreviewComment( {
@@ -279,6 +284,15 @@ test( 'the sticky comment has ready, failed, stale, and expired states', () => {
 	assert.match( stale, /add the `docs-preview` label again/i );
 	assert.match( stale, new RegExp( sha ) );
 	assert.match( stale, new RegExp( 'c'.repeat( 40 ) ) );
+	const unavailable = renderPreviewComment( {
+		status: 'stale-unavailable',
+		previousRepository: preview.sourceRepository,
+		previousSha: sha,
+		currentRepository: preview.sourceRepository,
+		currentSha: 'c'.repeat( 40 ),
+	} );
+	assert.match( unavailable, /no healthy docs preview is available/ );
+	assert.match( unavailable, /add the `docs-preview` label again/i );
 
 	assert.match(
 		renderPreviewComment( { status: 'expired' } ),

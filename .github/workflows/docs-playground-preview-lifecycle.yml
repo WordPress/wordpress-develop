@@ -8,10 +8,6 @@ on: # zizmor: ignore[dangerous-triggers] Both jobs check out and run only truste
             - synchronize
             - closed
 
-concurrency:
-    group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
-    cancel-in-progress: true
-
 permissions: {}
 
 jobs:
@@ -23,7 +19,11 @@ jobs:
               ( github.repository == 'sirreal/wordpress-develop' && vars.DOCS_PREVIEW_STAGING == 'true' ) )
         runs-on: ubuntu-24.04
         timeout-minutes: 10
+        concurrency:
+            group: docs-preview-stale-pr-${{ github.event.pull_request.number }}
+            cancel-in-progress: true
         permissions:
+            actions: read
             contents: read
             issues: write
             pull-requests: read
@@ -46,14 +46,33 @@ jobs:
                   GITHUB_TOKEN: ${{ github.token }}
               run: node .github/scripts/docs-playground-preview/lifecycle.mjs
 
+    quiesce-build:
+        name: Stop the obsolete Code Reference build
+        if: >-
+            github.event.action == 'closed' &&
+            ( github.repository == 'WordPress/wordpress-develop' ||
+              ( github.repository == 'sirreal/wordpress-develop' && vars.DOCS_PREVIEW_STAGING == 'true' ) )
+        runs-on: ubuntu-24.04
+        timeout-minutes: 5
+        concurrency:
+            group: docs-preview-build-pr-${{ github.event.pull_request.number }}
+            cancel-in-progress: true
+        steps:
+            - name: Wait for build cancellation
+              run: ':'
+
     cleanup:
         name: Expire Code Reference preview
+        needs: quiesce-build
         if: >-
             github.event.action == 'closed' &&
             ( github.repository == 'WordPress/wordpress-develop' ||
               ( github.repository == 'sirreal/wordpress-develop' && vars.DOCS_PREVIEW_STAGING == 'true' ) )
         runs-on: ubuntu-24.04
         timeout-minutes: 15
+        concurrency:
+            group: docs-preview-publish-${{ github.event.pull_request.head.repo.full_name }}-${{ github.event.pull_request.head.ref }}
+            queue: max
         permissions:
             actions: write
             contents: write

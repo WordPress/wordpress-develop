@@ -8,7 +8,7 @@ on:
 
 # A newer head makes every older build obsolete for this pull request.
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  group: docs-preview-build-pr-${{ github.event.pull_request.number }}
   cancel-in-progress: true
 
 # Pull-request code receives no write authority or repository secrets.

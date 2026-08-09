@@ -6,7 +6,10 @@ import { pathToFileURL } from 'node:url';
 import { isDeploymentEnabled } from './lib/config.mjs';
 import { GitHubApi } from './lib/github.mjs';
 import { findPreviousPreview } from './lib/published.mjs';
-import { renderPreviewComment } from './lib/publisher.mjs';
+import {
+	readPreviewCommentSource,
+	renderPreviewComment,
+} from './lib/publisher.mjs';
 
 const FULL_COMMIT = /^[0-9a-f]{40}$/;
 const CACHE_PREFIX = 'docs-preview-base-';
@@ -50,13 +53,20 @@ function lifecycleContext( options ) {
 	}
 	return {
 		action,
+		headBranch: pullRequest.head.ref,
 		pullRequestNumber,
 		sourceRepository,
 		sourceSha: pullRequest.head.sha,
 	};
 }
 
-function assertCurrent( context, pullRequest, state, labelMustBeAbsent ) {
+function assertCurrent(
+	context,
+	pullRequest,
+	state,
+	labelMustBeAbsent,
+	currentBuild
+) {
 	if (
 		pullRequest.number !== context.pullRequestNumber ||
 		pullRequest.state !== state ||
@@ -67,7 +77,8 @@ function assertCurrent( context, pullRequest, state, labelMustBeAbsent ) {
 		( labelMustBeAbsent &&
 			pullRequest.labels?.some(
 				( label ) => label.name === 'docs-preview'
-			) )
+			) ) ||
+		currentBuild
 	) {
 		throw new Error( 'A newer pull request state superseded this event.' );
 	}
@@ -83,16 +94,28 @@ function sessionFrom( options ) {
 			options.token,
 			options.fetchImplementation
 		);
-	const authorize = async ( state, labelMustBeAbsent = false ) => {
+	const authorize = async (
+		state,
+		labelMustBeAbsent = false,
+		buildMustBeAbsent = false
+	) => {
 		const pullRequest = await api.getPullRequest(
 			context.pullRequestNumber
 		);
+		const currentBuild = buildMustBeAbsent
+			? await api.findLatestPreviewRun( {
+					head_sha: context.sourceSha,
+					head_branch: context.headBranch,
+					head_repository: { full_name: context.sourceRepository },
+			  } )
+			: null;
 		try {
 			return assertCurrent(
 				context,
 				pullRequest,
 				state,
-				labelMustBeAbsent
+				labelMustBeAbsent,
+				currentBuild
 			);
 		} catch ( error ) {
 			throw new LifecycleSuperseded( error.message );
@@ -110,7 +133,7 @@ function sessionFrom( options ) {
 
 async function markStale( session ) {
 	try {
-		await session.authorize( 'open', true );
+		await session.authorize( 'open', true, true );
 	} catch ( error ) {
 		if ( error instanceof LifecycleSuperseded ) {
 			return { status: 'ignored' };
@@ -125,9 +148,24 @@ async function markStale( session ) {
 	}
 	const preview = await findPreviousPreview( session );
 	if ( ! preview ) {
-		return { status: 'unavailable' };
+		const previous = readPreviewCommentSource( comment.body );
+		if ( ! previous ) {
+			return { status: 'unavailable' };
+		}
+		await session.authorize( 'open', true, true );
+		await session.api.updateComment(
+			comment.id,
+			renderPreviewComment( {
+				status: 'stale-unavailable',
+				previousRepository: previous.repository,
+				previousSha: previous.sha,
+				currentRepository: session.context.sourceRepository,
+				currentSha: session.context.sourceSha,
+			} )
+		);
+		return { status: 'stale' };
 	}
-	await session.authorize( 'open', true );
+	await session.authorize( 'open', true, true );
 	await session.api.updateComment(
 		comment.id,
 		renderPreviewComment( {

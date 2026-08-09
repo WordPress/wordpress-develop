@@ -264,9 +264,29 @@ function previousLink( previous ) {
 	) }.`;
 }
 
+function commentHeader( source ) {
+	const identity = source
+		? `\n<!-- code-reference-docs-preview-source: ${ source.repository }@${ source.sha } -->`
+		: '';
+	return `${ COMMENT_MARKER }${ identity }\n## Code Reference documentation preview`;
+}
+
+export function readPreviewCommentSource( body ) {
+	if ( typeof body !== 'string' ) {
+		return null;
+	}
+	const match = body.match(
+		/<!-- code-reference-docs-preview-source: ([A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+)@([0-9a-f]{40}) -->/
+	);
+	return match ? { repository: match[ 1 ], sha: match[ 2 ] } : null;
+}
+
 export function renderPreviewComment( state ) {
-	const header = `${ COMMENT_MARKER }\n## Code Reference documentation preview`;
 	if ( state.status === 'ready' ) {
+		const header = commentHeader( {
+			repository: state.preview.sourceRepository,
+			sha: state.preview.sourceSha,
+		} );
 		return `${ header }\n\n**Status:** Ready\n\n[Open Code Reference preview](${
 			state.preview.publication.playgroundUrl
 		})\n\nSource: ${ commitLink(
@@ -277,6 +297,10 @@ export function renderPreviewComment( state ) {
 		}  \n[GitHub Actions run](${ state.runUrl })`;
 	}
 	if ( state.status === 'failed' ) {
+		const header = commentHeader( {
+			repository: state.sourceRepository,
+			sha: state.sourceSha,
+		} );
 		return `${ header }\n\n**Status:** Latest attempt failed\n\nThe latest attempt for ${ commitLink(
 			state.sourceRepository,
 			state.sourceSha
@@ -285,6 +309,10 @@ export function renderPreviewComment( state ) {
 		}).${ previousLink( state.previous ) }`;
 	}
 	if ( state.status === 'stale' ) {
+		const header = commentHeader( {
+			repository: state.currentRepository,
+			sha: state.currentSha,
+		} );
 		return `${ header }\n\n**Status:** Stale\n\nThe latest successful preview was built from ${ commitLink(
 			state.preview.sourceRepository,
 			state.preview.sourceSha
@@ -295,7 +323,21 @@ export function renderPreviewComment( state ) {
 			state.preview.publication.playgroundUrl
 		})\n\nAdd the \`docs-preview\` label again to build the current commit.`;
 	}
+	if ( state.status === 'stale-unavailable' ) {
+		const header = commentHeader( {
+			repository: state.currentRepository,
+			sha: state.currentSha,
+		} );
+		return `${ header }\n\n**Status:** Stale\n\nThe latest preview attempt was for ${ commitLink(
+			state.previousRepository,
+			state.previousSha
+		) }, but no healthy docs preview is available. The pull request is now at ${ commitLink(
+			state.currentRepository,
+			state.currentSha
+		) }.\n\nAdd the \`docs-preview\` label again to build the current commit.`;
+	}
 	if ( state.status === 'expired' ) {
+		const header = commentHeader();
 		return `${ header }\n\n**Status:** Expired\n\nThis pull request is closed or merged. Its Code Reference preview expired and is no longer live.`;
 	}
 	throw new Error( `Unknown preview comment state ${ state.status }.` );

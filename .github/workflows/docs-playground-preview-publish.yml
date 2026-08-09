@@ -10,8 +10,8 @@ on: # zizmor: ignore[dangerous-triggers] Only default-branch code validates and 
 # A fork head branch identifies one trunk pull request even when GitHub omits the
 # pull_requests array. Runs queue instead of interrupting a publication halfway.
 concurrency:
-    group: ${{ github.workflow }}-${{ github.event.workflow_run.head_repository.full_name }}-${{ github.event.workflow_run.head_branch }}
-    cancel-in-progress: false
+    group: docs-preview-publish-${{ github.event.workflow_run.head_repository.full_name }}-${{ github.event.workflow_run.head_branch }}
+    queue: max
 
 permissions: {}
 

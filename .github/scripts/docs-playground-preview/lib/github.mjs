@@ -111,7 +111,7 @@ export class GitHubApi {
 		return matches[ 0 ];
 	}
 
-	async latestPreviewRun( run ) {
+	async findLatestPreviewRun( run ) {
 		const runs = await this.pages(
 			`/repos/${
 				this.repository
@@ -135,6 +135,14 @@ export class GitHubApi {
 			if ( ! ( await this.isSkippedPreviewBuild( current ) ) ) {
 				return current;
 			}
+		}
+		return null;
+	}
+
+	async latestPreviewRun( run ) {
+		const latest = await this.findLatestPreviewRun( run );
+		if ( latest ) {
+			return latest;
 		}
 		throw new Error( 'No current docs preview build matches this head.' );
 	}

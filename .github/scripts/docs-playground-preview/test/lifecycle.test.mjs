@@ -3,7 +3,10 @@ import { createHash } from 'node:crypto';
 import { test } from 'node:test';
 
 import { managePullRequest } from '../lifecycle.mjs';
-import { createPublishedMetadata } from '../lib/publisher.mjs';
+import {
+	createPublishedMetadata,
+	renderPreviewComment,
+} from '../lib/publisher.mjs';
 import {
 	COMMENT_MARKER,
 	PLAYGROUND_ORIGIN,
@@ -25,6 +28,7 @@ function pullRequest( state = 'open', labels = [] ) {
 		base: { ref: 'trunk' },
 		head: {
 			sha: currentSha,
+			ref: 'feature',
 			repo: { full_name: sourceRepository },
 		},
 		labels,
@@ -96,10 +100,15 @@ class FakeApi {
 		this.commentBodies = [];
 		this.failedAsset = null;
 		this.cacheRef = null;
+		this.previewBuilds = [];
 	}
 
 	async getPullRequest() {
 		return this.currentPullRequest;
+	}
+
+	async findLatestPreviewRun() {
+		return this.previewBuilds.shift() || null;
 	}
 
 	async getRelease() {
@@ -207,6 +216,37 @@ test( 'a labeled synchronize event leaves the publisher in charge', async () => 
 	);
 	assert.equal( result.status, 'ignored' );
 	assert.equal( api.commentBodies.length, 0 );
+} );
+
+test( 'a completed current-SHA build supersedes an older stale event', async () => {
+	const api = new FakeApi();
+	installPreview( api );
+	api.previewBuilds.push( null, { id: 456 } );
+	await assert.rejects(
+		managePullRequest( options( api, event( 'synchronize' ) ) ),
+		/superseded/
+	);
+	assert.equal( api.commentBodies.length, 0 );
+} );
+
+test( 'a stale failed attempt still tells the maintainer how to rebuild', async () => {
+	const api = new FakeApi();
+	api.comment.body = renderPreviewComment( {
+		status: 'failed',
+		sourceRepository,
+		sourceSha: previewSha,
+		at: '2026-08-08T13:00:00.000Z',
+		runUrl: `https://github.com/${ repository }/actions/runs/300`,
+		previous: null,
+	} );
+	const result = await managePullRequest(
+		options( api, event( 'synchronize' ) )
+	);
+	assert.equal( result.status, 'stale' );
+	assert.match( api.comment.body, /no healthy docs preview is available/ );
+	assert.match( api.comment.body, new RegExp( previewSha ) );
+	assert.match( api.comment.body, new RegExp( currentSha ) );
+	assert.match( api.comment.body, /add the `docs-preview` label again/i );
 } );
 
 test( 'closing a PR deletes only its preview assets and scoped docs caches', async () => {
