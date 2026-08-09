@@ -2,8 +2,6 @@
 src/wp-content/plugins/**/*
 
 # Ignore WordPress theme files.
-# Note that the dependencies of some themes would require the "stylelint-a11y"
-# package which is not used in Core and incompatible with latest Stylelint versions.
 src/wp-content/themes/**/*
 
 # Ignore WordPress block files.
