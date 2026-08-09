@@ -150,10 +150,14 @@ export async function resolveWordPressBeta(
 
 export function makeBaseCacheKey( inputs ) {
 	assertObject( inputs, 'Cache inputs' );
-	assertPositiveInteger( inputs.schemaVersion, 'Cache schemaVersion' );
+	assertPositiveInteger(
+		inputs.cacheSchemaVersion,
+		'Cache cacheSchemaVersion'
+	);
 	for ( const [ name, value ] of Object.entries( {
 		platform: inputs.platform,
 		architecture: inputs.architecture,
+		runnerImage: inputs.runnerImage,
 		phpVersion: inputs.phpVersion,
 		wordpressVersion: inputs.wordpressVersion,
 	} ) ) {
@@ -166,7 +170,7 @@ export function makeBaseCacheKey( inputs ) {
 	const identity = createHash( 'sha256' )
 		.update( JSON.stringify( inputs ) )
 		.digest( 'hex' );
-	return `docs-preview-base-v${ inputs.schemaVersion }-${ identity }`;
+	return `docs-preview-base-v${ inputs.cacheSchemaVersion }-${ identity }`;
 }
 
 export function isDeploymentEnabled( repository, stagingValue = '' ) {

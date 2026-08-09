@@ -119,9 +119,10 @@ test( 'the beta resolver rejects an unbound download URL', async () => {
 
 test( 'the cache key changes with every material base input', () => {
 	const inputs = {
-		schemaVersion: 1,
+		cacheSchemaVersion: 1,
 		platform: 'linux',
 		architecture: 'x64',
+		runnerImage: 'ubuntu-24.04',
 		phpVersion: '8.4',
 		wordpressVersion: '7.2-beta1',
 		dependencyDigest: 'a'.repeat( 64 ),
@@ -129,8 +130,10 @@ test( 'the cache key changes with every material base input', () => {
 	};
 	const baseline = makeBaseCacheKey( inputs );
 	for ( const [ name, value ] of Object.entries( {
+		cacheSchemaVersion: 2,
 		platform: 'darwin',
 		architecture: 'arm64',
+		runnerImage: 'macos-15',
 		phpVersion: '8.5',
 		wordpressVersion: '7.2-beta2',
 		dependencyDigest: 'c'.repeat( 64 ),
