@@ -1,4 +1,6 @@
 /* OS dark theme preference */
+
+/* stylelint-disable selector-class-pattern -- Selector patterns do not follow the Gutenberg pattern. */
 @media only screen {
 
 	.is-dark-theme.is-dark-theme {
@@ -104,3 +106,5 @@
 		}
 	}
 }
+
+/* stylelint-enable */

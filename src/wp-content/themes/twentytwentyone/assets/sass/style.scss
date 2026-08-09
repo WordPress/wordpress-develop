@@ -1,5 +1,7 @@
 @import "01-settings/file-header";
 
+/* stylelint-disable no-duplicate-selectors, selector-class-pattern -- This file contains rules from normqalize.css tha twe keep separated as such there are duplicate selectors. Also, selector patterns do not follow the Gutenberg pattern. */
+
 /**
  * SETTINGS
  * File-header..........The file header for the themes style.css file.
@@ -118,3 +120,5 @@
 @import "07-utilities/a11y";
 @import "07-utilities/color-palette";
 @import "07-utilities/measure";
+
+/* stylelint-enable */
