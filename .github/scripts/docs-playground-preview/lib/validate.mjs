@@ -3,6 +3,8 @@ import { copyFile, mkdir, rm, writeFile } from 'node:fs/promises';
 import { createServer } from 'node:net';
 import path from 'node:path';
 
+import { PLAYGROUND_WORKERS } from './playground.mjs';
+
 const BANNER_ID = 'wporg-code-reference-preview-provenance';
 
 function bundled( resourcePath ) {
@@ -81,6 +83,8 @@ export function createValidationServerArguments(
 		baseUrl,
 		'--port',
 		String( port ),
+		'--workers',
+		String( PLAYGROUND_WORKERS ),
 		'--verbosity',
 		'normal',
 	];

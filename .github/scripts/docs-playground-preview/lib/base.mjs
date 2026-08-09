@@ -4,6 +4,7 @@ import path from 'node:path';
 
 import { copyDirectory, downloadFile, zipDirectory } from './archive.mjs';
 import { acquireRepositories, exists } from './files.mjs';
+import { buildSnapshot } from './playground.mjs';
 import { run } from './process.mjs';
 
 const LIBRARY_ROOT = path.dirname( fileURLToPath( import.meta.url ) );
@@ -279,23 +280,16 @@ async function buildInvariantBase( inputs, options ) {
 			2
 		) }\n`
 	);
-	await runImplementation(
+	await ( options.buildSnapshotImplementation || buildSnapshot )(
 		options.playgroundCli || executable( 'wp-playground-cli' ),
-		[
-			'build-snapshot',
-			'--php',
-			inputs.dependencies.playground.phpVersion,
-			'--wp',
-			inputs.wordpress.version,
-			'--blueprint',
+		{
+			php: inputs.dependencies.playground.phpVersion,
+			wp: inputs.wordpress.version,
 			blueprint,
-			'--blueprint-may-read-adjacent-files',
-			'--outfile',
-			path.join( inputs.cacheDirectory, 'base.zip' ),
-			'--verbosity',
-			'normal',
-		],
-		{ label: 'build invariant Playground base' }
+			'blueprint-may-read-adjacent-files': true,
+			outfile: path.join( inputs.cacheDirectory, 'base.zip' ),
+			verbosity: 'normal',
+		}
 	);
 	await copyDirectory(
 		roots.phpdocParser,

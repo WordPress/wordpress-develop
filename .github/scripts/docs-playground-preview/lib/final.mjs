@@ -3,7 +3,7 @@ import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 
 import { sha256File } from './files.mjs';
-import { run } from './process.mjs';
+import { buildSnapshot } from './playground.mjs';
 import { renderRuntimePlugin } from './runtime.mjs';
 
 const LIBRARY_ROOT = path.dirname( fileURLToPath( import.meta.url ) );
@@ -92,7 +92,6 @@ export function createFinalBlueprint( inputs ) {
 }
 
 export async function packageFinalSnapshot( inputs, options ) {
-	const runImplementation = options.runImplementation || run;
 	const work = path.resolve( options.workDirectory );
 	const output = path.resolve( options.output );
 	await rm( work, { recursive: true, force: true } );
@@ -123,27 +122,22 @@ export async function packageFinalSnapshot( inputs, options ) {
 		blueprint,
 		`${ JSON.stringify( createFinalBlueprint( inputs ), null, 2 ) }\n`
 	);
-	await runImplementation(
+	await ( options.buildSnapshotImplementation || buildSnapshot )(
 		options.playgroundCli,
-		[
-			'build-snapshot',
-			'--php',
-			inputs.dependencies.playground.phpVersion,
-			'--wp',
-			inputs.wordpress.version,
-			'--blueprint',
+		{
+			php: inputs.dependencies.playground.phpVersion,
+			wp: inputs.wordpress.version,
 			blueprint,
-			'--blueprint-may-read-adjacent-files',
-			'--mount',
-			`${ path.resolve(
-				options.stagedSource
-			) }:/tmp/docs-preview-source`,
-			'--outfile',
-			output,
-			'--verbosity',
-			'normal',
-		],
-		{ label: 'build final Code Reference snapshot' }
+			'blueprint-may-read-adjacent-files': true,
+			mount: [
+				{
+					hostPath: path.resolve( options.stagedSource ),
+					vfsPath: '/tmp/docs-preview-source',
+				},
+			],
+			outfile: output,
+			verbosity: 'normal',
+		}
 	);
 	const snapshot = await stat( output );
 	if ( snapshot.size > inputs.dependencies.limits.snapshotBytes ) {

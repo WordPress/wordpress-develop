@@ -94,8 +94,8 @@ async function fixture( snapshotBytes = 1024 ) {
 test( 'final packaging returns publisher metadata for a bounded snapshot', async () => {
 	const current = await fixture();
 	let invocation;
-	const runImplementation = async ( command, args ) => {
-		invocation = { command, args };
+	const buildSnapshotImplementation = async ( command, options ) => {
+		invocation = { command, options };
 		await writeFile( current.output, 'snapshot' );
 	};
 	const snapshot = await packageFinalSnapshot( current.resolved, {
@@ -110,16 +110,17 @@ test( 'final packaging returns publisher metadata for a bounded snapshot', async
 			generationTimestamp: '2026-08-09T12:34:56.000Z',
 			runUrl: 'https://github.com/example/wordpress-develop/actions/runs/123',
 		},
-		runImplementation,
+		buildSnapshotImplementation,
 	} );
 	assert.equal( snapshot.filename, 'snapshot.zip' );
 	assert.equal( snapshot.bytes, 8 );
 	assert.match( snapshot.sha256, /^[0-9a-f]{64}$/ );
 	assert.equal( invocation.command, '/tools/wp-playground-cli' );
-	assert.equal(
-		invocation.args[ invocation.args.indexOf( '--mount' ) + 1 ],
-		'/source:/tmp/docs-preview-source'
-	);
+	assert.deepEqual( invocation.options.mount, [
+		{ hostPath: '/source', vfsPath: '/tmp/docs-preview-source' },
+	] );
+	assert.equal( invocation.options.php, '8.4' );
+	assert.equal( invocation.options.wp, '7.2-beta1' );
 	const blueprint = JSON.parse(
 		await readFile(
 			path.join( current.root, 'work/final-blueprint.json' ),
@@ -131,7 +132,7 @@ test( 'final packaging returns publisher metadata for a bounded snapshot', async
 
 test( 'the 100 MiB snapshot boundary always fails closed', async () => {
 	const current = await fixture( 8 );
-	const runImplementation = async () => {
+	const buildSnapshotImplementation = async () => {
 		const output = await open( current.output, 'w' );
 		await output.truncate( 9 );
 		await output.close();
@@ -149,7 +150,7 @@ test( 'the 100 MiB snapshot boundary always fails closed', async () => {
 				generationTimestamp: '2026-08-09T12:34:56.000Z',
 				runUrl: 'https://github.com/example/wordpress-develop/actions/runs/123',
 			},
-			runImplementation,
+			buildSnapshotImplementation,
 		} ),
 		/exceeds 100 MiB/
 	);

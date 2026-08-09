@@ -120,14 +120,14 @@ test( 'validation Blueprint boots the exact snapshot without login or networking
 	] );
 } );
 
-test( 'validation server uses the pinned Playground worker default', () => {
+test( 'validation server uses six Playground workers', () => {
 	const args = createValidationServerArguments(
 		inputs(),
 		'/tmp/validation-blueprint.json',
 		'http://127.0.0.1:9400',
 		9400
 	);
-	assert.equal( args.includes( '--workers' ), false );
+	assert.equal( args[ args.indexOf( '--workers' ) + 1 ], '6' );
 	assert.deepEqual( args.slice( 0, 5 ), [
 		'server',
 		'--php',
