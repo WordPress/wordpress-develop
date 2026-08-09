@@ -73,6 +73,12 @@ test( 'a fork run resolves its PR without workflow pull_requests data', async ()
 		}
 	);
 	assert.equal( ( await api.findPullRequestForRun( run() ) ).number, 123 );
+	const obsolete = new GitHubApi(
+		'WordPress/wordpress-develop',
+		'token',
+		async () => response( [] )
+	);
+	assert.equal( await obsolete.findPullRequestForRun( run() ), null );
 
 	const ambiguous = new GitHubApi(
 		'WordPress/wordpress-develop',

@@ -99,6 +99,9 @@ export class GitHubApi {
 				pullRequest.head.repo?.full_name ===
 					run.head_repository.full_name
 		);
+		if ( matches.length === 0 ) {
+			return null;
+		}
 		if ( matches.length !== 1 ) {
 			throw new Error(
 				`Expected one pull request for the workflow run; found ${ matches.length }.`
