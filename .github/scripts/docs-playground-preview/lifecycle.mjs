@@ -53,20 +53,13 @@ function lifecycleContext( options ) {
 	}
 	return {
 		action,
-		headBranch: pullRequest.head.ref,
 		pullRequestNumber,
 		sourceRepository,
 		sourceSha: pullRequest.head.sha,
 	};
 }
 
-function assertCurrent(
-	context,
-	pullRequest,
-	state,
-	labelMustBeAbsent,
-	currentBuild
-) {
+function assertCurrent( context, pullRequest, state, labelMustBeAbsent ) {
 	if (
 		pullRequest.number !== context.pullRequestNumber ||
 		pullRequest.state !== state ||
@@ -77,8 +70,7 @@ function assertCurrent(
 		( labelMustBeAbsent &&
 			pullRequest.labels?.some(
 				( label ) => label.name === 'docs-preview'
-			) ) ||
-		currentBuild
+			) )
 	) {
 		throw new Error( 'A newer pull request state superseded this event.' );
 	}
@@ -94,28 +86,16 @@ function sessionFrom( options ) {
 			options.token,
 			options.fetchImplementation
 		);
-	const authorize = async (
-		state,
-		labelMustBeAbsent = false,
-		buildMustBeAbsent = false
-	) => {
+	const authorize = async ( state, labelMustBeAbsent = false ) => {
 		const pullRequest = await api.getPullRequest(
 			context.pullRequestNumber
 		);
-		const currentBuild = buildMustBeAbsent
-			? await api.findLatestPreviewRun( {
-					head_sha: context.sourceSha,
-					head_branch: context.headBranch,
-					head_repository: { full_name: context.sourceRepository },
-			  } )
-			: null;
 		try {
 			return assertCurrent(
 				context,
 				pullRequest,
 				state,
-				labelMustBeAbsent,
-				currentBuild
+				labelMustBeAbsent
 			);
 		} catch ( error ) {
 			throw new LifecycleSuperseded( error.message );
@@ -131,9 +111,24 @@ function sessionFrom( options ) {
 	};
 }
 
+async function authorizeStaleMutation( session, expectedComment ) {
+	await session.authorize( 'open', true );
+	const currentComment = await session.api.findPreviewComment(
+		session.context.pullRequestNumber
+	);
+	if (
+		currentComment?.id !== expectedComment.id ||
+		currentComment.body !== expectedComment.body
+	) {
+		throw new LifecycleSuperseded(
+			'A newer preview state superseded this stale event.'
+		);
+	}
+}
+
 async function markStale( session ) {
 	try {
-		await session.authorize( 'open', true, true );
+		await session.authorize( 'open', true );
 	} catch ( error ) {
 		if ( error instanceof LifecycleSuperseded ) {
 			return { status: 'ignored' };
@@ -152,7 +147,7 @@ async function markStale( session ) {
 		if ( ! previous ) {
 			return { status: 'unavailable' };
 		}
-		await session.authorize( 'open', true, true );
+		await authorizeStaleMutation( session, comment );
 		await session.api.updateComment(
 			comment.id,
 			renderPreviewComment( {
@@ -165,7 +160,7 @@ async function markStale( session ) {
 		);
 		return { status: 'stale' };
 	}
-	await session.authorize( 'open', true, true );
+	await authorizeStaleMutation( session, comment );
 	await session.api.updateComment(
 		comment.id,
 		renderPreviewComment( {

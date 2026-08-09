@@ -325,8 +325,8 @@ export function renderPreviewComment( state ) {
 	}
 	if ( state.status === 'stale-unavailable' ) {
 		const header = commentHeader( {
-			repository: state.currentRepository,
-			sha: state.currentSha,
+			repository: state.previousRepository,
+			sha: state.previousSha,
 		} );
 		return `${ header }\n\n**Status:** Stale\n\nThe latest preview attempt was for ${ commitLink(
 			state.previousRepository,

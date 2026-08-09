@@ -6,11 +6,6 @@ on:
       - trunk
     types: [ labeled, synchronize ]
 
-# A newer head makes every older build obsolete for this pull request.
-concurrency:
-  group: docs-preview-build-pr-${{ github.event.pull_request.number }}
-  cancel-in-progress: true
-
 # Pull-request code receives no write authority or repository secrets.
 permissions: {}
 
@@ -21,8 +16,13 @@ jobs:
       ( github.repository == 'WordPress/wordpress-develop' ||
         ( github.repository == 'sirreal/wordpress-develop' && vars.DOCS_PREVIEW_STAGING == 'true' ) ) &&
       github.event.pull_request.base.ref == 'trunk' &&
+      github.event.pull_request.state == 'open' &&
       ( ( github.event.action == 'labeled' && github.event.label.name == 'docs-preview' ) ||
         ( github.event.action == 'synchronize' && contains( github.event.pull_request.labels.*.name, 'docs-preview' ) ) )
+    # A newer eligible head makes every older build obsolete for this pull request.
+    concurrency:
+      group: docs-preview-build-pr-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
     runs-on: ubuntu-24.04
     timeout-minutes: 60
     permissions:

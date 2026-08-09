@@ -293,6 +293,10 @@ test( 'the sticky comment has ready, failed, stale, and expired states', () => {
 	} );
 	assert.match( unavailable, /no healthy docs preview is available/ );
 	assert.match( unavailable, /add the `docs-preview` label again/i );
+	assert.deepEqual( readPreviewCommentSource( unavailable ), {
+		repository: preview.sourceRepository,
+		sha,
+	} );
 
 	assert.match(
 		renderPreviewComment( { status: 'expired' } ),

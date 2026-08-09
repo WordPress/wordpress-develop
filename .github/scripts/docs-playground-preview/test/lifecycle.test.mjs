@@ -100,15 +100,12 @@ class FakeApi {
 		this.commentBodies = [];
 		this.failedAsset = null;
 		this.cacheRef = null;
-		this.previewBuilds = [];
+		this.replacementComment = null;
+		this.commentReads = 0;
 	}
 
 	async getPullRequest() {
 		return this.currentPullRequest;
-	}
-
-	async findLatestPreviewRun() {
-		return this.previewBuilds.shift() || null;
 	}
 
 	async getRelease() {
@@ -125,6 +122,10 @@ class FakeApi {
 	}
 
 	async findPreviewComment() {
+		this.commentReads++;
+		if ( this.commentReads > 1 && this.replacementComment ) {
+			return this.replacementComment;
+		}
 		return this.comment;
 	}
 
@@ -218,10 +219,20 @@ test( 'a labeled synchronize event leaves the publisher in charge', async () => 
 	assert.equal( api.commentBodies.length, 0 );
 } );
 
-test( 'a completed current-SHA build supersedes an older stale event', async () => {
+test( 'a newer terminal comment supersedes an older stale event', async () => {
 	const api = new FakeApi();
 	installPreview( api );
-	api.previewBuilds.push( null, { id: 456 } );
+	api.replacementComment = {
+		id: api.comment.id,
+		body: renderPreviewComment( {
+			status: 'failed',
+			sourceRepository,
+			sourceSha: currentSha,
+			at: '2026-08-09T13:00:00.000Z',
+			runUrl: `https://github.com/${ repository }/actions/runs/456`,
+			previous: previewMetadata(),
+		} ),
+	};
 	await assert.rejects(
 		managePullRequest( options( api, event( 'synchronize' ) ) ),
 		/superseded/
