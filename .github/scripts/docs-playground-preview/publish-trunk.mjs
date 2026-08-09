@@ -203,7 +203,11 @@ async function moveStablePointer( session, previousRef, commit, transaction ) {
 		commit.sha
 	);
 	if ( ! moved ) {
-		throw mutationError || new Error( 'The trunk pointer did not move.' );
+		const error =
+			mutationError ||
+			new Error( 'The stable trunk pointer mutation has unknown state.' );
+		error.pointerStateUnknown = true;
+		throw error;
 	}
 	transaction.pointerPublished = true;
 }

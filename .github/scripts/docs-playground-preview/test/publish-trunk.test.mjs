@@ -91,6 +91,7 @@ class FakeApi {
 		this.refReads = 0;
 		this.refUpdateFailure = null;
 		this.failRefResolution = false;
+		this.staleRefAfterMutation = false;
 	}
 
 	async getRun() {
@@ -135,11 +136,15 @@ class FakeApi {
 	async getGitReference( reference ) {
 		assert.equal( reference, TRUNK_POINTER_REF );
 		this.refReads++;
-		this.events.push( `git:read-ref:${ this.refSha }` );
+		const visibleSha =
+			this.staleRefAfterMutation && this.refReads > 1
+				? this.previousRefSha
+				: this.refSha;
+		this.events.push( `git:read-ref:${ visibleSha }` );
 		if ( this.failRefResolution && this.refReads > 1 ) {
 			throw new Error( 'ref resolution failed' );
 		}
-		return this.refSha ? { object: { sha: this.refSha } } : null;
+		return visibleSha ? { object: { sha: visibleSha } } : null;
 	}
 
 	async createGitBlob( content ) {
@@ -409,7 +414,7 @@ test( 'public candidate failure leaves the previous pointer and snapshot intact'
 	assert.deepEqual( api.deleted.sort(), [ 10, 11 ] );
 } );
 
-test( 'a failed ref update leaves the previous pointer intact', async () => {
+test( 'a failed ref update retains the previous and candidate assets', async () => {
 	const api = new FakeApi();
 	installPrevious( api );
 	api.refUpdateFailure = 'before';
@@ -420,7 +425,8 @@ test( 'a failed ref update leaves the previous pointer intact', async () => {
 	);
 	assert.equal( api.refSha, api.previousRefSha );
 	assert.ok( api.assets.some( ( asset ) => asset.id === 1 ) );
-	assert.deepEqual( api.deleted.sort(), [ 10, 11 ] );
+	assert.ok( api.assets.some( ( asset ) => asset.id === 10 ) );
+	assert.deepEqual( api.deleted, [] );
 } );
 
 test( 'an ambiguous ref response resolves the candidate and completes', async () => {
@@ -445,6 +451,35 @@ test( 'unresolved ref state retains both valid generations', async () => {
 	await assert.rejects(
 		publishTrunk( options( api, directory ) ),
 		/ref resolution failed/
+	);
+	assert.equal( api.refSha, 'f'.repeat( 40 ) );
+	assert.ok( api.assets.some( ( asset ) => asset.id === 1 ) );
+	assert.ok( api.assets.some( ( asset ) => asset.id === 10 ) );
+	assert.deepEqual( api.deleted, [] );
+} );
+
+test( 'a stale read after ref creation retains the candidate assets', async () => {
+	const api = new FakeApi();
+	api.staleRefAfterMutation = true;
+	const directory = await handoffDirectory( buildMetadata() );
+	await assert.rejects(
+		publishTrunk( options( api, directory ) ),
+		/pointer mutation has unknown state/
+	);
+	assert.equal( api.refSha, 'f'.repeat( 40 ) );
+	assert.equal( api.assets.length, 2 );
+	assert.deepEqual( api.deleted, [] );
+} );
+
+test( 'an update error and stale read retain both asset generations', async () => {
+	const api = new FakeApi();
+	installPrevious( api );
+	api.refUpdateFailure = 'after';
+	api.staleRefAfterMutation = true;
+	const directory = await handoffDirectory( buildMetadata() );
+	await assert.rejects(
+		publishTrunk( options( api, directory ) ),
+		/ref update response failed/
 	);
 	assert.equal( api.refSha, 'f'.repeat( 40 ) );
 	assert.ok( api.assets.some( ( asset ) => asset.id === 1 ) );
