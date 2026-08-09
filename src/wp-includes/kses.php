@@ -2554,6 +2554,7 @@ function kses_init() {
  * @since 6.6.0 Added support for `grid-column`, `grid-row`, and `container-type`.
  * @since 6.9.0 Added support for `white-space`.
  * @since 7.1.0 Extended gradient support to allow any single-level nested function.
+ *              CSS function names are now matched case-insensitively.
  *
  * @param string $css        A string of CSS rules, decoded from an HTML `style` attribute.
  * @param string $deprecated Not used.
@@ -2869,19 +2870,22 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 			}
 
 			if ( $is_custom_var ) {
-				$css_value     = trim( $parts[1] );
-				$url_attr      = str_starts_with( $css_value, 'url(' );
-				$gradient_attr = str_contains( $css_value, '-gradient(' );
+				$css_value = trim( $parts[1] );
+
+				// CSS function names are ASCII case-insensitive.
+				$lowercase_css_value = strtolower( $css_value );
+				$url_attr            = str_starts_with( $lowercase_css_value, 'url(' );
+				$gradient_attr       = str_contains( $lowercase_css_value, '-gradient(' );
 			}
 		}
 
 		if ( $found && $url_attr ) {
 			// Simplified: matches the sequence `url(*)`.
-			preg_match_all( '/url\([^)]+\)/', $parts[1], $url_matches );
+			preg_match_all( '/url\([^)]+\)/i', $parts[1], $url_matches );
 
 			foreach ( $url_matches[0] as $url_match ) {
 				// Clean up the URL from each of the matches above.
-				preg_match( '/^url\(\s*([\'\"]?)(.*)(\g1)\s*\)$/', $url_match, $url_pieces );
+				preg_match( '/^url\(\s*([\'\"]?)(.*)(\g1)\s*\)$/i', $url_match, $url_pieces );
 
 				if ( empty( $url_pieces[2] ) ) {
 					$found = false;
@@ -2906,7 +2910,7 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 			 * (e.g. rgb(), hsl(), var()). Matching each occurrence, rather than requiring the
 			 * whole value to be a single gradient, lets a gradient combine with a url() image.
 			 */
-			preg_match_all( '/(?:repeating-)?(?:linear|radial|conic)-gradient\((?:[^()]|\([^()]*\))*\)/', $css_test_string, $gradient_matches );
+			preg_match_all( '/(?:repeating-)?(?:linear|radial|conic)-gradient\((?:[^()]|\([^()]*\))*\)/i', $css_test_string, $gradient_matches );
 
 			foreach ( $gradient_matches[0] as $gradient_match ) {
 				// Remove each `gradient()` bit that was matched above from the CSS.
@@ -2918,9 +2922,10 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 			/*
 			 * Allow CSS functions like var(), calc(), etc. by removing them from the test string.
 			 * Nested functions and parentheses are also removed, so long as the parentheses are balanced.
+			 * Function names are matched case-insensitively, as they are in CSS.
 			 */
 			$css_test_string = preg_replace(
-				'/\b(?:var|calc|min|max|minmax|clamp|repeat)(\((?:[^()]|(?1))*\))/',
+				'/\b(?:var|calc|min|max|minmax|clamp|repeat)(\((?:[^()]|(?1))*\))/i',
 				'',
 				$css_test_string
 			);
