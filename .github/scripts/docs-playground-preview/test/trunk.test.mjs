@@ -2,19 +2,16 @@ import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { test } from 'node:test';
 
-import {
-	PLAYGROUND_ORIGIN,
-	corsProxyUrl,
-	releaseAssetUrl,
-} from '../lib/publication.mjs';
+import { PLAYGROUND_ORIGIN, corsProxyUrl } from '../lib/publication.mjs';
 import {
 	TRUNK_POINTER_ASSET,
+	TRUNK_POINTER_REF,
 	assertLatestTrunkAuthorized,
 	createTrunkBlueprint,
 	createTrunkPublishedMetadata,
 	inspectTrunkHandoff,
 	trunkPlaygroundUrl,
-	trunkPointerCandidateName,
+	trunkBlueprintCommitUrl,
 	trunkSnapshotAssetName,
 	trunkStableBlueprintUrl,
 	validatePublicBlueprint,
@@ -104,9 +101,10 @@ test( 'trunk assets bind the exact SHA, run, and attempt', () => {
 		`code-reference-trunk-${ sha }-456-2.zip`
 	);
 	assert.equal(
-		trunkPointerCandidateName( identity ),
-		`code-reference-trunk-pointer-${ sha }-456-2.json`
+		trunkBlueprintCommitUrl( repository, sha ),
+		`https://raw.githubusercontent.com/${ repository }/${ sha }/${ TRUNK_POINTER_ASSET }`
 	);
+	assert.equal( TRUNK_POINTER_REF, 'heads/docs-preview-code-reference' );
 	assert.throws(
 		() => trunkSnapshotAssetName( { ...identity, sourceSha: 'short' } ),
 		/full lowercase commit/
@@ -114,7 +112,7 @@ test( 'trunk assets bind the exact SHA, run, and attempt', () => {
 } );
 
 test( 'the stable trunk entry point uses the fixed public Blueprint asset', () => {
-	const blueprintUrl = releaseAssetUrl( repository, TRUNK_POINTER_ASSET );
+	const blueprintUrl = `https://raw.githubusercontent.com/${ repository }/docs-preview-code-reference/${ TRUNK_POINTER_ASSET }`;
 	assert.equal( trunkStableBlueprintUrl( repository ), blueprintUrl );
 	const launch = new URL( trunkPlaygroundUrl( repository ) );
 	assert.equal( launch.origin, PLAYGROUND_ORIGIN );

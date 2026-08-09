@@ -233,18 +233,61 @@ test( 'release operations keep immutable names and bytes', async () => {
 		Buffer.from( 'snapshot' ),
 		'application/zip'
 	);
-	await api.updateReleaseAsset( 10, 'renamed.json' );
 	await api.deleteReleaseAsset( 10 );
 	await api.listActionCaches( 'refs/pull/123/merge' );
 	await api.deleteActionCache( 11 );
 	assert.equal( calls[ 0 ].options.json.tag_name, RELEASE_TAG );
 	assert.match( calls[ 1 ].url, /^https:\/\/uploads\.github\.com/ );
 	assert.equal( calls[ 1 ].options.body.toString(), 'snapshot' );
-	assert.equal( calls[ 2 ].options.method, 'PATCH' );
-	assert.deepEqual( calls[ 2 ].options.json, { name: 'renamed.json' } );
-	assert.equal( calls[ 3 ].options.method, 'DELETE' );
-	assert.match( calls[ 4 ].url, /ref=refs%2Fpull%2F123%2Fmerge/ );
-	assert.equal( calls[ 5 ].options.method, 'DELETE' );
+	assert.equal( calls[ 2 ].options.method, 'DELETE' );
+	assert.match( calls[ 3 ].url, /ref=refs%2Fpull%2F123%2Fmerge/ );
+	assert.equal( calls[ 4 ].options.method, 'DELETE' );
+} );
+
+test( 'Git object operations create and atomically move a pointer ref', async () => {
+	const calls = [];
+	const api = new GitHubApi(
+		'WordPress/wordpress-develop',
+		'token',
+		async ( url, options ) => {
+			calls.push( { url, options } );
+			return response( {
+				sha: 'a'.repeat( 40 ),
+				object: { sha: 'b'.repeat( 40 ) },
+			} );
+		}
+	);
+	await api.getGitReference( 'heads/docs-preview-code-reference' );
+	await api.createGitBlob( '{"blueprint":true}\n' );
+	await api.createGitTree( 'code-reference-trunk.json', 'a'.repeat( 40 ) );
+	await api.createGitCommit(
+		'Update Code Reference preview',
+		'b'.repeat( 40 ),
+		'c'.repeat( 40 )
+	);
+	await api.createGitReference(
+		'heads/docs-preview-code-reference',
+		'd'.repeat( 40 )
+	);
+	await api.updateGitReference(
+		'heads/docs-preview-code-reference',
+		'e'.repeat( 40 )
+	);
+	assert.match( calls[ 0 ].url, /git\/ref\/heads\/docs-preview/ );
+	assert.deepEqual( calls[ 1 ].options.json, {
+		content: '{"blueprint":true}\n',
+		encoding: 'utf-8',
+	} );
+	assert.equal( calls[ 2 ].options.json.tree[ 0 ].mode, '100644' );
+	assert.deepEqual( calls[ 3 ].options.json.parents, [ 'c'.repeat( 40 ) ] );
+	assert.equal(
+		calls[ 4 ].options.json.ref,
+		'refs/heads/docs-preview-code-reference'
+	);
+	assert.deepEqual( calls[ 5 ].options.json, {
+		sha: 'e'.repeat( 40 ),
+		force: true,
+	} );
 } );
 
 test( 'only the marked bot comment is updated', async () => {
