@@ -1,0 +1,9 @@
+# Ignore Node modules.
+node_modules
+
+# Ignore minified CSS files.
+**/*.min.css
+
+# Ignore RTL CSS files.
+**/*-rtl.css
+**/*-rtl.min.css
