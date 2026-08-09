@@ -4,7 +4,7 @@ import { writeFile } from 'node:fs/promises';
 export async function run( command, args, options = {} ) {
 	const capture = options.capture || Boolean( options.logFile );
 	if ( ! options.quiet ) {
-		console.log( `$ ${ [ command, ...args ].join( ' ' ) }` );
+		process.stdout.write( `$ ${ [ command, ...args ].join( ' ' ) }\n` );
 	}
 
 	return new Promise( ( resolve, reject ) => {
@@ -25,7 +25,10 @@ export async function run( command, args, options = {} ) {
 		child.once( 'close', ( code, signal ) => {
 			( async () => {
 				if ( options.logFile ) {
-					await writeFile( options.logFile, `${ stdout }${ stderr }` );
+					await writeFile(
+						options.logFile,
+						`${ stdout }${ stderr }`
+					);
 				}
 				const result = { code, signal, stdout, stderr };
 				if ( code !== 0 && ! options.allowFailure ) {

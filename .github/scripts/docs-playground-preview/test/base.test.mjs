@@ -29,7 +29,8 @@ function inputs( cacheDirectory ) {
 		},
 		dependencies: {
 			playground: {
-				blueprintSchema: 'https://playground.wordpress.net/blueprint-schema.json',
+				blueprintSchema:
+					'https://playground.wordpress.net/blueprint-schema.json',
 				phpVersion: '8.4',
 			},
 		},
@@ -45,17 +46,16 @@ test( 'the invariant Blueprint installs dependencies without importing source', 
 	assert.deepEqual( blueprint.features, { networking: false } );
 	assert.equal( blueprint.login, false );
 	assert.equal(
-		blueprint.steps.some( ( step ) => /import|reference\.json/.test( JSON.stringify( step ) ) ),
+		blueprint.steps.some( ( step ) =>
+			/import|reference\.json/.test( JSON.stringify( step ) )
+		),
 		false
 	);
 	assert.deepEqual(
 		blueprint.steps
 			.filter( ( step ) => step.step === 'installTheme' )
 			.map( ( step ) => step.themeData.path ),
-		[
-			'bundles/wporg-parent-2021.zip',
-			'bundles/wporg-developer-2023.zip',
-		]
+		[ 'bundles/wporg-parent-2021.zip', 'bundles/wporg-developer-2023.zip' ]
 	);
 } );
 
@@ -81,19 +81,30 @@ test( 'dependency build plan uses pinned harness tools and upstream locks', () =
 		'--ignore-scripts',
 	] );
 	assert.match( plan[ 3 ].command, /node_modules\/\.bin\/wp-scripts$/ );
-	assert.deepEqual( plan[ 4 ].args.slice( 0, 2 ), [ 'ci', '--ignore-scripts' ] );
+	assert.deepEqual( plan[ 4 ].args.slice( 0, 2 ), [
+		'ci',
+		'--ignore-scripts',
+	] );
 } );
 
 test( 'the invariant base marker is written last and enables exact reuse', async () => {
-	const cache = await mkdtemp( path.join( os.tmpdir(), 'docs-preview-base-' ) );
+	const cache = await mkdtemp(
+		path.join( os.tmpdir(), 'docs-preview-base-' )
+	);
 	const resolved = inputs( path.join( cache, 'entry' ) );
 	let builds = 0;
 	const buildImplementation = async ( current ) => {
 		builds++;
-		await writeFile( path.join( current.cacheDirectory, 'base.zip' ), 'base' );
+		await writeFile(
+			path.join( current.cacheDirectory, 'base.zip' ),
+			'base'
+		);
 		await mkdir( path.join( current.cacheDirectory, 'parser' ) );
 		await writeFile(
-			path.join( current.cacheDirectory, 'parser/generate-json-manually.php' ),
+			path.join(
+				current.cacheDirectory,
+				'parser/generate-json-manually.php'
+			),
 			'<?php'
 		);
 	};
@@ -101,7 +112,10 @@ test( 'the invariant base marker is written last and enables exact reuse', async
 	assert.equal( cold.cacheHit, false );
 	assert.equal( builds, 1 );
 	const marker = JSON.parse(
-		await readFile( path.join( resolved.cacheDirectory, 'base.json' ), 'utf8' )
+		await readFile(
+			path.join( resolved.cacheDirectory, 'base.json' ),
+			'utf8'
+		)
 	);
 	assert.equal( marker.cacheKey, resolved.cacheKey );
 
@@ -115,11 +129,16 @@ test( 'build-time policy does not apply final runtime file restrictions', async 
 		new URL( '../php/base-policy.php', import.meta.url ),
 		'utf8'
 	);
-	assert.doesNotMatch( policy, /DISALLOW_FILE_MODS|AUTOMATIC_UPDATER_DISABLED/ );
+	assert.doesNotMatch(
+		policy,
+		/DISALLOW_FILE_MODS|AUTOMATIC_UPDATER_DISABLED/
+	);
 } );
 
 test( 'dependency bundles have the requested install root and omit build tools', async () => {
-	const temporary = await mkdtemp( path.join( os.tmpdir(), 'docs-preview-bundle-' ) );
+	const temporary = await mkdtemp(
+		path.join( os.tmpdir(), 'docs-preview-bundle-' )
+	);
 	const source = path.join( temporary, 'source' );
 	await mkdir( path.join( source, 'node_modules' ), { recursive: true } );
 	await writeFile( path.join( source, 'plugin.php' ), '<?php' );
@@ -135,7 +154,9 @@ test( 'dependency bundles have the requested install root and omit build tools',
 } );
 
 test( 'unused CJK preview fonts are pruned before the size boundary', async () => {
-	const root = await mkdtemp( path.join( os.tmpdir(), 'docs-preview-fonts-' ) );
+	const root = await mkdtemp(
+		path.join( os.tmpdir(), 'docs-preview-fonts-' )
+	);
 	const fonts = path.join( root, 'global-fonts' );
 	await mkdir( path.join( fonts, 'NotoSerif' ), { recursive: true } );
 	await writeFile( path.join( fonts, 'NotoSerif/font.woff2' ), 'large' );
@@ -144,7 +165,9 @@ test( 'unused CJK preview fonts are pruned before the size boundary', async () =
 		'@import "./NotoSerif/NotoSerifJP/style.css";\nbody { color: black; }\n'
 	);
 	await prunePreviewFonts( root );
-	await assert.rejects( readFile( path.join( fonts, 'NotoSerif/font.woff2' ) ) );
+	await assert.rejects(
+		readFile( path.join( fonts, 'NotoSerif/font.woff2' ) )
+	);
 	assert.equal(
 		await readFile( path.join( fonts, 'style.css' ), 'utf8' ),
 		'body { color: black; }\n'

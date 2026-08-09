@@ -154,25 +154,25 @@ class FakeApi {
 	}
 
 	async createGitCommit() {
-		const sha = 'f'.repeat( 40 );
-		this.commits.set( sha, Buffer.from( this.pendingBlueprint ) );
+		const commitSha = 'f'.repeat( 40 );
+		this.commits.set( commitSha, Buffer.from( this.pendingBlueprint ) );
 		this.events.push( 'git:commit' );
-		return { sha };
+		return { sha: commitSha };
 	}
 
-	async createGitReference( reference, sha ) {
+	async createGitReference( reference, candidateSha ) {
 		assert.equal( reference, TRUNK_POINTER_REF );
-		this.refSha = sha;
-		this.events.push( `git:create-ref:${ sha }` );
+		this.refSha = candidateSha;
+		this.events.push( `git:create-ref:${ candidateSha }` );
 	}
 
-	async updateGitReference( reference, sha ) {
+	async updateGitReference( reference, candidateSha ) {
 		assert.equal( reference, TRUNK_POINTER_REF );
 		if ( this.refUpdateFailure === 'before' ) {
 			throw new Error( 'ref update failed' );
 		}
-		this.refSha = sha;
-		this.events.push( `git:update-ref:${ sha }` );
+		this.refSha = candidateSha;
+		this.events.push( `git:update-ref:${ candidateSha }` );
 		if ( this.refUpdateFailure === 'after' ) {
 			throw new Error( 'ref update response failed' );
 		}
@@ -189,22 +189,19 @@ class FakeApi {
 	}
 }
 
-function publicFetch( api, options = {} ) {
+function publicFetch( api, fetchOptions = {} ) {
 	return async ( url ) => {
-		const throughProxy = url.includes(
-			'wordpress-playground-cors-proxy.net'
-		);
 		const rawStart = url.indexOf( 'https://raw.githubusercontent.com/' );
 		if ( rawStart !== -1 ) {
 			const rawUrl = new URL( url.slice( rawStart ) );
 			const parts = rawUrl.pathname.split( '/' ).filter( Boolean );
 			const reference = parts[ 2 ];
-			const commitSha =
-				reference === 'docs-preview-code-reference'
-					? options.staleStablePointer
-						? api.previousRefSha
-						: api.refSha
-					: reference;
+			let commitSha = reference;
+			if ( reference === 'docs-preview-code-reference' ) {
+				commitSha = fetchOptions.staleStablePointer
+					? api.previousRefSha
+					: api.refSha;
+			}
 			api.events.push(
 				`fetch:${
 					reference === 'docs-preview-code-reference'
@@ -225,6 +222,9 @@ function publicFetch( api, options = {} ) {
 				arrayBuffer: async () => bytes,
 			};
 		}
+		const throughProxy = url.includes(
+			'wordpress-playground-cors-proxy.net'
+		);
 		const name = new URL(
 			throughProxy
 				? url.slice( url.indexOf( 'https://github.com/' ) )
@@ -240,7 +240,7 @@ function publicFetch( api, options = {} ) {
 			return { status: 404, headers: { get: () => null } };
 		}
 		let bytes = api.assetBytes.get( asset.id );
-		if ( options.corruptSnapshot && asset.name.endsWith( '.zip' ) ) {
+		if ( fetchOptions.corruptSnapshot && asset.name.endsWith( '.zip' ) ) {
 			bytes = Buffer.from( 'corrupt' );
 		}
 		return {

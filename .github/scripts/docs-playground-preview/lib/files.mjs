@@ -1,12 +1,5 @@
 import { createHash } from 'node:crypto';
-import {
-	copyFile,
-	mkdir,
-	readdir,
-	readFile,
-	rm,
-	stat,
-} from 'node:fs/promises';
+import { copyFile, mkdir, readdir, readFile, rm, stat } from 'node:fs/promises';
 import path from 'node:path';
 
 import { run } from './process.mjs';
@@ -31,7 +24,9 @@ export async function exists( filename ) {
 export async function findWordPressSourceRoot( candidate ) {
 	const root = path.resolve( candidate );
 	for ( const directory of [ root, path.join( root, 'src' ) ] ) {
-		if ( await exists( path.join( directory, 'wp-includes/version.php' ) ) ) {
+		if (
+			await exists( path.join( directory, 'wp-includes/version.php' ) )
+		) {
 			return directory;
 		}
 	}
@@ -43,7 +38,9 @@ async function listFiles( root, relative = '' ) {
 	const entries = await readdir( path.join( root, relative ), {
 		withFileTypes: true,
 	} );
-	for ( const entry of entries.sort( ( a, b ) => a.name.localeCompare( b.name ) ) ) {
+	for ( const entry of entries.sort( ( a, b ) =>
+		a.name.localeCompare( b.name )
+	) ) {
 		const child = relative ? `${ relative }/${ entry.name }` : entry.name;
 		if ( entry.isDirectory() ) {
 			files.push( ...( await listFiles( root, child ) ) );
@@ -83,7 +80,8 @@ export async function stageCorePhp( candidate, destination ) {
 			! relative.endsWith( '.php' ) ||
 			[ ...EXCLUDED_SOURCE_DIRECTORIES ].some(
 				( excluded ) =>
-					relative === excluded || relative.startsWith( `${ excluded }/` )
+					relative === excluded ||
+					relative.startsWith( `${ excluded }/` )
 			)
 		) {
 			continue;
@@ -94,7 +92,9 @@ export async function stageCorePhp( candidate, destination ) {
 		count++;
 	}
 	if ( count === 0 ) {
-		throw new Error( 'The WordPress source tree contains no eligible PHP files.' );
+		throw new Error(
+			'The WordPress source tree contains no eligible PHP files.'
+		);
 	}
 	return { source, destination, files: count };
 }

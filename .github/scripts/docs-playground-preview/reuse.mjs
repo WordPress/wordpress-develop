@@ -147,7 +147,8 @@ async function main() {
 		...options,
 		maximumBytes: Number( options.maximumBytes ),
 		token: process.env.GITHUB_TOKEN,
-		warning: ( message ) => console.warn( `::warning::${ message }` ),
+		warning: ( message ) =>
+			process.stderr.write( `::warning::${ message }\n` ),
 	} );
 	if ( handoff ) {
 		await mkdir( path.dirname( options.output ), { recursive: true } );
@@ -167,8 +168,8 @@ async function main() {
 
 if ( import.meta.url === pathToFileURL( process.argv[ 1 ] ).href ) {
 	main().catch( async ( error ) => {
-		console.warn(
-			`::warning::Same-SHA reuse check failed: ${ error.message }`
+		process.stderr.write(
+			`::warning::Same-SHA reuse check failed: ${ error.message }\n`
 		);
 		if ( process.env.GITHUB_OUTPUT ) {
 			await writeFile( process.env.GITHUB_OUTPUT, 'reused=false\n', {

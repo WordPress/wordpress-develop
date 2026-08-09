@@ -1,11 +1,5 @@
 import { fileURLToPath } from 'node:url';
-import {
-	cp,
-	mkdir,
-	readFile,
-	rm,
-	writeFile,
-} from 'node:fs/promises';
+import { cp, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
 import { copyDirectory, downloadFile, zipDirectory } from './archive.mjs';
@@ -14,7 +8,10 @@ import { run } from './process.mjs';
 
 const LIBRARY_ROOT = path.dirname( fileURLToPath( import.meta.url ) );
 const SCRIPT_ROOT = path.dirname( LIBRARY_ROOT );
-const TOOLING_ROOT = path.resolve( LIBRARY_ROOT, '../../../docs-playground-preview' );
+const TOOLING_ROOT = path.resolve(
+	LIBRARY_ROOT,
+	'../../../docs-playground-preview'
+);
 const PHP_ROOT = path.join( SCRIPT_ROOT, 'php' );
 
 function executable( name ) {
@@ -31,7 +28,13 @@ export function dependencyBuildPlan( roots, composer ) {
 	return [
 		{
 			command: 'php',
-			args: [ composer, 'install', '--no-interaction', '--no-dev', '--prefer-dist' ],
+			args: [
+				composer,
+				'install',
+				'--no-interaction',
+				'--no-dev',
+				'--prefer-dist',
+			],
 			cwd: roots.phpdocParser,
 			label: 'install phpdoc-parser dependencies',
 		},
@@ -62,7 +65,13 @@ export function dependencyBuildPlan( roots, composer ) {
 		},
 		{
 			command: 'php',
-			args: [ composer, 'install', '--no-interaction', '--no-dev', '--prefer-dist' ],
+			args: [
+				composer,
+				'install',
+				'--no-interaction',
+				'--no-dev',
+				'--prefer-dist',
+			],
 			cwd: roots.wporgMuPlugins,
 			label: 'install wporg-mu-plugins Composer dependencies',
 		},
@@ -74,13 +83,24 @@ export function dependencyBuildPlan( roots, composer ) {
 		},
 		{
 			command: 'php',
-			args: [ composer, 'config', 'allow-plugins.composer/installers', 'true' ],
+			args: [
+				composer,
+				'config',
+				'allow-plugins.composer/installers',
+				'true',
+			],
 			cwd: roots.postsToPosts,
 			label: 'configure posts-to-posts installer',
 		},
 		{
 			command: 'php',
-			args: [ composer, 'install', '--no-interaction', '--no-dev', '--prefer-dist' ],
+			args: [
+				composer,
+				'install',
+				'--no-interaction',
+				'--no-dev',
+				'--prefer-dist',
+			],
 			cwd: roots.postsToPosts,
 			label: 'install posts-to-posts dependencies',
 		},
@@ -104,7 +124,8 @@ export function createInvariantBaseBlueprint( inputs ) {
 		meta: {
 			title: 'WordPress Core Code Reference invariant base',
 			author: 'WordPress',
-			description: 'Pinned DevHub dependencies with an empty reference index.',
+			description:
+				'Pinned DevHub dependencies with an empty reference index.',
 		},
 		preferredVersions: {
 			php: inputs.dependencies.playground.phpVersion,
@@ -135,15 +156,13 @@ export function createInvariantBaseBlueprint( inputs ) {
 				themeData: bundled( 'bundles/wporg-developer-2023.zip' ),
 				ifAlreadyInstalled: 'overwrite',
 			},
-			...[
-				'code-syntax-block',
-				'posts-to-posts',
-				'phpdoc-parser',
-			].map( ( plugin ) => ( {
-				step: 'unzip',
-				zipFile: bundled( `bundles/${ plugin }.zip` ),
-				extractToPath: '/wordpress/wp-content/plugins',
-			} ) ),
+			...[ 'code-syntax-block', 'posts-to-posts', 'phpdoc-parser' ].map(
+				( plugin ) => ( {
+					step: 'unzip',
+					zipFile: bundled( `bundles/${ plugin }.zip` ),
+					extractToPath: '/wordpress/wp-content/plugins',
+				} )
+			),
 			{
 				step: 'writeFile',
 				path: '/tmp/docs-preview-configure-base.php',
@@ -189,7 +208,10 @@ async function ensureComposer( inputs, tools, runImplementation ) {
 function repositoryRoots( upstreams, inputs ) {
 	const root = ( name ) => path.join( upstreams, name );
 	const selected = ( name ) =>
-		path.join( root( name ), inputs.dependencies.repositories[ name ].path );
+		path.join(
+			root( name ),
+			inputs.dependencies.repositories[ name ].path
+		);
 	return {
 		phpdocParser: selected( 'phpdocParser' ),
 		wporgDeveloperTheme: selected( 'wporgDeveloper' ),
@@ -223,7 +245,11 @@ async function buildInvariantBase( inputs, options ) {
 
 	for ( const [ name, source, rootName ] of [
 		[ 'wporg-parent-2021', roots.wporgParentTheme, 'wporg-parent-2021' ],
-		[ 'wporg-developer-2023', roots.wporgDeveloperTheme, 'wporg-developer-2023' ],
+		[
+			'wporg-developer-2023',
+			roots.wporgDeveloperTheme,
+			'wporg-developer-2023',
+		],
 		[ 'wporg-mu-plugins', roots.wporgMuPluginsFiles, '.' ],
 		[ 'posts-to-posts', roots.postsToPosts, 'posts-to-posts' ],
 		[ 'phpdoc-parser', roots.phpdocParser, 'phpdoc-parser' ],
@@ -239,12 +265,19 @@ async function buildInvariantBase( inputs, options ) {
 
 	await mkdir( path.join( work, 'php' ), { recursive: true } );
 	for ( const script of [ 'base-policy.php', 'configure-base.php' ] ) {
-		await cp( path.join( PHP_ROOT, script ), path.join( work, 'php', script ) );
+		await cp(
+			path.join( PHP_ROOT, script ),
+			path.join( work, 'php', script )
+		);
 	}
 	const blueprint = path.join( work, 'base-blueprint.json' );
 	await writeFile(
 		blueprint,
-		`${ JSON.stringify( createInvariantBaseBlueprint( inputs ), null, 2 ) }\n`
+		`${ JSON.stringify(
+			createInvariantBaseBlueprint( inputs ),
+			null,
+			2
+		) }\n`
 	);
 	await runImplementation(
 		options.playgroundCli || executable( 'wp-playground-cli' ),
@@ -264,7 +297,11 @@ async function buildInvariantBase( inputs, options ) {
 		],
 		{ label: 'build invariant Playground base' }
 	);
-	await copyDirectory( roots.phpdocParser, path.join( inputs.cacheDirectory, 'parser' ), [ '.git' ] );
+	await copyDirectory(
+		roots.phpdocParser,
+		path.join( inputs.cacheDirectory, 'parser' ),
+		[ '.git' ]
+	);
 	await rm( work, { recursive: true, force: true } );
 }
 
@@ -274,9 +311,14 @@ export async function ensureInvariantBase( inputs, options = {} ) {
 		const marker = JSON.parse( await readFile( markerFile, 'utf8' ) );
 		if (
 			marker.cacheKey === inputs.cacheKey &&
-			( await exists( path.join( inputs.cacheDirectory, 'base.zip' ) ) ) &&
 			( await exists(
-				path.join( inputs.cacheDirectory, 'parser/generate-json-manually.php' )
+				path.join( inputs.cacheDirectory, 'base.zip' )
+			) ) &&
+			( await exists(
+				path.join(
+					inputs.cacheDirectory,
+					'parser/generate-json-manually.php'
+				)
 			) )
 		) {
 			return { ...marker, cacheHit: true };
@@ -284,7 +326,10 @@ export async function ensureInvariantBase( inputs, options = {} ) {
 	}
 	await rm( inputs.cacheDirectory, { recursive: true, force: true } );
 	await mkdir( inputs.cacheDirectory, { recursive: true } );
-	await ( options.buildImplementation || buildInvariantBase )( inputs, options );
+	await ( options.buildImplementation || buildInvariantBase )(
+		inputs,
+		options
+	);
 	const marker = {
 		schemaVersion: 1,
 		cacheKey: inputs.cacheKey,

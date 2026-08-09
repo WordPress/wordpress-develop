@@ -106,7 +106,9 @@ function sessionFrom( options ) {
 		context,
 		repository: options.repository,
 		fetchImplementation: options.fetchImplementation || globalThis.fetch,
-		warning: options.warning || console.warn,
+		warning:
+			options.warning ||
+			( ( message ) => process.stderr.write( `${ message }\n` ) ),
 		authorize,
 	};
 }
@@ -259,12 +261,12 @@ async function main() {
 		token: process.env.GITHUB_TOKEN,
 		event,
 	} );
-	console.log( `Code Reference lifecycle: ${ result.status }.` );
+	process.stdout.write( `Code Reference lifecycle: ${ result.status }.\n` );
 }
 
 if ( import.meta.url === pathToFileURL( process.argv[ 1 ] ).href ) {
 	main().catch( ( error ) => {
-		console.error( error );
+		process.stderr.write( `${ error.stack || error }\n` );
 		process.exitCode = 1;
 	} );
 }

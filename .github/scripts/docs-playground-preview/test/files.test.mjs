@@ -26,16 +26,22 @@ test( 'run captures output and reports ordinary child failure', async () => {
 	);
 	assert.equal( result.stdout, 'ready' );
 	await assert.rejects(
-		run( process.execPath, [ '-e', 'process.stderr.write("broken");process.exit(2)' ], {
-			capture: true,
-			quiet: true,
-		} ),
+		run(
+			process.execPath,
+			[ '-e', 'process.stderr.write("broken");process.exit(2)' ],
+			{
+				capture: true,
+				quiet: true,
+			}
+		),
 		/broken/
 	);
 } );
 
 test( 'stageCorePhp copies only eligible Core PHP source', async () => {
-	const root = await mkdtemp( path.join( os.tmpdir(), 'docs-preview-source-' ) );
+	const root = await mkdtemp(
+		path.join( os.tmpdir(), 'docs-preview-source-' )
+	);
 	const source = path.join( root, 'src' );
 	for ( const relative of [
 		'wp-includes/version.php',
@@ -46,7 +52,10 @@ test( 'stageCorePhp copies only eligible Core PHP source', async () => {
 		await mkdir( path.dirname( path.join( source, relative ) ), {
 			recursive: true,
 		} );
-		await writeFile( path.join( source, relative ), `<?php // ${ relative }` );
+		await writeFile(
+			path.join( source, relative ),
+			`<?php // ${ relative }`
+		);
 	}
 	await writeFile( path.join( source, 'readme.html' ), 'not parser input' );
 	await symlink(
@@ -58,11 +67,16 @@ test( 'stageCorePhp copies only eligible Core PHP source', async () => {
 	const result = await stageCorePhp( root, destination );
 	assert.equal( result.files, 2 );
 	assert.equal(
-		await readFile( path.join( destination, 'wp-admin/admin.php' ), 'utf8' ),
+		await readFile(
+			path.join( destination, 'wp-admin/admin.php' ),
+			'utf8'
+		),
 		'<?php // wp-admin/admin.php'
 	);
 	assert.equal(
-		await exists( path.join( destination, 'wp-content/plugins/hello.php' ) ),
+		await exists(
+			path.join( destination, 'wp-content/plugins/hello.php' )
+		),
 		false
 	);
 	assert.equal(
@@ -72,10 +86,15 @@ test( 'stageCorePhp copies only eligible Core PHP source', async () => {
 } );
 
 test( 'digestTree reflects names and contents but ignores excluded files', async () => {
-	const root = await mkdtemp( path.join( os.tmpdir(), 'docs-preview-digest-' ) );
+	const root = await mkdtemp(
+		path.join( os.tmpdir(), 'docs-preview-digest-' )
+	);
 	await writeFile( path.join( root, 'a' ), 'one' );
 	await writeFile( path.join( root, 'ignored' ), 'first' );
-	const first = await digestTree( root, ( relative ) => relative !== 'ignored' );
+	const first = await digestTree(
+		root,
+		( relative ) => relative !== 'ignored'
+	);
 	await writeFile( path.join( root, 'ignored' ), 'second' );
 	assert.equal(
 		await digestTree( root, ( relative ) => relative !== 'ignored' ),
@@ -86,12 +105,16 @@ test( 'digestTree reflects names and contents but ignores excluded files', async
 } );
 
 test( 'acquireRepositories uses Git with each validated full commit', async () => {
-	const root = await mkdtemp( path.join( os.tmpdir(), 'docs-preview-repos-' ) );
+	const root = await mkdtemp(
+		path.join( os.tmpdir(), 'docs-preview-repos-' )
+	);
 	const calls = [];
 	const fakeRun = async ( command, args, options ) => {
 		calls.push( { command, args, options } );
 		if ( args[ 0 ] === 'clone' ) {
-			await mkdir( path.join( args.at( -1 ), '.git' ), { recursive: true } );
+			await mkdir( path.join( args.at( -1 ), '.git' ), {
+				recursive: true,
+			} );
 		}
 	};
 	const repositories = {
@@ -127,7 +150,9 @@ test( 'acquireRepositories uses Git with each validated full commit', async () =
 } );
 
 test( 'resolveBuildInputs binds the concrete beta and runner to an exact cache', async () => {
-	const cacheRoot = await mkdtemp( path.join( os.tmpdir(), 'docs-preview-cache-' ) );
+	const cacheRoot = await mkdtemp(
+		path.join( os.tmpdir(), 'docs-preview-cache-' )
+	);
 	const fetchImplementation = async () => ( {
 		ok: true,
 		json: async () => ( {
@@ -151,5 +176,8 @@ test( 'resolveBuildInputs binds the concrete beta and runner to an exact cache',
 	} );
 	assert.equal( inputs.wordpress.version, '7.2-beta1' );
 	assert.match( inputs.cacheKey, /^docs-preview-base-v1-[0-9a-f]{64}$/ );
-	assert.equal( inputs.cacheDirectory, path.join( cacheRoot, inputs.cacheKey ) );
+	assert.equal(
+		inputs.cacheDirectory,
+		path.join( cacheRoot, inputs.cacheKey )
+	);
 } );

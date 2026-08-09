@@ -46,7 +46,10 @@ export async function resolveBuildInputs( options ) {
 	return {
 		schemaVersion: 1,
 		cacheKey,
-		cacheDirectory: path.join( path.resolve( options.cacheRoot ), cacheKey ),
+		cacheDirectory: path.join(
+			path.resolve( options.cacheRoot ),
+			cacheKey
+		),
 		cacheInputs,
 		dependencies,
 		wordpress,

@@ -31,15 +31,22 @@ export async function zipDirectory(
 	rootName,
 	runImplementation = run
 ) {
-	const temporary = await mkdtemp( path.join( os.tmpdir(), 'docs-preview-zip-' ) );
-	const target = rootName === '.' ? temporary : path.join( temporary, rootName );
+	const temporary = await mkdtemp(
+		path.join( os.tmpdir(), 'docs-preview-zip-' )
+	);
+	const target =
+		rootName === '.' ? temporary : path.join( temporary, rootName );
 	try {
 		await copyDirectory( source, target, DEFAULT_EXCLUDES );
 		await rm( output, { force: true } );
-		await runImplementation( 'zip', [ '-rq', path.resolve( output ), '.' ], {
-			cwd: temporary,
-			label: `package ${ rootName }`,
-		} );
+		await runImplementation(
+			'zip',
+			[ '-rq', path.resolve( output ), '.' ],
+			{
+				cwd: temporary,
+				label: `package ${ rootName }`,
+			}
+		);
 	} finally {
 		await rm( temporary, { recursive: true, force: true } );
 	}

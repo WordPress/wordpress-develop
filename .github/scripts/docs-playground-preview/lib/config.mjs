@@ -41,7 +41,9 @@ function assertDigest( value, label ) {
 export function validateDependencies( dependencies ) {
 	assertObject( dependencies, 'Dependency manifest' );
 	if ( dependencies.schemaVersion !== 1 ) {
-		throw new Error( `Unsupported dependency schema ${ dependencies.schemaVersion }.` );
+		throw new Error(
+			`Unsupported dependency schema ${ dependencies.schemaVersion }.`
+		);
 	}
 	assertPositiveInteger(
 		dependencies.cacheSchemaVersion,
@@ -71,7 +73,9 @@ export function validateDependencies( dependencies ) {
 		throw new Error( 'The WordPress runtime channel must be beta.' );
 	}
 	if ( dependencies.playground.wordpressVersionApi !== VERSION_API ) {
-		throw new Error( 'The WordPress beta resolver must use the official API.' );
+		throw new Error(
+			'The WordPress beta resolver must use the official API.'
+		);
 	}
 	if ( dependencies.limits?.snapshotBytes !== 104857600 ) {
 		throw new Error( 'The snapshot limit must be exactly 100 MiB.' );
@@ -101,7 +105,9 @@ export function validateDependencies( dependencies ) {
 		Object.keys( dependencies.repositories ).length !==
 		Object.keys( OFFICIAL_REPOSITORIES ).length
 	) {
-		throw new Error( 'The dependency manifest contains an unknown repository.' );
+		throw new Error(
+			'The dependency manifest contains an unknown repository.'
+		);
 	}
 
 	assertObject( dependencies.validation?.minimumSymbols, 'minimumSymbols' );
@@ -136,7 +142,9 @@ export async function resolveWordPressBeta(
 		headers: { Accept: 'application/json' },
 	} );
 	if ( ! response.ok ) {
-		throw new Error( `WordPress beta API returned HTTP ${ response.status }.` );
+		throw new Error(
+			`WordPress beta API returned HTTP ${ response.status }.`
+		);
 	}
 	const body = await response.json();
 	const offer = body?.offers?.find(
@@ -146,7 +154,9 @@ export async function resolveWordPressBeta(
 				`https://downloads.wordpress.org/release/wordpress-${ candidate.version }.zip`
 	);
 	if ( ! offer ) {
-		throw new Error( 'The WordPress beta API returned no concrete beta build.' );
+		throw new Error(
+			'The WordPress beta API returned no concrete beta build.'
+		);
 	}
 	return Object.freeze( {
 		channel: 'beta',
@@ -168,7 +178,10 @@ export function makeBaseCacheKey( inputs ) {
 		phpVersion: inputs.phpVersion,
 		wordpressVersion: inputs.wordpressVersion,
 	} ) ) {
-		if ( typeof value !== 'string' || ! /^[A-Za-z0-9_.-]+$/.test( value ) ) {
+		if (
+			typeof value !== 'string' ||
+			! /^[A-Za-z0-9_.-]+$/.test( value )
+		) {
 			throw new Error( `Cache ${ name } is invalid.` );
 		}
 	}
@@ -183,6 +196,7 @@ export function makeBaseCacheKey( inputs ) {
 export function isDeploymentEnabled( repository, stagingValue = '' ) {
 	return (
 		DEPLOYMENT_REPOSITORIES.has( repository ) &&
-		( repository === 'WordPress/wordpress-develop' || stagingValue === 'true' )
+		( repository === 'WordPress/wordpress-develop' ||
+			stagingValue === 'true' )
 	);
 }

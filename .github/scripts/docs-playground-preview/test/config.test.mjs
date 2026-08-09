@@ -158,7 +158,10 @@ test( 'the cache key changes with every material base input', () => {
 		dependencyDigest: 'c'.repeat( 64 ),
 		harnessDigest: 'd'.repeat( 64 ),
 	} ) ) {
-		assert.notEqual( makeBaseCacheKey( { ...inputs, [ name ]: value } ), baseline );
+		assert.notEqual(
+			makeBaseCacheKey( { ...inputs, [ name ]: value } ),
+			baseline
+		);
 	}
 } );
 
