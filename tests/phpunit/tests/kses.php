@@ -1819,6 +1819,27 @@ EOF;
 				'css'      => 'clip-path: polygon(50% 0%, 100% 100%, 0% 100%)',
 				'expected' => 'clip-path: polygon(50% 0%, 100% 100%, 0% 100%)',
 			),
+			array(
+				'css'      => "clip-path: path('M 0 0 L 100 0 L 50 100 Z')",
+				'expected' => "clip-path: path('M 0 0 L 100 0 L 50 100 Z')",
+			),
+			array(
+				'css'      => 'clip-path: rect(0 100% 100% 0)',
+				'expected' => 'clip-path: rect(0 100% 100% 0)',
+			),
+			array(
+				'css'      => 'clip-path: xywh(0 0 100% 100% round 10px)',
+				'expected' => 'clip-path: xywh(0 0 100% 100% round 10px)',
+			),
+			array(
+				'css'      => 'clip-path: shape(from 0 0, line to 100% 0, line to 50% 100%, close)',
+				'expected' => 'clip-path: shape(from 0 0, line to 100% 0, line to 50% 100%, close)',
+			),
+			// Nested functions within a basic shape are allowed.
+			array(
+				'css'      => 'clip-path: inset(calc(10px + 1em) round var(--radius))',
+				'expected' => 'clip-path: inset(calc(10px + 1em) round var(--radius))',
+			),
 			// SVG url() references for allowlisted properties (ticket #65832).
 			array(
 				'css'      => 'clip-path: url(#myClipper)',
