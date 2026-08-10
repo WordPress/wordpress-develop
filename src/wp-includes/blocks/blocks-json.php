@@ -4812,7 +4812,6 @@
 				'full'
 			),
 			'splitting' => true,
-			'editableRoot' => true,
 			'anchor' => true,
 			'className' => false,
 			'__experimentalBorder' => array(
@@ -4976,6 +4975,7 @@
 		'supports' => array(
 			'anchor' => true,
 			'align' => true,
+			'__experimentalExposeControlsToChildren' => true,
 			'color' => array(
 				'gradients' => true,
 				'link' => true,
