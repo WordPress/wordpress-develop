@@ -154,6 +154,7 @@ class WP_REST_View_Config_Controller extends WP_REST_Controller {
 		$response = array(
 			'kind'            => $kind,
 			'name'            => $name,
+			'version'         => WP_View_Config_Data::LATEST_VERSION,
 			'default_view'    => $this->cast_empty_objects( $config['default_view'], $schema['properties']['default_view'] ),
 			'default_layouts' => $this->cast_empty_objects( $config['default_layouts'], $schema['properties']['default_layouts'] ),
 			'view_list'       => $this->cast_empty_objects( $config['view_list'], $schema['properties']['view_list'] ),
@@ -192,10 +193,10 @@ class WP_REST_View_Config_Controller extends WP_REST_Controller {
 		}
 
 		if ( isset( $schema['oneOf'] ) || isset( $schema['anyOf'] ) ) {
-			$branches = isset( $schema['oneOf'] ) ? $schema['oneOf'] : $schema['anyOf'];
+			$branches = $schema['oneOf'] ?? $schema['anyOf'];
 			if ( array() === $value ) {
 				foreach ( $branches as $branch ) {
-					if ( is_array( $branch ) && in_array( 'object', (array) ( isset( $branch['type'] ) ? $branch['type'] : array() ), true ) ) {
+					if ( is_array( $branch ) && in_array( 'object', (array) ( $branch['type'] ?? array() ), true ) ) {
 						return (object) array();
 					}
 				}
@@ -203,7 +204,7 @@ class WP_REST_View_Config_Controller extends WP_REST_Controller {
 			return $value;
 		}
 
-		$types = (array) ( isset( $schema['type'] ) ? $schema['type'] : array() );
+		$types = (array) ( $schema['type'] ?? array() );
 
 		if ( in_array( 'array', $types, true ) && isset( $schema['items'] ) ) {
 			foreach ( $value as $index => $item ) {
@@ -265,6 +266,11 @@ class WP_REST_View_Config_Controller extends WP_REST_Controller {
 				'name'            => array(
 					'description' => __( 'Entity name.' ),
 					'type'        => 'string',
+					'readonly'    => true,
+				),
+				'version'         => array(
+					'description' => __( 'The schema version of the configuration.' ),
+					'type'        => 'integer',
 					'readonly'    => true,
 				),
 				'default_view'    => array(
@@ -385,15 +391,15 @@ class WP_REST_View_Config_Controller extends WP_REST_Controller {
 	/**
 	 * Returns the schema properties shared by all view types (ViewBase), excluding 'type'.
 	 *
+	 * Note that `search` and `page` are not part of the schema: they are managed
+	 * via the URL, which is their only source of truth.
+	 *
 	 * @since 7.1.0
 	 *
 	 * @return array Schema properties for the base view configuration.
 	 */
 	protected function get_view_base_schema() {
 		return array(
-			'search'                => array(
-				'type' => 'string',
-			),
 			'filters'               => array(
 				'type'  => 'array',
 				'items' => array(
@@ -437,9 +443,6 @@ class WP_REST_View_Config_Controller extends WP_REST_Controller {
 						'enum' => array( 'asc', 'desc' ),
 					),
 				),
-			),
-			'page'                  => array(
-				'type' => 'integer',
 			),
 			'perPage'               => array(
 				'type' => 'integer',
