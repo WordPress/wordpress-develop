@@ -57,6 +57,8 @@ test( 'API requests use the repository token and report failures', async () => {
 	assert.equal( ( await api.getRun( 456 ) ).id, 456 );
 	assert.match( calls[ 0 ].url, /actions\/runs\/456$/ );
 	assert.equal( calls[ 0 ].options.headers.Authorization, 'Bearer token' );
+	assert.ok( calls[ 0 ].options.signal instanceof AbortSignal );
+	assert.equal( calls[ 0 ].options.signal.aborted, false );
 
 	const failing = new GitHubApi(
 		'WordPress/wordpress-develop',

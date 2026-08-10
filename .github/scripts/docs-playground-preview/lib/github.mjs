@@ -1,3 +1,4 @@
+import { REQUEST_TIMEOUT_MS, TRANSFER_TIMEOUT_MS } from './http.mjs';
 import { COMMENT_MARKER, RELEASE_TAG } from './publication.mjs';
 
 const API = 'https://api.github.com';
@@ -35,6 +36,7 @@ export class GitHubApi {
 	 * @param {Record<string, any>} [options]
 	 */
 	async request( url, options = {} ) {
+		const { timeoutMs = REQUEST_TIMEOUT_MS, ...init } = options;
 		const headers = {
 			Accept: 'application/vnd.github+json',
 			Authorization: `Bearer ${ this.token }`,
@@ -44,8 +46,9 @@ export class GitHubApi {
 		const response = await this.fetch(
 			url.startsWith( 'https://' ) ? url : `${ API }${ url }`,
 			{
-				...options,
+				...init,
 				headers,
+				signal: AbortSignal.timeout( timeoutMs ),
 				body:
 					options.json === undefined
 						? options.body
@@ -294,6 +297,7 @@ export class GitHubApi {
 						'Content-Type': contentType,
 					},
 					body: bytes,
+					timeoutMs: TRANSFER_TIMEOUT_MS,
 				}
 			);
 		try {

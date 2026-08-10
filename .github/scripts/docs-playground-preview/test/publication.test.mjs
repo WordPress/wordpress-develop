@@ -267,6 +267,35 @@ test( 'same-SHA discovery verifies metadata and the proxied snapshot', async () 
 	);
 } );
 
+test( 'the proxied snapshot read carries a deadline', async () => {
+	const bytes = Buffer.from( 'snapshot' );
+	const expected = published( bytes );
+	/** @type {any} */
+	let signal;
+	await validatePublicSnapshot(
+		releaseAssetUrl( identity.repository, expected.snapshotFilename ),
+		{
+			bytes: expected.snapshotBytes,
+			sha256: expected.snapshotSha256,
+			maximumBytes: identity.maximumBytes,
+		},
+		/** @param {string} _url @param {any} options */
+		async ( _url, options ) => {
+			signal = options.signal;
+			return {
+				status: 200,
+				headers: headers( {
+					'x-playground-cors-proxy': 'true',
+					'access-control-allow-origin': PLAYGROUND_ORIGIN,
+				} ),
+				arrayBuffer: async () => bytes,
+			};
+		}
+	);
+	assert.ok( signal instanceof AbortSignal );
+	assert.equal( signal.aborted, false );
+} );
+
 test( 'a release deleted mid-scan ends the reuse check without a crash', async () => {
 	const fetchImplementation = /** @param {string} url */ async ( url ) => {
 		if ( url.includes( '/releases/tags/' ) ) {

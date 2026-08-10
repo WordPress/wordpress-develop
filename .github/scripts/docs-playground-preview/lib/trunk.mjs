@@ -1,6 +1,7 @@
 import { isDeepStrictEqual } from 'node:util';
 
 import { isDeploymentEnabled } from './config.mjs';
+import { REQUEST_TIMEOUT_MS } from './http.mjs';
 import {
 	PLAYGROUND_ORIGIN,
 	SNAPSHOT_BYTES_LIMIT,
@@ -333,6 +334,7 @@ export async function readPublicBlueprint(
 ) {
 	const response = await fetchImplementation( corsProxyUrl( publicUrl ), {
 		headers: { Origin: PLAYGROUND_ORIGIN },
+		signal: AbortSignal.timeout( REQUEST_TIMEOUT_MS ),
 	} );
 	if ( response.status !== 200 ) {
 		throw new Error(

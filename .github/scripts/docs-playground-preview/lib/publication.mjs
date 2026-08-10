@@ -1,5 +1,7 @@
 import { createHash } from 'node:crypto';
 
+import { TRANSFER_TIMEOUT_MS } from './http.mjs';
+
 export const RELEASE_TAG = 'code-reference-playground-preview';
 export const COMMENT_MARKER = '<!-- code-reference-docs-preview -->';
 export const PLAYGROUND_ORIGIN = 'https://playground.wordpress.net';
@@ -168,6 +170,7 @@ export async function validatePublicSnapshot(
 	}
 	const response = await fetchImplementation( corsProxyUrl( publicUrl ), {
 		headers: { Origin: PLAYGROUND_ORIGIN },
+		signal: AbortSignal.timeout( TRANSFER_TIMEOUT_MS ),
 	} );
 	if ( response.status !== 200 ) {
 		throw new Error(

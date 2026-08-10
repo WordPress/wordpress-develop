@@ -1,3 +1,4 @@
+import { REQUEST_TIMEOUT_MS } from './http.mjs';
 import { SNAPSHOT_BYTES_LIMIT } from './publisher.mjs';
 import {
 	corsProxyUrl,
@@ -16,7 +17,9 @@ const BLUEPRINT_SCHEMA =
  * @param {(...args: any[]) => any} fetchImplementation
  */
 async function fetchPublishedMetadata( asset, fetchImplementation ) {
-	const response = await fetchImplementation( asset.browser_download_url );
+	const response = await fetchImplementation( asset.browser_download_url, {
+		signal: AbortSignal.timeout( REQUEST_TIMEOUT_MS ),
+	} );
 	if ( response.status !== 200 ) {
 		throw new Error(
 			`Public metadata returned HTTP ${ response.status }.`

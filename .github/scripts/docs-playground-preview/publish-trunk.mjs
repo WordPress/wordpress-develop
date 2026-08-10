@@ -6,6 +6,7 @@ import { pathToFileURL } from 'node:url';
 import path from 'node:path';
 
 import { GitHubApi } from './lib/github.mjs';
+import { REQUEST_TIMEOUT_MS } from './lib/http.mjs';
 import {
 	metadataAssetName,
 	releaseAssetUrl,
@@ -148,7 +149,8 @@ async function ensureRelease( session ) {
  */
 async function validatePublicMetadata( session, asset, expected ) {
 	const response = await session.fetchImplementation(
-		asset.browser_download_url
+		asset.browser_download_url,
+		{ signal: AbortSignal.timeout( REQUEST_TIMEOUT_MS ) }
 	);
 	if ( response.status !== 200 ) {
 		throw new Error(

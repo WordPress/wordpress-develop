@@ -1,6 +1,8 @@
 import { createHash } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 
+import { REQUEST_TIMEOUT_MS } from './http.mjs';
+
 const FULL_COMMIT = /^[0-9a-f]{40}$/;
 const FULL_DIGEST = /^[0-9a-f]{64}$/;
 const VERSION = /^\d+\.\d+\.\d+$/;
@@ -168,6 +170,7 @@ export async function resolveWordPressBeta(
 ) {
 	const response = await fetchImplementation( VERSION_API, {
 		headers: { Accept: 'application/json' },
+		signal: AbortSignal.timeout( REQUEST_TIMEOUT_MS ),
 	} );
 	if ( ! response.ok ) {
 		throw new Error(

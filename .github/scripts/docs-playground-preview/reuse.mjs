@@ -4,6 +4,7 @@ import { mkdir, writeFile } from 'node:fs/promises';
 import { pathToFileURL } from 'node:url';
 import path from 'node:path';
 
+import { REQUEST_TIMEOUT_MS } from './lib/http.mjs';
 import {
 	RELEASE_TAG,
 	createReuseHandoff,
@@ -51,6 +52,7 @@ async function apiJson( url, token, fetchImplementation ) {
 			Authorization: `Bearer ${ token }`,
 			'X-GitHub-Api-Version': '2022-11-28',
 		},
+		signal: AbortSignal.timeout( REQUEST_TIMEOUT_MS ),
 	} );
 	if ( response.status === 404 ) {
 		return null;
@@ -136,7 +138,8 @@ export async function findReusablePreview( options ) {
 	for ( const candidate of candidates ) {
 		try {
 			const metadataResponse = await fetchImplementation(
-				candidate.browser_download_url
+				candidate.browser_download_url,
+				{ signal: AbortSignal.timeout( REQUEST_TIMEOUT_MS ) }
 			);
 			if ( metadataResponse.status !== 200 ) {
 				throw new Error(
