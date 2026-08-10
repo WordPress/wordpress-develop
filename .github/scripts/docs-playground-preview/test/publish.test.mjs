@@ -366,6 +366,56 @@ test( 'a superseded run makes no mutation', async () => {
 	assert.equal( api.labelRemovals, 0 );
 } );
 
+test( 'a re-run source workflow supersedes instead of failing', async () => {
+	const api = new FakeApi();
+	api.currentRun = { ...run(), run_attempt: 2 };
+	const directory = await handoffDirectory( buildMetadata() );
+	const result = await publishPullRequest( options( api, directory ) );
+	assert.equal( result.status, 'superseded' );
+	assert.equal( api.uploads.length, 0 );
+	assert.equal( api.comments.length, 0 );
+	assert.equal( api.labelRemovals, 0 );
+} );
+
+test( 'an in-progress source workflow supersedes instead of failing', async () => {
+	const api = new FakeApi();
+	api.currentRun = { ...run(), status: 'in_progress' };
+	const directory = await handoffDirectory( buildMetadata() );
+	const result = await publishPullRequest( options( api, directory ) );
+	assert.equal( result.status, 'superseded' );
+	assert.equal( api.uploads.length, 0 );
+	assert.equal( api.comments.length, 0 );
+	assert.equal( api.labelRemovals, 0 );
+} );
+
+test( 'a fork deleted before publication supersedes instead of failing', async () => {
+	const api = new FakeApi();
+	api.currentRun = { ...run(), head_repository: null };
+	api.findPullRequestForRun = async () => {
+		throw new Error( 'Workflow run has no fork head identity.' );
+	};
+	const directory = await handoffDirectory( buildMetadata() );
+	const result = await publishPullRequest( options( api, directory ) );
+	assert.equal( result.status, 'superseded' );
+	assert.equal( api.uploads.length, 0 );
+	assert.equal( api.comments.length, 0 );
+	assert.equal( api.labelRemovals, 0 );
+} );
+
+test( 'pull request lookup outages remain visible failures', async () => {
+	const api = new FakeApi();
+	api.findPullRequestForRun = async () => {
+		throw new Error( 'GitHub is unavailable' );
+	};
+	const directory = await handoffDirectory( buildMetadata() );
+	await assert.rejects(
+		publishPullRequest( options( api, directory ) ),
+		/GitHub is unavailable/
+	);
+	assert.equal( api.uploads.length, 0 );
+	assert.equal( api.comments.length, 0 );
+} );
+
 test( 'a skipped trigger run makes no mutation', async () => {
 	const api = new FakeApi();
 	api.isSkippedPreviewBuild = async () => true;

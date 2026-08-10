@@ -40,6 +40,12 @@ function timestamp( value, label ) {
 	return value;
 }
 
+function supersededTrunkError( message ) {
+	const error = new Error( message );
+	error.trunkRunSuperseded = true;
+	return error;
+}
+
 export function trunkSnapshotAssetName( identity ) {
 	if ( ! FULL_COMMIT.test( identity.sourceSha || '' ) ) {
 		throw new Error( 'sourceSha must be a full lowercase commit hash.' );
@@ -87,17 +93,21 @@ export function validateTrunkPublicationContext( context ) {
 		runAttempt !==
 			positiveInteger( context.triggerRunAttempt, 'Trigger run attempt' )
 	) {
-		throw new Error(
+		throw supersededTrunkError(
 			'The triggering workflow attempt is no longer current.'
 		);
 	}
 	if (
 		context.run.name !== TRUNK_BUILD_WORKFLOW_NAME ||
 		context.run.event !== 'push' ||
-		context.run.status !== 'completed' ||
 		context.run.head_branch !== 'trunk'
 	) {
 		throw new Error( 'The trunk source workflow identity is invalid.' );
+	}
+	if ( context.run.status !== 'completed' ) {
+		throw supersededTrunkError(
+			'The trunk source workflow is not terminal.'
+		);
 	}
 	const sourceSha = context.run.head_sha;
 	if (
@@ -123,7 +133,9 @@ export function assertLatestTrunkAuthorized( context ) {
 		context.latestRun?.run_attempt !== current.workflowRunAttempt ||
 		context.trunkHeadSha !== current.sourceSha
 	) {
-		throw new Error( 'A newer trunk build superseded this attempt.' );
+		throw supersededTrunkError(
+			'A newer trunk build superseded this attempt.'
+		);
 	}
 	return current;
 }

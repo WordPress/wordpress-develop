@@ -48,7 +48,15 @@ async function establishSession( options ) {
 			options.fetchImplementation
 		);
 	const run = await api.getRun( options.triggerRunId );
-	const pullRequest = await api.findPullRequestForRun( run );
+	let pullRequest;
+	try {
+		pullRequest = await api.findPullRequestForRun( run );
+	} catch ( error ) {
+		if ( run.head_repository?.owner?.login && run.head_branch ) {
+			throw error;
+		}
+		throw new SupersededRun( error.message );
+	}
 	if ( ! pullRequest ) {
 		return null;
 	}
@@ -60,7 +68,12 @@ async function establishSession( options ) {
 		run,
 		pullRequest,
 	};
-	const context = validatePublicationContext( base );
+	let context;
+	try {
+		context = validatePublicationContext( base );
+	} catch ( error ) {
+		throw new SupersededRun( error.message );
+	}
 	return {
 		api,
 		context,
@@ -319,7 +332,15 @@ async function reuseCandidate( session, metadata ) {
 }
 
 export async function publishPullRequest( options ) {
-	const session = await establishSession( options );
+	let session;
+	try {
+		session = await establishSession( options );
+	} catch ( error ) {
+		if ( error instanceof SupersededRun ) {
+			return { status: 'superseded' };
+		}
+		throw error;
+	}
 	if ( ! session ) {
 		return { status: 'superseded' };
 	}

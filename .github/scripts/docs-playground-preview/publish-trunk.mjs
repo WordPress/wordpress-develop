@@ -292,7 +292,15 @@ async function publishCandidate( session, metadata, uploaded, transaction ) {
 }
 
 export async function publishTrunk( options ) {
-	const session = await establishSession( options );
+	let session;
+	try {
+		session = await establishSession( options );
+	} catch ( error ) {
+		if ( error.trunkRunSuperseded === true ) {
+			return { status: 'superseded' };
+		}
+		throw error;
+	}
 	const uploaded = [];
 	const transaction = { pointerPublished: false };
 	try {
@@ -320,7 +328,10 @@ export async function publishTrunk( options ) {
 		if ( ! transaction.pointerPublished && ! error.pointerStateUnknown ) {
 			await cleanupUploaded( session, uploaded );
 		}
-		if ( error instanceof SupersededTrunkRun ) {
+		if (
+			error instanceof SupersededTrunkRun ||
+			error.trunkRunSuperseded === true
+		) {
 			return { status: 'superseded' };
 		}
 		throw error;

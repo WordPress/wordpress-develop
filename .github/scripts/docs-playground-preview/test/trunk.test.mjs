@@ -163,6 +163,46 @@ test( 'trunk publication binds the exact terminal push and latest head', () => {
 	);
 } );
 
+test( 'supersession races are marked distinctly from identity failures', () => {
+	assert.throws(
+		() =>
+			validateTrunkPublicationContext(
+				context( { triggerRunAttempt: 1 } )
+			),
+		( error ) =>
+			error.trunkRunSuperseded === true &&
+			/no longer current/.test( error.message )
+	);
+	assert.throws(
+		() =>
+			validateTrunkPublicationContext( {
+				...context(),
+				run: { ...context().run, status: 'in_progress' },
+			} ),
+		( error ) =>
+			error.trunkRunSuperseded === true &&
+			/not terminal/.test( error.message )
+	);
+	assert.throws(
+		() =>
+			validateTrunkPublicationContext( {
+				...context(),
+				run: { ...context().run, head_branch: 'main' },
+			} ),
+		( error ) =>
+			error.trunkRunSuperseded === undefined &&
+			/workflow identity/.test( error.message )
+	);
+	assert.throws(
+		() =>
+			assertLatestTrunkAuthorized( {
+				...context(),
+				latestRun: { ...context().run, id: 999 },
+			} ),
+		( error ) => error.trunkRunSuperseded === true
+	);
+} );
+
 test( 'the trunk handoff accepts only a passed exact-run candidate', () => {
 	assert.equal(
 		inspectTrunkHandoff( metadata(), context() ).kind,

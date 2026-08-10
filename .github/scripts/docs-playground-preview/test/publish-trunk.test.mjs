@@ -543,3 +543,44 @@ test( 'invalid, missing, and superseded handoffs never move the pointer', async 
 	);
 	assert.equal( supersededApi.assets.length, 3 );
 } );
+
+test( 'routine supersession races resolve green before the session starts', async () => {
+	const rerunApi = new FakeApi();
+	installPrevious( rerunApi );
+	rerunApi.currentRun = run( { run_attempt: 2 } );
+	assert.equal(
+		(
+			await publishTrunk(
+				options( rerunApi, await handoffDirectory( buildMetadata() ) )
+			)
+		).status,
+		'superseded'
+	);
+	assert.equal( rerunApi.assets.length, 3 );
+
+	const activeApi = new FakeApi();
+	installPrevious( activeApi );
+	activeApi.currentRun = run( { status: 'in_progress' } );
+	assert.equal(
+		(
+			await publishTrunk(
+				options( activeApi, await handoffDirectory( buildMetadata() ) )
+			)
+		).status,
+		'superseded'
+	);
+	assert.equal( activeApi.assets.length, 3 );
+} );
+
+test( 'a genuine source identity failure still fails red', async () => {
+	const api = new FakeApi();
+	installPrevious( api );
+	api.currentRun = run( { head_branch: 'not-trunk' } );
+	await assert.rejects(
+		publishTrunk(
+			options( api, await handoffDirectory( buildMetadata() ) )
+		),
+		/source workflow identity/
+	);
+	assert.equal( api.assets.length, 3 );
+} );
