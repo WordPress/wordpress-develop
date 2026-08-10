@@ -100,7 +100,6 @@ Twenty Twenty-One is distributed under the terms of the GNU GPL.
 
 /* Variables */
 :root {
-
 	/* Font Family */
 	--global--font-primary: var(--font-headings, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif);
 	--global--font-secondary: var(--font-base, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif);
@@ -419,7 +418,6 @@ abbr[title] {
  */
 b,
 strong {
-
 	/* stylelint-disable-next-line font-weight-notation -- We don't want to change normalize. */
 	font-weight: bolder;
 }
@@ -978,7 +976,6 @@ h6 {
  * https://css-tricks.com/inheriting-box-sizing-probably-slightly-better-best-practice/
  */
 html {
-
 	/* Apply border-box across the entire page. */
 	box-sizing: border-box;
 	font-family: var(--global--font-secondary);
@@ -1567,7 +1564,6 @@ a:hover {
 }
 
 .site a:focus:not(.wp-block-button__link):not(.wp-block-file__button) {
-
 	/* Only visible in Windows High Contrast mode */
 	outline: 2px solid transparent;
 	-webkit-text-decoration: underline 1px dotted currentColor;
@@ -1597,7 +1593,6 @@ a:hover {
 }
 
 .site a:focus:not(.wp-block-button__link):not(.wp-block-file__button).skip-link {
-
 	/* Only visible in Windows High Contrast mode */
 	outline: 2px solid transparent;
 	outline-offset: -2px;
