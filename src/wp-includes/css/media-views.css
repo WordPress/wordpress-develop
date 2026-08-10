@@ -1064,10 +1064,16 @@ select#media-attachment-filters ~ select#media-attachment-date-filters {
 	line-height: 1;
 }
 
-@media screen and (max-width: 782px) {
+@media screen and (max-width: 900px) {
 	.wp-core-ui .button.media-library-settings__toggle {
 		min-width: 40px;
+		min-height: 40px;
 		width: 40px;
+	}
+}
+
+@media screen and (max-width: 782px) {
+	.wp-core-ui .button.media-library-settings__toggle {
 		position: static;
 		float: right;
 		margin-top: 1.125rem;
