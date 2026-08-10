@@ -6130,9 +6130,6 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	 * Verifies that the fields carried on the request are applied to an
 	 * attachment created from a `url`, as they are for an uploaded file.
 	 *
-	 * The URL path previously returned before create_item() applied them, so
-	 * they were accepted by the schema and then silently dropped.
-	 *
 	 * @ticket 65810
 	 *
 	 * @covers WP_REST_Attachments_Controller::create_item
@@ -6170,9 +6167,9 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	 * `url`, as they do for an uploaded file.
 	 *
 	 * rest_pre_insert_attachment and rest_insert_attachment fire from
-	 * prepare_item_for_database() and insert_attachment(), which the URL path
-	 * did not reach, and wp_after_insert_post never fires for attachments from
-	 * wp_insert_post() because it returns before the after-insert hooks.
+	 * prepare_item_for_database() and insert_attachment(). wp_after_insert_post
+	 * is fired by create_item(), since wp_insert_post() returns for attachments
+	 * before it reaches the after-insert hooks.
 	 *
 	 * @ticket 65810
 	 *
