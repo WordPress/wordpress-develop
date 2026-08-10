@@ -70,7 +70,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 		<div class="about__section">
 			<div class="column is-left-padding-zero is-right-padding-zero">
 				<h2><?php _e( 'Welcome to WordPress 7.1' ); ?></h2>
-				<p class="is-subheading"><?php _e( 'WordPress 7.1 makes it easier to style, edit, and collaborate. Style how blocks look across screen sizes and how they respond to hover, focus, and active states, all without writing custom CSS. A new media editor brings cropping, rotation, and metadata editing together in one streamlined workflow. Notes now support rich text and @mentions, and the admin bar now travels with you into the Site Editor and block editor, so the tools you rely on stay with you wherever you&#8217;re working.' ); ?></p>
+				<p class="is-subheading"><?php _e( 'WordPress 7.1 makes styling and editing easier. Style how blocks look across screen sizes and how they respond to hover, focus, and active states, all without writing custom CSS. A streamlined media editor brings cropping, rotation, and metadata editing together in one workflow. Notes now support rich text and @mentions, and the admin bar travels with you into the Site Editor and block editor, so the tools you rely on stay with you wherever you&#8217;re working.' ); ?></p>
 			</div>
 		</div>
 
@@ -99,7 +99,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 				<h3><?php _e( 'Admin bar, now in every editor' ); ?></h3>
 				<p>
 					<strong><?php _e( 'Consistent navigation, from dashboard to editor.' ); ?></strong><br />
-					<?php _e( 'The WordPress admin bar now travels with you into the Site Editor and the block editor, so you stay oriented as you move between them. The admin bar also receives a small UI visual improvement.' ); ?>
+					<?php _e( ' The admin bar now stays with you as you move into the Site Editor and block editor, so you always know where you are.  The admin bar also gets a small visual refresh.' ); ?>
 				</p>
 			</div>
 		</div>
@@ -109,7 +109,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 				<h3><?php _e( 'A new way to crop' ); ?></h3>
 				<p>
 					<strong><?php _e( 'One dedicated workflow for editing your images.' ); ?></strong><br />
-					<?php _e( 'A new media editor modal replaces the previous inline cropping tool, bringing freeform and aspect-ratio cropping, flipping, precise rotation, and metadata editing together in a single streamlined workflow. The familiar Crop button still gets you there, now opening a dedicated space to crop, rotate, and adjust images before publishing.' ); ?>
+					<?php _e( 'A new media editor modal replaces the old inline cropping tool, bringing freeform and aspect-ratio cropping, flip, precise rotation, and metadata editing together in a single streamlined workflow. The familiar Crop button still gets you there, now opening a dedicated space to crop, rotate, and adjust images before publishing.' ); ?>
 				</p>
 			</div>
 			<div class="column is-vertically-aligned-center is-right-padding-zero">
@@ -154,7 +154,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 					</svg>
 				</div>
 				<h3><?php _e( 'Accessibility' ); ?></h3>
-				<p><?php _e( 'WordPress 7.1 adds a &#8220;mark as decorative&#8221; toggle for the Image block, so decorative images can be hidden from screen readers, and the new admin bar and media editor modal have been built and reviewed with accessibility in mind. Work also continues on the post list tables and media library, as identified priorities in previous releases.' ); ?></p>
+				<p><?php _e( 'WordPress 7.1 continues to polish accessibility across WordPress Core and Gutenberg, advancing the goals to meet accessibility standards. In this release, high impact changes include the new accessible tooltips API, improved predictability for screen readers, and improved labeling in many places in the admin. The editor ships with new Tab and Playlist blocks and extensive improvements to editor navigation and interaction.' ); ?></p>
 			</div>
 		</div>
 
