@@ -8,7 +8,7 @@ var View = wp.media.View,
  * wp.media.view.LibrarySettings
  *
  * A toolbar control opening a modal dialog with the personal options for the
- * Media Library. Each toggle is saved over Ajax, so there is no submit button.
+ * Media Library.
  *
  * @since 7.1.0
  *
@@ -34,8 +34,7 @@ LibrarySettings = View.extend(/** @lends wp.media.view.LibrarySettings.prototype
 	},
 
 	/**
-	 * Identifies the most recent request, so a slow response cannot overwrite the
-	 * outcome of a later toggle.
+	 * Identifies the most recent request.
 	 *
 	 * @type {number}
 	 */
@@ -69,10 +68,6 @@ LibrarySettings = View.extend(/** @lends wp.media.view.LibrarySettings.prototype
 	/**
 	 * Inserts the dialog into the frame.
 	 *
-	 * Done on the first open, when the frame is known to be in the document. The
-	 * frame is used rather than the toolbar so that the dialog is out of the reach
-	 * of the toolbar styles, while it keeps the `wp-core-ui` styles the frame adds.
-	 *
 	 * @return {void}
 	 */
 	createDialog: function() {
@@ -99,9 +94,6 @@ LibrarySettings = View.extend(/** @lends wp.media.view.LibrarySettings.prototype
 	/**
 	 * Opens the dialog.
 	 *
-	 * `showModal()` moves it to the top layer, out of the toolbar's clipping, and
-	 * brings the focus trap, Escape handling and focus restore a modal needs.
-	 *
 	 * @return {void}
 	 */
 	open: function() {
@@ -118,9 +110,6 @@ LibrarySettings = View.extend(/** @lends wp.media.view.LibrarySettings.prototype
 	/**
 	 * Whether a `media_library_infinite_scrolling` filter callback overrides the
 	 * personal option.
-	 *
-	 * Evaluated when this file is loaded, since saving a preference brings the two
-	 * values it is derived from in sync.
 	 *
 	 * @type {boolean}
 	 */
@@ -180,8 +169,6 @@ LibrarySettings = View.extend(/** @lends wp.media.view.LibrarySettings.prototype
 
 	/**
 	 * Updates the message below the controls.
-	 *
-	 * It sits in a `role="status"` region, so it is shown and announced at once.
 	 *
 	 * @param {string} message The message to display. An empty string clears it.
 	 * @return {void}
