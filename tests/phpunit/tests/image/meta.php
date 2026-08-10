@@ -152,14 +152,18 @@ class Tests_Image_Meta extends WP_UnitTestCase {
 	/**
 	 * Ensures image metadata is always returned as valid UTF-8.
 	 *
-	 * Core does not read the IPTC coded character set, so the encoding of these fields is
-	 * unknown. Byte spans which cannot decode as UTF-8 are replaced with the Unicode
-	 * replacement character rather than reinterpreted as any particular encoding. Both
-	 * malformed UTF-8 and text in another encoding are covered here.
+	 * Core does not read the IPTC coded character set, so the encoding of these fields
+	 * is unknown. Fields which fail to validate as UTF-8 are decoded as ISO-8859-1
+	 * (latin1): correct when the text really is latin1, mojibake otherwise. Invalid
+	 * UTF-8 reaching the database is stripped by `strip_invalid_text()`, which is why
+	 * the conversion has to happen at all. See #35316.
+	 *
+	 * These cases pin that behavior so it cannot change silently.
 	 *
 	 * @ticket 65828
+	 * @ticket 35316
 	 */
-	public function test_iptc_invalid_utf8_is_scrubbed() {
+	public function test_iptc_non_utf8_text_is_converted() {
 		if ( ! is_callable( 'iptcembed' ) || ! is_callable( 'iptcparse' ) ) {
 			$this->markTestSkipped( 'The iptcembed() and iptcparse() functions are required.' );
 		}
@@ -170,11 +174,16 @@ class Tests_Image_Meta extends WP_UnitTestCase {
 				120 => mb_convert_encoding( 'Café', 'ISO-8859-1', 'UTF-8' ),
 				110 => "Credit \xC0",
 				116 => "Copyright \xE9",
-				25  => array( 'valid keyword', "sunset\xC0" ),
+				25  => array(
+					'valid keyword',
+					"sunset\xC0",
+					// The Slovak keywords from the image attached to #35316.
+					mb_convert_encoding( 'Vodná elektráreň Gabčíkovo', 'ISO-8859-2', 'UTF-8' ),
+				),
 			)
 		);
 
-		$file = wp_tempnam( 'iptc-invalid-utf8.jpg' );
+		$file = wp_tempnam( 'iptc-non-utf8.jpg' );
 		file_put_contents( $file, iptcembed( $block, DIR_TESTDATA . '/images/test-image.jpg' ) );
 
 		$out = wp_read_image_metadata( $file );
@@ -191,21 +200,21 @@ class Tests_Image_Meta extends WP_UnitTestCase {
 		}
 
 		$this->assertSame(
-			"Caf\u{FFFD}",
+			'Café',
 			$out['caption'],
-			'ISO-8859-1 text should be neutralized, not reinterpreted.'
+			'ISO-8859-1 text should round-trip unchanged.'
 		);
 
 		$this->assertSame(
-			"wyr\u{FFFD}nij",
+			'wyró¿nij',
 			$out['title'],
-			'ISO-8859-2 text should be neutralized, not reinterpreted.'
+			'Text in another single-byte encoding should be decoded as ISO-8859-1.'
 		);
 
 		$this->assertSame(
-			array( 'valid keyword', "sunset\u{FFFD}" ),
+			array( 'valid keyword', 'sunsetÀ', 'Vodná elektráreò Gabèíkovo' ),
 			$out['keywords'],
-			'Keywords should be scrubbed individually while valid entries are left alone.'
+			'Keywords should be converted individually while valid entries are left alone.'
 		);
 	}
 

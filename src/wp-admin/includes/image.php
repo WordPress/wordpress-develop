@@ -1048,12 +1048,16 @@ function wp_read_image_metadata( $file ) {
 	}
 
 	foreach ( array( 'title', 'caption', 'credit', 'copyright', 'camera', 'iso' ) as $key ) {
-		if ( $meta[ $key ] ) {
-			$meta[ $key ] = wp_scrub_utf8( $meta[ $key ] );
+		if ( $meta[ $key ] && ! wp_is_valid_utf8( $meta[ $key ] ) ) {
+			$meta[ $key ] = _wp_iso_8859_1_to_utf8( $meta[ $key ] );
 		}
 	}
 
-	$meta['keywords'] = array_map( 'wp_scrub_utf8', $meta['keywords'] );
+	foreach ( $meta['keywords'] as $key => $keyword ) {
+		if ( ! wp_is_valid_utf8( $keyword ) ) {
+			$meta['keywords'][ $key ] = _wp_iso_8859_1_to_utf8( $keyword );
+		}
+	}
 
 	$meta = wp_kses_post_deep( $meta );
 

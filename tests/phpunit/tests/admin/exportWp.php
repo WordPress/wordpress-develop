@@ -476,35 +476,37 @@ class Tests_Admin_ExportWp extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Ensures the WXR export always emits valid UTF-8.
+	 * Ensures the WXR export converts non-UTF-8 text into UTF-8.
 	 *
-	 * Byte spans which cannot decode as UTF-8 are replaced with the Unicode replacement
-	 * character. This covers both malformed UTF-8 and text supplied in some other
-	 * encoding entirely; core has no way to know which, so the bytes are neutralized
-	 * rather than reinterpreted as any particular encoding.
+	 * The export declares itself as UTF-8, so `wxr_cdata()` has to hand back a valid
+	 * UTF-8 string. Text which fails to validate is decoded as ISO-8859-1 (latin1),
+	 * which is a guess: correct when the text really is latin1, mojibake otherwise.
+	 * Core has no encoding declaration to consult here, so the guess stands.
+	 *
+	 * These cases pin that behavior so it cannot change silently.
 	 *
 	 * @ticket 65828
 	 *
-	 * @dataProvider data_invalid_utf8_strings
+	 * @dataProvider data_non_utf8_strings
 	 *
 	 * @param string $input    Bytes which are not valid UTF-8.
 	 * @param string $expected Expected CDATA contents.
 	 */
-	public function test_wxr_cdata_scrubs_invalid_utf8( $input, $expected ) {
+	public function test_wxr_cdata_converts_non_utf8_text( $input, $expected ) {
 		// Running an export defines the nested WXR helper functions.
 		$this->get_the_export( array( 'content' => 'post' ) );
 
 		$actual = wxr_cdata( $input );
 		$inner  = substr( $actual, strlen( '<![CDATA[' ), -strlen( ']]>' ) );
 
-		$this->assertTrue(
-			wp_is_valid_utf8( $inner ),
-			'The exported CDATA section should always contain valid UTF-8.'
-		);
 		$this->assertSame(
 			$expected,
 			$inner,
-			'Byte spans which cannot decode as UTF-8 should be replaced.'
+			'Non-UTF-8 bytes should be decoded as ISO-8859-1.'
+		);
+		$this->assertTrue(
+			wp_is_valid_utf8( $inner ),
+			'The exported CDATA section should always contain valid UTF-8.'
 		);
 	}
 
@@ -513,31 +515,37 @@ class Tests_Admin_ExportWp extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_invalid_utf8_strings() {
+	public function data_non_utf8_strings() {
 		return array(
-			// Malformed UTF-8.
-			'Never-valid byte'        => array( "a\xC0b", "a\u{FFFD}b" ),
-			'Truncated sequence'      => array( "a\xE2\x9Cb", "a\u{FFFD}b" ),
-			'Overlong sequence'       => array( "a\xC1\xBFb", "a\u{FFFD}\u{FFFD}b" ),
-			'Surrogate half'          => array( "a\xED\xA0\x80b", "a\u{FFFD}\u{FFFD}\u{FFFD}b" ),
-
 			// Text which is well-formed, but in some encoding other than UTF-8.
-			'ISO-8859-1 text'         => array(
+			'ISO-8859-1 text'                 => array(
 				mb_convert_encoding( 'Café', 'ISO-8859-1', 'UTF-8' ),
-				"Caf\u{FFFD}",
+				'Café',
 			),
-			'ISO-8859-2 text'         => array(
+			'ISO-8859-2 text'                 => array(
 				mb_convert_encoding( 'wyróżnij', 'ISO-8859-2', 'UTF-8' ),
-				"wyr\u{FFFD}nij",
+				'wyró¿nij',
 			),
-			'Windows-1251 text'       => array(
+			'Windows-1251 text'               => array(
 				mb_convert_encoding( 'Привет', 'Windows-1251', 'UTF-8' ),
-				str_repeat( "\u{FFFD}", 6 ),
+				'Ïðèâåò',
 			),
-			'Windows-1252 quotations' => array(
+			'Windows-1252 quotations'         => array(
 				mb_convert_encoding( '“quoted”', 'Windows-1252', 'UTF-8' ),
-				"\u{FFFD}quoted\u{FFFD}",
+				"\u{0093}quoted\u{0094}",
 			),
+
+			// Malformed UTF-8.
+			'Never-valid byte'                => array( "a\xC0b", 'aÀb' ),
+			'Truncated sequence'              => array( "a\xE2\x9Cb", "aâ\u{009C}b" ),
+			'Overlong sequence'               => array( "a\xC1\xBFb", 'aÁ¿b' ),
+			'Surrogate half'                  => array( "a\xED\xA0\x80b", "a\u{00ED}\u{00A0}\u{0080}b" ),
+
+			/*
+			 * The guard inspects the whole string, so a single stray byte sends the
+			 * valid portions through the conversion as well and double-encodes them.
+			 */
+			'Valid UTF-8 with one stray byte' => array( "Pi\xC3\xB1a \xC0", 'PiÃ±a À' ),
 		);
 	}
 
