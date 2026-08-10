@@ -430,21 +430,19 @@ class Tests_Functions_Absint extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that an integer is returned for float values which cannot be
-	 * represented as an integer, where the result of the `(int)` cast is
-	 * platform-dependent.
+	 * Tests that floats which cannot be represented as an integer are capped
+	 * at `PHP_INT_MAX`, and that non-finite floats return `0`, without an
+	 * out of range float to int cast, which warns as of PHP 8.5.
 	 *
 	 * @ticket 65826
 	 *
 	 * @dataProvider data_absint_unrepresentable_floats
 	 *
-	 * @param float $test_value Test value.
+	 * @param float $test_value     Test value.
+	 * @param int   $expected_value Expected return value.
 	 */
-	public function test_absint_returns_non_negative_int_for_unrepresentable_floats( float $test_value ): void {
-		$actual = absint( $test_value );
-
-		$this->assertIsInt( $actual );
-		$this->assertGreaterThanOrEqual( 0, $actual );
+	public function test_absint_unrepresentable_floats( float $test_value, int $expected_value ): void {
+		$this->assertSame( $expected_value, absint( $test_value ) );
 	}
 
 	/**
@@ -454,12 +452,34 @@ class Tests_Functions_Absint extends WP_UnitTestCase {
 	 */
 	public function data_absint_unrepresentable_floats(): array {
 		return array(
-			'(float) PHP_INT_MAX (2^63)' => array( (float) PHP_INT_MAX ),
-			'1.0e20'                     => array( 1.0e20 ),
-			'-1.0e20'                    => array( -1.0e20 ),
-			'INF'                        => array( INF ),
-			'-INF'                       => array( -INF ),
-			'NAN'                        => array( NAN ),
+			'(float) PHP_INT_MAX (2^63)' => array(
+				'test_value'     => (float) PHP_INT_MAX,
+				'expected_value' => PHP_INT_MAX,
+			),
+			'PHP_INT_MAX + 1'            => array(
+				'test_value'     => PHP_INT_MAX + 1,
+				'expected_value' => PHP_INT_MAX,
+			),
+			'1.0e20'                     => array(
+				'test_value'     => 1.0e20,
+				'expected_value' => PHP_INT_MAX,
+			),
+			'-1.0e20'                    => array(
+				'test_value'     => -1.0e20,
+				'expected_value' => PHP_INT_MAX,
+			),
+			'INF'                        => array(
+				'test_value'     => INF,
+				'expected_value' => 0,
+			),
+			'-INF'                       => array(
+				'test_value'     => -INF,
+				'expected_value' => 0,
+			),
+			'NAN'                        => array(
+				'test_value'     => NAN,
+				'expected_value' => 0,
+			),
 		);
 	}
 }
