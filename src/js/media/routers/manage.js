@@ -8,64 +8,62 @@
  * @class
  * @augments Backbone.Router
  */
-var Router = Backbone.Router.extend(
-	/** @lends wp.media.view.MediaFrame.Manage.Router.prototype */ {
-		routes: {
-			'upload.php?item=:slug&mode=edit': 'editItem',
-			'upload.php?item=:slug': 'showItem',
-			'upload.php?search=:query': 'search',
-			'upload.php': 'reset',
-		},
+var Router = Backbone.Router.extend(/** @lends wp.media.view.MediaFrame.Manage.Router.prototype */{
+	routes: {
+		'upload.php?item=:slug&mode=edit': 'editItem',
+		'upload.php?item=:slug':           'showItem',
+		'upload.php?search=:query':        'search',
+		'upload.php':                      'reset'
+	},
 
-		// Map routes against the page URL.
-		baseUrl: function ( url ) {
-			return 'upload.php' + url;
-		},
+	// Map routes against the page URL.
+	baseUrl: function( url ) {
+		return 'upload.php' + url;
+	},
 
-		reset: function () {
-			var frame = wp.media.frames.edit;
+	reset: function() {
+		var frame = wp.media.frames.edit;
 
-			if ( frame ) {
-				frame.close();
-			}
-		},
+		if ( frame ) {
+			frame.close();
+		}
+	},
 
-		// Respond to the search route by filling the search field and triggering the input event.
-		search: function () {
-			var params = new URLSearchParams( window.location.search );
-			var query = params.get( 'search' ) || '';
-			jQuery( '#media-search-input' ).val( query ).trigger( 'input' );
-		},
+	// Respond to the search route by filling the search field and triggering the input event.
+	search: function( query ) {
+		// Backbone's :query matches past '&', so drop any trailing query args.
+		query = ( query || '' ).split( '&' ).shift();
+		jQuery( '#media-search-input' ).val( query ).trigger( 'input' );
+	},
 
-		// Show the modal with a specific item.
-		showItem: function ( query ) {
-			var media = wp.media,
-				frame = media.frames.browse,
-				library = frame.state().get( 'library' ),
-				item;
+	// Show the modal with a specific item.
+	showItem: function( query ) {
+		var media = wp.media,
+			frame = media.frames.browse,
+			library = frame.state().get('library'),
+			item;
 
-			// Trigger the media frame to open the correct item.
-			item = library.findWhere( { id: parseInt( query, 10 ) } );
+		// Trigger the media frame to open the correct item.
+		item = library.findWhere( { id: parseInt( query, 10 ) } );
 
-			if ( item ) {
-				item.set( 'skipHistory', true );
-				frame.trigger( 'edit:attachment', item );
-			} else {
-				item = media.attachment( query );
-				frame.listenTo( item, 'change', function ( model ) {
-					frame.stopListening( item );
-					frame.trigger( 'edit:attachment', model );
-				} );
-				item.fetch();
-			}
-		},
+		if ( item ) {
+			item.set( 'skipHistory', true );
+			frame.trigger( 'edit:attachment', item );
+		} else {
+			item = media.attachment( query );
+			frame.listenTo( item, 'change', function( model ) {
+				frame.stopListening( item );
+				frame.trigger( 'edit:attachment', model );
+			} );
+			item.fetch();
+		}
+	},
 
-		// Show the modal in edit mode with a specific item.
-		editItem: function ( query ) {
-			this.showItem( query );
-			wp.media.frames.edit.content.mode( 'edit-details' );
-		},
+	// Show the modal in edit mode with a specific item.
+	editItem: function( query ) {
+		this.showItem( query );
+		wp.media.frames.edit.content.mode( 'edit-details' );
 	}
-);
+});
 
 module.exports = Router;
