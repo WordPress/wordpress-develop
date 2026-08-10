@@ -56,6 +56,8 @@ The staging repository needs a `docs-preview` label and the Actions variables us
 
 Behavioral validation is advisory unless the repository Actions variable `DOCS_PREVIEW_ENFORCE` is exactly `true`. Advisory failures emit workflow warnings and terminal PR state but cannot publish or replace a snapshot. Fatal build, handoff, identity, digest, size, and publication failures always fail.
 
+GitHub does not expose base-repository Actions variables to an untrusted fork `pull_request` job. Such a job therefore records a behavioral failure in its handoff without enforcing it locally. The trusted publisher reads `DOCS_PREVIEW_ENFORCE` from the base repository, updates the sticky comment without publishing the invalid candidate, and then fails its workflow when enforcement is enabled. Same-repository and `trunk` builds can read the variable directly and fail their build workflow as well.
+
 To enable enforcement:
 
 1. Open repository **Settings**.

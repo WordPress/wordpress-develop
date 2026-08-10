@@ -366,17 +366,30 @@ export async function publishPullRequest( options ) {
 	}
 }
 
+export function enforceValidationResult( result, enforcementVariable ) {
+	if ( result.status === 'invalid' && enforcementVariable === 'true' ) {
+		throw new Error(
+			'Code Reference validation failed with DOCS_PREVIEW_ENFORCE enabled.'
+		);
+	}
+	return result;
+}
+
 async function main() {
 	const event = JSON.parse( await readFile( process.env.GITHUB_EVENT_PATH ) );
-	const result = await publishPullRequest( {
-		repository: process.env.GITHUB_REPOSITORY,
-		stagingVariable: process.env.DOCS_PREVIEW_STAGING,
-		triggerRunId: event.workflow_run.id,
-		triggerRunAttempt: event.workflow_run.run_attempt,
-		handoffDirectory: process.argv[ 2 ] || 'handoff',
-		artifactAvailable: process.env.HANDOFF_DOWNLOAD_RESULT === 'success',
-		token: process.env.GITHUB_TOKEN,
-	} );
+	const result = enforceValidationResult(
+		await publishPullRequest( {
+			repository: process.env.GITHUB_REPOSITORY,
+			stagingVariable: process.env.DOCS_PREVIEW_STAGING,
+			triggerRunId: event.workflow_run.id,
+			triggerRunAttempt: event.workflow_run.run_attempt,
+			handoffDirectory: process.argv[ 2 ] || 'handoff',
+			artifactAvailable:
+				process.env.HANDOFF_DOWNLOAD_RESULT === 'success',
+			token: process.env.GITHUB_TOKEN,
+		} ),
+		process.env.DOCS_PREVIEW_ENFORCE
+	);
 	process.stdout.write( `Code Reference publisher: ${ result.status }.\n` );
 }
 

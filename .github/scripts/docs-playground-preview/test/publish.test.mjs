@@ -16,7 +16,10 @@ import {
 	releaseAssetUrl,
 	snapshotAssetName,
 } from '../lib/publication.mjs';
-import { publishPullRequest } from '../publish.mjs';
+import {
+	enforceValidationResult,
+	publishPullRequest,
+} from '../publish.mjs';
 
 const repository = 'WordPress/wordpress-develop';
 const sourceRepository = 'contributor/wordpress-develop';
@@ -299,6 +302,20 @@ test( 'an advisory validation failure updates the comment but publishes nothing'
 	assert.equal( api.uploads.length, 0 );
 	assert.match( api.comments[ 0 ].body, /Latest attempt failed/ );
 	assert.equal( api.labelRemovals, 1 );
+} );
+
+test( 'the trusted publisher enforces invalid fork handoffs', () => {
+	const invalid = { status: 'invalid' };
+	assert.throws(
+		() => enforceValidationResult( invalid, 'true' ),
+		/DOCS_PREVIEW_ENFORCE/
+	);
+	assert.equal( enforceValidationResult( invalid, 'false' ), invalid );
+	assert.equal( enforceValidationResult( invalid, 'TRUE' ), invalid );
+	assert.equal(
+		enforceValidationResult( { status: 'ready' }, 'true' ).status,
+		'ready'
+	);
 } );
 
 test( 'a missing handoff always fails after its terminal comment', async () => {

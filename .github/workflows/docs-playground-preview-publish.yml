@@ -54,7 +54,13 @@ jobs:
                   digest-mismatch: error
 
             - name: Validate and publish the handoff
+              # Fork pull_request jobs cannot read the base repository's Actions
+              # variables. The trusted publisher therefore applies enforcement
+              # after reporting the invalid candidate and preserving the live link.
+              # Administrator: enable enforcement in Settings > Secrets and variables >
+              # Actions > Variables by creating or updating DOCS_PREVIEW_ENFORCE to true.
               env:
+                  DOCS_PREVIEW_ENFORCE: ${{ vars.DOCS_PREVIEW_ENFORCE }}
                   DOCS_PREVIEW_STAGING: ${{ vars.DOCS_PREVIEW_STAGING }}
                   GITHUB_TOKEN: ${{ github.token }}
                   HANDOFF_DOWNLOAD_RESULT: ${{ steps.download.outcome }}

@@ -220,4 +220,8 @@ test( 'only the untrusted staging pull-request build bypasses staging activation
 			/github\.repository == 'sirreal\/wordpress-develop' && vars\.DOCS_PREVIEW_STAGING == 'true'/
 		);
 	}
+	assert.match(
+		publishWorkflow,
+		/DOCS_PREVIEW_ENFORCE: \$\{\{ vars\.DOCS_PREVIEW_ENFORCE \}\}/
+	);
 } );
