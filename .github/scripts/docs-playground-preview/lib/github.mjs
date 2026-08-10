@@ -76,20 +76,32 @@ export class GitHubApi {
 	/**
 	 * @param {string} path
 	 * @param {string | null} [field]
+	 * @returns {AsyncGenerator<any[], void, void>}
 	 */
-	async pages( path, field = null ) {
-		const values = [];
+	async *pageBatches( path, field = null ) {
 		for ( let page = 1; ; page++ ) {
 			const separator = path.includes( '?' ) ? '&' : '?';
 			const response = await this.request(
 				`${ path }${ separator }per_page=100&page=${ page }`
 			);
 			const batch = field ? response[ field ] : response;
-			values.push( ...batch );
+			yield batch;
 			if ( batch.length < 100 ) {
-				return values;
+				return;
 			}
 		}
+	}
+
+	/**
+	 * @param {string} path
+	 * @param {string | null} [field]
+	 */
+	async pages( path, field = null ) {
+		const values = [];
+		for await ( const batch of this.pageBatches( path, field ) ) {
+			values.push( ...batch );
+		}
+		return values;
 	}
 
 	/**
@@ -190,7 +202,10 @@ export class GitHubApi {
 	}
 
 	async latestTrunkPreviewRun() {
-		const runs = await this.pages(
+		// Every authorization repeats this lookup, and the API answers newest
+		// first, so the first page holding a match ends the scan instead of
+		// walking the entire trunk build history.
+		const batches = this.pageBatches(
 			`/repos/${
 				this.repository
 			}/actions/workflows/${ BUILD_WORKFLOW }/runs?${ query( {
@@ -199,18 +214,20 @@ export class GitHubApi {
 			} ) }`,
 			'workflow_runs'
 		);
-		const latest = runs
-			.filter(
-				( run ) =>
-					run.event === 'push' &&
-					run.head_branch === 'trunk' &&
-					run.head_repository?.full_name === this.repository
-			)
-			.sort( ( left, right ) => right.id - left.id )[ 0 ];
-		if ( ! latest ) {
-			throw new Error( 'No current trunk docs preview build exists.' );
+		for await ( const batch of batches ) {
+			const latest = batch
+				.filter(
+					( run ) =>
+						run.event === 'push' &&
+						run.head_branch === 'trunk' &&
+						run.head_repository?.full_name === this.repository
+				)
+				.sort( ( left, right ) => right.id - left.id )[ 0 ];
+			if ( latest ) {
+				return this.getRun( latest.id );
+			}
 		}
-		return this.getRun( latest.id );
+		throw new Error( 'No current trunk docs preview build exists.' );
 	}
 
 	/**

@@ -185,6 +185,78 @@ test( 'trunk lookup binds the workflow, branch, repository, and current attempt'
 	assert.match( calls[ 2 ], /actions\/runs\/456$/ );
 } );
 
+test( 'the trunk build lookup stops at the first page holding a match', async () => {
+	/** @type {any[]} */
+	const requested = [];
+	const api = new GitHubApi(
+		'WordPress/wordpress-develop',
+		'token',
+		async ( url ) => {
+			if ( url.includes( '/actions/workflows/' ) ) {
+				requested.push( url );
+				return response( {
+					workflow_runs: Array.from( { length: 100 }, ( _, index ) =>
+						run( {
+							id: 1000 - index,
+							event: 'push',
+							head_branch: 'trunk',
+							head_repository: {
+								full_name: 'WordPress/wordpress-develop',
+							},
+						} )
+					),
+				} );
+			}
+			return response( run( { id: 1000 } ) );
+		}
+	);
+	assert.equal( ( await api.latestTrunkPreviewRun() ).id, 1000 );
+	assert.equal( requested.length, 1 );
+	assert.match( requested[ 0 ], /page=1$/ );
+} );
+
+test( 'the trunk build lookup pages past unrelated runs', async () => {
+	/** @type {any[]} */
+	const requested = [];
+	const api = new GitHubApi(
+		'WordPress/wordpress-develop',
+		'token',
+		async ( url ) => {
+			if ( ! url.includes( '/actions/workflows/' ) ) {
+				return response( run( { id: 321 } ) );
+			}
+			requested.push( url );
+			if ( url.endsWith( 'page=1' ) ) {
+				return response( {
+					workflow_runs: Array.from( { length: 100 }, () =>
+						run( {
+							event: 'push',
+							head_branch: 'trunk',
+							head_repository: {
+								full_name: 'other/wordpress-develop',
+							},
+						} )
+					),
+				} );
+			}
+			return response( {
+				workflow_runs: [
+					run( {
+						id: 321,
+						event: 'push',
+						head_branch: 'trunk',
+						head_repository: {
+							full_name: 'WordPress/wordpress-develop',
+						},
+					} ),
+				],
+			} );
+		}
+	);
+	assert.equal( ( await api.latestTrunkPreviewRun() ).id, 321 );
+	assert.equal( requested.length, 2 );
+} );
+
 test( 'skipped trigger runs neither publish nor supersede a build', async () => {
 	const api = new GitHubApi(
 		'WordPress/wordpress-develop',
