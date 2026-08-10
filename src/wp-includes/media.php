@@ -5101,7 +5101,6 @@ function wp_enqueue_media( $args = array() ) {
 		'months'            => $months,
 		'mediaTrash'        => MEDIA_TRASH ? 1 : 0,
 		'infiniteScrolling' => ( $infinite_scrolling ) ? 1 : 0,
-		// Data for the settings dialog. Unlike the value above, `infiniteScrolling` here is the unfiltered personal option the dialog edits.
 		'librarySettings'   => array(
 			'nonce'             => wp_create_nonce( 'media-library-settings' ),
 			'infiniteScrolling' => ( $user_infinite_scrolling ) ? 1 : 0,
