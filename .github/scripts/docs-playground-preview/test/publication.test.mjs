@@ -266,3 +266,38 @@ test( 'same-SHA discovery verifies metadata and the proxied snapshot', async () 
 		handoff.reusedSnapshot
 	);
 } );
+
+test( 'a release deleted mid-scan ends the reuse check without a crash', async () => {
+	const fetchImplementation = /** @param {string} url */ async ( url ) => {
+		if ( url.includes( '/releases/tags/' ) ) {
+			return { ok: true, status: 200, json: async () => ( { id: 9 } ) };
+		}
+		assert.match( url, /\/releases\/9\/assets/ );
+		return { ok: false, status: 404, json: async () => ( {} ) };
+	};
+	assert.equal(
+		await findReusablePreview( {
+			...identity,
+			token: 'read-token',
+			fetchImplementation,
+		} ),
+		null
+	);
+} );
+
+test( 'reuse refuses to run without a usable size boundary', async () => {
+	const fetchImplementation = async () => {
+		assert.fail( 'No request may be made without a size boundary.' );
+	};
+	for ( const maximumBytes of [ undefined, NaN, 0, -1, 1.5, '100' ] ) {
+		await assert.rejects(
+			findReusablePreview( {
+				...identity,
+				maximumBytes,
+				token: 'read-token',
+				fetchImplementation,
+			} ),
+			/maximum snapshot size/
+		);
+	}
+} );

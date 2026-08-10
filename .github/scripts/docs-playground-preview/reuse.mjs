@@ -82,6 +82,11 @@ async function releaseAssets(
 			token,
 			fetchImplementation
 		);
+		// A release deleted mid-scan reports no assets rather than crashing
+		// the reuse check with an unrelated error.
+		if ( ! batch ) {
+			return assets;
+		}
 		assets.push( ...batch );
 		if ( batch.length < 100 ) {
 			return assets;
@@ -93,6 +98,16 @@ async function releaseAssets(
  * @param {Record<string, any>} options
  */
 export async function findReusablePreview( options ) {
+	// Every size guard compares with `>`, which a missing or malformed
+	// boundary would pass as NaN, so reuse is refused instead.
+	if (
+		! Number.isSafeInteger( options.maximumBytes ) ||
+		options.maximumBytes < 1
+	) {
+		throw new Error(
+			'The maximum snapshot size must be a positive integer.'
+		);
+	}
 	const fetchImplementation = options.fetchImplementation || globalThis.fetch;
 	const release = await apiJson(
 		`https://api.github.com/repos/${ options.repository }/releases/tags/${ RELEASE_TAG }`,

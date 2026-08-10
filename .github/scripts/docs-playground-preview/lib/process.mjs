@@ -20,6 +20,10 @@ export async function run( command, args, options = {} ) {
 		} );
 		let stdout = '';
 		let stderr = '';
+		// Decoding per chunk would corrupt any character split across a pipe
+		// boundary, so the streams decode as a whole.
+		child.stdout?.setEncoding( 'utf8' );
+		child.stderr?.setEncoding( 'utf8' );
 		child.stdout?.on( 'data', ( chunk ) => {
 			stdout += chunk;
 		} );
