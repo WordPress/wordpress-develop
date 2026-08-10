@@ -15,10 +15,13 @@ permissions: {}
 jobs:
   build:
     name: Build Code Reference snapshot
+    # Fork pull_request runs cannot read the base repository's Actions variables.
+    # This allowlisted job is untrusted and read-only; every trusted staging job
+    # remains gated by DOCS_PREVIEW_STAGING.
     if: >-
       github.event_name == 'pull_request' &&
       ( github.repository == 'WordPress/wordpress-develop' ||
-        ( github.repository == 'sirreal/wordpress-develop' && vars.DOCS_PREVIEW_STAGING == 'true' ) ) &&
+        github.repository == 'sirreal/wordpress-develop' ) &&
       github.event.pull_request.base.ref == 'trunk' &&
       github.event.pull_request.state == 'open' &&
       ( ( github.event.action == 'labeled' && github.event.label.name == 'docs-preview' ) ||

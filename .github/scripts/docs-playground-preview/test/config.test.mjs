@@ -21,6 +21,18 @@ const nodeVersionFile = new URL(
 	'../../../docs-playground-preview/.nvmrc',
 	import.meta.url
 );
+const buildWorkflowFile = new URL(
+	'../../../workflows/docs-playground-preview-build.yml',
+	import.meta.url
+);
+const publishWorkflowFile = new URL(
+	'../../../workflows/docs-playground-preview-publish.yml',
+	import.meta.url
+);
+const lifecycleWorkflowFile = new URL(
+	'../../../workflows/docs-playground-preview-lifecycle.yml',
+	import.meta.url
+);
 
 async function manifest() {
 	return JSON.parse( await readFile( dependenciesFile, 'utf8' ) );
@@ -180,4 +192,32 @@ test( 'deployment is inert outside the primary and opted-in staging repositories
 		isDeploymentEnabled( 'sirreal/wordpress-develop', 'TRUE' ),
 		false
 	);
+} );
+
+test( 'only the untrusted staging pull-request build bypasses staging activation', async () => {
+	const buildWorkflow = await readFile( buildWorkflowFile, 'utf8' );
+	const publishWorkflow = await readFile( publishWorkflowFile, 'utf8' );
+	const lifecycleWorkflow = await readFile( lifecycleWorkflowFile, 'utf8' );
+	const trunkJobOffset = buildWorkflow.indexOf( '\n  build-trunk:' );
+
+	assert.notEqual( trunkJobOffset, -1 );
+	assert.match(
+		buildWorkflow.slice( 0, trunkJobOffset ),
+		/github\.repository == 'sirreal\/wordpress-develop' /
+	);
+	assert.doesNotMatch(
+		buildWorkflow.slice( 0, trunkJobOffset ),
+		/vars\.DOCS_PREVIEW_STAGING/
+	);
+
+	for ( const trustedWorkflow of [
+		buildWorkflow.slice( trunkJobOffset ),
+		publishWorkflow,
+		lifecycleWorkflow,
+	] ) {
+		assert.match(
+			trustedWorkflow,
+			/github\.repository == 'sirreal\/wordpress-develop' && vars\.DOCS_PREVIEW_STAGING == 'true'/
+		);
+	}
 } );

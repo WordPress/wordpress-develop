@@ -46,9 +46,11 @@ A manifest or harness change automatically produces a different exact cache key.
 
 ## Repository activation
 
-The workflows run in `WordPress/wordpress-develop`. They also run in `sirreal/wordpress-develop` only when the repository Actions variable `DOCS_PREVIEW_STAGING` is exactly `true`. They remain inert in every other fork.
+The workflows run in `WordPress/wordpress-develop`. Trusted staging work in `sirreal/wordpress-develop` runs only when the repository Actions variable `DOCS_PREVIEW_STAGING` is exactly `true`. That variable controls `trunk` builds, PR and `trunk` publishers, comments, labels, stale and expired lifecycle handling, cleanup, cache deletion, and every other trusted mutation.
 
-The staging repository needs a `docs-preview` label and the Actions variables used for the scenario being tested. Disable staging by deleting `DOCS_PREVIEW_STAGING` or setting it to anything other than the lowercase string `true`.
+There is one deliberate staging exception: the untrusted `pull_request` build job is enabled by the hard-coded `sirreal/wordpress-develop` allowlist without consulting `DOCS_PREVIEW_STAGING`. GitHub does not expose the base repository's Actions variables to a fork's `pull_request` workflow run. Requiring the variable there would make the required fork preview impossible to stage. With staging disabled, explicitly labeling a PR may therefore consume isolated read-only CI and create a one-day handoff artifact, but it cannot publish, comment, change labels, delete caches, or perform another trusted mutation. Arbitrary forks remain inert. This user-approved exception to section 5 is confined to the staging repository and the untrusted build job.
+
+The staging repository needs a `docs-preview` label and the Actions variables used for the scenario being tested. Disable trusted staging by deleting `DOCS_PREVIEW_STAGING` or setting it to anything other than the lowercase string `true`.
 
 ## Validation enforcement
 
