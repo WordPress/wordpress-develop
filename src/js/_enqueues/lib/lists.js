@@ -17,6 +17,27 @@ var functions = {
 }, wpList;
 
 /**
+ * Tracks in-progress XHR requests per element to prevent concurrent calls.
+ *
+ * @since x.x.x
+ * @private
+ */
+var xhrs = {};
+
+/**
+ * Checks if an element has an in-progress XHR request.
+ *
+ * @since x.x.x
+ * @private
+ *
+ * @param {string} element Element ID to check.
+ * @return {boolean} True if a request is in progress for this element.
+ */
+function isXhrInProgress( element ) {
+	return Object.prototype.hasOwnProperty.call( xhrs, element ) && 4 !== xhrs[ element ].readyState;
+}
+
+/**
  * @namespace
  */
 wpList = {
@@ -414,6 +435,11 @@ wpList = {
 		settings.element  = data[2] || settings.element || null;
 		settings.delColor = data[3] ? '#' + data[3] : settings.delColor;
 
+		// Prevent concurrent AJAX requests on the same element.
+		if ( isXhrInProgress( settings.element ) ) {
+			return false;
+		}
+
 		if ( ! settings || ! settings.element ) {
 			return false;
 		}
@@ -466,6 +492,8 @@ wpList = {
 		};
 
 		settings.complete = function( jqXHR, status ) {
+			delete xhrs[ settings.element ];
+
 			if ( typeof settings.delAfter === 'function' ) {
 				$eventTarget.queue( function() {
 					settings.delAfter( returnedResponse, $.extend( {
@@ -477,7 +505,7 @@ wpList = {
 			}
 		};
 
-		$.ajax( settings );
+		xhrs[ settings.element ] = $.ajax( settings );
 
 		return false;
 	},
@@ -507,6 +535,11 @@ wpList = {
 		settings.dimClass    = data[3] || settings.dimClass || null;
 		settings.dimAddColor = data[4] ? '#' + data[4] : settings.dimAddColor;
 		settings.dimDelColor = data[5] ? '#' + data[5] : settings.dimDelColor;
+
+		// Prevent concurrent AJAX requests on the same element.
+		if ( isXhrInProgress( settings.element ) ) {
+			return false;
+		}
 
 		if ( ! settings || ! settings.element || ! settings.dimClass ) {
 			return true;
@@ -591,6 +624,8 @@ wpList = {
 		};
 
 		settings.complete = function( jqXHR, status ) {
+			delete xhrs[ settings.element ];
+
 			if ( typeof settings.dimAfter === 'function' ) {
 				$eventTarget.queue( function() {
 					settings.dimAfter( returnedResponse, $.extend( {
@@ -602,7 +637,7 @@ wpList = {
 			}
 		};
 
-		$.ajax( settings );
+		xhrs[ settings.element ] = $.ajax( settings );
 
 		return false;
 	},
@@ -840,7 +875,10 @@ wpList = {
 $.fn.wpList = function( settings ) {
 	this.each( function( index, list ) {
 		list.wpList = {
-			settings: $.extend( {}, wpList.settings, { what: wpList.parseData( list, 'list' )[1] || '' }, settings )
+			settings: $.extend( {}, wpList.settings, { what: wpList.parseData( list, 'list' )[1] || '' }, settings ),
+			xhrs: {
+				inProgress: isXhrInProgress
+			}
 		};
 
 		$.each( functions, function( func, callback ) {
