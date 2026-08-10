@@ -987,20 +987,20 @@ select#media-attachment-filters ~ select#media-attachment-date-filters {
 /**
  * Media Library settings
  */
-/* Square icon-only button, on top of the height `button-compact` gives it. */
 .wp-core-ui .button.media-library-settings__toggle {
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
 	min-width: 32px;
 	padding: 0;
+	position: absolute;
+	right: 0;
 }
 
 .wp-core-ui .button.media-library-settings__toggle .dashicons {
 	line-height: 1;
 }
 
-/* The grid toolbar is a flex container with a column gap of its own. */
 .wp-core-ui .media-toolbar-primary > .media-library-settings__toggle {
 	margin-left: 8px;
 }
@@ -1009,24 +1009,11 @@ select#media-attachment-filters ~ select#media-attachment-date-filters {
 	margin-left: 0;
 }
 
-/* Matches the 40px min-height buttons.css gives buttons at this width. */
-@media screen and (max-width: 782px) {
-	.wp-core-ui .button.media-library-settings__toggle {
-		min-width: 40px;
-		width: 40px;
-	}
-}
-
 .media-library-settings__dialog {
 	width: 320px;
 	max-width: calc(100vw - 32px);
 	padding: 0;
 	border: 1px solid #c3c4c7;
-	border-radius: 4px;
-	box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
-	background: #fff;
-	color: #3c434a;
-	font-size: 13px;
 }
 
 .media-library-settings__dialog::backdrop {
@@ -1044,8 +1031,6 @@ select#media-attachment-filters ~ select#media-attachment-date-filters {
 
 .media-library-settings__header h2 {
 	margin: 0;
-	font-size: 14px;
-	line-height: 1.4;
 }
 
 .media-library-settings__body {
@@ -1056,16 +1041,13 @@ select#media-attachment-filters ~ select#media-attachment-date-filters {
 	margin: 0;
 }
 
-/* The padding aligns the text with the label, past the checkbox. */
 .media-library-settings__body .description {
 	margin: 4px 0 0;
 	padding-left: 1.5rem;
-	color: #646970;
 }
 
 .media-library-settings__status {
-	margin: 12px 0 0;
-	min-height: 2.4em;
+	margin: 8px 0 0;
 	color: #3c434a;
 }
 
@@ -1079,6 +1061,14 @@ select#media-attachment-filters ~ select#media-attachment-date-filters {
 
 .wp-core-ui .media-library-settings__close.button .dashicons {
 	line-height: 1;
+}
+
+@media screen and (max-width: 782px) {
+	.wp-core-ui .button.media-library-settings__toggle {
+		min-width: 40px;
+		width: 40px;
+		position: static;
+	}
 }
 
 /**
@@ -1397,6 +1387,8 @@ select#media-attachment-filters ~ select#media-attachment-date-filters {
 	align-items: center;
 	column-gap: .5rem;
 	margin: 11px 0;
+	padding-right: 40px;
+	position: relative;
 }
 
 .mode-grid .attachments-browser .media-toolbar-mode-select .media-toolbar-primary {
@@ -2987,6 +2979,7 @@ select#media-attachment-filters ~ select#media-attachment-date-filters {
 	.mode-grid .attachments-browser .media-toolbar-primary {
 		display: grid;
 		grid-template-columns: auto 1fr;
+		padding-right: 0;
 	}
 
 	.mode-grid .attachments-browser .media-toolbar-primary input[type="search"] {
@@ -3022,11 +3015,9 @@ select#media-attachment-filters ~ select#media-attachment-date-filters {
 		opacity: 0.6;
 	}
 
-	/* The padding aligns the text with the label, past the checkbox. */
 	.media-library-settings__body .description {
 		padding-left: 2.125rem;
 	}
-
 }
 
 /* Responsive on portrait and landscape */

@@ -1121,15 +1121,12 @@ th.action-links {
 .wp-filter .search-form input[type="search"] {
 	width: 280px;
 	max-width: 100%;
+	min-height: 32px;
+	padding: 0 8px;
 }
 
 .wp-filter .search-form select {
 	margin: 0;
-}
-
-.wp-filter .search-form input[type="search"] {
-	min-height: 32px;
-	padding: 0 8px;
 }
 
 .wp-filter .search-form select,
