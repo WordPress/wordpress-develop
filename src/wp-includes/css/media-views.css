@@ -1069,6 +1069,8 @@ select#media-attachment-filters ~ select#media-attachment-date-filters {
 		min-width: 40px;
 		width: 40px;
 		position: static;
+		float: right;
+		margin-top: 1.125rem;
 	}
 }
 
