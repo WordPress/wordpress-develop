@@ -19,6 +19,20 @@ import { findPreviousPreview, loadPublishedPreview } from './lib/published.mjs';
 
 class SupersededRun extends Error {}
 
+export function formatFailure( error ) {
+	const description = error.stack || String( error );
+	if ( ! ( error instanceof AggregateError ) ) {
+		return description;
+	}
+	return [
+		description,
+		...error.errors.map(
+			( cause, index ) =>
+				`Cause ${ index + 1 }:\n${ formatFailure( cause ) }`
+		),
+	].join( '\n' );
+}
+
 async function readHandoff( directory ) {
 	return JSON.parse(
 		await readFile( path.join( directory, 'build.json' ), 'utf8' )
@@ -395,7 +409,7 @@ async function main() {
 
 if ( import.meta.url === pathToFileURL( process.argv[ 1 ] ).href ) {
 	main().catch( ( error ) => {
-		process.stderr.write( `${ error.stack || error }\n` );
+		process.stderr.write( `${ formatFailure( error ) }\n` );
 		process.exitCode = 1;
 	} );
 }

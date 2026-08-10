@@ -18,6 +18,7 @@ import {
 } from '../lib/publication.mjs';
 import {
 	enforceValidationResult,
+	formatFailure,
 	publishPullRequest,
 } from '../publish.mjs';
 
@@ -316,6 +317,27 @@ test( 'the trusted publisher enforces invalid fork handoffs', () => {
 		enforceValidationResult( { status: 'ready' }, 'true' ).status,
 		'ready'
 	);
+} );
+
+test( 'publisher failures retain every nested cause in the Actions log', () => {
+	const failure = new AggregateError(
+		[
+			new Error( 'candidate upload failed' ),
+			new AggregateError(
+				[
+					new Error( 'comment failed' ),
+					new Error( 'label removal failed' ),
+				],
+				'failure reporting failed'
+			),
+		],
+		'publication failed'
+	);
+	const formatted = formatFailure( failure );
+
+	assert.match( formatted, /candidate upload failed/ );
+	assert.match( formatted, /comment failed/ );
+	assert.match( formatted, /label removal failed/ );
 } );
 
 test( 'a missing handoff always fails after its terminal comment', async () => {
