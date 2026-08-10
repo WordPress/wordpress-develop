@@ -379,7 +379,7 @@ function wp_print_media_templates() {
 						aria-describedby="{{ data.infiniteScrollingId }}-description" autofocus
 						<# if ( data.infiniteScrolling ) { #>checked<# } #> />
 					<label for="{{ data.infiniteScrollingId }}">
-						<?php _e( 'Infinite scrolling' ); ?>
+						<?php _e( 'Enable infinite scrolling' ); ?>
 					</label>
 				</p>
 				<p class="description" id="{{ data.infiniteScrollingId }}-description"><?php _e( 'Load more media items automatically when scrolling, instead of using a Load more button.' ); ?></p>
