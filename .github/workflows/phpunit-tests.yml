@@ -54,7 +54,7 @@ jobs:
   # Downloads and verifies the Gutenberg build once for all PHPUnit jobs.
   prepare-gutenberg:
     name: Prepare Gutenberg Assets
-    uses: WordPress/wordpress-develop/.github/workflows/reusable-prepare-gutenberg.yml@80fb78da3153431dee7e5d66e7463e71fda31ec7
+    uses: WordPress/wordpress-develop/.github/workflows/reusable-prepare-gutenberg.yml@trunk
     permissions:
       contents: read
     if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
