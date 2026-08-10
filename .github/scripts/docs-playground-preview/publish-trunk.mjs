@@ -393,17 +393,40 @@ export async function publishTrunk( options ) {
 	}
 }
 
+export function enforceTrunkValidationResult(
+	result,
+	enforcementVariable,
+	annotate = ( message ) => process.stdout.write( `${ message }\n` )
+) {
+	if ( result.status !== 'invalid' ) {
+		return result;
+	}
+	if ( enforcementVariable === 'true' ) {
+		throw new Error(
+			'Code Reference validation failed with DOCS_PREVIEW_ENFORCE enabled.'
+		);
+	}
+	annotate(
+		'::warning::Code Reference trunk validation failed; the stable trunk preview still points at the previous build.'
+	);
+	return result;
+}
+
 async function main() {
 	const event = JSON.parse( await readFile( process.env.GITHUB_EVENT_PATH ) );
-	const result = await publishTrunk( {
-		repository: process.env.GITHUB_REPOSITORY,
-		stagingVariable: process.env.DOCS_PREVIEW_STAGING,
-		triggerRunId: event.workflow_run.id,
-		triggerRunAttempt: event.workflow_run.run_attempt,
-		handoffDirectory: process.argv[ 2 ] || 'handoff',
-		artifactAvailable: process.env.HANDOFF_DOWNLOAD_RESULT === 'success',
-		token: process.env.GITHUB_TOKEN,
-	} );
+	const result = enforceTrunkValidationResult(
+		await publishTrunk( {
+			repository: process.env.GITHUB_REPOSITORY,
+			stagingVariable: process.env.DOCS_PREVIEW_STAGING,
+			triggerRunId: event.workflow_run.id,
+			triggerRunAttempt: event.workflow_run.run_attempt,
+			handoffDirectory: process.argv[ 2 ] || 'handoff',
+			artifactAvailable:
+				process.env.HANDOFF_DOWNLOAD_RESULT === 'success',
+			token: process.env.GITHUB_TOKEN,
+		} ),
+		process.env.DOCS_PREVIEW_ENFORCE
+	);
 	process.stdout.write(
 		`Code Reference trunk publisher: ${ result.status }.\n`
 	);

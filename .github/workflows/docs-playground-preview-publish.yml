@@ -102,7 +102,10 @@ jobs:
                   digest-mismatch: error
 
             - name: Validate and publish the trunk handoff
+              # Administrator: enable enforcement in Settings > Secrets and variables >
+              # Actions > Variables by creating or updating DOCS_PREVIEW_ENFORCE to true.
               env:
+                  DOCS_PREVIEW_ENFORCE: ${{ vars.DOCS_PREVIEW_ENFORCE }}
                   DOCS_PREVIEW_STAGING: ${{ vars.DOCS_PREVIEW_STAGING }}
                   GITHUB_TOKEN: ${{ github.token }}
                   HANDOFF_DOWNLOAD_RESULT: ${{ steps.download.outcome }}

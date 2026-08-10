@@ -16,7 +16,10 @@ import {
 	createTrunkPublishedMetadata,
 	trunkSnapshotAssetName,
 } from '../lib/trunk.mjs';
-import { publishTrunk } from '../publish-trunk.mjs';
+import {
+	enforceTrunkValidationResult,
+	publishTrunk,
+} from '../publish-trunk.mjs';
 
 const repository = 'WordPress/wordpress-develop';
 const sha = 'a'.repeat( 40 );
@@ -653,4 +656,40 @@ test( 'a trunk head without a newer build run still publishes with a notice', as
 	assert.match( notices[ 0 ], /^::notice::/ );
 	assert.ok( notices[ 0 ].includes( 'b'.repeat( 40 ) ) );
 	assert.ok( notices[ 0 ].includes( sha ) );
+} );
+
+test( 'trunk validation failures enforce or annotate visibly', () => {
+	const messages = [];
+	const annotate = ( message ) => messages.push( message );
+	assert.equal(
+		enforceTrunkValidationResult( { status: 'ready' }, '', annotate )
+			.status,
+		'ready'
+	);
+	assert.equal(
+		enforceTrunkValidationResult(
+			{ status: 'superseded' },
+			'true',
+			annotate
+		).status,
+		'superseded'
+	);
+	assert.deepEqual( messages, [] );
+	assert.throws(
+		() =>
+			enforceTrunkValidationResult(
+				{ status: 'invalid' },
+				'true',
+				annotate
+			),
+		/DOCS_PREVIEW_ENFORCE/
+	);
+	assert.deepEqual( messages, [] );
+	assert.equal(
+		enforceTrunkValidationResult( { status: 'invalid' }, '', annotate )
+			.status,
+		'invalid'
+	);
+	assert.equal( messages.length, 1 );
+	assert.match( messages[ 0 ], /^::warning::/ );
 } );
