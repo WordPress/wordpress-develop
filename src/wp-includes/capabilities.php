@@ -1155,6 +1155,7 @@ function remove_role( $role ) {
  * Retrieves a list of super admins.
  *
  * @since 3.0.0
+ * @since 7.2.0 The `site_admins` site option no longer defaults to `array( 'admin' )`.
  *
  * @global array $super_admins
  *
