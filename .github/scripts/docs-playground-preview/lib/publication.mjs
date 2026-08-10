@@ -200,10 +200,16 @@ export function validatePublishedSnapshotMetadata( metadata, expected ) {
 	) {
 		throw new Error( 'Published snapshot identity is invalid.' );
 	}
+	const resolvedVersionPattern =
+		metadata.resolvedWordPressBeta?.channel === 'beta'
+			? /^\d+\.\d+(?:\.\d+)?-(?:beta\d+|RC\d+)$/
+			: metadata.resolvedWordPressBeta?.channel === 'stable'
+			? /^\d+\.\d+(?:\.\d+)?$/
+			: null;
 	if (
 		metadata.phpVersion !== '8.4' ||
-		metadata.resolvedWordPressBeta?.channel !== 'beta' ||
-		! /^\d+\.\d+(?:\.\d+)?-(?:beta\d+|RC\d+)$/.test(
+		! resolvedVersionPattern ||
+		! resolvedVersionPattern.test(
 			metadata.resolvedWordPressBeta.version || ''
 		) ||
 		metadata.resolvedWordPressBeta.downloadUrl !==

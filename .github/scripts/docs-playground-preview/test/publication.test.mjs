@@ -165,6 +165,50 @@ test( 'reusable metadata must identify a passed same-PR snapshot', () => {
 	);
 } );
 
+test( 'runtime identity accepts the stable fallback channel', () => {
+	const metadata = published();
+	const stable = {
+		...metadata,
+		resolvedWordPressBeta: {
+			channel: 'stable',
+			version: '7.1.2',
+			downloadUrl:
+				'https://downloads.wordpress.org/release/wordpress-7.1.2.zip',
+		},
+	};
+	assert.equal( validateReusableMetadata( stable, identity ), stable );
+	assert.throws(
+		() =>
+			validateReusableMetadata(
+				{
+					...stable,
+					resolvedWordPressBeta: {
+						...stable.resolvedWordPressBeta,
+						channel: 'nightly',
+					},
+				},
+				identity
+			),
+		/runtime identity/
+	);
+	assert.throws(
+		() =>
+			validateReusableMetadata(
+				{
+					...stable,
+					resolvedWordPressBeta: {
+						channel: 'stable',
+						version: '7.2-beta1',
+						downloadUrl:
+							'https://downloads.wordpress.org/release/wordpress-7.2-beta1.zip',
+					},
+				},
+				identity
+			),
+		/runtime identity/
+	);
+} );
+
 test( 'same-SHA discovery verifies metadata and the proxied snapshot', async () => {
 	const bytes = Buffer.from( 'snapshot' );
 	const metadata = published( bytes );

@@ -141,11 +141,94 @@ test( 'the beta resolver rejects an unbound download URL', async () => {
 						version: '7.2-beta1',
 						download: 'https://example.com/wordpress.zip',
 					},
+					{
+						response: 'upgrade',
+						version: '7.1.2',
+						download: 'https://example.com/wordpress-stable.zip',
+					},
 				],
 			} ),
 		} ) ),
-		/no concrete beta build/
+		/no concrete beta or stable build/
 	);
+} );
+
+test( 'the beta resolver falls back to the latest stable build with a notice', async ( t ) => {
+	const write = t.mock.method( process.stderr, 'write', () => true );
+	const resolved = await resolveWordPressBeta( async () => ( {
+		ok: true,
+		json: async () => ( {
+			offers: [
+				{
+					response: 'upgrade',
+					version: '7.1.2',
+					download:
+						'https://downloads.wordpress.org/release/wordpress-7.1.2.zip',
+				},
+				{
+					response: 'autoupdate',
+					version: '7.0.3',
+					download:
+						'https://downloads.wordpress.org/release/wordpress-7.0.3.zip',
+				},
+			],
+		} ),
+	} ) );
+	assert.deepEqual( resolved, {
+		channel: 'stable',
+		version: '7.1.2',
+		downloadUrl:
+			'https://downloads.wordpress.org/release/wordpress-7.1.2.zip',
+	} );
+	assert.equal( write.mock.callCount(), 1 );
+	assert.match(
+		write.mock.calls[ 0 ].arguments[ 0 ],
+		/^::notice::.*tracking the stable release 7\.1\.2 until the next beta appears\./
+	);
+} );
+
+test( 'the beta resolver prefers a beta build over a stable build', async () => {
+	const resolved = await resolveWordPressBeta( async () => ( {
+		ok: true,
+		json: async () => ( {
+			offers: [
+				{
+					response: 'upgrade',
+					version: '7.1.2',
+					download:
+						'https://downloads.wordpress.org/release/wordpress-7.1.2.zip',
+				},
+				{
+					response: 'development',
+					version: '7.2-RC2',
+					download:
+						'https://downloads.wordpress.org/release/wordpress-7.2-RC2.zip',
+				},
+			],
+		} ),
+	} ) );
+	assert.deepEqual( resolved, {
+		channel: 'beta',
+		version: '7.2-RC2',
+		downloadUrl:
+			'https://downloads.wordpress.org/release/wordpress-7.2-RC2.zip',
+	} );
+} );
+
+test( 'the beta resolver rejects a response with no usable build', async () => {
+	for ( const body of [
+		{},
+		{ offers: [] },
+		{ offers: [ { response: 'upgrade', version: 'trunk' } ] },
+	] ) {
+		await assert.rejects(
+			resolveWordPressBeta( async () => ( {
+				ok: true,
+				json: async () => body,
+			} ) ),
+			/no concrete beta or stable build/
+		);
+	}
 } );
 
 test( 'the cache key changes with every material base input', () => {

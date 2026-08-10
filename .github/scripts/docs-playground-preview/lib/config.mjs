@@ -5,6 +5,7 @@ const FULL_COMMIT = /^[0-9a-f]{40}$/;
 const FULL_DIGEST = /^[0-9a-f]{64}$/;
 const VERSION = /^\d+\.\d+\.\d+$/;
 const API_BETA_VERSION = /^\d+\.\d+(?:\.\d+)?-(?:beta\d+|RC\d+)$/;
+const API_STABLE_VERSION = /^\d+\.\d+(?:\.\d+)?$/;
 const OFFICIAL_REPOSITORIES = Object.freeze( {
 	phpdocParser: 'WordPress/phpdoc-parser',
 	wporgDeveloper: 'WordPress/wporg-developer',
@@ -147,21 +148,34 @@ export async function resolveWordPressBeta(
 		);
 	}
 	const body = await response.json();
-	const offer = body?.offers?.find(
-		( candidate ) =>
-			API_BETA_VERSION.test( candidate?.version ) &&
-			candidate.download ===
-				`https://downloads.wordpress.org/release/wordpress-${ candidate.version }.zip`
-	);
-	if ( ! offer ) {
+	const findOfficialOffer = ( versionPattern ) =>
+		body?.offers?.find(
+			( candidate ) =>
+				versionPattern.test( candidate?.version ) &&
+				candidate.download ===
+					`https://downloads.wordpress.org/release/wordpress-${ candidate.version }.zip`
+		);
+	const betaOffer = findOfficialOffer( API_BETA_VERSION );
+	if ( betaOffer ) {
+		return Object.freeze( {
+			channel: 'beta',
+			version: betaOffer.version,
+			downloadUrl: betaOffer.download,
+		} );
+	}
+	const stableOffer = findOfficialOffer( API_STABLE_VERSION );
+	if ( ! stableOffer ) {
 		throw new Error(
-			'The WordPress beta API returned no concrete beta build.'
+			'The WordPress beta API returned no concrete beta or stable build.'
 		);
 	}
+	process.stderr.write(
+		`::notice::The WordPress beta channel offers no beta or RC build; tracking the stable release ${ stableOffer.version } until the next beta appears.\n`
+	);
 	return Object.freeze( {
-		channel: 'beta',
-		version: offer.version,
-		downloadUrl: offer.download,
+		channel: 'stable',
+		version: stableOffer.version,
+		downloadUrl: stableOffer.download,
 	} );
 }
 
