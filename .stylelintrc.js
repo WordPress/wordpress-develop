@@ -8,7 +8,12 @@ module.exports = {
 	reportNeedlessDisables: true,
 	rules: {
 		'at-rule-empty-line-before': null,
-		'comment-empty-line-before': 'always',
+		'comment-empty-line-before': [
+			'always',
+			{
+				'except': ['first-nested']
+			},
+		],
 		'declaration-property-value-allowed-list': [
 			{
 				'flex-direction': '/^(?!(row|column)-reverse).*$/',
