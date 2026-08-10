@@ -4091,8 +4091,14 @@ class WP_HTML_Tag_Processor {
 				 * HTML structure is rejected here. It’s the responsibility of calling code to
 				 * perform whatever semantic escaping is necessary to avoid problematic strings.
 				 *
-				 * A tag name ends only at one of the characters matched below, so text
-				 * such as `</scriptx>` cannot change that structure and is safe to set.
+				 * Both the start tag `<script` and the end tag `</script` are rejected. It’s
+				 * easy to assume that only an end tag can alter the HTML structure, but a
+				 * start tag which follows `<!--` moves the tokenizer into the double-escaped
+				 * states, where a later `</script>` no longer closes the element.
+				 *
+				 * In both cases the tag name ends only at one of the characters matched
+				 * below, so text such as `</scriptx>` cannot change that structure and is
+				 * safe to set.
 				 *
 				 * @link https://html.spec.whatwg.org/#script-data-end-tag-name-state
 				 * @link https://html.spec.whatwg.org/#script-data-double-escape-start-state
