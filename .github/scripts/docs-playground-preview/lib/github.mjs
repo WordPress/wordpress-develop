@@ -45,11 +45,13 @@ export class GitHubApi {
 		}
 		if ( ! response.ok ) {
 			const detail = await response.text();
-			throw new Error(
+			const error = new Error(
 				`GitHub API returned HTTP ${
 					response.status
 				} for ${ url }: ${ detail.slice( 0, 300 ) }`
 			);
+			error.status = response.status;
+			throw error;
 		}
 		if ( response.status === 204 ) {
 			return null;
@@ -217,20 +219,35 @@ export class GitHubApi {
 		);
 	}
 
-	uploadReleaseAsset( releaseId, name, bytes, contentType ) {
-		return this.request(
-			`${ UPLOADS }/repos/${
-				this.repository
-			}/releases/${ releaseId }/assets?${ query( { name } ) }`,
-			{
-				method: 'POST',
-				headers: {
-					Accept: 'application/vnd.github+json',
-					'Content-Type': contentType,
-				},
-				body: bytes,
+	async uploadReleaseAsset( releaseId, name, bytes, contentType ) {
+		const upload = () =>
+			this.request(
+				`${ UPLOADS }/repos/${
+					this.repository
+				}/releases/${ releaseId }/assets?${ query( { name } ) }`,
+				{
+					method: 'POST',
+					headers: {
+						Accept: 'application/vnd.github+json',
+						'Content-Type': contentType,
+					},
+					body: bytes,
+				}
+			);
+		try {
+			return await upload();
+		} catch ( error ) {
+			if ( error.status !== 422 ) {
+				throw error;
 			}
-		);
+			const assets = await this.listReleaseAssets( releaseId );
+			const stale = assets.find( ( asset ) => asset.name === name );
+			if ( ! stale ) {
+				throw error;
+			}
+			await this.deleteReleaseAsset( stale.id );
+			return upload();
+		}
 	}
 
 	getGitReference( reference ) {

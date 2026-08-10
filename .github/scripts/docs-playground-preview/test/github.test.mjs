@@ -244,6 +244,91 @@ test( 'release operations keep immutable names and bytes', async () => {
 	assert.equal( calls[ 4 ].options.method, 'DELETE' );
 } );
 
+test( 'a stale duplicate asset is replaced and the upload retried once', async () => {
+	const calls = [];
+	let uploads = 0;
+	const api = new GitHubApi(
+		'WordPress/wordpress-develop',
+		'token',
+		async ( url, options ) => {
+			calls.push( { url, options } );
+			if ( url.startsWith( 'https://uploads.github.com' ) ) {
+				uploads++;
+				return uploads === 1
+					? response( { message: 'already_exists' }, 422 )
+					: response( { id: 12, name: 'snapshot.zip' } );
+			}
+			if ( options.method === 'DELETE' ) {
+				return response( null, 204 );
+			}
+			return response( [ { id: 9, name: 'snapshot.zip' } ] );
+		}
+	);
+	const asset = await api.uploadReleaseAsset(
+		5,
+		'snapshot.zip',
+		Buffer.from( 'snapshot' ),
+		'application/zip'
+	);
+	assert.equal( asset.id, 12 );
+	assert.equal( uploads, 2 );
+	assert.match( calls[ 1 ].url, /releases\/5\/assets\?per_page/ );
+	assert.match( calls[ 2 ].url, /releases\/assets\/9$/ );
+	assert.equal( calls[ 2 ].options.method, 'DELETE' );
+	assert.equal( calls[ 3 ].options.body.toString(), 'snapshot' );
+} );
+
+test( 'a duplicate asset failure after the retry surfaces as an error', async () => {
+	let uploads = 0;
+	const api = new GitHubApi(
+		'WordPress/wordpress-develop',
+		'token',
+		async ( url, options ) => {
+			if ( url.startsWith( 'https://uploads.github.com' ) ) {
+				uploads++;
+				return response( { message: 'already_exists' }, 422 );
+			}
+			if ( options.method === 'DELETE' ) {
+				return response( null, 204 );
+			}
+			return response( [ { id: 9, name: 'snapshot.zip' } ] );
+		}
+	);
+	await assert.rejects(
+		api.uploadReleaseAsset(
+			5,
+			'snapshot.zip',
+			Buffer.from( 'snapshot' ),
+			'application/zip'
+		),
+		/HTTP 422/
+	);
+	assert.equal( uploads, 2 );
+
+	let unrelatedUploads = 0;
+	const unrelated = new GitHubApi(
+		'WordPress/wordpress-develop',
+		'token',
+		async ( url ) => {
+			if ( url.startsWith( 'https://uploads.github.com' ) ) {
+				unrelatedUploads++;
+				return response( { message: 'Validation Failed' }, 422 );
+			}
+			return response( [] );
+		}
+	);
+	await assert.rejects(
+		unrelated.uploadReleaseAsset(
+			5,
+			'snapshot.zip',
+			Buffer.from( 'snapshot' ),
+			'application/zip'
+		),
+		/HTTP 422/
+	);
+	assert.equal( unrelatedUploads, 1 );
+} );
+
 test( 'Git object operations create and atomically move a pointer ref', async () => {
 	const calls = [];
 	const api = new GitHubApi(
