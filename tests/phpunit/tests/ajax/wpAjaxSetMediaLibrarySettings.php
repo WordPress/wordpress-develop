@@ -7,10 +7,13 @@ require_once ABSPATH . 'wp-admin/includes/ajax-actions.php';
 /**
  * Testing the Ajax handler for saving the Media Library settings.
  *
- * @group ajax
- * @group media
+ * @package WordPress
+ * @subpackage UnitTests
+ * @since 7.2.0
  *
  * @ticket 65775
+ *
+ * @group ajax
  *
  * @covers ::wp_ajax_set_media_library_settings
  */
@@ -18,6 +21,8 @@ class Tests_Ajax_wpAjaxSetMediaLibrarySettings extends WP_Ajax_UnitTestCase {
 
 	/**
 	 * The request must be rejected when the nonce is missing.
+	 *
+	 * @ticket 65775
 	 */
 	public function test_missing_nonce() {
 		$this->_setRole( 'administrator' );
@@ -32,6 +37,8 @@ class Tests_Ajax_wpAjaxSetMediaLibrarySettings extends WP_Ajax_UnitTestCase {
 
 	/**
 	 * The request must be rejected when the nonce is invalid.
+	 *
+	 * @ticket 65775
 	 */
 	public function test_invalid_nonce() {
 		$this->_setRole( 'administrator' );
@@ -47,6 +54,8 @@ class Tests_Ajax_wpAjaxSetMediaLibrarySettings extends WP_Ajax_UnitTestCase {
 
 	/**
 	 * A user without the `upload_files` capability must not be able to save the setting.
+	 *
+	 * @ticket 65775
 	 */
 	public function test_missing_capability() {
 		// The nonce is tied to the current user, so the role has to be set first.
@@ -80,6 +89,8 @@ class Tests_Ajax_wpAjaxSetMediaLibrarySettings extends WP_Ajax_UnitTestCase {
 
 	/**
 	 * The setting must not be saved when the value is missing from the request.
+	 *
+	 * @ticket 65775
 	 */
 	public function test_missing_infinite_scrolling_value() {
 		$this->_setRole( 'administrator' );
@@ -111,6 +122,8 @@ class Tests_Ajax_wpAjaxSetMediaLibrarySettings extends WP_Ajax_UnitTestCase {
 
 	/**
 	 * The preference must be stored as a string and reported back as a boolean.
+	 *
+	 * @ticket 65775
 	 *
 	 * @dataProvider data_infinite_scrolling_values
 	 *
@@ -166,6 +179,8 @@ class Tests_Ajax_wpAjaxSetMediaLibrarySettings extends WP_Ajax_UnitTestCase {
 
 	/**
 	 * An existing preference must be overwritten rather than duplicated.
+	 *
+	 * @ticket 65775
 	 */
 	public function test_overwrites_an_existing_preference() {
 		$this->_setRole( 'administrator' );
@@ -200,6 +215,8 @@ class Tests_Ajax_wpAjaxSetMediaLibrarySettings extends WP_Ajax_UnitTestCase {
 	 *
 	 * `wp_enqueue_media()` reads it with `get_user_option()`, which falls back to the
 	 * unprefixed key, so the profile screen and the dialog share a single value.
+	 *
+	 * @ticket 65775
 	 */
 	public function test_stores_the_preference_without_a_site_prefix() {
 		global $wpdb;
