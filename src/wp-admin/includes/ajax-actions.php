@@ -1909,7 +1909,6 @@ function wp_ajax_set_media_library_settings() {
 
 	$infinite_scrolling = 'true' === wp_unslash( $_POST['infinite_scrolling'] ) ? 'true' : 'false';
 
-	// Plain user meta, without the site prefix update_user_option() would add, to match the personal option on the profile screen.
 	update_user_meta( get_current_user_id(), 'infinite_scrolling', $infinite_scrolling );
 
 	wp_send_json_success( array( 'infiniteScrolling' => 'true' === $infinite_scrolling ) );
