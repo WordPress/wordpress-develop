@@ -8,7 +8,6 @@
 
 /* Variables */
 :root {
-
 	/* Font Family */
 	--global--font-primary: var(--font-headings, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif);
 	--global--font-secondary: var(--font-base, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif);
@@ -469,7 +468,6 @@ a:hover {
 }
 
 .site a:focus:not(.wp-block-button__link):not(.wp-block-file__button) {
-
 	/* Only visible in Windows High Contrast mode */
 	outline: 2px solid transparent;
 	-webkit-text-decoration: underline 1px dotted currentColor;
@@ -499,7 +497,6 @@ a:hover {
 }
 
 .site a:focus:not(.wp-block-button__link):not(.wp-block-file__button).skip-link {
-
 	/* Only visible in Windows High Contrast mode */
 	outline: 2px solid transparent;
 	outline-offset: -2px;
@@ -1109,13 +1106,11 @@ h6,
 }
 
 .wp-block[data-align="left"] > .wp-block-image {
-
 	/*rtl:ignore*/
 	margin-left: 0;
 }
 
 .wp-block[data-align="right"] > .wp-block-image {
-
 	/*rtl:ignore*/
 	margin-right: 0;
 }
