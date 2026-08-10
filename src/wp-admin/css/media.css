@@ -571,8 +571,8 @@ border color while dragging a file over the uploader drop area */
 	min-height: 80px;
 }
 
-/* Allows space for the display settings toggle in narrow viewports. */
-#media-search-input {
+/* Allows space for the settings toggle in narrow viewports. */
+.media-frame.mode-grid .media-toolbar #media-search-input {
 	max-width: calc( 100% - 40px );
 }
 
