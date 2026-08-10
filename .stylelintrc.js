@@ -8,7 +8,7 @@ module.exports = {
 	reportNeedlessDisables: true,
 	rules: {
 		'at-rule-empty-line-before': null,
-		'comment-empty-line-before': null,
+		'comment-empty-line-before': 'always',
 		'declaration-property-value-allowed-list': [
 			{
 				'flex-direction': '/^(?!(row|column)-reverse).*$/',
@@ -28,7 +28,20 @@ module.exports = {
 					'Avoid the order property. For accessibility reasons, visual, reading, and DOM order must match. Only use the order property when it does not affect reading order, meaning, and interaction.',
 			},
 		],
-		'rule-empty-line-before': null,
+		'rule-empty-line-before': [
+			'always',
+			{
+				except: ['first-nested'],
+				ignore: ['after-comment'],
+			},
+		],
+		'selector-class-pattern': [
+			'^[a-z][a-z0-9]*(?:(?:__|--|-)[a-z0-9]+)*$',
+			{
+				message:
+					'Class selector should use lowercase class segments separated with hyphens, double hyphens, or double underscores',
+			},
+		],
 		'value-keyword-case': null,
 		'scss/at-else-empty-line-before': null,
 		'scss/at-extend-no-missing-placeholder': null,
