@@ -7171,7 +7171,7 @@ function send_nosniff_header() {
 
 /**
  * Returns a MySQL expression for selecting the week number based on the start_of_week option.
- * @ticket 65766 - Former used MySQL::WEEK modes 0 and 1 changed to 2 and 3 respectively.
+ * @ticket 52220 - Former used MySQL::WEEK modes 0 and 1 changed to 2 and 3 respectively.
  * Modes 0 and 1 return weeks numbers from 0 to 53, while modes 2 and 3 return week numbers from 1 to 53 which is corresponds to our documentation:
  * https://github.com/WordPress/wordpress-develop/blob/de2572b1da20f0fe6f53eebd6b8bf10ae066dd2f/src/wp-includes/class-wp-query.php#L807
  * Also, WP ignores GET parameter w=0 and didn't allow to select posts from the first week (w=0) of the year correctly with 0 and 1 used modes.
