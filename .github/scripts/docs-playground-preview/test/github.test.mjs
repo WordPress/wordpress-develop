@@ -68,6 +68,54 @@ test( 'API requests use the repository token and report failures', async () => {
 	await assert.rejects( failing.getRun( 456 ), /HTTP 403/ );
 } );
 
+test( 'transient read failures are retried and mutations are not', async () => {
+	/** @type {any[]} */
+	const attempts = [];
+	const api = new GitHubApi(
+		'WordPress/wordpress-develop',
+		'token',
+		async ( url, options ) => {
+			attempts.push( options.method || 'GET' );
+			if ( attempts.length === 1 ) {
+				throw new Error( 'socket hang up' );
+			}
+			if ( attempts.length === 2 ) {
+				return response( { message: 'busy' }, 503 );
+			}
+			return response( { id: 456 } );
+		}
+	);
+	api.backoff = async () => {};
+	assert.equal( ( await api.getRun( 456 ) ).id, 456 );
+	assert.deepEqual( attempts, [ 'GET', 'GET', 'GET' ] );
+
+	const exhausted = new GitHubApi(
+		'WordPress/wordpress-develop',
+		'token',
+		async () => response( { message: 'busy' }, 503 )
+	);
+	let reads = 0;
+	exhausted.backoff = async () => {
+		reads++;
+	};
+	await assert.rejects( exhausted.getRun( 456 ), /HTTP 503/ );
+	assert.equal( reads, 2 );
+
+	/** @type {any[]} */
+	const mutations = [];
+	const mutating = new GitHubApi(
+		'WordPress/wordpress-develop',
+		'token',
+		async ( url, options ) => {
+			mutations.push( options.method );
+			return response( { message: 'busy' }, 503 );
+		}
+	);
+	mutating.backoff = async () => assert.fail( 'A mutation must not repeat.' );
+	await assert.rejects( mutating.createComment( 123, 'body' ), /HTTP 503/ );
+	assert.deepEqual( mutations, [ 'POST' ] );
+} );
+
 test( 'a fork run resolves its PR without workflow pull_requests data', async () => {
 	const api = new GitHubApi(
 		'WordPress/wordpress-develop',

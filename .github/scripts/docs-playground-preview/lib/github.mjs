@@ -3,6 +3,8 @@ import { COMMENT_MARKER, RELEASE_TAG } from './publication.mjs';
 
 const API = 'https://api.github.com';
 const UPLOADS = 'https://uploads.github.com';
+const RETRY_ATTEMPTS = 3;
+const RETRY_BASE_MS = 1000;
 const BUILD_WORKFLOW = 'docs-playground-preview-build.yml';
 const BUILD_JOB = 'Build Code Reference snapshot';
 
@@ -43,37 +45,70 @@ export class GitHubApi {
 			'X-GitHub-Api-Version': '2022-11-28',
 			...options.headers,
 		};
-		const response = await this.fetch(
-			url.startsWith( 'https://' ) ? url : `${ API }${ url }`,
-			{
-				...init,
-				headers,
-				signal: AbortSignal.timeout( timeoutMs ),
-				body:
-					options.json === undefined
-						? options.body
-						: JSON.stringify( options.json ),
+		const target = url.startsWith( 'https://' ) ? url : `${ API }${ url }`;
+		// Only reads repeat. Repeating a mutation could post a second comment
+		// or a second upload for an attempt the server had already applied.
+		const repeatable = ! init.method || init.method === 'GET';
+		for ( let attempt = 1; ; attempt++ ) {
+			const retrying = repeatable && attempt < RETRY_ATTEMPTS;
+			let response;
+			try {
+				response = await this.fetch( target, {
+					...init,
+					headers,
+					signal: AbortSignal.timeout( timeoutMs ),
+					body:
+						options.json === undefined
+							? options.body
+							: JSON.stringify( options.json ),
+				} );
+			} catch ( error ) {
+				if ( ! retrying ) {
+					throw error;
+				}
+				await this.backoff( attempt );
+				continue;
 			}
-		);
-		if ( options.allowNotFound && response.status === 404 ) {
-			return null;
+			if ( options.allowNotFound && response.status === 404 ) {
+				return null;
+			}
+			if ( ! response.ok ) {
+				if (
+					retrying &&
+					( response.status === 429 || response.status >= 500 )
+				) {
+					await this.backoff( attempt );
+					continue;
+				}
+				const detail = await response.text();
+				const error = Object.assign(
+					new Error(
+						`GitHub API returned HTTP ${
+							response.status
+						} for ${ url }: ${ detail.slice( 0, 300 ) }`
+					),
+					{ status: response.status }
+				);
+				throw error;
+			}
+			if ( response.status === 204 ) {
+				return null;
+			}
+			return response.json();
 		}
-		if ( ! response.ok ) {
-			const detail = await response.text();
-			const error = Object.assign(
-				new Error(
-					`GitHub API returned HTTP ${
-						response.status
-					} for ${ url }: ${ detail.slice( 0, 300 ) }`
-				),
-				{ status: response.status }
-			);
-			throw error;
-		}
-		if ( response.status === 204 ) {
-			return null;
-		}
-		return response.json();
+	}
+
+	/**
+	 * Spreads repeated attempts so that concurrent jobs meeting the same
+	 * outage do not return in lockstep.
+	 *
+	 * @param {number} attempt
+	 */
+	async backoff( attempt ) {
+		const delay =
+			RETRY_BASE_MS * 2 ** ( attempt - 1 ) +
+			Math.random() * RETRY_BASE_MS;
+		await new Promise( ( resolve ) => setTimeout( resolve, delay ) );
 	}
 
 	/**
