@@ -49,10 +49,10 @@ function edit_user( $user_id = 0 ) {
 	$pass1 = '';
 	$pass2 = '';
 	if ( isset( $_POST['pass1'] ) ) {
-		$pass1 = trim( $_POST['pass1'] );
+		$pass1 = trim( wp_unslash( $_POST['pass1'] ) );
 	}
 	if ( isset( $_POST['pass2'] ) ) {
-		$pass2 = trim( $_POST['pass2'] );
+		$pass2 = trim( wp_unslash( $_POST['pass2'] ) );
 	}
 
 	if ( isset( $_POST['role'] ) && current_user_can( 'promote_users' ) && ( ! $user_id || current_user_can( 'promote_user', $user_id ) ) ) {
