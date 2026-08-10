@@ -13,7 +13,6 @@ Andreas Hecht in https://www.jotform.com/blog/css-perfect-print-stylesheet-98272
 # Visibility
 --------------------------------------------------------------*/
 @media print {
-
 	/* Margins & paddings */
 	@page {
 		margin: 2cm;
