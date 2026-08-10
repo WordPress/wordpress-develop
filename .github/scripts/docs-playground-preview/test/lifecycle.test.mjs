@@ -211,6 +211,27 @@ test( 'a later unlabeled commit marks the healthy preview stale', async () => {
 	assert.match( api.comment.body, /add the `docs-preview` label again/i );
 } );
 
+test( 'a proxy outage cannot remove the last successful stale link', async () => {
+	const api = new FakeApi();
+	const preview = installPreview( api );
+	api.comment.body = renderPreviewComment( {
+		status: 'ready',
+		preview,
+		runUrl: preview.runUrl,
+	} );
+	const lifecycleOptions = options( api, event( 'synchronize' ) );
+	lifecycleOptions.fetchImplementation = async () => ( { status: 503 } );
+
+	const result = await managePullRequest( lifecycleOptions );
+
+	assert.equal( result.status, 'stale' );
+	assert.match( api.comment.body, /Status:\*\* Stale/ );
+	assert.match( api.comment.body, /Latest successful docs preview/ );
+	assert.ok( api.comment.body.includes( preview.publication.playgroundUrl ) );
+	assert.match( api.comment.body, new RegExp( previewSha ) );
+	assert.match( api.comment.body, new RegExp( currentSha ) );
+} );
+
 test( 'a labeled synchronize event leaves the publisher in charge', async () => {
 	const api = new FakeApi();
 	api.currentPullRequest = pullRequest( 'open', [

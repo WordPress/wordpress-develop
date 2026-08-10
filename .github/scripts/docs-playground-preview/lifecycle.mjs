@@ -7,6 +7,7 @@ import { isDeploymentEnabled } from './lib/config.mjs';
 import { GitHubApi } from './lib/github.mjs';
 import { findPreviousPreview } from './lib/published.mjs';
 import {
+	readPreviewCommentSuccess,
 	readPreviewCommentSource,
 	renderPreviewComment,
 } from './lib/publisher.mjs';
@@ -159,7 +160,10 @@ async function markStale( session ) {
 	) {
 		return { status: 'ignored' };
 	}
-	const preview = await findPreviousPreview( session );
+	let preview = await findPreviousPreview( session );
+	if ( ! preview ) {
+		preview = readPreviewCommentSuccess( comment.body );
+	}
 	if ( ! preview ) {
 		const previous = commentSource;
 		if ( ! previous ) {

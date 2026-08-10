@@ -25,8 +25,7 @@ jobs:
         permissions:
             actions: read
             contents: read
-            issues: write
-            pull-requests: read
+            pull-requests: write
         steps:
             - name: Check out trusted default-branch lifecycle code
               uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
@@ -76,8 +75,7 @@ jobs:
         permissions:
             actions: write
             contents: write
-            issues: write
-            pull-requests: read
+            pull-requests: write
         steps:
             - name: Check out trusted default-branch lifecycle code
               uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0

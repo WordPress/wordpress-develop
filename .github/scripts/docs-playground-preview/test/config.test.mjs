@@ -237,4 +237,9 @@ test( 'only the untrusted staging pull-request build bypasses staging activation
 		/publish:\n[\s\S]*?permissions:\n[\s\S]*?pull-requests: write/
 	);
 	assert.doesNotMatch( pullRequestPublisher, /issues: write/ );
+	assert.equal(
+		lifecycleWorkflow.match( /pull-requests: write/g )?.length,
+		2
+	);
+	assert.doesNotMatch( lifecycleWorkflow, /issues: write/ );
 } );
