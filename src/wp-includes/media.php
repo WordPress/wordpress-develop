@@ -5101,12 +5101,15 @@ function wp_enqueue_media( $args = array() ) {
 		'months'            => $months,
 		'mediaTrash'        => MEDIA_TRASH ? 1 : 0,
 		'infiniteScrolling' => ( $infinite_scrolling ) ? 1 : 0,
-		'librarySettings'   => array(
+	);
+
+	if ( current_user_can( 'upload_files' ) ) {
+		$settings['librarySettings'] = array(
 			'nonce'             => wp_create_nonce( 'media-library-settings' ),
 			'infiniteScrolling' => ( $user_infinite_scrolling ) ? 1 : 0,
 			'isFiltered'        => ( $infinite_scrolling !== $user_infinite_scrolling ) ? 1 : 0,
-		),
-	);
+		);
+	}
 
 	$post = null;
 	if ( isset( $args['post'] ) ) {
