@@ -1048,6 +1048,7 @@ select#media-attachment-filters ~ select#media-attachment-date-filters {
 
 .media-library-settings__status {
 	margin: 8px 0 0;
+	min-height: 2.4em;
 	color: #3c434a;
 }
 
