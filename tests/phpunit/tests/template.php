@@ -122,9 +122,6 @@ class Tests_Template extends WP_UnitTestCase {
 		remove_filter( 'should_load_block_assets_on_demand', '__return_true', 0 );
 		remove_action( 'wp_template_enhancement_output_buffer_started', 'wp_hoist_late_printed_styles' );
 
-		// Remove the hook which is added by WP_Interactivity_API::add_hooks() during bootstrapping.
-		remove_filter( 'wp_template_enhancement_output_buffer', array( wp_interactivity(), 'filter_template_output_buffer_add_router_managed_attribute' ), 20 );
-
 		global $wp_scripts, $wp_styles;
 		$this->original_wp_scripts = $wp_scripts;
 		$this->original_wp_styles  = $wp_styles;
