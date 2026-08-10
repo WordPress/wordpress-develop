@@ -789,7 +789,7 @@ function get_feed_namespaces( string $type ): array {
 			continue;
 		}
 
-		if ( ! is_string( $uri ) || '' === $uri ) {
+		if ( ! is_string( $uri ) || empty( $uri ) ) {
 			continue;
 		}
 
