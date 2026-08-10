@@ -67,17 +67,18 @@ LibrarySettings = View.extend(/** @lends wp.media.view.LibrarySettings.prototype
 	},
 
 	/**
-	 * Inserts the dialog next to the toggle.
+	 * Inserts the dialog into the frame.
 	 *
-	 * Done on the first open, when the toggle is known to be in the document. A
-	 * closed dialog is `display: none`, so it does not take part in the layout.
+	 * Done on the first open, when the frame is known to be in the document. The
+	 * frame is used rather than the toolbar so that the dialog is out of the reach
+	 * of the toolbar styles, while it keeps the `wp-core-ui` styles the frame adds.
 	 *
 	 * @return {void}
 	 */
 	createDialog: function() {
 		var $dialog = $( wp.template( 'media-library-settings-dialog' )( this.prepare() ) );
 
-		this.$el.after( $dialog );
+		this.controller.$el.append( $dialog );
 
 		this.dialog   = $dialog[0];
 		this.status   = $dialog.find( '.media-library-settings__status' )[0];

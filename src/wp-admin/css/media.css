@@ -576,9 +576,7 @@ border color while dragging a file over the uploader drop area */
 	max-width: calc( 100% - 40px );
 }
 
-/* Hides the filter labels. Child selectors only, so labels inside toolbar views keep their styling. */
-.media-frame.mode-grid .media-toolbar-primary > label:not(.media-search-input-label),
-.media-frame.mode-grid .media-toolbar-secondary > label:not(.media-search-input-label) {
+.media-frame.mode-grid .media-toolbar label:not(.media-search-input-label) {
 	border: 0;
 	clip-path: inset(50%);
 	height: 1px;
