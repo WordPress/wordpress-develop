@@ -2187,6 +2187,7 @@ class WP_Site_Health {
 	 * This is required for the new block editor to work, so we explicitly test for this.
 	 *
 	 * @since 5.2.0
+	 * @since 7.1.0 Only WordPress' own cookies are sent with the request.
 	 *
 	 * @return array The test results.
 	 */
@@ -2206,7 +2207,16 @@ class WP_Site_Health {
 			'test'        => 'rest_availability',
 		);
 
-		$cookies = wp_unslash( $_COOKIE );
+		/*
+		 * Only WordPress' own cookies have any bearing on this request. Forwarding the rest of
+		 * the browser's cookie jar lets unrelated cookies fail a test that is meant to measure
+		 * the REST API.
+		 */
+		$cookies = array_intersect_key(
+			wp_unslash( $_COOKIE ),
+			array_flip( array( AUTH_COOKIE, SECURE_AUTH_COOKIE, LOGGED_IN_COOKIE, TEST_COOKIE ) )
+		);
+
 		$timeout = 10; // 10 seconds.
 		$headers = array(
 			'Cache-Control' => 'no-cache',
