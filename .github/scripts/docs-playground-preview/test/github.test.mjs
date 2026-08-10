@@ -4,12 +4,15 @@ import { test } from 'node:test';
 import { GitHubApi } from '../lib/github.mjs';
 import { COMMENT_MARKER, RELEASE_TAG } from '../lib/publication.mjs';
 
+/**
+ * @param {unknown} value
+ */
 function response( value, status = 200 ) {
 	return {
 		ok: status >= 200 && status < 300,
 		status,
 		json: async () => value,
-		text: async () => JSON.stringify( value ),
+		text: async () => JSON.stringify( value ) ?? '',
 	};
 }
 
@@ -41,6 +44,7 @@ function pullRequest( overrides = {} ) {
 }
 
 test( 'API requests use the repository token and report failures', async () => {
+	/** @type {any[]} */
 	const calls = [];
 	const api = new GitHubApi(
 		'WordPress/wordpress-develop',
@@ -93,6 +97,7 @@ test( 'a fork run resolves its PR without workflow pull_requests data', async ()
 } );
 
 test( 'latest run lookup binds SHA, branch, repository, and current attempt', async () => {
+	/** @type {any[]} */
 	const calls = [];
 	const api = new GitHubApi(
 		'WordPress/wordpress-develop',
@@ -128,6 +133,7 @@ test( 'latest run lookup binds SHA, branch, repository, and current attempt', as
 } );
 
 test( 'trunk lookup binds the workflow, branch, repository, and current attempt', async () => {
+	/** @type {any[]} */
 	const calls = [];
 	const api = new GitHubApi(
 		'WordPress/wordpress-develop',
@@ -211,6 +217,7 @@ test( 'skipped trigger runs neither publish nor supersede a build', async () => 
 } );
 
 test( 'release operations keep immutable names and bytes', async () => {
+	/** @type {any[]} */
 	const calls = [];
 	const api = new GitHubApi(
 		'WordPress/wordpress-develop',
@@ -245,6 +252,7 @@ test( 'release operations keep immutable names and bytes', async () => {
 } );
 
 test( 'a stale duplicate asset is replaced and the upload retried once', async () => {
+	/** @type {any[]} */
 	const calls = [];
 	let uploads = 0;
 	const api = new GitHubApi(
@@ -330,6 +338,7 @@ test( 'a duplicate asset failure after the retry surfaces as an error', async ()
 } );
 
 test( 'Git object operations create and atomically move a pointer ref', async () => {
+	/** @type {any[]} */
 	const calls = [];
 	const api = new GitHubApi(
 		'WordPress/wordpress-develop',
@@ -376,6 +385,7 @@ test( 'Git object operations create and atomically move a pointer ref', async ()
 } );
 
 test( 'only the marked bot comment is updated', async () => {
+	/** @type {any[]} */
 	const calls = [];
 	const api = new GitHubApi(
 		'WordPress/wordpress-develop',

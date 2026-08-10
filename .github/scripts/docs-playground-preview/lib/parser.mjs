@@ -8,10 +8,17 @@ const HOOK_TYPE = /^(?:action|filter)(?:_(?:deprecated|reference))?$/;
 const IMPORT_SOURCE_ROOT = '/tmp/docs-preview-source';
 const SAFE_VERSION_ROOT = '/tmp/docs-preview-version';
 
+/**
+ * @param {Record<string, any> | null | undefined} value
+ */
 function hooksIn( value ) {
 	return Array.isArray( value?.hooks ) ? value.hooks : [];
 }
 
+/**
+ * @param {any[]} hooks
+ * @param {Record<string, any>} counts
+ */
 function countHooks( hooks, counts ) {
 	for ( const hook of hooks ) {
 		if (
@@ -31,10 +38,15 @@ function countHooks( hooks, counts ) {
 	}
 }
 
+/**
+ * @param {any[]} records
+ * @param {Record<string, any>} minimumSymbols
+ */
 export function inspectParserRecords( records, minimumSymbols ) {
 	if ( ! Array.isArray( records ) ) {
 		throw new Error( 'Parser JSON must be an array.' );
 	}
+	/** @type {Record<string, number>} */
 	const counts = {
 		classes: 0,
 		methods: 0,
@@ -93,6 +105,9 @@ export function inspectParserRecords( records, minimumSymbols ) {
 	return { records: records.length, counts, failures };
 }
 
+/**
+ * @param {Record<string, any>} options
+ */
 export async function generateParserJson( options ) {
 	const runImplementation = options.runImplementation || run;
 	const staged = await stageCorePhp( options.source, options.stagedSource );

@@ -54,8 +54,14 @@ function published( bytes = Buffer.from( 'snapshot' ) ) {
 	};
 }
 
+/**
+ * @param {Record<string, string>} values
+ */
 function headers( values ) {
-	return { get: ( name ) => values[ name.toLowerCase() ] || null };
+	return {
+		get: /** @param {string} name */ ( name ) =>
+			values[ name.toLowerCase() ] || null,
+	};
 }
 
 test( 'immutable asset names bind the PR, SHA, run, and attempt', () => {
@@ -225,7 +231,7 @@ test( 'same-SHA discovery verifies metadata and the proxied snapshot', async () 
 			browser_download_url: 'https://github.com/snapshot.zip',
 		},
 	];
-	const fetchImplementation = async ( url ) => {
+	const fetchImplementation = /** @param {string} url */ async ( url ) => {
 		if ( url.includes( '/releases/tags/' ) ) {
 			return { ok: true, status: 200, json: async () => ( { id: 9 } ) };
 		}
@@ -250,6 +256,7 @@ test( 'same-SHA discovery verifies metadata and the proxied snapshot', async () 
 		token: 'read-token',
 		fetchImplementation,
 	} );
+	assert.ok( handoff );
 	assert.equal( handoff.handoffType, 'reuse' );
 	assert.equal( handoff.workflowRunId, identity.workflowRunId );
 	assert.equal( handoff.reusedSnapshot.assetName, metadata.snapshotFilename );

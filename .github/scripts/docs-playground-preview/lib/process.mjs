@@ -1,6 +1,11 @@
 import { spawn } from 'node:child_process';
 import { writeFile } from 'node:fs/promises';
 
+/**
+ * @param {string} command
+ * @param {string[]} args
+ * @param {{allowFailure?: boolean, capture?: boolean, cwd?: string, env?: NodeJS.ProcessEnv, label?: string, logFile?: string, quiet?: boolean}} [options]
+ */
 export async function run( command, args, options = {} ) {
 	const capture = options.capture || Boolean( options.logFile );
 	if ( ! options.quiet ) {

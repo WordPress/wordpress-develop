@@ -6,6 +6,7 @@ import { test } from 'node:test';
 
 import { generateParserJson, inspectParserRecords } from '../lib/parser.mjs';
 
+/** @returns {any[]} */
 function records() {
 	return [
 		{
@@ -121,11 +122,16 @@ test( 'generateParserJson stages PHP, invokes the pinned parser, and normalizes 
 	await writeFile( path.join( source, 'wp-includes/version.php' ), '<?php' );
 	await writeFile( path.join( source, 'wp-includes/example.php' ), '<?php' );
 	const output = path.join( temporary, 'output/reference.json' );
+	/** @type {any} */
 	let invocation;
-	const runImplementation = async ( command, args ) => {
-		invocation = { command, args };
-		await writeFile( output, JSON.stringify( records() ) );
-	};
+	const runImplementation =
+		/** @param {string} command @param {string[]} args */ async (
+			command,
+			args
+		) => {
+			invocation = { command, args };
+			await writeFile( output, JSON.stringify( records() ) );
+		};
 	const result = await generateParserJson( {
 		source: path.dirname( source ),
 		stagedSource: path.join( temporary, 'staged' ),

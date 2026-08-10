@@ -21,6 +21,10 @@ const BLUEPRINT_SCHEMA =
 const FULL_COMMIT = /^[0-9a-f]{40}$/;
 const MAXIMUM_BLUEPRINT_BYTES = 65536;
 
+/**
+ * @param {unknown} value
+ * @param {string} label
+ */
 function positiveInteger( value, label ) {
 	const number = Number( value );
 	if ( ! Number.isSafeInteger( number ) || number < 1 ) {
@@ -29,6 +33,10 @@ function positiveInteger( value, label ) {
 	return number;
 }
 
+/**
+ * @param {unknown} value
+ * @param {string} label
+ */
 function timestamp( value, label ) {
 	if (
 		typeof value !== 'string' ||
@@ -40,12 +48,16 @@ function timestamp( value, label ) {
 	return value;
 }
 
+/**
+ * @param {string} message
+ */
 function supersededTrunkError( message ) {
-	const error = new Error( message );
-	error.trunkRunSuperseded = true;
-	return error;
+	return Object.assign( new Error( message ), { trunkRunSuperseded: true } );
 }
 
+/**
+ * @param {Record<string, any>} identity
+ */
 export function trunkSnapshotAssetName( identity ) {
 	if ( ! FULL_COMMIT.test( identity.sourceSha || '' ) ) {
 		throw new Error( 'sourceSha must be a full lowercase commit hash.' );
@@ -58,10 +70,17 @@ export function trunkSnapshotAssetName( identity ) {
 	return `code-reference-trunk-${ identity.sourceSha }-${ runId }-${ attempt }.zip`;
 }
 
+/**
+ * @param {string} repository
+ */
 export function trunkStableBlueprintUrl( repository ) {
 	return `https://raw.githubusercontent.com/${ repository }/docs-preview-code-reference/${ TRUNK_POINTER_ASSET }`;
 }
 
+/**
+ * @param {string} repository
+ * @param {string} commitSha
+ */
 export function trunkBlueprintCommitUrl( repository, commitSha ) {
 	if ( ! FULL_COMMIT.test( commitSha || '' ) ) {
 		throw new Error( 'commitSha must be a full lowercase commit hash.' );
@@ -69,12 +88,18 @@ export function trunkBlueprintCommitUrl( repository, commitSha ) {
 	return `https://raw.githubusercontent.com/${ repository }/${ commitSha }/${ TRUNK_POINTER_ASSET }`;
 }
 
+/**
+ * @param {string} repository
+ */
 export function trunkPlaygroundUrl( repository ) {
 	return `${ PLAYGROUND_ORIGIN }/?blueprint-url=${ encodeURIComponent(
 		corsProxyUrl( trunkStableBlueprintUrl( repository ) )
 	) }`;
 }
 
+/**
+ * @param {Record<string, any>} context
+ */
 export function validateTrunkPublicationContext( context ) {
 	if (
 		! isDeploymentEnabled( context.repository, context.stagingVariable )
@@ -126,6 +151,9 @@ export function validateTrunkPublicationContext( context ) {
 	};
 }
 
+/**
+ * @param {Record<string, any>} context
+ */
 export function assertLatestTrunkAuthorized( context ) {
 	const current = validateTrunkPublicationContext( context );
 	if (
@@ -139,6 +167,10 @@ export function assertLatestTrunkAuthorized( context ) {
 	return current;
 }
 
+/**
+ * @param {Record<string, any>} metadata
+ * @param {Record<string, any>} context
+ */
 function validateCommonHandoff( metadata, context ) {
 	if (
 		! metadata ||
@@ -161,6 +193,10 @@ function validateCommonHandoff( metadata, context ) {
 	timestamp( metadata.generationTimestamp, 'Generation timestamp' );
 }
 
+/**
+ * @param {Record<string, any>} metadata
+ * @param {Record<string, any>} rawContext
+ */
 export function inspectTrunkHandoff( metadata, rawContext ) {
 	const context = validateTrunkPublicationContext( rawContext );
 	validateCommonHandoff( metadata, context );
@@ -191,6 +227,11 @@ export function inspectTrunkHandoff( metadata, rawContext ) {
 	return { kind: 'candidate', metadata, context };
 }
 
+/**
+ * @param {Record<string, any>} metadata
+ * @param {string} repository
+ * @param {string} publishedAt
+ */
 export function createTrunkPublishedMetadata(
 	metadata,
 	repository,
@@ -218,6 +259,11 @@ export function createTrunkPublishedMetadata(
 	};
 }
 
+/**
+ * @param {Record<string, any>} metadata
+ * @param {string} repository
+ * @param {string} sourceSha
+ */
 export function validatePublishedTrunkMetadata(
 	metadata,
 	repository,
@@ -264,6 +310,9 @@ export function validatePublishedTrunkMetadata(
 	return metadata;
 }
 
+/**
+ * @param {Record<string, any>} metadata
+ */
 export function createTrunkBlueprint( metadata ) {
 	const blueprint = createLaunchBlueprint( metadata.publication.snapshotUrl, {
 		blueprintSchema: BLUEPRINT_SCHEMA,
@@ -274,6 +323,10 @@ export function createTrunkBlueprint( metadata ) {
 	return blueprint;
 }
 
+/**
+ * @param {string} publicUrl
+ * @param {(...args: any[]) => Promise<any>} [fetchImplementation]
+ */
 export async function readPublicBlueprint(
 	publicUrl,
 	fetchImplementation = globalThis.fetch
@@ -306,6 +359,11 @@ export async function readPublicBlueprint(
 	return blueprint;
 }
 
+/**
+ * @param {string} publicUrl
+ * @param {Record<string, any>} expected
+ * @param {(...args: any[]) => Promise<any>} [fetchImplementation]
+ */
 export async function validatePublicBlueprint(
 	publicUrl,
 	expected,

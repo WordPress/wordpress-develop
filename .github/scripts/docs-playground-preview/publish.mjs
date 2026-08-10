@@ -19,8 +19,31 @@ import { findPreviousPreview, loadPublishedPreview } from './lib/published.mjs';
 
 class SupersededRun extends Error {}
 
+/**
+ * @param {unknown} error
+ */
+function errorMessage( error ) {
+	return error instanceof Error ? error.message : String( error );
+}
+
+/**
+ * @param {unknown} error
+ * @param {string} property
+ */
+function errorFlag( error, property ) {
+	return (
+		error instanceof Error &&
+		/** @type {any} */ ( error )[ property ] === true
+	);
+}
+
+/**
+ * @param {unknown} error
+ * @returns {string}
+ */
 export function formatFailure( error ) {
-	const description = error.stack || String( error );
+	const description =
+		error instanceof Error && error.stack ? error.stack : String( error );
 	if ( ! ( error instanceof AggregateError ) ) {
 		return description;
 	}
@@ -33,12 +56,18 @@ export function formatFailure( error ) {
 	].join( '\n' );
 }
 
+/**
+ * @param {string} directory
+ */
 async function readHandoff( directory ) {
 	return JSON.parse(
 		await readFile( path.join( directory, 'build.json' ), 'utf8' )
 	);
 }
 
+/**
+ * @param {Record<string, any>} options
+ */
 async function establishSession( options ) {
 	const api =
 		options.api ||
@@ -55,7 +84,7 @@ async function establishSession( options ) {
 		if ( run.head_repository?.owner?.login && run.head_branch ) {
 			throw error;
 		}
-		throw new SupersededRun( error.message );
+		throw new SupersededRun( errorMessage( error ) );
 	}
 	if ( ! pullRequest ) {
 		return null;
@@ -72,16 +101,18 @@ async function establishSession( options ) {
 	try {
 		context = validatePublicationContext( base );
 	} catch ( error ) {
-		throw new SupersededRun( error.message );
+		throw new SupersededRun( errorMessage( error ) );
 	}
+	/** @type {(message: string) => unknown} */
+	const warning =
+		options.warning ||
+		( ( message ) => process.stderr.write( `${ message }\n` ) );
 	return {
 		api,
 		context,
 		repository: options.repository,
 		fetchImplementation: options.fetchImplementation || globalThis.fetch,
-		warning:
-			options.warning ||
-			( ( message ) => process.stderr.write( `${ message }\n` ) ),
+		warning,
 		now: options.now || ( () => new Date().toISOString() ),
 		handoffDirectory: path.resolve( options.handoffDirectory ),
 		authorize: async () => {
@@ -98,12 +129,15 @@ async function establishSession( options ) {
 					latestRun,
 				} );
 			} catch ( error ) {
-				throw new SupersededRun( error.message );
+				throw new SupersededRun( errorMessage( error ) );
 			}
 		},
 	};
 }
 
+/**
+ * @param {Record<string, any>} session
+ */
 async function ensureRelease( session ) {
 	let release = await session.api.getRelease();
 	if ( release ) {
@@ -121,6 +155,10 @@ async function ensureRelease( session ) {
 	return release;
 }
 
+/**
+ * @param {Record<string, any>} session
+ * @param {string} body
+ */
 async function upsertComment( session, body ) {
 	const comment = await session.api.findPreviewComment(
 		session.context.pullRequestNumber
@@ -131,22 +169,39 @@ async function upsertComment( session, body ) {
 			await session.api.updateComment( comment.id, body );
 			return;
 		} catch ( error ) {
-			if ( error.status !== 404 ) {
+			if (
+				! errorFlag( error, 'status' ) &&
+				! (
+					error instanceof Error &&
+					'status' in error &&
+					error.status === 404
+				)
+			) {
 				throw error;
 			}
 			session.warning(
-				`Cannot update the deleted preview comment: ${ error.message }`
+				`Cannot update the deleted preview comment: ${ errorMessage(
+					error
+				) }`
 			);
 		}
 	}
 	await session.api.createComment( session.context.pullRequestNumber, body );
 }
 
+/**
+ * @param {Record<string, any>} session
+ */
 async function removeRequestLabel( session ) {
 	await session.authorize();
 	await session.api.removeLabel( session.context.pullRequestNumber );
 }
 
+/**
+ * @param {Record<string, any>} session
+ * @param {any[]} assets
+ * @param {Set<string>} keep
+ */
 async function cleanupOldAssets( session, assets, keep ) {
 	const prefix = `code-reference-pr-${ session.context.pullRequestNumber }-`;
 	for ( const asset of assets ) {
@@ -157,6 +212,10 @@ async function cleanupOldAssets( session, assets, keep ) {
 	}
 }
 
+/**
+ * @param {Record<string, any>} session
+ * @param {any[]} assets
+ */
 async function cleanupFailedCandidate( session, assets ) {
 	for ( const asset of assets ) {
 		await session.authorize();
@@ -164,6 +223,10 @@ async function cleanupFailedCandidate( session, assets ) {
 	}
 }
 
+/**
+ * @param {any[]} operations
+ * @param {string} message
+ */
 async function runIndependently( operations, message ) {
 	const errors = [];
 	for ( const operation of operations ) {
@@ -185,6 +248,9 @@ async function runIndependently( operations, message ) {
 	}
 }
 
+/**
+ * @param {Record<string, any>} session
+ */
 async function reportFailure( session, excluded = new Set() ) {
 	let previous = await findPreviousPreview( session, excluded );
 	if ( ! previous ) {
@@ -210,6 +276,11 @@ async function reportFailure( session, excluded = new Set() ) {
 	);
 }
 
+/**
+ * @param {Record<string, any>} session
+ * @param {any[]} assets
+ * @param {Set<string>} keep
+ */
 async function finishReady( session, assets, keep ) {
 	try {
 		await runIndependently(
@@ -220,11 +291,18 @@ async function finishReady( session, assets, keep ) {
 			'Old-asset cleanup and label removal both failed.'
 		);
 	} catch ( error ) {
-		error.preserveReadyComment = true;
-		throw error;
+		throw Object.assign(
+			error instanceof Error ? error : new Error( String( error ) ),
+			{ preserveReadyComment: true }
+		);
 	}
 }
 
+/**
+ * @param {Record<string, any>} session
+ * @param {Record<string, any>} metadata
+ * @param {any[]} uploadedAssets
+ */
 async function publishCandidate( session, metadata, uploadedAssets ) {
 	const candidateFile = path.join(
 		session.handoffDirectory,
@@ -282,6 +360,10 @@ async function publishCandidate( session, metadata, uploadedAssets ) {
 	return { status: 'ready', preview };
 }
 
+/**
+ * @param {Record<string, any>} session
+ * @param {Record<string, any>} metadata
+ */
 async function reuseCandidate( session, metadata ) {
 	const release = await session.api.getRelease();
 	if ( ! release ) {
@@ -289,9 +371,15 @@ async function reuseCandidate( session, metadata ) {
 	}
 	const assets = await session.api.listReleaseAssets( release.id );
 	const snapshotAsset = assets.find(
+		/**
+		 * @param {Record<string, any>} asset
+		 */
 		( asset ) => asset.name === metadata.reusedSnapshot.assetName
 	);
 	const metadataAsset = assets.find(
+		/**
+		 * @param {Record<string, any>} asset
+		 */
 		( asset ) => asset.name === metadata.reusedSnapshot.metadataAssetName
 	);
 	if ( ! snapshotAsset || ! metadataAsset ) {
@@ -337,6 +425,9 @@ async function reuseCandidate( session, metadata ) {
 	return { status: 'reused', preview };
 }
 
+/**
+ * @param {Record<string, any>} options
+ */
 export async function publishPullRequest( options ) {
 	let session;
 	try {
@@ -353,6 +444,7 @@ export async function publishPullRequest( options ) {
 	if ( await session.api.isSkippedPreviewBuild( session.context.run ) ) {
 		return { status: 'ignored' };
 	}
+	/** @type {any[]} */
 	const uploadedAssets = [];
 	try {
 		await session.authorize();
@@ -379,7 +471,7 @@ export async function publishPullRequest( options ) {
 		if ( error instanceof SupersededRun ) {
 			return { status: 'superseded' };
 		}
-		if ( error.preserveReadyComment ) {
+		if ( errorFlag( error, 'preserveReadyComment' ) ) {
 			throw error;
 		}
 		const excluded = new Set(
@@ -389,7 +481,9 @@ export async function publishPullRequest( options ) {
 			await cleanupFailedCandidate( session, uploadedAssets );
 		} catch ( cleanupError ) {
 			session.warning(
-				`Cannot remove failed candidate: ${ cleanupError.message }`
+				`Cannot remove failed candidate: ${ errorMessage(
+					cleanupError
+				) }`
 			);
 		}
 		try {
@@ -407,6 +501,10 @@ export async function publishPullRequest( options ) {
 	}
 }
 
+/**
+ * @param {Record<string, any>} result
+ * @param {string | undefined} enforcementVariable
+ */
 export function enforceValidationResult( result, enforcementVariable ) {
 	if ( result.status === 'invalid' && enforcementVariable === 'true' ) {
 		throw new Error(
@@ -417,7 +515,11 @@ export function enforceValidationResult( result, enforcementVariable ) {
 }
 
 async function main() {
-	const event = JSON.parse( await readFile( process.env.GITHUB_EVENT_PATH ) );
+	const eventPath = process.env.GITHUB_EVENT_PATH;
+	if ( ! eventPath ) {
+		throw new Error( 'GITHUB_EVENT_PATH is required.' );
+	}
+	const event = JSON.parse( await readFile( eventPath, 'utf8' ) );
 	const result = enforceValidationResult(
 		await publishPullRequest( {
 			repository: process.env.GITHUB_REPOSITORY,

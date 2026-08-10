@@ -95,6 +95,10 @@ function buildMetadata( overrides = {} ) {
 	};
 }
 
+/**
+ * @param {number} id
+ * @param {string} name
+ */
 function releaseAsset( id, name, createdAt = '2026-08-08T13:00:00.000Z' ) {
 	return {
 		id,
@@ -106,19 +110,26 @@ function releaseAsset( id, name, createdAt = '2026-08-08T13:00:00.000Z' ) {
 
 class FakeApi {
 	constructor() {
+		/** @type {any} */
 		this.currentRun = run();
 		this.currentPullRequest = pullRequest();
 		this.latestRun = this.currentRun;
 		this.release = { id: 9 };
+		/** @type {any[]} */
 		this.assets = [];
 		this.metadata = new Map();
 		this.assetBytes = new Map();
+		/** @type {any[]} */
 		this.uploads = [];
+		/** @type {any[]} */
 		this.deleted = [];
+		/** @type {any[]} */
 		this.comments = [];
 		this.labelRemovals = 0;
 		this.runReads = 0;
+		/** @type {any} */
 		this.deleteError = null;
+		/** @type {any} */
 		this.uploadError = null;
 	}
 
@@ -156,6 +167,12 @@ class FakeApi {
 		return [ ...this.assets ];
 	}
 
+	/**
+	 * @param {number} releaseId
+	 * @param {string} name
+	 * @param {Uint8Array} bytes
+	 * @param {string} contentType
+	 */
 	async uploadReleaseAsset( releaseId, name, bytes, contentType ) {
 		assert.equal( releaseId, 9 );
 		if ( this.uploadError ) {
@@ -177,6 +194,9 @@ class FakeApi {
 		return asset;
 	}
 
+	/**
+	 * @param {number} id
+	 */
 	async deleteReleaseAsset( id ) {
 		if ( this.deleteError ) {
 			throw this.deleteError;
@@ -188,10 +208,18 @@ class FakeApi {
 		return this.comments[ 0 ] || null;
 	}
 
+	/**
+	 * @param {number} number
+	 * @param {string} body
+	 */
 	async createComment( number, body ) {
 		this.comments = [ { id: 1, number, body } ];
 	}
 
+	/**
+	 * @param {number} id
+	 * @param {string} body
+	 */
 	async updateComment( id, body ) {
 		this.comments = [ { id, body } ];
 	}
@@ -201,8 +229,11 @@ class FakeApi {
 	}
 }
 
+/**
+ * @param {FakeApi} api
+ */
 function publicFetch( api, corrupt = new Set() ) {
-	return async ( url ) => {
+	return /** @param {string} url */ async ( url ) => {
 		if ( url.includes( 'wordpress-playground-cors-proxy.net' ) ) {
 			const name = url.split( '/' ).at( -1 );
 			const bytes = corrupt.has( name )
@@ -211,11 +242,14 @@ function publicFetch( api, corrupt = new Set() ) {
 			return {
 				status: 200,
 				headers: {
-					get: ( header ) =>
-						( {
+					get: /** @param {string} header */ ( header ) => {
+						/** @type {Record<string, string>} */
+						const values = {
 							'x-playground-cors-proxy': 'true',
 							'access-control-allow-origin': PLAYGROUND_ORIGIN,
-						} )[ header.toLowerCase() ] || null,
+						};
+						return values[ header.toLowerCase() ] || null;
+					},
 				},
 				arrayBuffer: async () => bytes,
 			};
@@ -228,6 +262,9 @@ function publicFetch( api, corrupt = new Set() ) {
 	};
 }
 
+/**
+ * @param {Record<string, any>} metadata
+ */
 async function handoffDirectory( metadata, includeSnapshot = true ) {
 	const directory = await mkdtemp(
 		path.join( os.tmpdir(), 'docs-preview-publish-' )
@@ -245,6 +282,10 @@ async function handoffDirectory( metadata, includeSnapshot = true ) {
 	return directory;
 }
 
+/**
+ * @param {FakeApi} api
+ * @param {string} directory
+ */
 function options( api, directory, extra = {} ) {
 	return {
 		repository,
@@ -261,6 +302,10 @@ function options( api, directory, extra = {} ) {
 	};
 }
 
+/**
+ * @param {FakeApi} api
+ * @param {Record<string, any>} build
+ */
 function installPublishedPreview(
 	api,
 	build,
@@ -578,10 +623,12 @@ test( 'a preview comment deleted mid-update is recreated', async () => {
 	const api = new FakeApi();
 	api.comments = [ { id: 7, body: 'about to be deleted' } ];
 	api.updateComment = async () => {
-		const error = new Error(
-			`GitHub API returned HTTP 404 for /repos/${ repository }/issues/comments/7: Not Found`
+		const error = Object.assign(
+			new Error(
+				`GitHub API returned HTTP 404 for /repos/${ repository }/issues/comments/7: Not Found`
+			),
+			{ status: 404 }
 		);
-		error.status = 404;
 		throw error;
 	};
 	const directory = await handoffDirectory( buildMetadata() );

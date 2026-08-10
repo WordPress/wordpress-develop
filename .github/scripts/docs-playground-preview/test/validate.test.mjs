@@ -61,6 +61,9 @@ function inputs() {
 	};
 }
 
+/**
+ * @param {unknown} body
+ */
 function response( body, status = 200, url = 'http://127.0.0.1:9400/' ) {
 	return {
 		status,
@@ -70,6 +73,9 @@ function response( body, status = 200, url = 'http://127.0.0.1:9400/' ) {
 	};
 }
 
+/**
+ * @param {string} url
+ */
 function healthyFetch( url ) {
 	if ( url.endsWith( '/wp-json/docs-preview/v1/health' ) ) {
 		return response(
@@ -98,6 +104,9 @@ function healthyFetch( url ) {
 	const target = Object.values(
 		inputs().dependencies.validation.routes
 	).find( ( route ) => url.endsWith( route.path ) );
+	if ( ! target ) {
+		throw new Error( `Unexpected validation URL: ${ url }` );
+	}
 	return response(
 		`<aside id="wporg-code-reference-preview-provenance">${ provenance.sourceRepository } ${ provenance.sourceSha } 2026-08-09 12:34:56 UTC <a href="${ provenance.runUrl }">Build run</a></aside> ${ target.expectedText }`,
 		200,
@@ -160,7 +169,7 @@ test( 'behavioral validation covers health, routes, search, and banner', async (
 test( 'behavioral defects are advisory validation failures', async () => {
 	const result = await inspectSnapshotBehavior( inputs(), {
 		baseUrl: 'http://127.0.0.1:9400',
-		fetchImplementation: async ( url ) => {
+		fetchImplementation: /** @param {string} url */ async ( url ) => {
 			if ( url.endsWith( '/health' ) ) {
 				return response(
 					{
@@ -216,7 +225,7 @@ test( 'symbol routes may not redirect to a generic successful page', async () =>
 	const baseUrl = 'http://127.0.0.1:9400';
 	const result = await inspectSnapshotBehavior( inputs(), {
 		baseUrl,
-		fetchImplementation: async ( url ) => {
+		fetchImplementation: /** @param {string} url */ async ( url ) => {
 			const current = await healthyFetch( url );
 			if ( url.includes( '/reference/classes/example/' ) ) {
 				return { ...current, url: `${ baseUrl }/reference/` };

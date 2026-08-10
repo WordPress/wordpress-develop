@@ -14,6 +14,9 @@ import {
 
 const SHA = 'a'.repeat( 40 );
 
+/**
+ * @param {string} cacheDirectory
+ */
 function resolved( cacheDirectory ) {
 	return {
 		schemaVersion: 1,
@@ -42,6 +45,9 @@ function resolved( cacheDirectory ) {
 	};
 }
 
+/**
+ * @param {string[]} failures
+ */
 function parser( failures = [] ) {
 	return {
 		sourceFiles: 2,
@@ -67,10 +73,11 @@ test( 'arguments recognize enforcement only at the exact true value', () => {
 } );
 
 test( 'the cache cannot claim a toolchain version that did not run', async () => {
+	/** @type {any[]} */
 	const commands = [];
 	await verifyToolchain( resolved( '/cache' ), {
 		nodeVersion: '20.20.2',
-		runImplementation: async ( command ) => {
+		runImplementation: /** @param {string} command */ async ( command ) => {
 			commands.push( command );
 			return { stdout: command === 'npm' ? '10.8.2\n' : '8.4' };
 		},
@@ -142,6 +149,7 @@ test( 'resolve-only records the exact cache inputs without building', async () =
 		path.join( os.tmpdir(), 'docs-preview-resolve-' )
 	);
 	const expected = resolved( path.join( root, 'cache/exact' ) );
+	/** @type {any} */
 	let written;
 	const result = await buildCodeReferencePreview(
 		{
@@ -155,9 +163,13 @@ test( 'resolve-only records the exact cache inputs without building', async () =
 		{
 			resolveBuildInputs: async () => expected,
 			verifyToolchain: async () => {},
-			writeResolvedInputs: async ( inputs, filename ) => {
-				written = { inputs, filename };
-			},
+			writeResolvedInputs:
+				/** @param {Record<string, any>} inputs @param {string} filename */ async (
+					inputs,
+					filename
+				) => {
+					written = { inputs, filename };
+				},
 		}
 	);
 	assert.equal( result.inputs, expected );
@@ -168,12 +180,17 @@ test( 'resolve-only records the exact cache inputs without building', async () =
 	);
 } );
 
+/**
+ * @param {string[]} failures
+ */
 async function fixture( failures = [], enforce = false ) {
 	const root = await mkdtemp(
 		path.join( os.tmpdir(), 'docs-preview-build-' )
 	);
 	const cache = path.join( root, 'cache/exact' );
+	/** @type {any[]} */
 	const calls = [];
+	/** @type {Record<string, any>} */
 	const overrides = {
 		run: async () => {},
 		verifyToolchain: async () => {},
@@ -182,7 +199,7 @@ async function fixture( failures = [], enforce = false ) {
 			calls.push( 'base' );
 			return { cacheHit: true };
 		},
-		generateParserJson: async ( options ) => {
+		generateParserJson: /** @param {Record<string, any>} options */ async ( options ) => {
 			calls.push( 'parser' );
 			assert.equal( options.parser, path.join( cache, 'parser' ) );
 			return parser( failures );

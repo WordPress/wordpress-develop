@@ -182,7 +182,7 @@ test( 'the beta resolver falls back to the latest stable build with a notice', a
 	} );
 	assert.equal( write.mock.callCount(), 1 );
 	assert.match(
-		write.mock.calls[ 0 ].arguments[ 0 ],
+		String( write.mock.calls[ 0 ].arguments[ 0 ] ),
 		/^::notice::.*tracking the stable release 7\.1\.2 until the next beta appears\./
 	);
 } );

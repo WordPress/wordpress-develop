@@ -21,6 +21,9 @@ const currentSha = 'a'.repeat( 40 );
 const previewSha = 'c'.repeat( 40 );
 const snapshotBytes = Buffer.from( 'snapshot' );
 
+/**
+ * @param {any[]} labels
+ */
 function pullRequest( state = 'open', labels = [], headSha = currentSha ) {
 	return {
 		number: 123,
@@ -35,6 +38,9 @@ function pullRequest( state = 'open', labels = [], headSha = currentSha ) {
 	};
 }
 
+/**
+ * @param {string} action
+ */
 function event(
 	action,
 	state = action === 'closed' ? 'closed' : 'open',
@@ -43,6 +49,7 @@ function event(
 	return { action, pull_request: pullRequest( state, [], headSha ) };
 }
 
+/** @returns {Record<string, any>} */
 function previewMetadata() {
 	const snapshotFilename = snapshotAssetName( {
 		pullRequestNumber: 123,
@@ -81,6 +88,10 @@ function previewMetadata() {
 	);
 }
 
+/**
+ * @param {number} id
+ * @param {string} name
+ */
 function releaseAsset( id, name ) {
 	return {
 		id,
@@ -94,18 +105,26 @@ class FakeApi {
 	constructor() {
 		this.currentPullRequest = pullRequest();
 		this.release = { id: 9 };
+		/** @type {any[]} */
 		this.assets = [];
+		/** @type {any[]} */
 		this.caches = [];
 		this.metadata = new Map();
 		this.assetBytes = new Map();
 		this.comment = { id: 20, body: `${ COMMENT_MARKER }\nReady` };
+		/** @type {any[]} */
 		this.deletedAssets = [];
+		/** @type {any[]} */
 		this.deletedCaches = [];
+		/** @type {any[]} */
 		this.commentBodies = [];
+		/** @type {any} */
 		this.failedAsset = null;
 		this.cacheRef = null;
+		/** @type {any} */
 		this.replacementComment = null;
 		this.commentReads = 0;
+		/** @type {any} */
 		this.laterPullRequest = null;
 		this.pullRequestReads = 0;
 		this.reopenAfterAssetDeletion = false;
@@ -127,6 +146,9 @@ class FakeApi {
 		return [ ...this.assets ];
 	}
 
+	/**
+	 * @param {string} ref
+	 */
 	async listActionCaches( ref ) {
 		this.cacheRef = ref;
 		return [ ...this.caches ];
@@ -140,12 +162,19 @@ class FakeApi {
 		return this.comment;
 	}
 
+	/**
+	 * @param {number} id
+	 * @param {string} body
+	 */
 	async updateComment( id, body ) {
 		assert.equal( id, this.comment.id );
 		this.commentBodies.push( body );
 		this.comment = { id, body };
 	}
 
+	/**
+	 * @param {number} id
+	 */
 	async deleteReleaseAsset( id ) {
 		if ( id === this.failedAsset ) {
 			throw new Error( 'release deletion failed' );
@@ -156,11 +185,17 @@ class FakeApi {
 		}
 	}
 
+	/**
+	 * @param {number} id
+	 */
 	async deleteActionCache( id ) {
 		this.deletedCaches.push( id );
 	}
 }
 
+/**
+ * @param {FakeApi} api
+ */
 function installPreview( api ) {
 	const metadata = previewMetadata();
 	const metadataName = metadataAssetName( metadata.snapshotFilename );
@@ -173,18 +208,25 @@ function installPreview( api ) {
 	return metadata;
 }
 
+/**
+ * @param {FakeApi} api
+ * @returns {(...args: any[]) => Promise<any>}
+ */
 function publicFetch( api ) {
-	return async ( url ) => {
+	return /** @param {string} url */ async ( url ) => {
 		if ( url.includes( 'wordpress-playground-cors-proxy.net' ) ) {
 			const name = url.split( '/' ).at( -1 );
 			return {
 				status: 200,
 				headers: {
-					get: ( header ) =>
-						( {
+					get: /** @param {string} header */ ( header ) => {
+						/** @type {Record<string, string>} */
+						const values = {
 							'x-playground-cors-proxy': 'true',
 							'access-control-allow-origin': PLAYGROUND_ORIGIN,
-						} )[ header.toLowerCase() ] || null,
+						};
+						return values[ header.toLowerCase() ] || null;
+					},
 				},
 				arrayBuffer: async () => api.assetBytes.get( name ),
 			};
@@ -197,6 +239,10 @@ function publicFetch( api ) {
 	};
 }
 
+/**
+ * @param {FakeApi} api
+ * @param {Record<string, any>} lifecycleEvent
+ */
 function options( api, lifecycleEvent ) {
 	return {
 		repository,

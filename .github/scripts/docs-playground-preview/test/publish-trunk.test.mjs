@@ -39,6 +39,10 @@ function run( overrides = {} ) {
 	};
 }
 
+/**
+ * @param {Record<string, any>} [overrides]
+ * @returns {Record<string, any>}
+ */
 function buildMetadata( overrides = {} ) {
 	const sourceSha = overrides.sourceSha || sha;
 	const workflowRunId = overrides.workflowRunId || '456';
@@ -81,23 +85,32 @@ class FakeApi {
 		this.latestRun = this.currentRun;
 		this.trunkHeadSha = sha;
 		this.release = { id: 9 };
+		/** @type {any[]} */
 		this.assets = [];
 		this.assetBytes = new Map();
+		/** @type {any[]} */
 		this.deleted = [];
+		/** @type {any[]} */
 		this.events = [];
 		this.nextId = 10;
+		/** @type {any} */
 		this.deleteErrorId = null;
 		this.refSha = null;
+		/** @type {any} */
 		this.previousRefSha = null;
 		this.commits = new Map();
 		this.pendingBlueprint = null;
 		this.refReads = 0;
+		/** @type {any} */
 		this.refUpdateFailure = null;
 		this.failRefResolution = false;
 		this.staleRefAfterMutation = false;
 		this.staleContents = false;
 	}
 
+	/**
+	 * @param {string} url
+	 */
 	async request( url ) {
 		assert.equal(
 			url,
@@ -141,6 +154,12 @@ class FakeApi {
 		return this.assets.map( ( asset ) => ( { ...asset } ) );
 	}
 
+	/**
+	 * @param {number} releaseId
+	 * @param {string} name
+	 * @param {string | Uint8Array} bytes
+	 * @param {string} contentType
+	 */
 	async uploadReleaseAsset( releaseId, name, bytes, contentType ) {
 		assert.equal( releaseId, 9 );
 		const asset = {
@@ -155,6 +174,9 @@ class FakeApi {
 		return { ...asset };
 	}
 
+	/**
+	 * @param {string} reference
+	 */
 	async getGitReference( reference ) {
 		assert.equal( reference, TRUNK_POINTER_REF );
 		this.refReads++;
@@ -169,6 +191,9 @@ class FakeApi {
 		return visibleSha ? { object: { sha: visibleSha } } : null;
 	}
 
+	/**
+	 * @param {string} content
+	 */
 	async createGitBlob( content ) {
 		this.pendingBlueprint = content;
 		this.events.push( 'git:blob' );
@@ -182,17 +207,26 @@ class FakeApi {
 
 	async createGitCommit() {
 		const commitSha = 'f'.repeat( 40 );
+		assert.ok( this.pendingBlueprint );
 		this.commits.set( commitSha, Buffer.from( this.pendingBlueprint ) );
 		this.events.push( 'git:commit' );
 		return { sha: commitSha };
 	}
 
+	/**
+	 * @param {string} reference
+	 * @param {string} candidateSha
+	 */
 	async createGitReference( reference, candidateSha ) {
 		assert.equal( reference, TRUNK_POINTER_REF );
 		this.refSha = candidateSha;
 		this.events.push( `git:create-ref:${ candidateSha }` );
 	}
 
+	/**
+	 * @param {string} reference
+	 * @param {string} candidateSha
+	 */
 	async updateGitReference( reference, candidateSha ) {
 		assert.equal( reference, TRUNK_POINTER_REF );
 		if ( this.refUpdateFailure === 'before' ) {
@@ -205,6 +239,9 @@ class FakeApi {
 		}
 	}
 
+	/**
+	 * @param {number} id
+	 */
 	async deleteReleaseAsset( id ) {
 		if ( id === this.deleteErrorId ) {
 			throw new Error( 'cleanup failed' );
@@ -216,8 +253,13 @@ class FakeApi {
 	}
 }
 
+/**
+ * @param {FakeApi} api
+ * @param {Record<string, any>} [fetchOptions]
+ * @returns {(...args: any[]) => Promise<any>}
+ */
 function publicFetch( api, fetchOptions = {} ) {
-	return async ( url ) => {
+	return /** @param {string} url */ async ( url ) => {
 		const rawStart = url.indexOf( 'https://raw.githubusercontent.com/' );
 		if ( rawStart !== -1 ) {
 			const rawUrl = new URL( url.slice( rawStart ) );
@@ -240,11 +282,14 @@ function publicFetch( api, fetchOptions = {} ) {
 			return {
 				status: bytes ? 200 : 404,
 				headers: {
-					get: ( header ) =>
-						( {
+					get: /** @param {string} header */ ( header ) => {
+						/** @type {Record<string, string>} */
+						const values = {
 							'x-playground-cors-proxy': 'true',
 							'access-control-allow-origin': PLAYGROUND_ORIGIN,
-						} )[ header.toLowerCase() ] || null,
+						};
+						return values[ header.toLowerCase() ] || null;
+					},
 				},
 				arrayBuffer: async () => bytes,
 			};
@@ -260,6 +305,9 @@ function publicFetch( api, fetchOptions = {} ) {
 			.split( '/' )
 			.at( -1 );
 		const asset = api.assets.find(
+			/**
+			 * @param {Record<string, any>} candidate
+			 */
 			( candidate ) => candidate.name === name
 		);
 		api.events.push( `fetch:${ name }` );
@@ -273,11 +321,14 @@ function publicFetch( api, fetchOptions = {} ) {
 		return {
 			status: 200,
 			headers: {
-				get: ( header ) =>
-					( {
+				get: /** @param {string} header */ ( header ) => {
+					/** @type {Record<string, string>} */
+					const values = {
 						'x-playground-cors-proxy': 'true',
 						'access-control-allow-origin': PLAYGROUND_ORIGIN,
-					} )[ header.toLowerCase() ] || null,
+					};
+					return values[ header.toLowerCase() ] || null;
+				},
 			},
 			arrayBuffer: async () => bytes,
 			json: async () => JSON.parse( bytes.toString( 'utf8' ) ),
@@ -285,6 +336,9 @@ function publicFetch( api, fetchOptions = {} ) {
 	};
 }
 
+/**
+ * @param {Record<string, any>} metadata
+ */
 async function handoffDirectory( metadata, bytes = snapshotBytes ) {
 	const directory = await mkdtemp(
 		path.join( os.tmpdir(), 'docs-preview-trunk-publish-' )
@@ -302,6 +356,10 @@ async function handoffDirectory( metadata, bytes = snapshotBytes ) {
 	return directory;
 }
 
+/**
+ * @param {FakeApi} api
+ * @param {string} directory
+ */
 function options( api, directory, extra = {} ) {
 	return {
 		repository,
@@ -319,6 +377,12 @@ function options( api, directory, extra = {} ) {
 	};
 }
 
+/**
+ * @param {FakeApi} api
+ * @param {number} id
+ * @param {string} name
+ * @param {string | Uint8Array} bytes
+ */
 function addAsset( api, id, name, bytes ) {
 	api.assets.push( {
 		id,
@@ -328,6 +392,9 @@ function addAsset( api, id, name, bytes ) {
 	api.assetBytes.set( id, Buffer.from( bytes ) );
 }
 
+/**
+ * @param {FakeApi} api
+ */
 function installPrevious( api ) {
 	const oldSha = 'c'.repeat( 40 );
 	const oldBytes = Buffer.from( 'old snapshot' );
@@ -364,6 +431,9 @@ function installPrevious( api ) {
 	return { build, published };
 }
 
+/**
+ * @param {FakeApi} api
+ */
 function installOlder( api ) {
 	const olderName = trunkSnapshotAssetName( {
 		sourceSha: '1'.repeat( 40 ),
@@ -643,11 +713,13 @@ test( 'a trunk head without a newer build run still publishes with a notice', as
 	const api = new FakeApi();
 	installPrevious( api );
 	api.trunkHeadSha = 'b'.repeat( 40 );
+	/** @type {any[]} */
 	const notices = [];
 	const directory = await handoffDirectory( buildMetadata() );
 	const result = await publishTrunk(
 		options( api, directory, {
-			notice: ( message ) => notices.push( message ),
+			notice: /** @param {string} message */ ( message ) =>
+				notices.push( message ),
 		} )
 	);
 	assert.equal( result.status, 'ready' );
@@ -659,8 +731,10 @@ test( 'a trunk head without a newer build run still publishes with a notice', as
 } );
 
 test( 'trunk validation failures enforce or annotate visibly', () => {
+	/** @type {any[]} */
 	const messages = [];
-	const annotate = ( message ) => messages.push( message );
+	const annotate = /** @param {string} message */ ( message ) =>
+		messages.push( message );
 	assert.equal(
 		enforceTrunkValidationResult( { status: 'ready' }, '', annotate )
 			.status,

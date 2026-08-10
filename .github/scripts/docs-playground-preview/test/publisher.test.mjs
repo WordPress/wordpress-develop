@@ -145,7 +145,8 @@ test( 'latest-wins requires the label except for an explicit rerun', () => {
 
 test( 'a fresh candidate must pass every publisher identity field', () => {
 	assert.equal( inspectHandoff( metadata(), context() ).kind, 'candidate' );
-	for ( const [ name, value, error ] of [
+	/** @type {Array<[string, any, RegExp]>} */
+	const invalidFields = [
 		[ 'schemaVersion', 2, /schema/ ],
 		[ 'sourceSha', 'c'.repeat( 40 ), /workflow run/ ],
 		[ 'workflowRunAttempt', 2, /workflow run/ ],
@@ -155,7 +156,8 @@ test( 'a fresh candidate must pass every publisher identity field', () => {
 		[ 'snapshotFilename', 'snapshot.zip', /filename/ ],
 		[ 'snapshotBytes', 104857601, /100 MiB/ ],
 		[ 'snapshotSha256', 'broken', /digest/ ],
-	] ) {
+	];
+	for ( const [ name, value, error ] of invalidFields ) {
 		assert.throws(
 			() => inspectHandoff( metadata( { [ name ]: value } ), context() ),
 			error
@@ -267,7 +269,7 @@ test( 'the sticky comment has ready, failed, stale, and expired states', () => {
 		sourceSha: sha,
 		publication: { playgroundUrl: preview.publication.playgroundUrl },
 	} );
-	assert.equal( ready.match( /Open Code Reference preview/g ).length, 1 );
+	assert.equal( ready.match( /Open Code Reference preview/g )?.length, 1 );
 
 	const failed = renderPreviewComment( {
 		status: 'failed',
@@ -278,7 +280,10 @@ test( 'the sticky comment has ready, failed, stale, and expired states', () => {
 		previous: preview,
 	} );
 	assert.match( failed, /Latest attempt failed/ );
-	assert.equal( failed.match( /Latest successful docs preview/g ).length, 1 );
+	assert.equal(
+		failed.match( /Latest successful docs preview/g )?.length,
+		1
+	);
 	assert.deepEqual( readPreviewCommentSuccess( failed ), {
 		sourceRepository: preview.sourceRepository,
 		sourceSha: sha,

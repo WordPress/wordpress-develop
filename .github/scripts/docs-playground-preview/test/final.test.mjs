@@ -6,6 +6,9 @@ import { test } from 'node:test';
 
 import { createFinalBlueprint, packageFinalSnapshot } from '../lib/final.mjs';
 
+/**
+ * @param {string} cacheDirectory
+ */
 function inputs( cacheDirectory, snapshotBytes = 1024 ) {
 	return {
 		cacheDirectory,
@@ -26,8 +29,10 @@ test( 'the final Blueprint restores the base before the complete import', () => 
 	assert.equal( blueprint.landingPage, '/reference/' );
 	assert.equal( blueprint.login, false );
 	assert.deepEqual( blueprint.features, { networking: false } );
+	/** @type {any[]} */
+	const steps = blueprint.steps;
 	assert.deepEqual(
-		blueprint.steps.map( ( step ) => step.step ),
+		steps.map( ( step ) => step.step ),
 		[
 			'unzip',
 			'mkdir',
@@ -93,11 +98,16 @@ async function fixture( snapshotBytes = 1024 ) {
 
 test( 'final packaging returns publisher metadata for a bounded snapshot', async () => {
 	const current = await fixture();
+	/** @type {any} */
 	let invocation;
-	const buildSnapshotImplementation = async ( command, options ) => {
-		invocation = { command, options };
-		await writeFile( current.output, 'snapshot' );
-	};
+	const buildSnapshotImplementation =
+		/** @param {string} command @param {Record<string, any>} options */ async (
+			command,
+			options
+		) => {
+			invocation = { command, options };
+			await writeFile( current.output, 'snapshot' );
+		};
 	const snapshot = await packageFinalSnapshot( current.resolved, {
 		workDirectory: path.join( current.root, 'work' ),
 		output: current.output,

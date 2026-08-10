@@ -108,15 +108,23 @@ test( 'acquireRepositories uses Git with each validated full commit', async () =
 	const root = await mkdtemp(
 		path.join( os.tmpdir(), 'docs-preview-repos-' )
 	);
+	/** @type {any[]} */
 	const calls = [];
-	const fakeRun = async ( command, args, options ) => {
-		calls.push( { command, args, options } );
-		if ( args[ 0 ] === 'clone' ) {
-			await mkdir( path.join( args.at( -1 ), '.git' ), {
-				recursive: true,
-			} );
-		}
-	};
+	const fakeRun =
+		/** @param {string} command @param {string[]} args @param {Record<string, any>} [options] */ async (
+			command,
+			args,
+			options
+		) => {
+			calls.push( { command, args, options } );
+			if ( args[ 0 ] === 'clone' ) {
+				const target = args.at( -1 );
+				assert.ok( target );
+				await mkdir( path.join( target, '.git' ), {
+					recursive: true,
+				} );
+			}
+		};
 	const repositories = {
 		parser: {
 			repository: 'WordPress/phpdoc-parser',

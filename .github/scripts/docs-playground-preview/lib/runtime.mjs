@@ -3,10 +3,16 @@ const REPOSITORY = /^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/;
 const RUN_URL =
 	/^https:\/\/github\.com\/[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+\/actions\/runs\/\d+$/;
 
+/**
+ * @param {unknown} value
+ */
 function phpString( value ) {
 	return JSON.stringify( value );
 }
 
+/**
+ * @param {Record<string, any>} provenance
+ */
 export function validateProvenance( provenance ) {
 	if ( ! REPOSITORY.test( provenance?.sourceRepository || '' ) ) {
 		throw new Error( 'Preview provenance repository is invalid.' );
@@ -29,6 +35,9 @@ export function validateProvenance( provenance ) {
 	return provenance;
 }
 
+/**
+ * @param {Record<string, any>} candidate
+ */
 export function renderRuntimePlugin( candidate ) {
 	const provenance = validateProvenance( candidate );
 	const runUrl =

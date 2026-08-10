@@ -12,7 +12,11 @@ import {
 	validateReusableMetadata,
 } from './lib/publication.mjs';
 
+/**
+ * @param {string[]} values
+ */
 function argumentsFrom( values ) {
+	/** @type {Record<string, string>} */
 	const options = {};
 	for ( let index = 0; index < values.length; index += 2 ) {
 		const name = values[ index ];
@@ -23,12 +27,23 @@ function argumentsFrom( values ) {
 		options[
 			name
 				.slice( 2 )
-				.replace( /-([a-z])/g, ( _, letter ) => letter.toUpperCase() )
+				.replace(
+					/-([a-z])/g,
+					/** @param {string} _ @param {string} letter */ (
+						_,
+						letter
+					) => letter.toUpperCase()
+				)
 		] = value;
 	}
 	return options;
 }
 
+/**
+ * @param {string} url
+ * @param {string} token
+ * @param {(...args: any[]) => any} fetchImplementation
+ */
 async function apiJson( url, token, fetchImplementation ) {
 	const response = await fetchImplementation( url, {
 		headers: {
@@ -48,6 +63,12 @@ async function apiJson( url, token, fetchImplementation ) {
 	return response.json();
 }
 
+/**
+ * @param {string} repository
+ * @param {number} releaseId
+ * @param {string} token
+ * @param {(...args: any[]) => any} fetchImplementation
+ */
 async function releaseAssets(
 	repository,
 	releaseId,
@@ -68,6 +89,9 @@ async function releaseAssets(
 	}
 }
 
+/**
+ * @param {Record<string, any>} options
+ */
 export async function findReusablePreview( options ) {
 	const fetchImplementation = options.fetchImplementation || globalThis.fetch;
 	const release = await apiJson(
@@ -134,7 +158,9 @@ export async function findReusablePreview( options ) {
 			return createReuseHandoff( published, options );
 		} catch ( error ) {
 			options.warning?.(
-				`Cannot reuse ${ candidate.name }: ${ error.message }`
+				`Cannot reuse ${ candidate.name }: ${
+					error instanceof Error ? error.message : String( error )
+				}`
 			);
 		}
 	}
@@ -147,7 +173,7 @@ async function main() {
 		...options,
 		maximumBytes: Number( options.maximumBytes ),
 		token: process.env.GITHUB_TOKEN,
-		warning: ( message ) =>
+		warning: /** @param {string} message */ ( message ) =>
 			process.stderr.write( `::warning::${ message }\n` ),
 	} );
 	if ( handoff ) {

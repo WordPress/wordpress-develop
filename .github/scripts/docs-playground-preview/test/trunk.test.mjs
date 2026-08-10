@@ -83,12 +83,16 @@ function metadata( overrides = {} ) {
 }
 
 function headers( overrides = {} ) {
+	/** @type {Record<string, string>} */
 	const values = {
 		'x-playground-cors-proxy': 'true',
 		'access-control-allow-origin': PLAYGROUND_ORIGIN,
 		...overrides,
 	};
-	return { get: ( name ) => values[ name.toLowerCase() ] || null };
+	return {
+		get: /** @param {string} name */ ( name ) =>
+			values[ name.toLowerCase() ] || null,
+	};
 }
 
 test( 'trunk assets bind the exact SHA, run, and attempt', () => {
@@ -184,9 +188,11 @@ test( 'supersession races are marked distinctly from identity failures', () => {
 			validateTrunkPublicationContext(
 				context( { triggerRunAttempt: 1 } )
 			),
-		( error ) =>
-			error.trunkRunSuperseded === true &&
-			/no longer current/.test( error.message )
+		/** @type {(error: any) => boolean} */ (
+			( error ) =>
+				error.trunkRunSuperseded === true &&
+				/no longer current/.test( error.message )
+		)
 	);
 	assert.throws(
 		() =>
@@ -194,9 +200,11 @@ test( 'supersession races are marked distinctly from identity failures', () => {
 				...context(),
 				run: { ...context().run, status: 'in_progress' },
 			} ),
-		( error ) =>
-			error.trunkRunSuperseded === true &&
-			/not terminal/.test( error.message )
+		/** @type {(error: any) => boolean} */ (
+			( error ) =>
+				error.trunkRunSuperseded === true &&
+				/not terminal/.test( error.message )
+		)
 	);
 	assert.throws(
 		() =>
@@ -204,9 +212,11 @@ test( 'supersession races are marked distinctly from identity failures', () => {
 				...context(),
 				run: { ...context().run, head_branch: 'main' },
 			} ),
-		( error ) =>
-			error.trunkRunSuperseded === undefined &&
-			/workflow identity/.test( error.message )
+		/** @type {(error: any) => boolean} */ (
+			( error ) =>
+				error.trunkRunSuperseded === undefined &&
+				/workflow identity/.test( error.message )
+		)
 	);
 	assert.throws(
 		() =>
@@ -214,7 +224,9 @@ test( 'supersession races are marked distinctly from identity failures', () => {
 				...context(),
 				latestRun: { ...context().run, id: 999 },
 			} ),
-		( error ) => error.trunkRunSuperseded === true
+		/** @type {(error: any) => boolean} */ (
+			( error ) => error.trunkRunSuperseded === true
+		)
 	);
 } );
 
@@ -240,7 +252,8 @@ test( 'the trunk handoff accepts only a passed exact-run candidate', () => {
 		).kind,
 		'failed'
 	);
-	for ( const [ name, value, error ] of [
+	/** @type {Array<[string, any, RegExp]>} */
+	const invalidFields = [
 		[ 'pullRequestNumber', 123, /trunk run/ ],
 		[ 'sourceSha', 'c'.repeat( 40 ), /trunk run/ ],
 		[ 'workflowRunAttempt', 1, /trunk run/ ],
@@ -248,7 +261,8 @@ test( 'the trunk handoff accepts only a passed exact-run candidate', () => {
 		[ 'dependencyManifestDigest', 'broken', /dependency identity/ ],
 		[ 'snapshotFilename', 'snapshot.zip', /filename/ ],
 		[ 'snapshotBytes', 104857601, /snapshot identity/ ],
-	] ) {
+	];
+	for ( const [ name, value, error ] of invalidFields ) {
 		assert.throws(
 			() =>
 				inspectTrunkHandoff(
@@ -297,16 +311,17 @@ test( 'the public Blueprint must arrive intact through the Playground proxy', as
 		)
 	);
 	const publicUrl = trunkStableBlueprintUrl( repository );
-	const fetchImplementation = async ( url, options ) => {
-		assert.equal( url, corsProxyUrl( publicUrl ) );
-		assert.equal( options.headers.Origin, PLAYGROUND_ORIGIN );
-		return {
-			status: 200,
-			headers: headers(),
-			arrayBuffer: async () =>
-				Buffer.from( `${ JSON.stringify( expected ) }\n` ),
+	const fetchImplementation =
+		/** @param {string} url @param {Record<string, any>} options */ async ( url, options ) => {
+			assert.equal( url, corsProxyUrl( publicUrl ) );
+			assert.equal( options.headers.Origin, PLAYGROUND_ORIGIN );
+			return {
+				status: 200,
+				headers: headers(),
+				arrayBuffer: async () =>
+					Buffer.from( `${ JSON.stringify( expected ) }\n` ),
+			};
 		};
-	};
 	assert.deepEqual(
 		await validatePublicBlueprint(
 			publicUrl,

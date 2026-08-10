@@ -7,10 +7,16 @@ import { PLAYGROUND_SERVER_WORKERS } from './playground.mjs';
 
 const BANNER_ID = 'wporg-code-reference-preview-provenance';
 
+/**
+ * @param {string} resourcePath
+ */
 function bundled( resourcePath ) {
 	return { resource: 'bundled', path: resourcePath };
 }
 
+/**
+ * @param {Record<string, any>} inputs
+ */
 export function createValidationBlueprint( inputs ) {
 	return {
 		$schema: inputs.dependencies.playground.blueprintSchema,
@@ -31,6 +37,9 @@ export function createValidationBlueprint( inputs ) {
 	};
 }
 
+/**
+ * @param {number} milliseconds
+ */
 function delay( milliseconds ) {
 	return new Promise( ( resolve ) => setTimeout( resolve, milliseconds ) );
 }
@@ -39,13 +48,21 @@ async function availablePort() {
 	const server = createServer();
 	await new Promise( ( resolve, reject ) => {
 		server.once( 'error', reject );
-		server.listen( 0, '127.0.0.1', resolve );
+		server.listen( 0, '127.0.0.1', () => resolve( undefined ) );
 	} );
-	const port = server.address().port;
+	const address = server.address();
+	if ( ! address || typeof address === 'string' ) {
+		throw new Error( 'Validation server did not bind a TCP port.' );
+	}
+	const port = address.port;
 	await new Promise( ( resolve ) => server.close( resolve ) );
 	return port;
 }
 
+/**
+ * @param {string} command
+ * @param {string[]} args
+ */
 function startServer( command, args ) {
 	const child = spawn( command, args, {
 		stdio: [ 'ignore', 'pipe', 'pipe' ],
@@ -64,6 +81,12 @@ function startServer( command, args ) {
 	return { child, closed, output: () => output };
 }
 
+/**
+ * @param {Record<string, any>} inputs
+ * @param {string} blueprint
+ * @param {string} baseUrl
+ * @param {number} port
+ */
 export function createValidationServerArguments(
 	inputs,
 	blueprint,
@@ -90,6 +113,9 @@ export function createValidationServerArguments(
 	];
 }
 
+/**
+ * @param {Record<string, any>} server
+ */
 async function stopServer( server ) {
 	if ( server.child.exitCode !== null || server.child.signalCode !== null ) {
 		return;
@@ -105,6 +131,11 @@ async function stopServer( server ) {
 	}
 }
 
+/**
+ * @param {string} baseUrl
+ * @param {Record<string, any>} server
+ * @param {(...args: any[]) => any} fetchImplementation
+ */
 async function waitForBoot( baseUrl, server, fetchImplementation ) {
 	const deadline = Date.now() + 120000;
 	while ( Date.now() < deadline ) {
@@ -135,6 +166,11 @@ async function waitForBoot( baseUrl, server, fetchImplementation ) {
 	);
 }
 
+/**
+ * @param {Record<string, any>} inputs
+ * @param {Record<string, any>} options
+ * @param {(...args: any[]) => any} inspect
+ */
 async function withPlaygroundServer( inputs, options, inspect ) {
 	const work = path.resolve( options.workDirectory );
 	await rm( work, { recursive: true, force: true } );
@@ -160,6 +196,10 @@ async function withPlaygroundServer( inputs, options, inspect ) {
 	}
 }
 
+/**
+ * @param {Record<string, any>} actual
+ * @param {Record<string, any>} expected
+ */
 function provenanceFailure( actual, expected ) {
 	for ( const name of [
 		'sourceRepository',
@@ -174,6 +214,12 @@ function provenanceFailure( actual, expected ) {
 	return null;
 }
 
+/**
+ * @param {string} name
+ * @param {string} body
+ * @param {Record<string, any>} provenance
+ * @param {any[]} failures
+ */
 function checkBanner( name, body, provenance, failures ) {
 	const timestamp = provenance.generationTimestamp
 		.slice( 0, 19 )
@@ -196,10 +242,15 @@ function checkBanner( name, body, provenance, failures ) {
 	}
 }
 
+/**
+ * @param {Record<string, any>} inputs
+ * @param {Record<string, any>} options
+ */
 export async function inspectSnapshotBehavior( inputs, options ) {
 	const failures = [];
+	/** @type {Record<string, number>} */
 	const checks = {};
-	const request = async ( route ) => {
+	const request = /** @param {string} route */ async ( route ) => {
 		const response = await options.fetchImplementation(
 			`${ options.baseUrl }${ route }`
 		);
@@ -219,7 +270,11 @@ export async function inspectSnapshotBehavior( inputs, options ) {
 			failures.push( `Health route returned HTTP ${ response.status }.` );
 		}
 	} catch ( error ) {
-		failures.push( `Health route failed: ${ error.message }` );
+		failures.push(
+			`Health route failed: ${
+				error instanceof Error ? error.message : String( error )
+			}`
+		);
 	}
 	if ( health ) {
 		const mismatch = provenanceFailure(
@@ -276,7 +331,11 @@ export async function inspectSnapshotBehavior( inputs, options ) {
 			}
 			checkBanner( name, response.body, options.provenance, failures );
 		} catch ( error ) {
-			failures.push( `${ name } route failed: ${ error.message }` );
+			failures.push(
+				`${ name } route failed: ${
+					error instanceof Error ? error.message : String( error )
+				}`
+			);
 		}
 	}
 
@@ -296,7 +355,9 @@ export async function inspectSnapshotBehavior( inputs, options ) {
 		checkBanner( 'search', response.body, options.provenance, failures );
 	} catch ( error ) {
 		failures.push(
-			`Local Code Reference search failed: ${ error.message }`
+			`Local Code Reference search failed: ${
+				error instanceof Error ? error.message : String( error )
+			}`
 		);
 	}
 
@@ -306,12 +367,19 @@ export async function inspectSnapshotBehavior( inputs, options ) {
 	return { failures, checks };
 }
 
+/**
+ * @param {Record<string, any>} inputs
+ * @param {Record<string, any>} options
+ */
 export async function validateSnapshot( inputs, options ) {
 	const fetchImplementation = options.fetchImplementation || globalThis.fetch;
 	try {
 		return await ( options.serveImplementation || withPlaygroundServer )(
 			inputs,
 			{ ...options, fetchImplementation },
+			/**
+			 * @param {string} baseUrl
+			 */
 			( baseUrl ) =>
 				inspectSnapshotBehavior( inputs, {
 					...options,
@@ -321,7 +389,11 @@ export async function validateSnapshot( inputs, options ) {
 		);
 	} catch ( error ) {
 		return {
-			failures: [ `Playground boot failed: ${ error.message }` ],
+			failures: [
+				`Playground boot failed: ${
+					error instanceof Error ? error.message : String( error )
+				}`,
+			],
 			checks: {},
 		};
 	}

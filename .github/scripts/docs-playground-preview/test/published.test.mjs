@@ -65,6 +65,9 @@ function published() {
 	};
 }
 
+/**
+ * @param {Record<string, any>} metadata
+ */
 function assets( metadata ) {
 	return {
 		metadataAsset: {
@@ -84,17 +87,23 @@ function assets( metadata ) {
 }
 
 function headers() {
+	/** @type {Record<string, string>} */
+	const values = {
+		'x-playground-cors-proxy': 'true',
+		'access-control-allow-origin': PLAYGROUND_ORIGIN,
+	};
 	return {
-		get: ( name ) =>
-			( {
-				'x-playground-cors-proxy': 'true',
-				'access-control-allow-origin': PLAYGROUND_ORIGIN,
-			} )[ name.toLowerCase() ] || null,
+		get: /** @param {string} name */ ( name ) =>
+			values[ name.toLowerCase() ] || null,
 	};
 }
 
+/**
+ * @param {Record<string, any>} metadata
+ * @param {Record<string, any>} metadataAsset
+ */
 function publicFetch( metadata, metadataAsset ) {
-	return async ( url ) => {
+	return /** @param {string} url */ async ( url ) => {
 		if ( url === metadataAsset.browser_download_url ) {
 			return { status: 200, json: async () => metadata };
 		}
@@ -162,7 +171,7 @@ test( 'a published preview rejects invalid pointer identity and proxy bytes', as
 			{
 				sourceRepository,
 				sourceSha,
-				fetchImplementation: async ( url ) => {
+				fetchImplementation: /** @param {string} url */ async ( url ) => {
 					if ( url === metadataAsset.browser_download_url ) {
 						return { status: 200, json: async () => metadata };
 					}
@@ -188,12 +197,14 @@ test( 'previous-preview discovery skips broken and excluded assets', async () =>
 		browser_download_url: 'https://github.com/metadata/broken.json',
 		created_at: '2026-08-09T12:36:00Z',
 	};
+	/** @type {any[]} */
 	const warnings = [];
 	const session = {
 		repository,
 		context: { pullRequestNumber },
-		warning: ( message ) => warnings.push( message ),
-		fetchImplementation: async ( url ) => {
+		warning: /** @param {string} message */ ( message ) =>
+			warnings.push( message ),
+		fetchImplementation: /** @param {string} url */ async ( url ) => {
 			if ( url === broken.browser_download_url ) {
 				return { status: 404 };
 			}

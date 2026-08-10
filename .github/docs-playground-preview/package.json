@@ -9,12 +9,16 @@
 	},
 	"scripts": {
 		"build": "node ../scripts/docs-playground-preview/build.mjs",
-		"test": "node --test ../scripts/docs-playground-preview/test/*.test.mjs"
+		"test": "node --test ../scripts/docs-playground-preview/test/*.test.mjs",
+		"typecheck": "tsc --build tsconfig.json"
 	},
 	"dependencies": {
 		"@wordpress/i18n": "6.24.0",
 		"@wordpress/scripts": "32.6.0",
 		"@wp-playground/cli": "3.1.48",
 		"yarn": "1.22.22"
+	},
+	"devDependencies": {
+		"typescript": "^6.0.3"
 	}
 }

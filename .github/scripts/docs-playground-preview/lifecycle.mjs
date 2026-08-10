@@ -17,6 +17,9 @@ const CACHE_PREFIX = 'docs-preview-base-';
 
 class LifecycleSuperseded extends Error {}
 
+/**
+ * @param {unknown} body
+ */
 function isTerminalComment( body ) {
 	return (
 		typeof body === 'string' &&
@@ -25,6 +28,10 @@ function isTerminalComment( body ) {
 	);
 }
 
+/**
+ * @param {unknown} value
+ * @param {string} label
+ */
 function positiveInteger( value, label ) {
 	const number = Number( value );
 	if ( ! Number.isSafeInteger( number ) || number < 1 ) {
@@ -33,6 +40,9 @@ function positiveInteger( value, label ) {
 	return number;
 }
 
+/**
+ * @param {Record<string, any>} options
+ */
 function lifecycleContext( options ) {
 	if (
 		! isDeploymentEnabled( options.repository, options.stagingVariable )
@@ -68,6 +78,12 @@ function lifecycleContext( options ) {
 	};
 }
 
+/**
+ * @param {Record<string, any>} context
+ * @param {Record<string, any>} pullRequest
+ * @param {string} state
+ * @param {boolean} labelMustBeAbsent
+ */
 function assertCurrent( context, pullRequest, state, labelMustBeAbsent ) {
 	if (
 		pullRequest.number !== context.pullRequestNumber ||
@@ -78,6 +94,9 @@ function assertCurrent( context, pullRequest, state, labelMustBeAbsent ) {
 			pullRequest.head.repo?.full_name !== context.sourceRepository ) ||
 		( labelMustBeAbsent &&
 			pullRequest.labels?.some(
+				/**
+				 * @param {Record<string, any>} label
+				 */
 				( label ) => label.name === 'docs-preview'
 			) )
 	) {
@@ -86,6 +105,9 @@ function assertCurrent( context, pullRequest, state, labelMustBeAbsent ) {
 	return pullRequest;
 }
 
+/**
+ * @param {Record<string, any>} options
+ */
 function sessionFrom( options ) {
 	const context = lifecycleContext( options );
 	const api =
@@ -95,7 +117,14 @@ function sessionFrom( options ) {
 			options.token,
 			options.fetchImplementation
 		);
-	const authorize = async ( state, labelMustBeAbsent = false ) => {
+	/** @type {(message: string) => unknown} */
+	const warning =
+		options.warning ||
+		( ( message ) => process.stderr.write( `${ message }\n` ) );
+	const authorize = /** @param {string} state */ async (
+		state,
+		labelMustBeAbsent = false
+	) => {
 		const pullRequest = await api.getPullRequest(
 			context.pullRequestNumber
 		);
@@ -107,7 +136,9 @@ function sessionFrom( options ) {
 				labelMustBeAbsent
 			);
 		} catch ( error ) {
-			throw new LifecycleSuperseded( error.message );
+			throw new LifecycleSuperseded(
+				error instanceof Error ? error.message : String( error )
+			);
 		}
 	};
 	return {
@@ -115,13 +146,15 @@ function sessionFrom( options ) {
 		context,
 		repository: options.repository,
 		fetchImplementation: options.fetchImplementation || globalThis.fetch,
-		warning:
-			options.warning ||
-			( ( message ) => process.stderr.write( `${ message }\n` ) ),
+		warning,
 		authorize,
 	};
 }
 
+/**
+ * @param {Record<string, any>} session
+ * @param {Record<string, any>} expectedComment
+ */
 async function authorizeStaleMutation( session, expectedComment ) {
 	await session.authorize( 'open', true );
 	const currentComment = await session.api.findPreviewComment(
@@ -137,6 +170,9 @@ async function authorizeStaleMutation( session, expectedComment ) {
 	}
 }
 
+/**
+ * @param {Record<string, any>} session
+ */
 async function markStale( session ) {
 	try {
 		return await markStaleAuthorized( session );
@@ -148,6 +184,9 @@ async function markStale( session ) {
 	}
 }
 
+/**
+ * @param {Record<string, any>} session
+ */
 async function markStaleAuthorized( session ) {
 	await session.authorize( 'open', true );
 	const comment = await session.api.findPreviewComment(
@@ -160,7 +199,7 @@ async function markStaleAuthorized( session ) {
 	if (
 		isTerminalComment( comment.body ) &&
 		commentSource?.repository === session.context.sourceRepository &&
-		commentSource.sha === session.context.sourceSha
+		commentSource?.sha === session.context.sourceSha
 	) {
 		return { status: 'ignored' };
 	}
@@ -199,6 +238,9 @@ async function markStaleAuthorized( session ) {
 	return { status: 'stale' };
 }
 
+/**
+ * @param {any[]} operations
+ */
 async function settle( operations ) {
 	const errors = [];
 	for ( const operation of operations ) {
@@ -214,6 +256,9 @@ async function settle( operations ) {
 	return { errors, superseded: false };
 }
 
+/**
+ * @param {Record<string, any>} session
+ */
 async function expire( session ) {
 	try {
 		await session.authorize( 'closed' );
@@ -227,11 +272,17 @@ async function expire( session ) {
 	const prefix = `code-reference-pr-${ session.context.pullRequestNumber }-`;
 	const assets = release
 		? ( await session.api.listReleaseAssets( release.id ) ).filter(
+				/**
+				 * @param {Record<string, any>} asset
+				 */
 				( asset ) => asset.name.startsWith( prefix )
 		  )
 		: [];
 	const cacheRef = `refs/pull/${ session.context.pullRequestNumber }/merge`;
 	const caches = ( await session.api.listActionCaches( cacheRef ) ).filter(
+		/**
+		 * @param {Record<string, any>} cache
+		 */
 		( cache ) =>
 			cache.ref === cacheRef && cache.key.startsWith( CACHE_PREFIX )
 	);
@@ -239,17 +290,22 @@ async function expire( session ) {
 		session.context.pullRequestNumber
 	);
 	const assetCleanup = await settle(
-		assets.map( ( asset ) => async () => {
-			await session.authorize( 'closed' );
-			await session.api.deleteReleaseAsset( asset.id );
-		} )
+		assets.map(
+			/** @param {Record<string, any>} asset */ ( asset ) => async () => {
+				await session.authorize( 'closed' );
+				await session.api.deleteReleaseAsset( asset.id );
+			}
+		)
 	);
 	const cacheCleanup = await settle(
-		caches.map( ( cache ) => async () => {
-			await session.authorize( 'closed' );
-			await session.api.deleteActionCache( cache.id );
-		} )
+		caches.map(
+			/** @param {Record<string, any>} cache */ ( cache ) => async () => {
+				await session.authorize( 'closed' );
+				await session.api.deleteActionCache( cache.id );
+			}
+		)
 	);
+	/** @type {{errors: unknown[], superseded: boolean}} */
 	let commentCleanup = { errors: [], superseded: false };
 	if (
 		comment &&
@@ -288,6 +344,9 @@ async function expire( session ) {
 	};
 }
 
+/**
+ * @param {Record<string, any>} options
+ */
 export async function managePullRequest( options ) {
 	const session = sessionFrom( options );
 	return session.context.action === 'synchronize'
@@ -296,7 +355,11 @@ export async function managePullRequest( options ) {
 }
 
 async function main() {
-	const event = JSON.parse( await readFile( process.env.GITHUB_EVENT_PATH ) );
+	const eventPath = process.env.GITHUB_EVENT_PATH;
+	if ( ! eventPath ) {
+		throw new Error( 'GITHUB_EVENT_PATH is required.' );
+	}
+	const event = JSON.parse( await readFile( eventPath, 'utf8' ) );
 	const result = await managePullRequest( {
 		repository: process.env.GITHUB_REPOSITORY,
 		stagingVariable: process.env.DOCS_PREVIEW_STAGING,

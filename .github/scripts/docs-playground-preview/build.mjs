@@ -24,6 +24,11 @@ const TOOLING_ROOT = path.join(
 const FULL_COMMIT = /^[0-9a-f]{40}$/;
 const REPOSITORY = /^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/;
 
+/**
+ * @param {string[]} args
+ * @param {number} index
+ * @param {string} name
+ */
 function argumentValue( args, index, name ) {
 	const value = args[ index + 1 ];
 	if ( ! value || value.startsWith( '--' ) ) {
@@ -32,7 +37,11 @@ function argumentValue( args, index, name ) {
 	return value;
 }
 
+/**
+ * @param {string[]} args
+ */
 export function parseArguments( args, environment = process.env ) {
+	/** @type {Record<string, string | boolean>} */
 	const values = {};
 	for ( let index = 0; index < args.length; index++ ) {
 		const name = args[ index ];
@@ -45,7 +54,11 @@ export function parseArguments( args, environment = process.env ) {
 		}
 		const key = name
 			.slice( 2 )
-			.replace( /-([a-z])/g, ( _, letter ) => letter.toUpperCase() );
+			.replace(
+				/-([a-z])/g,
+				/** @param {string} _ @param {string} letter */ ( _, letter ) =>
+					letter.toUpperCase()
+			);
 		if (
 			! [
 				'source',
@@ -75,6 +88,10 @@ export function parseArguments( args, environment = process.env ) {
 	};
 }
 
+/**
+ * @param {unknown} value
+ * @param {string} label
+ */
 function positiveInteger( value, label, nullable = true ) {
 	if (
 		( value === undefined || value === null || value === '' ) &&
@@ -89,6 +106,9 @@ function positiveInteger( value, label, nullable = true ) {
 	return number;
 }
 
+/**
+ * @param {string} remote
+ */
 function githubRepository( remote ) {
 	const match = remote
 		.trim()
@@ -98,6 +118,10 @@ function githubRepository( remote ) {
 	return match?.[ 1 ] || null;
 }
 
+/**
+ * @param {string} source
+ * @param {(...args: any[]) => any} runImplementation
+ */
 async function gitIdentity( source, runImplementation ) {
 	const sha = await runImplementation( 'git', [ 'rev-parse', 'HEAD' ], {
 		cwd: source,
@@ -121,6 +145,11 @@ async function gitIdentity( source, runImplementation ) {
 	};
 }
 
+/**
+ * @param {Record<string, any>} raw
+ * @param {Record<string, any>} implementations
+ * @returns {Promise<Record<string, any>>}
+ */
 async function normalizeOptions( raw, implementations ) {
 	const workspace = path.join(
 		REPOSITORY_ROOT,
@@ -174,6 +203,9 @@ async function normalizeOptions( raw, implementations ) {
 	};
 }
 
+/**
+ * @param {Record<string, any>} implementations
+ */
 async function ensureNodeTools( implementations ) {
 	const playgroundCli = path.join(
 		TOOLING_ROOT,
@@ -189,6 +221,10 @@ async function ensureNodeTools( implementations ) {
 	return playgroundCli;
 }
 
+/**
+ * @param {Record<string, any>} inputs
+ * @param {Record<string, any>} [options]
+ */
 export async function verifyToolchain( inputs, options = {} ) {
 	const runImplementation = options.runImplementation || run;
 	const expected = inputs.dependencies.toolchain;
@@ -228,6 +264,15 @@ export async function verifyToolchain( inputs, options = {} ) {
 	}
 }
 
+/**
+ * @param {Record<string, any>} options
+ * @param {Record<string, any>} inputs
+ * @param {Record<string, any>} base
+ * @param {Record<string, any>} parser
+ * @param {Record<string, any>} snapshot
+ * @param {Record<string, any>} validation
+ * @param {string} generationTimestamp
+ */
 export function createBuildMetadata(
 	options,
 	inputs,
@@ -266,6 +311,12 @@ export function createBuildMetadata(
 	};
 }
 
+/**
+ * @param {Record<string, any>} options
+ * @param {Record<string, any>} inputs
+ * @param {unknown} error
+ * @param {string} generationTimestamp
+ */
 export function createFailureMetadata(
 	options,
 	inputs,
@@ -290,10 +341,14 @@ export function createFailureMetadata(
 		validationStatus: 'not-run',
 		validationFailures: [],
 		generationTimestamp,
-		buildError: error.message,
+		buildError: error instanceof Error ? error.message : String( error ),
 	};
 }
 
+/**
+ * @param {string} filename
+ * @param {unknown} value
+ */
 async function writeJson( filename, value ) {
 	await mkdir( path.dirname( filename ), { recursive: true } );
 	await writeFile( filename, `${ JSON.stringify( value, null, 2 ) }\n` );
@@ -311,6 +366,10 @@ const DEFAULT_IMPLEMENTATIONS = {
 	verifyToolchain,
 };
 
+/**
+ * @param {Record<string, any>} rawOptions
+ * @returns {Promise<Record<string, any>>}
+ */
 export async function buildCodeReferencePreview( rawOptions, overrides = {} ) {
 	const implementations = { ...DEFAULT_IMPLEMENTATIONS, ...overrides };
 	const options = await normalizeOptions( rawOptions, implementations );

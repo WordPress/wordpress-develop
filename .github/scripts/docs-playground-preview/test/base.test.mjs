@@ -15,6 +15,9 @@ import {
 import { zipDirectory } from '../lib/archive.mjs';
 import { run } from '../lib/process.mjs';
 
+/**
+ * @param {string} cacheDirectory
+ */
 function inputs( cacheDirectory ) {
 	return {
 		cacheKey: 'docs-preview-base-v1-' + 'a'.repeat( 64 ),
@@ -42,12 +45,22 @@ function inputs( cacheDirectory ) {
 	};
 }
 
+/**
+ * @param {string | Uint8Array} bytes
+ */
 function sha256( bytes ) {
 	return createHash( 'sha256' ).update( bytes ).digest( 'hex' );
 }
 
+/**
+ * @param {string | Uint8Array} bytes
+ * @param {Record<string, number>} downloads
+ */
 function fakeComposerDownload( bytes, downloads ) {
-	return async ( command, args ) => {
+	return /** @param {string} command @param {string[]} args */ async (
+		command,
+		args
+	) => {
 		downloads.count++;
 		await writeFile( args[ args.indexOf( '--output' ) + 1 ], bytes );
 	};
@@ -61,14 +74,16 @@ test( 'the invariant Blueprint installs dependencies without importing source', 
 	} );
 	assert.deepEqual( blueprint.features, { networking: false } );
 	assert.equal( blueprint.login, false );
+	/** @type {any[]} */
+	const steps = blueprint.steps;
 	assert.equal(
-		blueprint.steps.some( ( step ) =>
+		steps.some( ( step ) =>
 			/import|reference\.json/.test( JSON.stringify( step ) )
 		),
 		false
 	);
 	assert.deepEqual(
-		blueprint.steps
+		steps
 			.filter( ( step ) => step.step === 'installTheme' )
 			.map( ( step ) => step.themeData.path ),
 		[ 'bundles/wporg-parent-2021.zip', 'bundles/wporg-developer-2023.zip' ]
@@ -195,21 +210,22 @@ test( 'the invariant base marker is written last and enables exact reuse', async
 	);
 	const resolved = inputs( path.join( cache, 'entry' ) );
 	let builds = 0;
-	const buildImplementation = async ( current ) => {
-		builds++;
-		await writeFile(
-			path.join( current.cacheDirectory, 'base.zip' ),
-			'base'
-		);
-		await mkdir( path.join( current.cacheDirectory, 'parser' ) );
-		await writeFile(
-			path.join(
-				current.cacheDirectory,
-				'parser/generate-json-manually.php'
-			),
-			'<?php'
-		);
-	};
+	const buildImplementation =
+		/** @param {Record<string, any>} current */ async ( current ) => {
+			builds++;
+			await writeFile(
+				path.join( current.cacheDirectory, 'base.zip' ),
+				'base'
+			);
+			await mkdir( path.join( current.cacheDirectory, 'parser' ) );
+			await writeFile(
+				path.join(
+					current.cacheDirectory,
+					'parser/generate-json-manually.php'
+				),
+				'<?php'
+			);
+		};
 	const cold = await ensureInvariantBase( resolved, { buildImplementation } );
 	assert.equal( cold.cacheHit, false );
 	assert.equal( builds, 1 );

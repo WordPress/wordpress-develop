@@ -31,12 +31,36 @@ const TRUNK_POINTER_BRANCH = TRUNK_POINTER_REF.replace( /^heads\//, '' );
 const TRUNK_GENERATION_ASSET =
 	/^(code-reference-trunk-[0-9a-f]{40}-(\d+)-(\d+))\.(?:zip|json)$/;
 
+/**
+ * @param {unknown} error
+ */
+function errorMessage( error ) {
+	return error instanceof Error ? error.message : String( error );
+}
+
+/**
+ * @param {unknown} error
+ * @param {string} property
+ */
+function errorFlag( error, property ) {
+	return (
+		error instanceof Error &&
+		/** @type {any} */ ( error )[ property ] === true
+	);
+}
+
+/**
+ * @param {string} directory
+ */
 async function readHandoff( directory ) {
 	return JSON.parse(
 		await readFile( path.join( directory, 'build.json' ), 'utf8' )
 	);
 }
 
+/**
+ * @param {Record<string, any>} options
+ */
 async function establishSession( options ) {
 	const api =
 		options.api ||
@@ -54,18 +78,21 @@ async function establishSession( options ) {
 		run,
 	};
 	const context = validateTrunkPublicationContext( base );
+	/** @type {(message: string) => unknown} */
 	const notice =
 		options.notice ||
 		( ( message ) => process.stdout.write( `${ message }\n` ) );
+	/** @type {(message: string) => unknown} */
+	const warning =
+		options.warning ||
+		( ( message ) => process.stderr.write( `${ message }\n` ) );
 	let staleHeadReported = false;
 	return {
 		api,
 		context,
 		repository: options.repository,
 		fetchImplementation: options.fetchImplementation || globalThis.fetch,
-		warning:
-			options.warning ||
-			( ( message ) => process.stderr.write( `${ message }\n` ) ),
+		warning,
 		now: options.now || ( () => new Date().toISOString() ),
 		handoffDirectory: path.resolve( options.handoffDirectory ),
 		authorize: async () => {
@@ -81,7 +108,7 @@ async function establishSession( options ) {
 					trunkHeadSha,
 				} );
 			} catch ( error ) {
-				throw new SupersededTrunkRun( error.message );
+				throw new SupersededTrunkRun( errorMessage( error ) );
 			}
 			if ( trunkHeadSha !== current.sourceSha && ! staleHeadReported ) {
 				staleHeadReported = true;
@@ -94,6 +121,9 @@ async function establishSession( options ) {
 	};
 }
 
+/**
+ * @param {Record<string, any>} session
+ */
 async function ensureRelease( session ) {
 	let release = await session.api.getRelease();
 	if ( release ) {
@@ -111,6 +141,11 @@ async function ensureRelease( session ) {
 	return release;
 }
 
+/**
+ * @param {Record<string, any>} session
+ * @param {Record<string, any>} asset
+ * @param {Record<string, any>} expected
+ */
 async function validatePublicMetadata( session, asset, expected ) {
 	const response = await session.fetchImplementation(
 		asset.browser_download_url
@@ -133,6 +168,10 @@ async function validatePublicMetadata( session, asset, expected ) {
 	return metadata;
 }
 
+/**
+ * @param {Record<string, any>} session
+ * @param {Record<string, any>} expected
+ */
 async function validateStablePointerContent( session, expected ) {
 	// The raw CDN caches the branch-path Blueprint for minutes, so the
 	// post-move read-back must use the authoritative contents API instead.
@@ -158,22 +197,36 @@ async function validateStablePointerContent( session, expected ) {
 	return blueprint;
 }
 
+/**
+ * @param {Record<string, any>} session
+ * @param {any[]} uploaded
+ */
 async function cleanupUploaded( session, uploaded ) {
 	for ( const asset of uploaded ) {
 		try {
 			await session.api.deleteReleaseAsset( asset.id );
 		} catch ( error ) {
 			session.warning(
-				`Cannot remove failed trunk candidate ${ asset.name }: ${ error.message }`
+				`Cannot remove failed trunk candidate ${
+					asset.name
+				}: ${ errorMessage( error ) }`
 			);
 		}
 	}
 }
 
+/**
+ * @param {Record<string, any> | null} reference
+ */
 function referenceSha( reference ) {
 	return reference?.object?.sha || null;
 }
 
+/**
+ * @param {Record<string, any>} session
+ * @param {Record<string, any>} previousRef
+ * @param {Record<string, any>} blueprint
+ */
 async function createPointerCommit( session, previousRef, blueprint ) {
 	const content = `${ JSON.stringify( blueprint, null, 2 ) }\n`;
 	await session.authorize();
@@ -197,6 +250,11 @@ async function createPointerCommit( session, previousRef, blueprint ) {
 	return commit;
 }
 
+/**
+ * @param {Record<string, any>} session
+ * @param {string} previousSha
+ * @param {string} candidateSha
+ */
 async function resolvePointerMutation( session, previousSha, candidateSha ) {
 	let current;
 	try {
@@ -204,8 +262,10 @@ async function resolvePointerMutation( session, previousSha, candidateSha ) {
 			await session.api.getGitReference( TRUNK_POINTER_REF )
 		);
 	} catch ( error ) {
-		error.pointerStateUnknown = true;
-		throw error;
+		throw Object.assign(
+			error instanceof Error ? error : new Error( String( error ) ),
+			{ pointerStateUnknown: true }
+		);
 	}
 	if ( current === candidateSha ) {
 		return true;
@@ -213,11 +273,18 @@ async function resolvePointerMutation( session, previousSha, candidateSha ) {
 	if ( current === previousSha ) {
 		return false;
 	}
-	const error = new Error( 'The stable trunk pointer has unknown state.' );
-	error.pointerStateUnknown = true;
-	throw error;
+	throw Object.assign(
+		new Error( 'The stable trunk pointer has unknown state.' ),
+		{ pointerStateUnknown: true }
+	);
 }
 
+/**
+ * @param {Record<string, any>} session
+ * @param {Record<string, any>} previousRef
+ * @param {Record<string, any>} commit
+ * @param {Record<string, any>} transaction
+ */
 async function moveStablePointer( session, previousRef, commit, transaction ) {
 	const previousSha = referenceSha( previousRef );
 	let mutationError = null;
@@ -243,15 +310,23 @@ async function moveStablePointer( session, previousRef, commit, transaction ) {
 		commit.sha
 	);
 	if ( ! moved ) {
-		const error =
-			mutationError ||
-			new Error( 'The stable trunk pointer mutation has unknown state.' );
-		error.pointerStateUnknown = true;
-		throw error;
+		throw Object.assign(
+			mutationError instanceof Error
+				? mutationError
+				: new Error(
+						'The stable trunk pointer mutation has unknown state.'
+				  ),
+			{ pointerStateUnknown: true }
+		);
 	}
 	transaction.pointerPublished = true;
 }
 
+/**
+ * @param {Record<string, any>} session
+ * @param {Record<string, any>} release
+ * @param {Set<number>} keepIds
+ */
 async function cleanupOldTrunkAssets( session, release, keepIds ) {
 	const assets = await session.api.listReleaseAssets( release.id );
 	const generations = new Map();
@@ -284,6 +359,12 @@ async function cleanupOldTrunkAssets( session, release, keepIds ) {
 	}
 }
 
+/**
+ * @param {Record<string, any>} session
+ * @param {Record<string, any>} metadata
+ * @param {any[]} uploaded
+ * @param {Record<string, any>} transaction
+ */
 async function publishCandidate( session, metadata, uploaded, transaction ) {
 	const candidateFile = path.join(
 		session.handoffDirectory,
@@ -346,16 +427,20 @@ async function publishCandidate( session, metadata, uploaded, transaction ) {
 	return { status: 'ready', published, pointerCommit: pointerCommit.sha };
 }
 
+/**
+ * @param {Record<string, any>} options
+ */
 export async function publishTrunk( options ) {
 	let session;
 	try {
 		session = await establishSession( options );
 	} catch ( error ) {
-		if ( error.trunkRunSuperseded === true ) {
+		if ( errorFlag( error, 'trunkRunSuperseded' ) ) {
 			return { status: 'superseded' };
 		}
 		throw error;
 	}
+	/** @type {any[]} */
 	const uploaded = [];
 	const transaction = { pointerPublished: false };
 	try {
@@ -380,12 +465,15 @@ export async function publishTrunk( options ) {
 			transaction
 		);
 	} catch ( error ) {
-		if ( ! transaction.pointerPublished && ! error.pointerStateUnknown ) {
+		if (
+			! transaction.pointerPublished &&
+			! errorFlag( error, 'pointerStateUnknown' )
+		) {
 			await cleanupUploaded( session, uploaded );
 		}
 		if (
 			error instanceof SupersededTrunkRun ||
-			error.trunkRunSuperseded === true
+			errorFlag( error, 'trunkRunSuperseded' )
 		) {
 			return { status: 'superseded' };
 		}
@@ -393,10 +481,16 @@ export async function publishTrunk( options ) {
 	}
 }
 
+/**
+ * @param {Record<string, any>} result
+ * @param {string | undefined} enforcementVariable
+ * @param {(message: string) => unknown} annotate
+ */
 export function enforceTrunkValidationResult(
 	result,
 	enforcementVariable,
-	annotate = ( message ) => process.stdout.write( `${ message }\n` )
+	annotate = /** @param {string} message */ ( message ) =>
+		process.stdout.write( `${ message }\n` )
 ) {
 	if ( result.status !== 'invalid' ) {
 		return result;
@@ -413,7 +507,11 @@ export function enforceTrunkValidationResult(
 }
 
 async function main() {
-	const event = JSON.parse( await readFile( process.env.GITHUB_EVENT_PATH ) );
+	const eventPath = process.env.GITHUB_EVENT_PATH;
+	if ( ! eventPath ) {
+		throw new Error( 'GITHUB_EVENT_PATH is required.' );
+	}
+	const event = JSON.parse( await readFile( eventPath, 'utf8' ) );
 	const result = enforceTrunkValidationResult(
 		await publishTrunk( {
 			repository: process.env.GITHUB_REPOSITORY,

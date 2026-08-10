@@ -10,6 +10,10 @@ const FULL_COMMIT = /^[0-9a-f]{40}$/;
 const FULL_DIGEST = /^[0-9a-f]{64}$/;
 const REPOSITORY = /^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/;
 
+/**
+ * @param {unknown} value
+ * @param {string} label
+ */
 function positiveInteger( value, label ) {
 	const number = Number( value );
 	if ( ! Number.isSafeInteger( number ) || number < 1 ) {
@@ -18,18 +22,29 @@ function positiveInteger( value, label ) {
 	return number;
 }
 
+/**
+ * @param {string} repository
+ * @param {string} label
+ */
 function assertRepository( repository, label ) {
 	if ( typeof repository !== 'string' || ! REPOSITORY.test( repository ) ) {
 		throw new Error( `${ label } must be an owner/repository.` );
 	}
 }
 
+/**
+ * @param {string} sha
+ * @param {string} label
+ */
 function assertCommit( sha, label ) {
 	if ( typeof sha !== 'string' || ! FULL_COMMIT.test( sha ) ) {
 		throw new Error( `${ label } must be a full lowercase commit hash.` );
 	}
 }
 
+/**
+ * @param {Record<string, any>} identity
+ */
 export function snapshotAssetName( identity ) {
 	const pullRequest = positiveInteger(
 		identity.pullRequestNumber,
@@ -44,6 +59,9 @@ export function snapshotAssetName( identity ) {
 	return `code-reference-pr-${ pullRequest }-${ identity.sourceSha }-${ runId }-${ attempt }.zip`;
 }
 
+/**
+ * @param {string} snapshotName
+ */
 export function metadataAssetName( snapshotName ) {
 	if (
 		typeof snapshotName !== 'string' ||
@@ -54,6 +72,10 @@ export function metadataAssetName( snapshotName ) {
 	return `${ snapshotName.slice( 0, -4 ) }.json`;
 }
 
+/**
+ * @param {string} repository
+ * @param {string} assetName
+ */
 export function releaseAssetUrl( repository, assetName ) {
 	assertRepository( repository, 'repository' );
 	if (
@@ -65,6 +87,9 @@ export function releaseAssetUrl( repository, assetName ) {
 	return `https://github.com/${ repository }/releases/download/${ RELEASE_TAG }/${ assetName }`;
 }
 
+/**
+ * @param {string} publicUrl
+ */
 export function corsProxyUrl( publicUrl ) {
 	const parsed = new URL( publicUrl );
 	if (
@@ -78,6 +103,10 @@ export function corsProxyUrl( publicUrl ) {
 	return `${ CORS_PROXY }${ publicUrl }`;
 }
 
+/**
+ * @param {string} snapshotUrl
+ * @param {Record<string, any>} runtime
+ */
 export function createLaunchBlueprint( snapshotUrl, runtime ) {
 	return {
 		$schema: runtime.blueprintSchema,
@@ -104,6 +133,10 @@ export function createLaunchBlueprint( snapshotUrl, runtime ) {
 	};
 }
 
+/**
+ * @param {string} snapshotUrl
+ * @param {Record<string, any>} runtime
+ */
 export function playgroundUrl( snapshotUrl, runtime ) {
 	const blueprint = JSON.stringify(
 		createLaunchBlueprint( snapshotUrl, runtime )
@@ -113,6 +146,11 @@ export function playgroundUrl( snapshotUrl, runtime ) {
 	) }`;
 }
 
+/**
+ * @param {string} publicUrl
+ * @param {Record<string, any>} expected
+ * @param {(...args: any[]) => Promise<any>} [fetchImplementation]
+ */
 export async function validatePublicSnapshot(
 	publicUrl,
 	expected,
@@ -162,6 +200,10 @@ export async function validatePublicSnapshot(
 	return { bytes: bytes.byteLength, sha256: digest };
 }
 
+/**
+ * @param {Record<string, any>} metadata
+ * @param {Record<string, any>} expected
+ */
 export function validatePublishedSnapshotMetadata( metadata, expected ) {
 	if (
 		! metadata ||
@@ -229,6 +271,10 @@ export function validatePublishedSnapshotMetadata( metadata, expected ) {
 	return metadata;
 }
 
+/**
+ * @param {Record<string, any>} metadata
+ * @param {Record<string, any>} expected
+ */
 export function validateReusableMetadata( metadata, expected ) {
 	validatePublishedSnapshotMetadata( metadata, {
 		...expected,
@@ -250,6 +296,11 @@ export function validateReusableMetadata( metadata, expected ) {
 	return metadata;
 }
 
+/**
+ * @param {Record<string, any>} published
+ * @param {Record<string, any>} identity
+ * @returns {Record<string, any>}
+ */
 export function createReuseHandoff( published, identity ) {
 	validateReusableMetadata( published, {
 		...identity,

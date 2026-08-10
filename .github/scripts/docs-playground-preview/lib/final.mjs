@@ -9,10 +9,17 @@ import { renderRuntimePlugin } from './runtime.mjs';
 const LIBRARY_ROOT = path.dirname( fileURLToPath( import.meta.url ) );
 const PHP_ROOT = path.resolve( LIBRARY_ROOT, '../php' );
 
+/**
+ * @param {string} resourcePath
+ */
 function bundled( resourcePath ) {
 	return { resource: 'bundled', path: resourcePath };
 }
 
+/**
+ * @param {Record<string, any>} inputs
+ * @returns {Record<string, any>}
+ */
 export function createFinalBlueprint( inputs ) {
 	return {
 		$schema: inputs.dependencies.playground.blueprintSchema,
@@ -91,6 +98,10 @@ export function createFinalBlueprint( inputs ) {
 	};
 }
 
+/**
+ * @param {Record<string, any>} inputs
+ * @param {Record<string, any>} options
+ */
 export async function packageFinalSnapshot( inputs, options ) {
 	const work = path.resolve( options.workDirectory );
 	const output = path.resolve( options.output );

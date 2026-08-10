@@ -9,18 +9,28 @@ const EXCLUDED_SOURCE_DIRECTORIES = new Set( [
 	'wp-content/themes',
 ] );
 
+/**
+ * @param {string} filename
+ */
 export async function exists( filename ) {
 	try {
 		await stat( filename );
 		return true;
 	} catch ( error ) {
-		if ( error.code === 'ENOENT' ) {
+		if (
+			error instanceof Error &&
+			'code' in error &&
+			error.code === 'ENOENT'
+		) {
 			return false;
 		}
 		throw error;
 	}
 }
 
+/**
+ * @param {string} candidate
+ */
 export async function findWordPressSourceRoot( candidate ) {
 	const root = path.resolve( candidate );
 	for ( const directory of [ root, path.join( root, 'src' ) ] ) {
@@ -33,6 +43,10 @@ export async function findWordPressSourceRoot( candidate ) {
 	throw new Error( `No WordPress source tree found beneath ${ root }.` );
 }
 
+/**
+ * @param {string} root
+ * @returns {Promise<string[]>}
+ */
 async function listFiles( root, relative = '' ) {
 	const files = [];
 	const entries = await readdir( path.join( root, relative ), {
@@ -51,6 +65,10 @@ async function listFiles( root, relative = '' ) {
 	return files;
 }
 
+/**
+ * @param {string} root
+ * @param {(relative: string) => boolean} [include]
+ */
 export async function digestTree( root, include = () => true ) {
 	const hash = createHash( 'sha256' );
 	for ( const relative of await listFiles( root ) ) {
@@ -65,12 +83,19 @@ export async function digestTree( root, include = () => true ) {
 	return hash.digest( 'hex' );
 }
 
+/**
+ * @param {string} filename
+ */
 export async function sha256File( filename ) {
 	return createHash( 'sha256' )
 		.update( await readFile( filename ) )
 		.digest( 'hex' );
 }
 
+/**
+ * @param {string} candidate
+ * @param {string} destination
+ */
 export async function stageCorePhp( candidate, destination ) {
 	const source = await findWordPressSourceRoot( candidate );
 	await rm( destination, { recursive: true, force: true } );
@@ -99,12 +124,17 @@ export async function stageCorePhp( candidate, destination ) {
 	return { source, destination, files: count };
 }
 
+/**
+ * @param {Record<string, any>} repositories
+ * @param {string} destination
+ */
 export async function acquireRepositories(
 	repositories,
 	destination,
 	runImplementation = run
 ) {
 	await mkdir( destination, { recursive: true } );
+	/** @type {Record<string, string>} */
 	const acquired = {};
 	for ( const [ name, dependency ] of Object.entries( repositories ) ) {
 		const target = path.join( destination, name );

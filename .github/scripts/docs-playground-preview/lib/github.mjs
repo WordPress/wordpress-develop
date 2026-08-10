@@ -5,6 +5,9 @@ const UPLOADS = 'https://uploads.github.com';
 const BUILD_WORKFLOW = 'docs-playground-preview-build.yml';
 const BUILD_JOB = 'Build Code Reference snapshot';
 
+/**
+ * @param {Record<string, unknown>} values
+ */
 function query( values ) {
 	const parameters = new URLSearchParams();
 	for ( const [ name, value ] of Object.entries( values ) ) {
@@ -16,12 +19,21 @@ function query( values ) {
 }
 
 export class GitHubApi {
+	/**
+	 * @param {string} repository
+	 * @param {string} token
+	 * @param {(...args: any[]) => Promise<any>} [fetchImplementation]
+	 */
 	constructor( repository, token, fetchImplementation = globalThis.fetch ) {
 		this.repository = repository;
 		this.token = token;
 		this.fetch = fetchImplementation;
 	}
 
+	/**
+	 * @param {string} url
+	 * @param {Record<string, any>} [options]
+	 */
 	async request( url, options = {} ) {
 		const headers = {
 			Accept: 'application/vnd.github+json',
@@ -45,12 +57,14 @@ export class GitHubApi {
 		}
 		if ( ! response.ok ) {
 			const detail = await response.text();
-			const error = new Error(
-				`GitHub API returned HTTP ${
-					response.status
-				} for ${ url }: ${ detail.slice( 0, 300 ) }`
+			const error = Object.assign(
+				new Error(
+					`GitHub API returned HTTP ${
+						response.status
+					} for ${ url }: ${ detail.slice( 0, 300 ) }`
+				),
+				{ status: response.status }
 			);
-			error.status = response.status;
 			throw error;
 		}
 		if ( response.status === 204 ) {
@@ -59,6 +73,10 @@ export class GitHubApi {
 		return response.json();
 	}
 
+	/**
+	 * @param {string} path
+	 * @param {string | null} [field]
+	 */
 	async pages( path, field = null ) {
 		const values = [];
 		for ( let page = 1; ; page++ ) {
@@ -74,6 +92,9 @@ export class GitHubApi {
 		}
 	}
 
+	/**
+	 * @param {number} runId
+	 */
 	getRun( runId ) {
 		return this.request(
 			`/repos/${ this.repository }/actions/runs/${ runId }`
@@ -87,10 +108,16 @@ export class GitHubApi {
 		return reference.object?.sha || null;
 	}
 
+	/**
+	 * @param {number} number
+	 */
 	getPullRequest( number ) {
 		return this.request( `/repos/${ this.repository }/pulls/${ number }` );
 	}
 
+	/**
+	 * @param {Record<string, any>} run
+	 */
 	async findPullRequestForRun( run ) {
 		const owner = run.head_repository?.owner?.login;
 		if ( ! owner || ! run.head_branch ) {
@@ -120,6 +147,9 @@ export class GitHubApi {
 		return matches[ 0 ];
 	}
 
+	/**
+	 * @param {Record<string, any>} run
+	 */
 	async findLatestPreviewRun( run ) {
 		const runs = await this.pages(
 			`/repos/${
@@ -148,6 +178,9 @@ export class GitHubApi {
 		return null;
 	}
 
+	/**
+	 * @param {Record<string, any>} run
+	 */
 	async latestPreviewRun( run ) {
 		const latest = await this.findLatestPreviewRun( run );
 		if ( latest ) {
@@ -180,6 +213,9 @@ export class GitHubApi {
 		return this.getRun( latest.id );
 	}
 
+	/**
+	 * @param {Record<string, any>} run
+	 */
 	async isSkippedPreviewBuild( run ) {
 		const jobs = await this.pages(
 			`/repos/${ this.repository }/actions/runs/${ run.id }/attempts/${ run.run_attempt }/jobs`,
@@ -213,12 +249,21 @@ export class GitHubApi {
 		} );
 	}
 
+	/**
+	 * @param {number} releaseId
+	 */
 	listReleaseAssets( releaseId ) {
 		return this.pages(
 			`/repos/${ this.repository }/releases/${ releaseId }/assets`
 		);
 	}
 
+	/**
+	 * @param {number} releaseId
+	 * @param {string} name
+	 * @param {Uint8Array} bytes
+	 * @param {string} contentType
+	 */
 	async uploadReleaseAsset( releaseId, name, bytes, contentType ) {
 		const upload = () =>
 			this.request(
@@ -237,7 +282,11 @@ export class GitHubApi {
 		try {
 			return await upload();
 		} catch ( error ) {
-			if ( error.status !== 422 ) {
+			if (
+				! ( error instanceof Error ) ||
+				! ( 'status' in error ) ||
+				error.status !== 422
+			) {
 				throw error;
 			}
 			const assets = await this.listReleaseAssets( releaseId );
@@ -250,6 +299,9 @@ export class GitHubApi {
 		}
 	}
 
+	/**
+	 * @param {string} reference
+	 */
 	getGitReference( reference ) {
 		return this.request(
 			`/repos/${ this.repository }/git/ref/${ reference }`,
@@ -257,6 +309,9 @@ export class GitHubApi {
 		);
 	}
 
+	/**
+	 * @param {string} content
+	 */
 	createGitBlob( content ) {
 		return this.request( `/repos/${ this.repository }/git/blobs`, {
 			method: 'POST',
@@ -264,6 +319,10 @@ export class GitHubApi {
 		} );
 	}
 
+	/**
+	 * @param {string} path
+	 * @param {string} blobSha
+	 */
 	createGitTree( path, blobSha ) {
 		return this.request( `/repos/${ this.repository }/git/trees`, {
 			method: 'POST',
@@ -280,6 +339,11 @@ export class GitHubApi {
 		} );
 	}
 
+	/**
+	 * @param {string} message
+	 * @param {string} treeSha
+	 * @param {string | null} [parentSha]
+	 */
 	createGitCommit( message, treeSha, parentSha = null ) {
 		return this.request( `/repos/${ this.repository }/git/commits`, {
 			method: 'POST',
@@ -291,6 +355,10 @@ export class GitHubApi {
 		} );
 	}
 
+	/**
+	 * @param {string} reference
+	 * @param {string} sha
+	 */
 	createGitReference( reference, sha ) {
 		return this.request( `/repos/${ this.repository }/git/refs`, {
 			method: 'POST',
@@ -298,6 +366,10 @@ export class GitHubApi {
 		} );
 	}
 
+	/**
+	 * @param {string} reference
+	 * @param {string} sha
+	 */
 	updateGitReference( reference, sha ) {
 		return this.request(
 			`/repos/${ this.repository }/git/refs/${ reference }`,
@@ -305,6 +377,9 @@ export class GitHubApi {
 		);
 	}
 
+	/**
+	 * @param {number} assetId
+	 */
 	deleteReleaseAsset( assetId ) {
 		return this.request(
 			`/repos/${ this.repository }/releases/assets/${ assetId }`,
@@ -312,6 +387,9 @@ export class GitHubApi {
 		);
 	}
 
+	/**
+	 * @param {string} ref
+	 */
 	listActionCaches( ref ) {
 		return this.pages(
 			`/repos/${ this.repository }/actions/caches?${ query( { ref } ) }`,
@@ -319,6 +397,9 @@ export class GitHubApi {
 		);
 	}
 
+	/**
+	 * @param {number} cacheId
+	 */
 	deleteActionCache( cacheId ) {
 		return this.request(
 			`/repos/${ this.repository }/actions/caches/${ cacheId }`,
@@ -326,6 +407,9 @@ export class GitHubApi {
 		);
 	}
 
+	/**
+	 * @param {number} pullRequestNumber
+	 */
 	async findPreviewComment( pullRequestNumber ) {
 		const comments = await this.pages(
 			`/repos/${ this.repository }/issues/${ pullRequestNumber }/comments`
@@ -339,6 +423,10 @@ export class GitHubApi {
 		);
 	}
 
+	/**
+	 * @param {number} pullRequestNumber
+	 * @param {string} body
+	 */
 	createComment( pullRequestNumber, body ) {
 		return this.request(
 			`/repos/${ this.repository }/issues/${ pullRequestNumber }/comments`,
@@ -346,6 +434,10 @@ export class GitHubApi {
 		);
 	}
 
+	/**
+	 * @param {number} commentId
+	 * @param {string} body
+	 */
 	updateComment( commentId, body ) {
 		return this.request(
 			`/repos/${ this.repository }/issues/comments/${ commentId }`,
@@ -353,6 +445,9 @@ export class GitHubApi {
 		);
 	}
 
+	/**
+	 * @param {number} pullRequestNumber
+	 */
 	removeLabel( pullRequestNumber ) {
 		return this.request(
 			`/repos/${ this.repository }/issues/${ pullRequestNumber }/labels/docs-preview`,

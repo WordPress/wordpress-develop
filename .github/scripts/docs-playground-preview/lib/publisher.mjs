@@ -21,6 +21,10 @@ const FULL_DIGEST = /^[0-9a-f]{64}$/;
 const BLUEPRINT_SCHEMA =
 	'https://playground.wordpress.net/blueprint-schema.json';
 
+/**
+ * @param {unknown} value
+ * @param {string} label
+ */
 function positiveInteger( value, label ) {
 	const number = Number( value );
 	if ( ! Number.isSafeInteger( number ) || number < 1 ) {
@@ -29,6 +33,10 @@ function positiveInteger( value, label ) {
 	return number;
 }
 
+/**
+ * @param {unknown} value
+ * @param {string} label
+ */
 function timestamp( value, label ) {
 	if (
 		typeof value !== 'string' ||
@@ -40,10 +48,17 @@ function timestamp( value, label ) {
 	return value;
 }
 
+/**
+ * @param {Record<string, any> | null | undefined} value
+ */
 function headRepository( value ) {
 	return value?.full_name || value?.repo?.full_name || null;
 }
 
+/**
+ * @param {Record<string, any>} context
+ * @returns {Record<string, any>}
+ */
 export function validatePublicationContext( context ) {
 	if (
 		! isDeploymentEnabled( context.repository, context.stagingVariable )
@@ -111,6 +126,9 @@ export function validatePublicationContext( context ) {
 	};
 }
 
+/**
+ * @param {Record<string, any>} context
+ */
 export function assertLatestAuthorized( context ) {
 	const current = validatePublicationContext( context );
 	if (
@@ -123,6 +141,9 @@ export function assertLatestAuthorized( context ) {
 		throw new Error( 'The pull request is no longer open.' );
 	}
 	const hasLabel = current.pullRequest.labels?.some(
+		/**
+		 * @param {Record<string, any>} label
+		 */
 		( label ) => label.name === 'docs-preview'
 	);
 	if ( ! hasLabel && current.workflowRunAttempt === 1 ) {
@@ -131,6 +152,10 @@ export function assertLatestAuthorized( context ) {
 	return current;
 }
 
+/**
+ * @param {Record<string, any>} metadata
+ * @param {Record<string, any>} context
+ */
 function validateCommonHandoff( metadata, context ) {
 	if (
 		! metadata ||
@@ -155,6 +180,9 @@ function validateCommonHandoff( metadata, context ) {
 	timestamp( metadata.generationTimestamp, 'Generation timestamp' );
 }
 
+/**
+ * @param {Record<string, any>} metadata
+ */
 function validateSnapshotIdentity( metadata ) {
 	if (
 		! Number.isSafeInteger( metadata.snapshotBytes ) ||
@@ -168,6 +196,10 @@ function validateSnapshotIdentity( metadata ) {
 	}
 }
 
+/**
+ * @param {Record<string, any>} metadata
+ * @param {Record<string, any>} rawContext
+ */
 export function inspectHandoff( metadata, rawContext ) {
 	const context = validatePublicationContext( rawContext );
 	validateCommonHandoff( metadata, context );
@@ -210,6 +242,10 @@ export function inspectHandoff( metadata, rawContext ) {
 	return { kind: 'candidate', metadata, context };
 }
 
+/**
+ * @param {Record<string, any>} metadata
+ * @param {string} filename
+ */
 export async function validateCandidateFile( metadata, filename ) {
 	if ( path.basename( filename ) !== metadata.snapshotFilename ) {
 		throw new Error(
@@ -227,6 +263,12 @@ export async function validateCandidateFile( metadata, filename ) {
 	return { bytes: candidate.size, sha256: digest };
 }
 
+/**
+ * @param {Record<string, any>} metadata
+ * @param {string} repository
+ * @param {string} publishedAt
+ * @returns {Record<string, any>}
+ */
 export function createPublishedMetadata( metadata, repository, publishedAt ) {
 	timestamp( publishedAt, 'Publication timestamp' );
 	const snapshotUrl = releaseAssetUrl(
@@ -248,10 +290,17 @@ export function createPublishedMetadata( metadata, repository, publishedAt ) {
 	};
 }
 
+/**
+ * @param {string} repository
+ * @param {string} sha
+ */
 function commitLink( repository, sha ) {
 	return `[${ sha }](https://github.com/${ repository }/commit/${ sha })`;
 }
 
+/**
+ * @param {Record<string, any>} previous
+ */
 function previousLink( previous ) {
 	if ( ! previous ) {
 		return '';
@@ -264,13 +313,19 @@ function previousLink( previous ) {
 	) }.`;
 }
 
-function commentHeader( source ) {
+/**
+ * @param {Record<string, string> | null} [source]
+ */
+function commentHeader( source = null ) {
 	const identity = source
 		? `\n<!-- code-reference-docs-preview-source: ${ source.repository }@${ source.sha } -->`
 		: '';
 	return `${ COMMENT_MARKER }${ identity }\n## Code Reference documentation preview`;
 }
 
+/**
+ * @param {unknown} body
+ */
 export function readPreviewCommentSource( body ) {
 	if ( typeof body !== 'string' ) {
 		return null;
@@ -281,6 +336,9 @@ export function readPreviewCommentSource( body ) {
 	return match ? { repository: match[ 1 ], sha: match[ 2 ] } : null;
 }
 
+/**
+ * @param {unknown} body
+ */
 export function readPreviewCommentSuccess( body ) {
 	if ( typeof body !== 'string' ) {
 		return null;
@@ -307,6 +365,9 @@ export function readPreviewCommentSuccess( body ) {
 	};
 }
 
+/**
+ * @param {Record<string, any>} state
+ */
 export function renderPreviewComment( state ) {
 	if ( state.status === 'ready' ) {
 		const header = commentHeader( {

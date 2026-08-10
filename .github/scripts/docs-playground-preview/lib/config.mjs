@@ -21,24 +21,43 @@ const DEPLOYMENT_REPOSITORIES = new Set( [
 const VERSION_API =
 	'https://api.wordpress.org/core/version-check/1.7/?channel=beta';
 
+/**
+ * @param {unknown} value
+ * @param {string} label
+ */
 function assertObject( value, label ) {
 	if ( ! value || typeof value !== 'object' || Array.isArray( value ) ) {
 		throw new Error( `${ label } must be an object.` );
 	}
 }
 
+/**
+ * @param {unknown} value
+ * @param {string} label
+ */
 function assertPositiveInteger( value, label ) {
-	if ( ! Number.isSafeInteger( value ) || value < 1 ) {
+	if (
+		typeof value !== 'number' ||
+		! Number.isSafeInteger( value ) ||
+		value < 1
+	) {
 		throw new Error( `${ label } must be a positive integer.` );
 	}
 }
 
+/**
+ * @param {unknown} value
+ * @param {string} label
+ */
 function assertDigest( value, label ) {
 	if ( typeof value !== 'string' || ! FULL_DIGEST.test( value ) ) {
 		throw new Error( `${ label } must be a lowercase SHA-256 digest.` );
 	}
 }
 
+/**
+ * @param {Record<string, any>} dependencies
+ */
 export function validateDependencies( dependencies ) {
 	assertObject( dependencies, 'Dependency manifest' );
 	if ( dependencies.schemaVersion !== 1 ) {
@@ -127,15 +146,23 @@ export function validateDependencies( dependencies ) {
 	return dependencies;
 }
 
+/**
+ * @param {string} filename
+ */
 export async function loadDependencies( filename ) {
 	const bytes = await readFile( filename );
-	const dependencies = validateDependencies( JSON.parse( bytes ) );
+	const dependencies = validateDependencies(
+		JSON.parse( bytes.toString( 'utf8' ) )
+	);
 	return {
 		dependencies,
 		digest: createHash( 'sha256' ).update( bytes ).digest( 'hex' ),
 	};
 }
 
+/**
+ * @param {(...args: any[]) => Promise<any>} [fetchImplementation]
+ */
 export async function resolveWordPressBeta(
 	fetchImplementation = globalThis.fetch
 ) {
@@ -148,8 +175,13 @@ export async function resolveWordPressBeta(
 		);
 	}
 	const body = await response.json();
-	const findOfficialOffer = ( versionPattern ) =>
+	const findOfficialOffer = /** @param {RegExp} versionPattern */ (
+		versionPattern
+	) =>
 		body?.offers?.find(
+			/**
+			 * @param {Record<string, any>} candidate
+			 */
 			( candidate ) =>
 				versionPattern.test( candidate?.version ) &&
 				candidate.download ===
@@ -179,6 +211,9 @@ export async function resolveWordPressBeta(
 	} );
 }
 
+/**
+ * @param {Record<string, any>} inputs
+ */
 export function makeBaseCacheKey( inputs ) {
 	assertObject( inputs, 'Cache inputs' );
 	assertPositiveInteger(
@@ -207,6 +242,9 @@ export function makeBaseCacheKey( inputs ) {
 	return `docs-preview-base-v${ inputs.cacheSchemaVersion }-${ identity }`;
 }
 
+/**
+ * @param {string} repository
+ */
 export function isDeploymentEnabled( repository, stagingValue = '' ) {
 	return (
 		DEPLOYMENT_REPOSITORIES.has( repository ) &&

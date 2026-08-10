@@ -6,13 +6,25 @@ import { run } from './process.mjs';
 
 const DEFAULT_EXCLUDES = [ '.git', '.github', 'node_modules', 'tests' ];
 
+/**
+ * @param {string} relative
+ * @param {string[]} excludes
+ */
 function isExcluded( relative, excludes ) {
 	return excludes.some(
+		/**
+		 * @param {string} excluded
+		 */
 		( excluded ) =>
 			relative === excluded || relative.startsWith( `${ excluded }/` )
 	);
 }
 
+/**
+ * @param {string} source
+ * @param {string} destination
+ * @param {string[]} excludes
+ */
 export async function copyDirectory( source, destination, excludes = [] ) {
 	const root = path.resolve( source );
 	await mkdir( destination, { recursive: true } );
@@ -25,6 +37,11 @@ export async function copyDirectory( source, destination, excludes = [] ) {
 	} );
 }
 
+/**
+ * @param {string} source
+ * @param {string} output
+ * @param {string} rootName
+ */
 export async function zipDirectory(
 	source,
 	output,
@@ -52,6 +69,10 @@ export async function zipDirectory(
 	}
 }
 
+/**
+ * @param {string} url
+ * @param {string} output
+ */
 export async function downloadFile( url, output, runImplementation = run ) {
 	await mkdir( path.dirname( output ), { recursive: true } );
 	await runImplementation(

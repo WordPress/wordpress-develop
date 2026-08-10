@@ -11,6 +11,10 @@ import {
 const BLUEPRINT_SCHEMA =
 	'https://playground.wordpress.net/blueprint-schema.json';
 
+/**
+ * @param {Record<string, any>} asset
+ * @param {(...args: any[]) => any} fetchImplementation
+ */
 async function fetchPublishedMetadata( asset, fetchImplementation ) {
 	const response = await fetchImplementation( asset.browser_download_url );
 	if ( response.status !== 200 ) {
@@ -21,6 +25,11 @@ async function fetchPublishedMetadata( asset, fetchImplementation ) {
 	return response.json();
 }
 
+/**
+ * @param {Record<string, any>} metadata
+ * @param {string} repository
+ * @param {Record<string, any>} snapshotAsset
+ */
 function validatePublishedFields( metadata, repository, snapshotAsset ) {
 	const snapshotUrl = releaseAssetUrl( repository, snapshotAsset.name );
 	if (
@@ -42,6 +51,13 @@ function validatePublishedFields( metadata, repository, snapshotAsset ) {
 	}
 }
 
+/**
+ * @param {string} repository
+ * @param {number} pullRequestNumber
+ * @param {Record<string, any>} metadataAsset
+ * @param {Record<string, any>} snapshotAsset
+ * @param {Record<string, any>} options
+ */
 export async function loadPublishedPreview(
 	repository,
 	pullRequestNumber,
@@ -80,6 +96,9 @@ export async function loadPublishedPreview(
 	return metadata;
 }
 
+/**
+ * @param {Record<string, any>} session
+ */
 export async function findPreviousPreview( session, excluded = new Set() ) {
 	const release = await session.api.getRelease();
 	if ( ! release ) {
@@ -89,13 +108,19 @@ export async function findPreviousPreview( session, excluded = new Set() ) {
 	const prefix = `code-reference-pr-${ session.context.pullRequestNumber }-`;
 	const candidates = assets
 		.filter(
+			/**
+			 * @param {Record<string, any>} asset
+			 */
 			( asset ) =>
 				asset.name.startsWith( prefix ) &&
 				asset.name.endsWith( '.json' ) &&
 				! excluded.has( asset.name )
 		)
-		.sort( ( left, right ) =>
-			right.created_at.localeCompare( left.created_at )
+		.sort(
+			/** @param {Record<string, any>} left @param {Record<string, any>} right */ (
+				left,
+				right
+			) => right.created_at.localeCompare( left.created_at )
 		);
 	for ( const metadataAsset of candidates ) {
 		try {
@@ -104,6 +129,9 @@ export async function findPreviousPreview( session, excluded = new Set() ) {
 				session.fetchImplementation
 			);
 			const snapshotAsset = assets.find(
+				/**
+				 * @param {Record<string, any>} asset
+				 */
 				( asset ) =>
 					asset.name === published.snapshotFilename &&
 					! excluded.has( asset.name )
@@ -124,7 +152,9 @@ export async function findPreviousPreview( session, excluded = new Set() ) {
 			);
 		} catch ( error ) {
 			session.warning(
-				`Cannot retain ${ metadataAsset.name }: ${ error.message }`
+				`Cannot retain ${ metadataAsset.name }: ${
+					error instanceof Error ? error.message : String( error )
+				}`
 			);
 		}
 	}

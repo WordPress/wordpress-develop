@@ -9,6 +9,9 @@ import {
 } from './config.mjs';
 import { digestTree } from './files.mjs';
 
+/**
+ * @param {Record<string, any>} options
+ */
 export async function resolveBuildInputs( options ) {
 	const repositoryRoot = path.resolve( options.repositoryRoot );
 	const configRoot = path.join(
@@ -25,10 +28,16 @@ export async function resolveBuildInputs( options ) {
 	const wordpress = await resolveWordPressBeta( options.fetchImplementation );
 	const configDigest = await digestTree(
 		configRoot,
+		/**
+		 * @param {string} relative
+		 */
 		( relative ) => ! relative.startsWith( 'node_modules/' )
 	);
 	const scriptsDigest = await digestTree(
 		scriptsRoot,
+		/**
+		 * @param {string} relative
+		 */
 		( relative ) => ! relative.startsWith( 'test/' )
 	);
 	const harnessDigest = await digestTreePair( configDigest, scriptsDigest );
@@ -56,6 +65,10 @@ export async function resolveBuildInputs( options ) {
 	};
 }
 
+/**
+ * @param {string} first
+ * @param {string} second
+ */
 async function digestTreePair( first, second ) {
 	return createHash( 'sha256' )
 		.update( first )
@@ -63,6 +76,10 @@ async function digestTreePair( first, second ) {
 		.digest( 'hex' );
 }
 
+/**
+ * @param {Record<string, any>} inputs
+ * @param {string} filename
+ */
 export async function writeResolvedInputs( inputs, filename ) {
 	await mkdir( path.dirname( filename ), { recursive: true } );
 	await writeFile( filename, `${ JSON.stringify( inputs, null, 2 ) }\n` );
@@ -75,6 +92,9 @@ export async function writeResolvedInputs( inputs, filename ) {
 	}
 }
 
+/**
+ * @param {string} filename
+ */
 export async function readResolvedInputs( filename ) {
 	return JSON.parse( await readFile( filename, 'utf8' ) );
 }

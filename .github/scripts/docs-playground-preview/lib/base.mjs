@@ -22,6 +22,9 @@ const COMPOSER_DIGESTS = Object.freeze( {
 		'f446ea719708bb85fcbf4ef18def5d0515f1f9b4d703f6d820c9c1656e10a2f2',
 } );
 
+/**
+ * @param {string} name
+ */
 function executable( name ) {
 	return path.join(
 		TOOLING_ROOT,
@@ -30,6 +33,10 @@ function executable( name ) {
 	);
 }
 
+/**
+ * @param {Record<string, any>} roots
+ * @param {string} composer
+ */
 export function dependencyBuildPlan( roots, composer ) {
 	const nodePath = path.join( TOOLING_ROOT, 'node_modules' );
 	const wpScriptsEnvironment = { NODE_PATH: nodePath };
@@ -122,10 +129,17 @@ export function dependencyBuildPlan( roots, composer ) {
 	];
 }
 
+/**
+ * @param {string} resourcePath
+ */
 function bundled( resourcePath ) {
 	return { resource: 'bundled', path: resourcePath };
 }
 
+/**
+ * @param {Record<string, any>} inputs
+ * @returns {Record<string, any>}
+ */
 export function createInvariantBaseBlueprint( inputs ) {
 	return {
 		$schema: inputs.dependencies.playground.blueprintSchema,
@@ -184,6 +198,9 @@ export function createInvariantBaseBlueprint( inputs ) {
 	};
 }
 
+/**
+ * @param {string} muPlugins
+ */
 export async function prunePreviewFonts( muPlugins ) {
 	await rm( path.join( muPlugins, 'global-fonts/NotoSerif' ), {
 		recursive: true,
@@ -200,6 +217,12 @@ export async function prunePreviewFonts( muPlugins ) {
 	);
 }
 
+/**
+ * @param {Record<string, any>} inputs
+ * @param {string} tools
+ * @param {(...args: any[]) => any} runImplementation
+ * @param {Record<string, string>} [digests]
+ */
 export async function ensureComposer(
 	inputs,
 	tools,
@@ -237,9 +260,14 @@ export async function ensureComposer(
 	return composer;
 }
 
+/**
+ * @param {string} upstreams
+ * @param {Record<string, any>} inputs
+ */
 function repositoryRoots( upstreams, inputs ) {
-	const root = ( name ) => path.join( upstreams, name );
-	const selected = ( name ) =>
+	const root = /** @param {string} name */ ( name ) =>
+		path.join( upstreams, name );
+	const selected = /** @param {string} name */ ( name ) =>
 		path.join(
 			root( name ),
 			inputs.dependencies.repositories[ name ].path
@@ -256,6 +284,10 @@ function repositoryRoots( upstreams, inputs ) {
 	};
 }
 
+/**
+ * @param {Record<string, any>} inputs
+ * @param {Record<string, any>} options
+ */
 async function buildInvariantBase( inputs, options ) {
 	const runImplementation = options.runImplementation || run;
 	const work = path.join( inputs.cacheDirectory, 'work' );
@@ -330,6 +362,10 @@ async function buildInvariantBase( inputs, options ) {
 	await rm( work, { recursive: true, force: true } );
 }
 
+/**
+ * @param {Record<string, any>} inputs
+ * @param {Record<string, any>} [options]
+ */
 export async function ensureInvariantBase( inputs, options = {} ) {
 	const markerFile = path.join( inputs.cacheDirectory, 'base.json' );
 	if ( await exists( markerFile ) ) {
