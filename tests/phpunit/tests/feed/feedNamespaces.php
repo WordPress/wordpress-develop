@@ -49,7 +49,7 @@ class Tests_Feed_FeedNamespaces extends WP_UnitTestCase {
 	public function test_should_return_namespace_added_via_filter() {
 		add_filter(
 			'wp_feed_namespaces',
-			static function ( $namespaces ) {
+			static function ( array $namespaces ): array {
 				$namespaces['source'] = 'http://source.scripting.com/';
 				return $namespaces;
 			}
@@ -70,7 +70,7 @@ class Tests_Feed_FeedNamespaces extends WP_UnitTestCase {
 	public function test_filter_should_receive_the_feed_type() {
 		add_filter(
 			'wp_feed_namespaces',
-			static function ( $namespaces, $type ) {
+			static function ( array $namespaces, string $type ): array {
 				if ( 'rss2' === $type ) {
 					$namespaces['source'] = 'http://source.scripting.com/';
 				}
@@ -124,7 +124,7 @@ class Tests_Feed_FeedNamespaces extends WP_UnitTestCase {
 	public function test_should_skip_invalid_prefixes() {
 		add_filter(
 			'wp_feed_namespaces',
-			static function ( $namespaces ) {
+			static function ( array $namespaces ): array {
 				$namespaces['']            = 'http://example.org/empty';
 				$namespaces['foo bar']     = 'http://example.org/space';
 				$namespaces['"onload="x"'] = 'http://example.org/attack';
@@ -156,7 +156,7 @@ class Tests_Feed_FeedNamespaces extends WP_UnitTestCase {
 	public function test_should_preserve_valid_prefixes() {
 		add_filter(
 			'wp_feed_namespaces',
-			static function ( $namespaces ) {
+			static function ( array $namespaces ): array {
 				$namespaces['creativeCommons'] = 'http://backend.userland.com/creativeCommonsRssModule';
 				$namespaces['média']           = 'http://example.org/media';
 				$namespaces['tag-uri']         = 'tag:example.org,2004:ns';
@@ -176,7 +176,7 @@ class Tests_Feed_FeedNamespaces extends WP_UnitTestCase {
 	 * @ticket 65785
 	 */
 	public function test_should_return_an_empty_array_for_an_unknown_type() {
-		$this->assertSame( array(), get_feed_namespaces( 'unknown' ) );
+		$this->assertSame( array(), get_feed_namespaces( 'unknown' ) ); // @phpstan-ignore argument.type (Intentionally passing unsupported type.)
 	}
 
 	/**
@@ -195,7 +195,7 @@ class Tests_Feed_FeedNamespaces extends WP_UnitTestCase {
 	public function test_feed_namespaces_should_escape_the_namespace_uri() {
 		add_filter(
 			'wp_feed_namespaces',
-			static function ( $namespaces ) {
+			static function ( array $namespaces ): array {
 				$namespaces['evil'] = 'http://example.org/"><script>';
 				return $namespaces;
 			}
@@ -214,7 +214,7 @@ class Tests_Feed_FeedNamespaces extends WP_UnitTestCase {
 	 * @ticket 65785
 	 */
 	public function test_feed_namespaces_should_not_print_duplicate_prefixes() {
-		$add_source_ns = static function ( $namespaces ) {
+		$add_source_ns = static function ( array $namespaces ): array {
 			$namespaces['source'] = 'http://source.scripting.com/';
 			return $namespaces;
 		};

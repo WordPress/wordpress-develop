@@ -90,6 +90,8 @@ class Tests_Feed_RSS2 extends WP_UnitTestCase {
 
 	/**
 	 * This is a bit of a hack used to buffer feed content.
+	 *
+	 * @return non-falsy-string
 	 */
 	private function do_rss2() {
 		ob_start();
@@ -139,7 +141,7 @@ class Tests_Feed_RSS2 extends WP_UnitTestCase {
 	 * @ticket 65785
 	 */
 	public function test_wp_feed_namespaces_should_prevent_duplicate_namespaces() {
-		$add_source_ns = static function ( $namespaces ) {
+		$add_source_ns = static function ( array $namespaces ): array {
 			$namespaces['source'] = 'http://source.scripting.com/';
 			$namespaces['atom']   = 'http://www.w3.org/2005/Atom';
 			return $namespaces;
@@ -158,6 +160,10 @@ class Tests_Feed_RSS2 extends WP_UnitTestCase {
 		$rss = xml_find( $xml, 'rss' );
 
 		$this->assertCount( 1, $rss );
+		$this->assertIsArray( $rss[0] );
+		$this->assertArrayHasKey( 'attributes', $rss[0] );
+		$this->assertIsArray( $rss[0]['attributes'] );
+		$this->assertArrayHasKey( 'xmlns:source', $rss[0]['attributes'] );
 		$this->assertSame( 'http://source.scripting.com/', $rss[0]['attributes']['xmlns:source'] );
 	}
 
