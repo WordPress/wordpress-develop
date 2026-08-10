@@ -85,7 +85,7 @@ jobs:
   # - Run the PHPUnit tests.
   test-php:
     name: PHP ${{ inputs.php }} / ${{ inputs.multisite && ' Multisite' || 'Single site' }}${{ inputs.split_slow && ' slow tests' || '' }}${{ inputs.memcached && ' with memcached' || '' }}
-    runs-on: ${{ inputs.os }}
+    runs-on: ${{ vars.RUNNERS_NAME || inputs.os }}
     timeout-minutes: 20
     permissions:
       contents: read
