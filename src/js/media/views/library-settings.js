@@ -115,6 +115,18 @@ LibrarySettings = View.extend(/** @lends wp.media.view.LibrarySettings.prototype
 	},
 
 	/**
+	 * Whether a `media_library_infinite_scrolling` filter callback overrides the
+	 * personal option.
+	 *
+	 * Evaluated when this file is loaded, since saving a preference brings the two
+	 * values it is derived from in sync.
+	 *
+	 * @type {boolean}
+	 */
+	isFiltered: !! settings.librarySettings &&
+		!! settings.infiniteScrolling !== !! settings.librarySettings.infiniteScrolling,
+
+	/**
 	 * Saves the "Infinite scrolling" personal option for the current user.
 	 *
 	 * @param {Event} event The change event of the checkbox.
@@ -137,10 +149,17 @@ LibrarySettings = View.extend(/** @lends wp.media.view.LibrarySettings.prototype
 			}
 
 			settings.librarySettings.infiniteScrolling = enabled ? 1 : 0;
-			settings.infiniteScrolling = enabled ? 1 : 0;
 
-			// Applied to the browser this toggle belongs to, without a reload.
-			view.controller.trigger( 'library:infinite-scrolling', enabled );
+			/*
+			 * A filter callback takes precedence over the preference, so the Media
+			 * Library keeps the filtered behavior. Otherwise the browser this toggle
+			 * belongs to is updated without a reload.
+			 */
+			if ( ! view.isFiltered ) {
+				settings.infiniteScrolling = enabled ? 1 : 0;
+
+				view.controller.trigger( 'library:infinite-scrolling', enabled );
+			}
 
 			view.setStatus( enabled ?
 				__( 'Infinite scrolling is on.' ) :

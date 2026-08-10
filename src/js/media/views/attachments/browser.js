@@ -431,8 +431,8 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 				priority:   60
 			}).render() );
 
-			// Pointless when a `media_library_infinite_scrolling` filter callback overrides the user preference.
-			if ( librarySettings && ! librarySettings.isFiltered ) {
+			// Only for users allowed to save the preference, see `wp_enqueue_media()`.
+			if ( librarySettings ) {
 				this.toolbar.set( 'librarySettings', new wp.media.view.LibrarySettings({
 					controller: this.controller,
 					priority:   70

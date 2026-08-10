@@ -5107,7 +5107,6 @@ function wp_enqueue_media( $args = array() ) {
 		$settings['librarySettings'] = array(
 			'nonce'             => wp_create_nonce( 'media-library-settings' ),
 			'infiniteScrolling' => ( $user_infinite_scrolling ) ? 1 : 0,
-			'isFiltered'        => ( $infinite_scrolling !== $user_infinite_scrolling ) ? 1 : 0,
 		);
 	}
 
