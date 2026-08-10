@@ -3179,9 +3179,11 @@
 			),
 			'html' => false,
 			'color' => array(
-				'background' => true,
-				'text' => true,
-				'__experimentalSkipSerialization' => true
+				'__experimentalSkipSerialization' => true,
+				'__experimentalDefaultControls' => array(
+					'background' => true,
+					'text' => true
+				)
 			),
 			'interactivity' => array(
 				'clientNavigation' => true
@@ -4810,7 +4812,6 @@
 				'full'
 			),
 			'splitting' => true,
-			'editableRoot' => true,
 			'anchor' => true,
 			'className' => false,
 			'__experimentalBorder' => array(
@@ -4974,6 +4975,7 @@
 		'supports' => array(
 			'anchor' => true,
 			'align' => true,
+			'__experimentalExposeControlsToChildren' => true,
 			'color' => array(
 				'gradients' => true,
 				'link' => true,
@@ -7942,7 +7944,8 @@
 				'padding' => '.wp-block-tab-list button'
 			)
 		),
-		'style' => 'wp-block-tab-list'
+		'style' => 'wp-block-tab-list',
+		'editorStyle' => 'wp-block-tab-list-editor'
 	),
 	'tab-panel' => array(
 		'$schema' => 'https://schemas.wp.org/trunk/block.json',

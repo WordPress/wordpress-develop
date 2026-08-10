@@ -74,8 +74,8 @@ class Tests_WP_Taxonomy extends WP_UnitTestCase {
 		$taxonomy_object->remove_rewrite_rules();
 		$rewrite_tags_after = $wp_rewrite->rewritecode;
 
-		$this->assertNotFalse( array_search( "%$taxonomy%", $rewrite_tags, true ) );
-		$this->assertFalse( array_search( "%$taxonomy%", $rewrite_tags_after, true ) );
+		$this->assertContains( "%$taxonomy%", $rewrite_tags );
+		$this->assertNotContains( "%$taxonomy%", $rewrite_tags_after );
 	}
 
 	public function test_adds_ajax_callback() {

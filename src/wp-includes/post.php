@@ -4053,6 +4053,22 @@ function _reset_front_page_settings_for_post( $post_id ) {
 }
 
 /**
+ * Resets the Privacy Policy page ID option when the Privacy Policy page
+ * is permanently deleted, to prevent uncached database queries for a
+ * non-existent page.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param int $post_id The ID of the post being deleted.
+ */
+function _reset_privacy_policy_page_for_post( int $post_id ): void {
+	if ( 'page' === get_post_type( $post_id ) && ( (int) get_option( 'wp_page_for_privacy_policy' ) === $post_id ) ) {
+		update_option( 'wp_page_for_privacy_policy', 0 );
+	}
+}
+
+/**
  * Moves a post or page to the Trash
  *
  * If Trash is disabled, the post or page is permanently deleted.
@@ -7032,6 +7048,8 @@ function wp_delete_attachment_files( $post_id, $meta, $backup_sizes, $file ) {
  *
  * @since 2.1.0
  * @since 6.0.0 The `$filesize` value was added to the returned array.
+ * @since 7.1.0 `false` is now returned if the metadata is not an array, and when the result is
+ *              filtered the `sizes` key is always an array when present.
  *
  * @param int  $attachment_id Attachment post ID. Defaults to global $post.
  * @param bool $unfiltered    Optional. If true, filters are not run. Default false.
@@ -7095,7 +7113,7 @@ function wp_get_attachment_metadata( $attachment_id = 0, $unfiltered = false ) {
 
 	$data = get_post_meta( $attachment_id, '_wp_attachment_metadata', true );
 
-	if ( ! $data ) {
+	if ( ! is_array( $data ) || ! $data ) {
 		return false;
 	}
 
@@ -7111,7 +7129,17 @@ function wp_get_attachment_metadata( $attachment_id = 0, $unfiltered = false ) {
 	 * @param array $data          Array of meta data for the given attachment.
 	 * @param int   $attachment_id Attachment post ID.
 	 */
-	return apply_filters( 'wp_get_attachment_metadata', $data, $attachment_id );
+	$data = apply_filters( 'wp_get_attachment_metadata', $data, $attachment_id );
+
+	if ( ! is_array( $data ) ) {
+		return false;
+	}
+
+	if ( array_key_exists( 'sizes', $data ) && ! is_array( $data['sizes'] ) ) {
+		$data['sizes'] = array();
+	}
+
+	return $data;
 }
 
 /**
@@ -7961,10 +7989,11 @@ function clean_post_cache( $post ) {
  *
  * @since 1.5.0
  *
- * @param WP_Post[] $posts             Array of post objects (passed by reference).
- * @param string    $post_type         Optional. Post type. Default 'post'.
- * @param bool      $update_term_cache Optional. Whether to update the term cache. Default true.
- * @param bool      $update_meta_cache Optional. Whether to update the meta cache. Default true.
+ * @param WP_Post[]       $posts             Array of post objects (passed by reference).
+ * @param string|string[] $post_type         Optional. Single post type, 'any', or an array of post types.
+ *                                           Default 'post'.
+ * @param bool            $update_term_cache Optional. Whether to update the term cache. Default true.
+ * @param bool            $update_meta_cache Optional. Whether to update the meta cache. Default true.
  */
 function update_post_caches( &$posts, $post_type = 'post', $update_term_cache = true, $update_meta_cache = true ) {
 	// No point in doing all this work if we didn't match any posts.
