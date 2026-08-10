@@ -92,6 +92,25 @@ class FakeApi {
 		this.refUpdateFailure = null;
 		this.failRefResolution = false;
 		this.staleRefAfterMutation = false;
+		this.staleContents = false;
+	}
+
+	async request( url ) {
+		assert.equal(
+			url,
+			`/repos/${ repository }/contents/code-reference-trunk.json?ref=docs-preview-code-reference`
+		);
+		const contentSha = this.staleContents
+			? this.previousRefSha
+			: this.refSha;
+		this.events.push( `contents:${ contentSha }` );
+		const bytes = this.commits.get( contentSha );
+		if ( ! bytes ) {
+			throw new Error(
+				'GitHub API returned HTTP 404 for the pointer contents.'
+			);
+		}
+		return { encoding: 'base64', content: bytes.toString( 'base64' ) };
 	}
 
 	async getRun() {
@@ -342,9 +361,20 @@ function installPrevious( api ) {
 	return { build, published };
 }
 
+function installOlder( api ) {
+	const olderName = trunkSnapshotAssetName( {
+		sourceSha: '1'.repeat( 40 ),
+		workflowRunId: 200,
+		workflowRunAttempt: 1,
+	} );
+	addAsset( api, 5, olderName, 'older snapshot' );
+	addAsset( api, 6, metadataAssetName( olderName ), '{}' );
+}
+
 test( 'the stable pointer moves only after every candidate is public', async () => {
 	const api = new FakeApi();
 	installPrevious( api );
+	installOlder( api );
 	const current = buildMetadata();
 	const directory = await handoffDirectory( current );
 	const result = await publishTrunk( options( api, directory ) );
@@ -354,7 +384,9 @@ test( 'the stable pointer moves only after every candidate is public', async () 
 		api.commits.get( api.refSha ).toString( 'utf8' )
 	);
 	assert.match( blueprint.meta.description, new RegExp( sha ) );
-	assert.deepEqual( api.deleted.sort(), [ 1, 2 ] );
+	assert.deepEqual( api.deleted.sort(), [ 5, 6 ] );
+	assert.ok( api.assets.some( ( asset ) => asset.id === 1 ) );
+	assert.ok( api.assets.some( ( asset ) => asset.id === 2 ) );
 	assert.ok( api.assets.some( ( asset ) => asset.id === 4 ) );
 	const candidateFetch = api.events.lastIndexOf( 'fetch:candidate-pointer' );
 	const pointerMove = api.events.lastIndexOf(
@@ -363,7 +395,9 @@ test( 'the stable pointer moves only after every candidate is public', async () 
 	const pointerRead = api.events.lastIndexOf(
 		`git:read-ref:${ 'f'.repeat( 40 ) }`
 	);
-	const stableFetch = api.events.lastIndexOf( 'fetch:stable-pointer' );
+	const contentsRead = api.events.lastIndexOf(
+		`contents:${ 'f'.repeat( 40 ) }`
+	);
 	const firstDelete = api.events.findIndex( ( event ) =>
 		event.startsWith( 'delete:' )
 	);
@@ -371,23 +405,36 @@ test( 'the stable pointer moves only after every candidate is public', async () 
 		candidateFetch > -1 &&
 			candidateFetch < pointerMove &&
 			pointerMove < pointerRead &&
-			pointerRead < stableFetch &&
-			stableFetch < firstDelete
+			pointerRead < contentsRead &&
+			contentsRead < firstDelete
 	);
 } );
 
-test( 'stale stable delivery retains both snapshot generations', async () => {
+test( 'stale raw delivery cannot fail publication or drop a generation', async () => {
 	const api = new FakeApi();
 	installPrevious( api );
 	const directory = await handoffDirectory( buildMetadata() );
+	const result = await publishTrunk(
+		options( api, directory, {
+			fetchImplementation: publicFetch( api, {
+				staleStablePointer: true,
+			} ),
+		} )
+	);
+	assert.equal( result.status, 'ready' );
+	assert.equal( api.refSha, 'f'.repeat( 40 ) );
+	assert.ok( api.assets.some( ( asset ) => asset.id === 1 ) );
+	assert.ok( api.assets.some( ( asset ) => asset.id === 10 ) );
+	assert.deepEqual( api.deleted, [] );
+} );
+
+test( 'a stale authoritative read-back fails without deleting snapshots', async () => {
+	const api = new FakeApi();
+	installPrevious( api );
+	api.staleContents = true;
+	const directory = await handoffDirectory( buildMetadata() );
 	await assert.rejects(
-		publishTrunk(
-			options( api, directory, {
-				fetchImplementation: publicFetch( api, {
-					staleStablePointer: true,
-				} ),
-			} )
-		),
+		publishTrunk( options( api, directory ) ),
 		/does not identify the candidate/
 	);
 	assert.equal( api.refSha, 'f'.repeat( 40 ) );
@@ -433,6 +480,7 @@ test( 'a failed ref update retains the previous and candidate assets', async () 
 test( 'an ambiguous ref response resolves the candidate and completes', async () => {
 	const api = new FakeApi();
 	installPrevious( api );
+	installOlder( api );
 	api.refUpdateFailure = 'after';
 	const directory = await handoffDirectory( buildMetadata() );
 	assert.equal(
@@ -440,7 +488,8 @@ test( 'an ambiguous ref response resolves the candidate and completes', async ()
 		'ready'
 	);
 	assert.equal( api.refSha, 'f'.repeat( 40 ) );
-	assert.deepEqual( api.deleted.sort(), [ 1, 2 ] );
+	assert.deepEqual( api.deleted.sort(), [ 5, 6 ] );
+	assert.ok( api.assets.some( ( asset ) => asset.id === 1 ) );
 } );
 
 test( 'unresolved ref state retains both valid generations', async () => {
@@ -491,7 +540,8 @@ test( 'an update error and stale read retain both asset generations', async () =
 test( 'cleanup failure keeps the new validated pointer and both snapshots', async () => {
 	const api = new FakeApi();
 	installPrevious( api );
-	api.deleteErrorId = 1;
+	installOlder( api );
+	api.deleteErrorId = 5;
 	const directory = await handoffDirectory( buildMetadata() );
 	await assert.rejects(
 		publishTrunk( options( api, directory ) ),

@@ -20,13 +20,16 @@ import {
 	createTrunkPublishedMetadata,
 	inspectTrunkHandoff,
 	trunkBlueprintCommitUrl,
-	trunkStableBlueprintUrl,
 	validatePublicBlueprint,
 	validatePublishedTrunkMetadata,
 	validateTrunkPublicationContext,
 } from './lib/trunk.mjs';
 
 class SupersededTrunkRun extends Error {}
+
+const TRUNK_POINTER_BRANCH = TRUNK_POINTER_REF.replace( /^heads\//, '' );
+const TRUNK_GENERATION_ASSET =
+	/^(code-reference-trunk-[0-9a-f]{40}-(\d+)-(\d+))\.(?:zip|json)$/;
 
 async function readHandoff( directory ) {
 	return JSON.parse(
@@ -130,6 +133,31 @@ async function validatePublicMetadata( session, asset, expected ) {
 	return metadata;
 }
 
+async function validateStablePointerContent( session, expected ) {
+	// The raw CDN caches the branch-path Blueprint for minutes, so the
+	// post-move read-back must use the authoritative contents API instead.
+	const file = await session.api.request(
+		`/repos/${ session.repository }/contents/${ TRUNK_POINTER_ASSET }?ref=${ TRUNK_POINTER_BRANCH }`
+	);
+	if ( file?.encoding !== 'base64' || typeof file.content !== 'string' ) {
+		throw new Error( 'The stable trunk pointer content is unreadable.' );
+	}
+	let blueprint;
+	try {
+		blueprint = JSON.parse(
+			Buffer.from( file.content, 'base64' ).toString( 'utf8' )
+		);
+	} catch {
+		throw new Error( 'The stable trunk pointer content is not JSON.' );
+	}
+	if ( ! isDeepStrictEqual( blueprint, expected ) ) {
+		throw new Error(
+			'The stable trunk pointer does not identify the candidate.'
+		);
+	}
+	return blueprint;
+}
+
 async function cleanupUploaded( session, uploaded ) {
 	for ( const asset of uploaded ) {
 		try {
@@ -226,11 +254,30 @@ async function moveStablePointer( session, previousRef, commit, transaction ) {
 
 async function cleanupOldTrunkAssets( session, release, keepIds ) {
 	const assets = await session.api.listReleaseAssets( release.id );
+	const generations = new Map();
 	for ( const asset of assets ) {
-		if (
-			asset.name.startsWith( 'code-reference-trunk-' ) &&
-			! keepIds.has( asset.id )
-		) {
+		const match = asset.name.match( TRUNK_GENERATION_ASSET );
+		if ( ! match || keepIds.has( asset.id ) ) {
+			continue;
+		}
+		const generation = generations.get( match[ 1 ] ) || {
+			runId: Number( match[ 2 ] ),
+			runAttempt: Number( match[ 3 ] ),
+			assets: [],
+		};
+		generation.assets.push( asset );
+		generations.set( match[ 1 ], generation );
+	}
+	// Warm raw CDN copies of the stable Blueprint may reference the previous
+	// snapshot for minutes, so it survives exactly one more publish cycle.
+	const disposable = [ ...generations.values() ]
+		.sort(
+			( left, right ) =>
+				right.runId - left.runId || right.runAttempt - left.runAttempt
+		)
+		.slice( 1 );
+	for ( const generation of disposable ) {
+		for ( const asset of generation.assets ) {
 			await session.authorize();
 			await session.api.deleteReleaseAsset( asset.id );
 		}
@@ -290,11 +337,7 @@ async function publishCandidate( session, metadata, uploaded, transaction ) {
 		blueprint
 	);
 	await moveStablePointer( session, previousRef, pointerCommit, transaction );
-	await validatePublicBlueprint(
-		trunkStableBlueprintUrl( session.repository ),
-		blueprint,
-		session.fetchImplementation
-	);
+	await validateStablePointerContent( session, blueprint );
 	await cleanupOldTrunkAssets(
 		session,
 		release,
