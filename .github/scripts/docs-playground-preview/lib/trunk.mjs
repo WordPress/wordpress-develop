@@ -130,8 +130,7 @@ export function assertLatestTrunkAuthorized( context ) {
 	const current = validateTrunkPublicationContext( context );
 	if (
 		context.latestRun?.id !== current.workflowRunId ||
-		context.latestRun?.run_attempt !== current.workflowRunAttempt ||
-		context.trunkHeadSha !== current.sourceSha
+		context.latestRun?.run_attempt !== current.workflowRunAttempt
 	) {
 		throw supersededTrunkError(
 			'A newer trunk build superseded this attempt.'

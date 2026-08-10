@@ -292,6 +292,7 @@ function options( api, directory, extra = {} ) {
 		fetchImplementation: publicFetch( api ),
 		now: () => '2026-08-09T13:00:00.000Z',
 		warning: () => {},
+		notice: () => {},
 		...extra,
 	};
 }
@@ -583,4 +584,23 @@ test( 'a genuine source identity failure still fails red', async () => {
 		/source workflow identity/
 	);
 	assert.equal( api.assets.length, 3 );
+} );
+
+test( 'a trunk head without a newer build run still publishes with a notice', async () => {
+	const api = new FakeApi();
+	installPrevious( api );
+	api.trunkHeadSha = 'b'.repeat( 40 );
+	const notices = [];
+	const directory = await handoffDirectory( buildMetadata() );
+	const result = await publishTrunk(
+		options( api, directory, {
+			notice: ( message ) => notices.push( message ),
+		} )
+	);
+	assert.equal( result.status, 'ready' );
+	assert.equal( api.refSha, 'f'.repeat( 40 ) );
+	assert.equal( notices.length, 1 );
+	assert.match( notices[ 0 ], /^::notice::/ );
+	assert.ok( notices[ 0 ].includes( 'b'.repeat( 40 ) ) );
+	assert.ok( notices[ 0 ].includes( sha ) );
 } );

@@ -153,11 +153,26 @@ test( 'trunk publication binds the exact terminal push and latest head', () => {
 			} ),
 		/source workflow identity/
 	);
+	assert.equal(
+		assertLatestTrunkAuthorized( {
+			...context(),
+			trunkHeadSha: 'c'.repeat( 40 ),
+		} ).sourceSha,
+		sha
+	);
 	assert.throws(
 		() =>
 			assertLatestTrunkAuthorized( {
 				...context(),
-				trunkHeadSha: 'c'.repeat( 40 ),
+				latestRun: { ...context().run, id: 789 },
+			} ),
+		/superseded/
+	);
+	assert.throws(
+		() =>
+			assertLatestTrunkAuthorized( {
+				...context(),
+				latestRun: { ...context().run, run_attempt: 3 },
 			} ),
 		/superseded/
 	);

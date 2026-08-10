@@ -51,6 +51,10 @@ async function establishSession( options ) {
 		run,
 	};
 	const context = validateTrunkPublicationContext( base );
+	const notice =
+		options.notice ||
+		( ( message ) => process.stdout.write( `${ message }\n` ) );
+	let staleHeadReported = false;
 	return {
 		api,
 		context,
@@ -65,8 +69,9 @@ async function establishSession( options ) {
 			const currentRun = await api.getRun( options.triggerRunId );
 			const latestRun = await api.latestTrunkPreviewRun();
 			const trunkHeadSha = await api.getTrunkHeadSha();
+			let current;
 			try {
-				return assertLatestTrunkAuthorized( {
+				current = assertLatestTrunkAuthorized( {
 					...base,
 					run: currentRun,
 					latestRun,
@@ -75,6 +80,13 @@ async function establishSession( options ) {
 			} catch ( error ) {
 				throw new SupersededTrunkRun( error.message );
 			}
+			if ( trunkHeadSha !== current.sourceSha && ! staleHeadReported ) {
+				staleHeadReported = true;
+				notice(
+					`::notice::Trunk head ${ trunkHeadSha } has no newer Code Reference build; publishing the completed build for ${ current.sourceSha }.`
+				);
+			}
+			return current;
 		},
 	};
 }
