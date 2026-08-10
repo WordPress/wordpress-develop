@@ -95,6 +95,7 @@ abbr[title] {
 
 b,
 strong {
+	/* stylelint-disable-next-line font-weight-notation -- We don't want to change normalize. */
 	font-weight: bolder;
 }
 
