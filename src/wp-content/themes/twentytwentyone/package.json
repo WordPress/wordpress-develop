@@ -62,7 +62,7 @@
 		"build:rtl": "rtlcss style.css style-rtl.css",
 		"build:dark-rtl": "rtlcss assets/css/style-dark-mode.css assets/css/style-dark-mode-rtl.css",
 		"build:print": "sass assets/sass/07-utilities/print.scss:assets/css/print.css --style=expanded --source-map",
-		"build": "run-s build:style build:style-editor build:style-dark-mode build:rtl build:dark-rtl build:print postbuild",
+		"build": "run-s build:style build:style-editor build:style-dark-mode build:rtl build:dark-rtl build:print",
 		"postcss": "postcss --use autoprefixer --no-map --replace style.css style-rtl.css assets/css/*.css assets/css/*-rtl.css",
 		"stylelint": "wp-scripts lint-style **/*.css --fix --config ../../../../.stylelintrc.js",
 		"postbuild": "npm run postcss && npm run stylelint",
