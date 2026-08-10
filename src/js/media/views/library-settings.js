@@ -48,7 +48,6 @@ LibrarySettings = View.extend(/** @lends wp.media.view.LibrarySettings.prototype
 
 	prepare: function() {
 		return {
-			infiniteScrolling:   !! settings.librarySettings.infiniteScrolling,
 			titleId:             this.uid + '-title',
 			infiniteScrollingId: this.uid + '-infinite-scrolling'
 		};
@@ -80,8 +79,9 @@ LibrarySettings = View.extend(/** @lends wp.media.view.LibrarySettings.prototype
 
 		this.$el.after( $dialog );
 
-		this.dialog = $dialog[0];
-		this.status = $dialog.find( '.media-library-settings__status' )[0];
+		this.dialog   = $dialog[0];
+		this.status   = $dialog.find( '.media-library-settings__status' )[0];
+		this.checkbox = $dialog.find( '.media-library-settings__checkbox' )[0];
 
 		$dialog.on( 'change', '.media-library-settings__checkbox', _.bind( this.updateInfiniteScrolling, this ) );
 
@@ -107,6 +107,8 @@ LibrarySettings = View.extend(/** @lends wp.media.view.LibrarySettings.prototype
 		if ( ! this.dialog ) {
 			this.createDialog();
 		}
+
+		this.checkbox.checked = !! settings.librarySettings.infiniteScrolling;
 
 		this.setStatus( '' );
 		this.dialog.showModal();

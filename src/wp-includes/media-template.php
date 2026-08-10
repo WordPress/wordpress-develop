@@ -374,10 +374,10 @@ function wp_print_media_templates() {
 			</div>
 			<div class="media-library-settings__body">
 				<p class="media-library-settings__field">
+					<?php // The checked state is set by the view each time the dialog is opened. ?>
 					<input type="checkbox" class="media-library-settings__checkbox"
 						id="{{ data.infiniteScrollingId }}"
-						aria-describedby="{{ data.infiniteScrollingId }}-description" autofocus
-						<# if ( data.infiniteScrolling ) { #>checked<# } #> />
+						aria-describedby="{{ data.infiniteScrollingId }}-description" autofocus />
 					<label for="{{ data.infiniteScrollingId }}">
 						<?php _e( 'Enable infinite scrolling' ); ?>
 					</label>
