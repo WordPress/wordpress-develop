@@ -100,7 +100,6 @@ Twenty Twenty-One is distributed under the terms of the GNU GPL.
 
 /* Variables */
 :root {
-
 	/* Font Family */
 	--global--font-primary: var(--font-headings, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif);
 	--global--font-secondary: var(--font-base, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif);
@@ -419,7 +418,6 @@ abbr[title] {
  */
 b,
 strong {
-
 	/* stylelint-disable-next-line font-weight-notation -- We don't want to change normalize. */
 	font-weight: bolder;
 }
@@ -744,7 +742,6 @@ template {
 
 @media only screen and (min-width: 482px) {
 	.entry-content > .alignleft {
-
 		/*rtl:ignore*/
 		margin-left: var(--responsive--alignleft-margin);
 
@@ -754,7 +751,6 @@ template {
 }
 @media only screen and (min-width: 482px) {
 	.entry-content > .alignright {
-
 		/*rtl:ignore*/
 		margin-left: var(--global--spacing-horizontal);
 
@@ -986,7 +982,6 @@ h6 {
  * https://css-tricks.com/inheriting-box-sizing-probably-slightly-better-best-practice/
  */
 html {
-
 	/* Apply border-box across the entire page. */
 	box-sizing: border-box;
 	font-family: var(--global--font-secondary);
@@ -1217,7 +1212,6 @@ input[type="color"] {
 
 input[type="email"],
 input[type="url"] {
-
 	/*rtl:ignore*/
 	direction: ltr;
 }
@@ -1577,7 +1571,6 @@ a:hover {
 }
 
 .site a:focus:not(.wp-block-button__link):not(.wp-block-file__button) {
-
 	/* Only visible in Windows High Contrast mode */
 	outline: 2px solid transparent;
 	-webkit-text-decoration: underline 1px dotted currentColor;
@@ -1607,7 +1600,6 @@ a:hover {
 }
 
 .site a:focus:not(.wp-block-button__link):not(.wp-block-file__button).skip-link {
-
 	/* Only visible in Windows High Contrast mode */
 	outline: 2px solid transparent;
 	outline-offset: -2px;
@@ -2269,7 +2261,6 @@ h6,
 }
 
 .wp-block-image .alignright {
-
 	/*rtl:ignore*/
 	margin-left: var(--global--spacing-horizontal);
 
@@ -2278,7 +2269,6 @@ h6,
 }
 
 .wp-block-image .alignleft {
-
 	/*rtl:ignore*/
 	margin-right: var(--global--spacing-horizontal);
 
@@ -2335,7 +2325,6 @@ h6,
 	}
 
 	.entry-content > .wp-block-image > .alignright::after {
-
 		/*rtl:ignore*/
 		float: left;
 	}
@@ -3578,7 +3567,6 @@ table.wp-calendar-table caption {
  * .alignleft
  */
 .alignleft {
-
 	/*rtl:ignore*/
 	text-align: left;
 	margin-top: 0;
@@ -3590,7 +3578,6 @@ table.wp-calendar-table caption {
 
 @media only screen and (min-width: 482px) {
 	.alignleft {
-
 		/*rtl:ignore*/
 		float: left;
 
@@ -3630,7 +3617,6 @@ table.wp-calendar-table caption {
 
 @media only screen and (min-width: 482px) {
 	.alignright {
-
 		/*rtl:ignore*/
 		float: right;
 
@@ -4819,7 +4805,6 @@ h1.page-title {
 	}
 
 	.primary-navigation > div > .menu-wrapper > li > .sub-menu.submenu-reposition-left {
-
 		/* rtl:ignore */
 		left: 0;
 
@@ -4829,7 +4814,6 @@ h1.page-title {
 
 	.primary-navigation > div > .menu-wrapper > li > .sub-menu.submenu-reposition-left::before,
 	.primary-navigation > div > .menu-wrapper > li > .sub-menu.submenu-reposition-left::after {
-
 		/* rtl:ignore */
 		left: var(--global--spacing-horizontal);
 
@@ -4838,7 +4822,6 @@ h1.page-title {
 	}
 
 	.primary-navigation > div > .menu-wrapper > li > .sub-menu.submenu-reposition-right {
-
 		/* rtl:ignore */
 		right: 0;
 
@@ -4848,7 +4831,6 @@ h1.page-title {
 
 	.primary-navigation > div > .menu-wrapper > li > .sub-menu.submenu-reposition-right::before,
 	.primary-navigation > div > .menu-wrapper > li > .sub-menu.submenu-reposition-right::after {
-
 		/* rtl:ignore */
 		left: auto;
 
