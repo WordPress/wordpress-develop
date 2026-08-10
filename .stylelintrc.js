@@ -54,6 +54,11 @@ module.exports = {
 		'scss/operator-no-unspaced': null,
 		'scss/selector-no-redundant-nesting-selector': null,
 		'@stylistic/max-line-length': null,
+		// Keep these lines and don't change their order otherwise indentation will break.
+		'@stylistic/selector-list-comma-space-after': 'never',
+		'@stylistic/selector-list-comma-newline-after': 'always',
+		'@stylistic/indentation': 'tab',
+		// End keep these lines.
 	},
 	reportDescriptionlessDisables: true,
 	ignorePath: '.stylelintignore',
