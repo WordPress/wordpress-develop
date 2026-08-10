@@ -651,31 +651,31 @@ template {
  * Extends
  */
 .post-thumbnail,
- .entry-content .wp-audio-shortcode,
- .entry-content > *:not(.alignwide):not(.alignfull):not(.alignleft):not(.alignright):not(.wp-block-separator),
+.entry-content .wp-audio-shortcode,
+.entry-content > *:not(.alignwide):not(.alignfull):not(.alignleft):not(.alignright):not(.wp-block-separator),
 *[class*="inner-container"] > *:not(.entry-content):not(.alignwide):not(.alignfull):not(.alignleft):not(.alignright):not(.wp-block-separator),
- .default-max-width {
+.default-max-width {
 	max-width: var(--responsive--aligndefault-width);
 	margin-left: auto;
 	margin-right: auto;
 }
 
 .widget-area,
- .pagination,
+.pagination,
 .comments-pagination,
- .post-navigation,
- .site-footer,
- .site-header,
- .alignwide,
- .wide-max-width {
+.post-navigation,
+.site-footer,
+.site-header,
+.alignwide,
+.wide-max-width {
 	max-width: var(--responsive--alignwide-width);
 	margin-left: auto;
 	margin-right: auto;
 }
 
 .alignfull,
- .wp-block-group .wp-block-group__inner-container > *.alignfull,
- .full-max-width {
+.wp-block-group .wp-block-group__inner-container > *.alignfull,
+.full-max-width {
 	max-width: var(--responsive--alignfull-width);
 	width: var(--responsive--alignfull-width);
 	margin-left: auto;
@@ -684,7 +684,7 @@ template {
 
 @media only screen and (min-width: 482px) {
 	.alignfull,
- .full-max-width {
+	.full-max-width {
 		max-width: var(--responsive--alignfull-width);
 		width: auto;
 		margin-left: auto;
@@ -692,9 +692,9 @@ template {
 	}
 }
 .entry-header .post-thumbnail,
- .singular .post-thumbnail,
- .alignfull [class*="inner-container"] > .alignwide,
- .alignwide [class*="inner-container"] > .alignwide {
+.singular .post-thumbnail,
+.alignfull [class*="inner-container"] > .alignwide,
+.alignwide [class*="inner-container"] > .alignwide {
 	margin-left: auto;
 	margin-right: auto;
 	width: var(--responsive--alignwide-width);
@@ -874,18 +874,18 @@ template {
  * - Adds special margin overrides for alignment utility classes
  */
 .entry-content > *.alignleft,
- .entry-content > *.alignright,
- .entry-content > *.alignleft:first-child + *,
- .entry-content > *.alignright:first-child + *,
- .entry-content > *.alignfull.has-background {
+.entry-content > *.alignright,
+.entry-content > *.alignleft:first-child + *,
+.entry-content > *.alignright:first-child + *,
+.entry-content > *.alignfull.has-background {
 	margin-top: 0;
 }
 .entry-content > *:last-child,
- .entry-content > *.alignfull.has-background {
+.entry-content > *.alignfull.has-background {
 	margin-bottom: 0;
 }
 .entry-content > *.alignfull + .alignleft,
- .entry-content > *.alignfull + .alignright {
+.entry-content > *.alignfull + .alignright {
 	margin-top: var(--global--spacing-vertical);
 }
 
@@ -938,8 +938,8 @@ html {
  * Relax the definition a bit, to allow components to override it manually.
  */
 *,
- *::before,
- *::after {
+*::before,
+*::after {
 	box-sizing: inherit;
 }
 
@@ -1012,18 +1012,18 @@ blockquote footer {
 	letter-spacing: var(--global--letter-spacing);
 }
 blockquote.alignleft,
- blockquote.alignright {
+blockquote.alignright {
 	padding-left: inherit;
 }
 blockquote.alignleft p,
- blockquote.alignright p {
+blockquote.alignright p {
 	font-size: var(--heading--font-size-h5);
 	max-width: inherit;
 	width: inherit;
 }
 blockquote.alignleft cite,
 blockquote.alignleft footer,
- blockquote.alignright cite,
+blockquote.alignright cite,
 blockquote.alignright footer {
 	font-size: var(--global--font-size-xs);
 	letter-spacing: var(--global--letter-spacing);
@@ -1149,8 +1149,6 @@ input[type="url"] {
 select {
 	border: var(--form--border-width) solid var(--form--border-color);
 	color: var(--form--color-text);
-	-moz-appearance: none;
-	-webkit-appearance: none;
 	appearance: none;
 	line-height: var(--global--line-height-body);
 	padding: var(--form--spacing-unit) calc(3 * var(--form--spacing-unit)) var(--form--spacing-unit) var(--form--spacing-unit);
@@ -1341,11 +1339,11 @@ fieldset input:not([type="submit"]) {
 	margin-bottom: var(--global--spacing-unit);
 }
 fieldset input[type="radio"],
- fieldset input[type="checkbox"] {
+fieldset input[type="checkbox"] {
 	margin-bottom: 0;
 }
 fieldset input[type="radio"] + label,
- fieldset input[type="checkbox"] + label {
+fieldset input[type="checkbox"] + label {
 	font-size: var(--form--font-size);
 	padding-left: 0;
 	margin-bottom: var(--global--spacing-unit);
@@ -1413,7 +1411,7 @@ figcaption,
 	text-align: center;
 }
 .alignleft figcaption,
- .alignright figcaption,
+.alignright figcaption,
 .alignleft .wp-caption,
 .alignright .wp-caption,
 .alignleft .wp-caption-text,
@@ -1464,18 +1462,22 @@ a {
 	cursor: pointer;
 	color: var(--wp--style--color--link, var(--global--color-primary));
 	text-underline-offset: 3px;
+	-webkit-text-decoration-skip-ink: all;
 	text-decoration-skip-ink: all;
 }
 
 a:hover {
 	text-decoration-style: dotted;
+	-webkit-text-decoration-skip-ink: none;
 	text-decoration-skip-ink: none;
 }
 
 .site a:focus:not(.wp-block-button__link):not(.wp-block-file__button) {
 	/* Only visible in Windows High Contrast mode */
 	outline: 2px solid transparent;
+	-webkit-text-decoration: underline 1px dotted currentColor;
 	text-decoration: underline 1px dotted currentColor;
+	-webkit-text-decoration-skip-ink: none;
 	text-decoration-skip-ink: none;
 	background: rgba(255, 255, 255, 0.9);
 }
@@ -1511,7 +1513,7 @@ a:hover {
 }
 
 .has-background .has-link-color a,
- .has-background.has-link-color a {
+.has-background.has-link-color a {
 	color: var(--wp--style--color--link, var(--global--color-primary));
 }
 
@@ -1587,7 +1589,7 @@ input[type="reset"]:not(:hover):not(:active):not(.has-background),
 	background-color: var(--local--color-primary, var(--global--color-primary));
 }
 .site .button:hover,
- .site .button:active,
+.site .button:active,
 button:hover,
 button:active,
 input[type="submit"]:hover,
@@ -1651,8 +1653,8 @@ input[type="reset"]:disabled,
 	color: inherit !important;
 }
 .wp-block-button.is-style-outline .wp-block-button__link:not(:hover):not(:active):not(.has-text-color),
- .wp-block-button.is-style-outline .wp-block-button__link:not(:hover):not(:active):not(.has-background),
- .wp-block-button.is-style-outline .wp-block-button__link:not(:hover):not(:active).has-background {
+.wp-block-button.is-style-outline .wp-block-button__link:not(:hover):not(:active):not(.has-background),
+.wp-block-button.is-style-outline .wp-block-button__link:not(:hover):not(:active).has-background {
 	border-color: currentColor;
 }
 .wp-block-button.is-style-outline .wp-block-button__link:not(:hover):not(:active):not(.has-text-color) {
@@ -1882,13 +1884,13 @@ input[type="reset"]:disabled,
 	margin-bottom: 0;
 }
 .wp-block-cover.alignleft,
- .wp-block-cover.alignright,
+.wp-block-cover.alignright,
 .wp-block-cover-image.alignleft,
 .wp-block-cover-image.alignright {
 	margin-top: 0;
 }
 .wp-block-cover.alignleft > *,
- .wp-block-cover.alignright > *,
+.wp-block-cover.alignright > *,
 .wp-block-cover-image.alignleft > *,
 .wp-block-cover-image.alignright > * {
 	margin-top: calc(2 * var(--global--spacing-vertical));
@@ -1898,7 +1900,7 @@ input[type="reset"]:disabled,
 	width: 100%;
 }
 .wp-block-cover.has-left-content,
- .wp-block-cover.has-right-content,
+.wp-block-cover.has-right-content,
 .wp-block-cover-image.has-left-content,
 .wp-block-cover-image.has-right-content {
 	justify-content: center;
@@ -1986,7 +1988,7 @@ input[type="reset"]:disabled,
 }
 .wp-block-group.has-background .wp-block-group__inner-container > .alignfull,
 .wp-block-group.has-background .wp-block-group__inner-container > hr.wp-block-separator:not(.is-style-dots):not(.alignwide).alignfull,
- .wp-block-group.is-style-twentytwentyone-border .wp-block-group__inner-container > .alignfull,
+.wp-block-group.is-style-twentytwentyone-border .wp-block-group__inner-container > .alignfull,
 .wp-block-group.is-style-twentytwentyone-border .wp-block-group__inner-container > hr.wp-block-separator:not(.is-style-dots):not(.alignwide).alignfull {
 	max-width: calc(var(--responsive--alignfull-width) + 2 * var(--global--spacing-vertical));
 	width: calc(var(--responsive--alignfull-width) + 2 * var(--global--spacing-vertical));
@@ -2201,15 +2203,15 @@ h6,
 	margin-bottom: 0;
 }
 .wp-block-latest-posts.is-grid.columns-2 > li:nth-last-child(-n+2):nth-child(2n+1),
- .wp-block-latest-posts.is-grid.columns-2 > li:nth-last-child(-n+2):nth-child(2n+1) ~ li,
- .wp-block-latest-posts.is-grid.columns-3 > li:nth-last-child(-n+3):nth-child(3n+1),
- .wp-block-latest-posts.is-grid.columns-3 > li:nth-last-child(-n+3):nth-child(3n+1) ~ li,
- .wp-block-latest-posts.is-grid.columns-4 > li:nth-last-child(-n+4):nth-child(4n+1),
- .wp-block-latest-posts.is-grid.columns-4 > li:nth-last-child(-n+4):nth-child(4n+1) ~ li,
- .wp-block-latest-posts.is-grid.columns-5 > li:nth-last-child(-n+5):nth-child(5n+1),
- .wp-block-latest-posts.is-grid.columns-5 > li:nth-last-child(-n+5):nth-child(5n+1) ~ li,
- .wp-block-latest-posts.is-grid.columns-6 > li:nth-last-child(-n+6):nth-child(6n+1),
- .wp-block-latest-posts.is-grid.columns-6 > li:nth-last-child(-n+6):nth-child(6n+1) ~ li {
+.wp-block-latest-posts.is-grid.columns-2 > li:nth-last-child(-n+2):nth-child(2n+1) ~ li,
+.wp-block-latest-posts.is-grid.columns-3 > li:nth-last-child(-n+3):nth-child(3n+1),
+.wp-block-latest-posts.is-grid.columns-3 > li:nth-last-child(-n+3):nth-child(3n+1) ~ li,
+.wp-block-latest-posts.is-grid.columns-4 > li:nth-last-child(-n+4):nth-child(4n+1),
+.wp-block-latest-posts.is-grid.columns-4 > li:nth-last-child(-n+4):nth-child(4n+1) ~ li,
+.wp-block-latest-posts.is-grid.columns-5 > li:nth-last-child(-n+5):nth-child(5n+1),
+.wp-block-latest-posts.is-grid.columns-5 > li:nth-last-child(-n+5):nth-child(5n+1) ~ li,
+.wp-block-latest-posts.is-grid.columns-6 > li:nth-last-child(-n+6):nth-child(6n+1),
+.wp-block-latest-posts.is-grid.columns-6 > li:nth-last-child(-n+6):nth-child(6n+1) ~ li {
 	margin-bottom: 0;
 }
 .wp-block-latest-posts > li > * {
@@ -2245,7 +2247,7 @@ h6,
 	line-height: var(--global--line-height-body);
 }
 [class*="inner-container"] .wp-block-latest-posts .wp-block-latest-posts__post-date,
- .has-background .wp-block-latest-posts .wp-block-latest-posts__post-date {
+.has-background .wp-block-latest-posts .wp-block-latest-posts__post-date {
 	color: currentColor;
 }
 .wp-block-latest-posts .wp-block-latest-posts__post-excerpt,
@@ -2260,7 +2262,7 @@ h6,
 	padding-right: var(--global--spacing-unit);
 }
 .entry-content [class*="inner-container"] .wp-block-latest-posts.alignfull,
- .entry-content .has-background .wp-block-latest-posts.alignfull {
+.entry-content .has-background .wp-block-latest-posts.alignfull {
 	padding-left: 0;
 	padding-right: 0;
 }
@@ -2481,7 +2483,7 @@ dd {
 	border: 1px solid var(--primary-nav--border-color);
 }
 .wp-block-navigation > .wp-block-navigation__container > .has-child > .wp-block-navigation__container::before,
- .wp-block-navigation > .wp-block-navigation__container > .has-child > .wp-block-navigation__container::after {
+.wp-block-navigation > .wp-block-navigation__container > .has-child > .wp-block-navigation__container::after {
 	content: "";
 	display: block;
 	position: absolute;
@@ -2503,7 +2505,7 @@ dd {
 	background: var(--global--color-background);
 }
 .wp-block-navigation:not(.has-text-color) .wp-block-navigation-link > a:hover,
- .wp-block-navigation:not(.has-text-color) .wp-block-navigation-link > a:focus {
+.wp-block-navigation:not(.has-text-color) .wp-block-navigation-link > a:focus {
 	color: var(--primary-nav--color-link-hover);
 }
 .wp-block-navigation:not(.has-text-color) .wp-block-navigation-link > a:hover {
@@ -2588,11 +2590,11 @@ pre.wp-block-preformatted {
 	text-align: center;
 }
 .wp-block-pullquote.alignwide > p,
- .wp-block-pullquote.alignwide blockquote {
+.wp-block-pullquote.alignwide blockquote {
 	max-width: var(--responsive--alignwide-width);
 }
 .wp-block-pullquote.alignfull:not(.is-style-solid-color) > p,
- .wp-block-pullquote.alignfull:not(.is-style-solid-color) blockquote {
+.wp-block-pullquote.alignfull:not(.is-style-solid-color) blockquote {
 	padding: 0 calc(2 * var(--global--spacing-unit));
 }
 .wp-block-pullquote.is-style-solid-color {
@@ -2623,11 +2625,11 @@ pre.wp-block-preformatted {
 	color: currentColor;
 }
 .wp-block-pullquote.is-style-solid-color.alignleft,
- .wp-block-pullquote.is-style-solid-color.alignright {
+.wp-block-pullquote.is-style-solid-color.alignright {
 	padding: var(--global--spacing-unit);
 }
 .wp-block-pullquote.is-style-solid-color.alignleft blockquote,
- .wp-block-pullquote.is-style-solid-color.alignright blockquote {
+.wp-block-pullquote.is-style-solid-color.alignright blockquote {
 	max-width: initial;
 }
 
@@ -2673,9 +2675,9 @@ pre.wp-block-preformatted {
 	letter-spacing: inherit;
 }
 .has-background .wp-block-quote .wp-block-quote__citation,
- [class*="background-color"] .wp-block-quote .wp-block-quote__citation,
- [style*="background-color"] .wp-block-quote .wp-block-quote__citation,
- .wp-block-cover[style*="background-image"] .wp-block-quote .wp-block-quote__citation,
+[class*="background-color"] .wp-block-quote .wp-block-quote__citation,
+[style*="background-color"] .wp-block-quote .wp-block-quote__citation,
+.wp-block-cover[style*="background-image"] .wp-block-quote .wp-block-quote__citation,
 .has-background .wp-block-quote cite,
 [class*="background-color"] .wp-block-quote cite,
 [style*="background-color"] .wp-block-quote cite,
@@ -2687,13 +2689,13 @@ pre.wp-block-preformatted {
 	color: currentColor;
 }
 .wp-block-quote:where(:not([style*="font-style"])) .wp-block-quote__citation,
- .wp-block-quote:where(:not([style*="font-style"])) cite,
- .wp-block-quote:where(:not([style*="font-style"])) footer {
+.wp-block-quote:where(:not([style*="font-style"])) cite,
+.wp-block-quote:where(:not([style*="font-style"])) footer {
 	font-style: var(--quote--font-style-cite);
 }
 .wp-block-quote:where(:not([style*="font-weight"])) .wp-block-quote__citation,
- .wp-block-quote:where(:not([style*="font-weight"])) cite,
- .wp-block-quote:where(:not([style*="font-weight"])) footer {
+.wp-block-quote:where(:not([style*="font-weight"])) cite,
+.wp-block-quote:where(:not([style*="font-weight"])) footer {
 	font-weight: normal;
 }
 .wp-block-quote.has-text-align-right {
@@ -2715,7 +2717,7 @@ pre.wp-block-preformatted {
 	display: none;
 }
 .wp-block-quote.is-large,
- .wp-block-quote.is-style-large {
+.wp-block-quote.is-style-large {
 	padding-left: 0;
 	padding-right: 0;
 	/* Resetting margins to match _block-container.scss */
@@ -2723,23 +2725,23 @@ pre.wp-block-preformatted {
 	margin-bottom: var(--global--spacing-vertical);
 }
 .wp-block-quote.is-large p,
- .wp-block-quote.is-style-large p {
+.wp-block-quote.is-style-large p {
 	font-size: var(--quote--font-size-large);
 	font-style: var(--quote--font-style-large);
 	line-height: var(--quote--line-height-large);
 }
 .wp-block-quote.is-large::before,
- .wp-block-quote.is-style-large::before {
+.wp-block-quote.is-style-large::before {
 	font-size: var(--quote--font-size-large);
 	line-height: var(--quote--line-height-large);
 	left: calc(-1 * var(--global--spacing-horizontal));
 }
 .wp-block-quote.is-large.has-text-align-right::before,
- .wp-block-quote.is-style-large.has-text-align-right::before {
+.wp-block-quote.is-style-large.has-text-align-right::before {
 	display: none;
 }
 .wp-block-quote.is-large.has-text-align-right p::before,
- .wp-block-quote.is-style-large.has-text-align-right p::before {
+.wp-block-quote.is-style-large.has-text-align-right p::before {
 	content: "”";
 	font-size: var(--quote--font-size-large);
 	font-weight: normal;
@@ -2749,7 +2751,7 @@ pre.wp-block-preformatted {
 .wp-block-quote.is-large .wp-block-quote__citation,
 .wp-block-quote.is-large cite,
 .wp-block-quote.is-large footer,
- .wp-block-quote.is-style-large .wp-block-quote__citation,
+.wp-block-quote.is-style-large .wp-block-quote__citation,
 .wp-block-quote.is-style-large cite,
 .wp-block-quote.is-style-large footer {
 	color: var(--global--color-primary);
@@ -2757,24 +2759,24 @@ pre.wp-block-preformatted {
 }
 @media only screen and (max-width: 481.98px) {
 	.wp-block-quote.is-large,
- .wp-block-quote.is-style-large {
+	.wp-block-quote.is-style-large {
 		padding-left: var(--global--spacing-horizontal);
 	}
 	.wp-block-quote.is-large::before,
- .wp-block-quote.is-style-large::before {
+	.wp-block-quote.is-style-large::before {
 		left: 0;
 	}
 	.wp-block-quote.is-large.has-text-align-right,
- .wp-block-quote.is-style-large.has-text-align-right {
+	.wp-block-quote.is-style-large.has-text-align-right {
 		padding-left: 0;
 		padding-right: var(--global--spacing-horizontal);
 	}
 	.wp-block-quote.is-large.has-text-align-right::before,
- .wp-block-quote.is-style-large.has-text-align-right::before {
+	.wp-block-quote.is-style-large.has-text-align-right::before {
 		right: 0;
 	}
 	.wp-block-quote.is-large.has-text-align-center,
- .wp-block-quote.is-style-large.has-text-align-center {
+	.wp-block-quote.is-style-large.has-text-align-center {
 		padding-left: 0;
 		padding-right: 0;
 	}
@@ -2816,15 +2818,15 @@ pre.wp-block-preformatted {
 	margin-bottom: 0;
 }
 .wp-block-rss.is-grid.columns-2 > li:nth-last-child(-n+2):nth-child(2n+1),
- .wp-block-rss.is-grid.columns-2 > li:nth-last-child(-n+2):nth-child(2n+1) ~ li,
- .wp-block-rss.is-grid.columns-3 > li:nth-last-child(-n+3):nth-child(3n+1),
- .wp-block-rss.is-grid.columns-3 > li:nth-last-child(-n+3):nth-child(3n+1) ~ li,
- .wp-block-rss.is-grid.columns-4 > li:nth-last-child(-n+4):nth-child(4n+1),
- .wp-block-rss.is-grid.columns-4 > li:nth-last-child(-n+4):nth-child(4n+1) ~ li,
- .wp-block-rss.is-grid.columns-5 > li:nth-last-child(-n+5):nth-child(5n+1),
- .wp-block-rss.is-grid.columns-5 > li:nth-last-child(-n+5):nth-child(5n+1) ~ li,
- .wp-block-rss.is-grid.columns-6 > li:nth-last-child(-n+6):nth-child(6n+1),
- .wp-block-rss.is-grid.columns-6 > li:nth-last-child(-n+6):nth-child(6n+1) ~ li {
+.wp-block-rss.is-grid.columns-2 > li:nth-last-child(-n+2):nth-child(2n+1) ~ li,
+.wp-block-rss.is-grid.columns-3 > li:nth-last-child(-n+3):nth-child(3n+1),
+.wp-block-rss.is-grid.columns-3 > li:nth-last-child(-n+3):nth-child(3n+1) ~ li,
+.wp-block-rss.is-grid.columns-4 > li:nth-last-child(-n+4):nth-child(4n+1),
+.wp-block-rss.is-grid.columns-4 > li:nth-last-child(-n+4):nth-child(4n+1) ~ li,
+.wp-block-rss.is-grid.columns-5 > li:nth-last-child(-n+5):nth-child(5n+1),
+.wp-block-rss.is-grid.columns-5 > li:nth-last-child(-n+5):nth-child(5n+1) ~ li,
+.wp-block-rss.is-grid.columns-6 > li:nth-last-child(-n+6):nth-child(6n+1),
+.wp-block-rss.is-grid.columns-6 > li:nth-last-child(-n+6):nth-child(6n+1) ~ li {
 	margin-bottom: 0;
 }
 .wp-block-rss > li > * {
@@ -2856,7 +2858,7 @@ pre.wp-block-preformatted {
 	line-height: var(--global--line-height-body);
 }
 [class*="inner-container"] .wp-block-rss .wp-block-rss__item-publish-date,
- .has-background .wp-block-rss .wp-block-rss__item-publish-date {
+.has-background .wp-block-rss .wp-block-rss__item-publish-date {
 	color: currentColor;
 }
 .wp-block-rss .wp-block-rss__item-excerpt,
@@ -2871,7 +2873,7 @@ pre.wp-block-preformatted {
 	padding-right: var(--global--spacing-unit);
 }
 .entry-content [class*="inner-container"] .wp-block-rss.alignfull,
- .entry-content .has-background .wp-block-rss.alignfull {
+.entry-content .has-background .wp-block-rss.alignfull {
 	padding-left: 0;
 	padding-right: 0;
 }
@@ -2917,12 +2919,12 @@ pre.wp-block-preformatted {
 	fill: currentColor;
 }
 .has-background .wp-block-search button.wp-block-search__button:hover,
- .has-background .wp-block-search button.wp-block-search__button:active {
+.has-background .wp-block-search button.wp-block-search__button:active {
 	background-color: var(--local--color-background, var(--global--color-background)) !important;
 	color: var(--local--color-primary, var(--global--color-primary)) !important;
 }
 .has-text-color .wp-block-search button.wp-block-search__button:hover,
- .has-text-color .wp-block-search button.wp-block-search__button:active {
+.has-text-color .wp-block-search button.wp-block-search__button:active {
 	color: var(--local--color-primary, var(--global--color-primary)) !important;
 }
 .wp-block-search.wp-block-search__button-inside .wp-block-search__inside-wrapper {
@@ -2992,11 +2994,11 @@ hr.wp-block-separator.is-style-twentytwentyone-separator-thick {
 	border-bottom-width: calc(3 * var(--separator--height));
 }
 hr.wp-block-separator.is-style-dots.has-background,
- hr.wp-block-separator.is-style-dots.has-text-color {
+hr.wp-block-separator.is-style-dots.has-text-color {
 	background-color: transparent !important;
 }
 hr.wp-block-separator.is-style-dots.has-background::before,
- hr.wp-block-separator.is-style-dots.has-text-color::before {
+hr.wp-block-separator.is-style-dots.has-text-color::before {
 	color: currentColor !important;
 }
 hr.wp-block-separator.is-style-dots::before {
@@ -3006,9 +3008,9 @@ hr.wp-block-separator.is-style-dots::before {
 	padding-left: var(--global--font-size-sm);
 }
 .has-background hr.wp-block-separator,
- [class*="background-color"] hr.wp-block-separator,
- [style*="background-color"] hr.wp-block-separator,
- .wp-block-cover[style*="background-image"] hr.wp-block-separator {
+[class*="background-color"] hr.wp-block-separator,
+[style*="background-color"] hr.wp-block-separator,
+.wp-block-cover[style*="background-image"] hr.wp-block-separator {
 	border-color: currentColor;
 }
 
@@ -3019,7 +3021,7 @@ hr.wp-block-separator.is-style-dots::before {
 	color: var(--global--color-primary);
 }
 .wp-block-social-links.is-style-twentytwentyone-social-icons-color .wp-social-link,
- .wp-block-social-links.is-style-twentytwentyone-social-icons-color.has-icon-background-color.has-icon-background-color .wp-social-link {
+.wp-block-social-links.is-style-twentytwentyone-social-icons-color.has-icon-background-color.has-icon-background-color .wp-social-link {
 	background: none;
 }
 
@@ -3052,10 +3054,10 @@ table figcaption,
 	font-size: var(--global--font-size-xs);
 }
 table.is-style-regular .has-background,
- table.is-style-stripes .has-background,
- table.is-style-stripes .has-background thead tr,
- table.is-style-stripes .has-background tfoot tr,
- table.is-style-stripes .has-background tbody tr,
+table.is-style-stripes .has-background,
+table.is-style-stripes .has-background thead tr,
+table.is-style-stripes .has-background tfoot tr,
+table.is-style-stripes .has-background tbody tr,
 .wp-block-table.is-style-regular .has-background,
 .wp-block-table.is-style-stripes .has-background,
 .wp-block-table.is-style-stripes .has-background thead tr,
@@ -3357,12 +3359,12 @@ table.wp-calendar-table caption {
 	font-weight: var(--branding--title--font-weight);
 }
 .site-title a:link,
- .site-title a:visited,
- .site-title a:active {
+.site-title a:visited,
+.site-title a:active {
 	color: currentColor;
 }
 .site-title a:hover,
- .site-title a:focus {
+.site-title a:focus {
 	color: var(--branding--color-link-hover);
 }
 @media only screen and (min-width: 482px) {
@@ -3509,8 +3511,8 @@ table.wp-calendar-table caption {
 	color: var(--footer--color-link);
 }
 .site-footer > .site-info a:link,
- .site-footer > .site-info a:visited,
- .site-footer > .site-info a:active {
+.site-footer > .site-info a:visited,
+.site-footer > .site-info a:active {
 	color: var(--footer--color-link);
 }
 .site-footer > .site-info a:hover {
@@ -3621,7 +3623,7 @@ h1.entry-title {
 	color: currentColor;
 }
 .entry-footer a:hover,
- .entry-footer a:focus {
+.entry-footer a:focus {
 	color: var(--global--color-primary-hover);
 }
 .entry-footer a:active {
@@ -4035,7 +4037,7 @@ h1.page-title {
 		margin-right: calc(1.5 * var(--global--spacing-horizontal));
 	}
 	.comment-form > p.comment-notes,
- .comment-form > p.logged-in-as {
+	.comment-form > p.logged-in-as {
 		display: block;
 	}
 }
@@ -4282,7 +4284,7 @@ h1.page-title {
 		z-index: 88888;
 	}
 	.primary-navigation > div > .menu-wrapper > li > .sub-menu::before,
- .primary-navigation > div > .menu-wrapper > li > .sub-menu::after {
+	.primary-navigation > div > .menu-wrapper > li > .sub-menu::after {
 		content: "";
 		display: block;
 		position: absolute;
@@ -4307,7 +4309,7 @@ h1.page-title {
 		right: auto;
 	}
 	.primary-navigation > div > .menu-wrapper > li > .sub-menu.submenu-reposition-left::before,
- .primary-navigation > div > .menu-wrapper > li > .sub-menu.submenu-reposition-left::after {
+	.primary-navigation > div > .menu-wrapper > li > .sub-menu.submenu-reposition-left::after {
 		/* rtl:ignore */
 		left: var(--global--spacing-horizontal);
 		/* rtl:ignore */
@@ -4320,7 +4322,7 @@ h1.page-title {
 		left: auto;
 	}
 	.primary-navigation > div > .menu-wrapper > li > .sub-menu.submenu-reposition-right::before,
- .primary-navigation > div > .menu-wrapper > li > .sub-menu.submenu-reposition-right::after {
+	.primary-navigation > div > .menu-wrapper > li > .sub-menu.submenu-reposition-right::after {
 		/* rtl:ignore */
 		left: auto;
 		/* rtl:ignore */
@@ -4366,8 +4368,8 @@ h1.page-title {
 	fill: var(--primary-nav--color-text);
 }
 .primary-navigation a:hover,
- .primary-navigation a:link,
- .primary-navigation a:visited {
+.primary-navigation a:link,
+.primary-navigation a:visited {
 	color: var(--primary-nav--color-link-hover);
 }
 .primary-navigation a:hover {
@@ -4484,13 +4486,14 @@ h1.page-title {
 	color: var(--footer--color-link);
 }
 .footer-navigation-wrapper li a:link,
- .footer-navigation-wrapper li a:visited,
- .footer-navigation-wrapper li a:active {
+.footer-navigation-wrapper li a:visited,
+.footer-navigation-wrapper li a:active {
 	color: var(--footer--color-link);
 }
 .footer-navigation-wrapper li a:hover {
 	text-decoration: underline;
 	text-decoration-style: dotted;
+	-webkit-text-decoration-skip-ink: none;
 	text-decoration-skip-ink: none;
 	color: var(--footer--color-link-hover);
 }
@@ -4706,7 +4709,7 @@ h1.page-title {
 		display: none;
 	}
 	.pagination .page-numbers.prev,
- .pagination .page-numbers.next,
+	.pagination .page-numbers.next,
 	.comments-pagination .page-numbers.prev,
 	.comments-pagination .page-numbers.next {
 		display: inline-block;
@@ -4805,7 +4808,7 @@ h1.page-title {
 	line-height: var(--widget--line-height-list);
 }
 .widget ul.sub-menu,
- .widget ul.children {
+.widget ul.children {
 	margin-left: var(--widget--spacing-menu);
 }
 .widget ul .sub-menu-toggle {
@@ -4818,8 +4821,8 @@ h1.page-title {
 	text-decoration-color: currentColor;
 }
 .widget a:link,
- .widget a:visited,
- .widget a:active {
+.widget a:visited,
+.widget a:active {
 	color: var(--footer--color-link);
 }
 .widget a:hover {
@@ -5082,47 +5085,47 @@ h1.page-title {
 }
 
 .has-background:not(.has-text-color).has-black-background-color[class],
- .has-background:not(.has-text-color).has-gray-background-color[class],
- .has-background:not(.has-text-color).has-dark-gray-background-color[class] {
+.has-background:not(.has-text-color).has-gray-background-color[class],
+.has-background:not(.has-text-color).has-dark-gray-background-color[class] {
 	color: var(--global--color-white);
 }
 .has-background:not(.has-text-color).has-black-background-color[class] > [class*="__inner-container"],
- .has-background:not(.has-text-color).has-gray-background-color[class] > [class*="__inner-container"],
- .has-background:not(.has-text-color).has-dark-gray-background-color[class] > [class*="__inner-container"] {
+.has-background:not(.has-text-color).has-gray-background-color[class] > [class*="__inner-container"],
+.has-background:not(.has-text-color).has-dark-gray-background-color[class] > [class*="__inner-container"] {
 	--local--color-primary: var(--global--color-background, #fff);
 	color: var(--local--color-primary, var(--global--color-primary));
 }
 .is-dark-theme .has-background:not(.has-text-color).has-black-background-color[class] > [class*="__inner-container"],
- .is-dark-theme .has-background:not(.has-text-color).has-gray-background-color[class] > [class*="__inner-container"],
- .is-dark-theme .has-background:not(.has-text-color).has-dark-gray-background-color[class] > [class*="__inner-container"] {
+.is-dark-theme .has-background:not(.has-text-color).has-gray-background-color[class] > [class*="__inner-container"],
+.is-dark-theme .has-background:not(.has-text-color).has-dark-gray-background-color[class] > [class*="__inner-container"] {
 	--local--color-primary: var(--global--color-primary, #000);
 }
 .has-background:not(.has-text-color).has-green-background-color[class],
- .has-background:not(.has-text-color).has-blue-background-color[class],
- .has-background:not(.has-text-color).has-purple-background-color[class],
- .has-background:not(.has-text-color).has-red-background-color[class],
- .has-background:not(.has-text-color).has-orange-background-color[class],
- .has-background:not(.has-text-color).has-yellow-background-color[class],
- .has-background:not(.has-text-color).has-white-background-color[class] {
+.has-background:not(.has-text-color).has-blue-background-color[class],
+.has-background:not(.has-text-color).has-purple-background-color[class],
+.has-background:not(.has-text-color).has-red-background-color[class],
+.has-background:not(.has-text-color).has-orange-background-color[class],
+.has-background:not(.has-text-color).has-yellow-background-color[class],
+.has-background:not(.has-text-color).has-white-background-color[class] {
 	color: var(--global--color-dark-gray);
 }
 .has-background:not(.has-text-color).has-green-background-color[class] > [class*="__inner-container"],
- .has-background:not(.has-text-color).has-blue-background-color[class] > [class*="__inner-container"],
- .has-background:not(.has-text-color).has-purple-background-color[class] > [class*="__inner-container"],
- .has-background:not(.has-text-color).has-red-background-color[class] > [class*="__inner-container"],
- .has-background:not(.has-text-color).has-orange-background-color[class] > [class*="__inner-container"],
- .has-background:not(.has-text-color).has-yellow-background-color[class] > [class*="__inner-container"],
- .has-background:not(.has-text-color).has-white-background-color[class] > [class*="__inner-container"] {
+.has-background:not(.has-text-color).has-blue-background-color[class] > [class*="__inner-container"],
+.has-background:not(.has-text-color).has-purple-background-color[class] > [class*="__inner-container"],
+.has-background:not(.has-text-color).has-red-background-color[class] > [class*="__inner-container"],
+.has-background:not(.has-text-color).has-orange-background-color[class] > [class*="__inner-container"],
+.has-background:not(.has-text-color).has-yellow-background-color[class] > [class*="__inner-container"],
+.has-background:not(.has-text-color).has-white-background-color[class] > [class*="__inner-container"] {
 	--local--color-primary: var(--global--color-primary, #000);
 	color: var(--local--color-primary, var(--global--color-primary));
 }
 .is-dark-theme .has-background:not(.has-text-color).has-green-background-color[class] > [class*="__inner-container"],
- .is-dark-theme .has-background:not(.has-text-color).has-blue-background-color[class] > [class*="__inner-container"],
- .is-dark-theme .has-background:not(.has-text-color).has-purple-background-color[class] > [class*="__inner-container"],
- .is-dark-theme .has-background:not(.has-text-color).has-red-background-color[class] > [class*="__inner-container"],
- .is-dark-theme .has-background:not(.has-text-color).has-orange-background-color[class] > [class*="__inner-container"],
- .is-dark-theme .has-background:not(.has-text-color).has-yellow-background-color[class] > [class*="__inner-container"],
- .is-dark-theme .has-background:not(.has-text-color).has-white-background-color[class] > [class*="__inner-container"] {
+.is-dark-theme .has-background:not(.has-text-color).has-blue-background-color[class] > [class*="__inner-container"],
+.is-dark-theme .has-background:not(.has-text-color).has-purple-background-color[class] > [class*="__inner-container"],
+.is-dark-theme .has-background:not(.has-text-color).has-red-background-color[class] > [class*="__inner-container"],
+.is-dark-theme .has-background:not(.has-text-color).has-orange-background-color[class] > [class*="__inner-container"],
+.is-dark-theme .has-background:not(.has-text-color).has-yellow-background-color[class] > [class*="__inner-container"],
+.is-dark-theme .has-background:not(.has-text-color).has-white-background-color[class] > [class*="__inner-container"] {
 	--local--color-primary: var(--global--color-background, #fff);
 }
 

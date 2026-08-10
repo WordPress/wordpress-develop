@@ -77,7 +77,7 @@
 		display: none;
 	}
 	#dark-mode-toggler:hover,
- #dark-mode-toggler:focus {
+	#dark-mode-toggler:focus {
 		color: var(--button--color-background-active);
 		border: 2px solid var(--button--color-text-active);
 		background-color: var(--button--color-text-active);
