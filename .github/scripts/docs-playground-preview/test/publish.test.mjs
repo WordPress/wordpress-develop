@@ -574,6 +574,49 @@ test( 'a healthy same-SHA preview is reused without uploading it again', async (
 	assert.equal( api.labelRemovals, 1 );
 } );
 
+test( 'a preview comment deleted mid-update is recreated', async () => {
+	const api = new FakeApi();
+	api.comments = [ { id: 7, body: 'about to be deleted' } ];
+	api.updateComment = async () => {
+		const error = new Error(
+			`GitHub API returned HTTP 404 for /repos/${ repository }/issues/comments/7: Not Found`
+		);
+		error.status = 404;
+		throw error;
+	};
+	const directory = await handoffDirectory( buildMetadata() );
+	const result = await publishPullRequest( options( api, directory ) );
+	assert.equal( result.status, 'ready' );
+	assert.equal( api.comments[ 0 ].number, 123 );
+	assert.match( api.comments[ 0 ].body, /Status:\*\* Ready/ );
+	assert.deepEqual( api.deleted, [] );
+	assert.equal( api.labelRemovals, 1 );
+} );
+
+test( 'a non-404 comment update failure still fails the publication', async () => {
+	const api = new FakeApi();
+	api.comments = [ { id: 7, body: 'existing preview comment' } ];
+	api.updateComment = async () => {
+		throw new Error(
+			`GitHub API returned HTTP 500 for /repos/${ repository }/issues/comments/7: boom`
+		);
+	};
+	const directory = await handoffDirectory( buildMetadata() );
+	await assert.rejects(
+		publishPullRequest( options( api, directory ) ),
+		( error ) => {
+			assert.ok( error instanceof AggregateError );
+			assert.match( error.errors[ 0 ].message, /HTTP 500/ );
+			return true;
+		}
+	);
+	assert.equal( api.comments[ 0 ].id, 7 );
+	assert.deepEqual(
+		api.deleted.sort( ( left, right ) => left - right ),
+		[ 10, 11 ]
+	);
+} );
+
 test( 'cleanup failure cannot replace an already-ready comment', async () => {
 	const api = new FakeApi();
 	api.assets.push(

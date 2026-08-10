@@ -127,13 +127,19 @@ async function upsertComment( session, body ) {
 	);
 	await session.authorize();
 	if ( comment ) {
-		await session.api.updateComment( comment.id, body );
-	} else {
-		await session.api.createComment(
-			session.context.pullRequestNumber,
-			body
-		);
+		try {
+			await session.api.updateComment( comment.id, body );
+			return;
+		} catch ( error ) {
+			if ( error.status !== 404 ) {
+				throw error;
+			}
+			session.warning(
+				`Cannot update the deleted preview comment: ${ error.message }`
+			);
+		}
 	}
+	await session.api.createComment( session.context.pullRequestNumber, body );
 }
 
 async function removeRequestLabel( session ) {
