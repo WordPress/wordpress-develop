@@ -59,7 +59,8 @@ module.exports = {
 		'scss/operator-no-unspaced': null,
 		'scss/selector-no-redundant-nesting-selector': null,
 		'@stylistic/max-line-length': null,
-		// Keep these lines and don't change their order otherwise indentation will break.
+		// Keep these lines. Don't change their order otherwise indentation will break.
+		// It's not about a literal 'execution order', but rather a compatibility issue.
 		'@stylistic/selector-list-comma-space-after': 'never',
 		'@stylistic/selector-list-comma-newline-after': 'always',
 		'@stylistic/indentation': 'tab',
