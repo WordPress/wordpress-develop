@@ -11,7 +11,7 @@
 require_once __DIR__ . '/admin.php';
 
 if ( ! current_user_can( 'create_users' ) ) {
-	wp_die( __( 'Sorry, you are not allowed to add users to this network.' ) );
+	wp_die( __( 'Sorry, you are not allowed to add users to this network.' ), 403 );
 }
 
 get_current_screen()->add_help_tab(
@@ -38,7 +38,7 @@ if ( isset( $_REQUEST['action'] ) && 'add-user' === $_REQUEST['action'] ) {
 	}
 
 	if ( ! is_array( $_POST['user'] ) ) {
-		wp_die( __( 'Cannot create an empty user.' ) );
+		wp_die( __( 'Cannot create an empty user.' ), 400 );
 	}
 
 	$user = wp_unslash( $_POST['user'] );
