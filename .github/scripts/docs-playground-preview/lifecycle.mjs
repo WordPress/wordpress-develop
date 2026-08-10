@@ -139,13 +139,17 @@ async function authorizeStaleMutation( session, expectedComment ) {
 
 async function markStale( session ) {
 	try {
-		await session.authorize( 'open', true );
+		return await markStaleAuthorized( session );
 	} catch ( error ) {
 		if ( error instanceof LifecycleSuperseded ) {
 			return { status: 'ignored' };
 		}
 		throw error;
 	}
+}
+
+async function markStaleAuthorized( session ) {
+	await session.authorize( 'open', true );
 	const comment = await session.api.findPreviewComment(
 		session.context.pullRequestNumber
 	);
@@ -201,10 +205,13 @@ async function settle( operations ) {
 		try {
 			await operation();
 		} catch ( error ) {
+			if ( error instanceof LifecycleSuperseded ) {
+				return { errors, superseded: true };
+			}
 			errors.push( error );
 		}
 	}
-	return errors;
+	return { errors, superseded: false };
 }
 
 async function expire( session ) {
@@ -231,21 +238,25 @@ async function expire( session ) {
 	const comment = await session.api.findPreviewComment(
 		session.context.pullRequestNumber
 	);
-	const assetErrors = await settle(
+	const assetCleanup = await settle(
 		assets.map( ( asset ) => async () => {
 			await session.authorize( 'closed' );
 			await session.api.deleteReleaseAsset( asset.id );
 		} )
 	);
-	const cacheErrors = await settle(
+	const cacheCleanup = await settle(
 		caches.map( ( cache ) => async () => {
 			await session.authorize( 'closed' );
 			await session.api.deleteActionCache( cache.id );
 		} )
 	);
-	let commentErrors = [];
-	if ( comment && assetErrors.length === 0 ) {
-		commentErrors = await settle( [
+	let commentCleanup = { errors: [], superseded: false };
+	if (
+		comment &&
+		assetCleanup.errors.length === 0 &&
+		! assetCleanup.superseded
+	) {
+		commentCleanup = await settle( [
 			async () => {
 				await session.authorize( 'closed' );
 				await session.api.updateComment(
@@ -255,9 +266,20 @@ async function expire( session ) {
 			},
 		] );
 	}
-	const errors = [ ...assetErrors, ...cacheErrors, ...commentErrors ];
+	const errors = [
+		...assetCleanup.errors,
+		...cacheCleanup.errors,
+		...commentCleanup.errors,
+	];
 	if ( errors.length > 0 ) {
 		throw new AggregateError( errors, 'Pull request cleanup failed.' );
+	}
+	if (
+		assetCleanup.superseded ||
+		cacheCleanup.superseded ||
+		commentCleanup.superseded
+	) {
+		return { status: 'superseded' };
 	}
 	return {
 		status: 'expired',

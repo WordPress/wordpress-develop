@@ -106,9 +106,16 @@ class FakeApi {
 		this.cacheRef = null;
 		this.replacementComment = null;
 		this.commentReads = 0;
+		this.laterPullRequest = null;
+		this.pullRequestReads = 0;
+		this.reopenAfterAssetDeletion = false;
 	}
 
 	async getPullRequest() {
+		this.pullRequestReads++;
+		if ( this.pullRequestReads > 1 && this.laterPullRequest ) {
+			return this.laterPullRequest;
+		}
 		return this.currentPullRequest;
 	}
 
@@ -144,6 +151,9 @@ class FakeApi {
 			throw new Error( 'release deletion failed' );
 		}
 		this.deletedAssets.push( id );
+		if ( this.reopenAfterAssetDeletion ) {
+			this.currentPullRequest = pullRequest( 'open' );
+		}
 	}
 
 	async deleteActionCache( id ) {
@@ -258,10 +268,21 @@ test( 'a newer terminal comment supersedes an older stale event', async () => {
 			previous: previewMetadata(),
 		} ),
 	};
-	await assert.rejects(
-		managePullRequest( options( api, event( 'synchronize' ) ) ),
-		/superseded/
+	const result = await managePullRequest(
+		options( api, event( 'synchronize' ) )
 	);
+	assert.equal( result.status, 'ignored' );
+	assert.equal( api.commentBodies.length, 0 );
+} );
+
+test( 're-adding the label during a slow stale pass yields to the publisher', async () => {
+	const api = new FakeApi();
+	installPreview( api );
+	api.laterPullRequest = pullRequest( 'open', [ { name: 'docs-preview' } ] );
+	const result = await managePullRequest(
+		options( api, event( 'synchronize' ) )
+	);
+	assert.equal( result.status, 'ignored' );
 	assert.equal( api.commentBodies.length, 0 );
 } );
 
@@ -366,6 +387,43 @@ test( 'asset cleanup failure preserves a comment that still links live assets', 
 	);
 	assert.deepEqual( api.deletedAssets, [ 2 ] );
 	assert.deepEqual( api.deletedCaches, [ 10 ] );
+	assert.equal( api.commentBodies.length, 0 );
+} );
+
+test( 'a reopen during asset deletion stops cleanup without failing the job', async () => {
+	const api = new FakeApi();
+	api.currentPullRequest = pullRequest( 'closed' );
+	installPreview( api );
+	api.reopenAfterAssetDeletion = true;
+	api.caches.push( {
+		id: 10,
+		ref: 'refs/pull/123/merge',
+		key: `docs-preview-base-v1-${ 'd'.repeat( 64 ) }`,
+	} );
+	const result = await managePullRequest( options( api, event( 'closed' ) ) );
+	assert.equal( result.status, 'superseded' );
+	assert.deepEqual( api.deletedAssets, [ 1 ] );
+	assert.deepEqual( api.deletedCaches, [] );
+	assert.equal( api.commentBodies.length, 0 );
+} );
+
+test( 'a reopen mid-cleanup still surfaces genuine deletion failures', async () => {
+	const api = new FakeApi();
+	api.currentPullRequest = pullRequest( 'closed' );
+	installPreview( api );
+	api.failedAsset = 1;
+	api.reopenAfterAssetDeletion = true;
+	api.caches.push( {
+		id: 10,
+		ref: 'refs/pull/123/merge',
+		key: `docs-preview-base-v1-${ 'd'.repeat( 64 ) }`,
+	} );
+	await assert.rejects(
+		managePullRequest( options( api, event( 'closed' ) ) ),
+		/Pull request cleanup failed/
+	);
+	assert.deepEqual( api.deletedAssets, [ 2 ] );
+	assert.deepEqual( api.deletedCaches, [] );
 	assert.equal( api.commentBodies.length, 0 );
 } );
 
