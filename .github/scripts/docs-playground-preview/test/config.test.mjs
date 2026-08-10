@@ -224,4 +224,17 @@ test( 'only the untrusted staging pull-request build bypasses staging activation
 		publishWorkflow,
 		/DOCS_PREVIEW_ENFORCE: \$\{\{ vars\.DOCS_PREVIEW_ENFORCE \}\}/
 	);
+	const trunkPublisherOffset = publishWorkflow.indexOf(
+		'\n    publish-trunk:'
+	);
+	assert.notEqual( trunkPublisherOffset, -1 );
+	const pullRequestPublisher = publishWorkflow.slice(
+		0,
+		trunkPublisherOffset
+	);
+	assert.match(
+		pullRequestPublisher,
+		/publish:\n[\s\S]*?permissions:\n[\s\S]*?pull-requests: write/
+	);
+	assert.doesNotMatch( pullRequestPublisher, /issues: write/ );
 } );
