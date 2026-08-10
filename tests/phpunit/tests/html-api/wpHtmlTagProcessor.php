@@ -2372,6 +2372,8 @@ HTML;
 	/**
 	 * Ensures that tag-name-terminating characters close RCDATA and RAWTEXT elements.
 	 *
+	 * @ticket 65372
+	 *
 	 * @dataProvider data_rcdata_and_rawtext_tag_name_terminators
 	 *
 	 * @param string $tag_name            The RCDATA or RAWTEXT tag name.
