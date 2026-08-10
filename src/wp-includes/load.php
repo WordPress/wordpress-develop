@@ -1328,7 +1328,7 @@ function wp_clone( $input_object ) {
  * Determines whether the current request is for the login screen.
  *
  * @since 6.1.0
- * @since 7.1.0 Checks the default location first
+ * @since 7.2.0 Checks the default location first
  *
  * @see wp_login_url()
  *
