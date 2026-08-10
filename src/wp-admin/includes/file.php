@@ -2068,6 +2068,8 @@ function copy_dir( $from, $to, $skip_list = array() ) {
 			foreach ( $skip_list as $skip_item ) {
 				if ( str_starts_with( $skip_item, $filename . '/' ) ) {
 					$sub_skip_list[] = preg_replace( '!^' . preg_quote( $filename, '!' ) . '/!i', '', $skip_item );
+				} elseif ( ! str_contains( $skip_item, '/' ) ) {
+					$sub_skip_list[] = $skip_item;
 				}
 			}
 
