@@ -8,7 +8,6 @@ module.exports = {
 	reportNeedlessDisables: true,
 	rules: {
 		'at-rule-empty-line-before': null,
-		'at-rule-no-unknown': null,
 		'comment-empty-line-before': null,
 		'declaration-property-value-allowed-list': [
 			{
@@ -19,9 +18,9 @@ module.exports = {
 					`Avoid "${ value }" value for the "${ property }" property. For accessibility reasons, visual, reading, and DOM order must match. Only use the reverse values when they do not affect reading order, meaning, and interaction.`,
 			},
 		],
-		'font-weight-notation': null,
-		'@stylistic/max-line-length': null,
+		'font-weight-notation': 'numeric',
 		'no-descending-specificity': null,
+		'no-invalid-position-at-import-rule': null,
 		'property-disallowed-list': [
 			[ 'order' ],
 			{
@@ -30,25 +29,18 @@ module.exports = {
 			},
 		],
 		'rule-empty-line-before': null,
-		'selector-class-pattern': [
-			'^[a-z][a-z0-9]*(?:(?:__|--|-)[a-z0-9]+)*$',
-			{
-				message:
-					'Selector should use lowercase class segments separated with hyphens, double hyphens, or double underscores (selector-class-pattern)',
-			},
-		],
 		'value-keyword-case': null,
-		'scss/operator-no-unspaced': null,
-		'scss/selector-no-redundant-nesting-selector': null,
+		'scss/at-else-empty-line-before': null,
+		'scss/at-extend-no-missing-placeholder': null,
+		'scss/at-if-closing-brace-newline-after': null,
+		'scss/at-if-closing-brace-space-after': null,
+		'scss/comment-no-empty': null,
 		'scss/load-partial-extension': null,
 		'scss/no-global-function-names': null,
-		'scss/comment-no-empty': null,
-		'scss/at-extend-no-missing-placeholder': null,
 		'scss/operator-no-newline-after': null,
-		'scss/at-if-closing-brace-newline-after': null,
-		'scss/at-else-empty-line-before': null,
-		'scss/at-if-closing-brace-space-after': null,
-		'no-invalid-position-at-import-rule': null,
+		'scss/operator-no-unspaced': null,
+		'scss/selector-no-redundant-nesting-selector': null,
+		'@stylistic/max-line-length': null,
 	},
 	reportDescriptionlessDisables: true,
 	ignorePath: '.stylelintignore',
