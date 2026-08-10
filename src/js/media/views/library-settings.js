@@ -10,7 +10,7 @@ var View = wp.media.View,
  * A toolbar control opening a modal dialog with the personal options for the
  * Media Library. Each toggle is saved over Ajax, so there is no submit button.
  *
- * @since 7.2.0
+ * @since 7.1.0
  *
  * @memberOf wp.media.view
  *

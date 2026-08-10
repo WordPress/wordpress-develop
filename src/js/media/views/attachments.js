@@ -117,7 +117,7 @@ Attachments = View.extend(/** @lends wp.media.view.Attachments.prototype */{
 	/**
 	 * Turns infinite scrolling on or off after the view has been created.
 	 *
-	 * @since 7.2.0
+	 * @since 7.1.0
 	 *
 	 * @param {boolean} enabled Whether to load more attachments on scroll.
 	 *

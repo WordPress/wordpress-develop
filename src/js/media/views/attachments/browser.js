@@ -121,7 +121,7 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 	 * The Load more view is created on demand and then kept, hidden by the
 	 * `has-load-more` class, so that switching back and forth is cheap.
 	 *
-	 * @since 7.2.0
+	 * @since 7.1.0
 	 *
 	 * @param {boolean} enabled Whether to load more attachments on scroll.
 	 *

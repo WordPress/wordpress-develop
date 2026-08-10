@@ -1894,7 +1894,7 @@ function wp_ajax_update_welcome_panel() {
 /**
  * Handles saving the Media Library settings for the current user via AJAX.
  *
- * @since 7.2.0
+ * @since 7.1.0
  */
 function wp_ajax_set_media_library_settings() {
 	check_ajax_referer( 'media-library-settings' );
