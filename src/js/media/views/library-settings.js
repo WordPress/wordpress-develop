@@ -114,7 +114,7 @@ LibrarySettings = View.extend(/** @lends wp.media.view.LibrarySettings.prototype
 	 * @type {boolean}
 	 */
 	isFiltered: !! settings.librarySettings &&
-		!! settings.infiniteScrolling !== !! settings.librarySettings.infiniteScrolling,
+		Boolean( settings.infiniteScrolling ) !== Boolean( settings.librarySettings.infiniteScrolling ),
 
 	/**
 	 * Saves the "Infinite scrolling" personal option for the current user.
