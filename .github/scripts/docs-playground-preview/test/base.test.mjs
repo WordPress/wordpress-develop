@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
 import { mkdir, mkdtemp, readFile, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
@@ -7,6 +8,7 @@ import { test } from 'node:test';
 import {
 	createInvariantBaseBlueprint,
 	dependencyBuildPlan,
+	ensureComposer,
 	ensureInvariantBase,
 	prunePreviewFonts,
 } from '../lib/base.mjs';
@@ -28,12 +30,26 @@ function inputs( cacheDirectory ) {
 				'https://downloads.wordpress.org/release/wordpress-7.2-beta1.zip',
 		},
 		dependencies: {
+			toolchain: {
+				composerVersion: '2.8.12',
+			},
 			playground: {
 				blueprintSchema:
 					'https://playground.wordpress.net/blueprint-schema.json',
 				phpVersion: '8.4',
 			},
 		},
+	};
+}
+
+function sha256( bytes ) {
+	return createHash( 'sha256' ).update( bytes ).digest( 'hex' );
+}
+
+function fakeComposerDownload( bytes, downloads ) {
+	return async ( command, args ) => {
+		downloads.count++;
+		await writeFile( args[ args.indexOf( '--output' ) + 1 ], bytes );
 	};
 }
 
@@ -85,6 +101,92 @@ test( 'dependency build plan uses pinned harness tools and upstream locks', () =
 		'ci',
 		'--ignore-scripts',
 	] );
+} );
+
+test( 'a Composer download with the pinned digest is kept and reused', async () => {
+	const tools = await mkdtemp(
+		path.join( os.tmpdir(), 'docs-preview-composer-' )
+	);
+	const phar = 'good composer phar';
+	const downloads = { count: 0 };
+	const runImplementation = fakeComposerDownload( phar, downloads );
+	const digests = { '2.8.12': sha256( phar ) };
+	const cold = await ensureComposer(
+		inputs( '/cache' ),
+		tools,
+		runImplementation,
+		digests
+	);
+	assert.equal( cold, path.join( tools, 'composer-2.8.12.phar' ) );
+	assert.equal( await readFile( cold, 'utf8' ), phar );
+	assert.equal( downloads.count, 1 );
+
+	const warm = await ensureComposer(
+		inputs( '/cache' ),
+		tools,
+		runImplementation,
+		digests
+	);
+	assert.equal( warm, cold );
+	assert.equal( downloads.count, 1 );
+} );
+
+test( 'a Composer download failing digest verification is removed', async () => {
+	const tools = await mkdtemp(
+		path.join( os.tmpdir(), 'docs-preview-composer-' )
+	);
+	const downloads = { count: 0 };
+	await assert.rejects(
+		ensureComposer(
+			inputs( '/cache' ),
+			tools,
+			fakeComposerDownload( 'tampered phar', downloads ),
+			{ '2.8.12': sha256( 'good composer phar' ) }
+		),
+		/digest mismatch/
+	);
+	assert.equal( downloads.count, 1 );
+	await assert.rejects(
+		readFile( path.join( tools, 'composer-2.8.12.phar' ) )
+	);
+} );
+
+test( 'a cached Composer phar failing digest verification is replaced', async () => {
+	const tools = await mkdtemp(
+		path.join( os.tmpdir(), 'docs-preview-composer-' )
+	);
+	const phar = 'good composer phar';
+	const downloads = { count: 0 };
+	await writeFile(
+		path.join( tools, 'composer-2.8.12.phar' ),
+		'tampered phar'
+	);
+	const composer = await ensureComposer(
+		inputs( '/cache' ),
+		tools,
+		fakeComposerDownload( phar, downloads ),
+		{ '2.8.12': sha256( phar ) }
+	);
+	assert.equal( await readFile( composer, 'utf8' ), phar );
+	assert.equal( downloads.count, 1 );
+} );
+
+test( 'Composer versions without a pinned digest are rejected', async () => {
+	const tools = await mkdtemp(
+		path.join( os.tmpdir(), 'docs-preview-composer-' )
+	);
+	const resolved = inputs( '/cache' );
+	resolved.dependencies.toolchain.composerVersion = '9.9.9';
+	const downloads = { count: 0 };
+	await assert.rejects(
+		ensureComposer(
+			resolved,
+			tools,
+			fakeComposerDownload( 'unused', downloads )
+		),
+		/no pinned SHA-256 digest/
+	);
+	assert.equal( downloads.count, 0 );
 } );
 
 test( 'the invariant base marker is written last and enables exact reuse', async () => {

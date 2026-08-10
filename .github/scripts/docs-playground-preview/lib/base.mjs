@@ -3,7 +3,7 @@ import { cp, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
 import { copyDirectory, downloadFile, zipDirectory } from './archive.mjs';
-import { acquireRepositories, exists } from './files.mjs';
+import { acquireRepositories, exists, sha256File } from './files.mjs';
 import { buildSnapshot } from './playground.mjs';
 import { run } from './process.mjs';
 
@@ -14,6 +14,13 @@ const TOOLING_ROOT = path.resolve(
 	'../../../docs-playground-preview'
 );
 const PHP_ROOT = path.join( SCRIPT_ROOT, 'php' );
+
+// Official sha256 digests for getcomposer.org composer.phar releases, keyed
+// by the toolchain.composerVersion pinned in the dependency manifest.
+const COMPOSER_DIGESTS = Object.freeze( {
+	'2.8.12':
+		'f446ea719708bb85fcbf4ef18def5d0515f1f9b4d703f6d820c9c1656e10a2f2',
+} );
 
 function executable( name ) {
 	return path.join(
@@ -193,15 +200,39 @@ export async function prunePreviewFonts( muPlugins ) {
 	);
 }
 
-async function ensureComposer( inputs, tools, runImplementation ) {
+export async function ensureComposer(
+	inputs,
+	tools,
+	runImplementation,
+	digests = COMPOSER_DIGESTS
+) {
 	const version = inputs.dependencies.toolchain.composerVersion;
+	const digest = digests[ version ];
+	if ( ! digest ) {
+		throw new Error(
+			`Composer ${ version } has no pinned SHA-256 digest.`
+		);
+	}
 	const composer = path.join( tools, `composer-${ version }.phar` );
+	if (
+		( await exists( composer ) ) &&
+		( await sha256File( composer ) ) !== digest
+	) {
+		await rm( composer, { force: true } );
+	}
 	if ( ! ( await exists( composer ) ) ) {
 		await downloadFile(
 			`https://getcomposer.org/download/${ version }/composer.phar`,
 			composer,
 			runImplementation
 		);
+		const received = await sha256File( composer );
+		if ( received !== digest ) {
+			await rm( composer, { force: true } );
+			throw new Error(
+				`Composer ${ version } digest mismatch: expected ${ digest }, received ${ received }.`
+			);
+		}
 	}
 	return composer;
 }
