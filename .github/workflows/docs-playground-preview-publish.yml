@@ -18,8 +18,12 @@ permissions: {}
 jobs:
     publish:
         name: Publish Code Reference snapshot
+        # Every push to an unlabeled pull request completes a build run whose
+        # jobs all skipped. Failed builds still publish their report, so only
+        # the skipped conclusion is filtered out here.
         if: >-
             github.event.workflow_run.event == 'pull_request' &&
+            github.event.workflow_run.conclusion != 'skipped' &&
             ( github.repository == 'WordPress/wordpress-develop' ||
               ( github.repository == 'sirreal/wordpress-develop' && vars.DOCS_PREVIEW_STAGING == 'true' ) )
         runs-on: ubuntu-24.04
