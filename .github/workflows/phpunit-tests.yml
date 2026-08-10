@@ -53,14 +53,8 @@ permissions: {}
 
 jobs:
   # Downloads and verifies the Gutenberg build once for all PHPUnit jobs.
-  #
-  # This condition is the union of the conditions on the jobs that need it, reduced.
-  # The org matrices require `WordPress/wordpress-develop` or a pull request, and the
-  # fork matrix requires a pull request, so `wordpress-develop` or a pull request
-  # covers every case. Keep it in step with those jobs: a narrower condition orphans
-  # them, because a job that needs a skipped job is skipped too, and a broader one
-  # downloads a build that nothing consumes.
   prepare-gutenberg:
+    name: Prepare Gutenberg Assets
     uses: ./.github/workflows/reusable-prepare-gutenberg.yml
     permissions:
       contents: read
@@ -144,7 +138,7 @@ jobs:
       phpunit-config: ${{ matrix.multisite && 'tests/phpunit/multisite.xml' || 'phpunit.xml.dist' }}
       tests-domain: ${{ matrix.tests-domain }}
       report: ${{ matrix.report || false }}
-      gutenberg-artifact: gutenberg-build
+      gutenberg-artifact: ${{ needs.prepare-gutenberg.result != 'skipped' }}
       gutenberg-sha: ${{ needs.prepare-gutenberg.outputs.gutenberg-sha }}
 
   #
@@ -200,7 +194,7 @@ jobs:
       memcached: ${{ matrix.memcached }}
       phpunit-config: ${{ matrix.multisite && 'tests/phpunit/multisite.xml' || 'phpunit.xml.dist' }}
       report: false
-      gutenberg-artifact: gutenberg-build
+      gutenberg-artifact: ${{ needs.prepare-gutenberg.result != 'skipped' }}
       gutenberg-sha: ${{ needs.prepare-gutenberg.outputs.gutenberg-sha }}
 
   #
@@ -250,7 +244,7 @@ jobs:
       memcached: ${{ matrix.memcached }}
       phpunit-config: ${{ matrix.multisite && 'tests/phpunit/multisite.xml' || 'phpunit.xml.dist' }}
       report: false
-      gutenberg-artifact: gutenberg-build
+      gutenberg-artifact: ${{ needs.prepare-gutenberg.result != 'skipped' }}
       gutenberg-sha: ${{ needs.prepare-gutenberg.outputs.gutenberg-sha }}
 
   #
@@ -285,7 +279,7 @@ jobs:
       db-type: ${{ matrix.db-type }}
       db-version: ${{ matrix.db-version }}
       phpunit-test-groups: ${{ matrix.phpunit-test-groups }}
-      gutenberg-artifact: gutenberg-build
+      gutenberg-artifact: ${{ needs.prepare-gutenberg.result != 'skipped' }}
       gutenberg-sha: ${{ needs.prepare-gutenberg.outputs.gutenberg-sha }}
 
   #
@@ -350,7 +344,7 @@ jobs:
       memcached: ${{ matrix.memcached || false }}
       phpunit-config: ${{ matrix.multisite && 'tests/phpunit/multisite.xml' || 'phpunit.xml.dist' }}
       phpunit-test-groups: ${{ matrix.phpunit-test-groups || '' }}
-      gutenberg-artifact: gutenberg-build
+      gutenberg-artifact: ${{ needs.prepare-gutenberg.result != 'skipped' }}
       gutenberg-sha: ${{ needs.prepare-gutenberg.outputs.gutenberg-sha }}
 
   slack-notifications:
