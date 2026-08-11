@@ -1,6 +1,6 @@
 {
 	"name": "wordpress/wordpress",
-	"version": "7.1.0",
+	"version": "7.2.0",
 	"license": "GPL-2.0-or-later",
 	"description": "WordPress is open source software you can use to create a beautiful website, blog, or app.",
 	"homepage": "https://wordpress.org",
@@ -56,6 +56,7 @@
 		"yoast/phpunit-polyfills": "^1.1.0"
 	},
 	"config": {
+		"audit": { "ignore": [ "GHSA-hmqg-cxww-wqhq", "PKSA-rdkp-vv9z-mjkg" ] },
 		"allow-plugins": {
 			"dealerdirect/phpcodesniffer-composer-installer": true
 		},
@@ -68,6 +69,7 @@
 	},
 	"scripts": {
 		"phpstan": "@php ./vendor/bin/phpstan analyse --memory-limit=2G",
+		"phpstan:baselines": [ "Composer\\Config::disableProcessTimeout", "@php ./tests/phpstan/generate-baselines.php" ],
 		"compat": "@php ./vendor/squizlabs/php_codesniffer/bin/phpcs --standard=phpcompat.xml.dist --report=summary,source",
 		"format": "@php ./vendor/squizlabs/php_codesniffer/bin/phpcbf --report=summary,source",
 		"lint": "@php ./vendor/squizlabs/php_codesniffer/bin/phpcs --report=summary,source",
