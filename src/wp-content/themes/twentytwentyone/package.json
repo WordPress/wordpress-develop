@@ -65,7 +65,7 @@
 		"build:print": "sass assets/sass/07-utilities/print.scss:assets/css/print.css --style=expanded --source-map",
 		"build": "run-s build:style build:style-editor build:style-dark-mode build:rtl build:dark-rtl build:print",
 		"postcss": "postcss --use autoprefixer --no-map --replace style.css style-rtl.css assets/css/*.css assets/css/*-rtl.css",
-		"stylelint": "stylelint **/*.css --fix",
+		"stylelint": "stylelint \"**/*.css\" --fix",
 		"postbuild": "npm run postcss && npm run stylelint",
 		"watch": "chokidar \"**/*.scss\" -c \"npm run build\" --initial"
 	}
