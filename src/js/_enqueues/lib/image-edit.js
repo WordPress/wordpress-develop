@@ -1091,14 +1091,13 @@
 	 * @memberof imageEdit
 	 *
 	 * @param {number}  postid The post ID.
-	 * @param {boolean} warn   Warning message.
+	 * @param {boolean} warn   Deprecated: Check whether to warn on unsaved before closing. New behavior is to always check for unsaved before closing.
 	 *
 	 * @return {void|boolean} Returns false if there is a warning.
 	 */
 	close : function(postid, warn) {
-		warn = warn || false;
 
-		if ( warn && this.notsaved(postid) ) {
+		if ( this.notsaved(postid) ) {
 			return false;
 		}
 
