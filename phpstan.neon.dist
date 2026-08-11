@@ -39,7 +39,6 @@ includes:
 	- tests/phpstan/baselines/booleanOr.alwaysTrue.neon
 	- tests/phpstan/baselines/booleanOr.rightAlwaysTrue.neon
 	- tests/phpstan/baselines/catch.neverThrown.neon
-	- tests/phpstan/baselines/class.nameCase.neon
 	- tests/phpstan/baselines/class.notFound.neon
 	- tests/phpstan/baselines/deadCode.unreachable.neon
 	- tests/phpstan/baselines/empty.offset.neon
@@ -73,7 +72,6 @@ includes:
 	- tests/phpstan/baselines/parameter.defaultValue.neon
 	- tests/phpstan/baselines/parameter.notFound.neon
 	- tests/phpstan/baselines/parameter.phpDocType.neon
-	- tests/phpstan/baselines/parameter.unresolvableType.neon
 	- tests/phpstan/baselines/parameterByRef.type.neon
 	- tests/phpstan/baselines/parameterByRef.unusedType.neon
 	- tests/phpstan/baselines/property.defaultValue.neon
