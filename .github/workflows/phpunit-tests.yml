@@ -55,7 +55,7 @@ jobs:
   # Downloads and verifies the Gutenberg build once for all PHPUnit jobs.
   prepare-gutenberg:
     name: Prepare Gutenberg Assets
-    uses: ./.github/workflows/reusable-prepare-gutenberg.yml
+    uses: WordPress/wordpress-develop/.github/workflows/reusable-prepare-gutenberg.yml@trunk
     permissions:
       contents: read
     if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
@@ -69,7 +69,7 @@ jobs:
   #
   test-with-mysql:
     name: PHP ${{ matrix.php }}
-    uses: ./.github/workflows/reusable-phpunit-tests-v3.yml
+    uses: WordPress/wordpress-develop/.github/workflows/reusable-phpunit-tests-v3.yml@trunk
     needs: prepare-gutenberg
     permissions:
       contents: read
@@ -152,7 +152,7 @@ jobs:
   #
   test-with-mariadb:
     name: PHP ${{ matrix.php }}
-    uses: ./.github/workflows/reusable-phpunit-tests-v3.yml
+    uses: WordPress/wordpress-develop/.github/workflows/reusable-phpunit-tests-v3.yml@trunk
     needs: prepare-gutenberg
     permissions:
       contents: read
@@ -210,7 +210,7 @@ jobs:
   #
   test-innovation-releases:
     name: PHP ${{ matrix.php }}
-    uses: ./.github/workflows/reusable-phpunit-tests-v3.yml
+    uses: WordPress/wordpress-develop/.github/workflows/reusable-phpunit-tests-v3.yml@trunk
     needs: prepare-gutenberg
     permissions:
       contents: read
@@ -257,7 +257,7 @@ jobs:
   #
   html-api-test-groups:
     name: ${{ matrix.label }}
-    uses: ./.github/workflows/reusable-phpunit-tests-v3.yml
+    uses: WordPress/wordpress-develop/.github/workflows/reusable-phpunit-tests-v3.yml@trunk
     needs: prepare-gutenberg
     permissions:
       contents: read
@@ -291,7 +291,7 @@ jobs:
   #
   limited-matrix-for-forks:
     name: PHP ${{ matrix.php }}
-    uses: ./.github/workflows/reusable-phpunit-tests-v3.yml
+    uses: WordPress/wordpress-develop/.github/workflows/reusable-phpunit-tests-v3.yml@trunk
     needs: prepare-gutenberg
     permissions:
       contents: read
@@ -349,7 +349,7 @@ jobs:
 
   slack-notifications:
     name: Slack Notifications
-    uses: ./.github/workflows/slack-notifications.yml
+    uses: WordPress/wordpress-develop/.github/workflows/slack-notifications.yml@trunk
     permissions:
       actions: read
       contents: read
