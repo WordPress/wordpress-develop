@@ -34,8 +34,7 @@ $release_page_url = sprintf(
 	sanitize_title( $display_major_version )
 );
 
-list( $display_version ) = explode( '-', get_bloginfo( 'version' ) );
-$badge_alt_text          = sprintf(
+$badge_alt_text = sprintf(
 	/* translators: %s: Version number. */
 	__( 'WordPress %s' ),
 	$display_version
