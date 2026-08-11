@@ -362,7 +362,7 @@ function get_search_form( $args = array() ) {
 		$result = $form;
 	}
 
-	if ( $args['echo'] ) {
+	if ( isset( $args['echo'] ) && $args['echo'] ) {
 		echo $result;
 	} else {
 		return $result;
