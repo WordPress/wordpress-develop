@@ -170,6 +170,136 @@ class Tests_Functions_Absint extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that a `__toString()` method is ignored when converting an object
+	 * to an integer, unlike when converting an object to a string.
+	 *
+	 * @ticket 65826
+	 */
+	public function test_absint_object_with_to_string(): void {
+		$object = new class() {
+			public function __toString(): string {
+				return '42';
+			}
+		};
+
+		$error = null;
+
+		set_error_handler(
+			static function ( int $errno, string $errstr ) use ( &$error ): bool {
+				$error = $errstr;
+				return true;
+			}
+		);
+		$actual = absint( $object );
+		restore_error_handler();
+
+		$this->assertSame( 1, $actual );
+		$this->assertStringEndsWith( 'could not be converted to int', (string) $error );
+	}
+
+	/**
+	 * Tests that a closure is treated like any other object.
+	 *
+	 * @ticket 65826
+	 */
+	public function test_absint_closure(): void {
+		$error = null;
+
+		set_error_handler(
+			static function ( int $errno, string $errstr ) use ( &$error ): bool {
+				$error = $errstr;
+				return true;
+			}
+		);
+		$actual = absint(
+			static function () {}
+		);
+		restore_error_handler();
+
+		$this->assertSame( 1, $actual );
+		$this->assertSame( 'Object of class Closure could not be converted to int', $error );
+	}
+
+	/**
+	 * Tests that an enum case is treated like any other object.
+	 *
+	 * Note that a backed enum converts to `1` with a warning like any other
+	 * object, not to its backing value.
+	 *
+	 * @ticket 65826
+	 *
+	 * @requires PHP 8.1
+	 *
+	 * @dataProvider data_absint_enums
+	 *
+	 * @param string $case_name Fully qualified enum case name.
+	 */
+	public function test_absint_enums( string $case_name ): void {
+		require_once DIR_TESTDATA . '/functions/absint-enums.php';
+
+		$enum_case = constant( $case_name );
+		$error     = null;
+
+		set_error_handler(
+			static function ( int $errno, string $errstr ) use ( &$error ): bool {
+				$error = $errstr;
+				return true;
+			}
+		);
+		$actual = absint( $enum_case );
+		restore_error_handler();
+
+		$this->assertSame( 1, $actual );
+		$this->assertSame(
+			'Object of class ' . get_class( $enum_case ) . ' could not be converted to int',
+			$error
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_absint_enums(): array {
+		return array(
+			'pure enum case'   => array(
+				'case_name' => 'Absint_Test_Pure_Enum::Hearts',
+			),
+			'backed enum case' => array(
+				'case_name' => 'Absint_Test_Backed_Enum::Ace',
+			),
+		);
+	}
+
+	/**
+	 * Tests that an object whose class registers an internal cast handler,
+	 * such as `SimpleXMLElement`, is converted using that handler rather
+	 * than to `1`.
+	 *
+	 * @ticket 65826
+	 *
+	 * @requires extension simplexml
+	 */
+	public function test_absint_object_with_cast_handler(): void {
+		$this->assertSame( 42, absint( new SimpleXMLElement( '<value>42</value>' ) ) );
+		$this->assertSame( 42, absint( new SimpleXMLElement( '<value>-42</value>' ) ) );
+		$this->assertSame( 0, absint( new SimpleXMLElement( '<value>text</value>' ) ) );
+	}
+
+	/**
+	 * Tests that a GMP number is converted via its internal cast handler.
+	 *
+	 * @ticket 65826
+	 *
+	 * @requires extension gmp
+	 */
+	public function test_absint_gmp(): void {
+		$this->assertSame( 42, absint( gmp_init( '42' ) ) );
+		$this->assertSame( 42, absint( gmp_init( '-42' ) ) );
+	}
+
+	/**
 	 * Tests that a resource is converted to its resource ID.
 	 *
 	 * @ticket 65826
@@ -181,6 +311,20 @@ class Tests_Functions_Absint extends WP_UnitTestCase {
 		$this->assertGreaterThan( 0, absint( $stream ) );
 
 		fclose( $stream );
+	}
+
+	/**
+	 * Tests that a closed resource is still converted to its resource ID.
+	 *
+	 * @ticket 65826
+	 */
+	public function test_absint_closed_resource(): void {
+		$stream      = fopen( 'php://memory', 'r' );
+		$resource_id = (int) $stream;
+		fclose( $stream );
+
+		$this->assertSame( 'resource (closed)', gettype( $stream ) );
+		$this->assertSame( $resource_id, absint( $stream ) );
 	}
 
 	/**
