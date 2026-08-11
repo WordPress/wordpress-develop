@@ -1001,14 +1001,6 @@ select#media-attachment-filters ~ select#media-attachment-date-filters {
 	line-height: 1;
 }
 
-.wp-core-ui .media-toolbar-primary > .media-library-settings__toggle {
-	margin-left: 8px;
-}
-
-.wp-core-ui .mode-grid .media-toolbar-primary > .media-library-settings__toggle {
-	margin-left: 0;
-}
-
 .media-library-settings__dialog {
 	width: 320px;
 	max-width: calc(100vw - 32px);
