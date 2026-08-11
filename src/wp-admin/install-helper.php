@@ -64,7 +64,7 @@ if ( ! function_exists( 'maybe_create_table' ) ) :
 		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- No applicable variables for this query.
 		$wpdb->query( $create_ddl );
 
-		// We cannot directly tell whether this succeeded!
+		// Check if the table was created.
 		foreach ( $wpdb->get_col( 'SHOW TABLES', 0 ) as $table ) {
 			if ( $table === $table_name ) {
 				return true;
@@ -102,7 +102,7 @@ if ( ! function_exists( 'maybe_add_column' ) ) :
 		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- No applicable variables for this query.
 		$wpdb->query( $create_ddl );
 
-		// We cannot directly tell whether this succeeded!
+		// Check if the column was created.
 		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Cannot be prepared. Fetches columns for table names.
 		foreach ( $wpdb->get_col( "DESC $table_name", 0 ) as $column ) {
 			if ( $column === $column_name ) {
@@ -137,7 +137,7 @@ function maybe_drop_column( $table_name, $column_name, $drop_ddl ) {
 			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- No applicable variables for this query.
 			$wpdb->query( $drop_ddl );
 
-			// We cannot directly tell whether this succeeded!
+			// Check if the column was dropped.
 			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Cannot be prepared. Fetches columns for table names.
 			foreach ( $wpdb->get_col( "DESC $table_name", 0 ) as $column ) {
 				if ( $column === $column_name ) {

@@ -436,7 +436,7 @@ if ( isset( $_REQUEST['s'] ) && strlen( $_REQUEST['s'] ) ) {
 <hr class="wp-header-end">
 
 <?php
-// If we have a bulk message to issue:
+// If there is a bulk message to issue:
 $messages = array();
 foreach ( $bulk_counts as $message => $count ) {
 	if ( isset( $bulk_messages[ $post_type ][ $message ] ) ) {
