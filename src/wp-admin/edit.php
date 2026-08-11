@@ -410,6 +410,8 @@ $bulk_counts   = array_filter( $bulk_counts );
 
 require_once ABSPATH . 'wp-admin/admin-header.php';
 ?>
+<link rel="prefetch" href="<?php echo esc_url( admin_url( $post_new_file ) ); ?>">
+<link rel="prefetch" href="<?php echo esc_url( get_edit_post_link() ); ?>">
 <div class="wrap">
 <h1 class="wp-heading-inline">
 <?php
