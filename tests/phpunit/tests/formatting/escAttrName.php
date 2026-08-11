@@ -67,7 +67,7 @@ class Tests_Formatting_EscAttrName extends WP_UnitTestCase {
 			array( "\t data-foo \n", 'data-foo' ),
 			array( '', '' ),
 			array( ' "\'><=/', '' ),
-			array( 'data-' . "\xc0\x80" . 'foo', '' ),
+			array( 'data-' . "\xc0\x80" . 'foo', 'data-foo' ),
 			array( 'data-ñame', 'data-ame' ),
 			array( 'data-😀', 'data-' ),
 			array( 'attrф', 'attr' ),
