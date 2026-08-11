@@ -18,7 +18,6 @@
 	},
 	"devDependencies": {
 		"@wordpress/browserslist-config": "^6.34.0",
-		"@wordpress/scripts": "^30.27.0",
 		"@wordpress/eslint-plugin": "^22.20.0",
 		"autoprefixer": "^10.4.22",
 		"chokidar-cli": "^3.0.0",
@@ -64,7 +63,7 @@
 		"build:print": "sass assets/sass/07-utilities/print.scss:assets/css/print.css --style=expanded --source-map",
 		"build": "run-s build:style build:style-editor build:style-dark-mode build:rtl build:dark-rtl build:print",
 		"postcss": "postcss --use autoprefixer --no-map --replace style.css style-rtl.css assets/css/*.css assets/css/*-rtl.css",
-		"stylelint": "wp-scripts lint-style **/*.css --fix --config ../../../../.stylelintrc.js",
+		"stylelint": "stylelint **/*.css --fix",
 		"postbuild": "npm run postcss && npm run stylelint",
 		"watch": "chokidar \"**/*.scss\" -c \"npm run build\" --initial"
 	}

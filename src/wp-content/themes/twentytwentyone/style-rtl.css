@@ -1,5 +1,4 @@
 @charset "UTF-8";
-
 /*
 Theme Name: Twenty Twenty-One
 Theme URI: https://wordpress.org/themes/twentytwentyone/
@@ -18,9 +17,7 @@ Tags: one-column, accessibility-ready, custom-colors, custom-menu, custom-logo, 
 Twenty Twenty-One WordPress Theme, (C) 2020 WordPress.org
 Twenty Twenty-One is distributed under the terms of the GNU GPL.
 */
-
 /* stylelint-disable no-duplicate-selectors, selector-class-pattern -- This file contains rules from normqalize.css tha twe keep separated as such there are duplicate selectors. Also, selector patterns do not follow the Gutenberg pattern. */
-
 /**
  * SETTINGS
  * File-header..........The file header for the themes style.css file.
@@ -95,15 +92,12 @@ Twenty Twenty-One is distributed under the terms of the GNU GPL.
  * Editor Font Sizes....Editor Font Sizes.
  * Measure..............The width of a line of text, in characters.
  */
-
 /* Categories 01 to 03 are the basics. */
-
 /* Variables */
 :root {
 	/* Font Family */
 	--global--font-primary: var(--font-headings, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif);
 	--global--font-secondary: var(--font-base, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif);
-
 	/* Font Size */
 	--global--font-size-base: 1.25rem;
 	--global--font-size-xs: 1rem;
@@ -115,12 +109,10 @@ Twenty Twenty-One is distributed under the terms of the GNU GPL.
 	--global--font-size-xxxl: 5rem;
 	--global--font-size-page-title: var(--global--font-size-xxl);
 	--global--letter-spacing: normal;
-
 	/* Line Height */
 	--global--line-height-body: 1.7;
 	--global--line-height-heading: 1.3;
 	--global--line-height-page-title: 1.1;
-
 	/* Headings */
 	--heading--font-family: var(--global--font-primary);
 	--heading--font-size-h6: var(--global--font-size-xs);
@@ -144,7 +136,6 @@ Twenty Twenty-One is distributed under the terms of the GNU GPL.
 	--heading--font-weight: normal;
 	--heading--font-weight-page-title: 300;
 	--heading--font-weight-strong: 600;
-
 	/* Block: Latest posts */
 	--latest-posts--title-font-family: var(--heading--font-family);
 	--latest-posts--title-font-size: var(--heading--font-size-h3);
@@ -152,7 +143,6 @@ Twenty Twenty-One is distributed under the terms of the GNU GPL.
 	--latest-posts--description-font-size: var(--global--font-size-sm);
 	--list--font-family: var(--global--font-secondary);
 	--definition-term--font-family: var(--global--font-primary);
-
 	/* Colors */
 	--global--color-black: #000;
 	--global--color-dark-gray: #28303d;
@@ -172,16 +162,13 @@ Twenty Twenty-One is distributed under the terms of the GNU GPL.
 	--global--color-primary-hover: var(--global--color-primary);
 	--global--color-background: var(--global--color-green); /* Mint, default body background */
 	--global--color-border: var(--global--color-primary); /* Used for borders (separators) */
-
 	/* Spacing */
 	--global--spacing-unit: 20px;
 	--global--spacing-measure: unset;
 	--global--spacing-horizontal: 25px;
 	--global--spacing-vertical: 30px;
-
 	/* Elevation */
 	--global--elevation: 1px 1px 3px 0 rgba(0, 0, 0, 0.2);
-
 	/* Forms */
 	--form--font-family: var(--global--font-secondary);
 	--form--font-size: var(--global--font-size-sm);
@@ -193,12 +180,10 @@ Twenty Twenty-One is distributed under the terms of the GNU GPL.
 	--form--border-width: 3px;
 	--form--border-radius: 0;
 	--form--spacing-unit: calc(0.5 * var(--global--spacing-unit));
-
 	/* Cover block */
 	--cover--height: calc(15 * var(--global--spacing-vertical));
 	--cover--color-foreground: var(--global--color-white);
 	--cover--color-background: var(--global--color-black);
-
 	/* Buttons */
 	--button--color-text: var(--global--color-background);
 	--button--color-text-hover: var(--global--color-secondary);
@@ -213,7 +198,6 @@ Twenty Twenty-One is distributed under the terms of the GNU GPL.
 	--button--border-radius: 0;
 	--button--padding-vertical: 15px;
 	--button--padding-horizontal: calc(2 * var(--button--padding-vertical));
-
 	/* entry */
 	--entry-header--color: var(--global--color-primary);
 	--entry-header--color-link: currentColor;
@@ -223,7 +207,6 @@ Twenty Twenty-One is distributed under the terms of the GNU GPL.
 	--entry-content--font-family: var(--global--font-secondary);
 	--entry-author-bio--font-family: var(--heading--font-family);
 	--entry-author-bio--font-size: var(--heading--font-size-h4);
-
 	/* Header */
 	--branding--color-text: var(--global--color-primary);
 	--branding--color-link: var(--global--color-primary);
@@ -239,7 +222,6 @@ Twenty Twenty-One is distributed under the terms of the GNU GPL.
 	--branding--logo--max-height: 100px;
 	--branding--logo--max-width-mobile: 96px;
 	--branding--logo--max-height-mobile: 96px;
-
 	/* Main navigation */
 	--primary-nav--font-family: var(--global--font-secondary);
 	--primary-nav--font-family-mobile: var(--global--font-primary);
@@ -257,7 +239,6 @@ Twenty Twenty-One is distributed under the terms of the GNU GPL.
 	--primary-nav--color-text: var(--global--color-primary);
 	--primary-nav--padding: calc(0.66 * var(--global--spacing-unit));
 	--primary-nav--border-color: var(--global--color-primary);
-
 	/* Pagination */
 	--pagination--color-text: var(--global--color-primary);
 	--pagination--color-link-hover: var(--global--color-primary-hover);
@@ -265,14 +246,12 @@ Twenty Twenty-One is distributed under the terms of the GNU GPL.
 	--pagination--font-size: var(--global--font-size-lg);
 	--pagination--font-weight: normal;
 	--pagination--font-weight-strong: 600;
-
 	/* Footer */
 	--footer--color-text: var(--global--color-primary);
 	--footer--color-link: var(--global--color-primary);
 	--footer--color-link-hover: var(--global--color-primary-hover);
 	--footer--font-family: var(--global--font-primary);
 	--footer--font-size: var(--global--font-size-sm);
-
 	/* Block: Pull quote */
 	--pullquote--font-family: var(--global--font-primary);
 	--pullquote--font-size: var(--heading--font-size-h3);
@@ -295,18 +274,15 @@ Twenty Twenty-One is distributed under the terms of the GNU GPL.
 	--quote--line-height-large: 1.35;
 	--separator--border-color: var(--global--color-border);
 	--separator--height: 1px;
-
 	/* Block: Table */
 	--table--stripes-border-color: var(--global--color-light-gray);
 	--table--stripes-background-color: var(--global--color-light-gray);
 	--table--has-background-text-color: var(--global--color-dark-gray);
-
 	/* Widgets */
 	--widget--line-height-list: 1.9;
 	--widget--line-height-title: 1.4;
 	--widget--font-weight-title: 700;
 	--widget--spacing-menu: calc(0.66 * var(--global--spacing-unit));
-
 	/* Admin-bar height */
 	--global--admin-bar--height: 0px;
 }
@@ -314,6 +290,7 @@ Twenty Twenty-One is distributed under the terms of the GNU GPL.
 .admin-bar {
 	--global--admin-bar--height: 32px;
 }
+
 @media only screen and (max-width: 782px) {
 	.admin-bar {
 		--global--admin-bar--height: 46px;
@@ -329,12 +306,9 @@ Twenty Twenty-One is distributed under the terms of the GNU GPL.
 		--heading--font-size-h2: 3rem;
 	}
 }
-
 /*! normalize.css v8.0.1 | MIT License | github.com/necolas/normalize.css */
-
 /* Document
    ========================================================================== */
-
 /**
  * 1. Correct the line height in all browsers.
  * 2. Prevent adjustments of font size after orientation changes in iOS.
@@ -346,7 +320,6 @@ html {
 
 /* Sections
    ========================================================================== */
-
 /**
  * Remove the margin in all browsers.
  */
@@ -372,7 +345,6 @@ h1 {
 
 /* Grouping content
    ========================================================================== */
-
 /**
  * 1. Add the correct box sizing in Firefox.
  * 2. Show the overflow in Edge and IE.
@@ -394,7 +366,6 @@ pre {
 
 /* Text-level semantics
    ========================================================================== */
-
 /**
  * Remove the gray background on active links in IE 10.
  */
@@ -462,7 +433,6 @@ sup {
 
 /* Embedded content
    ========================================================================== */
-
 /**
  * Remove the border on images inside links in IE 10.
  */
@@ -472,7 +442,6 @@ img {
 
 /* Forms
    ========================================================================== */
-
 /**
  * 1. Change the font styles in all browsers.
  * 2. Remove the margin in Firefox and Safari.
@@ -618,7 +587,6 @@ textarea {
 
 /* Interactive
    ========================================================================== */
-
 /*
  * Add the correct display in Edge, IE 10+, and Firefox.
  */
@@ -635,7 +603,6 @@ summary {
 
 /* Misc
    ========================================================================== */
-
 /**
  * Add the correct display in IE 10+.
  */
@@ -653,11 +620,9 @@ template {
 /**
  * Responsive Styles
  */
-
 /**
  * Required Variables
  */
-
 /**
  * Root Media Query Variables
  */
@@ -678,13 +643,13 @@ template {
 		--responsive--alignleft-margin: calc(0.5 * (100vw - var(--responsive--aligndefault-width)));
 	}
 }
+
 @media only screen and (min-width: 822px) {
 	:root {
 		--responsive--aligndefault-width: min(calc(100vw - 8 * var(--global--spacing-horizontal)), 610px);
 		--responsive--alignwide-width: min(calc(100vw - 8 * var(--global--spacing-horizontal)), 1240px);
 	}
 }
-
 /**
  * Extends
  */
@@ -746,13 +711,13 @@ template {
 		margin-right: var(--global--spacing-horizontal);
 	}
 }
+
 @media only screen and (min-width: 482px) {
 	.entry-content > .alignright {
 		margin-left: var(--global--spacing-horizontal);
 		margin-right: var(--responsive--alignright-margin);
 	}
 }
-
 /**
  * Site Structure
  *
@@ -761,7 +726,6 @@ template {
  * - `--global--width-content` is a responsive variable
  * - See: globals/_global-width-responsive.scss
  */
-
 /**
  * Top Level Wrappers (header, main, footer)
  * - Set vertical padding and horizontal margins
@@ -780,6 +744,7 @@ template {
 	padding-top: calc(0.75 * var(--global--spacing-vertical));
 	padding-bottom: calc(2 * var(--global--spacing-vertical));
 }
+
 @media only screen and (min-width: 482px) {
 	.site-header {
 		padding-bottom: calc(3 * var(--global--spacing-vertical));
@@ -806,15 +771,12 @@ template {
 /**
  * Set the default maximum responsive content-width
  */
-
 /**
  * Set the wide maximum responsive content-width
  */
-
 /**
  * Set the full maximum responsive content-width
  */
-
 /*
  * Block & non-gutenberg content wrappers
  * - Set margins
@@ -843,6 +805,7 @@ template {
 	margin-top: calc(0.666 * var(--global--spacing-vertical));
 	margin-bottom: calc(0.666 * var(--global--spacing-vertical));
 }
+
 @media only screen and (min-width: 482px) {
 	.site-main > article > *,
 	.site-main > .not-found > *,
@@ -878,6 +841,7 @@ template {
 	margin-top: calc(0.666 * var(--global--spacing-vertical));
 	margin-bottom: calc(0.666 * var(--global--spacing-vertical));
 }
+
 @media only screen and (min-width: 482px) {
 	.site-footer > *,
 	.widget-area > * {
@@ -1101,6 +1065,7 @@ blockquote footer {
 	color: var(--global--color-primary);
 	font-style: var(--quote--font-style-cite);
 }
+
 @media only screen and (max-width: 481.98px) {
 	blockquote {
 		padding-right: calc(0.5 * var(--global--spacing-horizontal));
@@ -1463,6 +1428,7 @@ fieldset input[type="checkbox"] + label {
 .post-password-form__submit {
 	margin-top: calc(var(--global--spacing-vertical) / 3);
 }
+
 @media only screen and (min-width: 592px) {
 	.post-password-form__submit {
 		margin-right: calc(0.4 * var(--global--spacing-horizontal));
@@ -1838,6 +1804,7 @@ input[type="reset"]:disabled,
 	margin-top: calc(0.66 * var(--global--spacing-vertical));
 	margin-bottom: calc(0.66 * var(--global--spacing-vertical));
 }
+
 @media only screen and (min-width: 482px) {
 	.wp-block-columns .wp-block-column > * {
 		margin-top: var(--global--spacing-vertical);
@@ -1860,11 +1827,13 @@ input[type="reset"]:disabled,
 .wp-block-columns .wp-block-column:not(:last-child) {
 	margin-bottom: calc(0.66 * var(--global--spacing-vertical));
 }
+
 @media only screen and (min-width: 482px) {
 	.wp-block-columns .wp-block-column:not(:last-child) {
 		margin-bottom: var(--global--spacing-vertical);
 	}
 }
+
 @media only screen and (min-width: 822px) {
 	.wp-block-columns .wp-block-column:not(:last-child) {
 		margin-bottom: 0;
@@ -1874,6 +1843,7 @@ input[type="reset"]:disabled,
 .wp-block-columns.is-style-twentytwentyone-columns-overlap {
 	justify-content: space-around;
 }
+
 @media only screen and (min-width: 652px) {
 	.wp-block-columns.is-style-twentytwentyone-columns-overlap .wp-block-column:nth-child(2n) {
 		margin-right: calc(-2 * var(--global--spacing-horizontal));
@@ -1922,13 +1892,9 @@ input[type="reset"]:disabled,
 	min-height: var(--cover--height);
 	margin-top: inherit;
 	margin-bottom: inherit;
-
 	/* default & custom background-color */
-
 	/* Treating H2 separately to account for legacy /core styles */
-
 	/* Block Styles */
-
 	/* The background color class is used just for the overlay, and does not need to be applied to the inner container. */
 }
 
@@ -2016,6 +1982,7 @@ input[type="reset"]:disabled,
 	margin-top: calc(0.666 * var(--global--spacing-vertical));
 	margin-bottom: calc(0.666 * var(--global--spacing-vertical));
 }
+
 @media only screen and (min-width: 482px) {
 	.wp-block-cover .wp-block-cover__inner-container > *,
 	.wp-block-cover-image .wp-block-cover__inner-container > * {
@@ -2125,6 +2092,7 @@ input[type="reset"]:disabled,
 	margin-top: calc(0.666 * var(--global--spacing-vertical));
 	margin-bottom: calc(0.666 * var(--global--spacing-vertical));
 }
+
 @media only screen and (min-width: 482px) {
 	.wp-block-group .wp-block-group__inner-container > * {
 		margin-top: var(--global--spacing-vertical);
@@ -2143,6 +2111,7 @@ input[type="reset"]:disabled,
 .wp-block-group.has-background {
 	padding: calc(0.666 * var(--global--spacing-vertical));
 }
+
 @media only screen and (min-width: 482px) {
 	.wp-block-group.has-background {
 		padding: var(--global--spacing-vertical);
@@ -2293,6 +2262,7 @@ h6,
 		max-width: 50%;
 	}
 }
+
 @media only screen and (max-width: 481.98px) {
 	.entry-content > .wp-block-image > .alignleft,
 	.entry-content > .wp-block-image > .alignright {
@@ -2324,7 +2294,6 @@ h6,
 
 .wp-block-latest-comments .wp-block-latest-comments__comment {
 	line-height: var(--global--line-height-body);
-
 	/* Vertical margins logic */
 	margin-top: var(--global--spacing-vertical);
 	margin-bottom: var(--global--spacing-vertical);
@@ -2497,6 +2466,7 @@ h6,
 .wp-block-latest-posts.is-style-twentytwentyone-latest-posts-dividers.is-grid li:last-child {
 	padding-bottom: var(--global--spacing-vertical);
 }
+
 @media screen and (min-width: 600px) {
 	.wp-block-latest-posts.is-style-twentytwentyone-latest-posts-dividers.is-grid.columns-2 li {
 		width: calc(100% / 2);
@@ -2646,6 +2616,7 @@ dd {
 .wp-block-media-text .wp-block-media-text__content {
 	padding: var(--global--spacing-horizontal);
 }
+
 @media only screen and (min-width: 592px) {
 	.wp-block-media-text .wp-block-media-text__content {
 		padding: var(--global--spacing-vertical);
@@ -2656,6 +2627,7 @@ dd {
 	margin-top: calc(0.666 * var(--global--spacing-vertical));
 	margin-bottom: calc(0.666 * var(--global--spacing-vertical));
 }
+
 @media only screen and (min-width: 482px) {
 	.wp-block-media-text .wp-block-media-text__content > * {
 		margin-top: var(--global--spacing-vertical);
@@ -2670,6 +2642,7 @@ dd {
 .wp-block-media-text .wp-block-media-text__content > *:last-child {
 	margin-bottom: 0;
 }
+
 @media only screen and (min-width: 482px) {
 	.wp-block-media-text.is-stacked-on-mobile .wp-block-media-text__content {
 		padding-top: var(--global--spacing-vertical);
@@ -2788,7 +2761,6 @@ pre.wp-block-preformatted {
 	font-style: var(--pullquote--font-style);
 	font-weight: 700;
 	letter-spacing: var(--pullquote--letter-spacing);
-
 	/**
    * Block Options
    */
@@ -2859,6 +2831,7 @@ pre.wp-block-preformatted {
 	border-style: solid;
 	border-color: var(--pullquote--border-color);
 }
+
 @media (min-width: 600px) {
 	.wp-block-pullquote.is-style-solid-color {
 		padding: calc(5 * var(--global--spacing-unit));
@@ -2897,6 +2870,7 @@ pre.wp-block-preformatted {
 .wp-block-query.has-background {
 	padding: calc(0.666 * var(--global--spacing-vertical));
 }
+
 @media only screen and (min-width: 482px) {
 	.wp-block-query.has-background {
 		padding: var(--global--spacing-vertical);
@@ -2910,7 +2884,6 @@ pre.wp-block-preformatted {
 	font-style: var(--quote--font-style);
 	font-weight: var(--quote--font-weight);
 	line-height: var(--quote--line-height);
-
 	/**
    * Block Options
    */
@@ -2994,7 +2967,6 @@ pre.wp-block-preformatted {
 .wp-block-quote.is-style-large {
 	padding-right: 0;
 	padding-left: 0;
-
 	/* Resetting margins to match _block-container.scss */
 	margin-top: var(--global--spacing-vertical);
 	margin-bottom: var(--global--spacing-vertical);
@@ -3037,6 +3009,7 @@ pre.wp-block-preformatted {
 	color: var(--global--color-primary);
 	font-size: var(--global--font-size-sm);
 }
+
 @media only screen and (max-width: 481.98px) {
 	.wp-block-quote.is-large,
 	.wp-block-quote.is-style-large {
@@ -3065,6 +3038,7 @@ pre.wp-block-preformatted {
 		padding-left: 0;
 	}
 }
+
 @media only screen and (max-width: 481.98px) {
 	.wp-block-quote.has-text-align-right {
 		padding-right: 0;
@@ -3300,7 +3274,6 @@ hr {
 hr.wp-block-separator {
 	border-bottom: var(--separator--height) solid var(--separator--border-color);
 	opacity: 1;
-
 	/**
    * Block Options
    */
@@ -3542,11 +3515,9 @@ table.wp-calendar-table caption {
 }
 
 /* Block Alignments */
-
 /**
  * These selectors set the default max width for content appearing inside a post or page.
  */
-
 /**
  * .alignleft
  */
@@ -3570,7 +3541,6 @@ table.wp-calendar-table caption {
 		max-width: calc(50% - var(--responsive--alignleft-margin));
 	}
 }
-
 /**
  * .aligncenter
  */
@@ -3658,6 +3628,7 @@ table.wp-calendar-table caption {
 .desktop-only {
 	display: none;
 }
+
 @media only screen and (min-width: 482px) {
 	.desktop-only {
 		display: block;
@@ -3675,11 +3646,13 @@ table.wp-calendar-table caption {
 .wp-custom-logo .site-header {
 	align-items: center;
 }
+
 @media only screen and (min-width: 482px) {
 	.site-header {
 		padding-top: calc(var(--global--spacing-vertical) / 0.75);
 	}
 }
+
 @media only screen and (min-width: 822px) {
 	.site-header {
 		padding-top: calc(2.4 * var(--global--spacing-vertical));
@@ -3696,6 +3669,7 @@ table.wp-calendar-table caption {
 	width: 100%;
 	text-align: center;
 }
+
 @media only screen and (min-width: 482px) {
 	.site-branding {
 		margin-left: initial;
@@ -3728,6 +3702,7 @@ table.wp-calendar-table caption {
 .site-title a:focus {
 	color: var(--branding--color-link-hover);
 }
+
 @media only screen and (min-width: 482px) {
 	.site-title {
 		font-size: var(--branding--title--font-size);
@@ -3765,6 +3740,7 @@ table.wp-calendar-table caption {
 	display: inline-block;
 	width: auto;
 }
+
 @media only screen and (min-width: 482px) {
 	.site-logo .custom-logo {
 		max-width: var(--branding--logo--max-width);
@@ -3845,6 +3821,7 @@ table.wp-calendar-table caption {
 .no-widgets .site-footer {
 	margin-top: calc(6 * var(--global--spacing-vertical));
 }
+
 @media only screen and (max-width: 481.98px) {
 	.no-widgets .site-footer {
 		margin-top: calc(3 * var(--global--spacing-vertical));
@@ -3869,6 +3846,7 @@ table.wp-calendar-table caption {
 .site-footer > .site-info .powered-by {
 	margin-top: calc(0.5 * var(--global--spacing-vertical));
 }
+
 @media only screen and (min-width: 822px) {
 	.site-footer > .site-info {
 		display: flex;
@@ -4069,6 +4047,7 @@ body:not(.single) .site-main > article:last-of-type .entry-footer {
 .single .site-main > article > .entry-footer .tags-links {
 	display: block;
 }
+
 @media only screen and (max-width: 481.98px) {
 	.single .site-main > article > .entry-footer {
 		display: block;
@@ -4304,6 +4283,7 @@ h1.page-title {
 	line-height: var(--global--line-height-heading);
 	margin-bottom: calc(0.25 * var(--global--spacing-unit));
 }
+
 @media only screen and (min-width: 482px) {
 	.comment-meta .comment-author {
 		margin-bottom: 0;
@@ -4329,6 +4309,7 @@ h1.page-title {
 .comment-meta .comment-metadata .edit-link {
 	margin-right: var(--global--spacing-horizontal);
 }
+
 @media only screen and (min-width: 482px) {
 	.comment-meta {
 		margin-left: inherit;
@@ -4433,6 +4414,7 @@ h1.page-title {
 	flex-basis: 0;
 	flex-grow: 1;
 }
+
 @media only screen and (max-width: 481.98px) {
 	.comment-form .comment-form-author,
 	.comment-form .comment-form-email {
@@ -4473,6 +4455,7 @@ h1.page-title {
 .comment-form > p.comment-form-cookies-consent {
 	display: flex;
 }
+
 @media only screen and (min-width: 482px) {
 	.comment-form > p.comment-form-author {
 		margin-left: calc(1.5 * var(--global--spacing-horizontal));
@@ -4492,6 +4475,7 @@ h1.page-title {
 	padding-top: calc(0.5 * var(--global--spacing-vertical));
 	padding-bottom: calc(0.25 * var(--global--spacing-vertical));
 }
+
 @media only screen and (max-width: 481.98px) {
 	.menu-button-container {
 		display: flex;
@@ -4576,11 +4560,13 @@ h1.page-title {
 	background-color: var(--global--color-background);
 	transform: translateY(var(--global--spacing-vertical));
 }
+
 @media (prefers-reduced-motion: no-preference) {
 	.primary-navigation > .primary-menu-container {
 		transition: all 0.15s ease-in-out;
 	}
 }
+
 @media only screen and (max-width: 481.98px) {
 	.primary-navigation > .primary-menu-container {
 		height: 100vh;
@@ -4607,6 +4593,7 @@ h1.page-title {
 		border: 2px solid var(--global--color-primary);
 	}
 }
+
 @media only screen and (max-width: 481.98px) {
 	.primary-navigation-open .primary-navigation {
 		width: 100%;
@@ -4621,11 +4608,13 @@ h1.page-title {
 	opacity: 1;
 	transform: translateY(0);
 }
+
 @media only screen and (max-width: 481.98px) {
 	.primary-navigation-open .has-logo.has-title-and-tagline .primary-navigation > .primary-menu-container {
 		transform: translateX(0) translateY(0);
 	}
 }
+
 @media only screen and (min-width: 482px) {
 	.primary-navigation {
 		position: relative;
@@ -4669,6 +4658,7 @@ h1.page-title {
 	padding-right: 0;
 	position: relative;
 }
+
 @media only screen and (max-width: 481.98px) {
 	.primary-navigation > div > .menu-wrapper {
 		padding-bottom: 100px;
@@ -4684,6 +4674,7 @@ h1.page-title {
 	position: relative;
 	width: 100%;
 }
+
 @media only screen and (min-width: 482px) {
 	.primary-navigation > div > .menu-wrapper li {
 		margin: 0;
@@ -4710,6 +4701,7 @@ h1.page-title {
 .primary-navigation > div > .menu-wrapper .sub-menu-toggle:focus {
 	outline: 2px solid var(--wp--style--color--link, var(--global--color-primary));
 }
+
 @media only screen and (max-width: 481.98px) {
 	.primary-navigation > div > .menu-wrapper .sub-menu-toggle {
 		display: none;
@@ -4743,11 +4735,13 @@ h1.page-title {
 .primary-navigation > div > .menu-wrapper > li > .sub-menu {
 	position: relative;
 }
+
 @media only screen and (min-width: 482px) and (prefers-reduced-motion: no-preference) {
 	.primary-navigation > div > .menu-wrapper > li > .sub-menu {
 		transition: all 0.5s ease;
 	}
 }
+
 @media only screen and (min-width: 482px) {
 	.primary-navigation > div > .menu-wrapper > li > .sub-menu {
 		right: 0;
@@ -4807,6 +4801,7 @@ h1.page-title {
 .primary-navigation .primary-menu > .menu-item:hover > a {
 	color: var(--primary-nav--color-link-hover);
 }
+
 @media only screen and (min-width: 482px) {
 	.primary-navigation .primary-menu-container {
 		margin-left: calc(0px - var(--primary-nav--padding));
@@ -4835,6 +4830,7 @@ h1.page-title {
 	padding: var(--primary-nav--padding) 0;
 	text-decoration: none;
 }
+
 @media only screen and (min-width: 482px) {
 	.primary-navigation a {
 		display: block;
@@ -4889,11 +4885,13 @@ h1.page-title {
 .primary-navigation .sub-menu .sub-menu {
 	border: none;
 }
+
 @media only screen and (min-width: 482px) {
 	.primary-navigation .sub-menu > .menu-item > .sub-menu {
 		padding: 0;
 	}
 }
+
 @media only screen and (max-width: 481.98px) {
 	.primary-navigation .sub-menu .menu-item:last-child {
 		margin-bottom: 0;
@@ -4906,6 +4904,7 @@ h1.page-title {
 	font-size: var(--primary-nav--font-size-sub-menu-mobile);
 	font-style: var(--primary-nav--font-style-sub-menu-mobile);
 }
+
 @media only screen and (min-width: 482px) {
 	.primary-navigation .sub-menu .menu-item > a {
 		font-size: var(--primary-nav--font-size-sub-menu);
@@ -4916,6 +4915,7 @@ h1.page-title {
 .primary-navigation .menu-item-has-children > .svg-icon {
 	display: none;
 }
+
 @media only screen and (min-width: 482px) {
 	.primary-navigation .menu-item-has-children > .svg-icon {
 		display: inline-block;
@@ -4946,6 +4946,7 @@ h1.page-title {
 		width: 100%;
 	}
 }
+
 @keyframes twentytwentyone-close-button-transition {
 	from {
 		opacity: 0;
@@ -5012,6 +5013,7 @@ h1.page-title {
 .footer-navigation-wrapper li .svg-icon:hover {
 	transform: scale(1.1);
 }
+
 @media (prefers-reduced-motion: no-preference) {
 	.footer-navigation-wrapper li .svg-icon {
 		transition: transform 0.1s ease;
@@ -5061,6 +5063,7 @@ h1.page-title {
 .navigation .nav-links .dots {
 	text-align: center;
 }
+
 @media only screen and (min-width: 592px) {
 	.navigation .nav-links {
 		display: flex;
@@ -5103,6 +5106,7 @@ h1.page-title {
 .post-navigation {
 	margin: var(--global--spacing-vertical) auto;
 }
+
 @media only screen and (min-width: 822px) {
 	.post-navigation {
 		margin: var(--global--spacing-vertical) auto;
@@ -5121,11 +5125,13 @@ h1.page-title {
 	font-weight: var(--pagination--font-weight-strong);
 	line-height: var(--global--line-height-heading);
 }
+
 @media only screen and (min-width: 822px) {
 	.post-navigation .post-title {
 		margin: 5px calc(24px + 0.25 * var(--global--spacing-unit)) 0;
 	}
 }
+
 @media only screen and (min-width: 482px) {
 	.post-navigation .nav-links {
 		justify-content: space-between;
@@ -5154,6 +5160,7 @@ h1.page-title {
 	padding-top: var(--global--spacing-vertical);
 	margin: var(--global--spacing-vertical) auto;
 }
+
 @media only screen and (min-width: 822px) {
 	.pagination,
 	.comments-pagination {
@@ -5229,6 +5236,7 @@ h1.page-title {
 .comments-pagination .nav-links > *.prev {
 	margin-left: auto;
 }
+
 @media only screen and (max-width: 821.98px) {
 	.pagination .nav-links,
 	.comments-pagination .nav-links {
@@ -5249,6 +5257,7 @@ h1.page-title {
 		flex: 0 1 auto;
 	}
 }
+
 @media only screen and (max-width: 481.98px) {
 	.pagination .nav-short,
 	.comments-pagination .nav-short {
@@ -5260,6 +5269,7 @@ h1.page-title {
 	padding-top: calc(0.66 * var(--global--spacing-vertical));
 	margin: calc(3 * var(--global--spacing-vertical)) auto;
 }
+
 @media only screen and (min-width: 822px) {
 	.comments-pagination {
 		margin: calc(3 * var(--global--spacing-vertical)) auto calc(4 * var(--global--spacing-vertical)) auto;
@@ -5277,6 +5287,7 @@ h1.page-title {
 	font-size: var(--footer--font-size);
 	font-family: var(--footer--font-family);
 }
+
 @media only screen and (min-width: 652px) {
 	.widget-area {
 		display: grid;
@@ -5284,11 +5295,13 @@ h1.page-title {
 		column-gap: calc(2 * var(--global--spacing-horizontal));
 	}
 }
+
 @media only screen and (min-width: 1024px) {
 	.widget-area {
 		grid-template-columns: repeat(3, 1fr);
 	}
 }
+
 @media only screen and (max-width: 481.98px) {
 	.widget-area {
 		margin-top: calc(3 * var(--global--spacing-vertical));
@@ -5430,7 +5443,6 @@ h1.page-title {
 	padding: 0;
 	position: absolute !important;
 	width: 1px;
-
 	/* Many screen reader and browser combinations announce broken words as they would appear visually. */
 	word-wrap: normal !important;
 	word-break: normal !important;

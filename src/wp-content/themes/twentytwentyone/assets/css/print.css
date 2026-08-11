@@ -2,7 +2,6 @@
 Adding print support. The print styles are based on the the great work of
 Andreas Hecht in https://www.jotform.com/blog/css-perfect-print-stylesheet-98272/.
 */
-
 /*--------------------------------------------------------------
 >>> TABLE OF CONTENTS:
 ----------------------------------------------------------------
@@ -32,7 +31,6 @@ Andreas Hecht in https://www.jotform.com/blog/css-perfect-print-stylesheet-98272
 	.site-header {
 		padding: 0;
 	}
-
 	/* Fonts */
 	body {
 		font: 13pt Georgia, "Times New Roman", Times, serif;
@@ -71,7 +69,6 @@ Andreas Hecht in https://www.jotform.com/blog/css-perfect-print-stylesheet-98272
 	.comment-meta .comment-author .fn {
 		font-size: 13pt;
 	}
-
 	/* Page breaks */
 	a {
 		page-break-inside: avoid;
@@ -107,7 +104,6 @@ Andreas Hecht in https://www.jotform.com/blog/css-perfect-print-stylesheet-98272
 	dl {
 		page-break-before: avoid;
 	}
-
 	/* Links */
 	a:link,
 	a:visited,
@@ -129,7 +125,6 @@ Andreas Hecht in https://www.jotform.com/blog/css-perfect-print-stylesheet-98272
 	article a[href^="#"]::after {
 		content: "";
 	}
-
 	/* stylelint-disable-next-line selector-pseudo-class-no-unknown -- :local-link is still experimental. */
 	a:not(:local-link)::after {
 		content: " < " attr(href) "> ";
@@ -150,7 +145,6 @@ Andreas Hecht in https://www.jotform.com/blog/css-perfect-print-stylesheet-98272
 	.page-links a::after {
 		content: "";
 	}
-
 	/* Visibility */
 	.primary-navigation,
 	.site-title + .primary-navigation,
