@@ -1,0 +1,71 @@
+name: Lint GitHub Actions workflows
+on:
+  workflow_call:
+
+permissions: {}
+
+jobs:
+  # Runs the actionlint GitHub Action workflow file linter.
+  #
+  # See https://github.com/rhysd/actionlint.
+  #
+  # This helps guard against common mistakes including strong type checking for expressions (${{ }}), security checks,
+  # `run:` script checking, glob syntax validation, and more.
+  actionlint:
+    name: Run actionlint
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    timeout-minutes: 5
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+          show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
+
+      - name: Run actionlint
+        uses: docker://rhysd/actionlint@sha256:5457037ba91acd225478edac3d4b32e45cf6c10291e0dabbfd2491c63129afe1 # v1.7.11
+        with:
+          args: "-color -verbose"
+
+  # Runs the Zizmor GitHub Action workflow file linter.
+  #
+  # See https://github.com/zizmorcore/zizmor
+  #
+  # This helps guard against supply chain attacks, unpinned dependencies, excessive permissions,
+  # dangerous triggers, credential leaks, and sophisticated security vulnerabilities.
+  #
+  # Performs the following steps:
+  # - Checks out the repository.
+  # - Installs and configures uv.
+  # - Runs a zizmor scan.
+  # - Uploads the SARIF file to GitHub.
+  zizmor:
+    name: Zizmor
+    runs-on: ubuntu-24.04
+    # GitHub Code Security is not enabled on any of the private mirrors.
+    if: ${{ github.event.repository.private == false }}
+    permissions:
+      security-events: write
+      actions: read
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+
+      - name: Install the latest version of uv
+        uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39 # v8.2.0
+
+      - name: Run zizmor
+        run: uvx zizmor@1.24.1 --persona=regular --format=sarif --strict-collection . > results.sarif
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload SARIF file
+        uses: github/codeql-action/upload-sarif@54f647b7e1bb85c95cddabcd46b0c578ec92bc1a # v4.36.3
+        with:
+          sarif_file: results.sarif
+          category: zizmor

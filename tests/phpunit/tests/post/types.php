@@ -343,7 +343,7 @@ class Tests_Post_Types extends WP_UnitTestCase {
 
 		$this->assertIsInt( array_search( 'bar', $wp->public_query_vars, true ) );
 		$this->assertTrue( unregister_post_type( 'foo' ) );
-		$this->assertFalse( array_search( 'bar', $wp->public_query_vars, true ) );
+		$this->assertNotContains( 'bar', $wp->public_query_vars );
 	}
 
 	/**
@@ -463,8 +463,8 @@ class Tests_Post_Types extends WP_UnitTestCase {
 		$this->assertIsInt( array_search( 'foo', $wp_taxonomies['category']->object_type, true ) );
 		$this->assertIsInt( array_search( 'foo', $wp_taxonomies['post_tag']->object_type, true ) );
 		$this->assertTrue( unregister_post_type( 'foo' ) );
-		$this->assertFalse( array_search( 'foo', $wp_taxonomies['category']->object_type, true ) );
-		$this->assertFalse( array_search( 'foo', $wp_taxonomies['post_tag']->object_type, true ) );
+		$this->assertNotContains( 'foo', $wp_taxonomies['category']->object_type );
+		$this->assertNotContains( 'foo', $wp_taxonomies['post_tag']->object_type );
 		$this->assertEmpty( get_object_taxonomies( 'foo' ) );
 	}
 
@@ -626,7 +626,7 @@ class Tests_Post_Types extends WP_UnitTestCase {
 
 		remove_post_type_support( 'foo', 'autosave' );
 		$post_type_object = get_post_type_object( 'foo' );
-		$this->assertSame( null, $post_type_object->get_autosave_rest_controller(), 'Autosave controller should be removed.' );
+		$this->assertNull( $post_type_object->get_autosave_rest_controller(), 'Autosave controller should be removed.' );
 		_unregister_post_type( 'foo' );
 	}
 
@@ -645,5 +645,35 @@ class Tests_Post_Types extends WP_UnitTestCase {
 
 		$this->assertFalse( post_type_supports( 'foo', 'editor' ), 'Post type should not support editor.' );
 		$this->assertTrue( post_type_supports( 'foo', 'autosave' ), 'Post type should still support autosaves.' );
+	}
+
+	/**
+	 * @group oembed
+	 * @ticket 35567
+	 */
+	public function test_register_post_type_is_embeddable_should_default_to_value_of_public() {
+		$post_type = register_post_type( $this->post_type );
+		$this->assertFalse( $post_type->embeddable, 'Non-public post type should not be embeddable by default' );
+
+		$post_type = register_post_type( $this->post_type, array( 'public' => true ) );
+		$this->assertTrue( $post_type->embeddable, 'Public post type should be embeddable by default' );
+	}
+
+	/**
+	 * @group oembed
+	 * @ticket 35567
+	 */
+	public function test_register_post_type_override_is_embeddable() {
+		$post_type = register_post_type( $this->post_type, array( 'embeddable' => true ) );
+		$this->assertTrue( $post_type->embeddable, 'Post type should be embeddable even though it is not public' );
+
+		$post_type = register_post_type(
+			$this->post_type,
+			array(
+				'public'     => true,
+				'embeddable' => false,
+			)
+		);
+		$this->assertFalse( $post_type->embeddable, 'Post type should not be embeddable even though it is public' );
 	}
 }

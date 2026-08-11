@@ -208,7 +208,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 	 * slugs cannot contain slashes.
 	 *
 	 * @since 5.9.0
-	 * @see https://core.trac.wordpress.org/ticket/54507
+	 * @link https://core.trac.wordpress.org/ticket/54507
 	 *
 	 * @param string $id Template ID.
 	 * @return string Sanitized template ID.
@@ -269,6 +269,11 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 	 * @return WP_REST_Response
 	 */
 	public function get_items( $request ) {
+		if ( $request->is_method( 'HEAD' ) ) {
+			// Return early as this handler doesn't add any response headers.
+			return new WP_REST_Response( array() );
+		}
+
 		$query = array();
 		if ( isset( $request['wp_id'] ) ) {
 			$query['wp_id'] = $request['wp_id'];
@@ -574,7 +579,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 			$changes->post_type   = $this->post_type;
 			$changes->post_status = 'publish';
 			$changes->tax_input   = array(
-				'wp_theme' => isset( $request['theme'] ) ? $request['theme'] : get_stylesheet(),
+				'wp_theme' => $request['theme'] ?? get_stylesheet(),
 			);
 		} elseif ( 'custom' !== $template->source ) {
 			$changes->post_name   = $template->slug;
@@ -662,12 +667,20 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 	 * @since 5.8.0
 	 * @since 5.9.0 Renamed `$template` to `$item` to match parent class for PHP 8 named parameter support.
 	 * @since 6.3.0 Added `modified` property to the response.
+	 * @since 7.1.0 Added `date` property to the response.
+	 * @since 7.1.0 The `modified` property is `null` for templates that have no
+	 *              modification date.
 	 *
 	 * @param WP_Block_Template $item    Template instance.
 	 * @param WP_REST_Request   $request Request object.
 	 * @return WP_REST_Response Response object.
 	 */
 	public function prepare_item_for_response( $item, $request ) {
+		// Don't prepare the response body for HEAD requests.
+		if ( $request->is_method( 'HEAD' ) ) {
+			return new WP_REST_Response( array() );
+		}
+
 		/*
 		 * Resolve pattern blocks so they don't need to be resolved client-side
 		 * in the editor, improving performance.
@@ -765,7 +778,23 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 		}
 
 		if ( rest_is_field_included( 'modified', $fields ) ) {
-			$data['modified'] = mysql_to_rfc3339( $template->modified );
+			/*
+			 * File-backed templates have no modification date, and `mysql_to_rfc3339()`
+			 * returns `false` for an empty or malformed value, which the schema does
+			 * not allow. Return `null` in that case.
+			 */
+			$modified         = mysql_to_rfc3339( $template->modified );
+			$data['modified'] = false !== $modified ? $modified : null;
+		}
+
+		if ( rest_is_field_included( 'date', $fields ) ) {
+			/*
+			 * File-backed templates have no date, and `mysql_to_rfc3339()` returns
+			 * `false` for an empty or malformed value, which the schema does not
+			 * allow. Return `null` in that case.
+			 */
+			$date         = mysql_to_rfc3339( $template->date );
+			$data['date'] = false !== $date ? $date : null;
 		}
 
 		if ( rest_is_field_included( 'author_text', $fields ) ) {
@@ -904,8 +933,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 				if ( isset( $plugins[ $plugin_basename ] ) && isset( $plugins[ $plugin_basename ]['Name'] ) ) {
 					return $plugins[ $plugin_basename ]['Name'];
 				}
-				return isset( $template_object->plugin ) ?
-					$template_object->plugin :
+				return $template_object->plugin ??
 					$template_object->theme;
 			case 'site':
 				return get_bloginfo( 'name' );
@@ -1140,7 +1168,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 				),
 				'modified'        => array(
 					'description' => __( "The date the template was last modified, in the site's timezone." ),
-					'type'        => 'string',
+					'type'        => array( 'string', 'null' ),
 					'format'      => 'date-time',
 					'context'     => array( 'view', 'edit' ),
 					'readonly'    => true,
@@ -1162,6 +1190,13 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 						'site',
 						'user',
 					),
+				),
+				'date'            => array(
+					'description' => __( "The date the template was published, in the site's timezone." ),
+					'type'        => array( 'string', 'null' ),
+					'format'      => 'date-time',
+					'context'     => array( 'view', 'edit' ),
+					'readonly'    => true,
 				),
 			),
 		);
