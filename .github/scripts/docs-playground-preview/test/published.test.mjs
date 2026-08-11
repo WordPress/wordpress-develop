@@ -171,7 +171,9 @@ test( 'a published preview rejects invalid pointer identity and proxy bytes', as
 			{
 				sourceRepository,
 				sourceSha,
-				fetchImplementation: /** @param {string} url */ async ( url ) => {
+				fetchImplementation: /** @param {string} url */ async (
+					url
+				) => {
 					if ( url === metadataAsset.browser_download_url ) {
 						return { status: 200, json: async () => metadata };
 					}

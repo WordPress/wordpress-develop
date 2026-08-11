@@ -199,7 +199,9 @@ async function fixture( failures = [], enforce = false ) {
 			calls.push( 'base' );
 			return { cacheHit: true };
 		},
-		generateParserJson: /** @param {Record<string, any>} options */ async ( options ) => {
+		generateParserJson: /** @param {Record<string, any>} options */ async (
+			options
+		) => {
 			calls.push( 'parser' );
 			assert.equal( options.parser, path.join( cache, 'parser' ) );
 			return parser( failures );

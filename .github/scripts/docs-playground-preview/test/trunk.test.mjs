@@ -312,7 +312,10 @@ test( 'the public Blueprint must arrive intact through the Playground proxy', as
 	);
 	const publicUrl = trunkStableBlueprintUrl( repository );
 	const fetchImplementation =
-		/** @param {string} url @param {Record<string, any>} options */ async ( url, options ) => {
+		/** @param {string} url @param {Record<string, any>} options */ async (
+			url,
+			options
+		) => {
 			assert.equal( url, corsProxyUrl( publicUrl ) );
 			assert.equal( options.headers.Origin, PLAYGROUND_ORIGIN );
 			return {
