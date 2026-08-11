@@ -866,6 +866,136 @@ class Tests_Widgets extends WP_UnitTestCase {
 		}
 	}
 
+	/**
+	 * @covers ::wp_delete_inactive_widgets
+	 * @ticket 65414
+	 */
+	public function test_wp_delete_inactive_widgets_removes_settings_and_empties_sidebar() {
+		require_once ABSPATH . 'wp-admin/includes/widgets.php';
+
+		update_option(
+			'widget_search',
+			array(
+				2              => array( 'title' => 'Search 2' ),
+				3              => array( 'title' => 'Search 3' ),
+				'_multiwidget' => 1,
+			)
+		);
+		update_option(
+			'widget_text',
+			array(
+				5              => array( 'text' => 'Text 5' ),
+				'_multiwidget' => 1,
+			)
+		);
+
+		wp_set_sidebars_widgets(
+			array(
+				'sidebar-1'           => array( 'search-3' ),
+				'wp_inactive_widgets' => array( 'search-2', 'text-5' ),
+			)
+		);
+
+		wp_delete_inactive_widgets();
+
+		$sidebars_widgets = wp_get_sidebars_widgets();
+		$this->assertSame( array(), $sidebars_widgets['wp_inactive_widgets'] );
+		$this->assertSame( array( 'search-3' ), $sidebars_widgets['sidebar-1'] );
+
+		$search_settings = get_option( 'widget_search' );
+		$this->assertArrayNotHasKey( 2, $search_settings );
+		$this->assertArrayHasKey( 3, $search_settings );
+
+		$text_settings = get_option( 'widget_text' );
+		$this->assertArrayNotHasKey( 5, $text_settings );
+	}
+
+	/**
+	 * @covers ::wp_delete_inactive_widgets
+	 * @ticket 65414
+	 */
+	public function test_wp_delete_inactive_widgets_with_no_inactive_widgets_key() {
+		require_once ABSPATH . 'wp-admin/includes/widgets.php';
+
+		wp_set_sidebars_widgets(
+			array(
+				'sidebar-1' => array( 'search-2' ),
+			)
+		);
+
+		wp_delete_inactive_widgets();
+
+		$sidebars_widgets = wp_get_sidebars_widgets();
+		$this->assertArrayNotHasKey( 'wp_inactive_widgets', $sidebars_widgets );
+		$this->assertSame( array( 'search-2' ), $sidebars_widgets['sidebar-1'] );
+	}
+
+	/**
+	 * @covers ::wp_delete_inactive_widgets
+	 * @ticket 65414
+	 */
+	public function test_wp_delete_inactive_widgets_with_empty_inactive_widgets() {
+		require_once ABSPATH . 'wp-admin/includes/widgets.php';
+
+		wp_set_sidebars_widgets(
+			array(
+				'sidebar-1'           => array( 'search-2' ),
+				'wp_inactive_widgets' => array(),
+			)
+		);
+
+		wp_delete_inactive_widgets();
+
+		$sidebars_widgets = wp_get_sidebars_widgets();
+		$this->assertSame( array(), $sidebars_widgets['wp_inactive_widgets'] );
+		$this->assertSame( array( 'search-2' ), $sidebars_widgets['sidebar-1'] );
+	}
+
+	/**
+	 * A corrupted `wp_inactive_widgets` entry (not an array) must not raise a
+	 * TypeError from count() on PHP 8.
+	 *
+	 * @covers ::wp_delete_inactive_widgets
+	 * @ticket 65414
+	 */
+	public function test_wp_delete_inactive_widgets_with_non_array_inactive_widgets_does_not_throw() {
+		require_once ABSPATH . 'wp-admin/includes/widgets.php';
+
+		wp_set_sidebars_widgets(
+			array(
+				'sidebar-1'           => array( 'search-2' ),
+				'wp_inactive_widgets' => 'not-an-array',
+			)
+		);
+
+		wp_delete_inactive_widgets();
+
+		$sidebars_widgets = wp_get_sidebars_widgets();
+		$this->assertSame( 'not-an-array', $sidebars_widgets['wp_inactive_widgets'] );
+		$this->assertSame( array( 'search-2' ), $sidebars_widgets['sidebar-1'] );
+	}
+
+	/**
+	 * @covers ::wp_delete_inactive_widgets
+	 * @ticket 65414
+	 */
+	public function test_wp_delete_inactive_widgets_skips_non_array_widget_option() {
+		require_once ABSPATH . 'wp-admin/includes/widgets.php';
+
+		update_option( 'widget_search', 'corrupted-data' );
+
+		wp_set_sidebars_widgets(
+			array(
+				'wp_inactive_widgets' => array( 'search-2' ),
+			)
+		);
+
+		wp_delete_inactive_widgets();
+
+		$this->assertSame( 'corrupted-data', get_option( 'widget_search' ) );
+		$this->assertSame( array(), wp_get_sidebars_widgets()['wp_inactive_widgets'] );
+	}
+
 	public function test_the_widget_custom_before_title_arg() {
 		register_widget( 'WP_Widget_Text' );
 
