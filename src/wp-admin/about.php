@@ -61,7 +61,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 		<div class="about__section">
 			<div class="column is-left-padding-zero is-right-padding-zero">
 				<h2><?php _e( 'Welcome to WordPress 7.1' ); ?></h2>
-				<p class="is-subheading"><?php _e( 'WordPress 7.1 makes styling and editing easier. Style how blocks look across screen sizes and how they respond to hover, focus, and active states, all without writing custom CSS. A streamlined media editor brings cropping, rotation, and metadata editing together in one workflow. Notes now support rich text and @mentions, and the admin bar travels with you into the Site Editor and block editor, so the tools you rely on stay with you wherever you&#8217;re working.' ); ?></p>
+				<p class="is-subheading"><?php _e( 'WordPress 7.1 makes styling and collaborating easier. Style how all blocks look across screen sizes and how Button and Navigation link blocks respond to hover, focus, and active states, all without writing custom CSS. A streamlined media editor brings cropping, rotation, and metadata editing together in one workflow. Notes now support rich text and @mentions, and the admin bar travels with you into every editor, so the tools you rely on stay with you wherever you&#8217;re working.' ); ?></p>
 			</div>
 		</div>
 
@@ -90,7 +90,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 				<h3><?php _e( 'Admin bar, now in every editor' ); ?></h3>
 				<p>
 					<strong><?php _e( 'Consistent navigation, from dashboard to editor.' ); ?></strong><br />
-					<?php _e( 'The admin bar now stays with you as you move into the Site Editor and block editor, so you always know where you are.  The admin bar also gets a small visual refresh.' ); ?>
+					<?php _e( 'The admin bar now stays with you across all editors, so you always know where you are.  The admin bar also gets a small visual refresh.' ); ?>
 				</p>
 			</div>
 		</div>
@@ -120,7 +120,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 				<h3><?php _e( 'Inline notes with mentions and rich text' ); ?></h3>
 				<p>
 					<strong><?php _e( 'More ways to leave feedback.' ); ?></strong><br />
-					<?php _e( 'Notes now support rich text and @mentions. Add bold, italic, code, and links so feedback reads clearly. Type &#8220;@&#8221; to pull up a list of collaborators and tag the right person directly. Leave a note on a specific text selection instead of an entire block. Start more than one conversation on the same block. Collapse long notes to keep the margin tidy.' ); ?>
+					<?php _e( 'Notes now support rich text and @mentions. Add bold, italic, code, and links so feedback reads clearly. Type &#8220;@&#8221; to pull up a list of collaborators to tag the right person directly, with built-in email notifications. Leave a note on a specific text selection instead of an entire block. Start more than one conversation on the same block. Collapse long notes to keep the margin tidy.' ); ?>
 				</p>
 			</div>
 		</div>
@@ -145,7 +145,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 					</svg>
 				</div>
 				<h3><?php _e( 'Accessibility' ); ?></h3>
-				<p><?php _e( 'WordPress 7.1 continues to polish accessibility across WordPress Core and Gutenberg, advancing the goals to meet accessibility standards. In this release, high impact changes include the new accessible tooltips API, improved predictability for screen readers, and improved labeling in many places in the admin. The editor ships with new Tab and Playlist blocks and extensive improvements to editor navigation and interaction.' ); ?></p>
+				<p><?php _e( 'WordPress 7.1 continues to polish accessibility across WordPress Core and Gutenberg, advancing the goals to meet accessibility standards. In this release, high impact changes include the new accessible tooltips API, improved predictability for screen readers, and improved labeling in many places in the admin. The editor adds extensive improvements to navigation and interaction.' ); ?></p>
 			</div>
 		</div>
 
