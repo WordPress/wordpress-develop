@@ -113,6 +113,7 @@ class wp_xmlrpc_server extends IXR_Server {
 			'wp.newComment'                    => 'this:wp_newComment',
 			'wp.getCommentStatusList'          => 'this:wp_getCommentStatusList',
 			'wp.getMediaItem'                  => 'this:wp_getMediaItem',
+			'wp.updateMediaItem'               => 'this:wp_updateMediaItem',
 			'wp.getMediaLibrary'               => 'this:wp_getMediaLibrary',
 			'wp.getPostFormats'                => 'this:wp_getPostFormats',
 			'wp.getPostType'                   => 'this:wp_getPostType',
@@ -4403,6 +4404,88 @@ class wp_xmlrpc_server extends IXR_Server {
 		}
 
 		return $this->_prepare_media_item( $attachment );
+	}
+
+	/**
+	 * Updates a media item.
+	 *
+	 * @since 6.8.0
+	 *
+	 * @param array $args {
+	 *     Method arguments. Note: arguments must be ordered as documented.
+	 *
+	 *     @type int    $0 Blog ID (unused).
+	 *     @type string $1 Username.
+	 *     @type string $2 Password.
+	 *     @type int    $3 Attachment ID.
+	 *     @type array  $4 Media item data.
+	 * }
+	 * @return bool|IXR_Error True on success, IXR_Error instance on failure.
+	 */
+	public function wp_updateMediaItem( $args ) {
+		$this->escape( $args );
+
+		$username       = $args[1];
+		$password       = $args[2];
+		$attachment_id  = (int) $args[3];
+		$content_struct = isset( $args[4] ) ? $args[4] : array();
+
+		$user = $this->login( $username, $password );
+		if ( ! $user ) {
+			return $this->error;
+		}
+
+		if ( ! current_user_can( 'upload_files' ) ) {
+			return new IXR_Error( 401, __( 'Sorry, you are not allowed to upload files.' ) );
+		}
+
+		/** This action is documented in wp-includes/class-wp-xmlrpc-server.php */
+		do_action( 'xmlrpc_call', 'wp.updateMediaItem', $args, $this );
+
+		$attachment = get_post( $attachment_id );
+		if ( ! $attachment || 'attachment' !== $attachment->post_type ) {
+			return new IXR_Error( 404, __( 'Invalid attachment ID.' ) );
+		}
+
+		if ( ! current_user_can( 'edit_post', $attachment_id ) ) {
+			return new IXR_Error( 401, __( 'Sorry, you are not allowed to edit this media item.' ) );
+		}
+
+		$post_data       = array();
+		$post_data['ID'] = $attachment_id;
+
+		if ( isset( $content_struct['alt'] ) ) {
+			update_post_meta( $attachment_id, '_wp_attachment_image_alt', wp_strip_all_tags( $content_struct['alt'] ) );
+		}
+
+		if ( isset( $content_struct['title'] ) ) {
+			$post_data['post_title'] = $content_struct['title'];
+		}
+
+		if ( isset( $content_struct['caption'] ) ) {
+			$post_data['post_excerpt'] = $content_struct['caption'];
+		}
+
+		if ( isset( $content_struct['description'] ) ) {
+			$post_data['post_content'] = $content_struct['description'];
+		}
+
+		$result = wp_update_post( $post_data, true );
+		if ( is_wp_error( $result ) ) {
+			return new IXR_Error( 500, $result->get_error_message() );
+		}
+
+		/**
+		 * Fires after a media item has been successfully updated via XML-RPC.
+		 *
+		 * @since 6.8.0
+		 *
+		 * @param int   $attachment_id ID of the updated media item.
+		 * @param array $args          An array of arguments to update the media item.
+		 */
+		do_action( 'xmlrpc_call_success_wp_updateMediaItem', $attachment_id, $args ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.NotLowercase
+
+		return true;
 	}
 
 	/**
