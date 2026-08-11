@@ -145,7 +145,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 					</svg>
 				</div>
 				<h3><?php _e( 'Improved media handling' ); ?></h3>
-				<p><?php _e( 'Image compression, resizing, and thumbnail generation now happen in the browser, via a WebAssembly build of libvips, so large uploads won&#8217;t hit PHP memory limits or time out on shared hosts. This also frees up server CPU and memory, while producing smaller files for visitors. Media handling includes built-in support for AVIF,  HEIC and HDR gain maps.' ); ?></p>
+				<p><?php _e( 'Image compression, resizing, and thumbnail generation now happen in the browser, via a WebAssembly build of libvips, so large uploads won&#8217;t hit PHP memory limits or time out on shared hosts. This also frees up server CPU and memory, while producing smaller files for visitors. Media handling includes built-in support for AVIF, HEIC and HDR gain maps.' ); ?></p>
 			</div>
 			<div class="column is-right-padding-zero">
 				<div class="about__image">
