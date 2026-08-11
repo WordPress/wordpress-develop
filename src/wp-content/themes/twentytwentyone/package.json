@@ -36,7 +36,8 @@
 		"postcss-merge-rules": "^7.0.7",
 		"postcss-nested": "^7.0.2",
 		"rtlcss": "^4.3.0",
-		"sass": "^1.83.0"
+		"sass": "^1.83.0",
+		"stylelint-plugin-logical-css": "2.1.0"
 	},
 	"rtlcssConfig": {
 		"options": {
