@@ -43,7 +43,7 @@ jobs:
   # Runs JavaScript type checking.
   typecheck:
     name: JavaScript type checking
-    uses: ./.github/workflows/reusable-javascript-type-checking-v1.yml
+    uses: WordPress/wordpress-develop/.github/workflows/reusable-javascript-type-checking-v1.yml@trunk
     permissions:
       contents: read
     if: |
@@ -57,7 +57,7 @@ jobs:
 
   slack-notifications:
     name: Slack Notifications
-    uses: ./.github/workflows/slack-notifications.yml
+    uses: WordPress/wordpress-develop/.github/workflows/slack-notifications.yml@trunk
     permissions:
       actions: read
       contents: read
