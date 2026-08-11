@@ -53,6 +53,12 @@ module.exports = {
 					'Class selector should use lowercase class segments separated with hyphens, double hyphens, or double underscores',
 			},
 		],
+		'selector-no-qualifying-type': [
+			true,
+			{
+				severity: 'warning',
+			},
+		],
 		'value-keyword-case': null,
 		'scss/at-else-empty-line-before': null,
 		'scss/at-extend-no-missing-placeholder': null,
