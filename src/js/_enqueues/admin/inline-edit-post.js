@@ -191,7 +191,7 @@ window.wp = window.wp || {};
 	 */
 	setBulk : function(){
 		var te = '', type = this.type, c = true;
-		var checkedPosts = $( 'tbody th.check-column input[type="checkbox"]:checked' );
+		var checkedPosts = $( 'tbody .check-column input[type="checkbox"]:checked' );
 		var categories = {};
 		this.revert();
 
@@ -207,7 +207,7 @@ window.wp = window.wp || {};
 		 *
 		 * Get the selected posts based on the checked checkboxes in the post table.
 		 */
-		$( 'tbody th.check-column input[type="checkbox"]' ).each( function() {
+		$( 'tbody .check-column input[type="checkbox"]' ).each( function() {
 
 			// If the checkbox for a post is selected, add the post to the edit list.
 			if ( $(this).prop('checked') ) {
@@ -359,7 +359,12 @@ window.wp = window.wp || {};
 		if ( !$(':input[name="post_author"] option[value="' + $('.post_author', rowData).text() + '"]', editRow).val() ) {
 
 			// The post author no longer has edit capabilities, so we need to add them to the list of authors.
-			$(':input[name="post_author"]', editRow).prepend('<option value="' + $('.post_author', rowData).text() + '">' + $('#post-' + id + ' .author').text() + '</option>');
+			$(':input[name="post_author"]', editRow).prepend(
+				new Option(
+					$('#post-' + id + ' .author').text(),
+					$('.post_author', rowData).text()
+				)
+			);
 		}
 		if ( $( ':input[name="post_author"] option', editRow ).length === 1 ) {
 			$('label.inline-edit-author', editRow).hide();
