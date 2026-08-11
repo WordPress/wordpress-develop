@@ -978,7 +978,7 @@ window.wp = window.wp || {};
 				fromHandle = handles.first(),
 				toHandle   = handles.last();
 
-			if ( isRtl && handles.length > 1 ) {
+			if ( isRtl ) {
 				fromHandle = handles.last();
 				toHandle   = handles.first();
 			}

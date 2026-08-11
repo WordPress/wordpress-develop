@@ -370,11 +370,11 @@ function wp_print_revision_templates() {
 
 	<script id="tmpl-revisions-buttons" type="text/html">
 		<div class="revisions-previous">
-			<input class="button button-compact" type="button" value="<?php echo esc_attr_x( 'Earlier', 'Button label for an earlier revision' ); ?>" />
+			<input class="button button-compact" type="button" value="<?php echo esc_attr_x( 'Previous', 'Button label for a previous revision' ); ?>" />
 		</div>
 
 		<div class="revisions-next">
-			<input class="button button-compact" type="button" value="<?php echo esc_attr_x( 'Later', 'Button label for a later revision' ); ?>" />
+			<input class="button button-compact" type="button" value="<?php echo esc_attr_x( 'Next', 'Button label for a next revision' ); ?>" />
 		</div>
 	</script>
 
