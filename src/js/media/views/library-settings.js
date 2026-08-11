@@ -34,11 +34,11 @@ LibrarySettings = View.extend(/** @lends wp.media.view.LibrarySettings.prototype
 	},
 
 	/**
-	 * Identifies the most recent request.
+	 * Whether a request is in progress.
 	 *
-	 * @type {number}
+	 * @type {boolean}
 	 */
-	requestId: 0,
+	isSaving: false,
 
 	initialize: function() {
 		// Several media frames can be attached at once, so IDs are per instance.
@@ -101,9 +101,11 @@ LibrarySettings = View.extend(/** @lends wp.media.view.LibrarySettings.prototype
 			this.createDialog();
 		}
 
-		this.checkbox.checked = !! settings.librarySettings.infiniteScrolling;
+		if ( ! this.isSaving ) {
+			this.checkbox.checked = !! settings.librarySettings.infiniteScrolling;
+			this.setStatus( '' );
+		}
 
-		this.setStatus( '' );
 		this.dialog.showModal();
 	},
 
@@ -118,14 +120,25 @@ LibrarySettings = View.extend(/** @lends wp.media.view.LibrarySettings.prototype
 	/**
 	 * Saves the "Infinite scrolling" personal option for the current user.
 	 *
-	 * @param {Event} event The change event of the checkbox.
 	 * @return {void}
 	 */
-	updateInfiniteScrolling: function( event ) {
+	updateInfiniteScrolling: function() {
+		if ( ! this.isSaving ) {
+			this.save();
+		}
+	},
+
+	/**
+	 * Sends the state of the checkbox to the server, then whatever it was toggled
+	 * to in the meantime.
+	 *
+	 * @return {void}
+	 */
+	save: function() {
 		var view = this,
-			checkbox = event.target,
-			enabled = checkbox.checked,
-			requestId = ++this.requestId;
+			enabled = this.checkbox.checked;
+
+		this.isSaving = true;
 
 		this.setStatus( __( 'Saving…' ) );
 
@@ -133,11 +146,14 @@ LibrarySettings = View.extend(/** @lends wp.media.view.LibrarySettings.prototype
 			_ajax_nonce: settings.librarySettings.nonce,
 			infinite_scrolling: enabled ? 'true' : 'false'
 		} ).done( function() {
-			if ( requestId !== view.requestId ) {
-				return;
-			}
+			view.isSaving = false;
 
 			settings.librarySettings.infiniteScrolling = enabled ? 1 : 0;
+
+			if ( enabled !== view.checkbox.checked ) {
+				view.save();
+				return;
+			}
 
 			/*
 			 * A filter callback takes precedence over the preference, so the Media
@@ -155,12 +171,10 @@ LibrarySettings = View.extend(/** @lends wp.media.view.LibrarySettings.prototype
 				__( 'Infinite scrolling is off.' )
 			);
 		} ).fail( function( response ) {
-			if ( requestId !== view.requestId ) {
-				return;
-			}
+			view.isSaving = false;
 
 			// Put the checkbox back in sync with the stored value.
-			checkbox.checked = ! enabled;
+			view.checkbox.checked = !! settings.librarySettings.infiniteScrolling;
 
 			view.setStatus( ( response && response.message ) || __( 'The setting could not be saved.' ) );
 		} );
