@@ -2628,30 +2628,35 @@ if ( ! function_exists( 'wp_salt' ) ) :
 		 * option. These options will be primed to avoid repeated
 		 * database requests for undefined salts.
 		 */
-		$options_to_prime = array();
-		foreach ( array( 'auth', 'secure_auth', 'logged_in', 'nonce' ) as $key ) {
-			foreach ( array( 'key', 'salt' ) as $second ) {
-				$const = strtoupper( "{$key}_{$second}" );
-				if ( ! defined( $const ) || true === $duplicated_keys[ constant( $const ) ] ) {
-					$options_to_prime[] = "{$key}_{$second}";
+		static $options_are_primed;
+		if ( ! $options_are_primed ) {
+			$options_to_prime = array();
+			foreach ( array( 'auth', 'secure_auth', 'logged_in', 'nonce' ) as $key ) {
+				foreach ( array( 'key', 'salt' ) as $second ) {
+					$const = strtoupper( "{$key}_{$second}" );
+					if ( ! defined( $const ) || true === $duplicated_keys[ constant( $const ) ] ) {
+						$options_to_prime[] = "{$key}_{$second}";
+					}
 				}
 			}
-		}
 
-		if ( ! empty( $options_to_prime ) ) {
-			/*
-			 * Also prime `secret_key` used for undefined salting schemes.
-			 *
-			 * If the scheme is unknown, the default value for `secret_key` will be
-			 * used too for the salt. This should rarely happen, so the option is only
-			 * primed if other salts are undefined.
-			 *
-			 * At this point of execution it is known that a database call will be made
-			 * to prime salts, so the `secret_key` option can be primed regardless of the
-			 * constants status.
-			 */
-			$options_to_prime[] = 'secret_key';
-			wp_prime_site_option_caches( $options_to_prime );
+			if ( ! empty( $options_to_prime ) ) {
+				/*
+				* Also prime `secret_key` used for undefined salting schemes.
+				*
+				* If the scheme is unknown, the default value for `secret_key` will be
+				* used too for the salt. This should rarely happen, so the option is only
+				* primed if other salts are undefined.
+				*
+				* At this point of execution it is known that a database call will be made
+				* to prime salts, so the `secret_key` option can be primed regardless of the
+				* constants status.
+				*/
+				$options_to_prime[] = 'secret_key';
+				wp_prime_site_option_caches( $options_to_prime );
+			}
+
+			$options_are_primed = true;
 		}
 
 		$values = array(
