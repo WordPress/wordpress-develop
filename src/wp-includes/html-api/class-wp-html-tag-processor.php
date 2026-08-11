@@ -1208,8 +1208,9 @@ class WP_HTML_Tag_Processor {
 
 		$is_quirks = self::QUIRKS_MODE === $this->compat_mode;
 
-		$at = strspn( $class, " \t\f\r\n" );
-		while ( $at < strlen( $class ) ) {
+		$at           = strspn( $class, " \t\f\r\n" );
+		$class_length = strlen( $class );
+		while ( $at < $class_length ) {
 			// Find the byte length until the next boundary.
 			$length = strcspn( $class, " \t\f\r\n", $at );
 			$name   = substr( $class, $at, $length );
