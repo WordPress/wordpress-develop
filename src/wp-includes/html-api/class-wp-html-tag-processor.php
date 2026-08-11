@@ -1215,19 +1215,19 @@ class WP_HTML_Tag_Processor {
 			if ( $is_quirks ) {
 				$name = strtolower( $name );
 			}
-			$at += $length + strspn( $class, " \t\f\r\n", $at + $length );
+			$at += $length;
 
 			/*
 			 * It's expected that the number of class names for a given tag is relatively small.
 			 * Given this, it is probably faster overall to scan an array for a value rather
 			 * than to use the class name as a key and check if it's a key of $seen.
 			 */
-			if ( in_array( $name, $seen, true ) ) {
-				continue;
+			if ( ! in_array( $name, $seen, true ) ) {
+				$seen[] = $name;
+				yield $name;
 			}
 
-			$seen[] = $name;
-			yield $name;
+			$at += strspn( $class, " \t\f\r\n", $at );
 		}
 	}
 
