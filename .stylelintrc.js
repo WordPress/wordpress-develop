@@ -84,6 +84,9 @@ module.exports = {
 		'@stylistic/max-line-length': null,
 		// Keep these lines. Don't change their order otherwise indentation will break.
 		// It's not about a literal 'execution order', but rather a compatibility issue.
+		'@stylistic/block-closing-brace-newline-before': 'always',
+		'@stylistic/block-opening-brace-newline-after': 'always',
+		'@stylistic/declaration-block-semicolon-newline-after': 'always',
 		'@stylistic/selector-list-comma-space-after': 'always-single-line',
 		'@stylistic/selector-list-comma-newline-after': 'always',
 		'@stylistic/declaration-colon-newline-after': 'always-multi-line',
