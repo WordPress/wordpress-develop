@@ -20,6 +20,11 @@ module.exports = {
 				'ignore': ['after-comment', 'stylelint-commands'],
 			},
 		],
+		'declaration-property-unit-allowed-list': [
+			{
+				'line-height': [],
+			},
+		],
 		'declaration-property-value-allowed-list': [
 			{
 				'flex-direction': '/^(?!(row|column)-reverse).*$/',
@@ -30,6 +35,7 @@ module.exports = {
 			},
 		],
 		'font-weight-notation': 'numeric',
+		'function-disallowed-list': ['rgb'],
 		'no-descending-specificity': null,
 		'no-invalid-position-at-import-rule': null,
 		'property-disallowed-list': [
@@ -59,7 +65,12 @@ module.exports = {
 				severity: 'warning',
 			},
 		],
-		'value-keyword-case': null,
+		'value-keyword-case': [
+			'lower',
+			{
+				ignoreKeywords: ['currentColor'],
+			},
+		],
 		'scss/at-else-empty-line-before': null,
 		'scss/at-extend-no-missing-placeholder': null,
 		'scss/at-if-closing-brace-newline-after': null,
@@ -75,6 +86,7 @@ module.exports = {
 		// It's not about a literal 'execution order', but rather a compatibility issue.
 		'@stylistic/selector-list-comma-space-after': 'always-single-line',
 		'@stylistic/selector-list-comma-newline-after': 'always',
+		'@stylistic/declaration-colon-newline-after': 'always-multi-line',
 		'@stylistic/indentation': 'tab',
 		// End keep these lines.
 	},
