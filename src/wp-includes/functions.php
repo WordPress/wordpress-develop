@@ -9396,3 +9396,27 @@ function wp_verify_fast_hash(
 
 	return hash_equals( $hash, wp_fast_hash( $message ) );
 }
+
+function filter_default_role( $default_role ) {
+	$users_can_register = get_option( 'users_can_register' );
+
+	if ( ! $users_can_register ) {
+		return $default_role;
+	}
+
+	/**
+	 * Filters the roles that are excluded from being available as the default role for new user registrations.
+	 *
+	 * @since x.y.z
+	 *
+	 * @param string[] $roles Roles that are excluded from being available.
+	 */
+	$excluded = apply_filters( 'default_role_excluded_roles', array( 'administrator', 'editor' ) );
+
+	// Don't allow a privileged default role if users can register.
+	if ( in_array( $default_role, $excluded, true ) ) {
+		$default_role = 'subscriber';
+	}
+
+	return $default_role;
+}
