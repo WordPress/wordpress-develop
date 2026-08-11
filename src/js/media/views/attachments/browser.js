@@ -132,8 +132,8 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 			return;
 		}
 
-		this.attachments.setInfiniteScrolling( enabled );
 		this.$el.toggleClass( 'has-load-more', ! enabled );
+		this.attachments.setInfiniteScrolling( enabled );
 
 		if ( enabled ) {
 			this.collection.off( 'add remove reset', this.updateLoadMoreView, this );
