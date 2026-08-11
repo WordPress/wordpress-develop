@@ -464,7 +464,7 @@ Attachments = View.extend(/** @lends wp.media.view.Attachments.prototype */{
 			scrollTop = $(document).scrollTop();
 		}
 
-		if ( ! $(el).is(':visible') || ! this.collection.hasMore() ) {
+		if ( ! this.options.infiniteScrolling || ! $(el).is(':visible') || ! this.collection.hasMore() ) {
 			return;
 		}
 
