@@ -13,13 +13,7 @@ module.exports = {
 				'ignore': ['first-nested', 'after-comment'],
 			},
 		],
-		'comment-empty-line-before': [
-			'always',
-			{
-				'except': ['first-nested'],
-				'ignore': ['after-comment', 'stylelint-commands'],
-			},
-		],
+		'comment-empty-line-before': null,
 		'declaration-property-unit-allowed-list': [
 			{
 				'line-height': [],
