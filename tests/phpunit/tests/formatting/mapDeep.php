@@ -168,6 +168,53 @@ class Tests_Formatting_MapDeep extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * @ticket 55257
+	 */
+	public function test_map_deep_should_skip_incomplete_objects() {
+		$incomplete_object = unserialize( 'O:14:"SuperCustomXyz":1:{s:17:" SuperCustomXyz x";s:4:"test";}' );
+
+		$this->assertSame(
+			array(
+				0          => $incomplete_object,
+				'testdata' => array(
+					'a' => '1baba',
+					'b' => '2baba',
+				),
+			),
+			map_deep(
+				array(
+					0          => $incomplete_object,
+					'testdata' => array(
+						'a' => 1,
+						'b' => 2,
+					),
+				),
+				array( $this, 'append_baba' )
+			),
+			'map_deep should skip incomplete objects while iterating over array values.'
+		);
+
+		$this->assertEquals(
+			array(
+				'testdata' => (object) array(
+					'a' => $incomplete_object,
+					'b' => 'testbaba',
+				),
+			),
+			map_deep(
+				array(
+					'testdata' => (object) array(
+						'a' => $incomplete_object,
+						'b' => 'test',
+					),
+				),
+				array( $this, 'append_baba' )
+			),
+			'map_deep should skip incomplete objects while iterating over object properties.'
+		);
+	}
+
 	public function append_baba( $value ) {
 		return $value . 'baba';
 	}
