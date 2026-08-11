@@ -1,5 +1,4 @@
 /* OS dark theme preference */
-
 /* stylelint-disable selector-class-pattern -- Selector patterns do not follow the Gutenberg pattern. */
 @media only screen {
 	.is-dark-theme.is-dark-theme {
@@ -12,7 +11,6 @@
 		--button--color-background: var(--global--color-secondary);
 		--button--color-background-active: var(--global--color-background);
 		--global--color-border: #9ea1a7;
-
 		/* Block: Table */
 		--table--stripes-border-color: rgba(240, 240, 240, 0.15);
 		--table--stripes-background-color: rgba(240, 240, 240, 0.15);
@@ -67,21 +65,25 @@
 		top: calc(2.4 * var(--global--spacing-vertical) - 44px + 32px);
 	}
 }
+
 @media only screen and (max-width: 782px) {
 	.admin-bar #dark-mode-toggler.relative {
 		top: calc(2.4 * var(--global--spacing-vertical) - 44px + 46px);
 	}
 }
+
 @media only screen and (max-width: 481px) {
 	.admin-bar #dark-mode-toggler.relative {
 		top: calc(2.4 * var(--global--spacing-vertical) - 44px + 26px);
 	}
 }
+
 @media only screen and (max-width: 481px) {
 	body:not(.primary-navigation-open) #dark-mode-toggler.relative ~ nav {
 		top: 88px;
 	}
 }
+
 @media only screen {
 	.primary-navigation-open #dark-mode-toggler {
 		display: none;
@@ -98,10 +100,10 @@
 		display: none;
 	}
 }
+
 @media only screen and (prefers-reduced-motion: no-preference) {
 	#dark-mode-toggler.fixed-bottom {
 		transition: bottom 0.5s;
 	}
 }
-
 /* stylelint-enable */
