@@ -7,11 +7,6 @@ on:
       - trunk
       - '6.[2-9]'
       - '[7-9].[0-9]'
-    tags:
-      - '6.[2-9]'
-      - '6.[2-9].[0-9]+'
-      - '[7-9].[0-9]'
-      - '[7-9].[0-9].[0-9]+'
   pull_request:
     branches:
       - trunk
@@ -70,7 +65,7 @@ jobs:
         run: echo "TARGET_SHA=$(git rev-parse HEAD^1)" >> "$GITHUB_ENV"
 
       - name: Set subjects
-        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         id: set-subjects
         with:
           script: |
@@ -96,7 +91,7 @@ jobs:
   # Runs the performance test suite.
   performance:
     name: ${{ matrix.multisite && 'Multisite' || 'Single Site' }} ${{ matrix.memcached && 'Memcached' || 'Default' }}
-    uses: ./.github/workflows/reusable-performance-test-v2.yml
+    uses: WordPress/wordpress-develop/.github/workflows/reusable-performance-test-v2.yml@trunk
     needs: [ determine-matrix ]
     permissions:
       contents: read
@@ -114,7 +109,7 @@ jobs:
 
   compare:
     name: ${{ matrix.label }}
-    uses: ./.github/workflows/reusable-performance-report-v2.yml
+    uses: WordPress/wordpress-develop/.github/workflows/reusable-performance-report-v2.yml@trunk
     needs: [ determine-matrix, performance ]
     permissions:
       contents: read
@@ -135,7 +130,7 @@ jobs:
 
   slack-notifications:
     name: Slack Notifications
-    uses: ./.github/workflows/slack-notifications.yml
+    uses: WordPress/wordpress-develop/.github/workflows/slack-notifications.yml@trunk
     permissions:
       actions: read
       contents: read
@@ -167,7 +162,7 @@ jobs:
 
     steps:
       - name: Dispatch workflow run
-        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
           retries: 2
           retry-exempt-status-codes: 418
