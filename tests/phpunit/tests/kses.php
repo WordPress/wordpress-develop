@@ -1224,6 +1224,7 @@ EOF;
 	 * @ticket 64414
 	 * @ticket 65457
 	 * @ticket 64974
+	 * @ticket 65838
 	 *
 	 * @dataProvider data_safecss_filter_attr
 	 *
@@ -1765,6 +1766,85 @@ EOF;
 			array(
 				'css'      => 'text-anchor: middle',
 				'expected' => 'text-anchor: middle',
+			),
+			/*
+			 * CSS function names are ASCII case-insensitive.
+			 *
+			 * Note that property names remain case-sensitive, so only the
+			 * function part of each value is written in mixed case here.
+			 */
+			array(
+				'css'      => 'width: CALC(100% - 10px)',
+				'expected' => 'width: CALC(100% - 10px)',
+			),
+			array(
+				'css'      => 'margin-top: Calc(Var(--wp-var1) * 3 + 2em)',
+				'expected' => 'margin-top: Calc(Var(--wp-var1) * 3 + 2em)',
+			),
+			array(
+				'css'      => 'width: CLAMP(MIN(100px, 350px), 50%, MAX(200px, 25%))',
+				'expected' => 'width: CLAMP(MIN(100px, 350px), 50%, MAX(200px, 25%))',
+			),
+			array(
+				'css'      => 'grid-template-columns: REPEAT(4, MINMAX(0, 1fr))',
+				'expected' => 'grid-template-columns: REPEAT(4, MINMAX(0, 1fr))',
+			),
+			array(
+				'css'      => 'background-image: URL("foo.jpg")',
+				'expected' => 'background-image: URL("foo.jpg")',
+			),
+			array(
+				'css'      => 'background: LINEAR-GRADIENT(135deg,RGBA(6,147,227,1) 0%,rgb(155,81,224) 100%)',
+				'expected' => 'background: LINEAR-GRADIENT(135deg,RGBA(6,147,227,1) 0%,rgb(155,81,224) 100%)',
+			),
+			array(
+				'css'      => 'background: Repeating-Radial-Gradient(red, blue)',
+				'expected' => 'background: Repeating-Radial-Gradient(red, blue)',
+			),
+			array(
+				'css'      => '--with-url-value: URL("foo.jpg");--with-gradient: CONIC-GRADIENT(red, blue)',
+				'expected' => '--with-url-value: URL("foo.jpg");--with-gradient: CONIC-GRADIENT(red, blue)',
+			),
+			// Case-insensitive matching must not let unsafe or malformed values through.
+			array(
+				'css'      => 'background-image: URL("bad://example.com/invalid.gif")',
+				'expected' => '',
+			),
+			array(
+				'css'      => 'background-image: uRl( "JavaScript:alert(1)" )',
+				'expected' => '',
+			),
+			array(
+				'css'      => 'background: LINEAR-GRADIENT(red, URL(javascript:alert(1)))',
+				'expected' => '',
+			),
+			array(
+				'css'      => 'background-image: URL()',
+				'expected' => '',
+			),
+			array(
+				'css'      => 'width: CALC(3em + 10px',
+				'expected' => '',
+			),
+			array(
+				'css'      => 'width: CALC(3em + (10px * 2)',
+				'expected' => '',
+			),
+			array(
+				'css'      => 'width: EXPRESSION(alert(1))',
+				'expected' => '',
+			),
+			array(
+				'css'      => 'aspect-ratio: EXPRESSION( 16 / 9 )',
+				'expected' => '',
+			),
+			array(
+				'css'      => 'background: UNKNOWN-GRADIENT(135deg,rgba(6,147,227,1) 0%)',
+				'expected' => '',
+			),
+			array(
+				'css'      => 'width: CALCMAX(100px + 50%)',
+				'expected' => '',
 			),
 		);
 	}
