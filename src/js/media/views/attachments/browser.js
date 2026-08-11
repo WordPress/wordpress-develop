@@ -137,6 +137,9 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 
 		if ( enabled ) {
 			this.collection.off( 'add remove reset', this.updateLoadMoreView, this );
+			this.$el.removeClass( 'more-loaded' );
+			this.$el.find( '.found-media' ).removeClass( 'found-media' );
+			this.$el.find( '.new-media' ).removeClass( 'new-media' );
 			return;
 		}
 
