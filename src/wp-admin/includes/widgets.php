@@ -336,7 +336,7 @@ function wp_delete_inactive_widgets(): void {
 	$sidebars_widgets = wp_get_sidebars_widgets();
 
 	$inactive_widgets = $sidebars_widgets['wp_inactive_widgets'] ?? array();
-	if ( count( $inactive_widgets ) === 0 ) {
+	if ( ! is_array( $inactive_widgets ) || 0 === count( $inactive_widgets ) ) {
 		return;
 	}
 
