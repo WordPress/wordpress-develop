@@ -99,7 +99,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 				<h3><?php _e( 'Admin bar, now in every editor' ); ?></h3>
 				<p>
 					<strong><?php _e( 'Consistent navigation, from dashboard to editor.' ); ?></strong><br />
-					<?php _e( ' The admin bar now stays with you as you move into the Site Editor and block editor, so you always know where you are.  The admin bar also gets a small visual refresh.' ); ?>
+					<?php _e( 'The admin bar now stays with you as you move into the Site Editor and block editor, so you always know where you are.  The admin bar also gets a small visual refresh.' ); ?>
 				</p>
 			</div>
 		</div>
