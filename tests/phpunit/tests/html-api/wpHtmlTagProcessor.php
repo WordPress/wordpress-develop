@@ -2376,8 +2376,8 @@ HTML;
 	 *
 	 * @dataProvider data_rcdata_and_rawtext_tag_name_terminators
 	 *
-	 * @param string $tag_name            The RCDATA or RAWTEXT tag name.
-	 * @param string $tag_name_terminator The tag-name-terminating character.
+	 * @param non-falsy-string $tag_name            The RCDATA or RAWTEXT tag name.
+	 * @param non-falsy-string $tag_name_terminator The tag-name-terminating character.
 	 */
 	public function test_rcdata_and_rawtext_end_tags_accept_tag_name_terminators( string $tag_name, string $tag_name_terminator ): void {
 		$end_tag_closer = '>' === $tag_name_terminator ? '' : '>';
@@ -2392,7 +2392,7 @@ HTML;
 	/**
 	 * Provides every RCDATA and RAWTEXT tag with every tag-name-terminating character.
 	 *
-	 * @return Generator<string, array{string, string}> Test cases.
+	 * @return Generator<non-falsy-string, array{non-falsy-string, non-falsy-string}> Test cases.
 	 */
 	public static function data_rcdata_and_rawtext_tag_name_terminators(): Generator {
 		foreach ( array( 'IFRAME', 'NOEMBED', 'NOFRAMES', 'STYLE', 'XMP', 'TEXTAREA', 'TITLE' ) as $tag_name ) {
@@ -2405,7 +2405,7 @@ HTML;
 	/**
 	 * Provides tag-name-terminating characters.
 	 *
-	 * @return Generator<string, array{string}> Test cases.
+	 * @return Generator<non-falsy-string, array{non-falsy-string}> Test cases.
 	 */
 	public static function data_tag_name_terminators(): Generator {
 		yield 'SPACE'             => array( ' ' );
