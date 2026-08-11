@@ -72,7 +72,6 @@ includes:
 	- tests/phpstan/baselines/parameter.defaultValue.neon
 	- tests/phpstan/baselines/parameter.notFound.neon
 	- tests/phpstan/baselines/parameter.phpDocType.neon
-	- tests/phpstan/baselines/parameter.unresolvableType.neon
 	- tests/phpstan/baselines/parameterByRef.type.neon
 	- tests/phpstan/baselines/parameterByRef.unusedType.neon
 	- tests/phpstan/baselines/property.defaultValue.neon
