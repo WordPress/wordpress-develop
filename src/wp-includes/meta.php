@@ -1231,6 +1231,9 @@ function update_meta_cache( $meta_type, $object_ids ) {
 	}
 	wp_cache_add_multiple( $data, $cache_group );
 
+	$wp_metadata_lazyloader = wp_metadata_lazyloader();
+	$wp_metadata_lazyloader->add_to_loaded( $meta_type, $non_cached_ids );
+
 	return $cache;
 }
 

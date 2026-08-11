@@ -39,6 +39,14 @@ class WP_Metadata_Lazyloader {
 	protected $pending_objects;
 
 	/**
+	 * Loaded objects queue.
+	 *
+	 * @since x.x.x
+	 * @var array
+	 */
+	protected $loaded_objects;
+
+	/**
 	 * Settings for supported object types.
 	 *
 	 * @since 4.5.0
@@ -185,6 +193,11 @@ class WP_Metadata_Lazyloader {
 			return $check;
 		}
 
+		$loaded_ids = array_keys( $this->loaded_objects[ $meta_type ] );
+		if ( $object_id && in_array( $object_id, $loaded_ids, true ) ) {
+			return $check;
+		}
+
 		$object_ids = array_keys( $this->pending_objects[ $meta_type ] );
 		if ( $object_id && ! in_array( $object_id, $object_ids, true ) ) {
 			$object_ids[] = $object_id;
@@ -196,5 +209,50 @@ class WP_Metadata_Lazyloader {
 		$this->reset_queue( $meta_type );
 
 		return $check;
+	}
+
+	/**
+	 * Adds specified IDs to the list of loaded objects for the given meta type.
+	 *
+	 * This method updates the internal "loaded_objects" property with the provided IDs for
+	 * the specified meta type. If the meta type is not initialized in the settings or loaded_objects,
+	 * the method ensures that a structure is created for it.
+	 *
+	 * @since x.x.x
+	 *
+	 * @param string $meta_type The type of meta data being added (e.g., 'post', 'comment', etc.).
+	 * @param array $ids An array of IDs to add to the loaded objects for the given meta type.
+	 */
+	public function add_to_loaded( $meta_type, array $ids ) {
+		if ( ! isset( $this->settings[ $meta_type ] ) ) {
+			return;
+		}
+		if ( ! isset( $this->loaded_objects[ $meta_type ] ) ) {
+			$this->loaded_objects[ $meta_type ] = array();
+		}
+
+		$this->loaded_objects[ $meta_type ] = array_unique( array_merge( $this->loaded_objects[ $meta_type ], $ids ) );
+		var_dump( $this->loaded_objects );
+	}
+
+	/**
+	 * Resets the loaded objects for a specific object type.
+	 *
+	 * Clears the loaded objects list for the specified object type. If the object type is not recognized,
+	 * an error is returned.
+	 *
+	 * @since x.x.x
+	 *
+	 * @param string $object_type The type of object whose loaded objects should be reset.
+	 * @return true|WP_Error True on success, or WP_Error if the object type is invalid.
+	 */
+	public function reset_loaded_objects( $object_type ) {
+		if ( ! isset( $this->settings[ $object_type ] ) ) {
+			return new WP_Error( 'invalid_object_type', __( 'Invalid object type.' ) );
+		}
+
+		$this->loaded_objects[ $object_type ] = array();
+
+		return true;
 	}
 }
