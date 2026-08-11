@@ -87,7 +87,7 @@ if ( ! is_multisite() ) {
 }
 $tagline_description = sprintf(
 	/* translators: %s: Site tagline example. */
-	__( 'In a few words, explain what this site is about. Example: &#8220;%s.&#8221;' ),
+	__( 'In a few words, explain what this site is about. Your site certainly is so much more than &#8220;%s.&#8221;' ),
 	$sample_tagline
 );
 ?>
