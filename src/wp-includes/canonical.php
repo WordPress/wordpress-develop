@@ -552,6 +552,9 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 
 	if ( is_attachment() && ! get_option( 'wp_attachment_pages_enabled' ) ) {
 		$attachment_id        = get_query_var( 'attachment_id' );
+		if ( ! $attachment_id ) {
+			$attachment_id = get_queried_object_id();
+		}
 		$attachment_post      = get_post( $attachment_id );
 		$attachment_parent_id = $attachment_post ? $attachment_post->post_parent : 0;
 		$attachment_url       = wp_get_attachment_url( $attachment_id );
