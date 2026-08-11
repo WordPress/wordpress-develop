@@ -128,7 +128,7 @@
 				'import' => 'static'
 			)
 		),
-		'version' => 'cc1a34b1bee3c2e17bc4'
+		'version' => '581cf5c9168a7665f2dd'
 	),
 	'boot/index.js' => array(
 		'dependencies' => array(
@@ -164,7 +164,7 @@
 				'import' => 'static'
 			)
 		),
-		'version' => 'e6158521d3acdf579ed2'
+		'version' => '4b0281842169241e3d0e'
 	),
 	'connectors/index.js' => array(
 		'dependencies' => array(
@@ -211,7 +211,7 @@
 				'import' => 'static'
 			)
 		),
-		'version' => '06bbdee380f4cf86dff0'
+		'version' => '08ca621ea347764c641b'
 	),
 	'core-abilities/index.js' => array(
 		'dependencies' => array(
@@ -247,13 +247,13 @@
 				'import' => 'static'
 			)
 		),
-		'version' => 'e2f82d3d1c3179d25626'
+		'version' => '35485e5cfea4689dcaa1'
 	),
 	'interactivity/index.js' => array(
 		'dependencies' => array(
 			
 		),
-		'version' => 'efaa5193bbad9c60ffd1'
+		'version' => 'b0929e0bd08daccaa778'
 	),
 	'interactivity-router/full-page.js' => array(
 		'dependencies' => array(
@@ -361,6 +361,13 @@
 			
 		),
 		'version' => '685442d334b2d3e70832'
+	),
+	'widget-primitives/index.js' => array(
+		'dependencies' => array(
+			'react-jsx-runtime',
+			'wp-element'
+		),
+		'version' => '320c96a17fd38400c241'
 	),
 	'workflow/index.js' => array(
 		'dependencies' => array(
