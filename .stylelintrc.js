@@ -7,11 +7,17 @@ module.exports = {
 	],
 	reportNeedlessDisables: true,
 	rules: {
-		'at-rule-empty-line-before': null,
+		'at-rule-empty-line-before': [
+			'always',
+			{
+				'ignore': ['first-nested', 'after-comment'],
+			},
+		],
 		'comment-empty-line-before': [
 			'always',
 			{
-				'except': ['first-nested']
+				'except': ['first-nested'],
+				'ignore': ['after-comment', 'stylelint-commands'],
 			},
 		],
 		'declaration-property-value-allowed-list': [
