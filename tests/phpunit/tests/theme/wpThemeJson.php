@@ -1249,6 +1249,42 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that a notice is triggered when the tablet breakpoint is dropped because it is not larger than mobile.
+	 *
+	 * @ticket 65841
+	 */
+	public function test_sanitize_viewport_settings_triggers_notice_when_tablet_is_not_larger_than_mobile() {
+		$notice_triggered = false;
+		$notice_message   = '';
+
+		add_action(
+			'wp_trigger_error_run',
+			static function ( $function_name, $message ) use ( &$notice_triggered, &$notice_message ) {
+				$notice_triggered = true;
+				$notice_message   = $message;
+			},
+			10,
+			2
+		);
+
+		// Suppress the actual PHP notice so it doesn't fail the test.
+		add_filter( 'wp_trigger_error_trigger_error', '__return_false' );
+
+		WP_Theme_JSON::get_viewport_media_queries(
+			array(
+				'mobile' => '64rem',
+				'tablet' => '40rem',
+			)
+		);
+
+		remove_filter( 'wp_trigger_error_trigger_error', '__return_false' );
+
+		$this->assertTrue( $notice_triggered, 'A notice should be triggered when the tablet breakpoint is not larger than mobile.' );
+		$this->assertStringContainsString( '"tablet"', $notice_message );
+		$this->assertStringContainsString( '"mobile"', $notice_message );
+	}
+
+	/**
 	 * @ticket 65596
 	 */
 	public function test_get_stylesheet_uses_custom_viewport_breakpoints_for_responsive_block_styles() {
