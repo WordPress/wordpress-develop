@@ -183,7 +183,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 
 		<div class="about__section has-3-columns">
 			<div class="column about__image is-vertically-aligned-top is-left-padding-zero">
-				<img src="https://s.w.org/images/core/7.1/about-release-badge.svg?ver=7.1" alt="<?php echo esc_attr( $badge_alt_text ); ?>" height="280" width="280" />
+				<img src="<?php echo esc_url( admin_url( 'images/about-release-badge.svg?ver=7.1' ) ); ?>" alt="<?php echo esc_attr( $badge_alt_text ); ?>" height="280" width="280" />
 			</div>
 			<div class="column is-vertically-aligned-center is-right-padding-zero" style="grid-column-end:span 2">
 				<h3>
