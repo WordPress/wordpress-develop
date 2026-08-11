@@ -266,11 +266,7 @@ function wp_remote_retrieve_header( $response, $header ) {
 		return '';
 	}
 
-	if ( isset( $response['headers'][ $header ] ) ) {
-		return $response['headers'][ $header ];
-	}
-
-	return '';
+	return $response['headers'][ $header ] ?? '';
 }
 
 /**
@@ -599,9 +595,30 @@ function wp_http_validate_url( $url ) {
 		}
 		if ( $ip ) {
 			$parts = array_map( 'intval', explode( '.', $ip ) );
-			if ( 127 === $parts[0] || 10 === $parts[0] || 0 === $parts[0]
-				|| ( 172 === $parts[0] && 16 <= $parts[1] && 31 >= $parts[1] )
-				|| ( 192 === $parts[0] && 168 === $parts[1] )
+
+			/*
+			 * These IP address ranges are not considered valid external hosts for HTTP requests.
+			 *
+			 * If the host resolves to an IP address in these ranges, the request will be rejected unless the 'http_request_host_is_external' filter allows it.
+			 *
+			 * References:
+			 *
+			 * - IPv4 Special-Purpose Address Space: https://www.iana.org/assignments/iana-ipv4-special-registry/iana-ipv4-special-registry.xhtml
+			 * - IPv4 Multicast Address Assignments: https://www.rfc-editor.org/rfc/rfc5771.html
+			 */
+			if ( 127 === $parts[0] || 10 === $parts[0] || 0 === $parts[0]          // 127.0.0.0/8 (loopback), 10.0.0.0/8 (private), 0.0.0.0/8 (this network).
+				|| ( 172 === $parts[0] && 16 <= $parts[1] && 31 >= $parts[1] )     // 172.16.0.0/12 (private).
+				|| ( 192 === $parts[0] && 168 === $parts[1] )                      // 192.168.0.0/16 (private).
+				|| ( 192 === $parts[0] && 0 === $parts[1] && 0 === $parts[2] )     // 192.0.0.0/24 (IETF protocol assignments).
+				|| ( 192 === $parts[0] && 0 === $parts[1] && 2 === $parts[2] )     // 192.0.2.0/24 (TEST-NET-1).
+				|| ( 192 === $parts[0] && 88 === $parts[1] && 99 === $parts[2] )   // 192.88.99.0/24 (6to4 relay anycast).
+				|| ( 198 === $parts[0] && 51 === $parts[1] && 100 === $parts[2] )  // 198.51.100.0/24 (TEST-NET-2).
+				|| ( 203 === $parts[0] && 0 === $parts[1] && 113 === $parts[2] )   // 203.0.113.0/24 (TEST-NET-3).
+				|| ( 169 === $parts[0] && 254 === $parts[1] )                      // 169.254.0.0/16 (link-local and cloud metadata).
+				|| ( 100 === $parts[0] && 64 <= $parts[1] && 127 >= $parts[1] )    // 100.64.0.0/10 (CGNAT).
+				|| ( 198 === $parts[0] && 18 <= $parts[1] && 19 >= $parts[1] )     // 198.18.0.0/15 (benchmarking).
+				|| ( 224 <= $parts[0] && 239 >= $parts[0] )                        // 224.0.0.0/4 (multicast).
+				|| 240 <= $parts[0]                                                // 240.0.0.0/4 (reserved, includes 255.255.255.255 broadcast).
 			) {
 				// If host appears local, reject unless specifically allowed.
 				/**
@@ -720,6 +737,26 @@ function ms_allowed_http_request_hosts( $is_external, $host ) {
  *               When a specific component has been requested: null if the component
  *               doesn't exist in the given URL; a string or - in the case of
  *               PHP_URL_PORT - integer when it does. See parse_url()'s return values.
+ *
+ * @phpstan-param int<-1, 7> $component
+ * @phpstan-return (
+ *     $component is -1
+ *         ? false|array{
+ *               scheme?: string,
+ *               host?: string,
+ *               port?: int<0, 65535>,
+ *               user?: string,
+ *               pass?: string,
+ *               path?: string,
+ *               query?: string,
+ *               fragment?: string,
+ *           }
+ *         : (
+ *             $component is 2
+ *                 ? int<0, 65535>|null
+ *                 : string|null
+ *         )
+ * )
  */
 function wp_parse_url( $url, $component = -1 ) {
 	$to_unset = array();
@@ -767,6 +804,36 @@ function wp_parse_url( $url, $component = -1 ) {
  *               When a specific component has been requested: null if the component
  *               doesn't exist in the given URL; a string or - in the case of
  *               PHP_URL_PORT - integer when it does. See parse_url()'s return values.
+ *
+ * @phpstan-param false|array{
+ *     scheme?: string,
+ *     host?: string,
+ *     port?: int<0, 65535>,
+ *     user?: string,
+ *     pass?: string,
+ *     path?: string,
+ *     query?: string,
+ *     fragment?: string,
+ * } $url_parts
+ * @phpstan-param int<-1, 7> $component
+ * @phpstan-return (
+ *     $component is -1
+ *         ? false|array{
+ *               scheme?: string,
+ *               host?: string,
+ *               port?: int<0, 65535>,
+ *               user?: string,
+ *               pass?: string,
+ *               path?: string,
+ *               query?: string,
+ *               fragment?: string,
+ *           }
+ *         : (
+ *             $component is 2
+ *                 ? int<0, 65535>|null
+ *                 : string|null
+ *         )
+ * )
  */
 function _get_component_from_parsed_url_array( $url_parts, $component = -1 ) {
 	if ( -1 === $component ) {
@@ -793,6 +860,9 @@ function _get_component_from_parsed_url_array( $url_parts, $component = -1 ) {
  *
  * @param int $constant PHP_URL_* constant.
  * @return string|false The named key or false.
+ *
+ * @phpstan-param int<-1, 7> $constant
+ * @phpstan-return 'scheme'|'host'|'port'|'user'|'pass'|'path'|'query'|'fragment'|false
  */
 function _wp_translate_php_url_constant_to_key( $constant ) {
 	$translation = array(
@@ -806,9 +876,5 @@ function _wp_translate_php_url_constant_to_key( $constant ) {
 		PHP_URL_FRAGMENT => 'fragment',
 	);
 
-	if ( isset( $translation[ $constant ] ) ) {
-		return $translation[ $constant ];
-	} else {
-		return false;
-	}
+	return $translation[ $constant ] ?? false;
 }

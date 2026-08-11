@@ -9,9 +9,6 @@ on:
       - trunk
       - '6.[8-9]'
       - '[7-9].[0-9]'
-    tags:
-      - '[0-9]+.[0-9]'
-      - '[0-9]+.[0-9].[0-9]+'
     paths:
       # Any change to a source PHP file should run checks.
       - 'src/**.php'
@@ -46,15 +43,23 @@ jobs:
   # Build WordPress from the current branch ready for the upgrade tests.
   build:
     name: Build
-    uses: ./.github/workflows/reusable-build-package.yml
-    if: ${{ startsWith( github.repository, 'WordPress/' ) && ( github.repository == 'WordPress/wordpress-develop' || ( github.event_name == 'pull_request' && github.actor != 'dependabot[bot]' ) ) }}
+    uses: WordPress/wordpress-develop/.github/workflows/reusable-build-package.yml@trunk
+    if: ${{ startsWith( github.repository, 'WordPress/' ) && ( github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' ) }}
     permissions:
       contents: read
 
-  # Run upgrade tests for the current branch.
+# Because the number of jobs spawned can quickly balloon out of control, the following methodology is applied when
+# building out the matrix below:
+#
+# - The two most recent releases of WordPress are always tested.
+# - After a branch is created, the pre-release version is also added.
+# - The oldest version of WordPress receiving security updates as a courtesy that also runs on a PHP version supported by trunk
+#   should always be tested.
+# - PHP and DB versions are kept to a minimum. In general this should be the highest and lowest supported versions of each with excludes
+#   being updated to keep the matrix as small as is reasonable.
   upgrade-tests-develop:
     name: Upgrade from ${{ matrix.wp }}
-    uses: ./.github/workflows/reusable-upgrade-testing.yml
+    uses: WordPress/wordpress-develop/.github/workflows/reusable-upgrade-testing.yml@trunk
     if: ${{ github.repository == 'WordPress/wordpress-develop' }}
     needs: [ build ]
     permissions:
@@ -63,20 +68,12 @@ jobs:
       fail-fast: false
       matrix:
         os: [ 'ubuntu-24.04' ]
-        php: [ '7.2', '8.4' ]
+        php: [ '7.4', '8.4' ]
         db-type: [ 'mysql' ]
         db-version: [ '5.7', '8.4' ]
-        # WordPress 4.9 is the oldest version that supports PHP 7.2.
-        wp: [ '4.9', '6.6', '6.7', '6.8' ]
+        # WordPress 5.3 is the oldest version that supports PHP 7.4.
+        wp: [ '5.3', '6.9', '7.0', '7.1-RC2' ]
         multisite: [ false, true ]
-
-        exclude:
-          # The PHP <= 7.3/MySQL 8.4 jobs currently fail due to mysql_native_password being disabled by default. See https://core.trac.wordpress.org/ticket/61218.
-          - php: '7.2'
-            db-version: '8.4'
-          # WordPress 4.9 does not support PHP 8.4.
-          - php: '8.4'
-            wp: '4.9'
     with:
       os: ${{ matrix.os }}
       php: ${{ matrix.php }}
@@ -89,7 +86,7 @@ jobs:
   # Run a limited set of upgrade tests for the current branch on forks.
   upgrade-tests-develop-forks:
     name: Upgrade from ${{ matrix.wp }}
-    uses: ./.github/workflows/reusable-upgrade-testing.yml
+    uses: WordPress/wordpress-develop/.github/workflows/reusable-upgrade-testing.yml@trunk
     if: ${{ github.repository != 'WordPress/wordpress-develop' }}
     needs: [ build ]
     permissions:
@@ -98,17 +95,11 @@ jobs:
       fail-fast: false
       matrix:
         os: [ 'ubuntu-24.04' ]
-        php: [ '7.2', '8.4' ]
+        php: [ '7.4', '8.4' ]
         db-type: [ 'mysql' ]
         db-version: [ '8.4' ]
-        # WordPress 4.9 is the oldest version that supports PHP 7.2.
-        wp: [ '6.7', '6.8' ]
+        wp: [ '6.9', '7.0', '7.1-RC2' ]
         multisite: [ false, true ]
-
-        exclude:
-          # The PHP <= 7.3/MySQL 8.4 jobs currently fail due to mysql_native_password being disabled by default. See https://core.trac.wordpress.org/ticket/61218.
-          - php: '7.2'
-            db-version: '8.4'
     with:
       os: ${{ matrix.os }}
       php: ${{ matrix.php }}
@@ -120,7 +111,7 @@ jobs:
 
   slack-notifications:
     name: Slack Notifications
-    uses: ./.github/workflows/slack-notifications.yml
+    uses: WordPress/wordpress-develop/.github/workflows/slack-notifications.yml@trunk
     permissions:
       actions: read
       contents: read
@@ -152,7 +143,7 @@ jobs:
 
     steps:
       - name: Dispatch workflow run
-        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
           retries: 2
           retry-exempt-status-codes: 418

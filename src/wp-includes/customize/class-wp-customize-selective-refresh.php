@@ -120,11 +120,7 @@ final class WP_Customize_Selective_Refresh {
 	 * @return WP_Customize_Partial|null The partial, if set. Otherwise null.
 	 */
 	public function get_partial( $id ) {
-		if ( isset( $this->partials[ $id ] ) ) {
-			return $this->partials[ $id ];
-		} else {
-			return null;
-		}
+		return $this->partials[ $id ] ?? null;
 	}
 
 	/**
@@ -193,7 +189,7 @@ final class WP_Customize_Selective_Refresh {
 		);
 
 		// Export data to JS.
-		wp_print_inline_script_tag( sprintf( 'var _customizePartialRefreshExports = %s;', wp_json_encode( $exports, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ) ) );
+		wp_print_inline_script_tag( sprintf( 'var _customizePartialRefreshExports = %s;', wp_json_encode( $exports, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ) ) . "\n//# sourceURL=" . rawurlencode( __METHOD__ ) );
 	}
 
 	/**

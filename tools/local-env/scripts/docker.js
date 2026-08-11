@@ -20,17 +20,44 @@ if ( [ 'exec', 'run' ].includes( dockerCommand[0] ) && ! process.stdin.isTTY ) {
 	dockerCommand.splice( 1, 0, '--no-TTY' );
 }
 
+// Add a --defaults flag to any db command WP-CLI command. See https://core.trac.wordpress.org/ticket/63876.
+if ( dockerCommand.includes( 'cli' ) && dockerCommand.includes( 'db' ) && ! dockerCommand.includes( '--defaults' ) ) {
+	dockerCommand.push( '--defaults' );
+}
+
+const composeArgs = [
+	'compose',
+	...composeFiles
+		.map( ( composeFile ) => [ '-f', composeFile ] )
+		.flat(),
+	...dockerCommand,
+];
+
+// Failures during image pulls are re-attempted to rule out registry rate limits and network issues.
+const maxAttempts = 'pull' === dockerCommand[0] ? 3 : 1;
+
 // Execute any Docker compose command passed to this script.
-const returns = spawnSync(
-	'docker',
-	[
-		'compose',
-		...composeFiles
-			.map( ( composeFile ) => [ '-f', composeFile ] )
-			.flat(),
-		...dockerCommand,
-	],
-	{ stdio: 'inherit' }
-);
+let returns;
+for ( let attempt = 1; attempt <= maxAttempts; attempt++ ) {
+	returns = spawnSync( 'docker', composeArgs, { stdio: 'inherit' } );
+
+	if ( 0 === returns.status ) {
+		break;
+	}
+
+	if ( attempt === maxAttempts ) {
+		if ( maxAttempts > 1 ) {
+			console.log( `\ndocker compose ${ dockerCommand[0] } failed after ${ attempt } attempts.` );
+		}
+
+		break;
+	}
+
+	const delay = attempt * 10;
+	console.log( `\ndocker compose ${ dockerCommand[0] } failed (attempt ${ attempt } of ${ maxAttempts }). Retrying in ${ delay } seconds...\n` );
+
+	// Sleep synchronously so the retry loop stays in order without going async.
+	Atomics.wait( new Int32Array( new SharedArrayBuffer( 4 ) ), 0, 0, delay * 1000 );
+}
 
 process.exit( returns.status );

@@ -7,10 +7,6 @@ on:
       - trunk
       - '3.[89]'
       - '[4-9].[0-9]'
-    tags:
-      - '[0-9]+.[0-9]'
-      - '[0-9]+.[0-9].[0-9]+'
-      - '!3.7.[0-9]+'
   pull_request:
     branches:
       - trunk
@@ -25,6 +21,8 @@ on:
       - '.nvmrc'
       - 'Gruntfile.js'
       - 'webpack.config.js'
+      - 'tools/gutenberg/**'
+      - 'tools/vendors/**'
       - 'tools/webpack/**'
       # This file configures ESLint. Changes could affect the outcome.
       - '.eslintignore'
@@ -52,14 +50,14 @@ jobs:
   # Runs the WordPress Core JavaScript tests.
   test-js:
     name: QUnit Tests
-    uses: ./.github/workflows/reusable-javascript-tests.yml
+    uses: WordPress/wordpress-develop/.github/workflows/reusable-javascript-tests.yml@trunk
     permissions:
       contents: read
-    if: ${{ github.repository == 'WordPress/wordpress-develop' || ( github.event_name == 'pull_request' && github.actor != 'dependabot[bot]' ) }}
+    if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
 
   slack-notifications:
     name: Slack Notifications
-    uses: ./.github/workflows/slack-notifications.yml
+    uses: WordPress/wordpress-develop/.github/workflows/slack-notifications.yml@trunk
     permissions:
       actions: read
       contents: read
@@ -91,7 +89,7 @@ jobs:
 
     steps:
       - name: Dispatch workflow run
-        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
           retries: 2
           retry-exempt-status-codes: 418
