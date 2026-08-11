@@ -5534,4 +5534,361 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 		$this->assertSame( 1, $counts['all'] );
 		$this->assertSame( 1, $counts['total_comments'] );
 	}
+
+	/**
+	 * A column-name fields value returns a distinct, flat array of that
+	 * column's values — replacing the common `array_unique( wp_list_pluck() )`
+	 * pattern.
+	 *
+	 * @ticket 65313
+	 *
+	 * @covers WP_Comment_Query::query
+	 */
+	public function test_fields_single_column_returns_distinct_values() {
+		$post1 = self::factory()->post->create();
+		$post2 = self::factory()->post->create();
+
+		// Two comments on post1, one on post2 — expect two distinct post IDs.
+		self::factory()->comment->create( array( 'comment_post_ID' => $post1 ) );
+		self::factory()->comment->create( array( 'comment_post_ID' => $post1 ) );
+		self::factory()->comment->create( array( 'comment_post_ID' => $post2 ) );
+
+		$q     = new WP_Comment_Query();
+		$found = $q->query( array( 'fields' => 'comment_post_ID' ) );
+
+		$this->assertIsArray( $found );
+		$this->assertSameSets( array( (string) $post1, (string) $post2 ), $found );
+	}
+
+	/**
+	 * @ticket 65313
+	 *
+	 * @covers WP_Comment_Query::query
+	 */
+	public function test_fields_single_column_user_id() {
+		$user_id = self::factory()->user->create();
+
+		self::factory()->comment->create(
+			array(
+				'comment_post_ID' => self::$post_id,
+				'user_id'         => $user_id,
+			)
+		);
+		self::factory()->comment->create(
+			array(
+				'comment_post_ID' => self::$post_id,
+				'user_id'         => $user_id,
+			)
+		);
+
+		$q     = new WP_Comment_Query();
+		$found = $q->query(
+			array(
+				'user_id' => $user_id,
+				'fields'  => 'user_id',
+			)
+		);
+
+		$this->assertSame( array( (string) $user_id ), $found );
+	}
+
+	/**
+	 * Column names must be passed in exact case; only the `ID` segment of
+	 * `comment_ID` / `comment_post_ID` accepts arbitrary case.
+	 *
+	 * @ticket 65313
+	 *
+	 * @covers WP_Comment_Query::query
+	 */
+	public function test_fields_id_segment_case_is_flexible() {
+		$post = self::factory()->post->create();
+		self::factory()->comment->create( array( 'comment_post_ID' => $post ) );
+
+		foreach ( array( 'comment_post_ID', 'comment_post_id', 'comment_post_Id' ) as $variant ) {
+			$q     = new WP_Comment_Query();
+			$found = $q->query( array( 'fields' => $variant ) );
+			$this->assertSame( array( (string) $post ), $found, "Variant: $variant" );
+		}
+	}
+
+	/**
+	 * Non-`ID` columns must be passed in their exact case; mismatched case is
+	 * treated as an unknown column and falls back to full WP_Comment objects.
+	 *
+	 * @ticket 65313
+	 *
+	 * @covers WP_Comment_Query::query
+	 */
+	public function test_fields_non_id_column_case_is_strict() {
+		self::factory()->comment->create( array( 'comment_post_ID' => self::$post_id ) );
+
+		$q = new WP_Comment_Query();
+		// 'comment_author_IP' is the canonical form; 'comment_author_ip' must not project.
+		$found = $q->query( array( 'fields' => 'comment_author_ip' ) );
+
+		$this->assertNotEmpty( $found );
+		$this->assertInstanceOf( 'WP_Comment', $found[0] );
+	}
+
+	/**
+	 * `'col_a=>col_b'` returns an associative array keyed by col_a's value
+	 * with col_b's value as the entry. Mirrors WP_Query / WP_Term_Query's
+	 * `'id=>parent'` idiom.
+	 *
+	 * @ticket 65313
+	 *
+	 * @covers WP_Comment_Query::query
+	 */
+	public function test_fields_map_syntax_id_to_post() {
+		$post = self::factory()->post->create();
+		$c1   = self::factory()->comment->create( array( 'comment_post_ID' => $post ) );
+		$c2   = self::factory()->comment->create( array( 'comment_post_ID' => $post ) );
+
+		$q     = new WP_Comment_Query();
+		$found = $q->query(
+			array(
+				'post_id' => $post,
+				'fields'  => 'comment_ID=>comment_post_ID',
+			)
+		);
+
+		$this->assertIsArray( $found );
+		$this->assertCount( 2, $found );
+		$this->assertArrayHasKey( $c1, $found );
+		$this->assertArrayHasKey( $c2, $found );
+		$this->assertEquals( $post, $found[ $c1 ] );
+		$this->assertEquals( $post, $found[ $c2 ] );
+	}
+
+	/**
+	 * The map form accepts the same case rules as single-column form: the `ID`
+	 * suffix is case-flexible on either side of `=>`.
+	 *
+	 * @ticket 65313
+	 *
+	 * @covers WP_Comment_Query::query
+	 */
+	public function test_fields_map_syntax_accepts_id_case_variants() {
+		$post = self::factory()->post->create();
+		$c1   = self::factory()->comment->create( array( 'comment_post_ID' => $post ) );
+
+		$q     = new WP_Comment_Query();
+		$found = $q->query( array( 'fields' => 'comment_id=>comment_post_id' ) );
+
+		$this->assertArrayHasKey( $c1, $found );
+		$this->assertEquals( $post, $found[ $c1 ] );
+	}
+
+	/**
+	 * Passing an array of columns returns an array of `stdClass` rows with
+	 * those properties populated. No `DISTINCT` is applied — the caller gets
+	 * one row per matched comment.
+	 *
+	 * @ticket 65313
+	 *
+	 * @covers WP_Comment_Query::query
+	 */
+	public function test_fields_array_returns_stdclass_rows() {
+		$post = self::factory()->post->create();
+		$c1   = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post,
+				'comment_approved' => '1',
+			)
+		);
+		$c2   = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post,
+				'comment_approved' => '1',
+			)
+		);
+
+		$q     = new WP_Comment_Query();
+		$found = $q->query(
+			array(
+				'post_id' => $post,
+				'fields'  => array( 'comment_ID', 'comment_post_ID' ),
+			)
+		);
+
+		$this->assertCount( 2, $found );
+		$this->assertInstanceOf( 'stdClass', $found[0] );
+		$this->assertObjectHasProperty( 'comment_ID', $found[0] );
+		$this->assertObjectHasProperty( 'comment_post_ID', $found[0] );
+
+		$ids = wp_list_pluck( $found, 'comment_ID' );
+		$this->assertEqualSets( array( $c1, $c2 ), array_map( 'intval', $ids ) );
+	}
+
+	/**
+	 * Array form returns one row per matched comment — no `DISTINCT`, unlike
+	 * the single-column form.
+	 *
+	 * @ticket 65313
+	 *
+	 * @covers WP_Comment_Query::query
+	 */
+	public function test_fields_array_does_not_distinct() {
+		$post = self::factory()->post->create();
+		self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post,
+				'comment_approved' => '1',
+			)
+		);
+		self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post,
+				'comment_approved' => '1',
+			)
+		);
+		self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post,
+				'comment_approved' => '1',
+			)
+		);
+
+		$q     = new WP_Comment_Query();
+		$found = $q->query(
+			array(
+				'post_id' => $post,
+				// Three rows with identical (comment_post_ID, comment_approved);
+				// without DISTINCT we should see all three.
+				'fields'  => array( 'comment_post_ID', 'comment_approved' ),
+			)
+		);
+
+		$this->assertCount( 3, $found );
+	}
+
+	/**
+	 * `fields` results are cached separately from the base comment-ID query,
+	 * so a repeat call short-circuits both the base SELECT and the projection
+	 * SELECT.
+	 *
+	 * @ticket 65313
+	 *
+	 * @covers WP_Comment_Query::query
+	 */
+	public function test_fields_result_is_cached() {
+		global $wpdb;
+
+		$post = self::factory()->post->create();
+		self::factory()->comment->create( array( 'comment_post_ID' => $post ) );
+		self::factory()->comment->create( array( 'comment_post_ID' => $post ) );
+
+		$args = array(
+			'post_id' => $post,
+			'fields'  => 'comment_post_ID',
+		);
+
+		// Warm both caches.
+		( new WP_Comment_Query() )->query( $args );
+
+		$queries_before = $wpdb->num_queries;
+		$found          = ( new WP_Comment_Query() )->query( $args );
+		$queries_after  = $wpdb->num_queries;
+
+		$this->assertSame( $queries_before, $queries_after, 'Repeat query should hit the cache and run zero SQL queries.' );
+		$this->assertSame( array( (string) $post ), $found );
+	}
+
+	/**
+	 * Mutating a comment must bust the projection cache via the comment
+	 * last_changed salt.
+	 *
+	 * @ticket 65313
+	 *
+	 * @covers WP_Comment_Query::query
+	 */
+	public function test_fields_cache_invalidates_on_mutation() {
+		$post1 = self::factory()->post->create();
+		$post2 = self::factory()->post->create();
+
+		$c1 = self::factory()->comment->create( array( 'comment_post_ID' => $post1 ) );
+
+		$args = array(
+			'post__in' => array( $post1, $post2 ),
+			'fields'   => 'comment_post_ID',
+		);
+
+		$this->assertSame( array( (string) $post1 ), ( new WP_Comment_Query() )->query( $args ) );
+
+		self::factory()->comment->create( array( 'comment_post_ID' => $post2 ) );
+
+		$this->assertEqualSets(
+			array( (string) $post1, (string) $post2 ),
+			( new WP_Comment_Query() )->query( $args )
+		);
+	}
+
+	/**
+	 * A `=>` with an unknown column on either side is not a valid map and
+	 * falls back to full `WP_Comment` objects.
+	 *
+	 * @ticket 65313
+	 *
+	 * @covers WP_Comment_Query::query
+	 */
+	public function test_fields_map_syntax_unknown_column_falls_back() {
+		self::factory()->comment->create( array( 'comment_post_ID' => self::$post_id ) );
+
+		$q     = new WP_Comment_Query();
+		$found = $q->query( array( 'fields' => 'comment_ID=>not_a_column' ) );
+
+		$this->assertNotEmpty( $found );
+		$this->assertInstanceOf( 'WP_Comment', $found[0] );
+	}
+
+	/**
+	 * @ticket 65313
+	 *
+	 * @covers WP_Comment_Query::query
+	 */
+	public function test_fields_unknown_column_falls_back_to_full_objects() {
+		self::factory()->comment->create( array( 'comment_post_ID' => self::$post_id ) );
+
+		$q     = new WP_Comment_Query();
+		$found = $q->query( array( 'fields' => 'not_a_real_column' ) );
+
+		$this->assertNotEmpty( $found );
+		$this->assertInstanceOf( 'WP_Comment', $found[0] );
+	}
+
+	/**
+	 * @ticket 65313
+	 *
+	 * @covers WP_Comment_Query::query
+	 */
+	public function test_fields_ids_behavior_is_unchanged() {
+		$c1 = self::factory()->comment->create( array( 'comment_post_ID' => self::$post_id ) );
+		$c2 = self::factory()->comment->create( array( 'comment_post_ID' => self::$post_id ) );
+
+		$q     = new WP_Comment_Query();
+		$found = $q->query( array( 'fields' => 'ids' ) );
+
+		$this->assertSameSets( array( $c1, $c2 ), $found );
+		// Legacy contract: comment IDs are returned as integers, not strings.
+		foreach ( $found as $id ) {
+			$this->assertIsInt( $id );
+		}
+	}
+
+	/**
+	 * @ticket 65313
+	 *
+	 * @covers WP_Comment_Query::query
+	 */
+	public function test_fields_empty_result_set_returns_empty_array() {
+		$q     = new WP_Comment_Query();
+		$found = $q->query(
+			array(
+				'post_id' => PHP_INT_MAX,
+				'fields'  => 'comment_post_ID',
+			)
+		);
+
+		$this->assertSame( array(), $found );
+	}
 }
