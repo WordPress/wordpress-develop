@@ -1110,6 +1110,122 @@ class Tests_Comment extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 64217
+	 *
+	 * @covers ::wp_new_comment_notify_postauthor
+	 */
+	public function test_wp_new_comment_notify_postauthor_filter_should_receive_false_for_unapproved_comment(): void {
+		$c = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_id,
+				'comment_approved' => '0',
+			)
+		);
+		$this->assertIsInt( $c );
+
+		update_option( 'comments_notify', 1 );
+
+		$filter = new MockAction();
+		add_filter( 'notify_post_author', array( $filter, 'filter' ) );
+
+		$sent = wp_new_comment_notify_postauthor( $c );
+
+		$this->assertSame( 1, $filter->get_call_count() );
+		$args = array_first( $filter->get_args() );
+		$this->assertFalse( $args[0] ?? null, 'The filter should receive a default of false for an unapproved comment.' );
+		$this->assertFalse( $sent, 'No notification should be sent for an unapproved comment by default.' );
+	}
+
+	/**
+	 * @ticket 64217
+	 *
+	 * @covers ::wp_new_comment_notify_postauthor
+	 */
+	public function test_wp_new_comment_notify_postauthor_filter_should_override_unapproved_comment(): void {
+		$c = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_id,
+				'comment_approved' => '0',
+			)
+		);
+		$this->assertIsInt( $c );
+
+		add_filter( 'notify_post_author', '__return_true' );
+
+		$sent = wp_new_comment_notify_postauthor( $c );
+
+		$this->assertTrue( $sent, 'The notify_post_author filter should be able to force a notification for an unapproved comment.' );
+	}
+
+	/**
+	 * @ticket 64217
+	 *
+	 * @covers ::wp_new_comment_notify_postauthor
+	 */
+	public function test_wp_new_comment_notify_postauthor_should_not_send_email_for_invalid_comment(): void {
+		$filter = new MockAction();
+		add_filter( 'notify_post_author', array( $filter, 'filter' ) );
+
+		// An empty ID such as 0 would fall back to the global comment in get_comment().
+		$sent = wp_new_comment_notify_postauthor( PHP_INT_MAX );
+
+		$this->assertFalse( $sent, 'No notification should be sent for an invalid comment ID.' );
+		$this->assertSame( array(), $filter->get_events(), 'The notify_post_author filter should not fire for an invalid comment ID.' );
+	}
+
+	/**
+	 * @ticket 64217
+	 *
+	 * @covers ::wp_new_comment_notify_postauthor
+	 */
+	public function test_wp_new_comment_notify_postauthor_filter_should_receive_truthy_default_for_unapproved_note(): void {
+		$c = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_id,
+				'comment_type'     => 'note',
+				'comment_approved' => '0',
+			)
+		);
+		$this->assertIsInt( $c );
+
+		update_option( 'wp_notes_notify', 1 );
+
+		$filter = new MockAction();
+		add_filter( 'notify_post_author', array( $filter, 'filter' ) );
+
+		$sent = wp_new_comment_notify_postauthor( $c );
+
+		$this->assertTrue( $sent, 'The notification comment should have been sent.' );
+		$args = array_first( $filter->get_args() );
+		$this->assertTrue( (bool) ( $args[0] ?? null ), 'The filter should receive a truthy default for an unapproved note.' );
+	}
+
+	/**
+	 * @ticket 64217
+	 *
+	 * @covers ::wp_new_comment_notify_postauthor
+	 */
+	public function test_wp_new_comment_notify_postauthor_filter_should_receive_option_value_for_approved_comment(): void {
+		$c = self::factory()->comment->create(
+			array(
+				'comment_post_ID' => self::$post_id,
+			)
+		);
+		$this->assertIsInt( $c );
+
+		update_option( 'comments_notify', 0 );
+
+		$filter = new MockAction();
+		add_filter( 'notify_post_author', array( $filter, 'filter' ) );
+
+		$sent = wp_new_comment_notify_postauthor( $c );
+
+		$args = array_first( $filter->get_args() );
+		$this->assertFalse( (bool) ( $args[0] ?? null ), 'The filter should receive the comments_notify option value as the default for an approved comment.' );
+		$this->assertFalse( $sent, 'No notification should be sent for an approved comment when comments_notify is disabled.' );
+	}
+
+	/**
 	 * @ticket 43805
 	 *
 	 * @covers ::wp_new_comment_notify_postauthor
@@ -1911,5 +2027,22 @@ class Tests_Comment extends WP_UnitTestCase {
 
 		add_filter( 'get_comment', '__return_null' );
 		$this->assertNull( get_comment( $comment_id ), 'Expected get_comment() to return null when get_comment filter returns null.' );
+	}
+
+	/**
+	 * @ticket 64898
+	 *
+	 * @covers ::get_comment
+	 */
+	public function test_get_comment_should_only_treat_numeric_values_as_comment_ids(): void {
+		$comment_id = self::factory()->comment->create( array( 'comment_post_ID' => self::$post_id ) );
+		$this->assertIsInt( $comment_id );
+
+		$comment = get_comment( (string) $comment_id );
+		$this->assertInstanceOf( WP_Comment::class, $comment, 'Expected a numeric string to be treated as a comment ID.' );
+		$this->assertSame( (string) $comment_id, $comment->comment_ID, 'Expected the same comment.' );
+
+		$this->assertNull( get_comment( $comment_id . 'abc' ), 'Expected a malformed numeric string not to be cast to a comment ID.' );
+		$this->assertNull( get_comment( true ), 'Expected true not to be cast to comment ID 1.' ); // @phpstan-ignore argument.type (Intentionally passing an invalid value.)
 	}
 }

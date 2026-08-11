@@ -76,7 +76,7 @@ jobs:
   #
   build-test-matrix:
     name: Build Test Matrix
-    uses: ./.github/workflows/reusable-support-json-reader-v1.yml
+    uses: WordPress/wordpress-develop/.github/workflows/reusable-support-json-reader-v1.yml@trunk
     permissions:
       contents: read
     if: ${{ github.repository == 'WordPress/wordpress-develop' }}
@@ -86,7 +86,7 @@ jobs:
   # Tests the local Docker environment.
   environment-tests-mysql:
     name: PHP ${{ matrix.php }}
-    uses: ./.github/workflows/reusable-test-local-docker-environment-v1.yml
+    uses: WordPress/wordpress-develop/.github/workflows/reusable-test-local-docker-environment-v1.yml@trunk
     permissions:
       contents: read
     needs: [ build-test-matrix ]
@@ -122,7 +122,7 @@ jobs:
 
   slack-notifications:
     name: Slack Notifications
-    uses: ./.github/workflows/slack-notifications.yml
+    uses: WordPress/wordpress-develop/.github/workflows/slack-notifications.yml@trunk
     permissions:
       actions: read
       contents: read
@@ -154,7 +154,7 @@ jobs:
 
     steps:
       - name: Dispatch workflow run
-        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
           retries: 2
           retry-exempt-status-codes: 418

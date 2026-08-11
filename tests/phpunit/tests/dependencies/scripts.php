@@ -557,9 +557,8 @@ JS;
 	 *
 	 * @dataProvider get_data_to_filter_eligible_strategies
 	 *
-	 * @param callable $set_up     Set up.
-	 * @param bool     $async_only Async only.
-	 * @param bool     $expected   Expected return value.
+	 * @param callable $set_up   Set up.
+	 * @param string[] $expected Expected return value.
 	 */
 	public function test_filter_eligible_strategies( $set_up, $expected ) {
 		$handle = $set_up();
@@ -2275,6 +2274,9 @@ HTML;
 
 	/**
 	 * Test script concatenation.
+	 *
+	 * @global WP_Scripts $wp_scripts
+	 * @global string $wp_version
 	 */
 	public function test_script_concatenation() {
 		global $wp_scripts, $wp_version;
@@ -2289,9 +2291,9 @@ HTML;
 		wp_print_scripts();
 		$print_scripts = get_echo( '_print_scripts' );
 
-		$expected = "<script src='/wp-admin/load-scripts.php?c=0&amp;load%5Bchunk_0%5D=one,two,three&amp;ver={$wp_version}'></script>\n";
+		$expected = "<script src=\"/wp-admin/load-scripts.php?c=0&#038;load%5Bchunk_0%5D=one,two,three&#038;ver={$wp_version}\"></script>\n";
 
-		$this->assertSame( $expected, $print_scripts );
+		$this->assertEqualHTML( $expected, $print_scripts );
 	}
 
 	/**
@@ -4310,6 +4312,10 @@ HTML;
 
 	/**
 	 * @ticket 63887
+	 *
+	 * @global WP_Scripts $wp_scripts
+	 * @global bool $concatenate_scripts
+	 * @global string $wp_version
 	 */
 	public function test_source_url_with_concat() {
 		global $wp_scripts, $concatenate_scripts, $wp_version;
@@ -4328,14 +4334,13 @@ HTML;
 		$print_scripts = get_echo( '_print_scripts' );
 
 		$expected = <<<HTML
+		<script>
+		var one = {"key":"val"};var two = {"key":"val"};
+		//# sourceURL=js-inline-concat-one%2Ctwo
+		</script>
+		<script src="/wp-admin/load-scripts.php?c=0&#038;load%5Bchunk_0%5D=one,two&#038;ver={$wp_version}"></script>
 
-<script>
-var one = {"key":"val"};var two = {"key":"val"};
-//# sourceURL=js-inline-concat-one%2Ctwo
-</script>
-<script src="/wp-admin/load-scripts.php?c=0&load%5Bchunk_0%5D=one,two&ver={$wp_version}"></script>
-
-HTML;
+		HTML;
 
 		$this->assertEqualHTML( $expected, $print_scripts );
 	}
@@ -4540,79 +4545,6 @@ HTML;
 				"ver={$default_version}&amp;qs1=q1&amp;qs2=q2",
 			),
 		);
-	}
-
-	/**
-	 * Tests that the Classic block is hidden from the inserter by default.
-	 *
-	 * @ticket 65166
-	 *
-	 * @covers ::wp_declare_classic_block_necessary
-	 */
-	public function test_wp_declare_classic_block_necessary_does_nothing_by_default() {
-		wp_register_script( 'wp-block-library', 'https://example.org/wp-block-library.js' );
-
-		wp_declare_classic_block_necessary();
-
-		$this->assertFalse(
-			wp_scripts()->get_data( 'wp-block-library', 'before' ),
-			'No inline script should be enqueued when the filter is not used.'
-		);
-	}
-
-	/**
-	 * Tests that the Classic block can be opted into the inserter via the filter.
-	 *
-	 * @ticket 65166
-	 *
-	 * @covers ::wp_declare_classic_block_necessary
-	 */
-	public function test_wp_declare_classic_block_necessary_enqueues_flag_when_filter_enabled() {
-		wp_register_script( 'wp-block-library', 'https://example.org/wp-block-library.js' );
-		add_filter( 'wp_classic_block_supports_inserter', '__return_true' );
-
-		wp_declare_classic_block_necessary();
-
-		$before = wp_scripts()->get_data( 'wp-block-library', 'before' );
-		$this->assertIsArray(
-			$before,
-			'An inline script should be enqueued when the filter opts in.'
-		);
-		$this->assertContains(
-			'window.__needsClassicBlock = true;',
-			$before,
-			'The Classic block flag should be added to the wp-block-library inline scripts.'
-		);
-	}
-
-	/**
-	 * Tests that the current post is passed to the filter.
-	 *
-	 * @ticket 65166
-	 *
-	 * @covers ::wp_declare_classic_block_necessary
-	 */
-	public function test_wp_declare_classic_block_necessary_passes_post_to_filter() {
-		wp_register_script( 'wp-block-library', 'https://example.org/wp-block-library.js' );
-
-		$post_id         = self::factory()->post->create();
-		$GLOBALS['post'] = get_post( $post_id );
-
-		$filter_post = false;
-		add_filter(
-			'wp_classic_block_supports_inserter',
-			static function ( $supports_inserter, $post ) use ( &$filter_post ) {
-				$filter_post = $post;
-				return $supports_inserter;
-			},
-			10,
-			2
-		);
-
-		wp_declare_classic_block_necessary();
-
-		$this->assertInstanceOf( WP_Post::class, $filter_post, 'The post should be passed to the filter.' );
-		$this->assertSame( $post_id, $filter_post->ID, 'The current post should be passed to the filter.' );
 	}
 
 	/**
