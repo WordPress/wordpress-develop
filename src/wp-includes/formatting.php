@@ -4521,8 +4521,12 @@ function _deep_replace( $search, $subject ) {
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
- * @param string|array $data Unescaped data.
- * @return string|array Escaped data, in the same type as supplied.
+ * @phpstan-template T of string|string[]
+ * @phpstan-param T $data
+ * @phpstan-return T
+ *
+ * @param string|string[] $data Unescaped data.
+ * @return string|string[] Escaped data, in the same type as supplied.
  */
 function esc_sql( $data ) {
 	global $wpdb;
