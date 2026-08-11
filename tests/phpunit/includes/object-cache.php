@@ -2364,11 +2364,7 @@ class WP_Object_Cache {
 	public function get_from_runtime_cache( $key, $group ) {
 		$derived_key = $this->buildKey( $key, $group );
 
-		if ( isset( $this->cache[ $derived_key ] ) ) {
-			return $this->cache[ $derived_key ];
-		}
-
-		return false;
+		return $this->cache[ $derived_key ] ?? false;
 	}
 
 	/**

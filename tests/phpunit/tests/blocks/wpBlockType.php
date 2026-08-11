@@ -528,9 +528,9 @@ class Tests_Blocks_wpBlockType extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertSame( false, $callback_called, 'The callback should not be called before the variations are accessed.' );
+		$this->assertFalse( $callback_called, 'The callback should not be called before the variations are accessed.' );
 		$block_type->variations; // access the variations.
-		$this->assertSame( true, $callback_called, 'The callback should be called when the variations are accessed.' );
+		$this->assertTrue( $callback_called, 'The callback should be called when the variations are accessed.' );
 	}
 
 	/**
@@ -555,7 +555,7 @@ class Tests_Blocks_wpBlockType extends WP_UnitTestCase {
 
 		// If the variations are defined after registration but before first access, the callback should not override it.
 		$this->assertSameSets( $test_variations, $block_type->get_variations(), 'Variations are same as variations set' );
-		$this->assertSame( false, $callback_called, 'The callback was never called.' );
+		$this->assertFalse( $callback_called, 'The callback was never called.' );
 	}
 
 	/**
@@ -617,7 +617,7 @@ class Tests_Blocks_wpBlockType extends WP_UnitTestCase {
 
 		$obtained_variations = $block_type->variations; // access the variations.
 
-		$this->assertSame( true, $callback_called, 'The callback should be called when the variations are accessed.' );
+		$this->assertTrue( $callback_called, 'The callback should be called when the variations are accessed.' );
 		$this->assertSameSets( $obtained_variations, $expected_variations, 'The variations obtained from the callback should be filtered.' );
 	}
 

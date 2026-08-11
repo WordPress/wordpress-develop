@@ -1185,6 +1185,7 @@ function get_post( $post = null, $output = OBJECT, $filter = 'raw' ) {
  *
  * @param int|WP_Post $post Post ID or post object.
  * @return int[] Array of ancestor IDs or empty array if there are none.
+ * @phpstan-return list<non-negative-int>
  */
 function get_post_ancestors( $post ) {
 	$post = get_post( $post );
@@ -3001,7 +3002,8 @@ function sanitize_post( $post, $context = 'display' ) {
  *
  * Possible context values are:  'raw', 'edit', 'db', 'display', 'attribute' and
  * 'js'. The 'display' context is used by default. 'attribute' and 'js' contexts
- * are treated like 'display' when calling filters.
+ * are treated like 'display' when calling filters. The 'sample' value is used
+ * for permalink previewing.
  *
  * @since 2.3.0
  * @since 4.4.0 Like `sanitize_post()`, `$context` defaults to 'display'.
@@ -3009,11 +3011,11 @@ function sanitize_post( $post, $context = 'display' ) {
  * @param string $field   The Post Object field name.
  * @param mixed  $value   The Post Object value.
  * @param int    $post_id Post ID.
- * @param string $context Optional. How to sanitize the field. Possible values are 'raw', 'edit',
- *                        'db', 'display', 'attribute' and 'js'. Default 'display'.
+ * @param string $context Optional. How to sanitize the field. Possible values are 'raw', 'edit', 'db', 'display',
+ *                        'attribute' and 'js'. The 'sample' value is used for permalink previewing. Default 'display'.
  * @return mixed Sanitized value.
  *
- * @phpstan-param 'raw'|'edit'|'db'|'display'|'attribute'|'js' $context
+ * @phpstan-param 'raw'|'edit'|'db'|'display'|'attribute'|'js'|'sample' $context
  * @phpstan-return (
  *     $field is 'ID'|'post_parent'|'menu_order' ? int : (
  *         $field is 'ancestors' ? non-negative-int[] : string
@@ -3286,7 +3288,8 @@ function sanitize_post_field( $field, $value, $post_id, $context = 'display' ) {
 			 * @param int    $post_id Post ID.
 			 * @param string $context Context for how to sanitize the field.
 			 *                        Accepts 'raw', 'edit', 'db', 'display',
-			 *                        'attribute', or 'js'. Default 'display'.
+			 *                        'attribute', or 'js'. The 'sample' value is
+			 *                        used for permalink previewing. Default 'display'.
 			 */
 			$value = apply_filters( "{$field}", $value, $post_id, $context );
 		} else {
@@ -3313,7 +3316,8 @@ function sanitize_post_field( $field, $value, $post_id, $context = 'display' ) {
 			 * @param int    $post_id Post ID
 			 * @param string $context Context for how to sanitize the field.
 			 *                        Accepts 'raw', 'edit', 'db', 'display',
-			 *                        'attribute', or 'js'. Default 'display'.
+			 *                        'attribute', or 'js'. The 'sample' value is
+			 *                        used for permalink previewing. Default 'display'.
 			 */
 			$value = apply_filters( "post_{$field}", $value, $post_id, $context );
 		}
@@ -4046,6 +4050,22 @@ function _reset_front_page_settings_for_post( $post_id ) {
 	}
 
 	unstick_post( $post->ID );
+}
+
+/**
+ * Resets the Privacy Policy page ID option when the Privacy Policy page
+ * is permanently deleted, to prevent uncached database queries for a
+ * non-existent page.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param int $post_id The ID of the post being deleted.
+ */
+function _reset_privacy_policy_page_for_post( int $post_id ): void {
+	if ( 'page' === get_post_type( $post_id ) && ( (int) get_option( 'wp_page_for_privacy_policy' ) === $post_id ) ) {
+		update_option( 'wp_page_for_privacy_policy', 0 );
+	}
 }
 
 /**
@@ -6149,11 +6169,11 @@ function get_to_ping( $post ) {
 function trackback_url_list( $tb_list, $post_id ) {
 	if ( ! empty( $tb_list ) ) {
 		// Get post data.
-		$postdata = get_post( $post_id, ARRAY_A );
-
-		if ( ! $postdata ) {
+		$post = get_post( $post_id );
+		if ( ! $post ) {
 			return;
 		}
+		$postdata = $post->to_array();
 
 		// Form an excerpt.
 		$excerpt = strip_tags( $postdata['post_excerpt'] ? $postdata['post_excerpt'] : $postdata['post_content'] );
@@ -7028,6 +7048,8 @@ function wp_delete_attachment_files( $post_id, $meta, $backup_sizes, $file ) {
  *
  * @since 2.1.0
  * @since 6.0.0 The `$filesize` value was added to the returned array.
+ * @since 7.1.0 `false` is now returned if the metadata is not an array, and when the result is
+ *              filtered the `sizes` key is always an array when present.
  *
  * @param int  $attachment_id Attachment post ID. Defaults to global $post.
  * @param bool $unfiltered    Optional. If true, filters are not run. Default false.
@@ -7091,7 +7113,7 @@ function wp_get_attachment_metadata( $attachment_id = 0, $unfiltered = false ) {
 
 	$data = get_post_meta( $attachment_id, '_wp_attachment_metadata', true );
 
-	if ( ! $data ) {
+	if ( ! is_array( $data ) || ! $data ) {
 		return false;
 	}
 
@@ -7107,7 +7129,17 @@ function wp_get_attachment_metadata( $attachment_id = 0, $unfiltered = false ) {
 	 * @param array $data          Array of meta data for the given attachment.
 	 * @param int   $attachment_id Attachment post ID.
 	 */
-	return apply_filters( 'wp_get_attachment_metadata', $data, $attachment_id );
+	$data = apply_filters( 'wp_get_attachment_metadata', $data, $attachment_id );
+
+	if ( ! is_array( $data ) ) {
+		return false;
+	}
+
+	if ( array_key_exists( 'sizes', $data ) && ! is_array( $data['sizes'] ) ) {
+		$data['sizes'] = array();
+	}
+
+	return $data;
 }
 
 /**
@@ -7957,10 +7989,11 @@ function clean_post_cache( $post ) {
  *
  * @since 1.5.0
  *
- * @param WP_Post[] $posts             Array of post objects (passed by reference).
- * @param string    $post_type         Optional. Post type. Default 'post'.
- * @param bool      $update_term_cache Optional. Whether to update the term cache. Default true.
- * @param bool      $update_meta_cache Optional. Whether to update the meta cache. Default true.
+ * @param WP_Post[]       $posts             Array of post objects (passed by reference).
+ * @param string|string[] $post_type         Optional. Single post type, 'any', or an array of post types.
+ *                                           Default 'post'.
+ * @param bool            $update_term_cache Optional. Whether to update the term cache. Default true.
+ * @param bool            $update_meta_cache Optional. Whether to update the meta cache. Default true.
  */
 function update_post_caches( &$posts, $post_type = 'post', $update_term_cache = true, $update_meta_cache = true ) {
 	// No point in doing all this work if we didn't match any posts.
