@@ -409,27 +409,11 @@ class WP_Tax_Query {
 
 			$terms = implode( ',', $terms );
 
-			/*
-			 * Before creating another table join, see if this clause has a
-			 * sibling with an existing join that can be shared.
-			 */
-			$alias = $this->find_compatible_table_alias( $clause, $parent_query );
-			if ( false === $alias ) {
-				$i     = count( $this->table_aliases );
-				$alias = $i ? 'tt' . $i : $wpdb->term_relationships;
-
-				// Store the alias as part of a flat array to build future iterators.
-				$this->table_aliases[] = $alias;
-
-				// Store the alias with this clause, so later siblings can use it.
-				$clause['alias'] = $alias;
-
-				$join .= " LEFT JOIN $wpdb->term_relationships";
-				$join .= $i ? " AS $alias" : '';
-				$join .= " ON ($this->primary_table.$this->primary_id_column = $alias.object_id)";
-			}
-
-			$where = "$alias.term_taxonomy_id $operator ($terms)";
+			$where = "$this->primary_table.$this->primary_id_column IN (
+				SELECT object_id
+				FROM $wpdb->term_relationships
+				WHERE term_taxonomy_id IN ($terms)
+			)";
 
 		} elseif ( 'NOT IN' === $operator ) {
 
