@@ -284,7 +284,7 @@ Twenty Twenty-One is distributed under the terms of the GNU GPL.
 	--widget--font-weight-title: 700;
 	--widget--spacing-menu: calc(0.66 * var(--global--spacing-unit));
 	/* Admin-bar height */
-	--global--admin-bar--height: 0px;
+	--global--admin-bar--height: 0;
 }
 
 .admin-bar {
