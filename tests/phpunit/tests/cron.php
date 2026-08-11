@@ -698,11 +698,7 @@ class Tests_Cron extends WP_UnitTestCase {
 		$args = array( 'test_arg' );
 
 		// Manually add an event at timestamp 0 to the cron array.
-		$crons = _get_cron_array();
-		if ( ! $crons ) {
-			$crons = array();
-		}
-
+		$crons                     = _get_cron_array();
 		$key                       = md5( serialize( $args ) );
 		$crons[0][ $hook ][ $key ] = array(
 			'schedule' => false,
