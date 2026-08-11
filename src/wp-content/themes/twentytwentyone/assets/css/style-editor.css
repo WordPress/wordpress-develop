@@ -1,17 +1,13 @@
 @charset "UTF-8";
-
 /**
  * These styles should be loaded by the Block Editor only
  */
-
 /* stylelint-disable no-duplicate-selectors -- The built file will contain duplicate selectors. */
-
 /* Variables */
 :root {
 	/* Font Family */
 	--global--font-primary: var(--font-headings, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif);
 	--global--font-secondary: var(--font-base, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif);
-
 	/* Font Size */
 	--global--font-size-base: 1.25rem;
 	--global--font-size-xs: 1rem;
@@ -23,12 +19,10 @@
 	--global--font-size-xxxl: 5rem;
 	--global--font-size-page-title: var(--global--font-size-xxl);
 	--global--letter-spacing: normal;
-
 	/* Line Height */
 	--global--line-height-body: 1.7;
 	--global--line-height-heading: 1.3;
 	--global--line-height-page-title: 1.1;
-
 	/* Headings */
 	--heading--font-family: var(--global--font-primary);
 	--heading--font-size-h6: var(--global--font-size-xs);
@@ -52,7 +46,6 @@
 	--heading--font-weight: normal;
 	--heading--font-weight-page-title: 300;
 	--heading--font-weight-strong: 600;
-
 	/* Block: Latest posts */
 	--latest-posts--title-font-family: var(--heading--font-family);
 	--latest-posts--title-font-size: var(--heading--font-size-h3);
@@ -60,7 +53,6 @@
 	--latest-posts--description-font-size: var(--global--font-size-sm);
 	--list--font-family: var(--global--font-secondary);
 	--definition-term--font-family: var(--global--font-primary);
-
 	/* Colors */
 	--global--color-black: #000;
 	--global--color-dark-gray: #28303d;
@@ -80,16 +72,13 @@
 	--global--color-primary-hover: var(--global--color-primary);
 	--global--color-background: var(--global--color-green); /* Mint, default body background */
 	--global--color-border: var(--global--color-primary); /* Used for borders (separators) */
-
 	/* Spacing */
 	--global--spacing-unit: 20px;
 	--global--spacing-measure: unset;
 	--global--spacing-horizontal: 25px;
 	--global--spacing-vertical: 30px;
-
 	/* Elevation */
 	--global--elevation: 1px 1px 3px 0 rgba(0, 0, 0, 0.2);
-
 	/* Forms */
 	--form--font-family: var(--global--font-secondary);
 	--form--font-size: var(--global--font-size-sm);
@@ -101,12 +90,10 @@
 	--form--border-width: 3px;
 	--form--border-radius: 0;
 	--form--spacing-unit: calc(0.5 * var(--global--spacing-unit));
-
 	/* Cover block */
 	--cover--height: calc(15 * var(--global--spacing-vertical));
 	--cover--color-foreground: var(--global--color-white);
 	--cover--color-background: var(--global--color-black);
-
 	/* Buttons */
 	--button--color-text: var(--global--color-background);
 	--button--color-text-hover: var(--global--color-secondary);
@@ -121,7 +108,6 @@
 	--button--border-radius: 0;
 	--button--padding-vertical: 15px;
 	--button--padding-horizontal: calc(2 * var(--button--padding-vertical));
-
 	/* entry */
 	--entry-header--color: var(--global--color-primary);
 	--entry-header--color-link: currentColor;
@@ -131,7 +117,6 @@
 	--entry-content--font-family: var(--global--font-secondary);
 	--entry-author-bio--font-family: var(--heading--font-family);
 	--entry-author-bio--font-size: var(--heading--font-size-h4);
-
 	/* Header */
 	--branding--color-text: var(--global--color-primary);
 	--branding--color-link: var(--global--color-primary);
@@ -147,7 +132,6 @@
 	--branding--logo--max-height: 100px;
 	--branding--logo--max-width-mobile: 96px;
 	--branding--logo--max-height-mobile: 96px;
-
 	/* Main navigation */
 	--primary-nav--font-family: var(--global--font-secondary);
 	--primary-nav--font-family-mobile: var(--global--font-primary);
@@ -165,7 +149,6 @@
 	--primary-nav--color-text: var(--global--color-primary);
 	--primary-nav--padding: calc(0.66 * var(--global--spacing-unit));
 	--primary-nav--border-color: var(--global--color-primary);
-
 	/* Pagination */
 	--pagination--color-text: var(--global--color-primary);
 	--pagination--color-link-hover: var(--global--color-primary-hover);
@@ -173,14 +156,12 @@
 	--pagination--font-size: var(--global--font-size-lg);
 	--pagination--font-weight: normal;
 	--pagination--font-weight-strong: 600;
-
 	/* Footer */
 	--footer--color-text: var(--global--color-primary);
 	--footer--color-link: var(--global--color-primary);
 	--footer--color-link-hover: var(--global--color-primary-hover);
 	--footer--font-family: var(--global--font-primary);
 	--footer--font-size: var(--global--font-size-sm);
-
 	/* Block: Pull quote */
 	--pullquote--font-family: var(--global--font-primary);
 	--pullquote--font-size: var(--heading--font-size-h3);
@@ -203,18 +184,15 @@
 	--quote--line-height-large: 1.35;
 	--separator--border-color: var(--global--color-border);
 	--separator--height: 1px;
-
 	/* Block: Table */
 	--table--stripes-border-color: var(--global--color-light-gray);
 	--table--stripes-background-color: var(--global--color-light-gray);
 	--table--has-background-text-color: var(--global--color-dark-gray);
-
 	/* Widgets */
 	--widget--line-height-list: 1.9;
 	--widget--line-height-title: 1.4;
 	--widget--font-weight-title: 700;
 	--widget--spacing-menu: calc(0.66 * var(--global--spacing-unit));
-
 	/* Admin-bar height */
 	--global--admin-bar--height: 0px;
 }
@@ -222,6 +200,7 @@
 .admin-bar {
 	--global--admin-bar--height: 32px;
 }
+
 @media only screen and (max-width: 782px) {
 	.admin-bar {
 		--global--admin-bar--height: 46px;
@@ -237,15 +216,12 @@
 		--heading--font-size-h2: 3rem;
 	}
 }
-
 /**
  * Responsive Styles
  */
-
 /**
  * Required Variables
  */
-
 /**
  * Root Media Query Variables
  */
@@ -266,13 +242,13 @@
 		--responsive--alignleft-margin: calc(0.5 * (100vw - var(--responsive--aligndefault-width)));
 	}
 }
+
 @media only screen and (min-width: 822px) {
 	:root {
 		--responsive--aligndefault-width: min(calc(100vw - 8 * var(--global--spacing-horizontal)), 610px);
 		--responsive--alignwide-width: min(calc(100vw - 8 * var(--global--spacing-horizontal)), 1240px);
 	}
 }
-
 /**
  * Extends
  */
@@ -373,6 +349,7 @@ blockquote footer {
 	color: var(--global--color-primary);
 	font-style: var(--quote--font-style-cite);
 }
+
 @media only screen and (max-width: 481.98px) {
 	blockquote {
 		padding-left: calc(0.5 * var(--global--spacing-horizontal));
@@ -808,6 +785,7 @@ a:hover {
 .wp-block-columns.is-selected > .wp-block-column > *:nth-last-child(2) {
 	margin-bottom: 0;
 }
+
 @media only screen and (min-width: 652px) {
 	.wp-block-columns.is-style-twentytwentyone-columns-overlap .wp-block-column:nth-child(2n) {
 		margin-left: calc(-2 * var(--global--spacing-horizontal));
@@ -1125,7 +1103,6 @@ h6,
 
 .wp-block-latest-comments .wp-block-latest-comments__comment {
 	line-height: var(--global--line-height-body);
-
 	/* Vertical margins logic */
 	margin-top: var(--global--spacing-vertical);
 	margin-bottom: var(--global--spacing-vertical);
@@ -1264,6 +1241,7 @@ h6,
 .wp-block-latest-posts.is-style-twentytwentyone-latest-posts-dividers.is-grid li:last-child {
 	padding-bottom: var(--global--spacing-vertical);
 }
+
 @media screen and (min-width: 600px) {
 	.wp-block-latest-posts.is-style-twentytwentyone-latest-posts-dividers.is-grid.columns-2 li {
 		width: calc(100% / 2);
@@ -1507,6 +1485,7 @@ pre.wp-block-preformatted {
 	border-style: solid;
 	border-color: var(--pullquote--border-color);
 }
+
 @media (min-width: 600px) {
 	.wp-block-pullquote.is-style-solid-color {
 		padding: calc(5 * var(--global--spacing-unit));
@@ -1551,6 +1530,7 @@ pre.wp-block-preformatted {
 .wp-block-query.has-background {
 	padding: calc(0.666 * var(--global--spacing-vertical));
 }
+
 @media only screen and (min-width: 482px) {
 	.wp-block-query.has-background {
 		padding: var(--global--spacing-vertical);
@@ -1637,7 +1617,6 @@ pre.wp-block-preformatted {
 .wp-block-quote.is-large,
 .wp-block-quote.is-style-large {
 	padding-left: 0;
-
 	/* Resetting margins to match _block-container.scss */
 	margin-top: var(--global--spacing-vertical);
 	margin-bottom: var(--global--spacing-vertical);
@@ -1670,6 +1649,7 @@ pre.wp-block-preformatted {
 	line-height: var(--quote--line-height-large);
 	margin-right: 10px;
 }
+
 @media only screen and (max-width: 481.98px) {
 	.wp-block-quote.is-large,
 	.wp-block-quote.is-style-large {
@@ -1692,6 +1672,7 @@ pre.wp-block-preformatted {
 		right: 0;
 	}
 }
+
 @media only screen and (max-width: 481.98px) {
 	.wp-block-quote {
 		padding-left: calc(0.5 * var(--global--spacing-horizontal));
@@ -1715,6 +1696,7 @@ pre.wp-block-preformatted {
 		padding-right: 0;
 	}
 }
+
 @media only screen and (min-width: 482px) {
 	.wp-block-quote {
 		margin-left: auto;
@@ -2308,14 +2290,12 @@ pre.wp-block-verse {
 @media only screen and (min-width: 482px) {
 	.wp-block[data-align="left"] > * {
 		max-width: 290px;
-
 		/*rtl:ignore*/
 		margin-right: var(--global--spacing-horizontal);
 	}
 
 	.wp-block[data-align="right"] > * {
 		max-width: 290px;
-
 		/*rtl:ignore*/
 		margin-left: var(--global--spacing-horizontal);
 	}
