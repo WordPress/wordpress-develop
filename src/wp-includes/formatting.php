@@ -4524,7 +4524,9 @@ function _deep_replace( $search, $subject ) {
  * @param string|string[] $data Unescaped data.
  * @return string|string[] Escaped data, in the same type as supplied.
  *
- * @phpstan-return ( $data is array ? string[] : string )
+ * @phpstan-template TKey of array-key
+ * @phpstan-param string|array<TKey, string> $data
+ * @phpstan-return ( $data is string ? string : array<TKey, string> )
  */
 function esc_sql( $data ) {
 	global $wpdb;
