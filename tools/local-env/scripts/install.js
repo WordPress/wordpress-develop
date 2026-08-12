@@ -9,8 +9,20 @@ const local_env_utils = require( './utils' );
 
 dotenvExpand.expand( dotenv.config() );
 
-// Create wp-config.php.
-wp_cli( `config create --dbname=wordpress_develop --dbuser=root --dbpass=password --dbhost=mysql --force --config-file="wp-config.php"` );
+// Create wp-config.php. This verifies the database connection, so retrying it doubles as the
+// readiness probe: the mysql healthcheck pings the container's own socket, which the temporary
+// server used to initialise a cold volume answers before the real server listens on TCP.
+wp_cli_retry(
+	`config create --dbname=wordpress_develop --dbuser=root --dbpass=password --dbhost=mysql --force --config-file="wp-config.php"`,
+	{
+		// Initialising a cold database volume takes well over the 3 second web server timeout
+		// used below, and longer still on a loaded CI runner.
+		timeout: 120000,
+		waiting: 'Waiting for the database to accept connections...',
+		failure: 'The database did not accept connections',
+		hint: `Check the container logs with 'npm run env:logs mysql'.`,
+	}
+);
 
 // Add the debug settings to wp-config.php.
 // Windows requires this to be done as an additional step, rather than using the --extra-php option in the previous step.
@@ -56,8 +68,65 @@ wait_on( {
 /**
  * Runs WP-CLI commands in the Docker environment.
  *
- * @param {string} cmd The WP-CLI command to run.
+ * @param {string} cmd   The WP-CLI command to run.
+ * @param {string} stdio How to handle the command's output. Defaults to 'inherit'.
  */
-function wp_cli( cmd ) {
-	execSync( `npm --silent run env:cli -- ${cmd} --path=/var/www/${process.env.LOCAL_DIR}`, { stdio: 'inherit' } );
+function wp_cli( cmd, stdio = 'inherit' ) {
+	return execSync( `npm --silent run env:cli -- ${cmd} --path=/var/www/${process.env.LOCAL_DIR}`, { stdio } );
+}
+
+/**
+ * Runs a WP-CLI command, retrying it until it succeeds or the timeout is reached.
+ *
+ * Exits with an error when the timeout is reached, or as soon as the failure is one that
+ * retrying cannot fix.
+ *
+ * @param {string} cmd             The WP-CLI command to run.
+ * @param {Object} options
+ * @param {number} options.timeout How long to keep retrying for, in milliseconds.
+ * @param {string} options.waiting Message shown when the command has to be retried.
+ * @param {string} options.failure Reason reported when the timeout is reached.
+ * @param {string} options.hint    Suggested next step when the timeout is reached.
+ */
+function wp_cli_retry( cmd, { timeout, waiting, failure, hint } ) {
+	const interval = 2000;
+	const deadline = Date.now() + timeout;
+	let notified   = false;
+
+	for ( ;; ) {
+		try {
+			process.stdout.write( wp_cli( cmd, 'pipe' ) );
+			return;
+		} catch ( err ) {
+			// `stderr` and `stdout` are buffers, which are truthy even when empty, so use the
+			// first one that actually captured something.
+			const output = [ err.stderr, err.stdout, err.message ]
+				.map( ( value ) => ( value ? value.toString().trim() : '' ) )
+				.find( ( value ) => value !== '' ) || 'No output was captured.';
+
+			// Retrying only helps while the environment is still starting up. A missing container
+			// means it was never started, so there is nothing to wait for.
+			if ( output.includes( 'is not running' ) ) {
+				console.error( output );
+				console.error( `Error: It appears the development environment has not been started.` );
+				console.error( `Did you forget to do 'npm run env:start'?` );
+				process.exit( 1 );
+			}
+
+			if ( ! notified ) {
+				notified = true;
+				console.log( waiting );
+			}
+
+			if ( Date.now() >= deadline ) {
+				console.error( output );
+				console.error( `Error: ${ failure } within ${ timeout / 1000 } seconds.` );
+				console.error( hint );
+				process.exit( 1 );
+			}
+
+			// Sleep synchronously, so the retries stay in front of the commands that follow.
+			Atomics.wait( new Int32Array( new SharedArrayBuffer( 4 ) ), 0, 0, interval );
+		}
+	}
 }
