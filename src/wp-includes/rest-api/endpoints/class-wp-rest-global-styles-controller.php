@@ -630,7 +630,7 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Posts_Controller {
 			);
 		}
 
-		$response   = array();
+		$response = array();
 
 		// Register theme-defined variations e.g. from block style variation partials under `/styles`.
 		$partials = WP_Theme_JSON_Resolver::get_style_variations( 'block' );

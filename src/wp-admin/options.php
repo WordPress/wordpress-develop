@@ -180,7 +180,7 @@ if ( ! is_multisite() ) {
 	$allowed_options['general'][] = 'users_can_register';
 	$allowed_options['general'][] = 'default_role';
 
-	$allowed_options['writing']   = array_merge( $allowed_options['writing'], $mail_options );
+	$allowed_options['writing'] = array_merge( $allowed_options['writing'], $mail_options );
 	if ( '1' === get_option( 'blog_public' ) ) {
 		$allowed_options['writing'][] = 'ping_sites';
 	}
