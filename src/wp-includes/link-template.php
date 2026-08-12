@@ -473,8 +473,13 @@ function get_attachment_link( $post = null, $leavename = false ) {
 	global $wp_rewrite;
 
 	$link = false;
+	$post = get_post( $post );
 
-	$post             = get_post( $post );
+	// If wp_attachment_pages_enabled is disable get_attachment_link should return attachment url.
+	if ( $post && '0' === get_option( 'wp_attachment_pages_enabled' ) ) {
+		return wp_get_attachment_url( $post->ID );
+	}
+
 	$force_plain_link = wp_force_plain_post_permalink( $post );
 	$parent_id        = $post->post_parent;
 	$parent           = $parent_id ? get_post( $parent_id ) : false;
