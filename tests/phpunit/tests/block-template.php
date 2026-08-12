@@ -591,9 +591,10 @@ class Tests_Block_Template extends WP_UnitTestCase {
 	 * Tests that `_get_block_templates_files()` derives slugs for template parts
 	 * stored in a nested folder whose name ends with the base path.
 	 *
-	 * The slug is the template part's file name only; nested folder names are
-	 * not included, so a template part at `parts/footer-parts/header.html`
-	 * has the slug `header`.
+	 * The slug should preserve the nested folder path so that it can be
+	 * resolved back to the file, so a template part at
+	 * `parts/footer-parts/header.html` should have the slug
+	 * `footer-parts/header`.
 	 *
 	 * @ticket 65580
 	 *
@@ -604,7 +605,7 @@ class Tests_Block_Template extends WP_UnitTestCase {
 
 		$templates = _get_block_templates_files( 'wp_template_part' );
 
-		$this->assertSame( array( 'header' ), wp_list_pluck( $templates, 'slug' ) );
+		$this->assertSame( array( 'footer-parts/header' ), wp_list_pluck( $templates, 'slug' ) );
 	}
 
 	/**
