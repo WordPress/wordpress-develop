@@ -466,6 +466,15 @@ if ( 'undefined' === typeof window.wp.codeEditor ) {
 					return;
 				}
 
+				// Don't trigger autocomplete on arrow keys for PHP files to prevent dropdown reset issue
+				if (
+					'php' === codemirror.options.mode &&
+					( event.keyCode === 38 || event.keyCode === 40 ) &&
+					codemirror.state.completionActive
+				) {
+					return;
+				}
+
 				// Prevent autocompletion in string literals or comments.
 				const token = /** @type {import('codemirror').Token & { state: CodeMirrorTokenState }} */ ( codemirror.getTokenAt( codemirror.getCursor() ) );
 				if ( 'string' === token.type || 'comment' === token.type ) {
@@ -505,6 +514,60 @@ if ( 'undefined' === typeof window.wp.codeEditor ) {
 
 		// Facilitate tabbing out of the editor.
 		configureTabbing( codemirror, instanceSettings );
+
+		// Fix for PHP autocompletion dropdown navigation issues
+		if ( 'php' === codemirror.options.mode ) {
+			// Create a wrapper for the showHint method that fixes PHP-specific issues
+			var originalShowHint = codemirror.showHint;
+			codemirror.showHint = function ( options ) {
+				// Call the original showHint method
+				var result = originalShowHint.call( this, options );
+
+				// Setup a keydown handler that will run before the normal CodeMirror handlers
+				if ( ! codemirror._phpAutocompleteFixAdded ) {
+					codemirror._phpAutocompleteFixAdded = true;
+
+					// Add event listener with high priority
+					codemirror.on( 'keydown', function ( cm, event ) {
+						// Only handle Up/Down keys when autocomplete is active
+						if (
+							( event.keyCode !== 38 && event.keyCode !== 40 ) ||
+							! codemirror.state.completionActive ||
+							! codemirror.state.completionActive.widget
+						) {
+							return;
+						}
+
+						var widget = codemirror.state.completionActive.widget;
+						var currentPos = widget.selectedHint;
+						var listLength = widget.data.list.length;
+
+						// For Up key at positions other than first item
+						if ( event.keyCode === 38 && currentPos > 0 ) {
+							// Manually change the active item and prevent default handling
+							widget.changeActive( currentPos - 1 );
+							event.preventDefault();
+							event.stopPropagation();
+							return;
+						}
+
+						// For Down key at positions other than last item
+						if (
+							event.keyCode === 40 &&
+							currentPos < listLength - 1
+						) {
+							// Manually change the active item and prevent default handling
+							widget.changeActive( currentPos + 1 );
+							event.preventDefault();
+							event.stopPropagation();
+							return;
+						}
+					} );
+				}
+
+				return result;
+			};
+		}
 
 		return instance;
 	};
