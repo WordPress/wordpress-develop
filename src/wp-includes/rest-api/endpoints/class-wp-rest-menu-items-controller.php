@@ -600,7 +600,7 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 			$data['meta'] = $this->meta->get_value( $menu_item->ID, $request );
 		}
 
-		$taxonomies = wp_list_filter( get_object_taxonomies( $this->post_type, 'objects' ), array( 'show_in_rest' => true ) );
+		$taxonomies = $this->get_rest_taxonomies();
 
 		foreach ( $taxonomies as $taxonomy ) {
 			$base = ! empty( $taxonomy->rest_base ) ? $taxonomy->rest_base : $taxonomy->name;
@@ -906,7 +906,7 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 			'readonly'    => true,
 		);
 
-		$taxonomies = wp_list_filter( get_object_taxonomies( $this->post_type, 'objects' ), array( 'show_in_rest' => true ) );
+		$taxonomies = $this->get_rest_taxonomies( $schema['properties'] );
 
 		foreach ( $taxonomies as $taxonomy ) {
 			$base                          = ! empty( $taxonomy->rest_base ) ? $taxonomy->rest_base : $taxonomy->name;
