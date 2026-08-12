@@ -1108,11 +1108,11 @@ function get_term_by( $field, $value, $taxonomy = '', $output = OBJECT, $filter 
 	 * and return the given value instead. Note that this bypasses the taxonomy
 	 * existence check and any sanitization normally applied by get_term_by().
 	 *
-	 * @since TBD
+	 * @since 7.2.0
 	 *
 	 * @param WP_Term|array|false|null $pre      The value to return instead. Default null
 	 *                                           to continue retrieving the term.
-	 * @param string                   $field    Either 'slug', 'name', 'id' (term_id), or 'term_taxonomy_id'.
+	 * @param string                   $field    Either 'slug', 'name', 'term_id' (or 'id', 'ID'), or 'term_taxonomy_id'.
 	 * @param string|int               $value    Search for this term value.
 	 * @param string                   $taxonomy Taxonomy name. Optional, if `$field` is 'term_taxonomy_id'.
 	 * @param string                   $output   Constant OBJECT, ARRAY_A, or ARRAY_N.
