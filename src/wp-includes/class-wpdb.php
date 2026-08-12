@@ -1295,12 +1295,12 @@ class wpdb {
 	 *
 	 * @uses wpdb::_real_escape()
 	 *
+	 * @param string|string[] $data Data to escape.
+	 * @return string|string[] Escaped data, in the same type as supplied.
+	 *
 	 * @phpstan-template T of string|string[]
 	 * @phpstan-param T $data
 	 * @phpstan-return T
-	 *
-	 * @param string|string[] $data Data to escape.
-	 * @return string|string[] Escaped data, in the same type as supplied.
 	 */
 	public function _escape( $data ) {
 		if ( is_array( $data ) ) {
