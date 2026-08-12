@@ -357,11 +357,15 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 * Run before each test in order to clean up the global scope, in case
 	 * a test forgets to unregister a comment type on its own, or fails before
 	 * it has a chance to do so.
+	 *
+	 * The registry is emptied outright rather than unregistered type by type, since a
+	 * test can register a custom type with '_builtin' set and that type would otherwise
+	 * survive into the next test. Registering a comment type creates no hooks, rewrite
+	 * rules, or meta boxes, so dropping the registry is complete cleanup.
 	 */
 	protected function reset_comment_types() {
-		foreach ( get_comment_types( array( '_builtin' => false ) ) as $comment_type ) {
-			_unregister_comment_type( $comment_type );
-		}
+		$GLOBALS['wp_comment_types'] = array();
+
 		create_initial_comment_types();
 	}
 
