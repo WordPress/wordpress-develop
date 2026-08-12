@@ -114,7 +114,7 @@ function image_constrain_size_for_editor( $width, $height, $size = 'medium', $co
 		if ( (int) $content_width > 0 ) {
 			$max_width = min( (int) $content_width, $max_width );
 		}
-	} elseif ( ! empty( $_wp_additional_image_sizes ) && in_array( $size, array_keys( $_wp_additional_image_sizes ), true ) ) {
+	} elseif ( isset( $_wp_additional_image_sizes[ $size ] ) ) {
 		$max_width  = (int) $_wp_additional_image_sizes[ $size ]['width'];
 		$max_height = (int) $_wp_additional_image_sizes[ $size ]['height'];
 		// Only in admin. Assume that theme authors know what they're doing.
@@ -4716,9 +4716,9 @@ function wp_prepare_attachment_for_js( $attachment ) {
 
 	$attached_file = get_attached_file( $attachment->ID );
 
-	if ( isset( $meta['filesize'] ) ) {
-		$bytes = $meta['filesize'];
-	} elseif ( file_exists( $attached_file ) ) {
+	if ( isset( $meta['filesize'] ) && is_numeric( $meta['filesize'] ) && (int) $meta['filesize'] > 0 ) {
+		$bytes = (int) $meta['filesize'];
+	} elseif ( is_string( $attached_file ) && '' !== $attached_file && is_readable( $attached_file ) ) {
 		$bytes = wp_filesize( $attached_file );
 	} else {
 		$bytes = '';
@@ -4814,7 +4814,10 @@ function wp_prepare_attachment_for_js( $attachment ) {
 			}
 
 			$response = array_merge( $response, $sizes['full'] );
-		} elseif ( $meta['sizes']['full']['file'] ) {
+		} elseif (
+			! empty( $meta['sizes']['full']['file'] ) &&
+			isset( $meta['sizes']['full']['width'], $meta['sizes']['full']['height'] )
+		) {
 			$sizes['full'] = array(
 				'url'         => esc_url_raw( $base_url . $meta['sizes']['full']['file'] ),
 				'height'      => $meta['sizes']['full']['height'],
@@ -5189,6 +5192,8 @@ function wp_enqueue_media( $args = array() ) {
 		'mediaFound'                  => __( 'Number of media items found: %d' ),
 		'noMedia'                     => __( 'No media items found.' ),
 		'noMediaTryNewSearch'         => __( 'No media items found. Try a different search.' ),
+		/* translators: %s: Media item title or file name. */
+		'mediaItemViewed'             => __( 'Viewing media item: %s' ),
 
 		// Library Details.
 		'attachmentDetails'           => __( 'Attachment details' ),
@@ -6532,7 +6537,7 @@ function wp_high_priority_element_flag( $value = null ): bool {
  *
  * @param string $filename  Path to the image.
  * @param string $mime_type The source image mime type.
- * @return string[] An array of mime type mappings.
+ * @return array<string, string> An array of mime type mappings.
  */
 function wp_get_image_editor_output_format( $filename, $mime_type ) {
 	$output_format = array(
@@ -6554,14 +6559,10 @@ function wp_get_image_editor_output_format( $filename, $mime_type ) {
 	 * @since 6.7.0 The default was changed from an empty array to an array
 	 *              containing the HEIC/HEIF images mime types.
 	 *
-	 * @param string[] $output_format {
-	 *     An array of mime type mappings. Maps a source mime type to a new
-	 *     destination mime type. By default maps HEIC/HEIF input to JPEG output.
-	 *
-	 *     @type string ...$0 The new mime type.
-	 * }
-	 * @param string $filename  Path to the image.
-	 * @param string $mime_type The source image mime type.
+	 * @param array<string, string> $output_format An array of mime type mappings. Maps a source mime type to a new
+	 *                                             destination mime type. By default maps HEIC/HEIF input to JPEG output.
+	 * @param string                $filename      Path to the image.
+	 * @param string                $mime_type     The source image mime type.
 	 */
 	return apply_filters( 'image_editor_output_format', $output_format, $filename, $mime_type );
 }
@@ -6608,17 +6609,6 @@ function wp_set_client_side_media_processing_flag(): void {
 	if ( null !== $chromium_version && $chromium_version >= 137 ) {
 		wp_add_inline_script( 'wp-block-editor', 'window.__documentIsolationPolicy = true;', 'before' );
 	}
-
-	/*
-	 * Register the @wordpress/vips/worker script module as a dynamic dependency
-	 * of the wp-upload-media classic script. This ensures it is included in the
-	 * import map so that the dynamic import() in upload-media.js can resolve it.
-	 */
-	wp_scripts()->add_data(
-		'wp-upload-media',
-		'module_dependencies',
-		array( '@wordpress/vips/worker' )
-	);
 }
 
 /**

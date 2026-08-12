@@ -3705,8 +3705,11 @@ mockedApiResponse.Schema = {
                                 "array"
                             ],
                             "items": {
-                                "type": "string"
+                                "type": "string",
+                                "minLength": 1
                             },
+                            "minItems": 1,
+                            "minLength": 1,
                             "required": true
                         },
                         "convert_format": {
@@ -3739,6 +3742,7 @@ mockedApiResponse.Schema = {
                             "description": "Array of sub-size metadata collected from sideload responses.",
                             "type": "array",
                             "default": [],
+                            "maxItems": 100,
                             "items": {
                                 "type": "object",
                                 "properties": {
@@ -3749,8 +3753,11 @@ mockedApiResponse.Schema = {
                                             "array"
                                         ],
                                         "items": {
-                                            "type": "string"
+                                            "type": "string",
+                                            "minLength": 1
                                         },
+                                        "minItems": 1,
+                                        "minLength": 1,
                                         "required": true
                                     },
                                     "width": {
@@ -3762,7 +3769,8 @@ mockedApiResponse.Schema = {
                                         "minimum": 1
                                     },
                                     "file": {
-                                        "type": "string"
+                                        "type": "string",
+                                        "minLength": 1
                                     },
                                     "mime_type": {
                                         "type": "string",
@@ -3773,7 +3781,8 @@ mockedApiResponse.Schema = {
                                         "minimum": 1
                                     },
                                     "original_image": {
-                                        "type": "string"
+                                        "type": "string",
+                                        "minLength": 1
                                     }
                                 }
                             },
@@ -13061,6 +13070,8 @@ mockedApiResponse.Schema = {
         }
     },
     "image_size_threshold": 2560,
+    "image_strip_meta": true,
+    "image_max_bit_depth": 16,
     "site_logo": 0,
     "site_icon": 0,
     "site_icon_url": ""

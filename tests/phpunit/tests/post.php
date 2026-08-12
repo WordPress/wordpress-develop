@@ -668,8 +668,6 @@ class Tests_Post extends WP_UnitTestCase {
 	 *
 	 * @ticket 52007
 	 * @covers ::stick_post
-	 *
-	 * @param mixed $stick Value to pass to stick_post().
 	 */
 	public function test_stick_post_removes_duplicate_post_ids_when_adding_new_value() {
 		update_option( 'sticky_posts', array( 1, 1, 2, 2 ) );
