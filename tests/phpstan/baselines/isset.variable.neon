@@ -23,8 +23,3 @@ parameters:
 			identifier: isset.variable
 			count: 1
 			path: ../../../src/wp-admin/includes/file.php
-		-
-			message: '#^Variable \$namespace in isset\(\) always exists and is not nullable\.$#'
-			identifier: isset.variable
-			count: 1
-			path: ../../../src/wp-includes/class-wp-block-parser.php
