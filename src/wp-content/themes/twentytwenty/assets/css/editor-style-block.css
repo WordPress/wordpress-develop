@@ -1048,6 +1048,10 @@ hr.wp-block-separator.is-style-dots::before {
 	margin-top: 15px;
 }
 
+.wp-block-latest-posts__post-full-content p {
+	font-family: inherit;
+}
+
 /* STYLE: GRID */
 
 .editor-styles-wrapper .wp-block-latest-posts.is-grid li {
