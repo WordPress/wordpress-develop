@@ -510,6 +510,104 @@ class Tests_Block_Template extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that `_get_block_templates_files()` derives the correct template
+	 * slugs from the theme's template files.
+	 *
+	 * The base path (e.g. `parts` or `templates`) must not end up in the slug,
+	 * even when the theme folder name itself ends with the base path.
+	 *
+	 * @ticket 65580
+	 *
+	 * @covers ::_get_block_templates_files
+	 *
+	 * @dataProvider data_get_block_templates_files_slug
+	 *
+	 * @param string $theme_slug     Theme slug.
+	 * @param string $template_type  Template type. Either 'wp_template' or 'wp_template_part'.
+	 * @param array  $expected_slugs Expected template slugs.
+	 */
+	public function test_get_block_templates_files_slug( $theme_slug, $template_type, $expected_slugs ) {
+		switch_theme( $theme_slug );
+
+		$templates = _get_block_templates_files( $template_type );
+		$slugs     = wp_list_pluck( $templates, 'slug' );
+		sort( $slugs );
+		sort( $expected_slugs );
+
+		$this->assertSame( $expected_slugs, $slugs );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{theme_slug: string, template_type: string, expected_slugs: string[]}>
+	 */
+	public function data_get_block_templates_files_slug() {
+		return array(
+			'template parts in the default folders of the block theme' => array(
+				'theme_slug'     => 'block-theme',
+				'template_type'  => 'wp_template_part',
+				'expected_slugs' => array( 'small-header' ),
+			),
+			'templates in the default folders of the block theme' => array(
+				'theme_slug'     => 'block-theme',
+				'template_type'  => 'wp_template',
+				'expected_slugs' => array( 'custom-hero-template', 'custom-single-post-template', 'index', 'page', 'page-home', 'single' ),
+			),
+			'template parts in a theme whose folder name ends with parts' => array(
+				'theme_slug'     => 'block-theme-ending-with-parts',
+				'template_type'  => 'wp_template_part',
+				'expected_slugs' => array( 'footer', 'header' ),
+			),
+			'templates in a theme whose folder name ends with parts' => array(
+				'theme_slug'     => 'block-theme-ending-with-parts',
+				'template_type'  => 'wp_template',
+				'expected_slugs' => array( 'index' ),
+			),
+			'template parts in a theme whose folder name is exactly parts' => array(
+				'theme_slug'     => 'parts',
+				'template_type'  => 'wp_template_part',
+				'expected_slugs' => array( 'header' ),
+			),
+			'templates in a theme whose folder name ends with templates' => array(
+				'theme_slug'     => 'block-theme-ending-with-templates',
+				'template_type'  => 'wp_template',
+				'expected_slugs' => array( 'index' ),
+			),
+			'templates in a theme using the legacy template folder' => array(
+				'theme_slug'     => 'block-theme-using-block-templates',
+				'template_type'  => 'wp_template',
+				'expected_slugs' => array( 'index' ),
+			),
+			'template parts in a theme using the legacy template part folder' => array(
+				'theme_slug'     => 'block-theme-using-block-templates',
+				'template_type'  => 'wp_template_part',
+				'expected_slugs' => array( 'header' ),
+			),
+		);
+	}
+
+	/**
+	 * Tests that `_get_block_templates_files()` derives slugs for template parts
+	 * stored in a nested folder whose name ends with the base path.
+	 *
+	 * The slug is the template part's file name only; nested folder names are
+	 * not included, so a template part at `parts/footer-parts/header.html`
+	 * has the slug `header`.
+	 *
+	 * @ticket 65580
+	 *
+	 * @covers ::_get_block_templates_files
+	 */
+	public function test_get_block_templates_files_slug_with_nested_folder_ending_with_parts() {
+		switch_theme( 'block-theme-nested-parts' );
+
+		$templates = _get_block_templates_files( 'wp_template_part' );
+
+		$this->assertSame( array( 'header' ), wp_list_pluck( $templates, 'slug' ) );
+	}
+
+	/**
 	 * Tests that get_block_templates() returns plugin-registered templates.
 	 *
 	 * @ticket 61804

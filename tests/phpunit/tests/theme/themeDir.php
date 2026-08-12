@@ -190,6 +190,11 @@ class Tests_Theme_ThemeDir extends WP_UnitTestCase {
 			'Block Theme Post Content Default',
 			'Block Theme with defined Typography Fonts',
 			'Block Theme with Hooked Blocks',
+			'Block Theme Ending With Parts',
+			'Block Theme Ending With Templates',
+			'Block Theme Nested Parts',
+			'Block Theme Using Block Templates',
+			'Parts',
 			'Empty `fontFace` in theme.json - no webfonts defined',
 			'A theme with the Update URI header',
 		);
