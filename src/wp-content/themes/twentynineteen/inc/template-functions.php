@@ -49,11 +49,8 @@ add_filter( 'post_class', 'twentynineteen_post_classes' );
  * Adds a pingback url auto-discovery header for single posts, pages, or attachments.
  */
 function twentynineteen_pingback_header() {
-	if ( is_singular() && pings_open() ) {
-		echo '<link rel="pingback" href="', esc_url( get_bloginfo( 'pingback_url' ) ), '">';
-	}
+	wp_pingback_link();
 }
-add_action( 'wp_head', 'twentynineteen_pingback_header' );
 
 /**
  * Changes comment form default fields.

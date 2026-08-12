@@ -427,11 +427,8 @@ add_action( 'wp_head', 'twentyseventeen_javascript_detection', 0 );
  * Adds a pingback url auto-discovery header for singularly identifiable articles.
  */
 function twentyseventeen_pingback_header() {
-	if ( is_singular() && pings_open() ) {
-		printf( '<link rel="pingback" href="%s">' . "\n", esc_url( get_bloginfo( 'pingback_url' ) ) );
-	}
+	wp_pingback_link();
 }
-add_action( 'wp_head', 'twentyseventeen_pingback_header' );
 
 /**
  * Displays custom color CSS.
