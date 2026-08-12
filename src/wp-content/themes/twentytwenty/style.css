@@ -4325,6 +4325,10 @@ div.comment:first-of-type {
 	margin-bottom: 0;
 }
 
+.wp-calendar-table caption {
+	font-weight: inherit;
+}
+
 .wp-calendar-nav {
 	display: table;
 	width: 100%;
