@@ -249,4 +249,33 @@ jQuery( function( $ ) {
 		queryParams = wp.customize.utils.parseQueryString( 'a=1&b=' );
 		assert.ok( _.isEqual( queryParams, { 'a': '1', b: '' } ) );
 	} );
+
+	QUnit.module( 'Customize Base: utils.isExcludedPath' );
+	QUnit.test( 'wp.customize.utils.isExcludedPath works', function( assert ) {
+		var excludedPaths = [ '/wp-admin/', '/wp-includes/', '/wp-content/' ];
+
+		// Excluded paths and everything beneath them match.
+		assert.ok( wp.customize.utils.isExcludedPath( '/wp-admin/', excludedPaths ) );
+		assert.ok( wp.customize.utils.isExcludedPath( '/wp-admin', excludedPaths ), 'bare directory without trailing slash matches' );
+		assert.ok( wp.customize.utils.isExcludedPath( '/wp-content/uploads/file.pdf', excludedPaths ) );
+		assert.ok( wp.customize.utils.isExcludedPath( '//wp-admin/', excludedPaths ), 'repeated slashes are collapsed' );
+
+		// Front-end paths do not match.
+		assert.ok( ! wp.customize.utils.isExcludedPath( '/', excludedPaths ) );
+		assert.ok( ! wp.customize.utils.isExcludedPath( '/sample-page/', excludedPaths ) );
+		assert.ok( ! wp.customize.utils.isExcludedPath( '/wp-admin2/', excludedPaths ), 'similarly named directory does not match' );
+		assert.ok( ! wp.customize.utils.isExcludedPath( '/blog/wp-content/', excludedPaths ), 'prefixes are anchored to the start of the path' );
+
+		// Subdirectory install: the site's own base path is not excluded (see #65030).
+		excludedPaths = [ '/wp-content/subsite/wp-admin/', '/wp-content/subsite/wp-content/' ];
+		assert.ok( ! wp.customize.utils.isExcludedPath( '/wp-content/subsite/', excludedPaths ) );
+		assert.ok( ! wp.customize.utils.isExcludedPath( '/wp-content/subsite/sample-page/', excludedPaths ) );
+		assert.ok( wp.customize.utils.isExcludedPath( '/wp-content/subsite/wp-admin/', excludedPaths ) );
+
+		// Without excluded paths, the legacy hardcoded paths are matched.
+		assert.ok( wp.customize.utils.isExcludedPath( '/wp-admin/', undefined ) );
+		assert.ok( wp.customize.utils.isExcludedPath( '/blog/wp-content/', undefined ), 'legacy fallback matches anywhere in the path' );
+		assert.ok( ! wp.customize.utils.isExcludedPath( '/sample-page/', undefined ) );
+		assert.ok( wp.customize.utils.isExcludedPath( '/wp-admin/', [] ), 'empty list falls back to legacy paths' );
+	} );
 });

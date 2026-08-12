@@ -270,6 +270,7 @@
 	 * Should the supplied link is previewable.
 	 *
 	 * @since 4.7.0
+	 * @since 7.2.0 Non-previewable paths are read from settings instead of being hardcoded.
 	 * @access public
 	 *
 	 * @param {HTMLAnchorElement|HTMLAreaElement} element Link element.
@@ -314,8 +315,8 @@
 			return args.allowAdminAjax;
 		}
 
-		// Disallow links to admin, includes, and content.
-		if ( /\/wp-(admin|includes|content)(\/|$)/.test( element.pathname ) ) {
+		// Disallow links to admin, includes, content, plugins, and uploads paths, which are not previewable.
+		if ( api.utils.isExcludedPath( element.pathname, api.settings.url.excludedPaths ) ) {
 			return false;
 		}
 
