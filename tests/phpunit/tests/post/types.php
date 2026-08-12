@@ -343,7 +343,7 @@ class Tests_Post_Types extends WP_UnitTestCase {
 
 		$this->assertIsInt( array_search( 'bar', $wp->public_query_vars, true ) );
 		$this->assertTrue( unregister_post_type( 'foo' ) );
-		$this->assertFalse( array_search( 'bar', $wp->public_query_vars, true ) );
+		$this->assertNotContains( 'bar', $wp->public_query_vars );
 	}
 
 	/**
@@ -463,8 +463,8 @@ class Tests_Post_Types extends WP_UnitTestCase {
 		$this->assertIsInt( array_search( 'foo', $wp_taxonomies['category']->object_type, true ) );
 		$this->assertIsInt( array_search( 'foo', $wp_taxonomies['post_tag']->object_type, true ) );
 		$this->assertTrue( unregister_post_type( 'foo' ) );
-		$this->assertFalse( array_search( 'foo', $wp_taxonomies['category']->object_type, true ) );
-		$this->assertFalse( array_search( 'foo', $wp_taxonomies['post_tag']->object_type, true ) );
+		$this->assertNotContains( 'foo', $wp_taxonomies['category']->object_type );
+		$this->assertNotContains( 'foo', $wp_taxonomies['post_tag']->object_type );
 		$this->assertEmpty( get_object_taxonomies( 'foo' ) );
 	}
 
@@ -626,7 +626,7 @@ class Tests_Post_Types extends WP_UnitTestCase {
 
 		remove_post_type_support( 'foo', 'autosave' );
 		$post_type_object = get_post_type_object( 'foo' );
-		$this->assertSame( null, $post_type_object->get_autosave_rest_controller(), 'Autosave controller should be removed.' );
+		$this->assertNull( $post_type_object->get_autosave_rest_controller(), 'Autosave controller should be removed.' );
 		_unregister_post_type( 'foo' );
 	}
 

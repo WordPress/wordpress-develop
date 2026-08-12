@@ -72,6 +72,16 @@ on:
         required: false
         type: boolean
         default: false
+      gutenberg-artifact:
+        description: 'Whether the Gutenberg-sourced assets are sourced from zip artifact.'
+        required: false
+        type: boolean
+        default: false
+      gutenberg-sha:
+        description: 'The immutable Gutenberg source SHA verified by the calling workflow.'
+        required: false
+        type: string
+        default: ''
     secrets:
       CODECOV_TOKEN:
         description: 'The Codecov token required for uploading reports.'
@@ -101,6 +111,7 @@ jobs:
   # Performs the following steps:
   # - Sets environment variables.
   # - Checks out the repository.
+  # - Downloads the prepared Gutenberg build provided by the calling workflow.
   # - Sets up Node.js.
   # - Sets up PHP.
   # - Installs Composer dependencies.
@@ -118,7 +129,7 @@ jobs:
   # - Submit the test results to the WordPress.org host test results.
   phpunit-tests:
     name: ${{ ( inputs.phpunit-test-groups || inputs.coverage-report ) && format( 'PHP {0} with ', inputs.php ) || '' }} ${{ 'mariadb' == inputs.db-type && 'MariaDB' || 'MySQL' }} ${{ inputs.db-version }}${{ inputs.multisite && ' multisite' || '' }}${{ inputs.db-innovation && ' (innovation release)' || '' }}${{ inputs.memcached && ' with memcached' || '' }}${{ inputs.report && ' (test reporting enabled)' || '' }} ${{ 'example.org' != inputs.tests-domain && inputs.tests-domain || '' }}
-    runs-on: ${{ inputs.os }}
+    runs-on: ${{ vars.RUNNERS_NAME || inputs.os }}
     timeout-minutes: ${{ inputs.coverage-report && 120 || inputs.php == '8.4' && 30 || 20 }}
     permissions:
       contents: read
@@ -130,10 +141,19 @@ jobs:
           echo "PHP_FPM_GID=$(id -g)" >> "$GITHUB_ENV"
 
       - name: Checkout repository
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
           persist-credentials: false
+
+      # Only WordPress 7.0+ include Gutenberg-maintained assets from a built zip file.
+      - name: Download prepared Gutenberg build
+        if: ${{ inputs.gutenberg-artifact }}
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: gutenberg-build
+          path: gutenberg
+          digest-mismatch: error
 
       - name: Set up Node.js
         uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
@@ -149,7 +169,7 @@ jobs:
       # dependency versions are installed and cached.
       ##
       - name: Set up PHP
-        uses: shivammathur/setup-php@7c071dfe9dc99bdf297fa79cb49ea005b9fcadbc # 2.37.1
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
         with:
           php-version: '${{ inputs.php }}'
           coverage: none
@@ -166,6 +186,9 @@ jobs:
 
       - name: Build WordPress
         run: npm run build:dev
+        env:
+          # The producer resolved this once. Matrix jobs must not re-resolve mutable GHCR tags.
+          GUTENBERG_EXPECTED_SHA: ${{ inputs.gutenberg-sha }}
 
       - name: General debug information
         run: |
@@ -179,6 +202,9 @@ jobs:
       - name: Docker debug information
         run: |
           docker -v
+
+      - name: Pull Docker images
+        run: npm run env:pull
 
       - name: Start Docker environment
         run: |
@@ -225,6 +251,11 @@ jobs:
             php -m | grep -i pcov
           '
 
+      - name: Run external HTTP tests
+        if: ${{ ! inputs.multisite && ! inputs.phpunit-test-groups && ! inputs.coverage-report }}
+        continue-on-error: ${{ inputs.allow-errors }}
+        run: node ./tools/local-env/scripts/docker.js run php ./vendor/bin/phpunit --verbose -c "${PHPUNIT_CONFIG}" --group external-http
+
       - name: Run PHPUnit tests${{ inputs.phpunit-test-groups && format( ' ({0} groups)', inputs.phpunit-test-groups ) || '' }}${{ inputs.coverage-report && ' with coverage report' || '' }}
         continue-on-error: ${{ inputs.allow-errors }}
         run: |
@@ -248,11 +279,6 @@ jobs:
         continue-on-error: ${{ inputs.allow-errors }}
         run: node ./tools/local-env/scripts/docker.js run php ./vendor/bin/phpunit --verbose -c "${PHPUNIT_CONFIG}" --group ms-files
 
-      - name: Run external HTTP tests
-        if: ${{ ! inputs.multisite && ! inputs.phpunit-test-groups && ! inputs.coverage-report }}
-        continue-on-error: ${{ inputs.allow-errors }}
-        run: node ./tools/local-env/scripts/docker.js run php ./vendor/bin/phpunit --verbose -c "${PHPUNIT_CONFIG}" --group external-http
-
       # __fakegroup__ is excluded to force PHPUnit to ignore the <exclude> settings in phpunit.xml.dist.
       - name: Run (Xdebug) tests
         if: ${{ ! inputs.phpunit-test-groups && ! inputs.coverage-report }}
@@ -273,7 +299,7 @@ jobs:
 
       - name: Checkout the WordPress Test Reporter
         if: ${{ github.ref == 'refs/heads/trunk' && inputs.report }}
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           repository: 'WordPress/phpunit-test-runner'
           path: 'test-runner'
