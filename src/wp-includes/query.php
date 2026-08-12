@@ -1236,6 +1236,115 @@ function _find_post_by_old_date( $post_type ) {
 }
 
 /**
+ * Redirects requests for random content to a randomly selected published post.
+ *
+ * Handles requests using the `random` query parameter, e.g. `example.com/?random`.
+ * The `random_post_type` parameter restricts the pick to a post type (default `post`),
+ * and the `random_cat_id` parameter restricts it to a category (for post types using
+ * the `category` taxonomy). Only published, non-password-protected content from
+ * viewable post types is considered, and only GET/HEAD requests are handled.
+ *
+ * Disabled by default. To enable:
+ *
+ *     add_filter( 'enable_random_content_redirect', '__return_true' );
+ *
+ * @since 7.2.0
+ */
+function wp_random_content_redirect() {
+	/**
+	 * Filters whether random content redirects are enabled.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param bool $enabled Whether `?random` requests redirect to random content. Default false.
+	 */
+	if ( ! apply_filters( 'enable_random_content_redirect', false ) ) {
+		return;
+	}
+
+	// The `random` parameter is a flag, present with or without a value.
+	if ( ! isset( $_GET['random'] ) ) {
+		return;
+	}
+
+	if ( isset( $_SERVER['REQUEST_METHOD'] ) && ! in_array( $_SERVER['REQUEST_METHOD'], array( 'GET', 'HEAD' ), true ) ) {
+		return;
+	}
+
+	$post_type = 'post';
+
+	if ( isset( $_GET['random_post_type'] ) ) {
+		$post_type = sanitize_key( wp_unslash( $_GET['random_post_type'] ) );
+
+		if ( ! post_type_exists( $post_type ) || ! is_post_type_viewable( $post_type ) ) {
+			return;
+		}
+	}
+
+	$args = array(
+		'post_type'           => $post_type,
+		'post_status'         => 'publish',
+		'has_password'        => false,
+		'fields'              => 'ids',
+		'posts_per_page'      => 1,
+		'orderby'             => 'ID',
+		'order'               => 'ASC',
+		'ignore_sticky_posts' => true,
+	);
+
+	if ( isset( $_GET['random_cat_id'] ) ) {
+		$cat_id = absint( wp_unslash( $_GET['random_cat_id'] ) );
+
+		if ( $cat_id < 1 ) {
+			return;
+		}
+
+		$args['cat'] = $cat_id;
+	}
+
+	// Pick via COUNT plus a random OFFSET rather than `ORDER BY RAND()`,
+	// which randomizes and sorts every candidate row on each request.
+	$query      = new WP_Query( $args );
+	$post_count = (int) $query->found_posts;
+
+	if ( $post_count < 1 ) {
+		return;
+	}
+
+	if ( $post_count > 1 ) {
+		$args['offset']        = wp_rand( 0, $post_count - 1 );
+		$args['no_found_rows'] = true;
+
+		$query = new WP_Query( $args );
+	}
+
+	if ( empty( $query->posts ) ) {
+		return;
+	}
+
+	$link = get_permalink( $query->posts[0] );
+
+	/**
+	 * Filters the random content redirect URL.
+	 *
+	 * Returning a falsey value cancels the redirect.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param string $link The redirect URL.
+	 */
+	$link = apply_filters( 'random_content_redirect_url', $link );
+
+	if ( ! $link ) {
+		return;
+	}
+
+	// Temporary redirect, so clients do not cache the randomly picked target.
+	wp_safe_redirect( $link, 302 );
+	exit;
+}
+
+/**
  * Set up global post data.
  *
  * @since 1.5.0
