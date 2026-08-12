@@ -62,7 +62,10 @@ module.exports = {
 		'value-keyword-case': [
 			'lower',
 			{
-				ignoreKeywords: ['currentColor'],
+				ignoreKeywords: [
+					'currentColor',
+					'optimizeLegibility'
+				],
 			},
 		],
 		'scss/at-else-empty-line-before': null,
