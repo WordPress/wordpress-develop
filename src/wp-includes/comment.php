@@ -3096,11 +3096,12 @@ function wp_update_comment_count( $post_id, $do_deferred = false ) {
 /**
  * Retrieves the comment types that are excluded from queries and counts by default.
  *
- * Applies the {@see 'default_excluded_comment_types'} filter and normalizes the
- * result: non-scalar values are discarded, the rest are cast to strings, empties
- * and duplicates are removed, and the special type tokens understood by
- * WP_Comment_Query ('all', 'comment', 'comments', 'pings') are stripped - the
- * filter deals in literal `comment_type` values only.
+ * The default set is the 'note' type plus every comment type registered with
+ * `'internal' => true`. The {@see 'default_excluded_comment_types'} filter is then
+ * applied and the result normalized: non-scalar values are discarded, the rest are
+ * cast to strings, empties and duplicates are removed, and the special type tokens
+ * understood by WP_Comment_Query ('all', 'comment', 'comments', 'pings') are
+ * stripped - the filter deals in literal `comment_type` values only.
  *
  * @since 7.1.0
  *
@@ -3110,6 +3111,24 @@ function wp_update_comment_count( $post_id, $do_deferred = false ) {
  * @return string[] Comment types excluded by default.
  */
 function wp_get_default_excluded_comment_types( $query = null ) {
+	$default_excluded_types = array( 'note' );
+
+	/*
+	 * Comment types registered as internal are excluded by default. The 'note' type is
+	 * listed above as well so that the default holds before comment types are registered
+	 * on 'init', and on installs running without the registry.
+	 */
+	if ( function_exists( 'get_comment_types' ) ) {
+		$default_excluded_types = array_values(
+			array_unique(
+				array_merge(
+					$default_excluded_types,
+					get_comment_types( array( 'internal' => true ), 'names' )
+				)
+			)
+		);
+	}
+
 	/**
 	 * Filters the comment types that are excluded from query results by default.
 	 *
@@ -3120,7 +3139,8 @@ function wp_get_default_excluded_comment_types( $query = null ) {
 	 * This allows plugins to keep comment types out of standard comment
 	 * listings and counts by default, without having to filter every
 	 * query individually. The 'note' comment type, used by the editor, is
-	 * excluded by default. The same set is applied when recalculating a post's
+	 * excluded by default, as is every comment type registered with
+	 * `'internal' => true`. The same set is applied when recalculating a post's
 	 * stored comment count in wp_update_comment_count_now(), when counting
 	 * pending comments, and when building the comment feed queries, so an
 	 * excluded type neither inflates get_comments_number() nor appears in
@@ -3152,13 +3172,14 @@ function wp_get_default_excluded_comment_types( $query = null ) {
 	 * @since 7.1.0
 	 *
 	 * @param string[]              $excluded_types Comment types excluded from query results by default.
-	 *                                              Default array contains the 'note' type.
+	 *                                              Defaults to the 'note' type and every comment type
+	 *                                              registered as internal.
 	 * @param WP_Comment_Query|null $query          The WP_Comment_Query instance, or null when the set is
 	 *                                              resolved outside of a comment query (recalculating a
 	 *                                              post's stored comment count, counting pending comments,
 	 *                                              building a comment feed query).
 	 */
-	$excluded_types = apply_filters( 'default_excluded_comment_types', array( 'note' ), $query );
+	$excluded_types = apply_filters( 'default_excluded_comment_types', $default_excluded_types, $query );
 
 	// Drop values that cannot be cast to a string, so a stray object or array cannot error out.
 	$excluded_types = array_filter( (array) $excluded_types, 'is_scalar' );

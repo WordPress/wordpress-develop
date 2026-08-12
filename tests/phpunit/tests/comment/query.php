@@ -5896,6 +5896,45 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 	}
 
 	/**
+	 * A comment type registered as internal is excluded by default, so a plugin does
+	 * not have to both register the type and add it through the filter.
+	 *
+	 * Skipped until the register_comment_type() API lands, at which point
+	 * wp_get_default_excluded_comment_types() stops falling back to 'note' alone.
+	 *
+	 * @ticket 65537
+	 * @ticket 35214
+	 * @covers ::wp_get_default_excluded_comment_types
+	 */
+	public function test_internal_comment_types_are_excluded_by_default() {
+		if ( ! function_exists( 'register_comment_type' ) ) {
+			$this->markTestSkipped( 'Requires the comment type registry.' );
+		}
+
+		register_comment_type(
+			'wp_tests_internal',
+			array(
+				'label'    => 'Internal',
+				'public'   => false,
+				'internal' => true,
+			)
+		);
+
+		$excluded_types = wp_get_default_excluded_comment_types();
+
+		$this->assertContains(
+			'wp_tests_internal',
+			$excluded_types,
+			'A comment type registered as internal should be excluded by default.'
+		);
+		$this->assertContains(
+			'note',
+			$excluded_types,
+			'The note type should stay excluded alongside the registered internal types.'
+		);
+	}
+
+	/**
 	 * The excluded set changes the results but is not a query var, so it has to be part
 	 * of the cache key. Otherwise a persistent object cache serves entries built before
 	 * a plugin added or removed a type.
