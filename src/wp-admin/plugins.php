@@ -662,7 +662,7 @@ $updated_notice_args = array(
 	'dismissible'        => true,
 );
 if ( isset( $_GET['error'] ) ) {
-
+	$plugin_data = get_plugin_data( trailingslashit( WP_PLUGIN_DIR ) . untrailingslashit( $plugin ) );
 	if ( isset( $_GET['main'] ) ) {
 		$errmsg = __( 'You cannot delete a plugin while it is active on the main site.' );
 	} elseif ( isset( $_GET['charsout'] ) ) {
@@ -677,9 +677,11 @@ if ( isset( $_GET['error'] ) ) {
 		);
 		$errmsg .= ' ' . __( 'If you notice &#8220;headers already sent&#8221; messages, problems with syndication feeds or other issues, try deactivating or removing this plugin.' );
 	} elseif ( 'resuming' === $_GET['error'] ) {
-		$errmsg = __( 'Plugin could not be resumed because it triggered a <strong>fatal error</strong>.' );
+		/* translators: %s: The plugin's name, or file path if a name is not available. */
+		$errmsg = sprintf( __( '%s could not be resumed because it triggered a <strong>fatal error</strong>.' ), $plugin_data['Name'] ?? "<code>{$plugin}</code>" );
 	} else {
-		$errmsg = __( 'Plugin could not be activated because it triggered a <strong>fatal error</strong>.' );
+		/* translators: %s: The plugin's name, or file path if a name is not available. */
+		$errmsg = sprintf( __( '%s could not be activated because it triggered a <strong>fatal error</strong>.' ), $plugin_data['Name'] ?? "<code>{$plugin}</code>" );
 	}
 
 	if ( ! isset( $_GET['main'] ) && ! isset( $_GET['charsout'] )
