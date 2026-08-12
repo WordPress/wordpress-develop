@@ -708,6 +708,7 @@ function bulk_edit_posts( $post_data = null ) {
 
 		$post_status = ! empty( $post_data['post_status'] ) ? $post_data['post_status'] : $post->post_status;
 
+		// Private posts cannot be sticky.
 		if ( 'private' === $post_status ) {
 			unstick_post( $post_id );
 		} elseif ( isset( $post_data['sticky'] ) && current_user_can( $ptype->cap->edit_others_posts ) ) {
