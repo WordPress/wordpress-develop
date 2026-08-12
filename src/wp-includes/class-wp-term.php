@@ -242,4 +242,15 @@ final class WP_Term {
 				return sanitize_term( $data, $data->taxonomy, 'raw' );
 		}
 	}
+
+	/**
+	 * Return string value.
+	 *
+	 * @since 6.8.0
+	 *
+	 * @return string The term's name.
+	 */
+	public function __toString() {
+		return $this->name;
+	}
 }

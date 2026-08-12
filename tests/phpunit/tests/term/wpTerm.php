@@ -89,4 +89,12 @@ class Tests_Term_WpTerm extends WP_UnitTestCase {
 		$found = WP_Term::get_instance( self::$term_id, 'wptests_tax2' );
 		$this->assertFalse( $found );
 	}
+
+	/**
+	 * @ticket 36641
+	 */
+	public function test_to_string_should_return_term_name() {
+		$term = get_term( self::$term_id );
+		$this->assertSame( $term->name, (string) $term );
+	}
 }
