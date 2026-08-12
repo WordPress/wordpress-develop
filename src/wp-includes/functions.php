@@ -7980,7 +7980,7 @@ function wp_raise_memory_limit( $context = 'admin' ) {
 		return false;
 	}
 
-	$wp_max_limit     = WP_MAX_MEMORY_LIMIT;
+	$wp_max_limit     = WP_ADMIN_MEMORY_LIMIT;
 	$wp_max_limit_int = wp_convert_hr_to_bytes( $wp_max_limit );
 	$filtered_limit   = $wp_max_limit;
 
@@ -7993,7 +7993,7 @@ function wp_raise_memory_limit( $context = 'admin' ) {
 			 * like updates. Memory limits when processing images (uploaded or edited by
 			 * users of any role) are handled separately.
 			 *
-			 * The `WP_MAX_MEMORY_LIMIT` constant specifically defines the maximum memory
+			 * The `WP_ADMIN_MEMORY_LIMIT` constant specifically defines the maximum memory
 			 * limit available when in the administration back end. The default is 256M
 			 * (256 megabytes of memory) or the original `memory_limit` php.ini value if
 			 * this is higher.
@@ -8015,7 +8015,7 @@ function wp_raise_memory_limit( $context = 'admin' ) {
 			 * @since 4.6.0 The default now takes the original `memory_limit` into account.
 			 *
 			 * @param int|string $filtered_limit Maximum memory limit to allocate for image processing.
-			 *                                   Default `WP_MAX_MEMORY_LIMIT` or the original
+			 *                                   Default `WP_ADMIN_MEMORY_LIMIT` or the original
 			 *                                   php.ini `memory_limit`, whichever is higher.
 			 *                                   Accepts an integer (bytes), or a shorthand string
 			 *                                   notation, such as '256M'.
@@ -8030,7 +8030,7 @@ function wp_raise_memory_limit( $context = 'admin' ) {
 			 * @since 6.3.0
 			 *
 			 * @param int|string $filtered_limit Maximum memory limit to allocate for WP-Cron.
-			 *                                   Default `WP_MAX_MEMORY_LIMIT` or the original
+			 *                                   Default `WP_ADMIN_MEMORY_LIMIT` or the original
 			 *                                   php.ini `memory_limit`, whichever is higher.
 			 *                                   Accepts an integer (bytes), or a shorthand string
 			 *                                   notation, such as '256M'.
@@ -8049,7 +8049,7 @@ function wp_raise_memory_limit( $context = 'admin' ) {
 			 * @since 4.6.0
 			 *
 			 * @param int|string $filtered_limit Maximum memory limit to allocate for this context.
-			 *                                   Default WP_MAX_MEMORY_LIMIT` or the original php.ini `memory_limit`,
+			 *                                   Default WP_ADMIN_MEMORY_LIMIT` or the original php.ini `memory_limit`,
 			 *                                   whichever is higher. Accepts an integer (bytes), or a
 			 *                                   shorthand string notation, such as '256M'.
 			 */
