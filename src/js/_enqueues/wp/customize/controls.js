@@ -6617,13 +6617,16 @@
 		 * @constructs wp.customize.Previewer
 		 * @augments   wp.customize.Messenger
 		 *
-		 * @param {Object}   params             The parameters object.
-		 * @param {string[]} params.allowedUrls An array of allowed URLs for the preview.
-		 * @param {string}   params.container   A selector or jQuery element for the preview
-		 *                                      frame to be placed.
-		 * @param {string}   params.form        A selector or jQuery element for the form to be used for POSTing data to the preview frame.
-		 * @param {string}   params.previewUrl  The URL to preview.
-		 * @param {Object}   [options]          The options object.
+		 * @param {Object}   params                 The parameters object.
+		 * @param {string[]} params.allowedUrls     An array of allowed URLs for the preview.
+		 * @param {string}   params.container       A selector or jQuery element for the preview
+		 *                                          frame to be placed.
+		 * @param {string[]} [params.excludedPaths] URL path prefixes which are not previewable,
+		 *                                          such as the paths for the admin and content
+		 *                                          directories. Added in 7.2.0.
+		 * @param {string}   params.form            A selector or jQuery element for the form to be used for POSTing data to the preview frame.
+		 * @param {string}   params.previewUrl      The URL to preview.
+		 * @param {Object}   [options]              The options object.
 		 */
 		initialize: function( params, options ) {
 			var previewer = this,
@@ -6658,8 +6661,9 @@
 				previewer.refreshBuffer
 			);
 
-			previewer.container   = api.ensure( params.container );
-			previewer.allowedUrls = params.allowedUrls;
+			previewer.container     = api.ensure( params.container );
+			previewer.allowedUrls   = params.allowedUrls;
+			previewer.excludedPaths = params.excludedPaths;
 
 			params.url = window.location.href;
 
@@ -6683,8 +6687,8 @@
 				urlParser = document.createElement( 'a' );
 				urlParser.href = to;
 
-				// Abort if URL is for admin or (static) files in wp-includes or wp-content.
-				if ( /\/wp-(admin|includes|content)(\/|$)/.test( urlParser.pathname ) ) {
+				// Abort if URL is for the admin or (static) files in wp-includes or wp-content.
+				if ( api.utils.isExcludedPath( urlParser.pathname, previewer.excludedPaths ) ) {
 					return null;
 				}
 
@@ -7555,10 +7559,11 @@
 		 * @alias wp.customize.previewer
 		 */
 		api.previewer = new api.Previewer({
-			container:   '#customize-preview',
-			form:        '#customize-controls',
-			previewUrl:  api.settings.url.preview,
-			allowedUrls: api.settings.url.allowed
+			container:     '#customize-preview',
+			form:          '#customize-controls',
+			previewUrl:    api.settings.url.preview,
+			allowedUrls:   api.settings.url.allowed,
+			excludedPaths: api.settings.url.excludedPaths
 		},/** @lends wp.customize.previewer */{
 
 			nonce: api.settings.nonce,
