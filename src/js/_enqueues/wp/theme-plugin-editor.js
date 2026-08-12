@@ -51,6 +51,13 @@ wp.themePluginEditor = (function( $ ) {
 		component.docsLookUpButton = component.form.find( '#docs-lookup' );
 		component.docsLookUpList = component.form.find( '#docs-list' );
 
+		$(document).on('keydown',function(e) {
+			if ((e.ctrlKey || e.metaKey) && 's' === e.key) {
+				e.preventDefault(); 
+				component.submitButton.trigger('click');
+			}
+		});
+
 		if ( component.warning.length > 0 ) {
 			component.showWarning();
 		}
