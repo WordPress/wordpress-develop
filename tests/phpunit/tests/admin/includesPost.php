@@ -420,6 +420,59 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test to check if a DB call is saved if the $post_type , $post_status perms are set when wp_set_post_categories is called.
+	 *
+	 * @ticket 27736
+	 */
+	/**
+	 * Test to check if a DB call is saved if the $post_type and $post_status parameters are set when wp_set_post_categories is called.
+	 *
+	 * @ticket 27736
+	 */
+	public function test_wp_set_post_categories_with_post_type_and_status() {
+		global $wpdb;
+
+		wp_set_current_user( self::$admin_id );
+
+		$post_id   = self::factory()->post->create(
+			array(
+				'post_type'   => 'page',
+				'post_status' => 'draft',
+			)
+		);
+		$post_id_2 = self::factory()->post->create(
+			array(
+				'post_type'   => 'page',
+				'post_status' => 'draft',
+			)
+		);
+		$term_id   = self::factory()->category->create();
+		$term_id_2 = self::factory()->category->create();
+
+		$num_queries = $wpdb->num_queries;
+
+		wp_set_post_categories( $post_id, array( $term_id ), true, 'page', 'draft' );
+
+		$num_queries_done = $wpdb->num_queries - $num_queries;
+		// Check if the number of queries remains the same
+		$this->assertSame( 6, $num_queries_done, 'Extra DB query performed when post_type and post_status are provided.' );
+
+		$num_queries = $wpdb->num_queries;
+
+		wp_set_post_categories( $post_id_2, array( $term_id_2 ), true );
+
+		$num_queries_done = $wpdb->num_queries - $num_queries;
+		// Check if the number of queries remains the same
+		$this->assertSame( 6, $num_queries_done, 'Extra DB query performed when post_type and post_status are provided.' );
+
+		// Clean up
+		wp_delete_post( $post_id, true );
+		wp_delete_term( $term_id, 'category' );
+		wp_delete_post( $post_id_2, true );
+		wp_delete_term( $term_id_2, 'category' );
+	}
+
+	/**
 	 * @ticket 11302
 	 */
 	public function test_bulk_edit_if_some_categories_added() {

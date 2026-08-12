@@ -5052,7 +5052,7 @@ function wp_insert_post( $postarr, $wp_error = false, $fire_after_hooks = true )
 	}
 
 	if ( is_object_in_taxonomy( $post_type, 'category' ) ) {
-		wp_set_post_categories( $post_id, $post_category );
+		wp_set_post_categories( $post_id, $post_category, $post_type, $post_status );
 	}
 
 	if ( isset( $postarr['tags_input'] ) && is_object_in_taxonomy( $post_type, 'post_tag' ) ) {
@@ -5843,18 +5843,26 @@ function wp_set_post_terms( $post_id = 0, $terms = '', $taxonomy = 'post_tag', $
  *
  * @since 2.1.0
  *
- * @param int       $post_id         Optional. The Post ID. Does not default to the ID
+ * @param int $post_id Optional. The Post ID. Does not default to the ID
  *                                   of the global $post. Default 0.
  * @param int[]|int $post_categories Optional. List of category IDs, or the ID of a single category.
  *                                   Default empty array.
- * @param bool      $append          If true, don't delete existing categories, just add on.
+ * @param bool $append If true, don't delete existing categories, just add on.
  *                                   If false, replace the categories with the new categories.
+ * @param string $post_type Optional. Post type. Default empty.
+ * @param string $post_status Optional. Post status. Default empty.
+ *
  * @return array|false|WP_Error Array of term taxonomy IDs of affected categories. WP_Error or false on failure.
  */
-function wp_set_post_categories( $post_id = 0, $post_categories = array(), $append = false ) {
-	$post_id     = (int) $post_id;
-	$post_type   = get_post_type( $post_id );
-	$post_status = get_post_status( $post_id );
+function wp_set_post_categories( $post_id = 0, $post_categories = array(), $append = false, $post_type = '', $post_status = '' ) {
+
+	$post_id = (int) $post_id;
+	if ( '' === $post_type ) {
+		$post_type = get_post_type( $post_id );
+	}
+	if ( '' === $post_status ) {
+		$post_status = get_post_status( $post_id );
+	}
 
 	// If $post_categories isn't already an array, make it one.
 	$post_categories = (array) $post_categories;
