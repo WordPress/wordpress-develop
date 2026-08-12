@@ -4919,6 +4919,62 @@ Shankle pork chop prosciutto ribeye ham hock pastrami. T-bone shank brisket baco
 	}
 
 	/**
+	 * @ticket 65855
+	 */
+	public function test_get_item_schema_does_not_overwrite_existing_property_when_taxonomy_name_conflicts() {
+		$this->setExpectedIncorrectUsage( 'register_taxonomy' );
+
+		register_taxonomy(
+			'type',
+			'post',
+			array(
+				'show_in_rest' => true,
+			)
+		);
+
+		$controller = new WP_REST_Posts_Controller( 'post' );
+		$schema     = $controller->get_item_schema();
+
+		unregister_taxonomy( 'type' );
+
+		$this->assertSame( 'string', $schema['properties']['type']['type'] );
+		$this->assertTrue( $schema['properties']['type']['readonly'] );
+	}
+
+	/**
+	 * @ticket 65855
+	 */
+	public function test_prepare_item_for_response_does_not_overwrite_existing_property_when_taxonomy_name_conflicts() {
+		$this->setExpectedIncorrectUsage( 'register_taxonomy' );
+
+		register_taxonomy(
+			'type',
+			'post',
+			array(
+				'show_in_rest' => true,
+			)
+		);
+
+		$controller = new WP_REST_Posts_Controller( 'post' );
+		$request    = new WP_REST_Request(
+			'GET',
+			sprintf( '/wp/v2/posts/%d', self::$post_id )
+		);
+		$request->set_param( 'context', 'view' );
+		$request->set_param( '_fields', 'type' );
+
+		$response = $controller->prepare_item_for_response(
+			get_post( self::$post_id ),
+			$request
+		);
+		$data     = $response->get_data();
+
+		unregister_taxonomy( 'type' );
+
+		$this->assertSame( 'post', $data['type'] );
+	}
+
+	/**
 	 * @ticket 39805
 	 */
 	public function test_get_post_view_context_properties() {
