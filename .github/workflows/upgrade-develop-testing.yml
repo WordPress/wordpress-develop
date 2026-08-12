@@ -68,7 +68,7 @@ jobs:
 #   being updated to keep the matrix as small as is reasonable.
   upgrade-tests-develop:
     name: Upgrade from ${{ matrix.wp }}
-    uses: WordPress/wordpress-develop/.github/workflows/reusable-upgrade-testing.yml@trunk
+    uses: ./.github/workflows/reusable-upgrade-testing.yml
     if: ${{ github.repository == 'WordPress/wordpress-develop' }}
     needs: [ build ]
     permissions:
@@ -127,7 +127,7 @@ jobs:
 
   slack-notifications:
     name: Slack Notifications
-    uses: WordPress/wordpress-develop/.github/workflows/slack-notifications.yml@trunk
+    uses: ./.github/workflows/slack-notifications.yml
     permissions:
       actions: read
       contents: read
