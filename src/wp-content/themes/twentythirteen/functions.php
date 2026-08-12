@@ -348,7 +348,7 @@ function twentythirteen_scripts_styles() {
 	wp_enqueue_style( 'genericons', get_template_directory_uri() . '/genericons/genericons.css', array(), '20251101' );
 
 	// Loads our main stylesheet.
-	wp_enqueue_style( 'twentythirteen-style', get_stylesheet_uri(), array(), '20260520' );
+	wp_enqueue_style( 'twentythirteen-style', get_stylesheet_uri(), array(), '20260819' );
 
 	// Theme block stylesheet.
 	wp_enqueue_style( 'twentythirteen-block-style', get_template_directory_uri() . '/css/blocks.css', array( 'twentythirteen-style' ), '20240520' );
@@ -739,7 +739,8 @@ function twentythirteen_get_link_url() {
 	$content = get_the_content();
 	$has_url = get_url_in_content( $content );
 
-	return ( $has_url ) ? $has_url : apply_filters( 'the_permalink', get_permalink() );
+	/** This filter is documented in wp-includes/link-template.php */
+	return ( $has_url ) ? $has_url : apply_filters( 'the_permalink', get_permalink(), get_post() );
 }
 
 if ( ! function_exists( 'twentythirteen_excerpt_more' ) && ! is_admin() ) :

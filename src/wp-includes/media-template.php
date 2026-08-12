@@ -544,7 +544,11 @@ function wp_print_media_templates() {
 				<?php endforeach; ?>
 				<# } #>
 				<span class="setting" data-setting="caption">
-					<label for="attachment-details-two-column-caption" class="name"><?php _e( 'Caption' ); ?></label>
+					<# if ( 'image' === data.type ) { #>
+					<label for="attachment-details-two-column-caption" class="name"><?php esc_html_e( 'Image Caption' ); ?></label>
+					<# } else { #>
+					<label for="attachment-details-two-column-caption" class="name"><?php esc_html_e( 'Short Description' ); ?></label>
+					<# } #>
 					<textarea id="attachment-details-two-column-caption" {{ maybeReadOnly }}>{{ data.caption }}</textarea>
 				</span>
 				<span class="setting" data-setting="description">
@@ -796,7 +800,11 @@ function wp_print_media_templates() {
 		<?php endforeach; ?>
 		<# } #>
 		<span class="setting" data-setting="caption">
-			<label for="attachment-details-caption" class="name"><?php _e( 'Caption' ); ?></label>
+			<# if ( 'image' === data.type ) { #>
+			<label for="attachment-details-caption" class="name"><?php esc_html_e( 'Image Caption' ); ?></label>
+			<# } else { #>
+			<label for="attachment-details-caption" class="name"><?php esc_html_e( 'Short Description' ); ?></label>
+			<# } #>
 			<textarea id="attachment-details-caption" {{ maybeReadOnly }}>{{ data.caption }}</textarea>
 		</span>
 		<span class="setting" data-setting="description">
@@ -1611,11 +1619,17 @@ function wp_print_media_templates() {
 			 * The crossorigin attribute is added unconditionally to all relevant
 			 * media tags to ensure cross-origin isolation works regardless of
 			 * the final URL value at render time.
+			 *
+			 * IMG is intentionally excluded, matching wp_add_crossorigin_attributes().
+			 * Under Document-Isolation-Policy: isolate-and-credentialless the browser
+			 * loads cross-origin images in credentialless mode without CORS headers,
+			 * so adding crossorigin="anonymous" would force a CORS request and break
+			 * previews of images served without Access-Control-Allow-Origin headers.
 			 */
 			$template_processor = new WP_HTML_Tag_Processor( $script_processor->get_modifiable_text() );
 			while ( $template_processor->next_tag() ) {
 				if (
-					in_array( $template_processor->get_tag(), array( 'AUDIO', 'IMG', 'VIDEO' ), true )
+					in_array( $template_processor->get_tag(), array( 'AUDIO', 'VIDEO' ), true )
 					&& ! is_string( $template_processor->get_attribute( 'crossorigin' ) )
 				) {
 					$template_processor->set_attribute( 'crossorigin', 'anonymous' );

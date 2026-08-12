@@ -109,6 +109,69 @@ CAP;
 		$this->assertSame( 'img_caption_shortcode', $shortcode_tags['wp_caption'] );
 	}
 
+	/**
+	 * Tests the precedence rules for the Media Library infinite scrolling setting.
+	 *
+	 * Infinite scrolling is enabled by default. A user can opt out via the
+	 * `infinite_scrolling` personal option, and the
+	 * `media_library_infinite_scrolling` filter takes precedence over both.
+	 *
+	 * @ticket 65564
+	 *
+	 * @covers ::wp_enqueue_media
+	 */
+	public function test_wp_enqueue_media_infinite_scrolling_precedence() {
+		$user_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		wp_set_current_user( $user_id );
+
+		// Default: no user preference and no filter, infinite scrolling is enabled.
+		$this->assertSame(
+			1,
+			$this->get_media_infinite_scrolling_setting(),
+			'Infinite scrolling should be enabled by default.'
+		);
+
+		// User preference: disabling it via the personal option turns it off.
+		update_user_meta( $user_id, 'infinite_scrolling', 'false' );
+		$this->assertSame(
+			0,
+			$this->get_media_infinite_scrolling_setting(),
+			'The user preference should disable infinite scrolling.'
+		);
+
+		// Filter precedence: a filter overrides the user preference.
+		add_filter( 'media_library_infinite_scrolling', '__return_true' );
+		$this->assertSame(
+			1,
+			$this->get_media_infinite_scrolling_setting(),
+			'The filter should take precedence over the user preference.'
+		);
+	}
+
+	/**
+	 * Helper that runs wp_enqueue_media() and returns the computed
+	 * `infiniteScrolling` media view setting.
+	 *
+	 * @return int The infiniteScrolling setting: 1 when enabled, 0 when disabled.
+	 */
+	private function get_media_infinite_scrolling_setting() {
+		// wp_enqueue_media() only runs once per request; reset the guard so it
+		// can be invoked again for each scenario.
+		unset( $GLOBALS['wp_actions']['wp_enqueue_media'] );
+
+		$infinite_scrolling = null;
+		$capture            = static function ( $settings ) use ( &$infinite_scrolling ) {
+			$infinite_scrolling = $settings['infiniteScrolling'];
+			return $settings;
+		};
+
+		add_filter( 'media_view_settings', $capture );
+		wp_enqueue_media();
+		remove_filter( 'media_view_settings', $capture );
+
+		return $infinite_scrolling;
+	}
+
 	public function test_img_caption_shortcode_with_empty_params() {
 		$result = img_caption_shortcode( array() );
 		$this->assertSame( '', $result );
@@ -206,7 +269,7 @@ CAP;
 			)
 		);
 		$this->assertSame( 1, substr_count( $result, 'wp-caption &amp;myAlignment' ) );
-		$this->assertSame( 1, substr_count( $result, 'id="myId"' ) );
+		$this->assertSame( 1, preg_match( '/id="myId(?:[0-9]+)?"/', $result ) );
 		$this->assertSame( 1, substr_count( $result, self::CAPTION ) );
 	}
 
@@ -302,7 +365,117 @@ CAP;
 			self::IMG_CONTENT . self::HTML_CONTENT
 		);
 
-		$this->assertSame( 1, substr_count( $result, 'aria-describedby="caption-myId"' ) );
+		$this->assertMatchesRegularExpression( '/aria-describedby="caption-myId(?:-[0-9]+)?"/', $result );
+	}
+
+	/**
+	 * Tests that both figure and figcaption IDs are unique for multiple caption instances.
+	 *
+	 * When the same image with the same or different captions appears multiple
+	 * times on a page, each figure and figcaption should receive a unique ID to
+	 * maintain HTML validity and accessibility.
+	 *
+	 * @ticket 65315
+	 *
+	 * @covers ::img_caption_shortcode
+	 */
+	public function test_img_caption_shortcode_unique_ids_per_instance(): void {
+		/*
+		 * Important: The id part of this must be unique among unit tests, or else the test will fail due to
+		 * wp_unique_prefixed_id() not returning the expected increment.
+		 */
+		$id         = 'attachment_65315';
+		$caption_id = 'caption_attachment_65315';
+
+		// First instance with caption "My caption".
+		$result_1 = img_caption_shortcode(
+			array(
+				'width'      => 20,
+				'id'         => $id,
+				'caption'    => 'My caption',
+				'caption_id' => $caption_id,
+			),
+			self::IMG_CONTENT . 'My caption'
+		);
+
+		// Second instance - identical to first.
+		$result_2 = img_caption_shortcode(
+			array(
+				'width'      => 20,
+				'id'         => $id,
+				'caption'    => 'My caption',
+				'caption_id' => $caption_id,
+			),
+			self::IMG_CONTENT . 'My caption'
+		);
+
+		// Third instance - same image, different caption.
+		$result_3 = img_caption_shortcode(
+			array(
+				'width'      => 20,
+				'id'         => $id,
+				'caption'    => 'Different caption',
+				'caption_id' => $caption_id,
+			),
+			self::IMG_CONTENT . 'Different caption'
+		);
+
+		// Extract the figure (caption wrapper) and caption text IDs from each instance.
+		$figure_id_1  = $this->get_id_of_first_tag_with_class( $result_1, 'wp-caption' );
+		$figure_id_2  = $this->get_id_of_first_tag_with_class( $result_2, 'wp-caption' );
+		$figure_id_3  = $this->get_id_of_first_tag_with_class( $result_3, 'wp-caption' );
+		$caption_id_1 = $this->get_id_of_first_tag_with_class( $result_1, 'wp-caption-text' );
+		$caption_id_2 = $this->get_id_of_first_tag_with_class( $result_2, 'wp-caption-text' );
+		$caption_id_3 = $this->get_id_of_first_tag_with_class( $result_3, 'wp-caption-text' );
+
+		// Figure IDs should all exist.
+		$this->assertNotEmpty( $figure_id_1, 'First figure should have an ID' );
+		$this->assertNotEmpty( $figure_id_2, 'Second figure should have an ID' );
+		$this->assertNotEmpty( $figure_id_3, 'Third figure should have an ID' );
+
+		// Figure IDs should all be different (each instance gets unique ID).
+		$this->assertNotSame( $figure_id_1, $figure_id_2, 'First and second figures should have different IDs even with identical content' );
+		$this->assertNotSame( $figure_id_2, $figure_id_3, 'Second and third figures should have different IDs' );
+		$this->assertNotSame( $figure_id_1, $figure_id_3, 'First and third figures should have different IDs' );
+
+		// The first Figure ID should be identical to the supplied ID, and the others should have unique suffixes.
+		$this->assertSame( $id, $figure_id_1 );
+		$this->assertSame( "$id-2", $figure_id_2 );
+		$this->assertSame( "$id-3", $figure_id_3 );
+
+		// Caption IDs should all exist.
+		$this->assertNotEmpty( $caption_id_1, 'First caption should have an ID' );
+		$this->assertNotEmpty( $caption_id_2, 'Second caption should have an ID' );
+		$this->assertNotEmpty( $caption_id_3, 'Third caption should have an ID' );
+
+		// Caption IDs should all be different (each instance gets unique ID).
+		$this->assertNotSame( $caption_id_1, $caption_id_2, 'First and second captions should have different IDs even with identical content' );
+		$this->assertNotSame( $caption_id_2, $caption_id_3, 'Second and third captions should have different IDs' );
+		$this->assertNotSame( $caption_id_1, $caption_id_3, 'First and third captions should have different IDs' );
+
+		// The first Caption ID should have no.
+		$this->assertSame( $caption_id, $caption_id_1 );
+		$this->assertSame( "$caption_id-2", $caption_id_2 );
+		$this->assertSame( "$caption_id-3", $caption_id_3 );
+	}
+
+	/**
+	 * Returns the `id` attribute of the first tag bearing the given class name.
+	 *
+	 * @param string $html       Markup to search.
+	 * @param string $class_name Class name to locate the tag by.
+	 * @return string|null The tag's `id` value, or null if no matching tag or `id` is found.
+	 */
+	private function get_id_of_first_tag_with_class( string $html, string $class_name ): ?string {
+		$processor = new WP_HTML_Tag_Processor( $html );
+
+		if ( ! $processor->next_tag( array( 'class_name' => $class_name ) ) ) {
+			return null;
+		}
+
+		$id = $processor->get_attribute( 'id' );
+
+		return is_string( $id ) ? $id : null;
 	}
 
 	public function test_add_remove_oembed_provider() {
@@ -492,6 +665,315 @@ https://w.org</a>',
 		$prepped = wp_prepare_attachment_for_js( get_post( $id ) );
 
 		$this->assertArrayHasKey( 'sizes', $prepped );
+	}
+
+	/**
+	 * Tests that an unusable `full` entry in the `sizes` metadata is skipped.
+	 *
+	 * Attachments that are not images, such as PDFs, are handled by a separate branch that reads
+	 * the `full` entry of the `sizes` metadata directly. That entry is not guaranteed to be there,
+	 * nor to carry dimensions when it is, and reading it unconditionally raises "Undefined array
+	 * key" warnings.
+	 *
+	 * @ticket 65748
+	 *
+	 * @dataProvider data_wp_prepare_attachment_for_js_unusable_full_size
+	 *
+	 * @covers ::wp_prepare_attachment_for_js
+	 *
+	 * @param array<string, mixed> $sizes Value to store as the `sizes` metadata.
+	 */
+	public function test_wp_prepare_attachment_for_js_with_an_unusable_full_size( array $sizes ) {
+		$id = $this->create_pdf_attachment( $sizes );
+
+		$prepped = wp_prepare_attachment_for_js( $id );
+
+		$this->assertIsArray( $prepped );
+		$this->assertArrayHasKey( 'sizes', $prepped );
+
+		$sizes = $prepped['sizes'];
+
+		$this->assertIsArray( $sizes );
+		$this->assertArrayNotHasKey( 'full', $sizes, 'An unusable `full` size should not have been exposed.' );
+	}
+
+	/**
+	 * Tests that a usable `full` entry in the `sizes` metadata is still exposed.
+	 *
+	 * @ticket 65748
+	 *
+	 * @covers ::wp_prepare_attachment_for_js
+	 */
+	public function test_wp_prepare_attachment_for_js_with_a_usable_full_size() {
+		$id = $this->create_pdf_attachment(
+			array(
+				'full' => array(
+					'file'      => 'test-document-pdf.jpg',
+					'width'     => 232,
+					'height'    => 300,
+					'mime-type' => 'image/jpeg',
+				),
+			)
+		);
+
+		$prepped = wp_prepare_attachment_for_js( $id );
+
+		$this->assertIsArray( $prepped );
+		$this->assertArrayHasKey( 'sizes', $prepped );
+
+		$sizes = $prepped['sizes'];
+
+		$this->assertIsArray( $sizes );
+		$this->assertArrayHasKey( 'full', $sizes, 'A usable `full` size should have been exposed.' );
+
+		$full = $sizes['full'];
+
+		$this->assertIsArray( $full );
+		$this->assertSame( 232, $full['width'] );
+		$this->assertSame( 300, $full['height'] );
+		$this->assertSame( 'portrait', $full['orientation'] );
+		$this->assertIsString( $full['url'] );
+		$this->assertStringEndsWith( '/test-document-pdf.jpg', $full['url'] );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<non-empty-string, array{ 0: array<string, mixed> }>
+	 */
+	public function data_wp_prepare_attachment_for_js_unusable_full_size(): array {
+		return array(
+			'no full size'            => array(
+				array(
+					'thumbnail' => array(
+						'file'      => 'test-document-pdf-116x150.jpg',
+						'width'     => 116,
+						'height'    => 150,
+						'mime-type' => 'image/jpeg',
+					),
+				),
+			),
+			'full without dimensions' => array(
+				array(
+					'full' => array(
+						'file'      => 'test-document-pdf.jpg',
+						'mime-type' => 'image/jpeg',
+					),
+				),
+			),
+			'full without a height'   => array(
+				array(
+					'full' => array(
+						'file'      => 'test-document-pdf.jpg',
+						'width'     => 232,
+						'mime-type' => 'image/jpeg',
+					),
+				),
+			),
+			'full with an empty file' => array(
+				array(
+					'full' => array(
+						'file'      => '',
+						'width'     => 232,
+						'height'    => 300,
+						'mime-type' => 'image/jpeg',
+					),
+				),
+			),
+		);
+	}
+
+	/**
+	 * Creates a PDF attachment carrying the given `sizes` metadata.
+	 *
+	 * A PDF is used so that wp_prepare_attachment_for_js() takes the branch for attachments that
+	 * are not images, which is the one that reads the `full` entry of the `sizes` metadata.
+	 *
+	 * @param array<string, mixed> $sizes Value to store as the `sizes` metadata.
+	 * @return int Attachment ID.
+	 */
+	private function create_pdf_attachment( array $sizes ): int {
+		$id = wp_insert_attachment(
+			array(
+				'post_title'     => 'Attachment Title',
+				'post_type'      => 'attachment',
+				'post_parent'    => 0,
+				'post_mime_type' => 'application/pdf',
+				'guid'           => home_url( '/wp-content/uploads/test-document.pdf' ),
+			)
+		);
+
+		wp_update_attachment_metadata(
+			$id,
+			array(
+				'file'  => 'test-document.pdf',
+				'sizes' => $sizes,
+			)
+		);
+
+		return $id;
+	}
+
+	/**
+	 * Tests that a `filesize` stored in the attachment metadata is normalized to a positive integer.
+	 *
+	 * When the stored value cannot be normalized, it should be treated as missing so that the
+	 * filesystem fallback runs instead.
+	 *
+	 * @ticket 65686
+	 *
+	 * @dataProvider data_wp_prepare_attachment_for_js_filesize
+	 *
+	 * @param mixed            $filesize The `filesize` value stored in the attachment metadata.
+	 * @param int<0, max>|null $expected The expected `filesizeInBytes` value, or null if it should not be set.
+	 */
+	public function test_wp_prepare_attachment_for_js_filesize( $filesize, ?int $expected ) {
+		$id = self::factory()->attachment->create_object(
+			array(
+				'file'           => 'test-image.jpg',
+				'post_title'     => 'Attachment Title',
+				'post_parent'    => 0,
+				'post_mime_type' => 'image/jpeg',
+			)
+		);
+		$this->assertIsInt( $id );
+
+		wp_update_attachment_metadata(
+			$id,
+			array(
+				'width'    => 50,
+				'height'   => 50,
+				'file'     => 'test-image.jpg',
+				'filesize' => $filesize,
+			)
+		);
+
+		$post = get_post( $id );
+		$this->assertInstanceOf( WP_Post::class, $post );
+		$prepped = wp_prepare_attachment_for_js( $post );
+		$this->assertIsArray( $prepped );
+
+		if ( null === $expected ) {
+			$this->assertArrayNotHasKey( 'filesizeInBytes', $prepped, 'The filesize should not have been set.' );
+			$this->assertArrayNotHasKey( 'filesizeHumanReadable', $prepped, 'The human readable filesize should not have been set.' );
+		} else {
+			$this->assertSame( $expected, $prepped['filesizeInBytes'], 'The filesize was not normalized to an integer.' );
+			$this->assertSame( size_format( $expected ), $prepped['filesizeHumanReadable'], 'The human readable filesize did not match the normalized filesize.' );
+		}
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<non-falsy-string, array{ filesize: mixed, expected: int<0, max>|null }>
+	 */
+	public function data_wp_prepare_attachment_for_js_filesize(): array {
+		return array(
+			'an integer'                  => array(
+				'filesize' => 12345,
+				'expected' => 12345,
+			),
+			'a numeric string'            => array(
+				'filesize' => '12345',
+				'expected' => 12345,
+			),
+			'a float'                     => array(
+				'filesize' => 12345.6,
+				'expected' => 12345,
+			),
+			'a float as a string'         => array(
+				'filesize' => '12345.6',
+				'expected' => 12345,
+			),
+			'an exponential string'       => array(
+				'filesize' => '1e3',
+				'expected' => 1000,
+			),
+			'a value smaller than a byte' => array(
+				'filesize' => 0.5,
+				'expected' => null,
+			),
+			'zero'                        => array(
+				'filesize' => 0,
+				'expected' => null,
+			),
+			'a negative integer'          => array(
+				'filesize' => -12345,
+				'expected' => null,
+			),
+			'an empty string'             => array(
+				'filesize' => '',
+				'expected' => null,
+			),
+			'a non-numeric string'        => array(
+				'filesize' => 'not-a-number',
+				'expected' => null,
+			),
+			'an array'                    => array(
+				'filesize' => array( 12345 ),
+				'expected' => null,
+			),
+			'null'                        => array(
+				'filesize' => null,
+				'expected' => null,
+			),
+			'false'                       => array(
+				'filesize' => false,
+				'expected' => null,
+			),
+			'true'                        => array(
+				'filesize' => true,
+				'expected' => null,
+			),
+		);
+	}
+
+	/**
+	 * Tests that an unusable `filesize` in the attachment metadata falls back to the size of the file.
+	 *
+	 * @ticket 65686
+	 *
+	 * @dataProvider data_wp_prepare_attachment_for_js_filesize_falls_back_to_the_file
+	 *
+	 * @param mixed $filesize The `filesize` value stored in the attachment metadata.
+	 */
+	public function test_wp_prepare_attachment_for_js_filesize_falls_back_to_the_file( $filesize ) {
+		$id = self::factory()->attachment->create_upload_object( DIR_TESTDATA . '/images/canola.jpg' );
+		$this->assertIsInt( $id );
+		$post = get_post( $id );
+		$this->assertInstanceOf( WP_Post::class, $post );
+		$file = get_attached_file( $id );
+		$this->assertIsString( $file );
+
+		$meta = wp_get_attachment_metadata( $id );
+		$this->assertIsArray( $meta );
+		$meta['filesize'] = $filesize;
+		wp_update_attachment_metadata( $id, $meta );
+
+		$prepped = wp_prepare_attachment_for_js( $post );
+		$this->assertIsArray( $prepped );
+		$this->assertArrayHasKey( 'filesizeInBytes', $prepped );
+
+		$this->assertSame( wp_filesize( $file ), $prepped['filesizeInBytes'] );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<non-falsy-string, array{ filesize: mixed }>
+	 */
+	public function data_wp_prepare_attachment_for_js_filesize_falls_back_to_the_file(): array {
+		return array(
+			'a value smaller than a byte' => array( 'filesize' => 0.5 ),
+			'zero'                        => array( 'filesize' => 0 ),
+			'a negative integer'          => array( 'filesize' => -12345 ),
+			'an empty string'             => array( 'filesize' => '' ),
+			'a non-numeric string'        => array( 'filesize' => 'not-a-number' ),
+			'an array'                    => array( 'filesize' => array( 12345 ) ),
+			'null'                        => array( 'filesize' => null ),
+			'false'                       => array( 'filesize' => false ),
+			'true'                        => array( 'filesize' => true ),
+		);
 	}
 
 	/**
@@ -2843,6 +3325,9 @@ EOF;
 	 *
 	 * @ticket 36246
 	 * @requires function imagejpeg
+	 *
+	 * @covers ::wp_get_attachment_image
+	 * @covers ::wp_get_attachment_metadata
 	 */
 	public function test_wp_get_attachment_image_should_use_wp_get_attachment_metadata() {
 		add_filter( 'wp_get_attachment_metadata', array( $this, 'filter_36246' ), 10, 2 );
@@ -7282,6 +7767,81 @@ EOF;
 			'width'  => 200,
 			'height' => 100,
 		);
+	}
+
+	/**
+	 * @ticket 65262
+	 * @covers ::wp_get_image_encode_quality
+	 */
+	public function test_wp_get_image_encode_quality_defaults() {
+		// JPEG (and any non-WebP) defaults to 82, WebP to 86.
+		$this->assertSame( 82, wp_get_image_encode_quality( 'image/jpeg' ) );
+		$this->assertSame( 82, wp_get_image_encode_quality( 'image/png' ) );
+		$this->assertSame( 86, wp_get_image_encode_quality( 'image/webp' ) );
+	}
+
+	/**
+	 * @ticket 65262
+	 * @covers ::wp_get_image_encode_quality
+	 */
+	public function test_wp_get_image_encode_quality_applies_wp_editor_set_quality() {
+		$filter = static function ( $quality, $mime_type, $size ) {
+			return ( ! empty( $size['width'] ) && $size['width'] <= 300 ) ? 55 : $quality;
+		};
+		add_filter( 'wp_editor_set_quality', $filter, 10, 3 );
+
+		$small = wp_get_image_encode_quality( 'image/webp', array( 'width' => 150 ) );
+		$large = wp_get_image_encode_quality( 'image/webp', array( 'width' => 1200 ) );
+
+		remove_filter( 'wp_editor_set_quality', $filter, 10 );
+
+		$this->assertSame( 55, $small );
+		$this->assertSame( 86, $large );
+	}
+
+	/**
+	 * The legacy jpeg_quality filter must apply for JPEG output only, matching
+	 * WP_Image_Editor::set_quality().
+	 *
+	 * @ticket 65262
+	 * @covers ::wp_get_image_encode_quality
+	 */
+	public function test_wp_get_image_encode_quality_applies_jpeg_quality() {
+		$filter = static function () {
+			return 70;
+		};
+		add_filter( 'jpeg_quality', $filter );
+
+		$jpeg = wp_get_image_encode_quality( 'image/jpeg' );
+		$webp = wp_get_image_encode_quality( 'image/webp' );
+
+		remove_filter( 'jpeg_quality', $filter );
+
+		$this->assertSame( 70, $jpeg );
+		// Non-JPEG output ignores jpeg_quality.
+		$this->assertSame( 86, $webp );
+	}
+
+	/**
+	 * Out-of-range filtered values fall back to the default; 0 squashes to 1.
+	 *
+	 * @ticket 65262
+	 * @covers ::wp_get_image_encode_quality
+	 */
+	public function test_wp_get_image_encode_quality_clamps_out_of_range() {
+		$too_high = static function () {
+			return 150;
+		};
+		add_filter( 'wp_editor_set_quality', $too_high );
+		$this->assertSame( 82, wp_get_image_encode_quality( 'image/jpeg' ) );
+		remove_filter( 'wp_editor_set_quality', $too_high );
+
+		$zero = static function () {
+			return 0;
+		};
+		add_filter( 'wp_editor_set_quality', $zero );
+		$this->assertSame( 1, wp_get_image_encode_quality( 'image/png' ) );
+		remove_filter( 'wp_editor_set_quality', $zero );
 	}
 }
 
