@@ -313,6 +313,32 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Non-private posts should be made sticky during bulk edit.
+	 *
+	 * @ticket 39946
+	 */
+	public function test_bulk_edit_posts_should_make_non_private_posts_sticky() {
+		wp_set_current_user( self::$admin_id );
+
+		$post_id = self::factory()->post->create(
+			array(
+				'post_status' => 'publish',
+			)
+		);
+
+		$request = array(
+			'post_type' => 'post',
+			'sticky'    => 'sticky',
+			'_status'   => '-1',
+			'post'      => array( $post_id ),
+		);
+
+		bulk_edit_posts( $request );
+
+		$this->assertTrue( is_sticky( $post_id ) );
+	}
+
+	/**
 	 * The bulk_edit_posts() function should preserve the post format
 	 * when it's unchanged.
 	 *
