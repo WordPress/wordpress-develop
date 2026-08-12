@@ -44,7 +44,16 @@ jobs:
   build:
     name: Build
     uses: ./.github/workflows/reusable-build-package.yml
-    if: ${{ startsWith( github.repository, 'WordPress/' ) && ( github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' ) }}
+    if: |
+      startsWith( github.repository, 'WordPress/' ) && (
+        github.repository == 'WordPress/wordpress-develop' || (
+          github.event_name == 'pull_request' && (
+            ! github.event.repository.private ||
+            ! github.event.pull_request.draft ||
+            contains( github.event.pull_request.labels.*.name, 'Draft Workflow Runs' )
+          )
+        )
+      )
     permissions:
       contents: read
 
@@ -72,7 +81,7 @@ jobs:
         db-type: [ 'mysql' ]
         db-version: [ '5.7', '8.4' ]
         # WordPress 5.3 is the oldest version that supports PHP 7.4.
-        wp: [ '5.3', '6.9', '7.0' ]
+        wp: [ '5.3', '6.9', '7.0', '7.1-RC2' ]
         multisite: [ false, true ]
     with:
       os: ${{ matrix.os }}
@@ -87,7 +96,14 @@ jobs:
   upgrade-tests-develop-forks:
     name: Upgrade from ${{ matrix.wp }}
     uses: ./.github/workflows/reusable-upgrade-testing.yml
-    if: ${{ github.repository != 'WordPress/wordpress-develop' }}
+    # This job also runs for the push event, which has no draft state to check.
+    if: |
+      github.repository != 'WordPress/wordpress-develop' && (
+        github.event_name != 'pull_request' ||
+        ! github.event.repository.private ||
+        ! github.event.pull_request.draft ||
+        contains( github.event.pull_request.labels.*.name, 'Draft Workflow Runs' )
+      )
     needs: [ build ]
     permissions:
       contents: read
@@ -98,7 +114,7 @@ jobs:
         php: [ '7.4', '8.4' ]
         db-type: [ 'mysql' ]
         db-version: [ '8.4' ]
-        wp: [ '6.9', '7.0' ]
+        wp: [ '6.9', '7.0', '7.1-RC2' ]
         multisite: [ false, true ]
     with:
       os: ${{ matrix.os }}
