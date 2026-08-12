@@ -7,7 +7,7 @@
 		"url": "https://develop.svn.wordpress.org/trunk"
 	},
 	"gutenberg": {
-		"sha": "ea285b45692aed6c4f95353671393402f97f0aa7",
+		"sha": "b9743a015526ac8fd79298fd4e96cf002cee333b",
 		"ghcrRepo": "WordPress/gutenberg/gutenberg-wp-develop-build"
 	},
 	"engines": {
