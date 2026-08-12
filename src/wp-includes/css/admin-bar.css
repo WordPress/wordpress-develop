@@ -192,6 +192,13 @@ html:lang(he-il) .rtl #wpadminbar * {
 	float: none;
 }
 
+#wpadminbar .quicklinks .menupop.hover ul li{
+    min-width: 140px;
+    padding: 0 10px;
+}
+#wpadminbar .quicklinks .menupop.hover ul li .ab-item{
+    width: max-content;
+}
 #wpadminbar .quicklinks .menupop ul li a strong {
 	font-weight: 600;
 }
@@ -204,7 +211,6 @@ html:lang(he-il) .rtl #wpadminbar * {
 	line-height: 2;
 	height: 26px;
 	white-space: nowrap;
-	min-width: 140px;
 }
 
 #wpadminbar .shortlink-input {
