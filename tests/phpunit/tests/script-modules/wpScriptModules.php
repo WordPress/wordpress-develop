@@ -1851,6 +1851,50 @@ HTML;
 	}
 
 	/**
+	 * Tests that every default script module points to a file that exists on
+	 * disk, both with and without SCRIPT_DEBUG.
+	 *
+	 * Some files are only shipped minified (large inlined WASM or worker
+	 * code with no debugging value). Those must be special-cased in
+	 * wp_default_script_modules() so the non-minified URL is never used;
+	 * otherwise the import map points to a non-existent file under
+	 * SCRIPT_DEBUG. The exceptions below must mirror that special case.
+	 *
+	 * @ticket 65664
+	 *
+	 * @covers ::wp_default_script_modules
+	 */
+	public function test_default_script_module_files_exist() {
+		$assets_file = ABSPATH . WPINC . '/assets/script-modules-packages.php';
+		if ( ! file_exists( $assets_file ) ) {
+			$this->markTestSkipped( 'The script modules packages asset file is not available.' );
+		}
+
+		$assets = include $assets_file;
+		$this->assertNotEmpty( $assets, 'The script modules packages asset file should not be empty.' );
+
+		foreach ( array_keys( $assets ) as $file_name ) {
+			// Files only shipped minified; mirrors wp_default_script_modules().
+			if ( str_starts_with( $file_name, 'vips/' ) || 'video-conversion/worker.js' === $file_name ) {
+				$file_name = str_replace( '.js', '.min.js', $file_name );
+			}
+
+			$min_file_name = str_ends_with( $file_name, '.min.js' )
+				? $file_name
+				: substr( $file_name, 0, -3 ) . '.min.js';
+
+			$this->assertFileExists(
+				ABSPATH . WPINC . "/js/dist/script-modules/{$file_name}",
+				"The script module file used with SCRIPT_DEBUG enabled should exist for '{$file_name}'."
+			);
+			$this->assertFileExists(
+				ABSPATH . WPINC . "/js/dist/script-modules/{$min_file_name}",
+				"The minified script module file should exist for '{$file_name}'."
+			);
+		}
+	}
+
+	/**
 	 * Tests expected priority is used when a dependent is registered but not enqueued.
 	 *
 	 * @ticket 64429

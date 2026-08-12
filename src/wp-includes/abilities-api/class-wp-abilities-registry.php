@@ -71,7 +71,12 @@ final class WP_Abilities_Registry {
 	 *             @type bool|null $idempotent  Optional. If true, calling the ability repeatedly with the same arguments
 	 *                                          will have no additional effect on its environment.
 	 *         }
-	 *         @type bool                     $show_in_rest Optional. Whether to expose this ability in the REST API. Default false.
+	 *         @type bool                     $public       Optional. Whether the ability is meant to be available
+	 *                                                      to clients such as the REST API, MCP, or AI agents.
+	 *                                                      Seeds the default for per-channel flags like
+	 *                                                      `$show_in_rest`. Defaults to false.
+	 *         @type bool                     $show_in_rest Optional. Whether to expose this ability in the REST API.
+	 *                                                      Default is the value of `$public` when set, false otherwise.
 	 *     }
 	 *     @type string               $ability_class         Optional. Custom class to instantiate instead of WP_Ability.
 	 * }
@@ -120,7 +125,12 @@ final class WP_Abilities_Registry {
 		 *         Optional. Additional metadata for the ability.
 		 *
 		 *         @type array<string, bool|string> $annotations  Optional. Annotation metadata for the ability.
-		 *         @type bool                       $show_in_rest Optional. Whether to expose this ability in the REST API. Default false.
+		 *         @type bool                       $public       Optional. Whether the ability is meant to be
+		 *                                                        available to clients such as the REST API, MCP, or AI
+		 *                                                        agents. Seeds the default for per-channel flags like
+		 *                                                        `$show_in_rest`. Defaults to false.
+		 *         @type bool                       $show_in_rest Optional. Whether to expose this ability in the REST API.
+		 *                                                        Default is the value of `$public` when set, false otherwise.
 		 *     }
 		 *     @type string               $ability_class         Optional. Custom class to instantiate instead of WP_Ability.
 		 * }

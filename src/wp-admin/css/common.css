@@ -501,6 +501,7 @@ code {
 	border-bottom-width: 0;
 }
 
+.widefat tbody th,
 .widefat td {
 	vertical-align: top;
 }
@@ -514,13 +515,28 @@ code {
 }
 
 .widefat th,
+.widefat tbody td.check-column,
 .widefat thead td,
 .widefat tfoot td {
 	text-align: left;
 	line-height: 1.3em;
+}
+
+.widefat th:not(tbody th),
+.widefat tbody td.check-column,
+.widefat thead td,
+.widefat tfoot td {
 	font-size: 14px;
 }
 
+.widefat td .notice ul li,
+.widefat th .notice ul li {
+	font-size: 13px;
+	line-height: 1.54;
+	margin: 0.5em 0;
+}
+
+.widefat td.check-column input,
 .widefat th input,
 .updates-table td input,
 .widefat thead td input,
@@ -536,12 +552,14 @@ code {
 	vertical-align: top;
 }
 
-.widefat tbody th.check-column {
+.widefat tbody th.check-column,
+.widefat tbody td.check-column {
 	padding: 9px 0 22px;
 }
 
 .widefat thead td.check-column,
 .widefat tbody th.check-column,
+.widefat tbody td.check-column,
 .updates-table tbody td.check-column,
 .widefat tfoot td.check-column {
 	padding: 11px 0 0 3px;
@@ -664,6 +682,7 @@ code {
 
 /* Dashicon for language options on General Settings and Profile screens */
 .form-table th label[for="locale"] .dashicons,
+.form-table th label[for="site-language"] .dashicons,
 .form-table th label[for="WPLANG"] .dashicons {
 	margin-left: 5px;
 }
@@ -1081,6 +1100,8 @@ th.action-links {
 	box-shadow: none;
 	border-bottom: 4px solid var(--wp-admin-theme-color);
 	color: #1d2327;
+	/* Only visible in Windows High Contrast mode */
+	outline: 2px solid transparent;
 }
 
 .filter-links li > a:hover,
@@ -1198,14 +1219,16 @@ th.action-links {
 	overflow: hidden;
 }
 
-.wp-filter .favorites-form .favorites-username {
+.wp-filter .favorites-form .favorites-username,
+.plugin-install-tab-favorites .favorites-username {
 	display: flex;
 	align-items: center;
 	flex-wrap: wrap;
 	gap: 0.5rem;
 }
 
-.wp-filter .favorites-form .favorites-username input {
+.wp-filter .favorites-form .favorites-username input,
+.plugin-install-tab-favorites .favorites-username input {
 	margin: 0;
 }
 
@@ -2605,6 +2628,23 @@ body.iframe {
 	display: block;
 }
 
+.delete-and-reassign-users-form legend {
+	margin: 1em 0;
+	line-height: 1.5;
+	float: inline-start;
+}
+
+.delete-and-reassign-users-form fieldset > fieldset,
+.delete-and-reassign-users-form fieldset > ul {
+	clear: both;
+}
+
+.delete-and-reassign-users-form fieldset:has(select[aria-invalid="true"]):not(fieldset:has(fieldset)) {
+	border-left: 4px solid #cc1818;
+	background: #fcf0f0;
+	padding-left: 12px;
+}
+
 .importers {
 	font-size: 16px;
 	width: auto;
@@ -2787,7 +2827,7 @@ div.action-links {
 #plugin-information-scrollable {
 	overflow: auto;
 	-webkit-overflow-scrolling: touch;
-	height: 100%;
+	height: calc(100% - 67px);
 }
 
 #plugin-information-title {
@@ -3186,11 +3226,6 @@ div.action-links {
 	#plugin-information .fyi h3,
 	#plugin-information .fyi small {
 		display: none;
-	}
-
-	#plugin-information-footer {
-		padding: 12px 16px 0;
-		height: 46px;
 	}
 }
 
