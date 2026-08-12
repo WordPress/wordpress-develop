@@ -302,6 +302,7 @@ class Tests_Template extends WP_UnitTestCase {
 		$this->assertTemplateHierarchy(
 			home_url(),
 			array(
+				'front-page-home.php',
 				'front-page.php',
 				'home.php',
 				'index.php',
@@ -317,6 +318,7 @@ class Tests_Template extends WP_UnitTestCase {
 		$this->assertTemplateHierarchy(
 			home_url(),
 			array(
+				'front-page-static.php',
 				'front-page.php',
 				'page-page-on-front-😀.php',
 				'page-page-on-front-%f0%9f%98%80.php',
