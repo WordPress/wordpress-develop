@@ -24,11 +24,6 @@ parameters:
 			count: 1
 			path: ../../../src/wp-admin/includes/file.php
 		-
-			message: '#^Variable \$_POST in isset\(\) always exists and is not nullable\.$#'
-			identifier: isset.variable
-			count: 1
-			path: ../../../src/wp-admin/includes/media.php
-		-
 			message: '#^Variable \$namespace in isset\(\) always exists and is not nullable\.$#'
 			identifier: isset.variable
 			count: 1
