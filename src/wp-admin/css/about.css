@@ -294,7 +294,6 @@
 	}
 
 	.about__section.has-2-columns.has-gutters .column,
-.about__section.has-2-columns.has-gutters .column,
 	.about__section.has-3-columns.has-gutters .column {
 		margin-bottom: var(--gap);
 	}
