@@ -1656,13 +1656,19 @@ module.exports = function(grunt) {
 	grunt.loadNpmTasks( 'grunt-webpack' );
 
 	// RTL task.
-	grunt.registerTask('rtl', ['rtlcss:core', 'rtlcss:colors']);
+	grunt.registerTask( 'rtl', 'Generates RTL stylesheets for core and the admin color schemes.', [
+		'rtlcss:core',
+		'rtlcss:colors'
+	] );
 
 	// Color schemes task.
-	grunt.registerTask('colors', ['sass:colors', 'postcss:colors']);
+	grunt.registerTask( 'colors', 'Compiles Sass and runs PostCSS for the admin color scheme stylesheets.', [
+		'sass:colors',
+		'postcss:colors'
+	] );
 
 	// JSHint task.
-	grunt.registerTask( 'jshint:corejs', [
+	grunt.registerTask( 'jshint:corejs', 'Runs JSHint against the Gruntfile, tests, bundled themes, and core JavaScript.', [
 		'jshint:grunt',
 		'jshint:tests',
 		'jshint:themes',
@@ -1670,7 +1676,7 @@ module.exports = function(grunt) {
 		'jshint:media'
 	] );
 
-	grunt.registerTask( 'restapi-jsclient', [
+	grunt.registerTask( 'restapi-jsclient', 'Runs the REST API JS client PHPUnit and QUnit test suites.', [
 		'phpunit:restapi-jsclient',
 		'qunit:compiled'
 	] );
@@ -1729,7 +1735,7 @@ module.exports = function(grunt) {
 
 	grunt.renameTask( 'watch', '_watch' );
 
-	grunt.registerTask( 'watch', function() {
+	grunt.registerTask( 'watch', 'Runs the watch task, building assets first when required and configuring the PHPUnit watch target.', function() {
 		if ( ! this.args.length || this.args.indexOf( 'webpack' ) > -1 ) {
 			grunt.task.run( 'build' );
 		}
@@ -1744,11 +1750,11 @@ module.exports = function(grunt) {
 		grunt.task.run( '_' + this.nameArgs );
 	} );
 
-	grunt.registerTask( 'precommit:image', [
+	grunt.registerTask( 'precommit:image', 'Minifies images in preparation for a commit.', [
 		'imagemin:core'
 	] );
 
-	grunt.registerTask( 'precommit:js', [
+	grunt.registerTask( 'precommit:js', 'Builds, lints, type-checks, and tests JavaScript in preparation for a commit.', [
 		'webpack:prod',
 		'jshint:corejs',
 		'typecheck:js',
@@ -1760,16 +1766,16 @@ module.exports = function(grunt) {
 		'qunit:compiled'
 	] );
 
-	grunt.registerTask( 'precommit:css', [
+	grunt.registerTask( 'precommit:css', 'Runs PostCSS on core stylesheets in preparation for a commit.', [
 		'postcss:core'
 	] );
 
-	grunt.registerTask( 'precommit:php', [
+	grunt.registerTask( 'precommit:php', 'Runs PHPStan and PHPUnit in preparation for a commit.', [
 		'phpstan',
 		'phpunit'
 	] );
 
-	grunt.registerTask( 'precommit:emoji', [
+	grunt.registerTask( 'precommit:emoji', 'Refreshes the Twemoji regular expression in preparation for a commit.', [
 		'replace:emoji-regex'
 	] );
 
@@ -1886,14 +1892,14 @@ module.exports = function(grunt) {
 		}
 	} );
 
-	grunt.registerTask( 'copy:js', [
+	grunt.registerTask( 'copy:js', 'Copies core, admin, vendor, and npm package JavaScript files to the build directory.', [
 		'copy:npm-packages',
 		'copy:vendor-js',
 		'copy:admin-js',
 		'copy:includes-js'
 	] );
 
-	grunt.registerTask( 'uglify:all', [
+	grunt.registerTask( 'uglify:all', 'Minifies all core and vendor JavaScript files.', [
 		'uglify:core',
 		'uglify:emoji-loader',
 		'uglify:jquery-ui',
@@ -1904,20 +1910,20 @@ module.exports = function(grunt) {
 		'uglify:wp-polyfill-fetch'
 	] );
 
-	grunt.registerTask( 'build:codemirror', [
+	grunt.registerTask( 'build:codemirror', 'Builds the CodeMirror editor assets: bundles scripts, minifies styles, adds the banner, and copies vendor files.', [
 		'webpack:codemirror',
 		'cssmin:codemirror',
 		'usebanner:codemirror',
 		'copy:codemirror'
 	] );
 
-	grunt.registerTask( 'build:webpack', [
+	grunt.registerTask( 'build:webpack', 'Cleans and rebuilds the Webpack-bundled media and development script assets.', [
 		'clean:webpack-assets',
 		'webpack:prod',
 		'webpack:dev',
 	] );
 
-	grunt.registerTask( 'build:js', [
+	grunt.registerTask( 'build:js', 'Builds all core JavaScript: cleans old files, runs Webpack, copies source files, then minifies and concatenates the result.', [
 		'clean:js',
 		'build:webpack',
 		'copy:js',
@@ -1927,7 +1933,7 @@ module.exports = function(grunt) {
 		'concat:emoji'
 	] );
 
-	grunt.registerTask( 'build:css', [
+	grunt.registerTask( 'build:css', 'Builds all core stylesheets: cleans old files, generates RTL and color-scheme variants, and minifies the result.', [
 		'clean:css',
 		'copy:wp-admin-css-compat-rtl',
 		'copy:wp-admin-css-compat-min',
@@ -2018,30 +2024,30 @@ module.exports = function(grunt) {
 		} );
 	} );
 
-	grunt.registerTask( 'build:certificates', [
+	grunt.registerTask( 'build:certificates', 'Copies the CA certificate bundle into the build.', [
 		'copy:certificates'
 	] );
 
-	grunt.registerTask( 'certificates:upgrade', [
+	grunt.registerTask( 'certificates:upgrade', 'Upgrades the CA certificate bundle package and copies the updated bundle into the build.', [
 		'certificates:upgrade-package',
 		'copy:certificates'
 	] );
 
-	grunt.registerTask( 'build:files', [
+	grunt.registerTask( 'build:files', 'Cleans and copies core PHP, text, and version files into the build directory.', [
 		'clean:files',
 		'copy:files',
 		'copy:version',
 	] );
 
-	grunt.registerTask( 'replace:workflow-references-local-to-remote', [
+	grunt.registerTask( 'replace:workflow-references-local-to-remote', 'Rewrites local GitHub Actions workflow references to point at the remote reusable workflows.', [
 		'copy:workflow-references-local-to-remote',
 	]);
 
-	grunt.registerTask( 'replace:workflow-references-remote-to-local', [
+	grunt.registerTask( 'replace:workflow-references-remote-to-local', 'Rewrites remote GitHub Actions workflow references to point at the local reusable workflows.', [
 		'copy:workflow-references-remote-to-local',
 	]);
 
-	grunt.registerTask( 'post-branching', [
+	grunt.registerTask( 'post-branching', 'Runs the tasks required after cutting a new release branch: removes trunk-only workflows and points the remaining ones at the remote reusable workflows.', [
 		'clean:workflows',
 		'replace:workflow-references-local-to-remote'
 	]);
@@ -2049,7 +2055,7 @@ module.exports = function(grunt) {
 	/**
 	 * Build verification tasks.
 	 */
-	grunt.registerTask( 'verify:build', [
+	grunt.registerTask( 'verify:build', 'Runs all build verification checks.', [
 		'verify:old-files',
 		'verify:source-maps',
 	] );
@@ -2059,7 +2065,7 @@ module.exports = function(grunt) {
 	 *
 	 * @ticket 36083
 	 */
-	grunt.registerTask( 'verify:old-files', function() {
+	grunt.registerTask( 'verify:old-files', 'Asserts that no project files are listed in the build\'s `$_old_files` array.', function() {
 		const file = `${ BUILD_DIR }wp-admin/includes/update-core.php`;
 
 		assert(
@@ -2119,7 +2125,7 @@ module.exports = function(grunt) {
 	 * @ticket 46218
 	 * @ticket 60348
 	 */
-	grunt.registerTask( 'verify:source-maps', function() {
+	grunt.registerTask( 'verify:source-maps', 'Asserts that built JavaScript files do not reference source maps.', function() {
 		const ignoredFiles = [
 			'build/wp-includes/js/dist/components.js',
 			'build/wp-includes/js/dist/data.js',
@@ -2205,7 +2211,7 @@ module.exports = function(grunt) {
 	} );
 
 	// Detects and copies stable routes.
-	grunt.registerTask( 'build:routes', [
+	grunt.registerTask( 'build:routes', 'Detects the Gutenberg route registry and copies the corresponding stable route files.', [
 		'routes:setup',
 		'copy:routes',
 	] );
@@ -2217,7 +2223,7 @@ module.exports = function(grunt) {
 	 *
 	 * Because all of these tasks write to src/, the outcome is identical for build and build:dev.
 	 */
-	grunt.registerTask( 'build:gutenberg', [
+	grunt.registerTask( 'build:gutenberg', 'Refreshes the Gutenberg-sourced content in `src/` from the downloaded build artifact.', [
 		'clean:gutenberg',
 		'copy:gutenberg-php',
 		'build:routes',
@@ -2230,7 +2236,7 @@ module.exports = function(grunt) {
 		'copy:icon-library-manifest',
 	] );
 
-	grunt.registerTask( 'build', function() {
+	grunt.registerTask( 'build', 'Builds WordPress core, either into `src/` for development or into `build/` for distribution.', function() {
 		if ( grunt.option( 'dev' ) ) {
 			grunt.task.run( [
 				'gutenberg:verify',
@@ -2255,7 +2261,7 @@ module.exports = function(grunt) {
 		}
 	} );
 
-	grunt.registerTask( 'prerelease', [
+	grunt.registerTask( 'prerelease', 'Runs all formatting, linting, and test tasks required before a release.', [
 		'format:php:error',
 		'precommit:php',
 		'precommit:js',
@@ -2381,10 +2387,10 @@ module.exports = function(grunt) {
 	grunt.renameTask('patch_wordpress', 'patch');
 
 	// Add an alias `apply` of the `patch` task name.
-	grunt.registerTask('apply', 'patch');
+	grunt.registerTask( 'apply', 'Alias for the `patch` task.', 'patch' );
 
 	// Default task.
-	grunt.registerTask('default', ['build']);
+	grunt.registerTask( 'default', 'Alias for the `build` task; runs when no task is specified.', [ 'build' ] );
 
 	/*
 	 * Automatically updates the `:dynamic` configurations
