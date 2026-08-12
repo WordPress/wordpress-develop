@@ -55,7 +55,7 @@ jobs:
   # Downloads and verifies the Gutenberg build once for all PHPUnit jobs.
   prepare-gutenberg:
     name: Prepare Gutenberg Assets
-    uses: WordPress/wordpress-develop/.github/workflows/reusable-prepare-gutenberg.yml@trunk
+    uses: ./.github/workflows/reusable-prepare-gutenberg.yml
     permissions:
       contents: read
     if: |
@@ -76,7 +76,7 @@ jobs:
   #
   test-with-mysql:
     name: PHP ${{ matrix.php }}
-    uses: WordPress/wordpress-develop/.github/workflows/reusable-phpunit-tests-v3.yml@trunk
+    uses: ./.github/workflows/reusable-phpunit-tests-v3.yml
     needs: prepare-gutenberg
     permissions:
       contents: read
@@ -168,7 +168,7 @@ jobs:
   #
   test-with-mariadb:
     name: PHP ${{ matrix.php }}
-    uses: WordPress/wordpress-develop/.github/workflows/reusable-phpunit-tests-v3.yml@trunk
+    uses: ./.github/workflows/reusable-phpunit-tests-v3.yml
     needs: prepare-gutenberg
     permissions:
       contents: read
@@ -235,7 +235,7 @@ jobs:
   #
   test-innovation-releases:
     name: PHP ${{ matrix.php }}
-    uses: WordPress/wordpress-develop/.github/workflows/reusable-phpunit-tests-v3.yml@trunk
+    uses: ./.github/workflows/reusable-phpunit-tests-v3.yml
     needs: prepare-gutenberg
     permissions:
       contents: read
@@ -291,7 +291,7 @@ jobs:
   #
   html-api-test-groups:
     name: ${{ matrix.label }}
-    uses: WordPress/wordpress-develop/.github/workflows/reusable-phpunit-tests-v3.yml@trunk
+    uses: ./.github/workflows/reusable-phpunit-tests-v3.yml
     needs: prepare-gutenberg
     permissions:
       contents: read
@@ -334,7 +334,7 @@ jobs:
   #
   limited-matrix-for-forks:
     name: PHP ${{ matrix.php }}
-    uses: WordPress/wordpress-develop/.github/workflows/reusable-phpunit-tests-v3.yml@trunk
+    uses: ./.github/workflows/reusable-phpunit-tests-v3.yml
     needs: prepare-gutenberg
     permissions:
       contents: read
@@ -398,7 +398,7 @@ jobs:
 
   slack-notifications:
     name: Slack Notifications
-    uses: WordPress/wordpress-develop/.github/workflows/slack-notifications.yml@trunk
+    uses: ./.github/workflows/slack-notifications.yml
     permissions:
       actions: read
       contents: read

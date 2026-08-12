@@ -48,7 +48,7 @@ jobs:
   # Tests the WordPress Core build process.
   test-core-build-process:
     name: Core running from ${{ matrix.directory }}
-    uses: WordPress/wordpress-develop/.github/workflows/reusable-test-core-build-process.yml@trunk
+    uses: ./.github/workflows/reusable-test-core-build-process.yml
     permissions:
       contents: read
     if: |
@@ -90,7 +90,7 @@ jobs:
   # See https://docs.github.com/en/actions/learn-github-actions/contexts#context-availability.
   test-core-build-process-additional-os:
     name: Core running from ${{ matrix.directory }}
-    uses: WordPress/wordpress-develop/.github/workflows/reusable-test-core-build-process.yml@trunk
+    uses: ./.github/workflows/reusable-test-core-build-process.yml
     permissions:
       contents: read
     if: ${{ github.repository == 'WordPress/wordpress-develop' }}
@@ -105,7 +105,7 @@ jobs:
 
   slack-notifications:
     name: Slack Notifications
-    uses: WordPress/wordpress-develop/.github/workflows/slack-notifications.yml@trunk
+    uses: ./.github/workflows/slack-notifications.yml
     permissions:
       actions: read
       contents: read

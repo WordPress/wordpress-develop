@@ -25,4 +25,4 @@ jobs:
     permissions:
       pull-requests: write
     if: ${{ github.repository == 'WordPress/wordpress-develop' }}
-    uses: WordPress/wordpress-develop/.github/workflows/reusable-cleanup-pull-requests.yml@trunk
+    uses: ./.github/workflows/reusable-cleanup-pull-requests.yml
