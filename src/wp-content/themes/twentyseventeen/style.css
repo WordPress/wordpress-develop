@@ -61,6 +61,44 @@ html {
 	-webkit-text-size-adjust: 100%;
 }
 
+@view-transition {
+	navigation: auto;
+}
+
+/* Mark the `<main>` element as the element that should transition */
+#content {
+  view-transition-name: my-main-content;
+}
+
+/* Apply animations to the snapshots */
+/* Note, `main-content` is the view transition name specified in the previous CSS block */
+::view-transition-old(my-main-content) {
+  animation: 500ms ease-out both slide-out;
+}
+
+::view-transition-new(my-main-content) {
+  animation: 500ms ease-out both slide-in;
+}
+
+/* Define the animations */
+@keyframes slide-out {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-100%);
+  }
+}
+
+@keyframes slide-in {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
 body {
 	margin: 0;
 }
