@@ -275,6 +275,7 @@ class WP_REST_View_Config_Controller_Test extends WP_Test_REST_TestCase {
 		$this->assertSame( 200, $response->get_status() );
 		$this->assertSame( 'postType', $data['kind'] );
 		$this->assertSame( 'page', $data['name'] );
+		$this->assertSame( WP_View_Config_Data::LATEST_VERSION, $data['version'] );
 		$this->assertArrayHasKey( 'default_view', $data );
 		$this->assertArrayHasKey( 'default_layouts', $data );
 		$this->assertArrayHasKey( 'view_list', $data );
@@ -339,18 +340,24 @@ class WP_REST_View_Config_Controller_Test extends WP_Test_REST_TestCase {
 	public function test_empty_objects_inside_view_list_view_serialize_as_json_objects() {
 		wp_set_current_user( self::$editor_id );
 
-		$filter = static function ( $config ) {
-			$config['view_list'][] = array(
-				'title' => 'Custom',
-				'slug'  => 'custom',
-				'view'  => array(
-					'type'   => 'table',
-					'layout' => array(
-						'styles' => array(),
+		$filter = static function ( $data ) {
+			return $data->merge(
+				array(
+					'view_list' => array(
+						array(
+							'slug'  => 'custom',
+							'title' => 'Custom',
+							'view'  => array(
+								'type'   => 'table',
+								'layout' => array(
+									'styles' => array(),
+								),
+							),
+						),
 					),
 				),
+				1
 			);
-			return $config;
 		};
 		add_filter( 'get_entity_view_config_custom_kind_custom_name', $filter );
 
@@ -374,8 +381,33 @@ class WP_REST_View_Config_Controller_Test extends WP_Test_REST_TestCase {
 
 		$this->assertSame( 'view-config', $schema['title'] );
 		$this->assertSameSets(
-			array( 'kind', 'name', 'default_view', 'default_layouts', 'view_list', 'form' ),
+			array( 'kind', 'name', 'version', 'default_view', 'default_layouts', 'view_list', 'form' ),
 			array_keys( $schema['properties'] )
 		);
+	}
+
+	/**
+	 * `search` and `page` are not part of the view schema: they are managed via
+	 * the URL, which is their only source of truth.
+	 *
+	 * @covers ::get_item_schema
+	 */
+	public function test_get_item_schema_excludes_url_managed_view_properties() {
+		$controller = new WP_REST_View_Config_Controller();
+		$schema     = $controller->get_item_schema();
+
+		$views = array(
+			'default_view'             => $schema['properties']['default_view']['properties'],
+			'view_list item view'      => $schema['properties']['view_list']['items']['properties']['view']['properties'],
+			'default_layouts.table'    => $schema['properties']['default_layouts']['properties']['table']['properties'],
+			'default_layouts.grid'     => $schema['properties']['default_layouts']['properties']['grid']['properties'],
+			'default_layouts.list'     => $schema['properties']['default_layouts']['properties']['list']['properties'],
+			'default_layouts.activity' => $schema['properties']['default_layouts']['properties']['activity']['properties'],
+		);
+
+		foreach ( $views as $label => $properties ) {
+			$this->assertArrayNotHasKey( 'search', $properties, "$label should not declare a `search` property." );
+			$this->assertArrayNotHasKey( 'page', $properties, "$label should not declare a `page` property." );
+		}
 	}
 }
