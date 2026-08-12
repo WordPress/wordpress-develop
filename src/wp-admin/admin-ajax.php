@@ -175,6 +175,18 @@ add_action( 'wp_ajax_check_plugin_dependencies', array( 'WP_Plugin_Dependencies'
 
 $action = $_REQUEST['action'];
 
+if ( has_action( "wp_ajax_all_{$action}" ) ) {
+	/**
+	 * Fires both authenticated as well as non-authenticated
+	 * Ajax actions for all users.
+	 *
+	 * The dynamic portion of the hook name, `$action`, refers
+	 * to the name of the Ajax action callback being fired.
+	 */
+	do_action( "wp_ajax_all_{$action}" );
+	wp_die( '0' );
+}
+
 if ( is_user_logged_in() ) {
 	// If no action is registered, return a Bad Request response.
 	if ( ! has_action( "wp_ajax_{$action}" ) ) {
