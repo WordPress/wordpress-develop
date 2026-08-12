@@ -80,6 +80,7 @@ module.exports = {
 		'scss/selector-no-redundant-nesting-selector': null,
 		'@stylistic/max-empty-lines': 1,
 		'@stylistic/max-line-length': null,
+		'@stylistic/selector-descendant-combinator-no-non-space': true,
 		// Keep these lines. Don't change their order otherwise indentation will break.
 		// It's not about a literal 'execution order', but rather a compatibility issue.
 		'@stylistic/block-closing-brace-newline-before': 'always',
