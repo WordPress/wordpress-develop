@@ -646,13 +646,23 @@ function maybe_serialize( $data ) {
  * Unserializes data only if it was serialized.
  *
  * @since 2.0.0
+ * @since 6.8.0 Added 'maybe_unserialize_allowed_classes' filter for PHP Object Injection defense.
  *
  * @param string $data Data that might be unserialized.
  * @return mixed Unserialized data can be any type.
  */
 function maybe_unserialize( $data ) {
 	if ( is_serialized( $data ) ) { // Don't attempt to unserialize data that wasn't serialized going in.
-		return @unserialize( trim( $data ) );
+		/**
+		 * Filters the list of allowed classes that can be unserialized.
+		 *
+		 * @since 6.8.0
+		 *
+		 * @param bool|string[] $allowed_classes Whether to allow all classes (true), no classes (false),
+		 *                                       or specific classes (array of class names). Default true.
+		 */
+		$allowed_classes = apply_filters( 'maybe_unserialize_allowed_classes', true );
+		return @unserialize( trim( $data ), array( 'allowed_classes' => $allowed_classes ) );
 	}
 
 	return $data;
