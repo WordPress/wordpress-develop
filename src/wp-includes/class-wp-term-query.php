@@ -1161,19 +1161,56 @@ class WP_Term_Query {
 	 */
 	protected function generate_cache_key( array $args, $sql ) {
 		global $wpdb;
-		// $args can be anything. Only use the args defined in defaults to compute the key.
-		$cache_args = wp_array_slice_assoc( $args, array_keys( $this->query_var_defaults ) );
-
-		unset( $cache_args['cache_results'], $cache_args['update_term_meta_cache'] );
-
-		if ( 'count' !== $args['fields'] && 'all_with_object_id' !== $args['fields'] ) {
-			$cache_args['fields'] = 'all';
-		}
 
 		// Replace wpdb placeholder in the SQL statement used by the cache key.
 		$sql = $wpdb->remove_placeholder_escape( $sql );
 
-		$key = md5( serialize( $cache_args ) . $sql );
+		/*
+		 * The SQL statement already captures everything that drives the database query
+		 * (taxonomy, orderby, hide_empty + hierarchical combos, LIMIT, JOINs, etc.).
+		 * Only include args that affect PHP-level post-processing of the query results,
+		 * since those are not reflected in the SQL.
+		 */
+
+		// child_of is filtered in PHP via _get_term_children(); it is not always in the SQL.
+		$php_cache_args = array(
+			'child_of' => (int) $args['child_of'],
+		);
+
+		// cache_domain is a caller-controlled key that intentionally separates cache
+		// entries for the same query. It must be included so that callers can opt into
+		// distinct cache buckets even when the SQL is identical.
+		$php_cache_args['cache_domain'] = $args['cache_domain'];
+
+		// pad_counts changes result values via _pad_term_counts() and also changes the
+		// shape of what is stored in the cache ({term_id, count} objects vs. term_ids).
+		$php_cache_args['pad_counts'] = (bool) $args['pad_counts'];
+
+		/*
+		 * PHP empty-term pruning runs only when BOTH hierarchical and hide_empty are truthy
+		 * (see the `$hierarchical && $args['hide_empty']` check in get_terms()). The
+		 * individual values are irrelevant; only the combined boolean result matters.
+		 */
+		$php_cache_args['prune_empty_terms'] = (bool) ( $args['hierarchical'] && $args['hide_empty'] );
+
+		/*
+		 * When a query is hierarchical, SQL does not apply LIMIT/OFFSET (to avoid
+		 * cutting off branches). In that case PHP slices the result set afterward, so
+		 * the actual number and offset values must be part of the key.
+		 */
+		if ( $args['hierarchical'] && $args['number'] ) {
+			$php_cache_args['number'] = (int) $args['number'];
+			$php_cache_args['offset'] = (int) $args['offset'];
+		}
+
+		// fields determines the shape of data stored in, and read from, the cache.
+		if ( 'count' !== $args['fields'] && 'all_with_object_id' !== $args['fields'] ) {
+			$php_cache_args['fields'] = 'all';
+		} else {
+			$php_cache_args['fields'] = $args['fields'];
+		}
+
+		$key = md5( $sql . serialize( $php_cache_args ) );
 
 		return "get_terms:$key";
 	}
