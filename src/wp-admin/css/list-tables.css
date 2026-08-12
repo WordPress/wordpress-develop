@@ -1379,6 +1379,10 @@ ul.cat-checklist input[name="post_category[]"]:indeterminate::before {
 	width: 14.2em;
 }
 
+.plugins .column-last-updated {
+	width: 14.2em;
+}
+
 .plugins .inactive .plugin-title strong {
 	font-weight: 400;
 }
