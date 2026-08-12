@@ -19,15 +19,15 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 
 	private $revisions;
 
-  private WP_Post $revision_1;
-  private int $revision_id1;
-  private WP_Post $revision_2;
-  private int $revision_id2;
-  private WP_Post $revision_3;
-  private int $revision_id3;
-  private WP_Post $revision_initial;
-  private int $revision_initial_id;
-  private int $revision_2_1_id;
+	private WP_Post $revision_1;
+	private int $revision_id1;
+	private WP_Post $revision_2;
+	private int $revision_id2;
+	private WP_Post $revision_3;
+	private int $revision_id3;
+	private WP_Post $revision_initial;
+	private int $revision_initial_id;
+	private int $revision_2_1_id;
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$post_id   = $factory->post->create();
