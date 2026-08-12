@@ -1111,18 +1111,6 @@ class WP_REST_Server {
 			);
 		}
 
-		if ( ! is_wp_error( $error ) ) {
-			$check_required = $request->has_valid_params();
-			if ( is_wp_error( $check_required ) ) {
-				$error = $check_required;
-			} else {
-				$check_sanitized = $request->sanitize_params();
-				if ( is_wp_error( $check_sanitized ) ) {
-					$error = $check_sanitized;
-				}
-			}
-		}
-
 		$response = $this->respond_to_request( $request, $route, $handler, $error );
 		array_pop( $this->dispatching_requests );
 		return $response;
@@ -1267,6 +1255,18 @@ class WP_REST_Server {
 					__( 'Sorry, you are not allowed to do that.' ),
 					array( 'status' => rest_authorization_required_code() )
 				);
+			}
+		}
+
+		if ( ! is_wp_error( $response ) ) {
+			$check_required = $request->has_valid_params();
+			if ( is_wp_error( $check_required ) ) {
+				$response = $check_required;
+			} else {
+				$check_sanitized = $request->sanitize_params();
+				if ( is_wp_error( $check_sanitized ) ) {
+					$response = $check_sanitized;
+				}
 			}
 		}
 
