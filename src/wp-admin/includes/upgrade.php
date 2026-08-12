@@ -281,14 +281,16 @@ if ( ! function_exists( 'wp_install_defaults' ) ) :
 		$first_comment_email  = ! empty( $first_comment_email ) ? $first_comment_email : 'wapuu@wordpress.example';
 		$first_comment_url    = ! empty( $first_comment_url ) ? $first_comment_url : esc_url( __( 'https://wordpress.org/' ) );
 		$first_comment        = ! empty( $first_comment ) ? $first_comment : sprintf(
-			/* translators: %s: Gravatar URL. */
+			/* translators: %1$s: Gravatar URL, %2$s: Learn WordPress URL */
 			__(
 				'Hi, this is a comment.
-To get started with moderating, editing, and deleting comments, please visit the Comments screen in the dashboard.
-Commenter avatars come from <a href="%s">Gravatar</a>.'
+				 To get started with moderating, editing, and deleting comments, please visit the Comments screen in the dashboard.
+				 Commenter avatars come from <a href="%1$s">Gravatar</a>. If you\'re new to WordPress, check these free <a href="%2$s">online courses at Learn WordPress</a>.'
 			),
 			/* translators: The localized Gravatar URL. */
-			esc_url( __( 'https://gravatar.com/' ) )
+			esc_url( __( 'https://gravatar.com/' ) ),
+			/* translators: The localized Learn WordPress URL. */
+			esc_url( __( 'https://learn.wordpress.org/learning-pathway/user/' ) )
 		);
 		$wpdb->insert(
 			$wpdb->comments,
