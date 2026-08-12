@@ -2317,8 +2317,9 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 	 * @covers WP_Customize_Manager::get_excluded_url_paths
 	 */
 	public function test_get_excluded_url_paths_with_subdirectory_install() {
-		$to_subdirectory = static function ( $url ) {
-			return str_replace( '://example.org/', '://example.org/wp-content/subsite/', $url );
+		$home_url        = trailingslashit( home_url() );
+		$to_subdirectory = static function ( $url ) use ( $home_url ) {
+			return str_replace( $home_url, $home_url . 'wp-content/subsite/', $url );
 		};
 		add_filter( 'admin_url', $to_subdirectory );
 		add_filter( 'includes_url', $to_subdirectory );
@@ -2357,7 +2358,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 		add_filter(
 			'content_url',
 			static function () {
-				return 'http://example.org/';
+				return home_url( '/' );
 			}
 		);
 
@@ -2376,10 +2377,11 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 	 */
 	public function test_get_excluded_url_paths_skips_ancestors_of_home_path() {
 		// Simulate a site installed under wp-content whose content directory is the shared parent.
+		$home_url = trailingslashit( home_url() );
 		add_filter(
 			'home_url',
-			static function ( $url ) {
-				return str_replace( '://example.org/', '://example.org/wp-content/subsite/', $url );
+			static function ( $url ) use ( $home_url ) {
+				return str_replace( $home_url, $home_url . 'wp-content/subsite/', $url );
 			}
 		);
 
