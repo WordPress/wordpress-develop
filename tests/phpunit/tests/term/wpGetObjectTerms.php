@@ -781,9 +781,7 @@ class Tests_Term_WpGetObjectTerms extends WP_UnitTestCase {
 		);
 
 		$this->assertNotEmpty( $found );
-		foreach ( $found as $f ) {
-			$this->assertInstanceOf( 'WP_Term', $f );
-		}
+		$this->assertContainsOnlyInstancesOf( 'WP_Term', $found );
 	}
 
 	/**
@@ -804,9 +802,7 @@ class Tests_Term_WpGetObjectTerms extends WP_UnitTestCase {
 		);
 
 		$this->assertNotEmpty( $found );
-		foreach ( $found as $f ) {
-			$this->assertInstanceOf( 'WP_Term', $f );
-		}
+		$this->assertContainsOnlyInstancesOf( 'WP_Term', $found );
 	}
 
 	/**
