@@ -619,6 +619,7 @@ code {
 .wrap h1.wp-heading-inline {
 	display: inline-block;
 	margin-right: 5px;
+	word-break: break-all;
 }
 
 .wp-header-end {
