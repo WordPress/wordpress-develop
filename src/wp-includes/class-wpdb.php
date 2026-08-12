@@ -1291,6 +1291,12 @@ class wpdb {
 	/**
 	 * Escapes data. Works on arrays.
 	 *
+	 * The final `mixed[]` branch is not reachable via the documented parameter type. It exists
+	 * because the nested `is_array()` check below still recurses on nested arrays, which is
+	 * outside the documented `string[]` contract. PHPStan does not treat the documented types
+	 * as certain, so it analyzes that branch and widens `$data` accordingly; without the
+	 * `mixed[]` branch the widened value would contradict a flat `string[]` return type.
+	 *
 	 * @since 2.8.0
 	 *
 	 * @uses wpdb::_real_escape()
@@ -1298,9 +1304,11 @@ class wpdb {
 	 * @param string|string[] $data Data to escape.
 	 * @return string|string[] Escaped data, in the same type as supplied.
 	 *
-	 * @phpstan-template T of string|string[]
-	 * @phpstan-param T $data
-	 * @phpstan-return T
+	 * @phpstan-return (
+	 *     $data is string ? string : (
+	 *         $data is string[] ? string[] : mixed[]
+	 *     )
+	 * )
 	 */
 	public function _escape( $data ) {
 		if ( is_array( $data ) ) {
