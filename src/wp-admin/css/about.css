@@ -603,7 +603,7 @@
 	padding-right: 26rem; /* Space for the background image. */
 	min-height: clamp(10rem, 25vw, 18.75rem);
 	border-radius: var(--border-radius);
-	background-image: url(https://peterwilson.cc/content/_wp_71_about/about-header-default.svg?ver=20260804);
+	background-image: url(https://peterwilson.cc/content/_wp_71_about/about-header-default.svg?ver=20260813);
 	background-repeat: no-repeat;
 	background-position: right center;
 	background-size: cover;
@@ -613,39 +613,39 @@
 }
 
 .credits-php .about__header {
-	background-image: url(https://peterwilson.cc/content/_wp_71_about/about-header-credits.svg?ver=20260804);
+	background-image: url(https://peterwilson.cc/content/_wp_71_about/about-header-credits.svg?ver=20260813);
 }
 
 .freedoms-php .about__header {
-	background-image: url(https://peterwilson.cc/content/_wp_71_about/about-header-freedoms.svg?ver=20260804);
+	background-image: url(https://peterwilson.cc/content/_wp_71_about/about-header-freedoms.svg?ver=20260813);
 }
 
 .privacy-php .about__header {
-	background-image: url(https://peterwilson.cc/content/_wp_71_about/about-header-privacy.svg?ver=20260804);
+	background-image: url(https://peterwilson.cc/content/_wp_71_about/about-header-privacy.svg?ver=20260813);
 }
 
 .contribute-php .about__header {
-	background-image: url(https://peterwilson.cc/content/_wp_71_about/about-header-get-involved.svg?ver=20260804);
+	background-image: url(https://peterwilson.cc/content/_wp_71_about/about-header-get-involved.svg?ver=20260813);
 }
 
 [dir="rtl"] .about__header {
-	background-image: url(https://peterwilson.cc/content/_wp_71_about/about-header-default-rtl.svg?ver=20260804);
+	background-image: url(https://peterwilson.cc/content/_wp_71_about/about-header-default-rtl.svg?ver=20260813);
 }
 
 [dir="rtl"] .credits-php .about__header {
-	background-image: url(https://peterwilson.cc/content/_wp_71_about/about-header-credits-rtl.svg?ver=20260804);
+	background-image: url(https://peterwilson.cc/content/_wp_71_about/about-header-credits-rtl.svg?ver=20260813);
 }
 
 [dir="rtl"] .freedoms-php .about__header {
-	background-image: url(https://peterwilson.cc/content/_wp_71_about/about-header-freedoms-rtl.svg?ver=20260804);
+	background-image: url(https://peterwilson.cc/content/_wp_71_about/about-header-freedoms-rtl.svg?ver=20260813);
 }
 
 [dir="rtl"] .privacy-php .about__header {
-	background-image: url(https://peterwilson.cc/content/_wp_71_about/about-header-privacy-rtl.svg?ver=20260804);
+	background-image: url(https://peterwilson.cc/content/_wp_71_about/about-header-privacy-rtl.svg?ver=20260813);
 }
 
 [dir="rtl"] .contribute-php .about__header {
-	background-image: url(https://peterwilson.cc/content/_wp_71_about/about-header-get-involved-rtl.svg?ver=20260804);
+	background-image: url(https://peterwilson.cc/content/_wp_71_about/about-header-get-involved-rtl.svg?ver=20260813);
 }
 
 .about__header-image {
