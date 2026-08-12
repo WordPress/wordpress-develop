@@ -244,15 +244,7 @@ function get_pending_comments_num( $post_id ) {
 	$post_id_array = array_map( 'intval', $post_id_array );
 	$post_id_in    = "'" . implode( "', '", $post_id_array ) . "'";
 
-	$excluded_types = wp_get_default_excluded_comment_types();
-
-	$type_not_in = '';
-	if ( $excluded_types ) {
-		$type_not_in = $wpdb->prepare(
-			sprintf( ' AND comment_type NOT IN ( %s )', implode( ', ', array_fill( 0, count( $excluded_types ), '%s' ) ) ),
-			$excluded_types
-		);
-	}
+	$type_not_in = _wp_get_excluded_comment_types_clause();
 
 	// $post_id_in is built from integers and $type_not_in is prepared above.
 	// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared

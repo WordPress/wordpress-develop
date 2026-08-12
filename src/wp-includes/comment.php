@@ -3105,8 +3105,8 @@ function wp_update_comment_count( $post_id, $do_deferred = false ) {
  * @since 7.1.0
  *
  * @param WP_Comment_Query|null $query Optional. The current query instance when called
- *                                     from WP_Comment_Query, or null in counting
- *                                     contexts. Default null.
+ *                                     from WP_Comment_Query, or null when the set is
+ *                                     resolved outside of a comment query. Default null.
  * @return string[] Comment types excluded by default.
  */
 function wp_get_default_excluded_comment_types( $query = null ) {
@@ -3120,20 +3120,28 @@ function wp_get_default_excluded_comment_types( $query = null ) {
 	 * This allows plugins to keep comment types out of standard comment
 	 * listings and counts by default, without having to filter every
 	 * query individually. The 'note' comment type, used by the editor, is
-	 * excluded by default. The same set is applied when recalculating a
-	 * post's stored comment count in wp_update_comment_count_now() and when
-	 * counting pending comments, so an excluded type does not inflate
-	 * get_comments_number().
+	 * excluded by default. The same set is applied when recalculating a post's
+	 * stored comment count in wp_update_comment_count_now(), when counting
+	 * pending comments, and when building the comment feed queries, so an
+	 * excluded type neither inflates get_comments_number() nor appears in
+	 * /comments/feed/.
 	 *
 	 * Values must be literal `comment_type` values as stored in the database;
 	 * the special type tokens understood by WP_Comment_Query ('all', 'comment',
 	 * 'comments', 'pings') are ignored, as are values that are not scalar.
 	 *
 	 * Register callbacks for this filter unconditionally (for example on
-	 * 'plugins_loaded' or 'init') rather than toggling them per call: query
-	 * results are cached against the comment `last_changed` key, which does not
-	 * account for this filter's output, so per-call toggling can serve stale
-	 * results from the cache.
+	 * 'plugins_loaded' or 'init') rather than toggling them per call. Query
+	 * results are cached against the filtered set, so toggling does not serve
+	 * stale results, but each distinct set is cached separately.
+	 *
+	 * A plugin that starts excluding a type which already has comments in the
+	 * database should recount the affected posts on activation, and again on
+	 * deactivation: stored `wp_posts.comment_count` values and the 'counts' cache
+	 * group are only refreshed when a comment is created, updated, or deleted, so
+	 * until then get_comments_number() and the admin count bubbles keep reporting
+	 * the pre-filter totals. Call wp_update_comment_count_now() for each post that
+	 * has a comment of the type.
 	 *
 	 * This exclusion is a default-visibility convenience, not an access-control
 	 * mechanism: callers can still retrieve excluded types explicitly (for
@@ -3145,9 +3153,10 @@ function wp_get_default_excluded_comment_types( $query = null ) {
 	 *
 	 * @param string[]              $excluded_types Comment types excluded from query results by default.
 	 *                                              Default array contains the 'note' type.
-	 * @param WP_Comment_Query|null $query          The WP_Comment_Query instance, or null in counting
-	 *                                              contexts (recalculating a post's stored comment
-	 *                                              count, counting pending comments).
+	 * @param WP_Comment_Query|null $query          The WP_Comment_Query instance, or null when the set is
+	 *                                              resolved outside of a comment query (recalculating a
+	 *                                              post's stored comment count, counting pending comments,
+	 *                                              building a comment feed query).
 	 */
 	$excluded_types = apply_filters( 'default_excluded_comment_types', array( 'note' ), $query );
 
@@ -3158,6 +3167,41 @@ function wp_get_default_excluded_comment_types( $query = null ) {
 
 	// Strip the special type tokens so an alias cannot poison explicit-type queries.
 	return array_values( array_diff( $excluded_types, array( 'all', 'comment', 'comments', 'pings' ) ) );
+}
+
+/**
+ * Builds the SQL condition that excludes the default-excluded comment types.
+ *
+ * For the comment queries that are assembled directly rather than through
+ * WP_Comment_Query - the comment feeds and the comment counters - so that they all
+ * honor the same {@see 'default_excluded_comment_types'} filter output.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @global wpdb $wpdb WordPress database abstraction object.
+ *
+ * @param string $column Optional. The `comment_type` column to filter on, qualified with a
+ *                       table name where the query joins other tables. Must not contain
+ *                       user input. Default 'comment_type'.
+ * @return string Prepared ` AND <column> NOT IN (...)` condition, or an empty string when
+ *                no comment types are excluded.
+ */
+function _wp_get_excluded_comment_types_clause( $column = 'comment_type' ) {
+	global $wpdb;
+
+	$excluded_types = wp_get_default_excluded_comment_types();
+
+	if ( ! $excluded_types ) {
+		return '';
+	}
+
+	$placeholders = implode( ', ', array_fill( 0, count( $excluded_types ), '%s' ) );
+	$clause       = sprintf( ' AND %s NOT IN ( %s )', $column, $placeholders );
+
+	// The column name comes from core call sites; the type values are prepared here.
+	// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+	return $wpdb->prepare( $clause, $excluded_types );
 }
 
 /**
@@ -3204,26 +3248,14 @@ function wp_update_comment_count_now( $post_id ) {
 	$new = apply_filters( 'pre_wp_update_comment_count_now', null, $old, $post_id );
 
 	if ( is_null( $new ) ) {
-		$excluded_types = wp_get_default_excluded_comment_types();
+		$type_not_in = _wp_get_excluded_comment_types_clause();
 
-		if ( $excluded_types ) {
-			$new = (int) $wpdb->get_var(
-				$wpdb->prepare(
-					sprintf(
-						"SELECT COUNT(*) FROM $wpdb->comments WHERE comment_post_ID = %%d AND comment_approved = '1' AND comment_type NOT IN (%s)",
-						implode( ', ', array_fill( 0, count( $excluded_types ), '%s' ) )
-					),
-					array_merge( array( $post_id ), $excluded_types )
-				)
-			);
-		} else {
-			$new = (int) $wpdb->get_var(
-				$wpdb->prepare(
-					"SELECT COUNT(*) FROM $wpdb->comments WHERE comment_post_ID = %d AND comment_approved = '1'",
-					$post_id
-				)
-			);
-		}
+		$new = (int) $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT COUNT(*) FROM $wpdb->comments WHERE comment_post_ID = %d AND comment_approved = '1'",
+				$post_id
+			) . $type_not_in
+		);
 	} else {
 		$new = (int) $new;
 	}
