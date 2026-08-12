@@ -1086,6 +1086,8 @@ function get_comment_pages_count( $comments = null, $per_page = null, $threaded 
  * Calculates what page number a comment will appear on for comment paging.
  *
  * @since 2.7.0
+ * @since 7.1.0 The default 'type' changed from 'all' to '', so that the page math
+ *              applies the same default exclusions as the rendered comment list.
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
@@ -1095,7 +1097,10 @@ function get_comment_pages_count( $comments = null, $per_page = null, $threaded 
  *
  *     @type string     $type      Limit paginated comments to those matching a given type.
  *                                 Accepts 'comment', 'trackback', 'pingback', 'pings'
- *                                 (trackbacks and pingbacks), or 'all'. Default 'all'.
+ *                                 (trackbacks and pingbacks), or 'all'. An empty string
+ *                                 counts every type except those excluded by default, which
+ *                                 is what comments_template() renders. Pass 'all' to count
+ *                                 the excluded types as well. Default empty string.
  *     @type int        $per_page  Per-page count to use when calculating pagination.
  *                                 Defaults to the value of the 'comments_per_page' option.
  *     @type int|string $max_depth If greater than 1, comment page will be determined
@@ -1114,8 +1119,13 @@ function get_page_of_comment( $comment_id, $args = array() ) {
 		return null;
 	}
 
+	/*
+	 * The default type is empty rather than 'all' so the comments counted here are the
+	 * ones comments_template() actually renders. Counting the default-excluded types
+	 * would put a comment's permalink on a page the visitor never sees.
+	 */
 	$defaults      = array(
-		'type'      => 'all',
+		'type'      => '',
 		'page'      => '',
 		'per_page'  => '',
 		'max_depth' => '',
@@ -1195,7 +1205,9 @@ function get_page_of_comment( $comment_id, $args = array() ) {
 		 *
 		 *     @type string $type               Limit paginated comments to those matching a given type.
 		 *                                      Accepts 'comment', 'trackback', 'pingback', 'pings'
-		 *                                      (trackbacks and pingbacks), or 'all'. Default 'all'.
+		 *                                      (trackbacks and pingbacks), or 'all'. An empty string
+		 *                                      counts every type except those excluded by default.
+		 *                                      Default empty string.
 		 *     @type int    $post_id            ID of the post.
 		 *     @type string $fields             Comment fields to return.
 		 *     @type bool   $count              Whether to return a comment count (true) or array
