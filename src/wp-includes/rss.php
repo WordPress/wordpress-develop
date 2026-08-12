@@ -13,6 +13,11 @@
  * @deprecated 3.0.0 Use SimplePie instead.
  */
 
+// Don't load directly.
+if ( ! defined( 'ABSPATH' ) ) {
+	die( '-1' );
+}
+
 /**
  * Deprecated. Use SimplePie (class-simplepie.php) instead.
  */
