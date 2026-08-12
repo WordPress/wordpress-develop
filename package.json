@@ -1,13 +1,13 @@
 {
 	"name": "WordPress",
-	"version": "7.1.0",
+	"version": "7.2.0",
 	"description": "WordPress is open source software you can use to create a beautiful website, blog, or app.",
 	"repository": {
 		"type": "svn",
 		"url": "https://develop.svn.wordpress.org/trunk"
 	},
 	"gutenberg": {
-		"sha": "4997026b75c922d8a6f77a03d72ed7cad04c7073",
+		"sha": "ea285b45692aed6c4f95353671393402f97f0aa7",
 		"ghcrRepo": "WordPress/gutenberg/gutenberg-wp-develop-build"
 	},
 	"engines": {
@@ -112,6 +112,9 @@
 		"whatwg-fetch": "3.6.20",
 		"wicg-inert": "3.1.3"
 	},
+	"overrides": {
+		"zod": "3.25.1"
+	},
 	"scripts": {
 		"build": "grunt build",
 		"build:dev": "grunt build --dev",
@@ -138,7 +141,8 @@
 		"test:coverage": "npm run test:php -- --coverage-html ./coverage/html/ --coverage-php ./coverage/php/report.php --coverage-text=./coverage/text/report.txt",
 		"test:e2e": "wp-scripts test-playwright --config tests/e2e/playwright.config.js",
 		"test:visual": "wp-scripts test-playwright --config tests/visual-regression/playwright.config.js",
-		"typecheck:php": "node ./tools/local-env/scripts/docker.js run --rm php composer phpstan",
+		"typecheck:php": "node ./tools/local-env/scripts/docker.js run --rm php composer phpstan --",
+		"typecheck:php:baselines": "node ./tools/local-env/scripts/docker.js run --rm php composer phpstan:baselines --",
 		"gutenberg:copy": "node tools/gutenberg/copy.js",
 		"gutenberg:verify": "node tools/gutenberg/utils.js",
 		"gutenberg:download": "node tools/gutenberg/download.js && grunt build:gutenberg"
