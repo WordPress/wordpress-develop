@@ -5897,6 +5897,11 @@ function wp_show_heic_upload_error( $plupload_settings ) {
  * @phpstan-return array{ 0: int, 1: int, 2: int, 3: string, mime: string, bits?: int, channels?: int }|false
  */
 function wp_getimagesize( $filename, ?array &$image_info = null ) {
+	// We can't read what doesn't exist.
+	if ( ! is_readable( $filename ) ) {
+		return false;
+	}
+
 	// Don't silence errors when in debug mode, unless running unit tests.
 	if ( defined( 'WP_DEBUG' ) && WP_DEBUG && ! defined( 'WP_RUN_CORE_TESTS' ) ) {
 		if ( 2 === func_num_args() ) {
