@@ -1129,17 +1129,7 @@ parameters:
 			count: 1
 			path: ../../../src/wp-includes/class-wp-image-editor-imagick.php
 		-
-			message: '#^Parameter \#2 \$value of method Imagick\:\:setOption\(\) expects string, false given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/wp-includes/class-wp-image-editor-imagick.php
-		-
 			message: '#^Parameter \#2 \$value of method Imagick\:\:setOption\(\) expects string, int given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/wp-includes/class-wp-image-editor-imagick.php
-		-
-			message: '#^Parameter \#2 \$value of method Imagick\:\:setOption\(\) expects string, true given\.$#'
 			identifier: argument.type
 			count: 1
 			path: ../../../src/wp-includes/class-wp-image-editor-imagick.php
