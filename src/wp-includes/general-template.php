@@ -2587,13 +2587,21 @@ function get_calendar( $args = array() ) {
 		}
 	}
 
-	// week_begins = 0 stands for Sunday.
-	$week_begins = (int) get_option( 'start_of_week' );
+	if ( isset( $_GET['w'] ) ) {
+		$w = (int) $_GET['w'];
+		if ( $w >= 52 ) {
+			$w = null;
+		}
+	}
 
 	// Let's figure out when we are.
 	if ( ! empty( $monthnum ) && ! empty( $year ) ) {
-		$thismonth = (int) $monthnum;
-		$thisyear  = (int) $year;
+		$thismonth = zeroise( (int) $monthnum, 2 );
+		if ( $thismonth < 1 || $thismonth > 12 ) {
+			$thismonth = current_time( 'm' );
+		}
+		$thisyear = (int) $year;
+
 	} elseif ( ! empty( $w ) ) {
 		// We need to get the month from MySQL.
 		$thisyear = (int) substr( $m, 0, 4 );
@@ -2662,7 +2670,9 @@ function get_calendar( $args = array() ) {
 	<thead>
 	<tr>';
 
-	$myweek = array();
+	// week_begins = 0 stands for Sunday.
+	$week_begins = (int) get_option( 'start_of_week' );
+	$myweek      = array();
 
 	for ( $wdcount = 0; $wdcount <= 6; $wdcount++ ) {
 		$myweek[] = $wp_locale->get_weekday( ( $wdcount + $week_begins ) % 7 );
