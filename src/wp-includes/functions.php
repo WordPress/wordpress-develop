@@ -1132,13 +1132,13 @@ function _http_build_query( $data, $prefix = null, $sep = null, $key = '', $urle
 function add_query_arg( ...$args ) {
 	if ( is_array( $args[0] ) ) {
 		if ( count( $args ) < 2 || false === $args[1] ) {
-			$uri = $_SERVER['REQUEST_URI'];
+			$uri = network_home_url( $_SERVER['REQUEST_URI'] );
 		} else {
 			$uri = $args[1];
 		}
 	} else {
 		if ( count( $args ) < 3 || false === $args[2] ) {
-			$uri = $_SERVER['REQUEST_URI'];
+			$uri = network_home_url( $_SERVER['REQUEST_URI'] );
 		} else {
 			$uri = $args[2];
 		}
@@ -7385,7 +7385,7 @@ function wp_auth_check_load() {
  */
 function wp_auth_check_html() {
 	$login_url      = wp_login_url();
-	$current_domain = ( is_ssl() ? 'https://' : 'http://' ) . $_SERVER['HTTP_HOST'];
+	$current_domain = network_home_url();
 	$same_domain    = str_starts_with( $login_url, $current_domain );
 
 	/**
