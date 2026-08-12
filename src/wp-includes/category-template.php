@@ -1194,16 +1194,19 @@ function get_the_tags( $post = 0 ) {
  * Retrieves the tags for a post formatted as a string.
  *
  * @since 2.3.0
+ * @since 6.8.0 Added the `$tag_template` parameter.
  *
- * @param string $before  Optional. String to use before the tags. Default empty.
- * @param string $sep     Optional. String to use between the tags. Default empty.
- * @param string $after   Optional. String to use after the tags. Default empty.
- * @param int    $post_id Optional. Post ID. Defaults to the current post ID.
+ * @param string $before        Optional. String to use before the tags. Default empty.
+ * @param string $sep           Optional. String to use between the tags. Default empty.
+ * @param string $after         Optional. String to use after the tags. Default empty.
+ * @param int    $post_id       Optional. Post ID. Defaults to the current post ID.
+ * @param string $tag_template  Optional. Template for displaying a single tag in the list.
+ *                              Default '<a href="%1$s" rel="tag">%2$s</a>'.
  * @return string|false|WP_Error A list of tags on success, false if there are no terms,
  *                               WP_Error on failure.
  */
-function get_the_tag_list( $before = '', $sep = '', $after = '', $post_id = 0 ) {
-	$tag_list = get_the_term_list( $post_id, 'post_tag', $before, $sep, $after );
+function get_the_tag_list( $before = '', $sep = '', $after = '', $post_id = 0, $tag_template = '<a href="%1$s" rel="tag">%2$s</a>' ) {
+	$tag_list = get_the_term_list( $post_id, 'post_tag', $before, $sep, $after, $tag_template );
 
 	/**
 	 * Filters the tags list for a given post.
@@ -1326,16 +1329,19 @@ function get_the_terms( $post, $taxonomy ) {
  * Terms are linked to their respective term listing pages.
  *
  * @since 2.5.0
+ * @since 6.8.0 Added the `$term_template` parameter.
  *
- * @param int    $post_id  Post ID.
- * @param string $taxonomy Taxonomy name.
- * @param string $before   Optional. String to use before the terms. Default empty.
- * @param string $sep      Optional. String to use between the terms. Default empty.
- * @param string $after    Optional. String to use after the terms. Default empty.
+ * @param int    $post_id       Post ID.
+ * @param string $taxonomy      Taxonomy name.
+ * @param string $before        Optional. String to use before the terms. Default empty.
+ * @param string $sep           Optional. String to use between the terms. Default empty.
+ * @param string $after         Optional. String to use after the terms. Default empty.
+ * @param string $term_template Optional. Template for displaying a single term in the list.
+ *                              Default '<a href="%1$s" rel="tag">%2$s</a>'.
  * @return string|false|WP_Error A list of terms on success, false if there are no terms,
  *                               WP_Error on failure.
  */
-function get_the_term_list( $post_id, $taxonomy, $before = '', $sep = '', $after = '' ) {
+function get_the_term_list( $post_id, $taxonomy, $before = '', $sep = '', $after = '', $term_template = '<a href="%1$s" rel="tag">%2$s</a>' ) {
 	$terms = get_the_terms( $post_id, $taxonomy );
 
 	if ( is_wp_error( $terms ) ) {
@@ -1353,7 +1359,7 @@ function get_the_term_list( $post_id, $taxonomy, $before = '', $sep = '', $after
 		if ( is_wp_error( $link ) ) {
 			return $link;
 		}
-		$links[] = '<a href="' . esc_url( $link ) . '" rel="tag">' . $term->name . '</a>';
+		$links[] = sprintf( $term_template, esc_url( $link ), esc_html( $term->name ) );
 	}
 
 	/**
@@ -1446,16 +1452,19 @@ function get_term_parents_list( $term_id, $taxonomy, $args = array() ) {
  * Displays the terms for a post in a list.
  *
  * @since 2.5.0
+ * @since 6.8.0 Added the `$term_template` parameter.
  *
- * @param int    $post_id  Post ID.
- * @param string $taxonomy Taxonomy name.
- * @param string $before   Optional. String to use before the terms. Default empty.
- * @param string $sep      Optional. String to use between the terms. Default ', '.
- * @param string $after    Optional. String to use after the terms. Default empty.
+ * @param int    $post_id       Post ID.
+ * @param string $taxonomy      Taxonomy name.
+ * @param string $before        Optional. String to use before the terms. Default empty.
+ * @param string $sep           Optional. String to use between the terms. Default empty.
+ * @param string $after         Optional. String to use after the terms. Default empty.
+ * @param string $term_template Optional. Template for displaying a single term in the list.
+ *                              Default '<a href="%1$s" rel="tag">%2$s</a>'.
  * @return void|false Void on success, false on failure.
  */
-function the_terms( $post_id, $taxonomy, $before = '', $sep = ', ', $after = '' ) {
-	$term_list = get_the_term_list( $post_id, $taxonomy, $before, $sep, $after );
+function the_terms( $post_id = 0, $taxonomy, $before = '', $sep = '', $after = '', $term_template = '<a href="%1$s" rel="tag">%2$s</a>' ) {
+	$term_list = get_the_term_list( $post_id, $taxonomy, $before, $sep, $after, $term_template );
 
 	if ( is_wp_error( $term_list ) ) {
 		return false;
