@@ -2432,7 +2432,7 @@ class WP_Theme_JSON {
 	 *     background: value;
 	 *   }
 	 *
-	 *   p.has-value-gradient-background {
+	 *   :where(p).has-value-gradient-background {
 	 *     background: value;
 	 *   }
 	 *
@@ -2613,6 +2613,7 @@ class WP_Theme_JSON {
 	 * @since 5.8.0
 	 * @since 5.9.0 Added the `$origins` parameter.
 	 * @since 6.6.0 Added check for root CSS properties selector.
+	 * @since 7.1.0 Wraps block-level preset classes in `:where()` to match root-level specificity.
 	 *
 	 * @param array    $settings Settings to process.
 	 * @param string   $selector Selector wrapping the classes.
@@ -2639,8 +2640,16 @@ class WP_Theme_JSON {
 					$css_var    = static::replace_slug_in_string( $preset_metadata['css_vars'], $slug );
 					$class_name = static::replace_slug_in_string( $class, $slug );
 
-					// $selector is often empty, so we can save ourselves the `append_to_selector()` call then.
-					$new_selector = '' === $selector ? $class_name : static::append_to_selector( $selector, $class_name );
+					/*
+					 * $selector is often empty (root-level presets), in which case the
+					 * bare class is used. For block-level presets the block selector is
+					 * wrapped in `:where()` so the class keeps the same 0-1-0 specificity
+					 * as a root-level preset. Without this, block-level palette rules
+					 * (e.g. `p.has-x-color`) out-rank equally-important rules that also
+					 * target the same property at 0-1-0, such as per-instance responsive
+					 * state styles.
+					 */
+					$new_selector = '' === $selector ? $class_name : ':where(' . $selector . ')' . $class_name;
 					$stylesheet  .= static::to_ruleset(
 						$new_selector,
 						array(
@@ -3706,22 +3715,45 @@ class WP_Theme_JSON {
 					}
 				}
 			}
-			if ( isset( $theme_json['styles']['blocks'][ $name ]['elements'] ) ) {
-				foreach ( $theme_json['styles']['blocks'][ $name ]['elements'] as $element => $node ) {
+			/*
+			 * Elements can be styled outside any breakpoint, inside one, or both,
+			 * so collect the names from all of those places before looping. An
+			 * element styled only inside a breakpoint still needs a node.
+			 */
+			$block_node    = $theme_json['styles']['blocks'][ $name ] ?? array();
+			$element_names = array_keys( $block_node['elements'] ?? array() );
+			foreach ( array_keys( $responsive_media_queries ) as $breakpoint ) {
+				$element_names = array_merge(
+					$element_names,
+					array_keys( $block_node[ $breakpoint ]['elements'] ?? array() )
+				);
+			}
+			$element_names = array_unique( $element_names );
+
+			if ( ! empty( $element_names ) ) {
+				foreach ( $element_names as $element ) {
 					$element_path = array( 'styles', 'blocks', $name, 'elements', $element );
 					if ( $include_node_paths_only ) {
-						$nodes[] = array(
-							'path' => $element_path,
-						);
+						if ( isset( $block_node['elements'][ $element ] ) ) {
+							$nodes[] = array(
+								'path' => $element_path,
+							);
+						}
+						continue;
+					}
+
+					if ( ! isset( $selectors[ $name ]['elements'][ $element ] ) ) {
 						continue;
 					}
 
 					$element_selector = $selectors[ $name ]['elements'][ $element ];
 
-					$nodes[] = array(
-						'path'     => $element_path,
-						'selector' => $element_selector,
-					);
+					if ( isset( $block_node['elements'][ $element ] ) ) {
+						$nodes[] = array(
+							'path'     => $element_path,
+							'selector' => $element_selector,
+						);
+					}
 
 					// Responsive element nodes: one node per breakpoint that has
 					// styles for this element. Cascade: a{} → @media{a{}}
@@ -3738,42 +3770,26 @@ class WP_Theme_JSON {
 					// Handle any pseudo selectors for the element.
 					if ( isset( static::VALID_ELEMENT_PSEUDO_SELECTORS[ $element ] ) ) {
 						foreach ( static::VALID_ELEMENT_PSEUDO_SELECTORS[ $element ] as $pseudo_selector ) {
-							// Create element pseudo node if default or any responsive breakpoint has the pseudo.
-							$has_element_pseudo = isset( $theme_json['styles']['blocks'][ $name ]['elements'][ $element ][ $pseudo_selector ] );
-							if ( ! $has_element_pseudo ) {
-								foreach ( array_keys( $responsive_media_queries ) as $bp ) {
-									if ( isset( $theme_json['styles']['blocks'][ $name ][ $bp ]['elements'][ $element ][ $pseudo_selector ] ) ) {
-										$has_element_pseudo = true;
-										break;
-									}
-								}
-							}
-
-							if ( $has_element_pseudo ) {
-								$element_pseudo_path = array( 'styles', 'blocks', $name, 'elements', $element );
-								if ( $include_node_paths_only ) {
-									$nodes[] = array(
-										'path' => $element_pseudo_path,
-									);
-									continue;
-								}
-
+							// Emit the default pseudo node only when the default state styles
+							// the pseudo. Otherwise get_styles_for_block() falls back to the
+							// element's base styles, outputting a rule the theme never defined.
+							if ( isset( $theme_json['styles']['blocks'][ $name ]['elements'][ $element ][ $pseudo_selector ] ) ) {
 								$nodes[] = array(
-									'path'     => $element_pseudo_path,
+									'path'     => array( 'styles', 'blocks', $name, 'elements', $element ),
 									'selector' => static::append_to_selector( $element_selector, $pseudo_selector ),
 								);
+							}
 
-								// Responsive element pseudo nodes: one node per breakpoint
-								// that has this pseudo state for this element.
-								// Cascade: a:hover{} → @media{a:hover{}}
-								foreach ( array_keys( $responsive_media_queries ) as $breakpoint ) {
-									if ( isset( $theme_json['styles']['blocks'][ $name ][ $breakpoint ]['elements'][ $element ][ $pseudo_selector ] ) ) {
-										$nodes[] = array(
-											'path'        => array( 'styles', 'blocks', $name, $breakpoint, 'elements', $element ),
-											'selector'    => static::append_to_selector( $element_selector, $pseudo_selector ),
-											'media_query' => $responsive_media_queries[ $breakpoint ],
-										);
-									}
+							// Responsive element pseudo nodes: one node per breakpoint
+							// that has this pseudo state for this element.
+							// Cascade: a:hover{} → @media{a:hover{}}
+							foreach ( array_keys( $responsive_media_queries ) as $breakpoint ) {
+								if ( isset( $theme_json['styles']['blocks'][ $name ][ $breakpoint ]['elements'][ $element ][ $pseudo_selector ] ) ) {
+									$nodes[] = array(
+										'path'        => array( 'styles', 'blocks', $name, $breakpoint, 'elements', $element ),
+										'selector'    => static::append_to_selector( $element_selector, $pseudo_selector ),
+										'media_query' => $responsive_media_queries[ $breakpoint ],
+									);
 								}
 							}
 						}
@@ -3985,7 +4001,7 @@ class WP_Theme_JSON {
 		 */
 		$is_processing_element = in_array( 'elements', $block_metadata['path'], true );
 
-		$current_element = $is_processing_element ? $block_metadata['path'][ count( $block_metadata['path'] ) - 1 ] : null;
+		$current_element = $is_processing_element ? array_last( $block_metadata['path'] ) : null;
 
 		$element_pseudo_allowed = array();
 
@@ -4679,7 +4695,7 @@ class WP_Theme_JSON {
 			 * Get a reference to element name from path.
 			 * $metadata['path'] = array( 'styles', 'elements', 'link' );
 			 */
-			$current_element = $metadata['path'][ count( $metadata['path'] ) - 1 ];
+			$current_element = array_last( $metadata['path'] );
 
 			/*
 			 * $output is stripped of pseudo selectors. Re-add and process them
@@ -5370,7 +5386,7 @@ class WP_Theme_JSON {
 
 		// If there are 7 or fewer steps in the scale revert to numbers for labels instead of t-shirt sizes.
 		if ( $spacing_scale['steps'] <= 7 ) {
-			for ( $spacing_sizes_count = 0; $spacing_sizes_count < count( $spacing_sizes ); $spacing_sizes_count++ ) {
+			for ( $spacing_sizes_count = 0, $spacing_sizes_length = count( $spacing_sizes ); $spacing_sizes_count < $spacing_sizes_length; $spacing_sizes_count++ ) {
 				$spacing_sizes[ $spacing_sizes_count ]['name'] = (string) ( $spacing_sizes_count + 1 );
 			}
 		}

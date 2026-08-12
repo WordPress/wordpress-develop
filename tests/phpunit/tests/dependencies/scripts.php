@@ -557,9 +557,8 @@ JS;
 	 *
 	 * @dataProvider get_data_to_filter_eligible_strategies
 	 *
-	 * @param callable $set_up     Set up.
-	 * @param bool     $async_only Async only.
-	 * @param bool     $expected   Expected return value.
+	 * @param callable $set_up   Set up.
+	 * @param string[] $expected Expected return value.
 	 */
 	public function test_filter_eligible_strategies( $set_up, $expected ) {
 		$handle = $set_up();
