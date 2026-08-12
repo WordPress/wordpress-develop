@@ -31,7 +31,6 @@ includes:
 	- tests/phpstan/baselines/booleanAnd.alwaysFalse.neon
 	- tests/phpstan/baselines/booleanAnd.alwaysTrue.neon
 	- tests/phpstan/baselines/booleanAnd.leftAlwaysTrue.neon
-	- tests/phpstan/baselines/booleanAnd.rightAlwaysFalse.neon
 	- tests/phpstan/baselines/booleanAnd.rightAlwaysTrue.neon
 	- tests/phpstan/baselines/booleanNot.alwaysFalse.neon
 	- tests/phpstan/baselines/booleanNot.alwaysTrue.neon
@@ -72,7 +71,6 @@ includes:
 	- tests/phpstan/baselines/parameter.defaultValue.neon
 	- tests/phpstan/baselines/parameter.notFound.neon
 	- tests/phpstan/baselines/parameter.phpDocType.neon
-	- tests/phpstan/baselines/parameter.unresolvableType.neon
 	- tests/phpstan/baselines/parameterByRef.type.neon
 	- tests/phpstan/baselines/parameterByRef.unusedType.neon
 	- tests/phpstan/baselines/property.defaultValue.neon
@@ -89,7 +87,6 @@ includes:
 	- tests/phpstan/baselines/return.unusedType.neon
 	- tests/phpstan/baselines/smallerOrEqual.alwaysTrue.neon
 	- tests/phpstan/baselines/staticClassAccess.privateMethod.neon
-	- tests/phpstan/baselines/ternary.alwaysFalse.neon
 	- tests/phpstan/baselines/ternary.alwaysTrue.neon
 	- tests/phpstan/baselines/varTag.noVariable.neon
 	- tests/phpstan/baselines/variable.undefined.neon

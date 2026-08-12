@@ -55,10 +55,17 @@ jobs:
   # Downloads and verifies the Gutenberg build once for all PHPUnit jobs.
   prepare-gutenberg:
     name: Prepare Gutenberg Assets
-    uses: WordPress/wordpress-develop/.github/workflows/reusable-prepare-gutenberg.yml@trunk
+    uses: ./.github/workflows/reusable-prepare-gutenberg.yml
     permissions:
       contents: read
-    if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
+    if: |
+      github.repository == 'WordPress/wordpress-develop' || (
+        github.event_name == 'pull_request' && (
+          ! github.event.repository.private ||
+          ! github.event.pull_request.draft ||
+          contains( github.event.pull_request.labels.*.name, 'Draft Workflow Runs' )
+        )
+      )
 
   #
   # Creates a PHPUnit test job for each PHP/MySQL combination.
@@ -69,14 +76,23 @@ jobs:
   #
   test-with-mysql:
     name: PHP ${{ matrix.php }}
-    uses: WordPress/wordpress-develop/.github/workflows/reusable-phpunit-tests-v3.yml@trunk
+    uses: ./.github/workflows/reusable-phpunit-tests-v3.yml
     needs: prepare-gutenberg
     permissions:
       contents: read
     secrets:
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
       WPT_REPORT_API_KEY: ${{ secrets.WPT_REPORT_API_KEY }}
-    if: ${{ startsWith( github.repository, 'WordPress/' ) && ( github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' ) }}
+    if: |
+      startsWith( github.repository, 'WordPress/' ) && (
+        github.repository == 'WordPress/wordpress-develop' || (
+          github.event_name == 'pull_request' && (
+            ! github.event.repository.private ||
+            ! github.event.pull_request.draft ||
+            contains( github.event.pull_request.labels.*.name, 'Draft Workflow Runs' )
+          )
+        )
+      )
     strategy:
       fail-fast: false
       matrix:
@@ -152,14 +168,23 @@ jobs:
   #
   test-with-mariadb:
     name: PHP ${{ matrix.php }}
-    uses: WordPress/wordpress-develop/.github/workflows/reusable-phpunit-tests-v3.yml@trunk
+    uses: ./.github/workflows/reusable-phpunit-tests-v3.yml
     needs: prepare-gutenberg
     permissions:
       contents: read
     secrets:
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
       WPT_REPORT_API_KEY: ${{ secrets.WPT_REPORT_API_KEY }}
-    if: ${{ startsWith( github.repository, 'WordPress/' ) && ( github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' ) }}
+    if: |
+      startsWith( github.repository, 'WordPress/' ) && (
+        github.repository == 'WordPress/wordpress-develop' || (
+          github.event_name == 'pull_request' && (
+            ! github.event.repository.private ||
+            ! github.event.pull_request.draft ||
+            contains( github.event.pull_request.labels.*.name, 'Draft Workflow Runs' )
+          )
+        )
+      )
     strategy:
       fail-fast: false
       matrix:
@@ -210,14 +235,23 @@ jobs:
   #
   test-innovation-releases:
     name: PHP ${{ matrix.php }}
-    uses: WordPress/wordpress-develop/.github/workflows/reusable-phpunit-tests-v3.yml@trunk
+    uses: ./.github/workflows/reusable-phpunit-tests-v3.yml
     needs: prepare-gutenberg
     permissions:
       contents: read
     secrets:
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
       WPT_REPORT_API_KEY: ${{ secrets.WPT_REPORT_API_KEY }}
-    if: ${{ startsWith( github.repository, 'WordPress/' ) && ( github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' ) }}
+    if: |
+      startsWith( github.repository, 'WordPress/' ) && (
+        github.repository == 'WordPress/wordpress-develop' || (
+          github.event_name == 'pull_request' && (
+            ! github.event.repository.private ||
+            ! github.event.pull_request.draft ||
+            contains( github.event.pull_request.labels.*.name, 'Draft Workflow Runs' )
+          )
+        )
+      )
     strategy:
       fail-fast: false
       matrix:
@@ -257,14 +291,23 @@ jobs:
   #
   html-api-test-groups:
     name: ${{ matrix.label }}
-    uses: WordPress/wordpress-develop/.github/workflows/reusable-phpunit-tests-v3.yml@trunk
+    uses: ./.github/workflows/reusable-phpunit-tests-v3.yml
     needs: prepare-gutenberg
     permissions:
       contents: read
     secrets:
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
       WPT_REPORT_API_KEY: ${{ secrets.WPT_REPORT_API_KEY }}
-    if: ${{ startsWith( github.repository, 'WordPress/' ) && ( github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' ) }}
+    if: |
+      startsWith( github.repository, 'WordPress/' ) && (
+        github.repository == 'WordPress/wordpress-develop' || (
+          github.event_name == 'pull_request' && (
+            ! github.event.repository.private ||
+            ! github.event.pull_request.draft ||
+            contains( github.event.pull_request.labels.*.name, 'Draft Workflow Runs' )
+          )
+        )
+      )
     strategy:
       fail-fast: false
       matrix:
@@ -291,14 +334,20 @@ jobs:
   #
   limited-matrix-for-forks:
     name: PHP ${{ matrix.php }}
-    uses: WordPress/wordpress-develop/.github/workflows/reusable-phpunit-tests-v3.yml@trunk
+    uses: ./.github/workflows/reusable-phpunit-tests-v3.yml
     needs: prepare-gutenberg
     permissions:
       contents: read
     secrets:
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
       WPT_REPORT_API_KEY: ${{ secrets.WPT_REPORT_API_KEY }}
-    if: ${{ ! startsWith( github.repository, 'WordPress/' ) && github.event_name == 'pull_request' }}
+    if: |
+      ! startsWith( github.repository, 'WordPress/' ) &&
+      github.event_name == 'pull_request' && (
+        ! github.event.repository.private ||
+        ! github.event.pull_request.draft ||
+        contains( github.event.pull_request.labels.*.name, 'Draft Workflow Runs' )
+      )
     strategy:
       fail-fast: false
       matrix:
@@ -349,7 +398,7 @@ jobs:
 
   slack-notifications:
     name: Slack Notifications
-    uses: WordPress/wordpress-develop/.github/workflows/slack-notifications.yml@trunk
+    uses: ./.github/workflows/slack-notifications.yml
     permissions:
       actions: read
       contents: read

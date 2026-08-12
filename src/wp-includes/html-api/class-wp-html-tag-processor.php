@@ -1475,7 +1475,7 @@ class WP_HTML_Tag_Processor {
 			 * though "textarea" is found within the text.
 			 */
 			$c = $html[ $at ];
-			if ( ' ' !== $c && "\t" !== $c && "\r" !== $c && "\n" !== $c && '/' !== $c && '>' !== $c ) {
+			if ( ' ' !== $c && "\t" !== $c && "\f" !== $c && "\r" !== $c && "\n" !== $c && '/' !== $c && '>' !== $c ) {
 				continue;
 			}
 
@@ -4192,7 +4192,7 @@ class WP_HTML_Tag_Processor {
 
 		_doing_it_wrong(
 			__METHOD__,
-			__( 'This tag does not support setting modifiable text.' ),
+			__( 'Only the IFRAME, NOEMBED, NOFRAMES, SCRIPT, STYLE, TEXTAREA, TITLE, and XMP tags support setting modifiable text.' ),
 			'7.1.0'
 		);
 		return false;
