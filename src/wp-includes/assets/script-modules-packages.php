@@ -76,7 +76,7 @@
 				'import' => 'static'
 			)
 		),
-		'version' => '96a846e1d7b789c39ab9'
+		'version' => '1bf28ded04f9f188bdcb'
 	),
 	'block-library/playlist/view.js' => array(
 		'dependencies' => array(
@@ -128,7 +128,7 @@
 				'import' => 'static'
 			)
 		),
-		'version' => '581cf5c9168a7665f2dd'
+		'version' => 'cc1a34b1bee3c2e17bc4'
 	),
 	'boot/index.js' => array(
 		'dependencies' => array(
@@ -164,7 +164,7 @@
 				'import' => 'static'
 			)
 		),
-		'version' => '4b0281842169241e3d0e'
+		'version' => 'e6158521d3acdf579ed2'
 	),
 	'connectors/index.js' => array(
 		'dependencies' => array(
@@ -211,7 +211,7 @@
 				'import' => 'static'
 			)
 		),
-		'version' => '2fe152df83cad8d59403'
+		'version' => '06bbdee380f4cf86dff0'
 	),
 	'core-abilities/index.js' => array(
 		'dependencies' => array(
@@ -247,7 +247,7 @@
 				'import' => 'static'
 			)
 		),
-		'version' => '35485e5cfea4689dcaa1'
+		'version' => 'e2f82d3d1c3179d25626'
 	),
 	'interactivity/index.js' => array(
 		'dependencies' => array(
@@ -315,7 +315,7 @@
 			'wp-private-apis',
 			'wp-style-engine'
 		),
-		'version' => '9d008e280440935933bc'
+		'version' => '0e40b71e65fda1397a4b'
 	),
 	'route/index.js' => array(
 		'dependencies' => array(
