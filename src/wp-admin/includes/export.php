@@ -81,7 +81,45 @@ function export_wp( $args = array() ) {
 		$sitename .= '.';
 	}
 	$date        = gmdate( 'Y-m-d' );
-	$wp_filename = $sitename . 'WordPress.' . $date . '.xml';
+	$wp_filename = $sitename . 'WordPress.' . $date;
+
+	// Append content type.
+	if ( isset( $args['content'] ) ) {
+		$wp_filename .= '.' . sanitize_key( $args['content'] );
+	}
+
+	// Append category if available.
+	if ( isset( $args['category'] ) ) {
+		$category = get_term( $args['category'], 'category' );
+		if ( $category && ! is_wp_error( $category ) ) {
+			$wp_filename .= '.' . sanitize_key( $category->slug );
+		}
+	}
+
+	// Append author if available.
+	if ( isset( $args['author'] ) ) {
+		$author = get_user_by( 'id', $args['author'] );
+		if ( $author ) {
+			$wp_filename .= '.' . sanitize_key( $author->user_nicename );
+		}
+	}
+
+	// Append start and end date if available.
+	if ( isset( $args['start_date'] ) ) {
+		$wp_filename .= '.' . sanitize_key( $args['start_date'] );
+	}
+	if ( isset( $args['end_date'] ) ) {
+		$wp_filename .= '.' . sanitize_key( $args['end_date'] );
+	}
+
+	// Append post status if available.
+	if ( isset( $args['status'] ) ) {
+		$wp_filename .= '.' . sanitize_key( $args['status'] );
+	}
+
+	$wp_filename .= '.xml';
+
+	$wp_filename = sanitize_file_name( $wp_filename );
 	/**
 	 * Filters the export filename.
 	 *
