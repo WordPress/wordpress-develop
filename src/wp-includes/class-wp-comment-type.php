@@ -103,8 +103,9 @@ final class WP_Comment_Type {
 	/**
 	 * Whether the comment type is hierarchical.
 	 *
-	 * Comment types are never hierarchical. This property exists so the shared
-	 * label helper {@see _get_custom_object_labels()} can resolve default labels.
+	 * Comment types are never hierarchical. This property exists so the shared label
+	 * helper {@see _get_custom_object_labels()} can resolve default labels, and
+	 * set_props() forces it to false so a provided value cannot resolve them to null.
 	 *
 	 * @since 7.1.0
 	 * @var bool
@@ -193,6 +194,13 @@ final class WP_Comment_Type {
 		$args = array_merge( $defaults, $args );
 
 		$args['name'] = $this->name;
+
+		/*
+		 * Comment types are never hierarchical. The property exists only so the shared
+		 * label helper can pick a slot, and the hierarchical slot is deliberately null,
+		 * so honoring a provided value would resolve every default label to null.
+		 */
+		$args['hierarchical'] = false;
 
 		foreach ( $args as $property_name => $property_value ) {
 			$this->$property_name = $property_value;

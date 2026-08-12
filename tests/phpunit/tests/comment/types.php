@@ -522,4 +522,24 @@ class Tests_Comment_Types extends WP_UnitTestCase {
 		$this->assertInstanceOf( 'WP_Comment_Type', $args[0][1] );
 		$this->assertSame( 'foo', $args[0][1]->name );
 	}
+
+	/**
+	 * Comment types are never hierarchical. The default labels reserve the hierarchical
+	 * slot as null, so honoring a provided value would resolve every label to null.
+	 *
+	 * @ticket 35214
+	 *
+	 * @covers WP_Comment_Type::set_props
+	 */
+	public function test_register_comment_type_ignores_hierarchical_argument() {
+		register_comment_type( 'foo', array( 'hierarchical' => true ) );
+
+		$cobj = get_comment_type_object( 'foo' );
+
+		$this->assertFalse( $cobj->hierarchical, 'A comment type should never be hierarchical.' );
+		$this->assertSame( 'Comments', $cobj->label, 'The default label should survive the argument.' );
+		$this->assertSame( 'Comments', $cobj->labels->name );
+		$this->assertSame( 'Comment', $cobj->labels->singular_name );
+	}
+
 }
