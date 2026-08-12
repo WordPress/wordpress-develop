@@ -501,6 +501,17 @@
 	margin-top: 0.15em;
 }
 
+/* Block: Calendar --------------------------- */
+
+.editor-styles-wrapper .wp-calendar-table caption {
+	padding: 0.5em;
+	font-weight: 600;
+}
+:root .editor-styles-wrapper :where(.wp-block-calendar[style*="font-weight"]) caption, 
+:root .editor-styles-wrapper :where(.wp-block-calendar *[style*="font-weight"]) ~ caption {
+    font-weight: inherit;
+}
+
 
 /* Block: Table ------------------------------ */
 
