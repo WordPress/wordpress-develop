@@ -946,9 +946,12 @@ class wpdb {
 	 *
 	 * @param array $modes Optional. A list of SQL modes to set. Default empty array.
 	 */
-	public function set_sql_mode( $modes = array() ) {
+	public function set_sql_mode( $modes = array(), $dbh = null ) {
+		if ( is_null( $dbh ) ) {
+			$dbh = $this->dbh;
+		}
 		if ( empty( $modes ) ) {
-			$res = mysqli_query( $this->dbh, 'SELECT @@SESSION.sql_mode' );
+			$res = mysqli_query( $dbh, 'SELECT @@SESSION.sql_mode' );
 
 			if ( empty( $res ) ) {
 				return;
@@ -982,7 +985,7 @@ class wpdb {
 
 		$modes_str = implode( ',', $modes );
 
-		mysqli_query( $this->dbh, "SET SESSION sql_mode='$modes_str'" );
+		mysqli_query( $dbh, "SET SESSION sql_mode='$modes_str'" );
 	}
 
 	/**
@@ -2040,7 +2043,7 @@ class wpdb {
 			$this->set_charset( $this->dbh );
 
 			$this->ready = true;
-			$this->set_sql_mode();
+			$this->set_sql_mode( array(), $this->dbh );
 			$this->select( $this->dbname, $this->dbh );
 
 			return true;
