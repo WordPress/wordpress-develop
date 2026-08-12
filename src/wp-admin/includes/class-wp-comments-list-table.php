@@ -103,7 +103,13 @@ class WP_Comments_List_Table extends WP_List_Table {
 			$comment_status = 'all';
 		}
 
-		// The 'note' type is never listed here, so it is dropped from the request.
+		/*
+		 * Notes carry their own visibility rules, so they are never listed here and a
+		 * request for them is dropped outright. This is deliberately narrower than the
+		 * treatment of the other default-excluded types below, which can be listed when
+		 * explicitly requested. Emptying the excluded set does surface notes in the
+		 * untyped views, but not as a type the table can be filtered to.
+		 */
 		$comment_type = '';
 
 		if ( ! empty( $_REQUEST['comment_type'] ) && 'note' !== $_REQUEST['comment_type'] ) {
@@ -121,6 +127,8 @@ class WP_Comments_List_Table extends WP_List_Table {
 		 * expanded first, matching how WP_Comment_Query resolves them.
 		 */
 		switch ( $comment_type ) {
+			// Kept for symmetry with WP_Comment_Query; the accessor strips these tokens
+			// from the excluded set, so this branch can never subtract anything.
 			case 'comment':
 			case 'comments':
 				$requested_types = array( '', 'comment' );

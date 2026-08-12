@@ -369,6 +369,53 @@ OPTIONS;
 	}
 
 	/**
+	 * Emptying the excluded set surfaces notes in the untyped views, but the table
+	 * still cannot be filtered to notes: the request for that type is dropped
+	 * separately from the exclusions, because notes have their own visibility rules.
+	 *
+	 * @ticket 65537
+	 */
+	public function test_comments_list_table_note_request_is_dropped_with_an_empty_excluded_set() {
+		$post_id = self::factory()->post->create();
+
+		$note_id = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_type'     => 'note',
+				'comment_approved' => '1',
+			)
+		);
+
+		$regular_comment_id = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_type'     => '',
+				'comment_approved' => '1',
+			)
+		);
+
+		add_filter( 'default_excluded_comment_types', '__return_empty_array' );
+
+		$_REQUEST['comment_type'] = '';
+		$this->table->prepare_items();
+
+		$this->assertSameSets(
+			array( $note_id, $regular_comment_id ),
+			array_map( 'intval', wp_list_pluck( $this->table->items, 'comment_ID' ) ),
+			'An empty excluded set should surface notes in the untyped view.'
+		);
+
+		$_REQUEST['comment_type'] = 'note';
+		$this->table->prepare_items();
+
+		$this->assertSameSets(
+			array( $note_id, $regular_comment_id ),
+			array_map( 'intval', wp_list_pluck( $this->table->items, 'comment_ID' ) ),
+			'A request for the note type should be dropped rather than filter the table.'
+		);
+	}
+
+	/**
 	 * Adds the 'private' comment type to the default-excluded set.
 	 *
 	 * @param string[] $excluded_types Comment types excluded by default.
