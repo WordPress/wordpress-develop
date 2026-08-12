@@ -31,6 +31,10 @@ class WP_Query {
 	 *
 	 * @since 1.5.0
 	 * @var array
+	 * @phpstan-var array{
+	 *     s?: string,
+	 *     ...
+	 * }
 	 */
 	public $query_vars = array();
 
