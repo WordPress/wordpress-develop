@@ -1251,6 +1251,11 @@ function _find_post_by_old_date( $post_type ) {
  * @since 7.2.0
  */
 function wp_random_content_redirect() {
+	// The `random` parameter is a flag, present with or without a value.
+	if ( ! isset( $_GET['random'] ) ) {
+		return;
+	}
+
 	/**
 	 * Filters whether random content redirects are enabled.
 	 *
@@ -1262,12 +1267,7 @@ function wp_random_content_redirect() {
 		return;
 	}
 
-	// The `random` parameter is a flag, present with or without a value.
-	if ( ! isset( $_GET['random'] ) ) {
-		return;
-	}
-
-	if ( isset( $_SERVER['REQUEST_METHOD'] ) && ! in_array( $_SERVER['REQUEST_METHOD'], array( 'GET', 'HEAD' ), true ) ) {
+	if ( isset( $_SERVER['REQUEST_METHOD'] ) && ! in_array( strtoupper( $_SERVER['REQUEST_METHOD'] ), array( 'GET', 'HEAD' ), true ) ) {
 		return;
 	}
 
@@ -1275,21 +1275,24 @@ function wp_random_content_redirect() {
 
 	if ( isset( $_GET['random_post_type'] ) ) {
 		$post_type = sanitize_key( wp_unslash( $_GET['random_post_type'] ) );
+	}
 
-		if ( ! post_type_exists( $post_type ) || ! is_post_type_viewable( $post_type ) ) {
-			return;
-		}
+	$post_type_object = get_post_type_object( $post_type );
+
+	if ( ! $post_type_object || ! is_post_type_viewable( $post_type_object ) ) {
+		return;
 	}
 
 	$args = array(
-		'post_type'           => $post_type,
-		'post_status'         => 'publish',
-		'has_password'        => false,
-		'fields'              => 'ids',
-		'posts_per_page'      => 1,
-		'orderby'             => 'ID',
-		'order'               => 'ASC',
-		'ignore_sticky_posts' => true,
+		'post_type'              => $post_type,
+		'post_status'            => 'publish',
+		'has_password'           => false,
+		'posts_per_page'         => 1,
+		'orderby'                => 'ID',
+		'order'                  => 'ASC',
+		'ignore_sticky_posts'    => true,
+		'update_post_term_cache' => false,
+		'update_post_meta_cache' => false,
 	);
 
 	if ( isset( $_GET['random_cat_id'] ) ) {
@@ -1307,15 +1310,16 @@ function wp_random_content_redirect() {
 	$query      = new WP_Query( $args );
 	$post_count = (int) $query->found_posts;
 
-	if ( $post_count < 1 ) {
-		return;
-	}
-
 	if ( $post_count > 1 ) {
-		$args['offset']        = wp_rand( 0, $post_count - 1 );
-		$args['no_found_rows'] = true;
+		$offset = wp_rand( 0, $post_count - 1 );
 
-		$query = new WP_Query( $args );
+		if ( $offset > 0 ) {
+			$args['offset']        = $offset;
+			$args['no_found_rows'] = true;
+			$args['cache_results'] = false;
+
+			$query = new WP_Query( $args );
+		}
 	}
 
 	if ( empty( $query->posts ) ) {

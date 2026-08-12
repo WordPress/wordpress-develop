@@ -8,32 +8,13 @@
 class Tests_Rewrite_RandomContentRedirect extends WP_UnitTestCase {
 	protected $random_content_redirect_url;
 
-	protected $original_request_method;
-
 	public function set_up() {
 		parent::set_up();
 
 		add_filter( 'enable_random_content_redirect', '__return_true' );
-		add_filter( 'random_content_redirect_url', array( $this, 'filter_random_content_redirect_url' ), 10, 1 );
+		add_filter( 'random_content_redirect_url', array( $this, 'filter_random_content_redirect_url' ) );
 
-		$this->original_request_method = isset( $_SERVER['REQUEST_METHOD'] ) ? $_SERVER['REQUEST_METHOD'] : null;
-
-		$_GET['random']            = '';
-		$_SERVER['REQUEST_METHOD'] = 'GET';
-	}
-
-	public function tear_down() {
-		$this->random_content_redirect_url = null;
-
-		unset( $_GET['random'], $_GET['random_post_type'], $_GET['random_cat_id'] );
-
-		if ( null === $this->original_request_method ) {
-			unset( $_SERVER['REQUEST_METHOD'] );
-		} else {
-			$_SERVER['REQUEST_METHOD'] = $this->original_request_method;
-		}
-
-		parent::tear_down();
+		$_GET['random'] = '';
 	}
 
 	public function test_hook_is_registered() {
