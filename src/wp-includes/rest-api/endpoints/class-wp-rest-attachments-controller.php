@@ -1101,7 +1101,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 				);
 			}
 
-			if ( 0 === count( $modifiers ) ) {
+			if ( array() === $modifiers ) {
 				return new WP_Error(
 					'rest_image_not_edited',
 					__( 'The image was not edited. Edit the image before applying the changes.' ),

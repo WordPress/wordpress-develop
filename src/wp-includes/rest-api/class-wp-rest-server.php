@@ -738,7 +738,7 @@ class WP_REST_Server {
 				// Relation now changes from '$uri' to '$curie:$relation'.
 				$rel_regex = str_replace( '\{rel\}', '(.+)', preg_quote( $curie['href'], '!' ) );
 				preg_match( '!' . $rel_regex . '!', $rel, $matches );
-				if ( $matches ) {
+				if ( array() !== $matches ) {
 					$new_rel                       = $curie['name'] . ':' . $matches[1];
 					$used_curies[ $curie['name'] ] = $curie;
 					$links[ $new_rel ]             = $items;
@@ -749,7 +749,7 @@ class WP_REST_Server {
 		}
 
 		// Push the curies onto the start of the links array.
-		if ( $used_curies ) {
+		if ( array() !== $used_curies ) {
 			$links['curies'] = array_values( $used_curies );
 		}
 
@@ -837,7 +837,7 @@ class WP_REST_Server {
 			}
 		}
 
-		if ( ! empty( $embedded ) ) {
+		if ( array() !== $embedded ) {
 			$data['_embedded'] = $embedded;
 		}
 
