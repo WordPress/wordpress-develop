@@ -106,9 +106,7 @@ class WP_REST_Navigation_Fallback_Controller extends WP_REST_Controller {
 			return rest_ensure_response( new WP_Error( 'no_fallback_menu', __( 'No fallback menu found.' ), array( 'status' => 404 ) ) );
 		}
 
-		$response = $this->prepare_item_for_response( $post, $request );
-
-		return $response;
+		return $this->prepare_item_for_response( $post, $request );
 	}
 
 	/**

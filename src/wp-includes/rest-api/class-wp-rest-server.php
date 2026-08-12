@@ -1256,7 +1256,7 @@ class WP_REST_Server {
 		$response = apply_filters( 'rest_request_before_callbacks', $response, $handler, $request );
 
 		// Check permission specified on the route.
-		if ( ! is_wp_error( $response ) && ! empty( $handler['permission_callback'] ) ) {
+		if ( ! empty( $handler['permission_callback'] ) && ! is_wp_error( $response ) ) {
 			$permission = call_user_func( $handler['permission_callback'], $request );
 
 			if ( is_wp_error( $permission ) ) {

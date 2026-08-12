@@ -225,8 +225,7 @@ class WP_REST_Template_Autosaves_Controller extends WP_REST_Autosaves_Controller
 			);
 		}
 
-		$response = $this->prepare_item_for_response( $autosave, $request );
-		return $response;
+		return $this->prepare_item_for_response( $autosave, $request );
 	}
 
 	/**

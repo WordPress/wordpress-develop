@@ -322,8 +322,7 @@ abstract class WP_REST_Meta_Fields {
 
 			$remove_key = $remove_keys[0];
 
-			unset( $to_remove[ $remove_key ] );
-			unset( $to_add[ $add_key ] );
+			unset( $to_remove[ $remove_key ], $to_add[ $add_key ] );
 		}
 
 		/*

@@ -482,10 +482,9 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			return $comment;
 		}
 
-		$data     = $this->prepare_item_for_response( $comment, $request );
-		$response = rest_ensure_response( $data );
+		$data = $this->prepare_item_for_response( $comment, $request );
 
-		return $response;
+		return rest_ensure_response( $data );
 	}
 
 	/**
@@ -700,7 +699,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			&& empty( $prepared_comment['comment_author_email'] )
 			&& empty( $prepared_comment['comment_author_url'] );
 
-		if ( is_user_logged_in() && $missing_author ) {
+		if ( $missing_author && is_user_logged_in() ) {
 			$user = wp_get_current_user();
 
 			$prepared_comment['user_id']              = $user->ID;

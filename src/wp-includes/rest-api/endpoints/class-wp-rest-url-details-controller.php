@@ -150,7 +150,7 @@ class WP_REST_URL_Details_Controller extends WP_REST_Controller {
 			$remote_url_response = $this->get_remote_url( $url );
 
 			// Exit if we don't have a valid body or it's empty.
-			if ( is_wp_error( $remote_url_response ) || empty( $remote_url_response ) ) {
+			if ( empty( $remote_url_response ) || is_wp_error( $remote_url_response ) ) {
 				return $remote_url_response;
 			}
 
@@ -333,7 +333,7 @@ class WP_REST_URL_Details_Controller extends WP_REST_Controller {
 			return $icon;
 		}
 		$parsed_url = parse_url( $url );
-		if ( isset( $parsed_url['scheme'] ) && isset( $parsed_url['host'] ) ) {
+		if ( isset( $parsed_url['scheme'], $parsed_url['host'] ) ) {
 			$root_url = $parsed_url['scheme'] . '://' . $parsed_url['host'] . '/';
 			$icon     = WP_Http::make_absolute_url( $icon, $root_url );
 		}
@@ -406,7 +406,7 @@ class WP_REST_URL_Details_Controller extends WP_REST_Controller {
 
 		// Attempt to convert relative URLs to absolute.
 		$parsed_url = parse_url( $url );
-		if ( isset( $parsed_url['scheme'] ) && isset( $parsed_url['host'] ) ) {
+		if ( isset( $parsed_url['scheme'], $parsed_url['host'] ) ) {
 			$root_url = $parsed_url['scheme'] . '://' . $parsed_url['host'] . '/';
 			$image    = WP_Http::make_absolute_url( $image, $root_url );
 		}
@@ -426,8 +426,8 @@ class WP_REST_URL_Details_Controller extends WP_REST_Controller {
 	 */
 	private function prepare_metadata_for_output( $metadata ) {
 		$metadata = html_entity_decode( $metadata, ENT_QUOTES, get_bloginfo( 'charset' ) );
-		$metadata = wp_strip_all_tags( $metadata );
-		return $metadata;
+
+		return wp_strip_all_tags( $metadata );
 	}
 
 	/**
