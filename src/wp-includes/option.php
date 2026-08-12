@@ -1468,6 +1468,9 @@ function get_transient( $transient ) {
 					delete_option( $transient_option );
 					delete_option( $transient_timeout );
 					$value = false;
+
+					// Trigger the hook when the transient expires.
+					do_action( 'transient_expired', $transient );
 				}
 			}
 		}
