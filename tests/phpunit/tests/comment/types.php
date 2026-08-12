@@ -542,4 +542,158 @@ class Tests_Comment_Types extends WP_UnitTestCase {
 		$this->assertSame( 'Comment', $cobj->labels->singular_name );
 	}
 
+	/**
+	 * The names WP_Comment_Query reads as query tokens cannot be registered, since a type
+	 * stored under one of them could never be queried for on its own.
+	 *
+	 * @ticket 35214
+	 *
+	 * @covers ::register_comment_type
+	 *
+	 * @dataProvider data_reserved_comment_type_names
+	 *
+	 * @expectedIncorrectUsage register_comment_type
+	 *
+	 * @param string $comment_type Reserved comment type name.
+	 */
+	public function test_register_reserved_comment_type_is_rejected( string $comment_type ) {
+		$result = register_comment_type( $comment_type );
+
+		$this->assertInstanceOf( 'WP_Error', $result );
+		$this->assertSame( 'comment_type_reserved', $result->get_error_code() );
+		$this->assertNull( get_comment_type_object( $comment_type ) );
+	}
+
+	/**
+	 * Data provider for test_register_reserved_comment_type_is_rejected().
+	 *
+	 * @return array<string, string[]>
+	 */
+	public function data_reserved_comment_type_names(): array {
+		return array(
+			'all type token'   => array( 'all' ),
+			'comments alias'   => array( 'comments' ),
+			'pings bucket key' => array( 'pings' ),
+		);
+	}
+
+	/**
+	 * The built-in guard reads the raw arguments, so passing '_builtin' bypasses it. This
+	 * matches register_post_type(), where '_builtin' is an accepted internal-use argument
+	 * with no guard at all. Pinned so the follow-ups that give '_builtin' more meaning
+	 * cannot change it by accident.
+	 *
+	 * @ticket 35214
+	 *
+	 * @covers ::register_comment_type
+	 */
+	public function test_register_comment_type_builtin_argument_bypasses_the_built_in_guard() {
+		$result = register_comment_type(
+			'pingback',
+			array(
+				'_builtin' => true,
+				'label'    => 'Hijacked',
+			)
+		);
+
+		$this->assertInstanceOf( 'WP_Comment_Type', $result, 'Passing _builtin bypasses the guard.' );
+		$this->assertSame( 'Hijacked', get_comment_type_object( 'pingback' )->label );
+	}
+
+	/**
+	 * Passing '_builtin' on a custom type makes it behave like a built-in for everyone
+	 * else: it can no longer be re-registered or unregistered.
+	 *
+	 * @ticket 35214
+	 *
+	 * @covers ::register_comment_type
+	 * @covers ::unregister_comment_type
+	 *
+	 * @expectedIncorrectUsage register_comment_type
+	 */
+	public function test_register_comment_type_builtin_argument_locks_a_custom_type() {
+		register_comment_type( 'foo', array( '_builtin' => true ) );
+
+		$this->assertInstanceOf( 'WP_Error', register_comment_type( 'foo' ) );
+		$this->assertInstanceOf( 'WP_Error', unregister_comment_type( 'foo' ) );
+	}
+
+	/**
+	 * Built-in labels are rebuilt on a locale change rather than served from the static
+	 * default-labels cache.
+	 *
+	 * @ticket 35214
+	 *
+	 * @covers ::create_initial_comment_types
+	 */
+	public function test_built_in_labels_are_rebuilt_on_locale_change() {
+		$original = get_comment_type_object( 'comment' )->label;
+
+		add_filter(
+			'gettext',
+			static function ( $translation, $text ) {
+				return 'Comments' === $text ? 'Kommentare' : $translation;
+			},
+			10,
+			2
+		);
+
+		do_action( 'change_locale', 'de_DE' );
+
+		$this->assertSame(
+			'Kommentare',
+			get_comment_type_object( 'comment' )->label,
+			'A locale change should rebuild the built-in labels.'
+		);
+		$this->assertNotSame( $original, get_comment_type_object( 'comment' )->label );
+	}
+
+	/**
+	 * Before wp-settings.php registers the built-ins, the registry global does not exist.
+	 * Both accessors have to cope with that rather than warn.
+	 *
+	 * @ticket 35214
+	 *
+	 * @covers ::get_comment_types
+	 * @covers ::get_comment_type_object
+	 */
+	public function test_accessors_handle_an_unset_registry() {
+		$registry = $GLOBALS['wp_comment_types'];
+		unset( $GLOBALS['wp_comment_types'] );
+
+		try {
+			$this->assertSame( array(), get_comment_types() );
+			$this->assertNull( get_comment_type_object( 'comment' ) );
+		} finally {
+			$GLOBALS['wp_comment_types'] = $registry;
+		}
+	}
+
+	/**
+	 * The registry is a per-process global, so it is not scoped to a site. This matches
+	 * post types, and is worth pinning because comment counts and query exclusions are
+	 * per-site data.
+	 *
+	 * @ticket 35214
+	 *
+	 * @group ms-required
+	 *
+	 * @covers ::register_comment_type
+	 */
+	public function test_registry_is_not_scoped_to_a_site() {
+		register_comment_type( 'foo' );
+
+		$blog_id = self::factory()->blog->create();
+
+		switch_to_blog( $blog_id );
+
+		$registered_after_switch = comment_type_exists( 'foo' );
+
+		restore_current_blog();
+
+		$this->assertTrue(
+			$registered_after_switch,
+			'A registered comment type should still be registered after switch_to_blog().'
+		);
+	}
 }

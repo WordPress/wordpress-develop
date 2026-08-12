@@ -78,10 +78,9 @@ final class WP_Comment_Type {
 	/**
 	 * Whether the comment type is for internal use only.
 	 *
-	 * Analogous to the `internal` argument of register_post_status(). Core does not
-	 * currently consult this property: the exclusion of the built-in `note` type
-	 * from default comment queries is hard-coded. The property is intended to drive
-	 * that exclusion for registered types in the future.
+	 * Analogous to the `internal` argument of register_post_status(). Internal types are
+	 * excluded from comment queries and counts by default, through the
+	 * {@see 'default_excluded_comment_types'} filter.
 	 *
 	 * Default false.
 	 *

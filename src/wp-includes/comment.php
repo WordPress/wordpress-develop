@@ -404,9 +404,25 @@ function create_initial_comment_types() {
  *
  * Comment types are stored verbatim in the `comment_type` column of the comments table.
  * Registration provides labels and metadata for a type; it does not constrain which values
- * may be stored.
+ * may be stored. Comment types that are stored but never registered keep behaving exactly
+ * as they did before this API existed.
  *
- * Cannot be used to re-register built-in comment types.
+ * Each argument drives exactly one layer of behavior, so the flags stay independently
+ * meaningful as more of them are added:
+ *
+ *  - `public` states display-surface intent: whether the type is meant to be seen by site
+ *    visitors. It does not affect what queries return.
+ *  - `internal` marks the type as excluded from comment queries and counts by default.
+ *
+ * An argument never implies another argument. The one cascade planned for the future is
+ * `show_in_rest`, which will default from `public`.
+ *
+ * Registrations live in a per-process global. Like post types, they are not scoped to a
+ * site on multisite: a type registered by one site's plugins is visible after
+ * switch_to_blog() for the rest of the request.
+ *
+ * Cannot be used to re-register built-in comment types. The names WP_Comment_Query reads
+ * as query tokens ('all', 'comments', 'pings') cannot be registered either.
  *
  * @since 7.1.0
  *
@@ -428,9 +444,12 @@ function create_initial_comment_types() {
  *     @type bool       $public      Whether the comment type is intended for use publicly either via
  *                                   the admin interface or by front-end users. Core does not
  *                                   currently act on this argument. Default true.
- *     @type bool       $internal    Whether the comment type is for internal use only. Core does not
- *                                   currently consult this flag; it is intended to drive default
- *                                   query exclusions in the future. Default false.
+ *     @type bool       $internal    Whether the comment type is for internal use only. Internal types
+ *                                   are excluded from comment queries and counts by default, through
+ *                                   the {@see 'default_excluded_comment_types'} filter. Default false.
+ *     @type bool       $_builtin    For internal core use only. Marks the type as native to
+ *                                   WordPress, which blocks it from being re-registered or
+ *                                   unregistered. Default false.
  * }
  * @return WP_Comment_Type|WP_Error The registered comment type object on success,
  *                                  WP_Error object on failure.
@@ -471,6 +490,24 @@ function register_comment_type( $comment_type, $args = array() ) {
 			'7.1.0'
 		);
 		return new WP_Error( 'comment_type_builtin', __( 'Built-in comment types cannot be re-registered.' ) );
+	}
+
+	/*
+	 * WP_Comment_Query reads these names as query tokens rather than as literal
+	 * comment_type values, so a type registered under one of them could never be
+	 * queried for on its own.
+	 */
+	if ( in_array( $comment_type, array( 'all', 'comments', 'pings' ), true ) ) {
+		_doing_it_wrong(
+			__FUNCTION__,
+			sprintf(
+				/* translators: %s: Comment type key. */
+				__( 'The "%s" comment type name is reserved for use by WP_Comment_Query.' ),
+				$comment_type
+			),
+			'7.1.0'
+		);
+		return new WP_Error( 'comment_type_reserved', __( 'This comment type name is reserved.' ) );
 	}
 
 	$comment_type_object = new WP_Comment_Type( $comment_type, $args );
