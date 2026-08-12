@@ -2851,7 +2851,8 @@ function wp_insert_term( $term, $taxonomy, $args = array() ) {
 function wp_set_object_terms( $object_id, $terms, $taxonomy, $append = false ) {
 	global $wpdb;
 
-	$object_id = (int) $object_id;
+	$object_id  = (int) $object_id;
+	$old_tt_ids = array();
 
 	if ( ! taxonomy_exists( $taxonomy ) ) {
 		return new WP_Error( 'invalid_taxonomy', __( 'Invalid taxonomy.' ) );
@@ -2863,6 +2864,22 @@ function wp_set_object_terms( $object_id, $terms, $taxonomy, $append = false ) {
 		$terms = array( $terms );
 	}
 
+	/**
+	 * Fires before terms are assigned to an object.
+	 *
+	 * This action allows manipulation or monitoring of terms assigned to a specified
+	 * object, such as a post, before the terms are set.
+	 *
+	 * @since 6.7.0
+	 *
+	 * @param int    $object_id  The ID of the object being updated.
+	 * @param array  $terms      An array of term IDs or slugs to be assigned to the object.
+	 * @param string $taxonomy   The taxonomy for the terms.
+	 * @param bool   $append     Whether to append the new terms to the existing terms.
+	 * @param array  $old_tt_ids The previous array of term taxonomy IDs.
+	 */
+	do_action( 'pre_set_object_terms', $object_id, $terms, $taxonomy, $append, $old_tt_ids );
+
 	if ( ! $append ) {
 		$old_tt_ids = wp_get_object_terms(
 			$object_id,
@@ -2873,8 +2890,6 @@ function wp_set_object_terms( $object_id, $terms, $taxonomy, $append = false ) {
 				'update_term_meta_cache' => false,
 			)
 		);
-	} else {
-		$old_tt_ids = array();
 	}
 
 	$tt_ids     = array();
