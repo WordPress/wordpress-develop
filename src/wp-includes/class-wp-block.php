@@ -620,7 +620,7 @@ class WP_Block {
 						 * The `refresh_context_dependents()` method already calls `refresh_parsed_block_dependents()`.
 						 * Therefore the second condition is irrelevant if the first one is satisfied.
 						 */
-						if ( $inner_block->context !== $inner_block_context ) {
+						if ( $inner_block->context !== $this->context ) {
 							$inner_block->refresh_context_dependents();
 						} elseif ( $inner_block->parsed_block !== $source_block ) {
 							$inner_block->refresh_parsed_block_dependents();
