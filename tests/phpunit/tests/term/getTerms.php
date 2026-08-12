@@ -2876,9 +2876,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 
 		$this->assertNotEmpty( $found );
 
-		foreach ( $found as $term ) {
-			$this->assertInstanceOf( 'WP_Term', $term );
-		}
+		$this->assertContainsOnlyInstancesOf( 'WP_Term', $found );
 	}
 
 	/**
@@ -2914,9 +2912,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 
 		$this->assertNotEmpty( $found );
 
-		foreach ( $found as $term ) {
-			$this->assertInstanceOf( 'WP_Term', $term );
-		}
+		$this->assertContainsOnlyInstancesOf( 'WP_Term', $found );
 	}
 
 	/**
