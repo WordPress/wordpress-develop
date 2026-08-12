@@ -1060,6 +1060,77 @@ function get_comment_text( $comment_id = 0, $args = array() ) {
 }
 
 /**
+ * Retrieves the comment published time as a `DateTimeImmutable` object instance.
+ *
+ * The object will be set to the timezone defined in WordPress settings.
+ *
+ * For legacy reasons, this function allows to choose to instantiate from local or UTC time in database.
+ * Normally this should make no difference to the result. However, the values might get out of sync in database,
+ * typically because of timezone setting changes. The parameter ensures the ability to reproduce backwards
+ * compatible behaviors in such cases.
+ *
+ * @since 6.9.0
+ *
+ * @param int|WP_Comment $comment Optional. WP_Comment object or ID. Default is global `$comment` object.
+ * @param string         $source  Optional. Local or UTC time to use from database. Accepts 'local' or 'gmt'.
+ *                                Default 'local'.
+ * @return DateTimeImmutable|false Time object on success, false on failure.
+ */
+function get_comment_datetime( $comment = null, $source = 'local' ) {
+
+	$comment = get_comment( $comment );
+
+	if ( ! $comment ) {
+		return false;
+	}
+
+	$wp_timezone = wp_timezone();
+
+	if ( 'gmt' === $source ) {
+		$time     = $comment->comment_date_gmt;
+		$timezone = new DateTimeZone( 'UTC' );
+	} else {
+		$time     = $comment->comment_date;
+		$timezone = $wp_timezone;
+	}
+
+	if ( empty( $time ) || '0000-00-00 00:00:00' === $time ) {
+		return false;
+	}
+
+	$datetime = date_create_immutable_from_format( 'Y-m-d H:i:s', $time, $timezone );
+
+	if ( false === $datetime ) {
+		return false;
+	}
+
+	return $datetime->setTimezone( $wp_timezone );
+}
+
+/**
+ * Retrieves the comment published or modified time as a Unix timestamp.
+ *
+ * Note that this function returns a true Unix timestamp, not summed with timezone offset
+ * like older WP functions.
+ *
+ * @since 6.9.0
+ *
+ * @param int|WP_Comment $comment Optional. WP_Comment object or ID. Default is global `$comment` object.
+ * @param string         $source  Optional. Local or UTC time to use from database. Accepts 'local' or 'gmt'.
+ * @return int|false Unix timestamp on success, false on failure.
+ */
+function get_comment_timestamp( $comment = null, $source = 'local' ) {
+
+	$datetime = get_comment_datetime( $comment, $source );
+
+	if ( false === $datetime ) {
+		return false;
+	}
+
+	return $datetime->getTimestamp();
+}
+
+/**
  * Displays the text of the current comment.
  *
  * @since 0.71
@@ -1096,27 +1167,45 @@ function comment_text( $comment_id = 0, $args = array() ) {
  * @since 1.5.0
  * @since 6.2.0 Added the `$comment_id` parameter.
  *
- * @param string         $format     Optional. PHP date format. Defaults to the 'time_format' option.
- * @param bool           $gmt        Optional. Whether to use the GMT date. Default false.
- * @param bool           $translate  Optional. Whether to translate the time (for use in feeds).
+ * @param string              $format     Optional. PHP date format. Defaults to the 'time_format' option.
+ * @param bool                $gmt        Optional. Whether to use the GMT date. Default false.
+ * @param bool                $translate  Optional. Whether to translate the time (for use in feeds).
  *                                   Default true.
- * @param int|WP_Comment $comment_id Optional. WP_Comment or ID of the comment for which to get the time.
+ * @param int|null|WP_Comment $comment_id Optional. WP_Comment or ID of the comment for which to get the time.
  *                                   Default current comment.
  * @return string The formatted time.
  */
-function get_comment_time( $format = '', $gmt = false, $translate = true, $comment_id = 0 ) {
+function get_comment_time( $format = '', $gmt = false, $translate = true, $comment_id = null ) {
 	$comment = get_comment( $comment_id );
 
-	if ( null === $comment ) {
-		return '';
+	$source   = $gmt ? 'gmt' : 'local';
+	$datetime = get_comment_datetime( $comment, $source );
+
+	if ( false === $datetime ) {
+		return false;
 	}
 
-	$comment_date = $gmt ? $comment->comment_date_gmt : $comment->comment_date;
+	if ( '' === $format ) {
+		$format = get_option( 'time_format' );
+	}
 
-	$_format = ! empty( $format ) ? $format : get_option( 'time_format' );
+	if ( 'U' === $format || 'G' === $format ) {
+		$comment_time = $datetime->getTimestamp();
 
-	$comment_time = mysql2date( $_format, $comment_date, $translate );
+		// Returns a sum of timestamp with timezone offset. Ideally should never be used.
+		if ( ! $gmt ) {
+			$comment_time += $datetime->getOffset();
+		}
+	} elseif ( $translate ) {
+		$comment_time = wp_date( $format, $datetime->getTimestamp(), $gmt ? new DateTimeZone( 'UTC' ) : null );
+	} else {
 
+		if ( $gmt ) {
+			$datetime = $datetime->setTimezone( new DateTimeZone( 'UTC' ) );
+		}
+
+		$comment_time = $datetime->format( $format );
+	}
 	/**
 	 * Filters the returned comment time.
 	 *
