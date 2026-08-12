@@ -782,6 +782,7 @@ function locate_template( $template_names, $load = false, $load_once = true, $ar
 function load_template( $_template_file, $load_once = true, $args = array() ) {
 	global $posts, $post, $wp_did_header, $wp_query, $wp_rewrite, $wpdb, $wp_version, $wp, $id, $comment, $user_ID;
 
+	/** @var array{ s?: scalar, ... } $query_vars */
 	$query_vars = $wp_query->query_vars;
 	if ( is_array( $query_vars ) ) {
 		/*
@@ -797,7 +798,7 @@ function load_template( $_template_file, $load_once = true, $args = array() ) {
 	}
 
 	if ( isset( $s ) ) {
-		$s = esc_attr( $s );
+		$s = esc_attr( (string) $s );
 	}
 
 	/**
