@@ -1668,6 +1668,7 @@ function setup_userdata( $for_user_id = 0 ) {
  * @since 4.7.0 Added the 'role', 'role__in', and 'role__not_in' parameters.
  * @since 5.9.0 Added the 'capability', 'capability__in', and 'capability__not_in' parameters.
  *              Deprecated the 'who' parameter.
+ * @since 6.8.0 Add the 'show_gravatar' parameter.
  *
  * @param array|string $args {
  *     Optional. Array or string of arguments to generate a drop-down of users.
@@ -1729,6 +1730,7 @@ function setup_userdata( $for_user_id = 0 ) {
  *                                                    of these capabilities will not be included in results.
  *                                                    Does NOT work for capabilities not in the database or filtered
  *                                                    via {@see 'map_meta_cap'}. Default empty array.
+ *     @type string           $show_gravatar          Whether to include the user's Gravatar. Accepts 'true' or 'false'. Default false.
  * }
  * @return string HTML dropdown list of users.
  */
@@ -1758,6 +1760,7 @@ function wp_dropdown_users( $args = '' ) {
 		'capability'              => '',
 		'capability__in'          => array(),
 		'capability__not_in'      => array(),
+		'show_gravatar'           => false,
 	);
 
 	$defaults['selected'] = is_author() ? get_query_var( 'author' ) : 0;
@@ -1779,6 +1782,7 @@ function wp_dropdown_users( $args = '' ) {
 			'capability',
 			'capability__in',
 			'capability__not_in',
+			'show_gravatar',
 		)
 	);
 
@@ -1858,7 +1862,19 @@ function wp_dropdown_users( $args = '' ) {
 			}
 
 			$_selected = selected( $user->ID, $parsed_args['selected'], false );
-			$output   .= "\t<option value='$user->ID'$_selected>" . esc_html( $display ) . "</option>\n";
+
+			// Add the gravatar image if enabled.
+			$gravatar = '';
+			if ( $parsed_args['show_gravatar'] ) {
+				$gravatar = get_avatar( $user->ID, 24 ) . ' ';
+			}
+			$output .= sprintf(
+				"\t<option value='%s'%s>%s%s</option>\n",
+				$user->ID,
+				$_selected,
+				$gravatar,
+				esc_html( $display )
+			);
 		}
 
 		$output .= '</select>';

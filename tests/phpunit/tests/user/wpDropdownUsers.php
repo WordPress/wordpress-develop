@@ -201,4 +201,31 @@ class Tests_User_wpDropdownUsers extends WP_UnitTestCase {
 		$this->assertStringNotContainsString( $u1->user_login, $found );
 		$this->assertStringContainsString( $u2->user_login, $found );
 	}
+
+	/**
+	 * Show display name with gravatar image.
+	 */
+	public function test_user_dropdown_with_gravatar() {
+		$u1 = self::factory()->user->create(
+			array(
+				'user_login'   => 'foo',
+				'display_name' => 'Foo Person',
+			)
+		);
+
+		// Add some gravatars.
+		update_user_meta( $u1, 'wp_user_avatar', 'https://example.com/avatar1.jpg' );
+
+		$dropdown = wp_dropdown_users(
+			array(
+				'echo'          => false,
+				'show_gravatar' => 'true',
+			)
+		);
+
+		$gravatar = get_avatar( $u1, 24 );
+		$expected = "<option value='$u1'>$gravatar Foo Person</option>";
+
+		$this->assertStringContainsString( $expected, $dropdown );
+	}
 }

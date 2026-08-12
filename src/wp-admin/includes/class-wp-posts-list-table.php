@@ -1840,6 +1840,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 								'multi'                   => 1,
 								'echo'                    => 0,
 								'show'                    => 'display_name_with_login',
+								'show_gravatar'           => true,
 							);
 
 							if ( $bulk ) {

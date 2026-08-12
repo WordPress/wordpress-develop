@@ -353,6 +353,12 @@ input[type="radio"].disabled:checked:before {
 	background-size: 16px 16px;
 	cursor: pointer;
 	vertical-align: middle;
+	appearance: base-select;
+
+}
+
+select::picker( .wp-core-ui ) {
+	appearance: base-select;
 }
 
 .wp-core-ui select:hover {
@@ -438,10 +444,40 @@ input[type="radio"].disabled:checked:before {
 	margin-top: 0;
 }
 
-.wp-core-ui select[multiple] {
-	height: auto;
-	padding-right: 8px;
-	background: #fff;
+select,
+::picker(select) {
+  appearance: base-select;
+  font-family: system-ui;
+}
+
+/* hide checkmark */
+option::checkmark,
+select.authors::picker-icon {
+  display: none;
+}
+
+::picker(select) {
+  max-height: 60dvh;
+  padding: 0;
+}
+
+select:has(:popover-open) {
+  border-radius: 0;
+}
+
+option,
+selectedcontent {
+	display: grid;
+	grid-template-columns: 1.5rem 1fr;
+	gap: 1rem;
+}
+
+[hidden] {
+  display: none;
+}
+
+body {
+  margin: 2rem 4rem;
 }
 
 .submit {
