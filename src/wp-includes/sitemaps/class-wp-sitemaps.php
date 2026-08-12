@@ -197,7 +197,10 @@ class WP_Sitemaps {
 
 		$provider = $this->registry->get_provider( $sitemap );
 
+		// Force a 404 and bail early if no provider is present.
 		if ( ! $provider ) {
+			$wp_query->set_404();
+			status_header( 404 );
 			return;
 		}
 

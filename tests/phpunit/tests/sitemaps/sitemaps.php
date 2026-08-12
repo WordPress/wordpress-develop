@@ -493,4 +493,17 @@ class Tests_Sitemaps_Sitemaps extends WP_UnitTestCase {
 
 		$this->assertTrue( is_404() );
 	}
+
+	/**
+	 * @ticket 62777
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
+	 */
+	public function test_unknown_provider_should_return_404() {
+		$this->go_to( home_url( '/?sitemap=foo' ) );
+
+		wp_sitemaps_get_server()->render_sitemaps();
+
+		$this->assertTrue( is_404() );
+	}
 }
