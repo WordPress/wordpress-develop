@@ -7193,6 +7193,20 @@ function wp_get_attachment_url( $attachment_id = 0 ) {
 
 	$attachment_id = (int) $attachment_id;
 
+	/**
+	 * Short-circuits the wp_get_attachment_url function.
+	 *
+	 * Returning a value other than null from the filter will short-circuit retrieval
+	 * and return that value instead.
+	 *
+	 * @param mixed The value to return instead of the attachment URL. Default null (to skip past the short-circuit).
+	 * @param int $attachment_id The attachment ID.
+	 */
+	$pre = apply_filters( 'pre_wp_get_attachment_url', null, $attachment_id );
+	if ( null !== $pre ) {
+		return $pre;
+	}
+
 	$post = get_post( $attachment_id );
 
 	if ( ! $post ) {
