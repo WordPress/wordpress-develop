@@ -512,7 +512,7 @@ figcaption,
 	}
 
 	&:not(.is-style-solid-color) .wp-block-pullquote__citation {
-		color: $color__text-light;
+		color: inherit;
 	}
 
 	&.has-text-color .wp-block-pullquote__citation,
@@ -561,6 +561,7 @@ figcaption,
 		line-height: 1.3;
 		margin-bottom: 0.5em;
 		margin-top: 0.5em;
+		color: inherit;
 
 		@include media(tablet) {
 			font-size: $font__size-xl;
@@ -976,7 +977,6 @@ $group-block-background__padding: $font__size_base;
 	}
 }
 
-// Full alignment
 .wp-block[data-align="full"] > .wp-block-group {
 
 		// Margins & padding are added to this container to mimic

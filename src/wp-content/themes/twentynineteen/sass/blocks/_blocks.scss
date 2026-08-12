@@ -410,7 +410,7 @@
 			@include font-family( $font__heading );
 			line-height: 1.6;
 			text-transform: none;
-			color: $color__text-light;
+			color: inherit;
 
 			/*
 			 * This requires a rem-based font size calculation instead of our normal em-based one,
