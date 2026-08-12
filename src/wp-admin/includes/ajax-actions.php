@@ -606,7 +606,7 @@ function _wp_ajax_delete_comment_response( $comment_id, $delta = -1 ) {
  * @access private
  */
 function _wp_ajax_add_hierarchical_term() {
-	$action   = $_POST['action'];
+	$action   = isset( $_POST['action'] ) ? sanitize_text_field( $_POST['action'] ) : '';
 	$taxonomy = get_taxonomy( substr( $action, 4 ) );
 	check_ajax_referer( $action, '_ajax_nonce-add-' . $taxonomy->name );
 
