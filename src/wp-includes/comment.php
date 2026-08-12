@@ -3184,7 +3184,18 @@ function wp_get_default_excluded_comment_types( $query = null ) {
 	// Drop values that cannot be cast to a string, so a stray object or array cannot error out.
 	$excluded_types = array_filter( (array) $excluded_types, 'is_scalar' );
 
-	$excluded_types = array_unique( array_filter( array_map( 'strval', $excluded_types ), 'strlen' ) );
+	/*
+	 * Drop empty strings, but keep a type literally named '0', which array_filter()
+	 * without a callback would treat as empty.
+	 */
+	$excluded_types = array_filter(
+		array_map( 'strval', $excluded_types ),
+		static function ( $excluded_type ) {
+			return '' !== $excluded_type;
+		}
+	);
+
+	$excluded_types = array_unique( $excluded_types );
 
 	// Strip the special type tokens so an alias cannot poison explicit-type queries.
 	return array_values( array_diff( $excluded_types, array( 'all', 'comment', 'comments', 'pings' ) ) );
