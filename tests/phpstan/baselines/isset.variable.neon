@@ -38,8 +38,3 @@ parameters:
 			identifier: isset.variable
 			count: 1
 			path: ../../../src/wp-includes/class-wp-oembed.php
-		-
-			message: '#^Variable \$s in isset\(\) is never defined\.$#'
-			identifier: isset.variable
-			count: 1
-			path: ../../../src/wp-includes/template.php
