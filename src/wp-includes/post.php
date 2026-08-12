@@ -2748,6 +2748,12 @@ function delete_post_meta( $post_id, $meta_key, $meta_value = '' ) {
  *               Arrays and objects retain their original type.
  */
 function get_post_meta( $post_id, $key = '', $single = false ) {
+	// Make sure meta is get for the post, not for a revision.
+	$the_post = wp_is_post_revision( $post_id );
+	if ( $the_post ) {
+		$post_id = $the_post;
+	}
+
 	return get_metadata( 'post', $post_id, $key, $single );
 }
 
