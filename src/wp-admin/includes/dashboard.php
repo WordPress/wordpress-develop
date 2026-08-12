@@ -88,13 +88,6 @@ function wp_dashboard_setup() {
 		wp_add_dashboard_widget( 'dashboard_quick_press', $quick_draft_title, 'wp_dashboard_quick_press' );
 	}
 
-	// On This Day.
-	if ( ! function_exists( 'wp_dashboard_on_this_day_setup' ) ) {
-		require_once ABSPATH . 'wp-admin/includes/dashboard-on-this-day.php';
-	}
-
-	wp_dashboard_on_this_day_setup();
-
 	// WordPress Events and News.
 	wp_add_dashboard_widget( 'dashboard_primary', __( 'WordPress Events and News' ), 'wp_dashboard_events_news' );
 
@@ -575,11 +568,13 @@ function wp_dashboard_quick_press( $message = false, $notice_type = 'error' ) {
 			$post->post_title = ''; // Remove the auto draft title.
 		}
 	} else {
-		$post    = get_default_post_to_edit( 'post', true );
-		$user_id = get_current_user_id();
+		$post            = get_default_post_to_edit( 'post', true );
+		$user_id         = get_current_user_id();
+		$user_blogs      = get_blogs_of_user( $user_id );
+		$current_blog_id = get_current_blog_id();
 
 		// Don't create an option if this is a super admin who does not belong to this site.
-		if ( in_array( get_current_blog_id(), array_keys( get_blogs_of_user( $user_id ) ), true ) ) {
+		if ( isset( $user_blogs[ $current_blog_id ] ) ) {
 			update_user_option( $user_id, 'dashboard_quick_press_last_post_id', (int) $post->ID ); // Save post_ID.
 		}
 	}
