@@ -3366,6 +3366,11 @@ function wp_check_filetype_and_ext( $file, $filename, $mimes = null ) {
  * @return string|false The actual mime type or false if the type cannot be determined.
  */
 function wp_get_image_mime( $file ) {
+	// Return false if file doesn't exist or is not readable.
+	if ( ! file_exists( $file ) || ! is_readable( $file ) ) {
+		return false;
+	}
+
 	/*
 	 * Use exif_imagetype() to check the mimetype if available or fall back to
 	 * getimagesize() if exif isn't available. If either function throws an Exception
