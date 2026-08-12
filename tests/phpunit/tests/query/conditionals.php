@@ -1618,6 +1618,28 @@ class Tests_Query_Conditionals extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 62593
+	 *
+	 * @dataProvider data_conditional_tags_trigger_doing_it_wrong_and_return_false_if_wp_query_is_not_set
+	 *
+	 * @global int[] $wp_actions Stores the number of times each action was triggered.
+	 * @global int[] $wp_filters Stores the number of times each filter was triggered.
+	 *
+	 * @param string $function_name The name of the function to test.
+	 */
+	public function test_conditional_tags_trigger_doing_it_wrong_and_return_false_if_too_early( $function_name ) {
+		global $wp_actions, $wp_filters;
+		unset( $wp_actions['parse_query'] );
+		unset( $wp_actions['parse_tax_query'] );
+		unset( $wp_actions['posts_selection'] );
+		unset( $wp_filters['posts_pre_query'] );
+
+		$this->setExpectedIncorrectUsage( $function_name );
+
+		$this->assertFalse( call_user_func( $function_name ) );
+	}
+
+	/**
 	 * @ticket 55104
 	 *
 	 * @dataProvider data_conditional_tags_trigger_doing_it_wrong_and_return_false_if_wp_query_is_not_set
