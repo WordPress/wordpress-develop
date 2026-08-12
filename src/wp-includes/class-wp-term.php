@@ -226,6 +226,7 @@ final class WP_Term {
 	 * Getter.
 	 *
 	 * @since 4.4.0
+	 * @since 6.8.0 Added backwards compatibility aliases.
 	 *
 	 * @param string $key Property to get.
 	 * @return mixed Property value.
@@ -240,6 +241,52 @@ final class WP_Term {
 				}
 
 				return sanitize_term( $data, $data->taxonomy, 'raw' );
+
+			// Backwards compatibility aliases.
+			case 'cat_ID':
+				return $this->term_id;
+			case 'category_count':
+				return $this->count;
+			case 'category_description':
+				return $this->description;
+			case 'cat_name':
+				return $this->name;
+			case 'category_nicename':
+				return $this->slug;
+			case 'category_parent':
+				return $this->parent;
+		}
+	}
+
+	/**
+	 * Setter.
+	 *
+	 * @since 6.8.0
+	 *
+	 * @param string $key   Property to set.
+	 * @param mixed  $value Property value.
+	 */
+	public function __set( $key, $value ) {
+		switch ( $key ) {
+			// Backwards compatibility aliases.
+			case 'cat_ID':
+				$this->term_id = $value;
+				break;
+			case 'category_count':
+				$this->count = $value;
+				break;
+			case 'category_description':
+				$this->description = $value;
+				break;
+			case 'cat_name':
+				$this->name = $value;
+				break;
+			case 'category_nicename':
+				$this->slug = $value;
+				break;
+			case 'category_parent':
+				$this->parent = $value;
+				break;
 		}
 	}
 }
