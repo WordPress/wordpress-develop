@@ -8859,3 +8859,45 @@ function wp_create_initial_post_meta() {
 		)
 	);
 }
+
+/**
+ * Retrieves page IDs, permalinks, or titles based on a template file name.
+ *
+ * Queries pages using a specified template file and returns an array of
+ * IDs, permalinks, or titles based on the provided field parameter.
+ *
+ * @param string $template The template file name to search for.
+ * @param string $field The field to return: 'ID' for page IDs, 'permalink' for page permalinks, or 'title' for page titles.
+ * @return array|null An array of IDs, permalinks, or titles of matching pages, or null if no pages are found.
+ */
+
+function get_page_by_template( $template, $field = 'ID' ) {
+	$query = new WP_Query(
+		array(
+			'post_type'  => 'page',
+			'meta_query' => array(
+				array(
+					'key'     => '_wp_page_template',
+					'value'   => $template,
+					'compare' => '==',
+				),
+			),
+			'fields'     => 'ids',
+		)
+	);
+
+	if ( $query->have_posts() ) {
+		$template_page_ids = $query->posts;
+		wp_reset_postdata();
+		if ( 'ID' === $field ) {
+			return $template_page_ids;
+		} elseif ( 'title' === $field ) {
+			return array_combine( $template_page_ids, array_map( 'get_the_title', $template_page_ids ) );
+		} elseif ( 'permalink' === $field ) {
+			return array_combine( $template_page_ids, array_map( 'get_permalink', $template_page_ids ) );
+		}
+	}
+
+	wp_reset_postdata();
+	return null;
+}
