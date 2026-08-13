@@ -4,7 +4,7 @@
  *
  * Generates scoped CSS for per-instance state styles declared in block attributes,
  * including pseudo-states (e.g., `style[':hover']`) and responsive states
- * (e.g., `style['mobile']` and `style['mobile'][':hover']`).
+ * (e.g., `style['@mobile']` and `style['@mobile'][':hover']`).
  *
  * @package WordPress
  * @since 7.1.0
@@ -122,12 +122,13 @@ function wp_get_state_declarations_with_background_resets( $declarations ) {
 
 	/*
 	 * When the state sets a solid background-color but no gradient of its own,
-	 * emit `background-image: unset !important` to clear any gradient (whether
-	 * stored as the `background` shorthand or as `background-image`) that was
-	 * applied to the default / normal state via an inline style attribute.
+	 * emit `background-image: unset` to clear any gradient (whether stored as
+	 * the `background` shorthand or as `background-image`) that was applied to
+	 * the default / normal state via an inline style attribute. The declaration
+	 * is marked important when the state rule is registered with the style engine.
 	 */
 	if ( $has_background_color && ! $has_background && ! $has_background_image ) {
-		$declarations['background-image'] = 'unset !important';
+		$declarations['background-image'] = 'unset';
 	}
 
 	return $declarations;
@@ -296,6 +297,97 @@ function wp_get_root_state_style( $state_style, $nested_keys ) {
 }
 
 /**
+ * Generates all element selectors for a block root selector.
+ *
+ * @since 7.1.0
+ *
+ * @param string $root_selector The block root CSS selector.
+ * @return string[] Element selectors keyed by element name.
+ */
+function wp_get_block_state_element_selectors( $root_selector ) {
+	if ( ! is_string( $root_selector ) || '' === trim( $root_selector ) ) {
+		return array();
+	}
+
+	$block_selectors   = wp_split_selector_list( $root_selector );
+	$element_selectors = array();
+
+	foreach ( WP_Theme_JSON::ELEMENTS as $element_name => $element_selector ) {
+		$selectors = array();
+
+		foreach ( $block_selectors as $block_selector ) {
+			$block_selector = trim( $block_selector );
+			if ( '' === $block_selector ) {
+				continue;
+			}
+
+			if ( $block_selector === $element_selector ) {
+				$selectors = array( $element_selector );
+				break;
+			}
+
+			$selector_prefix = "$block_selector ";
+			if ( ! str_contains( $element_selector, ',' ) ) {
+				$selectors[] = $selector_prefix . $element_selector;
+				continue;
+			}
+
+			$prepended_selectors = array();
+			foreach ( wp_split_selector_list( $element_selector ) as $selector ) {
+				$prepended_selectors[] = $selector_prefix . $selector;
+			}
+			$selectors[] = implode( ',', $prepended_selectors );
+		}
+
+		if ( ! empty( $selectors ) ) {
+			$element_selectors[ $element_name ] = implode( ',', $selectors );
+		}
+	}
+
+	return $element_selectors;
+}
+
+/**
+ * Adds a compiled state style rule to a rule list.
+ *
+ * @since 7.1.0
+ *
+ * @param array       $css_rules   Style rules.
+ * @param string      $state       Pseudo-state selector.
+ * @param string|null $selector    Block, feature, or element selector.
+ * @param array       $style       Style object.
+ * @param string|null $rules_group Optional CSS grouping rule, e.g. a media query.
+ */
+function wp_add_block_state_style_rule( &$css_rules, $state, $selector, $style, $rules_group = null ) {
+	if ( empty( $style ) || ! is_array( $style ) ) {
+		return;
+	}
+
+	$compiled     = wp_style_engine_get_styles(
+		wp_normalize_state_style_for_css_output( $style )
+	);
+	$declarations = $compiled['declarations'] ?? array();
+	$text_align   = $style['typography']['textAlign'] ?? null;
+	// Base text alignment is class-based, so state styles need a declaration.
+	if ( is_string( $text_align ) && '' !== trim( $text_align ) ) {
+		$declarations['text-align'] = $text_align;
+	}
+
+	if ( empty( $declarations ) ) {
+		return;
+	}
+
+	$css_rules[] = array(
+		'state'        => $state,
+		'selector'     => $selector,
+		'declarations' => $declarations,
+	);
+	if ( ! empty( $rules_group ) ) {
+		$css_rules[ count( $css_rules ) - 1 ]['rules_group'] = $rules_group;
+	}
+}
+
+/**
  * Builds compiled state style rules, preserving the selector each rule targets.
  *
  * @since 7.1.0
@@ -317,21 +409,13 @@ function wp_get_block_state_style_rules( $state_styles, $block_type, $rules_grou
 		}
 
 		foreach ( wp_get_state_style_groups( $state_style, $block_selectors ) as $group ) {
-			$style    = wp_get_state_style_with_fallback_dimension_styles( $group['style'] );
-			$compiled = wp_style_engine_get_styles(
-				wp_normalize_state_style_for_css_output( $style )
+			wp_add_block_state_style_rule(
+				$css_rules,
+				$state,
+				$group['selector'],
+				$group['style'],
+				$rules_group
 			);
-
-			if ( ! empty( $compiled['declarations'] ) ) {
-				$css_rules[] = array(
-					'state'        => $state,
-					'selector'     => $group['selector'],
-					'declarations' => $compiled['declarations'],
-				);
-				if ( ! empty( $rules_group ) ) {
-					$css_rules[ count( $css_rules ) - 1 ]['rules_group'] = $rules_group;
-				}
-			}
 		}
 	}
 
@@ -464,9 +548,11 @@ function wp_render_block_states_support( $block_content, $block ) {
 		return $block_content;
 	}
 
-	$supported_pseudo_states = WP_Theme_JSON::VALID_BLOCK_PSEUDO_SELECTORS[ $block_name ] ?? array();
-	$style                   = $block['attrs']['style'] ?? array();
-	$css_rules               = array();
+	$supported_pseudo_states  = WP_Theme_JSON::VALID_BLOCK_PSEUDO_SELECTORS[ $block_name ] ?? array();
+	$style                    = $block['attrs']['style'] ?? array();
+	$css_rules                = array();
+	$viewport_settings        = wp_get_global_settings( array( 'viewport' ) );
+	$responsive_media_queries = WP_Theme_JSON::get_viewport_media_queries( $viewport_settings );
 
 	foreach ( $supported_pseudo_states as $pseudo_state ) {
 		if ( empty( $style[ $pseudo_state ] ) || ! is_array( $style[ $pseudo_state ] ) ) {
@@ -482,7 +568,7 @@ function wp_render_block_states_support( $block_content, $block ) {
 		);
 	}
 
-	foreach ( WP_Theme_JSON::RESPONSIVE_BREAKPOINTS as $breakpoint => $media_query ) {
+	foreach ( $responsive_media_queries as $breakpoint => $media_query ) {
 		if ( empty( $style[ $breakpoint ] ) || ! is_array( $style[ $breakpoint ] ) ) {
 			continue;
 		}
@@ -501,6 +587,57 @@ function wp_render_block_states_support( $block_content, $block ) {
 					$media_query
 				)
 			);
+		}
+
+		if (
+			! empty( $style[ $breakpoint ]['elements'] ) &&
+			is_array( $style[ $breakpoint ]['elements'] )
+		) {
+			$element_selectors = wp_get_block_state_element_selectors(
+				wp_get_block_css_selector( $block_type )
+			);
+
+			foreach ( $style[ $breakpoint ]['elements'] as $element_name => $element_style ) {
+				if (
+					empty( $element_style ) ||
+					! is_array( $element_style ) ||
+					empty( $element_selectors[ $element_name ] )
+				) {
+					continue;
+				}
+
+				$element_pseudo_states = WP_Theme_JSON::VALID_ELEMENT_PSEUDO_SELECTORS[ $element_name ]
+					?? array();
+				$root_element_style    = wp_get_root_state_style(
+					$element_style,
+					$element_pseudo_states
+				);
+
+				wp_add_block_state_style_rule(
+					$css_rules,
+					'',
+					$element_selectors[ $element_name ],
+					$root_element_style,
+					$media_query
+				);
+
+				foreach ( $element_pseudo_states as $pseudo_state ) {
+					if (
+						empty( $element_style[ $pseudo_state ] ) ||
+						! is_array( $element_style[ $pseudo_state ] )
+					) {
+						continue;
+					}
+
+					wp_add_block_state_style_rule(
+						$css_rules,
+						$pseudo_state,
+						$element_selectors[ $element_name ],
+						$element_style[ $pseudo_state ],
+						$media_query
+					);
+				}
+			}
 		}
 
 		foreach ( $supported_pseudo_states as $pseudo_state ) {
@@ -541,26 +678,49 @@ function wp_render_block_states_support( $block_content, $block ) {
 	 */
 	$style_rules = array();
 	foreach ( $css_rules as $rule ) {
-		$declarations = $rule['declarations'];
-		foreach ( $declarations as $property => $value ) {
-			$declarations[ $property ] = is_string( $value ) && str_contains( $value, '!important' )
-				? $value
-				: $value . ' !important';
+		$declarations                 = $rule['declarations'];
+		$important_declaration_values = wp_get_state_declarations_with_background_resets( $declarations );
+		$important_declarations       = new WP_Style_Engine_CSS_Declarations();
+		foreach ( $important_declaration_values as $property => $value ) {
+			$important_declarations->add_declaration(
+				$property,
+				$value,
+				array(
+					'important' => true,
+				)
+			);
 		}
-		$declarations = wp_get_state_declarations_with_fallback_border_styles( $declarations );
-		$declarations = wp_get_state_declarations_with_background_resets( $declarations );
-		$style_rule   = array(
-			'selector'     => wp_build_state_selector(
-				".$unique_class",
-				$rule['selector'],
-				$rule['state']
-			),
-			'declarations' => $declarations,
+		$selector             = wp_build_state_selector(
+			".$unique_class",
+			$rule['selector'],
+			$rule['state']
+		);
+		$important_style_rule = array(
+			'selector'     => $selector,
+			'declarations' => $important_declarations,
 		);
 		if ( ! empty( $rule['rules_group'] ) ) {
-			$style_rule['rules_group'] = $rule['rules_group'];
+			$important_style_rule['rules_group'] = $rule['rules_group'];
 		}
-		$style_rules[] = $style_rule;
+		$style_rules[] = $important_style_rule;
+
+		$fallback_declarations = wp_get_state_declarations_with_fallback_border_styles( $declarations );
+		foreach ( array_keys( $declarations ) as $property ) {
+			unset( $fallback_declarations[ $property ] );
+		}
+
+		if ( empty( $fallback_declarations ) ) {
+			continue;
+		}
+
+		$fallback_style_rule = array(
+			'selector'     => $selector,
+			'declarations' => $fallback_declarations,
+		);
+		if ( ! empty( $rule['rules_group'] ) ) {
+			$fallback_style_rule['rules_group'] = $rule['rules_group'];
+		}
+		$style_rules[] = $fallback_style_rule;
 	}
 
 	wp_style_engine_get_stylesheet_from_css_rules(
