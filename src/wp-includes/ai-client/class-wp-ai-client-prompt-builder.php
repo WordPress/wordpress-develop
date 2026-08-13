@@ -230,7 +230,7 @@ class WP_AI_Client_Prompt_Builder {
 	 * share that state with the original and any change made to one would be
 	 * visible in the other.
 	 *
-	 * @since 7.1.0
+	 * @since 7.2.0
 	 */
 	public function __clone() {
 		$this->builder = clone $this->builder;
