@@ -488,6 +488,7 @@ function _wp_ajax_delete_comment_response( $comment_id, $delta = -1 ) {
 				'supplemental' => array(
 					'status'               => $comment_status,
 					'postId'               => $comment ? $comment->comment_post_ID : '',
+					'isCurrentUserComment' => (int) ( $comment && get_current_user_id() === (int) $comment->user_id ),
 					'time'                 => $time,
 					'in_moderation'        => $counts->moderated,
 					'i18n_comments_text'   => sprintf(
@@ -559,6 +560,7 @@ function _wp_ajax_delete_comment_response( $comment_id, $delta = -1 ) {
 			'supplemental' => array(
 				'status'               => $comment ? $comment->comment_approved : '',
 				'postId'               => $comment ? $comment->comment_post_ID : '',
+				'isCurrentUserComment' => (int) ( $comment && get_current_user_id() === (int) $comment->user_id ),
 				/* translators: %s: Number of comments. */
 				'total_items_i18n'     => sprintf( _n( '%s item', '%s items', $total ), number_format_i18n( $total ) ),
 				'total_pages'          => (int) ceil( $total / $per_page ),
