@@ -5431,16 +5431,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * This generator function is designed to be used inside a "foreach" loop.
 	 *
-	 * ```php
-	 * <?php
-	 * echo 'not really a demo';
-	 * ```
-	 *
-	 * ```php interactive
-	 * <?php
-	 * echo 'really a demo';
-	 * ```
-	 *
 	 * ```php interactive
 	 * <?php
 	 * require '/wordpress/wp-load.php';
