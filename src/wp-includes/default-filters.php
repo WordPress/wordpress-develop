@@ -535,12 +535,13 @@ add_action( 'wp_update_comment_type_batch', '_wp_batch_update_comment_type' );
 // Email notifications.
 add_action( 'comment_post', 'wp_new_comment_notify_moderator' );
 add_action( 'comment_post', 'wp_new_comment_notify_postauthor' );
-add_action( 'rest_insert_comment', 'wp_new_comment_via_rest_notify_postauthor' );
+add_action( 'rest_insert_comment', 'wp_new_comment_via_rest_notify_postauthor', 10, 3 );
 add_action( 'rest_insert_comment', 'wp_route_post_author_mention_notification', 9, 3 );
 add_action( 'rest_insert_comment', 'wp_notify_note_mentions', 10, 3 );
 add_action( 'rest_insert_comment', 'wp_notify_note_followers', 11, 3 );
 add_action( 'rest_insert_comment', 'wp_notify_new_mentions_on_note_update', 11, 3 );
 add_action( 'rest_insert_comment', 'wp_maintain_note_followers', 12, 3 );
+add_action( 'rest_after_insert_comment', 'wp_notify_note_event', 10, 3 );
 add_filter( 'wp_note_notification_text', 'wp_add_note_unfollow_link_to_email', 10, 3 );
 add_action( 'admin_post_wp_note_unfollow', 'wp_handle_note_unfollow' );
 add_action( 'admin_post_nopriv_wp_note_unfollow', 'wp_handle_note_unfollow' );

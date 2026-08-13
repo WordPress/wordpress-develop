@@ -2581,13 +2581,28 @@ function wp_new_comment_notify_postauthor( $comment_id ) {
  * Send a notification to the post author when a new note is added via the REST API.
  *
  * @since 6.9.0
+ * @since 7.2.0 Added the `$request` and `$creating` parameters, and thread
+ *              event notes are left to {@see wp_notify_note_event()}.
  *
- * @param WP_Comment $comment The comment object.
+ * @param WP_Comment $comment  The comment object.
+ * @param mixed      $request  The REST request, used to recognize system notes.
+ * @param bool       $creating Whether this is a create (true) or update (false).
  */
-function wp_new_comment_via_rest_notify_postauthor( $comment ) {
-	if ( $comment instanceof WP_Comment && 'note' === $comment->comment_type ) {
-		wp_new_comment_notify_postauthor( (int) $comment->comment_ID );
+function wp_new_comment_via_rest_notify_postauthor( $comment, $request = null, $creating = true ) {
+	if ( ! $comment instanceof WP_Comment || 'note' !== $comment->comment_type ) {
+		return;
 	}
+
+	/*
+	 * Resolving or reopening a thread posts a system note. The generic email
+	 * would announce it as a new note and, for a resolve, carry an empty body;
+	 * wp_notify_note_event() tells the post author what actually happened.
+	 */
+	if ( null !== wp_get_note_status_event( $comment, $request ) ) {
+		return;
+	}
+
+	wp_new_comment_notify_postauthor( (int) $comment->comment_ID );
 }
 
 /**
@@ -3390,6 +3405,217 @@ function wp_send_note_follower_notification( WP_User $user, WP_Comment $comment,
 
 	/** This action is documented in wp-includes/comment.php */
 	do_action( 'wp_note_notification_sent', (int) $user->ID, $comment, 'follower', $sent );
+
+	return $sent;
+}
+
+/**
+ * Notifies a thread's audience that it was resolved or reopened.
+ *
+ * The audience is the thread's followers plus the post author, minus whoever
+ * performed the action and minus anyone the note mentions, who was just sent
+ * the higher-signal mention email about the same insert.
+ *
+ * Runs on {@see 'rest_after_insert_comment'} rather than
+ * {@see 'rest_insert_comment'} because WP_REST_Comments_Controller saves
+ * comment meta between the two: by the later action `_wp_note_status` is
+ * stored, so the event is recognized no matter which client wrote the note.
+ *
+ * @since 7.2.0
+ *
+ * @param WP_Comment|null $comment  The note that was just inserted.
+ * @param mixed           $request  The REST request that created it.
+ * @param bool            $creating Whether this is a create (true) or update (false).
+ */
+function wp_notify_note_event( ?WP_Comment $comment, $request = null, bool $creating = true ): void {
+	if ( ! $creating || ! $comment || 'note' !== $comment->comment_type ) {
+		return;
+	}
+
+	// Share the single user-facing notes notification preference.
+	if ( ! get_option( 'wp_notes_notify', 1 ) ) {
+		return;
+	}
+
+	$event = wp_get_note_status_event( $comment, $request );
+	if ( null === $event ) {
+		return;
+	}
+
+	$root_id   = wp_get_note_thread_root_id( $comment );
+	$followers = wp_get_note_followers( $root_id );
+
+	$comment_post_id = (int) $comment->comment_post_ID;
+	$post            = $comment_post_id ? get_post( $comment_post_id ) : null;
+	$post_author_id  = $post ? (int) $post->post_author : 0;
+
+	$recipients = $followers;
+	if ( $post_author_id > 0 ) {
+		$recipients[] = $post_author_id;
+	}
+	$recipients = array_values( array_unique( $recipients, SORT_NUMERIC ) );
+
+	/**
+	 * Filters the user IDs notified that a note thread was resolved or reopened.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param int[]      $recipients Candidate user IDs: the thread's followers plus the post author.
+	 * @param WP_Comment $comment    The system note recording the event.
+	 * @param string     $event      The event: 'resolved' or 'reopen'.
+	 * @param int        $root_id    The thread's top-level note ID.
+	 */
+	$recipients = apply_filters( 'wp_note_event_notification_recipients', $recipients, $comment, $event, $root_id );
+
+	$actor_id = (int) $comment->user_id;
+
+	/*
+	 * A reopen message can mention people, and the mention path has already
+	 * emailed them about this same note. One insert, one email.
+	 */
+	$mentioned = wp_get_note_mentioned_user_ids( $comment->comment_content );
+	$excluded  = array_merge( array( $actor_id ), $mentioned );
+
+	$candidates = array();
+	foreach ( $recipients as $user_id ) {
+		$user_id = (int) $user_id;
+		if ( $user_id > 0 && ! in_array( $user_id, $excluded, true ) ) {
+			$candidates[] = $user_id;
+		}
+	}
+
+	if ( array() === $candidates ) {
+		return;
+	}
+
+	// One user query for the whole audience rather than one per recipient.
+	cache_users( $candidates );
+
+	foreach ( $candidates as $user_id ) {
+		$user = get_userdata( $user_id );
+		if ( ! $user || empty( $user->user_email ) ) {
+			continue;
+		}
+
+		/*
+		 * Same visibility bar as the mention and follower paths: notes are
+		 * internal, so only users who can read the note are told about it.
+		 */
+		if ( ! user_can( $user_id, 'edit_comment', $comment->comment_ID ) ) {
+			continue;
+		}
+
+		wp_send_note_event_notification(
+			$user,
+			$comment,
+			$post,
+			$root_id,
+			$event,
+			in_array( $user_id, $followers, true )
+		);
+	}
+}
+
+/**
+ * Sends a single note thread event notification email.
+ *
+ * @since 7.2.0
+ *
+ * @param WP_User      $user        The recipient.
+ * @param WP_Comment   $comment     The system note recording the event.
+ * @param WP_Post|null $post        The post the thread belongs to.
+ * @param int          $root_id     The thread's top-level note ID.
+ * @param string       $event       The event: 'resolved' or 'reopen'.
+ * @param bool         $is_follower Whether the recipient follows the thread.
+ * @return bool Whether the email was accepted for delivery by {@see wp_mail()}.
+ */
+function wp_send_note_event_notification( WP_User $user, WP_Comment $comment, ?WP_Post $post, int $root_id, string $event, bool $is_follower = true ): bool {
+	$switched_locale = switch_to_user_locale( $user->ID );
+
+	$blogname   = wp_specialchars_decode( get_bloginfo( 'name', 'display' ), ENT_QUOTES );
+	$post_title = $post ? wp_specialchars_decode( get_the_title( $post ), ENT_QUOTES ) : '';
+	$actor_name = $comment->comment_author ? $comment->comment_author : __( 'Someone' );
+
+	// Resolving carries no message; reopening usually does.
+	$content = wp_specialchars_decode( wp_strip_all_tags( $comment->comment_content ) );
+
+	$edit_link = '';
+	if ( $post ) {
+		$previous_user_id = get_current_user_id();
+		wp_set_current_user( $user->ID );
+		$edit_link = (string) get_edit_post_link( $post->ID, 'url' );
+		wp_set_current_user( $previous_user_id );
+	}
+
+	if ( 'resolved' === $event ) {
+		/* translators: 1: Name of the user who resolved the thread, 2: Post title. */
+		$message = sprintf( __( '%1$s resolved a note thread on "%2$s".' ), $actor_name, $post_title );
+		/* translators: Note thread resolved notification email subject. 1: Site title, 2: Post title. */
+		$subject = sprintf( __( '[%1$s] A note thread on "%2$s" was resolved' ), $blogname, $post_title );
+	} else {
+		/* translators: 1: Name of the user who reopened the thread, 2: Post title. */
+		$message = sprintf( __( '%1$s reopened a note thread on "%2$s".' ), $actor_name, $post_title );
+		/* translators: Note thread reopened notification email subject. 1: Site title, 2: Post title. */
+		$subject = sprintf( __( '[%1$s] A note thread on "%2$s" was reopened' ), $blogname, $post_title );
+	}
+
+	$lines = array( $message, '' );
+	if ( '' !== $content ) {
+		$lines[] = $content;
+		$lines[] = '';
+	}
+	if ( $edit_link ) {
+		$lines[] = __( 'Edit This' ) . ': ' . $edit_link;
+	}
+
+	$body = implode( "\n", $lines );
+
+	/*
+	 * Only followers are offered the unfollow link. A post author who never
+	 * joined the thread has no subscription to end, and the generic note emails
+	 * to them answer to the site-wide setting instead.
+	 */
+	if ( $is_follower ) {
+		$body .= "\n\n";
+		$body .= __( 'You are subscribed to this note thread. To stop receiving notifications about it, follow this link:' );
+		$body .= "\n" . wp_get_note_unfollow_url( $root_id, (int) $user->ID );
+	}
+
+	/**
+	 * Filters the note thread event notification email subject.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param string     $subject Email subject.
+	 * @param WP_User    $user    Recipient.
+	 * @param WP_Comment $comment The system note recording the event.
+	 * @param string     $event   The event: 'resolved' or 'reopen'.
+	 */
+	$subject = apply_filters( 'wp_note_event_notification_subject', $subject, $user, $comment, $event );
+
+	/**
+	 * Filters the note thread event notification email body.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param string     $body    Email body.
+	 * @param WP_User    $user    Recipient.
+	 * @param WP_Comment $comment The system note recording the event.
+	 * @param string     $event   The event: 'resolved' or 'reopen'.
+	 */
+	$body = apply_filters( 'wp_note_event_notification_text', $body, $user, $comment, $event );
+
+	// Declared explicitly so a filtered default cannot turn the message into HTML.
+	$headers = 'Content-Type: text/plain; charset="' . get_option( 'blog_charset' ) . '"';
+
+	$sent = wp_mail( $user->user_email, $subject, $body, $headers );
+
+	if ( $switched_locale ) {
+		restore_previous_locale();
+	}
+
+	/** This action is documented in wp-includes/comment.php */
+	do_action( 'wp_note_notification_sent', (int) $user->ID, $comment, $event, $sent );
 
 	return $sent;
 }
