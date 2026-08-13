@@ -2668,25 +2668,7 @@ function set_site_transient( $transient, $value, $expiration = 0 ) {
 	 */
 	$expiration = apply_filters( "expiration_of_site_transient_{$transient}", $expiration, $value, $transient );
 
-	if ( wp_using_ext_object_cache() || wp_installing() ) {
-		$result = wp_cache_set( $transient, $value, 'site-transient', $expiration );
-	} else {
-		$transient_timeout = '_site_transient_timeout_' . $transient;
-		$option            = '_site_transient_' . $transient;
-		wp_prime_site_option_caches( array( $option, $transient_timeout ) );
-
-		if ( false === get_site_option( $option ) ) {
-			if ( $expiration ) {
-				add_site_option( $transient_timeout, time() + $expiration );
-			}
-			$result = add_site_option( $option, $value );
-		} else {
-			if ( $expiration ) {
-				update_site_option( $transient_timeout, time() + $expiration );
-			}
-			$result = update_site_option( $option, $value );
-		}
-	}
+	$result = set_site_transient_nohook( $transient, $value, $expiration );
 
 	if ( $result ) {
 
@@ -2728,6 +2710,35 @@ function set_site_transient( $transient, $value, $expiration = 0 ) {
 		do_action_deprecated( 'setted_site_transient', array( $transient, $value, $expiration ), '6.8.0', 'set_site_transient' );
 	}
 
+	return $result;
+}
+
+/**
+ * @param string $transient
+ * @param $value
+ * @param $expiration
+ * @return bool
+ */
+function set_site_transient_nohook( $transient, $value, $expiration = 0 ) {
+	if ( wp_using_ext_object_cache() || wp_installing() ) {
+		$result = wp_cache_set( $transient, $value, 'site-transient', $expiration );
+	} else {
+		$transient_timeout = '_site_transient_timeout_' . $transient;
+		$option            = '_site_transient_' . $transient;
+		wp_prime_site_option_caches( array( $option, $transient_timeout ) );
+
+		if ( false === get_site_option( $option ) ) {
+			if ( $expiration ) {
+				add_site_option( $transient_timeout, time() + $expiration );
+			}
+			$result = add_site_option( $option, $value );
+		} else {
+			if ( $expiration ) {
+				update_site_option( $transient_timeout, time() + $expiration );
+			}
+			$result = update_site_option( $option, $value );
+		}
+	}
 	return $result;
 }
 
