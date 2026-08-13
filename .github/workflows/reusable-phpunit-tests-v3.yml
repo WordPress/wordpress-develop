@@ -206,25 +206,9 @@ jobs:
       - name: Pull Docker images
         run: npm run env:pull
 
-      # `env:start` reaches Docker Hub, and on branches where it also runs `composer update`,
-      # repo.packagist.org. Anonymous pulls share a quota across the whole runner IP pool and
-      # transient registry errors are routine, so three attempts with a 10s/20s backoff clear the
-      # blips. `docker.js` retries `env:pull` itself, but only on branches that carry that change.
-      - name: Start Docker environment (with retry)
+      - name: Start Docker environment
         run: |
-          for attempt in 1 2 3; do
-            if npm run env:start; then
-              break
-            fi
-
-            if [ "$attempt" -eq 3 ]; then
-              echo "npm run env:start failed after $attempt attempts."
-              exit 1
-            fi
-
-            echo "npm run env:start failed (attempt $attempt); retrying..."
-            sleep $(( attempt * 10 ))
-          done
+          npm run env:start
 
       - name: Log running Docker containers
         run: docker ps -a

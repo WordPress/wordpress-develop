@@ -105,42 +105,9 @@ jobs:
       - name: Build WordPress
         run: npm run build
 
-      # Anonymous pulls share a Docker Hub quota across the whole runner IP pool, and transient
-      # registry errors are routine. Three attempts with a 10s/20s backoff clear the blips. Every
-      # failure is retried, so a deterministic one such as a bad tag costs 30s before it reports.
-      - name: Pull Docker images (with retry)
+      - name: Start Docker environment
         run: |
-          for attempt in 1 2 3; do
-            if npm run env:pull; then
-              break
-            fi
-
-            if [ "$attempt" -eq 3 ]; then
-              echo "npm run env:pull failed after $attempt attempts."
-              exit 1
-            fi
-
-            echo "npm run env:pull failed (attempt $attempt); retrying..."
-            sleep $(( attempt * 10 ))
-          done
-
-      # Retried for the same reason: `env:start` reaches the registry, and on branches where it
-      # also runs `composer update`, repo.packagist.org.
-      - name: Start Docker environment (with retry)
-        run: |
-          for attempt in 1 2 3; do
-            if npm run env:start; then
-              break
-            fi
-
-            if [ "$attempt" -eq 3 ]; then
-              echo "npm run env:start failed after $attempt attempts."
-              exit 1
-            fi
-
-            echo "npm run env:start failed (attempt $attempt); retrying..."
-            sleep $(( attempt * 10 ))
-          done
+          npm run env:start
 
       - name: Log running Docker containers
         run: docker ps -a

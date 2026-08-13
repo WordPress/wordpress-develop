@@ -2,14 +2,11 @@
 
 const dotenv = require( 'dotenv' );
 const dotenvExpand = require( 'dotenv-expand' );
-const { spawnSync } = require( 'child_process' );
 const local_env_utils = require( './utils' );
 
 local_env_utils.ensure_env_file();
 
 dotenvExpand.expand( dotenv.config() );
-
-const composeFiles = local_env_utils.get_compose_files();
 
 if ( process.argv.includes( '--coverage-html' ) ) {
 	process.env.LOCAL_PHP_XDEBUG = 'true';
@@ -27,40 +24,13 @@ if ( dockerCommand.includes( 'cli' ) && dockerCommand.includes( 'db' ) && ! dock
 	dockerCommand.push( '--defaults' );
 }
 
-const composeArgs = [
-	'compose',
-	...composeFiles
-		.map( ( composeFile ) => [ '-f', composeFile ] )
-		.flat(),
-	...dockerCommand,
-];
-
 // Failures during image pulls are re-attempted to rule out registry rate limits and network issues.
-const maxAttempts = 'pull' === dockerCommand[0] ? 3 : 1;
+// Composer runs are re-attempted for the same reason: they reach repo.packagist.org, and both
+// `composer install` and `composer update` are safe to repeat.
+const retryable = 'pull' === dockerCommand[0] || dockerCommand.includes( 'composer' );
 
 // Execute any Docker compose command passed to this script.
-let returns;
-for ( let attempt = 1; attempt <= maxAttempts; attempt++ ) {
-	returns = spawnSync( 'docker', composeArgs, { stdio: 'inherit' } );
-
-	if ( 0 === returns.status ) {
-		break;
-	}
-
-	if ( attempt === maxAttempts ) {
-		if ( maxAttempts > 1 ) {
-			console.log( `\ndocker compose ${ dockerCommand[0] } failed after ${ attempt } attempts.` );
-		}
-
-		break;
-	}
-
-	const delay = attempt * 10;
-	console.log( `\ndocker compose ${ dockerCommand[0] } failed (attempt ${ attempt } of ${ maxAttempts }). Retrying in ${ delay } seconds...\n` );
-
-	// Sleep synchronously so the retry loop stays in order without going async.
-	Atomics.wait( new Int32Array( new SharedArrayBuffer( 4 ) ), 0, 0, delay * 1000 );
-}
+const returns = local_env_utils.compose_with_retry( dockerCommand, retryable ? 3 : 1 );
 
 if ( returns.error ) {
 	console.error( `Could not run Docker Compose. ${ returns.error.message }` );
