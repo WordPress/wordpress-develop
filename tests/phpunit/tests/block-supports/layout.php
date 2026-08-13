@@ -158,7 +158,7 @@ class Tests_Block_Supports_Layout extends WP_UnitTestCase {
 				),
 				'expected_output' => '.wp-layout{gap:0.5em 2rem;}',
 			),
-			'flex layout ignores an empty block gap' => array(
+			'flex layout ignores an empty block gap'    => array(
 				'args'            => array(
 					'selector'              => '.wp-layout',
 					'layout'                => array( 'type' => 'flex' ),
@@ -179,6 +179,52 @@ class Tests_Block_Supports_Layout extends WP_UnitTestCase {
 					),
 				),
 				'expected_output' => '.wp-layout{grid-template-columns:repeat(auto-fill, minmax(min(12rem, 100%), 1fr));container-type:inline-size;gap:0.5em 2rem;}',
+			),
+			'grid layout uses horizontal gap for responsive columns' => array(
+				'args'            => array(
+					'selector'              => '.wp-layout',
+					'layout'                => array(
+						'type'               => 'grid',
+						'columnCount'        => 3,
+						'minimumColumnWidth' => '12rem',
+					),
+					'has_block_gap_support' => true,
+					'gap_value'             => array(
+						'top'  => '2rem',
+						'left' => '3rem',
+					),
+				),
+				'expected_output' => '.wp-layout{grid-template-columns:repeat(auto-fill, minmax(max(min(12rem, 100%), (100% - (3rem * (3 - 1))) /3), 1fr));container-type:inline-size;gap:2rem 3rem;}',
+			),
+			'grid layout uses fallback when horizontal gap is missing' => array(
+				'args'            => array(
+					'selector'              => '.wp-layout',
+					'layout'                => array(
+						'type'               => 'grid',
+						'columnCount'        => 3,
+						'minimumColumnWidth' => '12rem',
+					),
+					'has_block_gap_support' => true,
+					'gap_value'             => array( 'top' => '2rem' ),
+					'fallback_gap_value'    => '1.2rem',
+				),
+				'expected_output' => '.wp-layout{grid-template-columns:repeat(auto-fill, minmax(max(min(12rem, 100%), (100% - (1.2rem * (3 - 1))) /3), 1fr));container-type:inline-size;gap:2rem 1.2rem;}',
+			),
+			'grid layout preserves zero horizontal gap' => array(
+				'args'            => array(
+					'selector'              => '.wp-layout',
+					'layout'                => array(
+						'type'               => 'grid',
+						'columnCount'        => 3,
+						'minimumColumnWidth' => '12rem',
+					),
+					'has_block_gap_support' => true,
+					'gap_value'             => array(
+						'top'  => '2rem',
+						'left' => '0',
+					),
+				),
+				'expected_output' => '.wp-layout{grid-template-columns:repeat(auto-fill, minmax(max(min(12rem, 100%), (100% - (0px * (3 - 1))) /3), 1fr));container-type:inline-size;gap:2rem 0;}',
 			),
 		);
 	}
