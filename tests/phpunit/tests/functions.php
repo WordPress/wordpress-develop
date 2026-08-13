@@ -457,16 +457,7 @@ class Tests_Functions extends WP_UnitTestCase {
 
 			$this->assertSame( "$url?foo=1", add_query_arg( 'foo', '1', $url ) );
 			$this->assertSame( "$url?foo=1", add_query_arg( array( 'foo' => '1' ), $url ) );
-			$this->assertSame(
-				"$url?foo=2",
-				add_query_arg(
-					array(
-						'foo' => '1',
-						'foo' => '2',
-					),
-					$url
-				)
-			);
+			$this->assertSame( "$url?foo=2", add_query_arg( array( 'foo' => '2' ), $url ) );
 			$this->assertSame(
 				"$url?foo=1&bar=2",
 				add_query_arg(
@@ -482,15 +473,7 @@ class Tests_Functions extends WP_UnitTestCase {
 
 			$this->assertSame( "$url?foo=1", add_query_arg( 'foo', '1' ) );
 			$this->assertSame( "$url?foo=1", add_query_arg( array( 'foo' => '1' ) ) );
-			$this->assertSame(
-				"$url?foo=2",
-				add_query_arg(
-					array(
-						'foo' => '1',
-						'foo' => '2',
-					)
-				)
-			);
+			$this->assertSame( "$url?foo=2", add_query_arg( array( 'foo' => '2' ) ) );
 			$this->assertSame(
 				"$url?foo=1&bar=2",
 				add_query_arg(
@@ -508,16 +491,7 @@ class Tests_Functions extends WP_UnitTestCase {
 
 			$this->assertSame( "$url?foo=1#frag", add_query_arg( 'foo', '1', $frag_url ) );
 			$this->assertSame( "$url?foo=1#frag", add_query_arg( array( 'foo' => '1' ), $frag_url ) );
-			$this->assertSame(
-				"$url?foo=2#frag",
-				add_query_arg(
-					array(
-						'foo' => '1',
-						'foo' => '2',
-					),
-					$frag_url
-				)
-			);
+			$this->assertSame( "$url?foo=2#frag", add_query_arg( array( 'foo' => '2' ), $frag_url ) );
 			$this->assertSame(
 				"$url?foo=1&bar=2#frag",
 				add_query_arg(
@@ -533,15 +507,7 @@ class Tests_Functions extends WP_UnitTestCase {
 
 			$this->assertSame( "$url?foo=1#frag", add_query_arg( 'foo', '1' ) );
 			$this->assertSame( "$url?foo=1#frag", add_query_arg( array( 'foo' => '1' ) ) );
-			$this->assertSame(
-				"$url?foo=2#frag",
-				add_query_arg(
-					array(
-						'foo' => '1',
-						'foo' => '2',
-					)
-				)
-			);
+			$this->assertSame( "$url?foo=2#frag", add_query_arg( array( 'foo' => '2' ) ) );
 			$this->assertSame(
 				"$url?foo=1&bar=2#frag",
 				add_query_arg(
@@ -570,16 +536,7 @@ class Tests_Functions extends WP_UnitTestCase {
 
 			$this->assertSame( "$url&foo=1", add_query_arg( 'foo', '1', $url ) );
 			$this->assertSame( "$url&foo=1", add_query_arg( array( 'foo' => '1' ), $url ) );
-			$this->assertSame(
-				"$url&foo=2",
-				add_query_arg(
-					array(
-						'foo' => '1',
-						'foo' => '2',
-					),
-					$url
-				)
-			);
+			$this->assertSame( "$url&foo=2", add_query_arg( array( 'foo' => '2' ), $url ) );
 			$this->assertSame(
 				"$url&foo=1&bar=2",
 				add_query_arg(
@@ -595,15 +552,7 @@ class Tests_Functions extends WP_UnitTestCase {
 
 			$this->assertSame( "$url&foo=1", add_query_arg( 'foo', '1' ) );
 			$this->assertSame( "$url&foo=1", add_query_arg( array( 'foo' => '1' ) ) );
-			$this->assertSame(
-				"$url&foo=2",
-				add_query_arg(
-					array(
-						'foo' => '1',
-						'foo' => '2',
-					)
-				)
-			);
+			$this->assertSame( "$url&foo=2", add_query_arg( array( 'foo' => '2' ) ) );
 			$this->assertSame(
 				"$url&foo=1&bar=2",
 				add_query_arg(
