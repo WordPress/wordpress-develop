@@ -2047,7 +2047,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	 * @param string $post_type Post type name.
 	 * @return bool True if post type supports notes, false otherwise.
 	 */
-	private function check_post_type_supports_notes( $post_type ) {
+	protected function check_post_type_supports_notes( $post_type ) {
 		$supports = get_all_post_type_supports( $post_type );
 
 		if ( ! isset( $supports['editor'] ) ) {
