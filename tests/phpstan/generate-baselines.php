@@ -35,6 +35,19 @@
 
 namespace WordPress\PHPStan;
 
+/**
+ * Opening marker of the region of the configuration's `includes` this script owns.
+ *
+ * Everything between this and the closing marker is generated: it is rewritten to
+ * match the baselines on disk, and suppressed while the analysis runs.
+ */
+const BASELINES_START_MARKER = '# phpstan:baselines start';
+
+/**
+ * Closing marker of the region of the configuration's `includes` this script owns.
+ */
+const BASELINES_END_MARKER = '# phpstan:baselines end';
+
 if ( 'cli' !== PHP_SAPI ) {
 	fwrite( STDERR, "This script must be run from the command line.\n" );
 	exit( 1 );
@@ -362,10 +375,21 @@ function read_baseline( string $path ): array {
 }
 
 /**
- * Returns the configuration with any `includes` of the baseline directory removed.
+ * Returns the configuration with the baseline `includes` removed.
  *
  * Those files suppress the very errors being regenerated, so they have to be out
  * of the way for the analysis to report anything.
+ *
+ * Two kinds of include are dropped. Everything between the `# phpstan:baselines`
+ * markers goes, whatever it points at, because that region is generated and every
+ * baseline in force is listed there. Any other include resolving inside the output
+ * directory goes as well, so that a baseline listed by hand outside the markers is
+ * still suppressed when it is about to be rewritten.
+ *
+ * The distinction matters to `--output-dir`. Were only the output directory
+ * considered, writing somewhere other than the default would leave the baselines
+ * already in force active, and the analysis would report just the errors they do
+ * not cover: a differential baseline rather than a complete one.
  *
  * @param non-falsy-string $config_path Absolute path to the configuration file.
  * @param non-falsy-string $output_dir  Absolute path to the baseline directory.
@@ -374,6 +398,7 @@ function read_baseline( string $path ): array {
 function strip_baseline_includes( string $config_path, string $output_dir ): string {
 	$config_dir = dirname( $config_path );
 	$in_block   = false;
+	$in_managed = false;
 	$kept       = array();
 
 	foreach ( explode( "\n", read_file( $config_path ) ) as $line ) {
@@ -385,10 +410,23 @@ function strip_baseline_includes( string $config_path, string $output_dir ): str
 
 		// A non-indented, non-blank line ends the block.
 		if ( $in_block && '' !== trim( $line ) && 1 !== preg_match( '/^\s/', $line ) ) {
-			$in_block = false;
+			$in_block   = false;
+			$in_managed = false;
+		}
+
+		if ( $in_block ) {
+			if ( BASELINES_START_MARKER === trim( $line ) ) {
+				$in_managed = true;
+			} elseif ( BASELINES_END_MARKER === trim( $line ) ) {
+				$in_managed = false;
+			}
 		}
 
 		if ( $in_block && 1 === preg_match( '/^\s*-\s*(\S+)\s*$/', $line, $matches ) ) {
+			if ( $in_managed ) {
+				continue;
+			}
+
 			$included = $matches[1];
 			$absolute = ( '/' === $included[0] ) ? $included : $config_dir . '/' . $included;
 
@@ -441,8 +479,8 @@ function find_baselines( string $output_dir ): array {
  * @param non-empty-string $output_dir    Absolute path to the baseline directory.
  */
 function update_config_includes( string $config_path, string $config_option, string $output_dir ): void {
-	$start_marker = '# phpstan:baselines start';
-	$end_marker   = '# phpstan:baselines end';
+	$start_marker = BASELINES_START_MARKER;
+	$end_marker   = BASELINES_END_MARKER;
 
 	$before = read_file( $config_path );
 	$lines  = explode( "\n", $before );
