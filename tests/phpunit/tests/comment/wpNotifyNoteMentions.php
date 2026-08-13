@@ -420,9 +420,8 @@ class Tests_Comment_WpNotifyNoteMentions extends WP_UnitTestCase {
 	public function test_rest_note_creation_triggers_mention_email() {
 		wp_set_current_user( self::$commenter->ID );
 
-		$request = new WP_REST_Request( 'POST', '/wp/v2/comments' );
+		$request = new WP_REST_Request( 'POST', '/wp/v2/notes' );
 		$request->set_param( 'post', self::$post->ID );
-		$request->set_param( 'type', 'note' );
 		$request->set_param( 'content', 'Ping ' . $this->get_mention_markup( self::$mentioned->ID ) );
 
 		$response = rest_get_server()->dispatch( $request );
@@ -444,7 +443,7 @@ class Tests_Comment_WpNotifyNoteMentions extends WP_UnitTestCase {
 
 		wp_set_current_user( self::$commenter->ID );
 
-		$request = new WP_REST_Request( 'PUT', '/wp/v2/comments/' . $note->comment_ID );
+		$request = new WP_REST_Request( 'PUT', '/wp/v2/notes/' . $note->comment_ID );
 		$request->set_param( 'content', 'Edited ping ' . $this->get_mention_markup( self::$mentioned->ID ) );
 
 		$response = rest_get_server()->dispatch( $request );
