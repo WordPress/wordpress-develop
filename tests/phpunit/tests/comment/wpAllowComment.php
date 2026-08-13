@@ -107,7 +107,7 @@ class Tests_Comment_WpAllowComment extends WP_UnitTestCase {
 
 		$this->assertWPError( $result );
 		$this->assertSame( 'comment_duplicate', $result->get_error_code() );
-  }
+	}
 
 	/**
 	 * @ticket 65016
