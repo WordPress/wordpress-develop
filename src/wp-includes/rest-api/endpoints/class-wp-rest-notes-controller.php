@@ -145,6 +145,37 @@ class WP_REST_Notes_Controller extends WP_REST_Comments_Controller {
 	}
 
 	/**
+	 * Checks if a given request has access to read a note.
+	 *
+	 * Reading a note in any context is the same permission as editing it: the
+	 * comments controller's `moderate_comments` gate does not apply, because a
+	 * note belongs to whoever is editing the post rather than to the site's
+	 * comment moderators.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param WP_REST_Request $request Full details about the request.
+	 * @return true|WP_Error True if the request has read access for the item, WP_Error object otherwise.
+	 */
+	public function get_item_permissions_check( $request ) {
+		$note = $this->get_comment( $request['id'] );
+
+		if ( is_wp_error( $note ) ) {
+			return $note;
+		}
+
+		if ( ! current_user_can( 'edit_comment', $note->comment_ID ) ) {
+			return new WP_Error(
+				'rest_cannot_read_notes',
+				__( 'Sorry, you are not allowed to read notes for this post.' ),
+				array( 'status' => rest_authorization_required_code() )
+			);
+		}
+
+		return true;
+	}
+
+	/**
 	 * Creates a note.
 	 *
 	 * @since 7.2.0
@@ -161,15 +192,68 @@ class WP_REST_Notes_Controller extends WP_REST_Comments_Controller {
 	/**
 	 * Checks if a given request has access to create a note.
 	 *
+	 * A note is an editorial act on a post, so none of the public commenting
+	 * rules apply: there is no anonymous path, no `comments_open` check, and a
+	 * draft is exactly the kind of post that gets annotated.
+	 *
 	 * @since 7.2.0
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return true|WP_Error True if the request has access to create items, WP_Error object otherwise.
 	 */
 	public function create_item_permissions_check( $request ) {
-		$request['type'] = 'note';
+		if ( ! is_user_logged_in() ) {
+			return new WP_Error(
+				'rest_notes_not_logged_in',
+				__( 'Sorry, you are not allowed to create notes.' ),
+				array( 'status' => rest_authorization_required_code() )
+			);
+		}
 
-		return parent::create_item_permissions_check( $request );
+		if ( isset( $request['author'] ) && get_current_user_id() !== (int) $request['author'] ) {
+			return new WP_Error(
+				'rest_note_invalid_author',
+				/* translators: %s: Request parameter. */
+				sprintf( __( "Sorry, you are not allowed to edit '%s' for notes." ), 'author' ),
+				array( 'status' => rest_authorization_required_code() )
+			);
+		}
+
+		$post = get_post( (int) $request['post'] );
+
+		if ( ! $post ) {
+			return new WP_Error(
+				'rest_note_invalid_post_id',
+				__( 'Sorry, you are not allowed to create a note without a post.' ),
+				array( 'status' => 403 )
+			);
+		}
+
+		if ( ! $this->check_post_type_supports_notes( $post->post_type ) ) {
+			return new WP_Error(
+				'rest_note_not_supported_post_type',
+				__( 'Sorry, this post type does not support notes.' ),
+				array( 'status' => 403 )
+			);
+		}
+
+		if ( 'trash' === $post->post_status ) {
+			return new WP_Error(
+				'rest_note_trash_post',
+				__( 'Sorry, you are not allowed to create a note on this post.' ),
+				array( 'status' => 403 )
+			);
+		}
+
+		if ( ! current_user_can( 'edit_post', $post->ID ) ) {
+			return new WP_Error(
+				'rest_cannot_create_note',
+				__( 'Sorry, you are not allowed to create notes for this post.' ),
+				array( 'status' => rest_authorization_required_code() )
+			);
+		}
+
+		return true;
 	}
 
 	/**
@@ -346,6 +430,90 @@ class WP_REST_Notes_Controller extends WP_REST_Comments_Controller {
 		}
 
 		return true;
+	}
+
+	/**
+	 * Determines whether a post type opts into notes.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param string $post_type Post type name.
+	 * @return bool True when the post type's editor support declares notes.
+	 */
+	protected function check_post_type_supports_notes( $post_type ) {
+		$supports = get_all_post_type_supports( $post_type );
+
+		if ( ! isset( $supports['editor'] ) || ! is_array( $supports['editor'] ) ) {
+			return false;
+		}
+
+		return array_any( $supports['editor'], fn( $item ) => ! empty( $item['notes'] ) );
+	}
+
+	/**
+	 * Restricts the create route to notes.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @return string[] Comment types accepted by the create route.
+	 */
+	protected function get_allowed_comment_types() {
+		return array( 'note' );
+	}
+
+	/**
+	 * Carries the resolution status into the content check.
+	 *
+	 * Resolving a note posts no text of its own, so the check needs the meta to
+	 * tell an intentional empty note from an empty one.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param array           $prepared_comment Prepared comment data.
+	 * @param WP_REST_Request $request          Full details about the request.
+	 * @return array Prepared comment data for the content check.
+	 */
+	protected function prepare_comment_for_content_check( $prepared_comment, $request ) {
+		if ( isset( $request['meta']['_wp_note_status'] ) ) {
+			$prepared_comment['meta']['_wp_note_status'] = $request['meta']['_wp_note_status'];
+		}
+
+		return $prepared_comment;
+	}
+
+	/**
+	 * Approves every note on creation.
+	 *
+	 * Notes are written by users who can already edit the post, so there is
+	 * nothing for duplicate and flood control to protect against. `status` on a
+	 * note means open or resolved, and is set separately.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param array $prepared_comment Prepared comment data.
+	 * @return string The approval status.
+	 */
+	protected function determine_comment_approval( $prepared_comment ) {
+		return '1';
+	}
+
+	/**
+	 * Allows a note with no text when it records a resolution.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param array $prepared_comment Prepared comment data.
+	 * @return bool True if the content is allowed, false otherwise.
+	 */
+	protected function check_is_comment_content_allowed( $prepared_comment ) {
+		if (
+			isset( $prepared_comment['meta']['_wp_note_status'] ) &&
+			in_array( $prepared_comment['meta']['_wp_note_status'], array( 'resolved', 'reopen' ), true )
+		) {
+			return true;
+		}
+
+		return parent::check_is_comment_content_allowed( $prepared_comment );
 	}
 
 	/**

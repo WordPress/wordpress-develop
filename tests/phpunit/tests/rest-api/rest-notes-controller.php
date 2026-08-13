@@ -59,6 +59,16 @@ class WP_Test_REST_Notes_Controller extends WP_Test_REST_Controller_Testcase {
 		);
 	}
 
+	public function set_up() {
+		parent::set_up();
+
+		/*
+		 * The test case unregisters every meta key between tests, and
+		 * `_wp_note_status` is registered on `init`, which has already fired.
+		 */
+		wp_create_initial_comment_meta();
+	}
+
 	public static function wpTearDownAfterClass() {
 		self::delete_user( self::$editor_id );
 		self::delete_user( self::$other_editor_id );
@@ -529,6 +539,298 @@ class WP_Test_REST_Notes_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertSame(
 			array( $created->get_data()['id'] ),
 			wp_list_pluck( $data[0]['replies'], 'id' )
+		);
+	}
+
+	/**
+	 * A draft is exactly the kind of post that gets annotated.
+	 *
+	 * @covers ::create_item_permissions_check
+	 */
+	public function test_create_item_on_a_draft_post() {
+		$draft_id = self::factory()->post->create(
+			array(
+				'post_status' => 'draft',
+				'post_author' => self::$editor_id,
+			)
+		);
+
+		wp_set_current_user( self::$editor_id );
+
+		$request = new WP_REST_Request( 'POST', self::ROUTE );
+		$request->set_body_params(
+			array(
+				'post'    => $draft_id,
+				'content' => 'A note on a draft.',
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 201, $response->get_status() );
+		$this->assertSame( 'note', get_comment( $response->get_data()['id'] )->comment_type );
+	}
+
+	/**
+	 * A closed discussion does not close the editorial one.
+	 *
+	 * @covers ::create_item_permissions_check
+	 */
+	public function test_create_item_when_comments_are_closed() {
+		$closed_id = self::factory()->post->create(
+			array(
+				'post_author'    => self::$editor_id,
+				'comment_status' => 'closed',
+			)
+		);
+
+		wp_set_current_user( self::$editor_id );
+
+		$request = new WP_REST_Request( 'POST', self::ROUTE );
+		$request->set_body_params(
+			array(
+				'post'    => $closed_id,
+				'content' => 'Comments are closed, notes are not.',
+			)
+		);
+
+		$this->assertSame( 201, rest_get_server()->dispatch( $request )->get_status() );
+	}
+
+	/**
+	 * Notes cannot be created anonymously, whatever the discussion settings say.
+	 *
+	 * @covers ::create_item_permissions_check
+	 */
+	public function test_create_item_requires_login() {
+		wp_set_current_user( 0 );
+
+		$request = new WP_REST_Request( 'POST', self::ROUTE );
+		$request->set_body_params(
+			array(
+				'post'    => self::$post_id,
+				'content' => 'Anonymous note.',
+			)
+		);
+
+		$this->assertErrorResponse( 'rest_notes_not_logged_in', rest_get_server()->dispatch( $request ), 401 );
+	}
+
+	/**
+	 * Users who cannot edit the post cannot annotate it.
+	 *
+	 * @covers ::create_item_permissions_check
+	 */
+	public function test_create_item_denied_without_edit_post() {
+		wp_set_current_user( self::$subscriber_id );
+
+		$request = new WP_REST_Request( 'POST', self::ROUTE );
+		$request->set_body_params(
+			array(
+				'post'    => self::$post_id,
+				'content' => 'Not mine to annotate.',
+			)
+		);
+
+		$this->assertErrorResponse( 'rest_cannot_create_note', rest_get_server()->dispatch( $request ), 403 );
+	}
+
+	/**
+	 * Post types that do not opt into notes cannot be annotated either.
+	 *
+	 * @covers ::create_item_permissions_check
+	 */
+	public function test_create_item_denied_for_post_type_without_notes_support() {
+		register_post_type( 'no_notes', array( 'supports' => array( 'editor' ) ) );
+
+		$unsupported_id = self::factory()->post->create(
+			array(
+				'post_type'   => 'no_notes',
+				'post_author' => self::$editor_id,
+			)
+		);
+
+		wp_set_current_user( self::$editor_id );
+
+		$request = new WP_REST_Request( 'POST', self::ROUTE );
+		$request->set_body_params(
+			array(
+				'post'    => $unsupported_id,
+				'content' => 'Unsupported.',
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $request );
+
+		unregister_post_type( 'no_notes' );
+
+		$this->assertErrorResponse( 'rest_note_not_supported_post_type', $response, 403 );
+	}
+
+	/**
+	 * Resolving a note posts no text of its own.
+	 *
+	 * @dataProvider data_resolution_statuses
+	 * @covers ::check_is_comment_content_allowed
+	 *
+	 * @param string $status Resolution status stored in `_wp_note_status`.
+	 */
+	public function test_create_empty_note_with_resolution_meta( $status ) {
+		wp_set_current_user( self::$editor_id );
+
+		$request = new WP_REST_Request( 'POST', self::ROUTE );
+		$request->add_header( 'Content-Type', 'application/json' );
+		$request->set_body(
+			wp_json_encode(
+				array(
+					'post'    => self::$post_id,
+					'content' => '',
+					'meta'    => array( '_wp_note_status' => $status ),
+				)
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 201, $response->get_status() );
+		$this->assertSame( $status, $response->get_data()['meta']['_wp_note_status'] );
+	}
+
+	/**
+	 * Data provider for resolution statuses.
+	 *
+	 * @return array[]
+	 */
+	public function data_resolution_statuses() {
+		return array(
+			'resolved' => array( 'resolved' ),
+			'reopen'   => array( 'reopen' ),
+		);
+	}
+
+	/**
+	 * An empty note with nothing to record is still an empty note.
+	 *
+	 * @dataProvider data_disallowed_empty_note_meta
+	 * @covers ::check_is_comment_content_allowed
+	 *
+	 * @param array $meta Meta sent with the note.
+	 */
+	public function test_cannot_create_empty_note( $meta ) {
+		wp_set_current_user( self::$editor_id );
+
+		$request = new WP_REST_Request( 'POST', self::ROUTE );
+		$request->add_header( 'Content-Type', 'application/json' );
+		$request->set_body(
+			wp_json_encode(
+				array_merge(
+					array(
+						'post'    => self::$post_id,
+						'content' => '',
+					),
+					$meta
+				)
+			)
+		);
+
+		$this->assertErrorResponse( 'rest_comment_content_invalid', rest_get_server()->dispatch( $request ), 400 );
+	}
+
+	/**
+	 * Data provider for empty notes that must be rejected.
+	 *
+	 * @return array[]
+	 */
+	public function data_disallowed_empty_note_meta() {
+		return array(
+			'no meta at all' => array( array() ),
+			'invalid status' => array( array( 'meta' => array( '_wp_note_status' => 'invalid' ) ) ),
+		);
+	}
+
+	/**
+	 * Two people can raise the same point without one being swallowed.
+	 *
+	 * @covers ::determine_comment_approval
+	 */
+	public function test_duplicate_notes_are_both_created() {
+		wp_set_current_user( self::$editor_id );
+
+		for ( $i = 0; $i < 2; $i++ ) {
+			$request = new WP_REST_Request( 'POST', self::ROUTE );
+			$request->set_body_params(
+				array(
+					'post'    => self::$post_id,
+					'content' => 'The same point, twice.',
+				)
+			);
+
+			$this->assertSame( 201, rest_get_server()->dispatch( $request )->get_status() );
+		}
+
+		$this->assertCount( 2, $this->get_notes()->get_data() );
+	}
+
+	/**
+	 * Reading a note follows edit access to its post, by role.
+	 *
+	 * @dataProvider data_note_read_permissions
+	 * @covers ::get_items_permissions_check
+	 *
+	 * @param string $role             Role of the reading user.
+	 * @param string $post_author_role Role of the post author.
+	 * @param bool   $can_read         Whether the reader should see the notes.
+	 */
+	public function test_note_read_permissions_by_role( $role, $post_author_role, $can_read ) {
+		$reader = self::factory()->user->create( array( 'role' => $role ) );
+		$author = 'contributor' === $post_author_role
+			? self::factory()->user->create( array( 'role' => 'contributor' ) )
+			: self::factory()->user->create( array( 'role' => $post_author_role ) );
+
+		$post_id = self::factory()->post->create(
+			array(
+				'post_author' => $author,
+				'post_status' => 'contributor' === $post_author_role ? 'draft' : 'publish',
+			)
+		);
+
+		self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_type'     => 'note',
+				'comment_approved' => '0',
+				'user_id'          => $author,
+			)
+		);
+
+		wp_set_current_user( $reader );
+
+		$response = $this->get_notes( array( 'post' => $post_id ) );
+
+		if ( $can_read ) {
+			$this->assertSame( 200, $response->get_status() );
+			$this->assertCount( 1, $response->get_data() );
+		} else {
+			$this->assertErrorResponse( 'rest_cannot_read_notes', $response, 403 );
+		}
+
+		wp_delete_post( $post_id, true );
+		self::delete_user( $reader );
+		self::delete_user( $author );
+	}
+
+	/**
+	 * Data provider for note read permissions.
+	 *
+	 * @return array[]
+	 */
+	public function data_note_read_permissions() {
+		return array(
+			'Administrator can see notes on other posts'  => array( 'administrator', 'author', true ),
+			'Editor can see notes on other posts'         => array( 'editor', 'contributor', true ),
+			'Author cannot see notes on other posts'      => array( 'author', 'editor', false ),
+			'Contributor cannot see notes on other posts' => array( 'contributor', 'author', false ),
+			'Subscriber cannot see notes'                 => array( 'subscriber', 'author', false ),
 		);
 	}
 
