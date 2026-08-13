@@ -4,16 +4,10 @@ const dotenv       = require( 'dotenv' );
 const dotenvExpand = require( 'dotenv-expand' );
 const { execSync, spawnSync } = require( 'child_process' );
 const local_env_utils = require( './utils' );
-const { copyFileSync, existsSync } = require( 'node:fs' );
 
-// Copy the default .env file when one is not present.
-if ( ! existsSync( '.env' ) ) {
-	copyFileSync( '.env.example', '.env' );
-}
+local_env_utils.ensure_env_file();
 
 dotenvExpand.expand( dotenv.config() );
-
-const composeFiles = local_env_utils.get_compose_files();
 
 // Check if the Docker service is running.
 try {
@@ -32,18 +26,8 @@ if ( process.env.LOCAL_PHP_MEMCACHED === 'true' ) {
 	containers.push( 'memcached' );
 }
 
-const up = spawnSync(
-	'docker',
-	[
-		'compose',
-		...composeFiles.map( ( composeFile ) => [ '-f', composeFile ] ).flat(),
-		'up',
-		'--quiet-pull',
-		'-d',
-		...containers,
-	],
-	{ stdio: 'inherit' }
-);
+// `up` pulls any image that is missing, so it is re-attempted for the same reasons as `env:pull`.
+const up = local_env_utils.compose_with_retry( [ 'up', '--quiet-pull', '-d', ...containers ], 3 );
 
 // No signal is exempt here, unlike in `docker.js`: `env:start` runs `composer update -W` next, and
 // that must not run against containers that never came up.
