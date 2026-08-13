@@ -510,4 +510,41 @@ class Tests_Admin_IncludesTemplate extends WP_UnitTestCase {
 		$result = get_post_states( null );
 		$this->assertSame( array(), $result, 'get_post_states() should return an empty array when WP_Post is not supplied.' );
 	}
+
+	/**
+	 * Tests that get_submit_button() expands the type shorthands into their
+	 * `button-*` classes.
+	 *
+	 * @ticket 64892
+	 *
+	 * @covers ::get_submit_button
+	 *
+	 * @dataProvider data_get_submit_button_shorthand
+	 *
+	 * @param string|array $type     The type argument passed to get_submit_button().
+	 * @param string       $expected The expected class attribute value.
+	 */
+	public function test_get_submit_button_expands_type_shorthands( $type, $expected ) {
+		$button = get_submit_button( 'Save', $type, 'submit', false );
+
+		$this->assertStringContainsString( 'class="' . $expected . '"', $button );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_get_submit_button_shorthand() {
+		return array(
+			'primary shorthand'            => array( 'primary', 'button button-primary' ),
+			'small shorthand'              => array( 'small', 'button button-small' ),
+			'large shorthand'              => array( 'large', 'button button-large' ),
+			'compact shorthand'            => array( 'compact', 'button button-compact' ),
+			'multiple shorthands'          => array( 'primary compact', 'button button-primary button-compact' ),
+			'non-shorthand with compact'   => array( 'action compact', 'button action button-compact' ),
+			'array type with compact'      => array( array( 'primary', 'compact' ), 'button button-primary button-compact' ),
+			'raw button-compact unchanged' => array( 'button-compact', 'button button-compact' ),
+		);
+	}
 }

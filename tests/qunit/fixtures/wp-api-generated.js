@@ -3160,6 +3160,12 @@ mockedApiResponse.Schema = {
                             "default": true,
                             "description": "Whether to convert image formats.",
                             "required": false
+                        },
+                        "url": {
+                            "type": "string",
+                            "format": "uri",
+                            "description": "URL of an external image to sideload into the media library, instead of uploading a file.",
+                            "required": false
                         }
                     }
                 }
@@ -3693,19 +3699,17 @@ mockedApiResponse.Schema = {
                             "required": false
                         },
                         "image_size": {
-                            "description": "Image size.",
-                            "type": "string",
-                            "enum": [
-                                "thumbnail",
-                                "medium",
-                                "medium_large",
-                                "large",
-                                "1536x1536",
-                                "2048x2048",
-                                "original",
-                                "full",
-                                "scaled"
+                            "description": "Image size. Can be a single size name or an array of size names to register the same file under multiple sizes.",
+                            "type": [
+                                "string",
+                                "array"
                             ],
+                            "items": {
+                                "type": "string",
+                                "minLength": 1
+                            },
+                            "minItems": 1,
+                            "minLength": 1,
                             "required": true
                         },
                         "convert_format": {
@@ -3732,6 +3736,56 @@ mockedApiResponse.Schema = {
                         "id": {
                             "description": "Unique identifier for the attachment.",
                             "type": "integer",
+                            "required": false
+                        },
+                        "sub_sizes": {
+                            "description": "Array of sub-size metadata collected from sideload responses.",
+                            "type": "array",
+                            "default": [],
+                            "maxItems": 100,
+                            "items": {
+                                "type": "object",
+                                "properties": {
+                                    "image_size": {
+                                        "description": "Size name, or an array of size names when a single file is registered under multiple sizes with matching dimensions.",
+                                        "type": [
+                                            "string",
+                                            "array"
+                                        ],
+                                        "items": {
+                                            "type": "string",
+                                            "minLength": 1
+                                        },
+                                        "minItems": 1,
+                                        "minLength": 1,
+                                        "required": true
+                                    },
+                                    "width": {
+                                        "type": "integer",
+                                        "minimum": 1
+                                    },
+                                    "height": {
+                                        "type": "integer",
+                                        "minimum": 1
+                                    },
+                                    "file": {
+                                        "type": "string",
+                                        "minLength": 1
+                                    },
+                                    "mime_type": {
+                                        "type": "string",
+                                        "pattern": "^image/.*"
+                                    },
+                                    "filesize": {
+                                        "type": "integer",
+                                        "minimum": 1
+                                    },
+                                    "original_image": {
+                                        "type": "string",
+                                        "minLength": 1
+                                    }
+                                }
+                            },
                             "required": false
                         }
                     }
@@ -12655,6 +12709,42 @@ mockedApiResponse.Schema = {
                             "description": "Limit results to abilities in a specific namespace.",
                             "type": "string",
                             "required": false
+                        },
+                        "meta": {
+                            "description": "Limit results to abilities matching all of the given meta fields.",
+                            "type": "object",
+                            "properties": {
+                                "annotations": {
+                                    "description": "Limit results to abilities matching the given behavioral annotations.",
+                                    "type": "object",
+                                    "properties": {
+                                        "readonly": {
+                                            "description": "Whether the ability does not modify its environment.",
+                                            "type": [
+                                                "boolean",
+                                                "null"
+                                            ]
+                                        },
+                                        "destructive": {
+                                            "description": "Whether the ability may perform destructive updates to its environment.",
+                                            "type": [
+                                                "boolean",
+                                                "null"
+                                            ]
+                                        },
+                                        "idempotent": {
+                                            "description": "Whether repeated calls with the same arguments have no additional effect.",
+                                            "type": [
+                                                "boolean",
+                                                "null"
+                                            ]
+                                        }
+                                    },
+                                    "additionalProperties": true
+                                }
+                            },
+                            "additionalProperties": true,
+                            "required": false
                         }
                     }
                 }
@@ -12729,6 +12819,12 @@ mockedApiResponse.Schema = {
                             "description": "Limit results to those matching a string.",
                             "type": "string",
                             "required": false
+                        },
+                        "collection": {
+                            "description": "Limit results to icons belonging to the given collection slug.",
+                            "type": "string",
+                            "pattern": "^[a-z0-9]([a-z0-9_-]*[a-z0-9])?$",
+                            "required": false
                         }
                     }
                 }
@@ -12741,7 +12837,59 @@ mockedApiResponse.Schema = {
                 ]
             }
         },
-        "/wp/v2/icons/(?P<name>[a-z][a-z0-9-]*/[a-z][a-z0-9-]*)": {
+        "/wp/v2/icons/(?P<collection>[a-z0-9](?:[a-z0-9_-]*[a-z0-9])?)": {
+            "namespace": "wp/v2",
+            "methods": [
+                "GET"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": {
+                        "collection": {
+                            "description": "Limit results to icons belonging to the given collection slug.",
+                            "type": "string",
+                            "pattern": "^[a-z0-9]([a-z0-9_-]*[a-z0-9])?$",
+                            "required": false
+                        },
+                        "context": {
+                            "description": "Scope under which the request is made; determines fields present in response.",
+                            "type": "string",
+                            "enum": [
+                                "view",
+                                "embed",
+                                "edit"
+                            ],
+                            "default": "view",
+                            "required": false
+                        },
+                        "page": {
+                            "description": "Current page of the collection.",
+                            "type": "integer",
+                            "default": 1,
+                            "minimum": 1,
+                            "required": false
+                        },
+                        "per_page": {
+                            "description": "Maximum number of items to be returned in result set.",
+                            "type": "integer",
+                            "default": 10,
+                            "minimum": 1,
+                            "maximum": 100,
+                            "required": false
+                        },
+                        "search": {
+                            "description": "Limit results to those matching a string.",
+                            "type": "string",
+                            "required": false
+                        }
+                    }
+                }
+            ]
+        },
+        "/wp/v2/icons/(?P<name>[a-z0-9](?:[a-z0-9_-]*[a-z0-9])?/[a-z0-9](?:[a-z0-9_-]*[a-z0-9])?)": {
             "namespace": "wp/v2",
             "methods": [
                 "GET"
@@ -12771,6 +12919,122 @@ mockedApiResponse.Schema = {
                     }
                 }
             ]
+        },
+        "/wp/v2/icon-collections": {
+            "namespace": "wp/v2",
+            "methods": [
+                "GET"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": {
+                        "context": {
+                            "description": "Scope under which the request is made; determines fields present in response.",
+                            "type": "string",
+                            "enum": [
+                                "view",
+                                "embed",
+                                "edit"
+                            ],
+                            "default": "view",
+                            "required": false
+                        },
+                        "page": {
+                            "description": "Current page of the collection.",
+                            "type": "integer",
+                            "default": 1,
+                            "minimum": 1,
+                            "required": false
+                        },
+                        "per_page": {
+                            "description": "Maximum number of items to be returned in result set.",
+                            "type": "integer",
+                            "default": 10,
+                            "minimum": 1,
+                            "maximum": 100,
+                            "required": false
+                        },
+                        "search": {
+                            "description": "Limit results to those matching a string.",
+                            "type": "string",
+                            "required": false
+                        }
+                    }
+                }
+            ],
+            "_links": {
+                "self": [
+                    {
+                        "href": "http://example.org/index.php?rest_route=/wp/v2/icon-collections"
+                    }
+                ]
+            }
+        },
+        "/wp/v2/icon-collections/(?P<slug>[a-z0-9](?:[a-z0-9_-]*[a-z0-9])?)": {
+            "namespace": "wp/v2",
+            "methods": [
+                "GET"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": {
+                        "slug": {
+                            "description": "Icon collection slug.",
+                            "type": "string",
+                            "required": false
+                        },
+                        "context": {
+                            "description": "Scope under which the request is made; determines fields present in response.",
+                            "type": "string",
+                            "enum": [
+                                "view",
+                                "embed",
+                                "edit"
+                            ],
+                            "default": "view",
+                            "required": false
+                        }
+                    }
+                }
+            ]
+        },
+        "/wp/v2/view-config": {
+            "namespace": "wp/v2",
+            "methods": [
+                "GET"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": {
+                        "kind": {
+                            "description": "Entity kind.",
+                            "type": "string",
+                            "required": true
+                        },
+                        "name": {
+                            "description": "Entity name.",
+                            "type": "string",
+                            "required": true
+                        }
+                    }
+                }
+            ],
+            "_links": {
+                "self": [
+                    {
+                        "href": "http://example.org/index.php?rest_route=/wp/v2/view-config"
+                    }
+                ]
+            }
         }
     },
     "image_sizes": {
@@ -12806,10 +13070,8 @@ mockedApiResponse.Schema = {
         }
     },
     "image_size_threshold": 2560,
-    "image_output_formats": {},
-    "jpeg_interlaced": false,
-    "png_interlaced": false,
-    "gif_interlaced": false,
+    "image_strip_meta": true,
+    "image_max_bit_depth": 16,
     "site_logo": 0,
     "site_icon": 0,
     "site_icon_url": ""

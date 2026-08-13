@@ -86,7 +86,7 @@ jobs:
           echo "PHP_FPM_GID=$(id -g)" >> "$GITHUB_ENV"
 
       - name: Checkout repository
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
           persist-credentials: false
@@ -105,7 +105,7 @@ jobs:
       # dependency versions are installed and cached.
       ##
       - name: Set up PHP
-        uses: shivammathur/setup-php@7c071dfe9dc99bdf297fa79cb49ea005b9fcadbc # 2.37.1
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
         with:
           php-version: '${{ inputs.php }}'
           coverage: none
