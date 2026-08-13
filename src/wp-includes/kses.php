@@ -2640,6 +2640,7 @@ function kses_init() {
  * @since 7.1.0 Extended gradient support to allow any single-level nested function.
  *              Added support for transform functions, `clip-path` basic shapes,
  *              and URLs in the SVG element reference properties.
+ * @since 7.2.0 Added support for filter functions.
  *
  * @param string $css        A string of CSS rules, decoded from an HTML `style` attribute.
  * @param string $deprecated Not used.
@@ -3027,6 +3028,9 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 					. '|translate|translate3d|translateX|translateY|translateZ'
 					// Basic shape functions, as used by `clip-path`.
 					. '|circle|ellipse|inset|path|polygon|rect|shape|xywh'
+					// Filter functions.
+					. '|blur|brightness|contrast|drop-shadow|grayscale'
+					. '|hue-rotate|invert|opacity|saturate|sepia'
 				. ')(\((?:[^()]|(?1))*\))/',
 				'',
 				$css_test_string
