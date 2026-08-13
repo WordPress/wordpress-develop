@@ -56,8 +56,9 @@ const local_env_utils = {
 				break;
 			}
 
-			// A command killed by a signal was cancelled, not failed. Do not run it again.
-			if ( returns.signal ) {
+			// A command killed by a signal was cancelled rather than failed, and a command that
+			// could not be spawned at all fails the same way every time. Do not run either again.
+			if ( returns.signal || returns.error ) {
 				break;
 			}
 

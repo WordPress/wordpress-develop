@@ -25,9 +25,12 @@ if ( dockerCommand.includes( 'cli' ) && dockerCommand.includes( 'db' ) && ! dock
 }
 
 // Failures during image pulls are re-attempted to rule out registry rate limits and network issues.
-// Composer runs are re-attempted for the same reason: they reach repo.packagist.org, and both
-// `composer install` and `composer update` are safe to repeat.
-const retryable = 'pull' === dockerCommand[0] || dockerCommand.includes( 'composer' );
+// `composer install` and `composer update` are re-attempted for the same reason: they reach
+// repo.packagist.org, and both are safe to repeat. Every other Composer script, such as `phpstan`,
+// runs once: it reaches no registry, so a failure is a real result rather than a transient one.
+const composerCommand = dockerCommand[ dockerCommand.indexOf( 'composer' ) + 1 ];
+const retryable = 'pull' === dockerCommand[0] ||
+	( 'run' === dockerCommand[0] && [ 'install', 'update' ].includes( composerCommand ) );
 
 // Execute any Docker compose command passed to this script.
 const returns = local_env_utils.compose_with_retry( dockerCommand, retryable ? 3 : 1 );
@@ -38,7 +41,8 @@ if ( returns.error ) {
 	console.error( `Docker Compose was terminated by ${ returns.signal }.` );
 }
 
-// `status` is null when Docker could not be spawned at all, or was killed by a signal. SIGINT is
-// how a long-running command such as `env:logs` is normally ended, so it is not a failure worth an
-// npm error block. Every other signal means the command was killed before it finished.
+// `status` is null when Docker could not be spawned at all, or was killed by a signal. Ctrl-C
+// signals the whole process group, so this script usually dies alongside Compose without reaching
+// here. This covers a signal sent to Compose alone: SIGINT means the command was cancelled, as
+// when ending `env:logs`, and every other signal means it was killed before it finished.
 process.exit( returns.signal === 'SIGINT' ? 0 : ( returns.status ?? 1 ) );
