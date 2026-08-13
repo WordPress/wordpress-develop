@@ -685,49 +685,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 * @return true|WP_Error True if the request has access to create items, WP_Error object otherwise.
 	 */
 	public function create_item_permissions_check( $request ) {
-		if ( ! empty( $request['id'] ) ) {
-			return new WP_Error(
-				'rest_post_exists',
-				__( 'Cannot create existing post.' ),
-				array( 'status' => 400 )
-			);
-		}
-
-		$post_type = get_post_type_object( $this->post_type );
-
-		if ( ! empty( $request['author'] ) && get_current_user_id() !== $request['author'] && ! current_user_can( $post_type->cap->edit_others_posts ) ) {
-			return new WP_Error(
-				'rest_cannot_edit_others',
-				__( 'Sorry, you are not allowed to create posts as this user.' ),
-				array( 'status' => rest_authorization_required_code() )
-			);
-		}
-
-		if ( ! empty( $request['sticky'] ) && ! current_user_can( $post_type->cap->edit_others_posts ) && ! current_user_can( $post_type->cap->publish_posts ) ) {
-			return new WP_Error(
-				'rest_cannot_assign_sticky',
-				__( 'Sorry, you are not allowed to make posts sticky.' ),
-				array( 'status' => rest_authorization_required_code() )
-			);
-		}
-
-		if ( ! current_user_can( $post_type->cap->create_posts ) ) {
-			return new WP_Error(
-				'rest_cannot_create',
-				__( 'Sorry, you are not allowed to create posts as this user.' ),
-				array( 'status' => rest_authorization_required_code() )
-			);
-		}
-
-		if ( ! $this->check_assign_terms_permission( $request ) ) {
-			return new WP_Error(
-				'rest_cannot_assign_term',
-				__( 'Sorry, you are not allowed to assign the provided terms.' ),
-				array( 'status' => rest_authorization_required_code() )
-			);
-		}
-
-		return true;
+		return wp_check_create_post_permission( $this->post_type, $request->get_params() );
 	}
 
 	/**
@@ -892,45 +850,12 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 */
 	public function update_item_permissions_check( $request ) {
 		$post = $this->get_post( $request['id'] );
+
 		if ( is_wp_error( $post ) ) {
 			return $post;
 		}
 
-		$post_type = get_post_type_object( $this->post_type );
-
-		if ( $post && ! $this->check_update_permission( $post ) ) {
-			return new WP_Error(
-				'rest_cannot_edit',
-				__( 'Sorry, you are not allowed to edit this post.' ),
-				array( 'status' => rest_authorization_required_code() )
-			);
-		}
-
-		if ( ! empty( $request['author'] ) && get_current_user_id() !== $request['author'] && ! current_user_can( $post_type->cap->edit_others_posts ) ) {
-			return new WP_Error(
-				'rest_cannot_edit_others',
-				__( 'Sorry, you are not allowed to update posts as this user.' ),
-				array( 'status' => rest_authorization_required_code() )
-			);
-		}
-
-		if ( ! empty( $request['sticky'] ) && ! current_user_can( $post_type->cap->edit_others_posts ) && ! current_user_can( $post_type->cap->publish_posts ) ) {
-			return new WP_Error(
-				'rest_cannot_assign_sticky',
-				__( 'Sorry, you are not allowed to make posts sticky.' ),
-				array( 'status' => rest_authorization_required_code() )
-			);
-		}
-
-		if ( ! $this->check_assign_terms_permission( $request ) ) {
-			return new WP_Error(
-				'rest_cannot_assign_term',
-				__( 'Sorry, you are not allowed to assign the provided terms.' ),
-				array( 'status' => rest_authorization_required_code() )
-			);
-		}
-
-		return true;
+		return wp_check_update_post_permission( $post, $request->get_params() );
 	}
 
 	/**
@@ -1286,248 +1211,44 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 * @return stdClass|WP_Error Post object or WP_Error.
 	 */
 	protected function prepare_item_for_database( $request ) {
-		$prepared_post  = new stdClass();
-		$current_status = '';
+		$existing_post = null;
 
-		// Post ID.
 		if ( isset( $request['id'] ) ) {
 			$existing_post = $this->get_post( $request['id'] );
+
 			if ( is_wp_error( $existing_post ) ) {
 				return $existing_post;
 			}
-
-			$prepared_post->ID = $existing_post->ID;
-			$current_status    = $existing_post->post_status;
 		}
 
-		$schema = $this->get_item_schema();
+		$prepared_post = wp_prepare_post_params_for_database(
+			$this->post_type,
+			$request->get_params(),
+			$this->get_item_schema(),
+			$existing_post
+		);
 
-		// Post title.
-		if ( ! empty( $schema['properties']['title'] ) && isset( $request['title'] ) ) {
-			if ( is_string( $request['title'] ) ) {
-				$prepared_post->post_title = $request['title'];
-			} elseif ( ! empty( $request['title']['raw'] ) ) {
-				$prepared_post->post_title = $request['title']['raw'];
-			}
-		}
-
-		// Post content.
-		if ( ! empty( $schema['properties']['content'] ) && isset( $request['content'] ) ) {
-			if ( is_string( $request['content'] ) ) {
-				$prepared_post->post_content = $request['content'];
-			} elseif ( isset( $request['content']['raw'] ) ) {
-				$prepared_post->post_content = $request['content']['raw'];
-			}
-		}
-
-		// Post excerpt.
-		if ( ! empty( $schema['properties']['excerpt'] ) && isset( $request['excerpt'] ) ) {
-			if ( is_string( $request['excerpt'] ) ) {
-				$prepared_post->post_excerpt = $request['excerpt'];
-			} elseif ( isset( $request['excerpt']['raw'] ) ) {
-				$prepared_post->post_excerpt = $request['excerpt']['raw'];
-			}
-		}
-
-		// Post type.
-		if ( empty( $request['id'] ) ) {
-			// Creating new post, use default type for the controller.
-			$prepared_post->post_type = $this->post_type;
-		} else {
-			// Updating a post, use previous type.
-			$prepared_post->post_type = get_post_type( $request['id'] );
-		}
-
-		$post_type = get_post_type_object( $prepared_post->post_type );
-
-		// Post status.
-		if (
-			! empty( $schema['properties']['status'] ) &&
-			isset( $request['status'] ) &&
-			( ! $current_status || $current_status !== $request['status'] )
-		) {
-			$status = $this->handle_status_param( $request['status'], $post_type );
-
-			if ( is_wp_error( $status ) ) {
-				return $status;
-			}
-
-			$prepared_post->post_status = $status;
-		}
-
-		// Post date.
-		if ( ! empty( $schema['properties']['date'] ) && ! empty( $request['date'] ) ) {
-			$current_date = isset( $prepared_post->ID ) ? get_post( $prepared_post->ID )->post_date : false;
-			$date_data    = rest_get_date_with_gmt( $request['date'] );
-
-			if ( ! empty( $date_data ) && $current_date !== $date_data[0] ) {
-				list( $prepared_post->post_date, $prepared_post->post_date_gmt ) = $date_data;
-				$prepared_post->edit_date                                        = true;
-			}
-		} elseif ( ! empty( $schema['properties']['date_gmt'] ) && ! empty( $request['date_gmt'] ) ) {
-			$current_date = isset( $prepared_post->ID ) ? get_post( $prepared_post->ID )->post_date_gmt : false;
-			$date_data    = rest_get_date_with_gmt( $request['date_gmt'], true );
-
-			if ( ! empty( $date_data ) && $current_date !== $date_data[1] ) {
-				list( $prepared_post->post_date, $prepared_post->post_date_gmt ) = $date_data;
-				$prepared_post->edit_date                                        = true;
-			}
-		}
-
-		/*
-		 * Sending a null date or date_gmt value resets date and date_gmt to their
-		 * default values (`0000-00-00 00:00:00`).
-		 */
-		if (
-			( ! empty( $schema['properties']['date_gmt'] ) && $request->has_param( 'date_gmt' ) && null === $request['date_gmt'] ) ||
-			( ! empty( $schema['properties']['date'] ) && $request->has_param( 'date' ) && null === $request['date'] )
-		) {
-			$prepared_post->post_date_gmt = null;
-			$prepared_post->post_date     = null;
-		}
-
-		// Post slug.
-		if ( ! empty( $schema['properties']['slug'] ) && isset( $request['slug'] ) ) {
-			$prepared_post->post_name = $request['slug'];
-		}
-
-		// Author.
-		if ( ! empty( $schema['properties']['author'] ) && ! empty( $request['author'] ) ) {
-			$post_author = (int) $request['author'];
-
-			if ( get_current_user_id() !== $post_author ) {
-				$user_obj = get_userdata( $post_author );
-
-				if ( ! $user_obj ) {
-					return new WP_Error(
-						'rest_invalid_author',
-						__( 'Invalid author ID.' ),
-						array( 'status' => 400 )
-					);
-				}
-			}
-
-			$prepared_post->post_author = $post_author;
-		}
-
-		// Post password.
-		if ( ! empty( $schema['properties']['password'] ) && isset( $request['password'] ) ) {
-			$prepared_post->post_password = $request['password'];
-
-			if ( '' !== $request['password'] ) {
-				if ( ! empty( $schema['properties']['sticky'] ) && ! empty( $request['sticky'] ) ) {
-					return new WP_Error(
-						'rest_invalid_field',
-						__( 'A post can not be sticky and have a password.' ),
-						array( 'status' => 400 )
-					);
-				}
-
-				if ( ! empty( $prepared_post->ID ) && is_sticky( $prepared_post->ID ) ) {
-					return new WP_Error(
-						'rest_invalid_field',
-						__( 'A sticky post can not be password protected.' ),
-						array( 'status' => 400 )
-					);
-				}
-			}
-		}
-
-		if ( ! empty( $schema['properties']['sticky'] ) && ! empty( $request['sticky'] ) ) {
-			if ( ! empty( $prepared_post->ID ) && post_password_required( $prepared_post->ID ) ) {
-				return new WP_Error(
-					'rest_invalid_field',
-					__( 'A password protected post can not be set to sticky.' ),
-					array( 'status' => 400 )
-				);
-			}
-		}
-
-		// Parent.
-		if ( ! empty( $schema['properties']['parent'] ) && isset( $request['parent'] ) ) {
-			if ( 0 === (int) $request['parent'] ) {
-				$prepared_post->post_parent = 0;
-			} else {
-				$parent = get_post( (int) $request['parent'] );
-
-				if ( empty( $parent ) ) {
-					return new WP_Error(
-						'rest_post_invalid_id',
-						__( 'Invalid post parent ID.' ),
-						array( 'status' => 400 )
-					);
-				}
-
-				$prepared_post->post_parent = (int) $parent->ID;
-			}
-		}
-
-		// Menu order.
-		if ( ! empty( $schema['properties']['menu_order'] ) && isset( $request['menu_order'] ) ) {
-			$prepared_post->menu_order = (int) $request['menu_order'];
-		}
-
-		// Comment status.
-		if ( ! empty( $schema['properties']['comment_status'] ) && ! empty( $request['comment_status'] ) ) {
-			$prepared_post->comment_status = $request['comment_status'];
-		}
-
-		// Ping status.
-		if ( ! empty( $schema['properties']['ping_status'] ) && ! empty( $request['ping_status'] ) ) {
-			$prepared_post->ping_status = $request['ping_status'];
-		}
-
-		if ( ! empty( $schema['properties']['template'] ) ) {
-			// Force template to null so that it can be handled exclusively by the REST controller.
-			$prepared_post->page_template = null;
+		if ( is_wp_error( $prepared_post ) ) {
+			return $prepared_post;
 		}
 
 		/**
-		 * Applies Block Hooks to content-like post types.
-		 *
-		 * Content-like post types are those that support the editor and would benefit
-		 * from Block Hooks functionality. This replaces the individual post type filters
-		 * that were previously hardcoded in default-filters.php.
-		 *
-		 * @since 7.0.0
-		 */
-		$content_like_post_types = array( 'post', 'page', 'wp_block', 'wp_navigation' );
-
-		/**
-		 * Filters which post types should have Block Hooks applied.
-		 *
-		 * Allows themes and plugins to add or remove post types that should
-		 * have Block Hooks functionality enabled in the REST API.
-		 *
-		 * @since 7.0.0
-		 *
-		 * @param string[]         $content_like_post_types Array of post type names that support Block Hooks.
-		 * @param string           $post_type               The current post type being processed.
-		 * @param stdClass|WP_Post $prepared_post           The prepared post object.
-		 */
-		$content_like_post_types = apply_filters( 'rest_block_hooks_post_types', $content_like_post_types, $this->post_type, $prepared_post );
-
-		if ( in_array( $this->post_type, $content_like_post_types, true ) ) {
-			$prepared_post = update_ignored_hooked_blocks_postmeta( $prepared_post );
-		}
-
-		/**
-		 * Filters a post before it is inserted via the REST API.
-		 *
-		 * The dynamic portion of the hook name, `$this->post_type`, refers to the post type slug.
-		 *
-		 * Possible hook names include:
-		 *
-		 *  - `rest_pre_insert_post`
-		 *  - `rest_pre_insert_page`
-		 *  - `rest_pre_insert_attachment`
-		 *
-		 * @since 4.7.0
-		 *
-		 * @param stdClass        $prepared_post An object representing a single post prepared
-		 *                                       for inserting or updating the database.
-		 * @param WP_REST_Request $request       Request object.
-		 */
+		* Filters a post before it is inserted via the REST API.
+		*
+		* The dynamic portion of the hook name, `$this->post_type`, refers to the post type slug.
+		*
+		* Possible hook names include:
+		*
+		*  - `rest_pre_insert_post`
+		*  - `rest_pre_insert_page`
+		*  - `rest_pre_insert_attachment`
+		*
+		* @since 4.7.0
+		*
+		* @param stdClass        $prepared_post An object representing a single post prepared
+		*                                       for inserting or updating the database.
+		* @param WP_REST_Request $request       Request object.
+		*/
 		return apply_filters( "rest_pre_insert_{$this->post_type}", $prepared_post, $request );
 	}
 
@@ -1567,38 +1288,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 * @return string|WP_Error Post status or WP_Error if lacking the proper permission.
 	 */
 	protected function handle_status_param( $post_status, $post_type ) {
-
-		switch ( $post_status ) {
-			case 'draft':
-			case 'pending':
-				break;
-			case 'private':
-				if ( ! current_user_can( $post_type->cap->publish_posts ) ) {
-					return new WP_Error(
-						'rest_cannot_publish',
-						__( 'Sorry, you are not allowed to create private posts in this post type.' ),
-						array( 'status' => rest_authorization_required_code() )
-					);
-				}
-				break;
-			case 'publish':
-			case 'future':
-				if ( ! current_user_can( $post_type->cap->publish_posts ) ) {
-					return new WP_Error(
-						'rest_cannot_publish',
-						__( 'Sorry, you are not allowed to publish posts in this post type.' ),
-						array( 'status' => rest_authorization_required_code() )
-					);
-				}
-				break;
-			default:
-				if ( ! get_post_status_object( $post_status ) ) {
-					$post_status = 'draft';
-				}
-				break;
-		}
-
-		return $post_status;
+		return wp_check_post_status_permission( $post_status, $post_type );
 	}
 
 	/**
@@ -1700,23 +1390,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 * @return null|WP_Error WP_Error on an error assigning any of the terms, otherwise null.
 	 */
 	protected function handle_terms( $post_id, $request ) {
-		$taxonomies = wp_list_filter( get_object_taxonomies( $this->post_type, 'objects' ), array( 'show_in_rest' => true ) );
-
-		foreach ( $taxonomies as $taxonomy ) {
-			$base = ! empty( $taxonomy->rest_base ) ? $taxonomy->rest_base : $taxonomy->name;
-
-			if ( ! isset( $request[ $base ] ) ) {
-				continue;
-			}
-
-			$result = wp_set_object_terms( $post_id, $request[ $base ], $taxonomy->name );
-
-			if ( is_wp_error( $result ) ) {
-				return $result;
-			}
-		}
-
-		return null;
+		return wp_set_post_terms_from_params( $this->post_type, $post_id, $request->get_params() );
 	}
 
 	/**
@@ -1728,27 +1402,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 * @return bool Whether the current user can assign the provided terms.
 	 */
 	protected function check_assign_terms_permission( $request ) {
-		$taxonomies = wp_list_filter( get_object_taxonomies( $this->post_type, 'objects' ), array( 'show_in_rest' => true ) );
-		foreach ( $taxonomies as $taxonomy ) {
-			$base = ! empty( $taxonomy->rest_base ) ? $taxonomy->rest_base : $taxonomy->name;
-
-			if ( ! isset( $request[ $base ] ) ) {
-				continue;
-			}
-
-			foreach ( (array) $request[ $base ] as $term_id ) {
-				// Invalid terms will be rejected later.
-				if ( ! get_term( $term_id, $taxonomy->name ) ) {
-					continue;
-				}
-
-				if ( ! current_user_can( 'assign_term', (int) $term_id ) ) {
-					return false;
-				}
-			}
-		}
-
-		return true;
+		return wp_check_post_terms_assign_permission( $this->post_type, $request->get_params() );
 	}
 
 	/**
@@ -1760,15 +1414,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 * @return bool Whether the post type is allowed in REST.
 	 */
 	protected function check_is_post_type_allowed( $post_type ) {
-		if ( ! is_object( $post_type ) ) {
-			$post_type = get_post_type_object( $post_type );
-		}
-
-		if ( ! empty( $post_type ) && ! empty( $post_type->show_in_rest ) ) {
-			return true;
-		}
-
-		return false;
+		return wp_is_post_type_exposed( $post_type );
 	}
 
 	/**
@@ -1782,38 +1428,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 * @return bool Whether the post can be read.
 	 */
 	public function check_read_permission( $post ) {
-		$post_type = get_post_type_object( $post->post_type );
-		if ( ! $this->check_is_post_type_allowed( $post_type ) ) {
-			return false;
-		}
-
-		// Is the post readable?
-		if ( 'publish' === $post->post_status || current_user_can( 'read_post', $post->ID ) ) {
-			return true;
-		}
-
-		$post_status_obj = get_post_status_object( $post->post_status );
-		if ( $post_status_obj && $post_status_obj->public ) {
-			return true;
-		}
-
-		// Can we read the parent if we're inheriting?
-		if ( 'inherit' === $post->post_status && $post->post_parent > 0 ) {
-			$parent = get_post( $post->post_parent );
-			if ( $parent ) {
-				return $this->check_read_permission( $parent );
-			}
-		}
-
-		/*
-		 * If there isn't a parent, but the status is set to inherit, assume
-		 * it's published (as per get_post_status()).
-		 */
-		if ( 'inherit' === $post->post_status ) {
-			return true;
-		}
-
-		return false;
+		return wp_check_read_post_permission( $post );
 	}
 
 	/**
@@ -1825,13 +1440,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 * @return bool Whether the post can be edited.
 	 */
 	protected function check_update_permission( $post ) {
-		$post_type = get_post_type_object( $post->post_type );
-
-		if ( ! $this->check_is_post_type_allowed( $post_type ) ) {
-			return false;
-		}
-
-		return current_user_can( 'edit_post', $post->ID );
+		return wp_check_edit_post_permission( $post );
 	}
 
 	/**
@@ -1861,13 +1470,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 * @return bool Whether the post can be deleted.
 	 */
 	protected function check_delete_permission( $post ) {
-		$post_type = get_post_type_object( $post->post_type );
-
-		if ( ! $this->check_is_post_type_allowed( $post_type ) ) {
-			return false;
-		}
-
-		return current_user_can( 'delete_post', $post->ID );
+		return wp_check_delete_post_permission( $post );
 	}
 
 	/**
