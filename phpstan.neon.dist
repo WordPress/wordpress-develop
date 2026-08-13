@@ -76,7 +76,6 @@ includes:
 	- tests/phpstan/baselines/property.defaultValue.neon
 	- tests/phpstan/baselines/property.nonObject.neon
 	- tests/phpstan/baselines/property.notFound.neon
-	- tests/phpstan/baselines/property.onlyWritten.neon
 	- tests/phpstan/baselines/property.phpDocType.neon
 	- tests/phpstan/baselines/property.private.neon
 	- tests/phpstan/baselines/property.protected.neon
