@@ -594,7 +594,8 @@ function get_oembed_response_data( $post, $width ) {
 		)
 	);
 
-	$width  = min( max( $min_max_width['min'], $width ), $min_max_width['max'] );
+	/** @var array{ min: positive-int, max: positive-int } $min_max_width */
+	$width  = clamp( $width, $min_max_width['min'], $min_max_width['max'] );
 	$height = max( (int) ceil( $width / 16 * 9 ), 200 );
 
 	$data = array(
@@ -1233,7 +1234,7 @@ function print_embed_sharing_dialog() {
  * @since 4.5.0
  */
 function the_embed_site_title(): void {
-	$fallback_icon_url = includes_url( 'images/w-logo-blue.png' );
+	$fallback_icon_url = includes_url( 'images/w-logo-gray-white-bg.svg' );
 	$site_icon_url     = get_site_icon_url( 32, $fallback_icon_url );
 
 	$icon_img = '';

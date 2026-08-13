@@ -12,10 +12,8 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 
 	/**
 	 * Fake block type registry.
-	 *
-	 * @var WP_Block_Type_Registry|null
 	 */
-	private $registry = null;
+	private ?WP_Block_Type_Registry $registry = null;
 
 	/**
 	 * Set up each test method.
@@ -838,6 +836,36 @@ HTML
 	}
 
 	/**
+	 * @ticket 65373
+	 */
+	public function test_build_query_vars_from_query_block_exclude_current(): void {
+		$this->registry->register(
+			'core/example',
+			array( 'uses_context' => array( 'query' ) )
+		);
+
+		global $post;
+		$post = self::factory()->post->create_and_get();
+		$this->assertInstanceOf( WP_Post::class, $post );
+
+		$parsed_blocks = parse_blocks( '<!-- wp:example {"ok":true} -->a<!-- wp:example /-->b<!-- /wp:example -->' );
+		$parsed_block  = $parsed_blocks[0];
+		$context       = array(
+			'query' => array(
+				'excludeCurrent' => true,
+			),
+		);
+		$block         = new WP_Block( $parsed_block, $context, $this->registry );
+		$query         = build_query_vars_from_query_block( $block, 1 );
+
+		$this->assertSame(
+			array( $post->ID ),
+			$query['post__not_in'],
+			'The current post ID should be excluded via post__not_in.'
+		);
+	}
+
+	/**
 	 * @ticket 64416
 	 */
 	public function test_build_query_vars_from_query_block_tax_query_old_format() {
@@ -1301,9 +1329,8 @@ HTML
 				'post_type'    => 'post',
 				'order'        => 'DESC',
 				'orderby'      => 'date',
-				'post__not_in' => array(),
-				'tax_query'    => array(),
 				'post__not_in' => array( $sticky_post_id ),
+				'tax_query'    => array(),
 			),
 			$query_args
 		);
