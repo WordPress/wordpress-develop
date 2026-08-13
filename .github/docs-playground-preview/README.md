@@ -43,7 +43,7 @@ To update a pinned repository:
 Keep duplicated tool identities synchronized:
 
 - For `@wp-playground/cli`, `yarn`, `@wordpress/scripts`, or `@wordpress/i18n`, update both `dependencies.json` and the exact dependency in `package.json`, then regenerate `package-lock.json` with the manifest's exact Node and npm versions. A Playground CLI update also requires changing its fixed version check in `.github/scripts/docs-playground-preview/lib/config.mjs`.
-- For Node, update `dependencies.json`, `.nvmrc`, `package.json`'s `engines.node`, and every `setup-node` input in the build, publish, and lifecycle workflows. Select a Node distribution containing the npm version recorded in `dependencies.json`; the build rejects a different npm version.
+- For Node, update `dependencies.json`, `.nvmrc`, `package.json`'s `engines.node`, `@types/node` in `package.json`'s `devDependencies`, and every `setup-node` input in the build, publish, and lifecycle workflows. Select a Node distribution containing the npm version recorded in `dependencies.json`; the build rejects a different npm version.
 - For PHP, update `dependencies.json`, the fixed runtime checks in `.github/scripts/docs-playground-preview/lib/config.mjs` and `.github/scripts/docs-playground-preview/lib/publication.mjs`, and both `setup-php` inputs in the build workflow. PHP remains `8.4` unless the specification changes.
 - For Composer, update `dependencies.json` and both `setup-php` Composer tool specifications in the build workflow.
 - For a GitHub Action, update its full commit SHA and the adjacent release comment in every workflow use.
