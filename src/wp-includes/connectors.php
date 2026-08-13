@@ -705,6 +705,7 @@ function _wp_connectors_rest_settings_dispatch( WP_REST_Response $response, WP_R
 	}
 
 	$is_update = 'POST' === $request->get_method() || 'PUT' === $request->get_method();
+	$submitted = $is_update ? $request->get_params() : array();
 
 	foreach ( wp_get_connectors() as $connector_id => $connector_data ) {
 		$auth = $connector_data['authentication'];
@@ -731,9 +732,14 @@ function _wp_connectors_rest_settings_dispatch( WP_REST_Response $response, WP_R
 
 		$value = $data[ $setting_name ];
 
-		// On update, validate AI provider keys before masking.
-		// Non-AI connectors accept keys as-is; the service plugin handles its own validation.
-		if ( $is_update && is_string( $value ) && '' !== $value && 'ai_provider' === $connector_data['type'] ) {
+		// On update, validate AI provider keys before masking, but only when the
+		// key was actually submitted in this request. Non-AI connectors accept keys
+		// as-is; the service plugin handles its own validation.
+		if ( $is_update
+			&& array_key_exists( $setting_name, $submitted )
+			&& is_string( $value ) && '' !== $value
+			&& 'ai_provider' === $connector_data['type']
+		) {
 			if ( true !== _wp_connectors_is_ai_api_key_valid( $value, $connector_id ) ) {
 				update_option( $setting_name, '' );
 				$data[ $setting_name ] = '';
