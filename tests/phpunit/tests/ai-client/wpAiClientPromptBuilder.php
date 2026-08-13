@@ -2617,9 +2617,9 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	 * Returns the text of every message part held by a prompt builder.
 	 *
 	 * @param WP_AI_Client_Prompt_Builder $builder The prompt builder to read.
-	 * @return string The concatenated message text.
+	 * @return string[] The text of each message part, in order.
 	 */
-	private function get_prompt_text( WP_AI_Client_Prompt_Builder $builder ): string {
+	private function get_prompt_parts( WP_AI_Client_Prompt_Builder $builder ): array {
 		$wrapped = new ReflectionProperty( WP_AI_Client_Prompt_Builder::class, 'builder' );
 		self::set_accessible( $wrapped );
 		$inner = $wrapped->getValue( $builder );
@@ -2627,14 +2627,14 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 		$messages = new ReflectionProperty( $inner, 'messages' );
 		self::set_accessible( $messages );
 
-		$text = '';
+		$parts = array();
 		foreach ( $messages->getValue( $inner ) as $message ) {
 			foreach ( $message->getParts() as $part ) {
-				$text .= (string) $part->getText();
+				$parts[] = (string) $part->getText();
 			}
 		}
 
-		return $text;
+		return $parts;
 	}
 
 	/**
@@ -2657,7 +2657,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 
 		$clone->with_text( 'Added to the clone' );
 
-		$this->assertSame( 'Original prompt', $this->get_prompt_text( $builder ), 'Changing the clone should not change the original' );
+		$this->assertSame( array( 'Original prompt' ), $this->get_prompt_parts( $builder ), 'Changing the clone should not change the original' );
 	}
 
 	/**
@@ -2679,7 +2679,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 		$builder = new WP_AI_Client_Prompt_Builder( AiClient::defaultRegistry(), 'Original prompt' );
 		$builder->is_supported();
 
-		$this->assertSame( 'Original prompt', $this->get_prompt_text( $builder ), 'A filter should not be able to change the prompt' );
+		$this->assertSame( array( 'Original prompt' ), $this->get_prompt_parts( $builder ), 'A filter should not be able to change the prompt' );
 	}
 
 	/**
