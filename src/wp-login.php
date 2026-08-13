@@ -1214,7 +1214,7 @@ switch ( $action ) {
 				sprintf(
 					/* translators: %s: Link to the login page. */
 					__( 'Check your email for the confirmation link, then visit the <a href="%s">login page</a>.' ),
-					wp_login_url()
+					esc_url( wp_login_url() )
 				),
 				'message'
 			);
@@ -1224,7 +1224,7 @@ switch ( $action ) {
 				sprintf(
 					/* translators: %s: Link to the login page. */
 					__( 'Registration complete. Please check your email, then visit the <a href="%s">login page</a>.' ),
-					wp_login_url()
+					esc_url( wp_login_url() )
 				),
 				'message'
 			);
@@ -1548,7 +1548,7 @@ switch ( $action ) {
 			 */
 			$rememberme_help_text = apply_filters(
 				'login_remember_me_help_text',
-				__( 'Selecting "Remember Me" reduces the number of times you&#8217;ll be asked to log in using this device. To keep your account secure, use this option only on your personal devices.' )
+				__( 'Selecting "Remember Me" increases the length of time until you&#8217;re asked to log in again on this device. To keep your account secure, use this option only on your personal devices.' )
 			);
 			?>
 			<p class="forgetmenot">

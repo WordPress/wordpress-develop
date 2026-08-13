@@ -724,11 +724,19 @@ body #dashboard-widgets .postbox form .submit {
 	margin: 0;
 }
 
+#dashboard_right_now #wp-version-message {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 8px;
+}
+
+#dashboard_right_now #wp-version {
+	flex: 1;
+}
+
 #dashboard_right_now #wp-version-message .button {
-	float: right;
-	position: relative;
-	top: -5px;
-	margin-left: 5px;
+	margin-left: auto;
 }
 
 #dashboard_right_now p.search-engines-info {
@@ -1015,35 +1023,6 @@ body #dashboard-widgets .postbox form .submit {
 #activity-widget #the-comment-list .trash-undo-inside .avatar {
 	position: relative;
 	top: 0;
-}
-
-/* On This Day dashboard widget */
-
-#wp_dashboard_on_this_day h3 {
-	font-weight: 600;
-}
-
-#wp_dashboard_on_this_day li {
-	margin: 0;
-	padding: 0;
-}
-
-#wp_dashboard_on_this_day ul ul {
-	margin: 0 0 0 18px;
-	padding: 0;
-	list-style: disc;
-}
-
-#wp_dashboard_on_this_day ul ul li + li {
-	margin-top: 6px;
-}
-
-#wp_dashboard_on_this_day .wp-on-this-day-widget > ul > li + li {
-	margin-top: 16px;
-}
-
-#wp_dashboard_on_this_day .wp-on-this-day-post-author {
-	color: #646970;
 }
 
 /* Browse happy box */

@@ -73,10 +73,10 @@ on:
         type: boolean
         default: false
       gutenberg-artifact:
-        description: 'The name of a same-workflow artifact containing the prepared Gutenberg build. Optional: callers that omit it download Gutenberg per job.'
+        description: 'Whether the Gutenberg-sourced assets are sourced from zip artifact.'
         required: false
-        type: string
-        default: ''
+        type: boolean
+        default: false
       gutenberg-sha:
         description: 'The immutable Gutenberg source SHA verified by the calling workflow.'
         required: false
@@ -129,7 +129,7 @@ jobs:
   # - Submit the test results to the WordPress.org host test results.
   phpunit-tests:
     name: ${{ ( inputs.phpunit-test-groups || inputs.coverage-report ) && format( 'PHP {0} with ', inputs.php ) || '' }} ${{ 'mariadb' == inputs.db-type && 'MariaDB' || 'MySQL' }} ${{ inputs.db-version }}${{ inputs.multisite && ' multisite' || '' }}${{ inputs.db-innovation && ' (innovation release)' || '' }}${{ inputs.memcached && ' with memcached' || '' }}${{ inputs.report && ' (test reporting enabled)' || '' }} ${{ 'example.org' != inputs.tests-domain && inputs.tests-domain || '' }}
-    runs-on: ${{ vars.PHPUNIT_RUNNER || inputs.os }}
+    runs-on: ${{ vars.RUNNERS_NAME || inputs.os }}
     timeout-minutes: ${{ inputs.coverage-report && 120 || inputs.php == '8.4' && 30 || 20 }}
     permissions:
       contents: read
@@ -146,14 +146,12 @@ jobs:
           show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
           persist-credentials: false
 
-      # Branches >= 5.9 call this workflow at @trunk without the producer job, so they
-      # pass no artifact. They skip this step and fall back to a per-job download.
+      # Only WordPress 7.0+ include Gutenberg-maintained assets from a built zip file.
       - name: Download prepared Gutenberg build
-        if: inputs.gutenberg-artifact != ''
+        if: ${{ inputs.gutenberg-artifact }}
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
-          # Without a run ID, this action reads only from the caller's current workflow run.
-          name: ${{ inputs.gutenberg-artifact }}
+          name: gutenberg-build
           path: gutenberg
           digest-mismatch: error
 
@@ -205,27 +203,13 @@ jobs:
         run: |
           docker -v
 
-      # Anonymous pulls share a Docker Hub quota across the whole runner IP pool, and transient
-      # registry errors are routine. Three attempts with a 10s/20s backoff clear the blips. Every
-      # failure is retried, so a deterministic one such as a bad tag costs 30s before it reports.
-      - name: Pull Docker images (with retry)
-        run: |
-          for attempt in 1 2 3; do
-            if npm run env:pull; then
-              break
-            fi
+      - name: Pull Docker images
+        run: npm run env:pull
 
-            if [ "$attempt" -eq 3 ]; then
-              echo "npm run env:pull failed after $attempt attempts."
-              exit 1
-            fi
-
-            echo "npm run env:pull failed (attempt $attempt); retrying..."
-            sleep $(( attempt * 10 ))
-          done
-
-      # Retried for the same reason: `env:start` reaches the registry, and on branches where it
-      # also runs `composer update`, repo.packagist.org.
+      # `env:start` reaches Docker Hub, and on branches where it also runs `composer update`,
+      # repo.packagist.org. Anonymous pulls share a quota across the whole runner IP pool and
+      # transient registry errors are routine, so three attempts with a 10s/20s backoff clear the
+      # blips. `docker.js` retries `env:pull` itself, but only on branches that carry that change.
       - name: Start Docker environment (with retry)
         run: |
           for attempt in 1 2 3; do

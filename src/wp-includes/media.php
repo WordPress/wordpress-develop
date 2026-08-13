@@ -114,7 +114,7 @@ function image_constrain_size_for_editor( $width, $height, $size = 'medium', $co
 		if ( (int) $content_width > 0 ) {
 			$max_width = min( (int) $content_width, $max_width );
 		}
-	} elseif ( ! empty( $_wp_additional_image_sizes ) && in_array( $size, array_keys( $_wp_additional_image_sizes ), true ) ) {
+	} elseif ( isset( $_wp_additional_image_sizes[ $size ] ) ) {
 		$max_width  = (int) $_wp_additional_image_sizes[ $size ]['width'];
 		$max_height = (int) $_wp_additional_image_sizes[ $size ]['height'];
 		// Only in admin. Assume that theme authors know what they're doing.
@@ -4716,9 +4716,9 @@ function wp_prepare_attachment_for_js( $attachment ) {
 
 	$attached_file = get_attached_file( $attachment->ID );
 
-	if ( isset( $meta['filesize'] ) ) {
-		$bytes = $meta['filesize'];
-	} elseif ( file_exists( $attached_file ) ) {
+	if ( isset( $meta['filesize'] ) && is_numeric( $meta['filesize'] ) && (int) $meta['filesize'] > 0 ) {
+		$bytes = (int) $meta['filesize'];
+	} elseif ( is_string( $attached_file ) && '' !== $attached_file && is_readable( $attached_file ) ) {
 		$bytes = wp_filesize( $attached_file );
 	} else {
 		$bytes = '';
@@ -4814,7 +4814,10 @@ function wp_prepare_attachment_for_js( $attachment ) {
 			}
 
 			$response = array_merge( $response, $sizes['full'] );
-		} elseif ( $meta['sizes']['full']['file'] ) {
+		} elseif (
+			! empty( $meta['sizes']['full']['file'] ) &&
+			isset( $meta['sizes']['full']['width'], $meta['sizes']['full']['height'] )
+		) {
 			$sizes['full'] = array(
 				'url'         => esc_url_raw( $base_url . $meta['sizes']['full']['file'] ),
 				'height'      => $meta['sizes']['full']['height'],
