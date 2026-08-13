@@ -30,7 +30,7 @@ class Tests_Functions_GetTagRegex extends WP_UnitTestCase {
 	 */
 	public function data_get_tag_regex_matches() {
 		return array(
-			'a single tag with a body'                  => array(
+			'a single tag with a body'                 => array(
 				'iframe',
 				'<iframe src="https://example.com/a"></iframe>',
 				array( '<iframe src="https://example.com/a"></iframe>' ),
@@ -39,7 +39,7 @@ class Tests_Functions_GetTagRegex extends WP_UnitTestCase {
 			// The regression: a greedy match ran from the first opening tag to
 			// the last closing tag, merging both embeds and the text between
 			// them into a single match. See #26674.
-			'two adjacent tags are matched separately'  => array(
+			'two adjacent tags are matched separately' => array(
 				'iframe',
 				'<iframe src="https://example.com/a"></iframe> text <iframe src="https://example.com/b"></iframe>',
 				array(
@@ -48,19 +48,19 @@ class Tests_Functions_GetTagRegex extends WP_UnitTestCase {
 				),
 			),
 
-			'a self-closing tag'                        => array(
+			'a self-closing tag'                       => array(
 				'iframe',
 				'<iframe src="https://example.com/a" />',
 				array( '<iframe src="https://example.com/a" />' ),
 			),
 
-			'a tag with a multiline body'               => array(
+			'a tag with a multiline body'              => array(
 				'video',
 				"<video>\n<source src=\"a.mp4\">\n</video>",
 				array( "<video>\n<source src=\"a.mp4\">\n</video>" ),
 			),
 
-			'no match when the tag is absent'           => array(
+			'no match when the tag is absent'          => array(
 				'iframe',
 				'<p>No embeds here.</p>',
 				array(),
