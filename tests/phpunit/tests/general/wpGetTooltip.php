@@ -28,9 +28,11 @@ class Tests_General_wpGetTooltip extends WP_UnitTestCase {
 	public function test_wp_get_tooltip_returns_accessible_markup() {
 		$tooltip = wp_get_tooltip( 'Helpful text.', array( 'id' => 'my-tip' ) );
 
-		// Toggle is a button that controls the popover and describes it.
-		$this->assertStringContainsString( '<button type="button" class="wp-tooltip__toggle"', $tooltip );
-		$this->assertStringContainsString( 'popovertarget="my-tip"', $tooltip );
+		// Tooltip output should include a toggle button, but tooltips do not use a popover trigger.
+		$this->assertStringContainsString( '<button', $tooltip );
+		$this->assertStringContainsString( 'class="wp-tooltip__toggle"', $tooltip );
+		$this->assertStringContainsString( 'type="button"', $tooltip );
+		$this->assertStringNotContainsString( 'popovertarget="my-tip"', $tooltip );
 
 		// The bubble is a popover holding a text-only described element.
 		$this->assertStringContainsString( '<span popover="hint" id="my-tip" class="wp-tooltip__bubble" role="tooltip">', $tooltip );
@@ -47,6 +49,7 @@ class Tests_General_wpGetTooltip extends WP_UnitTestCase {
 			)
 		);
 		// Ensure the toggle tip does contain a close button.
+		$this->assertStringContainsString( 'popovertarget="my-tip"', $toggletip );
 		$this->assertStringContainsString( 'class="wp-tooltip__close"', $toggletip );
 		$this->assertStringContainsString( 'popovertargetaction="hide"', $toggletip );
 	}
@@ -61,6 +64,50 @@ class Tests_General_wpGetTooltip extends WP_UnitTestCase {
 
 		$this->assertStringNotContainsString( '<script>', $html );
 		$this->assertStringContainsString( '&lt;script&gt;', $html );
+	}
+
+	/**
+	 * Tests that custom markup that does not contain valid control markup is ignored.
+	 *
+	 * @ticket 55343
+	 */
+	public function test_wp_get_tooltip_ignores_invalid_markup() {
+		$html = wp_get_tooltip(
+			'Helpful text.',
+			array(
+				'button' => '<div role="button" aria-expanded="false">Contains text</div>',
+			)
+		);
+
+		$this->assertStringNotContainsString( 'div role="button"', $html, 'String does not contain element from custom HTML.' );
+		$this->assertStringContainsString( '<button', $html, 'String does contain a button element.' );
+	}
+
+	/**
+	 * Tests that custom button markup is retained, and has required attributes.
+	 *
+	 * @ticket 55343
+	 */
+	public function test_wp_get_tooltip_has_custom_button_markup() {
+		$html = wp_get_tooltip(
+			'Helpful text.',
+			array(
+				'button' => '<button type="button" aria-expanded="false">Contains text</button>',
+			)
+		);
+
+		$this->assertStringContainsString( 'aria-expanded="false"', $html, 'String contains attribute not supported in function.' );
+		$this->assertStringNotContainsString( 'dashicons', $html, 'String does not contain content of default button.' );
+
+		$html2 = wp_get_tooltip(
+			'Helpful text.',
+			array(
+				'button' => '<a href="#">Contains text</a>',
+			)
+		);
+
+		$this->assertStringContainsString( '<a ', $html2, 'String contains anchor element.' );
+		$this->assertStringNotContainsString( '<button', $html2, 'String does not contain button element.' );
 	}
 
 	/**
@@ -101,12 +148,16 @@ class Tests_General_wpGetTooltip extends WP_UnitTestCase {
 
 	/**
 	 * Tests that a generated ID is used when none is supplied, and that the
-	 * describedby target matches the bubble ID.
+	 * popovertarget matches the bubble ID.
 	 *
 	 * @ticket 55343
 	 */
-	public function test_wp_get_tooltip_generates_unique_id() {
-		$html = wp_get_tooltip( 'Helpful text.' );
+	public function test_wp_get_toggletip_generates_unique_id() {
+		$args = array(
+			'label'       => 'About this field',
+			'close_label' => 'Dismiss',
+		);
+		$html = wp_get_toggletip( 'Helpful text.', $args );
 
 		$this->assertSame( 1, preg_match( '/id="(wp-tooltip-\d+)"/', $html, $matches ) );
 

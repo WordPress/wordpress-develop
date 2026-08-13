@@ -750,11 +750,8 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 	}
 
 	/**
-	 * @dataProvider data_readable_http_methods
 	 * @ticket 47620
 	 * @ticket 56481
-	 *
-	 * @param string $method HTTP method to use.
 	 */
 	public function test_prepare_item() {
 		$registry = new WP_Block_Type_Registry();

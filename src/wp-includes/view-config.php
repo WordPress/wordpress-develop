@@ -4,11 +4,32 @@
  *
  * Builds the default view configuration for an entity and exposes it through
  * the dynamic `get_entity_view_config_{$kind}_{$name}` filter so core and third
- * parties can provide the configuration for a specific entity.
+ * parties can provide the configuration for a specific entity. The dynamic
+ * portions of the hook name are lowercased, e.g.
+ * `get_entity_view_config_posttype_page` for the `page` post type.
  *
  * @package WordPress
  * @since 7.1.0
  */
+
+/**
+ * Builds the name of the dynamic filter that provides the view configuration
+ * for an entity.
+ *
+ * The entity kind and name are embedded in the hook name lowercased, so the
+ * hook follows the WordPress convention of lowercase hook names regardless of
+ * how the entity identifiers are spelled: the `postType`/`page` entity maps to
+ * the `get_entity_view_config_posttype_page` hook.
+ *
+ * @since 7.1.0
+ *
+ * @param string $kind The entity kind (e.g. `postType`).
+ * @param string $name The entity name (e.g. `page`).
+ * @return string The filter name.
+ */
+function wp_get_entity_view_config_hook_name( $kind, $name ) {
+	return strtolower( "get_entity_view_config_{$kind}_{$name}" );
+}
 
 /**
  * Builds the default `form` configuration for post types that don't provide their own.
@@ -27,7 +48,7 @@
  *
  * @return array The default form configuration.
  */
-function _wp_get_default_post_type_form() {
+function _wp_get_default_posttype_form() {
 	return array(
 		'layout' => array( 'type' => 'panel' ),
 		'fields' => array(
@@ -97,8 +118,10 @@ function _wp_get_default_post_type_form() {
  * Returns the view configuration for the given entity.
  *
  * Builds the default configuration shared by all entities and then exposes it
- * through the dynamic `get_entity_view_config_{$kind}_{$name}` filter so that core
- * and third parties can provide the configuration for a specific entity.
+ * through the dynamic `get_entity_view_config_{$kind}_{$name}` filter — with the
+ * dynamic portions lowercased, see wp_get_entity_view_config_hook_name()
+ * — so that core and third parties can provide the configuration for a
+ * specific entity.
  *
  * @since 7.1.0
  *
@@ -148,63 +171,12 @@ function wp_get_entity_view_config( $kind, $name ) {
 		'default_view'    => $default_view,
 		'default_layouts' => $default_layouts,
 		'view_list'       => $view_list,
-		'form'            => 'postType' === $kind ? _wp_get_default_post_type_form() : array(),
+		'form'            => 'postType' === $kind ? _wp_get_default_posttype_form() : array(),
 	);
 
 	$data = new WP_View_Config_Data( $config );
 
-	/**
-	 * Filters the view configuration for a given entity.
-	 *
-	 * The dynamic portions of the hook name, `$kind` and `$name`, refer to the
-	 * entity kind (e.g. `postType`) and the entity name (e.g. `page`).
-	 *
-	 * Callbacks receive a WP_View_Config_Data object and change the
-	 * configuration through its methods: the `update_*()` methods merge
-	 * partial changes into the current configuration, while `set()` replaces
-	 * a whole top-level key. Callbacks must return the object they were
-	 * given.
-	 *
-	 * @since 7.1.0
-	 *
-	 * @param WP_View_Config_Data $data   The view configuration container
-	 *                                    for the entity, exposing the
-	 *                                    `default_view`, `default_layouts`,
-	 *                                    `view_list`, and `form` keys.
-	 * @param array               $entity {
-	 *     The entity the configuration is built for.
-	 *
-	 *     @type string $kind The entity kind.
-	 *     @type string $name The entity name.
-	 * }
-	 */
-	$filtered = apply_filters(
-		"get_entity_view_config_{$kind}_{$name}",
-		$data,
-		array(
-			'kind' => $kind,
-			'name' => $name,
-		)
-	);
-
-	// A well-behaved callback returns the object it was given. Fall back to the
-	// unfiltered config if a callback replaced it with something else.
-	if ( ! $filtered instanceof WP_View_Config_Data ) {
-		_doing_it_wrong(
-			__FUNCTION__,
-			sprintf(
-				/* translators: %s: the filter hook name. */
-				esc_html__( 'A "%s" filter callback must return the WP_View_Config_Data object it was given.' ),
-				esc_html( "get_entity_view_config_{$kind}_{$name}" )
-			),
-			'7.1.0'
-		);
-		return $config;
-	}
-
-	// Backfill any dropped keys with their defaults, then discard any keys the
-	// filter introduced that are not part of the documented configuration shape.
-	return array_intersect_key( array_merge( $config, $filtered->get_config() ), $config );
+	return $data->apply_filters( $kind, $name );
 }
 
 /**
@@ -215,7 +187,7 @@ function wp_get_entity_view_config( $kind, $name ) {
  * @param WP_View_Config_Data $data The view configuration container for the entity.
  * @return WP_View_Config_Data The updated view configuration container.
  */
-function _wp_get_entity_view_config_post_type_page( $data ) {
+function _wp_get_entity_view_config_posttype_page( $data ) {
 	$default_layouts = array(
 		'table' => array(
 			'layout' => array(
@@ -333,11 +305,16 @@ function _wp_get_entity_view_config_post_type_page( $data ) {
 		),
 	);
 
-	$data->set( 'default_layouts', $default_layouts, 1 );
-	$data->set( 'default_view', $default_view, 1 );
+	$data->set(
+		array(
+			'default_view'    => $default_view,
+			'default_layouts' => $default_layouts,
+		),
+		1
+	);
 	// Append the status views, thereby preserving the base "all items" view,
 	// so its post-type-specific title is kept.
-	$data->update_view_list_items( array_column( $view_list, null, 'slug' ), 1 );
+	$data->merge( array( 'view_list' => $view_list ), 1 );
 
 	return $data;
 }
@@ -350,7 +327,7 @@ function _wp_get_entity_view_config_post_type_page( $data ) {
  * @param WP_View_Config_Data $data The view configuration container for the entity.
  * @return WP_View_Config_Data The updated view configuration container.
  */
-function _wp_get_entity_view_config_post_type_wp_block( $data ) {
+function _wp_get_entity_view_config_posttype_wp_block( $data ) {
 	$default_layouts = array(
 		'table' => array(
 			'layout' => array(
@@ -377,9 +354,6 @@ function _wp_get_entity_view_config_post_type_wp_block( $data ) {
 		'filters'    => array(),
 		'layout'     => $default_layouts['grid']['layout'],
 	);
-
-	$data->set( 'default_layouts', $default_layouts, 1 );
-	$data->set( 'default_view', $default_view, 1 );
 
 	$view_list = array(
 		array(
@@ -428,30 +402,34 @@ function _wp_get_entity_view_config_post_type_wp_block( $data ) {
 		);
 	}
 
-	$data->set( 'view_list', $view_list, 1 );
+	$form = array(
+		'layout' => array( 'type' => 'panel' ),
+		'fields' => array(
+			array(
+				'id'     => 'excerpt',
+				'layout' => array(
+					'type'          => 'panel',
+					'labelPosition' => 'top',
+				),
+			),
+			array(
+				'id'     => 'post-content-info',
+				'layout' => array(
+					'type'          => 'regular',
+					'labelPosition' => 'none',
+				),
+			),
+			'sync-status',
+			'revisions',
+		),
+	);
 
 	$data->set(
-		'form',
 		array(
-			'layout' => array( 'type' => 'panel' ),
-			'fields' => array(
-				array(
-					'id'     => 'excerpt',
-					'layout' => array(
-						'type'          => 'panel',
-						'labelPosition' => 'top',
-					),
-				),
-				array(
-					'id'     => 'post-content-info',
-					'layout' => array(
-						'type'          => 'regular',
-						'labelPosition' => 'none',
-					),
-				),
-				'sync-status',
-				'revisions',
-			),
+			'default_view'    => $default_view,
+			'default_layouts' => $default_layouts,
+			'view_list'       => $view_list,
+			'form'            => $form,
 		),
 		1
 	);
@@ -467,7 +445,7 @@ function _wp_get_entity_view_config_post_type_wp_block( $data ) {
  * @param WP_View_Config_Data $data The view configuration container for the entity.
  * @return WP_View_Config_Data The updated view configuration container.
  */
-function _wp_get_entity_view_config_post_type_wp_template_part( $data ) {
+function _wp_get_entity_view_config_posttype_wp_template_part( $data ) {
 	$default_layouts = array(
 		'table' => array(
 			'layout' => array(
@@ -492,9 +470,6 @@ function _wp_get_entity_view_config_post_type_wp_template_part( $data ) {
 		'filters'    => array(),
 		'layout'     => $default_layouts['grid']['layout'],
 	);
-
-	$data->set( 'default_layouts', $default_layouts, 1 );
-	$data->set( 'default_view', $default_view, 1 );
 
 	$view_list = array(
 		array(
@@ -537,22 +512,26 @@ function _wp_get_entity_view_config_post_type_wp_template_part( $data ) {
 		);
 	}
 
-	$data->set( 'view_list', $view_list, 1 );
+	$form = array(
+		'layout' => array( 'type' => 'panel' ),
+		'fields' => array(
+			array(
+				'id'     => 'last_edited_date',
+				'layout' => array(
+					'type'          => 'panel',
+					'labelPosition' => 'none',
+				),
+			),
+			'revisions',
+		),
+	);
 
 	$data->set(
-		'form',
 		array(
-			'layout' => array( 'type' => 'panel' ),
-			'fields' => array(
-				array(
-					'id'     => 'last_edited_date',
-					'layout' => array(
-						'type'          => 'panel',
-						'labelPosition' => 'none',
-					),
-				),
-				'revisions',
-			),
+			'default_view'    => $default_view,
+			'default_layouts' => $default_layouts,
+			'view_list'       => $view_list,
+			'form'            => $form,
 		),
 		1
 	);
@@ -568,7 +547,7 @@ function _wp_get_entity_view_config_post_type_wp_template_part( $data ) {
  * @param WP_View_Config_Data $data The view configuration container for the entity.
  * @return WP_View_Config_Data The updated view configuration container.
  */
-function _wp_get_entity_view_config_post_type_wp_template( $data ) {
+function _wp_get_entity_view_config_posttype_wp_template( $data ) {
 	$default_view = array(
 		'type'             => 'grid',
 		'perPage'          => 20,
@@ -589,9 +568,6 @@ function _wp_get_entity_view_config_post_type_wp_template( $data ) {
 		'grid'  => array( 'showMedia' => true ),
 		'list'  => array( 'showMedia' => false ),
 	);
-
-	$data->set( 'default_view', $default_view, 1 );
-	$data->set( 'default_layouts', $default_layouts, 1 );
 
 	$view_list = array(
 		array(
@@ -686,7 +662,11 @@ function _wp_get_entity_view_config_post_type_wp_template( $data ) {
 				if ( '' === $plugin_name ) {
 					$plugins         = get_plugins();
 					$plugin_basename = plugin_basename( sanitize_text_field( $template->theme . '.php' ) );
-					$plugin_name     = $plugins[ $plugin_basename ]['Name'] ?? $template->plugin ?? $template->theme;
+					if ( isset( $plugins[ $plugin_basename ] ) && isset( $plugins[ $plugin_basename ]['Name'] ) ) {
+						$plugin_name = $plugins[ $plugin_basename ]['Name'];
+					} else {
+						$plugin_name = $template->plugin ?? $template->theme;
+					}
 				}
 				$author_text = $plugin_name;
 				break;
@@ -727,43 +707,47 @@ function _wp_get_entity_view_config_post_type_wp_template( $data ) {
 		}
 	}
 
-	$data->set( 'view_list', array_merge( $view_list, $registered_authors, $user_authors ), 1 );
+	$form = array(
+		'layout' => array( 'type' => 'panel' ),
+		'fields' => array(
+			array(
+				'id'     => 'description',
+				'layout' => array(
+					'type'          => 'panel',
+					'labelPosition' => 'top',
+				),
+			),
+			array(
+				'id'     => 'description_readonly',
+				'layout' => array(
+					'type'          => 'regular',
+					'labelPosition' => 'none',
+				),
+			),
+			array(
+				'id'     => 'last_edited_date',
+				'layout' => array(
+					'type'          => 'panel',
+					'labelPosition' => 'none',
+				),
+			),
+			'revisions',
+			// The following fields are only meaningful in the `home`/`index`
+			// template summary. They edit other entities (`root/site` and the
+			// posts page); the editor merges those records into the form data
+			// under a namespace and controls when the fields are shown.
+			'posts_page_title',
+			'posts_per_page',
+			'default_comment_status',
+		),
+	);
 
 	$data->set(
-		'form',
 		array(
-			'layout' => array( 'type' => 'panel' ),
-			'fields' => array(
-				array(
-					'id'     => 'description',
-					'layout' => array(
-						'type'          => 'panel',
-						'labelPosition' => 'top',
-					),
-				),
-				array(
-					'id'     => 'description_readonly',
-					'layout' => array(
-						'type'          => 'regular',
-						'labelPosition' => 'none',
-					),
-				),
-				array(
-					'id'     => 'last_edited_date',
-					'layout' => array(
-						'type'          => 'panel',
-						'labelPosition' => 'none',
-					),
-				),
-				'revisions',
-				// The following fields are only meaningful in the `home`/`index`
-				// template summary. They edit other entities (`root/site` and the
-				// posts page); the editor merges those records into the form data
-				// under a namespace and controls when the fields are shown.
-				'posts_page_title',
-				'posts_per_page',
-				'default_comment_status',
-			),
+			'default_view'    => $default_view,
+			'default_layouts' => $default_layouts,
+			'view_list'       => array_merge( $view_list, $registered_authors, $user_authors ),
+			'form'            => $form,
 		),
 		1
 	);

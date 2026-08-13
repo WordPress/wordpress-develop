@@ -1114,10 +1114,28 @@ class WP_Posts_List_Table extends WP_List_Table {
 	 * @param string  $primary
 	 */
 	protected function _column_title( $post, $classes, $data, $primary ) {
-		echo '<td class="' . $classes . ' page-title" ', $data, '>';
+		$aria_label = $this->get_primary_column_aria_label( $post );
+		$aria_attr  = ( '' !== $aria_label ) ? ' aria-label="' . esc_attr( $aria_label ) . '"' : '';
+		echo '<th scope="row" class="' . $classes . ' page-title" ', $data, $aria_attr, '>';
 		echo $this->column_title( $post );
 		echo $this->handle_row_actions( $post, 'title', $primary );
-		echo '</td>';
+		echo '</th>';
+	}
+
+	/**
+	 * Returns a clean label for the primary (title) column's row header `aria-label`.
+	 *
+	 * Provides screen readers with just the post title as the row header name,
+	 * preventing them from computing the name from the full cell content
+	 * (which includes row action links, post states, and possibly an excerpt).
+	 *
+	 * @since 7.1.0
+	 *
+	 * @param WP_Post $item The current post object.
+	 * @return string The post title, or 'no title' if no title.
+	 */
+	protected function get_primary_column_aria_label( $item ) {
+		return isset( $item->post_title ) && ! empty( $item->post_title ) ? $item->post_title : __( 'no title' );
 	}
 
 	/**
@@ -1174,7 +1192,38 @@ class WP_Posts_List_Table extends WP_List_Table {
 			echo '<div class="locked-info"><span class="locked-avatar">' . $locked_avatar . '</span> <span class="locked-text">' . $locked_text . "</span></div>\n";
 		}
 
-		$pad = str_repeat( '&#8212; ', $this->current_level );
+		$pad               = str_repeat(
+			'<span aria-hidden="true">&#8212;</span> ',
+			$this->current_level
+		);
+		$described_by_attr = '';
+		$hierarchy_linked  = '';
+		$hierarchy_nolink  = '';
+
+		if ( $post->post_parent ) {
+			$parent = get_post( $post->post_parent );
+
+			if ( $parent ) {
+				/** This filter is documented in wp-includes/post-template.php */
+				$parent_title = apply_filters( 'the_title', $parent->post_title, $parent->ID );
+
+				$hierarchy_id      = 'post-hierarchy-' . $post->ID;
+				$described_by_attr = sprintf( ' aria-describedby="%s"', esc_attr( $hierarchy_id ) );
+				$hierarchy_linked  = sprintf(
+					'<span id="%1$s" class="hidden">%2$s</span>',
+					esc_attr( $hierarchy_id ),
+					/* translators: %s: Parent post title. */
+					esc_html( sprintf( __( 'Child of %s' ), wp_strip_all_tags( $parent_title ) ) )
+				);
+				$hierarchy_nolink = sprintf(
+					'<span id="%1$s" class="screen-reader-text"> (%2$s)</span>',
+					esc_attr( $hierarchy_id ),
+					/* translators: %s: Parent post title. */
+					esc_html( sprintf( __( 'Child of %s' ), wp_strip_all_tags( $parent_title ) ) )
+				);
+			}
+		}
+
 		echo '<strong>';
 
 		$title = _draft_or_post_title();
@@ -1187,16 +1236,19 @@ class WP_Posts_List_Table extends WP_List_Table {
 
 		if ( $can_edit_post && 'trash' !== $post->post_status ) {
 			printf(
-				'<a class="row-title" href="%s">%s%s</a>',
-				get_edit_post_link( $post->ID ),
+				'%1$s<a class="row-title" href="%2$s"%3$s>%4$s</a>%5$s',
 				$pad,
-				$title
+				get_edit_post_link( $post->ID ),
+				$described_by_attr,
+				$title,
+				$hierarchy_linked
 			);
 		} else {
 			printf(
-				'<span>%s%s</span>',
+				'%1$s<span>%2$s%3$s</span>',
 				$pad,
-				$title
+				$title,
+				$hierarchy_nolink
 			);
 		}
 		_post_states( $post );
