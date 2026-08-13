@@ -4409,6 +4409,18 @@ function wp_cache_set_comments_last_changed() {
 }
 
 /**
+ * Sets the last changed time for the 'comment-meta' cache group.
+ *
+ * This is used to invalidate comment query caches that include meta queries,
+ * without affecting query caches for queries that do not use meta.
+ *
+ * @since x.x.x
+ */
+function wp_cache_set_comments_meta_last_changed() {
+	wp_cache_set_last_changed( 'comment-meta' );
+}
+
+/**
  * Updates the comment type for a batch of comments.
  *
  * @since 5.5.0

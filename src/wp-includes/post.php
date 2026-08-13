@@ -8635,6 +8635,18 @@ function wp_cache_set_posts_last_changed() {
 }
 
 /**
+ * Sets the last changed time for the 'posts-meta' cache group.
+ *
+ * This is used to invalidate post query caches that include meta queries,
+ * without affecting query caches for queries that do not use meta.
+ *
+ * @since x.x.x
+ */
+function wp_cache_set_posts_meta_last_changed() {
+	wp_cache_set_last_changed( 'posts-meta' );
+}
+
+/**
  * Gets all available post MIME types for a given post type.
  *
  * @since 2.5.0

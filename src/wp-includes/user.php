@@ -5269,6 +5269,18 @@ function wp_cache_set_users_last_changed() {
 }
 
 /**
+ * Sets the last changed time for the 'users-meta' cache group.
+ *
+ * This is used to invalidate user query caches that include meta queries,
+ * without affecting query caches for queries that do not use meta.
+ *
+ * @since x.x.x
+ */
+function wp_cache_set_users_meta_last_changed() {
+	wp_cache_set_last_changed( 'users-meta' );
+}
+
+/**
  * Checks if password reset is allowed for a specific user.
  *
  * @since 6.3.0

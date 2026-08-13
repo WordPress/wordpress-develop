@@ -3265,6 +3265,9 @@ class WP_Query {
 		if ( ! empty( $this->tax_query->queries ) ) {
 			$last_changed[] = wp_cache_get_last_changed( 'terms' );
 		}
+		if ( ! empty( $this->meta_query->queries ) ) {
+			$last_changed[] = wp_cache_get_last_changed( 'posts-meta' );
+		}
 
 		if ( $query_vars['cache_results'] && $id_query_is_cacheable ) {
 			$new_request = str_replace( $fields, "{$wpdb->posts}.*", $this->request );
