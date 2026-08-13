@@ -48,10 +48,18 @@ class Tests_Functions_GetTagRegex extends WP_UnitTestCase {
 				),
 			),
 
-			'a self-closing tag'                       => array(
-				'iframe',
-				'<iframe src="https://example.com/a" />',
-				array( '<iframe src="https://example.com/a" />' ),
+			// A self-closing void element (an iframe cannot self-close), matched
+			// both with and without the space before the slash (comment:16).
+			'a self-closing tag with a space'          => array(
+				'input',
+				'<input type="text" />',
+				array( '<input type="text" />' ),
+			),
+
+			'a self-closing tag without a space'       => array(
+				'input',
+				'<input type="text"/>',
+				array( '<input type="text"/>' ),
 			),
 
 			'a tag with a multiline body'              => array(
