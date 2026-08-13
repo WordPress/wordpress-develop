@@ -219,6 +219,8 @@ class Tests_Post_Types extends WP_UnitTestCase {
 	 * Templates and template parts opt in to notes so that the block editor can
 	 * attach them to a template that has been saved to the database.
 	 *
+	 * @ticket 65866
+	 *
 	 * @dataProvider data_template_post_types_support_notes
 	 *
 	 * @param string $post_type Template post type name.
