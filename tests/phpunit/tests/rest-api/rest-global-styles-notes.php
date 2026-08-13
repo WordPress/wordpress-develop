@@ -107,6 +107,8 @@ class Tests_REST_Global_Styles_Notes extends WP_Test_REST_TestCase {
 	 * `WP_REST_Comments_Controller::check_post_type_supports_notes()` looks for
 	 * a truthy `notes` key inside the `editor` support arguments, so replicate
 	 * that read rather than asserting on the raw array shape.
+	 *
+	 * @ticket 65872
 	 */
 	public function test_global_styles_supports_notes() {
 		$supports = get_all_post_type_supports( 'wp_global_styles' );
@@ -122,6 +124,8 @@ class Tests_REST_Global_Styles_Notes extends WP_Test_REST_TestCase {
 	/**
 	 * Adding support arguments must not break plain `editor` support, which
 	 * only tests for the key's presence.
+	 *
+	 * @ticket 65872
 	 */
 	public function test_global_styles_still_supports_editor() {
 		$this->assertTrue( post_type_supports( 'wp_global_styles', 'editor' ) );
@@ -129,6 +133,8 @@ class Tests_REST_Global_Styles_Notes extends WP_Test_REST_TestCase {
 
 	/**
 	 * The anchor meta is registered for comments and exposed over REST.
+	 *
+	 * @ticket 65872
 	 */
 	public function test_anchor_meta_is_registered() {
 		$this->assertTrue( registered_meta_key_exists( 'comment', self::ANCHOR_META ) );
@@ -143,6 +149,8 @@ class Tests_REST_Global_Styles_Notes extends WP_Test_REST_TestCase {
 	/**
 	 * An administrator can create a note on global styles, and the anchor
 	 * round-trips through the response.
+	 *
+	 * @ticket 65872
 	 */
 	public function test_administrator_can_create_note_with_anchor() {
 		wp_set_current_user( self::$admin_id );
@@ -163,6 +171,8 @@ class Tests_REST_Global_Styles_Notes extends WP_Test_REST_TestCase {
 	/**
 	 * The anchor is an opaque string the anchoring surface defines, so block
 	 * names from any source and synthetic section names are all valid.
+	 *
+	 * @ticket 65872
 	 *
 	 * @dataProvider data_valid_anchors
 	 *
@@ -198,6 +208,8 @@ class Tests_REST_Global_Styles_Notes extends WP_Test_REST_TestCase {
 	 * A user without `edit_theme_options` cannot create notes on global styles.
 	 * An author has `edit_posts`, so this exercises the controller's per-post
 	 * `edit_post` check rather than a blanket capability gate.
+	 *
+	 * @ticket 65872
 	 */
 	public function test_author_cannot_create_note() {
 		wp_set_current_user( self::$author_id );
@@ -212,6 +224,8 @@ class Tests_REST_Global_Styles_Notes extends WP_Test_REST_TestCase {
 
 	/**
 	 * Logged-out requests cannot create notes on global styles.
+	 *
+	 * @ticket 65872
 	 */
 	public function test_anonymous_cannot_create_note() {
 		$post_id = $this->get_global_styles_post_id();
@@ -225,6 +239,8 @@ class Tests_REST_Global_Styles_Notes extends WP_Test_REST_TestCase {
 
 	/**
 	 * An administrator can list notes on global styles in edit context.
+	 *
+	 * @ticket 65872
 	 */
 	public function test_administrator_can_list_notes() {
 		wp_set_current_user( self::$admin_id );
@@ -250,6 +266,8 @@ class Tests_REST_Global_Styles_Notes extends WP_Test_REST_TestCase {
 	/**
 	 * Listing notes requires `edit_theme_options`; an author with `edit_posts`
 	 * is still refused.
+	 *
+	 * @ticket 65872
 	 */
 	public function test_author_cannot_list_notes() {
 		$post_id = $this->get_global_styles_post_id();
@@ -269,6 +287,8 @@ class Tests_REST_Global_Styles_Notes extends WP_Test_REST_TestCase {
 
 	/**
 	 * Logged-out requests cannot list notes on global styles.
+	 *
+	 * @ticket 65872
 	 */
 	public function test_anonymous_cannot_list_notes() {
 		$post_id = $this->get_global_styles_post_id();
@@ -288,6 +308,8 @@ class Tests_REST_Global_Styles_Notes extends WP_Test_REST_TestCase {
 	/**
 	 * The anchor is sanitized, so markup in the value cannot survive to the
 	 * client.
+	 *
+	 * @ticket 65872
 	 */
 	public function test_anchor_is_sanitized() {
 		wp_set_current_user( self::$admin_id );
@@ -303,6 +325,8 @@ class Tests_REST_Global_Styles_Notes extends WP_Test_REST_TestCase {
 	/**
 	 * Anchors longer than the schema's `maxLength` are rejected rather than
 	 * silently truncated.
+	 *
+	 * @ticket 65872
 	 */
 	public function test_overlong_anchor_is_rejected() {
 		wp_set_current_user( self::$admin_id );
@@ -318,6 +342,8 @@ class Tests_REST_Global_Styles_Notes extends WP_Test_REST_TestCase {
 	/**
 	 * Notes are still refused on post types that do not declare notes support,
 	 * so enabling them for global styles did not widen the gate.
+	 *
+	 * @ticket 65872
 	 */
 	public function test_unsupported_post_type_still_rejects_notes() {
 		wp_set_current_user( self::$admin_id );
