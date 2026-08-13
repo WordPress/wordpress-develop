@@ -11,10 +11,14 @@ class Tests_Rewrite_RandomContentRedirect extends WP_UnitTestCase {
 	public function set_up() {
 		parent::set_up();
 
-		add_filter( 'enable_random_content_redirect', '__return_true' );
 		add_filter( 'random_content_redirect_url', array( $this, 'filter_random_content_redirect_url' ) );
 
 		$_GET['random'] = '';
+	}
+
+	public function filter_random_content_redirect_url( $url ) {
+		$this->random_content_redirect_url = $url;
+		return false;
 	}
 
 	public function test_hook_is_registered() {
@@ -22,8 +26,6 @@ class Tests_Rewrite_RandomContentRedirect extends WP_UnitTestCase {
 	}
 
 	public function test_disabled_by_default() {
-		remove_filter( 'enable_random_content_redirect', '__return_true' );
-
 		self::factory()->post->create();
 
 		wp_random_content_redirect();
@@ -31,6 +33,8 @@ class Tests_Rewrite_RandomContentRedirect extends WP_UnitTestCase {
 	}
 
 	public function test_no_random_parameter_does_not_redirect() {
+		add_filter( 'enable_random_content_redirect', '__return_true' );
+
 		unset( $_GET['random'] );
 
 		self::factory()->post->create();
@@ -40,6 +44,8 @@ class Tests_Rewrite_RandomContentRedirect extends WP_UnitTestCase {
 	}
 
 	public function test_redirects_to_a_published_post() {
+		add_filter( 'enable_random_content_redirect', '__return_true' );
+
 		$post_ids = self::factory()->post->create_many( 3 );
 
 		wp_random_content_redirect();
@@ -47,6 +53,8 @@ class Tests_Rewrite_RandomContentRedirect extends WP_UnitTestCase {
 	}
 
 	public function test_post_request_does_not_redirect() {
+		add_filter( 'enable_random_content_redirect', '__return_true' );
+
 		$_SERVER['REQUEST_METHOD'] = 'POST';
 
 		self::factory()->post->create();
@@ -55,7 +63,20 @@ class Tests_Rewrite_RandomContentRedirect extends WP_UnitTestCase {
 		$this->assertNull( $this->random_content_redirect_url );
 	}
 
+	public function test_unset_request_method_does_not_redirect() {
+		add_filter( 'enable_random_content_redirect', '__return_true' );
+
+		unset( $_SERVER['REQUEST_METHOD'] );
+
+		self::factory()->post->create();
+
+		wp_random_content_redirect();
+		$this->assertNull( $this->random_content_redirect_url );
+	}
+
 	public function test_head_request_redirects() {
+		add_filter( 'enable_random_content_redirect', '__return_true' );
+
 		$_SERVER['REQUEST_METHOD'] = 'HEAD';
 
 		$post_id = self::factory()->post->create();
@@ -65,6 +86,8 @@ class Tests_Rewrite_RandomContentRedirect extends WP_UnitTestCase {
 	}
 
 	public function test_excludes_password_protected_posts() {
+		add_filter( 'enable_random_content_redirect', '__return_true' );
+
 		$public_id = self::factory()->post->create();
 		self::factory()->post->create_many( 2, array( 'post_password' => 'secret' ) );
 
@@ -73,6 +96,8 @@ class Tests_Rewrite_RandomContentRedirect extends WP_UnitTestCase {
 	}
 
 	public function test_excludes_unpublished_posts() {
+		add_filter( 'enable_random_content_redirect', '__return_true' );
+
 		$public_id = self::factory()->post->create();
 		self::factory()->post->create( array( 'post_status' => 'draft' ) );
 		self::factory()->post->create( array( 'post_status' => 'private' ) );
@@ -82,6 +107,8 @@ class Tests_Rewrite_RandomContentRedirect extends WP_UnitTestCase {
 	}
 
 	public function test_random_post_type_parameter() {
+		add_filter( 'enable_random_content_redirect', '__return_true' );
+
 		self::factory()->post->create();
 		$page_id = self::factory()->post->create( array( 'post_type' => 'page' ) );
 
@@ -92,6 +119,8 @@ class Tests_Rewrite_RandomContentRedirect extends WP_UnitTestCase {
 	}
 
 	public function test_invalid_post_type_does_not_redirect() {
+		add_filter( 'enable_random_content_redirect', '__return_true' );
+
 		self::factory()->post->create();
 
 		$_GET['random_post_type'] = 'nonexistent_type';
@@ -101,6 +130,8 @@ class Tests_Rewrite_RandomContentRedirect extends WP_UnitTestCase {
 	}
 
 	public function test_non_viewable_post_type_does_not_redirect() {
+		add_filter( 'enable_random_content_redirect', '__return_true' );
+
 		register_post_type( 'wptests_hidden', array( 'public' => false ) );
 
 		self::factory()->post->create();
@@ -113,6 +144,8 @@ class Tests_Rewrite_RandomContentRedirect extends WP_UnitTestCase {
 	}
 
 	public function test_random_cat_id_parameter() {
+		add_filter( 'enable_random_content_redirect', '__return_true' );
+
 		$cat_id    = self::factory()->category->create();
 		$in_cat_id = self::factory()->post->create( array( 'post_category' => array( $cat_id ) ) );
 		self::factory()->post->create_many( 3 );
@@ -124,6 +157,8 @@ class Tests_Rewrite_RandomContentRedirect extends WP_UnitTestCase {
 	}
 
 	public function test_nonexistent_category_does_not_redirect() {
+		add_filter( 'enable_random_content_redirect', '__return_true' );
+
 		self::factory()->post->create();
 
 		$_GET['random_cat_id'] = '99999';
@@ -138,6 +173,8 @@ class Tests_Rewrite_RandomContentRedirect extends WP_UnitTestCase {
 	 * @param string $cat_id Invalid category ID value.
 	 */
 	public function test_invalid_category_id_does_not_redirect( $cat_id ) {
+		add_filter( 'enable_random_content_redirect', '__return_true' );
+
 		self::factory()->post->create();
 
 		$_GET['random_cat_id'] = $cat_id;
@@ -149,12 +186,25 @@ class Tests_Rewrite_RandomContentRedirect extends WP_UnitTestCase {
 	public function data_invalid_category_ids() {
 		return array(
 			'zero'        => array( '0' ),
-			'negative'    => array( '-5' ),
 			'non-numeric' => array( 'foo' ),
 		);
 	}
 
+	public function test_negated_category_id_of_existing_category_does_not_redirect() {
+		add_filter( 'enable_random_content_redirect', '__return_true' );
+
+		$cat_id = self::factory()->category->create();
+		self::factory()->post->create( array( 'post_category' => array( $cat_id ) ) );
+
+		$_GET['random_cat_id'] = (string) ( -$cat_id );
+
+		wp_random_content_redirect();
+		$this->assertNull( $this->random_content_redirect_url );
+	}
+
 	public function test_redirect_url_is_filterable() {
+		add_filter( 'enable_random_content_redirect', '__return_true' );
+
 		self::factory()->post->create();
 
 		add_filter(
@@ -170,19 +220,18 @@ class Tests_Rewrite_RandomContentRedirect extends WP_UnitTestCase {
 	}
 
 	public function test_no_posts_does_not_redirect() {
+		add_filter( 'enable_random_content_redirect', '__return_true' );
+
 		wp_random_content_redirect();
 		$this->assertNull( $this->random_content_redirect_url );
 	}
 
 	public function test_single_post_redirects_to_it() {
+		add_filter( 'enable_random_content_redirect', '__return_true' );
+
 		$post_id = self::factory()->post->create();
 
 		wp_random_content_redirect();
 		$this->assertSame( get_permalink( $post_id ), $this->random_content_redirect_url );
-	}
-
-	public function filter_random_content_redirect_url( $url ) {
-		$this->random_content_redirect_url = $url;
-		return false;
 	}
 }

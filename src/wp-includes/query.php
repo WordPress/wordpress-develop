@@ -1267,7 +1267,9 @@ function wp_random_content_redirect() {
 		return;
 	}
 
-	if ( isset( $_SERVER['REQUEST_METHOD'] ) && ! in_array( strtoupper( $_SERVER['REQUEST_METHOD'] ), array( 'GET', 'HEAD' ), true ) ) {
+	$request_method = isset( $_SERVER['REQUEST_METHOD'] ) ? strtoupper( $_SERVER['REQUEST_METHOD'] ) : '';
+
+	if ( ! in_array( $request_method, array( 'GET', 'HEAD' ), true ) ) {
 		return;
 	}
 
@@ -1296,7 +1298,7 @@ function wp_random_content_redirect() {
 	);
 
 	if ( isset( $_GET['random_cat_id'] ) ) {
-		$cat_id = absint( wp_unslash( $_GET['random_cat_id'] ) );
+		$cat_id = (int) wp_unslash( $_GET['random_cat_id'] );
 
 		if ( $cat_id < 1 ) {
 			return;
@@ -1343,7 +1345,8 @@ function wp_random_content_redirect() {
 		return;
 	}
 
-	// Temporary redirect, so clients do not cache the randomly picked target.
+	// Temporary redirect, so clients and intermediary caches do not cache the randomly picked target.
+	nocache_headers();
 	wp_safe_redirect( $link, 302 );
 	exit;
 }
