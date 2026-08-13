@@ -43,8 +43,17 @@ jobs:
   # Build WordPress from the current branch ready for the upgrade tests.
   build:
     name: Build
-    uses: WordPress/wordpress-develop/.github/workflows/reusable-build-package.yml@trunk
-    if: ${{ startsWith( github.repository, 'WordPress/' ) && ( github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' ) }}
+    uses: ./.github/workflows/reusable-build-package.yml
+    if: |
+      startsWith( github.repository, 'WordPress/' ) && (
+        github.repository == 'WordPress/wordpress-develop' || (
+          github.event_name == 'pull_request' && (
+            ! github.event.repository.private ||
+            ! github.event.pull_request.draft ||
+            contains( github.event.pull_request.labels.*.name, 'Draft Workflow Runs' )
+          )
+        )
+      )
     permissions:
       contents: read
 
@@ -59,7 +68,7 @@ jobs:
 #   being updated to keep the matrix as small as is reasonable.
   upgrade-tests-develop:
     name: Upgrade from ${{ matrix.wp }}
-    uses: WordPress/wordpress-develop/.github/workflows/reusable-upgrade-testing.yml@trunk
+    uses: ./.github/workflows/reusable-upgrade-testing.yml
     if: ${{ github.repository == 'WordPress/wordpress-develop' }}
     needs: [ build ]
     permissions:
@@ -86,8 +95,15 @@ jobs:
   # Run a limited set of upgrade tests for the current branch on forks.
   upgrade-tests-develop-forks:
     name: Upgrade from ${{ matrix.wp }}
-    uses: WordPress/wordpress-develop/.github/workflows/reusable-upgrade-testing.yml@trunk
-    if: ${{ github.repository != 'WordPress/wordpress-develop' }}
+    uses: ./.github/workflows/reusable-upgrade-testing.yml
+    # This job also runs for the push event, which has no draft state to check.
+    if: |
+      github.repository != 'WordPress/wordpress-develop' && (
+        github.event_name != 'pull_request' ||
+        ! github.event.repository.private ||
+        ! github.event.pull_request.draft ||
+        contains( github.event.pull_request.labels.*.name, 'Draft Workflow Runs' )
+      )
     needs: [ build ]
     permissions:
       contents: read
@@ -111,7 +127,7 @@ jobs:
 
   slack-notifications:
     name: Slack Notifications
-    uses: WordPress/wordpress-develop/.github/workflows/slack-notifications.yml@trunk
+    uses: ./.github/workflows/slack-notifications.yml
     permissions:
       actions: read
       contents: read
