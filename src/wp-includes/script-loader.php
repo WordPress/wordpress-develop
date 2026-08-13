@@ -1038,7 +1038,7 @@ function wp_default_scripts( $scripts ) {
 		'deleted'                   => __( 'moved to the Trash.' ),
 		/* translators: %s: File name. */
 		'error_uploading'           => __( '&#8220;%s&#8221; has failed to upload.' ),
-		'unsupported_image'         => __( 'This image cannot be displayed in a web browser. For best results convert it to JPEG before uploading.' ),
+		'unsupported_image'         => __( 'The server cannot process HEIC images. Convert it to JPEG before uploading.' ),
 		'noneditable_image'         => __( 'The web server cannot generate responsive image sizes for this image. Convert it to JPEG or PNG before uploading.' ),
 		'file_url_copied'           => __( 'The file URL has been copied to your clipboard' ),
 	);
@@ -1781,9 +1781,11 @@ function wp_default_styles( $styles ) {
 			'wp-reusable-blocks',
 			'wp-patterns',
 			'wp-preferences',
+			'wp-media-utils',
 		),
 		'format-library'       => array(),
 		'list-reusable-blocks' => array( 'wp-components' ),
+		'media-utils'          => array( 'wp-components' ),
 		'reusable-blocks'      => array( 'wp-components' ),
 		'patterns'             => array( 'wp-components' ),
 		'preferences'          => array( 'wp-components' ),
@@ -1892,6 +1894,7 @@ function wp_default_styles( $styles ) {
 		'wp-editor',
 		'wp-format-library',
 		'wp-list-reusable-blocks',
+		'wp-media-utils',
 		'wp-reusable-blocks',
 		'wp-patterns',
 		'wp-nux',

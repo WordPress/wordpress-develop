@@ -332,7 +332,6 @@
 .media-toolbar-secondary {
 	float: left;
 	height: 100%;
-	position: relative;
 	display: grid;
 	grid-template-columns: repeat( 2, 1fr );
 	grid-template-rows: repeat( 2, 1fr );
@@ -365,9 +364,9 @@ select#media-attachment-filters ~ select#media-attachment-date-filters {
 	grid-area: 2 / 2 / 3 / 3;
 }
 
-.media-toolbar-secondary > .spinner {
+.media-modal .media-toolbar-secondary > .spinner {
 	position: absolute;
-	left: calc( 100% + 2px );
+	right: -30px;
 	top: 50%;
 	margin: 0;
 }
@@ -1309,6 +1308,7 @@ select#media-attachment-filters ~ select#media-attachment-date-filters {
 
 .attachments-browser .media-toolbar-secondary {
 	max-width: 66%;
+	position: relative;
 }
 
 .uploader-inline .close {
@@ -1855,6 +1855,7 @@ select#media-attachment-filters ~ select#media-attachment-date-filters {
 	text-align: right;
 	text-transform: none;
 	font-weight: 400;
+	display: flex;
 }
 
 .attachment-details .settings-save-status .spinner {
@@ -2635,6 +2636,7 @@ select#media-attachment-filters ~ select#media-attachment-date-filters {
 	}
 
 	.attachments-browser .attachments,
+	.attachments-browser:not(.has-load-more) .attachments,
 	.attachments-browser .uploader-inline,
 	.attachments-browser .media-toolbar,
 	.attachments-browser .attachments-wrapper,
@@ -2643,13 +2645,14 @@ select#media-attachment-filters ~ select#media-attachment-date-filters {
 	}
 
 	.attachments-browser .media-toolbar {
-		height: 74px;
+		height: 117px;
 	}
 
 	.attachments-browser .attachments,
+	.attachments-browser:not(.has-load-more) .attachments,
 	.attachments-browser .uploader-inline,
 	.media-frame-content .attachments-browser .attachments-wrapper {
-		top: 90px;
+		top: 131px;
 	}
 
 	.media-sidebar .setting,
@@ -2840,7 +2843,7 @@ select#media-attachment-filters ~ select#media-attachment-date-filters {
 		float: right;
 	}
 
-	.media-frame .media-toolbar-secondary .spinner {
+	.media-modal .media-frame .media-toolbar-secondary .spinner {
 		top: calc( 50% - 8px );
 	}
 
@@ -2875,7 +2878,7 @@ select#media-attachment-filters ~ select#media-attachment-date-filters {
 		bottom: -60px;
 	}
 
-	.media-frame .media-toolbar-secondary .spinner {
+	.media-modal .media-frame .media-toolbar-secondary .spinner {
 		top: 0;
 	}
 
@@ -2898,13 +2901,9 @@ select#media-attachment-filters ~ select#media-attachment-date-filters {
 		position: unset;
 	}
 
-	.media-frame .media-toolbar-secondary .spinner {
-		position: absolute;
-		top: 0;
+	.media-modal .media-frame .media-toolbar-secondary .spinner {
 		bottom: 0;
 		margin: auto;
-		left: calc( 100% + 2px );
-		right: 0;
 		z-index: 9;
 	}
 
@@ -2956,6 +2955,7 @@ select#media-attachment-filters ~ select#media-attachment-date-filters {
 	}
 
 	.attachments-browser .attachments,
+	.attachments-browser:not(.has-load-more) .attachments,
 	.attachments-browser .uploader-inline,
 	.attachments-browser .media-toolbar,
 	.media-frame-content .attachments-browser .attachments-wrapper {
