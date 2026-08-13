@@ -22,6 +22,14 @@ Run the script tests with:
 npm test --prefix .github/docs-playground-preview
 ```
 
+Type check the scripts with:
+
+```sh
+npm run typecheck --prefix .github/docs-playground-preview
+```
+
+The `Code Reference Playground Preview Tests` workflow runs both commands whenever a push or a pull request touches `.github/scripts/docs-playground-preview`, this directory, or the workflow itself. Type checking runs even when the tests fail, so a single run reports both.
+
 ## Updating pins
 
 All repositories in `dependencies.json` must remain on the allowed repositories enforced by `.github/scripts/docs-playground-preview/lib/config.mjs`, and every repository revision must be a full immutable commit hash. Tool versions are exact. GitHub Actions are pinned to full commit hashes in the workflow files.
