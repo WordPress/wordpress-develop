@@ -99,29 +99,9 @@ parameters:
 			count: 3
 			path: ../../../src/wp-includes/class-wp-theme-json.php
 		-
-			message: '#^Unsafe call to private method WP_Theme_JSON\:\:get_block_name_from_metadata_path\(\) through static\:\:\.$#'
-			identifier: staticClassAccess.privateMethod
-			count: 2
-			path: ../../../src/wp-includes/class-wp-theme-json.php
-		-
 			message: '#^Unsafe call to private method WP_Theme_JSON\:\:get_block_nodes\(\) through static\:\:\.$#'
 			identifier: staticClassAccess.privateMethod
 			count: 3
-			path: ../../../src/wp-includes/class-wp-theme-json.php
-		-
-			message: '#^Unsafe call to private method WP_Theme_JSON\:\:get_feature_selector\(\) through static\:\:\.$#'
-			identifier: staticClassAccess.privateMethod
-			count: 1
-			path: ../../../src/wp-includes/class-wp-theme-json.php
-		-
-			message: '#^Unsafe call to private method WP_Theme_JSON\:\:get_viewport_breakpoint_value_in_pixels\(\) through static\:\:\.$#'
-			identifier: staticClassAccess.privateMethod
-			count: 1
-			path: ../../../src/wp-includes/class-wp-theme-json.php
-		-
-			message: '#^Unsafe call to private method WP_Theme_JSON\:\:is_valid_viewport_breakpoint_size\(\) through static\:\:\.$#'
-			identifier: staticClassAccess.privateMethod
-			count: 1
 			path: ../../../src/wp-includes/class-wp-theme-json.php
 		-
 			message: '#^Unsafe call to private method WP_Theme_JSON\:\:merge_spacing_sizes\(\) through static\:\:\.$#'
@@ -139,24 +119,9 @@ parameters:
 			count: 1
 			path: ../../../src/wp-includes/class-wp-theme-json.php
 		-
-			message: '#^Unsafe call to private method WP_Theme_JSON\:\:sanitize_viewport_settings\(\) through static\:\:\.$#'
-			identifier: staticClassAccess.privateMethod
-			count: 3
-			path: ../../../src/wp-includes/class-wp-theme-json.php
-		-
 			message: '#^Unsafe call to private method WP_Theme_JSON\:\:unwrap_shared_block_style_variations\(\) through static\:\:\.$#'
 			identifier: staticClassAccess.privateMethod
 			count: 1
-			path: ../../../src/wp-includes/class-wp-theme-json.php
-		-
-			message: '#^Unsafe call to private method WP_Theme_JSON\:\:update_button_width_declarations\(\) through static\:\:\.$#'
-			identifier: staticClassAccess.privateMethod
-			count: 4
-			path: ../../../src/wp-includes/class-wp-theme-json.php
-		-
-			message: '#^Unsafe call to private method WP_Theme_JSON\:\:update_paragraph_text_indent_selector\(\) through static\:\:\.$#'
-			identifier: staticClassAccess.privateMethod
-			count: 4
 			path: ../../../src/wp-includes/class-wp-theme-json.php
 		-
 			message: '#^Unsafe call to private method WP_Theme_JSON\:\:update_separator_declarations\(\) through static\:\:\.$#'
