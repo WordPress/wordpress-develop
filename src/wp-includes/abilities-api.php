@@ -231,6 +231,17 @@ declare( strict_types = 1 );
  *         'show_in_rest' => false,
  *     ),
  *
+ * Mark an ability as deprecated while keeping exact-name retrieval and execution
+ * available for backward compatibility:
+ *
+ *     'meta' => array(
+ *         'deprecated' => array(
+ *             'since'       => '2.0.0',
+ *             'replacement' => 'my-plugin/new-ability',
+ *             'message'     => __( 'The replacement supports the new data format.', 'my-plugin' ),
+ *         ),
+ *     ),
+ *
  * @since 6.9.0
  * @since 7.1.0 Added the `public` meta argument.
  * @since 7.2.0 The `category` argument is now optional and defaults to `uncategorized`.
@@ -282,6 +293,15 @@ declare( strict_types = 1 );
  *                                                      clients such as the REST API, MCP, or AI agents. Seeds
  *                                                      the default for per-channel flags like `$show_in_rest`.
  *                                                      Defaults to false.
+ *         @type false|array<string, string> $deprecated {
+ *             Optional. Deprecation details. Set to an array to mark the ability as deprecated. At least one
+ *             supported detail must be provided. Deprecated abilities remain available by exact name and can
+ *             be explicitly included or excluded from discovery through meta filtering. Default false.
+ *
+ *             @type string $since       Optional. Version of the ability provider that deprecated the ability.
+ *             @type string $replacement Optional. Namespaced ability to use instead.
+ *             @type string $message     Optional. Additional migration guidance.
+ *         }
  *         @type bool                     $show_in_rest Optional. Whether to expose this ability in the REST API.
  *                                                      When true, the ability can be invoked via HTTP requests.
  *                                                      Default is the value of `$public` when set, false otherwise.
@@ -414,6 +434,83 @@ function wp_get_ability( string $name ): ?WP_Ability {
 }
 
 /**
+ * Marks an ability as deprecated and informs when it has been used.
+ *
+ * There is a {@see 'deprecated_ability_run'} hook that will be called that can be used
+ * to get the backtrace up to what code executed the deprecated ability.
+ *
+ * The current behavior is to trigger a user error if `WP_DEBUG` is true.
+ *
+ * @since 7.1.0
+ *
+ * @param string $ability_name The ability that was executed.
+ * @param string $version      Optional. The version of the ability provider that deprecated the ability.
+ *                             Default empty string.
+ * @param string $replacement  Optional. The ability that should be used instead. Default empty string.
+ * @param string $message      Optional. Additional migration guidance. Default empty string.
+ */
+function _deprecated_ability( string $ability_name, string $version = '', string $replacement = '', string $message = '' ): void {
+	/**
+	 * Fires when a deprecated ability is executed.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @param string $ability_name The ability that was executed.
+	 * @param string $replacement  The ability that should be used as a replacement.
+	 * @param string $version      The version of the ability provider that deprecated the ability.
+	 * @param string $message      Additional migration guidance.
+	 */
+	do_action( 'deprecated_ability_run', $ability_name, $replacement, $version, $message );
+
+	/**
+	 * Filters whether to trigger an error for deprecated abilities.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @param bool $trigger Whether to trigger the error for deprecated abilities. Default true.
+	 */
+	if ( WP_DEBUG && apply_filters( 'deprecated_ability_trigger_error', true ) ) {
+		if ( $version ) {
+			if ( $replacement ) {
+				$notice = sprintf(
+					/* translators: 1: Ability name, 2: Version number, 3: Alternative ability name. */
+					__( 'Ability %1$s is <strong>deprecated</strong> since version %2$s! Use %3$s instead.' ),
+					$ability_name,
+					$version,
+					$replacement
+				);
+			} else {
+				$notice = sprintf(
+					/* translators: 1: Ability name, 2: Version number. */
+					__( 'Ability %1$s is <strong>deprecated</strong> since version %2$s with no alternative available.' ),
+					$ability_name,
+					$version
+				);
+			}
+		} elseif ( $replacement ) {
+			$notice = sprintf(
+				/* translators: 1: Ability name, 2: Alternative ability name. */
+				__( 'Ability %1$s is <strong>deprecated</strong>! Use %2$s instead.' ),
+				$ability_name,
+				$replacement
+			);
+		} else {
+			$notice = sprintf(
+				/* translators: %s: Ability name. */
+				__( 'Ability %s is <strong>deprecated</strong> with no alternative available.' ),
+				$ability_name
+			);
+		}
+
+		if ( $message ) {
+			$notice .= ' ' . $message;
+		}
+
+		wp_trigger_error( '', $notice, E_USER_DEPRECATED );
+	}
+}
+
+/**
  * Retrieves registered abilities, optionally filtered by the given arguments.
  *
  * When called without arguments, returns all registered abilities. When called
@@ -435,6 +532,16 @@ function wp_get_ability( string $name ): ?WP_Ability {
  *
  *     // All abilities (unchanged behaviour).
  *     $abilities = wp_get_abilities();
+ *
+ *     // Exclude deprecated abilities explicitly.
+ *     $abilities = wp_get_abilities( array(
+ *         'meta' => array( 'deprecated' => false ),
+ *     ) );
+ *
+ *     // Return only deprecated abilities.
+ *     $abilities = wp_get_abilities( array(
+ *         'meta' => array( 'deprecated' => array() ),
+ *     ) );
  *
  *     // Filter by category.
  *     $abilities = wp_get_abilities( array( 'category' => 'content' ) );
@@ -800,117 +907,4 @@ function wp_get_ability_categories(): array {
 	}
 
 	return $registry->get_all_registered();
-}
-
-/**
- * Marks an ability as deprecated and informs when it has been used.
- *
- * This function should be called from within a deprecated ability's execute callback
- * to notify developers that they are using an obsolete ability. The function logs
- * the deprecation and triggers a notice when WP_DEBUG is enabled.
- *
- * Example:
- *
- *     function my_plugin_old_ability_callback( $input ) {
- *         _deprecated_ability( 'my-plugin/old-ability', '1.5.0', 'my-plugin/new-ability' );
- *         // Legacy implementation...
- *     }
- *
- * @since 7.0.0
- *
- * @param string $ability_name The name of the ability that is deprecated.
- * @param string $version      Optional. The version in which the ability was deprecated.
- *                             Default empty string.
- * @param string $replacement  Optional. The name of the ability that should be used instead.
- *                             Default empty string.
- */
-function _deprecated_ability( string $ability_name, string $version = '', string $replacement = '' ): void {
-
-	/**
-	 * Fires when a deprecated ability is called.
-	 *
-	 * @since 7.0.0
-	 *
-	 * @param string $ability_name The ability that was called.
-	 * @param string $replacement  The ability that should have been called.
-	 * @param string $version      The version in which the ability was deprecated.
-	 */
-	do_action( 'deprecated_ability_run', $ability_name, $replacement, $version );
-
-	/**
-	 * Filters whether to trigger an error for deprecated abilities.
-	 *
-	 * @since 7.0.0
-	 *
-	 * @param bool $trigger Whether to trigger the error for deprecated abilities. Default true.
-	 */
-	if ( WP_DEBUG && apply_filters( 'deprecated_ability_trigger_error', true ) ) {
-		if ( function_exists( '__' ) ) {
-			if ( $replacement ) {
-				if ( $version ) {
-					$message = sprintf(
-						/* translators: 1: Ability name, 2: Version number, 3: Alternative ability name. */
-						__( 'Ability %1$s is <strong>deprecated</strong> since version %2$s! Use %3$s instead.' ),
-						$ability_name,
-						$version,
-						$replacement
-					);
-				} else {
-					$message = sprintf(
-						/* translators: 1: Ability name, 2: Alternative ability name. */
-						__( 'Ability %1$s is <strong>deprecated</strong>! Use %2$s instead.' ),
-						$ability_name,
-						$replacement
-					);
-				}
-			} else {
-				if ( $version ) {
-					$message = sprintf(
-						/* translators: 1: Ability name, 2: Version number. */
-						__( 'Ability %1$s is <strong>deprecated</strong> since version %2$s with no alternative available.' ),
-						$ability_name,
-						$version
-					);
-				} else {
-					$message = sprintf(
-						/* translators: %s: Ability name. */
-						__( 'Ability %s is <strong>deprecated</strong> with no alternative available.' ),
-						$ability_name
-					);
-				}
-			}
-		} else {
-			if ( $replacement ) {
-				if ( $version ) {
-					$message = sprintf(
-						'Ability %1$s is <strong>deprecated</strong> since version %2$s! Use %3$s instead.',
-						$ability_name,
-						$version,
-						$replacement
-					);
-				} else {
-					$message = sprintf(
-						'Ability %1$s is <strong>deprecated</strong>! Use %2$s instead.',
-						$ability_name,
-						$replacement
-					);
-				}
-			} else {
-				if ( $version ) {
-					$message = sprintf(
-						'Ability %1$s is <strong>deprecated</strong> since version %2$s with no alternative available.',
-						$ability_name,
-						$version
-					);
-				} else {
-					$message = sprintf(
-						'Ability %s is <strong>deprecated</strong> with no alternative available.',
-						$ability_name
-					);
-				}
-			}
-		}
-
-		wp_trigger_error( '', $message, E_USER_DEPRECATED );
-	}
 }

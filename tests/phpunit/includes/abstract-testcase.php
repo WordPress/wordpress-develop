@@ -616,6 +616,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 		add_action( 'deprecated_class_run', array( $this, 'deprecated_function_run' ), 10, 3 );
 		add_action( 'deprecated_file_included', array( $this, 'deprecated_function_run' ), 10, 4 );
 		add_action( 'deprecated_hook_run', array( $this, 'deprecated_function_run' ), 10, 4 );
+		add_action( 'deprecated_ability_run', array( $this, 'deprecated_function_run' ), 10, 4 );
 		add_action( 'doing_it_wrong_run', array( $this, 'doing_it_wrong_run' ), 10, 3 );
 
 		add_action( 'deprecated_function_trigger_error', '__return_false' );
@@ -623,6 +624,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 		add_action( 'deprecated_class_trigger_error', '__return_false' );
 		add_action( 'deprecated_file_trigger_error', '__return_false' );
 		add_action( 'deprecated_hook_trigger_error', '__return_false' );
+		add_action( 'deprecated_ability_trigger_error', '__return_false' );
 		add_action( 'doing_it_wrong_trigger_error', '__return_false' );
 	}
 
@@ -758,6 +760,8 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 */
 	public function deprecated_function_run( $function_name, $replacement, $version, $message = '' ) {
 		if ( ! isset( $this->caught_deprecated[ $function_name ] ) ) {
+			$additional_message = $message;
+
 			switch ( current_action() ) {
 				case 'deprecated_function_run':
 					if ( $replacement ) {
@@ -841,6 +845,39 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 							$function_name,
 							$version
 						) . ' ' . $message;
+					}
+					break;
+
+				case 'deprecated_ability_run':
+					if ( $version ) {
+						if ( $replacement ) {
+							$message = sprintf(
+								'Ability %1$s is deprecated since version %2$s! Use %3$s instead.',
+								$function_name,
+								$version,
+								$replacement
+							);
+						} else {
+							$message = sprintf(
+								'Ability %1$s is deprecated since version %2$s with no alternative available.',
+								$function_name,
+								$version
+							);
+						}
+					} elseif ( $replacement ) {
+						$message = sprintf(
+							'Ability %1$s is deprecated! Use %2$s instead.',
+							$function_name,
+							$replacement
+						);
+					} else {
+						$message = sprintf(
+							'Ability %s is deprecated with no alternative available.',
+							$function_name
+						);
+					}
+					if ( $additional_message ) {
+						$message .= ' ' . $additional_message;
 					}
 					break;
 			}

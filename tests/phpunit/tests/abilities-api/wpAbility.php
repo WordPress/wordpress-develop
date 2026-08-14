@@ -382,6 +382,134 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that `deprecated` metadata defaults to false when not provided.
+	 *
+	 * @ticket 64209
+	 */
+	public function test_meta_deprecated_defaults_to_false(): void {
+		$ability = new WP_Ability( self::$test_ability_name, self::$test_ability_properties );
+
+		$this->assertFalse( $ability->get_meta_item( 'deprecated' ) );
+	}
+
+	/**
+	 * Tests that a null `deprecated` value is treated as unset.
+	 *
+	 * @ticket 64209
+	 */
+	public function test_meta_deprecated_null_is_treated_as_unset(): void {
+		$args                       = self::$test_ability_properties;
+		$args['meta']['deprecated'] = null;
+
+		$ability = new WP_Ability( self::$test_ability_name, $args );
+
+		$this->assertFalse( $ability->get_meta_item( 'deprecated' ) );
+	}
+
+	/**
+	 * Tests that structured `deprecated` metadata is retained.
+	 *
+	 * @ticket 64209
+	 */
+	public function test_meta_deprecated_accepts_structured_details(): void {
+		$deprecated = array(
+			'since'       => '2.0.0',
+			'replacement' => 'test/new-calculator',
+			'message'     => 'Use the new input format.',
+		);
+
+		$args                       = self::$test_ability_properties;
+		$args['meta']['deprecated'] = $deprecated;
+
+		$ability = new WP_Ability( self::$test_ability_name, $args );
+
+		$this->assertSame( $deprecated, $ability->get_meta_item( 'deprecated' ) );
+	}
+
+	/**
+	 * Tests that `deprecated` rejects values other than false or an array.
+	 *
+	 * @ticket 64209
+	 */
+	public function test_meta_deprecated_rejects_invalid_type(): void {
+		$args                       = self::$test_ability_properties;
+		$args['meta']['deprecated'] = true;
+
+		$this->expectException( InvalidArgumentException::class );
+		$this->expectExceptionMessage( 'The ability meta should provide `deprecated` as false or an array of deprecation details.' );
+
+		new WP_Ability( self::$test_ability_name, $args );
+	}
+
+	/**
+	 * Tests that `deprecated` requires at least one supported detail.
+	 *
+	 * @ticket 64209
+	 */
+	public function test_meta_deprecated_rejects_empty_details(): void {
+		$args                       = self::$test_ability_properties;
+		$args['meta']['deprecated'] = array();
+
+		$this->expectException( InvalidArgumentException::class );
+		$this->expectExceptionMessage( 'The ability deprecation details should provide at least one of `since`, `replacement`, or `message`.' );
+
+		new WP_Ability( self::$test_ability_name, $args );
+	}
+
+	/**
+	 * Tests that supported `deprecated` details must be non-empty strings.
+	 *
+	 * @ticket 64209
+	 */
+	public function test_meta_deprecated_rejects_invalid_detail(): void {
+		$args                       = self::$test_ability_properties;
+		$args['meta']['deprecated'] = array( 'since' => 2 );
+
+		$this->expectException( InvalidArgumentException::class );
+		$this->expectExceptionMessage( 'The ability deprecation `since` value should be a non-empty string.' );
+
+		new WP_Ability( self::$test_ability_name, $args );
+	}
+
+	/**
+	 * Tests that executing a deprecated ability emits its structured details.
+	 *
+	 * @ticket 64209
+	 */
+	public function test_execute_deprecated_ability_emits_deprecation(): void {
+		$args                       = self::$test_ability_properties;
+		$args['meta']['deprecated'] = array(
+			'since'       => '2.0.0',
+			'replacement' => 'test/new-calculator',
+			'message'     => 'Use the new input format.',
+		);
+
+		$received = null;
+		$listener = static function ( $name, $replacement, $version, $message ) use ( &$received ): void {
+			$received = compact( 'name', 'replacement', 'version', 'message' );
+		};
+
+		$this->setExpectedDeprecated( self::$test_ability_name );
+		add_action( 'deprecated_ability_run', $listener, 10, 4 );
+
+		$ability = new WP_Ability( self::$test_ability_name, $args );
+		$result  = $ability->execute();
+
+		remove_action( 'deprecated_ability_run', $listener, 10 );
+
+		$this->assertSame( 0, $result );
+		$this->assertSame(
+			array(
+				'name'        => self::$test_ability_name,
+				'replacement' => 'test/new-calculator',
+				'version'     => '2.0.0',
+				'message'     => 'Use the new input format.',
+			),
+			$received
+		);
+	}
+
+	/**
 	 * Data provider for testing the execution of the ability.
 	 *
 	 * @return array<string, array{0: array, 1: callable, 2: mixed, 3: mixed}> Data sets with different configurations.
