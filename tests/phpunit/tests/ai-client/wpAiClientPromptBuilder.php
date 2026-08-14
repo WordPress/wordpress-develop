@@ -2649,6 +2649,86 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that support check methods return false when the wrapped builder throws.
+	 *
+	 * @ticket 65781
+	 *
+	 * @dataProvider data_support_check_methods
+	 *
+	 * @param string $method         The support check method on the wrapper.
+	 * @param string $wrapped_method The matching method on the wrapped builder.
+	 */
+	public function test_support_check_methods_return_false_when_builder_throws( $method, $wrapped_method ) {
+		$registry       = AiClient::defaultRegistry();
+		$prompt_builder = new WP_AI_Client_Prompt_Builder( $registry, 'Test text' );
+
+		$wrapped_builder = $this->createMock( PromptBuilder::class );
+		$wrapped_builder->method( $wrapped_method )
+			->willThrowException( new RuntimeException( 'Thrown by the wrapped builder.' ) );
+
+		$builder_property = new ReflectionProperty( WP_AI_Client_Prompt_Builder::class, 'builder' );
+		self::set_accessible( $builder_property );
+		$builder_property->setValue( $prompt_builder, $wrapped_builder );
+
+		$result = $prompt_builder->{$method}();
+
+		$this->assertFalse( $result, $method . ' should return false when the wrapped builder throws' );
+
+		// The error is still recorded, so a generating method returns it.
+		$error = $prompt_builder->generate_text();
+		$this->assertWPError( $error, 'The caught error should still be returned by generating methods' );
+		$this->assertSame(
+			'prompt_builder_error',
+			$error->get_error_code(),
+			'The recorded error should be the one thrown by the wrapped builder'
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{0: string, 1: string}> Support check method names, keyed by the method on the wrapper.
+	 */
+	public static function data_support_check_methods(): array {
+		return array(
+			'is_supported'                               => array( 'is_supported', 'isSupported' ),
+			'is_supported_for_text_generation'           => array( 'is_supported_for_text_generation', 'isSupportedForTextGeneration' ),
+			'is_supported_for_image_generation'          => array( 'is_supported_for_image_generation', 'isSupportedForImageGeneration' ),
+			'is_supported_for_text_to_speech_conversion' => array( 'is_supported_for_text_to_speech_conversion', 'isSupportedForTextToSpeechConversion' ),
+			'is_supported_for_video_generation'          => array( 'is_supported_for_video_generation', 'isSupportedForVideoGeneration' ),
+			'is_supported_for_speech_generation'         => array( 'is_supported_for_speech_generation', 'isSupportedForSpeechGeneration' ),
+			'is_supported_for_music_generation'          => array( 'is_supported_for_music_generation', 'isSupportedForMusicGeneration' ),
+			'is_supported_for_embedding_generation'      => array( 'is_supported_for_embedding_generation', 'isSupportedForEmbeddingGeneration' ),
+		);
+	}
+
+	/**
+	 * Tests that a throw from the bundled client during a support check is handled.
+	 *
+	 * This covers the route reported on the ticket. The document modality has no
+	 * capability to infer, so the wrapped builder throws while determining whether
+	 * the prompt is supported.
+	 *
+	 * @ticket 65781
+	 */
+	public function test_is_supported_returns_false_when_the_bundled_builder_throws() {
+		$registry       = AiClient::defaultRegistry();
+		$prompt_builder = new WP_AI_Client_Prompt_Builder( $registry, 'Test text' );
+
+		$result = $prompt_builder->as_output_modalities( ModalityEnum::document() )->is_supported();
+
+		$this->assertFalse( $result, 'is_supported should return false when the wrapped builder throws' );
+
+		$error = $prompt_builder->generate_text();
+		$this->assertWPError( $error, 'The caught error should still be returned by generating methods' );
+		$this->assertSame(
+			'prompt_builder_error',
+			$error->get_error_code(),
+			'The document modality should still throw from the wrapped builder. If it no longer does, this test needs another route to a throw'
+		);
+	}
+
+	/**
 	 * Tests that generating methods return WP_Error when in error state.
 	 *
 	 * @ticket 64591
