@@ -5,6 +5,7 @@ namespace WordPress\AiClient;
 
 use WordPress\AiClientDependencies\Psr\EventDispatcher\EventDispatcherInterface;
 use WordPress\AiClientDependencies\Psr\SimpleCache\CacheInterface;
+use WordPress\AiClient\Builders\EmbeddingBuilder;
 use WordPress\AiClient\Builders\PromptBuilder;
 use WordPress\AiClient\Common\Exception\InvalidArgumentException;
 use WordPress\AiClient\Common\Exception\RuntimeException;
@@ -13,6 +14,8 @@ use WordPress\AiClient\Providers\Contracts\ProviderInterface;
 use WordPress\AiClient\Providers\Models\Contracts\ModelInterface;
 use WordPress\AiClient\Providers\Models\DTO\ModelConfig;
 use WordPress\AiClient\Providers\ProviderRegistry;
+use WordPress\AiClient\Results\DTO\Embedding;
+use WordPress\AiClient\Results\DTO\EmbeddingResult;
 use WordPress\AiClient\Results\DTO\GenerativeAiResult;
 /**
  * Main AI Client class providing both fluent and traditional APIs for AI operations.
@@ -76,6 +79,7 @@ use WordPress\AiClient\Results\DTO\GenerativeAiResult;
  * @since 0.1.0
  *
  * @phpstan-import-type Prompt from PromptBuilder
+ * @phpstan-import-type EmbeddingInput from EmbeddingBuilder
  *
  * phpcs:ignore Generic.Files.LineLength.TooLong
  */
@@ -84,7 +88,7 @@ class AiClient
     /**
      * @var string The version of the AI Client.
      */
-    public const VERSION = '1.3.1';
+    public const VERSION = '1.4.0';
     /**
      * @var ProviderRegistry|null The default provider registry instance.
      */
@@ -212,6 +216,23 @@ class AiClient
         return new PromptBuilder($registry ?? self::defaultRegistry(), $prompt, self::$eventDispatcher);
     }
     /**
+     * Creates an embedding builder for fluent embedding generation.
+     *
+     * Accepts a single input or a list of inputs; each input is embedded independently. Chain an
+     * embedding generation method such as generateEmbedding() or generateEmbeddings() to produce
+     * one vector per input.
+     *
+     * @since 1.4.0
+     *
+     * @param EmbeddingInput|list<EmbeddingInput>|null $input Optional initial input(s) to embed.
+     * @param ProviderRegistry|null $registry Optional custom registry. If null, uses default.
+     * @return EmbeddingBuilder The embedding builder instance.
+     */
+    public static function input($input = null, ?ProviderRegistry $registry = null): EmbeddingBuilder
+    {
+        return new EmbeddingBuilder($registry ?? self::defaultRegistry(), $input, self::$eventDispatcher);
+    }
+    /**
      * Generates content using a unified API that automatically detects model capabilities.
      *
      * When no model is provided, this method delegates to PromptBuilder for intelligent
@@ -335,6 +356,59 @@ class AiClient
         return self::getConfiguredPromptBuilder($prompt, $modelOrConfig, $registry)->generateVideoResult();
     }
     /**
+     * Generates embeddings using the traditional API approach.
+     *
+     * @since 1.4.0
+     *
+     * @param EmbeddingInput|list<EmbeddingInput> $input The input(s) to embed.
+     * @param ModelInterface|ModelConfig|null $modelOrConfig Optional specific model to use,
+     *                                                        or model configuration for auto-discovery,
+     *                                                        or null for defaults.
+     * @param ProviderRegistry|null $registry Optional custom registry. If null, uses default.
+     * @return EmbeddingResult The embedding result.
+     *
+     * @throws \InvalidArgumentException If the input format is invalid.
+     * @throws \RuntimeException If no suitable model is found.
+     */
+    public static function generateEmbeddingResult($input, $modelOrConfig = null, ?ProviderRegistry $registry = null): EmbeddingResult
+    {
+        self::validateModelOrConfigParameter($modelOrConfig);
+        return self::applyModelOrConfig(self::input($input, $registry), $modelOrConfig)->generateEmbeddingResult();
+    }
+    /**
+     * Generates an embedding using the traditional API approach.
+     *
+     * @since 1.4.0
+     *
+     * @param EmbeddingInput $input The input to embed.
+     * @param ModelInterface|ModelConfig|null $modelOrConfig Optional specific model to use,
+     *                                                        or model configuration for auto-discovery,
+     *                                                        or null for defaults.
+     * @param ProviderRegistry|null $registry Optional custom registry. If null, uses default.
+     * @return Embedding The generated embedding vector.
+     */
+    public static function generateEmbedding($input, $modelOrConfig = null, ?ProviderRegistry $registry = null): Embedding
+    {
+        return self::generateEmbeddingResult($input, $modelOrConfig, $registry)->getEmbedding();
+    }
+    /**
+     * Generates embeddings for a list of inputs using the traditional API approach.
+     *
+     * @since 1.4.0
+     *
+     * @param list<EmbeddingInput> $inputs The inputs to embed.
+     * @param ModelInterface|ModelConfig|null $modelOrConfig Optional specific model to use,
+     *                                                        or model configuration for auto-discovery,
+     *                                                        or null for defaults.
+     * @param ProviderRegistry|null $registry Optional custom registry. If null, uses default.
+     * @return list<Embedding> The generated embedding vectors.
+     */
+    public static function generateEmbeddings(array $inputs, $modelOrConfig = null, ?ProviderRegistry $registry = null): array
+    {
+        self::validateModelOrConfigParameter($modelOrConfig);
+        return self::applyModelOrConfig(self::input($inputs, $registry), $modelOrConfig)->generateEmbeddings();
+    }
+    /**
      * Creates a new message builder for fluent API usage.
      *
      * This method will be implemented once MessageBuilder is available.
@@ -375,7 +449,23 @@ class AiClient
      */
     private static function getConfiguredPromptBuilder($prompt, $modelOrConfig, ?ProviderRegistry $registry = null): PromptBuilder
     {
-        $builder = self::prompt($prompt, $registry);
+        return self::applyModelOrConfig(self::prompt($prompt, $registry), $modelOrConfig);
+    }
+    /**
+     * Applies a model or model configuration to a builder.
+     *
+     * Works with any builder that exposes the shared model resolution methods
+     * (see {@see \WordPress\AiClient\Builders\Traits\ModelResolutionTrait}).
+     *
+     * @template T of PromptBuilder|EmbeddingBuilder
+     *
+     * @param T $builder The builder to configure.
+     * @param ModelInterface|ModelConfig|null $modelOrConfig Specific model, model configuration,
+     *                                                        or null for default discovery.
+     * @return T The configured builder.
+     */
+    private static function applyModelOrConfig($builder, $modelOrConfig)
+    {
         if ($modelOrConfig instanceof ModelInterface) {
             $builder->usingModel($modelOrConfig);
         } elseif ($modelOrConfig instanceof ModelConfig) {
