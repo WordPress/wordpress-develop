@@ -1144,11 +1144,6 @@ parameters:
 			count: 1
 			path: ../../../src/wp-includes/html-api/class-wp-html-processor.php
 		-
-			message: '#^Parameter \#4 \$length of function substr_compare expects int, null given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/wp-includes/html-api/class-wp-html-tag-processor.php
-		-
 			message: '#^Parameter \#1 \$user_id of function get_userdata expects int, string given\.$#'
 			identifier: argument.type
 			count: 1
