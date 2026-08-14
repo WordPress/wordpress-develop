@@ -207,7 +207,6 @@ if ( isset( $_POST['removeinactivewidgets'] ) ) {
 
 	if ( $_POST['removeinactivewidgets'] ) {
 		wp_delete_inactive_widgets();
-		wp_set_sidebars_widgets( $sidebars_widgets );
 	}
 
 	wp_redirect( admin_url( 'widgets.php?message=0' ) );
