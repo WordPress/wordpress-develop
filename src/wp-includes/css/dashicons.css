@@ -1437,3 +1437,16 @@
 .dashicons-welcome-edit-page:before {
 	content: "\f119";
 }
+
+.svg-inline .inline-svg-container {
+	box-sizing: border-box;
+	width: 100%;
+	height: 100%;
+	padding: 7px 0;
+}
+
+.svg-inline .inline-svg-container svg {
+	display: block;
+	width: 100%;
+	height: 100%;
+}
