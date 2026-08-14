@@ -535,24 +535,23 @@ switch ( $action ) {
 									$public_display['display_nickname'] = $profile_user->nickname;
 									$public_display['display_username'] = $profile_user->user_login;
 
-								if ( ! empty( $profile_user->first_name ) ) {
-									$public_display['display_firstname'] = $profile_user->first_name;
-								}
-
-								if ( ! empty( $profile_user->last_name ) ) {
-									$public_display['display_lastname'] = $profile_user->last_name;
-								}
-
-								if ( ! empty( $profile_user->first_name ) && ! empty( $profile_user->last_name ) ) {
-									$public_display['display_firstlast'] = $profile_user->first_name . ' ' . $profile_user->last_name;
-									$public_display['display_lastfirst'] = $profile_user->last_name . ' ' . $profile_user->first_name;
-								}
+									$public_display['display_firstname'] = ! empty( $profile_user->first_name ) ? $profile_user->first_name : '';
+									$public_display['display_lastname']  = ! empty( $profile_user->last_name ) ? $profile_user->last_name : '';
+									$public_display['display_firstlast'] = ! empty( $profile_user->first_name ) && ! empty( $profile_user->last_name ) ? $profile_user->first_name . ' ' . $profile_user->last_name : '';
+									$public_display['display_lastfirst'] = ! empty( $profile_user->first_name ) && ! empty( $profile_user->last_name ) ? $profile_user->last_name . ' ' . $profile_user->first_name : '';
 
 								if ( ! in_array( $profile_user->display_name, $public_display, true ) ) { // Only add this if it isn't duplicated elsewhere.
-									$public_display = array( 'display_displayname' => $profile_user->display_name ) + $public_display;
+									// This check ensures that the display name is only added if it matches the user login or nickname,
+									// preventing the display name from retaining an outdated value if the first name or last name were modified.
+									if ( $profile_user->display_name === $profile_user->user_login || $profile_user->display_name === $profile_user->nickname ) {
+										$public_display = array( 'display_displayname' => $profile_user->display_name ) + $public_display;
+									} else {
+										$profile_user->display_name = $profile_user->user_login; // Fallback.
+									}
 								}
 
 								$public_display = array_map( 'trim', $public_display );
+								$public_display = array_filter( $public_display );
 								$public_display = array_unique( $public_display );
 
 								?>
