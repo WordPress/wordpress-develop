@@ -2186,6 +2186,7 @@ function sanitize_user( $username, $strict = false ) {
  *
  * @param string $key String key.
  * @return string Sanitized key.
+ * @phpstan-return lowercase-string
  */
 function sanitize_key( $key ) {
 	$sanitized_key = '';
@@ -2847,6 +2848,14 @@ function untrailingslashit( $value ) {
  *
  * @param mixed $value The value to be stripped.
  * @return mixed Stripped value.
+ *
+ * @phpstan-template T
+ * @phpstan-param T $value
+ * @phpstan-return (
+ *     T is string ? string : (
+ *         T is array ? array<key-of<T>, ( value-of<T> is string ? string : value-of<T> )> : T
+ *     )
+ * )
  */
 function stripslashes_deep( $value ) {
 	return map_deep( $value, 'stripslashes_from_strings_only' );
@@ -2859,6 +2868,10 @@ function stripslashes_deep( $value ) {
  *
  * @param mixed $value The array or string to be stripped.
  * @return mixed The stripped value.
+ *
+ * @phpstan-template T
+ * @phpstan-param T $value
+ * @phpstan-return (T is string ? string : T)
  */
 function stripslashes_from_strings_only( $value ) {
 	return is_string( $value ) ? stripslashes( $value ) : $value;
@@ -4703,11 +4716,13 @@ function htmlentities2( $text ) {
  * be in single quotes. The {@see 'js_escape'} filter is also applied here.
  *
  * @since 2.8.0
+ * @since 7.2.0 Non-string scalars are cast to string before escaping.
  *
- * @param string $text The text to be escaped.
+ * @param string|int|float $text The text to be escaped.
  * @return string Escaped text.
  */
 function esc_js( $text ) {
+	$text      = (string) $text;
 	$safe_text = wp_check_invalid_utf8( $text );
 	$safe_text = _wp_specialchars( $safe_text, ENT_COMPAT );
 	$safe_text = preg_replace( '/&#(x)?0*(?(1)27|39);?/i', "'", stripslashes( $safe_text ) );
@@ -4731,11 +4746,13 @@ function esc_js( $text ) {
  * Escaping for HTML blocks.
  *
  * @since 2.8.0
+ * @since 7.2.0 Non-string scalars are cast to string before escaping.
  *
- * @param string $text
+ * @param string|int|float $text The text to be escaped.
  * @return string Escaped text.
  */
 function esc_html( $text ) {
+	$text      = (string) $text;
 	$safe_text = wp_check_invalid_utf8( $text );
 	$safe_text = _wp_specialchars( $safe_text, ENT_QUOTES );
 	/**
@@ -4756,11 +4773,13 @@ function esc_html( $text ) {
  * Escaping for HTML attributes.
  *
  * @since 2.8.0
+ * @since 7.2.0 Non-string scalars are cast to string before escaping.
  *
- * @param string $text
+ * @param string|int|float $text The text to be escaped.
  * @return string Escaped text.
  */
 function esc_attr( $text ) {
+	$text      = (string) $text;
 	$safe_text = wp_check_invalid_utf8( $text );
 	$safe_text = _wp_specialchars( $safe_text, ENT_QUOTES );
 	/**
@@ -4781,11 +4800,13 @@ function esc_attr( $text ) {
  * Escaping for textarea values.
  *
  * @since 3.1.0
+ * @since 7.2.0 Non-string scalars are cast to string before escaping.
  *
- * @param string $text
+ * @param string|int|float $text The text to be escaped.
  * @return string Escaped text.
  */
 function esc_textarea( $text ) {
+	$text      = (string) $text;
 	$safe_text = htmlspecialchars( $text, ENT_QUOTES, get_option( 'blog_charset' ) );
 	/**
 	 * Filters a string cleaned and escaped for output in a textarea element.
@@ -4802,11 +4823,13 @@ function esc_textarea( $text ) {
  * Escaping for XML blocks.
  *
  * @since 5.5.0
+ * @since 7.2.0 Non-string scalars are cast to string before escaping.
  *
- * @param string $text Text to escape.
+ * @param string|int|float $text The text to be escaped.
  * @return string Escaped text.
  */
 function esc_xml( $text ) {
+	$text      = (string) $text;
 	$safe_text = wp_check_invalid_utf8( $text );
 
 	$cdata_regex = '\<\!\[CDATA\[.*?\]\]\>';
@@ -5194,6 +5217,10 @@ function sanitize_option( $option, $value ) {
  * @param mixed    $value    The array, object, or scalar.
  * @param callable $callback The function to map onto $value.
  * @return mixed The value with the callback applied to all non-arrays and non-objects inside it.
+ *
+ * @phpstan-template T
+ * @phpstan-param T $value
+ * @phpstan-return (T is array ? array<key-of<T>, mixed> : (T is object ? T : mixed))
  */
 function map_deep( $value, $callback ) {
 	if ( is_array( $value ) ) {
@@ -5835,6 +5862,14 @@ function sanitize_trackback_urls( $to_ping ) {
  *
  * @param string|array $value String or array of data to slash.
  * @return string|array Slashed `$value`, in the same type as supplied.
+ *
+ * @phpstan-template T
+ * @phpstan-param T $value
+ * @phpstan-return (
+ *     T is string ? string : (
+ *         T is array ? array<key-of<T>, ( value-of<T> is string ? string : value-of<T> )> : T
+ *     )
+ * )
  */
 function wp_slash( $value ) {
 	if ( is_array( $value ) ) {
@@ -5858,6 +5893,14 @@ function wp_slash( $value ) {
  *
  * @param string|array $value String or array of data to unslash.
  * @return string|array Unslashed `$value`, in the same type as supplied.
+ *
+ * @phpstan-template T
+ * @phpstan-param T $value
+ * @phpstan-return (
+ *     T is string ? string : (
+ *         T is array ? array<key-of<T>, ( value-of<T> is string ? string : value-of<T> )> : T
+ *     )
+ * )
  */
 function wp_unslash( $value ) {
 	return stripslashes_deep( $value );

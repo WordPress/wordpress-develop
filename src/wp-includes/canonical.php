@@ -38,6 +38,7 @@
  *                              figure if redirect is needed.
  * @param bool   $do_redirect   Optional. Redirect to the new URL.
  * @return string|null The string of the URL, if redirect needed. Never returns if a redirect occurs, depending on $do_redirect.
+ * @phpstan-return ( $do_redirect is true ? null : string|null )
  */
 function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 	global $wp_rewrite, $is_IIS, $wp_query, $wpdb, $wp;
@@ -985,7 +986,7 @@ function redirect_guess_404_permalink() {
 				if ( empty( $post_types ) ) {
 					return false;
 				}
-				$where .= " AND post_type IN ('" . join( "', '", esc_sql( get_query_var( 'post_type' ) ) ) . "')";
+				$where .= " AND post_type IN ('" . join( "', '", esc_sql( $post_types ) ) . "')";
 			} else {
 				if ( ! in_array( get_query_var( 'post_type' ), $publicly_viewable_post_types, true ) ) {
 					return false;
