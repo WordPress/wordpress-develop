@@ -15,7 +15,7 @@ class Tests_Widgets_WpDeleteInactiveWidgets extends WP_UnitTestCase {
 	 * Tests that wp_delete_inactive_widgets() does nothing when there are no inactive widgets.
 	 */
 	public function test_wp_delete_inactive_widgets_empty() {
-		$sidebars_widgets = wp_get_sidebars_widgets();
+		$sidebars_widgets                        = wp_get_sidebars_widgets();
 		$sidebars_widgets['wp_inactive_widgets'] = array();
 		wp_set_sidebars_widgets( $sidebars_widgets );
 
@@ -38,35 +38,35 @@ class Tests_Widgets_WpDeleteInactiveWidgets extends WP_UnitTestCase {
 		update_option(
 			'widget_search',
 			array(
-				2 => array(
-					'title' => 'Search'
+				2              => array(
+					'title' => 'Search',
 				),
-				'_multiwidget' => 1
+				'_multiwidget' => 1,
 			)
 		);
 		update_option(
 			'widget_text',
 			array(
-				3 => array(
-					'text' => 'Some text'
+				3              => array(
+					'text' => 'Some text',
 				),
-				'_multiwidget' => 1
+				'_multiwidget' => 1,
 			)
 		);
 
-		$sidebars_widgets = wp_get_sidebars_widgets();
+		$sidebars_widgets                        = wp_get_sidebars_widgets();
 		$sidebars_widgets['wp_inactive_widgets'] = array( $widget_id_1, $widget_id_2, $widget_id_3 );
-		$sidebars_widgets['sidebar-1'] = array( 'search-3' );
+		$sidebars_widgets['sidebar-1']           = array( 'search-3' );
 		update_option(
 			'widget_search',
 			array(
-				2 => array(
-					'title' => 'Search'
+				2              => array(
+					'title' => 'Search',
 				),
-				3 => array(
-					'title' => 'Active Search'
+				3              => array(
+					'title' => 'Active Search',
 				),
-				'_multiwidget' => 1
+				'_multiwidget' => 1,
 			)
 		);
 
