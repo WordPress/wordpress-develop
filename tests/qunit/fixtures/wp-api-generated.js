@@ -12785,6 +12785,25 @@ mockedApiResponse.Schema = {
                                         }
                                     },
                                     "additionalProperties": true
+                                },
+                                "deprecated": {
+                                    "description": "Limit results by deprecation status or details.",
+                                    "type": [
+                                        "boolean",
+                                        "object"
+                                    ],
+                                    "properties": {
+                                        "since": {
+                                            "type": "string"
+                                        },
+                                        "replacement": {
+                                            "type": "string"
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "additionalProperties": true
                                 }
                             },
                             "additionalProperties": true,
