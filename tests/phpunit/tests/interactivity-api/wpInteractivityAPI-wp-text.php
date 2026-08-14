@@ -12,7 +12,7 @@
  *
  * @group interactivity-api
  */
-class Tests_Interactivity_API_WpInteractivityAPIWPText extends WP_UnitTestCase {
+class Tests_WP_Interactivity_API_WP_Text extends WP_UnitTestCase {
 	/**
 	 * Instance of WP_Interactivity_API.
 	 *
@@ -131,8 +131,6 @@ class Tests_Interactivity_API_WpInteractivityAPIWPText extends WP_UnitTestCase {
 	 * @ticket 60356
 	 *
 	 * @covers ::process_directives
-	 *
-	 * @expectedIncorrectUsage WP_Interactivity_API::_process_directives
 	 */
 	public function test_wp_text_fails_with_unbalanced_and_same_tags_inside_content() {
 		$html     = '<div data-wp-text="myPlugin::state.text">Text<div></div>';
@@ -153,5 +151,36 @@ class Tests_Interactivity_API_WpInteractivityAPIWPText extends WP_UnitTestCase {
 		$html     = '<div data-wp-text="myPlugin::state.text">Text</div>';
 		$new_html = $this->interactivity->process_directives( $html );
 		$this->assertSame( '<div data-wp-text="myPlugin::state.text">&lt;span&gt;Updated&lt;/span&gt;</div>', $new_html );
+	}
+
+	/**
+	 * Tests it ignores suffixes and unique-ids.
+	 *
+	 * @ticket 64106
+	 *
+	 * @covers ::process_directives
+	 */
+	public function test_wp_text_ignores_suffixes_and_unique_ids() {
+		$html     = '<span data-wp-text--suffix="myPlugin::state.text">Text</span>';
+		$new_html = $this->interactivity->process_directives( $html );
+		$this->assertSame( $html, $new_html );
+
+		$html     = '<span data-wp-text---unique-id="myPlugin::state.text">Text</span>';
+		$new_html = $this->interactivity->process_directives( $html );
+		$this->assertSame( $html, $new_html );
+	}
+
+	/**
+	 * Tests first `data-wp-text` works even when suffixes and unique-ids are included.
+	 *
+	 * @ticket 64106
+	 *
+	 * @covers ::process_directives
+	 */
+	public function test_wp_text_works_even_when_suffixes_and_unique_ids_are_included() {
+		$original = '<span data-wp-text--suffix="myPlugin::state.text" data-wp-text---unique-id="myPlugin::state.text" data-wp-text="myPlugin::state.text">Text</span>';
+		$expected = '<span data-wp-text--suffix="myPlugin::state.text" data-wp-text---unique-id="myPlugin::state.text" data-wp-text="myPlugin::state.text">Updated</span>';
+		$new_html = $this->interactivity->process_directives( $original );
+		$this->assertSame( $expected, $new_html );
 	}
 }

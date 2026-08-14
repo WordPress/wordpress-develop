@@ -10,7 +10,6 @@
 /**
  * External dependencies.
  */
-const https = require( 'https' );
 const [ token, branch, hash, baseHash, date, host ] =
 	process.argv.slice( 2 );
 const { median, parseFile, accumulateValues } = require( './utils' );
@@ -82,40 +81,40 @@ for ( const { title, results } of afterStats ) {
 	}
 }
 
-const data = new TextEncoder().encode(
-	JSON.stringify( {
-		branch,
-		hash,
-		baseHash,
-		timestamp: date,
-		metrics: metrics,
-		baseMetrics: baseMetrics,
-	} )
-);
-
-const options = {
-	hostname: host,
-	port: 443,
-	path: '/api/log?token=' + token,
-	method: 'POST',
-	headers: {
-		'Content-Type': 'application/json',
-		'Content-Length': data.length,
-	},
-};
-
-const req = https.request( options, ( res ) => {
-	console.log( `statusCode: ${ res.statusCode }` );
-
-	res.on( 'data', ( d ) => {
-		process.stdout.write( d );
-	} );
+const data = JSON.stringify( {
+	branch,
+	hash,
+	baseHash,
+	timestamp: date,
+	metrics: metrics,
+	baseMetrics: baseMetrics,
 } );
 
-req.on( 'error', ( error ) => {
-	console.error( error );
-	process.exit( 1 );
-} );
+( async () => {
+	try {
+		const response = await fetch(
+			`https://${ host }/api/log?token=${ token }`,
+			{
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+				body: data,
+			}
+		);
 
-req.write( data );
-req.end();
+		console.log( `statusCode: ${ response.status }` );
+
+		const responseText = await response.text();
+		if ( responseText ) {
+			console.log( responseText );
+		}
+
+		if ( ! response.ok ) {
+			process.exit( 1 );
+		}
+	} catch ( error ) {
+		console.error( error );
+		process.exit( 1 );
+	}
+} )();

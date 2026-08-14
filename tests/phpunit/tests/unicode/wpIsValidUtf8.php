@@ -1,12 +1,15 @@
 <?php
+
 /**
  * Unit tests covering WordPress’ UTF-8 handling.
  *
  * @package WordPress
  * @group unicode
+ *
+ * @covers ::wp_is_valid_utf8
  */
+class Tests_Unicode_WpIsValidUtf8 extends WP_UnitTestCase {
 
-class Tests_WpIsValidUtf8TestCase extends WP_UnitTestCase {
 	/**
 	 * Verifies that WordPress can properly detect valid and invalid UTF-8.
 	 *

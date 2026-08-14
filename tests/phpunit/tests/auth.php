@@ -132,23 +132,26 @@ class Tests_Auth extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 23494
+	 * @dataProvider data_passwords_for_trimming
 	 */
-	public function test_password_trimming() {
-		$passwords_to_test = array(
-			'a password with no trailing or leading spaces',
-			'a password with trailing spaces ',
-			' a password with leading spaces',
-			' a password with trailing and leading spaces ',
+	public function test_password_trimming( $password_to_test ) {
+		wp_set_password( $password_to_test, $this->user->ID );
+		$authed_user = wp_authenticate( $this->user->user_login, $password_to_test );
+
+		$this->assertNotWPError( $authed_user );
+		$this->assertInstanceOf( 'WP_User', $authed_user );
+		$this->assertSame( $this->user->ID, $authed_user->ID );
+	}
+
+	public function data_passwords_for_trimming() {
+		return array(
+			'no spaces'                => array( 'a password with no trailing or leading spaces' ),
+			'trailing space'           => array( 'a password with trailing spaces ' ),
+			'leading space'            => array( ' a password with leading spaces' ),
+			'leading and trailing'     => array( ' a password with trailing and leading spaces ' ),
+			'multiple leading spaces'  => array( '    a password with multiple leading spaces' ),
+			'multiple trailing spaces' => array( 'a password with multiple trailing spaces    ' ),
 		);
-
-		foreach ( $passwords_to_test as $password_to_test ) {
-			wp_set_password( $password_to_test, $this->user->ID );
-			$authed_user = wp_authenticate( $this->user->user_login, $password_to_test );
-
-			$this->assertNotWPError( $authed_user );
-			$this->assertInstanceOf( 'WP_User', $authed_user );
-			$this->assertSame( $this->user->ID, $authed_user->ID );
-		}
 	}
 
 	/**
@@ -180,23 +183,20 @@ class Tests_Auth extends WP_UnitTestCase {
 	 * wp_hash_password function
 	 *
 	 * @ticket 24973
+	 * @dataProvider data_passwords_with_whitespace
 	 */
-	public function test_wp_hash_password_trimming() {
+	public function test_wp_hash_password_trimming( $password_with_whitespace, $expected_password ) {
+		$this->assertTrue( wp_check_password( $expected_password, wp_hash_password( $password_with_whitespace ) ) );
+	}
 
-		$password = ' pass with leading whitespace';
-		$this->assertTrue( wp_check_password( 'pass with leading whitespace', wp_hash_password( $password ) ) );
-
-		$password = 'pass with trailing whitespace ';
-		$this->assertTrue( wp_check_password( 'pass with trailing whitespace', wp_hash_password( $password ) ) );
-
-		$password = ' pass with whitespace ';
-		$this->assertTrue( wp_check_password( 'pass with whitespace', wp_hash_password( $password ) ) );
-
-		$password = "pass with new line \n";
-		$this->assertTrue( wp_check_password( 'pass with new line', wp_hash_password( $password ) ) );
-
-		$password = "pass with vertical tab o_O\x0B";
-		$this->assertTrue( wp_check_password( 'pass with vertical tab o_O', wp_hash_password( $password ) ) );
+	public function data_passwords_with_whitespace() {
+		return array(
+			'leading whitespace'  => array( ' pass with leading whitespace', 'pass with leading whitespace' ),
+			'trailing whitespace' => array( 'pass with trailing whitespace ', 'pass with trailing whitespace' ),
+			'both whitespace'     => array( ' pass with whitespace ', 'pass with whitespace' ),
+			'new line'            => array( "pass with new line \n", 'pass with new line' ),
+			'vertical tab'        => array( "pass with vertical tab o_O\x0B", 'pass with vertical tab o_O' ),
+		);
 	}
 
 	/**

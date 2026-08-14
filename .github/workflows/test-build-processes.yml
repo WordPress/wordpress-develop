@@ -6,9 +6,6 @@ on:
       - trunk
       - '3.[7-9]'
       - '[4-9].[0-9]'
-    tags:
-      - '[0-9]+.[0-9]'
-      - '[0-9]+.[0-9].[0-9]+'
   pull_request:
     branches:
       - trunk
@@ -26,13 +23,14 @@ on:
       - '.nvmrc'
       - 'Gruntfile.js'
       - 'webpack.config.js'
+      - 'tools/gutenberg/**'
+      - 'tools/vendors/**'
       - 'tools/webpack/**'
       # These files configure Composer. Changes could affect the outcome.
       - 'composer.*'
       # Confirm any changes to relevant workflow files.
       - '.github/workflows/test-build-processes.yml'
       - '.github/workflows/reusable-test-core-build-process.yml'
-      - '.github/workflows/reusable-test-gutenberg-build-process.yml'
   workflow_dispatch:
 
 # Cancels all previous workflow runs for pull requests that have not completed.
@@ -53,12 +51,20 @@ jobs:
     uses: ./.github/workflows/reusable-test-core-build-process.yml
     permissions:
       contents: read
-    if: ${{ github.repository == 'WordPress/wordpress-develop' || ( github.event_name == 'pull_request' && github.actor != 'dependabot[bot]' ) }}
+    if: |
+      github.repository == 'WordPress/wordpress-develop' || (
+        github.event_name == 'pull_request' && (
+          ! github.event.repository.private ||
+          ! github.event.pull_request.draft ||
+          contains( github.event.pull_request.labels.*.name, 'Draft Workflow Runs' )
+        )
+      )
     strategy:
       fail-fast: false
       matrix:
         os: [ 'ubuntu-24.04' ]
         directory: [ 'src', 'build' ]
+        test-certificates: [ true ]
         include:
           # Only prepare artifacts for Playground once.
           - os: 'ubuntu-24.04'
@@ -68,6 +74,7 @@ jobs:
     with:
       os: ${{ matrix.os }}
       directory: ${{ matrix.directory }}
+      test-certificates: ${{ matrix.test-certificates && true || false }}
       save-build: ${{ matrix.save-build && matrix.save-build || false }}
       prepare-playground: ${{ matrix.prepare-playground && matrix.prepare-playground || false }}
 
@@ -96,54 +103,13 @@ jobs:
       os: ${{ matrix.os }}
       directory: ${{ matrix.directory }}
 
-  # Tests the Gutenberg plugin build process within a wordpress-develop checkout.
-  test-gutenberg-build-process:
-    name: Gutenberg running from ${{ matrix.directory }}
-    uses: ./.github/workflows/reusable-test-gutenberg-build-process.yml
-    permissions:
-      contents: read
-    if: ${{ github.repository == 'WordPress/wordpress-develop' }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ 'ubuntu-24.04' ]
-        directory: [ 'src', 'build' ]
-    with:
-      os: ${{ matrix.os }}
-      directory: ${{ matrix.directory }}
-
-  # Tests the Gutenberg plugin build process on additional operating systems.
-  #
-  # This is separate from the job above in order to use stricter conditions when determining when to test additional
-  # operating systems. This avoids unintentionally consuming excessive minutes. Windows-based jobs consume minutes at a
-  # 2x rate, and MacOS-based jobs at a 10x rate.
-  # See https://docs.github.com/en/billing/concepts/product-billing/github-actions#per-minute-rates.
-  #
-  # The `matrix` and `runner` contexts are not available for use within `if` expressions. So there is
-  # currently no way to determine the OS being used on a given job.
-  # See https://docs.github.com/en/actions/learn-github-actions/contexts#context-availability.
-  test-gutenberg-build-process-additional-os:
-    name: Gutenberg running from ${{ matrix.directory }}
-    uses: ./.github/workflows/reusable-test-gutenberg-build-process.yml
-    permissions:
-      contents: read
-    if: ${{ github.repository == 'WordPress/wordpress-develop' }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ 'macos-15', 'windows-2025' ]
-        directory: [ 'src', 'build' ]
-    with:
-      os: ${{ matrix.os }}
-      directory: ${{ matrix.directory }}
-
   slack-notifications:
     name: Slack Notifications
     uses: ./.github/workflows/slack-notifications.yml
     permissions:
       actions: read
       contents: read
-    needs: [ test-core-build-process, test-core-build-process-additional-os, test-gutenberg-build-process, test-gutenberg-build-process-additional-os ]
+    needs: [ test-core-build-process, test-core-build-process-additional-os ]
     if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name != 'pull_request' && always() }}
     with:
       calling_status: ${{ contains( needs.*.result, 'cancelled' ) && 'cancelled' || contains( needs.*.result, 'failure' ) && 'failure' || 'success' }}
@@ -171,7 +137,7 @@ jobs:
 
     steps:
       - name: Dispatch workflow run
-        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
           retries: 2
           retry-exempt-status-codes: 418

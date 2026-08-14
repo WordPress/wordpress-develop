@@ -145,19 +145,7 @@ class WP_REST_Settings_Controller extends WP_REST_Controller {
 	public function update_item( $request ) {
 		$options = $this->get_registered_options();
 
-		$params = array_diff_key( $request->get_params(), $request->get_query_params() );
-
-		if ( empty( $params ) || ! empty( array_diff_key( $params, $options ) ) ) {
-			$message = empty( $params )
-				? __( 'Request body cannot be empty.' )
-				: __( 'Invalid parameter(s) provided.' );
-
-			return new WP_Error(
-				'rest_invalid_param',
-				$message,
-				array( 'status' => 400 )
-			);
-		}
+		$params = $request->get_params();
 
 		foreach ( $options as $name => $args ) {
 			if ( ! array_key_exists( $name, $params ) ) {
@@ -251,7 +239,7 @@ class WP_REST_Settings_Controller extends WP_REST_Controller {
 				'type'        => empty( $args['type'] ) ? null : $args['type'],
 				'title'       => empty( $args['label'] ) ? '' : $args['label'],
 				'description' => empty( $args['description'] ) ? '' : $args['description'],
-				'default'     => isset( $args['default'] ) ? $args['default'] : null,
+				'default'     => $args['default'] ?? null,
 			);
 
 			$rest_args['schema']      = array_merge( $default_schema, $rest_args['schema'] );
