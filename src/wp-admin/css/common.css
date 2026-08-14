@@ -4085,6 +4085,12 @@ img {
 		vertical-align: middle;
 	}
 
+	.subtitle {
+		display: block;
+		padding-left: 0;
+		line-height: 1.4em;
+	}
+
 	/* Feedback Messages */
 	.notice,
 	.wrap div.updated,
