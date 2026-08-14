@@ -2380,6 +2380,8 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 		$this->assertNotNull( $params );
 		$this->assertArrayHasKey( 'properties', $params );
 		$this->assertArrayHasKey( 'title', $params['properties'] );
+		$this->assertSame( array( 'title' ), $params['required'] );
+		$this->assertArrayNotHasKey( 'required', $params['properties']['title'] );
 	}
 
 	/**
@@ -2562,6 +2564,23 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that generate_result returns WP_Error when AI is not supported.
+	 *
+	 * @ticket 65422
+	 */
+	public function test_generate_result_returns_wp_error_when_ai_not_supported() {
+		add_filter( 'wp_supports_ai', '__return_false' );
+
+		$builder = new WP_AI_Client_Prompt_Builder( AiClient::defaultRegistry(), 'Test prompt' );
+
+		$result = $builder->generate_result();
+
+		$this->assertWPError( $result );
+		$this->assertSame( 'prompt_prevented', $result->get_error_code() );
+		$this->assertSame( 'AI features are not supported in this environment.', $result->get_error_message() );
+	}
+
+	/**
 	 * Tests that prevent prompt filter receives a clone of the builder instance.
 	 *
 	 * @ticket 64591
@@ -2592,6 +2611,75 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 		$builder2->generate_result();
 		$this->assertNotSame( $builder2, $captured_builder, 'Filter should receive a clone, not the same instance' );
 		$this->assertInstanceOf( WP_AI_Client_Prompt_Builder::class, $captured_builder );
+	}
+
+	/**
+	 * Returns the text of every message part held by a prompt builder.
+	 *
+	 * @param WP_AI_Client_Prompt_Builder $builder The prompt builder to read.
+	 * @return string[] The text of each message part, in order.
+	 */
+	private function get_prompt_parts( WP_AI_Client_Prompt_Builder $builder ): array {
+		$wrapped = new ReflectionProperty( WP_AI_Client_Prompt_Builder::class, 'builder' );
+		self::set_accessible( $wrapped );
+		$inner = $wrapped->getValue( $builder );
+
+		$messages = new ReflectionProperty( $inner, 'messages' );
+		self::set_accessible( $messages );
+
+		$parts = array();
+		foreach ( $messages->getValue( $inner ) as $message ) {
+			foreach ( $message->getParts() as $part ) {
+				$parts[] = (string) $part->getText();
+			}
+		}
+
+		return $parts;
+	}
+
+	/**
+	 * Tests that a clone does not share the wrapped builder with the original.
+	 *
+	 * @ticket 65782
+	 */
+	public function test_clone_does_not_share_the_wrapped_builder() {
+		$builder = new WP_AI_Client_Prompt_Builder( AiClient::defaultRegistry(), 'Original prompt' );
+		$clone   = clone $builder;
+
+		$wrapped = new ReflectionProperty( WP_AI_Client_Prompt_Builder::class, 'builder' );
+		self::set_accessible( $wrapped );
+
+		$this->assertNotSame(
+			$wrapped->getValue( $builder ),
+			$wrapped->getValue( $clone ),
+			'A clone should wrap its own builder instance'
+		);
+
+		$clone->with_text( 'Added to the clone' );
+
+		$this->assertSame( array( 'Original prompt' ), $this->get_prompt_parts( $builder ), 'Changing the clone should not change the original' );
+	}
+
+	/**
+	 * Tests that the clone passed to the prevent prompt filter cannot change the prompt.
+	 *
+	 * @ticket 65782
+	 */
+	public function test_prevent_prompt_filter_cannot_mutate_the_original_prompt() {
+		add_filter(
+			'wp_ai_client_prevent_prompt',
+			static function ( $prevent, $builder ) {
+				$builder->with_text( 'Added by the filter' );
+				return $prevent;
+			},
+			10,
+			2
+		);
+
+		$builder = new WP_AI_Client_Prompt_Builder( AiClient::defaultRegistry(), 'Original prompt' );
+		$builder->is_supported();
+
+		$this->assertSame( array( 'Original prompt' ), $this->get_prompt_parts( $builder ), 'A filter should not be able to change the prompt' );
 	}
 
 	/**
@@ -2627,6 +2715,86 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 
 		$this->assertFalse( $prompt_builder->is_supported(), 'is_supported should return false when in error state' );
 		$this->assertFalse( $prompt_builder->is_supported_for_text_generation(), 'is_supported_for_text_generation should return false when in error state' );
+	}
+
+	/**
+	 * Tests that support check methods return false when the wrapped builder throws.
+	 *
+	 * @ticket 65781
+	 *
+	 * @dataProvider data_support_check_methods
+	 *
+	 * @param string $method         The support check method on the wrapper.
+	 * @param string $wrapped_method The matching method on the wrapped builder.
+	 */
+	public function test_support_check_methods_return_false_when_builder_throws( $method, $wrapped_method ) {
+		$registry       = AiClient::defaultRegistry();
+		$prompt_builder = new WP_AI_Client_Prompt_Builder( $registry, 'Test text' );
+
+		$wrapped_builder = $this->createMock( PromptBuilder::class );
+		$wrapped_builder->method( $wrapped_method )
+			->willThrowException( new RuntimeException( 'Thrown by the wrapped builder.' ) );
+
+		$builder_property = new ReflectionProperty( WP_AI_Client_Prompt_Builder::class, 'builder' );
+		self::set_accessible( $builder_property );
+		$builder_property->setValue( $prompt_builder, $wrapped_builder );
+
+		$result = $prompt_builder->{$method}();
+
+		$this->assertFalse( $result, $method . ' should return false when the wrapped builder throws' );
+
+		// The error is still recorded, so a generating method returns it.
+		$error = $prompt_builder->generate_text();
+		$this->assertWPError( $error, 'The caught error should still be returned by generating methods' );
+		$this->assertSame(
+			'prompt_builder_error',
+			$error->get_error_code(),
+			'The recorded error should be the one thrown by the wrapped builder'
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{0: string, 1: string}> Support check method names, keyed by the method on the wrapper.
+	 */
+	public static function data_support_check_methods(): array {
+		return array(
+			'is_supported'                               => array( 'is_supported', 'isSupported' ),
+			'is_supported_for_text_generation'           => array( 'is_supported_for_text_generation', 'isSupportedForTextGeneration' ),
+			'is_supported_for_image_generation'          => array( 'is_supported_for_image_generation', 'isSupportedForImageGeneration' ),
+			'is_supported_for_text_to_speech_conversion' => array( 'is_supported_for_text_to_speech_conversion', 'isSupportedForTextToSpeechConversion' ),
+			'is_supported_for_video_generation'          => array( 'is_supported_for_video_generation', 'isSupportedForVideoGeneration' ),
+			'is_supported_for_speech_generation'         => array( 'is_supported_for_speech_generation', 'isSupportedForSpeechGeneration' ),
+			'is_supported_for_music_generation'          => array( 'is_supported_for_music_generation', 'isSupportedForMusicGeneration' ),
+			'is_supported_for_embedding_generation'      => array( 'is_supported_for_embedding_generation', 'isSupportedForEmbeddingGeneration' ),
+		);
+	}
+
+	/**
+	 * Tests that a throw from the bundled client during a support check is handled.
+	 *
+	 * This covers the route reported on the ticket. The document modality has no
+	 * capability to infer, so the wrapped builder throws while determining whether
+	 * the prompt is supported.
+	 *
+	 * @ticket 65781
+	 */
+	public function test_is_supported_returns_false_when_the_bundled_builder_throws() {
+		$registry       = AiClient::defaultRegistry();
+		$prompt_builder = new WP_AI_Client_Prompt_Builder( $registry, 'Test text' );
+
+		$result = $prompt_builder->as_output_modalities( ModalityEnum::document() )->is_supported();
+
+		$this->assertFalse( $result, 'is_supported should return false when the wrapped builder throws' );
+
+		$error = $prompt_builder->generate_text();
+		$this->assertWPError( $error, 'The caught error should still be returned by generating methods' );
+		$this->assertSame(
+			'prompt_builder_error',
+			$error->get_error_code(),
+			'The document modality should still throw from the wrapped builder. If it no longer does, this test needs another route to a throw'
+		);
 	}
 
 	/**
