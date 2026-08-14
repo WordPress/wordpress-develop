@@ -29,7 +29,6 @@ includes:
 	- tests/phpstan/baselines/assign.propertyType.neon
 	- tests/phpstan/baselines/binaryOp.invalid.neon
 	- tests/phpstan/baselines/booleanAnd.alwaysFalse.neon
-	- tests/phpstan/baselines/booleanAnd.alwaysTrue.neon
 	- tests/phpstan/baselines/booleanAnd.leftAlwaysTrue.neon
 	- tests/phpstan/baselines/booleanAnd.rightAlwaysTrue.neon
 	- tests/phpstan/baselines/booleanNot.alwaysFalse.neon
@@ -80,7 +79,6 @@ includes:
 	- tests/phpstan/baselines/property.phpDocType.neon
 	- tests/phpstan/baselines/property.private.neon
 	- tests/phpstan/baselines/property.protected.neon
-	- tests/phpstan/baselines/property.unusedType.neon
 	- tests/phpstan/baselines/return.empty.neon
 	- tests/phpstan/baselines/return.missing.neon
 	- tests/phpstan/baselines/return.type.neon
