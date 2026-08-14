@@ -26,12 +26,25 @@ if ( dockerCommand.includes( 'cli' ) && dockerCommand.includes( 'db' ) && ! dock
 
 // Failures during image pulls are re-attempted to rule out registry rate limits and network issues.
 // `composer install` and `composer update` reach repo.packagist.org for the same reason, and both
-// are safe to repeat. Composer accepts global options before the subcommand, so these are matched
-// anywhere in the command rather than by position. Every other Composer script, such as `phpstan`,
-// reaches no registry and runs once: a failure there is a real result rather than a transient one.
+// are safe to repeat. Every other Composer command runs once, so a failure such as a PHPStan error
+// is reported as the real result it is.
+const composerArgs = dockerCommand.slice( dockerCommand.indexOf( 'composer' ) + 1 );
+let composerCommand;
+
+for ( let i = 0; i < composerArgs.length; i++ ) {
+	// Global options precede the command. `--working-dir` is the only one that takes a separate
+	// value, so it is the only value that could otherwise be mistaken for the command itself.
+	if ( '-d' === composerArgs[i] || '--working-dir' === composerArgs[i] ) {
+		i++;
+	} else if ( ! composerArgs[i].startsWith( '-' ) ) {
+		composerCommand = composerArgs[i];
+		break;
+	}
+}
+
 const retryable = 'pull' === dockerCommand[0] ||
 	( 'run' === dockerCommand[0] && dockerCommand.includes( 'composer' ) &&
-		( dockerCommand.includes( 'install' ) || dockerCommand.includes( 'update' ) ) );
+		[ 'install', 'update' ].includes( composerCommand ) );
 
 // Execute any Docker compose command passed to this script.
 const returns = local_env_utils.compose_with_retry( dockerCommand, retryable ? 3 : 1 );
