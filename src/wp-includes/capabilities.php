@@ -1204,11 +1204,7 @@ function remove_role( $role ) {
 function get_super_admins() {
 	global $super_admins;
 
-	if ( isset( $super_admins ) ) {
-		return $super_admins;
-	} else {
-		return get_site_option( 'site_admins', array( 'admin' ) );
-	}
+	return $super_admins ?? get_site_option( 'site_admins', array( 'admin' ) );
 }
 
 /**
