@@ -307,6 +307,7 @@ class WP_REST_Autosaves_Controller extends WP_REST_Revisions_Controller {
 	 * Contains the user's autosave, for empty if it doesn't exist.
 	 *
 	 * @since 5.0.0
+	 * @since 7.2.0 Added support for the `author` parameter.
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
@@ -322,21 +323,29 @@ class WP_REST_Autosaves_Controller extends WP_REST_Revisions_Controller {
 			return new WP_REST_Response( array() );
 		}
 
-		$posts_per_page = 100;
-		$per_page       = $request['per_page'];
-		if ( ! empty( $per_page ) ) {
-			$posts_per_page = $per_page;
-		}
-
 		$response  = array();
 		$parent_id = $parent->ID;
-		$revisions = wp_get_post_revisions(
-			$parent_id,
-			array(
-				'check_enabled'  => false,
-				'posts_per_page' => $posts_per_page,
-			)
-		);
+
+		if ( ! empty( $request['author'] ) ) {
+			/*
+			 * WordPress stores at most one autosave per author, so scoping by
+			 * author asks for a well defined set of records. Query for those
+			 * directly rather than reading every revision of the post and
+			 * discarding all but the autosaves.
+			 */
+			foreach ( $request['author'] as $author_id ) {
+				$autosave = wp_get_post_autosave( $parent_id, $author_id );
+
+				if ( $autosave ) {
+					$data       = $this->prepare_item_for_response( $autosave, $request );
+					$response[] = $this->prepare_response_for_collection( $data );
+				}
+			}
+
+			return rest_ensure_response( $response );
+		}
+
+		$revisions = wp_get_post_revisions( $parent_id, array( 'check_enabled' => false ) );
 
 		foreach ( $revisions as $revision ) {
 			if ( str_contains( $revision->post_name, "{$parent_id}-autosave" ) ) {
@@ -346,12 +355,6 @@ class WP_REST_Autosaves_Controller extends WP_REST_Revisions_Controller {
 		}
 
 		return rest_ensure_response( $response );
-
-		// Add pagination headers.
-		$response->header( 'X-WP-Total', (int) $total_autosaves );
-		$response->header( 'X-WP-TotalPages', (int) $max_pages );
-
-		return $response;
 	}
 
 
@@ -531,15 +534,14 @@ class WP_REST_Autosaves_Controller extends WP_REST_Revisions_Controller {
 	 */
 	public function get_collection_params() {
 		return array(
-			'context'  => $this->get_context_param( array( 'default' => 'view' ) ),
-			'per_page' => array(
-				'description'       => __( 'Maximum number of autosaves to return.' ),
-				'type'              => 'integer',
-				'default'           => 100,
-				'minimum'           => 1,
-				'maximum'           => 100,
-				'sanitize_callback' => 'absint',
-				'validate_callback' => 'rest_validate_request_arg',
+			'context' => $this->get_context_param( array( 'default' => 'view' ) ),
+			'author'  => array(
+				'description' => __( 'Limit result set to autosaves assigned to specific authors.' ),
+				'type'        => 'array',
+				'items'       => array(
+					'type' => 'integer',
+				),
+				'default'     => array(),
 			),
 		);
 	}

@@ -63,6 +63,18 @@ $preload_paths = array(
 	'/wp/v2/taxonomies?context=view',
 	add_query_arg( 'context', 'edit', $rest_path ),
 	sprintf( '/wp/v2/types/%s?context=edit', $post_type ),
+	/*
+	 * The editor reads the current user's autosave rather than the whole
+	 * collection, so this is scoped to match the path it requests. A preload
+	 * entry the client never asks for is served to nobody.
+	 */
+	add_query_arg(
+		array(
+			'context' => 'edit',
+			'author'  => get_current_user_id(),
+		),
+		$rest_path . '/autosaves'
+	),
 	'/wp/v2/users/me',
 	array( rest_get_route_for_post_type_items( 'attachment' ), 'OPTIONS' ),
 	array( rest_get_route_for_post_type_items( 'page' ), 'OPTIONS' ),
