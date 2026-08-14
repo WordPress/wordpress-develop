@@ -317,6 +317,24 @@ class WP_REST_Abilities_V1_List_Controller extends WP_REST_Controller {
 							'description' => __( 'Whether the ability is meant to be available to clients such as the REST API, MCP, or AI agents. Defaults to false, but individual channel settings such as show_in_rest can override it.' ),
 							'type'        => 'boolean',
 						),
+						'deprecated'  => array(
+							'description' => __( 'Deprecation details for the ability, or false when the ability is not deprecated.' ),
+							'type'        => array( 'boolean', 'object' ),
+							'properties'  => array(
+								'since'       => array(
+									'description' => __( 'Version of the ability provider that deprecated the ability.' ),
+									'type'        => 'string',
+								),
+								'replacement' => array(
+									'description' => __( 'Namespaced ability to use instead.' ),
+									'type'        => 'string',
+								),
+								'message'     => array(
+									'description' => __( 'Additional migration guidance.' ),
+									'type'        => 'string',
+								),
+							),
+						),
 					),
 					'context'     => array( 'view', 'edit' ),
 					'readonly'    => true,
@@ -383,6 +401,22 @@ class WP_REST_Abilities_V1_List_Controller extends WP_REST_Controller {
 							'idempotent'  => array(
 								'description' => __( 'Whether repeated calls with the same arguments have no additional effect.' ),
 								'type'        => array( 'boolean', 'null' ),
+							),
+						),
+						'additionalProperties' => true,
+					),
+					'deprecated'  => array(
+						'description'          => __( 'Limit results by deprecation status or details.' ),
+						'type'                 => array( 'boolean', 'object' ),
+						'properties'           => array(
+							'since'       => array(
+								'type' => 'string',
+							),
+							'replacement' => array(
+								'type' => 'string',
+							),
+							'message'     => array(
+								'type' => 'string',
 							),
 						),
 						'additionalProperties' => true,

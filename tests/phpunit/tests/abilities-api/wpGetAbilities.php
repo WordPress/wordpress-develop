@@ -116,6 +116,86 @@ class Tests_Abilities_API_WpGetAbilities extends WP_UnitTestCase {
 	}
 
 	// -------------------------------------------------------------------------
+	// Deprecated abilities
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Tests that deprecated abilities remain in discovery by default.
+	 *
+	 * @ticket 64209
+	 */
+	public function test_deprecated_abilities_are_included_by_default(): void {
+		$this->simulate_wp_abilities_init();
+
+		$this->register_test_ability( 'test/active-ability' );
+		$this->register_test_ability(
+			'test/deprecated-ability',
+			array(
+				'meta' => array(
+					'deprecated' => array( 'replacement' => 'test/active-ability' ),
+				),
+			)
+		);
+
+		$result = wp_get_abilities();
+
+		$this->assertArrayHasKey( 'test/active-ability', $result );
+		$this->assertArrayHasKey( 'test/deprecated-ability', $result );
+	}
+
+	/**
+	 * Tests that deprecated abilities can be explicitly excluded from discovery.
+	 *
+	 * @ticket 64209
+	 */
+	public function test_deprecated_abilities_can_be_excluded(): void {
+		$this->simulate_wp_abilities_init();
+
+		$this->register_test_ability( 'test/active-ability' );
+		$this->register_test_ability(
+			'test/deprecated-ability',
+			array(
+				'meta' => array(
+					'deprecated' => array( 'replacement' => 'test/active-ability' ),
+				),
+			)
+		);
+
+		$result = wp_get_abilities( array( 'meta' => array( 'deprecated' => false ) ) );
+
+		$this->assertArrayHasKey( 'test/active-ability', $result );
+		$this->assertArrayNotHasKey( 'test/deprecated-ability', $result );
+	}
+
+	/**
+	 * Tests that the meta filter can return only deprecated abilities.
+	 *
+	 * @ticket 64209
+	 */
+	public function test_deprecated_abilities_can_be_filtered_exclusively(): void {
+		$this->simulate_wp_abilities_init();
+
+		$this->register_test_ability( 'test/active-ability' );
+		$this->register_test_ability(
+			'test/deprecated-ability',
+			array(
+				'meta' => array(
+					'deprecated' => array( 'replacement' => 'test/active-ability' ),
+				),
+			)
+		);
+
+		$result = wp_get_abilities(
+			array(
+				'meta' => array( 'deprecated' => array() ),
+			)
+		);
+
+		$this->assertArrayNotHasKey( 'test/active-ability', $result );
+		$this->assertArrayHasKey( 'test/deprecated-ability', $result );
+	}
+
+	// -------------------------------------------------------------------------
 	// Category filter
 	// -------------------------------------------------------------------------
 
