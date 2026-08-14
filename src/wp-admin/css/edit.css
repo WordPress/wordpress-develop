@@ -481,11 +481,12 @@ form#tags-filter {
 
 .misc-pub-curtime {
 	display: grid;
-	grid-template-columns: auto minmax( 0, 1fr );
+	grid-template-columns: auto minmax( 0, max-content ) minmax( 0, 1fr );
 }
 
-.misc-pub-curtime .timestamp-display {
+.misc-pub-curtime #timestamp {
 	grid-column: 2;
+	grid-row: 1;
 	min-width: 0;
 }
 
@@ -504,7 +505,9 @@ form#tags-filter {
 }
 
 .misc-pub-curtime .edit-timestamp {
-	margin-left: 0;
+	grid-column: 3;
+	grid-row: 1;
+	margin-left: 4px;
 }
 
 .misc-pub-curtime .edit-timestamp-label {

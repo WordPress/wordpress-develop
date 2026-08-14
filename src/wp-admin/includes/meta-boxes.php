@@ -285,20 +285,18 @@ function post_submit_meta_box( $post, $args = array() ) {
 		if ( $can_publish ) : // Contributors don't get to choose the date of publish.
 			?>
 			<div class="misc-pub-section curtime misc-pub-curtime">
-				<span class="timestamp-display">
-					<span id="timestamp">
-						<?php printf( $stamp, '<b>' . $date . '</b>' ); ?>
-					</span>
-					<a href="#edit_timestamp" class="edit-timestamp hide-if-no-js" role="button">
-						<span aria-hidden="true" class="edit-timestamp-label"><?php _e( 'Edit' ); ?></span>
-						<span class="screen-reader-text">
-							<?php
-							/* translators: Hidden accessibility text. */
-							_e( 'Edit date and time' );
-							?>
-						</span>
-					</a>
+				<span id="timestamp">
+					<?php printf( $stamp, '<b>' . $date . '</b>' ); ?>
 				</span>
+				<a href="#edit_timestamp" class="edit-timestamp hide-if-no-js" role="button">
+					<span aria-hidden="true" class="edit-timestamp-label"><?php _e( 'Edit' ); ?></span>
+					<span class="screen-reader-text">
+						<?php
+						/* translators: Hidden accessibility text. */
+						_e( 'Edit date and time' );
+						?>
+					</span>
+				</a>
 				<fieldset id="timestampdiv" class="hide-if-js">
 					<legend class="screen-reader-text">
 						<?php
