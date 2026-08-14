@@ -2968,6 +2968,10 @@ div.action-links {
 	margin: 16px 0;
 }
 
+#section-holder iframe {
+	width: 100%;
+}
+
 #plugin-information .fyi {
 	float: right;
 	position: relative;
