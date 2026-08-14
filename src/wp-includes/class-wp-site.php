@@ -330,18 +330,17 @@ final class WP_Site {
 		$details = wp_cache_get( $this->blog_id, 'site-details' );
 
 		if ( false === $details ) {
+			$id = (int) $this->blog_id;
 
-			switch_to_blog( $this->blog_id );
 			// Create a raw copy of the object for backward compatibility with the filter below.
 			$details = new stdClass();
 			foreach ( get_object_vars( $this ) as $key => $value ) {
 				$details->$key = $value;
 			}
-			$details->blogname   = get_option( 'blogname' );
-			$details->siteurl    = get_option( 'siteurl' );
-			$details->post_count = get_option( 'post_count' );
-			$details->home       = get_option( 'home' );
-			restore_current_blog();
+			$details->blogname   = _get_option_from_blog( $id, 'blogname' );
+			$details->siteurl    = _get_option_from_blog( $id, 'siteurl' );
+			$details->post_count = _get_option_from_blog( $id, 'post_count', 0 );
+			$details->home       = _get_option_from_blog( $id, 'home' );
 
 			wp_cache_set( $this->blog_id, $details, 'site-details' );
 		}
