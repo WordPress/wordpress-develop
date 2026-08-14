@@ -270,7 +270,7 @@ class Tests_Multisite_CleanDirsizeCache extends WP_UnitTestCase {
 
 		/*
 		 * Now that it's confirmed that old cached values aren't being returned, create the
-		 * folder on disk, so that the the rest of the function can be tested.
+		 * folder on disk, so that the rest of the function can be tested.
 		 */
 		wp_mkdir_p( $upload_dir['basedir'] . '/2/1' );
 		$filename = $upload_dir['basedir'] . '/2/1/this-needs-to-exist.txt';

@@ -358,7 +358,6 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 		$this->assertNull( $result );
 	}
 
-
 	/**
 	 * Should reject ability registration with invalid `annotations` type.
 	 *
@@ -405,6 +404,23 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 	 */
 	public function test_register_invalid_show_in_rest_type() {
 		self::$test_ability_args['meta']['show_in_rest'] = 5;
+
+		$result = $this->registry->register( self::$test_ability_name, self::$test_ability_args );
+		$this->assertNull( $result );
+	}
+
+	/**
+	 * Should reject ability registration with invalid public type.
+	 *
+	 * @ticket 65568
+	 *
+	 * @covers WP_Abilities_Registry::register
+	 * @covers WP_Ability::prepare_properties
+	 *
+	 * @expectedIncorrectUsage WP_Abilities_Registry::register
+	 */
+	public function test_register_invalid_public_type() {
+		self::$test_ability_args['meta']['public'] = 5;
 
 		$result = $this->registry->register( self::$test_ability_name, self::$test_ability_args );
 		$this->assertNull( $result );
