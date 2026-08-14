@@ -481,7 +481,7 @@ form#tags-filter {
 
 .misc-pub-curtime {
 	display: grid;
-	grid-template-columns: 27px minmax( 0, 1fr );
+	grid-template-columns: auto minmax( 0, 1fr );
 }
 
 .misc-pub-curtime .timestamp-display {
@@ -501,10 +501,6 @@ form#tags-filter {
 	top: -1px;
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
-}
-
-.misc-pub-curtime #timestamp:before {
-	content: none;
 }
 
 .misc-pub-curtime .edit-timestamp {

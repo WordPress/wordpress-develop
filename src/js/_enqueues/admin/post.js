@@ -786,7 +786,7 @@ jQuery( function($) {
 				attemptedDate.getDate() != jj ||
 				attemptedDate.getMinutes() != mn
 			) {
-				$timestampdiv.find( '.timestamp-wrap, #publish-date-native' ).addClass( 'form-invalid' );
+				$timestampdiv.find( '.timestamp-wrap, .timestamp-native-wrap input' ).addClass( 'form-invalid' );
 				return false;
 			} else {
 				$timestampdiv.find( '.timestamp-wrap, .timestamp-native-wrap input' ).removeClass( 'form-invalid' );

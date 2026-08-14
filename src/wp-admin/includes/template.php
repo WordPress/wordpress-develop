@@ -833,8 +833,15 @@ function touch_time( $edit = 1, $for_post = 1, $tab_index = 0, $multi = 0 ) {
 
 	$timezone = wp_timezone_string();
 	if ( preg_match( '/^([+-])(\d{2}):(\d{2})$/', $timezone, $timezone_matches ) ) {
-		$timezone  = 'UTC' . $timezone_matches[1] . (int) $timezone_matches[2];
-		$timezone .= ( '00' === $timezone_matches[3] ) ? '' : ':' . $timezone_matches[3];
+		$offset_hours   = (int) $timezone_matches[2];
+		$offset_minutes = $timezone_matches[3];
+
+		if ( 0 === $offset_hours && '00' === $offset_minutes ) {
+			$timezone = 'UTC';
+		} else {
+			$timezone  = 'UTC' . $timezone_matches[1] . $offset_hours;
+			$timezone .= ( '00' === $offset_minutes ) ? '' : ':' . $offset_minutes;
+		}
 	}
 
 	$month = '<label><span class="screen-reader-text">' .
