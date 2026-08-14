@@ -1,0 +1,60 @@
+##
+# A reusable workflow that downloads and verifies the Gutenberg build once per
+# calling workflow run.
+##
+name: Prepare Gutenberg build
+
+on:
+  workflow_call:
+    outputs:
+      gutenberg-sha:
+        description: 'The immutable Gutenberg source SHA verified by this workflow.'
+        value: ${{ jobs.prepare-gutenberg.outputs.gutenberg-sha }}
+
+# Disable permissions for all available scopes by default.
+# Any needed permissions should be configured at the job level.
+permissions: {}
+
+jobs:
+  prepare-gutenberg:
+    name: Gutenberg
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    outputs:
+      gutenberg-sha: ${{ steps.download.outputs.gutenberg-sha }}
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          # Resolve the Gutenberg ref from the exact commit that started this workflow run.
+          ref: ${{ github.sha }}
+          show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+        with:
+          node-version-file: '.nvmrc'
+
+      - name: Download and verify Gutenberg build
+        id: download
+        run: |
+          node tools/gutenberg/download.js
+          gutenberg_sha="$(tr -d '\n' < gutenberg/.gutenberg-hash)"
+          if [[ ! "$gutenberg_sha" =~ ^[a-fA-F0-9]{40}$ ]]; then
+            echo "Expected a 40-character Gutenberg SHA, received: $gutenberg_sha" >&2
+            exit 1
+          fi
+          echo "gutenberg-sha=$gutenberg_sha" >> "$GITHUB_OUTPUT"
+
+      - name: Upload Gutenberg build
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: gutenberg-build
+          path: gutenberg/
+          if-no-files-found: error
+          include-hidden-files: true
+          retention-days: 1
