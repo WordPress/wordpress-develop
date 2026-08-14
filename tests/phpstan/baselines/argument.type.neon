@@ -44,7 +44,7 @@ parameters:
 			count: 2
 			path: ../../../src/wp-admin/comment.php
 		-
-			message: '#^Parameter \#1 \$text of function esc_attr expects string, bool given\.$#'
+			message: '#^Parameter \#1 \$text of function esc_attr expects float\|int\|string, bool given\.$#'
 			identifier: argument.type
 			count: 1
 			path: ../../../src/wp-admin/customize.php
@@ -54,24 +54,9 @@ parameters:
 			count: 1
 			path: ../../../src/wp-admin/edit-comments.php
 		-
-			message: '#^Parameter \#1 \$text of function esc_attr expects string, int given\.$#'
-			identifier: argument.type
-			count: 4
-			path: ../../../src/wp-admin/edit-comments.php
-		-
-			message: '#^Parameter \#1 \$text of function esc_attr expects string, int\<min, \-1\>\|int\<1, max\> given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/wp-admin/edit-comments.php
-		-
 			message: '#^Parameter \#1 \$screen of function do_meta_boxes expects string\|WP_Screen, null given\.$#'
 			identifier: argument.type
 			count: 2
-			path: ../../../src/wp-admin/edit-form-advanced.php
-		-
-			message: '#^Parameter \#1 \$text of function esc_attr expects string, int\<0, max\> given\.$#'
-			identifier: argument.type
-			count: 1
 			path: ../../../src/wp-admin/edit-form-advanced.php
 		-
 			message: '#^Parameter \#1 \$post of function get_edit_post_link expects int\|WP_Post, string given\.$#'
@@ -119,16 +104,6 @@ parameters:
 			count: 2
 			path: ../../../src/wp-admin/includes/ajax-actions.php
 		-
-			message: '#^Parameter \#1 \$text of function esc_attr expects string, int given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/wp-admin/includes/ajax-actions.php
-		-
-			message: '#^Parameter \#1 \$text of function esc_attr expects string, int\<0, max\> given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/wp-admin/includes/ajax-actions.php
-		-
 			message: '#^Parameter \#2 \$compare_from of function wp_get_revision_ui_diff expects int, string given\.$#'
 			identifier: argument.type
 			count: 1
@@ -149,30 +124,10 @@ parameters:
 			count: 1
 			path: ../../../src/wp-admin/includes/class-automatic-upgrader-skin.php
 		-
-			message: '#^Parameter \#1 \$text of function esc_attr expects string, int given\.$#'
-			identifier: argument.type
-			count: 2
-			path: ../../../src/wp-admin/includes/class-bulk-upgrader-skin.php
-		-
-			message: '#^Parameter \#1 \$text of function esc_js expects string, int given\.$#'
-			identifier: argument.type
-			count: 4
-			path: ../../../src/wp-admin/includes/class-bulk-upgrader-skin.php
-		-
 			message: '#^Parameter \#1 \$text of function submit_button expects string, null given\.$#'
 			identifier: argument.type
 			count: 1
 			path: ../../../src/wp-admin/includes/class-custom-background.php
-		-
-			message: '#^Parameter \#1 \$text of function esc_attr expects string, \(float\|int\) given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/wp-admin/includes/class-custom-image-header.php
-		-
-			message: '#^Parameter \#1 \$text of function esc_attr expects string, float\|int given\.$#'
-			identifier: argument.type
-			count: 4
-			path: ../../../src/wp-admin/includes/class-custom-image-header.php
 		-
 			message: '#^Parameter \#1 \$text of function submit_button expects string, null given\.$#'
 			identifier: argument.type
@@ -183,16 +138,6 @@ parameters:
 			identifier: argument.type
 			count: 1
 			path: ../../../src/wp-admin/includes/class-language-pack-upgrader.php
-		-
-			message: '#^Parameter \#1 \$text of function esc_attr expects string, int given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/wp-admin/includes/class-walker-nav-menu-edit.php
-		-
-			message: '#^Parameter \#1 \$text of function esc_attr expects string, int\<0, max\> given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/wp-admin/includes/class-walker-nav-menu-edit.php
 		-
 			message: '#^Parameter \#1 \$str of function md5 expects string, int given\.$#'
 			identifier: argument.type
@@ -209,55 +154,10 @@ parameters:
 			count: 1
 			path: ../../../src/wp-admin/includes/class-wp-comments-list-table.php
 		-
-			message: '#^Parameter \#1 \$text of function esc_attr expects string, int given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/wp-admin/includes/class-wp-ms-users-list-table.php
-		-
 			message: '#^Parameter \#3 \$number of function _nx expects int, float given\.$#'
 			identifier: argument.type
 			count: 1
 			path: ../../../src/wp-admin/includes/class-wp-plugin-install-list-table.php
-		-
-			message: '#^Parameter \#1 \$text of function esc_attr expects string, int given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/wp-admin/includes/class-wp-plugins-list-table.php
-		-
-			message: '#^Parameter \#1 \$text of function esc_attr expects string, int given\.$#'
-			identifier: argument.type
-			count: 2
-			path: ../../../src/wp-admin/includes/class-wp-privacy-data-export-requests-list-table.php
-		-
-			message: '#^Parameter \#1 \$text of function esc_attr expects string, int\<0, max\> given\.$#'
-			identifier: argument.type
-			count: 2
-			path: ../../../src/wp-admin/includes/class-wp-privacy-data-export-requests-list-table.php
-		-
-			message: '#^Parameter \#1 \$text of function esc_attr expects string, int given\.$#'
-			identifier: argument.type
-			count: 2
-			path: ../../../src/wp-admin/includes/class-wp-privacy-data-removal-requests-list-table.php
-		-
-			message: '#^Parameter \#1 \$text of function esc_attr expects string, int\<0, max\> given\.$#'
-			identifier: argument.type
-			count: 2
-			path: ../../../src/wp-admin/includes/class-wp-privacy-data-removal-requests-list-table.php
-		-
-			message: '#^Parameter \#1 \$text of function esc_attr expects string, int given\.$#'
-			identifier: argument.type
-			count: 2
-			path: ../../../src/wp-admin/includes/class-wp-privacy-requests-table.php
-		-
-			message: '#^Parameter \#1 \$text of function esc_attr expects string, int given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/wp-admin/includes/class-wp-screen.php
-		-
-			message: '#^Parameter \#1 \$text of function esc_attr expects string, int\<1, max\> given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/wp-admin/includes/class-wp-screen.php
 		-
 			message: '#^Parameter \#1 \$version of function get_core_checksums expects string, float given\.$#'
 			identifier: argument.type
@@ -329,11 +229,6 @@ parameters:
 			count: 1
 			path: ../../../src/wp-admin/includes/image-edit.php
 		-
-			message: '#^Parameter \#1 \$text of function esc_attr expects string, int given\.$#'
-			identifier: argument.type
-			count: 2
-			path: ../../../src/wp-admin/includes/image-edit.php
-		-
 			message: '#^Parameter \#1 \$width of function wp_imagecreatetruecolor expects int, float given\.$#'
 			identifier: argument.type
 			count: 1
@@ -379,35 +274,10 @@ parameters:
 			count: 1
 			path: ../../../src/wp-admin/includes/media.php
 		-
-			message: '#^Parameter \#1 \$text of function esc_attr expects string, int given\.$#'
-			identifier: argument.type
-			count: 2
-			path: ../../../src/wp-admin/includes/media.php
-		-
 			message: '#^Parameter \#2 \$result of function wp_parse_str expects array, \(string\|false\) given\.$#'
 			identifier: argument.type
 			count: 1
 			path: ../../../src/wp-admin/includes/menu.php
-		-
-			message: '#^Parameter \#1 \$text of function esc_attr expects string, int given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/wp-admin/includes/meta-boxes.php
-		-
-			message: '#^Parameter \#1 \$text of function esc_attr expects string, int given\.$#'
-			identifier: argument.type
-			count: 8
-			path: ../../../src/wp-admin/includes/misc.php
-		-
-			message: '#^Parameter \#1 \$text of function esc_attr expects string, int\<0, max\> given\.$#'
-			identifier: argument.type
-			count: 2
-			path: ../../../src/wp-admin/includes/misc.php
-		-
-			message: '#^Parameter \#1 \$text of function esc_attr expects string, int\<1, max\> given\.$#'
-			identifier: argument.type
-			count: 2
-			path: ../../../src/wp-admin/includes/misc.php
 		-
 			message: '#^Parameter \#1 \$link_id of function wp_delete_link expects int, string\|null given\.$#'
 			identifier: argument.type
@@ -464,11 +334,6 @@ parameters:
 			count: 4
 			path: ../../../src/wp-admin/includes/plugin.php
 		-
-			message: '#^Parameter \#1 \$text of function esc_attr expects string, int\<0, max\> given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/wp-admin/includes/post.php
-		-
 			message: '#^Parameter \#2 \$fallback_title of function sanitize_title expects string, int\<0, max\> given\.$#'
 			identifier: argument.type
 			count: 2
@@ -513,11 +378,6 @@ parameters:
 			identifier: argument.type
 			count: 1
 			path: ../../../src/wp-admin/includes/update-core.php
-		-
-			message: '#^Parameter \#1 \$text of function esc_attr expects string, int given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/wp-admin/includes/update.php
 		-
 			message: '#^Parameter \#1 \$timestamp of function wp_schedule_event expects int, float given\.$#'
 			identifier: argument.type
@@ -564,11 +424,6 @@ parameters:
 			count: 1
 			path: ../../../src/wp-admin/install.php
 		-
-			message: '#^Parameter \#1 \$text of function esc_attr expects string, int given\.$#'
-			identifier: argument.type
-			count: 5
-			path: ../../../src/wp-admin/nav-menus.php
-		-
 			message: '#^Parameter \#2 \$menu_data of function wp_save_nav_menu_items expects array\<array\>, int given\.$#'
 			identifier: argument.type
 			count: 1
@@ -579,17 +434,7 @@ parameters:
 			count: 1
 			path: ../../../src/wp-admin/network/site-info.php
 		-
-			message: '#^Parameter \#1 \$text of function esc_attr expects string, int\<min, \-1\>\|int\<1, max\> given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/wp-admin/network/site-info.php
-		-
 			message: '#^Parameter \#1 \$network_id of function can_edit_network expects int, string given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/wp-admin/network/site-settings.php
-		-
-			message: '#^Parameter \#1 \$text of function esc_attr expects string, int\<min, \-1\>\|int\<1, max\> given\.$#'
 			identifier: argument.type
 			count: 1
 			path: ../../../src/wp-admin/network/site-settings.php
@@ -599,37 +444,12 @@ parameters:
 			count: 1
 			path: ../../../src/wp-admin/network/site-themes.php
 		-
-			message: '#^Parameter \#1 \$text of function esc_attr expects string, int\<min, \-1\>\|int\<1, max\> given\.$#'
-			identifier: argument.type
-			count: 2
-			path: ../../../src/wp-admin/network/site-themes.php
-		-
 			message: '#^Parameter \#1 \$network_id of function can_edit_network expects int, string given\.$#'
 			identifier: argument.type
 			count: 1
 			path: ../../../src/wp-admin/network/site-users.php
 		-
-			message: '#^Parameter \#1 \$text of function esc_attr expects string, int\<min, \-1\>\|int\<1, max\> given\.$#'
-			identifier: argument.type
-			count: 4
-			path: ../../../src/wp-admin/network/site-users.php
-		-
-			message: '#^Parameter \#1 \$text of function esc_attr expects string, int given\.$#'
-			identifier: argument.type
-			count: 2
-			path: ../../../src/wp-admin/network/sites.php
-		-
-			message: '#^Parameter \#1 \$text of function esc_attr expects string, int\<2, max\> given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/wp-admin/options-discussion.php
-		-
-			message: '#^Parameter \#1 \$text of function esc_attr expects string, bool given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/wp-admin/options-general.php
-		-
-			message: '#^Parameter \#1 \$text of function esc_attr expects string, int\<0, 6\> given\.$#'
+			message: '#^Parameter \#1 \$text of function esc_attr expects float\|int\|string, bool given\.$#'
 			identifier: argument.type
 			count: 1
 			path: ../../../src/wp-admin/options-general.php
@@ -648,16 +468,6 @@ parameters:
 			identifier: argument.type
 			count: 1
 			path: ../../../src/wp-admin/update.php
-		-
-			message: '#^Parameter \#1 \$text of function esc_attr expects string, int given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/wp-admin/user-edit.php
-		-
-			message: '#^Parameter \#1 \$text of function esc_attr expects string, int given\.$#'
-			identifier: argument.type
-			count: 10
-			path: ../../../src/wp-admin/users.php
 		-
 			message: '#^Parameter \#1 \$author_id of function get_author_posts_url expects int, string given\.$#'
 			identifier: argument.type
@@ -709,16 +519,6 @@ parameters:
 			count: 1
 			path: ../../../src/wp-content/themes/twentyeleven/inc/theme-options.php
 		-
-			message: '#^Parameter \#1 \$text of function esc_attr expects string, int given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/wp-content/themes/twentyeleven/inc/widgets.php
-		-
-			message: '#^Parameter \#1 \$text of function esc_attr expects string, int\<1, max\> given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/wp-content/themes/twentyeleven/showcase.php
-		-
 			message: '#^Parameter \#2 \$instance of function the_widget expects array, string given\.$#'
 			identifier: argument.type
 			count: 1
@@ -759,22 +559,12 @@ parameters:
 			count: 1
 			path: ../../../src/wp-content/themes/twentyfourteen/image.php
 		-
-			message: '#^Parameter \#1 \$text of function esc_html expects string, int\<1, max\> given\.$#'
-			identifier: argument.type
-			count: 2
-			path: ../../../src/wp-content/themes/twentyfourteen/image.php
-		-
 			message: '#^Parameter \#1 \$author_id of function get_author_posts_url expects int, string given\.$#'
 			identifier: argument.type
 			count: 1
 			path: ../../../src/wp-content/themes/twentyfourteen/inc/template-tags.php
 		-
 			message: '#^Parameter \#1 \$author_id of function get_author_posts_url expects int, string given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/wp-content/themes/twentyfourteen/inc/widgets.php
-		-
-			message: '#^Parameter \#1 \$text of function esc_attr expects string, int given\.$#'
 			identifier: argument.type
 			count: 1
 			path: ../../../src/wp-content/themes/twentyfourteen/inc/widgets.php
@@ -804,25 +594,10 @@ parameters:
 			count: 1
 			path: ../../../src/wp-content/themes/twentynineteen/template-parts/post/author-bio.php
 		-
-			message: '#^Parameter \#1 \$text of function esc_attr expects string, int given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/wp-content/themes/twentyseventeen/inc/color-patterns.php
-		-
 			message: '#^Parameter \#1 \$author_id of function get_author_posts_url expects int, string given\.$#'
 			identifier: argument.type
 			count: 1
 			path: ../../../src/wp-content/themes/twentyseventeen/inc/template-tags.php
-		-
-			message: '#^Parameter \#1 \$text of function esc_attr expects string, \(float\|int\) given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/wp-content/themes/twentyseventeen/template-parts/page/content-front-page-panels.php
-		-
-			message: '#^Parameter \#1 \$text of function esc_attr expects string, \(float\|int\) given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/wp-content/themes/twentyseventeen/template-parts/page/content-front-page.php
 		-
 			message: '#^Parameter \#1 \$size of function next_image_link expects array\<int\>\|string, false given\.$#'
 			identifier: argument.type
@@ -949,11 +724,6 @@ parameters:
 			count: 1
 			path: ../../../src/wp-content/themes/twentytwenty/classes/class-twentytwenty-non-latin-languages.php
 		-
-			message: '#^Parameter \#1 \$text of function esc_attr expects string, int given\.$#'
-			identifier: argument.type
-			count: 2
-			path: ../../../src/wp-content/themes/twentytwenty/functions.php
-		-
 			message: '#^Parameter \#3 \$deps of function wp_enqueue_style expects array\<string\>, null given\.$#'
 			identifier: argument.type
 			count: 1
@@ -968,11 +738,6 @@ parameters:
 			identifier: argument.type
 			count: 1
 			path: ../../../src/wp-content/themes/twentytwenty/template-parts/entry-author-bio.php
-		-
-			message: '#^Parameter \#1 \$text of function esc_attr expects string, int\|false given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/wp-content/themes/twentytwentyone/inc/template-functions.php
 		-
 			message: '#^Parameter \#1 \$author_id of function get_author_posts_url expects int, string given\.$#'
 			identifier: argument.type
@@ -1044,11 +809,6 @@ parameters:
 			count: 1
 			path: ../../../src/wp-includes/class-wp-comment-query.php
 		-
-			message: '#^Parameter \#1 \$text of function esc_attr expects string, int\<0, max\> given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/wp-includes/class-wp-customize-control.php
-		-
 			message: '#^Parameter \#1 \$ajax_message of method WP_Customize_Manager\:\:wp_die\(\) expects string\|WP_Error, int given\.$#'
 			identifier: argument.type
 			count: 6
@@ -1068,11 +828,6 @@ parameters:
 			identifier: argument.type
 			count: 1
 			path: ../../../src/wp-includes/class-wp-customize-manager.php
-		-
-			message: '#^Parameter \#1 \$text of function esc_html expects string, int given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/wp-includes/class-wp-date-query.php
 		-
 			message: '#^Parameter \#2 \$parent_query of method WP_Date_Query\:\:get_sql_for_clause\(\) expects array, string given\.$#'
 			identifier: argument.type
@@ -1129,17 +884,7 @@ parameters:
 			count: 1
 			path: ../../../src/wp-includes/class-wp-image-editor-imagick.php
 		-
-			message: '#^Parameter \#2 \$value of method Imagick\:\:setOption\(\) expects string, false given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/wp-includes/class-wp-image-editor-imagick.php
-		-
 			message: '#^Parameter \#2 \$value of method Imagick\:\:setOption\(\) expects string, int given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/wp-includes/class-wp-image-editor-imagick.php
-		-
-			message: '#^Parameter \#2 \$value of method Imagick\:\:setOption\(\) expects string, true given\.$#'
 			identifier: argument.type
 			count: 1
 			path: ../../../src/wp-includes/class-wp-image-editor-imagick.php
@@ -1394,11 +1139,6 @@ parameters:
 			count: 2
 			path: ../../../src/wp-includes/general-template.php
 		-
-			message: '#^Parameter \#1 \$text of function esc_attr expects string, float given\.$#'
-			identifier: argument.type
-			count: 2
-			path: ../../../src/wp-includes/general-template.php
-		-
 			message: '#^Parameter \#2 \$replace of function str_replace expects array\<string\>\|string, int\<1, max\> given\.$#'
 			identifier: argument.type
 			count: 2
@@ -1448,16 +1188,6 @@ parameters:
 			identifier: argument.type
 			count: 1
 			path: ../../../src/wp-includes/load.php
-		-
-			message: '#^Parameter \#1 \$text of function esc_attr expects string, int\<1, 9\> given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/wp-includes/media-template.php
-		-
-			message: '#^Parameter \#1 \$text of function esc_html expects string, int\<1, 9\> given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/wp-includes/media-template.php
 		-
 			message: '#^Parameter \#5 \$text of function wp_get_attachment_link expects string\|false, bool given\.$#'
 			identifier: argument.type
@@ -1864,17 +1594,7 @@ parameters:
 			count: 1
 			path: ../../../src/wp-includes/widgets.php
 		-
-			message: '#^Parameter \#1 \$text of function esc_attr expects string, int given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/wp-includes/widgets/class-wp-nav-menu-widget.php
-		-
 			message: '#^Parameter \#1 \$post of function get_the_title expects int\|WP_Post, string given\.$#'
 			identifier: argument.type
 			count: 1
 			path: ../../../src/wp-includes/widgets/class-wp-widget-recent-comments.php
-		-
-			message: '#^Parameter \#1 \$text of function esc_html expects string, int given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/wp-mail.php
