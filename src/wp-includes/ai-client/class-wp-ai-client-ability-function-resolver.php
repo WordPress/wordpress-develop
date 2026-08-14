@@ -75,7 +75,19 @@ class WP_AI_Client_Ability_Function_Resolver {
 			return false;
 		}
 
-		return str_starts_with( $name, self::ABILITY_PREFIX );
+		return self::is_ability_function_name( $name );
+	}
+
+	/**
+	 * Checks if a function name refers to an ability.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param string $function_name The function name to check.
+	 * @return bool True if the function name refers to an ability, false otherwise.
+	 */
+	public static function is_ability_function_name( string $function_name ): bool {
+		return str_starts_with( $function_name, self::ABILITY_PREFIX );
 	}
 
 	/**

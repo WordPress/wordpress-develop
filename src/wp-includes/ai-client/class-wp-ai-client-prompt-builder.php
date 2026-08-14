@@ -11,6 +11,8 @@ use WordPress\AiClient\AiClient;
 use WordPress\AiClient\Builders\PromptBuilder;
 use WordPress\AiClient\Common\Exception\InvalidArgumentException;
 use WordPress\AiClient\Common\Exception\TokenLimitReachedException;
+use WordPress\AiClient\Events\AfterGenerateResultEvent;
+use WordPress\AiClient\Events\BeforeGenerateResultEvent;
 use WordPress\AiClient\Files\DTO\File;
 use WordPress\AiClient\Files\Enums\FileTypeEnum;
 use WordPress\AiClient\Files\Enums\MediaOrientationEnum;
@@ -24,8 +26,11 @@ use WordPress\AiClient\Providers\Http\Exception\ServerException;
 use WordPress\AiClient\Providers\Models\Contracts\ModelInterface;
 use WordPress\AiClient\Providers\Models\DTO\ModelConfig;
 use WordPress\AiClient\Providers\Models\Enums\CapabilityEnum;
+use WordPress\AiClient\Providers\Models\TextGeneration\Contracts\TextGenerationModelInterface;
 use WordPress\AiClient\Providers\ProviderRegistry;
 use WordPress\AiClient\Results\DTO\GenerativeAiResult;
+use WordPress\AiClient\Results\DTO\TokenUsage;
+use WordPress\AiClient\Tools\DTO\FunctionCall;
 use WordPress\AiClient\Tools\DTO\FunctionDeclaration;
 use WordPress\AiClient\Tools\DTO\FunctionResponse;
 use WordPress\AiClient\Tools\DTO\WebSearch;
@@ -121,6 +126,14 @@ class WP_AI_Client_Prompt_Builder {
 	 * @var WP_Error|null
 	 */
 	private ?WP_Error $error = null;
+
+	/**
+	 * Options for automatic ability resolution, or null when disabled.
+	 *
+	 * @since 7.2.0
+	 * @var array{max_iterations: int}|null
+	 */
+	private ?array $ability_resolution_options = null;
 
 	/**
 	 * List of methods that generate a result from the prompt.
@@ -278,11 +291,68 @@ class WP_AI_Client_Prompt_Builder {
 	}
 
 	/**
+	 * Enables automatic resolution of ability function calls.
+	 *
+	 * When enabled, the text generation methods run a resolution loop instead of
+	 * a single request. Each round executes the ability calls requested by the
+	 * model, appends the results to the conversation, and requests a follow-up
+	 * response. The loop ends when the model produces a response without ability
+	 * calls, when it requests a function that is not a registered ability, or
+	 * when the maximum number of rounds is reached.
+	 *
+	 * Only abilities that were exposed to the model as function declarations,
+	 * typically with {@see self::using_abilities()}, can be executed.
+	 * Resolution follows the first response candidate and supports the
+	 * generate_text_result() and generate_text() methods. Details about the loop
+	 * are exposed under the `ability_resolution` key of the additional data of
+	 * the final result.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param array $options {
+	 *     Optional. Options controlling the resolution loop.
+	 *
+	 *     @type int $max_iterations Maximum number of resolution rounds. Each round executes
+	 *                               the ability calls from one model response and requests a
+	 *                               follow-up response. Default 5.
+	 * }
+	 * @return self The current instance for method chaining.
+	 */
+	public function using_ability_resolution( array $options = array() ): self {
+		$options = wp_parse_args(
+			$options,
+			array(
+				'max_iterations' => 5,
+			)
+		);
+
+		if ( ! is_int( $options['max_iterations'] ) || $options['max_iterations'] < 1 ) {
+			_doing_it_wrong(
+				__METHOD__,
+				sprintf(
+					/* translators: %s: max_iterations */
+					__( 'The %s option must be a positive integer.' ),
+					'<code>max_iterations</code>'
+				),
+				'7.2.0'
+			);
+			$options['max_iterations'] = 5;
+		}
+
+		$this->ability_resolution_options = array(
+			'max_iterations' => $options['max_iterations'],
+		);
+
+		return $this;
+	}
+
+	/**
 	 * Magic method to proxy snake_case method calls to their PHP AI Client camelCase counterparts.
 	 *
 	 * This allows WordPress developers to use snake_case naming conventions. It catches
 	 * any exceptions thrown, stores them, and returns a WP_Error when a terminate method
-	 * is called.
+	 * is called. When automatic ability resolution is enabled, the supported text
+	 * generation methods run the resolution loop instead of a single request.
 	 *
 	 * @since 7.0.0
 	 *
@@ -291,6 +361,37 @@ class WP_AI_Client_Prompt_Builder {
 	 * @return mixed The result of the method call.
 	 */
 	public function __call( string $name, array $arguments ) {
+		if ( null !== $this->ability_resolution_options && self::is_generating_method( $name ) ) {
+			if ( 'generate_text_result' === $name || 'generate_text' === $name ) {
+				return $this->generate_with_ability_resolution( $name );
+			}
+
+			_doing_it_wrong(
+				__METHOD__,
+				sprintf(
+					/* translators: 1: generate_text_result, 2: generate_text, 3: the method that was called. */
+					__( 'Automatic ability resolution supports only the %1$s and %2$s methods. The %3$s method runs without it.' ),
+					'<code>generate_text_result()</code>',
+					'<code>generate_text()</code>',
+					'<code>' . esc_html( $name ) . '()</code>'
+				),
+				'7.2.0'
+			);
+		}
+
+		return $this->call_builder( $name, $arguments );
+	}
+
+	/**
+	 * Proxies a method call to the wrapped prompt builder with WordPress-specific guards.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param string            $name      The method name in snake_case.
+	 * @param array<int, mixed> $arguments The method arguments.
+	 * @return mixed The result of the method call.
+	 */
+	private function call_builder( string $name, array $arguments ) {
 		/*
 		 * If an error occurred in a previous method call, either return the error for terminate methods,
 		 * or return the same instance for other methods to maintain the fluent interface.
@@ -307,39 +408,16 @@ class WP_AI_Client_Prompt_Builder {
 
 		// Check if the prompt should be prevented for is_supported* and generate_*/convert_text_to_speech* methods.
 		if ( self::is_support_check_method( $name ) || self::is_generating_method( $name ) ) {
-			// If AI is not supported, then there's no need to apply the filter as the prompt will be prevented anyway.
-			$is_ai_disabled = ! wp_supports_ai();
-			$prevent        = $is_ai_disabled;
-			if ( ! $prevent ) {
-				/**
-				 * Filters whether to prevent the prompt from being executed.
-				 *
-				 * @since 7.0.0
-				 *
-				 * @param bool                        $prevent Whether to prevent the prompt. Default false.
-				 * @param WP_AI_Client_Prompt_Builder $builder A clone of the prompt builder instance (read-only).
-				 */
-				$prevent = (bool) apply_filters( 'wp_ai_client_prevent_prompt', false, clone $this );
-			}
+			$prevented = $this->get_prompt_prevented_error();
 
-			if ( $prevent ) {
+			if ( null !== $prevented ) {
 				// For is_supported* methods, return false.
 				if ( self::is_support_check_method( $name ) ) {
 					return false;
 				}
 
-				$error_message = $is_ai_disabled
-					? __( 'AI features are not supported in this environment.' )
-					: __( 'Prompt execution was prevented by a filter.' );
-
-				// For generate_* and convert_text_to_speech* methods, create a WP_Error.
-				$this->error = new WP_Error(
-					'prompt_prevented',
-					$error_message,
-					array(
-						'status' => 503,
-					)
-				);
+				// For generate_* and convert_text_to_speech* methods, store the WP_Error.
+				$this->error = $prevented;
 
 				if ( self::is_generating_method( $name ) ) {
 					return $this->error;
@@ -366,6 +444,328 @@ class WP_AI_Client_Prompt_Builder {
 			}
 			return $this;
 		}
+	}
+
+	/**
+	 * Checks whether the prompt is prevented from being executed.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @return WP_Error|null A WP_Error when the prompt is prevented, null otherwise.
+	 */
+	private function get_prompt_prevented_error(): ?WP_Error {
+		// If AI is not supported, then there's no need to apply the filter as the prompt will be prevented anyway.
+		$is_ai_disabled = ! wp_supports_ai();
+		$prevent        = $is_ai_disabled;
+		if ( ! $prevent ) {
+			/**
+			 * Filters whether to prevent the prompt from being executed.
+			 *
+			 * @since 7.0.0
+			 *
+			 * @param bool                        $prevent Whether to prevent the prompt. Default false.
+			 * @param WP_AI_Client_Prompt_Builder $builder A clone of the prompt builder instance (read-only).
+			 */
+			$prevent = (bool) apply_filters( 'wp_ai_client_prevent_prompt', false, clone $this );
+		}
+
+		if ( ! $prevent ) {
+			return null;
+		}
+
+		$error_message = $is_ai_disabled
+			? __( 'AI features are not supported in this environment.' )
+			: __( 'Prompt execution was prevented by a filter.' );
+
+		return new WP_Error(
+			'prompt_prevented',
+			$error_message,
+			array(
+				'status' => 503,
+			)
+		);
+	}
+
+	/**
+	 * Generates a text result while automatically resolving ability function calls.
+	 *
+	 * Runs the resolution loop: each round executes the ability calls requested
+	 * by the model, appends the results to the conversation, and requests a
+	 * follow-up response. See {@see self::using_ability_resolution()} for the
+	 * termination conditions.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param string $method Either 'generate_text_result' or 'generate_text'.
+	 * @return GenerativeAiResult|string|WP_Error The final result, the final text, or a WP_Error on failure.
+	 */
+	private function generate_with_ability_resolution( string $method ) {
+		$options = $this->ability_resolution_options;
+
+		/*
+		 * The PHP AI Client prompt builder does not expose its message list, nor
+		 * a way to append messages to it. The first request therefore captures
+		 * the sent messages and the resolved model from the lifecycle event that
+		 * the builder dispatches. Later rounds call the captured model directly
+		 * with an extended copy of that transcript. A message append method in
+		 * the PHP AI Client would simplify this.
+		 */
+		$captured = null;
+		$capture  = static function ( $event ) use ( &$captured ) {
+			if ( null === $captured && $event instanceof BeforeGenerateResultEvent ) {
+				$captured = $event;
+			}
+		};
+
+		add_action( 'wp_ai_client_before_generate_result', $capture );
+		$result = $this->call_builder( 'generate_text_result', array() );
+		remove_action( 'wp_ai_client_before_generate_result', $capture );
+
+		if ( is_wp_error( $result ) ) {
+			return $result;
+		}
+
+		if ( null === $captured || ! $captured->getModel() instanceof TextGenerationModelInterface ) {
+			// Without the captured context the conversation cannot be continued.
+			return $this->to_generation_return_value( $result, $method );
+		}
+
+		$model      = $captured->getModel();
+		$capability = $captured->getCapability();
+		$transcript = $captured->getMessages();
+		$dispatcher = AiClient::getEventDispatcher();
+
+		/*
+		 * The allow-list for execution is derived from the function declarations
+		 * that were sent to the model. A response may name any function, so the
+		 * resolver enforces that only explicitly exposed abilities can run.
+		 */
+		$ability_names = array();
+		$declarations  = $model->getConfig()->getFunctionDeclarations() ?? array();
+		foreach ( $declarations as $declaration ) {
+			$function_name = $declaration->getName();
+			if ( WP_AI_Client_Ability_Function_Resolver::is_ability_function_name( $function_name ) ) {
+				$ability_names[] = WP_AI_Client_Ability_Function_Resolver::function_name_to_ability_name( $function_name );
+			}
+		}
+
+		if ( empty( $ability_names ) ) {
+			_doing_it_wrong(
+				__METHOD__,
+				sprintf(
+					/* translators: 1: using_ability_resolution, 2: using_abilities */
+					__( '%1$s requires abilities registered with %2$s.' ),
+					'<code>using_ability_resolution()</code>',
+					'<code>using_abilities()</code>'
+				),
+				'7.2.0'
+			);
+			return $this->to_generation_return_value( $result, $method );
+		}
+
+		$resolver = new WP_AI_Client_Ability_Function_Resolver( ...$ability_names );
+
+		$rounds         = 0;
+		$usage          = $result->getTokenUsage();
+		$resolved_calls = array();
+
+		while ( true ) {
+			$message = $result->toMessage();
+			$calls   = $this->get_function_calls( $message );
+
+			if ( empty( $calls ) ) {
+				$stop_reason = 'completed';
+				break;
+			}
+
+			$ability_calls = array_filter( $calls, array( $resolver, 'is_ability_call' ) );
+
+			if ( count( $ability_calls ) < count( $calls ) ) {
+				// The response requests functions that are not registered abilities.
+				// Hand the round back to the caller to resolve them.
+				$stop_reason = 'unresolved_function_calls';
+				break;
+			}
+
+			if ( $rounds >= $options['max_iterations'] ) {
+				$stop_reason = 'max_iterations';
+				break;
+			}
+
+			$prevented = $this->get_prompt_prevented_error();
+			if ( null !== $prevented ) {
+				$this->error = $prevented;
+				return $this->error;
+			}
+
+			$responses = $resolver->execute_abilities( $message );
+
+			foreach ( $ability_calls as $call ) {
+				$resolved_calls[] = array(
+					'id'      => $call->getId(),
+					'ability' => WP_AI_Client_Ability_Function_Resolver::function_name_to_ability_name( (string) $call->getName() ),
+				);
+			}
+
+			$transcript[] = $message;
+			$transcript[] = $responses;
+			++$rounds;
+
+			if ( null !== $dispatcher ) {
+				$dispatcher->dispatch( new BeforeGenerateResultEvent( $transcript, $model, $capability ) );
+			}
+
+			try {
+				$result = $model->generateTextResult( $transcript );
+			} catch ( Exception $e ) {
+				$this->error = $this->exception_to_wp_error( $e );
+				return $this->error;
+			}
+
+			if ( null !== $dispatcher ) {
+				$dispatcher->dispatch( new AfterGenerateResultEvent( $transcript, $model, $capability, $result ) );
+			}
+
+			$usage = $this->aggregate_token_usage( $usage, $result->getTokenUsage() );
+		}
+
+		return $this->finish_ability_resolution( $result, $method, $stop_reason, $rounds, $usage, $resolved_calls, $transcript );
+	}
+
+	/**
+	 * Converts a result into the return value of the called generation method.
+	 *
+	 * Used when the resolution loop exits early with a plain result, so that
+	 * generate_text() still returns a string or a WP_Error.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param GenerativeAiResult $result The result to convert.
+	 * @param string             $method Either 'generate_text_result' or 'generate_text'.
+	 * @return GenerativeAiResult|string|WP_Error The result, its text, or a WP_Error on failure.
+	 */
+	private function to_generation_return_value( GenerativeAiResult $result, string $method ) {
+		if ( 'generate_text' !== $method ) {
+			return $result;
+		}
+
+		try {
+			return $result->toText();
+		} catch ( Exception $e ) {
+			$this->error = $this->exception_to_wp_error( $e );
+			return $this->error;
+		}
+	}
+
+	/**
+	 * Retrieves the function calls contained in a message.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param Message $message The message to inspect.
+	 * @return FunctionCall[] The function calls in the message.
+	 */
+	private function get_function_calls( Message $message ): array {
+		$calls = array();
+
+		foreach ( $message->getParts() as $part ) {
+			if ( $part->getType()->isFunctionCall() ) {
+				$call = $part->getFunctionCall();
+				if ( $call instanceof FunctionCall ) {
+					$calls[] = $call;
+				}
+			}
+		}
+
+		return $calls;
+	}
+
+	/**
+	 * Adds up two token usage objects.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param TokenUsage $total    The running total.
+	 * @param TokenUsage $addition The usage to add.
+	 * @return TokenUsage The combined token usage.
+	 */
+	private function aggregate_token_usage( TokenUsage $total, TokenUsage $addition ): TokenUsage {
+		$thought_tokens = null;
+		if ( null !== $total->getThoughtTokens() || null !== $addition->getThoughtTokens() ) {
+			$thought_tokens = (int) $total->getThoughtTokens() + (int) $addition->getThoughtTokens();
+		}
+
+		return new TokenUsage(
+			$total->getPromptTokens() + $addition->getPromptTokens(),
+			$total->getCompletionTokens() + $addition->getCompletionTokens(),
+			$total->getTotalTokens() + $addition->getTotalTokens(),
+			$thought_tokens
+		);
+	}
+
+	/**
+	 * Builds the final value of an ability resolution loop.
+	 *
+	 * Rebuilds the result with the aggregated token usage and details about the
+	 * loop under the `ability_resolution` key of the additional data.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param GenerativeAiResult                          $result         The result of the last round.
+	 * @param string                                      $method         Either 'generate_text_result' or 'generate_text'.
+	 * @param string                                      $stop_reason    Why the loop ended. One of 'completed',
+	 *                                                                    'unresolved_function_calls', or 'max_iterations'.
+	 * @param int                                         $rounds         Number of resolution rounds that ran.
+	 * @param TokenUsage                                  $usage          Aggregated token usage across all rounds.
+	 * @param array<int, array{id: ?string, ability: string}> $resolved_calls The ability calls that were resolved.
+	 * @param Message[]                                   $transcript     The conversation before the final response.
+	 * @return GenerativeAiResult|string|WP_Error The final result or text, or a WP_Error on failure.
+	 */
+	private function finish_ability_resolution( GenerativeAiResult $result, string $method, string $stop_reason, int $rounds, TokenUsage $usage, array $resolved_calls, array $transcript ) {
+		$messages   = $transcript;
+		$messages[] = $result->toMessage();
+
+		$additional_data                       = $result->getAdditionalData();
+		$additional_data['ability_resolution'] = array(
+			'rounds'         => $rounds,
+			'stop_reason'    => $stop_reason,
+			'resolved_calls' => $resolved_calls,
+			'messages'       => array_map(
+				static function ( Message $message ) {
+					return $message->toArray();
+				},
+				$messages
+			),
+		);
+
+		$final = new GenerativeAiResult(
+			$result->getId(),
+			$result->getCandidates(),
+			$usage,
+			$result->getProviderMetadata(),
+			$result->getModelMetadata(),
+			$additional_data
+		);
+
+		if ( 'generate_text_result' === $method ) {
+			return $final;
+		}
+
+		// generate_text() returns the plain text of the final answer.
+		if ( 'completed' !== $stop_reason ) {
+			$this->error = new WP_Error(
+				'ability_resolution_incomplete',
+				__( 'The model did not produce a final answer within the ability resolution limits.' ),
+				array(
+					'status'      => 500,
+					'stop_reason' => $stop_reason,
+					'rounds'      => $rounds,
+				)
+			);
+			return $this->error;
+		}
+
+		return $this->to_generation_return_value( $final, $method );
 	}
 
 	/**

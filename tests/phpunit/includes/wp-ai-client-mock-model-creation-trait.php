@@ -224,6 +224,95 @@ trait WP_AI_Client_Mock_Model_Creation_Trait {
 	}
 
 	/**
+	 * Creates a mock text generation model that returns scripted consecutive results.
+	 *
+	 * Each generateTextResult() call returns the next result from the list and
+	 * records the message list it received in the referenced capture array.
+	 * When the results run out, the last result is returned again.
+	 *
+	 * @param array<int, GenerativeAiResult|Exception> $results          Scripted results or exceptions, in order.
+	 * @param array                                    $captured_prompts Receives the message list of each call.
+	 * @param ModelMetadata|null                       $metadata         Optional metadata.
+	 * @return ModelInterface&TextGenerationModelInterface The mock model.
+	 * @throws InvalidArgumentException If no results are provided.
+	 */
+	protected function create_scripted_text_generation_model(
+		array $results,
+		array &$captured_prompts,
+		?ModelMetadata $metadata = null
+	): ModelInterface {
+		if ( empty( $results ) ) {
+			throw new InvalidArgumentException( 'At least one scripted result is required.' );
+		}
+
+		$metadata = $metadata ?? $this->create_test_text_model_metadata();
+
+		$provider_metadata = new ProviderMetadata(
+			'mock',
+			'Mock Provider',
+			ProviderTypeEnum::cloud()
+		);
+
+		return new class( $metadata, $provider_metadata, $results, $captured_prompts ) implements ModelInterface, TextGenerationModelInterface {
+
+			private ModelMetadata $metadata;
+			private ProviderMetadata $provider_metadata;
+			private array $results;
+			private array $captured_prompts;
+			private ModelConfig $config;
+
+			public function __construct(
+				ModelMetadata $metadata,
+				ProviderMetadata $provider_metadata,
+				array $results,
+				array &$captured_prompts
+			) {
+				$this->metadata          = $metadata;
+				$this->provider_metadata = $provider_metadata;
+				$this->results           = $results;
+				$this->captured_prompts  = &$captured_prompts;
+				$this->config            = new ModelConfig();
+			}
+
+			public function metadata(): ModelMetadata {
+				return $this->metadata;
+			}
+
+			public function providerMetadata(): ProviderMetadata {
+				return $this->provider_metadata;
+			}
+
+			public function setConfig( ModelConfig $config ): void {
+				$this->config = $config;
+			}
+
+			public function getConfig(): ModelConfig {
+				return $this->config;
+			}
+
+			public function generateTextResult( array $prompt ): GenerativeAiResult {
+				$this->captured_prompts[] = $prompt;
+
+				if ( count( $this->results ) > 1 ) {
+					$result = array_shift( $this->results );
+				} else {
+					$result = $this->results[0];
+				}
+
+				if ( $result instanceof Exception ) {
+					throw $result;
+				}
+
+				return $result;
+			}
+
+			public function streamGenerateTextResult( array $prompt ): Generator {
+				yield $this->generateTextResult( $prompt );
+			}
+		};
+	}
+
+	/**
 	 * Creates a mock image generation model using anonymous class.
 	 *
 	 * @param GenerativeAiResult $result   The result to return from generation.
