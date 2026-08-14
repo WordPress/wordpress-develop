@@ -909,21 +909,6 @@ parameters:
 			count: 1
 			path: ../../../src/wp-includes/class-wp-site.php
 		-
-			message: '#^Parameter \#1 \$metadata of method WP_Theme_JSON\:\:get_feature_declarations_for_node\(\) expects object, array given\.$#'
-			identifier: argument.type
-			count: 4
-			path: ../../../src/wp-includes/class-wp-theme-json.php
-		-
-			message: '#^Parameter \#1 \$node of method WP_Theme_JSON\:\:process_pseudo_selectors\(\) expects array, object given\.$#'
-			identifier: argument.type
-			count: 2
-			path: ../../../src/wp-includes/class-wp-theme-json.php
-		-
-			message: '#^Parameter \#1 \$styles of static method WP_Theme_JSON\:\:compute_style_properties\(\) expects array, object given\.$#'
-			identifier: argument.type
-			count: 3
-			path: ../../../src/wp-includes/class-wp-theme-json.php
-		-
 			message: '#^Parameter \#2 \$data of method WP_Theme\:\:cache_add\(\) expects array\|string, int given\.$#'
 			identifier: argument.type
 			count: 1
