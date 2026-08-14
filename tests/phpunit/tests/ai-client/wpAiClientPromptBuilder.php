@@ -2614,6 +2614,75 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Returns the text of every message part held by a prompt builder.
+	 *
+	 * @param WP_AI_Client_Prompt_Builder $builder The prompt builder to read.
+	 * @return string[] The text of each message part, in order.
+	 */
+	private function get_prompt_parts( WP_AI_Client_Prompt_Builder $builder ): array {
+		$wrapped = new ReflectionProperty( WP_AI_Client_Prompt_Builder::class, 'builder' );
+		self::set_accessible( $wrapped );
+		$inner = $wrapped->getValue( $builder );
+
+		$messages = new ReflectionProperty( $inner, 'messages' );
+		self::set_accessible( $messages );
+
+		$parts = array();
+		foreach ( $messages->getValue( $inner ) as $message ) {
+			foreach ( $message->getParts() as $part ) {
+				$parts[] = (string) $part->getText();
+			}
+		}
+
+		return $parts;
+	}
+
+	/**
+	 * Tests that a clone does not share the wrapped builder with the original.
+	 *
+	 * @ticket 65782
+	 */
+	public function test_clone_does_not_share_the_wrapped_builder() {
+		$builder = new WP_AI_Client_Prompt_Builder( AiClient::defaultRegistry(), 'Original prompt' );
+		$clone   = clone $builder;
+
+		$wrapped = new ReflectionProperty( WP_AI_Client_Prompt_Builder::class, 'builder' );
+		self::set_accessible( $wrapped );
+
+		$this->assertNotSame(
+			$wrapped->getValue( $builder ),
+			$wrapped->getValue( $clone ),
+			'A clone should wrap its own builder instance'
+		);
+
+		$clone->with_text( 'Added to the clone' );
+
+		$this->assertSame( array( 'Original prompt' ), $this->get_prompt_parts( $builder ), 'Changing the clone should not change the original' );
+	}
+
+	/**
+	 * Tests that the clone passed to the prevent prompt filter cannot change the prompt.
+	 *
+	 * @ticket 65782
+	 */
+	public function test_prevent_prompt_filter_cannot_mutate_the_original_prompt() {
+		add_filter(
+			'wp_ai_client_prevent_prompt',
+			static function ( $prevent, $builder ) {
+				$builder->with_text( 'Added by the filter' );
+				return $prevent;
+			},
+			10,
+			2
+		);
+
+		$builder = new WP_AI_Client_Prompt_Builder( AiClient::defaultRegistry(), 'Original prompt' );
+		$builder->is_supported();
+
+		$this->assertSame( array( 'Original prompt' ), $this->get_prompt_parts( $builder ), 'A filter should not be able to change the prompt' );
+	}
+
+	/**
 	 * Tests that once in error state, subsequent fluent calls return the same instance.
 	 *
 	 * @ticket 64591
