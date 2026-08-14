@@ -181,7 +181,7 @@ if ( defined( 'WP_RUN_CORE_TESTS' ) && WP_RUN_CORE_TESTS ) {
 			'Error: The following required PHP extensions are missing from the testing environment: %s.' . PHP_EOL,
 			implode( ', ', $missing_extensions )
 		);
-		echo 'Please make sure they are installed and enabled.' . PHP_EOL,
+		echo 'Please make sure they are installed and enabled.' . PHP_EOL;
 		exit( 1 );
 	}
 }
