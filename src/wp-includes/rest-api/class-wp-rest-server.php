@@ -381,6 +381,9 @@ class WP_REST_Server {
 		$request->set_headers( $this->get_headers( wp_unslash( $_SERVER ) ) );
 		$request->set_body( self::get_raw_data() );
 
+		$embed = isset( $_GET['_embed'] ) ? rest_parse_embed_param( $_GET['_embed'] ) : false;
+		$request->set_embed( $embed );
+
 		/*
 		 * HTTP method override for clients that can't use PUT/PATCH/DELETE. First, we check
 		 * $_GET['_method']. If that is not set, we check for the HTTP_X_HTTP_METHOD_OVERRIDE
@@ -465,7 +468,6 @@ class WP_REST_Server {
 
 		// Wrap the response in an envelope if asked for.
 		if ( isset( $_GET['_envelope'] ) ) {
-			$embed  = isset( $_GET['_embed'] ) ? rest_parse_embed_param( $_GET['_embed'] ) : false;
 			$result = $this->envelope_response( $result, $embed );
 		}
 
@@ -521,7 +523,6 @@ class WP_REST_Server {
 			}
 
 			// Embed links inside the request.
-			$embed  = isset( $_GET['_embed'] ) ? rest_parse_embed_param( $_GET['_embed'] ) : false;
 			$result = $this->response_to_data( $result, $embed );
 
 			/**
@@ -1756,6 +1757,8 @@ class WP_REST_Server {
 				$query_args = array();
 				wp_parse_str( $parsed_url['query'], $query_args );
 				$single_request->set_query_params( $query_args );
+				$embed = isset( $query_params['_embed'] ) ? rest_parse_embed_param( $query_params['_embed'] ) : false;
+				$single_request->set_embed( $embed );
 			}
 
 			if ( ! empty( $args['body'] ) ) {
