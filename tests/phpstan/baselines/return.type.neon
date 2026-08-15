@@ -149,11 +149,6 @@ parameters:
 			count: 2
 			path: ../../../src/wp-includes/revision.php
 		-
-			message: '#^Function term_exists\(\) should return array\{term_id\: numeric\-string, term_taxonomy_id\: numeric\-string\}\|int\|null but returns string\.$#'
-			identifier: return.type
-			count: 1
-			path: ../../../src/wp-includes/taxonomy.php
-		-
 			message: '#^Function _wp_get_current_user\(\) should return WP_User but returns null\.$#'
 			identifier: return.type
 			count: 2
