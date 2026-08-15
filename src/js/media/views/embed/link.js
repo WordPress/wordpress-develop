@@ -56,7 +56,8 @@ EmbedLink = wp.media.view.Settings.extend(/** @lends wp.media.view.EmbedLink.pro
 		}
 
 		this.dfd = wp.apiRequest({
-			url: wp.media.view.settings.oEmbedProxyUrl,
+			namespace: 'oembed/1.0',
+			endpoint: 'proxy',
 			data: {
 				url: url,
 				maxwidth: this.model.get( 'width' ),

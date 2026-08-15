@@ -117,7 +117,8 @@
 			}
 
 			control.fetchEmbedDfd = wp.apiRequest({
-				url: wp.media.view.settings.oEmbedProxyUrl,
+				namespace: 'oembed/1.0',
+				endpoint: 'proxy',
 				data: {
 					url: control.model.get( 'url' ),
 					maxwidth: control.model.get( 'width' ),

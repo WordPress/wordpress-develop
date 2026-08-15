@@ -247,7 +247,8 @@ wp.mediaWidgets = ( function( $ ) {
 						}
 
 						embedLinkView.dfd = wp.apiRequest({
-							url: wp.media.view.settings.oEmbedProxyUrl,
+							namespace: 'oembed/1.0',
+							endpoint: 'proxy',
 							data: {
 								url: url,
 								maxwidth: embedLinkView.model.get( 'width' ),
