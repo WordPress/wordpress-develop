@@ -236,6 +236,11 @@ body#tinymce.wp-editor.content blockquote {
 	padding: 0.25em 1em 0.25em 0;
 }
 
+body#tinymce.wp-editor.content blockquote.is-style-plain {
+	border-right: 0;
+	padding: 0.25em 0 0.25em 0;
+}
+
 body#tinymce.wp-editor.content blockquote p {
 	font-style: normal;
 	font-weight: 400;
