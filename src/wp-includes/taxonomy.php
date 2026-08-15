@@ -1950,6 +1950,7 @@ function sanitize_term_field( $field, $value, $term_id, $taxonomy, $context ) {
  *
  * @since 2.3.0
  * @since 5.6.0 Changed the function signature so that the `$args` array can be provided as the first parameter.
+ * @since 6.1.0 Added the `wp_count_terms` filter.
  *
  * @param array|string $args       Optional. Array or string of arguments. See WP_Term_Query::__construct()
  *                                 for information on accepted arguments. Default empty array.
@@ -1988,7 +1989,20 @@ function wp_count_terms( $args = array(), $deprecated = '' ) {
 
 	$args['fields'] = 'count';
 
-	return get_terms( $args );
+	$taxonomy = isset( $args['taxonomy'] ) ? $args['taxonomy'] : '';
+	$count    = get_terms( $args );
+
+	/**
+	 * Modifies returned term counts for a given taxonomy.
+	 *
+	 * @since 3.7.0
+	 *
+	 * @param int    $count    The number of terms retrieved.
+	 * @param string $taxonomy The taxonomy. Empty string if no taxonomy
+	 *                         was provided.
+	 * @param string $args     The arguments provided for get_terms().
+	 */
+	return apply_filters( 'wp_count_terms', $count, $taxonomy, $args );
 }
 
 /**
