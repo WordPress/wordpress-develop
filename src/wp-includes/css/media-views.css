@@ -1065,6 +1065,10 @@ select#media-attachment-filters ~ select#media-attachment-date-filters {
 	cursor: pointer;
 }
 
+.wp-core-ui .attachment-preview[data-dominant-color]:not(.has-transparency) {
+	background: var(--dominant-color);
+}
+
 .wp-core-ui .attachment-preview:before {
 	content: "";
 	display: block;
