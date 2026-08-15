@@ -46,7 +46,18 @@ jobs:
   determine-matrix:
     name: Determine Matrix
     runs-on: ubuntu-24.04
-    if: ${{ ( github.repository == 'WordPress/wordpress-develop' || ( github.event_name == 'pull_request' && github.actor != 'dependabot[bot]' ) ) && ! contains( github.event.before, '00000000' ) }}
+    if: |
+      (
+        github.repository == 'WordPress/wordpress-develop' || (
+          github.event_name == 'pull_request' &&
+          github.actor != 'dependabot[bot]' && (
+            ! github.event.repository.private ||
+            ! github.event.pull_request.draft ||
+            contains( github.event.pull_request.labels.*.name, 'Draft Workflow Runs' )
+          )
+        )
+      ) &&
+      ! contains( github.event.before, '00000000' )
     permissions:
       actions: read
     env:
