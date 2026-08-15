@@ -47,7 +47,14 @@ jobs:
     uses: WordPress/wordpress-develop/.github/workflows/reusable-coding-standards-php.yml@trunk
     permissions:
       contents: read
-    if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
+    if: |
+      github.repository == 'WordPress/wordpress-develop' || (
+        github.event_name == 'pull_request' && (
+          ! github.event.repository.private ||
+          ! github.event.pull_request.draft ||
+          contains( github.event.pull_request.labels.*.name, 'Draft Workflow Runs' )
+        )
+      )
     with:
       php-version: '7.3'
       old-branch: true
@@ -58,7 +65,14 @@ jobs:
     uses: WordPress/wordpress-develop/.github/workflows/reusable-coding-standards-javascript.yml@trunk
     permissions:
       contents: read
-    if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
+    if: |
+      github.repository == 'WordPress/wordpress-develop' || (
+        github.event_name == 'pull_request' && (
+          ! github.event.repository.private ||
+          ! github.event.pull_request.draft ||
+          contains( github.event.pull_request.labels.*.name, 'Draft Workflow Runs' )
+        )
+      )
 
   slack-notifications:
     name: Slack Notifications
