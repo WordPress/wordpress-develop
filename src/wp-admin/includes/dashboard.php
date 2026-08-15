@@ -676,6 +676,15 @@ function wp_dashboard_recent_drafts( $drafts = false ) {
 	/* translators: Maximum number of words used in a preview of a draft on the dashboard. */
 	$draft_length = (int) _x( '10', 'draft_length' );
 
+	/**
+	 * Filters the maximum number of words used in a preview of a draft on the dashboard.
+	 *
+	 * @since 7.0.1
+	 *
+	 * @param int $draft_length Maximum number of words used in a preview.
+	 */
+	$draft_length = (int) apply_filters( 'dashboard_recent_drafts_word_length', $draft_length );
+
 	$drafts = array_slice( $drafts, 0, 3 );
 	foreach ( $drafts as $draft ) {
 		$url   = get_edit_post_link( $draft->ID );
