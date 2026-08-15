@@ -49,11 +49,6 @@ parameters:
 			count: 1
 			path: ../../../src/wp-includes/class-wp-block-processor.php
 		-
-			message: '#^Method WP_Block_Type\:\:__get\(\) should return array\<string\>\|string\|null but returns array\<array\>\.$#'
-			identifier: return.type
-			count: 1
-			path: ../../../src/wp-includes/class-wp-block-type.php
-		-
 			message: '#^Method WP_Image_Editor_Imagick\:\:set_imagick_time_limit\(\) should return int\|null but returns float\.$#'
 			identifier: return.type
 			count: 1
