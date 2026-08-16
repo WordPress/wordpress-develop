@@ -62,8 +62,6 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		self::delete_user( self::$admin_id );
 		self::delete_user( self::$subscriber_id );
 		unregister_block_type( 'fake/test' );
-		unregister_block_type( 'fake/invalid' );
-		unregister_block_type( 'fake/false' );
 	}
 
 	/**
@@ -138,6 +136,7 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		wp_set_current_user( self::$admin_id );
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/block-types/' . $block_name );
 		$response = rest_get_server()->dispatch( $request );
+		unregister_block_type( $block_name );
 		$data     = $response->get_data();
 		$this->assertSameSets( array( $block_styles ), $data['styles'] );
 	}
@@ -166,6 +165,7 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		wp_set_current_user( self::$admin_id );
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/block-types/' . $block_name );
 		$response = rest_get_server()->dispatch( $request );
+		unregister_block_type( $block_name );
 		$data     = $response->get_data();
 		$expected = array(
 			array(
@@ -232,6 +232,7 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		wp_set_current_user( self::$admin_id );
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/block-types/' . $block_type );
 		$response = rest_get_server()->dispatch( $request );
+		unregister_block_type( $block_type );
 		$data     = $response->get_data();
 		$this->assertSame( $block_type, $data['name'] );
 		$this->assertSame( '1', $data['title'] );
@@ -311,6 +312,7 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		wp_set_current_user( self::$admin_id );
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/block-types/' . $block_type );
 		$response = rest_get_server()->dispatch( $request );
+		unregister_block_type( $block_type );
 		$data     = $response->get_data();
 		$this->assertSame( $block_type, $data['name'] );
 		$this->assertSame( '', $data['title'] );
@@ -368,6 +370,7 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		wp_set_current_user( self::$admin_id );
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/block-types/' . $block_type );
 		$response = rest_get_server()->dispatch( $request );
+		unregister_block_type( $block_type );
 		$data     = $response->get_data();
 		$this->assertSameSets(
 			array( 'hello_world' ),
@@ -438,6 +441,7 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		wp_set_current_user( self::$admin_id );
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/block-types/' . $block_type );
 		$response = rest_get_server()->dispatch( $request );
+		unregister_block_type( $block_type );
 		$data     = $response->get_data();
 		$this->assertSameSets(
 			$settings['editor_script'],
@@ -525,6 +529,7 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		wp_set_current_user( self::$admin_id );
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/block-types/' . $block_type );
 		$response = rest_get_server()->dispatch( $request );
+		unregister_block_type( $block_type );
 		$data     = $response->get_data();
 		$this->assertSame( $block_type, $data['name'] );
 		$this->assertArrayHasKey( 'variations', $data );
@@ -868,6 +873,7 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		wp_set_current_user( self::$admin_id );
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/block-types/' . $block_type );
 		$response = rest_get_server()->dispatch( $request );
+		unregister_block_type( $block_type );
 		$data     = $response->get_data();
 		$this->assertSameSets( $this->mock_variation_callback(), $data['variations'] );
 	}
