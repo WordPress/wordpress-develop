@@ -66,8 +66,8 @@ class Admin_Includes_Dashboard_WpDashboardRecentNotesRow_Test extends WP_UnitTes
 				'comment_post_ID'  => self::$post_id,
 				'comment_type'     => 'note',
 				'comment_content'  => 'A note.',
-				// Notes are stored approved; resolution is tracked in comment meta.
-				'comment_approved' => '1',
+				// A note is created on hold, and is approved once it is resolved.
+				'comment_approved' => '0',
 				'comment_date'     => $date,
 				'comment_date_gmt' => get_gmt_from_date( $date ),
 			)
@@ -177,7 +177,7 @@ class Admin_Includes_Dashboard_WpDashboardRecentNotesRow_Test extends WP_UnitTes
 			array(
 				'comment_post_ID'  => $post_id,
 				'comment_type'     => 'note',
-				'comment_approved' => '1',
+				'comment_approved' => '0',
 			)
 		);
 
@@ -206,7 +206,7 @@ class Admin_Includes_Dashboard_WpDashboardRecentNotesRow_Test extends WP_UnitTes
 			array(
 				'comment_post_ID'  => $post_id,
 				'comment_type'     => 'note',
-				'comment_approved' => '1',
+				'comment_approved' => '0',
 			)
 		);
 
