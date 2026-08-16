@@ -112,7 +112,8 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Run SASS precommit tasks
+      - name: Run CSS precommit tasks
+        if: ${{ inputs.directory == 'src' }}
         run: npm run grunt precommit:css
 
       - name: Ensure certificates files are updated
