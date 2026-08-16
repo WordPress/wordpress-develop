@@ -164,7 +164,7 @@ class Walker {
 			unset( $children_elements[ $id ] );
 		}
 
-		if ( isset( $newlevel ) && $newlevel ) {
+		if ( isset( $newlevel ) ) {
 			// End the child delimiter.
 			$this->end_lvl( $output, $depth, ...array_values( $args ) );
 		}
