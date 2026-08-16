@@ -2599,14 +2599,18 @@ function _wp_resolve_dependency_urls( $dependencies, string $handle ): array {
 }
 
 /**
- * Prints preload links on the login screen for the admin assets that concatenation would bundle.
+ * Prints prefetch links on the login screen for the admin assets that concatenation would bundle.
  *
  * With concatenation disabled the first admin screen after logging in downloads each of these
  * files separately, which is what makes an uncached admin load slower than a concatenated one.
- * Requesting them while the login form is on screen puts them in the HTTP cache during time the
- * user spends typing credentials, so the redirect that follows finds them already there.
+ * Requesting them while the login form is on screen puts them in the HTTP cache during the time
+ * the user spends typing credentials, so the redirect that follows finds them already there.
  *
- * The links carry `fetchpriority="low"` so they queue behind the login screen's own
+ * These are resources for the *next* navigation rather than for the login screen itself, which is
+ * what `rel="prefetch"` describes. `rel="preload"` would fetch them at the current document's
+ * priority and make cross-navigation reuse depend entirely on the static files' HTTP cache headers,
+ * which core does not control; browsers also warn about preloaded resources the document never uses.
+ * The links additionally carry `fetchpriority="low"` so they queue behind the login screen's own
  * render-blocking assets rather than competing with them.
  *
  * Nothing is printed when concatenation is enabled, since `load-scripts.php` and
@@ -2616,7 +2620,7 @@ function _wp_resolve_dependency_urls( $dependencies, string $handle ): array {
  *
  * @see wp_preload_resources()
  */
-function wp_preload_admin_assets(): void {
+function wp_prefetch_admin_assets(): void {
 	/*
 	 * Deliberately not the $concatenate_scripts global: script_concat_settings() often runs on a
 	 * login request before 'login_init' fires — anything registering a script on 'init' is enough
@@ -2683,7 +2687,7 @@ function wp_preload_admin_assets(): void {
 		foreach ( $handles as $handle ) {
 			/*
 			 * The login screen shares a handful of these handles and has already printed them by
-			 * the time this runs, so the browser is fetching them anyway. Preloading them again
+			 * the time this runs, so the browser is fetching them anyway. Prefetching them again
 			 * would only add markup.
 			 */
 			if ( in_array( $handle, $dependencies->done, true ) ) {
@@ -2701,24 +2705,24 @@ function wp_preload_admin_assets(): void {
 	}
 
 	/**
-	 * Filters the admin assets preloaded on the login screen.
+	 * Filters the admin assets prefetched on the login screen.
 	 *
-	 * Accepts the same resource attributes as the {@see 'wp_preload_resources'} filter.
-	 * Returning an empty array turns the preloading off.
+	 * Only the `href`, `as` and `fetchpriority` attributes below are printed; any other key is
+	 * ignored. Returning an empty array turns the prefetching off.
 	 *
 	 * @since 7.2.0
 	 *
 	 * @param array $resources {
-	 *     Resources to preload, keyed by URL.
+	 *     Resources to prefetch, keyed by URL.
 	 *
 	 *     @type array ...$0 {
-	 *         @type string $href          URL to preload.
+	 *         @type string $href          URL to prefetch.
 	 *         @type string $as            How the browser should treat the resource.
 	 *         @type string $fetchpriority Fetchpriority value for the resource.
 	 *     }
 	 * }
 	 */
-	$resources = apply_filters( 'login_preload_admin_assets', $resources );
+	$resources = apply_filters( 'login_prefetch_admin_assets', $resources );
 
 	if ( ! is_array( $resources ) ) {
 		return;
@@ -2742,7 +2746,7 @@ function wp_preload_admin_assets(): void {
 		}
 
 		printf(
-			"<link rel='preload' href='%s' as='%s' fetchpriority='%s' />\n",
+			"<link rel='prefetch' href='%s' as='%s' fetchpriority='%s' />\n",
 			esc_url( $href ),
 			esc_attr( $as ),
 			esc_attr( $fetchpriority )
