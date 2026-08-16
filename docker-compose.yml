@@ -88,6 +88,7 @@ services:
       timeout: 5s
       interval: 5s
       retries: 10
+      start_period: 60s
 
   ##
   # The WP CLI container.

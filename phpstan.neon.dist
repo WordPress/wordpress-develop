@@ -14,15 +14,100 @@ includes:
 	# new strict rules.
 	- vendor/phpstan/phpstan-phpunit/extension.neon
 
-	# The baseline file includes preexisting errors in the codebase that should be ignored.
+	# Preexisting errors that should be ignored, one baseline per error identifier
+	# so that the remaining work on each is visible as a single shrinking file.
+	# Each is meant to reach zero and be deleted, taking its line below with it.
 	# https://phpstan.org/user-guide/baseline
-	- tests/phpstan/baseline.php
+	#
+	# Regenerate with `composer phpstan:baselines`, which rewrites both the files
+	# and the list between the markers. Do not edit that list by hand.
+	# phpstan:baselines start
+	- tests/phpstan/baselines/argument.type.neon
+	- tests/phpstan/baselines/argument.unresolvableType.neon
+	- tests/phpstan/baselines/arguments.count.neon
+	- tests/phpstan/baselines/arrayValues.list.neon
+	- tests/phpstan/baselines/assign.propertyType.neon
+	- tests/phpstan/baselines/binaryOp.invalid.neon
+	- tests/phpstan/baselines/booleanAnd.alwaysFalse.neon
+	- tests/phpstan/baselines/booleanAnd.leftAlwaysTrue.neon
+	- tests/phpstan/baselines/booleanAnd.rightAlwaysTrue.neon
+	- tests/phpstan/baselines/booleanNot.alwaysFalse.neon
+	- tests/phpstan/baselines/booleanNot.alwaysTrue.neon
+	- tests/phpstan/baselines/booleanOr.alwaysFalse.neon
+	- tests/phpstan/baselines/booleanOr.alwaysTrue.neon
+	- tests/phpstan/baselines/booleanOr.rightAlwaysTrue.neon
+	- tests/phpstan/baselines/catch.neverThrown.neon
+	- tests/phpstan/baselines/class.notFound.neon
+	- tests/phpstan/baselines/deadCode.unreachable.neon
+	- tests/phpstan/baselines/empty.offset.neon
+	- tests/phpstan/baselines/empty.property.neon
+	- tests/phpstan/baselines/empty.variable.neon
+	- tests/phpstan/baselines/encapsedStringPart.nonString.neon
+	- tests/phpstan/baselines/foreach.nonIterable.neon
+	- tests/phpstan/baselines/function.alreadyNarrowedType.neon
+	- tests/phpstan/baselines/function.impossibleType.neon
+	- tests/phpstan/baselines/function.resultUnused.neon
+	- tests/phpstan/baselines/greater.invalid.neon
+	- tests/phpstan/baselines/greaterOrEqual.alwaysTrue.neon
+	- tests/phpstan/baselines/identical.alwaysFalse.neon
+	- tests/phpstan/baselines/identical.alwaysTrue.neon
+	- tests/phpstan/baselines/if.alwaysFalse.neon
+	- tests/phpstan/baselines/if.alwaysTrue.neon
+	- tests/phpstan/baselines/instanceof.alwaysTrue.neon
+	- tests/phpstan/baselines/isset.offset.neon
+	- tests/phpstan/baselines/isset.property.neon
+	- tests/phpstan/baselines/isset.variable.neon
+	- tests/phpstan/baselines/method.childParameterType.neon
+	- tests/phpstan/baselines/method.nonObject.neon
+	- tests/phpstan/baselines/method.notFound.neon
+	- tests/phpstan/baselines/method.unused.neon
+	- tests/phpstan/baselines/notIdentical.alwaysTrue.neon
+	- tests/phpstan/baselines/nullCoalesce.offset.neon
+	- tests/phpstan/baselines/nullCoalesce.property.neon
+	- tests/phpstan/baselines/offsetAccess.nonOffsetAccessible.neon
+	- tests/phpstan/baselines/offsetAccess.notFound.neon
+	- tests/phpstan/baselines/offsetAssign.valueType.neon
+	- tests/phpstan/baselines/parameter.defaultValue.neon
+	- tests/phpstan/baselines/parameter.notFound.neon
+	- tests/phpstan/baselines/parameter.phpDocType.neon
+	- tests/phpstan/baselines/parameterByRef.type.neon
+	- tests/phpstan/baselines/parameterByRef.unusedType.neon
+	- tests/phpstan/baselines/property.defaultValue.neon
+	- tests/phpstan/baselines/property.nonObject.neon
+	- tests/phpstan/baselines/property.notFound.neon
+	- tests/phpstan/baselines/property.onlyWritten.neon
+	- tests/phpstan/baselines/property.phpDocType.neon
+	- tests/phpstan/baselines/property.private.neon
+	- tests/phpstan/baselines/property.protected.neon
+	- tests/phpstan/baselines/return.empty.neon
+	- tests/phpstan/baselines/return.missing.neon
+	- tests/phpstan/baselines/return.type.neon
+	- tests/phpstan/baselines/return.unusedType.neon
+	- tests/phpstan/baselines/smallerOrEqual.alwaysTrue.neon
+	- tests/phpstan/baselines/staticClassAccess.privateMethod.neon
+	- tests/phpstan/baselines/ternary.alwaysTrue.neon
+	- tests/phpstan/baselines/varTag.noVariable.neon
+	- tests/phpstan/baselines/variable.undefined.neon
+	- tests/phpstan/baselines/while.alwaysFalse.neon
+	- tests/phpstan/baselines/while.alwaysTrue.neon
+	# phpstan:baselines end
 
 parameters:
 	# https://phpstan.org/user-guide/rule-levels
-	level: 0
+	level: 5
 	reportUnmatchedIgnoredErrors: true
 
+	# The following ignored errors are not intended to be fixed, as distinct from the baselines
+	# included above.
+	#
+	# A baseline records work still to be done. Every entry in one is in scope to be fixed, and
+	# each file is meant to reach zero and then be deleted. An entry here is the opposite: a
+	# decision that the code is right as written and the report is not actionable, whether
+	# because PHPStan cannot see what makes the code safe, or because satisfying it would mean
+	# changing code that has no other reason to change.
+	#
+	# So prefer fixing an error, and baseline it when it cannot be fixed yet. Add it here only
+	# when it should never be fixed, and say why.
 	ignoreErrors:
 		# Level 0:
 		- # Inner functions aren't supported by PHPStan.
@@ -40,6 +125,7 @@ parameters:
 			identifier: function.inner
 			path: src/wp-includes/canonical.php
 			count: 1
+
 		# Level 2:
 		# ValueError is PHP 8.0+; core throws it conditionally so the docblocks are correct for WP's 7.4+ range,
 		# but bleedingEdge's version-aware check treats the class as non-existent against the PHP 7.4 floor.

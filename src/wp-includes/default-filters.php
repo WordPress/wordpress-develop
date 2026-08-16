@@ -87,17 +87,6 @@ foreach ( array(
 	add_filter( $filter, 'wp_filter_kses' );
 }
 
-// Email addresses: Allow unicode if and only if as the database can
-// store them. This affects all addresses, including those entered
-// into contact forms.
-if ( 'utf8mb4' === $wpdb->charset ) {
-	add_filter( 'is_email', 'wp_is_unicode_email', 10, 3 );
-	add_filter( 'sanitize_email', 'wp_sanitize_unicode_email', 10, 3 );
-} else {
-	add_filter( 'is_email', 'wp_is_ascii_email', 10, 3 );
-	add_filter( 'sanitize_email', 'wp_sanitize_ascii_email', 10, 3 );
-}
-
 // Display URL.
 foreach ( array( 'user_url', 'link_url', 'link_image', 'link_rss', 'comment_url', 'post_guid' ) as $filter ) {
 	if ( is_admin() ) {
@@ -321,6 +310,11 @@ add_filter( 'sanitize_title', 'sanitize_title_with_dashes', 10, 3 );
 add_action( 'check_comment_flood', 'check_comment_flood_db', 10, 4 );
 add_filter( 'comment_flood_filter', 'wp_throttle_comment_flood', 10, 3 );
 add_filter( 'pre_comment_content', 'wp_rel_ugc', 15 );
+
+// Note mention chips in comment content: allow `span` through comment kses,
+// then reduce its classes to the mention tokens right after `wp_filter_kses`.
+add_filter( 'wp_kses_allowed_html', '_wp_kses_allow_note_mention_span', 10, 2 );
+add_filter( 'pre_comment_content', '_wp_kses_sanitize_note_mention_classes', 11 );
 add_filter( 'comment_email', 'antispambot' );
 add_filter( 'option_tag_base', '_wp_filter_taxonomy_base' );
 add_filter( 'option_category_base', '_wp_filter_taxonomy_base' );
@@ -542,6 +536,7 @@ add_action( 'wp_update_comment_type_batch', '_wp_batch_update_comment_type' );
 add_action( 'comment_post', 'wp_new_comment_notify_moderator' );
 add_action( 'comment_post', 'wp_new_comment_notify_postauthor' );
 add_action( 'rest_insert_comment', 'wp_new_comment_via_rest_notify_postauthor' );
+add_action( 'rest_insert_comment', 'wp_notify_note_mentions', 10, 3 );
 add_action( 'after_password_reset', 'wp_password_change_notification' );
 add_action( 'register_new_user', 'wp_send_new_user_notifications' );
 add_action( 'edit_user_created_user', 'wp_send_new_user_notifications', 10, 2 );
@@ -596,6 +591,7 @@ add_action( 'transition_post_status', '__clear_multi_author_cache' );
 add_action( 'init', 'create_initial_post_types', 0 ); // Highest priority.
 add_action( 'admin_menu', '_add_post_type_submenus' );
 add_action( 'before_delete_post', '_reset_front_page_settings_for_post' );
+add_action( 'before_delete_post', '_reset_privacy_policy_page_for_post' );
 add_action( 'wp_trash_post', '_reset_front_page_settings_for_post' );
 add_action( 'change_locale', 'create_initial_post_types' );
 
@@ -818,6 +814,10 @@ add_action( 'deleted_post', '_wp_after_delete_font_family', 10, 2 );
 add_action( 'before_delete_post', '_wp_before_delete_font_face', 10, 2 );
 add_action( 'init', '_wp_register_default_font_collections' );
 
+// Icons.
+add_action( 'init', '_wp_register_default_icon_collections', 0 );
+add_action( 'init', '_wp_register_default_icons' );
+
 // Add ignoredHookedBlocks metadata attribute to the template and template part post types.
 add_filter( 'rest_pre_insert_wp_template', 'inject_ignored_hooked_blocks_metadata_attributes' );
 add_filter( 'rest_pre_insert_wp_template_part', 'inject_ignored_hooked_blocks_metadata_attributes' );
@@ -828,8 +828,8 @@ foreach ( array( 'page', 'wp_block', 'wp_template_part', 'wp_template' ) as $pos
 	// callbacks registered at the default compose on top of them
 	// regardless of registration order.
 	add_filter(
-		"get_entity_view_config_postType_{$post_type}",
-		"_wp_get_entity_view_config_post_type_{$post_type}",
+		"get_entity_view_config_posttype_{$post_type}",
+		"_wp_get_entity_view_config_posttype_{$post_type}",
 		5
 	);
 }

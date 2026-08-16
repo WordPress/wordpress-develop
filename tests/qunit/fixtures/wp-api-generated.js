@@ -3705,8 +3705,11 @@ mockedApiResponse.Schema = {
                                 "array"
                             ],
                             "items": {
-                                "type": "string"
+                                "type": "string",
+                                "minLength": 1
                             },
+                            "minItems": 1,
+                            "minLength": 1,
                             "required": true
                         },
                         "convert_format": {
@@ -3739,6 +3742,7 @@ mockedApiResponse.Schema = {
                             "description": "Array of sub-size metadata collected from sideload responses.",
                             "type": "array",
                             "default": [],
+                            "maxItems": 100,
                             "items": {
                                 "type": "object",
                                 "properties": {
@@ -3749,8 +3753,11 @@ mockedApiResponse.Schema = {
                                             "array"
                                         ],
                                         "items": {
-                                            "type": "string"
+                                            "type": "string",
+                                            "minLength": 1
                                         },
+                                        "minItems": 1,
+                                        "minLength": 1,
                                         "required": true
                                     },
                                     "width": {
@@ -3762,7 +3769,8 @@ mockedApiResponse.Schema = {
                                         "minimum": 1
                                     },
                                     "file": {
-                                        "type": "string"
+                                        "type": "string",
+                                        "minLength": 1
                                     },
                                     "mime_type": {
                                         "type": "string",
@@ -3773,7 +3781,8 @@ mockedApiResponse.Schema = {
                                         "minimum": 1
                                     },
                                     "original_image": {
-                                        "type": "string"
+                                        "type": "string",
+                                        "minLength": 1
                                     }
                                 }
                             },
@@ -12810,6 +12819,12 @@ mockedApiResponse.Schema = {
                             "description": "Limit results to those matching a string.",
                             "type": "string",
                             "required": false
+                        },
+                        "collection": {
+                            "description": "Limit results to icons belonging to the given collection slug.",
+                            "type": "string",
+                            "pattern": "^[a-z0-9]([a-z0-9_-]*[a-z0-9])?$",
+                            "required": false
                         }
                     }
                 }
@@ -12822,7 +12837,59 @@ mockedApiResponse.Schema = {
                 ]
             }
         },
-        "/wp/v2/icons/(?P<name>[a-z][a-z0-9-]*/[a-z][a-z0-9-]*)": {
+        "/wp/v2/icons/(?P<collection>[a-z0-9](?:[a-z0-9_-]*[a-z0-9])?)": {
+            "namespace": "wp/v2",
+            "methods": [
+                "GET"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": {
+                        "collection": {
+                            "description": "Limit results to icons belonging to the given collection slug.",
+                            "type": "string",
+                            "pattern": "^[a-z0-9]([a-z0-9_-]*[a-z0-9])?$",
+                            "required": false
+                        },
+                        "context": {
+                            "description": "Scope under which the request is made; determines fields present in response.",
+                            "type": "string",
+                            "enum": [
+                                "view",
+                                "embed",
+                                "edit"
+                            ],
+                            "default": "view",
+                            "required": false
+                        },
+                        "page": {
+                            "description": "Current page of the collection.",
+                            "type": "integer",
+                            "default": 1,
+                            "minimum": 1,
+                            "required": false
+                        },
+                        "per_page": {
+                            "description": "Maximum number of items to be returned in result set.",
+                            "type": "integer",
+                            "default": 10,
+                            "minimum": 1,
+                            "maximum": 100,
+                            "required": false
+                        },
+                        "search": {
+                            "description": "Limit results to those matching a string.",
+                            "type": "string",
+                            "required": false
+                        }
+                    }
+                }
+            ]
+        },
+        "/wp/v2/icons/(?P<name>[a-z0-9](?:[a-z0-9_-]*[a-z0-9])?/[a-z0-9](?:[a-z0-9_-]*[a-z0-9])?)": {
             "namespace": "wp/v2",
             "methods": [
                 "GET"
@@ -12835,6 +12902,90 @@ mockedApiResponse.Schema = {
                     "args": {
                         "name": {
                             "description": "Icon name.",
+                            "type": "string",
+                            "required": false
+                        },
+                        "context": {
+                            "description": "Scope under which the request is made; determines fields present in response.",
+                            "type": "string",
+                            "enum": [
+                                "view",
+                                "embed",
+                                "edit"
+                            ],
+                            "default": "view",
+                            "required": false
+                        }
+                    }
+                }
+            ]
+        },
+        "/wp/v2/icon-collections": {
+            "namespace": "wp/v2",
+            "methods": [
+                "GET"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": {
+                        "context": {
+                            "description": "Scope under which the request is made; determines fields present in response.",
+                            "type": "string",
+                            "enum": [
+                                "view",
+                                "embed",
+                                "edit"
+                            ],
+                            "default": "view",
+                            "required": false
+                        },
+                        "page": {
+                            "description": "Current page of the collection.",
+                            "type": "integer",
+                            "default": 1,
+                            "minimum": 1,
+                            "required": false
+                        },
+                        "per_page": {
+                            "description": "Maximum number of items to be returned in result set.",
+                            "type": "integer",
+                            "default": 10,
+                            "minimum": 1,
+                            "maximum": 100,
+                            "required": false
+                        },
+                        "search": {
+                            "description": "Limit results to those matching a string.",
+                            "type": "string",
+                            "required": false
+                        }
+                    }
+                }
+            ],
+            "_links": {
+                "self": [
+                    {
+                        "href": "http://example.org/index.php?rest_route=/wp/v2/icon-collections"
+                    }
+                ]
+            }
+        },
+        "/wp/v2/icon-collections/(?P<slug>[a-z0-9](?:[a-z0-9_-]*[a-z0-9])?)": {
+            "namespace": "wp/v2",
+            "methods": [
+                "GET"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": {
+                        "slug": {
+                            "description": "Icon collection slug.",
                             "type": "string",
                             "required": false
                         },
@@ -12919,6 +13070,8 @@ mockedApiResponse.Schema = {
         }
     },
     "image_size_threshold": 2560,
+    "image_strip_meta": true,
+    "image_max_bit_depth": 16,
     "site_logo": 0,
     "site_icon": 0,
     "site_icon_url": ""

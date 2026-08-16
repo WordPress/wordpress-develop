@@ -718,6 +718,7 @@ class WP_HTML_Tag_Processor {
 	 *
 	 * @since 6.2.0
 	 * @var WP_HTML_Attribute_Token[]
+	 * @phpstan-var array<non-empty-string, WP_HTML_Attribute_Token>
 	 */
 	private $attributes = array();
 
@@ -752,7 +753,7 @@ class WP_HTML_Tag_Processor {
 	 *     );
 	 *
 	 * @since 6.2.0
-	 * @var bool[]
+	 * @var array<non-empty-string, self::ADD_CLASS|self::REMOVE_CLASS>
 	 */
 	private $classname_updates = array();
 
@@ -809,7 +810,7 @@ class WP_HTML_Tag_Processor {
 	 *     );
 	 *
 	 * @since 6.2.0
-	 * @var WP_HTML_Text_Replacement[]
+	 * @var array<int|string, WP_HTML_Text_Replacement>
 	 */
 	protected $lexical_updates = array();
 
@@ -1177,14 +1178,20 @@ class WP_HTML_Tag_Processor {
 	 *
 	 * This generator function is designed to be used inside a "foreach" loop.
 	 *
-	 * Example:
-	 *
-	 *     $p = new WP_HTML_Tag_Processor( "<div class='free &lt;egg&lt;\tlang-en'>" );
-	 *     $p->next_tag();
-	 *     foreach ( $p->class_list() as $class_name ) {
-	 *         echo "{$class_name} ";
-	 *     }
-	 *     // Outputs: "free <egg> lang-en "
+	 * ```php interactive
+	 * <?php
+	 * require '/wordpress/wp-load.php';
+	 * $p = new WP_HTML_Tag_Processor( "<div class='free &lt;egg&gt;\tlang-en'>" );
+	 * $p->next_tag();
+	 * foreach ( $p->class_list() as $class_name ) {
+	 *   var_dump( $class_name );
+	 * }
+	 * ```
+	 * ```expected-output
+	 * string(4) "free"
+	 * string(5) "<egg>"
+	 * string(7) "lang-en"
+	 * ```
 	 *
 	 * @since 6.4.0
 	 *
@@ -1474,7 +1481,7 @@ class WP_HTML_Tag_Processor {
 			 * though "textarea" is found within the text.
 			 */
 			$c = $html[ $at ];
-			if ( ' ' !== $c && "\t" !== $c && "\r" !== $c && "\n" !== $c && '/' !== $c && '>' !== $c ) {
+			if ( ' ' !== $c && "\t" !== $c && "\f" !== $c && "\r" !== $c && "\n" !== $c && '/' !== $c && '>' !== $c ) {
 				continue;
 			}
 
@@ -1721,6 +1728,8 @@ class WP_HTML_Tag_Processor {
 	 * @ignore
 	 *
 	 * @return bool Whether a tag was found before the end of the document.
+	 *
+	 * @phpstan-impure
 	 */
 	private function parse_next_tag(): bool {
 		$this->after_tag();
@@ -2072,7 +2081,7 @@ class WP_HTML_Tag_Processor {
 				 */
 				$is_valid_pi = (
 					0 !== $target_length &&
-					false !== strpos( " \t\f\r\n?>", $html[ $target_at + $target_length ] ) &&
+					str_contains( " \t\f\r\n?>", $html[ $target_at + $target_length ] ) &&
 					! ( 3 === $target_length && 0 === substr_compare( $html, 'xml', $target_at, 3, true ) ) &&
 					! ( 14 === $target_length && 0 === substr_compare( $html, 'xml-stylesheet', $target_at, 14, true ) )
 				);
@@ -2957,6 +2966,7 @@ class WP_HTML_Tag_Processor {
 	 *
 	 * @param string $prefix Prefix of requested attribute names.
 	 * @return array|null List of attribute names, or `null` when no tag opener is matched.
+	 * @phpstan-return list<non-empty-string>|null
 	 */
 	public function get_attribute_names_with_prefix( $prefix ): ?array {
 		if (
@@ -2968,13 +2978,45 @@ class WP_HTML_Tag_Processor {
 
 		$comparable = strtolower( $prefix );
 
+		/*
+		 * For the `class` attribute, ensure that enqueued class changes from
+		 * `add_class` and `remove_class` are flushed into attribute updates.
+		 */
+		$has_class = isset( $this->attributes['class'] );
+		if ( '' === $comparable || str_starts_with( 'class', $comparable ) ) {
+			foreach ( $this->classname_updates as $update ) {
+				if (
+					( $has_class && self::REMOVE_CLASS === $update ) ||
+					( ! $has_class && self::ADD_CLASS === $update )
+				) {
+					$this->class_name_updates_to_attributes_updates();
+					break;
+				}
+			}
+		}
+
+		$additions = array();
+		$removals  = array();
+		foreach ( $this->lexical_updates as $update_name => $update ) {
+			if ( is_int( $update_name ) || 'modifiable text' === $update_name ) {
+				continue;
+			}
+
+			if ( '' === $update->text ) {
+				$removals[ $update_name ] = true;
+			} elseif ( ! isset( $this->attributes[ $update_name ] ) && str_starts_with( $update_name, $comparable ) ) {
+				$additions[] = $update_name;
+			}
+		}
+
 		$matches = array();
 		foreach ( array_keys( $this->attributes ) as $attr_name ) {
-			if ( str_starts_with( $attr_name, $comparable ) ) {
+			if ( str_starts_with( $attr_name, $comparable ) && ! isset( $removals[ $attr_name ] ) ) {
 				$matches[] = $attr_name;
 			}
 		}
-		return $matches;
+
+		return empty( $additions ) ? $matches : array_merge( $additions, $matches );
 	}
 
 	/**
@@ -4158,7 +4200,7 @@ class WP_HTML_Tag_Processor {
 
 		_doing_it_wrong(
 			__METHOD__,
-			__( 'This tag does not support setting modifiable text.' ),
+			__( 'Only the IFRAME, NOEMBED, NOFRAMES, SCRIPT, STYLE, TEXTAREA, TITLE, and XMP tags support setting modifiable text.' ),
 			'7.1.0'
 		);
 		return false;

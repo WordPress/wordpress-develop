@@ -1445,11 +1445,7 @@ function get_status_header_desc( $code ) {
 		);
 	}
 
-	if ( isset( $wp_header_to_desc[ $code ] ) ) {
-		return $wp_header_to_desc[ $code ];
-	} else {
-		return '';
-	}
+	return $wp_header_to_desc[ $code ] ?? '';
 }
 
 /**
@@ -3639,24 +3635,29 @@ function wp_get_ext_types() {
  * Wrapper for PHP filesize with filters and casting the result as an integer.
  *
  * @since 6.0.0
+ * @since 7.1.0 The return value is now ensured to always be greater than or equal to zero.
  *
  * @link https://www.php.net/manual/en/function.filesize.php
  *
  * @param string $path Path to the file.
  * @return int The size of the file in bytes, or 0 in the event of an error.
+ * @phpstan-return non-negative-int
  */
-function wp_filesize( $path ) {
+function wp_filesize( $path ): int {
 	/**
 	 * Filters the result of wp_filesize() before the file_exists() PHP function is run.
 	 *
 	 * @since 6.0.0
+	 * @since 7.1.0 Negative values are now ignored, being treated the same as null. Numeric values are cast to integers.
 	 *
-	 * @param null|int $size The unfiltered value. Returning an int from the callback bypasses the filesize call.
+	 * @param null|int $size The unfiltered value. Returning a non-negative number from the callback bypasses the filesize call.
 	 * @param string   $path Path to the file.
 	 */
 	$size = apply_filters( 'pre_wp_filesize', null, $path );
-
-	if ( is_int( $size ) ) {
+	if ( is_numeric( $size ) ) {
+		$size = (int) $size;
+	}
+	if ( is_int( $size ) && $size >= 0 ) {
 		return $size;
 	}
 
@@ -3666,11 +3667,18 @@ function wp_filesize( $path ) {
 	 * Filters the size of the file.
 	 *
 	 * @since 6.0.0
+	 * @since 7.1.0 The return value is now always zero or greater. Numeric values are cast to integers.
 	 *
 	 * @param int    $size The result of PHP filesize on the file.
 	 * @param string $path Path to the file.
 	 */
-	return (int) apply_filters( 'wp_filesize', $size, $path );
+	$size = apply_filters( 'wp_filesize', $size, $path );
+	if ( is_numeric( $size ) ) {
+		$size = (int) $size;
+	} else {
+		$size = 0;
+	}
+	return max( 0, $size );
 }
 
 /**
@@ -5021,12 +5029,19 @@ function wp_parse_args( $args, $defaults = array() ) {
  *
  * @since 5.1.0
  *
- * @param array|string $input_list List of values.
- * @return array Array of values.
+ * @param mixed[]|string $input_list List of values.
+ * @return array Array of scalar values. A string is split into a list, while an array
+ *               keeps its keys, so the result is not necessarily a list.
+ * @phpstan-return (
+ *     $input_list is string ? list<string> : (
+ *         $input_list is array<string> ? array<string> : array<scalar>
+ *     )
+ * )
  */
-function wp_parse_list( $input_list ) {
+function wp_parse_list( $input_list ): array {
 	if ( ! is_array( $input_list ) ) {
-		return preg_split( '/[\s,]+/', $input_list, -1, PREG_SPLIT_NO_EMPTY );
+		$parsed_list = preg_split( '/[\s,]+/', $input_list, -1, PREG_SPLIT_NO_EMPTY );
+		return is_array( $parsed_list ) ? $parsed_list : array();
 	}
 
 	// Validate all entries of the list are scalar.
@@ -5041,10 +5056,13 @@ function wp_parse_list( $input_list ) {
  * @since 3.0.0
  * @since 5.1.0 Refactored to use wp_parse_list().
  *
- * @param array|string $input_list List of IDs.
- * @return int[] Sanitized array of IDs.
+ * @param mixed[]|string $input_list List of IDs.
+ * @return int[] Sanitized array of IDs. May include zero. Keys are preserved
+ *               from the input and `array_unique()` may leave gaps, so the
+ *               result is not necessarily a list.
+ * @phpstan-return array<non-negative-int>
  */
-function wp_parse_id_list( $input_list ) {
+function wp_parse_id_list( $input_list ): array {
 	$input_list = wp_parse_list( $input_list );
 
 	return array_unique( array_map( 'absint', $input_list ) );
@@ -5056,13 +5074,27 @@ function wp_parse_id_list( $input_list ) {
  * @since 4.7.0
  * @since 5.1.0 Refactored to use wp_parse_list().
  *
- * @param array|string $input_list List of slugs.
- * @return string[] Sanitized array of slugs.
+ * @param mixed[]|string $input_list List of slugs.
+ * @return string[] Sanitized array of slugs. May include an empty string. Keys
+ *                  are preserved from the input and `array_unique()` may leave
+ *                  gaps, so the result is not necessarily a list.
  */
-function wp_parse_slug_list( $input_list ) {
+function wp_parse_slug_list( $input_list ): array {
 	$input_list = wp_parse_list( $input_list );
 
-	return array_unique( array_map( 'sanitize_title', $input_list ) );
+	return array_unique(
+		array_map(
+			'sanitize_title',
+			array_map(
+				/*
+				 * Cast booleans, integers, and floats to strings. Non-scalar types
+				 * (including null) have already been filtered out by wp_parse_list().
+				 */
+				'strval',
+				$input_list
+			)
+		)
+	);
 }
 
 /**
@@ -7031,7 +7063,7 @@ function get_file_data( $file, $default_headers, $context = '' ) {
 	}
 
 	foreach ( $all_headers as $field => $regex ) {
-		if ( preg_match( '/^(?:[ \t]*<\?php)?[ \t\/*#@]*' . preg_quote( $regex, '/' ) . ':(.*)$/mi', $file_data, $match ) && $match[1] ) {
+		if ( preg_match( '/^(?:[ \t]*<\?(?:php)?)?[ \t\/*#@]*' . preg_quote( $regex, '/' ) . ':(.*)$/mi', $file_data, $match ) && $match[1] ) {
 			$all_headers[ $field ] = _cleanup_header_comment( $match[1] );
 		} else {
 			$all_headers[ $field ] = '';

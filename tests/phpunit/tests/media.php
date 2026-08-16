@@ -668,6 +668,315 @@ https://w.org</a>',
 	}
 
 	/**
+	 * Tests that an unusable `full` entry in the `sizes` metadata is skipped.
+	 *
+	 * Attachments that are not images, such as PDFs, are handled by a separate branch that reads
+	 * the `full` entry of the `sizes` metadata directly. That entry is not guaranteed to be there,
+	 * nor to carry dimensions when it is, and reading it unconditionally raises "Undefined array
+	 * key" warnings.
+	 *
+	 * @ticket 65748
+	 *
+	 * @dataProvider data_wp_prepare_attachment_for_js_unusable_full_size
+	 *
+	 * @covers ::wp_prepare_attachment_for_js
+	 *
+	 * @param array<string, mixed> $sizes Value to store as the `sizes` metadata.
+	 */
+	public function test_wp_prepare_attachment_for_js_with_an_unusable_full_size( array $sizes ) {
+		$id = $this->create_pdf_attachment( $sizes );
+
+		$prepped = wp_prepare_attachment_for_js( $id );
+
+		$this->assertIsArray( $prepped );
+		$this->assertArrayHasKey( 'sizes', $prepped );
+
+		$sizes = $prepped['sizes'];
+
+		$this->assertIsArray( $sizes );
+		$this->assertArrayNotHasKey( 'full', $sizes, 'An unusable `full` size should not have been exposed.' );
+	}
+
+	/**
+	 * Tests that a usable `full` entry in the `sizes` metadata is still exposed.
+	 *
+	 * @ticket 65748
+	 *
+	 * @covers ::wp_prepare_attachment_for_js
+	 */
+	public function test_wp_prepare_attachment_for_js_with_a_usable_full_size() {
+		$id = $this->create_pdf_attachment(
+			array(
+				'full' => array(
+					'file'      => 'test-document-pdf.jpg',
+					'width'     => 232,
+					'height'    => 300,
+					'mime-type' => 'image/jpeg',
+				),
+			)
+		);
+
+		$prepped = wp_prepare_attachment_for_js( $id );
+
+		$this->assertIsArray( $prepped );
+		$this->assertArrayHasKey( 'sizes', $prepped );
+
+		$sizes = $prepped['sizes'];
+
+		$this->assertIsArray( $sizes );
+		$this->assertArrayHasKey( 'full', $sizes, 'A usable `full` size should have been exposed.' );
+
+		$full = $sizes['full'];
+
+		$this->assertIsArray( $full );
+		$this->assertSame( 232, $full['width'] );
+		$this->assertSame( 300, $full['height'] );
+		$this->assertSame( 'portrait', $full['orientation'] );
+		$this->assertIsString( $full['url'] );
+		$this->assertStringEndsWith( '/test-document-pdf.jpg', $full['url'] );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<non-empty-string, array{ 0: array<string, mixed> }>
+	 */
+	public function data_wp_prepare_attachment_for_js_unusable_full_size(): array {
+		return array(
+			'no full size'            => array(
+				array(
+					'thumbnail' => array(
+						'file'      => 'test-document-pdf-116x150.jpg',
+						'width'     => 116,
+						'height'    => 150,
+						'mime-type' => 'image/jpeg',
+					),
+				),
+			),
+			'full without dimensions' => array(
+				array(
+					'full' => array(
+						'file'      => 'test-document-pdf.jpg',
+						'mime-type' => 'image/jpeg',
+					),
+				),
+			),
+			'full without a height'   => array(
+				array(
+					'full' => array(
+						'file'      => 'test-document-pdf.jpg',
+						'width'     => 232,
+						'mime-type' => 'image/jpeg',
+					),
+				),
+			),
+			'full with an empty file' => array(
+				array(
+					'full' => array(
+						'file'      => '',
+						'width'     => 232,
+						'height'    => 300,
+						'mime-type' => 'image/jpeg',
+					),
+				),
+			),
+		);
+	}
+
+	/**
+	 * Creates a PDF attachment carrying the given `sizes` metadata.
+	 *
+	 * A PDF is used so that wp_prepare_attachment_for_js() takes the branch for attachments that
+	 * are not images, which is the one that reads the `full` entry of the `sizes` metadata.
+	 *
+	 * @param array<string, mixed> $sizes Value to store as the `sizes` metadata.
+	 * @return int Attachment ID.
+	 */
+	private function create_pdf_attachment( array $sizes ): int {
+		$id = wp_insert_attachment(
+			array(
+				'post_title'     => 'Attachment Title',
+				'post_type'      => 'attachment',
+				'post_parent'    => 0,
+				'post_mime_type' => 'application/pdf',
+				'guid'           => home_url( '/wp-content/uploads/test-document.pdf' ),
+			)
+		);
+
+		wp_update_attachment_metadata(
+			$id,
+			array(
+				'file'  => 'test-document.pdf',
+				'sizes' => $sizes,
+			)
+		);
+
+		return $id;
+	}
+
+	/**
+	 * Tests that a `filesize` stored in the attachment metadata is normalized to a positive integer.
+	 *
+	 * When the stored value cannot be normalized, it should be treated as missing so that the
+	 * filesystem fallback runs instead.
+	 *
+	 * @ticket 65686
+	 *
+	 * @dataProvider data_wp_prepare_attachment_for_js_filesize
+	 *
+	 * @param mixed            $filesize The `filesize` value stored in the attachment metadata.
+	 * @param int<0, max>|null $expected The expected `filesizeInBytes` value, or null if it should not be set.
+	 */
+	public function test_wp_prepare_attachment_for_js_filesize( $filesize, ?int $expected ) {
+		$id = self::factory()->attachment->create_object(
+			array(
+				'file'           => 'test-image.jpg',
+				'post_title'     => 'Attachment Title',
+				'post_parent'    => 0,
+				'post_mime_type' => 'image/jpeg',
+			)
+		);
+		$this->assertIsInt( $id );
+
+		wp_update_attachment_metadata(
+			$id,
+			array(
+				'width'    => 50,
+				'height'   => 50,
+				'file'     => 'test-image.jpg',
+				'filesize' => $filesize,
+			)
+		);
+
+		$post = get_post( $id );
+		$this->assertInstanceOf( WP_Post::class, $post );
+		$prepped = wp_prepare_attachment_for_js( $post );
+		$this->assertIsArray( $prepped );
+
+		if ( null === $expected ) {
+			$this->assertArrayNotHasKey( 'filesizeInBytes', $prepped, 'The filesize should not have been set.' );
+			$this->assertArrayNotHasKey( 'filesizeHumanReadable', $prepped, 'The human readable filesize should not have been set.' );
+		} else {
+			$this->assertSame( $expected, $prepped['filesizeInBytes'], 'The filesize was not normalized to an integer.' );
+			$this->assertSame( size_format( $expected ), $prepped['filesizeHumanReadable'], 'The human readable filesize did not match the normalized filesize.' );
+		}
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<non-falsy-string, array{ filesize: mixed, expected: int<0, max>|null }>
+	 */
+	public function data_wp_prepare_attachment_for_js_filesize(): array {
+		return array(
+			'an integer'                  => array(
+				'filesize' => 12345,
+				'expected' => 12345,
+			),
+			'a numeric string'            => array(
+				'filesize' => '12345',
+				'expected' => 12345,
+			),
+			'a float'                     => array(
+				'filesize' => 12345.6,
+				'expected' => 12345,
+			),
+			'a float as a string'         => array(
+				'filesize' => '12345.6',
+				'expected' => 12345,
+			),
+			'an exponential string'       => array(
+				'filesize' => '1e3',
+				'expected' => 1000,
+			),
+			'a value smaller than a byte' => array(
+				'filesize' => 0.5,
+				'expected' => null,
+			),
+			'zero'                        => array(
+				'filesize' => 0,
+				'expected' => null,
+			),
+			'a negative integer'          => array(
+				'filesize' => -12345,
+				'expected' => null,
+			),
+			'an empty string'             => array(
+				'filesize' => '',
+				'expected' => null,
+			),
+			'a non-numeric string'        => array(
+				'filesize' => 'not-a-number',
+				'expected' => null,
+			),
+			'an array'                    => array(
+				'filesize' => array( 12345 ),
+				'expected' => null,
+			),
+			'null'                        => array(
+				'filesize' => null,
+				'expected' => null,
+			),
+			'false'                       => array(
+				'filesize' => false,
+				'expected' => null,
+			),
+			'true'                        => array(
+				'filesize' => true,
+				'expected' => null,
+			),
+		);
+	}
+
+	/**
+	 * Tests that an unusable `filesize` in the attachment metadata falls back to the size of the file.
+	 *
+	 * @ticket 65686
+	 *
+	 * @dataProvider data_wp_prepare_attachment_for_js_filesize_falls_back_to_the_file
+	 *
+	 * @param mixed $filesize The `filesize` value stored in the attachment metadata.
+	 */
+	public function test_wp_prepare_attachment_for_js_filesize_falls_back_to_the_file( $filesize ) {
+		$id = self::factory()->attachment->create_upload_object( DIR_TESTDATA . '/images/canola.jpg' );
+		$this->assertIsInt( $id );
+		$post = get_post( $id );
+		$this->assertInstanceOf( WP_Post::class, $post );
+		$file = get_attached_file( $id );
+		$this->assertIsString( $file );
+
+		$meta = wp_get_attachment_metadata( $id );
+		$this->assertIsArray( $meta );
+		$meta['filesize'] = $filesize;
+		wp_update_attachment_metadata( $id, $meta );
+
+		$prepped = wp_prepare_attachment_for_js( $post );
+		$this->assertIsArray( $prepped );
+		$this->assertArrayHasKey( 'filesizeInBytes', $prepped );
+
+		$this->assertSame( wp_filesize( $file ), $prepped['filesizeInBytes'] );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<non-falsy-string, array{ filesize: mixed }>
+	 */
+	public function data_wp_prepare_attachment_for_js_filesize_falls_back_to_the_file(): array {
+		return array(
+			'a value smaller than a byte' => array( 'filesize' => 0.5 ),
+			'zero'                        => array( 'filesize' => 0 ),
+			'a negative integer'          => array( 'filesize' => -12345 ),
+			'an empty string'             => array( 'filesize' => '' ),
+			'a non-numeric string'        => array( 'filesize' => 'not-a-number' ),
+			'an array'                    => array( 'filesize' => array( 12345 ) ),
+			'null'                        => array( 'filesize' => null ),
+			'false'                       => array( 'filesize' => false ),
+			'true'                        => array( 'filesize' => true ),
+		);
+	}
+
+	/**
 	 * @ticket 19067
 	 * @expectedDeprecated wp_convert_bytes_to_hr
 	 */
@@ -3016,6 +3325,9 @@ EOF;
 	 *
 	 * @ticket 36246
 	 * @requires function imagejpeg
+	 *
+	 * @covers ::wp_get_attachment_image
+	 * @covers ::wp_get_attachment_metadata
 	 */
 	public function test_wp_get_attachment_image_should_use_wp_get_attachment_metadata() {
 		add_filter( 'wp_get_attachment_metadata', array( $this, 'filter_36246' ), 10, 2 );
