@@ -283,16 +283,23 @@ jobs:
             exit 1
           fi
           COMMITTED_AT="$(git show -s "$GITHUB_SHA" --format='%cI')"
-          php tests/phpunit/prepare-timing-results.php \
-            tests/phpunit/build/logs/junit.xml \
-            trunk \
-            "$GITHUB_SHA" \
-            "$COMMITTED_AT" \
-            | curl --fail-with-body --silent --show-error \
-              --request POST \
-              --header 'Content-Type: application/json' \
-              --data-binary @- \
-              "https://codevitals.run/api/log?token=${CODEVITALS_PROJECT_TOKEN}"
+          RESPONSE="$(
+            php tests/phpunit/prepare-timing-results.php \
+              tests/phpunit/build/logs/junit.xml \
+              trunk \
+              "$GITHUB_SHA" \
+              "$COMMITTED_AT" \
+              | curl --fail-with-body --silent --show-error \
+                --request POST \
+                --header 'Content-Type: application/json' \
+                --data-binary @- \
+                "https://codevitals.run/api/log?token=${CODEVITALS_PROJECT_TOKEN}"
+          )"
+          if ! jq --exit-status '.status == "ok" and .count == 6' <<< "$RESPONSE" > /dev/null; then
+            echo 'CodeVitals did not accept all six PHPUnit timing metrics.'
+            exit 1
+          fi
+          echo 'Published six PHPUnit timing metrics to CodeVitals.'
 
       - name: Run AJAX tests
         if: ${{ ! inputs.phpunit-test-groups && ! inputs.coverage-report }}
