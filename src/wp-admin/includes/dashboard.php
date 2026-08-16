@@ -959,73 +959,29 @@ function _wp_dashboard_recent_notes_row( &$comment, $show_date = true ) {
 
 			<?php
 			$comment_row_class = '';
+			$type = esc_html( ucwords( $comment->comment_type ) );
 			?>
-
-			<?php if ( ! $comment->comment_type || 'comment' === $comment->comment_type ) : ?>
-
-			<div class="dashboard-comment-wrap has-row-actions <?php echo $comment_row_class; ?>">
-			<p class="comment-meta">
-				<?php
-				//echo get_comment_date( $comment );
-				// notes always need a post to be attached to.  
-				if ( $comment_post_link ) {
-					printf(
-						/* translators: 1: Comment author, 2: Post link */
-						__( '%1$s - From %2$s on %3$s' ),
-						'' , //get_comment_date( $comment ),
-						'<cite class="comment-author">' . get_comment_author( $comment ) . '</cite>',
-						$comment_post_link
-					);
-				} else {
-					printf(
-						/* translators: 1: Comment author, 2: Notification if the comment is pending. */
-						__( 'From %1$s %2$s' ),
-						'<cite class="comment-author">' . get_comment_author( $comment ) . '</cite>',
-						'<span class="approve">' . __( '[Pending]' ) . '</span>'
-					);
-				}
-				?>
-			</p>
-
-				<?php
-			else :
-				switch ( $comment->comment_type ) {
-					case 'pingback':
-						$type = __( 'Pingback' );
-						break;
-					case 'trackback':
-						$type = __( 'Trackback' );
-						break;
-					default:
-						$type = ucwords( $comment->comment_type );
-				}
-				$type = esc_html( $type );
-				?>
 			<div class="dashboard-comment-wrap has-row-actions">
 			<p class="comment-meta">
 				<?php
+				echo get_comment_date( '', $comment );
 				// Pingbacks, Trackbacks or custom comment types might not have a post they relate to, e.g. programmatically created ones.
 				if ( $comment_post_link ) {
 					printf(
 						/* translators: 1: Type of comment, 2: Post link, 3: Notification if the comment is pending. */
-						_x( '%1$s on %2$s %3$s', 'dashboard' ),
-						"<strong>$type</strong>",
-						$comment_post_link,
-						'<span class="approve">' . __( '[Pending]' ) . '</span>'
+						_x( ' - From %1$s on %2$s', 'dashboard' ),
+						get_comment_author( $comment ),
+						$comment_post_link
 					);
 				} else {
 					printf(
 						/* translators: 1: Type of comment, 2: Notification if the comment is pending. */
-						_x( '%1$s %2$s', 'dashboard' ),
-						"<strong>$type</strong>",
-						'<span class="approve">' . __( '[Pending]' ) . '</span>'
+						_x( ' - From %1$s', 'dashboard' ),
+						get_comment_author( $comment )
 					);
 				}
 				?>
 			</p>
-			<p class="comment-author"><?php comment_author_link( $comment ); ?></p>
-
-			<?php endif; // comment_type ?>
 			<blockquote><p><?php comment_excerpt( $comment ); ?></p></blockquote>
 			</div>
 		</li>
